@@ -1,130 +1,102 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1] {net,IB}/{rxe,usnic}: Utilize generic mac to eui32 function
-Date: Fri,  3 Mar 2017 22:49:05 +0200
-Message-ID: <1488574145-27179-1-git-send-email-yuval.shaia@oracle.com>
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-core 06/14] i40iw: Get rid of unique barrier macros
+Date: Fri, 3 Mar 2017 15:45:14 -0600
+Message-ID: <20170303214514.GA12996@ssaleem-MOBL4.amr.corp.intel.com>
+References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1487272989-8215-7-git-send-email-jgunthorpe@obsidianresearch.com>
+ <20170301172920.GA11340@ssaleem-MOBL4.amr.corp.intel.com>
+ <20170301175521.GB14791@obsidianresearch.com>
+ <20170301221420.GA18548@ssaleem-MOBL4.amr.corp.intel.com>
+ <20170301230506.GB2820@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170301230506.GB2820-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This logic seems to be duplicated in (at least) three separate files.
-Move it to one place so code can be re-use.
+On Wed, Mar 01, 2017 at 04:05:06PM -0700, Jason Gunthorpe wrote:
+> On Wed, Mar 01, 2017 at 04:14:20PM -0600, Shiraz Saleem wrote:
+> > > Is there DMA occuring to shadow_area?
+> > 
+> > The shadow area contains status variables which are read by SW and 
+> > updated by PCI device.
+> 
+> So the device is DMA'ing to it, and the driver is reading DMA memory..
+> 
+> > > What can wrong if it executes like this?
+> > > 
+> > > get_64bit_val(qp->shadow_area, I40IW_BYTE_0, &temp);
+> > > udma_to_device_barrier(); /* make sure WQE is populated before valid bit is set */
+> > > set_64bit_val(wqe, I40IW_BYTE_24, header);
+> > > udma_to_device_barrier();
+> > 
+> > We need strict ordering that ensures write of the WQE completes before 
+> > read of the shadow area.
+> 
+> > This ensures the value read from the shadow can be used to determine
+> > if a DB ring is needed. If the shadow area is read first, the
+> > algorithm, in certain cases, would not ring the DB when it should
+> > and the HW may go idle with work requests posted.
+> 
+> This still is not making a lot of sense to me.. I really need to see a
+> ladder diagram to understand your case.
+> 
+> Here is an example, I think what you are saying is: The HW could have
+> fetched valid = 0 and stopped the queue and the driver needs to
+> doorbell it to wake it up again. However, the driver optimizes away
+> the doorbell rings in certain cases based on reading a DMA result.
+> 
+> So here is a possible ladder diagram:
+> 
+> CPU                         DMA DEVICE
+>                             Issue READ#1 of valid bit
+>  Respond to READ#1
+>  SFENCE
+>  set_valid_bit
+>  MEFENCE
+>  read_tail
+>                             Receive READ#1 response with valid bit unset
+> 			    Issue DMA WRITE to shadow_area indicating STOPPED
+>  DMA WRITE arrives
+> 
+> And the version where the DMA is seen:
+> 
+> CPU                         DMA DEVICE
+>                             Issue READ#1 of valid bit
+>  SFENCE
+>  Respond to READ#1
+>  set_valid_bit
+>  MEFENCE
+>                             Receive READ#1 response with valid bit unset
+> 			    Issue DMA WRITE to shadow_area indicating STOPPED
+>  DMA WRITE arrives
+>  read_tail
+> 
+> These diagrams attempt to show that the DMA device reads the valid bit
+> then DMA's back to the shadow_area depending on what it read.
 
-Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
-v0 -> v1:
-	* Add missing #include
-	* Rename to genaddrconf_ifid_eui48
----
- drivers/infiniband/hw/usnic/usnic_common_util.h | 11 +++--------
- drivers/infiniband/sw/rxe/rxe_net.c             | 11 ++---------
- include/net/addrconf.h                          | 18 ++++++++++++------
- 3 files changed, 17 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_common_util.h b/drivers/infiniband/hw/usnic/usnic_common_util.h
-index b54986d..09871da 100644
---- a/drivers/infiniband/hw/usnic/usnic_common_util.h
-+++ b/drivers/infiniband/hw/usnic/usnic_common_util.h
-@@ -34,6 +34,8 @@
- #ifndef USNIC_CMN_UTIL_H
- #define USNIC_CMN_UTIL_H
- 
-+#include <net/addrconf.h>
-+
- static inline void
- usnic_mac_to_gid(const char *const mac, char *raw_gid)
- {
-@@ -57,14 +59,7 @@
- 	raw_gid[1] = 0x80;
- 	memset(&raw_gid[2], 0, 2);
- 	memcpy(&raw_gid[4], &inaddr, 4);
--	raw_gid[8] = mac[0]^2;
--	raw_gid[9] = mac[1];
--	raw_gid[10] = mac[2];
--	raw_gid[11] = 0xff;
--	raw_gid[12] = 0xfe;
--	raw_gid[13] = mac[3];
--	raw_gid[14] = mac[4];
--	raw_gid[15] = mac[5];
-+	genaddrconf_ifid_eui48(&raw_gid[8], mac);
- }
- 
- static inline void
-diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-index 4abdeb3..23ba9e1 100644
---- a/drivers/infiniband/sw/rxe/rxe_net.c
-+++ b/drivers/infiniband/sw/rxe/rxe_net.c
-@@ -38,6 +38,7 @@
- #include <linux/if_vlan.h>
- #include <net/udp_tunnel.h>
- #include <net/sch_generic.h>
-+#include <net/addrconf.h>
- #include <linux/netfilter.h>
- #include <rdma/ib_addr.h>
- 
-@@ -86,18 +87,10 @@ struct rxe_dev *get_rxe_by_name(const char *name)
- 
- static __be64 rxe_mac_to_eui64(struct net_device *ndev)
- {
--	unsigned char *mac_addr = ndev->dev_addr;
- 	__be64 eui64;
- 	unsigned char *dst = (unsigned char *)&eui64;
- 
--	dst[0] = mac_addr[0] ^ 2;
--	dst[1] = mac_addr[1];
--	dst[2] = mac_addr[2];
--	dst[3] = 0xff;
--	dst[4] = 0xfe;
--	dst[5] = mac_addr[3];
--	dst[6] = mac_addr[4];
--	dst[7] = mac_addr[5];
-+	genaddrconf_ifid_eui48(dst, ndev->dev_addr);
- 
- 	return eui64;
- }
-diff --git a/include/net/addrconf.h b/include/net/addrconf.h
-index 8f998af..07d0341 100644
---- a/include/net/addrconf.h
-+++ b/include/net/addrconf.h
-@@ -105,12 +105,21 @@ int addrconf_prefix_rcv_add_addr(struct net *net, struct net_device *dev,
- 				 u32 addr_flags, bool sllao, bool tokenized,
- 				 __u32 valid_lft, u32 prefered_lft);
- 
-+static inline void genaddrconf_ifid_eui48(u8 *eui, const char *const addr)
-+{
-+	memcpy(eui, addr, 3);
-+	eui[0] ^= 2;
-+	eui[3] = 0xFF;
-+	eui[4] = 0xFE;
-+	memcpy(eui + 5, addr + 3, 3);
-+}
-+
- static inline int addrconf_ifid_eui48(u8 *eui, struct net_device *dev)
- {
- 	if (dev->addr_len != ETH_ALEN)
- 		return -1;
--	memcpy(eui, dev->dev_addr, 3);
--	memcpy(eui + 5, dev->dev_addr + 3, 3);
-+
-+	genaddrconf_ifid_eui48(eui, dev->dev_addr);
- 
- 	/*
- 	 * The zSeries OSA network cards can be shared among various
-@@ -128,11 +137,8 @@ static inline int addrconf_ifid_eui48(u8 *eui, struct net_device *dev)
- 	if (dev->dev_id) {
- 		eui[3] = (dev->dev_id >> 8) & 0xFF;
- 		eui[4] = dev->dev_id & 0xFF;
--	} else {
--		eui[3] = 0xFF;
--		eui[4] = 0xFE;
--		eui[0] ^= 2;
- 	}
-+
- 	return 0;
- }
- 
--- 
-1.8.3.1
+This is not quite how our DB logic works. There are additional HW steps and nuances 
+in the flow. Unfortunately, to explain this, we need to provide details of our internal 
+HW flow for the DB logic. We are unable to do so at this time.
+
+The ordering is a HW requirement. i.e write valid bit of WQE __must__ precede the read 
+tail of the shadow.
+
+> 
+> I get the feeling this approach requires MFENCE to do something it
+> doesn't...
+
+Mfence guarantees that load won't be reordered before the store, and thus 
+we are using it.
+
+We understand this is a unique requirement specific to our design but it is necessary.
+
+The rest of the changes look ok.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
