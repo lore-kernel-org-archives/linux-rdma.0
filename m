@@ -1,38 +1,68 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: v4.11 mlx5 regression
-Date: Sat, 4 Mar 2017 03:42:38 +0000
-Message-ID: <1488598944.2878.0.camel@sandisk.com>
-References: <alpine.LFD.2.20.1702272047120.2997@schleppi.fritz.box>
-         <1488233058.2597.1.camel@sandisk.com>
-         <alpine.LFD.2.20.1702280950380.2045@schleppi.fritz.box>
-         <1488300599.2370.5.camel@sandisk.com>
-         <VI1PR0502MB30082C037BEE60367954ED0FD1560@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-         <1488312028.2370.12.camel@sandisk.com>
-         <742435998.40235677.1488312819300.JavaMail.zimbra@redhat.com>
-         <VI1PR0502MB30087B8BB5E6733E92E96D62D1560@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-         <1488578667.25946.1.camel@sandisk.com>
-         <VI1PR0502MB30087231A9B791711F87ABC2D12A0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2 11/16] media: utilize new cdev_device_add helper
+ function
+Date: Sat, 4 Mar 2017 15:57:40 -0700
+Message-ID: <9941530f-c36a-3fa0-6f5b-87d779f5988c@deltatee.com>
+References: <1488091097-12328-1-git-send-email-logang@deltatee.com>
+ <1488091097-12328-12-git-send-email-logang@deltatee.com>
+ <8eff8408-1681-a59d-3b61-8fd5dab73af1@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR0502MB30087231A9B791711F87ABC2D12A0-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
-Content-ID: <0ED17578EDCBC6438F7ABB8F8B083067-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <8eff8408-1681-a59d-3b61-8fd5dab73af1-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Hans Verkuil <hansverk-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Sajjan Vikas C <vikas.cha.sajjan-ZPxbGqLxI0U@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Peter Huewe <peterhuewe-Mmb7MZpHnFY@public.gmane.org>, Marcel Selhorst <tpmdd-yWjUBOtONefk1uMJSBkQmQ@public.gmane.org>, Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Vyukov <dvyukov-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hans Verkuil <hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gU2F0LCAyMDE3LTAzLTA0IGF0IDAyOjQ1ICswMDAwLCBQYXJhdiBQYW5kaXQgd3JvdGU6DQo+
-ID4gRnJvbTogbGludXgtcmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1y
-ZG1hLQ0KPiA+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEJhcnQgVmFuIEFz
-c2NoZQ0KPiA+IA0KPiA+IElmIHNvLCBjYW4geW91IGNoZWNrIHdoZXRoZXIgdGhlIHBhdGNoIGJl
-bG93IG1ha2VzIHRoZSBtbHg1IGRyaXZlciAoYW5kIGFsbA0KPiA+IG90aGVyIFJETUENCj4gPiBk
-cml2ZXJzKSB3b3JrIGFnYWluIG9uIHlvdXIgdGVzdCBzZXR1cD8NCj4gDQo+IEkgdGVzdGVkIHRo
-aXMgcGF0Y2guIEl0IHdvcmtzIHdpdGggbWx4NSBkcml2ZXIuDQoNClRoYW5rcyBmb3IgdGhlIHRl
-c3RpbmchDQoNCkJhcnQu
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+On 27/02/17 02:02 AM, Hans Verkuil wrote:
+> FYI: this patch series didn't turn up at the linux-media mailinglist for
+> some reason.
+
+Strange my mail logs show success (see below) but none of the lists at
+vger.kernel.org picked up either v1 or v2. I don't know what to do about
+that. My previous other patch series doesn't have an issue and I'm using
+the exact same setup. Maybe I'm sending to too many lists at once with
+this series? I'm not really sure.
+
+Logan
+
+
+2017-02-25 23:40:37 1chsTZ-0004fx-8Y => linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+R=dnslookup T=remote_smtp H=vger.kernel.org [209.132.180.67] C="250
+2.7.1 Looks like Linux source DIFF email.. BF:<H 0>; S1751779AbdBZGki"
+2017-02-25 23:40:37 1chsTZ-0004fx-8Y -> linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+R=dnslookup T=remote_smtp H=vger.kernel.org [209.132.180.67] C="250
+2.7.1 Looks like Linux source DIFF email.. BF:<H 0>; S1751779AbdBZGki"
+2017-02-25 23:40:37 1chsTZ-0004fx-8Y -> linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+R=dnslookup T=remote_smtp H=vger.kernel.org [209.132.180.67] C="250
+2.7.1 Looks like Linux source DIFF email.. BF:<H 0>; S1751779AbdBZGki"
+2017-02-25 23:40:37 1chsTZ-0004fx-8Y -> linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+R=dnslookup T=remote_smtp H=vger.kernel.org [209.132.180.67] C="250
+2.7.1 Looks like Linux source DIFF email.. BF:<H 0>; S1751779AbdBZGki"
+2017-02-25 23:40:37 1chsTZ-0004fx-8Y -> linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+R=dnslookup T=remote_smtp H=vger.kernel.org [209.132.180.67] C="250
+2.7.1 Looks like Linux source DIFF email.. BF:<H 0>; S1751779AbdBZGki"
+2017-02-25 23:40:37 1chsTZ-0004fx-8Y -> linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+R=dnslookup T=remote_smtp H=vger.kernel.org [209.132.180.67] C="250
+2.7.1 Looks like Linux source DIFF email.. BF:<H 0>; S1751779AbdBZGki"
+2017-02-25 23:40:37 1chsTZ-0004fx-8Y -> linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+R=dnslookup T=remote_smtp H=vger.kernel.org [209.132.180.67] C="250
+2.7.1 Looks like Linux source DIFF email.. BF:<H 0>; S1751779AbdBZGki"
+2017-02-25 23:40:37 1chsTZ-0004fx-8Y -> linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+R=dnslookup T=remote_smtp H=vger.kernel.org [209.132.180.67] C="250
+2.7.1 Looks like Linux source DIFF email.. BF:<H 0>; S1751779AbdBZGki"
+2017-02-25 23:40:37 1chsTZ-0004fx-8Y -> linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+R=dnslookup T=remote_smtp H=vger.kernel.org [209.132.180.67] C="250
+2.7.1 Looks like Linux source DIFF email.. BF:<H 0>; S1751779AbdBZGki"
