@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 3/5] mlx5: Report CQE compression capabilities through mlx5 direct verbs
-Date: Mon,  6 Mar 2017 16:06:42 +0200
-Message-ID: <1488809204-30428-4-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 4/5] verbs: Add an option to provide vendor private data when creating a CQ
+Date: Mon,  6 Mar 2017 16:06:43 +0200
+Message-ID: <1488809204-30428-5-git-send-email-yishaih@mellanox.com>
 References: <1488809204-30428-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1488809204-30428-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,135 +12,83 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Report max number of compressed and aggregated CQEs in a single
-merged CQE and the formats of mini CQE supported for responder.
+This patch drops the need to extend the verbs layer each time with
+some non generic fields when creating a CQ. It adds an option to set
+some opaque vendor data in some generic way which can fit any vendor.
+
+The solution introduced for creating a CQ but expects to fit for
+other IB objects as of QP, SRQ, etc.
+
+It comes as a pre-patch for supplying some private mlx5 fields in
+downstream patches.
+
+The solution:
+1) Introduce a new comp_mask bit (i.e. IBV_CQ_INIT_ATTR_MASK_VENDOR_DATA)
+   and a matching void* vendor data field.
+
+2) Vendor should expose its header file for direct access with
+   relevant private structures.
+
+3) Application should supply the input based on vendor-defined structure.
+
+4) Upon getting the private data the vendor will cast to its internal
+   structure and use the data as part of CQ creation.
+
+Note:
+The format of the input is vendor specific and should be defined in an
+extended way to support backward/forward compatibility. (e.g. by using
+comp_mask, etc.)
 
 Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx5/mlx5-abi.h |  3 ++-
- providers/mlx5/mlx5.c     |  9 ++++++++-
- providers/mlx5/mlx5.h     |  1 +
- providers/mlx5/mlx5dv.h   | 17 +++++++++++++++++
- providers/mlx5/verbs.c    |  2 ++
- 5 files changed, 30 insertions(+), 2 deletions(-)
+ libibverbs/man/ibv_create_cq_ex.3 | 2 ++
+ libibverbs/verbs.h                | 5 ++++-
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/providers/mlx5/mlx5-abi.h b/providers/mlx5/mlx5-abi.h
-index 9a484b3..b07067b 100644
---- a/providers/mlx5/mlx5-abi.h
-+++ b/providers/mlx5/mlx5-abi.h
-@@ -34,6 +34,7 @@
- #define MLX5_ABI_H
- 
- #include <infiniband/kern-abi.h>
-+#include "mlx5dv.h"
- 
- #define MLX5_UVERBS_MIN_ABI_VERSION	1
- #define MLX5_UVERBS_MAX_ABI_VERSION	1
-@@ -274,7 +275,7 @@ struct mlx5_query_device_ex_resp {
- 	__u32				response_length;
- 	struct ibv_tso_caps		tso_caps;
- 	struct mlx5_rss_caps            rss_caps; /* vendor data channel */
--	__u64				reserved_cqe_comp;
-+	struct mlx5dv_cqe_comp_caps	cqe_comp_caps;
- 	struct mlx5_packet_pacing_caps	packet_pacing_caps;
- 	__u32				support_multi_pkt_send_wqe;
- 	__u32				reserved;
-diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
-index b7d737d..3c32e59 100644
---- a/providers/mlx5/mlx5.c
-+++ b/providers/mlx5/mlx5.c
-@@ -613,8 +613,8 @@ int mlx5dv_query_device(struct ibv_context *ctx_in,
- 			 struct mlx5dv_context *attrs_out)
- {
- 	struct mlx5_context *mctx = to_mctx(ctx_in);
-+	uint64_t comp_mask_out = 0;
- 
--	attrs_out->comp_mask = 0;
- 	attrs_out->version   = 0;
- 	attrs_out->flags     = 0;
- 
-@@ -624,6 +624,13 @@ int mlx5dv_query_device(struct ibv_context *ctx_in,
- 	if (mctx->vendor_cap_flags & MLX5_VENDOR_CAP_FLAGS_MPW)
- 		attrs_out->flags |= MLX5DV_CONTEXT_FLAGS_MPW;
- 
-+	if (attrs_out->comp_mask & MLX5DV_CONTEXT_MASK_CQE_COMPRESION) {
-+		attrs_out->cqe_comp_caps = mctx->cqe_comp_caps;
-+		comp_mask_out |= MLX5DV_CONTEXT_MASK_CQE_COMPRESION;
-+	}
-+
-+	attrs_out->comp_mask = comp_mask_out;
-+
- 	return 0;
- }
- 
-diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
-index 86f2438..bb383d4 100644
---- a/providers/mlx5/mlx5.h
-+++ b/providers/mlx5/mlx5.h
-@@ -263,6 +263,7 @@ struct mlx5_context {
- 	int				cmds_supp_uhw;
- 	uint32_t			uar_size;
- 	uint64_t			vendor_cap_flags; /* Use enum mlx5_vendor_cap_flags */
-+	struct mlx5dv_cqe_comp_caps	cqe_comp_caps;
+diff --git a/libibverbs/man/ibv_create_cq_ex.3 b/libibverbs/man/ibv_create_cq_ex.3
+index a6ae769..2a1bc92 100644
+--- a/libibverbs/man/ibv_create_cq_ex.3
++++ b/libibverbs/man/ibv_create_cq_ex.3
+@@ -28,6 +28,7 @@ struct ibv_comp_channel *channel;          /* Completion channel where completio
+ int                     comp_vector;       /* Completion vector used to signal completion events. Must be >= 0 and < context->num_comp_vectors. */
+ uint64_t                wc_flags;          /* The wc_flags that should be returned in ibv_poll_cq_ex. Or'ed bit of enum ibv_wc_flags_ex. */
+ uint32_t                comp_mask;         /* compatibility mask (extended verb). */
++void                    *vendor_data;      /* Vendor private data for creating a CQ. */
+ .in -8
  };
  
- struct mlx5_bitmap {
-diff --git a/providers/mlx5/mlx5dv.h b/providers/mlx5/mlx5dv.h
-index a04583d..9f30e6e 100644
---- a/providers/mlx5/mlx5dv.h
-+++ b/providers/mlx5/mlx5dv.h
-@@ -58,6 +58,16 @@ enum {
- 	MLX5_SND_DBR	= 1,
+@@ -44,6 +45,7 @@ enum ibv_wc_flags_ex {
+ 
+ enum ibv_cq_init_attr_mask {
+         IBV_CQ_INIT_ATTR_MASK_FLAGS             = 1 << 0,
++	IBV_CQ_INIT_ATTR_MASK_VENDOR_DATA       = 1 << 1,
  };
  
-+enum mlx5dv_context_comp_mask {
-+	MLX5DV_CONTEXT_MASK_CQE_COMPRESION	= 1 << 0,
-+	MLX5DV_CONTEXT_MASK_RESERVED		= 1 << 1,
-+};
-+
-+struct mlx5dv_cqe_comp_caps {
-+	uint32_t max_num;
-+	uint32_t supported_format; /* enum mlx5dv_cqe_comp_res_format */
-+};
-+
- /*
-  * Direct verbs device-specific attributes
-  */
-@@ -65,6 +75,7 @@ struct mlx5dv_context {
- 	uint8_t		version;
- 	uint64_t	flags;
- 	uint64_t	comp_mask;
-+	struct mlx5dv_cqe_comp_caps	cqe_comp_caps;
+ enum ibv_create_cq_attr_flags {
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index 25f4ede..2575e01 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -1399,7 +1399,8 @@ struct ibv_context {
+ 
+ enum ibv_cq_init_attr_mask {
+ 	IBV_CQ_INIT_ATTR_MASK_FLAGS	= 1 << 0,
+-	IBV_CQ_INIT_ATTR_MASK_RESERVED	= 1 << 1
++	IBV_CQ_INIT_ATTR_MASK_VENDOR_DATA = 1 << 1,
++	IBV_CQ_INIT_ATTR_MASK_RESERVED	= 1 << 2
  };
  
- enum mlx5dv_context_flags {
-@@ -281,6 +292,12 @@ struct mlx5_cqe64 {
- 	uint8_t		op_own;
+ enum ibv_create_cq_attr_flags {
+@@ -1430,6 +1431,8 @@ struct ibv_cq_init_attr_ex {
+ 	 * enum ibv_create_cq_attr_flags
+ 	 */
+ 	uint32_t		flags;
++	/* Vendor private data for creating a CQ */
++	void			*vendor_data;
  };
  
-+enum mlx5dv_cqe_comp_res_format {
-+	MLX5DV_CQE_RES_FORMAT_HASH		= 1 << 0,
-+	MLX5DV_CQE_RES_FORMAT_CSUM		= 1 << 1,
-+	MLX5DV_CQE_RES_FORMAT_RESERVED		= 1 << 2,
-+};
-+
- static MLX5DV_ALWAYS_INLINE
- uint8_t mlx5dv_get_cqe_owner(struct mlx5_cqe64 *cqe)
- {
-diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-index ff9220d..0e02772 100644
---- a/providers/mlx5/verbs.c
-+++ b/providers/mlx5/verbs.c
-@@ -1927,6 +1927,8 @@ int mlx5_query_device_ex(struct ibv_context *context,
- 	if (resp.support_multi_pkt_send_wqe)
- 		mctx->vendor_cap_flags |= MLX5_VENDOR_CAP_FLAGS_MPW;
- 
-+	mctx->cqe_comp_caps = resp.cqe_comp_caps;
-+
- 	major     = (raw_fw_ver >> 32) & 0xffff;
- 	minor     = (raw_fw_ver >> 16) & 0xffff;
- 	sub_minor = raw_fw_ver & 0xffff;
+ enum ibv_values_mask {
 -- 
 1.8.3.1
 
