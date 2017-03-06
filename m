@@ -1,77 +1,45 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: kernull NULL pointer observed on initiator side after 'nvmetcli
- clear' on target side
-Date: Mon, 6 Mar 2017 13:25:39 +0200
-Message-ID: <644fc4ab-df6b-a337-1431-bad881ef56ee@grimberg.me>
-References: <1053522223.31446389.1488721184925.JavaMail.zimbra@redhat.com>
+Subject: Re: WARNING on drivers/infiniband/core/verbs.c:1975
+ __ib_drain_sq+0x182/0x1c0 [ib_core]
+Date: Mon, 6 Mar 2017 13:42:36 +0200
+Message-ID: <3ce3cfdb-a452-ff0c-fa52-2ad0546c8b8f@grimberg.me>
+References: <1457714996.31424605.1488696068958.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1053522223.31446389.1488721184925.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1457714996.31424605.1488696068958.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: hch-jcswGhMUV9g@public.gmane.org
+To: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-> Hi experts
+> 2. Initiator side:
+> #nvme connect-all -t rdma -a 172.31.40.4 -s 1023
 >
-> If I offline one CPU on initiator side and nvmetcli clear on target side, it will cause kernel NULL pointer on initiator side, could you help check it, thanks
+> 3. check the kernel log on both target/initiator side.
 >
-> Steps to reproduce:
-> 1. setup nvmet target with null-blk device:
-> #modprobe nvmet
-> #modprobe nvmet-rdma
-> #modprobe null_blk nr_devices=1
-> #nvmetcli restore rdma.json
->
-> 2. connect the target on initiator side and offline one cpu:
-> #modprobe nvme-rdma
-> #nvme connect-all -t rdma -a 172.31.2.3 -s 1023
-> #echo 0 > /sys/devices/system/cpu/cpu1/online
->
-> 3. nvmetcli clear on target side
-> #nvmetcli clear
->
-> Kernel log:
->
-> [  125.039340] nvme nvme0: new ctrl: NQN "nqn.2014-08.org.nvmexpress.discovery", addr 172.31.2.3:1023
-> [  125.160587] nvme nvme0: creating 16 I/O queues.
-> [  125.602244] nvme nvme0: new ctrl: NQN "testnqn", addr 172.31.2.3:1023
-> [  140.930343] Broke affinity for irq 16
-> [  140.950295] Broke affinity for irq 28
-> [  140.969957] Broke affinity for irq 70
-> [  140.986584] Broke affinity for irq 90
-> [  141.003160] Broke affinity for irq 93
-> [  141.019779] Broke affinity for irq 97
-> [  141.036341] Broke affinity for irq 100
-> [  141.053782] Broke affinity for irq 104
-> [  141.072860] smpboot: CPU 1 is now offline
-> [  154.768104] nvme nvme0: reconnecting in 10 seconds
-> [  165.349689] BUG: unable to handle kernel NULL pointer dereference at           (null)
-> [  165.387783] IP: blk_mq_reinit_tagset+0x35/0x80
+> kernel log:
+> [  242.494533] ocrdma0:Using VLAN with PFC is recommended
+> [  242.520244] ocrdma0:Using VLAN 0 for this connection
+> [  242.652599] ocrdma0:Using VLAN with PFC is recommended
+> [  242.676365] ocrdma0:Using VLAN 0 for this connection
+> [  242.700476] ocrdma0:Using VLAN with PFC is recommended
+> [  242.723497] ocrdma0:Using VLAN 0 for this connection
+> [  242.812331] nvme nvme0: new ctrl: NQN "nqn.2014-08.org.nvmexpress.discovery", addr 172.31.40.4:1023
+> [  242.854149] ocrdma0:Using VLAN with PFC is recommended
+> [  242.854149] ocrdma0:Using VLAN 0 for this connection
+> [  242.854662] ------------[ cut here ]------------
+> [  242.854671] WARNING: CPU: 2 PID: 158 at drivers/infiniband/core/verbs.c:1975 __ib_drain_sq+0x182/0x1c0 [ib_core]
 
-Looks like blk_mq_reinit_tagset is not aware that tags can go away with
-cpu hotplug...
 
-Does this fix your issue:
---
-diff --git a/block/blk-mq-tag.c b/block/blk-mq-tag.c
-index e48bc2c72615..9d97bfc4d465 100644
---- a/block/blk-mq-tag.c
-+++ b/block/blk-mq-tag.c
-@@ -295,6 +295,9 @@ int blk_mq_reinit_tagset(struct blk_mq_tag_set *set)
-         for (i = 0; i < set->nr_hw_queues; i++) {
-                 struct blk_mq_tags *tags = set->tags[i];
 
-+               if (!tags)
-+                       continue;
-+
-                 for (j = 0; j < tags->nr_tags; j++) {
-                         if (!tags->static_rqs[j])
-                                 continue;
---
+I suspect that ib_drain_sq is not supported on ocrdma. From looking at
+the code it seems that ocrdma fails and send post when the qp is not
+in RTS. I think that if this is the case ocrdma needs to implement
+its own qp drain logic similar to cxgb4, ns, i40e etc.
+
+Devesh (CC'd), has anyone tested ib_drain_qp on ocrdma?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
