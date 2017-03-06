@@ -1,45 +1,59 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: WARNING on drivers/infiniband/core/verbs.c:1975
- __ib_drain_sq+0x182/0x1c0 [ib_core]
-Date: Mon, 6 Mar 2017 13:42:36 +0200
-Message-ID: <3ce3cfdb-a452-ff0c-fa52-2ad0546c8b8f@grimberg.me>
-References: <1457714996.31424605.1488696068958.JavaMail.zimbra@redhat.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1] {net,IB}/{rxe,usnic}: Utilize generic mac to eui32
+ function
+Date: Mon, 6 Mar 2017 13:54:02 +0200
+Message-ID: <20170306115401.GA5230@yuval-lap>
+References: <1488574145-27179-1-git-send-email-yuval.shaia@oracle.com>
+ <20170305074650.GH14379@mtr-leonro.local>
+ <20170305081244.GJ14379@mtr-leonro.local>
+ <20170305194919.GA2078@yuval-lap>
+ <20170306051529.GN14379@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1457714996.31424605.1488696068958.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170306051529.GN14379-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Devesh Sharma <Devesh.sharma-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+> > > > >
+> > > > >  	/*
+> > > > >  	 * The zSeries OSA network cards can be shared among various
+> > > > > @@ -128,11 +137,8 @@ static inline int addrconf_ifid_eui48(u8 *eui, struct net_device *dev)
+> > > > >  	if (dev->dev_id) {
+> > > > >  		eui[3] = (dev->dev_id >> 8) & 0xFF;
+> > > > >  		eui[4] = dev->dev_id & 0xFF;
+> > > > > -	} else {
+> > > > > -		eui[3] = 0xFF;
+> > > > > -		eui[4] = 0xFE;
+> > > > > -		eui[0] ^= 2;
+> > > >
+> > > > Sorry, but NAK.
+> > > > You missed the assignment below. In original code it WASN'T for dev->dev_id != NULL, and now it is.
+> > >
+> > > s/below/above
+> >
+> > I'm sorry but which assignment is missing? Default values for 0, 3 and 4
+> > are set in genaddrconf_ifid_eui48 then override here in case dev->dev_id is
+> > set.
+> 
+> Not really, in original code of addrconf_ifid_eui48(), the eui[0] is set
+> conditionally to be "eui[0] ^= 2" or stays without change. In your
+> proposed code, eui[0] will be always changed to be "eui[0] ^= 2".
 
-> 2. Initiator side:
-> #nvme connect-all -t rdma -a 172.31.40.4 -s 1023
->
-> 3. check the kernel log on both target/initiator side.
->
-> kernel log:
-> [  242.494533] ocrdma0:Using VLAN with PFC is recommended
-> [  242.520244] ocrdma0:Using VLAN 0 for this connection
-> [  242.652599] ocrdma0:Using VLAN with PFC is recommended
-> [  242.676365] ocrdma0:Using VLAN 0 for this connection
-> [  242.700476] ocrdma0:Using VLAN with PFC is recommended
-> [  242.723497] ocrdma0:Using VLAN 0 for this connection
-> [  242.812331] nvme nvme0: new ctrl: NQN "nqn.2014-08.org.nvmexpress.discovery", addr 172.31.40.4:1023
-> [  242.854149] ocrdma0:Using VLAN with PFC is recommended
-> [  242.854149] ocrdma0:Using VLAN 0 for this connection
-> [  242.854662] ------------[ cut here ]------------
-> [  242.854671] WARNING: CPU: 2 PID: 158 at drivers/infiniband/core/verbs.c:1975 __ib_drain_sq+0x182/0x1c0 [ib_core]
+Thanks!
+I was confused by the "missing", you should have used "extra assignment" or
+even "wrong extra assignment" in your first comment.
 
+Appreciate if you can review v2 which will reset eui[0] to default if
+dev_id is used.
 
+> 
+> 
+> >
 
-I suspect that ib_drain_sq is not supported on ocrdma. From looking at
-the code it seems that ocrdma fails and send post when the qp is not
-in RTS. I think that if this is the case ocrdma needs to implement
-its own qp drain logic similar to cxgb4, ns, i40e etc.
-
-Devesh (CC'd), has anyone tested ib_drain_qp on ocrdma?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
