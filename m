@@ -1,200 +1,128 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v1] {net,IB}/{rxe,usnic}: Utilize generic mac to eui32
- function
-Date: Mon, 6 Mar 2017 07:15:29 +0200
-Message-ID: <20170306051529.GN14379@mtr-leonro.local>
-References: <1488574145-27179-1-git-send-email-yuval.shaia@oracle.com>
- <20170305074650.GH14379@mtr-leonro.local>
- <20170305081244.GJ14379@mtr-leonro.local>
- <20170305194919.GA2078@yuval-lap>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v3 08/16] IB/ucm: utilize new cdev_device_add helper function
+Date: Mon,  6 Mar 2017 00:04:24 -0700
+Message-ID: <1488783873-2614-9-git-send-email-logang@deltatee.com>
+References: <1488783873-2614-1-git-send-email-logang@deltatee.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="hnsKUeImFCk/igEn"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170305194919.GA2078@yuval-lap>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <1488783873-2614-1-git-send-email-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Sajjan Vikas C <vikas.cha.sajjan-ZPxbGqLxI0U@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Peter Huewe <peterhuewe-Mmb7MZpHnFY@public.gmane.org>, Marcel Selhorst <tpmdd-yWjUBOtONefk1uMJSBkQmQ@public.gmane.org>, Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Vyukov <dvyukov-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
---hnsKUeImFCk/igEn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The use after free is not triggerable here because the cdev holds
+the module lock and the only device_unregister is only triggered by
+module unload, however make the change for consistency.
 
-On Sun, Mar 05, 2017 at 09:49:20PM +0200, Yuval Shaia wrote:
-> On Sun, Mar 05, 2017 at 10:12:44AM +0200, Leon Romanovsky wrote:
-> > On Sun, Mar 05, 2017 at 09:46:50AM +0200, Leon Romanovsky wrote:
-> > > On Fri, Mar 03, 2017 at 10:49:05PM +0200, Yuval Shaia wrote:
-> > > > This logic seems to be duplicated in (at least) three separate files.
-> > > > Move it to one place so code can be re-use.
-> > > >
-> > > > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > > > ---
-> > > > v0 -> v1:
-> > > > 	* Add missing #include
-> > > > 	* Rename to genaddrconf_ifid_eui48
-> > > > ---
-> > > >  drivers/infiniband/hw/usnic/usnic_common_util.h | 11 +++--------
-> > > >  drivers/infiniband/sw/rxe/rxe_net.c             | 11 ++---------
-> > > >  include/net/addrconf.h                          | 18 ++++++++++++------
-> > > >  3 files changed, 17 insertions(+), 23 deletions(-)
-> > > >
-> > > > diff --git a/drivers/infiniband/hw/usnic/usnic_common_util.h b/drivers/infiniband/hw/usnic/usnic_common_util.h
-> > > > index b54986d..09871da 100644
-> > > > --- a/drivers/infiniband/hw/usnic/usnic_common_util.h
-> > > > +++ b/drivers/infiniband/hw/usnic/usnic_common_util.h
-> > > > @@ -34,6 +34,8 @@
-> > > >  #ifndef USNIC_CMN_UTIL_H
-> > > >  #define USNIC_CMN_UTIL_H
-> > > >
-> > > > +#include <net/addrconf.h>
-> > > > +
-> > > >  static inline void
-> > > >  usnic_mac_to_gid(const char *const mac, char *raw_gid)
-> > > >  {
-> > > > @@ -57,14 +59,7 @@
-> > > >  	raw_gid[1] = 0x80;
-> > > >  	memset(&raw_gid[2], 0, 2);
-> > > >  	memcpy(&raw_gid[4], &inaddr, 4);
-> > > > -	raw_gid[8] = mac[0]^2;
-> > > > -	raw_gid[9] = mac[1];
-> > > > -	raw_gid[10] = mac[2];
-> > > > -	raw_gid[11] = 0xff;
-> > > > -	raw_gid[12] = 0xfe;
-> > > > -	raw_gid[13] = mac[3];
-> > > > -	raw_gid[14] = mac[4];
-> > > > -	raw_gid[15] = mac[5];
-> > > > +	genaddrconf_ifid_eui48(&raw_gid[8], mac);
-> > > >  }
-> > > >
-> > > >  static inline void
-> > > > diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-> > > > index 4abdeb3..23ba9e1 100644
-> > > > --- a/drivers/infiniband/sw/rxe/rxe_net.c
-> > > > +++ b/drivers/infiniband/sw/rxe/rxe_net.c
-> > > > @@ -38,6 +38,7 @@
-> > > >  #include <linux/if_vlan.h>
-> > > >  #include <net/udp_tunnel.h>
-> > > >  #include <net/sch_generic.h>
-> > > > +#include <net/addrconf.h>
-> > > >  #include <linux/netfilter.h>
-> > > >  #include <rdma/ib_addr.h>
-> > > >
-> > > > @@ -86,18 +87,10 @@ struct rxe_dev *get_rxe_by_name(const char *name)
-> > > >
-> > > >  static __be64 rxe_mac_to_eui64(struct net_device *ndev)
-> > > >  {
-> > > > -	unsigned char *mac_addr = ndev->dev_addr;
-> > > >  	__be64 eui64;
-> > > >  	unsigned char *dst = (unsigned char *)&eui64;
-> > > >
-> > > > -	dst[0] = mac_addr[0] ^ 2;
-> > > > -	dst[1] = mac_addr[1];
-> > > > -	dst[2] = mac_addr[2];
-> > > > -	dst[3] = 0xff;
-> > > > -	dst[4] = 0xfe;
-> > > > -	dst[5] = mac_addr[3];
-> > > > -	dst[6] = mac_addr[4];
-> > > > -	dst[7] = mac_addr[5];
-> > > > +	genaddrconf_ifid_eui48(dst, ndev->dev_addr);
-> > > >
-> > > >  	return eui64;
-> > > >  }
-> > > > diff --git a/include/net/addrconf.h b/include/net/addrconf.h
-> > > > index 8f998af..07d0341 100644
-> > > > --- a/include/net/addrconf.h
-> > > > +++ b/include/net/addrconf.h
-> > > > @@ -105,12 +105,21 @@ int addrconf_prefix_rcv_add_addr(struct net *net, struct net_device *dev,
-> > > >  				 u32 addr_flags, bool sllao, bool tokenized,
-> > > >  				 __u32 valid_lft, u32 prefered_lft);
-> > > >
-> > > > +static inline void genaddrconf_ifid_eui48(u8 *eui, const char *const addr)
-> > > > +{
-> > > > +	memcpy(eui, addr, 3);
-> > > > +	eui[0] ^= 2;
-> > > > +	eui[3] = 0xFF;
-> > > > +	eui[4] = 0xFE;
-> > > > +	memcpy(eui + 5, addr + 3, 3);
-> > > > +}
-> > > > +
-> > > >  static inline int addrconf_ifid_eui48(u8 *eui, struct net_device *dev)
-> > > >  {
-> > > >  	if (dev->addr_len != ETH_ALEN)
-> > > >  		return -1;
-> > > > -	memcpy(eui, dev->dev_addr, 3);
-> > > > -	memcpy(eui + 5, dev->dev_addr + 3, 3);
-> > > > +
-> > > > +	genaddrconf_ifid_eui48(eui, dev->dev_addr);
-> > > >
-> > > >  	/*
-> > > >  	 * The zSeries OSA network cards can be shared among various
-> > > > @@ -128,11 +137,8 @@ static inline int addrconf_ifid_eui48(u8 *eui, struct net_device *dev)
-> > > >  	if (dev->dev_id) {
-> > > >  		eui[3] = (dev->dev_id >> 8) & 0xFF;
-> > > >  		eui[4] = dev->dev_id & 0xFF;
-> > > > -	} else {
-> > > > -		eui[3] = 0xFF;
-> > > > -		eui[4] = 0xFE;
-> > > > -		eui[0] ^= 2;
-> > >
-> > > Sorry, but NAK.
-> > > You missed the assignment below. In original code it WASN'T for dev->dev_id != NULL, and now it is.
-> >
-> > s/below/above
->
-> I'm sorry but which assignment is missing? Default values for 0, 3 and 4
-> are set in genaddrconf_ifid_eui48 then override here in case dev->dev_id is
-> set.
+To make this work the cdev_del needs to move out of the struct device
+release function.
 
-Not really, in original code of addrconf_ifid_eui48(), the eui[0] is set
-conditionally to be "eui[0] ^= 2" or stays without change. In your
-proposed code, eui[0] will be always changed to be "eui[0] ^= 2".
+This cleans up the error path significantly and thus also fixes a minor
+bug where the devnum would not be released if cdev_add failed.
 
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/ucm.c | 35 ++++++++++++++++++-----------------
+ 1 file changed, 18 insertions(+), 17 deletions(-)
 
->
-> >
-> > >
-> > > >  	}
-> > > > +
-> > > >  	return 0;
-> > > >  }
-> > > >
-> > > > --
-> > > > 1.8.3.1
-> > > >
-> > > > --
-> > > > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> >
->
->
-
---hnsKUeImFCk/igEn
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAli88HAACgkQ5GN7iDZy
-WKfLcxAAiCjaP9vCqE6ILRsGG/ot2KyMqUCqodc82nHXtpALXAxbz/RhmC4z82g8
-4XB8JAT6CQMKmzz2BL6BeYZO8W3wBL+aeDRdSRb0DeK4LrYVKluhpZ5LWywZs8op
-kPIVurL65lQ/MxB2wkx6S88F596i2VlGz/zqLyPsB+5XPYappc0UtYkKafaxmEcI
-uFgPmBtDEX5C9m3lPDbfLVQDD6xLdVLqAmBCmxXnkX+8ZeFXBzSRAAUe6xCBgmlK
-lYayBd61jmqiTqwGbNOVJMZFRev5C/L7T5KYmvmD3QBB9oAgMOuORQFBuygsgtPC
-AthTn9+p+wdWsA0MMy/q6bORz8eVwumDePBt7OzyUBqVvWc118LwFiUq9jjOGRcU
-yA4BB9Ru2i179MyvIhxBZ9xCoxGoLvgG4mxXpA2FeBelDY/BsP9KHkyBJXa8bQsj
-mbnWKdz/0ENEzYTr9RCM3JzW4SG6ygym4UT94fLWy04DrHHUYD9U5uZ3adgzUfwV
-jXJ7n2jjp6ND3Ua2id04XF89wpHt49SGUJgSG91c/gRmbIuPTQX+h3boYrhkWkZF
-oTfwTrPiW5gW3nS4K81jUaZNKISnCTrNTtZH4z6U31knK3eW8pGvZtc4Z01DI7Iv
-vXj9qr+GRCRgJSHXXRk7oBx1yfk5GuEavVoIk/mHNUlcY/7h1aA=
-=Nele
------END PGP SIGNATURE-----
-
---hnsKUeImFCk/igEn--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
+index cc0d51f..d15efa4 100644
+--- a/drivers/infiniband/core/ucm.c
++++ b/drivers/infiniband/core/ucm.c
+@@ -1205,12 +1205,15 @@ static void ib_ucm_release_dev(struct device *dev)
+ 	struct ib_ucm_device *ucm_dev;
+ 
+ 	ucm_dev = container_of(dev, struct ib_ucm_device, dev);
+-	cdev_del(&ucm_dev->cdev);
++	kfree(ucm_dev);
++}
++
++static void ib_ucm_free_dev(struct ib_ucm_device *ucm_dev)
++{
+ 	if (ucm_dev->devnum < IB_UCM_MAX_DEVICES)
+ 		clear_bit(ucm_dev->devnum, dev_map);
+ 	else
+ 		clear_bit(ucm_dev->devnum - IB_UCM_MAX_DEVICES, overflow_map);
+-	kfree(ucm_dev);
+ }
+ 
+ static const struct file_operations ucm_fops = {
+@@ -1266,7 +1269,9 @@ static void ib_ucm_add_one(struct ib_device *device)
+ 	if (!ucm_dev)
+ 		return;
+ 
++	device_initialize(&ucm_dev->dev);
+ 	ucm_dev->ib_dev = device;
++	ucm_dev->dev.release = ib_ucm_release_dev;
+ 
+ 	devnum = find_first_zero_bit(dev_map, IB_UCM_MAX_DEVICES);
+ 	if (devnum >= IB_UCM_MAX_DEVICES) {
+@@ -1286,16 +1291,14 @@ static void ib_ucm_add_one(struct ib_device *device)
+ 	cdev_init(&ucm_dev->cdev, &ucm_fops);
+ 	ucm_dev->cdev.owner = THIS_MODULE;
+ 	kobject_set_name(&ucm_dev->cdev.kobj, "ucm%d", ucm_dev->devnum);
+-	if (cdev_add(&ucm_dev->cdev, base, 1))
+-		goto err;
+ 
+ 	ucm_dev->dev.class = &cm_class;
+ 	ucm_dev->dev.parent = device->dev.parent;
+-	ucm_dev->dev.devt = ucm_dev->cdev.dev;
+-	ucm_dev->dev.release = ib_ucm_release_dev;
++	ucm_dev->dev.devt = base;
++
+ 	dev_set_name(&ucm_dev->dev, "ucm%d", ucm_dev->devnum);
+-	if (device_register(&ucm_dev->dev))
+-		goto err_cdev;
++	if (cdev_device_add(&ucm_dev->cdev, &ucm_dev->dev))
++		goto err_devnum;
+ 
+ 	if (device_create_file(&ucm_dev->dev, &dev_attr_ibdev))
+ 		goto err_dev;
+@@ -1304,15 +1307,11 @@ static void ib_ucm_add_one(struct ib_device *device)
+ 	return;
+ 
+ err_dev:
+-	device_unregister(&ucm_dev->dev);
+-err_cdev:
+-	cdev_del(&ucm_dev->cdev);
+-	if (ucm_dev->devnum < IB_UCM_MAX_DEVICES)
+-		clear_bit(devnum, dev_map);
+-	else
+-		clear_bit(devnum, overflow_map);
++	cdev_device_del(&ucm_dev->cdev, &ucm_dev->dev);
++err_devnum:
++	ib_ucm_free_dev(ucm_dev);
+ err:
+-	kfree(ucm_dev);
++	put_device(&ucm_dev->dev);
+ 	return;
+ }
+ 
+@@ -1323,7 +1322,9 @@ static void ib_ucm_remove_one(struct ib_device *device, void *client_data)
+ 	if (!ucm_dev)
+ 		return;
+ 
+-	device_unregister(&ucm_dev->dev);
++	cdev_device_del(&ucm_dev->cdev, &ucm_dev->dev);
++	ib_ucm_free_dev(ucm_dev);
++	put_device(&ucm_dev->dev);
+ }
+ 
+ static CLASS_ATTR_STRING(abi_version, S_IRUGO,
+-- 
+2.1.4
