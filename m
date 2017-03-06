@@ -1,118 +1,166 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [Query] iSER-Target: QP errors observed on increasing
- MaxXmitDataSegmentLength to 16384 (default = 8192)
-Date: Mon, 6 Mar 2017 17:20:56 +0200
-Message-ID: <5397c9f1-a059-e288-8057-8f537c5b413e@grimberg.me>
-References: <20170224091455.GA11766@chelsio.com>
- <1488443433.21712.111.camel@haakon3.risingtidesystems.com>
- <20170302090101.GA31347@chelsio.com>
- <1488449150.21712.129.camel@haakon3.risingtidesystems.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core 07/14] mlx4: Update to use new udma write
+ barriers
+Date: Mon, 6 Mar 2017 10:31:39 -0700
+Message-ID: <20170306173139.GA11805@obsidianresearch.com>
+References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1487272989-8215-8-git-send-email-jgunthorpe@obsidianresearch.com>
+ <206559e5-0488-f6d5-c4ec-bf560e0c3ba6@dev.mellanox.co.il>
+ <20170221181407.GA13138@obsidianresearch.com>
+ <45d2b7da-9ad6-6b37-d0b2-00f7807966b4@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1488449150.21712.129.camel-XoQW25Eq2zviZyQQd+hFbcojREIfoBdhmpATvIKMPHk@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <45d2b7da-9ad6-6b37-d0b2-00f7807966b4-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Jenny Derzhavetz <jennyf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Nic,
+On Mon, Mar 06, 2017 at 04:57:40PM +0200, Yishai Hadas wrote:
 
-> After reading your email again, I may have mistaken one important bit..
->
-> If the initiator is proposing MRDSL != 8192, are there still problems
-> with iser-initiator hard-coded limits vs. what iser-target is actually
-> posting for outgoing non RDMA_WRITE transfers of != 8192..?
->
-> Or rather, does initiator proposed MRDSL != 8192 work as expected with
-> existing iser-initiator + iser-target code..?
->
-> If this is true and it's only a iser-target + MXDSL specific bug vs.
-> hard-coded ISER_RX_PAYLOAD_SIZE definitions mentioned above, then we can
-> avoid messing with the initiator proposed MRDSL.
+> >Since there is no cost on x86-64 to this barrier I would like to leave
+> >it here as it lets us actually optimize the ARM and other barriers. If
+> >you take it out then 'udma_ordering_write_barrier' is forced to be the
+> >strongest barrier on all arches.
+> 
+> Till we make the further optimizations, we suspect a performance degradation
+> in other ARCH(s) rather than X86, as this patch introduce an extra barrier
+> which wasn't before (i.e udma_to_device_barrier).
 
-Reading this thread and revisiting the code it looks like both the
-target and the initiator and not broken at the same time.
+Yes, possibly.
 
-Starting from 7145:
+The only other option I see is to change those couple of call sites in
+mlx4 to be udma_to_device_barrier() - which looses the information
+they are actually doing something different.
 
-6.2.  MaxRecvDataSegmentLength
+Honestly, I think if someone cares about the other arches they will
+see a net win if the proper weak barrier is implemented for
+udma_ordering_write_barrier
 
-    For an iSCSI connection belonging to a session in which
-    RDMAExtensions=Yes was negotiated on the leading connection of the
-    session, MaxRecvDataSegmentLength need not be declared in the Login
-    Phase, and MUST be ignored if it is declared.  Instead,
-    InitiatorRecvDataSegmentLength (as described in Section 6.5) and
-    TargetRecvDataSegmentLength (as described in Section 6.4) keys are
-    negotiated.  The values of the local and remote
-    MaxRecvDataSegmentLength are derived from the
-    InitiatorRecvDataSegmentLength and TargetRecvDataSegmentLength keys.
+> >Even on x86, it is very questionable to not have the SFENCE in that
+> >spot. AFAIK it is not defined to be strongly ordered.
+> >
+> >mlx5 has the SFENCE here, for instance.
+> 
+> We made some performance testing with the above change, initial results
+> point on degradation of about 3% in the message rate in the above BlueFlame
+> path in X86, this is something that we should prevent.
+> 
+> Based on below analysis it looks as the change to use 'mmio_wc_start()'
+> which is mapped to SFENCE in X86 is redundant.
 
-    In the Full Feature Phase, the initiator MUST consider the value of
-    its local MaxRecvDataSegmentLength (that it would have declared to
-    the target) as having the value of InitiatorRecvDataSegmentLength,
-    and the value of the remote MaxRecvDataSegmentLength (that would have
-    been declared by the target) as having the value of
+Okay, I think your analysis makes sense, and extending it broadly
+means there is a fair amount of over-barriering on x86 in various
+places.
 
-    TargetRecvDataSegmentLength.  Similarly, the target MUST consider the
-    value of its local MaxRecvDataSegmentLength (that it would have
-    declared to the initiator) as having the value of
-    TargetRecvDataSegmentLength, and the value of the remote
-    MaxRecvDataSegmentLength (that would have been declared by the
-    initiator) as having the value of InitiatorRecvDataSegmentLength.
+For now, there are several places where this WC spinlock pattern is
+used, so let us pull it out, here is an example, there are still other
+places in the mlx drivers.
 
-So both the target and the initiator ignores MaxRecvDataSegmentLength
-value :)
+What do you think about this approach? Notice that it allows us to see
+that mlx5 should be optimized to elide the leading SFENCE as
+well. This should speed up mlx5 compared to the original.
 
-And:
-6.4.  TargetRecvDataSegmentLength
-
-    Use: IO (Initialize only)
-
-    Senders: Initiator and Target
-
-    Scope: CO (connection-only)
-
-    Irrelevant when: RDMAExtensions=No
-
-    TargetRecvDataSegmentLength=<numerical-value-512-to-(2**24-1)>
-
-    Default is 8192 bytes
-
-    Result function is minimum
-
-6.5.  InitiatorRecvDataSegmentLength
-
-    Use: IO (Initialize only)
-
-    Senders: Initiator and Target
-
-    Scope: CO (connection-only)
-
-    Irrelevant when: RDMAExtensions=No
-
-    InitiatorRecvDataSegmentLength=<numerical-value-512-to-(2**24-1)>
-
-    Default is 8192 bytes
-
-
-On the other hand, not only they never negotiate 
-InitiatorRecvDataSegmentLength, TargetMaxRecvDataSegmentLength but its
-not exposed at all. At least the default are correct :)
-
-I think that iscsi_target_parameters.c almost got it right, it needs to
-respond with TargetMaxRecvDataSegmentLength in response to
-InitiatorRecvDataSegmentLength and both should respect it.
-
->
-> If this is the case, then following (untested) patch should do the
-> trick.
-
-I think we are better off by doing this the right way. Have open-iscsi
-negotiate InitiatorMaxRecvDataSegmentLength and have the target
-reply TargetMaxRecvDataSegmentLength and have both sides honor the
-replies. Would be nice to expose user config knob for it.
+diff --git a/providers/mlx4/qp.c b/providers/mlx4/qp.c
+index 77a4a34576cb69..32f0b3fe78fe7c 100644
+--- a/providers/mlx4/qp.c
++++ b/providers/mlx4/qp.c
+@@ -481,15 +481,14 @@ out:
+ 		 * Make sure that descriptor is written to memory
+ 		 * before writing to BlueFlame page.
+ 		 */
+-		mmio_wc_start();
++		mmio_wc_spinlock(&ctx->bf_lock);
+ 
+ 		++qp->sq.head;
+ 
+-		pthread_spin_lock(&ctx->bf_lock);
+-
+ 		mlx4_bf_copy(ctx->bf_page + ctx->bf_offset, (unsigned long *) ctrl,
+ 			     align(size * 16, 64));
+-		mmio_flush_writes();
++
++		mmio_wc_spinunlock(&ctx->bf_lock);
+ 
+ 		ctx->bf_offset ^= ctx->bf_buf_size;
+ 
+diff --git a/providers/mlx5/qp.c b/providers/mlx5/qp.c
+index d7087d986ce79f..6187b85219dacc 100644
+--- a/providers/mlx5/qp.c
++++ b/providers/mlx5/qp.c
+@@ -931,11 +931,11 @@ out:
+ 
+ 		/* Make sure that the doorbell write happens before the memcpy
+ 		 * to WC memory below */
+-		mmio_wc_start();
+-
+ 		ctx = to_mctx(ibqp->context);
+-		if (bf->need_lock)
+-			mlx5_spin_lock(&bf->lock);
++		if (bf->need_lock && !mlx5_single_threaded)
++			mmio_wc_spinlock(&bf->lock->lock);
++		else
++			mmio_wc_start();
+ 
+ 		if (!ctx->shut_up_bf && nreq == 1 && bf->uuarn &&
+ 		    (inl || ctx->prefer_bf) && size > 1 &&
+@@ -955,10 +955,11 @@ out:
+ 		 * the mmio_flush_writes is CPU local, this will result in the HCA seeing
+ 		 * doorbell 2, followed by doorbell 1.
+ 		 */
+-		mmio_flush_writes();
+ 		bf->offset ^= bf->buf_size;
+-		if (bf->need_lock)
+-			mlx5_spin_unlock(&bf->lock);
++		if (bf->need_lock && !mlx5_single_threaded)
++			mmio_wc_spinunlock(&bf->lock->lock);
++		else
++			mmio_flush_writes();
+ 	}
+ 
+ 	mlx5_spin_unlock(&qp->sq.lock);
+diff --git a/util/udma_barrier.h b/util/udma_barrier.h
+index 9e73148af8d5b6..ea4904d28f6a48 100644
+--- a/util/udma_barrier.h
++++ b/util/udma_barrier.h
+@@ -33,6 +33,8 @@
+ #ifndef __UTIL_UDMA_BARRIER_H
+ #define __UTIL_UDMA_BARRIER_H
+ 
++#include <pthread.h>
++
+ /* Barriers for DMA.
+ 
+    These barriers are expliclty only for use with user DMA operations. If you
+@@ -222,4 +224,26 @@
+ */
+ #define mmio_ordered_writes_hack() mmio_flush_writes()
+ 
++/* Higher Level primitives */
++
++/* Do mmio_wc_start and grab a spinlock */
++static inline void mmio_wc_spinlock(pthread_spinlock_t *lock)
++{
++	pthread_spin_lock(lock);
++#if !defined(__i386__) && !defined(__x86_64__)
++	/* For x86 the serialization within the spin lock is enough to
++	 * strongly order WC and other memory types. */
++	mmio_wc_start();
++#endif
++}
++
++static inline void mmio_wc_spinunlock(pthread_spinlock_t *lock)
++{
++	/* On x86 the lock is enough for strong ordering, but the SFENCE
++	 * encourages the WC buffers to flush out more quickly (Yishai:
++	 * confirm?) */
++	mmio_flush_writes();
++	pthread_spin_unlock(lock);
++}
++
+ #endif
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
