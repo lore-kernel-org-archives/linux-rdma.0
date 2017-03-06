@@ -1,33 +1,53 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core 08/14] mlx5: Update to use new udma write
- barriers
-Date: Mon, 6 Mar 2017 16:19:21 +0200
-Message-ID: <bc987646-d8b2-2d7e-7606-8a1dcbe1464d@dev.mellanox.co.il>
-References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1487272989-8215-9-git-send-email-jgunthorpe@obsidianresearch.com>
- <d5921636-1911-5588-8c59-620066bca01a@dev.mellanox.co.il>
- <20170227180009.GL5891@obsidianresearch.com>
- <2969cce4-8b51-8fcf-f099-2b42a6d40a9c@dev.mellanox.co.il>
- <20170228170658.GA17995@obsidianresearch.com>
- <24bf0e37-e032-0862-c5b9-b5a40fcfb343@dev.mellanox.co.il>
- <20170302171210.GA8595@obsidianresearch.com>
+From: Felipe Balbi <balbi@kernel.org>
+Subject: Re: [PATCH v3 17/20] usb: gadget: pch_udc: Replace PCI pool old API
+Date: Mon, 06 Mar 2017 16:46:32 +0200
+Message-ID: <877f4231kn.fsf@linux.intel.com>
+References: <20170226192425.13098-1-romain.perier@collabora.com> <20170226192425.13098-18-romain.perier@collabora.com> <20170227111916.GH26544@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170302171210.GA8595-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: multipart/signed; boundary="=-=-=";
+        micalg=pgp-sha256; protocol="application/pgp-signature"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170227111916.GH26544@collabora.com>
+Sender: netdev-owner@vger.kernel.org
+To: Peter Senna Tschudin <peter.senna@collabora.com>, Romain Perier <romain.perier@collabora.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, jeffrey.t.kirsher@intel.com, "David S. Miller" <davem@davemloft.net>, stas.yakovlev@gmail.com, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Senna Tschudin <peter.senna@collabora.co.uk>
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/2/2017 7:12 PM, Jason Gunthorpe wrote:
-> Are you happy with the other things now as well?
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-No, it looks like the barriers patch for mlx4 introduced performance 
-degradation which we don't accept, will answer on with the exact details 
-shortly.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Peter Senna Tschudin <peter.senna@collabora.com> writes:
+> On Sun, Feb 26, 2017 at 08:24:22PM +0100, Romain Perier wrote:
+>> The PCI pool API is deprecated. This commits replaces the PCI pool old
+>> API by the appropriated function with the DMA pool API.
+>>=20
+> Reviewed-by: Peter Senna Tschudin <peter.senna@collabora.com>
+
+Fine by me:
+
+Acked-by: Felipe Balbi <felipe.balbi@linux.intel.com>
+
+=2D-=20
+balbi
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAli9dkgACgkQzL64meEa
+mQaVLA/+IjA1+ooZeFlRFue4K18JSOEfgED6F5lc5rGYp4MSCvuqECFs6Xm1dfpR
+Ifbq7IfJF+ATQ/zIP0xASPM+qjWc3Nx+61gsHhfNbefZWYwWrgkj+5eCIcVhCXQo
+Tx2Y97j5QwNcLd5+TDfdtpm2NkgeiM8M+/HcoV4a8oLHxItlTrfsvVyxGMGVe/Hj
+AZ1WLJRoZVTwrfAnzr6JHdB8g+2AUeeSMSH8i0r0ZMU0BlcE5s7kste7tsPZyhRe
+hkVdGJPWdh+p42GxPoHCEZ8DI06cunrPq1iRX4qtPCrytGUfp5Rvz0T4svXGyL1X
+MYaAxTRPvkbgsw7cvQ6M0MWW+8j3IJkTF6wRKTVU0hRsPR/KjePXwIxYS81gbxwj
+m4BlfmfN7N9ahfEjcwCqqOKv8CwwtNBh7EsTErIcBuvFM1V2FQm7C6avU+u9bX3e
+nL2G5V55sbKDV99U+MLxe7d2j/sFo2p1uhMFH1GxkB37IF7IWZ4IIKz/NhSOfiqf
+YOKmyE9nB9DeuloF3KgOwAV5pSIzF2RGaixCpgZ/WKH4yPm+zz3cKciQLKtIE0BT
+hLX8G7oeyV8E7FNEugDzDooAX4YX8WWHaNeWwqIhW3spnQNnPavYvkq0n0MDT5lQ
+cUjg7idn7kP0l3YG86Sb6vfwDQGyEUxd3iFZ0HkSMlOUUA90izg=
+=BoeH
+-----END PGP SIGNATURE-----
+--=-=-=--
