@@ -1,65 +1,68 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 1/5] mlx5: Explicitly align mlx5 query device response to 64 bit
-Date: Mon,  6 Mar 2017 16:06:40 +0200
-Message-ID: <1488809204-30428-2-git-send-email-yishaih@mellanox.com>
-References: <1488809204-30428-1-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 0/5] Enable mlx5 vendor functionality
+Date: Mon,  6 Mar 2017 16:06:39 +0200
+Message-ID: <1488809204-30428-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1488809204-30428-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This patch set from Bodong is the supplementary part of the kernel series that
+was accepted few months ago into 4.10.
 
-Explicitly align packet pacing response to 64 bit so that further
-capabilities that going to be read will match to mlx5 kernel response.
+The below functionality was accepted in mlx5 kernel driver in the vendor
+channel path as some driver specific capabilities and functionality, as such it
+is exposed to user applications in the same manner by using the direct access
+mechanism.
 
-Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- providers/mlx5/mlx5-abi.h | 7 ++++++-
- providers/mlx5/verbs.c    | 2 +-
- 2 files changed, 7 insertions(+), 2 deletions(-)
+The vendor specific capabilities are reported via the direct mlx5 query
+capabilities API.
 
-diff --git a/providers/mlx5/mlx5-abi.h b/providers/mlx5/mlx5-abi.h
-index 5d10486..8025131 100644
---- a/providers/mlx5/mlx5-abi.h
-+++ b/providers/mlx5/mlx5-abi.h
-@@ -263,6 +263,11 @@ struct mlx5_rss_caps {
- 	__u8 reserved[7];
- };
- 
-+struct mlx5_packet_pacing_caps {
-+	struct ibv_packet_pacing_caps caps;
-+	__u32  reserved;
-+};
-+
- struct mlx5_query_device_ex_resp {
- 	struct ibv_query_device_resp_ex ibv_resp;
- 	__u32				comp_mask;
-@@ -270,7 +275,7 @@ struct mlx5_query_device_ex_resp {
- 	struct ibv_tso_caps		tso_caps;
- 	struct mlx5_rss_caps            rss_caps; /* vendor data channel */
- 	__u64				reserved_cqe_comp;
--	struct ibv_packet_pacing_caps	packet_pacing_caps;
-+	struct mlx5_packet_pacing_caps	packet_pacing_caps;
- };
- 
- #endif /* MLX5_ABI_H */
-diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-index 98a9557..a659d3e 100644
---- a/providers/mlx5/verbs.c
-+++ b/providers/mlx5/verbs.c
-@@ -1922,7 +1922,7 @@ int mlx5_query_device_ex(struct ibv_context *context,
- 	attr->tso_caps = resp.tso_caps;
- 	attr->rss_caps.rx_hash_fields_mask = resp.rss_caps.rx_hash_fields_mask;
- 	attr->rss_caps.rx_hash_function = resp.rss_caps.rx_hash_function;
--	attr->packet_pacing_caps = resp.packet_pacing_caps;
-+	attr->packet_pacing_caps = resp.packet_pacing_caps.caps;
- 
- 	major     = (raw_fw_ver >> 32) & 0xffff;
- 	minor     = (raw_fw_ver >> 16) & 0xffff;
+In addition, an option is added to provide vendor private data when creating a
+CQ.  This option drops the need to extend the verbs layer each time with some
+non-generic fields when creating a CQ. It adds an option to set some opaque
+vendor data in some generic way which can fit any vendor, further details are
+available in the commit log itself.
+
+Specifically:
+Report whether mlx5 hardware supports multi packet send WQE offload for RAW QP.
+- Multi packet WQE enables sending multiple fix sized packets using a single
+  WQE. When the WQE is completed a single CQE will be generated.
+
+Report CQE compressing capabilities and enable creating a CQ with such
+capabilities.
+- CQE compressing reduces PCI overhead by coalescing and compressing multiple
+  CQEs into a single merged CQE. Successful compressing improves message rate
+  especially for small packet traffic. 
+
+The series is exposed from 5 patches:
+#1:   Pre-patch which aligns mlx5 query device response to 64 bit.
+#2-3: Report mlx5 specific hardware capabilities through direct verbs.
+#4:   Extend ibv_create_cq_ex to get some vendor opaque data.
+#5:   Add support in mlx5 provider to create a CQ with compressed CQEs using
+      the vendor data.
+
+Pull request was sent:
+https://github.com/linux-rdma/rdma-core/pull/90
+
+Bodong Wang (5):
+  mlx5: Explicitly align mlx5 query device response to 64 bit
+  mlx5: Report multi packet send WQE capability for mlx5 based hardware
+  mlx5: Report CQE compression capabilities through mlx5 direct verbs
+  verbs: Add an option to provide vendor private data when creating a CQ
+  mlx5: Add support to create a CQ with compressed CQEs
+
+ libibverbs/man/ibv_create_cq_ex.3        |  2 ++
+ libibverbs/verbs.h                       |  5 +++-
+ providers/mlx5/man/mlx5dv_query_device.3 |  1 +
+ providers/mlx5/mlx5-abi.h                | 15 ++++++++++--
+ providers/mlx5/mlx5.c                    | 17 +++++++++++--
+ providers/mlx5/mlx5.h                    |  6 +++++
+ providers/mlx5/mlx5dv.h                  | 30 ++++++++++++++++++++++-
+ providers/mlx5/verbs.c                   | 42 ++++++++++++++++++++++++++++++--
+ 8 files changed, 110 insertions(+), 8 deletions(-)
+
 -- 
 1.8.3.1
 
