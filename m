@@ -1,82 +1,124 @@
-From: Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: Re: mlx5_ib_post_send panic on s390x
-Date: Mon, 6 Mar 2017 12:17:24 +0100
-Message-ID: <ea211a05-f26a-e7a7-27b4-fc5edc2e3b57@linux.vnet.ibm.com>
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: mlx5_ib_post_send panic on s390x
+Date: Mon, 6 Mar 2017 12:56:46 +0000
+Message-ID: <AM4PR0501MB27879C1EBF26FBF02F088AD7C52C0@AM4PR0501MB2787.eurprd05.prod.outlook.com>
 References: <56246ac0-a706-291c-7baa-a6dd2c6331cd@linux.vnet.ibm.com>
  <AM4PR0501MB2787E2BB6C8CBBCA5DCE9E82C5520@AM4PR0501MB2787.eurprd05.prod.outlook.com>
+ <ea211a05-f26a-e7a7-27b4-fc5edc2e3b57@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AM4PR0501MB2787E2BB6C8CBBCA5DCE9E82C5520-dp/nxUn679jFcPxmzbbP+MDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <ea211a05-f26a-e7a7-27b4-fc5edc2e3b57-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-On 02/24/2017 06:28 PM, Eli Cohen wrote:
-> Hi,
-> 
-> Can you please send details of the work request you are posting? I assume you are using inline, right?
-yes, inline is used:
-
-                lnk->wr_tx_sges[i].addr =
-                        lnk->wr_tx_dma_addr + i * SMC_WR_BUF_SIZE;
-                lnk->wr_tx_sges[i].length = SMC_WR_TX_SIZE;
-                lnk->wr_tx_sges[i].lkey = lnk->roce_pd->local_dma_lkey;
-                lnk->wr_tx_ibs[i].next = NULL;
-                lnk->wr_tx_ibs[i].sg_list = &lnk->wr_tx_sges[i];
-                lnk->wr_tx_ibs[i].num_sge = 1;
-                lnk->wr_tx_ibs[i].opcode = IB_WR_SEND;
-                lnk->wr_tx_ibs[i].send_flags =
-                        IB_SEND_SIGNALED | IB_SEND_SOLICITED | IB_SEND_INLINE;
-
-> 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Ursula Braun
-> Sent: Friday, February 24, 2017 3:52 AM
-> To: matamb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: mlx5_ib_post_send panic on s390x
-> 
-> Hi Saeed and Matan,
-> 
-> up to now I run SMC-R traffic on Connect X3, which works.
-> But when switching to Connect X4, the first mlx5_ib_post_send() fails:
-> 
-> [  247.787660] Unable to handle kernel pointer dereference in virtual kernel address space [  247.787662] Failing address: 000000010484a000 TEID: 000000010484a803 [  247.787664] Fault in home space mode while using kernel ASCE.
-> [  247.787667] AS:00000000011ec007 R3:0000000000000024 [  247.787701] Oops: 003b ilc:2 [#1] PREEMPT SMP [  247.787704] Modules linked in: smc_diag smc xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack ipt_REJECT nf_reject_ipv4 xt_tcpudp bridge stp llc ip6table_filter ip6_tables iptable_filter rpcrdma rdma_ucm ib_ucm ib_uverbs rdma_cm configfs ib_cm iw_cm mlx5_ib ib_core mlx5_core xts gf128mul cbc ecb aes_s390 des_s390 des_generic ptp sha512_s390 pps_core sha256_s390 sha1_s390 sha_common eadm_sch nfsd auth_rpcgss oid_registry nfs_acl lockd vhost_net tun grace vhost sunrpc macvtap sch_fq_codel macvlan dm_multipath kvm dm_mod ip_tables x_tables autofs4
-> [  247.787738] CPU: 0 PID: 10498 Comm: kworker/0:3 Tainted: G        W       4.10.0uschi+ #4
-> [  247.787739] Hardware name: IBM              2964 N96              704              (LPAR)
-> [  247.787743] Workqueue: events smc_listen_work [smc] [  247.787745] task: 00000000b4148008 task.stack: 0000000099c2c000 [  247.787746] Krnl PSW : 0404c00180000000 0000000000762412 (memcpy+0x22/0x48)
-> [  247.787751]            R:0 T:1 IO:0 EX:0 Key:0 M:1 W:0 P:0 AS:3 CC:0 PM:0 RI:0 EA:3
-> [  247.787753] Krnl GPRS: 0000000000a7a100 0000000099c96414 0000000099c96414 000000010484afc8
-> [  247.787755]            000000000000002b 000000000076242e 000000000000002c 0000000099c96440
-> [  247.787757]            000000010484afc8 000000000000002c 0000000099c96414 0000000000000001
-> [  247.787758]            00000000ae8a75d0 000003ff8108aa50 000003ff8107cde6 0000000099c2fa38
-> [  247.787764] Krnl Code: 0000000000762404: b9040012		lgr	%r1,%r2
->                           0000000000762408: a7740008		brc	7,762418
->                          #000000000076240c: c05000000011	larl	%r5,76242e
->                          >0000000000762412: 44405000		ex	%r4,0(%r5)
->                           0000000000762416: 07fe		bcr	15,%r14
->                           0000000000762418: d2ff10003000	mvc	0(256,%r1),0(%r3)
->                           000000000076241e: 41101100		la	%r1,256(%r1)
->                           0000000000762422: 41303100		la	%r3,256(%r3)
-> [  247.787780] Call Trace:
-> [  247.787785] ([<000003ff8107cdd4>] mlx5_ib_post_send+0x139c/0x1810 [mlx5_ib]) [  247.787789]  [<000003ff8047999a>] smc_wr_tx_send+0xd2/0x100 [smc] [  247.787792]  [<000003ff8047a97a>] smc_llc_send_confirm_link+0x9a/0xd0 [smc] [  247.787794]  [<000003ff804751ee>] smc_listen_work+0x24e/0x4e0 [smc] [  247.787797]  [<00000000001659e8>] process_one_work+0x3d8/0x780 [  247.787799]  [<0000000000166044>] worker_thread+0x2b4/0x478 [  247.787801]  [<000000000016e62c>] kthread+0x15c/0x170 [  247.787803]  [<0000000000a115f2>] kernel_thread_starter+0x6/0xc [  247.787804]  [<0000000000a115ec>] kernel_thread_starter+0x0/0xc [  247.787806] INFO: lockdep is turned off.
-> [  247.787807] Last Breaking-Event-Address:
-> [  247.787811]  [<000003ff8106edc0>] 0x3ff8106edc0 [  247.787813] [  247.787814] Kernel panic - not syncing: Fatal exception: panic_on_oops
-> 
-> The problem seems to be caused by the usage of plain memcpy in set_data_inl_seg().
-> The address provided by SMC-code in struct ib_send_wr *wr is an address belonging to an area mapped with the ib_dma_map_single() call. On s390x those kind of addresses require extra access functions (see arch/s390/include/asm/io.h).
-> 
-> Kind regards, Ursula Braun (IBM Germany)
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+UGxlYXNlIHNlbmQgaW5mb3JtYXRpb24gb246DQoNCi0gVGhlIHNpemUgb2YgdGhlIHJlcXVpcmVk
+IGlubGluZSBkYXRhIGluIHRoZSBvZmZlbmRpbmcgd29yayByZXF1ZXN0DQotIFRoZSB0cmFuc3Bv
+cnQgc2VydmljZSB1c2VkDQotIEhvdyBtYW55IG91dHN0YW5kaW5nIHdvcmsgcmVxdWVzdHMgdGhl
+IHNlbmQgcXVldWUgaXMgY29uZmlndXJlZCB0bw0KLSBXaGF0IHdhcyB0aGUgc2VyaWFsIG51bWJl
+ciBvZiB0aGUgd29yayByZXF1ZXN0IHRoYXQgdHJpZ2dlcmVkIHRoaXMgb29wcyAoZmlyc3QsIHNl
+Y29uZCwgNjV0aCBldGMpLg0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogVXJz
+dWxhIEJyYXVuIFttYWlsdG86dWJyYXVuQGxpbnV4LnZuZXQuaWJtLmNvbV0gDQpTZW50OiBNb25k
+YXksIE1hcmNoIDYsIDIwMTcgNToxNyBBTQ0KVG86IEVsaSBDb2hlbiA8ZWxpQG1lbGxhbm94LmNv
+bT47IE1hdGFuIEJhcmFrIDxtYXRhbmJAbWVsbGFub3guY29tPjsgTGVvbiBSb21hbm92c2t5IDxs
+ZW9ucm9AbWVsbGFub3guY29tPg0KQ2M6IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnDQpTdWJq
+ZWN0OiBSZTogbWx4NV9pYl9wb3N0X3NlbmQgcGFuaWMgb24gczM5MHgNCg0KDQpPbiAwMi8yNC8y
+MDE3IDA2OjI4IFBNLCBFbGkgQ29oZW4gd3JvdGU6DQo+IEhpLA0KPiANCj4gQ2FuIHlvdSBwbGVh
+c2Ugc2VuZCBkZXRhaWxzIG9mIHRoZSB3b3JrIHJlcXVlc3QgeW91IGFyZSBwb3N0aW5nPyBJIGFz
+c3VtZSB5b3UgYXJlIHVzaW5nIGlubGluZSwgcmlnaHQ/DQp5ZXMsIGlubGluZSBpcyB1c2VkOg0K
+DQogICAgICAgICAgICAgICAgbG5rLT53cl90eF9zZ2VzW2ldLmFkZHIgPQ0KICAgICAgICAgICAg
+ICAgICAgICAgICAgbG5rLT53cl90eF9kbWFfYWRkciArIGkgKiBTTUNfV1JfQlVGX1NJWkU7DQog
+ICAgICAgICAgICAgICAgbG5rLT53cl90eF9zZ2VzW2ldLmxlbmd0aCA9IFNNQ19XUl9UWF9TSVpF
+Ow0KICAgICAgICAgICAgICAgIGxuay0+d3JfdHhfc2dlc1tpXS5sa2V5ID0gbG5rLT5yb2NlX3Bk
+LT5sb2NhbF9kbWFfbGtleTsNCiAgICAgICAgICAgICAgICBsbmstPndyX3R4X2lic1tpXS5uZXh0
+ID0gTlVMTDsNCiAgICAgICAgICAgICAgICBsbmstPndyX3R4X2lic1tpXS5zZ19saXN0ID0gJmxu
+ay0+d3JfdHhfc2dlc1tpXTsNCiAgICAgICAgICAgICAgICBsbmstPndyX3R4X2lic1tpXS5udW1f
+c2dlID0gMTsNCiAgICAgICAgICAgICAgICBsbmstPndyX3R4X2lic1tpXS5vcGNvZGUgPSBJQl9X
+Ul9TRU5EOw0KICAgICAgICAgICAgICAgIGxuay0+d3JfdHhfaWJzW2ldLnNlbmRfZmxhZ3MgPQ0K
+ICAgICAgICAgICAgICAgICAgICAgICAgSUJfU0VORF9TSUdOQUxFRCB8IElCX1NFTkRfU09MSUNJ
+VEVEIHwgSUJfU0VORF9JTkxJTkU7DQoNCj4gDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0t
+DQo+IEZyb206IGxpbnV4LXJkbWEtb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgt
+cmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBVcnN1bGEgQnJhdW4NCj4g
+U2VudDogRnJpZGF5LCBGZWJydWFyeSAyNCwgMjAxNyAzOjUyIEFNDQo+IFRvOiBtYXRhbWJAbWVs
+bGFub3guY29tOyBMZW9uIFJvbWFub3Zza3kgPGxlb25yb0BtZWxsYW5veC5jb20+DQo+IENjOiBs
+aW51eC1yZG1hQHZnZXIua2VybmVsLm9yZw0KPiBTdWJqZWN0OiBtbHg1X2liX3Bvc3Rfc2VuZCBw
+YW5pYyBvbiBzMzkweA0KPiANCj4gSGkgU2FlZWQgYW5kIE1hdGFuLA0KPiANCj4gdXAgdG8gbm93
+IEkgcnVuIFNNQy1SIHRyYWZmaWMgb24gQ29ubmVjdCBYMywgd2hpY2ggd29ya3MuDQo+IEJ1dCB3
+aGVuIHN3aXRjaGluZyB0byBDb25uZWN0IFg0LCB0aGUgZmlyc3QgbWx4NV9pYl9wb3N0X3NlbmQo
+KSBmYWlsczoNCj4gDQo+IFsgIDI0Ny43ODc2NjBdIFVuYWJsZSB0byBoYW5kbGUga2VybmVsIHBv
+aW50ZXIgZGVyZWZlcmVuY2UgaW4gdmlydHVhbCBrZXJuZWwgYWRkcmVzcyBzcGFjZSBbICAyNDcu
+Nzg3NjYyXSBGYWlsaW5nIGFkZHJlc3M6IDAwMDAwMDAxMDQ4NGEwMDAgVEVJRDogMDAwMDAwMDEw
+NDg0YTgwMyBbICAyNDcuNzg3NjY0XSBGYXVsdCBpbiBob21lIHNwYWNlIG1vZGUgd2hpbGUgdXNp
+bmcga2VybmVsIEFTQ0UuDQo+IFsgIDI0Ny43ODc2NjddIEFTOjAwMDAwMDAwMDExZWMwMDcgUjM6
+MDAwMDAwMDAwMDAwMDAyNCBbICAyNDcuNzg3NzAxXSBPb3BzOiAwMDNiIGlsYzoyIFsjMV0gUFJF
+RU1QVCBTTVAgWyAgMjQ3Ljc4NzcwNF0gTW9kdWxlcyBsaW5rZWQgaW46IHNtY19kaWFnIHNtYyB4
+dF9DSEVDS1NVTSBpcHRhYmxlX21hbmdsZSBpcHRfTUFTUVVFUkFERSBuZl9uYXRfbWFzcXVlcmFk
+ZV9pcHY0IGlwdGFibGVfbmF0IG5mX25hdF9pcHY0IG5mX25hdCBuZl9jb25udHJhY2tfaXB2NCBu
+Zl9kZWZyYWdfaXB2NCB4dF9jb25udHJhY2sgbmZfY29ubnRyYWNrIGlwdF9SRUpFQ1QgbmZfcmVq
+ZWN0X2lwdjQgeHRfdGNwdWRwIGJyaWRnZSBzdHAgbGxjIGlwNnRhYmxlX2ZpbHRlciBpcDZfdGFi
+bGVzIGlwdGFibGVfZmlsdGVyIHJwY3JkbWEgcmRtYV91Y20gaWJfdWNtIGliX3V2ZXJicyByZG1h
+X2NtIGNvbmZpZ2ZzIGliX2NtIGl3X2NtIG1seDVfaWIgaWJfY29yZSBtbHg1X2NvcmUgeHRzIGdm
+MTI4bXVsIGNiYyBlY2IgYWVzX3MzOTAgZGVzX3MzOTAgZGVzX2dlbmVyaWMgcHRwIHNoYTUxMl9z
+MzkwIHBwc19jb3JlIHNoYTI1Nl9zMzkwIHNoYTFfczM5MCBzaGFfY29tbW9uIGVhZG1fc2NoIG5m
+c2QgYXV0aF9ycGNnc3Mgb2lkX3JlZ2lzdHJ5IG5mc19hY2wgbG9ja2Qgdmhvc3RfbmV0IHR1biBn
+cmFjZSB2aG9zdCBzdW5ycGMgbWFjdnRhcCBzY2hfZnFfY29kZWwgbWFjdmxhbiBkbV9tdWx0aXBh
+dGgga3ZtIGRtX21vZCBpcF90YWJsZXMgeF90YWJsZXMgYXV0b2ZzNA0KPiBbICAyNDcuNzg3NzM4
+XSBDUFU6IDAgUElEOiAxMDQ5OCBDb21tOiBrd29ya2VyLzA6MyBUYWludGVkOiBHICAgICAgICBX
+ICAgICAgIDQuMTAuMHVzY2hpKyAjNA0KPiBbICAyNDcuNzg3NzM5XSBIYXJkd2FyZSBuYW1lOiBJ
+Qk0gICAgICAgICAgICAgIDI5NjQgTjk2ICAgICAgICAgICAgICA3MDQgICAgICAgICAgICAgIChM
+UEFSKQ0KPiBbICAyNDcuNzg3NzQzXSBXb3JrcXVldWU6IGV2ZW50cyBzbWNfbGlzdGVuX3dvcmsg
+W3NtY10gWyAgMjQ3Ljc4Nzc0NV0gdGFzazogMDAwMDAwMDBiNDE0ODAwOCB0YXNrLnN0YWNrOiAw
+MDAwMDAwMDk5YzJjMDAwIFsgIDI0Ny43ODc3NDZdIEtybmwgUFNXIDogMDQwNGMwMDE4MDAwMDAw
+MCAwMDAwMDAwMDAwNzYyNDEyIChtZW1jcHkrMHgyMi8weDQ4KQ0KPiBbICAyNDcuNzg3NzUxXSAg
+ICAgICAgICAgIFI6MCBUOjEgSU86MCBFWDowIEtleTowIE06MSBXOjAgUDowIEFTOjMgQ0M6MCBQ
+TTowIFJJOjAgRUE6Mw0KPiBbICAyNDcuNzg3NzUzXSBLcm5sIEdQUlM6IDAwMDAwMDAwMDBhN2Ex
+MDAgMDAwMDAwMDA5OWM5NjQxNCAwMDAwMDAwMDk5Yzk2NDE0IDAwMDAwMDAxMDQ4NGFmYzgNCj4g
+WyAgMjQ3Ljc4Nzc1NV0gICAgICAgICAgICAwMDAwMDAwMDAwMDAwMDJiIDAwMDAwMDAwMDA3NjI0
+MmUgMDAwMDAwMDAwMDAwMDAyYyAwMDAwMDAwMDk5Yzk2NDQwDQo+IFsgIDI0Ny43ODc3NTddICAg
+ICAgICAgICAgMDAwMDAwMDEwNDg0YWZjOCAwMDAwMDAwMDAwMDAwMDJjIDAwMDAwMDAwOTljOTY0
+MTQgMDAwMDAwMDAwMDAwMDAwMQ0KPiBbICAyNDcuNzg3NzU4XSAgICAgICAgICAgIDAwMDAwMDAw
+YWU4YTc1ZDAgMDAwMDAzZmY4MTA4YWE1MCAwMDAwMDNmZjgxMDdjZGU2IDAwMDAwMDAwOTljMmZh
+MzgNCj4gWyAgMjQ3Ljc4Nzc2NF0gS3JubCBDb2RlOiAwMDAwMDAwMDAwNzYyNDA0OiBiOTA0MDAx
+MgkJbGdyCSVyMSwlcjINCj4gICAgICAgICAgICAgICAgICAgICAgICAgICAwMDAwMDAwMDAwNzYy
+NDA4OiBhNzc0MDAwOAkJYnJjCTcsNzYyNDE4DQo+ICAgICAgICAgICAgICAgICAgICAgICAgICAj
+MDAwMDAwMDAwMDc2MjQwYzogYzA1MDAwMDAwMDExCWxhcmwJJXI1LDc2MjQyZQ0KPiAgICAgICAg
+ICAgICAgICAgICAgICAgICAgPjAwMDAwMDAwMDA3NjI0MTI6IDQ0NDA1MDAwCQlleAklcjQsMCgl
+cjUpDQo+ICAgICAgICAgICAgICAgICAgICAgICAgICAgMDAwMDAwMDAwMDc2MjQxNjogMDdmZQkJ
+YmNyCTE1LCVyMTQNCj4gICAgICAgICAgICAgICAgICAgICAgICAgICAwMDAwMDAwMDAwNzYyNDE4
+OiBkMmZmMTAwMDMwMDAJbXZjCTAoMjU2LCVyMSksMCglcjMpDQo+ICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgMDAwMDAwMDAwMDc2MjQxZTogNDExMDExMDAJCWxhCSVyMSwyNTYoJXIxKQ0KPiAg
+ICAgICAgICAgICAgICAgICAgICAgICAgIDAwMDAwMDAwMDA3NjI0MjI6IDQxMzAzMTAwCQlsYQkl
+cjMsMjU2KCVyMykNCj4gWyAgMjQ3Ljc4Nzc4MF0gQ2FsbCBUcmFjZToNCj4gWyAgMjQ3Ljc4Nzc4
+NV0gKFs8MDAwMDAzZmY4MTA3Y2RkND5dIG1seDVfaWJfcG9zdF9zZW5kKzB4MTM5Yy8weDE4MTAg
+W21seDVfaWJdKSBbICAyNDcuNzg3Nzg5XSAgWzwwMDAwMDNmZjgwNDc5OTlhPl0gc21jX3dyX3R4
+X3NlbmQrMHhkMi8weDEwMCBbc21jXSBbICAyNDcuNzg3NzkyXSAgWzwwMDAwMDNmZjgwNDdhOTdh
+Pl0gc21jX2xsY19zZW5kX2NvbmZpcm1fbGluaysweDlhLzB4ZDAgW3NtY10gWyAgMjQ3Ljc4Nzc5
+NF0gIFs8MDAwMDAzZmY4MDQ3NTFlZT5dIHNtY19saXN0ZW5fd29yaysweDI0ZS8weDRlMCBbc21j
+XSBbICAyNDcuNzg3Nzk3XSAgWzwwMDAwMDAwMDAwMTY1OWU4Pl0gcHJvY2Vzc19vbmVfd29yaysw
+eDNkOC8weDc4MCBbICAyNDcuNzg3Nzk5XSAgWzwwMDAwMDAwMDAwMTY2MDQ0Pl0gd29ya2VyX3Ro
+cmVhZCsweDJiNC8weDQ3OCBbICAyNDcuNzg3ODAxXSAgWzwwMDAwMDAwMDAwMTZlNjJjPl0ga3Ro
+cmVhZCsweDE1Yy8weDE3MCBbICAyNDcuNzg3ODAzXSAgWzwwMDAwMDAwMDAwYTExNWYyPl0ga2Vy
+bmVsX3RocmVhZF9zdGFydGVyKzB4Ni8weGMgWyAgMjQ3Ljc4NzgwNF0gIFs8MDAwMDAwMDAwMGEx
+MTVlYz5dIGtlcm5lbF90aHJlYWRfc3RhcnRlcisweDAvMHhjIFsgIDI0Ny43ODc4MDZdIElORk86
+IGxvY2tkZXAgaXMgdHVybmVkIG9mZi4NCj4gWyAgMjQ3Ljc4NzgwN10gTGFzdCBCcmVha2luZy1F
+dmVudC1BZGRyZXNzOg0KPiBbICAyNDcuNzg3ODExXSAgWzwwMDAwMDNmZjgxMDZlZGMwPl0gMHgz
+ZmY4MTA2ZWRjMCBbICAyNDcuNzg3ODEzXSBbICAyNDcuNzg3ODE0XSBLZXJuZWwgcGFuaWMgLSBu
+b3Qgc3luY2luZzogRmF0YWwgZXhjZXB0aW9uOiBwYW5pY19vbl9vb3BzDQo+IA0KPiBUaGUgcHJv
+YmxlbSBzZWVtcyB0byBiZSBjYXVzZWQgYnkgdGhlIHVzYWdlIG9mIHBsYWluIG1lbWNweSBpbiBz
+ZXRfZGF0YV9pbmxfc2VnKCkuDQo+IFRoZSBhZGRyZXNzIHByb3ZpZGVkIGJ5IFNNQy1jb2RlIGlu
+IHN0cnVjdCBpYl9zZW5kX3dyICp3ciBpcyBhbiBhZGRyZXNzIGJlbG9uZ2luZyB0byBhbiBhcmVh
+IG1hcHBlZCB3aXRoIHRoZSBpYl9kbWFfbWFwX3NpbmdsZSgpIGNhbGwuIE9uIHMzOTB4IHRob3Nl
+IGtpbmQgb2YgYWRkcmVzc2VzIHJlcXVpcmUgZXh0cmEgYWNjZXNzIGZ1bmN0aW9ucyAoc2VlIGFy
+Y2gvczM5MC9pbmNsdWRlL2FzbS9pby5oKS4NCj4gDQo+IEtpbmQgcmVnYXJkcywgVXJzdWxhIEJy
+YXVuIChJQk0gR2VybWFueSkNCj4gDQo+IC0tDQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBs
+aXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIiBpbiB0aGUgYm9keSBv
+ZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZyBNb3JlIG1ham9yZG9tbyBp
+bmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCj4gDQoN
+Cg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
