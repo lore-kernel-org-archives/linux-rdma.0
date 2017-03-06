@@ -1,73 +1,77 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: Unexpected issues with 2 NVME initiators using the same target
-Date: Mon, 6 Mar 2017 13:28:56 +0200
-Message-ID: <16c4bd86-fd63-f230-40bc-f52cb106e11b@grimberg.me>
-References: <08131a05-1f56-ef61-990a-7fff04eea095@gmail.com>
- <de1a559a-bf24-0d73-5fc7-148d6cd4d4e0@grimberg.me>
- <1848296658.37025722.1487782361271.JavaMail.zimbra@redhat.com>
- <1554c1d1-6bf4-9ca2-12d4-a0125d8c5715@gmail.com>
- <DE927C68B458BE418D582EC97927A92854655137@ORSMSX112.amr.corp.intel.com>
- <3eb5814f-14cb-2b94-adf8-335d4b2eb7e9@grimberg.me>
- <26912d0c-578f-26e9-490d-94fc95bdf259@mellanox.com>
+Subject: Re: kernull NULL pointer observed on initiator side after 'nvmetcli
+ clear' on target side
+Date: Mon, 6 Mar 2017 13:25:39 +0200
+Message-ID: <644fc4ab-df6b-a337-1431-bad881ef56ee@grimberg.me>
+References: <1053522223.31446389.1488721184925.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <26912d0c-578f-26e9-490d-94fc95bdf259-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1053522223.31446389.1488721184925.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "shahar.salzman" <shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Riches Jr, Robert M" <robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+To: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: hch-jcswGhMUV9g@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Hi Sagi,
->
-> I think we need to add fence to the UMR wqe.
->
-> so lets try this one:
->
-> diff --git a/drivers/infiniband/hw/mlx5/qp.c
-> b/drivers/infiniband/hw/mlx5/qp.c
-> index ad8a263..c38c4fa 100644
-> --- a/drivers/infiniband/hw/mlx5/qp.c
-> +++ b/drivers/infiniband/hw/mlx5/qp.c
-> @@ -3737,8 +3737,7 @@ static void dump_wqe(struct mlx5_ib_qp *qp, int
-> idx, int size_16)
->
->  static u8 get_fence(u8 fence, struct ib_send_wr *wr)
->  {
-> -       if (unlikely(wr->opcode == IB_WR_LOCAL_INV &&
-> -                    wr->send_flags & IB_SEND_FENCE))
-> +       if (wr->opcode == IB_WR_LOCAL_INV || wr->opcode == IB_WR_REG_MR)
->                 return MLX5_FENCE_MODE_STRONG_ORDERING;
->
->         if (unlikely(fence)) {
 
-This will kill performance, isn't there another fix that can
-be applied just for retransmission flow?
+> Hi experts
+>
+> If I offline one CPU on initiator side and nvmetcli clear on target side, it will cause kernel NULL pointer on initiator side, could you help check it, thanks
+>
+> Steps to reproduce:
+> 1. setup nvmet target with null-blk device:
+> #modprobe nvmet
+> #modprobe nvmet-rdma
+> #modprobe null_blk nr_devices=1
+> #nvmetcli restore rdma.json
+>
+> 2. connect the target on initiator side and offline one cpu:
+> #modprobe nvme-rdma
+> #nvme connect-all -t rdma -a 172.31.2.3 -s 1023
+> #echo 0 > /sys/devices/system/cpu/cpu1/online
+>
+> 3. nvmetcli clear on target side
+> #nvmetcli clear
+>
+> Kernel log:
+>
+> [  125.039340] nvme nvme0: new ctrl: NQN "nqn.2014-08.org.nvmexpress.discovery", addr 172.31.2.3:1023
+> [  125.160587] nvme nvme0: creating 16 I/O queues.
+> [  125.602244] nvme nvme0: new ctrl: NQN "testnqn", addr 172.31.2.3:1023
+> [  140.930343] Broke affinity for irq 16
+> [  140.950295] Broke affinity for irq 28
+> [  140.969957] Broke affinity for irq 70
+> [  140.986584] Broke affinity for irq 90
+> [  141.003160] Broke affinity for irq 93
+> [  141.019779] Broke affinity for irq 97
+> [  141.036341] Broke affinity for irq 100
+> [  141.053782] Broke affinity for irq 104
+> [  141.072860] smpboot: CPU 1 is now offline
+> [  154.768104] nvme nvme0: reconnecting in 10 seconds
+> [  165.349689] BUG: unable to handle kernel NULL pointer dereference at           (null)
+> [  165.387783] IP: blk_mq_reinit_tagset+0x35/0x80
 
-> Couldn't repro that case but I run some initial tests in my Lab (with my
-> patch above) - not performace servers:
->
-> Initiator with 24 CPUs (2 threads/core, 6 cores/socket, 2 sockets),
-> Connect IB (same driver mlx5_ib), kernel 4.10.0, fio test with 24 jobs
-> and 128 iodepth.
-> register_always=N
->
-> Target - 1 subsystem with 1 ns (null_blk)
->
-> bs   read (without/with patch)   write (without/with patch)
-> --- --------------------------  ---------------------------
-> 512     1019k / 1008k                 1004k / 992k
-> 1k      1021k / 1013k                 1002k / 991k
-> 4k      1030k / 1022k                 978k  / 969k
->
-> CPU usage is 100% for both cases in the initiator side.
-> haven't seen difference with bs = 16k.
-> No so big drop like we would expect,
+Looks like blk_mq_reinit_tagset is not aware that tags can go away with
+cpu hotplug...
 
-Obviously you won't see a drop without registering memory
-for small IO (register_always=N), this would bypass registration
-altogether... Please retest with register_always=Y.
+Does this fix your issue:
+--
+diff --git a/block/blk-mq-tag.c b/block/blk-mq-tag.c
+index e48bc2c72615..9d97bfc4d465 100644
+--- a/block/blk-mq-tag.c
++++ b/block/blk-mq-tag.c
+@@ -295,6 +295,9 @@ int blk_mq_reinit_tagset(struct blk_mq_tag_set *set)
+         for (i = 0; i < set->nr_hw_queues; i++) {
+                 struct blk_mq_tags *tags = set->tags[i];
+
++               if (!tags)
++                       continue;
++
+                 for (j = 0; j < tags->nr_tags; j++) {
+                         if (!tags->static_rqs[j])
+                                 continue;
+--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
