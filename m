@@ -1,144 +1,120 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core 07/14] mlx4: Update to use new udma write
- barriers
-Date: Mon, 6 Mar 2017 16:57:40 +0200
-Message-ID: <45d2b7da-9ad6-6b37-d0b2-00f7807966b4@dev.mellanox.co.il>
-References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1487272989-8215-8-git-send-email-jgunthorpe@obsidianresearch.com>
- <206559e5-0488-f6d5-c4ec-bf560e0c3ba6@dev.mellanox.co.il>
- <20170221181407.GA13138@obsidianresearch.com>
+From: Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: Re: Fwd: mlx5_ib_post_send panic on s390x
+Date: Mon, 6 Mar 2017 14:03:00 +0100
+Message-ID: <491cf3e1-b2f8-3695-ecd4-3d34b0ae9e25@linux.vnet.ibm.com>
+References: <56246ac0-a706-291c-7baa-a6dd2c6331cd@linux.vnet.ibm.com>
+ <dcc90daa-b932-8957-d8bc-e1f02d04e03a@linux.vnet.ibm.com>
+ <20e4f31e-b2a7-89fb-d4c0-583c0dc1efb6@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170221181407.GA13138-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20e4f31e-b2a7-89fb-d4c0-583c0dc1efb6-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "Matan Barak (External)" <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "Saeed Mahameed (saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/21/2017 8:14 PM, Jason Gunthorpe wrote:
-> On Mon, Feb 20, 2017 at 07:46:02PM +0200, Yishai Hadas wrote:
->
->>> 	pthread_spin_lock(&qp->sq.lock);
->>>
->>> +	/* Get all user DMA buffers ready to go */
->>> +	udma_to_device_barrier();
->>> +
->>> 	/* XXX check that state is OK to post send */
+
+
+On 02/26/2017 10:45 AM, Matan Barak (External) wrote:
+> On 24/02/2017 12:27, Ursula Braun wrote:
+>> sorry, typo in the mail address.
 >>
->> Not clear why do we need here an extra barrier ? what is the future
->> optimization that you pointed on ?
->
-> Writes to different memory types are not guarenteed to be strongly
-> ordered. This is narrowly true on x86-64 too apparently.
->
-> The purpose of udma_to_device_barrier is to serialize all memory
-> types.
->
-> This allows the follow on code to use the weaker
-> 'udma_ordering_write_barrier' when it knows it is working exclusively
-> with cached memory.
->
-> Eg in an ideal world on x86 udma_to_device_barrier should be SFENCE
-> and 'udma_ordering_write_barrier' should be compiler_barrier()
->
-> Since the barriers have been so ill defined and wonky on x86 other
-> arches use much stronger barriers than they actually need for each
-> cases. Eg ARM64 can switch to much weaker barriers.
->
-> Since there is no cost on x86-64 to this barrier I would like to leave
-> it here as it lets us actually optimize the ARM and other barriers. If
-> you take it out then 'udma_ordering_write_barrier' is forced to be the
-> strongest barrier on all arches.
-
-Till we make the further optimizations, we suspect a performance 
-degradation in other ARCH(s) rather than X86, as this patch introduce an 
-extra barrier which wasn't before (i.e udma_to_device_barrier).
-Usually such a change should come with its follows improvement patch to 
-justify it. The impact is still something that we should measure but 
-basically any new code in the data path must be justified when it's 
-added from performance point of view.
-
->>> @@ -478,7 +481,7 @@ out:
->>> 		 * Make sure that descriptor is written to memory
->>> 		 * before writing to BlueFlame page.
->>> 		 */
->>> -		wmb();
->>> +		mmio_wc_start();
+>> -------- Forwarded Message --------
+>> Subject: mlx5_ib_post_send panic on s390x
+>> Date: Fri, 24 Feb 2017 10:51:32 +0100
+>> From: Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+>> To: matamb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+>> CC: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 >>
->> Why to make this change which affects at least X86_64 ? the data was
->> previously written to the host memory so we expect that wmb is
->> enough here.
->
-> Same as above, writes to different memory types are not strongly
-> ordered and wmb() is not the right barrier to serialize writes to
-> DMA'able ctrl with the WC memcpy.
->
-> If this is left wrong then again other arches are again required to
-> adopt the strongest barrier for everything which hurts them.
->
-> Even on x86, it is very questionable to not have the SFENCE in that
-> spot. AFAIK it is not defined to be strongly ordered.
->
-> mlx5 has the SFENCE here, for instance.
+>> Hi Saeed and Matan,
+>>
+>> up to now I run SMC-R traffic on Connect X3, which works.
+>> But when switching to Connect X4, the first mlx5_ib_post_send() fails:
+>>
+>> [  247.787660] Unable to handle kernel pointer dereference in virtual kernel address space
+>> [  247.787662] Failing address: 000000010484a000 TEID: 000000010484a803
+>> [  247.787664] Fault in home space mode while using kernel ASCE.
+>> [  247.787667] AS:00000000011ec007 R3:0000000000000024
+>> [  247.787701] Oops: 003b ilc:2 [#1] PREEMPT SMP
+>> [  247.787704] Modules linked in: smc_diag smc xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack ipt_REJECT nf_reject_ipv4 xt_tcpudp bridge stp llc ip6table_filter ip6_tables iptable_filter rpcrdma rdma_ucm ib_ucm ib_uverbs rdma_cm configfs ib_cm iw_cm mlx5_ib ib_core mlx5_core xts gf128mul cbc ecb aes_s390 des_s390 des_generic ptp sha512_s390 pps_core sha256_s390 sha1_s390 sha_common eadm_sch nfsd auth_rpcgss oid_registry nfs_acl lockd vhost_net tun grace vhost sunrpc macvtap sch_fq_codel macvlan dm_multipath kvm dm_mod ip_tables x_tables autofs4
+>> [  247.787738] CPU: 0 PID: 10498 Comm: kworker/0:3 Tainted: G        W       4.10.0uschi+ #4
+>> [  247.787739] Hardware name: IBM              2964 N96              704              (LPAR)
+>> [  247.787743] Workqueue: events smc_listen_work [smc]
+>> [  247.787745] task: 00000000b4148008 task.stack: 0000000099c2c000
+>> [  247.787746] Krnl PSW : 0404c00180000000 0000000000762412 (memcpy+0x22/0x48)
+>> [  247.787751]            R:0 T:1 IO:0 EX:0 Key:0 M:1 W:0 P:0 AS:3 CC:0 PM:0 RI:0 EA:3
+>> [  247.787753] Krnl GPRS: 0000000000a7a100 0000000099c96414 0000000099c96414 000000010484afc8
+>> [  247.787755]            000000000000002b 000000000076242e 000000000000002c 0000000099c96440
+>> [  247.787757]            000000010484afc8 000000000000002c 0000000099c96414 0000000000000001
+>> [  247.787758]            00000000ae8a75d0 000003ff8108aa50 000003ff8107cde6 0000000099c2fa38
+>> [  247.787764] Krnl Code: 0000000000762404: b9040012        lgr    %r1,%r2
+>>                           0000000000762408: a7740008        brc    7,762418
+>>                          #000000000076240c: c05000000011    larl    %r5,76242e
+>>                          >0000000000762412: 44405000        ex    %r4,0(%r5)
+>>                           0000000000762416: 07fe        bcr    15,%r14
+>>                           0000000000762418: d2ff10003000    mvc    0(256,%r1),0(%r3)
+>>                           000000000076241e: 41101100        la    %r1,256(%r1)
+>>                           0000000000762422: 41303100        la    %r3,256(%r3)
+>> [  247.787780] Call Trace:
+>> [  247.787785] ([<000003ff8107cdd4>] mlx5_ib_post_send+0x139c/0x1810 [mlx5_ib])
+>> [  247.787789]  [<000003ff8047999a>] smc_wr_tx_send+0xd2/0x100 [smc]
+>> [  247.787792]  [<000003ff8047a97a>] smc_llc_send_confirm_link+0x9a/0xd0 [smc]
+>> [  247.787794]  [<000003ff804751ee>] smc_listen_work+0x24e/0x4e0 [smc]
+>> [  247.787797]  [<00000000001659e8>] process_one_work+0x3d8/0x780
+>> [  247.787799]  [<0000000000166044>] worker_thread+0x2b4/0x478
+>> [  247.787801]  [<000000000016e62c>] kthread+0x15c/0x170
+>> [  247.787803]  [<0000000000a115f2>] kernel_thread_starter+0x6/0xc
+>> [  247.787804]  [<0000000000a115ec>] kernel_thread_starter+0x0/0xc
+>> [  247.787806] INFO: lockdep is turned off.
+>> [  247.787807] Last Breaking-Event-Address:
+>> [  247.787811]  [<000003ff8106edc0>] 0x3ff8106edc0
+>> [  247.787813]
+>> [  247.787814] Kernel panic - not syncing: Fatal exception: panic_on_oops
+>>
+>> The problem seems to be caused by the usage of plain memcpy in set_data_inl_seg().
+>> The address provided by SMC-code in struct ib_send_wr *wr is an address belonging to
+>> an area mapped with the ib_dma_map_single() call. On s390x those kind of addresses
+>> require extra access functions (see arch/s390/include/asm/io.h).
+>>
+> 
+> So I guess memcpy_toio is required here, right?
+> Since we don't have a s390 based system, could you please test this?
+memcpy_toio() did not help. Then I replaced the memcpy-calls in set_data_inl_seg()
+by this preliminary test code (just to give an idea, not a real patch proposal):
 
-We made some performance testing with the above change, initial results 
-point on degradation of about 3% in the message rate in the above 
-BlueFlame path in X86, this is something that we should prevent.
+static void *memcpy_usc(void *dest, const void *src, size_t count)
+{
+        char *tmp_dest = (char *)dest;
+        char *tmp_src = (char *)src;
+        int copied = 0;
+        u32 tmp_u32;
 
-Based on below analysis it looks as the change to use 'mmio_wc_start()' 
-which is mapped to SFENCE in X86 is redundant.
+        while (copied < count) {
+                tmp_u32 = __raw_readl(tmp_src);
+                __raw_writel(tmp_u32, tmp_dest);
+                copied += sizeof(tmp_u32);
+                tmp_dest += sizeof(tmp_u32);
+                tmp_src += sizeof(tmp_u32);
+        }
+        return dest;
+}
 
-Details:
-There is a call to 'pthread_spin_lock()' in between the WB (write back 
-host memory) to WC writes.
+This helped; the first mlx5_ib_post_send code initiated from SMC-code (type IB_WR_SEND,
+flagged with IB_SEND_INLINE, length 44 bytes) run successful.
 
-pthread_spin_lock is defined [1] to x86 XCHG atomic instruction. Based 
-on Intel® 64 and IA-32 Architectures [2] such an operation operates as 
-some barrier to make sure that previous memory writes were completed.
-As such we expect to see here some other macro which consider whether 
-lock is a barrier based on ARCH instead of taking in call cases the 
-SFENCE barrier.
+A following mlx5_ib_post_send call of type RDMA_WRITE seems to stall later on, but
+this is something I have to analyze in more detail.
 
-
-
-[1] http://code.metager.de/source/xref/gnu/glibc/nptl/pthread_spin_lock.c
-Call atomic_exchange_acq() which is defined in Line 115 at:
-http://code.metager.de/source/xref/gnu/glibc/sysdeps/x86_64/atomic-machine.h
-
-
-[2] Intel® 64 and IA-32 Architectures Software Developer’s Manual
-At: 
-https://software.intel.com/sites/default/files/managed/39/c5/325462-sdm-vol-1-2abcd-3abcd.pdf
-
-8.1.2.2 Software Controlled Bus Locking
-
-On page 8-3 Vol. 3A  : “The LOCK prefix is automatically assumed for 
-XCHG instruction.”
-
-On page 8-4 Vol. 3A: “Locked instructions can be used to synchronize 
-data written by one processor and read by another processor.
-For the P6 family processors, locked operations serialize all 
-outstanding load and store operations (that is, wait for
-them to complete). This rule is also true for the Pentium 4 and Intel 
-Xeon processors, with one exception. Load
-operations that reference weakly ordered memory types (such as the WC 
-memory type) may not be serialized.
-
-8.3 SERIALIZING INSTRUCTIONS
-
-On page 8-16 Vol. 3A: “Locking operations typically operate like I/O 
-operations in that they wait for all previous instructions to complete 
-and for all buffered writes to drain to memory”
-
-
-
-
-
-
-
-
+> 
+>> Kind regards, Ursula Braun (IBM Germany)
+>>
+> 
+> Thanks for notifying.
+> 
+> Matan
+> 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
