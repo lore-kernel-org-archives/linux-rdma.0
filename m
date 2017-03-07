@@ -1,197 +1,67 @@
 From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core 07/14] mlx4: Update to use new udma write
- barriers
-Date: Tue, 7 Mar 2017 18:44:55 +0200
-Message-ID: <55bcc87e-b059-65df-8079-100120865ffb@dev.mellanox.co.il>
-References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1487272989-8215-8-git-send-email-jgunthorpe@obsidianresearch.com>
- <206559e5-0488-f6d5-c4ec-bf560e0c3ba6@dev.mellanox.co.il>
- <20170221181407.GA13138@obsidianresearch.com>
- <45d2b7da-9ad6-6b37-d0b2-00f7807966b4@dev.mellanox.co.il>
- <20170306173139.GA11805@obsidianresearch.com>
+Subject: Re: [PATCH rdma-core 4/5] verbs: Add an option to provide vendor
+ private data when creating a CQ
+Date: Tue, 7 Mar 2017 19:18:40 +0200
+Message-ID: <d3cc85f3-d5ef-5114-68a3-6989b5b26478@dev.mellanox.co.il>
+References: <1488809204-30428-1-git-send-email-yishaih@mellanox.com>
+ <1488809204-30428-5-git-send-email-yishaih@mellanox.com>
+ <20170306180723.GD11805@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170306173139.GA11805-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20170306180723.GD11805-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, "Tzahi Oved (tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/6/2017 7:31 PM, Jason Gunthorpe wrote:
-> On Mon, Mar 06, 2017 at 04:57:40PM +0200, Yishai Hadas wrote:
->
->>> Since there is no cost on x86-64 to this barrier I would like to leave
->>> it here as it lets us actually optimize the ARM and other barriers. If
->>> you take it out then 'udma_ordering_write_barrier' is forced to be the
->>> strongest barrier on all arches.
+On 3/6/2017 8:07 PM, Jason Gunthorpe wrote:
+> On Mon, Mar 06, 2017 at 04:06:43PM +0200, Yishai Hadas wrote:
+>> From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >>
->> Till we make the further optimizations, we suspect a performance degradation
->> in other ARCH(s) rather than X86, as this patch introduce an extra barrier
->> which wasn't before (i.e udma_to_device_barrier).
->
-> Yes, possibly.
->
-> The only other option I see is to change those couple of call sites in
-> mlx4 to be udma_to_device_barrier() - which looses the information
-> they are actually doing something different.
->
-> Honestly, I think if someone cares about the other arches they will
-> see a net win if the proper weak barrier is implemented for
-> udma_ordering_write_barrier
-
-We can't allow any temporary degradation and rely on some future 
-improvements, it must come together and be justified by some performance 
-testing.
-
-I'll send some patch that will drop the leading udma_to_device_barrier() 
-and replace udma_ordering_write_barrier() to be 
-udma_to_device_barrier(), this will be done as part of the other change 
-that is expected here, see below.
-
->>> Even on x86, it is very questionable to not have the SFENCE in that
->>> spot. AFAIK it is not defined to be strongly ordered.
->>>
->>> mlx5 has the SFENCE here, for instance.
+>> This patch drops the need to extend the verbs layer each time with
+>> some non generic fields when creating a CQ. It adds an option to set
+>> some opaque vendor data in some generic way which can fit any vendor.
 >>
->> We made some performance testing with the above change, initial results
->> point on degradation of about 3% in the message rate in the above BlueFlame
->> path in X86, this is something that we should prevent.
+>> The solution introduced for creating a CQ but expects to fit for
+>> other IB objects as of QP, SRQ, etc.
 >>
->> Based on below analysis it looks as the change to use 'mmio_wc_start()'
->> which is mapped to SFENCE in X86 is redundant.
+>> It comes as a pre-patch for supplying some private mlx5 fields in
+>> downstream patches.
+>>
+>> The solution:
+>> 1) Introduce a new comp_mask bit (i.e. IBV_CQ_INIT_ATTR_MASK_VENDOR_DATA)
+>>    and a matching void* vendor data field.
+>>
+>> 2) Vendor should expose its header file for direct access with
+>>    relevant private structures.
+>>
+>> 3) Application should supply the input based on vendor-defined structure.
+>>
+>> 4) Upon getting the private data the vendor will cast to its internal
+>>    structure and use the data as part of CQ creation.
 >
-> Okay, I think your analysis makes sense, and extending it broadly
-> means there is a fair amount of over-barriering on x86 in various
-> places.
->
-
-Correct, that's should be the way to go.
-
-> What do you think about this approach? Notice that it allows us to see
-> that mlx5 should be optimized to elide the leading SFENCE as
-> well. This should speed up mlx5 compared to the original.
-
-The below patch makes sense, however, need to be fixed in few points, 
-see below. I'll fix it and take it in-house to our regression and 
-performance systems, once approved will sent it upstream.
-
-> diff --git a/providers/mlx4/qp.c b/providers/mlx4/qp.c
-> index 77a4a34576cb69..32f0b3fe78fe7c 100644
-> --- a/providers/mlx4/qp.c
-> +++ b/providers/mlx4/qp.c
-> @@ -481,15 +481,14 @@ out:
->  		 * Make sure that descriptor is written to memory
->  		 * before writing to BlueFlame page.
->  		 */
-> -		mmio_wc_start();
-> +		mmio_wc_spinlock(&ctx->bf_lock);
->
->  		++qp->sq.head;
-
-Originally wasn't under the BF spinlock, looks as should be out of that 
-spin.
-
-> -		pthread_spin_lock(&ctx->bf_lock);
-> -
->  		mlx4_bf_copy(ctx->bf_page + ctx->bf_offset, (unsigned long *) ctrl,
->  			     align(size * 16, 64));
-> -		mmio_flush_writes();
-> +
-> +		mmio_wc_spinunlock(&ctx->bf_lock);
-
-We still should be under the spinlock, see below note, we expect here 
-only a mmio_flush_writes() so this macro is not needed at all.
->
->  		ctx->bf_offset ^= ctx->bf_buf_size;
-
-You missed here next line which do a second pthread_spin_unlock(), in 
-addition this line need to be under the bf_lock.
->
-> diff --git a/providers/mlx5/qp.c b/providers/mlx5/qp.c
-> index d7087d986ce79f..6187b85219dacc 100644
-> --- a/providers/mlx5/qp.c
-> +++ b/providers/mlx5/qp.c
-> @@ -931,11 +931,11 @@ out:
->
->  		/* Make sure that the doorbell write happens before the memcpy
->  		 * to WC memory below */
-> -		mmio_wc_start();
-> -
->  		ctx = to_mctx(ibqp->context);
-> -		if (bf->need_lock)
-> -			mlx5_spin_lock(&bf->lock);
-> +		if (bf->need_lock && !mlx5_single_threaded)
-> +			mmio_wc_spinlock(&bf->lock->lock);
-
-Should be &bf->lock.lock to compile, here and below.
-
-> +		else
-> +			mmio_wc_start();
->
->  		if (!ctx->shut_up_bf && nreq == 1 && bf->uuarn &&
->  		    (inl || ctx->prefer_bf) && size > 1 &&
-> @@ -955,10 +955,11 @@ out:
->  		 * the mmio_flush_writes is CPU local, this will result in the HCA seeing
->  		 * doorbell 2, followed by doorbell 1.
->  		 */
-> -		mmio_flush_writes();
->  		bf->offset ^= bf->buf_size;
-> -		if (bf->need_lock)
-> -			mlx5_spin_unlock(&bf->lock);
-> +		if (bf->need_lock && !mlx5_single_threaded)
-> +			mmio_wc_spinunlock(&bf->lock->lock);
-> +		else
-> +			mmio_flush_writes();
->  	}
->
->  	mlx5_spin_unlock(&qp->sq.lock);
-> diff --git a/util/udma_barrier.h b/util/udma_barrier.h
-> index 9e73148af8d5b6..ea4904d28f6a48 100644
-> --- a/util/udma_barrier.h
-> +++ b/util/udma_barrier.h
-> @@ -33,6 +33,8 @@
->  #ifndef __UTIL_UDMA_BARRIER_H
->  #define __UTIL_UDMA_BARRIER_H
->
-> +#include <pthread.h>
-> +
->  /* Barriers for DMA.
->
->     These barriers are expliclty only for use with user DMA operations. If you
-> @@ -222,4 +224,26 @@
->  */
->  #define mmio_ordered_writes_hack() mmio_flush_writes()
->
-> +/* Higher Level primitives */
-> +
-> +/* Do mmio_wc_start and grab a spinlock */
-> +static inline void mmio_wc_spinlock(pthread_spinlock_t *lock)
-> +{
-> +	pthread_spin_lock(lock);
-> +#if !defined(__i386__) && !defined(__x86_64__)
-> +	/* For x86 the serialization within the spin lock is enough to
-> +	 * strongly order WC and other memory types. */
-> +	mmio_wc_start();
-> +#endif
-> +}
-> +
-> +static inline void mmio_wc_spinunlock(pthread_spinlock_t *lock)
-> +{
-> +	/* On x86 the lock is enough for strong ordering, but the SFENCE
-> +	 * encourages the WC buffers to flush out more quickly (Yishai:
-> +	 * confirm?) */
-
-This macro can't do both and should be dropped, see above.
-
-> +	mmio_flush_writes();
-> +	pthread_spin_unlock(lock);
-> +}
-> +
->  #endif
+> I'm not sure I like this, why not create a mlx5dv_create_cq?
 >
 
+Below notes justify the suggested scheme comparing adding 
+mlx5dv_create_cq() API for that purpose:
+
+1) From developer point of view it's fully preferred to use single API 
+(e.g. ibv_create_cq_ex) otherwise developer should choose, do I use 
+ibv_create_cq_ex() or mlx5dv_create_cq(). If I use the latter, do I need 
+mlx5dv_destroy_cq() or can I use ibv_destroy_cq()...
+
+2) We would like to support this scheme for other calls as well and 
+enjoy libibverbs generic services on top, that's can be achieved by the 
+suggested scheme.
+
+3) Other vendors can use the suggested scheme without the need to expose 
+any xxx_create_cq() API, all that is needed is just to expose direct H 
+file, this can be done also by mlx5 customers who don't want to use the 
+mlx5_dv direct calls but to enjoy from the option to supply vendor data 
+as part of CQ creation.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
