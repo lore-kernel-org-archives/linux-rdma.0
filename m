@@ -1,255 +1,108 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH] IB/core: Restore I/O MMU, s390 and powerpc support
-Date: Wed, 8 Mar 2017 00:50:52 +0000
-Message-ID: <VI1PR0502MB30085F4548DD60980A96BC9DD12E0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <1D08B61A9CF0974AA09887BE32D889DA0DBFCB@ULS-OP-MBXIP03.sdcorp.global.sandisk.com>
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-core 06/14] i40iw: Get rid of unique barrier macros
+Date: Tue, 7 Mar 2017 16:46:22 -0600
+Message-ID: <20170307224622.GA45028@ssaleem-MOBL4.amr.corp.intel.com>
+References: <1487272989-8215-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1487272989-8215-7-git-send-email-jgunthorpe@obsidianresearch.com>
+ <20170301172920.GA11340@ssaleem-MOBL4.amr.corp.intel.com>
+ <20170301175521.GB14791@obsidianresearch.com>
+ <20170301221420.GA18548@ssaleem-MOBL4.amr.corp.intel.com>
+ <20170301230506.GB2820@obsidianresearch.com>
+ <20170303214514.GA12996@ssaleem-MOBL4.amr.corp.intel.com>
+ <20170303222244.GA678@obsidianresearch.com>
+ <20170306191631.GB34252@ssaleem-MOBL4.amr.corp.intel.com>
+ <20170306194052.GB31672@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1D08B61A9CF0974AA09887BE32D889DA0DBFCB-fxMRTlsoH6pS59oDqloDyoaX4dThiank9m7AsFVS2+l8Oh6FZyoiAQ@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20170306194052.GB31672-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Sebastian Ott <sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nikolova, Tatyana E" <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Bart,
+On Mon, Mar 06, 2017 at 12:40:52PM -0700, Jason Gunthorpe wrote:
+> On Mon, Mar 06, 2017 at 01:16:31PM -0600, Shiraz Saleem wrote:
+> > On Fri, Mar 03, 2017 at 03:22:44PM -0700, Jason Gunthorpe wrote:
+> > > On Fri, Mar 03, 2017 at 03:45:14PM -0600, Shiraz Saleem wrote:
+> > > 
+> > > > This is not quite how our DB logic works. There are additional HW
+> > > > steps and nuances in the flow. Unfortunately, to explain this, we
+> > > > need to provide details of our internal HW flow for the DB logic. We
+> > > > are unable to do so at this time.
+> > > 
+> > > Well, it is very problematic to help you define what a cross-arch
+> > > barrier should do if you can't explain what you need to have happen
+> > > relative to PCI-E.
+> > 
+> > Unfortunately, we can help with this only at the point when this information 
+> > is made public. If you must have an explanation for all barriers defined in 
+> > utils, an option here is to leave this barrier in i40iw and migrate it to 
+> > utils when documentation is available. 
+> 
+> Well, it is impossible to document what other arches are expected to
+> do if you can't define what you need.
+> 
+> Talking about the CPU alone does not define the interaction required
+> with PCI.
+> 
+> The reason we have these special barriers and do not just use C11's
+> atomic_thread_fence is specifically because some arches make a small
+> distinction on ordering relative to PCI and ordering relative to other
+> CPUs.
+> 
+> > > > Mfence guarantees that load won't be reordered before the store, and
+> > > > thus we are using it.
+> > > 
+> > > If that is all then the driver can use LFENCE and the
+> > > udma_from_device_barrier() .. Is that OK?
+> > 
+> > The write valid WQE needs to be globally visible before read tail. LFENCE does not 
+> > guarantee this. MFENCE does.
+> 
+> I was thinking
+> 
+> SFENCE
+> LFENCE
+> 
+> So, okay, here are two more choices.
+> 
+> 1) Use a C11 barrier:
+> 
+>  atomic_thread_fence(memory_order_seq_cst);
+> 
+> This produces what you want on x86-64:
+> 
+> 0000000000000590 <i40iw_qp_post_wr>:
+>      590:       0f ae f0                mfence 
+>      593:       48 8b 47 28             mov    0x28(%rdi),%rax
+>      597:       8b 57 40                mov    0x40(%rdi),%edx
+> 
+> x86-32 does:
+> 
+> 00000600 <i40iw_qp_post_wr>:
+>      600:       53                      push   %ebx
+>      601:       8b 44 24 08             mov    0x8(%esp),%eax
+>      605:       f0 83 0c 24 00          lock orl $0x0,(%esp)
+> 
+> Which is basically the same as the "lock; addl $0,0(%%esp)" the old
+> macros used.
+> 
+> Take your chances on other arches.
+> 
+> 2) Explicitly optimize x86 and have other arches skip the
+>    shadow optimization
+> 
+> Here is a patch that does #2, I'm guessing about the implementation..
+> 
+> What do you think?
 
-This fix looks good to me.
-I haven't had chance to test it yet.
-
-Parav
-
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Bart Van Assche
-> Sent: Tuesday, March 7, 2017 4:57 PM
-> To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Cc: Sebastian Ott <sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>; Parav Pandit
-> <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: [PATCH] IB/core: Restore I/O MMU, s390 and powerpc support
->=20
-> Avoid that the following error message is reported on the console while
-> loading an RDMA driver with I/O MMU support enabled:
->=20
-> DMAR: Allocating domain for mlx5_0 failed
->=20
-> Ensure that DMA mapping operations that use to_pci_dev() to access to
-> struct pci_dev see the correct PCI device. E.g. the s390 and powerpc DMA
-> mapping operations use to_pci_dev() even with I/O MMU support disabled.
->=20
-> This patch preserves the following changes of the DMA mapping updates
-> patch series:
-> - Introduction of dma_virt_ops.
-> - Removal of ib_device.dma_ops.
-> - Removal of struct ib_dma_mapping_ops.
-> - Removal of an if-statement from each ib_dma_*() operation.
-> - IB HW drivers no longer set dma_device directly.
->=20
-> Reported-by: Sebastian Ott <sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-> Reported-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Fixes: commit 99db9494035f ("IB/core: Remove ib_device.dma_device")
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> ---
->  drivers/infiniband/core/device.c | 26 ++++++++++++++++++++------
->  include/rdma/ib_verbs.h          | 30 +++++++++++++++++-------------
->  2 files changed, 37 insertions(+), 19 deletions(-)
->=20
-> diff --git a/drivers/infiniband/core/device.c
-> b/drivers/infiniband/core/device.c
-> index 593d2ce6ec7c..addf869045cc 100644
-> --- a/drivers/infiniband/core/device.c
-> +++ b/drivers/infiniband/core/device.c
-> @@ -336,12 +336,26 @@ int ib_register_device(struct ib_device *device,
->  	struct device *parent =3D device->dev.parent;
->=20
->  	WARN_ON_ONCE(!parent);
-> -	if (!device->dev.dma_ops)
-> -		device->dev.dma_ops =3D parent->dma_ops;
-> -	if (!device->dev.dma_mask)
-> -		device->dev.dma_mask =3D parent->dma_mask;
-> -	if (!device->dev.coherent_dma_mask)
-> -		device->dev.coherent_dma_mask =3D parent-
-> >coherent_dma_mask;
-> +	WARN_ON_ONCE(device->dma_device);
-> +	if (device->dev.dma_ops) {
-> +		/*
-> +		 * The caller provided custom DMA operations. Copy the
-> +		 * DMA-related fields that are used by e.g.
-> dma_alloc_coherent()
-> +		 * into device->dev.
-> +		 */
-> +		device->dma_device =3D &device->dev;
-> +		if (!device->dev.dma_mask)
-> +			device->dev.dma_mask =3D parent->dma_mask;
-> +		if (!device->dev.coherent_dma_mask)
-> +			device->dev.coherent_dma_mask =3D
-> +				parent->coherent_dma_mask;
-> +	} else {
-> +		/*
-> +		 * The caller did not provide custom DMA operations. Use the
-> +		 * DMA mapping operations of the parent device.
-> +		 */
-> +		device->dma_device =3D parent;
-> +	}
->=20
->  	mutex_lock(&device_mutex);
->=20
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h index
-> 0f1813c13687..99e4423eb2b8 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -1863,6 +1863,9 @@ struct ib_port_immutable {  };
->=20
->  struct ib_device {
-> +	/* Do not access @dma_device directly from ULP nor from HW
-> drivers. */
-> +	struct device                *dma_device;
-> +
->  	char                          name[IB_DEVICE_NAME_MAX];
->=20
->  	struct list_head              event_handler_list;
-> @@ -3007,7 +3010,7 @@ static inline int ib_req_ncomp_notif(struct ib_cq
-> *cq, int wc_cnt)
->   */
->  static inline int ib_dma_mapping_error(struct ib_device *dev, u64
-> dma_addr)  {
-> -	return dma_mapping_error(&dev->dev, dma_addr);
-> +	return dma_mapping_error(dev->dma_device, dma_addr);
->  }
->=20
->  /**
-> @@ -3021,7 +3024,7 @@ static inline u64 ib_dma_map_single(struct
-> ib_device *dev,
->  				    void *cpu_addr, size_t size,
->  				    enum dma_data_direction direction)  {
-> -	return dma_map_single(&dev->dev, cpu_addr, size, direction);
-> +	return dma_map_single(dev->dma_device, cpu_addr, size,
-> direction);
->  }
->=20
->  /**
-> @@ -3035,7 +3038,7 @@ static inline void ib_dma_unmap_single(struct
-> ib_device *dev,
->  				       u64 addr, size_t size,
->  				       enum dma_data_direction direction)  {
-> -	dma_unmap_single(&dev->dev, addr, size, direction);
-> +	dma_unmap_single(dev->dma_device, addr, size, direction);
->  }
->=20
->  /**
-> @@ -3052,7 +3055,7 @@ static inline u64 ib_dma_map_page(struct
-> ib_device *dev,
->  				  size_t size,
->  					 enum dma_data_direction direction)
-> {
-> -	return dma_map_page(&dev->dev, page, offset, size, direction);
-> +	return dma_map_page(dev->dma_device, page, offset, size,
-> direction);
->  }
->=20
->  /**
-> @@ -3066,7 +3069,7 @@ static inline void ib_dma_unmap_page(struct
-> ib_device *dev,
->  				     u64 addr, size_t size,
->  				     enum dma_data_direction direction)  {
-> -	dma_unmap_page(&dev->dev, addr, size, direction);
-> +	dma_unmap_page(dev->dma_device, addr, size, direction);
->  }
->=20
->  /**
-> @@ -3080,7 +3083,7 @@ static inline int ib_dma_map_sg(struct ib_device
-> *dev,
->  				struct scatterlist *sg, int nents,
->  				enum dma_data_direction direction)
->  {
-> -	return dma_map_sg(&dev->dev, sg, nents, direction);
-> +	return dma_map_sg(dev->dma_device, sg, nents, direction);
->  }
->=20
->  /**
-> @@ -3094,7 +3097,7 @@ static inline void ib_dma_unmap_sg(struct
-> ib_device *dev,
->  				   struct scatterlist *sg, int nents,
->  				   enum dma_data_direction direction)  {
-> -	dma_unmap_sg(&dev->dev, sg, nents, direction);
-> +	dma_unmap_sg(dev->dma_device, sg, nents, direction);
->  }
->=20
->  static inline int ib_dma_map_sg_attrs(struct ib_device *dev, @@ -3102,7
-> +3105,8 @@ static inline int ib_dma_map_sg_attrs(struct ib_device *dev,
->  				      enum dma_data_direction direction,
->  				      unsigned long dma_attrs)
->  {
-> -	return dma_map_sg_attrs(&dev->dev, sg, nents, direction,
-> dma_attrs);
-> +	return dma_map_sg_attrs(dev->dma_device, sg, nents, direction,
-> +				dma_attrs);
->  }
->=20
->  static inline void ib_dma_unmap_sg_attrs(struct ib_device *dev, @@ -
-> 3110,7 +3114,7 @@ static inline void ib_dma_unmap_sg_attrs(struct
-> ib_device *dev,
->  					 enum dma_data_direction direction,
->  					 unsigned long dma_attrs)
->  {
-> -	dma_unmap_sg_attrs(&dev->dev, sg, nents, direction, dma_attrs);
-> +	dma_unmap_sg_attrs(dev->dma_device, sg, nents, direction,
-> dma_attrs);
->  }
->  /**
->   * ib_sg_dma_address - Return the DMA address from a scatter/gather
-> entry @@ -3152,7 +3156,7 @@ static inline void
-> ib_dma_sync_single_for_cpu(struct ib_device *dev,
->  					      size_t size,
->  					      enum dma_data_direction dir)  {
-> -	dma_sync_single_for_cpu(&dev->dev, addr, size, dir);
-> +	dma_sync_single_for_cpu(dev->dma_device, addr, size, dir);
->  }
->=20
->  /**
-> @@ -3167,7 +3171,7 @@ static inline void
-> ib_dma_sync_single_for_device(struct ib_device *dev,
->  						 size_t size,
->  						 enum dma_data_direction
-> dir)
->  {
-> -	dma_sync_single_for_device(&dev->dev, addr, size, dir);
-> +	dma_sync_single_for_device(dev->dma_device, addr, size, dir);
->  }
->=20
->  /**
-> @@ -3182,7 +3186,7 @@ static inline void *ib_dma_alloc_coherent(struct
-> ib_device *dev,
->  					   dma_addr_t *dma_handle,
->  					   gfp_t flag)
->  {
-> -	return dma_alloc_coherent(&dev->dev, size, dma_handle, flag);
-> +	return dma_alloc_coherent(dev->dma_device, size, dma_handle,
-> flag);
->  }
->=20
->  /**
-> @@ -3196,7 +3200,7 @@ static inline void ib_dma_free_coherent(struct
-> ib_device *dev,
->  					size_t size, void *cpu_addr,
->  					dma_addr_t dma_handle)
->  {
-> -	dma_free_coherent(&dev->dev, size, cpu_addr, dma_handle);
-> +	dma_free_coherent(dev->dma_device, size, cpu_addr,
-> dma_handle);
->  }
->=20
->  /**
-> --
-> 2.12.0
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in =
-the
-> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+Is __this__ C11 barrier a compiler barrier as well?
+#1 is preferred using atomic_thread_fence(memory_order_seq_cst) for all 
+archs. 
+  
+ 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
