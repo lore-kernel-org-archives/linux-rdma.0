@@ -1,56 +1,53 @@
-From: Bart Van Assche <Bart.VanAssche@sandisk.com>
-Subject: Re: [PATCH 1/2] device: Stop requiring that struct device is
- embedded in struct pci_dev
-Date: Tue, 7 Mar 2017 16:54:58 +0000
-Message-ID: <1488905685.2739.1.camel@sandisk.com>
-References: <20170307003549.3872-1-bart.vanassche@sandisk.com>
-         <20170307003549.3872-2-bart.vanassche@sandisk.com>
-         <20170307045236.GC3913@kroah.com>
+From: Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH v3 14/16] rtc: utilize new cdev_device_add
+ helper function
+Date: Tue, 7 Mar 2017 23:41:35 +0100
+Message-ID: <20170307224135.eyi62jgnmic5ordb@piout.net>
+References: <1488783873-2614-1-git-send-email-logang@deltatee.com>
+ <1488783873-2614-15-git-send-email-logang@deltatee.com>
+Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170307045236.GC3913@kroah.com>
-Content-Language: en-US
-Content-ID: <39E300E4ED01114DA33B8098C8AA4F11@sandisk.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "parav@mellanox.com" <parav@mellanox.com>, "sebott@linux.vnet.ibm.com" <sebott@linux.vnet.ibm.com>, "linux@armlinux.org.uk" <linux@armlinux.org.uk>, "hpa@zytor.com" <hpa@zytor.com>, "mingo@redhat.com" <mingo@redhat.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "dledford@redhat.com" <dledford@redhat.com>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <rtc-linux+bncBCKYNX7Y3IMBBH7O7TCQKGQEDSZLCNA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Content-Disposition: inline
+In-Reply-To: <1488783873-2614-15-git-send-email-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <https://groups.google.com/group/rtc-linux
+List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <https://groups.google.com/group/rtc-linux/subscribe>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Sajjan Vikas C <vikas.cha.sajjan-ZPxbGqLxI0U@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Peter Huewe <peterhuewe-Mmb7MZpHnFY@public.gmane.org>, Marcel Selhorst <tpmdd-yWjUBOtONefk1uMJSBkQmQ@public.gmane.org>, Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Vyukov <dvyukov-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-03-07 at 05:52 +0100, Greg Kroah-Hartman wrote:
-> Somehow all other subsystems work just fine, don't instantly think that
-> the driver core needs to bend to the will of the IB code, because you
-> are somehow "special".  Hint, you aren't :)
+On 06/03/2017 at 00:04:30 -0700, Logan Gunthorpe wrote:
+> Mostly straightforward, but we had to remove the rtc_dev_add/del_device
+> functions as they split up the cdev_add and the device_add.
+> 
+> Doing this also revealed that there was likely another subtle bug:
+> seeing cdev_add was done after device_register, the cdev probably
+> was not ready before device_add when the uevent occurs. This would
+> race with userspace, if it tried to use the device directly after
+> the uevent. This is fixed just by using the new helper function.
+> 
+> Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 
-Hi Greg,
+I think I already acked v2 but
+Acked-by: Alexandre Belloni <alexandre.belloni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>
 
-In another e-mail Parav compared IB drivers with networking drivers. But I
-think that's a bad comparison: in the networking stack it's the network
-driver itself that sets up and triggers DMA while in the IB stack it's the
-upper layer protocol (ULP) driver that calls the functions defined in struc=
-t
-dma_ops. For some IB HW drivers (hfi1, qib and rdma_rxe) the ULP driver mus=
-t
-use the DMA mapping operations from lib/dma-virt.c while for all other IB H=
-W
-drivers the ULP driver must use the PCI DMA mapping functions. The ib_dma_*=
-()
-functions select the right DMA mapping operations - either the PCI DMA
-mapping operations or those from lib/dma-virt.c. My question to you is how =
-we
-should organize struct ib_device such that we can get rid of the ib_dma_*()
-helper functions. How to make sure that the to_pci_dev() translation works
-correctly for the device structure that is embedded in struct ib_device?
-Should a pointer to struct pci_dev be embedded in struct device (as done in
-patch 1/2 in this series) or should the struct device in ib_device be chang=
-ed
-into a struct pci_dev and should the pci_dev information from
-/sys/devices/pci*/*/* be duplicated into the pci_dev information in struct
-ib_device (/sys/devices/pci*/*/*/infiniband/*)? For the latter approach, wo=
-uld
-there be a risk that the duplicated information becomes inconsistent?
+-- 
+Alexandre Belloni, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
 
-Thanks,
-
-Bart.
+-- 
+You received this message because you are subscribed to "rtc-linux".
+Membership options at http://groups.google.com/group/rtc-linux .
+Please read http://groups.google.com/group/rtc-linux/web/checklist
+before submitting a driver.
+--- 
+You received this message because you are subscribed to the Google Groups "rtc-linux" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit https://groups.google.com/d/optout.
