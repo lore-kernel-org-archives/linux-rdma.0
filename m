@@ -1,34 +1,56 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net/mlx5e: add IPV6 dependency
-Date: Tue, 07 Mar 2017 12:25:31 -0800 (PST)
-Message-ID: <20170307.122531.518767642167380661.davem@davemloft.net>
-References: <20170228211226.3655526-1-arnd@arndb.de>
+From: Bart Van Assche <Bart.VanAssche@sandisk.com>
+Subject: Re: [PATCH 1/2] device: Stop requiring that struct device is
+ embedded in struct pci_dev
+Date: Tue, 7 Mar 2017 16:54:58 +0000
+Message-ID: <1488905685.2739.1.camel@sandisk.com>
+References: <20170307003549.3872-1-bart.vanassche@sandisk.com>
+         <20170307003549.3872-2-bart.vanassche@sandisk.com>
+         <20170307045236.GC3913@kroah.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170228211226.3655526-1-arnd@arndb.de>
+In-Reply-To: <20170307045236.GC3913@kroah.com>
+Content-Language: en-US
+Content-ID: <39E300E4ED01114DA33B8098C8AA4F11@sandisk.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: arnd@arndb.de
-Cc: saeedm@mellanox.com, matanb@mellanox.com, leonro@mellanox.com, ogerlitz@mellanox.com, matt@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "parav@mellanox.com" <parav@mellanox.com>, "sebott@linux.vnet.ibm.com" <sebott@linux.vnet.ibm.com>, "linux@armlinux.org.uk" <linux@armlinux.org.uk>, "hpa@zytor.com" <hpa@zytor.com>, "mingo@redhat.com" <mingo@redhat.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "dledford@redhat.com" <dledford@redhat.com>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Tue, 28 Feb 2017 22:12:04 +0100
+On Tue, 2017-03-07 at 05:52 +0100, Greg Kroah-Hartman wrote:
+> Somehow all other subsystems work just fine, don't instantly think that
+> the driver core needs to bend to the will of the IB code, because you
+> are somehow "special".  Hint, you aren't :)
 
-> The ethernet support now calls directly into the ipv6 core code, which
-> fails if IPV6 is a loadable module but mlx5 is built-in:
-> 
-> drivers/net/ethernet/mellanox/mlx5/core/en_tc.o: In function `mlx5e_create_encap_header_ipv6':
-> en_tc.c:(.text.mlx5e_create_encap_header_ipv6+0x110): undefined reference to `ip6_route_output_flags'
-> 
-> This adds a dependency to ensure that MLX5_CORE_EN can only be built
-> if we are able link the kernel successfully. The downside is that the
-> ethernet option can be hidden. Alternatively we could make MLX5_CORE
-> depend on "IPV6 || !IPV6", which would force MLX5_CORE to be a module
-> when IPV6 is, including in configurations where we don't use the ethernet
-> support at all.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Hi Greg,
 
-Applied.
+In another e-mail Parav compared IB drivers with networking drivers. But I
+think that's a bad comparison: in the networking stack it's the network
+driver itself that sets up and triggers DMA while in the IB stack it's the
+upper layer protocol (ULP) driver that calls the functions defined in struc=
+t
+dma_ops. For some IB HW drivers (hfi1, qib and rdma_rxe) the ULP driver mus=
+t
+use the DMA mapping operations from lib/dma-virt.c while for all other IB H=
+W
+drivers the ULP driver must use the PCI DMA mapping functions. The ib_dma_*=
+()
+functions select the right DMA mapping operations - either the PCI DMA
+mapping operations or those from lib/dma-virt.c. My question to you is how =
+we
+should organize struct ib_device such that we can get rid of the ib_dma_*()
+helper functions. How to make sure that the to_pci_dev() translation works
+correctly for the device structure that is embedded in struct ib_device?
+Should a pointer to struct pci_dev be embedded in struct device (as done in
+patch 1/2 in this series) or should the struct device in ib_device be chang=
+ed
+into a struct pci_dev and should the pci_dev information from
+/sys/devices/pci*/*/* be duplicated into the pci_dev information in struct
+ib_device (/sys/devices/pci*/*/*/infiniband/*)? For the latter approach, wo=
+uld
+there be a risk that the duplicated information becomes inconsistent?
+
+Thanks,
+
+Bart.
