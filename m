@@ -1,55 +1,115 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH 1/2] device: Stop requiring that struct device is embedded
- in struct pci_dev
-Date: Tue, 7 Mar 2017 05:20:54 +0000
-Message-ID: <VI1PR0502MB300892FC23D3BC824F8418F1D12F0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <20170307003549.3872-1-bart.vanassche@sandisk.com>
-         <20170307003549.3872-2-bart.vanassche@sandisk.com>
-         <20170307045236.GC3913@kroah.com>
-         <VI1PR0502MB3008BEC2FB8747DDA40A10FCD12F0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <1488863593.2997.3.camel@sandisk.com>
+From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: Re: [PATCH v3 06/16] tpm-chip: utilize new
+ cdev_device_add helper function
+Date: Tue, 7 Mar 2017 06:31:38 +0100
+Message-ID: <20170307053138.GA7665@kroah.com>
+References: <1488783873-2614-1-git-send-email-logang@deltatee.com>
+ <1488783873-2614-7-git-send-email-logang@deltatee.com>
+ <20170306210426.qeftgujergryutie@intel.com>
+Reply-To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1488863593.2997.3.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org" <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, "hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, "mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org" <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <rtc-linux+bncBCUJ7YGL3QFBBQ4L7HCQKGQEOBUHADQ-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Sender: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Content-Disposition: inline
+In-Reply-To: <20170306210426.qeftgujergryutie-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Post: <https://groups.google.com/group/rtc-linux/post>, <mailto:rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <https://groups.google.com/support/>, <mailto:rtc-linux+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <https://groups.google.com/group/rtc-linux
+List-Subscribe: <https://groups.google.com/group/rtc-linux/subscribe>, <mailto:rtc-linux+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+712029733259+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <https://groups.google.com/group/rtc-linux/subscribe>
+To: Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Sajjan Vikas C <vikas.cha.sajjan-ZPxbGqLxI0U@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Peter Huewe <peterhuewe-Mmb7MZpHnFY@public.gmane.org>, Marcel Selhorst <tpmdd-yWjUBOtONefk1uMJSBkQmQ@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dmitry Vyukov <dvyukov-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <pandit.parav-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>Pe
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgQmFydCwNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51eC1y
-ZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LXJkbWEtDQo+IG93bmVyQHZn
-ZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEJhcnQgVmFuIEFzc2NoZQ0KPiBTZW50OiBNb25k
-YXksIE1hcmNoIDYsIDIwMTcgMTE6MTMgUE0NCj4gVG86IFBhcmF2IFBhbmRpdCA8cGFyYXZAbWVs
-bGFub3guY29tPjsgZ3JlZ2toQGxpbnV4Zm91bmRhdGlvbi5vcmcNCj4gQ2M6IGxpbnV4LWtlcm5l
-bEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnOw0KPiBzZWJvdHRA
-bGludXgudm5ldC5pYm0uY29tOyBsaW51eEBhcm1saW51eC5vcmcudWs7IGhwYUB6eXRvci5jb207
-DQo+IG1pbmdvQHJlZGhhdC5jb207IGR3bXcyQGluZnJhZGVhZC5vcmc7IGJoZWxnYWFzQGdvb2ds
-ZS5jb207DQo+IGRsZWRmb3JkQHJlZGhhdC5jb207IGJlbmhAa2VybmVsLmNyYXNoaW5nLm9yZw0K
-PiBTdWJqZWN0OiBSZTogW1BBVENIIDEvMl0gZGV2aWNlOiBTdG9wIHJlcXVpcmluZyB0aGF0IHN0
-cnVjdCBkZXZpY2UgaXMNCj4gZW1iZWRkZWQgaW4gc3RydWN0IHBjaV9kZXYNCj4gDQo+IE9uIFR1
-ZSwgMjAxNy0wMy0wNyBhdCAwNTowOCArMDAwMCwgUGFyYXYgUGFuZGl0IHdyb3RlOg0KPiA+IEkg
-cmVwbGllZCB3aXRoIHBzZXVkbyBjb2RlIGluIHByZXZpb3VzIHJlcGx5IHRvIEJhcnQgdG8gYnJp
-bmcgYmFjaw0KPiBkbWFfZGV2aWNlIG1lbWJlciBpbiB0aGUgaWJfZGV2aWNlLg0KPiA+IGRtYV9k
-ZXZpY2UgbWVtYmVyIHdhcyBhbHJlYWR5IHByZXNlbnQgaW4gbmVhciBwYXN0IG9mIGZldyB3ZWVr
-cy4NCj4gPiBJdCBzaG91bGQgYmUgYWJsZSB0byB3b3JrIHVzaW5nIGl0IHdpdGhvdXQgcGVyZm9y
-bWFuY2UgaW1wYWN0IGFuZCB3aXRob3V0DQo+IHRvdWNoaW5nIGRyaXZlciBjb3JlIGxheWVyIGxp
-a2UgaW4gdGhpcyBwYXRjaC4NCj4gDQo+IFRoYXQncyBjb25mdXNpbmcgYW5kIHdhcyBhIHNvdXJj
-ZSBvZiBidWdzIGFuZCBpbmNvbnNpc3RlbmNpZXMuIFdlIGRvIG5vdA0KPiB3YW50IHR3byBkZXZp
-Y2Ugc3RydWN0dXJlcyBpbiBzdHJ1Y3QgaWJfZGV2aWNlIChzdHJ1Y3QgZGV2aWNlIGRldiBhbmQg
-c3RydWN0DQo+IGRldmljZSAqZG1hX2RldmljZSkuDQoNCmRldmljZSBkZXYgcmVwcmVzZW50cywg
-ZGV2IHN0cnVjdHVyZSBvZiB0aGUgaWJfZGV2aWNlLg0KV2hpbGUgZG1hX2RldmljZSBpcyBmb3Ig
-dGhlIGFjdHVhbCBkZXZpY2UgYXMgeW91IGtub3cuDQoNCklmIHlvdSBsb29rIGF0IG5ldF9kZXZp
-Y2UsIA0KSXQgaGFzIGRldmljZSBkZXYuDQp2ZW5kb3IgZHJpdmVycyBzdG9yZSBwY2lfZGV2IHBv
-aW50ZXIgYW5kIGFjY2VzcyBkZXZpY2Ugb2YgcGNpX2RldiBldGMuDQpFdmVyeSBuZXRfZGV2aWNl
-IGRyaXZlciBoYXMgdG8gZG8gdGhhdC4NCg0KSWJfZGV2aWNlIHNpbXBsaWZpZXMgdGhhdCB3b3Jr
-IGZvciBpYiBzdGFjayBieSBzdG9yaW5nIGRtYV9kZXZpY2UuDQpJIHRoaW5rIHRoaXMgaXMgbGVz
-cyBjb25mdXNpbmcuDQoNCj4gDQo+IEJhcnQuTiAgICAgciAgeSAgIGIgWCAgx6d2IF4gKd66ey5u
-ICsgICAgeyAg2Zoge2F5IB3Kh9qZICxqICAgZiAgIGggICB6IB4gdyAgICAgICBqOit2ICAgdyBq
-IG0gICAgICAgICB6WisNCj4g3aJqIiAgISBpDQo=
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Mon, Mar 06, 2017 at 11:04:26PM +0200, Jarkko Sakkinen wrote:
+> On Mon, Mar 06, 2017 at 12:04:22AM -0700, Logan Gunthorpe wrote:
+> > Replace the open coded registration of the cdev and dev with the
+> > new device_add_cdev() helper. The helper replaces a common pattern by
+> > taking the proper reference against the parent device and adding both
+> > the cdev and the device.
+> > 
+> > Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+> > Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> > ---
+> >  drivers/char/tpm/tpm-chip.c | 19 +++----------------
+> >  1 file changed, 3 insertions(+), 16 deletions(-)
+> > 
+> > diff --git a/drivers/char/tpm/tpm-chip.c b/drivers/char/tpm/tpm-chip.c
+> > index c406343..935f0e9 100644
+> > --- a/drivers/char/tpm/tpm-chip.c
+> > +++ b/drivers/char/tpm/tpm-chip.c
+> > @@ -187,7 +187,6 @@ struct tpm_chip *tpm_chip_alloc(struct device *pdev,
+> >  
+> >  	cdev_init(&chip->cdev, &tpm_fops);
+> >  	chip->cdev.owner = THIS_MODULE;
+> > -	chip->cdev.kobj.parent = &chip->dev.kobj;
+> >  
+> >  	return chip;
+> >  
+> > @@ -230,27 +229,16 @@ static int tpm_add_char_device(struct tpm_chip *chip)
+> >  {
+> >  	int rc;
+> >  
+> > -	rc = cdev_add(&chip->cdev, chip->dev.devt, 1);
+> > +	rc = cdev_device_add(&chip->cdev, &chip->dev);
+> >  	if (rc) {
+> >  		dev_err(&chip->dev,
+> > -			"unable to cdev_add() %s, major %d, minor %d, err=%d\n",
+> > +			"unable to cdev_device_add() %s, major %d, minor %d, err=%d\n",
+> >  			dev_name(&chip->dev), MAJOR(chip->dev.devt),
+> >  			MINOR(chip->dev.devt), rc);
+> >  
+> >  		return rc;
+> >  	}
+> >  
+> > -	rc = device_add(&chip->dev);
+> > -	if (rc) {
+> > -		dev_err(&chip->dev,
+> > -			"unable to device_register() %s, major %d, minor %d, err=%d\n",
+> > -			dev_name(&chip->dev), MAJOR(chip->dev.devt),
+> > -			MINOR(chip->dev.devt), rc);
+> > -
+> > -		cdev_del(&chip->cdev);
+> > -		return rc;
+> > -	}
+> > -
+> >  	/* Make the chip available. */
+> >  	mutex_lock(&idr_lock);
+> >  	idr_replace(&dev_nums_idr, chip, chip->dev_num);
+> > @@ -261,8 +249,7 @@ static int tpm_add_char_device(struct tpm_chip *chip)
+> >  
+> >  static void tpm_del_char_device(struct tpm_chip *chip)
+> >  {
+> > -	cdev_del(&chip->cdev);
+> > -	device_del(&chip->dev);
+> > +	cdev_device_del(&chip->cdev, &chip->dev);
+> >  
+> >  	/* Make the chip unavailable. */
+> >  	mutex_lock(&idr_lock);
+> > -- 
+> > 2.1.4
+> > 
+> 
+> Reviewed-by: Jarkko Sakkinen <jarkko.sakkinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> 
+> I cannot test this at this point as security tree does not include
+> the commit that is dependent on this. I'm also wondering if this
+> commit is even going through my tree to upstream?
+
+I can take it all at once through my tree.
+
+thanks,
+
+greg k-h
+
+-- 
+You received this message because you are subscribed to "rtc-linux".
+Membership options at http://groups.google.com/group/rtc-linux .
+Please read http://groups.google.com/group/rtc-linux/web/checklist
+before submitting a driver.
+--- 
+You received this message because you are subscribed to the Google Groups "rtc-linux" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to rtc-linux+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit https://groups.google.com/d/optout.
