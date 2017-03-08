@@ -1,34 +1,36 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: [PATCH] IB/cq: Don't process more than the given budget
-Date: Wed,  8 Mar 2017 22:10:01 +0200
-Message-ID: <1489003801-4410-1-git-send-email-sagi@grimberg.me>
+Subject: [PATCH] IB/core: Protect against self-requeue of a cq work item
+Date: Wed,  8 Mar 2017 22:00:52 +0200
+Message-ID: <1489003252-1893-1-git-send-email-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The caller might not want this overhead.
+We need to make sure that the cq work item does not
+run when we are destroying the cq. Unlike flush_work,
+cancel_work_sync protects against self-requeue of the
+work item (which we can do in ib_cq_poll_work).
 
 Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 ---
- drivers/infiniband/core/cq.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/cq.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
-index 2746d2eb3d52..c98d15ce2880 100644
+index e95510117a6d..2746d2eb3d52 100644
 --- a/drivers/infiniband/core/cq.c
 +++ b/drivers/infiniband/core/cq.c
-@@ -29,7 +29,8 @@ static int __ib_process_cq(struct ib_cq *cq, int budget)
- {
- 	int i, n, completed = 0;
- 
--	while ((n = ib_poll_cq(cq, IB_POLL_BATCH, cq->wc)) > 0) {
-+	while ((n = ib_poll_cq(cq, min(IB_POLL_BATCH, budget - completed),
-+			cq->wc)) > 0) {
- 		for (i = 0; i < n; i++) {
- 			struct ib_wc *wc = &cq->wc[i];
- 
+@@ -196,7 +196,7 @@ void ib_free_cq(struct ib_cq *cq)
+ 		irq_poll_disable(&cq->iop);
+ 		break;
+ 	case IB_POLL_WORKQUEUE:
+-		flush_work(&cq->work);
++		cancel_work_sync(&cq->work);
+ 		break;
+ 	default:
+ 		WARN_ON_ONCE(1);
 -- 
 2.7.4
 
