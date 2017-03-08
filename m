@@ -1,48 +1,52 @@
-From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: [PATCH 19/26] IB/ocrdma: Improve another size determination in
- ocrdma_alloc_mr()
-Date: Wed, 8 Mar 2017 14:20:42 +0100
-Message-ID: <efefdc96-2db5-dd80-3cc4-e88537fe2d49@users.sourceforge.net>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 22/26] IB/ocrdma: Returning only value constants in
+ ocrdma_resize_cq()
+Date: Wed, 8 Mar 2017 14:26:16 +0100
+Message-ID: <dd638070-d1d6-44e8-6c10-16919b59482c@users.sourceforge.net>
 References: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <fc421509-4069-da8a-b308-60b49ea91ada-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org, Devesh Sharma <devesh.sharma@avagotech.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Selvin Xavier <selvin.xavier@avagotech.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Date: Wed, 8 Mar 2017 09:54:42 +0100
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Wed, 8 Mar 2017 10:48:24 +0100
 
-Replace the specification of a data type by a pointer dereference
-as the parameter for the operator "sizeof" to make the corresponding size
-determination a bit safer according to the Linux coding style convention.
+Return constant integer values without storing them in the local
+variable "status".
 
-Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 330617e1ef75..05d55d361cfe 100644
+index bedc229be89d..1d25512416f5 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -3030,7 +3030,7 @@ struct ib_mr *ocrdma_alloc_mr(struct ib_pd *ibpd,
- 	if (!mr)
- 		return ERR_PTR(-ENOMEM);
+@@ -1123,15 +1123,12 @@ struct ib_cq *ocrdma_create_cq(struct ib_device *ibdev,
+ int ocrdma_resize_cq(struct ib_cq *ibcq, int new_cnt,
+ 		     struct ib_udata *udata)
+ {
+-	int status = 0;
+ 	struct ocrdma_cq *cq = get_ocrdma_cq(ibcq);
  
--	mr->pages = kcalloc(max_num_sg, sizeof(u64), GFP_KERNEL);
-+	mr->pages = kcalloc(max_num_sg, sizeof(*mr->pages), GFP_KERNEL);
- 	if (!mr->pages) {
- 		status = -ENOMEM;
- 		goto pl_err;
+-	if (new_cnt < 1 || new_cnt > cq->max_hw_cqe) {
+-		status = -EINVAL;
+-		return status;
+-	}
++	if (new_cnt < 1 || new_cnt > cq->max_hw_cqe)
++		return -EINVAL;
+ 	ibcq->cqe = new_cnt;
+-	return status;
++	return 0;
+ }
+ 
+ static void ocrdma_flush_cq(struct ocrdma_cq *cq)
 -- 
 2.12.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
