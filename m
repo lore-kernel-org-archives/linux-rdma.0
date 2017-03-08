@@ -1,75 +1,36 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [ANNOUNCE] libibmad 1.3.13 release
-Date: Wed, 8 Mar 2017 23:50:09 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E67C61EB7@CRSMSX101.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: [PATCH v2] IB/cq: Don't process more than the given budget
+Date: Thu,  9 Mar 2017 01:05:58 +0200
+Message-ID: <1489014358-13638-1-git-send-email-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-There is a new release of libibmad.
+The caller might not want this overhead.
 
-This includes a minimal impact fix for 
+Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+---
+ drivers/infiniband/core/cq.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-http://bugs.openfabrics.org/show_bug.cgi?id=2617
-
-As such OFED should probably pick this release up.
-
-** Important **
-
-This is likely the last release of this library from a separate repo.  I plan to integrate this code into the infiniband-diags repo.  Furthermore this is the last release with the long deprecated symbols.
-
-Tarball is available at:
-
-https://www.openfabrics.org/downloads/management/
-
-md5sum:
-29c7723ec08dac02403bb307e03c86cd  libibmad-1.3.13.tar.gz
-
-Changes since v1.3.12:
-
-Hal Rosenstock (1):
-  configure.ac: Update AM_INIT_AUTOMAKE to use subdir-objects
-
-Ira Weiny (4):
-  libibmad: Makefile.am: Fix INCLUDES warning
-  configure.ac: Update configure.in to configure.ac
-  libibmad: Fix conflict with new umad.h header
-  update README and version 1.3.13
-
-Vladimir Koushnir (1):
-  portid.c: Preserve routepath string in str2drpath
-
-
-
-
-Deprecated symbols
---------------------------
-
-ib_gid_t
-mad_register_client
-mad_register_server
-mad_class_agent
-mad_send
-mad_receive
-mad_respond
-ib_vendor_call
-madrpc_portid
-madrpc
-madrpc_rmpp
-madrpc_init
-madrpc_save_mad
-smp_query
-smp_set
-sa_call
-ib_path_query
-ib_resolve_smlid
-ib_resolve_portid_str
-ib_resolve_self
+diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
+index 2746d2eb3d52..21d1a38af489 100644
+--- a/drivers/infiniband/core/cq.c
++++ b/drivers/infiniband/core/cq.c
+@@ -29,7 +29,8 @@ static int __ib_process_cq(struct ib_cq *cq, int budget)
+ {
+ 	int i, n, completed = 0;
+ 
+-	while ((n = ib_poll_cq(cq, IB_POLL_BATCH, cq->wc)) > 0) {
++	while ((n = ib_poll_cq(cq, min_t(u32, IB_POLL_BATCH,
++			budget - completed), cq->wc)) > 0) {
+ 		for (i = 0; i < n; i++) {
+ 			struct ib_wc *wc = &cq->wc[i];
+ 
+-- 
+2.7.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
