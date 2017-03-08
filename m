@@ -1,50 +1,50 @@
-From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 21/26] IB/ocrdma: Improve another size determination in ocrdma_create_srq()
-Date: Wed, 8 Mar 2017 20:45:22 +0530
-Message-ID: <CANjDDBi8xNG-nK9VU_7f--CUCCkF76p0LRVnM9V_qH3-YXEzpA@mail.gmail.com>
-References: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net> <53b2ab35-8b0c-5cdd-dbc9-d38c7cf9e580@users.sourceforge.net>
+From: Devesh Sharma <devesh.sharma@broadcom.com>
+Subject: Re: [PATCH 20/26] IB/ocrdma: Delete an unnecessary variable
+ assignment in ocrdma_alloc_mr()
+Date: Wed, 8 Mar 2017 20:43:51 +0530
+Message-ID: <CANjDDBiQs2HJ4CRuXx=di-w+AAdYsTvVfuj0irJJs9ar_XsaiQ@mail.gmail.com>
+References: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net> <24b6074a-f678-c367-484b-e16a0c1f9b5f@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <53b2ab35-8b0c-5cdd-dbc9-d38c7cf9e580-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <24b6074a-f678-c367-484b-e16a0c1f9b5f@users.sourceforge.net>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-rdma <linux-rdma@vger.kernel.org>, Devesh Sharma <devesh.sharma@avagotech.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Selvin Xavier <selvin.xavier@avagotech.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Acked-By: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Acked-By: Devesh Sharma <devesh.sharma@broadcom.com>
 
-On Wed, Mar 8, 2017 at 6:54 PM, SF Markus Elfring
-<elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org> wrote:
-> From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-> Date: Wed, 8 Mar 2017 10:10:50 +0100
+On Wed, Mar 8, 2017 at 6:52 PM, SF Markus Elfring
+<elfring@users.sourceforge.net> wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Wed, 8 Mar 2017 10:00:41 +0100
 >
-> Replace the specification of a data type by a pointer dereference
-> as the parameter for the operator "sizeof" to make the corresponding size
-> determination a bit safer according to the Linux coding style convention.
+> Delete an assignment for the local variable "status" in an if branch
+> because the desired failure indication is already specified by a constant
+> error code at the end.
 >
-> Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 > ---
->  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
 >
 > diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-> index af8798fd35b1..bedc229be89d 100644
+> index 05d55d361cfe..af8798fd35b1 100644
 > --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
 > +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-> @@ -1915,7 +1915,7 @@ struct ib_srq *ocrdma_create_srq(struct ib_pd *ibpd,
->                 if (srq->idx_bit_fields == NULL)
->                         goto arm_err;
->                 memset(srq->idx_bit_fields, 0xff,
-> -                      srq->bit_fields_len * sizeof(u32));
-> +                      srq->bit_fields_len * sizeof(*srq->idx_bit_fields));
->         }
+> @@ -3031,10 +3031,8 @@ struct ib_mr *ocrdma_alloc_mr(struct ib_pd *ibpd,
+>                 return ERR_PTR(-ENOMEM);
 >
->         if (init_attr->attr.srq_limit) {
+>         mr->pages = kcalloc(max_num_sg, sizeof(*mr->pages), GFP_KERNEL);
+> -       if (!mr->pages) {
+> -               status = -ENOMEM;
+> +       if (!mr->pages)
+>                 goto pl_err;
+> -       }
+>
+>         status = ocrdma_get_pbl_info(dev, mr, max_num_sg);
+>         if (status)
 > --
 > 2.12.0
 >
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
