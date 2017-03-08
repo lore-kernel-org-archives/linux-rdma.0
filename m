@@ -1,90 +1,192 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] IB/rxe: double free on error
-Date: Wed, 8 Mar 2017 08:58:29 +0200
-Message-ID: <20170308065829.GV14379@mtr-leonro.local>
-References: <20170308052152.GA31503@mwanda>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH v3] {net,IB}/{rxe,usnic}: Utilize generic mac to eui32
+ function
+Date: Wed, 8 Mar 2017 09:40:41 +0200
+Message-ID: <20170308074041.GW14379@mtr-leonro.local>
+References: <1488915118-23331-1-git-send-email-yuval.shaia@oracle.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="aNvCJ41Feu8IgPyB"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="562f9N4fbIs+fPrJ"
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170308052152.GA31503@mwanda>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <1488915118-23331-1-git-send-email-yuval.shaia@oracle.com>
+Sender: netdev-owner@vger.kernel.org
+To: Yuval Shaia <yuval.shaia@oracle.com>
+Cc: benve@cisco.com, dgoodell@cisco.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, monis@mellanox.com, davem@davemloft.net, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---aNvCJ41Feu8IgPyB
+--562f9N4fbIs+fPrJ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Mar 08, 2017 at 08:21:52AM +0300, Dan Carpenter wrote:
-> "goto err;" has it's own kfree_skb() call so it's a double free.  We
-> only need to free on the "goto exit;" path.
+On Tue, Mar 07, 2017 at 09:31:58PM +0200, Yuval Shaia wrote:
+> This logic seems to be duplicated in (at least) three separate files.
+> Move it to one place so code can be re-use.
 >
-> Fixes: 8700e3e7c485 ("Soft RoCE driver")
-> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Yuval Shaia <yuval.shaia@oracle.com>
 > ---
-> Static analysis.  Not tested.  Please review carefully.
+> v0 -> v1:
+> 	* Add missing #include
+> 	* Rename to genaddrconf_ifid_eui48
+> v1 -> v2:
+> 	* Reset eui[0] to default if dev_id is used
+> v2 -> v3:
+> 	* Add helper function to avoid re-setting eui[0] to default if
+> 	  dev_id is used
+> ---
+>  drivers/infiniband/hw/usnic/usnic_common_util.h | 11 +++--------
+>  drivers/infiniband/sw/rxe/rxe_net.c             | 11 ++---------
+>  include/net/addrconf.h                          | 25 +++++++++++++++++++------
+>  3 files changed, 24 insertions(+), 23 deletions(-)
+
+Not promising statistics :)
+
 >
-> diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-> index dbfde0dc6ff7..9f95f50b2909 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_req.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
-> @@ -729,11 +729,11 @@ int rxe_requester(void *arg)
->  	ret = rxe_xmit_packet(to_rdev(qp->ibqp.device), qp, &pkt, skb);
-
-This rxe_xmit_packet() looks a little bit awkward. It calls to
-kfree_skb and returns ret = 0 after drop decision. It doesn't
-free on error (ret != 0), but this rxe_requester does.
-
-However in case of not error, the skb won't be released and goto
-next_cqe will be called, which has a lot of exit paths without freeing
-skb.
-
-Moni, Yonatan
-Is it done on purpose?
-
-
->  	if (ret) {
->  		qp->need_req_skb = 1;
-> -		kfree_skb(skb);
+> diff --git a/drivers/infiniband/hw/usnic/usnic_common_util.h b/drivers/infiniband/hw/usnic/usnic_common_util.h
+> index b54986d..d91b035 100644
+> --- a/drivers/infiniband/hw/usnic/usnic_common_util.h
+> +++ b/drivers/infiniband/hw/usnic/usnic_common_util.h
+> @@ -34,6 +34,8 @@
+>  #ifndef USNIC_CMN_UTIL_H
+>  #define USNIC_CMN_UTIL_H
 >
->  		rollback_state(wqe, qp, &rollback_wqe, rollback_psn);
+> +#include <net/addrconf.h>
+> +
+>  static inline void
+>  usnic_mac_to_gid(const char *const mac, char *raw_gid)
+>  {
+> @@ -57,14 +59,7 @@ usnic_mac_ip_to_gid(const char *const mac, const __be32 inaddr, char *raw_gid)
+>  	raw_gid[1] = 0x80;
+>  	memset(&raw_gid[2], 0, 2);
+>  	memcpy(&raw_gid[4], &inaddr, 4);
+> -	raw_gid[8] = mac[0]^2;
+> -	raw_gid[9] = mac[1];
+> -	raw_gid[10] = mac[2];
+> -	raw_gid[11] = 0xff;
+> -	raw_gid[12] = 0xfe;
+> -	raw_gid[13] = mac[3];
+> -	raw_gid[14] = mac[4];
+> -	raw_gid[15] = mac[5];
+> +	addrconf_addr_eui48(&raw_gid[8], mac);
+>  }
 >
->  		if (ret == -EAGAIN) {
-> +			kfree_skb(skb);
->  			rxe_run_task(&qp->req.task, 1);
->  			goto exit;
->  		}
+>  static inline void
+> diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+> index d8610960..ab8ea23 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_net.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_net.c
+> @@ -38,6 +38,7 @@
+>  #include <linux/if_vlan.h>
+>  #include <net/udp_tunnel.h>
+>  #include <net/sch_generic.h>
+> +#include <net/addrconf.h>
+>  #include <linux/netfilter.h>
+>  #include <rdma/ib_addr.h>
+>
+> @@ -86,18 +87,10 @@ struct rxe_recv_sockets recv_sockets;
+>
+>  static __be64 rxe_mac_to_eui64(struct net_device *ndev)
+>  {
+
+It is worth to drop this wrapper completely. The rxe_mac_to_eui64 is
+called twice in the same file.
+
+> -	unsigned char *mac_addr = ndev->dev_addr;
+>  	__be64 eui64;
+>  	unsigned char *dst = (unsigned char *)&eui64;
+>
+> -	dst[0] = mac_addr[0] ^ 2;
+> -	dst[1] = mac_addr[1];
+> -	dst[2] = mac_addr[2];
+> -	dst[3] = 0xff;
+> -	dst[4] = 0xfe;
+> -	dst[5] = mac_addr[3];
+> -	dst[6] = mac_addr[4];
+> -	dst[7] = mac_addr[5];
+> +	addrconf_addr_eui48(dst, ndev->dev_addr);
+>
+>  	return eui64;
+>  }
+> diff --git a/include/net/addrconf.h b/include/net/addrconf.h
+> index 17c6fd8..28274ed 100644
+> --- a/include/net/addrconf.h
+> +++ b/include/net/addrconf.h
+> @@ -103,12 +103,25 @@ int addrconf_prefix_rcv_add_addr(struct net *net, struct net_device *dev,
+>  				 u32 addr_flags, bool sllao, bool tokenized,
+>  				 __u32 valid_lft, u32 prefered_lft);
+>
+> +static inline void addrconf_addr_eui48_xor(u8 *eui, const char *const addr, bool xor)
+> +{
+> +	memcpy(eui, addr, 3);
+> +	if (xor)
+> +		eui[0] ^= 2;
+> +	eui[3] = 0xFF;
+> +	eui[4] = 0xFE;
+> +	memcpy(eui + 5, addr + 3, 3);
+> +}
+> +
+> +static inline void addrconf_addr_eui48(u8 *eui, const char *const addr)
+> +{
+> +	addrconf_addr_eui48_xor(eui, addr, true);
+
+Just put your "eui[0] ^= 2" here and remove redundant "if (xor)".
+> +}
+> +
+>  static inline int addrconf_ifid_eui48(u8 *eui, struct net_device *dev)
+>  {
+>  	if (dev->addr_len != ETH_ALEN)
+>  		return -1;
+> -	memcpy(eui, dev->dev_addr, 3);
+> -	memcpy(eui + 5, dev->dev_addr + 3, 3);
+>
+>  	/*
+>  	 * The zSeries OSA network cards can be shared among various
+> @@ -123,14 +136,14 @@ static inline int addrconf_ifid_eui48(u8 *eui, struct net_device *dev)
+>  	 * case.  Hence the resulting interface identifier has local
+>  	 * scope according to RFC2373.
+>  	 */
+> +
+> +	addrconf_addr_eui48_xor(eui, dev->dev_addr, !dev->dev_id);
+> +
+>  	if (dev->dev_id) {
+>  		eui[3] = (dev->dev_id >> 8) & 0xFF;
+>  		eui[4] = dev->dev_id & 0xFF;
+> -	} else {
+> -		eui[3] = 0xFF;
+> -		eui[4] = 0xFE;
+> -		eui[0] ^= 2;
+
+Leave this line.
+Thanks
+
+>  	}
+> +
+>  	return 0;
+>  }
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 2.7.4
+>
 
---aNvCJ41Feu8IgPyB
+--562f9N4fbIs+fPrJ
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAli/q5UACgkQ5GN7iDZy
-WKdszw//SrCqAvbke+JIuWuFo8lm2EBI6CTk2jCn2ycAhGJZ0tvCBF4zdo9bq10U
-T4AIRgeUBrodFiFgPTxIAFwRwwp4Y8nDRwgV5dgyyb4ltMT4K4mX1M2GCa/Ipe6U
-O+J8wfqiAZfJKJCB9Dej03TLWPJRq6S+FMqcJ56beFRMgcF0HwU8JgL8uKhQqqeW
-FRSSdCNlRQAXCFzeJhUjtCOi6XkIUWb3KoxYjyRZvjB2a2rPjlFOsFG/fDHDCGht
-KwGYwdHl/oajJb7irAmBtqV1k5vnSQXsSMDM3bickEISGaOJgLlcQ2ZGAASzPtoq
-XxRfk3nCBTsIlWu1rrKliWrFblsG4g/qBDc72PzWwgX/z/43hJ9Q+hMQHkqUxyZz
-tiXChSAL5DtICmqzSjVRTr7sK76kk5TQYDEOBFXWAZ8Ld8ZPydwu+CjzJ5dS63tc
-qJsGugowEcM8Evunpcw7TC4dd0XRpepGM/VqmkW1PChcVC83Uxx89VByUlthFf31
-48tYhPkVyU7eTHj2JpE0A5vbe5nOKy4I/PQjEu/imtWgWs+zUzLO631+Kt7YlsR2
-Le4bqsHMh6Cs3kngul+CyLizu3VDUx8KBU4EMnHYdC545eRcb61aHuKdJPCikja8
-Od4GoxMaROR8FEPxG+0GNa0/U9IvhG0gaGP723kSBgcc2uemDQY=
-=cpxC
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAli/tXgACgkQ5GN7iDZy
+WKcATg//XBs/9RdP7P/GvQsmsnne651UI4vROPpkw+YQI0xlm5O5VYH5z/N8s7+2
+e/qOzMtuT4QMtqMYlMku/BgcWNclsebqaWsfZZZjEDStd50ZEmDF03shM/tMlDrN
+5O8a9PxKT2TWmmE45262JIhDt/FrScJmDWH9TgYve8qH8BgYDq7CvRBdp5mctJnQ
+hdKcS5m3GU5jTU4iSaXk4aUCCTyR6d1pz3fuywSRJCHbE8u6XpSChSA1tLi/iBMZ
+7U+0zvwXQo0KYbp1PVvr8GyST49+H+xLSVyXje5I8c88WE6ksiwCqlgox800sXpF
+bO35iR2/eP6UP5IscE+5vzJrO0kFaZw/DKZesZoFCa86QoGhihO6VaSBtnUi5Yu3
+xlfv7waa6c8bQuoR+GlWIKundsfFoa41Ts647NwO9uGxC0iniWv3o7dXbAv/pDcQ
+G7jG/dVLeyk9dGNP/hwafRNlmdd85BawJmsvl9nhrdsojswCZuL5PnIhRGeQltP7
+iq7fTvjpjUKXyE+/p6e0Q5BWWmCR4pXpfDvDL/siBSFasngJeHrFYfnmjKJADi7m
+woe8lcYSwDowLD7hblOHPVb1m7fCO9h1H9T4aLwv+L0JUc10u5NbeLD8YH5erfUN
+7x8pIo7b3LblfMWhTNTtO+81ithlCE255RF5BvwbeBR2Rvw999o=
+=ukIE
 -----END PGP SIGNATURE-----
 
---aNvCJ41Feu8IgPyB--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--562f9N4fbIs+fPrJ--
