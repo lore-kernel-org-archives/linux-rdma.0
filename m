@@ -1,7 +1,8 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 18/26] IB/ocrdma: Use kcalloc() in three functions
-Date: Wed, 8 Mar 2017 14:19:23 +0100
-Message-ID: <b90d1d62-6c0e-6f29-0ec3-58287fe87059@users.sourceforge.net>
+Subject: [PATCH 23/26] IB/ocrdma: Delete an unnecessary variable in
+ ocrdma_dealloc_pd()
+Date: Wed, 8 Mar 2017 14:28:10 +0100
+Message-ID: <0e667a69-3afa-6122-ed3b-d313bc5909ad@users.sourceforge.net>
 References: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -14,68 +15,45 @@ Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 8 Mar 2017 09:19:47 +0100
+Date: Wed, 8 Mar 2017 10:58:34 +0100
 
-* Multiplications for the size determination of memory allocations
-  indicated that array data structures should be processed.
-  Thus reuse the corresponding function "kcalloc".
+1. Return zero in one case directly.
 
-  This issue was detected by using the Coccinelle software.
+2. Return the value from a call of the function "_ocrdma_dealloc_pd"
+   without using an extra assignment for the local variable.
 
-* Replace the specification of data types by pointer dereferences
-  to make the corresponding size determinations a bit safer according to
-  the Linux coding style convention.
+3. Remove the variable "status" in this function then.
 
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index ef670ac1cbe9..330617e1ef75 100644
+index 1d25512416f5..ae0d343d1731 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -879,9 +879,8 @@ static int ocrdma_build_pbl_tbl(struct ocrdma_dev *dev, struct ocrdma_hw_mr *mr)
- 	void *va;
- 	dma_addr_t pa;
+@@ -755,7 +755,6 @@ int ocrdma_dealloc_pd(struct ib_pd *ibpd)
+ 	struct ocrdma_pd *pd = get_ocrdma_pd(ibpd);
+ 	struct ocrdma_dev *dev = get_ocrdma_dev(ibpd->device);
+ 	struct ocrdma_ucontext *uctx = NULL;
+-	int status = 0;
+ 	u64 usr_db;
  
--	mr->pbl_table = kzalloc(sizeof(struct ocrdma_pbl) *
--				mr->num_pbls, GFP_KERNEL);
--
-+	mr->pbl_table = kcalloc(mr->num_pbls, sizeof(*mr->pbl_table),
-+				GFP_KERNEL);
- 	if (!mr->pbl_table)
- 		return -ENOMEM;
+ 	uctx = pd->uctx;
+@@ -769,11 +768,10 @@ int ocrdma_dealloc_pd(struct ib_pd *ibpd)
  
-@@ -1362,13 +1361,12 @@ static void ocrdma_set_qp_db(struct ocrdma_dev *dev, struct ocrdma_qp *qp,
+ 		if (is_ucontext_pd(uctx, pd)) {
+ 			ocrdma_release_ucontext_pd(uctx);
+-			return status;
++			return 0;
+ 		}
+ 	}
+-	status = _ocrdma_dealloc_pd(dev, pd);
+-	return status;
++	return _ocrdma_dealloc_pd(dev, pd);
+ }
  
- static int ocrdma_alloc_wr_id_tbl(struct ocrdma_qp *qp)
- {
--	qp->wqe_wr_id_tbl =
--	    kzalloc(sizeof(*(qp->wqe_wr_id_tbl)) * qp->sq.max_cnt,
--		    GFP_KERNEL);
-+	qp->wqe_wr_id_tbl = kcalloc(qp->sq.max_cnt, sizeof(*qp->wqe_wr_id_tbl),
-+				    GFP_KERNEL);
- 	if (qp->wqe_wr_id_tbl == NULL)
- 		return -ENOMEM;
--	qp->rqe_wr_id_tbl =
--	    kzalloc(sizeof(u64) * qp->rq.max_cnt, GFP_KERNEL);
-+	qp->rqe_wr_id_tbl = kcalloc(qp->rq.max_cnt, sizeof(*qp->rqe_wr_id_tbl),
-+				    GFP_KERNEL);
- 	if (qp->rqe_wr_id_tbl == NULL)
- 		return -ENOMEM;
- 
-@@ -1903,8 +1901,9 @@ struct ib_srq *ocrdma_create_srq(struct ib_pd *ibpd,
- 		goto err;
- 
- 	if (udata == NULL) {
--		srq->rqe_wr_id_tbl = kzalloc(sizeof(u64) * srq->rq.max_cnt,
--			    GFP_KERNEL);
-+		srq->rqe_wr_id_tbl = kcalloc(srq->rq.max_cnt,
-+					     sizeof(*srq->rqe_wr_id_tbl),
-+					     GFP_KERNEL);
- 		if (srq->rqe_wr_id_tbl == NULL)
- 			goto arm_err;
- 
+ static int ocrdma_alloc_lkey(struct ocrdma_dev *dev, struct ocrdma_mr *mr,
 -- 
 2.12.0
