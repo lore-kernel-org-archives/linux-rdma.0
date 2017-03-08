@@ -1,48 +1,86 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] IB/rxe: double free on error
-Date: Wed, 8 Mar 2017 18:42:44 +0200
-Message-ID: <CAG9sBKOB5Zg7EB7Xr0dCSWjCk7W4RajOjT=yqOav+0ddYWxhKA@mail.gmail.com>
-References: <20170308052152.GA31503@mwanda> <20170308065829.GV14379@mtr-leonro.local>
+From: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: Need some pointers to debug a KASAN splat in NVMe over Fabrics
+ with rdma-rxe
+Date: Wed, 8 Mar 2017 17:11:29 +0100
+Message-ID: <db58598f-6cd7-0e90-9a41-a7f26e5722e3@suse.de>
+References: <5b16edcf-c39a-bc4b-0e32-8ccfb5d75efb@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170308065829.GV14379-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <5b16edcf-c39a-bc4b-0e32-8ccfb5d75efb-l3A5Bk7waGM@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Linux NVMe Mailinglist <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> This rxe_xmit_packet() looks a little bit awkward. It calls to
-> kfree_skb and returns ret = 0 after drop decision. It doesn't
-> free on error (ret != 0), but this rxe_requester does.
->
-> However in case of not error, the skb won't be released and goto
-> next_cqe will be called, which has a lot of exit paths without freeing
-> skb.
->
-> Moni, Yonatan
-> Is it done on purpose?
->
->
-In good flow skb will be freed when going down the chain call from
-rxe_xmit_packet(). This is the design.
-In bad flow we can immediately free the skb
+On 03/08/2017 04:35 PM, Johannes Thumshirn wrote:
+> Hi Moni et al.,
+> 
+> I'm getting a KASAN stack-out-of-bounds in rxe_post_send+0xdfe/0x1830
+> [rdma_rxe] at addr ffff8800187072e8 with v4.11-rc1
+> 
+> rxe_post_send+0xdfe is the following (note: the pr_err was inserted by
+> me to aid debugging).
 
->>       if (ret) {
->>               qp->need_req_skb = 1;
->> -             kfree_skb(skb);
->>
->>               rollback_state(wqe, qp, &rollback_wqe, rollback_psn);
->>
->>               if (ret == -EAGAIN) {
->> +                     kfree_skb(skb);
->>                       rxe_run_task(&qp->req.task, 1);
->>                       goto exit;
->>               }
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Quick follow up to my last mail
+
+Slamming in a:
+@@ -753,9 +757,18 @@ static int init_send_wqe(struct rxe_qp *qp, struct
+ib_send_wr *ibwr,
+                memcpy(wqe->dma.sge, ibwr->sg_list,
+                       num_sge * sizeof(struct ib_sge));
+
+-       wqe->iova               = (mask & WR_ATOMIC_MASK) ?
+-                                       atomic_wr(ibwr)->remote_addr :
+-                                       rdma_wr(ibwr)->remote_addr;
++
++       if (ibwr->opcode == IB_WR_RDMA_WRITE ||
++           ibwr->opcode == IB_WR_RDMA_WRITE_WITH_IMM ||
++           ibwr->opcode == IB_WR_ATOMIC_CMP_AND_SWP ||
++           ibwr->opcode == IB_WR_ATOMIC_FETCH_AND_ADD)
++               wqe->iova = (mask & WR_ATOMIC_MASK) ?
++                       atomic_wr(ibwr)->remote_addr :
++                       rdma_wr(ibwr)->remote_addr;
++
+        wqe->mask               = mask;
+        wqe->dma.length         = length;
+        wqe->dma.resid          = length;
+
+
+Gives me
+[    4.286632] rdma_rxe: qp#17 moved to error state
+[ ...hang... ]
+[   64.847464] nvme nvme0: Connect command failed, error wo/DNR bit: 7
+[   64.859829]
+==================================================================
+[   64.861048] BUG: KASAN: stack-out-of-bounds in
+rxe_post_send+0x12f3/0x1880 [rdma_rxe] at addr ffff88001f787838
+
+Which translates to:
+(gdb) list *(rxe_post_send+0x12f3)
+0x1e133 is in rxe_post_send (drivers/infiniband/sw/rxe/rxe_verbs.c:685).
+680                     switch (wr->opcode) {
+681                     case IB_WR_RDMA_WRITE_WITH_IMM:
+682                             wr->ex.imm_data = ibwr->ex.imm_data;
+683                     case IB_WR_RDMA_READ:
+684                     case IB_WR_RDMA_WRITE:
+685                             wr->wr.rdma.remote_addr =
+rdma_wr(ibwr)->remote_addr;
+686                             wr->wr.rdma.rkey        =
+rdma_wr(ibwr)->rkey;
+687                             break;
+688                     case IB_WR_SEND_WITH_IMM:
+689                             wr->ex.imm_data = ibwr->ex.imm_data;
+
+
+-- 
+Johannes Thumshirn                                          Storage
+jthumshirn-l3A5Bk7waGM@public.gmane.org                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
+GF: Felix Imendörffer, Jane Smithard, Graham Norton
+HRB 21284 (AG Nürnberg)
+Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
