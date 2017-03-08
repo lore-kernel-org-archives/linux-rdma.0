@@ -1,74 +1,48 @@
 From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: Need some pointers to debug a KASAN splat in NVMe over Fabrics
- with rdma-rxe
-Date: Wed, 8 Mar 2017 18:33:22 +0200
-Message-ID: <CAG9sBKPwEryc7U+hV=XJvRrFFhNvoktDOtwwS6piUw=cQ=bZhA@mail.gmail.com>
-References: <5b16edcf-c39a-bc4b-0e32-8ccfb5d75efb@suse.de>
+Subject: Re: [PATCH] IB/rxe: double free on error
+Date: Wed, 8 Mar 2017 18:42:44 +0200
+Message-ID: <CAG9sBKOB5Zg7EB7Xr0dCSWjCk7W4RajOjT=yqOav+0ddYWxhKA@mail.gmail.com>
+References: <20170308052152.GA31503@mwanda> <20170308065829.GV14379@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5b16edcf-c39a-bc4b-0e32-8ccfb5d75efb-l3A5Bk7waGM@public.gmane.org>
+In-Reply-To: <20170308065829.GV14379-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
-Cc: Linux NVMe Mailinglist <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 8, 2017 at 5:35 PM, Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org> wrote:
-> Hi Moni et al.,
+> This rxe_xmit_packet() looks a little bit awkward. It calls to
+> kfree_skb and returns ret = 0 after drop decision. It doesn't
+> free on error (ret != 0), but this rxe_requester does.
 >
-> I'm getting a KASAN stack-out-of-bounds in rxe_post_send+0xdfe/0x1830
-> [rdma_rxe] at addr ffff8800187072e8 with v4.11-rc1
+> However in case of not error, the skb won't be released and goto
+> next_cqe will be called, which has a lot of exit paths without freeing
+> skb.
 >
-> rxe_post_send+0xdfe is the following (note: the pr_err was inserted by
-> me to aid debugging).
+> Moni, Yonatan
+> Is it done on purpose?
 >
-> (gdb) list *(rxe_post_send+0xdfe)
-> 0x1dc3e is in rxe_post_send (drivers/infiniband/sw/rxe/rxe_verbs.c:765).
-> 760             pr_err("%s: *_wr(ibwr): %p\n",
-> 761                    __func__, (void *)(mask & WR_ATOMIC_MASK ?
-> atomic_wr(ibwr)
-> 762                    : rdma_wr(ibwr)));
-> 763
-> 764             wqe->iova               = (mask & WR_ATOMIC_MASK) ?
-> 765
-> atomic_wr(ibwr)->remote_addr :
-> 766                                             rdma_wr(ibwr)->remote_addr;
-> 767             wqe->mask               = mask;
-> 768             wqe->dma.length         = length;
-> 769             wqe->dma.resid          = length;
 >
-> Coincidentially ffff8800187072e8 = ibwr + 0x28. ibwr comes from
-> nvme_rdma_post_send() and has an opcode of IB_WR_SEND (verified . So the
-> rdma_wr(ibwr) call cannot return a correct/valid parent object (neither
-> could the atomic_wr(ibr)).
->
-> So much for the easy/mechanic part.
->
-> I can special case IB_WR_SEND in rxe's init_send_wqe() but I neither
-> know if it is correct nor how the wqe elements (especially wqe->iova)
-> should be set up.
->
-> So any help would be appreciated here.
->
-> Thanks in advance,
->         Johannes
-> --
+In good flow skb will be freed when going down the chain call from
+rxe_xmit_packet(). This is the design.
+In bad flow we can immediately free the skb
 
-Hi Johannes
-
-Your report and analysis seem to be accurate (regarding value of wqe->iova)
-Unfortunately we didn't have a chance yet to run kernel application
-tests but I will try to add them soon and be able to debug it myself.
-In the meantime
-1. DId the test fail completely or is it just the KASAN error that
-made you look at init_send_wqe()?
-2. You can take a look at librxe implementation of init_send_wqe() (it
-looks slightly different from kernel's implementation) and see what
-happens if you change implementation accordingly.
-
-thanks
-
-Moni
+>>       if (ret) {
+>>               qp->need_req_skb = 1;
+>> -             kfree_skb(skb);
+>>
+>>               rollback_state(wqe, qp, &rollback_wqe, rollback_psn);
+>>
+>>               if (ret == -EAGAIN) {
+>> +                     kfree_skb(skb);
+>>                       rxe_run_task(&qp->req.task, 1);
+>>                       goto exit;
+>>               }
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
