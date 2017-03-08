@@ -1,7 +1,8 @@
 From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: [PATCH 11/26] IB/ocrdma: Delete unnecessary braces
-Date: Wed, 8 Mar 2017 14:04:56 +0100
-Message-ID: <c4c62b82-db2a-3db9-03c4-9f8d95a6a29b@users.sourceforge.net>
+Subject: [PATCH 08/26] IB/ocrdma: Improve size determinations in
+ ocrdma_mbx_rdma_stats()
+Date: Wed, 8 Mar 2017 13:58:49 +0100
+Message-ID: <b72381fc-8ffd-ba40-45d3-2d3f8fb2e224@users.sourceforge.net>
 References: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -14,82 +15,38 @@ Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors
 List-Id: linux-rdma@vger.kernel.org
 
 From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Date: Tue, 7 Mar 2017 21:12:56 +0100
+Date: Tue, 7 Mar 2017 20:16:16 +0100
 
-Do not use curly brackets at some source code places
-where a single statement should be sufficient.
+Replace the specification of two data structures by pointer dereferences
+as the parameter for the operator "sizeof" to make the corresponding size
+determinations a bit safer according to the Linux coding style convention.
 
 Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index aa32bc9f323d..d5b988b011d1 100644
+index 1f7d88d7569e..0628600bee56 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -1092,14 +1092,14 @@ static int ocrdma_mbx_cmd(struct ocrdma_dev *dev, struct ocrdma_mqe *mqe)
- 	if (cqe_status || ext_status) {
- 		pr_err("%s() cqe_status=0x%x, ext_status=0x%x,",
- 		       __func__, cqe_status, ext_status);
--		if (rsp) {
-+		if (rsp)
- 			/* This is for embedded cmds. */
- 			pr_err("opcode=0x%x, subsystem=0x%x\n",
- 			       (rsp->subsys_op & OCRDMA_MBX_RSP_OPCODE_MASK) >>
- 				OCRDMA_MBX_RSP_OPCODE_SHIFT,
- 				(rsp->subsys_op & OCRDMA_MBX_RSP_SUBSYS_MASK) >>
- 				OCRDMA_MBX_RSP_SUBSYS_SHIFT);
--		}
-+
- 		status = ocrdma_get_mbx_cqe_errno(cqe_status);
- 		goto mbx_err;
- 	}
-@@ -1600,10 +1600,9 @@ void ocrdma_alloc_pd_pool(struct ocrdma_dev *dev)
- 		return;
+@@ -1302,7 +1302,7 @@ int ocrdma_mbx_rdma_stats(struct ocrdma_dev *dev, bool reset)
+ 	mqe->u.nonemb_req.sge[0].len = dev->stats_mem.size;
  
- 	status = ocrdma_mbx_alloc_pd_range(dev);
--	if (status) {
-+	if (status)
- 		pr_err("%s(%d) Unable to initialize PD pool, using default.\n",
- 			 __func__, dev->id);
--	}
- }
+ 	/* Cache the old stats */
+-	memcpy(old_stats, req, sizeof(struct ocrdma_rdma_stats_resp));
++	memcpy(old_stats, req, sizeof(*old_stats));
+ 	memset(req, 0, dev->stats_mem.size);
  
- static void ocrdma_free_pd_pool(struct ocrdma_dev *dev)
-@@ -2997,11 +2996,10 @@ static int ocrdma_parse_dcbxcfg_rsp(struct ocrdma_dev *dev, int ptype,
- 					goto out;
- 				}
- 			}
--			if (slindx == OCRDMA_MAX_SERVICE_LEVEL_INDEX) {
-+			if (slindx == OCRDMA_MAX_SERVICE_LEVEL_INDEX)
- 				pr_info("%s ocrdma%d application priority not set for 0x%x protocol\n",
- 					dev_name(&dev->nic_info.pdev->dev),
- 					dev->id, proto);
--			}
- 		}
- 	}
- 
-@@ -3158,16 +3156,17 @@ static int ocrdma_modify_eqd(struct ocrdma_dev *dev, struct ocrdma_eq *eq,
- 			     int num)
- {
- 	int num_eqs, i = 0;
--	if (num > 8) {
-+
-+	if (num > 8)
- 		while (num) {
- 			num_eqs = min(num, 8);
- 			ocrdma_mbx_modify_eqd(dev, &eq[i], num_eqs);
- 			i += num_eqs;
- 			num -= num_eqs;
- 		}
--	} else {
-+	else
- 		ocrdma_mbx_modify_eqd(dev, eq, num);
--	}
-+
- 	return 0;
- }
+ 	ocrdma_init_mch((struct ocrdma_mbx_hdr *)req,
+@@ -1315,7 +1315,7 @@ int ocrdma_mbx_rdma_stats(struct ocrdma_dev *dev, bool reset)
+ 	status = ocrdma_nonemb_mbx_cmd(dev, mqe, dev->stats_mem.va);
+ 	if (status)
+ 		/* Copy from cache, if mbox fails */
+-		memcpy(req, old_stats, sizeof(struct ocrdma_rdma_stats_resp));
++		memcpy(req, old_stats, sizeof(*old_stats));
+ 	else
+ 		ocrdma_le32_to_cpu(req, dev->stats_mem.size);
  
 -- 
 2.12.0
