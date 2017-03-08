@@ -1,75 +1,75 @@
-From: Romain Perier <romain.perier@collabora.com>
-Subject: [PATCH v5 04/19] net: e100: Replace PCI pool old API
-Date: Wed,  8 Mar 2017 17:19:42 +0100
-Message-ID: <20170308161957.28941-5-romain.perier@collabora.com>
-References: <20170308161957.28941-1-romain.perier@collabora.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170308161957.28941-1-romain.perier@collabora.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, jeffrey.t.kirsher@intel.com, "David S. Miller" <davem@davemloft.net>, stas.yakovlev@gmail.com, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, Romain Perier <romain.perier@collabora.com>, Peter Senna Tschudin <peter.senna@collabora.co.uk>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: Need some pointers to debug a KASAN splat in NVMe over Fabrics
+ with rdma-rxe
+Date: Wed, 8 Mar 2017 18:33:22 +0200
+Message-ID: <CAG9sBKPwEryc7U+hV=XJvRrFFhNvoktDOtwwS6piUw=cQ=bZhA@mail.gmail.com>
+References: <5b16edcf-c39a-bc4b-0e32-8ccfb5d75efb@suse.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5b16edcf-c39a-bc4b-0e32-8ccfb5d75efb-l3A5Bk7waGM@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
+Cc: Linux NVMe Mailinglist <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The PCI pool API is deprecated. This commit replaces the PCI pool old
-API by the appropriate function with the DMA pool API.
+On Wed, Mar 8, 2017 at 5:35 PM, Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org> wrote:
+> Hi Moni et al.,
+>
+> I'm getting a KASAN stack-out-of-bounds in rxe_post_send+0xdfe/0x1830
+> [rdma_rxe] at addr ffff8800187072e8 with v4.11-rc1
+>
+> rxe_post_send+0xdfe is the following (note: the pr_err was inserted by
+> me to aid debugging).
+>
+> (gdb) list *(rxe_post_send+0xdfe)
+> 0x1dc3e is in rxe_post_send (drivers/infiniband/sw/rxe/rxe_verbs.c:765).
+> 760             pr_err("%s: *_wr(ibwr): %p\n",
+> 761                    __func__, (void *)(mask & WR_ATOMIC_MASK ?
+> atomic_wr(ibwr)
+> 762                    : rdma_wr(ibwr)));
+> 763
+> 764             wqe->iova               = (mask & WR_ATOMIC_MASK) ?
+> 765
+> atomic_wr(ibwr)->remote_addr :
+> 766                                             rdma_wr(ibwr)->remote_addr;
+> 767             wqe->mask               = mask;
+> 768             wqe->dma.length         = length;
+> 769             wqe->dma.resid          = length;
+>
+> Coincidentially ffff8800187072e8 = ibwr + 0x28. ibwr comes from
+> nvme_rdma_post_send() and has an opcode of IB_WR_SEND (verified . So the
+> rdma_wr(ibwr) call cannot return a correct/valid parent object (neither
+> could the atomic_wr(ibr)).
+>
+> So much for the easy/mechanic part.
+>
+> I can special case IB_WR_SEND in rxe's init_send_wqe() but I neither
+> know if it is correct nor how the wqe elements (especially wqe->iova)
+> should be set up.
+>
+> So any help would be appreciated here.
+>
+> Thanks in advance,
+>         Johannes
+> --
 
-Signed-off-by: Romain Perier <romain.perier@collabora.com>
-Acked-by: Peter Senna Tschudin <peter.senna@collabora.com>
-Tested-by: Peter Senna Tschudin <peter.senna@collabora.com>
----
- drivers/net/ethernet/intel/e100.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+Hi Johannes
 
-diff --git a/drivers/net/ethernet/intel/e100.c b/drivers/net/ethernet/intel/e100.c
-index 2b7323d..d1002c2 100644
---- a/drivers/net/ethernet/intel/e100.c
-+++ b/drivers/net/ethernet/intel/e100.c
-@@ -607,7 +607,7 @@ struct nic {
- 	struct mem *mem;
- 	dma_addr_t dma_addr;
- 
--	struct pci_pool *cbs_pool;
-+	struct dma_pool *cbs_pool;
- 	dma_addr_t cbs_dma_addr;
- 	u8 adaptive_ifs;
- 	u8 tx_threshold;
-@@ -1892,7 +1892,7 @@ static void e100_clean_cbs(struct nic *nic)
- 			nic->cb_to_clean = nic->cb_to_clean->next;
- 			nic->cbs_avail++;
- 		}
--		pci_pool_free(nic->cbs_pool, nic->cbs, nic->cbs_dma_addr);
-+		dma_pool_free(nic->cbs_pool, nic->cbs, nic->cbs_dma_addr);
- 		nic->cbs = NULL;
- 		nic->cbs_avail = 0;
- 	}
-@@ -1910,7 +1910,7 @@ static int e100_alloc_cbs(struct nic *nic)
- 	nic->cb_to_use = nic->cb_to_send = nic->cb_to_clean = NULL;
- 	nic->cbs_avail = 0;
- 
--	nic->cbs = pci_pool_alloc(nic->cbs_pool, GFP_KERNEL,
-+	nic->cbs = dma_pool_alloc(nic->cbs_pool, GFP_KERNEL,
- 				  &nic->cbs_dma_addr);
- 	if (!nic->cbs)
- 		return -ENOMEM;
-@@ -2958,8 +2958,8 @@ static int e100_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
- 		netif_err(nic, probe, nic->netdev, "Cannot register net device, aborting\n");
- 		goto err_out_free;
- 	}
--	nic->cbs_pool = pci_pool_create(netdev->name,
--			   nic->pdev,
-+	nic->cbs_pool = dma_pool_create(netdev->name,
-+			   &nic->pdev->dev,
- 			   nic->params.cbs.max * sizeof(struct cb),
- 			   sizeof(u32),
- 			   0);
-@@ -2999,7 +2999,7 @@ static void e100_remove(struct pci_dev *pdev)
- 		unregister_netdev(netdev);
- 		e100_free(nic);
- 		pci_iounmap(pdev, nic->csr);
--		pci_pool_destroy(nic->cbs_pool);
-+		dma_pool_destroy(nic->cbs_pool);
- 		free_netdev(netdev);
- 		pci_release_regions(pdev);
- 		pci_disable_device(pdev);
--- 
-2.9.3
+Your report and analysis seem to be accurate (regarding value of wqe->iova)
+Unfortunately we didn't have a chance yet to run kernel application
+tests but I will try to add them soon and be able to debug it myself.
+In the meantime
+1. DId the test fail completely or is it just the KASAN error that
+made you look at init_send_wqe()?
+2. You can take a look at librxe implementation of init_send_wqe() (it
+looks slightly different from kernel's implementation) and see what
+happens if you change implementation accordingly.
+
+thanks
+
+Moni
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
