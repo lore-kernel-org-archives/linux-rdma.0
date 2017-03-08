@@ -1,123 +1,78 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 25/26] IB/ocrdma: Delete unnecessary braces
-Date: Wed, 8 Mar 2017 14:32:15 +0100
-Message-ID: <dddca366-47ad-9319-4933-e1a07578018e@users.sourceforge.net>
+From: Yuval Shaia <yuval.shaia@oracle.com>
+Subject: Re: [PATCH 03/26] IB/ocrdma: Improve size determinations in
+ ocrdma_mbx_get_dcbx_config()
+Date: Wed, 8 Mar 2017 15:54:10 +0200
+Message-ID: <20170308135409.GB4828@yuval-lap>
 References: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net>
+ <907034da-34ae-9e5b-6e56-3a2feb4924da@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net>
+Content-Disposition: inline
+In-Reply-To: <907034da-34ae-9e5b-6e56-3a2feb4924da@users.sourceforge.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, Devesh Sharma <devesh.sharma@avagotech.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Selvin Xavier <selvin.xavier@avagotech.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-rdma@vger.kernel.org, Devesh Sharma <devesh.sharma@avagotech.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Selvin Xavier <selvin.xavier@avagotech.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 8 Mar 2017 12:36:41 +0100
+On Wed, Mar 08, 2017 at 01:45:43PM +0100, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Tue, 7 Mar 2017 19:09:20 +0100
+> 
+> Replace the specification of data structures by references for variables
+> as the parameter for the operator "sizeof" to make the corresponding size
+> determinations a bit safer according to the Linux coding style convention.
+> 
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> ---
+>  drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 13 +++++--------
+>  1 file changed, 5 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+> index d5a3127b6df8..85bebb887c5c 100644
+> --- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+> @@ -2901,9 +2901,8 @@ static int ocrdma_mbx_get_dcbx_config(struct ocrdma_dev *dev, u32 ptype,
+>  	struct pci_dev *pdev = dev->nic_info.pdev;
+>  	struct ocrdma_mqe_sge *mqe_sge = cmd.u.nonemb_req.sge;
+>  
+> -	memset(&cmd, 0, sizeof(struct ocrdma_mqe));
+> -	cmd.hdr.pyld_len = max_t (u32, sizeof(struct ocrdma_get_dcbx_cfg_rsp),
+> -					sizeof(struct ocrdma_get_dcbx_cfg_req));
+> +	memset(&cmd, 0, sizeof(cmd));
+> +	cmd.hdr.pyld_len = max_t(u32, sizeof(*rsp), sizeof(*req));
+>  	req = dma_alloc_coherent(&pdev->dev, cmd.hdr.pyld_len, &pa, GFP_KERNEL);
+>  	if (!req) {
+>  		status = -ENOMEM;
+> @@ -2915,8 +2914,7 @@ static int ocrdma_mbx_get_dcbx_config(struct ocrdma_dev *dev, u32 ptype,
+>  	mqe_sge->pa_lo = (u32) (pa & 0xFFFFFFFFUL);
+>  	mqe_sge->pa_hi = (u32) upper_32_bits(pa);
+>  	mqe_sge->len = cmd.hdr.pyld_len;
+> -
+> -	memset(req, 0, sizeof(struct ocrdma_get_dcbx_cfg_req));
+> +	memset(req, 0, sizeof(*req));
+>  	ocrdma_init_mch(&req->hdr, OCRDMA_CMD_GET_DCBX_CONFIG,
+>  			OCRDMA_SUBSYS_DCBX, cmd.hdr.pyld_len);
+>  	req->param_type = ptype;
+> @@ -2926,9 +2924,8 @@ static int ocrdma_mbx_get_dcbx_config(struct ocrdma_dev *dev, u32 ptype,
+>  		goto mbx_err;
+>  
+>  	rsp = (struct ocrdma_get_dcbx_cfg_rsp *)req;
+> -	ocrdma_le32_to_cpu(rsp, sizeof(struct ocrdma_get_dcbx_cfg_rsp));
+> -	memcpy(dcbxcfg, &rsp->cfg, sizeof(struct ocrdma_dcbx_cfg));
+> -
+> +	ocrdma_le32_to_cpu(rsp, sizeof(*rsp));
+> +	memcpy(dcbxcfg, &rsp->cfg, sizeof(*dcbxcfg));
+>  mbx_err:
+>  	dma_free_coherent(&pdev->dev, cmd.hdr.pyld_len, req, pa);
+>  mem_err:
 
-Do not use curly brackets at some source code places
-where a single statement should be sufficient.
+Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 41 +++++++++++------------------
- 1 file changed, 16 insertions(+), 25 deletions(-)
-
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index d3cb8e2f099f..bfd86fd08847 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -502,10 +502,10 @@ static int ocrdma_dealloc_ucontext_pd(struct ocrdma_ucontext *uctx)
- 	struct ocrdma_pd *pd = uctx->cntxt_pd;
- 	struct ocrdma_dev *dev = get_ocrdma_dev(pd->ibpd.device);
- 
--	if (uctx->pd_in_use) {
-+	if (uctx->pd_in_use)
- 		pr_err("%s(%d) Freeing in use pdid=0x%x.\n",
- 		       __func__, dev->id, pd->id);
--	}
-+
- 	uctx->cntxt_pd = NULL;
- 	(void)_ocrdma_dealloc_pd(dev, pd);
- 	return 0;
-@@ -739,11 +739,10 @@ struct ib_pd *ocrdma_alloc_pd(struct ib_device *ibdev,
- 	return &pd->ibpd;
- 
- err:
--	if (is_uctx_pd) {
-+	if (is_uctx_pd)
- 		ocrdma_release_ucontext_pd(uctx);
--	} else {
-+	else
- 		status = _ocrdma_dealloc_pd(dev, pd);
--	}
- exit:
- 	return ERR_PTR(status);
- }
-@@ -1018,10 +1017,10 @@ int ocrdma_dereg_mr(struct ib_mr *ib_mr)
- 	kfree(mr);
- 
- 	/* Don't stop cleanup, in case FW is unresponsive */
--	if (dev->mqe_ctx.fw_error_state) {
-+	if (dev->mqe_ctx.fw_error_state)
- 		pr_err("%s(%d) fw not responding.\n",
- 		       __func__, dev->id);
--	}
-+
- 	return 0;
- }
- 
-@@ -1410,10 +1409,10 @@ struct ib_qp *ocrdma_create_qp(struct ib_pd *ibpd,
- 		goto gen_err;
- 
- 	memset(&ureq, 0, sizeof(ureq));
--	if (udata) {
-+	if (udata)
- 		if (ib_copy_from_udata(&ureq, udata, sizeof(ureq)))
- 			return ERR_PTR(-EFAULT);
--	}
-+
- 	qp = kzalloc(sizeof(*qp), GFP_KERNEL);
- 	if (!qp) {
- 		status = -ENOMEM;
-@@ -2829,15 +2828,11 @@ static bool ocrdma_poll_rcqe(struct ocrdma_qp *qp, struct ocrdma_cqe *cqe,
- 	bool expand = false;
- 
- 	ibwc->wc_flags = 0;
--	if (qp->qp_type == IB_QPT_UD || qp->qp_type == IB_QPT_GSI) {
--		status = (le32_to_cpu(cqe->flags_status_srcqpn) &
--					OCRDMA_CQE_UD_STATUS_MASK) >>
--					OCRDMA_CQE_UD_STATUS_SHIFT;
--	} else {
--		status = (le32_to_cpu(cqe->flags_status_srcqpn) &
--			     OCRDMA_CQE_STATUS_MASK) >> OCRDMA_CQE_STATUS_SHIFT;
--	}
--
-+	status = (qp->qp_type == IB_QPT_UD || qp->qp_type == IB_QPT_GSI)
-+		 ? ((le32_to_cpu(cqe->flags_status_srcqpn) &
-+		    OCRDMA_CQE_UD_STATUS_MASK) >> OCRDMA_CQE_UD_STATUS_SHIFT)
-+		 : ((le32_to_cpu(cqe->flags_status_srcqpn) &
-+		    OCRDMA_CQE_STATUS_MASK) >> OCRDMA_CQE_STATUS_SHIFT);
- 	if (status == OCRDMA_CQE_SUCCESS) {
- 		*polled = true;
- 		ocrdma_poll_success_rcqe(qp, cqe, ibwc);
-@@ -2885,13 +2880,9 @@ static int ocrdma_poll_hwcq(struct ocrdma_cq *cq, int num_entries,
- 		qp = dev->qp_tbl[qpn];
- 		BUG_ON(qp == NULL);
- 
--		if (is_cqe_for_sq(cqe)) {
--			expand = ocrdma_poll_scqe(qp, cqe, ibwc, &polled,
--						  &stop);
--		} else {
--			expand = ocrdma_poll_rcqe(qp, cqe, ibwc, &polled,
--						  &stop);
--		}
-+		expand = is_cqe_for_sq(cqe)
-+			 ? ocrdma_poll_scqe(qp, cqe, ibwc, &polled, &stop)
-+			 : ocrdma_poll_rcqe(qp, cqe, ibwc, &polled, &stop);
- 		if (expand)
- 			goto expand_cqe;
- 		if (stop)
--- 
-2.12.0
+> -- 
+> 2.12.0
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
