@@ -1,45 +1,63 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 16/26] IB/ocrdma: Adjust a null pointer check in
- ocrdma_alloc_resources()
-Date: Wed, 8 Mar 2017 14:15:34 +0100
-Message-ID: <54750756-91cd-b508-109a-83b7b2375193@users.sourceforge.net>
-References: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net>
+From: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
+Subject: Need some pointers to debug a KASAN splat in NVMe over Fabrics with
+ rdma-rxe
+Date: Wed, 8 Mar 2017 16:35:50 +0100
+Message-ID: <5b16edcf-c39a-bc4b-0e32-8ccfb5d75efb@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, Devesh Sharma <devesh.sharma@avagotech.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Selvin Xavier <selvin.xavier@avagotech.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Linux NVMe Mailinglist <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 7 Mar 2017 22:34:33 +0100
+Hi Moni et al.,
 
-The script "checkpatch.pl" pointed information out like the following.
+I'm getting a KASAN stack-out-of-bounds in rxe_post_send+0xdfe/0x1830
+[rdma_rxe] at addr ffff8800187072e8 with v4.11-rc1
 
-Comparison to NULL could be written "!dev->stag_arr".
+rxe_post_send+0xdfe is the following (note: the pr_err was inserted by
+me to aid debugging).
 
-Thus fix the affected source code place.
+(gdb) list *(rxe_post_send+0xdfe)
+0x1dc3e is in rxe_post_send (drivers/infiniband/sw/rxe/rxe_verbs.c:765).
+760             pr_err("%s: *_wr(ibwr): %p\n",
+761                    __func__, (void *)(mask & WR_ATOMIC_MASK ?
+atomic_wr(ibwr)
+762                    : rdma_wr(ibwr)));
+763
+764             wqe->iova               = (mask & WR_ATOMIC_MASK) ?
+765
+atomic_wr(ibwr)->remote_addr :
+766                                             rdma_wr(ibwr)->remote_addr;
+767             wqe->mask               = mask;
+768             wqe->dma.length         = length;
+769             wqe->dma.resid          = length;
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/infiniband/hw/ocrdma/ocrdma_main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Coincidentially ffff8800187072e8 = ibwr + 0x28. ibwr comes from
+nvme_rdma_post_send() and has an opcode of IB_WR_SEND (verified . So the
+rdma_wr(ibwr) call cannot return a correct/valid parent object (neither
+could the atomic_wr(ibr)).
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-index 93113feeb2d5..fbf672c79d5f 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -238,7 +238,7 @@ static int ocrdma_alloc_resources(struct ocrdma_dev *dev)
- 
- 	dev->stag_arr = kcalloc(OCRDMA_MAX_STAG, sizeof(*dev->stag_arr),
- 				GFP_KERNEL);
--	if (dev->stag_arr == NULL)
-+	if (!dev->stag_arr)
- 		goto alloc_err;
- 
- 	ocrdma_alloc_pd_pool(dev);
+So much for the easy/mechanic part.
+
+I can special case IB_WR_SEND in rxe's init_send_wqe() but I neither
+know if it is correct nor how the wqe elements (especially wqe->iova)
+should be set up.
+
+So any help would be appreciated here.
+
+Thanks in advance,
+	Johannes
 -- 
-2.12.0
+Johannes Thumshirn                                          Storage
+jthumshirn-l3A5Bk7waGM@public.gmane.org                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
+GF: Felix Imendörffer, Jane Smithard, Graham Norton
+HRB 21284 (AG Nürnberg)
+Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
