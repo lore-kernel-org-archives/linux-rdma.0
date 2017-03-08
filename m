@@ -1,8 +1,8 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 23/26] IB/ocrdma: Delete an unnecessary variable in
- ocrdma_dealloc_pd()
-Date: Wed, 8 Mar 2017 14:28:10 +0100
-Message-ID: <0e667a69-3afa-6122-ed3b-d313bc5909ad@users.sourceforge.net>
+Subject: [PATCH 20/26] IB/ocrdma: Delete an unnecessary variable assignment in
+ ocrdma_alloc_mr()
+Date: Wed, 8 Mar 2017 14:22:21 +0100
+Message-ID: <24b6074a-f678-c367-484b-e16a0c1f9b5f@users.sourceforge.net>
 References: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -15,45 +15,32 @@ Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 8 Mar 2017 10:58:34 +0100
+Date: Wed, 8 Mar 2017 10:00:41 +0100
 
-1. Return zero in one case directly.
-
-2. Return the value from a call of the function "_ocrdma_dealloc_pd"
-   without using an extra assignment for the local variable.
-
-3. Remove the variable "status" in this function then.
+Delete an assignment for the local variable "status" in an if branch
+because the desired failure indication is already specified by a constant
+error code at the end.
 
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 1d25512416f5..ae0d343d1731 100644
+index 05d55d361cfe..af8798fd35b1 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -755,7 +755,6 @@ int ocrdma_dealloc_pd(struct ib_pd *ibpd)
- 	struct ocrdma_pd *pd = get_ocrdma_pd(ibpd);
- 	struct ocrdma_dev *dev = get_ocrdma_dev(ibpd->device);
- 	struct ocrdma_ucontext *uctx = NULL;
--	int status = 0;
- 	u64 usr_db;
+@@ -3031,10 +3031,8 @@ struct ib_mr *ocrdma_alloc_mr(struct ib_pd *ibpd,
+ 		return ERR_PTR(-ENOMEM);
  
- 	uctx = pd->uctx;
-@@ -769,11 +768,10 @@ int ocrdma_dealloc_pd(struct ib_pd *ibpd)
+ 	mr->pages = kcalloc(max_num_sg, sizeof(*mr->pages), GFP_KERNEL);
+-	if (!mr->pages) {
+-		status = -ENOMEM;
++	if (!mr->pages)
+ 		goto pl_err;
+-	}
  
- 		if (is_ucontext_pd(uctx, pd)) {
- 			ocrdma_release_ucontext_pd(uctx);
--			return status;
-+			return 0;
- 		}
- 	}
--	status = _ocrdma_dealloc_pd(dev, pd);
--	return status;
-+	return _ocrdma_dealloc_pd(dev, pd);
- }
- 
- static int ocrdma_alloc_lkey(struct ocrdma_dev *dev, struct ocrdma_mr *mr,
+ 	status = ocrdma_get_pbl_info(dev, mr, max_num_sg);
+ 	if (status)
 -- 
 2.12.0
