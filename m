@@ -1,53 +1,54 @@
-From: Yuval Shaia <yuval.shaia@oracle.com>
-Subject: Re: [PATCH 14/26] IB/ocrdma: Improve another size determination in
- ocrdma_add()
-Date: Wed, 8 Mar 2017 16:27:55 +0200
-Message-ID: <20170308142755.GL4828@yuval-lap>
+From: Devesh Sharma <devesh.sharma@broadcom.com>
+Subject: Re: [PATCH 10/26] IB/ocrdma: Improve another size determination in ocrdma_init_emb_mqe()
+Date: Wed, 8 Mar 2017 20:12:03 +0530
+Message-ID: <CANjDDBjjsSeRHaNXBp_JHe8=mKaYxzgJ-VKJ6++-a0-kO_XZ9g@mail.gmail.com>
 References: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net>
- <97417c29-a9d0-d30b-952a-3b3325a52bcf@users.sourceforge.net>
+ <4d92b910-f0fb-1362-0392-fccd8af1d169@users.sourceforge.net> <20170308142256.GI4828@yuval-lap>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <97417c29-a9d0-d30b-952a-3b3325a52bcf@users.sourceforge.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-rdma@vger.kernel.org, Devesh Sharma <devesh.sharma@avagotech.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Selvin Xavier <selvin.xavier@avagotech.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <20170308142256.GI4828@yuval-lap>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Yuval Shaia <yuval.shaia@oracle.com>
+Cc: SF Markus Elfring <elfring@users.sourceforge.net>, linux-rdma <linux-rdma@vger.kernel.org>, Devesh Sharma <devesh.sharma@avagotech.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Selvin Xavier <selvin.xavier@avagotech.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 08, 2017 at 02:10:33PM +0100, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Tue, 7 Mar 2017 22:12:36 +0100
-> 
-> Replace the specification of a data structure by a pointer dereference
-> as the parameter for the operator "sizeof" to make the corresponding size
-> determination a bit safer according to the Linux coding style convention.
-> 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  drivers/infiniband/hw/ocrdma/ocrdma_main.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-> index 9caa4c564e34..c49b4491d4e7 100644
-> --- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-> @@ -303,7 +303,7 @@ static struct ocrdma_dev *ocrdma_add(struct be_dev_info *dev_info)
->  	u8 lstate = 0;
->  	struct ocrdma_dev *dev;
->  
-> -	dev = (struct ocrdma_dev *)ib_alloc_device(sizeof(struct ocrdma_dev));
-> +	dev = (struct ocrdma_dev *)ib_alloc_device(sizeof(*dev));
->  	if (!dev) {
->  		pr_err("Unable to allocate ib device\n");
->  		return NULL;
+Acked-by: Devesh Sharma <devesh.sharma@broadcom.com>
 
-Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
-
-> -- 
-> 2.12.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Wed, Mar 8, 2017 at 7:52 PM, Yuval Shaia <yuval.shaia@oracle.com> wrote:
+> On Wed, Mar 08, 2017 at 02:02:46PM +0100, SF Markus Elfring wrote:
+>> From: Markus Elfring <elfring@users.sourceforge.net>
+>> Date: Tue, 7 Mar 2017 20:33:29 +0100
+>>
+>> Replace the specification of a data structure by a pointer dereference
+>> as the parameter for the operator "sizeof" to make the corresponding size
+>> determination a bit safer according to the Linux coding style convention.
+>>
+>> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+>> ---
+>>  drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+>> index 7d1e1caa90de..aa32bc9f323d 100644
+>> --- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+>> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+>> @@ -352,7 +352,7 @@ static void *ocrdma_init_emb_mqe(u8 opcode, u32 cmd_len)
+>>  {
+>>       struct ocrdma_mqe *mqe;
+>>
+>> -     mqe = kzalloc(sizeof(struct ocrdma_mqe), GFP_KERNEL);
+>> +     mqe = kzalloc(sizeof(*mqe), GFP_KERNEL);
+>>       if (!mqe)
+>>               return NULL;
+>>       mqe->hdr.spcl_sge_cnt_emb |=
+>
+> Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
+>
+>> --
+>> 2.12.0
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
