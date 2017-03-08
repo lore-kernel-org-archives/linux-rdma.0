@@ -1,109 +1,79 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 11/26] IB/ocrdma: Delete unnecessary braces
-Date: Wed, 8 Mar 2017 16:24:30 +0200
-Message-ID: <20170308142429.GJ4828@yuval-lap>
+From: Devesh Sharma <devesh.sharma@broadcom.com>
+Subject: Re: [PATCH 03/26] IB/ocrdma: Improve size determinations in ocrdma_mbx_get_dcbx_config()
+Date: Wed, 8 Mar 2017 20:16:37 +0530
+Message-ID: <CANjDDBiZdPdhTKmr3QjhTsXQZWPf0jZJ=baGRHdiuUHZ=AGKVg@mail.gmail.com>
 References: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net>
- <c4c62b82-db2a-3db9-03c4-9f8d95a6a29b@users.sourceforge.net>
+ <907034da-34ae-9e5b-6e56-3a2feb4924da@users.sourceforge.net> <20170308135409.GB4828@yuval-lap>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <c4c62b82-db2a-3db9-03c4-9f8d95a6a29b-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170308135409.GB4828@yuval-lap>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yuval Shaia <yuval.shaia@oracle.com>
+Cc: SF Markus Elfring <elfring@users.sourceforge.net>, linux-rdma <linux-rdma@vger.kernel.org>, Devesh Sharma <devesh.sharma@avagotech.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Selvin Xavier <selvin.xavier@avagotech.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 08, 2017 at 02:04:56PM +0100, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-> Date: Tue, 7 Mar 2017 21:12:56 +0100
-> 
-> Do not use curly brackets at some source code places
-> where a single statement should be sufficient.
-> 
-> Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-> ---
->  drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 17 ++++++++---------
->  1 file changed, 8 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-> index aa32bc9f323d..d5b988b011d1 100644
-> --- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-> @@ -1092,14 +1092,14 @@ static int ocrdma_mbx_cmd(struct ocrdma_dev *dev, struct ocrdma_mqe *mqe)
->  	if (cqe_status || ext_status) {
->  		pr_err("%s() cqe_status=0x%x, ext_status=0x%x,",
->  		       __func__, cqe_status, ext_status);
-> -		if (rsp) {
-> +		if (rsp)
->  			/* This is for embedded cmds. */
->  			pr_err("opcode=0x%x, subsystem=0x%x\n",
->  			       (rsp->subsys_op & OCRDMA_MBX_RSP_OPCODE_MASK) >>
->  				OCRDMA_MBX_RSP_OPCODE_SHIFT,
->  				(rsp->subsys_op & OCRDMA_MBX_RSP_SUBSYS_MASK) >>
->  				OCRDMA_MBX_RSP_SUBSYS_SHIFT);
-> -		}
-> +
+Acked-By: Devesh Sharma <devesh.sharma@broadcom.com>
 
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-
->  		status = ocrdma_get_mbx_cqe_errno(cqe_status);
->  		goto mbx_err;
->  	}
-> @@ -1600,10 +1600,9 @@ void ocrdma_alloc_pd_pool(struct ocrdma_dev *dev)
->  		return;
->  
->  	status = ocrdma_mbx_alloc_pd_range(dev);
-> -	if (status) {
-> +	if (status)
->  		pr_err("%s(%d) Unable to initialize PD pool, using default.\n",
->  			 __func__, dev->id);
-> -	}
->  }
->  
->  static void ocrdma_free_pd_pool(struct ocrdma_dev *dev)
-> @@ -2997,11 +2996,10 @@ static int ocrdma_parse_dcbxcfg_rsp(struct ocrdma_dev *dev, int ptype,
->  					goto out;
->  				}
->  			}
-> -			if (slindx == OCRDMA_MAX_SERVICE_LEVEL_INDEX) {
-> +			if (slindx == OCRDMA_MAX_SERVICE_LEVEL_INDEX)
->  				pr_info("%s ocrdma%d application priority not set for 0x%x protocol\n",
->  					dev_name(&dev->nic_info.pdev->dev),
->  					dev->id, proto);
-> -			}
->  		}
->  	}
->  
-> @@ -3158,16 +3156,17 @@ static int ocrdma_modify_eqd(struct ocrdma_dev *dev, struct ocrdma_eq *eq,
->  			     int num)
->  {
->  	int num_eqs, i = 0;
-> -	if (num > 8) {
-> +
-> +	if (num > 8)
->  		while (num) {
->  			num_eqs = min(num, 8);
->  			ocrdma_mbx_modify_eqd(dev, &eq[i], num_eqs);
->  			i += num_eqs;
->  			num -= num_eqs;
->  		}
-> -	} else {
-> +	else
->  		ocrdma_mbx_modify_eqd(dev, eq, num);
-> -	}
-> +
->  	return 0;
->  }
->  
-> -- 
-> 2.12.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Wed, Mar 8, 2017 at 7:24 PM, Yuval Shaia <yuval.shaia@oracle.com> wrote:
+> On Wed, Mar 08, 2017 at 01:45:43PM +0100, SF Markus Elfring wrote:
+>> From: Markus Elfring <elfring@users.sourceforge.net>
+>> Date: Tue, 7 Mar 2017 19:09:20 +0100
+>>
+>> Replace the specification of data structures by references for variables
+>> as the parameter for the operator "sizeof" to make the corresponding size
+>> determinations a bit safer according to the Linux coding style convention.
+>>
+>> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+>> ---
+>>  drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 13 +++++--------
+>>  1 file changed, 5 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+>> index d5a3127b6df8..85bebb887c5c 100644
+>> --- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+>> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+>> @@ -2901,9 +2901,8 @@ static int ocrdma_mbx_get_dcbx_config(struct ocrdma_dev *dev, u32 ptype,
+>>       struct pci_dev *pdev = dev->nic_info.pdev;
+>>       struct ocrdma_mqe_sge *mqe_sge = cmd.u.nonemb_req.sge;
+>>
+>> -     memset(&cmd, 0, sizeof(struct ocrdma_mqe));
+>> -     cmd.hdr.pyld_len = max_t (u32, sizeof(struct ocrdma_get_dcbx_cfg_rsp),
+>> -                                     sizeof(struct ocrdma_get_dcbx_cfg_req));
+>> +     memset(&cmd, 0, sizeof(cmd));
+>> +     cmd.hdr.pyld_len = max_t(u32, sizeof(*rsp), sizeof(*req));
+>>       req = dma_alloc_coherent(&pdev->dev, cmd.hdr.pyld_len, &pa, GFP_KERNEL);
+>>       if (!req) {
+>>               status = -ENOMEM;
+>> @@ -2915,8 +2914,7 @@ static int ocrdma_mbx_get_dcbx_config(struct ocrdma_dev *dev, u32 ptype,
+>>       mqe_sge->pa_lo = (u32) (pa & 0xFFFFFFFFUL);
+>>       mqe_sge->pa_hi = (u32) upper_32_bits(pa);
+>>       mqe_sge->len = cmd.hdr.pyld_len;
+>> -
+>> -     memset(req, 0, sizeof(struct ocrdma_get_dcbx_cfg_req));
+>> +     memset(req, 0, sizeof(*req));
+>>       ocrdma_init_mch(&req->hdr, OCRDMA_CMD_GET_DCBX_CONFIG,
+>>                       OCRDMA_SUBSYS_DCBX, cmd.hdr.pyld_len);
+>>       req->param_type = ptype;
+>> @@ -2926,9 +2924,8 @@ static int ocrdma_mbx_get_dcbx_config(struct ocrdma_dev *dev, u32 ptype,
+>>               goto mbx_err;
+>>
+>>       rsp = (struct ocrdma_get_dcbx_cfg_rsp *)req;
+>> -     ocrdma_le32_to_cpu(rsp, sizeof(struct ocrdma_get_dcbx_cfg_rsp));
+>> -     memcpy(dcbxcfg, &rsp->cfg, sizeof(struct ocrdma_dcbx_cfg));
+>> -
+>> +     ocrdma_le32_to_cpu(rsp, sizeof(*rsp));
+>> +     memcpy(dcbxcfg, &rsp->cfg, sizeof(*dcbxcfg));
+>>  mbx_err:
+>>       dma_free_coherent(&pdev->dev, cmd.hdr.pyld_len, req, pa);
+>>  mem_err:
+>
+> Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
+>
+>> --
+>> 2.12.0
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
