@@ -1,50 +1,48 @@
 From: Devesh Sharma <devesh.sharma@broadcom.com>
-Subject: Re: [PATCH 15/26] IB/ocrdma: Delete an error message for a failed
- memory allocation in ocrdma_add()
-Date: Wed, 8 Mar 2017 20:33:04 +0530
-Message-ID: <CANjDDBj_8OYNqshrqBy25TdzaSdCGBaYkApBJG+jjHmx5O0DKA@mail.gmail.com>
-References: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net> <20d97719-3d3a-62f6-a249-f39cf528c5e9@users.sourceforge.net>
+Subject: Re: [PATCH 16/26] IB/ocrdma: Adjust a null pointer check in ocrdma_alloc_resources()
+Date: Wed, 8 Mar 2017 20:33:44 +0530
+Message-ID: <CANjDDBgMS099WdT14wK_Lqkc++z1i6A1gtgFhpOT+2mdUQHAfw@mail.gmail.com>
+References: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net> <54750756-91cd-b508-109a-83b7b2375193@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20d97719-3d3a-62f6-a249-f39cf528c5e9@users.sourceforge.net>
+In-Reply-To: <54750756-91cd-b508-109a-83b7b2375193@users.sourceforge.net>
 Sender: kernel-janitors-owner@vger.kernel.org
 To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-rdma <linux-rdma@vger.kernel.org>, Devesh Sharma <devesh.sharma@avagotech.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Selvin Xavier <selvin.xavier@avagotech.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>
+Cc: linux-rdma <linux-rdma@vger.kernel.org>, Devesh Sharma <devesh.sharma@avagotech.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Selvin Xavier <selvin.xavier@avagotech.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Acked-By: Devesh sharma <devesh.sharma@broadcom.com>
+Acked-By: Devesh Sharma <devesh.sharma@broadcom.com>
 
-On Wed, Mar 8, 2017 at 6:43 PM, SF Markus Elfring
+On Wed, Mar 8, 2017 at 6:45 PM, SF Markus Elfring
 <elfring@users.sourceforge.net> wrote:
 > From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Tue, 7 Mar 2017 22:23:17 +0100
+> Date: Tue, 7 Mar 2017 22:34:33 +0100
 >
-> Omit an extra message for a memory allocation failure in this function.
+> The script "checkpatch.pl" pointed information out like the following.
 >
-> Link: http://events.linuxfoundation.org/sites/events/files/slides/LCJ16-Refactor_Strings-WSang_0.pdf
+> Comparison to NULL could be written "!dev->stag_arr".
+>
+> Thus fix the affected source code place.
+>
 > Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 > ---
->  drivers/infiniband/hw/ocrdma/ocrdma_main.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
+>  drivers/infiniband/hw/ocrdma/ocrdma_main.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
 > diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-> index c49b4491d4e7..93113feeb2d5 100644
+> index 93113feeb2d5..fbf672c79d5f 100644
 > --- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
 > +++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-> @@ -304,10 +304,9 @@ static struct ocrdma_dev *ocrdma_add(struct be_dev_info *dev_info)
->         struct ocrdma_dev *dev;
+> @@ -238,7 +238,7 @@ static int ocrdma_alloc_resources(struct ocrdma_dev *dev)
 >
->         dev = (struct ocrdma_dev *)ib_alloc_device(sizeof(*dev));
-> -       if (!dev) {
-> -               pr_err("Unable to allocate ib device\n");
-> +       if (!dev)
->                 return NULL;
-> -       }
-> +
->         dev->mbx_cmd = kzalloc(sizeof(struct ocrdma_mqe_emb_cmd), GFP_KERNEL);
->         if (!dev->mbx_cmd)
->                 goto idr_err;
+>         dev->stag_arr = kcalloc(OCRDMA_MAX_STAG, sizeof(*dev->stag_arr),
+>                                 GFP_KERNEL);
+> -       if (dev->stag_arr == NULL)
+> +       if (!dev->stag_arr)
+>                 goto alloc_err;
+>
+>         ocrdma_alloc_pd_pool(dev);
 > --
 > 2.12.0
 >
