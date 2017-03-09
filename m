@@ -1,34 +1,57 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH rdma-core 4/5] verbs: Add an option to provide vendor
- private data when creating a CQ
-Date: Thu, 9 Mar 2017 05:59:35 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB0EF5FE@ORSMSX109.amr.corp.intel.com>
-References: <1488809204-30428-1-git-send-email-yishaih@mellanox.com>
- <1488809204-30428-5-git-send-email-yishaih@mellanox.com>
- <20170306180723.GD11805@obsidianresearch.com>
- <d3cc85f3-d5ef-5114-68a3-6989b5b26478@dev.mellanox.co.il>
- <20170307181738.GC2228@obsidianresearch.com>
- <6da2bd37-62c3-af73-fe81-5be57a327c2d@dev.mellanox.co.il>
+From: Peter Senna Tschudin <peter.senna-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Subject: Re: [PATCH v5 04/19] net: e100: Replace PCI pool old API
+Date: Thu, 9 Mar 2017 08:01:29 +0100
+Message-ID: <20170309070129.GA13741@collabora.com>
+References: <20170308161957.28941-1-romain.perier@collabora.com>
+ <20170308161957.28941-5-romain.perier@collabora.com>
+ <1489012825.3477.51.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <6da2bd37-62c3-af73-fe81-5be57a327c2d-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1489012825.3477.51.camel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Tzahi Oved (tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jeff Kirsher <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Romain Perier <romain.perier-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, stas.yakovlev-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Senna Tschudin <peter.senna-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> That's why we want to prevent from new APIs when really not required.
+On Wed, Mar 08, 2017 at 02:40:25PM -0800, Jeff Kirsher wrote:
+> On Wed, 2017-03-08 at 17:19 +0100, Romain Perier wrote:
+> > The PCI pool API is deprecated. This commit replaces the PCI pool old
+> > API by the appropriate function with the DMA pool API.
+> > 
+> > Signed-off-by: Romain Perier <romain.perier-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+> > Acked-by: Peter Senna Tschudin <peter.senna-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+> > Tested-by: Peter Senna Tschudin <peter.senna-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+> > ---
+> >  drivers/net/ethernet/intel/e100.c | 12 ++++++------
+> >  1 file changed, 6 insertions(+), 6 deletions(-)
 > 
-> I believe that we should get input from Doug and other people re the
-> above discussion.
+> Acked-by: Jeff Kirsher <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > 
-> Doug,
-> Can we get please your input here ?
+> My only concern is:
+> - what hardware did this get tested with?  Since this affects all e100
+> parts, it would be hard to believe that all the affected hardware was
+> used in testing.
 
-I agree with Jason.  There are clear advantages to have type safe APIs.  The overloading that already occurs in the existing APIs (e.g. create/modify_qp, post_send) make them extremely difficult to use.
+This was tested by compilation only(See
+https://lkml.org/lkml/2017/2/8/661). However this series removes macro
+definitions of the old pci_pool interface and replace call sites by what
+the macra was calling.
+
+Here are the macros that this series removes from include/pci.h:
+
+#define pci_pool dma_pool
+#define pci_pool_create(name, pdev, size, align, allocation) \
+	dma_pool_create(name, &pdev->dev, size, align, allocation)
+#define pci_pool_destroy(pool) dma_pool_destroy(pool)
+#define pci_pool_alloc(pool, flags, handle) dma_pool_alloc(pool, flags, handle)
+#define pci_pool_zalloc(pool, flags, handle) \
+	dma_pool_zalloc(pool, flags, handle)
+#define pci_pool_free(pool, vaddr, addr) dma_pool_free(pool, vaddr, add
+
+So this should not affect run time.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
