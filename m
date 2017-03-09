@@ -1,38 +1,36 @@
-From: "Boyer, Andrew" <Andrew.Boyer-8PEkshWhKlo@public.gmane.org>
-Subject: Re: [PATCH 2/3] RDMA/vmw_pvrdma: Dont hardcode QP header page
-Date: Thu, 9 Mar 2017 17:06:25 +0000
-Message-ID: <D4E6F54E.1382F%Andrew.Boyer@emc.com>
-References: <cover.1487812849.git.aditr@vmware.com>
- <cc8a5acd38cd34668540135aea616c4217e30ecf.1487812849.git.aditr@vmware.com>
+From: Kyle McMartin <kyle-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH linux-firmware] qed: Add firmware 8.15.3.0
+Date: Thu, 9 Mar 2017 10:55:07 -0800
+Message-ID: <20170309185507.GG13400@bombadil.infradead.org>
+References: <1489053649-12108-1-git-send-email-Yuval.Mintz@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cc8a5acd38cd34668540135aea616c4217e30ecf.1487812849.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <EA9E1BEECC091846AA2C79BAE67BA95C-/m+UfqrgI5Tvk4DGDgVwFwC/G2K4zDHf@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1489053649-12108-1-git-send-email-Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Ranadive, Adit (VMware)" <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org" <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+To: Yuval Mintz <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-firmware-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Mar 09, 2017 at 12:00:49PM +0200, Yuval Mintz wrote:
+> This new firmware for the qed* adapters fixes multiple issues:
+>  - Prevent accidental drops in Tx-switching between VFs.
+>  - Corrct VF cleanup for higher VFs.
+>  - Better handling of RoCE error flows.
+>  - MR registration/deregistration corrections.
+>  - Prevent possible HW attention during offloaded TCP teardown.
+>  - Corrections to iSCSI retransmit flows.
+> 
+> In addition, this firmware is a requirement for supporting the
+> QL41xxx series of adapters, as it contains the necessary init
+> and firmware logic for those.
+> 
+> Signed-off-by: Yuval Mintz <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 
-On 2/22/17, 8:22 PM, "linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org on behalf of Adit
-Ranadive" <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org on behalf of aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-wrote:
+applied, thanks Yuval.
 
->Moved the header page count to a macro.
->
->Reported-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
->Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
->---
-> drivers/infiniband/hw/vmw_pvrdma/pvrdma.h    | 1 +
-> drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c | 9 +++++----
-> 2 files changed, 6 insertions(+), 4 deletions(-)
-
-Tested-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-
+regards, --kyle
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
