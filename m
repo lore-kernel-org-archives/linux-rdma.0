@@ -1,125 +1,40 @@
 From: "Boyer, Andrew" <Andrew.Boyer-8PEkshWhKlo@public.gmane.org>
-Subject: Re: [PATCH rdma-next] IB/rxe: Add port protocol stats
-Date: Thu, 9 Mar 2017 17:35:45 +0000
-Message-ID: <D4E6FBE1.13839%Andrew.Boyer@emc.com>
-References: <20170302081554.5012-1-leon@kernel.org>
+Subject: Re: [PATCH 1/3] RDMA/vmw_pvrdma: Cleanup unused variables
+Date: Thu, 9 Mar 2017 17:07:08 +0000
+Message-ID: <D4E6F5CA.13833%Andrew.Boyer@emc.com>
+References: <cover.1487812849.git.aditr@vmware.com>
+ <83baafed74beeee75a6a1342d4b37fac50b85b31.1487812849.git.aditr@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170302081554.5012-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <83baafed74beeee75a6a1342d4b37fac50b85b31.1487812849.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Content-Language: en-US
-Content-ID: <03BD99174333874C9D6A2873D7DBEA90-/m+UfqrgI5Tvk4DGDgVwFwC/G2K4zDHf@public.gmane.org>
+Content-ID: <9127EA63A82B304DAA165DCA54658D42-/m+UfqrgI5Tvk4DGDgVwFwC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Ranadive, Adit (VMware)" <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org" <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-On 3/2/17, 3:15 AM, "linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org on behalf of Leon
-Romanovsky" <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org on behalf of
-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+On 2/22/17, 8:22 PM, "linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org on behalf of Adit
+Ranadive" <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org on behalf of aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+wrote:
 
->From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>Removed the unused nreq and redundant index variables.
+>Moved hardcoded async and cq ring pages number to macro.
 >
->Expose new counters using the get_hw_stats callback.
->We expose the following counters:
->
->+---------------------+----------------------------------------+
->|      Name           |           Description                  |
->|---------------------+----------------------------------------|
->|sent_pkts            | number of sent pkts                    |
->|---------------------+----------------------------------------|
->|rcvd_pkts            | number of received packets             |
->|---------------------+----------------------------------------|
->|out_of_sequence      | number of errors due to packet         |
->|                     | transport sequence number              |
->|---------------------+----------------------------------------|
->|duplicate_request    | number of received duplicated packets. |
->|                     | A request that previously executed is  |
->|                     | named duplicated.                      |
->|---------------------+----------------------------------------|
->|rcvd_rnr_err         | number of received RNR by completer    |
->|---------------------+----------------------------------------|
->|send_rnr_err         | number of sent RNR by responder        |
->|---------------------+----------------------------------------|
->|rcvd_seq_err         | number of out of sequence packets      |
->|                     | received                               |
->|---------------------+----------------------------------------|
->|ack_deffered         | number of deferred handling of ack     |
->|                     | packets.                               |
->|---------------------+----------------------------------------|
->|retry_exceeded_err   | number of times retry exceeded         |
->|---------------------+----------------------------------------|
->|completer_retry_err  | number of times completer decided to   |
->|                     | retry                                  |
->|---------------------+----------------------------------------|
->|send_err             | number of failed send packet           |
->+---------------------+----------------------------------------+
->
->Signed-off-by: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->Reviewed-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->
+>Reported-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+>Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 >---
-> drivers/infiniband/sw/rxe/Makefile          |  3 +-
-> drivers/infiniband/sw/rxe/rxe_comp.c        | 12 +++++
-> drivers/infiniband/sw/rxe/rxe_hw_counters.c | 78
->+++++++++++++++++++++++++++++
-> drivers/infiniband/sw/rxe/rxe_hw_counters.h | 61 ++++++++++++++++++++++
-> drivers/infiniband/sw/rxe/rxe_loc.h         |  2 +
-> drivers/infiniband/sw/rxe/rxe_recv.c        |  2 +
-> drivers/infiniband/sw/rxe/rxe_resp.c        |  5 ++
-> drivers/infiniband/sw/rxe/rxe_verbs.c       |  3 ++
-> drivers/infiniband/sw/rxe/rxe_verbs.h       |  8 +++
-> 9 files changed, 173 insertions(+), 1 deletion(-)
-> create mode 100644 drivers/infiniband/sw/rxe/rxe_hw_counters.c
-> create mode 100644 drivers/infiniband/sw/rxe/rxe_hw_counters.h
->
->diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c
->b/drivers/infiniband/sw/rxe/rxe_comp.c
->index 4cd55d5617f7..85343f339624 100644
->--- a/drivers/infiniband/sw/rxe/rxe_comp.c
->+++ b/drivers/infiniband/sw/rxe/rxe_comp.c
->@@ -685,6 +692,8 @@ int rxe_completer(void *arg)
-> 					/* tell the requester to retry the
-> 					 * send send queue next time around
-> 					 */
->+					rxe_counter_inc(rxe,
->+							RXE_CNT_COMP_RETRY);
-> 					qp->req.need_retry =3D 1;
-> 					rxe_run_task(&qp->req.task, 1);
-> 				}
+> drivers/infiniband/hw/vmw_pvrdma/pvrdma.h      |  2 ++
+> drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c |  4 ++--
+> drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c   | 33
+>++++++++++----------------
+> 3 files changed, 17 insertions(+), 22 deletions(-)
 
-While here, fix =B3send send queue=B2 in comments?
-
->diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h
->b/drivers/infiniband/sw/rxe/rxe_verbs.h
->index e100c500ae85..3abe9ca97599 100644
->--- a/drivers/infiniband/sw/rxe/rxe_verbs.h
->+++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
->@@ -38,6 +38,7 @@
-> #include <rdma/rdma_user_rxe.h>
-> #include "rxe_pool.h"
-> #include "rxe_task.h"
->+#include "rxe_hw_counters.h"
->
-> static inline int pkey_match(u16 key1, u16 key2)
-> {
->@@ -401,10 +402,17 @@ struct rxe_dev {
-> 	spinlock_t		mmap_offset_lock; /* guard mmap_offset */
-> 	int			mmap_offset;
->
->+	u64 stats_counters[RXE_NUM_OF_COUNTERS];
->+
-> 	struct rxe_port		port;
-> 	struct list_head	list;
-> };
-
-Match indentation with other fields?
-
-Looks good otherwise.
-Reviewed-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+Tested-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
