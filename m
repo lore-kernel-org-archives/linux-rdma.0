@@ -1,53 +1,56 @@
-From: Johannes Thumshirn <jthumshirn@suse.de>
-Subject: Re: [PATCH 3/5] rds: ib: remove redundant ib_dealloc_fmr
-Date: Thu, 9 Mar 2017 09:16:02 +0100
-Message-ID: <cffc93fa-f4e6-e61e-54c6-67d6501dd78c@suse.de>
-References: <1489044405-26150-1-git-send-email-yanjun.zhu@oracle.com>
- <1489044405-26150-3-git-send-email-yanjun.zhu@oracle.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: mlx4_core 0000:07:00.0: swiotlb buffer is full and OOM observed
+ during stress test on reset_controller
+Date: Thu, 9 Mar 2017 10:42:45 +0200
+Message-ID: <20170309084245.GX14379@mtr-leonro.local>
+References: <1908657724.31179983.1488539944957.JavaMail.zimbra@redhat.com>
+ <2013049462.31187009.1488542111040.JavaMail.zimbra@redhat.com>
+ <20170305081206.GI14379@mtr-leonro.local>
+ <20170308154815.GB24437@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1489044405-26150-3-git-send-email-yanjun.zhu@oracle.com>
-Sender: netdev-owner@vger.kernel.org
-To: Zhu Yanjun <yanjun.zhu@oracle.com>, santosh.shilimkar@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="hOmQO3H5Qmmwdmk8"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170308154815.GB24437-jcswGhMUV9g@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/09/2017 08:26 AM, Zhu Yanjun wrote:
-> The function ib_dealloc_fmr will never be called. As such, it should
-> be removed.
-> 
-> Cc: Joe Jin <joe.jin@oracle.com>
-> Cc: Junxiao Bi <junxiao.bi@oracle.com>
-> Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
-> ---
->  net/rds/ib_fmr.c | 6 ++----
->  1 file changed, 2 insertions(+), 4 deletions(-)
-> 
-> diff --git a/net/rds/ib_fmr.c b/net/rds/ib_fmr.c
-> index 4fe8f4f..b807df6 100644
-> --- a/net/rds/ib_fmr.c
-> +++ b/net/rds/ib_fmr.c
-> @@ -78,12 +78,10 @@ struct rds_ib_mr *rds_ib_alloc_fmr(struct rds_ib_device *rds_ibdev, int npages)
->  	return ibmr;
->  
->  out_no_cigar:
-> -	if (ibmr) {
-> -		if (fmr->fmr)
-> -			ib_dealloc_fmr(fmr->fmr);
-> +	if (ibmr)
->  		kfree(ibmr);
 
-kfree() already does a NULL check (see
-http://lxr.free-electrons.com/source/mm/slab.c#L3811) so no need to do
-it here.
+--hOmQO3H5Qmmwdmk8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+On Wed, Mar 08, 2017 at 04:48:15PM +0100, Christoph Hellwig wrote:
+> Why is that system using swiotlb?  mlx4 really doesn't have any
+> weird addressing limits, does it?
 
+As far as we know, there are not.
 
--- 
-Johannes Thumshirn                                          Storage
-jthumshirn@suse.de                                +49 911 74053 689
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
-GF: Felix Imendörffer, Jane Smithard, Graham Norton
-HRB 21284 (AG Nürnberg)
-Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+--hOmQO3H5Qmmwdmk8
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljBFYUACgkQ5GN7iDZy
+WKcgkQ/+Itq1N1t216O5JxBslXU5EWlx6Ig27BdDLoCDgNA1+NsNSrVsNvbvM4V8
+wDSOd5xET3B3qxWY9+iQt3fL9KuzkZHbI3A3AtZaMHCLMHnL+S3KsnfCgjZzUyzH
+4PolS1tfMSrIueGqvomHoTPrV+j4BwnfInclWRBsqGQiPwJzW47HgJnihTEM7jh8
+gcf7UH45ybjTPc9337e//ekbw565HEfgGFlM/AfQK+PF8ndjwHX2oW7GDlT4Hc84
+h2dkSrYY+GHmY85v+Caqw3M4gc9vaSP0FPRNH3VPJsUjrm3Swuk3TDHmx06SQ8JD
+/bz5sjvLaMPfXcZdMqYWjG2ewpgs0aAx/Jb/dUddPVom5iV1eGheFkEqG7tOiJpp
+NYLIYyQmJ0RokxAaQCO5rt5BqMFPNeJKZ3pihzPi47zKsQdhOr8irt/B7XNl/JhL
+dFXmDmYm23Wxw3jOkrZH60YGMMLseORuTlx1PpZnp9X+p+9qIYknludMtpbOZWo3
+JIjJpJ0EM14CM3RZ/4bG1msD6n/gLW0XsBYVBHoPQ8y2cWSbp5jTdGAPqQsi5yKr
+A89SGAe5RsXwK6OXo9/B7noJQuB8MsjNPPeW1macCOO75mU/LEUFi7dwAdvYaYQH
+EEMhB0LHp5w4RYT8Cj7/SV9ndGPt9GRhGOLOUSL0ZwNpz+RCE8k=
+=5obz
+-----END PGP SIGNATURE-----
+
+--hOmQO3H5Qmmwdmk8--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
