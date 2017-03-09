@@ -1,50 +1,126 @@
-From: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: Need some pointers to debug a KASAN splat in NVMe over Fabrics
- with rdma-rxe
-Date: Thu, 9 Mar 2017 12:04:21 +0100
-Message-ID: <2f03bad8-02a2-067a-2d3c-20cd3c974519@suse.de>
-References: <5b16edcf-c39a-bc4b-0e32-8ccfb5d75efb@suse.de>
- <CAG9sBKPwEryc7U+hV=XJvRrFFhNvoktDOtwwS6piUw=cQ=bZhA@mail.gmail.com>
- <38a12b22-7bad-c069-4c96-39fc93d20d79@suse.de>
- <CAG9sBKNXwHFkmQYsOPPu40822h6Z7J3+63CaZ844juZp5hfHfg@mail.gmail.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: kernull NULL pointer observed on initiator side after 'nvmetcli
+ clear' on target side
+Date: Thu, 9 Mar 2017 13:23:08 +0200
+Message-ID: <6ffda302-02f9-12f0-a112-ea7cd20b9ffa@grimberg.me>
+References: <1053522223.31446389.1488721184925.JavaMail.zimbra@redhat.com>
+ <644fc4ab-df6b-a337-1431-bad881ef56ee@grimberg.me>
+ <88ae146a-7510-9be0-c9b4-58e70f9d73b9@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG9sBKNXwHFkmQYsOPPu40822h6Z7J3+63CaZ844juZp5hfHfg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <88ae146a-7510-9be0-c9b4-58e70f9d73b9-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Linux NVMe Mailinglist <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: hch-jcswGhMUV9g@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/09/2017 11:59 AM, Moni Shoua wrote:
->>> 2. You can take a look at librxe implementation of init_send_wqe() (it
->>> looks slightly different from kernel's implementation) and see what
->>> happens if you change implementation accordingly.
->>
->> OK I'll have a look and hopefully come back with a (RFC) patch (fingers
->> crossed).
-> 
-> Thanks. Waiting to see what you found and in the meantime I'll try to
-> reproduce in my setup
 
->From what I can see librxe will have the same problem. The affected
-code's more or less a copy of the kernel version.
+> Hi Sagi
+> With this patch, the NULL pointer fixed now.
+> But from below log, we can see it will continue reconnecting in 10
+> seconds and cannot be stopped.
+>
+> [36288.963890] Broke affinity for irq 16
+> [36288.983090] Broke affinity for irq 28
+> [36289.003104] Broke affinity for irq 90
+> [36289.020488] Broke affinity for irq 93
+> [36289.036911] Broke affinity for irq 97
+> [36289.053344] Broke affinity for irq 100
+> [36289.070166] Broke affinity for irq 104
+> [36289.088076] smpboot: CPU 1 is now offline
+> [36302.371160] nvme nvme0: reconnecting in 10 seconds
+> [36312.953684] blk_mq_reinit_tagset: tag is null, continue
+> [36312.983267] nvme nvme0: Connect rejected: status 8 (invalid service ID).
+> [36313.017290] nvme nvme0: rdma_resolve_addr wait failed (-104).
+> [36313.044937] nvme nvme0: Failed reconnect attempt, requeueing...
+> [36323.171983] blk_mq_reinit_tagset: tag is null, continue
+> [36323.200733] nvme nvme0: Connect rejected: status 8 (invalid service ID).
+> [36323.233820] nvme nvme0: rdma_resolve_addr wait failed (-104).
+> [36323.261027] nvme nvme0: Failed reconnect attempt, requeueing...
+> [36333.412341] blk_mq_reinit_tagset: tag is null, continue
+> [36333.441346] nvme nvme0: Connect rejected: status 8 (invalid service ID).
+> [36333.476139] nvme nvme0: rdma_resolve_addr wait failed (-104).
+> [36333.502794] nvme nvme0: Failed reconnect attempt, requeueing...
+> [36343.652755] blk_mq_reinit_tagset: tag is null, continue
+> [36343.682103] nvme nvme0: Connect rejected: status 8 (invalid service ID).
+> [36343.716645] nvme nvme0: rdma_resolve_addr wait failed (-104).
+> [36343.743581] nvme nvme0: Failed reconnect attempt, requeueing...
+> [36353.893103] blk_mq_reinit_tagset: tag is null, continue
+> [36353.921041] nvme nvme0: Connect rejected: status 8 (invalid service ID).
+> [36353.953541] nvme nvme0: rdma_resolve_addr wait failed (-104).
+> [36353.983528] nvme nvme0: Failed reconnect attempt, requeueing...
+> [36364.133544] blk_mq_reinit_tagset: tag is null, continue
+> [36364.162012] nvme nvme0: Connect rejected: status 8 (invalid service ID).
+> [36364.195002] nvme nvme0: rdma_resolve_addr wait failed (-104).
+> [36364.221671] nvme nvme0: Failed reconnect attempt, requeueing...
+>
 
-I'm currently skimming through mlx5/qp.c trying to understand the known
-good code path.
+Yep... looks like we don't take into account that we can't use all the
+queues now...
 
-Byte,
-	Johannes
+Does this patch help:
+--
+diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
+index 29ac8fcb8d2c..25af3f75f6f1 100644
+--- a/drivers/nvme/host/rdma.c
++++ b/drivers/nvme/host/rdma.c
+@@ -337,8 +337,6 @@ static int __nvme_rdma_init_request(struct 
+nvme_rdma_ctrl *ctrl,
+         struct ib_device *ibdev = dev->dev;
+         int ret;
 
+-       BUG_ON(queue_idx >= ctrl->queue_count);
+-
+         ret = nvme_rdma_alloc_qe(ibdev, &req->sqe, sizeof(struct 
+nvme_command),
+                         DMA_TO_DEVICE);
+         if (ret)
+@@ -647,8 +645,22 @@ static int nvme_rdma_connect_io_queues(struct 
+nvme_rdma_ctrl *ctrl)
 
--- 
-Johannes Thumshirn                                          Storage
-jthumshirn-l3A5Bk7waGM@public.gmane.org                                +49 911 74053 689
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
-GF: Felix Imendörffer, Jane Smithard, Graham Norton
-HRB 21284 (AG Nürnberg)
-Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+  static int nvme_rdma_init_io_queues(struct nvme_rdma_ctrl *ctrl)
+  {
++       struct nvmf_ctrl_options *opts = ctrl->ctrl.opts;
++       unsigned int nr_io_queues;
+         int i, ret;
+
++       nr_io_queues = min(opts->nr_io_queues, num_online_cpus());
++       ret = nvme_set_queue_count(&ctrl->ctrl, &nr_io_queues);
++       if (ret)
++               return ret;
++
++       ctrl->queue_count = nr_io_queues + 1;
++       if (ctrl->queue_count < 2)
++               return 0;
++
++       dev_info(ctrl->ctrl.device,
++               "creating %d I/O queues.\n", nr_io_queues);
++
+         for (i = 1; i < ctrl->queue_count; i++) {
+                 ret = nvme_rdma_init_queue(ctrl, i,
+                                            ctrl->ctrl.opts->queue_size);
+@@ -1793,20 +1805,8 @@ static const struct nvme_ctrl_ops 
+nvme_rdma_ctrl_ops = {
+
+  static int nvme_rdma_create_io_queues(struct nvme_rdma_ctrl *ctrl)
+  {
+-       struct nvmf_ctrl_options *opts = ctrl->ctrl.opts;
+         int ret;
+
+-       ret = nvme_set_queue_count(&ctrl->ctrl, &opts->nr_io_queues);
+-       if (ret)
+-               return ret;
+-
+-       ctrl->queue_count = opts->nr_io_queues + 1;
+-       if (ctrl->queue_count < 2)
+-               return 0;
+-
+-       dev_info(ctrl->ctrl.device,
+-               "creating %d I/O queues.\n", opts->nr_io_queues);
+-
+--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
