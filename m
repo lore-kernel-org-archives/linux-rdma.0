@@ -1,50 +1,62 @@
-From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: Fwd: mlx5_ib_post_send panic on s390x
-Date: Thu, 9 Mar 2017 12:58:55 +0000
-Message-ID: <VI1PR0501MB279809DFC855D36C053F3D33C5210@VI1PR0501MB2798.eurprd05.prod.outlook.com>
-References: <56246ac0-a706-291c-7baa-a6dd2c6331cd@linux.vnet.ibm.com>
- <dcc90daa-b932-8957-d8bc-e1f02d04e03a@linux.vnet.ibm.com>
- <20e4f31e-b2a7-89fb-d4c0-583c0dc1efb6@mellanox.com>
- <491cf3e1-b2f8-3695-ecd4-3d34b0ae9e25@linux.vnet.ibm.com>
- <AM4PR0501MB278723F1BF4DA9846C664C62C52C0@AM4PR0501MB2787.eurprd05.prod.outlook.com>
- <e57691e1-55bc-308a-fc91-0a8072218dd5@linux.vnet.ibm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <e57691e1-55bc-308a-fc91-0a8072218dd5-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Sagi Grimberg <sagi@grimberg.me>
+Subject: [PATCH rfc 02/10] nvme-pci: Add budget to __nvme_process_cq
+Date: Thu,  9 Mar 2017 15:16:34 +0200
+Message-ID: <1489065402-14757-3-git-send-email-sagi@grimberg.me>
+References: <1489065402-14757-1-git-send-email-sagi@grimberg.me>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1489065402-14757-1-git-send-email-sagi@grimberg.me>
+Sender: target-devel-owner@vger.kernel.org
+To: linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-WWVzLCBmb3IgbWx4NCBpdCBpcyBpZ25vcmVkLg0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0t
-LQ0KRnJvbTogVXJzdWxhIEJyYXVuIFttYWlsdG86dWJyYXVuQGxpbnV4LnZuZXQuaWJtLmNvbV0g
-DQpTZW50OiBUaHVyc2RheSwgTWFyY2ggOSwgMjAxNyAzOjU0IEFNDQpUbzogRWxpIENvaGVuIDxl
-bGlAbWVsbGFub3guY29tPjsgTWF0YW4gQmFyYWsgPG1hdGFuYkBtZWxsYW5veC5jb20+DQpDYzog
-U2FlZWQgTWFoYW1lZWQgPHNhZWVkbUBtZWxsYW5veC5jb20+OyBMZW9uIFJvbWFub3Zza3kgPGxl
-b25yb0BtZWxsYW5veC5jb20+OyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZw0KU3ViamVjdDog
-UmU6IEZ3ZDogbWx4NV9pYl9wb3N0X3NlbmQgcGFuaWMgb24gczM5MHgNCg0KDQoNCk9uIDAzLzA2
-LzIwMTcgMDI6MDggUE0sIEVsaSBDb2hlbiB3cm90ZToNCj4+Pg0KPj4+IFRoZSBwcm9ibGVtIHNl
-ZW1zIHRvIGJlIGNhdXNlZCBieSB0aGUgdXNhZ2Ugb2YgcGxhaW4gbWVtY3B5IGluIHNldF9kYXRh
-X2lubF9zZWcoKS4NCj4+PiBUaGUgYWRkcmVzcyBwcm92aWRlZCBieSBTTUMtY29kZSBpbiBzdHJ1
-Y3QgaWJfc2VuZF93ciAqd3IgaXMgYW4gDQo+Pj4gYWRkcmVzcyBiZWxvbmdpbmcgdG8gYW4gYXJl
-YSBtYXBwZWQgd2l0aCB0aGUgaWJfZG1hX21hcF9zaW5nbGUoKSANCj4+PiBjYWxsLiBPbiBzMzkw
-eCB0aG9zZSBraW5kIG9mIGFkZHJlc3NlcyByZXF1aXJlIGV4dHJhIGFjY2VzcyBmdW5jdGlvbnMg
-KHNlZSBhcmNoL3MzOTAvaW5jbHVkZS9hc20vaW8uaCkuDQo+Pj4NCj4gDQo+IEJ5IGRlZmluaXRp
-b24sIHdoZW4geW91IGFyZSBwb3N0aW5nIGEgc2VuZCByZXF1ZXN0IHdpdGggaW5saW5lLCB0aGUg
-YWRkcmVzcyBtdXN0IGJlIG1hcHBlZCB0byB0aGUgY3B1IHNvIHBsYWluIG1lbWNweSBzaG91bGQg
-d29yay4NCj4NCkluIHRoZSBwYXN0IEkgcnVuIFNNQy1SIHdpdGggQ29ubmVjdCBYMyBjYXJkcy4g
-VGhlIG1seDQgZHJpdmVyIGRvZXMgbm90IHNlZW0gdG8gY29udGFpbiBleHRyYSBjb2RpbmcgZm9y
-IElCX1NFTkRfSU5MSU5FIGZsYWcgZm9yIGliX3Bvc3Rfc2VuZC4gRG9lcyB0aGlzIG1lYW4gZm9y
-IFNNQy1SIHRvIHJ1biBvbiBDb25uZWN0IFgzIGNhcmRzIHRoZSBJQl9TRU5EX0lOTElORSBmbGFn
-IGlzIGlnbm9yZWQsIGFuZCB0aHVzIEkgbmVlZGVkIHRoZSBpYl9kbWFfbWFwX3NpbmdsZSgpIGNh
-bGwgZm9yIHRoZSBhcmVhIHVzZWQgd2l0aCBpYl9wb3N0X3NlbmQoKT8gRG9lcyB0aGlzIG1lYW4g
-SSBzaG91bGQgc3RheSBhd2F5IGZyb20gdGhlIElCX1NFTkRfSU5MSU5FIGZsYWcsIGlmIEkgd2Fu
-dCB0byBydW4gdGhlIHNhbWUgU01DLVIgY29kZSB3aXRoIGJvdGgsIENvbm5lY3QgWDMgY2FyZHMg
-YW5kIENvbm5lY3QgWDQgY2FyZHM/DQoNCg==
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Prepare to allow passing a batch size to nvme cq processing.
+
+This patch does not change an functionality.
+
+Signed-off-by: Sagi Grimberg <sagi@grimberg.me>
+---
+ drivers/nvme/host/pci.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
+index d3f74fa40f26..4ed67f194cfd 100644
+--- a/drivers/nvme/host/pci.c
++++ b/drivers/nvme/host/pci.c
+@@ -716,14 +716,15 @@ static inline bool nvme_read_cqe(struct nvme_queue *nvmeq,
+ 	return false;
+ }
+ 
+-static int __nvme_process_cq(struct nvme_queue *nvmeq, int *tag)
++static int __nvme_process_cq(struct nvme_queue *nvmeq, int budget, int *tag)
+ {
+ 	struct nvme_completion cqe;
+ 	int consumed = 0;
+ 
+ 	while (nvme_read_cqe(nvmeq, &cqe)) {
+ 		nvme_handle_cqe(nvmeq, &cqe);
+-		consumed++;
++		if (++consumed == budget)
++			break;
+ 
+ 		if (tag && *tag == cqe.command_id) {
+ 			*tag = -1;
+@@ -741,7 +742,7 @@ static int __nvme_process_cq(struct nvme_queue *nvmeq, int *tag)
+ 
+ static int nvme_process_cq(struct nvme_queue *nvmeq)
+ {
+-	return __nvme_process_cq(nvmeq, NULL);
++	return __nvme_process_cq(nvmeq, INT_MAX, NULL);
+ }
+ 
+ static irqreturn_t nvme_irq(int irq, void *data)
+@@ -772,7 +773,7 @@ static int nvme_poll(struct blk_mq_hw_ctx *hctx, unsigned int tag)
+ 
+ 	if (nvme_cqe_valid(nvmeq, nvmeq->cq_head, nvmeq->cq_phase)) {
+ 		spin_lock_irq(&nvmeq->q_lock);
+-		__nvme_process_cq(nvmeq, &tag);
++		__nvme_process_cq(nvmeq, INT_MAX, &tag);
+ 		spin_unlock_irq(&nvmeq->q_lock);
+ 
+ 		if (tag == -1)
+-- 
+2.7.4
