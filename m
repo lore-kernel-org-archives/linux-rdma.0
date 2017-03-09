@@ -1,30 +1,35 @@
 From: Johannes Thumshirn <jthumshirn@suse.de>
-Subject: Re: [PATCH rfc 02/10] nvme-pci: Add budget to __nvme_process_cq
-Date: Thu, 9 Mar 2017 14:46:15 +0100
-Message-ID: <d3664ffa-4781-83b6-276c-a935d7ce9723@suse.de>
+Subject: Re: [PATCH rfc 09/10] nvmet: Use non-selective polling
+Date: Thu, 9 Mar 2017 14:54:47 +0100
+Message-ID: <74284e7b-ae3f-4bbd-c28a-2dccab58cdc0@suse.de>
 References: <1489065402-14757-1-git-send-email-sagi@grimberg.me>
- <1489065402-14757-3-git-send-email-sagi@grimberg.me>
+ <1489065402-14757-10-git-send-email-sagi@grimberg.me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <1489065402-14757-3-git-send-email-sagi@grimberg.me>
+In-Reply-To: <1489065402-14757-10-git-send-email-sagi@grimberg.me>
 Sender: linux-block-owner@vger.kernel.org
 To: Sagi Grimberg <sagi@grimberg.me>, linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 On 03/09/2017 02:16 PM, Sagi Grimberg wrote:
-> Prepare to allow passing a batch size to nvme cq processing.
+> It doesn't really make sense to do selective polling
+> because we never care about specific IOs. Non selective
+> polling can actually help by doing some useful work
+> while we're submitting a command.
 > 
-> This patch does not change an functionality.
+> We ask for a batch of (magic) 4 completions which looks
+> like a decent network<->backend proportion, if less are
+> available we'll see less.
 > 
 > Signed-off-by: Sagi Grimberg <sagi@grimberg.me>
 > ---
 
-I think I already did this with the 1st RFC (this patch gives me a deja
-vu moment), but:
-Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
+Just out of curiosity, how did you come up with the magic 4?
 
+Thanks,
+	Johannes
 
 -- 
 Johannes Thumshirn                                          Storage
