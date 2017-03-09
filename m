@@ -1,50 +1,34 @@
-From: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCHv2 3/5] rds: ib: remove redundant ib_dealloc_fmr
-Date: Thu,  9 Mar 2017 04:20:43 -0500
-Message-ID: <1489051243-27108-1-git-send-email-yanjun.zhu@oracle.com>
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Subject: Re: [PATCHv2 3/5] rds: ib: remove redundant ib_dealloc_fmr
+Date: Thu, 9 Mar 2017 10:42:14 +0100
+Message-ID: <e838822e-11ae-5259-62a1-7fb2b5f0ca0e@suse.de>
 References: <cffc93fa-f4e6-e61e-54c6-67d6501dd78c@suse.de>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cffc93fa-f4e6-e61e-54c6-67d6501dd78c-l3A5Bk7waGM@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: jthumshirn-l3A5Bk7waGM@public.gmane.org, santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
+ <1489051243-27108-1-git-send-email-yanjun.zhu@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1489051243-27108-1-git-send-email-yanjun.zhu@oracle.com>
+Sender: netdev-owner@vger.kernel.org
+To: Zhu Yanjun <yanjun.zhu@oracle.com>, santosh.shilimkar@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-The function ib_dealloc_fmr will never be called. As such, it should
-be removed.
+On 03/09/2017 10:20 AM, Zhu Yanjun wrote:
+> The function ib_dealloc_fmr will never be called. As such, it should
+> be removed.
+> 
+> Cc: Joe Jin <joe.jin@oracle.com>
+> Cc: Junxiao Bi <junxiao.bi@oracle.com>
+> Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+> ---
 
-Cc: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
-Change from v1 to v2:
-  remove ibmr NULL test.
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
 
- net/rds/ib_fmr.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/net/rds/ib_fmr.c b/net/rds/ib_fmr.c
-index 4fe8f4f..249ae1c 100644
---- a/net/rds/ib_fmr.c
-+++ b/net/rds/ib_fmr.c
-@@ -78,12 +78,9 @@ struct rds_ib_mr *rds_ib_alloc_fmr(struct rds_ib_device *rds_ibdev, int npages)
- 	return ibmr;
- 
- out_no_cigar:
--	if (ibmr) {
--		if (fmr->fmr)
--			ib_dealloc_fmr(fmr->fmr);
--		kfree(ibmr);
--	}
-+	kfree(ibmr);
- 	atomic_dec(&pool->item_count);
-+
- 	return ERR_PTR(err);
- }
- 
 -- 
-2.7.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
+GF: Felix Imendörffer, Jane Smithard, Graham Norton
+HRB 21284 (AG Nürnberg)
+Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
