@@ -1,53 +1,59 @@
-From: Zhu Yanjun <yanjun.zhu@oracle.com>
-Subject: [PATCH 4/5] rds: ib: add the static type to the function
-Date: Thu,  9 Mar 2017 02:26:44 -0500
-Message-ID: <1489044405-26150-4-git-send-email-yanjun.zhu@oracle.com>
-References: <1489044405-26150-1-git-send-email-yanjun.zhu@oracle.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1489044405-26150-1-git-send-email-yanjun.zhu@oracle.com>
-Sender: netdev-owner@vger.kernel.org
-To: santosh.shilimkar@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+From: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: Need some pointers to debug a KASAN splat in NVMe over Fabrics
+ with rdma-rxe
+Date: Thu, 9 Mar 2017 08:57:46 +0100
+Message-ID: <38a12b22-7bad-c069-4c96-39fc93d20d79@suse.de>
+References: <5b16edcf-c39a-bc4b-0e32-8ccfb5d75efb@suse.de>
+ <CAG9sBKPwEryc7U+hV=XJvRrFFhNvoktDOtwwS6piUw=cQ=bZhA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAG9sBKPwEryc7U+hV=XJvRrFFhNvoktDOtwwS6piUw=cQ=bZhA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Linux NVMe Mailinglist <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The function rds_ib_map_fmr is used only in the ib_fmr.c
-file. As such, the static type is added to limit it in this file.
+Hi Moni,
 
-Cc: Joe Jin <joe.jin@oracle.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
----
- net/rds/ib_fmr.c | 5 +++--
- net/rds/ib_mr.h  | 2 --
- 2 files changed, 3 insertions(+), 4 deletions(-)
+On 03/08/2017 05:33 PM, Moni Shoua wrote:
+> Your report and analysis seem to be accurate (regarding value of wqe->iova)
+> Unfortunately we didn't have a chance yet to run kernel application
+> tests but I will try to add them soon and be able to debug it myself.
+> In the meantime
 
-diff --git a/net/rds/ib_fmr.c b/net/rds/ib_fmr.c
-index b807df6..1e00371 100644
---- a/net/rds/ib_fmr.c
-+++ b/net/rds/ib_fmr.c
-@@ -85,8 +85,9 @@ struct rds_ib_mr *rds_ib_alloc_fmr(struct rds_ib_device *rds_ibdev, int npages)
- 	return ERR_PTR(err);
- }
- 
--int rds_ib_map_fmr(struct rds_ib_device *rds_ibdev, struct rds_ib_mr *ibmr,
--		   struct scatterlist *sg, unsigned int nents)
-+static int rds_ib_map_fmr(struct rds_ib_device *rds_ibdev,
-+			  struct rds_ib_mr *ibmr, struct scatterlist *sg,
-+			  unsigned int nents)
- {
- 	struct ib_device *dev = rds_ibdev->dev;
- 	struct rds_ib_fmr *fmr = &ibmr->u.fmr;
-diff --git a/net/rds/ib_mr.h b/net/rds/ib_mr.h
-index 5d6e98a..0ea4ab0 100644
---- a/net/rds/ib_mr.h
-+++ b/net/rds/ib_mr.h
-@@ -125,8 +125,6 @@ void rds_ib_mr_exit(void);
- void __rds_ib_teardown_mr(struct rds_ib_mr *);
- void rds_ib_teardown_mr(struct rds_ib_mr *);
- struct rds_ib_mr *rds_ib_alloc_fmr(struct rds_ib_device *, int);
--int rds_ib_map_fmr(struct rds_ib_device *, struct rds_ib_mr *,
--		   struct scatterlist *, unsigned int);
- struct rds_ib_mr *rds_ib_reuse_mr(struct rds_ib_mr_pool *);
- int rds_ib_flush_mr_pool(struct rds_ib_mr_pool *, int, struct rds_ib_mr **);
- struct rds_ib_mr *rds_ib_reg_fmr(struct rds_ib_device *, struct scatterlist *,
+OK, thanks. This is highly appreciated as I think Soft RoCE is the
+coolest thing since sliced bread for quick NVMf/iSER and SRP tests.
+
+> 1. DId the test fail completely or is it just the KASAN error that
+> made you look at init_send_wqe()?
+
+No it fails completely. I can see both hosts talk RDMA/NVMf to each
+other but the initiator side can't establish a connection. Without KASAN
+I couldn't find a reason for it other than the following log message:
+rdma_rxe: qp#17 moved to error state
+
+I must admit I haven't looked up it's source yet, as my first test had
+KASAN enabled.
+
+> 2. You can take a look at librxe implementation of init_send_wqe() (it
+> looks slightly different from kernel's implementation) and see what
+> happens if you change implementation accordingly.
+
+OK I'll have a look and hopefully come back with a (RFC) patch (fingers
+crossed).
+
+Thanks,
+	Johannes
 -- 
-2.7.4
+Johannes Thumshirn                                          Storage
+jthumshirn-l3A5Bk7waGM@public.gmane.org                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
+GF: Felix Imendörffer, Jane Smithard, Graham Norton
+HRB 21284 (AG Nürnberg)
+Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
