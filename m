@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagi@grimberg.me>
-Subject: [PATCH rfc 09/10] nvmet: Use non-selective polling
-Date: Thu,  9 Mar 2017 15:16:41 +0200
-Message-ID: <1489065402-14757-10-git-send-email-sagi@grimberg.me>
+Subject: [PATCH rfc 07/10] nvme-rdma: Don't rearm the CQ when polling directly
+Date: Thu,  9 Mar 2017 15:16:39 +0200
+Message-ID: <1489065402-14757-8-git-send-email-sagi@grimberg.me>
 References: <1489065402-14757-1-git-send-email-sagi@grimberg.me>
 Return-path: <target-devel-owner@vger.kernel.org>
 In-Reply-To: <1489065402-14757-1-git-send-email-sagi@grimberg.me>
@@ -9,52 +9,25 @@ Sender: target-devel-owner@vger.kernel.org
 To: linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-It doesn't really make sense to do selective polling
-because we never care about specific IOs. Non selective
-polling can actually help by doing some useful work
-while we're submitting a command.
-
-We ask for a batch of (magic) 4 completions which looks
-like a decent network<->backend proportion, if less are
-available we'll see less.
+We don't need it as the core polling context will take
+are of rearming the completion queue.
 
 Signed-off-by: Sagi Grimberg <sagi@grimberg.me>
 ---
- drivers/nvme/target/io-cmd.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/nvme/host/rdma.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/nvme/target/io-cmd.c b/drivers/nvme/target/io-cmd.c
-index 4195115c7e54..8e4fd7ca4a8a 100644
---- a/drivers/nvme/target/io-cmd.c
-+++ b/drivers/nvme/target/io-cmd.c
-@@ -46,7 +46,6 @@ static void nvmet_execute_rw(struct nvmet_req *req)
- 	struct scatterlist *sg;
- 	struct bio *bio;
- 	sector_t sector;
--	blk_qc_t cookie;
- 	int op, op_flags = 0, i;
+diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
+index 7bad791a7fe9..a17eef3ef6ff 100644
+--- a/drivers/nvme/host/rdma.c
++++ b/drivers/nvme/host/rdma.c
+@@ -1474,7 +1474,6 @@ static int nvme_rdma_poll(struct blk_mq_hw_ctx *hctx, unsigned int tag)
+ 	struct ib_wc wc;
+ 	int found = 0;
  
- 	if (!req->sg_cnt) {
-@@ -85,16 +84,17 @@ static void nvmet_execute_rw(struct nvmet_req *req)
- 			bio_set_op_attrs(bio, op, op_flags);
+-	ib_req_notify_cq(cq, IB_CQ_NEXT_COMP);
+ 	while (ib_poll_cq(cq, 1, &wc) > 0) {
+ 		struct ib_cqe *cqe = wc.wr_cqe;
  
- 			bio_chain(bio, prev);
--			cookie = submit_bio(prev);
-+			submit_bio(prev);
- 		}
- 
- 		sector += sg->length >> 9;
- 		sg_cnt--;
- 	}
- 
--	cookie = submit_bio(bio);
-+	submit_bio(bio);
- 
--	blk_mq_poll(bdev_get_queue(req->ns->bdev), cookie);
-+	/* magic 4 is what we are willing to grab before we return */
-+	blk_mq_poll_batch(bdev_get_queue(req->ns->bdev), 4);
- }
- 
- static void nvmet_execute_flush(struct nvmet_req *req)
 -- 
 2.7.4
