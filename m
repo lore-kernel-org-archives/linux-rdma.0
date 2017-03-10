@@ -1,62 +1,83 @@
-From: Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Subject: ConnectX-3 on non-coherent AARCH64 system
-Date: Thu, 9 Mar 2017 16:59:40 -0700
-Message-ID: <b01684b6-ba4a-65cc-ea20-b578e1e2fa2e@nvidia.com>
+From: Damien Le Moal <damien.lemoal@wdc.com>
+Subject: Re: [PATCH rfc 04/10] block: Add a non-selective polling interface
+Date: Fri, 10 Mar 2017 12:04:12 +0900
+Message-ID: <c5ef3bd9-42dc-53c9-d2f7-2e49399f7a8d@wdc.com>
+References: <1489065402-14757-1-git-send-email-sagi@grimberg.me>
+ <1489065402-14757-5-git-send-email-sagi@grimberg.me>
+ <83713ef7-168d-e1f6-8220-b7d6264ea29a@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-block-owner@vger.kernel.org>
+In-Reply-To: <83713ef7-168d-e1f6-8220-b7d6264ea29a@suse.de>
+Sender: linux-block-owner@vger.kernel.org
+To: Johannes Thumshirn <jthumshirn@suse.de>, Sagi Grimberg <sagi@grimberg.me>, linux-block@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, target-devel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-I have a pair of Mellanox ConnectX-3 cards. I can put these into a pair 
-of x86 machines, run an application using libibverbs on each, and 
-transfer data without issue.
+On 3/9/17 22:44, Johannes Thumshirn wrote:
+> On 03/09/2017 02:16 PM, Sagi Grimberg wrote:
+>> For a server/target appliance mode where we don't
+>> necessarily care about specific IOs but rather want
+>> to poll opportunisticly, it is useful to have a
+>> non-selective polling interface.
+>>
+>> Expose a blk_poll_batch for a batched blkdev polling
+>> interface so our nvme target (and others) can use.
+>>
+>> Signed-off-by: Sagi Grimberg <sagi@grimberg.me>
+>> ---
+>>  block/blk-mq.c         | 14 ++++++++++++++
+>>  include/linux/blk-mq.h |  2 ++
+>>  include/linux/blkdev.h |  1 +
+>>  3 files changed, 17 insertions(+)
+>>
+>> diff --git a/block/blk-mq.c b/block/blk-mq.c
+>> index b2fd175e84d7..1962785b571a 100644
+>> --- a/block/blk-mq.c
+>> +++ b/block/blk-mq.c
+>> @@ -2911,6 +2911,20 @@ bool blk_mq_poll(struct request_queue *q, blk_qc_t cookie)
+>>  }
+>>  EXPORT_SYMBOL_GPL(blk_mq_poll);
+>>  
+>> +int blk_mq_poll_batch(struct request_queue *q, unsigned int batch)
+>> +{
+>> +	struct blk_mq_hw_ctx *hctx;
+>> +
+>> +	if (!q->mq_ops || !q->mq_ops->poll_batch)
+>> +		return 0;
+>> +
+>> +	hctx = blk_mq_map_queue(q, smp_processor_id());
+>> +	return q->mq_ops->poll_batch(hctx, batch);
+>> +}
+>> +EXPORT_SYMBOL_GPL(blk_mq_poll_batch);
+>> +
+>> +
+>> +
+> 
+> Quite some additional newlines and I'm not really fond of the
+> ->poll_batch() name. It's a bit confusing with ->poll() and we also have
+> irq_poll(). But the only thing that would come to my mind is
+> complete_batch() which "races" with ->complete().
 
-However, when I run the same test on a (non-cache-coherent) AArch64 
-(ARMv8) machine (Cortex-A57, NVIDIA Tegra), the application does not 
-work. In particular, ivc_poll_cq() returns -2 when the application waits 
-for an ibv_post_send/recv() to complete.
+What about ->check_completions()? After all, that is what both ->poll()
+and ->poll_batch do but with a different stop condition, no ?
+So it would also be easy to merge the two: both tag and batch are
+unsigned int which could be called "cookie", and add a flag to tell how
+to interpret it (as a tag or a batch limit).
+e.g. something like:
 
-Looking into libmlx4, it seems that the CQ memory content is 
-non-sensical; mainly all 0xcccccccc rather than the zero values that 
-mlx4_alloc_cq_buf() set it to. I'm not familiar with this HW's CQE 
-format, but those values don't seem to match what the code expects. I'm 
-pretty sure the HW is writing this data, since the 0xcccccccc value only 
-appears after ibv_cmd_create_cq()'s call into the kernel to configure 
-the CQ in HW. Can anyone help me track down where that data is coming from?
++typedef int (check_completions_fn)(struct blk_mq_hw_ctx *,
+		enum blk_mq_check_flags, /* flag (TAG or BATCH) */
+		unsigned int); /* Target tag or batch limit */
 
-Perhaps related, I see the CQ memory is allocated via anonymous mmap(), 
-which will set up a cached mapping of the allocated pages. I'm not sure 
-how this can work given that HW appears to write to these physical pages 
-(rather than e.g. the kernel filling in the CQ), and there don't appear 
-to be any cache invalidation operations anywhere in libmlx4 (I'm not 
-even sure if cache manipulation is possible from user-space on ARM). I 
-also couldn't find anything in the kernel mlx4 driver that remaps the CQ 
-pages as non-cached in Linux kernel 4.4, but perhaps I just didn't find 
-it. Is this library/HW not supported on non-cache-coherent systems, or 
-am I missing something obvious?
+Best regards.
 
-Note: I'm using the libibverbs/libmlx4/... packaged in Ubuntu 16.04. I'm 
-aware that /usr/include/infiniband/arch.h there is not new enough to 
-contain the AArch64 barrier support. However, this issue appears deeper 
-than just barriers. Equally, I don't see any relevant difference in how 
-the latest libmlx4 source code allocates buffers, so I'm not convinced 
-that upgrading all the Infiniband libraries to e.g. the latest git 
-version would solve anything for me. However, if there's an expectation 
-that an upgrade would help this specific issue, I'm willing to try.
-
-Thanks for any help!
-
------------------------------------------------------------------------------------
-This email message is for the sole use of the intended recipient(s) and may contain
-confidential information.  Any unauthorized review, use, disclosure or distribution
-is prohibited.  If you are not the intended recipient, please contact the sender by
-reply email and destroy all copies of the original message.
------------------------------------------------------------------------------------
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Damien Le Moal, Ph.D.
+Sr. Manager, System Software Research Group,
+Western Digital Corporation
+Damien.LeMoal@wdc.com
+(+81) 0466-98-3593 (ext. 513593)
+1 kirihara-cho, Fujisawa,
+Kanagawa, 252-0888 Japan
+www.wdc.com, www.hgst.com
