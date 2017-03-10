@@ -1,437 +1,222 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1] IB/rxe: Add port protocol stats
-Date: Fri, 10 Mar 2017 18:23:56 +0200
-Message-ID: <20170310162356.12518-1-leon@kernel.org>
+Subject: Re: [PATCH v3] {net,IB}/{rxe,usnic}: Utilize generic mac to eui32
+ function
+Date: Fri, 10 Mar 2017 18:33:46 +0200
+Message-ID: <20170310163346.GB14379@mtr-leonro.local>
+References: <1488915118-23331-1-git-send-email-yuval.shaia@oracle.com>
+ <20170308074041.GW14379@mtr-leonro.local>
+ <20170308134856.GA4828@yuval-lap>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="1AtvaQRkIQxkm1Oe"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170308134856.GA4828@yuval-lap>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Expose new counters using the get_hw_stats callback.
-We expose the following counters:
+--1AtvaQRkIQxkm1Oe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-+---------------------+----------------------------------------+
-|      Name           |           Description                  |
-|---------------------+----------------------------------------|
-|sent_pkts            | number of sent pkts                    |
-|---------------------+----------------------------------------|
-|rcvd_pkts            | number of received packets             |
-|---------------------+----------------------------------------|
-|out_of_sequence      | number of errors due to packet         |
-|                     | transport sequence number              |
-|---------------------+----------------------------------------|
-|duplicate_request    | number of received duplicated packets. |
-|                     | A request that previously executed is  |
-|                     | named duplicated.                      |
-|---------------------+----------------------------------------|
-|rcvd_rnr_err         | number of received RNR by completer    |
-|---------------------+----------------------------------------|
-|send_rnr_err         | number of sent RNR by responder        |
-|---------------------+----------------------------------------|
-|rcvd_seq_err         | number of out of sequence packets      |
-|                     | received                               |
-|---------------------+----------------------------------------|
-|ack_deffered         | number of deferred handling of ack     |
-|                     | packets.                               |
-|---------------------+----------------------------------------|
-|retry_exceeded_err   | number of times retry exceeded         |
-|---------------------+----------------------------------------|
-|completer_retry_err  | number of times completer decided to   |
-|                     | retry                                  |
-|---------------------+----------------------------------------|
-|send_err             | number of failed send packet           |
-+---------------------+----------------------------------------+
+On Wed, Mar 08, 2017 at 03:48:57PM +0200, Yuval Shaia wrote:
+> On Wed, Mar 08, 2017 at 09:40:41AM +0200, Leon Romanovsky wrote:
+> > On Tue, Mar 07, 2017 at 09:31:58PM +0200, Yuval Shaia wrote:
+> > > This logic seems to be duplicated in (at least) three separate files.
+> > > Move it to one place so code can be re-use.
+> > >
+> > > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > > ---
+> > > v0 -> v1:
+> > > 	* Add missing #include
+> > > 	* Rename to genaddrconf_ifid_eui48
+> > > v1 -> v2:
+> > > 	* Reset eui[0] to default if dev_id is used
+> > > v2 -> v3:
+> > > 	* Add helper function to avoid re-setting eui[0] to default if
+> > > 	  dev_id is used
+> > > ---
+> > >  drivers/infiniband/hw/usnic/usnic_common_util.h | 11 +++--------
+> > >  drivers/infiniband/sw/rxe/rxe_net.c             | 11 ++---------
+> > >  include/net/addrconf.h                          | 25 +++++++++++++++++++------
+> > >  3 files changed, 24 insertions(+), 23 deletions(-)
+> >
+> > Not promising statistics :)
+>
+> It is not fair, i also added 4 new blank lines :)
+>
+> >
+> > >
+> > > diff --git a/drivers/infiniband/hw/usnic/usnic_common_util.h b/drivers/infiniband/hw/usnic/usnic_common_util.h
+> > > index b54986d..d91b035 100644
+> > > --- a/drivers/infiniband/hw/usnic/usnic_common_util.h
+> > > +++ b/drivers/infiniband/hw/usnic/usnic_common_util.h
+> > > @@ -34,6 +34,8 @@
+> > >  #ifndef USNIC_CMN_UTIL_H
+> > >  #define USNIC_CMN_UTIL_H
+> > >
+> > > +#include <net/addrconf.h>
+> > > +
+> > >  static inline void
+> > >  usnic_mac_to_gid(const char *const mac, char *raw_gid)
+> > >  {
+> > > @@ -57,14 +59,7 @@ usnic_mac_ip_to_gid(const char *const mac, const __be32 inaddr, char *raw_gid)
+> > >  	raw_gid[1] = 0x80;
+> > >  	memset(&raw_gid[2], 0, 2);
+> > >  	memcpy(&raw_gid[4], &inaddr, 4);
+> > > -	raw_gid[8] = mac[0]^2;
+> > > -	raw_gid[9] = mac[1];
+> > > -	raw_gid[10] = mac[2];
+> > > -	raw_gid[11] = 0xff;
+> > > -	raw_gid[12] = 0xfe;
+> > > -	raw_gid[13] = mac[3];
+> > > -	raw_gid[14] = mac[4];
+> > > -	raw_gid[15] = mac[5];
+> > > +	addrconf_addr_eui48(&raw_gid[8], mac);
+> > >  }
+> > >
+> > >  static inline void
+> > > diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+> > > index d8610960..ab8ea23 100644
+> > > --- a/drivers/infiniband/sw/rxe/rxe_net.c
+> > > +++ b/drivers/infiniband/sw/rxe/rxe_net.c
+> > > @@ -38,6 +38,7 @@
+> > >  #include <linux/if_vlan.h>
+> > >  #include <net/udp_tunnel.h>
+> > >  #include <net/sch_generic.h>
+> > > +#include <net/addrconf.h>
+> > >  #include <linux/netfilter.h>
+> > >  #include <rdma/ib_addr.h>
+> > >
+> > > @@ -86,18 +87,10 @@ struct rxe_recv_sockets recv_sockets;
+> > >
+> > >  static __be64 rxe_mac_to_eui64(struct net_device *ndev)
+> > >  {
+> >
+> > It is worth to drop this wrapper completely. The rxe_mac_to_eui64 is
+> > called twice in the same file.
+>
+> hmmm, this is a classic wrapper to adapt an existing API signature to
+> usage. And in this case to return __be64 from existing function which
+> returns void.
+>
+> What we can do is the opposite - get rid of rxe_node_guid and rxe_port_guid
+> and call directly to rxe_mac_to_eui64. This is based on the assumption that
+> node_guid and port_guid are the same in Soft RoCE.
+> What do you think?
 
-Signed-off-by: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
-Changelog v1:
- * Replaced "send send queue" to be "send queue" in comment
- * Fix indentation of statistics field
- * Add Andrew's Reviewed-by tag
----
- drivers/infiniband/sw/rxe/Makefile          |  3 +-
- drivers/infiniband/sw/rxe/rxe_comp.c        | 14 +++++-
- drivers/infiniband/sw/rxe/rxe_hw_counters.c | 78 +++++++++++++++++++++++++++++
- drivers/infiniband/sw/rxe/rxe_hw_counters.h | 61 ++++++++++++++++++++++
- drivers/infiniband/sw/rxe/rxe_loc.h         |  2 +
- drivers/infiniband/sw/rxe/rxe_recv.c        |  2 +
- drivers/infiniband/sw/rxe/rxe_resp.c        |  5 ++
- drivers/infiniband/sw/rxe/rxe_verbs.c       |  3 ++
- drivers/infiniband/sw/rxe/rxe_verbs.h       |  8 +++
- 9 files changed, 174 insertions(+), 2 deletions(-)
- create mode 100644 drivers/infiniband/sw/rxe/rxe_hw_counters.c
- create mode 100644 drivers/infiniband/sw/rxe/rxe_hw_counters.h
+As long as you will add a meaningful comment in these places.
+Right now, the knowledge of node_guid == port_guid in RXE is very clear,
+it is worth to preserve it (knowledge).
 
-diff --git a/drivers/infiniband/sw/rxe/Makefile b/drivers/infiniband/sw/rxe/Makefile
-index 3b3fb9d1c470..835da3244a01 100644
---- a/drivers/infiniband/sw/rxe/Makefile
-+++ b/drivers/infiniband/sw/rxe/Makefile
-@@ -21,4 +21,5 @@ rdma_rxe-y := \
- 	rxe_mcast.o \
- 	rxe_task.o \
- 	rxe_net.o \
--	rxe_sysfs.o
-+	rxe_sysfs.o \
-+	rxe_hw_counters.o
-diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
-index 4cd55d5617f7..9eb12c2e3c74 100644
---- a/drivers/infiniband/sw/rxe/rxe_comp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_comp.c
-@@ -154,6 +154,8 @@ void rxe_comp_queue_pkt(struct rxe_dev *rxe, struct rxe_qp *qp,
- 	skb_queue_tail(&qp->resp_pkts, skb);
+>
+> >
+> > > -	unsigned char *mac_addr = ndev->dev_addr;
+> > >  	__be64 eui64;
+> > >  	unsigned char *dst = (unsigned char *)&eui64;
+> > >
+> > > -	dst[0] = mac_addr[0] ^ 2;
+> > > -	dst[1] = mac_addr[1];
+> > > -	dst[2] = mac_addr[2];
+> > > -	dst[3] = 0xff;
+> > > -	dst[4] = 0xfe;
+> > > -	dst[5] = mac_addr[3];
+> > > -	dst[6] = mac_addr[4];
+> > > -	dst[7] = mac_addr[5];
+> > > +	addrconf_addr_eui48(dst, ndev->dev_addr);
+> > >
+> > >  	return eui64;
+> > >  }
+> > > diff --git a/include/net/addrconf.h b/include/net/addrconf.h
+> > > index 17c6fd8..28274ed 100644
+> > > --- a/include/net/addrconf.h
+> > > +++ b/include/net/addrconf.h
+> > > @@ -103,12 +103,25 @@ int addrconf_prefix_rcv_add_addr(struct net *net, struct net_device *dev,
+> > >  				 u32 addr_flags, bool sllao, bool tokenized,
+> > >  				 __u32 valid_lft, u32 prefered_lft);
+> > >
+> > > +static inline void addrconf_addr_eui48_xor(u8 *eui, const char *const addr, bool xor)
+> > > +{
+> > > +	memcpy(eui, addr, 3);
+> > > +	if (xor)
+> > > +		eui[0] ^= 2;
+> > > +	eui[3] = 0xFF;
+> > > +	eui[4] = 0xFE;
+> > > +	memcpy(eui + 5, addr + 3, 3);
+> > > +}
+> > > +
+> > > +static inline void addrconf_addr_eui48(u8 *eui, const char *const addr)
+> > > +{
+> > > +	addrconf_addr_eui48_xor(eui, addr, true);
+> >
+> > Just put your "eui[0] ^= 2" here and remove redundant "if (xor)".
+> > > +}
+> > > +
+> > >  static inline int addrconf_ifid_eui48(u8 *eui, struct net_device *dev)
+> > >  {
+> > >  	if (dev->addr_len != ETH_ALEN)
+> > >  		return -1;
+> > > -	memcpy(eui, dev->dev_addr, 3);
+> > > -	memcpy(eui + 5, dev->dev_addr + 3, 3);
+> > >
+> > >  	/*
+> > >  	 * The zSeries OSA network cards can be shared among various
+> > > @@ -123,14 +136,14 @@ static inline int addrconf_ifid_eui48(u8 *eui, struct net_device *dev)
+> > >  	 * case.  Hence the resulting interface identifier has local
+> > >  	 * scope according to RFC2373.
+> > >  	 */
+> > > +
+> > > +	addrconf_addr_eui48_xor(eui, dev->dev_addr, !dev->dev_id);
+> > > +
+> > >  	if (dev->dev_id) {
+> > >  		eui[3] = (dev->dev_id >> 8) & 0xFF;
+> > >  		eui[4] = dev->dev_id & 0xFF;
+> > > -	} else {
+> > > -		eui[3] = 0xFF;
+> > > -		eui[4] = 0xFE;
+> > > -		eui[0] ^= 2;
+> >
+> > Leave this line.
+>
+> Along with the above comment - looks better, will do.
+>
+> > Thanks
+> >
+> > >  	}
+> > > +
+> > >  	return 0;
+> > >  }
+> > >
+> > > --
+> > > 2.7.4
+> > >
+>
+>
 
- 	must_sched = skb_queue_len(&qp->resp_pkts) > 1;
-+	if (must_sched != 0)
-+		rxe_counter_inc(rxe, RXE_CNT_COMPLETER_SCHED);
- 	rxe_run_task(&qp->comp.task, must_sched);
- }
+--1AtvaQRkIQxkm1Oe
+Content-Type: application/pgp-signature; name="signature.asc"
 
-@@ -236,6 +238,7 @@ static inline enum comp_state check_ack(struct rxe_qp *qp,
- {
- 	unsigned int mask = pkt->mask;
- 	u8 syn;
-+	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
+-----BEGIN PGP SIGNATURE-----
 
- 	/* Check the sequence only */
- 	switch (qp->comp.opcode) {
-@@ -298,6 +301,7 @@ static inline enum comp_state check_ack(struct rxe_qp *qp,
- 			return COMPST_WRITE_SEND;
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljC1WoACgkQ5GN7iDZy
+WKdFGRAAnUSdkuMV2mOhPpwelx3NzuaxAwJAhul0ZpAn2SixVOuWIbMixIcmdkDc
+R5rwnPzMooshZ8TR9SKBHmf7qn9Lzf097Abgq84H1ZevznJDBe98J48fVmMuFaw6
+AnURhWKeUWZQlmajOlCXpC3WFkKEVm4QjxNqYcqhIJH2IaK6jXZ4eCRMYuqD2Oj4
+N/eyV3Sjkf5Gg5e3g0lLDrY32n23WC0Y9ZVF/JxUf4j9kI+QxnD+1/CKky3VuiHg
+CaGhVhdcHdm520ti1WF4OUB1I8oNJiMEoJd2nItmYFw5EZ1vulmQhNidJNBMe3vX
++Meb6IQc175YSkiRSFch16c5chHXt9KtYjgz/NntwYNiKQodGFg//zM/ploIbU5K
+D00R0c5McWUazlcGATlXARlGY+9MCmhKEvZ64S4Etqq8CJkbNFsSJ8+4ru3gUD3G
+3kssuWOejNcvIfaz+XpYbzev3mYw244C3uvX7HaTmOTICNrY8rVkTxqPW+qtTHCR
+L80dwacz3fAYlMk0/eive6eBK17izhexj3CwHgNfksrHI5Jb9iP0KbNKkGTChkLx
+K2fHOPFl67l3ckd1F8PR8vR8ePkxQk/nBTZJ5gTQEJoUOtj3d+XWDz30iDhIgJ1L
+MxDoP0zMHIFTCLOUnPTOVOa3+LJKJJi2Vs4Cw+jHI+F+UYOBxQ4=
+=sm26
+-----END PGP SIGNATURE-----
 
- 		case AETH_RNR_NAK:
-+			rxe_counter_inc(rxe, RXE_CNT_RCV_RNR);
- 			return COMPST_RNR_RETRY;
-
- 		case AETH_NAK:
-@@ -307,6 +311,8 @@ static inline enum comp_state check_ack(struct rxe_qp *qp,
- 				 * before
- 				 */
- 				if (psn_compare(pkt->psn, qp->comp.psn) > 0) {
-+					rxe_counter_inc(rxe,
-+							RXE_CNT_RCV_SEQ_ERR);
- 					qp->comp.psn = pkt->psn;
- 					if (qp->req.wait_psn) {
- 						qp->req.wait_psn = 0;
-@@ -534,6 +540,7 @@ static void rxe_drain_resp_pkts(struct rxe_qp *qp, bool notify)
- int rxe_completer(void *arg)
- {
- 	struct rxe_qp *qp = (struct rxe_qp *)arg;
-+	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
- 	struct rxe_send_wqe *wqe = wqe;
- 	struct sk_buff *skb = NULL;
- 	struct rxe_pkt_info *pkt = NULL;
-@@ -683,8 +690,10 @@ int rxe_completer(void *arg)
- 				if (psn_compare(qp->req.psn,
- 						qp->comp.psn) > 0) {
- 					/* tell the requester to retry the
--					 * send send queue next time around
-+					 * send queue next time around
- 					 */
-+					rxe_counter_inc(rxe,
-+							RXE_CNT_COMP_RETRY);
- 					qp->req.need_retry = 1;
- 					rxe_run_task(&qp->req.task, 1);
- 				}
-@@ -699,6 +708,7 @@ int rxe_completer(void *arg)
- 				goto exit;
-
- 			} else {
-+				rxe_counter_inc(rxe, RXE_CNT_RETRY_EXCEEDED);
- 				wqe->status = IB_WC_RETRY_EXC_ERR;
- 				state = COMPST_ERROR;
- 			}
-@@ -720,6 +730,8 @@ int rxe_completer(void *arg)
- 				skb = NULL;
- 				goto exit;
- 			} else {
-+				rxe_counter_inc(rxe,
-+						RXE_CNT_RNR_RETRY_EXCEEDED);
- 				wqe->status = IB_WC_RNR_RETRY_EXC_ERR;
- 				state = COMPST_ERROR;
- 			}
-diff --git a/drivers/infiniband/sw/rxe/rxe_hw_counters.c b/drivers/infiniband/sw/rxe/rxe_hw_counters.c
-new file mode 100644
-index 000000000000..7ef90aad7dfd
---- /dev/null
-+++ b/drivers/infiniband/sw/rxe/rxe_hw_counters.c
-@@ -0,0 +1,78 @@
-+/*
-+ * Copyright (c) 2017 Mellanox Technologies Ltd. All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *	- Redistributions of source code must retain the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer.
-+ *
-+ *	- Redistributions in binary form must reproduce the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer in the documentation and/or other materials
-+ *	  provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#include "rxe.h"
-+#include "rxe_hw_counters.h"
-+
-+const char * const rxe_counter_name[] = {
-+	[RXE_CNT_SENT_PKTS]           =  "sent_pkts",
-+	[RXE_CNT_RCVD_PKTS]           =  "rcvd_pkts",
-+	[RXE_CNT_DUP_REQ]             =  "duplicate_request",
-+	[RXE_CNT_OUT_OF_SEQ_REQ]      =  "out_of_sequence",
-+	[RXE_CNT_RCV_RNR]             =  "rcvd_rnr_err",
-+	[RXE_CNT_SND_RNR]             =  "send_rnr_err",
-+	[RXE_CNT_RCV_SEQ_ERR]         =  "rcvd_seq_err",
-+	[RXE_CNT_COMPLETER_SCHED]     =  "ack_deffered",
-+	[RXE_CNT_RETRY_EXCEEDED]      =  "retry_exceeded_err",
-+	[RXE_CNT_RNR_RETRY_EXCEEDED]  =  "retry_rnr_exceeded_err",
-+	[RXE_CNT_COMP_RETRY]          =  "completer_retry_err",
-+	[RXE_CNT_SEND_ERR]            =  "send_err",
-+};
-+
-+int rxe_ib_get_hw_stats(struct ib_device *ibdev,
-+			struct rdma_hw_stats *stats,
-+			u8 port, int index)
-+{
-+	struct rxe_dev *dev = to_rdev(ibdev);
-+	unsigned int cnt;
-+
-+	if (!port || !stats)
-+		return -EINVAL;
-+
-+	for (cnt = 0; cnt  < ARRAY_SIZE(rxe_counter_name); cnt++)
-+		stats->value[cnt] = dev->stats_counters[cnt];
-+
-+	return ARRAY_SIZE(rxe_counter_name);
-+}
-+
-+struct rdma_hw_stats *rxe_ib_alloc_hw_stats(struct ib_device *ibdev,
-+					    u8 port_num)
-+{
-+	BUILD_BUG_ON(ARRAY_SIZE(rxe_counter_name) != RXE_NUM_OF_COUNTERS);
-+	/* We support only per port stats */
-+	if (!port_num)
-+		return NULL;
-+
-+	return rdma_alloc_hw_stats_struct(rxe_counter_name,
-+					  ARRAY_SIZE(rxe_counter_name),
-+					  RDMA_HW_STATS_DEFAULT_LIFESPAN);
-+}
-diff --git a/drivers/infiniband/sw/rxe/rxe_hw_counters.h b/drivers/infiniband/sw/rxe/rxe_hw_counters.h
-new file mode 100644
-index 000000000000..f44df1b76742
---- /dev/null
-+++ b/drivers/infiniband/sw/rxe/rxe_hw_counters.h
-@@ -0,0 +1,61 @@
-+/*
-+ * Copyright (c) 2017 Mellanox Technologies Ltd. All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *	- Redistributions of source code must retain the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer.
-+ *
-+ *	- Redistributions in binary form must reproduce the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer in the documentation and/or other materials
-+ *	  provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#ifndef RXE_HW_COUNTERS_H
-+#define RXE_HW_COUNTERS_H
-+
-+/*
-+ * when adding counters to enum also add
-+ * them to rxe_counter_name[] vector.
-+ */
-+enum rxe_counters {
-+	RXE_CNT_SENT_PKTS,
-+	RXE_CNT_RCVD_PKTS,
-+	RXE_CNT_DUP_REQ,
-+	RXE_CNT_OUT_OF_SEQ_REQ,
-+	RXE_CNT_RCV_RNR,
-+	RXE_CNT_SND_RNR,
-+	RXE_CNT_RCV_SEQ_ERR,
-+	RXE_CNT_COMPLETER_SCHED,
-+	RXE_CNT_RETRY_EXCEEDED,
-+	RXE_CNT_RNR_RETRY_EXCEEDED,
-+	RXE_CNT_COMP_RETRY,
-+	RXE_CNT_SEND_ERR,
-+	RXE_NUM_OF_COUNTERS
-+};
-+
-+struct rdma_hw_stats *rxe_ib_alloc_hw_stats(struct ib_device *ibdev,
-+					    u8 port_num);
-+int rxe_ib_get_hw_stats(struct ib_device *ibdev,
-+			struct rdma_hw_stats *stats,
-+			u8 port, int index);
-+#endif /* RXE_HW_COUNTERS_H */
-diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-index 272337e5e948..8dd443defc50 100644
---- a/drivers/infiniband/sw/rxe/rxe_loc.h
-+++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-@@ -280,6 +280,7 @@ static inline int rxe_xmit_packet(struct rxe_dev *rxe, struct rxe_qp *qp,
-
- 	if (err) {
- 		rxe->xmit_errors++;
-+		rxe_counter_inc(rxe, RXE_CNT_SEND_ERR);
- 		return err;
- 	}
-
-@@ -289,6 +290,7 @@ static inline int rxe_xmit_packet(struct rxe_dev *rxe, struct rxe_qp *qp,
- 		rxe_run_task(&qp->comp.task, 1);
- 	}
-
-+	rxe_counter_inc(rxe, RXE_CNT_SENT_PKTS);
- 	goto done;
-
- drop:
-diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
-index 50886031096f..dadd4a0e3cf7 100644
---- a/drivers/infiniband/sw/rxe/rxe_recv.c
-+++ b/drivers/infiniband/sw/rxe/rxe_recv.c
-@@ -403,6 +403,8 @@ int rxe_rcv(struct sk_buff *skb)
- 		goto drop;
- 	}
-
-+	rxe_counter_inc(rxe, RXE_CNT_RCVD_PKTS);
-+
- 	if (unlikely(bth_qpn(pkt) == IB_MULTICAST_QPN))
- 		rxe_rcv_mcast_pkt(rxe, skb);
- 	else
-diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-index d404a8aba7af..d42f4847e928 100644
---- a/drivers/infiniband/sw/rxe/rxe_resp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-@@ -149,6 +149,7 @@ static enum resp_states check_psn(struct rxe_qp *qp,
- 				  struct rxe_pkt_info *pkt)
- {
- 	int diff = psn_compare(pkt->psn, qp->resp.psn);
-+	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
-
- 	switch (qp_type(qp)) {
- 	case IB_QPT_RC:
-@@ -157,9 +158,11 @@ static enum resp_states check_psn(struct rxe_qp *qp,
- 				return RESPST_CLEANUP;
-
- 			qp->resp.sent_psn_nak = 1;
-+			rxe_counter_inc(rxe, RXE_CNT_OUT_OF_SEQ_REQ);
- 			return RESPST_ERR_PSN_OUT_OF_SEQ;
-
- 		} else if (diff < 0) {
-+			rxe_counter_inc(rxe, RXE_CNT_DUP_REQ);
- 			return RESPST_DUPLICATE_REQUEST;
- 		}
-
-@@ -1224,6 +1227,7 @@ void rxe_drain_req_pkts(struct rxe_qp *qp, bool notify)
- int rxe_responder(void *arg)
- {
- 	struct rxe_qp *qp = (struct rxe_qp *)arg;
-+	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
- 	enum resp_states state;
- 	struct rxe_pkt_info *pkt = NULL;
- 	int ret = 0;
-@@ -1312,6 +1316,7 @@ int rxe_responder(void *arg)
- 			break;
- 		case RESPST_ERR_RNR:
- 			if (qp_type(qp) == IB_QPT_RC) {
-+				rxe_counter_inc(rxe, RXE_CNT_SND_RNR);
- 				/* RC - class B */
- 				send_ack(qp, pkt, AETH_RNR_NAK |
- 					 (~AETH_TYPE_MASK &
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index e4de37fb9aab..c55a9b49d88d 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -34,6 +34,7 @@
- #include "rxe.h"
- #include "rxe_loc.h"
- #include "rxe_queue.h"
-+#include "rxe_hw_counters.h"
-
- static int rxe_query_device(struct ib_device *dev,
- 			    struct ib_device_attr *attr,
-@@ -1315,6 +1316,8 @@ int rxe_register_device(struct rxe_dev *rxe)
- 	dev->map_mr_sg = rxe_map_mr_sg;
- 	dev->attach_mcast = rxe_attach_mcast;
- 	dev->detach_mcast = rxe_detach_mcast;
-+	dev->get_hw_stats = rxe_ib_get_hw_stats;
-+	dev->alloc_hw_stats = rxe_ib_alloc_hw_stats;
-
- 	err = ib_register_device(dev, NULL);
- 	if (err) {
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
-index e100c500ae85..8e0a093f0472 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.h
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
-@@ -38,6 +38,7 @@
- #include <rdma/rdma_user_rxe.h>
- #include "rxe_pool.h"
- #include "rxe_task.h"
-+#include "rxe_hw_counters.h"
-
- static inline int pkey_match(u16 key1, u16 key2)
- {
-@@ -401,10 +402,17 @@ struct rxe_dev {
- 	spinlock_t		mmap_offset_lock; /* guard mmap_offset */
- 	int			mmap_offset;
-
-+	u64			stats_counters[RXE_NUM_OF_COUNTERS];
-+
- 	struct rxe_port		port;
- 	struct list_head	list;
- };
-
-+static inline void rxe_counter_inc(struct rxe_dev *rxe, enum rxe_counters cnt)
-+{
-+	rxe->stats_counters[cnt]++;
-+}
-+
- static inline struct rxe_dev *to_rdev(struct ib_device *dev)
- {
- 	return dev ? container_of(dev, struct rxe_dev, ib_dev) : NULL;
---
-2.12.0
-
+--1AtvaQRkIQxkm1Oe--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
