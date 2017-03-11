@@ -1,55 +1,73 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: libacm fails to build
-Date: Fri, 10 Mar 2017 11:43:59 -0700
-Message-ID: <20170310184359.GA23455@obsidianresearch.com>
-References: <20170309171014.GC12694@obsidianresearch.com>
- <1489098918.2597.12.camel@sandisk.com>
- <20170309224904.GA5867@obsidianresearch.com>
- <1489099998.2597.16.camel@sandisk.com>
- <20170309230453.GA7844@obsidianresearch.com>
- <1489101151.2597.18.camel@sandisk.com>
- <20170309232352.GA12387@obsidianresearch.com>
- <1489103252.2597.20.camel@sandisk.com>
- <20170309235406.GA16385@obsidianresearch.com>
- <1489103888.2597.21.camel@sandisk.com>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: Re: [PATCH v9 00/11] uapi: export all headers under uapi directories
+Date: Sat, 11 Mar 2017 14:43:15 +0900
+Message-ID: <CAK7LNARpx7f0eV5_AiPmNYT7MsRbGFOygJwjfAzX_7aCpuHwuw@mail.gmail.com>
+References: <20170301045241.GB9156@gondor.apana.org.au> <1488473802-13354-1-git-send-email-nicolas.dichtel@6wind.com>
+ <3df45ecc-1aa0-a029-d7e5-2598f0908874@6wind.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1489103888.2597.21.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: "pth-l3A5Bk7waGM@public.gmane.org" <pth-l3A5Bk7waGM@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kbuild-owner@vger.kernel.org>
+In-Reply-To: <3df45ecc-1aa0-a029-d7e5-2598f0908874@6wind.com>
+Sender: linux-kbuild-owner@vger.kernel.org
+To: nicolas.dichtel@6wind.com
+Cc: Arnd Bergmann <arnd@arndb.de>, Michal Marek <mmarek@suse.com>, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arch@vger.kernel.org, David Airlie <airlied@linux.ie>, "David S. Miller" <davem@davemloft.net>, Russell King <linux@armlinux.org.uk>, bp@alien8.de, slash.tmp@free.fr, daniel.vetter@ffwll.ch, rmk+kernel@armlinux.org.uk, msalter@redhat.com, jengelh@inai.de, hch@infradead.org, tklauser@distanz.ch, mpe@ellerman.id.au, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ldv@altlinux.org, Herbert Xu <herbert@gondor.apana.org.au>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 09, 2017 at 11:58:21PM +0000, Bart Van Assche wrote:
-> On Thu, 2017-03-09 at 16:54 -0700, Jason Gunthorpe wrote:
-> > Yes, I think so, like this?
-> > 
-> > diff --git a/rdma-core.spec b/rdma-core.spec
-> > index 6519bc370a230a..df65745ff9c468 100644
-> > +++ b/rdma-core.spec
-> > @@ -26,7 +26,9 @@ BuildRequires: valgrind-devel
-> >  # SuSE releases have it, and sometime around cmake 3.3.2-1.2 the macros learned to use it.
-> >  BuildRequires: ninja,make
-> >  %define __builder ninja
-> > -# cmake_install,make_jobs is specified by opensuse
-> > +# cmake_install is specified by opensuse. It also specifies make_jobs, but it
-> > +# doesn't work with __builder as other rpm macro packages define it too.
-> > +%define make_jobs ninja-build -v %{?_smp_mflags}
-> >  
-> >  # Tumbleweed's cmake RPM macro adds -Wl,--no-undefined to the module flags
-> >  # which is totally inappropriate and breaks building 'ENABLE_EXPORTS' style
-> 
-> If ninja-build is changed into ninja or %{__builder} then I agree :-)
+Hi Nicolas,
 
-done
 
-https://github.com/linux-rdma/rdma-core/pull/92
+2017-03-11 1:34 GMT+09:00 Nicolas Dichtel <nicolas.dichtel@6wind.com>:
+> Le 02/03/2017 =C3=A0 17:56, Nicolas Dichtel a =C3=A9crit :
+>> Patches #1 and #2 are just cleanup: some exported headers were still und=
+er
+>> a non-uapi directory. Patch #3 is a fix to avoid exporting a file that w=
+as
+>> not under an uapi directory.
+>> After these three patches, all exported headers are under an uapi direct=
+ory:
+>> path #4 stops searching files in non uapi directories.
+>> The patch #5 was spotted by code review: there is no in-tree user of thi=
+s
+>> functionality.
+>> Patch #6 fixes some warnings/errors reported by 0-day tests.
+>> Patch #7 to #9 fix some errors when the corresponding files are included=
+ by
+>> userland.
+>> Patches #10 and #11 remove the need to list explicitly headers. Now all =
+files
+>> under an uapi directory are exported.
+>>
+>> This series has been tested with a 'make headers_install' on x86 and a
+>> 'make headers_install_all'. I've checked the result of both commands.
+>>
+>> This patch is built against linus tree. If I must rebase it against the =
+kbuild
+>> tree, just tell me.
+>> Michal, is this series going through your tree?
+> Still waiting to know who may take this series in its tree ;-)
 
-Thanks
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+I will take care of this.
+
+
+
+> kbuild tree has not been updated since two months (4.10-rc1) :/
+
+Michal's tree is not active these days.
+Going forward, I will queue up Kbuild patches in my repository.
+
+
+
+BTW, this series does not apply cleanly.
+
+If you could rebase it onto v4.11-rc1 tag,
+it would be helpful.
+
+
+
+Thanks!
+
+--=20
+Best Regards
+Masahiro Yamada
