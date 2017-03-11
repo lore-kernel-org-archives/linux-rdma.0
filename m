@@ -1,73 +1,34 @@
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: Re: [PATCH v9 00/11] uapi: export all headers under uapi directories
-Date: Sat, 11 Mar 2017 14:43:15 +0900
-Message-ID: <CAK7LNARpx7f0eV5_AiPmNYT7MsRbGFOygJwjfAzX_7aCpuHwuw@mail.gmail.com>
-References: <20170301045241.GB9156@gondor.apana.org.au> <1488473802-13354-1-git-send-email-nicolas.dichtel@6wind.com>
- <3df45ecc-1aa0-a029-d7e5-2598f0908874@6wind.com>
+From: kbuild test robot <lkp@intel.com>
+Subject: Re: [PATCH v5 01/19] block: DAC960: Replace PCI pool old API
+Date: Sat, 11 Mar 2017 15:15:21 +0800
+Message-ID: <201703111417.0LzAlMy8%fengguang.wu@intel.com>
+References: <20170308161957.28941-2-romain.perier@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kbuild-owner@vger.kernel.org>
-In-Reply-To: <3df45ecc-1aa0-a029-d7e5-2598f0908874@6wind.com>
-Sender: linux-kbuild-owner@vger.kernel.org
-To: nicolas.dichtel@6wind.com
-Cc: Arnd Bergmann <arnd@arndb.de>, Michal Marek <mmarek@suse.com>, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arch@vger.kernel.org, David Airlie <airlied@linux.ie>, "David S. Miller" <davem@davemloft.net>, Russell King <linux@armlinux.org.uk>, bp@alien8.de, slash.tmp@free.fr, daniel.vetter@ffwll.ch, rmk+kernel@armlinux.org.uk, msalter@redhat.com, jengelh@inai.de, hch@infradead.org, tklauser@distanz.ch, mpe@ellerman.id.au, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ldv@altlinux.org, Herbert Xu <herbert@gondor.apana.org.au>, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170308161957.28941-2-romain.perier@collabora.com>
+Sender: netdev-owner@vger.kernel.org
+Cc: kbuild-all@01.org, Dan Williams <dan.j.williams@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, jeffrey.t.kirsher@intel.com, "David S. Miller" <davem@davemloft.net>, stas.yakovlev@gmail.com, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, Romain Perier <romain.perier@collabora.com>, Peter Senna Tschudin <peter.senna@collabora.co.uk>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Nicolas,
+Hi Romain,
+
+[auto build test WARNING on scsi/for-next]
+[also build test WARNING on v4.11-rc1 next-20170310]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+
+url:    https://github.com/0day-ci/linux/commits/Romain-Perier/Replace-PCI-pool-by-DMA-pool-API/20170311-133849
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/jejb/scsi.git for-next
 
 
-2017-03-11 1:34 GMT+09:00 Nicolas Dichtel <nicolas.dichtel@6wind.com>:
-> Le 02/03/2017 =C3=A0 17:56, Nicolas Dichtel a =C3=A9crit :
->> Patches #1 and #2 are just cleanup: some exported headers were still und=
-er
->> a non-uapi directory. Patch #3 is a fix to avoid exporting a file that w=
-as
->> not under an uapi directory.
->> After these three patches, all exported headers are under an uapi direct=
-ory:
->> path #4 stops searching files in non uapi directories.
->> The patch #5 was spotted by code review: there is no in-tree user of thi=
-s
->> functionality.
->> Patch #6 fixes some warnings/errors reported by 0-day tests.
->> Patch #7 to #9 fix some errors when the corresponding files are included=
- by
->> userland.
->> Patches #10 and #11 remove the need to list explicitly headers. Now all =
-files
->> under an uapi directory are exported.
->>
->> This series has been tested with a 'make headers_install' on x86 and a
->> 'make headers_install_all'. I've checked the result of both commands.
->>
->> This patch is built against linus tree. If I must rebase it against the =
-kbuild
->> tree, just tell me.
->> Michal, is this series going through your tree?
-> Still waiting to know who may take this series in its tree ;-)
+coccinelle warnings: (new ones prefixed by >>)
 
+>> drivers/block/DAC960.c:441:3-19: WARNING: NULL check before freeing functions like kfree, debugfs_remove, debugfs_remove_recursive or usb_free_urb is not needed. Maybe consider reorganizing relevant code to avoid passing NULL values.
+   drivers/block/DAC960.c:446:1-17: WARNING: NULL check before freeing functions like kfree, debugfs_remove, debugfs_remove_recursive or usb_free_urb is not needed. Maybe consider reorganizing relevant code to avoid passing NULL values.
 
-I will take care of this.
+Please review and possibly fold the followup patch.
 
-
-
-> kbuild tree has not been updated since two months (4.10-rc1) :/
-
-Michal's tree is not active these days.
-Going forward, I will queue up Kbuild patches in my repository.
-
-
-
-BTW, this series does not apply cleanly.
-
-If you could rebase it onto v4.11-rc1 tag,
-it would be helpful.
-
-
-
-Thanks!
-
---=20
-Best Regards
-Masahiro Yamada
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
