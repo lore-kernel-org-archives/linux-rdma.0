@@ -1,45 +1,44 @@
-From: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH 2/5] rds: ib: replace spin_lock_irq with spin_lock_irqsave
-Date: Sat, 11 Mar 2017 22:37:39 -0800
-Message-ID: <7792d93c-4f20-5bf6-4f0c-01602fcb6d76@oracle.com>
-References: <1489044405-26150-1-git-send-email-yanjun.zhu@oracle.com>
- <1489044405-26150-2-git-send-email-yanjun.zhu@oracle.com>
- <65ac3de8-9fdd-b5c5-b7aa-aa4393626551@oracle.com>
- <58C4B361.6010100@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <58C4B361.6010100@oracle.com>
-Sender: netdev-owner@vger.kernel.org
-To: Yanjun Zhu <yanjun.zhu@oracle.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+From: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCHv2 1/4] rds: ib: drop unnecessary rdma_reject
+Date: Sun, 12 Mar 2017 04:07:55 -0400
+Message-ID: <1489306078-3354-1-git-send-email-yanjun.zhu@oracle.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/11/17 6:33 PM, Yanjun Zhu wrote:
-> Sorry. I have no test case to show some issue.
-> But from Linux Kernel Development Second Edition by Robert Love.
->
-Yes I know the book and what the API does :D
+When rdma_accept fails, rdma_reject is called in it. As such, it is
+not necessary to execute rdma_reject again.
 
-> Use spin_lock_irq is dangerous since spin_unlock_irq unconditionally
-> enables interrupts.
->
-> We can assume the following scenario:
->
-> --->the interrupt is disabled.
->
->         spin_lock_irq(lock_ptr);   <---this will disable interrupt again
->         list_del(&ic->ib_node);
->         spin_unlock_irq(lock_ptr); <---this will enable interrupt
->
-> ---->the interrupt is enabled.
->
-> our code change the state of interrupt. This will make potential risk.
-> But spin_lock_irqsave/spin_unlock_irqrestore will not make potential risk.
->
-ic is well protected for any possible race and hence I asked
-if you had any test case. Please re-post the series again with
-the subject patch dropper for Dave to pick it up.
+Cc: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Acked-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+Change from v1 to v2:
+  Add the acker.
 
-Regards,
-Santosh
+ net/rds/ib_cm.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
+index ce3775a..eca3d5f 100644
+--- a/net/rds/ib_cm.c
++++ b/net/rds/ib_cm.c
+@@ -677,8 +677,7 @@ int rds_ib_cm_handle_connect(struct rdma_cm_id *cm_id,
+ 		event->param.conn.initiator_depth);
+ 
+ 	/* rdma_accept() calls rdma_reject() internally if it fails */
+-	err = rdma_accept(cm_id, &conn_param);
+-	if (err)
++	if (rdma_accept(cm_id, &conn_param))
+ 		rds_ib_conn_error(conn, "rdma_accept failed (%d)\n", err);
+ 
+ out:
+-- 
+2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
