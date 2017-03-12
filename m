@@ -1,64 +1,83 @@
-From: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Subject: [PATCH v2 09/23] MAINTAINERS: Add file patterns for infiniband device tree bindings
-Date: Sun, 12 Mar 2017 14:16:53 +0100
-Message-ID: <1489324627-19126-10-git-send-email-geert@linux-m68k.org>
-References: <1489324627-19126-1-git-send-email-geert@linux-m68k.org>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1489324627-19126-1-git-send-email-geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: mlx4_core 0000:07:00.0: swiotlb buffer is full and OOM observed
+ during stress test on reset_controller
+Date: Sun, 12 Mar 2017 20:16:58 +0200
+Message-ID: <56e8ccd3-8116-89a1-2f65-eb61a91c5f84@mellanox.com>
+References: <2013049462.31187009.1488542111040.JavaMail.zimbra@redhat.com>
+ <95e045a8-ace0-6a9a-b9a9-555cb2670572@grimberg.me>
+ <d21c5571-78fd-7882-b4cc-c24f76f6ff47@redhat.com>
+ <20170310165214.GC14379@mtr-leonro.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170310165214.GC14379-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Submitters of device tree binding documentation may forget to CC
-the subsystem maintainer if this is missing.
 
-Signed-off-by: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
----
-Please apply this patch directly if you want to be involved in device
-tree binding documentation for your subsystem.
 
-v2:
-  - New.
+On 3/10/2017 6:52 PM, Leon Romanovsky wrote:
+> On Thu, Mar 09, 2017 at 12:20:14PM +0800, Yi Zhang wrote:
+>>
+>>> I'm using CX5-LX device and have not seen any issues with it.
+>>>
+>>> Would it be possible to retest with kmemleak?
+>>>
+>> Here is the device I used.
+>>
+>> Network controller: Mellanox Technologies MT27500 Family [ConnectX-3]
+>>
+>> The issue always can be reproduced with about 1000 time.
+>>
+>> Another thing is I found one strange phenomenon from the log:
+>>
+>> before the OOM occurred, most of the log are  about "adding queue", and
+>> after the OOM occurred, most of the log are about "nvmet_rdma: freeing
+>> queue".
+>>
+>> seems the release work: "schedule_work(&queue->release_work);" not executed
+>> timely, not sure whether the OOM is caused by this reason.
+>
+> Sagi,
+> The release function is placed in global workqueue. I'm not familiar
+> with NVMe design and I don't know all the details, but maybe the proper way will
+> be to create special workqueue with MEM_RECLAIM flag to ensure the progress?
+>
 
-Impact on next-20170310:
+Hi,
 
-+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> (supporter:INFINIBAND SUBSYSTEM)
-+Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (supporter:INFINIBAND SUBSYSTEM)
-+Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> (supporter:INFINIBAND SUBSYSTEM)
- Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> (maintainer:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS)
- Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org> (maintainer:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS)
--Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org> (commit_signer:2/2=100%)
--Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org> (commit_signer:2/2=100%,authored:2/2=100%)
--Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> (commit_signer:2/2=100%)
--Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org> (commit_signer:1/2=50%)
-+linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list:INFINIBAND SUBSYSTEM)
- devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS)
- linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list)
----
- MAINTAINERS | 1 +
- 1 file changed, 1 insertion(+)
+I was able to repro it in my lab with ConnectX3. added a dedicated 
+workqueue with high priority but the bug still happens.
+if I add a "sleep 1" after echo 1 
+ >/sys/block/nvme0n1/device/reset_controller the test pass. So there is 
+no leak IMO, but the allocation process is much faster than the 
+destruction of the resources.
+In the initiator we don't wait for RDMA_CM_EVENT_DISCONNECTED event 
+after we call rdma_disconnect, and we try to connect immediatly again.
+maybe we need to slow down the storm of connect requests from the 
+initiator somehow to let the target time to settle up.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index fa42535181d48e27..c3fbd1af0f49a7e9 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6459,6 +6459,7 @@ W:	http://www.openfabrics.org/
- Q:	http://patchwork.kernel.org/project/linux-rdma/list/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
- S:	Supported
-+F:	Documentation/devicetree/bindings/infiniband/
- F:	Documentation/infiniband/
- F:	drivers/infiniband/
- F:	include/uapi/linux/if_infiniband.h
--- 
-2.7.4
+Max.
 
+
+>>
+>> Here is the log before/after OOM
+>> http://pastebin.com/Zb6w4nEv
+>>
+>>> _______________________________________________
+>>> Linux-nvme mailing list
+>>> Linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+>>> http://lists.infradead.org/mailman/listinfo/linux-nvme
+>>
+>>
+>> _______________________________________________
+>> Linux-nvme mailing list
+>> Linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+>> http://lists.infradead.org/mailman/listinfo/linux-nvme
 --
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
