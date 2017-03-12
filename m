@@ -1,89 +1,64 @@
-From: Zhu Yanjun <yanjun.zhu@oracle.com>
-Subject: [PATCHv2 4/4] rds: ib: unmap the scatter/gather list when error
-Date: Sun, 12 Mar 2017 04:07:58 -0400
-Message-ID: <1489306078-3354-4-git-send-email-yanjun.zhu@oracle.com>
-References: <1489306078-3354-1-git-send-email-yanjun.zhu@oracle.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1489306078-3354-1-git-send-email-yanjun.zhu@oracle.com>
-Sender: netdev-owner@vger.kernel.org
-To: santosh.shilimkar@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+From: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+Subject: [PATCH v2 09/23] MAINTAINERS: Add file patterns for infiniband device tree bindings
+Date: Sun, 12 Mar 2017 14:16:53 +0100
+Message-ID: <1489324627-19126-10-git-send-email-geert@linux-m68k.org>
+References: <1489324627-19126-1-git-send-email-geert@linux-m68k.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1489324627-19126-1-git-send-email-geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When some errors occur, the scatter/gather list mapped to DMA addresses
-should be handled.
+Submitters of device tree binding documentation may forget to CC
+the subsystem maintainer if this is missing.
 
-Cc: Joe Jin <joe.jin@oracle.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+Signed-off-by: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 ---
-Change from v1 to v2:
-  Add the acker.
+Please apply this patch directly if you want to be involved in device
+tree binding documentation for your subsystem.
 
- net/rds/ib_fmr.c | 26 +++++++++++++++++++-------
- 1 file changed, 19 insertions(+), 7 deletions(-)
+v2:
+  - New.
 
-diff --git a/net/rds/ib_fmr.c b/net/rds/ib_fmr.c
-index c936b0d..86ef907 100644
---- a/net/rds/ib_fmr.c
-+++ b/net/rds/ib_fmr.c
-@@ -112,29 +112,39 @@ static int rds_ib_map_fmr(struct rds_ib_device *rds_ibdev,
- 		u64 dma_addr = ib_sg_dma_address(dev, &scat[i]);
- 
- 		if (dma_addr & ~PAGE_MASK) {
--			if (i > 0)
-+			if (i > 0) {
-+				ib_dma_unmap_sg(dev, sg, nents,
-+						DMA_BIDIRECTIONAL);
- 				return -EINVAL;
--			else
-+			} else {
- 				++page_cnt;
-+			}
- 		}
- 		if ((dma_addr + dma_len) & ~PAGE_MASK) {
--			if (i < sg_dma_len - 1)
-+			if (i < sg_dma_len - 1) {
-+				ib_dma_unmap_sg(dev, sg, nents,
-+						DMA_BIDIRECTIONAL);
- 				return -EINVAL;
--			else
-+			} else {
- 				++page_cnt;
-+			}
- 		}
- 
- 		len += dma_len;
- 	}
- 
- 	page_cnt += len >> PAGE_SHIFT;
--	if (page_cnt > ibmr->pool->fmr_attr.max_pages)
-+	if (page_cnt > ibmr->pool->fmr_attr.max_pages) {
-+		ib_dma_unmap_sg(dev, sg, nents, DMA_BIDIRECTIONAL);
- 		return -EINVAL;
-+	}
- 
- 	dma_pages = kmalloc_node(sizeof(u64) * page_cnt, GFP_ATOMIC,
- 				 rdsibdev_to_node(rds_ibdev));
--	if (!dma_pages)
-+	if (!dma_pages) {
-+		ib_dma_unmap_sg(dev, sg, nents, DMA_BIDIRECTIONAL);
- 		return -ENOMEM;
-+	}
- 
- 	page_cnt = 0;
- 	for (i = 0; i < sg_dma_len; ++i) {
-@@ -147,8 +157,10 @@ static int rds_ib_map_fmr(struct rds_ib_device *rds_ibdev,
- 	}
- 
- 	ret = ib_map_phys_fmr(fmr->fmr, dma_pages, page_cnt, io_addr);
--	if (ret)
-+	if (ret) {
-+		ib_dma_unmap_sg(dev, sg, nents, DMA_BIDIRECTIONAL);
- 		goto out;
-+	}
- 
- 	/* Success - we successfully remapped the MR, so we can
- 	 * safely tear down the old mapping.
+Impact on next-20170310:
+
++Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> (supporter:INFINIBAND SUBSYSTEM)
++Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> (supporter:INFINIBAND SUBSYSTEM)
++Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> (supporter:INFINIBAND SUBSYSTEM)
+ Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> (maintainer:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS)
+ Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org> (maintainer:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS)
+-Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org> (commit_signer:2/2=100%)
+-Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org> (commit_signer:2/2=100%,authored:2/2=100%)
+-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> (commit_signer:2/2=100%)
+-Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org> (commit_signer:1/2=50%)
++linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list:INFINIBAND SUBSYSTEM)
+ devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS)
+ linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org (open list)
+---
+ MAINTAINERS | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index fa42535181d48e27..c3fbd1af0f49a7e9 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6459,6 +6459,7 @@ W:	http://www.openfabrics.org/
+ Q:	http://patchwork.kernel.org/project/linux-rdma/list/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git
+ S:	Supported
++F:	Documentation/devicetree/bindings/infiniband/
+ F:	Documentation/infiniband/
+ F:	drivers/infiniband/
+ F:	include/uapi/linux/if_infiniband.h
 -- 
 2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
