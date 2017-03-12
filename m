@@ -1,82 +1,186 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: mlx4_core 0000:07:00.0: swiotlb buffer is full and OOM observed
- during stress test on reset_controller
-Date: Sun, 12 Mar 2017 20:16:58 +0200
-Message-ID: <56e8ccd3-8116-89a1-2f65-eb61a91c5f84@mellanox.com>
-References: <2013049462.31187009.1488542111040.JavaMail.zimbra@redhat.com>
- <95e045a8-ace0-6a9a-b9a9-555cb2670572@grimberg.me>
- <d21c5571-78fd-7882-b4cc-c24f76f6ff47@redhat.com>
- <20170310165214.GC14379@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-core v1] travis: Upload assets to github release
+Date: Sun, 12 Mar 2017 20:47:58 +0200
+Message-ID: <20170312184758.14959-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170310165214.GC14379-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Create and upload library source code to the corresponding release.
 
+The upload is triggered for pushed tags which are expected to be
+in semantic version format, e.g. v12.7.0.
 
-On 3/10/2017 6:52 PM, Leon Romanovsky wrote:
-> On Thu, Mar 09, 2017 at 12:20:14PM +0800, Yi Zhang wrote:
->>
->>> I'm using CX5-LX device and have not seen any issues with it.
->>>
->>> Would it be possible to retest with kmemleak?
->>>
->> Here is the device I used.
->>
->> Network controller: Mellanox Technologies MT27500 Family [ConnectX-3]
->>
->> The issue always can be reproduced with about 1000 time.
->>
->> Another thing is I found one strange phenomenon from the log:
->>
->> before the OOM occurred, most of the log are  about "adding queue", and
->> after the OOM occurred, most of the log are about "nvmet_rdma: freeing
->> queue".
->>
->> seems the release work: "schedule_work(&queue->release_work);" not executed
->> timely, not sure whether the OOM is caused by this reason.
->
-> Sagi,
-> The release function is placed in global workqueue. I'm not familiar
-> with NVMe design and I don't know all the details, but maybe the proper way will
-> be to create special workqueue with MEM_RECLAIM flag to ensure the progress?
->
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
 
-Hi,
+Hi All,
 
-I was able to repro it in my lab with ConnectX3. added a dedicated 
-workqueue with high priority but the bug still happens.
-if I add a "sleep 1" after echo 1 
- >/sys/block/nvme0n1/device/reset_controller the test pass. So there is 
-no leak IMO, but the allocation process is much faster than the 
-destruction of the resources.
-In the initiator we don't wait for RDMA_CM_EVENT_DISCONNECTED event 
-after we call rdma_disconnect, and we try to connect immediatly again.
-maybe we need to slow down the storm of connect requests from the 
-initiator somehow to let the target time to settle up.
+This is second attempt to add automatic github release facilities.
+The previous version was merged [1] and reverted because it had wrong OAuth key.
+I hope that this time [3], it will work :)
 
-Max.
+[1] https://github.com/linux-rdma/rdma-core/commit/7b78568cb1c5fe75d760a87119475124a325df9a
+[2] https://github.com/linux-rdma/rdma-core/commit/b9730c92d8873059ed651db472f942a5a6693793
+[3] https://travis-ci.org/linux-rdma/rdma-core/builds/210311044
 
+---
+ .travis.yml              | 17 +++++++++
+ Documentation/release.md | 99 ++++++++++++++++++++++++++++++++++++++++++++++++
+ buildlib/github-release  |  8 ++++
+ 3 files changed, 124 insertions(+)
+ create mode 100644 Documentation/release.md
+ create mode 100755 buildlib/github-release
 
->>
->> Here is the log before/after OOM
->> http://pastebin.com/Zb6w4nEv
->>
->>> _______________________________________________
->>> Linux-nvme mailing list
->>> Linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
->>> http://lists.infradead.org/mailman/listinfo/linux-nvme
->>
->>
->> _______________________________________________
->> Linux-nvme mailing list
->> Linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
->> http://lists.infradead.org/mailman/listinfo/linux-nvme
+diff --git a/.travis.yml b/.travis.yml
+index 8f9adc83..d719eab7 100644
+--- a/.travis.yml
++++ b/.travis.yml
+@@ -39,3 +39,20 @@ addons:
+
+ script:
+   - buildlib/travis-build
++  - buildlib/github-release
++deploy:
++  # Deploy assets to Github releases
++  # https://docs.travis-ci.com/user/deployment/releases/
++  provider: releases
++  api_key:
++    # This is encrypted OAth token generated by
++    # Travis CLI tool (travis setup releases) limited to specific repo.
++    secure: ok/WMzFgsSnk+NZ850QEUESHRfJ4Ae7T8eA4dcx4fuw2RqybAh8wjxrLP5GKR27WrzB3hKHHTi7fgE0VtBY024kGJ/+wlQXHN1p89JvCiQlGOKkxy5YIlS4GUhwwkqgoU+hmifxl1i+9yCuowHPIM4WoP+NR+IZgvMahlrdPCS2OleFtrqyaHZbC/Usdt0WZLeQzG+rVLec/NvPnVOn81e17yuAuluHAzu+qcV94szqe/zwDzG8RUUKXaeDEQ3JQja4bCLL/kTkWR8JGsfwvcqc9Ut4Ry2b7uEWp5/FIcxUGWviKRgRzEdcT40iMMiJbIrH7gYp66Ymr/dypqUfc4u/xSb4AmpTMcYGUXJxsdzKyL6d/7HbuHIIVc5o1V/L5mdaIjeO5KjTFjMMD5KoSXfBlNIGk2as1JD/99lxJ3VlpQGwI5390+Tyl8o4Ao4aBXSCG96PDK4+UkYFht/wrw+UoYdV07u3x7zz21O3N3Lu5733hDvcvyOW6uIzoeLQ5O62/3Pq+DOFRs/nnRiW8/gjIkEQAyj/GGxw/taslpFJFcdVt/MSueV4t5OCI2YdGA/NxG/c4FIGy+dntV5BB6Gld8KkP/PP74yzJ1o/PRDRExTbsQzrdisDrVIf0r4pxTTsw1gXRE5r6S0tQ5aNoXAQ5h4xiwAIGqqBF4HESJjA=
++  file: rdma-core-*.tar.gz
++  # Allow asterisks in file names.
++  file_glob: true
++  skip_cleanup: true
++  # Limit scope of deploy to specific repo.
++  on:
++    repo: linux-rdma/rdma-core
++    tags: true
+diff --git a/Documentation/release.md b/Documentation/release.md
+new file mode 100644
+index 00000000..2a40ef76
+--- /dev/null
++++ b/Documentation/release.md
+@@ -0,0 +1,99 @@
++# Release Process
++
++Release process of rdma-core library consists from three stages
++
++1. Change library version, according to [Overall Pacakge Version](versioning.md) guide.
++2. Push the change above to master branch and ensure that Travis CI reports successful build.
++3. Create local annotated signed tag vX.X.X (`git tag vX.X.X -a -s`).
++4. Issue `git release` command which will push tag, trigger Travis CI to upload
++   release tar.gz file and create release notes based on tag context with release notes in it.
++
++## git release
++
++There are many implmentations of different `git release` commands. We recommend you to use
++the command from [this](https://github.com/mpalmer/github-release) repository due to its simplicity.
++
++---
++Copy&Paste from relevant [README](https://github.com/mpalmer/github-release/blob/master/README.md)
++
++---
++
++This very simple gem provides a `git release` command, which will
++automatically fill out any and all "release tags" into fully-blown "Github
++Releases", complete with release notes, a heading, and all the other good
++things in life.
++
++Using this gem, you can turn the following tag annotation:
++
++    First Release
++
++    It is with much fanfare and blowing of horns that I bequeath the
++    awesomeness of `git release` upon the world.
++
++    Features in this release include:
++
++     * Ability to create a release from a tag annotation or commit message;
++     * Automatically generates an OAuth token if needed;
++     * Feeds your cat while you're hacking(*)
++
++    You should install it now!  `gem install github-release`
++
++Into [this](https://github.com/mpalmer/github-release/releases/tag/v0.1.0)
++simply by running
++
++    git release
++
++### Installation
++
++Simply install the gem:
++
++    gem install github-release
++
++
++### Usage
++
++Using `git release` is very simple.  Just make sure that your `origin`
++remote points to your Github repo, and then run `git release`.  All tags
++that look like a "version tag" (see "Configuration", below) will be created
++as Github releases (if they don't already exist) and the message from the
++tag will be used as the release notes.
++
++The format of the release notes is quite straightforward -- the first line
++of the message associated with the commit will be used as the "name" of the
++release, with the rest of the message used as the "body" of the release.
++The body will be interpreted as Github-flavoured markdown, so if you'd like
++to get fancy, go for your life.
++
++The message associated with the "release tag" is either the tag's annotation
++message (if it is an annotated tag) or else the commit log of the commit on
++which the tag is placed.  I *strongly* recommend annotated tags (but then
++again, [I'm biased...](http://theshed.hezmatt.org/git-version-bump))
++
++The first time you use `git release`, it will ask you for your Github
++username and password.  This is used to request an OAuth token to talk to
++the Github API, which is then stored in your global git config.  Hence you
++*shouldn't* be asked for your credentials every time you use `git release`.
++If you need to use multiple github accounts for different repos, you can
++override the `release.api-token` config parameter in your repo configuration
++(but you'll have to get your own OAuth token).
++
++
++### Configuration
++
++There are a few things you can configure to make `git release` work slightly
++differently.  None of them should be required for normal, sane use.
++
++ * `release.remote` (default `origin`) -- The name of the remote which is
++   used to determine what github repository to send release notes to.
++
++ * `release.api-token` (default is runtime generated) -- The OAuth token
++   to use to authenticate access to the Github API.  When you first run `git
++   release`, you'll be prompted for a username and password to use to
++   generate an initial token; if you need to override it on a per-repo
++   basis, this is the key you'll use.
++
++ * `release.tag-regex` (default `v\d+\.\d+(\.\d+)?$`) -- The regular
++   expression to filter which tags denote releases, as opposed to other tags
++   you might have decided to make.  Only tags which match this regular
++   expression will be pushed up by `git release`, and only those tags will
++   be marked as releases.
+diff --git a/buildlib/github-release b/buildlib/github-release
+new file mode 100755
+index 00000000..8f21cf3a
+--- /dev/null
++++ b/buildlib/github-release
+@@ -0,0 +1,8 @@
++#!/bin/bash
++
++set -e
++
++if [[ $TRAVIS_TAG == v* ]] && [ "$TRAVIS_OS_NAME" = "linux" ]; then
++	# Let's create release for vX tags only.
++	git archive --prefix rdma-core-$TRAVIS_TAG/ --output rdma-core-$TRAVIS_TAG.tar.gz HEAD
++fi
+--
+2.12.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
