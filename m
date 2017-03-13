@@ -1,66 +1,55 @@
-From: Erez Shitrit <erezsh@mellanox.com>
-Subject: [RFC v1 for accelerated IPoIB 14/25] net/mlx5: Enable flow-steering for IB link
-Date: Mon, 13 Mar 2017 20:31:25 +0200
-Message-ID: <1489429896-10781-15-git-send-email-erezsh@mellanox.com>
-References: <1489429896-10781-1-git-send-email-erezsh@mellanox.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1489429896-10781-1-git-send-email-erezsh@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, valex@mellanox.com, leonro@mellanox.com, saedm@mellanox.com, erezsh@dev.mellanox.co.il, Erez Shitrit <erezsh@mellanox.com>
+From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma_core] redhat spec: Avoid conflict due to implicit
+ directory add
+Date: Mon, 13 Mar 2017 15:23:14 -0400
+Message-ID: <861182f1-1d2a-2cdc-416f-bc0132201d47@redhat.com>
+References: <9707bd97229b67fe04d29affcb37f61b80e20dca.1484143751.git-series.knut.omang@oracle.com>
+ <20170313170829.GD25664@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170313170829.GD25664-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 2017-03-13 1:08 PM, Jason Gunthorpe wrote:
+> On Wed, Jan 11, 2017 at 03:19:34PM +0100, Knut Omang wrote:
+>> If *-notation is used to include subdirectories, they
+>> seem to end as explicit file additions. This causes conflicts
+>> with other packages that provides the same
+>> directories, in this case rdma_core-devel conflicts
+>> with filesystem and kernel-headers.
+>>
+>> Using %dir did not seem to help
+>> avoiding the issue but rather cause duplicate warnings, eg.
+>>
+>> warning: File listed twice: /usr/include/infiniband
+>>
+>> This should be considered a bug in rpmbuild but
+>> probably needs to be fixed here anyway:
+>>
+>> List each individual directory with wildcards
+>> to avoid the issue.
+>>
+>> Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>  redhat/rdma-core.spec | 3 ++-
+>>  1 file changed, 2 insertions(+), 1 deletion(-)
+>
+> Did this ever get settled?
+>
+> Jarod? Yes/No?
 
-Get the relevant capabilities if supports ipoib_enhanced_offloads and
-init the flow steering table accordingly.
+Sorry, missed this. I don't remember ever hitting this myself, but the 
+change looks benign enough, so sure, why not.
 
-Signed-off-by: Erez Shitrit <erezsh@mellanox.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.c | 10 +++++-----
- drivers/net/ethernet/mellanox/mlx5/core/fw.c      |  3 ++-
- 2 files changed, 7 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-index fa4edd88daf1..dd21fc557281 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-@@ -1991,9 +1991,6 @@ int mlx5_init_fs(struct mlx5_core_dev *dev)
- 	struct mlx5_flow_steering *steering;
- 	int err = 0;
- 
--	if (MLX5_CAP_GEN(dev, port_type) != MLX5_CAP_PORT_TYPE_ETH)
--		return 0;
--
- 	err = mlx5_init_fc_stats(dev);
- 	if (err)
- 		return err;
-@@ -2004,8 +2001,11 @@ int mlx5_init_fs(struct mlx5_core_dev *dev)
- 	steering->dev = dev;
- 	dev->priv.steering = steering;
- 
--	if (MLX5_CAP_GEN(dev, nic_flow_table) &&
--	    MLX5_CAP_FLOWTABLE_NIC_RX(dev, ft_support)) {
-+	if ((((MLX5_CAP_GEN(dev, port_type) == MLX5_CAP_PORT_TYPE_ETH) &&
-+	      (MLX5_CAP_GEN(dev, nic_flow_table))) ||
-+	     ((MLX5_CAP_GEN(dev, port_type) == MLX5_CAP_PORT_TYPE_IB) &&
-+	      MLX5_CAP_GEN(dev, ipoib_enhanced_offloads)))
-+	    && MLX5_CAP_FLOWTABLE_NIC_RX(dev, ft_support)) {
- 		err = init_root_ns(steering);
- 		if (err)
- 			goto err;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fw.c b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-index 5718aada6605..f95bc78b02f2 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-@@ -123,7 +123,8 @@ int mlx5_query_hca_caps(struct mlx5_core_dev *dev)
- 			return err;
- 	}
- 
--	if (MLX5_CAP_GEN(dev, nic_flow_table)) {
-+	if (MLX5_CAP_GEN(dev, nic_flow_table) ||
-+	    MLX5_CAP_GEN(dev, ipoib_enhanced_offloads)) {
- 		err = mlx5_core_get_caps(dev, MLX5_CAP_FLOW_TABLE);
- 		if (err)
- 			return err;
 -- 
-1.8.3.1
+Jarod Wilson
+jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
