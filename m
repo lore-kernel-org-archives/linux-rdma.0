@@ -1,86 +1,97 @@
-From: Zhu Yanjun <yanjun.zhu@oracle.com>
-Subject: [PATCHv3 4/4] rds: ib: unmap the scatter/gather list when error
-Date: Mon, 13 Mar 2017 01:43:48 -0400
-Message-ID: <1489383828-7699-5-git-send-email-yanjun.zhu@oracle.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCHv3 1/4] rds: ib: drop unnecessary rdma_reject
+Date: Mon, 13 Mar 2017 08:32:24 +0200
+Message-ID: <20170313063224.GJ2079@mtr-leonro.local>
 References: <1489383828-7699-1-git-send-email-yanjun.zhu@oracle.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1489383828-7699-1-git-send-email-yanjun.zhu@oracle.com>
-Sender: netdev-owner@vger.kernel.org
-To: santosh.shilimkar@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, leon@kernel.org
+ <1489383828-7699-2-git-send-email-yanjun.zhu@oracle.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="oXNgvKVxGWJ0RPMJ"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1489383828-7699-2-git-send-email-yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When some errors occur, the scatter/gather list mapped to DMA addresses
-should be handled.
 
-Cc: Joe Jin <joe.jin@oracle.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
----
- net/rds/ib_fmr.c | 26 +++++++++++++++++++-------
- 1 file changed, 19 insertions(+), 7 deletions(-)
+--oXNgvKVxGWJ0RPMJ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/net/rds/ib_fmr.c b/net/rds/ib_fmr.c
-index c936b0d..86ef907 100644
---- a/net/rds/ib_fmr.c
-+++ b/net/rds/ib_fmr.c
-@@ -112,29 +112,39 @@ static int rds_ib_map_fmr(struct rds_ib_device *rds_ibdev,
- 		u64 dma_addr = ib_sg_dma_address(dev, &scat[i]);
- 
- 		if (dma_addr & ~PAGE_MASK) {
--			if (i > 0)
-+			if (i > 0) {
-+				ib_dma_unmap_sg(dev, sg, nents,
-+						DMA_BIDIRECTIONAL);
- 				return -EINVAL;
--			else
-+			} else {
- 				++page_cnt;
-+			}
- 		}
- 		if ((dma_addr + dma_len) & ~PAGE_MASK) {
--			if (i < sg_dma_len - 1)
-+			if (i < sg_dma_len - 1) {
-+				ib_dma_unmap_sg(dev, sg, nents,
-+						DMA_BIDIRECTIONAL);
- 				return -EINVAL;
--			else
-+			} else {
- 				++page_cnt;
-+			}
- 		}
- 
- 		len += dma_len;
- 	}
- 
- 	page_cnt += len >> PAGE_SHIFT;
--	if (page_cnt > ibmr->pool->fmr_attr.max_pages)
-+	if (page_cnt > ibmr->pool->fmr_attr.max_pages) {
-+		ib_dma_unmap_sg(dev, sg, nents, DMA_BIDIRECTIONAL);
- 		return -EINVAL;
-+	}
- 
- 	dma_pages = kmalloc_node(sizeof(u64) * page_cnt, GFP_ATOMIC,
- 				 rdsibdev_to_node(rds_ibdev));
--	if (!dma_pages)
-+	if (!dma_pages) {
-+		ib_dma_unmap_sg(dev, sg, nents, DMA_BIDIRECTIONAL);
- 		return -ENOMEM;
-+	}
- 
- 	page_cnt = 0;
- 	for (i = 0; i < sg_dma_len; ++i) {
-@@ -147,8 +157,10 @@ static int rds_ib_map_fmr(struct rds_ib_device *rds_ibdev,
- 	}
- 
- 	ret = ib_map_phys_fmr(fmr->fmr, dma_pages, page_cnt, io_addr);
--	if (ret)
-+	if (ret) {
-+		ib_dma_unmap_sg(dev, sg, nents, DMA_BIDIRECTIONAL);
- 		goto out;
-+	}
- 
- 	/* Success - we successfully remapped the MR, so we can
- 	 * safely tear down the old mapping.
--- 
-2.7.4
+On Mon, Mar 13, 2017 at 01:43:45AM -0400, Zhu Yanjun wrote:
+> When rdma_accept fails, rdma_reject is called in it. As such, it is
+> not necessary to execute rdma_reject again.
+
+It is not always correct, according to the code, rdma_accept can fail
+and will return EINVAL and skip calling to rdma_reject.
+
+3725 int rdma_accept(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
+3726 {
+3727         struct rdma_id_private *id_priv;
+3728         int ret;
+3729
+3730         id_priv = container_of(id, struct rdma_id_private, id);
+3731
+3732         id_priv->owner = task_pid_nr(current);
+3733
+3734         if (!cma_comp(id_priv, RDMA_CM_CONNECT))
+3735                 return -EINVAL;
+3736
+
+
+>
+> Cc: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Cc: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Acked-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  net/rds/ib_cm.c | 5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
+>
+> diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
+> index ce3775a..4b9405c 100644
+> --- a/net/rds/ib_cm.c
+> +++ b/net/rds/ib_cm.c
+> @@ -677,9 +677,8 @@ int rds_ib_cm_handle_connect(struct rdma_cm_id *cm_id,
+>  		event->param.conn.initiator_depth);
+>
+>  	/* rdma_accept() calls rdma_reject() internally if it fails */
+> -	err = rdma_accept(cm_id, &conn_param);
+> -	if (err)
+> -		rds_ib_conn_error(conn, "rdma_accept failed (%d)\n", err);
+> +	if (rdma_accept(cm_id, &conn_param))
+> +		rds_ib_conn_error(conn, "rdma_accept failed\n");
+>
+>  out:
+>  	if (conn)
+> --
+> 2.7.4
+>
+
+--oXNgvKVxGWJ0RPMJ
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljGPPgACgkQ5GN7iDZy
+WKdTohAAvpqn7inFihU5qA9L+JFZs2R/piC5EuZEcLogrM3JobpBy5OH7RT7GDnC
+0XxSmz3EoJs+DQGnLISZglGwCFaOXaFoFTGD0bLl1d7yq4rv0vkHFKarSzzaMmmZ
+2VzLkoMG9nr1POC6+cfLqRglcSPKvdHOsbFiqLGl2jQc9N8IG270nRuOUyCo0MHq
+4dbvRG54C2DmS6rlIUtgUVadpBJuiw2obTyufp4hq1/bpRwl8TvUB3cXdfnff+OD
+5H05LJQleZjDcBKcZQaa/O4LO2vkric7oUss+Z5kj3ESIYX7T7ZGqRSWA0QGzAIE
+rJuVWdNrfQklGU7O3Hx21okanFgOAeoW+PMJymuLG03dJqxwOEVGLy61OrAclYAo
+FGZgyXKm3Uc4tXcIgKy3vyRw2JJ8oLugMoHiq+mFHgjy+USpdsaze/0ng4iphGHC
+QuLovFrsu/EJsWAcTtI0UO6P5HSaRUvSA7rLZ0+EopuvRlkRL/FnUBctNiNIXLRX
+0quqQBxf3Oz35M/YEx1khsw3iVWsM4yJnkjTIgCD4C0BhomUcEdreYl+mbB2qbG6
+x2B4bhwYP+QRyInN8bs3EwodIg/1ehIiE2V0V91NWlNZzUgKVWrf9/FKjZGo9bbu
+UDc3EVCP5IyMp5PRmDlPaXTlm752HtTWgP700kAzCL03fteLchQ=
+=uBjS
+-----END PGP SIGNATURE-----
+
+--oXNgvKVxGWJ0RPMJ--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
