@@ -1,84 +1,61 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC v1 for accelerated IPoIB 04/25] IB/verb: Add ipoib_options
- struct and API
-Date: Mon, 13 Mar 2017 14:01:36 -0600
-Message-ID: <20170313200136.GA2738@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [RFC v1 for accelerated IPoIB 05/25] IB/ipoib: Support ipoib
+ acceleration options callbacks
+Date: Mon, 13 Mar 2017 14:10:49 -0600
+Message-ID: <20170313201049.GB2738@obsidianresearch.com>
 References: <1489429896-10781-1-git-send-email-erezsh@mellanox.com>
- <1489429896-10781-5-git-send-email-erezsh@mellanox.com>
+ <1489429896-10781-6-git-send-email-erezsh@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1489429896-10781-5-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, saedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+In-Reply-To: <1489429896-10781-6-git-send-email-erezsh@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: Erez Shitrit <erezsh@mellanox.com>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, valex@mellanox.com, leonro@mellanox.com, saedm@mellanox.com, erezsh@dev.mellanox.co.il
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 13, 2017 at 08:31:15PM +0200, Erez Shitrit wrote:
+On Mon, Mar 13, 2017 at 08:31:16PM +0200, Erez Shitrit wrote:
+ 
+> TODO: We added remote qkey to ipoib_send in order to match send op
+> signature.
+> In accel mode this param will be used but in regular mode this param is
+> redundant. Need to think about better solution.
 
-> diff --git a/include/rdma/ib_ipoib_accel_ops.h b/include/rdma/ib_ipoib_accel_ops.h
-> new file mode 100644
-> index 000000000000..148a5529a559
-> +++ b/include/rdma/ib_ipoib_accel_ops.h
+The flow is backwards, in accel mode the xmit ndo should be owend by
+the driver and the driver should call a helper to get all the proper
+AH data, including qkey.
 
-Both patches need a better naming scheme for this file..
-
-rn_opa_vnic.h
-rn_ipoib.h
-
-Maybe?
-
-> +struct rdma_netdev {
-> +	void *clnt_priv;
+> -static int ipoib_dev_init_default(struct net_device *dev, struct ib_device *ca,
+> -				  int port)
+> +static int ipoib_dev_init_default(struct net_device *dev,
+> +				  struct ib_device *hca, int *qp_num)
+>  {
+> -	struct ipoib_dev_priv *priv = netdev_priv(dev);
+> +	struct ipoib_dev_priv *priv = ipoib_priv(dev);
 > +
-> +	/* control functions */
-> +	void (*set_id)(struct net_device *netdev, int id);
+> +	netif_napi_add(dev, &priv->napi, ipoib_poll, NAPI_POLL_WEIGHT);
 
-> +	/* IB resource allocation function, returns new UD QP */
-> +	int (*ib_dev_init)(struct net_device *dev, struct ib_device *hca,
-> +			   int *qp_num);
+All these 'default' functions are part of the 'rn driver'. They should
+not be calling ipoib_priv, you said you didn't want ipoib_dev_priv
+leaking into the drivers.
 
-Why can't some combination of alloc_rdma_netdev and ndo.open do this stuff?
+These _default funcs should use ipoib_dev_priv and all the members of
+ipoib_dev_priv that are used exclusively by the 'default'
+implementation need to be moved into a dedicated priv struct.
 
-> +	void (*ib_dev_cleanup)(struct net_device *dev, struct ib_device *hca);
+Otherwise the entire scheme become hugely confusing about what in
+ipoib_dev_priv is actually valid in accel mode.
 
-Ditto
+I think it would be much easier to maintain if the _default functions were
+all in a dedicated files, eg rn_ipoib_ud_verbs.c
 
-> +	/* send packet */
-> +	void (*send)(struct net_device *dev, struct sk_buff *skb,
-> +		     struct ipoib_ah *address, u32 dqpn, u32 dqkey);
+I also recommend splitting out the bulk rename of ipoib_priv into a
+single patch with a '#define ipoib_priv(dev) netdev_priv(dev)'
+shim. That would make this patch much smaller.
 
-> +	/* multicast */
-> +	int (*attach_mcast)(struct net_device *dev, struct ib_device *hca,
-> +			    union ib_gid *gid, u16 lid, int set_qkey);
-> +	int (*detach_mcast)(struct net_device *dev, struct ib_device *hca,
-> +			    union ib_gid *gid, u16 lid);
-
-It would make more sense to store the struct ib_device pointer in the
-struct rdma_netdev.
-
-Should 'lid' be 'mlid'?
-
-> +	int qp_num;
-
-This one probably belongs in ipoib_rdma_netdev
-
-> +	void *context;
-
-What is this? Why is something other than ipoib_priv or ipoib_dev_priv
-needed?
-
-
->  						struct ib_wq_attr *attr,
->  						u32 wq_attr_mask,
->  						struct ib_udata *udata);
-> +	struct ib_ipoib_accel_ops * (*get_ipoib_accel_ops)(struct ib_device *device);
-
-rebase error? Not sure how this compiles
+IHMO you probably don't need to send the mlx5 stuff until the series
+up to here is OK. I think we all understand that mlx5 can implement
+this API?
 
 Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
