@@ -1,61 +1,62 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: [PATCH v2] nvmet-rdma: Fix a possible uninitialized variable dereference
-Date: Mon, 13 Mar 2017 15:39:41 +0200
-Message-ID: <1489412381-28947-1-git-send-email-sagi@grimberg.me>
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH rdma-core 1/3] verbs: Add mmio_wc_spinlock barrier
+Date: Mon, 13 Mar 2017 16:53:47 +0200
+Message-ID: <1489416829-15467-2-git-send-email-yishaih@mellanox.com>
+References: <1489416829-15467-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1489416829-15467-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When handling a new recv command, we grab a new rsp resource and
-check for the queue state being live. In case the queue is not in
-live state, we simply restore the rsp back to the free list. However
-in this flow we didn't set rsp->queue yet, so we cannot dereference it.
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
-Instead, make sure to initialize rsp->queue (and other rsp members)
-as soon as possible so we won't reference uninitialized variables.
+For x86 the serialization within the spin lock is enough to
+strongly order WC and other memory types.
 
-Reported-by: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Reported-by: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Add a new barrier named 'mmio_wc_spinlock' to optimize
+that.
+
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-- v1 broke srq, this one doesn't
+ util/udma_barrier.h | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
- drivers/nvme/target/rdma.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
-index 9aa1da3778b3..ecc4fe862561 100644
---- a/drivers/nvme/target/rdma.c
-+++ b/drivers/nvme/target/rdma.c
-@@ -703,11 +703,6 @@ static void nvmet_rdma_handle_command(struct nvmet_rdma_queue *queue,
- {
- 	u16 status;
+diff --git a/util/udma_barrier.h b/util/udma_barrier.h
+index 9e73148..ec14dd3 100644
+--- a/util/udma_barrier.h
++++ b/util/udma_barrier.h
+@@ -33,6 +33,8 @@
+ #ifndef __UTIL_UDMA_BARRIER_H
+ #define __UTIL_UDMA_BARRIER_H
  
--	cmd->queue = queue;
--	cmd->n_rdma = 0;
--	cmd->req.port = queue->port;
--
--
- 	ib_dma_sync_single_for_cpu(queue->dev->device,
- 		cmd->cmd->sge[0].addr, cmd->cmd->sge[0].length,
- 		DMA_FROM_DEVICE);
-@@ -760,9 +755,12 @@ static void nvmet_rdma_recv_done(struct ib_cq *cq, struct ib_wc *wc)
++#include <pthread.h>
++
+ /* Barriers for DMA.
  
- 	cmd->queue = queue;
- 	rsp = nvmet_rdma_get_rsp(queue);
-+	rsp->queue = queue;
- 	rsp->cmd = cmd;
- 	rsp->flags = 0;
- 	rsp->req.cmd = cmd->nvme_cmd;
-+	rsp->req.port = queue->port;
-+	rsp->n_rdma = 0;
+    These barriers are expliclty only for use with user DMA operations. If you
+@@ -222,4 +224,17 @@
+ */
+ #define mmio_ordered_writes_hack() mmio_flush_writes()
  
- 	if (unlikely(queue->state != NVMET_RDMA_Q_LIVE)) {
- 		unsigned long flags;
++/* Higher Level primitives */
++
++/* Do mmio_wc_start and grab a spinlock */
++static inline void mmio_wc_spinlock(pthread_spinlock_t *lock)
++{
++	pthread_spin_lock(lock);
++#if !defined(__i386__) && !defined(__x86_64__)
++	/* For x86 the serialization within the spin lock is enough to
++	 * strongly order WC and other memory types. */
++	mmio_wc_start();
++#endif
++}
++
+ #endif
 -- 
-2.7.4
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
