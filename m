@@ -1,40 +1,37 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH] nvmet-rdma: Fix a possible uninitialized variable
- dereference
-Date: Mon, 13 Mar 2017 13:08:07 +0200
-Message-ID: <30a38752-73f3-bcb2-9c8e-684ddd2b2178@grimberg.me>
-References: <1489403135-12774-1-git-send-email-sagi@grimberg.me>
+From: Thomas Bogendoerfer <tbogendoerfer-l3A5Bk7waGM@public.gmane.org>
+Subject: no QFSP detection with HFI card
+Date: Mon, 13 Mar 2017 12:51:16 +0100
+Message-ID: <20170313125116.4cab1f75ba4d0dd0fe96e0df@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1489403135-12774-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi,
 
+I'm tyring to connect a HFI card to an Omni-Path Edge Switch 100. The
+switch detects the QSFP just fine:
 
-On 13/03/17 13:05, Sagi Grimberg wrote:
-> When handling a new recv command, we grab a new rsp resource and
-> check for the queue state being live. In case the queue is not in
-> live state, we simply restore the rsp back to the free list. However
-> in this flow we didn't set rsp->queue yet, so we cannot dereference it.
->
-> Instead, get rid of rsp->queue, because we already have rsp->cmd
-> reference which has a queue reference already, so use that instead.
->
-> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cable05  OEM         Copper     3 meter   20.87  ???  MCP1600-E003-C    6   M9AL0003          Valid
 
-This is missing of course:
+But on the host side, I only get:
 
-Reported-by: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Reported-by: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+[   53.060613] hfi1 0000:01:00.0: hfi1_0: wait_for_qsfp_init: No IntN detected, reset complete
+[   53.082820] hfi1 0000:01:00.0: hfi1_0: i2c_bus_write: bus 1, i2c slave 0x50, offset 0x7f, len 0x1; write failed, ret -6
+[   53.114661] hfi1 0000:01:00.0: hfi1_0: port 1: QSFP chain 1 can't write QSFP_PAGE_SELECT_BYTE: -6
+[   53.137353] hfi1 0000:01:00.0: hfi1_0: QSFP not responding, waiting and retrying 0
 
-Thanks Yi and Raju for reporting.
+Any hint why the card doesn't find the plugged in QSFPs ?
 
-Please let us know if we can add your "Tested-by" tag.
+Thomas.
+
+-- 
+SUSE Linux GmbH
+GF: Felix Imendörffer, Jane Smithard, Graham Norton
+HRB 21284 (AG Nürnberg)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
