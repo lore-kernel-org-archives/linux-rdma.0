@@ -1,67 +1,58 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: kernull NULL pointer observed on initiator side after 'nvmetcli
- clear' on target side
-Date: Mon, 13 Mar 2017 10:09:56 +0200
-Message-ID: <6fe6d285-3cb4-c88c-9a7c-741fce54120c@grimberg.me>
-References: <1053522223.31446389.1488721184925.JavaMail.zimbra@redhat.com>
- <644fc4ab-df6b-a337-1431-bad881ef56ee@grimberg.me>
- <88ae146a-7510-9be0-c9b4-58e70f9d73b9@redhat.com>
- <6ffda302-02f9-12f0-a112-ea7cd20b9ffa@grimberg.me>
- <b0a84bcc-7dca-d342-b30e-b01eba8088cd@redhat.com>
+From: Sagi Grimberg <sagi@grimberg.me>
+Subject: Re: [PATCH rfc 04/10] block: Add a non-selective polling interface
+Date: Mon, 13 Mar 2017 10:15:13 +0200
+Message-ID: <b8124df3-bd09-2eb2-9899-3c9195605510@grimberg.me>
+References: <1489065402-14757-1-git-send-email-sagi@grimberg.me>
+ <1489065402-14757-5-git-send-email-sagi@grimberg.me>
+ <1489076712.2597.1.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <b0a84bcc-7dca-d342-b30e-b01eba8088cd-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: hch-jcswGhMUV9g@public.gmane.org
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1489076712.2597.1.camel@sandisk.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Bart Van Assche <Bart.VanAssche@sandisk.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
->> Yep... looks like we don't take into account that we can't use all the
->> queues now...
->>
->> Does this patch help:
-> Still can reproduce the reconnect in 10 seconds issues with the patch,
-> here is the log:
+>> +int blk_mq_poll_batch(struct request_queue *q, unsigned int batch)
+>> +{
+>> +	struct blk_mq_hw_ctx *hctx;
+>> +
+>> +	if (!q->mq_ops || !q->mq_ops->poll_batch)
+>> +		return 0;
+>> +
+>> +	hctx = blk_mq_map_queue(q, smp_processor_id());
+>> +	return q->mq_ops->poll_batch(hctx, batch);
+>> +}
+>> +EXPORT_SYMBOL_GPL(blk_mq_poll_batch);
 >
-> [  193.574183] nvme nvme0: new ctrl: NQN "nvme-subsystem-name", addr
-> 172.31.2.3:1023
-> [  193.612039] __nvme_rdma_init_request: changing called
-> [  193.638723] __nvme_rdma_init_request: changing called
-> [  193.661767] __nvme_rdma_init_request: changing called
-> [  193.684579] __nvme_rdma_init_request: changing called
-> [  193.707327] __nvme_rdma_init_request: changing called
-> [  193.730071] __nvme_rdma_init_request: changing called
-> [  193.752896] __nvme_rdma_init_request: changing called
-> [  193.775699] __nvme_rdma_init_request: changing called
-> [  193.798813] __nvme_rdma_init_request: changing called
-> [  193.821257] __nvme_rdma_init_request: changing called
-> [  193.844090] __nvme_rdma_init_request: changing called
-> [  193.866472] __nvme_rdma_init_request: changing called
-> [  193.889375] __nvme_rdma_init_request: changing called
-> [  193.912094] __nvme_rdma_init_request: changing called
-> [  193.934942] __nvme_rdma_init_request: changing called
-> [  193.957688] __nvme_rdma_init_request: changing called
-> [  606.273376] Broke affinity for irq 16
-> [  606.291940] Broke affinity for irq 28
-> [  606.310201] Broke affinity for irq 90
-> [  606.328211] Broke affinity for irq 93
-> [  606.346263] Broke affinity for irq 97
-> [  606.364314] Broke affinity for irq 100
-> [  606.382105] Broke affinity for irq 104
-> [  606.400727] smpboot: CPU 1 is now offline
-> [  616.820505] nvme nvme0: reconnecting in 10 seconds
-> [  626.882747] blk_mq_reinit_tagset: tag is null, continue
-> [  626.914000] nvme nvme0: Connect rejected: status 8 (invalid service ID).
-> [  626.947965] nvme nvme0: rdma_resolve_addr wait failed (-104).
-> [  626.974673] nvme nvme0: Failed reconnect attempt, requeueing...
+> A new exported function without any documentation? Wow.
 
-This is strange...
+I just copied blk_mq_poll export...
 
-Is the target alive? I'm assuming it didn't crash here correct?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please add a header
+> above this function that documents at least which other completion processing
+> code can execute concurrently with this function and from which contexts the
+> other completion processing code can be called (e.g. blk_mq_poll() and
+> .complete()).
+
+I can do that, I'll document blk_mq_poll too..
+
+> Why to return if (!q->mq_ops || !q->mq_ops->poll_batch)? Shouldn't that be a
+> WARN_ON_ONCE() instead? I think it is an error to calling blk_mq_poll_batch()
+> against a queue that does not define .poll_batch().
+
+Not really, we don't know if the block driver actually supports 
+poll_batch (or poll for that matter). Instead of conditioning in the
+call-site, we condition within the call.
+
+Its not really a bug, its harmless.
+
+> Additionally, I think making the hardware context an argument of this function
+> instead of using blk_mq_map_queue(q, smp_processor_id()) would make this
+> function much more versatile.
+
+What do you mean? remember that the callers interface to the device is
+a request queue, it doesn't even know if its a blk-mq device. Can you
+explain in more details what you would like to see?
