@@ -1,77 +1,51 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Restore I/O MMU, s390 and powerpc support
-Date: Mon, 13 Mar 2017 11:30:37 +0200
-Message-ID: <20170313093037.GL2079@mtr-leonro.local>
-References: <1D08B61A9CF0974AA09887BE32D889DA0DBFCB@ULS-OP-MBXIP03.sdcorp.global.sandisk.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: Unexpected issues with 2 NVME initiators using the same target
+Date: Mon, 13 Mar 2017 11:43:15 +0200
+Message-ID: <9a7e48b5-6e2d-75ed-bf12-8fd4543f2f76@grimberg.me>
+References: <08131a05-1f56-ef61-990a-7fff04eea095@gmail.com>
+ <de1a559a-bf24-0d73-5fc7-148d6cd4d4e0@grimberg.me>
+ <1848296658.37025722.1487782361271.JavaMail.zimbra@redhat.com>
+ <1554c1d1-6bf4-9ca2-12d4-a0125d8c5715@gmail.com>
+ <DE927C68B458BE418D582EC97927A92854655137@ORSMSX112.amr.corp.intel.com>
+ <3eb5814f-14cb-2b94-adf8-335d4b2eb7e9@grimberg.me>
+ <26912d0c-578f-26e9-490d-94fc95bdf259@mellanox.com>
+ <16c4bd86-fd63-f230-40bc-f52cb106e11b@grimberg.me>
+ <fbd647dd-3a16-8155-107d-f98e8326cc63@mellanox.com>
+ <AM4PR0501MB278621363209E177A738D75FCB220@AM4PR0501MB2786.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="UthUFkbMtH2ceUK2"
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1D08B61A9CF0974AA09887BE32D889DA0DBFCB-fxMRTlsoH6pS59oDqloDyoaX4dThiank9m7AsFVS2+l8Oh6FZyoiAQ@public.gmane.org>
+In-Reply-To: <AM4PR0501MB278621363209E177A738D75FCB220-dp/nxUn679hhbxXPg6FtWcDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sebastian Ott <sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Vladimir Neyelov <vladimirn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "shahar.salzman" <shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Riches Jr, Robert M" <robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---UthUFkbMtH2ceUK2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Mar 07, 2017 at 10:56:53PM +0000, Bart Van Assche wrote:
-> Avoid that the following error message is reported on the console
-> while loading an RDMA driver with I/O MMU support enabled:
+> Patched  by patch of Max (block 4K):
 >
-> DMAR: Allocating domain for mlx5_0 failed
+> allways reg          Y                N
+> write              1902K            1923.3K
+> read               1315K            2009K
 >
-> Ensure that DMA mapping operations that use to_pci_dev() to
-> access to struct pci_dev see the correct PCI device. E.g. the s390
-> and powerpc DMA mapping operations use to_pci_dev() even with I/O
-> MMU support disabled.
+> Original  OFED code (block 4K)
 >
-> This patch preserves the following changes of the DMA mapping updates
-> patch series:
-> - Introduction of dma_virt_ops.
-> - Removal of ib_device.dma_ops.
-> - Removal of struct ib_dma_mapping_ops.
-> - Removal of an if-statement from each ib_dma_*() operation.
-> - IB HW drivers no longer set dma_device directly.
->
-> Reported-by: Sebastian Ott <sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-> Reported-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Fixes: commit 99db9494035f ("IB/core: Remove ib_device.dma_device")
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> ---
->  drivers/infiniband/core/device.c | 26 ++++++++++++++++++++------
->  include/rdma/ib_verbs.h          | 30 +++++++++++++++++-------------
->  2 files changed, 37 insertions(+), 19 deletions(-)
->
+> allways reg          Y                N
+> write              1947K           1982K
+> read               1273K           1978K												
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+First, the write comparison is redundant because
+we send immediate data without memory registration.
 
---UthUFkbMtH2ceUK2
-Content-Type: application/pgp-signature; name="signature.asc"
+And, I'd compare against upstream code and not OFED.
 
------BEGIN PGP SIGNATURE-----
+So it seems that strong fencing does not effect performance
+from the ULP point of view, surprising...
+I'd suggest comparing on nvmf and srp as well.
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljGZr0ACgkQ5GN7iDZy
-WKf9MxAAidVmX2gwlh14x+SQskEM3EPFFd0ahEOEDNUrhqWa4facW/FsjQHVt/rx
-lYsJbeeNnIGyLMIFPrQ4zELDeqN39RH+VSL2iacN0Q6DJJEVJ1yfCkGg02peSQYk
-2h6ZfL53/VCL1Cs84w7IYFkNzmX26ZCD7IStU+ZDxR9UHeuUENxi/kYDoirHq4ck
-7/rI8KgG+Fp7r/vvRML5bDWCTfBrlC3YhBQgEmiWjDw8AWbId5wTLZCOAM8sRDJH
-onO2Op39KSQV8oVDpgLx2Rt9+C8KydnGPDJwPQ/BINjxvYCeBPBaksXvaa7sRBBe
-SBjkkmSS6EUDmOqXz1yR7Ur12JluYCSJczX9R4PvTqaDWSL4B5PE2G2LXadfaCev
-mcpE6N4gc6pWh/uJzSboQU4cSbiDubE8B05B89GScub9T6L31427hJe32KYxIbDF
-FWm/428fQlKHDXXT8i/4tOpYvDPorN0ruVFmr5M4emkyqEbr1YyvJXpwEefMAjVp
-G9fS56M86sOxvGdBsH8Vkodcn3bpe/I9GxDHZn+IhPyCUzVSBsn3aFCjMf8gpg0d
-4wb9K+wJhem2sD3f2qzPugs60JrfzhVi2G6nGywlLVmy4vS9b7nKiP3OMmN6KiOK
-6NpU1d81JqIXngryEeQrOZ3nklESKdihkFMUrFnyNooJw104/Z4=
-=yIrt
------END PGP SIGNATURE-----
-
---UthUFkbMtH2ceUK2--
+If this is the case, and it indeed resolves the issue, we
+should move forward with it as is.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
