@@ -1,68 +1,64 @@
-From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core 07/14] mlx4: Update to use new udma write
- barriers
-Date: Mon, 13 Mar 2017 17:17:48 +0200
-Message-ID: <1b4d3cc4-cf44-d052-9129-88ef6b9bfae5@dev.mellanox.co.il>
-References: <1487272989-8215-8-git-send-email-jgunthorpe@obsidianresearch.com>
- <206559e5-0488-f6d5-c4ec-bf560e0c3ba6@dev.mellanox.co.il>
- <20170221181407.GA13138@obsidianresearch.com>
- <45d2b7da-9ad6-6b37-d0b2-00f7807966b4@dev.mellanox.co.il>
- <20170306173139.GA11805@obsidianresearch.com>
- <55bcc87e-b059-65df-8079-100120865ffb@dev.mellanox.co.il>
- <20170307191824.GD2228@obsidianresearch.com>
- <6571cf34-63b9-7b83-ddb0-9279e7e20fa9@dev.mellanox.co.il>
- <20170308215609.GB4109@obsidianresearch.com>
- <4dcf0cea-3652-0df2-9d98-74e258e6170a@dev.mellanox.co.il>
- <20170309170320.GA12694@obsidianresearch.com>
+From: Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>
+Subject: Re: ConnectX-3 on non-coherent AARCH64 system
+Date: Mon, 13 Mar 2017 10:43:04 -0600
+Message-ID: <40698e27-8b17-df09-8165-40420f16a37e@wwwdotorg.org>
+References: <b01684b6-ba4a-65cc-ea20-b578e1e2fa2e@nvidia.com>
+ <20170310170626.GE22960@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170309170320.GA12694-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20170310170626.GE22960-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/9/2017 7:03 PM, Jason Gunthorpe wrote:
-> I honestly think you are trying far too much to pointlessly preserve
-> the exact original code...
-
-At that stage we would like to solve the degradation that was introduced 
-in previous series of the barriers. Further improvements will be as some 
-incremental patches after making the required performance testing.
-
-> If you are going to send this a patch please include my updated
-> comment.
-
-I put some comment in mlx4/5 that points that code is latency oriented 
-and flush immediately.
-
->> +/* Do mmio_wc_start and grab a spinlock */
->> +static inline void mmio_wc_spinlock(pthread_spinlock_t *lock)
->> +{
->> +       pthread_spin_lock(lock);
->> +#if !defined(__i386__) && !defined(__x86_64__)
->> +       /* For x86 the serialization within the spin lock is enough to
->> +        * strongly order WC and other memory types. */
->> +       mmio_wc_start();
->> +#endif
+On 03/10/2017 10:06 AM, Jason Gunthorpe wrote:
+> On Thu, Mar 09, 2017 at 04:59:40PM -0700, Stephen Warren wrote:
 >
-> I would like to see the unlock inline still present in the header for
-> clarity to the reader what the expected pattern is, and a comment in
-> mlx4/mlx5 indicating they are not using the unlock macro directly to
-> try and reduce latency to the flush.
+>> However, when I run the same test on a (non-cache-coherent) AArch64 (ARMv8)
+>> machine (Cortex-A57, NVIDIA Tegra), the application does not work. In
+>> particular, ivc_poll_cq() returns -2 when the application waits for an
+>> ibv_post_send/recv() to complete.
+>
+> User space verbs are not supported on non-cache-coherent architectures
+> for kernel bypass adapters and probably never will be.
 
-For now this macro is not in use by mlx4 & mlx5 as pointed before.
+In my case, I primarily want another "DMA device" to access the data 
+read/written by Infiniband. If CPU access to the data buffers doesn't 
+work correctly, it might not be such a big deal. So, I'd be willing to 
+take a solution that only fixed the MMU setup issues for the pages used 
+for ConnectX HW control. I expect making those uncached would work, and 
+since the number of these control pages (compared to the data plane) is 
+small, the performance probably wouldn't be too bad. Would it be 
+possible for the kernel ConnectX driver to modify the process page 
+tables to flip all known control pages from cached to uncached when the 
+completion queues are created?
 
-In addition, it still needs some work to verify whether the unlock is 
-fully equal to flushing the data immediately as you also wondered.
-The lock macro is used for ordering and as such can be used based on 
-Intel docs that were pointed.
+> Ideally the kernel would not create the uverbs device for DMA drivers
+> on such architectures.. Is there a kernel API to detect cache
+> incoherence?
 
-In case there will be some provider that needs this optimization it can 
-be added after finalizing above work.
+I'm not aware of any right now (although I don't deal with Linux MM 
+much, so probably wouldn't be). I am aware of dma_alloc_coherent(), and 
+I assume that must choose uncached/cached/... based on the HW's 
+coherence, so perhaps that information could be found.
 
+Once upon a time, we might have got away with assuming the answer based 
+on architecture, but I suspect that ARM==non-coherent is false in many 
+cases these days.
+
+>> than e.g. the kernel filling in the CQ), and there don't appear to be any
+>> cache invalidation operations anywhere in libmlx4 (I'm not even sure if
+>> cache manipulation is possible from user-space on ARM). I also
+>> couldn't find
+>
+> Precisely.
+
+P.S. Sorry about the email disclaimer last time around; I hadn't noticed 
+that my email client defaulted to sending the message through the 
+corporate mail server.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
