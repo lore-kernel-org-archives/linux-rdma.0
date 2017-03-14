@@ -1,135 +1,79 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: libibverbs statistics
-Date: Tue, 14 Mar 2017 16:37:45 +0200
-Message-ID: <20170314143745.GU2079@mtr-leonro.local>
-References: <SN1PR07MB220795B72FC9CB082CCDC384F8210@SN1PR07MB2207.namprd07.prod.outlook.com>
- <AM5PR0502MB3057535C300A4176657E5FAFBD210@AM5PR0502MB3057.eurprd05.prod.outlook.com>
- <CAFgAxU_rOB_xQptt-LqxKpMC=SbsGOL1FbSiK4eY_czu4zpwfA@mail.gmail.com>
+From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [RFC v1 for accelerated IPoIB 05/25] IB/ipoib: Support ipoib
+ acceleration options callbacks
+Date: Tue, 14 Mar 2017 16:39:20 +0200
+Message-ID: <CAAk-MO8-bnWRu7BDtYDhNePj+76X4Vb7gFNhED8irLNtqR7tCw@mail.gmail.com>
+References: <1489429896-10781-1-git-send-email-erezsh@mellanox.com>
+ <1489429896-10781-6-git-send-email-erezsh@mellanox.com> <20170313201049.GB2738@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="L/Qt9NZ8t00Dhfad"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAFgAxU_rOB_xQptt-LqxKpMC=SbsGOL1FbSiK4eY_czu4zpwfA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20170313201049.GB2738-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Guy Shattah <sguy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---L/Qt9NZ8t00Dhfad
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Mar 14, 2017 at 04:20:56PM +0200, Alex Rosenbaum wrote:
-> can Guys suggestion [1] solve your request for packet counters? on QP
-> and flow verbs objects.
-> and libibprof [2] as preload lib to track verbs API calls and count
-> and duration.
-> also RDMA_CM netlink [3] to query in-use QP's and some details about
-> them. This has kernel support but user-space was never completed
-> integration into 'iptoure2'
+On Mon, Mar 13, 2017 at 10:10 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Mon, Mar 13, 2017 at 08:31:16PM +0200, Erez Shitrit wrote:
 >
-> [1] https://www.spinics.net/lists/linux-rdma/msg47355.html
-> [2] https://github.com/mellanox-hpc/libibprof
-> [3] http://linux-rdma.vger.kernel.narkive.com/EMsWPDF2/patch-v4-0-6-ib-netlink-interface-and-rdma-cm-exports
+>> TODO: We added remote qkey to ipoib_send in order to match send op
+>> signature.
+>> In accel mode this param will be used but in regular mode this param is
+>> redundant. Need to think about better solution.
 >
-> Alex
-> __________________________________
->   Alex Rosenbaum  | +972-545-234-555
+> The flow is backwards, in accel mode the xmit ndo should be owend by
+> the driver and the driver should call a helper to get all the proper
+> AH data, including qkey.
 >
+>> -static int ipoib_dev_init_default(struct net_device *dev, struct ib_device *ca,
+>> -                               int port)
+>> +static int ipoib_dev_init_default(struct net_device *dev,
+>> +                               struct ib_device *hca, int *qp_num)
+>>  {
+>> -     struct ipoib_dev_priv *priv = netdev_priv(dev);
+>> +     struct ipoib_dev_priv *priv = ipoib_priv(dev);
+>> +
+>> +     netif_napi_add(dev, &priv->napi, ipoib_poll, NAPI_POLL_WEIGHT);
+>
+> All these 'default' functions are part of the 'rn driver'. They should
+> not be calling ipoib_priv, you said you didn't want ipoib_dev_priv
+> leaking into the drivers.
 
-It starts REALLY annoying. Can you STOP top-posting?
-
+Do you mean in the name of the function?   drma_netdev_init_default
+instead of ipoib_dev_init_default ?
 
 >
+> These _default funcs should use ipoib_dev_priv and all the members of
+> ipoib_dev_priv that are used exclusively by the 'default'
+> implementation need to be moved into a dedicated priv struct.
 >
-> On Thu, Mar 9, 2017 at 3:43 PM, Guy Shattah <sguy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> > Hi Ram,
-> >
-> > That sounds like a great idea. Let's try to generalize the idea and see how
-> > to attack it. It looks like we need counters/statistics per verbs object. I noticed
-> > that you require specific measurements the objects. However - I see several
-> > potential issues here:
-> > First - if you manage to find a vendor to add those counters/stats  then
-> > other vendors might not support it.
-> > Second - trying to push counters/stats for which both the community and
-> > all the vendor agrees might proves very difficult.
-> > Second - it would be difficult to add to the current verbs API hard-coded
-> > names of counters/stats, either as strings, variables names or even enum
-> > which contains a list of names.
-> >
-> > Since that's such a good idea. I'll take the weekend to think about it and see
-> > if I can offer some kind of generic approach to solving this problem.
-> >
-> > Guy
-> >
-> >
-> > On Wed, Mar 09, 2017 at 01:37:39PM +0000, Amrani Ram wrote:
-> >
-> >>Hi All,
-> >>I find it useful to have statistics in the user-space library.
-> >>For example -
-> >>1. Number of post_sends per WR type
-> >>2. Number of failed post_sends
-> >>3. Number of polled CQs
-> >>4. Number of polled CQ errors
-> >>5. Number of times other verbs was invoked, per verb
-> >>6. Number of currently opened QPs, perhaps  in each state
-> >>7. ...
-> >>
-> >>I'm not sure what mechanism to use to minimize impact on
-> >>performance. In the kernel space, for example, the 'per CPU variables'
-> >>can be used, but I'm not aware of a similar mechanism in user space.
-> >>Any ideas?
-> >
-> >>Is this is of use and benefit to anyone?
-> >>If so, perhaps something like this can be added to libibverbs.
-> >
-> >>Also of interest is the scope of the statistics. Per my understanding
-> >>libibverbs works per context that will be destroyed after the application
-> >>terminates. So I'm asking myself, and you, if it is interesting to
-> >>store statistics at a higher scope (aggregate contexts)?
-> >>Is it interesting to store statistics per-QP?
-> >>(note: currently libibverbs doesn't hold the context's QP list)
-> >
-> >>Thanks,
-> >>Ram
-> >>
-> >>--
-> >>To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> >>the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >>More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Otherwise the entire scheme become hugely confusing about what in
+> ipoib_dev_priv is actually valid in accel mode.
 
---L/Qt9NZ8t00Dhfad
-Content-Type: application/pgp-signature; name="signature.asc"
+ipoib_dev_priv is used in both modes accel and "default", it keeps all
+the control data/flows, the accel mode handle only the data path.
 
------BEGIN PGP SIGNATURE-----
+>
+> I think it would be much easier to maintain if the _default functions were
+> all in a dedicated files, eg rn_ipoib_ud_verbs.c
+>
+> I also recommend splitting out the bulk rename of ipoib_priv into a
+> single patch with a '#define ipoib_priv(dev) netdev_priv(dev)'
+> shim. That would make this patch much smaller.
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljIADkACgkQ5GN7iDZy
-WKeWCBAApsAOhov8d9QmG/HvZf9MB0WVvrmlsV5dOsQbId+oJobqrfgQPlw/oIm5
-N4sDsVUWdx3bPjdDplua0ZIgEAV8dlBHgY1fI2d6ZYyGCcrRHjSjkKLzSTslxnZI
-ERJGEIXI99JfpwBkkMDLA+lEkhfy4jmkGxydcbst0vE9T08ebogVDHBpQR25ibq/
-kCNkqEgBvwRq8Nq7na0t1NHFLtk6ewJ5Buc9TzioMAPCOlIfXVSw/hlxBsuWOcMa
-zPrMTmZ+1qjXkRrSSVlRKO+ebW1574rBGikjW7LCZ6uDSlrAzZFkuxzD44RMOeBB
-pbdTsPY6FyTG63k/cA68ZOL3wCTsgg4NwGfLMkOBlPjgYT16KWQwLm50XanQc4ly
-DyXexjhinZxSARb4pdTZ12ElH8HaRw3xAepSFAI/JZzdrXE1kpGiroFCjDpHIasq
-GIjeny1kSzk6aHhBv4bhtOx2+AgIZahnIyIx0pF7WI5YYe+OAGX6R4nmcoQ8Jb7U
-tykdHvAgpZ7kTpiUFfXJrwosAoaZKCbwLHrhF28X7n1ZhQ8JIeYYAF4ApiSGordW
-C2Pkel3VkJPhc6R4O0+yZdtlsZo8ayJCknmGGGeu/Vrw0w3+zaSSzYY/Bje6SbA2
-4WtZUhpD1lUQ+t4KpIgUrVLmkc17nBlao9m1t/Yoh+15Tw8yOe8=
-=0gDO
------END PGP SIGNATURE-----
+OK.
 
---L/Qt9NZ8t00Dhfad--
+>
+> IHMO you probably don't need to send the mlx5 stuff until the series
+> up to here is OK. I think we all understand that mlx5 can implement
+> this API?
+
+OK, agree. will check that with our people that handle the mlx5 stuff.
+
+>
+> Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
