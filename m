@@ -1,36 +1,34 @@
-From: Alexey Lyashkov <alexey.lyashkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: SRQ flow control and IB_EVENT_SRQ_LIMIT_REACHED
-Date: Tue, 14 Mar 2017 09:45:40 +0300
-Message-ID: <AD8231DF-E503-49E5-B612-F4CDA9B778F9@gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 10.2 \(3259\))
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>
+Subject: Re: [RFC v1 for accelerated IPoIB 04/25] IB/verb: Add ipoib_options
+ struct and API
+Date: Tue, 14 Mar 2017 00:01:09 -0700
+Message-ID: <20170314070109.GD79937@knc-06.sc.intel.com>
+References: <1489429896-10781-1-git-send-email-erezsh@mellanox.com>
+ <1489429896-10781-5-git-send-email-erezsh@mellanox.com>
+ <20170313200136.GA2738@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170313200136.GA2738@obsidianresearch.com>
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Erez Shitrit <erezsh@mellanox.com>, dledford@redhat.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, valex@mellanox.com, leonro@mellanox.com, saedm@mellanox.com, erezsh@dev.mellanox.co.il
 List-Id: linux-rdma@vger.kernel.org
 
-Hi All,
+On Mon, Mar 13, 2017 at 02:01:36PM -0600, Jason Gunthorpe wrote:
+>> +	/* multicast */
+>> +	int (*attach_mcast)(struct net_device *dev, struct ib_device *hca,
+>> +			    union ib_gid *gid, u16 lid, int set_qkey);
+>> +	int (*detach_mcast)(struct net_device *dev, struct ib_device *hca,
+>> +			    union ib_gid *gid, u16 lid);
+>
+>It would make more sense to store the struct ib_device pointer in the
+>struct rdma_netdev.
+>
 
-I=E2=80=99m beginner on IB stack and try to understand a flow control in =
-SRQ case.
-Based on IB specification=20
-C9-150.2.1: For QPs that are not associated with an SRQ, each HCA =
-receive
-queue shall generate end-to-end flow control credits. If a QP is =
-associated
-with an SRQ, the HCA receive queue shall not generate end-toend
-flow control credits.
+Agree that it shouldn't be a function parameters.
+For opa_vnic, I found it convenient to store ib_device pointer in client and 
+device private structures as those will be available in most places anyhow.
 
-did it mean - SRQ owner responsible to the process an =
-IB_EVENT_SRQ_LIMIT_REACHED and submit a more WR into SRQ to avoid =
-requests lost?
-Or requests will be resend via handling an RNR error ?
-
-
-Big thanks for answer,
-Alexey=
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Niranjana
