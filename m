@@ -1,12 +1,9 @@
 From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: [PATCH v10 07/11] btrfs_tree.h: fix include from userland
-Date: Tue, 14 Mar 2017 13:54:49 +0100
-Message-ID: <1489496093-15315-8-git-send-email-nicolas.dichtel@6wind.com>
+Subject: [PATCH v10 09/11] smc_diag.h: fix include from userland
+Date: Tue, 14 Mar 2017 13:54:51 +0100
+Message-ID: <1489496093-15315-10-git-send-email-nicolas.dichtel@6wind.com>
 References: <CAK7LNARpx7f0eV5_AiPmNYT7MsRbGFOygJwjfAzX_7aCpuHwuw@mail.gmail.com>
  <1489496093-15315-1-git-send-email-nicolas.dichtel@6wind.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1489496093-15315-1-git-send-email-nicolas.dichtel@6wind.com>
 Sender: linux-kernel-owner@vger.kernel.org
@@ -14,33 +11,62 @@ To: yamada.masahiro@socionext.com
 Cc: arnd@arndb.de, mmarek@suse.com, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, airlied@linux.ie, davem@davemloft.net, linux@armlinux.org.uk, bp@alien8.de, slash.tmp@free.fr, daniel.vetter@ffwll.ch, rmk+kernel@armlinux.org.uk, msalter@redhat.com, jengelh@inai.de, hch@infradead.org, tklauser@distanz.ch, mpe@ellerman.id.au, mingo@kernel.org, tglx@linutronix.de, ldv@altlinux.org, nicolas.dichtel@6wind.com, herbert@gondor.apana.org.au, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch prepares the uapi export by fixing the following errors:
+This patch prepares the uapi export by fixing the following error:
 
-.../linux/btrfs_tree.h:283:2: error: #error "UUID items require BTRFS_UUID_SIZE == 16!"
- #error "UUID items require BTRFS_UUID_SIZE == 16!"
-
-.../linux/btrfs_tree.h:390:12: error: ‘BTRFS_UUID_SIZE’ undeclared here (not in a function)
-  __u8 uuid[BTRFS_UUID_SIZE];
-            ^
-.../linux/btrfs_tree.h:796:16: error: ‘BTRFS_DEV_STAT_VALUES_MAX’ undeclared here (not in a function)
-  __le64 values[BTRFS_DEV_STAT_VALUES_MAX];
+.../linux/smc_diag.h:6:27: fatal error: rdma/ib_verbs.h: No such file or directory
+ #include <rdma/ib_verbs.h>
 
 Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
 ---
- include/uapi/linux/btrfs_tree.h | 1 +
- 1 file changed, 1 insertion(+)
+ include/rdma/ib_verbs.h           | 3 +--
+ include/uapi/linux/smc_diag.h     | 2 +-
+ include/uapi/rdma/ib_user_verbs.h | 2 ++
+ 3 files changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/include/uapi/linux/btrfs_tree.h b/include/uapi/linux/btrfs_tree.h
-index 6a261cb52d95..6a754ada59af 100644
---- a/include/uapi/linux/btrfs_tree.h
-+++ b/include/uapi/linux/btrfs_tree.h
-@@ -2,6 +2,7 @@
- #define _BTRFS_CTREE_H_
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 0f1813c13687..50f276a4afdc 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -61,6 +61,7 @@
+ #include <linux/mmu_notifier.h>
+ #include <linux/uaccess.h>
+ #include <linux/cgroup_rdma.h>
++#include <uapi/rdma/ib_user_verbs.h>
+ 
+ extern struct workqueue_struct *ib_wq;
+ extern struct workqueue_struct *ib_comp_wq;
+@@ -1838,8 +1839,6 @@ enum ib_mad_result {
+ 	IB_MAD_RESULT_CONSUMED = 1 << 2  /* Packet consumed: stop processing */
+ };
+ 
+-#define IB_DEVICE_NAME_MAX 64
+-
+ struct ib_port_cache {
+ 	struct ib_pkey_cache  *pkey;
+ 	struct ib_gid_table   *gid;
+diff --git a/include/uapi/linux/smc_diag.h b/include/uapi/linux/smc_diag.h
+index 0063919fea34..87712bfaa9dd 100644
+--- a/include/uapi/linux/smc_diag.h
++++ b/include/uapi/linux/smc_diag.h
+@@ -3,7 +3,7 @@
  
  #include <linux/types.h>
-+#include <linux/btrfs.h>
+ #include <linux/inet_diag.h>
+-#include <rdma/ib_verbs.h>
++#include <rdma/ib_user_verbs.h>
  
- /*
-  * This header contains the structure definitions and constants used
+ /* Request structure */
+ struct smc_diag_req {
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index 997f904c7692..8edce2b65903 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -1124,4 +1124,6 @@ struct ib_uverbs_ex_destroy_rwq_ind_table  {
+ 	__u32 ind_tbl_handle;
+ };
+ 
++#define IB_DEVICE_NAME_MAX 64
++
+ #endif /* IB_USER_VERBS_H */
 -- 
 2.8.1
