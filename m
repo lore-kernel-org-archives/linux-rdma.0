@@ -1,128 +1,86 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 1/7] ibverbs: Report raw packet caps as part of query device
-Date: Tue, 14 Mar 2017 13:15:37 +0200
-Message-ID: <1489490143-29018-2-git-send-email-yishaih@mellanox.com>
-References: <1489490143-29018-1-git-send-email-yishaih@mellanox.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-core 1/3] verbs: Add mmio_wc_spinlock barrier
+Date: Tue, 14 Mar 2017 14:06:45 +0200
+Message-ID: <f236046b-4d2d-f873-d251-a91c90adae98@dev.mellanox.co.il>
+References: <1489416829-15467-1-git-send-email-yishaih@mellanox.com>
+ <1489416829-15467-2-git-send-email-yishaih@mellanox.com>
+ <20170313170003.GC25664@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1489490143-29018-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20170313170003.GC25664-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 3/13/2017 7:00 PM, Jason Gunthorpe wrote:
+> On Mon, Mar 13, 2017 at 04:53:47PM +0200, Yishai Hadas wrote:
+>> From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+>>
+>> For x86 the serialization within the spin lock is enough to
+>> strongly order WC and other memory types.
+>>
+>> Add a new barrier named 'mmio_wc_spinlock' to optimize
+>> that.
+>
+> Please use this patch with the commentary instead:
 
-Allow the device to report raw packet capabilities back to user,
-introducing the cvlan stripping offload capability.
-Two existing capabilities, scatter FCS and IP CSUM, were added to
-this field for a better user experience by exposing the raw packet
-caps from one location.
+OK, pull request was updated with below.
+https://github.com/linux-rdma/rdma-core/pull/95
 
-This patch includes:
-- Reading from the uverbs layer and report back to an application.
-- Extending ibv_devinfo to print that information.
-
-Signed-off-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- libibverbs/cmd.c              |  8 ++++++++
- libibverbs/examples/devinfo.c | 14 ++++++++++++++
- libibverbs/kern-abi.h         |  2 +-
- libibverbs/verbs.h            |  7 +++++++
- 4 files changed, 30 insertions(+), 1 deletion(-)
-
-diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
-index 9b49da0..4aebbb5 100644
---- a/libibverbs/cmd.c
-+++ b/libibverbs/cmd.c
-@@ -230,6 +230,14 @@ int ibv_cmd_query_device_ex(struct ibv_context *context,
- 			attr->max_wq_type_rq = resp->max_wq_type_rq;
- 	}
- 
-+	if (attr_size >= offsetof(struct ibv_device_attr_ex, raw_packet_caps) +
-+			 sizeof(attr->raw_packet_caps)) {
-+		if (resp->response_length >=
-+		    offsetof(struct ibv_query_device_resp_ex, raw_packet_caps) +
-+		    sizeof(resp->raw_packet_caps))
-+			attr->raw_packet_caps = resp->raw_packet_caps;
-+	}
-+
- 	return 0;
- }
- 
-diff --git a/libibverbs/examples/devinfo.c b/libibverbs/examples/devinfo.c
-index d88562f..42222c4 100644
---- a/libibverbs/examples/devinfo.c
-+++ b/libibverbs/examples/devinfo.c
-@@ -401,6 +401,17 @@ static void print_packet_pacing_caps(const struct ibv_packet_pacing_caps *caps)
- 	}
- }
- 
-+static void print_raw_packet_caps(uint32_t raw_packet_caps)
-+{
-+	printf("\traw packet caps:\n");
-+	if (raw_packet_caps & IBV_RAW_PACKET_CAP_CVLAN_STRIPPING)
-+		printf("\t\t\t\t\tC-VLAN stripping offload\n");
-+	if (raw_packet_caps & IBV_RAW_PACKET_CAP_SCATTER_FCS)
-+		printf("\t\t\t\t\tScatter FCS offload\n");
-+	if (raw_packet_caps & IBV_RAW_PACKET_CAP_IP_CSUM)
-+		printf("\t\t\t\t\tIP csum offload\n");
-+}
-+
- static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
- {
- 	struct ibv_context *ctx;
-@@ -499,6 +510,9 @@ static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
- 		else
- 			printf("\tcore clock not supported\n");
- 
-+		if (device_attr.raw_packet_caps)
-+			print_raw_packet_caps(device_attr.raw_packet_caps);
-+
- 		printf("\tdevice_cap_flags_ex:\t\t0x%" PRIX64 "\n", device_attr.device_cap_flags_ex);
- 		print_device_cap_flags_ex(device_attr.device_cap_flags_ex);
- 		print_tso_caps(&device_attr.tso_caps);
-diff --git a/libibverbs/kern-abi.h b/libibverbs/kern-abi.h
-index 210dd3e..3958f0c 100644
---- a/libibverbs/kern-abi.h
-+++ b/libibverbs/kern-abi.h
-@@ -290,7 +290,7 @@ struct ibv_query_device_resp_ex {
- 	__u64 device_cap_flags_ex;
- 	struct ibv_rss_caps_resp rss_caps;
- 	__u32  max_wq_type_rq;
--	__u32 reserved;
-+	__u32 raw_packet_caps;
- };
- 
- struct ibv_query_port {
-diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index 25f4ede..604b09e 100644
---- a/libibverbs/verbs.h
-+++ b/libibverbs/verbs.h
-@@ -252,6 +252,12 @@ struct ibv_packet_pacing_caps {
- 	uint32_t supported_qpts;
- };
- 
-+enum ibv_raw_packet_caps {
-+	IBV_RAW_PACKET_CAP_CVLAN_STRIPPING	= 1 << 0,
-+	IBV_RAW_PACKET_CAP_SCATTER_FCS		= 1 << 1,
-+	IBV_RAW_PACKET_CAP_IP_CSUM		= 1 << 2,
-+};
-+
- struct ibv_device_attr_ex {
- 	struct ibv_device_attr	orig_attr;
- 	uint32_t		comp_mask;
-@@ -263,6 +269,7 @@ struct ibv_device_attr_ex {
- 	struct ibv_rss_caps     rss_caps;
- 	uint32_t		max_wq_type_rq;
- 	struct ibv_packet_pacing_caps packet_pacing_caps;
-+	uint32_t		raw_packet_caps; /* Use ibv_raw_packet_caps */
- };
- 
- enum ibv_mtu {
--- 
-1.8.3.1
+> diff --git a/util/udma_barrier.h b/util/udma_barrier.h
+> index 9e73148af8d5b6..cfe0459d7f6fff 100644
+> --- a/util/udma_barrier.h
+> +++ b/util/udma_barrier.h
+> @@ -33,6 +33,8 @@
+>  #ifndef __UTIL_UDMA_BARRIER_H
+>  #define __UTIL_UDMA_BARRIER_H
+>
+> +#include <pthread.h>
+> +
+>  /* Barriers for DMA.
+>
+>     These barriers are expliclty only for use with user DMA operations. If you
+> @@ -222,4 +224,37 @@
+>  */
+>  #define mmio_ordered_writes_hack() mmio_flush_writes()
+>
+> +/* Write Combining Spinlock primitive
+> +
+> +   Any access to a multi-value WC region must ensure that multiple cpus do not
+> +   write to the same values concurrently, these macros make that
+> +   straightforward and efficient if the choosen exclusion is a spinlock.
+> +
+> +   The spinlock guarantees that the WC writes issued within the critical
+> +   section are made visible as TLP to the device. The TLP must be seen by the
+> +   device strictly in the order that the spinlocks are acquired, and combining
+> +   WC writes between different sections is not permitted.
+> +
+> +   Use of these macros allow the fencing inside the spinlock to be combined
+> +   with the fencing required for DMA.
+> + */
+> +static inline void mmio_wc_spinlock(pthread_spinlock_t *lock)
+> +{
+> +	pthread_spin_lock(lock);
+> +#if !defined(__i386__) && !defined(__x86_64__)
+> +	/* For x86 the serialization within the spin lock is enough to
+> +	 * strongly order WC and other memory types. */
+> +	mmio_wc_start();
+> +#endif
+> +}
+> +
+> +static inline void mmio_wc_spinunlock(pthread_spinlock_t *lock)
+> +{
+> +	/* It is possible that on x86 the atomic in the lock is strong enough
+> +	 * to force-flush the WC buffers quickly, and this SFENCE can be
+> +	 * omitted too. */
+> +	mmio_flush_writes();
+> +	pthread_spin_unlock(lock);
+> +}
+> +
+>  #endif
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
