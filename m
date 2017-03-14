@@ -1,44 +1,76 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: Re: [PATCH v9 00/11] uapi: export all headers under uapi directories
-Date: Tue, 14 Mar 2017 09:25:03 +0100
-Message-ID: <281def1c-e0dc-1493-3f48-fc0024c534ac@6wind.com>
-References: <20170301045241.GB9156@gondor.apana.org.au>
- <1488473802-13354-1-git-send-email-nicolas.dichtel@6wind.com>
- <3df45ecc-1aa0-a029-d7e5-2598f0908874@6wind.com>
- <CAK7LNARpx7f0eV5_AiPmNYT7MsRbGFOygJwjfAzX_7aCpuHwuw@mail.gmail.com>
- <96811b2b-25af-ed32-5094-14987aefd4d2@6wind.com>
- <CAK7LNAQV0tDw7RCTdn-qicttbyjU9QRfxasvc-7S-+dxMfii8g@mail.gmail.com>
-Reply-To: nicolas.dichtel@6wind.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kbuild-owner@vger.kernel.org>
-In-Reply-To: <CAK7LNAQV0tDw7RCTdn-qicttbyjU9QRfxasvc-7S-+dxMfii8g@mail.gmail.com>
-Sender: linux-kbuild-owner@vger.kernel.org
-To: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Michal Marek <mmarek@suse.com>, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arch@vger.kernel.org, David Airlie <airlied@linux.ie>, "David S. Miller" <davem@davemloft.net>, Russell King <linux@armlinux.org.uk>, bp@alien8.de, slash.tmp@free.fr, Daniel Vetter <daniel.vetter@ffwll.ch>, rmk+kernel@armlinux.org.uk, msalter@redhat.com, jengelh@inai.de, hch@infradead.org, Tobias Klauser <tklauser@distanz.ch>, mpe@ellerman.id.au, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ldv@altlinux.org, Herbert Xu <herbert@gondor.apana.org.au>, linux-rdma@vger.kernel.org
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH rdma-core 4/7] ibverbs: Add an option to poll cvlan value from a CQ
+Date: Tue, 14 Mar 2017 13:15:40 +0200
+Message-ID: <1489490143-29018-5-git-send-email-yishaih@mellanox.com>
+References: <1489490143-29018-1-git-send-email-yishaih@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1489490143-29018-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Le 14/03/2017 à 06:38, Masahiro Yamada a écrit :
-> Ni Nicolas,
-> 
-> 
-> 2017-03-14 1:57 GMT+09:00 Nicolas Dichtel <nicolas.dichtel@6wind.com>:
->>> BTW, this series does not apply cleanly.
->>>
->>> If you could rebase it onto v4.11-rc1 tag,
->>> it would be helpful.
->> You really want this on top of 4.11-rc1 or the last linus tag, ie v4.11-rc2?
->>
-> 
-> Basically, I queue up patches based on -rc1 tag
-> unless there is a particular reason for otherwise.
-Ok, thank you for the explanation.
+From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-> 
-> If it is based on -rc1, will it cause conflicts with Linus tree?
-I will check and let you know in the v10 submission.
+When a WQ or a QP is created with cvlan stripping option, it is
+stripped from the incoming packet and included in the work
+completion.
+Extend the poll_cq_ex mechanism with a function that reads the
+stripped cvlan value from the work completion.
 
+Signed-off-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ libibverbs/verbs.h | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-Thank you,
-Nicolas
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index c9084ea..15e93b3 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -435,6 +435,7 @@ enum ibv_create_cq_wc_flags {
+ 	IBV_WC_EX_WITH_SL		= 1 << 5,
+ 	IBV_WC_EX_WITH_DLID_PATH_BITS	= 1 << 6,
+ 	IBV_WC_EX_WITH_COMPLETION_TIMESTAMP	= 1 << 7,
++	IBV_WC_EX_WITH_CVLAN		= 1 << 8,
+ };
+ 
+ enum {
+@@ -449,7 +450,8 @@ enum {
+ 
+ enum {
+ 	IBV_CREATE_CQ_SUP_WC_FLAGS = IBV_WC_STANDARD_FLAGS |
+-				IBV_WC_EX_WITH_COMPLETION_TIMESTAMP
++				IBV_WC_EX_WITH_COMPLETION_TIMESTAMP |
++				IBV_WC_EX_WITH_CVLAN
+ };
+ 
+ enum ibv_wc_flags {
+@@ -1092,6 +1094,7 @@ struct ibv_cq_ex {
+ 	uint8_t (*read_sl)(struct ibv_cq_ex *current);
+ 	uint8_t (*read_dlid_path_bits)(struct ibv_cq_ex *current);
+ 	uint64_t (*read_completion_ts)(struct ibv_cq_ex *current);
++	uint16_t (*read_cvlan)(struct ibv_cq_ex *current);
+ };
+ 
+ static inline struct ibv_cq *ibv_cq_ex_to_cq(struct ibv_cq_ex *cq)
+@@ -1170,6 +1173,11 @@ static inline uint64_t ibv_wc_read_completion_ts(struct ibv_cq_ex *cq)
+ 	return cq->read_completion_ts(cq);
+ }
+ 
++static inline uint16_t ibv_wc_read_cvlan(struct ibv_cq_ex *cq)
++{
++	return cq->read_cvlan(cq);
++}
++
+ static inline int ibv_post_wq_recv(struct ibv_wq *wq,
+ 				   struct ibv_recv_wr *recv_wr,
+ 				   struct ibv_recv_wr **bad_recv_wr)
+-- 
+1.8.3.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
