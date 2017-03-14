@@ -1,74 +1,100 @@
 From: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: kernull NULL pointer observed on initiator side after 'nvmetcli
- clear' on target side
-Date: Tue, 14 Mar 2017 21:27:28 +0800
-Message-ID: <7a955472-1975-1b73-c88c-367576a56884@redhat.com>
-References: <1053522223.31446389.1488721184925.JavaMail.zimbra@redhat.com>
- <644fc4ab-df6b-a337-1431-bad881ef56ee@grimberg.me>
- <88ae146a-7510-9be0-c9b4-58e70f9d73b9@redhat.com>
- <6ffda302-02f9-12f0-a112-ea7cd20b9ffa@grimberg.me>
- <b0a84bcc-7dca-d342-b30e-b01eba8088cd@redhat.com>
- <6fe6d285-3cb4-c88c-9a7c-741fce54120c@grimberg.me>
+Subject: Re: mlx4_core 0000:07:00.0: swiotlb buffer is full and OOM observed
+ during stress test on reset_controller
+Date: Tue, 14 Mar 2017 21:35:32 +0800
+Message-ID: <860db62d-ae93-d94c-e5fb-88e7b643f737@redhat.com>
+References: <2013049462.31187009.1488542111040.JavaMail.zimbra@redhat.com>
+ <95e045a8-ace0-6a9a-b9a9-555cb2670572@grimberg.me>
+ <d21c5571-78fd-7882-b4cc-c24f76f6ff47@redhat.com>
+ <20170310165214.GC14379@mtr-leonro.local>
+ <56e8ccd3-8116-89a1-2f65-eb61a91c5f84@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <6fe6d285-3cb4-c88c-9a7c-741fce54120c-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <56e8ccd3-8116-89a1-2f65-eb61a91c5f84-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: hch-jcswGhMUV9g@public.gmane.org
+To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 03/13/2017 04:09 PM, Sagi Grimberg wrote:
+On 03/13/2017 02:16 AM, Max Gurtovoy wrote:
 >
->>> Yep... looks like we don't take into account that we can't use all the
->>> queues now...
+>
+> On 3/10/2017 6:52 PM, Leon Romanovsky wrote:
+>> On Thu, Mar 09, 2017 at 12:20:14PM +0800, Yi Zhang wrote:
 >>>
->>> Does this patch help:
->> Still can reproduce the reconnect in 10 seconds issues with the patch,
->> here is the log:
+>>>> I'm using CX5-LX device and have not seen any issues with it.
+>>>>
+>>>> Would it be possible to retest with kmemleak?
+>>>>
+>>> Here is the device I used.
+>>>
+>>> Network controller: Mellanox Technologies MT27500 Family [ConnectX-3]
+>>>
+>>> The issue always can be reproduced with about 1000 time.
+>>>
+>>> Another thing is I found one strange phenomenon from the log:
+>>>
+>>> before the OOM occurred, most of the log are  about "adding queue", and
+>>> after the OOM occurred, most of the log are about "nvmet_rdma: freeing
+>>> queue".
+>>>
+>>> seems the release work: "schedule_work(&queue->release_work);" not 
+>>> executed
+>>> timely, not sure whether the OOM is caused by this reason.
 >>
->> [  193.574183] nvme nvme0: new ctrl: NQN "nvme-subsystem-name", addr
->> 172.31.2.3:1023
->> [  193.612039] __nvme_rdma_init_request: changing called
->> [  193.638723] __nvme_rdma_init_request: changing called
->> [  193.661767] __nvme_rdma_init_request: changing called
->> [  193.684579] __nvme_rdma_init_request: changing called
->> [  193.707327] __nvme_rdma_init_request: changing called
->> [  193.730071] __nvme_rdma_init_request: changing called
->> [  193.752896] __nvme_rdma_init_request: changing called
->> [  193.775699] __nvme_rdma_init_request: changing called
->> [  193.798813] __nvme_rdma_init_request: changing called
->> [  193.821257] __nvme_rdma_init_request: changing called
->> [  193.844090] __nvme_rdma_init_request: changing called
->> [  193.866472] __nvme_rdma_init_request: changing called
->> [  193.889375] __nvme_rdma_init_request: changing called
->> [  193.912094] __nvme_rdma_init_request: changing called
->> [  193.934942] __nvme_rdma_init_request: changing called
->> [  193.957688] __nvme_rdma_init_request: changing called
->> [  606.273376] Broke affinity for irq 16
->> [  606.291940] Broke affinity for irq 28
->> [  606.310201] Broke affinity for irq 90
->> [  606.328211] Broke affinity for irq 93
->> [  606.346263] Broke affinity for irq 97
->> [  606.364314] Broke affinity for irq 100
->> [  606.382105] Broke affinity for irq 104
->> [  606.400727] smpboot: CPU 1 is now offline
->> [  616.820505] nvme nvme0: reconnecting in 10 seconds
->> [  626.882747] blk_mq_reinit_tagset: tag is null, continue
->> [  626.914000] nvme nvme0: Connect rejected: status 8 (invalid 
->> service ID).
->> [  626.947965] nvme nvme0: rdma_resolve_addr wait failed (-104).
->> [  626.974673] nvme nvme0: Failed reconnect attempt, requeueing...
+>> Sagi,
+>> The release function is placed in global workqueue. I'm not familiar
+>> with NVMe design and I don't know all the details, but maybe the 
+>> proper way will
+>> be to create special workqueue with MEM_RECLAIM flag to ensure the 
+>> progress?
+>>
 >
-> This is strange...
+> Hi,
 >
-> Is the target alive? I'm assuming it didn't crash here correct?
-The target was deleted by 'nvmetcli clear' command.
-Then on client side, seems it doesn't know the target side was deleted 
-and will always reconnecting in 10 seconds.
+> I was able to repro it in my lab with ConnectX3. added a dedicated 
+> workqueue with high priority but the bug still happens.
+> if I add a "sleep 1" after echo 1 
+> >/sys/block/nvme0n1/device/reset_controller the test pass. So there is 
+> no leak IMO, but the allocation process is much faster than the 
+> destruction of the resources.
+> In the initiator we don't wait for RDMA_CM_EVENT_DISCONNECTED event 
+> after we call rdma_disconnect, and we try to connect immediatly again.
+> maybe we need to slow down the storm of connect requests from the 
+> initiator somehow to let the target time to settle up.
+>
+> Max.
+>
+>
+Hi Sagi
+Let's use this mail loop to track the OOM issue. :)
+
+Thanks
+Yi
+>>>
+>>> Here is the log before/after OOM
+>>> http://pastebin.com/Zb6w4nEv
+>>>
+>>>> _______________________________________________
+>>>> Linux-nvme mailing list
+>>>> Linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+>>>> http://lists.infradead.org/mailman/listinfo/linux-nvme
+>>>
+>>>
+>>> _______________________________________________
+>>> Linux-nvme mailing list
+>>> Linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+>>> http://lists.infradead.org/mailman/listinfo/linux-nvme
+>
+> _______________________________________________
+> Linux-nvme mailing list
+> Linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+> http://lists.infradead.org/mailman/listinfo/linux-nvme
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
