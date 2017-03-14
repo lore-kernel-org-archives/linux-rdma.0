@@ -1,36 +1,70 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 6/7] ibverbs: Update man pages to include cvlan
- offloads options
-Date: Tue, 14 Mar 2017 09:48:49 -0600
-Message-ID: <20170314154849.GC3244@obsidianresearch.com>
-References: <1489490143-29018-1-git-send-email-yishaih@mellanox.com>
- <1489490143-29018-7-git-send-email-yishaih@mellanox.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [RFC v1 for accelerated IPoIB 05/25] IB/ipoib: Support ipoib
+ acceleration options callbacks
+Date: Tue, 14 Mar 2017 10:00:21 -0600
+Message-ID: <20170314160021.GD3244@obsidianresearch.com>
+References: <1489429896-10781-1-git-send-email-erezsh@mellanox.com>
+ <1489429896-10781-6-git-send-email-erezsh@mellanox.com>
+ <20170314063538.GB79937@knc-06.sc.intel.com>
+ <CAAk-MO8gQ5x-4Ubk1nzPntEWa2ivTK6uXyJ4eC7fmtUCNnOdfA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1489490143-29018-7-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+In-Reply-To: <CAAk-MO8gQ5x-4Ubk1nzPntEWa2ivTK6uXyJ4eC7fmtUCNnOdfA@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Erez Shitrit <erezsh@dev.mellanox.co.il>
+Cc: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>, Erez Shitrit <erezsh@mellanox.com>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, netdev@vger.kernel.org, valex@mellanox.com, Leon Romanovsky <leonro@mellanox.com>, saedm@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 14, 2017 at 01:15:42PM +0200, Yishai Hadas wrote:
-> From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Tue, Mar 14, 2017 at 04:42:55PM +0200, Erez Shitrit wrote:
+> >> +       if (!hca->alloc_rdma_netdev)
+> >> +               dev = ipoib_create_netdev_default(hca, name,
+> >> ipoib_setup_common);
+> >> +       else
+> >> +               dev = hca->alloc_rdma_netdev(hca, port, RDMA_NETDEV_IPOIB,
+> >> +                                            name, NET_NAME_UNKNOWN,
+> >> +                                            ipoib_setup_common);
+> >> +       if (!dev) {
+> >> +               kfree(priv);
+> >> +               return NULL;
+> >> +       }
+> >
+> >
+> > This will break ipoib on hfi1 as hfi1 will define alloc_rdma_netdev for
+> > OPA_VNIC type. We should probably look for a dedicated return type
+> > (-ENODEV?) to determine of the driver supports specified rdma netdev type.
+> > Or use a ib device attribute to suggest driver support ipoib rdma netdev.
 > 
-> Provide information about the cvlan stripping offload for
-> - ibv_create_wq
-> - ibv_modify_wq
-> - ibv_create_cq_ex
-> - ibv_query_device_ex
+> sorry, I don't understand that, we are in ipoib driver, so the type is
+> RDMA_NETDEV_IPOIB, if hfi wants to implement it should use the same
+> flag, and to use OPA_VNIC for vnic.
 
-I continue to be annoyed that these patches are extending the 'common'
-API without providing enough descriptive information to understand
-exactly what these new options are supposed to do and how to implement
-them.
+He means it should look like this:
+
+ if (hca->alloc_rdma_netdev)
+     dev = hca->alloc_rdma_netdev(hca, port, RDMA_NETDEV_IPOIB,
+                                            name, NET_NAME_UNKNOWN,
+                                            ipoib_setup_common);
+
+ if (IS_ERR(dev) && PTR_ERR(dev) != ENOTSUP)
+      goto out;
+
+ dev = ipoib_create_netdev_default(hca, name, ipoib_setup_common);
+ if (IS_ERR(dev))
+      goto out;
+
+ WARN_ON(dev == NULL);
+
+  [...]
+  
+out:
+      return PTR_ERR(dev);
+
+And I'm confused why 'ipoib_create_netdev_default' doesn't need the
+same function signature as hca->alloc_rdma_netdev
+
+Both drivers should implement hca->alloc_rdma_netdev to return ENOTSUP
+if RDMA_NETDEV is not supported.
 
 Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
