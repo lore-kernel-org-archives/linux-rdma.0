@@ -1,87 +1,76 @@
-From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma_core] redhat spec: Avoid conflict due to implicit
- directory add
-Date: Tue, 14 Mar 2017 08:10:49 +0100
-Message-ID: <1489475449.10153.201.camel@oracle.com>
-References: <9707bd97229b67fe04d29affcb37f61b80e20dca.1484143751.git-series.knut.omang@oracle.com>
-         <20170313170829.GD25664@obsidianresearch.com>
-         <861182f1-1d2a-2cdc-416f-bc0132201d47@redhat.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: v4.11-rc2: DMAR: Allocating domain for mlx4_0 failed
+Date: Tue, 14 Mar 2017 09:29:57 +0200
+Message-ID: <20170314072957.GP2079@mtr-leonro.local>
+References: <1BCFE3F4-A455-4EFC-845E-1FAAF3902D55@oracle.com>
+ <1489429487.2658.4.camel@sandisk.com>
+ <D34904A2-BEB6-4833-B2CC-97FA7B5B1029@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="ee6FjwWxuMujAVRe"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <861182f1-1d2a-2cdc-416f-bc0132201d47-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <D34904A2-BEB6-4833-B2CC-97FA7B5B1029-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-03-13 at 15:23 -0400, Jarod Wilson wrote:
-> On 2017-03-13 1:08 PM, Jason Gunthorpe wrote:
-> > 
-> > On Wed, Jan 11, 2017 at 03:19:34PM +0100, Knut Omang wrote:
-> > > 
-> > > If *-notation is used to include subdirectories, they
-> > > seem to end as explicit file additions. This causes conflicts
-> > > with other packages that provides the same
-> > > directories, in this case rdma_core-devel conflicts
-> > > with filesystem and kernel-headers.
-> > > 
-> > > Using %dir did not seem to help
-> > > avoiding the issue but rather cause duplicate warnings, eg.
-> > > 
-> > > warning: File listed twice: /usr/include/infiniband
-> > > 
-> > > This should be considered a bug in rpmbuild but
-> > > probably needs to be fixed here anyway:
-> > > 
-> > > List each individual directory with wildcards
-> > > to avoid the issue.
-> > > 
-> > > Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > >  redhat/rdma-core.spec | 3 ++-
-> > >  1 file changed, 2 insertions(+), 1 deletion(-)
-> > 
-> > Did this ever get settled?
-> > 
-> > Jarod? Yes/No?
-> 
-> Sorry, missed this. I don't remember ever hitting this myself, but the 
-> change looks benign enough, so sure, why not.
 
-Yes, and now I think I finally understand why you have not hit it:
-It seems to work as expected with a lot of different ways of invoking
-rpmbuild, but for some subtle reason, not the way I have been using in a script
-for years, and I still don't understand why. 
+--ee6FjwWxuMujAVRe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This is probably again more of an rpmbuild issue but still it might be something
-that others have run into as well.
+On Mon, Mar 13, 2017 at 02:27:51PM -0400, Chuck Lever wrote:
+>
+> > On Mar 13, 2017, at 2:25 PM, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
+> >
+> > On Mon, 2017-03-13 at 14:21 -0400, Chuck Lever wrote:
+> >> When I boot v4.11-rc1 or -rc2 on my systems, the CX-3 Pro cards
+> >> are no longer plumbed. Booting with v4.10 works as expected.
+> >
+> > Hello Chuck,
+> >
+> > Please the patch that is available at the following URL:
+> > https://www.spinics.net/lists/linux-rdma/msg47043.html.
+>
+> Thank you Bart, I will give that a try.
 
-Instead of doing like eg. fedpkg is doing: providing a lot of elaborous (and
-quite ugly IMHO)  --define '_sourcedir ...' --define '_specdir ...' ..  on the
-command line to rpmbuild, I wanted to be able to just have a macro file
-prepended at the end of the macro path - the file can then have a nice, clean
-content like:
+Yeah, without Bart's patch the IB stack is broken.
 
-%_sourcedir ...
-%_specdir ...
-...
+>
+>
+> --
+> Chuck Lever
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-However there is no way I have figured to specify an additional element to the
-macros path - the only way is to use --macros which overloads the complete path.
-So my script initially run rpmbuild .. --showrc and picks up the default macro
-path and prepends it with the extra element, a solution not perfect, but that
-gave me some satisfaction over having beaten rpmbuild back when I wrote the code
-:-)
+--ee6FjwWxuMujAVRe
+Content-Type: application/pgp-signature; name="signature.asc"
 
-For some obscure reason this now produces different behaviour. 
-Any light on this appreciated - this has caused me a lot of grief...
+-----BEGIN PGP SIGNATURE-----
 
-Thanks,
-Knut
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljHm/UACgkQ5GN7iDZy
+WKcYBhAAvCsyF+yBRVHj6Mj85jtLsS2ek7/c+QXptkpzKFO7lPpQhcFKr1y2A7ox
+n1aivaAzasplGXuonMPenp/N9nAn07F1eWbTC+6qQoo5UcuN7x51V5kMmiY94C2A
++hwjSstlhDP8/6ktg1r7q4YhGE0BreZFFUUIaHiViPA8wG7Pf3IeyrtAvBUYqPQP
+qjg5qnDxSf7mbuVFCLM/NoexZNt7ZBJZs9K+lpIT/LZWnC0vhKx1HZS2X0HCX8qT
+wNokVceZx3jM6PrO/folyN88qY6SEvP3tq0NWdoZGQ5WeERzGqaQn7RxedmWV6Cd
+QYOMbwIMGWtBccreaHk1CKtCiMaWHexulG89q97l1P/b+eAoxcQTokmhinPxajkN
+GCbwWoeDIhovRyieDnFQ/hy89jO0lpb4D7qGOkySzn05dXru8RO6Nfz9ItaiJy4h
+ovyjG1+izsaAjb1JG7N1LPQ6vy1Ey+mIdBHbA4JgQklpnpcC1mt75gW1RdeB9N6j
+cSi0j+EQDnvnbq/1LTdOiIQnBtXTA/sb0so8K+J0w8bg0nBSWjp8pxiJQVja01Hq
++t1Pg5DnS53QlTZQxcTP/N1BUsMDZR9nX2WjC3nKUW7VNWOMk2I5GzA/1IZtH48X
+oj/X/ziz3BdWsZmEKdnHUOhmiu2+7eBF1JBC5c9VWaptWe/nmCs=
+=2gZO
+-----END PGP SIGNATURE-----
 
-> 
-> 
+--ee6FjwWxuMujAVRe--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
