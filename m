@@ -1,109 +1,35 @@
-From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC v1 for accelerated IPoIB 04/25] IB/verb: Add ipoib_options
- struct and API
-Date: Mon, 13 Mar 2017 23:44:09 -0700
-Message-ID: <20170314064409.GC79937@knc-06.sc.intel.com>
-References: <1489429896-10781-1-git-send-email-erezsh@mellanox.com>
- <1489429896-10781-5-git-send-email-erezsh@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+From: Alexey Lyashkov <alexey.lyashkov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: SRQ flow control and IB_EVENT_SRQ_LIMIT_REACHED
+Date: Tue, 14 Mar 2017 09:45:40 +0300
+Message-ID: <AD8231DF-E503-49E5-B612-F4CDA9B778F9@gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 10.2 \(3259\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1489429896-10781-5-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, saedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 13, 2017 at 08:31:15PM +0200, Erez Shitrit wrote:
->+struct ipoib_rdma_netdev {
->+	struct rdma_netdev rn;  /* keep this first */
->+	/* followed by device private data */
->+	char *dev_priv[0];
->+};
->+
->+static inline void *ipoib_priv(const struct net_device *dev)
->+{
->+	struct rdma_netdev *rn = netdev_priv(dev);
->+
->+	return rn->clnt_priv;
->+}
->+
->+static inline void *ipoib_dev_priv(const struct net_device *dev)
->+{
->+	struct ipoib_rdma_netdev *ipoib_rn = netdev_priv(dev);
->+
->+	return ipoib_rn->dev_priv;
->+}
->+
+Hi All,
 
-It can be confusing to see return of ipoib_priv() getting assigned to 
-ipoib_dev_priv (legacy name). May be we should change ipoib_dev_priv() to 
-ipoib_hw_priv()?
+I=E2=80=99m beginner on IB stack and try to understand a flow control in =
+SRQ case.
+Based on IB specification=20
+C9-150.2.1: For QPs that are not associated with an SRQ, each HCA =
+receive
+queue shall generate end-to-end flow control credits. If a QP is =
+associated
+with an SRQ, the HCA receive queue shall not generate end-toend
+flow control credits.
+
+did it mean - SRQ owner responsible to the process an =
+IB_EVENT_SRQ_LIMIT_REACHED and submit a more WR into SRQ to avoid =
+requests lost?
+Or requests will be resend via handling an RNR error ?
 
 
->+#endif /* IB_IPOIB_ACCEL_OPS_H */
->diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
->index 85b9034c8cfc..9b090efccdba 100644
->--- a/include/rdma/ib_verbs.h
->+++ b/include/rdma/ib_verbs.h
->@@ -1901,6 +1901,41 @@ struct ib_port_immutable {
-> 	u32                           max_mad_size;
-> };
->
->+/* rdma netdev type - specifies protocol type */
->+enum rdma_netdev_t {
->+	RDMA_NETDEV_OPA_VNIC,
->+	RDMA_NETDEV_IPOIB
->+};
->+
->+struct ipoib_ah;
->+
->+/**
->+ * struct rdma_netdev - rdma netdev
->+ * For cases where netstack interfacing is required.
->+ */
->+struct rdma_netdev {
->+	void *clnt_priv;
->+
->+	/* control functions */
->+	void (*set_id)(struct net_device *netdev, int id);
->+	/* IB resource allocation function, returns new UD QP */
->+	int (*ib_dev_init)(struct net_device *dev, struct ib_device *hca,
->+			   int *qp_num);
->+	void (*ib_dev_cleanup)(struct net_device *dev, struct ib_device *hca);
->+
->+	/* send packet */
->+	void (*send)(struct net_device *dev, struct sk_buff *skb,
->+		     struct ipoib_ah *address, u32 dqpn, u32 dqkey);
->+
->+	/* multicast */
->+	int (*attach_mcast)(struct net_device *dev, struct ib_device *hca,
->+			    union ib_gid *gid, u16 lid, int set_qkey);
->+	int (*detach_mcast)(struct net_device *dev, struct ib_device *hca,
->+			    union ib_gid *gid, u16 lid);
->+	int qp_num;
-
-May be ipoib_rdma_netdev structure is the right place for these functions?
-
->+	void *context;
-
-No context should be necessary here.
-
->+};
->+
-> struct ib_device {
-> 	struct device                *dma_device;
->
->@@ -2149,6 +2184,7 @@ struct ib_device {
-> 						struct ib_wq_attr *attr,
-> 						u32 wq_attr_mask,
-> 						struct ib_udata *udata);
->+	struct ib_ipoib_accel_ops * (*get_ipoib_accel_ops)(struct ib_device *device);
-
-old code, needs fix.
-
-Niranjana
+Big thanks for answer,
+Alexey=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
