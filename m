@@ -1,7 +1,7 @@
 From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: [PATCH v10 09/11] smc_diag.h: fix include from userland
-Date: Tue, 14 Mar 2017 13:54:51 +0100
-Message-ID: <1489496093-15315-10-git-send-email-nicolas.dichtel@6wind.com>
+Subject: [PATCH v10 05/11] Makefile.headersinst: remove destination-y option
+Date: Tue, 14 Mar 2017 13:54:47 +0100
+Message-ID: <1489496093-15315-6-git-send-email-nicolas.dichtel@6wind.com>
 References: <CAK7LNARpx7f0eV5_AiPmNYT7MsRbGFOygJwjfAzX_7aCpuHwuw@mail.gmail.com>
  <1489496093-15315-1-git-send-email-nicolas.dichtel@6wind.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -11,62 +11,76 @@ To: yamada.masahiro@socionext.com
 Cc: arnd@arndb.de, mmarek@suse.com, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, airlied@linux.ie, davem@davemloft.net, linux@armlinux.org.uk, bp@alien8.de, slash.tmp@free.fr, daniel.vetter@ffwll.ch, rmk+kernel@armlinux.org.uk, msalter@redhat.com, jengelh@inai.de, hch@infradead.org, tklauser@distanz.ch, mpe@ellerman.id.au, mingo@kernel.org, tglx@linutronix.de, ldv@altlinux.org, nicolas.dichtel@6wind.com, herbert@gondor.apana.org.au, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch prepares the uapi export by fixing the following error:
-
-.../linux/smc_diag.h:6:27: fatal error: rdma/ib_verbs.h: No such file or directory
- #include <rdma/ib_verbs.h>
+This option was added in commit c7bb349e7c25 ("kbuild: introduce destination-y
+for exported headers") but never used in-tree.
 
 Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Acked-by: Paul Bolle <pebolle@tiscali.nl>
 ---
- include/rdma/ib_verbs.h           | 3 +--
- include/uapi/linux/smc_diag.h     | 2 +-
- include/uapi/rdma/ib_user_verbs.h | 2 ++
- 3 files changed, 4 insertions(+), 3 deletions(-)
+ Documentation/kbuild/makefiles.txt | 23 ++++-------------------
+ scripts/Makefile.headersinst       |  2 +-
+ 2 files changed, 5 insertions(+), 20 deletions(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 0f1813c13687..50f276a4afdc 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -61,6 +61,7 @@
- #include <linux/mmu_notifier.h>
- #include <linux/uaccess.h>
- #include <linux/cgroup_rdma.h>
-+#include <uapi/rdma/ib_user_verbs.h>
+diff --git a/Documentation/kbuild/makefiles.txt b/Documentation/kbuild/makefiles.txt
+index 9b9c4797fc55..37b525d329ae 100644
+--- a/Documentation/kbuild/makefiles.txt
++++ b/Documentation/kbuild/makefiles.txt
+@@ -46,9 +46,8 @@ This document describes the Linux kernel Makefiles.
+ 	=== 7 Kbuild syntax for exported headers
+ 		--- 7.1 header-y
+ 		--- 7.2 genhdr-y
+-		--- 7.3 destination-y
+-		--- 7.4 generic-y
+-		--- 7.5 generated-y
++		--- 7.3 generic-y
++		--- 7.4 generated-y
  
- extern struct workqueue_struct *ib_wq;
- extern struct workqueue_struct *ib_comp_wq;
-@@ -1838,8 +1839,6 @@ enum ib_mad_result {
- 	IB_MAD_RESULT_CONSUMED = 1 << 2  /* Packet consumed: stop processing */
- };
+ 	=== 8 Kbuild Variables
+ 	=== 9 Makefile language
+@@ -1295,21 +1294,7 @@ See subsequent chapter for the syntax of the Kbuild file.
+ 			#include/linux/Kbuild
+ 			genhdr-y += version.h
  
--#define IB_DEVICE_NAME_MAX 64
+-	--- 7.3 destination-y
 -
- struct ib_port_cache {
- 	struct ib_pkey_cache  *pkey;
- 	struct ib_gid_table   *gid;
-diff --git a/include/uapi/linux/smc_diag.h b/include/uapi/linux/smc_diag.h
-index 0063919fea34..87712bfaa9dd 100644
---- a/include/uapi/linux/smc_diag.h
-+++ b/include/uapi/linux/smc_diag.h
-@@ -3,7 +3,7 @@
+-	When an architecture has a set of exported headers that needs to be
+-	exported to a different directory destination-y is used.
+-	destination-y specifies the destination directory for all exported
+-	headers in the file where it is present.
+-
+-		Example:
+-			#arch/xtensa/platforms/s6105/include/platform/Kbuild
+-			destination-y := include/linux
+-
+-	In the example above all exported headers in the Kbuild file
+-	will be located in the directory "include/linux" when exported.
+-
+-	--- 7.4 generic-y
++	--- 7.3 generic-y
  
- #include <linux/types.h>
- #include <linux/inet_diag.h>
--#include <rdma/ib_verbs.h>
-+#include <rdma/ib_user_verbs.h>
+ 	If an architecture uses a verbatim copy of a header from
+ 	include/asm-generic then this is listed in the file
+@@ -1336,7 +1321,7 @@ See subsequent chapter for the syntax of the Kbuild file.
+ 		Example: termios.h
+ 			#include <asm-generic/termios.h>
  
- /* Request structure */
- struct smc_diag_req {
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index 997f904c7692..8edce2b65903 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -1124,4 +1124,6 @@ struct ib_uverbs_ex_destroy_rwq_ind_table  {
- 	__u32 ind_tbl_handle;
- };
+-	--- 7.5 generated-y
++	--- 7.4 generated-y
  
-+#define IB_DEVICE_NAME_MAX 64
-+
- #endif /* IB_USER_VERBS_H */
+ 	If an architecture generates other header files alongside generic-y
+ 	wrappers, and not included in genhdr-y, then generated-y specifies
+diff --git a/scripts/Makefile.headersinst b/scripts/Makefile.headersinst
+index 7bd9df6efe2f..ca5d439c9abf 100644
+--- a/scripts/Makefile.headersinst
++++ b/scripts/Makefile.headersinst
+@@ -14,7 +14,7 @@ kbuild-file := $(srctree)/$(obj)/Kbuild
+ include $(kbuild-file)
+ 
+ # called may set destination dir (when installing to asm/)
+-_dst := $(if $(destination-y),$(destination-y),$(if $(dst),$(dst),$(obj)))
++_dst := $(if $(dst),$(dst),$(obj))
+ 
+ old-kbuild-file := $(srctree)/$(subst uapi/,,$(obj))/Kbuild
+ ifneq ($(wildcard $(old-kbuild-file)),)
 -- 
 2.8.1
