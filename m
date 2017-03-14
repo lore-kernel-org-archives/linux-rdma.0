@@ -1,50 +1,61 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: rdma-core packaging and multilib
-Date: Tue, 14 Mar 2017 12:17:08 -0600
-Message-ID: <20170314181708.GA25495@obsidianresearch.com>
-References: <bb6b2274-a120-6a16-0025-4c0b1b090029@redhat.com>
+From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC v1 for accelerated IPoIB 04/25] IB/verb: Add ipoib_options
+ struct and API
+Date: Tue, 14 Mar 2017 12:03:01 -0700
+Message-ID: <20170314190300.GA80705@knc-06.sc.intel.com>
+References: <1489429896-10781-1-git-send-email-erezsh@mellanox.com>
+ <1489429896-10781-5-git-send-email-erezsh@mellanox.com>
+ <20170313200136.GA2738@obsidianresearch.com>
+ <CAAk-MO8dZJKYgpWT8p1fz0O6y2wTx4jxoJhYf21ikMOef_xUMg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <bb6b2274-a120-6a16-0025-4c0b1b090029-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CAAk-MO8dZJKYgpWT8p1fz0O6y2wTx4jxoJhYf21ikMOef_xUMg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 14, 2017 at 02:02:15PM -0400, Jarod Wilson wrote:
+On Tue, Mar 14, 2017 at 03:25:01PM +0200, Erez Shitrit wrote:
+>On Mon, Mar 13, 2017 at 10:01 PM, Jason Gunthorpe
+><jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+>> On Mon, Mar 13, 2017 at 08:31:15PM +0200, Erez Shitrit wrote:
+>>
+>>> diff --git a/include/rdma/ib_ipoib_accel_ops.h b/include/rdma/ib_ipoib_accel_ops.h
+>>> new file mode 100644
+>>> index 000000000000..148a5529a559
+>>> +++ b/include/rdma/ib_ipoib_accel_ops.h
+>>
+>> Both patches need a better naming scheme for this file..
+>>
+>> rn_opa_vnic.h
+>> rn_ipoib.h
+>>
+>> Maybe?
+>
+>Can work for me.
+>
+>vnic?
+>
 
-> Report from TEST_MULTILIB:
-> [BAD] [ibacm] Subpackage ibacm is not multilib-clean for x86_64 vs i686: 2
-> files have non-equal 32/64bit content:
->   /usr/share/man/man7/ibacm_prov.7.gz
->   /etc/rdma/ibacm_opts.cfg
+I do see why it is an issue for ipoib (we don't want two ipoib.h files). We can 
+add rn_ prefix for vnic, but probably opa_vnic.h is good enough.
 
-Yep
+>>> +     void *context;
+>>
+>> What is this? Why is something other than ipoib_priv or ipoib_dev_priv
+>> needed?
+>
+>ipoib_priv is doesn't known in the lower layers, that context is used
+>to keep data (qp pointer in that case) that is not available
+>otherwise.
+>
 
-> ibacm_prov.7.gz on x86_64 vs i686:
-> ...
-> -2. be installed under a configured directory, eg., /usr/lib64/ibacm;
-> +2. be installed under a configured directory, eg., /usr/lib/ibacm;
-> ...
-> 
-> Similar for ibacm_opts.cfg:
-> 
-> -# provider_lib_path /usr/lib64/ibacm
-> +# provider_lib_path /usr/lib/ibacm
-> 
-> Not sure what the ideal resolution is for this. I'd rather not put in the
-> wrong path for one arch or the other, and I think lib64 isn't used
-> universally by all 64-bit distros.
+lower layers should be using ipoib_dev_priv() and no other context is needed. 
+which patch is using this 'context'?
 
-cmake substitutes in the correct path string at build time.
-
-If you want these files to be identical then we cannot include the
-path names at all, just put place holders and say to run 'ib_acme -D
-. -O' to learn the configured value.
-
-Jason
+Niranjana
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
