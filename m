@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 2/7] ibverbs: Allow creation and modification of WQ with cvlan offload
-Date: Tue, 14 Mar 2017 13:15:38 +0200
-Message-ID: <1489490143-29018-3-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 5/7] mlx5: Add read_cvlan support
+Date: Tue, 14 Mar 2017 13:15:41 +0200
+Message-ID: <1489490143-29018-6-git-send-email-yishaih@mellanox.com>
 References: <1489490143-29018-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1489490143-29018-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,126 +12,61 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Enable WQ creation and modification with cvlan stripping offload.
-This includes:
-- Adding flags and flags mask fields to ibv_wq_init_attr and
-  ibv_wq_attr.
-- Similarly extend ibv_wq_attr to allow setting and unsetting this
-  offload during ibv_modify_wq.
+When a WQ or a QP is created with cvlan stripping option, the cvlan
+is stripped from the packet by the hardware and included in the work
+completion.
+
+Add a function to allow reading the cvlan from the work completion.
 
 Signed-off-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libibverbs/cmd.c      | 18 ++++++++++++++++++
- libibverbs/kern-abi.h |  4 ++++
- libibverbs/verbs.h    | 14 ++++++++++++--
- 3 files changed, 34 insertions(+), 2 deletions(-)
+ providers/mlx5/cq.c    | 9 +++++++++
+ providers/mlx5/verbs.c | 3 ++-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
-index 4aebbb5..b8fe76d 100644
---- a/libibverbs/cmd.c
-+++ b/libibverbs/cmd.c
-@@ -1894,6 +1894,15 @@ int ibv_cmd_create_wq(struct ibv_context *context,
- 	cmd->max_wr = wq_init_attr->max_wr;
- 	cmd->comp_mask = 0;
+diff --git a/providers/mlx5/cq.c b/providers/mlx5/cq.c
+index 4ecd482..85d0c33 100644
+--- a/providers/mlx5/cq.c
++++ b/providers/mlx5/cq.c
+@@ -1189,6 +1189,13 @@ static inline uint64_t mlx5_cq_read_wc_completion_ts(struct ibv_cq_ex *ibcq)
+ 	return be64toh(cq->cqe64->timestamp);
+ }
  
-+	if (cmd_core_size >= offsetof(struct ibv_create_wq, create_flags) +
-+	    sizeof(cmd->create_flags)) {
-+		if (wq_init_attr->comp_mask & IBV_WQ_INIT_ATTR_FLAGS) {
-+			if (wq_init_attr->create_flags & ~(IBV_WQ_FLAGS_RESERVED - 1))
-+				return EOPNOTSUPP;
-+			cmd->create_flags = wq_init_attr->create_flags;
-+		}
-+	}
++static inline uint16_t mlx5_cq_read_wc_cvlan(struct ibv_cq_ex *ibcq)
++{
++	struct mlx5_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
 +
- 	err = write(context->cmd_fd, cmd, cmd_size);
- 	if (err != cmd_size)
- 		return errno;
-@@ -1927,6 +1936,15 @@ int ibv_cmd_modify_wq(struct ibv_wq *wq, struct ibv_wq_attr *attr,
- 
- 	cmd->curr_wq_state = attr->curr_wq_state;
- 	cmd->wq_state = attr->wq_state;
-+	if (cmd_core_size >= offsetof(struct ibv_modify_wq, flags_mask) +
-+	    sizeof(cmd->flags_mask)) {
-+		if (attr->attr_mask & IBV_WQ_ATTR_FLAGS) {
-+			if (attr->flags_mask & ~(IBV_WQ_FLAGS_RESERVED - 1))
-+				return EOPNOTSUPP;
-+			cmd->flags = attr->flags;
-+			cmd->flags_mask = attr->flags_mask;
-+		}
-+	}
- 	cmd->wq_handle = wq->handle;
- 	cmd->attr_mask = attr->attr_mask;
- 
-diff --git a/libibverbs/kern-abi.h b/libibverbs/kern-abi.h
-index 3958f0c..72a16b6 100644
---- a/libibverbs/kern-abi.h
-+++ b/libibverbs/kern-abi.h
-@@ -1249,6 +1249,8 @@ struct ibv_create_wq {
- 	__u32 cq_handle;
- 	__u32 max_wr;
- 	__u32 max_sge;
-+	__u32 create_flags;
-+	__u32 reserved;
- };
- 
- struct ibv_create_wq_resp {
-@@ -1279,6 +1281,8 @@ struct ibv_modify_wq  {
- 	__u32 wq_handle;
- 	__u32 wq_state;
- 	__u32 curr_wq_state;
-+	__u32 flags;
-+	__u32 flags_mask;
- };
- 
- struct ibv_create_rwq_ind_table {
-diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index 604b09e..3398566 100644
---- a/libibverbs/verbs.h
-+++ b/libibverbs/verbs.h
-@@ -667,7 +667,13 @@ enum ibv_wq_type {
- };
- 
- enum ibv_wq_init_attr_mask {
--	IBV_WQ_INIT_ATTR_RESERVED	= 1 << 0,
-+	IBV_WQ_INIT_ATTR_FLAGS		= 1 << 0,
-+	IBV_WQ_INIT_ATTR_RESERVED	= 1 << 1,
-+};
++	return be16toh(cq->cqe64->vlan_info);
++}
 +
-+enum ibv_wq_flags {
-+	IBV_WQ_FLAGS_CVLAN_STRIPPING		= 1 << 0,
-+	IBV_WQ_FLAGS_RESERVED			= 1 << 1,
+ #define BIT(i) (1UL << (i))
+ 
+ #define SINGLE_THREADED BIT(0)
+@@ -1261,6 +1268,8 @@ void mlx5_cq_fill_pfns(struct mlx5_cq *cq, const struct ibv_cq_init_attr_ex *cq_
+ 		cq->ibv_cq.read_dlid_path_bits = mlx5_cq_read_wc_dlid_path_bits;
+ 	if (cq_attr->wc_flags & IBV_WC_EX_WITH_COMPLETION_TIMESTAMP)
+ 		cq->ibv_cq.read_completion_ts = mlx5_cq_read_wc_completion_ts;
++	if (cq_attr->wc_flags & IBV_WC_EX_WITH_CVLAN)
++		cq->ibv_cq.read_cvlan = mlx5_cq_read_wc_cvlan;
+ }
+ 
+ int mlx5_arm_cq(struct ibv_cq *ibvcq, int solicited)
+diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
+index 4d8f26c..67f9748 100644
+--- a/providers/mlx5/verbs.c
++++ b/providers/mlx5/verbs.c
+@@ -327,7 +327,8 @@ static int qp_sig_enabled(void)
+ 
+ enum {
+ 	CREATE_CQ_SUPPORTED_WC_FLAGS = IBV_WC_STANDARD_FLAGS	|
+-				       IBV_WC_EX_WITH_COMPLETION_TIMESTAMP
++				       IBV_WC_EX_WITH_COMPLETION_TIMESTAMP |
++				       IBV_WC_EX_WITH_CVLAN
  };
  
- struct ibv_wq_init_attr {
-@@ -678,6 +684,7 @@ struct ibv_wq_init_attr {
- 	struct	ibv_pd	       *pd;
- 	struct	ibv_cq	       *cq;
- 	uint32_t		comp_mask;
-+	uint32_t		create_flags; /* use ibv_wq_flags */
- };
- 
- enum ibv_wq_state {
-@@ -690,7 +697,8 @@ enum ibv_wq_state {
- enum ibv_wq_attr_mask {
- 	IBV_WQ_ATTR_STATE	= 1 << 0,
- 	IBV_WQ_ATTR_CURR_STATE	= 1 << 1,
--	IBV_WQ_ATTR_RESERVED	= 1 << 2
-+	IBV_WQ_ATTR_FLAGS	= 1 << 2,
-+	IBV_WQ_ATTR_RESERVED	= 1 << 3,
- };
- 
- struct ibv_wq_attr {
-@@ -700,6 +708,8 @@ struct ibv_wq_attr {
- 	enum	ibv_wq_state	wq_state;
- 	/* Assume this is the current WQ state */
- 	enum	ibv_wq_state	curr_wq_state;
-+	uint32_t		flags; /* Use ibv_wq_flags */
-+	uint32_t		flags_mask; /* Use ibv_wq_flags */
- };
- 
- /*
+ enum {
 -- 
 1.8.3.1
 
