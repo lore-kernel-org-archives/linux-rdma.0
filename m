@@ -1,100 +1,89 @@
 From: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: mlx4_core 0000:07:00.0: swiotlb buffer is full and OOM observed
- during stress test on reset_controller
-Date: Tue, 14 Mar 2017 21:35:32 +0800
-Message-ID: <860db62d-ae93-d94c-e5fb-88e7b643f737@redhat.com>
-References: <2013049462.31187009.1488542111040.JavaMail.zimbra@redhat.com>
- <95e045a8-ace0-6a9a-b9a9-555cb2670572@grimberg.me>
- <d21c5571-78fd-7882-b4cc-c24f76f6ff47@redhat.com>
- <20170310165214.GC14379@mtr-leonro.local>
- <56e8ccd3-8116-89a1-2f65-eb61a91c5f84@mellanox.com>
+Subject: Re: [PATCH v2] nvmet-rdma: Fix a possible uninitialized variable
+ dereference
+Date: Tue, 14 Mar 2017 09:40:27 -0400 (EDT)
+Message-ID: <1898652754.2479312.1489498827670.JavaMail.zimbra@redhat.com>
+References: <1489412381-28947-1-git-send-email-sagi@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <56e8ccd3-8116-89a1-2f65-eb61a91c5f84-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1489412381-28947-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Thanks Sagi
+
+Tested-by: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
 
-On 03/13/2017 02:16 AM, Max Gurtovoy wrote:
->
->
-> On 3/10/2017 6:52 PM, Leon Romanovsky wrote:
->> On Thu, Mar 09, 2017 at 12:20:14PM +0800, Yi Zhang wrote:
->>>
->>>> I'm using CX5-LX device and have not seen any issues with it.
->>>>
->>>> Would it be possible to retest with kmemleak?
->>>>
->>> Here is the device I used.
->>>
->>> Network controller: Mellanox Technologies MT27500 Family [ConnectX-3]
->>>
->>> The issue always can be reproduced with about 1000 time.
->>>
->>> Another thing is I found one strange phenomenon from the log:
->>>
->>> before the OOM occurred, most of the log are  about "adding queue", and
->>> after the OOM occurred, most of the log are about "nvmet_rdma: freeing
->>> queue".
->>>
->>> seems the release work: "schedule_work(&queue->release_work);" not 
->>> executed
->>> timely, not sure whether the OOM is caused by this reason.
->>
->> Sagi,
->> The release function is placed in global workqueue. I'm not familiar
->> with NVMe design and I don't know all the details, but maybe the 
->> proper way will
->> be to create special workqueue with MEM_RECLAIM flag to ensure the 
->> progress?
->>
->
-> Hi,
->
-> I was able to repro it in my lab with ConnectX3. added a dedicated 
-> workqueue with high priority but the bug still happens.
-> if I add a "sleep 1" after echo 1 
-> >/sys/block/nvme0n1/device/reset_controller the test pass. So there is 
-> no leak IMO, but the allocation process is much faster than the 
-> destruction of the resources.
-> In the initiator we don't wait for RDMA_CM_EVENT_DISCONNECTED event 
-> after we call rdma_disconnect, and we try to connect immediatly again.
-> maybe we need to slow down the storm of connect requests from the 
-> initiator somehow to let the target time to settle up.
->
-> Max.
->
->
-Hi Sagi
-Let's use this mail loop to track the OOM issue. :)
+Best Regards,
+  Yi Zhang
 
-Thanks
-Yi
->>>
->>> Here is the log before/after OOM
->>> http://pastebin.com/Zb6w4nEv
->>>
->>>> _______________________________________________
->>>> Linux-nvme mailing list
->>>> Linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
->>>> http://lists.infradead.org/mailman/listinfo/linux-nvme
->>>
->>>
->>> _______________________________________________
->>> Linux-nvme mailing list
->>> Linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
->>> http://lists.infradead.org/mailman/listinfo/linux-nvme
->
-> _______________________________________________
-> Linux-nvme mailing list
-> Linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-> http://lists.infradead.org/mailman/listinfo/linux-nvme
 
+----- Original Message -----
+From: "Sagi Grimberg" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+To: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "Christoph Hellwig" <hch-jcswGhMUV9g@public.gmane.org>
+Sent: Monday, March 13, 2017 9:39:41 PM
+Subject: [PATCH v2] nvmet-rdma: Fix a possible uninitialized variable dereference
+
+When handling a new recv command, we grab a new rsp resource and
+check for the queue state being live. In case the queue is not in
+live state, we simply restore the rsp back to the free list. However
+in this flow we didn't set rsp->queue yet, so we cannot dereference it.
+
+Instead, make sure to initialize rsp->queue (and other rsp members)
+as soon as possible so we won't reference uninitialized variables.
+
+Reported-by: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Reported-by: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+---
+- v1 broke srq, this one doesn't
+
+ drivers/nvme/target/rdma.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
+index 9aa1da3778b3..ecc4fe862561 100644
+--- a/drivers/nvme/target/rdma.c
++++ b/drivers/nvme/target/rdma.c
+@@ -703,11 +703,6 @@ static void nvmet_rdma_handle_command(struct nvmet_rdma_queue *queue,
+ {
+ 	u16 status;
+ 
+-	cmd->queue = queue;
+-	cmd->n_rdma = 0;
+-	cmd->req.port = queue->port;
+-
+-
+ 	ib_dma_sync_single_for_cpu(queue->dev->device,
+ 		cmd->cmd->sge[0].addr, cmd->cmd->sge[0].length,
+ 		DMA_FROM_DEVICE);
+@@ -760,9 +755,12 @@ static void nvmet_rdma_recv_done(struct ib_cq *cq, struct ib_wc *wc)
+ 
+ 	cmd->queue = queue;
+ 	rsp = nvmet_rdma_get_rsp(queue);
++	rsp->queue = queue;
+ 	rsp->cmd = cmd;
+ 	rsp->flags = 0;
+ 	rsp->req.cmd = cmd->nvme_cmd;
++	rsp->req.port = queue->port;
++	rsp->n_rdma = 0;
+ 
+ 	if (unlikely(queue->state != NVMET_RDMA_Q_LIVE)) {
+ 		unsigned long flags;
+-- 
+2.7.4
+
+
+_______________________________________________
+Linux-nvme mailing list
+Linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+http://lists.infradead.org/mailman/listinfo/linux-nvme
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
