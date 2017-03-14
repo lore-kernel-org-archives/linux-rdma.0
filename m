@@ -1,89 +1,63 @@
-From: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2] nvmet-rdma: Fix a possible uninitialized variable
- dereference
-Date: Tue, 14 Mar 2017 09:40:27 -0400 (EDT)
-Message-ID: <1898652754.2479312.1489498827670.JavaMail.zimbra@redhat.com>
-References: <1489412381-28947-1-git-send-email-sagi@grimberg.me>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [bug report] IB/hns: Fix the bug when free mr
+Date: Tue, 14 Mar 2017 16:39:29 +0300
+Message-ID: <20170314133929.GA31861@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1489412381-28947-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks Sagi
+Hello Shaobo Xu,
 
-Tested-by: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+The patch bfcc681bd09d: "IB/hns: Fix the bug when free mr" from Nov
+29, 2016, leads to the following static checker warning:
 
+	drivers/infiniband/hw/hns/hns_roce_hw_v1.c:909 hns_roce_v1_recreate_lp_qp()
+	error: potential null dereference 'lp_qp_work'.  (kzalloc returns null)
 
-Best Regards,
-  Yi Zhang
+drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+   891  static int hns_roce_v1_recreate_lp_qp(struct hns_roce_dev *hr_dev)
+   892  {
+   893          struct device *dev = &hr_dev->pdev->dev;
+   894          struct hns_roce_recreate_lp_qp_work *lp_qp_work;
+   895          struct hns_roce_free_mr *free_mr;
+   896          struct hns_roce_v1_priv *priv;
+   897          struct completion comp;
+   898          unsigned long end =
+   899            msecs_to_jiffies(HNS_ROCE_V1_RECREATE_LP_QP_TIMEOUT_MSECS) + jiffies;
+   900  
+   901          priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
+   902          free_mr = &priv->free_mr;
+   903  
+   904          lp_qp_work = kzalloc(sizeof(struct hns_roce_recreate_lp_qp_work),
+                ^^^^^^^^^^^^^^^^^^^^
+Not checked.
 
-
------ Original Message -----
-From: "Sagi Grimberg" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-To: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: "Christoph Hellwig" <hch-jcswGhMUV9g@public.gmane.org>
-Sent: Monday, March 13, 2017 9:39:41 PM
-Subject: [PATCH v2] nvmet-rdma: Fix a possible uninitialized variable dereference
-
-When handling a new recv command, we grab a new rsp resource and
-check for the queue state being live. In case the queue is not in
-live state, we simply restore the rsp back to the free list. However
-in this flow we didn't set rsp->queue yet, so we cannot dereference it.
-
-Instead, make sure to initialize rsp->queue (and other rsp members)
-as soon as possible so we won't reference uninitialized variables.
-
-Reported-by: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Reported-by: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
----
-- v1 broke srq, this one doesn't
-
- drivers/nvme/target/rdma.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
-index 9aa1da3778b3..ecc4fe862561 100644
---- a/drivers/nvme/target/rdma.c
-+++ b/drivers/nvme/target/rdma.c
-@@ -703,11 +703,6 @@ static void nvmet_rdma_handle_command(struct nvmet_rdma_queue *queue,
- {
- 	u16 status;
- 
--	cmd->queue = queue;
--	cmd->n_rdma = 0;
--	cmd->req.port = queue->port;
--
--
- 	ib_dma_sync_single_for_cpu(queue->dev->device,
- 		cmd->cmd->sge[0].addr, cmd->cmd->sge[0].length,
- 		DMA_FROM_DEVICE);
-@@ -760,9 +755,12 @@ static void nvmet_rdma_recv_done(struct ib_cq *cq, struct ib_wc *wc)
- 
- 	cmd->queue = queue;
- 	rsp = nvmet_rdma_get_rsp(queue);
-+	rsp->queue = queue;
- 	rsp->cmd = cmd;
- 	rsp->flags = 0;
- 	rsp->req.cmd = cmd->nvme_cmd;
-+	rsp->req.port = queue->port;
-+	rsp->n_rdma = 0;
- 
- 	if (unlikely(queue->state != NVMET_RDMA_Q_LIVE)) {
- 		unsigned long flags;
--- 
-2.7.4
+   905                               GFP_KERNEL);
+   906  
+   907          INIT_WORK(&(lp_qp_work->work), hns_roce_v1_recreate_lp_qp_work_fn);
+   908  
+   909          lp_qp_work->ib_dev = &(hr_dev->ib_dev);
+   910          lp_qp_work->comp = &comp;
+   911          lp_qp_work->comp_flag = 1;
+   912  
+   913          init_completion(lp_qp_work->comp);
+   914  
+   915          queue_work(free_mr->free_mr_wq, &(lp_qp_work->work));
+   916  
+   917          while (time_before_eq(jiffies, end)) {
+   918                  if (try_wait_for_completion(&comp))
+   919                          return 0;
+   920                  msleep(HNS_ROCE_V1_RECREATE_LP_QP_WAIT_VALUE);
+   921          }
 
 
-_______________________________________________
-Linux-nvme mailing list
-Linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-http://lists.infradead.org/mailman/listinfo/linux-nvme
+regards,
+dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
