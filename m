@@ -1,37 +1,31 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 0/7] Bugs found by sparse
-Date: Tue, 14 Mar 2017 10:21:07 -0600
-Message-ID: <1489508474-16664-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 1/7] Drop debugging print in CMakeLists.txt
+Date: Tue, 14 Mar 2017 10:21:08 -0600
+Message-ID: <1489508474-16664-2-git-send-email-jgunthorpe@obsidianresearch.com>
+References: <1489508474-16664-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1489508474-16664-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Since Bart got sparse working I took a quick look at what is in the core
-libaries, these cases look like bugs to me.
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+---
+ CMakeLists.txt | 1 -
+ 1 file changed, 1 deletion(-)
 
-I have another series that adds lots of sparse annotations to send later..
-
-https://github.com/linux-rdma/rdma-core/pull/97
-
-Jason Gunthorpe (7):
-  Drop debugging print in CMakeLists.txt
-  Fix missing swaps when computing path bits
-  Fix various missing swaps in debugging/logging macros
-  Add missing statics
-  acm: Fix incorrect TID masking
-  cmpost: Add missing swap for sin_port
-  acm: Fix missing swap in pkey compare
-
- CMakeLists.txt                      |  1 -
- ibacm/prov/acmp/src/acmp.c          | 19 ++++++++++---------
- ibacm/src/acm.c                     |  8 ++++----
- libibcm/examples/cmpost.c           |  2 +-
- libibverbs/examples/xsrq_pingpong.c |  2 +-
- librdmacm/rsocket.c                 |  2 +-
- providers/qedr/qelr_verbs.c         |  4 ++--
- 7 files changed, 19 insertions(+), 19 deletions(-)
-
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 7ebf8edfee7686..358bfd543e7785 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -135,7 +135,6 @@ RDMA_BuildType()
+ include_directories(${BUILD_INCLUDE})
+ 
+ RDMA_CheckSparse()
+-message(STATUS "SPARSE1 ${HAVE_SPARSE}")
+ 
+ # Require GNU99 mode
+ RDMA_EnableCStd()
 -- 
 2.7.4
 
