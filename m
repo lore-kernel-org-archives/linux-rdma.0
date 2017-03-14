@@ -1,255 +1,218 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core v1] travis: Upload assets to github release
-Date: Tue, 14 Mar 2017 11:10:41 -0400
-Message-ID: <1489504241.2217.55.camel@redhat.com>
-References: <20170312184758.14959-1-leon@kernel.org>
+From: Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: Re: Fwd: mlx5_ib_post_send panic on s390x
+Date: Tue, 14 Mar 2017 16:02:17 +0100
+Message-ID: <04049739-a008-f7c7-4f7a-30616fbf787a@linux.vnet.ibm.com>
+References: <56246ac0-a706-291c-7baa-a6dd2c6331cd@linux.vnet.ibm.com>
+ <dcc90daa-b932-8957-d8bc-e1f02d04e03a@linux.vnet.ibm.com>
+ <20e4f31e-b2a7-89fb-d4c0-583c0dc1efb6@mellanox.com>
+ <491cf3e1-b2f8-3695-ecd4-3d34b0ae9e25@linux.vnet.ibm.com>
+ <AM4PR0501MB278723F1BF4DA9846C664C62C52C0@AM4PR0501MB2787.eurprd05.prod.outlook.com>
+ <e57691e1-55bc-308a-fc91-0a8072218dd5@linux.vnet.ibm.com>
+ <VI1PR0502MB300817FC6256218DE800497BD1220@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170312184758.14959-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <VI1PR0502MB300817FC6256218DE800497BD1220-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 2017-03-12 at 20:47 +0200, Leon Romanovsky wrote:
-> Create and upload library source code to the corresponding release.
-> 
-> The upload is triggered for pushed tags which are expected to be
-> in semantic version format, e.g. v12.7.0.
-> 
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Hi Parav,
 
-I've merged this and will give it a try later today.
+I tried your mlx4-patch together with SMC on s390x, but it failed.
+The SMC-R code tries to send 44 bytes as inline in 1 sge.
+I wonder about a length check with 16 bytes, which probably explains the failure.
+See my question below in the patch:
 
-> ---
+On 03/12/2017 09:20 PM, Parav Pandit wrote:
+> Hi Ursula,
 > 
-> Hi All,
+>> -----Original Message-----
+>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+>> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Ursula Braun
+>> Sent: Thursday, March 9, 2017 3:54 AM
+>> To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Cc: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Leon Romanovsky
+>> <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Subject: Re: Fwd: mlx5_ib_post_send panic on s390x
+>>
+>>
+>>
+>> On 03/06/2017 02:08 PM, Eli Cohen wrote:
+>>>>>
+>>>>> The problem seems to be caused by the usage of plain memcpy in
+>> set_data_inl_seg().
+>>>>> The address provided by SMC-code in struct ib_send_wr *wr is an
+>>>>> address belonging to an area mapped with the ib_dma_map_single()
+>>>>> call. On s390x those kind of addresses require extra access functions (see
+>> arch/s390/include/asm/io.h).
+>>>>>
+>>>
+>>> By definition, when you are posting a send request with inline, the address
+>> must be mapped to the cpu so plain memcpy should work.
+>>>
+>> In the past I run SMC-R with Connect X3 cards. The mlx4 driver does not seem to
+>> contain extra coding for IB_SEND_INLINE flag for ib_post_send. Does this mean
+>> for SMC-R to run on Connect X3 cards the IB_SEND_INLINE flag is ignored, and
+>> thus I needed the ib_dma_map_single() call for the area used with
+>> ib_post_send()? Does this mean I should stay away from the IB_SEND_INLINE
+>> flag, if I want to run the same SMC-R code with both, Connect X3 cards and
+>> Connect X4 cards?
+>>
+> I had encountered the same kernel panic that you mentioned last week on ConnectX-4 adapters with smc-r on x86_64.
+> Shall I submit below fix to netdev mailing list?
+> I have tested above change. I also have optimization that avoids dma mapping for wr_tx_dma_addr.
 > 
-> This is second attempt to add automatic github release facilities.
-> The previous version was merged [1] and reverted because it had wrong
-> OAuth key.
-> I hope that this time [3], it will work :)
+> -               lnk->wr_tx_sges[i].addr =
+> -                       lnk->wr_tx_dma_addr + i * SMC_WR_BUF_SIZE;
+> +               lnk->wr_tx_sges[i].addr = (uintptr_t)(lnk->wr_tx_bufs + i);
 > 
-> [1] https://github.com/linux-rdma/rdma-core/commit/7b78568cb1c5fe75d7
-> 60a87119475124a325df9a
-> [2] https://github.com/linux-rdma/rdma-core/commit/b9730c92d8873059ed
-> 651db472f942a5a6693793
-> [3] https://travis-ci.org/linux-rdma/rdma-core/builds/210311044
+> I also have fix for processing IB_SEND_INLINE in mlx4 driver on little older kernel base.
+> I have attached below. I can rebase my kernel and provide fix in mlx5_ib driver.
+> Let me know.
 > 
-> ---
->  .travis.yml              | 17 +++++++++
->  Documentation/release.md | 99
-> ++++++++++++++++++++++++++++++++++++++++++++++++
->  buildlib/github-release  |  8 ++++
->  3 files changed, 124 insertions(+)
->  create mode 100644 Documentation/release.md
->  create mode 100755 buildlib/github-release
+> Regards,
+> Parav Pandit
 > 
-> diff --git a/.travis.yml b/.travis.yml
-> index 8f9adc83..d719eab7 100644
-> --- a/.travis.yml
-> +++ b/.travis.yml
-> @@ -39,3 +39,20 @@ addons:
+> diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+> index a2e4ca5..0d984f5 100644
+> --- a/drivers/infiniband/hw/mlx4/qp.c
+> +++ b/drivers/infiniband/hw/mlx4/qp.c
+> @@ -2748,6 +2748,7 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+>  	unsigned long flags;
+>  	int nreq;
+>  	int err = 0;
+> +	int inl = 0;
+>  	unsigned ind;
+>  	int uninitialized_var(stamp);
+>  	int uninitialized_var(size);
+> @@ -2958,30 +2959,97 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+>  		default:
+>  			break;
+>  		}
+> +		if (wr->send_flags & IB_SEND_INLINE && wr->num_sge) {
+> +			struct mlx4_wqe_inline_seg *seg;
+> +			void *addr;
+> +			int len, seg_len;
+> +			int num_seg;
+> +			int off, to_copy;
+> +
+> +			inl = 0;
+> +
+> +			seg = wqe;
+> +			wqe += sizeof *seg;
+> +			off = ((uintptr_t) wqe) & (MLX4_INLINE_ALIGN - 1);
+> +			num_seg = 0;
+> +			seg_len = 0;
+> +
+> +			for (i = 0; i < wr->num_sge; ++i) {
+> +				addr = (void *) (uintptr_t) wr->sg_list[i].addr;
+> +				len  = wr->sg_list[i].length;
+> +				inl += len;
+> +
+> +				if (inl > 16) {
+> +					inl = 0;
+> +					err = ENOMEM;
+> +					*bad_wr = wr;
+> +					goto out;
+> +				}
+SMC-R fails due to this check. inl is 44 here. Why is 16 a limit for IB_SEND_INLINE data?
+The SMC-R code calls ib_create_qp() with max_inline_data=44. And the function does not
+seem to return an error.
+>  
+> -		/*
+> -		 * Write data segments in reverse order, so as to
+> -		 * overwrite cacheline stamp last within each
+> -		 * cacheline.  This avoids issues with WQE
+> -		 * prefetching.
+> -		 */
+> +				while (len >= MLX4_INLINE_ALIGN - off) {
+> +					to_copy = MLX4_INLINE_ALIGN - off;
+> +					memcpy(wqe, addr, to_copy);
+> +					len -= to_copy;
+> +					wqe += to_copy;
+> +					addr += to_copy;
+> +					seg_len += to_copy;
+> +					wmb(); /* see comment below */
+> +					seg->byte_count = htonl(MLX4_INLINE_SEG | seg_len);
+> +					seg_len = 0;
+> +					seg = wqe;
+> +					wqe += sizeof *seg;
+> +					off = sizeof *seg;
+> +					++num_seg;
+> +				}
+>  
+> -		dseg = wqe;
+> -		dseg += wr->num_sge - 1;
+> -		size += wr->num_sge * (sizeof (struct mlx4_wqe_data_seg) / 16);
+> +				memcpy(wqe, addr, len);
+> +				wqe += len;
+> +				seg_len += len;
+> +				off += len;
+> +			}
+>  
+> -		/* Add one more inline data segment for ICRC for MLX sends */
+> -		if (unlikely(qp->mlx4_ib_qp_type == MLX4_IB_QPT_SMI ||
+> -			     qp->mlx4_ib_qp_type == MLX4_IB_QPT_GSI ||
+> -			     qp->mlx4_ib_qp_type &
+> -			     (MLX4_IB_QPT_PROXY_SMI_OWNER | MLX4_IB_QPT_TUN_SMI_OWNER))) {
+> -			set_mlx_icrc_seg(dseg + 1);
+> -			size += sizeof (struct mlx4_wqe_data_seg) / 16;
+> -		}
+> +			if (seg_len) {
+> +				++num_seg;
+> +				/*
+> +				 * Need a barrier here to make sure
+> +				 * all the data is visible before the
+> +				 * byte_count field is set.  Otherwise
+> +				 * the HCA prefetcher could grab the
+> +				 * 64-byte chunk with this inline
+> +				 * segment and get a valid (!=
+> +				 * 0xffffffff) byte count but stale
+> +				 * data, and end up sending the wrong
+> +				 * data.
+> +				 */
+> +				wmb();
+> +				seg->byte_count = htonl(MLX4_INLINE_SEG | seg_len);
+> +			}
+>  
+> -		for (i = wr->num_sge - 1; i >= 0; --i, --dseg)
+> -			set_data_seg(dseg, wr->sg_list + i);
+> +			size += (inl + num_seg * sizeof (*seg) + 15) / 16;
+> +		} else {
+> +			/*
+> +			 * Write data segments in reverse order, so as to
+> +			 * overwrite cacheline stamp last within each
+> +			 * cacheline.  This avoids issues with WQE
+> +			 * prefetching.
+> +			 */
+> +
+> +			dseg = wqe;
+> +			dseg += wr->num_sge - 1;
+> +			size += wr->num_sge * (sizeof (struct mlx4_wqe_data_seg) / 16);
+> +
+> +			/* Add one more inline data segment for ICRC for MLX sends */
+> +			if (unlikely(qp->mlx4_ib_qp_type == MLX4_IB_QPT_SMI ||
+> +				     qp->mlx4_ib_qp_type == MLX4_IB_QPT_GSI ||
+> +				     qp->mlx4_ib_qp_type &
+> +				     (MLX4_IB_QPT_PROXY_SMI_OWNER | MLX4_IB_QPT_TUN_SMI_OWNER))) {
+> +				set_mlx_icrc_seg(dseg + 1);
+> +				size += sizeof (struct mlx4_wqe_data_seg) / 16;
+> +			}
+>  
+> +			for (i = wr->num_sge - 1; i >= 0; --i, --dseg)
+> +				set_data_seg(dseg, wr->sg_list + i);
+> +		}
+>  		/*
+>  		 * Possibly overwrite stamping in cacheline with LSO
+>  		 * segment only after making sure all data segments
 > 
->  script:
->    - buildlib/travis-build
-> +  - buildlib/github-release
-> +deploy:
-> +  # Deploy assets to Github releases
-> +  # https://docs.travis-ci.com/user/deployment/releases/
-> +  provider: releases
-> +  api_key:
-> +    # This is encrypted OAth token generated by
-> +    # Travis CLI tool (travis setup releases) limited to specific
-> repo.
-> +    secure:
-> ok/WMzFgsSnk+NZ850QEUESHRfJ4Ae7T8eA4dcx4fuw2RqybAh8wjxrLP5GKR27WrzB3h
-> KHHTi7fgE0VtBY024kGJ/+wlQXHN1p89JvCiQlGOKkxy5YIlS4GUhwwkqgoU+hmifxl1i
-> +9yCuowHPIM4WoP+NR+IZgvMahlrdPCS2OleFtrqyaHZbC/Usdt0WZLeQzG+rVLec/NvP
-> nVOn81e17yuAuluHAzu+qcV94szqe/zwDzG8RUUKXaeDEQ3JQja4bCLL/kTkWR8JGsfwv
-> cqc9Ut4Ry2b7uEWp5/FIcxUGWviKRgRzEdcT40iMMiJbIrH7gYp66Ymr/dypqUfc4u/xS
-> b4AmpTMcYGUXJxsdzKyL6d/7HbuHIIVc5o1V/L5mdaIjeO5KjTFjMMD5KoSXfBlNIGk2a
-> s1JD/99lxJ3VlpQGwI5390+Tyl8o4Ao4aBXSCG96PDK4+UkYFht/wrw+UoYdV07u3x7zz
-> 21O3N3Lu5733hDvcvyOW6uIzoeLQ5O62/3Pq+DOFRs/nnRiW8/gjIkEQAyj/GGxw/tasl
-> pFJFcdVt/MSueV4t5OCI2YdGA/NxG/c4FIGy+dntV5BB6Gld8KkP/PP74yzJ1o/PRDREx
-> TbsQzrdisDrVIf0r4pxTTsw1gXRE5r6S0tQ5aNoXAQ5h4xiwAIGqqBF4HESJjA=
-> +  file: rdma-core-*.tar.gz
-> +  # Allow asterisks in file names.
-> +  file_glob: true
-> +  skip_cleanup: true
-> +  # Limit scope of deploy to specific repo.
-> +  on:
-> +    repo: linux-rdma/rdma-core
-> +    tags: true
-> diff --git a/Documentation/release.md b/Documentation/release.md
-> new file mode 100644
-> index 00000000..2a40ef76
-> --- /dev/null
-> +++ b/Documentation/release.md
-> @@ -0,0 +1,99 @@
-> +# Release Process
-> +
-> +Release process of rdma-core library consists from three stages
-> +
-> +1. Change library version, according to [Overall Pacakge
-> Version](versioning.md) guide.
-> +2. Push the change above to master branch and ensure that Travis CI
-> reports successful build.
-> +3. Create local annotated signed tag vX.X.X (`git tag vX.X.X -a
-> -s`).
-> +4. Issue `git release` command which will push tag, trigger Travis
-> CI to upload
-> +   release tar.gz file and create release notes based on tag context
-> with release notes in it.
-> +
-> +## git release
-> +
-> +There are many implmentations of different `git release` commands.
-> We recommend you to use
-> +the command from [this](https://github.com/mpalmer/github-release)
-> repository due to its simplicity.
-> +
-> +---
-> +Copy&Paste from relevant [README](https://github.com/mpalmer/github-
-> release/blob/master/README.md)
-> +
-> +---
-> +
-> +This very simple gem provides a `git release` command, which will
-> +automatically fill out any and all "release tags" into fully-blown
-> "Github
-> +Releases", complete with release notes, a heading, and all the other
-> good
-> +things in life.
-> +
-> +Using this gem, you can turn the following tag annotation:
-> +
-> +    First Release
-> +
-> +    It is with much fanfare and blowing of horns that I bequeath the
-> +    awesomeness of `git release` upon the world.
-> +
-> +    Features in this release include:
-> +
-> +     * Ability to create a release from a tag annotation or commit
-> message;
-> +     * Automatically generates an OAuth token if needed;
-> +     * Feeds your cat while you're hacking(*)
-> +
-> +    You should install it now!  `gem install github-release`
-> +
-> +Into [this](https://github.com/mpalmer/github-release/releases/tag/v
-> 0.1.0)
-> +simply by running
-> +
-> +    git release
-> +
-> +### Installation
-> +
-> +Simply install the gem:
-> +
-> +    gem install github-release
-> +
-> +
-> +### Usage
-> +
-> +Using `git release` is very simple.  Just make sure that your
-> `origin`
-> +remote points to your Github repo, and then run `git release`.  All
-> tags
-> +that look like a "version tag" (see "Configuration", below) will be
-> created
-> +as Github releases (if they don't already exist) and the message
-> from the
-> +tag will be used as the release notes.
-> +
-> +The format of the release notes is quite straightforward -- the
-> first line
-> +of the message associated with the commit will be used as the "name"
-> of the
-> +release, with the rest of the message used as the "body" of the
-> release.
-> +The body will be interpreted as Github-flavoured markdown, so if
-> you'd like
-> +to get fancy, go for your life.
-> +
-> +The message associated with the "release tag" is either the tag's
-> annotation
-> +message (if it is an annotated tag) or else the commit log of the
-> commit on
-> +which the tag is placed.  I *strongly* recommend annotated tags (but
-> then
-> +again, [I'm biased...](http://theshed.hezmatt.org/git-version-bump))
-> +
-> +The first time you use `git release`, it will ask you for your
-> Github
-> +username and password.  This is used to request an OAuth token to
-> talk to
-> +the Github API, which is then stored in your global git
-> config.  Hence you
-> +*shouldn't* be asked for your credentials every time you use `git
-> release`.
-> +If you need to use multiple github accounts for different repos, you
-> can
-> +override the `release.api-token` config parameter in your repo
-> configuration
-> +(but you'll have to get your own OAuth token).
-> +
-> +
-> +### Configuration
-> +
-> +There are a few things you can configure to make `git release` work
-> slightly
-> +differently.  None of them should be required for normal, sane use.
-> +
-> + * `release.remote` (default `origin`) -- The name of the remote
-> which is
-> +   used to determine what github repository to send release notes
-> to.
-> +
-> + * `release.api-token` (default is runtime generated) -- The OAuth
-> token
-> +   to use to authenticate access to the Github API.  When you first
-> run `git
-> +   release`, you'll be prompted for a username and password to use
-> to
-> +   generate an initial token; if you need to override it on a per-
-> repo
-> +   basis, this is the key you'll use.
-> +
-> + * `release.tag-regex` (default `v\d+\.\d+(\.\d+)?$`) -- The regular
-> +   expression to filter which tags denote releases, as opposed to
-> other tags
-> +   you might have decided to make.  Only tags which match this
-> regular
-> +   expression will be pushed up by `git release`, and only those
-> tags will
-> +   be marked as releases.
-> diff --git a/buildlib/github-release b/buildlib/github-release
-> new file mode 100755
-> index 00000000..8f21cf3a
-> --- /dev/null
-> +++ b/buildlib/github-release
-> @@ -0,0 +1,8 @@
-> +#!/bin/bash
-> +
-> +set -e
-> +
-> +if [[ $TRAVIS_TAG == v* ]] && [ "$TRAVIS_OS_NAME" = "linux" ]; then
-> +	# Let's create release for vX tags only.
-> +	git archive --prefix rdma-core-$TRAVIS_TAG/ --output rdma-
-> core-$TRAVIS_TAG.tar.gz HEAD
-> +fi
-> --
-> 2.12.0
-> 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-   
-Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body
+>> of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
+>> http://vger.kernel.org/majordomo-info.html
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
