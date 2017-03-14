@@ -1,39 +1,42 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [RFC v1 for accelerated IPoIB 04/25] IB/verb: Add ipoib_options
- struct and API
-Date: Tue, 14 Mar 2017 10:11:49 -0600
-Message-ID: <20170314161149.GA15752@obsidianresearch.com>
-References: <1489429896-10781-1-git-send-email-erezsh@mellanox.com>
- <1489429896-10781-5-git-send-email-erezsh@mellanox.com>
- <20170313200136.GA2738@obsidianresearch.com>
- <20170314070109.GD79937@knc-06.sc.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170314070109.GD79937@knc-06.sc.intel.com>
-Sender: netdev-owner@vger.kernel.org
-To: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>
-Cc: Erez Shitrit <erezsh@mellanox.com>, dledford@redhat.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, valex@mellanox.com, leonro@mellanox.com, saedm@mellanox.com, erezsh@dev.mellanox.co.il
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: [PATCH rdma-core 7/7] acm: Fix missing swap in pkey compare
+Date: Tue, 14 Mar 2017 10:21:14 -0600
+Message-ID: <1489508474-16664-8-git-send-email-jgunthorpe@obsidianresearch.com>
+References: <1489508474-16664-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1489508474-16664-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 14, 2017 at 12:01:09AM -0700, Vishwanathapura, Niranjana wrote:
-> On Mon, Mar 13, 2017 at 02:01:36PM -0600, Jason Gunthorpe wrote:
-> >>+	/* multicast */
-> >>+	int (*attach_mcast)(struct net_device *dev, struct ib_device *hca,
-> >>+			    union ib_gid *gid, u16 lid, int set_qkey);
-> >>+	int (*detach_mcast)(struct net_device *dev, struct ib_device *hca,
-> >>+			    union ib_gid *gid, u16 lid);
-> >
-> >It would make more sense to store the struct ib_device pointer in the
-> >struct rdma_netdev.
-> >
-> 
-> Agree that it shouldn't be a function parameters.
-> For opa_vnic, I found it convenient to store ib_device pointer in client and
-> device private structures as those will be available in most places anyhow.
+It looks like endpoint->pkey is always used as host except for here. The
+routine always returns 0 on failure, so it is likely nobody noticed it
+was wrong.
 
-If vnic uses it too, then lets add the ib_device and port num to
-rdma_netdev itself?
+Found by sparse.
 
-Jason
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+---
+ ibacm/prov/acmp/src/acmp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ibacm/prov/acmp/src/acmp.c b/ibacm/prov/acmp/src/acmp.c
+index fb8d30f3e6ac42..024d401fbf9fbd 100644
+--- a/ibacm/prov/acmp/src/acmp.c
++++ b/ibacm/prov/acmp/src/acmp.c
+@@ -2459,7 +2459,7 @@ static uint16_t acmp_get_pkey_index(struct acm_endpoint *endpoint)
+ 
+ 	for (i = 0, ret = 0; !ret; i++) {
+ 		ret = ibv_query_pkey(port->dev->verbs, port->port_num, i, &pkey);
+-		if (!ret && endpoint->pkey == pkey)
++		if (!ret && endpoint->pkey == be16toh(pkey))
+ 			return i;
+ 	}
+ 	return 0;
+-- 
+2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
