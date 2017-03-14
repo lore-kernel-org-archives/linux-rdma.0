@@ -1,36 +1,92 @@
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: Re: [PATCH v9 00/11] uapi: export all headers under uapi directories
-Date: Tue, 14 Mar 2017 14:38:29 +0900
-Message-ID: <CAK7LNAQV0tDw7RCTdn-qicttbyjU9QRfxasvc-7S-+dxMfii8g@mail.gmail.com>
-References: <20170301045241.GB9156@gondor.apana.org.au> <1488473802-13354-1-git-send-email-nicolas.dichtel@6wind.com>
- <3df45ecc-1aa0-a029-d7e5-2598f0908874@6wind.com> <CAK7LNARpx7f0eV5_AiPmNYT7MsRbGFOygJwjfAzX_7aCpuHwuw@mail.gmail.com>
- <96811b2b-25af-ed32-5094-14987aefd4d2@6wind.com>
+From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>
+Subject: Re: [RFC v1 for accelerated IPoIB 25/25] mlx5_ib: skeleton for
+ mlx5_ib to support ipoib_ops
+Date: Mon, 13 Mar 2017 23:07:30 -0700
+Message-ID: <20170314060730.GA79937@knc-06.sc.intel.com>
+References: <1489429896-10781-1-git-send-email-erezsh@mellanox.com>
+ <1489429896-10781-26-git-send-email-erezsh@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kbuild-owner@vger.kernel.org>
-In-Reply-To: <96811b2b-25af-ed32-5094-14987aefd4d2@6wind.com>
-Sender: linux-kbuild-owner@vger.kernel.org
-To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Michal Marek <mmarek@suse.com>, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arch@vger.kernel.org, David Airlie <airlied@linux.ie>, "David S. Miller" <davem@davemloft.net>, Russell King <linux@armlinux.org.uk>, bp@alien8.de, slash.tmp@free.fr, Daniel Vetter <daniel.vetter@ffwll.ch>, rmk+kernel@armlinux.org.uk, msalter@redhat.com, jengelh@inai.de, hch@infradead.org, Tobias Klauser <tklauser@distanz.ch>, mpe@ellerman.id.au, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, ldv@altlinux.org, Herbert Xu <herbert@gondor.apana.org.au>, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1489429896-10781-26-git-send-email-erezsh@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: Erez Shitrit <erezsh@mellanox.com>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, valex@mellanox.com, leonro@mellanox.com, saedm@mellanox.com, erezsh@dev.mellanox.co.il
 List-Id: linux-rdma@vger.kernel.org
 
-Ni Nicolas,
+On Mon, Mar 13, 2017 at 08:31:36PM +0200, Erez Shitrit wrote:
+>+int mlx5_ib_dev_init(struct net_device *dev, struct ib_device *hca,
+>+		     int *qp_num)
+>+{
+>+	void *next_priv = ipoib_dev_priv(dev);
+>+	struct rdma_netdev *rn = netdev_priv(dev);
+>+	struct mlx5_ib_dev *ib_dev = to_mdev(hca);
+>+	int ret;
+>+
+>+	ret = mlx5i_attach(ib_dev->mdev, next_priv);
+>+	if (ret) {
+>+		pr_err("Failed resources allocation for device: %s ret: %d\n",
+>+		       dev->name, ret);
+>+		return ret;
+>+	}
+>+
+>+	*qp_num = rn->qp_num;
+>+
+>+	pr_debug("resources allocated for device: %s\n", dev->name);
+>+
+>+	return 0;
+>+}
+>+
+>+void mlx5_ib_dev_cleanup(struct net_device *dev, struct ib_device *hca)
+>+{
+>+	void *next_priv = ipoib_dev_priv(dev);
+>+	struct rdma_netdev *rn = netdev_priv(dev);
+>+	struct mlx5_ib_dev *ib_dev = to_mdev(hca);
+>+	struct mlx5_qp_context context;
+>+	int ret;
+>+
+>+	/* detach qp from flow-steering by reset it */
+>+	ret = mlx5_core_qp_modify(ib_dev->mdev,
+>+				  MLX5_CMD_OP_2RST_QP, 0, &context,
+>+				  (struct mlx5_core_qp *)rn->context);
+>+	if (ret)
+>+		pr_err("%s failed (ret: %d) to reset QP\n", __func__, ret);
+>+
+>+	mlx5i_detach(ib_dev->mdev, next_priv);
+>+
+>+	mlx5_ib_clean_qp(ib_dev, (struct mlx5_core_qp *)rn->context);
+>+}
+>+
 
+Why can't use ndo_init() and ndo_uninit() here (just like open and stop below).
+We really don't need to pass in hca here (or in any other interface function) 
+as it is already made available to the driver during alloc_rdma_netdev.
+Also, why qp_num is an output parameter in the init function? Ipoib can access 
+rn->qp_num which this init function is returning.
 
-2017-03-14 1:57 GMT+09:00 Nicolas Dichtel <nicolas.dichtel@6wind.com>:
->> BTW, this series does not apply cleanly.
->>
->> If you could rebase it onto v4.11-rc1 tag,
->> it would be helpful.
-> You really want this on top of 4.11-rc1 or the last linus tag, ie v4.11-rc2?
+>+struct net_device *mlx5_alloc_rdma_netdev(struct ib_device *hca,
+>+				     u8 port_num,
+>+				     enum rdma_netdev_t type,
+>+				     const char *name,
+>+				     unsigned char name_assign_type,
+>+				     void (*setup)(struct net_device *))
+>+{
+
+Probably need to check the 'type' here as any rdma netdev client can call this 
+function (with different rdma_netdev type) and cause driver to misbehave.
+
+>+void mlx5_free_rdma_netdev(struct net_device *netdev)
+>+{
+>+}
+
+May be it is safer and cleaner for this function undo what alloc does here 
+(instead of doing it in other places)?
+
+>-- 
+>1.8.3.1
 >
-
-Basically, I queue up patches based on -rc1 tag
-unless there is a particular reason for otherwise.
-
-If it is based on -rc1, will it cause conflicts with Linus tree?
-
-
--- 
-Best Regards
-Masahiro Yamada
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
