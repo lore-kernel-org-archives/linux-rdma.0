@@ -1,100 +1,146 @@
 From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [RFC v1 for accelerated IPoIB 05/25] IB/ipoib: Support ipoib
- acceleration options callbacks
-Date: Tue, 14 Mar 2017 16:42:55 +0200
-Message-ID: <CAAk-MO8gQ5x-4Ubk1nzPntEWa2ivTK6uXyJ4eC7fmtUCNnOdfA@mail.gmail.com>
+Subject: Re: [RFC v1 for accelerated IPoIB 25/25] mlx5_ib: skeleton for
+ mlx5_ib to support ipoib_ops
+Date: Tue, 14 Mar 2017 16:53:24 +0200
+Message-ID: <CAAk-MO9ekfWZT-C2SKTw129t=UQty9w2+wzQsvY1Od0k1zSrpA@mail.gmail.com>
 References: <1489429896-10781-1-git-send-email-erezsh@mellanox.com>
- <1489429896-10781-6-git-send-email-erezsh@mellanox.com> <20170314063538.GB79937@knc-06.sc.intel.com>
+ <1489429896-10781-26-git-send-email-erezsh@mellanox.com> <20170313202720.GC2738@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170314063538.GB79937-wPcXA7LoDC+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20170313202720.GC2738-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, saedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 14, 2017 at 8:35 AM, Vishwanathapura, Niranjana
-<niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> On Mon, Mar 13, 2017 at 08:31:16PM +0200, Erez Shitrit wrote:
->>
->> +static struct net_device *ipoib_create_netdev_default(struct ib_device
->> *hca,
->> +                                                     const char *name,
->> +                                                     void (*setup)(struct
->> net_device *))
->> {
->>         struct net_device *dev;
->> +       struct rdma_netdev *rn;
->>
->> -       dev = alloc_netdev((int)sizeof(struct ipoib_dev_priv), name,
->> -                          NET_NAME_UNKNOWN, ipoib_setup);
->> +       dev = alloc_netdev((int)sizeof(struct ipoib_rdma_netdev),
->> +                          name,
->> +                          NET_NAME_UNKNOWN, setup);
->>         if (!dev)
->>                 return NULL;
->>
->> -       return netdev_priv(dev);
->> +       rn = netdev_priv(dev);
->> +
->> +       rn->ib_dev_init = ipoib_dev_init_default;
->> +       rn->ib_dev_cleanup = ipoib_dev_uninit_default;
->> +       rn->send = ipoib_send;
->> +       rn->attach_mcast = ipoib_mcast_attach;
->> +       rn->detach_mcast = ipoib_mcast_detach;
->> +
->> +       dev->netdev_ops = &ipoib_netdev_default_pf;
->> +
+On Mon, Mar 13, 2017 at 10:27 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Mon, Mar 13, 2017 at 08:31:36PM +0200, Erez Shitrit wrote:
 >
+>> +struct net_device *mlx5_alloc_rdma_netdev(struct ib_device *hca,
+>> +                                  u8 port_num,
+>> +                                  enum rdma_netdev_t type,
+>> +                                  const char *name,
+>> +                                  unsigned char name_assign_type,
+>> +                                  void (*setup)(struct net_device *));
+>> +void mlx5_free_rdma_netdev(struct net_device *netdev);
 >
-> Probably no need to set netdev_ops here as it gets overwritten.
+> Seems like OK signatures to me..
+>
+>> +     dev->ib_dev.alloc_rdma_netdev   = mlx5_alloc_rdma_netdev;
+>> +     dev->ib_dev.free_rdma_netdev    = mlx5_free_rdma_netdev;
+>
+> Since mlx5_free_rdma_netdev is empty this should just be NULL
 
-No, it is switched, and used.
+OK,
 
 >
->
->> +       return dev;
+>> +int mlx5_ib_dev_init(struct net_device *dev, struct ib_device *hca,
+>> +                  int *qp_num)
+>> +{
+>> +     void *next_priv = ipoib_dev_priv(dev);
+>> +     struct rdma_netdev *rn = netdev_priv(dev);
+>> +     struct mlx5_ib_dev *ib_dev = to_mdev(hca);
+>> +     int ret;
+>> +
+>> +     ret = mlx5i_attach(ib_dev->mdev, next_priv);
+>> +     if (ret) {
+>> +             pr_err("Failed resources allocation for device: %s ret: %d\n",
+>> +                    dev->name, ret);
+>> +             return ret;
+>> +     }
+>> +
+>> +     *qp_num = rn->qp_num;
+>> +
+>> +     pr_debug("resources allocated for device: %s\n", dev->name);
+>> +
+>> +     return 0;
 >> +}
 >> +
->> +struct ipoib_dev_priv *ipoib_intf_alloc(struct ib_device *hca, u8 port,
->> +                                       const char *name)
+>> +void mlx5_ib_dev_cleanup(struct net_device *dev, struct ib_device *hca)
 >> +{
->> +       struct net_device *dev;
->> +       struct ipoib_dev_priv *priv;
->> +       struct rdma_netdev *rn;
+>> +     void *next_priv = ipoib_dev_priv(dev);
+>> +     struct rdma_netdev *rn = netdev_priv(dev);
+>> +     struct mlx5_ib_dev *ib_dev = to_mdev(hca);
+>> +     struct mlx5_qp_context context;
+>> +     int ret;
 >> +
->> +       priv = kzalloc(sizeof(*priv), GFP_KERNEL);
->> +       if (!priv) {
->> +               pr_err("%s failed allocting priv\n", __func__);
->> +               return NULL;
->> +       }
+>> +     /* detach qp from flow-steering by reset it */
+>> +     ret = mlx5_core_qp_modify(ib_dev->mdev,
+>> +                               MLX5_CMD_OP_2RST_QP, 0, &context,
+>> +                               (struct mlx5_core_qp *)rn->context);
+>> +     if (ret)
+>> +             pr_err("%s failed (ret: %d) to reset QP\n", __func__, ret);
 >> +
->> +       if (!hca->alloc_rdma_netdev)
->> +               dev = ipoib_create_netdev_default(hca, name,
->> ipoib_setup_common);
->> +       else
->> +               dev = hca->alloc_rdma_netdev(hca, port, RDMA_NETDEV_IPOIB,
->> +                                            name, NET_NAME_UNKNOWN,
->> +                                            ipoib_setup_common);
->> +       if (!dev) {
->> +               kfree(priv);
->> +               return NULL;
->> +       }
+>> +     mlx5i_detach(ib_dev->mdev, next_priv);
+>> +
+>> +     mlx5_ib_clean_qp(ib_dev, (struct mlx5_core_qp *)rn->context);
+>> +}
 >
->
-> This will break ipoib on hfi1 as hfi1 will define alloc_rdma_netdev for
-> OPA_VNIC type. We should probably look for a dedicated return type
-> (-ENODEV?) to determine of the driver supports specified rdma netdev type.
-> Or use a ib device attribute to suggest driver support ipoib rdma netdev.
+> Why isn't this stuff in open/close?
 
-sorry, I don't understand that, we are in ipoib driver, so the type is
-RDMA_NETDEV_IPOIB, if hfi wants to implement it should use the same
-flag, and to use OPA_VNIC for vnic.
-
+According to ipoib control flows, there is a different between
+open/close to init/cleanup
+for example, in open/close the driver doesn't destroy hw resources,
+just change the state, it destroys them in cleanup.
 
 >
-> Niranjana
+>> +void mlx5_ib_send(struct net_device *dev, struct sk_buff *skb,
+>> +               struct ipoib_ah *address, u32 dqpn, u32 dqkey)
+>> +{
+>> +     void *next_priv = ipoib_dev_priv(dev);
+>> +
+>> +     mlx5i_xmit(skb, next_priv, &to_mah(address->ah)->av, dqpn, dqkey);
+>
+> How come the qkey is not available via ipoib_ah ?
+>
+> to_mah(address->ah)->av->key.qkey.qkey
+>
+> ?
+
+It is, i will change the signature of that function accordingly.
+
+>
+>> +static const struct net_device_ops ipoib_netdev_default_pf = {
+>
+> That is a weird name for a mlx5 specific structure.
+
+OK, will change that.
+
+>
+>> +     param.size_base_priv = sizeof(struct ipoib_rdma_netdev);
+>
+> This is really weird, the code in mlx5i_create_netdev calls
+> ipoib_dev_priv so it must assume the struct is a ipoib_rdma_netdev.
+
+It is the same attitude as in the vnic/hfi
+(https://patchwork.kernel.org/patch/9587815/)
+The lower driver allocates space for the rdma_netdev.
+the only struct that is known between the layers is rdma_netdev.
+
+>
+>> +     /* set func pointers */
+>> +     rn = netdev_priv(dev);
+>> +     rn->qp_num = qp->qpn;
+>> +     rn->context = qp;
+>
+> No for using context.. You need your own driver priv, like this:
+>
+> struct mlx4_rn_priv
+> {
+>     struct mlx5e_priv priv;
+>     struct mlx5_core_qp *qp;
+> };
+
+OK, will try to fix it (i have a priv which is shared with the en
+driver, so i don't want to mix it with ib objects like qp, will find a
+solution for that, thanks.)
+
+
+
+>
+> Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
