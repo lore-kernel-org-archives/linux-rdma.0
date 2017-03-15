@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 5/6] rsocket: Fix byte swapping when constructing path records
-Date: Wed, 15 Mar 2017 16:12:06 -0600
-Message-ID: <1489615927-12117-6-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 3/6] rstream: Use waitpid instead of wait
+Date: Wed, 15 Mar 2017 16:12:04 -0600
+Message-ID: <1489615927-12117-4-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1489615927-12117-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1489615927-12117-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
@@ -10,33 +10,37 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-These swaps were missed or in the wrong place
-
-Found by sparse.
+This is motiviated by sparse not handling the transparent union in wait()
+properly, but using waitpid is generally a better idea since we know what is
+supposed to be waited for here.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- librdmacm/rsocket.c | 4 ++--
+ librdmacm/examples/rstream.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/librdmacm/rsocket.c b/librdmacm/rsocket.c
-index a0bc604845c118..4fbe7aaa938610 100644
---- a/librdmacm/rsocket.c
-+++ b/librdmacm/rsocket.c
-@@ -3551,11 +3551,11 @@ static void rs_convert_sa_path(struct ibv_sa_path_rec *sa_path,
- 	path_data->path.dlid = sa_path->dlid;
- 	path_data->path.slid = sa_path->slid;
- 	fl_hop = be32toh(sa_path->flow_label) << 8;
--	path_data->path.flowlabel_hoplimit = htobe32(fl_hop) | sa_path->hop_limit;
-+	path_data->path.flowlabel_hoplimit = htobe32(fl_hop | sa_path->hop_limit);
- 	path_data->path.tclass = sa_path->traffic_class;
- 	path_data->path.reversible_numpath = sa_path->reversible << 7 | 1;
- 	path_data->path.pkey = sa_path->pkey;
--	path_data->path.qosclass_sl = sa_path->sl;
-+	path_data->path.qosclass_sl = htobe16(sa_path->sl);
- 	path_data->path.mtu = sa_path->mtu | 2 << 6;	/* exactly */
- 	path_data->path.rate = sa_path->rate | 2 << 6;
- 	path_data->path.packetlifetime = sa_path->packet_life_time | 2 << 6;
+diff --git a/librdmacm/examples/rstream.c b/librdmacm/examples/rstream.c
+index 70b714613e91af..7523269cbd5cda 100644
+--- a/librdmacm/examples/rstream.c
++++ b/librdmacm/examples/rstream.c
+@@ -527,7 +527,7 @@ static int run(void)
+ 			run_test();
+ 		}
+ 		if (fork_pid)
+-			wait(NULL);
++			waitpid(fork_pid, NULL, 0);
+ 		else
+ 			rs_shutdown(rs, SHUT_RDWR);
+ 		rs_close(rs);
+@@ -555,7 +555,7 @@ static int run(void)
+ 	}
+ 
+ 	if (fork_pid)
+-		wait(NULL);
++		waitpid(fork_pid, NULL, 0);
+ 	else
+ 		rs_shutdown(rs, SHUT_RDWR);
+ 	rs_close(rs);
 -- 
 2.7.4
 
