@@ -1,69 +1,42 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 0/6] Sparse code changes
-Date: Wed, 15 Mar 2017 16:12:01 -0600
-Message-ID: <1489615927-12117-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 5/6] rsocket: Fix byte swapping when constructing path records
+Date: Wed, 15 Mar 2017 16:12:06 -0600
+Message-ID: <1489615927-12117-6-git-send-email-jgunthorpe@obsidianresearch.com>
+References: <1489615927-12117-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1489615927-12117-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is the rest of the code change stuff from the core libraries that sparse
-did not like.
+These swaps were missed or in the wrong place
 
-There is one bug fix in here, the missing swap on INADDR_LOOPBACK.
+Found by sparse.
 
-Otherwise it is just small changes to make sparse happier.
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+---
+ librdmacm/rsocket.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-The full series is here:
-
-https://github.com/linux-rdma/rdma-core/pull/100
-
-Which is enough hackery to make sparse run automatically from travis without
-triggering any sparse warnings, at least over the core libraries.
-
-I think interested parties should look at the entire series on github. It is
-so large it probably won't fit on the list.
-
-Bart and I were having an interesting discussion on github on this
-approach. It isn't clear to me if a different version of the 'sparse-include'
-setup could be designed.. But if someone else can figure out how to get the
-same result more robustly that would be great.
-
-For now this actually works, and can run inside travis, which is much better
-than where we were..
-
-Someone else(s) will have to sparse cleanup the providers and ibacm, they
-scare me.
-
-Jason Gunthorpe (6):
-  Use NULL instead of 0 to silence sparse
-  INADDR_* needs to be byteswapped before being used
-  rstream: Use waitpid instead of wait
-  rdmacm: Use C11 stdatomic for all atomics
-  rsocket: Fix byte swapping when constructing path records
-  verbs: Consistently apply __attribute_const
-
- iwpmd/iwarp_pm_common.c             |  2 +-
- iwpmd/iwarp_pm_helper.c             |  2 +-
- libibverbs/examples/rc_pingpong.c   |  2 +-
- libibverbs/examples/srq_pingpong.c  |  2 +-
- libibverbs/examples/uc_pingpong.c   |  2 +-
- libibverbs/examples/ud_pingpong.c   |  2 +-
- libibverbs/examples/xsrq_pingpong.c |  2 +-
- libibverbs/verbs.c                  |  8 +++---
- libibverbs/verbs.h                  |  8 +++---
- librdmacm/cma.h                     | 49 ++++---------------------------------
- librdmacm/examples/cmatose.c        |  4 +--
- librdmacm/examples/mckey.c          |  2 +-
- librdmacm/examples/rcopy.c          |  2 +-
- librdmacm/examples/riostream.c      |  2 +-
- librdmacm/examples/rstream.c        |  6 ++---
- librdmacm/examples/udaddy.c         |  2 +-
- librdmacm/preload.c                 | 14 +++++------
- librdmacm/rsocket.c                 | 17 ++++++-------
- rdma-ndd/rdma-ndd.c                 |  6 ++---
- 19 files changed, 46 insertions(+), 88 deletions(-)
-
+diff --git a/librdmacm/rsocket.c b/librdmacm/rsocket.c
+index a0bc604845c118..4fbe7aaa938610 100644
+--- a/librdmacm/rsocket.c
++++ b/librdmacm/rsocket.c
+@@ -3551,11 +3551,11 @@ static void rs_convert_sa_path(struct ibv_sa_path_rec *sa_path,
+ 	path_data->path.dlid = sa_path->dlid;
+ 	path_data->path.slid = sa_path->slid;
+ 	fl_hop = be32toh(sa_path->flow_label) << 8;
+-	path_data->path.flowlabel_hoplimit = htobe32(fl_hop) | sa_path->hop_limit;
++	path_data->path.flowlabel_hoplimit = htobe32(fl_hop | sa_path->hop_limit);
+ 	path_data->path.tclass = sa_path->traffic_class;
+ 	path_data->path.reversible_numpath = sa_path->reversible << 7 | 1;
+ 	path_data->path.pkey = sa_path->pkey;
+-	path_data->path.qosclass_sl = sa_path->sl;
++	path_data->path.qosclass_sl = htobe16(sa_path->sl);
+ 	path_data->path.mtu = sa_path->mtu | 2 << 6;	/* exactly */
+ 	path_data->path.rate = sa_path->rate | 2 << 6;
+ 	path_data->path.packetlifetime = sa_path->packet_life_time | 2 << 6;
 -- 
 2.7.4
 
