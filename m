@@ -1,53 +1,64 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: rdma-core packaging and multilib
-Date: Wed, 15 Mar 2017 10:45:09 -0600
-Message-ID: <20170315164509.GE29562@obsidianresearch.com>
-References: <bb6b2274-a120-6a16-0025-4c0b1b090029@redhat.com>
- <20170314181708.GA25495@obsidianresearch.com>
- <79c87a2b-6b8e-d2f3-0246-bb549c52f8f3@redhat.com>
+From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [RFC v1 for accelerated IPoIB 04/25] IB/verb: Add ipoib_options
+ struct and API
+Date: Wed, 15 Mar 2017 18:52:54 +0200
+Message-ID: <CAAk-MO_Mr8xbX6e2LgoXNf-mmf7NpAfXVExEO628DRr9qeuu9g@mail.gmail.com>
+References: <1489429896-10781-1-git-send-email-erezsh@mellanox.com>
+ <1489429896-10781-5-git-send-email-erezsh@mellanox.com> <20170313200136.GA2738@obsidianresearch.com>
+ <20170314070109.GD79937@knc-06.sc.intel.com> <20170314161149.GA15752@obsidianresearch.com>
+ <20170315063043.GC2079@mtr-leonro.local> <20170315164050.GA81782@knc-06.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <79c87a2b-6b8e-d2f3-0246-bb549c52f8f3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170315164050.GA81782-wPcXA7LoDC+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 15, 2017 at 12:34:37PM -0400, Doug Ledford wrote:
- 
-> That's not entirely true.  The man page specifically says the path in
-> the man page is an example, so it need not match the arch in use, it can
-> simply be one or the other with no substitution.  For the provider lib
-> path, it's in a comment, so again it would be possible to use proper
-> verbage to express that it is a sample and not use substitution.  We
-> might even be able to do something like:
-> 
-> # Modern distros commonly use either /usr/lib or /usr/lib64 for the
-> # default _libpath.  Substitute the correct value below before
-> # uncommenting
-> # provider_lib_path _libpath/ibacm
+On Wed, Mar 15, 2017 at 6:40 PM, Vishwanathapura, Niranjana
+<niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> On Wed, Mar 15, 2017 at 08:30:43AM +0200, Leon Romanovsky wrote:
+>>
+>> On Tue, Mar 14, 2017 at 10:11:49AM -0600, Jason Gunthorpe wrote:
+>>>
+>>> On Tue, Mar 14, 2017 at 12:01:09AM -0700, Vishwanathapura, Niranjana
+>>> wrote:
+>>> > On Mon, Mar 13, 2017 at 02:01:36PM -0600, Jason Gunthorpe wrote:
+>>> > >>+   /* multicast */
+>>> > >>+   int (*attach_mcast)(struct net_device *dev, struct ib_device
+>>> > >> *hca,
+>>> > >>+                       union ib_gid *gid, u16 lid, int set_qkey);
+>>> > >>+   int (*detach_mcast)(struct net_device *dev, struct ib_device
+>>> > >> *hca,
+>>> > >>+                       union ib_gid *gid, u16 lid);
+>>> > >
+>>> > >It would make more sense to store the struct ib_device pointer in the
+>>> > >struct rdma_netdev.
+>>> > >
+>>> >
+>>> > Agree that it shouldn't be a function parameters.
+>>> > For opa_vnic, I found it convenient to store ib_device pointer in
+>>> > client and
+>>> > device private structures as those will be available in most places
+>>> > anyhow.
+>>>
+>>> If vnic uses it too, then lets add the ib_device and port num to
+>>> rdma_netdev itself?
+>>
+>>
+>> Agree, at the end this rdma_netdev is intended for the drivers/infiniband
+>> and it is better to have this binding (rdma_netdev and ib_device) as early
+>> as possible.
+>>
+>
+> I agree with adding ibdev and port num to rdma_netdev.
 
-Debian derived uses /usr/lib/x86_64-linux-gnu
+Good. will do that.
 
-I think change the man page like:
-
-       To add a provider to the ibacm core service, the provider must
-
-       1. be implemented as a shared library;
-
-       2. be installed under the configured directory, (see the output
-       of ib_acme -D . -O)
-
-       3  export a function provider_query() that returns a pointer to its provider info
-          and version info.
-
-And something similar for the etc file? The RH spec file produces the
-etc file by running the ib_acme command, so it should sedscript in the
-right text..
-
-Jason
+>
+> Niranjana
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
