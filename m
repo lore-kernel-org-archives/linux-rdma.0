@@ -1,106 +1,53 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [rdma-core v3 4/9] libbnxt_re: Add support for posting and
- polling
-Date: Wed, 15 Mar 2017 10:34:54 -0600
-Message-ID: <20170315163454.GD29562@obsidianresearch.com>
-References: <1489574253-20300-1-git-send-email-devesh.sharma@broadcom.com>
- <1489574253-20300-5-git-send-email-devesh.sharma@broadcom.com>
+From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC v1 for accelerated IPoIB 04/25] IB/verb: Add ipoib_options
+ struct and API
+Date: Wed, 15 Mar 2017 09:40:50 -0700
+Message-ID: <20170315164050.GA81782@knc-06.sc.intel.com>
+References: <1489429896-10781-1-git-send-email-erezsh@mellanox.com>
+ <1489429896-10781-5-git-send-email-erezsh@mellanox.com>
+ <20170313200136.GA2738@obsidianresearch.com>
+ <20170314070109.GD79937@knc-06.sc.intel.com>
+ <20170314161149.GA15752@obsidianresearch.com>
+ <20170315063043.GC2079@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1489574253-20300-5-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20170315063043.GC2079-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, saedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 15, 2017 at 06:37:28AM -0400, Devesh Sharma wrote:
-> +
-> +	pthread_spin_lock(&dpi->db_lock);
-> +	*dbval = htole64(*dbval);
-> +	udma_ordering_write_barrier();
+On Wed, Mar 15, 2017 at 08:30:43AM +0200, Leon Romanovsky wrote:
+>On Tue, Mar 14, 2017 at 10:11:49AM -0600, Jason Gunthorpe wrote:
+>> On Tue, Mar 14, 2017 at 12:01:09AM -0700, Vishwanathapura, Niranjana wrote:
+>> > On Mon, Mar 13, 2017 at 02:01:36PM -0600, Jason Gunthorpe wrote:
+>> > >>+	/* multicast */
+>> > >>+	int (*attach_mcast)(struct net_device *dev, struct ib_device *hca,
+>> > >>+			    union ib_gid *gid, u16 lid, int set_qkey);
+>> > >>+	int (*detach_mcast)(struct net_device *dev, struct ib_device *hca,
+>> > >>+			    union ib_gid *gid, u16 lid);
+>> > >
+>> > >It would make more sense to store the struct ib_device pointer in the
+>> > >struct rdma_netdev.
+>> > >
+>> >
+>> > Agree that it shouldn't be a function parameters.
+>> > For opa_vnic, I found it convenient to store ib_device pointer in client and
+>> > device private structures as those will be available in most places anyhow.
+>>
+>> If vnic uses it too, then lets add the ib_device and port num to
+>> rdma_netdev itself?
+>
+>Agree, at the end this rdma_netdev is intended for the drivers/infiniband
+>and it is better to have this binding (rdma_netdev and ib_device) as early as possible.
+>
 
-The ordering_write_barrier is basically an equivalent barrier to a
-spinlock, so this is an unnecessary pattern.
+I agree with adding ibdev and port num to rdma_netdev.
 
-However, you still always need udma_to_device_barrier before
-triggering chip DMA.
+Niranjana
 
-There is also no udma_from_device_barrier() in this driver, which
-can't be right, please add one around bnxt_re_is_cqe_valid most
-likely.
-
-Your github branch doesn't compile, btw.
-
-I ran it through sparse, this is what I suggest..
-
-diff --git a/providers/bnxt_re/bnxt_re-abi.h b/providers/bnxt_re/bnxt_re-abi.h
-index 8dbb7b985fa0cd..8fcb2517a23028 100644
---- a/providers/bnxt_re/bnxt_re-abi.h
-+++ b/providers/bnxt_re/bnxt_re-abi.h
-@@ -243,7 +243,7 @@ struct bnxt_re_req_cqe {
- 
- struct bnxt_re_rc_cqe {
- 	__u32 length;
--	__u32 imm_key;
-+	__be32 imm_key;
- 	__u64 qp_handle;
- 	__u64 mr_handle;
- };
-@@ -282,7 +282,7 @@ struct bnxt_re_bsqe {
- };
- 
- struct bnxt_re_psns {
--	__u32 opc_spsn;
-+	__le32 opc_spsn;
- 	__u32 flg_npsn;
- };
- 
-diff --git a/providers/bnxt_re/verbs.c b/providers/bnxt_re/verbs.c
-index dafe55b74aefe8..3e31845b4d6b47 100644
---- a/providers/bnxt_re/verbs.c
-+++ b/providers/bnxt_re/verbs.c
-@@ -581,9 +581,10 @@ static int bnxt_re_poll_flush_wcs(struct bnxt_re_queue *que,
- 		wrid = &wridp[head];
- 		if (wrid->psns) {
- 			psns = wrid->psns;
--			opcode = (psns->opc_spsn >> BNXT_RE_PSNS_OPCD_SHIFT) &
--				  BNXT_RE_PSNS_OPCD_MASK;
--		}
-+                        opcode = (le32toh(psns->opc_spsn) >>
-+                                  BNXT_RE_PSNS_OPCD_SHIFT) &
-+                                 BNXT_RE_PSNS_OPCD_MASK;
-+                }
- 
- 		ibvwc->status = IBV_WC_WR_FLUSH_ERR;
- 		ibvwc->opcode = opcode;
-@@ -1032,10 +1033,11 @@ static void bnxt_re_fill_psns(struct bnxt_re_qp *qp, struct bnxt_re_psns *psns,
- 			      uint8_t opcode, uint32_t len)
- {
- 	uint32_t pkt_cnt = 0, nxt_psn;
-+	uint32_t opc_spsn = 0;
- 
- 	memset(psns, 0, sizeof(*psns));
- 	if (qp->qptyp == IBV_QPT_RC) {
--		psns->opc_spsn = qp->sq_psn & BNXT_RE_PSNS_SPSN_MASK;
-+		opc_spsn = qp->sq_psn & BNXT_RE_PSNS_SPSN_MASK;
- 		pkt_cnt = (len / qp->mtu);
- 		if (len % qp->mtu)
- 			pkt_cnt++;
-@@ -1044,9 +1046,9 @@ static void bnxt_re_fill_psns(struct bnxt_re_qp *qp, struct bnxt_re_psns *psns,
- 		qp->sq_psn = nxt_psn;
- 	}
- 	opcode = bnxt_re_ibv_wr_to_wc_opcd(opcode);
--	psns->opc_spsn |= ((opcode & BNXT_RE_PSNS_OPCD_MASK) <<
--			    BNXT_RE_PSNS_OPCD_SHIFT);
--	*(uint64_t *)psns = htole64(*(uint64_t *)psns);
-+        opc_spsn |=
-+            ((opcode & BNXT_RE_PSNS_OPCD_MASK) << BNXT_RE_PSNS_OPCD_SHIFT);
-+        psns->opc_spsn = htole32(opc_spsn);
- }
- 
- static void bnxt_re_fill_wrid(struct bnxt_re_wrid *wrid, struct ibv_send_wr *wr,
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
