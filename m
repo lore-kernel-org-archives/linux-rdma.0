@@ -1,46 +1,79 @@
-From: Bart Van Assche <Bart.VanAssche@sandisk.com>
-Subject: Re: [PATCH rfc 06/10] IB/cq: Don't force IB_POLL_DIRECT poll
- context for ib_process_cq_direct
-Date: Tue, 14 Mar 2017 21:32:12 +0000
-Message-ID: <1489527119.2676.15.camel@sandisk.com>
-References: <1489065402-14757-1-git-send-email-sagi@grimberg.me>
-         <1489065402-14757-7-git-send-email-sagi@grimberg.me>
-         <1489077040.2597.3.camel@sandisk.com>
-         <f4ade02b-9d17-20ae-f910-47c718f2a5bd@grimberg.me>
+From: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [bug report] IB/hns: Fix the bug when free mr
+Date: Wed, 15 Mar 2017 09:07:18 +0800
+Message-ID: <62f97b94-b5d3-6eeb-38ea-0ef2208a1d7b@huawei.com>
+References: <20170314133929.GA31861@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <f4ade02b-9d17-20ae-f910-47c718f2a5bd@grimberg.me>
-Content-Language: en-US
-Content-ID: <FA12A87A819C994A8CE6DEBD5229F800@sandisk.com>
-Sender: linux-block-owner@vger.kernel.org
-To: "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>, "sagi@grimberg.me" <sagi@grimberg.me>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170314133929.GA31861@mwanda>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-03-13 at 10:24 +0200, Sagi Grimberg wrote:
-> > Before this patch
-> > the completions from each CQ were processed sequentially. That's a big
-> > change so I think this should be mentioned clearly in the header above
-> > ib_process_cq_direct().
->=20
-> Note that I now see that the cq lock is not sufficient for mutual
-> exclusion here because we're referencing cq->wc array outside of it.
->=20
-> There are three options I see here:
-> 1. we'll need to allocate a different wc array for polling mode,
-> perhaps a smaller one?
-> 2. Export __ib_process_cq (in some form) with an option to pass in a wc
-> array.
-> 3. Simply not support non-selective polling but it seems like a shame...
->=20
-> Any thoughts?
+hi, Dan:
 
-I doubt it is possible to come up with an algorithm that recognizes whether
-or not two different ib_process_cq() calls are serialized. So the
-ib_process_cq() caller will have to provide that information. How about add=
-ing
-an ib_wc array argument to ib_process_cq() and modifying __ib_process_cq()
-such that it uses that array if specified and cq->wc otherwise?
+   Thanks for your suggestion.
+   I will fix the warning later.
 
-Bart.=
+Best Regards,
+Xu, Shaobo
+
+On 2017/3/14 21:39, Dan Carpenter wrote:
+> Hello Shaobo Xu,
+> 
+> The patch bfcc681bd09d: "IB/hns: Fix the bug when free mr" from Nov
+> 29, 2016, leads to the following static checker warning:
+> 
+> 	drivers/infiniband/hw/hns/hns_roce_hw_v1.c:909 hns_roce_v1_recreate_lp_qp()
+> 	error: potential null dereference 'lp_qp_work'.  (kzalloc returns null)
+> 
+> drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+>    891  static int hns_roce_v1_recreate_lp_qp(struct hns_roce_dev *hr_dev)
+>    892  {
+>    893          struct device *dev = &hr_dev->pdev->dev;
+>    894          struct hns_roce_recreate_lp_qp_work *lp_qp_work;
+>    895          struct hns_roce_free_mr *free_mr;
+>    896          struct hns_roce_v1_priv *priv;
+>    897          struct completion comp;
+>    898          unsigned long end =
+>    899            msecs_to_jiffies(HNS_ROCE_V1_RECREATE_LP_QP_TIMEOUT_MSECS) + jiffies;
+>    900  
+>    901          priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
+>    902          free_mr = &priv->free_mr;
+>    903  
+>    904          lp_qp_work = kzalloc(sizeof(struct hns_roce_recreate_lp_qp_work),
+>                 ^^^^^^^^^^^^^^^^^^^^
+> Not checked.
+> 
+>    905                               GFP_KERNEL);
+>    906  
+>    907          INIT_WORK(&(lp_qp_work->work), hns_roce_v1_recreate_lp_qp_work_fn);
+>    908  
+>    909          lp_qp_work->ib_dev = &(hr_dev->ib_dev);
+>    910          lp_qp_work->comp = &comp;
+>    911          lp_qp_work->comp_flag = 1;
+>    912  
+>    913          init_completion(lp_qp_work->comp);
+>    914  
+>    915          queue_work(free_mr->free_mr_wq, &(lp_qp_work->work));
+>    916  
+>    917          while (time_before_eq(jiffies, end)) {
+>    918                  if (try_wait_for_completion(&comp))
+>    919                          return 0;
+>    920                  msleep(HNS_ROCE_V1_RECREATE_LP_QP_WAIT_VALUE);
+>    921          }
+> 
+> 
+> regards,
+> dan carpenter
+> 
+> .
+> 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
