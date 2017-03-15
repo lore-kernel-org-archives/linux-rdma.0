@@ -1,72 +1,83 @@
 From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [rdma-core v3 0/9] Broadcom User Space RoCE Driver
-Date: Wed, 15 Mar 2017 06:37:24 -0400
-Message-ID: <1489574253-20300-1-git-send-email-devesh.sharma@broadcom.com>
+Subject: [rdma-core v3 2/9] libbnxt_re: Add support for user memory regions
+Date: Wed, 15 Mar 2017 06:37:26 -0400
+Message-ID: <1489574253-20300-3-git-send-email-devesh.sharma@broadcom.com>
+References: <1489574253-20300-1-git-send-email-devesh.sharma@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1489574253-20300-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This series introduces the user space RoCE driver for the Broadcom
-NetXtreme-E 10/25/40/50 RDMA Ethernet Controller. This driver
-is dependent on the bnxt_re driver posted earlier to linux-rdma
-community and is under reveiw.
+This patch adds code to allow user applications to register and
+unregister memory buffers with the HCA. Following functions are
+now supported:
+ - ibv_reg_mr()
+ - ibv_dereg_mr()
 
-This patch series is based on the latest master of rdma-core
-repository hosted at https://github.com/linux-rdma/rdma-core.git
+Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+---
+ providers/bnxt_re/bnxt_re-abi.h |  4 ++++
+ providers/bnxt_re/verbs.c       | 26 ++++++++++++++++++++++++--
+ 2 files changed, 28 insertions(+), 2 deletions(-)
 
-The GIT for this library is hosted at following URL on github
-https://github.com/dsharma283/bnxtre-rdma-core.git
-branch: bnxtre-v3
-
-Please review and give your valuable feedback for the betterment.
-
-v2->v3
- -- Take care of build failure with travis
- -- moved wmb() closer to DB rings and used
-    udma_ordering_write_barrier() instead.
- -- Rebased to tip of git tree.
-
-v1->v2
- -- Rename directory from  bnxtre to bnxt_re
- -- Squashed byte-order conversion patch
- -- Removed version.h file
-
-Devesh Sharma (9):
-  libbnxt_re: introduce bnxtre user space RDMA provider
-  libbnxt_re: Add support for user memory regions
-  libbnxt_re: Add support for CQ and QP management
-  libbnxt_re: Add support for posting and polling
-  libbnxt_re: Allow apps to poll for flushed completions
-  libbnxt_re: Enable UD control path and wqe posting
-  libbnxt_re: Enable polling for UD completions
-  libbnxt_re: Add support for atomic operations
-  libbnxt_re: Add support for SRQ in user lib
-
- CMakeLists.txt                   |    1 +
- MAINTAINERS                      |    5 +
- providers/bnxt_re/CMakeLists.txt |    6 +
- providers/bnxt_re/bnxt_re-abi.h  |  375 +++++++++
- providers/bnxt_re/db.c           |  110 +++
- providers/bnxt_re/flush.h        |   85 ++
- providers/bnxt_re/main.c         |  218 ++++++
- providers/bnxt_re/main.h         |  398 ++++++++++
- providers/bnxt_re/memory.c       |   76 ++
- providers/bnxt_re/memory.h       |  154 ++++
- providers/bnxt_re/verbs.c        | 1584 ++++++++++++++++++++++++++++++++++++++
- providers/bnxt_re/verbs.h        |  101 +++
- 12 files changed, 3113 insertions(+)
- create mode 100644 providers/bnxt_re/CMakeLists.txt
- create mode 100644 providers/bnxt_re/bnxt_re-abi.h
- create mode 100644 providers/bnxt_re/db.c
- create mode 100644 providers/bnxt_re/flush.h
- create mode 100644 providers/bnxt_re/main.c
- create mode 100644 providers/bnxt_re/main.h
- create mode 100644 providers/bnxt_re/memory.c
- create mode 100644 providers/bnxt_re/memory.h
- create mode 100644 providers/bnxt_re/verbs.c
- create mode 100644 providers/bnxt_re/verbs.h
-
+diff --git a/providers/bnxt_re/bnxt_re-abi.h b/providers/bnxt_re/bnxt_re-abi.h
+index 05a0888..53645d5 100644
+--- a/providers/bnxt_re/bnxt_re-abi.h
++++ b/providers/bnxt_re/bnxt_re-abi.h
+@@ -56,4 +56,8 @@ struct bnxt_re_pd_resp {
+ 	__u64 dbr;
+ };
+ 
++struct bnxt_re_mr_resp {
++	struct ibv_reg_mr_resp resp;
++};
++
+ #endif
+diff --git a/providers/bnxt_re/verbs.c b/providers/bnxt_re/verbs.c
+index 5b3e1cc..89f2be5 100644
+--- a/providers/bnxt_re/verbs.c
++++ b/providers/bnxt_re/verbs.c
+@@ -129,12 +129,34 @@ int bnxt_re_free_pd(struct ibv_pd *ibvpd)
+ struct ibv_mr *bnxt_re_reg_mr(struct ibv_pd *ibvpd, void *sva, size_t len,
+ 			      int access)
+ {
+-	return NULL;
++	struct bnxt_re_mr *mr;
++	struct ibv_reg_mr cmd;
++	struct bnxt_re_mr_resp resp;
++
++	mr = calloc(1, sizeof(*mr));
++	if (!mr)
++		return NULL;
++
++	if (ibv_cmd_reg_mr(ibvpd, sva, len, (uintptr_t)sva, access, &mr->ibvmr,
++			   &cmd, sizeof(cmd), &resp.resp, sizeof(resp))) {
++		free(mr);
++		return NULL;
++	}
++
++	return &mr->ibvmr;
+ }
+ 
+ int bnxt_re_dereg_mr(struct ibv_mr *ibvmr)
+ {
+-	return -ENOSYS;
++	struct bnxt_re_mr *mr = (struct bnxt_re_mr *)ibvmr;
++	int status;
++
++	status = ibv_cmd_dereg_mr(ibvmr);
++	if (status)
++		return status;
++	free(mr);
++
++	return 0;
+ }
+ 
+ struct ibv_cq *bnxt_re_create_cq(struct ibv_context *ibvctx, int ncqe,
 -- 
 1.8.3.1
 
