@@ -1,79 +1,71 @@
-From: Dasaratharaman Chandramouli
-        <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-core 1/7] IB/SA: Fix lines longer than 80 columns
-Date: Wed, 15 Mar 2017 17:24:20 -0400
-Message-ID: <1489613066-61684-2-git-send-email-dasaratharaman.chandramouli@intel.com>
-References: <1489613066-61684-1-git-send-email-dasaratharaman.chandramouli@intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: [PATCH rdma-core 0/6] Sparse code changes
+Date: Wed, 15 Mar 2017 16:12:01 -0600
+Message-ID: <1489615927-12117-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1489613066-61684-1-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This fixes a checkpatch issue. The fix is needed
-so that some of these functions can be moved around
-in the forthcoming patches
+This is the rest of the code change stuff from the core libraries that sparse
+did not like.
 
-Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/sa_query.c | 17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+There is one bug fix in here, the missing swap on INADDR_LOOPBACK.
 
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index 81b742c..60c0405 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -963,8 +963,10 @@ static void update_sm_ah(struct work_struct *work)
- 	ah_attr.port_num = port->port_num;
- 	if (port_attr.grh_required) {
- 		ah_attr.ah_flags = IB_AH_GRH;
--		ah_attr.grh.dgid.global.subnet_prefix = cpu_to_be64(port_attr.subnet_prefix);
--		ah_attr.grh.dgid.global.interface_id = cpu_to_be64(IB_SA_WELL_KNOWN_GUID);
-+		ah_attr.grh.dgid.global.subnet_prefix =
-+			cpu_to_be64(port_attr.subnet_prefix);
-+		ah_attr.grh.dgid.global.interface_id =
-+			cpu_to_be64(IB_SA_WELL_KNOWN_GUID);
- 	}
- 
- 	new_ah->ah = ib_create_ah(port->agent->qp->pd, &ah_attr);
-@@ -979,10 +981,10 @@ static void update_sm_ah(struct work_struct *work)
- 		kref_put(&port->sm_ah->ref, free_sm_ah);
- 	port->sm_ah = new_ah;
- 	spin_unlock_irq(&port->ah_lock);
--
- }
- 
--static void ib_sa_event(struct ib_event_handler *handler, struct ib_event *event)
-+static void ib_sa_event(struct ib_event_handler *handler,
-+			struct ib_event *event)
- {
- 	if (event->event == IB_EVENT_PORT_ERR    ||
- 	    event->event == IB_EVENT_PORT_ACTIVE ||
-@@ -993,8 +995,8 @@ static void ib_sa_event(struct ib_event_handler *handler, struct ib_event *event
- 		unsigned long flags;
- 		struct ib_sa_device *sa_dev =
- 			container_of(handler, typeof(*sa_dev), event_handler);
--		struct ib_sa_port *port =
--			&sa_dev->port[event->element.port_num - sa_dev->start_port];
-+		u8 port_num = event->element.port_num - sa_dev->start_port;
-+		struct ib_sa_port *port = &sa_dev->port[port_num];
- 
- 		if (!rdma_cap_ib_sa(handler->device, port->port_num))
- 			return;
-@@ -1012,8 +1014,7 @@ static void ib_sa_event(struct ib_event_handler *handler, struct ib_event *event
- 			port->classport_info.valid = false;
- 			spin_unlock_irqrestore(&port->classport_lock, flags);
- 		}
--		queue_work(ib_wq, &sa_dev->port[event->element.port_num -
--					    sa_dev->start_port].update_task);
-+		queue_work(ib_wq, &sa_dev->port[port_num].update_task);
- 	}
- }
- 
+Otherwise it is just small changes to make sparse happier.
+
+The full series is here:
+
+https://github.com/linux-rdma/rdma-core/pull/100
+
+Which is enough hackery to make sparse run automatically from travis without
+triggering any sparse warnings, at least over the core libraries.
+
+I think interested parties should look at the entire series on github. It is
+so large it probably won't fit on the list.
+
+Bart and I were having an interesting discussion on github on this
+approach. It isn't clear to me if a different version of the 'sparse-include'
+setup could be designed.. But if someone else can figure out how to get the
+same result more robustly that would be great.
+
+For now this actually works, and can run inside travis, which is much better
+than where we were..
+
+Someone else(s) will have to sparse cleanup the providers and ibacm, they
+scare me.
+
+Jason Gunthorpe (6):
+  Use NULL instead of 0 to silence sparse
+  INADDR_* needs to be byteswapped before being used
+  rstream: Use waitpid instead of wait
+  rdmacm: Use C11 stdatomic for all atomics
+  rsocket: Fix byte swapping when constructing path records
+  verbs: Consistently apply __attribute_const
+
+ iwpmd/iwarp_pm_common.c             |  2 +-
+ iwpmd/iwarp_pm_helper.c             |  2 +-
+ libibverbs/examples/rc_pingpong.c   |  2 +-
+ libibverbs/examples/srq_pingpong.c  |  2 +-
+ libibverbs/examples/uc_pingpong.c   |  2 +-
+ libibverbs/examples/ud_pingpong.c   |  2 +-
+ libibverbs/examples/xsrq_pingpong.c |  2 +-
+ libibverbs/verbs.c                  |  8 +++---
+ libibverbs/verbs.h                  |  8 +++---
+ librdmacm/cma.h                     | 49 ++++---------------------------------
+ librdmacm/examples/cmatose.c        |  4 +--
+ librdmacm/examples/mckey.c          |  2 +-
+ librdmacm/examples/rcopy.c          |  2 +-
+ librdmacm/examples/riostream.c      |  2 +-
+ librdmacm/examples/rstream.c        |  6 ++---
+ librdmacm/examples/udaddy.c         |  2 +-
+ librdmacm/preload.c                 | 14 +++++------
+ librdmacm/rsocket.c                 | 17 ++++++-------
+ rdma-ndd/rdma-ndd.c                 |  6 ++---
+ 19 files changed, 46 insertions(+), 88 deletions(-)
+
 -- 
-1.8.3.1
+2.7.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
