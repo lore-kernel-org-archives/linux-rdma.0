@@ -1,42 +1,71 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: libibverbs statistics
-Date: Wed, 15 Mar 2017 11:58:51 +0000
-Message-ID: <SN1PR07MB2207182FD99D978FD81BD12BF8270@SN1PR07MB2207.namprd07.prod.outlook.com>
-References: <SN1PR07MB220795B72FC9CB082CCDC384F8210@SN1PR07MB2207.namprd07.prod.outlook.com>
- <AM5PR0502MB3057535C300A4176657E5FAFBD210@AM5PR0502MB3057.eurprd05.prod.outlook.com>
- <CAFgAxU_rOB_xQptt-LqxKpMC=SbsGOL1FbSiK4eY_czu4zpwfA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V1 rdma-core 6/6] ibverbs: Add support for scatter FCS ability in WQ
+Date: Wed, 15 Mar 2017 17:27:46 +0200
+Message-ID: <1489591666-14062-7-git-send-email-yishaih@mellanox.com>
+References: <1489591666-14062-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAFgAxU_rOB_xQptt-LqxKpMC=SbsGOL1FbSiK4eY_czu4zpwfA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1489591666-14062-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Guy Shattah <sguy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiBjYW4gR3V5cyBzdWdnZXN0aW9uIFsxXSBzb2x2ZSB5b3VyIHJlcXVlc3QgZm9yIHBhY2tldCBj
-b3VudGVycz8gb24gUVANCj4gYW5kIGZsb3cgdmVyYnMgb2JqZWN0cy4NCg0KR3V5J3Mgc29sdXRp
-b24gd2FzIGEgdmVyeSBnZW5lcmljIGFuZCByZWxpZWQgb24gZHJpdmVyL0hXLiBJdCBtYWtlcyBp
-dCBmYXN0Lg0KSSB3YXMgYWltaW5nIGZvciAibGliaWJ2ZXJicyBzdGF0aXN0aWNzIiB0aGF0IGlz
-IGdlbmVyaWMgaW4gdGhlIHNlbnNlIHRoYXQgbGliaWJ2ZXJicw0Kd2lsbCBjb2xsZWN0IHRoZSBz
-dGF0aXN0aWNzIGFuZCB3b24ndCBpbnZvbHZlIHRoZSBkcml2ZXIvSFcuIFRoaXMgY2FuIHN1cHBs
-eQ0KaW5mb3JtYXRpb24gdmlhLCBlLmcuLCBpYnZfZGV2aW5mbywgcmVnYXJkbGVzcyBvZiB0aGUg
-ZHJpdmVyL0hXIHZlbmRvciB0eXBlLCBjYXBhYmlsaXR5DQpvciBzdXBwb3J0LiBJIHdhcyB0aGlu
-a2luZyBvZiBhZGRpbmcgc29tZXRoaW5nIGxpa2UgdGhpcyBpbiAncWVkcicgYnV0IEknbSBub3Qg
-c3VyZSBob3cgbm90IHRvIGh1cnQgDQpwZXJmb3JtYW5jZSBhbmQgdGhvdWdodCBtYXliZSBhbGwg
-Y2FuIGJlbmVmaXQgZnJvbSBpdC4NCg0KPiBhbmQgbGliaWJwcm9mIFsyXSBhcyBwcmVsb2FkIGxp
-YiB0byB0cmFjayB2ZXJicyBBUEkgY2FsbHMgYW5kIGNvdW50DQo+IGFuZCBkdXJhdGlvbi4NCg0K
-SSB3YXNuJ3QgZmFtaWxpYXIgd2l0aCB0aGlzIGFuZCB3aWxsIGNoZWNrIGl0IG91dC4gSG93ZXZl
-ciwgaXQgZ2VuZXJhdGVzIGRhdGEgb25seSBpZiBwcmUtbG9hZGVkDQphbmQgd29uJ3QgYmUgYWJs
-ZSB0byBzdXBwbHkgZGVidWcgaW5mb3JtYXRpb24gYWZ0ZXIsIGUuZy4sIGEgYnVnLiBJdCBpcyBn
-b29kIGZvciBkZXZlbG9wbWVudA0KYW5kIGxlc3MgZm9yIGEgdXNlci4NCg0KPiBhbHNvIFJETUFf
-Q00gbmV0bGluayBbM10gdG8gcXVlcnkgaW4tdXNlIFFQJ3MgYW5kIHNvbWUgZGV0YWlscyBhYm91
-dA0KPiB0aGVtLiBUaGlzIGhhcyBrZXJuZWwgc3VwcG9ydCBidXQgdXNlci1zcGFjZSB3YXMgbmV2
-ZXIgY29tcGxldGVkDQo+IGludGVncmF0aW9uIGludG8gJ2lwdG91cmUyJw0KDQpUaGlzIGlzIHNv
-bWV0aGluZyB0aGF0IGlzIGhhbmRsZWQgaW4gdGhlIGtlcm5lbCBpLmUuIGRpZmZlcmVudC4NCg0K
-VGhhbmtzIEFsZXgsDQpSYW0NCg==
+From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+Enable the user to create a workqueue object with the scatter FCS
+offload.
+If this option is set, the FCS (Frame Check Sequence) field of an
+incoming raw Ethernet packet will be scattered into host memory along
+the packet payload as it appeared on the wire.
+
+Signed-off-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ libibverbs/man/ibv_create_wq.3 | 3 ++-
+ libibverbs/verbs.h             | 5 +++--
+ 2 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/libibverbs/man/ibv_create_wq.3 b/libibverbs/man/ibv_create_wq.3
+index 9a541fe..4a8b83c 100644
+--- a/libibverbs/man/ibv_create_wq.3
++++ b/libibverbs/man/ibv_create_wq.3
+@@ -40,7 +40,8 @@ uint32_t                   create_flags    /* Creation flags for this WQ, use en
+ enum ibv_wq_flags {
+ .in +8
+ IBV_WQ_FLAGS_CVLAN_STRIPPING		= 1 << 0, /* CVLAN field will be stripped from incoming packets */
+-IBV_WQ_FLAGS_RESERVED			= 1 << 1,
++IBV_WQ_FLAGS_SCATTER_FCS		= 1 << 1, /* FCS field will be scattered to host memory */
++IBV_WQ_FLAGS_RESERVED			= 1 << 2,
+ .in -8
+ };
+ .nf
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index 15e93b3..3f5e9fe 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -675,7 +675,8 @@ enum ibv_wq_init_attr_mask {
+ 
+ enum ibv_wq_flags {
+ 	IBV_WQ_FLAGS_CVLAN_STRIPPING		= 1 << 0,
+-	IBV_WQ_FLAGS_RESERVED			= 1 << 1,
++	IBV_WQ_FLAGS_SCATTER_FCS		= 1 << 1,
++	IBV_WQ_FLAGS_RESERVED			= 1 << 2,
+ };
+ 
+ struct ibv_wq_init_attr {
+@@ -685,7 +686,7 @@ struct ibv_wq_init_attr {
+ 	uint32_t		max_sge;
+ 	struct	ibv_pd	       *pd;
+ 	struct	ibv_cq	       *cq;
+-	uint32_t		comp_mask;
++	uint32_t		comp_mask; /* Use ibv_wq_init_attr_mask */
+ 	uint32_t		create_flags; /* use ibv_wq_flags */
+ };
+ 
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
