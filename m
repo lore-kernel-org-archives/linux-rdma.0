@@ -1,29 +1,91 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 3/7] Fix various missing swaps in
- debugging/logging macros
-Date: Wed, 15 Mar 2017 09:58:27 -0600
-Message-ID: <20170315155827.GC29562@obsidianresearch.com>
-References: <1489508474-16664-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1489508474-16664-4-git-send-email-jgunthorpe@obsidianresearch.com>
- <SN1PR07MB22075A6E4341F141A27692ECF8270@SN1PR07MB2207.namprd07.prod.outlook.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [RFC v1 for accelerated IPoIB 05/25] IB/ipoib: Support ipoib
+ acceleration options callbacks
+Date: Wed, 15 Mar 2017 09:58:02 -0600
+Message-ID: <20170315155802.GB29562@obsidianresearch.com>
+References: <1489429896-10781-1-git-send-email-erezsh@mellanox.com>
+ <1489429896-10781-6-git-send-email-erezsh@mellanox.com>
+ <20170314063538.GB79937@knc-06.sc.intel.com>
+ <CAAk-MO8gQ5x-4Ubk1nzPntEWa2ivTK6uXyJ4eC7fmtUCNnOdfA@mail.gmail.com>
+ <20170314160021.GD3244@obsidianresearch.com>
+ <20170315064751.GD2079@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <SN1PR07MB22075A6E4341F141A27692ECF8270-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170315064751.GD2079@mtr-leonro.local>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leonro@mellanox.com>
+Cc: Erez Shitrit <erezsh@dev.mellanox.co.il>, "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>, Erez Shitrit <erezsh@mellanox.com>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, netdev@vger.kernel.org, valex@mellanox.com, saedm@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 15, 2017 at 07:24:06AM +0000, Amrani, Ram wrote:
+On Wed, Mar 15, 2017 at 08:47:51AM +0200, Leon Romanovsky wrote:
+> On Tue, Mar 14, 2017 at 10:00:21AM -0600, Jason Gunthorpe wrote:
+> > On Tue, Mar 14, 2017 at 04:42:55PM +0200, Erez Shitrit wrote:
+> > > >> +       if (!hca->alloc_rdma_netdev)
+> > > >> +               dev = ipoib_create_netdev_default(hca, name,
+> > > >> ipoib_setup_common);
+> > > >> +       else
+> > > >> +               dev = hca->alloc_rdma_netdev(hca, port, RDMA_NETDEV_IPOIB,
+> > > >> +                                            name, NET_NAME_UNKNOWN,
+> > > >> +                                            ipoib_setup_common);
+> > > >> +       if (!dev) {
+> > > >> +               kfree(priv);
+> > > >> +               return NULL;
+> > > >> +       }
+> > > >
+> > > >
+> > > > This will break ipoib on hfi1 as hfi1 will define alloc_rdma_netdev for
+> > > > OPA_VNIC type. We should probably look for a dedicated return type
+> > > > (-ENODEV?) to determine of the driver supports specified rdma netdev type.
+> > > > Or use a ib device attribute to suggest driver support ipoib rdma netdev.
+> > >
+> > > sorry, I don't understand that, we are in ipoib driver, so the type is
+> > > RDMA_NETDEV_IPOIB, if hfi wants to implement it should use the same
+> > > flag, and to use OPA_VNIC for vnic.
+> >
+> > He means it should look like this:
+> >
+> >  if (hca->alloc_rdma_netdev)
+> >      dev = hca->alloc_rdma_netdev(hca, port, RDMA_NETDEV_IPOIB,
+> >                                             name, NET_NAME_UNKNOWN,
+> >                                             ipoib_setup_common);
+> >
+> >  if (IS_ERR(dev) && PTR_ERR(dev) != ENOTSUP)
+> >       goto out;
+> >
+> >  dev = ipoib_create_netdev_default(hca, name, ipoib_setup_common);
+> >  if (IS_ERR(dev))
+> >       goto out;
+> >
+> >  WARN_ON(dev == NULL);
+> >
+> >   [...]
+> >
+> > out:
+> >       return PTR_ERR(dev);
+> >
+> > And I'm confused why 'ipoib_create_netdev_default' doesn't need the
+> > same function signature as hca->alloc_rdma_netdev
+> 
+> And now, I'm confused.
+> In your's proposal, the "dev" will be overwritten, in Erez's proposal,
+> "dev" will be one of two: defaults or device specific.
 
-> How did sparse "know" what is little/big endian and where to use each?
+Well, not Erez's version allowed dev to be ERR_PTR too. More like this then
 
-It is like the kernel, we have to add __be32/etc all over the place
+struct rdma_netdev *get_netdev(..)
+{
+   if (hca-alloc_rdma_netdev) {
+       dev = hca-alloc_rdma_netdev(hca, port, RDMA_NETDEV_IPOIB,
+                                              name, NET_NAME_UNKNOWN,
+                                              ipoib_setup_common);
+ 
+       if (!IS_ERR(dev) || PTR_ERR(dev) != ENOTSUP)
+           return dev;
+   }
+ 
+   return ipoib_create_netdev_default(hca, name, ipoib_setup_common);
+}
 
 Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
