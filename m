@@ -1,200 +1,581 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [rdma-core v3 8/9] libbnxt_re: Add support for atomic operations
-Date: Wed, 15 Mar 2017 21:15:15 +0200
-Message-ID: <20170315191515.GH2079@mtr-leonro.local>
+Subject: Re: [rdma-core v3 5/9] libbnxt_re: Allow apps to poll for flushed
+ completions
+Date: Wed, 15 Mar 2017 21:20:28 +0200
+Message-ID: <20170315192028.GI2079@mtr-leonro.local>
 References: <1489574253-20300-1-git-send-email-devesh.sharma@broadcom.com>
- <1489574253-20300-9-git-send-email-devesh.sharma@broadcom.com>
+ <1489574253-20300-6-git-send-email-devesh.sharma@broadcom.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="fCmRXBY78W5odcVA"
+        protocol="application/pgp-signature"; boundary="ZcaUvQ23gCOmDTXi"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1489574253-20300-9-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1489574253-20300-6-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---fCmRXBY78W5odcVA
+--ZcaUvQ23gCOmDTXi
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Mar 15, 2017 at 06:37:32AM -0400, Devesh Sharma wrote:
-> This patch adds support for compare-and-swap and fetch-and-add
-> atomic operations in user library.
+On Wed, Mar 15, 2017 at 06:37:29AM -0400, Devesh Sharma wrote:
+> This patch adds support for reporting flush completions.
+> following is the overview of the algorithm used.
+>
+> Step-1: Poll a completion from h/w CQ.
+> Step-2: check the status, if it is error goto step3 else report
+>         completion to user based on the con_idx reported.
+> Step-3: Report the completion with actual error to consumer, and
+>         without bothering about the con_idx reported in the
+>         completion do following:
+>         3a. Add this QP to the CQ flush list if it was not there
+>             already. If this is req-error, add the QP to send-flush
+>             list, else add it to recv-flush-list.
+>         3b. Change QP-soft-state to ERROR if it was not in error
+>             already.
+>
+> Step-4: If next CQE is TERM CQE, extract this CQE. make sure this CQE
+>         is not reported to the consumer. Do the following steps as
+>         further processing:
+>         4a. Add this QP to both send-flush-list and recv-flush-list
+>             if QP is absent from any of the flush lists.
+>         4b. Change QP-soft-state to ERROR if it was not in error
+>             already.
+> Step5: Continue polling from both h/w CQ and flush-lists until
+>        all the queues are empty.
+>
+> The QP is removed from the flush list during destroy-qp.
+>
+> Further, it adds network to host format conversion on
+> the received immediate data.
+>
+> This patch also takes care of Hardware specific requirement
+> to skip reporting h/w flush error CQEs to consumer but ring
+> the CQ-DB for them.
 >
 > v1->v2
->  -- Fixed the missing "break"
->  -- Changed macros to inline function
+>  -- Used ccan/list.h instead.
 >
 > Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 > ---
->  providers/bnxt_re/bnxt_re-abi.h |  3 ++-
->  providers/bnxt_re/main.h        |  8 +++++-
->  providers/bnxt_re/memory.h      | 10 +++++++
->  providers/bnxt_re/verbs.c       | 58 +++++++++++++++++++++++++++++++++++------
->  4 files changed, 69 insertions(+), 10 deletions(-)
+>  providers/bnxt_re/flush.h  |  85 ++++++++++++++++
+>  providers/bnxt_re/main.c   |   5 +
+>  providers/bnxt_re/main.h   |   6 ++
+>  providers/bnxt_re/memory.h |   5 +
+>  providers/bnxt_re/verbs.c  | 243 ++++++++++++++++++++++++++++++++++++++++-----
+>  5 files changed, 320 insertions(+), 24 deletions(-)
+>  create mode 100644 providers/bnxt_re/flush.h
 >
-> diff --git a/providers/bnxt_re/bnxt_re-abi.h b/providers/bnxt_re/bnxt_re-abi.h
-> index 581e1b7..557221b 100644
-> --- a/providers/bnxt_re/bnxt_re-abi.h
-> +++ b/providers/bnxt_re/bnxt_re-abi.h
-> @@ -54,7 +54,8 @@ enum bnxt_re_wr_opcode {
->  	BNXT_RE_WR_OPCD_ATOMIC_FA	= 0x0B,
->  	BNXT_RE_WR_OPCD_LOC_INVAL	= 0x0C,
->  	BNXT_RE_WR_OPCD_BIND		= 0x0E,
-> -	BNXT_RE_WR_OPCD_RECV		= 0x80
-> +	BNXT_RE_WR_OPCD_RECV		= 0x80,
-> +	BNXT_RE_WR_OPCD_INVAL		= 0xFF
->  };
+> diff --git a/providers/bnxt_re/flush.h b/providers/bnxt_re/flush.h
+> new file mode 100644
+> index 0000000..a39ea71
+> --- /dev/null
+> +++ b/providers/bnxt_re/flush.h
+> @@ -0,0 +1,85 @@
+> +/*
+> + * Broadcom NetXtreme-E User Space RoCE driver
+> + *
+> + * Copyright (c) 2015-2017, Broadcom. All rights reserved.  The term
+> + * Broadcom refers to Broadcom Limited and/or its subsidiaries.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * BSD license below:
+> + *
+> + * Redistribution and use in source and binary forms, with or without
+> + * modification, are permitted provided that the following conditions
+> + * are met:
+> + *
+> + * 1. Redistributions of source code must retain the above copyright
+> + *    notice, this list of conditions and the following disclaimer.
+> + * 2. Redistributions in binary form must reproduce the above copyright
+> + *    notice, this list of conditions and the following disclaimer in
+> + *    the documentation and/or other materials provided with the
+> + *    distribution.
+> + *
+> + * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS''
+> + * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+> + * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+> + * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS
+> + * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+> + * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+> + * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+> + * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+> + * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+> + * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+> + * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> + *
+> + * Description: A few wrappers for flush queue management
+> + */
+> +
+> +#ifndef __FLUSH_H__
+> +#define __FLUSH_H__
+> +
+> +#include <ccan/list.h>
+> +
+> +struct bnxt_re_fque_node {
+> +	uint8_t valid;
+> +	struct list_node list;
+> +};
+> +
+> +static inline void fque_init_node(struct bnxt_re_fque_node *node)
+> +{
+> +	list_node_init(&node->list);
+> +	node->valid = false;
+> +}
+> +
+> +static inline void fque_add_node_tail(struct list_head *head,
+> +				      struct bnxt_re_fque_node *new)
+> +{
+> +	list_add_tail(head, &new->list);
+> +	new->valid = true;
+> +}
+> +
+> +static inline void fque_del_node(struct bnxt_re_fque_node *entry)
+> +{
+> +	entry->valid = false;
+> +	list_del(&entry->list);
+> +}
+> +
+
+I don't see the point of these wrappers.
+
+> +static inline uint8_t _fque_node_valid(struct bnxt_re_fque_node *node)
+> +{
+> +	return node->valid;
+> +}
+> +
+> +static inline void bnxt_re_fque_add_node(struct list_head *head,
+> +					 struct bnxt_re_fque_node *node)
+> +{
+> +	if (!_fque_node_valid(node))
+> +		fque_add_node_tail(head, node);
+> +}
+> +
+> +static inline void bnxt_re_fque_del_node(struct bnxt_re_fque_node *node)
+> +{
+> +	if (_fque_node_valid(node))
+> +		fque_del_node(node);
+> +}
+> +#endif	/* __FLUSH_H__ */
+> diff --git a/providers/bnxt_re/main.c b/providers/bnxt_re/main.c
+> index 60ad653..b33ea35 100644
+> --- a/providers/bnxt_re/main.c
+> +++ b/providers/bnxt_re/main.c
+> @@ -128,6 +128,7 @@ static int bnxt_re_init_context(struct verbs_device *vdev,
+>  	dev->pg_size = resp.pg_size;
+>  	dev->cqe_size = resp.cqe_size;
+>  	dev->max_cq_depth = resp.max_cqd;
+> +	pthread_spin_init(&cntx->fqlock, PTHREAD_PROCESS_PRIVATE);
+>  	ibvctx->ops = bnxt_re_cntx_ops;
 >
->  enum bnxt_re_wr_flags {
+>  	return 0;
+> @@ -136,7 +137,11 @@ static int bnxt_re_init_context(struct verbs_device *vdev,
+>  static void bnxt_re_uninit_context(struct verbs_device *vdev,
+>  				   struct ibv_context *ibvctx)
+>  {
+> +	struct bnxt_re_context *cntx;
+> +
+> +	cntx = to_bnxt_re_context(ibvctx);
+>  	/* Unmap if anything device specific was mapped in init_context. */
+> +	pthread_spin_destroy(&cntx->fqlock);
+>  }
+>
+>  static struct verbs_device_ops bnxt_re_dev_ops = {
 > diff --git a/providers/bnxt_re/main.h b/providers/bnxt_re/main.h
-> index 9d99c64..a417328 100644
+> index bfe7089..d324ef6 100644
 > --- a/providers/bnxt_re/main.h
 > +++ b/providers/bnxt_re/main.h
-> @@ -236,9 +236,15 @@ static inline uint8_t bnxt_re_ibv_to_bnxt_wr_opcd(uint8_t ibv_opcd)
->  	case IBV_WR_RDMA_READ:
->  		bnxt_opcd = BNXT_RE_WR_OPCD_RDMA_READ;
->  		break;
-> +	case IBV_WR_ATOMIC_CMP_AND_SWP:
-> +		bnxt_opcd = BNXT_RE_WR_OPCD_ATOMIC_CS;
-> +		break;
-> +	case IBV_WR_ATOMIC_FETCH_AND_ADD:
-> +		bnxt_opcd = BNXT_RE_WR_OPCD_ATOMIC_FA;
-> +		break;
->  		/* TODO: Add other opcodes */
->  	default:
-> -		bnxt_opcd = 0xFF;
-> +		bnxt_opcd = BNXT_RE_WR_OPCD_INVAL;
->  		break;
->  	};
+> @@ -50,6 +50,7 @@
 >
+>  #include "bnxt_re-abi.h"
+>  #include "memory.h"
+> +#include "flush.h"
+>
+>  #define DEV	"bnxtre : "
+
+Isn't "bnxt_re"?
+
+>
+> @@ -69,6 +70,8 @@ struct bnxt_re_cq {
+>  	uint32_t cqid;
+>  	struct bnxt_re_queue cqq;
+>  	struct bnxt_re_dpi *udpi;
+> +	struct list_head sfhead;
+> +	struct list_head rfhead;
+>  	uint32_t cqe_size;
+>  	uint8_t  phase;
+>  };
+> @@ -104,6 +107,8 @@ struct bnxt_re_qp {
+>  	struct bnxt_re_cq *rcq;
+>  	struct bnxt_re_dpi *udpi;
+>  	struct bnxt_re_qpcap cap;
+> +	struct bnxt_re_fque_node snode;
+> +	struct bnxt_re_fque_node rnode;
+>  	uint32_t qpid;
+>  	uint32_t tbl_indx;
+>  	uint32_t sq_psn;
+> @@ -133,6 +138,7 @@ struct bnxt_re_context {
+>  	uint32_t max_qp;
+>  	uint32_t max_srq;
+>  	struct bnxt_re_dpi udpi;
+> +	pthread_spinlock_t fqlock;
+>  };
+>
+>  /* DB ring functions used internally*/
 > diff --git a/providers/bnxt_re/memory.h b/providers/bnxt_re/memory.h
-> index debb31a..d7e6a92 100644
+> index f812eb8..debb31a 100644
 > --- a/providers/bnxt_re/memory.h
 > +++ b/providers/bnxt_re/memory.h
-> @@ -83,6 +83,16 @@ static inline void iowrite32(__u32 *dst, uint32_t *src)
->  	*(volatile __u32 *)dst = *src;
+> @@ -89,6 +89,11 @@ static inline uint32_t bnxt_re_is_que_full(struct bnxt_re_queue *que)
+>  	return (((que->tail + 1) & (que->depth - 1)) == que->head);
 >  }
 >
-> +static inline __u32 upper_32_bits(uint64_t n)
+> +static inline uint32_t bnxt_re_is_que_empty(struct bnxt_re_queue *que)
 > +{
-> +	return (__u32)((n >> 16) >> 16);
+> +	return que->tail == que->head;
 > +}
 > +
-> +static inline __u32 lower_32_bits(uint64_t n)
-> +{
-> +	return (__u32)(n & 0xFFFFFFFFUL);
-> +}
-> +
->  /* Basic queue operation */
->  static inline uint32_t bnxt_re_is_que_full(struct bnxt_re_queue *que)
+>  static inline uint32_t bnxt_re_incr(uint32_t val, uint32_t max)
 >  {
+>  	return (++val & (max - 1));
 > diff --git a/providers/bnxt_re/verbs.c b/providers/bnxt_re/verbs.c
-> index e60010d..85d77cd 100644
+> index 8230daf..1617af2 100644
 > --- a/providers/bnxt_re/verbs.c
 > +++ b/providers/bnxt_re/verbs.c
-> @@ -1068,6 +1068,9 @@ static int bnxt_re_build_send_sqe(struct bnxt_re_qp *qp, void *wqe,
+> @@ -202,6 +202,9 @@ struct ibv_cq *bnxt_re_create_cq(struct ibv_context *ibvctx, int ncqe,
+>  	cq->cqq.tail = resp.tail;
+>  	cq->udpi = &cntx->udpi;
 >
->  	/* Fill Header */
->  	opcode = bnxt_re_ibv_to_bnxt_wr_opcd(wr->opcode);
-> +	if (opcode == BNXT_RE_WR_OPCD_INVAL)
-> +		return -EINVAL;
+> +	list_head_init(&cq->sfhead);
+> +	list_head_init(&cq->rfhead);
 > +
->  	hdr->rsv_ws_fl_wt |= (opcode & BNXT_RE_HDR_WT_MASK);
->
->  	if (is_inline) {
-> @@ -1116,6 +1119,44 @@ static int bnxt_re_build_rdma_sqe(struct bnxt_re_qp *qp, void *wqe,
->  	return len;
+>  	return &cq->ibvcq;
+>  cmdfail:
+>  	bnxt_re_free_aligned(&cq->cqq);
+> @@ -230,6 +233,47 @@ int bnxt_re_destroy_cq(struct ibv_cq *ibvcq)
+>  	return 0;
 >  }
 >
-> +static int bnxt_re_build_cns_sqe(struct bnxt_re_qp *qp, void *wqe,
-> +				 struct ibv_send_wr *wr)
+> +static uint8_t bnxt_re_poll_err_scqe(struct bnxt_re_qp *qp,
+> +				     struct ibv_wc *ibvwc,
+> +				     struct bnxt_re_bcqe *hdr,
+> +				     struct bnxt_re_req_cqe *scqe, int *cnt)
 > +{
-> +	struct bnxt_re_bsqe *hdr = wqe;
-> +	struct bnxt_re_atomic *sqe = ((void *)wqe +
-> +				      sizeof(struct bnxt_re_bsqe));
-> +	int len;
+> +	struct bnxt_re_queue *sq = qp->sqq;
+> +	struct bnxt_re_context *cntx;
+> +	struct bnxt_re_wrid *swrid;
+> +	struct bnxt_re_psns *spsn;
+> +	struct bnxt_re_cq *scq;
+> +	uint32_t head = sq->head;
+> +	uint8_t status;
 > +
-> +	len = bnxt_re_build_send_sqe(qp, wqe, wr, false);
-> +	hdr->key_immd = wr->wr.atomic.rkey;
-> +	sqe->rva_lo = lower_32_bits(wr->wr.atomic.remote_addr);
-> +	sqe->rva_hi = upper_32_bits(wr->wr.atomic.remote_addr);
-> +	sqe->cmp_dt_lo = lower_32_bits(wr->wr.atomic.compare_add);
-> +	sqe->cmp_dt_hi = upper_32_bits(wr->wr.atomic.compare_add);
-> +	sqe->swp_dt_lo = lower_32_bits(wr->wr.atomic.swap);
-> +	sqe->swp_dt_hi = upper_32_bits(wr->wr.atomic.swap);
+> +	scq = to_bnxt_re_cq(qp->ibvqp.send_cq);
+> +	cntx = to_bnxt_re_context(scq->ibvcq.context);
+> +	swrid = &qp->swrid[head];
+> +	spsn = swrid->psns;
 > +
-
-Sorry for my question, but why do you need to separate uint64_t variable
-to two __u32? Why can't you declare one __u64?
-
-> +	return len;
+> +	*cnt = 1;
+> +	status = (hdr->flg_st_typ_ph >> BNXT_RE_BCQE_STATUS_SHIFT) &
+> +		  BNXT_RE_BCQE_STATUS_MASK;
+> +	ibvwc->status = bnxt_re_to_ibv_wc_status(status, true);
+> +	ibvwc->wc_flags = 0;
+> +	ibvwc->wr_id = swrid->wrid;
+> +	ibvwc->qp_num = qp->qpid;
+> +	ibvwc->opcode = (le32toh(spsn->opc_spsn) >>
+> +			BNXT_RE_PSNS_OPCD_SHIFT) &
+> +			BNXT_RE_PSNS_OPCD_MASK;
+> +	ibvwc->byte_len = 0;
+> +
+> +	bnxt_re_incr_head(qp->sqq);
+> +
+> +	if (qp->qpst != IBV_QPS_ERR)
+> +		qp->qpst = IBV_QPS_ERR;
+> +	pthread_spin_lock(&cntx->fqlock);
+> +	bnxt_re_fque_add_node(&scq->sfhead, &qp->snode);
+> +	pthread_spin_unlock(&cntx->fqlock);
+> +
+> +	return false;
 > +}
 > +
-> +static int bnxt_re_build_fna_sqe(struct bnxt_re_qp *qp, void *wqe,
-> +				 struct ibv_send_wr *wr)
-> +{
-> +	struct bnxt_re_bsqe *hdr = wqe;
-> +	struct bnxt_re_atomic *sqe = ((void *)wqe +
-> +				      sizeof(struct bnxt_re_bsqe));
-> +	int len;
-> +
-> +	len = bnxt_re_build_send_sqe(qp, wqe, wr, false);
-> +	hdr->key_immd = wr->wr.atomic.rkey;
-> +	sqe->rva_lo = lower_32_bits(wr->wr.atomic.remote_addr);
-> +	sqe->rva_hi = upper_32_bits(wr->wr.atomic.remote_addr);
-> +	sqe->cmp_dt_lo = lower_32_bits(wr->wr.atomic.compare_add);
-> +	sqe->cmp_dt_hi = upper_32_bits(wr->wr.atomic.compare_add);
-> +
-> +	return len;
-> +}
-> +
->  int bnxt_re_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
->  		      struct ibv_send_wr **bad)
->  {
-> @@ -1169,27 +1210,28 @@ int bnxt_re_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
->  			else
->  				bytes = bnxt_re_build_send_sqe(qp, sqe, wr,
->  							       is_inline);
-> -			if (bytes < 0)
-> -				ret = (bytes == -EINVAL) ? EINVAL : ENOMEM;
->  			break;
->  		case IBV_WR_RDMA_WRITE_WITH_IMM:
->  			hdr->key_immd = wr->imm_data;
->  		case IBV_WR_RDMA_WRITE:
->  			bytes = bnxt_re_build_rdma_sqe(qp, sqe, wr, is_inline);
-> -			if (bytes < 0)
-> -				ret = ENOMEM;
->  			break;
->  		case IBV_WR_RDMA_READ:
->  			bytes = bnxt_re_build_rdma_sqe(qp, sqe, wr, false);
-> -			if (bytes < 0)
-> -				ret = ENOMEM;
-> +			break;
-> +		case IBV_WR_ATOMIC_CMP_AND_SWP:
-> +			bytes = bnxt_re_build_cns_sqe(qp, sqe, wr);
-> +			break;
-> +		case IBV_WR_ATOMIC_FETCH_AND_ADD:
-> +			bytes = bnxt_re_build_fna_sqe(qp, sqe, wr);
->  			break;
->  		default:
-> -			ret = EINVAL;
-> +			bytes = -EINVAL;
->  			break;
->  		}
+>  static uint8_t bnxt_re_poll_success_scqe(struct bnxt_re_qp *qp,
+>  					 struct ibv_wc *ibvwc,
+>  					 struct bnxt_re_bcqe *hdr,
+> @@ -284,21 +328,53 @@ static uint8_t bnxt_re_poll_scqe(struct bnxt_re_qp *qp, struct ibv_wc *ibvwc,
 >
-> -		if (ret) {
-> +		if (bytes < 0) {
-> +			ret = (bytes == -EINVAL) ? EINVAL : ENOMEM;
->  			*bad = wr;
+>  	status = (hdr->flg_st_typ_ph >> BNXT_RE_BCQE_STATUS_SHIFT) &
+>  		  BNXT_RE_BCQE_STATUS_MASK;
+> -	if (status == BNXT_RE_REQ_ST_OK) {
+> +	if (status == BNXT_RE_REQ_ST_OK)
+>  		pcqe = bnxt_re_poll_success_scqe(qp, ibvwc, hdr, scqe, cnt);
+> -	} else {
+> -		/* TODO: Handle error completion properly. */
+> -		fprintf(stderr, "%s(): swc with error, vendor status = %d\n",
+> -			__func__, status);
+> -		*cnt = 1;
+> -		ibvwc->status = bnxt_re_to_ibv_wc_status(status, true);
+> -		ibvwc->wr_id = qp->swrid[qp->sqq->head].wrid;
+> -		bnxt_re_incr_head(qp->sqq);
+> -	}
+> +	else
+> +		pcqe = bnxt_re_poll_err_scqe(qp, ibvwc, hdr, scqe, cnt);
+>
+>  	return pcqe;
+>  }
+>
+> +static int bnxt_re_poll_err_rcqe(struct bnxt_re_qp *qp,
+> +				 struct ibv_wc *ibvwc,
+> +				 struct bnxt_re_bcqe *hdr,
+> +				 struct bnxt_re_rc_cqe *rcqe)
+> +{
+> +	struct bnxt_re_queue *rq = qp->rqq;
+> +	struct bnxt_re_wrid *rwrid;
+> +	struct bnxt_re_cq *rcq;
+> +	struct bnxt_re_context *cntx;
+> +	uint32_t head = rq->head;
+> +	uint8_t status;
+> +
+> +	rcq = to_bnxt_re_cq(qp->ibvqp.recv_cq);
+> +	cntx = to_bnxt_re_context(rcq->ibvcq.context);
+> +
+> +	rwrid = &qp->rwrid[head];
+> +	status = (hdr->flg_st_typ_ph >> BNXT_RE_BCQE_STATUS_SHIFT) &
+> +		  BNXT_RE_BCQE_STATUS_MASK;
+> +	/* skip h/w flush errors */
+> +	if (status == BNXT_RE_RSP_ST_HW_FLUSH)
+> +		return 0;
+> +	ibvwc->status = bnxt_re_to_ibv_wc_status(status, false);
+> +	/* TODO: Add SRQ Processing here */
+> +	if (qp->rqq) {
+> +		ibvwc->wr_id = rwrid->wrid;
+> +		ibvwc->qp_num = qp->qpid;
+> +		ibvwc->opcode = IBV_WC_RECV;
+> +		ibvwc->byte_len = 0;
+> +		bnxt_re_incr_head(qp->rqq);
+> +		if (qp->qpst != IBV_QPS_ERR)
+> +			qp->qpst = IBV_QPS_ERR;
+> +		pthread_spin_lock(&cntx->fqlock);
+> +		bnxt_re_fque_add_node(&rcq->rfhead, &qp->rnode);
+> +		pthread_spin_unlock(&cntx->fqlock);
+> +	}
+> +
+> +	return 1;
+> +}
+> +
+>  static void bnxt_re_poll_success_rcqe(struct bnxt_re_qp *qp,
+>  				      struct ibv_wc *ibvwc,
+>  				      struct bnxt_re_bcqe *hdr,
+> @@ -346,18 +422,37 @@ static uint8_t bnxt_re_poll_rcqe(struct bnxt_re_qp *qp, struct ibv_wc *ibvwc,
+>
+>  	status = (hdr->flg_st_typ_ph >> BNXT_RE_BCQE_STATUS_SHIFT) &
+>  		  BNXT_RE_BCQE_STATUS_MASK;
+> -	if (status == BNXT_RE_RSP_ST_OK) {
+> +	*cnt = 1;
+> +	if (status == BNXT_RE_RSP_ST_OK)
+>  		bnxt_re_poll_success_rcqe(qp, ibvwc, hdr, rcqe);
+> -		*cnt = 1;
+> -	} else {
+> -		/* TODO: Process error completions properly.*/
+> -		*cnt = 1;
+> -		ibvwc->status = bnxt_re_to_ibv_wc_status(status, false);
+> -		if (qp->rqq) {
+> -			ibvwc->wr_id = qp->rwrid[qp->rqq->head].wrid;
+> -			bnxt_re_incr_head(qp->rqq);
+> -		}
+> -	}
+> +	else
+> +		*cnt = bnxt_re_poll_err_rcqe(qp, ibvwc, hdr, rcqe);
+> +
+> +	return pcqe;
+> +}
+> +
+> +static uint8_t bnxt_re_poll_term_cqe(struct bnxt_re_qp *qp,
+> +				     struct ibv_wc *ibvwc, void *cqe, int *cnt)
+> +{
+> +	struct bnxt_re_context *cntx;
+> +	struct bnxt_re_cq *scq, *rcq;
+> +	uint8_t pcqe = false;
+> +
+> +	scq = to_bnxt_re_cq(qp->ibvqp.send_cq);
+> +	rcq = to_bnxt_re_cq(qp->ibvqp.recv_cq);
+> +	cntx = to_bnxt_re_context(scq->ibvcq.context);
+> +	/* For now just add the QP to flush list without
+> +	 * considering the index reported in the CQE.
+> +	 * Continue reporting flush completions until the
+> +	 * SQ and RQ are empty.
+> +	 */
+> +	*cnt = 0;
+> +	if (qp->qpst != IBV_QPS_ERR)
+> +		qp->qpst = IBV_QPS_ERR;
+> +	pthread_spin_lock(&cntx->fqlock);
+> +	bnxt_re_fque_add_node(&rcq->rfhead, &qp->rnode);
+> +	bnxt_re_fque_add_node(&scq->sfhead, &qp->snode);
+> +	pthread_spin_unlock(&cntx->fqlock);
+>
+>  	return pcqe;
+>  }
+> @@ -410,6 +505,12 @@ static int bnxt_re_poll_one(struct bnxt_re_cq *cq, int nwc, struct ibv_wc *wc)
+>  		case BNXT_RE_WC_TYPE_RECV_RAW:
 >  			break;
->  		}
+>  		case BNXT_RE_WC_TYPE_TERM:
+> +			scqe = cqe;
+> +			qp_handle = (uint64_t *)&scqe->qp_handle;
+> +			qp = (struct bnxt_re_qp *)(uintptr_t)scqe->qp_handle;
+> +			if (!qp)
+> +				break;
+> +			pcqe = bnxt_re_poll_term_cqe(qp, wc, cqe, &cnt);
+>  			break;
+>  		case BNXT_RE_WC_TYPE_COFF:
+>  			break;
+> @@ -442,22 +543,107 @@ bail:
+>  	return dqed;
+>  }
+>
+> +static int bnxt_re_poll_flush_wcs(struct bnxt_re_queue *que,
+> +				  struct bnxt_re_wrid *wridp,
+> +				  struct ibv_wc *ibvwc, uint32_t qpid,
+> +				  int nwc)
+> +{
+> +	struct bnxt_re_wrid *wrid;
+> +	struct bnxt_re_psns *psns;
+> +	uint32_t cnt = 0, head;
+> +	uint8_t opcode = IBV_WC_RECV;
+> +
+> +	while (nwc) {
+> +		if (bnxt_re_is_que_empty(que))
+> +			break;
+> +		head = que->head;
+> +		wrid = &wridp[head];
+> +		if (wrid->psns) {
+> +			psns = wrid->psns;
+> +			opcode = (psns->opc_spsn >> BNXT_RE_PSNS_OPCD_SHIFT) &
+> +				  BNXT_RE_PSNS_OPCD_MASK;
+> +		}
+> +
+> +		ibvwc->status = IBV_WC_WR_FLUSH_ERR;
+> +		ibvwc->opcode = opcode;
+> +		ibvwc->wr_id = wrid->wrid;
+> +		ibvwc->qp_num = qpid;
+> +		ibvwc->byte_len = 0;
+> +		ibvwc->wc_flags = 0;
+> +
+> +		bnxt_re_incr_head(que);
+> +		nwc--;
+> +		cnt++;
+> +		ibvwc++;
+> +	}
+> +
+> +	return cnt;
+> +}
+> +
+> +static int bnxt_re_poll_flush_lists(struct bnxt_re_cq *cq, uint32_t nwc,
+> +				    struct ibv_wc *ibvwc)
+> +{
+> +	struct bnxt_re_fque_node *cur, *tmp;
+> +	struct bnxt_re_qp *qp;
+> +	struct bnxt_re_queue *que;
+> +	int dqed = 0, left;
+> +
+> +	/* Check if flush Qs are empty */
+> +	if (list_empty(&cq->sfhead) && list_empty(&cq->rfhead))
+> +		return 0;
+> +
+> +	if (!list_empty(&cq->sfhead)) {
+> +		list_for_each_safe(&cq->sfhead, cur, tmp, list) {
+> +			qp = container_of(cur, struct bnxt_re_qp, snode);
+> +			que = qp->sqq;
+> +			if (bnxt_re_is_que_empty(que))
+> +				continue;
+> +			dqed = bnxt_re_poll_flush_wcs(que, qp->swrid, ibvwc,
+> +						      qp->qpid, nwc);
+> +		}
+> +	}
+> +
+> +	left = nwc - dqed;
+> +	if (!left)
+> +		return dqed;
+> +
+> +	if (!list_empty(&cq->rfhead)) {
+> +		list_for_each_safe(&cq->rfhead, cur, tmp, list) {
+> +			qp = container_of(cur, struct bnxt_re_qp, rnode);
+> +			que = qp->rqq;
+> +			if (!que || bnxt_re_is_que_empty(que))
+> +				continue;
+> +			dqed += bnxt_re_poll_flush_wcs(que, qp->rwrid,
+> +						       ibvwc + dqed, qp->qpid,
+> +						       left);
+> +		}
+> +	}
+> +
+> +	return dqed;
+> +}
+> +
+>  int bnxt_re_poll_cq(struct ibv_cq *ibvcq, int nwc, struct ibv_wc *wc)
+>  {
+>  	struct bnxt_re_cq *cq = to_bnxt_re_cq(ibvcq);
+> -	int dqed;
+> +	struct bnxt_re_context *cntx = to_bnxt_re_context(ibvcq->context);
+> +	int dqed, left = 0;
+>
+>  	pthread_spin_lock(&cq->cqq.qlock);
+>  	dqed = bnxt_re_poll_one(cq, nwc, wc);
+>  	pthread_spin_unlock(&cq->cqq.qlock);
+> -
+> -	/* TODO: Flush Management*/
+> +	/* Check if anything is there to flush. */
+> +	pthread_spin_lock(&cntx->fqlock);
+> +	left = nwc - dqed;
+> +	if (left)
+> +		dqed += bnxt_re_poll_flush_lists(cq, left, (wc + dqed));
+> +	pthread_spin_unlock(&cntx->fqlock);
+>
+>  	return dqed;
+>  }
+>
+>  static void bnxt_re_cleanup_cq(struct bnxt_re_qp *qp, struct bnxt_re_cq *cq)
+>  {
+> +	struct bnxt_re_context *cntx;
+>  	struct bnxt_re_queue *que = &cq->cqq;
+>  	struct bnxt_re_bcqe *hdr;
+>  	struct bnxt_re_req_cqe *scqe;
+> @@ -465,6 +651,8 @@ static void bnxt_re_cleanup_cq(struct bnxt_re_qp *qp, struct bnxt_re_cq *cq)
+>  	void *cqe;
+>  	int indx, type;
+>
+> +	cntx = to_bnxt_re_context(cq->ibvcq.context);
+> +
+>  	pthread_spin_lock(&que->qlock);
+>  	for (indx = 0; indx < que->depth; indx++) {
+>  		cqe = que->va + indx * bnxt_re_get_cqe_sz();
+> @@ -487,6 +675,11 @@ static void bnxt_re_cleanup_cq(struct bnxt_re_qp *qp, struct bnxt_re_cq *cq)
+>
+>  	}
+>  	pthread_spin_unlock(&que->qlock);
+> +
+> +	pthread_spin_lock(&cntx->fqlock);
+> +	bnxt_re_fque_del_node(&qp->snode);
+> +	bnxt_re_fque_del_node(&qp->rnode);
+> +	pthread_spin_unlock(&cntx->fqlock);
+>  }
+>
+>  void bnxt_re_cq_event(struct ibv_cq *ibvcq)
+> @@ -679,6 +872,8 @@ struct ibv_qp *bnxt_re_create_qp(struct ibv_pd *ibvpd,
+>  	cap->max_rsge = attr->cap.max_recv_sge;
+>  	cap->max_inline = attr->cap.max_inline_data;
+>  	cap->sqsig = attr->sq_sig_all;
+> +	fque_init_node(&qp->snode);
+> +	fque_init_node(&qp->rnode);
+>
+>  	return &qp->ibvqp;
+>  failcmd:
 > --
 > 1.8.3.1
 >
@@ -203,27 +584,27 @@ to two __u32? Why can't you declare one __u64?
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---fCmRXBY78W5odcVA
+--ZcaUvQ23gCOmDTXi
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljJksMACgkQ5GN7iDZy
-WKe17A//b6WHBubc0VK49FMdZRENNx/ENmaFq+eY8rj71vg0RefvZbZ3vKQdzWKo
-r2S0hbW3iotpqY35Bii7/B7RTXH6+l/acyExnFIaY966wCqiH1P9e/UD1LUROzOr
-C2ADp0YGK2dOya3CGFUq5ZFXR1NYM2HrdJV1l7Z9PLMZtwqVZrzoxm8u1rEYzit7
-L95yi263GbcZFLXeruCnMqhjExehoPRejfnhqolJ1Gc8uRirkcDKeAH6iL+c9rjt
-Si83hgB0g31DbNJLnIZFbSpjHprW2J5TKHUf+2jC3sIN3Kux9dmaPSckX6FI+8el
-uyDhSxpvJP/Im0giyPYzdNIpNf8r3L38o+LnCk0WoolgjwiiDtm7ENh50N+ZdLZr
-8s0ai4/V1KgVO0ppm/cfqH1pNPvo958146CIcjto8gmc5ZQBl82g6kI2uyjYHHYv
-HfqhDQA8rAiC95dxVE5Aah4JcCcoYX8KrFTZQEl3SIkKvX7CNkpsFsr/TcQnuvqb
-rEiBOY/301+SqOArfPv4L/tu3LZIxoKoHr8du3zqFwKd3CqnCs96wUAWEFQkr5w0
-J1n5Ma8T+zn5BJLuep6d8G002l7o0qOwEBcDv0UV97+hKJaCDluNuOCN/6DMwYtv
-pHviQ7fM8AnT5fG1TJ8yZJLsgKomU+VIbaFjLGPrcKWaLtqYpig=
-=nM5N
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljJk/wACgkQ5GN7iDZy
+WKdA9A//Xw6YCNspdE5wAtGyMiD/bS9YnTNhyNgeT3f7mVmV9kDlMXsOUgqUiyWd
+tYliu8mG9Hr6FhtrHMIk/seU3qOiFGS/zG7fT4S8TL26gt+j5yqcaesKczJ94RVX
+fL46hyXQVeyE3pXpWBFgg6MTFwAL81xDH6mWPGSX4DPqgFYhJPHo7JKxcEtQ4sNc
+lf/eDo+Z+988rgrPnCY4AeW592LZtZeNGbVyFnpiCTxQHsaIBxjqUbYEW1yCmcnA
+4J0KjEJBTutjickiDQ3sZIjMS69d0B2Hz7/B14tPK7jpIQh9/uhyPuOc8l+xk7U/
+WrnSkeKeWKPpiQGtyC9Pjq0RaPTuxyYHUM37IoEk6zvyagBQZ72Kj79gxn/GaE9O
+Lu1IuroNTJ7M1AwsJ6H5Fyk6/TivQ4wV4k2LVoLYsqXg0fSMnjpgfiZ/yYkJj93D
+zKN/IEF2WdF+Y+8Arll4SO7aHLefDw+LQdY+wCX396/olZyT2er15ui0eZl3jmdO
+pwKeLJ3ur8lzhDsfXNdgoN/6py3pL+9A9/qHbeT/K+zUIdG+J6B9AfO5xp4pkV+s
+7OV/iEecGuLpGxkMzxFIaYJiwKcl3vPBd+m6XPqT06db8FNMuD9sZh2CaFn4f7xV
+jPbMl7BfayHxT9EU3UkkoM2pJOKe1mTGQJuGNR1bFdPJIVARQjE=
+=hyQu
 -----END PGP SIGNATURE-----
 
---fCmRXBY78W5odcVA--
+--ZcaUvQ23gCOmDTXi--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
