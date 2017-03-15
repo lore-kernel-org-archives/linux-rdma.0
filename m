@@ -1,119 +1,73 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 rdma-core 4/6] ibverbs: Add an option to poll cvlan value from a CQ
-Date: Wed, 15 Mar 2017 17:27:44 +0200
-Message-ID: <1489591666-14062-5-git-send-email-yishaih@mellanox.com>
-References: <1489591666-14062-1-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 rdma-core 0/6] Expanding raw packet capabilities
+Date: Wed, 15 Mar 2017 17:27:40 +0200
+Message-ID: <1489591666-14062-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1489591666-14062-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sending V1 to better describe the API as part of commit logs and man pages,
+details below.
 
-When a WQ or a QP is created with cvlan stripping option, it is
-stripped from the incoming packet and included in the work
+This series from Noa is the complementary user space part
+of the kernel code that was merged into 4.11.
+
+This series unifies all existing raw packet capabilities under a new
+field in ibv_device_attr_ex named raw_packet_caps. This field is defined
+by the ibv_raw_packet_caps enum.
+
+The existing IP csum and scatter FCS capabilities were added to the
+enum and a new capability was introduced - cvlan stripping offload.
+
+Cvlan stripping is the device's capability to remove the cvlan from
+an incoming raw packet and provide the data in the matching work
 completion.
-Extend the poll_cq_ex mechanism with a function that reads the
-stripped cvlan value from the work completion.
 
-In addition, as a part of introcuding the new functionality in the
-man page, align it with current code (typo fix, add a missing field).
+This series also:
+- Allows creation of WQ and raw Ethernet QP with cvlan stripping capability.
+- Allows setting and unsetting of cvlan stripping capability for an existing WQ.
+- Allows creation of WQ with scatter FCS offload.
+- Allows reading the cvlan data from ibv_cq_ex.
 
-Signed-off-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih@mellanox>
----
- libibverbs/man/ibv_create_cq_ex.3 |  9 +++++++--
- libibverbs/verbs.h                | 10 +++++++++-
- 2 files changed, 16 insertions(+), 3 deletions(-)
+Details for above was added as part of the commit logs and the relevant
+man pages.
 
-diff --git a/libibverbs/man/ibv_create_cq_ex.3 b/libibverbs/man/ibv_create_cq_ex.3
-index a6ae769..020bbb4 100644
---- a/libibverbs/man/ibv_create_cq_ex.3
-+++ b/libibverbs/man/ibv_create_cq_ex.3
-@@ -17,10 +17,10 @@ creates a completion queue (CQ) for RDMA device context
- .I context\fR.
- The argument
- .I cq_attr
--is a pointer to struct ibv_create_cq_attr_ex as defined in <infiniband/verbs.h>.
-+is a pointer to struct ibv_cq_init_attr_ex as defined in <infiniband/verbs.h>.
- .PP
- .nf
--struct ibv_create_cq_attr_ex {
-+struct ibv_cq_init_attr_ex {
- .in +8
- int                     cqe;               /* Minimum number of entries required for CQ */
- void                    *cq_context;       /* Consumer-supplied context returned for completion events */
-@@ -28,6 +28,7 @@ struct ibv_comp_channel *channel;          /* Completion channel where completio
- int                     comp_vector;       /* Completion vector used to signal completion events. Must be >= 0 and < context->num_comp_vectors. */
- uint64_t                wc_flags;          /* The wc_flags that should be returned in ibv_poll_cq_ex. Or'ed bit of enum ibv_wc_flags_ex. */
- uint32_t                comp_mask;         /* compatibility mask (extended verb). */
-+uint32_t                flags              /* One or more flags from enum ibv_create_cq_attr_flags */
- .in -8
- };
- 
-@@ -40,6 +41,7 @@ enum ibv_wc_flags_ex {
-         IBV_WC_EX_WITH_SL                    = 1 << 5,  /* Require sl in WC */
-         IBV_WC_EX_WITH_DLID_PATH_BITS        = 1 << 6,  /* Require dlid path bits in WC */
-         IBV_WC_EX_WITH_COMPLETION_TIMESTAMP  = 1 << 7,  /* Require completion timestamp in WC /*
-+        IBV_WC_EX_WITH_CVLAN                 = 1 << 8,  /* Require VLAN info in WC */
- };
- 
- enum ibv_cq_init_attr_mask {
-@@ -128,6 +130,9 @@ Below members and functions are used in order to poll the current completion. Th
- .BI "uint64_t ibv_wc_read_completion_ts(struct ibv_cq_ex " "*cq"); \c
-  Get the completion timestamp from the current completion.
- 
-+.BI "uint16_t ibv_wc_read_cvlan(struct ibv_cq_ex " "*cq"); \c
-+ Get the CVLAN field from the current completion.
-+
- .SH "RETURN VALUE"
- .B ibv_create_cq_ex()
- returns a pointer to the CQ, or NULL if the request fails.
-diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index c9084ea..15e93b3 100644
---- a/libibverbs/verbs.h
-+++ b/libibverbs/verbs.h
-@@ -435,6 +435,7 @@ enum ibv_create_cq_wc_flags {
- 	IBV_WC_EX_WITH_SL		= 1 << 5,
- 	IBV_WC_EX_WITH_DLID_PATH_BITS	= 1 << 6,
- 	IBV_WC_EX_WITH_COMPLETION_TIMESTAMP	= 1 << 7,
-+	IBV_WC_EX_WITH_CVLAN		= 1 << 8,
- };
- 
- enum {
-@@ -449,7 +450,8 @@ enum {
- 
- enum {
- 	IBV_CREATE_CQ_SUP_WC_FLAGS = IBV_WC_STANDARD_FLAGS |
--				IBV_WC_EX_WITH_COMPLETION_TIMESTAMP
-+				IBV_WC_EX_WITH_COMPLETION_TIMESTAMP |
-+				IBV_WC_EX_WITH_CVLAN
- };
- 
- enum ibv_wc_flags {
-@@ -1092,6 +1094,7 @@ struct ibv_cq_ex {
- 	uint8_t (*read_sl)(struct ibv_cq_ex *current);
- 	uint8_t (*read_dlid_path_bits)(struct ibv_cq_ex *current);
- 	uint64_t (*read_completion_ts)(struct ibv_cq_ex *current);
-+	uint16_t (*read_cvlan)(struct ibv_cq_ex *current);
- };
- 
- static inline struct ibv_cq *ibv_cq_ex_to_cq(struct ibv_cq_ex *cq)
-@@ -1170,6 +1173,11 @@ static inline uint64_t ibv_wc_read_completion_ts(struct ibv_cq_ex *cq)
- 	return cq->read_completion_ts(cq);
- }
- 
-+static inline uint16_t ibv_wc_read_cvlan(struct ibv_cq_ex *cq)
-+{
-+	return cq->read_cvlan(cq);
-+}
-+
- static inline int ibv_post_wq_recv(struct ibv_wq *wq,
- 				   struct ibv_recv_wr *recv_wr,
- 				   struct ibv_recv_wr **bad_recv_wr)
+Pull request was sent:
+https://github.com/linux-rdma/rdma-core/pull/96
+
+Changes from V0:
+- Extend commit logs to better describe the usage from user point of view.
+- Per API change put the corresponding man page change in the same patch to
+  clarify the usage. 
+- Drop patch #6 which held the changes for all the man pages together as of
+  the above change.
+- Align involved man pages with current code where stuff was missing and extend
+  to better describe the new functionality.
+
+
+Noa Osherovich (6):
+  ibverbs: Report raw packet caps as part of query device
+  ibverbs: Allow creation and modification of WQ with cvlan offload
+  ibverbs: Allow creation of QP with cvlan stripping offload
+  ibverbs: Add an option to poll cvlan value from a CQ
+  mlx5: Add read_cvlan support
+  ibverbs: Add support for scatter FCS ability in WQ
+
+ libibverbs/cmd.c                     | 29 ++++++++++++++++++++++++++++-
+ libibverbs/examples/devinfo.c        | 14 ++++++++++++++
+ libibverbs/kern-abi.h                |  6 +++++-
+ libibverbs/man/ibv_create_cq_ex.3    |  9 +++++++--
+ libibverbs/man/ibv_create_qp_ex.3    |  8 ++++++++
+ libibverbs/man/ibv_create_wq.3       | 12 ++++++++++++
+ libibverbs/man/ibv_modify_wq.3       |  2 ++
+ libibverbs/man/ibv_query_device_ex.3 |  9 +++++++++
+ libibverbs/verbs.h                   | 35 +++++++++++++++++++++++++++++++----
+ providers/mlx5/cq.c                  |  9 +++++++++
+ providers/mlx5/verbs.c               |  3 ++-
+ 11 files changed, 127 insertions(+), 9 deletions(-)
+
 -- 
 1.8.3.1
 
