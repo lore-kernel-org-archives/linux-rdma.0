@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 rdma-core 3/6] ibverbs: Allow creation of QP with cvlan stripping offload
-Date: Wed, 15 Mar 2017 17:27:43 +0200
-Message-ID: <1489591666-14062-4-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 rdma-core 1/6] ibverbs: Report raw packet caps as part of query device
+Date: Wed, 15 Mar 2017 17:27:41 +0200
+Message-ID: <1489591666-14062-2-git-send-email-yishaih@mellanox.com>
 References: <1489591666-14062-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1489591666-14062-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,70 +12,149 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Allow users to create a QP that uses cvlan stripping capabilities if
-supported by the hardware.
+Currently, existing raw packet capabilities (IP CSUM and scatter FCS)
+are reported separately to the user via ibv_query_device_ex.
 
-Setting cvlan stripping offload will cause the device to strip the
-cvlan from incoming raw Ethernet packets and provide its data in the
+Unify those capabilities into a single enum and report them together
+for a better user experience.
+
+Also introduce CVLAN stripping offload capability. CVLAN is the
+customer VLAN tag (inner tag).
+CVLAN stripping offload is the device's ability to strip this tag
+from incoming raw Ethernet packets and report the data in the
 matching work completion.
 
-In addition, aligned ibv_create_qp_ex's man page with current code
-(added ibv_qp_create_flags enum).
+This patch includes:
+- Reading from the uverbs layer and report back to an application.
+- Extending ibv_devinfo to print that information.
 
 Signed-off-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libibverbs/cmd.c                  | 3 ++-
- libibverbs/man/ibv_create_qp_ex.3 | 8 ++++++++
- libibverbs/verbs.h                | 1 +
- 3 files changed, 11 insertions(+), 1 deletion(-)
+ libibverbs/cmd.c                     |  8 ++++++++
+ libibverbs/examples/devinfo.c        | 14 ++++++++++++++
+ libibverbs/kern-abi.h                |  2 +-
+ libibverbs/man/ibv_query_device_ex.3 |  9 +++++++++
+ libibverbs/verbs.h                   |  7 +++++++
+ 5 files changed, 39 insertions(+), 1 deletion(-)
 
 diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
-index b8fe76d..06ec671 100644
+index 9b49da0..4aebbb5 100644
 --- a/libibverbs/cmd.c
 +++ b/libibverbs/cmd.c
-@@ -926,7 +926,8 @@ static void create_qp_handle_resp_common(struct ibv_context *context,
+@@ -230,6 +230,14 @@ int ibv_cmd_query_device_ex(struct ibv_context *context,
+ 			attr->max_wq_type_rq = resp->max_wq_type_rq;
+ 	}
  
- enum {
- 	CREATE_QP_EX2_SUP_CREATE_FLAGS = IBV_QP_CREATE_BLOCK_SELF_MCAST_LB |
--		IBV_QP_CREATE_SCATTER_FCS,
-+					 IBV_QP_CREATE_SCATTER_FCS |
-+					 IBV_QP_CREATE_CVLAN_STRIPPING,
++	if (attr_size >= offsetof(struct ibv_device_attr_ex, raw_packet_caps) +
++			 sizeof(attr->raw_packet_caps)) {
++		if (resp->response_length >=
++		    offsetof(struct ibv_query_device_resp_ex, raw_packet_caps) +
++		    sizeof(resp->raw_packet_caps))
++			attr->raw_packet_caps = resp->raw_packet_caps;
++	}
++
+ 	return 0;
+ }
+ 
+diff --git a/libibverbs/examples/devinfo.c b/libibverbs/examples/devinfo.c
+index d88562f..42222c4 100644
+--- a/libibverbs/examples/devinfo.c
++++ b/libibverbs/examples/devinfo.c
+@@ -401,6 +401,17 @@ static void print_packet_pacing_caps(const struct ibv_packet_pacing_caps *caps)
+ 	}
+ }
+ 
++static void print_raw_packet_caps(uint32_t raw_packet_caps)
++{
++	printf("\traw packet caps:\n");
++	if (raw_packet_caps & IBV_RAW_PACKET_CAP_CVLAN_STRIPPING)
++		printf("\t\t\t\t\tC-VLAN stripping offload\n");
++	if (raw_packet_caps & IBV_RAW_PACKET_CAP_SCATTER_FCS)
++		printf("\t\t\t\t\tScatter FCS offload\n");
++	if (raw_packet_caps & IBV_RAW_PACKET_CAP_IP_CSUM)
++		printf("\t\t\t\t\tIP csum offload\n");
++}
++
+ static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
+ {
+ 	struct ibv_context *ctx;
+@@ -499,6 +510,9 @@ static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
+ 		else
+ 			printf("\tcore clock not supported\n");
+ 
++		if (device_attr.raw_packet_caps)
++			print_raw_packet_caps(device_attr.raw_packet_caps);
++
+ 		printf("\tdevice_cap_flags_ex:\t\t0x%" PRIX64 "\n", device_attr.device_cap_flags_ex);
+ 		print_device_cap_flags_ex(device_attr.device_cap_flags_ex);
+ 		print_tso_caps(&device_attr.tso_caps);
+diff --git a/libibverbs/kern-abi.h b/libibverbs/kern-abi.h
+index 210dd3e..3958f0c 100644
+--- a/libibverbs/kern-abi.h
++++ b/libibverbs/kern-abi.h
+@@ -290,7 +290,7 @@ struct ibv_query_device_resp_ex {
+ 	__u64 device_cap_flags_ex;
+ 	struct ibv_rss_caps_resp rss_caps;
+ 	__u32  max_wq_type_rq;
+-	__u32 reserved;
++	__u32 raw_packet_caps;
  };
  
- int ibv_cmd_create_qp_ex2(struct ibv_context *context,
-diff --git a/libibverbs/man/ibv_create_qp_ex.3 b/libibverbs/man/ibv_create_qp_ex.3
-index c778d15..99ae497 100644
---- a/libibverbs/man/ibv_create_qp_ex.3
-+++ b/libibverbs/man/ibv_create_qp_ex.3
-@@ -52,6 +52,14 @@ uint32_t                max_inline_data;/* Requested max number of data (bytes)
+ struct ibv_query_port {
+diff --git a/libibverbs/man/ibv_query_device_ex.3 b/libibverbs/man/ibv_query_device_ex.3
+index c291017..fdfb708 100644
+--- a/libibverbs/man/ibv_query_device_ex.3
++++ b/libibverbs/man/ibv_query_device_ex.3
+@@ -32,6 +32,7 @@ struct ibv_tso_caps    tso_caps;                   /* TCP segmentation offload c
+ struct ibv_rss_caps    rss_caps;                   /* RSS capabilities */
+ uint32_t               max_wq_type_rq;             /* Max Work Queue from type RQ */
+ struct ibv_packet_pacing_caps packet_pacing_caps; /* Packet pacing capabilities */
++uint32_t               raw_packet_caps;            /* Raw packet capabilities, use enum ibv_raw_packet_caps */
  .in -8
  };
- .nf
-+enum ibv_qp_create_flags {
-+.in +8
-+IBV_QP_CREATE_BLOCK_SELF_MCAST_LB       = 1 << 1, /* Prevent self multicast loopback */
-+IBV_QP_CREATE_SCATTER_FCS               = 1 << 8, /* FCS field will be scattered to host memory */
-+IBV_QP_CREATE_CVLAN_STRIPPING           = 1 << 9, /* CVLAN field will be stripped from incoming packets */
-+.in -8
-+};
-+.nf
- struct ibv_rx_hash_conf {
- .in +8
- uint8_t                rx_hash_function;       /* RX hash function, use enum ibv_rx_hash_function_flags */
-diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index 3398566..c9084ea 100644
---- a/libibverbs/verbs.h
-+++ b/libibverbs/verbs.h
-@@ -780,6 +780,7 @@ enum ibv_qp_init_attr_mask {
- enum ibv_qp_create_flags {
- 	IBV_QP_CREATE_BLOCK_SELF_MCAST_LB	= 1 << 1,
- 	IBV_QP_CREATE_SCATTER_FCS		= 1 << 8,
-+	IBV_QP_CREATE_CVLAN_STRIPPING		= 1 << 9,
+ 
+@@ -75,6 +76,14 @@ struct ibv_packet_pacing_caps {
+        uint32_t supported_qpts;    /* Bitmap showing which QP types are supported. */
  };
  
- struct ibv_rx_hash_conf {
++enum ibv_raw_packet_caps {
++.in +8
++IBV_RAW_PACKET_CAP_CVLAN_STRIPPING	= 1 << 0, /* CVLAN stripping is supported */
++IBV_RAW_PACKET_CAP_SCATTER_FCS		= 1 << 1, /* FCS scattering is supported */
++IBV_RAW_PACKET_CAP_IP_CSUM		= 1 << 2, /* IP CSUM offload is supported */
++.in -8
++};
++
+ .fi
+ .SH "RETURN VALUE"
+ .B ibv_query_device_ex()
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index 25f4ede..604b09e 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -252,6 +252,12 @@ struct ibv_packet_pacing_caps {
+ 	uint32_t supported_qpts;
+ };
+ 
++enum ibv_raw_packet_caps {
++	IBV_RAW_PACKET_CAP_CVLAN_STRIPPING	= 1 << 0,
++	IBV_RAW_PACKET_CAP_SCATTER_FCS		= 1 << 1,
++	IBV_RAW_PACKET_CAP_IP_CSUM		= 1 << 2,
++};
++
+ struct ibv_device_attr_ex {
+ 	struct ibv_device_attr	orig_attr;
+ 	uint32_t		comp_mask;
+@@ -263,6 +269,7 @@ struct ibv_device_attr_ex {
+ 	struct ibv_rss_caps     rss_caps;
+ 	uint32_t		max_wq_type_rq;
+ 	struct ibv_packet_pacing_caps packet_pacing_caps;
++	uint32_t		raw_packet_caps; /* Use ibv_raw_packet_caps */
+ };
+ 
+ enum ibv_mtu {
 -- 
 1.8.3.1
 
