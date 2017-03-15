@@ -1,83 +1,75 @@
-From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [RFC v1 for accelerated IPoIB 05/25] IB/ipoib: Support ipoib
- acceleration options callbacks
-Date: Wed, 15 Mar 2017 12:11:38 +0200
-Message-ID: <CAAk-MO8cRpqF_3aHHZr5wpgOb4x6Bp_1bN-u7_zj2yzze7vv=A@mail.gmail.com>
-References: <1489429896-10781-1-git-send-email-erezsh@mellanox.com>
- <1489429896-10781-6-git-send-email-erezsh@mellanox.com> <20170314063538.GB79937@knc-06.sc.intel.com>
- <CAAk-MO8gQ5x-4Ubk1nzPntEWa2ivTK6uXyJ4eC7fmtUCNnOdfA@mail.gmail.com> <20170314160021.GD3244@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: [rdma-core v3 0/9] Broadcom User Space RoCE Driver
+Date: Wed, 15 Mar 2017 06:37:24 -0400
+Message-ID: <1489574253-20300-1-git-send-email-devesh.sharma@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170314160021.GD3244-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 14, 2017 at 6:00 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Tue, Mar 14, 2017 at 04:42:55PM +0200, Erez Shitrit wrote:
->> >> +       if (!hca->alloc_rdma_netdev)
->> >> +               dev = ipoib_create_netdev_default(hca, name,
->> >> ipoib_setup_common);
->> >> +       else
->> >> +               dev = hca->alloc_rdma_netdev(hca, port, RDMA_NETDEV_IPOIB,
->> >> +                                            name, NET_NAME_UNKNOWN,
->> >> +                                            ipoib_setup_common);
->> >> +       if (!dev) {
->> >> +               kfree(priv);
->> >> +               return NULL;
->> >> +       }
->> >
->> >
->> > This will break ipoib on hfi1 as hfi1 will define alloc_rdma_netdev for
->> > OPA_VNIC type. We should probably look for a dedicated return type
->> > (-ENODEV?) to determine of the driver supports specified rdma netdev type.
->> > Or use a ib device attribute to suggest driver support ipoib rdma netdev.
->>
->> sorry, I don't understand that, we are in ipoib driver, so the type is
->> RDMA_NETDEV_IPOIB, if hfi wants to implement it should use the same
->> flag, and to use OPA_VNIC for vnic.
->
-> He means it should look like this:
->
->  if (hca->alloc_rdma_netdev)
->      dev = hca->alloc_rdma_netdev(hca, port, RDMA_NETDEV_IPOIB,
->                                             name, NET_NAME_UNKNOWN,
->                                             ipoib_setup_common);
->
->  if (IS_ERR(dev) && PTR_ERR(dev) != ENOTSUP)
->       goto out;
->
->  dev = ipoib_create_netdev_default(hca, name, ipoib_setup_common);
->  if (IS_ERR(dev))
->       goto out;
->
->  WARN_ON(dev == NULL);
->
->   [...]
->
-> out:
->       return PTR_ERR(dev);
+This series introduces the user space RoCE driver for the Broadcom
+NetXtreme-E 10/25/40/50 RDMA Ethernet Controller. This driver
+is dependent on the bnxt_re driver posted earlier to linux-rdma
+community and is under reveiw.
 
-OK, got it. will arrange the code accordingly. thank you both.
+This patch series is based on the latest master of rdma-core
+repository hosted at https://github.com/linux-rdma/rdma-core.git
 
->
-> And I'm confused why 'ipoib_create_netdev_default' doesn't need the
-> same function signature as hca->alloc_rdma_netdev
+The GIT for this library is hosted at following URL on github
+https://github.com/dsharma283/bnxtre-rdma-core.git
+branch: bnxtre-v3
 
-I can pass both of them the same parameters, just to be consistent,
-(the default doesn't need the type RDMA_NETDEV_IPOIB and the port).
+Please review and give your valuable feedback for the betterment.
 
->
-> Both drivers should implement hca->alloc_rdma_netdev to return ENOTSUP
+v2->v3
+ -- Take care of build failure with travis
+ -- moved wmb() closer to DB rings and used
+    udma_ordering_write_barrier() instead.
+ -- Rebased to tip of git tree.
 
-Both is for vnic and ipoib ?
+v1->v2
+ -- Rename directory from  bnxtre to bnxt_re
+ -- Squashed byte-order conversion patch
+ -- Removed version.h file
 
-> if RDMA_NETDEV is not supported.
->
-> Jason
+Devesh Sharma (9):
+  libbnxt_re: introduce bnxtre user space RDMA provider
+  libbnxt_re: Add support for user memory regions
+  libbnxt_re: Add support for CQ and QP management
+  libbnxt_re: Add support for posting and polling
+  libbnxt_re: Allow apps to poll for flushed completions
+  libbnxt_re: Enable UD control path and wqe posting
+  libbnxt_re: Enable polling for UD completions
+  libbnxt_re: Add support for atomic operations
+  libbnxt_re: Add support for SRQ in user lib
+
+ CMakeLists.txt                   |    1 +
+ MAINTAINERS                      |    5 +
+ providers/bnxt_re/CMakeLists.txt |    6 +
+ providers/bnxt_re/bnxt_re-abi.h  |  375 +++++++++
+ providers/bnxt_re/db.c           |  110 +++
+ providers/bnxt_re/flush.h        |   85 ++
+ providers/bnxt_re/main.c         |  218 ++++++
+ providers/bnxt_re/main.h         |  398 ++++++++++
+ providers/bnxt_re/memory.c       |   76 ++
+ providers/bnxt_re/memory.h       |  154 ++++
+ providers/bnxt_re/verbs.c        | 1584 ++++++++++++++++++++++++++++++++++++++
+ providers/bnxt_re/verbs.h        |  101 +++
+ 12 files changed, 3113 insertions(+)
+ create mode 100644 providers/bnxt_re/CMakeLists.txt
+ create mode 100644 providers/bnxt_re/bnxt_re-abi.h
+ create mode 100644 providers/bnxt_re/db.c
+ create mode 100644 providers/bnxt_re/flush.h
+ create mode 100644 providers/bnxt_re/main.c
+ create mode 100644 providers/bnxt_re/main.h
+ create mode 100644 providers/bnxt_re/memory.c
+ create mode 100644 providers/bnxt_re/memory.h
+ create mode 100644 providers/bnxt_re/verbs.c
+ create mode 100644 providers/bnxt_re/verbs.h
+
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
