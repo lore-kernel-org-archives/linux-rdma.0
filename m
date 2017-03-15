@@ -1,131 +1,107 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC v1 for accelerated IPoIB 05/25] IB/ipoib: Support ipoib
- acceleration options callbacks
-Date: Wed, 15 Mar 2017 19:39:06 +0200
-Message-ID: <20170315173906.GF2079@mtr-leonro.local>
-References: <1489429896-10781-1-git-send-email-erezsh@mellanox.com>
- <1489429896-10781-6-git-send-email-erezsh@mellanox.com>
- <20170314063538.GB79937@knc-06.sc.intel.com>
- <CAAk-MO8gQ5x-4Ubk1nzPntEWa2ivTK6uXyJ4eC7fmtUCNnOdfA@mail.gmail.com>
- <20170314160021.GD3244@obsidianresearch.com>
- <20170315064751.GD2079@mtr-leonro.local>
- <20170315155802.GB29562@obsidianresearch.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: Question about the SM Assigned GUID
+Date: Wed, 15 Mar 2017 13:47:52 -0400
+Message-ID: <4278d6c9-d768-deed-31c4-e303619fce39@dev.mellanox.co.il>
+References: <1489598454.3695.6.camel@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="iBHcHRCIarfY7C0j"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170315155802.GB29562-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1489598454.3695.6.camel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, saedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Greg <gvrose8192-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---iBHcHRCIarfY7C0j
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hi Greg,
 
-On Wed, Mar 15, 2017 at 09:58:02AM -0600, Jason Gunthorpe wrote:
-> On Wed, Mar 15, 2017 at 08:47:51AM +0200, Leon Romanovsky wrote:
-> > On Tue, Mar 14, 2017 at 10:00:21AM -0600, Jason Gunthorpe wrote:
-> > > On Tue, Mar 14, 2017 at 04:42:55PM +0200, Erez Shitrit wrote:
-> > > > >> +       if (!hca->alloc_rdma_netdev)
-> > > > >> +               dev = ipoib_create_netdev_default(hca, name,
-> > > > >> ipoib_setup_common);
-> > > > >> +       else
-> > > > >> +               dev = hca->alloc_rdma_netdev(hca, port, RDMA_NETDEV_IPOIB,
-> > > > >> +                                            name, NET_NAME_UNKNOWN,
-> > > > >> +                                            ipoib_setup_common);
-> > > > >> +       if (!dev) {
-> > > > >> +               kfree(priv);
-> > > > >> +               return NULL;
-> > > > >> +       }
-> > > > >
-> > > > >
-> > > > > This will break ipoib on hfi1 as hfi1 will define alloc_rdma_netdev for
-> > > > > OPA_VNIC type. We should probably look for a dedicated return type
-> > > > > (-ENODEV?) to determine of the driver supports specified rdma netdev type.
-> > > > > Or use a ib device attribute to suggest driver support ipoib rdma netdev.
-> > > >
-> > > > sorry, I don't understand that, we are in ipoib driver, so the type is
-> > > > RDMA_NETDEV_IPOIB, if hfi wants to implement it should use the same
-> > > > flag, and to use OPA_VNIC for vnic.
-> > >
-> > > He means it should look like this:
-> > >
-> > >  if (hca->alloc_rdma_netdev)
-> > >      dev = hca->alloc_rdma_netdev(hca, port, RDMA_NETDEV_IPOIB,
-> > >                                             name, NET_NAME_UNKNOWN,
-> > >                                             ipoib_setup_common);
-> > >
-> > >  if (IS_ERR(dev) && PTR_ERR(dev) != ENOTSUP)
-> > >       goto out;
-> > >
-> > >  dev = ipoib_create_netdev_default(hca, name, ipoib_setup_common);
-> > >  if (IS_ERR(dev))
-> > >       goto out;
-> > >
-> > >  WARN_ON(dev == NULL);
-> > >
-> > >   [...]
-> > >
-> > > out:
-> > >       return PTR_ERR(dev);
-> > >
-> > > And I'm confused why 'ipoib_create_netdev_default' doesn't need the
-> > > same function signature as hca->alloc_rdma_netdev
-> >
-> > And now, I'm confused.
-> > In your's proposal, the "dev" will be overwritten, in Erez's proposal,
-> > "dev" will be one of two: defaults or device specific.
->
-> Well, not Erez's version allowed dev to be ERR_PTR too. More like this then
->
-> struct rdma_netdev *get_netdev(..)
-> {
->    if (hca-alloc_rdma_netdev) {
->        dev = hca-alloc_rdma_netdev(hca, port, RDMA_NETDEV_IPOIB,
->                                               name, NET_NAME_UNKNOWN,
->                                               ipoib_setup_common);
->
->        if (!IS_ERR(dev) || PTR_ERR(dev) != ENOTSUP)
->            return dev;
->    }
->
->    return ipoib_create_netdev_default(hca, name, ipoib_setup_common);
-> }
+On 3/15/2017 1:20 PM, Greg wrote:
+> Greetings!
+> 
+> I'm working on an overlay driver for a new type of network controller
+> that can support traffic similar to infiniband and RDMA.  I've got an IB
+> driver going that reports the following when I run ibstat:
+> 
+> CA 'lfib0'
+> 	CA type: LF HP HBA
+> 	Number of ports: 1
+> 	Firmware version: 1
+> 	Hardware version: 1
+> 	Node GUID: 0x14db9f33e9fe45b2
+> 	System image GUID: 0x14db9f33e9fe45b2
+> 	Port 1:
+> 		State: Active
+> 		Physical state: LinkUp
+> 		Rate: 10
+> 		Base lid: 2
+> 		LMC: 0
+> 		SM lid: 1
+> 		Capability mask: 0x009c0002
+> 		Port GUID: 0x9eb738f98bf43f02
+> 		Link layer: InfiniBand
+> 
+> However, when I run the opensm subnet manager the log shows this:
+> 
+> [root@fermi ~]# systemctl status opensm -l
+> ● opensm.service - Starts the OpenSM InfiniBand fabric Subnet Manager
+>    Loaded: loaded (/usr/lib/systemd/system/opensm.service; enabled;
+> vendor preset: disabled)
+>    Active: active (running) since Wed 2017-03-15 09:42:02 PDT; 35min ago
+>      Docs: man:opensm
+>   Process: 559 ExecStart=/usr/libexec/opensm-launch (code=exited,
+> status=0/SUCCESS)
+>  Main PID: 561 (opensm-launch)
+>    CGroup: /system.slice/opensm.service
+>            ├─  561 /bin/bash /usr/libexec/opensm-launch
+>            └─10769 /usr/sbin/opensm -p 0 -g 0x9eb738f98bf43f02
+> --subnet_prefix 0xfe80000000000000
+> 
+> Mar 15 10:16:33 fermi OpenSM[10769]: -E- Parsing error in field
+> sm_assigned_guid, value out of range
+> Mar 15 10:16:33 fermi opensm-launch[559]: -E- Parsing error in field
+> sm_assigned_guid, value out of range
+> 
+> I've looked at the opensm code and I can't tell where the
+> sm_assigned_guid comes from
 
-Thanks, I agree with you, the interfaces should properly handle errors
-paths from day one.
+It comes from the opensm configuration file. There is parameter as follows:
 
->
-> Jason
+# SM assigned GUID byte where GUID is formed from OpenFabrics OUI
+# followed by 40 bits xy 00 ab cd ef where xy is the SM assigned GUID byte
+# and ab cd ef is an SM autogenerated 24 bits
+# SM assigned GUID byte should be configured as subnet unique
+sm_assigned_guid <some value, defaults to 0>
+
+It is byte field so can be 0-255 (0xff).
+
+The error comes when parsing the sm_assigned_guid parameter in the config file if it is more than 0xff.
+
+To eliminate it, find the config file being used and fix the sm_assigned_guids parameter.
+
+> or how my driver should be using it.
+
+SM assigned GUIDs are part of shared port virtualization where either the host or the SM can assign the alias GUIDs to be used for the VMs. Shared port virtualization is supported on ConnectX-3 HCA. It only comes into play if the host stack (SA client) issues SubAdmSet(GUIDInfoRecord). This is the original virtualization support for IB and there is a new annex for virtualization support.
+
+The error is benign (causes no harm) and I suspect you don't need to worry about this in terms of your driver.
+
+Hope this helps.
+
+-- Hal
+ 
+> I apologize for my ignorance but I'm new to IB having come from the
+> Ethernet world of IWARP and RDMA.  If I could get a tip or a pointer
+> that would be great.
+> 
+> Thanks for your time,
+> 
+> - Greg
+> Lightfleet Corp.
+> 
+> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---iBHcHRCIarfY7C0j
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljJfDoACgkQ5GN7iDZy
-WKeXow//aKHd6faANpjuoWSewqU+fVd0W4oal5JNVmOi/aD2xV43VIHTdY6mE41I
-vqOh/f1ZT9fV5fL6Km79zWOlBABBuHCv7kPZiMG/1h0v7QAJKdLHe3S2tvDzcA8f
-yVttFIYUIeGCXYm738xYXikBAu5l7w+cS0tJ4yYpe/Id7BdFepJdqDhrFoM220xe
-JBXIbQdeoITPoqZw4N4PTStU6fmrqzfJM4ChVLA28oE43GP03+zKTHZNk5sjtykn
-j1m8jLzgjb2NP/OxOJvjystHzJeqqC/jymbWTgVPc+1+ASXSzpdJ46XNQkWGxfjp
-ALcowPoRoN0TKnJzk/BZrtkr0icTu5EerfiA9YINo+mZHADw7AtaprXowcaw3Di4
-VkVAegJFujUWOdmK7ivvGl45jJcrjRIYj1JMZtluQ+47iNGOCKkGZp+oeiTUIn0k
-tpRldxAi+fxU2BFmWaJEVdrw9bYXA3OFuQQKNLrLXTo9WFmc9TRBa2Z8MTwr7fQC
-nwbqYIRkmxy5tsFN+u/fyqk+OSGgexVIDEIK/RKngwj5rhvyMMzpl3KqcRaC45MP
-8EextO2r/IN1xl6ThugfV2a7dHk3DOaDdG/7BShZ5j2Jkoe8AFdmijW1t0/AjQX6
-ltyxyiUaiCwhe5Jhmie2xkOerJIwdXb+V8nnGFpbvWagly5pagk=
-=/O5E
------END PGP SIGNATURE-----
-
---iBHcHRCIarfY7C0j--
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
