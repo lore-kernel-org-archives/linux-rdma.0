@@ -1,129 +1,106 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: rdma-core packaging and multilib
-Date: Wed, 15 Mar 2017 12:34:37 -0400
-Message-ID: <79c87a2b-6b8e-d2f3-0246-bb549c52f8f3@redhat.com>
-References: <bb6b2274-a120-6a16-0025-4c0b1b090029@redhat.com>
- <20170314181708.GA25495@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [rdma-core v3 4/9] libbnxt_re: Add support for posting and
+ polling
+Date: Wed, 15 Mar 2017 10:34:54 -0600
+Message-ID: <20170315163454.GD29562@obsidianresearch.com>
+References: <1489574253-20300-1-git-send-email-devesh.sharma@broadcom.com>
+ <1489574253-20300-5-git-send-email-devesh.sharma@broadcom.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="2g79jPo7HlufKxonPoBT4VSfrPEOCPLi3"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170314181708.GA25495-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1489574253-20300-5-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---2g79jPo7HlufKxonPoBT4VSfrPEOCPLi3
-Content-Type: multipart/mixed; boundary="m3cBARMkaGrxCHKtQPDOIecgsBOfS5ST8";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>,
- Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <79c87a2b-6b8e-d2f3-0246-bb549c52f8f3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: rdma-core packaging and multilib
-References: <bb6b2274-a120-6a16-0025-4c0b1b090029-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <20170314181708.GA25495-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-In-Reply-To: <20170314181708.GA25495-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+On Wed, Mar 15, 2017 at 06:37:28AM -0400, Devesh Sharma wrote:
+> +
+> +	pthread_spin_lock(&dpi->db_lock);
+> +	*dbval = htole64(*dbval);
+> +	udma_ordering_write_barrier();
 
---m3cBARMkaGrxCHKtQPDOIecgsBOfS5ST8
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+The ordering_write_barrier is basically an equivalent barrier to a
+spinlock, so this is an unnecessary pattern.
 
-On 3/14/2017 2:17 PM, Jason Gunthorpe wrote:
-> On Tue, Mar 14, 2017 at 02:02:15PM -0400, Jarod Wilson wrote:
->=20
->> Report from TEST_MULTILIB:
->> [BAD] [ibacm] Subpackage ibacm is not multilib-clean for x86_64 vs i68=
-6: 2
->> files have non-equal 32/64bit content:
->>   /usr/share/man/man7/ibacm_prov.7.gz
->>   /etc/rdma/ibacm_opts.cfg
->=20
-> Yep
->=20
->> ibacm_prov.7.gz on x86_64 vs i686:
->> ...
->> -2. be installed under a configured directory, eg., /usr/lib64/ibacm;
->> +2. be installed under a configured directory, eg., /usr/lib/ibacm;
->> ...
->>
->> Similar for ibacm_opts.cfg:
->>
->> -# provider_lib_path /usr/lib64/ibacm
->> +# provider_lib_path /usr/lib/ibacm
->>
->> Not sure what the ideal resolution is for this. I'd rather not put in =
-the
->> wrong path for one arch or the other, and I think lib64 isn't used
->> universally by all 64-bit distros.
->=20
-> cmake substitutes in the correct path string at build time.
->=20
-> If you want these files to be identical then we cannot include the
-> path names at all
+However, you still always need udma_to_device_barrier before
+triggering chip DMA.
 
-That's not entirely true.  The man page specifically says the path in
-the man page is an example, so it need not match the arch in use, it can
-simply be one or the other with no substitution.  For the provider lib
-path, it's in a comment, so again it would be possible to use proper
-verbage to express that it is a sample and not use substitution.  We
-might even be able to do something like:
+There is also no udma_from_device_barrier() in this driver, which
+can't be right, please add one around bnxt_re_is_cqe_valid most
+likely.
 
-# Modern distros commonly use either /usr/lib or /usr/lib64 for the
-# default _libpath.  Substitute the correct value below before
-# uncommenting
-# provider_lib_path _libpath/ibacm
+Your github branch doesn't compile, btw.
 
-> , just put place holders and say to run 'ib_acme -D
-> . -O' to learn the configured value.
->=20
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
+I ran it through sparse, this is what I suggest..
 
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
-D
-
-
---m3cBARMkaGrxCHKtQPDOIecgsBOfS5ST8--
-
---2g79jPo7HlufKxonPoBT4VSfrPEOCPLi3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJYyW0dAAoJELgmozMOVy/dsicP/ieBn8GfuNuajgxJutSrMLqs
-xAHvgx4FhlomkpZWZYcpGEcyQQaNBxxQZLkJ6McxuuLS4quuaE5U96rAHjhXbJyI
-/GsCALOy2ksvGEQ+PBpHue3oLWZHmLwseTARFJVsrntMj6VITDfr8JR0qorQYQEN
-8HaE1ULyRuwIrZA0CJEg1lLnFTl+m4gnigKxD8SiLASn3E7yKECHnIDS0/FvLpl9
-Igg2cRJkaT33K+b45geWaYLgZSDVsrrgT/pZV3Md0G4cG7xlcuQ/fpjEy1KnSfpw
-WErrLzin/OsfLqDyPdjWQ81cFjN7GtSs1e5Zidvr+LmnShdDEU69Zvkw6lmgz0I5
-FepYC+W5LxpN8+9hdmJkt4gDdAzg6+0zs5/ijG97eQC/tjvQWlNe3wJtdq6I3RJy
-9ypS3evdDUWKfEJJz/lu6k3CEV+2nZVzgmQWOVUtZ4aEiGn6nZgCG+bJG13Wcsg/
-5Wibe/RNpZ0Jts1wd25rP0b0HVO+5RnAvMGfEGH3eyRO2BSxXCSTFf7+S5y4lN1M
-Sy6yffn4VEfAYhq/Ll0miHuSNUFDjUm6Lv9Al2i6004hDlPPiOeW2ZIDHL1eCEV1
-NNMLMecP6eh5OfUwEIV73Uf8HO+drAoWCm2i8Ons9yW2NzpRFceAnhECePSQOaLl
-wGDcvSvflGsIckDr6ffw
-=p0NT
------END PGP SIGNATURE-----
-
---2g79jPo7HlufKxonPoBT4VSfrPEOCPLi3--
+diff --git a/providers/bnxt_re/bnxt_re-abi.h b/providers/bnxt_re/bnxt_re-abi.h
+index 8dbb7b985fa0cd..8fcb2517a23028 100644
+--- a/providers/bnxt_re/bnxt_re-abi.h
++++ b/providers/bnxt_re/bnxt_re-abi.h
+@@ -243,7 +243,7 @@ struct bnxt_re_req_cqe {
+ 
+ struct bnxt_re_rc_cqe {
+ 	__u32 length;
+-	__u32 imm_key;
++	__be32 imm_key;
+ 	__u64 qp_handle;
+ 	__u64 mr_handle;
+ };
+@@ -282,7 +282,7 @@ struct bnxt_re_bsqe {
+ };
+ 
+ struct bnxt_re_psns {
+-	__u32 opc_spsn;
++	__le32 opc_spsn;
+ 	__u32 flg_npsn;
+ };
+ 
+diff --git a/providers/bnxt_re/verbs.c b/providers/bnxt_re/verbs.c
+index dafe55b74aefe8..3e31845b4d6b47 100644
+--- a/providers/bnxt_re/verbs.c
++++ b/providers/bnxt_re/verbs.c
+@@ -581,9 +581,10 @@ static int bnxt_re_poll_flush_wcs(struct bnxt_re_queue *que,
+ 		wrid = &wridp[head];
+ 		if (wrid->psns) {
+ 			psns = wrid->psns;
+-			opcode = (psns->opc_spsn >> BNXT_RE_PSNS_OPCD_SHIFT) &
+-				  BNXT_RE_PSNS_OPCD_MASK;
+-		}
++                        opcode = (le32toh(psns->opc_spsn) >>
++                                  BNXT_RE_PSNS_OPCD_SHIFT) &
++                                 BNXT_RE_PSNS_OPCD_MASK;
++                }
+ 
+ 		ibvwc->status = IBV_WC_WR_FLUSH_ERR;
+ 		ibvwc->opcode = opcode;
+@@ -1032,10 +1033,11 @@ static void bnxt_re_fill_psns(struct bnxt_re_qp *qp, struct bnxt_re_psns *psns,
+ 			      uint8_t opcode, uint32_t len)
+ {
+ 	uint32_t pkt_cnt = 0, nxt_psn;
++	uint32_t opc_spsn = 0;
+ 
+ 	memset(psns, 0, sizeof(*psns));
+ 	if (qp->qptyp == IBV_QPT_RC) {
+-		psns->opc_spsn = qp->sq_psn & BNXT_RE_PSNS_SPSN_MASK;
++		opc_spsn = qp->sq_psn & BNXT_RE_PSNS_SPSN_MASK;
+ 		pkt_cnt = (len / qp->mtu);
+ 		if (len % qp->mtu)
+ 			pkt_cnt++;
+@@ -1044,9 +1046,9 @@ static void bnxt_re_fill_psns(struct bnxt_re_qp *qp, struct bnxt_re_psns *psns,
+ 		qp->sq_psn = nxt_psn;
+ 	}
+ 	opcode = bnxt_re_ibv_wr_to_wc_opcd(opcode);
+-	psns->opc_spsn |= ((opcode & BNXT_RE_PSNS_OPCD_MASK) <<
+-			    BNXT_RE_PSNS_OPCD_SHIFT);
+-	*(uint64_t *)psns = htole64(*(uint64_t *)psns);
++        opc_spsn |=
++            ((opcode & BNXT_RE_PSNS_OPCD_MASK) << BNXT_RE_PSNS_OPCD_SHIFT);
++        psns->opc_spsn = htole32(opc_spsn);
+ }
+ 
+ static void bnxt_re_fill_wrid(struct bnxt_re_wrid *wrid, struct ibv_send_wr *wr,
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
