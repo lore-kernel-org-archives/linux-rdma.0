@@ -1,8 +1,8 @@
 From: Dasaratharaman Chandramouli
         <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-core 2/7] IB/SA: Add braces when using sizeof
-Date: Wed, 15 Mar 2017 17:24:21 -0400
-Message-ID: <1489613066-61684-3-git-send-email-dasaratharaman.chandramouli@intel.com>
+Subject: [PATCH rdma-core 5/7] IB/SA: Modify SA to implicity cache Class Port info
+Date: Wed, 15 Mar 2017 17:24:24 -0400
+Message-ID: <1489613066-61684-6-git-send-email-dasaratharaman.chandramouli@intel.com>
 References: <1489613066-61684-1-git-send-email-dasaratharaman.chandramouli@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1489613066-61684-1-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,39 +10,567 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This fixes a checkpatch issue. The fix is needed
-so that some of these functions can be moved around
-in the forthcoming patches
+SA will query and cache class port info as part of
+its initialization. SA will also invalidate and
+refresh the cache based on specific events. Callers such
+as IPoIB and CM can query the SA to get the classportinfo
+information. Apart from making the caller code much simpler,
+this change puts the onus on the SA to query and maintain
+classportinfo much like how it maitains the address handle to the SM.
 
-Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/sa_query.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/cma.c                  |  76 ++---------
+ drivers/infiniband/core/sa_query.c             | 179 ++++++++++++++++++-------
+ drivers/infiniband/ulp/ipoib/ipoib.h           |   1 -
+ drivers/infiniband/ulp/ipoib/ipoib_main.c      |  71 ----------
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   9 +-
+ include/rdma/ib_sa.h                           |  12 +-
+ 6 files changed, 142 insertions(+), 206 deletions(-)
 
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 5ed6ec9..421400a 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -3943,63 +3943,10 @@ static void cma_set_mgid(struct rdma_id_private *id_priv,
+ 	}
+ }
+ 
+-static void cma_query_sa_classport_info_cb(int status,
+-					   struct ib_class_port_info *rec,
+-					   void *context)
+-{
+-	struct class_port_info_context *cb_ctx = context;
+-
+-	WARN_ON(!context);
+-
+-	if (status || !rec) {
+-		pr_debug("RDMA CM: %s port %u failed query ClassPortInfo status: %d\n",
+-			 cb_ctx->device->name, cb_ctx->port_num, status);
+-		goto out;
+-	}
+-
+-	memcpy(cb_ctx->class_port_info, rec, sizeof(struct ib_class_port_info));
+-
+-out:
+-	complete(&cb_ctx->done);
+-}
+-
+-static int cma_query_sa_classport_info(struct ib_device *device, u8 port_num,
+-				       struct ib_class_port_info *class_port_info)
+-{
+-	struct class_port_info_context *cb_ctx;
+-	int ret;
+-
+-	cb_ctx = kmalloc(sizeof(*cb_ctx), GFP_KERNEL);
+-	if (!cb_ctx)
+-		return -ENOMEM;
+-
+-	cb_ctx->device = device;
+-	cb_ctx->class_port_info = class_port_info;
+-	cb_ctx->port_num = port_num;
+-	init_completion(&cb_ctx->done);
+-
+-	ret = ib_sa_classport_info_rec_query(&sa_client, device, port_num,
+-					     CMA_QUERY_CLASSPORT_INFO_TIMEOUT,
+-					     GFP_KERNEL, cma_query_sa_classport_info_cb,
+-					     cb_ctx, &cb_ctx->sa_query);
+-	if (ret < 0) {
+-		pr_err("RDMA CM: %s port %u failed to send ClassPortInfo query, ret: %d\n",
+-		       device->name, port_num, ret);
+-		goto out;
+-	}
+-
+-	wait_for_completion(&cb_ctx->done);
+-
+-out:
+-	kfree(cb_ctx);
+-	return ret;
+-}
+-
+ static int cma_join_ib_multicast(struct rdma_id_private *id_priv,
+ 				 struct cma_multicast *mc)
+ {
+ 	struct ib_sa_mcmember_rec rec;
+-	struct ib_class_port_info class_port_info;
+ 	struct rdma_dev_addr *dev_addr = &id_priv->id.route.addr.dev_addr;
+ 	ib_sa_comp_mask comp_mask;
+ 	int ret;
+@@ -4020,21 +3967,14 @@ static int cma_join_ib_multicast(struct rdma_id_private *id_priv,
+ 	rec.pkey = cpu_to_be16(ib_addr_get_pkey(dev_addr));
+ 	rec.join_state = mc->join_state;
+ 
+-	if (rec.join_state == BIT(SENDONLY_FULLMEMBER_JOIN)) {
+-		ret = cma_query_sa_classport_info(id_priv->id.device,
+-						  id_priv->id.port_num,
+-						  &class_port_info);
+-
+-		if (ret)
+-			return ret;
+-
+-		if (!(ib_get_cpi_capmask2(&class_port_info) &
+-		      IB_SA_CAP_MASK2_SENDONLY_FULL_MEM_SUPPORT)) {
+-			pr_warn("RDMA CM: %s port %u Unable to multicast join\n"
+-				"RDMA CM: SM doesn't support Send Only Full Member option\n",
+-				id_priv->id.device->name, id_priv->id.port_num);
+-			return -EOPNOTSUPP;
+-		}
++	if ((rec.join_state == BIT(SENDONLY_FULLMEMBER_JOIN)) &&
++	    (!ib_sa_sendonly_fullmem_support(&sa_client,
++					     id_priv->id.device,
++					     id_priv->id.port_num))) {
++		pr_warn("RDMA CM: %s port %u Unable to multicast join\n"
++			"RDMA CM: SM doesn't support Send Only Full Member option\n",
++			id_priv->id.device->name, id_priv->id.port_num);
++		return -EOPNOTSUPP;
+ 	}
+ 
+ 	comp_mask = IB_SA_MCMEMBER_REC_MGID | IB_SA_MCMEMBER_REC_PORT_GID |
 diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index 60c0405..8cfe636 100644
+index 2181f8c..bc32989 100644
 --- a/drivers/infiniband/core/sa_query.c
 +++ b/drivers/infiniband/core/sa_query.c
-@@ -944,7 +944,7 @@ static void update_sm_ah(struct work_struct *work)
- 		return;
- 	}
+@@ -56,6 +56,8 @@
+ #define IB_SA_LOCAL_SVC_TIMEOUT_MIN		100
+ #define IB_SA_LOCAL_SVC_TIMEOUT_DEFAULT		2000
+ #define IB_SA_LOCAL_SVC_TIMEOUT_MAX		200000
++#define IB_SA_CPI_MAX_RETRY_CNT			3
++#define IB_SA_CPI_RETRY_WAIT			1000 /*msecs */
+ static int sa_local_svc_timeout_ms = IB_SA_LOCAL_SVC_TIMEOUT_DEFAULT;
  
--	new_ah = kmalloc(sizeof *new_ah, GFP_KERNEL);
-+	new_ah = kmalloc(sizeof(*new_ah), GFP_KERNEL);
- 	if (!new_ah) {
- 		return;
- 	}
-@@ -957,7 +957,7 @@ static void update_sm_ah(struct work_struct *work)
- 			 IB_DEFAULT_PKEY_FULL, &new_ah->pkey_index))
- 		pr_err("Couldn't find index for default PKey\n");
+ struct ib_sa_sm_ah {
+@@ -67,6 +69,7 @@ struct ib_sa_sm_ah {
  
--	memset(&ah_attr, 0, sizeof ah_attr);
-+	memset(&ah_attr, 0, sizeof(ah_attr));
- 	ah_attr.dlid     = port_attr.sm_lid;
- 	ah_attr.sl       = port_attr.sm_sl;
- 	ah_attr.port_num = port->port_num;
+ struct ib_sa_classport_cache {
+ 	bool valid;
++	int retry_cnt;
+ 	struct ib_class_port_info data;
+ };
+ 
+@@ -75,6 +78,7 @@ struct ib_sa_port {
+ 	struct ib_sa_sm_ah  *sm_ah;
+ 	struct work_struct   update_task;
+ 	struct ib_sa_classport_cache classport_info;
++	struct delayed_work ib_cpi_work;
+ 	spinlock_t                   classport_lock; /* protects class port info set */
+ 	spinlock_t           ah_lock;
+ 	u8                   port_num;
+@@ -123,7 +127,7 @@ struct ib_sa_guidinfo_query {
+ };
+ 
+ struct ib_sa_classport_info_query {
+-	void (*callback)(int, struct ib_class_port_info *, void *);
++	void (*callback)(void *);
+ 	void *context;
+ 	struct ib_sa_query sa_query;
+ };
+@@ -1642,7 +1646,41 @@ int ib_sa_guid_info_rec_query(struct ib_sa_client *client,
+ }
+ EXPORT_SYMBOL(ib_sa_guid_info_rec_query);
+ 
+-/* Support get SA ClassPortInfo */
++bool ib_sa_sendonly_fullmem_support(struct ib_sa_client *client,
++				    struct ib_device *device,
++				    u8 port_num)
++{
++	struct ib_sa_device *sa_dev = ib_get_client_data(device, &sa_client);
++	struct ib_sa_port *port;
++	bool ret = false;
++	unsigned long flags;
++
++	if (!sa_dev)
++		return ret;
++
++	port  = &sa_dev->port[port_num - sa_dev->start_port];
++
++	spin_lock_irqsave(&port->classport_lock, flags);
++	if (port->classport_info.valid)
++		ret = ib_get_cpi_capmask2(&port->classport_info.data) &
++			IB_SA_CAP_MASK2_SENDONLY_FULL_MEM_SUPPORT;
++	spin_unlock_irqrestore(&port->classport_lock, flags);
++	return ret;
++}
++EXPORT_SYMBOL(ib_sa_sendonly_fullmem_support);
++
++struct ib_classport_info_context {
++	struct completion	done;
++	struct ib_sa_query	*sa_query;
++};
++
++static void ib_classportinfo_cb(void *context)
++{
++	struct ib_classport_info_context *cb_ctx = context;
++
++	complete(&cb_ctx->done);
++}
++
+ static void ib_sa_classport_info_rec_callback(struct ib_sa_query *sa_query,
+ 					      int status,
+ 					      struct ib_sa_mad *mad)
+@@ -1666,54 +1704,30 @@ static void ib_sa_classport_info_rec_callback(struct ib_sa_query *sa_query,
+ 			sa_query->port->classport_info.valid = true;
+ 		}
+ 		spin_unlock_irqrestore(&sa_query->port->classport_lock, flags);
+-
+-		query->callback(status, &rec, query->context);
+-	} else {
+-		query->callback(status, NULL, query->context);
+ 	}
++	query->callback(query->context);
+ }
+ 
+-static void ib_sa_portclass_info_rec_release(struct ib_sa_query *sa_query)
++static void ib_sa_classport_info_rec_release(struct ib_sa_query *sa_query)
+ {
+ 	kfree(container_of(sa_query, struct ib_sa_classport_info_query,
+ 			   sa_query));
+ }
+ 
+-int ib_sa_classport_info_rec_query(struct ib_sa_client *client,
+-				   struct ib_device *device, u8 port_num,
+-				   int timeout_ms, gfp_t gfp_mask,
+-				   void (*callback)(int status,
+-						    struct ib_class_port_info *resp,
+-						    void *context),
+-				   void *context,
+-				   struct ib_sa_query **sa_query)
++static int ib_sa_classport_info_rec_query(struct ib_sa_port *port,
++					  int timeout_ms,
++					  void (*callback)(void *context),
++					  void *context,
++					  struct ib_sa_query **sa_query)
+ {
+-	struct ib_sa_classport_info_query *query;
+-	struct ib_sa_device *sa_dev = ib_get_client_data(device, &sa_client);
+-	struct ib_sa_port *port;
+ 	struct ib_mad_agent *agent;
++	struct ib_sa_classport_info_query *query;
+ 	struct ib_sa_mad *mad;
+-	struct ib_class_port_info cached_class_port_info;
++	gfp_t gfp_mask = GFP_KERNEL;
+ 	int ret;
+-	unsigned long flags;
+-
+-	if (!sa_dev)
+-		return -ENODEV;
+ 
+-	port  = &sa_dev->port[port_num - sa_dev->start_port];
+ 	agent = port->agent;
+ 
+-	/* Use cached ClassPortInfo attribute if valid instead of sending mad */
+-	spin_lock_irqsave(&port->classport_lock, flags);
+-	if (port->classport_info.valid && callback) {
+-		memcpy(&cached_class_port_info, &port->classport_info.data,
+-		       sizeof(cached_class_port_info));
+-		spin_unlock_irqrestore(&port->classport_lock, flags);
+-		callback(0, &cached_class_port_info, context);
+-		return 0;
+-	}
+-	spin_unlock_irqrestore(&port->classport_lock, flags);
+-
+ 	query = kzalloc(sizeof(*query), gfp_mask);
+ 	if (!query)
+ 		return -ENOMEM;
+@@ -1721,20 +1735,16 @@ int ib_sa_classport_info_rec_query(struct ib_sa_client *client,
+ 	query->sa_query.port = port;
+ 	ret = alloc_mad(&query->sa_query, gfp_mask);
+ 	if (ret)
+-		goto err1;
++		goto err_free;
+ 
+-	ib_sa_client_get(client);
+-	query->sa_query.client = client;
+-	query->callback        = callback;
+-	query->context         = context;
++	query->callback = callback;
++	query->context = context;
+ 
+ 	mad = query->sa_query.mad_buf->mad;
+ 	init_mad(mad, agent);
+ 
+-	query->sa_query.callback = callback ? ib_sa_classport_info_rec_callback : NULL;
+-
+-	query->sa_query.release  = ib_sa_portclass_info_rec_release;
+-	/* support GET only */
++	query->sa_query.callback = ib_sa_classport_info_rec_callback;
++	query->sa_query.release  = ib_sa_classport_info_rec_release;
+ 	mad->mad_hdr.method	 = IB_MGMT_METHOD_GET;
+ 	mad->mad_hdr.attr_id	 = cpu_to_be16(IB_SA_ATTR_CLASS_PORTINFO);
+ 	mad->sa_hdr.comp_mask	 = 0;
+@@ -1742,20 +1752,71 @@ int ib_sa_classport_info_rec_query(struct ib_sa_client *client,
+ 
+ 	ret = send_mad(&query->sa_query, timeout_ms, gfp_mask);
+ 	if (ret < 0)
+-		goto err2;
++		goto err_free_mad;
+ 
+ 	return ret;
+ 
+-err2:
++err_free_mad:
+ 	*sa_query = NULL;
+-	ib_sa_client_put(query->sa_query.client);
+ 	free_mad(&query->sa_query);
+ 
+-err1:
++err_free:
+ 	kfree(query);
+ 	return ret;
+ }
+-EXPORT_SYMBOL(ib_sa_classport_info_rec_query);
++
++static void update_ib_cpi(struct work_struct *work)
++{
++	struct ib_sa_port *port =
++		container_of(work, struct ib_sa_port, ib_cpi_work.work);
++	struct ib_classport_info_context *cb_context;
++	unsigned long flags;
++	int ret;
++
++	/* If the classport info is valid, nothing
++	 * to do here.
++	 */
++	spin_lock_irqsave(&port->classport_lock, flags);
++	if (port->classport_info.valid) {
++		spin_unlock_irqrestore(&port->classport_lock, flags);
++		return;
++	}
++	spin_unlock_irqrestore(&port->classport_lock, flags);
++
++	cb_context = kmalloc(sizeof(*cb_context), GFP_KERNEL);
++	if (!cb_context)
++		goto err_nomem;
++
++	init_completion(&cb_context->done);
++
++	ret = ib_sa_classport_info_rec_query(port, 3000,
++					     ib_classportinfo_cb, cb_context,
++					     &cb_context->sa_query);
++	if (ret < 0)
++		goto free_cb_err;
++	wait_for_completion(&cb_context->done);
++free_cb_err:
++	kfree(cb_context);
++	spin_lock_irqsave(&port->classport_lock, flags);
++
++	/* If the classport info is still not valid, the query should have
++	 * failed for some reason. Retry issuing the query
++	 */
++	if (!port->classport_info.valid) {
++		port->classport_info.retry_cnt++;
++		if (port->classport_info.retry_cnt <=
++		    IB_SA_CPI_MAX_RETRY_CNT) {
++			unsigned long delay =
++				msecs_to_jiffies(IB_SA_CPI_RETRY_WAIT);
++
++			queue_delayed_work(ib_wq, &port->ib_cpi_work, delay);
++		}
++	}
++	spin_unlock_irqrestore(&port->classport_lock, flags);
++
++err_nomem:
++	return;
++}
+ 
+ static void send_handler(struct ib_mad_agent *agent,
+ 			 struct ib_mad_send_wc *mad_send_wc)
+@@ -1784,7 +1845,8 @@ static void send_handler(struct ib_mad_agent *agent,
+ 	spin_unlock_irqrestore(&idr_lock, flags);
+ 
+ 	free_mad(query);
+-	ib_sa_client_put(query->client);
++	if (query->client)
++		ib_sa_client_put(query->client);
+ 	query->release(query);
+ }
+ 
+@@ -1894,6 +1956,19 @@ static void ib_sa_event(struct ib_event_handler *handler,
+ 			spin_unlock_irqrestore(&port->classport_lock, flags);
+ 		}
+ 		queue_work(ib_wq, &sa_dev->port[port_num].update_task);
++
++		/*Query for class port info on a re-reregister event */
++		if ((event->event == IB_EVENT_CLIENT_REREGISTER) ||
++		    (event->event == IB_EVENT_PORT_ACTIVE)) {
++			unsigned long delay =
++				msecs_to_jiffies(IB_SA_CPI_RETRY_WAIT);
++
++			spin_lock_irqsave(&port->classport_lock, flags);
++			port->classport_info.retry_cnt = 0;
++			spin_unlock_irqrestore(&port->classport_lock, flags);
++			queue_delayed_work(ib_wq,
++					   &port->ib_cpi_work, delay);
++		}
+ 	}
+ }
+ 
+@@ -1934,6 +2009,8 @@ static void ib_sa_add_one(struct ib_device *device)
+ 			goto err;
+ 
+ 		INIT_WORK(&sa_dev->port[i].update_task, update_sm_ah);
++		INIT_DELAYED_WORK(&sa_dev->port[i].ib_cpi_work,
++				  update_ib_cpi);
+ 
+ 		count++;
+ 	}
+@@ -1980,11 +2057,11 @@ static void ib_sa_remove_one(struct ib_device *device, void *client_data)
+ 		return;
+ 
+ 	ib_unregister_event_handler(&sa_dev->event_handler);
+-
+ 	flush_workqueue(ib_wq);
+ 
+ 	for (i = 0; i <= sa_dev->end_port - sa_dev->start_port; ++i) {
+ 		if (rdma_cap_ib_sa(device, i + 1)) {
++			cancel_delayed_work_sync(&sa_dev->port[i].ib_cpi_work);
+ 			ib_unregister_mad_agent(sa_dev->port[i].agent);
+ 			if (sa_dev->port[i].sm_ah)
+ 				kref_put(&sa_dev->port[i].sm_ah->ref, free_sm_ah);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index bed233b..060e543 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -489,7 +489,6 @@ void ipoib_send(struct net_device *dev, struct sk_buff *skb,
+ struct ipoib_path *__path_find(struct net_device *dev, void *gid);
+ void ipoib_mark_paths_invalid(struct net_device *dev);
+ void ipoib_flush_paths(struct net_device *dev);
+-int ipoib_check_sm_sendonly_fullmember_support(struct ipoib_dev_priv *priv);
+ struct ipoib_dev_priv *ipoib_intf_alloc(const char *format);
+ 
+ int ipoib_ib_dev_init(struct net_device *dev, struct ib_device *ca, int port);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 259c59f..1c70ae9 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -650,77 +650,6 @@ void ipoib_mark_paths_invalid(struct net_device *dev)
+ 	spin_unlock_irq(&priv->lock);
+ }
+ 
+-struct classport_info_context {
+-	struct ipoib_dev_priv	*priv;
+-	struct completion	done;
+-	struct ib_sa_query	*sa_query;
+-};
+-
+-static void classport_info_query_cb(int status, struct ib_class_port_info *rec,
+-				    void *context)
+-{
+-	struct classport_info_context *cb_ctx = context;
+-	struct ipoib_dev_priv *priv;
+-
+-	WARN_ON(!context);
+-
+-	priv = cb_ctx->priv;
+-
+-	if (status || !rec) {
+-		pr_debug("device: %s failed query classport_info status: %d\n",
+-			 priv->dev->name, status);
+-		/* keeps the default, will try next mcast_restart */
+-		priv->sm_fullmember_sendonly_support = false;
+-		goto out;
+-	}
+-
+-	if (ib_get_cpi_capmask2(rec) &
+-	    IB_SA_CAP_MASK2_SENDONLY_FULL_MEM_SUPPORT) {
+-		pr_debug("device: %s enabled fullmember-sendonly for sendonly MCG\n",
+-			 priv->dev->name);
+-		priv->sm_fullmember_sendonly_support = true;
+-	} else {
+-		pr_debug("device: %s disabled fullmember-sendonly for sendonly MCG\n",
+-			 priv->dev->name);
+-		priv->sm_fullmember_sendonly_support = false;
+-	}
+-
+-out:
+-	complete(&cb_ctx->done);
+-}
+-
+-int ipoib_check_sm_sendonly_fullmember_support(struct ipoib_dev_priv *priv)
+-{
+-	struct classport_info_context *callback_context;
+-	int ret;
+-
+-	callback_context = kmalloc(sizeof(*callback_context), GFP_KERNEL);
+-	if (!callback_context)
+-		return -ENOMEM;
+-
+-	callback_context->priv = priv;
+-	init_completion(&callback_context->done);
+-
+-	ret = ib_sa_classport_info_rec_query(&ipoib_sa_client,
+-					     priv->ca, priv->port, 3000,
+-					     GFP_KERNEL,
+-					     classport_info_query_cb,
+-					     callback_context,
+-					     &callback_context->sa_query);
+-	if (ret < 0) {
+-		pr_info("%s failed to send ib_sa_classport_info query, ret: %d\n",
+-			priv->dev->name, ret);
+-		kfree(callback_context);
+-		return ret;
+-	}
+-
+-	/* waiting for the callback to finish before returnning */
+-	wait_for_completion(&callback_context->done);
+-	kfree(callback_context);
+-
+-	return ret;
+-}
+-
+ static void push_pseudo_header(struct sk_buff *skb, const char *daddr)
+ {
+ 	struct ipoib_pseudo_header *phdr;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+index 69e146c..3e3a84f 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+@@ -331,7 +331,6 @@ void ipoib_mcast_carrier_on_task(struct work_struct *work)
+ 	struct ipoib_dev_priv *priv = container_of(work, struct ipoib_dev_priv,
+ 						   carrier_on_task);
+ 	struct ib_port_attr attr;
+-	int ret;
+ 
+ 	if (ib_query_port(priv->ca, priv->port, &attr) ||
+ 	    attr.state != IB_PORT_ACTIVE) {
+@@ -344,11 +343,9 @@ void ipoib_mcast_carrier_on_task(struct work_struct *work)
+ 	 * because the broadcast group must always be joined first and is always
+ 	 * re-joined if the SM changes substantially.
+ 	 */
+-	ret = ipoib_check_sm_sendonly_fullmember_support(priv);
+-	if (ret < 0)
+-		pr_debug("%s failed query sm support for sendonly-fullmember (ret: %d)\n",
+-			 priv->dev->name, ret);
+-
++	priv->sm_fullmember_sendonly_support =
++		ib_sa_sendonly_fullmem_support(&ipoib_sa_client,
++					       priv->ca, priv->port);
+ 	/*
+ 	 * Take rtnl_lock to avoid racing with ipoib_stop() and
+ 	 * turning the carrier back on while a device is being
+diff --git a/include/rdma/ib_sa.h b/include/rdma/ib_sa.h
+index fd0e532..46838c8 100644
+--- a/include/rdma/ib_sa.h
++++ b/include/rdma/ib_sa.h
+@@ -454,14 +454,8 @@ int ib_sa_guid_info_rec_query(struct ib_sa_client *client,
+ 			      void *context,
+ 			      struct ib_sa_query **sa_query);
+ 
+-/* Support get SA ClassPortInfo */
+-int ib_sa_classport_info_rec_query(struct ib_sa_client *client,
+-				   struct ib_device *device, u8 port_num,
+-				   int timeout_ms, gfp_t gfp_mask,
+-				   void (*callback)(int status,
+-						    struct ib_class_port_info *resp,
+-						    void *context),
+-				   void *context,
+-				   struct ib_sa_query **sa_query);
++bool ib_sa_sendonly_fullmem_support(struct ib_sa_client *client,
++				    struct ib_device *device,
++				    u8 port_num);
+ 
+ #endif /* IB_SA_H */
 -- 
 1.8.3.1
 
