@@ -1,64 +1,73 @@
-From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [RFC v1 for accelerated IPoIB 04/25] IB/verb: Add ipoib_options
- struct and API
-Date: Wed, 15 Mar 2017 18:52:54 +0200
-Message-ID: <CAAk-MO_Mr8xbX6e2LgoXNf-mmf7NpAfXVExEO628DRr9qeuu9g@mail.gmail.com>
-References: <1489429896-10781-1-git-send-email-erezsh@mellanox.com>
- <1489429896-10781-5-git-send-email-erezsh@mellanox.com> <20170313200136.GA2738@obsidianresearch.com>
- <20170314070109.GD79937@knc-06.sc.intel.com> <20170314161149.GA15752@obsidianresearch.com>
- <20170315063043.GC2079@mtr-leonro.local> <20170315164050.GA81782@knc-06.sc.intel.com>
+From: Greg <gvrose8192-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Question about the SM Assigned GUID
+Date: Wed, 15 Mar 2017 10:20:54 -0700
+Message-ID: <1489598454.3695.6.camel@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170315164050.GA81782-wPcXA7LoDC+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 15, 2017 at 6:40 PM, Vishwanathapura, Niranjana
-<niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> On Wed, Mar 15, 2017 at 08:30:43AM +0200, Leon Romanovsky wrote:
->>
->> On Tue, Mar 14, 2017 at 10:11:49AM -0600, Jason Gunthorpe wrote:
->>>
->>> On Tue, Mar 14, 2017 at 12:01:09AM -0700, Vishwanathapura, Niranjana
->>> wrote:
->>> > On Mon, Mar 13, 2017 at 02:01:36PM -0600, Jason Gunthorpe wrote:
->>> > >>+   /* multicast */
->>> > >>+   int (*attach_mcast)(struct net_device *dev, struct ib_device
->>> > >> *hca,
->>> > >>+                       union ib_gid *gid, u16 lid, int set_qkey);
->>> > >>+   int (*detach_mcast)(struct net_device *dev, struct ib_device
->>> > >> *hca,
->>> > >>+                       union ib_gid *gid, u16 lid);
->>> > >
->>> > >It would make more sense to store the struct ib_device pointer in the
->>> > >struct rdma_netdev.
->>> > >
->>> >
->>> > Agree that it shouldn't be a function parameters.
->>> > For opa_vnic, I found it convenient to store ib_device pointer in
->>> > client and
->>> > device private structures as those will be available in most places
->>> > anyhow.
->>>
->>> If vnic uses it too, then lets add the ib_device and port num to
->>> rdma_netdev itself?
->>
->>
->> Agree, at the end this rdma_netdev is intended for the drivers/infiniband
->> and it is better to have this binding (rdma_netdev and ib_device) as early
->> as possible.
->>
->
-> I agree with adding ibdev and port num to rdma_netdev.
+Greetings!
 
-Good. will do that.
+I'm working on an overlay driver for a new type of network controller
+that can support traffic similar to infiniband and RDMA.  I've got an IB
+driver going that reports the following when I run ibstat:
 
->
-> Niranjana
->
+CA 'lfib0'
+	CA type: LF HP HBA
+	Number of ports: 1
+	Firmware version: 1
+	Hardware version: 1
+	Node GUID: 0x14db9f33e9fe45b2
+	System image GUID: 0x14db9f33e9fe45b2
+	Port 1:
+		State: Active
+		Physical state: LinkUp
+		Rate: 10
+		Base lid: 2
+		LMC: 0
+		SM lid: 1
+		Capability mask: 0x009c0002
+		Port GUID: 0x9eb738f98bf43f02
+		Link layer: InfiniBand
+
+However, when I run the opensm subnet manager the log shows this:
+
+[root@fermi ~]# systemctl status opensm -l
+● opensm.service - Starts the OpenSM InfiniBand fabric Subnet Manager
+   Loaded: loaded (/usr/lib/systemd/system/opensm.service; enabled;
+vendor preset: disabled)
+   Active: active (running) since Wed 2017-03-15 09:42:02 PDT; 35min ago
+     Docs: man:opensm
+  Process: 559 ExecStart=/usr/libexec/opensm-launch (code=exited,
+status=0/SUCCESS)
+ Main PID: 561 (opensm-launch)
+   CGroup: /system.slice/opensm.service
+           ├─  561 /bin/bash /usr/libexec/opensm-launch
+           └─10769 /usr/sbin/opensm -p 0 -g 0x9eb738f98bf43f02
+--subnet_prefix 0xfe80000000000000
+
+Mar 15 10:16:33 fermi OpenSM[10769]: -E- Parsing error in field
+sm_assigned_guid, value out of range
+Mar 15 10:16:33 fermi opensm-launch[559]: -E- Parsing error in field
+sm_assigned_guid, value out of range
+
+I've looked at the opensm code and I can't tell where the
+sm_assigned_guid comes from or how my driver should be using it.
+
+I apologize for my ignorance but I'm new to IB having come from the
+Ethernet world of IWARP and RDMA.  If I could get a tip or a pointer
+that would be great.
+
+Thanks for your time,
+
+- Greg
+Lightfleet Corp.
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
