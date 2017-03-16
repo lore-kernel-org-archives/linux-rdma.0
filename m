@@ -1,225 +1,148 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 07/14] svcrdma: Clean up RDMA_ERROR path
-Date: Thu, 16 Mar 2017 11:53:23 -0400
-Message-ID: <20170316155323.4482.8051.stgit@klimt.1015granger.net>
+Subject: [PATCH v1 09/14] svcrdma: Clean up RPC-over-RDMA backchannel reply
+ processing
+Date: Thu, 16 Mar 2017 11:53:39 -0400
+Message-ID: <20170316155339.4482.19289.stgit@klimt.1015granger.net>
 References: <20170316154132.4482.56769.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170316154132.4482.56769.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Now that svc_rdma_sendto has been renovated, svc_rdma_send_error can
-be refactored to reduce code duplication and remove C structure-
-based XDR encoding. It is also relocated to the source file that
-contains its only caller.
-
-This is a refactoring change only.
+Replace C structure-based XDR decoding with pointer arithmetic.
+Pointer arithmetic is considered more portable.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- include/linux/sunrpc/rpc_rdma.h         |    3 ++
- include/linux/sunrpc/svc_rdma.h         |    5 ---
- net/sunrpc/xprtrdma/svc_rdma_marshal.c  |   19 -----------
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |   53 ++++++++++++++++++++++++++++++-
- net/sunrpc/xprtrdma/svc_rdma_sendto.c   |   44 --------------------------
- 5 files changed, 55 insertions(+), 69 deletions(-)
+ include/linux/sunrpc/svc_rdma.h            |    2 +-
+ net/sunrpc/xprtrdma/svc_rdma_backchannel.c |   18 ++++++++++++++----
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |   27 +++++++++++++++------------
+ 3 files changed, 30 insertions(+), 17 deletions(-)
 
-diff --git a/include/linux/sunrpc/rpc_rdma.h b/include/linux/sunrpc/rpc_rdma.h
-index 245fc59..b7e85b3 100644
---- a/include/linux/sunrpc/rpc_rdma.h
-+++ b/include/linux/sunrpc/rpc_rdma.h
-@@ -143,6 +143,9 @@ enum rpcrdma_proc {
- #define rdma_done	cpu_to_be32(RDMA_DONE)
- #define rdma_error	cpu_to_be32(RDMA_ERROR)
- 
-+#define err_vers	cpu_to_be32(ERR_VERS)
-+#define err_chunk	cpu_to_be32(ERR_CHUNK)
-+
- /*
-  * Private extension to RPC-over-RDMA Version One.
-  * Message passed during RDMA-CM connection set-up.
 diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
-index 5fc9f6e..498a086 100644
+index 498a086..6181c24 100644
 --- a/include/linux/sunrpc/svc_rdma.h
 +++ b/include/linux/sunrpc/svc_rdma.h
-@@ -209,9 +209,6 @@ extern int svc_rdma_handle_bc_reply(struct rpc_xprt *xprt,
+@@ -204,7 +204,7 @@ static inline void svc_rdma_count_mappings(struct svcxprt_rdma *rdma,
+ 
+ /* svc_rdma_backchannel.c */
+ extern int svc_rdma_handle_bc_reply(struct rpc_xprt *xprt,
+-				    struct rpcrdma_msg *rmsgp,
++				    __be32 *rdma_resp,
+ 				    struct xdr_buf *rcvbuf);
  
  /* svc_rdma_marshal.c */
- extern int svc_rdma_xdr_decode_req(struct xdr_buf *);
--extern int svc_rdma_xdr_encode_error(struct svcxprt_rdma *,
--				     struct rpcrdma_msg *,
--				     enum rpcrdma_errcode, __be32 *);
- extern void svc_rdma_old_encode_write_list(struct rpcrdma_msg *rmsgp,
- 					   int chunks);
- extern void svc_rdma_xdr_encode_reply_array(struct rpcrdma_write_array *, int);
-@@ -253,8 +250,6 @@ extern int svc_rdma_map_reply_hdr(struct svcxprt_rdma *rdma,
- extern void svc_rdma_build_send_wr(struct svc_rdma_op_ctxt *ctxt,
- 				   int num_sge);
- extern int svc_rdma_sendto(struct svc_rqst *);
--extern void svc_rdma_send_error(struct svcxprt_rdma *, struct rpcrdma_msg *,
--				int);
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+index 24c26f4..3484f40a 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
+@@ -12,7 +12,17 @@
  
- /* svc_rdma_transport.c */
- extern void svc_rdma_wc_send(struct ib_cq *, struct ib_wc *);
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_marshal.c b/net/sunrpc/xprtrdma/svc_rdma_marshal.c
-index bf3ca7e..24a8151 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_marshal.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_marshal.c
-@@ -167,25 +167,6 @@ int svc_rdma_xdr_decode_req(struct xdr_buf *rq_arg)
- 	return -EINVAL;
- }
+ #undef SVCRDMA_BACKCHANNEL_DEBUG
  
--int svc_rdma_xdr_encode_error(struct svcxprt_rdma *xprt,
--			      struct rpcrdma_msg *rmsgp,
--			      enum rpcrdma_errcode err, __be32 *va)
--{
--	__be32 *startp = va;
--
--	*va++ = rmsgp->rm_xid;
--	*va++ = rmsgp->rm_vers;
--	*va++ = xprt->sc_fc_credits;
--	*va++ = rdma_error;
--	*va++ = cpu_to_be32(err);
--	if (err == ERR_VERS) {
--		*va++ = rpcrdma_version;
--		*va++ = rpcrdma_version;
--	}
--
--	return (int)((unsigned long)va - (unsigned long)startp);
--}
--
- /**
-  * svc_rdma_xdr_get_reply_hdr_length - Get length of Reply transport header
-  * @rdma_resp: buffer containing Reply transport header
+-int svc_rdma_handle_bc_reply(struct rpc_xprt *xprt, struct rpcrdma_msg *rmsgp,
++/**
++ * svc_rdma_handle_bc_reply - Process incoming backchannel reply
++ * @xprt: controlling backchannel transport
++ * @rdma_resp: pointer to incoming transport header
++ * @rcvbuf: XDR buffer into which to decode the reply
++ *
++ * Returns:
++ *	%0 if @rcvbuf is filled in, xprt_complete_rqst called,
++ *	%-EAGAIN if server should call ->recvfrom again.
++ */
++int svc_rdma_handle_bc_reply(struct rpc_xprt *xprt, __be32 *rdma_resp,
+ 			     struct xdr_buf *rcvbuf)
+ {
+ 	struct rpcrdma_xprt *r_xprt = rpcx_to_rdmax(xprt);
+@@ -27,13 +37,13 @@ int svc_rdma_handle_bc_reply(struct rpc_xprt *xprt, struct rpcrdma_msg *rmsgp,
+ 
+ 	p = (__be32 *)src->iov_base;
+ 	len = src->iov_len;
+-	xid = rmsgp->rm_xid;
++	xid = *rdma_resp;
+ 
+ #ifdef SVCRDMA_BACKCHANNEL_DEBUG
+ 	pr_info("%s: xid=%08x, length=%zu\n",
+ 		__func__, be32_to_cpu(xid), len);
+ 	pr_info("%s: RPC/RDMA: %*ph\n",
+-		__func__, (int)RPCRDMA_HDRLEN_MIN, rmsgp);
++		__func__, (int)RPCRDMA_HDRLEN_MIN, rdma_resp);
+ 	pr_info("%s:      RPC: %*ph\n",
+ 		__func__, (int)len, p);
+ #endif
+@@ -53,7 +63,7 @@ int svc_rdma_handle_bc_reply(struct rpc_xprt *xprt, struct rpcrdma_msg *rmsgp,
+ 		goto out_unlock;
+ 	memcpy(dst->iov_base, p, len);
+ 
+-	credits = be32_to_cpu(rmsgp->rm_credit);
++	credits = be32_to_cpup(rdma_resp + 2);
+ 	if (credits == 0)
+ 		credits = 1;	/* don't deadlock */
+ 	else if (credits > r_xprt->rx_buf.rb_bc_max_requests)
 diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index f7b2daf..efa9f12 100644
+index efa9f12..9315ee6 100644
 --- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
 +++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -558,6 +558,57 @@ static void rdma_read_complete(struct svc_rqst *rqstp,
- 	rqstp->rq_arg.buflen = head->arg.buflen;
- }
- 
-+static void svc_rdma_send_error(struct svcxprt_rdma *xprt,
-+				__be32 *rdma_argp, int status)
-+{
-+	struct svc_rdma_op_ctxt *ctxt;
-+	__be32 *p, *err_msgp;
-+	unsigned int length;
-+	struct page *page;
-+	int ret;
-+
-+	ret = svc_rdma_repost_recv(xprt, GFP_KERNEL);
-+	if (ret)
-+		return;
-+
-+	page = alloc_page(GFP_KERNEL);
-+	if (!page)
-+		return;
-+	err_msgp = page_address(page);
-+
-+	p = err_msgp;
-+	*p++ = *rdma_argp;
-+	*p++ = *(rdma_argp + 1);
-+	*p++ = xprt->sc_fc_credits;
-+	*p++ = rdma_error;
-+	if (status == -EPROTONOSUPPORT) {
-+		*p++ = err_vers;
-+		*p++ = rpcrdma_version;
-+		*p++ = rpcrdma_version;
-+	} else {
-+		*p++ = err_chunk;
-+	}
-+	length = (unsigned long)p - (unsigned long)err_msgp;
-+
-+	/* Map transport header; no RPC message payload */
-+	ctxt = svc_rdma_get_context(xprt);
-+	ret = svc_rdma_map_reply_hdr(xprt, ctxt, err_msgp, length);
-+	if (ret) {
-+		dprintk("svcrdma: Error %d mapping send for protocol error\n",
-+			ret);
-+		return;
-+	}
-+
-+	svc_rdma_build_send_wr(ctxt, 1);
-+	ret = svc_rdma_send(xprt, &ctxt->send_wr);
-+	if (ret) {
-+		dprintk("svcrdma: Error %d posting send for protocol error\n",
-+			ret);
-+		svc_rdma_unmap_dma(ctxt);
-+		svc_rdma_put_context(ctxt, 1);
-+	}
-+}
-+
- /* By convention, backchannel calls arrive via rdma_msg type
-  * messages, and never populate the chunk lists. This makes
+@@ -614,28 +614,30 @@ static void svc_rdma_send_error(struct svcxprt_rdma *xprt,
   * the RPC/RDMA header small and fixed in size, so it is
-@@ -686,7 +737,7 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
- 	return ret;
+  * straightforward to check the RPC header's direction field.
+  */
+-static bool
+-svc_rdma_is_backchannel_reply(struct svc_xprt *xprt, struct rpcrdma_msg *rmsgp)
++static bool svc_rdma_is_backchannel_reply(struct svc_xprt *xprt,
++					  __be32 *rdma_resp)
+ {
+-	__be32 *p = (__be32 *)rmsgp;
++	__be32 *p;
  
- out_err:
--	svc_rdma_send_error(rdma_xprt, rmsgp, ret);
-+	svc_rdma_send_error(rdma_xprt, &rmsgp->rm_xid, ret);
- 	svc_rdma_put_context(ctxt, 0);
- 	return 0;
+ 	if (!xprt->xpt_bc_xprt)
+ 		return false;
  
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-index be6b11a..1b230dc 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-@@ -571,47 +571,3 @@ int svc_rdma_sendto(struct svc_rqst *rqstp)
- 	set_bit(XPT_CLOSE, &rdma->sc_xprt.xpt_flags);
- 	return -ENOTCONN;
- }
--
--void svc_rdma_send_error(struct svcxprt_rdma *xprt, struct rpcrdma_msg *rmsgp,
--			 int status)
--{
--	struct page *p;
--	struct svc_rdma_op_ctxt *ctxt;
--	enum rpcrdma_errcode err;
--	__be32 *va;
--	int length;
--	int ret;
--
--	ret = svc_rdma_repost_recv(xprt, GFP_KERNEL);
--	if (ret)
--		return;
--
--	p = alloc_page(GFP_KERNEL);
--	if (!p)
--		return;
--	va = page_address(p);
--
--	/* XDR encode an error reply */
--	err = ERR_CHUNK;
--	if (status == -EPROTONOSUPPORT)
--		err = ERR_VERS;
--	length = svc_rdma_xdr_encode_error(xprt, rmsgp, err, va);
--
--	/* Map transport header; no RPC message payload */
--	ctxt = svc_rdma_get_context(xprt);
--	ret = svc_rdma_map_reply_hdr(xprt, ctxt, &rmsgp->rm_xid, length);
--	if (ret) {
--		dprintk("svcrdma: Error %d mapping send for protocol error\n",
--			ret);
--		return;
--	}
--
--	svc_rdma_build_send_wr(ctxt, 1);
--	ret = svc_rdma_send(xprt, &ctxt->send_wr);
--	if (ret) {
--		dprintk("svcrdma: Error %d posting send for protocol error\n",
--			ret);
--		svc_rdma_unmap_dma(ctxt);
--		svc_rdma_put_context(ctxt, 1);
--	}
--}
+-	if (rmsgp->rm_type != rdma_msg)
++	p = rdma_resp + 3;
++	if (*p++ != rdma_msg)
+ 		return false;
+-	if (rmsgp->rm_body.rm_chunks[0] != xdr_zero)
++
++	if (*p++ != xdr_zero)
+ 		return false;
+-	if (rmsgp->rm_body.rm_chunks[1] != xdr_zero)
++	if (*p++ != xdr_zero)
+ 		return false;
+-	if (rmsgp->rm_body.rm_chunks[2] != xdr_zero)
++	if (*p++ != xdr_zero)
+ 		return false;
+ 
+-	/* sanity */
+-	if (p[7] != rmsgp->rm_xid)
++	/* XID sanity */
++	if (*p++ != *rdma_resp)
+ 		return false;
+ 	/* call direction */
+-	if (p[8] == cpu_to_be32(RPC_CALL))
++	if (*p == cpu_to_be32(RPC_CALL))
+ 		return false;
+ 
+ 	return true;
+@@ -701,8 +703,9 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
+ 		goto out_drop;
+ 	rqstp->rq_xprt_hlen = ret;
+ 
+-	if (svc_rdma_is_backchannel_reply(xprt, rmsgp)) {
+-		ret = svc_rdma_handle_bc_reply(xprt->xpt_bc_xprt, rmsgp,
++	if (svc_rdma_is_backchannel_reply(xprt, &rmsgp->rm_xid)) {
++		ret = svc_rdma_handle_bc_reply(xprt->xpt_bc_xprt,
++					       &rmsgp->rm_xid,
+ 					       &rqstp->rq_arg);
+ 		svc_rdma_put_context(ctxt, 0);
+ 		if (ret)
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
