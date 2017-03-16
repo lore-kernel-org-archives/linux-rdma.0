@@ -1,539 +1,604 @@
-From: Guy Shattah <sguy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC v1 for verbs counters]
-Date: Thu, 16 Mar 2017 17:44:25 +0000
-Message-ID: <HE1PR0502MB30663840419B28FAAEE6DC9BBD260@HE1PR0502MB3066.eurprd05.prod.outlook.com>
-References: <AM5PR0502MB30578E5BC54125D013D416DCBD250@AM5PR0502MB3057.eurprd05.prod.outlook.com>,<SN1PR07MB2207216EF4161F94ED6EC288F8270@SN1PR07MB2207.namprd07.prod.outlook.com>
+From: "Chandramouli, Dasaratharaman"
+        <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-core 5/7] IB/SA: Modify SA to implicity cache Class
+ Port info
+Date: Thu, 16 Mar 2017 11:27:44 -0700
+Message-ID: <17fe7a04-6627-85f6-173b-65b97b81b0bb@intel.com>
+References: <1489613066-61684-1-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <1489613066-61684-6-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <c01d0080-26da-8eb9-59b6-6d959457ea0c@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <SN1PR07MB2207216EF4161F94ED6EC288F8270-mikhvbZlbf8TSoR2DauN2+FPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <c01d0080-26da-8eb9-59b6-6d959457ea0c-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-=A0  =20
->> RFC: Verbs Counters
->>=20
->>=20
->> There is a constant demand to know about connections used in verbs (and =
-and other aspects).
->> Some vendors have been offering hardware counters for a long time by usi=
-ng sysfs.
->> Those counters, however - are not available per connection but for the w=
-hole system.
->>=20
->> One way to do it is for each vendor to offer their vendor specific count=
-ers, which will probably
->>=A0 not be generic since each vendor could have their own implementation =
-of counters hence
->>=A0 the verbs interface will not be generic for the rest of them.
->>=20
->>=20
->> We present a generic interface for using counters in verbs.
->> Let's have some definition before going into details:
->>=20
->> Object:=A0=A0=A0=A0=A0=A0=A0=A0=A0 an existing structure in verbs which =
-describes physical entity
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0 e.g.: QP/FLOW/DEVICE/
->> Counter:=A0=A0=A0=A0=A0=A0=A0=A0 a single attribute which is use to coun=
-t events/statistics
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0 on object
->> Counter-set:=A0=A0=A0=A0 a set of counters that belongs to one specific =
-object.
->>=20
->>=20
->> A generic interface with=A0 following functionality is presented :
->>=20
->>=20
->> 1.=A0=A0=A0=A0=A0 A way to list of all the available counter-sets in the=
- device.
->>=A0=A0=A0=A0=A0=A0=A0=A0 Per each counter-set:
->>=A0=A0=A0=A0=A0=A0=A0=A0 - What do the counters within the set measure? i=
-s it QP? Flow? other?
->>=A0=A0=A0=A0=A0=A0=A0=A0 - A Unique identifier per counter-set.
->>=A0=A0=A0=A0=A0=A0=A0=A0 - A list of names for all the counters within ea=
-ch counter-set.
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 since each vendor has their own counter=
-s/stats. Each vendor
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 could use their own names for a counter=
-. This suggestion
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 aims to replace vendor-specific-api wit=
-h predefined
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 enums/names for each counter/stats.
->>=A0=A0=A0=A0=A0=A0=A0=A0 - Additional Meta-data about a counter-set (for =
-example - is it cached?)
->>=20
->> 2.=A0=A0=A0=A0=A0 Operations available per counter-set:
->> 2.1=A0=A0=A0=A0 Bind and unbind:
->>=A0=A0=A0=A0=A0=A0=A0=A0 a counter-set has to be attached to an object in=
- order for any
->>=A0=A0=A0=A0=A0=A0=A0=A0 counter within a counter-set to count. the attac=
-hing action
->>=A0=A0=A0=A0=A0=A0=A0=A0 is referred to as 'bind' and the opposite action=
- is referred to
->>=A0=A0=A0=A0=A0=A0=A0=A0 as 'unbind'.
->>=A0=A0=A0=A0=A0=A0=A0=A0 Rather than having specific generic operation fo=
-r bind and unbind
->>=A0=A0=A0=A0=A0=A0=A0=A0 I choose to use existing verbs methods. The exis=
-ting methods could
->>=A0=A0=A0=A0=A0=A0=A0=A0 be modified with small changes (like adding a ne=
-w flag) to bind
->>=A0=A0=A0=A0=A0=A0=A0=A0 (or unbind) a counter-set to an object.
->>=20
->>=20
->> 2.2=A0=A0=A0=A0 Counter-set may be created: counter-set instance is allo=
-cated and
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 created on a ibv context and belongs to th=
-at context.
->>=20
->> 2.3=A0=A0=A0=A0 Counter-set may be destroyed: counter-set instance is de=
-stroyed and
->>=A0=A0=A0=A0=A0=A0=A0=A0 de-allocated. If counter-set is bonded to object=
- then it is the
->>=A0=A0=A0=A0=A0=A0=A0=A0 responsibility of the driver either to unbind pr=
-ior to=A0 hardware
->>=A0=A0=A0=A0=A0=A0=A0=A0 de-allocation or to notify the user that driver =
-is unable to destroy
->>=A0=A0=A0=A0=A0=A0=A0=A0 a counter-set and it is the user responsibility =
-to unbind prior to
->>=A0=A0=A0=A0=A0=A0=A0=A0 destruction.
->>=20
->> 2.4=A0=A0=A0=A0 Counter-set may be queried:=A0 the user supply counter-s=
-et instance and
->>=A0=A0=A0=A0=A0=A0=A0=A0 output address. The hardware queries the counter=
--set and writes the
->>=A0=A0=A0=A0=A0=A0=A0=A0 output to the=A0 address as an array of uint64_t=
-. Each entry in the
->>=A0=A0=A0=A0=A0=A0=A0=A0 uint64_t array represents a single counter.
->>=20
->>=20
->> The user is expected to query the device on startup,
->>=A0=A0=A0 find which counter-sets are supported and to which objects
->>=A0=A0=A0 each counter-set may be bonded. During this scan the user
->>=A0=A0=A0=A0 also finds out which counters are supported for which object=
-.
->>=20
->> Example for a way to list of all the available counter-sets in the devic=
-e.
->>=20
->>=20
->> We modify the method=A0 int query_device_ex() by adding a new flag to th=
-e
->> enum ibv_device_attr_mask:
->>=20
->>=20
->> +=A0=A0=A0=A0=A0=A0=A0=A0=A0 IBV_DEVICE_ATTR_COUNTER_SET=A0=A0=A0=A0=A0=
-=A0=A0 =3D 1 <<=A0 1
->>=20
->>=20
->> When using this flag, the device will response with struct ibv_device_at=
-tr_ex
->> with a new attribute:
->>=20
->>=20
->> +=A0=A0=A0=A0=A0=A0=A0=A0=A0 uint64_t=A0=A0=A0=A0=A0 max_supported_count=
-er_sets;
->>=20
->>=20
->> And then a user can use a new API to get the description for each counte=
-r-set.
->> number of counter set is specified by a counter-set-id.
->> a counter-set id is a number from 0 to max_supported_counter_sets.
->> that is - the number returned from the query_device_ex() call.
->>=20
->>=20
->> int ibv_query_counter_set_description(struct ibv_context *context, \
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 uint64_t counter_set_id, \
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 struct ibv_counter_set_descripti=
-on * out)
->> - return 0 on success
->> - return -1 when counter_set_id is invalid.
->>=20
->>=20
->> The API writes to out the following structure:
->>=20
->>=20
->> struct ibv_counter_set_description {
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 // Which type does this set refers t=
-o?
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 // value is taken from enum ibv_coun=
-ter_set_counted_type
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 =
-uint8_t=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 counted_type;
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 // Number of instances of this count=
-er-set available in the hardware
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 =
-uint64_t=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 number_of_counter_sets;
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 // Attributes of the set (bit mask)
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 // value is taken from enum ibv_coun=
-ter_set_attributes
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 =
-uint32_t=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 attributes;
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 // number of entries
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 =
-uint8_t=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 entries_count;
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 // List of entries,
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 =
-struct ibv_counter_entry=A0 entry[256];
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 }
->>=20
->>=20
->> Where:
->> struct ibv_counter_entry {
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 // name of the entry. last entry con=
-tains NULL
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 char=A0=A0=A0=A0=A0=A0 name[32];
->> }
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D
->>=20
->>=20
->> Brief explanation for the fields inside struct ibv_counter_set_descripti=
-on:
->>=20
->>=20
->> counted_type - contain id for which this counter_set is related to.
->> the id is a value from ibv_counter_set_counted_type=A0 (see below)
->> Each counter-set relates to a verbs object, which is the verbs object th=
-is
->> counter-set aim to count (i.e. measure), such as QP or Flow.
->>=20
->>=20
->> enum=A0 ibv_counter_set_counted_type=A0 {
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 IBV_COUNTER_IBV_QP =3D 0=
-,
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 IBV_COUNTER_IBV_FLOW,
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 ...
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 }
->>=20
->> number_of_counter_sets - how many counters does this device supports?
->> Note that this value can be interpreted in more than one way. Either how=
- many
->> counter_sets are currently available or what is the total (max) number o=
-f
->> counter_sets the device supports. this is seen as the max limit of count=
--set
->> which the process is allowed to create.
->>=20
->>=20
->> attributes=A0=A0 - special attributes which this counter-set might have
->> either in software or hardware.
->> For example we can have cached counter-set. Which means that every query
->> for that set is read from the cache. Unless a request to read the values=
- from
->> the hardware was specially specified.
->>=20
->>=20
->> enum ibv_counter_set_attributes {
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0 // the counter-set value is cached by default
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 IBV_COUNTER_ATTR_CACHED=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 =3D 1 <<=A0 1
->> };
->>=20
->>=20
->> entries_count - number of entries in the counter_set
->>=20
->> struct ibv_counter_entry=A0 entry[256] - an ordered list of counter name=
-s
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 where the last name in the array is emp=
-ty (NULL)
->>=20
->> =3D=3D=3D=3D
->>=20
->>=20
->> Example:
->>=20
->>=20
->>=20
->>=20
->> ibv_counter_set_description is a struct to describe other structs.
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 for example, we have the=
- following struct:
->>=20
->>=20
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 private struct guy_count=
-er {
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0 uint64_t apples_kg;
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0 uint64_t apples_count;
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 }
->>=20
->>=20
->>=20
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 - note that all counters=
- are 64bit entries
->>=20
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 The ibv_counter_set_desc=
- looks like this:
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 // according to=
- the ibv_counter_set_type enum
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 ibv_counter_set_desc.typ=
-e =3D IBV_COUNTER_IBV_GUYGUY
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 ibv_counter_set_desc.att=
-ributes =3D 0;
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 ibv_counter_set_desc.num=
-ber_of_counter_sets =3D 1000;
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 ibv_counter_set_desc.ent=
-ry[0].name =3D=A0 "apples [Kg]"
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 ibv_counter_set_desc.ent=
-ry[1].name =3D=A0 "apples [Count]"
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 ibv_counter_set_desc.ent=
-ry[2].name =3D=A0 \0
->>=20
->> =3D=3D=3D=3D
->>=20
->>=20
->> How to fill the internal tables?
->>=20
->>=20
->> On initialization - driver should query device capabilities to see how m=
-any
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 counter-set =
-are supported. for each=A0 supported
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 counter-set =
-the driver will act as following:
->> 1. Allocate counter_set_id
->> 2. Register counter_set_id with pointer to data structures with list of =
-counters.
->> 5. Finally - The driver returns number of counter_sets supported in ibv_=
-qeury_device_ex()
->>=20
->>=20
->>=20
->>=20
->> Operations available for each counter-set:
->> Each ibv_counter is represented by the following structure:
->>=20
->>=20
->> struct ibv_counter_set {
->>=A0=A0=A0=A0=A0=A0=A0=A0 struct ibv_context=A0=A0=A0=A0=A0=A0 *context;
->>=A0=A0=A0=A0=A0=A0=A0=A0 uint64_t=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0 handle;
->> }
->>=20
->>=20
->>=20
->>=20
->> THE NEW API
->>=20
->>=20
->> struct ibv_counter_set* ibv_create_counter_set(struct ibv_context *conte=
-xt,=A0 \
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 =
-uint16_t counter_set_id)
->>=20
->>=20
->> Method returns struct ibv_counter_set which contains context+handle.
->> Actions: Method Allocates memory for struct ibv_counter_set and then cal=
-ls
->> the driver to allocate the actual hardware counter-set.
->> If successful method returns pointer to struct ibv_counter_set on the he=
-ap
->> which contains context+handle.
->> If unsuccessful - method returns NULL and set errno accordingly.
->>=20
->>=20
->> int ibv_destroy_counter_set(struct ibv_counter_set* counter_set)
->>=20
->>=20
->> Methods destroys input counter_set and free the allocated memory.
->> Actions: Method attempts to remove hardware counter-set and then input s=
-truct
->> is released (deleted). In the kernel the code checks if caller is
->> allowed to destroy counter_set (by comparing pid) and then released
->> hardware-resource.
->>=20
->>=20
->> If unsuccessful method returns -1 and set errno accordingly.
->> If successful method returns 0.
->>=20
->>=20
->> int ibv_query_counter_set(struct ibv_query_counter_set_attr, uint64_t * =
-out)
->>=20
->> Method receives query structure and output address, then query the
->> hardware and writes output to the uint64_t * out address.
->> Actions: Method recives=A0 struct ibv_query_counter_set_attr, parse the =
-query
->> and then send it to execution in kernel.
->> In the kernel the code checks if caller is allowed to query
->> the hardware, executes the query and then writes to *out.
->> If unsuccessful method returns -1 and set errno accordingly.
->> If successful method returns 0
->>=20
->>=20
->> Where:
->>=20
->>=20
->> struct ibv_query_counter_set_attr {
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 =
-uint32_t=A0=A0=A0=A0=A0=A0=A0=A0=A0 comp_mask
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 =
-ibv_counter_set=A0=A0 *counter_set;
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 =
-enum ibv_query_counter_set_attr_params=A0 *query_params;
->> }
->>=20
->>=20
->> enum ibv_query_counter_set_attr_params {
->>=A0=A0=A0=A0=A0=A0=A0=A0 // force hardware query instead of cached value
->>=A0=A0=A0=A0=A0=A0=A0=A0 IBV_COUNTER_FORCE_UPDATE=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0 =3D 1 <<=A0 1
->> };
->>=20
->>=20
->>=20
->>=20
->> int ibv_query_counter_set_description(struct ibv_context *context, \
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 uint64_t counter_set_id, \
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 struct ibv_counter_set_descripti=
-on * out)
->>=20
->> Method writes out a struct ibv_counter_set_description which contains a =
-description
->> of a counter-set.
->> User should allocate sizeof(struct ibv_counter_set_description) for *out=
-;
->>=20
->>=20
->> - return 0 on success
->> - return -1 when counter_set_id is invalid.
->>=20
->>=20
->>=20
->>=20
->> Example on using counter_sets:
->>=20
->>=20
->>=20
->>=20
->> void foo(struct ibv_context *context, int counter_set_id)
->> {
->>=A0=A0=A0=A0=A0=A0=A0=A0 // an array of attributes. this is a container o=
-f counter-set values
->>=A0=A0=A0=A0=A0=A0=A0=A0 uint64_t my_counter[256];
->>=20
->>=A0=A0=A0=A0=A0=A0=A0 struct ibv_counter_set_description my_description;
->>=A0=A0=A0=A0=A0=A0=A0=A0 struct ibv_counter_set* my_counter_set ;
->>=20
->>=A0=A0=A0=A0=A0=A0=A0 ibv_query_counter_set_description(context, counter_=
-set_id, &my_description);
->>=20
->>=A0=A0=A0=A0=A0=A0=A0=A0 my_counter_set =3D ibv_create_counter_set(contex=
-t,counter_set_id);
->>=20
->>=20
->>=A0=A0=A0=A0=A0=A0=A0=A0 // let's define the query object
->>=A0=A0=A0=A0=A0=A0=A0=A0 struct ibv_query_counter_set_attr my_query;
->>=A0=A0=A0=A0=A0=A0=A0=A0 my_query.comp_mask =3D 0;
->>=A0=A0=A0=A0=A0=A0=A0=A0 my_query.counter_set =3D &my_counter_set;
->>=A0=A0=A0=A0=A0=A0=A0=A0 my_query.query_params =3D 0;
->>=20
->>=A0=A0=A0=A0=A0=A0=A0=A0 // finally - do the query.
->>=20
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0 if(-1 =3D=3D ibv_query_counter_set(my_query, =
-my_counter)) {
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 printf("query failed")
->>=A0=A0=A0=A0=A0=A0=A0=A0 }
->>=A0=A0=A0=A0=A0=A0=A0=A0 else=A0 {
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 for(int i =3D 0 ; =
-i < my_description->entries_count ; ++i)=A0=A0 {
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0 printf("name %d =3D %lu, \
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 =
-my_description->entries[i].name, my_counter[i]);
->>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 }
->>=A0=A0=A0=A0=A0=A0=A0=A0 }
->> }
->>
->>I like this solution, even though I was aiming for a different problem :-=
-).
->>
->>Regarding this solution. It allows polling statistics from the driver/har=
-dware
->>per demand in a generic way. Generic means in this case - the number,
->>the scope and the meaning of the statistics. I understand that it assumes
->>that the resources to count these statistics are limited and hence the us=
-age
->>should be only after allocation by the "user".
->>It isn't clear to me if the user is the application or libibverbs. Anyway=
-, some
->>Cleanup should be considered to avoid driver/HW resources being wasted
->>due to improper behavior. If the NIC's HW supports this then the implicat=
-ions
->>on the performance is little. If it doesn't, then it is up to the vendor =
-to decide
->>if to support and to what extent.
->>The vendor should be able to decide what scope it allows/supports.
->>I'm not sure what is the added value of caching statistics.
->>
->>I'm not sure how this would relate to "rdmatool - tool for RDMA users" [1=
-].
->>Is this an alternative or parallel solution? Will the code be re-usable?
->>
->>Regarding what issue was planning to focus on, I will comment in Alex's e=
--mail.
->>
->>Thanks,
->>Ram
->>
->>[1] https://www.spinics.net/lists/linux-rdma/msg45250.html
-
-Hi Ram,
-I'm glad to know that you like this solution.
-However, I believe that we were aiming for the same thing. trying to know=20
-more about the QP/Connection. What I offered in this RFC is a generic infra=
-structure
-to be utilized by the vendors to implement a solution that suits your needs=
-.
-
-as for your concerns,
-the user is the programmer who is utilizing the newly suggested verbs inter=
-face
-to know more about the system.
-Cleanup is supported as intergal part of the API (destroy_counter_set)
-and it is part of the user responsability to free resources.
-it is up to the vendor to make sure resources are not getting wasted.
-for example - if a user attached (binds) a counter_set to QP and the progra=
-m terminates.
-I expect the vendor to make sure their driver releases hardware resources f=
-or both the QP
-and the attached counter_set. if the vendor fails to release any resources =
-it is=20
-resources leak.=20
-
-the took you mentioned in [1] could possibly utilize the interface I sugges=
-ted
-in order to supply more information and/or statistics about the system.
-
-for examle, the tool you mentioned describes the following actions:
-[1] Query RDMA device capabilities
-- capabilities are constant values/attributes, hence counter_set do not fit=
- this option.
-[2] Query RDMA device status and current open resources
-- status and least of open resources:
-  I could think of a counter_set that is binded to the ibv_context and brin=
-g
-  a with values, such as number of open QPs and other resources.
-[3] Fetching RDMA statistics
-- the suggested API fits  RDMA statistics very well and is capable of fulfi=
-lling these needs.
-[4] Configure RDMA device
-- sorry, the API suggested here is 'read-only'. maybe someone else will off=
-er a generic API
-  to configure. however - it is out of the scope of the suggested API.
 
 
-re=
+On 3/16/2017 5:59 AM, Hal Rosenstock wrote:
+> On 3/15/2017 5:24 PM, Dasaratharaman Chandramouli wrote:
+>> SA will query and cache class port info as part of
+>> its initialization. SA will also invalidate and
+>> refresh the cache based on specific events. Callers such
+>> as IPoIB and CM can query the SA to get the classportinfo
+>> information. Apart from making the caller code much simpler,
+>> this change puts the onus on the SA to query and maintain
+>> classportinfo much like how it maitains the address handle to the SM.
+>>
+>> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> ---
+>>  drivers/infiniband/core/cma.c                  |  76 ++---------
+>>  drivers/infiniband/core/sa_query.c             | 179 ++++++++++++++++++-------
+>>  drivers/infiniband/ulp/ipoib/ipoib.h           |   1 -
+>>  drivers/infiniband/ulp/ipoib/ipoib_main.c      |  71 ----------
+>>  drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   9 +-
+>>  include/rdma/ib_sa.h                           |  12 +-
+>>  6 files changed, 142 insertions(+), 206 deletions(-)
+>>
+>> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+>> index 5ed6ec9..421400a 100644
+>> --- a/drivers/infiniband/core/cma.c
+>> +++ b/drivers/infiniband/core/cma.c
+>> @@ -3943,63 +3943,10 @@ static void cma_set_mgid(struct rdma_id_private *id_priv,
+>>  	}
+>>  }
+>>
+>> -static void cma_query_sa_classport_info_cb(int status,
+>> -					   struct ib_class_port_info *rec,
+>> -					   void *context)
+>> -{
+>> -	struct class_port_info_context *cb_ctx = context;
+>> -
+>> -	WARN_ON(!context);
+>> -
+>> -	if (status || !rec) {
+>> -		pr_debug("RDMA CM: %s port %u failed query ClassPortInfo status: %d\n",
+>> -			 cb_ctx->device->name, cb_ctx->port_num, status);
+>> -		goto out;
+>> -	}
+>> -
+>> -	memcpy(cb_ctx->class_port_info, rec, sizeof(struct ib_class_port_info));
+>> -
+>> -out:
+>> -	complete(&cb_ctx->done);
+>> -}
+>> -
+>> -static int cma_query_sa_classport_info(struct ib_device *device, u8 port_num,
+>> -				       struct ib_class_port_info *class_port_info)
+>> -{
+>> -	struct class_port_info_context *cb_ctx;
+>> -	int ret;
+>> -
+>> -	cb_ctx = kmalloc(sizeof(*cb_ctx), GFP_KERNEL);
+>> -	if (!cb_ctx)
+>> -		return -ENOMEM;
+>> -
+>> -	cb_ctx->device = device;
+>> -	cb_ctx->class_port_info = class_port_info;
+>> -	cb_ctx->port_num = port_num;
+>> -	init_completion(&cb_ctx->done);
+>> -
+>> -	ret = ib_sa_classport_info_rec_query(&sa_client, device, port_num,
+>> -					     CMA_QUERY_CLASSPORT_INFO_TIMEOUT,
+>> -					     GFP_KERNEL, cma_query_sa_classport_info_cb,
+>> -					     cb_ctx, &cb_ctx->sa_query);
+>> -	if (ret < 0) {
+>> -		pr_err("RDMA CM: %s port %u failed to send ClassPortInfo query, ret: %d\n",
+>> -		       device->name, port_num, ret);
+>> -		goto out;
+>> -	}
+>> -
+>> -	wait_for_completion(&cb_ctx->done);
+>> -
+>> -out:
+>> -	kfree(cb_ctx);
+>> -	return ret;
+>> -}
+>> -
+>>  static int cma_join_ib_multicast(struct rdma_id_private *id_priv,
+>>  				 struct cma_multicast *mc)
+>>  {
+>>  	struct ib_sa_mcmember_rec rec;
+>> -	struct ib_class_port_info class_port_info;
+>>  	struct rdma_dev_addr *dev_addr = &id_priv->id.route.addr.dev_addr;
+>>  	ib_sa_comp_mask comp_mask;
+>>  	int ret;
+>> @@ -4020,21 +3967,14 @@ static int cma_join_ib_multicast(struct rdma_id_private *id_priv,
+>>  	rec.pkey = cpu_to_be16(ib_addr_get_pkey(dev_addr));
+>>  	rec.join_state = mc->join_state;
+>>
+>> -	if (rec.join_state == BIT(SENDONLY_FULLMEMBER_JOIN)) {
+>> -		ret = cma_query_sa_classport_info(id_priv->id.device,
+>> -						  id_priv->id.port_num,
+>> -						  &class_port_info);
+>> -
+>> -		if (ret)
+>> -			return ret;
+>> -
+>> -		if (!(ib_get_cpi_capmask2(&class_port_info) &
+>> -		      IB_SA_CAP_MASK2_SENDONLY_FULL_MEM_SUPPORT)) {
+>> -			pr_warn("RDMA CM: %s port %u Unable to multicast join\n"
+>> -				"RDMA CM: SM doesn't support Send Only Full Member option\n",
+>> -				id_priv->id.device->name, id_priv->id.port_num);
+>> -			return -EOPNOTSUPP;
+>> -		}
+>> +	if ((rec.join_state == BIT(SENDONLY_FULLMEMBER_JOIN)) &&
+>> +	    (!ib_sa_sendonly_fullmem_support(&sa_client,
+>> +					     id_priv->id.device,
+>> +					     id_priv->id.port_num))) {
+>> +		pr_warn("RDMA CM: %s port %u Unable to multicast join\n"
+>> +			"RDMA CM: SM doesn't support Send Only Full Member option\n",
+>> +			id_priv->id.device->name, id_priv->id.port_num);
+>> +		return -EOPNOTSUPP;
+>>  	}
+>>
+>>  	comp_mask = IB_SA_MCMEMBER_REC_MGID | IB_SA_MCMEMBER_REC_PORT_GID |
+>> diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+>> index 2181f8c..bc32989 100644
+>> --- a/drivers/infiniband/core/sa_query.c
+>> +++ b/drivers/infiniband/core/sa_query.c
+>> @@ -56,6 +56,8 @@
+>>  #define IB_SA_LOCAL_SVC_TIMEOUT_MIN		100
+>>  #define IB_SA_LOCAL_SVC_TIMEOUT_DEFAULT		2000
+>>  #define IB_SA_LOCAL_SVC_TIMEOUT_MAX		200000
+>> +#define IB_SA_CPI_MAX_RETRY_CNT			3
+>> +#define IB_SA_CPI_RETRY_WAIT			1000 /*msecs */
+>>  static int sa_local_svc_timeout_ms = IB_SA_LOCAL_SVC_TIMEOUT_DEFAULT;
+>>
+>>  struct ib_sa_sm_ah {
+>> @@ -67,6 +69,7 @@ struct ib_sa_sm_ah {
+>>
+>>  struct ib_sa_classport_cache {
+>>  	bool valid;
+>> +	int retry_cnt;
+>>  	struct ib_class_port_info data;
+>>  };
+>>
+>> @@ -75,6 +78,7 @@ struct ib_sa_port {
+>>  	struct ib_sa_sm_ah  *sm_ah;
+>>  	struct work_struct   update_task;
+>>  	struct ib_sa_classport_cache classport_info;
+>> +	struct delayed_work ib_cpi_work;
+>>  	spinlock_t                   classport_lock; /* protects class port info set */
+>>  	spinlock_t           ah_lock;
+>>  	u8                   port_num;
+>> @@ -123,7 +127,7 @@ struct ib_sa_guidinfo_query {
+>>  };
+>>
+>>  struct ib_sa_classport_info_query {
+>> -	void (*callback)(int, struct ib_class_port_info *, void *);
+>> +	void (*callback)(void *);
+>>  	void *context;
+>>  	struct ib_sa_query sa_query;
+>>  };
+>> @@ -1642,7 +1646,41 @@ int ib_sa_guid_info_rec_query(struct ib_sa_client *client,
+>>  }
+>>  EXPORT_SYMBOL(ib_sa_guid_info_rec_query);
+>>
+>> -/* Support get SA ClassPortInfo */
+>> +bool ib_sa_sendonly_fullmem_support(struct ib_sa_client *client,
+>> +				    struct ib_device *device,
+>> +				    u8 port_num)
+>> +{
+>> +	struct ib_sa_device *sa_dev = ib_get_client_data(device, &sa_client);
+>> +	struct ib_sa_port *port;
+>> +	bool ret = false;
+>> +	unsigned long flags;
+>> +
+>> +	if (!sa_dev)
+>> +		return ret;
+>> +
+>> +	port  = &sa_dev->port[port_num - sa_dev->start_port];
+>> +
+>> +	spin_lock_irqsave(&port->classport_lock, flags);
+>> +	if (port->classport_info.valid)
+>> +		ret = ib_get_cpi_capmask2(&port->classport_info.data) &
+>> +			IB_SA_CAP_MASK2_SENDONLY_FULL_MEM_SUPPORT;
+>> +	spin_unlock_irqrestore(&port->classport_lock, flags);
+>> +	return ret;
+>> +}
+>> +EXPORT_SYMBOL(ib_sa_sendonly_fullmem_support);
+>> +
+>> +struct ib_classport_info_context {
+>> +	struct completion	done;
+>> +	struct ib_sa_query	*sa_query;
+>> +};
+>> +
+>> +static void ib_classportinfo_cb(void *context)
+>> +{
+>> +	struct ib_classport_info_context *cb_ctx = context;
+>> +
+>> +	complete(&cb_ctx->done);
+>> +}
+>> +
+>>  static void ib_sa_classport_info_rec_callback(struct ib_sa_query *sa_query,
+>>  					      int status,
+>>  					      struct ib_sa_mad *mad)
+>> @@ -1666,54 +1704,30 @@ static void ib_sa_classport_info_rec_callback(struct ib_sa_query *sa_query,
+>>  			sa_query->port->classport_info.valid = true;
+>>  		}
+>>  		spin_unlock_irqrestore(&sa_query->port->classport_lock, flags);
+>> -
+>> -		query->callback(status, &rec, query->context);
+>> -	} else {
+>> -		query->callback(status, NULL, query->context);
+>>  	}
+>> +	query->callback(query->context);
+>>  }
+>>
+>> -static void ib_sa_portclass_info_rec_release(struct ib_sa_query *sa_query)
+>> +static void ib_sa_classport_info_rec_release(struct ib_sa_query *sa_query)
+>>  {
+>>  	kfree(container_of(sa_query, struct ib_sa_classport_info_query,
+>>  			   sa_query));
+>>  }
+>>
+>> -int ib_sa_classport_info_rec_query(struct ib_sa_client *client,
+>> -				   struct ib_device *device, u8 port_num,
+>> -				   int timeout_ms, gfp_t gfp_mask,
+>> -				   void (*callback)(int status,
+>> -						    struct ib_class_port_info *resp,
+>> -						    void *context),
+>> -				   void *context,
+>> -				   struct ib_sa_query **sa_query)
+>> +static int ib_sa_classport_info_rec_query(struct ib_sa_port *port,
+>> +					  int timeout_ms,
+>> +					  void (*callback)(void *context),
+>> +					  void *context,
+>> +					  struct ib_sa_query **sa_query)
+>>  {
+>> -	struct ib_sa_classport_info_query *query;
+>> -	struct ib_sa_device *sa_dev = ib_get_client_data(device, &sa_client);
+>> -	struct ib_sa_port *port;
+>>  	struct ib_mad_agent *agent;
+>> +	struct ib_sa_classport_info_query *query;
+>>  	struct ib_sa_mad *mad;
+>> -	struct ib_class_port_info cached_class_port_info;
+>> +	gfp_t gfp_mask = GFP_KERNEL;
+>>  	int ret;
+>> -	unsigned long flags;
+>> -
+>> -	if (!sa_dev)
+>> -		return -ENODEV;
+>>
+>> -	port  = &sa_dev->port[port_num - sa_dev->start_port];
+>>  	agent = port->agent;
+>>
+>> -	/* Use cached ClassPortInfo attribute if valid instead of sending mad */
+>> -	spin_lock_irqsave(&port->classport_lock, flags);
+>> -	if (port->classport_info.valid && callback) {
+>> -		memcpy(&cached_class_port_info, &port->classport_info.data,
+>> -		       sizeof(cached_class_port_info));
+>> -		spin_unlock_irqrestore(&port->classport_lock, flags);
+>> -		callback(0, &cached_class_port_info, context);
+>> -		return 0;
+>> -	}
+>> -	spin_unlock_irqrestore(&port->classport_lock, flags);
+>> -
+>>  	query = kzalloc(sizeof(*query), gfp_mask);
+>>  	if (!query)
+>>  		return -ENOMEM;
+>> @@ -1721,20 +1735,16 @@ int ib_sa_classport_info_rec_query(struct ib_sa_client *client,
+>>  	query->sa_query.port = port;
+>>  	ret = alloc_mad(&query->sa_query, gfp_mask);
+>>  	if (ret)
+>> -		goto err1;
+>> +		goto err_free;
+>>
+>> -	ib_sa_client_get(client);
+>> -	query->sa_query.client = client;
+>> -	query->callback        = callback;
+>> -	query->context         = context;
+>> +	query->callback = callback;
+>> +	query->context = context;
+>>
+>>  	mad = query->sa_query.mad_buf->mad;
+>>  	init_mad(mad, agent);
+>>
+>> -	query->sa_query.callback = callback ? ib_sa_classport_info_rec_callback : NULL;
+>> -
+>> -	query->sa_query.release  = ib_sa_portclass_info_rec_release;
+>> -	/* support GET only */
+>> +	query->sa_query.callback = ib_sa_classport_info_rec_callback;
+>> +	query->sa_query.release  = ib_sa_classport_info_rec_release;
+>>  	mad->mad_hdr.method	 = IB_MGMT_METHOD_GET;
+>>  	mad->mad_hdr.attr_id	 = cpu_to_be16(IB_SA_ATTR_CLASS_PORTINFO);
+>>  	mad->sa_hdr.comp_mask	 = 0;
+>> @@ -1742,20 +1752,71 @@ int ib_sa_classport_info_rec_query(struct ib_sa_client *client,
+>>
+>>  	ret = send_mad(&query->sa_query, timeout_ms, gfp_mask);
+>>  	if (ret < 0)
+>> -		goto err2;
+>> +		goto err_free_mad;
+>>
+>>  	return ret;
+>>
+>> -err2:
+>> +err_free_mad:
+>>  	*sa_query = NULL;
+>> -	ib_sa_client_put(query->sa_query.client);
+>>  	free_mad(&query->sa_query);
+>>
+>> -err1:
+>> +err_free:
+>>  	kfree(query);
+>>  	return ret;
+>>  }
+>> -EXPORT_SYMBOL(ib_sa_classport_info_rec_query);
+>> +
+>> +static void update_ib_cpi(struct work_struct *work)
+>> +{
+>> +	struct ib_sa_port *port =
+>> +		container_of(work, struct ib_sa_port, ib_cpi_work.work);
+>> +	struct ib_classport_info_context *cb_context;
+>> +	unsigned long flags;
+>> +	int ret;
+>> +
+>> +	/* If the classport info is valid, nothing
+>> +	 * to do here.
+>> +	 */
+>> +	spin_lock_irqsave(&port->classport_lock, flags);
+>> +	if (port->classport_info.valid) {
+>> +		spin_unlock_irqrestore(&port->classport_lock, flags);
+>> +		return;
+>> +	}
+>> +	spin_unlock_irqrestore(&port->classport_lock, flags);
+>> +
+>> +	cb_context = kmalloc(sizeof(*cb_context), GFP_KERNEL);
+>> +	if (!cb_context)
+>> +		goto err_nomem;
+>> +
+>> +	init_completion(&cb_context->done);
+>> +
+>> +	ret = ib_sa_classport_info_rec_query(port, 3000,
+>> +					     ib_classportinfo_cb, cb_context,
+>> +					     &cb_context->sa_query);
+>> +	if (ret < 0)
+>> +		goto free_cb_err;
+>> +	wait_for_completion(&cb_context->done);
+>> +free_cb_err:
+>> +	kfree(cb_context);
+>> +	spin_lock_irqsave(&port->classport_lock, flags);
+>> +
+>> +	/* If the classport info is still not valid, the query should have
+>> +	 * failed for some reason. Retry issuing the query
+>> +	 */
+>> +	if (!port->classport_info.valid) {
+>> +		port->classport_info.retry_cnt++;
+>> +		if (port->classport_info.retry_cnt <=
+>> +		    IB_SA_CPI_MAX_RETRY_CNT) {
+>> +			unsigned long delay =
+>> +				msecs_to_jiffies(IB_SA_CPI_RETRY_WAIT);
+>> +
+>> +			queue_delayed_work(ib_wq, &port->ib_cpi_work, delay);
+>> +		}
+>> +	}
+>> +	spin_unlock_irqrestore(&port->classport_lock, flags);
+>> +
+>> +err_nomem:
+>> +	return;
+>> +}
+>>
+>>  static void send_handler(struct ib_mad_agent *agent,
+>>  			 struct ib_mad_send_wc *mad_send_wc)
+>> @@ -1784,7 +1845,8 @@ static void send_handler(struct ib_mad_agent *agent,
+>>  	spin_unlock_irqrestore(&idr_lock, flags);
+>>
+>>  	free_mad(query);
+>> -	ib_sa_client_put(query->client);
+>> +	if (query->client)
+>> +		ib_sa_client_put(query->client);
+>>  	query->release(query);
+>>  }
+>>
+>> @@ -1894,6 +1956,19 @@ static void ib_sa_event(struct ib_event_handler *handler,
+>>  			spin_unlock_irqrestore(&port->classport_lock, flags);
+>>  		}
+>>  		queue_work(ib_wq, &sa_dev->port[port_num].update_task);
+>> +
+>> +		/*Query for class port info on a re-reregister event */
+>> +		if ((event->event == IB_EVENT_CLIENT_REREGISTER) ||
+>> +		    (event->event == IB_EVENT_PORT_ACTIVE)) {
+>
+> Since SA CPI is invalidated on SM change and LID change events,
+> shouldn't these events also be included here to retrigger SA CPI query ?
+>
+> -- Hal
+>
+
+It certainly makes sense to trigger them on an SM change event. A LID 
+change doesn't necessarily mean that the SM up and is in a state to 
+respond to a CPI query. In any case, will issue a retrigger on all 
+events that invalidates the cache.
+
+>> +			unsigned long delay =
+>> +				msecs_to_jiffies(IB_SA_CPI_RETRY_WAIT);
+>> +
+>> +			spin_lock_irqsave(&port->classport_lock, flags);
+>> +			port->classport_info.retry_cnt = 0;
+>> +			spin_unlock_irqrestore(&port->classport_lock, flags);
+>> +			queue_delayed_work(ib_wq,
+>> +					   &port->ib_cpi_work, delay);
+>> +		}
+>>  	}
+>>  }
+>>
+>> @@ -1934,6 +2009,8 @@ static void ib_sa_add_one(struct ib_device *device)
+>>  			goto err;
+>>
+>>  		INIT_WORK(&sa_dev->port[i].update_task, update_sm_ah);
+>> +		INIT_DELAYED_WORK(&sa_dev->port[i].ib_cpi_work,
+>> +				  update_ib_cpi);
+>>
+>>  		count++;
+>>  	}
+>> @@ -1980,11 +2057,11 @@ static void ib_sa_remove_one(struct ib_device *device, void *client_data)
+>>  		return;
+>>
+>>  	ib_unregister_event_handler(&sa_dev->event_handler);
+>> -
+>>  	flush_workqueue(ib_wq);
+>>
+>>  	for (i = 0; i <= sa_dev->end_port - sa_dev->start_port; ++i) {
+>>  		if (rdma_cap_ib_sa(device, i + 1)) {
+>> +			cancel_delayed_work_sync(&sa_dev->port[i].ib_cpi_work);
+>>  			ib_unregister_mad_agent(sa_dev->port[i].agent);
+>>  			if (sa_dev->port[i].sm_ah)
+>>  				kref_put(&sa_dev->port[i].sm_ah->ref, free_sm_ah);
+>> diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+>> index bed233b..060e543 100644
+>> --- a/drivers/infiniband/ulp/ipoib/ipoib.h
+>> +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+>> @@ -489,7 +489,6 @@ void ipoib_send(struct net_device *dev, struct sk_buff *skb,
+>>  struct ipoib_path *__path_find(struct net_device *dev, void *gid);
+>>  void ipoib_mark_paths_invalid(struct net_device *dev);
+>>  void ipoib_flush_paths(struct net_device *dev);
+>> -int ipoib_check_sm_sendonly_fullmember_support(struct ipoib_dev_priv *priv);
+>>  struct ipoib_dev_priv *ipoib_intf_alloc(const char *format);
+>>
+>>  int ipoib_ib_dev_init(struct net_device *dev, struct ib_device *ca, int port);
+>> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+>> index 259c59f..1c70ae9 100644
+>> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
+>> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+>> @@ -650,77 +650,6 @@ void ipoib_mark_paths_invalid(struct net_device *dev)
+>>  	spin_unlock_irq(&priv->lock);
+>>  }
+>>
+>> -struct classport_info_context {
+>> -	struct ipoib_dev_priv	*priv;
+>> -	struct completion	done;
+>> -	struct ib_sa_query	*sa_query;
+>> -};
+>> -
+>> -static void classport_info_query_cb(int status, struct ib_class_port_info *rec,
+>> -				    void *context)
+>> -{
+>> -	struct classport_info_context *cb_ctx = context;
+>> -	struct ipoib_dev_priv *priv;
+>> -
+>> -	WARN_ON(!context);
+>> -
+>> -	priv = cb_ctx->priv;
+>> -
+>> -	if (status || !rec) {
+>> -		pr_debug("device: %s failed query classport_info status: %d\n",
+>> -			 priv->dev->name, status);
+>> -		/* keeps the default, will try next mcast_restart */
+>> -		priv->sm_fullmember_sendonly_support = false;
+>> -		goto out;
+>> -	}
+>> -
+>> -	if (ib_get_cpi_capmask2(rec) &
+>> -	    IB_SA_CAP_MASK2_SENDONLY_FULL_MEM_SUPPORT) {
+>> -		pr_debug("device: %s enabled fullmember-sendonly for sendonly MCG\n",
+>> -			 priv->dev->name);
+>> -		priv->sm_fullmember_sendonly_support = true;
+>> -	} else {
+>> -		pr_debug("device: %s disabled fullmember-sendonly for sendonly MCG\n",
+>> -			 priv->dev->name);
+>> -		priv->sm_fullmember_sendonly_support = false;
+>> -	}
+>> -
+>> -out:
+>> -	complete(&cb_ctx->done);
+>> -}
+>> -
+>> -int ipoib_check_sm_sendonly_fullmember_support(struct ipoib_dev_priv *priv)
+>> -{
+>> -	struct classport_info_context *callback_context;
+>> -	int ret;
+>> -
+>> -	callback_context = kmalloc(sizeof(*callback_context), GFP_KERNEL);
+>> -	if (!callback_context)
+>> -		return -ENOMEM;
+>> -
+>> -	callback_context->priv = priv;
+>> -	init_completion(&callback_context->done);
+>> -
+>> -	ret = ib_sa_classport_info_rec_query(&ipoib_sa_client,
+>> -					     priv->ca, priv->port, 3000,
+>> -					     GFP_KERNEL,
+>> -					     classport_info_query_cb,
+>> -					     callback_context,
+>> -					     &callback_context->sa_query);
+>> -	if (ret < 0) {
+>> -		pr_info("%s failed to send ib_sa_classport_info query, ret: %d\n",
+>> -			priv->dev->name, ret);
+>> -		kfree(callback_context);
+>> -		return ret;
+>> -	}
+>> -
+>> -	/* waiting for the callback to finish before returnning */
+>> -	wait_for_completion(&callback_context->done);
+>> -	kfree(callback_context);
+>> -
+>> -	return ret;
+>> -}
+>> -
+>>  static void push_pseudo_header(struct sk_buff *skb, const char *daddr)
+>>  {
+>>  	struct ipoib_pseudo_header *phdr;
+>> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+>> index 69e146c..3e3a84f 100644
+>> --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+>> +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+>> @@ -331,7 +331,6 @@ void ipoib_mcast_carrier_on_task(struct work_struct *work)
+>>  	struct ipoib_dev_priv *priv = container_of(work, struct ipoib_dev_priv,
+>>  						   carrier_on_task);
+>>  	struct ib_port_attr attr;
+>> -	int ret;
+>>
+>>  	if (ib_query_port(priv->ca, priv->port, &attr) ||
+>>  	    attr.state != IB_PORT_ACTIVE) {
+>> @@ -344,11 +343,9 @@ void ipoib_mcast_carrier_on_task(struct work_struct *work)
+>>  	 * because the broadcast group must always be joined first and is always
+>>  	 * re-joined if the SM changes substantially.
+>>  	 */
+>> -	ret = ipoib_check_sm_sendonly_fullmember_support(priv);
+>> -	if (ret < 0)
+>> -		pr_debug("%s failed query sm support for sendonly-fullmember (ret: %d)\n",
+>> -			 priv->dev->name, ret);
+>> -
+>> +	priv->sm_fullmember_sendonly_support =
+>> +		ib_sa_sendonly_fullmem_support(&ipoib_sa_client,
+>> +					       priv->ca, priv->port);
+>>  	/*
+>>  	 * Take rtnl_lock to avoid racing with ipoib_stop() and
+>>  	 * turning the carrier back on while a device is being
+>> diff --git a/include/rdma/ib_sa.h b/include/rdma/ib_sa.h
+>> index fd0e532..46838c8 100644
+>> --- a/include/rdma/ib_sa.h
+>> +++ b/include/rdma/ib_sa.h
+>> @@ -454,14 +454,8 @@ int ib_sa_guid_info_rec_query(struct ib_sa_client *client,
+>>  			      void *context,
+>>  			      struct ib_sa_query **sa_query);
+>>
+>> -/* Support get SA ClassPortInfo */
+>> -int ib_sa_classport_info_rec_query(struct ib_sa_client *client,
+>> -				   struct ib_device *device, u8 port_num,
+>> -				   int timeout_ms, gfp_t gfp_mask,
+>> -				   void (*callback)(int status,
+>> -						    struct ib_class_port_info *resp,
+>> -						    void *context),
+>> -				   void *context,
+>> -				   struct ib_sa_query **sa_query);
+>> +bool ib_sa_sendonly_fullmem_support(struct ib_sa_client *client,
+>> +				    struct ib_device *device,
+>> +				    u8 port_num);
+>>
+>>  #endif /* IB_SA_H */
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
