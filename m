@@ -1,303 +1,205 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 12/14] svcrdma: Remove the req_map cache
-Date: Thu, 16 Mar 2017 11:54:03 -0400
-Message-ID: <20170316155403.4482.2040.stgit@klimt.1015granger.net>
-References: <20170316154132.4482.56769.stgit@klimt.1015granger.net>
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [rdma-core v3 8/9] libbnxt_re: Add support for atomic operations
+Date: Thu, 16 Mar 2017 21:24:16 +0530
+Message-ID: <CANjDDBjGCCc8MLLQ3jhToWyc0Z+Qm3pYejz3BrMrRketDdZbEw@mail.gmail.com>
+References: <1489574253-20300-1-git-send-email-devesh.sharma@broadcom.com>
+ <1489574253-20300-9-git-send-email-devesh.sharma@broadcom.com> <20170315191515.GH2079@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170316154132.4482.56769.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170315191515.GH2079-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-req_maps are no longer used by the send path and can thus be removed.
+On Thu, Mar 16, 2017 at 12:45 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> On Wed, Mar 15, 2017 at 06:37:32AM -0400, Devesh Sharma wrote:
+>> This patch adds support for compare-and-swap and fetch-and-add
+>> atomic operations in user library.
+>>
+>> v1->v2
+>>  -- Fixed the missing "break"
+>>  -- Changed macros to inline function
+>>
+>> Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+>> Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+>> Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+>> Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+>> ---
+>>  providers/bnxt_re/bnxt_re-abi.h |  3 ++-
+>>  providers/bnxt_re/main.h        |  8 +++++-
+>>  providers/bnxt_re/memory.h      | 10 +++++++
+>>  providers/bnxt_re/verbs.c       | 58 +++++++++++++++++++++++++++++++++++------
+>>  4 files changed, 69 insertions(+), 10 deletions(-)
+>>
+>> diff --git a/providers/bnxt_re/bnxt_re-abi.h b/providers/bnxt_re/bnxt_re-abi.h
+>> index 581e1b7..557221b 100644
+>> --- a/providers/bnxt_re/bnxt_re-abi.h
+>> +++ b/providers/bnxt_re/bnxt_re-abi.h
+>> @@ -54,7 +54,8 @@ enum bnxt_re_wr_opcode {
+>>       BNXT_RE_WR_OPCD_ATOMIC_FA       = 0x0B,
+>>       BNXT_RE_WR_OPCD_LOC_INVAL       = 0x0C,
+>>       BNXT_RE_WR_OPCD_BIND            = 0x0E,
+>> -     BNXT_RE_WR_OPCD_RECV            = 0x80
+>> +     BNXT_RE_WR_OPCD_RECV            = 0x80,
+>> +     BNXT_RE_WR_OPCD_INVAL           = 0xFF
+>>  };
+>>
+>>  enum bnxt_re_wr_flags {
+>> diff --git a/providers/bnxt_re/main.h b/providers/bnxt_re/main.h
+>> index 9d99c64..a417328 100644
+>> --- a/providers/bnxt_re/main.h
+>> +++ b/providers/bnxt_re/main.h
+>> @@ -236,9 +236,15 @@ static inline uint8_t bnxt_re_ibv_to_bnxt_wr_opcd(uint8_t ibv_opcd)
+>>       case IBV_WR_RDMA_READ:
+>>               bnxt_opcd = BNXT_RE_WR_OPCD_RDMA_READ;
+>>               break;
+>> +     case IBV_WR_ATOMIC_CMP_AND_SWP:
+>> +             bnxt_opcd = BNXT_RE_WR_OPCD_ATOMIC_CS;
+>> +             break;
+>> +     case IBV_WR_ATOMIC_FETCH_AND_ADD:
+>> +             bnxt_opcd = BNXT_RE_WR_OPCD_ATOMIC_FA;
+>> +             break;
+>>               /* TODO: Add other opcodes */
+>>       default:
+>> -             bnxt_opcd = 0xFF;
+>> +             bnxt_opcd = BNXT_RE_WR_OPCD_INVAL;
+>>               break;
+>>       };
+>>
+>> diff --git a/providers/bnxt_re/memory.h b/providers/bnxt_re/memory.h
+>> index debb31a..d7e6a92 100644
+>> --- a/providers/bnxt_re/memory.h
+>> +++ b/providers/bnxt_re/memory.h
+>> @@ -83,6 +83,16 @@ static inline void iowrite32(__u32 *dst, uint32_t *src)
+>>       *(volatile __u32 *)dst = *src;
+>>  }
+>>
+>> +static inline __u32 upper_32_bits(uint64_t n)
+>> +{
+>> +     return (__u32)((n >> 16) >> 16);
+>> +}
+>> +
+>> +static inline __u32 lower_32_bits(uint64_t n)
+>> +{
+>> +     return (__u32)(n & 0xFFFFFFFFUL);
+>> +}
+>> +
+>>  /* Basic queue operation */
+>>  static inline uint32_t bnxt_re_is_que_full(struct bnxt_re_queue *que)
+>>  {
+>> diff --git a/providers/bnxt_re/verbs.c b/providers/bnxt_re/verbs.c
+>> index e60010d..85d77cd 100644
+>> --- a/providers/bnxt_re/verbs.c
+>> +++ b/providers/bnxt_re/verbs.c
+>> @@ -1068,6 +1068,9 @@ static int bnxt_re_build_send_sqe(struct bnxt_re_qp *qp, void *wqe,
+>>
+>>       /* Fill Header */
+>>       opcode = bnxt_re_ibv_to_bnxt_wr_opcd(wr->opcode);
+>> +     if (opcode == BNXT_RE_WR_OPCD_INVAL)
+>> +             return -EINVAL;
+>> +
+>>       hdr->rsv_ws_fl_wt |= (opcode & BNXT_RE_HDR_WT_MASK);
+>>
+>>       if (is_inline) {
+>> @@ -1116,6 +1119,44 @@ static int bnxt_re_build_rdma_sqe(struct bnxt_re_qp *qp, void *wqe,
+>>       return len;
+>>  }
+>>
+>> +static int bnxt_re_build_cns_sqe(struct bnxt_re_qp *qp, void *wqe,
+>> +                              struct ibv_send_wr *wr)
+>> +{
+>> +     struct bnxt_re_bsqe *hdr = wqe;
+>> +     struct bnxt_re_atomic *sqe = ((void *)wqe +
+>> +                                   sizeof(struct bnxt_re_bsqe));
+>> +     int len;
+>> +
+>> +     len = bnxt_re_build_send_sqe(qp, wqe, wr, false);
+>> +     hdr->key_immd = wr->wr.atomic.rkey;
+>> +     sqe->rva_lo = lower_32_bits(wr->wr.atomic.remote_addr);
+>> +     sqe->rva_hi = upper_32_bits(wr->wr.atomic.remote_addr);
+>> +     sqe->cmp_dt_lo = lower_32_bits(wr->wr.atomic.compare_add);
+>> +     sqe->cmp_dt_hi = upper_32_bits(wr->wr.atomic.compare_add);
+>> +     sqe->swp_dt_lo = lower_32_bits(wr->wr.atomic.swap);
+>> +     sqe->swp_dt_hi = upper_32_bits(wr->wr.atomic.swap);
+>> +
+>
+> Sorry for my question, but why do you need to separate uint64_t variable
+> to two __u32? Why can't you declare one __u64?
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- include/linux/sunrpc/svc_rdma.h          |   34 ------------
- net/sunrpc/xprtrdma/svc_rdma_sendto.c    |   68 ------------------------
- net/sunrpc/xprtrdma/svc_rdma_transport.c |   84 ------------------------------
- 3 files changed, 1 insertion(+), 185 deletions(-)
+It may help 32 bit CPU during byte order conversion.
 
-diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
-index e526c55..7b1f886 100644
---- a/include/linux/sunrpc/svc_rdma.h
-+++ b/include/linux/sunrpc/svc_rdma.h
-@@ -96,23 +96,6 @@ struct svc_rdma_op_ctxt {
- 	struct page *pages[RPCSVC_MAXPAGES];
- };
- 
--/*
-- * NFS_ requests are mapped on the client side by the chunk lists in
-- * the RPCRDMA header. During the fetching of the RPC from the client
-- * and the writing of the reply to the client, the memory in the
-- * client and the memory in the server must be mapped as contiguous
-- * vaddr/len for access by the hardware. These data strucures keep
-- * these mappings.
-- *
-- * For an RDMA_WRITE, the 'sge' maps the RPC REPLY. For RDMA_READ, the
-- * 'sge' in the svc_rdma_req_map maps the server side RPC reply and the
-- * 'ch' field maps the read-list of the RPCRDMA header to the 'sge'
-- * mapping of the reply.
-- */
--struct svc_rdma_chunk_sge {
--	int start;		/* sge no for this chunk */
--	int count;		/* sge count for this chunk */
--};
- struct svc_rdma_fastreg_mr {
- 	struct ib_mr *mr;
- 	struct scatterlist *sg;
-@@ -121,15 +104,7 @@ struct svc_rdma_fastreg_mr {
- 	enum dma_data_direction direction;
- 	struct list_head frmr_list;
- };
--struct svc_rdma_req_map {
--	struct list_head free;
--	unsigned long count;
--	union {
--		struct kvec sge[RPCSVC_MAXPAGES];
--		struct svc_rdma_chunk_sge ch[RPCSVC_MAXPAGES];
--		unsigned long lkey[RPCSVC_MAXPAGES];
--	};
--};
-+
- #define RDMACTXT_F_LAST_CTXT	2
- 
- #define	SVCRDMA_DEVCAP_FAST_REG		1	/* fast mr registration */
-@@ -160,8 +135,6 @@ struct svcxprt_rdma {
- 	int		     sc_ctxt_used;
- 	spinlock_t	     sc_rw_ctxt_lock;
- 	struct list_head     sc_rw_ctxts;
--	spinlock_t	     sc_map_lock;
--	struct list_head     sc_maps;
- 
- 	struct list_head     sc_rq_dto_q;
- 	spinlock_t	     sc_rq_dto_lock;
-@@ -247,8 +220,6 @@ extern int svc_rdma_send_reply_chunk(struct svcxprt_rdma *rdma,
- 				     __be32 *rdma_resp, struct xdr_buf *xdr);
- 
- /* svc_rdma_sendto.c */
--extern int svc_rdma_map_xdr(struct svcxprt_rdma *, struct xdr_buf *,
--			    struct svc_rdma_req_map *, bool);
- extern int svc_rdma_map_reply_hdr(struct svcxprt_rdma *rdma,
- 				  struct svc_rdma_op_ctxt *ctxt,
- 				  __be32 *rdma_resp, unsigned int len);
-@@ -268,9 +239,6 @@ extern void svc_rdma_build_send_wr(struct svc_rdma_op_ctxt *ctxt,
- extern struct svc_rdma_op_ctxt *svc_rdma_get_context(struct svcxprt_rdma *);
- extern void svc_rdma_put_context(struct svc_rdma_op_ctxt *, int);
- extern void svc_rdma_unmap_dma(struct svc_rdma_op_ctxt *ctxt);
--extern struct svc_rdma_req_map *svc_rdma_get_req_map(struct svcxprt_rdma *);
--extern void svc_rdma_put_req_map(struct svcxprt_rdma *,
--				 struct svc_rdma_req_map *);
- extern struct svc_rdma_fastreg_mr *svc_rdma_get_frmr(struct svcxprt_rdma *);
- extern void svc_rdma_put_frmr(struct svcxprt_rdma *,
- 			      struct svc_rdma_fastreg_mr *);
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-index 489e602..022569c 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-@@ -113,74 +113,6 @@ static u32 xdr_padsize(u32 len)
- 	return (len & 3) ? (4 - (len & 3)) : 0;
- }
- 
--int svc_rdma_map_xdr(struct svcxprt_rdma *xprt,
--		     struct xdr_buf *xdr,
--		     struct svc_rdma_req_map *vec,
--		     bool write_chunk_present)
--{
--	int sge_no;
--	u32 sge_bytes;
--	u32 page_bytes;
--	u32 page_off;
--	int page_no;
--
--	if (xdr->len !=
--	    (xdr->head[0].iov_len + xdr->page_len + xdr->tail[0].iov_len)) {
--		pr_err("svcrdma: %s: XDR buffer length error\n", __func__);
--		return -EIO;
--	}
--
--	/* Skip the first sge, this is for the RPCRDMA header */
--	sge_no = 1;
--
--	/* Head SGE */
--	vec->sge[sge_no].iov_base = xdr->head[0].iov_base;
--	vec->sge[sge_no].iov_len = xdr->head[0].iov_len;
--	sge_no++;
--
--	/* pages SGE */
--	page_no = 0;
--	page_bytes = xdr->page_len;
--	page_off = xdr->page_base;
--	while (page_bytes) {
--		vec->sge[sge_no].iov_base =
--			page_address(xdr->pages[page_no]) + page_off;
--		sge_bytes = min_t(u32, page_bytes, (PAGE_SIZE - page_off));
--		page_bytes -= sge_bytes;
--		vec->sge[sge_no].iov_len = sge_bytes;
--
--		sge_no++;
--		page_no++;
--		page_off = 0; /* reset for next time through loop */
--	}
--
--	/* Tail SGE */
--	if (xdr->tail[0].iov_len) {
--		unsigned char *base = xdr->tail[0].iov_base;
--		size_t len = xdr->tail[0].iov_len;
--		u32 xdr_pad = xdr_padsize(xdr->page_len);
--
--		if (write_chunk_present && xdr_pad) {
--			base += xdr_pad;
--			len -= xdr_pad;
--		}
--
--		if (len) {
--			vec->sge[sge_no].iov_base = base;
--			vec->sge[sge_no].iov_len = len;
--			sge_no++;
--		}
--	}
--
--	dprintk("svcrdma: %s: sge_no %d page_no %d "
--		"page_base %u page_len %u head_len %zu tail_len %zu\n",
--		__func__, sge_no, page_no, xdr->page_base, xdr->page_len,
--		xdr->head[0].iov_len, xdr->tail[0].iov_len);
--
--	vec->count = sge_no;
--	return 0;
--}
--
- /* Parse the RPC Call's transport header.
-  */
- static void svc_rdma_get_write_arrays(__be32 *rdma_argp,
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-index 8ce68bf..9176a35 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -271,85 +271,6 @@ static void svc_rdma_destroy_ctxts(struct svcxprt_rdma *xprt)
- 	}
- }
- 
--static struct svc_rdma_req_map *alloc_req_map(gfp_t flags)
--{
--	struct svc_rdma_req_map *map;
--
--	map = kmalloc(sizeof(*map), flags);
--	if (map)
--		INIT_LIST_HEAD(&map->free);
--	return map;
--}
--
--static bool svc_rdma_prealloc_maps(struct svcxprt_rdma *xprt)
--{
--	unsigned int i;
--
--	/* One for each receive buffer on this connection. */
--	i = xprt->sc_max_requests;
--
--	while (i--) {
--		struct svc_rdma_req_map *map;
--
--		map = alloc_req_map(GFP_KERNEL);
--		if (!map) {
--			dprintk("svcrdma: No memory for request map\n");
--			return false;
--		}
--		list_add(&map->free, &xprt->sc_maps);
--	}
--	return true;
--}
--
--struct svc_rdma_req_map *svc_rdma_get_req_map(struct svcxprt_rdma *xprt)
--{
--	struct svc_rdma_req_map *map = NULL;
--
--	spin_lock(&xprt->sc_map_lock);
--	if (list_empty(&xprt->sc_maps))
--		goto out_empty;
--
--	map = list_first_entry(&xprt->sc_maps,
--			       struct svc_rdma_req_map, free);
--	list_del_init(&map->free);
--	spin_unlock(&xprt->sc_map_lock);
--
--out:
--	map->count = 0;
--	return map;
--
--out_empty:
--	spin_unlock(&xprt->sc_map_lock);
--
--	/* Pre-allocation amount was incorrect */
--	map = alloc_req_map(GFP_NOIO);
--	if (map)
--		goto out;
--
--	WARN_ONCE(1, "svcrdma: empty request map list?\n");
--	return NULL;
--}
--
--void svc_rdma_put_req_map(struct svcxprt_rdma *xprt,
--			  struct svc_rdma_req_map *map)
--{
--	spin_lock(&xprt->sc_map_lock);
--	list_add(&map->free, &xprt->sc_maps);
--	spin_unlock(&xprt->sc_map_lock);
--}
--
--static void svc_rdma_destroy_maps(struct svcxprt_rdma *xprt)
--{
--	while (!list_empty(&xprt->sc_maps)) {
--		struct svc_rdma_req_map *map;
--
--		map = list_first_entry(&xprt->sc_maps,
--				       struct svc_rdma_req_map, free);
--		list_del(&map->free);
--		kfree(map);
--	}
--}
--
- /* QP event handler */
- static void qp_event_handler(struct ib_event *event, void *context)
- {
-@@ -543,7 +464,6 @@ static struct svcxprt_rdma *rdma_create_xprt(struct svc_serv *serv,
- 	INIT_LIST_HEAD(&cma_xprt->sc_frmr_q);
- 	INIT_LIST_HEAD(&cma_xprt->sc_ctxts);
- 	INIT_LIST_HEAD(&cma_xprt->sc_rw_ctxts);
--	INIT_LIST_HEAD(&cma_xprt->sc_maps);
- 	init_waitqueue_head(&cma_xprt->sc_send_wait);
- 
- 	spin_lock_init(&cma_xprt->sc_lock);
-@@ -551,7 +471,6 @@ static struct svcxprt_rdma *rdma_create_xprt(struct svc_serv *serv,
- 	spin_lock_init(&cma_xprt->sc_frmr_q_lock);
- 	spin_lock_init(&cma_xprt->sc_ctxt_lock);
- 	spin_lock_init(&cma_xprt->sc_rw_ctxt_lock);
--	spin_lock_init(&cma_xprt->sc_map_lock);
- 
- 	/*
- 	 * Note that this implies that the underlying transport support
-@@ -1003,8 +922,6 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 
- 	if (!svc_rdma_prealloc_ctxts(newxprt))
- 		goto errout;
--	if (!svc_rdma_prealloc_maps(newxprt))
--		goto errout;
- 
- 	/*
- 	 * Limit ORD based on client limit, local device limit, and
-@@ -1236,7 +1153,6 @@ static void __svc_rdma_free(struct work_struct *work)
- 	rdma_dealloc_frmr_q(rdma);
- 	svc_rdma_destroy_rw_ctxts(rdma);
- 	svc_rdma_destroy_ctxts(rdma);
--	svc_rdma_destroy_maps(rdma);
- 
- 	/* Destroy the QP if present (not a listener) */
- 	if (rdma->sc_qp && !IS_ERR(rdma->sc_qp))
-
+>
+>> +     return len;
+>> +}
+>> +
+>> +static int bnxt_re_build_fna_sqe(struct bnxt_re_qp *qp, void *wqe,
+>> +                              struct ibv_send_wr *wr)
+>> +{
+>> +     struct bnxt_re_bsqe *hdr = wqe;
+>> +     struct bnxt_re_atomic *sqe = ((void *)wqe +
+>> +                                   sizeof(struct bnxt_re_bsqe));
+>> +     int len;
+>> +
+>> +     len = bnxt_re_build_send_sqe(qp, wqe, wr, false);
+>> +     hdr->key_immd = wr->wr.atomic.rkey;
+>> +     sqe->rva_lo = lower_32_bits(wr->wr.atomic.remote_addr);
+>> +     sqe->rva_hi = upper_32_bits(wr->wr.atomic.remote_addr);
+>> +     sqe->cmp_dt_lo = lower_32_bits(wr->wr.atomic.compare_add);
+>> +     sqe->cmp_dt_hi = upper_32_bits(wr->wr.atomic.compare_add);
+>> +
+>> +     return len;
+>> +}
+>> +
+>>  int bnxt_re_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+>>                     struct ibv_send_wr **bad)
+>>  {
+>> @@ -1169,27 +1210,28 @@ int bnxt_re_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+>>                       else
+>>                               bytes = bnxt_re_build_send_sqe(qp, sqe, wr,
+>>                                                              is_inline);
+>> -                     if (bytes < 0)
+>> -                             ret = (bytes == -EINVAL) ? EINVAL : ENOMEM;
+>>                       break;
+>>               case IBV_WR_RDMA_WRITE_WITH_IMM:
+>>                       hdr->key_immd = wr->imm_data;
+>>               case IBV_WR_RDMA_WRITE:
+>>                       bytes = bnxt_re_build_rdma_sqe(qp, sqe, wr, is_inline);
+>> -                     if (bytes < 0)
+>> -                             ret = ENOMEM;
+>>                       break;
+>>               case IBV_WR_RDMA_READ:
+>>                       bytes = bnxt_re_build_rdma_sqe(qp, sqe, wr, false);
+>> -                     if (bytes < 0)
+>> -                             ret = ENOMEM;
+>> +                     break;
+>> +             case IBV_WR_ATOMIC_CMP_AND_SWP:
+>> +                     bytes = bnxt_re_build_cns_sqe(qp, sqe, wr);
+>> +                     break;
+>> +             case IBV_WR_ATOMIC_FETCH_AND_ADD:
+>> +                     bytes = bnxt_re_build_fna_sqe(qp, sqe, wr);
+>>                       break;
+>>               default:
+>> -                     ret = EINVAL;
+>> +                     bytes = -EINVAL;
+>>                       break;
+>>               }
+>>
+>> -             if (ret) {
+>> +             if (bytes < 0) {
+>> +                     ret = (bytes == -EINVAL) ? EINVAL : ENOMEM;
+>>                       *bad = wr;
+>>                       break;
+>>               }
+>> --
+>> 1.8.3.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
