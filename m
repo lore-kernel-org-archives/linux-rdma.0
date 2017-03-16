@@ -1,94 +1,58 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Subject: Re: [PATCH rdma-core 4/6] rdmacm: Use C11 stdatomic for all atomics
-Date: Wed, 15 Mar 2017 17:18:37 -0600
-Message-ID: <20170315231837.GA23082@obsidianresearch.com>
+Date: Thu, 16 Mar 2017 01:04:49 +0000
+Message-ID: <1489626275.3542.1.camel@sandisk.com>
 References: <1489615927-12117-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1489615927-12117-5-git-send-email-jgunthorpe@obsidianresearch.com>
- <1489618538.2660.14.camel@sandisk.com>
+         <1489615927-12117-5-git-send-email-jgunthorpe@obsidianresearch.com>
+         <1489618538.2660.14.camel@sandisk.com>
+         <20170315231837.GA23082@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1489618538.2660.14.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20170315231837.GA23082-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Content-ID: <A534D10AE408A849827DD1E57900E83F-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+To: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 15, 2017 at 10:55:52PM +0000, Bart Van Assche wrote:
-> On Wed, 2017-03-15 at 16:12 -0600, Jason Gunthorpe wrote:
-> > @@ -1013,7 +1012,7 @@ int close(int socket)
-> >  			return ret;
-> >  	}
-> >  
-> > -	if (atomic_dec(&fdi->refcnt))
-> > +	if (atomic_fetch_sub(&fdi->refcnt, 1))
-> >  		return 0;
-> >  
-> >  	idm_clear(&idm, socket);
-> > @@ -898,7 +898,7 @@ static int rs_create_ep(struct rsocket *rs)
-> >  
-> >  static void rs_release_iomap_mr(struct rs_iomap_mr *iomr)
-> >  {
-> > -	if (atomic_dec(&iomr->refcnt))
-> > +	if (atomic_fetch_sub(&iomr->refcnt, 1))
-> >  		return;
-> >  
-> >  	dlist_remove(&iomr->entry);
-> 
-> Hello Jason,
-> 
-> In the gcc documentation I read that __sync_sub_and_fetch() (used to
-> implement atomic_dec()) returns the new value. In the C11 standard I read
-> that atomic_fetch_sub() returns the old value. Do you agree with this?
-
-Indeed, you are right, I will sqush in this patch, thanks
-
-diff --git a/librdmacm/cma.h b/librdmacm/cma.h
-index 645d1e43576279..2f5f86cf498918 100644
---- a/librdmacm/cma.h
-+++ b/librdmacm/cma.h
-@@ -69,12 +69,12 @@ static inline void fastlock_destroy(fastlock_t *lock)
- }
- static inline void fastlock_acquire(fastlock_t *lock)
- {
--	if (atomic_fetch_add(&lock->cnt, 1) > 1)
-+	if (atomic_fetch_add(&lock->cnt, 1) > 0)
- 		sem_wait(&lock->sem);
- }
- static inline void fastlock_release(fastlock_t *lock)
- {
--	if (atomic_fetch_sub(&lock->cnt, 1) > 0)
-+	if (atomic_fetch_sub(&lock->cnt, 1) > 1)
- 		sem_post(&lock->sem);
- }
- 
-diff --git a/librdmacm/preload.c b/librdmacm/preload.c
-index bd1bcb1d701015..82cb0c03850b05 100644
---- a/librdmacm/preload.c
-+++ b/librdmacm/preload.c
-@@ -1012,7 +1012,7 @@ int close(int socket)
- 			return ret;
- 	}
- 
--	if (atomic_fetch_sub(&fdi->refcnt, 1))
-+	if (atomic_fetch_sub(&fdi->refcnt, 1) != 1)
- 		return 0;
- 
- 	idm_clear(&idm, socket);
-diff --git a/librdmacm/rsocket.c b/librdmacm/rsocket.c
-index 4fbe7aaa938610..9a71035fbeed8b 100644
---- a/librdmacm/rsocket.c
-+++ b/librdmacm/rsocket.c
-@@ -898,7 +898,7 @@ static int rs_create_ep(struct rsocket *rs)
- 
- static void rs_release_iomap_mr(struct rs_iomap_mr *iomr)
- {
--	if (atomic_fetch_sub(&iomr->refcnt, 1))
-+	if (atomic_fetch_sub(&iomr->refcnt, 1) != 1)
- 		return;
- 
- 	dlist_remove(&iomr->entry);
+T24gV2VkLCAyMDE3LTAzLTE1IGF0IDE3OjE4IC0wNjAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+IEluZGVlZCwgeW91IGFyZSByaWdodCwgSSB3aWxsIHNxdXNoIGluIHRoaXMgcGF0Y2gsIHRo
+YW5rcw0KPiANCj4gZGlmZiAtLWdpdCBhL2xpYnJkbWFjbS9jbWEuaCBiL2xpYnJkbWFjbS9jbWEu
+aA0KPiBpbmRleCA2NDVkMWU0MzU3NjI3OS4uMmY1Zjg2Y2Y0OTg5MTggMTAwNjQ0DQo+IC0tLSBh
+L2xpYnJkbWFjbS9jbWEuaA0KPiArKysgYi9saWJyZG1hY20vY21hLmgNCj4gQEAgLTY5LDEyICs2
+OSwxMiBAQCBzdGF0aWMgaW5saW5lIHZvaWQgZmFzdGxvY2tfZGVzdHJveShmYXN0bG9ja190ICps
+b2NrKQ0KPiAgfQ0KPiAgc3RhdGljIGlubGluZSB2b2lkIGZhc3Rsb2NrX2FjcXVpcmUoZmFzdGxv
+Y2tfdCAqbG9jaykNCj4gIHsNCj4gLQlpZiAoYXRvbWljX2ZldGNoX2FkZCgmbG9jay0+Y250LCAx
+KSA+IDEpDQo+ICsJaWYgKGF0b21pY19mZXRjaF9hZGQoJmxvY2stPmNudCwgMSkgPiAwKQ0KPiAg
+CQlzZW1fd2FpdCgmbG9jay0+c2VtKTsNCj4gIH0NCj4gIHN0YXRpYyBpbmxpbmUgdm9pZCBmYXN0
+bG9ja19yZWxlYXNlKGZhc3Rsb2NrX3QgKmxvY2spDQo+ICB7DQo+IC0JaWYgKGF0b21pY19mZXRj
+aF9zdWIoJmxvY2stPmNudCwgMSkgPiAwKQ0KPiArCWlmIChhdG9taWNfZmV0Y2hfc3ViKCZsb2Nr
+LT5jbnQsIDEpID4gMSkNCj4gIAkJc2VtX3Bvc3QoJmxvY2stPnNlbSk7DQo+ICB9DQo+ICANCj4g
+ZGlmZiAtLWdpdCBhL2xpYnJkbWFjbS9wcmVsb2FkLmMgYi9saWJyZG1hY20vcHJlbG9hZC5jDQo+
+IGluZGV4IGJkMWJjYjFkNzAxMDE1Li44MmNiMGMwMzg1MGIwNSAxMDA2NDQNCj4gLS0tIGEvbGli
+cmRtYWNtL3ByZWxvYWQuYw0KPiArKysgYi9saWJyZG1hY20vcHJlbG9hZC5jDQo+IEBAIC0xMDEy
+LDcgKzEwMTIsNyBAQCBpbnQgY2xvc2UoaW50IHNvY2tldCkNCj4gIAkJCXJldHVybiByZXQ7DQo+
+ICAJfQ0KPiAgDQo+IC0JaWYgKGF0b21pY19mZXRjaF9zdWIoJmZkaS0+cmVmY250LCAxKSkNCj4g
+KwlpZiAoYXRvbWljX2ZldGNoX3N1YigmZmRpLT5yZWZjbnQsIDEpICE9IDEpDQo+ICAJCXJldHVy
+biAwOw0KPiAgDQo+ICAJaWRtX2NsZWFyKCZpZG0sIHNvY2tldCk7DQo+IGRpZmYgLS1naXQgYS9s
+aWJyZG1hY20vcnNvY2tldC5jIGIvbGlicmRtYWNtL3Jzb2NrZXQuYw0KPiBpbmRleCA0ZmJlN2Fh
+YTkzODYxMC4uOWE3MTAzNWZiZWVkOGIgMTAwNjQ0DQo+IC0tLSBhL2xpYnJkbWFjbS9yc29ja2V0
+LmMNCj4gKysrIGIvbGlicmRtYWNtL3Jzb2NrZXQuYw0KPiBAQCAtODk4LDcgKzg5OCw3IEBAIHN0
+YXRpYyBpbnQgcnNfY3JlYXRlX2VwKHN0cnVjdCByc29ja2V0ICpycykNCj4gIA0KPiAgc3RhdGlj
+IHZvaWQgcnNfcmVsZWFzZV9pb21hcF9tcihzdHJ1Y3QgcnNfaW9tYXBfbXIgKmlvbXIpDQo+ICB7
+DQo+IC0JaWYgKGF0b21pY19mZXRjaF9zdWIoJmlvbXItPnJlZmNudCwgMSkpDQo+ICsJaWYgKGF0
+b21pY19mZXRjaF9zdWIoJmlvbXItPnJlZmNudCwgMSkgIT0gMSkNCj4gIAkJcmV0dXJuOw0KPiAg
+DQo+ICAJZGxpc3RfcmVtb3ZlKCZpb21yLT5lbnRyeSk7DQoNCkhlbGxvIEphc29uLA0KDQpIYXZl
+IHlvdSBjb25zaWRlcmVkIHRvIGludHJvZHVjZSBzb21ldGhpbmcgbGlrZSB0aGUgZnVuY3Rpb24g
+YmVsb3c/IEkgdGhpbmsNCnRoYXQgd291bGQgbWFrZSB0aGUgY2hhbmdlcyBzbWFsbGVyIGFuZCBo
+ZW5jZSBlYXNpZXIgdG8gcmV2aWV3Lg0KDQpzdGF0aWMgaW5saW5lIGludCBhdG9taWNfYWRkX2Zl
+dGNoKF9BdG9taWMoaW50KSAqYSwgaW50IGFyZykNCnsNCglyZXR1cm4gYXRvbWljX2ZldGNoX2Fk
+ZChhLCBhcmcpICsgYXJnOw0KfQ0KDQpzdGF0aWMgaW5saW5lIGludCBhdG9taWNfc3ViX2ZldGNo
+KF9BdG9taWMoaW50KSAqYSwgaW50IGFyZykNCnsNCglyZXR1cm4gYXRvbWljX2ZldGNoX3N1Yihh
+LCBhcmcpIC0gYXJnOw0KfQ0KDQpCYXJ0Lg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
