@@ -1,58 +1,115 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH rdma-core 4/6] rdmacm: Use C11 stdatomic for all atomics
-Date: Thu, 16 Mar 2017 01:04:49 +0000
-Message-ID: <1489626275.3542.1.camel@sandisk.com>
-References: <1489615927-12117-1-git-send-email-jgunthorpe@obsidianresearch.com>
-         <1489615927-12117-5-git-send-email-jgunthorpe@obsidianresearch.com>
-         <1489618538.2660.14.camel@sandisk.com>
-         <20170315231837.GA23082@obsidianresearch.com>
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [rdma-core v3 4/9] libbnxt_re: Add support for posting and polling
+Date: Thu, 16 Mar 2017 08:34:12 +0530
+Message-ID: <CANjDDBh9JP-0W4NDW4p-Jx2fivcSKS9ZAt5AdLRdQPXH8WxxCw@mail.gmail.com>
+References: <1489574253-20300-1-git-send-email-devesh.sharma@broadcom.com>
+ <1489574253-20300-5-git-send-email-devesh.sharma@broadcom.com> <20170315163454.GD29562@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170315231837.GA23082-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Content-ID: <A534D10AE408A849827DD1E57900E83F-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20170315163454.GD29562-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE3LTAzLTE1IGF0IDE3OjE4IC0wNjAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
-DQo+IEluZGVlZCwgeW91IGFyZSByaWdodCwgSSB3aWxsIHNxdXNoIGluIHRoaXMgcGF0Y2gsIHRo
-YW5rcw0KPiANCj4gZGlmZiAtLWdpdCBhL2xpYnJkbWFjbS9jbWEuaCBiL2xpYnJkbWFjbS9jbWEu
-aA0KPiBpbmRleCA2NDVkMWU0MzU3NjI3OS4uMmY1Zjg2Y2Y0OTg5MTggMTAwNjQ0DQo+IC0tLSBh
-L2xpYnJkbWFjbS9jbWEuaA0KPiArKysgYi9saWJyZG1hY20vY21hLmgNCj4gQEAgLTY5LDEyICs2
-OSwxMiBAQCBzdGF0aWMgaW5saW5lIHZvaWQgZmFzdGxvY2tfZGVzdHJveShmYXN0bG9ja190ICps
-b2NrKQ0KPiAgfQ0KPiAgc3RhdGljIGlubGluZSB2b2lkIGZhc3Rsb2NrX2FjcXVpcmUoZmFzdGxv
-Y2tfdCAqbG9jaykNCj4gIHsNCj4gLQlpZiAoYXRvbWljX2ZldGNoX2FkZCgmbG9jay0+Y250LCAx
-KSA+IDEpDQo+ICsJaWYgKGF0b21pY19mZXRjaF9hZGQoJmxvY2stPmNudCwgMSkgPiAwKQ0KPiAg
-CQlzZW1fd2FpdCgmbG9jay0+c2VtKTsNCj4gIH0NCj4gIHN0YXRpYyBpbmxpbmUgdm9pZCBmYXN0
-bG9ja19yZWxlYXNlKGZhc3Rsb2NrX3QgKmxvY2spDQo+ICB7DQo+IC0JaWYgKGF0b21pY19mZXRj
-aF9zdWIoJmxvY2stPmNudCwgMSkgPiAwKQ0KPiArCWlmIChhdG9taWNfZmV0Y2hfc3ViKCZsb2Nr
-LT5jbnQsIDEpID4gMSkNCj4gIAkJc2VtX3Bvc3QoJmxvY2stPnNlbSk7DQo+ICB9DQo+ICANCj4g
-ZGlmZiAtLWdpdCBhL2xpYnJkbWFjbS9wcmVsb2FkLmMgYi9saWJyZG1hY20vcHJlbG9hZC5jDQo+
-IGluZGV4IGJkMWJjYjFkNzAxMDE1Li44MmNiMGMwMzg1MGIwNSAxMDA2NDQNCj4gLS0tIGEvbGli
-cmRtYWNtL3ByZWxvYWQuYw0KPiArKysgYi9saWJyZG1hY20vcHJlbG9hZC5jDQo+IEBAIC0xMDEy
-LDcgKzEwMTIsNyBAQCBpbnQgY2xvc2UoaW50IHNvY2tldCkNCj4gIAkJCXJldHVybiByZXQ7DQo+
-ICAJfQ0KPiAgDQo+IC0JaWYgKGF0b21pY19mZXRjaF9zdWIoJmZkaS0+cmVmY250LCAxKSkNCj4g
-KwlpZiAoYXRvbWljX2ZldGNoX3N1YigmZmRpLT5yZWZjbnQsIDEpICE9IDEpDQo+ICAJCXJldHVy
-biAwOw0KPiAgDQo+ICAJaWRtX2NsZWFyKCZpZG0sIHNvY2tldCk7DQo+IGRpZmYgLS1naXQgYS9s
-aWJyZG1hY20vcnNvY2tldC5jIGIvbGlicmRtYWNtL3Jzb2NrZXQuYw0KPiBpbmRleCA0ZmJlN2Fh
-YTkzODYxMC4uOWE3MTAzNWZiZWVkOGIgMTAwNjQ0DQo+IC0tLSBhL2xpYnJkbWFjbS9yc29ja2V0
-LmMNCj4gKysrIGIvbGlicmRtYWNtL3Jzb2NrZXQuYw0KPiBAQCAtODk4LDcgKzg5OCw3IEBAIHN0
-YXRpYyBpbnQgcnNfY3JlYXRlX2VwKHN0cnVjdCByc29ja2V0ICpycykNCj4gIA0KPiAgc3RhdGlj
-IHZvaWQgcnNfcmVsZWFzZV9pb21hcF9tcihzdHJ1Y3QgcnNfaW9tYXBfbXIgKmlvbXIpDQo+ICB7
-DQo+IC0JaWYgKGF0b21pY19mZXRjaF9zdWIoJmlvbXItPnJlZmNudCwgMSkpDQo+ICsJaWYgKGF0
-b21pY19mZXRjaF9zdWIoJmlvbXItPnJlZmNudCwgMSkgIT0gMSkNCj4gIAkJcmV0dXJuOw0KPiAg
-DQo+ICAJZGxpc3RfcmVtb3ZlKCZpb21yLT5lbnRyeSk7DQoNCkhlbGxvIEphc29uLA0KDQpIYXZl
-IHlvdSBjb25zaWRlcmVkIHRvIGludHJvZHVjZSBzb21ldGhpbmcgbGlrZSB0aGUgZnVuY3Rpb24g
-YmVsb3c/IEkgdGhpbmsNCnRoYXQgd291bGQgbWFrZSB0aGUgY2hhbmdlcyBzbWFsbGVyIGFuZCBo
-ZW5jZSBlYXNpZXIgdG8gcmV2aWV3Lg0KDQpzdGF0aWMgaW5saW5lIGludCBhdG9taWNfYWRkX2Zl
-dGNoKF9BdG9taWMoaW50KSAqYSwgaW50IGFyZykNCnsNCglyZXR1cm4gYXRvbWljX2ZldGNoX2Fk
-ZChhLCBhcmcpICsgYXJnOw0KfQ0KDQpzdGF0aWMgaW5saW5lIGludCBhdG9taWNfc3ViX2ZldGNo
-KF9BdG9taWMoaW50KSAqYSwgaW50IGFyZykNCnsNCglyZXR1cm4gYXRvbWljX2ZldGNoX3N1Yihh
-LCBhcmcpIC0gYXJnOw0KfQ0KDQpCYXJ0Lg0K
+On Wed, Mar 15, 2017 at 10:04 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Wed, Mar 15, 2017 at 06:37:28AM -0400, Devesh Sharma wrote:
+>> +
+>> +     pthread_spin_lock(&dpi->db_lock);
+>> +     *dbval = htole64(*dbval);
+>> +     udma_ordering_write_barrier();
+>
+> The ordering_write_barrier is basically an equivalent barrier to a
+> spinlock, so this is an unnecessary pattern.
+>
+> However, you still always need udma_to_device_barrier before
+> triggering chip DMA.
+
+I will change this in V4.
+
+>
+> There is also no udma_from_device_barrier() in this driver, which
+> can't be right, please add one around bnxt_re_is_cqe_valid most
+> likely.
+
+Ok, I will put it in next version.
+
+>
+> Your github branch doesn't compile, btw.
+>
+> I ran it through sparse, this is what I suggest..
+
+Thanks for the suggestion, I will run sparse and try to fix all of it.
+
+>
+> diff --git a/providers/bnxt_re/bnxt_re-abi.h b/providers/bnxt_re/bnxt_re-abi.h
+> index 8dbb7b985fa0cd..8fcb2517a23028 100644
+> --- a/providers/bnxt_re/bnxt_re-abi.h
+> +++ b/providers/bnxt_re/bnxt_re-abi.h
+> @@ -243,7 +243,7 @@ struct bnxt_re_req_cqe {
+>
+>  struct bnxt_re_rc_cqe {
+>         __u32 length;
+> -       __u32 imm_key;
+> +       __be32 imm_key;
+>         __u64 qp_handle;
+>         __u64 mr_handle;
+>  };
+> @@ -282,7 +282,7 @@ struct bnxt_re_bsqe {
+>  };
+>
+>  struct bnxt_re_psns {
+> -       __u32 opc_spsn;
+> +       __le32 opc_spsn;
+>         __u32 flg_npsn;
+>  };
+>
+> diff --git a/providers/bnxt_re/verbs.c b/providers/bnxt_re/verbs.c
+> index dafe55b74aefe8..3e31845b4d6b47 100644
+> --- a/providers/bnxt_re/verbs.c
+> +++ b/providers/bnxt_re/verbs.c
+> @@ -581,9 +581,10 @@ static int bnxt_re_poll_flush_wcs(struct bnxt_re_queue *que,
+>                 wrid = &wridp[head];
+>                 if (wrid->psns) {
+>                         psns = wrid->psns;
+> -                       opcode = (psns->opc_spsn >> BNXT_RE_PSNS_OPCD_SHIFT) &
+> -                                 BNXT_RE_PSNS_OPCD_MASK;
+> -               }
+> +                        opcode = (le32toh(psns->opc_spsn) >>
+> +                                  BNXT_RE_PSNS_OPCD_SHIFT) &
+> +                                 BNXT_RE_PSNS_OPCD_MASK;
+> +                }
+>
+>                 ibvwc->status = IBV_WC_WR_FLUSH_ERR;
+>                 ibvwc->opcode = opcode;
+> @@ -1032,10 +1033,11 @@ static void bnxt_re_fill_psns(struct bnxt_re_qp *qp, struct bnxt_re_psns *psns,
+>                               uint8_t opcode, uint32_t len)
+>  {
+>         uint32_t pkt_cnt = 0, nxt_psn;
+> +       uint32_t opc_spsn = 0;
+>
+>         memset(psns, 0, sizeof(*psns));
+>         if (qp->qptyp == IBV_QPT_RC) {
+> -               psns->opc_spsn = qp->sq_psn & BNXT_RE_PSNS_SPSN_MASK;
+> +               opc_spsn = qp->sq_psn & BNXT_RE_PSNS_SPSN_MASK;
+>                 pkt_cnt = (len / qp->mtu);
+>                 if (len % qp->mtu)
+>                         pkt_cnt++;
+> @@ -1044,9 +1046,9 @@ static void bnxt_re_fill_psns(struct bnxt_re_qp *qp, struct bnxt_re_psns *psns,
+>                 qp->sq_psn = nxt_psn;
+>         }
+>         opcode = bnxt_re_ibv_wr_to_wc_opcd(opcode);
+> -       psns->opc_spsn |= ((opcode & BNXT_RE_PSNS_OPCD_MASK) <<
+> -                           BNXT_RE_PSNS_OPCD_SHIFT);
+> -       *(uint64_t *)psns = htole64(*(uint64_t *)psns);
+> +        opc_spsn |=
+> +            ((opcode & BNXT_RE_PSNS_OPCD_MASK) << BNXT_RE_PSNS_OPCD_SHIFT);
+> +        psns->opc_spsn = htole32(opc_spsn);
+>  }
+>
+>  static void bnxt_re_fill_wrid(struct bnxt_re_wrid *wrid, struct ibv_send_wr *wr,
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
