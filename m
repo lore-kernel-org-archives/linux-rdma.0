@@ -1,141 +1,82 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 08/14] svcrdma: Report Write/Reply chunk overruns
-Date: Thu, 16 Mar 2017 11:53:31 -0400
-Message-ID: <20170316155331.4482.7734.stgit@klimt.1015granger.net>
+Subject: [PATCH v1 10/14] svcrdma: Reduce size of sge array in struct
+ svc_rdma_op_ctxt
+Date: Thu, 16 Mar 2017 11:53:47 -0400
+Message-ID: <20170316155347.4482.74652.stgit@klimt.1015granger.net>
 References: <20170316154132.4482.56769.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170316154132.4482.56769.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Observed at Connectathon 2017.
-
-If a client has underestimated the size of a Write or Reply chunk,
-the Linux server writes as much payload data as it can, then it
-recognizes there was a problem and closes the connection without
-sending the transport header.
-
-This creates a couple of problems:
-
-<> The client never receives indication of the server-side failure,
-   so it continues to retransmit the bad RPC. Forward progress on
-   the transport is blocked.
-
-<> The reply payload pages are not moved out of the svc_rqst, thus
-   they can be released by the RPC server before the RDMA Writes
-   have completed.
-
-The new rdma_rw-ized helpers return a distinct error code when a
-Write/Reply chunk overrun occurs, so it's now easy for the caller
-(svc_rdma_sendto) to recognize this case.
-
-Instead of dropping the connection, post an RDMA_ERROR message. The
-client now sees an RDMA_ERROR and can properly terminate the RPC
-transaction.
-
-As part of the new logic, set up the same delayed release for these
-payload pages as would have occurred in the normal case.
+The sge array in struct svc_rdma_op_ctxt is no longer used for
+sending RDMA Write WRs. It need only accommodate the construction of
+Send and Receive WRs. The maximum inline size is the largest payload
+it needs to handle now.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/svc_rdma_sendto.c |   59 ++++++++++++++++++++++++++++++++-
- 1 file changed, 57 insertions(+), 2 deletions(-)
+ include/linux/sunrpc/svc_rdma.h |    9 +++++++--
+ net/sunrpc/xprtrdma/svc_rdma.c  |    6 +++---
+ 2 files changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-index 1b230dc..489e602 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-@@ -484,6 +484,49 @@ static int svc_rdma_send_reply_msg(struct svcxprt_rdma *rdma,
- 	return ret;
- }
+diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
+index 6181c24..6b60f2e 100644
+--- a/include/linux/sunrpc/svc_rdma.h
++++ b/include/linux/sunrpc/svc_rdma.h
+@@ -48,6 +48,12 @@
+ #include <rdma/rdma_cm.h>
+ #define SVCRDMA_DEBUG
  
-+/* Given the client-provided Write and Reply chunks, the server was not
-+ * able to form a complete reply. Return an RDMA_ERROR message so the
-+ * client can retire this RPC transaction. As above, the Send completion
-+ * routine releases payload pages that were part of a previous RDMA Write.
-+ *
-+ * Remote Invalidation is skipped for simplicity.
-+ */
-+static int svc_rdma_send_error_msg(struct svcxprt_rdma *rdma,
-+				   __be32 *rdma_resp, struct svc_rqst *rqstp)
-+{
-+	struct svc_rdma_op_ctxt *ctxt;
-+	__be32 *p;
-+	int ret;
++/* Default and maximum inline threshold sizes */
++enum {
++	RPCRDMA_DEF_INLINE_THRESH = 4096,
++	RPCRDMA_MAX_INLINE_THRESH = 65536
++};
 +
-+	ctxt = svc_rdma_get_context(rdma);
-+
-+	/* Replace the original transport header with an
-+	 * RDMA_ERROR response. XID etc are preserved.
-+	 */
-+	p = rdma_resp + 3;
-+	*p++ = rdma_error;
-+	*p   = err_chunk;
-+
-+	ret = svc_rdma_map_reply_hdr(rdma, ctxt, rdma_resp, 20);
-+	if (ret < 0)
-+		goto err;
-+
-+	svc_rdma_save_io_pages(rqstp, ctxt);
-+
-+	svc_rdma_build_send_wr(ctxt, 1 + ret);
-+	ret = svc_rdma_send(rdma, &ctxt->send_wr);
-+	if (ret)
-+		goto err;
-+
-+	return 0;
-+
-+err:
-+	pr_err("svcrdma: failed to post Send WR (%d)\n", ret);
-+	svc_rdma_unmap_dma(ctxt);
-+	svc_rdma_put_context(ctxt, 1);
-+	return ret;
-+}
-+
- void svc_rdma_prep_reply_hdr(struct svc_rqst *rqstp)
- {
- }
-@@ -545,13 +588,13 @@ int svc_rdma_sendto(struct svc_rqst *rqstp)
- 		ret = svc_rdma_send_write_list(rdma, wr_lst, rdma_resp,
- 					       &rqstp->rq_res);
- 		if (ret < 0)
--			goto err1;
-+			goto err2;
- 	}
- 	if (rp_ch) {
- 		ret = svc_rdma_send_reply_chunk(rdma, wr_lst, rp_ch,
- 						rdma_resp, &rqstp->rq_res);
- 		if (ret < 0)
--			goto err1;
-+			goto err2;
- 	}
+ /* RPC/RDMA parameters and stats */
+ extern unsigned int svcrdma_ord;
+ extern unsigned int svcrdma_max_requests;
+@@ -86,7 +92,7 @@ struct svc_rdma_op_ctxt {
+ 	int count;
+ 	unsigned int mapped_sges;
+ 	struct ib_send_wr send_wr;
+-	struct ib_sge sge[RPCSVC_MAXPAGES];
++	struct ib_sge sge[1 + RPCRDMA_MAX_INLINE_THRESH / PAGE_SIZE];
+ 	struct page *pages[RPCSVC_MAXPAGES];
+ };
  
- 	ret = svc_rdma_post_recv(rdma, GFP_KERNEL);
-@@ -563,6 +606,18 @@ int svc_rdma_sendto(struct svc_rqst *rqstp)
- 		goto err0;
- 	return 0;
+@@ -186,7 +192,6 @@ struct svcxprt_rdma {
+  * page size of 4k, or 32k * 2 ops / 4k = 16 outstanding RDMA_READ.  */
+ #define RPCRDMA_ORD             (64/4)
+ #define RPCRDMA_MAX_REQUESTS    32
+-#define RPCRDMA_MAX_REQ_SIZE    4096
  
-+ err2:
-+	if (ret != -E2BIG)
-+		goto err1;
-+
-+	ret = svc_rdma_post_recv(rdma, GFP_KERNEL);
-+	if (ret)
-+		goto err1;
-+	ret = svc_rdma_send_error_msg(rdma, rdma_resp, rqstp);
-+	if (ret < 0)
-+		goto err0;
-+	return 0;
-+
-  err1:
- 	put_page(res_page);
-  err0:
+ /* Typical ULP usage of BC requests is NFSv4.1 backchannel. Our
+  * current NFSv4.1 implementation supports one backchannel slot.
+diff --git a/net/sunrpc/xprtrdma/svc_rdma.c b/net/sunrpc/xprtrdma/svc_rdma.c
+index 9124441..a4a8f69 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma.c
++++ b/net/sunrpc/xprtrdma/svc_rdma.c
+@@ -58,9 +58,9 @@
+ unsigned int svcrdma_max_bc_requests = RPCRDMA_MAX_BC_REQUESTS;
+ static unsigned int min_max_requests = 4;
+ static unsigned int max_max_requests = 16384;
+-unsigned int svcrdma_max_req_size = RPCRDMA_MAX_REQ_SIZE;
+-static unsigned int min_max_inline = 4096;
+-static unsigned int max_max_inline = 65536;
++unsigned int svcrdma_max_req_size = RPCRDMA_DEF_INLINE_THRESH;
++static unsigned int min_max_inline = RPCRDMA_DEF_INLINE_THRESH;
++static unsigned int max_max_inline = RPCRDMA_MAX_INLINE_THRESH;
+ 
+ atomic_t rdma_stat_recv;
+ atomic_t rdma_stat_read;
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
