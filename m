@@ -1,88 +1,90 @@
-From: Alex Margolin <alexma-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [RFC] Registering non-contiguous memory
-Date: Thu, 16 Mar 2017 13:32:31 +0000
-Message-ID: <VI1PR05MB1278C01A5BCF968C40E0F2FFB9260@VI1PR05MB1278.eurprd05.prod.outlook.com>
-References: <VI1PR05MB127817A311C332553E4391AFB9410@VI1PR05MB1278.eurprd05.prod.outlook.com>
- <f40f326d-e76b-0471-dc7d-e81b7d07db78@talpey.com>
+From: Erez Shitrit <erezsh@dev.mellanox.co.il>
+Subject: Re: [RFC v1 for accelerated IPoIB 04/25] IB/verb: Add ipoib_options
+ struct and API
+Date: Thu, 16 Mar 2017 17:17:55 +0200
+Message-ID: <CAAk-MO8vPepHWHF_2GMbtC3yyxht1VFs=3Gu1r+drDs7ZbdpOg@mail.gmail.com>
+References: <1489429896-10781-1-git-send-email-erezsh@mellanox.com>
+ <1489429896-10781-5-git-send-email-erezsh@mellanox.com> <20170313200136.GA2738@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <f40f326d-e76b-0471-dc7d-e81b7d07db78-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170313200136.GA2738@obsidianresearch.com>
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Erez Shitrit <erezsh@mellanox.com>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, netdev@vger.kernel.org, valex@mellanox.com, Leon Romanovsky <leonro@mellanox.com>, saedm@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Mar 13, 2017 at 10:01 PM, Jason Gunthorpe
+<jgunthorpe@obsidianresearch.com> wrote:
+> On Mon, Mar 13, 2017 at 08:31:15PM +0200, Erez Shitrit wrote:
+>
+>> diff --git a/include/rdma/ib_ipoib_accel_ops.h b/include/rdma/ib_ipoib_accel_ops.h
+>> new file mode 100644
+>> index 000000000000..148a5529a559
+>> +++ b/include/rdma/ib_ipoib_accel_ops.h
+>
+> Both patches need a better naming scheme for this file..
+>
+> rn_opa_vnic.h
+> rn_ipoib.h
+>
+> Maybe?
+>
+>> +struct rdma_netdev {
+>> +     void *clnt_priv;
+>> +
+>> +     /* control functions */
+>> +     void (*set_id)(struct net_device *netdev, int id);
+>
+>> +     /* IB resource allocation function, returns new UD QP */
+>> +     int (*ib_dev_init)(struct net_device *dev, struct ib_device *hca,
+>> +                        int *qp_num);
+>
+> Why can't some combination of alloc_rdma_netdev and ndo.open do this stuff?
+>
+>> +     void (*ib_dev_cleanup)(struct net_device *dev, struct ib_device *hca);
+>
+> Ditto
+>
+>> +     /* send packet */
+>> +     void (*send)(struct net_device *dev, struct sk_buff *skb,
+>> +                  struct ipoib_ah *address, u32 dqpn, u32 dqkey);
+>
+>> +     /* multicast */
+>> +     int (*attach_mcast)(struct net_device *dev, struct ib_device *hca,
+>> +                         union ib_gid *gid, u16 lid, int set_qkey);
+>> +     int (*detach_mcast)(struct net_device *dev, struct ib_device *hca,
+>> +                         union ib_gid *gid, u16 lid);
+>
+> It would make more sense to store the struct ib_device pointer in the
+> struct rdma_netdev.
+>
+> Should 'lid' be 'mlid'?
+>
+>> +     int qp_num;
+>
+> This one probably belongs in ipoib_rdma_netdev
+>
+>> +     void *context;
 
+The QP as a part of the HW resources, it is created in the low-level
+driver, and used by the upper ipoib for few reasons, (for example the
+mac of the ipoib interface includes from the qp_num)
+Now, if we want to use the ndo's init/uninit i need to store member
+variables (qp_num and context) in the rdma_netdev, that will let me
+use the ndos as is.
+rdma_netdev is the one who belongs to both layers, ipoib and the low-level.
 
-> -----Original Message-----
-> From: Tom Talpey [mailto:tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org]
-> Sent: Tuesday, February 28, 2017 2:31 PM
-> To: Alex Margolin <alexma-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [RFC] Registering non-contiguous memory
->=20
-> On 2/5/2017 11:46 AM, Alex Margolin wrote:
-> > Introduction
-> > ----------------------------------------------------------------------
-> > ---------- Numerous applications communicate buffers with a
-> > non-contiguous memory layout.
-> > For example, HPC applications often work on a matrix, and require
-> sending a row or a column. Sending non-contiguous data requires
-> specifying all the buffers being transferred, along with potentially the
-> same amount of memory keys (should the buffers be registered under
-> different memory regions). Extended memory windows are proposed to
-> address complex memory layouts, and allow the user to send and receive
-> them in an efficient manner.
-> > This RFC proposes an extension for memory windows for the use of non-
-> contiguous buffers.
-> >
-> ...
-> > The layout is "switched on" as a bind parameter with an additional
-> access flag, which is somewhat of a misuse, but since struct
-> ibv_mw_bind_info is not easily expandable in the functions using it, the
-> alternative is an additional verb.
-> >
-> > We do propose adding a verb for the allocation of such memory windows,
-> which is required since the original memory window allocation function
-> is not easily extendable, and we require an additional parameter to
-> determine the amount of resources to allocate towards it (descriptors).
-> In addition, this number is available for existing windows, in order to
-> determine how to set this for a composite of two existing windows, or to
-> keep track of resource use for it.
-> >
-> > Finally, we add the option to obtain a local memory key for memory
-> windows, aside from the currently available remote key. This can be
-> specified in an SGE to send data out of a memory layout. This key will
-> only be valid if local access is requested in the access flags.
->=20
-> How does the application detect whether the adapter supports this new
-> verb? I don't see an attribute or other bit exposing it above the API.
-
-The proposed alloc_mw_ex() will be detected with VERBS_CONTEXT_ALLOC_MW in =
-enum verbs_context_mask.
-It will only make sense to call this verb if the feature is enabled in stru=
-ct ibv_ncm_caps.
-
->=20
-> Also, what applications are likely to use it? It is my understanding
-> that relatively few applications use Memory Windows-style registration
-> today. Roughly what performance benefit do you expect they will achieve
-> from the region descriptor format overall, motivating them to change?
-
-The target applications are not necessarily the ones already using the exis=
-ting memory windows. Applications which do matrix operations (e.g. multipli=
-cation) or use non-contiguous datatypes (with MPI, for example) are good ca=
-ndidates.=20
-The performance benefit comes from passing the layout to the NIC once, then=
- only sending the base pointer for each send. In the case of a column in an=
- NxN matrix - each send will only give the pointer to the first element (an=
-d the memory window) instead of an sge_list of size N. Similarly, a non-con=
-tiguous datatype layout will be passed to the NIC only once.
-
->=20
-> Tom.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> What is this? Why is something other than ipoib_priv or ipoib_dev_priv
+> needed?
+>
+>
+>>                                               struct ib_wq_attr *attr,
+>>                                               u32 wq_attr_mask,
+>>                                               struct ib_udata *udata);
+>> +     struct ib_ipoib_accel_ops * (*get_ipoib_accel_ops)(struct ib_device *device);
+>
+> rebase error? Not sure how this compiles
+>
+> Jason
