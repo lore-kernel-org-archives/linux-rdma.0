@@ -1,82 +1,68 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 10/14] svcrdma: Reduce size of sge array in struct
- svc_rdma_op_ctxt
-Date: Thu, 16 Mar 2017 11:53:47 -0400
-Message-ID: <20170316155347.4482.74652.stgit@klimt.1015granger.net>
+Subject: [PATCH v1 11/14] svcrdma: Remove old RDMA Write completion handlers
+Date: Thu, 16 Mar 2017 11:53:55 -0400
+Message-ID: <20170316155355.4482.35026.stgit@klimt.1015granger.net>
 References: <20170316154132.4482.56769.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170316154132.4482.56769.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The sge array in struct svc_rdma_op_ctxt is no longer used for
-sending RDMA Write WRs. It need only accommodate the construction of
-Send and Receive WRs. The maximum inline size is the largest payload
-it needs to handle now.
+Clean up. RDMA Write completions are now handled by the rdma_rw API.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- include/linux/sunrpc/svc_rdma.h |    9 +++++++--
- net/sunrpc/xprtrdma/svc_rdma.c  |    6 +++---
- 2 files changed, 10 insertions(+), 5 deletions(-)
+ include/linux/sunrpc/svc_rdma.h          |    1 -
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |   18 ------------------
+ 2 files changed, 19 deletions(-)
 
 diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
-index 6181c24..6b60f2e 100644
+index 6b60f2e..e526c55 100644
 --- a/include/linux/sunrpc/svc_rdma.h
 +++ b/include/linux/sunrpc/svc_rdma.h
-@@ -48,6 +48,12 @@
- #include <rdma/rdma_cm.h>
- #define SVCRDMA_DEBUG
+@@ -258,7 +258,6 @@ extern void svc_rdma_build_send_wr(struct svc_rdma_op_ctxt *ctxt,
  
-+/* Default and maximum inline threshold sizes */
-+enum {
-+	RPCRDMA_DEF_INLINE_THRESH = 4096,
-+	RPCRDMA_MAX_INLINE_THRESH = 65536
-+};
-+
- /* RPC/RDMA parameters and stats */
- extern unsigned int svcrdma_ord;
- extern unsigned int svcrdma_max_requests;
-@@ -86,7 +92,7 @@ struct svc_rdma_op_ctxt {
- 	int count;
- 	unsigned int mapped_sges;
- 	struct ib_send_wr send_wr;
--	struct ib_sge sge[RPCSVC_MAXPAGES];
-+	struct ib_sge sge[1 + RPCRDMA_MAX_INLINE_THRESH / PAGE_SIZE];
- 	struct page *pages[RPCSVC_MAXPAGES];
- };
+ /* svc_rdma_transport.c */
+ extern void svc_rdma_wc_send(struct ib_cq *, struct ib_wc *);
+-extern void svc_rdma_wc_write(struct ib_cq *, struct ib_wc *);
+ extern void svc_rdma_wc_reg(struct ib_cq *, struct ib_wc *);
+ extern void svc_rdma_wc_read(struct ib_cq *, struct ib_wc *);
+ extern void svc_rdma_wc_inv(struct ib_cq *, struct ib_wc *);
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index fecf220..8ce68bf 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -473,24 +473,6 @@ void svc_rdma_wc_send(struct ib_cq *cq, struct ib_wc *wc)
+ }
  
-@@ -186,7 +192,6 @@ struct svcxprt_rdma {
-  * page size of 4k, or 32k * 2 ops / 4k = 16 outstanding RDMA_READ.  */
- #define RPCRDMA_ORD             (64/4)
- #define RPCRDMA_MAX_REQUESTS    32
--#define RPCRDMA_MAX_REQ_SIZE    4096
- 
- /* Typical ULP usage of BC requests is NFSv4.1 backchannel. Our
-  * current NFSv4.1 implementation supports one backchannel slot.
-diff --git a/net/sunrpc/xprtrdma/svc_rdma.c b/net/sunrpc/xprtrdma/svc_rdma.c
-index 9124441..a4a8f69 100644
---- a/net/sunrpc/xprtrdma/svc_rdma.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma.c
-@@ -58,9 +58,9 @@
- unsigned int svcrdma_max_bc_requests = RPCRDMA_MAX_BC_REQUESTS;
- static unsigned int min_max_requests = 4;
- static unsigned int max_max_requests = 16384;
--unsigned int svcrdma_max_req_size = RPCRDMA_MAX_REQ_SIZE;
--static unsigned int min_max_inline = 4096;
--static unsigned int max_max_inline = 65536;
-+unsigned int svcrdma_max_req_size = RPCRDMA_DEF_INLINE_THRESH;
-+static unsigned int min_max_inline = RPCRDMA_DEF_INLINE_THRESH;
-+static unsigned int max_max_inline = RPCRDMA_MAX_INLINE_THRESH;
- 
- atomic_t rdma_stat_recv;
- atomic_t rdma_stat_read;
+ /**
+- * svc_rdma_wc_write - Invoked by RDMA provider for each polled Write WC
+- * @cq:        completion queue
+- * @wc:        completed WR
+- *
+- */
+-void svc_rdma_wc_write(struct ib_cq *cq, struct ib_wc *wc)
+-{
+-	struct ib_cqe *cqe = wc->wr_cqe;
+-	struct svc_rdma_op_ctxt *ctxt;
+-
+-	svc_rdma_send_wc_common_put(cq, wc, "write");
+-
+-	ctxt = container_of(cqe, struct svc_rdma_op_ctxt, cqe);
+-	svc_rdma_unmap_dma(ctxt);
+-	svc_rdma_put_context(ctxt, 0);
+-}
+-
+-/**
+  * svc_rdma_wc_reg - Invoked by RDMA provider for each polled FASTREG WC
+  * @cq:        completion queue
+  * @wc:        completed WR
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
