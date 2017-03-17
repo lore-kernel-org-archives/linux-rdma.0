@@ -1,44 +1,47 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: no QFSP detection with HFI card
-Date: Fri, 17 Mar 2017 09:25:56 -0400
-Message-ID: <ded534e0-47a9-001d-3006-3ac6667ab446@intel.com>
-References: <20170313125116.4cab1f75ba4d0dd0fe96e0df@suse.de>
+Subject: Re: [RFC v1 for verbs counters]
+Date: Fri, 17 Mar 2017 10:14:02 -0400
+Message-ID: <a2fb88b0-7538-dcbe-7c9c-35a2566818c7@intel.com>
+References: <AM5PR0502MB30578E5BC54125D013D416DCBD250@AM5PR0502MB3057.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170313125116.4cab1f75ba4d0dd0fe96e0df-l3A5Bk7waGM@public.gmane.org>
+In-Reply-To: <AM5PR0502MB30578E5BC54125D013D416DCBD250-Z3o2H//EDN55ESpK+8MyGMDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Thomas Bogendoerfer <tbogendoerfer-l3A5Bk7waGM@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Guy Shattah <sguy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/13/2017 07:51 AM, Thomas Bogendoerfer wrote:
-> Hi,
+On 03/13/2017 04:36 PM, Guy Shattah wrote:
 >
-> I'm tyring to connect a HFI card to an Omni-Path Edge Switch 100. The
-> switch detects the QSFP just fine:
+> RFC: Verbs Counters
 >
-> Cable05  OEM         Copper     3 meter   20.87  ???  MCP1600-E003-C    6   M9AL0003          Valid
 >
-> But on the host side, I only get:
->
-> [   53.060613] hfi1 0000:01:00.0: hfi1_0: wait_for_qsfp_init: No IntN detected, reset complete
-> [   53.082820] hfi1 0000:01:00.0: hfi1_0: i2c_bus_write: bus 1, i2c slave 0x50, offset 0x7f, len 0x1; write failed, ret -6
-> [   53.114661] hfi1 0000:01:00.0: hfi1_0: port 1: QSFP chain 1 can't write QSFP_PAGE_SELECT_BYTE: -6
-> [   53.137353] hfi1 0000:01:00.0: hfi1_0: QSFP not responding, waiting and retrying 0
->
-> Any hint why the card doesn't find the plugged in QSFPs ?
+> There is a constant demand to know about connections used in verbs (and and other aspects).
+> Some vendors have been offering hardware counters for a long time by using sysfs.
+> Those counters, however - are not available per connection but for the whole system.
 
-Please refer to the Intel Omni Path cable support matrix for a list of 
-supported cables: 
-http://www.intel.com/content/www/us/en/high-performance-computing-fabrics/omni-path-cables.html. 
+Are you proposing to remove the system wide counters from sysfs?
 
-If you need help with cables not on this list, please contact the cable 
-manufacturer or supplier for assistance.
+> ibv_counter_set_description is a struct to describe other structs.
+>                 for example, we have the following struct:
+>
+>
+>                 private struct guy_counter {
+>                                 uint64_t apples_kg;
+>                                 uint64_t apples_count;
+>                 }
+>
+>
+>
+>                 - note that all counters are 64bit entries
 
-Thanks
+Might be a bit wasteful for some things. Could you not have an attribute 
+which says if its 64bit or not?
 
 -Denny
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
