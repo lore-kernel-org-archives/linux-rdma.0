@@ -1,48 +1,92 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC v1 for verbs counters]
-Date: Fri, 17 Mar 2017 10:14:02 -0400
-Message-ID: <a2fb88b0-7538-dcbe-7c9c-35a2566818c7@intel.com>
-References: <AM5PR0502MB30578E5BC54125D013D416DCBD250@AM5PR0502MB3057.eurprd05.prod.outlook.com>
+From: Trond Myklebust <trondmy-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
+Subject: Re: [PATCH 01/23] net, sunrpc: convert rpc_cred.cr_count from
+ atomic_t to refcount_t
+Date: Fri, 17 Mar 2017 14:28:37 +0000
+Message-ID: <1489760913.8441.1.camel@primarydata.com>
+References: <1489752646-8749-1-git-send-email-elena.reshetova@intel.com>
+         <1489752646-8749-2-git-send-email-elena.reshetova@intel.com>
+         <1489755011.6453.1.camel@primarydata.com>
+         <1489755736.2810.10.camel@poochiereds.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AM5PR0502MB30578E5BC54125D013D416DCBD250-Z3o2H//EDN55ESpK+8MyGMDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Guy Shattah <sguy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1489755736.2810.10.camel-vpEMnDpepFuMZCB2o+C8xQ@public.gmane.org>
+Content-Language: en-US
+Content-ID: <F84F8B06A89840478200B35132E7742D-Hry67jCOGbCcE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "elena.reshetova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <elena.reshetova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jlayton-vpEMnDpepFuMZCB2o+C8xQ@public.gmane.org" <jlayton-vpEMnDpepFuMZCB2o+C8xQ@public.gmane.org>
+Cc: "herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org" <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org" <ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ishkamiel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <ishkamiel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, "steffen.klassert-opNxpl+3fjRBDgjK7y7TUQ@public.gmane.org" <steffen.klassert-opNxpl+3fjRBDgjK7y7TUQ@public.gmane.org>, "nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org" <nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jreuter-K7Hl1MveuGQ@public.gmane.org" <jreuter-K7Hl1MveuGQ@public.gmane.org>, "keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org" <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, "linux-hams-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-hams-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dwindsor-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <dwindsor-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "zyan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <zyan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, sage@redhat.
 List-Id: linux-rdma@vger.kernel.org
 
-On 03/13/2017 04:36 PM, Guy Shattah wrote:
->
-> RFC: Verbs Counters
->
->
-> There is a constant demand to know about connections used in verbs (and and other aspects).
-> Some vendors have been offering hardware counters for a long time by using sysfs.
-> Those counters, however - are not available per connection but for the whole system.
-
-Are you proposing to remove the system wide counters from sysfs?
-
-> ibv_counter_set_description is a struct to describe other structs.
->                 for example, we have the following struct:
->
->
->                 private struct guy_counter {
->                                 uint64_t apples_kg;
->                                 uint64_t apples_count;
->                 }
->
->
->
->                 - note that all counters are 64bit entries
-
-Might be a bit wasteful for some things. Could you not have an attribute 
-which says if its 64bit or not?
-
--Denny
-
+T24gRnJpLCAyMDE3LTAzLTE3IGF0IDA5OjAyIC0wNDAwLCBKZWZmIExheXRvbiB3cm90ZToNCj4g
+T24gRnJpLCAyMDE3LTAzLTE3IGF0IDEyOjUwICswMDAwLCBUcm9uZCBNeWtsZWJ1c3Qgd3JvdGU6
+DQo+ID4gT24gRnJpLCAyMDE3LTAzLTE3IGF0IDE0OjEwICswMjAwLCBFbGVuYSBSZXNoZXRvdmEg
+d3JvdGU6DQo+ID4gPiByZWZjb3VudF90IHR5cGUgYW5kIGNvcnJlc3BvbmRpbmcgQVBJIHNob3Vs
+ZCBiZQ0KPiA+ID4gdXNlZCBpbnN0ZWFkIG9mIGF0b21pY190IHdoZW4gdGhlIHZhcmlhYmxlIGlz
+IHVzZWQgYXMNCj4gPiA+IGEgcmVmZXJlbmNlIGNvdW50ZXIuIFRoaXMgYWxsb3dzIHRvIGF2b2lk
+IGFjY2lkZW50YWwNCj4gPiA+IHJlZmNvdW50ZXIgb3ZlcmZsb3dzIHRoYXQgbWlnaHQgbGVhZCB0
+byB1c2UtYWZ0ZXItZnJlZQ0KPiA+ID4gc2l0dWF0aW9ucy4NCj4gPiA+IA0KPiA+ID4gU2lnbmVk
+LW9mZi1ieTogRWxlbmEgUmVzaGV0b3ZhIDxlbGVuYS5yZXNoZXRvdmFAaW50ZWwuY29tPg0KPiA+
+ID4gU2lnbmVkLW9mZi1ieTogSGFucyBMaWxqZXN0cmFuZCA8aXNoa2FtaWVsQGdtYWlsLmNvbT4N
+Cj4gPiA+IFNpZ25lZC1vZmYtYnk6IEtlZXMgQ29vayA8a2Vlc2Nvb2tAY2hyb21pdW0ub3JnPg0K
+PiA+ID4gU2lnbmVkLW9mZi1ieTogRGF2aWQgV2luZHNvciA8ZHdpbmRzb3JAZ21haWwuY29tPg0K
+PiA+ID4gLS0tDQo+ID4gPiDCoGluY2x1ZGUvbGludXgvc3VucnBjL2F1dGguaCB8wqDCoDggKysr
+Ky0tLS0NCj4gPiA+IMKgbmV0L3N1bnJwYy9hdXRoLmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfCAx
+MiArKysrKystLS0tLS0NCj4gPiA+IMKgMiBmaWxlcyBjaGFuZ2VkLCAxMCBpbnNlcnRpb25zKCsp
+LCAxMCBkZWxldGlvbnMoLSkNCj4gPiA+IA0KPiA+ID4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGlu
+dXgvc3VucnBjL2F1dGguaA0KPiA+ID4gYi9pbmNsdWRlL2xpbnV4L3N1bnJwYy9hdXRoLmgNCj4g
+PiA+IGluZGV4IGIxYmM2MmIuLmJkMzZlMGIgMTAwNjQ0DQo+ID4gPiAtLS0gYS9pbmNsdWRlL2xp
+bnV4L3N1bnJwYy9hdXRoLmgNCj4gPiA+ICsrKyBiL2luY2x1ZGUvbGludXgvc3VucnBjL2F1dGgu
+aA0KPiA+ID4gQEAgLTE1LDcgKzE1LDcgQEANCj4gPiA+IMKgI2luY2x1ZGUgPGxpbnV4L3N1bnJw
+Yy9tc2dfcHJvdC5oPg0KPiA+ID4gwqAjaW5jbHVkZSA8bGludXgvc3VucnBjL3hkci5oPg0KPiA+
+ID4gwqANCj4gPiA+IC0jaW5jbHVkZSA8bGludXgvYXRvbWljLmg+DQo+ID4gPiArI2luY2x1ZGUg
+PGxpbnV4L3JlZmNvdW50Lmg+DQo+ID4gPiDCoCNpbmNsdWRlIDxsaW51eC9yY3VwZGF0ZS5oPg0K
+PiA+ID4gwqAjaW5jbHVkZSA8bGludXgvdWlkZ2lkLmg+DQo+ID4gPiDCoCNpbmNsdWRlIDxsaW51
+eC91dHNuYW1lLmg+DQo+ID4gPiBAQCAtNjgsNyArNjgsNyBAQCBzdHJ1Y3QgcnBjX2NyZWQgew0K
+PiA+ID4gwqAjZW5kaWYNCj4gPiA+IMKgCXVuc2lnbmVkIGxvbmcJCWNyX2V4cGlyZTsJLyogd2hl
+bg0KPiA+ID4gdG8gZ2MNCj4gPiA+ICovDQo+ID4gPiDCoAl1bnNpZ25lZCBsb25nCQljcl9mbGFn
+czsJLyogdmFyaW91cw0KPiA+ID4gZmxhZ3MgKi8NCj4gPiA+IC0JYXRvbWljX3QJCWNyX2NvdW50
+OwkvKiByZWYgY291bnQgKi8NCj4gPiA+ICsJcmVmY291bnRfdAkJY3JfY291bnQ7CS8qIHJlZiBj
+b3VudA0KPiA+ID4gKi8NCj4gPiA+IA0KPiA+IA0KPiA+IE5BQ0suIFRoYXQncyBnb2luZyB0byBi
+ZSBoaXR0aW5nDQo+ID4gV0FSTl9PTkNFKCFyZWZjb3VudF9pbmNfbm90X3plcm8ociksDQo+ID4g
+InJlZmNvdW50X3Q6IGluY3JlbWVudCBvbiAwOyB1c2UtYWZ0ZXItZnJlZS5cbiIpIGxpa2UgdGhl
+cmUncyBubw0KPiA+IHRvbW9ycm93Li4uDQo+ID4gDQo+ID4gUGxlYXNlIHN0b3Agd2l0aCB0aGVz
+ZSBhdXRvbWF0ZWQgY29udmVyc2lvbnMuIFRoZXkgYXJlIGdvaW5nIHRvDQo+ID4gY2F1c2UgYQ0K
+PiA+IGxvdCBtb3JlIGJ1Z3MgdGhhbiB0aGV5IGZpeC4NCj4gPiANCj4gDQo+IEFncmVlZC4gVGhl
+c2UgcGF0Y2hzZXRzIGFyZSB0b3VjaGluZyBwbGFjZXMgd2hlcmUgd2UndmUgYWxyZWFkeQ0KPiBi
+YW5nZWQNCj4gb3V0IG1vc3Qgb2YgdGhlIHJlZmNvdW50aW5nIGJ1Z3MuIEknbSBhZ2FpbnN0IGRv
+aW5nIGxhcmdlIHNjYWxlDQo+IGNvbnZlcnNpb25zIGxpa2UgdGhpcyB3aXRob3V0IGEgZGFtbmVk
+IGdvb2QgcmVhc29uLg0KPiANCj4gSSB0aGluayBpdCBtYXkgYmUgYmVzdCB0byBkbyB0aGlzIHNv
+cnQgb2YgdGhpbmcgaW4gYSBtb3JlIHBpZWNlbWVhbA0KPiBmYXNoaW9uLiBQaWNrIGEgc3Vic3lz
+dGVtIG9yIHR3byBhbmQgZG8gdGhlIGNvbnZlcnNpb25zIHRoZXJlIHRvDQo+IHByb3ZlDQo+IHRo
+YXQgdGhleSdyZSBiZXR0ZXIgdGhhbiB3aGF0IHdlIGhhdmUuIElmIHRoZSBzdWJzeXN0ZW0gYWxy
+ZWFkeSBoYXMNCj4gcHJvYmxlbXMgd2l0aCBpdHMgcmVmY291bnRpbmcsIHRoZW4gc28gbXVjaCB0
+aGUgYmV0dGVyLiBQb2ludCB0byBidWdzDQo+IHRoYXQgdGhpcyBuZXcgaW5mcmFzdHJ1Y3R1cmUg
+aGVscGVkIGZpbmQuDQo+IA0KPiBFbmNvdXJhZ2UgcGVvcGxlIHRvIGFkb3B0IHlvdXIgbmV3IGlu
+ZnJhc3RydWN0dXJlIGFzIG5ldyByZWZjb3VudGVkDQo+IG9iamVjdHMgYXJlIGludHJvZHVjZWQg
+aW50byB0aGUga2VybmVsLiBZb3UgbWlnaHQgZXZlbiBjb25zaWRlciBhIExXTg0KPiBhcnRpY2xl
+IGFib3V0IHRoaXMuDQo+IA0KPiBFdmVudHVhbGx5IHdlJ2xsIGdldCBhcm91bmQgdG8gY2hhbmdp
+bmcgZXhpc3RpbmcgY29kZSB0byB1c2UgaXQsIG9uY2UNCj4gdGhlcmUgaXMgYSBzdWZmaWNpZW50
+IGFkdmFudGFnZSB0byBkb2luZyBzby4gTW9zdCBsaWtlbHkgd2hlbiB3ZSdyZQ0KPiByZXdvcmtp
+bmcgdGhlIGNvZGUgZm9yIG90aGVyIHJlYXNvbnMsIG9yIHdoZW4gd2UncmUgY2hhc2luZyBzb21l
+DQo+IGhvcnJpZA0KPiByZWZjb3VudGluZyBidWcgYW5kIHRoaW5rIHRoYXQgdGhpcyBtaWdodCBo
+ZWxwIGZpbmQgaXQuDQoNClRoZSBtYWluIGlzc3VlIGlzIHRoYXQgdGhpcyAicmVmY291bnRfdCIg
+aW1wbGVtZW50YXRpb24gYXBwZWFycyB0byBiZQ0KYXNzdW1pbmcgdGhhdCB0aGVyZSBpcyBvbmUg
+YW5kIG9ubHkgb25lIG1vZGVsIGZvciByZWZjb3VudHMgKHRoZSBvbmUNCndoZXJlIGEgdmFsdWUg
+b2YgIjAiIG1lYW5zICJmcmVlIG1lIGltbWVkaWF0ZWx5IikuDQoNClRoZSBrZXJuZWwgaGFzIGEg
+cGxldGhvcmEgb2Ygb2JqZWN0IGNhY2hpbmcgaW1wbGVtZW50YXRpb25zIHdoZXJlIHRoaXMNCmlz
+IHNpbXBseSBub3QgdGhlIGNhc2U7IHRoZSBkY2FjaGUgaXMgYSBwcmltZSBleGFtcGxlLCBhbmQg
+dGhpcyBjYWNoZQ0KaXMgYW5vdGhlci4gSW4gYm90aCB0aGVzZSBpbXBsZW1lbnRhdGlvbiwgdGhl
+IGF0b21pY190IHZhcmlhYmxlIGlzDQpiZWluZyB1c2VkIG1vcmUgYXMgYSBzZW1hcGhvcmUtc3R5
+bGUgbG9jayB0aGF0IHByZXZlbnRzIGZyZWVpbmcgb2YgdGhlDQpvYmplY3Qgd2hpbGUgaXQgaXMg
+aW4gYWN0aXZlIHVzZSBhcyBvcHBvc2VkIHRvIGJlaW5nIGZyZWVhYmxlLCBidXQNCmNhY2hlZC4g
+VGhpcyBpcyB3aHkgdGhlc2UgYXV0b21hdGVkIGNvbnZlcnNpb25zIGFyZSBhIG51aXNhbmNlIGFu
+ZCBhDQpzb3VyY2Ugb2YgYnVncy4NCg0KLS0gDQpUcm9uZCBNeWtsZWJ1c3QNCkxpbnV4IE5GUyBj
+bGllbnQgbWFpbnRhaW5lciwgUHJpbWFyeURhdGENCnRyb25kLm15a2xlYnVzdEBwcmltYXJ5ZGF0
+YS5jb20NCg==
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
