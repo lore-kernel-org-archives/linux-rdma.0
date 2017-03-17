@@ -1,87 +1,45 @@
-From: Jeff Layton <jlayton@poochiereds.net>
-Subject: Re: [PATCH 01/23] net, sunrpc: convert rpc_cred.cr_count from
- atomic_t to refcount_t
-Date: Fri, 17 Mar 2017 09:02:16 -0400
-Message-ID: <1489755736.2810.10.camel@poochiereds.net>
-References: <1489752646-8749-1-git-send-email-elena.reshetova@intel.com>
-         <1489752646-8749-2-git-send-email-elena.reshetova@intel.com>
-         <1489755011.6453.1.camel@primarydata.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: no QFSP detection with HFI card
+Date: Fri, 17 Mar 2017 09:25:56 -0400
+Message-ID: <ded534e0-47a9-001d-3006-3ac6667ab446@intel.com>
+References: <20170313125116.4cab1f75ba4d0dd0fe96e0df@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-hams-owner@vger.kernel.org>
-In-Reply-To: <1489755011.6453.1.camel@primarydata.com>
-Sender: linux-hams-owner@vger.kernel.org
-To: Trond Myklebust <trondmy@primarydata.com>, "elena.reshetova@intel.com" <elena.reshetova@intel.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "peterz@infradead.org" <peterz@infradead.org>, "ralf@linux-mips.org" <ralf@linux-mips.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "ishkamiel@gmail.com" <ishkamiel@gmail.com>, "bfields@fieldses.org" <bfields@fieldses.org>, "steffen.klassert@secunet.com" <steffen.klassert@secunet.com>, "nhorman@tuxdriver.com" <nhorman@tuxdriver.com>, "linux-nfs@vger.kernel.org" <linux-nfs@vger.kernel.org>, "jreuter@yaina.de" <jreuter@yaina.de>, "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>, "linux-hams@vger.kernel.org" <linux-hams@vger.kernel.org>, "dwindsor@gmail.com" <dwindsor@gmail.com>, "keescook@chromium.org" <keescook@chromium.org>, "zyan@redhat.com" <zyan@redhat.com>, sage@redha
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170313125116.4cab1f75ba4d0dd0fe96e0df-l3A5Bk7waGM@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Thomas Bogendoerfer <tbogendoerfer-l3A5Bk7waGM@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-03-17 at 12:50 +0000, Trond Myklebust wrote:
-> On Fri, 2017-03-17 at 14:10 +0200, Elena Reshetova wrote:
-> > refcount_t type and corresponding API should be
-> > used instead of atomic_t when the variable is used as
-> > a reference counter. This allows to avoid accidental
-> > refcounter overflows that might lead to use-after-free
-> > situations.
-> > 
-> > Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-> > Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
-> > Signed-off-by: Kees Cook <keescook@chromium.org>
-> > Signed-off-by: David Windsor <dwindsor@gmail.com>
-> > ---
-> >  include/linux/sunrpc/auth.h |  8 ++++----
-> >  net/sunrpc/auth.c           | 12 ++++++------
-> >  2 files changed, 10 insertions(+), 10 deletions(-)
-> > 
-> > diff --git a/include/linux/sunrpc/auth.h
-> > b/include/linux/sunrpc/auth.h
-> > index b1bc62b..bd36e0b 100644
-> > --- a/include/linux/sunrpc/auth.h
-> > +++ b/include/linux/sunrpc/auth.h
-> > @@ -15,7 +15,7 @@
-> >  #include <linux/sunrpc/msg_prot.h>
-> >  #include <linux/sunrpc/xdr.h>
-> >  
-> > -#include <linux/atomic.h>
-> > +#include <linux/refcount.h>
-> >  #include <linux/rcupdate.h>
-> >  #include <linux/uidgid.h>
-> >  #include <linux/utsname.h>
-> > @@ -68,7 +68,7 @@ struct rpc_cred {
-> >  #endif
-> >  	unsigned long		cr_expire;	/* when to gc
-> > */
-> >  	unsigned long		cr_flags;	/* various
-> > flags */
-> > -	atomic_t		cr_count;	/* ref count */
-> > +	refcount_t		cr_count;	/* ref count */
-> > 
-> 
-> NACK. That's going to be hitting WARN_ONCE(!refcount_inc_not_zero(r),
-> "refcount_t: increment on 0; use-after-free.\n") like there's no
-> tomorrow...
-> 
-> Please stop with these automated conversions. They are going to cause a
-> lot more bugs than they fix.
-> 
+On 03/13/2017 07:51 AM, Thomas Bogendoerfer wrote:
+> Hi,
+>
+> I'm tyring to connect a HFI card to an Omni-Path Edge Switch 100. The
+> switch detects the QSFP just fine:
+>
+> Cable05  OEM         Copper     3 meter   20.87  ???  MCP1600-E003-C    6   M9AL0003          Valid
+>
+> But on the host side, I only get:
+>
+> [   53.060613] hfi1 0000:01:00.0: hfi1_0: wait_for_qsfp_init: No IntN detected, reset complete
+> [   53.082820] hfi1 0000:01:00.0: hfi1_0: i2c_bus_write: bus 1, i2c slave 0x50, offset 0x7f, len 0x1; write failed, ret -6
+> [   53.114661] hfi1 0000:01:00.0: hfi1_0: port 1: QSFP chain 1 can't write QSFP_PAGE_SELECT_BYTE: -6
+> [   53.137353] hfi1 0000:01:00.0: hfi1_0: QSFP not responding, waiting and retrying 0
+>
+> Any hint why the card doesn't find the plugged in QSFPs ?
 
-Agreed. These patchsets are touching places where we've already banged
-out most of the refcounting bugs. I'm against doing large scale
-conversions like this without a damned good reason.
+Please refer to the Intel Omni Path cable support matrix for a list of 
+supported cables: 
+http://www.intel.com/content/www/us/en/high-performance-computing-fabrics/omni-path-cables.html. 
 
-I think it may be best to do this sort of thing in a more piecemeal
-fashion. Pick a subsystem or two and do the conversions there to prove
-that they're better than what we have. If the subsystem already has
-problems with its refcounting, then so much the better. Point to bugs
-that this new infrastructure helped find.
+If you need help with cables not on this list, please contact the cable 
+manufacturer or supplier for assistance.
 
-Encourage people to adopt your new infrastructure as new refcounted
-objects are introduced into the kernel. You might even consider a LWN
-article about this.
+Thanks
 
-Eventually we'll get around to changing existing code to use it, once
-there is a sufficient advantage to doing so. Most likely when we're
-reworking the code for other reasons, or when we're chasing some horrid
-refcounting bug and think that this might help find it.
--- 
-Jeff Layton <jlayton@poochiereds.net>
+-Denny
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
