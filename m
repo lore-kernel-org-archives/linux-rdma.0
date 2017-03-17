@@ -1,70 +1,55 @@
-From: Elena Reshetova <elena.reshetova@intel.com>
-Subject: [PATCH 12/23] net, x25: convert x25_neigh.refcnt from atomic_t to refcount_t
-Date: Fri, 17 Mar 2017 14:10:35 +0200
-Message-ID: <1489752646-8749-13-git-send-email-elena.reshetova@intel.com>
+From: Trond Myklebust <trondmy-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
+Subject: Re: [PATCH 01/23] net, sunrpc: convert rpc_cred.cr_count from
+ atomic_t to refcount_t
+Date: Fri, 17 Mar 2017 12:50:12 +0000
+Message-ID: <1489755011.6453.1.camel@primarydata.com>
 References: <1489752646-8749-1-git-send-email-elena.reshetova@intel.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1489752646-8749-1-git-send-email-elena.reshetova@intel.com>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, davem@davemloft.net, linux-x25@vger.kernel.org, linux-sctp@vger.kernel.org, vyasevich@gmail.com, nhorman@tuxdriver.com, linux-hams@vger.kernel.org, linux-nfs@vger.kernel.org, ceph-devel@vger.kernel.org, zyan@redhat.com, sage@redhat.com, bfields@fieldses.org, jlayton@poochiereds.net, steffen.klassert@secunet.com, herbert@gondor.apana.org.au, santosh.shilimkar@oracle.com, jreuter@yaina.de, ralf@linux-mips.org, peterz@infradead.org, keescook@chromium.org, Elena Reshetova <elena.reshetova@intel.com>, Hans Liljestrand <ishkamiel@gmail.com>, David Windsor <dwindsor@gmail.com>
+         <1489752646-8749-2-git-send-email-elena.reshetova@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1489752646-8749-2-git-send-email-elena.reshetova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+Content-ID: <FB0336B182AE3042ACC28ED09CE96B39-Hry67jCOGbCcE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "elena.reshetova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <elena.reshetova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org" <ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ishkamiel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <ishkamiel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, "steffen.klassert-opNxpl+3fjRBDgjK7y7TUQ@public.gmane.org" <steffen.klassert-opNxpl+3fjRBDgjK7y7TUQ@public.gmane.org>, "nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org" <nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jreuter-K7Hl1MveuGQ@public.gmane.org" <jreuter-K7Hl1MveuGQ@public.gmane.org>, "santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-hams-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-hams-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jlayton-vpEMnDpepFuMZCB2o+C8xQ@public.gmane.org" <jlayton-vpEMnDpepFuMZCB2o+C8xQ@public.gmane.org>, "dwindsor-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <dwindsor-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org" <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-refcount_t type and corresponding API should be
-used instead of atomic_t when the variable is used as
-a reference counter. This allows to avoid accidental
-refcounter overflows that might lead to use-after-free
-situations.
+T24gRnJpLCAyMDE3LTAzLTE3IGF0IDE0OjEwICswMjAwLCBFbGVuYSBSZXNoZXRvdmEgd3JvdGU6
+DQo+IHJlZmNvdW50X3QgdHlwZSBhbmQgY29ycmVzcG9uZGluZyBBUEkgc2hvdWxkIGJlDQo+IHVz
+ZWQgaW5zdGVhZCBvZiBhdG9taWNfdCB3aGVuIHRoZSB2YXJpYWJsZSBpcyB1c2VkIGFzDQo+IGEg
+cmVmZXJlbmNlIGNvdW50ZXIuIFRoaXMgYWxsb3dzIHRvIGF2b2lkIGFjY2lkZW50YWwNCj4gcmVm
+Y291bnRlciBvdmVyZmxvd3MgdGhhdCBtaWdodCBsZWFkIHRvIHVzZS1hZnRlci1mcmVlDQo+IHNp
+dHVhdGlvbnMuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBFbGVuYSBSZXNoZXRvdmEgPGVsZW5hLnJl
+c2hldG92YUBpbnRlbC5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IEhhbnMgTGlsamVzdHJhbmQgPGlz
+aGthbWllbEBnbWFpbC5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IEtlZXMgQ29vayA8a2Vlc2Nvb2tA
+Y2hyb21pdW0ub3JnPg0KPiBTaWduZWQtb2ZmLWJ5OiBEYXZpZCBXaW5kc29yIDxkd2luZHNvckBn
+bWFpbC5jb20+DQo+IC0tLQ0KPiDCoGluY2x1ZGUvbGludXgvc3VucnBjL2F1dGguaCB8wqDCoDgg
+KysrKy0tLS0NCj4gwqBuZXQvc3VucnBjL2F1dGguY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqB8IDEy
+ICsrKysrKy0tLS0tLQ0KPiDCoDIgZmlsZXMgY2hhbmdlZCwgMTAgaW5zZXJ0aW9ucygrKSwgMTAg
+ZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9zdW5ycGMvYXV0
+aC5oDQo+IGIvaW5jbHVkZS9saW51eC9zdW5ycGMvYXV0aC5oDQo+IGluZGV4IGIxYmM2MmIuLmJk
+MzZlMGIgMTAwNjQ0DQo+IC0tLSBhL2luY2x1ZGUvbGludXgvc3VucnBjL2F1dGguaA0KPiArKysg
+Yi9pbmNsdWRlL2xpbnV4L3N1bnJwYy9hdXRoLmgNCj4gQEAgLTE1LDcgKzE1LDcgQEANCj4gwqAj
+aW5jbHVkZSA8bGludXgvc3VucnBjL21zZ19wcm90Lmg+DQo+IMKgI2luY2x1ZGUgPGxpbnV4L3N1
+bnJwYy94ZHIuaD4NCj4gwqANCj4gLSNpbmNsdWRlIDxsaW51eC9hdG9taWMuaD4NCj4gKyNpbmNs
+dWRlIDxsaW51eC9yZWZjb3VudC5oPg0KPiDCoCNpbmNsdWRlIDxsaW51eC9yY3VwZGF0ZS5oPg0K
+PiDCoCNpbmNsdWRlIDxsaW51eC91aWRnaWQuaD4NCj4gwqAjaW5jbHVkZSA8bGludXgvdXRzbmFt
+ZS5oPg0KPiBAQCAtNjgsNyArNjgsNyBAQCBzdHJ1Y3QgcnBjX2NyZWQgew0KPiDCoCNlbmRpZg0K
+PiDCoAl1bnNpZ25lZCBsb25nCQljcl9leHBpcmU7CS8qIHdoZW4gdG8gZ2MNCj4gKi8NCj4gwqAJ
+dW5zaWduZWQgbG9uZwkJY3JfZmxhZ3M7CS8qIHZhcmlvdXMNCj4gZmxhZ3MgKi8NCj4gLQlhdG9t
+aWNfdAkJY3JfY291bnQ7CS8qIHJlZiBjb3VudCAqLw0KPiArCXJlZmNvdW50X3QJCWNyX2NvdW50
+OwkvKiByZWYgY291bnQgKi8NCj4gDQoNCk5BQ0suIFRoYXQncyBnb2luZyB0byBiZSBoaXR0aW5n
+IFdBUk5fT05DRSghcmVmY291bnRfaW5jX25vdF96ZXJvKHIpLA0KInJlZmNvdW50X3Q6IGluY3Jl
+bWVudCBvbiAwOyB1c2UtYWZ0ZXItZnJlZS5cbiIpIGxpa2UgdGhlcmUncyBubw0KdG9tb3Jyb3cu
+Li4NCg0KUGxlYXNlIHN0b3Agd2l0aCB0aGVzZSBhdXRvbWF0ZWQgY29udmVyc2lvbnMuIFRoZXkg
+YXJlIGdvaW5nIHRvIGNhdXNlIGENCmxvdCBtb3JlIGJ1Z3MgdGhhbiB0aGV5IGZpeC4NCg0KLS0g
+DQpUcm9uZCBNeWtsZWJ1c3QNCkxpbnV4IE5GUyBjbGllbnQgbWFpbnRhaW5lciwgUHJpbWFyeURh
+dGENCnRyb25kLm15a2xlYnVzdEBwcmltYXJ5ZGF0YS5jb20NCg==
 
-Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Signed-off-by: David Windsor <dwindsor@gmail.com>
----
- include/net/x25.h  | 6 +++---
- net/x25/x25_link.c | 2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/include/net/x25.h b/include/net/x25.h
-index 83a6d31..265756c 100644
---- a/include/net/x25.h
-+++ b/include/net/x25.h
-@@ -142,7 +142,7 @@ struct x25_neigh {
- 	unsigned long		t20;
- 	struct timer_list	t20timer;
- 	unsigned long		global_facil_mask;
--	atomic_t		refcnt;
-+	refcount_t		refcnt;
- };
- 
- struct x25_sock {
-@@ -243,12 +243,12 @@ void x25_link_free(void);
- /* x25_neigh.c */
- static __inline__ void x25_neigh_hold(struct x25_neigh *nb)
- {
--	atomic_inc(&nb->refcnt);
-+	refcount_inc(&nb->refcnt);
- }
- 
- static __inline__ void x25_neigh_put(struct x25_neigh *nb)
- {
--	if (atomic_dec_and_test(&nb->refcnt))
-+	if (refcount_dec_and_test(&nb->refcnt))
- 		kfree(nb);
- }
- 
-diff --git a/net/x25/x25_link.c b/net/x25/x25_link.c
-index bcaa180..e0cd04d 100644
---- a/net/x25/x25_link.c
-+++ b/net/x25/x25_link.c
-@@ -266,7 +266,7 @@ void x25_link_device_up(struct net_device *dev)
- 				       X25_MASK_PACKET_SIZE |
- 				       X25_MASK_WINDOW_SIZE;
- 	nb->t20      = sysctl_x25_restart_request_timeout;
--	atomic_set(&nb->refcnt, 1);
-+	refcount_set(&nb->refcnt, 1);
- 
- 	write_lock_bh(&x25_neigh_list_lock);
- 	list_add(&nb->node, &x25_neigh_list);
--- 
-2.7.4
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
