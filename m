@@ -1,62 +1,47 @@
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] i40iw: Receive netdev events post INET_NOTIFIER state
-Date: Fri, 17 Mar 2017 18:30:07 -0500
-Message-ID: <20170317233007.16768-1-shiraz.saleem@intel.com>
+From: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: kernull NULL pointer observed on initiator side after 'nvmetcli
+ clear' on target side
+Date: Sat, 18 Mar 2017 20:06:27 +0800
+Message-ID: <c9e2e08a-a740-2889-5b98-ea7845bb6566@redhat.com>
+References: <1053522223.31446389.1488721184925.JavaMail.zimbra@redhat.com>
+ <644fc4ab-df6b-a337-1431-bad881ef56ee@grimberg.me>
+ <88ae146a-7510-9be0-c9b4-58e70f9d73b9@redhat.com>
+ <6ffda302-02f9-12f0-a112-ea7cd20b9ffa@grimberg.me>
+ <b0a84bcc-7dca-d342-b30e-b01eba8088cd@redhat.com>
+ <6fe6d285-3cb4-c88c-9a7c-741fce54120c@grimberg.me>
+ <7a955472-1975-1b73-c88c-367576a56884@redhat.com>
+ <bbb45ff5-8b61-2508-df4a-7c90eb6637de@grimberg.me>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <bbb45ff5-8b61-2508-df4a-7c90eb6637de-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, sassmann-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: hch-jcswGhMUV9g@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Netdev notification events are de-registered only when all
-client iwdev instances are removed. If a single client is closed
-and re-opened, netdev events could arrive even before the Control
-Queue-Pair (CQP) is created, causing a NULL pointer dereference crash
-in i40iw_get_cqp_request. Fix this by allowing netdev event
-notification only after we have reached the INET_NOTIFIER state with
-respect to device initialization.
+On 03/17/2017 12:40 AM, Sagi Grimberg wrote:
+>
+>> The target was deleted by 'nvmetcli clear' command.
+>> Then on client side, seems it doesn't know the target side was deleted
+>> and will always reconnecting in 10 seconds.
+>
+> Oh, so the target doesn't come back. That makes sense. The host
+> doesn't know if/when the target will come back so it attempts reconnect
+> periodically forever.
+>
+> I think what you're asking is a "dev_loss_tmo" kind of functionality
+> where the host gives up on the controller correct?
+Hi Sagi
+Yes, since the target was deleted, but the client doesn't realized it 
+and always reconnect it.
+I think it's better to stop the reconnect operation. Or any other good idea?
+Since I'm a newbie and not familiar with for nvme-of, correct if my 
+thought not reasonable. :)
 
-Reported-by: Stefan Assmann <sassmann-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/i40iw/i40iw_utils.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
-
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-index d5f5de2..23df3ab 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-@@ -159,6 +159,9 @@ int i40iw_inetaddr_event(struct notifier_block *notifier,
- 		return NOTIFY_DONE;
- 
- 	iwdev = &hdl->device;
-+	if (iwdev->init_state < INET_NOTIFIER)
-+		return NOTIFY_DONE;
-+
- 	netdev = iwdev->ldev->netdev;
- 	upper_dev = netdev_master_upper_dev_get(netdev);
- 	if (netdev != event_netdev)
-@@ -231,6 +234,9 @@ int i40iw_inet6addr_event(struct notifier_block *notifier,
- 		return NOTIFY_DONE;
- 
- 	iwdev = &hdl->device;
-+	if (iwdev->init_state < INET_NOTIFIER)
-+		return NOTIFY_DONE;
-+
- 	netdev = iwdev->ldev->netdev;
- 	if (netdev != event_netdev)
- 		return NOTIFY_DONE;
-@@ -280,6 +286,8 @@ int i40iw_net_event(struct notifier_block *notifier, unsigned long event, void *
- 		if (!iwhdl)
- 			return NOTIFY_DONE;
- 		iwdev = &iwhdl->device;
-+		if (iwdev->init_state < INET_NOTIFIER)
-+			return NOTIFY_DONE;
- 		p = (__be32 *)neigh->primary_key;
- 		i40iw_copy_ip_ntohl(local_ipaddr, p);
- 		if (neigh->nud_state & NUD_VALID) {
--- 
-2.8.3
+Thanks
+Yi
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
