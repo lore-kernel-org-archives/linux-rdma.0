@@ -1,206 +1,119 @@
-From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Subject: Re: [PATCH rfc 10/10] target: Use non-selective polling
-Date: Sat, 18 Mar 2017 16:58:01 -0700
-Message-ID: <1489881481.27336.23.camel@haakon3.risingtidesystems.com>
-References: <1489065402-14757-1-git-send-email-sagi@grimberg.me>
-         <1489065402-14757-11-git-send-email-sagi@grimberg.me>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: mlx4_core 0000:07:00.0: swiotlb buffer is full and OOM observed
+ during stress test on reset_controller
+Date: Sun, 19 Mar 2017 09:01:15 +0200
+Message-ID: <20170319070115.GP2079@mtr-leonro.local>
+References: <2013049462.31187009.1488542111040.JavaMail.zimbra@redhat.com>
+ <95e045a8-ace0-6a9a-b9a9-555cb2670572@grimberg.me>
+ <d21c5571-78fd-7882-b4cc-c24f76f6ff47@redhat.com>
+ <20170310165214.GC14379@mtr-leonro.local>
+ <56e8ccd3-8116-89a1-2f65-eb61a91c5f84@mellanox.com>
+ <860db62d-ae93-d94c-e5fb-88e7b643f737@redhat.com>
+ <0a825b18-df06-9a6d-38c9-402f4ee121f7@mellanox.com>
+ <7496c68a-15f3-d8cb-b17f-20f5a59a24d2@redhat.com>
+ <31678a43-f76c-a921-e40c-470b0de1a86c@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="cX4WM3qIY/fHWHDu"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1489065402-14757-11-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <31678a43-f76c-a921-e40c-470b0de1a86c-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Sagi,
 
-On Thu, 2017-03-09 at 15:16 +0200, Sagi Grimberg wrote:
-> It doesn't really make sense to do selective polling
-> because we never care about specific IOs. Non selective
-> polling can actually help by doing some useful work
-> while we're submitting a command.
-> 
-> We ask for a batch of (magic) 4 completions which looks
-> like a decent network<->backend proportion, if less are
-> available we'll see less.
-> 
-> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-> ---
->  drivers/target/target_core_iblock.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/target/target_core_iblock.c b/drivers/target/target_core_iblock.c
-> index d316ed537d59..00726b6e51c4 100644
-> --- a/drivers/target/target_core_iblock.c
-> +++ b/drivers/target/target_core_iblock.c
-> @@ -757,6 +757,7 @@ iblock_execute_rw(struct se_cmd *cmd, struct scatterlist *sgl, u32 sgl_nents,
->  	}
->  
->  	iblock_submit_bios(&list);
-> +	blk_mq_poll_batch(bdev_get_queue(IBLOCK_DEV(dev)->ibd_bd), 4);
->  	iblock_complete_cmd(cmd);
->  	return 0;
->  
+--cX4WM3qIY/fHWHDu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Let's make 'batch' into a backend specific attribute so it can be
-changed on-the-fly per device, instead of a hard-coded value.
+On Thu, Mar 16, 2017 at 06:51:16PM +0200, Sagi Grimberg wrote:
+>
+> > > > > > Sagi,
+> > > > > > The release function is placed in global workqueue. I'm not familiar
+> > > > > > with NVMe design and I don't know all the details, but maybe the
+> > > > > > proper way will
+> > > > > > be to create special workqueue with MEM_RECLAIM flag to ensure the
+> > > > > > progress?
+>
+> Leon, the release work makes progress, but it is inherently slower
+> than the establishment work and when we are bombarded with
+> establishments we have no backpressure...
 
-Here's a quick patch to that end.  Feel free to fold it into your
-series.
+Sagi,
+How do you see that release is slower than alloc? In this specific
+test, all queues are empty and QP drains should finish immediately.
 
-Beyond that:
+If we rely on the prints that Yi posted in the beginning of this thread,
+the release function doesn't have enough priority for execution and
+constantly delayed.
 
-Acked-by: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+>
+> > I tried with 4.11.0-rc2, and still can reproduced it with less than 2000
+> > times.
+>
+> Yi,
+>
+> Can you try the below (untested) patch:
+>
+> I'm not at all convinced this is the way to go because it will
+> slow down all the connect requests, but I'm curious to know
+> if it'll make the issue go away.
+>
+> --
+> diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
+> index ecc4fe862561..f15fa6e6b640 100644
+> --- a/drivers/nvme/target/rdma.c
+> +++ b/drivers/nvme/target/rdma.c
+> @@ -1199,6 +1199,9 @@ static int nvmet_rdma_queue_connect(struct rdma_cm_id
+> *cm_id,
+>         }
+>         queue->port = cm_id->context;
+>
+> +       /* Let inflight queue teardown complete */
+> +       flush_scheduled_work();
+> +
+>         ret = nvmet_rdma_cm_accept(cm_id, queue, &event->param.conn);
+>         if (ret)
+>                 goto release_queue;
+> --
+>
+> Any other good ideas are welcome...
 
->From c2c2a6185fc92132f61beb1708adbef9ea3995e9 Mon Sep 17 00:00:00 2001
-From: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Date: Sat, 18 Mar 2017 20:29:05 +0000
-Subject: [PATCH] target/iblock: Add poll_batch attribute
+Maybe create separate workqueue and flush its only, instead of global
+system queue.
 
-Signed-off-by: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
----
- drivers/target/target_core_iblock.c |   65 ++++++++++++++++++++++++++++++++---
- drivers/target/target_core_iblock.h |    2 ++
- 2 files changed, 63 insertions(+), 4 deletions(-)
+It will stress the system a little bit less.
 
-diff --git a/drivers/target/target_core_iblock.c b/drivers/target/target_core_iblock.c
-index 00726b6..9396a60 100644
---- a/drivers/target/target_core_iblock.c
-+++ b/drivers/target/target_core_iblock.c
-@@ -35,6 +35,7 @@
- #include <linux/genhd.h>
- #include <linux/file.h>
- #include <linux/module.h>
-+#include <linux/configfs.h>
- #include <scsi/scsi_proto.h>
- #include <asm/unaligned.h>
- 
-@@ -114,6 +115,7 @@ static int iblock_configure_device(struct se_device *dev)
- 		goto out_free_bioset;
- 	}
- 	ib_dev->ibd_bd = bd;
-+	ib_dev->poll_batch = IBLOCK_POLL_BATCH;
- 
- 	q = bdev_get_queue(bd);
- 
-@@ -757,7 +759,8 @@ static ssize_t iblock_show_configfs_dev_params(struct se_device *dev, char *b)
- 	}
- 
- 	iblock_submit_bios(&list);
--	blk_mq_poll_batch(bdev_get_queue(IBLOCK_DEV(dev)->ibd_bd), 4);
-+	blk_mq_poll_batch(bdev_get_queue(IBLOCK_DEV(dev)->ibd_bd),
-+					 IBLOCK_DEV(dev)->poll_batch);
- 	iblock_complete_cmd(cmd);
- 	return 0;
- 
-@@ -840,7 +843,38 @@ static bool iblock_get_write_cache(struct se_device *dev)
- 	return test_bit(QUEUE_FLAG_WC, &q->queue_flags);
- }
- 
--static const struct target_backend_ops iblock_ops = {
-+static ssize_t iblock_poll_batch_show(struct config_item *item, char *page)
-+{
-+	struct se_dev_attrib *da = container_of(to_config_group(item),
-+				struct se_dev_attrib, da_group);
-+	struct iblock_dev *ibd = container_of(da->da_dev,
-+				struct iblock_dev, dev);
-+
-+	return snprintf(page, PAGE_SIZE, "%u\n", ibd->poll_batch);
-+}
-+
-+static ssize_t iblock_poll_batch_store(struct config_item *item, const char *page,
-+				       size_t count)
-+{
-+	struct se_dev_attrib *da = container_of(to_config_group(item),
-+				struct se_dev_attrib, da_group);
-+	struct iblock_dev *ibd = container_of(da->da_dev,
-+				struct iblock_dev, dev);
-+	u32 val;
-+	int ret;
-+
-+	ret = kstrtou32(page, 0, &val);
-+	if (ret < 0)
-+		return ret;
-+
-+	ibd->poll_batch = val;
-+	return count;
-+}
-+CONFIGFS_ATTR(iblock_, poll_batch);
-+
-+static struct configfs_attribute **iblock_attrs;
-+
-+static struct target_backend_ops iblock_ops = {
- 	.name			= "iblock",
- 	.inquiry_prod		= "IBLOCK",
- 	.inquiry_rev		= IBLOCK_VERSION,
-@@ -860,17 +894,40 @@ static bool iblock_get_write_cache(struct se_device *dev)
- 	.get_io_min		= iblock_get_io_min,
- 	.get_io_opt		= iblock_get_io_opt,
- 	.get_write_cache	= iblock_get_write_cache,
--	.tb_dev_attrib_attrs	= sbc_attrib_attrs,
-+	.tb_dev_attrib_attrs	= NULL,
- };
- 
- static int __init iblock_module_init(void)
- {
--	return transport_backend_register(&iblock_ops);
-+	int rc, i, len = 0;
-+
-+	for (i = 0; sbc_attrib_attrs[i] != NULL; i++) {
-+		len += sizeof(struct configfs_attribute *);
-+	}
-+	len += sizeof(struct configfs_attribute *) * 2;
-+
-+	iblock_attrs = kzalloc(len, GFP_KERNEL);
-+	if (!iblock_attrs)
-+		return -ENOMEM;
-+
-+	for (i = 0; sbc_attrib_attrs[i] != NULL; i++) {
-+		iblock_attrs[i] = sbc_attrib_attrs[i];
-+	}
-+	iblock_attrs[i] = &iblock_attr_poll_batch;
-+	iblock_ops.tb_dev_attrib_attrs = iblock_attrs;
-+
-+	rc = transport_backend_register(&iblock_ops);
-+	if (rc) {
-+		kfree(iblock_attrs);
-+		return rc;
-+	}
-+	return 0;
- }
- 
- static void __exit iblock_module_exit(void)
- {
- 	target_backend_unregister(&iblock_ops);
-+	kfree(iblock_attrs);
- }
- 
- MODULE_DESCRIPTION("TCM IBLOCK subsystem plugin");
-diff --git a/drivers/target/target_core_iblock.h b/drivers/target/target_core_iblock.h
-index 718d3fc..308b5c2 100644
---- a/drivers/target/target_core_iblock.h
-+++ b/drivers/target/target_core_iblock.h
-@@ -8,6 +8,7 @@
- 
- #define IBLOCK_MAX_CDBS		16
- #define IBLOCK_LBA_SHIFT	9
-+#define IBLOCK_POLL_BATCH	4
- 
- struct iblock_req {
- 	atomic_t pending;
-@@ -23,6 +24,7 @@ struct iblock_dev {
- 	struct bio_set	*ibd_bio_set;
- 	struct block_device *ibd_bd;
- 	bool ibd_readonly;
-+	unsigned int poll_batch;
- } ____cacheline_aligned;
- 
- #endif /* TARGET_CORE_IBLOCK_H */
--- 
-1.7.10.4
+Thanks
 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--cX4WM3qIY/fHWHDu
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljOLLsACgkQ5GN7iDZy
+WKemmQ//ZwoPC9MdxYrJD7VDSoEX0VY4wdbCbwWPgUnH+jyQXOKBnd4lb7+fFXz+
+v2ZZGGk4UtH0Kplex+Cm4Hq7GujUl4d3ji6BDBaj8idbYREHD68yFbexLSChktnF
+Qos314XRyZXCEnxHUFrBnjzbi9HgHYEo/pymDuhF5XiszYZ0xgPj3ohurFTKS6Ts
+W8esSR1UBLgyXiVWIbXbPFPNp5z+PXgXMlotCXPspc0k0ckhjYU6kWb6EM5lw0yN
+FDbqfZA1Ahb5X0mvvXUhBMbmMjV8euKUnKNeVfSQedwk62/7pvGnysB+fpVBb1+u
+f+lebRJxajXKav8uKhO2YM4mjDzXXkw61BN/wgoaTI6FVCNNI0+2HL6NlG5631zB
+9P29XylD4ogUO8G3a8CCgrO10Yu/l/9Toanh6gd2kXWMr44pglio5dInByPdp6pP
++Hs6zIzRyDcj7rjXT0GvBl/BeKVCv9WvRH1IoYkZSlB2wZ2dn9fQuaYWVvPKrOAm
+NOjKiLT8K7i07U09+3Q6ON13+lVOuSzewNoiEl/siEeBoDplrm/vDOw5ZykxohTb
+3Pj9w1LgJ5axpkfxWvTvz+Ya/oHZ3ieU9Z6CfO+fr2ppcXZtbZa8iHOxWtE8q4eT
+lTuwKw8Si/4apZavGK0TFsysZ2VeF16CAHu8huCionjglV/knTQ=
+=9Vlf
+-----END PGP SIGNATURE-----
+
+--cX4WM3qIY/fHWHDu--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
