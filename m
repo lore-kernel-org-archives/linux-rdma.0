@@ -1,81 +1,86 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Restore I/O MMU, s390 and powerpc support
-Date: Sun, 19 Mar 2017 11:26:05 +0200
-Message-ID: <20170319092605.GS2079@mtr-leonro.local>
-References: <1D08B61A9CF0974AA09887BE32D889DA0DBFCB@ULS-OP-MBXIP03.sdcorp.global.sandisk.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="twlwrnvElrG9k/1g"
+Subject: [PATCH rdma-next] IB/mlx4: Support RAW Ethernet when RoCE is disabled
+Date: Sun, 19 Mar 2017 11:01:28 +0200
+Message-ID: <20170319090128.7593-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1D08B61A9CF0974AA09887BE32D889DA0DBFCB-fxMRTlsoH6pS59oDqloDyoaX4dThiank9m7AsFVS2+l8Oh6FZyoiAQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Sebastian Ott <sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---twlwrnvElrG9k/1g
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On some environments, such as certain SR-IOV VF configurations, RoCE
+isn't supported for mlx4 Ethernet ports. Currently the driver will
+not open IB device on that port.
 
-On Tue, Mar 07, 2017 at 10:56:53PM +0000, Bart Van Assche wrote:
-> Avoid that the following error message is reported on the console
-> while loading an RDMA driver with I/O MMU support enabled:
->
-> DMAR: Allocating domain for mlx5_0 failed
->
-> Ensure that DMA mapping operations that use to_pci_dev() to
-> access to struct pci_dev see the correct PCI device. E.g. the s390
-> and powerpc DMA mapping operations use to_pci_dev() even with I/O
-> MMU support disabled.
->
-> This patch preserves the following changes of the DMA mapping updates
-> patch series:
-> - Introduction of dma_virt_ops.
-> - Removal of ib_device.dma_ops.
-> - Removal of struct ib_dma_mapping_ops.
-> - Removal of an if-statement from each ib_dma_*() operation.
-> - IB HW drivers no longer set dma_device directly.
->
-> Reported-by: Sebastian Ott <sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-> Reported-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Fixes: commit 99db9494035f ("IB/core: Remove ib_device.dma_device")
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> ---
->  drivers/infiniband/core/device.c | 26 ++++++++++++++++++++------
->  include/rdma/ib_verbs.h          | 30 +++++++++++++++++-------------
->  2 files changed, 37 insertions(+), 19 deletions(-)
->
+This is problematic since we do want user-space RAW Ethernet QPs functionality
+to remain in place. For that end, enhance the relevant driver flows such that we
+do create a device instance in that case.
 
-Hi Doug,
+Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx4/main.c | 26 +++++++++++---------------
+ include/linux/mlx4/device.h       |  3 +--
+ 2 files changed, 12 insertions(+), 17 deletions(-)
 
-Can you please forward this patch to Linus? The IB/core is broken
-without this patch.
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index fba94df28cf1..2cc6f21baea1 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -2867,23 +2867,19 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 	if (mlx4_ib_init_sriov(ibdev))
+ 		goto err_mad;
 
-Thanks
+-	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_IBOE ||
+-	    dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2) {
+-		if (!iboe->nb.notifier_call) {
+-			iboe->nb.notifier_call = mlx4_ib_netdev_event;
+-			err = register_netdevice_notifier(&iboe->nb);
+-			if (err) {
+-				iboe->nb.notifier_call = NULL;
+-				goto err_notif;
+-			}
+-		}
+-		if (dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2) {
+-			err = mlx4_config_roce_v2_port(dev, ROCE_V2_UDP_DPORT);
+-			if (err) {
+-				goto err_notif;
+-			}
++	if (!iboe->nb.notifier_call) {
++		iboe->nb.notifier_call = mlx4_ib_netdev_event;
++		err = register_netdevice_notifier(&iboe->nb);
++		if (err) {
++			iboe->nb.notifier_call = NULL;
++			goto err_notif;
+ 		}
+ 	}
++	if (dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2) {
++		err = mlx4_config_roce_v2_port(dev, ROCE_V2_UDP_DPORT);
++		if (err)
++			goto err_notif;
++	}
 
---twlwrnvElrG9k/1g
-Content-Type: application/pgp-signature; name="signature.asc"
+ 	for (j = 0; j < ARRAY_SIZE(mlx4_class_attributes); ++j) {
+ 		if (device_create_file(&ibdev->ib_dev.dev,
+diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+index 7e66e4f62858..48f82fd1897d 100644
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -1010,8 +1010,7 @@ struct mlx4_mad_ifc {
+ #define mlx4_foreach_ib_transport_port(port, dev)                         \
+ 	for ((port) = 1; (port) <= (dev)->caps.num_ports; (port)++)       \
+ 		if (((dev)->caps.port_mask[port] == MLX4_PORT_TYPE_IB) || \
+-			((dev)->caps.flags & MLX4_DEV_CAP_FLAG_IBOE) || \
+-			((dev)->caps.flags2 & MLX4_DEV_CAP_FLAG2_ROCE_V1_V2))
++		    ((dev)->caps.port_mask[port] == MLX4_PORT_TYPE_ETH))
 
------BEGIN PGP SIGNATURE-----
+ #define MLX4_INVALID_SLAVE_ID	0xFF
+ #define MLX4_SINK_COUNTER_INDEX(dev)	(dev->caps.max_counters - 1)
+--
+2.12.0
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljOTq0ACgkQ5GN7iDZy
-WKc58A/+JWMQVuGKRwa0etoGWDjNIEX9SChQ1IayvHUXIMxs3Jqq1eZrjShu3DSf
-QYxx/OePChOrXAgy6qk7WoH+QSTdmJ8tAoJwR9Yp6nw//PahtpfjXL+TuYOZKTXs
-Lxn0VXfLzZBiy5B7qI0/ohP18XNyODXzHett/6JIGBCBOR4PZuYCsnVsawpWJREa
-VyVsqWlJJzNobIDtyD2PX9o5LkRUNWHfmNUqqThUVMcUVJsfgiibb4Zkw8frVytd
-bvWO8/ngII64Ufn0Qfi51AMDj+CGs0oRPgBxECWF4egJwUUdOEPqVjfcacBf7biS
-p+S/tNrI7qrl/YhEYLUkSIXBzBEaFrIp1tZqzMChVrReFBAX5ZxpUtCvHFEXw06D
-596VW+RH8HDg9anMTVw4tDd97IBc6qv+Av2ZvVWUPs9G1mG1bB5mmDWKrxj0mgbr
-DiEsJOWsjC0HsUTj5CaHoDCwxdK+U98ngfCDjvIYK1pRToA8xBs9ya9iMXU3fXMS
-z+hbtgySIx78/vl1Op7fbirgYF33cs7zj9iK0x3kd3yCYubTvhuQPNkXJX6mhm2L
-5HKI2mqO2FjaUXHfvk485Aj/Mf54qOgpSH6JJS3yB8IXzbHqrOZcyNWHh5GHhMCY
-UUnmiclWCEyUGab4ul4PTiYfb4sTXX2b4W+UWTkO4Zlf7zZ7XUE=
-=+rkr
------END PGP SIGNATURE-----
-
---twlwrnvElrG9k/1g--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
