@@ -1,162 +1,187 @@
-From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [rdma-core v3 5/9] libbnxt_re: Allow apps to poll for flushed completions
-Date: Sun, 19 Mar 2017 20:06:27 +0530
-Message-ID: <CANjDDBiLnAhJWGfJ2TfJ=3_RoQW_KrfDBkxcSp586JuEL4hQXA@mail.gmail.com>
-References: <1489574253-20300-1-git-send-email-devesh.sharma@broadcom.com>
- <1489574253-20300-6-git-send-email-devesh.sharma@broadcom.com>
- <20170315192028.GI2079@mtr-leonro.local> <CANjDDBgPrPPDBOy9N4X=XdU9AUTFpL2pE9-9kPvqAcYj09vDLA@mail.gmail.com>
- <20170319081258.GR2079@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V2 for-next 0/7] Change IDR usage and locking in uverbs
+Date: Sun, 19 Mar 2017 17:58:58 +0200
+Message-ID: <1489939145-125246-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170319081258.GR2079-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Leon,
+Hi Doug,
 
-Will it okay if I revisit this change as a bug fix I need to validate
-the entire scheme with the suggested change.
+This series is the first part of introducing the new ABI.
+It changes the IDR and locking mechanism in ib_uverbs.
+This will allow handling all types in the same way, both IB/core
+standard types and driver specific types. In that case, type is
+referred to either IDR (such as QP, CQ, etc.) or FD such as
+completion channel based uobjects.
 
-On Sun, Mar 19, 2017 at 1:42 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> On Thu, Mar 16, 2017 at 08:52:27PM +0530, Devesh Sharma wrote:
->> On Thu, Mar 16, 2017 at 12:50 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->> > On Wed, Mar 15, 2017 at 06:37:29AM -0400, Devesh Sharma wrote:
->> >> This patch adds support for reporting flush completions.
->> >> following is the overview of the algorithm used.
->> >>
->> >> Step-1: Poll a completion from h/w CQ.
->> >> Step-2: check the status, if it is error goto step3 else report
->> >>         completion to user based on the con_idx reported.
->> >> Step-3: Report the completion with actual error to consumer, and
->> >>         without bothering about the con_idx reported in the
->> >>         completion do following:
->> >>         3a. Add this QP to the CQ flush list if it was not there
->> >>             already. If this is req-error, add the QP to send-flush
->> >>             list, else add it to recv-flush-list.
->> >>         3b. Change QP-soft-state to ERROR if it was not in error
->> >>             already.
->> >>
->> >> Step-4: If next CQE is TERM CQE, extract this CQE. make sure this CQE
->> >>         is not reported to the consumer. Do the following steps as
->> >>         further processing:
->> >>         4a. Add this QP to both send-flush-list and recv-flush-list
->> >>             if QP is absent from any of the flush lists.
->> >>         4b. Change QP-soft-state to ERROR if it was not in error
->> >>             already.
->> >> Step5: Continue polling from both h/w CQ and flush-lists until
->> >>        all the queues are empty.
->> >>
->> >> The QP is removed from the flush list during destroy-qp.
->> >>
->> >> Further, it adds network to host format conversion on
->> >> the received immediate data.
->> >>
->> >> This patch also takes care of Hardware specific requirement
->> >> to skip reporting h/w flush error CQEs to consumer but ring
->> >> the CQ-DB for them.
->> >>
->> >> v1->v2
->> >>  -- Used ccan/list.h instead.
->> >>
->> >> Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
->> >> Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
->> >> Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
->> >> Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
->> >> ---
->> >>  providers/bnxt_re/flush.h  |  85 ++++++++++++++++
->> >>  providers/bnxt_re/main.c   |   5 +
->> >>  providers/bnxt_re/main.h   |   6 ++
->> >>  providers/bnxt_re/memory.h |   5 +
->> >>  providers/bnxt_re/verbs.c  | 243 ++++++++++++++++++++++++++++++++++++++++-----
->> >>  5 files changed, 320 insertions(+), 24 deletions(-)
->> >>  create mode 100644 providers/bnxt_re/flush.h
->> >>
->> >> diff --git a/providers/bnxt_re/flush.h b/providers/bnxt_re/flush.h
->> >> new file mode 100644
->> >> index 0000000..a39ea71
->> >> --- /dev/null
->> >> +++ b/providers/bnxt_re/flush.h
->> >> @@ -0,0 +1,85 @@
->> >> +/*
->> >> + * Broadcom NetXtreme-E User Space RoCE driver
->> >> + *
->> >> + * Copyright (c) 2015-2017, Broadcom. All rights reserved.  The term
->> >> + * Broadcom refers to Broadcom Limited and/or its subsidiaries.
->> >> + *
->> >> + * This software is available to you under a choice of one of two
->> >> + * licenses.  You may choose to be licensed under the terms of the GNU
->> >> + * General Public License (GPL) Version 2, available from the file
->> >> + * COPYING in the main directory of this source tree, or the
->> >> + * BSD license below:
->> >> + *
->> >> + * Redistribution and use in source and binary forms, with or without
->> >> + * modification, are permitted provided that the following conditions
->> >> + * are met:
->> >> + *
->> >> + * 1. Redistributions of source code must retain the above copyright
->> >> + *    notice, this list of conditions and the following disclaimer.
->> >> + * 2. Redistributions in binary form must reproduce the above copyright
->> >> + *    notice, this list of conditions and the following disclaimer in
->> >> + *    the documentation and/or other materials provided with the
->> >> + *    distribution.
->> >> + *
->> >> + * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS''
->> >> + * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
->> >> + * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
->> >> + * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS
->> >> + * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
->> >> + * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
->> >> + * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
->> >> + * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
->> >> + * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
->> >> + * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
->> >> + * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
->> >> + *
->> >> + * Description: A few wrappers for flush queue management
->> >> + */
->> >> +
->> >> +#ifndef __FLUSH_H__
->> >> +#define __FLUSH_H__
->> >> +
->> >> +#include <ccan/list.h>
->> >> +
->> >> +struct bnxt_re_fque_node {
->> >> +     uint8_t valid;
->> >> +     struct list_node list;
->> >> +};
->> >> +
->> >> +static inline void fque_init_node(struct bnxt_re_fque_node *node)
->> >> +{
->> >> +     list_node_init(&node->list);
->> >> +     node->valid = false;
->> >> +}
->> >> +
->> >> +static inline void fque_add_node_tail(struct list_head *head,
->> >> +                                   struct bnxt_re_fque_node *new)
->> >> +{
->> >> +     list_add_tail(head, &new->list);
->> >> +     new->valid = true;
->> >> +}
->> >> +
->> >> +static inline void fque_del_node(struct bnxt_re_fque_node *entry)
->> >> +{
->> >> +     entry->valid = false;
->> >> +     list_del(&entry->list);
->> >> +}
->> >> +
->> >
->> > I don't see the point of these wrappers.
->>
->> Wanted to keep "entry->valid" as a property of list element rather
->> mixing it in the QP structure to keep things clean. Thus, could not
->> resist to keep those.
->
-> It looks like list == NULL can do the trick.
->
-> Thanks
+Previously, we had global IDR tables per type and a per-type list on
+the user context, which implied that the type system was fixed.
+This patch series changes that into a uverbs-file IDR table (since
+in the new proposed ABI each device could have a different type
+system and a uverbs-file refers for a specific device) and a unified
+per-context objects list. Objects in this list could either be IDR
+based objects or FD based objects.
+
+A type is represented by an identifier, an allocation size, a free
+function which is used in the context tear down or object removal
+and a release order. The allocation function is actually the
+handler (for example, create_qp). The release order determines the
+relations between objects. Some relations are set in the hardware
+or user-space. For example, a MW could be created before MR, but
+if this MW is bounded to the MR, the MW should be released before the
+MR. Later on, we'll add actions in an object-oriented programming
+manner to each type. So, a type contains all required information for
+allocating its size and freeing it.
+
+Since after this change a type contains all the information required
+for freeing it, we refactor all the destroy handlers to just use our
+infrastructure to destroy the type. The reason for the destruction
+is passed to the destroy function.
+
+The locking mechanism is changed as well. Previously, the uverbs_cmd
+handlers created new objects themselves and dealt with the internals
+of locking/unlocking them. This is now moved to a separate code which
+either creates a new object, destroys an object or locks it for
+read/write. This is possible since we have a descriptive type system.
+Hence, we could have a shared code to create, lock and destroy types.
+
+In contrast to the previous locking approach, we don't block the
+user-space thread if an object is already locked, but we just return
+-EBUSY and expect the user to handle this. In order to maintain
+backward compatibility, we've added explicit locks to the uverbs_cmd
+handlers (in non-racy scenarios of course), thus for sane flows the
+behaviour should be the same as previous one.
+The incentive here is to provide a robust infrastructure to add new
+actions that can't create a dead-lock (e.g. two commands that try to
+lock objects in AB-BA manner).
+In addition, since objects creation and locking is dealt in a
+centralized place, the new proposed ABI won't need to deal with it
+explicitly in its handlers.
+
+A typical flow of a handler will be:
+1. Serialize the user-space command to kernel-space structures.
+2. Get all objects the handle needs (through the new centralized
+     mechanism).
+3. Do the actual command.
+4. Commit or abort objects allocation/fetching/destruction.
+5. Write response to the user.
+
+We use the following locks/krefs:
+1. ib_uobject: usecnt (atomic)
+	o Protects from concurrent read and write/destroy
+	o The possible values are
+		- (0):   Unlocked
+		- (-1):  Locked for writing
+		- (> 0): Locked for reading. The exact value is number
+			 of readers.
+2. ib_ucontext: uobjects_lock
+	o Protect from concurrently modifying the context uobject's list
+3. ib_uobject: ref [kref]
+	o Let's a handler delay the memory release of an uobject even if
+	  it was already removed from the ucontext's objects list
+	  (e.g. CQ takes a reference count on the completion handler)
+	o rdma_core takes one reference count for all objects in its
+	  repository.
+4. ib_uverbs_file: cleanup_mutex [existing lock]
+	o Protects concurrently closing a file from releasing the ucontext.
+	  Since when removing a uobject, we need to remove it from the
+	  uobjects list and thus we use the ucontext lock (clause 2),
+	  we need to make sure the ucontext is alive throughout this process.
+5. ib_ucontext: cleanup_rwswm
+	o Protects cleanup_context from concurrent lookup_get, remove_commit
+	  and alloc_commit.
+	o If alloc_commit is running during context cleanup, we remove the
+	  object with a special reason.
+	o It makes rdma_core more self contained and less dependant on
+	  external locks.
+6. ib_uobject_file: idr_lock
+	o Protects concurrent write access to the idr.
+	o RCU protects idr read access.
+7. File reference count:
+	o Protects race between lookup_get on a fd uobject and a release of
+	  such an object.
+	o If we get the file, we increased the reference on this file and we
+	  won't get to the .release file operation.
+	o Otherwise, the .release file operation is already called (or would
+	  be called soon) and then the fd was already removed from the files
+	  table of the process.
+
+This patch-set is applied on top of Doug's k.o/for-4.11 branch.
+
+Regards,
+Matan
+
+Changes from V1 - address Jason's comments:
+1. Added ucontext->cleanup_rwsem to make the locking more self contained.
+2. When calling a destroy handler, the object's free function is called
+   with the appropriate reason.
+3. Bug fix of double free when uobject file allocation failed.
+4. Wrap the type->ops with appropriate inline function and macros
+5. Reduce amount of macros.
+6. Add lockdep style debugging and some other safety checks.
+7. Replace a release function with needs_rcu bool flag.
+8. Rebase the patches.
+
+Changes from V0 - address some of Jason's comments:
+1. Change idr table to be per uverbs_file and not per device.
+2. Make changes more gradual
+    a. Instead of doing a flags day approach, first introduce the idr
+       uobjects with a new API and change their usages:
+	 o Ditch the live flag
+	 o Manage all idr objects through rdma_core
+	 o create and cleanup context through rdma_core
+    b. Add a lock to preserve old attch_mcast/detach_mcast behaviour.
+    c. Add fd based objects infrastructure
+    d. Change current completion channel to use this fd infrastructure.
+3. Ditch the switch-case enums and favor a more OOP approach through a
+   vtable.
+4. Instead of having a kref-ed lock, put a new lock on the uverbs_file
+   to synchronize fd objects deletion from context removal
+    a. We favored this approach from keeping the ucontext alive, as the
+       ucontext is allocated by the driver and thus we want to deallocate
+       it through the same entity. We don't want to defer the whole
+       deallocation process as in the current state we could rmmod the
+       drivers code when applications are still running and trigger
+       a disassociate flow.
+5. Reduce the amount of macros - use only a macro for declaring idr
+   types and a macro to declare fd types.
+6. Use kref to manage all uobjects.
+7. Use proper types for idr.
+
+Leon Romanovsky (1):
+  IB/core: Refactor idr to be per uverbs_file
+
+Matan Barak (6):
+  IB/core: Add support for idr types
+  IB/core: Add idr based standard types
+  IB/core: Change idr objects to use the new schema
+  IB/core: Add lock to multicast handlers
+  IB/core: Add support for fd objects
+  IB/core: Change completion channel to use the reworked objects schema
+
+ drivers/infiniband/core/Makefile           |    3 +-
+ drivers/infiniband/core/rdma_core.c        |  608 +++++++++++++
+ drivers/infiniband/core/rdma_core.h        |   78 ++
+ drivers/infiniband/core/uverbs.h           |   53 +-
+ drivers/infiniband/core/uverbs_cmd.c       | 1298 ++++++++--------------------
+ drivers/infiniband/core/uverbs_main.c      |  434 ++++------
+ drivers/infiniband/core/uverbs_std_types.c |  275 ++++++
+ include/rdma/ib_verbs.h                    |   41 +-
+ include/rdma/uverbs_std_types.h            |  114 +++
+ include/rdma/uverbs_types.h                |  172 ++++
+ 10 files changed, 1844 insertions(+), 1232 deletions(-)
+ create mode 100644 drivers/infiniband/core/rdma_core.c
+ create mode 100644 drivers/infiniband/core/rdma_core.h
+ create mode 100644 drivers/infiniband/core/uverbs_std_types.c
+ create mode 100644 include/rdma/uverbs_std_types.h
+ create mode 100644 include/rdma/uverbs_types.h
+
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
