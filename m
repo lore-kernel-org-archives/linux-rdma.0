@@ -1,83 +1,141 @@
 From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC v2 for accelerated IPoIB 00/6] Enhanced mode for IPoIB driver
-Date: Mon, 20 Mar 2017 21:08:22 +0200
-Message-ID: <1490036908-12528-1-git-send-email-erezsh@mellanox.com>
+Subject: [RFC v2 for accelerated IPoIB 04/6] IB/verb: Add ipoib_options struct and API
+Date: Mon, 20 Mar 2017 21:08:26 +0200
+Message-ID: <1490036908-12528-5-git-send-email-erezsh@mellanox.com>
+References: <1490036908-12528-1-git-send-email-erezsh@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1490036908-12528-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-    The IPoIB protocol encapsulates IP packets over Infiniband datagrams.
-    As a direct RDMA Upper Layer Protocol (ULP), IPoIB cannot support HW
-    features that are specific to the IP protocol stack.
 
-    Nevertheless, RDMA interfaces have been extended to support some of the
-    prominent IP offload features, such as TCP/UDP checksum and TSO.
-    This provided reasonable performance gain for IPoIB but is still
-    insufficient to cope with the increasing network bandwidth demand.
+The idea is to allow vendors to optimize IPoIB data path.
+New struct that includes functions and data member is exposed.
+It exposes set of callback functions for handling data path flows in IPoIB driver.
+Each vendor can support these set of functions in order to optimize its
+specific data path, and let IPoIB to leverage its data path.
+The code of IPoIB driver was changed accordingly, and works in both ways
+with vendor specific implementation and without.
+There is an assumption, that vendors should give the full set of functions
+and not only part of them, in order to work properly.
 
-    However, New features are exisiting in common network interfaces that
-    are very hard to implement in IPoIB interfaces while it uses the RDMA
-    layer, examples include TSS and RSS, tunneling offloads, and XDP.
-    Rather than continuously porting IP network interface developments into
-    the RDMA stack, we propose adding an abstract network data-path interfaces
-    to RDMA devices.
+Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ include/rdma/ib_ipoib_accel_ops.h | 61 +++++++++++++++++++++++++++++++++++++++
+ include/rdma/ib_verbs.h           | 30 +++++++++++++++++++
+ 2 files changed, 91 insertions(+)
+ create mode 100644 include/rdma/ib_ipoib_accel_ops.h
 
-    In order to present a consistent interface to users, the IPoIB ULP
-    continues to represent the network device to the IP stack.
-    The common code also manages the IPoIB control plane, such as resolving
-    path queries and registering to multicast groups.
-    Data path operations are forwarded to devices that implement the new
-    API, or fallback to the standard implementation otherwise.
-    Using the forgoing approach, we show how IPoIB closes the performance
-    gap compared to state-of-the-art Ethernet network interfaces.
-
-    The implementation idea is to expose a struct that has data members and set
-    of functions that are used for network interfaces, like create, delete, init hw
-    resources, send, and attach/detach multicast to qp.
-    That set of functions encapsulates in new struct, and this struct can or
-    can't be given by the specific HW layer.
-
-    The IPoIB code will be adapted to enable the option of accelerating the
-    network interface, but the code will work as before if the HW below
-    doesn't support the acceleration.
-    Each HW vendor can supply the acceleration for the IPoIB or to leave
-    IPoIB to work as before.
-
-   TODO:
-        1.change the send api in order to move it to the ndo start_xmit (unless it hurts the performance of the default driver)
-        2.Take out the ipoib_ah from the send signature and use ib_ah instead, no need with including ipoib.h
-        3.Check if/how to add rdma_netdev layer to the default ipoib
-        4. splitting out the bulk rename of ipoib_priv into a single patch
-        5. change the name of the header to be ipoib_rn.h
-        6. no need to pass qkey, it is in the ah struct.
-
-Changes fron v0:
----------------
-1. Use the vnic/hfi API as a base for the new design/impl.
-2. Change the low level driver to support the new struct.
-
-
-Changes fron v1:
----------------
-1.Add hca to rdma_netdev
-2.Take out qp_num and context from rdma_netdev
-3.Move dev_init/dev_cleanup to be part of the ndo's (ndo_init/ndo_uninit)
-4.mlid instead of lid in mcast funcs
-5.Arrange the code to return ENOTSUPP when needed
-6.No dev->ib_dev.free_rdma_netdev while it is empty.
-7.No need to pass the size of struct ipoib_rdma_netdev to the low-level driver
-
-
-Erez Shitrit (6):
-  IB/ipoib: Separate control and data related initializations
-  IB/ipoib: separate control from HW operation on ipoib_open/stop ndo
-  IB/ipoib: Rename qpn to dqpn in ipoib_send and post_send functions
-  IB/verb: Add ipoib_options struct and API
-  IB/ipoib: Support ipoib acceleration options callbacks
-  mlx5_ib: skeleton for mlx5_ib to support ipoib_ops
-
+diff --git a/include/rdma/ib_ipoib_accel_ops.h b/include/rdma/ib_ipoib_accel_ops.h
+new file mode 100644
+index 000000000000..352672de6edf
+--- /dev/null
++++ b/include/rdma/ib_ipoib_accel_ops.h
+@@ -0,0 +1,61 @@
++/*
++ * Copyright (c) 2017 Mellanox Technologies Ltd.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#if !defined(IB_IPOIB_ACCEL_OPS_H)
++#define IB_IPOIB_ACCEL_OPS_H
++
++#include <rdma/ib_verbs.h>
++
++/* ipoib rdma netdev's private data structure */
++struct ipoib_rdma_netdev {
++	struct rdma_netdev rn;  /* keep this first */
++	void *context;
++	u32 qpn;
++	/* followed by device private data */
++	char *dev_priv[0];
++};
++
++static inline void *ipoib_priv(const struct net_device *dev)
++{
++	struct rdma_netdev *rn = netdev_priv(dev);
++
++	return rn->clnt_priv;
++}
++
++static inline void *ipoib_accl_priv(const struct net_device *dev)
++{
++	struct ipoib_rdma_netdev *ipoib_rn = netdev_priv(dev);
++
++	return ipoib_rn->dev_priv;
++}
++
++#endif /* IB_IPOIB_ACCEL_OPS_H */
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 85b9034c8cfc..94203ba07562 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1901,6 +1901,36 @@ struct ib_port_immutable {
+ 	u32                           max_mad_size;
+ };
+ 
++/* rdma netdev type - specifies protocol type */
++enum rdma_netdev_t {
++	RDMA_NETDEV_OPA_VNIC,
++	RDMA_NETDEV_IPOIB
++};
++
++struct ipoib_ah;
++
++/**
++ * struct rdma_netdev - rdma netdev
++ * For cases where netstack interfacing is required.
++ */
++struct rdma_netdev {
++	void *clnt_priv;
++
++	/* control functions */
++	void (*set_id)(struct net_device *netdev, int id);
++	/* send packet */
++	void (*send)(struct net_device *dev, struct sk_buff *skb,
++		     struct ipoib_ah *address, u32 dqpn, u32 dqkey);
++
++	/* multicast */
++	int (*attach_mcast)(struct net_device *dev, struct ib_device *hca,
++			    union ib_gid *gid, u16 mlid, int set_qkey);
++	int (*detach_mcast)(struct net_device *dev, struct ib_device *hca,
++			    union ib_gid *gid, u16 mlid);
++	/* rdma-netdev private members */
++	struct ib_device *hca;
++};
++
+ struct ib_device {
+ 	struct device                *dma_device;
+ 
 -- 
 1.8.3.1
 
