@@ -1,43 +1,64 @@
-From: Romain Perier <romain.perier@collabora.com>
-Subject: [PATCH v6 15/15] PCI: Remove PCI pool macro functions
-Date: Sun, 19 Mar 2017 18:04:04 +0100
-Message-ID: <20170319170404.17362-16-romain.perier@collabora.com>
-References: <20170319170404.17362-1-romain.perier@collabora.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170319170404.17362-1-romain.perier@collabora.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, jeffrey.t.kirsher@intel.com, "David S. Miller" <davem@davemloft.net>, stas.yakovlev@gmail.com, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, Romain Perier <romain.perier@collabora.com>, Peter Senna Tschudin <peter.senna@collabora.co.uk>
+From: <resson-epfaOiJH9AY@public.gmane.org>
+Subject: 62128 linux-rdma
+Date: Mon, 20 Mar 2017 06:29:47 -0000
+Message-ID: <148999138714.423.11726958054640192160@fastwebnet.it>
+Reply-To: <resson-epfaOiJH9AY@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: application/zip; name="095.zip"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: attachment
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Now that all the drivers use dma pool API, we can remove the macro
-functions for PCI pool.
-
-Signed-off-by: Romain Perier <romain.perier@collabora.com>
-Reviewed-by: Peter Senna Tschudin <peter.senna@collabora.com>
----
- include/linux/pci.h | 9 ---------
- 1 file changed, 9 deletions(-)
-
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index eb3da1a..04a0703 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -1281,15 +1281,6 @@ int pci_set_vga_state(struct pci_dev *pdev, bool decode,
- #include <linux/pci-dma.h>
- #include <linux/dmapool.h>
- 
--#define	pci_pool dma_pool
--#define pci_pool_create(name, pdev, size, align, allocation) \
--		dma_pool_create(name, &pdev->dev, size, align, allocation)
--#define	pci_pool_destroy(pool) dma_pool_destroy(pool)
--#define	pci_pool_alloc(pool, flags, handle) dma_pool_alloc(pool, flags, handle)
--#define	pci_pool_zalloc(pool, flags, handle) \
--		dma_pool_zalloc(pool, flags, handle)
--#define	pci_pool_free(pool, vaddr, addr) dma_pool_free(pool, vaddr, addr)
--
- struct msix_entry {
- 	u32	vector;	/* kernel uses to write allocated vector */
- 	u16	entry;	/* driver uses to specify entry, OS writes */
--- 
-2.9.3
+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
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
