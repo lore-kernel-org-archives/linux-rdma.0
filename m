@@ -1,64 +1,58 @@
-From: <resson-epfaOiJH9AY@public.gmane.org>
-Subject: 62128 linux-rdma
-Date: Mon, 20 Mar 2017 06:29:47 -0000
-Message-ID: <148999138714.423.11726958054640192160@fastwebnet.it>
-Reply-To: <resson-epfaOiJH9AY@public.gmane.org>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH v6 06/15] mlx5: Replace PCI pool old API
+Date: Mon, 20 Mar 2017 08:31:09 +0200
+Message-ID: <20170320063109.GT2079@mtr-leonro.local>
+References: <20170319170404.17362-1-romain.perier@collabora.com>
+ <20170319170404.17362-7-romain.perier@collabora.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="095.zip"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: attachment
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="peRj85VDUce1fu/0"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170319170404.17362-7-romain.perier@collabora.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Romain Perier <romain.perier@collabora.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, jeffrey.t.kirsher@intel.com, "David S. Miller" <davem@davemloft.net>, stas.yakovlev@gmail.com, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Senna Tschudin <peter.senna@collabora.co.uk>
 List-Id: linux-rdma@vger.kernel.org
 
-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
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--peRj85VDUce1fu/0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Sun, Mar 19, 2017 at 06:03:55PM +0100, Romain Perier wrote:
+> The PCI pool API is deprecated. This commit replaces the PCI pool old
+> API by the appropriate function with the DMA pool API.
+>
+> Signed-off-by: Romain Perier <romain.perier@collabora.com>
+> Reviewed-by: Peter Senna Tschudin <peter.senna@collabora.com>
+> ---
+>  drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 11 ++++++-----
+>  include/linux/mlx5/driver.h                   |  2 +-
+>  2 files changed, 7 insertions(+), 6 deletions(-)
+>
+
+Thanks,
+Acked-by: Leon Romanovsky <leonro@mellanox.com>
+
+--peRj85VDUce1fu/0
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljPdy0ACgkQ5GN7iDZy
+WKc7PxAAxvvR6hINJAkQu/B9aGA/bGBFZ4DzxFApyaGMSz7HBcqwl4SWdhXLFTX6
+QztH4XHNdTD9N9TtLoU2hcFASucanTw1fyS5Pesn6FdfdCEYRtCNgpRlTfkdBfGD
+Ko2E3IQFFG0tolBW0na0daDTqruRWtQt5GY582HWocAywrpyEzsiIpMxKggZ4u8c
+U6X7fyki7VqqOH11maxjPBnXIafAZg09HPpgPhhrXbBmLwlDxTR6DZjEjkm8ej6X
+KXONdZjCWq9dAESB2VeKEwD9eNcHEp7rEo0WoymVTLtjoe7nyD7/vA9183BUgT8n
+QSu/YqcgJEYCv/eOMZf4uJOqab9fCuLEbmbXbYRdKxgkqvaqZe2Upo6Q9PEUgr+w
+GL0Jm97UZAYn0xJ8DWeK6NTFhgsbIZ4nL6t8VUwZii5LFz5Htz0tzqPpplTjNTtz
+aQGhZikTB7b5O4G/sYRzD+/Msym2jQbHqTa/9rFtXYVcZb8h9yhcmoH9egewsxZN
+kXl2f7AVR132LG9Gvrq4eEi2nJzNBbIt0uNaq+CcP2C+UyzRVwb0Z0zr+1H/Simp
+OZWxy4G8uAjW4fKi6tKGgf5mwZGWc725McxB6MCLKYLK3bq26Y2JMIwZJ3UvJ6Dk
+mwTRwJvAWUbq3tAqwsQmzbF+oTea2dQexR5FBHd5SMDSElgHjKM=
+=b1Gs
+-----END PGP SIGNATURE-----
+
+--peRj85VDUce1fu/0--
