@@ -1,32 +1,55 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC v2 for accelerated IPoIB 00/6] Enhanced mode for IPoIB
- driver
-Date: Mon, 20 Mar 2017 14:59:27 -0600
-Message-ID: <20170320205927.GA17225@obsidianresearch.com>
-References: <1490036908-12528-1-git-send-email-erezsh@mellanox.com>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [RFC v1 for verbs counters]
+Date: Mon, 20 Mar 2017 22:25:07 +0000
+Message-ID: <SN1PR07MB2207F398C0BCD97CCA86AF16F83A0@SN1PR07MB2207.namprd07.prod.outlook.com>
+References: <AM5PR0502MB30578E5BC54125D013D416DCBD250@AM5PR0502MB3057.eurprd05.prod.outlook.com>
+ <a2fb88b0-7538-dcbe-7c9c-35a2566818c7@intel.com>
+ <HE1PR0502MB30667CF2D73927A036EE4010BD3B0@HE1PR0502MB3066.eurprd05.prod.outlook.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB0FBC62@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1490036908-12528-1-git-send-email-erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB0FBC62-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Guy Shattah <sguy-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 20, 2017 at 09:08:22PM +0200, Erez Shitrit wrote:
+> > Regarding counters width  - After giving it a lot of thought. I believe
+> > that 64bit counters are the best
+> > decision.
+>=20
+> I agree - unless we're talking about thousands of counters, smaller ones =
+don't seem worth the additional complexity to
+> save a few bytes.
+>=20
+> > a) Allowing more than one size of counters will make the memory
+> > allocation and data parsing harder.
+> >
+> > b) 64bit is exactly the right size.
 
->    TODO:
->         1.change the send api in order to move it to the ndo start_xmit (unless it hurts the performance of the default driver)
->         2.Take out the ipoib_ah from the send signature and use ib_ah instead, no need with including ipoib.h
->         3.Check if/how to add rdma_netdev layer to the default ipoib
->         4. splitting out the bulk rename of ipoib_priv into a single patch
->         5. change the name of the header to be ipoib_rn.h
->         6. no need to pass qkey, it is in the ah struct.
+I agree on this size.
 
-So.. why are you resending the series? Are these going to get fixed?
+>=20
+> Well, I wouldn't go this far.
+>=20
+> Is there a need to indicate if hardware doesn't actually support 64-bits?
 
-Jason
+I'm guessing that most, if not all, HW support 64-bits counters.
+If not then the driver can overcome this by storing the previously read val=
+ue and
+reporting a 64-bit value (aggregate). This is cumbersome for the driver but=
+ simplifies
+the common implementation.
+
+Ram
+
+
+
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
