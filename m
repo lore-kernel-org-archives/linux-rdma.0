@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 01/20] IB/hfi1: Force logical link down
-Date: Mon, 20 Mar 2017 17:24:39 -0700
-Message-ID: <20170321002437.28538.96034.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v2 07/20] IB/rdmavt: Add tracing for cq entry and poll
+Date: Mon, 20 Mar 2017 17:25:16 -0700
+Message-ID: <20170321002515.28538.42624.stgit@scvm10.sc.intel.com>
 References: <20170321001900.28538.38175.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,154 +10,199 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170321001900.28538.38175.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-If the logical link state does not read as down when
-the physical link state is offline, force it to down.
+The following fields are defined for filtering and triggering:
+- wr_id
+- status
+- opcode
+- qpn
+- length
+- idx
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c |   86 +++++++++++++++++++++++++++++--------
- 1 files changed, 68 insertions(+), 18 deletions(-)
+ drivers/infiniband/sw/rdmavt/cq.c       |    3 +
+ drivers/infiniband/sw/rdmavt/trace.h    |    1 
+ drivers/infiniband/sw/rdmavt/trace_cq.h |  127 +++++++++++++++++++++++++++++++
+ 3 files changed, 131 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/sw/rdmavt/trace_cq.h
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 121a4c9..44322c6 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -1045,6 +1045,7 @@ static int wait_logical_linkstate(struct hfi1_pportdata *ppd, u32 state,
- static int qos_rmt_entries(struct hfi1_devdata *dd, unsigned int *mp,
- 			   unsigned int *np);
- static void clear_full_mgmt_pkey(struct hfi1_pportdata *ppd);
-+static int wait_link_transfer_active(struct hfi1_devdata *dd, int wait_ms);
+diff --git a/drivers/infiniband/sw/rdmavt/cq.c b/drivers/infiniband/sw/rdmavt/cq.c
+index 7aa7a4e..0ae2ff8 100644
+--- a/drivers/infiniband/sw/rdmavt/cq.c
++++ b/drivers/infiniband/sw/rdmavt/cq.c
+@@ -50,6 +50,7 @@
+ #include <linux/kthread.h>
+ #include "cq.h"
+ #include "vt.h"
++#include "trace.h"
  
- /*
-  * Error interrupt table entry.  This is used as input to the interrupt
-@@ -8891,8 +8892,6 @@ int send_idle_sma(struct hfi1_devdata *dd, u64 message)
-  */
- static int do_quick_linkup(struct hfi1_devdata *dd)
- {
--	u64 reg;
--	unsigned long timeout;
- 	int ret;
- 
- 	lcb_shutdown(dd, 0);
-@@ -8915,19 +8914,9 @@ static int do_quick_linkup(struct hfi1_devdata *dd)
- 		write_csr(dd, DC_LCB_CFG_RUN,
- 			  1ull << DC_LCB_CFG_RUN_EN_SHIFT);
- 
--		/* watch LCB_STS_LINK_TRANSFER_ACTIVE */
--		timeout = jiffies + msecs_to_jiffies(10);
--		while (1) {
--			reg = read_csr(dd, DC_LCB_STS_LINK_TRANSFER_ACTIVE);
--			if (reg)
--				break;
--			if (time_after(jiffies, timeout)) {
--				dd_dev_err(dd,
--					   "timeout waiting for LINK_TRANSFER_ACTIVE\n");
--				return -ETIMEDOUT;
--			}
--			udelay(2);
--		}
-+		ret = wait_link_transfer_active(dd, 10);
-+		if (ret)
-+			return ret;
- 
- 		write_csr(dd, DC_LCB_CFG_ALLOW_LINK_UP,
- 			  1ull << DC_LCB_CFG_ALLOW_LINK_UP_VAL_SHIFT);
-@@ -10082,6 +10071,64 @@ static void check_lni_states(struct hfi1_pportdata *ppd)
- 	decode_state_complete(ppd, last_remote_state, "received");
- }
- 
-+/* wait for wait_ms for LINK_TRANSFER_ACTIVE to go to 1 */
-+static int wait_link_transfer_active(struct hfi1_devdata *dd, int wait_ms)
-+{
-+	u64 reg;
-+	unsigned long timeout;
-+
-+	/* watch LCB_STS_LINK_TRANSFER_ACTIVE */
-+	timeout = jiffies + msecs_to_jiffies(wait_ms);
-+	while (1) {
-+		reg = read_csr(dd, DC_LCB_STS_LINK_TRANSFER_ACTIVE);
-+		if (reg)
-+			break;
-+		if (time_after(jiffies, timeout)) {
-+			dd_dev_err(dd,
-+				   "timeout waiting for LINK_TRANSFER_ACTIVE\n");
-+			return -ETIMEDOUT;
-+		}
-+		udelay(2);
-+	}
-+	return 0;
-+}
-+
-+/* called when the logical link state is not down as it should be */
-+static void force_logical_link_state_down(struct hfi1_pportdata *ppd)
-+{
-+	struct hfi1_devdata *dd = ppd->dd;
-+
-+	/*
-+	 * Bring link up in LCB loopback
-+	 */
-+	write_csr(dd, DC_LCB_CFG_TX_FIFOS_RESET, 1);
-+	write_csr(dd, DC_LCB_CFG_IGNORE_LOST_RCLK,
-+		  DC_LCB_CFG_IGNORE_LOST_RCLK_EN_SMASK);
-+
-+	write_csr(dd, DC_LCB_CFG_LANE_WIDTH, 0);
-+	write_csr(dd, DC_LCB_CFG_REINIT_AS_SLAVE, 0);
-+	write_csr(dd, DC_LCB_CFG_CNT_FOR_SKIP_STALL, 0x110);
-+	write_csr(dd, DC_LCB_CFG_LOOPBACK, 0x2);
-+
-+	write_csr(dd, DC_LCB_CFG_TX_FIFOS_RESET, 0);
-+	(void)read_csr(dd, DC_LCB_CFG_TX_FIFOS_RESET);
-+	udelay(3);
-+	write_csr(dd, DC_LCB_CFG_ALLOW_LINK_UP, 1);
-+	write_csr(dd, DC_LCB_CFG_RUN, 1ull << DC_LCB_CFG_RUN_EN_SHIFT);
-+
-+	wait_link_transfer_active(dd, 100);
-+
-+	/*
-+	 * Bring the link down again.
-+	 */
-+	write_csr(dd, DC_LCB_CFG_TX_FIFOS_RESET, 1);
-+	write_csr(dd, DC_LCB_CFG_ALLOW_LINK_UP, 0);
-+	write_csr(dd, DC_LCB_CFG_IGNORE_LOST_RCLK, 0);
-+
-+	/* call again to adjust ppd->statusp, if needed */
-+	get_logical_state(ppd);
-+}
-+
- /*
-  * Helper for set_link_state().  Do not call except from that routine.
-  * Expects ppd->hls_mutex to be held.
-@@ -10135,15 +10182,18 @@ static int goto_offline(struct hfi1_pportdata *ppd, u8 rem_reason)
- 			return ret;
+ /**
+  * rvt_cq_enter - add a new entry to the completion queue
+@@ -93,6 +94,7 @@ void rvt_cq_enter(struct rvt_cq *cq, struct ib_wc *entry, bool solicited)
+ 		}
+ 		return;
  	}
- 
--	/* make sure the logical state is also down */
--	wait_logical_linkstate(ppd, IB_PORT_DOWN, 1000);
--
- 	/*
- 	 * Now in charge of LCB - must be after the physical state is
- 	 * offline.quiet and before host_link_state is changed.
- 	 */
- 	set_host_lcb_access(dd);
- 	write_csr(dd, DC_LCB_ERR_EN, ~0ull); /* watch LCB errors */
++	trace_rvt_cq_enter(cq, entry, head);
+ 	if (cq->ip) {
+ 		wc->uqueue[head].wr_id = entry->wr_id;
+ 		wc->uqueue[head].status = entry->status;
+@@ -482,6 +484,7 @@ int rvt_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *entry)
+ 		if (tail == wc->head)
+ 			break;
+ 		/* The kernel doesn't need a RMB since it has the lock. */
++		trace_rvt_cq_poll(cq, &wc->kqueue[tail], npolled);
+ 		*entry = wc->kqueue[tail];
+ 		if (tail >= cq->ibcq.cqe)
+ 			tail = 0;
+diff --git a/drivers/infiniband/sw/rdmavt/trace.h b/drivers/infiniband/sw/rdmavt/trace.h
+index e2d23ac..89554c0 100644
+--- a/drivers/infiniband/sw/rdmavt/trace.h
++++ b/drivers/infiniband/sw/rdmavt/trace.h
+@@ -52,3 +52,4 @@
+ #include "trace_qp.h"
+ #include "trace_tx.h"
+ #include "trace_mr.h"
++#include "trace_cq.h"
+diff --git a/drivers/infiniband/sw/rdmavt/trace_cq.h b/drivers/infiniband/sw/rdmavt/trace_cq.h
+new file mode 100644
+index 0000000..a315850
+--- /dev/null
++++ b/drivers/infiniband/sw/rdmavt/trace_cq.h
+@@ -0,0 +1,127 @@
++/*
++ * Copyright(c) 2016 Intel Corporation.
++ *
++ * This file is provided under a dual BSD/GPLv2 license.  When using or
++ * redistributing this file, you may do so under either license.
++ *
++ * GPL LICENSE SUMMARY
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * BSD LICENSE
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ *  - Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ *  - Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *  - Neither the name of Intel Corporation nor the names of its
++ *    contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ */
++#if !defined(__RVT_TRACE_CQ_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __RVT_TRACE_CQ_H
 +
-+	/* make sure the logical state is also down */
-+	ret = wait_logical_linkstate(ppd, IB_PORT_DOWN, 1000);
-+	if (ret)
-+		force_logical_link_state_down(ppd);
++#include <linux/tracepoint.h>
++#include <linux/trace_seq.h>
 +
- 	ppd->host_link_state = HLS_LINK_COOLDOWN; /* LCB access allowed */
- 
- 	if (ppd->port_type == PORT_TYPE_QSFP &&
++#include <rdma/ib_verbs.h>
++#include <rdma/rdmavt_cq.h>
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM rvt_cq
++
++#define wc_opcode_name(opcode) { IB_WC_##opcode, #opcode  }
++#define show_wc_opcode(opcode)                                \
++__print_symbolic(opcode,                                      \
++	wc_opcode_name(SEND),                                 \
++	wc_opcode_name(RDMA_WRITE),                           \
++	wc_opcode_name(RDMA_READ),                            \
++	wc_opcode_name(COMP_SWAP),                            \
++	wc_opcode_name(FETCH_ADD),                            \
++	wc_opcode_name(LSO),                                  \
++	wc_opcode_name(LOCAL_INV),                            \
++	wc_opcode_name(REG_MR),                               \
++	wc_opcode_name(MASKED_COMP_SWAP),                     \
++	wc_opcode_name(RECV),                                 \
++	wc_opcode_name(RECV_RDMA_WITH_IMM))
++
++#define CQ_PRN \
++"[%s] idx %u wr_id %llx status %u opcode %u,%s length %u qpn %x"
++
++DECLARE_EVENT_CLASS(
++	rvt_cq_entry_template,
++	TP_PROTO(struct rvt_cq *cq, struct ib_wc *wc, u32 idx),
++	TP_ARGS(cq, wc, idx),
++	TP_STRUCT__entry(
++		RDI_DEV_ENTRY(cq->rdi)
++		__field(u64, wr_id)
++		__field(u32, status)
++		__field(u32, opcode)
++		__field(u32, qpn)
++		__field(u32, length)
++		__field(u32, idx)
++	),
++	TP_fast_assign(
++		RDI_DEV_ASSIGN(cq->rdi)
++		__entry->wr_id = wc->wr_id;
++		__entry->status = wc->status;
++		__entry->opcode = wc->opcode;
++		__entry->length = wc->byte_len;
++		__entry->qpn = wc->qp->qp_num;
++		__entry->idx = idx;
++	),
++	TP_printk(
++		CQ_PRN,
++		__get_str(dev),
++		__entry->idx,
++		__entry->wr_id,
++		__entry->status,
++		__entry->opcode, show_wc_opcode(__entry->opcode),
++		__entry->length,
++		__entry->qpn
++	)
++);
++
++DEFINE_EVENT(
++	rvt_cq_entry_template, rvt_cq_enter,
++	TP_PROTO(struct rvt_cq *cq, struct ib_wc *wc, u32 idx),
++	TP_ARGS(cq, wc, idx));
++
++DEFINE_EVENT(
++	rvt_cq_entry_template, rvt_cq_poll,
++	TP_PROTO(struct rvt_cq *cq, struct ib_wc *wc, u32 idx),
++	TP_ARGS(cq, wc, idx));
++
++#endif /* __RVT_TRACE_CQ_H */
++
++#undef TRACE_INCLUDE_PATH
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace_cq
++#include <trace/define_trace.h>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
