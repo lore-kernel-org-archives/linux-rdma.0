@@ -1,53 +1,148 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core 0/7] Bugs found by sparse
-Date: Tue, 21 Mar 2017 13:25:30 -0400
-Message-ID: <1490117130.2404.11.camel@redhat.com>
-References: <1489508474-16664-1-git-send-email-jgunthorpe@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V1 rdma-core 3/5] mlx5: Report CQE compression capabilities through mlx5 direct verbs
+Date: Tue, 21 Mar 2017 19:42:08 +0200
+Message-ID: <1490118130-1039-4-git-send-email-yishaih@mellanox.com>
+References: <1490118130-1039-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1489508474-16664-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1490118130-1039-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-03-14 at 10:21 -0600, Jason Gunthorpe wrote:
-> Since Bart got sparse working I took a quick look at what is in the
-> core
-> libaries, these cases look like bugs to me.
-> 
-> I have another series that adds lots of sparse annotations to send
-> later..
-> 
-> https://github.com/linux-rdma/rdma-core/pull/97
-> 
-> Jason Gunthorpe (7):
->   Drop debugging print in CMakeLists.txt
->   Fix missing swaps when computing path bits
->   Fix various missing swaps in debugging/logging macros
->   Add missing statics
->   acm: Fix incorrect TID masking
->   cmpost: Add missing swap for sin_port
->   acm: Fix missing swap in pkey compare
-> 
->  CMakeLists.txt                      |  1 -
->  ibacm/prov/acmp/src/acmp.c          | 19 ++++++++++---------
->  ibacm/src/acm.c                     |  8 ++++----
->  libibcm/examples/cmpost.c           |  2 +-
->  libibverbs/examples/xsrq_pingpong.c |  2 +-
->  librdmacm/rsocket.c                 |  2 +-
->  providers/qedr/qelr_verbs.c         |  4 ++--
->  7 files changed, 19 insertions(+), 19 deletions(-)
+From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This merge request was dropped (by Jason) for a later merge request.
- The later merge request has been merged (#101).  Thanks Jason.
+Report max number of compressed and aggregated CQEs in a single
+merged CQE and the formats of mini CQE supported for responder.
 
+Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ providers/mlx5/mlx5-abi.h |  3 ++-
+ providers/mlx5/mlx5.c     |  9 ++++++++-
+ providers/mlx5/mlx5.h     |  1 +
+ providers/mlx5/mlx5dv.h   | 17 +++++++++++++++++
+ providers/mlx5/verbs.c    |  2 ++
+ 5 files changed, 30 insertions(+), 2 deletions(-)
+
+diff --git a/providers/mlx5/mlx5-abi.h b/providers/mlx5/mlx5-abi.h
+index 3574594..487de3a 100644
+--- a/providers/mlx5/mlx5-abi.h
++++ b/providers/mlx5/mlx5-abi.h
+@@ -35,6 +35,7 @@
+ 
+ #include <infiniband/kern-abi.h>
+ #include <infiniband/verbs.h>
++#include "mlx5dv.h"
+ 
+ #define MLX5_UVERBS_MIN_ABI_VERSION	1
+ #define MLX5_UVERBS_MAX_ABI_VERSION	1
+@@ -275,7 +276,7 @@ struct mlx5_query_device_ex_resp {
+ 	__u32				response_length;
+ 	struct ibv_tso_caps		tso_caps;
+ 	struct mlx5_rss_caps            rss_caps; /* vendor data channel */
+-	__u64				reserved_cqe_comp;
++	struct mlx5dv_cqe_comp_caps	cqe_comp_caps;
+ 	struct mlx5_packet_pacing_caps	packet_pacing_caps;
+ 	__u32				support_multi_pkt_send_wqe;
+ 	__u32				reserved;
+diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
+index 7af6a0a..edb6d35 100644
+--- a/providers/mlx5/mlx5.c
++++ b/providers/mlx5/mlx5.c
+@@ -613,8 +613,8 @@ int mlx5dv_query_device(struct ibv_context *ctx_in,
+ 			 struct mlx5dv_context *attrs_out)
+ {
+ 	struct mlx5_context *mctx = to_mctx(ctx_in);
++	uint64_t comp_mask_out = 0;
+ 
+-	attrs_out->comp_mask = 0;
+ 	attrs_out->version   = 0;
+ 	attrs_out->flags     = 0;
+ 
+@@ -624,6 +624,13 @@ int mlx5dv_query_device(struct ibv_context *ctx_in,
+ 	if (mctx->vendor_cap_flags & MLX5_VENDOR_CAP_FLAGS_MPW)
+ 		attrs_out->flags |= MLX5DV_CONTEXT_FLAGS_MPW;
+ 
++	if (attrs_out->comp_mask & MLX5DV_CONTEXT_MASK_CQE_COMPRESION) {
++		attrs_out->cqe_comp_caps = mctx->cqe_comp_caps;
++		comp_mask_out |= MLX5DV_CONTEXT_MASK_CQE_COMPRESION;
++	}
++
++	attrs_out->comp_mask = comp_mask_out;
++
+ 	return 0;
+ }
+ 
+diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
+index 86f2438..bb383d4 100644
+--- a/providers/mlx5/mlx5.h
++++ b/providers/mlx5/mlx5.h
+@@ -263,6 +263,7 @@ struct mlx5_context {
+ 	int				cmds_supp_uhw;
+ 	uint32_t			uar_size;
+ 	uint64_t			vendor_cap_flags; /* Use enum mlx5_vendor_cap_flags */
++	struct mlx5dv_cqe_comp_caps	cqe_comp_caps;
+ };
+ 
+ struct mlx5_bitmap {
+diff --git a/providers/mlx5/mlx5dv.h b/providers/mlx5/mlx5dv.h
+index c09fad2..a2f7acf 100644
+--- a/providers/mlx5/mlx5dv.h
++++ b/providers/mlx5/mlx5dv.h
+@@ -54,6 +54,16 @@ enum {
+ 	MLX5_SND_DBR	= 1,
+ };
+ 
++enum mlx5dv_context_comp_mask {
++	MLX5DV_CONTEXT_MASK_CQE_COMPRESION	= 1 << 0,
++	MLX5DV_CONTEXT_MASK_RESERVED		= 1 << 1,
++};
++
++struct mlx5dv_cqe_comp_caps {
++	uint32_t max_num;
++	uint32_t supported_format; /* enum mlx5dv_cqe_comp_res_format */
++};
++
+ /*
+  * Direct verbs device-specific attributes
+  */
+@@ -61,6 +71,7 @@ struct mlx5dv_context {
+ 	uint8_t		version;
+ 	uint64_t	flags;
+ 	uint64_t	comp_mask;
++	struct mlx5dv_cqe_comp_caps	cqe_comp_caps;
+ };
+ 
+ enum mlx5dv_context_flags {
+@@ -277,6 +288,12 @@ struct mlx5_cqe64 {
+ 	uint8_t		op_own;
+ };
+ 
++enum mlx5dv_cqe_comp_res_format {
++	MLX5DV_CQE_RES_FORMAT_HASH		= 1 << 0,
++	MLX5DV_CQE_RES_FORMAT_CSUM		= 1 << 1,
++	MLX5DV_CQE_RES_FORMAT_RESERVED		= 1 << 2,
++};
++
+ static MLX5DV_ALWAYS_INLINE
+ uint8_t mlx5dv_get_cqe_owner(struct mlx5_cqe64 *cqe)
+ {
+diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
+index 9d4a4d4..1b24846 100644
+--- a/providers/mlx5/verbs.c
++++ b/providers/mlx5/verbs.c
+@@ -1926,6 +1926,8 @@ int mlx5_query_device_ex(struct ibv_context *context,
+ 	if (resp.support_multi_pkt_send_wqe)
+ 		mctx->vendor_cap_flags |= MLX5_VENDOR_CAP_FLAGS_MPW;
+ 
++	mctx->cqe_comp_caps = resp.cqe_comp_caps;
++
+ 	major     = (raw_fw_ver >> 32) & 0xffff;
+ 	minor     = (raw_fw_ver >> 16) & 0xffff;
+ 	sub_minor = raw_fw_ver & 0xffff;
 -- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-   
-Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
