@@ -1,78 +1,48 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH v2 20/20] IB/core: If the MGID/MLID pair is not on the list
- return an error
-Date: Mon, 20 Mar 2017 17:26:39 -0700
-Message-ID: <20170321002638.28538.75917.stgit@scvm10.sc.intel.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2 02/20] IB/hfi1: Race hazard avoidance in user SDMA driver
+Date: Mon, 20 Mar 2017 17:24:45 -0700
+Message-ID: <20170321002444.28538.41604.stgit@scvm10.sc.intel.com>
 References: <20170321001900.28538.38175.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20170321001900.28538.38175.stgit@scvm10.sc.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, stable@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170321001900.28538.38175.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Michael Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michael J. Ruhl <michael.j.ruhl@intel.com>
+From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-A list of MGID/MLID pairs is built when doing a multicast attach.  When
-the multicast detach is called, the list is searched, and regardless of
-the search outcome, the driver detach is called.
+Set the errcode before the state and add the smb_wmb() to avoid a
+potential race condition with the user.
 
-If an MGID/MLID pair is not on the list, driver detach should not be
-called, and an error should be returned.  Calling the driver without
-removing an MGID/MLID pair from the list can leave the core and driver
-out of sync.
-
-Fixes: f4e401562c11 IB/uverbs: track multicast group membership for userspace QPs
-Cc: stable@vger.kernel.org
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Michael Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c |   13 +++++++++----
- 1 files changed, 9 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/hfi1/user_sdma.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 7b7a76e..40cd335 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -3186,6 +3186,7 @@ ssize_t ib_uverbs_detach_mcast(struct ib_uverbs_file *file,
- 	struct ib_qp                 *qp;
- 	struct ib_uverbs_mcast_entry *mcast;
- 	int                           ret = -EINVAL;
-+	bool                          found = false;
- 
- 	if (copy_from_user(&cmd, buf, sizeof cmd))
- 		return -EFAULT;
-@@ -3194,10 +3195,6 @@ ssize_t ib_uverbs_detach_mcast(struct ib_uverbs_file *file,
- 	if (!qp)
- 		return -EINVAL;
- 
--	ret = ib_detach_mcast(qp, (union ib_gid *) cmd.gid, cmd.mlid);
--	if (ret)
--		goto out_put;
--
- 	obj = container_of(qp->uobject, struct ib_uqp_object, uevent.uobject);
- 
- 	list_for_each_entry(mcast, &obj->mcast_list, list)
-@@ -3205,9 +3202,17 @@ ssize_t ib_uverbs_detach_mcast(struct ib_uverbs_file *file,
- 		    !memcmp(cmd.gid, mcast->gid.raw, sizeof mcast->gid.raw)) {
- 			list_del(&mcast->list);
- 			kfree(mcast);
-+			found = true;
- 			break;
- 		}
- 
-+	if (!found) {
-+		ret = -EINVAL;
-+		goto out_put;
-+	}
-+
-+	ret = ib_detach_mcast(qp, (union ib_gid *)cmd.gid, cmd.mlid);
-+
- out_put:
- 	put_qp_write(qp);
- 
+diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
+index e6811c4..060e374 100644
+--- a/drivers/infiniband/hw/hfi1/user_sdma.c
++++ b/drivers/infiniband/hw/hfi1/user_sdma.c
+@@ -1615,9 +1615,10 @@ static inline void set_comp_state(struct hfi1_user_sdma_pkt_q *pq,
+ {
+ 	hfi1_cdbg(SDMA, "[%u:%u:%u:%u] Setting completion status %u %d",
+ 		  pq->dd->unit, pq->ctxt, pq->subctxt, idx, state, ret);
+-	cq->comps[idx].status = state;
+ 	if (state == ERROR)
+ 		cq->comps[idx].errcode = -ret;
++	smp_wmb(); /* make sure errcode is visible first */
++	cq->comps[idx].status = state;
+ 	trace_hfi1_sdma_user_completion(pq->dd, pq->ctxt, pq->subctxt,
+ 					idx, state, ret);
+ }
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
