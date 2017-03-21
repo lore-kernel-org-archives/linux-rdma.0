@@ -1,190 +1,88 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next 2/3] IB/umem: Drop hugetlb variable and VMA
- allocation
-Date: Tue, 21 Mar 2017 18:36:04 +0200
-Message-ID: <20170321163604.GC2079@mtr-leonro.local>
-References: <20170319085557.6023-1-leon@kernel.org>
- <20170319085557.6023-3-leon@kernel.org>
- <20170321021936.GA18356@ssaleem-MOBL4.amr.corp.intel.com>
- <20170321081408.GZ2079@mtr-leonro.local>
- <20170321140644.GA26628@ssaleem-MOBL4.amr.corp.intel.com>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC v2 for accelerated IPoIB 00/6] Enhanced mode for IPoIB
+ driver
+Date: Tue, 21 Mar 2017 18:49:52 +0200
+Message-ID: <20170321164952.GE2079@mtr-leonro.local>
+References: <1490036908-12528-1-git-send-email-erezsh@mellanox.com>
+ <20170320205927.GA17225@obsidianresearch.com>
+ <20170321114955.GB2079@mtr-leonro.local>
+ <20170321161530.GB22216@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="zFmACHHOtkGZvEBq"
+        protocol="application/pgp-signature"; boundary="K05eYGEa9LVdiTAA"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170321140644.GA26628-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
+In-Reply-To: <20170321161530.GB22216-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, fenkes-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
---zFmACHHOtkGZvEBq
-Content-Type: text/plain; charset=utf-8
+--K05eYGEa9LVdiTAA
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Mar 21, 2017 at 09:06:44AM -0500, Shiraz Saleem wrote:
-> On Tue, Mar 21, 2017 at 10:14:08AM +0200, Leon Romanovsky wrote:
-> > On Mon, Mar 20, 2017 at 09:19:36PM -0500, Shiraz Saleem wrote:
-> > > On Sun, Mar 19, 2017 at 10:55:56AM +0200, Leon Romanovsky wrote:
-> > > > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > > >
-> > > > IB umem structure has field hugetlb which was assigned, but except
-> > > > i40iw driver, it was actually never used.
-> > > >
-> > > > This patch drops that variable out of the struct ib_umem, removes
-> > > > all writes to it, get rids of VMA allocation which wasn't used and
-> > > > removes check hugetlb from i40iw driver, because it is checked anyw=
-ay in
-> > > > i40iw_set_hugetlb_values() routine.
-> > > >
-> > > > @@ -143,9 +141,6 @@ struct ib_umem *ib_umem_get(struct ib_ucontext =
-*context, unsigned long addr,
-> > > >
-> > > >  	umem->odp_data =3D NULL;
-> > > >
-> > > > -	/* We assume the memory is from hugetlb until proved otherwise */
-> > > > -	umem->hugetlb   =3D 1;
-> > > > -
-> > > >  	page_list =3D (struct page **) __get_free_page(GFP_KERNEL);
-> > > >  	if (!page_list) {
-> > > >  		put_pid(umem->pid);
-> > > > @@ -153,14 +148,6 @@ struct ib_umem *ib_umem_get(struct ib_ucontext=
- *context, unsigned long addr,
-> > > >  		return ERR_PTR(-ENOMEM);
-> > > >  	}
-> > > >
-> > > > -	/*
-> > > > -	 * if we can't alloc the vma_list, it's not so bad;
-> > > > -	 * just assume the memory is not hugetlb memory
-> > > > -	 */
-> > > > -	vma_list =3D (struct vm_area_struct **) __get_free_page(GFP_KERNE=
-L);
-> > > > -	if (!vma_list)
-> > > > -		umem->hugetlb =3D 0;
-> > > > -
-> > > >  	npages =3D ib_umem_num_pages(umem);
-> > > >
-> > > >  	down_write(&current->mm->mmap_sem);
-> > > > @@ -194,7 +181,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext =
-*context, unsigned long addr,
-> > > >  		ret =3D get_user_pages(cur_base,
-> > > >  				     min_t(unsigned long, npages,
-> > > >  					   PAGE_SIZE / sizeof (struct page *)),
-> > > > -				     gup_flags, page_list, vma_list);
-> > > > +				     gup_flags, page_list, NULL);
-> > > >
-> > > >  		if (ret < 0)
-> > > >  			goto out;
-> > > > @@ -203,12 +190,8 @@ struct ib_umem *ib_umem_get(struct ib_ucontext=
- *context, unsigned long addr,
-> > > >  		cur_base +=3D ret * PAGE_SIZE;
-> > > >  		npages   -=3D ret;
-> > > >
-> > > > -		for_each_sg(sg_list_start, sg, ret, i) {
-> > > > -			if (vma_list && !is_vm_hugetlb_page(vma_list[i]))
-> > > > -				umem->hugetlb =3D 0;
-> > > > -
-> > > > +		for_each_sg(sg_list_start, sg, ret, i)
-> > > >  			sg_set_page(sg, page_list[i], PAGE_SIZE, 0);
-> > > > -		}
-> > > >
-> > > >  		/* preparing for next loop */
-> > > >  		sg_list_start =3D sg;
+On Tue, Mar 21, 2017 at 10:15:30AM -0600, Jason Gunthorpe wrote:
+> On Tue, Mar 21, 2017 at 01:49:55PM +0200, Leon Romanovsky wrote:
+> > On Mon, Mar 20, 2017 at 02:59:27PM -0600, Jason Gunthorpe wrote:
+> > > On Mon, Mar 20, 2017 at 09:08:22PM +0200, Erez Shitrit wrote:
 > > >
-> > > > diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/in=
-finiband/hw/i40iw/i40iw_verbs.c
-> > > > index 9b2849979756..59c8d74e3704 100644
-> > > > --- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-> > > > +++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-> > > > @@ -1850,7 +1850,7 @@ static struct ib_mr *i40iw_reg_user_mr(struct=
- ib_pd *pd,
-> > > >  	iwmr->page_size =3D region->page_size;
-> > > >  	iwmr->page_msk =3D PAGE_MASK;
-> > > >
-> > > > -	if (region->hugetlb && (req.reg_type =3D=3D IW_MEMREG_TYPE_MEM))
-> > > > +	if (req.reg_type =3D=3D IW_MEMREG_TYPE_MEM)
-> > > >  		i40iw_set_hugetlb_values(start, iwmr);
+> > > >    TODO:
+> > > >         1.change the send api in order to move it to the ndo start_xmit (unless it hurts the performance of the default driver)
+> > > >         2.Take out the ipoib_ah from the send signature and use ib_ah instead, no need with including ipoib.h
+> > > >         3.Check if/how to add rdma_netdev layer to the default ipoib
+> > > >         4. splitting out the bulk rename of ipoib_priv into a single patch
+> > > >         5. change the name of the header to be ipoib_rn.h
+> > > >         6. no need to pass qkey, it is in the ah struct.
 > > >
-> > > The code in ib_umem_get iterates through __all__ VMA=E2=80=99s corres=
-ponding to the
-> > > user-space buffer and hugetlb field of the umem struct is set only if=
- they
-> > > are all using huge_pages. So in the essence, umem->hugetlb provides t=
-he
-> > > driver info on whether __all__ pages of the memory region uses huge p=
-ages
-> > > or not.
-> > >
-> > > i40iw_set_hugetlb_values only finds the VMA w.r.t the start virtual a=
-ddress of
-> > > the user-space buffer and checks if __this__ VMA uses hugetlb pages o=
-r not.
-> > > It is a sanity check done on the VMA found.
+> > > So.. why are you resending the series? Are these going to get fixed?
 > >
-> > >
-> > > So the question is -- Do we know that only a single VMA represents th=
-e user-space
-> > > buffer backed by huge pages?
-> > > If not, it doesnt appear that the check in i40iw_set_hugetlb_values w=
-ill suffice to
-> > > identify if the entire memory region is composed of huge pages since =
-it doesnt
-> > > check all the VMAs. umem->hugetlb would be required for it.
-> >
-> > You are right and thank you for pointing that. User memory buffer indee=
-d can
-> > span more than one VMA. For example one reg_mr with READ property for
-> > two adjacent VAMs, one with READ properties and another with READ-WRITE.
-> >
-> > However, relying on hugetlb which was set during creation is not best
-> > thing too. It can be changed during the application run. The mlx5 relie=
-s on
-> > the mlx5_ib_cont_pages() function to understand the actual layout.
-> >
+> > Sure, he will. This is why he added them to TODO so nothing will be lost.
 >
-> The patch as is, will break us.
+> Well.. if I assume everything done wrong in this series is fixed, then
+> it seems fine :)
 
-Doug,
-Please be sure do NOT take this patch.
-Do you want me to resubmit the series without this patch?
+At least, it is written as TODO :)
 
-> We believe ib_umem_get is the correct
-> place to scan the VMAs and report if the MR is composed of hugetlb pages =
-via the
-> hugetlb field of umem. This way it can be done in one place and not in ea=
-ch
-> individual driver.
+>
+> It looks like the only difference from what Intel started with was the
+> attach/detach_mcast which is basically how I expected this to look.
 
-The problem with this approach that it is done at the creation of
-umem region. The call to madvise(MADV_NOHUGEPAGE, ...) will clear
-the hugetlb property from VMA without change of umem->hugetlb variable.
+Glad to hear,
+
+Erez,
+It seems that the next step is to fix TODO and to send actual patches.
 
 Thanks
 
---zFmACHHOtkGZvEBq
+>
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--K05eYGEa9LVdiTAA
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljRVnQACgkQ5GN7iDZy
-WKeUrA/+L9nTSxkLEufQKnXX6STfLqhm/GQaLuuiV59j9ueWs3rHEbXjjcgyeuZx
-Mc7DHQXo2siOPWYp9JQCHjVlmOVZ6fnDHZ0n6ubJw4myKZqXhwGVAcvdiPwPvSxi
-Ahs5UNKUIhMAHWzrQMQfLYFjWy9siP5a6CRd+kAGw6aEdbAp/MmeylFQiQRxBEXb
-DlKObYJRFqhsj0n73Qgs/TkwebWx90BZ6BgYxadfZ5JlIlDkHdR19a1TL9uIAo42
-n7bIFPU62deNjyIXgURicDoGXh0WdtFitPwtzsBK5XcKOzcgxkxwY/6aMYAMbPir
-bWGS5QS4UShAvSuH3pKGnQnQg3ZJtCHaTcQDIMUtHe6xyazKIWbhG7Tj2uDl7bEI
-GzBpPaLj37qorZ98nsesMYV3au+PCDGyrZtBO7qao3tlvNJ84dOIbkYOC4dqk4ho
-06bt958VvomdyjqH4XS+jI+s5PvcPcyLBlVspmrIivtESIXAsfbbk2Cup2X84Rq0
-ZI0nWrg2wLqI+Tu30hcyOU1p552400QIyzD6/AcUZ/qLdDne5RxsdcnbScPNkIaR
-NZHgbWKUJlZADh36zQkrrayU+aS1jRBB4hUPmqxpFf8xfEFbOKWwT1vD9dVFHsHu
-37s6H3vQXsRcX+w74hiqdLZ8xqzzBhhjK/x+R9mCGyTy5xIcb04=
-=kG2s
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljRWa8ACgkQ5GN7iDZy
+WKe/RA/8Dc/v6OxsJ5ESSrHDWHp1vyPDv2JDxdIHLQ7QYDR8RyG4KJC09QpNh9bk
+DcHiPikfp95JIpvuJq22Vq5Qn0RElyztB32j8Gsl1I6//kW6eoYWtHRq3onbvYg2
+UINqMdWpf8++fJz+B1aH0mUCHDIgtT7S29WGXxBGC8UzRWn8D7TVBwoSnYzmCPMa
+ilpBFd2sBk3f2ZP1NVKqkM0oHel94SUReLpGbEemq8+CR6g0kxHtQTCikKABD3YI
+QbvnEAIASNEYQv2ynAV8dpH22bzB+XCDdps5JZdX16tN1aZO1SyylYrV4Kj6thzm
+Lc22bHS1v0J1QfU3YO2DqjR1r0mCc9g32uxlEzoT5h3yp3X4gcCNNB6B9ajAVSZ2
+f+kPCauzrTU2fcqGXgbBW6vl9hftgxk4XG1mAEYdY8wFclBScDRsiUx5zWE1TIY6
+f3PdlQNdElqVQjiPWNBYSKfbIaxz/FV8DkJhUcMb3jYVDXjp0XROGwK29Iq0tQrx
+kqtc0Y00jgZZU2oCVaGniTxoigpRxvQuZ9YlD6CQ95K3U9dDQFNIEOOV+CY+qv+9
+GMhlwv2niPr306DvF8nkjnbO7KAzYob+LosbcJkyZEb2EuFIMuC8jR9h7YtjHw9O
+/YsN/mRIxpyGjWvWFnih3hTLdaXFdXR6UzWmglpVih5iBkAOVkk=
+=sTS3
 -----END PGP SIGNATURE-----
 
---zFmACHHOtkGZvEBq--
+--K05eYGEa9LVdiTAA--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
