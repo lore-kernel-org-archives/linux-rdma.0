@@ -1,109 +1,164 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 00/20] IB/hfi1, qib,
- rdmavt: Another round of patches for 4.11
-Date: Mon, 20 Mar 2017 17:24:32 -0700
-Message-ID: <20170321001900.28538.38175.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v2 01/20] IB/hfi1: Force logical link down
+Date: Mon, 20 Mar 2017 17:24:39 -0700
+Message-ID: <20170321002437.28538.96034.stgit@scvm10.sc.intel.com>
+References: <20170321001900.28538.38175.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170321001900.28538.38175.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Brian Welty <brian.welty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Doug,
-Here is another round of patches for 4.11. Included with the usual bug fixes
-and general improvements of particular interest are new versions of the two
-patches that you didn't take for the first set. The fault injection stuff.
-We decided to go ahead and use the already existing config variable for those.
-The other interesting thing here is a patch to the IB core for MGID/MLID
-checking.
+From: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Patches apply on top of Linus' master branch which includes your most recent
-pull request so this should apply equally well to your tree. Patches can 
-also be found in my GitHub repo at:
-https://github.com/ddalessa/kernel/tree/for-4.11
+If the logical link state does not read as down when
+the physical link state is offline, force it to down.
 
-Changes since v1:
------------------
-Correct 0-day build errors in fault injection patches
-Correct swqe completion trace message location
-
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+ drivers/infiniband/hw/hfi1/chip.c |   86 +++++++++++++++++++++++++++++--------
+ 1 files changed, 68 insertions(+), 18 deletions(-)
 
-Dean Luick (1):
-      IB/hfi1: Force logical link down
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index 121a4c9..44322c6 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -1045,6 +1045,7 @@ static int wait_logical_linkstate(struct hfi1_pportdata *ppd, u32 state,
+ static int qos_rmt_entries(struct hfi1_devdata *dd, unsigned int *mp,
+ 			   unsigned int *np);
+ static void clear_full_mgmt_pkey(struct hfi1_pportdata *ppd);
++static int wait_link_transfer_active(struct hfi1_devdata *dd, int wait_ms);
+ 
+ /*
+  * Error interrupt table entry.  This is used as input to the interrupt
+@@ -8891,8 +8892,6 @@ int send_idle_sma(struct hfi1_devdata *dd, u64 message)
+  */
+ static int do_quick_linkup(struct hfi1_devdata *dd)
+ {
+-	u64 reg;
+-	unsigned long timeout;
+ 	int ret;
+ 
+ 	lcb_shutdown(dd, 0);
+@@ -8915,19 +8914,9 @@ static int do_quick_linkup(struct hfi1_devdata *dd)
+ 		write_csr(dd, DC_LCB_CFG_RUN,
+ 			  1ull << DC_LCB_CFG_RUN_EN_SHIFT);
+ 
+-		/* watch LCB_STS_LINK_TRANSFER_ACTIVE */
+-		timeout = jiffies + msecs_to_jiffies(10);
+-		while (1) {
+-			reg = read_csr(dd, DC_LCB_STS_LINK_TRANSFER_ACTIVE);
+-			if (reg)
+-				break;
+-			if (time_after(jiffies, timeout)) {
+-				dd_dev_err(dd,
+-					   "timeout waiting for LINK_TRANSFER_ACTIVE\n");
+-				return -ETIMEDOUT;
+-			}
+-			udelay(2);
+-		}
++		ret = wait_link_transfer_active(dd, 10);
++		if (ret)
++			return ret;
+ 
+ 		write_csr(dd, DC_LCB_CFG_ALLOW_LINK_UP,
+ 			  1ull << DC_LCB_CFG_ALLOW_LINK_UP_VAL_SHIFT);
+@@ -10082,6 +10071,64 @@ static void check_lni_states(struct hfi1_pportdata *ppd)
+ 	decode_state_complete(ppd, last_remote_state, "received");
+ }
+ 
++/* wait for wait_ms for LINK_TRANSFER_ACTIVE to go to 1 */
++static int wait_link_transfer_active(struct hfi1_devdata *dd, int wait_ms)
++{
++	u64 reg;
++	unsigned long timeout;
++
++	/* watch LCB_STS_LINK_TRANSFER_ACTIVE */
++	timeout = jiffies + msecs_to_jiffies(wait_ms);
++	while (1) {
++		reg = read_csr(dd, DC_LCB_STS_LINK_TRANSFER_ACTIVE);
++		if (reg)
++			break;
++		if (time_after(jiffies, timeout)) {
++			dd_dev_err(dd,
++				   "timeout waiting for LINK_TRANSFER_ACTIVE\n");
++			return -ETIMEDOUT;
++		}
++		udelay(2);
++	}
++	return 0;
++}
++
++/* called when the logical link state is not down as it should be */
++static void force_logical_link_state_down(struct hfi1_pportdata *ppd)
++{
++	struct hfi1_devdata *dd = ppd->dd;
++
++	/*
++	 * Bring link up in LCB loopback
++	 */
++	write_csr(dd, DC_LCB_CFG_TX_FIFOS_RESET, 1);
++	write_csr(dd, DC_LCB_CFG_IGNORE_LOST_RCLK,
++		  DC_LCB_CFG_IGNORE_LOST_RCLK_EN_SMASK);
++
++	write_csr(dd, DC_LCB_CFG_LANE_WIDTH, 0);
++	write_csr(dd, DC_LCB_CFG_REINIT_AS_SLAVE, 0);
++	write_csr(dd, DC_LCB_CFG_CNT_FOR_SKIP_STALL, 0x110);
++	write_csr(dd, DC_LCB_CFG_LOOPBACK, 0x2);
++
++	write_csr(dd, DC_LCB_CFG_TX_FIFOS_RESET, 0);
++	(void)read_csr(dd, DC_LCB_CFG_TX_FIFOS_RESET);
++	udelay(3);
++	write_csr(dd, DC_LCB_CFG_ALLOW_LINK_UP, 1);
++	write_csr(dd, DC_LCB_CFG_RUN, 1ull << DC_LCB_CFG_RUN_EN_SHIFT);
++
++	wait_link_transfer_active(dd, 100);
++
++	/*
++	 * Bring the link down again.
++	 */
++	write_csr(dd, DC_LCB_CFG_TX_FIFOS_RESET, 1);
++	write_csr(dd, DC_LCB_CFG_ALLOW_LINK_UP, 0);
++	write_csr(dd, DC_LCB_CFG_IGNORE_LOST_RCLK, 0);
++
++	/* call again to adjust ppd->statusp, if needed */
++	get_logical_state(ppd);
++}
++
+ /*
+  * Helper for set_link_state().  Do not call except from that routine.
+  * Expects ppd->hls_mutex to be held.
+@@ -10135,15 +10182,18 @@ static int goto_offline(struct hfi1_pportdata *ppd, u8 rem_reason)
+ 			return ret;
+ 	}
+ 
+-	/* make sure the logical state is also down */
+-	wait_logical_linkstate(ppd, IB_PORT_DOWN, 1000);
+-
+ 	/*
+ 	 * Now in charge of LCB - must be after the physical state is
+ 	 * offline.quiet and before host_link_state is changed.
+ 	 */
+ 	set_host_lcb_access(dd);
+ 	write_csr(dd, DC_LCB_ERR_EN, ~0ull); /* watch LCB errors */
++
++	/* make sure the logical state is also down */
++	ret = wait_logical_linkstate(ppd, IB_PORT_DOWN, 1000);
++	if (ret)
++		force_logical_link_state_down(ppd);
++
+ 	ppd->host_link_state = HLS_LINK_COOLDOWN; /* LCB access allowed */
+ 
+ 	if (ppd->port_type == PORT_TYPE_QSFP &&
 
-Don Hiatt (2):
-      IB/hfi1: Add receive fault injection feature
-      IB/hfi1: Add transmit fault injection feature
-
-Easwar Hariharan (1):
-      IB/hfi1: Check for QSFP presence before attempting reads
-
-Michael J. Ruhl (5):
-      IB/hfi1: Race hazard avoidance in user SDMA driver
-      IB/hfi1: Cache registers during state change
-      IB/hfi1: Add a patch value to the firmware version string
-      IB/hfi1: Ensure VL index is within bounds
-      IB/core: If the MGID/MLID pair is not on the list return an error
-
-Mike Marciniszyn (7):
-      IB/rdmavt,IB/hfi1,IB/qib: Make wc opcode translation driver dependent
-      IB/rdmavt: Add additional fields to post send trace
-      IB/rdmavt: Add tracing for cq entry and poll
-      IB/rdmavt: Add swqe completion trace
-      IB/rdmavt: Avoid reseting wqe send_flags in unreserve
-      IB/hfi1: Eliminate synchronize_rcu() in mr delete
-      IB/rdmavt,IB/qib,IB/hfi1: Make percpu refcount optional for user MRs
-
-Sebastian Sanchez (2):
-      IB/hfi1: NULL pointer dereference when freeing rhashtable
-      IB/rdmavt,IB/hfi1: Fix timer migration regressions
-
-Tadeusz Struk (2):
-      IB/hfi1: Check device id early during init
-      IB/hfi1: Protect the global dev_cntr_names and port_cntr_names
-
-
- drivers/infiniband/core/uverbs_cmd.c    |   13 +-
- drivers/infiniband/hw/hfi1/chip.c       |  178 ++++++++++++++++++++----
- drivers/infiniband/hw/hfi1/chip.h       |   18 +-
- drivers/infiniband/hw/hfi1/debugfs.c    |  230 +++++++++++++++++++++++++++++++
- drivers/infiniband/hw/hfi1/debugfs.h    |   62 ++++++++
- drivers/infiniband/hw/hfi1/driver.c     |   19 +++
- drivers/infiniband/hw/hfi1/firmware.c   |   14 +-
- drivers/infiniband/hw/hfi1/hfi.h        |   11 +
- drivers/infiniband/hw/hfi1/init.c       |   19 +--
- drivers/infiniband/hw/hfi1/rc.c         |   12 +-
- drivers/infiniband/hw/hfi1/ruc.c        |    7 +
- drivers/infiniband/hw/hfi1/sdma.c       |   43 ++++--
- drivers/infiniband/hw/hfi1/trace_misc.h |   48 ++++++
- drivers/infiniband/hw/hfi1/trace_rc.h   |    7 -
- drivers/infiniband/hw/hfi1/trace_tx.h   |   43 ++++++
- drivers/infiniband/hw/hfi1/user_sdma.c  |    3 
- drivers/infiniband/hw/hfi1/verbs.c      |  104 ++++++++++++--
- drivers/infiniband/hw/hfi1/verbs.h      |    5 +
- drivers/infiniband/hw/qib/qib_rc.c      |   10 +
- drivers/infiniband/hw/qib/qib_ruc.c     |    5 +
- drivers/infiniband/hw/qib/qib_verbs.c   |   20 +++
- drivers/infiniband/sw/rdmavt/cq.c       |    3 
- drivers/infiniband/sw/rdmavt/mr.c       |   55 +++++--
- drivers/infiniband/sw/rdmavt/qp.c       |   32 +---
- drivers/infiniband/sw/rdmavt/trace.h    |    4 -
- drivers/infiniband/sw/rdmavt/trace_cq.h |  127 +++++++++++++++++
- drivers/infiniband/sw/rdmavt/trace_rc.h |  109 +++++++++++++++
- drivers/infiniband/sw/rdmavt/trace_tx.h |   34 ++++-
- include/rdma/ib_pack.h                  |    2 
- include/rdma/rdma_vt.h                  |    1 
- include/rdma/rdmavt_qp.h                |    7 -
- 31 files changed, 1096 insertions(+), 149 deletions(-)
- create mode 100644 drivers/infiniband/sw/rdmavt/trace_cq.h
- create mode 100644 drivers/infiniband/sw/rdmavt/trace_rc.h
-
---
--Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
