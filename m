@@ -1,79 +1,84 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC v2 for accelerated IPoIB 00/6] Enhanced mode for IPoIB
- driver
-Date: Tue, 21 Mar 2017 13:49:55 +0200
-Message-ID: <20170321114955.GB2079@mtr-leonro.local>
-References: <1490036908-12528-1-git-send-email-erezsh@mellanox.com>
- <20170320205927.GA17225@obsidianresearch.com>
+From: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: Need some pointers to debug a KASAN splat in NVMe over Fabrics
+ with rdma-rxe
+Date: Tue, 21 Mar 2017 09:12:56 -0400
+Message-ID: <20170321131255.GA24294@linux-x5ow.site>
+References: <5b16edcf-c39a-bc4b-0e32-8ccfb5d75efb@suse.de>
+ <CAG9sBKPwEryc7U+hV=XJvRrFFhNvoktDOtwwS6piUw=cQ=bZhA@mail.gmail.com>
+ <38a12b22-7bad-c069-4c96-39fc93d20d79@suse.de>
+ <CAG9sBKNXwHFkmQYsOPPu40822h6Z7J3+63CaZ844juZp5hfHfg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="guYUoZW38XEuSLXo"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170320205927.GA17225-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <CAG9sBKNXwHFkmQYsOPPu40822h6Z7J3+63CaZ844juZp5hfHfg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Linux NVMe Mailinglist <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
---guYUoZW38XEuSLXo
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Thu, Mar 09, 2017 at 12:59:31PM +0200, Moni Shoua wrote:
+> >> 2. You can take a look at librxe implementation of init_send_wqe() (it
+> >> looks slightly different from kernel's implementation) and see what
+> >> happens if you change implementation accordingly.
+> >
+> > OK I'll have a look and hopefully come back with a (RFC) patch (fingers
+> > crossed).
+> 
+> Thanks. Waiting to see what you found and in the meantime I'll try to
+> reproduce in my setup
 
-On Mon, Mar 20, 2017 at 02:59:27PM -0600, Jason Gunthorpe wrote:
-> On Mon, Mar 20, 2017 at 09:08:22PM +0200, Erez Shitrit wrote:
->
-> >    TODO:
-> >         1.change the send api in order to move it to the ndo start_xmit (unless it hurts the performance of the default driver)
-> >         2.Take out the ipoib_ah from the send signature and use ib_ah instead, no need with including ipoib.h
-> >         3.Check if/how to add rdma_netdev layer to the default ipoib
-> >         4. splitting out the bulk rename of ipoib_priv into a single patch
-> >         5. change the name of the header to be ipoib_rn.h
-> >         6. no need to pass qkey, it is in the ah struct.
->
-> So.. why are you resending the series? Are these going to get fixed?
+Hi Moni,
 
-Sure, he will. This is why he added them to TODO so nothing will be lost.
+I got the NVMf with RXE connection problems (minus the KASAN splats)
+traced down to the check_rkey() function. It bailes out on this code
+in check_rkey():
 
-The purpose of this RFC is to get clear view on the rdma_netdev design, understand
-the API limitations and provide solid ground for actual IPoIB/HFI-VNIC patches.
+       if (pkt->mask & RXE_WRITE_MASK)  {
+                if (resid > mtu) {
+                        if (pktlen != mtu || bth_pad(pkt)) {
+                                state = RESPST_ERR_LENGTH;
+                                goto err;
+                        }
 
-It is important to mention, that this RFC is working and curious readers
-can start playing with it and/or legacy IPoIB too.
+			qp->resp.resid = mtu;
+                } else {
+                        if (pktlen != resid) {
 
-So, the question is really simple. Are the interfaces properly designed
-and Erez needs to start working on conversion this RFCs to actual patches?
 
-Thanks
+This even happens if I set the mtu to 9000.
 
->
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I instrumented the driver to get some more debug information out of it and
+here's the last output I see before nvme enters an error state and reconnects:
 
---guYUoZW38XEuSLXo
-Content-Type: application/pgp-signature; name="signature.asc"
+rdma_rxe: write_data_in: data_len: 4096, qp->resp.resid: 4096
+rdma_rxe: check_rkey: mtu: 4096, resid: 12288, pktlen: 4096
+rdma_rxe: write_data_in: data_len: 4096, qp->resp.resid: 4096
+rdma_rxe: check_rkey: mtu: 4096, resid: 0, pktlen: 4096
+rdma_rxe: qp#19 moved to error state
+nvme nvme0: RECV for CQE 0xffff88001f0ef240 failed with status WR flushed (5)
 
------BEGIN PGP SIGNATURE-----
+qp->resp.resid comes from this hunk in check_rkey():
+       if (pkt->mask & (RXE_READ_MASK | RXE_WRITE_MASK)) {
+                if (pkt->mask & RXE_RETH_MASK) {
+                        qp->resp.va = reth_va(pkt);
+                        qp->resp.rkey = reth_rkey(pkt);
+                        qp->resp.resid = reth_len(pkt);
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljRE2MACgkQ5GN7iDZy
-WKfW+A//X4vMR6LMrDTzelScnyhAbYGddNIkaatWPmJWvqpvuLrYX1hOvXMlGjrT
-NURlycYYTjUBRciGroWbPls4lyptXBhOn3hrgdr9PS1VmPZh22JdHKmPMD2oUWUb
-43rtdDe7aNEnzuX5jRUA3xox7/h7nyN7qX9+GAlUkFMq0FqQ0xqTTazX+fQA8ay2
-uJD3VOaFYfOZVgHZTrvAoLWH6RlqwIv9cIfICZdHnGLnIXZwvK/GqijjNCYtZK9l
-cwb65XIsyGkz9Gr5IMQv3kYYmY8Fvktp6q6hgkioFCephfXWb+ejz1IBDFEx3FDB
-ijy/nPmSuevKiLYb5oTcMWkWnURmHZHfUqFh3N+1G9qeQd898eAGYIi8zNAodbOk
-7K/HgoIa1+Rviw84nOb29Fyj2jhVJwQ41oK6QowY3yEKDa+KaXmDdkFllGe+pwVu
-dk0m/pcnaSINn2AGsuJx+qEL7Z8sXRVbWZpSQRarqGqu+4S+et9jIr3ypk3ImygA
-15aWlZucMmJDF1bWl98EfXACVcDKES5hrTUqPuoco/7zluvoBgVb68Gb1Vlw0qyT
-jccneHJKnDJLEES1i0o8V+rO/LYWfNSWX+HyghQjPNl216FWC2EpbtkrnW5oRe4Z
-IyddPRczWoNvZR0nUSjIzeUtnuvVoS6vEMTiajgpBl6Se+wNQ0o=
-=FfMb
------END PGP SIGNATURE-----
+So I suppose reth_len() has some hiccups here. I'll continue debugging and
+report back any new findings.
 
---guYUoZW38XEuSLXo--
+Byte,
+	Johannes
+
+-- 
+Johannes Thumshirn                                          Storage
+jthumshirn-l3A5Bk7waGM@public.gmane.org                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
+GF: Felix Imendörffer, Jane Smithard, Graham Norton
+HRB 21284 (AG Nürnberg)
+Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
