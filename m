@@ -1,47 +1,22 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: rdma-core and endianness checking with sparse
-Date: Tue, 21 Mar 2017 17:56:23 +0000
-Message-ID: <1490118969.2605.1.camel@sandisk.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH v1 04/14] svcrdma: Add helper to save pages under I/O
+Date: Tue, 21 Mar 2017 20:01:03 +0200
+Message-ID: <4587c490-1880-4045-c050-a97aba31682a@grimberg.me>
+References: <20170316154132.4482.56769.stgit@klimt.1015granger.net>
+ <20170316155258.4482.69182.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <9A1774B42F72714B9A23B8EEC37C22CF-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170316155258.4482.69182.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Jason,
+Looks fine,
 
-Since commit https://github.com/linux-rdma/rdma-core/commit/dceee9494bfbadf=
-0cf16b8fef81f3c2cb5355243
-checking endianness locally with sparse is broken on my development setup.
-The following error messages appear:
-
--- Performing Test HAVE_NO_SPARSE
--- Performing Test HAVE_NO_SPARSE - Failed
-Patch from '/home/bart/software/infiniband/rdma-core/buildlib/sparse-includ=
-e/19/netinet-in.h.diff' failed
-Patch from '/home/bart/software/infiniband/rdma-core/buildlib/sparse-includ=
-e/23/netinet-in.h.diff' failed
-Traceback (most recent call last):
-=A0 File "/home/bart/software/infiniband/rdma-core/buildlib/gen-sparse.py",=
- line 129, in <module>
-=A0=A0=A0=A0replace_header(I);
-=A0 File "/home/bart/software/infiniband/rdma-core/buildlib/gen-sparse.py",=
- line 82, in replace_header
-=A0=A0=A0=A0raise ValueError("Unable to apply any patch to %r, tries %u"%(f=
-n,tries));
-ValueError: Unable to apply any patch to 'netinet/in.h', tries 2
-
-I was surprised to see that merge request in the rdma-core repository altho=
-ugh
-I had warned from beforehand that this could happen?
-
-Bart.=
+Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
