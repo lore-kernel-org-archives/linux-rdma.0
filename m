@@ -1,44 +1,104 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 1/2] IB/mlx4: Fix ib device initialization error flow
-Date: Tue, 21 Mar 2017 12:57:05 +0200
-Message-ID: <20170321105706.9355-1-leon@kernel.org>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "# v3 . 4+" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH rdma-next 2/2] IB/mlx4: Reduce SRIOV multicast cleanup warning message to debug level
+Date: Tue, 21 Mar 2017 12:57:06 +0200
+Message-ID: <20170321105706.9355-2-leon@kernel.org>
+References: <20170321105706.9355-1-leon@kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20170321105706.9355-1-leon@kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org, Jack Morgenstein <jackm@dev.mellanox.co.il>, "# v3 . 4+" <stable@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+From: Jack Morgenstein <jackm@dev.mellanox.co.il>
 
-In mlx4_ib_add, procedure mlx4_ib_alloc_eqs is called to allocate EQs.
+A warning message during SRIOV multicast cleanup should have actually been
+a debug level message. The condition generating the warning does no harm
+and can fill the message log.
 
-However, in the mlx4_ib_add error flow, procedure mlx4_ib_free_eqs is not
-called to free the allocated EQs.
+In some cases, during testing, some tests were so intense as to swamp the
+message log with these warning messages, causing a stall in the console
+message log output task. This stall caused an NMI to be sent to all CPUs
+(so that they all dumped their stacks into the message log).
+Aside from the message flood causing an NMI, the tests all passed.
 
-Fixes: e605b743f33d ("IB/mlx4: Increase the number of vectors (EQs) available for ULPs")
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v3.4+
-Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Once the message flood which caused the NMI is removed (by reducing the
+warning message to debug level), the NMI no longer occurs.
+
+Sample message log (console log) output illustrating the flood and
+resultant NMI (snippets with comments and modified with ... instead
+of hex digits, to satisfy checkpatch.pl):
+
+ <mlx4_ib> _mlx4_ib_mcg_port_cleanup: ... WARNING: group refcount 1!!!...
+ *** About 4000 almost identical lines in less than one second ***
+ <mlx4_ib> _mlx4_ib_mcg_port_cleanup: ... WARNING: group refcount 1!!!...
+ INFO: rcu_sched detected stalls on CPUs/tasks: { 17} (...)
+ *** { 17} above indicates that CPU 17 was the one that stalled ***
+ sending NMI to all CPUs:
+ ...
+ NMI backtrace for cpu 17
+ CPU: 17 PID: 45909 Comm: kworker/17:2
+ Hardware name: HP ProLiant DL360p Gen8, BIOS P71 09/08/2013
+ Workqueue: events fb_flashcursor
+ task: ffff880478...... ti: ffff88064e...... task.ti: ffff88064e......
+ RIP: 0010:[ffffffff81......]  [ffffffff81......] io_serial_in+0x15/0x20
+ RSP: 0018:ffff88064e257cb0  EFLAGS: 00000002
+ RAX: 0000000000...... RBX: ffffffff81...... RCX: 0000000000......
+ RDX: 0000000000...... RSI: 0000000000...... RDI: ffffffff81......
+ RBP: ffff88064e...... R08: ffffffff81...... R09: 0000000000......
+ R10: 0000000000...... R11: ffff88064e...... R12: 0000000000......
+ R13: 0000000000...... R14: ffffffff81...... R15: 0000000000......
+ FS:  0000000000......(0000) GS:ffff8804af......(0000) knlGS:000000000000
+ CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080......
+ CR2: 00007f2a2f...... CR3: 0000000001...... CR4: 0000000000......
+ DR0: 0000000000...... DR1: 0000000000...... DR2: 0000000000......
+ DR3: 0000000000...... DR6: 00000000ff...... DR7: 0000000000......
+ Stack:
+ ffff88064e...... ffffffff81...... ffffffff81...... 0000000000......
+ ffffffff81...... ffff88064e...... ffffffff81...... ffffffff81......
+ ffffffff81...... ffff88064e...... ffffffff81...... 0000000000......
+ Call Trace:
+[<ffffffff813d099b>] wait_for_xmitr+0x3b/0xa0
+[<ffffffff813d0b5c>] serial8250_console_putchar+0x1c/0x30
+[<ffffffff813d0b40>] ? serial8250_console_write+0x140/0x140
+[<ffffffff813cb5fa>] uart_console_write+0x3a/0x80
+[<ffffffff813d0aae>] serial8250_console_write+0xae/0x140
+[<ffffffff8107c4d1>] call_console_drivers.constprop.15+0x91/0xf0
+[<ffffffff8107d6cf>] console_unlock+0x3bf/0x400
+[<ffffffff813503cd>] fb_flashcursor+0x5d/0x140
+[<ffffffff81355c30>] ? bit_clear+0x120/0x120
+[<ffffffff8109d5fb>] process_one_work+0x17b/0x470
+[<ffffffff8109e3cb>] worker_thread+0x11b/0x400
+[<ffffffff8109e2b0>] ? rescuer_thread+0x400/0x400
+[<ffffffff810a5aef>] kthread+0xcf/0xe0
+[<ffffffff810a5a20>] ? kthread_create_on_node+0x140/0x140
+[<ffffffff81645858>] ret_from_fork+0x58/0x90
+[<ffffffff810a5a20>] ? kthread_create_on_node+0x140/0x140
+Code: 48 89 e5 d3 e6 48 63 f6 48 03 77 10 8b 06 5d c3 66 0f 1f 44 00 00 66 66 66 6
+
+As indicated in the stack trace above, the console output task got swamped.
+
+Fixes: b9c5d6a64358 ("IB/mlx4: Add multicast group (MCG) paravirtualization for SR-IOV")
+Cc: <stable@vger.kernel.org> # v3.6+
+Signed-off-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
+Signed-off-by: Leon Romanovsky <leon@kernel.org>
 ---
- drivers/infiniband/hw/mlx4/main.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/hw/mlx4/mcg.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index fba94df28cf1..c7e6d137c162 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -2941,6 +2941,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 		mlx4_ib_delete_counters_table(ibdev, &ibdev->counters_table[i]);
+diff --git a/drivers/infiniband/hw/mlx4/mcg.c b/drivers/infiniband/hw/mlx4/mcg.c
+index e010fe459e67..8772d88d324d 100644
+--- a/drivers/infiniband/hw/mlx4/mcg.c
++++ b/drivers/infiniband/hw/mlx4/mcg.c
+@@ -1102,7 +1102,8 @@ static void _mlx4_ib_mcg_port_cleanup(struct mlx4_ib_demux_ctx *ctx, int destroy
+ 	while ((p = rb_first(&ctx->mcg_table)) != NULL) {
+ 		group = rb_entry(p, struct mcast_group, node);
+ 		if (atomic_read(&group->refcount))
+-			mcg_warn_group(group, "group refcount %d!!! (pointer %p)\n", atomic_read(&group->refcount), group);
++			mcg_debug_group(group, "group refcount %d!!! (pointer %p)\n",
++					atomic_read(&group->refcount), group);
  
- err_map:
-+	mlx4_ib_free_eqs(dev, ibdev);
- 	iounmap(ibdev->uar_map);
- 
- err_uar:
+ 		force_clean_group(group);
+ 	}
 -- 
 2.12.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
