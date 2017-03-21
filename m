@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 18/20] IB/hfi1: Eliminate synchronize_rcu() in mr delete
-Date: Mon, 20 Mar 2017 17:26:26 -0700
-Message-ID: <20170321002625.28538.10769.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v2 19/20] IB/rdmavt, IB/qib,
+ IB/hfi1: Make percpu refcount optional for user MRs
+Date: Mon, 20 Mar 2017 17:26:32 -0700
+Message-ID: <20170321002631.28538.2121.stgit@scvm10.sc.intel.com>
 References: <20170321001900.28538.38175.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,168 +16,108 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The synchronize_rcu() call can be eliminated to improve memory deregistration
-performance.
+In some cases, the cost of user memory deregistration is more
+important than the data path benefit of percpu reference counts.
 
-There are two key fields involved:
-- The rcu pointer itself
-- the lkey_published field
-
-To close the window between the rcu read of the mregion pointer and the
-reference count the code should:
-
-1. To lkey/rkey validation (reader)
-
-Read the rcu pointer.  If the pointer is non-NULL, get a reference.
-
-To the current validation tests use a READ_ONCE() on the lkey_published.
-
-Upon any failure release the reference.
-
-2. To the remove logic (delete)
-
-Insure the published is zeroed prior to setting the pointer to NULL.
-This requires using rcu_assign_pointer() to insure lkey_published
-is written prior to the NULL.
-
-3. To the insert logic (add)
-
-Insure the published is set use an rcu_assign_pointer() to insure the
-pointer is after all MR fields.
+Add a (default off) module parameter to disarm percpu for user memory
+regions.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/mr.c |   49 +++++++++++++++++++++++++------------
- 1 files changed, 33 insertions(+), 16 deletions(-)
+ drivers/infiniband/hw/hfi1/verbs.c    |    7 +++++++
+ drivers/infiniband/hw/qib/qib_verbs.c |    7 +++++++
+ drivers/infiniband/sw/rdmavt/mr.c     |    6 +++++-
+ include/rdma/rdma_vt.h                |    1 +
+ 4 files changed, 20 insertions(+), 1 deletions(-)
 
+diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
+index 5e7e577..552b26d 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.c
++++ b/drivers/infiniband/hw/hfi1/verbs.c
+@@ -68,6 +68,12 @@
+ MODULE_PARM_DESC(lkey_table_size,
+ 		 "LKEY table size in bits (2^n, 1 <= n <= 23)");
+ 
++static unsigned int hfi1_no_user_mr_percpu;
++module_param_named(no_user_mr_percpu, hfi1_no_user_mr_percpu, uint,
++		   S_IRUGO);
++MODULE_PARM_DESC(no_user_mr_percpu,
++		 "Avoid percpu refcount for user MRs (default 0)");
++
+ static unsigned int hfi1_max_pds = 0xFFFF;
+ module_param_named(max_pds, hfi1_max_pds, uint, S_IRUGO);
+ MODULE_PARM_DESC(max_pds,
+@@ -1841,6 +1847,7 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
+ 	/* misc settings */
+ 	dd->verbs_dev.rdi.flags = 0; /* Let rdmavt handle it all */
+ 	dd->verbs_dev.rdi.dparms.lkey_table_size = hfi1_lkey_table_size;
++	dd->verbs_dev.rdi.dparms.no_user_mr_percpu = hfi1_no_user_mr_percpu;
+ 	dd->verbs_dev.rdi.dparms.nports = dd->num_pports;
+ 	dd->verbs_dev.rdi.dparms.npkeys = hfi1_get_npkeys(dd);
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
+index e120efe..6c718cd 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.c
++++ b/drivers/infiniband/hw/qib/qib_verbs.c
+@@ -56,6 +56,12 @@
+ MODULE_PARM_DESC(lkey_table_size,
+ 		 "LKEY table size in bits (2^n, 1 <= n <= 23)");
+ 
++static unsigned int qib_no_user_mr_percpu;
++module_param_named(no_user_mr_percpu, qib_no_user_mr_percpu, uint,
++		   S_IRUGO);
++MODULE_PARM_DESC(no_user_mr_percpu,
++		 "Avoid percpu refcount for user MRs (default 0)");
++
+ static unsigned int ib_qib_max_pds = 0xFFFF;
+ module_param_named(max_pds, ib_qib_max_pds, uint, S_IRUGO);
+ MODULE_PARM_DESC(max_pds,
+@@ -1606,6 +1612,7 @@ int qib_register_ib_device(struct qib_devdata *dd)
+ 	dd->verbs_dev.rdi.dparms.max_rdma_atomic = QIB_MAX_RDMA_ATOMIC;
+ 	dd->verbs_dev.rdi.driver_f.get_guid_be = qib_get_guid_be;
+ 	dd->verbs_dev.rdi.dparms.lkey_table_size = qib_lkey_table_size;
++	dd->verbs_dev.rdi.dparms.no_user_mr_percpu = qib_no_user_mr_percpu;
+ 	dd->verbs_dev.rdi.dparms.qp_table_size = ib_qib_qp_table_size;
+ 	dd->verbs_dev.rdi.dparms.qpn_start = 1;
+ 	dd->verbs_dev.rdi.dparms.qpn_res_start = QIB_KD_QP;
 diff --git a/drivers/infiniband/sw/rdmavt/mr.c b/drivers/infiniband/sw/rdmavt/mr.c
-index ae30b68..7c86955 100644
+index 7c86955..bbcc31f 100644
 --- a/drivers/infiniband/sw/rdmavt/mr.c
 +++ b/drivers/infiniband/sw/rdmavt/mr.c
-@@ -191,8 +191,9 @@ static int rvt_alloc_lkey(struct rvt_mregion *mr, int dma_region)
+@@ -280,6 +280,7 @@ static void rvt_free_lkey(struct rvt_mregion *mr)
+ 	struct rvt_mr *mr;
+ 	int rval = -ENOMEM;
+ 	int m;
++	struct rvt_dev_info *dev = ib_to_rvt(pd->device);
  
- 		tmr = rcu_access_pointer(dev->dma_mr);
- 		if (!tmr) {
--			rcu_assign_pointer(dev->dma_mr, mr);
- 			mr->lkey_published = 1;
-+			/* Insure published written first */
-+			rcu_assign_pointer(dev->dma_mr, mr);
- 			rvt_get_mr(mr);
- 		}
- 		goto success;
-@@ -224,8 +225,9 @@ static int rvt_alloc_lkey(struct rvt_mregion *mr, int dma_region)
- 		mr->lkey |= 1 << 8;
- 		rkt->gen++;
- 	}
--	rcu_assign_pointer(rkt->table[r], mr);
- 	mr->lkey_published = 1;
-+	/* Insure published written first */
-+	rcu_assign_pointer(rkt->table[r], mr);
- success:
- 	spin_unlock_irqrestore(&rkt->lock, flags);
- out:
-@@ -253,23 +255,24 @@ static void rvt_free_lkey(struct rvt_mregion *mr)
- 	spin_lock_irqsave(&rkt->lock, flags);
- 	if (!lkey) {
- 		if (mr->lkey_published) {
--			RCU_INIT_POINTER(dev->dma_mr, NULL);
-+			mr->lkey_published = 0;
-+			/* insure published is written before pointer */
-+			rcu_assign_pointer(dev->dma_mr, NULL);
- 			rvt_put_mr(mr);
- 		}
- 	} else {
- 		if (!mr->lkey_published)
- 			goto out;
- 		r = lkey >> (32 - dev->dparms.lkey_table_size);
--		RCU_INIT_POINTER(rkt->table[r], NULL);
-+		mr->lkey_published = 0;
-+		/* insure published is written before pointer */
-+		rcu_assign_pointer(rkt->table[r], NULL);
- 	}
--	mr->lkey_published = 0;
- 	freed++;
- out:
- 	spin_unlock_irqrestore(&rkt->lock, flags);
--	if (freed) {
--		synchronize_rcu();
-+	if (freed)
- 		percpu_ref_kill(&mr->refcount);
--	}
- }
- 
- static struct rvt_mr *__rvt_alloc_mr(int count, struct ib_pd *pd)
-@@ -822,16 +825,21 @@ int rvt_lkey_ok(struct rvt_lkey_table *rkt, struct rvt_pd *pd,
- 		goto ok;
- 	}
- 	mr = rcu_dereference(rkt->table[sge->lkey >> rkt->shift]);
--	if (unlikely(!mr || atomic_read(&mr->lkey_invalid) ||
--		     mr->lkey != sge->lkey || mr->pd != &pd->ibpd))
-+	if (!mr)
+ 	/* Allocate struct plus pointers to first level page tables. */
+ 	m = (count + RVT_SEGSZ - 1) / RVT_SEGSZ;
+@@ -287,7 +288,10 @@ static void rvt_free_lkey(struct rvt_mregion *mr)
+ 	if (!mr)
  		goto bail;
-+	rvt_get_mr(mr);
-+	if (!READ_ONCE(mr->lkey_published))
-+		goto bail_unref;
-+
-+	if (unlikely(atomic_read(&mr->lkey_invalid) ||
-+		     mr->lkey != sge->lkey || mr->pd != &pd->ibpd))
-+		goto bail_unref;
  
- 	off = sge->addr - mr->user_base;
- 	if (unlikely(sge->addr < mr->user_base ||
- 		     off + sge->length > mr->length ||
- 		     (mr->access_flags & acc) != acc))
--		goto bail;
--	rvt_get_mr(mr);
-+		goto bail_unref;
- 	rcu_read_unlock();
- 
- 	off += mr->offset;
-@@ -867,6 +875,8 @@ int rvt_lkey_ok(struct rvt_lkey_table *rkt, struct rvt_pd *pd,
- 	isge->n = n;
- ok:
- 	return 1;
-+bail_unref:
-+	rvt_put_mr(mr);
- bail:
- 	rcu_read_unlock();
- 	return 0;
-@@ -922,15 +932,20 @@ int rvt_rkey_ok(struct rvt_qp *qp, struct rvt_sge *sge,
- 	}
- 
- 	mr = rcu_dereference(rkt->table[rkey >> rkt->shift]);
--	if (unlikely(!mr || atomic_read(&mr->lkey_invalid) ||
--		     mr->lkey != rkey || qp->ibqp.pd != mr->pd))
-+	if (!mr)
+-	rval = rvt_init_mregion(&mr->mr, pd, count, 0);
++	rval = rvt_init_mregion(&mr->mr, pd, count,
++				ibpd_to_rvtpd(pd)->user &&
++				dev->dparms.no_user_mr_percpu ?
++					PERCPU_REF_INIT_ATOMIC : 0);
+ 	if (rval)
  		goto bail;
-+	rvt_get_mr(mr);
-+	/* insure mr read is before test */
-+	if (!READ_ONCE(mr->lkey_published))
-+		goto bail_unref;
-+	if (unlikely(atomic_read(&mr->lkey_invalid) ||
-+		     mr->lkey != rkey || qp->ibqp.pd != mr->pd))
-+		goto bail_unref;
- 
- 	off = vaddr - mr->iova;
- 	if (unlikely(vaddr < mr->iova || off + len > mr->length ||
- 		     (mr->access_flags & acc) == 0))
--		goto bail;
--	rvt_get_mr(mr);
-+		goto bail_unref;
- 	rcu_read_unlock();
- 
- 	off += mr->offset;
-@@ -966,6 +981,8 @@ int rvt_rkey_ok(struct rvt_qp *qp, struct rvt_sge *sge,
- 	sge->n = n;
- ok:
- 	return 1;
-+bail_unref:
-+	rvt_put_mr(mr);
- bail:
- 	rcu_read_unlock();
- 	return 0;
+ 	/*
+diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
+index 8fc1ca7..d60a41e 100644
+--- a/include/rdma/rdma_vt.h
++++ b/include/rdma/rdma_vt.h
+@@ -142,6 +142,7 @@ struct rvt_driver_params {
+ 	 * For instance special module parameters. Goes here.
+ 	 */
+ 	unsigned int lkey_table_size;
++	unsigned int no_user_mr_percpu;
+ 	unsigned int qp_table_size;
+ 	int qpn_start;
+ 	int qpn_inc;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
