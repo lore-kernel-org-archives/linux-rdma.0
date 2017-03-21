@@ -1,73 +1,58 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V1 rdma-core 0/6] Expanding raw packet capabilities
-Date: Tue, 21 Mar 2017 13:33:44 -0400
-Message-ID: <1490117624.2404.12.camel@redhat.com>
-References: <1489591666-14062-1-git-send-email-yishaih@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 02/14] svcrdma: Add svc_rdma_map_reply_hdr()
+Date: Tue, 21 Mar 2017 14:40:16 -0400
+Message-ID: <A18F9D5E-09BA-4268-9AA6-3E5866101F76@oracle.com>
+References: <20170316154132.4482.56769.stgit@klimt.1015granger.net> <20170316155242.4482.64809.stgit@klimt.1015granger.net> <f5000e25-6ca1-fc24-35c0-6089cf50923c@grimberg.me>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1489591666-14062-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <f5000e25-6ca1-fc24-35c0-6089cf50923c-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-03-15 at 17:27 +0200, Yishai Hadas wrote:
-> Sending V1 to better describe the API as part of commit logs and man
-> pages,
-> details below.
-> 
-> This series from Noa is the complementary user space part
-> of the kernel code that was merged into 4.11.
-> 
-> This series unifies all existing raw packet capabilities under a new
-> field in ibv_device_attr_ex named raw_packet_caps. This field is
-> defined
-> by the ibv_raw_packet_caps enum.
-> 
-> The existing IP csum and scatter FCS capabilities were added to the
-> enum and a new capability was introduced - cvlan stripping offload.
-> 
-> Cvlan stripping is the device's capability to remove the cvlan from
-> an incoming raw packet and provide the data in the matching work
-> completion.
-> 
-> This series also:
-> - Allows creation of WQ and raw Ethernet QP with cvlan stripping
-> capability.
-> - Allows setting and unsetting of cvlan stripping capability for an
-> existing WQ.
-> - Allows creation of WQ with scatter FCS offload.
-> - Allows reading the cvlan data from ibv_cq_ex.
-> 
-> Details for above was added as part of the commit logs and the
-> relevant
-> man pages.
-> 
-> Pull request was sent:
-> https://github.com/linux-rdma/rdma-core/pull/96
-> 
-> Changes from V0:
-> - Extend commit logs to better describe the usage from user point of
-> view.
-> - Per API change put the corresponding man page change in the same
-> patch to
->   clarify the usage. 
-> - Drop patch #6 which held the changes for all the man pages together
-> as of
->   the above change.
-> - Align involved man pages with current code where stuff was missing
-> and extend
->   to better describe the new functionality.
 
-Thanks, version 1 of the series merged.
+> On Mar 21, 2017, at 1:54 PM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
+> 
+> 
+>> 	svc_rdma_build_send_wr(ctxt, 1);
+>> 	ret = svc_rdma_send(rdma, &ctxt->send_wr);
+>> 	if (ret) {
+>> +		svc_rdma_unmap_dma(ctxt);
+>> +		svc_rdma_put_context(ctxt, 1);
+>> 		ret = -EIO;
+>> -		goto out_unmap;
+>> 	}
+> 
+> Any specific reason to not go with the goto scheme?
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-   
-Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+Only one "goto out_unmap" call site is left, and this
+isn't a performance critical path.
+
+
+> Can't this function grow more error paths in the future?
+
+I can't think of any. The only time this code changes is
+when overhauls like this happens.
+
+I don't mind putting the out_unmap label back.
+
+
+> btw, I'm assuming svc_rdma_unmap_dma() is the opposite of
+> svc_rdma_map_reply_hdr() ?
+
+svc_rdma_map_reply_hdr() DMA-maps the transport header buffer.
+
+svc_rdma_unmap_dma() DMA-unmaps everything associated with
+the ctxt.
+
+
+--
+Chuck Lever
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
