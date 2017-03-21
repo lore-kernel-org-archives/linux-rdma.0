@@ -1,52 +1,69 @@
 From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3] IB/cq: Don't process more than the given budget
-Date: Tue, 21 Mar 2017 10:42:27 +0200
-Message-ID: <20170321084225.GF5970@yuval-lap>
-References: <1489683420-28005-1-git-send-email-sagi@grimberg.me>
+Subject: Re: [PATCH rdma-next 1/2] IB/rxe: Avoid accessing timers for non RC
+ QPs
+Date: Tue, 21 Mar 2017 10:31:56 +0200
+Message-ID: <20170321083155.GC5970@yuval-lap>
+References: <20170319092057.9103-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1489683420-28005-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <20170319092057.9103-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 16, 2017 at 06:57:00PM +0200, Sagi Grimberg wrote:
-> The caller might not want this overhead.
+On Sun, Mar 19, 2017 at 11:20:56AM +0200, Leon Romanovsky wrote:
+> From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> Reviewed-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+> This patch avoids RNR NAK timer and retransmit timer initialization and
+> cleanup for non RC QPs (such as UD QP, GSI QP).
+> 
+> Reviewed-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 > ---
->  drivers/infiniband/core/cq.c | 8 +++++++-
->  1 file changed, 7 insertions(+), 1 deletion(-)
+>  drivers/infiniband/sw/rxe/rxe_qp.c | 13 ++++++++-----
+>  1 file changed, 8 insertions(+), 5 deletions(-)
 > 
-> diff --git a/drivers/infiniband/core/cq.c b/drivers/infiniband/core/cq.c
-> index e95510117a6d..b9c4cefe90c1 100644
-> --- a/drivers/infiniband/core/cq.c
-> +++ b/drivers/infiniband/core/cq.c
-> @@ -29,7 +29,13 @@ static int __ib_process_cq(struct ib_cq *cq, int budget)
->  {
->  	int i, n, completed = 0;
+> diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
+> index f98a19e61a3d..3ad9b48212de 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_qp.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_qp.c
+> @@ -273,10 +273,11 @@ static int rxe_qp_init_req(struct rxe_dev *rxe, struct rxe_qp *qp,
+>  	rxe_init_task(rxe, &qp->comp.task, qp,
+>  		      rxe_completer, "comp");
 >  
-> -	while ((n = ib_poll_cq(cq, IB_POLL_BATCH, cq->wc)) > 0) {
-> +	/*
-> +	 * budget might be (-1) if the caller does not
-> +	 * want to bound this call, thus we need unsigned
-> +	 * minimum here.
-> +	 */
-> +	while ((n = ib_poll_cq(cq, min_t(u32, IB_POLL_BATCH,
-> +			budget - completed), cq->wc)) > 0) {
->  		for (i = 0; i < n; i++) {
->  			struct ib_wc *wc = &cq->wc[i];
+> -	setup_timer(&qp->rnr_nak_timer, rnr_nak_timer, (unsigned long)qp);
+> -	setup_timer(&qp->retrans_timer, retransmit_timer, (unsigned long)qp);
+>  	qp->qp_timeout_jiffies = 0; /* Can't be set for UD/UC in modify_qp */
+> -
+> +	if (init->qp_type == IB_QPT_RC) {
+> +		setup_timer(&qp->rnr_nak_timer, rnr_nak_timer, (unsigned long)qp);
+> +		setup_timer(&qp->retrans_timer, retransmit_timer, (unsigned long)qp);
+> +	}
+>  	return 0;
+>  }
+>  
+> @@ -804,8 +805,10 @@ void rxe_qp_destroy(struct rxe_qp *qp)
+>  	qp->qp_timeout_jiffies = 0;
+>  	rxe_cleanup_task(&qp->resp.task);
+>  
+> -	del_timer_sync(&qp->retrans_timer);
+> -	del_timer_sync(&qp->rnr_nak_timer);
+> +	if (qp_type(qp) == IB_QPT_RC) {
+> +		del_timer_sync(&qp->retrans_timer);
+> +		del_timer_sync(&qp->rnr_nak_timer);
+> +	}
 
 Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
 >  
+>  	rxe_cleanup_task(&qp->req.task);
+>  	rxe_cleanup_task(&qp->comp.task);
 > -- 
-> 2.7.4
+> 2.12.0
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
