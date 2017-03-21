@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 rdma-core 4/5] verbs: Enable private create_cq for providers
-Date: Tue, 21 Mar 2017 19:42:09 +0200
-Message-ID: <1490118130-1039-5-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 rdma-core 2/5] mlx5: Report multi packet send WQE capability for mlx5 based hardware
+Date: Tue, 21 Mar 2017 19:42:07 +0200
+Message-ID: <1490118130-1039-3-git-send-email-yishaih@mellanox.com>
 References: <1490118130-1039-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1490118130-1039-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,169 +10,130 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch enables providers to register a private create_cq API with
-some private data with libibverbs.
+From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The idea is to force type checking of the private data in the provider
-but to share the libibverbs code (e.g. locking, reference counting)
-which is used by the public ibv_create_cq_ex API.
+Report whether multi packet send WQE is supported or not through mlx5
+direct verbs.
 
-As the private API is not exposed to applications they will need to link
-explicitly with the provider and use its direct API supplying the
-explicit input structure.
-
-The solution:
-- Provider will expose some direct API with its explicit signature to
-  force the type checking.
-- Provider will register its private API with libibverbs using the priv
-  pointer (i.e. struct verbs_ex_private). For that a new macro named
-  verbs_set_ctx_private_op was added and the above structure was
-  moved to drivers.h to be accessed by the providers.
-- Upon an application call to the provider, it will call to a new API
-  named ibv_vendor_create_cq_ex which is exported from libibverbs only
-  to providers (i.e. using the private section in the map file) to a
-  create vendor cq.
-- libibverbs will use the registered private API to call back the
-  provider.
-- Libibverbs will share the code between the public and the private
-  calls.
-
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libibverbs/device.c       | 22 +++++++++++++++++++---
- libibverbs/driver.h       | 11 +++++++++++
- libibverbs/ibverbs.h      |  7 +------
- libibverbs/libibverbs.map |  5 +++++
- libibverbs/verbs.h        |  4 ++++
- 5 files changed, 40 insertions(+), 9 deletions(-)
+ providers/mlx5/man/mlx5dv_query_device.3 | 1 +
+ providers/mlx5/mlx5-abi.h                | 2 ++
+ providers/mlx5/mlx5.c                    | 8 +++++++-
+ providers/mlx5/mlx5.h                    | 5 +++++
+ providers/mlx5/mlx5dv.h                  | 3 ++-
+ providers/mlx5/verbs.c                   | 3 +++
+ 6 files changed, 20 insertions(+), 2 deletions(-)
 
-diff --git a/libibverbs/device.c b/libibverbs/device.c
-index 0acc3dc..ca403b5 100644
---- a/libibverbs/device.c
-+++ b/libibverbs/device.c
-@@ -120,8 +120,9 @@ uint64_t __ibv_get_device_guid(struct ibv_device *device)
- }
- default_symver(__ibv_get_device_guid, ibv_get_device_guid);
+diff --git a/providers/mlx5/man/mlx5dv_query_device.3 b/providers/mlx5/man/mlx5dv_query_device.3
+index 1954714..b33a75b 100644
+--- a/providers/mlx5/man/mlx5dv_query_device.3
++++ b/providers/mlx5/man/mlx5dv_query_device.3
+@@ -35,6 +35,7 @@ enum mlx5dv_context_flags {
+  * This flag indicates if CQE version 0 or 1 is needed.
+  */
+  MLX5DV_CONTEXT_FLAGS_CQE_V1 = (1 << 0),
++ MLX5DV_CONTEXT_FLAGS_MPW    = (1 << 1), /* Multi packet WQE is supported or not */
+ .in -8
+ };
+ .fi
+diff --git a/providers/mlx5/mlx5-abi.h b/providers/mlx5/mlx5-abi.h
+index dde46b9..3574594 100644
+--- a/providers/mlx5/mlx5-abi.h
++++ b/providers/mlx5/mlx5-abi.h
+@@ -277,6 +277,8 @@ struct mlx5_query_device_ex_resp {
+ 	struct mlx5_rss_caps            rss_caps; /* vendor data channel */
+ 	__u64				reserved_cqe_comp;
+ 	struct mlx5_packet_pacing_caps	packet_pacing_caps;
++	__u32				support_multi_pkt_send_wqe;
++	__u32				reserved;
+ };
  
--struct ibv_cq_ex *__lib_ibv_create_cq_ex(struct ibv_context *context,
--					 struct ibv_cq_init_attr_ex *cq_attr)
-+struct ibv_cq_ex *ibv_vendor_create_cq_ex(struct ibv_context *context,
-+					 struct ibv_cq_init_attr_ex *cq_attr,
-+					 void *vendor_data)
+ #endif /* MLX5_ABI_H */
+diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
+index eeaf5ac..7af6a0a 100644
+--- a/providers/mlx5/mlx5.c
++++ b/providers/mlx5/mlx5.c
+@@ -612,13 +612,18 @@ static int mlx5_map_internal_clock(struct mlx5_device *mdev,
+ int mlx5dv_query_device(struct ibv_context *ctx_in,
+ 			 struct mlx5dv_context *attrs_out)
  {
- 	struct verbs_context *vctx = verbs_get_ctx(context);
- 	struct ibv_cq_ex *cq;
-@@ -133,7 +134,16 @@ struct ibv_cq_ex *__lib_ibv_create_cq_ex(struct ibv_context *context,
- 
- 	pthread_mutex_lock(&context->mutex);
- 
--	cq = vctx->priv->create_cq_ex(context, cq_attr);
-+	if (!vendor_data) {
-+		cq = vctx->priv->create_cq_ex(context, cq_attr);
-+	} else {
-+		if (!vctx->priv->create_cq_ex_vendor) {
-+			errno = ENOSYS;
-+			return NULL;
-+		}
++	struct mlx5_context *mctx = to_mctx(ctx_in);
 +
-+		cq = vctx->priv->create_cq_ex_vendor(context, cq_attr, vendor_data);
-+	}
+ 	attrs_out->comp_mask = 0;
+ 	attrs_out->version   = 0;
+ 	attrs_out->flags     = 0;
  
- 	if (cq) {
- 		cq->context		   = context;
-@@ -152,6 +162,12 @@ struct ibv_cq_ex *__lib_ibv_create_cq_ex(struct ibv_context *context,
- 	return cq;
+-	if (to_mctx(ctx_in)->cqe_version == MLX5_CQE_VERSION_V1)
++	if (mctx->cqe_version == MLX5_CQE_VERSION_V1)
+ 		attrs_out->flags |= MLX5DV_CONTEXT_FLAGS_CQE_V1;
+ 
++	if (mctx->vendor_cap_flags & MLX5_VENDOR_CAP_FLAGS_MPW)
++		attrs_out->flags |= MLX5DV_CONTEXT_FLAGS_MPW;
++
+ 	return 0;
  }
  
-+struct ibv_cq_ex *__lib_ibv_create_cq_ex(struct ibv_context *context,
-+					 struct ibv_cq_init_attr_ex *cq_attr)
-+{
-+	return ibv_vendor_create_cq_ex(context, cq_attr, NULL);
-+}
-+
- struct ibv_context *__ibv_open_device(struct ibv_device *device)
- {
- 	struct verbs_device *verbs_device = verbs_get_device(device);
-diff --git a/libibverbs/driver.h b/libibverbs/driver.h
-index e3ac3f7..548e7a5 100644
---- a/libibverbs/driver.h
-+++ b/libibverbs/driver.h
-@@ -46,6 +46,14 @@
- #  define END_C_DECLS
- #endif /* __cplusplus */
+@@ -827,6 +832,7 @@ static int mlx5_init_context(struct verbs_device *vdev,
+ 	}
  
-+struct verbs_ex_private {
-+	struct ibv_cq_ex *(*create_cq_ex)(struct ibv_context *context,
-+					  struct ibv_cq_init_attr_ex *init_attr);
-+	struct ibv_cq_ex *(*create_cq_ex_vendor)(struct ibv_context *context,
-+					  struct ibv_cq_init_attr_ex *init_attr,
-+					  void *vendor_data);
+ 	context->cmds_supp_uhw = resp.cmds_supp_uhw;
++	context->vendor_cap_flags = 0;
+ 
+ 	pthread_mutex_init(&context->qp_table_mutex, NULL);
+ 	pthread_mutex_init(&context->srq_table_mutex, NULL);
+diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
+index 57ed1a1..86f2438 100644
+--- a/providers/mlx5/mlx5.h
++++ b/providers/mlx5/mlx5.h
+@@ -180,6 +180,10 @@ enum {
+ 	MLX5_USER_CMDS_SUPP_UHW_CREATE_AH    = 1 << 1,
+ };
+ 
++enum mlx5_vendor_cap_flags {
++	MLX5_VENDOR_CAP_FLAGS_MPW		= 1 << 0,
 +};
 +
- /*
-  * Extension that low-level drivers should add to their .so filename
-  * (probably via libtool "-release" option).  For example a low-level
-@@ -319,4 +327,7 @@ static inline int verbs_get_srq_num(struct ibv_srq *srq, uint32_t *srq_num)
- 
- int ibv_query_gid_type(struct ibv_context *context, uint8_t port_num,
- 		       unsigned int index, enum ibv_gid_type *type);
-+struct ibv_cq_ex *ibv_vendor_create_cq_ex(struct ibv_context *context,
-+					 struct ibv_cq_init_attr_ex *cq_attr,
-+					 void *vendor_data);
- #endif /* INFINIBAND_DRIVER_H */
-diff --git a/libibverbs/ibverbs.h b/libibverbs/ibverbs.h
-index 3b08476..5391a8f 100644
---- a/libibverbs/ibverbs.h
-+++ b/libibverbs/ibverbs.h
-@@ -48,7 +48,7 @@
- #define default_symver(name, api)                                              \
- 	asm(".symver " #name "," #api "@@" DEFAULT_ABI)
- #define private_symver(name, api)                                              \
--	asm(".symver " #name "," #api "@@IBVERBS_PRIVATE_13")
-+	asm(".symver " #name "," #api "@@IBVERBS_PRIVATE_14")
- 
- #define PFX		"libibverbs: "
- 
-@@ -61,11 +61,6 @@ extern int abi_ver;
- 
- int ibverbs_init(struct ibv_device ***list);
- 
--struct verbs_ex_private {
--	struct ibv_cq_ex *(*create_cq_ex)(struct ibv_context *context,
--					  struct ibv_cq_init_attr_ex *init_attr);
--};
--
- #define IBV_INIT_CMD(cmd, size, opcode)					\
- 	do {								\
- 		if (abi_ver > 2)					\
-diff --git a/libibverbs/libibverbs.map b/libibverbs/libibverbs.map
-index 656c21d..9d6cdec 100644
---- a/libibverbs/libibverbs.map
-+++ b/libibverbs/libibverbs.map
-@@ -139,3 +139,8 @@ IBVERBS_PRIVATE_13 {
- 		ibv_register_driver;
- 		verbs_register_driver;
+ struct mlx5_resource {
+ 	enum mlx5_rsc_type	type;
+ 	uint32_t		rsn;
+@@ -258,6 +262,7 @@ struct mlx5_context {
+ 	struct ibv_tso_caps		cached_tso_caps;
+ 	int				cmds_supp_uhw;
+ 	uint32_t			uar_size;
++	uint64_t			vendor_cap_flags; /* Use enum mlx5_vendor_cap_flags */
  };
-+
-+IBVERBS_PRIVATE_14 {
-+	global:
-+		ibv_vendor_create_cq_ex;
-+} IBVERBS_PRIVATE_13;
-diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index 25f4ede..6bd23b7 100644
---- a/libibverbs/verbs.h
-+++ b/libibverbs/verbs.h
-@@ -1505,6 +1505,10 @@ static inline struct verbs_context *verbs_get_ctx(struct ibv_context *ctx)
- 	if (vctx && (vctx->sz >= sizeof(*vctx) - offsetof(struct verbs_context, op))) \
- 		vctx->op = ptr; })
  
-+#define verbs_set_ctx_private_op(_vctx, op, ptr)({ \
-+	struct verbs_context *vctx = _vctx; \
-+	vctx->priv->op = ptr; })
+ struct mlx5_bitmap {
+diff --git a/providers/mlx5/mlx5dv.h b/providers/mlx5/mlx5dv.h
+index 2e4995f..c09fad2 100644
+--- a/providers/mlx5/mlx5dv.h
++++ b/providers/mlx5/mlx5dv.h
+@@ -67,7 +67,8 @@ enum mlx5dv_context_flags {
+ 	/*
+ 	 * This flag indicates if CQE version 0 or 1 is needed.
+ 	 */
+-	MLX5DV_CONTEXT_FLAGS_CQE_V1 = (1 << 0),
++	MLX5DV_CONTEXT_FLAGS_CQE_V1	= (1 << 0),
++	MLX5DV_CONTEXT_FLAGS_MPW	= (1 << 1),
+ };
+ 
+ /*
+diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
+index e233877..9d4a4d4 100644
+--- a/providers/mlx5/verbs.c
++++ b/providers/mlx5/verbs.c
+@@ -1923,6 +1923,9 @@ int mlx5_query_device_ex(struct ibv_context *context,
+ 	attr->rss_caps.rx_hash_function = resp.rss_caps.rx_hash_function;
+ 	attr->packet_pacing_caps = resp.packet_pacing_caps.caps;
+ 
++	if (resp.support_multi_pkt_send_wqe)
++		mctx->vendor_cap_flags |= MLX5_VENDOR_CAP_FLAGS_MPW;
 +
- /**
-  * ibv_get_device_list - Get list of IB devices currently available
-  * @num_devices: optional.  if non-NULL, set to the number of devices
+ 	major     = (raw_fw_ver >> 32) & 0xffff;
+ 	minor     = (raw_fw_ver >> 16) & 0xffff;
+ 	sub_minor = raw_fw_ver & 0xffff;
 -- 
 1.8.3.1
 
