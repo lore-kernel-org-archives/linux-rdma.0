@@ -1,157 +1,130 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: SQ overflow seen running isert traffic
-Date: Tue, 21 Mar 2017 15:52:30 +0200
-Message-ID: <945e2947-f67a-4202-cd27-d4631fe10f68@grimberg.me>
-References: <20161017111655.GA21245@chelsio.com>
- <021001d228a4$6cd6a6c0$4683f440$@opengridcomputing.com>
- <c4ee3313-9e67-f30a-3679-4c9afab79ac9@grimberg.me>
- <20161018112801.GA3117@chelsio.com>
- <ed7ebb39-be81-00b3-ef23-3f4c0e3afbb1@grimberg.me>
- <005101d2294c$be5bb460$3b131d20$@opengridcomputing.com>
- <1477885208.27946.8.camel@haakon3.risingtidesystems.com>
- <20161108100617.GA2812@chelsio.com> <20170320101526.GA11699@chelsio.com>
- <1490077940.8236.77.camel@haakon3.risingtidesystems.com>
- <20170321075131.GA11565@chelsio.com>
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next 2/3] IB/umem: Drop hugetlb variable and VMA
+ allocation
+Date: Tue, 21 Mar 2017 09:06:44 -0500
+Message-ID: <20170321140644.GA26628@ssaleem-MOBL4.amr.corp.intel.com>
+References: <20170319085557.6023-1-leon@kernel.org>
+ <20170319085557.6023-3-leon@kernel.org>
+ <20170321021936.GA18356@ssaleem-MOBL4.amr.corp.intel.com>
+ <20170321081408.GZ2079@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170321075131.GA11565-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170321081408.GZ2079-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, fenkes-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Baharat and Nic,
+On Tue, Mar 21, 2017 at 10:14:08AM +0200, Leon Romanovsky wrote:
+> On Mon, Mar 20, 2017 at 09:19:36PM -0500, Shiraz Saleem wrote:
+> > On Sun, Mar 19, 2017 at 10:55:56AM +0200, Leon Romanovsky wrote:
+> > > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > >
+> > > IB umem structure has field hugetlb which was assigned, but except
+> > > i40iw driver, it was actually never used.
+> > >
+> > > This patch drops that variable out of the struct ib_umem, removes
+> > > all writes to it, get rids of VMA allocation which wasn't used and
+> > > removes check hugetlb from i40iw driver, because it is checked anyway in
+> > > i40iw_set_hugetlb_values() routine.
+> > >
+> > > @@ -143,9 +141,6 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+> > >
+> > >  	umem->odp_data = NULL;
+> > >
+> > > -	/* We assume the memory is from hugetlb until proved otherwise */
+> > > -	umem->hugetlb   = 1;
+> > > -
+> > >  	page_list = (struct page **) __get_free_page(GFP_KERNEL);
+> > >  	if (!page_list) {
+> > >  		put_pid(umem->pid);
+> > > @@ -153,14 +148,6 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+> > >  		return ERR_PTR(-ENOMEM);
+> > >  	}
+> > >
+> > > -	/*
+> > > -	 * if we can't alloc the vma_list, it's not so bad;
+> > > -	 * just assume the memory is not hugetlb memory
+> > > -	 */
+> > > -	vma_list = (struct vm_area_struct **) __get_free_page(GFP_KERNEL);
+> > > -	if (!vma_list)
+> > > -		umem->hugetlb = 0;
+> > > -
+> > >  	npages = ib_umem_num_pages(umem);
+> > >
+> > >  	down_write(&current->mm->mmap_sem);
+> > > @@ -194,7 +181,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+> > >  		ret = get_user_pages(cur_base,
+> > >  				     min_t(unsigned long, npages,
+> > >  					   PAGE_SIZE / sizeof (struct page *)),
+> > > -				     gup_flags, page_list, vma_list);
+> > > +				     gup_flags, page_list, NULL);
+> > >
+> > >  		if (ret < 0)
+> > >  			goto out;
+> > > @@ -203,12 +190,8 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+> > >  		cur_base += ret * PAGE_SIZE;
+> > >  		npages   -= ret;
+> > >
+> > > -		for_each_sg(sg_list_start, sg, ret, i) {
+> > > -			if (vma_list && !is_vm_hugetlb_page(vma_list[i]))
+> > > -				umem->hugetlb = 0;
+> > > -
+> > > +		for_each_sg(sg_list_start, sg, ret, i)
+> > >  			sg_set_page(sg, page_list[i], PAGE_SIZE, 0);
+> > > -		}
+> > >
+> > >  		/* preparing for next loop */
+> > >  		sg_list_start = sg;
+> >
+> > > diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+> > > index 9b2849979756..59c8d74e3704 100644
+> > > --- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+> > > +++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+> > > @@ -1850,7 +1850,7 @@ static struct ib_mr *i40iw_reg_user_mr(struct ib_pd *pd,
+> > >  	iwmr->page_size = region->page_size;
+> > >  	iwmr->page_msk = PAGE_MASK;
+> > >
+> > > -	if (region->hugetlb && (req.reg_type == IW_MEMREG_TYPE_MEM))
+> > > +	if (req.reg_type == IW_MEMREG_TYPE_MEM)
+> > >  		i40iw_set_hugetlb_values(start, iwmr);
+> >
+> > The code in ib_umem_get iterates through __all__ VMA’s corresponding to the
+> > user-space buffer and hugetlb field of the umem struct is set only if they
+> > are all using huge_pages. So in the essence, umem->hugetlb provides the
+> > driver info on whether __all__ pages of the memory region uses huge pages
+> > or not.
+> >
+> > i40iw_set_hugetlb_values only finds the VMA w.r.t the start virtual address of
+> > the user-space buffer and checks if __this__ VMA uses hugetlb pages or not.
+> > It is a sanity check done on the VMA found.
+> 
+> >
+> > So the question is -- Do we know that only a single VMA represents the user-space
+> > buffer backed by huge pages?
+> > If not, it doesnt appear that the check in i40iw_set_hugetlb_values will suffice to
+> > identify if the entire memory region is composed of huge pages since it doesnt
+> > check all the VMAs. umem->hugetlb would be required for it.
+> 
+> You are right and thank you for pointing that. User memory buffer indeed can
+> span more than one VMA. For example one reg_mr with READ property for
+> two adjacent VAMs, one with READ properties and another with READ-WRITE.
+> 
+> However, relying on hugetlb which was set during creation is not best
+> thing too. It can be changed during the application run. The mlx5 relies on
+> the mlx5_ib_cont_pages() function to understand the actual layout.
+> 
 
-Apologies for the late reply,
+The patch as is, will break us. We believe ib_umem_get is the correct 
+place to scan the VMAs and report if the MR is composed of hugetlb pages via the
+hugetlb field of umem. This way it can be done in one place and not in each 
+individual driver.
 
-> Hi Nicholas,
-> I see them from 2MB onwards.
->>
->>    > Here is what I see with the 3 patches alone applied:
->>    >
->>    > -> In isert_put_datain() and isert_post_response() a corresponding recv
->>    WR is posted before
->>    > posting a send and hence for every post failure a recv is already posted
->>    into a tightly packed
->>    > RQ, causing it to overflow.
->>
->>    Just for me to understand, the intermittent TMR ABORT_TASKs are caused
->>    by the repeated failure to post RDMA_WRITE WRs for a large ISER Data-In
->>    payload, due to mis-sizing of needed WRs from RDMA R/W API vs.
->>    underlying hardware capabilities.
-> Yes.
->>
->>    Moving the recv posts after the send post for RDMA_WRITEs helps to
->>    reduce the severity of the issue with iw_cxgb4, but doesn't completely
->>    eliminate the issue under load.
-> Moving recv posts only comes in to effect along with your changes.
-
-...
-
->>    So the reason why your patch to swap post_recv -> post_send to post_send
->>    -> post_recv makes a difference is because it allows enough trickle of
->>    RDMA_WRITEs to make it through, where iser-initiator doesn't attempt to
->>    escalate recovery and doesn't attempt session reinstatement.
-> I dont exactly know if above thing comes into play but the actual reason I did
-> swap posting RQ and SQ is, unlike SQ, RQ is posted with WRs to the brim during
-> the intialisation itself. From thereon we post a RQ WR for every RQ completion
-> That makes it almost full at any point of time.
->
-> Now in our scenario, SQ is miscalulated and too small for few adapters and so
-> filled gradually as the IO starts. Once SQ is full, according to your patches
-> isert queues it and tries to repost the command again. Here in iser functions
-> like isert_post_response(), isert_put_datain() post send is done after post recv.
-> For the first post send failure in say isert_put_datain(), the corresponding
-> post recv is already posted, then on queuing the command and trying reposting
-> an extra recv is again posted which fills up the RQ also.
->
->  By swapping post recv and send as in my incermental patch, we dont post that
-> extra recv, and post recv only on successful post send.
-> Therfore I think this incremental patch is necessary.
-
-Reversing the order to recv and send posting will cause problems
-in stress IO workloads (especially for iWARP). The problem of sending
-a reply before reposting the recv buffer is that the initiator can send
-immediately a new request and we don't have a recv buffer waiting for
-it, which will cause RNR-NAK. This *will* cause performance drops and
-jitters for sure.
-
-How about we just track the rx_desc to know if we already posted it as
-a start (untested as I don't have access to RDMA HW this week):
---
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c 
-b/drivers/infiniband/ulp/isert/ib_isert.c
-index 9b33c0c97468..fcbed35e95a8 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -817,6 +817,7 @@ isert_post_recvm(struct isert_conn *isert_conn, u32 
-count)
-                 rx_wr->sg_list = &rx_desc->rx_sg;
-                 rx_wr->num_sge = 1;
-                 rx_wr->next = rx_wr + 1;
-+               rx_desc->in_use = false;
-         }
-         rx_wr--;
-         rx_wr->next = NULL; /* mark end of work requests list */
-@@ -835,6 +836,15 @@ isert_post_recv(struct isert_conn *isert_conn, 
-struct iser_rx_desc *rx_desc)
-         struct ib_recv_wr *rx_wr_failed, rx_wr;
-         int ret;
-
-+       if (!rx_desc->in_use) {
-+               /*
-+                * if the descriptor is not in-use we already reposted it
-+                * for recv, so just silently return
-+                */
-+               return 0;
-+       }
-+
-+       rx_desc->in_use = false;
-         rx_wr.wr_cqe = &rx_desc->rx_cqe;
-         rx_wr.sg_list = &rx_desc->rx_sg;
-         rx_wr.num_sge = 1;
-@@ -1397,6 +1407,8 @@ isert_recv_done(struct ib_cq *cq, struct ib_wc *wc)
-                 return;
-         }
-
-+       rx_desc->in_use = true;
-+
-         ib_dma_sync_single_for_cpu(ib_dev, rx_desc->dma_addr,
-                         ISER_RX_PAYLOAD_SIZE, DMA_FROM_DEVICE);
-
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.h 
-b/drivers/infiniband/ulp/isert/ib_isert.h
-index c02ada57d7f5..87d994de8c91 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.h
-+++ b/drivers/infiniband/ulp/isert/ib_isert.h
-@@ -60,7 +60,7 @@
-
-  #define ISER_RX_PAD_SIZE       (ISCSI_DEF_MAX_RECV_SEG_LEN + 4096 - \
-                 (ISER_RX_PAYLOAD_SIZE + sizeof(u64) + sizeof(struct 
-ib_sge) + \
--                sizeof(struct ib_cqe)))
-+                sizeof(struct ib_cqe) + sizeof(bool)))
-
-  #define ISCSI_ISER_SG_TABLESIZE                256
-
-@@ -85,6 +85,7 @@ struct iser_rx_desc {
-         u64             dma_addr;
-         struct ib_sge   rx_sg;
-         struct ib_cqe   rx_cqe;
-+       bool            in_use;
-         char            pad[ISER_RX_PAD_SIZE];
-  } __packed;
---
-
-We have a lot of room for cleanups in isert... I'll need to
-make some time to get it going...
-
-I'll be waiting to hear from you if it makes your issue go away.
-
-Cheers,
-Sagi.
+Not sure I understand what you mean by MR changing during application run. And how
+mlx5_ib_cont_pages is helping if this happens.         
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
