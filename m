@@ -1,84 +1,47 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core 0/6] Sparse code changes
-Date: Tue, 21 Mar 2017 13:24:31 -0400
-Message-ID: <1490117071.2404.10.camel@redhat.com>
-References: <1489615927-12117-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH rdma-core 0/7] Bugs found by sparse
+Date: Tue, 21 Mar 2017 13:25:30 -0400
+Message-ID: <1490117130.2404.11.camel@redhat.com>
+References: <1489508474-16664-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1489615927-12117-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1489508474-16664-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-03-15 at 16:12 -0600, Jason Gunthorpe wrote:
-> This is the rest of the code change stuff from the core libraries
-> that sparse
-> did not like.
+On Tue, 2017-03-14 at 10:21 -0600, Jason Gunthorpe wrote:
+> Since Bart got sparse working I took a quick look at what is in the
+> core
+> libaries, these cases look like bugs to me.
 > 
-> There is one bug fix in here, the missing swap on INADDR_LOOPBACK.
+> I have another series that adds lots of sparse annotations to send
+> later..
 > 
-> Otherwise it is just small changes to make sparse happier.
+> https://github.com/linux-rdma/rdma-core/pull/97
 > 
-> The full series is here:
+> Jason Gunthorpe (7):
+>   Drop debugging print in CMakeLists.txt
+>   Fix missing swaps when computing path bits
+>   Fix various missing swaps in debugging/logging macros
+>   Add missing statics
+>   acm: Fix incorrect TID masking
+>   cmpost: Add missing swap for sin_port
+>   acm: Fix missing swap in pkey compare
 > 
-> https://github.com/linux-rdma/rdma-core/pull/100
-> 
-> Which is enough hackery to make sparse run automatically from travis
-> without
-> triggering any sparse warnings, at least over the core libraries.
-> 
-> I think interested parties should look at the entire series on
-> github. It is
-> so large it probably won't fit on the list.
-> 
-> Bart and I were having an interesting discussion on github on this
-> approach. It isn't clear to me if a different version of the 'sparse-
-> include'
-> setup could be designed.. But if someone else can figure out how to
-> get the
-> same result more robustly that would be great.
-> 
-> For now this actually works, and can run inside travis, which is much
-> better
-> than where we were..
-> 
-> Someone else(s) will have to sparse cleanup the providers and ibacm,
-> they
-> scare me.
-> 
-> Jason Gunthorpe (6):
->   Use NULL instead of 0 to silence sparse
->   INADDR_* needs to be byteswapped before being used
->   rstream: Use waitpid instead of wait
->   rdmacm: Use C11 stdatomic for all atomics
->   rsocket: Fix byte swapping when constructing path records
->   verbs: Consistently apply __attribute_const
-> 
->  iwpmd/iwarp_pm_common.c             |  2 +-
->  iwpmd/iwarp_pm_helper.c             |  2 +-
->  libibverbs/examples/rc_pingpong.c   |  2 +-
->  libibverbs/examples/srq_pingpong.c  |  2 +-
->  libibverbs/examples/uc_pingpong.c   |  2 +-
->  libibverbs/examples/ud_pingpong.c   |  2 +-
+>  CMakeLists.txt                      |  1 -
+>  ibacm/prov/acmp/src/acmp.c          | 19 ++++++++++---------
+>  ibacm/src/acm.c                     |  8 ++++----
+>  libibcm/examples/cmpost.c           |  2 +-
 >  libibverbs/examples/xsrq_pingpong.c |  2 +-
->  libibverbs/verbs.c                  |  8 +++---
->  libibverbs/verbs.h                  |  8 +++---
->  librdmacm/cma.h                     | 49 ++++-----------------------
-> ----------
->  librdmacm/examples/cmatose.c        |  4 +--
->  librdmacm/examples/mckey.c          |  2 +-
->  librdmacm/examples/rcopy.c          |  2 +-
->  librdmacm/examples/riostream.c      |  2 +-
->  librdmacm/examples/rstream.c        |  6 ++---
->  librdmacm/examples/udaddy.c         |  2 +-
->  librdmacm/preload.c                 | 14 +++++------
->  librdmacm/rsocket.c                 | 17 ++++++-------
->  rdma-ndd/rdma-ndd.c                 |  6 ++---
->  19 files changed, 46 insertions(+), 88 deletions(-)
+>  librdmacm/rsocket.c                 |  2 +-
+>  providers/qedr/qelr_verbs.c         |  4 ++--
+>  7 files changed, 19 insertions(+), 19 deletions(-)
 
-Thanks Jason, series merged.
+This merge request was dropped (by Jason) for a later merge request.
+ The later merge request has been merged (#101).  Thanks Jason.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
