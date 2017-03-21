@@ -1,46 +1,21 @@
-From: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [SPAMMY (7.002)]Re: SQ overflow seen running isert traffic
-Date: Tue, 21 Mar 2017 23:20:02 +0530
-Message-ID: <20170321175001.GB32655@chelsio.com>
-References: <ed7ebb39-be81-00b3-ef23-3f4c0e3afbb1@grimberg.me>
- <005101d2294c$be5bb460$3b131d20$@opengridcomputing.com>
- <1477885208.27946.8.camel@haakon3.risingtidesystems.com>
- <20161108100617.GA2812@chelsio.com>
- <20170320101526.GA11699@chelsio.com>
- <1490077940.8236.77.camel@haakon3.risingtidesystems.com>
- <20170321075131.GA11565@chelsio.com>
- <945e2947-f67a-4202-cd27-d4631fe10f68@grimberg.me>
- <20170321152506.GA32655@chelsio.com>
- <4dab6b43-20d3-86f0-765a-be0851e9f4a0@grimberg.me>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH v1 01/14] svcrdma: Move send_wr to svc_rdma_op_ctxt
+Date: Tue, 21 Mar 2017 19:49:43 +0200
+Message-ID: <2210ecc7-ede5-99a0-4ab3-bcf47ac84479@grimberg.me>
+References: <20170316154132.4482.56769.stgit@klimt.1015granger.net>
+ <20170316155234.4482.94225.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4dab6b43-20d3-86f0-765a-be0851e9f4a0-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <20170316155234.4482.94225.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tuesday, March 03/21/17, 2017 at 22:08:04 +0530, Sagi Grimberg wrote:
->    > Test runs fine and it solved the issue.
->    > Thanks for the patch!
-> 
->    Cool, can I add your "Tested-by" tag on a formal patch then?
-Sure, Please add.
-Tested-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Looks good,
 
-Thanks.
->    --
->    To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->    the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->    More majordomo info at  [1]http://vger.kernel.org/majordomo-info.html
-> 
-> References
-> 
->    Visible links
->    1. http://vger.kernel.org/majordomo-info.html
+Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
