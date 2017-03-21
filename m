@@ -1,70 +1,26 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 09/20] IB/hfi1: Check device id early during init
-Date: Mon, 20 Mar 2017 17:25:29 -0700
-Message-ID: <20170321002528.28538.87308.stgit@scvm10.sc.intel.com>
-References: <20170321001900.28538.38175.stgit@scvm10.sc.intel.com>
+From: "Lv, Shuo" <Shuo.Lv@dell.com>
+Subject: fc access control issue
+Date: Tue, 21 Mar 2017 00:41:03 +0000
+Message-ID: <6F7556A181C9E74390FFFEACC41B5ABB4C85A0F2@MX301CL01.corp.emc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170321001900.28538.38175.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <target-devel-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: target-devel-owner@vger.kernel.org
+To: "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>
+Cc: "nab@linux-iscsi.org" <nab@linux-iscsi.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Hi,
+      When I use tcm_qla2xxx target, I found that the granularity for the F=
+C access control  is very large and it is target-level. The LUNS in the tar=
+get could be all accessed by initiator or the LUNS in the target could not =
+be accessed by initiator. I don't know If the tcm_qla2xxx could create mult=
+iple targets for the same port? Could we implement the group level access  =
+control? Like a group in a target could be access by a initiator, another g=
+roup in the same target could be access by other initiator?   Any suggestio=
+n is welcome.
 
-If there is a wrong device passed to the driver it should fail early,
-without trying to initialize the device only to find out that it has
-an invalid device later during the init.
-
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/hfi1/init.c |   19 ++++++++++---------
- 1 files changed, 10 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index f40864e..9bfb8eb 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -1425,6 +1425,16 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	/* First, lock the non-writable module parameters */
- 	HFI1_CAP_LOCK();
- 
-+	/* Validate dev ids */
-+	if (!(ent->device == PCI_DEVICE_ID_INTEL0 ||
-+	      ent->device == PCI_DEVICE_ID_INTEL1)) {
-+		hfi1_early_err(&pdev->dev,
-+			       "Failing on unknown Intel deviceid 0x%x\n",
-+			       ent->device);
-+		ret = -ENODEV;
-+		goto bail;
-+	}
-+
- 	/* Validate some global module parameters */
- 	ret = init_validate_rcvhdrcnt(&pdev->dev, rcvhdrcnt);
- 	if (ret)
-@@ -1470,15 +1480,6 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	if (ret)
- 		goto bail;
- 
--	if (!(ent->device == PCI_DEVICE_ID_INTEL0 ||
--	      ent->device == PCI_DEVICE_ID_INTEL1)) {
--		hfi1_early_err(&pdev->dev,
--			       "Failing on unknown Intel deviceid 0x%x\n",
--			       ent->device);
--		ret = -ENODEV;
--		goto clean_bail;
--	}
--
- 	/*
- 	 * Do device-specific initialization, function table setup, dd
- 	 * allocation, etc.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards
+Shuo
