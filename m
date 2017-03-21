@@ -1,55 +1,65 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: fc access control issue
-Date: Tue, 21 Mar 2017 00:02:41 -0700
-Message-ID: <1490079761.8236.94.camel@haakon3.risingtidesystems.com>
+From: "Lv, Shuo" <Shuo.Lv@dell.com>
+Subject: RE: fc access control issue
+Date: Tue, 21 Mar 2017 07:29:22 +0000
+Message-ID: <6F7556A181C9E74390FFFEACC41B5ABB4C85A1A1@MX301CL01.corp.emc.com>
 References: <6F7556A181C9E74390FFFEACC41B5ABB4C85A0F2@MX301CL01.corp.emc.com>
+ <1490079761.8236.94.camel@haakon3.risingtidesystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <6F7556A181C9E74390FFFEACC41B5ABB4C85A0F2@MX301CL01.corp.emc.com>
+In-Reply-To: <1490079761.8236.94.camel@haakon3.risingtidesystems.com>
+Content-Language: en-US
 Sender: target-devel-owner@vger.kernel.org
-To: "Lv, Shuo" <Shuo.Lv@dell.com>
+To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
 Cc: "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Shuo,
-
-On Tue, 2017-03-21 at 00:41 +0000, Lv, Shuo wrote:
-> Hi,
->       When I use tcm_qla2xxx target, I found that the granularity for
-> the FC access control  is very large and it is target-level. The LUNS
-> in the target could be all accessed by initiator or the LUNS in the
-> target could not be accessed by initiator. I don't know If the
-> tcm_qla2xxx could create multiple targets for the same port?
-
-Multiple targets per port is accomplished with a FC switch feature
-called N_Port ID Virtualization (NPIV).
-
-This allows multiple virtual WWPNs to be configured on a single physical
-FC port, each with it's LIO target configfs namespace residing
-under /sys/kernel/config/target/qla2xxx_npiv/$NPIV_WWPN/, et al.
-
-Support for tcm_qla2xxx/NPIV was added in mainline v4.1 here:
-
-https://www.mail-archive.com/linux-scsi@vger.kernel.org/msg25618.html
-
-and although information is pretty scarce how to actually use
-tcm_qla2xxx/NPIV, there was some discussion back in 2015 about how it
-currently works from an end-user perspective here:
-
-https://lists.fedorahosted.org/pipermail/targetcli-fb-devel/2015-May/000157.html
-
-> Could we implement the group level access  control? Like a group in a
-> target could be access by a initiator, another group in the same
-> target could be access by other initiator?   Any suggestion is
-> welcome.
-> 
-
-I assume you mean a initiator access group abstraction, eg: where a
-initiator group is associated with a specific target endpoint, and all
-initiators associated with the group have ACLs added to the endpoint.
-
-targetcli itself doesn't support initiator access groups, but there are
-multiple vendors who have built initiator access group constructs into
-their products atop python-rtslib, using vanilla LIO kernel code.
+SGksICBCZWxsaW5nZXI6IA0KICAgICAgICAgIFRoYW5rcyBmb3IgeW91ciBkZXRhaWwgZXhwbGFu
+YXRpb24uDQogICAgICBZZXMsIEkgbWVhbnMgaW5pdGlhdG9yIGFjY2VzcyBncm91cCBpcyBsaWtl
+IHRoaXMuIFNpbWlsYXIgdG8gd2hhdCB5b3UgZGVzY3JpYmVkLiBmb3IgZXhhbXBsZTogTFVOUyBp
+biBncm91cCBBIGluIGEgRkMgdGFyZ2V0IGNvdWxkIGJlIGFjY2VzcyBieSBhIGluaXRpYXRvciBB
+LCBMVU5TIGluIGdyb3VwIEIgaW4gYSBGQyB0YXJnZXQgY291bGQgYmUgYWNjZXNzIGJ5IGEgaW5p
+dGlhdG9yIEIuIExVTlMgaW4gZ3JvdXAgQSBpbiBhIEZDIHRhcmdldCBjb3VsZCBub3QgYmUgYWNj
+ZXNzIGJ5IGEgaW5pdGlhdG9yIEIuIExVTlMgaW4gZ3JvdXAgQiBpbiBhIEZDIHRhcmdldCBjb3Vs
+ZCBub3QgYmUgYWNjZXNzIGJ5IGEgaW5pdGlhdG9yIEIuIHRoZSBGQyB0YXJnZXQgaXMgdGhlIHNh
+bWUgdGFyZ2V0Lg0KICAgIA0KICAgIEkgdGhpbmsgdGhlIGluaXRpYXRvciBhY2Nlc3MgZ3JvdXBz
+IGNvdWxkIGJlIGltcGxlbWVudGVkIGluIHRoZSBweXRob24tcnRzbGliIG9yIExJTyBrZXJuZWwg
+Y29kZS4gRG8geW91IGhhdmUgYW55IHN1Z2dlc3Rpb24/IERvIHlvdSBoYXZlIHBsYW5zIHRvIGFk
+ZCB0aGlzIGZlYXR1cmU/DQoNClJlZ2FyZHMNClNodW8NCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0t
+LS0tDQpGcm9tOiBOaWNob2xhcyBBLiBCZWxsaW5nZXIgW21haWx0bzpuYWJAbGludXgtaXNjc2ku
+b3JnXSANClNlbnQ6IDIwMTflubQz5pyIMjHml6UgMTU6MDMNClRvOiBMdiwgU2h1bw0KQ2M6IHRh
+cmdldC1kZXZlbEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnDQpT
+dWJqZWN0OiBSZTogZmMgYWNjZXNzIGNvbnRyb2wgaXNzdWUNCg0KSGkgU2h1bywNCg0KT24gVHVl
+LCAyMDE3LTAzLTIxIGF0IDAwOjQxICswMDAwLCBMdiwgU2h1byB3cm90ZToNCj4gSGksDQo+ICAg
+ICAgIFdoZW4gSSB1c2UgdGNtX3FsYTJ4eHggdGFyZ2V0LCBJIGZvdW5kIHRoYXQgdGhlIGdyYW51
+bGFyaXR5IGZvcg0KPiB0aGUgRkMgYWNjZXNzIGNvbnRyb2wgIGlzIHZlcnkgbGFyZ2UgYW5kIGl0
+IGlzIHRhcmdldC1sZXZlbC4gVGhlIExVTlMNCj4gaW4gdGhlIHRhcmdldCBjb3VsZCBiZSBhbGwg
+YWNjZXNzZWQgYnkgaW5pdGlhdG9yIG9yIHRoZSBMVU5TIGluIHRoZQ0KPiB0YXJnZXQgY291bGQg
+bm90IGJlIGFjY2Vzc2VkIGJ5IGluaXRpYXRvci4gSSBkb24ndCBrbm93IElmIHRoZQ0KPiB0Y21f
+cWxhMnh4eCBjb3VsZCBjcmVhdGUgbXVsdGlwbGUgdGFyZ2V0cyBmb3IgdGhlIHNhbWUgcG9ydD8N
+Cg0KTXVsdGlwbGUgdGFyZ2V0cyBwZXIgcG9ydCBpcyBhY2NvbXBsaXNoZWQgd2l0aCBhIEZDIHN3
+aXRjaCBmZWF0dXJlDQpjYWxsZWQgTl9Qb3J0IElEIFZpcnR1YWxpemF0aW9uIChOUElWKS4NCg0K
+VGhpcyBhbGxvd3MgbXVsdGlwbGUgdmlydHVhbCBXV1BOcyB0byBiZSBjb25maWd1cmVkIG9uIGEg
+c2luZ2xlIHBoeXNpY2FsDQpGQyBwb3J0LCBlYWNoIHdpdGggaXQncyBMSU8gdGFyZ2V0IGNvbmZp
+Z2ZzIG5hbWVzcGFjZSByZXNpZGluZw0KdW5kZXIgL3N5cy9rZXJuZWwvY29uZmlnL3RhcmdldC9x
+bGEyeHh4X25waXYvJE5QSVZfV1dQTi8sIGV0IGFsLg0KDQpTdXBwb3J0IGZvciB0Y21fcWxhMnh4
+eC9OUElWIHdhcyBhZGRlZCBpbiBtYWlubGluZSB2NC4xIGhlcmU6DQoNCmh0dHBzOi8vd3d3Lm1h
+aWwtYXJjaGl2ZS5jb20vbGludXgtc2NzaUB2Z2VyLmtlcm5lbC5vcmcvbXNnMjU2MTguaHRtbA0K
+DQphbmQgYWx0aG91Z2ggaW5mb3JtYXRpb24gaXMgcHJldHR5IHNjYXJjZSBob3cgdG8gYWN0dWFs
+bHkgdXNlDQp0Y21fcWxhMnh4eC9OUElWLCB0aGVyZSB3YXMgc29tZSBkaXNjdXNzaW9uIGJhY2sg
+aW4gMjAxNSBhYm91dCBob3cgaXQNCmN1cnJlbnRseSB3b3JrcyBmcm9tIGFuIGVuZC11c2VyIHBl
+cnNwZWN0aXZlIGhlcmU6DQoNCmh0dHBzOi8vbGlzdHMuZmVkb3JhaG9zdGVkLm9yZy9waXBlcm1h
+aWwvdGFyZ2V0Y2xpLWZiLWRldmVsLzIwMTUtTWF5LzAwMDE1Ny5odG1sDQoNCj4gQ291bGQgd2Ug
+aW1wbGVtZW50IHRoZSBncm91cCBsZXZlbCBhY2Nlc3MgIGNvbnRyb2w/IExpa2UgYSBncm91cCBp
+biBhDQo+IHRhcmdldCBjb3VsZCBiZSBhY2Nlc3MgYnkgYSBpbml0aWF0b3IsIGFub3RoZXIgZ3Jv
+dXAgaW4gdGhlIHNhbWUNCj4gdGFyZ2V0IGNvdWxkIGJlIGFjY2VzcyBieSBvdGhlciBpbml0aWF0
+b3I/ICAgQW55IHN1Z2dlc3Rpb24gaXMNCj4gd2VsY29tZS4NCj4gDQoNCkkgYXNzdW1lIHlvdSBt
+ZWFuIGEgaW5pdGlhdG9yIGFjY2VzcyBncm91cCBhYnN0cmFjdGlvbiwgZWc6IHdoZXJlIGENCmlu
+aXRpYXRvciBncm91cCBpcyBhc3NvY2lhdGVkIHdpdGggYSBzcGVjaWZpYyB0YXJnZXQgZW5kcG9p
+bnQsIGFuZCBhbGwNCmluaXRpYXRvcnMgYXNzb2NpYXRlZCB3aXRoIHRoZSBncm91cCBoYXZlIEFD
+THMgYWRkZWQgdG8gdGhlIGVuZHBvaW50Lg0KDQp0YXJnZXRjbGkgaXRzZWxmIGRvZXNuJ3Qgc3Vw
+cG9ydCBpbml0aWF0b3IgYWNjZXNzIGdyb3VwcywgYnV0IHRoZXJlIGFyZQ0KbXVsdGlwbGUgdmVu
+ZG9ycyB3aG8gaGF2ZSBidWlsdCBpbml0aWF0b3IgYWNjZXNzIGdyb3VwIGNvbnN0cnVjdHMgaW50
+bw0KdGhlaXIgcHJvZHVjdHMgYXRvcCBweXRob24tcnRzbGliLCB1c2luZyB2YW5pbGxhIExJTyBr
+ZXJuZWwgY29kZS4NCg0K
