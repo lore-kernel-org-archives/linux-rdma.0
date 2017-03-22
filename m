@@ -1,121 +1,39 @@
-From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [RFC v2 for accelerated IPoIB 00/6] Enhanced mode for IPoIB driver
-Date: Wed, 22 Mar 2017 13:18:30 +0200
-Message-ID: <CAAk-MO_KEV9MA5Dcaz8SZagMeC4hQX456Cu8To-YRBNMeNu3pg@mail.gmail.com>
-References: <1490036908-12528-1-git-send-email-erezsh@mellanox.com>
- <20170320205927.GA17225@obsidianresearch.com> <20170321114955.GB2079@mtr-leonro.local>
- <20170321161530.GB22216@obsidianresearch.com> <20170321164952.GE2079@mtr-leonro.local>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH v1 02/14] svcrdma: Add svc_rdma_map_reply_hdr()
+Date: Wed, 22 Mar 2017 15:07:07 +0200
+Message-ID: <c70544b7-1dfd-65fb-c18f-823085084c20@grimberg.me>
+References: <20170316154132.4482.56769.stgit@klimt.1015granger.net>
+ <20170316155242.4482.64809.stgit@klimt.1015granger.net>
+ <f5000e25-6ca1-fc24-35c0-6089cf50923c@grimberg.me>
+ <A18F9D5E-09BA-4268-9AA6-3E5866101F76@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170321164952.GE2079-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <A18F9D5E-09BA-4268-9AA6-3E5866101F76-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 21, 2017 at 6:49 PM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrot=
-e:
-> On Tue, Mar 21, 2017 at 10:15:30AM -0600, Jason Gunthorpe wrote:
->> On Tue, Mar 21, 2017 at 01:49:55PM +0200, Leon Romanovsky wrote:
->> > On Mon, Mar 20, 2017 at 02:59:27PM -0600, Jason Gunthorpe wrote:
->> > > On Mon, Mar 20, 2017 at 09:08:22PM +0200, Erez Shitrit wrote:
->> > >
->> > > >    TODO:
->> > > >         1.change the send api in order to move it to the ndo start=
-_xmit (unless it hurts the performance of the default driver)
->> > > >         2.Take out the ipoib_ah from the send signature and use ib=
-_ah instead, no need with including ipoib.h
->> > > >         3.Check if/how to add rdma_netdev layer to the default ipo=
-ib
->> > > >         4. splitting out the bulk rename of ipoib_priv into a sing=
-le patch
->> > > >         5. change the name of the header to be ipoib_rn.h
->> > > >         6. no need to pass qkey, it is in the ah struct.
->> > >
->> > > So.. why are you resending the series? Are these going to get fixed?
->> >
->> > Sure, he will. This is why he added them to TODO so nothing will be lo=
-st.
->>
->> Well.. if I assume everything done wrong in this series is fixed, then
->> it seems fine :)
+
+> I can't think of any. The only time this code changes is
+> when overhauls like this happens.
 >
-> At least, it is written as TODO :)
+> I don't mind putting the out_unmap label back.
+
+Your call...
+
+>> btw, I'm assuming svc_rdma_unmap_dma() is the opposite of
+>> svc_rdma_map_reply_hdr() ?
 >
->>
->> It looks like the only difference from what Intel started with was the
->> attach/detach_mcast which is basically how I expected this to look.
+> svc_rdma_map_reply_hdr() DMA-maps the transport header buffer.
 >
-> Glad to hear,
->
-> Erez,
-> It seems that the next step is to fix TODO and to send actual patches.
+> svc_rdma_unmap_dma() DMA-unmaps everything associated with
+> the ctxt.
 
-Hi Jason,
-
-As Leon wrote above, these TODO items are going to be addressed in the
-actual IPoIB offload patch series. While most of the items are doable,
-there are two items, which I would like to discuss more deeply.
-
-1. The qkey is not assigned at the initialization stage and the value
-in ah struct is not correct. It looks like, there is no way to avoid
-forwarding qkey (the item #6 - =E2=80=9Cno need to pass qkey, it is in the =
-ah
-struct=E2=80=9D).
-
-2. In order to use the send from the ndo, there is need to pass the
-pointer to ib_av struct. The immediate solution is to embed it into
-the skb->data (we have 20 bytes free from the pseudo header).
-
-It can be something similar to the code below. It will work, but it
-doesn=E2=80=99t look clean: (keeping pointer in the skb data..)
-
-struct send_data
-{
-        struct ib_ah *av;
-        u32 dqpn;
-        u32 dqkey;
-};
-
-void push_send_data(struct sk_buff *skb, struct ib_ah *av, u32 dqpn,
-                    u32 dqkey)
-{
-                struct send_data *sd;
-                sd =3D (struct send_data *)skb_push(skb, sizeof(*sd));
-                sd->av =3D av;
-                sd->dqpn =3D dqpn;
-                sd->dqkey =3D dqkey;
-
-}
-
-And while sending it do something like:
-
-struct send_data *sd;
-sd =3D (struct send_data *) skb->data;
-skb_pull(skb, sizeof(*sd));
-mah =3D to_mah(sd->av);
-return mlx5i_xmit(skb, next_priv, &mah->av, sd->dqpn, sd->dqkey);
-
-
-Another valuable option is just keep the send API as it is now.
-
-Any thoughts on which implementation is better?
-
-Thanks, Erez
-
-
->
-> Thanks
->
->>
->> Jason
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+a bit non trivial, but ok I guess...
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
