@@ -1,43 +1,41 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH TRIVIAL rdma-core] libibumad/man/umad_set_addr_net.3: Update
- function signature
-Date: Wed, 22 Mar 2017 17:14:02 -0400
-Message-ID: <ae127b69-661e-6ce1-8ffc-6a7ebf7d34d4@dev.mellanox.co.il>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: Setting RoCE to v2 automatically
+Date: Wed, 22 Mar 2017 17:30:11 -0600
+Message-ID: <CAANLjFqEeB6JM8pFDFcTRJCL9FPc4hUai45rNPf72rNb8g3NEQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+How are people setting their adapters to use RoCEv2 automatically?
+I've created a udev rule that creates the directory in configfs and
+echos into default_roce_mode and it works fine if I run it with
+'udevadm test', but on boot or module load it is not working (I do
+have the udev rule in initrd and it is creating the VFs, and renaming
+the adapters from my other rules). I was trying to get it all done
+through udev so that it happens when the module is loaded or at boot.
+We are not using OFED and the 4.9.14 kernel on CentOS 7.2.
 
-to be consistent with change in commit 8a342f390e7af71bba0d8794d741453604647e98
-umad: Add missing be annotation
+My current rule is:
+ACTION=="add", SUBSYSTEM=="net", ATTR{type}=="1",
+ATTRS{subsystem_vendor}=="0x15b3", \
+ATTRS{device}=="0x101?", WAIT_FOR="/sys/kernel/config/rdma_cm", \
+   PROGRAM=="/bin/sh -ec 'D=$(ls /sys$DEVPATH/device/infiniband); \
+       C=/sys/kernel/config/rdma_cm; if [ ! -d $C/$D ]; \
+       then mkdir $C/$D; fi; \
+       echo RoCE v2 > $C/$D/ports/1/default_roce_mode'"
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- libibumad/man/umad_set_addr_net.3 | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I've tried a variation using the infiniband subsystem, but it had the
+same result.
 
-diff --git a/libibumad/man/umad_set_addr_net.3 b/libibumad/man/umad_set_addr_net.3
-index 778faf4..b395252 100644
---- a/libibumad/man/umad_set_addr_net.3
-+++ b/libibumad/man/umad_set_addr_net.3
-@@ -8,7 +8,7 @@ umad_set_addr_net \- set MAD address fields within umad buffer using network ord
- .nf
- .B #include <infiniband/umad.h>
- .sp
--.BI "int umad_set_addr_net(void " "*umad" ", int " "dlid" ", int " "dqp" ", int " "sl" ", int " "qkey");
-+.BI "int umad_set_addr_net(void " "*umad" ", __be16 " "dlid" ", __be32 " "dqp" ", int " "sl" ", __be32 " "qkey");
- .fi
- .SH "DESCRIPTION"
- .B umad_set_addr_net()
--- 
-1.8.2.3
+Any ideas?
 
-
+Thanks,
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
