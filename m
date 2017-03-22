@@ -1,39 +1,43 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH v1 02/14] svcrdma: Add svc_rdma_map_reply_hdr()
-Date: Wed, 22 Mar 2017 15:07:07 +0200
-Message-ID: <c70544b7-1dfd-65fb-c18f-823085084c20@grimberg.me>
+Subject: Re: [PATCH v1 03/14] svcrdma: Eliminate RPCRDMA_SQ_DEPTH_MULT
+Date: Wed, 22 Mar 2017 15:09:19 +0200
+Message-ID: <ec82feb4-d6b9-7fb4-5b11-b8007e313845@grimberg.me>
 References: <20170316154132.4482.56769.stgit@klimt.1015granger.net>
- <20170316155242.4482.64809.stgit@klimt.1015granger.net>
- <f5000e25-6ca1-fc24-35c0-6089cf50923c@grimberg.me>
- <A18F9D5E-09BA-4268-9AA6-3E5866101F76@oracle.com>
+ <20170316155250.4482.49638.stgit@klimt.1015granger.net>
+ <46eb6195-a542-b35c-4902-a2bebb38feba@grimberg.me>
+ <391F0D90-2A46-4B2F-BCF0-B3BE7D48A3EF@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <A18F9D5E-09BA-4268-9AA6-3E5866101F76-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <391F0D90-2A46-4B2F-BCF0-B3BE7D48A3EF-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-> I can't think of any. The only time this code changes is
-> when overhauls like this happens.
+>> I agree this needs to happen, but turns out you don't have any
+>> guarantees of the maximum size of the sq depending on your max_sge
+>> parameter.
 >
-> I don't mind putting the out_unmap label back.
-
-Your call...
-
->> btw, I'm assuming svc_rdma_unmap_dma() is the opposite of
->> svc_rdma_map_reply_hdr() ?
+> That's true. However, this is meant to be temporary while I'm
+> working out details of the rdma_rw API conversion. More work
+> in this area comes in the next series:
 >
-> svc_rdma_map_reply_hdr() DMA-maps the transport header buffer.
->
-> svc_rdma_unmap_dma() DMA-unmaps everything associated with
-> the ctxt.
+> http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-rw-api
 
-a bit non trivial, but ok I guess...
+Thanks for the pointer...
+
+>> I'd recommend having a fall-back shrinked size sq allocation
+>> impllemented like srpt does.
+>
+> Agree it should be done. Would it be OK to wait until the dust
+> settles here, or do you think it's a hard requirement for
+> accepting this series?
+
+It isn't and can definitely be added incrementally...
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
