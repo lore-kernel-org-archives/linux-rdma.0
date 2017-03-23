@@ -1,54 +1,43 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core] rpm: BR: python for libmlx5
-Date: Thu, 23 Mar 2017 10:58:59 -0600
-Message-ID: <20170323165859.GE29811@obsidianresearch.com>
-References: <20170323021246.35786-1-jarod@redhat.com>
+Subject: Re: [PATCH rdma-core] fix udma_to_device_barrier on aarch64
+Date: Thu, 23 Mar 2017 11:00:44 -0600
+Message-ID: <20170323170044.GF29811@obsidianresearch.com>
+References: <20170323021224.35722-1-jarod@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170323021246.35786-1-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170323021224.35722-1-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 22, 2017 at 10:12:46PM -0400, Jarod Wilson wrote:
-> The relpath python script added in commit 07764bc805ba requires python to
-> run, thus we must BuildRequires: python in the rpm spec files, or the
-> build will fail in minimal environments (such as mock).
+On Wed, Mar 22, 2017 at 10:12:24PM -0400, Jarod Wilson wrote:
+> The definition for udma_to_device_barrier on aarch64 is missing. Looks
+> like an oversight in the commit that removed the old barrier macros and
+> added this one.
 > 
-> Fixes: 07764bc805ba ("mlx5: Export mlx5 direct verbs interface")
-> CC: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Fixes: 85a5529dead5 ("Remove the old barrier macros")
+> CC: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 > Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->  rdma-core.spec        | 1 +
->  redhat/rdma-core.spec | 1 +
->  2 files changed, 2 insertions(+)
+>  util/udma_barrier.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/rdma-core.spec b/rdma-core.spec
-> index 3f6e73a0..6a280fe1 100644
-> +++ b/rdma-core.spec
-> @@ -19,6 +19,7 @@ BuildRequires: pkgconfig
->  BuildRequires: pkgconfig(libnl-3.0)
->  BuildRequires: pkgconfig(libnl-route-3.0)
->  BuildRequires: valgrind-devel
-> +BuildRequires: python
->  
->  # Since we recommend developers use Ninja, so should packagers, for consistency.
->  %define CMAKE_FLAGS %{nil}
-> diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
-> index 5f6ead42..6b56eae4 100644
-> +++ b/redhat/rdma-core.spec
-> @@ -20,6 +20,7 @@ BuildRequires: pkgconfig(libnl-3.0)
->  BuildRequires: pkgconfig(libnl-route-3.0)
->  BuildRequires: valgrind-devel
->  BuildRequires: systemd
-> +BuildRequires: python
->  
->  Requires: dracut, kmod, systemd
->  # Red Hat/Fedora previously shipped redhat/ as a stand-alone
+> diff --git a/util/udma_barrier.h b/util/udma_barrier.h
+> index 86578af5..9932a687 100644
+> +++ b/util/udma_barrier.h
+> @@ -93,7 +93,7 @@
+>  #elif defined(__sparc_v9__)
+>  #define udma_to_device_barrier() asm volatile("membar #StoreStore" ::: "memory")
+>  #elif defined(__aarch64__)
+> -#define wmb() asm volatile("dsb st" ::: "memory");
+> +#define udma_to_device_barrier() asm volatile("dsb st" ::: "memory");
+>  #elif defined(__sparc__) || defined(__s390x__)
+>  #define udma_to_device_barrier() asm volatile("" ::: "memory")
+>  #else
 
-I added the debian bit and bundled it here:
+Doh, yep my bad.
 
 https://github.com/linux-rdma/rdma-core/pull/106
 
