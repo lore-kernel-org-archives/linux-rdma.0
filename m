@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V2 rdma-core 1/6] mlx5: Explicitly align mlx5 query device response to 64 bit
-Date: Thu, 23 Mar 2017 15:55:24 +0200
-Message-ID: <1490277329-8738-2-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V2 rdma-core 6/6] Bump version and update debian
+Date: Thu, 23 Mar 2017 15:55:29 +0200
+Message-ID: <1490277329-8738-7-git-send-email-yishaih@mellanox.com>
 References: <1490277329-8738-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1490277329-8738-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,56 +10,66 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-Explicitly align packet pacing response to 64 bit so that further
-capabilities that going to be read will match to mlx5 kernel response.
-
-Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx5/mlx5-abi.h | 7 ++++++-
- providers/mlx5/verbs.c    | 2 +-
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ CMakeLists.txt                   | 2 +-
+ debian/changelog                 | 5 ++++-
+ debian/ibverbs-providers.symbols | 2 ++
+ debian/libibverbs1.symbols       | 2 +-
+ 4 files changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/providers/mlx5/mlx5-abi.h b/providers/mlx5/mlx5-abi.h
-index e6ea428..dde46b9 100644
---- a/providers/mlx5/mlx5-abi.h
-+++ b/providers/mlx5/mlx5-abi.h
-@@ -264,6 +264,11 @@ struct mlx5_rss_caps {
- 	__u8 reserved[7];
- };
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index da80344..24542a7 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -44,7 +44,7 @@ endif()
+ set(PACKAGE_NAME "RDMA")
  
-+struct mlx5_packet_pacing_caps {
-+	struct ibv_packet_pacing_caps caps;
-+	__u32  reserved;
-+};
+ # See Documentation/versioning.md
+-set(PACKAGE_VERSION "13")
++set(PACKAGE_VERSION "14")
+ 
+ #-------------------------
+ # Basic standard paths
+diff --git a/debian/changelog b/debian/changelog
+index 3defc05..f47fcec 100644
+--- a/debian/changelog
++++ b/debian/changelog
+@@ -1,5 +1,8 @@
+-rdma-core (13-1) unstable; urgency=low
++rdma-core (14-1) unstable; urgency=low
 +
- struct mlx5_query_device_ex_resp {
- 	struct ibv_query_device_resp_ex ibv_resp;
- 	__u32				comp_mask;
-@@ -271,7 +276,7 @@ struct mlx5_query_device_ex_resp {
- 	struct ibv_tso_caps		tso_caps;
- 	struct mlx5_rss_caps            rss_caps; /* vendor data channel */
- 	__u64				reserved_cqe_comp;
--	struct ibv_packet_pacing_caps	packet_pacing_caps;
-+	struct mlx5_packet_pacing_caps	packet_pacing_caps;
- };
++  * Bump version.
  
- #endif /* MLX5_ABI_H */
-diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-index 67f9748..aba1631 100644
---- a/providers/mlx5/verbs.c
-+++ b/providers/mlx5/verbs.c
-@@ -1922,7 +1922,7 @@ int mlx5_query_device_ex(struct ibv_context *context,
- 	attr->tso_caps = resp.tso_caps;
- 	attr->rss_caps.rx_hash_fields_mask = resp.rss_caps.rx_hash_fields_mask;
- 	attr->rss_caps.rx_hash_function = resp.rss_caps.rx_hash_function;
--	attr->packet_pacing_caps = resp.packet_pacing_caps;
-+	attr->packet_pacing_caps = resp.packet_pacing_caps.caps;
- 
- 	major     = (raw_fw_ver >> 32) & 0xffff;
- 	minor     = (raw_fw_ver >> 16) & 0xffff;
++rdma-core (13-1) unstable; urgency=low
+   * New version.
+   * Adding debian/copyright.
+   * Close ITP (Closes: #848971).
+diff --git a/debian/ibverbs-providers.symbols b/debian/ibverbs-providers.symbols
+index b114deb..9c10852 100644
+--- a/debian/ibverbs-providers.symbols
++++ b/debian/ibverbs-providers.symbols
+@@ -1,4 +1,6 @@
+ libmlx5.so.1 ibverbs-providers #MINVER#
+  MLX5_1.0@MLX5_1.0 13-1
++ MLX5_1.14@MLX5_1.14 14-1
+  mlx5dv_init_obj@MLX5_1.0 13-1
+  mlx5dv_query_device@MLX5_1.0 13-1
++ mlx5dv_create_cq@MLX5_1.14 14-1
+diff --git a/debian/libibverbs1.symbols b/debian/libibverbs1.symbols
+index d70afd0..b96ef46 100644
+--- a/debian/libibverbs1.symbols
++++ b/debian/libibverbs1.symbols
+@@ -1,7 +1,7 @@
+ libibverbs.so.1 libibverbs1 #MINVER#
+  IBVERBS_1.0@IBVERBS_1.0 1.1.6
+  IBVERBS_1.1@IBVERBS_1.1 1.1.6
+- (symver)IBVERBS_PRIVATE_13 13
++ (symver)IBVERBS_PRIVATE_14 14
+  ibv_ack_async_event@IBVERBS_1.0 1.1.6
+  ibv_ack_async_event@IBVERBS_1.1 1.1.6
+  ibv_ack_cq_events@IBVERBS_1.0 1.1.6
 -- 
 1.8.3.1
 
