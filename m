@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V2 rdma-core 6/6] Bump version and update debian
-Date: Thu, 23 Mar 2017 15:55:29 +0200
-Message-ID: <1490277329-8738-7-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V2 rdma-core 4/6] verbs: Expose verbs init CQ helper API
+Date: Thu, 23 Mar 2017 15:55:27 +0200
+Message-ID: <1490277329-8738-5-git-send-email-yishaih@mellanox.com>
 References: <1490277329-8738-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1490277329-8738-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,66 +10,187 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- CMakeLists.txt                   | 2 +-
- debian/changelog                 | 5 ++++-
- debian/ibverbs-providers.symbols | 2 ++
- debian/libibverbs1.symbols       | 2 +-
- 4 files changed, 8 insertions(+), 3 deletions(-)
+This patch exposes to providers an helper function to init a CQ
+post its creation.
 
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index da80344..24542a7 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -44,7 +44,7 @@ endif()
- set(PACKAGE_NAME "RDMA")
+The internal library code was refactored to use this helper
+API to have a shared code for all creation flows (i.e. create_cq and
+create_cq_ex).
+
+As part of this refactoring reduced the scope of the lock that was taken
+as part of creating/destroying a CQ to protect only what it was intended
+to do. (i.e. channel->refcnt)
+
+It's the application responsibility not to call concurrently to create a
+CQ with a given completion channel and in the same time destroy it from
+other thread, no change at that point from the original code.
+
+The helper function going to be used in downstream patch in this
+series.
+
+Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ libibverbs/device.c       | 38 +++++++++++++++++++++++---------------
+ libibverbs/driver.h       |  3 +++
+ libibverbs/ibverbs.h      |  2 +-
+ libibverbs/libibverbs.map |  3 ++-
+ libibverbs/verbs.c        | 26 ++++++--------------------
+ 5 files changed, 35 insertions(+), 37 deletions(-)
+
+diff --git a/libibverbs/device.c b/libibverbs/device.c
+index 6ef670a..ebf4970 100644
+--- a/libibverbs/device.c
++++ b/libibverbs/device.c
+@@ -132,6 +132,26 @@ __be64 __ibv_get_device_guid(struct ibv_device *device)
+ }
+ default_symver(__ibv_get_device_guid, ibv_get_device_guid);
  
- # See Documentation/versioning.md
--set(PACKAGE_VERSION "13")
-+set(PACKAGE_VERSION "14")
- 
- #-------------------------
- # Basic standard paths
-diff --git a/debian/changelog b/debian/changelog
-index 3defc05..f47fcec 100644
---- a/debian/changelog
-+++ b/debian/changelog
-@@ -1,5 +1,8 @@
--rdma-core (13-1) unstable; urgency=low
-+rdma-core (14-1) unstable; urgency=low
++void verbs_init_cq(struct ibv_cq *cq, struct ibv_context *context,
++		       struct ibv_comp_channel *channel,
++		       void *cq_context)
++{
++	cq->context		   = context;
++	cq->channel		   = channel;
 +
-+  * Bump version.
++	if (cq->channel) {
++		pthread_mutex_lock(&context->mutex);
++		++cq->channel->refcnt;
++		pthread_mutex_unlock(&context->mutex);
++	}
++
++	cq->cq_context		   = cq_context;
++	cq->comp_events_completed  = 0;
++	cq->async_events_completed = 0;
++	pthread_mutex_init(&cq->mutex, NULL);
++	pthread_cond_init(&cq->cond, NULL);
++}
++
+ static struct ibv_cq_ex *
+ __lib_ibv_create_cq_ex(struct ibv_context *context,
+ 		       struct ibv_cq_init_attr_ex *cq_attr)
+@@ -144,23 +164,11 @@ __lib_ibv_create_cq_ex(struct ibv_context *context,
+ 		return NULL;
+ 	}
  
-+rdma-core (13-1) unstable; urgency=low
-   * New version.
-   * Adding debian/copyright.
-   * Close ITP (Closes: #848971).
-diff --git a/debian/ibverbs-providers.symbols b/debian/ibverbs-providers.symbols
-index b114deb..9c10852 100644
---- a/debian/ibverbs-providers.symbols
-+++ b/debian/ibverbs-providers.symbols
-@@ -1,4 +1,6 @@
- libmlx5.so.1 ibverbs-providers #MINVER#
-  MLX5_1.0@MLX5_1.0 13-1
-+ MLX5_1.14@MLX5_1.14 14-1
-  mlx5dv_init_obj@MLX5_1.0 13-1
-  mlx5dv_query_device@MLX5_1.0 13-1
-+ mlx5dv_create_cq@MLX5_1.14 14-1
-diff --git a/debian/libibverbs1.symbols b/debian/libibverbs1.symbols
-index d70afd0..b96ef46 100644
---- a/debian/libibverbs1.symbols
-+++ b/debian/libibverbs1.symbols
-@@ -1,7 +1,7 @@
- libibverbs.so.1 libibverbs1 #MINVER#
-  IBVERBS_1.0@IBVERBS_1.0 1.1.6
-  IBVERBS_1.1@IBVERBS_1.1 1.1.6
-- (symver)IBVERBS_PRIVATE_13 13
-+ (symver)IBVERBS_PRIVATE_14 14
-  ibv_ack_async_event@IBVERBS_1.0 1.1.6
-  ibv_ack_async_event@IBVERBS_1.1 1.1.6
-  ibv_ack_cq_events@IBVERBS_1.0 1.1.6
+-	pthread_mutex_lock(&context->mutex);
+-
+ 	cq = vctx->priv->create_cq_ex(context, cq_attr);
+ 
+-	if (cq) {
+-		cq->context		   = context;
+-		cq->channel		   = cq_attr->channel;
+-		if (cq->channel)
+-			++cq->channel->refcnt;
+-		cq->cq_context		   = cq_attr->cq_context;
+-		cq->comp_events_completed  = 0;
+-		cq->async_events_completed = 0;
+-		pthread_mutex_init(&cq->mutex, NULL);
+-		pthread_cond_init(&cq->cond, NULL);
+-	}
+-
+-	pthread_mutex_unlock(&context->mutex);
++	if (cq)
++		verbs_init_cq(ibv_cq_ex_to_cq(cq), context,
++			        cq_attr->channel, cq_attr->cq_context);
+ 
+ 	return cq;
+ }
+diff --git a/libibverbs/driver.h b/libibverbs/driver.h
+index e3ac3f7..ec87afd 100644
+--- a/libibverbs/driver.h
++++ b/libibverbs/driver.h
+@@ -130,6 +130,9 @@ verbs_get_device(const struct ibv_device *dev)
+ typedef struct verbs_device *(*verbs_driver_init_func)(const char *uverbs_sys_path,
+ 						       int abi_version);
+ void verbs_register_driver(const char *name, verbs_driver_init_func init_func);
++void verbs_init_cq(struct ibv_cq *cq, struct ibv_context *context,
++		       struct ibv_comp_channel *channel,
++		       void *cq_context);
+ 
+ int ibv_cmd_get_context(struct ibv_context *context, struct ibv_get_context *cmd,
+ 			size_t cmd_size, struct ibv_get_context_resp *resp,
+diff --git a/libibverbs/ibverbs.h b/libibverbs/ibverbs.h
+index 3b08476..eb304ba 100644
+--- a/libibverbs/ibverbs.h
++++ b/libibverbs/ibverbs.h
+@@ -48,7 +48,7 @@
+ #define default_symver(name, api)                                              \
+ 	asm(".symver " #name "," #api "@@" DEFAULT_ABI)
+ #define private_symver(name, api)                                              \
+-	asm(".symver " #name "," #api "@@IBVERBS_PRIVATE_13")
++	asm(".symver " #name "," #api "@@IBVERBS_PRIVATE_14")
+ 
+ #define PFX		"libibverbs: "
+ 
+diff --git a/libibverbs/libibverbs.map b/libibverbs/libibverbs.map
+index 656c21d..5401241 100644
+--- a/libibverbs/libibverbs.map
++++ b/libibverbs/libibverbs.map
+@@ -86,7 +86,7 @@ IBVERBS_1.1 {
+ 
+ /* If any symbols in this stanza change ABI then the entire staza gets a new symbol
+    version. Also see the private_symver() macro */
+-IBVERBS_PRIVATE_13 {
++IBVERBS_PRIVATE_14 {
+ 	global:
+ 		/* These historical symbols are now private to libibverbs */
+ 		ibv_cmd_alloc_mw;
+@@ -138,4 +138,5 @@ IBVERBS_PRIVATE_13 {
+ 		ibv_query_gid_type;
+ 		ibv_register_driver;
+ 		verbs_register_driver;
++		verbs_init_cq;
+ };
+diff --git a/libibverbs/verbs.c b/libibverbs/verbs.c
+index e84a2dd..e54fd77 100644
+--- a/libibverbs/verbs.c
++++ b/libibverbs/verbs.c
+@@ -441,23 +441,10 @@ struct ibv_cq *__ibv_create_cq(struct ibv_context *context, int cqe, void *cq_co
+ {
+ 	struct ibv_cq *cq;
+ 
+-	pthread_mutex_lock(&context->mutex);
+-
+ 	cq = context->ops.create_cq(context, cqe, channel, comp_vector);
+ 
+-	if (cq) {
+-		cq->context    	     	   = context;
+-		cq->channel		   = channel;
+-		if (channel)
+-			++channel->refcnt;
+-		cq->cq_context 	     	   = cq_context;
+-		cq->comp_events_completed  = 0;
+-		cq->async_events_completed = 0;
+-		pthread_mutex_init(&cq->mutex, NULL);
+-		pthread_cond_init(&cq->cond, NULL);
+-	}
+-
+-	pthread_mutex_unlock(&context->mutex);
++	if (cq)
++		verbs_init_cq(cq, context, channel, cq_context);
+ 
+ 	return cq;
+ }
+@@ -477,15 +464,14 @@ int __ibv_destroy_cq(struct ibv_cq *cq)
+ 	struct ibv_comp_channel *channel = cq->channel;
+ 	int ret;
+ 
+-	if (channel)
+-		pthread_mutex_lock(&channel->context->mutex);
+-
+ 	ret = cq->context->ops.destroy_cq(cq);
+ 
+ 	if (channel) {
+-		if (!ret)
++		if (!ret) {
++			pthread_mutex_lock(&channel->context->mutex);
+ 			--channel->refcnt;
+-		pthread_mutex_unlock(&channel->context->mutex);
++			pthread_mutex_unlock(&channel->context->mutex);
++		}
+ 	}
+ 
+ 	return ret;
 -- 
 1.8.3.1
 
