@@ -1,37 +1,49 @@
 From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH rdma-core] fix udma_to_device_barrier on aarch64
-Date: Wed, 22 Mar 2017 22:12:24 -0400
-Message-ID: <20170323021224.35722-1-jarod@redhat.com>
+Subject: [PATCH rdma-core] rpm: BR: python for libmlx5
+Date: Wed, 22 Mar 2017 22:12:46 -0400
+Message-ID: <20170323021246.35786-1-jarod@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The definition for udma_to_device_barrier on aarch64 is missing. Looks
-like an oversight in the commit that removed the old barrier macros and
-added this one.
+The relpath python script added in commit 07764bc805ba requires python to
+run, thus we must BuildRequires: python in the rpm spec files, or the
+build will fail in minimal environments (such as mock).
 
-Fixes: 85a5529dead5 ("Remove the old barrier macros")
-CC: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Fixes: 07764bc805ba ("mlx5: Export mlx5 direct verbs interface")
+CC: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- util/udma_barrier.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ rdma-core.spec        | 1 +
+ redhat/rdma-core.spec | 1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/util/udma_barrier.h b/util/udma_barrier.h
-index 86578af5..9932a687 100644
---- a/util/udma_barrier.h
-+++ b/util/udma_barrier.h
-@@ -93,7 +93,7 @@
- #elif defined(__sparc_v9__)
- #define udma_to_device_barrier() asm volatile("membar #StoreStore" ::: "memory")
- #elif defined(__aarch64__)
--#define wmb() asm volatile("dsb st" ::: "memory");
-+#define udma_to_device_barrier() asm volatile("dsb st" ::: "memory");
- #elif defined(__sparc__) || defined(__s390x__)
- #define udma_to_device_barrier() asm volatile("" ::: "memory")
- #else
+diff --git a/rdma-core.spec b/rdma-core.spec
+index 3f6e73a0..6a280fe1 100644
+--- a/rdma-core.spec
++++ b/rdma-core.spec
+@@ -19,6 +19,7 @@ BuildRequires: pkgconfig
+ BuildRequires: pkgconfig(libnl-3.0)
+ BuildRequires: pkgconfig(libnl-route-3.0)
+ BuildRequires: valgrind-devel
++BuildRequires: python
+ 
+ # Since we recommend developers use Ninja, so should packagers, for consistency.
+ %define CMAKE_FLAGS %{nil}
+diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
+index 5f6ead42..6b56eae4 100644
+--- a/redhat/rdma-core.spec
++++ b/redhat/rdma-core.spec
+@@ -20,6 +20,7 @@ BuildRequires: pkgconfig(libnl-3.0)
+ BuildRequires: pkgconfig(libnl-route-3.0)
+ BuildRequires: valgrind-devel
+ BuildRequires: systemd
++BuildRequires: python
+ 
+ Requires: dracut, kmod, systemd
+ # Red Hat/Fedora previously shipped redhat/ as a stand-alone
 -- 
 2.11.0
 
