@@ -1,81 +1,82 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V2 rdma-core 6/6] Bump version and update debian
-Date: Thu, 23 Mar 2017 21:11:55 +0200
-Message-ID: <20170323191155.GC20443@mtr-leonro.local>
-References: <1490277329-8738-1-git-send-email-yishaih@mellanox.com>
- <1490277329-8738-7-git-send-email-yishaih@mellanox.com>
- <20170323171916.GB5840@obsidianresearch.com>
+Subject: Re: Setting RoCE to v2 automatically
+Date: Thu, 23 Mar 2017 21:14:26 +0200
+Message-ID: <20170323191426.GD20443@mtr-leonro.local>
+References: <CAANLjFqEeB6JM8pFDFcTRJCL9FPc4hUai45rNPf72rNb8g3NEQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="mojUlQ0s9EVzWg2t"
+        protocol="application/pgp-signature"; boundary="eHhjakXzOLJAF9wJ"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170323171916.GB5840-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <CAANLjFqEeB6JM8pFDFcTRJCL9FPc4hUai45rNPf72rNb8g3NEQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---mojUlQ0s9EVzWg2t
+--eHhjakXzOLJAF9wJ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Mar 23, 2017 at 11:19:16AM -0600, Jason Gunthorpe wrote:
-> There are still more places that need updating, see
+On Wed, Mar 22, 2017 at 05:30:11PM -0600, Robert LeBlanc wrote:
+> How are people setting their adapters to use RoCEv2 automatically?
+> I've created a udev rule that creates the directory in configfs and
+> echos into default_roce_mode and it works fine if I run it with
+> 'udevadm test', but on boot or module load it is not working (I do
+> have the udev rule in initrd and it is creating the VFs, and renaming
+> the adapters from my other rules). I was trying to get it all done
+> through udev so that it happens when the module is loaded or at boot.
+> We are not using OFED and the 4.9.14 kernel on CentOS 7.2.
 >
-> Documentation/versioning.md
+> My current rule is:
+> ACTION=="add", SUBSYSTEM=="net", ATTR{type}=="1",
+> ATTRS{subsystem_vendor}=="0x15b3", \
+> ATTRS{device}=="0x101?", WAIT_FOR="/sys/kernel/config/rdma_cm", \
+>    PROGRAM=="/bin/sh -ec 'D=$(ls /sys$DEVPATH/device/infiniband); \
+>        C=/sys/kernel/config/rdma_cm; if [ ! -d $C/$D ]; \
+>        then mkdir $C/$D; fi; \
+>        echo RoCE v2 > $C/$D/ports/1/default_roce_mode'"
 >
-> Or ec419980a7890b57ceaf6fefa797a365f2f5fed3
+> I've tried a variation using the infiniband subsystem, but it had the
+> same result.
 >
-> Please follow the commit message pattern from that example..
->
-> > index 3defc05..f47fcec 100644
-> > +++ b/debian/changelog
-> > @@ -1,5 +1,8 @@
-> > -rdma-core (13-1) unstable; urgency=low
-> > +rdma-core (14-1) unstable; urgency=low
-> > +
-> > +  * Bump version.
->
-> I haven't been adding new change log entires in the past, this is just
-> a standin file - Debian will maintain their own in their .diff. Same
-> with rpm.
+> Any ideas?
 
-It was more convenient for me to bump version in this file too,
-so new symbols in debian/*.symbol will have more clear minimal
-version (14-1), which is close to rdma-core-14.
-
-Thanks
+Maybe, the best way for the ecosystem in 2017 will be to set
+RoCE v2 as a default in future kernels.
 
 >
-> Jason
+> Thanks,
+> ----------------
+> Robert LeBlanc
+> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---mojUlQ0s9EVzWg2t
+--eHhjakXzOLJAF9wJ
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljUHfoACgkQ5GN7iDZy
-WKdp2Q/+KHzgBqtR8D49/P1S1YQZwTdgg3zDZizVY+DPvlKAuK75eAd/nXAhMJV/
-XoGpjT0kZxAbyGjLYq3K6169XYvWZY+MILQJqqm97HRifex5ipIJExT0uBnBfBX9
-9JK0IiHkkXxYjmhteMKtyZZdeAftSgSXV1yEeleQbB35CStCfPfJqjUyOSWjoQjA
-STBXz17mtg5b5oaV+kihsOeV7mXlABeWH7/sSsKPeXkKBc9LzM+aZPuI+Nf1qnCU
-CqdJzNCSv+pa5yHhupwoCT/alcf9y7z0mzrMMVLn6yzCDoOjt34SSwtVyIFDrmfO
-kzu+cGpcdETz2tbB9zgXJTo2kzsRfZ/ZhvusrictZQIFwVHdkLw3W36+sQ3dKec9
-Gr+g0PYCqkSZuAWIvQIDuEXz5yZrOhJvZGbN37DMtldBowsr+Y81SZPv6ptv8miT
-OPJ3jXRcQ5dXxea0V+YfWkvIeejmzwqJO6lqsDy9TVsL0lNnUOEtMeeyg28ebDwH
-PyUAxq2gV7eV1qdnKujAupgQWydY+6ReQDDXJ7GoD6i2FEnKT+37Meg1Ty5gpVo2
-nNrP6IGXhLE9ZjcvaEPzMehtSgNh6SqA4WYo1hM5z27xFJ/xJI5MmRAwOXafgSZl
-/vhejGatOQYXPS3CgpKIMA69Y9pMa9X5MY0d2gO8LPmQgcRtA6Q=
-=gcMC
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljUHpIACgkQ5GN7iDZy
+WKemDQ//aD7RqCQxx3U/BXWrqmegv0b1WHXOPXoNAcqgWqOU0sPtylezI3wMVKDh
+GNsFmiKKgZPhEE11fIS9EcNlOZcBOr0Fcp79/fq1kgoe1pmNVuV3E2z+ZjUGiXnt
+rgHfj3R5KgM+rLyqRDubXRQId4edLIMWGgBAIlhB5VW3By9cAQkKVjWW8b6a3Hkn
+hFioMbn/evQHHliYBL0wOGA10ZyfKH99ySlj+qLxHmLgwwUAeYwjlHaPrqBRT0FX
+uHZanPTfePW+5e3hY1NEI4l11GvOsVwKpCsfeJyNkW1b4sJLpiwM/1ZIEfM/OrYn
+CPO6bX5mec3Z1JWdiNwxJbxm3xCWGEWfsL/CGQzNDpJg1poIL0ZBBTsABrSPR/ry
+QR1lLeQNFUmb7sbyPBnplg5fX0lJ2suQ8QsEgwVUzLsbs3aroK+KFyCmNX94a1x9
+3XRFrQlk3bJFOogxWZZ3qeNI2ic0F6v1rKRcfLx4xux4mM6k8emr8v9gVygKHVMd
+T5mupguE+5DzRqU6fcB46Ycpn9iJBqM0XXYNd0s7UZ3D4Yr0NmC0ZsQg5bcIv5jp
+nLaRhoi+pQUyxaX+EDTeIMSGweg+jVfluIrclTf1gA21MSGZbsb21/nNWIYvW+8S
+3NzjPfWUgZxo4zGirZVJlVhKA7T+y+/9Hgd0JAEhH377gMkoEco=
+=+7EW
 -----END PGP SIGNATURE-----
 
---mojUlQ0s9EVzWg2t--
+--eHhjakXzOLJAF9wJ--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
