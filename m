@@ -1,58 +1,74 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: libmlx5 doesn't build on s390x
-Date: Thu, 23 Mar 2017 10:10:17 -0600
-Message-ID: <20170323161017.GB29811@obsidianresearch.com>
+Date: Thu, 23 Mar 2017 12:50:14 -0400
+Message-ID: <22f0dfe4-bf35-02cf-df73-ef7b59295015@redhat.com>
 References: <afe64964-4f10-0a00-0891-b97bf2c60b50@redhat.com>
+ <36a02b19-5b50-10f6-f3da-13d4a67f50c2@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <afe64964-4f10-0a00-0891-b97bf2c60b50-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <36a02b19-5b50-10f6-f3da-13d4a67f50c2-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 23, 2017 at 08:51:21AM -0400, Jarod Wilson wrote:
-> Not sure if it's intentional, but in my adventure of the past day or two to
-> get rdma-core v13 building across all the arches I need to build it for, I
-> discovered that the mlx5 bits silently don't build on s390x. No build
-> failure, they just aren't attempted, so far as I can see. The only sign of
-> failure was when rpm %files globs failed to locate mlx5 bits.
+On 2017-03-23 12:06 PM, Yishai Hadas wrote:
+> On 3/23/2017 2:51 PM, Jarod Wilson wrote:
+>> Not sure if it's intentional, but in my adventure of the past day or two
+>> to get rdma-core v13 building across all the arches I need to build it
+>> for, I discovered that the mlx5 bits silently don't build on s390x. No
+>> build failure, they just aren't attempted, so far as I can see. The only
+>> sign of failure was when rpm %files globs failed to locate mlx5 bits.
+>
+> How about mlx4, was it built successfully ? we expect the same behavior
+> from build point of view as both and others providers depend on
+> HAVE_COHERENT_DMA from CMakeLists.txt
+>
+> Any option that you saw below message in the log ?
+> "Architecture NOT able to do coherent DMA (check libibverbs/arch.h) some
+> providers disabled!")"
 
-I don't expect anything except mlx4 to *work* on s390 - fixing that
-would require making a common IOMEM accessor system.
+Yep, it's there, lost it in all the verbosity. Okay, that explains that.
 
-However, AFAIK, they should build..
+>> I noted that mlx4 has some s390x-specific trickery in
+>> providers/mlx4/mmio.h, and wondered if something similar was required
+>> for mlx5, or if "does not work on s390x and isn't expected to" is the
+>> norm. Currently, my builds are excluding mlx5 support on s390x due to
+>> the current state.
+>
+> The patch of mlx4 for s390x in mlx4/mmio.h came from IBM people few
+> years ago, I believe that similar one is needed for mlx5 otherwise it
+> won't be able to write to PCI memory, so excluding mlx5 for s390 makes
+> sense. However, mlx4 should be in, is it really the case when you build
+> the s390 package ?
 
-> I noted that mlx4 has some s390x-specific trickery in providers/mlx4/mmio.h,
-> and wondered if something similar was required for mlx5, or if "does not
-> work on s390x and isn't expected to" is the norm. Currently, my builds are
-> excluding mlx5 support on s390x due to the current state.
+Apparently not:
 
-It would be nice if you could post logs for these various
-failures..
+$ rpm -qpl libibverbs-13-1.el7.s390x.rpm
+/etc/libibverbs.d
+/etc/libibverbs.d/hfi1verbs.driver
+/etc/libibverbs.d/ipathverbs.driver
+/etc/libibverbs.d/rxe.driver
+/usr/bin/rxe_cfg
+/usr/lib64/libibverbs
+/usr/lib64/libibverbs.so.1
+/usr/lib64/libibverbs.so.1.1.13
+/usr/lib64/libibverbs/libhfi1verbs-rdmav2.so
+/usr/lib64/libibverbs/libipathverbs-rdmav2.so
+/usr/lib64/libibverbs/librxe-rdmav2.so
+/usr/share/doc/rdma-core-13/libibverbs.md
+/usr/share/doc/rdma-core-13/rxe.md
+/usr/share/man/man7/rxe.7.gz
+/usr/share/man/man8/rxe_cfg.8.gz
 
-My guess is that none of the DMA providers were compiled for S390,
-which happens if the system cannot compile util/udma_barrier.h.
+Looks like only rxe, ipathverbs and hfi1verbs got built. Didn't realize 
+that many others (including mlx4) weren't getting built until now. Oops.
 
-Perhaps this test is wrong?
-
-#elif defined(__sparc__) || defined(__s390x__)
-
-Maybe it should be
-
-#elif defined(__sparc__) || defined(__s390x__) || defined(__s390__)
-
-??
-
-Also, you should expect mlx5 not to be built on ARM32 and in other
-places where we do not support user DMA. Can you accommodate this in
-the rpm spec file? Debian has the same issue too... You can simulate
-this on x86-64 by patching util/udma_barrier.h to always fail to
-compile.
-
-Jason
+-- 
+Jarod Wilson
+jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
