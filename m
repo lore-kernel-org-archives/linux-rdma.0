@@ -1,50 +1,46 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: [PATCH 3/3] infiniband: hns: avoid gcc-7.0.1 warning for uninitialized data
-Date: Thu, 23 Mar 2017 15:55:52 +0100
-Message-ID: <20170323145610.54695-3-arnd@arndb.de>
-References: <20170323145610.54695-1-arnd@arndb.de>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: libmlx5 doesn't build on s390x
+Date: Thu, 23 Mar 2017 18:06:19 +0200
+Message-ID: <36a02b19-5b50-10f6-f3da-13d4a67f50c2@dev.mellanox.co.il>
+References: <afe64964-4f10-0a00-0891-b97bf2c60b50@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170323145610.54695-1-arnd-r2nGTMty4D4@public.gmane.org>
+In-Reply-To: <afe64964-4f10-0a00-0891-b97bf2c60b50-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Salil <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Dongdong Huang(Donald)" <hdd.huang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Stephen Boyd <sboyd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-hns_roce_v1_cq_set_ci() calls roce_set_bit() on an uninitialized field,
-which will then change only a few of its bits, causing a warning with
-the latest gcc:
+On 3/23/2017 2:51 PM, Jarod Wilson wrote:
+> Not sure if it's intentional, but in my adventure of the past day or two
+> to get rdma-core v13 building across all the arches I need to build it
+> for, I discovered that the mlx5 bits silently don't build on s390x. No
+> build failure, they just aren't attempted, so far as I can see. The only
+> sign of failure was when rpm %files globs failed to locate mlx5 bits.
 
-infiniband/hw/hns/hns_roce_hw_v1.c: In function 'hns_roce_v1_cq_set_ci':
-infiniband/hw/hns/hns_roce_hw_v1.c:1854:23: error: 'doorbell[1]' is used uninitialized in this function [-Werror=uninitialized]
-  roce_set_bit(doorbell[1], ROCEE_DB_OTHERS_H_ROCEE_DB_OTH_HW_SYNS_S, 1);
+How about mlx4, was it built successfully ? we expect the same behavior 
+from build point of view as both and others providers depend on 
+HAVE_COHERENT_DMA from CMakeLists.txt
 
-The code is actually correct since we always set all bits of the
-port_vlan field, but gcc correctly points out that the first
-access does contain uninitialized data.
+Any option that you saw below message in the log ?
+"Architecture NOT able to do coherent DMA (check libibverbs/arch.h) some 
+providers disabled!")"
 
-This initializes the field to zero first before setting the
-individual bits.
+> I noted that mlx4 has some s390x-specific trickery in
+> providers/mlx4/mmio.h, and wondered if something similar was required
+> for mlx5, or if "does not work on s390x and isn't expected to" is the
+> norm. Currently, my builds are excluding mlx5 support on s390x due to
+> the current state.
 
-Fixes: 9a4435375cd1 ("IB/hns: Add driver files for hns RoCE driver")
-Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 1 +
- 1 file changed, 1 insertion(+)
+The patch of mlx4 for s390x in mlx4/mmio.h came from IBM people few 
+years ago, I believe that similar one is needed for mlx5 otherwise it 
+won't be able to write to PCI memory, so excluding mlx5 for s390 makes 
+sense. However, mlx4 should be in, is it really the case when you build 
+the s390 package ?
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index ec68f56e8ee5..882073a6ec77 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -1851,6 +1851,7 @@ void hns_roce_v1_cq_set_ci(struct hns_roce_cq *hr_cq, u32 cons_index)
- 	u32 doorbell[2];
- 
- 	doorbell[0] = cons_index & ((hr_cq->cq_depth << 1) - 1);
-+	doorbell[1] = 0;
- 	roce_set_bit(doorbell[1], ROCEE_DB_OTHERS_H_ROCEE_DB_OTH_HW_SYNS_S, 1);
- 	roce_set_field(doorbell[1], ROCEE_DB_OTHERS_H_ROCEE_DB_OTH_CMD_M,
- 		       ROCEE_DB_OTHERS_H_ROCEE_DB_OTH_CMD_S, 3);
--- 
-2.9.0
+Adding Alexey who sent the patch for mlx4 to get his input as well.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
