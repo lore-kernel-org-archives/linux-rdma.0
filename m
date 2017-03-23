@@ -1,88 +1,57 @@
-From: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/3] target: Fix queue-full callback error signaling
-Date: Thu, 23 Mar 2017 11:06:03 +0530
-Message-ID: <20170323053602.GA2323@chelsio.com>
-References: <1477891554-26222-1-git-send-email-nab@linux-iscsi.org>
+From: Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
+Subject: [PATCH RFC] nvme-rdma: support devices with queue size < 32
+Date: Thu, 23 Mar 2017 10:04:09 +0100 (CET)
+Message-ID: <1315914765.312051621.1490259849534.JavaMail.zimbra@kalray.eu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1477891554-26222-1-git-send-email-nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+To: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org
+Cc: Samuel Jones <samuel.jones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Monday, October 10/31/16, 2016 at 10:55:51 +0530, Nicholas A. Bellinger wrote:
->    From: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Hi Nicholas,
-This patch series fixes the post failures due to Send Queue overflow when
-tested along with Sagi's "iser-target: avoid posting a recv buffer twice", which 
-goes on top of these 3 patches.
+In the case of small NVMe-oF queue size (<32) we may enter
+a deadlock caused by the fact that the IB completions aren't sent
+waiting for 32 and the send queue will fill up.
 
-Combined patches series(Nicholas's, Sagi's) works fine.
-Tested with iWARP iser. 
+The error is seen as (using mlx5):
+[ 2048.693355] mlx5_0:mlx5_ib_post_send:3765:(pid 7273):
+[ 2048.693360] nvme nvme1: nvme_rdma_post_send failed with error code -12
 
-As these changes are critical for devices with lower sg resources, hoping this 
-series will be queued for next RC.
+The patch doesn't change the behaviour for remote devices with
+larger queues.
 
-Reviewed-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Tested-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Marta Rybczynska <marta.rybczynska-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
+Signed-off-by: Samuel Jones <sjones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
+---
+ drivers/nvme/host/rdma.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-Thanks,
-Bharat.
-> 
->    Hi folks,
-> 
->    This series contains target-core queue-full + iscsi-target
->    callback fixes for a bug reported by Steve and Potnuri
->    during recent v4.8.y iWARP/iser-target testing.
-> 
->    The first patch fixes target-core queue-full handling response
->    leaks with non -EAGAIN / -ENOMEM errors.  It uses a new state
->    TRANSPORT_COMPLETE_QF_ERR to internally generate CHECK_CONDITION
->    for unknown fabric callback errors, to avoid attempting retry
->    of fabric data-transfer callbacks for this special case.
-> 
->    This means all non -EAGAIN / -ENOMEM fabric callback errors
->    during target_core_fabric_ops for:
-> 
->      *) ->write_pending()
->      *) ->queue_data_in()
->      *) ->queue_status()
-> 
->    will result in CHECK_CONDITION + LOGICAL_UNIT_COMMUNICATION_FAILURE,
->    if no non-zero se_cmd->scsi_status was previously set.
->    It also means target-core ->queue_status() errors retry indefinately,
->    or until session shutdown explicitly stops outstanding I/O.
-> 
->    The remaining changes are for propagating iscsit_transport
->    response failure back to target-core queue-full, and updating
->    iser-target to propagate isert_rdma_rw_ctx_post() errors from
->    RDMA R/W API back to target-core as well.
-> 
->    Please review.
-> 
->    --nab
-> 
->    Nicholas Bellinger (3):
->      target: Fix unknown fabric callback queue-full errors
->      iscsi-target: Propigate queue_data_in + queue_status errors
->      iser-target: Fix queue-full response handling
-> 
->     drivers/infiniband/ulp/isert/ib_isert.c      |  53 +++++++++-----
->     drivers/target/iscsi/iscsi_target.c          |   3 +-
->     drivers/target/iscsi/iscsi_target_configfs.c |  13 ++--
->     drivers/target/iscsi/iscsi_target_util.c     |   5 +-
->     drivers/target/iscsi/iscsi_target_util.h     |   2 +-
->     drivers/target/target_core_transport.c       | 102
->    ++++++++++++++++++---------
->     include/target/target_core_base.h            |   1 +
->     7 files changed, 114 insertions(+), 65 deletions(-)
-> 
->    --
->    1.9.1
+diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
+index 779f516..8ea4cba 100644
+--- a/drivers/nvme/host/rdma.c
++++ b/drivers/nvme/host/rdma.c
+@@ -1023,6 +1023,7 @@ static int nvme_rdma_post_send(struct nvme_rdma_queue *queue,
+ {
+        struct ib_send_wr wr, *bad_wr;
+        int ret;
++       int sig_limit;
+ 
+        sge->addr   = qe->dma;
+        sge->length = sizeof(struct nvme_command),
+@@ -1054,7 +1055,8 @@ static int nvme_rdma_post_send(struct nvme_rdma_queue *queue,
+         * embedded in request's payload, is not freed when __ib_process_cq()
+         * calls wr_cqe->done().
+         */
+-       if ((++queue->sig_count % 32) == 0 || flush)
++       sig_limit = min(queue->queue_size, 32);
++       if ((++queue->sig_count % sig_limit) == 0 || flush)
+                wr.send_flags |= IB_SEND_SIGNALED;
+ 
+        if (first)
+-- 
+1.8.3.1
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
