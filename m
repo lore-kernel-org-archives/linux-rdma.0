@@ -1,36 +1,39 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Protect against self-requeue of a cq work item
-Date: Fri, 24 Mar 2017 16:41:54 -0400
-Message-ID: <1490388114.2404.24.camel@redhat.com>
-References: <1489003252-1893-1-git-send-email-sagi@grimberg.me>
+From: Vlad Tsyrklevich <vlad-NIZqynvkaCU43zv7NVfAiQ@public.gmane.org>
+Subject: Re: [PATCH v2] infiniband/uverbs: Fix integer overflows
+Date: Fri, 24 Mar 2017 16:45:44 -0400
+Message-ID: <CAH0z3hM8a4Hra3+gvz5HeFBcmkqmP0KhFQsFQh30SActK+p7mg@mail.gmail.com>
+References: <1490385317-35641-1-git-send-email-vlad@tsyrklevich.net> <1490385702.3312.18.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1489003252-1893-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <1490385702.3312.18.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-03-08 at 22:00 +0200, Sagi Grimberg wrote:
-> We need to make sure that the cq work item does not
-> run when we are destroying the cq. Unlike flush_work,
-> cancel_work_sync protects against self-requeue of the
-> work item (which we can do in ib_cq_poll_work).
-> 
-> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+[replying again to the list with HTML e-mails turned off]
 
-Hi Sagi, I didn't know if this was a theoretical or you actually hit
-this in practice, so I pulled it for -rc in case it was actually being
-hit in the wild.  Thanks.
+I doubt it. I chose to implement a naive integer overflow check here
+instead of checking against some device-specific value since I'm
+unfamiliar with the infiniband internals and don't have appropriate
+hardware to test such a change against.
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-   
-Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
+On Fri, Mar 24, 2017 at 4:02 PM, Bart Van Assche
+<Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
+> On Fri, 2017-03-24 at 15:55 -0400, Vlad Tsyrklevich wrote:
+>> The 'num_sge' variable is verfied to be smaller than the 'sge_count'
+>> variable; however, since both are user-controlled it's possible to cause
+>> an integer overflow for the kmalloc multiply on 32-bit platforms
+>> (num_sge and sge_count are both defined u32). By crafting an input that
+>> causes a smaller-than-expected allocation it's possible to write
+>> controlled data out-of-bounds.
+>
+> Hello Vlad,
+>
+> Do you think that an RDMA driver exists that supports a max_sge value that
+> is large enough to cause this multiplication to overflow?
+>
+> Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
