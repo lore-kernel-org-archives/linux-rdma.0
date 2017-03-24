@@ -1,46 +1,44 @@
-From: Jack Wang <jinpu.wang@profitbricks.com>
-Subject: [PATCH 14/28] ibnbd: add headers shared by ibnbd_client and ibnbd_server
-Date: Fri, 24 Mar 2017 11:45:29 +0100
-Message-ID: <1490352343-20075-15-git-send-email-jinpu.wangl@profitbricks.com>
+From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: [PATCH 18/28] ibnbd_clt: add sysfs interface
+Date: Fri, 24 Mar 2017 11:45:33 +0100
+Message-ID: <1490352343-20075-19-git-send-email-jinpu.wangl@profitbricks.com>
 References: <1490352343-20075-1-git-send-email-jinpu.wangl@profitbricks.com>
-Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <1490352343-20075-1-git-send-email-jinpu.wangl@profitbricks.com>
-Sender: linux-block-owner@vger.kernel.org
-To: linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: dledford@redhat.com, axboe@kernel.dk, hch@lst.de, mail@fholler.de, Milind.dumbare@gmail.com, yun.wang@profitbricks.com, Jack Wang <jinpu.wang@profitbricks.com>, Kleber Souza <kleber.souza@profitbricks.com>, Danil Kipnis <danil.kipnis@profitbricks.com>, Roman Pen <roman.penyaev@profitbricks.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1490352343-20075-1-git-send-email-jinpu.wangl-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, mail-99BIx50xQYGELgA04lAiVw@public.gmane.org, Milind.dumbare-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org, Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Kleber Souza <kleber.souza-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jack Wang <jinpu.wang@profitbricks.com>
+From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 
-Signed-off-by: Jack Wang <jinpu.wang@profitbricks.com>
-Signed-off-by: Kleber Souza <kleber.souza@profitbricks.com>
-Signed-off-by: Danil Kipnis <danil.kipnis@profitbricks.com>
-Signed-off-by: Roman Pen <roman.penyaev@profitbricks.com>
+Signed-off-by: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Signed-off-by: Kleber Souza <kleber.souza-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Signed-off-by: Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Signed-off-by: Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- drivers/block/ibnbd_inc/ibnbd-proto.h | 273 ++++++++++++++++++++++++++++++++++
- drivers/block/ibnbd_inc/ibnbd.h       |  55 +++++++
- drivers/block/ibnbd_inc/log.h         |  68 +++++++++
- 3 files changed, 396 insertions(+)
- create mode 100644 drivers/block/ibnbd_inc/ibnbd-proto.h
- create mode 100644 drivers/block/ibnbd_inc/ibnbd.h
- create mode 100644 drivers/block/ibnbd_inc/log.h
+ drivers/block/ibnbd_client/ibnbd_clt_sysfs.c | 863 +++++++++++++++++++++++++++
+ drivers/block/ibnbd_client/ibnbd_clt_sysfs.h |  64 ++
+ 2 files changed, 927 insertions(+)
+ create mode 100644 drivers/block/ibnbd_client/ibnbd_clt_sysfs.c
+ create mode 100644 drivers/block/ibnbd_client/ibnbd_clt_sysfs.h
 
-diff --git a/drivers/block/ibnbd_inc/ibnbd-proto.h b/drivers/block/ibnbd_inc/ibnbd-proto.h
+diff --git a/drivers/block/ibnbd_client/ibnbd_clt_sysfs.c b/drivers/block/ibnbd_client/ibnbd_clt_sysfs.c
 new file mode 100644
-index 0000000..4838177
+index 0000000..89d487c
 --- /dev/null
-+++ b/drivers/block/ibnbd_inc/ibnbd-proto.h
-@@ -0,0 +1,273 @@
++++ b/drivers/block/ibnbd_client/ibnbd_clt_sysfs.c
+@@ -0,0 +1,863 @@
 +/*
 + * InfiniBand Network Block Driver
 + *
 + * Copyright (c) 2014 - 2017 ProfitBricks GmbH. All rights reserved.
-+ * Authors: Fabian Holler < mail@fholler.de>
-+ *          Jack Wang <jinpu.wang@profitbricks.com>
-+ *   	    Kleber Souza <kleber.souza@profitbricks.com>
-+ * 	    Danil Kipnis <danil.kipnis@profitbricks.com>
-+ *   	    Roman Pen <roman.penyaev@profitbricks.com>
-+ *          Milind Dumbare <Milind.dumbare@gmail.com>
++ * Authors: Fabian Holler < mail-99BIx50xQYGELgA04lAiVw@public.gmane.org>
++ *          Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ *   	    Kleber Souza <kleber.souza-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ * 	    Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ *   	    Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ *          Milind Dumbare <Milind.dumbare-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 + *
 + *
 + * Redistribution and use in source and binary forms, with or without
@@ -77,310 +75,839 @@ index 0000000..4838177
 + *
 + */
 +
-+#ifndef __IBNBD_PROTO_H
-+#define __IBNBD_PROTO_H
-+#include <linux/limits.h>
-+#include "ibnbd.h"
-+
-+#define IBNBD_VERSION 1
-+
-+#define GCC_DIAGNOSTIC_AWARE ((__GNUC__ > 6))
-+#if GCC_DIAGNOSTIC_AWARE
-+#pragma GCC diagnostic push
-+#pragma GCC diagnostic warning "-Wpadded"
-+#endif
-+
-+/**
-+ * enum ibnbd_msg_types - IBNBD message types
-+ * @IBNBD_MSG_SESS_INFO:	initial session info from client to server
-+ * @IBNBD_MSG_SESS_INFO_RSP:	initial session info from server to client
-+ * @IBNBD_MSG_OPEN:		open connection to ibnbd server instance
-+ * @IBNBD_MSG_OPEN_RSP:		response to an @IBNBD_MSG_OPEN
-+ * @IBNBD_MSG_READ:		request block device read operation
-+ * @IBNBD_MSG_WRITE:		request block device write operation
-+ * @IBNBD_MSG_REVAL:		notify client about changed device size
-+ *
-+ * Note: DO NOT REORDER THE MEMBERS OF THIS ENUM!
-+ * If necessary, add new members after the last one.
-+ */
-+enum ibnbd_msg_type {
-+	__IBNBD_MSG_MIN,
-+	IBNBD_MSG_SESS_INFO,
-+	IBNBD_MSG_SESS_INFO_RSP,
-+	IBNBD_MSG_OPEN,
-+	IBNBD_MSG_OPEN_RSP,
-+	IBNBD_MSG_IO,
-+	IBNBD_MSG_CLOSE,
-+	IBNBD_MSG_CLOSE_RSP,
-+	IBNBD_MSG_REVAL,
-+	__IBNBD_MSG_MAX
-+};
-+
-+/**
-+ * struct ibnbd_msg_hdr - header of IBNBD messages
-+ * @type:	Message type, valid values see: enum ibnbd_msg_types
-+ */
-+struct ibnbd_msg_hdr {
-+	u16		type;
-+	u16		__padding;
-+};
-+
-+enum ibnbd_access_mode {
-+	IBNBD_ACCESS_RO,
-+	IBNBD_ACCESS_RW,
-+	IBNBD_ACCESS_MIGRATION,
-+};
-+
-+#define _IBNBD_FILEIO  0
-+#define _IBNBD_BLOCKIO 1
-+#define _IBNBD_AUTOIO  2
-+
-+enum ibnbd_io_mode {
-+	IBNBD_FILEIO = _IBNBD_FILEIO,
-+	IBNBD_BLOCKIO = _IBNBD_BLOCKIO,
-+	IBNBD_AUTOIO = _IBNBD_AUTOIO,
-+};
-+
-+/**
-+ * struct ibnbd_msg_sess_info - initial session info from client to server
-+ * @hdr:		message header
-+ * @ver:		IBNBD protocol version
-+ *
-+ * Note: DO NOT CHANGE THE ORDER OF THE MEMBERS BEFORE 'ver'
-+ */
-+struct ibnbd_msg_sess_info {
-+	struct ibnbd_msg_hdr hdr;
-+
-+	u8		ver;
-+	u8		reserved[31];
-+};
-+
-+/**
-+ * struct ibnbd_msg_sess_info_rsp - initial session info from server to client
-+ * @hdr:		message header
-+ * @ver:		IBNBD protocol version
-+ *
-+ * Note: DO NOT CHANGE THE ORDER OF THE MEMBERS BEFORE 'ver'
-+ */
-+struct ibnbd_msg_sess_info_rsp {
-+	struct ibnbd_msg_hdr hdr;
-+
-+	u8		ver;
-+	u8		reserved[31];
-+};
-+
-+/**
-+ * struct ibnbd_msg_open - request to open a remote device.
-+ * @hdr:		message header
-+ * @clt_device_id:	device_id on client side to identify the device
-+ * @access_mode:	the mode to open remote device, valid values see:
-+ *			enum ibnbd_access_mode
-+ * @io_mode:		Open volume on server as block device or as file
-+ * @device_name:	device path on remote side
-+ */
-+struct ibnbd_msg_open {
-+	struct ibnbd_msg_hdr hdr;
-+	u32		clt_device_id;
-+	u8		access_mode;
-+	u8		io_mode;
-+	s8		dev_name[NAME_MAX];
-+	u8		__padding[3];
-+};
-+
-+/**
-+ * struct ibnbd_msg_close - request to close a remote device.
-+ * @hdr:	message header
-+ * @device_id:	device_id on server side to identify the device
-+ */
-+struct ibnbd_msg_close {
-+	struct ibnbd_msg_hdr hdr;
-+	u32		device_id;
-+};
-+
-+/**
-+ * struct ibnbd_msg_close_rsp - response to a close device message.
-+ * @hdr:	message header
-+ * @clt_device_id:	device_id on client side
-+ */
-+struct ibnbd_msg_close_rsp {
-+	struct ibnbd_msg_hdr hdr;
-+	u32		clt_device_id;
-+};
-+
-+/**
-+ * struct ibnbd_msg_open_rsp - response message to IBNBD_MSG_OPEN
-+ * @hdr:		message header
-+ * @result:		0 on success or negative error code on failure
-+ * @clt_device_id:	device_id on client side
-+ * @device_id:		device_id on server side to identify the device
-+ * @queue_flags:	queue_flags of the device on server side
-+ * @max_hw_sectors:	max hardware sectors in the usual 512b unit
-+ * @max_write_same_sectors: max sectors for WRITE SAME in the 512b unit
-+ * @max_discard_sectors: max. sectors that can be discarded at once
-+ * @discard_zeroes_data: discarded areas are overwritten with 0?
-+ * @discard_granularity: size of the internal discard allocation unit
-+ * @discard_alignment: offset from internal allocation assignment
-+ * @physical_block_size: physical block size device supports
-+ * @logical_block_size: logical block size device supports
-+ * @max_segments:	max segments hardware support in one transfer
-+ * @nsectors:		number of sectors
-+ * @secure_discard:	supports secure discard
-+ * @rotation:		is a rotational disc?
-+ * @io_mode:		io_mode device is opened.
-+ */
-+struct ibnbd_msg_open_rsp {
-+	struct ibnbd_msg_hdr	hdr;
-+	s32			result;
-+	u32			clt_device_id;
-+	u32			device_id;
-+	u32			max_hw_sectors;
-+	u32			max_write_same_sectors;
-+	u32			max_discard_sectors;
-+	u32			discard_zeroes_data;
-+	u32			discard_granularity;
-+	u32			discard_alignment;
-+	u16			physical_block_size;
-+	u16			logical_block_size;
-+	u16			max_segments;
-+	u16			secure_discard;
-+	u64			nsectors;
-+	u8			rotational;
-+	u8			io_mode;
-+	u8			__padding[6];
-+};
-+
-+/**
-+ * enum ibnbd_io_flags - IBNBD request types from rq_flag_bits
-+ * @IBNBD_RW_REQ_WRITE:	bit not set = read, bit set = write
-+ * @IBNBD_RW_REQ_SYNC:	request is sync
-+ * @IBNBD_RW_REQ_DISCARD: request to discard sectors
-+ * @IBNBD_RW_REQ_SECURE: secure discard request
-+ * @IBNBD_RW_REQ_WRITE_SAME: write same block many times
-+ */
-+enum ibnbd_io_flags {
-+	IBNBD_RW_REQ_WRITE		= 1 << 1,
-+	IBNBD_RW_REQ_SYNC		= 1 << 2,
-+	IBNBD_RW_REQ_DISCARD		= 1 << 3,
-+	IBNBD_RW_REQ_SECURE		= 1 << 4,
-+	IBNBD_RW_REQ_WRITE_SAME		= 1 << 5,
-+	IBNBD_RW_REQ_FUA		= 1 << 6,
-+	IBNBD_RW_REQ_FLUSH		= 1 << 7
-+};
-+
-+/**
-+ * struct ibnbd_msg_revalidate - notify client about new device size
-+ * @hdr:		message header
-+ * @clt_device_id:	device_id on client side
-+ * @nsectors:		number of sectors
-+ */
-+struct ibnbd_msg_revalidate {
-+	struct ibnbd_msg_hdr	hdr;
-+	u32			clt_device_id;
-+	u64			nsectors;
-+};
-+
-+/**
-+ * struct ibnbd_msg_io - message for I/O read/write
-+ * @hdr:	message header
-+ * @device_id:	device_id on server side to find the right device
-+ * @sector:	bi_sector attribute from struct bio
-+ * @rw:		bitmask, valid values are defined in enum ibnbd_io_flags
-+ * @bi_size:   number of bytes for I/O read/write
-+ */
-+struct ibnbd_msg_io {
-+	struct ibnbd_msg_hdr hdr;
-+	u32		device_id;
-+	u64		sector;
-+	u32		rw;
-+	u32		bi_size;
-+};
-+
-+#if GCC_DIAGNOSTIC_AWARE
-+#pragma GCC diagnostic pop
-+#endif
-+
-+int ibnbd_validate_message(const void *data, size_t len);
-+const char *ibnbd_io_mode_str(enum ibnbd_io_mode mode);
-+const char *ibnbd_access_mode_str(enum ibnbd_access_mode mode);
-+
-+#endif /* __IBNBD_PROTO_H */
-diff --git a/drivers/block/ibnbd_inc/ibnbd.h b/drivers/block/ibnbd_inc/ibnbd.h
-new file mode 100644
-index 0000000..4b691dc
---- /dev/null
-+++ b/drivers/block/ibnbd_inc/ibnbd.h
-@@ -0,0 +1,55 @@
-+/*
-+ * InfiniBand Network Block Driver
-+ *
-+ * Copyright (c) 2014 - 2017 ProfitBricks GmbH. All rights reserved.
-+ * Authors: Fabian Holler < mail@fholler.de>
-+ *          Jack Wang <jinpu.wang@profitbricks.com>
-+ *   	    Kleber Souza <kleber.souza@profitbricks.com>
-+ * 	    Danil Kipnis <danil.kipnis@profitbricks.com>
-+ *   	    Roman Pen <roman.penyaev@profitbricks.com>
-+ *          Milind Dumbare <Milind.dumbare@gmail.com>
-+ *
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ * 1. Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions, and the following disclaimer,
-+ *    without modification.
-+ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
-+ *    substantially similar to the "NO WARRANTY" disclaimer below
-+ *    ("Disclaimer") and any redistribution must be conditioned upon
-+ *    including a substantially similar Disclaimer requirement for further
-+ *    binary redistribution.
-+ * 3. Neither the names of the above-listed copyright holders nor the names
-+ *    of any contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * Alternatively, this software may be distributed under the terms of the
-+ * GNU General Public License ("GPL") version 2 as published by the Free
-+ * Software Foundation.
-+ *
-+ * NO WARRANTY
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-+ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-+ * POSSIBILITY OF SUCH DAMAGES.
-+ *
-+ */
-+
-+#ifndef __IBNBD_H
-+#define __IBNBD_H
 +#include <linux/types.h>
-+#include <linux/blkdev.h>
++#include <linux/ctype.h>
++#include <linux/parser.h>
++#include <linux/module.h>
++#include "ibnbd_clt_sysfs.h"
++#include "ibnbd_clt.h"
++#include <rdma/ibtrs.h>
++#include <rdma/ib.h>
 +
++static struct kobject *ibnbd_kobject;
++static struct kobject *ibnbd_devices_kobject;
++static DEFINE_MUTEX(sess_lock);
 +
-+u32 rq_cmd_to_ibnbd_io_flags(struct request *rq);
-+u32 ibnbd_io_flags_to_bi_rw(u32 flags);
-+#endif
-diff --git a/drivers/block/ibnbd_inc/log.h b/drivers/block/ibnbd_inc/log.h
++struct ibnbd_clt_dev_destroy_kobj_work {
++	struct ibnbd_dev	*dev;
++	struct work_struct	work;
++};
++
++enum {
++	IBNBD_OPT_ERR		= 0,
++	IBNBD_OPT_SERVER	= 1 << 0,
++	IBNBD_OPT_DEV_PATH	= 1 << 1,
++	IBNBD_OPT_ACCESS_MODE	= 1 << 3,
++	IBNBD_OPT_INPUT_MODE	= 1 << 4,
++	IBNBD_OPT_IO_MODE	= 1 << 5,
++};
++
++static unsigned ibnbd_opt_mandatory[] = {
++	IBNBD_OPT_SERVER,
++	IBNBD_OPT_DEV_PATH,
++};
++
++static const match_table_t ibnbd_opt_tokens = {
++	{	IBNBD_OPT_SERVER,	"server=%s"		},
++	{	IBNBD_OPT_DEV_PATH,	"device_path=%s"	},
++	{	IBNBD_OPT_ACCESS_MODE,	"access_mode=%s"	},
++	{	IBNBD_OPT_INPUT_MODE,	"input_mode=%s"		},
++	{	IBNBD_OPT_IO_MODE,	"io_mode=%s"		},
++	{	IBNBD_OPT_ERR,		NULL			},
++};
++
++/* remove new line from string */
++static void strip(char *s)
++{
++	char *p = s;
++
++	while (*s != '\0') {
++		if (*s != '\n')
++			*p++ = *s++;
++		else
++			++s;
++	}
++	*p = '\0';
++}
++
++static int ibnbd_clt_parse_map_options(const char *buf, char *server_addr,
++				       char *pathname,
++				       enum ibnbd_access_mode *access_mode,
++				       enum ibnbd_queue_mode *queue_mode,
++				       enum ibnbd_io_mode *io_mode)
++{
++	char *options, *sep_opt;
++	char *p;
++	substring_t args[MAX_OPT_ARGS];
++	int opt_mask = 0;
++	int token;
++	int ret = -EINVAL;
++	int i;
++
++	options = kstrdup(buf, GFP_KERNEL);
++	if (!options)
++		return -ENOMEM;
++
++	options = strstrip(options);
++	strip(options);
++	sep_opt = options;
++	while ((p = strsep(&sep_opt, " ")) != NULL) {
++		if (!*p)
++			continue;
++
++		token = match_token(p, ibnbd_opt_tokens, args);
++		opt_mask |= token;
++
++		switch (token) {
++		case IBNBD_OPT_SERVER:
++			p = match_strdup(args);
++			if (!p) {
++				ret = -ENOMEM;
++				goto out;
++			}
++			if (strlen(p) > IBTRS_ADDRLEN) {
++				ERR_NP("map_device: Server address too long\n");
++				ret = -EINVAL;
++				goto out;
++			}
++			strlcpy(server_addr, p, IBTRS_ADDRLEN);
++			kfree(p);
++			break;
++
++		case IBNBD_OPT_DEV_PATH:
++			p = match_strdup(args);
++			if (!p) {
++				ret = -ENOMEM;
++				goto out;
++			}
++			if (strlen(p) > NAME_MAX) {
++				ERR_NP("map_device: Device path too long\n");
++				ret = -EINVAL;
++				goto out;
++			}
++			strlcpy(pathname, p, NAME_MAX);
++			kfree(p);
++			break;
++
++		case IBNBD_OPT_ACCESS_MODE:
++			p = match_strdup(args);
++			if (!p) {
++				ret = -ENOMEM;
++				goto out;
++			}
++
++			if (!strcmp(p, "ro")) {
++				*access_mode = IBNBD_ACCESS_RO;
++			} else if (!strcmp(p, "rw")) {
++				*access_mode = IBNBD_ACCESS_RW;
++			} else if (!strcmp(p, "migration")) {
++				*access_mode = IBNBD_ACCESS_MIGRATION;
++			} else {
++				ERR_NP("map_device: Invalid access_mode:"
++				       " '%s'\n", p);
++				ret = -EINVAL;
++				kfree(p);
++				goto out;
++			}
++
++			kfree(p);
++			break;
++
++		case IBNBD_OPT_INPUT_MODE:
++			p = match_strdup(args);
++			if (!p) {
++				ret = -ENOMEM;
++				goto out;
++			}
++			if (!strcmp(p, "mq")) {
++				*queue_mode = BLK_MQ;
++			} else if (!strcmp(p, "rq")) {
++				*queue_mode = BLK_RQ;
++			} else {
++				ERR_NP("map_device: Invalid input_mode: "
++				       "'%s'.\n", p);
++				ret = -EINVAL;
++				kfree(p);
++				goto out;
++			}
++			kfree(p);
++			break;
++
++		case IBNBD_OPT_IO_MODE:
++			p = match_strdup(args);
++			if (!p) {
++				ret = -ENOMEM;
++				goto out;
++			}
++			if (!strcmp(p, "blockio")) {
++				*io_mode = IBNBD_BLOCKIO;
++			} else if (!strcmp(p, "fileio")) {
++				*io_mode = IBNBD_FILEIO;
++			} else {
++				ERR_NP("map_device: Invalid io_mode: '%s'.\n",
++				       p);
++				ret = -EINVAL;
++				kfree(p);
++				goto out;
++			}
++			kfree(p);
++			break;
++
++		default:
++			ERR_NP("map_device: Unknown parameter or missing value"
++			       " '%s'\n", p);
++			ret = -EINVAL;
++			goto out;
++		}
++	}
++
++	for (i = 0; i < ARRAY_SIZE(ibnbd_opt_mandatory); i++) {
++		if ((opt_mask & ibnbd_opt_mandatory[i])) {
++			ret = 0;
++		} else {
++			ERR_NP("map_device: Parameters missing\n");
++			ret = -EINVAL;
++			break;
++		}
++	}
++
++out:
++	kfree(options);
++	return ret;
++}
++
++int ibnbd_clt_get_sess(struct ibnbd_session *sess)
++{
++	return kref_get_unless_zero(&sess->refcount);
++}
++
++void ibnbd_clt_put_sess(struct ibnbd_session *sess)
++{
++	mutex_lock(&sess_lock);
++	kref_put(&sess->refcount, ibnbd_clt_sess_release);
++	mutex_unlock(&sess_lock);
++}
++
++static void ibnbd_clt_dev_destroy_kobjs(struct ibnbd_dev *dev)
++{
++	kobject_del(&dev->kobj);
++	kobject_put(&dev->kobj);
++}
++
++static ssize_t ibnbd_clt_state_show(struct kobject *kobj,
++				    struct kobj_attribute *attr, char *page)
++{
++	struct ibnbd_dev *dev = container_of(kobj, struct ibnbd_dev, kobj);
++
++	switch (dev->dev_state) {
++	case (DEV_STATE_INIT):
++		return scnprintf(page, PAGE_SIZE, "init\n");
++	case (DEV_STATE_OPEN):
++		return scnprintf(page, PAGE_SIZE, "open\n");
++	case (DEV_STATE_CLOSED):
++		return scnprintf(page, PAGE_SIZE, "closed\n");
++	case (DEV_STATE_UNMAPPED):
++		return scnprintf(page, PAGE_SIZE, "unmapped\n");
++	default:
++		return scnprintf(page, PAGE_SIZE, "unknown\n");
++	}
++}
++
++static struct kobj_attribute ibnbd_clt_state_attr =
++	__ATTR(state, 0444, ibnbd_clt_state_show, NULL);
++
++static ssize_t ibnbd_clt_input_mode_show(struct kobject *kobj,
++					 struct kobj_attribute *attr,
++					 char *page)
++{
++	struct ibnbd_dev *dev = container_of(kobj, struct ibnbd_dev, kobj);
++
++	return scnprintf(page, PAGE_SIZE, "%s\n",
++			 ibnbd_queue_mode_str(dev->queue_mode));
++}
++
++static struct kobj_attribute ibnbd_clt_input_mode_attr =
++	__ATTR(input_mode, 0444, ibnbd_clt_input_mode_show, NULL);
++
++static ssize_t ibnbd_clt_mapping_path_show(struct kobject *kobj,
++					   struct kobj_attribute *attr,
++					   char *page)
++{
++	struct ibnbd_dev *dev;
++
++	dev = container_of(kobj, struct ibnbd_dev, kobj);
++
++	return scnprintf(page, PAGE_SIZE, "%s\n", dev->pathname);
++}
++
++static struct kobj_attribute ibnbd_clt_mapping_path_attr =
++	__ATTR(mapping_path, 0444, ibnbd_clt_mapping_path_show, NULL);
++
++static ssize_t ibnbd_clt_io_mode_show(struct kobject *kobj,
++				      struct kobj_attribute *attr, char *page)
++{
++	struct ibnbd_dev *dev = container_of(kobj, struct ibnbd_dev, kobj);
++
++	return scnprintf(page, PAGE_SIZE, "%s\n",
++			 ibnbd_io_mode_str(dev->remote_io_mode));
++}
++
++static struct kobj_attribute ibnbd_clt_io_mode =
++	__ATTR(io_mode, 0444, ibnbd_clt_io_mode_show, NULL);
++
++static ssize_t ibnbd_clt_unmap_dev_show(struct kobject *kobj,
++					struct kobj_attribute *attr, char *page)
++{
++	return scnprintf(page, PAGE_SIZE, "Usage: echo <normal|force> > %s\n",
++			 attr->attr.name);
++}
++
++static void ibnbd_clt_dev_kobj_destroy_worker(struct work_struct *work)
++{
++	struct ibnbd_clt_dev_destroy_kobj_work *destroy_work;
++	struct ibnbd_dev *dev;
++
++	destroy_work = container_of(work,
++				    struct ibnbd_clt_dev_destroy_kobj_work,
++				    work);
++	dev = destroy_work->dev;
++	kobject_get(&dev->kobj);
++	ibnbd_clt_dev_destroy_kobjs(dev);
++	kobject_put(&dev->kobj);
++	kfree(destroy_work);
++}
++
++void ibnbd_clt_schedule_dev_destroy(struct ibnbd_dev *dev)
++{
++	struct ibnbd_clt_dev_destroy_kobj_work *destroy_work = NULL;
++
++	/* memory allocation cannot fail, otherwise the last reference to the
++	 * session will never be put
++	 */
++	while (!destroy_work) {
++		destroy_work = kmalloc(sizeof(*destroy_work),
++				       (GFP_KERNEL | __GFP_REPEAT));
++		if (!destroy_work)
++			cond_resched();
++	}
++
++	destroy_work->dev = dev;
++	INIT_WORK(&destroy_work->work, ibnbd_clt_dev_kobj_destroy_worker);
++	if (WARN(!schedule_work(&destroy_work->work),
++		 "failed to schedule work\n"))
++		kfree(destroy_work);
++}
++
++static ssize_t ibnbd_clt_unmap_dev_store(struct kobject *kobj,
++					 struct kobj_attribute *attr,
++					 const char *buf, size_t count)
++{
++	int err;
++	struct ibnbd_dev *dev;
++	bool force;
++	char *options;
++
++	if (!try_module_get(THIS_MODULE))
++		return -ENODEV;
++	options = kstrdup(buf, GFP_KERNEL);
++	if (!options)
++		return -ENOMEM;
++
++	options = strstrip(options);
++	strip(options);
++
++	dev = container_of(kobj, struct ibnbd_dev, kobj);
++
++	if (dev->dev_state == DEV_STATE_UNMAPPED) {
++		err = -EALREADY;
++		goto out;
++	}
++
++	if (sysfs_streq(options, "normal")) {
++		force = false;
++	} else if (sysfs_streq(options, "force")) {
++		force = true;
++	} else {
++		ERR(dev, "unmap_device: Invalid value: %s\n", options);
++		err = -EINVAL;
++		goto out;
++	}
++
++	INFO(dev, "Unmapping device, option: %s.\n",
++	     force ? "force" : "normal");
++
++	err = ibnbd_close_device(dev, force);
++	if (err) {
++		ERR(dev, "unmap_device: Failed to close device, errno: %d\n",
++		    err);
++		goto out;
++	}
++
++	wait_for_completion(dev->close_compl);
++
++	ibnbd_clt_schedule_dev_destroy(dev);
++
++	module_put(THIS_MODULE);
++	kfree(options);
++	return count;
++out:
++	module_put(THIS_MODULE);
++	kfree(options);
++	return err;
++}
++
++static struct kobj_attribute ibnbd_clt_unmap_device_attr =
++	__ATTR(unmap_device, 0644, ibnbd_clt_unmap_dev_show,
++	       ibnbd_clt_unmap_dev_store);
++
++static ssize_t ibnbd_clt_remap_dev_show(struct kobject *kobj,
++					struct kobj_attribute *attr, char *page)
++{
++	return scnprintf(page, PAGE_SIZE, "Usage: echo <1> > %s\n",
++			 attr->attr.name);
++}
++
++static ssize_t ibnbd_clt_remap_dev_store(struct kobject *kobj,
++					 struct kobj_attribute *attr,
++					 const char *buf, size_t count)
++{
++	int err;
++	struct ibnbd_dev *dev;
++	char *options;
++
++	options = kstrdup(buf, GFP_KERNEL);
++	if (!options)
++		return -ENOMEM;
++
++	options = strstrip(options);
++	strip(options);
++
++	dev = container_of(kobj, struct ibnbd_dev, kobj);
++	if (!sysfs_streq(options, "1")) {
++		ERR(dev, "remap_device: Invalid value: %s\n", options);
++		err = -EINVAL;
++		goto out;
++	}
++
++	mutex_lock(&dev->lock);
++	if (dev->dev_state == DEV_STATE_UNMAPPED) {
++		err = -EIO;
++		mutex_unlock(&dev->lock);
++		goto out;
++	} else if (dev->dev_state == DEV_STATE_OPEN) {
++		mutex_unlock(&dev->lock);
++		goto out1;
++	} else if (dev->dev_state == DEV_STATE_CLOSED) {
++		mutex_unlock(&dev->lock);
++		INFO(dev, "Remapping device.\n");
++
++		err = open_remote_device(dev);
++		if (err) {
++			ERR(dev, "remap_device: Failed to remap device,"
++			    " errno: %d\n", err);
++			goto out;
++		}
++	}
++
++out1:
++	kfree(options);
++	return count;
++out:
++	kfree(options);
++	return err;
++}
++
++static struct kobj_attribute ibnbd_clt_remap_device_attr =
++	__ATTR(remap_device, 0644, ibnbd_clt_remap_dev_show,
++	       ibnbd_clt_remap_dev_store);
++
++static ssize_t ibnbd_clt_session_show(struct kobject *kobj,
++				      struct kobj_attribute *attr,
++				      char *page)
++{
++	struct ibnbd_dev *dev = container_of(kobj, struct ibnbd_dev, kobj);
++	char server_addr[IBTRS_ADDRLEN];
++	int ret;
++
++	if (dev->dev_state == DEV_STATE_UNMAPPED)
++		return -EIO;
++
++	ret = ibtrs_addr_to_str(&dev->sess->addr, server_addr,
++				sizeof(server_addr));
++
++	if (ret >= sizeof(server_addr))
++		return -ENOBUFS;
++	if (ret < 0)
++		return ret;
++
++	return scnprintf(page, PAGE_SIZE, "%s\n", server_addr);
++}
++
++static struct kobj_attribute ibnbd_clt_session_attr =
++	__ATTR(session, 0444, ibnbd_clt_session_show, NULL);
++
++static struct attribute *ibnbd_dev_attrs[] = {
++	&ibnbd_clt_unmap_device_attr.attr,
++	&ibnbd_clt_remap_device_attr.attr,
++	&ibnbd_clt_mapping_path_attr.attr,
++	&ibnbd_clt_state_attr.attr,
++	&ibnbd_clt_input_mode_attr.attr,
++	&ibnbd_clt_session_attr.attr,
++	&ibnbd_clt_io_mode.attr,
++	NULL,
++};
++
++void ibnbd_clt_remove_dev_symlink(struct ibnbd_dev *dev)
++{
++	if (strlen(dev->blk_symlink_name))
++		sysfs_remove_link(ibnbd_devices_kobject, dev->blk_symlink_name);
++}
++
++static void ibnbd_clt_dev_release(struct kobject *kobj)
++{
++	struct ibnbd_dev *dev;
++
++	dev = container_of(kobj, struct ibnbd_dev, kobj);
++	ibnbd_destroy_gen_disk(dev);
++}
++
++static struct kobj_type ibnbd_dev_ktype = {
++	.sysfs_ops      = &kobj_sysfs_ops,
++	.default_attrs  = ibnbd_dev_attrs,
++	.release	= ibnbd_clt_dev_release,
++};
++
++static int ibnbd_clt_add_dev_kobj(struct ibnbd_dev *dev)
++{
++	int ret;
++	struct kobject *gd_kobj = &disk_to_dev(dev->gd)->kobj;
++
++	ret = kobject_init_and_add(&dev->kobj, &ibnbd_dev_ktype, gd_kobj, "%s",
++				   "ibnbd");
++	if (ret)
++		ERR(dev, "Failed to create device sysfs dir, errno: %d\n", ret);
++
++	return ret;
++}
++
++static int ibnbd_clt_str_ipv4_to_sockaddr(const char *con_addr,
++					  struct sockaddr_storage *dst)
++{
++	int ret;
++	char ipaddr[INET6_ADDRSTRLEN];
++	struct sockaddr_in *dst_sin = (struct sockaddr_in *)dst;
++	u8 ip4[4];
++
++	strlcpy(ipaddr, &con_addr[IP_PREFIX_LEN], sizeof(ipaddr));
++
++	ret = in4_pton(ipaddr, strlen(ipaddr), ip4, '\0', NULL);
++	if (ret == 0)
++		return -EINVAL;
++
++	memcpy(&dst_sin->sin_addr.s_addr, ip4,
++	       sizeof(dst_sin->sin_addr.s_addr));
++	dst_sin->sin_family = AF_INET;
++	dst_sin->sin_port = htons(IBTRS_SERVER_PORT);
++
++	return 0;
++}
++
++static int ibnbd_clt_str_ipv6_to_sockaddr(const char *con_addr,
++					  struct sockaddr_storage *dst)
++{
++	int ret;
++	char ipaddr[INET6_ADDRSTRLEN];
++	struct sockaddr_in6 *dst_sin6 = (struct sockaddr_in6 *)dst;
++
++	strlcpy(ipaddr, &con_addr[IP_PREFIX_LEN], sizeof(ipaddr));
++
++	ret = in6_pton(ipaddr, strlen(ipaddr),
++		       dst_sin6->sin6_addr.s6_addr,
++		       '\0', NULL);
++	if (ret != 1)
++		return -EINVAL;
++
++	dst_sin6->sin6_family = AF_INET6;
++	dst_sin6->sin6_port = htons(IBTRS_SERVER_PORT);
++
++	return 0;
++}
++
++static int ibnbd_clt_str_gid_to_sockaddr(const char *con_addr,
++					 struct sockaddr_storage *dst)
++{
++	int ret;
++	char gid[INET6_ADDRSTRLEN];
++	struct sockaddr_ib *dst_ib = (struct sockaddr_ib *)dst;
++
++	strlcpy(gid, &con_addr[GID_PREFIX_LEN], sizeof(gid));
++
++	/* We can use some of the I6 functions since GID is a valid
++	 * IPv6 address format
++	 */
++	ret = in6_pton(gid, strlen(gid),
++		       dst_ib->sib_addr.sib_raw, '\0', NULL);
++	if (ret == 0)
++		return -EINVAL;
++
++	dst_ib->sib_family = AF_IB;
++	/*
++	 * Use the same TCP server port number as the IB service ID
++	 * on the IB port space range
++	 */
++	dst_ib->sib_sid = cpu_to_be64(RDMA_IB_IP_PS_IB | IBTRS_SERVER_PORT);
++	dst_ib->sib_sid_mask = cpu_to_be64(0xffffffffffffffffULL);
++	dst_ib->sib_pkey = cpu_to_be16(0xffff);
++
++	return 0;
++}
++
++static int ibnbd_clt_str_to_sockaddr(char *addr,
++				     struct sockaddr_storage *sockaddr)
++{
++	if (strncmp(addr, GID_PREFIX, GID_PREFIX_LEN) == 0) {
++		return ibnbd_clt_str_gid_to_sockaddr(addr, sockaddr);
++	} else if (strncmp(addr, IP_PREFIX, IP_PREFIX_LEN) == 0) {
++		if (ibnbd_clt_str_ipv4_to_sockaddr(addr, sockaddr))
++			return ibnbd_clt_str_ipv6_to_sockaddr(addr, sockaddr);
++		else
++			return 0;
++	}
++	return -EPROTONOSUPPORT;
++}
++
++static struct ibnbd_session *
++ibnbd_clt_get_create_sess(struct sockaddr_storage *sockaddr)
++{
++	struct ibnbd_session *sess;
++
++	mutex_lock(&sess_lock);
++	sess = ibnbd_clt_find_sess(sockaddr);
++	if (sess) {
++		if (sess->state != SESS_STATE_READY ||
++		    !ibnbd_clt_get_sess(sess)) {
++			ERR_NP("Session is not connected or "
++			       "is being destroyed\n");
++			sess = ERR_PTR(-EIO);
++		}
++	} else {
++		sess = ibnbd_create_session(sockaddr);
++	}
++	mutex_unlock(&sess_lock);
++
++	return sess;
++}
++
++static ssize_t ibnbd_clt_map_device_show(struct kobject *kobj,
++					 struct kobj_attribute *attr,
++					 char *page)
++{
++	return scnprintf(page, PAGE_SIZE, "Usage: echo \"server=<address>"
++			 " device_path=<full path on remote side>"
++			 " [access_mode=<ro|rw|migration>]"
++			 " [input_mode=<mq|rq>]"
++			 " [io_mode=<fileio|blockio>]\" > %s\n\n"
++			 "address ::= [ ip:<ipv4> | ip:<ipv6> | gid:<gid> ]\n",
++			 attr->attr.name);
++}
++
++static int ibnbd_clt_get_path_name(struct ibnbd_dev *dev, char *buf,
++				   size_t len)
++{
++	int ret;
++	char pathname[NAME_MAX], *s;
++
++	strlcpy(pathname, dev->pathname, sizeof(pathname));
++	while ((s = strchr(pathname, '/')))
++		s[0] = '!';
++
++	ret = snprintf(buf, len, "%s", pathname);
++	if (ret >= len)
++		return -ENAMETOOLONG;
++
++	return 0;
++}
++
++static int ibnbd_clt_add_dev_symlink(struct ibnbd_dev *dev)
++{
++	struct kobject *gd_kobj = &disk_to_dev(dev->gd)->kobj;
++	int ret;
++
++	ret = ibnbd_clt_get_path_name(dev, dev->blk_symlink_name,
++				      sizeof(dev->blk_symlink_name));
++	if (ret) {
++		ERR(dev, "Failed to get /sys/block symlink path, error: %d.\n",
++		    ret);
++		goto out_err;
++	}
++
++	ret = sysfs_create_link(ibnbd_devices_kobject, gd_kobj,
++				dev->blk_symlink_name);
++	if (ret) {
++		ERR(dev, "Creating /sys/block symlink failed, error: %d.\n",
++		    ret);
++		goto out_err;
++	}
++
++	return 0;
++
++out_err:
++	dev->blk_symlink_name[0] = '\0';
++	return ret;
++}
++
++static ssize_t ibnbd_clt_map_device_store(struct kobject *kobj,
++					  struct kobj_attribute *attr,
++					  const char *buf, size_t count)
++{
++	struct ibnbd_session *sess;
++	struct ibnbd_dev *dev;
++	int ret;
++	char pathname[NAME_MAX];
++	char server_addr[IBTRS_ADDRLEN];
++	enum ibnbd_access_mode access_mode = IBNBD_ACCESS_RW;
++	enum ibnbd_queue_mode queue_mode = BLK_MQ;
++	enum ibnbd_io_mode io_mode = IBNBD_AUTOIO;
++	struct sockaddr_storage sockaddr;
++
++	ret = ibnbd_clt_parse_map_options(buf, server_addr, pathname,
++					  &access_mode, &queue_mode,
++					  &io_mode);
++	if (ret)
++		return ret;
++
++	ret = ibnbd_clt_str_to_sockaddr(server_addr, &sockaddr);
++	if (ret) {
++		if (ret == -EPROTONOSUPPORT)
++			ERR_NP("Invalid address protocol provided: %s\n",
++			       server_addr);
++		else
++			ERR_NP("Converting address to binary format failed: "
++			       "%s\n", server_addr);
++		return -EINVAL;
++	}
++
++	if (ibnbd_clt_dev_is_mapped(pathname)) {
++		ERR_NP("map_device: failed, Device with same path '%s' is"
++		       " already mapped\n", pathname);
++		return -EEXIST;
++	}
++
++	INFO_NP("Mapping device %s from server %s,"
++	      " (access_mode: %s, input_mode: %s, io_mode: %s)\n",
++	      pathname, server_addr, ibnbd_access_mode_str(access_mode),
++	      ibnbd_queue_mode_str(queue_mode), ibnbd_io_mode_str(io_mode));
++
++	sess = ibnbd_clt_get_create_sess(&sockaddr);
++	if (IS_ERR(sess))
++		return PTR_ERR(sess);
++
++	dev = ibnbd_client_add_device(sess, pathname, access_mode, queue_mode,
++				      io_mode);
++	if (IS_ERR(dev)) {
++		ret = PTR_ERR(dev);
++		goto out_sess_put;
++	}
++
++	ret = ibnbd_clt_add_dev_kobj(dev);
++	if (ret) {
++		if (!WARN_ON(ibnbd_close_device(dev, true)))
++			wait_for_completion(dev->close_compl);
++		/* ibnbd_destroy_gen_disk() will put the reference that was
++		 * acquired by ibnbd_client_add_device()
++		 */
++		ibnbd_destroy_gen_disk(dev);
++		goto out_sess_put;
++	}
++
++	ret = ibnbd_clt_add_dev_symlink(dev);
++	if (ret)
++		goto out_close_dev;
++
++	ibnbd_clt_put_sess(sess);
++	return count;
++
++out_close_dev:
++	if (!WARN_ON(ibnbd_close_device(dev, true)))
++		wait_for_completion(dev->close_compl);
++	kobject_del(&dev->kobj);
++	kobject_put(&dev->kobj);
++out_sess_put:
++	ibnbd_clt_put_sess(sess);
++
++	return ret;
++}
++
++static struct kobj_attribute ibnbd_clt_map_device_attr =
++	__ATTR(map_device, 0644,
++	       ibnbd_clt_map_device_show, ibnbd_clt_map_device_store);
++
++static struct attribute *default_attrs[] = {
++	&ibnbd_clt_map_device_attr.attr,
++	NULL,
++};
++
++static struct attribute_group default_attr_group = {
++	.attrs = default_attrs,
++};
++
++int ibnbd_clt_create_sysfs_files(void)
++{
++	int err = 0;
++
++	ibnbd_kobject = kobject_create_and_add("ibnbd", kernel_kobj);
++	if (!ibnbd_kobject) {
++		err = -ENOMEM;
++		goto err1;
++	}
++
++	ibnbd_devices_kobject = kobject_create_and_add("devices",
++						       ibnbd_kobject);
++	if (!ibnbd_devices_kobject) {
++		err = -ENOMEM;
++		goto err2;
++	}
++
++	err = sysfs_create_group(ibnbd_kobject, &default_attr_group);
++	if (err)
++		goto err3;
++
++	return 0;
++
++err3:
++	kobject_put(ibnbd_devices_kobject);
++err2:
++	kobject_put(ibnbd_kobject);
++err1:
++	return err;
++}
++
++void ibnbd_clt_destroy_default_group(void)
++{
++	sysfs_remove_group(ibnbd_kobject, &default_attr_group);
++}
++
++void ibnbd_clt_destroy_sysfs_files(void)
++{
++	kobject_put(ibnbd_devices_kobject);
++	kobject_put(ibnbd_kobject);
++}
+diff --git a/drivers/block/ibnbd_client/ibnbd_clt_sysfs.h b/drivers/block/ibnbd_client/ibnbd_clt_sysfs.h
 new file mode 100644
-index 0000000..9048bff
+index 0000000..34f6013
 --- /dev/null
-+++ b/drivers/block/ibnbd_inc/log.h
-@@ -0,0 +1,68 @@
++++ b/drivers/block/ibnbd_client/ibnbd_clt_sysfs.h
+@@ -0,0 +1,64 @@
 +/*
 + * InfiniBand Network Block Driver
 + *
 + * Copyright (c) 2014 - 2017 ProfitBricks GmbH. All rights reserved.
-+ * Authors: Fabian Holler < mail@fholler.de>
-+ *          Jack Wang <jinpu.wang@profitbricks.com>
-+ *   	    Kleber Souza <kleber.souza@profitbricks.com>
-+ * 	    Danil Kipnis <danil.kipnis@profitbricks.com>
-+ *   	    Roman Pen <roman.penyaev@profitbricks.com>
-+ *          Milind Dumbare <Milind.dumbare@gmail.com>
++ * Authors: Fabian Holler < mail-99BIx50xQYGELgA04lAiVw@public.gmane.org>
++ *          Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ *   	    Kleber Souza <kleber.souza-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ * 	    Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ *   	    Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ *          Milind Dumbare <Milind.dumbare-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 + *
 + *
 + * Redistribution and use in source and binary forms, with or without
@@ -417,27 +944,28 @@ index 0000000..9048bff
 + *
 + */
 +
-+#ifndef __IBNBD_LOG_H__
-+#define __IBNBD_LOG_H__
++#ifndef _IBNBD_CLT_SYSFS_H
++#define _IBNBD_CLT_SYSFS_H
 +
-+#define ERR_NP(fmt, ...) pr_err("ibnbd L%d ERR: " fmt, \
-+				__LINE__, ##__VA_ARGS__)
-+#define ERR_NP_RL(fmt, ...) pr_err_ratelimited("ibnbd L%d ERR: " fmt, \
-+				__LINE__, ##__VA_ARGS__)
++#include "ibnbd_clt.h"
 +
-+#define WRN_NP(fmt, ...) pr_warn("ibnbd L%d WARN: " fmt, \
-+				__LINE__, ##__VA_ARGS__)
-+#define WRN_NP_RL(fmt, ...) pr_warn_ratelimited("ibnbd L%d WARN: " fmt,\
-+				__LINE__, ##__VA_ARGS__)
++int ibnbd_clt_create_sysfs_files(void);
 +
-+#define INFO_NP(fmt, ...)  pr_info("ibnbd: " fmt, ##__VA_ARGS__)
-+#define INFO_NP_RL(fmt, ...) pr_info_ratelimited("ibnbd: " fmt, ##__VA_ARGS__)
++void ibnbd_clt_destroy_sysfs_files(void);
++void ibnbd_clt_destroy_default_group(void);
++void ibnbd_clt_schedule_dev_destroy(struct ibnbd_dev *dev);
 +
-+#define DEB(fmt, ...) pr_debug("ibnbd L%d " fmt, __LINE__, ##__VA_ARGS__)
++void ibnbd_clt_remove_dev_symlink(struct ibnbd_dev *dev);
 +
-+#define ibnbd_prefix(dev) ((dev->sess->hostname[0] != '\0') ? \
-+			    dev->sess->hostname : dev->sess->str_addr)
++int ibnbd_clt_get_sess(struct ibnbd_session *sess);
 +
-+#endif /*__IBNBD_LOG_H__*/
++void ibnbd_clt_put_sess(struct ibnbd_session *sess);
++
++#endif
 -- 
 2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
