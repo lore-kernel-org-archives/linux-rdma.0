@@ -1,74 +1,242 @@
-From: Jack Wang <jinpu.wang@profitbricks.com>
-Subject: [PATCH 08/28] ibtrs_clt: add Makefile and Kconfig
-Date: Fri, 24 Mar 2017 11:45:23 +0100
-Message-ID: <1490352343-20075-9-git-send-email-jinpu.wangl@profitbricks.com>
+From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: [PATCH 09/28] ibtrs_srv: add header file for exported interface
+Date: Fri, 24 Mar 2017 11:45:24 +0100
+Message-ID: <1490352343-20075-10-git-send-email-jinpu.wangl@profitbricks.com>
 References: <1490352343-20075-1-git-send-email-jinpu.wangl@profitbricks.com>
-Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <1490352343-20075-1-git-send-email-jinpu.wangl@profitbricks.com>
-Sender: linux-block-owner@vger.kernel.org
-To: linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: dledford@redhat.com, axboe@kernel.dk, hch@lst.de, mail@fholler.de, Milind.dumbare@gmail.com, yun.wang@profitbricks.com, Jack Wang <jinpu.wang@profitbricks.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1490352343-20075-1-git-send-email-jinpu.wangl-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, mail-99BIx50xQYGELgA04lAiVw@public.gmane.org, Milind.dumbare-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org, Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Kleber Souza <kleber.souza-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jack Wang <jinpu.wang@profitbricks.com>
+From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 
-Signed-off-by: Jack Wang <jinpu.wang@profitbricks.com>
+Signed-off-by: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Signed-off-by: Kleber Souza <kleber.souza-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Signed-off-by: Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Signed-off-by: Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 ---
- drivers/infiniband/Kconfig                   | 2 ++
- drivers/infiniband/ulp/Makefile              | 1 +
- drivers/infiniband/ulp/ibtrs_client/Kconfig  | 8 ++++++++
- drivers/infiniband/ulp/ibtrs_client/Makefile | 6 ++++++
- 4 files changed, 17 insertions(+)
- create mode 100644 drivers/infiniband/ulp/ibtrs_client/Kconfig
- create mode 100644 drivers/infiniband/ulp/ibtrs_client/Makefile
+ include/rdma/ibtrs_srv.h | 206 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 206 insertions(+)
+ create mode 100644 include/rdma/ibtrs_srv.h
 
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index 66f8602..cb1b864 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -85,6 +85,8 @@ source "drivers/infiniband/ulp/srpt/Kconfig"
- source "drivers/infiniband/ulp/iser/Kconfig"
- source "drivers/infiniband/ulp/isert/Kconfig"
- 
-+source "drivers/infiniband/ulp/ibtrs_client/Kconfig"
-+
- source "drivers/infiniband/sw/rdmavt/Kconfig"
- source "drivers/infiniband/sw/rxe/Kconfig"
- 
-diff --git a/drivers/infiniband/ulp/Makefile b/drivers/infiniband/ulp/Makefile
-index f3c7dcf..acd8ce6 100644
---- a/drivers/infiniband/ulp/Makefile
-+++ b/drivers/infiniband/ulp/Makefile
-@@ -3,3 +3,4 @@ obj-$(CONFIG_INFINIBAND_SRP)		+= srp/
- obj-$(CONFIG_INFINIBAND_SRPT)		+= srpt/
- obj-$(CONFIG_INFINIBAND_ISER)		+= iser/
- obj-$(CONFIG_INFINIBAND_ISERT)		+= isert/
-+obj-$(CONFIG_INFINIBAND_IBTRS_CLT)      += ibtrs_client/
-diff --git a/drivers/infiniband/ulp/ibtrs_client/Kconfig b/drivers/infiniband/ulp/ibtrs_client/Kconfig
+diff --git a/include/rdma/ibtrs_srv.h b/include/rdma/ibtrs_srv.h
 new file mode 100644
-index 0000000..3cf0728
+index 0000000..dbd535f
 --- /dev/null
-+++ b/drivers/infiniband/ulp/ibtrs_client/Kconfig
-@@ -0,0 +1,8 @@
-+config INFINIBAND_IBTRS_CLT
-+	tristate "InfiniBand IBTRS CLIENT"
-+	depends on INFINIBAND_ADDR_TRANS
-+	---help---
-+	  Support for the simplified data transfer over InfiniBand.
-+	  This offer API to user module IBNBD_CLIENT
++++ b/include/rdma/ibtrs_srv.h
+@@ -0,0 +1,206 @@
++/*
++ * InfiniBand Transport Layer
++ *
++ * Copyright (c) 2014 - 2017 ProfitBricks GmbH. All rights reserved.
++ * Authors: Fabian Holler < mail-99BIx50xQYGELgA04lAiVw@public.gmane.org>
++ *          Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ *   	    Kleber Souza <kleber.souza-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ * 	    Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ *   	    Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ *          Milind Dumbare <Milind.dumbare-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
++ *
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions, and the following disclaimer,
++ *    without modification.
++ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
++ *    substantially similar to the "NO WARRANTY" disclaimer below
++ *    ("Disclaimer") and any redistribution must be conditioned upon
++ *    including a substantially similar Disclaimer requirement for further
++ *    binary redistribution.
++ * 3. Neither the names of the above-listed copyright holders nor the names
++ *    of any contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * Alternatively, this software may be distributed under the terms of the
++ * GNU General Public License ("GPL") version 2 as published by the Free
++ * Software Foundation.
++ *
++ * NO WARRANTY
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
++ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
++ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++ * POSSIBILITY OF SUCH DAMAGES.
++ *
++ */
 +
-+	  The IBTRS protocol is defined by the ProfitBricks GmbH.
-diff --git a/drivers/infiniband/ulp/ibtrs_client/Makefile b/drivers/infiniband/ulp/ibtrs_client/Makefile
-new file mode 100644
-index 0000000..d0fb226
---- /dev/null
-+++ b/drivers/infiniband/ulp/ibtrs_client/Makefile
-@@ -0,0 +1,6 @@
++#ifndef _IBTRS_SRV_H
++#define _IBTRS_SRV_H
 +
-+obj-$(CONFIG_INFINIBAND_IBTRS_CLT)	+= ibtrs_client.o
++#include <linux/socket.h>
 +
-+ibtrs_client-y		:= ibtrs_clt.o ibtrs_clt_sysfs.o \
-+	../ibtrs_lib/ibtrs.o ../ibtrs_lib/ibtrs-proto.o ../ibtrs_lib/iu.o \
-+	../ibtrs_lib/heartbeat.o ../ibtrs_lib/common.o
++struct ibtrs_session;
++struct ibtrs_ops_id;
++
++enum ibtrs_srv_rdma_ev {
++	IBTRS_SRV_RDMA_EV_RECV,
++	IBTRS_SRV_RDMA_EV_WRITE_REQ,
++};
++
++/**
++ * enum ibtrs_srv_sess_ev - Session events
++ * @IBTRS_SRV_SESS_EV_CONNECTED:	Connection from client established
++ * @IBTRS_SRV_SESS_EV_DISCONNECTING:	Connection is currently disconnected,
++ *					sending data through the connection may
++ *					fail, but could still recv messages.
++ * @IBTRS_SRV_SESS_EV_DISCONNECTED:	Connection was disconnected, all
++ *					connection IBTRS resources were freed.
++ */
++
++enum ibtrs_srv_sess_ev {
++	IBTRS_SRV_SESS_EV_CONNECTED,
++	IBTRS_SRV_SESS_EV_DISCONNECTING,
++	IBTRS_SRV_SESS_EV_DISCONNECTED,
++};
++
++/**
++ * &struct ibtrs_srv_ops - Callbacks for ibtrs_server
++ * @owner:		module that uses ibtrs_server
++ * @rdma_ev:		Event notification for RDMA operations
++ *			If the callback returns a value != 0, an error message
++ *			for the data transfer will be sent to the client.
++
++ *	@sess:		Session
++ *	@priv:		Private data from user
++ *	@id:		internal IBTRS id
++ *	@ev:		Event
++ *	@data:		Data received by the client. The message of the user of
++ *			ibtrs_client is allocated at the end of the buffer.
++ *			Before the message the data of the ibtrs_client is
++ *			located.
++ *			If the event is %IBTRS_SRV_RDMA_EV_WRITE_REQ, the user
++ *			can write his response into @data. When
++ *			ibtrs_srv_resp_rdma() is called, this @data will be
++ *			transferred to the client.
++ *	@len:		length of data in @data
++
++ * @sess_ev:		Events about connective state changes
++ *			If the callback returns != 0 and the event
++ *			%IBTRS_SRV_SESS_EV_CONNECTED the corresponding session
++ *			was destroyed.
++ *	@sess:		Session
++ *	@ev:		event
++ *	@priv:		Private data from user if previously set with
++ *			ibtrs_srv_set_sess_priv()
++
++ * @recv:		Event notification for infiniband message receival
++ *	@sess:		Session
++ *	@priv:		Private data from user if previously set with
++ *			ibtrs_srv_set_sess_priv()
++ *	@msg:		Received message
++ *	@len:		length of @msg
++ */
++
++typedef int (rdma_ev_fn)(struct ibtrs_session *sess, void *priv,
++			 struct ibtrs_ops_id *id, enum ibtrs_srv_rdma_ev ev,
++			 void *data, size_t len);
++typedef int (sess_ev_fn)(struct ibtrs_session *sess, enum ibtrs_srv_sess_ev ev,
++			 void *priv);
++typedef void (recv_fn)(struct ibtrs_session *sess, void *priv, const void *msg,
++		       size_t len);
++
++struct ibtrs_srv_ops {
++	struct module *owner;
++
++	rdma_ev_fn	*rdma_ev;
++	sess_ev_fn	*sess_ev;
++	recv_fn		*recv;
++};
++
++/**
++ * ibtrs_srv_register() - register a module with ibtrs_server
++ * @ops:		callback functions
++ *
++ * Registers a module with the ibtrs_server. The user module passes the function
++ * pointers, that ibtrs_server can call to communicate with it.
++ *
++ * Return:
++ * 0:		Success
++ * <0:		Error
++ */
++int ibtrs_srv_register(const struct ibtrs_srv_ops *ops);
++
++/**
++ * ibtrs_srv_unregister - unregister a module with ibtrs_server
++ * @ops: the struct that was passed to ibtrs_srv_register() before
++ *
++ * Unregisters a module from the ibtrs_server. All open connections will be
++ * terminated.
++ */
++void ibtrs_srv_unregister(const struct ibtrs_srv_ops *ops);
++
++/**
++ * ibtrs_srv_resp_rdma() - Finish an RDMA request
++ *
++ * @id:		Internal IBTRS operation identifier
++ * @errno:	Response Code send to the other side for this operation.
++ *		0 = success, <=0 error
++ * Return:
++ *  0:		Success
++ * <0:		Error
++ *
++ * Finish a RDMA operation. A message is sent to the client and the
++ * corresponding memory areas will be released.
++ */
++int ibtrs_srv_resp_rdma(struct ibtrs_ops_id *id, int errno);
++
++/**
++ * ibtrs_srv_send() - Send data to the ibtrs_server with an infiniband message.
++ * @sess	Session
++ * @vec:	Data send to the server
++ * @nr:		Length of @vec
++ *
++ * Return:
++ * 0:		Success
++ * <0:		Error
++ * -EINVAL:	@len is too big
++ */
++int ibtrs_srv_send(struct ibtrs_session *sess, const struct kvec *vec,
++		   size_t nr);
++
++/**
++ * ibtrs_srv_set_sess_priv() - Set private pointer in ibtrs_session.
++ * @sess	Session
++ * @priv:	The private pointer that is associated with the session.
++ */
++void ibtrs_srv_set_sess_priv(struct ibtrs_session *sess, void *priv);
++
++/**
++ * ibtrs_srv_get_sess_qdepth() - Get ibtrs_session qdepth.
++ * @sess	Session
++ */
++int ibtrs_srv_get_sess_qdepth(struct ibtrs_session *sess);
++
++/**
++ * ibtrs_srv_get_sess_addr() - Get ibtrs_session address.
++ * @sess	Session
++ */
++const char *ibtrs_srv_get_sess_addr(struct ibtrs_session *sess);
++
++/**
++ * ibtrs_srv_get_sess_hostname() - Get ibtrs_session peer hostname.
++ * @sess	Session
++ */
++const char *ibtrs_srv_get_sess_hostname(struct ibtrs_session *sess);
++
++#endif
 -- 
 2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
