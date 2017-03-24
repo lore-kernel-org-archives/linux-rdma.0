@@ -1,189 +1,546 @@
 From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [RFC PATCH 00/28] INFINIBAND NETWORK BLOCK DEVICE (IBNBD)
-Date: Fri, 24 Mar 2017 11:45:15 +0100
-Message-ID: <1490352343-20075-1-git-send-email-jinpu.wangl@profitbricks.com>
+Subject: [PATCH 01/28] ibtrs: add header shared between ibtrs_client and ibtrs_server
+Date: Fri, 24 Mar 2017 11:45:16 +0100
+Message-ID: <1490352343-20075-2-git-send-email-jinpu.wangl@profitbricks.com>
+References: <1490352343-20075-1-git-send-email-jinpu.wangl@profitbricks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1490352343-20075-1-git-send-email-jinpu.wangl-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, mail-99BIx50xQYGELgA04lAiVw@public.gmane.org, Milind.dumbare-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org, Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, mail-99BIx50xQYGELgA04lAiVw@public.gmane.org, Milind.dumbare-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org, Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Kleber Souza <kleber.souza-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 
-This series introduces IBNBD/IBTRS kernel modules.
-
-IBNBD (InfiniBand network block device) allows for an RDMA transfer of block IO
-over InfiniBand network. The driver presents itself as a block device on client
-side and transmits the block requests in a zero-copy fashion to the server-side
-via InfiniBand. The server part of the driver converts the incoming buffers back
-into BIOs and hands them down to the underlying block device. As soon as IO
-responses come back from the drive, they are being transmitted back to the
-client.
-
-We design and implement this solution based on our need for Cloud Computing,
-the key features are:
-- High throughput and low latency due to:
-1) Only two rdma messages per IO
-2) Simplified client side server memory management
-3) Eliminated SCSI sublayer
-- Simple configuration and handling
-1) Server side is completely passive: volumes do not need to be
-explicitly exported
-2) Only IB port GID and device path needed on client side to map
-a block device
-3) A device can be remapped automatically i.e. after storage
-reboot
-- Pinning of IO-related processing to the CPU of the producer
-
-For usage please refer to Documentation/IBNBD.txt in later patch.
-My colleague Danil Kpnis presents IBNBD in Vault-2017 about our design/feature/
-tradeoff/performance:
-
-http://events.linuxfoundation.org/sites/events/files/slides/IBNBD-Vault-2017.pdf
-
-The patchset is based on Linux 4.11-rc3. I've done functional tests with our
-tests framework on AMD64 machines with Mellanox CX-2 and CX-3.
-
-TODOs:
-- move some helpers to core
-- use new cq api, drain_cq etc
-- support poll callback in MQ
-- big endian machine support
-- better files layout
-
-We've learned a lot from other opensource project, namely SRP/SCST/LIO, etc,
-thanks all the contributors. We hope our IBNBD bring more value to 
-the opensource world.
-
-A git tree is also avaiable at:
-https://github.com/xjtuwjp/linux-2.6/commits/ibnbdv0
-
-As usual, comments and reviews are welcome.
-
-Jack Wang (28):
-  ibtrs: add header shared between ibtrs_client and ibtrs_server
-  ibtrs: add header for log MICROs shared between ibtrs_client and
-    ibtrs_server
-  ibtrs_lib: add common functions shared by client and server
-  ibtrs_clt: add header file for exported interface
-  ibtrs_clt: main functionality of ibtrs_client
-  ibtrs_clt: add header file shared only in ibtrs_client
-  ibtrs_clt: add files for sysfs interface
-  ibtrs_clt: add Makefile and Kconfig
-  ibtrs_srv: add header file for exported interface
-  ibtrs_srv: add main functionality for ibtrs_server
-  ibtrs_srv: add header shared in ibtrs_server
-  ibtrs_srv: add sysfs interface
-  ibtrs_srv: add Makefile and Kconfig
-  ibnbd: add headers shared by ibnbd_client and ibnbd_server
-  ibnbd: add shared library functions
-  ibnbd_clt: add main functionality of ibnbd_client
-  ibnbd_clt: add header shared in ibnbd_client
-  ibnbd_clt: add sysfs interface
-  ibnbd_clt: add log helpers
-  ibnbd_clt: add Makefile and Kconfig
-  ibnbd_srv: add header shared in ibnbd_server
-  ibnbd_srv: add main functionality
-  ibnbd_srv: add abstraction for submit IO to file or block device
-  ibnbd_srv: add log helpers
-  ibnbd_srv: add sysfs interface
-  ibnbd_srv: add Makefile and Kconfig
-  ibnbd: add doc for how to use ibnbd and sysfs interface
-  MAINTRAINERS: Add maintainer for IBNBD/IBTRS
-
- Documentation/IBNBD.txt                            |  284 ++
- MAINTAINERS                                        |   14 +
- drivers/block/Kconfig                              |    3 +
- drivers/block/Makefile                             |    2 +
- drivers/block/ibnbd_client/Kconfig                 |   16 +
- drivers/block/ibnbd_client/Makefile                |    5 +
- drivers/block/ibnbd_client/ibnbd_clt.c             | 2007 ++++++++
- drivers/block/ibnbd_client/ibnbd_clt.h             |  231 +
- drivers/block/ibnbd_client/ibnbd_clt_log.h         |   79 +
- drivers/block/ibnbd_client/ibnbd_clt_sysfs.c       |  863 ++++
- drivers/block/ibnbd_client/ibnbd_clt_sysfs.h       |   64 +
- drivers/block/ibnbd_inc/ibnbd-proto.h              |  273 +
- drivers/block/ibnbd_inc/ibnbd.h                    |   55 +
- drivers/block/ibnbd_inc/log.h                      |   68 +
- drivers/block/ibnbd_lib/ibnbd-proto.c              |  244 +
- drivers/block/ibnbd_lib/ibnbd.c                    |  108 +
- drivers/block/ibnbd_server/Kconfig                 |   16 +
- drivers/block/ibnbd_server/Makefile                |    3 +
- drivers/block/ibnbd_server/ibnbd_dev.c             |  436 ++
- drivers/block/ibnbd_server/ibnbd_dev.h             |  149 +
- drivers/block/ibnbd_server/ibnbd_srv.c             | 1074 ++++
- drivers/block/ibnbd_server/ibnbd_srv.h             |  115 +
- drivers/block/ibnbd_server/ibnbd_srv_log.h         |   69 +
- drivers/block/ibnbd_server/ibnbd_srv_sysfs.c       |  317 ++
- drivers/block/ibnbd_server/ibnbd_srv_sysfs.h       |   64 +
- drivers/infiniband/Kconfig                         |    3 +
- drivers/infiniband/ulp/Makefile                    |    2 +
- drivers/infiniband/ulp/ibtrs_client/Kconfig        |    8 +
- drivers/infiniband/ulp/ibtrs_client/Makefile       |    6 +
- drivers/infiniband/ulp/ibtrs_client/ibtrs_clt.c    | 5329 ++++++++++++++++++++
- .../ulp/ibtrs_client/ibtrs_clt_internal.h          |  244 +
- .../infiniband/ulp/ibtrs_client/ibtrs_clt_sysfs.c  |  412 ++
- .../infiniband/ulp/ibtrs_client/ibtrs_clt_sysfs.h  |   62 +
- drivers/infiniband/ulp/ibtrs_lib/common.c          |  104 +
- drivers/infiniband/ulp/ibtrs_lib/heartbeat.c       |  112 +
- drivers/infiniband/ulp/ibtrs_lib/ibtrs-proto.c     |  248 +
- drivers/infiniband/ulp/ibtrs_lib/ibtrs.c           |  412 ++
- drivers/infiniband/ulp/ibtrs_lib/iu.c              |  113 +
- drivers/infiniband/ulp/ibtrs_server/Kconfig        |    8 +
- drivers/infiniband/ulp/ibtrs_server/Makefile       |    6 +
- drivers/infiniband/ulp/ibtrs_server/ibtrs_srv.c    | 3744 ++++++++++++++
- .../ulp/ibtrs_server/ibtrs_srv_internal.h          |  201 +
- .../infiniband/ulp/ibtrs_server/ibtrs_srv_sysfs.c  |  301 ++
- .../infiniband/ulp/ibtrs_server/ibtrs_srv_sysfs.h  |   59 +
- include/rdma/ibtrs.h                               |  514 ++
- include/rdma/ibtrs_clt.h                           |  316 ++
- include/rdma/ibtrs_log.h                           |   88 +
- include/rdma/ibtrs_srv.h                           |  206 +
- 48 files changed, 19057 insertions(+)
- create mode 100644 Documentation/IBNBD.txt
- create mode 100644 drivers/block/ibnbd_client/Kconfig
- create mode 100644 drivers/block/ibnbd_client/Makefile
- create mode 100644 drivers/block/ibnbd_client/ibnbd_clt.c
- create mode 100644 drivers/block/ibnbd_client/ibnbd_clt.h
- create mode 100644 drivers/block/ibnbd_client/ibnbd_clt_log.h
- create mode 100644 drivers/block/ibnbd_client/ibnbd_clt_sysfs.c
- create mode 100644 drivers/block/ibnbd_client/ibnbd_clt_sysfs.h
- create mode 100644 drivers/block/ibnbd_inc/ibnbd-proto.h
- create mode 100644 drivers/block/ibnbd_inc/ibnbd.h
- create mode 100644 drivers/block/ibnbd_inc/log.h
- create mode 100644 drivers/block/ibnbd_lib/ibnbd-proto.c
- create mode 100644 drivers/block/ibnbd_lib/ibnbd.c
- create mode 100644 drivers/block/ibnbd_server/Kconfig
- create mode 100644 drivers/block/ibnbd_server/Makefile
- create mode 100644 drivers/block/ibnbd_server/ibnbd_dev.c
- create mode 100644 drivers/block/ibnbd_server/ibnbd_dev.h
- create mode 100644 drivers/block/ibnbd_server/ibnbd_srv.c
- create mode 100644 drivers/block/ibnbd_server/ibnbd_srv.h
- create mode 100644 drivers/block/ibnbd_server/ibnbd_srv_log.h
- create mode 100644 drivers/block/ibnbd_server/ibnbd_srv_sysfs.c
- create mode 100644 drivers/block/ibnbd_server/ibnbd_srv_sysfs.h
- create mode 100644 drivers/infiniband/ulp/ibtrs_client/Kconfig
- create mode 100644 drivers/infiniband/ulp/ibtrs_client/Makefile
- create mode 100644 drivers/infiniband/ulp/ibtrs_client/ibtrs_clt.c
- create mode 100644 drivers/infiniband/ulp/ibtrs_client/ibtrs_clt_internal.h
- create mode 100644 drivers/infiniband/ulp/ibtrs_client/ibtrs_clt_sysfs.c
- create mode 100644 drivers/infiniband/ulp/ibtrs_client/ibtrs_clt_sysfs.h
- create mode 100644 drivers/infiniband/ulp/ibtrs_lib/common.c
- create mode 100644 drivers/infiniband/ulp/ibtrs_lib/heartbeat.c
- create mode 100644 drivers/infiniband/ulp/ibtrs_lib/ibtrs-proto.c
- create mode 100644 drivers/infiniband/ulp/ibtrs_lib/ibtrs.c
- create mode 100644 drivers/infiniband/ulp/ibtrs_lib/iu.c
- create mode 100644 drivers/infiniband/ulp/ibtrs_server/Kconfig
- create mode 100644 drivers/infiniband/ulp/ibtrs_server/Makefile
- create mode 100644 drivers/infiniband/ulp/ibtrs_server/ibtrs_srv.c
- create mode 100644 drivers/infiniband/ulp/ibtrs_server/ibtrs_srv_internal.h
- create mode 100644 drivers/infiniband/ulp/ibtrs_server/ibtrs_srv_sysfs.c
- create mode 100644 drivers/infiniband/ulp/ibtrs_server/ibtrs_srv_sysfs.h
+Signed-off-by: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Signed-off-by: Kleber Souza <kleber.souza-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Signed-off-by: Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Signed-off-by: Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+---
+ include/rdma/ibtrs.h | 514 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 514 insertions(+)
  create mode 100644 include/rdma/ibtrs.h
- create mode 100644 include/rdma/ibtrs_clt.h
- create mode 100644 include/rdma/ibtrs_log.h
- create mode 100644 include/rdma/ibtrs_srv.h
 
+diff --git a/include/rdma/ibtrs.h b/include/rdma/ibtrs.h
+new file mode 100644
+index 0000000..4fc572b
+--- /dev/null
++++ b/include/rdma/ibtrs.h
+@@ -0,0 +1,514 @@
++/*
++ * InfiniBand Transport Layer
++ *
++ * Copyright (c) 2014 - 2017 ProfitBricks GmbH. All rights reserved.
++ * Authors: Fabian Holler < mail-99BIx50xQYGELgA04lAiVw@public.gmane.org>
++ *          Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ *   	    Kleber Souza <kleber.souza-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ * 	    Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ *   	    Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
++ *          Milind Dumbare <Milind.dumbare-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
++ *
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions, and the following disclaimer,
++ *    without modification.
++ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
++ *    substantially similar to the "NO WARRANTY" disclaimer below
++ *    ("Disclaimer") and any redistribution must be conditioned upon
++ *    including a substantially similar Disclaimer requirement for further
++ *    binary redistribution.
++ * 3. Neither the names of the above-listed copyright holders nor the names
++ *    of any contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * Alternatively, this software may be distributed under the terms of the
++ * GNU General Public License ("GPL") version 2 as published by the Free
++ * Software Foundation.
++ *
++ * NO WARRANTY
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
++ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
++ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++ * POSSIBILITY OF SUCH DAMAGES.
++ *
++ */
++
++#ifndef __IBTRS_H
++#define __IBTRS_H
++
++#include <linux/uio.h>
++#include <linux/types.h>
++#include <linux/uuid.h>
++#include <rdma/rdma_cm.h>
++#include <rdma/ib_cm.h>
++#include <linux/list.h>
++#include <linux/dma-direction.h>
++#include <rdma/ib_verbs.h>
++#include <linux/time.h>
++#include <linux/ktime.h>
++#include <linux/timekeeping.h>
++
++#define IBTRS_SERVER_PORT 1234
++#define WC_ARRAY_SIZE 16
++#define IB_APM_TIMEOUT 16 /* 4.096 * 2 ^ 16 = 260 msec */
++
++#define USR_MSG_CNT 64
++#define USR_CON_BUF_SIZE (USR_MSG_CNT * 2) /* double bufs for ACK's */
++
++#define DEFAULT_HEARTBEAT_TIMEOUT_MS 20000
++#define MIN_HEARTBEAT_TIMEOUT_MS 5000
++#define HEARTBEAT_INTV_MS 500
++#define HEARTBEAT_INTV_JIFFIES msecs_to_jiffies(HEARTBEAT_INTV_MS)
++
++#define MIN_RTR_CNT 1
++#define MAX_RTR_CNT 7
++
++/*
++ * With the current size of the tag allocated on the client, 4K is the maximum
++ * number of tags we can allocate. (see IBNBD-2321)
++ * This number is also used on the client to allocate the IU for the user
++ * connection to receive the RDMA addresses from the server.
++ */
++#define MAX_SESS_QUEUE_DEPTH 4096
++
++#define XX(a) case (a): return #a
++
++#define IBTRS_ADDRLEN sizeof("ipv6:[xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx]")
++
++static inline const char *ib_wc_opcode_str(enum ib_wc_opcode opcode)
++{
++	switch (opcode) {
++	XX(IB_WC_SEND);
++	XX(IB_WC_RDMA_WRITE);
++	XX(IB_WC_RDMA_READ);
++	XX(IB_WC_COMP_SWAP);
++	XX(IB_WC_FETCH_ADD);
++	/* recv-side); inbound completion */
++	XX(IB_WC_RECV);
++	XX(IB_WC_RECV_RDMA_WITH_IMM);
++	default: return "IB_WC_OPCODE_UNKNOWN";
++	}
++}
++
++
++struct ib_session {
++	struct ib_pd		*pd;
++	struct ib_mr		*mr;
++	struct ib_event_handler	event_handler;
++};
++
++struct ibtrs_ib_path {
++	union ib_gid    p_sgid;
++	union ib_gid    p_dgid;
++};
++
++struct ib_con {
++	struct ib_qp		*qp ____cacheline_aligned;
++	struct ib_cq		*cq ____cacheline_aligned;
++	struct ib_send_wr	beacon;
++	struct rdma_cm_id	*cm_id;
++	struct ibtrs_ib_path    pri_path;
++	struct ibtrs_ib_path   cur_path;
++	char			*addr;
++	char			*hostname;
++};
++
++struct ibtrs_iu {
++	struct list_head        list;
++	dma_addr_t              dma_addr;
++	void                    *buf;
++	size_t                  size;
++	enum dma_data_direction direction;
++	bool			is_msg;
++	u32			tag;
++};
++
++struct ibtrs_heartbeat {
++	atomic64_t	send_ts_ms;
++	atomic64_t	recv_ts_ms;
++	u32		timeout_ms;
++	u32		warn_timeout_ms;
++	char		*addr;
++	char		*hostname;
++};
++
++#define IBTRS_VERSION 2
++#define IBTRS_UUID_SIZE 16
++#define IO_MSG_SIZE 24
++#define IB_IMM_SIZE_BITS 32
++
++#define GCC_DIAGNOSTIC_AWARE ((__GNUC__ > 6))
++#if GCC_DIAGNOSTIC_AWARE
++#pragma GCC diagnostic push
++#pragma GCC diagnostic warning "-Wpadded"
++#endif
++
++/**
++ * enum ibtrs_msg_types - IBTRS message types. DO NOT REMOVE OR REORDER!!!
++ * @IBTRS_MSG_SESS_OPEN:	Client requests new session on Server
++ * @IBTRS_MSG_SESS_OPEN_RESP:	Server informs Client about session parameters
++ * @IBTRS_MSG_CON_OPEN:		Client requests new connection to server
++ * @IBTRS_MSG_RDMA_WRITE:	Client writes data per RDMA to Server
++ * @IBTRS_MSG_REQ_RDMA_WRITE:	Client requests data transfer per RDMA
++ * @IBTRS_MSG_USER:		Data transfer per Infiniband message
++ * @IBTRS_MSG_ERR:		Fatal Error happened
++ * @IBTRS_MSG_SESS_INFO:	Client requests about session info
++ */
++enum ibtrs_msg_types {
++	IBTRS_MSG_SESS_OPEN,
++	IBTRS_MSG_SESS_OPEN_RESP,
++	IBTRS_MSG_CON_OPEN,
++	IBTRS_MSG_RDMA_WRITE,
++	IBTRS_MSG_REQ_RDMA_WRITE,
++	IBTRS_MSG_USER,
++	IBTRS_MSG_ERROR,
++	IBTRS_MSG_SESS_INFO,
++};
++
++/**
++ * struct ibtrs_msg_hdr - Common header of all IBTRS messages
++ * @type:	Message type, valid values see: enum ibtrs_msg_types
++ * @tsize:	Total size of transferred data
++ *
++ * Don't move the first 8 padding bytes! It's a workaround for a kernel bug.
++ * See IBNBD-610 for details
++ *
++ * DO NOT CHANGE!
++ */
++struct ibtrs_msg_hdr {
++	u8			__padding1;
++	u8			type;
++	u16			__padding2;
++	u32			tsize;
++};
++
++#define IBTRS_HDR_LEN sizeof(struct ibtrs_msg_hdr)
++
++/**
++ * struct ibtrs_msg_session_open - Opens a new session between client and server
++ * @hdr:	message header
++ * @uuid:	client host identifier, unique until module reload
++ * @ver:	IBTRS protocol version
++ * @con_cnt:    number of connections in this session
++ * @reserved:   reserved fields for future usage, 28 bytes is maximum for
++ *		all IPv6/IPv4 session
++ *
++ * DO NOT CHANGE members before ver.
++ */
++struct ibtrs_msg_sess_open {
++	struct ibtrs_msg_hdr	hdr;
++	u8			uuid[IBTRS_UUID_SIZE];
++	u8			ver;
++	u8			con_cnt;
++	u8			reserved[30];
++};
++
++/**
++ * struct ibtrs_msg_sess_info
++ * @hdr:		message header
++ * @hostname:		client host name
++ */
++struct ibtrs_msg_sess_info {
++	struct ibtrs_msg_hdr	hdr;
++	u8                      hostname[MAXHOSTNAMELEN];
++};
++
++#define MSG_SESS_INFO_SIZE sizeof(struct ibtrs_msg_sess_info)
++
++/*
++ *  Data Layout in RDMA-Bufs:
++ *
++ * +---------RDMA-BUF--------+
++ * |         Slice N	     |
++ * | +---------------------+ |
++ * | |      I/O data       | |
++ * | |---------------------| |
++ * | |      IBNBD MSG	   | |
++ * | |---------------------| |
++ * | |	    IBTRS MSG	   | |
++ * | +---------------------+ |
++ * +-------------------------+
++ * |	     Slice N+1	     |
++ * | +---------------------+ |
++ * | |       I/O data	   | |
++ * | |---------------------| |
++ * | |	     IBNBD MSG     | |
++ * | |---------------------| |
++ * | |       IBTRS MSG     | |
++ * | +---------------------+ |
++ * +-------------------------+
++ */
++
++#define IBTRS_MSG_RESV_LEN 128
++/**
++ * struct ibtrs_msg_sess_open_resp - Servers response to %IBTRS_MSG_SESS_OPEN
++ * @hdr:	message header
++ * @ver:	IBTRS protocol version
++ * @cnt:	Number of rdma addresses in this message
++ * @rkey:	remote key to allow client to access buffers
++ * @hostname:   hostname of local host
++ * @reserved:    reserved fields for future usage
++ * @max_inflight_msg:  max inflight messages (queue-depth) in this session
++ * @max_io_size:   max io size server supports
++ * @max_req_size:   max infiniband message size server supports
++ * @addr:	rdma addresses of buffers
++ *
++ * DO NOT CHANGE members before ver.
++ */
++struct ibtrs_msg_sess_open_resp {
++	struct ibtrs_msg_hdr	hdr;
++	u8			ver;
++	u8			__padding1;
++	u16			cnt;
++	u32			rkey;
++	u8                      hostname[MAXHOSTNAMELEN];
++	u8			reserved[IBTRS_MSG_RESV_LEN];
++	u16			max_inflight_msg;
++	u32			max_io_size;
++	u32			max_req_size;
++	u64			addr[];
++};
++
++#define IBTRS_MSG_SESS_OPEN_RESP_LEN(cnt) \
++	(sizeof(struct ibtrs_msg_sess_open_resp) + sizeof(u64) * cnt)
++/**
++ * struct ibtrs_msg_con_open - Opens a new connection between client and server
++ * @hdr:		message header
++ * @uuid:		client host identifier, unique until module reload
++ */
++struct ibtrs_msg_con_open {
++	struct ibtrs_msg_hdr	hdr;
++	u8			uuid[IBTRS_UUID_SIZE];
++};
++
++/**
++ * struct ibtrs_msg_user - Data exchanged a Infiniband message
++ * @hdr:		message header
++ * @payl:		Payload from user user module
++ */
++struct ibtrs_msg_user {
++	struct ibtrs_msg_hdr	hdr;
++	u8			payl[];
++};
++
++/**
++ * struct ibtrs_sg_desc - RDMA-Buffer entry description
++ * @addr:	Address of RDMA destination buffer
++ * @key:	Authorization rkey to write to the buffer
++ * @len:	Size of the buffer
++ */
++struct ibtrs_sg_desc {
++	u64			addr;
++	u32			key;
++	u32			len;
++};
++
++#define IBTRS_SG_DESC_LEN sizeof(struct ibtrs_sg_desc)
++
++/**
++ * struct ibtrs_msg_req_rdma_write - RDMA data transfer request from client
++ * @hdr:		message header
++ * @sg_cnt:		number of @desc entries
++ * @desc:		RDMA bufferst where the server can write the result to
++ */
++struct ibtrs_msg_req_rdma_write {
++	struct ibtrs_msg_hdr	hdr;
++	u32			__padding;
++	u32			sg_cnt;
++	struct ibtrs_sg_desc    desc[];
++};
++
++/**
++ * struct_msg_rdma_write - Message transferred to server with RDMA-Write
++ * @hdr:		message header
++ */
++struct ibtrs_msg_rdma_write {
++	struct ibtrs_msg_hdr	hdr;
++};
++
++/**
++ * struct ibtrs_msg_error - Error message
++ * @hdr:		message header
++ * @errno:		Errno number describing the error
++ */
++struct ibtrs_msg_error {
++	struct ibtrs_msg_hdr	hdr;
++	s32			errno;
++	u32			__padding;
++};
++
++#if GCC_DIAGNOSTIC_AWARE
++#pragma GCC diagnostic pop
++#endif
++
++int ibtrs_validate_message(u16 queue_depth, const void *hdr);
++
++void fill_ibtrs_msg_sess_open(struct ibtrs_msg_sess_open *msg, u8 con_cnt,
++			      const uuid_le *uuid);
++
++void fill_ibtrs_msg_con_open(struct ibtrs_msg_con_open *msg,
++			     const uuid_le *uuid);
++
++void fill_ibtrs_msg_sess_info(struct ibtrs_msg_sess_info *msg,
++			      const char *hostname);
++
++void ibtrs_heartbeat_set_send_ts(struct ibtrs_heartbeat *h);
++void ibtrs_set_last_heartbeat(struct ibtrs_heartbeat *h);
++u64 ibtrs_last_heartbeat_diff_ms(const struct ibtrs_heartbeat *h);
++u64 ibtrs_heartbeat_send_ts_diff_ms(const struct ibtrs_heartbeat *h);
++
++void ibtrs_set_heartbeat_timeout(struct ibtrs_heartbeat *h, u32 timeout_ms);
++
++void ibtrs_heartbeat_warn(const struct ibtrs_heartbeat *h);
++
++bool ibtrs_heartbeat_timeout_is_expired(const struct ibtrs_heartbeat *h);
++
++u32 ibtrs_heartbeat_get_send_delay(const struct ibtrs_heartbeat *h);
++u32 ibtrs_heartbeat_get_check_delay(const struct ibtrs_heartbeat *h);
++void ibtrs_iu_put(struct list_head *iu_list, struct ibtrs_iu *iu);
++struct ibtrs_iu *ibtrs_iu_get(struct list_head *iu_list);
++
++struct ibtrs_iu *ibtrs_iu_alloc(u32 tag, size_t size, gfp_t t,
++				struct ib_device *dev,
++				enum dma_data_direction, bool is_msg);
++
++void ibtrs_iu_free(struct ibtrs_iu *iu, enum dma_data_direction dir,
++		   struct ib_device *dev);
++
++int ibtrs_write_empty_imm(struct ib_qp *qp, u32 imm_data,
++			  enum ib_send_flags flags);
++
++int ibtrs_post_send(struct ib_qp *qp, struct ib_mr *mr, struct ibtrs_iu *iu,
++		    u32 size);
++
++int ib_post_rdma_write_imm(struct ib_qp *qp, struct ib_sge *sge,
++			   unsigned int num_sge, u32 rkey, u64 rdma_addr,
++			   u64 wr_id, u32 imm_data, enum ib_send_flags flags);
++
++int ib_post_rdma_write(struct ib_qp *qp, struct ib_sge *sge,
++		       unsigned int num_sge, u32 rkey, u64 rdma_addr,
++		       u64 wr_id);
++int post_beacon(struct ib_con *con);
++/**
++ * ib_session_init() - Create a new IB session
++ */
++int ib_session_init(struct ib_device *dev, struct ib_session *session);
++
++/**
++ * ib_con_init() - initialize and add a ib_con to the session
++ * @con:	&ib_con to initialize
++ * @session:	session the &ib_con is added to
++ * @ctx:	CQ context, returned to the user via completion handler
++ *
++ * Returns 0 on success otherwise a negative errno code
++ */
++int ib_con_init(struct ib_con *con, struct rdma_cm_id *cm_id,
++		u32 max_send_sge,
++		ib_comp_handler comp_handler, void *ctx, int cq_vector,
++		u16 cq_size, u16 wr_queue_size, struct ib_session *session);
++
++int ibtrs_request_cq_notifications(struct ib_con *con);
++
++void ib_con_destroy(struct ib_con *con);
++
++/**
++ * ib_session_destroy() - Free a session
++ * The corresponding &ib_con must have been freed before.
++ */
++void ib_session_destroy(struct ib_session *session);
++
++int ib_get_max_wr_queue_size(struct ib_device *dev);
++
++int ibtrs_addr_to_str(const struct sockaddr_storage *addr, char *buf,
++		      size_t len);
++
++int ibtrs_heartbeat_timeout_validate(int timeout);
++
++/**
++ * kvec_length() - Total number of bytes covered by an kvec.
++ */
++static inline size_t kvec_length(const struct kvec *vec, size_t nr)
++{
++	size_t seg, ret = 0;
++
++	for (seg = 0; seg < nr; seg++)
++		ret += vec[seg].iov_len;
++	return ret;
++}
++
++/**
++ * copy_from_kvec() - Copy kvec to the buffer.
++ */
++static inline void copy_from_kvec(void *data, const struct kvec *vec,
++				  size_t copy)
++{
++	size_t seg, len;
++
++	for (seg = 0; copy; seg++) {
++		len = min(vec[seg].iov_len, copy);
++		memcpy(data, vec[seg].iov_base, len);
++		data += len;
++		copy -= len;
++	}
++}
++
++static inline u64 timespec_to_ms(const struct timespec *ts)
++{
++	return timespec_to_ns(ts) / NSEC_PER_MSEC;
++}
++
++u64 timediff_cur_ms(u64 cur_ms);
++
++void *ibtrs_malloc(size_t size);
++void *ibtrs_zalloc(size_t size);
++
++#define STAT_STORE_FUNC(store, reset) \
++static ssize_t store##_store(struct kobject *kobj, \
++			    struct kobj_attribute *attr, \
++			    const char *buf, size_t count) \
++{ \
++	int ret = -EINVAL; \
++	struct ibtrs_session *sess = container_of(kobj, struct ibtrs_session, \
++						  kobj_stats); \
++\
++	if (sysfs_streq(buf, "1")) \
++		ret = reset(sess, true); \
++	else if (sysfs_streq(buf, "0"))\
++		ret = reset(sess, false); \
++	if (ret) \
++		return ret; \
++\
++	return count; \
++}
++
++#define STAT_SHOW_FUNC(show, print) \
++static ssize_t show##_show(struct kobject *kobj, \
++			   struct kobj_attribute *attr, \
++			   char *page) \
++{ \
++	struct ibtrs_session *sess = container_of(kobj, struct ibtrs_session, \
++						  kobj_stats); \
++\
++	return print(sess, page, PAGE_SIZE); \
++}
++
++#define STAT_ATTR(stat, print, reset) \
++STAT_STORE_FUNC(stat, reset) \
++STAT_SHOW_FUNC(stat, print) \
++static struct kobj_attribute stat##_attr = \
++		__ATTR(stat, 0644, \
++		       stat##_show, \
++		       stat##_store)
++
++#endif /*__IBTRS_H*/
 -- 
 2.7.4
 
