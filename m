@@ -1,62 +1,207 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [RESEND PATCH 2/3] net: hns: avoid gcc-7.0.1 warning for uninitialized data
-Date: Fri, 24 Mar 2017 23:02:50 +0100
-Message-ID: <20170324220250.2193128-4-arnd@arndb.de>
-References: <20170324220250.2193128-1-arnd@arndb.de>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170324220250.2193128-1-arnd@arndb.de>
-Sender: netdev-owner@vger.kernel.org
-To: "David S . Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Lijun Ou <oulijun@huawei.com>, "Wei Hu(Xavier)" <xavier.huwei@huawei.com>, Daode Huang <huangdaode@hisilicon.com>, Kejian Yan <yankejian@huawei.com>, Qianqian Xie <xieqianqian@huawei.com>, Wei Yongjun <weiyongjun1@huawei.com>, Yisen Zhuang <yisen.zhuang@huawei.com>, Salil Mehta <salil.mehta@huawei.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 05/14] svcrdma: Introduce local rdma_rw API helpers
+Date: Fri, 24 Mar 2017 18:19:04 -0400
+Message-ID: <256CD89A-1967-45C8-8AE1-5A56B09AB6F5@oracle.com>
+References: <20170316154132.4482.56769.stgit@klimt.1015granger.net> <20170316155306.4482.68041.stgit@klimt.1015granger.net> <cfa49433-ab26-d2f0-27d4-2a96ff0adaba@grimberg.me> <1CAD2542-A121-47ED-A47C-624E188EB54F@oracle.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1CAD2542-A121-47ED-A47C-624E188EB54F-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-hns_dsaf_set_mac_key() calls dsaf_set_field() on an uninitialized field,
-which will then change only a few of its bits, causing a warning with
-the latest gcc:
 
-hisilicon/hns/hns_dsaf_main.c: In function 'hns_dsaf_set_mac_uc_entry':
-hisilicon/hns/hns_dsaf_reg.h:1046:12: error: 'mac_key.low.bits.port_vlan' may be used uninitialized in this function [-Werror=maybe-uninitialized]
-   (origin) &= (~(mask)); \
-            ^~
-hisilicon/hns/hns_dsaf_main.c: In function 'hns_dsaf_set_mac_mc_entry':
-hisilicon/hns/hns_dsaf_reg.h:1046:12: error: 'mac_key.low.bits.port_vlan' may be used uninitialized in this function [-Werror=maybe-uninitialized]
-hisilicon/hns/hns_dsaf_main.c: In function 'hns_dsaf_add_mac_mc_port':
-hisilicon/hns/hns_dsaf_reg.h:1046:12: error: 'mac_key.low.bits.port_vlan' may be used uninitialized in this function [-Werror=maybe-uninitialized]
-hisilicon/hns/hns_dsaf_main.c: In function 'hns_dsaf_del_mac_entry':
-hisilicon/hns/hns_dsaf_reg.h:1046:12: error: 'mac_key.low.bits.port_vlan' may be used uninitialized in this function [-Werror=maybe-uninitialized]
-hisilicon/hns/hns_dsaf_main.c: In function 'hns_dsaf_rm_mac_addr':
-hisilicon/hns/hns_dsaf_reg.h:1046:12: error: 'mac_key.low.bits.port_vlan' may be used uninitialized in this function [-Werror=maybe-uninitialized]
-hisilicon/hns/hns_dsaf_main.c: In function 'hns_dsaf_del_mac_mc_port':
-hisilicon/hns/hns_dsaf_reg.h:1046:12: error: 'mac_key.low.bits.port_vlan' may be used uninitialized in this function [-Werror=maybe-uninitialized]
-hisilicon/hns/hns_dsaf_main.c: In function 'hns_dsaf_get_mac_uc_entry':
-hisilicon/hns/hns_dsaf_reg.h:1046:12: error: 'mac_key.low.bits.port_vlan' may be used uninitialized in this function [-Werror=maybe-uninitialized]
-hisilicon/hns/hns_dsaf_main.c: In function 'hns_dsaf_get_mac_mc_entry':
-hisilicon/hns/hns_dsaf_reg.h:1046:12: error: 'mac_key.low.bits.port_vlan' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+> On Mar 22, 2017, at 11:41 AM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> 
+>> 
+>> On Mar 22, 2017, at 10:17 AM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
+>> 
+>>> 
+>>> The plan is to replace the local bespoke code that constructs and
+>>> posts RDMA Read and Write Work Requests with calls to the rdma_rw
+>>> API. This shares code with other RDMA-enabled ULPs that manages the
+>>> gory details of buffer registration and posting Work Requests.
+>>> 
+>>> Some design notes:
+>>> 
+>>> o svc_xprt reference counting is modified, since one rdma_rw_ctx
+>>>  generates one completion, no matter how many Write WRs are
+>>>  posted. To accommodate the new reference counting scheme, a new
+>>>  version of svc_rdma_send() is introduced.
+>>> 
+>>> o The structure of RPC-over-RDMA transport headers is flexible,
+>>>  allowing multiple segments per Reply with arbitrary alignment.
+>>>  Thus I did not take the further step of chaining Write WRs with
+>>>  the Send WR containing the RPC Reply message. The Write and Send
+>>>  WRs continue to be built by separate pieces of code.
+>>> 
+>>> o The current code builds the transport header as it is construct-
+>>>  ing Write WRs. I've replaced that with marshaling of transport
+>>>  header data items in a separate step. This is because the exact
+>>>  structure of client-provided segments may not align with the
+>>>  components of the server's reply xdr_buf, or the pages in the
+>>>  page list. Thus parts of each client-provided segment may be
+>>>  written at different points in the send path.
+>>> 
+>>> o Since the Write list and Reply chunk marshaling code is being
+>>>  replaced, I took the opportunity to replace some of the C
+>>>  structure-based XDR encoding code with more portable code that
+>>>  instead uses pointer arithmetic.
+>>> 
+>>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> 
+>>> diff --git a/net/sunrpc/xprtrdma/svc_rdma_rw.c b/net/sunrpc/xprtrdma/svc_rdma_rw.c
+>>> new file mode 100644
+>>> index 0000000..1e76227
+>>> --- /dev/null
+>>> +++ b/net/sunrpc/xprtrdma/svc_rdma_rw.c
+>>> @@ -0,0 +1,785 @@
+>>> +/*
+>>> + * Copyright (c) 2016 Oracle.  All rights reserved.
+>>> + *
+>>> + * Use the core R/W API to move RPC-over-RDMA Read and Write chunks.
+>>> + */
+>>> +
+>>> +#include <linux/sunrpc/rpc_rdma.h>
+>>> +#include <linux/sunrpc/svc_rdma.h>
+>>> +#include <linux/sunrpc/debug.h>
+>>> +
+>>> +#include <rdma/rw.h>
+>>> +
+>>> +#define RPCDBG_FACILITY	RPCDBG_SVCXPRT
+>>> +
+>>> +/* Each R/W context contains state for one chain of RDMA Read or
+>>> + * Write Work Requests (one RDMA segment to be read from or written
+>>> + * back to the client).
+>>> + *
+>>> + * Each WR chain handles a single contiguous server-side buffer,
+>>> + * because some registration modes (eg. FRWR) do not support a
+>>> + * discontiguous scatterlist.
+>>> + *
+>>> + * Each WR chain handles only one R_key. Each RPC-over-RDMA segment
+>>> + * from a client may contain a unique R_key, so each WR chain moves
+>>> + * one segment (or less) at a time.
+>>> + *
+>>> + * The scatterlist makes this data structure just over 8KB in size
+>>> + * on 4KB-page platforms. As the size of this structure increases
+>>> + * past one page, it becomes more likely that allocating one of these
+>>> + * will fail. Therefore, these contexts are created on demand, but
+>>> + * cached and reused until the controlling svcxprt_rdma is destroyed.
+>>> + */
+>>> +struct svc_rdma_rw_ctxt {
+>>> +	struct list_head	rw_list;
+>>> +	struct ib_cqe		rw_cqe;
+>>> +	struct svcxprt_rdma	*rw_rdma;
+>>> +	int			rw_nents;
+>>> +	int			rw_wrcount;
+>>> +	enum dma_data_direction	rw_dir;
+>>> +	struct svc_rdma_op_ctxt	*rw_readctxt;
+>>> +	struct rdma_rw_ctx	rw_ctx;
+>>> +	struct scatterlist	rw_sg[RPCSVC_MAXPAGES];
+>> 
+>> Have you considered using sg_table with sg_alloc_table_chained?
+>> 
+>> See lib/sg_pool.c and nvme-rdma as a consumer.
+> 
+> That might be newer than my patches. I'll have a look.
 
-The code is actually correct since we always set all 16 bits of the
-port_vlan field, but gcc correctly points out that the first
-access does contain uninitialized data.
+I looked at the consumers of sg_alloc_table_chained, and
+all these callers are immediately doing ib_dma_map_sg.
 
-This initializes the field to zero first before setting the
-individual bits.
+Nothing in svc_rdma_rw.c does a DMA map. It relies on
+rdma_rw_ctx_init for that, and that API is passed a
+scatterlist.
 
-Fixes: 5483bfcb169c ("net: hns: modify tcam table and set mac key")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c | 1 +
- 1 file changed, 1 insertion(+)
+I don't see how I could use sg_alloc_table_chained here,
+unless rdma_rw_ctx_init was modified to take a chained
+sg_table instead of a scatterlist argument.
 
-diff --git a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c
-index cd93657abe87..403ea9db6dbd 100644
---- a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c
-+++ b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c
-@@ -1519,6 +1519,7 @@ static void hns_dsaf_set_mac_key(
- 	mac_key->high.bits.mac_3 = addr[3];
- 	mac_key->low.bits.mac_4 = addr[4];
- 	mac_key->low.bits.mac_5 = addr[5];
-+	mac_key->low.bits.port_vlan = 0;
- 	dsaf_set_field(mac_key->low.bits.port_vlan, DSAF_TBL_TCAM_KEY_VLAN_M,
- 		       DSAF_TBL_TCAM_KEY_VLAN_S, vlan_id);
- 	dsaf_set_field(mac_key->low.bits.port_vlan, DSAF_TBL_TCAM_KEY_PORT_M,
--- 
-2.9.0
+I suppose I could convert the client side to use it?
+What do you think?
+
+
+>>> +};
+>>> +
+>>> +static struct svc_rdma_rw_ctxt *
+>>> +svc_rdma_get_rw_ctxt(struct svcxprt_rdma *rdma)
+>>> +{
+>>> +	struct svc_rdma_rw_ctxt *ctxt;
+>>> +
+>>> +	svc_xprt_get(&rdma->sc_xprt);
+>>> +
+>>> +	spin_lock(&rdma->sc_rw_ctxt_lock);
+>>> +	if (list_empty(&rdma->sc_rw_ctxts))
+>>> +		goto out_empty;
+>>> +
+>>> +	ctxt = list_first_entry(&rdma->sc_rw_ctxts,
+>>> +				struct svc_rdma_rw_ctxt, rw_list);
+>>> +	list_del_init(&ctxt->rw_list);
+>>> +	spin_unlock(&rdma->sc_rw_ctxt_lock);
+>>> +
+>>> +out:
+>>> +	ctxt->rw_dir = DMA_NONE;
+>>> +	return ctxt;
+>>> +
+>>> +out_empty:
+>>> +	spin_unlock(&rdma->sc_rw_ctxt_lock);
+>>> +
+>>> +	ctxt = kmalloc(sizeof(*ctxt), GFP_KERNEL);
+>>> +	if (!ctxt) {
+>>> +		svc_xprt_put(&rdma->sc_xprt);
+>>> +		return NULL;
+>>> +	}
+>>> +
+>>> +	ctxt->rw_rdma = rdma;
+>>> +	INIT_LIST_HEAD(&ctxt->rw_list);
+>>> +	sg_init_table(ctxt->rw_sg, ARRAY_SIZE(ctxt->rw_sg));
+>>> +	goto out;
+>>> +}
+>>> +
+>>> +static void svc_rdma_put_rw_ctxt(struct svc_rdma_rw_ctxt *ctxt)
+>>> +{
+>>> +	struct svcxprt_rdma *rdma = ctxt->rw_rdma;
+>>> +
+>>> +	if (ctxt->rw_dir != DMA_NONE)
+>>> +		rdma_rw_ctx_destroy(&ctxt->rw_ctx, rdma->sc_qp,
+>>> +				    rdma->sc_port_num,
+>>> +				    ctxt->rw_sg, ctxt->rw_nents,
+>>> +				    ctxt->rw_dir);
+>>> +
+>> 
+>> its a bit odd to see put_rw_ctxt that also destroys the context
+>> which isn't exactly pairs with get_rw_ctxt.
+>> 
+>> Maybe it'd be useful to explicitly do that outside the put.
+> 
+> The pairing is not obvious, but it is this:
+> 
+> svc_rdma_send_writes() does the svc_rdma_get_rw_ctx.
+> 
+> -> If posting succeeds, svc_rdma_wc_write_ctx puts the ctx.
+> 
+> -> If posting fails, svc_rdma_send_writes puts the ctx.
+> 
+> Do you have a suggestion about how this could be more
+> intuitively documented?
+> 
+> IIRC I combined these because the rdma_rw_ctx_destroy is
+> always done just before putting the ctx back on the free
+> list. It eliminates some code duplication, and ensures
+> the ctx is always ready for the next svc_rdma_get_rw_ctx.
+
+I fixed this up, I think it is an improvement. Thanks for
+the suggestion.
+
+
+--
+Chuck Lever
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
