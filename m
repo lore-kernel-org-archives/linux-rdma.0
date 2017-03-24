@@ -1,43 +1,41 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V2 rdma-core 6/6] Bump version and update debian
-Date: Thu, 23 Mar 2017 14:02:14 -0600
-Message-ID: <20170323200214.GA10344@obsidianresearch.com>
-References: <1490277329-8738-1-git-send-email-yishaih@mellanox.com>
- <1490277329-8738-7-git-send-email-yishaih@mellanox.com>
- <20170323171916.GB5840@obsidianresearch.com>
- <20170323191155.GC20443@mtr-leonro.local>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: Re: [PATCH v10 00/11] uapi: export all headers under uapi directories
+Date: Fri, 24 Mar 2017 09:32:54 +0100
+Message-ID: <365519b5-d69e-34b7-fa2f-f11b8fabe69f@6wind.com>
+References: <CAK7LNARpx7f0eV5_AiPmNYT7MsRbGFOygJwjfAzX_7aCpuHwuw@mail.gmail.com>
+ <1489496093-15315-1-git-send-email-nicolas.dichtel@6wind.com>
+Reply-To: nicolas.dichtel@6wind.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170323191155.GC20443-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kbuild-owner@vger.kernel.org>
+In-Reply-To: <1489496093-15315-1-git-send-email-nicolas.dichtel@6wind.com>
+Sender: linux-kbuild-owner@vger.kernel.org
+To: yamada.masahiro@socionext.com
+Cc: arnd@arndb.de, mmarek@suse.com, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, airlied@linux.ie, davem@davemloft.net, linux@armlinux.org.uk, bp@alien8.de, slash.tmp@free.fr, daniel.vetter@ffwll.ch, rmk+kernel@armlinux.org.uk, msalter@redhat.com, jengelh@inai.de, hch@infradead.org, tklauser@distanz.ch, mpe@ellerman.id.au, mingo@kernel.org, tglx@linutronix.de, ldv@altlinux.org, herbert@gondor.apana.org.au, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 23, 2017 at 09:11:55PM +0200, Leon Romanovsky wrote:
-> > > index 3defc05..f47fcec 100644
-> > > +++ b/debian/changelog
-> > > @@ -1,5 +1,8 @@
-> > > -rdma-core (13-1) unstable; urgency=low
-> > > +rdma-core (14-1) unstable; urgency=low
-> > > +
-> > > +  * Bump version.
-> >
-> > I haven't been adding new change log entires in the past, this is just
-> > a standin file - Debian will maintain their own in their .diff. Same
-> > with rpm.
+Le 14/03/2017 à 13:54, Nicolas Dichtel a écrit :
+> Patches #1 and #2 are just cleanup: some exported headers were still under
+> a non-uapi directory. Patch #3 is a fix to avoid exporting a file that was
+> not under an uapi directory.
+> After these three patches, all exported headers are under an uapi directory:
+> path #4 stops searching files in non uapi directories.
+> The patch #5 was spotted by code review: there is no in-tree user of this
+> functionality.
+> Patch #6 fixes some warnings/errors reported by 0-day tests.
+> Patch #7 to #9 fix some errors when the corresponding files are included by
+> userland.
+> Patches #10 and #11 remove the need to list explicitly headers. Now all files
+> under an uapi directory are exported.
 > 
-> It was more convenient for me to bump version in this file too,
-> so new symbols in debian/*.symbol will have more clear minimal
-> version (14-1), which is close to rdma-core-14.
+> This series has been tested with a 'make headers_install' on x86 and a
+> 'make headers_install_all'. I've checked the result of both commands.
+> 
+> This patch is built on top of masahiroy/linux-kbuild.git#for-next (v4.11-rc1).
+> I didn't find any conflict with v4.11-rc2.
+Masahiro, is this series under review or do you expect something else on my side?
 
-I meant, you still have to bump the version, I was just doing it in
-place, because we are not actually keeping a changelog.
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Nicolas
