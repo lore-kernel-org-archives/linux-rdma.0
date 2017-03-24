@@ -1,31 +1,29 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] i40iw: Receive netdev events post INET_NOTIFIER state
-Date: Fri, 24 Mar 2017 16:27:18 -0400
-Message-ID: <1490387238.2404.22.camel@redhat.com>
-References: <20170317233007.16768-1-shiraz.saleem@intel.com>
+Subject: Re: [PATCH] IB/core: Protect against self-requeue of a cq work item
+Date: Fri, 24 Mar 2017 16:41:54 -0400
+Message-ID: <1490388114.2404.24.camel@redhat.com>
+References: <1489003252-1893-1-git-send-email-sagi@grimberg.me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170317233007.16768-1-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1489003252-1893-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, sassmann-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-03-17 at 18:30 -0500, Shiraz Saleem wrote:
-> Netdev notification events are de-registered only when all
-> client iwdev instances are removed. If a single client is closed
-> and re-opened, netdev events could arrive even before the Control
-> Queue-Pair (CQP) is created, causing a NULL pointer dereference crash
-> in i40iw_get_cqp_request. Fix this by allowing netdev event
-> notification only after we have reached the INET_NOTIFIER state with
-> respect to device initialization.
+On Wed, 2017-03-08 at 22:00 +0200, Sagi Grimberg wrote:
+> We need to make sure that the cq work item does not
+> run when we are destroying the cq. Unlike flush_work,
+> cancel_work_sync protects against self-requeue of the
+> work item (which we can do in ib_cq_poll_work).
 > 
-> Reported-by: Stefan Assmann <sassmann-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 
-Thanks, applied for -rc4.
+Hi Sagi, I didn't know if this was a theoretical or you actually hit
+this in practice, so I pulled it for -rc in case it was actually being
+hit in the wild.  Thanks.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
