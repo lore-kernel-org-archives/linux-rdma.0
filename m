@@ -1,7 +1,7 @@
 From: Jack Wang <jinpu.wang@profitbricks.com>
-Subject: [PATCH 06/28] ibtrs_clt: add header file shared only in ibtrs_client
-Date: Fri, 24 Mar 2017 11:45:21 +0100
-Message-ID: <1490352343-20075-7-git-send-email-jinpu.wangl@profitbricks.com>
+Subject: [PATCH 07/28] ibtrs_clt: add files for sysfs interface
+Date: Fri, 24 Mar 2017 11:45:22 +0100
+Message-ID: <1490352343-20075-8-git-send-email-jinpu.wangl@profitbricks.com>
 References: <1490352343-20075-1-git-send-email-jinpu.wangl@profitbricks.com>
 Return-path: <linux-block-owner@vger.kernel.org>
 In-Reply-To: <1490352343-20075-1-git-send-email-jinpu.wangl@profitbricks.com>
@@ -17,16 +17,18 @@ Signed-off-by: Kleber Souza <kleber.souza@profitbricks.com>
 Signed-off-by: Danil Kipnis <danil.kipnis@profitbricks.com>
 Signed-off-by: Roman Pen <roman.penyaev@profitbricks.com>
 ---
- .../ulp/ibtrs_client/ibtrs_clt_internal.h          | 244 +++++++++++++++++++++
- 1 file changed, 244 insertions(+)
- create mode 100644 drivers/infiniband/ulp/ibtrs_client/ibtrs_clt_internal.h
+ .../infiniband/ulp/ibtrs_client/ibtrs_clt_sysfs.c  | 412 +++++++++++++++++++++
+ .../infiniband/ulp/ibtrs_client/ibtrs_clt_sysfs.h  |  62 ++++
+ 2 files changed, 474 insertions(+)
+ create mode 100644 drivers/infiniband/ulp/ibtrs_client/ibtrs_clt_sysfs.c
+ create mode 100644 drivers/infiniband/ulp/ibtrs_client/ibtrs_clt_sysfs.h
 
-diff --git a/drivers/infiniband/ulp/ibtrs_client/ibtrs_clt_internal.h b/drivers/infiniband/ulp/ibtrs_client/ibtrs_clt_internal.h
+diff --git a/drivers/infiniband/ulp/ibtrs_client/ibtrs_clt_sysfs.c b/drivers/infiniband/ulp/ibtrs_client/ibtrs_clt_sysfs.c
 new file mode 100644
-index 0000000..7274b2d
+index 0000000..d430af0
 --- /dev/null
-+++ b/drivers/infiniband/ulp/ibtrs_client/ibtrs_clt_internal.h
-@@ -0,0 +1,244 @@
++++ b/drivers/infiniband/ulp/ibtrs_client/ibtrs_clt_sysfs.c
+@@ -0,0 +1,412 @@
 +/*
 + * InfiniBand Transport Layer
 + *
@@ -73,202 +75,438 @@ index 0000000..7274b2d
 + *
 + */
 +
-+#if !defined(IBTRS_CLT_INTERNAL_H)
-+#define IBTRS_CLT_INTERNAL_H
-+
++#include <linux/types.h>
++#include "ibtrs_clt_internal.h"
++#include <rdma/ibtrs_clt.h>
++#include "ibtrs_clt_sysfs.h"
 +#include <rdma/ibtrs.h>
++#include <rdma/ibtrs_log.h>
++#include <rdma/ib.h>
 +
-+enum ssm_state {
-+	_SSM_STATE_MIN,
-+	SSM_STATE_IDLE,
-+	SSM_STATE_IDLE_RECONNECT,
-+	SSM_STATE_WF_INFO,
-+	SSM_STATE_WF_INFO_RECONNECT,
-+	SSM_STATE_OPEN,
-+	SSM_STATE_OPEN_RECONNECT,
-+	SSM_STATE_CONNECTED,
-+	SSM_STATE_RECONNECT,
-+	SSM_STATE_RECONNECT_IMM,
-+	SSM_STATE_CLOSE_DESTROY,
-+	SSM_STATE_CLOSE_RECONNECT,
-+	SSM_STATE_CLOSE_RECONNECT_IMM,
-+	SSM_STATE_DISCONNECTED,
-+	SSM_STATE_DESTROYED,
-+	_SSM_STATE_MAX
++static struct kobject *sessions_kobj;
++static struct kobject *ibtrs_kobj;
++
++#define MIN_MAX_RECONN_ATT -1
++#define MAX_MAX_RECONN_ATT 9999
++
++static ssize_t ibtrs_clt_max_reconn_attempts_show(struct kobject *kobj,
++						  struct kobj_attribute *attr,
++						  char *page)
++{
++	struct ibtrs_session *sess = container_of(kobj, struct ibtrs_session,
++						  kobj);
++
++	return sprintf(page, "%d\n",
++		       ibtrs_clt_get_max_reconnect_attempts(sess));
++}
++
++static ssize_t ibtrs_clt_max_reconn_attempts_store(struct kobject *kobj,
++						   struct kobj_attribute *attr,
++						   const char *buf,
++						   size_t count)
++{
++	int ret;
++	s16 value;
++	struct ibtrs_session *sess = container_of(kobj, struct ibtrs_session,
++						  kobj);
++
++	ret = kstrtos16(buf, 10, &value);
++	if (unlikely(ret)) {
++		ERR(sess, "%s: failed to convert string '%s' to int\n",
++		    attr->attr.name, buf);
++		return ret;
++	}
++	if (unlikely(value > MAX_MAX_RECONN_ATT ||
++		     value < MIN_MAX_RECONN_ATT)) {
++		ERR(sess, "%s: invalid range"
++		    " (provided: '%s', accepted: min: %d, max: %d)\n",
++		    attr->attr.name, buf, MIN_MAX_RECONN_ATT,
++		    MAX_MAX_RECONN_ATT);
++		return -EINVAL;
++	}
++
++	INFO(sess, "%s: changing value from %d to %d\n", attr->attr.name,
++	     ibtrs_clt_get_max_reconnect_attempts(sess), value);
++	ibtrs_clt_set_max_reconnect_attempts(sess, value);
++	return count;
++}
++
++static struct kobj_attribute max_ibtrs_clt_reconnect_attempts_attr =
++		__ATTR(max_reconnect_attempts, 0644,
++		       ibtrs_clt_max_reconn_attempts_show,
++		       ibtrs_clt_max_reconn_attempts_store);
++
++static ssize_t ibtrs_clt_hb_timeout_show(struct kobject *kobj,
++					 struct kobj_attribute *attr,
++					 char *page)
++{
++	struct ibtrs_session *sess = container_of(kobj, struct ibtrs_session,
++						  kobj);
++
++	return scnprintf(page, PAGE_SIZE, "%u\n", sess->heartbeat.timeout_ms);
++}
++
++static ssize_t ibtrs_clt_hb_timeout_store(struct kobject *kobj,
++					  struct kobj_attribute *attr,
++					  const char *buf, size_t count)
++{
++	int ret;
++	u32 timeout_ms;
++	struct ibtrs_session *sess = container_of(kobj, struct ibtrs_session,
++						  kobj);
++
++	ret = kstrtouint(buf, 0, &timeout_ms);
++	if (ret) {
++		ERR(sess,
++		    "%s: failed to convert string '%s' to unsigned int\n",
++		    attr->attr.name, buf);
++		return ret;
++	}
++
++	ret = ibtrs_heartbeat_timeout_validate(timeout_ms);
++	if (ret)
++		return ret;
++
++	INFO(sess, "%s: changing value from %u to %u\n", attr->attr.name,
++	     sess->heartbeat.timeout_ms, timeout_ms);
++	ibtrs_set_heartbeat_timeout(&sess->heartbeat, timeout_ms);
++	return count;
++}
++
++static struct kobj_attribute ibtrs_clt_heartbeat_timeout_ms_attr =
++		__ATTR(heartbeat_timeout_ms, 0644,
++		       ibtrs_clt_hb_timeout_show, ibtrs_clt_hb_timeout_store);
++
++static ssize_t ibtrs_clt_state_show(struct kobject *kobj,
++				    struct kobj_attribute *attr, char *page)
++{
++	struct ibtrs_session *sess = container_of(kobj, struct ibtrs_session,
++						  kobj);
++	if (ibtrs_clt_sess_is_connected(sess))
++		return sprintf(page, "connected\n");
++
++	return sprintf(page, "disconnected\n");
++}
++
++static struct kobj_attribute ibtrs_clt_state_attr = __ATTR(state, 0444,
++							   ibtrs_clt_state_show,
++							   NULL);
++
++static ssize_t ibtrs_clt_hostname_show(struct kobject *kobj,
++				       struct kobj_attribute *attr, char *page)
++{
++	struct ibtrs_session *sess = container_of(kobj, struct ibtrs_session,
++						  kobj);
++	return sprintf(page, "%s\n", sess->hostname);
++}
++
++static struct kobj_attribute ibtrs_clt_hostname_attr =
++		__ATTR(hostname, 0444, ibtrs_clt_hostname_show, NULL);
++
++static ssize_t ibtrs_clt_reconnect_show(struct kobject *kobj,
++					struct kobj_attribute *attr, char *page)
++{
++	return scnprintf(page, PAGE_SIZE, "Usage: echo 1 > %s\n",
++			 attr->attr.name);
++}
++
++static ssize_t ibtrs_clt_reconnect_store(struct kobject *kobj,
++					 struct kobj_attribute *attr,
++					 const char *buf, size_t count)
++{
++	struct ibtrs_session *sess;
++	int ret;
++
++	sess = container_of(kobj, struct ibtrs_session, kobj);
++
++	if (!sysfs_streq(buf, "1")) {
++		ERR(sess, "%s: unknown value: '%s'\n", attr->attr.name, buf);
++		return -EINVAL;
++	}
++
++	ret = ibtrs_clt_reconnect(sess);
++	if (ret) {
++		ERR(sess, "%s: failed to reconnect session, errno: %d\n",
++		    attr->attr.name, ret);
++		return ret;
++	}
++	return count;
++}
++
++static struct kobj_attribute ibtrs_clt_reconnect_attr =
++		__ATTR(reconnect, 0644, ibtrs_clt_reconnect_show,
++		       ibtrs_clt_reconnect_store);
++
++static ssize_t ibtrs_clt_queue_show(struct kobject *kobj,
++				    struct kobj_attribute *attr, char *page)
++{
++	struct ibtrs_session *sess = container_of(kobj, struct ibtrs_session,
++						  kobj);
++	return scnprintf(page, PAGE_SIZE, "%d\n",
++			 ibtrs_clt_get_user_queue_depth(sess));
++}
++
++static ssize_t ibtrs_clt_queue_store(struct kobject *kobj,
++				     struct kobj_attribute *attr,
++				     const char *buf, size_t count)
++{
++	int res;
++	u16 old_queue_depth, queue_depth;
++	struct ibtrs_session *sess = container_of(kobj, struct ibtrs_session,
++						  kobj);
++	res = kstrtou16(buf, 0, &queue_depth);
++	if (res) {
++		ERR(sess,
++		    "%s: failed to convert string '%s' to unsigned int\n",
++		    attr->attr.name, buf);
++		return res;
++	}
++
++	old_queue_depth = ibtrs_clt_get_user_queue_depth(sess);
++	res = ibtrs_clt_set_user_queue_depth(sess, queue_depth);
++	if (!res) {
++		INFO(sess, "%s: changed value from %u to %u\n",
++		     attr->attr.name, old_queue_depth, queue_depth);
++	} else {
++		ERR(sess, "%s: failed to set queue depth, errno: %d\n",
++		    attr->attr.name, res);
++		return res;
++	}
++	return count;
++}
++
++STAT_ATTR(cpu_migration, ibtrs_clt_stats_migration_cnt_to_str,
++	  ibtrs_clt_reset_cpu_migr_stats);
++
++STAT_ATTR(sg_entries, ibtrs_clt_stats_sg_list_distr_to_str,
++	  ibtrs_clt_reset_sg_list_distr_stats);
++
++STAT_ATTR(reconnects, ibtrs_clt_stats_reconnects_to_str,
++	  ibtrs_clt_reset_reconnects_stat);
++
++STAT_ATTR(rdma_lat, ibtrs_clt_stats_rdma_lat_distr_to_str,
++	  ibtrs_clt_reset_rdma_lat_distr_stats);
++
++STAT_ATTR(user_ib_messages, ibtrs_clt_stats_user_ib_msgs_to_str,
++	  ibtrs_clt_reset_user_ib_msgs_stats);
++
++STAT_ATTR(wc_completion, ibtrs_clt_stats_wc_completion_to_str,
++	  ibtrs_clt_reset_wc_comp_stats);
++
++STAT_ATTR(rdma, ibtrs_clt_stats_rdma_to_str,
++	  ibtrs_clt_reset_rdma_stats);
++
++STAT_ATTR(reset_all, ibtrs_clt_reset_all_help, ibtrs_clt_reset_all_stats);
++
++static struct attribute *ibtrs_clt_default_stats_attrs[] = {
++	&sg_entries_attr.attr,
++	&cpu_migration_attr.attr,
++	&reconnects_attr.attr,
++	&rdma_lat_attr.attr,
++	&user_ib_messages_attr.attr,
++	&wc_completion_attr.attr,
++	&rdma_attr.attr,
++	&reset_all_attr.attr,
++	NULL,
 +};
 +
-+enum ibtrs_fast_reg {
-+	IBTRS_FAST_MEM_NONE,
-+	IBTRS_FAST_MEM_FR,
-+	IBTRS_FAST_MEM_FMR
++static struct attribute_group ibtrs_clt_default_stats_attr_group = {
++	.attrs = ibtrs_clt_default_stats_attrs,
 +};
 +
-+struct ibtrs_stats_reconnects {
-+	u32 successful_cnt;
-+	u32 fail_cnt;
++static struct kobj_type ibtrs_stats_ktype = {
++	.sysfs_ops = &kobj_sysfs_ops,
 +};
 +
-+struct ibtrs_stats_wc_comp {
-+	u32 max_wc_cnt;
-+	u32 cnt;
-+	u64 total_cnt;
++static int ibtrs_clt_create_stats_files(struct kobject *kobj,
++					struct kobject *kobj_stats)
++{
++	int ret;
++
++	ret = kobject_init_and_add(kobj_stats, &ibtrs_stats_ktype, kobj,
++				   "stats");
++	if (ret) {
++		ERR_NP("Failed to init and add stats kobject, errno: %d\n",
++		       ret);
++		return ret;
++	}
++
++	ret = sysfs_create_group(kobj_stats,
++				 &ibtrs_clt_default_stats_attr_group);
++	if (ret) {
++		ERR_NP("failed to create stats sysfs group, errno: %d\n", ret);
++		goto err;
++	}
++
++	return 0;
++
++err:
++	kobject_del(kobj_stats);
++	kobject_put(kobj_stats);
++
++	return ret;
++}
++
++static struct kobj_attribute ibtrs_clt_queue_depth_attr =
++		__ATTR(queue_depth, 0644, ibtrs_clt_queue_show,
++		       ibtrs_clt_queue_store);
++
++static struct attribute *ibtrs_clt_default_sess_attrs[] = {
++	&max_ibtrs_clt_reconnect_attempts_attr.attr,
++	&ibtrs_clt_heartbeat_timeout_ms_attr.attr,
++	&ibtrs_clt_state_attr.attr,
++	&ibtrs_clt_hostname_attr.attr,
++	&ibtrs_clt_reconnect_attr.attr,
++	&ibtrs_clt_queue_depth_attr.attr,
++	NULL,
 +};
 +
-+struct ibtrs_stats_cpu_migration {
-+	atomic_t *from;
-+	int *to;
++static struct attribute_group ibtrs_clt_default_sess_attr_group = {
++	.attrs = ibtrs_clt_default_sess_attrs,
 +};
 +
-+struct ibtrs_clt_stats_rdma_stats {
-+	u64 cnt_read;
-+	u64 size_total_read;
-+	u64 cnt_write;
-+	u64 size_total_write;
-+
-+	u16 inflight;
++static struct kobj_type ibtrs_session_ktype = {
++	.sysfs_ops = &kobj_sysfs_ops,
 +};
 +
-+#define MIN_LOG_SG 2
-+#define MAX_LOG_SG 5
-+#define MAX_LIN_SG BIT(MIN_LOG_SG)
-+#define SG_DISTR_LEN (MAX_LOG_SG - MIN_LOG_SG + MAX_LIN_SG + 1)
++int ibtrs_clt_create_sess_files(struct kobject *kobj,
++				struct kobject *kobj_stats, const char *ip)
++{
++	int ret;
 +
-+struct ibtrs_clt_stats_rdma_lat_entry {
-+	u64 read;
-+	u64 write;
-+};
++	ret = kobject_init_and_add(kobj, &ibtrs_session_ktype, sessions_kobj,
++				   "%s", ip);
++	if (ret) {
++		ERR_NP("Failed to create session kobject, errno: %d\n", ret);
++		return ret;
++	}
 +
-+#define MAX_LOG_LATENCY	16
-+#define MIN_LOG_LATENCY	0
++	ret = sysfs_create_group(kobj, &ibtrs_clt_default_sess_attr_group);
++	if (ret) {
++		ERR_NP("Failed to create session sysfs group, errno: %d\n",
++		       ret);
++		goto err;
++	}
 +
-+struct ibtrs_clt_stats_user_ib_msgs {
-+	u32 recv_msg_cnt;
-+	u32 sent_msg_cnt;
-+	u64 recv_size;
-+	u64 sent_size;
-+};
++	ret = ibtrs_clt_create_stats_files(kobj, kobj_stats);
++	if (ret) {
++		ERR_NP("Failed to create stats files, errno: %d\n", ret);
++		goto err1;
++	}
 +
-+struct ibtrs_clt_stats {
-+	struct ibtrs_stats_cpu_migration	cpu_migr;
-+	struct ibtrs_clt_stats_rdma_stats	*rdma_stats;
-+	u64					*sg_list_total;
-+	u64					**sg_list_distr;
-+	struct ibtrs_stats_reconnects		reconnects;
-+	struct ibtrs_clt_stats_rdma_lat_entry	**rdma_lat_distr;
-+	struct ibtrs_clt_stats_rdma_lat_entry	*rdma_lat_max;
-+	struct ibtrs_clt_stats_user_ib_msgs	user_ib_msgs;
-+	struct ibtrs_stats_wc_comp		*wc_comp;
-+};
++	return 0;
 +
-+struct ibtrs_session {
-+	struct list_head	list; /* global session list */
-+	wait_queue_head_t	wait_q;
-+	enum ssm_state		state;
-+	struct ibtrs_con	*con;
-+	struct ib_session	ib_sess;
-+	struct ib_device	*ib_device;
-+	struct ibtrs_iu		*rdma_info_iu;
-+	struct ibtrs_iu		*sess_info_iu;
-+	struct ibtrs_iu		*dummy_rx_iu;
-+	struct ibtrs_iu		**usr_rx_ring;
-+	struct ibtrs_iu		**io_tx_ius;
++err1:
++	sysfs_remove_group(kobj, &ibtrs_clt_default_sess_attr_group);
++err:
++	kobject_del(kobj);
++	kobject_put(kobj);
 +
-+	spinlock_t              u_msg_ius_lock ____cacheline_aligned;
-+	struct list_head	u_msg_ius_list;
++	return ret;
++}
 +
-+	struct rdma_req		*reqs;
-+	struct ib_fmr_pool	*fmr_pool;
-+	atomic_t		ib_sess_initialized;
-+	bool			io_bufs_initialized;
-+	size_t			pdu_sz;
-+	void			*priv;
-+	struct workqueue_struct	*sm_wq;
-+	struct workqueue_struct	*msg_wq;
-+	struct delayed_work	heartbeat_dwork;
-+	u32			heartbeat_timeout_srv_ms;
-+	struct delayed_work	reconnect_dwork;
-+	struct ibtrs_heartbeat	heartbeat;
-+	atomic_t		refcount;
-+	u8			active_cnt;
-+	bool			enable_rdma_lat;
-+	u8			ver;
-+	u8			connected_cnt;
-+	u32			retry_cnt;
-+	s16			max_reconnect_attempts;
-+	u8			reconnect_delay_sec;
-+	void			*tags;
-+	unsigned long		*tags_map;
-+	wait_queue_head_t	tags_wait;
-+	u64			*srv_rdma_addr;
-+	u32			srv_rdma_buf_rkey;
-+	u32			max_io_size;
-+	u32			max_req_size;
-+	u32			chunk_size;
-+	u32			max_desc;
-+	u32			queue_depth;
-+	u16			user_queue_depth;
-+	enum ibtrs_fast_reg	fast_reg_mode;
-+	u64			mr_page_mask;
-+	u32			mr_page_size;
-+	u32			mr_max_size;
-+	u32			max_pages_per_mr;
-+	int			max_sge;
-+	struct sockaddr_storage peer_addr;
-+	struct sockaddr_storage self_addr;
-+	struct completion	*destroy_completion;
-+	struct kobject		kobj;
-+	struct kobject		kobj_stats;
-+	char			addr[IBTRS_ADDRLEN];
-+	char			hostname[MAXHOSTNAMELEN];
-+	struct ibtrs_clt_stats  stats;
-+	wait_queue_head_t	mu_iu_wait_q;
-+	wait_queue_head_t	mu_buf_wait_q;
-+	atomic_t		peer_usr_msg_bufs;
-+	struct completion	*ib_sess_destroy_completion;
-+};
++void ibtrs_clt_destroy_sess_files(struct kobject *kobj,
++				  struct kobject *kobj_stats)
++{
++	if (kobj->state_in_sysfs) {
++		kobject_del(kobj_stats);
++		kobject_put(kobj_stats);
++		kobject_del(kobj);
++		kobject_put(kobj);
++	}
++}
 +
-+#define TAG_SIZE(sess) (sizeof(struct ibtrs_tag) + (sess)->pdu_sz)
-+#define GET_TAG(sess, idx) ((sess)->tags + TAG_SIZE(sess) * idx)
++int ibtrs_clt_create_sysfs_files(void)
++{
++	ibtrs_kobj = kobject_create_and_add("ibtrs", kernel_kobj);
++	if (!ibtrs_kobj) {
++		ERR_NP("Failed to create 'ibtrs' kobject\n");
++		return -ENOMEM;
++	}
 +
-+/**
-+ * ibtrs_clt_reconnect() - Reconnect the session
-+ * @sess: Session handler
++	sessions_kobj = kobject_create_and_add("sessions", ibtrs_kobj);
++	if (!sessions_kobj) {
++		ERR_NP("Failed to create 'sessions' kobject\n");
++		kobject_del(ibtrs_kobj);
++		kobject_put(ibtrs_kobj);
++		return -ENOMEM;
++	}
++	return 0;
++}
++
++void ibtrs_clt_destroy_sysfs_files(void)
++{
++	kobject_del(sessions_kobj);
++	kobject_del(ibtrs_kobj);
++	kobject_put(sessions_kobj);
++	kobject_put(ibtrs_kobj);
++}
+diff --git a/drivers/infiniband/ulp/ibtrs_client/ibtrs_clt_sysfs.h b/drivers/infiniband/ulp/ibtrs_client/ibtrs_clt_sysfs.h
+new file mode 100644
+index 0000000..d3ae563
+--- /dev/null
++++ b/drivers/infiniband/ulp/ibtrs_client/ibtrs_clt_sysfs.h
+@@ -0,0 +1,62 @@
++/*
++ * InfiniBand Transport Layer
++ *
++ * Copyright (c) 2014 - 2017 ProfitBricks GmbH. All rights reserved.
++ * Authors: Fabian Holler < mail@fholler.de>
++ *          Jack Wang <jinpu.wang@profitbricks.com>
++ *   	    Kleber Souza <kleber.souza@profitbricks.com>
++ * 	    Danil Kipnis <danil.kipnis@profitbricks.com>
++ *   	    Roman Pen <roman.penyaev@profitbricks.com>
++ *          Milind Dumbare <Milind.dumbare@gmail.com>
++ *
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions, and the following disclaimer,
++ *    without modification.
++ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
++ *    substantially similar to the "NO WARRANTY" disclaimer below
++ *    ("Disclaimer") and any redistribution must be conditioned upon
++ *    including a substantially similar Disclaimer requirement for further
++ *    binary redistribution.
++ * 3. Neither the names of the above-listed copyright holders nor the names
++ *    of any contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * Alternatively, this software may be distributed under the terms of the
++ * GNU General Public License ("GPL") version 2 as published by the Free
++ * Software Foundation.
++ *
++ * NO WARRANTY
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
++ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
++ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++ * POSSIBILITY OF SUCH DAMAGES.
++ *
 + */
-+int ibtrs_clt_reconnect(struct ibtrs_session *sess);
 +
-+void ibtrs_clt_set_max_reconnect_attempts(struct ibtrs_session *sess,
-+					  s16 value);
++#ifndef _IBTRS_CLT_SYFS_H
++#define _IBTRS_CLT_SYFS_H
 +
-+s16 ibtrs_clt_get_max_reconnect_attempts(const struct ibtrs_session *sess);
-+int ibtrs_clt_get_user_queue_depth(struct ibtrs_session *sess);
-+int ibtrs_clt_set_user_queue_depth(struct ibtrs_session *sess, u16 queue_depth);
-+int ibtrs_clt_reset_sg_list_distr_stats(struct ibtrs_session *sess,
-+					bool enable);
-+int ibtrs_clt_stats_sg_list_distr_to_str(struct ibtrs_session *sess,
-+					 char *buf, size_t len);
-+int ibtrs_clt_reset_rdma_lat_distr_stats(struct ibtrs_session *sess,
-+					 bool enable);
-+ssize_t ibtrs_clt_stats_rdma_lat_distr_to_str(struct ibtrs_session *sess,
-+					      char *page, size_t len);
-+int ibtrs_clt_reset_cpu_migr_stats(struct ibtrs_session *sess, bool enable);
-+int ibtrs_clt_stats_migration_cnt_to_str(struct ibtrs_session *sess, char *buf,
-+					 size_t len);
-+int ibtrs_clt_reset_reconnects_stat(struct ibtrs_session *sess, bool enable);
-+int ibtrs_clt_stats_reconnects_to_str(struct ibtrs_session *sess, char *buf,
-+				      size_t len);
-+int ibtrs_clt_reset_user_ib_msgs_stats(struct ibtrs_session *sess, bool enable);
-+int ibtrs_clt_stats_user_ib_msgs_to_str(struct ibtrs_session *sess, char *buf,
-+					size_t len);
-+int ibtrs_clt_reset_wc_comp_stats(struct ibtrs_session *sess, bool enable);
-+int ibtrs_clt_stats_wc_completion_to_str(struct ibtrs_session *sess, char *buf,
-+					 size_t len);
-+int ibtrs_clt_reset_rdma_stats(struct ibtrs_session *sess, bool enable);
-+ssize_t ibtrs_clt_stats_rdma_to_str(struct ibtrs_session *sess,
-+				    char *page, size_t len);
-+bool ibtrs_clt_sess_is_connected(const struct ibtrs_session *sess);
-+int ibtrs_clt_reset_all_stats(struct ibtrs_session *sess, bool enable);
-+ssize_t ibtrs_clt_reset_all_help(struct ibtrs_session *sess,
-+				 char *page, size_t len);
++#include <linux/kobject.h>
++
++int ibtrs_clt_create_sysfs_files(void);
++
++void ibtrs_clt_destroy_sysfs_files(void);
++
++int ibtrs_clt_create_sess_files(struct kobject *kobj, struct kobject *kobj_sess,
++				const char *ip);
++
++void ibtrs_clt_destroy_sess_files(struct kobject *kobj,
++				  struct kobject *kobj_sess);
 +
 +#endif
 -- 
