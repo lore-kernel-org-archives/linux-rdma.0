@@ -1,34 +1,38 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2] infiniband/uverbs: Fix integer overflows
-Date: Fri, 24 Mar 2017 20:02:03 +0000
-Message-ID: <1490385702.3312.18.camel@sandisk.com>
-References: <1490385317-35641-1-git-send-email-vlad@tsyrklevich.net>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] i40iw: Receive netdev events post INET_NOTIFIER state
+Date: Fri, 24 Mar 2017 16:27:18 -0400
+Message-ID: <1490387238.2404.22.camel@redhat.com>
+References: <20170317233007.16768-1-shiraz.saleem@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1490385317-35641-1-git-send-email-vlad-NIZqynvkaCU43zv7NVfAiQ@public.gmane.org>
-Content-Language: en-US
-Content-ID: <A57A8B598AF6DB4B823CBB0F056E3337-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20170317233007.16768-1-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "vlad-NIZqynvkaCU43zv7NVfAiQ@public.gmane.org" <vlad-NIZqynvkaCU43zv7NVfAiQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, sassmann-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-03-24 at 15:55 -0400, Vlad Tsyrklevich wrote:
-> The 'num_sge' variable is verfied to be smaller than the 'sge_count'
-> variable; however, since both are user-controlled it's possible to cause
-> an integer overflow for the kmalloc multiply on 32-bit platforms
-> (num_sge and sge_count are both defined u32). By crafting an input that
-> causes a smaller-than-expected allocation it's possible to write
-> controlled data out-of-bounds.
+On Fri, 2017-03-17 at 18:30 -0500, Shiraz Saleem wrote:
+> Netdev notification events are de-registered only when all
+> client iwdev instances are removed. If a single client is closed
+> and re-opened, netdev events could arrive even before the Control
+> Queue-Pair (CQP) is created, causing a NULL pointer dereference crash
+> in i40iw_get_cqp_request. Fix this by allowing netdev event
+> notification only after we have reached the INET_NOTIFIER state with
+> respect to device initialization.
+> 
+> Reported-by: Stefan Assmann <sassmann-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Hello Vlad,
+Thanks, applied for -rc4.
 
-Do you think that an RDMA driver exists that supports a max_sge value that
-is large enough to cause this multiplication to overflow?
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+   
+Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
-Bart.=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
