@@ -1,100 +1,104 @@
-From: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [RFC PATCH 00/28] INFINIBAND NETWORK BLOCK DEVICE (IBNBD)
-Date: Fri, 24 Mar 2017 15:24:00 +0100
-Message-ID: <CAMGffE=fd8EqxeEqSpRdwX_1XmjLe2VAT1_6iJyWASDtwcbyRw@mail.gmail.com>
+From: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH 01/28] ibtrs: add header shared between ibtrs_client and
+ ibtrs_server
+Date: Fri, 24 Mar 2017 15:31:27 +0100
+Message-ID: <20170324143127.GI3571@linux-x5ow.site>
 References: <1490352343-20075-1-git-send-email-jinpu.wangl@profitbricks.com>
- <20170324121526.GF3571@linux-x5ow.site> <CAMGffE=CitFGj11NhFKPL2MNiOVVyb-ggRe-MhewcobGY0-u5A@mail.gmail.com>
- <1490362271.2516.4.camel@sandisk.com>
+ <1490352343-20075-2-git-send-email-jinpu.wangl@profitbricks.com>
+ <20170324123546.GG3571@linux-x5ow.site>
+ <CAMGffEn7Q+Tchaj4RXV1zMk0MzHqGRv=0W5Vd1G_-GvZaG8tPA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1490362271.2516.4.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAMGffEn7Q+Tchaj4RXV1zMk0MzHqGRv=0W5Vd1G_-GvZaG8tPA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: "jthumshirn-l3A5Bk7waGM@public.gmane.org" <jthumshirn-l3A5Bk7waGM@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "mail-99BIx50xQYGELgA04lAiVw@public.gmane.org" <mail-99BIx50xQYGELgA04lAiVw@public.gmane.org>, "yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org" <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "Milind.dumbare-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <Milind.dumbare-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Roman Penyaev <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+To: Jinpu Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, hch <hch-jcswGhMUV9g@public.gmane.org>, Fabian Holler <mail-99BIx50xQYGELgA04lAiVw@public.gmane.org>, Milind Dumbare <Milind.dumbare-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Michael Wang <yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Kleber Souza <kleber.souza-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Mar 24, 2017 at 2:31 PM, Bart Van Assche
-<Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
-> On Fri, 2017-03-24 at 13:46 +0100, Jinpu Wang wrote:
->> Our IBNBD project was started 3 years ago based on our need for Cloud
->> Computing, NVMeOF is a bit younger.
->> - IBNBD is one of our components, part of our software defined storage s=
-olution.
->> - As I listed in features, IBNBD has it's own features
->>
->> We're planning to look more into NVMeOF, but it's not a replacement for =
-IBNBD.
->
-> Hello Jack, Danil and Roman,
->
-> Thanks for having taken the time to open source this work and to travel t=
-o
-> Boston to present this work at the Vault conference. However, my
-> understanding of IBNBD is that this driver has several shortcomings neith=
-er
-> NVMeOF nor iSER nor SRP have:
-> * Doesn't scale in terms of number of CPUs submitting I/O. The graphs sho=
-wn
->   during the Vault talk clearly illustrate this. This is probably the res=
-ult
->   of sharing a data structure across all client CPUs, maybe the bitmap th=
-at
->   tracks which parts of the target buffer space are in use.
-> * Supports IB but none of the other RDMA transports (RoCE / iWARP).
->
-> We also need performance numbers that compare IBNBD against SRP and/or
-> NVMeOF with memory registration disabled to see whether and how much fast=
-er
-> IBNBD is compared to these two protocols.
->
-> The fact that IBNBD only needs to messages per I/O is an advantage it has
-> today over SRP but not over NVMeOF nor over iSER. The upstream initiator
-> drivers for the latter two protocols already support inline data.
->
-> Another question I have is whether integration with multipathd is support=
-ed?
-> If multipathd tries to run scsi_id against an IBNBD client device that wi=
-ll
-> fail.
->
-> Thanks,
->
-> Bart.
-Hello Bart,
+On Fri, Mar 24, 2017 at 01:54:04PM +0100, Jinpu Wang wrote:
+> >> +
+> >> +#define XX(a) case (a): return #a
+> >
+> > please no macros with retun in them and XX isn't quite too descriptive as
+> > well.
+> >
+> > [...]
+> >
+> >> +static inline const char *ib_wc_opcode_str(enum ib_wc_opcode opcode)
+> >> +{
+> >> +     switch (opcode) {
+> >> +     XX(IB_WC_SEND);
+> >> +     XX(IB_WC_RDMA_WRITE);
+> >> +     XX(IB_WC_RDMA_READ);
+> >> +     XX(IB_WC_COMP_SWAP);
+> >> +     XX(IB_WC_FETCH_ADD);
+> >> +     /* recv-side); inbound completion */
+> >> +     XX(IB_WC_RECV);
+> >> +     XX(IB_WC_RECV_RDMA_WITH_IMM);
+> >> +     default: return "IB_WC_OPCODE_UNKNOWN";
+> >> +     }
+> >> +}
+> >
+> > How about:
+> >
+> > struct {
+> >         char *name;
+> >         enum ib_wc_opcode opcode;
+> > } ib_wc_opcode_table[] = {
+> >         { stringyfy(IB_WC_SEND), IB_WC_SEND },
+> >         { stringyfy(IB_WC_RDMA_WRITE), IB_WC_RDMA_WRITE },
+> >         { stringyfy(IB_WC_RDMA_READ ), IB_WC_RDMA_READ }
+> >         { stringyfy(IB_WC_COMP_SWAP), IB_WC_COMP_SWAP },
+> >         { stringyfy(IB_WC_FETCH_ADD), IB_WC_FETCH_ADD },
+> >         { stringyfy(IB_WC_RECV), IB_WC_RECV },
+> >         { stringyfy(IB_WC_RECV_RDMA_WITH_IMM), IB_WC_RECV_RDMA_WITH_IMM },
+> >         { NULL, 0 },
+> > };
+> >
+> > static inline const char *ib_wc_opcode_str(enum ib_wc_opcode opcode)
+> > {
+> >         int i;
+> >
+> >         for (i = 0; i < ARRAY_SIZE(ib_wc_opcode_table); i++)
+> >                 if (ib_wc_opcode_table[i].opcode == opcode)
+> >                         return ib_wc_opcode_table[i].name;
+> >
+> >         return "IB_WC_OPCODE_UNKNOWN";
+> > }
+> >
+> Looks nice, might be better to put it into ib_verbs.h?
 
-Thanks for your comments. As usual in house driver mainly covers needs
-for ProfitBricks,
-We only tested in our hardware environment. We only use IB not
-RoCE/iWARP. The idea to
-opensource is :
-- Present our design/implementation/tradeoff, others might be interested.
-- Attract more attention from developers/testers, so we can improve
-the project better and faster.
+Probably yes, as are your kvec functions for lib/iov_iter.c
 
-We will gather performance data compare with NVMeOF in next submitting.
+[...]
 
-multipath is not supported, we're using APM for failover. (patch from
-Mellanox developers)
+> > What about resolving the kernel bug instead of making workarounds?
+> I tried to send a patch upsteam, but was rejected by Sean.
+> http://www.spinics.net/lists/linux-rdma/msg22381.html
+> 
 
-Thanks,
---=20
-Jack Wang
-Linux Kernel Developer
+I don't see a NACK in this thread.
 
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
+>From http://www.spinics.net/lists/linux-rdma/msg22410.html:
+"The port space (which maps to the service ID) needs to be included as part of
+the check that determines the format of the private data, and not simply the
+address family." 
 
-Tel:       +49 30 577 008  042
-Fax:      +49 30 577 008 299
-Email:    jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-URL:      https://www.profitbricks.de
+After such a state I would have expected to see a v2 of the patch with above
+comment addressed.
 
-Sitz der Gesellschaft: Berlin
-Registergericht: Amtsgericht Charlottenburg, HRB 125506 B
-Gesch=C3=A4ftsf=C3=BChrer: Achim Weiss
+Byte,
+	Johannes
+-- 
+Johannes Thumshirn                                          Storage
+jthumshirn-l3A5Bk7waGM@public.gmane.org                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
+GF: Felix Imendörffer, Jane Smithard, Graham Norton
+HRB 21284 (AG Nürnberg)
+Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
