@@ -1,42 +1,44 @@
-From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH 11/28] ibtrs_srv: add header shared in ibtrs_server
-Date: Fri, 24 Mar 2017 11:45:26 +0100
-Message-ID: <1490352343-20075-12-git-send-email-jinpu.wangl@profitbricks.com>
+From: Jack Wang <jinpu.wang@profitbricks.com>
+Subject: [PATCH 12/28] ibtrs_srv: add sysfs interface
+Date: Fri, 24 Mar 2017 11:45:27 +0100
+Message-ID: <1490352343-20075-13-git-send-email-jinpu.wangl@profitbricks.com>
 References: <1490352343-20075-1-git-send-email-jinpu.wangl@profitbricks.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1490352343-20075-1-git-send-email-jinpu.wangl-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, mail-99BIx50xQYGELgA04lAiVw@public.gmane.org, Milind.dumbare-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org, Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Kleber Souza <kleber.souza-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Return-path: <linux-block-owner@vger.kernel.org>
+In-Reply-To: <1490352343-20075-1-git-send-email-jinpu.wangl@profitbricks.com>
+Sender: linux-block-owner@vger.kernel.org
+To: linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: dledford@redhat.com, axboe@kernel.dk, hch@lst.de, mail@fholler.de, Milind.dumbare@gmail.com, yun.wang@profitbricks.com, Jack Wang <jinpu.wang@profitbricks.com>, Kleber Souza <kleber.souza@profitbricks.com>, Danil Kipnis <danil.kipnis@profitbricks.com>, Roman Pen <roman.penyaev@profitbricks.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+From: Jack Wang <jinpu.wang@profitbricks.com>
 
-Signed-off-by: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Signed-off-by: Kleber Souza <kleber.souza-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Signed-off-by: Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Signed-off-by: Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Signed-off-by: Jack Wang <jinpu.wang@profitbricks.com>
+Signed-off-by: Kleber Souza <kleber.souza@profitbricks.com>
+Signed-off-by: Danil Kipnis <danil.kipnis@profitbricks.com>
+Signed-off-by: Roman Pen <roman.penyaev@profitbricks.com>
 ---
- .../ulp/ibtrs_server/ibtrs_srv_internal.h          | 201 +++++++++++++++++++++
- 1 file changed, 201 insertions(+)
- create mode 100644 drivers/infiniband/ulp/ibtrs_server/ibtrs_srv_internal.h
+ .../infiniband/ulp/ibtrs_server/ibtrs_srv_sysfs.c  | 301 +++++++++++++++++++++
+ .../infiniband/ulp/ibtrs_server/ibtrs_srv_sysfs.h  |  59 ++++
+ 2 files changed, 360 insertions(+)
+ create mode 100644 drivers/infiniband/ulp/ibtrs_server/ibtrs_srv_sysfs.c
+ create mode 100644 drivers/infiniband/ulp/ibtrs_server/ibtrs_srv_sysfs.h
 
-diff --git a/drivers/infiniband/ulp/ibtrs_server/ibtrs_srv_internal.h b/drivers/infiniband/ulp/ibtrs_server/ibtrs_srv_internal.h
+diff --git a/drivers/infiniband/ulp/ibtrs_server/ibtrs_srv_sysfs.c b/drivers/infiniband/ulp/ibtrs_server/ibtrs_srv_sysfs.c
 new file mode 100644
-index 0000000..79130a1
+index 0000000..c95a124
 --- /dev/null
-+++ b/drivers/infiniband/ulp/ibtrs_server/ibtrs_srv_internal.h
-@@ -0,0 +1,201 @@
++++ b/drivers/infiniband/ulp/ibtrs_server/ibtrs_srv_sysfs.c
+@@ -0,0 +1,301 @@
 +/*
 + * InfiniBand Transport Layer
 + *
 + * Copyright (c) 2014 - 2017 ProfitBricks GmbH. All rights reserved.
-+ * Authors: Fabian Holler < mail-99BIx50xQYGELgA04lAiVw@public.gmane.org>
-+ *          Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-+ *   	    Kleber Souza <kleber.souza-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-+ * 	    Danil Kipnis <danil.kipnis-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-+ *   	    Roman Pen <roman.penyaev-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-+ *          Milind Dumbare <Milind.dumbare-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
++ * Authors: Fabian Holler < mail@fholler.de>
++ *          Jack Wang <jinpu.wang@profitbricks.com>
++ *   	    Kleber Souza <kleber.souza@profitbricks.com>
++ * 	    Danil Kipnis <danil.kipnis@profitbricks.com>
++ *   	    Roman Pen <roman.penyaev@profitbricks.com>
++ *          Milind Dumbare <Milind.dumbare@gmail.com>
 + *
 + *
 + * Redistribution and use in source and binary forms, with or without
@@ -73,165 +75,325 @@ index 0000000..79130a1
 + *
 + */
 +
-+#ifndef _IBTRS_SRV_INTERNAL_H
-+#define _IBTRS_SRV_INTERNAL_H
-+
++#include "ibtrs_srv_sysfs.h"
++#include "ibtrs_srv_internal.h"
++#include <rdma/ibtrs_srv.h>
 +#include <rdma/ibtrs.h>
++#include <rdma/ibtrs_log.h>
 +
-+enum ssm_state {
-+	SSM_STATE_IDLE,
-+	SSM_STATE_CONNECTED,
-+	SSM_STATE_CLOSING,
-+	SSM_STATE_CLOSED
++static struct kobject *ibtrs_srv_kobj;
++static struct kobject *ibtrs_srv_sessions_kobj;
++
++static ssize_t ibtrs_srv_hb_timeout_show(struct kobject *kobj,
++					 struct kobj_attribute *attr,
++					 char *page)
++{
++	struct ibtrs_session *sess = container_of(kobj, struct ibtrs_session,
++						  kobj);
++
++	return scnprintf(page, PAGE_SIZE, "%u\n", sess->heartbeat.timeout_ms);
++}
++
++static ssize_t ibtrs_srv_hb_timeout_store(struct kobject *kobj,
++					  struct kobj_attribute *attr,
++					  const char *buf, size_t count)
++{
++	int ret;
++	u32 timeout_ms;
++	struct ibtrs_session *sess = container_of(kobj, struct ibtrs_session,
++						  kobj);
++
++	ret = kstrtouint(buf, 0, &timeout_ms);
++	if (ret)
++		return ret;
++
++	ret = ibtrs_heartbeat_timeout_validate(timeout_ms);
++	if (ret)
++		return ret;
++
++	INFO(sess, "%s: changing value from %u to %u\n", attr->attr.name,
++	     sess->heartbeat.timeout_ms, timeout_ms);
++	ibtrs_set_heartbeat_timeout(&sess->heartbeat, timeout_ms);
++	return count;
++}
++
++static struct kobj_attribute ibtrs_srv_heartbeat_timeout_ms_attr =
++	__ATTR(heartbeat_timeout_ms, 0644,
++	       ibtrs_srv_hb_timeout_show, ibtrs_srv_hb_timeout_store);
++
++static ssize_t ibtrs_srv_disconnect_show(struct kobject *kobj,
++					 struct kobj_attribute *attr,
++					 char *page)
++{
++	return scnprintf(page, PAGE_SIZE, "Usage: echo 1 > %s\n",
++			 attr->attr.name);
++}
++
++static ssize_t ibtrs_srv_disconnect_store(struct kobject *kobj,
++					  struct kobj_attribute *attr,
++					  const char *buf, size_t count)
++{
++	struct ibtrs_session *sess = container_of(kobj, struct ibtrs_session,
++						  kobj);
++
++	if (!sysfs_streq(buf, "1")) {
++		ERR(sess, "%s: invalid value: '%s'\n", attr->attr.name, buf);
++		return -EINVAL;
++	}
++
++	INFO(sess, "%s: Session disconnect requested\n", attr->attr.name);
++	ibtrs_srv_queue_close(sess);
++
++	return count;
++}
++
++static struct kobj_attribute disconnect_attr =
++	__ATTR(disconnect, 0644,
++	       ibtrs_srv_disconnect_show, ibtrs_srv_disconnect_store);
++
++static ssize_t ibtrs_srv_current_hca_port_show(struct kobject *kobj,
++					       struct kobj_attribute *attr,
++					       char *page)
++{
++	struct ibtrs_session *sess = container_of(kobj, struct ibtrs_session,
++						  kobj);
++	return ibtrs_srv_current_hca_port_to_str(sess, page, PAGE_SIZE);
++}
++
++static struct kobj_attribute current_hca_port_attr =
++	__ATTR(current_hca_port, 0444, ibtrs_srv_current_hca_port_show,
++	       NULL);
++
++static ssize_t ibtrs_srv_hca_name_show(struct kobject *kobj,
++				       struct kobj_attribute *attr,
++				       char *page)
++{
++	struct ibtrs_session *sess = container_of(kobj, struct ibtrs_session,
++						  kobj);
++
++	return scnprintf(page, PAGE_SIZE, "%s\n",
++			 ibtrs_srv_get_sess_hca_name(sess));
++}
++
++static struct kobj_attribute hca_name_attr =
++	__ATTR(hca_name, 0444, ibtrs_srv_hca_name_show, NULL);
++
++static ssize_t hostname_show(struct kobject *kobj,
++			     struct kobj_attribute *attr, char *page)
++{
++	struct ibtrs_session *sess = container_of(kobj, struct ibtrs_session,
++						  kobj);
++	return sprintf(page, "%s\n", sess->hostname);
++}
++
++static struct kobj_attribute hostname_attr =
++		__ATTR(hostname, 0444, hostname_show, NULL);
++
++static struct attribute *default_sess_attrs[] = {
++	&hca_name_attr.attr,
++	&hostname_attr.attr,
++	&current_hca_port_attr.attr,
++	&disconnect_attr.attr,
++	&ibtrs_srv_heartbeat_timeout_ms_attr.attr,
++	NULL,
 +};
 +
++static struct attribute_group default_sess_attr_group = {
++	.attrs = default_sess_attrs,
++};
++
++static void ibtrs_srv_sess_release(struct kobject *kobj)
++{
++	struct ibtrs_session *sess = container_of(kobj, struct ibtrs_session,
++						  kobj);
++
++	ibtrs_srv_sess_put(sess);
++}
++
++static struct kobj_type ibtrs_srv_sess_ktype = {
++	.sysfs_ops	= &kobj_sysfs_ops,
++	.release	= ibtrs_srv_sess_release,
++};
++
++STAT_ATTR(rdma, ibtrs_srv_stats_rdma_to_str, ibtrs_srv_reset_rdma_stats);
++
++STAT_ATTR(user_ib_messages, ibtrs_srv_stats_user_ib_msgs_to_str,
++	  ibtrs_srv_reset_user_ib_msgs_stats);
++
++STAT_ATTR(wc_completion, ibtrs_srv_stats_wc_completion_to_str,
++	  ibtrs_srv_reset_wc_completion_stats);
++
++STAT_ATTR(reset_all, ibtrs_srv_reset_all_help, ibtrs_srv_reset_all_stats);
++
++static struct attribute *ibtrs_srv_default_stats_attrs[] = {
++	&rdma_attr.attr,
++	&user_ib_messages_attr.attr,
++	&wc_completion_attr.attr,
++	&reset_all_attr.attr,
++	NULL,
++};
++
++static struct attribute_group ibtrs_srv_default_stats_attr_group = {
++	.attrs = ibtrs_srv_default_stats_attrs,
++};
++
++static struct kobj_type ibtrs_stats_ktype = {
++	.sysfs_ops = &kobj_sysfs_ops,
++};
++
++static int ibtrs_srv_create_stats_files(struct ibtrs_session *sess)
++{
++	int ret;
++
++	ret = kobject_init_and_add(&sess->kobj_stats, &ibtrs_stats_ktype,
++				   &sess->kobj, "stats");
++	if (ret) {
++		ERR(sess,
++		    "Failed to init and add sysfs directory for session stats,"
++		    " errno: %d\n", ret);
++		return ret;
++	}
++
++	ret = sysfs_create_group(&sess->kobj_stats,
++				 &ibtrs_srv_default_stats_attr_group);
++	if (ret) {
++		ERR(sess, "Failed to create sysfs group for session stats,"
++		    " errno: %d\n", ret);
++		goto err;
++	}
++
++	return 0;
++
++err:
++	kobject_put(&sess->kobj_stats);
++
++	return ret;
++}
++
++int ibtrs_srv_create_sess_files(struct ibtrs_session *sess)
++{
++	int ret;
++
++	DEB("creating sysfs files for sess %s\n", sess->addr);
++
++	if (WARN_ON(!ibtrs_srv_sess_get(sess)))
++		return -EINVAL;
++
++	ret = kobject_init_and_add(&sess->kobj, &ibtrs_srv_sess_ktype,
++				   ibtrs_srv_sessions_kobj, "%s", sess->addr);
++	if (ret) {
++		ERR(sess, "Failed to init and add sysfs directory for session,"
++		    " errno: %d\n", ret);
++		ibtrs_srv_sess_put(sess);
++		return ret;
++	}
++
++	ret = sysfs_create_group(&sess->kobj, &default_sess_attr_group);
++	if (ret) {
++		ERR(sess, "Failed to create sysfs group for session,"
++		    " errno: %d\n", ret);
++		goto err;
++	}
++
++	ret = ibtrs_srv_create_stats_files(sess);
++	if (ret)
++		goto err1;
++
++	return 0;
++
++err1:
++	sysfs_remove_group(&sess->kobj, &default_sess_attr_group);
++err:
++	kobject_put(&sess->kobj);
++
++	return ret;
++}
++
++int ibtrs_srv_create_sysfs_files(void)
++{
++	ibtrs_srv_kobj = kobject_create_and_add("ibtrs", kernel_kobj);
++	if (!ibtrs_srv_kobj)
++		return -ENOMEM;
++
++	ibtrs_srv_sessions_kobj = kobject_create_and_add("sessions",
++							 ibtrs_srv_kobj);
++	if (!ibtrs_srv_sessions_kobj) {
++		kobject_put(ibtrs_srv_kobj);
++		return -ENOMEM;
++	}
++
++	return 0;
++}
++
++void ibtrs_srv_destroy_sysfs_files(void)
++{
++	kobject_put(ibtrs_srv_sessions_kobj);
++	kobject_put(ibtrs_srv_kobj);
++}
+diff --git a/drivers/infiniband/ulp/ibtrs_server/ibtrs_srv_sysfs.h b/drivers/infiniband/ulp/ibtrs_server/ibtrs_srv_sysfs.h
+new file mode 100644
+index 0000000..e5dfa62
+--- /dev/null
++++ b/drivers/infiniband/ulp/ibtrs_server/ibtrs_srv_sysfs.h
+@@ -0,0 +1,59 @@
 +/*
-+ * Describes the rdma buffer managed by client and used for his rdma writes
-+ * Rdma info has to be sent in OPEN_RESP message to the client.
++ * InfiniBand Transport Layer
++ *
++ * Copyright (c) 2014 - 2017 ProfitBricks GmbH. All rights reserved.
++ * Authors: Fabian Holler < mail@fholler.de>
++ *          Jack Wang <jinpu.wang@profitbricks.com>
++ *   	    Kleber Souza <kleber.souza@profitbricks.com>
++ * 	    Danil Kipnis <danil.kipnis@profitbricks.com>
++ *   	    Roman Pen <roman.penyaev@profitbricks.com>
++ *          Milind Dumbare <Milind.dumbare@gmail.com>
++ *
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions, and the following disclaimer,
++ *    without modification.
++ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
++ *    substantially similar to the "NO WARRANTY" disclaimer below
++ *    ("Disclaimer") and any redistribution must be conditioned upon
++ *    including a substantially similar Disclaimer requirement for further
++ *    binary redistribution.
++ * 3. Neither the names of the above-listed copyright holders nor the names
++ *    of any contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * Alternatively, this software may be distributed under the terms of the
++ * GNU General Public License ("GPL") version 2 as published by the Free
++ * Software Foundation.
++ *
++ * NO WARRANTY
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
++ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
++ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++ * POSSIBILITY OF SUCH DAMAGES.
++ *
 + */
-+struct ibtrs_rcv_buf {
-+	dma_addr_t	rdma_addr;
-+	void		*buf;
-+};
 +
-+/* to indicate that memory chunk was not allocated from a N-order contiguous
-+ * pages area
-+ */
-+#define IBTRS_MEM_CHUNK_NOORDER -1
++#ifndef _IBTRS_SRV_SYFS_H
++#define _IBTRS_SRV_SYFS_H
 +
-+struct ibtrs_mem_chunk {
-+	struct list_head	list;
-+	int			order;
-+	void			*addr;
-+};
++#include <linux/kobject.h>
++#include "ibtrs_srv_internal.h"
 +
-+struct ibtrs_rcv_buf_pool {
-+	struct list_head	list;
-+	struct list_head	chunk_list;
-+	struct ibtrs_rcv_buf	*rcv_bufs;
-+};
++int ibtrs_srv_create_sysfs_files(void);
 +
-+struct ibtrs_stats_wc_comp {
-+	atomic_t	max_wc_cnt;
-+	atomic64_t	calls;
-+	atomic64_t	total_wc_cnt;
-+};
++void ibtrs_srv_destroy_sysfs_files(void);
 +
-+struct ibtrs_srv_stats_rdma_stats {
-+	atomic64_t	cnt_read;
-+	atomic64_t	size_total_read;
-+	atomic64_t	cnt_write;
-+	atomic64_t	size_total_write;
-+
-+	atomic_t	inflight;
-+	atomic64_t	inflight_total;
-+};
-+
-+struct ibtrs_srv_stats_user_ib_msgs {
-+	atomic64_t recv_msg_cnt;
-+	atomic64_t sent_msg_cnt;
-+	atomic64_t recv_size;
-+	atomic64_t sent_size;
-+};
-+
-+struct ibtrs_srv_stats {
-+	struct ibtrs_srv_stats_rdma_stats	rdma_stats;
-+	struct ibtrs_srv_stats_user_ib_msgs	user_ib_msgs;
-+	atomic_t				apm_cnt;
-+	struct ibtrs_stats_wc_comp		wc_comp;
-+};
-+
-+struct ibtrs_session {
-+	struct list_head	list;
-+	enum ssm_state		state;
-+	struct kref		kref;
-+	struct workqueue_struct *sm_wq;	/* event processing */
-+	struct workqueue_struct *msg_wq;
-+	struct ibtrs_device	*dev; /* ib dev with mempool */
-+	struct rdma_cm_id	*cm_id;	/* cm_id used to create the session */
-+	struct mutex            lock; /* to protect con_list */
-+	int			cur_cq_vector;
-+	struct list_head        con_list;
-+	struct ibtrs_iu		*rdma_info_iu;
-+	struct ibtrs_iu		*dummy_rx_iu;
-+	struct ibtrs_iu		**usr_rx_ring;
-+	struct ibtrs_ops_id	**ops_ids;
-+	/* lock for tx_bufs */
-+	spinlock_t              tx_bufs_lock ____cacheline_aligned;
-+	struct list_head	tx_bufs;
-+	u16			tx_bufs_used;
-+	unsigned int		est_cnt; /* number of established connections */
-+	unsigned int		active_cnt; /* number of active (not closed)
-+					     * connections
-+					     */
-+	u8			con_cnt;
-+	u8			ver;
-+	bool			state_in_sysfs;
-+	bool			session_announced_to_user;
-+	struct ibtrs_rcv_buf_pool *rcv_buf_pool;
-+	wait_queue_head_t	bufs_wait;
-+	u8			off_len; /* number of bits for offset in
-+					  * one client buffer.
-+					  * 32 - ilog2(sess->queue_depth)
-+					  */
-+	u32			off_mask; /* mask to get offset in client buf
-+					   * out of the imm field
-+					   */
-+	u16			queue_depth;
-+	u16			wq_size;
-+	u8			uuid[IBTRS_UUID_SIZE];
-+	struct ibtrs_heartbeat	heartbeat;
-+	struct delayed_work	check_heartbeat_dwork;
-+	struct delayed_work	send_heartbeat_dwork;
-+	void			*priv;
-+	struct kobject		kobj;
-+	struct kobject		kobj_stats;
-+	char			addr[IBTRS_ADDRLEN]; /* client address */
-+	char			hostname[MAXHOSTNAMELEN];
-+	u8			primary_port_num;
-+	struct ibtrs_srv_stats	stats;
-+	wait_queue_head_t	mu_iu_wait_q;
-+	wait_queue_head_t	mu_buf_wait_q;
-+	atomic_t		peer_usr_msg_bufs;
-+};
-+
-+void ibtrs_srv_queue_close(struct ibtrs_session *sess);
-+
-+u8 ibtrs_srv_get_sess_primary_port_num(struct ibtrs_session *sess);
-+
-+int ibtrs_srv_current_hca_port_to_str(struct ibtrs_session *sess,
-+				      char *buf, size_t len);
-+int ibtrs_srv_failover_hca_port_to_str(struct ibtrs_session *sess,
-+				       char *buf, size_t len);
-+const char *ibtrs_srv_get_sess_hca_name(struct ibtrs_session *sess);
-+int ibtrs_srv_migrate(struct ibtrs_session *sess, u8 port_num);
-+int ibtrs_srv_reset_rdma_stats(struct ibtrs_session *sess, bool enable);
-+ssize_t ibtrs_srv_stats_rdma_to_str(struct ibtrs_session *sess,
-+				    char *page, size_t len);
-+int ibtrs_srv_reset_user_ib_msgs_stats(struct ibtrs_session *sess, bool enable);
-+int ibtrs_srv_stats_user_ib_msgs_to_str(struct ibtrs_session *sess, char *buf,
-+					size_t len);
-+int ibtrs_srv_reset_apm_stats(struct ibtrs_session *sess, bool enable);
-+int ibtrs_srv_stats_apm_to_str(struct ibtrs_session *sess, char *buf,
-+			       size_t len);
-+int ibtrs_srv_reset_wc_completion_stats(struct ibtrs_session *sess,
-+					bool enable);
-+int ibtrs_srv_stats_wc_completion_to_str(struct ibtrs_session *sess, char *buf,
-+					 size_t len);
-+int ibtrs_srv_reset_all_stats(struct ibtrs_session *sess, bool enable);
-+ssize_t ibtrs_srv_reset_all_help(struct ibtrs_session *sess,
-+				 char *page, size_t len);
-+int heartbeat_timeout_validate(int timeout);
-+
-+int ibtrs_srv_sess_get(struct ibtrs_session *sess);
-+
-+void ibtrs_srv_sess_put(struct ibtrs_session *sess);
++int ibtrs_srv_create_sess_files(struct ibtrs_session *sess);
 +
 +#endif
 -- 
 2.7.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
