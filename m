@@ -1,54 +1,193 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: Re: [PATCH v10 00/11] uapi: export all headers under uapi directories
-Date: Fri, 24 Mar 2017 10:03:08 +0100
-Message-ID: <c963314f-bcde-f483-c6b1-cad975842e16@6wind.com>
-References: <CAK7LNARpx7f0eV5_AiPmNYT7MsRbGFOygJwjfAzX_7aCpuHwuw@mail.gmail.com>
- <1489496093-15315-1-git-send-email-nicolas.dichtel@6wind.com>
- <365519b5-d69e-34b7-fa2f-f11b8fabe69f@6wind.com>
- <CAK7LNAR_yp+O9jUZC8mKdaHgTiCkE7p2-ZbA9YZ8OGyp+uxhBQ@mail.gmail.com>
-Reply-To: nicolas.dichtel@6wind.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-arch-owner@vger.kernel.org>
-In-Reply-To: <CAK7LNAR_yp+O9jUZC8mKdaHgTiCkE7p2-ZbA9YZ8OGyp+uxhBQ@mail.gmail.com>
-Sender: linux-arch-owner@vger.kernel.org
-To: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Michal Marek <mmarek@suse.com>, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arch@vger.kernel.org, David Airlie <airlied@linux.ie>, "David S. Miller" <davem@davemloft.net>, Russell King <linux@armlinux.org.uk>, bp@alien8.de, slash.tmp@free.fr, Daniel Vetter <daniel.vetter@ffwll.ch>, rmk+kernel@armlinux.org.uk, msalter@redhat.com, jengelh@inai.de, hch@infradead.org, Tobias Klauser <tklauser@distanz.ch>, mpe@ellerman.id.au, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "Dmitry V. Levin" <ldv@altlinux.org>, Herbert Xu <herbert@gondor.apana.org.au>, linux-rdma@vger.kernel.org
+From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: [RFC PATCH 00/28] INFINIBAND NETWORK BLOCK DEVICE (IBNBD)
+Date: Fri, 24 Mar 2017 11:45:15 +0100
+Message-ID: <1490352343-20075-1-git-send-email-jinpu.wangl@profitbricks.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, mail-99BIx50xQYGELgA04lAiVw@public.gmane.org, Milind.dumbare-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org, Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Le 24/03/2017 à 09:42, Masahiro Yamada a écrit :
-> Hi Nicolas,
-> 
-> 
-> 2017-03-24 17:32 GMT+09:00 Nicolas Dichtel <nicolas.dichtel@6wind.com>:
->> Le 14/03/2017 à 13:54, Nicolas Dichtel a écrit :
->>> Patches #1 and #2 are just cleanup: some exported headers were still under
->>> a non-uapi directory. Patch #3 is a fix to avoid exporting a file that was
->>> not under an uapi directory.
->>> After these three patches, all exported headers are under an uapi directory:
->>> path #4 stops searching files in non uapi directories.
->>> The patch #5 was spotted by code review: there is no in-tree user of this
->>> functionality.
->>> Patch #6 fixes some warnings/errors reported by 0-day tests.
->>> Patch #7 to #9 fix some errors when the corresponding files are included by
->>> userland.
->>> Patches #10 and #11 remove the need to list explicitly headers. Now all files
->>> under an uapi directory are exported.
->>>
->>> This series has been tested with a 'make headers_install' on x86 and a
->>> 'make headers_install_all'. I've checked the result of both commands.
->>>
->>> This patch is built on top of masahiroy/linux-kbuild.git#for-next (v4.11-rc1).
->>> I didn't find any conflict with v4.11-rc2.
->> Masahiro, is this series under review or do you expect something else on my side?
->>
-> 
-> Under review.
-> Please give me time to take a closer look.
-> Sorry for the delay.
-No problem, take your time. I just wanted to be sure to not miss something ;-)
+From: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 
+This series introduces IBNBD/IBTRS kernel modules.
 
-Thank you,
-Nicolas
+IBNBD (InfiniBand network block device) allows for an RDMA transfer of block IO
+over InfiniBand network. The driver presents itself as a block device on client
+side and transmits the block requests in a zero-copy fashion to the server-side
+via InfiniBand. The server part of the driver converts the incoming buffers back
+into BIOs and hands them down to the underlying block device. As soon as IO
+responses come back from the drive, they are being transmitted back to the
+client.
+
+We design and implement this solution based on our need for Cloud Computing,
+the key features are:
+- High throughput and low latency due to:
+1) Only two rdma messages per IO
+2) Simplified client side server memory management
+3) Eliminated SCSI sublayer
+- Simple configuration and handling
+1) Server side is completely passive: volumes do not need to be
+explicitly exported
+2) Only IB port GID and device path needed on client side to map
+a block device
+3) A device can be remapped automatically i.e. after storage
+reboot
+- Pinning of IO-related processing to the CPU of the producer
+
+For usage please refer to Documentation/IBNBD.txt in later patch.
+My colleague Danil Kpnis presents IBNBD in Vault-2017 about our design/feature/
+tradeoff/performance:
+
+http://events.linuxfoundation.org/sites/events/files/slides/IBNBD-Vault-2017.pdf
+
+The patchset is based on Linux 4.11-rc3. I've done functional tests with our
+tests framework on AMD64 machines with Mellanox CX-2 and CX-3.
+
+TODOs:
+- move some helpers to core
+- use new cq api, drain_cq etc
+- support poll callback in MQ
+- big endian machine support
+- better files layout
+
+We've learned a lot from other opensource project, namely SRP/SCST/LIO, etc,
+thanks all the contributors. We hope our IBNBD bring more value to 
+the opensource world.
+
+A git tree is also avaiable at:
+https://github.com/xjtuwjp/linux-2.6/commits/ibnbdv0
+
+As usual, comments and reviews are welcome.
+
+Jack Wang (28):
+  ibtrs: add header shared between ibtrs_client and ibtrs_server
+  ibtrs: add header for log MICROs shared between ibtrs_client and
+    ibtrs_server
+  ibtrs_lib: add common functions shared by client and server
+  ibtrs_clt: add header file for exported interface
+  ibtrs_clt: main functionality of ibtrs_client
+  ibtrs_clt: add header file shared only in ibtrs_client
+  ibtrs_clt: add files for sysfs interface
+  ibtrs_clt: add Makefile and Kconfig
+  ibtrs_srv: add header file for exported interface
+  ibtrs_srv: add main functionality for ibtrs_server
+  ibtrs_srv: add header shared in ibtrs_server
+  ibtrs_srv: add sysfs interface
+  ibtrs_srv: add Makefile and Kconfig
+  ibnbd: add headers shared by ibnbd_client and ibnbd_server
+  ibnbd: add shared library functions
+  ibnbd_clt: add main functionality of ibnbd_client
+  ibnbd_clt: add header shared in ibnbd_client
+  ibnbd_clt: add sysfs interface
+  ibnbd_clt: add log helpers
+  ibnbd_clt: add Makefile and Kconfig
+  ibnbd_srv: add header shared in ibnbd_server
+  ibnbd_srv: add main functionality
+  ibnbd_srv: add abstraction for submit IO to file or block device
+  ibnbd_srv: add log helpers
+  ibnbd_srv: add sysfs interface
+  ibnbd_srv: add Makefile and Kconfig
+  ibnbd: add doc for how to use ibnbd and sysfs interface
+  MAINTRAINERS: Add maintainer for IBNBD/IBTRS
+
+ Documentation/IBNBD.txt                            |  284 ++
+ MAINTAINERS                                        |   14 +
+ drivers/block/Kconfig                              |    3 +
+ drivers/block/Makefile                             |    2 +
+ drivers/block/ibnbd_client/Kconfig                 |   16 +
+ drivers/block/ibnbd_client/Makefile                |    5 +
+ drivers/block/ibnbd_client/ibnbd_clt.c             | 2007 ++++++++
+ drivers/block/ibnbd_client/ibnbd_clt.h             |  231 +
+ drivers/block/ibnbd_client/ibnbd_clt_log.h         |   79 +
+ drivers/block/ibnbd_client/ibnbd_clt_sysfs.c       |  863 ++++
+ drivers/block/ibnbd_client/ibnbd_clt_sysfs.h       |   64 +
+ drivers/block/ibnbd_inc/ibnbd-proto.h              |  273 +
+ drivers/block/ibnbd_inc/ibnbd.h                    |   55 +
+ drivers/block/ibnbd_inc/log.h                      |   68 +
+ drivers/block/ibnbd_lib/ibnbd-proto.c              |  244 +
+ drivers/block/ibnbd_lib/ibnbd.c                    |  108 +
+ drivers/block/ibnbd_server/Kconfig                 |   16 +
+ drivers/block/ibnbd_server/Makefile                |    3 +
+ drivers/block/ibnbd_server/ibnbd_dev.c             |  436 ++
+ drivers/block/ibnbd_server/ibnbd_dev.h             |  149 +
+ drivers/block/ibnbd_server/ibnbd_srv.c             | 1074 ++++
+ drivers/block/ibnbd_server/ibnbd_srv.h             |  115 +
+ drivers/block/ibnbd_server/ibnbd_srv_log.h         |   69 +
+ drivers/block/ibnbd_server/ibnbd_srv_sysfs.c       |  317 ++
+ drivers/block/ibnbd_server/ibnbd_srv_sysfs.h       |   64 +
+ drivers/infiniband/Kconfig                         |    3 +
+ drivers/infiniband/ulp/Makefile                    |    2 +
+ drivers/infiniband/ulp/ibtrs_client/Kconfig        |    8 +
+ drivers/infiniband/ulp/ibtrs_client/Makefile       |    6 +
+ drivers/infiniband/ulp/ibtrs_client/ibtrs_clt.c    | 5329 ++++++++++++++++++++
+ .../ulp/ibtrs_client/ibtrs_clt_internal.h          |  244 +
+ .../infiniband/ulp/ibtrs_client/ibtrs_clt_sysfs.c  |  412 ++
+ .../infiniband/ulp/ibtrs_client/ibtrs_clt_sysfs.h  |   62 +
+ drivers/infiniband/ulp/ibtrs_lib/common.c          |  104 +
+ drivers/infiniband/ulp/ibtrs_lib/heartbeat.c       |  112 +
+ drivers/infiniband/ulp/ibtrs_lib/ibtrs-proto.c     |  248 +
+ drivers/infiniband/ulp/ibtrs_lib/ibtrs.c           |  412 ++
+ drivers/infiniband/ulp/ibtrs_lib/iu.c              |  113 +
+ drivers/infiniband/ulp/ibtrs_server/Kconfig        |    8 +
+ drivers/infiniband/ulp/ibtrs_server/Makefile       |    6 +
+ drivers/infiniband/ulp/ibtrs_server/ibtrs_srv.c    | 3744 ++++++++++++++
+ .../ulp/ibtrs_server/ibtrs_srv_internal.h          |  201 +
+ .../infiniband/ulp/ibtrs_server/ibtrs_srv_sysfs.c  |  301 ++
+ .../infiniband/ulp/ibtrs_server/ibtrs_srv_sysfs.h  |   59 +
+ include/rdma/ibtrs.h                               |  514 ++
+ include/rdma/ibtrs_clt.h                           |  316 ++
+ include/rdma/ibtrs_log.h                           |   88 +
+ include/rdma/ibtrs_srv.h                           |  206 +
+ 48 files changed, 19057 insertions(+)
+ create mode 100644 Documentation/IBNBD.txt
+ create mode 100644 drivers/block/ibnbd_client/Kconfig
+ create mode 100644 drivers/block/ibnbd_client/Makefile
+ create mode 100644 drivers/block/ibnbd_client/ibnbd_clt.c
+ create mode 100644 drivers/block/ibnbd_client/ibnbd_clt.h
+ create mode 100644 drivers/block/ibnbd_client/ibnbd_clt_log.h
+ create mode 100644 drivers/block/ibnbd_client/ibnbd_clt_sysfs.c
+ create mode 100644 drivers/block/ibnbd_client/ibnbd_clt_sysfs.h
+ create mode 100644 drivers/block/ibnbd_inc/ibnbd-proto.h
+ create mode 100644 drivers/block/ibnbd_inc/ibnbd.h
+ create mode 100644 drivers/block/ibnbd_inc/log.h
+ create mode 100644 drivers/block/ibnbd_lib/ibnbd-proto.c
+ create mode 100644 drivers/block/ibnbd_lib/ibnbd.c
+ create mode 100644 drivers/block/ibnbd_server/Kconfig
+ create mode 100644 drivers/block/ibnbd_server/Makefile
+ create mode 100644 drivers/block/ibnbd_server/ibnbd_dev.c
+ create mode 100644 drivers/block/ibnbd_server/ibnbd_dev.h
+ create mode 100644 drivers/block/ibnbd_server/ibnbd_srv.c
+ create mode 100644 drivers/block/ibnbd_server/ibnbd_srv.h
+ create mode 100644 drivers/block/ibnbd_server/ibnbd_srv_log.h
+ create mode 100644 drivers/block/ibnbd_server/ibnbd_srv_sysfs.c
+ create mode 100644 drivers/block/ibnbd_server/ibnbd_srv_sysfs.h
+ create mode 100644 drivers/infiniband/ulp/ibtrs_client/Kconfig
+ create mode 100644 drivers/infiniband/ulp/ibtrs_client/Makefile
+ create mode 100644 drivers/infiniband/ulp/ibtrs_client/ibtrs_clt.c
+ create mode 100644 drivers/infiniband/ulp/ibtrs_client/ibtrs_clt_internal.h
+ create mode 100644 drivers/infiniband/ulp/ibtrs_client/ibtrs_clt_sysfs.c
+ create mode 100644 drivers/infiniband/ulp/ibtrs_client/ibtrs_clt_sysfs.h
+ create mode 100644 drivers/infiniband/ulp/ibtrs_lib/common.c
+ create mode 100644 drivers/infiniband/ulp/ibtrs_lib/heartbeat.c
+ create mode 100644 drivers/infiniband/ulp/ibtrs_lib/ibtrs-proto.c
+ create mode 100644 drivers/infiniband/ulp/ibtrs_lib/ibtrs.c
+ create mode 100644 drivers/infiniband/ulp/ibtrs_lib/iu.c
+ create mode 100644 drivers/infiniband/ulp/ibtrs_server/Kconfig
+ create mode 100644 drivers/infiniband/ulp/ibtrs_server/Makefile
+ create mode 100644 drivers/infiniband/ulp/ibtrs_server/ibtrs_srv.c
+ create mode 100644 drivers/infiniband/ulp/ibtrs_server/ibtrs_srv_internal.h
+ create mode 100644 drivers/infiniband/ulp/ibtrs_server/ibtrs_srv_sysfs.c
+ create mode 100644 drivers/infiniband/ulp/ibtrs_server/ibtrs_srv_sysfs.h
+ create mode 100644 include/rdma/ibtrs.h
+ create mode 100644 include/rdma/ibtrs_clt.h
+ create mode 100644 include/rdma/ibtrs_log.h
+ create mode 100644 include/rdma/ibtrs_srv.h
+
+-- 
+2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
