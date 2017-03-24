@@ -1,312 +1,99 @@
 From: Jack Wang <jinpu.wang@profitbricks.com>
-Subject: [PATCH 27/28] ibnbd: add doc for how to use ibnbd and sysfs interface
-Date: Fri, 24 Mar 2017 11:45:42 +0100
-Message-ID: <1490352343-20075-28-git-send-email-jinpu.wangl@profitbricks.com>
+Subject: [PATCH 24/28] ibnbd_srv: add log helpers
+Date: Fri, 24 Mar 2017 11:45:39 +0100
+Message-ID: <1490352343-20075-25-git-send-email-jinpu.wangl@profitbricks.com>
 References: <1490352343-20075-1-git-send-email-jinpu.wangl@profitbricks.com>
 Return-path: <linux-block-owner@vger.kernel.org>
 In-Reply-To: <1490352343-20075-1-git-send-email-jinpu.wangl@profitbricks.com>
 Sender: linux-block-owner@vger.kernel.org
 To: linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: dledford@redhat.com, axboe@kernel.dk, hch@lst.de, mail@fholler.de, Milind.dumbare@gmail.com, yun.wang@profitbricks.com, Jack Wang <jinpu.wang@profitbricks.com>
+Cc: dledford@redhat.com, axboe@kernel.dk, hch@lst.de, mail@fholler.de, Milind.dumbare@gmail.com, yun.wang@profitbricks.com, Jack Wang <jinpu.wang@profitbricks.com>, Kleber Souza <kleber.souza@profitbricks.com>, Danil Kipnis <danil.kipnis@profitbricks.com>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Jack Wang <jinpu.wang@profitbricks.com>
 
 Signed-off-by: Jack Wang <jinpu.wang@profitbricks.com>
+Signed-off-by: Kleber Souza <kleber.souza@profitbricks.com>
+Signed-off-by: Danil Kipnis <danil.kipnis@profitbricks.com>
 ---
- Documentation/IBNBD.txt | 284 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 284 insertions(+)
- create mode 100644 Documentation/IBNBD.txt
+ drivers/block/ibnbd_server/ibnbd_srv_log.h | 69 ++++++++++++++++++++++++++++++
+ 1 file changed, 69 insertions(+)
+ create mode 100644 drivers/block/ibnbd_server/ibnbd_srv_log.h
 
-diff --git a/Documentation/IBNBD.txt b/Documentation/IBNBD.txt
+diff --git a/drivers/block/ibnbd_server/ibnbd_srv_log.h b/drivers/block/ibnbd_server/ibnbd_srv_log.h
 new file mode 100644
-index 0000000..f7f490a
+index 0000000..9217804
 --- /dev/null
-+++ b/Documentation/IBNBD.txt
-@@ -0,0 +1,284 @@
-+Infiniband Network Block Device (IBNBD)
-+=======================================
-+
-+Introduction
-+------------
-+
-+IBNBD (InfiniBand Network Block Device) is a pair of kernel modules (client and
-+server) that allows to access a remote storage device on the server from
-+clients via an InfiniBand network.
-+Mapped storage devices appear transparent for the client, acting as any other
-+regular storage devices.
-+
-+The data transport between client and server over the InfiniBand network
-+is performed by the IBTRS (InfiniBand Transport) kernel modules.
-+
-+The administration of these modules is done via sysfs. A Command-line tool
-+(ibnbd-cli) is also available for a more user-friendly experience.
-+
-+Requirements
-+------------
-+  - IBTRS kernel modules (available as git-submodule)
-+
-+Quick Start
-+-----------
-+Server:
-+  # insmod ibtrs/ibtrs_server/ibtrs_server.ko
-+  # insmod ibnbd_server/ibnbd_server.ko
-+
-+Client:
-+  # insmod ibtrs/ibtrs_client/ibtrs_client.ko
-+  # insmod ibnbd_client/ibnbd_client.ko
-+  # echo "server=<SERVER-ADDRESS> device_path=<DEV-PATH-ON-SERVER>" > /sys/kernel/ibnbd/map_device
-+
-+The block device <DEV-PATH-ON-SERVER> will become available on the client as
-+/dev/ibnbd<NR>. It can be used like a local block device.
-+
-+Client Userspace Interface
-+--------------------------
-+This chapter describes only the most important files of Userspace Interface.
-+A full documentation can be found in the Architecture Documentation.
-+
-+All sysfs files that are not read-only will return a usage information if they
-+are read.
-+
-+example:
-+  $ cat /sys/kernel/ibnbd/map_device
-+
-+
-+/sys/kernel/ibnbd/ entries
-+~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+map_device (RW)
-+^^^^^^^^^^^^^^^
-+To map a volume on the client, information about the device has to be written
-+to:
-+  /sys/kernel/ibnbd/map_device
-+
-+The format of the input is:
-+  "server=<server-address> device_path=<relative-path-to-device-on-server>
-+   [access_mode=<ro|rw|migration] [input_mode=(mq|rq)]
-+   [io_mode=fileio|blockio]"
-+
-+Server Parameter
-+++++++++++++++++
-+A server address has to be in one of the following formats:
-+ - ip:<IPv6>
-+ - ip:<IPv4>
-+ - gid:<GID>
-+
-+device_path Parameter
-++++++++++++++++++++++++++++++++
-+A device can be mapped by specifying its relative path to the configured
-+dev_search_path on the server side.
-+The ibnbd_server prepends the configured dev_search_path to the passed
-+device_path from the mapped operation and tries to open a block device with the
-+path dev_search_path/device_path:
-+On success, a /dev/ibnbd<NR> device file, a /sys/block/ibnbd/ibnbd<NR>/
-+directory and a entry in /sys/kernel/ibnbd/devices will be created.
-+
-+access_mode Parameter
-++++++++++++++++++++++
-+The access_mode parameter specifies if the device is to be mapped as read-only
-+or read-write. The "migration" access mode has the same effect as "rw" and
-+should be used during a VM migration scenario by the client where the VM is
-+being migrated to.
-+If not specified, 'rw' is used.
-+
-+input_mode Parameter
-+++++++++++++++++++++
-+The input_mode parameter specifies the internal I/O processing mode of the
-+network block device on the client.
-+If not specified, 'mq' mode is used.
-+
-+io_mode Parameter
-++++++++++++++++++
-+The io_mode parameter specifies if the device on the server will be opened as
-+block device (blockio) or as file (fileio).
-+When the device is opened as file, the VFS page cache is used for read I/O
-+operations, write I/O operations bypass the page cache and go directly to disk
-+(except meta updates, like file access time).
-+When the device is opened as block device, the block device is accessed
-+directly, no VFS page cache is used.
-+If not specified, 'fileio' mode is used.
-+
-+Exit Codes
-+++++++++++
-+If the device is already mapped it will fail with EEXIST. If the input has an
-+invalid format it will return EINVAL. If the device path cannot be found on the
-+server, it will fail with ENOENT.
-+
-+Examples
-+++++++++
-+  # echo "server=ip:10.50.100.64 device_path=/dev/ram1" input_mode=mq > /sys/kernel/ibnbd/map_device
-+  # echo "server=ip:10.50.100.64 device_path=3F2504E0-4F89-41D3-9A0C-0305E82C3301" > /sys/kernel/ibnbd/map_device
-+
-+Finding device file after mapping
-++++++++++++++++++++++++++++++++++
-+After mapping, the device file can be found by:
-+1.) The symlink /sys/kernel/ibnbd/devices/<device_id> points to
-+    /sys/block/<dev-name>.
-+    The last part of the symlink destination is the same than the device name.
-+    By extracting the last part of the path the path to the device
-+    /dev/<dev-name> can be build.
-+2.) /dev/block/$(cat /sys/kernel/ibnbd/devices/<device_id>/dev)
-+
-+How to find the <device_id> of the device is described on the next chapter
-+(devices/ directory).
-+
-+devices/ (DIRECTORY)
-+^^^^^^^^^^^^^^^^^^^^
-+For each device mapped on the client a new symbolic link is created as
-+/sys/kernel/ibnbd/devices/<device_id>, which points to the block device created
-+by ibnbd (/sys/block/ibnbd<NR>/). The <device_id> of each device is created as
-+follows:
-+
-+- If the 'device_path' provided during mapping contains slashes ("/"), they are
-+  replaced by exclamation mark ("!") and used as as the <device_id>. Otherwise,
-+  the <device_id> will be the same as the 'device_path' provided.
-+
-+
-+Examples
-+++++++++
-+    /sys/kernel/ibnbd/devices/3F2504E0-4F89-41D3-9A0C-0305E82C3301 -> /sys/block/ibnbd1/
-+    /sys/kernel/ibnbd/devices/!dev!ram1 -> /sys/block/ibnbd0/
-+
-+
-+/sys/block/ibnbd<NR>/ibnbd/ entries
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+unmap_device (RW)
-+^^^^^^^^^^^^^^^^^
-+To unmap a volume, 'normal' or 'force' has to be written to:
-+  /sys/block/ibnbd<NR>/ibnbd/unmap_device
-+
-+When 'normal' is used, the operation will fail with EBUSY if any process is
-+using the device.
-+When 'force' is used, the device is also unmapped when device is in use.
-+All I/Os that are in progress will fail. It can happen that the device
-+file (/dev/ibnbdx) still exists after the unmapping. The kernel
-+couldn't remove the file because it was in use but it's marked as unused.
-+The device file will be freed when no process refer to it.
-+
-+In a following IBNBD mapping the remote device can be reused, but
-+ibnbd may generate different device file for it.
-+
-+Examples
-+++++++++
-+   # echo "normal" > /sys/block/ibnbd0/ibnbd/unmap_device
-+
-+state (RO)
-+^^^^^^^^^^
-+The file contains the current state of the block device. The state file returns
-+'open' when the device is successfully mapped from the server and accepting I/O
-+requests. When the connection to the server gets disconnected in case of an
-+error (e.g. link failure), the state file returns 'closed' and all I/O requests
-+will fail with -EIO.
-+
-+session (RO)
-+^^^^^^^^^^^^
-+IBNBD uses IBTRS session to transport the data between client and server.
-+The file 'session' contains the address of the server, that was used to
-+establish the IBTRS session.
-+It's the same address that was passed as server parameter to the map_device
-+file.
-+
-+mapping_path (RO)
-+^^^^^^^^^^^^^^^^^
-+Contains the path that was passed as device_path to the map_device operation.
-+
-+/sys/kernel/ibtrs/sessions/ entries
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+The connections to the servers are created and destroyed on demand. When the
-+first device is mapped from a server, an IBTRS connection will be created with
-+this server and the following directory will be created:
-+
-+/sys/kernel/ibtrs/sessions/<server-address>/
-+
-+If the connection establishment fails, detailed error information can be found
-+in the kernel log (dmesg).
-+
-+When the last device is unmapped from a server, the connection will be closed
-+and the directory will be deleted.
-+
-+
-+Server Userspace Interface
-+--------------------------
-+
-+/sys/kernel/ibnbd/ entries
-+~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+/sys/kernel/ibnbd/devices/ entries
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+When a Pserver maps a device, a directory entry with the name of the block
-+device is created under /sys/kernel/ibnbd/devices/. If the device path provided
-+by the client is a symbolic link to a block device, the target block device name
-+is used instead of the mapping path name.
-+
-+block_dev
-+^^^^^^^^^
-+block_dev is a symlink to the sysfs entry of the exported device
-+
-+Examples
-+++++++++
-+  block_dev -> ../../../../devices/virtual/block/nullb1
-+
-+revalidate
-+^^^^^^^^^^
-+When the size of a exported block device changes on the server, the clients
-+have to be notified so they can resize the mapped device.
-+
-+Notification of the clients about a device change is triggered by writing '1'
-+to the revalidate file.
-+
-+Examples
-+++++++++
-+ # echo 1 > /sys/kernel/ibnbd/devices/nullb1/revalidate
-+
-+/sys/kernel/ibnbd/devices/<device_name>/clients entries
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+When the device is mapped from a client, the following directory will be
-+created:
-+
-+/sys/kernel/ibnbd/devices/<device_name>/clients/<client-address> entries
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+When the device is unmapped, the directory will be removed.
-+
-+read_only
-+^^^^^^^^^
-+Contains '1' if device is mapped read-only, otherwise '0'.
-+
-+mapping_path
-+^^^^^^^^^^^^
-+Contains the relative device path provided by the user during mapping.
-+
-+
-+IBNBD-Server Module Parameters
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+dev_search_path
-+^^^^^^^^^^^^^^^
-+When a device is mapped from the client, the server generates the path to the
-+block device on the server side by concatenating dev_search_path and the
-+device_path that was specified in the map_device operation.
-+
-+The format of the input is
-+  path ::= Absolute linux path name,
-+           Max. length depends on PATH_MAX define (usually 4095 chars)
-+
-+The default dev_search_path is: "/".
-+
-+Example
-++++++++
-+
-+Configured dev_search_path on server is: /dev/storage/
-+client maps device by::
-+  # echo "server=ip:10.50.100.64 device_path=3F2504E0-4F89-41D3-9A0C-0305E82C3301" > /sys/kernel/ibnbd/map_device
-+
-+The server tries to open a block device with the path:
-+  /dev/storage/3F2504E0-4F89-41D3-9A0C-0305E82C3301
-+
-+
-+Contact
-+-------
-+Mailing list: ibnbd@profitbricks.com
++++ b/drivers/block/ibnbd_server/ibnbd_srv_log.h
+@@ -0,0 +1,69 @@
++/*
++ * InfiniBand Network Block Driver
++ *
++ * Copyright (c) 2014 - 2017 ProfitBricks GmbH. All rights reserved.
++ * Authors: Fabian Holler < mail@fholler.de>
++ *          Jack Wang <jinpu.wang@profitbricks.com>
++ *   	    Kleber Souza <kleber.souza@profitbricks.com>
++ * 	    Danil Kipnis <danil.kipnis@profitbricks.com>
++ *   	    Roman Pen <roman.penyaev@profitbricks.com>
++ *          Milind Dumbare <Milind.dumbare@gmail.com>
++ *
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions, and the following disclaimer,
++ *    without modification.
++ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
++ *    substantially similar to the "NO WARRANTY" disclaimer below
++ *    ("Disclaimer") and any redistribution must be conditioned upon
++ *    including a substantially similar Disclaimer requirement for further
++ *    binary redistribution.
++ * 3. Neither the names of the above-listed copyright holders nor the names
++ *    of any contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * Alternatively, this software may be distributed under the terms of the
++ * GNU General Public License ("GPL") version 2 as published by the Free
++ * Software Foundation.
++ *
++ * NO WARRANTY
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
++ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
++ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
++ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++ * POSSIBILITY OF SUCH DAMAGES.
++ *
++ */
++
++#ifndef __IBNBD_SRV_LOG_H__
++#define __IBNBD_SRV_LOG_H__
++
++#include "../ibnbd_inc/log.h"
++
++#define ERR(dev, fmt, ...) pr_err("ibnbd L%d <%s@%s> ERR: " fmt, \
++				__LINE__, dev->pathname, ibnbd_prefix(dev),\
++				##__VA_ARGS__)
++#define ERR_RL(dev, fmt, ...) pr_err_ratelimited("ibnbd L%d <%s@%s> ERR: " fmt,\
++				__LINE__, dev->pathname, ibnbd_prefix(dev),\
++				##__VA_ARGS__)
++#define WRN(dev, fmt, ...) pr_warn("ibnbd L%d <%s@%s> WARN: " fmt,\
++				__LINE__, dev->pathname, ibnbd_prefix(dev),\
++				##__VA_ARGS__)
++#define WRN_RL(dev, fmt, ...) pr_warn_ratelimited("ibnbd L%d <%s@%s> WARN: " \
++			fmt, __LINE__, dev->pathname, ibnbd_prefix(dev),\
++			##__VA_ARGS__)
++#define INFO(dev, fmt, ...) pr_info("ibnbd <%s@%s>: " \
++			fmt, dev->pathname, ibnbd_prefix(dev), ##__VA_ARGS__)
++#define INFO_RL(dev, fmt, ...) pr_info_ratelimited("ibnbd <%s@%s>: " \
++			fmt, dev->pathname, ibnbd_prefix(dev), ##__VA_ARGS__)
++
++#endif /*__IBNBD_SRV_LOG_H__*/
 -- 
 2.7.4
