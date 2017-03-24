@@ -1,39 +1,46 @@
-From: Vlad Tsyrklevich <vlad-NIZqynvkaCU43zv7NVfAiQ@public.gmane.org>
-Subject: Re: [PATCH v2] infiniband/uverbs: Fix integer overflows
-Date: Fri, 24 Mar 2017 16:45:44 -0400
-Message-ID: <CAH0z3hM8a4Hra3+gvz5HeFBcmkqmP0KhFQsFQh30SActK+p7mg@mail.gmail.com>
-References: <1490385317-35641-1-git-send-email-vlad@tsyrklevich.net> <1490385702.3312.18.camel@sandisk.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] infiniband: Fix alignment of mmap cookies to support
+ VIPT caching
+Date: Fri, 24 Mar 2017 16:51:26 -0400
+Message-ID: <1490388686.2404.25.camel@redhat.com>
+References: <20170310183420.GA7410@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1490385702.3312.18.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20170310183420.GA7410-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Josh Beavers <josh.beavers-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-[replying again to the list with HTML e-mails turned off]
+On Fri, 2017-03-10 at 11:34 -0700, Jason Gunthorpe wrote:
+> When vmalloc_user is used to create memory that is supposed to be
+> mmap'd
+> to user space, it is necessary for the mmap cookie (eg the offset) to
+> be
+> aligned to SHMLBA.
+> 
+> This creates a situation where all virtual mappings of the same
+> physical
+> page share the same virtual cache index and guarantees VIPT
+> coherence.
+> Otherwise the cache is non-coherent and the kernel will not see
+> writes
+> by userspace when reading the shared page (or vice-versa).
+> 
+> Reported-by: Josh Beavers <josh.beavers-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> 
 
-I doubt it. I chose to implement a naive integer overflow check here
-instead of checking against some device-specific value since I'm
-unfamiliar with the infiniband internals and don't have appropriate
-hardware to test such a change against.
+Thanks, applied for -rc.
 
-On Fri, Mar 24, 2017 at 4:02 PM, Bart Van Assche
-<Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> wrote:
-> On Fri, 2017-03-24 at 15:55 -0400, Vlad Tsyrklevich wrote:
->> The 'num_sge' variable is verfied to be smaller than the 'sge_count'
->> variable; however, since both are user-controlled it's possible to cause
->> an integer overflow for the kmalloc multiply on 32-bit platforms
->> (num_sge and sge_count are both defined u32). By crafting an input that
->> causes a smaller-than-expected allocation it's possible to write
->> controlled data out-of-bounds.
->
-> Hello Vlad,
->
-> Do you think that an RDMA driver exists that supports a max_sge value that
-> is large enough to cause this multiplication to overflow?
->
-> Bart.
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+   
+Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
