@@ -1,41 +1,31 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [patch] RDMA/ocrdma: fix a type issue in ocrdma_put_pd_num()
-Date: Fri, 24 Mar 2017 21:11:40 -0400
-Message-ID: <1490404300.2404.30.camel@redhat.com>
-References: <20170223104016.GA27526@mwanda>
+Subject: Re: [PATCH rdma-next] IB/rxe: Update documentation link
+Date: Fri, 24 Mar 2017 21:17:53 -0400
+Message-ID: <1490404673.2404.31.camel@redhat.com>
+References: <20170228194253.11759-1-leon@kernel.org>
+         <20170301001123.GB3001@phlsvsds.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170223104016.GA27526@mwanda>
+In-Reply-To: <20170301001123.GB3001-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-Cc: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Josh Beavers <josh.beavers-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-02-23 at 13:40 +0300, Dan Carpenter wrote:
-> We want to return zero on success or negative error codes.  The type
-> should be int and not u8.
+On Tue, 2017-02-28 at 19:11 -0500, ira.weiny wrote:
+> On Tue, Feb 28, 2017 at 09:42:53PM +0200, Leon Romanovsky wrote:
+> > All Soft-RoCE (rxe) is handled now in rdma-core user space library,
+> > so the documentation. The patch below updates the documentation
+> > link to that new location.
+> > 
+> > Reported-by: Josh Beavers <josh.beavers-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 > 
-> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> 
-> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-> b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-> index e06ad7250963..b1b075763eaa 100644
-> --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-> @@ -371,7 +371,7 @@ static int _ocrdma_pd_mgr_put_bitmap(struct
-> ocrdma_dev *dev, u16 pd_id,
->  	return 0;
->  }
->  
-> -static u8 ocrdma_put_pd_num(struct ocrdma_dev *dev, u16 pd_id,
-> +static int ocrdma_put_pd_num(struct ocrdma_dev *dev, u16 pd_id,
->  				   bool dpp_pool)
->  {
->  	int status;
+> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Thanks, applied for -rc.
+Thanks, applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
