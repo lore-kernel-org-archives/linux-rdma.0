@@ -1,31 +1,41 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next] IB/rxe: Update documentation link
-Date: Fri, 24 Mar 2017 21:17:53 -0400
-Message-ID: <1490404673.2404.31.camel@redhat.com>
-References: <20170228194253.11759-1-leon@kernel.org>
-         <20170301001123.GB3001@phlsvsds.ph.intel.com>
+Subject: Re: WARNING on drivers/infiniband/core/verbs.c:1975
+ __ib_drain_sq+0x182/0x1c0 [ib_core]
+Date: Fri, 24 Mar 2017 21:44:26 -0400
+Message-ID: <1490406266.2404.34.camel@redhat.com>
+References: <1457714996.31424605.1488696068958.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170301001123.GB3001-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <1457714996.31424605.1488696068958.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Josh Beavers <josh.beavers-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-02-28 at 19:11 -0500, ira.weiny wrote:
-> On Tue, Feb 28, 2017 at 09:42:53PM +0200, Leon Romanovsky wrote:
-> > All Soft-RoCE (rxe) is handled now in rdma-core user space library,
-> > so the documentation. The patch below updates the documentation
-> > link to that new location.
-> > 
-> > Reported-by: Josh Beavers <josh.beavers-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+On Sun, 2017-03-05 at 01:41 -0500, Yi Zhang wrote:
+> Hi
 > 
-> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> I get bellow WARNING when trying to connect nvmet with nvmecli.
+> 
+> Steps I used:
+> On target:
+> 1. Use nvmetcli setup nvmet with below json 
+> {
+>   "hosts": [
+>     {
+>       "nqn": "hostnqn"
+>     }
+>   ], 
+>   "ports": [
+>     {
+>       "addr": {
+>         "adrfam": "ipv4", 
+>         "traddr": "172.31.40.4", 
 
-Thanks, applied.
+For testing ocrdma, you need to use the 172.31.45.0 network vlan.  For
+testing other RoCE cards in our lab, you can use either the 43 or 45
+vlans, but you shouldn't use the untagged interface for RoCE tests.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
