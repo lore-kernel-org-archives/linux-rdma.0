@@ -1,26 +1,46 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3] IB/cq: Don't process more than the given budget
-Date: Fri, 24 Mar 2017 22:20:15 -0400
-Message-ID: <1490408415.2404.39.camel@redhat.com>
-References: <1489683420-28005-1-git-send-email-sagi@grimberg.me>
+Subject: Re: [PATCH RESEND] IB/device: Convert ib-comp-wq to be CPU-bound
+Date: Fri, 24 Mar 2017 22:24:37 -0400
+Message-ID: <1490408677.2404.40.camel@redhat.com>
+References: <1489003397-2321-1-git-send-email-sagi@grimberg.me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1489683420-28005-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <1489003397-2321-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-03-16 at 18:57 +0200, Sagi Grimberg wrote:
-> The caller might not want this overhead.
+On Wed, 2017-03-08 at 22:03 +0200, Sagi Grimberg wrote:
+> This workqueue is used by our storage target mode ULPs
+> via the new CQ API. Recent observations when working
+> with very high-end flash storage devices reveal that
+> UNBOUND workqueue threads can migrate between cpu cores
+> and even numa nodes (although some numa locality is accounted
+> for).
 > 
-> Reviewed-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> While this attribute can be useful in some workloads,
+> it does not fit in very nicely with the normal
+> run-to-completion model we usually use in our target-mode
+> ULPs and the block-mq irq<->cpu affinity facilities.
+> 
+> The whole block-mq concept is that the completion will
+> land on the same cpu where the submission was performed.
+> The fact that our submitter thread is migrating cpus
+> can break this locality.
+> 
+> We assume that as a target mode ULP, we will serve multiple
+> initiators/clients and we can spread the load enough without
+> having to use unbound kworkers.
+> 
+> Also, while we're at it, expose this workqueue via sysfs which
+> is harmless and can be useful for debug.
+> 
 > Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 
-Thanks, applied for -rc.
+Thanks, applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
