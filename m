@@ -1,43 +1,41 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/3] RDMA/vmw_pvrdma updates for 4.11
-Date: Fri, 24 Mar 2017 20:54:01 -0400
-Message-ID: <1490403241.2404.29.camel@redhat.com>
-References: <cover.1487812849.git.aditr@vmware.com>
+Subject: Re: [patch] RDMA/ocrdma: fix a type issue in ocrdma_put_pd_num()
+Date: Fri, 24 Mar 2017 21:11:40 -0400
+Message-ID: <1490404300.2404.30.camel@redhat.com>
+References: <20170223104016.GA27526@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1487812849.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170223104016.GA27526@mwanda>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+Cc: Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-02-22 at 17:22 -0800, Adit Ranadive wrote:
-> Hi Doug,
+On Thu, 2017-02-23 at 13:40 +0300, Dan Carpenter wrote:
+> We want to return zero on success or negative error codes.  The type
+> should be int and not u8.
 > 
-> Here are some minor updates we had for the VMware PVRDMA driver.
-> These
-> apply cleanly to your k.o/for-4.11 branch.
+> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 > 
-> Thanks,
-> Adit
-> 
-> Adit Ranadive (2):
->   RDMA/vmw_pvrdma: Cleanup unused variables
->   RDMA/vmw_pvrdma: Dont hardcode QP header page
-> 
-> Aditya Sarwade (1):
->   RDMA/vmw_pvrdma: Activate device on ethernet link up
-> 
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma.h         |  3 ++
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h |  2 +-
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c    | 17 ++++++---
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c      | 42 ++++++++++---
-> ----------
->  4 files changed, 35 insertions(+), 29 deletions(-)
+> diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> index e06ad7250963..b1b075763eaa 100644
+> --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+> @@ -371,7 +371,7 @@ static int _ocrdma_pd_mgr_put_bitmap(struct
+> ocrdma_dev *dev, u16 pd_id,
+>  	return 0;
+>  }
+>  
+> -static u8 ocrdma_put_pd_num(struct ocrdma_dev *dev, u16 pd_id,
+> +static int ocrdma_put_pd_num(struct ocrdma_dev *dev, u16 pd_id,
+>  				   bool dpp_pool)
+>  {
+>  	int status;
 
-Thanks, series applied for -rc.
+Thanks, applied for -rc.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
