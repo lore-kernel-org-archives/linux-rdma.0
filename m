@@ -1,46 +1,36 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH RESEND] IB/device: Convert ib-comp-wq to be CPU-bound
-Date: Fri, 24 Mar 2017 22:24:37 -0400
-Message-ID: <1490408677.2404.40.camel@redhat.com>
-References: <1489003397-2321-1-git-send-email-sagi@grimberg.me>
+Subject: Re: [PATCH] RDMA/iser: Fix possible mr leak on device removal event
+Date: Fri, 24 Mar 2017 22:31:38 -0400
+Message-ID: <1490409098.2404.41.camel@redhat.com>
+References: <1488219394-11720-1-git-send-email-sagi@grimberg.me>
+         <e2a87fd9-8035-95b3-20de-2389340b9955@mellanox.com>
+         <CY1PR12MB0774ECB94ADDD459809F74EABC560@CY1PR12MB0774.namprd12.prod.outlook.com>
+         <CY1PR12MB077458DBD4D7EA18751C40BFBC230@CY1PR12MB0774.namprd12.prod.outlook.com>
+         <3c42066d-e5b0-fcb8-c434-e5aa2d7c52b9@grimberg.me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1489003397-2321-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <3c42066d-e5b0-fcb8-c434-e5aa2d7c52b9-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-03-08 at 22:03 +0200, Sagi Grimberg wrote:
-> This workqueue is used by our storage target mode ULPs
-> via the new CQ API. Recent observations when working
-> with very high-end flash storage devices reveal that
-> UNBOUND workqueue threads can migrate between cpu cores
-> and even numa nodes (although some numa locality is accounted
-> for).
+On Mon, 2017-03-13 at 10:06 +0200, Sagi Grimberg wrote:
+> > 
+> > Hi Sagi,
 > 
-> While this attribute can be useful in some workloads,
-> it does not fit in very nicely with the normal
-> run-to-completion model we usually use in our target-mode
-> ULPs and the block-mq irq<->cpu affinity facilities.
+> Hi Raju,
 > 
-> The whole block-mq concept is that the completion will
-> land on the same cpu where the submission was performed.
-> The fact that our submitter thread is migrating cpus
-> can break this locality.
+> > 
+> > Can we expect this patch in next rc ?
 > 
-> We assume that as a target mode ULP, we will serve multiple
-> initiators/clients and we can spread the load enough without
-> having to use unbound kworkers.
+> I hope so,
 > 
-> Also, while we're at it, expose this workqueue via sysfs which
-> is harmless and can be useful for debug.
-> 
-> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+> Doug, care to get it in the next -rc pull request?
 
-Thanks, applied.
+Done.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
