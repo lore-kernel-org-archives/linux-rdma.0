@@ -1,173 +1,53 @@
-From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v1] IB/IPoIB: ibX: failed to create mcg debug file
-Date: Sun, 26 Mar 2017 22:36:32 +0300
-Message-ID: <c1a67bcf-e5d7-38e8-09ac-a700ea4ffb4e@mellanox.com>
-References: <1490555151-9638-1-git-send-email-shamir.rabinovitch@oracle.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [RFC v2 for accelerated IPoIB 00/6] Enhanced mode for IPoIB
+ driver
+Date: Sun, 26 Mar 2017 14:42:37 -0600
+Message-ID: <20170326204237.GB3113@obsidianresearch.com>
+References: <1490036908-12528-1-git-send-email-erezsh@mellanox.com>
+ <20170320205927.GA17225@obsidianresearch.com>
+ <20170321114955.GB2079@mtr-leonro.local>
+ <20170321161530.GB22216@obsidianresearch.com>
+ <20170321164952.GE2079@mtr-leonro.local>
+ <CAAk-MO_KEV9MA5Dcaz8SZagMeC4hQX456Cu8To-YRBNMeNu3pg@mail.gmail.com>
+ <20170322165238.GA26589@obsidianresearch.com>
+ <CAAk-MO_7LVUQS_8+h9shFEXkjT6NHkzXeYRH+_8Wcjr0P+dHAw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1490555151-9638-1-git-send-email-shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAAk-MO_7LVUQS_8+h9shFEXkjT6NHkzXeYRH+_8Wcjr0P+dHAw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, vijay.ac.kumar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On Sun, Mar 26, 2017 at 07:17:13PM +0300, Erez Shitrit wrote:
 
-On 26/03/2017 22:05, Shamir Rabinovitch wrote:
-> When udev renames the netdev devices, ipoib debugfs entries does not
-> get renamed. As a reason, if subsequent probe of ipoib device reuse the
-> name then creating a debugfs entry for the new device would fail.
+> > be computed once instead of computed for every split packet. The
+> > downside here is that it may be very complicated to store a kref in a
+> > skb pseudo header and properly unref it at all the right times..
 > 
-> Also, moved ipoib_create_debug_files and ipoib_delete_debug_files as part
-> of ipoib event handling in order to avoid any race condition between these.
-> 
-> Full credit for this fix to Vijay Kumar.
-> 
-> Signed-off-by: Vijay Kumar <vijay.ac.kumar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/ulp/ipoib/ipoib.h      |    2 +
->  drivers/infiniband/ulp/ipoib/ipoib_fs.c   |   28 +++++++++++++++++++
->  drivers/infiniband/ulp/ipoib/ipoib_main.c |   42 ++++++++++++++++++++++++++--
->  3 files changed, 69 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-> index da12717..f426048 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib.h
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-> @@ -770,11 +770,13 @@ static inline void ipoib_cm_handle_tx_wc(struct net_device *dev, struct ib_wc *w
->  void ipoib_delete_debug_files(struct net_device *dev);
->  int ipoib_register_debugfs(void);
->  void ipoib_unregister_debugfs(void);
-> +void ipoib_debugfs_rename(struct net_device *dev);
->  #else
->  static inline void ipoib_create_debug_files(struct net_device *dev) { }
->  static inline void ipoib_delete_debug_files(struct net_device *dev) { }
->  static inline int ipoib_register_debugfs(void) { return 0; }
->  static inline void ipoib_unregister_debugfs(void) { }
-> +static void ipoib_debugfs_rename(struct net_device *dev) { }
->  #endif
->  
->  #define ipoib_printk(level, priv, format, arg...)	\
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_fs.c b/drivers/infiniband/ulp/ipoib/ipoib_fs.c
-> index 6bd5740..d849b1d 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_fs.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_fs.c
-> @@ -259,6 +259,34 @@ static int ipoib_path_open(struct inode *inode, struct file *file)
->  	.release = seq_release
->  };
->  
-> +void ipoib_debugfs_rename(struct net_device *dev)
-> +{
-> +	struct ipoib_dev_priv *priv = netdev_priv(dev);
-> +	char name[IFNAMSIZ + sizeof "_path"];
-> +
-> +	if (!ipoib_root)
-> +		return;
-> +
-> +	if (priv->mcg_dentry) {
-> +		snprintf(name, sizeof(name), "%s_mcg", dev->name);
-> +		priv->mcg_dentry = debugfs_rename(ipoib_root, priv->mcg_dentry,
-> +						  ipoib_root, name);
-> +		if (!priv->mcg_dentry)
-> +			ipoib_warn(priv, "failed to rename debug file %s to %s\n",
-> +				   priv->mcg_dentry->d_iname, name);
-> +	}
-> +
-> +	if (priv->path_dentry) {
-> +		snprintf(name, sizeof(name), "%s_path", dev->name);
-> +		priv->path_dentry = debugfs_rename(ipoib_root,
-> +						   priv->path_dentry,
-> +						   ipoib_root, name);
-> +		if (!priv->path_dentry)
-> +			ipoib_warn(priv, "failed to rename debug file %s to %s\n",
-> +				   priv->mcg_dentry->d_iname, name);
-> +	}
-> +}
-> +
->  void ipoib_create_debug_files(struct net_device *dev)
->  {
->  	struct ipoib_dev_priv *priv = netdev_priv(dev);
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> index b58d9dc..ddf9eb2 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> @@ -108,6 +108,32 @@ struct ipoib_path_iter {
->  	.get_net_dev_by_params = ipoib_get_net_dev_by_params,
->  };
->  
-> +#ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
-> +static int ipoib_netdev_event(struct notifier_block *this,
-> +			      unsigned long event, void *ptr)
-> +{
-> +	struct netdev_notifier_info *ni = ptr;
-> +	struct net_device *dev = ni->dev;
-> +
-> +	if (dev->netdev_ops->ndo_open != ipoib_open)
-> +		return NOTIFY_DONE;
-> +
-> +	switch (event) {
-> +	case NETDEV_REGISTER:
-> +		ipoib_create_debug_files(dev);
-> +		break;
-> +	case NETDEV_CHANGENAME:
-> +		ipoib_debugfs_rename(dev);
-> +		break;
-> +	case NETDEV_UNREGISTER:
-> +		ipoib_delete_debug_files(dev);
-We call ipoib_delete_debug_files on NETDEV_UNREGISTER
+> It is an optimization, and still we need to get the ah even at the
+> middle of GSO, for each skb, or to keep it somewhere, also will need
+> to keep more space in the skb, more processing.
 
-[snip]
+GSO is done in a way where the pseudo header is retained but not
+recomputed for every fragment, much like for ethernet.
 
-> @@ -2151,6 +2174,9 @@ static void ipoib_remove_one(struct ib_device *device, void *client_data)
->  		return;
->  
->  	list_for_each_entry_safe(priv, tmp, dev_list, list) {
-> +#ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
-> +		ipoib_delete_debug_files(priv->dev);
-> +#endif
-We also call ipoib_delete_debug_files in ipoib_remove_one, does it mean we are calling ipoib_delete_debug_files
-twice? that doesn't seem right. Am I missing something?
+Does mlx5 even need a 'AH'? Maybe allowing the driver to provide some
+bytes in the pseudo header that match the HW SQE is an overall more
+efficient direction.
 
->  		ib_unregister_event_handler(&priv->event_handler);
->  		flush_workqueue(ipoib_workqueue);
->  
-> @@ -2173,6 +2199,10 @@ static void ipoib_remove_one(struct ib_device *device, void *client_data)
->  	kfree(dev_list);
->  }
->  
-> +static struct notifier_block ipoib_netdev_notifier = {
-> +	.notifier_call = ipoib_netdev_event,
-> +};
-> +
->  static int __init ipoib_init_module(void)
->  {
->  	int ret;
-> @@ -2225,6 +2255,9 @@ static int __init ipoib_init_module(void)
->  	if (ret)
->  		goto err_client;
->  
-> +#ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
-> +	register_netdevice_notifier(&ipoib_netdev_notifier);
-> +#endif
->  	return 0;
->  
->  err_client:
-> @@ -2242,6 +2275,9 @@ static int __init ipoib_init_module(void)
->  
->  static void __exit ipoib_cleanup_module(void)
->  {
-> +#ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
-> +	unregister_netdevice_notifier(&ipoib_netdev_notifier);
-> +#endif
->  	ipoib_netlink_fini();
->  	ib_unregister_client(&ipoib_client);
->  	ib_sa_unregister_client(&ipoib_sa_client);
+> > The other is to factor out the AH extraction from ipoib_start_xmit
+> > into a helper function and have all the rn drivers call it to get the
+> > AH.
 > 
+> We will pay with performance degradation for each send.
 
-Mark.
+Eh? Having ndo->ipoib->driver or ndo->driver->ipoib as a call chain
+doesn't really matter one bit.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
