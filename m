@@ -1,51 +1,66 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC v2 for accelerated IPoIB 00/6] Enhanced mode for IPoIB
- driver
-Date: Sun, 26 Mar 2017 14:42:37 -0600
-Message-ID: <20170326204237.GB3113@obsidianresearch.com>
-References: <1490036908-12528-1-git-send-email-erezsh@mellanox.com>
- <20170320205927.GA17225@obsidianresearch.com>
- <20170321114955.GB2079@mtr-leonro.local>
- <20170321161530.GB22216@obsidianresearch.com>
- <20170321164952.GE2079@mtr-leonro.local>
- <CAAk-MO_KEV9MA5Dcaz8SZagMeC4hQX456Cu8To-YRBNMeNu3pg@mail.gmail.com>
- <20170322165238.GA26589@obsidianresearch.com>
- <CAAk-MO_7LVUQS_8+h9shFEXkjT6NHkzXeYRH+_8Wcjr0P+dHAw@mail.gmail.com>
+Subject: Re: [PATCH V2 rdma-core 6/6] Bump version and update debian
+Date: Sun, 26 Mar 2017 14:45:23 -0600
+Message-ID: <20170326204523.GC3113@obsidianresearch.com>
+References: <1490277329-8738-1-git-send-email-yishaih@mellanox.com>
+ <1490277329-8738-7-git-send-email-yishaih@mellanox.com>
+ <20170323171916.GB5840@obsidianresearch.com>
+ <20170323191155.GC20443@mtr-leonro.local>
+ <20170323200214.GA10344@obsidianresearch.com>
+ <20170324134905.GE20443@mtr-leonro.local>
+ <20170324180914.GA13059@obsidianresearch.com>
+ <20170325071326.GF20443@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAAk-MO_7LVUQS_8+h9shFEXkjT6NHkzXeYRH+_8Wcjr0P+dHAw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20170325071326.GF20443-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Mar 26, 2017 at 07:17:13PM +0300, Erez Shitrit wrote:
-
-> > be computed once instead of computed for every split packet. The
-> > downside here is that it may be very complicated to store a kref in a
-> > skb pseudo header and properly unref it at all the right times..
+On Sat, Mar 25, 2017 at 10:13:26AM +0300, Leon Romanovsky wrote:
+> > Do you need a changelog entry to have stuff in the symbols file?
 > 
-> It is an optimization, and still we need to get the ah even at the
-> middle of GSO, for each skb, or to keep it somewhere, also will need
-> to keep more space in the skb, more processing.
+> I think that we need corresponding version in changelog.
 
-GSO is done in a way where the pseudo header is retained but not
-recomputed for every fragment, much like for ethernet.
+There are lots of counter examples..
 
-Does mlx5 even need a 'AH'? Maybe allowing the driver to provide some
-bytes in the pseudo header that match the HW SQE is an overall more
-efficient direction.
+libibverbs.so.1 libibverbs1 #MINVER#
+ IBVERBS_1.0@IBVERBS_1.0 1.1.6
+ IBVERBS_1.1@IBVERBS_1.1 1.1.6
 
-> > The other is to factor out the AH extraction from ipoib_start_xmit
-> > into a helper function and have all the rn drivers call it to get the
-> > AH.
+Eg we do not have 1.1.6 in the changelog
+
+> > BTW, there are bad looking things in travis with this PR:
+> >
+> > parsechangelog/debian: warning:     debian/changelog(l5): found start of entry where expected more change data or trailer
+> > LINE: rdma-core (13-1) unstable; urgency=low
+> > parsechangelog/debian: warning:     debian/changelog(l5): found eof
+> > where expected more change data or trailer
+> >
+> >  libmlx5.so.1 ibverbs-providers #MINVER#
+> >   MLX5_1.0@MLX5_1.0 13-1
+> >   MLX5_1.14@MLX5_1.14 14-1
+> > + MLX5_1.1@MLX5_1.1 14-1
+> > + mlx5dv_create_cq@MLX5_1.1 14-1
+> >
+> > Etc..
 > 
-> We will pay with performance degradation for each send.
+> It is actual error, strange that travis passed while it was supposed to fail.
 
-Eh? Having ndo->ipoib->driver or ndo->driver->ipoib as a call chain
-doesn't really matter one bit.
+Maybe we should run dpkg-shlibdeps manually and somehow fail if this
+situation happens... Can you look at that?
+
+> The commit
+> https://github.com/linux-rdma/rdma-core/pull/103/commits/4ba27e66294f59db7c969bde1580e7aa8d718cd7
+> added MLX5_1.1, but in commit
+> https://github.com/linux-rdma/rdma-core/pull/103/commits/9614ecdae2a6a5448cab819a057c703a570b3686
+> debian was updated with incorrect stanza (MLX5_1.14).
+
+Yes, we went back and forth on this unfortunately, I gave some bad
+advice.
 
 Jason
 --
