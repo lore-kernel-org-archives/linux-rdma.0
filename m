@@ -1,68 +1,93 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V2 rdma-core 6/6] Bump version and update debian
-Date: Sun, 26 Mar 2017 14:45:23 -0600
-Message-ID: <20170326204523.GC3113@obsidianresearch.com>
-References: <1490277329-8738-1-git-send-email-yishaih@mellanox.com>
- <1490277329-8738-7-git-send-email-yishaih@mellanox.com>
- <20170323171916.GB5840@obsidianresearch.com>
- <20170323191155.GC20443@mtr-leonro.local>
- <20170323200214.GA10344@obsidianresearch.com>
- <20170324134905.GE20443@mtr-leonro.local>
- <20170324180914.GA13059@obsidianresearch.com>
- <20170325071326.GF20443@mtr-leonro.local>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [RFC PATCH 00/28] INFINIBAND NETWORK BLOCK DEVICE (IBNBD)
+Date: Mon, 27 Mar 2017 05:20:25 +0300
+Message-ID: <cfde9eab-a52a-8888-7d32-4f6fc9f9640a@grimberg.me>
+References: <1490352343-20075-1-git-send-email-jinpu.wangl@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170325071326.GF20443-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <1490352343-20075-1-git-send-email-jinpu.wangl-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Jack Wang <jinpu.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, mail-99BIx50xQYGELgA04lAiVw@public.gmane.org, Milind.dumbare-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, yun.wang-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Mar 25, 2017 at 10:13:26AM +0300, Leon Romanovsky wrote:
-> > Do you need a changelog entry to have stuff in the symbols file?
-> 
-> I think that we need corresponding version in changelog.
 
-There are lots of counter examples..
+> This series introduces IBNBD/IBTRS kernel modules.
+>
+> IBNBD (InfiniBand network block device) allows for an RDMA transfer of block IO
+> over InfiniBand network. The driver presents itself as a block device on client
+> side and transmits the block requests in a zero-copy fashion to the server-side
+> via InfiniBand. The server part of the driver converts the incoming buffers back
+> into BIOs and hands them down to the underlying block device. As soon as IO
+> responses come back from the drive, they are being transmitted back to the
+> client.
 
-libibverbs.so.1 libibverbs1 #MINVER#
- IBVERBS_1.0@IBVERBS_1.0 1.1.6
- IBVERBS_1.1@IBVERBS_1.1 1.1.6
+Hi Jack, Danil and Roman,
 
-Eg we do not have 1.1.6 in the changelog
+I met Danil and Roman last week at Vault, and I think you guys
+are awesome, thanks a lot for open-sourcing your work! However,
+I have a couple of issues here, some are related to the code and
+some are fundamental actually.
 
-> > BTW, there are bad looking things in travis with this PR:
-> >
-> > parsechangelog/debian: warning:     debian/changelog(l5): found start of entry where expected more change data or trailer
-> > LINE: rdma-core (13-1) unstable; urgency=low
-> > parsechangelog/debian: warning:     debian/changelog(l5): found eof
-> > where expected more change data or trailer
-> >
-> >  libmlx5.so.1 ibverbs-providers #MINVER#
-> >   MLX5_1.0@MLX5_1.0 13-1
-> >   MLX5_1.14@MLX5_1.14 14-1
-> > + MLX5_1.1@MLX5_1.1 14-1
-> > + mlx5dv_create_cq@MLX5_1.1 14-1
-> >
-> > Etc..
-> 
-> It is actual error, strange that travis passed while it was supposed to fail.
+- Is there room for this ibnbd? If we were to take every block driver
+   that was submitted without sufficient justification, it'd be very
+   hard to maintain. What advantage (if any) does this buy anyone over
+   existing rdma based protocols (srp, iser, nvmf)? I'm really (*really*)
+   not sold on this one...
 
-Maybe we should run dpkg-shlibdeps manually and somehow fail if this
-situation happens... Can you look at that?
+- To me, the fundamental design that the client side owns a pool of
+   buffers that it issues writes too, seems inferior than the
+   one taken in iser/nvmf (immediate data). IMO, the ibnbd design has
+   scalability issues both in terms of server side resources, client
+   side contention and network congestion (on infiniband the latter is
+   less severe).
 
-> The commit
-> https://github.com/linux-rdma/rdma-core/pull/103/commits/4ba27e66294f59db7c969bde1580e7aa8d718cd7
-> added MLX5_1.1, but in commit
-> https://github.com/linux-rdma/rdma-core/pull/103/commits/9614ecdae2a6a5448cab819a057c703a570b3686
-> debian was updated with incorrect stanza (MLX5_1.14).
+- I suggest that for your next post, you provide a real-life use-case
+   where each of the existing drivers can't suffice, and by can't
+   suffice I mean that it has a fundamental issue with it, not something
+   that requires a fix. With that our feedback can be much more concrete
+   and (at least on my behalf) more open to accept it.
 
-Yes, we went back and forth on this unfortunately, I gave some bad
-advice.
+- I'm not exactly sure why you would suggest that your implementation
+   supports only infiniband if you use rdma_cm for address resolution,
+   nor I understand why you emphasize feature (2) below, nor why even
+   in the presence of rdma_cm you have ibtrs_ib_path? (confused...)
+   iWARP needs a bit more attention if you don't use the new generic
+   interfaces though...
 
-Jason
+- I honestly do not understand why you need *19057* LOC to implement
+   a rdma based block driver. Thats almost larger than all of our
+   existing block drivers combined... First glance at the code provides
+   some explanations, (1) you have some strange code that has no business
+   in a block driver like ibtrs_malloc/ibtrs_zalloc (yikes) or
+   open-coding various existing logging routines, (2) you are for some
+   reason adding a second tag allocation scheme (why?), (3) you are open
+   coding a lot of stuff that we added to the stack in the past months...
+   (4) you seem to over-layer your code for reasons that I do not
+   really understand. And I didn't really look deep at all into the
+   code, just to get the feel of it, and it seems like it needs a lot
+   of work before it can even be considered upstream ready.
+
+> We design and implement this solution based on our need for Cloud Computing,
+> the key features are:
+> - High throughput and low latency due to:
+> 1) Only two rdma messages per IO
+
+Where exactly did you witnessed latency that was meaningful by having
+another rdma message on the wire? That's only for writes, anyway, and
+we have first data bursts for that..
+
+> 2) Simplified client side server memory management
+> 3) Eliminated SCSI sublayer
+
+That's hardly an advantage given all we are losing without it...
+
+...
+
+Cheers,
+Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
