@@ -1,8 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 12/13] sunrpc: Fix xdr_init_decode_pages() documenting
- comment
-Date: Mon, 27 Mar 2017 10:07:12 -0400
-Message-ID: <20170327140712.20813.24246.stgit@manet.1015granger.net>
+Subject: [PATCH v2 11/13] xprtrdma: Squelch ENOBUFS warnings
+Date: Mon, 27 Mar 2017 10:07:04 -0400
+Message-ID: <20170327140704.20813.26799.stgit@manet.1015granger.net>
 References: <20170327134847.20813.52412.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,26 +12,33 @@ Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up.
+When ro_map is out of buffers, that's not a permanent error, so
+don't report a problem.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xdr.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/sunrpc/xprtrdma/rpc_rdma.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/net/sunrpc/xdr.c b/net/sunrpc/xdr.c
-index 1f70821..e34f4ee 100644
---- a/net/sunrpc/xdr.c
-+++ b/net/sunrpc/xdr.c
-@@ -807,7 +807,7 @@ void xdr_init_decode(struct xdr_stream *xdr, struct xdr_buf *buf, __be32 *p)
- EXPORT_SYMBOL_GPL(xdr_init_decode);
+diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+index e68131b..694e9b1 100644
+--- a/net/sunrpc/xprtrdma/rpc_rdma.c
++++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+@@ -781,9 +781,11 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
+ 	return 0;
  
- /**
-- * xdr_init_decode - Initialize an xdr_stream for decoding data.
-+ * xdr_init_decode_pages - Initialize an xdr_stream for decoding into pages
-  * @xdr: pointer to xdr_stream struct
-  * @buf: pointer to XDR buffer from which to decode data
-  * @pages: list of pages to decode into
+ out_err:
+-	pr_err("rpcrdma: rpcrdma_marshal_req failed, status %ld\n",
+-	       PTR_ERR(iptr));
+-	r_xprt->rx_stats.failed_marshal_count++;
++	if (PTR_ERR(iptr) != -ENOBUFS) {
++		pr_err("rpcrdma: rpcrdma_marshal_req failed, status %ld\n",
++		       PTR_ERR(iptr));
++		r_xprt->rx_stats.failed_marshal_count++;
++	}
+ 	return PTR_ERR(iptr);
+ }
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
