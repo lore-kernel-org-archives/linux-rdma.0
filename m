@@ -1,70 +1,90 @@
-From: Nicolas Dichtel <nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v11 01/12] h8300: put bitsperlong.h in uapi
-Date: Mon, 27 Mar 2017 14:20:06 +0200
-Message-ID: <1490617217-30192-2-git-send-email-nicolas.dichtel@6wind.com>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: [PATCH v11 00/12] uapi: export all headers under uapi directories
+Date: Mon, 27 Mar 2017 14:20:05 +0200
+Message-ID: <1490617217-30192-1-git-send-email-nicolas.dichtel@6wind.com>
 References: <CAK7LNAR_yp+O9jUZC8mKdaHgTiCkE7p2-ZbA9YZ8OGyp+uxhBQ@mail.gmail.com>
- <1490617217-30192-1-git-send-email-nicolas.dichtel@6wind.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1490617217-30192-1-git-send-email-nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: yamada.masahiro-uWyLwvC0a2jby3iVrkZq2A@public.gmane.org
-Cc: arnd-r2nGTMty4D4@public.gmane.org, mmarek-IBi9RG/b67k@public.gmane.org, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, airlied-cv59FeDIM0c@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org, slash.tmp-GANU6spQydw@public.gmane.org, daniel.vetter-/w4YWyX8dFk@public.gmane.org, rmk+kernel-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org, msalter-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jengelh-9+2X+4sQBs8@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, tklauser-93Khv+1bN0NyDzI6CaY1VQ@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, ldv-u2l5PoMzF/Vg9hUCZPvPmw@public.gmane.org, nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org, herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kbuild-owner@vger.kernel.org>
+In-Reply-To: <CAK7LNAR_yp+O9jUZC8mKdaHgTiCkE7p2-ZbA9YZ8OGyp+uxhBQ@mail.gmail.com>
+Sender: linux-kbuild-owner@vger.kernel.org
+To: yamada.masahiro@socionext.com
+Cc: arnd@arndb.de, mmarek@suse.com, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, airlied@linux.ie, davem@davemloft.net, linux@armlinux.org.uk, bp@alien8.de, slash.tmp@free.fr, daniel.vetter@ffwll.ch, rmk+kernel@armlinux.org.uk, msalter@redhat.com, jengelh@inai.de, hch@infradead.org, tklauser@distanz.ch, mpe@ellerman.id.au, mingo@kernel.org, tglx@linutronix.de, ldv@altlinux.org, nicolas.dichtel@6wind.com, herbert@gondor.apana.org.au, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-This header file is exported, thus move it to uapi.
 
-Signed-off-by: Nicolas Dichtel <nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
----
- arch/h8300/include/asm/bitsperlong.h      | 14 --------------
- arch/h8300/include/uapi/asm/bitsperlong.h | 14 ++++++++++++++
- 2 files changed, 14 insertions(+), 14 deletions(-)
- delete mode 100644 arch/h8300/include/asm/bitsperlong.h
- create mode 100644 arch/h8300/include/uapi/asm/bitsperlong.h
 
-diff --git a/arch/h8300/include/asm/bitsperlong.h b/arch/h8300/include/asm/bitsperlong.h
-deleted file mode 100644
-index e140e46729ac..000000000000
---- a/arch/h8300/include/asm/bitsperlong.h
-+++ /dev/null
-@@ -1,14 +0,0 @@
--#ifndef __ASM_H8300_BITS_PER_LONG
--#define __ASM_H8300_BITS_PER_LONG
--
--#include <asm-generic/bitsperlong.h>
--
--#if !defined(__ASSEMBLY__)
--/* h8300-unknown-linux required long */
--#define __kernel_size_t __kernel_size_t
--typedef unsigned long	__kernel_size_t;
--typedef long		__kernel_ssize_t;
--typedef long		__kernel_ptrdiff_t;
--#endif
--
--#endif /* __ASM_H8300_BITS_PER_LONG */
-diff --git a/arch/h8300/include/uapi/asm/bitsperlong.h b/arch/h8300/include/uapi/asm/bitsperlong.h
-new file mode 100644
-index 000000000000..34212608371e
---- /dev/null
-+++ b/arch/h8300/include/uapi/asm/bitsperlong.h
-@@ -0,0 +1,14 @@
-+#ifndef _UAPI__ASM_H8300_BITS_PER_LONG
-+#define _UAPI__ASM_H8300_BITS_PER_LONG
-+
-+#include <asm-generic/bitsperlong.h>
-+
-+#if !defined(__ASSEMBLY__)
-+/* h8300-unknown-linux required long */
-+#define __kernel_size_t __kernel_size_t
-+typedef unsigned long	__kernel_size_t;
-+typedef long		__kernel_ssize_t;
-+typedef long		__kernel_ptrdiff_t;
-+#endif
-+
-+#endif /* _UAPI__ASM_H8300_BITS_PER_LONG */
--- 
-2.8.1
+Patches #1 and #2 are just cleanup: some exported headers were still under
+a non-uapi directory. Patch #3 is a fix to avoid exporting a file that was
+not under an uapi directory.
+After these three patches, all exported headers are under an uapi directory:
+path #4 stops searching files in non uapi directories.
+The patch #5 was spotted by code review: there is no in-tree user of this
+functionality.
+Patch #6 fixes some warnings/errors reported by 0-day tests.
+Patch #7 to #9 fix some errors when the corresponding files are included by
+userland.
+Patches #10 and #11 remove the need to list explicitly headers. Now all files
+under an uapi directory are exported.
+Patch #12 is also a small cleanup.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This series has been tested with a 'make headers_install' on x86 and a
+'make headers_install_all'. I've checked the result of both commands.
+
+This patch is built on top of masahiroy/linux-kbuild.git#for-next (v4.11-rc1).
+I didn't find any conflict with v4.11-rc4.
+
+v10 -> v11:
+  - patch #1: restore the double '_' in the header guard
+  - patch #6, #7, #8: order '#include' in alphabetical order 
+  - patch #10: rename header-n to no-export-headers
+               cleanup management of kvm.h, kvm_para.h and a.out.h
+  - patch #12: add it
+  - rebase on top of masahiroy/linux-kbuild.git#for-next
+
+v9 -> v10:
+  - rebase on top of masahiroy/linux-kbuild.git#for-next
+  - patch #4 & #10: fix dependency check
+  - fix some typos in commits logs
+
+v8 -> v9:
+  - rebase on top of linus tree
+  - patch #8: add include/uapi/linux/crypto.h
+
+v7 -> v8:
+  - rebase on top of linus tree
+  - add patch #7, #8 and #9
+
+v6 -> v7:
+  - rebase on top of linus tree
+  - patch #7: remove autogenerated files from the list in the commit log
+
+v5 -> v6:
+  - patch #6: remove change of include/uapi/linux/media.h
+  - patch #7: fix hdr export when 'make O=' is used (look for genhdr files in
+              the right directory)
+  - patch #8: fix 'make headers_check'
+
+v4 -> v5:
+  - patch #3: get back to v3 (don't export msr-index.h)
+  - patch #6: new in this version
+  - patch #7: fix compilation by introducing header-n
+
+v3 -> v4:
+ - first patch has been included
+ - patch #4: get back to v2 and remove arch/x86/include/asm/msr-index.h
+
+v2 -> v3:
+ - patch #1: remove arch/arm/include/asm/types.h
+ - patch #2: remove arch/h8300/include/asm/bitsperlong.h
+ - patch #3: remove arch/nios2/include/uapi/asm/setup.h
+ - patch #4: don't export msr-index.h
+ - patch #5: fix a typo: s/unput-files3-name/input-files3-name
+ - patch #6: no change
+ - patch #7: fix include/uapi/asm-generic/Kbuild.asm by introducing mandatory-y
+ - add patch #8
+
+v1 -> v2:
+ - add patch #1 to #6
+ - patch #7: remove use of header-y
+
+Comments are welcomed,
+Nicolas
