@@ -1,85 +1,62 @@
-From: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3] IB/IPoIB: ibX: failed to create mcg debug file
-Date: Mon, 27 Mar 2017 23:17:15 +0300
-Message-ID: <20170327201714.GB29831@srabinov-linux.uk.oracle.com>
-References: <1490599139-12665-1-git-send-email-shamir.rabinovitch@oracle.com>
- <20170327195500.GH20443@mtr-leonro.local>
+From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: rdma-core.spec and -DIN_PLACE
+Date: Mon, 27 Mar 2017 20:50:01 +0000
+Message-ID: <1490647788.7897.5.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170327195500.GH20443-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
+Content-ID: <14550F9DF4A30A47863B2A71558CED39-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, vijay.ac.kumar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 27, 2017 at 10:55:00PM +0300, Leon Romanovsky wrote:
-> On Mon, Mar 27, 2017 at 03:18:59AM -0400, Shamir Rabinovitch wrote:
-> > When udev renames the netdev devices, ipoib debugfs entries does not
-> > get renamed. As a result, if subsequent probe of ipoib device reuse the
-> > name then creating a debugfs entry for the new device would fail.
-> >
-> > Also, moved ipoib_create_debug_files and ipoib_delete_debug_files as part
-> > of ipoib event handling in order to avoid any race condition between these.
-> >
-> > Signed-off-by: Vijay Kumar <vijay.ac.kumar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > Signed-off-by: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> >
-> > ---
-> > v2->v3:
-> > - Move rev change out of commit message
-> > - Fix typo
-> > v1->v2:
-> > - Review comment from Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >   Verified again and NETDEV_UNREGISTER is called correctly. Debug
-> >   files are removed as expected. Thanks.
-> > - Fix compile warning when CONFIG_INFINIBAND_IPOIB_DEBUG is not set
-> > ---
-> >
+Hello Jason,
 
-[...]
+When I build an RPM using the top-level rdma-core.spec file I need the foll=
+owing
+patch to ensure that the verbs library looks into=A0/etc/libibverbs.d inste=
+ad of a
+path in the build directory:
 
-> >
-> > +#ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
-> > +static int ipoib_netdev_event(struct notifier_block *this,
-> > +			      unsigned long event, void *ptr)
-> > +{
-> > +	struct netdev_notifier_info *ni = ptr;
-> > +	struct net_device *dev = ni->dev;
-> > +
-> > +	if (dev->netdev_ops->ndo_open != ipoib_open)
-> > +		return NOTIFY_DONE;
-> > +
-> > +	switch (event) {
-> > +	case NETDEV_REGISTER:
-> > +		ipoib_create_debug_files(dev);
-> > +		break;
-> > +	case NETDEV_CHANGENAME:
-> > +		ipoib_debugfs_rename(dev);
-> 
-> Why do we need explicit ipoib_debugfs_rename function?
-> Will it work by simply calling ipoib_delete_debug_files
-> and immediately after that ipoib_create_debug_files?
-> 
-> 
-> > +		break;
-> > +	case NETDEV_UNREGISTER:
-> > +		ipoib_delete_debug_files(dev);
-> > +		break;
-> > +	}
-> > +
-> > +	return NOTIFY_DONE;
-> > +}
-> > +#endif
-> > +
+diff --git a/rdma-core.spec b/rdma-core.spec
+index 6a280fe1..f2419e82 100644
+--- a/rdma-core.spec
++++ b/rdma-core.spec
+@@ -34,7 +34,7 @@ BuildRequires: ninja,make
+=A0# Tumbleweed's cmake RPM macro adds -Wl,--no-undefined to the module fla=
+gs
+=A0# which is totally inappropriate and breaks building 'ENABLE_EXPORTS' st=
+yle
+=A0# module libraries (eg ibacmp).
+-%define CMAKE_FLAGS -DCMAKE_MODULE_LINKER_FLAGS=3D""
++%define CMAKE_FLAGS -DCMAKE_MODULE_LINKER_FLAGS=3D"" -DIN_PLACE=3D0
+=A0%else
+=A0%if 0%{?fedora} >=3D 23
+=A0# Ninja was introduced in FC23
 
-Hi Leon, 
+Do you think this is an issue with the spec file or with one of the CMake f=
+iles?
 
-Good point. 
-I will have look on this idea and get back to you.
+The script I use to build an RPM is as follows:
 
-BR, Shamir
+#!/bin/sh
+
+name=3Drdma-core
+version=3D$(sed -n 's/^Version:[[:blank:]]*//p' rdma-core.spec)
+rpmtopdir=3D$PWD/rpmbuilddir
+
+rm -rf ${rpmtopdir} &&
+=A0=A0=A0=A0mkdir -p ${rpmtopdir}/{BUILD,RPMS,SOURCES,SPECS,SRPMS} &&
+=A0=A0=A0=A0git archive --prefix rdma-core-${version}/ --output ${rpmtopdir=
+}/SOURCES/${name}-${version}.tgz HEAD &&
+=A0=A0=A0=A0rpmbuild --define=3D"%_topdir ${rpmtopdir}" -ba ${name}.spec
+
+Thanks,
+
+Bart.=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
