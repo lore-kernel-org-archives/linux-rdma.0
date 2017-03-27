@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH libibmad 2/2] gs.c: In performance_reset_via, use proper
- CounterSelect2 field for PortCountersExtended
-Date: Mon, 27 Mar 2017 11:35:44 -0400
-Message-ID: <26623475-0c21-ebf2-f4e8-dd40693fab64@dev.mellanox.co.il>
+Subject: [PATCH infiniband-diags 1/3] perfquery.c: Output PerfMgt
+ ClassPortInfo CapabilityMask2
+Date: Mon, 27 Mar 2017 11:36:12 -0400
+Message-ID: <a64b9648-c79d-795a-8e40-ea1d4009c9ce@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
@@ -13,31 +13,83 @@ Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
-Per MgtWG errata #9302
+in addition to CapabilityMask for PortCountersExtended attribute
+
+MgtWG errata #9301 defines IsAdditionalPortCountersExtendedSupported
+bit in CapabilityMask2.
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-diff --git a/src/gs.c b/src/gs.c
-index 5541b6b..90db7e2 100644
---- a/src/gs.c
-+++ b/src/gs.c
-@@ -110,11 +110,14 @@ uint8_t *performance_reset_via(void *rcvbuf, ib_portid_t * dest,
- 
- 	memset(rcvbuf, 0, IB_MAD_SIZE);
- 
--	/* Same for attribute IDs */
-+	/* Next 2 lines - same for attribute IDs */
- 	mad_set_field(rcvbuf, 0, IB_PC_PORT_SELECT_F, port);
- 	mad_set_field(rcvbuf, 0, IB_PC_COUNTER_SELECT_F, mask);
- 	mask = mask >> 16;
--	mad_set_field(rcvbuf, 0, IB_PC_COUNTER_SELECT2_F, mask);
-+	if (id == IB_GSI_PORT_COUNTERS_EXT)
-+		mad_set_field(rcvbuf, 0, IB_PC_EXT_COUNTER_SELECT2_F, mask);
-+	else
-+		mad_set_field(rcvbuf, 0, IB_PC_COUNTER_SELECT2_F, mask);
- 	rpc.attr.mod = 0;
- 	rpc.timeout = timeout;
- 	rpc.datasz = IB_PC_DATA_SZ;
+diff --git a/src/perfquery.c b/src/perfquery.c
+index 948ce52..ab6c0f8 100644
+--- a/src/perfquery.c
++++ b/src/perfquery.c
+@@ -296,7 +296,8 @@ static void output_aggregate_perfcounters_ext(ib_portid_t * portid,
+ }
+  static void dump_perfcounters(int extended, int timeout, uint16_t cap_mask,
+-			      ib_portid_t * portid, int port, int aggregate)
++			      uint32_t cap_mask2, ib_portid_t * portid,
++			      int port, int aggregate)
+ {
+ 	char buf[1024];
+ @@ -344,8 +345,9 @@ static void dump_perfcounters(int extended, int timeout, uint16_t cap_mask,
+ 	if (!aggregate) {
+ 		if (extended)
+ 			printf("# Port extended counters: %s port %d "
+-			       "(CapMask: 0x%02X)\n%s",
+-			       portid2str(portid), port, ntohs(cap_mask), buf);
++			       "(CapMask: 0x%02X CapMask2: 0x%07X)\n%s",
++			       portid2str(portid), port, ntohs(cap_mask),
++			       cap_mask2, buf);
+ 		else
+ 			printf("# Port counters: %s port %d "
+ 			       "(CapMask: 0x%02X)\n%s",
+@@ -699,6 +701,7 @@ int main(int argc, char **argv)
+ 	ib_portid_t portid = { 0 };
+ 	int mask = 0xffff;
+ 	uint64_t ext_mask = 0xffffffffffffffffULL;
++	uint32_t cap_mask2;
+ 	uint16_t cap_mask;
+ 	int all_ports_loop = 0;
+ 	int node_type, num_ports = 0;
+@@ -816,6 +819,9 @@ int main(int argc, char **argv)
+ 		IBEXIT("classportinfo query");
+ 	/* ClassPortInfo should be supported as part of libibmad */
+ 	memcpy(&cap_mask, pc + 2, sizeof(cap_mask));	/* CapabilityMask */
++	memcpy(&cap_mask2, pc + 4, sizeof(cap_mask2));	/* CapabilityMask2 */
++	cap_mask2 = ntohl(cap_mask2) >> 5;
++
+ 	if (!(cap_mask & IB_PM_ALL_PORT_SELECT)) {	/* bit 8 is AllPortSelect */
+ 		if (!all_ports && port == ALL_PORTS)
+ 			IBEXIT("AllPortSelect not supported");
+@@ -942,7 +948,8 @@ int main(int argc, char **argv)
+  	if (all_ports_loop || (loop_ports && (all_ports || port == ALL_PORTS))) {
+ 		for (i = start_port; i <= num_ports; i++)
+-			dump_perfcounters(extended, ibd_timeout, cap_mask,
++			dump_perfcounters(extended, ibd_timeout,
++					  cap_mask, cap_mask2,
+ 					  &portid, i, (all_ports_loop
+ 						       && !loop_ports));
+ 		if (all_ports_loop && !loop_ports) {
+@@ -956,7 +963,7 @@ int main(int argc, char **argv)
+ 	} else if (ports_count > 1) {
+ 		for (i = 0; i < ports_count; i++)
+ 			dump_perfcounters(extended, ibd_timeout, cap_mask,
+-					  &portid, ports[i],
++					  cap_mask2, &portid, ports[i],
+ 					  (all_ports && !loop_ports));
+ 		if (all_ports && !loop_ports) {
+ 			if (extended != 1)
+@@ -967,8 +974,8 @@ int main(int argc, char **argv)
+ 								  cap_mask);
+ 		}
+ 	} else
+-		dump_perfcounters(extended, ibd_timeout, cap_mask, &portid,
+-				  port, 0);
++		dump_perfcounters(extended, ibd_timeout, cap_mask, cap_mask2,
++				  &portid, port, 0);
+  	if (!reset)
+ 		goto done;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
