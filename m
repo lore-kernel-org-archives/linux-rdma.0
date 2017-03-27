@@ -1,62 +1,56 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: rdma-core.spec and -DIN_PLACE
-Date: Mon, 27 Mar 2017 20:50:01 +0000
-Message-ID: <1490647788.7897.5.camel@sandisk.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: rdma-core.spec and -DIN_PLACE
+Date: Mon, 27 Mar 2017 16:44:39 -0600
+Message-ID: <20170327224439.GA711@obsidianresearch.com>
+References: <1490647788.7897.5.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <14550F9DF4A30A47863B2A71558CED39-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1490647788.7897.5.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Jason,
+On Mon, Mar 27, 2017 at 08:50:01PM +0000, Bart Van Assche wrote:
+> When I build an RPM using the top-level rdma-core.spec file I need the following
+> patch to ensure that the verbs library looks into?/etc/libibverbs.d instead of a
+> path in the build directory:
 
-When I build an RPM using the top-level rdma-core.spec file I need the foll=
-owing
-patch to ensure that the verbs library looks into=A0/etc/libibverbs.d inste=
-ad of a
-path in the build directory:
+You certainly should not need something like this. I tried your script
+in a tumbleweed container and it was fine...
 
+Could something else in your envionrment be setting IN_PLACE?
+Environment Variable? (Does rpmbuild not wipe those?) What does your
+cmake line look like? Your script looks fine to me..
+
+I added this to check, I didn't run anything..
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index da803443536925..33e0dad9868c70 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -51,6 +51,7 @@ set(PACKAGE_VERSION "13")
+ 
+ # Override the CMAKE_INSTALL_ dirs to be under the build/ directory
+ if (IN_PLACE)
++message(FATAL_ERROR "In place")
+   set(CMAKE_INSTALL_SYSCONFDIR "${CMAKE_BINARY_DIR}/etc")
+   set(CMAKE_INSTALL_BINDIR "${CMAKE_BINARY_DIR}/bin")
+ endif()
 diff --git a/rdma-core.spec b/rdma-core.spec
-index 6a280fe1..f2419e82 100644
+index 3f6e73a09ed12d..09c146f9324bd7 100644
 --- a/rdma-core.spec
 +++ b/rdma-core.spec
-@@ -34,7 +34,7 @@ BuildRequires: ninja,make
-=A0# Tumbleweed's cmake RPM macro adds -Wl,--no-undefined to the module fla=
-gs
-=A0# which is totally inappropriate and breaks building 'ENABLE_EXPORTS' st=
-yle
-=A0# module libraries (eg ibacmp).
--%define CMAKE_FLAGS -DCMAKE_MODULE_LINKER_FLAGS=3D""
-+%define CMAKE_FLAGS -DCMAKE_MODULE_LINKER_FLAGS=3D"" -DIN_PLACE=3D0
-=A0%else
-=A0%if 0%{?fedora} >=3D 23
-=A0# Ninja was introduced in FC23
-
-Do you think this is an issue with the spec file or with one of the CMake f=
-iles?
-
-The script I use to build an RPM is as follows:
-
-#!/bin/sh
-
-name=3Drdma-core
-version=3D$(sed -n 's/^Version:[[:blank:]]*//p' rdma-core.spec)
-rpmtopdir=3D$PWD/rpmbuilddir
-
-rm -rf ${rpmtopdir} &&
-=A0=A0=A0=A0mkdir -p ${rpmtopdir}/{BUILD,RPMS,SOURCES,SPECS,SRPMS} &&
-=A0=A0=A0=A0git archive --prefix rdma-core-${version}/ --output ${rpmtopdir=
-}/SOURCES/${name}-${version}.tgz HEAD &&
-=A0=A0=A0=A0rpmbuild --define=3D"%_topdir ${rpmtopdir}" -ba ${name}.spec
-
-Thanks,
-
-Bart.=
+@@ -104,6 +104,7 @@ This is a simple example without the split sub packages to get things started.
+ 	 -DCMAKE_INSTALL_RUNDIR:PATH=%{_rundir} \
+ 	 -DCMAKE_INSTALL_DOCDIR:PATH=%{_docdir}/%{name}-%{version} \
+ 	 -DCMAKE_INSTALL_UDEV_RULESDIR:PATH=%{_udevrulesdir}
++cat include/config.h
+ %make_jobs
+ 
+ %install
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
