@@ -1,46 +1,51 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: [PATCH v11 12/12] arch/include: remove empty Kbuild files
-Date: Mon, 27 Mar 2017 14:20:17 +0200
-Message-ID: <1490617217-30192-13-git-send-email-nicolas.dichtel@6wind.com>
-References: <CAK7LNAR_yp+O9jUZC8mKdaHgTiCkE7p2-ZbA9YZ8OGyp+uxhBQ@mail.gmail.com>
- <1490617217-30192-1-git-send-email-nicolas.dichtel@6wind.com>
-Return-path: <linux-arch-owner@vger.kernel.org>
-In-Reply-To: <1490617217-30192-1-git-send-email-nicolas.dichtel@6wind.com>
-Sender: linux-arch-owner@vger.kernel.org
-To: yamada.masahiro@socionext.com
-Cc: arnd@arndb.de, mmarek@suse.com, linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, airlied@linux.ie, davem@davemloft.net, linux@armlinux.org.uk, bp@alien8.de, slash.tmp@free.fr, daniel.vetter@ffwll.ch, rmk+kernel@armlinux.org.uk, msalter@redhat.com, jengelh@inai.de, hch@infradead.org, tklauser@distanz.ch, mpe@ellerman.id.au, mingo@kernel.org, tglx@linutronix.de, ldv@altlinux.org, nicolas.dichtel@6wind.com, herbert@gondor.apana.org.au, linux-rdma@vger.kernel.org
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH rdma-core] mlx5: Fix device context allocation
+Date: Mon, 27 Mar 2017 15:43:29 +0300
+Message-ID: <1490618609-16931-1-git-send-email-yishaih@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
----
- arch/cris/include/arch-v10/arch/Kbuild | 1 -
- arch/cris/include/arch-v32/arch/Kbuild | 1 -
- arch/tile/include/arch/Kbuild          | 1 -
- 3 files changed, 3 deletions(-)
- delete mode 100644 arch/cris/include/arch-v10/arch/Kbuild
- delete mode 100644 arch/cris/include/arch-v32/arch/Kbuild
- delete mode 100644 arch/tile/include/arch/Kbuild
+From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-diff --git a/arch/cris/include/arch-v10/arch/Kbuild b/arch/cris/include/arch-v10/arch/Kbuild
-deleted file mode 100644
-index 1f0fc7a66f5f..000000000000
---- a/arch/cris/include/arch-v10/arch/Kbuild
-+++ /dev/null
-@@ -1 +0,0 @@
--# CRISv10 arch
-diff --git a/arch/cris/include/arch-v32/arch/Kbuild b/arch/cris/include/arch-v32/arch/Kbuild
-deleted file mode 100644
-index 2fd65c7e15c9..000000000000
---- a/arch/cris/include/arch-v32/arch/Kbuild
-+++ /dev/null
-@@ -1 +0,0 @@
--# CRISv32 arch
-diff --git a/arch/tile/include/arch/Kbuild b/arch/tile/include/arch/Kbuild
-deleted file mode 100644
-index 3751c9fabcf2..000000000000
---- a/arch/tile/include/arch/Kbuild
-+++ /dev/null
-@@ -1 +0,0 @@
--# Tile arch headers
+Use calloc to allocate device context so the unset bytes are zero.
+When building a *non* release mode (i.e. without DCMAKE_BUILD_TYPE=Release)
+the below assert is applicable and might raise:
+assert(dev->_ops._dummy1).
+
+Fix below commit to use calloc instead of malloc for mlx5 as well.
+
+Fixes: 85c449528709 ("providers: Make every provider allocate a
+verbs_device")
+Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+
+Pull request was sent:
+https://github.com/linux-rdma/rdma-core/pull/109
+
+ providers/mlx5/mlx5.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
+index edb6d35..30f165b 100644
+--- a/providers/mlx5/mlx5.c
++++ b/providers/mlx5/mlx5.c
+@@ -1006,7 +1006,7 @@ found:
+ 		return NULL;
+ 	}
+ 
+-	dev = malloc(sizeof *dev);
++	dev = calloc(1, sizeof *dev);
+ 	if (!dev) {
+ 		fprintf(stderr, PFX "Fatal: couldn't allocate device for %s\n",
+ 			uverbs_sys_path);
 -- 
-2.8.1
+1.8.3.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
