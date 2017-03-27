@@ -1,180 +1,102 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 01/13] svcrdma: Move send_wr to svc_rdma_op_ctxt
-Date: Mon, 27 Mar 2017 09:48:02 -0400
-Message-ID: <20170327134802.5585.70150.stgit@klimt.1015granger.net>
-References: <20170327132329.5585.98465.stgit@klimt.1015granger.net>
+Subject: [PATCH v2 03/13] xprtrdma: Detect unreachable NFS/RDMA servers more
+ reliably
+Date: Mon, 27 Mar 2017 10:05:59 -0400
+Message-ID: <20170327140559.20813.21930.stgit@manet.1015granger.net>
+References: <20170327134847.20813.52412.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170327132329.5585.98465.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170327134847.20813.52412.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up: Move the ib_send_wr off the stack, and move common send WR
-setup code into a helper.
+Current NFS clients rely on connection loss to determine when to
+retransmit. In particular, for protocols like NFSv4, clients no
+longer rely on RPC timeouts to drive retransmission: NFSv4 servers
+are required to terminate a connection when they need a client to
+retransmit pending RPCs.
 
-This is a refactoring change only.
+When a server is no longer reachable, either because it has crashed
+or because the network path has broken, the server cannot actively
+terminate a connection. Thus NFS clients depend on transport-level
+keepalive to determine when a connection must be replaced and
+pending RPCs retransmitted.
+
+However, RDMA RC connections do not have a native keepalive
+mechanism. If an NFS/RDMA server crashes after a client has sent
+RPCs successfully (an RC ACK has been received for all OTW RDMA
+requests), there is no way for the client to know the connection is
+moribund.
+
+In addition, new RDMA requests are subject to the RPC-over-RDMA
+credit limit. If the client has consumed all granted credits with
+NFS traffic, it is not allowed to send another RDMA request until
+the server replies. Thus it has no way to send a true keepalive when
+the workload has already consumed all credits with pending RPCs.
+
+To address this, forcibly disconnect a transport when an RPC times
+out. This prevents moribund connections from stopping the
+detection of failover or other configuration changes on the server.
+
+Note that even if the connection is still good, retransmitting
+any RPC will trigger a disconnect thanks to this logic in
+xprt_rdma_send_request:
+
+	/* Must suppress retransmit to maintain credits */
+	if (req->rl_connect_cookie == xprt->connect_cookie)
+		goto drop_connection;
+	req->rl_connect_cookie = xprt->connect_cookie;
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 ---
- include/linux/sunrpc/svc_rdma.h            |    3 +
- net/sunrpc/xprtrdma/svc_rdma_backchannel.c |   12 +-----
- net/sunrpc/xprtrdma/svc_rdma_sendto.c      |   57 ++++++++++++++++------------
- 3 files changed, 37 insertions(+), 35 deletions(-)
+ net/sunrpc/xprtrdma/transport.c |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
-index b105f73..fa3ef11 100644
---- a/include/linux/sunrpc/svc_rdma.h
-+++ b/include/linux/sunrpc/svc_rdma.h
-@@ -85,6 +85,7 @@ struct svc_rdma_op_ctxt {
- 	enum dma_data_direction direction;
- 	int count;
- 	unsigned int mapped_sges;
-+	struct ib_send_wr send_wr;
- 	struct ib_sge sge[RPCSVC_MAXPAGES];
- 	struct page *pages[RPCSVC_MAXPAGES];
- };
-@@ -227,6 +228,8 @@ extern int rdma_read_chunk_frmr(struct svcxprt_rdma *, struct svc_rqst *,
- /* svc_rdma_sendto.c */
- extern int svc_rdma_map_xdr(struct svcxprt_rdma *, struct xdr_buf *,
- 			    struct svc_rdma_req_map *, bool);
-+extern void svc_rdma_build_send_wr(struct svc_rdma_op_ctxt *ctxt,
-+				   int num_sge);
- extern int svc_rdma_sendto(struct svc_rqst *);
- extern void svc_rdma_send_error(struct svcxprt_rdma *, struct rpcrdma_msg *,
- 				int);
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
-index ff1df40..6741ed0 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
-@@ -104,7 +104,6 @@ static int svc_rdma_bc_sendto(struct svcxprt_rdma *rdma,
- 	struct xdr_buf *sndbuf = &rqst->rq_snd_buf;
- 	struct svc_rdma_op_ctxt *ctxt;
- 	struct svc_rdma_req_map *vec;
--	struct ib_send_wr send_wr;
- 	int ret;
- 
- 	vec = svc_rdma_get_req_map(rdma);
-@@ -132,15 +131,8 @@ static int svc_rdma_bc_sendto(struct svcxprt_rdma *rdma,
- 	}
- 	svc_rdma_count_mappings(rdma, ctxt);
- 
--	memset(&send_wr, 0, sizeof(send_wr));
--	ctxt->cqe.done = svc_rdma_wc_send;
--	send_wr.wr_cqe = &ctxt->cqe;
--	send_wr.sg_list = ctxt->sge;
--	send_wr.num_sge = 1;
--	send_wr.opcode = IB_WR_SEND;
--	send_wr.send_flags = IB_SEND_SIGNALED;
--
--	ret = svc_rdma_send(rdma, &send_wr);
-+	svc_rdma_build_send_wr(ctxt, 1);
-+	ret = svc_rdma_send(rdma, &ctxt->send_wr);
- 	if (ret) {
- 		ret = -EIO;
- 		goto out_unmap;
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-index 515221b..fdf8e3d 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-@@ -435,6 +435,28 @@ static int send_reply_chunks(struct svcxprt_rdma *xprt,
- 	return -EIO;
+diff --git a/net/sunrpc/xprtrdma/transport.c b/net/sunrpc/xprtrdma/transport.c
+index c717f54..acf5d81 100644
+--- a/net/sunrpc/xprtrdma/transport.c
++++ b/net/sunrpc/xprtrdma/transport.c
+@@ -484,6 +484,27 @@
+ 	dprintk("RPC:       %s: %u\n", __func__, port);
  }
  
 +/**
-+ * svc_rdma_build_send_wr - Set up a Send Work Request
-+ * @ctxt: op_ctxt for transmitting the Send WR
++ * xprt_rdma_timer - invoked when an RPC times out
++ * @xprt: controlling RPC transport
++ * @task: RPC task that timed out
 + *
++ * Invoked when the transport is still connected, but an RPC
++ * retransmit timeout occurs.
++ *
++ * Since RDMA connections don't have a keep-alive, forcibly
++ * disconnect and retry to connect. This drives full
++ * detection of the network path, and retransmissions of
++ * all pending RPCs.
 + */
-+void svc_rdma_build_send_wr(struct svc_rdma_op_ctxt *ctxt, int num_sge)
++static void
++xprt_rdma_timer(struct rpc_xprt *xprt, struct rpc_task *task)
 +{
-+	struct ib_send_wr *send_wr;
++	dprintk("RPC: %5u %s: xprt = %p\n", task->tk_pid, __func__, xprt);
 +
-+	send_wr = &ctxt->send_wr;
-+	send_wr->next = NULL;
-+	ctxt->cqe.done = svc_rdma_wc_send;
-+	send_wr->wr_cqe = &ctxt->cqe;
-+	send_wr->sg_list = ctxt->sge;
-+	send_wr->num_sge = num_sge;
-+	send_wr->opcode = IB_WR_SEND;
-+	send_wr->send_flags = IB_SEND_SIGNALED;
-+
-+	dprintk("svcrdma: posting Send WR with %u sge(s)\n",
-+		send_wr->num_sge);
++	xprt_force_disconnect(xprt);
 +}
 +
- /* This function prepares the portion of the RPCRDMA message to be
-  * sent in the RDMA_SEND. This function is called after data sent via
-  * RDMA has already been transmitted. There are three cases:
-@@ -460,7 +482,7 @@ static int send_reply(struct svcxprt_rdma *rdma,
- 		      u32 inv_rkey)
+ static void
+ xprt_rdma_connect(struct rpc_xprt *xprt, struct rpc_task *task)
  {
- 	struct svc_rdma_op_ctxt *ctxt;
--	struct ib_send_wr send_wr;
-+	struct ib_send_wr *send_wr;
- 	u32 xdr_off;
- 	int sge_no;
- 	int sge_bytes;
-@@ -524,19 +546,14 @@ static int send_reply(struct svcxprt_rdma *rdma,
- 		pr_err("svcrdma: Too many sges (%d)\n", sge_no);
- 		goto err;
- 	}
--	memset(&send_wr, 0, sizeof send_wr);
--	ctxt->cqe.done = svc_rdma_wc_send;
--	send_wr.wr_cqe = &ctxt->cqe;
--	send_wr.sg_list = ctxt->sge;
--	send_wr.num_sge = sge_no;
--	if (inv_rkey) {
--		send_wr.opcode = IB_WR_SEND_WITH_INV;
--		send_wr.ex.invalidate_rkey = inv_rkey;
--	} else
--		send_wr.opcode = IB_WR_SEND;
--	send_wr.send_flags =  IB_SEND_SIGNALED;
- 
--	ret = svc_rdma_send(rdma, &send_wr);
-+	svc_rdma_build_send_wr(ctxt, sge_no);
-+	send_wr = &ctxt->send_wr;
-+	if (inv_rkey) {
-+		send_wr->opcode = IB_WR_SEND_WITH_INV;
-+		send_wr->ex.invalidate_rkey = inv_rkey;
-+	}
-+	ret = svc_rdma_send(rdma, send_wr);
- 	if (ret)
- 		goto err;
- 
-@@ -652,7 +669,6 @@ int svc_rdma_sendto(struct svc_rqst *rqstp)
- void svc_rdma_send_error(struct svcxprt_rdma *xprt, struct rpcrdma_msg *rmsgp,
- 			 int status)
- {
--	struct ib_send_wr err_wr;
- 	struct page *p;
- 	struct svc_rdma_op_ctxt *ctxt;
- 	enum rpcrdma_errcode err;
-@@ -692,17 +708,8 @@ void svc_rdma_send_error(struct svcxprt_rdma *xprt, struct rpcrdma_msg *rmsgp,
- 	}
- 	svc_rdma_count_mappings(xprt, ctxt);
- 
--	/* Prepare SEND WR */
--	memset(&err_wr, 0, sizeof(err_wr));
--	ctxt->cqe.done = svc_rdma_wc_send;
--	err_wr.wr_cqe = &ctxt->cqe;
--	err_wr.sg_list = ctxt->sge;
--	err_wr.num_sge = 1;
--	err_wr.opcode = IB_WR_SEND;
--	err_wr.send_flags = IB_SEND_SIGNALED;
--
--	/* Post It */
--	ret = svc_rdma_send(xprt, &err_wr);
-+	svc_rdma_build_send_wr(ctxt, 1);
-+	ret = svc_rdma_send(xprt, &ctxt->send_wr);
- 	if (ret) {
- 		dprintk("svcrdma: Error %d posting send for protocol error\n",
- 			ret);
+@@ -776,6 +797,7 @@ void xprt_rdma_print_stats(struct rpc_xprt *xprt, struct seq_file *seq)
+ 	.alloc_slot		= xprt_alloc_slot,
+ 	.release_request	= xprt_release_rqst_cong,       /* ditto */
+ 	.set_retrans_timeout	= xprt_set_retrans_timeout_def, /* ditto */
++	.timer			= xprt_rdma_timer,
+ 	.rpcbind		= rpcb_getport_async,	/* sunrpc/rpcb_clnt.c */
+ 	.set_port		= xprt_rdma_set_port,
+ 	.connect		= xprt_rdma_connect,
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
