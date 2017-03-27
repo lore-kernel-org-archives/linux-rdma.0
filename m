@@ -1,51 +1,101 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core] mlx5: Fix device context allocation
-Date: Mon, 27 Mar 2017 15:43:29 +0300
-Message-ID: <1490618609-16931-1-git-send-email-yishaih@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v2 00/13] Server-side NFS/RDMA changes proposed for v4.12
+Date: Mon, 27 Mar 2017 09:47:54 -0400
+Message-ID: <20170327132329.5585.98465.stgit@klimt.1015granger.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This series overhauls the "reply send" side of the RPC-over-RDMA
+transport to use the new rdma_rw API. No significant performance
+changes were noticed with this overhaul. Benefits include:
 
-Use calloc to allocate device context so the unset bytes are zero.
-When building a *non* release mode (i.e. without DCMAKE_BUILD_TYPE=Release)
-the below assert is applicable and might raise:
-assert(dev->_ops._dummy1).
+<> Better code modularity, less code duplication with other ULPs
 
-Fix below commit to use calloc instead of malloc for mlx5 as well.
+<> Ability for svcrdma to use any registration mode for RDMA Writes
 
-Fixes: 85c449528709 ("providers: Make every provider allocate a
-verbs_device")
-Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+<> Correctly handle RPCs that have both a Write and a Reply chunk
+
+<> Correctly handle Write chunk overrun
+
+
+Available in the "nfsd-rdma-for-4.12" topic branch of this git repo:
+
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
+
+
+Or for browsing:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-for-4.12
+
+
+Changes since v1:
+- Rebased on v4.11-rc4
+- Dropped clean up of svc_rdma_post_recv
+- Postponed addition of code related to recvfrom
+- Made svc_rdma_{get,put}_rw_ctxt behave symmetrically
+- Converted scatterlist to sg_table
+- Moved transport header construction into svc_rdma_sendto.c
+
+This last one was the result of discussion with Sagi and Christoph
+at LSF. Christoph wants to simplify the organization of this code
+into fewer source files, and Sagi wants the rdma_rw code separated
+from the code that builds the reply's transport header.
+
+The remaining parts of the overhaul are in this topic branch:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-rw-api
+
+There are three significant pieces of work to do in nfsd-rdma-rw-api:
+
+1. A new rdma_rw function needs to be introduced so that ULPs can
+size their CQ, and perform SQ accounting, properly.
+
+2. Similar separation of rdma_rw-related code and transport header
+mangling needs to be done.
+
+3. Organize this code path so that it might someday be invoked
+directly by the upper layer, to better handle NFS WRITE.
+
+
 ---
 
-Pull request was sent:
-https://github.com/linux-rdma/rdma-core/pull/109
+Chuck Lever (13):
+      svcrdma: Move send_wr to svc_rdma_op_ctxt
+      svcrdma: Add svc_rdma_map_reply_hdr()
+      svcrdma: Eliminate RPCRDMA_SQ_DEPTH_MULT
+      svcrdma: Add helper to save pages under I/O
+      svcrdma: Introduce local rdma_rw API helpers
+      svcrdma: Use rdma_rw API in RPC reply path
+      svcrdma: Clean up RDMA_ERROR path
+      svcrdma: Report Write/Reply chunk overruns
+      svcrdma: Clean up RPC-over-RDMA backchannel reply processing
+      svcrdma: Reduce size of sge array in struct svc_rdma_op_ctxt
+      svcrdma: Remove unused RDMA Write completion handler
+      svcrdma: Remove the req_map cache
+      svcrdma: Clean out old XDR encoders
 
- providers/mlx5/mlx5.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
-index edb6d35..30f165b 100644
---- a/providers/mlx5/mlx5.c
-+++ b/providers/mlx5/mlx5.c
-@@ -1006,7 +1006,7 @@ found:
- 		return NULL;
- 	}
- 
--	dev = malloc(sizeof *dev);
-+	dev = calloc(1, sizeof *dev);
- 	if (!dev) {
- 		fprintf(stderr, PFX "Fatal: couldn't allocate device for %s\n",
- 			uverbs_sys_path);
--- 
-1.8.3.1
+ include/linux/sunrpc/rpc_rdma.h            |    3 
+ include/linux/sunrpc/svc_rdma.h            |   74 +-
+ net/sunrpc/xprtrdma/Makefile               |    2 
+ net/sunrpc/xprtrdma/svc_rdma.c             |    8 
+ net/sunrpc/xprtrdma/svc_rdma_backchannel.c |   72 +-
+ net/sunrpc/xprtrdma/svc_rdma_marshal.c     |   89 ---
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |   80 ++
+ net/sunrpc/xprtrdma/svc_rdma_rw.c          |  463 +++++++++++++
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c      |  969 ++++++++++++++--------------
+ net/sunrpc/xprtrdma/svc_rdma_transport.c   |  110 ---
+ 10 files changed, 1073 insertions(+), 797 deletions(-)
+ create mode 100644 net/sunrpc/xprtrdma/svc_rdma_rw.c
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
