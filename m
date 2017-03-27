@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 04/13] svcrdma: Add helper to save pages under I/O
-Date: Mon, 27 Mar 2017 09:48:27 -0400
-Message-ID: <20170327134827.5585.57220.stgit@klimt.1015granger.net>
+Subject: [PATCH v2 08/13] svcrdma: Report Write/Reply chunk overruns
+Date: Mon, 27 Mar 2017 09:48:59 -0400
+Message-ID: <20170327134859.5585.54671.stgit@klimt.1015granger.net>
 References: <20170327132329.5585.98465.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -12,74 +12,130 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up: extract the logic to save pages under I/O into a helper to
-add a big documenting comment without adding clutter in the send
-path.
+Observed at Connectathon 2017.
 
-This is a refactoring change only.
+If a client has underestimated the size of a Write or Reply chunk,
+the Linux server writes as much payload data as it can, then it
+recognizes there was a problem and closes the connection without
+sending the transport header.
+
+This creates a couple of problems:
+
+<> The client never receives indication of the server-side failure,
+   so it continues to retransmit the bad RPC. Forward progress on
+   the transport is blocked.
+
+<> The reply payload pages are not moved out of the svc_rqst, thus
+   they can be released by the RPC server before the RDMA Writes
+   have completed.
+
+The new rdma_rw-ized helpers return a distinct error code when a
+Write/Reply chunk overrun occurs, so it's now easy for the caller
+(svc_rdma_sendto) to recognize this case.
+
+Instead of dropping the connection, post an RDMA_ERROR message. The
+client now sees an RDMA_ERROR and can properly terminate the RPC
+transaction.
+
+As part of the new logic, set up the same delayed release for these
+payload pages as would have occurred in the normal case.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/svc_rdma_sendto.c |   31 ++++++++++++++++++-------------
- 1 file changed, 18 insertions(+), 13 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c |   59 ++++++++++++++++++++++++++++++++-
+ 1 file changed, 57 insertions(+), 2 deletions(-)
 
 diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-index 0e55b34..b4028bc3 100644
+index ffe8ab1..3886ec8 100644
 --- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
 +++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
-@@ -478,6 +478,23 @@ static int send_reply_chunks(struct svcxprt_rdma *xprt,
- 	return -EIO;
+@@ -611,6 +611,49 @@ static int svc_rdma_send_reply_msg(struct svcxprt_rdma *rdma,
+ 	return ret;
  }
  
-+/* The svc_rqst and all resources it owns are released as soon as
-+ * svc_rdma_sendto returns. Transfer pages under I/O to the ctxt
-+ * so they are released by the Send completion handler.
++/* Given the client-provided Write and Reply chunks, the server was not
++ * able to form a complete reply. Return an RDMA_ERROR message so the
++ * client can retire this RPC transaction. As above, the Send completion
++ * routine releases payload pages that were part of a previous RDMA Write.
++ *
++ * Remote Invalidation is skipped for simplicity.
 + */
-+static void svc_rdma_save_io_pages(struct svc_rqst *rqstp,
-+				   struct svc_rdma_op_ctxt *ctxt)
++static int svc_rdma_send_error_msg(struct svcxprt_rdma *rdma,
++				   __be32 *rdma_resp, struct svc_rqst *rqstp)
 +{
-+	int i, pages = rqstp->rq_next_page - rqstp->rq_respages;
++	struct svc_rdma_op_ctxt *ctxt;
++	__be32 *p;
++	int ret;
 +
-+	ctxt->count += pages;
-+	for (i = 0; i < pages; i++) {
-+		ctxt->pages[i + 1] = rqstp->rq_respages[i];
-+		rqstp->rq_respages[i] = NULL;
-+	}
-+	rqstp->rq_next_page = rqstp->rq_respages + 1;
++	ctxt = svc_rdma_get_context(rdma);
++
++	/* Replace the original transport header with an
++	 * RDMA_ERROR response. XID etc are preserved.
++	 */
++	p = rdma_resp + 3;
++	*p++ = rdma_error;
++	*p   = err_chunk;
++
++	ret = svc_rdma_map_reply_hdr(rdma, ctxt, rdma_resp, 20);
++	if (ret < 0)
++		goto err;
++
++	svc_rdma_save_io_pages(rqstp, ctxt);
++
++	svc_rdma_build_send_wr(ctxt, 1 + ret);
++	ret = svc_rdma_send(rdma, &ctxt->send_wr);
++	if (ret)
++		goto err;
++
++	return 0;
++
++err:
++	pr_err("svcrdma: failed to post Send WR (%d)\n", ret);
++	svc_rdma_unmap_dma(ctxt);
++	svc_rdma_put_context(ctxt, 1);
++	return ret;
 +}
 +
- /**
-  * svc_rdma_build_send_wr - Set up a Send Work Request
-  * @ctxt: op_ctxt for transmitting the Send WR
-@@ -529,8 +546,6 @@ static int send_reply(struct svcxprt_rdma *rdma,
- 	u32 xdr_off;
- 	int sge_no;
- 	int sge_bytes;
--	int page_no;
--	int pages;
- 	int ret = -EIO;
- 
- 	/* Prepare the context */
-@@ -573,17 +588,7 @@ static int send_reply(struct svcxprt_rdma *rdma,
- 		goto err;
+ void svc_rdma_prep_reply_hdr(struct svc_rqst *rqstp)
+ {
+ }
+@@ -672,14 +715,14 @@ int svc_rdma_sendto(struct svc_rqst *rqstp)
+ 		/* XXX: Presume the client sent only one Write chunk */
+ 		ret = svc_rdma_send_write_chunk(rdma, wr_lst, &rqstp->rq_res);
+ 		if (ret < 0)
+-			goto err1;
++			goto err2;
+ 		svc_rdma_xdr_encode_write_list(rdma_resp, wr_lst, ret);
+ 	}
+ 	if (rp_ch) {
+ 		ret = svc_rdma_send_reply_chunk(rdma, rp_ch, wr_lst != NULL,
+ 						&rqstp->rq_res);
+ 		if (ret < 0)
+-			goto err1;
++			goto err2;
+ 		svc_rdma_xdr_encode_reply_chunk(rdma_resp, rp_ch, ret);
  	}
  
--	/* Save all respages in the ctxt and remove them from the
--	 * respages array. They are our pages until the I/O
--	 * completes.
--	 */
--	pages = rqstp->rq_next_page - rqstp->rq_respages;
--	for (page_no = 0; page_no < pages; page_no++) {
--		ctxt->pages[page_no+1] = rqstp->rq_respages[page_no];
--		ctxt->count++;
--		rqstp->rq_respages[page_no] = NULL;
--	}
--	rqstp->rq_next_page = rqstp->rq_respages + 1;
-+	svc_rdma_save_io_pages(rqstp, ctxt);
+@@ -692,6 +735,18 @@ int svc_rdma_sendto(struct svc_rqst *rqstp)
+ 		goto err0;
+ 	return 0;
  
- 	if (sge_no > rdma->sc_max_sge) {
- 		pr_err("svcrdma: Too many sges (%d)\n", sge_no);
++ err2:
++	if (ret != -E2BIG)
++		goto err1;
++
++	ret = svc_rdma_post_recv(rdma, GFP_KERNEL);
++	if (ret)
++		goto err1;
++	ret = svc_rdma_send_error_msg(rdma, rdma_resp, rqstp);
++	if (ret < 0)
++		goto err0;
++	return 0;
++
+  err1:
+ 	put_page(res_page);
+  err0:
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
