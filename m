@@ -1,105 +1,53 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH libibmad 1/2] mad.h, [fields dump].c: Add support for
- additional PortCountersExtended fields
-Date: Mon, 27 Mar 2017 11:34:52 -0400
-Message-ID: <fb92b904-6afd-0a3e-f5aa-b1aadb2ef918@dev.mellanox.co.il>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: Re: [PATCH v11 00/12] uapi: export all headers under uapi directories
+Date: Tue, 28 Mar 2017 00:35:07 +0900
+Message-ID: <CAK7LNATG6M7Q_sXbfRRLF6ALJPRkbr=h5zz9VjFRQEsDNL1AQA@mail.gmail.com>
+References: <CAK7LNAR_yp+O9jUZC8mKdaHgTiCkE7p2-ZbA9YZ8OGyp+uxhBQ@mail.gmail.com>
+ <1490617217-30192-1-git-send-email-nicolas.dichtel@6wind.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kbuild-owner@vger.kernel.org>
+In-Reply-To: <1490617217-30192-1-git-send-email-nicolas.dichtel@6wind.com>
+Sender: linux-kbuild-owner@vger.kernel.org
+To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Michal Marek <mmarek@suse.com>, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arch@vger.kernel.org, David Airlie <airlied@linux.ie>, "David S. Miller" <davem@davemloft.net>, Russell King <linux@armlinux.org.uk>, bp@alien8.de, slash.tmp@free.fr, Daniel Vetter <daniel.vetter@ffwll.ch>, rmk+kernel@armlinux.org.uk, msalter@redhat.com, jengelh@inai.de, hch@infradead.org, Tobias Klauser <tklauser@distanz.ch>, mpe@ellerman.id.au, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "Dmitry V. Levin" <ldv@altlinux.org>, Herbert Xu <herbert@gondor.apana.org.au>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+2017-03-27 21:20 GMT+09:00 Nicolas Dichtel <nicolas.dichtel@6wind.com>:
+>
+>
+> Patches #1 and #2 are just cleanup: some exported headers were still under
+> a non-uapi directory. Patch #3 is a fix to avoid exporting a file that was
+> not under an uapi directory.
+> After these three patches, all exported headers are under an uapi directory:
+> path #4 stops searching files in non uapi directories.
+> The patch #5 was spotted by code review: there is no in-tree user of this
+> functionality.
+> Patch #6 fixes some warnings/errors reported by 0-day tests.
+> Patch #7 to #9 fix some errors when the corresponding files are included by
+> userland.
+> Patches #10 and #11 remove the need to list explicitly headers. Now all files
+> under an uapi directory are exported.
+> Patch #12 is also a small cleanup.
+>
+> This series has been tested with a 'make headers_install' on x86 and a
+> 'make headers_install_all'. I've checked the result of both commands.
+>
+> This patch is built on top of masahiroy/linux-kbuild.git#for-next (v4.11-rc1).
+> I didn't find any conflict with v4.11-rc4.
+>
+> v10 -> v11:
+>   - patch #1: restore the double '_' in the header guard
+>   - patch #6, #7, #8: order '#include' in alphabetical order
+>   - patch #10: rename header-n to no-export-headers
+>                cleanup management of kvm.h, kvm_para.h and a.out.h
+>   - patch #12: add it
+>   - rebase on top of masahiroy/linux-kbuild.git#for-next
 
-introduced by MgtWG errata #9301-9303
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-diff --git a/include/infiniband/mad.h b/include/infiniband/mad.h
-index 946e034..50c5bc5 100644
---- a/include/infiniband/mad.h
-+++ b/include/infiniband/mad.h
-@@ -1290,6 +1290,26 @@ enum MAD_FIELDS {
- 	IB_PESC_PORT_FEC_CORR_SYMBOL_CTR_F,
- 	IB_PESC_RSFEC_LAST_F,
- 
-+	/*
-+	 * More PortCountersExtended fields
-+	 */
-+	IB_PC_EXT_COUNTER_SELECT2_F,
-+	IB_PC_EXT_ERR_SYM_F,
-+	IB_PC_EXT_LINK_RECOVERS_F,
-+	IB_PC_EXT_LINK_DOWNED_F,
-+	IB_PC_EXT_ERR_RCV_F,
-+	IB_PC_EXT_ERR_PHYSRCV_F,
-+	IB_PC_EXT_ERR_SWITCH_REL_F,
-+	IB_PC_EXT_XMT_DISCARDS_F,
-+	IB_PC_EXT_ERR_XMTCONSTR_F,
-+	IB_PC_EXT_ERR_RCVCONSTR_F,
-+	IB_PC_EXT_ERR_LOCALINTEG_F,
-+	IB_PC_EXT_ERR_EXCESS_OVR_F,
-+	IB_PC_EXT_VL15_DROPPED_F,
-+	IB_PC_EXT_XMT_WAIT_F,
-+	IB_PC_EXT_QP1_DROP_F,
-+	IB_PC_EXT_ERR_LAST_F,
-+
- 	IB_FIELD_LAST_		/* must be last */
- };
- 
-diff --git a/src/dump.c b/src/dump.c
-index b7ad381..b491bc2 100644
---- a/src/dump.c
-+++ b/src/dump.c
-@@ -792,7 +792,14 @@ void mad_dump_perfcounters(char *buf, int bufsz, void *val, int valsz)
- 
- void mad_dump_perfcounters_ext(char *buf, int bufsz, void *val, int valsz)
- {
--	_dump_fields(buf, bufsz, val, IB_PC_EXT_FIRST_F, IB_PC_EXT_LAST_F);
-+	int cnt;
-+
-+	cnt = _dump_fields(buf, bufsz, val, IB_PC_EXT_FIRST_F, IB_PC_EXT_LAST_F);
-+	if (cnt < 0)
-+		return;
-+
-+	 _dump_fields(buf + cnt, bufsz - cnt, val,
-+		      IB_PC_EXT_COUNTER_SELECT2_F, IB_PC_EXT_ERR_LAST_F);
- }
- 
- void mad_dump_perfcounters_xmt_sl(char *buf, int bufsz, void *val, int valsz)
-diff --git a/src/fields.c b/src/fields.c
-index fbade55..8273f97 100644
---- a/src/fields.c
-+++ b/src/fields.c
-@@ -984,6 +984,26 @@ static const ib_field_t ib_mad_f[] = {
- 	{1184, 32, "PortFECCorrectedSymbolCtr", mad_dump_uint},
- 	{0, 0},			/* IB_PESC_RSFEC_LAST_F */
- 
-+	/*
-+	 * More PortCountersExtended fields
-+	 */
-+	{32, 32, "CounterSelect2", mad_dump_hex},
-+	{576, 64, "SymbolErrorCounter", mad_dump_uint},
-+	{640, 64, "LinkErrorRecoveryCounter",  mad_dump_uint},
-+	{704, 64, "LinkDownedCounter", mad_dump_uint},
-+	{768, 64, "PortRcvErrors", mad_dump_uint},
-+	{832, 64, "PortRcvRemotePhysicalErrors", mad_dump_uint},
-+	{896, 64, "PortRcvSwitchRelayErrors", mad_dump_uint},
-+	{960, 64, "PortXmitDiscards", mad_dump_uint},
-+	{1024, 64, "PortXmitConstraintErrors", mad_dump_uint},
-+	{1088, 64, "PortRcvConstraintErrors", mad_dump_uint},
-+	{1152, 64, "LocalLinkIntegrityErrors", mad_dump_uint},
-+	{1216, 64, "ExcessiveBufferOverrunErrors", mad_dump_uint},
-+	{1280, 64, "VL15Dropped", mad_dump_uint},
-+	{1344, 64, "PortXmitWait", mad_dump_uint},
-+	{1408, 64, "QP1Dropped", mad_dump_uint},
-+	{0, 0},			/* IB_PC_EXT_ERR_LAST_F */
-+
- 	{0, 0}			/* IB_FIELD_LAST_ */
- };
- 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Series, applied to linux-kbuild/uapi.  Thanks!
+
+
+-- 
+Best Regards
+Masahiro Yamada
