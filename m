@@ -1,8 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 09/13] svcrdma: Clean up RPC-over-RDMA backchannel reply
- processing
-Date: Mon, 27 Mar 2017 09:49:07 -0400
-Message-ID: <20170327134907.5585.99390.stgit@klimt.1015granger.net>
+Subject: [PATCH v2 04/13] svcrdma: Add helper to save pages under I/O
+Date: Mon, 27 Mar 2017 09:48:27 -0400
+Message-ID: <20170327134827.5585.57220.stgit@klimt.1015granger.net>
 References: <20170327132329.5585.98465.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,134 +12,74 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Replace C structure-based XDR decoding with pointer arithmetic.
-Pointer arithmetic is considered more portable.
+Clean up: extract the logic to save pages under I/O into a helper to
+add a big documenting comment without adding clutter in the send
+path.
+
+This is a refactoring change only.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 ---
- include/linux/sunrpc/svc_rdma.h            |    2 +-
- net/sunrpc/xprtrdma/svc_rdma_backchannel.c |   18 ++++++++++++++----
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |   27 +++++++++++++++------------
- 3 files changed, 30 insertions(+), 17 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c |   31 ++++++++++++++++++-------------
+ 1 file changed, 18 insertions(+), 13 deletions(-)
 
-diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
-index c7245af..55d0c99 100644
---- a/include/linux/sunrpc/svc_rdma.h
-+++ b/include/linux/sunrpc/svc_rdma.h
-@@ -204,7 +204,7 @@ static inline void svc_rdma_count_mappings(struct svcxprt_rdma *rdma,
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_sendto.c b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+index 0e55b34..b4028bc3 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_sendto.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_sendto.c
+@@ -478,6 +478,23 @@ static int send_reply_chunks(struct svcxprt_rdma *xprt,
+ 	return -EIO;
+ }
  
- /* svc_rdma_backchannel.c */
- extern int svc_rdma_handle_bc_reply(struct rpc_xprt *xprt,
--				    struct rpcrdma_msg *rmsgp,
-+				    __be32 *rdma_resp,
- 				    struct xdr_buf *rcvbuf);
- 
- /* svc_rdma_marshal.c */
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
-index 21f47d4..1a0f063 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
-@@ -12,7 +12,17 @@
- 
- #undef SVCRDMA_BACKCHANNEL_DEBUG
- 
--int svc_rdma_handle_bc_reply(struct rpc_xprt *xprt, struct rpcrdma_msg *rmsgp,
-+/**
-+ * svc_rdma_handle_bc_reply - Process incoming backchannel reply
-+ * @xprt: controlling backchannel transport
-+ * @rdma_resp: pointer to incoming transport header
-+ * @rcvbuf: XDR buffer into which to decode the reply
-+ *
-+ * Returns:
-+ *	%0 if @rcvbuf is filled in, xprt_complete_rqst called,
-+ *	%-EAGAIN if server should call ->recvfrom again.
++/* The svc_rqst and all resources it owns are released as soon as
++ * svc_rdma_sendto returns. Transfer pages under I/O to the ctxt
++ * so they are released by the Send completion handler.
 + */
-+int svc_rdma_handle_bc_reply(struct rpc_xprt *xprt, __be32 *rdma_resp,
- 			     struct xdr_buf *rcvbuf)
- {
- 	struct rpcrdma_xprt *r_xprt = rpcx_to_rdmax(xprt);
-@@ -27,13 +37,13 @@ int svc_rdma_handle_bc_reply(struct rpc_xprt *xprt, struct rpcrdma_msg *rmsgp,
- 
- 	p = (__be32 *)src->iov_base;
- 	len = src->iov_len;
--	xid = rmsgp->rm_xid;
-+	xid = *rdma_resp;
- 
- #ifdef SVCRDMA_BACKCHANNEL_DEBUG
- 	pr_info("%s: xid=%08x, length=%zu\n",
- 		__func__, be32_to_cpu(xid), len);
- 	pr_info("%s: RPC/RDMA: %*ph\n",
--		__func__, (int)RPCRDMA_HDRLEN_MIN, rmsgp);
-+		__func__, (int)RPCRDMA_HDRLEN_MIN, rdma_resp);
- 	pr_info("%s:      RPC: %*ph\n",
- 		__func__, (int)len, p);
- #endif
-@@ -53,7 +63,7 @@ int svc_rdma_handle_bc_reply(struct rpc_xprt *xprt, struct rpcrdma_msg *rmsgp,
- 		goto out_unlock;
- 	memcpy(dst->iov_base, p, len);
- 
--	credits = be32_to_cpu(rmsgp->rm_credit);
-+	credits = be32_to_cpup(rdma_resp + 2);
- 	if (credits == 0)
- 		credits = 1;	/* don't deadlock */
- 	else if (credits > r_xprt->rx_buf.rb_bc_max_requests)
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index efa9f12..9315ee6 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -614,28 +614,30 @@ static void svc_rdma_send_error(struct svcxprt_rdma *xprt,
-  * the RPC/RDMA header small and fixed in size, so it is
-  * straightforward to check the RPC header's direction field.
-  */
--static bool
--svc_rdma_is_backchannel_reply(struct svc_xprt *xprt, struct rpcrdma_msg *rmsgp)
-+static bool svc_rdma_is_backchannel_reply(struct svc_xprt *xprt,
-+					  __be32 *rdma_resp)
- {
--	__be32 *p = (__be32 *)rmsgp;
-+	__be32 *p;
- 
- 	if (!xprt->xpt_bc_xprt)
- 		return false;
- 
--	if (rmsgp->rm_type != rdma_msg)
-+	p = rdma_resp + 3;
-+	if (*p++ != rdma_msg)
- 		return false;
--	if (rmsgp->rm_body.rm_chunks[0] != xdr_zero)
++static void svc_rdma_save_io_pages(struct svc_rqst *rqstp,
++				   struct svc_rdma_op_ctxt *ctxt)
++{
++	int i, pages = rqstp->rq_next_page - rqstp->rq_respages;
 +
-+	if (*p++ != xdr_zero)
- 		return false;
--	if (rmsgp->rm_body.rm_chunks[1] != xdr_zero)
-+	if (*p++ != xdr_zero)
- 		return false;
--	if (rmsgp->rm_body.rm_chunks[2] != xdr_zero)
-+	if (*p++ != xdr_zero)
- 		return false;
++	ctxt->count += pages;
++	for (i = 0; i < pages; i++) {
++		ctxt->pages[i + 1] = rqstp->rq_respages[i];
++		rqstp->rq_respages[i] = NULL;
++	}
++	rqstp->rq_next_page = rqstp->rq_respages + 1;
++}
++
+ /**
+  * svc_rdma_build_send_wr - Set up a Send Work Request
+  * @ctxt: op_ctxt for transmitting the Send WR
+@@ -529,8 +546,6 @@ static int send_reply(struct svcxprt_rdma *rdma,
+ 	u32 xdr_off;
+ 	int sge_no;
+ 	int sge_bytes;
+-	int page_no;
+-	int pages;
+ 	int ret = -EIO;
  
--	/* sanity */
--	if (p[7] != rmsgp->rm_xid)
-+	/* XID sanity */
-+	if (*p++ != *rdma_resp)
- 		return false;
- 	/* call direction */
--	if (p[8] == cpu_to_be32(RPC_CALL))
-+	if (*p == cpu_to_be32(RPC_CALL))
- 		return false;
+ 	/* Prepare the context */
+@@ -573,17 +588,7 @@ static int send_reply(struct svcxprt_rdma *rdma,
+ 		goto err;
+ 	}
  
- 	return true;
-@@ -701,8 +703,9 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
- 		goto out_drop;
- 	rqstp->rq_xprt_hlen = ret;
+-	/* Save all respages in the ctxt and remove them from the
+-	 * respages array. They are our pages until the I/O
+-	 * completes.
+-	 */
+-	pages = rqstp->rq_next_page - rqstp->rq_respages;
+-	for (page_no = 0; page_no < pages; page_no++) {
+-		ctxt->pages[page_no+1] = rqstp->rq_respages[page_no];
+-		ctxt->count++;
+-		rqstp->rq_respages[page_no] = NULL;
+-	}
+-	rqstp->rq_next_page = rqstp->rq_respages + 1;
++	svc_rdma_save_io_pages(rqstp, ctxt);
  
--	if (svc_rdma_is_backchannel_reply(xprt, rmsgp)) {
--		ret = svc_rdma_handle_bc_reply(xprt->xpt_bc_xprt, rmsgp,
-+	if (svc_rdma_is_backchannel_reply(xprt, &rmsgp->rm_xid)) {
-+		ret = svc_rdma_handle_bc_reply(xprt->xpt_bc_xprt,
-+					       &rmsgp->rm_xid,
- 					       &rqstp->rq_arg);
- 		svc_rdma_put_context(ctxt, 0);
- 		if (ret)
+ 	if (sge_no > rdma->sc_max_sge) {
+ 		pr_err("svcrdma: Too many sges (%d)\n", sge_no);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
