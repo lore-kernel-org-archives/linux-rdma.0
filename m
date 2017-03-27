@@ -1,34 +1,105 @@
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: Re: [PATCH v10 00/11] uapi: export all headers under uapi directories
-Date: Tue, 28 Mar 2017 00:33:16 +0900
-Message-ID: <CAK7LNAQ9v=y-kt8x9FKo8AnkVMXuHKAzQHhZET-J02RfV-rZLA@mail.gmail.com>
-References: <CAK7LNARpx7f0eV5_AiPmNYT7MsRbGFOygJwjfAzX_7aCpuHwuw@mail.gmail.com>
- <1489496093-15315-1-git-send-email-nicolas.dichtel@6wind.com>
- <365519b5-d69e-34b7-fa2f-f11b8fabe69f@6wind.com> <CAK7LNAR_yp+O9jUZC8mKdaHgTiCkE7p2-ZbA9YZ8OGyp+uxhBQ@mail.gmail.com>
- <c963314f-bcde-f483-c6b1-cad975842e16@6wind.com> <CAK7LNAQJWNCRjWoKMH_Br1bwqtq+mQG-6yaWu5fwhC6sJ1fV8Q@mail.gmail.com>
- <be3fddad-8e04-e6aa-c486-c64864c5a061@6wind.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH libibmad 1/2] mad.h, [fields dump].c: Add support for
+ additional PortCountersExtended fields
+Date: Mon, 27 Mar 2017 11:34:52 -0400
+Message-ID: <fb92b904-6afd-0a3e-f5aa-b1aadb2ef918@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kbuild-owner@vger.kernel.org>
-In-Reply-To: <be3fddad-8e04-e6aa-c486-c64864c5a061@6wind.com>
-Sender: linux-kbuild-owner@vger.kernel.org
-To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Michal Marek <mmarek@suse.com>, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arch@vger.kernel.org, David Airlie <airlied@linux.ie>, "David S. Miller" <davem@davemloft.net>, Russell King <linux@armlinux.org.uk>, bp@alien8.de, slash.tmp@free.fr, Daniel Vetter <daniel.vetter@ffwll.ch>, rmk+kernel@armlinux.org.uk, msalter@redhat.com, jengelh@inai.de, hch@infradead.org, Tobias Klauser <tklauser@distanz.ch>, mpe@ellerman.id.au, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "Dmitry V. Levin" <ldv@altlinux.org>, Herbert Xu <herbert@gondor.apana.org.au>, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Nicolas,
 
-2017-03-27 18:45 GMT+09:00 Nicolas Dichtel <nicolas.dichtel@6wind.com>:
->> I wanted to leave comments/questions on 10/11,
->> but I could not find 10/11 in my mailbox.  I do not know why.
-> Note that you can download the mail from the kbuild patchwork, open it with your
-> email client and do a reply ;-)
+introduced by MgtWG errata #9301-9303
 
-I took the patch from the patchwork for git-am,
-but I was too lazy to import it to my mailer.  I will try it next time.
-Thanks for the tip!
-
-
--- 
-Best Regards
-Masahiro Yamada
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/include/infiniband/mad.h b/include/infiniband/mad.h
+index 946e034..50c5bc5 100644
+--- a/include/infiniband/mad.h
++++ b/include/infiniband/mad.h
+@@ -1290,6 +1290,26 @@ enum MAD_FIELDS {
+ 	IB_PESC_PORT_FEC_CORR_SYMBOL_CTR_F,
+ 	IB_PESC_RSFEC_LAST_F,
+ 
++	/*
++	 * More PortCountersExtended fields
++	 */
++	IB_PC_EXT_COUNTER_SELECT2_F,
++	IB_PC_EXT_ERR_SYM_F,
++	IB_PC_EXT_LINK_RECOVERS_F,
++	IB_PC_EXT_LINK_DOWNED_F,
++	IB_PC_EXT_ERR_RCV_F,
++	IB_PC_EXT_ERR_PHYSRCV_F,
++	IB_PC_EXT_ERR_SWITCH_REL_F,
++	IB_PC_EXT_XMT_DISCARDS_F,
++	IB_PC_EXT_ERR_XMTCONSTR_F,
++	IB_PC_EXT_ERR_RCVCONSTR_F,
++	IB_PC_EXT_ERR_LOCALINTEG_F,
++	IB_PC_EXT_ERR_EXCESS_OVR_F,
++	IB_PC_EXT_VL15_DROPPED_F,
++	IB_PC_EXT_XMT_WAIT_F,
++	IB_PC_EXT_QP1_DROP_F,
++	IB_PC_EXT_ERR_LAST_F,
++
+ 	IB_FIELD_LAST_		/* must be last */
+ };
+ 
+diff --git a/src/dump.c b/src/dump.c
+index b7ad381..b491bc2 100644
+--- a/src/dump.c
++++ b/src/dump.c
+@@ -792,7 +792,14 @@ void mad_dump_perfcounters(char *buf, int bufsz, void *val, int valsz)
+ 
+ void mad_dump_perfcounters_ext(char *buf, int bufsz, void *val, int valsz)
+ {
+-	_dump_fields(buf, bufsz, val, IB_PC_EXT_FIRST_F, IB_PC_EXT_LAST_F);
++	int cnt;
++
++	cnt = _dump_fields(buf, bufsz, val, IB_PC_EXT_FIRST_F, IB_PC_EXT_LAST_F);
++	if (cnt < 0)
++		return;
++
++	 _dump_fields(buf + cnt, bufsz - cnt, val,
++		      IB_PC_EXT_COUNTER_SELECT2_F, IB_PC_EXT_ERR_LAST_F);
+ }
+ 
+ void mad_dump_perfcounters_xmt_sl(char *buf, int bufsz, void *val, int valsz)
+diff --git a/src/fields.c b/src/fields.c
+index fbade55..8273f97 100644
+--- a/src/fields.c
++++ b/src/fields.c
+@@ -984,6 +984,26 @@ static const ib_field_t ib_mad_f[] = {
+ 	{1184, 32, "PortFECCorrectedSymbolCtr", mad_dump_uint},
+ 	{0, 0},			/* IB_PESC_RSFEC_LAST_F */
+ 
++	/*
++	 * More PortCountersExtended fields
++	 */
++	{32, 32, "CounterSelect2", mad_dump_hex},
++	{576, 64, "SymbolErrorCounter", mad_dump_uint},
++	{640, 64, "LinkErrorRecoveryCounter",  mad_dump_uint},
++	{704, 64, "LinkDownedCounter", mad_dump_uint},
++	{768, 64, "PortRcvErrors", mad_dump_uint},
++	{832, 64, "PortRcvRemotePhysicalErrors", mad_dump_uint},
++	{896, 64, "PortRcvSwitchRelayErrors", mad_dump_uint},
++	{960, 64, "PortXmitDiscards", mad_dump_uint},
++	{1024, 64, "PortXmitConstraintErrors", mad_dump_uint},
++	{1088, 64, "PortRcvConstraintErrors", mad_dump_uint},
++	{1152, 64, "LocalLinkIntegrityErrors", mad_dump_uint},
++	{1216, 64, "ExcessiveBufferOverrunErrors", mad_dump_uint},
++	{1280, 64, "VL15Dropped", mad_dump_uint},
++	{1344, 64, "PortXmitWait", mad_dump_uint},
++	{1408, 64, "QP1Dropped", mad_dump_uint},
++	{0, 0},			/* IB_PC_EXT_ERR_LAST_F */
++
+ 	{0, 0}			/* IB_FIELD_LAST_ */
+ };
+ 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
