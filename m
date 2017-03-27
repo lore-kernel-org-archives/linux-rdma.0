@@ -1,117 +1,41 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 09/13] xprtrdma: Revert commit d0f36c46deea
-Date: Mon, 27 Mar 2017 10:06:48 -0400
-Message-ID: <20170327140648.20813.3951.stgit@manet.1015granger.net>
+Subject: [PATCH v2 01/13] xprtrdma: Cancel refresh worker during buffer
+ shutdown
+Date: Mon, 27 Mar 2017 10:05:43 -0400
+Message-ID: <20170327140543.20813.66981.stgit@manet.1015granger.net>
 References: <20170327134847.20813.52412.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170327134847.20813.52412.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Device removal is now adequately supported. Pinning the underlying
-device driver to prevent removal while an NFS mount is active is no
-longer necessary.
+Trying to create MRs while the transport is being torn down can
+cause a crash.
 
+Fixes: e2ac236c0b65 ("xprtrdma: Allocate MRs on demand")
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/verbs.c |   33 +++++++--------------------------
- 1 file changed, 7 insertions(+), 26 deletions(-)
+ net/sunrpc/xprtrdma/verbs.c |    1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index b69daa3..d7c1600 100644
+index 3b332b3..2e4fc1e 100644
 --- a/net/sunrpc/xprtrdma/verbs.c
 +++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -53,7 +53,7 @@
- #include <linux/sunrpc/addr.h>
- #include <linux/sunrpc/svc_rdma.h>
- #include <asm/bitops.h>
--#include <linux/module.h> /* try_module_get()/module_put() */
-+
- #include <rdma/ib_cm.h>
+@@ -1037,6 +1037,7 @@ struct rpcrdma_rep *
+ rpcrdma_buffer_destroy(struct rpcrdma_buffer *buf)
+ {
+ 	cancel_delayed_work_sync(&buf->rb_recovery_worker);
++	cancel_delayed_work_sync(&buf->rb_refresh_worker);
  
- #include "xprt_rdma.h"
-@@ -344,14 +344,6 @@
- 	return 0;
- }
- 
--static void rpcrdma_destroy_id(struct rdma_cm_id *id)
--{
--	if (id) {
--		module_put(id->device->owner);
--		rdma_destroy_id(id);
--	}
--}
--
- static struct rdma_cm_id *
- rpcrdma_create_id(struct rpcrdma_xprt *xprt,
- 			struct rpcrdma_ia *ia, struct sockaddr *addr)
-@@ -386,16 +378,6 @@ static void rpcrdma_destroy_id(struct rdma_cm_id *id)
- 		goto out;
- 	}
- 
--	/* FIXME:
--	 * Until xprtrdma supports DEVICE_REMOVAL, the provider must
--	 * be pinned while there are active NFS/RDMA mounts to prevent
--	 * hangs and crashes at umount time.
--	 */
--	if (!ia->ri_async_rc && !try_module_get(id->device->owner)) {
--		dprintk("RPC:       %s: Failed to get device module\n",
--			__func__);
--		ia->ri_async_rc = -ENODEV;
--	}
- 	rc = ia->ri_async_rc;
- 	if (rc)
- 		goto out;
-@@ -405,21 +387,20 @@ static void rpcrdma_destroy_id(struct rdma_cm_id *id)
- 	if (rc) {
- 		dprintk("RPC:       %s: rdma_resolve_route() failed %i\n",
- 			__func__, rc);
--		goto put;
-+		goto out;
- 	}
- 	rc = wait_for_completion_interruptible_timeout(&ia->ri_done, wtimeout);
- 	if (rc < 0) {
- 		dprintk("RPC:       %s: wait() exited: %i\n",
- 			__func__, rc);
--		goto put;
-+		goto out;
- 	}
- 	rc = ia->ri_async_rc;
- 	if (rc)
--		goto put;
-+		goto out;
- 
- 	return id;
--put:
--	module_put(id->device->owner);
-+
- out:
- 	rdma_destroy_id(id);
- 	return ERR_PTR(rc);
-@@ -546,7 +527,7 @@ static void rpcrdma_destroy_id(struct rdma_cm_id *id)
- 	if (ia->ri_id != NULL && !IS_ERR(ia->ri_id)) {
- 		if (ia->ri_id->qp)
- 			rdma_destroy_qp(ia->ri_id);
--		rpcrdma_destroy_id(ia->ri_id);
-+		rdma_destroy_id(ia->ri_id);
- 	}
- 	ia->ri_id = NULL;
- 	ia->ri_device = NULL;
-@@ -800,7 +781,7 @@ static void rpcrdma_destroy_id(struct rdma_cm_id *id)
- 	rdma_destroy_qp(old);
- 
- out_destroy:
--	rpcrdma_destroy_id(old);
-+	rdma_destroy_id(old);
- out:
- 	return rc;
- }
+ 	while (!list_empty(&buf->rb_recv_bufs)) {
+ 		struct rpcrdma_rep *rep;
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
