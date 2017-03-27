@@ -1,53 +1,44 @@
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: Re: [PATCH v11 00/12] uapi: export all headers under uapi directories
-Date: Tue, 28 Mar 2017 00:35:07 +0900
-Message-ID: <CAK7LNATG6M7Q_sXbfRRLF6ALJPRkbr=h5zz9VjFRQEsDNL1AQA@mail.gmail.com>
-References: <CAK7LNAR_yp+O9jUZC8mKdaHgTiCkE7p2-ZbA9YZ8OGyp+uxhBQ@mail.gmail.com>
- <1490617217-30192-1-git-send-email-nicolas.dichtel@6wind.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH libibmad 2/2] gs.c: In performance_reset_via, use proper
+ CounterSelect2 field for PortCountersExtended
+Date: Mon, 27 Mar 2017 11:35:44 -0400
+Message-ID: <26623475-0c21-ebf2-f4e8-dd40693fab64@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kbuild-owner@vger.kernel.org>
-In-Reply-To: <1490617217-30192-1-git-send-email-nicolas.dichtel@6wind.com>
-Sender: linux-kbuild-owner@vger.kernel.org
-To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Michal Marek <mmarek@suse.com>, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arch@vger.kernel.org, David Airlie <airlied@linux.ie>, "David S. Miller" <davem@davemloft.net>, Russell King <linux@armlinux.org.uk>, bp@alien8.de, slash.tmp@free.fr, Daniel Vetter <daniel.vetter@ffwll.ch>, rmk+kernel@armlinux.org.uk, msalter@redhat.com, jengelh@inai.de, hch@infradead.org, Tobias Klauser <tklauser@distanz.ch>, mpe@ellerman.id.au, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "Dmitry V. Levin" <ldv@altlinux.org>, Herbert Xu <herbert@gondor.apana.org.au>, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-2017-03-27 21:20 GMT+09:00 Nicolas Dichtel <nicolas.dichtel@6wind.com>:
->
->
-> Patches #1 and #2 are just cleanup: some exported headers were still under
-> a non-uapi directory. Patch #3 is a fix to avoid exporting a file that was
-> not under an uapi directory.
-> After these three patches, all exported headers are under an uapi directory:
-> path #4 stops searching files in non uapi directories.
-> The patch #5 was spotted by code review: there is no in-tree user of this
-> functionality.
-> Patch #6 fixes some warnings/errors reported by 0-day tests.
-> Patch #7 to #9 fix some errors when the corresponding files are included by
-> userland.
-> Patches #10 and #11 remove the need to list explicitly headers. Now all files
-> under an uapi directory are exported.
-> Patch #12 is also a small cleanup.
->
-> This series has been tested with a 'make headers_install' on x86 and a
-> 'make headers_install_all'. I've checked the result of both commands.
->
-> This patch is built on top of masahiroy/linux-kbuild.git#for-next (v4.11-rc1).
-> I didn't find any conflict with v4.11-rc4.
->
-> v10 -> v11:
->   - patch #1: restore the double '_' in the header guard
->   - patch #6, #7, #8: order '#include' in alphabetical order
->   - patch #10: rename header-n to no-export-headers
->                cleanup management of kvm.h, kvm_para.h and a.out.h
->   - patch #12: add it
->   - rebase on top of masahiroy/linux-kbuild.git#for-next
 
+Per MgtWG errata #9302
 
-Series, applied to linux-kbuild/uapi.  Thanks!
-
-
--- 
-Best Regards
-Masahiro Yamada
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/src/gs.c b/src/gs.c
+index 5541b6b..90db7e2 100644
+--- a/src/gs.c
++++ b/src/gs.c
+@@ -110,11 +110,14 @@ uint8_t *performance_reset_via(void *rcvbuf, ib_portid_t * dest,
+ 
+ 	memset(rcvbuf, 0, IB_MAD_SIZE);
+ 
+-	/* Same for attribute IDs */
++	/* Next 2 lines - same for attribute IDs */
+ 	mad_set_field(rcvbuf, 0, IB_PC_PORT_SELECT_F, port);
+ 	mad_set_field(rcvbuf, 0, IB_PC_COUNTER_SELECT_F, mask);
+ 	mask = mask >> 16;
+-	mad_set_field(rcvbuf, 0, IB_PC_COUNTER_SELECT2_F, mask);
++	if (id == IB_GSI_PORT_COUNTERS_EXT)
++		mad_set_field(rcvbuf, 0, IB_PC_EXT_COUNTER_SELECT2_F, mask);
++	else
++		mad_set_field(rcvbuf, 0, IB_PC_COUNTER_SELECT2_F, mask);
+ 	rpc.attr.mod = 0;
+ 	rpc.timeout = timeout;
+ 	rpc.datasz = IB_PC_DATA_SZ;
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
