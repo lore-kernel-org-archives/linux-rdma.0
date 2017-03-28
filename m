@@ -1,65 +1,111 @@
-From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [RFC v2 for accelerated IPoIB 00/6] Enhanced mode for IPoIB driver
-Date: Tue, 28 Mar 2017 14:40:21 +0300
-Message-ID: <CAAk-MO8Z7wKGFU5empgHGpN73cGMkKMi+ijnTHpfXBD5oZ+cGQ@mail.gmail.com>
-References: <1490036908-12528-1-git-send-email-erezsh@mellanox.com>
- <20170320205927.GA17225@obsidianresearch.com> <20170321114955.GB2079@mtr-leonro.local>
- <20170321161530.GB22216@obsidianresearch.com> <20170321164952.GE2079@mtr-leonro.local>
- <CAAk-MO_KEV9MA5Dcaz8SZagMeC4hQX456Cu8To-YRBNMeNu3pg@mail.gmail.com>
- <20170322165238.GA26589@obsidianresearch.com> <CAAk-MO_7LVUQS_8+h9shFEXkjT6NHkzXeYRH+_8Wcjr0P+dHAw@mail.gmail.com>
- <20170326204237.GB3113@obsidianresearch.com>
+From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH infiniband-diags 1/3] perfquery.c: Output PerfMgt ClassPortInfo CapabilityMask2
+Date: Tue, 28 Mar 2017 09:18:52 -0400
+Message-ID: <20170328131851.GA14000@phlsvsds.ph.intel.com>
+References: <a64b9648-c79d-795a-8e40-ea1d4009c9ce@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170326204237.GB3113-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <a64b9648-c79d-795a-8e40-ea1d4009c9ce-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Mar 26, 2017 at 11:42 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Sun, Mar 26, 2017 at 07:17:13PM +0300, Erez Shitrit wrote:
->
->> > be computed once instead of computed for every split packet. The
->> > downside here is that it may be very complicated to store a kref in a
->> > skb pseudo header and properly unref it at all the right times..
->>
->> It is an optimization, and still we need to get the ah even at the
->> middle of GSO, for each skb, or to keep it somewhere, also will need
->> to keep more space in the skb, more processing.
->
-> GSO is done in a way where the pseudo header is retained but not
-> recomputed for every fragment, much like for ethernet.
->
-> Does mlx5 even need a 'AH'? Maybe allowing the driver to provide some
-> bytes in the pseudo header that match the HW SQE is an overall more
-> efficient direction.
+On Mon, Mar 27, 2017 at 11:36:12AM -0400, Hal Rosenstock wrote:
+> 
+> in addition to CapabilityMask for PortCountersExtended attribute
+> 
+> MgtWG errata #9301 defines IsAdditionalPortCountersExtendedSupported
+> bit in CapabilityMask2.
 
-For mlx5/mlx4, the details from the ah are required, (in order to
-build the datagram segment in the wqe(, but the ref count is seamless
-since the ah is not a hw resource,  I can put that instead of the
-pseudo header in the driver start_xmit
-need to check if it pays with performance degradation.
-will check and update.
+This and the other perfquery patch appear to be corrupted.
 
->
->> > The other is to factor out the AH extraction from ipoib_start_xmit
->> > into a helper function and have all the rn drivers call it to get the
->> > AH.
->>
->> We will pay with performance degradation for each send.
->
-> Eh? Having ndo->ipoib->driver or ndo->driver->ipoib as a call chain
-> doesn't really matter one bit.
+Not sure why:
 
-I meant that the extra call is time consuming, if we need one more
-function (to extract the ah) that needs to be exported.
+09:14:24 > git am ~/tmp/mutt/_PATCH_infiniband_diags_1_3__perfquery_c__Output_PerfMgt.patch 
+Applying: perfquery.c: Output PerfMgt ClassPortInfo CapabilityMask2
+fatal: patch fragment without header at line 26: @@ -699,6 +701,7 @@ int main(int argc, char **argv)
+Patch failed at 0001 perfquery.c: Output PerfMgt ClassPortInfo CapabilityMask2
 
-Anyway, will try with the first option.
 
->
-> Jason
+Ira
+
+
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+> diff --git a/src/perfquery.c b/src/perfquery.c
+> index 948ce52..ab6c0f8 100644
+> --- a/src/perfquery.c
+> +++ b/src/perfquery.c
+> @@ -296,7 +296,8 @@ static void output_aggregate_perfcounters_ext(ib_portid_t * portid,
+>  }
+>   static void dump_perfcounters(int extended, int timeout, uint16_t cap_mask,
+> -			      ib_portid_t * portid, int port, int aggregate)
+> +			      uint32_t cap_mask2, ib_portid_t * portid,
+> +			      int port, int aggregate)
+>  {
+>  	char buf[1024];
+>  @@ -344,8 +345,9 @@ static void dump_perfcounters(int extended, int timeout, uint16_t cap_mask,
+>  	if (!aggregate) {
+>  		if (extended)
+>  			printf("# Port extended counters: %s port %d "
+> -			       "(CapMask: 0x%02X)\n%s",
+> -			       portid2str(portid), port, ntohs(cap_mask), buf);
+> +			       "(CapMask: 0x%02X CapMask2: 0x%07X)\n%s",
+> +			       portid2str(portid), port, ntohs(cap_mask),
+> +			       cap_mask2, buf);
+>  		else
+>  			printf("# Port counters: %s port %d "
+>  			       "(CapMask: 0x%02X)\n%s",
+> @@ -699,6 +701,7 @@ int main(int argc, char **argv)
+>  	ib_portid_t portid = { 0 };
+>  	int mask = 0xffff;
+>  	uint64_t ext_mask = 0xffffffffffffffffULL;
+> +	uint32_t cap_mask2;
+>  	uint16_t cap_mask;
+>  	int all_ports_loop = 0;
+>  	int node_type, num_ports = 0;
+> @@ -816,6 +819,9 @@ int main(int argc, char **argv)
+>  		IBEXIT("classportinfo query");
+>  	/* ClassPortInfo should be supported as part of libibmad */
+>  	memcpy(&cap_mask, pc + 2, sizeof(cap_mask));	/* CapabilityMask */
+> +	memcpy(&cap_mask2, pc + 4, sizeof(cap_mask2));	/* CapabilityMask2 */
+> +	cap_mask2 = ntohl(cap_mask2) >> 5;
+> +
+>  	if (!(cap_mask & IB_PM_ALL_PORT_SELECT)) {	/* bit 8 is AllPortSelect */
+>  		if (!all_ports && port == ALL_PORTS)
+>  			IBEXIT("AllPortSelect not supported");
+> @@ -942,7 +948,8 @@ int main(int argc, char **argv)
+>   	if (all_ports_loop || (loop_ports && (all_ports || port == ALL_PORTS))) {
+>  		for (i = start_port; i <= num_ports; i++)
+> -			dump_perfcounters(extended, ibd_timeout, cap_mask,
+> +			dump_perfcounters(extended, ibd_timeout,
+> +					  cap_mask, cap_mask2,
+>  					  &portid, i, (all_ports_loop
+>  						       && !loop_ports));
+>  		if (all_ports_loop && !loop_ports) {
+> @@ -956,7 +963,7 @@ int main(int argc, char **argv)
+>  	} else if (ports_count > 1) {
+>  		for (i = 0; i < ports_count; i++)
+>  			dump_perfcounters(extended, ibd_timeout, cap_mask,
+> -					  &portid, ports[i],
+> +					  cap_mask2, &portid, ports[i],
+>  					  (all_ports && !loop_ports));
+>  		if (all_ports && !loop_ports) {
+>  			if (extended != 1)
+> @@ -967,8 +974,8 @@ int main(int argc, char **argv)
+>  								  cap_mask);
+>  		}
+>  	} else
+> -		dump_perfcounters(extended, ibd_timeout, cap_mask, &portid,
+> -				  port, 0);
+> +		dump_perfcounters(extended, ibd_timeout, cap_mask, cap_mask2,
+> +				  &portid, port, 0);
+>   	if (!reset)
+>  		goto done;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
