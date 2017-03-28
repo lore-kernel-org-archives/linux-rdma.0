@@ -1,45 +1,48 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: RE: [PATCH 06/16] drivers, net, mlx5: convert mlx5_cq.refcount from
- atomic_t to refcount_t
-Date: Tue, 28 Mar 2017 09:33:21 +0000
-Message-ID: <063D6719AE5E284EB5DD2968C1650D6DCFFBE8AF@AcuExch.aculab.com>
-References: <1490691403-4016-1-git-send-email-elena.reshetova@intel.com>
- <1490691403-4016-7-git-send-email-elena.reshetova@intel.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH RFC] nvme-rdma: support devices with queue size < 32
+Date: Tue, 28 Mar 2017 14:09:47 +0300
+Message-ID: <4951fac6-662f-29a6-5ba5-38d37a2c2dca@grimberg.me>
+References: <1315914765.312051621.1490259849534.JavaMail.zimbra@kalray.eu>
+ <20170323140042.GA30536@lst.de>
+ <277345557.313693033.1490279818647.JavaMail.zimbra@kalray.eu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1490691403-4016-7-git-send-email-elena.reshetova@intel.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: 'Elena Reshetova' <elena.reshetova@intel.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
-Cc: "peterz@infradead.org" <peterz@infradead.org>, "matanb@mellanox.com" <matanb@mellanox.com>, "paulus@samba.org" <paulus@samba.org>, "nbd@openwrt.org" <nbd@openwrt.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "saeedm@mellanox.com" <saeedm@mellanox.com>, "ganeshgr@chelsio.com" <ganeshgr@chelsio.com>, Hans Liljestrand <ishkamiel@gmail.com>, David Windsor <dwindsor@gmail.com>, "keescook@chromium.org" <keescook@chromium.org>, "j@w1.fi" <j@w1.fi>, "ajk@comnets.uni-bremen.de" <ajk@comnets.uni-bremen.de>, "leonro@mellanox.com" <leonro@mellanox.com>, "matthias.bgg@gmail.com" <matthias.bgg@gmail.com>, "linux-hams@vger.kernel.org" <linux-hams@vger.kernel.org>, "kvalo@codeaurora.org" <kvalo@codeaurora.org>, "blogic@openwrt.org" <blogic@openwrt.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>"linux-ppp@vger.kernel.org" <linux->
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <277345557.313693033.1490279818647.JavaMail.zimbra-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keith busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, axboe-b10kYP2dOMg@public.gmane.org, Samuel Jones <samuel.jones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Elena Reshetova
-> Sent: 28 March 2017 09:57
-> 
-> refcount_t type and corresponding API should be
-> used instead of atomic_t when the variable is used as
-> a reference counter. This allows to avoid accidental
-> refcounter overflows that might lead to use-after-free
-> situations.
 
-I can't help feeling that you ought to find a scheme
-that will detect extra decrements and extra increments
-before the counter wraps 32 bits.
+>> Thanks, this looks useful.  But wouldn't it be better to do something
+>> like queue_size divided by 2 or 4 to get a better refill latency?
+>
+> That's an interesting question. The max number of requests is already at 3 or 4 times
+> of the queue size because of different message types (see Sam's original
+> message in 'NVMe RDMA driver: CX4 send queue fills up when nvme queue depth is low').
+> I guess it would have inflence on configs with bigger latency.
+>
+> I would like to have Sagi's view on this as he's the one who has changed that
+> part in the iSER initiator in 6df5a128f0fde6315a44e80b30412997147f5efd
 
-If an extra reference is requested every 100us it takes 4.8 days
-for the counter to increment back to zero.
-Simple tests aren't doing to find that - but it can easily happen
-on a system that is running for several years.
+Hi Marta,
 
-	David
+This looks good indeed. IIRC both for IB and iWARP we need to signal
+at least once every send-queue depth (in practice I remember that some
+devices need more than once) so maybe it'll be good to have division by
+2.
+
+Maybe it'll be better if we do:
+
+static inline bool queue_sig_limit(struct nvme_rdma_queue *queue)
+{
+	return (++queue->sig_count % (queue->queue_size / 2)) == 0;
+}
+
+And lose the hard-coded 32 entirely. Care to test that?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
