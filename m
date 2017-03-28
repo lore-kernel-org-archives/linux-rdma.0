@@ -1,54 +1,57 @@
-From: "Goel, Sameer" <sgoel@codeaurora.org>
-Subject: [BUG] ethernet:mellanox:mlx5: Oops in health_recover
- get_nic_state(dev)
-Date: Mon, 27 Mar 2017 17:45:44 -0600
-Message-ID: <4a3539ba-6ce0-8ecf-1b1b-3c70cace6c2a@codeaurora.org>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-core] mlx5: Fix device context allocation
+Date: Tue, 28 Mar 2017 10:47:55 +0300
+Message-ID: <959ef3f8-4e94-c1ca-366e-cbd35aef1c44@dev.mellanox.co.il>
+References: <1490618609-16931-1-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, shankerd@codeaurora.org, rruigrok@codeaurora.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1490618609-16931-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Stack frame:
-[ 1744.418958] [<ffff00000328936c>] get_nic_state+0x24/0x40 [mlx5_core]
-[ 1744.425273] [<ffff0000032899c0>] health_recover+0x28/0x80 [mlx5_core]
-[ 1744.431496] [<ffff0000080e3280>] process_one_work+0x150/0x460
-[ 1744.437218] [<ffff0000080e35e0>] worker_thread+0x50/0x4b8
-[ 1744.442609] [<ffff0000080e9b98>] kthread+0xd8/0xf0
-[ 1744.447377] [<ffff000008083330>] ret_from_fork+0x10/0x20
+On 3/27/2017 3:43 PM, Yishai Hadas wrote:
+> From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+> Use calloc to allocate device context so the unset bytes are zero.
+> When building a *non* release mode (i.e. without DCMAKE_BUILD_TYPE=Release)
+> the below assert is applicable and might raise:
+> assert(dev->_ops._dummy1).
+>
+> Fix below commit to use calloc instead of malloc for mlx5 as well.
+>
+> Fixes: 85c449528709 ("providers: Make every provider allocate a
+> verbs_device")
+> Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>
+> Pull request was sent:
+> https://github.com/linux-rdma/rdma-core/pull/109
+>
+>  providers/mlx5/mlx5.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
+> index edb6d35..30f165b 100644
+> --- a/providers/mlx5/mlx5.c
+> +++ b/providers/mlx5/mlx5.c
+> @@ -1006,7 +1006,7 @@ found:
+>  		return NULL;
+>  	}
+>
+> -	dev = malloc(sizeof *dev);
+> +	dev = calloc(1, sizeof *dev);
+>  	if (!dev) {
+>  		fprintf(stderr, PFX "Fatal: couldn't allocate device for %s\n",
+>  			uverbs_sys_path);
+>
 
-Summary:
-This issue was seen on QDF2400 system 30 mins after while running speccpu 2006. During the test a recoverable PCIe error was seen that gave the following log:
-[ 1673.170969] pcieport 0002:00:00.0: aer_status: 0x00004000, aer_mask: 0x00400000
-[ 1673.177961] pcieport 0002:00:00.0: aer_layer=Transaction Layer, aer_agent=Requester ID
-[ 1673.185832] pcieport 0002:00:00.0: aer_uncor_severity: 0x00462030
-[ 1675.536391] mlx5_core 0002:01:00.0: assert_var[0] 0xffffffff
-[ 1675.541093] mlx5_core 0002:01:00.0: assert_var[1] 0xffffffff
-[ 1675.546750] mlx5_core 0002:01:00.0: assert_var[2] 0xffffffff
-[ 1675.552377] mlx5_core 0002:01:00.0: assert_var[3] 0xffffffff
-[ 1675.558040] mlx5_core 0002:01:00.0: assert_var[4] 0xffffffff
-[ 1675.563661] mlx5_core 0002:01:00.0: assert_exit_ptr 0xffffffff
-[ 1675.569488] mlx5_core 0002:01:00.0: assert_callra 0xffffffff
-[ 1675.575120] mlx5_core 0002:01:00.0: fw_ver 15.4095.65535
-[ 1675.580426] mlx5_core 0002:01:00.0: hw_id 0xffffffff
-[ 1675.585363] mlx5_core 0002:01:00.0: irisc_index 255
-[ 1675.590242] mlx5_core 0002:01:00.0: synd 0xff: unrecognized error
-[ 1675.596301] mlx5_core 0002:01:00.0: ext_synd 0xffff
-[ 1675.601209] mlx5_core 0002:01:00.0: mlx5_enter_error_state:120:(pid 7205): start
-[ 1675.608613] mlx5_core 0002:01:00.0: mlx5_enter_error_state:127:(pid 7205): end
-
-After the above log we see the above stackframe and a page fault due to invalid dev pointer.
-
-So the the recovery work is queued and the timer is stopped. Somehow the workqueue is not cleared and when it runs the dev pointer is invalid.
-
-This issue was difficult to repro and was seen only once in multiple runs on a specific device.
-
-Thanks,
-Sameer 
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+Merged.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
