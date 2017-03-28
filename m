@@ -1,75 +1,45 @@
-From: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3] IB/IPoIB: ibX: failed to create mcg debug file
-Date: Tue, 28 Mar 2017 12:19:41 +0300
-Message-ID: <20170328091940.GA14058@srabinov-linux.uk.oracle.com>
-References: <1490599139-12665-1-git-send-email-shamir.rabinovitch@oracle.com>
- <20170327195500.GH20443@mtr-leonro.local>
- <20170327201714.GB29831@srabinov-linux.uk.oracle.com>
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH 06/16] drivers, net, mlx5: convert mlx5_cq.refcount from
+ atomic_t to refcount_t
+Date: Tue, 28 Mar 2017 09:33:21 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6DCFFBE8AF@AcuExch.aculab.com>
+References: <1490691403-4016-1-git-send-email-elena.reshetova@intel.com>
+ <1490691403-4016-7-git-send-email-elena.reshetova@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170327201714.GB29831-t9juWtktDCT52KUv/Ok+f8QLKKaP9WJ9VpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, vijay.ac.kumar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1490691403-4016-7-git-send-email-elena.reshetova@intel.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: 'Elena Reshetova' <elena.reshetova@intel.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Cc: "peterz@infradead.org" <peterz@infradead.org>, "matanb@mellanox.com" <matanb@mellanox.com>, "paulus@samba.org" <paulus@samba.org>, "nbd@openwrt.org" <nbd@openwrt.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "saeedm@mellanox.com" <saeedm@mellanox.com>, "ganeshgr@chelsio.com" <ganeshgr@chelsio.com>, Hans Liljestrand <ishkamiel@gmail.com>, David Windsor <dwindsor@gmail.com>, "keescook@chromium.org" <keescook@chromium.org>, "j@w1.fi" <j@w1.fi>, "ajk@comnets.uni-bremen.de" <ajk@comnets.uni-bremen.de>, "leonro@mellanox.com" <leonro@mellanox.com>, "matthias.bgg@gmail.com" <matthias.bgg@gmail.com>, "linux-hams@vger.kernel.org" <linux-hams@vger.kernel.org>, "kvalo@codeaurora.org" <kvalo@codeaurora.org>, "blogic@openwrt.org" <blogic@openwrt.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>"linux-ppp@vger.kernel.org" <linux->
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 27, 2017 at 11:17:14PM +0300, Shamir Rabinovitch wrote:
+From: Elena Reshetova
+> Sent: 28 March 2017 09:57
 > 
-> > >
-> > > +#ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
-> > > +static int ipoib_netdev_event(struct notifier_block *this,
-> > > +			      unsigned long event, void *ptr)
-> > > +{
-> > > +	struct netdev_notifier_info *ni = ptr;
-> > > +	struct net_device *dev = ni->dev;
-> > > +
-> > > +	if (dev->netdev_ops->ndo_open != ipoib_open)
-> > > +		return NOTIFY_DONE;
-> > > +
-> > > +	switch (event) {
-> > > +	case NETDEV_REGISTER:
-> > > +		ipoib_create_debug_files(dev);
-> > > +		break;
-> > > +	case NETDEV_CHANGENAME:
-> > > +		ipoib_debugfs_rename(dev);
-> > 
-> > Why do we need explicit ipoib_debugfs_rename function?
-> > Will it work by simply calling ipoib_delete_debug_files
-> > and immediately after that ipoib_create_debug_files?
-> > 
-> > 
-> > > +		break;
-> > > +	case NETDEV_UNREGISTER:
-> > > +		ipoib_delete_debug_files(dev);
-> > > +		break;
-> > > +	}
-> > > +
-> > > +	return NOTIFY_DONE;
-> > > +}
-> > > +#endif
-> > > +
-> 
-> Hi Leon, 
-> 
-> Good point. 
-> I will have look on this idea and get back to you.
-> 
-> BR, Shamir
+> refcount_t type and corresponding API should be
+> used instead of atomic_t when the variable is used as
+> a reference counter. This allows to avoid accidental
+> refcounter overflows that might lead to use-after-free
+> situations.
 
-Hi Leon,
+I can't help feeling that you ought to find a scheme
+that will detect extra decrements and extra increments
+before the counter wraps 32 bits.
 
-It seems that the difference between using debugfs_rename and a
-combination of debugfs_create_file and debugfs_remove is mainly the
-atomicy of the rename operation with regard to the file system.
-debugfs_rename is atomic operation while the above combination is not.
-As result I see kernel panic when the rename operation interleave with
-the delete due to module unload. So after carefully considering what you
-suggest I think it might introduce unexpected issues.
+If an extra reference is requested every 100us it takes 4.8 days
+for the counter to increment back to zero.
+Simple tests aren't doing to find that - but it can easily happen
+on a system that is running for several years.
 
-BR, Shamir  
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	David
