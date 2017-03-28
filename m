@@ -1,119 +1,98 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH infiniband-diags 1/3] perfquery.c: Output PerfMgt
- ClassPortInfo CapabilityMask2
-Date: Tue, 28 Mar 2017 10:56:59 -0400
-Message-ID: <f474ff86-d6d2-b09c-92e3-e65936570a9a@dev.mellanox.co.il>
-References: <a64b9648-c79d-795a-8e40-ea1d4009c9ce@dev.mellanox.co.il>
- <20170328131851.GA14000@phlsvsds.ph.intel.com>
+From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v3] IB/IPoIB: ibX: failed to create mcg debug file
+Date: Tue, 28 Mar 2017 18:45:44 +0300
+Message-ID: <a141c94a-63b7-491c-ce42-9b8cb08aeb93@mellanox.com>
+References: <1490599139-12665-1-git-send-email-shamir.rabinovitch@oracle.com>
+ <4058624b-a947-9635-76ca-482fd6a6bd95@mellanox.com>
+ <20170327201156.GA29831@srabinov-linux.uk.oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170328131851.GA14000-W4f6Xiosr+yv7QzWx2u06xL4W9x8LtSr@public.gmane.org>
+In-Reply-To: <20170327201156.GA29831-t9juWtktDCT52KUv/Ok+f8QLKKaP9WJ9VpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, vijay.ac.kumar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/28/2017 9:18 AM, ira.weiny wrote:
-> On Mon, Mar 27, 2017 at 11:36:12AM -0400, Hal Rosenstock wrote:
->>
->> in addition to CapabilityMask for PortCountersExtended attribute
->>
->> MgtWG errata #9301 defines IsAdditionalPortCountersExtendedSupported
->> bit in CapabilityMask2.
-> 
-> This and the other perfquery patch appear to be corrupted.
+Hi Shamir,
 
-I'll resend these 2 patches.
-
--- Hal
-
-> Not sure why:
-> 
-> 09:14:24 > git am ~/tmp/mutt/_PATCH_infiniband_diags_1_3__perfquery_c__Output_PerfMgt.patch 
-> Applying: perfquery.c: Output PerfMgt ClassPortInfo CapabilityMask2
-> fatal: patch fragment without header at line 26: @@ -699,6 +701,7 @@ int main(int argc, char **argv)
-> Patch failed at 0001 perfquery.c: Output PerfMgt ClassPortInfo CapabilityMask2
-> 
-> 
-> Ira
-> 
-> 
+On 27/03/2017 23:11, Shamir Rabinovitch wrote:
+> On Mon, Mar 27, 2017 at 06:06:42PM +0300, Mark Bloch wrote:
+>> Hi Shamir,
 >>
->> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> ---
->> diff --git a/src/perfquery.c b/src/perfquery.c
->> index 948ce52..ab6c0f8 100644
->> --- a/src/perfquery.c
->> +++ b/src/perfquery.c
->> @@ -296,7 +296,8 @@ static void output_aggregate_perfcounters_ext(ib_portid_t * portid,
->>  }
->>   static void dump_perfcounters(int extended, int timeout, uint16_t cap_mask,
->> -			      ib_portid_t * portid, int port, int aggregate)
->> +			      uint32_t cap_mask2, ib_portid_t * portid,
->> +			      int port, int aggregate)
->>  {
->>  	char buf[1024];
->>  @@ -344,8 +345,9 @@ static void dump_perfcounters(int extended, int timeout, uint16_t cap_mask,
->>  	if (!aggregate) {
->>  		if (extended)
->>  			printf("# Port extended counters: %s port %d "
->> -			       "(CapMask: 0x%02X)\n%s",
->> -			       portid2str(portid), port, ntohs(cap_mask), buf);
->> +			       "(CapMask: 0x%02X CapMask2: 0x%07X)\n%s",
->> +			       portid2str(portid), port, ntohs(cap_mask),
->> +			       cap_mask2, buf);
->>  		else
->>  			printf("# Port counters: %s port %d "
->>  			       "(CapMask: 0x%02X)\n%s",
->> @@ -699,6 +701,7 @@ int main(int argc, char **argv)
->>  	ib_portid_t portid = { 0 };
->>  	int mask = 0xffff;
->>  	uint64_t ext_mask = 0xffffffffffffffffULL;
->> +	uint32_t cap_mask2;
->>  	uint16_t cap_mask;
->>  	int all_ports_loop = 0;
->>  	int node_type, num_ports = 0;
->> @@ -816,6 +819,9 @@ int main(int argc, char **argv)
->>  		IBEXIT("classportinfo query");
->>  	/* ClassPortInfo should be supported as part of libibmad */
->>  	memcpy(&cap_mask, pc + 2, sizeof(cap_mask));	/* CapabilityMask */
->> +	memcpy(&cap_mask2, pc + 4, sizeof(cap_mask2));	/* CapabilityMask2 */
->> +	cap_mask2 = ntohl(cap_mask2) >> 5;
->> +
->>  	if (!(cap_mask & IB_PM_ALL_PORT_SELECT)) {	/* bit 8 is AllPortSelect */
->>  		if (!all_ports && port == ALL_PORTS)
->>  			IBEXIT("AllPortSelect not supported");
->> @@ -942,7 +948,8 @@ int main(int argc, char **argv)
->>   	if (all_ports_loop || (loop_ports && (all_ports || port == ALL_PORTS))) {
->>  		for (i = start_port; i <= num_ports; i++)
->> -			dump_perfcounters(extended, ibd_timeout, cap_mask,
->> +			dump_perfcounters(extended, ibd_timeout,
->> +					  cap_mask, cap_mask2,
->>  					  &portid, i, (all_ports_loop
->>  						       && !loop_ports));
->>  		if (all_ports_loop && !loop_ports) {
->> @@ -956,7 +963,7 @@ int main(int argc, char **argv)
->>  	} else if (ports_count > 1) {
->>  		for (i = 0; i < ports_count; i++)
->>  			dump_perfcounters(extended, ibd_timeout, cap_mask,
->> -					  &portid, ports[i],
->> +					  cap_mask2, &portid, ports[i],
->>  					  (all_ports && !loop_ports));
->>  		if (all_ports && !loop_ports) {
->>  			if (extended != 1)
->> @@ -967,8 +974,8 @@ int main(int argc, char **argv)
->>  								  cap_mask);
->>  		}
->>  	} else
->> -		dump_perfcounters(extended, ibd_timeout, cap_mask, &portid,
->> -				  port, 0);
->> +		dump_perfcounters(extended, ibd_timeout, cap_mask, cap_mask2,
->> +				  &portid, port, 0);
->>   	if (!reset)
->>  		goto done;
+>> Like I've said in v1 of this patch, I believe we are calling ipoib_delete_debug_files too many times.
+>> We are calling in unconditionally in: ipoib_dev_cleanup
+>> and also in ipoib_netdev_event when we get an NETDEV_UNREGISTER event.
+>>
+>> For example, I have a setup with ConnectX-4 dual port configured to be in IB mode.
+>> So I have two ipoib interfaces (ib0, ib1)
+>>
+>> When I load and unload mlx5_ib (while ib_ipoib is loaded:
+>>
+>> root@dev-r-vrt-175 tools]# ./funccount.py 'ipoib_*_debug_files'
+>> Tracing 2 functions for "ipoib_*_debug_files"... Hit Ctrl-C to end.
+>> ^C
+>> FUNC                                    COUNT
+>> ipoib_create_debug_files                    2
+>> ipoib_delete_debug_files                    4
+>> Detaching...
+>>
+>> Why not just remove the call in ipoib_dev_cleanup?
+>>
 > 
+> Hi Mark,
+> 
+> v3 of this patch works fine on system that has CX3 with 2 ports and the
+> below udev rules:
+> 
+> # InfiniBand: Mellanox Technologies MT27500 Family [ConnectX-3]
+> SUBSYSTEM=="net", ACTION=="add", DRIVERS=="mlx4_core", BUS=="pci",
+> ID=="0002:01:00.0", ATTR{dev_id}=="0x0", KERNEL=="ib*", NAME="ib1"
+> SUBSYSTEM=="net", ACTION=="add", DRIVERS=="mlx4_core", BUS=="pci",
+> ID=="0002:01:00.0", ATTR{dev_id}=="0x1", KERNEL=="ib*", NAME="ib0"
+> 
+> On this system, the udev rules rename ib0-ib1 & ib1->ib0 causing small
+> chaos in the ipoib device names.
+> 
+> The attached logs include the information collected when the openibd
+> service was started and when it was stopped. You can have a look in the
+> files and see what are the network events and how they are processed by
+> the ipoib devices.
+> 
+> I think it will answer your concerns. 
+> 
+> BR, Shamir
+> 
+
+I'm not saying it doesn't work, I'm saying works != works correctly.
+We are calling ipoib_delete_debug_file too many times, it works by luck/chance.
+
+While testing the patch, I've encountered another issue, running:
+
+modprobe ib_ipoib
+echo "0x0043" > /sys/class/net/ib0/create_child
+modprobe -r ib_ipoib
+
+and then looking the at the debugfs dir:
+[root@dev-r-vrt-175 ~]# ls /sys/kernel/debug/ipoib/
+ib0.8043_mcg  ib0.8043_pat1
+
+As you can see the the debugfs entries for the ib0 child weren't removed.
+Also notice that after that, I can't load ib_ipoib
+[root@dev-r-vrt-175 ~]# modprobe ib_ipoib
+modprobe: ERROR: could not insert 'ib_ipoib': Cannot allocate memory
+
+The more interesting issue is, dmesg output has this:
+[  467.185609] ib0.8043: failed to create mcg debug file
+[  467.192551] ib0.8043: failed to create path debug file
+
+so maybe this is a debugfs bug?
+
+Sorry I can't look into it, I have some internal stuff I need to work on :/
+
+Mark.
+ 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
