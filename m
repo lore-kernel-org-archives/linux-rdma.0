@@ -1,51 +1,65 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH RFC] nvme-rdma: support devices with queue size < 32
-Date: Tue, 28 Mar 2017 14:30:14 +0300
-Message-ID: <8dc0414f-be90-ee30-0f66-8cee26c4c2aa@grimberg.me>
-References: <1315914765.312051621.1490259849534.JavaMail.zimbra@kalray.eu>
- <20170323140042.GA30536@lst.de>
- <277345557.313693033.1490279818647.JavaMail.zimbra@kalray.eu>
- <4951fac6-662f-29a6-5ba5-38d37a2c2dca@grimberg.me>
- <1180136633.325075447.1490700022740.JavaMail.zimbra@kalray.eu>
+From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [RFC v2 for accelerated IPoIB 00/6] Enhanced mode for IPoIB driver
+Date: Tue, 28 Mar 2017 14:40:21 +0300
+Message-ID: <CAAk-MO8Z7wKGFU5empgHGpN73cGMkKMi+ijnTHpfXBD5oZ+cGQ@mail.gmail.com>
+References: <1490036908-12528-1-git-send-email-erezsh@mellanox.com>
+ <20170320205927.GA17225@obsidianresearch.com> <20170321114955.GB2079@mtr-leonro.local>
+ <20170321161530.GB22216@obsidianresearch.com> <20170321164952.GE2079@mtr-leonro.local>
+ <CAAk-MO_KEV9MA5Dcaz8SZagMeC4hQX456Cu8To-YRBNMeNu3pg@mail.gmail.com>
+ <20170322165238.GA26589@obsidianresearch.com> <CAAk-MO_7LVUQS_8+h9shFEXkjT6NHkzXeYRH+_8Wcjr0P+dHAw@mail.gmail.com>
+ <20170326204237.GB3113@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1180136633.325075447.1490700022740.JavaMail.zimbra-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
+In-Reply-To: <20170326204237.GB3113-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keith busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, axboe-b10kYP2dOMg@public.gmane.org, Samuel Jones <samuel.jones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
->> Maybe it'll be better if we do:
+On Sun, Mar 26, 2017 at 11:42 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Sun, Mar 26, 2017 at 07:17:13PM +0300, Erez Shitrit wrote:
+>
+>> > be computed once instead of computed for every split packet. The
+>> > downside here is that it may be very complicated to store a kref in a
+>> > skb pseudo header and properly unref it at all the right times..
 >>
->> static inline bool queue_sig_limit(struct nvme_rdma_queue *queue)
->> {
->> 	return (++queue->sig_count % (queue->queue_size / 2)) == 0;
->> }
+>> It is an optimization, and still we need to get the ah even at the
+>> middle of GSO, for each skb, or to keep it somewhere, also will need
+>> to keep more space in the skb, more processing.
+>
+> GSO is done in a way where the pseudo header is retained but not
+> recomputed for every fragment, much like for ethernet.
+>
+> Does mlx5 even need a 'AH'? Maybe allowing the driver to provide some
+> bytes in the pseudo header that match the HW SQE is an overall more
+> efficient direction.
+
+For mlx5/mlx4, the details from the ah are required, (in order to
+build the datagram segment in the wqe(, but the ref count is seamless
+since the ah is not a hw resource,  I can put that instead of the
+pseudo header in the driver start_xmit
+need to check if it pays with performance degradation.
+will check and update.
+
+>
+>> > The other is to factor out the AH extraction from ipoib_start_xmit
+>> > into a helper function and have all the rn drivers call it to get the
+>> > AH.
 >>
->> And lose the hard-coded 32 entirely. Care to test that?
+>> We will pay with performance degradation for each send.
 >
-> Hello Sigi,
-> I agree with you, we've found a setup where the signalling every queue
-> depth is not enough and we're testing the division by two that seems
-> to work fine till now.
->
-> In your version in case of queue length > 32 the notifications would
-> be sent less often that they are now. I'm wondering if it will have
-> impact on performance and internal card buffering (it seems that
-> Mellanox buffers are ~100 elements). Wouldn't it create issues?
->
-> I'd like see the magic constant removed. From what I can see we
-> need to have something not exceeding send buffer of the card but
-> also not lower than the queue depth. What do you think?
+> Eh? Having ndo->ipoib->driver or ndo->driver->ipoib as a call chain
+> doesn't really matter one bit.
 
-I'm not sure what buffering is needed from the device at all in this
-case, the device is simply expected to avoid signaling completions.
+I meant that the extra call is time consuming, if we need one more
+function (to extract the ah) that needs to be exported.
 
-Mellanox folks, any idea where is this limitation coming from?
-Do we need a device capability for it?
+Anyway, will try with the first option.
+
+>
+> Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
