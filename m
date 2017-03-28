@@ -1,111 +1,73 @@
-From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH infiniband-diags 1/3] perfquery.c: Output PerfMgt ClassPortInfo CapabilityMask2
-Date: Tue, 28 Mar 2017 09:18:52 -0400
-Message-ID: <20170328131851.GA14000@phlsvsds.ph.intel.com>
-References: <a64b9648-c79d-795a-8e40-ea1d4009c9ce@dev.mellanox.co.il>
+From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [BUG] ethernet:mellanox:mlx5: Oops in health_recover
+ get_nic_state(dev)
+Date: Tue, 28 Mar 2017 08:25:58 -0500
+Message-ID: <d8f3cb19-cad9-c350-d26b-1c0ac6250933@mellanox.com>
+References: <4a3539ba-6ce0-8ecf-1b1b-3c70cace6c2a@codeaurora.org>
+ <CALzJLG-6pEXgukQdS0AEW40RZGeT_MNQmDV99GkgmC+wHbA4eA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <a64b9648-c79d-795a-8e40-ea1d4009c9ce-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <CALzJLG-6pEXgukQdS0AEW40RZGeT_MNQmDV99GkgmC+wHbA4eA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Goel, Sameer" <sgoel-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Mohamad Haj Yahia <mohamad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shankerd-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, rruigrok-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 27, 2017 at 11:36:12AM -0400, Hal Rosenstock wrote:
-> 
-> in addition to CapabilityMask for PortCountersExtended attribute
-> 
-> MgtWG errata #9301 defines IsAdditionalPortCountersExtendedSupported
-> bit in CapabilityMask2.
+On 3/28/2017 4:11 AM, Saeed Mahameed wrote:
+> On Tue, Mar 28, 2017 at 2:45 AM, Goel, Sameer <sgoel-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org> wrote:
+>> Stack frame:
+>> [ 1744.418958] [<ffff00000328936c>] get_nic_state+0x24/0x40 [mlx5_core]
+>> [ 1744.425273] [<ffff0000032899c0>] health_recover+0x28/0x80 [mlx5_core]
+>> [ 1744.431496] [<ffff0000080e3280>] process_one_work+0x150/0x460
+>> [ 1744.437218] [<ffff0000080e35e0>] worker_thread+0x50/0x4b8
+>> [ 1744.442609] [<ffff0000080e9b98>] kthread+0xd8/0xf0
+>> [ 1744.447377] [<ffff000008083330>] ret_from_fork+0x10/0x20
+>>
+>> Summary:
+>> This issue was seen on QDF2400 system 30 mins after while running speccpu 2006. During the test a recoverable PCIe error was seen that gave the following log:
+>> [ 1673.170969] pcieport 0002:00:00.0: aer_status: 0x00004000, aer_mask: 0x00400000
+>> [ 1673.177961] pcieport 0002:00:00.0: aer_layer=Transaction Layer, aer_agent=Requester ID
+>> [ 1673.185832] pcieport 0002:00:00.0: aer_uncor_severity: 0x00462030
+>> [ 1675.536391] mlx5_core 0002:01:00.0: assert_var[0] 0xffffffff
+>> [ 1675.541093] mlx5_core 0002:01:00.0: assert_var[1] 0xffffffff
+>> [ 1675.546750] mlx5_core 0002:01:00.0: assert_var[2] 0xffffffff
+>> [ 1675.552377] mlx5_core 0002:01:00.0: assert_var[3] 0xffffffff
+>> [ 1675.558040] mlx5_core 0002:01:00.0: assert_var[4] 0xffffffff
+>> [ 1675.563661] mlx5_core 0002:01:00.0: assert_exit_ptr 0xffffffff
+>> [ 1675.569488] mlx5_core 0002:01:00.0: assert_callra 0xffffffff
+>> [ 1675.575120] mlx5_core 0002:01:00.0: fw_ver 15.4095.65535
+>> [ 1675.580426] mlx5_core 0002:01:00.0: hw_id 0xffffffff
+>> [ 1675.585363] mlx5_core 0002:01:00.0: irisc_index 255
+>> [ 1675.590242] mlx5_core 0002:01:00.0: synd 0xff: unrecognized error
+>> [ 1675.596301] mlx5_core 0002:01:00.0: ext_synd 0xffff
+>> [ 1675.601209] mlx5_core 0002:01:00.0: mlx5_enter_error_state:120:(pid 7205): start
+>> [ 1675.608613] mlx5_core 0002:01:00.0: mlx5_enter_error_state:127:(pid 7205): end
+>>
+>> After the above log we see the above stackframe and a page fault due to invalid dev pointer.
+>>
+>> So the the recovery work is queued and the timer is stopped. Somehow the workqueue is not cleared and when it runs the dev pointer is invalid.
+>>
+>> This issue was difficult to repro and was seen only once in multiple runs on a specific device.
+> Hi Sameer,
+>
+> Thanks for the report,
+> adding more relevant ppl
+>
+> Mohamad/Daniel Does the above ring a bell ?
+> can you check ?
+>
+> Thanks
+> Saeed.
 
-This and the other perfquery patch appear to be corrupted.
+Hi Sameer, Can you tell me if you have these 2 patches?
 
-Not sure why:
+5e44fca504705 ('net/mlx5: Only cancel recovery work when cleaning up device')
 
-09:14:24 > git am ~/tmp/mutt/_PATCH_infiniband_diags_1_3__perfquery_c__Output_PerfMgt.patch 
-Applying: perfquery.c: Output PerfMgt ClassPortInfo CapabilityMask2
-fatal: patch fragment without header at line 26: @@ -699,6 +701,7 @@ int main(int argc, char **argv)
-Patch failed at 0001 perfquery.c: Output PerfMgt ClassPortInfo CapabilityMask2
+689a248df83b ("net/mlx5: Cancel recovery work in remove flow")
 
 
-Ira
-
-
-> 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
-> diff --git a/src/perfquery.c b/src/perfquery.c
-> index 948ce52..ab6c0f8 100644
-> --- a/src/perfquery.c
-> +++ b/src/perfquery.c
-> @@ -296,7 +296,8 @@ static void output_aggregate_perfcounters_ext(ib_portid_t * portid,
->  }
->   static void dump_perfcounters(int extended, int timeout, uint16_t cap_mask,
-> -			      ib_portid_t * portid, int port, int aggregate)
-> +			      uint32_t cap_mask2, ib_portid_t * portid,
-> +			      int port, int aggregate)
->  {
->  	char buf[1024];
->  @@ -344,8 +345,9 @@ static void dump_perfcounters(int extended, int timeout, uint16_t cap_mask,
->  	if (!aggregate) {
->  		if (extended)
->  			printf("# Port extended counters: %s port %d "
-> -			       "(CapMask: 0x%02X)\n%s",
-> -			       portid2str(portid), port, ntohs(cap_mask), buf);
-> +			       "(CapMask: 0x%02X CapMask2: 0x%07X)\n%s",
-> +			       portid2str(portid), port, ntohs(cap_mask),
-> +			       cap_mask2, buf);
->  		else
->  			printf("# Port counters: %s port %d "
->  			       "(CapMask: 0x%02X)\n%s",
-> @@ -699,6 +701,7 @@ int main(int argc, char **argv)
->  	ib_portid_t portid = { 0 };
->  	int mask = 0xffff;
->  	uint64_t ext_mask = 0xffffffffffffffffULL;
-> +	uint32_t cap_mask2;
->  	uint16_t cap_mask;
->  	int all_ports_loop = 0;
->  	int node_type, num_ports = 0;
-> @@ -816,6 +819,9 @@ int main(int argc, char **argv)
->  		IBEXIT("classportinfo query");
->  	/* ClassPortInfo should be supported as part of libibmad */
->  	memcpy(&cap_mask, pc + 2, sizeof(cap_mask));	/* CapabilityMask */
-> +	memcpy(&cap_mask2, pc + 4, sizeof(cap_mask2));	/* CapabilityMask2 */
-> +	cap_mask2 = ntohl(cap_mask2) >> 5;
-> +
->  	if (!(cap_mask & IB_PM_ALL_PORT_SELECT)) {	/* bit 8 is AllPortSelect */
->  		if (!all_ports && port == ALL_PORTS)
->  			IBEXIT("AllPortSelect not supported");
-> @@ -942,7 +948,8 @@ int main(int argc, char **argv)
->   	if (all_ports_loop || (loop_ports && (all_ports || port == ALL_PORTS))) {
->  		for (i = start_port; i <= num_ports; i++)
-> -			dump_perfcounters(extended, ibd_timeout, cap_mask,
-> +			dump_perfcounters(extended, ibd_timeout,
-> +					  cap_mask, cap_mask2,
->  					  &portid, i, (all_ports_loop
->  						       && !loop_ports));
->  		if (all_ports_loop && !loop_ports) {
-> @@ -956,7 +963,7 @@ int main(int argc, char **argv)
->  	} else if (ports_count > 1) {
->  		for (i = 0; i < ports_count; i++)
->  			dump_perfcounters(extended, ibd_timeout, cap_mask,
-> -					  &portid, ports[i],
-> +					  cap_mask2, &portid, ports[i],
->  					  (all_ports && !loop_ports));
->  		if (all_ports && !loop_ports) {
->  			if (extended != 1)
-> @@ -967,8 +974,8 @@ int main(int argc, char **argv)
->  								  cap_mask);
->  		}
->  	} else
-> -		dump_perfcounters(extended, ibd_timeout, cap_mask, &portid,
-> -				  port, 0);
-> +		dump_perfcounters(extended, ibd_timeout, cap_mask, cap_mask2,
-> +				  &portid, port, 0);
->   	if (!reset)
->  		goto done;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
