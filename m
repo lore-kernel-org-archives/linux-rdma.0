@@ -1,61 +1,36 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH rdma-next 2/2] IB/mlx5: Enlarge autogroup flow table
-Date: Wed, 29 Mar 2017 16:15:10 +0000
-Message-ID: <1490804090.3551.1.camel@sandisk.com>
-References: <20170329030901.5772-1-leon@kernel.org>
-         <20170329030901.5772-2-leon@kernel.org>
-         <1490757621.4362.1.camel@sandisk.com>
-         <20170329042320.GJ20443@mtr-leonro.local>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH RFC] nvme-rdma: support devices with queue size < 32
+Date: Wed, 29 Mar 2017 10:27:51 -0600
+Message-ID: <20170329162751.GA7113@obsidianresearch.com>
+References: <1315914765.312051621.1490259849534.JavaMail.zimbra@kalray.eu>
+ <20170323140042.GA30536@lst.de>
+ <277345557.313693033.1490279818647.JavaMail.zimbra@kalray.eu>
+ <4951fac6-662f-29a6-5ba5-38d37a2c2dca@grimberg.me>
+ <1180136633.325075447.1490700022740.JavaMail.zimbra@kalray.eu>
+ <8dc0414f-be90-ee30-0f66-8cee26c4c2aa@grimberg.me>
+ <20170329132918.GA32072@obsidianresearch.com>
+ <406682b9-d7ca-4718-5830-7940d2822bc0@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170329042320.GJ20443-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
-Content-ID: <A23B776D407E2543BC6F7BCCCF6B9F0D-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <406682b9-d7ca-4718-5830-7940d2822bc0-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keith busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, axboe-b10kYP2dOMg@public.gmane.org, Samuel Jones <samuel.jones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-03-29 at 07:23 +0300, Leon Romanovsky wrote:
-> On Wed, Mar 29, 2017 at 03:20:37AM +0000, Bart Van Assche wrote:
-> > On Wed, 2017-03-29 at 06:09 +0300, Leon Romanovsky wrote:
-> > > -#define MLX5_FS_MAX_TYPES	 10
-> > > -#define MLX5_FS_MAX_ENTRIES	 32000UL
-> > > +#define MLX5_FS_MAX_TYPES	 6
-> > > +#define MLX5_FS_MAX_ENTRIES	 BIT(16)
-> >=20
-> > Hello Leon and Maor,
-> >=20
-> > The use of the BIT() macro here looks misleading to me. Elsewhere in th=
-e
-> > kernel BIT() is used to represent a bitmask. My understanding is that
-> > MLX5_FS_MAX_ENTRIES is not a bitmask but a value?
->=20
-> Hello Bart,
->=20
-> I agree with you that the name "MAX_ENTRIES" is misleading. This define
-> MLX5_FS_MAX_ENTRIES is needed to compare num_entries with max_table_size
-> which is represented in BIT() format. The max_table was added in previous
-> patch and we thought that it will be much convenient for the reader to
-> compare the same BIT(..) constructions.
->=20
-> If you think that we abused the BIT() macro, let me know and I'll send
-> updated version (without BIT()).
+On Wed, Mar 29, 2017 at 06:47:54PM +0300, Sagi Grimberg wrote:
 
-Hello Leon,
+> For each I/O we post up to 2 work requests, 1 for memory registration
+> and 1 for sending an I/O request (and 1 for local invalidation if the
+> target doesn't do it for us, but that is not the case here). So if our
+> queue depth is X, we size our completion queue to be X*3, and we need
+> to make sure we signal every (X*3)/2.
 
-It's not that important to me, but does MLX5_FS_MAX_ENTRIES represent a num=
-ber
-or a bitmask? To me the name "MLX5_FS_MAX_ENTRIES" suggests that it is a nu=
-mber
-and using BIT() suggests that it's a bitmask. This seems contradictory to m=
-e.
+??? If your SQ is X and your CQ is X*3 you need to signal at X/2.
 
-Thanks,
-
-Bart.=
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
