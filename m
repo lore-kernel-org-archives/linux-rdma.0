@@ -1,76 +1,61 @@
-From: Vangelis Tasoulas <vangelis-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org>
-Subject: Extend LID space in InfiniBand beyond 48k? Is this really possible?
-Date: Wed, 29 Mar 2017 18:07:47 +0200
-Message-ID: <b9531f99-c350-3985-edae-296b1bc97509@simula.no>
+From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH rdma-next 2/2] IB/mlx5: Enlarge autogroup flow table
+Date: Wed, 29 Mar 2017 16:15:10 +0000
+Message-ID: <1490804090.3551.1.camel@sandisk.com>
+References: <20170329030901.5772-1-leon@kernel.org>
+         <20170329030901.5772-2-leon@kernel.org>
+         <1490757621.4362.1.camel@sandisk.com>
+         <20170329042320.GJ20443@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="kjukd2sbHuFVuBRbprsVNRU1l8wbMTqc9"
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170329042320.GJ20443-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
+Content-ID: <A23B776D407E2543BC6F7BCCCF6B9F0D-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---kjukd2sbHuFVuBRbprsVNRU1l8wbMTqc9
-Content-Type: multipart/mixed; boundary="bUBjG14FfaQUX7Tec1IvJsbM1NwUtW0L0";
- protected-headers="v1"
-From: Vangelis Tasoulas <vangelis-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org>
-To: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Message-ID: <b9531f99-c350-3985-edae-296b1bc97509-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org>
-Subject: Extend LID space in InfiniBand beyond 48k? Is this really possible?
+On Wed, 2017-03-29 at 07:23 +0300, Leon Romanovsky wrote:
+> On Wed, Mar 29, 2017 at 03:20:37AM +0000, Bart Van Assche wrote:
+> > On Wed, 2017-03-29 at 06:09 +0300, Leon Romanovsky wrote:
+> > > -#define MLX5_FS_MAX_TYPES	 10
+> > > -#define MLX5_FS_MAX_ENTRIES	 32000UL
+> > > +#define MLX5_FS_MAX_TYPES	 6
+> > > +#define MLX5_FS_MAX_ENTRIES	 BIT(16)
+> >=20
+> > Hello Leon and Maor,
+> >=20
+> > The use of the BIT() macro here looks misleading to me. Elsewhere in th=
+e
+> > kernel BIT() is used to represent a bitmask. My understanding is that
+> > MLX5_FS_MAX_ENTRIES is not a bitmask but a value?
+>=20
+> Hello Bart,
+>=20
+> I agree with you that the name "MAX_ENTRIES" is misleading. This define
+> MLX5_FS_MAX_ENTRIES is needed to compare num_entries with max_table_size
+> which is represented in BIT() format. The max_table was added in previous
+> patch and we thought that it will be much convenient for the reader to
+> compare the same BIT(..) constructions.
+>=20
+> If you think that we abused the BIT() macro, let me know and I'll send
+> updated version (without BIT()).
 
---bUBjG14FfaQUX7Tec1IvJsbM1NwUtW0L0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Hello Leon,
 
-Hello,
+It's not that important to me, but does MLX5_FS_MAX_ENTRIES represent a num=
+ber
+or a bitmask? To me the name "MLX5_FS_MAX_ENTRIES" suggests that it is a nu=
+mber
+and using BIT() suggests that it's a bitmask. This seems contradictory to m=
+e.
 
-I was reading a year+ old article where Steve Scott (CRAY CTO) was
-interviewed here:
-https://www.nextplatform.com/2016/01/08/cray-cto-connects-the-dots-on-fut=
-ure-interconnects/
+Thanks,
 
-At a certain point Steve mentions (or at least that's what the article
-claims):
-
-/InfiniBand has another limit in terms of the number of logical IDs, or
-LIDs, it can support, which is around 48,000 end points, and for the
-most point, people have stayed within that limit. There is an extended
-version that has some higher packet overhead that can go to higher
-scalability./
-
-Is this true? Is there any reference that one can point me to for the
-part of the "extended version that has some higher packet overhead that
-can go to higher scalability"?
-
-To the best of my knowledge, there is no extended version defined in the
-InfiniBand specification. What is mentioned is that /The unicast LID
-range is a flat identifier space defined as 0x0001 to 0xBFFF./
-
-Vangelis
-
-
---bUBjG14FfaQUX7Tec1IvJsbM1NwUtW0L0--
-
---kjukd2sbHuFVuBRbprsVNRU1l8wbMTqc9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJY29vWAAoJEBVCOlepmNphF0sIAK+9diZeDOWGJS7TLWMxhSc/
-TdjQ9paA6LYAm1qvBKynk0xXyeoULFba36fgctPwFa0rB5Fp3+O7iNlUsigTHI6z
-VyAC8jq6FkkXCKdqgZ7OkFGBzhHUQF9IR1JpcDAsWWZ2F9FNFqkBIiou39fKlYfU
-i/slAmhkRWiYXCXqj8f4UmwUCYWYSyDMlpVAUx6Kvr8hdwVzNhlTsiemlTXOElSv
-bC12SM9EW+c0ny0dBCnyg4jnAQWwQ+d3xWWKvHKM95B1TQiQ8Qe++3XwZpvduXml
-nsE87d3iL2MpHo92KBqdBZkWj+AKnIaCXFd/dChlFRG4jQsyWN9U7AQuxTouRDo=
-=BJrh
------END PGP SIGNATURE-----
-
---kjukd2sbHuFVuBRbprsVNRU1l8wbMTqc9--
+Bart.=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
