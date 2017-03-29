@@ -1,79 +1,226 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v3] IB/IPoIB: ibX: failed to create mcg debug file
-Date: Wed, 29 Mar 2017 14:21:55 +0300
-Message-ID: <20170329112155.GK20443@mtr-leonro.local>
-References: <1490599139-12665-1-git-send-email-shamir.rabinovitch@oracle.com>
- <20170327195500.GH20443@mtr-leonro.local>
- <20170327201714.GB29831@srabinov-linux.uk.oracle.com>
- <20170328091940.GA14058@srabinov-linux.uk.oracle.com>
- <20170328170506.GI20443@mtr-leonro.local>
- <20170329102019.GA19012@srabinov-linux.uk.oracle.com>
+From: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v4] IB/IPoIB: ibX: failed to create mcg debug file
+Date: Wed, 29 Mar 2017 16:20:57 +0300
+Message-ID: <06c3788d-d99b-025d-943e-1eb7d1a38dca@mellanox.com>
+References: <1490782919-24910-1-git-send-email-shamir.rabinovitch@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="3CAnR4CLEnEWqRMR"
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170329102019.GA19012-t9juWtktDCT52KUv/Ok+f8QLKKaP9WJ9VpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1490782919-24910-1-git-send-email-shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, vijay.ac.kumar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, vijay.ac.kumar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Shamir,
 
---3CAnR4CLEnEWqRMR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On 29/03/2017 13:21, Shamir Rabinovitch wrote:
+> When udev renames the netdev devices, ipoib debugfs entries does not
+> get renamed. As a result, if subsequent probe of ipoib device reuse the
+> name then creating a debugfs entry for the new device would fail.
+> 
+> Also, moved ipoib_create_debug_files and ipoib_delete_debug_files as part
+> of ipoib event handling in order to avoid any race condition between these.
+> 
+> Signed-off-by: Vijay Kumar <vijay.ac.kumar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> 
+> ---
+> v3->v4:
+> - Review comment from Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>   Fixed duplicate delete of debug files. Debug files no longer 
+>   deleted in multiple locations. Debug files are only created/
+>   deleted as result of NETDEV_XXX events. Verified the events
+>   work well for ipoib child (vlan) interfaces as well. I do see
+>   that function 'netdev_wait_allrefs' has the potential to send
+>   the netdev multiple NETDEV_UNREGISTER events. I am not sure
+>   if this scenario applicable to ipoib but I added protection
+>   measures and WARN print in 'ipoib_delete_debug_files' to catch
+>   and handle such (potential) issue gracefully.
+> - Review comment from Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>   When the above was fixed, I could then try out what Leon suggested
+>   and figured that the idea to replace 'ipoib_debugfs_rename'
+>   with 'ipoib_delete_debug_files' and then 'ipoib_create_debug_files'
+>   is working fine.
+> v2->v3:
+> - Move rev change out of commit message
+> - Fix typo
+> v1->v2:
+> - Review comment from Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>   Verified again and NETDEV_UNREGISTER is called correctly. Debug
+>   files are removed as expected. Thanks.
+> - Fix compile warning when CONFIG_INFINIBAND_IPOIB_DEBUG is not set
+> ---
+> 
+> ---
+>  drivers/infiniband/ulp/ipoib/ipoib_fs.c   |    3 ++
+>  drivers/infiniband/ulp/ipoib/ipoib_main.c |   44 +++++++++++++++++++++++++---
+>  drivers/infiniband/ulp/ipoib/ipoib_vlan.c |    3 --
+>  3 files changed, 42 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_fs.c b/drivers/infiniband/ulp/ipoib/ipoib_fs.c
+> index 6bd5740..09396bd 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_fs.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_fs.c
+> @@ -281,8 +281,11 @@ void ipoib_delete_debug_files(struct net_device *dev)
+>  {
+>  	struct ipoib_dev_priv *priv = netdev_priv(dev);
+>  
+> +	WARN_ONCE(!priv->mcg_dentry, "null mcg debug file\n");
+> +	WARN_ONCE(!priv->path_dentry, "null path debug file\n");
+>  	debugfs_remove(priv->mcg_dentry);
+>  	debugfs_remove(priv->path_dentry);
+> +	priv->mcg_dentry = priv->path_dentry = NULL;
+>  }
+>  
+>  int ipoib_register_debugfs(void)
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> index b58d9dc..a10a38f 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> @@ -108,6 +108,33 @@ struct ipoib_path_iter {
+>  	.get_net_dev_by_params = ipoib_get_net_dev_by_params,
+>  };
+>  
+> +#ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
+> +static int ipoib_netdev_event(struct notifier_block *this,
+> +			      unsigned long event, void *ptr)
+> +{
+> +	struct netdev_notifier_info *ni = ptr;
+> +	struct net_device *dev = ni->dev;
+> +
+> +	if (dev->netdev_ops->ndo_open != ipoib_open)
+> +		return NOTIFY_DONE;
+> +
+> +	switch (event) {
+> +	case NETDEV_REGISTER:
+> +		ipoib_create_debug_files(dev);
+> +		break;
+> +	case NETDEV_CHANGENAME:
+> +		ipoib_delete_debug_files(dev);
+> +		ipoib_create_debug_files(dev);
+> +		break;
+> +	case NETDEV_UNREGISTER:
+> +		ipoib_delete_debug_files(dev);
+> +		break;
+> +	}
+> +
+> +	return NOTIFY_DONE;
+> +}
+> +#endif
+> +
+>  int ipoib_open(struct net_device *dev)
+>  {
+>  	struct ipoib_dev_priv *priv = netdev_priv(dev);
+> @@ -1653,8 +1680,6 @@ void ipoib_dev_cleanup(struct net_device *dev)
+>  
+>  	ASSERT_RTNL();
+>  
+> -	ipoib_delete_debug_files(dev);
+> -
+>  	/* Delete any child interfaces first */
+>  	list_for_each_entry_safe(cpriv, tcpriv, &priv->child_intfs, list) {
+>  		/* Stop GC on child */
+> @@ -2072,8 +2097,6 @@ int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
+>  		goto register_failed;
+>  	}
+>  
+> -	ipoib_create_debug_files(priv->dev);
+> -
+>  	if (ipoib_cm_add_mode_attr(priv->dev))
+>  		goto sysfs_failed;
+>  	if (ipoib_add_pkey_attr(priv->dev))
+> @@ -2088,7 +2111,6 @@ int ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
+>  	return priv->dev;
+>  
+>  sysfs_failed:
+> -	ipoib_delete_debug_files(priv->dev);
+>  	unregister_netdev(priv->dev);
+>  
+>  register_failed:
+> @@ -2173,6 +2195,12 @@ static void ipoib_remove_one(struct ib_device *device, void *client_data)
+>  	kfree(dev_list);
+>  }
+>  
+> +#ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
+> +static struct notifier_block ipoib_netdev_notifier = {
+> +	.notifier_call = ipoib_netdev_event,
+> +};
+> +#endif
+> +
+>  static int __init ipoib_init_module(void)
+>  {
+>  	int ret;
+> @@ -2225,6 +2253,9 @@ static int __init ipoib_init_module(void)
+>  	if (ret)
+>  		goto err_client;
+>  
+> +#ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
+> +	register_netdevice_notifier(&ipoib_netdev_notifier);
+> +#endif
+>  	return 0;
+>  
+>  err_client:
+> @@ -2242,6 +2273,9 @@ static int __init ipoib_init_module(void)
+>  
+>  static void __exit ipoib_cleanup_module(void)
+>  {
+> +#ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
+> +	unregister_netdevice_notifier(&ipoib_netdev_notifier);
+> +#endif
+>  	ipoib_netlink_fini();
+>  	ib_unregister_client(&ipoib_client);
+>  	ib_sa_unregister_client(&ipoib_sa_client);
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
+> index a2f9f29..57eadd2 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
+> @@ -87,8 +87,6 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
+>  		goto register_failed;
+>  	}
+>  
+> -	ipoib_create_debug_files(priv->dev);
+> -
+>  	/* RTNL childs don't need proprietary sysfs entries */
+>  	if (type == IPOIB_LEGACY_CHILD) {
+>  		if (ipoib_cm_add_mode_attr(priv->dev))
+> @@ -109,7 +107,6 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
+>  
+>  sysfs_failed:
+>  	result = -ENOMEM;
+> -	ipoib_delete_debug_files(priv->dev);
+>  	unregister_netdevice(priv->dev);
+>  
+>  register_failed:
+> 
+I liked the notation of a rename (and not delete & create), but I 
+don't feel strongly about it.
 
-On Wed, Mar 29, 2017 at 01:20:20PM +0300, Shamir Rabinovitch wrote:
-> On Tue, Mar 28, 2017 at 08:05:06PM +0300, Leon Romanovsky wrote:
-> >
-> > Thank you for checking it.
-> >
-> > There is one more thing which I noticed, you should check the return
-> > values of debugfs_remove and destroy debugfs in case of failures.
-> >
->
-> Hi Leon,
->
-> 'debugfs_remove' prototype is "static inline void
-> debugfs_remove(struct dentry *dentry)".
-> If you typed the wrong function please let me know.
+I know the commit that added debugfs is older than the universe, but maybe you can
+use the commit below as a fixes line/queue it to stable?
 
-Sorry, it was my fault, I mistyped and intended to write debugfs_rename
-which you used in previous version of your patch.
+commit 1732b0ef3b3a02e3df328086fb3018741c5476da
+Author: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Date:   Mon Nov 7 10:33:11 2005 -0800
 
- linux-rdma git:(master) git grep debugfs_rename
- ....
-fs/debugfs/inode.c: * debugfs_rename - rename a file/directory in the debugfs filesystem
-fs/debugfs/inode.c:struct dentry *debugfs_rename(struct dentry *old_dir, struct dentry *old_dentry,
-fs/debugfs/inode.c:EXPORT_SYMBOL_GPL(debugfs_rename);
- ....
+    [IPoIB] add path record information in debugfs
 
->
-> BR, Shamir
->
+    Add ibX_path files to debugfs that contain information about the IPoIB
+    path cache.  IPoIB ARP only gives GIDs, which the IPoIB driver must
+    resolve to real IB paths through the ib_sa module.  For debugging,
+    when the ARP table looks OK but traffic isn't flowing, it's useful to
+    be able to see if the resolution from GID to path worked.
 
---3CAnR4CLEnEWqRMR
-Content-Type: application/pgp-signature; name="signature.asc"
+    Also clean up the formatting of the existing _mcg debugfs files.
 
------BEGIN PGP SIGNATURE-----
+    Signed-off-by: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljbmNIACgkQ5GN7iDZy
-WKdUjA/8CwXZFPdSjEoJbCpzZ9hi3vnKA0UntGa3gBmsEmh5oS87wo/z+UEC3KcC
-5UFJ5lFInVyedwNebQbRWK21vZIpI4NzYDv4XZLhUaDdIAPL3Kl2rS4BLoW5hYNN
-XZNT326omZnVml/3Jk8myd/R8ceDAbPs1hUr35WLwjSG7q5CLLMTpuqO4d+evjzA
-fOOSfPu6u8McvtLCaBx0dHmrGH8dQtASeGXKQHELvUkVFkIA+gJSHey0m8wJhYof
-6OaZ+Rno/okah2f7uxEfPDUqIkdRcsVgzrmkjc8/BAdb7T2RSTjPLKscKo85vX5B
-28GR334+3iWngwFk/6ZCs0lD0Fg9xYZ8pi+HhJrcPDpIOlOhhMixmj7bvJ8Qgi9Y
-bcJj2sERxn/udPQP0tv8Y95z2u3IucNe4uHysthFHTEQ/B528+6ns4r1Ipgs+h3S
-ILIW1pg6UaPvO7HJkeYjX0K50jHEPw6xUILNQS63sRRDraBjjFhPqs5fAgqBH0lb
-ZEIyDf0zFBmlj27fyltMMTew0rAhlb2ldagETfXfwIomfmzXtmQ05cfl84xI9bbi
-un8PI6yoWxbsE0AdJBDpBh2eyMwrFcuUFPVtgtfCYA98fUv2KSfy3I1fF5wjHCRO
-VWF8TaQaX35rMaUK8OULfo/eIyCRMgXnTTofkUo8E0s5MjRdEo8=
-=1TDY
------END PGP SIGNATURE-----
 
---3CAnR4CLEnEWqRMR--
+Other than that, looks good.
+Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+Mark.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
