@@ -1,79 +1,53 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next 2/2] IB/mlx5: Enlarge autogroup flow table
-Date: Wed, 29 Mar 2017 07:23:20 +0300
-Message-ID: <20170329042320.GJ20443@mtr-leonro.local>
-References: <20170329030901.5772-1-leon@kernel.org>
- <20170329030901.5772-2-leon@kernel.org>
- <1490757621.4362.1.camel@sandisk.com>
+From: Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
+Subject: Re: [PATCH RFC] nvme-rdma: support devices with queue size < 32
+Date: Wed, 29 Mar 2017 11:36:40 +0200 (CEST)
+Message-ID: <1606981439.330477492.1490780200808.JavaMail.zimbra@kalray.eu>
+References: <1315914765.312051621.1490259849534.JavaMail.zimbra@kalray.eu> <20170323140042.GA30536@lst.de> <277345557.313693033.1490279818647.JavaMail.zimbra@kalray.eu> <4951fac6-662f-29a6-5ba5-38d37a2c2dca@grimberg.me> <1180136633.325075447.1490700022740.JavaMail.zimbra@kalray.eu> <8dc0414f-be90-ee30-0f66-8cee26c4c2aa@grimberg.me>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="dMdWWqg3F2Dv/qfw"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1490757621.4362.1.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <8dc0414f-be90-ee30-0f66-8cee26c4c2aa-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keith busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, axboe-b10kYP2dOMg@public.gmane.org, Samuel Jones <samuel.jones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+>>> Maybe it'll be better if we do:
+>>>
+>>> static inline bool queue_sig_limit(struct nvme_rdma_queue *queue)
+>>> {
+>>> 	return (++queue->sig_count % (queue->queue_size / 2)) == 0;
+>>> }
+>>>
+>>> And lose the hard-coded 32 entirely. Care to test that?
+>>
+>> Hello Sigi,
+>> I agree with you, we've found a setup where the signalling every queue
+>> depth is not enough and we're testing the division by two that seems
+>> to work fine till now.
+>>
+>> In your version in case of queue length > 32 the notifications would
+>> be sent less often that they are now. I'm wondering if it will have
+>> impact on performance and internal card buffering (it seems that
+>> Mellanox buffers are ~100 elements). Wouldn't it create issues?
+>>
+>> I'd like see the magic constant removed. From what I can see we
+>> need to have something not exceeding send buffer of the card but
+>> also not lower than the queue depth. What do you think?
+> 
+> I'm not sure what buffering is needed from the device at all in this
+> case, the device is simply expected to avoid signaling completions.
+> 
+> Mellanox folks, any idea where is this limitation coming from?
+> Do we need a device capability for it?
 
---dMdWWqg3F2Dv/qfw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In the case of mlx5 the we're getting -ENOMEM from begin_wqe
+(condition on mlx5_wq_overflow). This queue is sized in the driver
+based on multiple factors. If we ack less often, this could
+happen for higher queue depths too, I think.
 
-On Wed, Mar 29, 2017 at 03:20:37AM +0000, Bart Van Assche wrote:
-> On Wed, 2017-03-29 at 06:09 +0300, Leon Romanovsky wrote:
-> > -#define MLX5_FS_MAX_TYPES	 10
-> > -#define MLX5_FS_MAX_ENTRIES	 32000UL
-> > +#define MLX5_FS_MAX_TYPES	 6
-> > +#define MLX5_FS_MAX_ENTRIES	 BIT(16)
->
-> Hello Leon and Maor,
->
-> The use of the BIT() macro here looks misleading to me. Elsewhere in the
-> kernel BIT() is used to represent a bitmask. My understanding is that
-> MLX5_FS_MAX_ENTRIES is not a bitmask but a value?
-
-Hello Bart,
-
-I agree with you that the name "MAX_ENTRIES" is misleading. This define
-MLX5_FS_MAX_ENTRIES is needed to compare num_entries with max_table_size
-which is represented in BIT() format. The max_table was added in previous
-patch and we thought that it will be much convenient for the reader to
-compare the same BIT(..) constructions.
-
-If you think that we abused the BIT() macro, let me know and I'll send
-updated version (without BIT()).
-
->
-> Thanks,
-
-Thanks
-
->
-> Bart.
-
---dMdWWqg3F2Dv/qfw
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljbNrcACgkQ5GN7iDZy
-WKeInQ/8Cvoec/TniTdPDQDI+X4I0GEff8Iu8gpLa3CQuA0qZ0b3u3gd6ByudbQA
-SYagEc2ukoEBDBPFxBE1TMS9n9UOQ3L2qgVnF3EMPy7+36LHoCTOImJ7fYJ5VskY
-QgzhFFh1kVtf77WFrmdRrjRnwX5mK0O+rCVHJJP250oyQoX9ukXzExcBCK9sSC0a
-N0DDh0SwBEHPbFc1jnDdowDlwSZfBwifQg9DlJu5hzOGfYbUxjIYuF5aaXugZ1HF
-YLfcMgqQjaBixHp5wxdhoBRdzC2SpgDiNniGBcdmbA0CB5fxM3J2NIDwl1O4HjYG
-xTT9UWaK4z2PdXQ/VNdPzLxHlMosp1s5/dZvM9DqGCY+EP5UEa4WQ7C73jYDXk8R
-XY61cEp/UiSgU7NchnTXfm4juZBOmntdiWbiU2THNk2IBi2q30AtAgJXHCuksp5n
-vKC/wunJUQfC9kL07PTqqLoWMVq0lTyXgTJzNCWEumF7r1EQuSdK5cyQDPDVtSzW
-odMXZJVVjdoCOWk+w/BJV+rehSytA20axkaLh0yT5cA2mB3h1B7N3sbJWQL2OoIc
-sATyb4GJ8Az6bsUX9PVYmJXxus8D7L7IxdC3yzwaYZDHCXalkPoreWZjfQGOEVca
-kAxbzelGsEwA4ZNSNrJmmKiIZs298e2Sd4MBe3EhPv6/ecXzXEc=
-=Rkrm
------END PGP SIGNATURE-----
-
---dMdWWqg3F2Dv/qfw--
+Marta
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
