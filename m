@@ -1,48 +1,62 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH RFC] nvme-rdma: support devices with queue size < 32
-Date: Wed, 29 Mar 2017 07:29:18 -0600
-Message-ID: <20170329132918.GA32072@obsidianresearch.com>
-References: <1315914765.312051621.1490259849534.JavaMail.zimbra@kalray.eu>
- <20170323140042.GA30536@lst.de>
- <277345557.313693033.1490279818647.JavaMail.zimbra@kalray.eu>
- <4951fac6-662f-29a6-5ba5-38d37a2c2dca@grimberg.me>
- <1180136633.325075447.1490700022740.JavaMail.zimbra@kalray.eu>
- <8dc0414f-be90-ee30-0f66-8cee26c4c2aa@grimberg.me>
+Subject: Re: [RFC v2 for accelerated IPoIB 00/6] Enhanced mode for IPoIB
+ driver
+Date: Wed, 29 Mar 2017 07:46:37 -0600
+Message-ID: <20170329134637.GA1940@obsidianresearch.com>
+References: <1490036908-12528-1-git-send-email-erezsh@mellanox.com>
+ <20170320205927.GA17225@obsidianresearch.com>
+ <20170321114955.GB2079@mtr-leonro.local>
+ <20170321161530.GB22216@obsidianresearch.com>
+ <20170321164952.GE2079@mtr-leonro.local>
+ <CAAk-MO_KEV9MA5Dcaz8SZagMeC4hQX456Cu8To-YRBNMeNu3pg@mail.gmail.com>
+ <20170322165238.GA26589@obsidianresearch.com>
+ <CAAk-MO_7LVUQS_8+h9shFEXkjT6NHkzXeYRH+_8Wcjr0P+dHAw@mail.gmail.com>
+ <20170326204237.GB3113@obsidianresearch.com>
+ <CAAk-MO8Z7wKGFU5empgHGpN73cGMkKMi+ijnTHpfXBD5oZ+cGQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <8dc0414f-be90-ee30-0f66-8cee26c4c2aa-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <CAAk-MO8Z7wKGFU5empgHGpN73cGMkKMi+ijnTHpfXBD5oZ+cGQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keith busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, axboe-b10kYP2dOMg@public.gmane.org, Samuel Jones <samuel.jones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 28, 2017 at 02:30:14PM +0300, Sagi Grimberg wrote:
-> I'm not sure what buffering is needed from the device at all in this
-> case, the device is simply expected to avoid signaling completions.
+On Tue, Mar 28, 2017 at 02:40:21PM +0300, Erez Shitrit wrote:
+> > Does mlx5 even need a 'AH'? Maybe allowing the driver to provide some
+> > bytes in the pseudo header that match the HW SQE is an overall more
+> > efficient direction.
 > 
-> Mellanox folks, any idea where is this limitation coming from?
-> Do we need a device capability for it?
+> For mlx5/mlx4, the details from the ah are required, (in order to
+> build the datagram segment in the wqe(,
 
-Fundamentally you must drive SQ flow control via CQ completions. For
-instance a ULP cannot disable all CQ notifications and keep
-stuffing things into the SQ.
+I mean you can extract the details from the AH and store them in the
+pseudo header specifically for mlx5. This avoids the need to store a
+pointer.
 
-An alternative way to state this: A ULP cannot use activity on the
-RQ to infer that there is space in the SQ. Only CQ completions can be
-used to prove there is more available SQ space. Do not post to the SQ
-until a CQ has been polled proving available space.
+> but the ref count is seamless since the ah is not a hw resource, I
+> can put that instead of the pseudo header in the driver start_xmit
 
-Ultimately you need a minimum of one CQ notification for every SQ
-depth post and the ULP must not post to the SQ once it fills until
-it sees the CQ notification. That usually drives the rule of thumb to
-notify every 1/2 depth, however any SQWE posting failures indicate a
-ULP bug..
+You can't just stuff a pointer into a skb, it needs to be kref'd
+properly, which means when the skb is finally done someone kref_put's
+that pointer. That is the hard part, IMHO.
 
-There are a bunch of varied reasons for this, and it was discussed to
-death for NFS. NFS's bugs and wonkyness in this area went away when
-Chuck did strict accounting SQ capicty driven by the CQ...
+The best option might be to store some kind of lookup hint that allows
+the AH pointer to be found O(1) in normal cases, and does not require
+kref trickery.
+
+But optimizing this for GSO is not really related to this netdev
+rework..
+
+> > Eh? Having ndo->ipoib->driver or ndo->driver->ipoib as a call chain
+> > doesn't really matter one bit.
+> 
+> I meant that the extra call is time consuming, if we need one more
+> function (to extract the ah) that needs to be exported.
+
+It isn't really extra and there isn't an issue exporting functions,
+IHMO.
 
 Jason
 --
