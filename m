@@ -1,56 +1,64 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH RFC] nvme-rdma: support devices with queue size < 32
-Date: Wed, 29 Mar 2017 16:19:32 -0600
-Message-ID: <20170329221932.GA29457@obsidianresearch.com>
-References: <4951fac6-662f-29a6-5ba5-38d37a2c2dca@grimberg.me>
- <1180136633.325075447.1490700022740.JavaMail.zimbra@kalray.eu>
- <8dc0414f-be90-ee30-0f66-8cee26c4c2aa@grimberg.me>
- <20170329132918.GA32072@obsidianresearch.com>
- <406682b9-d7ca-4718-5830-7940d2822bc0@grimberg.me>
- <20170329162751.GA7113@obsidianresearch.com>
- <80770042-743e-a271-c636-f72099f9ac56@grimberg.me>
- <9eb08168-18a6-a176-01df-b68b6a225963@redhat.com>
- <3505b835-d0ba-70cb-dfe8-1265fc2bbb83@redhat.com>
- <2ba93b5b-ad36-5533-36e2-9db2e3198c19@grimberg.me>
+Subject: Re: [PATCH V2 for-next 2/7] IB/core: Add support for idr types
+Date: Wed, 29 Mar 2017 16:27:44 -0600
+Message-ID: <20170329222744.GA30605@obsidianresearch.com>
+References: <1489939145-125246-1-git-send-email-matanb@mellanox.com>
+ <1489939145-125246-3-git-send-email-matanb@mellanox.com>
+ <20170329151028.GD2586@obsidianresearch.com>
+ <CAAKD3BD328+Ykq_LcMojTObew6A1UQ0qs_g5m_qaLYUww=NuDw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <2ba93b5b-ad36-5533-36e2-9db2e3198c19-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <CAAKD3BD328+Ykq_LcMojTObew6A1UQ0qs_g5m_qaLYUww=NuDw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keith busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, axboe-b10kYP2dOMg@public.gmane.org, Samuel Jones <samuel.jones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 29, 2017 at 07:59:13PM +0300, Sagi Grimberg wrote:
-> Yea, you're right, and not only I got it wrong, I even contradicted my
-> own suggestion that was exactly what you and Jason suggested (where is
-> the nearest rat-hole...)
+On Wed, Mar 29, 2017 at 10:23:19PM +0300, Matan Barak wrote:
+> > A function called lookup_get should also do the get. I think this
+> > would look iodmatically better like:
+> >
+> >         rcu_read_lock();
+> >         uobj = idr_find(&ucontext->ufile->idr, id);
+> >         if (uobj)
+> >                 uverbs_uobject_get(uobj);
+> >         rcu_read_unlock();
+> >
+> > And drop the overlap from rdma_lookup_get_uobject
+> >
 > 
-> So I suggested to signal every X/2 and Marta reported SQ overflows for
-> high queue-dpeth. Marta, at what queue-depth have you seen this?
+> Yeah, that could be a nice small refactor. However, it makes
+> the needs_rcu asymmetrical. We test this flag at release, but
+> we don't force that in the lookup_get. So, that's a trade-off between
+> these methods.
 
-I just want to clarify my comment about RQ - because you are talking
-about a queue depth concept.
+I think that is OK. You could change it to needs_kfree_rcu for
+clarity.
 
-It is tempting to rely on a queue depth of X == SQ depth of X (or 2*
-in this case) and then try to re-use the flow control on the queue to
-protect the SQ from overflow.
 
-Generally this does not work because the main queue can retire work
-from either the CQ or the RQ. If the retire workload is mainly RQ
-based then you can submit to the SQ without a CQ poll and overflow
-it.
+> >> +     if (uobj->type != type)
+> >> +             return ERR_PTR(-EINVAL);
+> >> +
+> >
+> > This should probably be done in rdma_lookup_get_uobject?
+> >
+> 
+> But what happens if you fail? In the fd case, you have to fput the file.
+> That's why I preferred this model.
 
-Generally I expect to see direct measurement of SQ capacity and plug
-the main queue when the SQ goes full.
+Since it is lookup_get the caller always has to call uobj_put on any
+failure, and that does fput for fds. No problem?
 
-To check this use a simple assertion, decrement a counter on every
-post, increment it appropriately on every polled CQ, init to the SQ
-depth, and assert the counter never goes negative.
+> I agree. The only thing that we have to ensure is that the release and
+> free functions have
+> to be available when they're called. How the module actually does that
+> is something we could
+> decide when we cross that bridge.
 
-Triggering the assertion is an unconditional ULP bug, and is the most
-likely cause of a posting no space failure.
+Didn't we get rid of the release function? Is there any callback that
+could happen after driver detatch?
 
 Jason
 --
