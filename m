@@ -1,88 +1,89 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 05/13] svcrdma: Introduce local rdma_rw API helpers
-Date: Thu, 30 Mar 2017 10:29:41 -0500
-Message-ID: <370FEB6E-1E2C-4578-91FC-A035ADF16F78@oracle.com>
-References: <20170327132329.5585.98465.stgit@klimt.1015granger.net> <20170327134835.5585.76603.stgit@klimt.1015granger.net> <20170330123014.GA32364@infradead.org>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170330123014.GA32364-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V2 for-next 2/7] IB/core: Add support for idr types
+Date: Thu, 30 Mar 2017 18:42:12 +0300
+Message-ID: <CAAKD3BCjwGpaNmnK2rff5F2MZdiNV3f8kbi0xy5_MSP9OiKpcA@mail.gmail.com>
+References: <1489939145-125246-1-git-send-email-matanb@mellanox.com>
+ <1489939145-125246-3-git-send-email-matanb@mellanox.com> <20170329151028.GD2586@obsidianresearch.com>
+ <CAAKD3BD328+Ykq_LcMojTObew6A1UQ0qs_g5m_qaLYUww=NuDw@mail.gmail.com> <20170329222744.GA30605@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170329222744.GA30605-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Mar 30, 2017 at 1:27 AM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Wed, Mar 29, 2017 at 10:23:19PM +0300, Matan Barak wrote:
+>> > A function called lookup_get should also do the get. I think this
+>> > would look iodmatically better like:
+>> >
+>> >         rcu_read_lock();
+>> >         uobj = idr_find(&ucontext->ufile->idr, id);
+>> >         if (uobj)
+>> >                 uverbs_uobject_get(uobj);
+>> >         rcu_read_unlock();
+>> >
+>> > And drop the overlap from rdma_lookup_get_uobject
+>> >
+>>
+>> Yeah, that could be a nice small refactor. However, it makes
+>> the needs_rcu asymmetrical. We test this flag at release, but
+>> we don't force that in the lookup_get. So, that's a trade-off between
+>> these methods.
+>
+> I think that is OK. You could change it to needs_kfree_rcu for
+> clarity.
+>
+>
 
-> On Mar 30, 2017, at 7:30 AM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
-> 
->> +	spinlock_t	     sc_rw_ctxt_lock;
->> +	struct list_head     sc_rw_ctxts;
-> 
-> It's a little sad that we always need a list and a spinlock when
-> most requests should need a single context only.
+Yeah, I guess both are ok. I tend to like symmetrical approaches, but
+I don't have a strong objection
+to go with needs_kfree_rcu if you really prefer that.
 
-The current code needs resources protected by several
-spinlocks, some of which disable bottom-halfs. This rewrite
-takes it down to just this one plain vanilla spinlock which
-picks up all the svcrdma layer resources needed for the I/O
-at once.
+>> >> +     if (uobj->type != type)
+>> >> +             return ERR_PTR(-EINVAL);
+>> >> +
+>> >
+>> > This should probably be done in rdma_lookup_get_uobject?
+>> >
+>>
+>> But what happens if you fail? In the fd case, you have to fput the file.
+>> That's why I preferred this model.
+>
+> Since it is lookup_get the caller always has to call uobj_put on any
+> failure, and that does fput for fds. No problem?
+>
 
-There are some common cases which can require more than one
-of these.
+Not necessarily. For example, lookup_get could fail because it can't
+find a valid object.
+In that case, you have no object to put. However, I'll just put a
+type->lookup_put in
+the release path, so we could move that into the shared code.
 
-My point is, I think this is better than trips to a memory
-allocator, because those frequently require at least one
-BH-disabled or irqsave spinlock, which helps prevent
-latency outliers and, rarely, allocation failures.
+>> I agree. The only thing that we have to ensure is that the release and
+>> free functions have
+>> to be available when they're called. How the module actually does that
+>> is something we could
+>> decide when we cross that bridge.
+>
+> Didn't we get rid of the release function? Is there any callback that
+> could happen after driver detatch?
+>
 
-That said, I will happily consider any solution that does
-not require critical sections!
+We don't have a release memory functions - we got rid of them awhile ago.
+However, when you detach a driver based fd object, and the release
+file_operations of that
+fd points to driver code. You could get a nasty exception if you try
+to close that file
+after unbinding the context because the module was unloaded.
 
+> Jason
 
->> + * Each WR chain handles a single contiguous server-side buffer,
->> + * because some registration modes (eg. FRWR) do not support a
->> + * discontiguous scatterlist.
-> 
-> Both FRWR and FMR have no problem with a discontiguous page list,
-> they only have a problem with any segment but the first not starting
-> page aligned.  For NFS you'll need vectored direct I/O to hit that
-> case.
-
-I'll rewrite the comment.
-
-For the Write chunk path, each RDMA segment in the chunk
-can have a different R_key. So each non-empty segment gets
-its own rdma_rw chain. If the client is good, it will use
-a single large segment, but not all of them do.
-
-The Reply chunk case occurs commonly, and can require
-three or more separate scatterlists, due to the alignment
-constraint. Each RPC Reply resides in an xdr_buf, each of
-which has up to three portions:
-
-1. A head, which is not necessarily page-aligned,
-2. A page list, which does not have to be page-aligned, and
-3. A tail, which is frequently but not always in the same page
-as the head (and is thus not expected to be page-aligned).
-
-The client can provide multiple segments, each with its
-own R_key. The server has to fit the RDMA Writes into both
-the alignment constraints of the xdr_buf components, and
-the segments provided by the client.
-
-This is why I organized the "write the reply chunk" path
-this way.
-
-Thanks to both you and Sagi for excellent review comments.
-
-
+Matan
 --
-Chuck Lever
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
