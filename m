@@ -1,94 +1,88 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next 2/2] IB/mlx5: Enlarge autogroup flow table
-Date: Thu, 30 Mar 2017 18:00:40 +0300
-Message-ID: <20170330150040.GN20443@mtr-leonro.local>
-References: <20170329030901.5772-1-leon@kernel.org>
- <20170329030901.5772-2-leon@kernel.org>
- <1490757621.4362.1.camel@sandisk.com>
- <20170329042320.GJ20443@mtr-leonro.local>
- <1490804090.3551.1.camel@sandisk.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="Cqq5NadOW2RfLMJ/"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1490804090.3551.1.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 05/13] svcrdma: Introduce local rdma_rw API helpers
+Date: Thu, 30 Mar 2017 10:29:41 -0500
+Message-ID: <370FEB6E-1E2C-4578-91FC-A035ADF16F78@oracle.com>
+References: <20170327132329.5585.98465.stgit@klimt.1015granger.net> <20170327134835.5585.76603.stgit@klimt.1015granger.net> <20170330123014.GA32364@infradead.org>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170330123014.GA32364-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---Cqq5NadOW2RfLMJ/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> On Mar 30, 2017, at 7:30 AM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
+> 
+>> +	spinlock_t	     sc_rw_ctxt_lock;
+>> +	struct list_head     sc_rw_ctxts;
+> 
+> It's a little sad that we always need a list and a spinlock when
+> most requests should need a single context only.
 
-On Wed, Mar 29, 2017 at 04:15:10PM +0000, Bart Van Assche wrote:
-> On Wed, 2017-03-29 at 07:23 +0300, Leon Romanovsky wrote:
-> > On Wed, Mar 29, 2017 at 03:20:37AM +0000, Bart Van Assche wrote:
-> > > On Wed, 2017-03-29 at 06:09 +0300, Leon Romanovsky wrote:
-> > > > -#define MLX5_FS_MAX_TYPES	 10
-> > > > -#define MLX5_FS_MAX_ENTRIES	 32000UL
-> > > > +#define MLX5_FS_MAX_TYPES	 6
-> > > > +#define MLX5_FS_MAX_ENTRIES	 BIT(16)
-> > >
-> > > Hello Leon and Maor,
-> > >
-> > > The use of the BIT() macro here looks misleading to me. Elsewhere in the
-> > > kernel BIT() is used to represent a bitmask. My understanding is that
-> > > MLX5_FS_MAX_ENTRIES is not a bitmask but a value?
-> >
-> > Hello Bart,
-> >
-> > I agree with you that the name "MAX_ENTRIES" is misleading. This define
-> > MLX5_FS_MAX_ENTRIES is needed to compare num_entries with max_table_size
-> > which is represented in BIT() format. The max_table was added in previous
-> > patch and we thought that it will be much convenient for the reader to
-> > compare the same BIT(..) constructions.
-> >
-> > If you think that we abused the BIT() macro, let me know and I'll send
-> > updated version (without BIT()).
->
-> Hello Leon,
->
-> It's not that important to me, but does MLX5_FS_MAX_ENTRIES represent a number
-> or a bitmask? To me the name "MLX5_FS_MAX_ENTRIES" suggests that it is a number
-> and using BIT() suggests that it's a bitmask. This seems contradictory to me.
+The current code needs resources protected by several
+spinlocks, some of which disable bottom-halfs. This rewrite
+takes it down to just this one plain vanilla spinlock which
+picks up all the svcrdma layer resources needed for the I/O
+at once.
 
-Down the road, that define is translated to bitmask, and it is hard for me
-to categorize it. If we limit ourselves to the upper layer only, it will be a number,
-otherwise it will be a bitmask.
+There are some common cases which can require more than one
+of these.
 
->
-> Thanks,
->
-> Bart.--
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+My point is, I think this is better than trips to a memory
+allocator, because those frequently require at least one
+BH-disabled or irqsave spinlock, which helps prevent
+latency outliers and, rarely, allocation failures.
 
---Cqq5NadOW2RfLMJ/
-Content-Type: application/pgp-signature; name="signature.asc"
+That said, I will happily consider any solution that does
+not require critical sections!
 
------BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljdHZgACgkQ5GN7iDZy
-WKcyxw//Zk07utuwdCOMPB2PvjMMCR9rPh0EZtIspJo1gJU12CtnE0UtSUFnzlUU
-aWi0K9YhHsk56A3iC28N85by7yEfWOmNWDWWlj0fjpaHeDVO7x2FRLsIqN9eoAu4
-HFPUmN0tmhO3CQRosM3ZwqqFKWPtDgIc0myhYGL17ARDXQ4l5YuU+edsE/y6Jd2R
-vTBu8EITE8WbmIZiHSfkYNtSBwsEz/D0E3ZGWc21YsfvjWEBxkRAyI/1ClbMXsN6
-KIhlBa9l0lihi/VZCieIY+xpJVGVpss6NEcmY4rQIzqp4cdrtHllJiVRuiU/H70z
-yW2wh+YCVG7FJiAbalQgmt/UfPoFY+WXAELfYgi1dRnBTcobzBVY8zA6cyufI5tc
-aghkgQN+QO8Fe4a8O8aBSd+NsOwz/v0KsLvg2gYGO0F2q23cvbB1lLBLaO0PVJZt
-xfcNuLzC8bXULBsskIJHsAuDJNqi2mXI3Cru1I0tBSLMhMhKVdj4W0EtjvWFdaGd
-3t8hcLU+D/KZfLyMyzKFbMh+a3PV2dR8kgj8+R5+Ukx694N3c21NmF1t/nC6w4X+
-TDDuI7Dvng6PRFR2aHL6X2WOR+KhsyOlveTrSrUkOnqUjVGVvfMz5kSe8dlyav7T
-+Ccx4jT0Mp/dOhwkEEIogJK9MgHlNhB+OpKGP8KdC0k2eBorIi0=
-=/KV9
------END PGP SIGNATURE-----
+>> + * Each WR chain handles a single contiguous server-side buffer,
+>> + * because some registration modes (eg. FRWR) do not support a
+>> + * discontiguous scatterlist.
+> 
+> Both FRWR and FMR have no problem with a discontiguous page list,
+> they only have a problem with any segment but the first not starting
+> page aligned.  For NFS you'll need vectored direct I/O to hit that
+> case.
 
---Cqq5NadOW2RfLMJ/--
+I'll rewrite the comment.
+
+For the Write chunk path, each RDMA segment in the chunk
+can have a different R_key. So each non-empty segment gets
+its own rdma_rw chain. If the client is good, it will use
+a single large segment, but not all of them do.
+
+The Reply chunk case occurs commonly, and can require
+three or more separate scatterlists, due to the alignment
+constraint. Each RPC Reply resides in an xdr_buf, each of
+which has up to three portions:
+
+1. A head, which is not necessarily page-aligned,
+2. A page list, which does not have to be page-aligned, and
+3. A tail, which is frequently but not always in the same page
+as the head (and is thus not expected to be page-aligned).
+
+The client can provide multiple segments, each with its
+own R_key. The server has to fit the RDMA Writes into both
+the alignment constraints of the xdr_buf components, and
+the segments provided by the client.
+
+This is why I organized the "write the reply chunk" path
+this way.
+
+Thanks to both you and Sagi for excellent review comments.
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
