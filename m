@@ -1,110 +1,97 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V2 for-next 7/7] IB/core: Change completion channel to use
- the reworked objects schema
-Date: Thu, 30 Mar 2017 21:54:52 +0300
-Message-ID: <CAAKD3BANZG4966aFz4mDa-xPhVbqrNiuAs_=ZvBcft1SzU5eEA@mail.gmail.com>
-References: <1489939145-125246-1-git-send-email-matanb@mellanox.com>
- <1489939145-125246-8-git-send-email-matanb@mellanox.com> <20170329145344.GB2586@obsidianresearch.com>
- <CAAKD3BCaq2xndM_xtU7OY=wX2Mvw0y2+sqWBg-BSQPKYpfyEWg@mail.gmail.com>
- <20170329222935.GB30605@obsidianresearch.com> <CAAKD3BBwiKPLaOvKbmKL0skr8gv3=9==_60L6HiU4SmqGrJOOw@mail.gmail.com>
- <20170330161226.GB19074@obsidianresearch.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [Qemu-devel] [PATCH RFC] hw/pvrdma: Proposal of a new pvrdma
+ device
+Date: Thu, 30 Mar 2017 15:28:21 -0500
+Message-ID: <5e952524-7c2d-b4da-4bd7-6437830a40d8@redhat.com>
+References: <1490872341-9959-1-git-send-email-marcel@redhat.com>
+ <20170330141314.GM20443@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170330161226.GB19074-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20170330141314.GM20443-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 30, 2017 at 7:12 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Thu, Mar 30, 2017 at 06:47:02PM +0300, Matan Barak wrote:
+On 3/30/17 9:13 AM, Leon Romanovsky wrote:
+> On Thu, Mar 30, 2017 at 02:12:21PM +0300, Marcel Apfelbaum wrote:
+>> From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>
+>>  Hi,
+>>
+>>  General description
+>>  ===================
+>>  This is a very early RFC of a new RoCE emulated device
+>>  that enables guests to use the RDMA stack without having
+>>  a real hardware in the host.
+>>
+>>  The current implementation supports only VM to VM communication
+>>  on the same host.
+>>  Down the road we plan to make possible to be able to support
+>>  inter-machine communication by utilizing physical RoCE devices
+>>  or Soft RoCE.
+>>
+>>  The goals are:
+>>  - Reach fast and secure loos-less Inter-VM data exchange.
+>>  - Support remote VMs or bare metal machines.
+>>  - Allow VMs migration.
+>>  - Do not require to pin all VM memory.
+>>
+>>
+>>  Objective
+>>  =========
+>>  Have a QEMU implementation of the PVRDMA device. We aim to do so without
+>>  any change in the PVRDMA guest driver which is already merged into the
+>>  upstream kernel.
+>>
+>>
+>>  RFC status
+>>  ===========
+>>  The project is in early development stages and supports
+>>  only basic send/receive operations.
+>>
+>>  We present it so we can get feedbacks on design,
+>>  feature demands and to receive comments from the
+>>  community pointing us to the "right" direction.
 >
->> The problem with that is that get_read also locks the object for
->> reading (so if you try to lock it for write or destroy it, you'll
->> get a locking error).  So, you want to increase the reference count
->> to ensure it exists in the memory, but unlock it.
->
-> Okay, I see. I've looked at the whole thing more closely and there are
-> more places that should be holding krefs, so I think you should make a
-> function specifically for this pattern.
->
-> /* Convert a locked reference obtained from rdma_lookup_get_uobject to
->    a simple kref by dropping the read/write lock. The caller must pair
->    this with uverbs_uobject_put */
-> void rdma_lookup_to_kref(struct ib_uobject *uobj, bool write);
->
-> Similarly I think you should add a uobj_remove_commit_kref() wrapper
-> which does remove_commit but leaves the caller with a kref, as that
-> pattern seems to come up alot in this code as well.
->
+> If to judge by the feedback which you got from RDMA community
+> for kernel proposal [1], this community failed to understand:
+> 1. Why do you need new module?
 
-Actually, this isn't that frequent pattern. It mainly happens in
-ib_uverbs_lookup_comp_file.
-There's a different pattern of inc_kref and then remove_commit which
-is used in order to
-copy the latest events_reported info before releasing the uobject's memory.
+In this case, this is a qemu module to allow qemu to provide a virt rdma 
+device to guests that is compatible with the device provided by VMWare's 
+ESX product.  Right now, the vmware_pvrdma driver works only when the 
+guest is running on a VMWare ESX server product, this would change that. 
+  Marcel mentioned that they are currently making it compatible because 
+that's the easiest/quickest thing to do, but in the future they might 
+extend beyond what VMWare's virt rdma driver provides/uses and might 
+then need to either modify it to work with their extensions or fork and 
+create their own virt client driver.
 
-> Looking at things after this series is applied, there are two more
-> areas that need some more work in future patches before adding the new
-> uapi stuff..
->
-> usecnt is confused, the uapi part makes sense, we must hold uobj read
-> when doing atomic_inc and uobj write when doing atomic_dec. However
-> the kapi does something entirely different. Maybe we should delete
-> usecnt from the kapi side?
->
-> Lots of places that incr usecnt fail to hold the kref:
->
->      pd = uobj_get_obj_read(pd, cmd.pd_handle, file->ucontext);
->
->      mr->device  = pd->device;
->      mr->pd      = pd;
->      mr->uobject = uobj;
->      atomic_inc(&pd->usecnt);
->
->      uobj_put_obj_read(pd);
->
-> It really should be doing rdma_lookup_to_kref(pd) and have the proper
-> put in the destroy of the pd uobj. Many other places like this as
-> well.
->
+> 2. Why existing solutions are not enough and can't be extended?
 
-There is a usecnt in the uobject, which is used to count the
-concurrent readers or
-indicate if the uobject is write locked.
-Most objects (as opposed to uobjects) has usecnt variable to count how
-many objects
-actually use them. For example, in the reg_mr handler, we inc the
-object's usecnt right
-after assigning it (as you mentioned).
+This patch is against the qemu source code, not the kernel.  There is no 
+other solution in the qemu source code, so there is no existing solution 
+to extend.
 
-The object's destroy function should test the usecnt and make sure no
-one uses it before
-destroying it. When this destroy function comes from the user-space,
-the pd object is
-locked, so this test would be atomic and safe. The uobject won't be
-destroyed, until
-the object itself is destroyed. So effectively, it's like taking another kref :)
-When you come from the kernel's context, the ULP has to make sure you
-aren't trying
-to destroy an object while using it in creation of another object.
-In context teardown, we rely on order, so this should be safe as well.
+> 3. Why RXE (SoftRoCE) can't be extended to perform this inter-VM
+>    communication via virtual NIC?
 
-The verbs layer itself (drivers/infiniband/verbs.c) increase the
-object's pd as well when
-needed (for example, ib_create_ah). I haven't looked at each of the
-handler, but I haven't
-changed this code too, so I guess this has nothing to do with this
-series. When we introduce
-the ioctl handlers, we'll of course need to make sure we increase the
-refcounts on objects
-correctly.
+Eventually they want this to work on real hardware, and to be more or 
+less transparent to the guest.  They will need to make it independent of 
+the kernel hardware/driver in use.  That means their own virt driver, 
+then the virt driver will eventually hook into whatever hardware is 
+present on the system, or failing that, fall back to soft RoCE or soft 
+iWARP if that ever makes it in the kernel.
 
-> Jason
 
-Matan
+>
+> Can you please help us to fill this knowledge gap?
+>
+> [1] http://marc.info/?l=linux-rdma&m=149063626907175&w=2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
