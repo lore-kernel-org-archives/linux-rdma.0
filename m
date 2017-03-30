@@ -1,14 +1,14 @@
 From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH v2 02/13] svcrdma: Add svc_rdma_map_reply_hdr()
-Date: Thu, 30 Mar 2017 05:07:15 -0700
-Message-ID: <20170330120715.GB31144@infradead.org>
+Subject: Re: [PATCH v2 03/13] svcrdma: Eliminate RPCRDMA_SQ_DEPTH_MULT
+Date: Thu, 30 Mar 2017 05:07:53 -0700
+Message-ID: <20170330120753.GC31144@infradead.org>
 References: <20170327132329.5585.98465.stgit@klimt.1015granger.net>
- <20170327134811.5585.69059.stgit@klimt.1015granger.net>
+ <20170327134819.5585.90071.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170327134811.5585.69059.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+In-Reply-To: <20170327134819.5585.90071.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
