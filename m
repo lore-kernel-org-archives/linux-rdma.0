@@ -1,41 +1,37 @@
-From: Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
-Subject: Re: [PATCH RFC] nvme-rdma: support devices with queue size < 32
-Date: Thu, 30 Mar 2017 16:23:28 +0200 (CEST)
-Message-ID: <1121115847.336382032.1490883808617.JavaMail.zimbra@kalray.eu>
-References: <1315914765.312051621.1490259849534.JavaMail.zimbra@kalray.eu> <20170329132918.GA32072@obsidianresearch.com> <406682b9-d7ca-4718-5830-7940d2822bc0@grimberg.me> <20170329162751.GA7113@obsidianresearch.com> <80770042-743e-a271-c636-f72099f9ac56@grimberg.me> <9eb08168-18a6-a176-01df-b68b6a225963@redhat.com> <3505b835-d0ba-70cb-dfe8-1265fc2bbb83@redhat.com> <2ba93b5b-ad36-5533-36e2-9db2e3198c19@grimberg.me>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH] IB/hns: Explicitly include linux/of.h
+Date: Thu, 30 Mar 2017 15:56:01 +0100
+Message-ID: <20170330145601.29765-1-broonie@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2ba93b5b-ad36-5533-36e2-9db2e3198c19-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keith busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, axboe-b10kYP2dOMg@public.gmane.org, Samuel Jones <samuel.jones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->>> You say above "we post *up to* 2 work requests", unless you wish to
->>> change that to "we always post at least 2 work requests per queue
->>> entry", Jason is right, your frequency of signaling needs to be X/2
->>> regardless of your CQ size, you need the signaling to control the queue
->>> depth tracking.
->>
->> If you would like to spread things out farther between signaling, then
->> you can modify your send routine to only increment the send counter for
->> actual send requests, ignoring registration WQEs and invalidate WQES,
->> and then signal every X/2 sends.
-> 
-> Yea, you're right, and not only I got it wrong, I even contradicted my
-> own suggestion that was exactly what you and Jason suggested (where is
-> the nearest rat-hole...)
-> 
-> So I suggested to signal every X/2 and Marta reported SQ overflows for
-> high queue-dpeth. Marta, at what queue-depth have you seen this?
+hns_roce_hw_v1.c uses DT interfaces but relies on implict inclusion of
+linux/of.h which means that changes in other headers could break the
+build, as happened in -next for arm64 today.  Add an explicit include.
 
-The remote side had queue depth of 16 or 32 and that's the WQ on the
-initiator side that overflows (mlx5_wq_overflow). We're testing with
-signalling X/2 and it seems to work.
+Signed-off-by: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Marta
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+index ec68f56e8ee5..0f7e85c7b70b 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+@@ -33,6 +33,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/acpi.h>
+ #include <linux/etherdevice.h>
++#include <linux/of.h>
+ #include <rdma/ib_umem.h>
+ #include "hns_roce_common.h"
+ #include "hns_roce_device.h"
+-- 
+2.11.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
