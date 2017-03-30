@@ -1,226 +1,90 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: [RFC 2/8] cxgb4: setup pcie memory window 4 and create p2pmem region
-Date: Thu, 30 Mar 2017 16:12:33 -0600
-Message-ID: <1490911959-5146-3-git-send-email-logang@deltatee.com>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [Qemu-devel] [PATCH RFC] hw/pvrdma: Proposal of a new pvrdma
+ device
+Date: Thu, 30 Mar 2017 16:38:45 -0700
+Message-ID: <ea171d6c-871b-2cf0-148c-ca7cd85c0ecd@vmware.com>
+References: <1490872341-9959-1-git-send-email-marcel@redhat.com>
+ <20170330141314.GM20443@mtr-leonro.local>
+ <5e952524-7c2d-b4da-4bd7-6437830a40d8@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1490911959-5146-1-git-send-email-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5e952524-7c2d-b4da-4bd7-6437830a40d8-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+On Thu Mar 30 2017 13:28:21 GMT-0700 (PDT), Doug Ledford wrote:
+> On 3/30/17 9:13 AM, Leon Romanovsky wrote:
+> > On Thu, Mar 30, 2017 at 02:12:21PM +0300, Marcel Apfelbaum wrote:
+> > > From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > >
+> > >  Hi,
+> > >
+> > >  General description
+> > >  ===================
+> > >  This is a very early RFC of a new RoCE emulated device
+> > >  that enables guests to use the RDMA stack without having
+> > >  a real hardware in the host.
+> > >
+> > >  The current implementation supports only VM to VM communication
+> > >  on the same host.
+> > >  Down the road we plan to make possible to be able to support
+> > >  inter-machine communication by utilizing physical RoCE devices
+> > >  or Soft RoCE.
+> > >
+> > >  The goals are:
+> > >  - Reach fast and secure loos-less Inter-VM data exchange.
+> > >  - Support remote VMs or bare metal machines.
+> > >  - Allow VMs migration.
+> > >  - Do not require to pin all VM memory.
+> > >
+> > >
+> > >  Objective
+> > >  =========
+> > >  Have a QEMU implementation of the PVRDMA device. We aim to do so without
+> > >  any change in the PVRDMA guest driver which is already merged into the
+> > >  upstream kernel.
+> > >
+> > >
+> > >  RFC status
+> > >  ===========
+> > >  The project is in early development stages and supports
+> > >  only basic send/receive operations.
+> > >
+> > >  We present it so we can get feedbacks on design,
+> > >  feature demands and to receive comments from the
+> > >  community pointing us to the "right" direction.
+> >
+> > If to judge by the feedback which you got from RDMA community
+> > for kernel proposal [1], this community failed to understand:
+> > 1. Why do you need new module?
+> 
+> In this case, this is a qemu module to allow qemu to provide a virt rdma device to guests that is compatible with the device provided by VMWare's ESX product.  Right now, the vmware_pvrdma driver works only when the guest is running on a VMWare ESX server product, this would change that.  Marcel mentioned that they are currently making it compatible because that's the easiest/quickest thing to do, but in the future they might extend beyond what VMWare's virt rdma driver provides/uses and might then need to either modify it to work with their extensions or fork and create their own virt client driver.
+> 
+> > 2. Why existing solutions are not enough and can't be extended?
+> 
+> This patch is against the qemu source code, not the kernel.  There is no other solution in the qemu source code, so there is no existing solution to extend.
+> 
+> > 3. Why RXE (SoftRoCE) can't be extended to perform this inter-VM
+> >    communication via virtual NIC?
+> 
+> Eventually they want this to work on real hardware, and to be more or less transparent to the guest.  They will need to make it independent of the kernel hardware/driver in use.  That means their own virt driver, then the virt driver will eventually hook into whatever hardware is present on the system, or failing that, fall back to soft RoCE or soft iWARP if that ever makes it in the kernel.
+>
 
-Some cxgb4 cards expose memory as part of BAR4. This patch registers
-this memory as a p2pmem device.
+Hmm, this looks quite interesting. Though I'm not surprised, the PVRDMA 
+device spec is relatively straightforward.
+I would have definitely mentioned this (if I knew about it) during my 
+OFA workshop talk a couple of days ago :).
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
----
- drivers/net/ethernet/chelsio/cxgb4/cxgb4.h      |  3 +
- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c | 97 ++++++++++++++++++++++++-
- drivers/net/ethernet/chelsio/cxgb4/t4_regs.h    |  5 ++
- 3 files changed, 102 insertions(+), 3 deletions(-)
+Doug's right. I mean basically, this looks like a QEMU version of our PVRDMA
+backend.
 
-diff --git a/drivers/net/ethernet/chelsio/cxgb4/cxgb4.h b/drivers/net/ethernet/chelsio/cxgb4/cxgb4.h
-index 163543b..e92443b 100644
---- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4.h
-+++ b/drivers/net/ethernet/chelsio/cxgb4/cxgb4.h
-@@ -48,6 +48,7 @@
- #include <linux/vmalloc.h>
- #include <linux/etherdevice.h>
- #include <linux/net_tstamp.h>
-+#include <linux/p2pmem.h>
- #include <asm/io.h>
- #include "t4_chip_type.h"
- #include "cxgb4_uld.h"
-@@ -859,6 +860,8 @@ struct adapter {
- 
- 	/* TC u32 offload */
- 	struct cxgb4_tc_u32_table *tc_u32;
-+
-+	struct p2pmem_dev *p2pmem;
- };
- 
- /* Support for "sched-class" command to allow a TX Scheduling Class to be
-diff --git a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-index afb0967..a33bcd1 100644
---- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-+++ b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-@@ -172,6 +172,11 @@ module_param(select_queue, int, 0644);
- MODULE_PARM_DESC(select_queue,
- 		 "Select between kernel provided method of selecting or driver method of selecting TX queue. Default is kernel method.");
- 
-+static bool use_p2pmem;
-+module_param(use_p2pmem, bool, 0644);
-+MODULE_PARM_DESC(use_p2pmem,
-+		 "Enable registering a p2pmem device with bar space (if available)");
-+
- static struct dentry *cxgb4_debugfs_root;
- 
- LIST_HEAD(adapter_list);
-@@ -2835,6 +2840,54 @@ static void setup_memwin_rdma(struct adapter *adap)
- 	}
- }
- 
-+static void setup_memwin_p2pmem(struct adapter *adap)
-+{
-+	unsigned int mem_base = t4_read_reg(adap, CIM_EXTMEM2_BASE_ADDR_A);
-+	unsigned int mem_size = t4_read_reg(adap, CIM_EXTMEM2_ADDR_SIZE_A);
-+
-+	if (!use_p2pmem)
-+		return;
-+
-+	if (mem_base != 0 && mem_size != 0) {
-+		unsigned int sz_kb, pcieofst;
-+
-+		sz_kb = roundup_pow_of_two(mem_size) >> 10;
-+
-+		/*
-+		 * The start offset must be aligned to the window size.
-+		 * Also, BAR4 has MSIX vectors using the first 8KB.
-+		 * Further, the min allowed p2pmem region size is 1MB,
-+		 * so set the start offset to the memory size and we're aligned
-+		 * as well as past the 8KB vector table.
-+		 */
-+		pcieofst = sz_kb << 10;
-+
-+		dev_info(adap->pdev_dev,
-+			 "p2pmem base 0x%x, size %uB, ilog2(sk_kb) 0x%x, "
-+			 "pcieofst 0x%X\n", mem_base, mem_size, ilog2(sz_kb),
-+			 pcieofst);
-+
-+		/* Write the window offset and size */
-+		t4_write_reg(adap,
-+			PCIE_MEM_ACCESS_REG(PCIE_MEM_ACCESS_BASE_WIN_A,
-+					    MEMWIN_RSVD4),
-+			pcieofst | BIR_V(2) | WINDOW_V(ilog2(sz_kb)));
-+
-+		/* Write the adapter memory base/start */
-+		t4_write_reg(adap,
-+			PCIE_MEM_ACCESS_REG(PCIE_MEM_ACCESS_OFFSET_A,
-+					    MEMWIN_RSVD4),
-+			MEMOFST_V((mem_base >> MEMOFST_S)) | PFNUM_V(adap->pf));
-+
-+		/* Read it back to flush it */
-+		t4_read_reg(adap,
-+			PCIE_MEM_ACCESS_REG(PCIE_MEM_ACCESS_OFFSET_A,
-+					    MEMWIN_RSVD4));
-+	} else
-+		dev_info(adap->pdev_dev, "p2pmem memory not reserved, "
-+			 "base 0x%x size %uB\n", mem_base, mem_size);
-+}
-+
- static int adap_init1(struct adapter *adap, struct fw_caps_config_cmd *c)
- {
- 	u32 v;
-@@ -4622,6 +4675,42 @@ static int cxgb4_iov_configure(struct pci_dev *pdev, int num_vfs)
- }
- #endif
- 
-+static int init_p2pmem(struct adapter *adapter)
-+{
-+	unsigned int mem_size = t4_read_reg(adapter, CIM_EXTMEM2_ADDR_SIZE_A);
-+	struct p2pmem_dev *p;
-+	int rc;
-+	struct resource res;
-+
-+	if (!mem_size || !use_p2pmem)
-+		return 0;
-+
-+	mem_size = roundup_pow_of_two(mem_size);
-+
-+	/*
-+	 * Create a subset of BAR4 for the p2pmem region based on the
-+	 * exported memory size.
-+	 */
-+	memcpy(&res, &adapter->pdev->resource[4], sizeof(res));
-+	res.start += mem_size;
-+	res.end = res.start + mem_size - 1;
-+	dev_info(adapter->pdev_dev, "p2pmem resource start 0x%llx end 0x%llx size %lluB\n",
-+		 res.start, res.end, resource_size(&res));
-+
-+	p = p2pmem_create(&adapter->pdev->dev);
-+	if (IS_ERR(p))
-+		return PTR_ERR(p);
-+
-+	rc = p2pmem_add_resource(p, &res);
-+	if (rc) {
-+		p2pmem_unregister(p);
-+		return rc;
-+	}
-+	adapter->p2pmem = p;
-+
-+	return 0;
-+}
-+
- static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- {
- 	int func, i, err, s_qpp, qpp, num_seg;
-@@ -4784,8 +4873,8 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	bitmap_zero(adapter->sge.blocked_fl, adapter->sge.egr_sz);
- #endif
- 	setup_memwin_rdma(adapter);
--	if (err)
--		goto out_unmap_bar;
-+
-+	setup_memwin_p2pmem(adapter);
- 
- 	/* configure SGE_STAT_CFG_A to read WC stats */
- 	if (!is_t4(adapter->params.chip))
-@@ -4989,6 +5078,7 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 
- 	print_adapter_info(adapter);
- 	setup_fw_sge_queues(adapter);
-+	init_p2pmem(adapter);
- 	return 0;
- 
- sriov:
-@@ -5047,7 +5137,6 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 		free_msix_info(adapter);
- 	if (adapter->num_uld || adapter->num_ofld_uld)
- 		t4_uld_mem_free(adapter);
-- out_unmap_bar:
- 	if (!is_t4(adapter->params.chip))
- 		iounmap(adapter->bar2);
-  out_free_adapter:
-@@ -5075,6 +5164,8 @@ static void remove_one(struct pci_dev *pdev)
- 		return;
- 	}
- 
-+	p2pmem_unregister(adapter->p2pmem);
-+
- 	if (adapter->pf == 4) {
- 		int i;
- 
-diff --git a/drivers/net/ethernet/chelsio/cxgb4/t4_regs.h b/drivers/net/ethernet/chelsio/cxgb4/t4_regs.h
-index 3348d33..199ddfb 100644
---- a/drivers/net/ethernet/chelsio/cxgb4/t4_regs.h
-+++ b/drivers/net/ethernet/chelsio/cxgb4/t4_regs.h
-@@ -735,6 +735,11 @@
- 
- #define PCIE_MEM_ACCESS_OFFSET_A 0x306c
- 
-+#define MEMOFST_S    7
-+#define MEMOFST_M    0x1ffffffU
-+#define MEMOFST_V(x) ((x) << MEMOFST_S)
-+#define MEMOFST_G(x) (((x) >> MEMOFST_S) & MEMOFST_M)
-+
- #define ENABLE_S    30
- #define ENABLE_V(x) ((x) << ENABLE_S)
- #define ENABLE_F    ENABLE_V(1U)
--- 
-2.1.4
+Thanks,
+Adit
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
