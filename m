@@ -1,37 +1,107 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC 5/8] scatterlist: Modify SG copy functions to support io
- memory.
-Date: Fri, 31 Mar 2017 09:41:56 -0600
-Message-ID: <435d4471-436b-87e6-8827-c9fc6cbdde2c@deltatee.com>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
- <1490911959-5146-6-git-send-email-logang@deltatee.com>
- <20170331070950.GA9059@infradead.org>
+From: Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [Qemu-devel] [PATCH RFC] hw/pvrdma: Proposal of a new pvrdma
+ device
+Date: Fri, 31 Mar 2017 18:45:43 +0300
+Message-ID: <f7f3fc0e-0a75-2fdc-b3c2-6c3d34ff2978@redhat.com>
+References: <1490872341-9959-1-git-send-email-marcel@redhat.com>
+ <20170330141314.GM20443@mtr-leonro.local>
+ <5e952524-7c2d-b4da-4bd7-6437830a40d8@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170331070950.GA9059-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <5e952524-7c2d-b4da-4bd7-6437830a40d8-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 03/30/2017 11:28 PM, Doug Ledford wrote:
+> On 3/30/17 9:13 AM, Leon Romanovsky wrote:
+>> On Thu, Mar 30, 2017 at 02:12:21PM +0300, Marcel Apfelbaum wrote:
+>>> From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>>
+>>>  Hi,
+>>>
+>>>  General description
+>>>  ===================
+>>>  This is a very early RFC of a new RoCE emulated device
+>>>  that enables guests to use the RDMA stack without having
+>>>  a real hardware in the host.
+>>>
+>>>  The current implementation supports only VM to VM communication
+>>>  on the same host.
+>>>  Down the road we plan to make possible to be able to support
+>>>  inter-machine communication by utilizing physical RoCE devices
+>>>  or Soft RoCE.
+>>>
+>>>  The goals are:
+>>>  - Reach fast and secure loos-less Inter-VM data exchange.
+>>>  - Support remote VMs or bare metal machines.
+>>>  - Allow VMs migration.
+>>>  - Do not require to pin all VM memory.
+>>>
+>>>
+>>>  Objective
+>>>  =========
+>>>  Have a QEMU implementation of the PVRDMA device. We aim to do so without
+>>>  any change in the PVRDMA guest driver which is already merged into the
+>>>  upstream kernel.
+>>>
+>>>
+>>>  RFC status
+>>>  ===========
+>>>  The project is in early development stages and supports
+>>>  only basic send/receive operations.
+>>>
+>>>  We present it so we can get feedbacks on design,
+>>>  feature demands and to receive comments from the
+>>>  community pointing us to the "right" direction.
+>>
+>> If to judge by the feedback which you got from RDMA community
+>> for kernel proposal [1], this community failed to understand:
+>> 1. Why do you need new module?
+>
+> In this case, this is a qemu module to allow qemu to provide a virt rdma device to guests that is compatible with the device provided by VMWare's ESX product.  Right now, the vmware_pvrdma driver
+> works only when the guest is running on a VMWare ESX server product, this would change that.  Marcel mentioned that they are currently making it compatible because that's the easiest/quickest thing to
+> do, but in the future they might extend beyond what VMWare's virt rdma driver provides/uses and might then need to either modify it to work with their extensions or fork and create their own virt
+> client driver.
+>
+>> 2. Why existing solutions are not enough and can't be extended?
+>
+> This patch is against the qemu source code, not the kernel.  There is no other solution in the qemu source code, so there is no existing solution to extend.
+>
+>> 3. Why RXE (SoftRoCE) can't be extended to perform this inter-VM
+>>    communication via virtual NIC?
+>
+> Eventually they want this to work on real hardware, and to be more or less transparent to the guest.  They will need to make it independent of the kernel hardware/driver in use.  That means their own
+> virt driver, then the virt driver will eventually hook into whatever hardware is present on the system, or failing that, fall back to soft RoCE or soft iWARP if that ever makes it in the kernel.
+>
+>
+
+Hi Leon and Doug,
+Your feedback is much appreciated!
+
+As Doug mentioned, the RFC is a QEMU implementation of a pvrdma device,
+so SoftRoCE can't help here (we are emulating a PCI device).
+
+Regarding the new KDBR module (Kernel Data Bridge), as the name suggests is
+a bridge between different VMs or between a VM and a hardware/software device
+and does not replace it.
+
+Leon, utilizing the Soft RoCE is definitely part of our roadmap from the start,
+we find the project a must since most of our systems don't even have real
+RDMA hardware, and the question is how do best integrate with it.
+
+Thanks,
+Marcel & Yuval
 
 
-On 31/03/17 01:09 AM, Christoph Hellwig wrote:
-> You're calling memcpy_{to,from}_iomem on non-__iomem pointers.  This
-> is a fundamental no-go as we keep I/O memory separate from kernel
-> pointers.
-
-Yes, that's true, however I don't know how we could get around that when
-the iomem is referenced by struct pages inside a scatter gather list. Do
-we need to now have special __iomem sgls? And even still, I'm not sure
-how that could work when the nvme target code is using the same sgls to
-sometimes point to iomem and sometimes point to regular memory.
-
-I'm certainly open to suggestions, though.
-
-Logan
+>>
+>> Can you please help us to fill this knowledge gap?
+>>
+>> [1] http://marc.info/?l=linux-rdma&m=149063626907175&w=2
+>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
