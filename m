@@ -1,67 +1,38 @@
-From: Mauro Carvalho Chehab <mchehab-JsYNTwtnfakRB7SZvlqPiA@public.gmane.org>
-Subject: Re: [PATCH] treewide: Correct diffrent[iate] and banlance typos
-Date: Fri, 31 Mar 2017 07:06:25 -0300
-Message-ID: <20170331070625.39294170@vento.lan>
-References: <962aace119675e5fe87be2a88ddac1a5486f8e60.1490931810.git.joe@perches.com>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC 5/8] scatterlist: Modify SG copy functions to support io
+ memory.
+Date: Fri, 31 Mar 2017 09:41:56 -0600
+Message-ID: <435d4471-436b-87e6-8827-c9fc6cbdde2c@deltatee.com>
+References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
+ <1490911959-5146-6-git-send-email-logang@deltatee.com>
+ <20170331070950.GA9059@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <962aace119675e5fe87be2a88ddac1a5486f8e60.1490931810.git.joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20170331070950.GA9059-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Yuval Mintz <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ariel Elior <ariel.elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, everest-linux-l2-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yisen Zhuang <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Em Thu, 30 Mar 2017 20:44:16 -0700
-Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org> escreveu:
-
-> Add these misspellings to scripts/spelling.txt too
-> 
-> Signed-off-by: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-> ---
->  drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.h | 2 +-
->  drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c      | 2 +-
->  drivers/net/ethernet/hisilicon/hns/hns_enet.c       | 2 +-
->  drivers/net/ethernet/qlogic/qed/qed_int.c           | 2 +-
->  drivers/net/ethernet/qlogic/qed/qed_main.c          | 2 +-
->  drivers/net/ethernet/qlogic/qed/qed_sriov.c         | 2 +-
->  include/linux/mlx4/device.h                         | 2 +-
->  scripts/spelling.txt                                | 3 +++
->  8 files changed, 10 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.h b/drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.h
-> index 354ec07eae87..23ae72468025 100644
-> --- a/drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.h
-> +++ b/drivers/media/dvb-frontends/drx39xyj/drx_dap_fasi.h
-> @@ -70,7 +70,7 @@
->  * (3) both long and short but short preferred and long only when necesarry
->  *
->  * These modes must be selected compile time via compile switches.
-> -* Compile switch settings for the diffrent modes:
-> +* Compile switch settings for the different modes:
->  * (1) DRXDAPFASI_LONG_ADDR_ALLOWED=0, DRXDAPFASI_SHORT_ADDR_ALLOWED=1
->  * (2) DRXDAPFASI_LONG_ADDR_ALLOWED=1, DRXDAPFASI_SHORT_ADDR_ALLOWED=0
->  * (3) DRXDAPFASI_LONG_ADDR_ALLOWED=1, DRXDAPFASI_SHORT_ADDR_ALLOWED=1
-> diff --git a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c b/drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c
-> index cea6bdcde33f..8baf9d3eb4b1 100644
-> --- a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c
-> +++ b/drivers/net/ethernet/broadcom/bnx2x/bnx2x_sp.c
-> @@ -1591,7 +1591,7 @@ static int __bnx2x_vlan_mac_execute_step(struct bnx2x *bp,
->  	if (rc != 0) {
->  		__bnx2x_vlan_mac_h_pend(bp, o, *ramrod_flags);
->  
-> -		/* Calling function should not diffrentiate between this case
-> +		/* Calling function should not differentiate between this case
->  		 * and the case in which there is already a pending ramrod
->  		 */
->  		rc = 1;
 
 
-Acked-by: Mauro Carvalho Chehab <mchehab-JsYNTwtnfakRB7SZvlqPiA@public.gmane.org>
+On 31/03/17 01:09 AM, Christoph Hellwig wrote:
+> You're calling memcpy_{to,from}_iomem on non-__iomem pointers.  This
+> is a fundamental no-go as we keep I/O memory separate from kernel
+> pointers.
 
-Thanks,
-Mauro
+Yes, that's true, however I don't know how we could get around that when
+the iomem is referenced by struct pages inside a scatter gather list. Do
+we need to now have special __iomem sgls? And even still, I'm not sure
+how that could work when the nvme target code is using the same sgls to
+sometimes point to iomem and sometimes point to regular memory.
+
+I'm certainly open to suggestions, though.
+
+Logan
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
