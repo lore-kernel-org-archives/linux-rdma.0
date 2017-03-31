@@ -1,61 +1,70 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Extend LID space in InfiniBand beyond 48k? Is this really
- possible?
-Date: Fri, 31 Mar 2017 04:25:27 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB10E3F7@ORSMSX109.amr.corp.intel.com>
-References: <b9531f99-c350-3985-edae-296b1bc97509@simula.no>
- <20170330040409.GL20443@mtr-leonro.local>
+From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Subject: Re: [PATCH 0/3] target: Fix queue-full callback error signaling
+Date: Thu, 30 Mar 2017 21:32:09 -0700
+Message-ID: <1490934729.6977.27.camel@haakon3.risingtidesystems.com>
+References: <1477891554-26222-1-git-send-email-nab@linux-iscsi.org>
+         <20170323053602.GA2323@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170330040409.GL20443-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vangelis Tasoulas <vangelis-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org>
-Cc: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <20170323053602.GA2323@chelsio.com>
+Sender: target-devel-owner@vger.kernel.org
+To: Potnuri Bharat Teja <bharat@chelsio.com>
+Cc: target-devel <target-devel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, SWise OGC <swise@opengridcomputing.com>, Sagi Grimberg <sagi@grimberg.me>
 List-Id: linux-rdma@vger.kernel.org
 
-> > I was reading a year+ old article where Steve Scott (CRAY CTO) was
-> > interviewed here:
-> > https://www.nextplatform.com/2016/01/08/cray-cto-connects-the-dots-
-> on-future-interconnects/
-> >
-> > At a certain point Steve mentions (or at least that's what the
-> article
-> > claims):
-> >
-> > /InfiniBand has another limit in terms of the number of logical IDs,
-> or
-> > LIDs, it can support, which is around 48,000 end points, and for the
-> > most point, people have stayed within that limit. There is an
-> extended
-> > version that has some higher packet overhead that can go to higher
-> > scalability./
-> >
-> > Is this true? Is there any reference that one can point me to for
-> the
-> > part of the "extended version that has some higher packet overhead
-> that
-> > can go to higher scalability"?
-> >
-> > To the best of my knowledge, there is no extended version defined in
-> the
-> > InfiniBand specification. What is mentioned is that /The unicast LID
-> > range is a flat identifier space defined as 0x0001 to 0xBFFF./
->=20
-> Right, there is no any extended version of that spec.
-> As far as I know, Intel's OmniPath technology is marketed as new and
-> extended version of Infiniband [1], so it is probably that he
-> referenced to it.
+Hi Bharat & Co,
 
-At one point there was talk about using the GRH to extend IB subnet address=
- space.  I can't remember what became of that proposal, but I can't quickly=
- find any mention of it in the spec.  But adding the GRH would result in a =
-small increase to packet overhead.
+On Thu, 2017-03-23 at 11:06 +0530, Potnuri Bharat Teja wrote:
+> On Monday, October 10/31/16, 2016 at 10:55:51 +0530, Nicholas A. Bellinger wrote:
+> >    From: Nicholas Bellinger <nab@linux-iscsi.org>
+> Hi Nicholas,
+> This patch series fixes the post failures due to Send Queue overflow when
+> tested along with Sagi's "iser-target: avoid posting a recv buffer twice", which 
+> goes on top of these 3 patches.
+> 
+> Combined patches series(Nicholas's, Sagi's) works fine.
+> Tested with iWARP iser. 
+> 
+> As these changes are critical for devices with lower sg resources, hoping this 
+> series will be queued for next RC.
+> 
+> Reviewed-by: Potnuri Bharat Teja <bharat@chelsio.com>
+> Tested-by: Potnuri Bharat Teja <bharat@chelsio.com>
 
-- Sean
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+As mentioned, the original three patches along with Sagi's have been
+applied to target-pending/master.
+
+Thank you for your testing and patch review.
+
+I'm still considering if they should be CC'ed for stable, considering
+AFAICT they are pretty much a requirement for iser-target to be stable
+with iw_cxgb4.  It should be OK to include the series back to v4.1.y
+stable, but I'm reviewing the target change again just to be sure.
+
+Also, I've been thinking a bit more about the hung tasks you reported
+earlier during session reinstatement + repeated queue full preceding
+Sagi's patch here:
+
+http://www.spinics.net/lists/target-devel/msg14868.html
+
+and have some clarity as to what was going on..
+
+The issue is that queue full handling for TFO->write_pending(),
+TFO->queue_data_in() and TFO->queue_status failures will retry
+indefinitely until they successfully complete, and currently do not
+honor se_cmd quiesce that occurs during normal session reinstatement.
+
+Which means that if a fabric driver fails any of these three TFO
+callbacks forever, the se_cmd descriptor will never be properly quiesced
+back to fabric driver code, resulting in hung tasks you observed while
+session shutdown waits for this action to complete.
+
+So as-is, this patch series doesn't address this particular scenario but
+doesn't make it any worse either..  ;)
+
+That said, it's fine to merge this series now to allow iser-target +
+iw_cxgb4 to function, and I'll be looking into addressing the infinite
+queue_full + session reinstatement scenario for target-core in separate
+patch series.
