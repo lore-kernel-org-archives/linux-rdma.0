@@ -1,62 +1,43 @@
-From: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 1/1] IB/core: change the return type to void
-Date: Fri, 31 Mar 2017 23:42:55 -0400
-Message-ID: <1491018175-16622-1-git-send-email-yanjun.zhu@oracle.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+From: Logan Gunthorpe <logang@deltatee.com>
+Subject: Re: [RFC 1/8] Introduce Peer-to-Peer memory (p2pmem) device
+Date: Sat, 1 Apr 2017 16:16:35 -0600
+Message-ID: <c5d7da85-41fd-2769-fcf8-b3c2a1fab95f@deltatee.com>
+References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
+ <1490911959-5146-2-git-send-email-logang@deltatee.com>
+ <cb102386-0314-a3a3-ed44-b42debdf1512@codeaurora.org>
+ <7158f2e8-2016-f398-e77f-0fcbe6cb41dd@deltatee.com>
+ <e6a74aeb-9f54-51c5-8ad9-3b6fb92c03b3@codeaurora.org>
+ <0280fbb4-ba9e-ac64-6bb3-b72590a54e57@deltatee.com>
+ <0ae27bca-21be-b89c-aba4-6cc9766ebd7b@codeaurora.org>
+ <c8edc480-a2ac-a763-8438-18f3396db483@deltatee.com>
+ <e2165253dc355d5cb223e754d78047b1@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <e2165253dc355d5cb223e754d78047b1@codeaurora.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: okaya@codeaurora.org
+Cc: Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Jens Axboe <axboe@kernel.dk>, Steve Wise <swise@opengridcomputing.com>, Stephen Bates <sbates@raithlin.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-The function ib_unregister_mad_agent always returns zero. And
-this returned value is not checked. As such, chane the return
-type to void.
+Hey,
 
-CC: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-CC: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/core/mad.c | 3 +--
- include/rdma/ib_mad.h         | 2 +-
- 2 files changed, 2 insertions(+), 3 deletions(-)
+On 31/03/17 08:17 PM, okaya@codeaurora.org wrote:
+> See drivers/pci and drivers/acpi directory.
 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 57f231f..8a2ceb4 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -605,7 +605,7 @@ static void unregister_mad_snoop(struct ib_mad_snoop_private *mad_snoop_priv)
- /*
-  * ib_unregister_mad_agent - Unregisters a client from using MAD services
-  */
--int ib_unregister_mad_agent(struct ib_mad_agent *mad_agent)
-+void ib_unregister_mad_agent(struct ib_mad_agent *mad_agent)
- {
- 	struct ib_mad_agent_private *mad_agent_priv;
- 	struct ib_mad_snoop_private *mad_snoop_priv;
-@@ -622,7 +622,6 @@ int ib_unregister_mad_agent(struct ib_mad_agent *mad_agent)
- 					      agent);
- 		unregister_mad_snoop(mad_snoop_priv);
- 	}
--	return 0;
- }
- EXPORT_SYMBOL(ib_unregister_mad_agent);
- 
-diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
-index 981214b..42814a0 100644
---- a/include/rdma/ib_mad.h
-+++ b/include/rdma/ib_mad.h
-@@ -673,7 +673,7 @@ struct ib_mad_agent *ib_register_mad_snoop(struct ib_device *device,
-  * After invoking this routine, MAD services are no longer usable by the
-  * client on the associated QP.
-  */
--int ib_unregister_mad_agent(struct ib_mad_agent *mad_agent);
-+void ib_unregister_mad_agent(struct ib_mad_agent *mad_agent);
- 
- /**
-  * ib_post_send_mad - Posts MAD(s) to the send queue of the QP associated
--- 
-2.7.4
+The best I could find was the date of the firmware/bios. I really don't
+think that makes sense to tie the two together. And really the more that
+I think about it trying to do a date cutoff for this seems crazy without
+very comprehensive hardware testing done. I have no idea which AMD chips
+have decent root ports for this and then if we include all of ARM and
+POWERPC, etc there's a huge amount of unknown hardware. Saying that the
+system's firmware has to be written after 2016 seems like an arbitrary
+restriction that isn't likely to correlate to any working systems.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I still say the only sane thing to do is allow all switches and then add
+a whitelist of root ports that are known to work well. If we care about
+preventing broken systems in a comprehensive way then that's the only
+thing that is going to work.
+
+Logan
