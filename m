@@ -1,46 +1,62 @@
-From: okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
-Subject: Re: [RFC 1/8] Introduce Peer-to-Peer memory (p2pmem) device
-Date: Fri, 31 Mar 2017 22:17:07 -0400
-Message-ID: <e2165253dc355d5cb223e754d78047b1@codeaurora.org>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
- <1490911959-5146-2-git-send-email-logang@deltatee.com>
- <cb102386-0314-a3a3-ed44-b42debdf1512@codeaurora.org>
- <7158f2e8-2016-f398-e77f-0fcbe6cb41dd@deltatee.com>
- <e6a74aeb-9f54-51c5-8ad9-3b6fb92c03b3@codeaurora.org>
- <0280fbb4-ba9e-ac64-6bb3-b72590a54e57@deltatee.com>
- <0ae27bca-21be-b89c-aba4-6cc9766ebd7b@codeaurora.org>
- <c8edc480-a2ac-a763-8438-18f3396db483@deltatee.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <c8edc480-a2ac-a763-8438-18f3396db483-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "James
- E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+From: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 1/1] IB/core: change the return type to void
+Date: Fri, 31 Mar 2017 23:42:55 -0400
+Message-ID: <1491018175-16622-1-git-send-email-yanjun.zhu@oracle.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 2017-03-31 21:57, Logan Gunthorpe wrote:
-> On 31/03/17 05:51 PM, Sinan Kaya wrote:
->> You can put a restriction with DMI/SMBIOS such that all devices from 
->> 2016
->> work else they belong to blacklist.
-> 
-> How do you get a manufacturing date for a given device within the
-> kernel? Is this actually something generically available?
-> 
-> Logan
+The function ib_unregister_mad_agent always returns zero. And
+this returned value is not checked. As such, chane the return
+type to void.
 
-Smbios calls are used all over the place in kernel for introducing new 
-functionality while maintaining backwards compatibility.
+CC: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+CC: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/core/mad.c | 3 +--
+ include/rdma/ib_mad.h         | 2 +-
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-See drivers/pci and drivers/acpi directory.
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 57f231f..8a2ceb4 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -605,7 +605,7 @@ static void unregister_mad_snoop(struct ib_mad_snoop_private *mad_snoop_priv)
+ /*
+  * ib_unregister_mad_agent - Unregisters a client from using MAD services
+  */
+-int ib_unregister_mad_agent(struct ib_mad_agent *mad_agent)
++void ib_unregister_mad_agent(struct ib_mad_agent *mad_agent)
+ {
+ 	struct ib_mad_agent_private *mad_agent_priv;
+ 	struct ib_mad_snoop_private *mad_snoop_priv;
+@@ -622,7 +622,6 @@ int ib_unregister_mad_agent(struct ib_mad_agent *mad_agent)
+ 					      agent);
+ 		unregister_mad_snoop(mad_snoop_priv);
+ 	}
+-	return 0;
+ }
+ EXPORT_SYMBOL(ib_unregister_mad_agent);
+ 
+diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
+index 981214b..42814a0 100644
+--- a/include/rdma/ib_mad.h
++++ b/include/rdma/ib_mad.h
+@@ -673,7 +673,7 @@ struct ib_mad_agent *ib_register_mad_snoop(struct ib_device *device,
+  * After invoking this routine, MAD services are no longer usable by the
+  * client on the associated QP.
+  */
+-int ib_unregister_mad_agent(struct ib_mad_agent *mad_agent);
++void ib_unregister_mad_agent(struct ib_mad_agent *mad_agent);
+ 
+ /**
+  * ib_post_send_mad - Posts MAD(s) to the send queue of the QP associated
+-- 
+2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
