@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 1/2] IB/core: Introduce drop flow specification
-Date: Mon,  3 Apr 2017 13:13:51 +0300
-Message-ID: <20170403101352.5692-2-leon@kernel.org>
+Subject: [PATCH rdma-next 2/2] IB/mlx5: Add drop flow steering rule support
+Date: Mon,  3 Apr 2017 13:13:52 +0300
+Message-ID: <20170403101352.5692-3-leon@kernel.org>
 References: <20170403101352.5692-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170403101352.5692-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,105 +12,102 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Slava Shwartsman <slavash-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This flow steering specification identifies flow for drop by the HW.
-If user create a flow only with the drop specification,
-then all the packets that hit this flow will be dropped, otherwise the HW
-will drop only the packets that match the other L2/L3/L4 specifications.
+A drop rule is described by an action drop and no destination.
+If a user specified IB_FLOW_SPEC_ACTION_DROP then set the action
+to MLX5_FLOW_CONTEXT_ACTION_DROP and clear the destination.
 
 Signed-off-by: Slava Shwartsman <slavash-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs.h     |  1 +
- drivers/infiniband/core/uverbs_cmd.c |  7 +++++++
- include/rdma/ib_verbs.h              |  7 +++++++
- include/uapi/rdma/ib_user_verbs.h    | 11 +++++++++++
- 4 files changed, 26 insertions(+)
+ drivers/infiniband/hw/mlx5/main.c | 28 +++++++++++++++++++++++-----
+ 1 file changed, 23 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index e1bedf0bac04..0f5578f8ba59 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -229,6 +229,7 @@ struct ib_uverbs_flow_spec {
- 		struct ib_uverbs_flow_spec_tcp_udp tcp_udp;
- 		struct ib_uverbs_flow_spec_ipv6    ipv6;
- 		struct ib_uverbs_flow_spec_action_tag	flow_tag;
-+		struct ib_uverbs_flow_spec_action_drop	drop;
- 	};
- };
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 4dc0a8785fe0..e5e5cdeee8d9 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1726,6 +1726,7 @@ static void set_tos(void *outer_c, void *outer_v, u8 mask, u8 val)
+ #define LAST_TCP_UDP_FIELD src_port
+ #define LAST_TUNNEL_FIELD tunnel_id
+ #define LAST_FLOW_TAG_FIELD tag_id
++#define LAST_DROP_FIELD size
  
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 7b7a76e1279a..4e5062dd84e0 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -3227,6 +3227,13 @@ static int kern_spec_to_ib_spec_action(struct ib_uverbs_flow_spec *kern_spec,
- 		ib_spec->flow_tag.size = sizeof(struct ib_flow_spec_action_tag);
- 		ib_spec->flow_tag.tag_id = kern_spec->flow_tag.tag_id;
+ /* Field is the last supported field */
+ #define FIELDS_NOT_SUPPORTED(filter, field)\
+@@ -1736,7 +1737,8 @@ static void set_tos(void *outer_c, void *outer_v, u8 mask, u8 val)
+ 		   sizeof(filter.field))
+ 
+ static int parse_flow_attr(u32 *match_c, u32 *match_v,
+-			   const union ib_flow_spec *ib_spec, u32 *tag_id)
++			   const union ib_flow_spec *ib_spec,
++			   u32 *tag_id, bool *is_drop)
+ {
+ 	void *misc_params_c = MLX5_ADDR_OF(fte_match_param, match_c,
+ 					   misc_parameters);
+@@ -1937,6 +1939,12 @@ static int parse_flow_attr(u32 *match_c, u32 *match_v,
+ 
+ 		*tag_id = ib_spec->flow_tag.tag_id;
  		break;
 +	case IB_FLOW_SPEC_ACTION_DROP:
-+		if (kern_spec->drop.size !=
-+		    sizeof(struct ib_uverbs_flow_spec_action_drop))
-+			return -EINVAL;
-+
-+		ib_spec->drop.size = sizeof(struct ib_flow_spec_action_drop);
++		if (FIELDS_NOT_SUPPORTED(ib_spec->drop,
++					 LAST_DROP_FIELD))
++			return -EOPNOTSUPP;
++		*is_drop = true;
 +		break;
  	default:
  		return -EINVAL;
  	}
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 0f1813c13687..1676d36956ee 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1662,6 +1662,7 @@ enum ib_flow_spec_type {
- 	IB_FLOW_SPEC_INNER		= 0x100,
- 	/* Actions */
- 	IB_FLOW_SPEC_ACTION_TAG         = 0x1000,
-+	IB_FLOW_SPEC_ACTION_DROP        = 0x1001,
- };
- #define IB_FLOW_SPEC_LAYER_MASK	0xF0
- #define IB_FLOW_SPEC_SUPPORT_LAYERS 8
-@@ -1790,6 +1791,11 @@ struct ib_flow_spec_action_tag {
- 	u32                           tag_id;
- };
+@@ -2118,10 +2126,13 @@ static struct mlx5_ib_flow_handler *create_flow_rule(struct mlx5_ib_dev *dev,
+ 	struct mlx5_ib_flow_handler *handler;
+ 	struct mlx5_flow_act flow_act = {0};
+ 	struct mlx5_flow_spec *spec;
++	struct mlx5_flow_destination *rule_dst = dst;
+ 	const void *ib_flow = (const void *)flow_attr + sizeof(*flow_attr);
+ 	unsigned int spec_index;
+ 	u32 flow_tag = MLX5_FS_DEFAULT_FLOW_TAG;
++	bool is_drop = false;
+ 	int err = 0;
++	int dest_num = 1;
  
-+struct ib_flow_spec_action_drop {
-+	enum ib_flow_spec_type	      type;
-+	u16			      size;
-+};
-+
- union ib_flow_spec {
- 	struct {
- 		u32			type;
-@@ -1802,6 +1808,7 @@ union ib_flow_spec {
- 	struct ib_flow_spec_ipv6        ipv6;
- 	struct ib_flow_spec_tunnel      tunnel;
- 	struct ib_flow_spec_action_tag  flow_tag;
-+	struct ib_flow_spec_action_drop drop;
- };
+ 	if (!is_valid_attr(flow_attr))
+ 		return ERR_PTR(-EINVAL);
+@@ -2137,7 +2148,8 @@ static struct mlx5_ib_flow_handler *create_flow_rule(struct mlx5_ib_dev *dev,
  
- struct ib_flow_attr {
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index 997f904c7692..477d629f539d 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -947,6 +947,17 @@ struct ib_uverbs_flow_spec_action_tag {
- 	__u32			      reserved1;
- };
+ 	for (spec_index = 0; spec_index < flow_attr->num_of_specs; spec_index++) {
+ 		err = parse_flow_attr(spec->match_criteria,
+-				      spec->match_value, ib_flow, &flow_tag);
++				      spec->match_value,
++				      ib_flow, &flow_tag, &is_drop);
+ 		if (err < 0)
+ 			goto free;
  
-+struct ib_uverbs_flow_spec_action_drop {
-+	union {
-+		struct ib_uverbs_flow_spec_hdr hdr;
-+		struct {
-+			__u32 type;
-+			__u16 size;
-+			__u16 reserved;
-+		};
-+	};
-+};
-+
- struct ib_uverbs_flow_tunnel_filter {
- 	__be32 tunnel_id;
- };
+@@ -2145,8 +2157,14 @@ static struct mlx5_ib_flow_handler *create_flow_rule(struct mlx5_ib_dev *dev,
+ 	}
+ 
+ 	spec->match_criteria_enable = get_match_criteria_enable(spec->match_criteria);
+-	flow_act.action = dst ? MLX5_FLOW_CONTEXT_ACTION_FWD_DEST :
+-		MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO;
++	if (is_drop) {
++		flow_act.action = MLX5_FLOW_CONTEXT_ACTION_DROP;
++		rule_dst = NULL;
++		dest_num = 0;
++	} else {
++		flow_act.action = dst ? MLX5_FLOW_CONTEXT_ACTION_FWD_DEST :
++		    MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO;
++	}
+ 
+ 	if (flow_tag != MLX5_FS_DEFAULT_FLOW_TAG &&
+ 	    (flow_attr->type == IB_FLOW_ATTR_ALL_DEFAULT ||
+@@ -2159,7 +2177,7 @@ static struct mlx5_ib_flow_handler *create_flow_rule(struct mlx5_ib_dev *dev,
+ 	flow_act.flow_tag = flow_tag;
+ 	handler->rule = mlx5_add_flow_rules(ft, spec,
+ 					    &flow_act,
+-					    dst, 1);
++					    rule_dst, dest_num);
+ 
+ 	if (IS_ERR(handler->rule)) {
+ 		err = PTR_ERR(handler->rule);
 -- 
 2.12.0
 
