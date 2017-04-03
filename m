@@ -1,36 +1,42 @@
-From: Kalle Valo <kvalo@codeaurora.org>
-Subject: Re: [PATCH 16/16] drivers, net, intersil: convert request_context.refcount from atomic_t to refcount_t
-Date: Mon, 03 Apr 2017 14:41:08 +0300
-Message-ID: <87zifxn2gb.fsf@kamboji.qca.qualcomm.com>
-References: <1490691403-4016-1-git-send-email-elena.reshetova@intel.com>
-        <1490691403-4016-17-git-send-email-elena.reshetova@intel.com>
+From: Talat mellanox <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-core] debian: Update Copyright file
+Date: Mon, 3 Apr 2017 15:28:27 +0300
+Message-ID: <CAB1oGZf_GaN-kiLOizmU_Pk-BhX8jyW0AO2NvFbqaNb0AU5KGA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1490691403-4016-17-git-send-email-elena.reshetova@intel.com>
-        (Elena Reshetova's message of "Tue, 28 Mar 2017 11:56:43 +0300")
-Sender: netdev-owner@vger.kernel.org
-To: Elena Reshetova <elena.reshetova@intel.com>
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-rdma@vger.kernel.org, linux-hams@vger.kernel.org, linux-ppp@vger.kernel.org, linux-wireless@vger.kernel.org, ganeshgr@chelsio.com, nbd@openwrt.org, blogic@openwrt.org, matthias.bgg@gmail.com, yishaih@mellanox.com, saeedm@mellanox.com, matanb@mellanox.com, leonro@mellanox.com, ajk@comnets.uni-bremen.de, paulus@samba.org, j@w1.fi, peterz@infradead.org, keescook@chromium.org, gregkh@linuxfoundation.org, Hans Liljestrand <ishkamiel@gmail.com>, David Windsor <dwindsor@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Elena Reshetova <elena.reshetova@intel.com> writes:
-
-> refcount_t type and corresponding API should be
-> used instead of atomic_t when the variable is used as
-> a reference counter. This allows to avoid accidental
-> refcounter overflows that might lead to use-after-free
-> situations.
+On Mon, Apr 3, 2017 at 2:35 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> On Mon, Apr 03, 2017 at 01:13:30PM +0300, Talat Batheesh wrote:
+>> Signed-off-by: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> ---
+>>  debian/copyright | 42 ++++++++++++++++++++++++++++++++++++++----
+>>  1 file changed, 38 insertions(+), 4 deletions(-)
 >
-> Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-> Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
-> Signed-off-by: Kees Cook <keescook@chromium.org>
-> Signed-off-by: David Windsor <dwindsor@gmail.com>
-> ---
->  drivers/net/wireless/intersil/orinoco/orinoco_usb.c | 15 ++++++++-------
->  1 file changed, 8 insertions(+), 7 deletions(-)
+> Hi Talat,
+>
+> Thank you for sending this patch, but can you please send a script which
+> generates this file? It is not scalable to update this file manually.
+>
+> Thanks
 
-The prefix should be "orinoco_usb:", I'll fix that.
+This file is one of the most important files in Debian packaging , and
+it carefully made, so i prefer to modify it manually.
+There is a several tools [1] that assist with building it like
+licensecheck, cme and decopy and i used them for the rdma-core
+package.
 
--- 
-Kalle Valo
+[1]
+https://wiki.debian.org/CopyrightReviewTools
+
+
+Thanks,
+Talat
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
