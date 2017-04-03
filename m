@@ -1,59 +1,37 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core] debian: Update Copyright file
-Date: Mon, 3 Apr 2017 14:35:57 +0300
-Message-ID: <20170403113557.GQ20443@mtr-leonro.local>
-References: <20170403101330.11174-1-talatb@mellanox.com>
+From: Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [PATCH 15/16] drivers, net, intersil: convert hostap_cmd_queue.usecnt from atomic_t to refcount_t
+Date: Mon, 03 Apr 2017 14:38:49 +0300
+Message-ID: <874ly5oh4m.fsf@kamboji.qca.qualcomm.com>
+References: <1490691403-4016-1-git-send-email-elena.reshetova@intel.com>
+        <1490691403-4016-16-git-send-email-elena.reshetova@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="hHiQ9nAwW5IGN2dL"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170403101330.11174-1-talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1490691403-4016-16-git-send-email-elena.reshetova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+        (Elena Reshetova's message of "Tue, 28 Mar 2017 11:56:42 +0300")
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Elena Reshetova <elena.reshetova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-hams-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ppp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, nbd-p3rKhJxN3npAfugRpC6u6w@public.gmane.org, blogic-p3rKhJxN3npAfugRpC6u6w@public.gmane.org, matthias.bgg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ajk-iz34hMvxm2Hmj42eshorlhS11BummzK+@public.gmane.org, paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org, j@w1.fi, peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, Hans Liljestrand <ishkamiel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Windsor <dwindsor-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Elena Reshetova <elena.reshetova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> writes:
 
---hHiQ9nAwW5IGN2dL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Apr 03, 2017 at 01:13:30PM +0300, Talat Batheesh wrote:
-> Signed-off-by: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> refcount_t type and corresponding API should be
+> used instead of atomic_t when the variable is used as
+> a reference counter. This allows to avoid accidental
+> refcounter overflows that might lead to use-after-free
+> situations.
+>
+> Signed-off-by: Elena Reshetova <elena.reshetova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Hans Liljestrand <ishkamiel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+> Signed-off-by: David Windsor <dwindsor-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 > ---
->  debian/copyright | 42 ++++++++++++++++++++++++++++++++++++++----
->  1 file changed, 38 insertions(+), 4 deletions(-)
+>  drivers/net/wireless/intersil/hostap/hostap_hw.c   | 12 ++++++------
+>  drivers/net/wireless/intersil/hostap/hostap_wlan.h |  3 ++-
+>  2 files changed, 8 insertions(+), 7 deletions(-)
 
-Hi Talat,
+The prefix should be "hostap:", I'll fix that.
 
-Thank you for sending this patch, but can you please send a script which
-generates this file? It is not scalable to update this file manually.
-
-Thanks
-
---hHiQ9nAwW5IGN2dL
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljiM50ACgkQ5GN7iDZy
-WKeKSw//fmee83UxEQOL/vQo0BlS+YaKdou0SabRJBO7GXb4GUlISJaO2I86+eTA
-rFjgyLw5XfesKbswKgUhG5Zu/noXqqI+ra1QIR1YwwMXgbZ8Jd7/lCToojOxqKiL
-RHTfSkR/QBmeHlMem3V42APGClS54HIHwpWNw0P+JMLjLM34x2TkdPv0M21qkETT
-WHhZpu+USo4dQueUMiW+BkNm2tC+fstquKLN0JrpPEBnDKBol3iiPG7JWWtHdsGL
-NFS72zlNCX4TUVpWi9+ZA3ZEldyGFqnuZn11rkApS0hrZHOLd8VW++ugx9g0apc0
-tjKlwinhUpQx+cA6pT0JKoa8thPam+ZNbgBf63R9LfUcGU/IHIg+26eDbx5ajl6q
-l325qJqu6wmJmeLma+IeUJ4wSmxGDcf3nXdpv9arHVt8vDQTsK9rFQoHwrkvuaiT
-MobVPKYRWKlgGaY9v8P/XT7Y3rq+B5wm/2vGwB+dIJRr9SOZZC+9qiZZzoEfna5N
-66dw9HEIzRlrwZe6kbjq5kOKss/M1zUiclz/d+DDw8UdMZNLz/Q8I2t380xqlyUm
-gvBgdnLKiFco1p5hkXpazX27A8QN2k5didAg1pUw8YFWAnlJ9H2a7r8HgW+4GKIx
-+WHQfCfIhmZWkbno9amz/owE64CFP5cpoM22cZHmEyTDsHmOYNA=
-=FZKd
------END PGP SIGNATURE-----
-
---hHiQ9nAwW5IGN2dL--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Kalle Valo
