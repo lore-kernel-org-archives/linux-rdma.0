@@ -1,250 +1,102 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 10/10] IB/mlx5: Add ODP support to MW
-Date: Mon,  3 Apr 2017 13:06:40 +0300
-Message-ID: <20170403100640.3332-11-leon@kernel.org>
-References: <20170403100640.3332-1-leon@kernel.org>
+Subject: [PATCH rdma-next 1/2] IB/mlx5: Add inner spec and IPv6 validation in user's flow attribute list
+Date: Mon,  3 Apr 2017 13:11:02 +0300
+Message-ID: <20170403101103.5141-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170403100640.3332-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Internally MW implemented as KLM MKey and filled by userspace UMR
-postsends.  Handle pagefault trigered by operations on this MKeys.
+This change fixes an incomplete validation of the user's
+flow attributes list.
 
-Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Previous implementation validated only matching of IPv4 Ethertype
+to IPv4 spec of outer headers (in case both Ethernet with specified
+Ethertype and IP specs were present) and lacked the validation of:
+1. Matching of IPv6 Ethertype in Ethernet spec (if such exists) to an
+   IPv6 protocol spec (if such exists).
+2. Validation of Ethertype to IP protocol matching on inner headers specs.
+Which could cause some combinations of unmatching Ethernet and IP
+protocols to pass validation and apply on the device.
+
+The fix adds validation of IPv6 Ethertype and IP spec as well as
+performing the scan on both outer and inner attributes.
+
+Fixes: 038d2ef87572 ("Add flow steering support")
+Signed-off-by: Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/mlx5_ib.h |   1 +
- drivers/infiniband/hw/mlx5/mr.c      |   1 +
- drivers/infiniband/hw/mlx5/odp.c     | 161 +++++++++++++++++++++++++----------
- 3 files changed, 120 insertions(+), 43 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 44 ++++++++++++++++++++++++++++++---------
+ 1 file changed, 34 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 3cd064b5f0bf..9f519404ad7a 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -513,6 +513,7 @@ struct mlx5_ib_mr {
- struct mlx5_ib_mw {
- 	struct ib_mw		ibmw;
- 	struct mlx5_core_mkey	mmkey;
-+	int			ndescs;
- };
- 
- struct mlx5_ib_umr_context {
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 9a74260e9899..93c0e82aa491 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -1688,6 +1688,7 @@ struct ib_mw *mlx5_ib_alloc_mw(struct ib_pd *pd, enum ib_mw_type type,
- 
- 	mw->mmkey.type = MLX5_MKEY_MW;
- 	mw->ibmw.rkey = mw->mmkey.key;
-+	mw->ndescs = ndescs;
- 
- 	resp.response_length = min(offsetof(typeof(resp), response_length) +
- 				   sizeof(resp.response_length), udata->outlen);
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index 842e1dbb50b8..ae0746754008 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -288,24 +288,6 @@ void mlx5_ib_internal_fill_odp_caps(struct mlx5_ib_dev *dev)
- 	return;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 4dc0a8785fe0..8e9c57cd3039 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1967,26 +1967,50 @@ static bool flow_is_multicast_only(struct ib_flow_attr *ib_attr)
+ 	       is_multicast_ether_addr(eth_spec->val.dst_mac);
  }
  
--static struct mlx5_ib_mr *mlx5_ib_odp_find_mr_lkey(struct mlx5_ib_dev *dev,
--						   u32 key)
--{
--	u32 base_key = mlx5_base_mkey(key);
--	struct mlx5_core_mkey *mmkey = __mlx5_mr_lookup(dev->mdev, base_key);
--	struct mlx5_ib_mr *mr;
--
--	if (!mmkey || mmkey->key != key || mmkey->type != MLX5_MKEY_MR)
--		return NULL;
--
--	mr = container_of(mmkey, struct mlx5_ib_mr, mmkey);
--
--	if (!mr->live)
--		return NULL;
--
--	return container_of(mmkey, struct mlx5_ib_mr, mmkey);
--}
--
- static void mlx5_ib_page_fault_resume(struct mlx5_ib_dev *dev,
- 				      struct mlx5_pagefault *pfault,
- 				      int error)
-@@ -625,6 +607,14 @@ static int pagefault_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr,
- 	return ret;
- }
- 
-+struct pf_frame {
-+	struct pf_frame *next;
-+	u32 key;
-+	u64 io_virt;
-+	size_t bcnt;
-+	int depth;
-+};
-+
- /*
-  * Handle a single data segment in a page-fault WQE or RDMA region.
-  *
-@@ -641,43 +631,128 @@ static int pagefault_single_data_segment(struct mlx5_ib_dev *dev,
- 					 u32 *bytes_committed,
- 					 u32 *bytes_mapped)
+-static bool is_valid_attr(const struct ib_flow_attr *flow_attr)
++static bool is_valid_ethertype(const struct ib_flow_attr *flow_attr,
++			       bool check_inner)
  {
--	int npages = 0, srcu_key, ret;
-+	int npages = 0, srcu_key, ret, i, outlen, cur_outlen = 0, depth = 0;
-+	struct pf_frame *head = NULL, *frame;
-+	struct mlx5_core_mkey *mmkey;
-+	struct mlx5_ib_mw *mw;
- 	struct mlx5_ib_mr *mr;
--	size_t size;
-+	struct mlx5_klm *pklm;
-+	u32 *out = NULL;
-+	size_t offset;
+ 	union ib_flow_spec *ib_spec = (union ib_flow_spec *)(flow_attr + 1);
+-	bool has_ipv4_spec = false;
+-	bool eth_type_ipv4 = true;
++	int inner_bit = check_inner ? IB_FLOW_SPEC_INNER : 0;
++	bool ipv4_spec_valid, ipv6_spec_valid;
++	unsigned int ip_spec_type = 0;
++	bool has_ethertype = false;
+ 	unsigned int spec_index;
++	bool mask_valid = true;
++	u16 eth_type = 0;
++	bool type_valid;
  
- 	srcu_key = srcu_read_lock(&dev->mr_srcu);
--	mr = mlx5_ib_odp_find_mr_lkey(dev, key);
--	/*
--	 * If we didn't find the MR, it means the MR was closed while we were
--	 * handling the ODP event. In this case we return -EFAULT so that the
--	 * QP will be closed.
--	 */
--	if (!mr || !mr->ibmr.pd) {
--		mlx5_ib_dbg(dev, "Failed to find relevant mr for lkey=0x%06x, probably the MR was destroyed\n",
--			    key);
-+
-+	io_virt += *bytes_committed;
-+	bcnt -= *bytes_committed;
-+
-+next_mr:
-+	mmkey = __mlx5_mr_lookup(dev->mdev, mlx5_base_mkey(key));
-+	if (!mmkey || mmkey->key != key) {
-+		mlx5_ib_dbg(dev, "failed to find mkey %x\n", key);
- 		ret = -EFAULT;
- 		goto srcu_unlock;
+ 	/* Validate that ethertype is correct */
+ 	for (spec_index = 0; spec_index < flow_attr->num_of_specs; spec_index++) {
+-		if (ib_spec->type == IB_FLOW_SPEC_ETH &&
++		if ((ib_spec->type == (IB_FLOW_SPEC_ETH | inner_bit)) &&
+ 		    ib_spec->eth.mask.ether_type) {
+-			if (!((ib_spec->eth.mask.ether_type == htons(0xffff)) &&
+-			      ib_spec->eth.val.ether_type == htons(ETH_P_IP)))
+-				eth_type_ipv4 = false;
+-		} else if (ib_spec->type == IB_FLOW_SPEC_IPV4) {
+-			has_ipv4_spec = true;
++			mask_valid = (ib_spec->eth.mask.ether_type ==
++				      htons(0xffff));
++			has_ethertype = true;
++			eth_type = ntohs(ib_spec->eth.val.ether_type);
++		} else if ((ib_spec->type == (IB_FLOW_SPEC_IPV4 | inner_bit)) ||
++			   (ib_spec->type == (IB_FLOW_SPEC_IPV6 | inner_bit))) {
++			ip_spec_type = ib_spec->type;
+ 		}
+ 		ib_spec = (void *)ib_spec + ib_spec->size;
  	}
--	if (!mr->umem->odp_data) {
--		mlx5_ib_dbg(dev, "skipping non ODP MR (lkey=0x%06x) in page fault handler.\n",
--			    key);
--		if (bytes_mapped)
--			*bytes_mapped +=
--				(bcnt - *bytes_committed);
+-	return !has_ipv4_spec || eth_type_ipv4;
 +
-+	switch (mmkey->type) {
-+	case MLX5_MKEY_MR:
-+		mr = container_of(mmkey, struct mlx5_ib_mr, mmkey);
-+		if (!mr->live || !mr->ibmr.pd) {
-+			mlx5_ib_dbg(dev, "got dead MR\n");
-+			ret = -EFAULT;
-+			goto srcu_unlock;
-+		}
-+
-+		ret = pagefault_mr(dev, mr, io_virt, bcnt, bytes_mapped);
-+		if (ret < 0)
-+			goto srcu_unlock;
-+
-+		npages += ret;
-+		ret = 0;
-+		break;
-+
-+	case MLX5_MKEY_MW:
-+		mw = container_of(mmkey, struct mlx5_ib_mw, mmkey);
-+
-+		if (depth >= MLX5_CAP_GEN(dev->mdev, max_indirection)) {
-+			mlx5_ib_dbg(dev, "indirection level exceeded\n");
-+			ret = -EFAULT;
-+			goto srcu_unlock;
-+		}
-+
-+		outlen = MLX5_ST_SZ_BYTES(query_mkey_out) +
-+			sizeof(*pklm) * (mw->ndescs - 2);
-+
-+		if (outlen > cur_outlen) {
-+			kfree(out);
-+			out = kzalloc(outlen, GFP_KERNEL);
-+			if (!out) {
-+				ret = -ENOMEM;
-+				goto srcu_unlock;
-+			}
-+			cur_outlen = outlen;
-+		}
-+
-+		pklm = (struct mlx5_klm *)MLX5_ADDR_OF(query_mkey_out, out,
-+						       bsf0_klm0_pas_mtt0_1);
-+
-+		ret = mlx5_core_query_mkey(dev->mdev, &mw->mmkey, out, outlen);
-+		if (ret)
-+			goto srcu_unlock;
-+
-+		offset = io_virt - MLX5_GET64(query_mkey_out, out,
-+					      memory_key_mkey_entry.start_addr);
-+
-+		for (i = 0; bcnt && i < mw->ndescs; i++, pklm++) {
-+			if (offset >= be32_to_cpu(pklm->bcount)) {
-+				offset -= be32_to_cpu(pklm->bcount);
-+				continue;
-+			}
-+
-+			frame = kzalloc(sizeof(*frame), GFP_KERNEL);
-+			if (!frame) {
-+				ret = -ENOMEM;
-+				goto srcu_unlock;
-+			}
-+
-+			frame->key = be32_to_cpu(pklm->key);
-+			frame->io_virt = be64_to_cpu(pklm->va) + offset;
-+			frame->bcnt = min_t(size_t, bcnt,
-+					    be32_to_cpu(pklm->bcount) - offset);
-+			frame->depth = depth + 1;
-+			frame->next = head;
-+			head = frame;
-+
-+			bcnt -= frame->bcnt;
-+		}
-+		break;
-+
-+	default:
-+		mlx5_ib_dbg(dev, "wrong mkey type %d\n", mmkey->type);
-+		ret = -EFAULT;
- 		goto srcu_unlock;
- 	}
- 
--	/*
--	 * Avoid branches - this code will perform correctly
--	 * in all iterations (in iteration 2 and above,
--	 * bytes_committed == 0).
--	 */
--	io_virt += *bytes_committed;
--	bcnt -= *bytes_committed;
-+	if (head) {
-+		frame = head;
-+		head = frame->next;
- 
--	npages = pagefault_mr(dev, mr, io_virt, size, bytes_mapped);
-+		key = frame->key;
-+		io_virt = frame->io_virt;
-+		bcnt = frame->bcnt;
-+		depth = frame->depth;
-+		kfree(frame);
-+
-+		goto next_mr;
++	type_valid = (!has_ethertype) || (!ip_spec_type);
++	if (!type_valid && mask_valid) {
++		ipv4_spec_valid = (eth_type == ETH_P_IP) &&
++			(ip_spec_type == (IB_FLOW_SPEC_IPV4 | inner_bit));
++		ipv6_spec_valid = (eth_type == ETH_P_IPV6) &&
++			(ip_spec_type == (IB_FLOW_SPEC_IPV6 | inner_bit));
++		type_valid = ipv4_spec_valid || ipv6_spec_valid;
 +	}
- 
- srcu_unlock:
-+	while (head) {
-+		frame = head;
-+		head = frame->next;
-+		kfree(frame);
-+	}
-+	kfree(out);
 +
- 	srcu_read_unlock(&dev->mr_srcu, srcu_key);
- 	*bytes_committed = 0;
- 	return ret ? ret : npages;
++	return type_valid;
++}
++
++static bool is_valid_attr(const struct ib_flow_attr *flow_attr)
++{
++	return is_valid_ethertype(flow_attr, false) &&
++	       is_valid_ethertype(flow_attr, true);
+ }
+ 
+ static void put_flow_table(struct mlx5_ib_dev *dev,
 -- 
 2.12.0
 
