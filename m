@@ -1,134 +1,75 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [Qemu-devel] [PATCH RFC] hw/pvrdma: Proposal of a new pvrdma
- device
-Date: Mon, 3 Apr 2017 09:27:30 +0300
-Message-ID: <20170403062730.GP20443@mtr-leonro.local>
-References: <1490872341-9959-1-git-send-email-marcel@redhat.com>
- <20170330141314.GM20443@mtr-leonro.local>
- <5e952524-7c2d-b4da-4bd7-6437830a40d8@redhat.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/1] IB/core: change the return type to void
+Date: Mon, 3 Apr 2017 10:00:55 +0300
+Message-ID: <20170403070054.GA3086@yuval-lap>
+References: <1491018175-16622-1-git-send-email-yanjun.zhu@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="i7KxW38SoMauyveo"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5e952524-7c2d-b4da-4bd7-6437830a40d8-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1491018175-16622-1-git-send-email-yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, Mar 31, 2017 at 11:42:55PM -0400, Zhu Yanjun wrote:
+> The function ib_unregister_mad_agent always returns zero. And
+> this returned value is not checked. As such, chane the return
+> type to void.
+> 
+> CC: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> CC: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
---i7KxW38SoMauyveo
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-On Thu, Mar 30, 2017 at 03:28:21PM -0500, Doug Ledford wrote:
-> On 3/30/17 9:13 AM, Leon Romanovsky wrote:
-> > On Thu, Mar 30, 2017 at 02:12:21PM +0300, Marcel Apfelbaum wrote:
-> > > From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > >
-> > >  Hi,
-> > >
-> > >  General description
-> > >  ===================
-> > >  This is a very early RFC of a new RoCE emulated device
-> > >  that enables guests to use the RDMA stack without having
-> > >  a real hardware in the host.
-> > >
-> > >  The current implementation supports only VM to VM communication
-> > >  on the same host.
-> > >  Down the road we plan to make possible to be able to support
-> > >  inter-machine communication by utilizing physical RoCE devices
-> > >  or Soft RoCE.
-> > >
-> > >  The goals are:
-> > >  - Reach fast and secure loos-less Inter-VM data exchange.
-> > >  - Support remote VMs or bare metal machines.
-> > >  - Allow VMs migration.
-> > >  - Do not require to pin all VM memory.
-> > >
-> > >
-> > >  Objective
-> > >  =========
-> > >  Have a QEMU implementation of the PVRDMA device. We aim to do so without
-> > >  any change in the PVRDMA guest driver which is already merged into the
-> > >  upstream kernel.
-> > >
-> > >
-> > >  RFC status
-> > >  ===========
-> > >  The project is in early development stages and supports
-> > >  only basic send/receive operations.
-> > >
-> > >  We present it so we can get feedbacks on design,
-> > >  feature demands and to receive comments from the
-> > >  community pointing us to the "right" direction.
-> >
-> > If to judge by the feedback which you got from RDMA community
-> > for kernel proposal [1], this community failed to understand:
-> > 1. Why do you need new module?
->
-> In this case, this is a qemu module to allow qemu to provide a virt rdma
-> device to guests that is compatible with the device provided by VMWare's ESX
-> product.  Right now, the vmware_pvrdma driver works only when the guest is
-> running on a VMWare ESX server product, this would change that.  Marcel
-> mentioned that they are currently making it compatible because that's the
-> easiest/quickest thing to do, but in the future they might extend beyond
-> what VMWare's virt rdma driver provides/uses and might then need to either
-> modify it to work with their extensions or fork and create their own virt
-> client driver.
-
-Doug,
-
-As I mentioned during OFA, I just responded to the latest email, but
-targeted my questions for their module. Sorry for not being clear about
-it.
-
->
-> > 2. Why existing solutions are not enough and can't be extended?
->
-> This patch is against the qemu source code, not the kernel.  There is no
-> other solution in the qemu source code, so there is no existing solution to
-> extend.
->
-> > 3. Why RXE (SoftRoCE) can't be extended to perform this inter-VM
-> >    communication via virtual NIC?
->
-> Eventually they want this to work on real hardware, and to be more or less
-> transparent to the guest.  They will need to make it independent of the
-> kernel hardware/driver in use.  That means their own virt driver, then the
-> virt driver will eventually hook into whatever hardware is present on the
-> system, or failing that, fall back to soft RoCE or soft iWARP if that ever
-> makes it in the kernel.
->
->
-> >
-> > Can you please help us to fill this knowledge gap?
-> >
-> > [1] http://marc.info/?l=linux-rdma&m=149063626907175&w=2
->
-
---i7KxW38SoMauyveo
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljh61IACgkQ5GN7iDZy
-WKfwtg//RAhltqcBrIa5Xnef3dc9WUrUVzpqCf2r7MIf8OBCdKyea+eLwz0RbLiF
-nzv1ZJPZfDvQFVCWbNSOVzjACp2rEtx79g732Xp+4eL/9wzBZmBI0HuIvH6H/6ci
-uApwILW/FTAGJL+jXX953Oml2yxEvGzvp7pq36NKj8utsjgJcDZMjp6/IhE+6NzP
-BVJo+W3l3MmhFO9kCBnWtZnP6UbxDkny+EVXwBp3PFg1Zdla69FpprhlG38Nojbz
-wZsWs+aoZrWrRhuXQECeCCKvf/mPmymeUEkdgkXHdarc2iDKtPL8VXtaTK7q4xe2
-xh37c1rygN0evaIGpycr7AdVUDEfN/U2ZYPyCLq9WCABZz9A+IctkD4R2IPXfywn
-l4mwHIKdqxozjgjzREm4vOLi8/YaRpUKK1xmOVuQX8+sMJs7ccaMhME1vIe7KxDA
-CvvXNRbSOwj88SqwLTcrvE8x3a741aPNK/1kvS0WxyraUakYq5t8tz6/Dky95qXj
-C3BjFuICOnyy1DKMfvFiyRutybymWJDHCy3WvSsNpfdx22WdUvU1fRmInCaesdyB
-Ee6dM5wobtdEhhKLWiMlreQef23qj2ThIEslE9NtII6R8vrnmk0WA+8hY/MZFHgZ
-9ZqvhVXhfp/IJ+SOc7bh75SJ6wetBNtPHMxKdSaSiO9CWSBlEHM=
-=kLxZ
------END PGP SIGNATURE-----
-
---i7KxW38SoMauyveo--
+> ---
+>  drivers/infiniband/core/mad.c | 3 +--
+>  include/rdma/ib_mad.h         | 2 +-
+>  2 files changed, 2 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+> index 57f231f..8a2ceb4 100644
+> --- a/drivers/infiniband/core/mad.c
+> +++ b/drivers/infiniband/core/mad.c
+> @@ -605,7 +605,7 @@ static void unregister_mad_snoop(struct ib_mad_snoop_private *mad_snoop_priv)
+>  /*
+>   * ib_unregister_mad_agent - Unregisters a client from using MAD services
+>   */
+> -int ib_unregister_mad_agent(struct ib_mad_agent *mad_agent)
+> +void ib_unregister_mad_agent(struct ib_mad_agent *mad_agent)
+>  {
+>  	struct ib_mad_agent_private *mad_agent_priv;
+>  	struct ib_mad_snoop_private *mad_snoop_priv;
+> @@ -622,7 +622,6 @@ int ib_unregister_mad_agent(struct ib_mad_agent *mad_agent)
+>  					      agent);
+>  		unregister_mad_snoop(mad_snoop_priv);
+>  	}
+> -	return 0;
+>  }
+>  EXPORT_SYMBOL(ib_unregister_mad_agent);
+>  
+> diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
+> index 981214b..42814a0 100644
+> --- a/include/rdma/ib_mad.h
+> +++ b/include/rdma/ib_mad.h
+> @@ -673,7 +673,7 @@ struct ib_mad_agent *ib_register_mad_snoop(struct ib_device *device,
+>   * After invoking this routine, MAD services are no longer usable by the
+>   * client on the associated QP.
+>   */
+> -int ib_unregister_mad_agent(struct ib_mad_agent *mad_agent);
+> +void ib_unregister_mad_agent(struct ib_mad_agent *mad_agent);
+>  
+>  /**
+>   * ib_post_send_mad - Posts MAD(s) to the send queue of the QP associated
+> -- 
+> 2.7.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
