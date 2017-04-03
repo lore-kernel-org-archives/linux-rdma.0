@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 08/10] IB/umem: Add support to huge ODP
-Date: Mon,  3 Apr 2017 13:06:38 +0300
-Message-ID: <20170403100640.3332-9-leon@kernel.org>
+Subject: [PATCH rdma-next 09/10] IB/mlx5: Extract page fault code
+Date: Mon,  3 Apr 2017 13:06:39 +0300
+Message-ID: <20170403100640.3332-10-leon@kernel.org>
 References: <20170403100640.3332-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170403100640.3332-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,119 +12,285 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add IB_ACCESS_HUGETLB ib_reg_mr flag.
-Hugetlb region registered with this flag
-will use single translation entry per huge page.
+To make page fault handling code more flexible
+split pagefault_single_data_segment() function.
+Keep MR resolution in pagefault_single_data_segment() and
+move actual updates into pagefault_single_mr().
 
 Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/umem.c     |  2 +-
- drivers/infiniband/core/umem_odp.c | 19 +++++++++++++++++--
- include/rdma/ib_umem_odp.h         |  6 ++++--
- include/rdma/ib_verbs.h            |  1 +
- 4 files changed, 23 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/mlx5/odp.c | 203 ++++++++++++++++++++-------------------
+ 1 file changed, 104 insertions(+), 99 deletions(-)
 
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 6b87c051ffd4..3dbf811d3c51 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -133,7 +133,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 
- 	if (access & IB_ACCESS_ON_DEMAND) {
- 		put_pid(umem->pid);
--		ret = ib_umem_odp_get(context, umem);
-+		ret = ib_umem_odp_get(context, umem, access);
- 		if (ret) {
- 			kfree(umem);
- 			return ERR_PTR(ret);
-diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
-index 73053c8a9e3b..0780b1afefa9 100644
---- a/drivers/infiniband/core/umem_odp.c
-+++ b/drivers/infiniband/core/umem_odp.c
-@@ -38,6 +38,7 @@
- #include <linux/slab.h>
- #include <linux/export.h>
- #include <linux/vmalloc.h>
-+#include <linux/hugetlb.h>
- 
- #include <rdma/ib_verbs.h>
- #include <rdma/ib_umem.h>
-@@ -306,7 +307,8 @@ struct ib_umem *ib_alloc_odp_umem(struct ib_ucontext *context,
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+index eddabd6e6596..842e1dbb50b8 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -511,81 +511,38 @@ void mlx5_ib_free_implicit_mr(struct mlx5_ib_mr *imr)
+ 	wait_event(imr->q_leaf_free, !atomic_read(&imr->num_leaf_free));
  }
- EXPORT_SYMBOL(ib_alloc_odp_umem);
  
--int ib_umem_odp_get(struct ib_ucontext *context, struct ib_umem *umem)
-+int ib_umem_odp_get(struct ib_ucontext *context, struct ib_umem *umem,
-+		    int access)
+-/*
+- * Handle a single data segment in a page-fault WQE or RDMA region.
+- *
+- * Returns number of OS pages retrieved on success. The caller may continue to
+- * the next data segment.
+- * Can return the following error codes:
+- * -EAGAIN to designate a temporary error. The caller will abort handling the
+- *  page fault and resolve it.
+- * -EFAULT when there's an error mapping the requested pages. The caller will
+- *  abort the page fault handling.
+- */
+-static int pagefault_single_data_segment(struct mlx5_ib_dev *dev,
+-					 u32 key, u64 io_virt, size_t bcnt,
+-					 u32 *bytes_committed,
+-					 u32 *bytes_mapped)
++static int pagefault_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr,
++			u64 io_virt, size_t bcnt, u32 *bytes_mapped)
  {
- 	int ret_val;
- 	struct pid *our_pid;
-@@ -315,6 +317,20 @@ int ib_umem_odp_get(struct ib_ucontext *context, struct ib_umem *umem)
- 	if (!mm)
- 		return -EINVAL;
+-	int srcu_key;
+-	unsigned int current_seq = 0;
+-	u64 start_idx, page_mask;
+-	int npages = 0, ret = 0;
+-	struct mlx5_ib_mr *mr;
+ 	u64 access_mask = ODP_READ_ALLOWED_BIT;
++	int npages = 0, page_shift, np;
++	u64 start_idx, page_mask;
+ 	struct ib_umem_odp *odp;
+-	int implicit = 0;
++	int current_seq;
+ 	size_t size;
+-	int page_shift;
+-
+-	srcu_key = srcu_read_lock(&dev->mr_srcu);
+-	mr = mlx5_ib_odp_find_mr_lkey(dev, key);
+-	/*
+-	 * If we didn't find the MR, it means the MR was closed while we were
+-	 * handling the ODP event. In this case we return -EFAULT so that the
+-	 * QP will be closed.
+-	 */
+-	if (!mr || !mr->ibmr.pd) {
+-		mlx5_ib_dbg(dev, "Failed to find relevant mr for lkey=0x%06x, probably the MR was destroyed\n",
+-			    key);
+-		ret = -EFAULT;
+-		goto srcu_unlock;
+-	}
+-	if (!mr->umem->odp_data) {
+-		mlx5_ib_dbg(dev, "skipping non ODP MR (lkey=0x%06x) in page fault handler.\n",
+-			    key);
+-		if (bytes_mapped)
+-			*bytes_mapped +=
+-				(bcnt - *bytes_committed);
+-		goto srcu_unlock;
+-	}
+-
+-	/*
+-	 * Avoid branches - this code will perform correctly
+-	 * in all iterations (in iteration 2 and above,
+-	 * bytes_committed == 0).
+-	 */
+-	io_virt += *bytes_committed;
+-	bcnt -= *bytes_committed;
++	int ret;
  
-+	if (access & IB_ACCESS_HUGETLB) {
-+		struct vm_area_struct *vma;
-+		struct hstate *h;
-+
-+		vma = find_vma(mm, ib_umem_start(umem));
-+		if (!vma || !is_vm_hugetlb_page(vma))
-+			return -EINVAL;
-+		h = hstate_vma(vma);
-+		umem->page_shift = huge_page_shift(h);
-+		umem->hugetlb = 1;
-+	} else {
-+		umem->hugetlb = 0;
-+	}
-+
- 	/* Prevent creating ODP MRs in child processes */
- 	rcu_read_lock();
- 	our_pid = get_task_pid(current->group_leader, PIDTYPE_PID);
-@@ -325,7 +341,6 @@ int ib_umem_odp_get(struct ib_ucontext *context, struct ib_umem *umem)
- 		goto out_mm;
+ 	if (!mr->umem->odp_data->page_list) {
+ 		odp = implicit_mr_get_data(mr, io_virt, bcnt);
+ 
+-		if (IS_ERR(odp)) {
+-			ret = PTR_ERR(odp);
+-			goto srcu_unlock;
+-		}
++		if (IS_ERR(odp))
++			return PTR_ERR(odp);
+ 		mr = odp->private;
+-		implicit = 1;
+ 
+ 	} else {
+ 		odp = mr->umem->odp_data;
  	}
  
--	umem->hugetlb = 0;
- 	umem->odp_data = kzalloc(sizeof(*umem->odp_data), GFP_KERNEL);
- 	if (!umem->odp_data) {
- 		ret_val = -ENOMEM;
-diff --git a/include/rdma/ib_umem_odp.h b/include/rdma/ib_umem_odp.h
-index 542cd8b3414c..fb67554aabd6 100644
---- a/include/rdma/ib_umem_odp.h
-+++ b/include/rdma/ib_umem_odp.h
-@@ -84,7 +84,8 @@ struct ib_umem_odp {
++next_mr:
++	size = min_t(size_t, bcnt, ib_umem_end(odp->umem) - io_virt);
++
+ 	page_shift = mr->umem->page_shift;
+ 	page_mask = ~(BIT(page_shift) - 1);
++	start_idx = (io_virt - (mr->mmkey.iova & page_mask)) >> page_shift;
++
++	if (mr->umem->writable)
++		access_mask |= ODP_WRITE_ALLOWED_BIT;
  
- #ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+-next_mr:
+ 	current_seq = READ_ONCE(odp->notifiers_seq);
+ 	/*
+ 	 * Ensure the sequence number is valid for some time before we call
+@@ -593,51 +550,43 @@ static int pagefault_single_data_segment(struct mlx5_ib_dev *dev,
+ 	 */
+ 	smp_rmb();
  
--int ib_umem_odp_get(struct ib_ucontext *context, struct ib_umem *umem);
-+int ib_umem_odp_get(struct ib_ucontext *context, struct ib_umem *umem,
-+		    int access);
- struct ib_umem *ib_alloc_odp_umem(struct ib_ucontext *context,
- 				  unsigned long addr,
- 				  size_t size);
-@@ -154,7 +155,8 @@ static inline int ib_umem_mmu_notifier_retry(struct ib_umem *item,
- #else /* CONFIG_INFINIBAND_ON_DEMAND_PAGING */
+-	size = min_t(size_t, bcnt, ib_umem_end(odp->umem) - io_virt);
+-	start_idx = (io_virt - (mr->mmkey.iova & page_mask)) >> page_shift;
+-
+-	if (mr->umem->writable)
+-		access_mask |= ODP_WRITE_ALLOWED_BIT;
+-
+ 	ret = ib_umem_odp_map_dma_pages(mr->umem, io_virt, size,
+ 					access_mask, current_seq);
  
- static inline int ib_umem_odp_get(struct ib_ucontext *context,
--				  struct ib_umem *umem)
-+				  struct ib_umem *umem,
-+				  int access)
- {
- 	return -EINVAL;
- }
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 0f1813c13687..b60288beb3fe 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1336,6 +1336,7 @@ enum ib_access_flags {
- 	IB_ACCESS_MW_BIND	= (1<<4),
- 	IB_ZERO_BASED		= (1<<5),
- 	IB_ACCESS_ON_DEMAND     = (1<<6),
-+	IB_ACCESS_HUGETLB	= (1<<7),
- };
+ 	if (ret < 0)
+-		goto srcu_unlock;
++		goto out;
  
- /*
+-	if (ret > 0) {
+-		int np = ret;
+-
+-		mutex_lock(&odp->umem_mutex);
+-		if (!ib_umem_mmu_notifier_retry(mr->umem, current_seq)) {
+-			/*
+-			 * No need to check whether the MTTs really belong to
+-			 * this MR, since ib_umem_odp_map_dma_pages already
+-			 * checks this.
+-			 */
+-			ret = mlx5_ib_update_xlt(mr, start_idx, np,
+-						 page_shift,
+-						 MLX5_IB_UPD_XLT_ATOMIC);
+-		} else {
+-			ret = -EAGAIN;
+-		}
+-		mutex_unlock(&odp->umem_mutex);
+-		if (ret < 0) {
+-			if (ret != -EAGAIN)
+-				mlx5_ib_err(dev, "Failed to update mkey page tables\n");
+-			goto srcu_unlock;
+-		}
+-		if (bytes_mapped) {
+-			u32 new_mappings = (np << page_shift) -
+-				(io_virt - round_down(io_virt,
+-						      1 << page_shift));
+-			*bytes_mapped += min_t(u32, new_mappings, size);
+-		}
++	np = ret;
+ 
+-		npages += np << (page_shift - PAGE_SHIFT);
++	mutex_lock(&odp->umem_mutex);
++	if (!ib_umem_mmu_notifier_retry(mr->umem, current_seq)) {
++		/*
++		 * No need to check whether the MTTs really belong to
++		 * this MR, since ib_umem_odp_map_dma_pages already
++		 * checks this.
++		 */
++		ret = mlx5_ib_update_xlt(mr, start_idx, np,
++					 page_shift, MLX5_IB_UPD_XLT_ATOMIC);
++	} else {
++		ret = -EAGAIN;
+ 	}
++	mutex_unlock(&odp->umem_mutex);
+ 
++	if (ret < 0) {
++		if (ret != -EAGAIN)
++			mlx5_ib_err(dev, "Failed to update mkey page tables\n");
++		goto out;
++	}
++
++	if (bytes_mapped) {
++		u32 new_mappings = (np << page_shift) -
++			(io_virt - round_down(io_virt, 1 << page_shift));
++		*bytes_mapped += min_t(u32, new_mappings, size);
++	}
++
++	npages += np << (page_shift - PAGE_SHIFT);
+ 	bcnt -= size;
++
+ 	if (unlikely(bcnt)) {
+ 		struct ib_umem_odp *next;
+ 
+@@ -646,17 +595,18 @@ static int pagefault_single_data_segment(struct mlx5_ib_dev *dev,
+ 		if (unlikely(!next || next->umem->address != io_virt)) {
+ 			mlx5_ib_dbg(dev, "next implicit leaf removed at 0x%llx. got %p\n",
+ 				    io_virt, next);
+-			ret = -EAGAIN;
+-			goto srcu_unlock_no_wait;
++			return -EAGAIN;
+ 		}
+ 		odp = next;
+ 		mr = odp->private;
+ 		goto next_mr;
+ 	}
+ 
+-srcu_unlock:
++	return npages;
++
++out:
+ 	if (ret == -EAGAIN) {
+-		if (implicit || !odp->dying) {
++		if (mr->parent || !odp->dying) {
+ 			unsigned long timeout =
+ 				msecs_to_jiffies(MMU_NOTIFIER_TIMEOUT);
+ 
+@@ -672,7 +622,62 @@ static int pagefault_single_data_segment(struct mlx5_ib_dev *dev,
+ 		}
+ 	}
+ 
+-srcu_unlock_no_wait:
++	return ret;
++}
++
++/*
++ * Handle a single data segment in a page-fault WQE or RDMA region.
++ *
++ * Returns number of OS pages retrieved on success. The caller may continue to
++ * the next data segment.
++ * Can return the following error codes:
++ * -EAGAIN to designate a temporary error. The caller will abort handling the
++ *  page fault and resolve it.
++ * -EFAULT when there's an error mapping the requested pages. The caller will
++ *  abort the page fault handling.
++ */
++static int pagefault_single_data_segment(struct mlx5_ib_dev *dev,
++					 u32 key, u64 io_virt, size_t bcnt,
++					 u32 *bytes_committed,
++					 u32 *bytes_mapped)
++{
++	int npages = 0, srcu_key, ret;
++	struct mlx5_ib_mr *mr;
++	size_t size;
++
++	srcu_key = srcu_read_lock(&dev->mr_srcu);
++	mr = mlx5_ib_odp_find_mr_lkey(dev, key);
++	/*
++	 * If we didn't find the MR, it means the MR was closed while we were
++	 * handling the ODP event. In this case we return -EFAULT so that the
++	 * QP will be closed.
++	 */
++	if (!mr || !mr->ibmr.pd) {
++		mlx5_ib_dbg(dev, "Failed to find relevant mr for lkey=0x%06x, probably the MR was destroyed\n",
++			    key);
++		ret = -EFAULT;
++		goto srcu_unlock;
++	}
++	if (!mr->umem->odp_data) {
++		mlx5_ib_dbg(dev, "skipping non ODP MR (lkey=0x%06x) in page fault handler.\n",
++			    key);
++		if (bytes_mapped)
++			*bytes_mapped +=
++				(bcnt - *bytes_committed);
++		goto srcu_unlock;
++	}
++
++	/*
++	 * Avoid branches - this code will perform correctly
++	 * in all iterations (in iteration 2 and above,
++	 * bytes_committed == 0).
++	 */
++	io_virt += *bytes_committed;
++	bcnt -= *bytes_committed;
++
++	npages = pagefault_mr(dev, mr, io_virt, size, bytes_mapped);
++
++srcu_unlock:
+ 	srcu_read_unlock(&dev->mr_srcu, srcu_key);
+ 	*bytes_committed = 0;
+ 	return ret ? ret : npages;
 -- 
 2.12.0
 
