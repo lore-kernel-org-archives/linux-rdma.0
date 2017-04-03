@@ -1,56 +1,156 @@
-From: Logan Gunthorpe <logang@deltatee.com>
-Subject: Re: [RFC 1/8] Introduce Peer-to-Peer memory (p2pmem) device
-Date: Sun, 2 Apr 2017 22:26:08 -0600
-Message-ID: <ef507444-d3e5-0454-86a0-b5c4ae4b4dd9@deltatee.com>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
- <1490911959-5146-2-git-send-email-logang@deltatee.com>
- <cb102386-0314-a3a3-ed44-b42debdf1512@codeaurora.org>
- <7158f2e8-2016-f398-e77f-0fcbe6cb41dd@deltatee.com>
- <e6a74aeb-9f54-51c5-8ad9-3b6fb92c03b3@codeaurora.org>
- <0280fbb4-ba9e-ac64-6bb3-b72590a54e57@deltatee.com>
- <0ae27bca-21be-b89c-aba4-6cc9766ebd7b@codeaurora.org>
- <c8edc480-a2ac-a763-8438-18f3396db483@deltatee.com>
- <e2165253dc355d5cb223e754d78047b1@codeaurora.org>
- <c5d7da85-41fd-2769-fcf8-b3c2a1fab95f@deltatee.com>
- <f0448277-9381-5c3d-d194-1efa1d1b44a6@codeaurora.org>
- <63d73995-4dfa-6270-ca13-972e0628011b@deltatee.com>
- <bed80d4e-7709-5991-498e-0ac361ca96a6@codeaurora.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [Qemu-devel] [PATCH RFC] hw/pvrdma: Proposal of a new pvrdma
+ device
+Date: Mon, 3 Apr 2017 09:23:14 +0300
+Message-ID: <20170403062314.GO20443@mtr-leonro.local>
+References: <1490872341-9959-1-git-send-email-marcel@redhat.com>
+ <20170330141314.GM20443@mtr-leonro.local>
+ <5e952524-7c2d-b4da-4bd7-6437830a40d8@redhat.com>
+ <f7f3fc0e-0a75-2fdc-b3c2-6c3d34ff2978@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <bed80d4e-7709-5991-498e-0ac361ca96a6@codeaurora.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Jens Axboe <axboe@kernel.dk>, Steve Wise <swise@opengridcomputing.com>, Stephen Bates <sbates@raithlin.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Alex Williamson <alex.williamson@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="aIbcA3MSwnGacr4f"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <f7f3fc0e-0a75-2fdc-b3c2-6c3d34ff2978-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
+--aIbcA3MSwnGacr4f
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On 02/04/17 03:03 PM, Sinan Kaya wrote:
-> Push the decision all the way to the user. Let them decide whether they
-> want this feature to work on a root port connected port or under the
-> switch.
+On Fri, Mar 31, 2017 at 06:45:43PM +0300, Marcel Apfelbaum wrote:
+> On 03/30/2017 11:28 PM, Doug Ledford wrote:
+> > On 3/30/17 9:13 AM, Leon Romanovsky wrote:
+> > > On Thu, Mar 30, 2017 at 02:12:21PM +0300, Marcel Apfelbaum wrote:
+> > > > From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > > >
+> > > >  Hi,
+> > > >
+> > > >  General description
+> > > >  ===================
+> > > >  This is a very early RFC of a new RoCE emulated device
+> > > >  that enables guests to use the RDMA stack without having
+> > > >  a real hardware in the host.
+> > > >
+> > > >  The current implementation supports only VM to VM communication
+> > > >  on the same host.
+> > > >  Down the road we plan to make possible to be able to support
+> > > >  inter-machine communication by utilizing physical RoCE devices
+> > > >  or Soft RoCE.
+> > > >
+> > > >  The goals are:
+> > > >  - Reach fast and secure loos-less Inter-VM data exchange.
+> > > >  - Support remote VMs or bare metal machines.
+> > > >  - Allow VMs migration.
+> > > >  - Do not require to pin all VM memory.
+> > > >
+> > > >
+> > > >  Objective
+> > > >  =========
+> > > >  Have a QEMU implementation of the PVRDMA device. We aim to do so without
+> > > >  any change in the PVRDMA guest driver which is already merged into the
+> > > >  upstream kernel.
+> > > >
+> > > >
+> > > >  RFC status
+> > > >  ===========
+> > > >  The project is in early development stages and supports
+> > > >  only basic send/receive operations.
+> > > >
+> > > >  We present it so we can get feedbacks on design,
+> > > >  feature demands and to receive comments from the
+> > > >  community pointing us to the "right" direction.
+> > >
+> > > If to judge by the feedback which you got from RDMA community
+> > > for kernel proposal [1], this community failed to understand:
+> > > 1. Why do you need new module?
+> >
+> > In this case, this is a qemu module to allow qemu to provide a virt rdma device to guests that is compatible with the device provided by VMWare's ESX product.  Right now, the vmware_pvrdma driver
+> > works only when the guest is running on a VMWare ESX server product, this would change that.  Marcel mentioned that they are currently making it compatible because that's the easiest/quickest thing to
+> > do, but in the future they might extend beyond what VMWare's virt rdma driver provides/uses and might then need to either modify it to work with their extensions or fork and create their own virt
+> > client driver.
+> >
+> > > 2. Why existing solutions are not enough and can't be extended?
+> >
+> > This patch is against the qemu source code, not the kernel.  There is no other solution in the qemu source code, so there is no existing solution to extend.
+> >
+> > > 3. Why RXE (SoftRoCE) can't be extended to perform this inter-VM
+> > >    communication via virtual NIC?
+> >
+> > Eventually they want this to work on real hardware, and to be more or less transparent to the guest.  They will need to make it independent of the kernel hardware/driver in use.  That means their own
+> > virt driver, then the virt driver will eventually hook into whatever hardware is present on the system, or failing that, fall back to soft RoCE or soft iWARP if that ever makes it in the kernel.
+> >
+> >
+>
+> Hi Leon and Doug,
+> Your feedback is much appreciated!
+>
+> As Doug mentioned, the RFC is a QEMU implementation of a pvrdma device,
+> so SoftRoCE can't help here (we are emulating a PCI device).
 
-Yes, I prefer this too. If other folks agree with that I'd be very happy
-to go back to user chooses. I think Sagi was the most vocal proponent
-for kernel chooses at LSF so hopefully he will read this thread and
-offer some opinion.
+I just responded to the latest email, but as you understood from my question,
+it was related to your KDBR module.
 
-> I thought the issue was feature didn't work at all with some root ports
-> or there was some kind of memory corruption issue that you were trying to
-> avoid with the existing systems.
+>
+> Regarding the new KDBR module (Kernel Data Bridge), as the name suggests is
+> a bridge between different VMs or between a VM and a hardware/software device
+> and does not replace it.
+>
+> Leon, utilizing the Soft RoCE is definitely part of our roadmap from the start,
+> we find the project a must since most of our systems don't even have real
+> RDMA hardware, and the question is how do best integrate with it.
 
-I *think* there are some much older root ports where P2P TLPs don't even
-get through. But it doesn't really change the situation: in the nvmet
-case, the user would enable p2pmem and then be unable to connect and
-thus choose to disable it going forward. Not a big difference from the
-user seeing bad performance and not choosing to enable it.
+This is exactly the question, you chose as an implementation path to do
+it with new module over char device. I'm not against your approach,
+but would like to see the list with pros and cons for over possible
+solutions if any. Does it make sense to do special ULP to share the data
+between different drivers over shared memory?
 
-> I think you should get rid of all pci searching business in your code.
+Thanks
 
-Yes, my original proposal was when you configure the nvme target you
-chose the specific p2pmem device to use. That code had no tie ins to PCI
-code and could, in theory, work generically with any device and bus.
+>
+> Thanks,
+> Marcel & Yuval
+>
+>
+> > >
+> > > Can you please help us to fill this knowledge gap?
+> > >
+> > > [1] http://marc.info/?l=linux-rdma&m=149063626907175&w=2
+> >
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Logan
+--aIbcA3MSwnGacr4f
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljh6lIACgkQ5GN7iDZy
+WKd4hxAAwa9EAyl3EvtsN351v5V5CwfMs8qlULhbvuncVhUj3DykesW+wBavZCFi
+qfxWet5PnrRJ+q/aLBE9jzkm/4RFk5ituEDp3KTGJJQJcRYCuzZ6BXAr1WHJ6+rp
+jWNyIYlMLvLvBSJrOYyTaWdMMN+uNn4ir9zf/j/lySVlEdnkJZGGkuJVMrtJtR3z
+hjlr8O8VuhcRCRomeUXYKHJy3kPmk5ljln0tD2amPCpCHl6Ng8qEgrzB2sBOTf/8
+3uyZz5pFPyBmq/JN4RkLk3FyGgd2Zvul9mbbLDX4CC7H/txUrotku8O3AHgUENgs
+79sVgFCdeMk/2D5NvGMRVr6xFHkm3BRPffOSErE0/+E0QGQ3LSCJPreM2nftEq8G
+kIJaLRUKU5GJ2R6dWoDxMGSdlM6vSBmmvfhq/fYWNgCivi0ovIk/TEvfECNC6PEz
+WXCeTN+ZYmhap81hG2DiAsAu/pADMfldvm1O/hoY1cQ2eqTwMYtgz76T3LEPSeiW
+oF/5HqSQaFOxVcFUyiS315YSKF59lSZ6QLAgtSFeVXWY0zVOhn8tW3yRbYMfTK1S
+NaR7k4uBAjqgZqaHaF3aPGq5Sw5NCqsczo7VenLrUVtWq6hPfmKDScj78/dOQ15d
+mNqTYofOAV13ismSfWHTSu0rpmVfwupNLH9G1vD/T8ndfRi5y8s=
+=FnBn
+-----END PGP SIGNATURE-----
+
+--aIbcA3MSwnGacr4f--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
