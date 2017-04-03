@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 05/10] IB/mlx5: Decrease verbosity level of ODP errors
-Date: Mon,  3 Apr 2017 13:06:35 +0300
-Message-ID: <20170403100640.3332-6-leon@kernel.org>
+Subject: [PATCH rdma-next 03/10] IB/mlx5: Fix UMR size calculation
+Date: Mon,  3 Apr 2017 13:06:33 +0300
+Message-ID: <20170403100640.3332-4-leon@kernel.org>
 References: <20170403100640.3332-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170403100640.3332-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,53 +12,32 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Decrease verbosity level of ODP error flows messages to debug level.
-Remove one redundant print since debug level message already exists in
-this flow.
+Translation table updates of large UMR may require multiple post send
+operations. The last operations can be in various lengths, but current
+code set them to be the same length.
 
-Fixes: d9aaed838765 ('{net,IB}/mlx5: Refactor page fault handling')
+Fixes: 7d0cc6edcc70 ('IB/mlx5: Add MR cache for large UMR regions')
 Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/odp.c | 11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/mlx5/mr.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index b506321f5cb7..0d52b72ff99b 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -988,9 +988,6 @@ static void mlx5_ib_mr_wqe_pfault_handler(struct mlx5_ib_dev *dev,
- 		resume_with_error = 0;
- 		goto resolve_page_fault;
- 	} else if (ret < 0 || total_wqe_bytes > bytes_mapped) {
--		if (ret != -ENOENT)
--			mlx5_ib_err(dev, "PAGE FAULT error: %d. QP 0x%x. type: 0x%x\n",
--				    ret, pfault->wqe.wq_num, pfault->type);
- 		goto resolve_page_fault;
- 	}
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 1f09e11fa694..9a74260e9899 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -1045,8 +1045,9 @@ int mlx5_ib_update_xlt(struct mlx5_ib_mr *mr, u64 idx, int npages,
+ 	for (pages_mapped = 0;
+ 	     pages_mapped < pages_to_map && !err;
+ 	     pages_mapped += pages_iter, idx += pages_iter) {
++		npages = min_t(int, pages_iter, pages_to_map - pages_mapped);
+ 		dma_sync_single_for_cpu(ddev, dma, size, DMA_TO_DEVICE);
+-		npages = populate_xlt(mr, idx, pages_iter, xlt,
++		npages = populate_xlt(mr, idx, npages, xlt,
+ 				      page_shift, size, flags);
  
-@@ -1050,8 +1047,8 @@ static void mlx5_ib_mr_rdma_pfault_handler(struct mlx5_ib_dev *dev,
- 	} else if (ret < 0 || pages_in_range(address, length) > ret) {
- 		mlx5_ib_page_fault_resume(dev, pfault, 1);
- 		if (ret != -ENOENT)
--			mlx5_ib_warn(dev, "PAGE FAULT error %d. QP 0x%x, type: 0x%x\n",
--				     ret, pfault->token, pfault->type);
-+			mlx5_ib_dbg(dev, "PAGE FAULT error %d. QP 0x%x, type: 0x%x\n",
-+				    ret, pfault->token, pfault->type);
- 		return;
- 	}
- 
-@@ -1072,8 +1069,8 @@ static void mlx5_ib_mr_rdma_pfault_handler(struct mlx5_ib_dev *dev,
- 						    prefetch_len,
- 						    &bytes_committed, NULL);
- 		if (ret < 0 && ret != -EAGAIN) {
--			mlx5_ib_warn(dev, "Prefetch failed. ret: %d, QP 0x%x, address: 0x%.16llx, length = 0x%.16x\n",
--				     ret, pfault->token, address, prefetch_len);
-+			mlx5_ib_dbg(dev, "Prefetch failed. ret: %d, QP 0x%x, address: 0x%.16llx, length = 0x%.16x\n",
-+				    ret, pfault->token, address, prefetch_len);
- 		}
- 	}
- }
+ 		dma_sync_single_for_device(ddev, dma, size, DMA_TO_DEVICE);
 -- 
 2.12.0
 
