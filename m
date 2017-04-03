@@ -1,92 +1,135 @@
-From: Potnuri Bharat Teja <bharat@chelsio.com>
-Subject: Re: [PATCH 0/3] target: Fix queue-full callback error signaling
-Date: Mon, 3 Apr 2017 11:53:30 +0530
-Message-ID: <20170403062329.GA13647@chelsio.com>
-References: <1477891554-26222-1-git-send-email-nab@linux-iscsi.org>
- <20170323053602.GA2323@chelsio.com>
- <1490934729.6977.27.camel@haakon3.risingtidesystems.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [Qemu-devel] [PATCH RFC] hw/pvrdma: Proposal of a new pvrdma
+ device
+Date: Mon, 3 Apr 2017 09:27:30 +0300
+Message-ID: <20170403062730.GP20443@mtr-leonro.local>
+References: <1490872341-9959-1-git-send-email-marcel@redhat.com>
+ <20170330141314.GM20443@mtr-leonro.local>
+ <5e952524-7c2d-b4da-4bd7-6437830a40d8@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <target-devel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="i7KxW38SoMauyveo"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1490934729.6977.27.camel@haakon3.risingtidesystems.com>
-Sender: target-devel-owner@vger.kernel.org
-To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Cc: target-devel <target-devel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, SWise OGC <swise@opengridcomputing.com>, Sagi Grimberg <sagi@grimberg.me>
+In-Reply-To: <5e952524-7c2d-b4da-4bd7-6437830a40d8-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Friday, March 03/31/17, 2017 at 10:02:09 +0530, Nicholas A. Bellinger wrote:
-Hi Nicholas,
->    Hi Bharat & Co,
-> 
->    On Thu, 2017-03-23 at 11:06 +0530, Potnuri Bharat Teja wrote:
->    > On Monday, October 10/31/16, 2016 at 10:55:51 +0530, Nicholas A.
->    Bellinger wrote:
->    > >    From: Nicholas Bellinger <nab@linux-iscsi.org>
->    > Hi Nicholas,
->    > This patch series fixes the post failures due to Send Queue overflow
->    when
->    > tested along with Sagi's "iser-target: avoid posting a recv buffer
->    twice", which
->    > goes on top of these 3 patches.
->    >
->    > Combined patches series(Nicholas's, Sagi's) works fine.
->    > Tested with iWARP iser.
->    >
->    > As these changes are critical for devices with lower sg resources,
->    hoping this
->    > series will be queued for next RC.
->    >
->    > Reviewed-by: Potnuri Bharat Teja <bharat@chelsio.com>
->    > Tested-by: Potnuri Bharat Teja <bharat@chelsio.com>
-> 
->    As mentioned, the original three patches along with Sagi's have been
->    applied to target-pending/master.
-Thanks a lot!
-> 
->    Thank you for your testing and patch review.
-> 
->    I'm still considering if they should be CC'ed for stable, considering
->    AFAICT they are pretty much a requirement for iser-target to be stable
->    with iw_cxgb4.  It should be OK to include the series back to v4.1.y
->    stable, but I'm reviewing the target change again just to be sure.
-Yes, It would be nice to have them backported to v4.1
-> 
->    Also, I've been thinking a bit more about the hung tasks you reported
->    earlier during session reinstatement + repeated queue full preceding
->    Sagi's patch here:
-> 
->    [1]http://www.spinics.net/lists/target-devel/msg14868.html
-> 
->    and have some clarity as to what was going on..
-> 
->    The issue is that queue full handling for TFO->write_pending(),
->    TFO->queue_data_in() and TFO->queue_status failures will retry
->    indefinitely until they successfully complete, and currently do not
->    honor se_cmd quiesce that occurs during normal session reinstatement.
-> 
->    Which means that if a fabric driver fails any of these three TFO
->    callbacks forever, the se_cmd descriptor will never be properly quiesced
->    back to fabric driver code, resulting in hung tasks you observed while
->    session shutdown waits for this action to complete.
-> 
->    So as-is, this patch series doesn't address this particular scenario but
->    doesn't make it any worse either..  ;)
-> 
->    That said, it's fine to merge this series now to allow iser-target +
->    iw_cxgb4 to function, and I'll be looking into addressing the infinite
->    queue_full + session reinstatement scenario for target-core in separate
->    patch series.
-Thanks, I shall get back to you with some more debug in the above scenario.
-> 
->    --
->    To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->    the body of a message to majordomo@vger.kernel.org
->    More majordomo info at  [2]http://vger.kernel.org/majordomo-info.html
-> 
-> References
-> 
->    Visible links
->    1. http://www.spinics.net/lists/target-devel/msg14868.html
->    2. http://vger.kernel.org/majordomo-info.html
+
+--i7KxW38SoMauyveo
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Thu, Mar 30, 2017 at 03:28:21PM -0500, Doug Ledford wrote:
+> On 3/30/17 9:13 AM, Leon Romanovsky wrote:
+> > On Thu, Mar 30, 2017 at 02:12:21PM +0300, Marcel Apfelbaum wrote:
+> > > From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > >
+> > >  Hi,
+> > >
+> > >  General description
+> > >  ===================
+> > >  This is a very early RFC of a new RoCE emulated device
+> > >  that enables guests to use the RDMA stack without having
+> > >  a real hardware in the host.
+> > >
+> > >  The current implementation supports only VM to VM communication
+> > >  on the same host.
+> > >  Down the road we plan to make possible to be able to support
+> > >  inter-machine communication by utilizing physical RoCE devices
+> > >  or Soft RoCE.
+> > >
+> > >  The goals are:
+> > >  - Reach fast and secure loos-less Inter-VM data exchange.
+> > >  - Support remote VMs or bare metal machines.
+> > >  - Allow VMs migration.
+> > >  - Do not require to pin all VM memory.
+> > >
+> > >
+> > >  Objective
+> > >  =========
+> > >  Have a QEMU implementation of the PVRDMA device. We aim to do so without
+> > >  any change in the PVRDMA guest driver which is already merged into the
+> > >  upstream kernel.
+> > >
+> > >
+> > >  RFC status
+> > >  ===========
+> > >  The project is in early development stages and supports
+> > >  only basic send/receive operations.
+> > >
+> > >  We present it so we can get feedbacks on design,
+> > >  feature demands and to receive comments from the
+> > >  community pointing us to the "right" direction.
+> >
+> > If to judge by the feedback which you got from RDMA community
+> > for kernel proposal [1], this community failed to understand:
+> > 1. Why do you need new module?
+>
+> In this case, this is a qemu module to allow qemu to provide a virt rdma
+> device to guests that is compatible with the device provided by VMWare's ESX
+> product.  Right now, the vmware_pvrdma driver works only when the guest is
+> running on a VMWare ESX server product, this would change that.  Marcel
+> mentioned that they are currently making it compatible because that's the
+> easiest/quickest thing to do, but in the future they might extend beyond
+> what VMWare's virt rdma driver provides/uses and might then need to either
+> modify it to work with their extensions or fork and create their own virt
+> client driver.
+
+Doug,
+
+As I mentioned during OFA, I just responded to the latest email, but
+targeted my questions for their module. Sorry for not being clear about
+it.
+
+>
+> > 2. Why existing solutions are not enough and can't be extended?
+>
+> This patch is against the qemu source code, not the kernel.  There is no
+> other solution in the qemu source code, so there is no existing solution to
+> extend.
+>
+> > 3. Why RXE (SoftRoCE) can't be extended to perform this inter-VM
+> >    communication via virtual NIC?
+>
+> Eventually they want this to work on real hardware, and to be more or less
+> transparent to the guest.  They will need to make it independent of the
+> kernel hardware/driver in use.  That means their own virt driver, then the
+> virt driver will eventually hook into whatever hardware is present on the
+> system, or failing that, fall back to soft RoCE or soft iWARP if that ever
+> makes it in the kernel.
+>
+>
+> >
+> > Can you please help us to fill this knowledge gap?
+> >
+> > [1] http://marc.info/?l=linux-rdma&m=149063626907175&w=2
+>
+
+--i7KxW38SoMauyveo
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljh61IACgkQ5GN7iDZy
+WKfwtg//RAhltqcBrIa5Xnef3dc9WUrUVzpqCf2r7MIf8OBCdKyea+eLwz0RbLiF
+nzv1ZJPZfDvQFVCWbNSOVzjACp2rEtx79g732Xp+4eL/9wzBZmBI0HuIvH6H/6ci
+uApwILW/FTAGJL+jXX953Oml2yxEvGzvp7pq36NKj8utsjgJcDZMjp6/IhE+6NzP
+BVJo+W3l3MmhFO9kCBnWtZnP6UbxDkny+EVXwBp3PFg1Zdla69FpprhlG38Nojbz
+wZsWs+aoZrWrRhuXQECeCCKvf/mPmymeUEkdgkXHdarc2iDKtPL8VXtaTK7q4xe2
+xh37c1rygN0evaIGpycr7AdVUDEfN/U2ZYPyCLq9WCABZz9A+IctkD4R2IPXfywn
+l4mwHIKdqxozjgjzREm4vOLi8/YaRpUKK1xmOVuQX8+sMJs7ccaMhME1vIe7KxDA
+CvvXNRbSOwj88SqwLTcrvE8x3a741aPNK/1kvS0WxyraUakYq5t8tz6/Dky95qXj
+C3BjFuICOnyy1DKMfvFiyRutybymWJDHCy3WvSsNpfdx22WdUvU1fRmInCaesdyB
+Ee6dM5wobtdEhhKLWiMlreQef23qj2ThIEslE9NtII6R8vrnmk0WA+8hY/MZFHgZ
+9ZqvhVXhfp/IJ+SOc7bh75SJ6wetBNtPHMxKdSaSiO9CWSBlEHM=
+=kLxZ
+-----END PGP SIGNATURE-----
+
+--i7KxW38SoMauyveo--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
