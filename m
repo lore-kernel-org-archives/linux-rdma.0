@@ -1,41 +1,22 @@
-From: Tobias Regnery <tobias.regnery-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/hns: include linux/of.h to fix build failure
-Date: Tue,  4 Apr 2017 15:36:37 +0200
-Message-ID: <20170404133637.18643-1-tobias.regnery@gmail.com>
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: RDMA mini-summit during LPC 2017
+Date: Tue, 4 Apr 2017 10:17:07 -0500 (CDT)
+Message-ID: <alpine.DEB.2.20.1704041016260.23821@east.gentwo.org>
+References: <20170403180820.GS20443@mtr-leonro.local> <20170404062141.GA8886@lst.de>
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170404062141.GA8886-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Tobias Regnery <tobias.regnery-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Ram Amrani <ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I see the following build error in an arm64 randconfig build:
+On Tue, 4 Apr 2017, Christoph Hellwig wrote:
 
-drivers/infiniband/hw/hns/hns_roce_hw_v1.c: In function 'hns_roce_v1_reset':
-drivers/infiniband/hw/hns/hns_roce_hw_v1.c:1384:15: error: implicit declaration of function 'of_parse_phandle' [-Werror=implicit-function-declaration]
+> unfortunately LPC is at the same time as SNIA SDC, so I won't be able
+> to make it.
 
-Fix this by including linux/of.h directly.
-
-Signed-off-by: Tobias Regnery <tobias.regnery-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
-This is against next-20170404
-
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index ec68f56e8ee5..0f7e85c7b70b 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -33,6 +33,7 @@
- #include <linux/platform_device.h>
- #include <linux/acpi.h>
- #include <linux/etherdevice.h>
-+#include <linux/of.h>
- #include <rdma/ib_umem.h>
- #include "hns_roce_common.h"
- #include "hns_roce_device.h"
--- 
-2.11.0
+Well jet over from SFO to LAX late Thursday or so and join us on Friday.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
