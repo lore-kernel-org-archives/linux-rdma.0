@@ -1,48 +1,54 @@
-From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] MAINTAINERS: Update ocrdma module status
-Date: Tue,  4 Apr 2017 01:30:38 -0700
-Message-ID: <1491294638-30903-1-git-send-email-selvin.xavier@broadcom.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+From: "Reshetova, Elena" <elena.reshetova@intel.com>
+Subject: RE: [PATCH 16/16] drivers, net, intersil: convert
+ request_context.refcount from atomic_t to refcount_t
+Date: Tue, 4 Apr 2017 10:07:55 +0000
+Message-ID: <2236FBA76BA1254E88B949DDB74E612B41C8741B@IRSMSX102.ger.corp.intel.com>
+References: <1490691403-4016-1-git-send-email-elena.reshetova@intel.com>
+ <1490691403-4016-17-git-send-email-elena.reshetova@intel.com>
+ <87zifxn2gb.fsf@kamboji.qca.qualcomm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <87zifxn2gb.fsf@kamboji.qca.qualcomm.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kalle Valo <kvalo@codeaurora.org>
+Cc: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "peterz@infradead.org" <peterz@infradead.org>, "matanb@mellanox.com" <matanb@mellanox.com>, "paulus@samba.org" <paulus@samba.org>, "nbd@openwrt.org" <nbd@openwrt.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "saeedm@mellanox.com" <saeedm@mellanox.com>, "ganeshgr@chelsio.com" <ganeshgr@chelsio.com>, Hans Liljestrand <ishkamiel@gmail.com>, David Windsor <dwindsor@gmail.com>, "keescook@chromium.org" <keescook@chromium.org>, "j@w1.fi" <j@w1.fi>, "ajk@comnets.uni-bremen.de" <ajk@comnets.uni-bremen.de>, "leonro@mellanox.com" <leonro@mellanox.com>, "matthias.bgg@gmail.com" <matthias.bgg@gmail.com>, "linux-hams@vger.kernel.org" <linux-hams@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "blogic@openwrt.org" <blogic@openwrt.org>, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Since ocrdma driver is not going to be updated with any
-new development activity, except for critical bug fixes
-reported by partners or customers, changing the module status
-to "Odd Fixes". Also, updating the web page info and the
-maintainers email addresses.
 
-Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
----
- MAINTAINERS | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+> Elena Reshetova <elena.reshetova@intel.com> writes:
+> 
+> > refcount_t type and corresponding API should be
+> > used instead of atomic_t when the variable is used as
+> > a reference counter. This allows to avoid accidental
+> > refcounter overflows that might lead to use-after-free
+> > situations.
+> >
+> > Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+> > Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
+> > Signed-off-by: Kees Cook <keescook@chromium.org>
+> > Signed-off-by: David Windsor <dwindsor@gmail.com>
+> > ---
+> >  drivers/net/wireless/intersil/orinoco/orinoco_usb.c | 15 ++++++++-------
+> >  1 file changed, 8 insertions(+), 7 deletions(-)
+> 
+> The prefix should be "orinoco_usb:", I'll fix that.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index c776906..7b352d3 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -11358,11 +11358,11 @@ S:	Supported
- F:	drivers/net/ethernet/emulex/benet/
- 
- EMULEX ONECONNECT ROCE DRIVER
--M:	Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
--M:	Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
-+M:	Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-+M:	Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
- L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
--W:	http://www.emulex.com
--S:	Supported
-+W:	http://www.broadcom.com
-+S:	Odd Fixes
- F:	drivers/infiniband/hw/ocrdma/
- F:	include/uapi/rdma/ocrdma-abi.h
- 
--- 
-2.5.5
+Thanks for both! Will you take the patches in?
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best Regards,
+Elena.
+
+> 
+> --
+> Kalle Valo
