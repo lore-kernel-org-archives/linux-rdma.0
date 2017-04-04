@@ -1,55 +1,47 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rfc 0/6] Automatic affinity settings for nvme over rdma
-Date: Tue, 4 Apr 2017 10:51:47 +0300
-Message-ID: <86ed1762-a990-691f-e043-3d7dcac8fe85@mellanox.com>
-References: <1491140492-25703-1-git-send-email-sagi@grimberg.me>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1255"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] MAINTAINERS: Update ocrdma module status
+Date: Tue,  4 Apr 2017 01:30:38 -0700
+Message-ID: <1491294638-30903-1-git-send-email-selvin.xavier@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1491140492-25703-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->
-> Any feedback is welcome.
+Since ocrdma driver is not going to be updated with any
+new development activity, except for critical bug fixes
+reported by partners or customers, changing the module status
+to "Odd Fixes". Also, updating the web page info and the
+maintainers email addresses.
 
-Hi Sagi,
+Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+---
+ MAINTAINERS | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-the patchset looks good and of course we can add support for more 
-drivers in the future.
-have you run some performance testing with the nvmf initiator ?
+diff --git a/MAINTAINERS b/MAINTAINERS
+index c776906..7b352d3 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -11358,11 +11358,11 @@ S:	Supported
+ F:	drivers/net/ethernet/emulex/benet/
+ 
+ EMULEX ONECONNECT ROCE DRIVER
+-M:	Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
+-M:	Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
++M:	Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
++M:	Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+ L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+-W:	http://www.emulex.com
+-S:	Supported
++W:	http://www.broadcom.com
++S:	Odd Fixes
+ F:	drivers/infiniband/hw/ocrdma/
+ F:	include/uapi/rdma/ocrdma-abi.h
+ 
+-- 
+2.5.5
 
-
->
-> Sagi Grimberg (6):
->   mlx5: convert to generic pci_alloc_irq_vectors
->   mlx5: move affinity hints assignments to generic code
->   RDMA/core: expose affinity mappings per completion vector
->   mlx5: support ->get_vector_affinity
->   block: Add rdma affinity based queue mapping helper
->   nvme-rdma: use intelligent affinity based queue mappings
->
->  block/Kconfig                                      |   5 +
->  block/Makefile                                     |   1 +
->  block/blk-mq-rdma.c                                |  56 +++++++++++
->  drivers/infiniband/hw/mlx5/main.c                  |  10 ++
->  drivers/net/ethernet/mellanox/mlx5/core/en_main.c  |   5 +-
->  drivers/net/ethernet/mellanox/mlx5/core/eq.c       |   9 +-
->  drivers/net/ethernet/mellanox/mlx5/core/eswitch.c  |   2 +-
->  drivers/net/ethernet/mellanox/mlx5/core/health.c   |   2 +-
->  drivers/net/ethernet/mellanox/mlx5/core/main.c     | 106 +++------------------
->  .../net/ethernet/mellanox/mlx5/core/mlx5_core.h    |   1 -
->  drivers/nvme/host/rdma.c                           |  13 +++
->  include/linux/blk-mq-rdma.h                        |  10 ++
->  include/linux/mlx5/driver.h                        |   2 -
->  include/rdma/ib_verbs.h                            |  24 +++++
->  14 files changed, 138 insertions(+), 108 deletions(-)
->  create mode 100644 block/blk-mq-rdma.c
->  create mode 100644 include/linux/blk-mq-rdma.h
->
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
