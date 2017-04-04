@@ -1,39 +1,73 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC 2/8] cxgb4: setup pcie memory window 4 and create p2pmem
- region
-Date: Tue, 4 Apr 2017 09:56:48 -0600
-Message-ID: <962a8dd8-4d09-0802-9569-00dbf29382d3@deltatee.com>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
- <1490911959-5146-3-git-send-email-logang@deltatee.com>
- <f269d9e1-8dcf-7970-382e-cb0d9a020efc@grimberg.me>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [Qemu-devel] [PATCH RFC] hw/pvrdma: Proposal of a new pvrdma
+ device
+Date: Tue, 4 Apr 2017 10:01:55 -0600
+Message-ID: <20170404160155.GA1750@obsidianresearch.com>
+References: <1490872341-9959-1-git-send-email-marcel@redhat.com>
+ <20170330141314.GM20443@mtr-leonro.local>
+ <5e952524-7c2d-b4da-4bd7-6437830a40d8@redhat.com>
+ <f7f3fc0e-0a75-2fdc-b3c2-6c3d34ff2978@redhat.com>
+ <20170403062314.GO20443@mtr-leonro.local>
+ <aa400244-426a-ea62-0ccf-ac5adb76fdd1@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <f269d9e1-8dcf-7970-382e-cb0d9a020efc-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <aa400244-426a-ea62-0ccf-ac5adb76fdd1-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Apr 04, 2017 at 04:38:40PM +0300, Marcel Apfelbaum wrote:
 
+> Here are some thoughts regarding the Soft RoCE usage in our project.
+> We thought about using it as backend for QEMU pvrdma device
+> we didn't how it will support our requirements.
+> 
+> 1. Does Soft RoCE support inter process (VM) fast path ? The KDBR
+>    removes the need for hw resources, emulated or not, concentrating
+>    on one copy from a VM to another.
 
-On 04/04/17 04:42 AM, Sagi Grimberg wrote:
-> This is weird, why even call this if !use_p2pmem?
+I'd rather see someone optimize the loopback path of soft roce than
+see KDBR :)
 
-I personally find it cleaner than:
+> 3. Our intention is for KDBR to be used in other contexts as well when we need
+>    inter VM data exchange, e.g. backend for virtio devices. We didn't see how this
+>    kind of requirement can be implemented inside SoftRoce as we don't see any
+>    connection between them.
 
-if (use_p2pmem)
-	setup_memwin_p2pmem(...)
+KDBR looks like weak RDMA to me, so it is reasonable question why not
+use full RDMA with loopback optimization instead of creating something
+unique.
 
-I'm not sure why that's so weird.
+IMHO, it also makes more sense for something like KDBR to live as a
+RDMA transport, not as a unique char device, it is obviously very
+RDMA-like.
 
-Logan
+.. and the char dev really can't be used when implementing user space
+RDMA, that would just make a big mess..
+
+> 4. We don't want all the VM memory to be pinned since it disable memory-over-commit
+>    which in turn will make the pvrdma device useless.
+>    We weren't sure how nice would play Soft RoCE with memory pinning and we wanted
+>    more control on memory management. It may be a solvable issue, but combined
+>    with the others lead us to our decision to come up with our kernel bridge (char
+
+soft roce certainly can be optimized to remove the page pin and always
+run in an ODP-like mode.
+
+But obviously if you connect pvrdma to real hardware then the page pin
+comes back.
+
+>    device or not, we went for it since it was the easiest to
+>    implement for a POC)
+
+I can see why it would be easy to implement, but not sure how this
+really improves the kernel..
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
