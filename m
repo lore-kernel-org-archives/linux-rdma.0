@@ -1,61 +1,47 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [RFC 6/8] nvmet: Be careful about using iomem accesses when
- dealing with p2pmem
-Date: Tue, 4 Apr 2017 13:59:26 +0300
-Message-ID: <080b68b4-eba3-861c-4f29-5d829425b5e7@grimberg.me>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
- <1490911959-5146-7-git-send-email-logang@deltatee.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: next-20170404 build: 1 failures 3 warnings (next-20170404)
+Date: Tue, 4 Apr 2017 13:36:04 +0100
+Message-ID: <20170404123604.hhiajnks7i2gifsa@sirena.org.uk>
+References: <E1cvMgy-00057J-Hs@optimist>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1490911959-5146-7-git-send-email-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="tknrapelwoz6tozr"
+Return-path: <linux-next-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <E1cvMgy-00057J-Hs@optimist>
+Sender: linux-next-owner@vger.kernel.org
+To: Lijun Ou <oulijun@huawei.com>, Wei Hu <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: kernel-build-reports@lists.linaro.org, linaro-kernel@lists.linaro.org, linux-next@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
->  u16 nvmet_copy_to_sgl(struct nvmet_req *req, off_t off, const void *buf,
->  		size_t len)
->  {
-> -	if (sg_pcopy_from_buffer(req->sg, req->sg_cnt, buf, len, off) != len)
-> +	bool iomem = req->p2pmem;
-> +	size_t ret;
-> +
-> +	ret = sg_copy_buffer(req->sg, req->sg_cnt, (void *)buf, len, off,
-> +			     false, iomem);
-> +
-> +	if (ret != len)
->  		return NVME_SC_SGL_INVALID_DATA | NVME_SC_DNR;
-> +
->  	return 0;
->  }
+--tknrapelwoz6tozr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-We can never ever get here from an IO command, and that is a good thing
-because it would have been broken if we did, regardless of what copy
-method we use...
+On Tue, Apr 04, 2017 at 12:32:08PM +0100, Build bot for Mark Brown wrote:
 
-Note that the nvme completion queues are still on the host memory, so
-this means we have lost the ordering between data and completions as
-they go to different pcie targets.
+This failure from last week is still present in -next today:
 
-If at all, this is the place to *emphasize* we must never get here
-with p2pmem, and immediately fail if we do.
+> 	arm64-allmodconfig
+> ../drivers/infiniband/hw/hns/hns_roce_hw_v1.c:1384:15: error: implicit declaration of function 'of_parse_phandle' [-Werror=implicit-function-declaration]
+> ../drivers/infiniband/hw/hns/hns_roce_hw_v1.c:1389:22: error: dereferencing pointer to incomplete type 'struct device_node'
 
-I'm not sure what will happen with to copy_from_sgl, I guess we
-have the same race because the nvme submission queues are also
-on the host memory (which is on a different pci target). Maybe
-more likely to happen with write-combine enabled?
+I sent a fix at the time: https://patchwork.kernel.org/patch/9654357/
 
-Anyway I don't think we have a real issue here *currently*, because
-we use copy_to_sgl only for admin/fabrics commands emulation and
-copy_from_sgl to setup dsm ranges...
+--tknrapelwoz6tozr
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAljjkzMACgkQJNaLcl1U
+h9DmNAf/c6U8LRwpYiv2yTUxJLTlaVx4nLZOaNHeTLnAoeY7KtNernulmfXbmxt5
+969iIIVqjTYNeMDoF72o+VDDfRr6FF/bRgRXlPT0knlcHikQTbFTP+aypXU0iPGv
+W/9155+Q8xXzwl+CyNwat8+iYzHIOquPHKpmGnQczFfD8S1B8OtdvDbqziI425GY
+1grruIDrc50gYGht8eYjz98XjNqh9L6Z0Sv9ea5OTGD/x30la9sqrf2WLMfqjjs1
+DK0Q1Exj/BA9kEIcNK3Sf6nHIdDelN8AWhmInQ33T5veKu5zgNVVbcDeKaqG789p
+ik9IM6mNikBz3GaluxwuW5L8MBRg2w==
+=zl4S
+-----END PGP SIGNATURE-----
+
+--tknrapelwoz6tozr--
