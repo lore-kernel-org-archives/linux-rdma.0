@@ -1,187 +1,367 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V3 for-next 0/7] Change IDR usage and locking in uverbs
-Date: Tue,  4 Apr 2017 13:31:40 +0300
-Message-ID: <1491301907-32290-1-git-send-email-matanb@mellanox.com>
+Subject: [PATCH V3 for-next 6/7] IB/core: Add support for fd objects
+Date: Tue,  4 Apr 2017 13:31:46 +0300
+Message-ID: <1491301907-32290-7-git-send-email-matanb@mellanox.com>
+References: <1491301907-32290-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1491301907-32290-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+The completion channel we use in verbs infrastructure is FD based.
+Previously, we had a separate way to manage this object. Since we
+strive for a single way to manage any kind of object in this
+infrastructure, we conceptually treat all objects as subclasses
+of ib_uobject.
 
-This series is the first part of introducing the new ABI.
-It changes the IDR and locking mechanism in ib_uverbs.
-This will allow handling all types in the same way, both IB/core
-standard types and driver specific types. In that case, type is
-referred to either IDR (such as QP, CQ, etc.) or FD such as
-completion channel based uobjects.
+This commit adds the necessary mechanism to support FD based objects
+like their IDR counterparts. FD objects release need to be synchronized
+with context release. We use the cleanup_mutex on the uverbs_file for
+that.
 
-Previously, we had global IDR tables per type and a per-type list on
-the user context, which implied that the type system was fixed.
-This patch series changes that into a uverbs-file IDR table (since
-in the new proposed ABI each device could have a different type
-system and a uverbs-file refers for a specific device) and a unified
-per-context objects list. Objects in this list could either be IDR
-based objects or FD based objects.
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/rdma_core.c   | 177 +++++++++++++++++++++++++++++++++-
+ drivers/infiniband/core/rdma_core.h   |   8 ++
+ drivers/infiniband/core/uverbs.h      |   1 +
+ drivers/infiniband/core/uverbs_main.c |   4 +-
+ include/rdma/ib_verbs.h               |   6 ++
+ include/rdma/uverbs_types.h           |  16 +++
+ 6 files changed, 210 insertions(+), 2 deletions(-)
 
-A type is represented by an identifier, an allocation size, a free
-function which is used in the context tear down or object removal
-and a release order. The allocation function is actually the
-handler (for example, create_qp). The release order determines the
-relations between objects. Some relations are set in the hardware
-or user-space. For example, a MW could be created before MR, but
-if this MW is bounded to the MR, the MW should be released before the
-MR. Later on, we'll add actions in an object-oriented programming
-manner to each type. So, a type contains all required information for
-allocating its size and freeing it.
-
-Since after this change a type contains all the information required
-for freeing it, we refactor all the destroy handlers to just use our
-infrastructure to destroy the type. The reason for the destruction
-is passed to the destroy function.
-
-The locking mechanism is changed as well. Previously, the uverbs_cmd
-handlers created new objects themselves and dealt with the internals
-of locking/unlocking them. This is now moved to a separate code which
-either creates a new object, destroys an object or locks it for
-read/write. This is possible since we have a descriptive type system.
-Hence, we could have a shared code to create, lock and destroy types.
-
-In contrast to the previous locking approach, we don't block the
-user-space thread if an object is already locked, but we just return
--EBUSY and expect the user to handle this. In order to maintain
-backward compatibility, we've added explicit locks to the uverbs_cmd
-handlers (in non-racy scenarios of course), thus for sane flows the
-behaviour should be the same as previous one.
-The incentive here is to provide a robust infrastructure to add new
-actions that can't create a dead-lock (e.g. two commands that try to
-lock objects in AB-BA manner).
-In addition, since objects creation and locking is dealt in a
-centralized place, the new proposed ABI won't need to deal with it
-explicitly in its handlers.
-
-A typical flow of a handler will be:
-1. Serialize the user-space command to kernel-space structures.
-2. Get all objects the handle needs (through the new centralized
-     mechanism).
-3. Do the actual command.
-4. Commit or abort objects allocation/fetching/destruction.
-5. Write response to the user.
-
-We use the following locks/krefs:
-1. ib_uobject: usecnt (atomic)
-	o Protects from concurrent read and write/destroy
-	o The possible values are
-		- (0):   Unlocked
-		- (-1):  Locked for writing
-		- (> 0): Locked for reading. The exact value is number
-			 of readers.
-2. ib_ucontext: uobjects_lock
-	o Protect from concurrently modifying the context uobject's list
-3. ib_uobject: ref [kref]
-	o Let's a handler delay the memory release of an uobject even if
-	  it was already removed from the ucontext's objects list
-	  (e.g. CQ takes a reference count on the completion handler)
-	o rdma_core takes one reference count for all objects in its
-	  repository.
-4. ib_uverbs_file: cleanup_mutex [existing lock]
-	o Protects concurrently closing a file from releasing the ucontext.
-	  Since when removing a uobject, we need to remove it from the
-	  uobjects list and thus we use the ucontext lock (clause 2),
-	  we need to make sure the ucontext is alive throughout this process.
-5. ib_ucontext: cleanup_rwswm
-	o Protects cleanup_context from concurrent lookup_get, remove_commit
-	  and alloc_commit.
-	o If alloc_commit is running during context cleanup, we remove the
-	  object with a special reason.
-	o It makes rdma_core more self contained and less dependant on
-	  external locks.
-6. ib_uobject_file: idr_lock
-	o Protects concurrent write access to the idr.
-	o RCU protects idr read access.
-7. File reference count:
-	o Protects race between lookup_get on a fd uobject and a release of
-	  such an object.
-	o If we get the file, we increased the reference on this file and we
-	  won't get to the .release file operation.
-	o Otherwise, the .release file operation is already called (or would
-	  be called soon) and then the fd was already removed from the files
-	  table of the process.
-
-This patch-set is applied on top of Doug's k.o/for-4.12 branch.
-
-Regards,
-Matan
-
-Changes from V2:
-1. Rebased on top of Doug's latest branch
-    a. Moved the cgroups code into the uobject infrastructure
-2. Cleaned up rdma_lookup_get_uobject a bit
-
-Changes from V1 - address Jason's comments:
-1. Added ucontext->cleanup_rwsem to make the locking more self contained.
-2. When calling a destroy handler, the object's free function is called
-   with the appropriate reason.
-3. Bug fix of double free when uobject file allocation failed.
-4. Wrap the type->ops with appropriate inline function and macros
-5. Reduce amount of macros.
-6. Add lockdep style debugging and some other safety checks.
-7. Replace a release function with needs_rcu bool flag.
-8. Rebase the patches.
-
-Changes from V0 - address some of Jason's comments:
-1. Change idr table to be per uverbs_file and not per device.
-2. Make changes more gradual
-    a. Instead of doing a flags day approach, first introduce the idr
-       uobjects with a new API and change their usages:
-	 o Ditch the live flag
-	 o Manage all idr objects through rdma_core
-	 o create and cleanup context through rdma_core
-    b. Add a lock to preserve old attch_mcast/detach_mcast behaviour.
-    c. Add fd based objects infrastructure
-    d. Change current completion channel to use this fd infrastructure.
-3. Ditch the switch-case enums and favor a more OOP approach through a
-   vtable.
-4. Instead of having a kref-ed lock, put a new lock on the uverbs_file
-   to synchronize fd objects deletion from context removal
-    a. We favored this approach from keeping the ucontext alive, as the
-       ucontext is allocated by the driver and thus we want to deallocate
-       it through the same entity. We don't want to defer the whole
-       deallocation process as in the current state we could rmmod the
-       drivers code when applications are still running and trigger
-       a disassociate flow.
-5. Reduce the amount of macros - use only a macro for declaring idr
-   types and a macro to declare fd types.
-6. Use kref to manage all uobjects.
-7. Use proper types for idr.
-
-Matan Barak (7):
-  IB/core: Refactor idr to be per uverbs_file
-  IB/core: Add support for idr types
-  IB/core: Add idr based standard types
-  IB/core: Change idr objects to use the new schema
-  IB/core: Add lock to multicast handlers
-  IB/core: Add support for fd objects
-  IB/core: Change completion channel to use the reworked objects schema
-
- drivers/infiniband/core/Makefile           |    3 +-
- drivers/infiniband/core/rdma_core.c        |  625 +++++++++++++
- drivers/infiniband/core/rdma_core.h        |   78 ++
- drivers/infiniband/core/uverbs.h           |   53 +-
- drivers/infiniband/core/uverbs_cmd.c       | 1388 ++++++++--------------------
- drivers/infiniband/core/uverbs_main.c      |  450 ++++-----
- drivers/infiniband/core/uverbs_std_types.c |  275 ++++++
- include/rdma/ib_verbs.h                    |   41 +-
- include/rdma/uverbs_std_types.h            |  114 +++
- include/rdma/uverbs_types.h                |  171 ++++
- 10 files changed, 1863 insertions(+), 1335 deletions(-)
- create mode 100644 drivers/infiniband/core/rdma_core.c
- create mode 100644 drivers/infiniband/core/rdma_core.h
- create mode 100644 drivers/infiniband/core/uverbs_std_types.c
- create mode 100644 include/rdma/uverbs_std_types.h
- create mode 100644 include/rdma/uverbs_types.h
-
+diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
+index 1cbc053..e5bdf7f 100644
+--- a/drivers/infiniband/core/rdma_core.c
++++ b/drivers/infiniband/core/rdma_core.c
+@@ -153,6 +153,37 @@ static struct ib_uobject *lookup_get_idr_uobject(const struct uverbs_obj_type *t
+ 	return uobj;
+ }
+ 
++static struct ib_uobject *lookup_get_fd_uobject(const struct uverbs_obj_type *type,
++						struct ib_ucontext *ucontext,
++						int id, bool write)
++{
++	struct file *f;
++	struct ib_uobject *uobject;
++	const struct uverbs_obj_fd_type *fd_type =
++		container_of(type, struct uverbs_obj_fd_type, type);
++
++	if (write)
++		return ERR_PTR(-EOPNOTSUPP);
++
++	f = fget(id);
++	if (!f)
++		return ERR_PTR(-EBADF);
++
++	uobject = f->private_data;
++	/*
++	 * fget(id) ensures we are not currently running uverbs_close_fd,
++	 * and the caller is expected to ensure that uverbs_close_fd is never
++	 * done while a call top lookup is possible.
++	 */
++	if (f->f_op != fd_type->fops) {
++		fput(f);
++		return ERR_PTR(-EBADF);
++	}
++
++	uverbs_uobject_get(uobject);
++	return uobject;
++}
++
+ struct ib_uobject *rdma_lookup_get_uobject(const struct uverbs_obj_type *type,
+ 					   struct ib_ucontext *ucontext,
+ 					   int id, bool write)
+@@ -211,6 +242,46 @@ static struct ib_uobject *alloc_begin_idr_uobject(const struct uverbs_obj_type *
+ 	return ERR_PTR(ret);
+ }
+ 
++static struct ib_uobject *alloc_begin_fd_uobject(const struct uverbs_obj_type *type,
++						 struct ib_ucontext *ucontext)
++{
++	const struct uverbs_obj_fd_type *fd_type =
++		container_of(type, struct uverbs_obj_fd_type, type);
++	int new_fd;
++	struct ib_uobject *uobj;
++	struct ib_uobject_file *uobj_file;
++	struct file *filp;
++
++	new_fd = get_unused_fd_flags(O_CLOEXEC);
++	if (new_fd < 0)
++		return ERR_PTR(new_fd);
++
++	uobj = alloc_uobj(ucontext, type);
++	if (IS_ERR(uobj)) {
++		put_unused_fd(new_fd);
++		return uobj;
++	}
++
++	uobj_file = container_of(uobj, struct ib_uobject_file, uobj);
++	filp = anon_inode_getfile(fd_type->name,
++				  fd_type->fops,
++				  uobj_file,
++				  fd_type->flags);
++	if (IS_ERR(filp)) {
++		put_unused_fd(new_fd);
++		uverbs_uobject_put(uobj);
++		return (void *)filp;
++	}
++
++	uobj_file->uobj.id = new_fd;
++	uobj_file->uobj.object = filp;
++	uobj_file->ufile = ucontext->ufile;
++	INIT_LIST_HEAD(&uobj->list);
++	kref_get(&uobj_file->ufile->ref);
++
++	return uobj;
++}
++
+ struct ib_uobject *rdma_alloc_begin_uobject(const struct uverbs_obj_type *type,
+ 					    struct ib_ucontext *ucontext)
+ {
+@@ -246,6 +317,39 @@ static int __must_check remove_commit_idr_uobject(struct ib_uobject *uobj,
+ 	return ret;
+ }
+ 
++static void alloc_abort_fd_uobject(struct ib_uobject *uobj)
++{
++	struct ib_uobject_file *uobj_file =
++		container_of(uobj, struct ib_uobject_file, uobj);
++	struct file *filp = uobj->object;
++	int id = uobj_file->uobj.id;
++
++	/* Unsuccessful NEW */
++	fput(filp);
++	put_unused_fd(id);
++}
++
++static int __must_check remove_commit_fd_uobject(struct ib_uobject *uobj,
++						 enum rdma_remove_reason why)
++{
++	const struct uverbs_obj_fd_type *fd_type =
++		container_of(uobj->type, struct uverbs_obj_fd_type, type);
++	struct ib_uobject_file *uobj_file =
++		container_of(uobj, struct ib_uobject_file, uobj);
++	int ret = fd_type->context_closed(uobj_file, why);
++
++	if (why == RDMA_REMOVE_DESTROY && ret)
++		return ret;
++
++	if (why == RDMA_REMOVE_DURING_CLEANUP) {
++		alloc_abort_fd_uobject(uobj);
++		return ret;
++	}
++
++	uobj_file->uobj.context = NULL;
++	return ret;
++}
++
+ static void lockdep_check(struct ib_uobject *uobj, bool write)
+ {
+ #ifdef CONFIG_LOCKDEP
+@@ -314,6 +418,19 @@ static void alloc_commit_idr_uobject(struct ib_uobject *uobj)
+ 	spin_unlock(&uobj->context->ufile->idr_lock);
+ }
+ 
++static void alloc_commit_fd_uobject(struct ib_uobject *uobj)
++{
++	struct ib_uobject_file *uobj_file =
++		container_of(uobj, struct ib_uobject_file, uobj);
++
++	uverbs_uobject_add(&uobj_file->uobj);
++	fd_install(uobj_file->uobj.id, uobj->object);
++	/* This shouldn't be used anymore. Use the file object instead */
++	uobj_file->uobj.id = 0;
++	/* Get another reference as we export this to the fops */
++	uverbs_uobject_get(&uobj_file->uobj);
++}
++
+ int rdma_alloc_commit_uobject(struct ib_uobject *uobj)
+ {
+ 	/* Cleanup is running. Calling this should have been impossible */
+@@ -352,6 +469,15 @@ static void lookup_put_idr_uobject(struct ib_uobject *uobj, bool write)
+ {
+ }
+ 
++static void lookup_put_fd_uobject(struct ib_uobject *uobj, bool write)
++{
++	struct file *filp = uobj->object;
++
++	WARN_ON(write);
++	/* This indirectly calls uverbs_close_fd and free the object */
++	fput(filp);
++}
++
+ void rdma_lookup_put_uobject(struct ib_uobject *uobj, bool write)
+ {
+ 	lockdep_check(uobj, write);
+@@ -392,6 +518,39 @@ void rdma_lookup_put_uobject(struct ib_uobject *uobj, bool write)
+ 	.needs_kfree_rcu = true,
+ };
+ 
++static void _uverbs_close_fd(struct ib_uobject_file *uobj_file)
++{
++	struct ib_ucontext *ucontext;
++	struct ib_uverbs_file *ufile = uobj_file->ufile;
++	int ret;
++
++	mutex_lock(&uobj_file->ufile->cleanup_mutex);
++
++	/* uobject was either already cleaned up or is cleaned up right now anyway */
++	if (!uobj_file->uobj.context ||
++	    !down_read_trylock(&uobj_file->uobj.context->cleanup_rwsem))
++		goto unlock;
++
++	ucontext = uobj_file->uobj.context;
++	ret = _rdma_remove_commit_uobject(&uobj_file->uobj, RDMA_REMOVE_CLOSE,
++					  true);
++	up_read(&ucontext->cleanup_rwsem);
++	if (ret)
++		pr_warn("uverbs: unable to clean up uobject file in uverbs_close_fd.\n");
++unlock:
++	mutex_unlock(&ufile->cleanup_mutex);
++}
++
++void uverbs_close_fd(struct file *f)
++{
++	struct ib_uobject_file *uobj_file = f->private_data;
++	struct kref *uverbs_file_ref = &uobj_file->ufile->ref;
++
++	_uverbs_close_fd(uobj_file);
++	uverbs_uobject_put(&uobj_file->uobj);
++	kref_put(uverbs_file_ref, ib_uverbs_release_file);
++}
++
+ void uverbs_cleanup_ucontext(struct ib_ucontext *ucontext, bool device_removed)
+ {
+ 	enum rdma_remove_reason reason = device_removed ?
+@@ -412,7 +571,13 @@ void uverbs_cleanup_ucontext(struct ib_ucontext *ucontext, bool device_removed)
+ 
+ 		/*
+ 		 * This shouldn't run while executing other commands on this
+-		 * context.
++		 * context. Thus, the only thing we should take care of is
++		 * releasing a FD while traversing this list. The FD could be
++		 * closed and released from the _release fop of this FD.
++		 * In order to mitigate this, we add a lock.
++		 * We take and release the lock per order traversal in order
++		 * to let other threads (which might still use the FDs) chance
++		 * to run.
+ 		 */
+ 		mutex_lock(&ucontext->uobjects_lock);
+ 		list_for_each_entry_safe(obj, next_obj, &ucontext->uobjects,
+@@ -448,3 +613,13 @@ void uverbs_initialize_ucontext(struct ib_ucontext *ucontext)
+ 	init_rwsem(&ucontext->cleanup_rwsem);
+ }
+ 
++const struct uverbs_obj_type_class uverbs_fd_class = {
++	.alloc_begin = alloc_begin_fd_uobject,
++	.lookup_get = lookup_get_fd_uobject,
++	.alloc_commit = alloc_commit_fd_uobject,
++	.alloc_abort = alloc_abort_fd_uobject,
++	.lookup_put = lookup_put_fd_uobject,
++	.remove_commit = remove_commit_fd_uobject,
++	.needs_kfree_rcu = false,
++};
++
+diff --git a/drivers/infiniband/core/rdma_core.h b/drivers/infiniband/core/rdma_core.h
+index 0247bb5..1b82e7f 100644
+--- a/drivers/infiniband/core/rdma_core.h
++++ b/drivers/infiniband/core/rdma_core.h
+@@ -67,4 +67,12 @@
+  */
+ void uverbs_uobject_put(struct ib_uobject *uobject);
+ 
++/* Indicate this fd is no longer used by this consumer, but its memory isn't
++ * necessarily released yet. When the last reference is put, we release the
++ * memory. After this call is executed, calling uverbs_uobject_get isn't
++ * allowed.
++ * This must be called from the release file_operations of the file!
++ */
++void uverbs_close_fd(struct file *f);
++
+ #endif /* RDMA_CORE_H */
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index 27c8b98..5f8a7f2 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -193,6 +193,7 @@ void ib_uverbs_release_ucq(struct ib_uverbs_file *file,
+ 			   struct ib_ucq_object *uobj);
+ void ib_uverbs_release_uevent(struct ib_uverbs_file *file,
+ 			      struct ib_uevent_object *uobj);
++void ib_uverbs_release_file(struct kref *ref);
+ 
+ void ib_uverbs_comp_handler(struct ib_cq *cq, void *cq_context);
+ void ib_uverbs_cq_event_handler(struct ib_event *event, void *context_ptr);
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 7ccb525..8ee1d08 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -233,7 +233,7 @@ static void ib_uverbs_comp_dev(struct ib_uverbs_device *dev)
+ 	complete(&dev->comp);
+ }
+ 
+-static void ib_uverbs_release_file(struct kref *ref)
++void ib_uverbs_release_file(struct kref *ref)
+ {
+ 	struct ib_uverbs_file *file =
+ 		container_of(ref, struct ib_uverbs_file, ref);
+@@ -1132,7 +1132,9 @@ static void ib_uverbs_free_hw_resources(struct ib_uverbs_device *uverbs_dev,
+ 			 * (e.g mmput).
+ 			 */
+ 			ib_dev->disassociate_ucontext(ucontext);
++			mutex_lock(&file->cleanup_mutex);
+ 			ib_uverbs_cleanup_ucontext(file, ucontext, true);
++			mutex_unlock(&file->cleanup_mutex);
+ 		}
+ 
+ 		mutex_lock(&uverbs_dev->lists_mutex);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 2e8f661..3a8e058 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1421,6 +1421,12 @@ struct ib_uobject {
+ 	const struct uverbs_obj_type *type;
+ };
+ 
++struct ib_uobject_file {
++	struct ib_uobject	uobj;
++	/* ufile contains the lock between context release and file close */
++	struct ib_uverbs_file	*ufile;
++};
++
+ struct ib_udata {
+ 	const void __user *inbuf;
+ 	void __user *outbuf;
+diff --git a/include/rdma/uverbs_types.h b/include/rdma/uverbs_types.h
+index 66368b5..5867429 100644
+--- a/include/rdma/uverbs_types.h
++++ b/include/rdma/uverbs_types.h
+@@ -129,6 +129,22 @@ struct ib_uobject *rdma_alloc_begin_uobject(const struct uverbs_obj_type *type,
+ int __must_check rdma_remove_commit_uobject(struct ib_uobject *uobj);
+ int rdma_alloc_commit_uobject(struct ib_uobject *uobj);
+ 
++struct uverbs_obj_fd_type {
++	/*
++	 * In fd based objects, uverbs_obj_type_ops points to generic
++	 * fd operations. In order to specialize the underlying types (e.g.
++	 * completion_channel), we use fops, name and flags for fd creation.
++	 * context_closed is called when the context is closed either when
++	 * the driver is removed or the process terminated.
++	 */
++	struct uverbs_obj_type  type;
++	int (*context_closed)(struct ib_uobject_file *uobj_file,
++			      enum rdma_remove_reason why);
++	const struct file_operations	*fops;
++	const char			*name;
++	int				flags;
++};
++
+ extern const struct uverbs_obj_type_class uverbs_idr_class;
+ 
+ #define UVERBS_BUILD_BUG_ON(cond) (sizeof(char[1 - 2 * !!(cond)]) -	\
 -- 
 1.8.3.1
 
