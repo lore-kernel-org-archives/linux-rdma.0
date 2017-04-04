@@ -1,79 +1,84 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC 5/8] scatterlist: Modify SG copy functions to support io
- memory.
-Date: Mon, 3 Apr 2017 17:07:55 -0700
-Message-ID: <CAPcyv4gL=Z42x52So1iL-MNhPY67Pktz3c0J_h0tj_60TowNuQ@mail.gmail.com>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
- <1490911959-5146-6-git-send-email-logang@deltatee.com>
- <20170331070950.GA9059@infradead.org>
- <435d4471-436b-87e6-8827-c9fc6cbdde2c@deltatee.com>
- <445bc352-75d7-438f-96ef-c2411215628d@deltatee.com>
- <CAPcyv4g=MHbjbY0GFPoLq3wAGwhcC7813O7iLUWGEChWh0M7Dw@mail.gmail.com>
- <ff0dd5ec-2562-9f1d-1335-d0a8813f2f50@deltatee.com>
- <CAPcyv4gx4g3Ry_A99yTodqwm2vH72oMSLKAKF7iEsmG5G4TcbQ@mail.gmail.com>
- <22930db3-a194-8b60-5aab-4a8add1ddc55@deltatee.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V2 for-next 0/7] Change IDR usage and locking in uverbs
+Date: Tue, 4 Apr 2017 00:04:47 -0400
+Message-ID: <f3f83711-172a-2094-d2b0-7dbbec9c66aa@redhat.com>
+References: <1489939145-125246-1-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <22930db3-a194-8b60-5aab-4a8add1ddc55-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="bAVt3WBnp5fD5t6TQqrgPteQHtfWvdnuL"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1489939145-125246-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 3, 2017 at 4:12 PM, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org> wrote:
->
->
-> On 03/04/17 04:47 PM, Dan Williams wrote:
->> I wouldn't necessarily conflate supporting pfn_t in the scatterlist
->> with the stalled stuct-page-less DMA effor. A pfn_t_to_page()
->> conversion will still work and be required. However you're right, the
->> minute we use pfn_t for this we're into the realm of special case
->> drivers that understand scatterlists with special "I/O-pfn_t" entries.
->
-> Well yes, it would certainly be possible to convert the scatterlist code
-> from page_link to pfn_t. (The only slightly tricky thing is that
-> scatterlist uses extra chaining bits and pfn_t uses extra flag bits so
-> they'd have to be harmonized somehow). But if we aren't moving toward
-> struct-page-less DMA, I fail to see the point of the conversion.
->
-> I'll definitely need IO scatterlists of some form or another and I like
-> pfn_t but right now it just seems like extra work with unclear benefit.
-> (Though, if someone told me that I can't use a third bit in the
-> page_link field then maybe that would be a good reason to move to pfn_t.)
->
->> However, maybe that's what we want? I think peer-to-peer DMA is not a
->> general purpose feature unless/until we get it standardized in PCI. So
->> maybe drivers with special case scatterlist support is exactly what we
->> want for now.
->
-> Well, I think this should be completely independent from PCI code. I see
-> no reason why we can't have infrastructure for DMA on iomem from any
-> bus. Largely all the work I've done in this area is completely agnostic
-> to the bus in use. (Except for any kind of white/black list when it is
-> used.)
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--bAVt3WBnp5fD5t6TQqrgPteQHtfWvdnuL
+Content-Type: multipart/mixed; boundary="bp7NaMdmloBuGketEim7feaRkk5C18Fhe";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
+ Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>,
+ Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
+ Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
+ Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Message-ID: <f3f83711-172a-2094-d2b0-7dbbec9c66aa-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V2 for-next 0/7] Change IDR usage and locking in uverbs
+References: <1489939145-125246-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1489939145-125246-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The completely agnostic part is where I get worried, but I shouldn't
-say anymore until I actually read the patch.The worry is cases where
-this agnostic enabling allows unsuspecting code paths to do the wrong
-thing. Like bypass iomem safety.
+--bp7NaMdmloBuGketEim7feaRkk5C18Fhe
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-> The "special case scatterlist" is essentially what I'm proposing in the
-> patch I sent upthread, it just stores the flag in the page_link instead
-> of in a pfn_t.
+On 3/19/2017 11:58 AM, Matan Barak wrote:
+> Hi Doug,
 
-Makes sense. The suggestion of pfn_t was to try to get more type
-safety throughout the stack. So that, again, unsuspecting code paths
-that get an I/O pfn aren't able to do things like page_address() or
-kmap() without failing.
+Hi Matan,
 
-I'll stop commenting now and set aside some time to go read the patches.
+You mentioned at the OFA Workshop that there would be a v3 of this
+patchset, yes?
+
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
+D
+
+
+--bp7NaMdmloBuGketEim7feaRkk5C18Fhe--
+
+--bAVt3WBnp5fD5t6TQqrgPteQHtfWvdnuL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJY4xtrAAoJELgmozMOVy/dFwoP/jooacPDcPXer4VDyobl1iFI
+ZtDoTLCwL0gc6vk6kuK0rMJfX115E1JRwI6lEELqvljr0lWwH1YrTIBK402RSqeD
+saCDee3pqnRRfUmTfZfuP2aCmVPykeI4Fb3NpVq1eIepRrqYRm8iIlbLhkCyhkah
+jNuz2NIZ8sLvqy9oZ0J0Z9M4UuRE8Do2f5Trgm5SAWBDiy6dG/XUbPKHqj7IqVJk
+73wsGiak3sHO65wOdJQbauwWJ1Aia5H0qyaY82C3g2VFT9x4emYX6t6LWWlGIh9t
+d9e+hA7bs/9PIe/SiapRzN35alDGiv65eDNu4chqnfg39OWyIZS6m8rhs/76HVuk
+VnM3i2QwbXjque7Z7Cka0wUMS2THjkKfT/zsu8j4R9THsmxJcrkKGdiOU1GNlO6W
+9WtIBL3CC/ZKngO/1+cPWjmD7qCtpKn8SsiECakQpRzcHwHSqTynketcG0LAqTCH
+ZwnkOVkbuJ6ZiIbpXH5Ycz4RbCVRLJs3n0XbkxZaigl1QLoTR+ygdko5d3PRH06d
+VfwbRVpUNWZ96N5TUF+/f9RiWRuAI3Uzr0uCZ0RNUUlI3BLMBoI4/VLC5mLb/0YS
+csZ1LnyH0iFeUvdk5onndzyH/FicMfLdidj5JnaOE4lcL579QYbj3QdXZsulE25j
+cclKm8whcEPc3l3K50Aj
+=O9aV
+-----END PGP SIGNATURE-----
+
+--bAVt3WBnp5fD5t6TQqrgPteQHtfWvdnuL--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
