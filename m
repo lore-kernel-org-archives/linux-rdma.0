@@ -1,47 +1,31 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: next-20170404 build: 1 failures 3 warnings (next-20170404)
-Date: Tue, 4 Apr 2017 13:36:04 +0100
-Message-ID: <20170404123604.hhiajnks7i2gifsa@sirena.org.uk>
-References: <E1cvMgy-00057J-Hs@optimist>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH rfc 5/6] block: Add rdma affinity based queue mapping
+        helper
+Date: Tue, 4 Apr 2017 15:09:26 +0200
+Message-ID: <20170404130926.GA16338@lst.de>
+References: <1491140492-25703-1-git-send-email-sagi@grimberg.me> <1491140492-25703-6-git-send-email-sagi@grimberg.me> <becb84ac-7819-a207-56b1-70f16cb80e42@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="tknrapelwoz6tozr"
-Return-path: <linux-next-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <E1cvMgy-00057J-Hs@optimist>
-Sender: linux-next-owner@vger.kernel.org
-To: Lijun Ou <oulijun@huawei.com>, Wei Hu <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: kernel-build-reports@lists.linaro.org, linaro-kernel@lists.linaro.org, linux-next@vger.kernel.org, linux-rdma@vger.kernel.org
+In-Reply-To: <becb84ac-7819-a207-56b1-70f16cb80e42@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: Max Gurtovoy <maxg@mellanox.com>
+Cc: Sagi Grimberg <sagi@grimberg.me>, linux-rdma@vger.kernel.org, linux-nvme@lists.infradead.org, linux-block@vger.kernel.org, netdev@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Christoph Hellwig <hch@lst.de>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Apr 04, 2017 at 10:46:54AM +0300, Max Gurtovoy wrote:
+>> +	if (set->nr_hw_queues > dev->num_comp_vectors)
+>> +		goto fallback;
+>> +
+>> +	for (queue = 0; queue < set->nr_hw_queues; queue++) {
+>> +		mask = ib_get_vector_affinity(dev, first_vec + queue);
+>> +		if (!mask)
+>> +			goto fallback;
+>
+> Christoph,
+> we can use fallback also in the blk-mq-pci.c in case pci_irq_get_affinity 
+> fails, right ?
 
---tknrapelwoz6tozr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Apr 04, 2017 at 12:32:08PM +0100, Build bot for Mark Brown wrote:
-
-This failure from last week is still present in -next today:
-
-> 	arm64-allmodconfig
-> ../drivers/infiniband/hw/hns/hns_roce_hw_v1.c:1384:15: error: implicit declaration of function 'of_parse_phandle' [-Werror=implicit-function-declaration]
-> ../drivers/infiniband/hw/hns/hns_roce_hw_v1.c:1389:22: error: dereferencing pointer to incomplete type 'struct device_node'
-
-I sent a fix at the time: https://patchwork.kernel.org/patch/9654357/
-
---tknrapelwoz6tozr
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAljjkzMACgkQJNaLcl1U
-h9DmNAf/c6U8LRwpYiv2yTUxJLTlaVx4nLZOaNHeTLnAoeY7KtNernulmfXbmxt5
-969iIIVqjTYNeMDoF72o+VDDfRr6FF/bRgRXlPT0knlcHikQTbFTP+aypXU0iPGv
-W/9155+Q8xXzwl+CyNwat8+iYzHIOquPHKpmGnQczFfD8S1B8OtdvDbqziI425GY
-1grruIDrc50gYGht8eYjz98XjNqh9L6Z0Sv9ea5OTGD/x30la9sqrf2WLMfqjjs1
-DK0Q1Exj/BA9kEIcNK3Sf6nHIdDelN8AWhmInQ33T5veKu5zgNVVbcDeKaqG789p
-ik9IM6mNikBz3GaluxwuW5L8MBRg2w==
-=zl4S
------END PGP SIGNATURE-----
-
---tknrapelwoz6tozr--
+For PCI it shouldn't fail as the driver calling pci_irq_get_affinity
+knows how it set up the interrupts.  So I don't think it's necessary there.
