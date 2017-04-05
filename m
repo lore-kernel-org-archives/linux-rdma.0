@@ -1,103 +1,90 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 08/10] IB/umem: Add support to huge ODP
-Date: Wed, 5 Apr 2017 20:33:27 +0300
-Message-ID: <20170405173327.GH20443@mtr-leonro.local>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next V1 01/10] IB: Replace ib_umem page_size by
+ page_shift
+Date: Wed, 5 Apr 2017 10:30:16 -0700
+Message-ID: <82d156f6-ab82-3cf1-08e7-f76e1ea86d42@vmware.com>
 References: <20170405062359.26623-1-leon@kernel.org>
- <20170405062359.26623-9-leon@kernel.org>
- <20170405164539.GA9232@ssaleem-MOBL4.amr.corp.intel.com>
+ <20170405062359.26623-2-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="x9NlMAausKqHAFUv"
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170405164539.GA9232-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
+In-Reply-To: <20170405062359.26623-2-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ram Amrani <Ram.Amrani-74tsMCuadCbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue Apr 04 2017 23:23:50 GMT-0700 (PDT), Leon Romanovsky wrote:
+> From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> Size of pages are held by struct ib_umem in page_size field.
+> 
+> It is better to store it as an exponent, because page size by nature
+> is always power-of-two and used as a factor, divisor or ilog2's argument.
+> 
+> The conversion of page_size to be page_shift allows to have portable
+> code and avoid following error while compiling on ARM:
+> 
+>   ERROR: "__aeabi_uldivmod" [drivers/infiniband/core/ib_core.ko] undefined!
+> 
+> CC: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> CC: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+> CC: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> CC: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> CC: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> CC: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> CC: Ram Amrani <Ram.Amrani-74tsMCuadCbQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> ---
+> Change from v0:
+>  * Remove temp variable (pg_shift) variable from i40iw driver.
+> ---
+>  drivers/infiniband/core/umem.c                 | 15 ++++++---------
+>  drivers/infiniband/core/umem_odp.c             | 12 ++++++------
+>  drivers/infiniband/hw/bnxt_re/ib_verbs.c       | 12 ++++++------
+>  drivers/infiniband/hw/cxgb3/iwch_provider.c    |  4 ++--
+>  drivers/infiniband/hw/cxgb4/mem.c              |  4 ++--
+>  drivers/infiniband/hw/hns/hns_roce_cq.c        |  3 +--
+>  drivers/infiniband/hw/hns/hns_roce_mr.c        |  9 +++++----
+>  drivers/infiniband/hw/hns/hns_roce_qp.c        |  3 +--
+>  drivers/infiniband/hw/i40iw/i40iw_verbs.c      | 10 +++++-----
+>  drivers/infiniband/hw/mlx4/cq.c                |  2 +-
+>  drivers/infiniband/hw/mlx4/mr.c                |  6 +++---
+>  drivers/infiniband/hw/mlx4/qp.c                |  2 +-
+>  drivers/infiniband/hw/mlx4/srq.c               |  2 +-
+>  drivers/infiniband/hw/mlx5/mem.c               |  4 ++--
+>  drivers/infiniband/hw/mlx5/odp.c               |  2 +-
+>  drivers/infiniband/hw/mthca/mthca_provider.c   |  5 ++---
+>  drivers/infiniband/hw/nes/nes_verbs.c          |  4 ++--
+>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c    | 15 ++++++---------
+>  drivers/infiniband/hw/qedr/verbs.c             |  8 ++++----
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c |  2 +-
+>  drivers/infiniband/sw/rdmavt/mr.c              |  8 ++++----
+>  drivers/infiniband/sw/rxe/rxe_mr.c             |  8 +++-----
+>  include/rdma/ib_umem.h                         |  4 ++--
+>  23 files changed, 67 insertions(+), 77 deletions(-)
 
---x9NlMAausKqHAFUv
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+...
 
-On Wed, Apr 05, 2017 at 11:45:39AM -0500, Shiraz Saleem wrote:
-> On Wed, Apr 05, 2017 at 09:23:57AM +0300, Leon Romanovsky wrote:
-> > From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >
-> > Add IB_ACCESS_HUGETLB ib_reg_mr flag.
-> > Hugetlb region registered with this flag
-> > will use single translation entry per huge page.
-> >
-> > Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > ---
-> >  drivers/infiniband/core/umem.c     |  2 +-
-> >  drivers/infiniband/core/umem_odp.c | 19 +++++++++++++++++--
-> >  include/rdma/ib_umem_odp.h         |  6 ++++--
-> >  include/rdma/ib_verbs.h            |  1 +
-> >  4 files changed, 23 insertions(+), 5 deletions(-)
-> >
-> > @@ -315,6 +317,20 @@ int ib_umem_odp_get(struct ib_ucontext *context, s=
-truct ib_umem *umem)
-> >  	if (!mm)
-> >  		return -EINVAL;
-> >
-> > +	if (access & IB_ACCESS_HUGETLB) {
-> > +		struct vm_area_struct *vma;
-> > +		struct hstate *h;
-> > +
-> > +		vma =3D find_vma(mm, ib_umem_start(umem));
-> > +		if (!vma || !is_vm_hugetlb_page(vma))
-> > +			return -EINVAL;
-> > +		h =3D hstate_vma(vma);
-> > +		umem->page_shift =3D huge_page_shift(h);
-> > +		umem->hugetlb =3D 1;
->
-> User memory buffer could span multiple VMAs right? So shouldn=E2=80=99t w=
-e check all VMAs of the umem
-> before setting the hugetlb flag?
+> 
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c
+> index 948b5ccd2a70..6ef4df6c8c4a 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c
+> @@ -194,7 +194,7 @@ int pvrdma_page_dir_insert_umem(struct pvrdma_page_dir *pdir,
+>  		len = sg_dma_len(sg) >> PAGE_SHIFT;
+>  		for (j = 0; j < len; j++) {
+>  			dma_addr_t addr = sg_dma_address(sg) +
+> -					  umem->page_size * j;
+> +					  (j << umem->page_shift);
+> 
+>  			ret = pvrdma_page_dir_insert_dma(pdir, i, addr);
+>  			if (ret)
 
-It depends on what do you want to achieve. Current implementation uses
-best effort strategy and it assumes that user called to madvise
-with MADV_HUGETLB before. In such case, all VMAs will have hugettlb
-property in it. If the user calls madavise for partial umem region,
-the application and ODP will continue to work, but won't efficient
-in its memory usage.
+Acked-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 
-Thanks
-
->
-> > +	} else {
-> > +		umem->hugetlb =3D 0;
-> > +	}
-> > +
-> >  	/* Prevent creating ODP MRs in child processes */
-> >  	rcu_read_lock();
-> >  	our_pid =3D get_task_pid(current->group_leader, PIDTYPE_PID);
-
---x9NlMAausKqHAFUv
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljlKmcACgkQ5GN7iDZy
-WKenLRAAiqtv6mxRto/0eUXctvFHxLl4dCkuMLmPQL97VRq5OgSQXAmjOyOnV8U4
-MyckV4A3yWOF3IPauwQi5hF3GgLd+1/nQcidnaz18OIAYW2aVXS/tghYfeUdC58p
-k74kOtpSmnYTukezWHKZrRVi9DAljTUn7CY+eCBV+tPf1koLOLE+q5r0h6vZW30N
-awV7JzIYcfHTSk1/zF2vmF6Ph9RYk4LEjWB/U7Ea+C5o+sOyJk6TK7cLODjAslGQ
-VfSlpLJxE1wshhioZv+br7c3kxjlsBsF/QP9YTYImFRu1exi/EWr3p3OhKCFzEbu
-htIIO+kgVQXKcrR+A43iQykQ+2cyeZgNNXw5d1o8TptK8kvXbu+FKMWZDQCrmDcL
-VxvWsvYVKtxR7P8t3oPnVUH2DHWuO5d85KehuX/cmEe8g9IsOlrLq5Cbi76g20ch
-/JIfDSQhp5WmHXotjcy8CubtHMp+mz/H9e9WuSTU+qIJGzz6zY7iTw9QMRvSdurR
-3oTSgh9OfFrkceTAX5jrOaW1DnUOo02TFIdl0W7oNUmasuzHuxj093//YfMoQ9qI
-sLQHOuKcYC5vinSQaG3bt8xX2FDDFY6ztdRIPuucYkK9/eZtQ5QMwt04Esd9rUhG
-+N2QJR+QJMWZgQ8/iJssxkqunKpt0WyLRS15MgsGYe4GNOYM0Jk=
-=5ufG
------END PGP SIGNATURE-----
-
---x9NlMAausKqHAFUv--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
