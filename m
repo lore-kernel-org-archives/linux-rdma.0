@@ -1,76 +1,54 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 0/5] Flow steering improvements
-Date: Wed,  5 Apr 2017 18:19:19 +0300
-Message-ID: <1491405564-19735-1-git-send-email-yishaih@mellanox.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH rdma-next 01/10] IB: Replace ib_umem page_size by page_shift
+Date: Wed, 5 Apr 2017 10:30:11 -0500
+Message-ID: <0c8601d2ae21$8441bc20$8cc53460$@opengridcomputing.com>
+References: <20170403100640.3332-1-leon@kernel.org> <20170403100640.3332-2-leon@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170403100640.3332-2-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Artemy Kovalyov' <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Selvin Xavier' <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, 'Steve Wise' <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, 'Lijun Ou' <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, 'Shiraz Saleem' <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Adit Ranadive' <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, 'Dennis Dalessandro' <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Ram Amrani' <Ram.Amrani-74tsMCuadCbQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch set from Artemy introduces to user applications some extra flow
-steering specifications, the matching kernel part was already accepted in
-kernel 4.10.
 
-Specifically, below specifications are added:
-IBV_FLOW_SPEC_VXLAN_TUNNEL, IBV_FLOW_SPEC_INNER, IBV_FLOW_SPEC_ACTION_TAG.
+> From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> Size of pages are held by struct ib_umem in page_size field.
+> 
+> It is better to store it as an exponent, because page size by nature
+> is always power-of-two and used as a factor, divisor or ilog2's argument.
+> 
+> The conversion of page_size to be page_shift allows to have portable
+> code and avoid following error while compiling on ARM:
+> 
+>   ERROR: "__aeabi_uldivmod" [drivers/infiniband/core/ib_core.ko]
+> undefined!
+> 
+> CC: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> CC: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+> CC: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> CC: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> CC: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> CC: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> CC: Ram Amrani <Ram.Amrani-74tsMCuadCbQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> ---
+>  drivers/infiniband/core/umem.c                 | 15 ++++++---------
+>  drivers/infiniband/core/umem_odp.c             | 12 ++++++------
+>  drivers/infiniband/hw/bnxt_re/ib_verbs.c       | 12 ++++++------
+>  drivers/infiniband/hw/cxgb3/iwch_provider.c    |  4 ++--
+>  drivers/infiniband/hw/cxgb4/mem.c              |  4 ++--
 
-Virtual eXtensible LAN (VXLAN) is a proposed encapsulation protocol for running
-an overlay network on existing Layer 3 infrastructure. An overlay network is a
-virtual network that is built on top of existing network Layer 2 and Layer 3
-technologies to support elastic COMPUTE architectures. VXLAN will make it
-easier for network engineers to scale out a cloud computing environment while
-logically isolating cloud apps and tenants.
+For the cxgb parts:
 
-This patch set introduces support of VXLAN protocol for ibv_create_flow API.
-The application will be able to send a packet with VXLAN tunneling, and
-configure a steering rule to receive this stream based on its tunnel_id using
-the IBV_FLOW_SPEC_VXLAN_TUNNEL specification.
+Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
-In addition, an inner flow specification (i.e. IBV_FLOW_SPEC_VXLAN_TUNNEL)
-was added letting the application to set a rule on the inner protocol.
- 
-When one of the L2/L3/L4 flow specification types is or-combined with
-IBV_FLOW_SPEC_INNER, then the filter is applied on the inner packet header.
-The flow specifications can contain inner and outer parts for the inner and
-outer protocol headers respectively.  The match is done based on the inner and
-outer flow specifications and can include the VXLAN_TUNNEL specification as
-well.
-
-Flow tag specification (i.e. IBV_FLOW_SPEC_ACTION_TAG) allows an application
-to request an action to tag the matching packets with a given tag id.
-
-The matching is done based on the L2/L3/L4 flow specifications, where the
-application builds several spec's, each spec defined field on the header it
-applied for. The number of specifications to add is one for each layer and one
-more for the flow tag action which contains the tag_id number.
-
-Application can read the flow tag by using the extended ibv_cq_ex
-with the new read method:
-uint32_t ibv_wc_read_flow_tag(struct ibv_cq_ex *cq)
-
-Pull request was sent:
-https://github.com/linux-rdma/rdma-core/pull/114
-
-Artemy Kovalyov (5):
-  ibverbs: Add tunnel VXLAN flow specification
-  ibverbs: Add inner flow specification support
-  ibverbs: Add flow tag specification
-  ibverbs: Add support for reading flow tag from a CQ
-  mlx5: Add read_flow_tag implementation
-
- libibverbs/cmd.c                  | 38 +++++++++++++++++++++++++++++++--
- libibverbs/kern-abi.h             | 21 +++++++++++++++++++
- libibverbs/man/ibv_create_cq_ex.3 |  4 ++++
- libibverbs/man/ibv_create_flow.3  |  3 +++
- libibverbs/verbs.h                | 44 ++++++++++++++++++++++++++++++++-------
- providers/mlx5/cq.c               |  9 ++++++++
- providers/mlx5/mlx5.h             |  4 ++++
- providers/mlx5/verbs.c            |  3 ++-
- 8 files changed, 116 insertions(+), 10 deletions(-)
-
--- 
-1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
