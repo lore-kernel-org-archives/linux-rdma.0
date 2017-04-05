@@ -1,43 +1,51 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH rdma-next 4/6] IB/IPoIB: Rename qpn to be dqpn in
- ipoib_send and post_send functions
-Date: Wed, 5 Apr 2017 15:00:48 +0000
-Message-ID: <1491404447.2787.1.camel@sandisk.com>
-References: <20170404191732.31895-5-leon@kernel.org>
-         <201704050840.SLVNyMTT%fengguang.wu@intel.com>
-         <20170405103838.GE20443@mtr-leonro.local>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: Re: [PATCH 5/5] IB/qib: Adjust two size determinations in
+ qib_init_pportdata()
+Date: Wed, 5 Apr 2017 17:04:35 +0200
+Message-ID: <523b0864-e655-ed1f-8fe5-5995e0b0bde1@users.sourceforge.net>
+References: <c16b18ac-287f-5faf-b79a-c86e2adfa22c@users.sourceforge.net>
+ <b5bc4160-aace-b919-7fe2-a4742d03c4ba@users.sourceforge.net>
+ <20170405143242.GB5006@yuval-lap>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170405103838.GE20443-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
-Content-ID: <39520D9C4B7FDE4CA6E4E5CF1768C750-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "kbuild-all-JC7UmRfGjtg@public.gmane.org" <kbuild-all-JC7UmRfGjtg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170405143242.GB5006@yuval-lap>
+Content-Language: en-GB
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yuval Shaia <yuval.shaia@oracle.com>
+Cc: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mike Marciniszyn <infinipath@intel.com>, Sean Hefty <sean.hefty@intel.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-04-05 at 13:38 +0300, Leon Romanovsky wrote:
-> On Wed, Apr 05, 2017 at 08:56:29AM +0800, kbuild test robot wrote:
-> > Hi Erez,
-> >=20
-> > [auto build test ERROR on rdma/master]
-> > [also build test ERROR on v4.11-rc5 next-20170404]
-> > [if your patch is applied to the wrong git tree, please drop us a note =
-to help improve the system]
->=20
-> It should be applied to v4.11-rc3 and not to -rc5.
+>> @@ -270,13 +268,14 @@ int qib_init_pportdata(struct qib_pportdata *ppd, struct qib_devdata *dd,
+>>  	if (!ppd->congestion_entries)
+>>  		goto bail_1;
+>>  
+>> -	size = sizeof(struct cc_table_shadow);
+>> -	ppd->ccti_entries_shadow = kzalloc(size, GFP_KERNEL);
+>> +	ppd->ccti_entries_shadow = kzalloc(sizeof(*ppd->ccti_entries_shadow),
+>> +					   GFP_KERNEL);
+>>  	if (!ppd->ccti_entries_shadow)
+>>  		goto bail_2;
+>>  
+>> -	size = sizeof(struct ib_cc_congestion_setting_attr);
+>> -	ppd->congestion_entries_shadow = kzalloc(size, GFP_KERNEL);
+>> +	ppd->congestion_entries_shadow = kzalloc(sizeof(*ppd
+>> +							->congestion_entries_shadow),
+>> +						 GFP_KERNEL);
+> 
+> Not related to this patch but is related to your patch-set - can you check
+> the array allocations in lines 264 and 268?
 
-Hello Leon,
+Do you refer to source code places here which are affected by the update step
+"[PATCH 4/5] IB/qib: Use kcalloc() in qib_init_pportdata()"?
 
-Will it be possible for Doug to apply this series to his tree without
-rebasing this patch series on rc5 instead of rc3?
 
-Thanks,
+> Besides that:
+> Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
 
-Bart.=
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Do you find the proposed change for the shown data types really acceptable
+in these function calls?
+
+Regards,
+Markus
