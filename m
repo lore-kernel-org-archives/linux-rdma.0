@@ -1,7 +1,8 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 1/5] IB/qib: Use kcalloc() in qib_init_iba7322_funcs()
-Date: Wed, 5 Apr 2017 15:51:52 +0200
-Message-ID: <5e5e00d3-b6a4-7371-65be-c5fe387d26b3@users.sourceforge.net>
+Subject: [PATCH 5/5] IB/qib: Adjust two size determinations in
+ qib_init_pportdata()
+Date: Wed, 5 Apr 2017 15:55:39 +0200
+Message-ID: <b5bc4160-aace-b919-7fe2-a4742d03c4ba@users.sourceforge.net>
 References: <c16b18ac-287f-5faf-b79a-c86e2adfa22c@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -15,38 +16,51 @@ Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 5 Apr 2017 09:43:54 +0200
+Date: Wed, 5 Apr 2017 15:00:44 +0200
 
-* A multiplication for the size determination of a memory allocation
-  indicated that an array data structure should be processed.
-  Thus use the corresponding function "kcalloc".
-
-  This issue was detected by using the Coccinelle software.
-
-* Replace the specification of a data structure by a pointer dereference
+* Replace the specification of two data structures by pointer dereferences
   to make the corresponding size determination a bit safer according to
   the Linux coding style convention.
 
+* Delete the local variable "size" which became unnecessary with
+  this refactoring.
+
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/infiniband/hw/qib/qib_iba7322.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/qib/qib_init.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index af9f596bb68b..e4e4e675c89c 100644
---- a/drivers/infiniband/hw/qib/qib_iba7322.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -7324,8 +7324,9 @@ struct qib_devdata *qib_init_iba7322_funcs(struct pci_dev *pdev,
- 		actual_cnt -= dd->num_pports;
+diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
+index 101580f0460a..e223226ed94d 100644
+--- a/drivers/infiniband/hw/qib/qib_init.c
++++ b/drivers/infiniband/hw/qib/qib_init.c
+@@ -222,8 +222,6 @@ struct qib_ctxtdata *qib_create_ctxtdata(struct qib_pportdata *ppd, u32 ctxt,
+ int qib_init_pportdata(struct qib_pportdata *ppd, struct qib_devdata *dd,
+ 			u8 hw_pidx, u8 port)
+ {
+-	int size;
+-
+ 	ppd->dd = dd;
+ 	ppd->hw_pidx = hw_pidx;
+ 	ppd->port = port; /* IB port number, not index */
+@@ -270,13 +268,14 @@ int qib_init_pportdata(struct qib_pportdata *ppd, struct qib_devdata *dd,
+ 	if (!ppd->congestion_entries)
+ 		goto bail_1;
  
- 	tabsize = actual_cnt;
--	dd->cspec->msix_entries = kzalloc(tabsize *
--			sizeof(struct qib_msix_entry), GFP_KERNEL);
-+	dd->cspec->msix_entries = kcalloc(tabsize,
-+					  sizeof(*dd->cspec->msix_entries),
-+					  GFP_KERNEL);
- 	if (!dd->cspec->msix_entries)
- 		tabsize = 0;
+-	size = sizeof(struct cc_table_shadow);
+-	ppd->ccti_entries_shadow = kzalloc(size, GFP_KERNEL);
++	ppd->ccti_entries_shadow = kzalloc(sizeof(*ppd->ccti_entries_shadow),
++					   GFP_KERNEL);
+ 	if (!ppd->ccti_entries_shadow)
+ 		goto bail_2;
+ 
+-	size = sizeof(struct ib_cc_congestion_setting_attr);
+-	ppd->congestion_entries_shadow = kzalloc(size, GFP_KERNEL);
++	ppd->congestion_entries_shadow = kzalloc(sizeof(*ppd
++							->congestion_entries_shadow),
++						 GFP_KERNEL);
+ 	if (!ppd->congestion_entries_shadow)
+ 		goto bail_3;
  
 -- 
 2.12.2
