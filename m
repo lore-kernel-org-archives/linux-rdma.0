@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 2/5] ibverbs: Add inner flow specification support
-Date: Wed,  5 Apr 2017 18:19:21 +0300
-Message-ID: <1491405564-19735-3-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 3/5] ibverbs: Add flow tag specification
+Date: Wed,  5 Apr 2017 18:19:22 +0300
+Message-ID: <1491405564-19735-4-git-send-email-yishaih@mellanox.com>
 References: <1491405564-19735-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1491405564-19735-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,104 +12,112 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When one of the L2/L3/L4 flow specification types is or-combined
-with IBV_FLOW_SPEC_INNER, then the filter is applied on the inner
-packet header. The flow specifications can contain inner and outer
-parts for the inner and outer protocol header respectively.
+The flow tag specification is used to identify flow with
+specific tag-id.
+This feature allows an application to request to add an action to tag
+all the packets that matches this rule.
+This tag-id will be later reported in the CQE.
 
 Signed-off-by: Moses Reuben <mosesr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libibverbs/cmd.c                 | 11 +++++++++--
+ libibverbs/cmd.c                 |  5 +++++
+ libibverbs/kern-abi.h            |  8 ++++++++
  libibverbs/man/ibv_create_flow.3 |  1 +
- libibverbs/verbs.h               |  3 ++-
- 3 files changed, 12 insertions(+), 3 deletions(-)
+ libibverbs/verbs.h               | 10 +++++++++-
+ 4 files changed, 23 insertions(+), 1 deletion(-)
 
 diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
-index 8814142..6bdd1c4 100644
+index 6bdd1c4..3a5aa4e 100644
 --- a/libibverbs/cmd.c
 +++ b/libibverbs/cmd.c
-@@ -1747,8 +1747,9 @@ static int ib_spec_to_kern_spec(struct ibv_flow_spec *ib_spec,
- 
- 	kern_spec->hdr.type = ib_spec->hdr.type;
- 
--	switch (ib_spec->hdr.type) {
-+	switch (kern_spec->hdr.type) {
- 	case IBV_FLOW_SPEC_ETH:
-+	case IBV_FLOW_SPEC_ETH | IBV_FLOW_SPEC_INNER:
- 		kern_spec->eth.size = sizeof(struct ibv_kern_spec_eth);
- 		memcpy(&kern_spec->eth.val, &ib_spec->eth.val,
- 		       sizeof(struct ibv_flow_eth_filter));
-@@ -1756,6 +1757,7 @@ static int ib_spec_to_kern_spec(struct ibv_flow_spec *ib_spec,
- 		       sizeof(struct ibv_flow_eth_filter));
- 		break;
- 	case IBV_FLOW_SPEC_IPV4:
-+	case IBV_FLOW_SPEC_IPV4 | IBV_FLOW_SPEC_INNER:
- 		kern_spec->ipv4.size = sizeof(struct ibv_kern_spec_ipv4);
- 		memcpy(&kern_spec->ipv4.val, &ib_spec->ipv4.val,
- 		       sizeof(struct ibv_flow_ipv4_filter));
-@@ -1763,13 +1765,15 @@ static int ib_spec_to_kern_spec(struct ibv_flow_spec *ib_spec,
- 		       sizeof(struct ibv_flow_ipv4_filter));
- 		break;
- 	case IBV_FLOW_SPEC_IPV4_EXT:
-+	case IBV_FLOW_SPEC_IPV4_EXT | IBV_FLOW_SPEC_INNER:
- 		ret = get_filters_size(ib_spec, kern_spec,
- 				       &ib_filter_size, &kern_filter_size,
- 				       IBV_FLOW_SPEC_IPV4_EXT);
- 		if (ret)
- 			return ret;
- 
--		kern_spec->hdr.type = IBV_FLOW_SPEC_IPV4;
-+		kern_spec->hdr.type = IBV_FLOW_SPEC_IPV4 |
-+				     (IBV_FLOW_SPEC_INNER & ib_spec->hdr.type);
- 		kern_spec->ipv4_ext.size = sizeof(struct
- 						  ibv_kern_spec_ipv4_ext);
- 		memcpy(&kern_spec->ipv4_ext.val, &ib_spec->ipv4_ext.val,
-@@ -1778,6 +1782,7 @@ static int ib_spec_to_kern_spec(struct ibv_flow_spec *ib_spec,
+@@ -1818,6 +1818,11 @@ static int ib_spec_to_kern_spec(struct ibv_flow_spec *ib_spec,
+ 		memcpy(&kern_spec->tunnel.mask, (void *)&ib_spec->tunnel.val
  		       + ib_filter_size, kern_filter_size);
  		break;
- 	case IBV_FLOW_SPEC_IPV6:
-+	case IBV_FLOW_SPEC_IPV6 | IBV_FLOW_SPEC_INNER:
- 		ret = get_filters_size(ib_spec, kern_spec,
- 				       &ib_filter_size, &kern_filter_size,
- 				       IBV_FLOW_SPEC_IPV6);
-@@ -1792,6 +1797,8 @@ static int ib_spec_to_kern_spec(struct ibv_flow_spec *ib_spec,
- 		break;
- 	case IBV_FLOW_SPEC_TCP:
- 	case IBV_FLOW_SPEC_UDP:
-+	case IBV_FLOW_SPEC_TCP | IBV_FLOW_SPEC_INNER:
-+	case IBV_FLOW_SPEC_UDP | IBV_FLOW_SPEC_INNER:
- 		kern_spec->tcp_udp.size = sizeof(struct ibv_kern_spec_tcp_udp);
- 		memcpy(&kern_spec->tcp_udp.val, &ib_spec->tcp_udp.val,
- 		       sizeof(struct ibv_flow_ipv4_filter));
++	case IBV_FLOW_SPEC_ACTION_TAG:
++		kern_spec->flow_tag.size =
++			sizeof(struct ibv_kern_spec_action_tag);
++		kern_spec->flow_tag.tag_id = ib_spec->flow_tag.tag_id;
++		break;
+ 	default:
+ 		return EINVAL;
+ 	}
+diff --git a/libibverbs/kern-abi.h b/libibverbs/kern-abi.h
+index f8bdc9d..448b2e8 100644
+--- a/libibverbs/kern-abi.h
++++ b/libibverbs/kern-abi.h
+@@ -918,6 +918,13 @@ struct ibv_kern_spec_tcp_udp {
+ 	struct ibv_kern_tcp_udp_filter mask;
+ };
+ 
++struct ibv_kern_spec_action_tag {
++	__u32  type;
++	__u16  size;
++	__u16 reserved;
++	__u32 tag_id;
++	__u32 reserved1;
++};
+ 
+ struct ibv_kern_tunnel_filter {
+ 	__u32 tunnel_id;
+@@ -944,6 +951,7 @@ struct ibv_kern_spec {
+ 		struct ibv_kern_spec_tcp_udp tcp_udp;
+ 		struct ibv_kern_spec_ipv6 ipv6;
+ 		struct ibv_kern_spec_tunnel tunnel;
++		struct ibv_kern_spec_action_tag flow_tag;
+ 	};
+ };
+ 
 diff --git a/libibverbs/man/ibv_create_flow.3 b/libibverbs/man/ibv_create_flow.3
-index 3056972..32a7572 100644
+index 32a7572..32d47ad 100644
 --- a/libibverbs/man/ibv_create_flow.3
 +++ b/libibverbs/man/ibv_create_flow.3
-@@ -67,6 +67,7 @@ IBV_FLOW_SPEC_IPV4_EXT                  = 0x32,   /* Extended flow specification
- IBV_FLOW_SPEC_TCP                       = 0x40,   /* Flow specification of TCP header */
+@@ -68,6 +68,7 @@ IBV_FLOW_SPEC_TCP                       = 0x40,   /* Flow specification of TCP h
  IBV_FLOW_SPEC_UDP                       = 0x41,   /* Flow specification of UDP header */
  IBV_FLOW_SPEC_VXLAN_TUNNEL             	= 0x50,   /* Flow specification of VXLAN header */
-+IBV_FLOW_SPEC_INNER                    	= 0x100,  /* Flag making L2/L3/L4 specifications to be applied on the inner header */
+ IBV_FLOW_SPEC_INNER                    	= 0x100,  /* Flag making L2/L3/L4 specifications to be applied on the inner header */
++IBV_FLOW_SPEC_ACTION_TAG                = 0x1000, /* Action tagging matched packet */
  .in -8
  };
  .br
 diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index b41a116..225ab81 100644
+index 225ab81..5a4dcbc 100644
 --- a/libibverbs/verbs.h
 +++ b/libibverbs/verbs.h
-@@ -1223,7 +1223,8 @@ enum ibv_flow_spec_type {
- 	IBV_FLOW_SPEC_IPV4_EXT		= 0x32,
+@@ -1224,7 +1224,8 @@ enum ibv_flow_spec_type {
  	IBV_FLOW_SPEC_TCP		= 0x40,
  	IBV_FLOW_SPEC_UDP		= 0x41,
--	IBV_FLOW_SPEC_VXLAN_TUNNEL	= 0x50
-+	IBV_FLOW_SPEC_VXLAN_TUNNEL	= 0x50,
-+	IBV_FLOW_SPEC_INNER		= 0x100
+ 	IBV_FLOW_SPEC_VXLAN_TUNNEL	= 0x50,
+-	IBV_FLOW_SPEC_INNER		= 0x100
++	IBV_FLOW_SPEC_INNER		= 0x100,
++	IBV_FLOW_SPEC_ACTION_TAG	= 0x1000
  };
  
  struct ibv_flow_eth_filter {
+@@ -1311,6 +1312,12 @@ struct ibv_flow_spec_tunnel {
+ 	struct ibv_flow_tunnel_filter mask;
+ };
+ 
++struct ibv_flow_spec_action_tag {
++	enum ibv_flow_spec_type  type;
++	uint16_t  size;
++	uint32_t  tag_id;
++};
++
+ struct ibv_flow_spec {
+ 	union {
+ 		struct {
+@@ -1323,6 +1330,7 @@ struct ibv_flow_spec {
+ 		struct ibv_flow_spec_ipv4_ext ipv4_ext;
+ 		struct ibv_flow_spec_ipv6 ipv6;
+ 		struct ibv_flow_spec_tunnel tunnel;
++		struct ibv_flow_spec_action_tag flow_tag;
+ 	};
+ };
+ 
 -- 
 1.8.3.1
 
