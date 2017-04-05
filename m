@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 4/5] ibverbs: Add support for reading flow tag from a CQ
-Date: Wed,  5 Apr 2017 18:19:23 +0300
-Message-ID: <1491405564-19735-5-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 2/5] ibverbs: Add inner flow specification support
+Date: Wed,  5 Apr 2017 18:19:21 +0300
+Message-ID: <1491405564-19735-3-git-send-email-yishaih@mellanox.com>
 References: <1491405564-19735-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1491405564-19735-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,83 +12,104 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Each steering flow may be marked with a tag which exposed in the
-completion. Extend the poll_cq_ex mechanism with read_flow_tag callback
-which reads the flow tag from the work completion.
+When one of the L2/L3/L4 flow specification types is or-combined
+with IBV_FLOW_SPEC_INNER, then the filter is applied on the inner
+packet header. The flow specifications can contain inner and outer
+parts for the inner and outer protocol header respectively.
 
 Signed-off-by: Moses Reuben <mosesr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libibverbs/man/ibv_create_cq_ex.3 |  4 ++++
- libibverbs/verbs.h                | 10 +++++++++-
- 2 files changed, 13 insertions(+), 1 deletion(-)
+ libibverbs/cmd.c                 | 11 +++++++++--
+ libibverbs/man/ibv_create_flow.3 |  1 +
+ libibverbs/verbs.h               |  3 ++-
+ 3 files changed, 12 insertions(+), 3 deletions(-)
 
-diff --git a/libibverbs/man/ibv_create_cq_ex.3 b/libibverbs/man/ibv_create_cq_ex.3
-index 020bbb4..7dfbef2 100644
---- a/libibverbs/man/ibv_create_cq_ex.3
-+++ b/libibverbs/man/ibv_create_cq_ex.3
-@@ -42,6 +42,7 @@ enum ibv_wc_flags_ex {
-         IBV_WC_EX_WITH_DLID_PATH_BITS        = 1 << 6,  /* Require dlid path bits in WC */
-         IBV_WC_EX_WITH_COMPLETION_TIMESTAMP  = 1 << 7,  /* Require completion timestamp in WC /*
-         IBV_WC_EX_WITH_CVLAN                 = 1 << 8,  /* Require VLAN info in WC */
-+        IBV_WC_EX_WITH_FLOW_TAG		     = 1 << 9,  /* Require flow tag in WC */
+diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
+index 8814142..6bdd1c4 100644
+--- a/libibverbs/cmd.c
++++ b/libibverbs/cmd.c
+@@ -1747,8 +1747,9 @@ static int ib_spec_to_kern_spec(struct ibv_flow_spec *ib_spec,
+ 
+ 	kern_spec->hdr.type = ib_spec->hdr.type;
+ 
+-	switch (ib_spec->hdr.type) {
++	switch (kern_spec->hdr.type) {
+ 	case IBV_FLOW_SPEC_ETH:
++	case IBV_FLOW_SPEC_ETH | IBV_FLOW_SPEC_INNER:
+ 		kern_spec->eth.size = sizeof(struct ibv_kern_spec_eth);
+ 		memcpy(&kern_spec->eth.val, &ib_spec->eth.val,
+ 		       sizeof(struct ibv_flow_eth_filter));
+@@ -1756,6 +1757,7 @@ static int ib_spec_to_kern_spec(struct ibv_flow_spec *ib_spec,
+ 		       sizeof(struct ibv_flow_eth_filter));
+ 		break;
+ 	case IBV_FLOW_SPEC_IPV4:
++	case IBV_FLOW_SPEC_IPV4 | IBV_FLOW_SPEC_INNER:
+ 		kern_spec->ipv4.size = sizeof(struct ibv_kern_spec_ipv4);
+ 		memcpy(&kern_spec->ipv4.val, &ib_spec->ipv4.val,
+ 		       sizeof(struct ibv_flow_ipv4_filter));
+@@ -1763,13 +1765,15 @@ static int ib_spec_to_kern_spec(struct ibv_flow_spec *ib_spec,
+ 		       sizeof(struct ibv_flow_ipv4_filter));
+ 		break;
+ 	case IBV_FLOW_SPEC_IPV4_EXT:
++	case IBV_FLOW_SPEC_IPV4_EXT | IBV_FLOW_SPEC_INNER:
+ 		ret = get_filters_size(ib_spec, kern_spec,
+ 				       &ib_filter_size, &kern_filter_size,
+ 				       IBV_FLOW_SPEC_IPV4_EXT);
+ 		if (ret)
+ 			return ret;
+ 
+-		kern_spec->hdr.type = IBV_FLOW_SPEC_IPV4;
++		kern_spec->hdr.type = IBV_FLOW_SPEC_IPV4 |
++				     (IBV_FLOW_SPEC_INNER & ib_spec->hdr.type);
+ 		kern_spec->ipv4_ext.size = sizeof(struct
+ 						  ibv_kern_spec_ipv4_ext);
+ 		memcpy(&kern_spec->ipv4_ext.val, &ib_spec->ipv4_ext.val,
+@@ -1778,6 +1782,7 @@ static int ib_spec_to_kern_spec(struct ibv_flow_spec *ib_spec,
+ 		       + ib_filter_size, kern_filter_size);
+ 		break;
+ 	case IBV_FLOW_SPEC_IPV6:
++	case IBV_FLOW_SPEC_IPV6 | IBV_FLOW_SPEC_INNER:
+ 		ret = get_filters_size(ib_spec, kern_spec,
+ 				       &ib_filter_size, &kern_filter_size,
+ 				       IBV_FLOW_SPEC_IPV6);
+@@ -1792,6 +1797,8 @@ static int ib_spec_to_kern_spec(struct ibv_flow_spec *ib_spec,
+ 		break;
+ 	case IBV_FLOW_SPEC_TCP:
+ 	case IBV_FLOW_SPEC_UDP:
++	case IBV_FLOW_SPEC_TCP | IBV_FLOW_SPEC_INNER:
++	case IBV_FLOW_SPEC_UDP | IBV_FLOW_SPEC_INNER:
+ 		kern_spec->tcp_udp.size = sizeof(struct ibv_kern_spec_tcp_udp);
+ 		memcpy(&kern_spec->tcp_udp.val, &ib_spec->tcp_udp.val,
+ 		       sizeof(struct ibv_flow_ipv4_filter));
+diff --git a/libibverbs/man/ibv_create_flow.3 b/libibverbs/man/ibv_create_flow.3
+index 3056972..32a7572 100644
+--- a/libibverbs/man/ibv_create_flow.3
++++ b/libibverbs/man/ibv_create_flow.3
+@@ -67,6 +67,7 @@ IBV_FLOW_SPEC_IPV4_EXT                  = 0x32,   /* Extended flow specification
+ IBV_FLOW_SPEC_TCP                       = 0x40,   /* Flow specification of TCP header */
+ IBV_FLOW_SPEC_UDP                       = 0x41,   /* Flow specification of UDP header */
+ IBV_FLOW_SPEC_VXLAN_TUNNEL             	= 0x50,   /* Flow specification of VXLAN header */
++IBV_FLOW_SPEC_INNER                    	= 0x100,  /* Flag making L2/L3/L4 specifications to be applied on the inner header */
+ .in -8
  };
- 
- enum ibv_cq_init_attr_mask {
-@@ -133,6 +134,9 @@ Below members and functions are used in order to poll the current completion. Th
- .BI "uint16_t ibv_wc_read_cvlan(struct ibv_cq_ex " "*cq"); \c
-  Get the CVLAN field from the current completion.
- 
-+.BI "uint32_t ibv_wc_read_flow_tag(struct ibv_cq_ex " "*cq"); \c
-+ Get flow tag from the current completion.
-+
- .SH "RETURN VALUE"
- .B ibv_create_cq_ex()
- returns a pointer to the CQ, or NULL if the request fails.
+ .br
 diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index 5a4dcbc..b27dfd1 100644
+index b41a116..225ab81 100644
 --- a/libibverbs/verbs.h
 +++ b/libibverbs/verbs.h
-@@ -437,6 +437,7 @@ enum ibv_create_cq_wc_flags {
- 	IBV_WC_EX_WITH_DLID_PATH_BITS	= 1 << 6,
- 	IBV_WC_EX_WITH_COMPLETION_TIMESTAMP	= 1 << 7,
- 	IBV_WC_EX_WITH_CVLAN		= 1 << 8,
-+	IBV_WC_EX_WITH_FLOW_TAG		= 1 << 9,
+@@ -1223,7 +1223,8 @@ enum ibv_flow_spec_type {
+ 	IBV_FLOW_SPEC_IPV4_EXT		= 0x32,
+ 	IBV_FLOW_SPEC_TCP		= 0x40,
+ 	IBV_FLOW_SPEC_UDP		= 0x41,
+-	IBV_FLOW_SPEC_VXLAN_TUNNEL	= 0x50
++	IBV_FLOW_SPEC_VXLAN_TUNNEL	= 0x50,
++	IBV_FLOW_SPEC_INNER		= 0x100
  };
  
- enum {
-@@ -452,7 +453,8 @@ enum {
- enum {
- 	IBV_CREATE_CQ_SUP_WC_FLAGS = IBV_WC_STANDARD_FLAGS |
- 				IBV_WC_EX_WITH_COMPLETION_TIMESTAMP |
--				IBV_WC_EX_WITH_CVLAN
-+				IBV_WC_EX_WITH_CVLAN |
-+				IBV_WC_EX_WITH_FLOW_TAG
- };
- 
- enum ibv_wc_flags {
-@@ -1100,6 +1102,7 @@ struct ibv_cq_ex {
- 	uint8_t (*read_dlid_path_bits)(struct ibv_cq_ex *current);
- 	uint64_t (*read_completion_ts)(struct ibv_cq_ex *current);
- 	uint16_t (*read_cvlan)(struct ibv_cq_ex *current);
-+	uint32_t (*read_flow_tag)(struct ibv_cq_ex *current);
- };
- 
- static inline struct ibv_cq *ibv_cq_ex_to_cq(struct ibv_cq_ex *cq)
-@@ -1183,6 +1186,11 @@ static inline uint16_t ibv_wc_read_cvlan(struct ibv_cq_ex *cq)
- 	return cq->read_cvlan(cq);
- }
- 
-+static inline uint32_t ibv_wc_read_flow_tag(struct ibv_cq_ex *cq)
-+{
-+	return cq->read_flow_tag(cq);
-+}
-+
- static inline int ibv_post_wq_recv(struct ibv_wq *wq,
- 				   struct ibv_recv_wr *recv_wr,
- 				   struct ibv_recv_wr **bad_recv_wr)
+ struct ibv_flow_eth_filter {
 -- 
 1.8.3.1
 
