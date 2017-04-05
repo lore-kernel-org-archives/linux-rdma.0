@@ -1,56 +1,59 @@
 From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH rdma-next 01/10] IB: Replace ib_umem page_size by page_shift
-Date: Wed, 5 Apr 2017 10:30:11 -0500
-Message-ID: <0c8601d2ae21$8441bc20$8cc53460$@opengridcomputing.com>
-References: <20170403100640.3332-1-leon@kernel.org> <20170403100640.3332-2-leon@kernel.org>
+Subject: RE: [RFC 2/8] cxgb4: setup pcie memory window 4 and create p2pmem
+ region
+Date: Wed, 5 Apr 2017 10:41:45 -0500
+Message-ID: <003001d2ae23$21e8f7d0$65bae770$@opengridcomputing.com>
+References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
+ <1490911959-5146-3-git-send-email-logang@deltatee.com>
+ <f269d9e1-8dcf-7970-382e-cb0d9a020efc@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170403100640.3332-2-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <f269d9e1-8dcf-7970-382e-cb0d9a020efc-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Artemy Kovalyov' <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Selvin Xavier' <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, 'Steve Wise' <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, 'Lijun Ou' <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, 'Shiraz Saleem' <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Adit Ranadive' <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, 'Dennis Dalessandro' <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Ram Amrani' <Ram.Amrani-74tsMCuadCbQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'Logan Gunthorpe' <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>, "'James E.J. Bottomley'" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "'Martin K. Petersen'" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, 'Jens Axboe' <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, 'Stephen Bates' <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, 'Max Gurtovoy' <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Dan Williams' <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Keith Busch' <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-> From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> Size of pages are held by struct ib_umem in page_size field.
 > 
-> It is better to store it as an exponent, because page size by nature
-> is always power-of-two and used as a factor, divisor or ilog2's argument.
+> > +static void setup_memwin_p2pmem(struct adapter *adap)
+> > +{
+> > +	unsigned int mem_base = t4_read_reg(adap,
+> CIM_EXTMEM2_BASE_ADDR_A);
+> > +	unsigned int mem_size = t4_read_reg(adap,
+> CIM_EXTMEM2_ADDR_SIZE_A);
+> > +
+> > +	if (!use_p2pmem)
+> > +		return;
 > 
-> The conversion of page_size to be page_shift allows to have portable
-> code and avoid following error while compiling on ARM:
+> This is weird, why even call this if !use_p2pmem?
 > 
->   ERROR: "__aeabi_uldivmod" [drivers/infiniband/core/ib_core.ko]
-> undefined!
+
+The use_p2pmem was added after the original change.  I'll update as you
+suggest.
+
+> > +static int init_p2pmem(struct adapter *adapter)
+> > +{
+> > +	unsigned int mem_size = t4_read_reg(adapter,
+> CIM_EXTMEM2_ADDR_SIZE_A);
+> > +	struct p2pmem_dev *p;
+> > +	int rc;
+> > +	struct resource res;
+> > +
+> > +	if (!mem_size || !use_p2pmem)
+> > +		return 0;
 > 
-> CC: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> CC: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-> CC: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> CC: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> CC: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> CC: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> CC: Ram Amrani <Ram.Amrani-74tsMCuadCbQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> ---
->  drivers/infiniband/core/umem.c                 | 15 ++++++---------
->  drivers/infiniband/core/umem_odp.c             | 12 ++++++------
->  drivers/infiniband/hw/bnxt_re/ib_verbs.c       | 12 ++++++------
->  drivers/infiniband/hw/cxgb3/iwch_provider.c    |  4 ++--
->  drivers/infiniband/hw/cxgb4/mem.c              |  4 ++--
+> Again, weird...
 
-For the cxgb parts:
-
-Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yup.
