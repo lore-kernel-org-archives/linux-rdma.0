@@ -1,90 +1,47 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH rdma-next V1 01/10] IB: Replace ib_umem page_size by
- page_shift
-Date: Wed, 5 Apr 2017 09:48:34 +0000
-Message-ID: <SN1PR07MB22070821F1D2F8CBE6EC4D00F80A0@SN1PR07MB2207.namprd07.prod.outlook.com>
-References: <20170405062359.26623-1-leon@kernel.org>
- <20170405062359.26623-2-leon@kernel.org>
+From: Kalle Valo <kvalo@codeaurora.org>
+Subject: Re: [PATCH 16/16] drivers, net, intersil: convert request_context.refcount from atomic_t to refcount_t
+Date: Wed, 05 Apr 2017 13:33:12 +0300
+Message-ID: <87k26zi1p3.fsf@kamboji.qca.qualcomm.com>
+References: <1490691403-4016-1-git-send-email-elena.reshetova@intel.com>
+        <1490691403-4016-17-git-send-email-elena.reshetova@intel.com>
+        <87zifxn2gb.fsf@kamboji.qca.qualcomm.com>
+        <2236FBA76BA1254E88B949DDB74E612B41C8741B@IRSMSX102.ger.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170405062359.26623-2-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <2236FBA76BA1254E88B949DDB74E612B41C8741B@IRSMSX102.ger.corp.intel.com>
+        (Elena Reshetova's message of "Tue, 4 Apr 2017 10:07:55 +0000")
+Sender: netdev-owner@vger.kernel.org
+To: "Reshetova, Elena" <elena.reshetova@intel.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-hams@vger.kernel.org" <linux-hams@vger.kernel.org>, "linux-ppp@vger.kernel.org" <linux-ppp@vger.kernel.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "ganeshgr@chelsio.com" <ganeshgr@chelsio.com>, "nbd@openwrt.org" <nbd@openwrt.org>, "blogic@openwrt.org" <blogic@openwrt.org>, "matthias.bgg@gmail.com" <matthias.bgg@gmail.com>, "yishaih@mellanox.com" <yishaih@mellanox.com>, "saeedm@mellanox.com" <saeedm@mellanox.com>, "matanb@mellanox.com" <matanb@mellanox.com>, leonro@me
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->=20
-> Size of pages are held by struct ib_umem in page_size field.
->=20
-> It is better to store it as an exponent, because page size by nature
-> is always power-of-two and used as a factor, divisor or ilog2's argument.
->=20
-> The conversion of page_size to be page_shift allows to have portable
-> code and avoid following error while compiling on ARM:
->=20
->   ERROR: "__aeabi_uldivmod" [drivers/infiniband/core/ib_core.ko] undefine=
-d!
->=20
-> CC: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> CC: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-> CC: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> CC: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> CC: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> CC: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> CC: Ram Amrani <Ram.Amrani-74tsMCuadCbQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> ---
-> Change from v0:
->  * Remove temp variable (pg_shift) variable from i40iw driver.
-> ---
+"Reshetova, Elena" <elena.reshetova@intel.com> writes:
 
-...
+>> Elena Reshetova <elena.reshetova@intel.com> writes:
+>> 
+>> > refcount_t type and corresponding API should be
+>> > used instead of atomic_t when the variable is used as
+>> > a reference counter. This allows to avoid accidental
+>> > refcounter overflows that might lead to use-after-free
+>> > situations.
+>> >
+>> > Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+>> > Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
+>> > Signed-off-by: Kees Cook <keescook@chromium.org>
+>> > Signed-off-by: David Windsor <dwindsor@gmail.com>
+>> > ---
+>> >  drivers/net/wireless/intersil/orinoco/orinoco_usb.c | 15 ++++++++-------
+>> >  1 file changed, 8 insertions(+), 7 deletions(-)
+>> 
+>> The prefix should be "orinoco_usb:", I'll fix that.
+>
+> Thanks for both! Will you take the patches in?
 
-> diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/q=
-edr/verbs.c
-> index 6b3bb32803bd..e741cc662606 100644
-> --- a/drivers/infiniband/hw/qedr/verbs.c
-> +++ b/drivers/infiniband/hw/qedr/verbs.c
-> @@ -680,16 +680,16 @@ static void qedr_populate_pbls(struct qedr_dev *dev=
-, struct ib_umem *umem,
->=20
->  	pbe_cnt =3D 0;
->=20
-> -	shift =3D ilog2(umem->page_size);
-> +	shift =3D umem->page_shift;
->=20
->  	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry) {
->  		pages =3D sg_dma_len(sg) >> shift;
->  		for (pg_cnt =3D 0; pg_cnt < pages; pg_cnt++) {
->  			/* store the page address in pbe */
->  			pbe->lo =3D cpu_to_le32(sg_dma_address(sg) +
-> -					      umem->page_size * pg_cnt);
-> +					      (pg_cnt << shift));
->  			addr =3D upper_32_bits(sg_dma_address(sg) +
-> -					     umem->page_size * pg_cnt);
-> +					     (pg_cnt << shift));
->  			pbe->hi =3D cpu_to_le32(addr);
->  			pbe_cnt++;
->  			total_num_pbes++;
-> @@ -2189,7 +2189,7 @@ struct ib_mr *qedr_reg_user_mr(struct ib_pd *ibpd, =
-u64 start, u64 len,
->  	mr->hw_mr.pbl_ptr =3D mr->info.pbl_table[0].pa;
->  	mr->hw_mr.pbl_two_level =3D mr->info.pbl_info.two_layered;
->  	mr->hw_mr.pbl_page_size_log =3D ilog2(mr->info.pbl_info.pbl_size);
-> -	mr->hw_mr.page_size_log =3D ilog2(mr->umem->page_size);
-> +	mr->hw_mr.page_size_log =3D mr->umem->page_shift;
->  	mr->hw_mr.fbo =3D ib_umem_offset(mr->umem);
->  	mr->hw_mr.length =3D len;
->  	mr->hw_mr.vaddr =3D usr_addr;
+You mean patches 15 and 16? I didn't even look rest of the patches.
 
-Acked-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+But not sure yet because Dave doesn't seem to like the interface and I
+want to follow the discussion first.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Kalle Valo
