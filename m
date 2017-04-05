@@ -1,41 +1,81 @@
-From: "Lv, Shuo" <Shuo.Lv@dell.com>
-Subject: RE: fc access control issue
-Date: Wed, 5 Apr 2017 06:20:15 +0000
-Message-ID: <6F7556A181C9E74390FFFEACC41B5ABB4C85B759@MX301CL01.corp.emc.com>
-References: <6F7556A181C9E74390FFFEACC41B5ABB4C85A0F2@MX301CL01.corp.emc.com>
-         <1490079761.8236.94.camel@haakon3.risingtidesystems.com>
-         <6F7556A181C9E74390FFFEACC41B5ABB4C85A7D4@MX301CL01.corp.emc.com>
- <1491169052.8846.12.camel@haakon3.risingtidesystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <1491169052.8846.12.camel@haakon3.risingtidesystems.com>
-Content-Language: en-US
-Sender: target-devel-owner@vger.kernel.org
-To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Cc: "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next V1 00/10] ODP Fixes and Improvements
+Date: Wed,  5 Apr 2017 09:23:49 +0300
+Message-ID: <20170405062359.26623-1-leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-VGhhbmtzIEEuIEJlbGxpbmdlci4NCiAgICAgV2hpY2gga2VybmVsIHZlcnNpb24gZG9lcyBpdCBz
-dXBwb3J0IE5vZGVBQ0xzICsgTWFwcGVkTFVOcyBsb2dpYyBmdW5jdGlvbj8gSG93IHRvIGNvbmZp
-Z3VyZSB0aGlzIGZ1bmN0aW9uPyBBbnkgcmVmZXJlbmNlIGRvY3VtZW50cz8NCg0KUmVnYXJkcw0K
-U2h1bw0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IE5pY2hvbGFzIEEuIEJlbGxp
-bmdlciBbbWFpbHRvOm5hYkBsaW51eC1pc2NzaS5vcmddIA0KU2VudDogMjAxN+W5tDTmnIgz5pel
-IDU6MzgNClRvOiBMdiwgU2h1bw0KQ2M6IHRhcmdldC1kZXZlbEB2Z2VyLmtlcm5lbC5vcmc7IGxp
-bnV4LXJkbWFAdmdlci5rZXJuZWwub3JnDQpTdWJqZWN0OiBSZTogZmMgYWNjZXNzIGNvbnRyb2wg
-aXNzdWUNCg0KSGkgU2h1bywNCg0KT24gU2F0LCAyMDE3LTAzLTI1IGF0IDA5OjU4ICswMDAwLCBM
-diwgU2h1byB3cm90ZToNCj4gSGksIEluIExJTyBGQyB0YXJnZXQsIGhhcyAgdGhlIEFjY2VzcyBh
-bmQgZGV2aWNlcyB2aXNpYmlsaXR5IA0KPiBtYW5hZ2VtZW50IChMVU4gbWFza2luZykgZnVuY3Rp
-b24gYmVlbiBpbXBsZW1lbnRlZD8gQWNjZXNzIGFuZCBkZXZpY2VzIA0KPiB2aXNpYmlsaXR5IG1h
-bmFnZW1lbnQgYWxsb3dzIGZvciBhbiBpbml0aWF0b3Igb3IgZ3JvdXAgb2YgaW5pdGlhdG9ycyAN
-Cj4gdG8gc2VlIGRpZmZlcmVudCBkZXZpY2VzIHdpdGggZGlmZmVyZW50IExVTnMgd2l0aCBuZWNl
-c3NhcnkgYWNjZXNzIA0KPiBwZXJtaXNzaW9ucy4gSWYgaGF2ZSBub3QsIGRvIHdlIGhhdmUgYW55
-IHBsYW5zPw0KPiANCg0KVGhlIE5vZGVBQ0xzICsgTWFwcGVkTFVOcyBsb2dpYyBhcy1pcyBhbGxv
-dyBmb3IgZGlmZmVyZW50IGluaXRpYXRvcnMgdG8gc2VlIGRpZmZlcmVudCBMVU4gbWFza2luZyB2
-aWV3cyBvbiB0aGUgc2FtZSBzdG9yYWdlIGVuZHBvaW50Lg0KDQpFZywgYSBzaW5nbGUgRkMgV1dQ
-TiBhbmQgaXQncyBkZWZhdWx0IExVTiBsYXlvdXQgdW5kZXIgY29uZmlnZnMgL3N5cy9rZXJuZWwv
-Y29uZmlnL3RhcmdldC9xbGEyeHh4LyRXV1BOLyRUUEdUL2x1bi8kTFVOX0lELyBjYW4gYXBwZWFy
-IHRvIGVhY2ggJEhPU1RfV1dQTiB3aXRoIGFueSBhcmJpdHJhcnkgbWFwcGluZyB1bmRlciAvc3lz
-L2tlcm5lbC9jb25maWcvdGFyZ2V0L3FsYTJ4eHgvJFdXUE4vJFRQR1QvYWNscy8kSE9TVF9XV1BO
-LyRMVU5fSUQvDQoNCg0K
+Hi Doug,
+
+Please find the following patch set from Artemy. This patch set fixes
+and extends ODP support.
+
+This patch set has the following steps:
+
+1. Code simplification for all IB drivers.
+2. Three fixes to existing ODP code.
+3. Adds generic infrastructure for regions consisting of physically
+   contiguous chunks of arbitrary order. Utilizing this infrastructure
+   added specific treatment to ODP MRs allocated with MAP_HUGETLB.
+4. Adds ODP suport to Memory Windows (MW). Memory windows allow the
+   application to have more flexible control over access to its memory.
+   The operation of associating an MW with an MR is called binding. When
+   MW is bound to ODP MR it may cause page fault which should be
+   properly handled.
+
+Thanks
+
+Changes from v0:
+ * Remove temp variable (pg_shift) in i40iw driver as was suggested by Shiraz
+
+Artemy Kovalyov (10):
+  IB: Replace ib_umem page_size by page_shift
+  IB/mlx5: Fix function updating xlt emergency path
+  IB/mlx5: Fix UMR size calculation
+  IB/mlx5: Fix implicit MR GC
+  IB/mlx5: Decrease verbosity level of ODP errors
+  IB/umem: Add contiguous ODP support
+  IB/mlx5: Add contiguous ODP support
+  IB/umem: Add support to huge ODP
+  IB/mlx5: Extract page fault code
+  IB/mlx5: Add ODP support to MW
+
+ drivers/infiniband/core/umem.c                 |  17 +-
+ drivers/infiniband/core/umem_odp.c             |  81 ++++--
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c       |  12 +-
+ drivers/infiniband/hw/cxgb3/iwch_provider.c    |   4 +-
+ drivers/infiniband/hw/cxgb4/mem.c              |   4 +-
+ drivers/infiniband/hw/hns/hns_roce_cq.c        |   3 +-
+ drivers/infiniband/hw/hns/hns_roce_mr.c        |   9 +-
+ drivers/infiniband/hw/hns/hns_roce_qp.c        |   3 +-
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c      |  10 +-
+ drivers/infiniband/hw/mlx4/cq.c                |   2 +-
+ drivers/infiniband/hw/mlx4/mr.c                |   6 +-
+ drivers/infiniband/hw/mlx4/qp.c                |   2 +-
+ drivers/infiniband/hw/mlx4/srq.c               |   2 +-
+ drivers/infiniband/hw/mlx5/mem.c               |  13 +-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h           |   1 +
+ drivers/infiniband/hw/mlx5/mr.c                |   6 +-
+ drivers/infiniband/hw/mlx5/odp.c               | 344 +++++++++++++++----------
+ drivers/infiniband/hw/mthca/mthca_provider.c   |   5 +-
+ drivers/infiniband/hw/nes/nes_verbs.c          |   4 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c    |  15 +-
+ drivers/infiniband/hw/qedr/verbs.c             |   8 +-
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c |   2 +-
+ drivers/infiniband/sw/rdmavt/mr.c              |   8 +-
+ drivers/infiniband/sw/rxe/rxe_mr.c             |   8 +-
+ include/rdma/ib_umem.h                         |   8 +-
+ include/rdma/ib_umem_odp.h                     |   6 +-
+ include/rdma/ib_verbs.h                        |   1 +
+ 27 files changed, 338 insertions(+), 246 deletions(-)
+
+--
+2.12.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
