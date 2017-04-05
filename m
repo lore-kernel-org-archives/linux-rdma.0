@@ -1,69 +1,40 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/6] Enhanced mode for IPoIB driver
-Date: Wed, 5 Apr 2017 13:47:01 +0300
-Message-ID: <20170405104701.GF20443@mtr-leonro.local>
-References: <20170404191732.31895-1-leon@kernel.org>
- <20170404194750.GC10780@obsidianresearch.com>
- <20170404195720.GA20443@mtr-leonro.local>
- <20170404201408.GA16818@obsidianresearch.com>
+From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V3 for-next 1/7] IB/core: Refactor idr to be per uverbs_file
+Date: Wed, 5 Apr 2017 13:56:15 +0300
+Message-ID: <CAAKD3BC+NH0L4uz1J=eOinQoqFQ8EWZrGJmgwCQ2eutTQoY07g@mail.gmail.com>
+References: <1491301907-32290-1-git-send-email-matanb@mellanox.com>
+ <1491301907-32290-2-git-send-email-matanb@mellanox.com> <1828884A29C6694DAF28B7E6B8A82373AB10F3F4@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="+mQKy/8VjtYrTtD4"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170404201408.GA16818-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB10F3F4-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---+mQKy/8VjtYrTtD4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Apr 04, 2017 at 02:14:08PM -0600, Jason Gunthorpe wrote:
-> On Tue, Apr 04, 2017 at 10:57:20PM +0300, Leon Romanovsky wrote:
-> > > It would still have been nicer to isolate the 'default' implementation
-> > > so those functions did not touch ipoib_priv, but that is also
-> > > something that could be done in a followup..
-> >
-> > Thanks, Jason
+On Tue, Apr 4, 2017 at 8:33 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>> The current code creates an idr per type. Since types are currently
+>> common for all drivers and known in advance, this was good enough.
+>> However, the proposed ioctl based infrastructure allows each driver
+>> to declare only some of the common types and declare its own specific
+>> types.
+>>
+>> Thus, we decided to implement idr to be per uverbs_file.
+>>
+>> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Signed-off-by: Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> ---
 >
-> I think before merging it would also be good to see the benchmark
-> numbers - we all assume this is making things a lot faster..
->
-> Does it now exceed RC performance?
-
-In our tests, prior to submission, It achieved almost line rate (~93-95Gb/sec) with 4 streams.
-Erez is supposed to continue his work and optimize it more till full line rate.
+> Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
 Thanks
 
->
-> Jason
-
---+mQKy/8VjtYrTtD4
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljkyyUACgkQ5GN7iDZy
-WKd/IQ/+Po9S6Uzw+lkoonyjuZmpTppdnn6Z7XHiRmoRhfQWMJU/syWgliQITdBs
-jfVY6DtJ66uqrNNtCZ4GoI8ZkkPbLGAV6F/6jASFnIvYvMuC/XH2myiEokY+Dfml
-lHyB7E167Ynbo5DTSk7B4tprj3x/mjfJT270RY/f/oqSCnIkoq/On7Qui3V1IYmK
-RXQ6PCtTXWcFnwM/fWSoe1w/1lkE9Gri1D/RkiyXOB8mns67P49yolIQv1ubXIWI
-IdtrhO8y6BS18m0a427bHie5k1VnvT7Lh088B/Ji7f60ZtScsd6MZVCIz0zrSys/
-Nqoqe/6Jd1yaujPM3zE7fBa7A+l/rDj0V2I9c/+Uk79VU6h3RxyZswocAWPhN7+5
-NqHKbreIHBuDJlK2tdSSbCfn6Moqr1pCutcfl+7das6b5X9AZYpBkWrh9Htjvql9
-hbOSeFnw4GiEmUMa/pzNP6Fm29MID3eWIeuh5GgbNv5ktOAq4sF/LO7p+UDaKja1
-RWHgZQqMPQKBsYSKAyJnlKxU/Ejb/5GumiAipfragNdHIJZPV9pG4g3JM0UaJMl2
-fkeYmrX0+d9U/LQFjuV7h+di7zDq4YWDx1Y61p6sWEUkGF+vgi0Il/4LC0cZYWc9
-uEPYUQNijmoJGis/NG9GQQnnekhP981bb32400AI3rl+eK0Wozw=
-=J0o5
------END PGP SIGNATURE-----
-
---+mQKy/8VjtYrTtD4--
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
