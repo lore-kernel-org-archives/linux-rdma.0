@@ -1,104 +1,124 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 1/6] IB/IPoIB: Introduce RDMA netdev interface and IPoIB structs
-Date: Wed,  5 Apr 2017 17:09:08 +0300
-Message-ID: <20170405140913.2551-2-leon@kernel.org>
-References: <20170405140913.2551-1-leon@kernel.org>
+Subject: [PATCH rdma-next V1 0/6] Enhanced mode for IPoIB driver
+Date: Wed,  5 Apr 2017 17:09:07 +0300
+Message-ID: <20170405140913.2551-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170405140913.2551-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add RDMA netdev interface to ib device structure allowing RDMA netdev
-devices to be allocated by ib clients.
+Hi Doug,
 
-The idea is to allow to providers to optimize IPoIB data path.
-New struct that includes functions and data member is exposed.
-It exposes set of callback functions for handling data path flows
-in IPoIB driver.
+This patchset mostly comes from Erez with one exception in the first patch.
 
-Each provider can support these set of functions in order to optimize its
-specific data path, and let IPoIB to leverage its data path.
+That patch origins from two different commits, first from Niranjana who added
+RDMA netdev interface and second from Erez who added IPoIB support.
 
-There is an assumption, that providers should give the full set of functions
-and not only part of them, in order to work properly.
+During the preparation to submission, I squashed their commits into one
+and refactored code to allow submission as a standalone topic without creating
+dependecies between different submissions. This caused to change in author line.
+I hope that it doesn't really matter and it won't stop you from merging it.
 
-Signed-off-by: Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Per-your request, I based this patch set on v4.11-rc3.
+
+Changes from V0:
+----------------------
+1. ipoib_priv function returns struct ipoib_dev_priv * instead of void
+2. Move all the refactoring of netdev_priv to be in single patch
+3. Change the name of the Formation commit.
+4. Remove unneeded blank lines
+5. Set rn->hca on creation.
+6. Return -EOPNOTSUPP instead of ENOTSUPP
+7. Remove hunk with DMA from ib_device struct.
+
+Thanks,
+	Leon
+
+CC: Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+CC: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/rdma/ib_verbs.h | 41 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 0f1813c13687..d3b104a96b58 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -55,6 +55,7 @@
- #include <net/ip.h>
- #include <linux/string.h>
- #include <linux/slab.h>
-+#include <linux/netdevice.h>
- 
- #include <linux/if_link.h>
- #include <linux/atomic.h>
-@@ -1862,7 +1863,38 @@ struct ib_port_immutable {
- 	u32                           max_mad_size;
- };
- 
-+/* rdma netdev type - specifies protocol type */
-+enum rdma_netdev_t {
-+	RDMA_NETDEV_IPOIB,
-+};
-+
-+/*
-+ * struct rdma_netdev - rdma netdev
-+ * For cases where netstack interfacing is required.
-+ */
-+struct rdma_netdev {
-+	void *clnt_priv;
-+
-+	/* control functions */
-+	void (*set_id)(struct net_device *netdev, int id);
-+	/* send packet */
-+	int (*send)(struct net_device *dev, struct sk_buff *skb,
-+		    struct ib_ah *address, u32 dqpn);
-+	/* multicast */
-+	int (*attach_mcast)(struct net_device *dev, struct ib_device *hca,
-+			    union ib_gid *gid, u16 mlid,
-+			    int set_qkey, u32 qkey);
-+	int (*detach_mcast)(struct net_device *dev, struct ib_device *hca,
-+			    union ib_gid *gid, u16 mlid);
-+
-+	/* rdma-netdev private members */
-+	struct ib_device *hca;
-+};
-+
- struct ib_device {
-+	/* Do not access @dma_device directly from ULP nor from HW drivers. */
-+	struct device                *dma_device;
-+
- 	char                          name[IB_DEVICE_NAME_MAX];
- 
- 	struct list_head              event_handler_list;
-@@ -2112,6 +2144,15 @@ struct ib_device {
- 							   struct ib_rwq_ind_table_init_attr *init_attr,
- 							   struct ib_udata *udata);
- 	int                        (*destroy_rwq_ind_table)(struct ib_rwq_ind_table *wq_ind_table);
-+	/* rdma netdev operations */
-+	struct net_device *(*alloc_rdma_netdev)(
-+					struct ib_device *device,
-+					u8 port_num,
-+					enum rdma_netdev_t type,
-+					const char *name,
-+					unsigned char name_assign_type,
-+					void (*setup)(struct net_device *));
-+	void (*free_rdma_netdev)(struct net_device *netdev);
- 
- 	struct module               *owner;
- 	struct device                dev;
--- 
+The rest comes from Erez:
+
+    The IPoIB protocol encapsulates IP packets over Infiniband datagrams.
+    As a direct RDMA Upper Layer Protocol (ULP), IPoIB cannot support HW
+    features that are specific to the IP protocol stack.
+
+    Nevertheless, RDMA interfaces have been extended to support some of the
+    prominent IP offload features, such as TCP/UDP checksum and TSO.
+    This provided reasonable performance gain for IPoIB but is still
+    insufficient to cope with the increasing network bandwidth demand.
+
+    However, New features are exisiting in common network interfaces that
+    are very hard to implement in IPoIB interfaces while it uses the RDMA
+    layer, examples include TSS and RSS, tunneling offloads, and XDP.
+    Rather than continuously porting IP network interface developments into
+    the RDMA stack, we propose adding an abstract network data-path
+    interfaces to RDMA devices.
+
+    In order to present a consistent interface to users, the IPoIB ULP
+    continues to represent the network device to the IP stack.
+    The common code also manages the IPoIB control plane, such as resolving
+    path queries and registering to multicast groups.
+    Data path operations are forwarded to devices that implement the new
+    API, or fallback to the standard implementation otherwise.
+    Using the forgoing approach, we show how IPoIB closes the performance
+    gap compared to state-of-the-art Ethernet network interfaces.
+
+    The implementation idea is to use the api of
+    alloc_rdma_netdev/free_rdma_netdev to expose a struct that has data
+    members and set of functions that are used for IB network interfaces,
+    like attach/detach multicast to qp, and send IB packet.
+
+    The functions are specific for IB operations and are not part of the
+    common api the the netdev struct exposes via the ndo functions.
+    1. multicast handling - attach/detach
+    2. send operation - the ndo start_xmit has only 2 parameters and the IB
+    send needs the destination qp and the ah object, there were few options
+    to handle it via the netdev ndo, but they don't make more sense than
+    using a specific send function (we are rdma_netdev after all)
+
+    The IPoIB code will be adapted to enable the option of accelerating the
+    network interface, but the code will work as before if the HW below
+    doesn't support the acceleration.
+    That means that in the default mode of ipoib I tried to keep it as much
+    as it was before, not to force it to adopt the new api, where there is
+    no code sharing between the ipoib and the vnic/hfi.
+    The default code uses the controll and the data, the accelerator uses
+    only the control flows andstructors.
+    The changes of the default ipoib can be made on top of that series.
+
+    Each HW vendor can supply the acceleration for the IPoIB or to leave
+    IPoIB to work as before.
+
+Thanks,
+	Erez
+
+Erez Shitrit (5):
+  IB/IPoIB: Separate control and data related initializations
+  IB/IPoIB: Separate control from HW operation on ipoib_open/stop ndo
+  IB/IPoIB: Rename qpn to be dqpn in ipoib_send and post_send functions
+  IB/IPoIB: Use defined function for netdev_priv function
+  IB/IPoIB: Support acceleration options callbacks
+
+Leon Romanovsky (1):
+  IB/IPoIB: Introduce RDMA netdev interface and IPoIB structs
+
+ drivers/infiniband/ulp/ipoib/ipoib.h           |  39 ++-
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c        |  66 ++---
+ drivers/infiniband/ulp/ipoib/ipoib_ethtool.c   |   6 +-
+ drivers/infiniband/ulp/ipoib/ipoib_fs.c        |   4 +-
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c        | 340 +++++++++++++------------
+ drivers/infiniband/ulp/ipoib/ipoib_main.c      | 306 ++++++++++++++++------
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |  39 +--
+ drivers/infiniband/ulp/ipoib/ipoib_netlink.c   |  12 +-
+ drivers/infiniband/ulp/ipoib/ipoib_verbs.c     |  64 ++---
+ drivers/infiniband/ulp/ipoib/ipoib_vlan.c      |   9 +-
+ include/rdma/ib_verbs.h                        |  41 +++
+ 11 files changed, 568 insertions(+), 358 deletions(-)
+
+--
 2.12.0
 
 --
