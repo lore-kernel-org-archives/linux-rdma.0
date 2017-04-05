@@ -1,37 +1,55 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v4] IB/IPoIB: ibX: failed to create mcg debug file
-Date: Wed, 05 Apr 2017 13:51:01 -0400
-Message-ID: <1491414661.2923.1.camel@redhat.com>
-References: <1490782919-24910-1-git-send-email-shamir.rabinovitch@oracle.com>
-         <06c3788d-d99b-025d-943e-1eb7d1a38dca@mellanox.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH 00/14] RDMA/cxgb: Fine-tuning for several function
+ implementations
+Date: Wed, 05 Apr 2017 14:16:14 -0400
+Message-ID: <1491416174.2923.3.camel@redhat.com>
+References: <0aff92fa-2891-333a-2e1e-ca309db2ec72@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <06c3788d-d99b-025d-943e-1eb7d1a38dca-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: vijay.ac.kumar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <0aff92fa-2891-333a-2e1e-ca309db2ec72@users.sourceforge.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>, linux-rdma@vger.kernel.org, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Steve Wise <swise@chelsio.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-03-29 at 16:20 +0300, Mark Bloch wrote:
-> I know the commit that added debugfs is older than the universe, but
-> maybe you can
-> use the commit below as a fixes line/queue it to stable?
+On Wed, 2017-02-08 at 22:10 +0100, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Wed, 8 Feb 2017 22:00:10 +0100
 > 
-> commit 1732b0ef3b3a02e3df328086fb3018741c5476da
-> Author: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-> Date:   Mon Nov 7 10:33:11 2005 -0800
+> Several update suggestions were taken into account
+> from static source code analysis.
+> 
+> Markus Elfring (14):
+>   Use kcalloc() in cxio_create_qp()
+>   Rename jump labels in cxio_create_qp()
+>   Use kcalloc() in two functions
+>   Use common error handling code in recover_queues()
+>   Return an error code only as a constant in ep_open()
+>   Return an error code only as a constant in stag_open()
+>   Adjust three checks for null pointers
+>   Adjust construction of two error messages in recover_lost_dbs()
+>   Use common error handling code in recover_lost_dbs()
+>   Use kmalloc_array() in c4iw_id_table_alloc()
+>   Use kcalloc() in create_qp()
+>   Delete an unnecessary variable initialisation in create_qp()
+>   Rename jump labels in c4iw_create_qp()
+>   Rename jump labels in rdma_init()
+> 
+>  drivers/infiniband/hw/cxgb3/cxio_hal.c | 20 ++++----
+>  drivers/infiniband/hw/cxgb4/device.c   | 83 +++++++++++++++---------
+> ----------
+>  drivers/infiniband/hw/cxgb4/id_table.c |  5 +-
+>  drivers/infiniband/hw/cxgb4/qp.c       | 48 ++++++++++----------
+>  4 files changed, 75 insertions(+), 81 deletions(-)
 
-I added a Fixes: and Cc: tags for stable, patch applied, thanks.
+I didn't see enough value in this series to bother picking it up.
+ Steve, if there are any patches out of this series you actually want,
+please collect them and forward them on to me.
 
 -- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
     GPG KeyID: B826A3330E572FDD
    
 Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
