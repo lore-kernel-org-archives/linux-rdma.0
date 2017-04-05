@@ -1,55 +1,69 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH 00/14] RDMA/cxgb: Fine-tuning for several function
- implementations
-Date: Wed, 05 Apr 2017 14:16:14 -0400
-Message-ID: <1491416174.2923.3.camel@redhat.com>
-References: <0aff92fa-2891-333a-2e1e-ca309db2ec72@users.sourceforge.net>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 17/20] IB/hfi1: Add transmit fault injection feature
+Date: Wed, 05 Apr 2017 14:34:15 -0400
+Message-ID: <1491417255.2923.5.camel@redhat.com>
+References: <20170321001900.28538.38175.stgit@scvm10.sc.intel.com>
+         <20170321002619.28538.31428.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <0aff92fa-2891-333a-2e1e-ca309db2ec72@users.sourceforge.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>, linux-rdma@vger.kernel.org, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Steve Wise <swise@chelsio.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170321002619.28538.31428.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-02-08 at 22:10 +0100, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Wed, 8 Feb 2017 22:00:10 +0100
-> 
-> Several update suggestions were taken into account
-> from static source code analysis.
-> 
-> Markus Elfring (14):
->   Use kcalloc() in cxio_create_qp()
->   Rename jump labels in cxio_create_qp()
->   Use kcalloc() in two functions
->   Use common error handling code in recover_queues()
->   Return an error code only as a constant in ep_open()
->   Return an error code only as a constant in stag_open()
->   Adjust three checks for null pointers
->   Adjust construction of two error messages in recover_lost_dbs()
->   Use common error handling code in recover_lost_dbs()
->   Use kmalloc_array() in c4iw_id_table_alloc()
->   Use kcalloc() in create_qp()
->   Delete an unnecessary variable initialisation in create_qp()
->   Rename jump labels in c4iw_create_qp()
->   Rename jump labels in rdma_init()
-> 
->  drivers/infiniband/hw/cxgb3/cxio_hal.c | 20 ++++----
->  drivers/infiniband/hw/cxgb4/device.c   | 83 +++++++++++++++---------
-> ----------
->  drivers/infiniband/hw/cxgb4/id_table.c |  5 +-
->  drivers/infiniband/hw/cxgb4/qp.c       | 48 ++++++++++----------
->  4 files changed, 75 insertions(+), 81 deletions(-)
+On Mon, 2017-03-20 at 17:26 -0700, Dennis Dalessandro wrote:
+> 
+>  #ifdef CONFIG_FAULT_INJECTION
+> +	debugfs_create_bool("fault_suppress_err", 0600,
+> +			    ibd->hfi1_ibdev_dbg,
+> +			    &ibd->fault_suppress_err);
+>  	fault_init_debugfs(ibd);
+>  #endif
 
-I didn't see enough value in this series to bother picking it up.
- Steve, if there are any patches out of this series you actually want,
-please collect them and forward them on to me.
+...
+
+> +static u64 hfi1_fault_tx(struct rvt_qp *qp, u8 opcode, u64 pbc)
+> +{
+> +#ifdef CONFIG_HFI1_FAULT_INJECTION
+                 ^Looks like you failed to fix this spot up
+
+> +	if ((opcode & IB_OPCODE_MSP) == IB_OPCODE_MSP)
+> +		/*
+> +		 * In order to drop non-IB traffic we
+> +		 * set PbcInsertHrc to NONE (0x2).
+> +		 * The packet will still be delivered
+> +		 * to the receiving node but a
+> +		 * KHdrHCRCErr (KDETH packet with a bad
+> +		 * HCRC) will be triggered and the
+> +		 * packet will not be delivered to the
+> +		 * correct context.
+> +		 */
+> +		pbc |= (u64)PBC_IHCRC_NONE << PBC_INSERT_HCRC_SHIFT;
+> +	else
+> +		/*
+> +		 * In order to drop regular verbs
+> +		 * traffic we set the PbcTestEbp
+> +		 * flag. The packet will still be
+> +		 * delivered to the receiving node but
+> +		 * a 'late ebp error' will be
+> +		 * triggered and will be dropped.
+> +		 */
+> +		pbc |= PBC_TEST_EBP;
+> +#endif
+> +	return pbc;
+> +}
+> +
 
 -- 
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG KeyID: B826A3330E572FDD
    
 Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
