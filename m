@@ -1,58 +1,51 @@
 From: Yuval Shaia <yuval.shaia@oracle.com>
-Subject: Re: [PATCH 5/5] IB/qib: Adjust two size determinations in
- qib_init_pportdata()
-Date: Wed, 5 Apr 2017 18:15:26 +0300
-Message-ID: <20170405151525.GA5519@yuval-lap>
+Subject: Re: [PATCH 1/5] IB/qib: Use kcalloc() in qib_init_iba7322_funcs()
+Date: Wed, 5 Apr 2017 18:17:48 +0300
+Message-ID: <20170405151747.GB5519@yuval-lap>
 References: <c16b18ac-287f-5faf-b79a-c86e2adfa22c@users.sourceforge.net>
- <b5bc4160-aace-b919-7fe2-a4742d03c4ba@users.sourceforge.net>
- <20170405143242.GB5006@yuval-lap>
- <523b0864-e655-ed1f-8fe5-5995e0b0bde1@users.sourceforge.net>
+ <5e5e00d3-b6a4-7371-65be-c5fe387d26b3@users.sourceforge.net>
+ <20170405143438.GC5006@yuval-lap>
+ <fa90e815-daff-57b1-7930-447c6f5fa3ab@users.sourceforge.net>
+ <20170405150658.GU3941@linux-x5ow.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <523b0864-e655-ed1f-8fe5-5995e0b0bde1@users.sourceforge.net>
+In-Reply-To: <20170405150658.GU3941@linux-x5ow.site>
 Sender: linux-kernel-owner@vger.kernel.org
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mike Marciniszyn <infinipath@intel.com>, Sean Hefty <sean.hefty@intel.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+To: Johannes Thumshirn <jthumshirn@suse.de>
+Cc: SF Markus Elfring <elfring@users.sourceforge.net>, linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Mike Marciniszyn <infinipath@intel.com>, Sean Hefty <sean.hefty@intel.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 05, 2017 at 05:04:35PM +0200, SF Markus Elfring wrote:
-> >> @@ -270,13 +268,14 @@ int qib_init_pportdata(struct qib_pportdata *ppd, struct qib_devdata *dd,
-> >>  	if (!ppd->congestion_entries)
-> >>  		goto bail_1;
-> >>  
-> >> -	size = sizeof(struct cc_table_shadow);
-> >> -	ppd->ccti_entries_shadow = kzalloc(size, GFP_KERNEL);
-> >> +	ppd->ccti_entries_shadow = kzalloc(sizeof(*ppd->ccti_entries_shadow),
-> >> +					   GFP_KERNEL);
-> >>  	if (!ppd->ccti_entries_shadow)
-> >>  		goto bail_2;
-> >>  
-> >> -	size = sizeof(struct ib_cc_congestion_setting_attr);
-> >> -	ppd->congestion_entries_shadow = kzalloc(size, GFP_KERNEL);
-> >> +	ppd->congestion_entries_shadow = kzalloc(sizeof(*ppd
-> >> +							->congestion_entries_shadow),
-> >> +						 GFP_KERNEL);
+On Wed, Apr 05, 2017 at 05:06:58PM +0200, Johannes Thumshirn wrote:
+> On Wed, Apr 05, 2017 at 04:54:40PM +0200, SF Markus Elfring wrote:
+> > >> @@ -7324,8 +7324,9 @@ struct qib_devdata *qib_init_iba7322_funcs(struct pci_dev *pdev,
+> > >>  		actual_cnt -= dd->num_pports;
+> > >>  
+> > >>  	tabsize = actual_cnt;
+> > >> -	dd->cspec->msix_entries = kzalloc(tabsize *
+> > >> -			sizeof(struct qib_msix_entry), GFP_KERNEL);
+> > >> +	dd->cspec->msix_entries = kcalloc(tabsize,
+> > >> +					  sizeof(*dd->cspec->msix_entries),
+> > >> +					  GFP_KERNEL);
+> > > 
+> > > Are we fine with loosing the zeroing of the entries?
 > > 
-> > Not related to this patch but is related to your patch-set - can you check
-> > the array allocations in lines 264 and 268?
+> > How did you get this concern?
+> > 
+> > Do you really miss such functionality from the other interface?
 > 
-> Do you refer to source code places here which are affected by the update step
-> "[PATCH 4/5] IB/qib: Use kcalloc() in qib_init_pportdata()"?
+> Ahm... Don't kzalloc() and kcalloc() both pass in __GFP_ZERO?
 
-Oops, please ignore.
-
-> 
-> 
-> > Besides that:
-> > Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
-> 
-> Do you find the proposed change for the shown data types really acceptable
-> in these function calls?
-
-I found that the fix brings no harm to the existing code.
+Yes.
+Please ignore my comment.
 
 > 
-> Regards,
-> Markus
+> -- 
+> Johannes Thumshirn                                          Storage
+> jthumshirn@suse.de                                +49 911 74053 689
+> SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
+> GF: Felix Imendörffer, Jane Smithard, Graham Norton
+> HRB 21284 (AG Nürnberg)
+> Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
