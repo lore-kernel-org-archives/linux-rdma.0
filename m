@@ -1,58 +1,58 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [RFC 6/8] nvmet: Be careful about using iomem accesses when
- dealing with p2pmem
-Date: Thu, 6 Apr 2017 10:35:21 -0600
-Message-ID: <20170406163520.GA7657@obsidianresearch.com>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
- <1490911959-5146-7-git-send-email-logang@deltatee.com>
- <080b68b4-eba3-861c-4f29-5d829425b5e7@grimberg.me>
- <20170404154629.GA13552@obsidianresearch.com>
- <4df229d8-8124-664a-9bc4-6401bc034be1@grimberg.me>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH V2 for-next 7/7] IB/core: Change completion channel to
+ use the reworked objects schema
+Date: Thu, 6 Apr 2017 10:42:20 -0600
+Message-ID: <20170406164220.GB7657@obsidianresearch.com>
+References: <1489939145-125246-1-git-send-email-matanb@mellanox.com>
+ <1489939145-125246-8-git-send-email-matanb@mellanox.com>
+ <20170329145344.GB2586@obsidianresearch.com>
+ <CAAKD3BCaq2xndM_xtU7OY=wX2Mvw0y2+sqWBg-BSQPKYpfyEWg@mail.gmail.com>
+ <20170329222935.GB30605@obsidianresearch.com>
+ <CAAKD3BBwiKPLaOvKbmKL0skr8gv3=9==_60L6HiU4SmqGrJOOw@mail.gmail.com>
+ <20170330161226.GB19074@obsidianresearch.com>
+ <CAAKD3BANZG4966aFz4mDa-xPhVbqrNiuAs_=ZvBcft1SzU5eEA@mail.gmail.com>
+ <20170405161030.GE11251@obsidianresearch.com>
+ <CAAKD3BC-QU1C_npobthpyZxHQ-QEkWSVPXVtvGdEFu6jwtgwww@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4df229d8-8124-664a-9bc4-6401bc034be1@grimberg.me>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sagi Grimberg <sagi@grimberg.me>
-Cc: Logan Gunthorpe <logang@deltatee.com>, Christoph Hellwig <hch@lst.de>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Jens Axboe <axboe@kernel.dk>, Steve Wise <swise@opengridcomputing.com>, Stephen Bates <sbates@raithlin.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>, linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@ml01.01.org, linux-kernel@vger.kernel.org
+In-Reply-To: <CAAKD3BC-QU1C_npobthpyZxHQ-QEkWSVPXVtvGdEFu6jwtgwww-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 06, 2017 at 08:33:38AM +0300, Sagi Grimberg wrote:
-> 
-> >>Note that the nvme completion queues are still on the host memory, so
-> >>this means we have lost the ordering between data and completions as
-> >>they go to different pcie targets.
-> >
-> >Hmm, in this simple up/down case with a switch, I think it might
-> >actually be OK.
-> >
-> >Transactions might not complete at the NVMe device before the CPU
-> >processes the RDMA completion, however due to the PCI-E ordering rules
-> >new TLPs directed to the NVMe will complete after the RMDA TLPs and
-> >thus observe the new data. (eg order preserving)
-> >
-> >It would be very hard to use P2P if fabric ordering is not preserved..
-> 
-> I think it still can race if the p2p device is connected with more than
-> a single port to the switch.
-> 
-> Say it's connected via 2 legs, the bar is accessed from leg A and the
-> data from the disk comes via leg B. In this case, the data is heading
-> towards the p2p device via leg B (might be congested), the completion
-> goes directly to the RC, and then the host issues a read from the
-> bar via leg A. I don't understand what can guarantee ordering here.
+On Thu, Apr 06, 2017 at 05:10:51PM +0300, Matan Barak wrote:
+> Effectively this kref is used to capture the dependencies between
+> various objects.
 
-Right, this is why I qualified my statement with 'simple up/down case'
+No, that is what the usecnt is for, the kref is just to make sure we
+can still *access* the usecnt without derefing freed memory.
 
-Make it any more complex and it clearly stops working sanely, but I
-wouldn't worry about unusual PCI-E fabrics at this point..
+> This won't solve the "inc_uobject_kref; destroy_uobject" schema, as
+> in this case we really want to destroy the object, but we want to
+> keep the uobject alive in order to get information about the
+> object's state at destruction.
 
-> Stephen told me that this still guarantees ordering, but I honestly
-> can't understand how, perhaps someone can explain to me in a simple
-> way that I can understand.
+Right, this is why I said you need a destory_uobject varient that
+retains the kref with the caller.
 
-AFAIK PCI-E ordering is explicitly per link, so things that need order
-must always traverse the same link.
+> If we use kref on the uobject only, we lose the kref count in ULPs.
+> Moreover, we'll need to somehow
+
+No, we can't really do that obviously..
+
+I'd rather see the usecnt hoisted entirely into the uverbs layer where
+it can work sanely with proper locking and reserve a second
+for-debugging-only WARN_ON scheme in the verbs layer that checks
+cleanup ordering for the kapi.
+
+The kapi returning error codes on destroy is insane, I cleaned up PD
+at one point, but they all need fixing...
 
 Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
