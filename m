@@ -1,224 +1,133 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: [PATCH v2 2/6] mlx5: move affinity hints assignments to generic code
-Date: Thu,  6 Apr 2017 13:36:34 +0300
-Message-ID: <1491474998-16423-3-git-send-email-sagi@grimberg.me>
+From: Sagi Grimberg <sagi@grimberg.me>
+Subject: [PATCH v2 5/6] block: Add rdma affinity based queue mapping helper
+Date: Thu,  6 Apr 2017 13:36:37 +0300
+Message-ID: <1491474998-16423-6-git-send-email-sagi@grimberg.me>
 References: <1491474998-16423-1-git-send-email-sagi@grimberg.me>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1491474998-16423-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-block-owner@vger.kernel.org>
+In-Reply-To: <1491474998-16423-1-git-send-email-sagi@grimberg.me>
+Sender: linux-block-owner@vger.kernel.org
+To: Jens Axboe <axboe@kernel.dk>, linux-nvme@lists.infradead.org, linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Christoph Hellwig <hch@lst.de>, Or Gerlitz <ogerlitz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-generic api takes care of spreading affinity similar to
-what mlx5 open coded (and even handles better asymmetric
-configurations). Ask the generic API to spread affinity
-for us, and feed him pre_vectors that do not participate
-in affinity settings (which is an improvement to what we
-had before).
+Like pci and virtio, we add a rdma helper for affinity
+spreading. This achieves optimal mq affinity assignments
+according to the underlying rdma device affinity maps.
 
-The affinity assignments should match what mlx5 tried to
-do earlier but now we do not set affinity to async, cmd
-and pages dedicated vectors.
-
-Also, remove mlx5e_get_cpu routine as we have generic helpers
-to get cpumask and node given a irq vector, so use them
-directly.
-
-Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Reviewed-by: Jens Axboe <axboe@fb.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Max Gurtovoy <maxg@mellanox.com>
+Signed-off-by: Sagi Grimberg <sagi@grimberg.me>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 12 ++--
- drivers/net/ethernet/mellanox/mlx5/core/main.c    | 83 ++---------------------
- include/linux/mlx5/driver.h                       |  1 -
- 3 files changed, 10 insertions(+), 86 deletions(-)
+ block/Kconfig               |  5 +++++
+ block/Makefile              |  1 +
+ block/blk-mq-rdma.c         | 54 +++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/blk-mq-rdma.h | 10 +++++++++
+ 4 files changed, 70 insertions(+)
+ create mode 100644 block/blk-mq-rdma.c
+ create mode 100644 include/linux/blk-mq-rdma.h
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index eec0d172761e..a51399c54c62 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -1373,11 +1373,6 @@ static void mlx5e_close_cq(struct mlx5e_cq *cq)
- 	mlx5e_destroy_cq(cq);
- }
+diff --git a/block/Kconfig b/block/Kconfig
+index 89cd28f8d051..3ab42bbb06d5 100644
+--- a/block/Kconfig
++++ b/block/Kconfig
+@@ -206,4 +206,9 @@ config BLK_MQ_VIRTIO
+ 	depends on BLOCK && VIRTIO
+ 	default y
  
--static int mlx5e_get_cpu(struct mlx5e_priv *priv, int ix)
--{
--	return cpumask_first(priv->mdev->priv.irq_info[ix].mask);
--}
--
- static int mlx5e_open_tx_cqs(struct mlx5e_channel *c,
- 			     struct mlx5e_channel_param *cparam)
- {
-@@ -1535,19 +1530,20 @@ static int mlx5e_open_channel(struct mlx5e_priv *priv, int ix,
- 	struct mlx5e_cq_moder icosq_cq_moder = {0, 0};
- 	struct net_device *netdev = priv->netdev;
- 	struct mlx5e_cq_moder rx_cq_profile;
--	int cpu = mlx5e_get_cpu(priv, ix);
- 	struct mlx5e_channel *c;
- 	struct mlx5e_sq *sq;
- 	int err;
- 	int i;
- 
--	c = kzalloc_node(sizeof(*c), GFP_KERNEL, cpu_to_node(cpu));
-+	c = kzalloc_node(sizeof(*c), GFP_KERNEL,
-+		pci_irq_get_node(priv->mdev->pdev, MLX5_EQ_VEC_COMP_BASE + ix));
- 	if (!c)
- 		return -ENOMEM;
- 
- 	c->priv     = priv;
- 	c->ix       = ix;
--	c->cpu      = cpu;
-+	c->cpu      = cpumask_first(pci_irq_get_affinity(priv->mdev->pdev,
-+			MLX5_EQ_VEC_COMP_BASE + ix));
- 	c->pdev     = &priv->mdev->pdev->dev;
- 	c->netdev   = priv->netdev;
- 	c->mkey_be  = cpu_to_be32(priv->mdev->mlx5e_res.mkey.key);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 7c8672cbb369..0c2d8e22d94a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -312,6 +312,9 @@ static int mlx5_alloc_irq_vectors(struct mlx5_core_dev *dev)
- {
- 	struct mlx5_priv *priv = &dev->priv;
- 	struct mlx5_eq_table *table = &priv->eq_table;
-+	struct irq_affinity irqdesc = {
-+		.pre_vectors = MLX5_EQ_VEC_COMP_BASE,
-+	};
- 	int num_eqs = 1 << MLX5_CAP_GEN(dev, log_max_eq);
- 	int nvec;
- 
-@@ -325,9 +328,10 @@ static int mlx5_alloc_irq_vectors(struct mlx5_core_dev *dev)
- 	if (!priv->irq_info)
- 		goto err_free_msix;
- 
--	nvec = pci_alloc_irq_vectors(dev->pdev,
-+	nvec = pci_alloc_irq_vectors_affinity(dev->pdev,
- 			MLX5_EQ_VEC_COMP_BASE + 1, nvec,
--			PCI_IRQ_MSIX);
-+			PCI_IRQ_MSIX | PCI_IRQ_AFFINITY,
-+			&irqdesc);
- 	if (nvec < 0)
- 		return nvec;
- 
-@@ -600,71 +604,6 @@ u64 mlx5_read_internal_timer(struct mlx5_core_dev *dev)
- 	return (u64)timer_l | (u64)timer_h1 << 32;
- }
- 
--static int mlx5_irq_set_affinity_hint(struct mlx5_core_dev *mdev, int i)
--{
--	struct mlx5_priv *priv  = &mdev->priv;
--	int irq = pci_irq_vector(mdev->pdev, MLX5_EQ_VEC_COMP_BASE + i);
--	int err;
--
--	if (!zalloc_cpumask_var(&priv->irq_info[i].mask, GFP_KERNEL)) {
--		mlx5_core_warn(mdev, "zalloc_cpumask_var failed");
--		return -ENOMEM;
--	}
--
--	cpumask_set_cpu(cpumask_local_spread(i, priv->numa_node),
--			priv->irq_info[i].mask);
--
--	err = irq_set_affinity_hint(irq, priv->irq_info[i].mask);
--	if (err) {
--		mlx5_core_warn(mdev, "irq_set_affinity_hint failed,irq 0x%.4x",
--			       irq);
--		goto err_clear_mask;
--	}
--
--	return 0;
--
--err_clear_mask:
--	free_cpumask_var(priv->irq_info[i].mask);
--	return err;
--}
--
--static void mlx5_irq_clear_affinity_hint(struct mlx5_core_dev *mdev, int i)
--{
--	struct mlx5_priv *priv  = &mdev->priv;
--	int irq = pci_irq_vector(mdev->pdev, MLX5_EQ_VEC_COMP_BASE + i);
--
--	irq_set_affinity_hint(irq, NULL);
--	free_cpumask_var(priv->irq_info[i].mask);
--}
--
--static int mlx5_irq_set_affinity_hints(struct mlx5_core_dev *mdev)
--{
--	int err;
--	int i;
--
--	for (i = 0; i < mdev->priv.eq_table.num_comp_vectors; i++) {
--		err = mlx5_irq_set_affinity_hint(mdev, i);
--		if (err)
--			goto err_out;
--	}
--
--	return 0;
--
--err_out:
--	for (i--; i >= 0; i--)
--		mlx5_irq_clear_affinity_hint(mdev, i);
--
--	return err;
--}
--
--static void mlx5_irq_clear_affinity_hints(struct mlx5_core_dev *mdev)
--{
--	int i;
--
--	for (i = 0; i < mdev->priv.eq_table.num_comp_vectors; i++)
--		mlx5_irq_clear_affinity_hint(mdev, i);
--}
--
- int mlx5_vector2eqn(struct mlx5_core_dev *dev, int vector, int *eqn,
- 		    unsigned int *irqn)
- {
-@@ -1116,12 +1055,6 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
- 		goto err_stop_eqs;
- 	}
- 
--	err = mlx5_irq_set_affinity_hints(dev);
--	if (err) {
--		dev_err(&pdev->dev, "Failed to alloc affinity hint cpumask\n");
--		goto err_affinity_hints;
--	}
--
- 	err = mlx5_init_fs(dev);
- 	if (err) {
- 		dev_err(&pdev->dev, "Failed to init flow steering\n");
-@@ -1165,9 +1098,6 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
- 	mlx5_cleanup_fs(dev);
- 
- err_fs:
--	mlx5_irq_clear_affinity_hints(dev);
--
--err_affinity_hints:
- 	free_comp_eqs(dev);
- 
- err_stop_eqs:
-@@ -1234,7 +1164,6 @@ static int mlx5_unload_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
- 	mlx5_eswitch_detach(dev->priv.eswitch);
- #endif
- 	mlx5_cleanup_fs(dev);
--	mlx5_irq_clear_affinity_hints(dev);
- 	free_comp_eqs(dev);
- 	mlx5_stop_eqs(dev);
- 	mlx5_put_uars_page(dev, priv->uar);
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index a9891df94ce0..4c7cf4dfb024 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -527,7 +527,6 @@ struct mlx5_core_sriov {
- };
- 
- struct mlx5_irq_info {
--	cpumask_var_t mask;
- 	char name[MLX5_MAX_IRQ_NAME];
- };
- 
++config BLK_MQ_RDMA
++	bool
++	depends on BLOCK && INFINIBAND
++	default y
++
+ source block/Kconfig.iosched
+diff --git a/block/Makefile b/block/Makefile
+index 081bb680789b..4498603dbc83 100644
+--- a/block/Makefile
++++ b/block/Makefile
+@@ -26,6 +26,7 @@ obj-$(CONFIG_BLK_CMDLINE_PARSER)	+= cmdline-parser.o
+ obj-$(CONFIG_BLK_DEV_INTEGRITY) += bio-integrity.o blk-integrity.o t10-pi.o
+ obj-$(CONFIG_BLK_MQ_PCI)	+= blk-mq-pci.o
+ obj-$(CONFIG_BLK_MQ_VIRTIO)	+= blk-mq-virtio.o
++obj-$(CONFIG_BLK_MQ_RDMA)	+= blk-mq-rdma.o
+ obj-$(CONFIG_BLK_DEV_ZONED)	+= blk-zoned.o
+ obj-$(CONFIG_BLK_WBT)		+= blk-wbt.o
+ obj-$(CONFIG_BLK_DEBUG_FS)	+= blk-mq-debugfs.o
+diff --git a/block/blk-mq-rdma.c b/block/blk-mq-rdma.c
+new file mode 100644
+index 000000000000..7dc07b43858b
+--- /dev/null
++++ b/block/blk-mq-rdma.c
+@@ -0,0 +1,54 @@
++/*
++ * Copyright (c) 2017 Sagi Grimberg.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ */
++#include <linux/blk-mq.h>
++#include <linux/blk-mq-rdma.h>
++#include <rdma/ib_verbs.h>
++
++/**
++ * blk_mq_rdma_map_queues - provide a default queue mapping for rdma device
++ * @set:	tagset to provide the mapping for
++ * @dev:	rdma device associated with @set.
++ * @first_vec:	first interrupt vectors to use for queues (usually 0)
++ *
++ * This function assumes the rdma device @dev has at least as many available
++ * interrupt vetors as @set has queues.  It will then query it's affinity mask
++ * and built queue mapping that maps a queue to the CPUs that have irq affinity
++ * for the corresponding vector.
++ *
++ * In case either the driver passed a @dev with less vectors than
++ * @set->nr_hw_queues, or @dev does not provide an affinity mask for a
++ * vector, we fallback to the naive mapping.
++ */
++int blk_mq_rdma_map_queues(struct blk_mq_tag_set *set,
++		struct ib_device *dev, int first_vec)
++{
++	const struct cpumask *mask;
++	unsigned int queue, cpu;
++
++	if (set->nr_hw_queues > dev->num_comp_vectors)
++		goto fallback;
++
++	for (queue = 0; queue < set->nr_hw_queues; queue++) {
++		mask = ib_get_vector_affinity(dev, first_vec + queue);
++		if (!mask)
++			goto fallback;
++
++		for_each_cpu(cpu, mask)
++			set->mq_map[cpu] = queue;
++	}
++
++	return 0;
++fallback:
++	return blk_mq_map_queues(set);
++}
++EXPORT_SYMBOL_GPL(blk_mq_rdma_map_queues);
+diff --git a/include/linux/blk-mq-rdma.h b/include/linux/blk-mq-rdma.h
+new file mode 100644
+index 000000000000..b4ade198007d
+--- /dev/null
++++ b/include/linux/blk-mq-rdma.h
+@@ -0,0 +1,10 @@
++#ifndef _LINUX_BLK_MQ_RDMA_H
++#define _LINUX_BLK_MQ_RDMA_H
++
++struct blk_mq_tag_set;
++struct ib_device;
++
++int blk_mq_rdma_map_queues(struct blk_mq_tag_set *set,
++		struct ib_device *dev, int first_vec);
++
++#endif /* _LINUX_BLK_MQ_RDMA_H */
 -- 
 2.7.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
