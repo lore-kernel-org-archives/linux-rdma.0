@@ -1,49 +1,77 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [RFC 6/8] nvmet: Be careful about using iomem accesses when
- dealing with p2pmem
-Date: Thu, 6 Apr 2017 08:33:38 +0300
-Message-ID: <4df229d8-8124-664a-9bc4-6401bc034be1@grimberg.me>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
- <1490911959-5146-7-git-send-email-logang@deltatee.com>
- <080b68b4-eba3-861c-4f29-5d829425b5e7@grimberg.me>
- <20170404154629.GA13552@obsidianresearch.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next 0/6] Enhanced mode for IPoIB driver
+Date: Thu, 6 Apr 2017 08:38:21 +0300
+Message-ID: <20170406053821.GC2269@mtr-leonro.local>
+References: <20170404191732.31895-1-leon@kernel.org>
+ <456a1a5f-26a4-13a6-744c-02679e0fc90b@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="3uo+9/B/ebqu+fSQ"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170404154629.GA13552-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <456a1a5f-26a4-13a6-744c-02679e0fc90b-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
->> Note that the nvme completion queues are still on the host memory, so
->> this means we have lost the ordering between data and completions as
->> they go to different pcie targets.
->
-> Hmm, in this simple up/down case with a switch, I think it might
-> actually be OK.
->
-> Transactions might not complete at the NVMe device before the CPU
-> processes the RDMA completion, however due to the PCI-E ordering rules
-> new TLPs directed to the NVMe will complete after the RMDA TLPs and
-> thus observe the new data. (eg order preserving)
->
-> It would be very hard to use P2P if fabric ordering is not preserved..
+--3uo+9/B/ebqu+fSQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I think it still can race if the p2p device is connected with more than
-a single port to the switch.
+On Wed, Apr 05, 2017 at 09:50:59PM -0400, Dennis Dalessandro wrote:
+> On 04/04/2017 03:17 PM, Leon Romanovsky wrote:
+> > Hi Doug,
+> >
+> > This patchset mostly comes from Erez with one exception in the first patch.
+> >
+> > That patch origins from two different commits, first from Niranjana who added
+> > RDMA netdev interface and second from Erez who added IPoIB support.
+> >
+> > During the preparation to submission, I squashed their commits into one
+> > and refactored code to allow submission as a standalone topic without creating
+> > dependecies between different submissions. This caused to change in author line.
+> > I hope that it doesn't really matter and it won't stop you from merging it.
+>
+> I think that it does indeed matter. The patch was authored by Niranjana it
+> should reflect as such. Why not take Niranjana's patch(s), the fact that you
+> folded them in seems to mean you at least agree with the patch.
 
-Say it's connected via 2 legs, the bar is accessed from leg A and the
-data from the disk comes via leg B. In this case, the data is heading
-towards the p2p device via leg B (might be congested), the completion
-goes directly to the RC, and then the host issues a read from the
-bar via leg A. I don't understand what can guarantee ordering here.
+Sure, I agree, but I was supposed to remove all VNIC code from that
+patch, which is unrelated to IPoIB.
 
-Stephen told me that this still guarantees ordering, but I honestly
-can't understand how, perhaps someone can explain to me in a simple
-way that I can understand.
+If Niranjana feels comfortable to be authored on IPoIB code, the
+following code will do the trick.
+
+git commit --amend --author "Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>"
+
+Thanks
+
+>
+> -Denny
+
+--3uo+9/B/ebqu+fSQ
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljl1EwACgkQ5GN7iDZy
+WKdxRxAAjBmnR7ZQkep29lZ8OeFlheApRlCuZCtEsNxVOyIU3Rmp3I6uf3AAeWeh
+umg71vSnYlcn7UpumScTNWQq+KnVBSFkDa/fHwBzmyrtCgbEhPtzrzwXV9gBgBNl
+IiGnDcmdrOf8AEnooQ0SGano7PDbkhW6z2wmBku+ERy7oY3W6MJA7ND9BNBmn0AR
+1fzszg2FVJFgo3jI7UVlxawzt1OnpqL/x+fk+c9yZN6AaRJ+6b+e7nZStsN2/uQ9
+EFw6Llfy7hFsVcPLZ860HeLDCYkhpkyv1/WtKPLBIOBPoKFX+2jScww03xOUQXoQ
+R9gGVUSR1MT954HdaJOTTQgd+hXa2sByTgQwgF3/xZjC/l4bhXc1Z3mexMrjCcfu
+L7PiiLUdhYU1fqZB4r82CHIuiejQEvPNRsk01lAzMG6/+Dfg0U1AI3wlUFObPtb7
+iFjJyg5YM0WKTsQFo/hsu7Sa3hvmvJAVmi22EruoaJc0xkNXPN/ATJcJ2boH6+zg
+EESSgU/UiIW4bCswr4ixxDGzqVf0U6mWEoYEvsTQKvZq5/RKWI2rh4OHrwjvyR4c
+3qGk5cQOGwVIEbmHw0B9f21UrioEujxohPpanQ5tlXcJjIL/VWxEDlfZ6vJ928Jx
+W4wFYga+S48HxccjturEDsELRUDoHVSkh4Aeeq48+axC1Ui1U3Y=
+=Yob+
+-----END PGP SIGNATURE-----
+
+--3uo+9/B/ebqu+fSQ--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
