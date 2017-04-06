@@ -1,43 +1,65 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [Qemu-devel] [PATCH RFC] hw/pvrdma: Proposal of a new pvrdma
- device
-Date: Thu, 6 Apr 2017 14:54:16 -0600
-Message-ID: <20170406205416.GB27155@obsidianresearch.com>
-References: <1490872341-9959-1-git-send-email-marcel@redhat.com>
- <20170330141314.GM20443@mtr-leonro.local>
- <5e952524-7c2d-b4da-4bd7-6437830a40d8@redhat.com>
- <f7f3fc0e-0a75-2fdc-b3c2-6c3d34ff2978@redhat.com>
- <20170403062314.GO20443@mtr-leonro.local>
- <aa400244-426a-ea62-0ccf-ac5adb76fdd1@redhat.com>
- <20170404173349.GY20443@mtr-leonro.local>
- <20170406194552.GB2170@yuval-lap>
+From: jackm <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: mlx4 partitions + SR-IOV - P_Key not found
+Date: Fri, 7 Apr 2017 00:35:58 +0300
+Message-ID: <20170407003558.000017dc@dev.mellanox.co.il>
+References: <CADvaNzWedJOts4z6Nr3Ssx4Qur09h4=iY9mhZBxH4KdPnJke_A@mail.gmail.com>
+        <519dbd14-ff05-23ad-0f70-cb8c3b9f4c4e@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170406194552.GB2170@yuval-lap>
+In-Reply-To: <519dbd14-ff05-23ad-0f70-cb8c3b9f4c4e-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Mark Lehrer <lehrer-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 06, 2017 at 10:45:54PM +0300, Yuval Shaia wrote:
+On Thu, 6 Apr 2017 10:40:27 -0400
+Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
-> > Just add my 2 cents. You didn't answer on my question about other possible
-> > implementations. It can be SoftRoCE loopback optimizations, special ULP,
-> > RDMA transport, virtual driver with multiple VFs and single PF.
+> On 4/6/2017 10:19 AM, Mark Lehrer wrote:
+> > I am using a ConnectX-3 (MCX354A-FCB_A2-A5).  The system is Ubuntu
+> > 16.04 with 4.4.0-72-generic
+> > 
+> > I can use partitions fine with the root device, and I can do
+> > unpartitioned ipoib in qemu-kvm using virtual functions.  
 > 
-> Please see my response to Jason's comments - eventually, when a support for
-> VM to external host communication will be added - kdbr will become ULP as
-> well.
+> Sounds like the SM has properly configured the pkeys on the physical
+> port.
+> 
+> > However, when I try to use a partition in the guest, it gives me
+> > errors like this: ib0.8010: P_Key 0x8010 is not found  
+> 
+> I think that there is hypervisor configuration to make this work. Are
+> you familiar with it ?
+> 
+> -- Hal
+> 
+> > I tried both the inbox mlx4 driver and OFED 4.0-2.0.0.1
+> > 
+> > Should partitions work with SR-IOV virtual functions?  If so, what
+> > should I do to debug this?
+> > 
+> > Thanks,
+> > Mark
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe
+> > linux-rdma" in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >   
 
-So, is KDBR only to be used on the HV side? Ie it never shows up in the VM?
+Mark,
+You need to map the physical pkeys to a virtual pkey table that is
+maintained per port, per VF. OpenSM only controls the physical pkey
+table on the host. Mapping physical pkey indices to virtual pkey
+indices for VFs is performed on the Linux Hypervisor (Dom 0).
 
-That is even weirder, we certainly do not want to see a kernel RDMA
-ULP for any of this - the entire point of RDMA is to let user space
-implement their protocols without needing a unique kernel component!!
+See detailed instructions in the mlnx ofed Linux user manual
+(http://www.mellanox.com/related-docs/prod_software/Mellanox_OFED_Linux_User_Manual_v3.10.pdf)
+section: 3.4.1.5.4 Partitioning IPoIB Communication using PKeys, on
+pages 211-212
 
-Jason
+-Jack
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
