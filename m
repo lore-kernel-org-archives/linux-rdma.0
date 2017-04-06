@@ -1,52 +1,241 @@
-From: Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
-Subject: Re: [PATCH RFC] nvme-rdma: support devices with queue size < 32
-Date: Thu, 6 Apr 2017 14:29:03 +0200 (CEST)
-Message-ID: <1224897571.353404199.1491481743295.JavaMail.zimbra@kalray.eu>
-References: <1315914765.312051621.1490259849534.JavaMail.zimbra@kalray.eu> <406682b9-d7ca-4718-5830-7940d2822bc0@grimberg.me> <20170329162751.GA7113@obsidianresearch.com> <80770042-743e-a271-c636-f72099f9ac56@grimberg.me> <9eb08168-18a6-a176-01df-b68b6a225963@redhat.com> <3505b835-d0ba-70cb-dfe8-1265fc2bbb83@redhat.com> <2ba93b5b-ad36-5533-36e2-9db2e3198c19@grimberg.me> <1121115847.336382032.1490883808617.JavaMail.zimbra@kalray.eu>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCHv2 infiniband-diags 2/3] perfquery.c: Add support for
+ additional counters in PortCountersExtended
+Date: Thu, 6 Apr 2017 08:34:39 -0400
+Message-ID: <7d53f135-fb47-db26-1855-8a953ae32658@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1121115847.336382032.1490883808617.JavaMail.zimbra-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keith busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, axboe-b10kYP2dOMg@public.gmane.org, Samuel Jones <samuel.jones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Oded Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->>>> You say above "we post *up to* 2 work requests", unless you wish to
->>>> change that to "we always post at least 2 work requests per queue
->>>> entry", Jason is right, your frequency of signaling needs to be X/2
->>>> regardless of your CQ size, you need the signaling to control the queue
->>>> depth tracking.
->>>
->>> If you would like to spread things out farther between signaling, then
->>> you can modify your send routine to only increment the send counter for
->>> actual send requests, ignoring registration WQEs and invalidate WQES,
->>> and then signal every X/2 sends.
->> 
->> Yea, you're right, and not only I got it wrong, I even contradicted my
->> own suggestion that was exactly what you and Jason suggested (where is
->> the nearest rat-hole...)
->> 
->> So I suggested to signal every X/2 and Marta reported SQ overflows for
->> high queue-dpeth. Marta, at what queue-depth have you seen this?
-> 
-> The remote side had queue depth of 16 or 32 and that's the WQ on the
-> initiator side that overflows (mlx5_wq_overflow). We're testing with
-> signalling X/2 and it seems to work.
+From: Oded Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Update on the situation: the signalling on X/2 seems to work fine in
-practice. To clarify more that's the send queue that overflows
-(mlx5_wq_overflow in begin_wqe of drivers/infiniband/hw/mlx5/qp.c).
+Support aggregation when AllPortSelect is not supported
+and reset of those counters.
 
-However, I have still doubt how it's going to work in the case of
-higher queue depths (i.e. the typical case). If we signal every X/2
-we'll do it much more rarely than today (every 32 messages). I'm not
-sure on the system effect this would have. 
+Signed-off-by: Oded Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+Change since v1:
+Increase buffer size
 
-Mellanox guys, do you have an idea what it might do?
-
-Marta
+diff --git a/include/ibdiag_common.h b/include/ibdiag_common.h
+index 587dcfe..08bbf6b 100644
+--- a/include/ibdiag_common.h
++++ b/include/ibdiag_common.h
+@@ -81,6 +81,15 @@ extern char *ibd_nd_format;
+ #define IS_PM_RSFEC_COUNTERS_SUP (CL_HTON16(((uint16_t)1)<<14))
+ #endif
+ 
++#ifndef IB_PM_IS_QP1_DROP_SUP
++#define IB_PM_IS_QP1_DROP_SUP (CL_HTON16(((uint16_t)1)<<15))
++#endif
++
++/* PM ClassPortInfo CapabilityMask2 Bits */
++#ifndef IB_PM_IS_ADDL_PORT_CTRS_EXT_SUP
++#define IB_PM_IS_ADDL_PORT_CTRS_EXT_SUP (CL_HTON32(((uint32_t)1)<<1))
++#endif
++
+ /* SM PortInfo CapabilityMask2 Bits */
+ #ifndef IB_PORT_CAP2_IS_PORT_INFO_EXT_SUPPORTED
+ #define IB_PORT_CAP2_IS_PORT_INFO_EXT_SUPPORTED (CL_HTON16(0x0002))
+diff --git a/src/perfquery.c b/src/perfquery.c
+index 948ce52..384c116 100644
+--- a/src/perfquery.c
++++ b/src/perfquery.c
+@@ -85,13 +85,30 @@ struct perf_count_ext {
+ 	uint64_t portunicastrcvpkts;
+ 	uint64_t portmulticastxmitpkits;
+ 	uint64_t portmulticastrcvpkts;
++
++	uint32_t counterSelect2;
++	uint64_t symbolErrorCounter;
++	uint64_t linkErrorRecoveryCounter;
++	uint64_t linkDownedCounter;
++	uint64_t portRcvErrors;
++	uint64_t portRcvRemotePhysicalErrors;
++	uint64_t portRcvSwitchRelayErrors;
++	uint64_t portXmitDiscards;
++	uint64_t portXmitConstraintErrors;
++	uint64_t portRcvConstraintErrors;
++	uint64_t localLinkIntegrityErrors;
++	uint64_t excessiveBufferOverrunErrors;
++	uint64_t VL15Dropped;
++	uint64_t portXmitWait;
++	uint64_t QP1Dropped;
+ };
+ 
+ static uint8_t pc[1024];
+ 
+ struct perf_count perf_count =
+     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+-struct perf_count_ext perf_count_ext = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
++struct perf_count_ext perf_count_ext =
++    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+ 
+ #define ALL_PORTS 0xFF
+ #define MAX_PORTS 255
+@@ -228,7 +245,7 @@ static void output_aggregate_perfcounters(ib_portid_t * portid,
+ 	       portid2str(portid), ALL_PORTS, ntohs(cap_mask), buf);
+ }
+ 
+-static void aggregate_perfcounters_ext(uint16_t cap_mask)
++static void aggregate_perfcounters_ext(uint16_t cap_mask, uint32_t cap_mask2)
+ {
+ 	uint32_t val;
+ 	uint64_t val64;
+@@ -256,15 +273,48 @@ static void aggregate_perfcounters_ext(uint16_t cap_mask)
+ 		mad_decode_field(pc, IB_PC_EXT_RCV_MPKTS_F, &val64);
+ 		aggregate_64bit(&perf_count_ext.portmulticastrcvpkts, val64);
+ 	}
++
++	if (htonl(cap_mask2) & IB_PM_IS_ADDL_PORT_CTRS_EXT_SUP) {
++		mad_decode_field(pc, IB_PC_EXT_COUNTER_SELECT2_F, &val);
++		perf_count_ext.counterSelect2 = val;
++		mad_decode_field(pc, IB_PC_EXT_ERR_SYM_F, &val64);
++		aggregate_64bit(&perf_count_ext.symbolErrorCounter, val64);
++		mad_decode_field(pc, IB_PC_EXT_LINK_RECOVERS_F, &val64);
++		aggregate_64bit(&perf_count_ext.linkErrorRecoveryCounter, val64);
++		mad_decode_field(pc, IB_PC_EXT_LINK_DOWNED_F, &val64);
++		aggregate_64bit(&perf_count_ext.linkDownedCounter, val64);
++		mad_decode_field(pc, IB_PC_EXT_ERR_RCV_F, &val64);
++		aggregate_64bit(&perf_count_ext.portRcvErrors, val64);
++		mad_decode_field(pc, IB_PC_EXT_ERR_PHYSRCV_F, &val64);
++		aggregate_64bit(&perf_count_ext.portRcvRemotePhysicalErrors, val64);
++		mad_decode_field(pc, IB_PC_EXT_ERR_SWITCH_REL_F, &val64);
++		aggregate_64bit(&perf_count_ext.portRcvSwitchRelayErrors, val64);
++		mad_decode_field(pc, IB_PC_EXT_XMT_DISCARDS_F, &val64);
++		aggregate_64bit(&perf_count_ext.portXmitDiscards, val64);
++		mad_decode_field(pc, IB_PC_EXT_ERR_XMTCONSTR_F, &val64);
++		aggregate_64bit(&perf_count_ext.portXmitConstraintErrors, val64);
++		mad_decode_field(pc, IB_PC_EXT_ERR_RCVCONSTR_F, &val64);
++		aggregate_64bit(&perf_count_ext.portRcvConstraintErrors, val64);
++		mad_decode_field(pc, IB_PC_EXT_ERR_LOCALINTEG_F, &val64);
++		aggregate_64bit(&perf_count_ext.localLinkIntegrityErrors, val64);
++		mad_decode_field(pc, IB_PC_EXT_ERR_EXCESS_OVR_F, &val64);
++		aggregate_64bit(&perf_count_ext.excessiveBufferOverrunErrors, val64);
++		mad_decode_field(pc, IB_PC_EXT_VL15_DROPPED_F, &val64);
++		aggregate_64bit(&perf_count_ext.VL15Dropped, val64);
++		mad_decode_field(pc, IB_PC_EXT_XMT_WAIT_F, &val64);
++		aggregate_64bit(&perf_count_ext.portXmitWait, val64);
++		mad_decode_field(pc, IB_PC_EXT_QP1_DROP_F, &val64);
++		aggregate_64bit(&perf_count_ext.QP1Dropped, val64);
++	}
+ }
+ 
+ static void output_aggregate_perfcounters_ext(ib_portid_t * portid,
+-					      uint16_t cap_mask)
++					      uint16_t cap_mask, uint32_t cap_mask2)
+ {
+-	char buf[1024];
++	char buf[1536];
+ 	uint32_t val = ALL_PORTS;
+ 
+-	memset(buf, 0, 1024);
++	memset(buf, 0, sizeof(buf));
+ 
+ 	/* set port_select to 255 to emulate AllPortSelect */
+ 	mad_encode_field(pc, IB_PC_EXT_PORT_SELECT_F, &val);
+@@ -289,17 +339,50 @@ static void output_aggregate_perfcounters_ext(ib_portid_t * portid,
+ 				 &perf_count_ext.portmulticastrcvpkts);
+ 	}
+ 
++	if (htonl(cap_mask2) & IB_PM_IS_ADDL_PORT_CTRS_EXT_SUP) {
++		mad_encode_field(pc, IB_PC_EXT_COUNTER_SELECT2_F,
++				 &perf_count_ext.counterSelect2);
++		mad_encode_field(pc, IB_PC_EXT_ERR_SYM_F,
++				 &perf_count_ext.symbolErrorCounter);
++		mad_encode_field(pc, IB_PC_EXT_LINK_RECOVERS_F,
++				 &perf_count_ext.linkErrorRecoveryCounter);
++		mad_encode_field(pc, IB_PC_EXT_LINK_DOWNED_F,
++				 &perf_count_ext.linkDownedCounter);
++		mad_encode_field(pc, IB_PC_EXT_ERR_RCV_F,
++				 &perf_count_ext.portRcvErrors);
++		mad_encode_field(pc, IB_PC_EXT_ERR_PHYSRCV_F,
++				 &perf_count_ext.portRcvRemotePhysicalErrors);
++		mad_encode_field(pc, IB_PC_EXT_ERR_SWITCH_REL_F,
++				 &perf_count_ext.portRcvSwitchRelayErrors);
++		mad_encode_field(pc, IB_PC_EXT_XMT_DISCARDS_F,
++				 &perf_count_ext.portXmitDiscards);
++		mad_encode_field(pc, IB_PC_EXT_ERR_XMTCONSTR_F,
++				 &perf_count_ext.portXmitConstraintErrors);
++		mad_encode_field(pc, IB_PC_EXT_ERR_RCVCONSTR_F,
++				 &perf_count_ext.portRcvConstraintErrors);
++		mad_encode_field(pc, IB_PC_EXT_ERR_LOCALINTEG_F,
++				 &perf_count_ext.localLinkIntegrityErrors);
++		mad_encode_field(pc, IB_PC_EXT_ERR_EXCESS_OVR_F,
++				 &perf_count_ext.excessiveBufferOverrunErrors);
++		mad_encode_field(pc, IB_PC_EXT_VL15_DROPPED_F,
++				 &perf_count_ext.VL15Dropped);
++		mad_encode_field(pc, IB_PC_EXT_XMT_WAIT_F,
++				 &perf_count_ext.portXmitWait);
++		mad_encode_field(pc, IB_PC_EXT_QP1_DROP_F,
++				 &perf_count_ext.QP1Dropped);
++	}
++
+ 	mad_dump_perfcounters_ext(buf, sizeof buf, pc, sizeof pc);
+ 
+-	printf("# Port extended counters: %s port %d (CapMask: 0x%02X)\n%s",
+-	       portid2str(portid), ALL_PORTS, ntohs(cap_mask), buf);
++	printf("# Port extended counters: %s port %d (CapMask: 0x%02X CapMask2: 0x%07X)\n%s",
++	       portid2str(portid), ALL_PORTS, ntohs(cap_mask), cap_mask2, buf);
+ }
+ 
+ static void dump_perfcounters(int extended, int timeout, uint16_t cap_mask,
+			      uint32_t cap_mask2, ib_portid_t * portid,
+			      int port, int aggregate)
+ {
+-	char buf[1024];
++	char buf[1536];
+ 
+ 	if (extended != 1) {
+ 		memset(pc, 0, sizeof(pc));
+@@ -335,7 +419,7 @@ static void dump_perfcounters(int extended, int timeout, uint16_t cap_mask,
+ 				   IB_GSI_PORT_COUNTERS_EXT, srcport))
+ 			IBEXIT("perfextquery");
+ 		if (aggregate)
+-			aggregate_perfcounters_ext(cap_mask);
++			aggregate_perfcounters_ext(cap_mask, cap_mask2);
+ 		else
+ 			mad_dump_perfcounters_ext(buf, sizeof buf, pc,
+ 						  sizeof pc);
+@@ -951,7 +1041,7 @@ int main(int argc, char **argv)
+ 							      cap_mask);
+ 			else
+ 				output_aggregate_perfcounters_ext(&portid,
+-								  cap_mask);
++								  cap_mask, cap_mask2);
+ 		}
+ 	} else if (ports_count > 1) {
+ 		for (i = 0; i < ports_count; i++)
+@@ -964,7 +1054,7 @@ int main(int argc, char **argv)
+ 							      cap_mask);
+ 			else
+ 				output_aggregate_perfcounters_ext(&portid,
+-								  cap_mask);
++								  cap_mask, cap_mask2);
+ 		}
+ 	} else
+		dump_perfcounters(extended, ibd_timeout, cap_mask, cap_mask2,
+@@ -977,6 +1067,14 @@ do_reset:
+ 	if (argc <= 2 && !extended && (cap_mask & IB_PM_PC_XMIT_WAIT_SUP))
+ 		mask |= (1 << 16);	/* reset portxmitwait */
+ 
++	if (extended) {
++		mask |= 0xfff0000;
++		if (cap_mask & IB_PM_PC_XMIT_WAIT_SUP)
++			mask |= (1 << 28);
++		if (cap_mask & IB_PM_IS_QP1_DROP_SUP)
++			mask |= (1 << 29);
++	}
++
+ 	if (all_ports_loop || (loop_ports && (all_ports || port == ALL_PORTS))) {
+ 		for (i = start_port; i <= num_ports; i++)
+ 			reset_counters(extended, ibd_timeout, mask, &portid, i);
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
