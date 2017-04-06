@@ -1,38 +1,117 @@
-From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: Re: IB/qib: Adjust two size determinations in qib_init_pportdata()
-Date: Thu, 6 Apr 2017 22:33:00 +0200
-Message-ID: <8991d27a-0b8d-70f5-81d2-c830c3dd6f78@users.sourceforge.net>
-References: <c16b18ac-287f-5faf-b79a-c86e2adfa22c@users.sourceforge.net>
- <b5bc4160-aace-b919-7fe2-a4742d03c4ba@users.sourceforge.net>
- <20170405143242.GB5006@yuval-lap>
- <523b0864-e655-ed1f-8fe5-5995e0b0bde1@users.sourceforge.net>
- <20170405151525.GA5519@yuval-lap>
- <c3885f83-8239-e21d-74fc-bf4fe03dd5dc@users.sourceforge.net>
- <20170406194823.GA28301@yuval-lap>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [Qemu-devel] [PATCH RFC] hw/pvrdma: Proposal of a new pvrdma
+ device
+Date: Thu, 6 Apr 2017 14:38:23 -0600
+Message-ID: <20170406203823.GB25893@obsidianresearch.com>
+References: <1490872341-9959-1-git-send-email-marcel@redhat.com>
+ <20170330141314.GM20443@mtr-leonro.local>
+ <5e952524-7c2d-b4da-4bd7-6437830a40d8@redhat.com>
+ <f7f3fc0e-0a75-2fdc-b3c2-6c3d34ff2978@redhat.com>
+ <20170403062314.GO20443@mtr-leonro.local>
+ <aa400244-426a-ea62-0ccf-ac5adb76fdd1@redhat.com>
+ <20170404160155.GA1750@obsidianresearch.com>
+ <20170406194218.GA2170@yuval-lap>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170406194823.GA28301@yuval-lap>
-Content-Language: en-GB
+Content-Disposition: inline
+In-Reply-To: <20170406194218.GA2170@yuval-lap>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->> How do you think about to take another look at remaining update candidates
->> at other source code places for this Linux module?
+On Thu, Apr 06, 2017 at 10:42:20PM +0300, Yuval Shaia wrote:
+
+> > I'd rather see someone optimize the loopback path of soft roce than
+> > see KDBR :)
 > 
-> You mean the other patches in this patch-set?
+> Can we assume that the optimized loopback path will be as fast as direct
+> copy between one VM address space to another VM address space?
 
-Partly, yes. - Do you care for adjustments around numbered jump labels
-(and suggestions from the script "checkpatch.pl") for example?
+Well, you'd optimize it until it was a direct memory copy, so I think
+that is a reasonable starting assumption.
 
-Will it be more important to check return values from all calls of a function
-like "kmalloc" in related source files?
+> > > 3. Our intention is for KDBR to be used in other contexts as well when we need
+> > >    inter VM data exchange, e.g. backend for virtio devices. We didn't see how this
+> > >    kind of requirement can be implemented inside SoftRoce as we don't see any
+> > >    connection between them.
+> > 
+> > KDBR looks like weak RDMA to me, so it is reasonable question why not
+> > use full RDMA with loopback optimization instead of creating something
+> > unique.
+> 
+> True, KDBR exposes RDMA-like API because it's sole user is currently
+> pvrdma device.  But, by design it can be expand to support other
+> clients for example virtio device which might have other attributes,
+> can we expect the same from SoftRoCE?
 
-Regards,
-Markus
+RDMA handles all sorts of complex virtio-like protocols just
+fine. Unclear what 'other attributes' would be. Sounds like over
+designing??
+
+> > IMHO, it also makes more sense for something like KDBR to live as a
+> > RDMA transport, not as a unique char device, it is obviously very
+> > RDMA-like.
+> 
+> Can you elaborate more on this?
+> What exactly it will solve?
+> How it will be better than kdbr?
+
+If you are going to do RDMA, then the uAPI for it from the kernel
+should be the RDMA subsystem, don't invent unique cdevs that overlap
+established kernel functionality without a very, very good reason.
+
+> > .. and the char dev really can't be used when implementing user space
+> > RDMA, that would just make a big mess..
+> 
+> The position of kdbr is not to be a layer *between* user space and device -
+> it is *the device* from point of view of the process.
+
+Any RDMA device built on top of kdbr certainly needs to support
+/dev/uverbs0 and all the usual RDMA stuff, so again, I fail to see the
+point of the special cdev.. Trying to mix /dev/uverbs0 and /dev/kdbr
+in your provider would be too goofy and weird.
+
+> > But obviously if you connect pvrdma to real hardware then the page pin
+> > comes back.
+> 
+> The fact that page pin is not needed with Soft RoCE device but is needed
+> with real RoCE device is exactly where kdbr can help as it isolates this
+> fact from user space process.
+
+I don't see how KDBR helps at all.
+
+To do virtual RDMA you must transfer RDMA objects and commands
+unmodified from VM to HV and implement a fairly complicated SW stack
+inside the HV.
+
+Once you do that, micro-optimizing for same-machine VM-to-VM copy is
+not really such a big deal, IMHO.
+
+The big challenge is keeping the real HW (or softrocee) RDMA objects
+in sync with the VM ones and implementing some kind of RDMA-in-RDMA
+tunnel to enable migration when using today's HW offload.
+
+I see nothing in kdbr that helps with any of this. All it seems to do
+is obfuscate the transfer of RDMA objects and commands to the
+hypervisor, and make the transition of a RDMA channel from loopback to
+network far, far, more complicated.
+
+> Sorry, we didn't mean "easy" but "simple", and simplest solutions
+> are always preferred.  IMHO, currently there is no good solution to
+> do data copy between two VMs.
+
+Don't confuse 'simple' with under featured. :)
+
+> Can you comment on the second point - migration? Please note that we need
+> it to work both with Soft RoCE and with real device.
+
+I don't see how kdbr helps with migration, you still have to setup the
+HW NIC and that needs sharing all the RDMA centric objects from VM to
+HV.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
