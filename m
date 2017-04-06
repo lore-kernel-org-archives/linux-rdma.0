@@ -1,241 +1,101 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv2 infiniband-diags 2/3] perfquery.c: Add support for
- additional counters in PortCountersExtended
-Date: Thu, 6 Apr 2017 08:34:39 -0400
-Message-ID: <7d53f135-fb47-db26-1855-8a953ae32658@dev.mellanox.co.il>
+From: Leon Romanovsky <leon-2ukJVAZIZ/Y@public.gmane.org>
+Subject: Re: [PATCH v2 19/20] IB/rdmavt, IB/qib, IB/hfi1: Make percpu
+ refcount optional for user MRs
+Date: Thu, 6 Apr 2017 15:37:26 +0300
+Message-ID: <20170406123726.GH2269@mtr-leonro.local>
+References: <20170321001900.28538.38175.stgit@scvm10.sc.intel.com>
+ <20170321002631.28538.2121.stgit@scvm10.sc.intel.com>
+ <1491417489.2923.6.camel@redhat.com>
+ <f008c532-340e-01f2-80e6-4bea74175e3e@intel.com>
+ <CALq1K=JsjSCiSBeZVe4kHQmjw7tznL36JcsamZTVGZ5RhBvZPw@mail.gmail.com>
+ <32E1700B9017364D9B60AED9960492BC342EA858@fmsmsx120.amr.corp.intel.com>
+ <20170406074955.GG2269@mtr-leonro.local>
+ <8cdf2fbb-f2a9-0b4b-b144-397ee73d1569@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="hcut4fGOf7Kh6EdG"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <8cdf2fbb-f2a9-0b4b-b144-397ee73d1569-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Oded Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Oded Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Support aggregation when AllPortSelect is not supported
-and reset of those counters.
+--hcut4fGOf7Kh6EdG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Oded Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-Change since v1:
-Increase buffer size
+On Thu, Apr 06, 2017 at 07:45:16AM -0400, Dennis Dalessandro wrote:
+> On 04/06/2017 03:49 AM, Leon Romanovsky wrote:
+> > On Wed, Apr 05, 2017 at 08:09:16PM +0000, Marciniszyn, Mike wrote:
+> > >  > Is there a another way we should be looking at for setting things like this?
+> > > >
+> > > > Use vendor channel interface to configure your driver.
+> > > >
+> > >
+> > > What is that? configfs or something else?
+> >
+> > An immediate answer without digging into your code is Matan's KABI work.
+> > https://github.com/matanb10/linux/tree/abi-devel-latest
+>
+> Until that code is formally accepted and actually in the kernel we can't
+> base our changes that are ready to go now (for 4.12) on it.
 
-diff --git a/include/ibdiag_common.h b/include/ibdiag_common.h
-index 587dcfe..08bbf6b 100644
---- a/include/ibdiag_common.h
-+++ b/include/ibdiag_common.h
-@@ -81,6 +81,15 @@ extern char *ibd_nd_format;
- #define IS_PM_RSFEC_COUNTERS_SUP (CL_HTON16(((uint16_t)1)<<14))
- #endif
- 
-+#ifndef IB_PM_IS_QP1_DROP_SUP
-+#define IB_PM_IS_QP1_DROP_SUP (CL_HTON16(((uint16_t)1)<<15))
-+#endif
-+
-+/* PM ClassPortInfo CapabilityMask2 Bits */
-+#ifndef IB_PM_IS_ADDL_PORT_CTRS_EXT_SUP
-+#define IB_PM_IS_ADDL_PORT_CTRS_EXT_SUP (CL_HTON32(((uint32_t)1)<<1))
-+#endif
-+
- /* SM PortInfo CapabilityMask2 Bits */
- #ifndef IB_PORT_CAP2_IS_PORT_INFO_EXT_SUPPORTED
- #define IB_PORT_CAP2_IS_PORT_INFO_EXT_SUPPORTED (CL_HTON16(0x0002))
-diff --git a/src/perfquery.c b/src/perfquery.c
-index 948ce52..384c116 100644
---- a/src/perfquery.c
-+++ b/src/perfquery.c
-@@ -85,13 +85,30 @@ struct perf_count_ext {
- 	uint64_t portunicastrcvpkts;
- 	uint64_t portmulticastxmitpkits;
- 	uint64_t portmulticastrcvpkts;
-+
-+	uint32_t counterSelect2;
-+	uint64_t symbolErrorCounter;
-+	uint64_t linkErrorRecoveryCounter;
-+	uint64_t linkDownedCounter;
-+	uint64_t portRcvErrors;
-+	uint64_t portRcvRemotePhysicalErrors;
-+	uint64_t portRcvSwitchRelayErrors;
-+	uint64_t portXmitDiscards;
-+	uint64_t portXmitConstraintErrors;
-+	uint64_t portRcvConstraintErrors;
-+	uint64_t localLinkIntegrityErrors;
-+	uint64_t excessiveBufferOverrunErrors;
-+	uint64_t VL15Dropped;
-+	uint64_t portXmitWait;
-+	uint64_t QP1Dropped;
- };
- 
- static uint8_t pc[1024];
- 
- struct perf_count perf_count =
-     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
--struct perf_count_ext perf_count_ext = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-+struct perf_count_ext perf_count_ext =
-+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
- 
- #define ALL_PORTS 0xFF
- #define MAX_PORTS 255
-@@ -228,7 +245,7 @@ static void output_aggregate_perfcounters(ib_portid_t * portid,
- 	       portid2str(portid), ALL_PORTS, ntohs(cap_mask), buf);
- }
- 
--static void aggregate_perfcounters_ext(uint16_t cap_mask)
-+static void aggregate_perfcounters_ext(uint16_t cap_mask, uint32_t cap_mask2)
- {
- 	uint32_t val;
- 	uint64_t val64;
-@@ -256,15 +273,48 @@ static void aggregate_perfcounters_ext(uint16_t cap_mask)
- 		mad_decode_field(pc, IB_PC_EXT_RCV_MPKTS_F, &val64);
- 		aggregate_64bit(&perf_count_ext.portmulticastrcvpkts, val64);
- 	}
-+
-+	if (htonl(cap_mask2) & IB_PM_IS_ADDL_PORT_CTRS_EXT_SUP) {
-+		mad_decode_field(pc, IB_PC_EXT_COUNTER_SELECT2_F, &val);
-+		perf_count_ext.counterSelect2 = val;
-+		mad_decode_field(pc, IB_PC_EXT_ERR_SYM_F, &val64);
-+		aggregate_64bit(&perf_count_ext.symbolErrorCounter, val64);
-+		mad_decode_field(pc, IB_PC_EXT_LINK_RECOVERS_F, &val64);
-+		aggregate_64bit(&perf_count_ext.linkErrorRecoveryCounter, val64);
-+		mad_decode_field(pc, IB_PC_EXT_LINK_DOWNED_F, &val64);
-+		aggregate_64bit(&perf_count_ext.linkDownedCounter, val64);
-+		mad_decode_field(pc, IB_PC_EXT_ERR_RCV_F, &val64);
-+		aggregate_64bit(&perf_count_ext.portRcvErrors, val64);
-+		mad_decode_field(pc, IB_PC_EXT_ERR_PHYSRCV_F, &val64);
-+		aggregate_64bit(&perf_count_ext.portRcvRemotePhysicalErrors, val64);
-+		mad_decode_field(pc, IB_PC_EXT_ERR_SWITCH_REL_F, &val64);
-+		aggregate_64bit(&perf_count_ext.portRcvSwitchRelayErrors, val64);
-+		mad_decode_field(pc, IB_PC_EXT_XMT_DISCARDS_F, &val64);
-+		aggregate_64bit(&perf_count_ext.portXmitDiscards, val64);
-+		mad_decode_field(pc, IB_PC_EXT_ERR_XMTCONSTR_F, &val64);
-+		aggregate_64bit(&perf_count_ext.portXmitConstraintErrors, val64);
-+		mad_decode_field(pc, IB_PC_EXT_ERR_RCVCONSTR_F, &val64);
-+		aggregate_64bit(&perf_count_ext.portRcvConstraintErrors, val64);
-+		mad_decode_field(pc, IB_PC_EXT_ERR_LOCALINTEG_F, &val64);
-+		aggregate_64bit(&perf_count_ext.localLinkIntegrityErrors, val64);
-+		mad_decode_field(pc, IB_PC_EXT_ERR_EXCESS_OVR_F, &val64);
-+		aggregate_64bit(&perf_count_ext.excessiveBufferOverrunErrors, val64);
-+		mad_decode_field(pc, IB_PC_EXT_VL15_DROPPED_F, &val64);
-+		aggregate_64bit(&perf_count_ext.VL15Dropped, val64);
-+		mad_decode_field(pc, IB_PC_EXT_XMT_WAIT_F, &val64);
-+		aggregate_64bit(&perf_count_ext.portXmitWait, val64);
-+		mad_decode_field(pc, IB_PC_EXT_QP1_DROP_F, &val64);
-+		aggregate_64bit(&perf_count_ext.QP1Dropped, val64);
-+	}
- }
- 
- static void output_aggregate_perfcounters_ext(ib_portid_t * portid,
--					      uint16_t cap_mask)
-+					      uint16_t cap_mask, uint32_t cap_mask2)
- {
--	char buf[1024];
-+	char buf[1536];
- 	uint32_t val = ALL_PORTS;
- 
--	memset(buf, 0, 1024);
-+	memset(buf, 0, sizeof(buf));
- 
- 	/* set port_select to 255 to emulate AllPortSelect */
- 	mad_encode_field(pc, IB_PC_EXT_PORT_SELECT_F, &val);
-@@ -289,17 +339,50 @@ static void output_aggregate_perfcounters_ext(ib_portid_t * portid,
- 				 &perf_count_ext.portmulticastrcvpkts);
- 	}
- 
-+	if (htonl(cap_mask2) & IB_PM_IS_ADDL_PORT_CTRS_EXT_SUP) {
-+		mad_encode_field(pc, IB_PC_EXT_COUNTER_SELECT2_F,
-+				 &perf_count_ext.counterSelect2);
-+		mad_encode_field(pc, IB_PC_EXT_ERR_SYM_F,
-+				 &perf_count_ext.symbolErrorCounter);
-+		mad_encode_field(pc, IB_PC_EXT_LINK_RECOVERS_F,
-+				 &perf_count_ext.linkErrorRecoveryCounter);
-+		mad_encode_field(pc, IB_PC_EXT_LINK_DOWNED_F,
-+				 &perf_count_ext.linkDownedCounter);
-+		mad_encode_field(pc, IB_PC_EXT_ERR_RCV_F,
-+				 &perf_count_ext.portRcvErrors);
-+		mad_encode_field(pc, IB_PC_EXT_ERR_PHYSRCV_F,
-+				 &perf_count_ext.portRcvRemotePhysicalErrors);
-+		mad_encode_field(pc, IB_PC_EXT_ERR_SWITCH_REL_F,
-+				 &perf_count_ext.portRcvSwitchRelayErrors);
-+		mad_encode_field(pc, IB_PC_EXT_XMT_DISCARDS_F,
-+				 &perf_count_ext.portXmitDiscards);
-+		mad_encode_field(pc, IB_PC_EXT_ERR_XMTCONSTR_F,
-+				 &perf_count_ext.portXmitConstraintErrors);
-+		mad_encode_field(pc, IB_PC_EXT_ERR_RCVCONSTR_F,
-+				 &perf_count_ext.portRcvConstraintErrors);
-+		mad_encode_field(pc, IB_PC_EXT_ERR_LOCALINTEG_F,
-+				 &perf_count_ext.localLinkIntegrityErrors);
-+		mad_encode_field(pc, IB_PC_EXT_ERR_EXCESS_OVR_F,
-+				 &perf_count_ext.excessiveBufferOverrunErrors);
-+		mad_encode_field(pc, IB_PC_EXT_VL15_DROPPED_F,
-+				 &perf_count_ext.VL15Dropped);
-+		mad_encode_field(pc, IB_PC_EXT_XMT_WAIT_F,
-+				 &perf_count_ext.portXmitWait);
-+		mad_encode_field(pc, IB_PC_EXT_QP1_DROP_F,
-+				 &perf_count_ext.QP1Dropped);
-+	}
-+
- 	mad_dump_perfcounters_ext(buf, sizeof buf, pc, sizeof pc);
- 
--	printf("# Port extended counters: %s port %d (CapMask: 0x%02X)\n%s",
--	       portid2str(portid), ALL_PORTS, ntohs(cap_mask), buf);
-+	printf("# Port extended counters: %s port %d (CapMask: 0x%02X CapMask2: 0x%07X)\n%s",
-+	       portid2str(portid), ALL_PORTS, ntohs(cap_mask), cap_mask2, buf);
- }
- 
- static void dump_perfcounters(int extended, int timeout, uint16_t cap_mask,
-			      uint32_t cap_mask2, ib_portid_t * portid,
-			      int port, int aggregate)
- {
--	char buf[1024];
-+	char buf[1536];
- 
- 	if (extended != 1) {
- 		memset(pc, 0, sizeof(pc));
-@@ -335,7 +419,7 @@ static void dump_perfcounters(int extended, int timeout, uint16_t cap_mask,
- 				   IB_GSI_PORT_COUNTERS_EXT, srcport))
- 			IBEXIT("perfextquery");
- 		if (aggregate)
--			aggregate_perfcounters_ext(cap_mask);
-+			aggregate_perfcounters_ext(cap_mask, cap_mask2);
- 		else
- 			mad_dump_perfcounters_ext(buf, sizeof buf, pc,
- 						  sizeof pc);
-@@ -951,7 +1041,7 @@ int main(int argc, char **argv)
- 							      cap_mask);
- 			else
- 				output_aggregate_perfcounters_ext(&portid,
--								  cap_mask);
-+								  cap_mask, cap_mask2);
- 		}
- 	} else if (ports_count > 1) {
- 		for (i = 0; i < ports_count; i++)
-@@ -964,7 +1054,7 @@ int main(int argc, char **argv)
- 							      cap_mask);
- 			else
- 				output_aggregate_perfcounters_ext(&portid,
--								  cap_mask);
-+								  cap_mask, cap_mask2);
- 		}
- 	} else
-		dump_perfcounters(extended, ibd_timeout, cap_mask, cap_mask2,
-@@ -977,6 +1067,14 @@ do_reset:
- 	if (argc <= 2 && !extended && (cap_mask & IB_PM_PC_XMIT_WAIT_SUP))
- 		mask |= (1 << 16);	/* reset portxmitwait */
- 
-+	if (extended) {
-+		mask |= 0xfff0000;
-+		if (cap_mask & IB_PM_PC_XMIT_WAIT_SUP)
-+			mask |= (1 << 28);
-+		if (cap_mask & IB_PM_IS_QP1_DROP_SUP)
-+			mask |= (1 << 29);
-+	}
-+
- 	if (all_ports_loop || (loop_ports && (all_ports || port == ALL_PORTS))) {
- 		for (i = start_port; i <= num_ports; i++)
- 			reset_counters(extended, ibd_timeout, mask, &portid, i);
+And we can't accept module parameters. I already presented my setup,
+which I know in use by many people. Standalone kernel with everything
+compiled in, everything runs in read-only small image without distro bloat.
+it gives very small footprint, very fast execution and system
+protection.
+
+In such case, we'll be required to rebuild whole image to update command
+line for one module parameter and we will need to do it just for
+specific application, which is insane.
+
+I'm glad that you realize now the importance of Matan's work and how it
+can help overcome your current problems, You (Intel) are invited to help
+him to make it faster.
+
+>
+> > However, I have an question, how do you ensure that user memory has no
+> > users without refcounts? Will it be possible to dereg the memory despite
+> > the fact that there are users?
+>
+> Mike can correct me if I'm wrong but it is still refcounted. Just not per
+> CPU, global if you will.
+
+IMHO, global will be always more expensive than percpu, due to locality.
+However your patch presents different picture. You are claiming that removing
+percpu_refcnt and leaving global will make work faster. How will it be?
+
+Thanks
+
+>
+> -Denny
+>
+
+--hcut4fGOf7Kh6EdG
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljmNoUACgkQ5GN7iDZy
+WKed7BAAp94cJEVZ7MsUHFqXnkkZt8U6o2cauWFHT0g4/3liMluovIYUVtu7Xt1+
+OhuNZP18yX2pMwq+pdTc6v3AcNvHnlXaKyph+O9BRtQvq7IByXM6lg2VbiWWwv0/
+IJwBd683Y+uynNc5ag/UWUjYABwgBMx5Qff/dxz6futkUKagX8sA9pL1L5hO29o7
+ebPC3/7i/eeNY3Uf95vZMsC5nge1fMQA5p30SAO5Rf80EDpXHrk1jf2c5UTl8N5J
+XivVACw3h5FGKdqjwi9KyrRwBO3UctqhgfTIgl9Yu7zmx0BaVTam+6U7SGQKr89r
+Rs0SEH0e/KE5TzZ7Bo+br45jJlpM0sPyV3xZkVLFHnKkiPHVGv5x8v3+68VR2geI
+rSqmEcCUVDI0FEQ0Ai1Lo5vBdvZeUltx7KHzqKHHX0K4vDjLTdSfrJAvWO3InKVd
+Ea+bYMWOMkKj/ojoBParNEjPeafb6+rQOr2RBN/3W9bxGoAjMvKHXS4Kv8ZniMW7
+LVDb4/L47Mi7WOb2/HPaMe01BXniDOYIrfvnZhK2ZfZfjJbeto817oZb1Yi6W/R5
+ld693LK4jy1HTsatff/hxf2t7A/j9K9pQgYMNRCWZg4S+fpjXkU8g/Jdv81XfIv6
+qFYq37q09LoVnaQE+ll3qPG6GgL3/tYPUkL/CsHvuFD2CbzSDZ4=
+=Jrep
+-----END PGP SIGNATURE-----
+
+--hcut4fGOf7Kh6EdG--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
