@@ -1,56 +1,95 @@
-From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: [PATCH 2/9] IB/IPoIB: Delete an error message for a failed memory
- allocation
-Date: Fri, 7 Apr 2017 23:00:05 +0200
-Message-ID: <bb64e4e8-1ebd-c4dd-1da4-1041eb2bc63d@users.sourceforge.net>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 3/9] IB/IPoIB: Enclose six expressions for the sizeof operator
+ by parentheses
+Date: Fri, 7 Apr 2017 23:01:57 +0200
+Message-ID: <acd5a60c-cf71-e802-94c7-8b85ebe020ef@users.sourceforge.net>
 References: <ce4249f2-c7e7-0282-2cff-3f9c3991efa3@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ce4249f2-c7e7-0282-2cff-3f9c3991efa3-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <ce4249f2-c7e7-0282-2cff-3f9c3991efa3@users.sourceforge.net>
 Content-Language: en-GB
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Ahern <dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: kernel-janitors-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, David Ahern <dsa@cumulusnetworks.com>, Doug Ledford <dledford@redhat.com>, Erez Shitrit <erezsh@mellanox.com>, Feras Daoud <ferasda@mellanox.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Leon Romanovsky <leon@kernel.org>, Mark Bloch <markb@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Paolo Abeni <pabeni@redhat.com>, Roi Dayan <roid@mellanox.com>, Sagi Grimberg <sagi@grimberg.me>, Sean Hefty <sean.hefty@intel.com>, Yuval Shaia <yuval.shaia@oracle.com>, Zhu Yanjun <yanjun.zhu@oracle.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Date: Fri, 7 Apr 2017 19:23:55 +0200
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Fri, 7 Apr 2017 19:54:15 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
 The script "checkpatch.pl" pointed information out like the following.
 
-WARNING: Possible unnecessary 'out of memory' message
+WARNING: sizeof *… should be sizeof(*…)
 
-Thus remove such a statement here.
+Thus fix the affected source code places.
 
-Link: http://events.linuxfoundation.org/sites/events/files/slides/LCJ16-Refactor_Strings-WSang_0.pdf
-Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 3d3e49fb15b7..c5024c6d38e7 100644
+index c5024c6d38e7..446af4ec3d86 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1634,11 +1634,8 @@ int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
+@@ -581,7 +581,7 @@ struct ipoib_path_iter *ipoib_path_iter_init(struct net_device *dev)
+ {
+ 	struct ipoib_path_iter *iter;
+ 
+-	iter = kmalloc(sizeof *iter, GFP_KERNEL);
++	iter = kmalloc(sizeof(*iter), GFP_KERNEL);
+ 	if (!iter)
+ 		return NULL;
+ 
+@@ -864,7 +864,7 @@ static struct ipoib_path *path_rec_create(struct net_device *dev, void *gid)
+ 	if (!priv->broadcast)
+ 		return NULL;
+ 
+-	path = kzalloc(sizeof *path, GFP_ATOMIC);
++	path = kzalloc(sizeof(*path), GFP_ATOMIC);
+ 	if (!path)
+ 		return NULL;
+ 
+@@ -1161,7 +1161,7 @@ static int ipoib_hard_header(struct sk_buff *skb,
+ {
+ 	struct ipoib_header *header;
+ 
+-	header = (struct ipoib_header *) skb_push(skb, sizeof *header);
++	header = (struct ipoib_header *)skb_push(skb, sizeof(*header));
+ 
+ 	header->proto = htons(type);
+ 	header->reserved = 0;
+@@ -1329,7 +1329,7 @@ static struct ipoib_neigh *ipoib_neigh_ctor(u8 *daddr,
+ {
+ 	struct ipoib_neigh *neigh;
+ 
+-	neigh = kzalloc(sizeof *neigh, GFP_ATOMIC);
++	neigh = kzalloc(sizeof(*neigh), GFP_ATOMIC);
+ 	if (!neigh)
+ 		return NULL;
+ 
+@@ -1633,7 +1633,7 @@ int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
+ 	if (!priv->rx_ring)
  		goto out;
  
- 	priv->tx_ring = vzalloc(ipoib_sendq_size * sizeof *priv->tx_ring);
--	if (!priv->tx_ring) {
--		printk(KERN_WARNING "%s: failed to allocate TX ring (%d entries)\n",
--		       ca->name, ipoib_sendq_size);
-+	if (!priv->tx_ring)
+-	priv->tx_ring = vzalloc(ipoib_sendq_size * sizeof *priv->tx_ring);
++	priv->tx_ring = vzalloc(ipoib_sendq_size * sizeof(*priv->tx_ring));
+ 	if (!priv->tx_ring)
  		goto out_rx_ring_cleanup;
--	}
  
- 	/* priv->tx_head, tx_tail & tx_outstanding are already 0 */
+@@ -2132,7 +2132,7 @@ static void ipoib_add_one(struct ib_device *device)
+ 	int p;
+ 	int count = 0;
+ 
+-	dev_list = kmalloc(sizeof *dev_list, GFP_KERNEL);
++	dev_list = kmalloc(sizeof(*dev_list), GFP_KERNEL);
+ 	if (!dev_list)
+ 		return;
  
 -- 
 2.12.2
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
