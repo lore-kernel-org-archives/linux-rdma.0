@@ -1,38 +1,34 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 5/6] mlx4: Fix incorrect masking of g_mlpath_rqpn
-Date: Thu,  6 Apr 2017 16:42:24 -0600
-Message-ID: <1491518545-14746-6-git-send-email-jgunthorpe@obsidianresearch.com>
-References: <1491518545-14746-1-git-send-email-jgunthorpe@obsidianresearch.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/vmw_pvrdma: Spare annotate imm_data
+Date: Thu, 6 Apr 2017 18:17:40 -0700
+Message-ID: <c9d760af-2437-b377-3663-9df0973e542e@vmware.com>
+References: <20170406223314.GA3893@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1491518545-14746-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20170406223314.GA3893-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: VMware PV-Drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Two other places do this math and consensus is that MLX4_CQE_QPN_MASK
-is in host endian, so this math is wrong. Found by sparse.
+On Thu, Apr 06, 2017 at 4:33:14PM -0600, Jason Gunthorpe wrote:
+> imm_data is copied directly from the ib_send_wr and ib_wc which have
+> it marked as __be32, copy that mark into the uapi structures as well.
+> 
+> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> ---
+>  include/uapi/rdma/vmw_pvrdma-abi.h | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> This fixes sparse errors in user space and kernel space
+> 
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- providers/mlx4/cq.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks!
 
-diff --git a/providers/mlx4/cq.c b/providers/mlx4/cq.c
-index 01d103d983eb4d..844e4da1305c63 100644
---- a/providers/mlx4/cq.c
-+++ b/providers/mlx4/cq.c
-@@ -739,7 +739,7 @@ void __mlx4_cq_clean(struct mlx4_cq *cq, uint32_t qpn, struct mlx4_srq *srq)
- 		cqe = get_cqe(cq, prod_index & cq->ibv_cq.cqe);
- 		cqe += cqe_inc;
- 		if (srq && srq->ext_srq &&
--		    be32toh(cqe->g_mlpath_rqpn & MLX4_CQE_QPN_MASK) == srq->verbs_srq.srq_num &&
-+		    (be32toh(cqe->g_mlpath_rqpn) & MLX4_CQE_QPN_MASK) == srq->verbs_srq.srq_num &&
- 		    !(cqe->owner_sr_opcode & MLX4_CQE_IS_SEND_MASK)) {
- 			mlx4_free_srq_wqe(srq, be16toh(cqe->wqe_index));
- 			++nfreed;
--- 
-2.7.4
+Tested-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Acked-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
