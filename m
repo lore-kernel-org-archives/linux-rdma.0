@@ -1,60 +1,66 @@
-From: Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
-Subject: Re: [PATCH RFC] nvme-rdma: support devices with queue size < 32
-Date: Fri, 7 Apr 2017 15:31:56 +0200 (CEST)
-Message-ID: <1917497781.360337179.1491571916242.JavaMail.zimbra@kalray.eu>
-References: <1315914765.312051621.1490259849534.JavaMail.zimbra@kalray.eu> <80770042-743e-a271-c636-f72099f9ac56@grimberg.me> <9eb08168-18a6-a176-01df-b68b6a225963@redhat.com> <3505b835-d0ba-70cb-dfe8-1265fc2bbb83@redhat.com> <2ba93b5b-ad36-5533-36e2-9db2e3198c19@grimberg.me> <1121115847.336382032.1490883808617.JavaMail.zimbra@kalray.eu> <1224897571.353404199.1491481743295.JavaMail.zimbra@kalray.eu> <20170406130207.GI2269@mtr-leonro.local>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH] RDS: IB: ensure an initialized ret is printed in pr_warn
+ message
+Date: Fri, 7 Apr 2017 17:24:12 +0300
+Message-ID: <20170407142412.GA4471@mwanda>
+References: <20170407075723.9669-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170406130207.GI2269-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keith busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, axboe-b10kYP2dOMg@public.gmane.org, Samuel Jones <samuel.jones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170407075723.9669-1-colin.king@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Colin King <colin.king@canonical.com>, Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Cc: "David S . Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-> On Thu, Apr 06, 2017 at 02:29:03PM +0200, Marta Rybczynska wrote:
->> >>>> You say above "we post *up to* 2 work requests", unless you wish to
->> >>>> change that to "we always post at least 2 work requests per queue
->> >>>> entry", Jason is right, your frequency of signaling needs to be X/2
->> >>>> regardless of your CQ size, you need the signaling to control the queue
->> >>>> depth tracking.
->> >>>
->> >>> If you would like to spread things out farther between signaling, then
->> >>> you can modify your send routine to only increment the send counter for
->> >>> actual send requests, ignoring registration WQEs and invalidate WQES,
->> >>> and then signal every X/2 sends.
->> >>
->> >> Yea, you're right, and not only I got it wrong, I even contradicted my
->> >> own suggestion that was exactly what you and Jason suggested (where is
->> >> the nearest rat-hole...)
->> >>
->> >> So I suggested to signal every X/2 and Marta reported SQ overflows for
->> >> high queue-dpeth. Marta, at what queue-depth have you seen this?
->> >
->> > The remote side had queue depth of 16 or 32 and that's the WQ on the
->> > initiator side that overflows (mlx5_wq_overflow). We're testing with
->> > signalling X/2 and it seems to work.
->>
->> Update on the situation: the signalling on X/2 seems to work fine in
->> practice. To clarify more that's the send queue that overflows
->> (mlx5_wq_overflow in begin_wqe of drivers/infiniband/hw/mlx5/qp.c).
->>
->> However, I have still doubt how it's going to work in the case of
->> higher queue depths (i.e. the typical case). If we signal every X/2
->> we'll do it much more rarely than today (every 32 messages). I'm not
->> sure on the system effect this would have.
->>
->> Mellanox guys, do you have an idea what it might do?
-> 
-> It will continue to work as expected with long depths too.
-> All that you need is do not to forget to issue signal if queue is terminated.
-> 
+Setting it to zero doesn't seem like the right thing, it should be an
+error code.  Oh, heh...  Smatch parses this one correctly.  "ret" is
+always initialized but the code is probably buggy in a different way:
 
-Thanks Leon. I will then submit the v2.
+net/rds/ib_rdma.c
+   539  void *rds_ib_get_mr(struct scatterlist *sg, unsigned long nents,
+   540                      struct rds_sock *rs, u32 *key_ret)
+   541  {
+   542          struct rds_ib_device *rds_ibdev;
+   543          struct rds_ib_mr *ibmr = NULL;
+   544          struct rds_ib_connection *ic = rs->rs_conn->c_transport_data;
+   545          int ret;
+   546  
+   547          rds_ibdev = rds_ib_get_device(rs->rs_bound_addr);
+   548          if (!rds_ibdev) {
+   549                  ret = -ENODEV;
+   550                  goto out;
+   551          }
+   552  
+   553          if (!rds_ibdev->mr_8k_pool || !rds_ibdev->mr_1m_pool) {
+   554                  ret = -ENODEV;
+   555                  goto out;
+   556          }
+   557  
+   558          if (rds_ibdev->use_fastreg)
+   559                  ibmr = rds_ib_reg_frmr(rds_ibdev, ic, sg, nents, key_ret);
+   560          else
+   561                  ibmr = rds_ib_reg_fmr(rds_ibdev, sg, nents, key_ret);
+   562          if (ibmr)
+                    ^^^^
+This condition is always true because those functions return ERR_PTRs
+not NULLs.
 
-Marta
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+   563                  rds_ibdev = NULL;
+   564  
+   565   out:
+   566          if (!ibmr)
+                    ^^^^^
+This condition implies that "ret" is set to an error code.
+
+   567                  pr_warn("RDS/IB: rds_ib_get_mr failed (errno=%d)\n", ret);
+   568  
+   569          if (rds_ibdev)
+   570                  rds_ib_dev_put(rds_ibdev);
+   571  
+   572          return ibmr;
+   573  }
+
+regards,
+dan carpenter
