@@ -1,95 +1,98 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH 3/9] IB/IPoIB: Enclose six expressions for the sizeof operator
- by parentheses
-Date: Fri, 7 Apr 2017 23:01:57 +0200
-Message-ID: <acd5a60c-cf71-e802-94c7-8b85ebe020ef@users.sourceforge.net>
+From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: [PATCH 4/9] IB/IPoIB: Delete unwanted spaces behind usages of the
+ sizeof operator
+Date: Fri, 7 Apr 2017 23:03:35 +0200
+Message-ID: <3e97b74c-26fa-2965-fa3c-e0f96c62e46e@users.sourceforge.net>
 References: <ce4249f2-c7e7-0282-2cff-3f9c3991efa3@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <ce4249f2-c7e7-0282-2cff-3f9c3991efa3@users.sourceforge.net>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <ce4249f2-c7e7-0282-2cff-3f9c3991efa3-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Language: en-GB
-Sender: kernel-janitors-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, target-devel@vger.kernel.org, David Ahern <dsa@cumulusnetworks.com>, Doug Ledford <dledford@redhat.com>, Erez Shitrit <erezsh@mellanox.com>, Feras Daoud <ferasda@mellanox.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Leon Romanovsky <leon@kernel.org>, Mark Bloch <markb@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Paolo Abeni <pabeni@redhat.com>, Roi Dayan <roid@mellanox.com>, Sagi Grimberg <sagi@grimberg.me>, Sean Hefty <sean.hefty@intel.com>, Yuval Shaia <yuval.shaia@oracle.com>, Zhu Yanjun <yanjun.zhu@oracle.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Ahern <dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Fri, 7 Apr 2017 19:54:15 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Date: Fri, 7 Apr 2017 20:10:45 +0200
 
-The script "checkpatch.pl" pointed information out like the following.
+* Replace the source code "sizeof (" by "sizeof("
+  according to the Linux coding style convention.
 
-WARNING: sizeof *… should be sizeof(*…)
+* Adjust indentation at a few places.
 
-Thus fix the affected source code places.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index c5024c6d38e7..446af4ec3d86 100644
+index 446af4ec3d86..55581417eb43 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -581,7 +581,7 @@ struct ipoib_path_iter *ipoib_path_iter_init(struct net_device *dev)
- {
- 	struct ipoib_path_iter *iter;
+@@ -514,8 +514,7 @@ struct ipoib_path *__path_find(struct net_device *dev, void *gid)
+ 		path = rb_entry(n, struct ipoib_path, rb_node);
  
--	iter = kmalloc(sizeof *iter, GFP_KERNEL);
-+	iter = kmalloc(sizeof(*iter), GFP_KERNEL);
- 	if (!iter)
- 		return NULL;
+ 		ret = memcmp(gid, path->pathrec.dgid.raw,
+-			     sizeof (union ib_gid));
+-
++			     sizeof(union ib_gid));
+ 		if (ret < 0)
+ 			n = n->rb_left;
+ 		else if (ret > 0)
+@@ -540,7 +539,7 @@ static int __path_add(struct net_device *dev, struct ipoib_path *path)
+ 		tpath = rb_entry(pn, struct ipoib_path, rb_node);
  
-@@ -864,7 +864,7 @@ static struct ipoib_path *path_rec_create(struct net_device *dev, void *gid)
- 	if (!priv->broadcast)
- 		return NULL;
+ 		ret = memcmp(path->pathrec.dgid.raw, tpath->pathrec.dgid.raw,
+-			     sizeof (union ib_gid));
++			     sizeof(union ib_gid));
+ 		if (ret < 0)
+ 			n = &pn->rb_left;
+ 		else if (ret > 0)
+@@ -611,7 +610,7 @@ int ipoib_path_iter_next(struct ipoib_path_iter *iter)
+ 		path = rb_entry(n, struct ipoib_path, rb_node);
  
--	path = kzalloc(sizeof *path, GFP_ATOMIC);
-+	path = kzalloc(sizeof(*path), GFP_ATOMIC);
- 	if (!path)
- 		return NULL;
+ 		if (memcmp(iter->path.pathrec.dgid.raw, path->pathrec.dgid.raw,
+-			   sizeof (union ib_gid)) < 0) {
++			   sizeof(union ib_gid)) < 0) {
+ 			iter->path = *path;
+ 			ret = 0;
+ 			break;
+@@ -874,7 +873,7 @@ static struct ipoib_path *path_rec_create(struct net_device *dev, void *gid)
  
-@@ -1161,7 +1161,7 @@ static int ipoib_hard_header(struct sk_buff *skb,
- {
- 	struct ipoib_header *header;
+ 	INIT_LIST_HEAD(&path->neigh_list);
  
--	header = (struct ipoib_header *) skb_push(skb, sizeof *header);
-+	header = (struct ipoib_header *)skb_push(skb, sizeof(*header));
+-	memcpy(path->pathrec.dgid.raw, gid, sizeof (union ib_gid));
++	memcpy(path->pathrec.dgid.raw, gid, sizeof(union ib_gid));
+ 	path->pathrec.sgid	    = priv->local_gid;
+ 	path->pathrec.pkey	    = cpu_to_be16(priv->pkey);
+ 	path->pathrec.numb_path     = 1;
+@@ -1541,7 +1540,8 @@ void ipoib_del_neighs_by_gid(struct net_device *dev, u8 *gid)
+ 		while ((neigh = rcu_dereference_protected(*np,
+ 							  lockdep_is_held(&priv->lock))) != NULL) {
+ 			/* delete neighs belong to this parent */
+-			if (!memcmp(gid, neigh->daddr + 4, sizeof (union ib_gid))) {
++			if (!memcmp(gid, neigh->daddr + 4,
++				    sizeof(union ib_gid))) {
+ 				rcu_assign_pointer(*np,
+ 						   rcu_dereference_protected(neigh->hnext,
+ 									     lockdep_is_held(&priv->lock)));
+@@ -2060,7 +2060,8 @@ static struct net_device *ipoib_add_port(const char *format,
+ 		       hca->name, port, result);
+ 		goto device_init_failed;
+ 	} else
+-		memcpy(priv->dev->dev_addr + 4, priv->local_gid.raw, sizeof (union ib_gid));
++		memcpy(priv->dev->dev_addr + 4, priv->local_gid.raw,
++		       sizeof(union ib_gid));
+ 	set_bit(IPOIB_FLAG_DEV_ADDR_SET, &priv->flags);
  
- 	header->proto = htons(type);
- 	header->reserved = 0;
-@@ -1329,7 +1329,7 @@ static struct ipoib_neigh *ipoib_neigh_ctor(u8 *daddr,
- {
- 	struct ipoib_neigh *neigh;
- 
--	neigh = kzalloc(sizeof *neigh, GFP_ATOMIC);
-+	neigh = kzalloc(sizeof(*neigh), GFP_ATOMIC);
- 	if (!neigh)
- 		return NULL;
- 
-@@ -1633,7 +1633,7 @@ int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
- 	if (!priv->rx_ring)
- 		goto out;
- 
--	priv->tx_ring = vzalloc(ipoib_sendq_size * sizeof *priv->tx_ring);
-+	priv->tx_ring = vzalloc(ipoib_sendq_size * sizeof(*priv->tx_ring));
- 	if (!priv->tx_ring)
- 		goto out_rx_ring_cleanup;
- 
-@@ -2132,7 +2132,7 @@ static void ipoib_add_one(struct ib_device *device)
- 	int p;
- 	int count = 0;
- 
--	dev_list = kmalloc(sizeof *dev_list, GFP_KERNEL);
-+	dev_list = kmalloc(sizeof(*dev_list), GFP_KERNEL);
- 	if (!dev_list)
- 		return;
- 
+ 	result = ipoib_dev_init(priv->dev, hca, port);
 -- 
 2.12.2
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
