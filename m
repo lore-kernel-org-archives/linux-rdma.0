@@ -1,35 +1,49 @@
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH] RDS: IB: ensure an initialized ret is printed in pr_warn
- message
-Date: Fri, 7 Apr 2017 08:59:46 -0700
-Message-ID: <f3de73cb-f56a-9e6e-a39b-7cee16030b22@oracle.com>
-References: <20170407075723.9669-1-colin.king@canonical.com>
- <20170407142412.GA4471@mwanda>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core 0/6] More sparse cleanup
+Date: Fri, 07 Apr 2017 12:40:53 -0400
+Message-ID: <1491583253.2923.15.camel@redhat.com>
+References: <1491518545-14746-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20170407142412.GA4471@mwanda>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>, Colin King <colin.king@canonical.com>
-Cc: "David S . Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1491518545-14746-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/7/2017 7:24 AM, Dan Carpenter wrote:
-> Setting it to zero doesn't seem like the right thing, it should be an
-> error code.  Oh, heh...  Smatch parses this one correctly.  "ret" is
-> always initialized but the code is probably buggy in a different way:
->
+On Thu, 2017-04-06 at 16:42 -0600, Jason Gunthorpe wrote:
+> Have rxe, ipath, hfi1 and ocrdma enable sparse in travis.
+> 
+> The bug sparse noticed in mlx4 sure looks legit and odd it has
+> remained
+> undetected for so long.
+> 
+> Jason Gunthorpe (6):
+>   rxe: Use libc's IN6_IS_ADDR_V4MAPPED
+>   ipath/hfi: Enable sparse from travis
+>   ocrdma: Fix missing endian swap in debug print
+>   ocrdma: Add sparse annotations
+>   mlx4: Fix incorrect masking of g_mlpath_rqpn
+>   mlx4: Fix typo in byte swap direction
+> 
+>  CMakeLists.txt                  | 10 +++++-----
+>  providers/mlx4/cq.c             |  4 ++--
+>  providers/ocrdma/ocrdma_abi.h   | 39 ++++++++++++++++++++++++++-----
+> --------
+>  providers/ocrdma/ocrdma_verbs.c | 22 +++++++++++-----------
+>  providers/rxe/rxe.c             |  3 +--
+>  5 files changed, 45 insertions(+), 33 deletions(-)
 
-[...]
+Thanks, applied.
 
->    561                  ibmr = rds_ib_reg_fmr(rds_ibdev, sg, nents, key_ret);
->    562          if (ibmr)
->                     ^^^^
-> This condition is always true because those functions return ERR_PTRs
-> not NULLs.
->
-Thanks Dan. I will fix that up.
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+   
+Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
-Regards,
-Santosh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
