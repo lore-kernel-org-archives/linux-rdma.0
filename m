@@ -1,49 +1,61 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core 0/6] More sparse cleanup
-Date: Fri, 07 Apr 2017 12:40:53 -0400
-Message-ID: <1491583253.2923.15.camel@redhat.com>
-References: <1491518545-14746-1-git-send-email-jgunthorpe@obsidianresearch.com>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC 5/8] scatterlist: Modify SG copy functions to support io
+ memory.
+Date: Fri, 7 Apr 2017 11:59:20 -0600
+Message-ID: <6206d74b-b2e2-f1f7-5a9d-60f20d837374@deltatee.com>
+References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
+ <1490911959-5146-6-git-send-email-logang@deltatee.com>
+ <20170331070950.GA9059@infradead.org>
+ <435d4471-436b-87e6-8827-c9fc6cbdde2c@deltatee.com>
+ <445bc352-75d7-438f-96ef-c2411215628d@deltatee.com>
+ <CAPcyv4g=MHbjbY0GFPoLq3wAGwhcC7813O7iLUWGEChWh0M7Dw@mail.gmail.com>
+ <ff0dd5ec-2562-9f1d-1335-d0a8813f2f50@deltatee.com>
+ <CAPcyv4gx4g3Ry_A99yTodqwm2vH72oMSLKAKF7iEsmG5G4TcbQ@mail.gmail.com>
+ <22930db3-a194-8b60-5aab-4a8add1ddc55@deltatee.com>
+ <CAPcyv4gL=Z42x52So1iL-MNhPY67Pktz3c0J_h0tj_60TowNuQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1491518545-14746-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <CAPcyv4gL=Z42x52So1iL-MNhPY67Pktz3c0J_h0tj_60TowNuQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-04-06 at 16:42 -0600, Jason Gunthorpe wrote:
-> Have rxe, ipath, hfi1 and ocrdma enable sparse in travis.
-> 
-> The bug sparse noticed in mlx4 sure looks legit and odd it has
-> remained
-> undetected for so long.
-> 
-> Jason Gunthorpe (6):
->   rxe: Use libc's IN6_IS_ADDR_V4MAPPED
->   ipath/hfi: Enable sparse from travis
->   ocrdma: Fix missing endian swap in debug print
->   ocrdma: Add sparse annotations
->   mlx4: Fix incorrect masking of g_mlpath_rqpn
->   mlx4: Fix typo in byte swap direction
-> 
->  CMakeLists.txt                  | 10 +++++-----
->  providers/mlx4/cq.c             |  4 ++--
->  providers/ocrdma/ocrdma_abi.h   | 39 ++++++++++++++++++++++++++-----
-> --------
->  providers/ocrdma/ocrdma_verbs.c | 22 +++++++++++-----------
->  providers/rxe/rxe.c             |  3 +--
->  5 files changed, 45 insertions(+), 33 deletions(-)
+Hi Dan,
 
-Thanks, applied.
+On 03/04/17 06:07 PM, Dan Williams wrote:
+> The completely agnostic part is where I get worried, but I shouldn't
+> say anymore until I actually read the patch.The worry is cases where
+> this agnostic enabling allows unsuspecting code paths to do the wrong
+> thing. Like bypass iomem safety.
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-   
-Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+Yup, you're right the iomem safety issue is a really difficult problem.
+I think replacing struct page with pfn_t in a bunch of places is
+probably going to be a requirement for my work. However, this is going
+to be a very large undertaking.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I've done an audit of sg_page users and there will indeed be some
+difficult cases. However, I'm going to start doing some cleanup and
+semantic changes to hopefully move in that direction. The first step
+I've chosen to look at is to create an sg_kmap interface which replaces
+about 77 (out of ~340) sg_page users. I'm hoping the new interface can
+have the semantic that sg_kmap can fail (which would happen in the case
+that no suitable page exists).
+
+Eventually, I'd want to get to a place where sg_page either doesn't
+exists or can fail and is always checked. At that point swapping out
+pfn_t in the sgl would be manageable.
+
+Thoughts?
+
+Logan
