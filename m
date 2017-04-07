@@ -1,61 +1,44 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC 5/8] scatterlist: Modify SG copy functions to support io
- memory.
-Date: Fri, 7 Apr 2017 11:59:20 -0600
-Message-ID: <6206d74b-b2e2-f1f7-5a9d-60f20d837374@deltatee.com>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
- <1490911959-5146-6-git-send-email-logang@deltatee.com>
- <20170331070950.GA9059@infradead.org>
- <435d4471-436b-87e6-8827-c9fc6cbdde2c@deltatee.com>
- <445bc352-75d7-438f-96ef-c2411215628d@deltatee.com>
- <CAPcyv4g=MHbjbY0GFPoLq3wAGwhcC7813O7iLUWGEChWh0M7Dw@mail.gmail.com>
- <ff0dd5ec-2562-9f1d-1335-d0a8813f2f50@deltatee.com>
- <CAPcyv4gx4g3Ry_A99yTodqwm2vH72oMSLKAKF7iEsmG5G4TcbQ@mail.gmail.com>
- <22930db3-a194-8b60-5aab-4a8add1ddc55@deltatee.com>
- <CAPcyv4gL=Z42x52So1iL-MNhPY67Pktz3c0J_h0tj_60TowNuQ@mail.gmail.com>
+From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: [PATCH 0/9] InfiniBand-ULP: Fine-tuning for several function
+ implementations
+Date: Fri, 7 Apr 2017 22:54:24 +0200
+Message-ID: <ce4249f2-c7e7-0282-2cff-3f9c3991efa3@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAPcyv4gL=Z42x52So1iL-MNhPY67Pktz3c0J_h0tj_60TowNuQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-GB
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Ahern <dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Dan,
+From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Date: Fri, 7 Apr 2017 22:34:32 +0200
 
-On 03/04/17 06:07 PM, Dan Williams wrote:
-> The completely agnostic part is where I get worried, but I shouldn't
-> say anymore until I actually read the patch.The worry is cases where
-> this agnostic enabling allows unsuspecting code paths to do the wrong
-> thing. Like bypass iomem safety.
+Some update suggestions were taken into account
+from static source code analysis.
 
-Yup, you're right the iomem safety issue is a really difficult problem.
-I think replacing struct page with pfn_t in a bunch of places is
-probably going to be a requirement for my work. However, this is going
-to be a very large undertaking.
+Markus Elfring (9):
+  IPoIB: Use kcalloc() in two functions
+  IPoIB: Delete an error message for a failed memory allocation
+  IPoIB: Enclose six expressions for the sizeof operator by parentheses
+  IPoIB: Delete unwanted spaces behind usages of the sizeof operator
+  IPoIB: Combine substrings for three messages
+  iser: Use kmalloc_array() in iser_alloc_rx_descriptors()
+  iser: Add spaces for better code readability
+  isert: Use kcalloc() in isert_alloc_rx_descriptors()
+  isert: Improve size determinations in three functions
 
-I've done an audit of sg_page users and there will indeed be some
-difficult cases. However, I'm going to start doing some cleanup and
-semantic changes to hopefully move in that direction. The first step
-I've chosen to look at is to create an sg_kmap interface which replaces
-about 77 (out of ~340) sg_page users. I'm hoping the new interface can
-have the semantic that sg_kmap can fail (which would happen in the case
-that no suitable page exists).
+ drivers/infiniband/ulp/ipoib/ipoib_main.c    | 49 ++++++++++++++--------------
+ drivers/infiniband/ulp/iser/iser_initiator.c | 11 ++++---
+ drivers/infiniband/ulp/isert/ib_isert.c      | 11 ++++---
+ 3 files changed, 36 insertions(+), 35 deletions(-)
 
-Eventually, I'd want to get to a place where sg_page either doesn't
-exists or can fail and is always checked. At that point swapping out
-pfn_t in the sgl would be manageable.
+-- 
+2.12.2
 
-Thoughts?
-
-Logan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
