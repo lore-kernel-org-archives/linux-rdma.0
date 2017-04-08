@@ -1,42 +1,34 @@
-From: Heiner Lesaar <heiner.lesaar-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
-Subject: ib-iser - 4k IO req size only
-Date: Sat, 8 Apr 2017 11:59:07 +0200
-Message-ID: <704B9754-E679-41F3-80D7-0D783B53ADC8@googlemail.com>
-Mime-Version: 1.0 (1.0)
-Content-Type: text/plain;
-        charset=us-ascii
-Content-Transfer-Encoding: quoted-printable
+From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Subject: [PATCH 0/3] InfiniBand-SRP: Fine-tuning for some function
+ implementations
+Date: Sat, 8 Apr 2017 14:10:10 +0200
+Message-ID: <50db1f1d-b689-1a9d-f6dd-a0f55169c75a@users.sourceforge.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-GB
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Dear all,
+From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Date: Sat, 8 Apr 2017 14:04:04 +0200
 
-I use SCST 3.3.0  and ISCSI-SCST on CentOS7.3 (stock kernel) w. in-tree RDMA=
-  and Mellanox ConnectX-4 cards (no OFED packages) on the target.
+A few update suggestions were taken into account
+from static source code analysis.
 
-Same hardware / software on the initiator (w. open-iscsi and ib-iser, no OFE=
-D as well).
+Markus Elfring (3):
+  Use kmalloc_array() in srp_alloc_req_data()
+  Enclose 14 expressions for the sizeof operator by parentheses
+  Delete unwanted spaces behind usages of the sizeof operator
 
-When using iSer as the transport layer, all read and write requests from the=
- connected initiator to the target devices are always exactly 4kb (checked w=
-. e.g. "iostat -xm 2"), which harms the performance of large IO a lot obviou=
-sly.=20
+ drivers/infiniband/ulp/srp/ib_srp.c | 59 +++++++++++++++++++------------------
+ 1 file changed, 30 insertions(+), 29 deletions(-)
 
-Changing to TCP as the transport layer shows expected behaviour of larger IO=
- requests (up to max_sector_size) and expected performance.
-
-Tested w. common everyday operations like "cp" or "dd", but also benchmark t=
-ools like "filebench".
-I guess its something related to ib_iser, so I hope someone on the list has a=
- good hint for me how to solve this.
-
-
-Thank you very much for any kind help or response!
-
-
-Heiner
+-- 
+2.12.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
