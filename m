@@ -1,67 +1,71 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 2/2] IB/mlx4: Fix incorrect order of formal and actual
- parameters
-Date: Sun, 30 Apr 2017 14:36:56 +0300
-Message-ID: <20170430113656.GQ14088@mtr-leonro.local>
-References: <20170428110654.13176-1-Haakon.Bugge@oracle.com>
- <20170428110654.13176-3-Haakon.Bugge@oracle.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3 12/14] svcrdma: Remove unused RDMA Write completion
+ handler
+Date: Sun, 09 Apr 2017 13:07:05 -0400
+Message-ID: <20170409170705.15073.42536.stgit@klimt.1015granger.net>
+References: <20170409163820.15073.43257.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="Cjvo8w+V8lMs5Jsv"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170428110654.13176-3-Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hakon Bugge <Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170409163820.15073.43257.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Clean up. All RDMA Write completions are now handled by
+svc_rdma_wc_write_ctx.
 
---Cjvo8w+V8lMs5Jsv
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ include/linux/sunrpc/svc_rdma.h          |    1 -
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |   18 ------------------
+ 2 files changed, 19 deletions(-)
 
-On Fri, Apr 28, 2017 at 01:06:54PM +0200, Hakon Bugge wrote:
-> The last two actual parameters when calling id_map_find_by_sl_id()
-> from id_map_get() are swapped. However, the same formal parameters to
-> id_map_get() have them swapped as well, inverting the effect of the
-> first error.
->
-> Hence, this commit is a non-functional fix, improving readability.
->
-> Signed-off-by: H=E5kon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
+diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
+index e84b775..f58c534 100644
+--- a/include/linux/sunrpc/svc_rdma.h
++++ b/include/linux/sunrpc/svc_rdma.h
+@@ -249,7 +249,6 @@ extern int svc_rdma_post_send_wr(struct svcxprt_rdma *rdma,
+ 
+ /* svc_rdma_transport.c */
+ extern void svc_rdma_wc_send(struct ib_cq *, struct ib_wc *);
+-extern void svc_rdma_wc_write(struct ib_cq *, struct ib_wc *);
+ extern void svc_rdma_wc_reg(struct ib_cq *, struct ib_wc *);
+ extern void svc_rdma_wc_read(struct ib_cq *, struct ib_wc *);
+ extern void svc_rdma_wc_inv(struct ib_cq *, struct ib_wc *);
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index 237c377..1597ca8 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -474,24 +474,6 @@ void svc_rdma_wc_send(struct ib_cq *cq, struct ib_wc *wc)
+ }
+ 
+ /**
+- * svc_rdma_wc_write - Invoked by RDMA provider for each polled Write WC
+- * @cq:        completion queue
+- * @wc:        completed WR
+- *
+- */
+-void svc_rdma_wc_write(struct ib_cq *cq, struct ib_wc *wc)
+-{
+-	struct ib_cqe *cqe = wc->wr_cqe;
+-	struct svc_rdma_op_ctxt *ctxt;
+-
+-	svc_rdma_send_wc_common_put(cq, wc, "write");
+-
+-	ctxt = container_of(cqe, struct svc_rdma_op_ctxt, cqe);
+-	svc_rdma_unmap_dma(ctxt);
+-	svc_rdma_put_context(ctxt, 0);
+-}
+-
+-/**
+  * svc_rdma_wc_reg - Invoked by RDMA provider for each polled FASTREG WC
+  * @cq:        completion queue
+  * @wc:        completed WR
 
-"non-functional fix" =3D> "no functional change"
-
-Thanks,
-Acked-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
---Cjvo8w+V8lMs5Jsv
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkFzFgACgkQ5GN7iDZy
-WKckmA//ZYOdmqaF5z3G8WSwGsfkDI1l+Aq70JP9tM3wbxRMrGym9LEAIX1KnRbq
-xskSyP846AMTiceFICVcZNYjI5zAGtYphcNsmCg5OE/YII81iFoEGb1x1BqnlxZR
-XxMdfi298HhgImRB3ECg9V3BThel0Jz8a6HRKezIZmQRmPGDzx7uefEzW/3n+1LT
-An8gpObm5lpPohguKjppe8LuR7Ea7j+3Uwu8/1SIsIPAKmWEWGOAV3f37qfrUt8V
-h1QdoOPHx24H12nV0/bO3/FpwQy3kiFcsIAW7TN8XWt/e+etf92Bwe1zmd0v7kwn
-QXkCuUjQzueH81+WOQdpmNhDIGEPu4yGfp788OngNWEZ/p+bGydqodrMICOzhwaI
-2Ab5oktuZoIa9OXV4eVNNquK/6Xq+wC/KNj+O8kOX9MnlDgqED5M49JBt8giuvQD
-Oqpowsuon5WXSGy5iZ1mQ3HHRByA+PUyaOD3twALozTSGbEZvEgbi3SePAXt3cm+
-IhpggmWxcQ2tsjlywUnIGzBRFOzBpNCVAw4qAcXxB648/RByOTOK4Gqt6yfWiCvV
-oVZcVytwNid3mRbwMDPCYWP5yteOY3UsUr2EfekHYXZek6tmmxXdW0S9ThIDJoKI
-Atd+YLmcxSNOcB3MZrwee+LpX4tZTGPY5uS6TvhOmmUk7Wj4fJo=
-=CJ31
------END PGP SIGNATURE-----
-
---Cjvo8w+V8lMs5Jsv--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
