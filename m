@@ -1,122 +1,122 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 14/14] svcrdma: Clean out old XDR encoders
-Date: Sun, 09 Apr 2017 13:07:21 -0400
-Message-ID: <20170409170721.15073.23878.stgit@klimt.1015granger.net>
-References: <20170409163820.15073.43257.stgit@klimt.1015granger.net>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 07/20] IB/hfi1: Return SC2VL mappings to FM with VL15
+ instead of ILLEGAL_VL
+Date: Sun, 09 Apr 2017 10:16:09 -0700
+Message-ID: <20170409171608.10579.69358.stgit@scvm10.sc.intel.com>
+References: <20170409171329.10579.92775.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170409163820.15073.43257.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170409171329.10579.92775.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up: These have been replaced and are no longer used.
+From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+VL15 in the SC2VL table is used to indicate an invalid SC
+for the FM, however, internally the driver remaps SCs from
+VL15 to ILLEGAL_VL to prevent error counts. This mapping
+confuses the FM when performing a sweep, making it return
+a table mismatch error. Have SMA convert ILLEGAL_VL
+to VL15 entries for the SC2VL table queries.
+
+Reviewed-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- include/linux/sunrpc/svc_rdma.h        |    4 --
- net/sunrpc/xprtrdma/svc_rdma_marshal.c |   70 --------------------------------
- 2 files changed, 74 deletions(-)
+ drivers/infiniband/hw/hfi1/mad.c |   41 +++++++++++++++++++++++---------------
+ 1 files changed, 25 insertions(+), 16 deletions(-)
 
-diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
-index 479bb7f..f3787d8 100644
---- a/include/linux/sunrpc/svc_rdma.h
-+++ b/include/linux/sunrpc/svc_rdma.h
-@@ -187,10 +187,6 @@ extern int svc_rdma_handle_bc_reply(struct rpc_xprt *xprt,
- 
- /* svc_rdma_marshal.c */
- extern int svc_rdma_xdr_decode_req(struct xdr_buf *);
--extern void svc_rdma_xdr_encode_reply_array(struct rpcrdma_write_array *, int);
--extern void svc_rdma_xdr_encode_array_chunk(struct rpcrdma_write_array *, int,
--					    __be32, __be64, u32);
--extern unsigned int svc_rdma_xdr_get_reply_hdr_len(__be32 *rdma_resp);
- 
- /* svc_rdma_recvfrom.c */
- extern int svc_rdma_recvfrom(struct svc_rqst *);
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_marshal.c b/net/sunrpc/xprtrdma/svc_rdma_marshal.c
-index ae58a89..bdcf7d8 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_marshal.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_marshal.c
-@@ -166,73 +166,3 @@ int svc_rdma_xdr_decode_req(struct xdr_buf *rq_arg)
- 	dprintk("svcrdma: failed to parse transport header\n");
- 	return -EINVAL;
+diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
+index de34131..db5494d 100644
+--- a/drivers/infiniband/hw/hfi1/mad.c
++++ b/drivers/infiniband/hw/hfi1/mad.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright(c) 2015, 2016 Intel Corporation.
++ * Copyright(c) 2015-2017 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+@@ -1470,25 +1470,15 @@ static int __subn_set_opa_pkeytable(struct opa_smp *smp, u32 am, u8 *data,
+ 	return __subn_get_opa_pkeytable(smp, am, data, ibdev, port, resp_len);
  }
--
--/**
-- * svc_rdma_xdr_get_reply_hdr_length - Get length of Reply transport header
-- * @rdma_resp: buffer containing Reply transport header
-- *
-- * Returns length of transport header, in bytes.
-- */
--unsigned int svc_rdma_xdr_get_reply_hdr_len(__be32 *rdma_resp)
+ 
+-static int get_sc2vlt_tables(struct hfi1_devdata *dd, void *data)
 -{
--	unsigned int nsegs;
--	__be32 *p;
+-	u64 *val = data;
 -
--	p = rdma_resp;
--
--	/* RPC-over-RDMA V1 replies never have a Read list. */
--	p += rpcrdma_fixed_maxsz + 1;
--
--	/* Skip Write list. */
--	while (*p++ != xdr_zero) {
--		nsegs = be32_to_cpup(p++);
--		p += nsegs * rpcrdma_segment_maxsz;
--	}
--
--	/* Skip Reply chunk. */
--	if (*p++ != xdr_zero) {
--		nsegs = be32_to_cpup(p++);
--		p += nsegs * rpcrdma_segment_maxsz;
--	}
--
--	return (unsigned long)p - (unsigned long)rdma_resp;
+-	*val++ = read_csr(dd, SEND_SC2VLT0);
+-	*val++ = read_csr(dd, SEND_SC2VLT1);
+-	*val++ = read_csr(dd, SEND_SC2VLT2);
+-	*val++ = read_csr(dd, SEND_SC2VLT3);
+-	return 0;
 -}
 -
--void svc_rdma_xdr_encode_write_list(struct rpcrdma_msg *rmsgp, int chunks)
--{
--	struct rpcrdma_write_array *ary;
--
--	/* no read-list */
--	rmsgp->rm_body.rm_chunks[0] = xdr_zero;
--
--	/* write-array discrim */
--	ary = (struct rpcrdma_write_array *)
--		&rmsgp->rm_body.rm_chunks[1];
--	ary->wc_discrim = xdr_one;
--	ary->wc_nchunks = cpu_to_be32(chunks);
--
--	/* write-list terminator */
--	ary->wc_array[chunks].wc_target.rs_handle = xdr_zero;
--
--	/* reply-array discriminator */
--	ary->wc_array[chunks].wc_target.rs_length = xdr_zero;
--}
--
--void svc_rdma_xdr_encode_reply_array(struct rpcrdma_write_array *ary,
--				 int chunks)
--{
--	ary->wc_discrim = xdr_one;
--	ary->wc_nchunks = cpu_to_be32(chunks);
--}
--
--void svc_rdma_xdr_encode_array_chunk(struct rpcrdma_write_array *ary,
--				     int chunk_no,
--				     __be32 rs_handle,
--				     __be64 rs_offset,
--				     u32 write_len)
--{
--	struct rpcrdma_segment *seg = &ary->wc_array[chunk_no].wc_target;
--	seg->rs_handle = rs_handle;
--	seg->rs_offset = rs_offset;
--	seg->rs_length = cpu_to_be32(write_len);
--}
+ #define ILLEGAL_VL 12
+ /*
+  * filter_sc2vlt changes mappings to VL15 to ILLEGAL_VL (except
+  * for SC15, which must map to VL15). If we don't remap things this
+  * way it is possible for VL15 counters to increment when we try to
+  * send on a SC which is mapped to an invalid VL.
++ * When getting the table convert ILLEGAL_VL back to VL15.
+  */
+-static void filter_sc2vlt(void *data)
++static void filter_sc2vlt(void *data, bool set)
+ {
+ 	int i;
+ 	u8 *pd = data;
+@@ -1496,8 +1486,14 @@ static void filter_sc2vlt(void *data)
+ 	for (i = 0; i < OPA_MAX_SCS; i++) {
+ 		if (i == 15)
+ 			continue;
+-		if ((pd[i] & 0x1f) == 0xf)
+-			pd[i] = ILLEGAL_VL;
++
++		if (set) {
++			if ((pd[i] & 0x1f) == 0xf)
++				pd[i] = ILLEGAL_VL;
++		} else {
++			if ((pd[i] & 0x1f) == ILLEGAL_VL)
++				pd[i] = 0xf;
++		}
+ 	}
+ }
+ 
+@@ -1505,7 +1501,7 @@ static int set_sc2vlt_tables(struct hfi1_devdata *dd, void *data)
+ {
+ 	u64 *val = data;
+ 
+-	filter_sc2vlt(data);
++	filter_sc2vlt(data, true);
+ 
+ 	write_csr(dd, SEND_SC2VLT0, *val++);
+ 	write_csr(dd, SEND_SC2VLT1, *val++);
+@@ -1517,6 +1513,19 @@ static int set_sc2vlt_tables(struct hfi1_devdata *dd, void *data)
+ 	return 0;
+ }
+ 
++static int get_sc2vlt_tables(struct hfi1_devdata *dd, void *data)
++{
++	u64 *val = (u64 *)data;
++
++	*val++ = read_csr(dd, SEND_SC2VLT0);
++	*val++ = read_csr(dd, SEND_SC2VLT1);
++	*val++ = read_csr(dd, SEND_SC2VLT2);
++	*val++ = read_csr(dd, SEND_SC2VLT3);
++
++	filter_sc2vlt((u64 *)data, false);
++	return 0;
++}
++
+ static int __subn_get_opa_sl_to_sc(struct opa_smp *smp, u32 am, u8 *data,
+ 				   struct ib_device *ibdev, u8 port,
+ 				   u32 *resp_len)
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
