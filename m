@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 18/20] IB/hfi1: Fix unbalanced braces around else
-Date: Sun, 09 Apr 2017 10:17:18 -0700
-Message-ID: <20170409171717.10579.36147.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 15/20] IB/hfi1: Permanently enable P_Key checking in HFI
+Date: Sun, 09 Apr 2017 10:16:59 -0700
+Message-ID: <20170409171658.10579.67996.stgit@scvm10.sc.intel.com>
 References: <20170409171329.10579.92775.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,64 +10,61 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170409171329.10579.92775.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Neel Desai <neel.desai-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add missing braces around else blocks in a few places to make checkpatch
-happy.
+From: Neel Desai <neel.desai-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Fixes: 7724105686e7 ("IB/hfi1: add driver files")
+Ingress and egress port P_Key checking should always be performed for
+HFIs. This patch will enable ingress and egress P_Key checking when
+the port is initialized and will ignore the P_Key information sent by
+the FM in the port info structure which is meant to be used only by the
+switch.
+
+Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Neel Desai <neel.desai-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c |    4 ++--
- drivers/infiniband/hw/hfi1/init.c |    6 ++++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/hfi1/init.c |    3 +++
+ drivers/infiniband/hw/hfi1/mad.c  |   10 ----------
+ 2 files changed, 3 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index c0cfcd1..19fab90 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -8147,10 +8147,10 @@ static irqreturn_t sdma_interrupt(int irq, void *data)
- 
- 		/* handle the interrupt(s) */
- 		sdma_engine_interrupt(sde, status);
--	} else
-+	} else {
- 		dd_dev_err(dd, "SDMA engine %u interrupt, but no status bits set\n",
- 			   sde->this_idx);
--
-+	}
- 	return IRQ_HANDLED;
- }
- 
 diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index 838d3a8..e9b33c8 100644
+index 55a11a6..838d3a8 100644
 --- a/drivers/infiniband/hw/hfi1/init.c
 +++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -245,9 +245,10 @@ struct hfi1_ctxtdata *hfi1_create_ctxtdata(struct hfi1_pportdata *ppd, u32 ctxt,
- 			if (ctxt < kctxt_ngroups) {
- 				base = ctxt * (dd->rcv_entries.ngroups + 1);
- 				rcd->rcv_array_groups++;
--			} else
-+			} else {
- 				base = kctxt_ngroups +
- 					(ctxt * dd->rcv_entries.ngroups);
-+			}
- 		} else {
- 			u16 ct = ctxt - dd->first_user_ctxt;
+@@ -482,6 +482,9 @@ void hfi1_init_pportdata(struct pci_dev *pdev, struct hfi1_pportdata *ppd,
+ 	default_pkey_idx = 1;
  
-@@ -256,9 +257,10 @@ struct hfi1_ctxtdata *hfi1_create_ctxtdata(struct hfi1_pportdata *ppd, u32 ctxt,
- 			if (ct < dd->rcv_entries.nctxt_extra) {
- 				base += ct * (dd->rcv_entries.ngroups + 1);
- 				rcd->rcv_array_groups++;
--			} else
-+			} else {
- 				base += dd->rcv_entries.nctxt_extra +
- 					(ct * dd->rcv_entries.ngroups);
-+			}
- 		}
- 		rcd->eager_base = base * dd->rcv_entries.group_size;
+ 	ppd->pkeys[default_pkey_idx] = DEFAULT_P_KEY;
++	ppd->part_enforce |= HFI1_PART_ENFORCE_IN;
++	ppd->part_enforce |= HFI1_PART_ENFORCE_OUT;
++
+ 	if (loopback) {
+ 		hfi1_early_err(&pdev->dev,
+ 			       "Faking data partition 0x8001 in idx %u\n",
+diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
+index db5494d..7059a0f 100644
+--- a/drivers/infiniband/hw/hfi1/mad.c
++++ b/drivers/infiniband/hw/hfi1/mad.c
+@@ -1151,16 +1151,6 @@ static int __subn_set_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
+ 		ppd->linkinit_reason =
+ 			(pi->partenforce_filterraw &
+ 			 OPA_PI_MASK_LINKINIT_REASON);
+-	/* enable/disable SW pkey checking as per FM control */
+-	if (pi->partenforce_filterraw & OPA_PI_MASK_PARTITION_ENFORCE_IN)
+-		ppd->part_enforce |= HFI1_PART_ENFORCE_IN;
+-	else
+-		ppd->part_enforce &= ~HFI1_PART_ENFORCE_IN;
+-
+-	if (pi->partenforce_filterraw & OPA_PI_MASK_PARTITION_ENFORCE_OUT)
+-		ppd->part_enforce |= HFI1_PART_ENFORCE_OUT;
+-	else
+-		ppd->part_enforce &= ~HFI1_PART_ENFORCE_OUT;
  
+ 	/* Must be a valid unicast LID address. */
+ 	if ((smlid == 0 && ls_old > IB_PORT_INIT) ||
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
