@@ -1,149 +1,84 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 10/14] svcrdma: Clean up RPC-over-RDMA backchannel reply
- processing
-Date: Sun, 09 Apr 2017 13:06:49 -0400
-Message-ID: <20170409170649.15073.30760.stgit@klimt.1015granger.net>
+Subject: [PATCH v3 11/14] svcrdma: Reduce size of sge array in struct
+ svc_rdma_op_ctxt
+Date: Sun, 09 Apr 2017 13:06:57 -0400
+Message-ID: <20170409170657.15073.56765.stgit@klimt.1015granger.net>
 References: <20170409163820.15073.43257.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170409163820.15073.43257.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Replace C structure-based XDR decoding with pointer arithmetic.
-Pointer arithmetic is considered more portable.
+The sge array in struct svc_rdma_op_ctxt is no longer used for
+sending RDMA Write WRs. It need only accommodate the construction of
+Send and Receive WRs. The maximum inline size is the largest payload
+it needs to handle now.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 ---
- include/linux/sunrpc/svc_rdma.h            |    2 +-
- net/sunrpc/xprtrdma/svc_rdma_backchannel.c |   18 ++++++++++++++----
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |   27 +++++++++++++++------------
- 3 files changed, 30 insertions(+), 17 deletions(-)
+ include/linux/sunrpc/svc_rdma.h |    9 +++++++--
+ net/sunrpc/xprtrdma/svc_rdma.c  |    6 +++---
+ 2 files changed, 10 insertions(+), 5 deletions(-)
 
 diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
-index a770d20..44d642b 100644
+index 44d642b..e84b775 100644
 --- a/include/linux/sunrpc/svc_rdma.h
 +++ b/include/linux/sunrpc/svc_rdma.h
-@@ -204,7 +204,7 @@ static inline void svc_rdma_count_mappings(struct svcxprt_rdma *rdma,
+@@ -48,6 +48,12 @@
+ #include <rdma/rdma_cm.h>
+ #define SVCRDMA_DEBUG
  
- /* svc_rdma_backchannel.c */
- extern int svc_rdma_handle_bc_reply(struct rpc_xprt *xprt,
--				    struct rpcrdma_msg *rmsgp,
-+				    __be32 *rdma_resp,
- 				    struct xdr_buf *rcvbuf);
- 
- /* svc_rdma_marshal.c */
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
-index bf185b7..c676ed0 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_backchannel.c
-@@ -12,7 +12,17 @@
- 
- #undef SVCRDMA_BACKCHANNEL_DEBUG
- 
--int svc_rdma_handle_bc_reply(struct rpc_xprt *xprt, struct rpcrdma_msg *rmsgp,
-+/**
-+ * svc_rdma_handle_bc_reply - Process incoming backchannel reply
-+ * @xprt: controlling backchannel transport
-+ * @rdma_resp: pointer to incoming transport header
-+ * @rcvbuf: XDR buffer into which to decode the reply
-+ *
-+ * Returns:
-+ *	%0 if @rcvbuf is filled in, xprt_complete_rqst called,
-+ *	%-EAGAIN if server should call ->recvfrom again.
-+ */
-+int svc_rdma_handle_bc_reply(struct rpc_xprt *xprt, __be32 *rdma_resp,
- 			     struct xdr_buf *rcvbuf)
- {
- 	struct rpcrdma_xprt *r_xprt = rpcx_to_rdmax(xprt);
-@@ -27,13 +37,13 @@ int svc_rdma_handle_bc_reply(struct rpc_xprt *xprt, struct rpcrdma_msg *rmsgp,
- 
- 	p = (__be32 *)src->iov_base;
- 	len = src->iov_len;
--	xid = rmsgp->rm_xid;
-+	xid = *rdma_resp;
- 
- #ifdef SVCRDMA_BACKCHANNEL_DEBUG
- 	pr_info("%s: xid=%08x, length=%zu\n",
- 		__func__, be32_to_cpu(xid), len);
- 	pr_info("%s: RPC/RDMA: %*ph\n",
--		__func__, (int)RPCRDMA_HDRLEN_MIN, rmsgp);
-+		__func__, (int)RPCRDMA_HDRLEN_MIN, rdma_resp);
- 	pr_info("%s:      RPC: %*ph\n",
- 		__func__, (int)len, p);
- #endif
-@@ -53,7 +63,7 @@ int svc_rdma_handle_bc_reply(struct rpc_xprt *xprt, struct rpcrdma_msg *rmsgp,
- 		goto out_unlock;
- 	memcpy(dst->iov_base, p, len);
- 
--	credits = be32_to_cpu(rmsgp->rm_credit);
-+	credits = be32_to_cpup(rdma_resp + 2);
- 	if (credits == 0)
- 		credits = 1;	/* don't deadlock */
- 	else if (credits > r_xprt->rx_buf.rb_bc_max_requests)
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index 7435cb6..27a99bf 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -613,28 +613,30 @@ static void svc_rdma_send_error(struct svcxprt_rdma *xprt,
-  * the RPC/RDMA header small and fixed in size, so it is
-  * straightforward to check the RPC header's direction field.
-  */
--static bool
--svc_rdma_is_backchannel_reply(struct svc_xprt *xprt, struct rpcrdma_msg *rmsgp)
-+static bool svc_rdma_is_backchannel_reply(struct svc_xprt *xprt,
-+					  __be32 *rdma_resp)
- {
--	__be32 *p = (__be32 *)rmsgp;
-+	__be32 *p;
- 
- 	if (!xprt->xpt_bc_xprt)
- 		return false;
- 
--	if (rmsgp->rm_type != rdma_msg)
-+	p = rdma_resp + 3;
-+	if (*p++ != rdma_msg)
- 		return false;
--	if (rmsgp->rm_body.rm_chunks[0] != xdr_zero)
++/* Default and maximum inline threshold sizes */
++enum {
++	RPCRDMA_DEF_INLINE_THRESH = 4096,
++	RPCRDMA_MAX_INLINE_THRESH = 65536
++};
 +
-+	if (*p++ != xdr_zero)
- 		return false;
--	if (rmsgp->rm_body.rm_chunks[1] != xdr_zero)
-+	if (*p++ != xdr_zero)
- 		return false;
--	if (rmsgp->rm_body.rm_chunks[2] != xdr_zero)
-+	if (*p++ != xdr_zero)
- 		return false;
+ /* RPC/RDMA parameters and stats */
+ extern unsigned int svcrdma_ord;
+ extern unsigned int svcrdma_max_requests;
+@@ -86,7 +92,7 @@ struct svc_rdma_op_ctxt {
+ 	int count;
+ 	unsigned int mapped_sges;
+ 	struct ib_send_wr send_wr;
+-	struct ib_sge sge[RPCSVC_MAXPAGES];
++	struct ib_sge sge[1 + RPCRDMA_MAX_INLINE_THRESH / PAGE_SIZE];
+ 	struct page *pages[RPCSVC_MAXPAGES];
+ };
  
--	/* sanity */
--	if (p[7] != rmsgp->rm_xid)
-+	/* XID sanity */
-+	if (*p++ != *rdma_resp)
- 		return false;
- 	/* call direction */
--	if (p[8] == cpu_to_be32(RPC_CALL))
-+	if (*p == cpu_to_be32(RPC_CALL))
- 		return false;
+@@ -186,7 +192,6 @@ struct svcxprt_rdma {
+  * page size of 4k, or 32k * 2 ops / 4k = 16 outstanding RDMA_READ.  */
+ #define RPCRDMA_ORD             (64/4)
+ #define RPCRDMA_MAX_REQUESTS    32
+-#define RPCRDMA_MAX_REQ_SIZE    4096
  
- 	return true;
-@@ -700,8 +702,9 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
- 		goto out_drop;
- 	rqstp->rq_xprt_hlen = ret;
+ /* Typical ULP usage of BC requests is NFSv4.1 backchannel. Our
+  * current NFSv4.1 implementation supports one backchannel slot.
+diff --git a/net/sunrpc/xprtrdma/svc_rdma.c b/net/sunrpc/xprtrdma/svc_rdma.c
+index 9124441..a4a8f69 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma.c
++++ b/net/sunrpc/xprtrdma/svc_rdma.c
+@@ -58,9 +58,9 @@
+ unsigned int svcrdma_max_bc_requests = RPCRDMA_MAX_BC_REQUESTS;
+ static unsigned int min_max_requests = 4;
+ static unsigned int max_max_requests = 16384;
+-unsigned int svcrdma_max_req_size = RPCRDMA_MAX_REQ_SIZE;
+-static unsigned int min_max_inline = 4096;
+-static unsigned int max_max_inline = 65536;
++unsigned int svcrdma_max_req_size = RPCRDMA_DEF_INLINE_THRESH;
++static unsigned int min_max_inline = RPCRDMA_DEF_INLINE_THRESH;
++static unsigned int max_max_inline = RPCRDMA_MAX_INLINE_THRESH;
  
--	if (svc_rdma_is_backchannel_reply(xprt, rmsgp)) {
--		ret = svc_rdma_handle_bc_reply(xprt->xpt_bc_xprt, rmsgp,
-+	if (svc_rdma_is_backchannel_reply(xprt, &rmsgp->rm_xid)) {
-+		ret = svc_rdma_handle_bc_reply(xprt->xpt_bc_xprt,
-+					       &rmsgp->rm_xid,
- 					       &rqstp->rq_arg);
- 		svc_rdma_put_context(ctxt, 0);
- 		if (ret)
+ atomic_t rdma_stat_recv;
+ atomic_t rdma_stat_read;
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
