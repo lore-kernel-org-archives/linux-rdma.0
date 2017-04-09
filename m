@@ -1,60 +1,106 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V3 for-next 4/7] IB/core: Change idr objects to use the
- new schema
-Date: Sun, 9 Apr 2017 18:16:17 +0300
-Message-ID: <CAAKD3BCnwEdQf1h98EDxt5L6wSEpTiULikLCaRJUxxJukATnaQ@mail.gmail.com>
-References: <1491301907-32290-1-git-send-email-matanb@mellanox.com>
- <1491301907-32290-5-git-send-email-matanb@mellanox.com> <1828884A29C6694DAF28B7E6B8A82373AB10FAD8@ORSMSX109.amr.corp.intel.com>
- <CAAKD3BCy_JD1cu=3ZHSbrXBHmeTj-M7pJ6nM=rRXFVMi6Szvwg@mail.gmail.com> <20170406165722.GE7657@obsidianresearch.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3 00/14] Server-side NFS/RDMA changes proposed for v4.12
+Date: Sun, 09 Apr 2017 13:05:28 -0400
+Message-ID: <20170409163820.15073.43257.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170406165722.GE7657-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Haggai Eran <haggaie-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 6, 2017 at 7:57 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Thu, Apr 06, 2017 at 05:13:52PM +0300, Matan Barak wrote:
->> On Thu, Apr 6, 2017 at 12:05 AM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
->> > Mostly questions.
->> >
->> >> @@ -1628,7 +1148,7 @@ ssize_t ib_uverbs_resize_cq(struct
->> >> ib_uverbs_file *file,
->> >>                  (unsigned long) cmd.response + sizeof resp,
->> >>                  in_len - sizeof cmd, out_len - sizeof resp);
->> >>
->> >> -     cq = idr_read_cq(cmd.cq_handle, file->ucontext, 0);
->> >> +     cq = uobj_get_obj_read(cq, cmd.cq_handle, file->ucontext);
->> >
->> > (I noticed rereg_mr used a write lock.)
->> > Is a read lock sufficient here?
->> >
->>
->> I guess we don't want to allow two concurrent resize_cq, so write
->> lock should be better here. However, I don't want to change logic in
->> these patches. I think such a patch is better of being separate with
->> a proper commit message.  We don't step on these bugs, as there's no
->> lock at the verbs layer. So usually, device drivers provide the
->> locking their themselves.
->
-> It makes sense to split the patch, but the 'write lock' nee
-> 'exclusive' seems like the wrong approach, we need an actual mutex
-> just like for multicast.
->
+This series overhauls the "reply send" side of the RPC-over-RDMA
+transport to use the new rdma_rw API. No significant performance
+changes were noticed with this overhaul. Benefits include:
 
-Wjy? Let's look at that from the application point of view. When two
-threads try to resize the cq concurrently,
-what is the CQ actual size? It could be any one the request sizes.
-More than that, it doesn't really make sense to
-resize the same CQ concurrently. I think it's safe to return -EBUSY to
-one of these system calls.
+<> Better scalability -- fewer ib_post_send calls per RPC Reply
 
-> Jason
+<> Better code modularity -- less code duplication with other ULPs
 
-Matan
+<> Ability for svcrdma to use any registration mode for RDMA Writes
+
+<> Correct handling of RPCs that have both a Write and a Reply chunk
+
+<> Correct handling of Write chunk overrun
+
+This revision makes two scalability improvements that Christoph and
+Sagi requested in previous review comments:
+
+1. Use sg_alloc_table_chained to allocate the scatterlist for each
+rdma_rw_ctx. A permanent part of the scatterlist is used for smaller
+I/Os, and a chained part is allocated on demand when performing
+large I/Os. This reduces the amount of memory tied down per client.
+
+2. So far each rdma_rw_ctx has been posted individually. Now all
+rdma_rw_ctx's for one chunk are chained together and posted with a
+single ib_post_send. This reduces the number of ib_post_send
+operations for complex RPC Replies.
+
+
+Bruce, IMO these are ready for your review.
+
+
+Available in the "nfsd-rdma-for-4.12" topic branch of this git repo:
+
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
+
+
+Or for browsing:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-for-4.12
+
+
+Changes since v2:
+- Rebased on v4.11-rc5
+- Use chained sg_tables
+- Always one ib_post_send per chunk
+
+
+Changes since v1:
+- Rebased on v4.11-rc4
+- Dropped clean up of svc_rdma_post_recv
+- Postponed addition of code related to recvfrom
+- Made svc_rdma_{get,put}_rw_ctxt behave symmetrically
+- Converted scatterlist to sg_table
+- Moved transport header construction into svc_rdma_sendto.c
+
+---
+
+Chuck Lever (14):
+      svcrdma: Move send_wr to svc_rdma_op_ctxt
+      svcrdma: Add svc_rdma_map_reply_hdr()
+      svcrdma: Eliminate RPCRDMA_SQ_DEPTH_MULT
+      svcrdma: Add helper to save pages under I/O
+      svcrdma: Clean up svc_rdma_get_inv_rkey()
+      svcrdma: Introduce local rdma_rw API helpers
+      svcrdma: Use rdma_rw API in RPC reply path
+      svcrdma: Clean up RDMA_ERROR path
+      svcrdma: Report Write/Reply chunk overruns
+      svcrdma: Clean up RPC-over-RDMA backchannel reply processing
+      svcrdma: Reduce size of sge array in struct svc_rdma_op_ctxt
+      svcrdma: Remove unused RDMA Write completion handler
+      svcrdma: Remove the req_map cache
+      svcrdma: Clean out old XDR encoders
+
+
+ include/linux/sunrpc/rpc_rdma.h            |    3 
+ include/linux/sunrpc/svc_rdma.h            |   75 +-
+ net/sunrpc/Kconfig                         |    1 
+ net/sunrpc/xprtrdma/Makefile               |    2 
+ net/sunrpc/xprtrdma/svc_rdma.c             |    8 
+ net/sunrpc/xprtrdma/svc_rdma_backchannel.c |   71 +-
+ net/sunrpc/xprtrdma/svc_rdma_marshal.c     |   89 ---
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c    |   79 ++
+ net/sunrpc/xprtrdma/svc_rdma_rw.c          |  512 +++++++++++++++
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c      |  978 ++++++++++++++--------------
+ net/sunrpc/xprtrdma/svc_rdma_transport.c   |  110 ---
+ 11 files changed, 1131 insertions(+), 797 deletions(-)
+ create mode 100644 net/sunrpc/xprtrdma/svc_rdma_rw.c
+
+--
+Chuck Lever
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
