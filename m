@@ -1,58 +1,47 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH 20/20] IB/hfi1: Use bool in process_ecn
-Date: Sun, 09 Apr 2017 10:17:30 -0700
-Message-ID: <20170409171729.10579.26645.stgit@scvm10.sc.intel.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 19/20] IB/hfi: Protect against writable mmap
+Date: Sun, 09 Apr 2017 10:17:24 -0700
+Message-ID: <20170409171723.10579.88889.stgit@scvm10.sc.intel.com>
 References: <20170409171329.10579.92775.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20170409171329.10579.92775.stgit@scvm10.sc.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170409171329.10579.92775.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The process_ecn intends to return a bool value. However it is doing
-so incorrectly by ANDing the fecn mask. The fecn bit is bit 31. Bool is
-not a native data type and is up to the compiler to implement how it
-sees fit. It is conceivable that this upper bit gets washed out.
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Fix by converting to a bool properly.
+The device/port status is not intended to be changed from user space.
+Prevent a user from mapping them as write or execute.
 
-Cc: stable@vger.kernel.org
-Fixes: Commit fd2b562edca6 ("IB/hfi1: Pull FECN/BECN processing to a common place")
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/hfi.h |    2 +-
- drivers/infiniband/hw/hfi1/rc.c  |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hfi1/file_ops.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 9aec0a2..d83bdb4 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -1607,7 +1607,7 @@ static inline bool process_ecn(struct rvt_qp *qp, struct hfi1_packet *pkt,
- 	bth1 = be32_to_cpu(ohdr->bth[1]);
- 	if (unlikely(bth1 & (IB_BECN_SMASK | IB_FECN_SMASK))) {
- 		hfi1_process_ecn_slowpath(qp, pkt, do_cnp);
--		return bth1 & IB_FECN_SMASK;
-+		return !!(bth1 & IB_FECN_SMASK);
- 	}
- 	return false;
- }
-diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
-index da968b7..9b3333f 100644
---- a/drivers/infiniband/hw/hfi1/rc.c
-+++ b/drivers/infiniband/hw/hfi1/rc.c
-@@ -1930,7 +1930,8 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
- 	int diff;
- 	struct ib_reth *reth;
- 	unsigned long flags;
--	int ret, is_fecn = 0;
-+	int ret;
-+	bool is_fecn = false;
- 	bool copy_last = false;
- 	u32 rkey;
- 
+diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
+index f78c739..d575499 100644
+--- a/drivers/infiniband/hw/hfi1/file_ops.c
++++ b/drivers/infiniband/hw/hfi1/file_ops.c
+@@ -597,6 +597,10 @@ static int hfi1_file_mmap(struct file *fp, struct vm_area_struct *vma)
+ 		vmf = 1;
+ 		break;
+ 	case STATUS:
++		if (flags & (unsigned long)(VM_WRITE | VM_EXEC)) {
++			ret = -EPERM;
++			goto done;
++		}
+ 		memaddr = kvirt_to_phys((void *)dd->status);
+ 		memlen = PAGE_SIZE;
+ 		flags |= VM_IO | VM_DONTEXPAND;
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
