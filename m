@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 15/20] IB/hfi1: Permanently enable P_Key checking in HFI
-Date: Sun, 09 Apr 2017 10:16:59 -0700
-Message-ID: <20170409171658.10579.67996.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 14/20] IB/hfi1: Cache neighbor secure data after link up
+Date: Sun, 09 Apr 2017 10:16:53 -0700
+Message-ID: <20170409171652.10579.58089.stgit@scvm10.sc.intel.com>
 References: <20170409171329.10579.92775.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,61 +10,155 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170409171329.10579.92775.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Neel Desai <neel.desai-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Stuart Summers <john.s.summers-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Neel Desai <neel.desai-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Stuart Summers <john.s.summers-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Ingress and egress port P_Key checking should always be performed for
-HFIs. This patch will enable ingress and egress P_Key checking when
-the port is initialized and will ignore the P_Key information sent by
-the FM in the port info structure which is meant to be used only by the
-switch.
+Secure data is transferred across the link during verify
+cap. This includes Neighbor Guid, Type, and Port Number.
+This transfer is not guaranteed to complete until the 8051
+firmware has completed processing of the state_complete
+frame. Move the consumption of this data from verify cap
+handling to link up handling to ensure the data is finalized.
 
+Additionally, do not notify the SM that the link is up until
+after this data is actually available.
+
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Neel Desai <neel.desai-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Stuart Summers <john.s.summers-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/init.c |    3 +++
- drivers/infiniband/hw/hfi1/mad.c  |   10 ----------
- 2 files changed, 3 insertions(+), 10 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c |   27 +--------------------------
+ drivers/infiniband/hw/hfi1/hfi.h  |   11 ++++++++++-
+ drivers/infiniband/hw/hfi1/intr.c |   27 ++++++++++++++++-----------
+ 3 files changed, 27 insertions(+), 38 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index 55a11a6..838d3a8 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -482,6 +482,9 @@ void hfi1_init_pportdata(struct pci_dev *pdev, struct hfi1_pportdata *ppd,
- 	default_pkey_idx = 1;
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index b5cbffa..b840656 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -7288,15 +7288,6 @@ void handle_verify_cap(struct work_struct *work)
+ 	lcb_shutdown(dd, 0);
+ 	adjust_lcb_for_fpga_serdes(dd);
  
- 	ppd->pkeys[default_pkey_idx] = DEFAULT_P_KEY;
-+	ppd->part_enforce |= HFI1_PART_ENFORCE_IN;
-+	ppd->part_enforce |= HFI1_PART_ENFORCE_OUT;
-+
- 	if (loopback) {
- 		hfi1_early_err(&pdev->dev,
- 			       "Faking data partition 0x8001 in idx %u\n",
-diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
-index db5494d..7059a0f 100644
---- a/drivers/infiniband/hw/hfi1/mad.c
-+++ b/drivers/infiniband/hw/hfi1/mad.c
-@@ -1151,16 +1151,6 @@ static int __subn_set_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
- 		ppd->linkinit_reason =
- 			(pi->partenforce_filterraw &
- 			 OPA_PI_MASK_LINKINIT_REASON);
--	/* enable/disable SW pkey checking as per FM control */
--	if (pi->partenforce_filterraw & OPA_PI_MASK_PARTITION_ENFORCE_IN)
--		ppd->part_enforce |= HFI1_PART_ENFORCE_IN;
--	else
--		ppd->part_enforce &= ~HFI1_PART_ENFORCE_IN;
+-	/*
+-	 * These are now valid:
+-	 *	remote VerifyCap fields in the general LNI config
+-	 *	CSR DC8051_STS_REMOTE_GUID
+-	 *	CSR DC8051_STS_REMOTE_NODE_TYPE
+-	 *	CSR DC8051_STS_REMOTE_FM_SECURITY
+-	 *	CSR DC8051_STS_REMOTE_PORT_NO
+-	 */
 -
--	if (pi->partenforce_filterraw & OPA_PI_MASK_PARTITION_ENFORCE_OUT)
--		ppd->part_enforce |= HFI1_PART_ENFORCE_OUT;
--	else
--		ppd->part_enforce &= ~HFI1_PART_ENFORCE_OUT;
+ 	read_vc_remote_phy(dd, &power_management, &continious);
+ 	read_vc_remote_fabric(dd, &vau, &z, &vcu, &vl15buf,
+ 			      &partner_supported_crc);
+@@ -7427,20 +7418,6 @@ void handle_verify_cap(struct work_struct *work)
+ 	write_csr(dd, DC_LCB_ERR_EN, 0); /* mask LCB errors */
+ 	set_8051_lcb_access(dd);
  
- 	/* Must be a valid unicast LID address. */
- 	if ((smlid == 0 && ls_old > IB_PORT_INIT) ||
+-	ppd->neighbor_guid =
+-		read_csr(dd, DC_DC8051_STS_REMOTE_GUID);
+-	ppd->neighbor_port_number = read_csr(dd, DC_DC8051_STS_REMOTE_PORT_NO) &
+-					DC_DC8051_STS_REMOTE_PORT_NO_VAL_SMASK;
+-	ppd->neighbor_type =
+-		read_csr(dd, DC_DC8051_STS_REMOTE_NODE_TYPE) &
+-		DC_DC8051_STS_REMOTE_NODE_TYPE_VAL_MASK;
+-	ppd->neighbor_fm_security =
+-		read_csr(dd, DC_DC8051_STS_REMOTE_FM_SECURITY) &
+-		DC_DC8051_STS_LOCAL_FM_SECURITY_DISABLED_MASK;
+-	dd_dev_info(dd,
+-		    "Neighbor Guid: %llx Neighbor type %d MgmtAllowed %d FM security bypass %d\n",
+-		    ppd->neighbor_guid, ppd->neighbor_type,
+-		    ppd->mgmt_allowed, ppd->neighbor_fm_security);
+ 	if (ppd->mgmt_allowed)
+ 		add_full_mgmt_pkey(ppd);
+ 
+@@ -10497,11 +10474,8 @@ int set_link_state(struct hfi1_pportdata *ppd, u32 state)
+ 			goto unexpected;
+ 		}
+ 
+-		ppd->host_link_state = HLS_UP_INIT;
+ 		ret = wait_logical_linkstate(ppd, IB_PORT_INIT, 1000);
+ 		if (ret) {
+-			/* logical state didn't change, stay at going_up */
+-			ppd->host_link_state = HLS_GOING_UP;
+ 			dd_dev_err(dd,
+ 				   "%s: logical state did not change to INIT\n",
+ 				   __func__);
+@@ -10515,6 +10489,7 @@ int set_link_state(struct hfi1_pportdata *ppd, u32 state)
+ 			add_rcvctrl(dd, RCV_CTRL_RCV_PORT_ENABLE_SMASK);
+ 
+ 			handle_linkup_change(dd, 1);
++			ppd->host_link_state = HLS_UP_INIT;
+ 		}
+ 		break;
+ 	case HLS_UP_ARMED:
+diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+index f44513c..9aec0a2 100644
+--- a/drivers/infiniband/hw/hfi1/hfi.h
++++ b/drivers/infiniband/hw/hfi1/hfi.h
+@@ -1254,7 +1254,16 @@ void hfi1_init_pportdata(struct pci_dev *, struct hfi1_pportdata *,
+ /* return the driver's idea of the logical OPA port state */
+ static inline u32 driver_lstate(struct hfi1_pportdata *ppd)
+ {
+-	return ppd->lstate; /* use the cached value */
++	/*
++	 * The driver does some processing from the time the logical
++	 * link state is at INIT to the time the SM can be notified
++	 * as such. Return IB_PORT_DOWN until the software state
++	 * is ready.
++	 */
++	if (ppd->lstate == IB_PORT_INIT && !(ppd->host_link_state & HLS_UP))
++		return IB_PORT_DOWN;
++	else
++		return ppd->lstate;
+ }
+ 
+ void receive_interrupt_work(struct work_struct *work);
+diff --git a/drivers/infiniband/hw/hfi1/intr.c b/drivers/infiniband/hw/hfi1/intr.c
+index 65348d1..232014d 100644
+--- a/drivers/infiniband/hw/hfi1/intr.c
++++ b/drivers/infiniband/hw/hfi1/intr.c
+@@ -131,19 +131,24 @@ void handle_linkup_change(struct hfi1_devdata *dd, u32 linkup)
+ 		if (quick_linkup || dd->icode == ICODE_FUNCTIONAL_SIMULATOR) {
+ 			set_up_vl15(dd, dd->vau, dd->vl15_init);
+ 			assign_remote_cm_au_table(dd, dd->vcu);
+-			ppd->neighbor_guid =
+-				read_csr(dd, DC_DC8051_STS_REMOTE_GUID);
+-			ppd->neighbor_type =
+-				read_csr(dd, DC_DC8051_STS_REMOTE_NODE_TYPE) &
+-					DC_DC8051_STS_REMOTE_NODE_TYPE_VAL_MASK;
+-			ppd->neighbor_port_number =
+-				read_csr(dd, DC_DC8051_STS_REMOTE_PORT_NO) &
+-					 DC_DC8051_STS_REMOTE_PORT_NO_VAL_SMASK;
+-			dd_dev_info(dd, "Neighbor GUID: %llx Neighbor type %d\n",
+-				    ppd->neighbor_guid,
+-				    ppd->neighbor_type);
+ 		}
+ 
++		ppd->neighbor_guid =
++			read_csr(dd, DC_DC8051_STS_REMOTE_GUID);
++		ppd->neighbor_type =
++			read_csr(dd, DC_DC8051_STS_REMOTE_NODE_TYPE) &
++				 DC_DC8051_STS_REMOTE_NODE_TYPE_VAL_MASK;
++		ppd->neighbor_port_number =
++			read_csr(dd, DC_DC8051_STS_REMOTE_PORT_NO) &
++				 DC_DC8051_STS_REMOTE_PORT_NO_VAL_SMASK;
++		ppd->neighbor_fm_security =
++			read_csr(dd, DC_DC8051_STS_REMOTE_FM_SECURITY) &
++				 DC_DC8051_STS_LOCAL_FM_SECURITY_DISABLED_MASK;
++		dd_dev_info(dd,
++			    "Neighbor Guid %llx, Type %d, Port Num %d\n",
++			    ppd->neighbor_guid, ppd->neighbor_type,
++			    ppd->neighbor_port_number);
++
+ 		/* physical link went up */
+ 		ppd->linkup = 1;
+ 		ppd->offline_disabled_reason =
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
