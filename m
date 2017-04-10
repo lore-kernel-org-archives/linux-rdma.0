@@ -1,31 +1,61 @@
 From: Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
-Subject: Re: [PATCH RFC] nvme-rdma: support devices with queue size < 32
-Date: Mon, 10 Apr 2017 13:29:37 +0200 (CEST)
-Message-ID: <303729965.362188822.1491823777140.JavaMail.zimbra@kalray.eu>
-References: <1315914765.312051621.1490259849534.JavaMail.zimbra@kalray.eu> <3505b835-d0ba-70cb-dfe8-1265fc2bbb83@redhat.com> <2ba93b5b-ad36-5533-36e2-9db2e3198c19@grimberg.me> <1121115847.336382032.1490883808617.JavaMail.zimbra@kalray.eu> <1224897571.353404199.1491481743295.JavaMail.zimbra@kalray.eu> <20170406130207.GI2269@mtr-leonro.local> <1917497781.360337179.1491571916242.JavaMail.zimbra@kalray.eu> <c7e56394-feb3-282b-0eec-166ef0d8b13c@grimberg.me>
+Subject: Re: Unexpected issues with 2 NVME initiators using the same target
+Date: Mon, 10 Apr 2017 13:40:59 +0200 (CEST)
+Message-ID: <1948057100.362217696.1491824459274.JavaMail.zimbra@kalray.eu>
+References: <08131a05-1f56-ef61-990a-7fff04eea095@gmail.com> <1848296658.37025722.1487782361271.JavaMail.zimbra@redhat.com> <1554c1d1-6bf4-9ca2-12d4-a0125d8c5715@gmail.com> <DE927C68B458BE418D582EC97927A92854655137@ORSMSX112.amr.corp.intel.com> <3eb5814f-14cb-2b94-adf8-335d4b2eb7e9@grimberg.me> <26912d0c-578f-26e9-490d-94fc95bdf259@mellanox.com> <DE927C68B458BE418D582EC97927A92855031724@ORSMSX113.amr.corp.intel.com> <809f87ab-b787-9d40-5840-07500d12e81a@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <c7e56394-feb3-282b-0eec-166ef0d8b13c-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <809f87ab-b787-9d40-5840-07500d12e81a-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keith busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, axboe-b10kYP2dOMg@public.gmane.org, Samuel Jones <samuel.jones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "shahar.salzman" <shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Riches Jr, Robert M" <robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->>>> Mellanox guys, do you have an idea what it might do?
->>>
->>> It will continue to work as expected with long depths too.
->>> All that you need is do not to forget to issue signal if queue is terminated.
->>>
+> On 3/17/2017 8:37 PM, Gruher, Joseph R wrote:
 >>
->> Thanks Leon. I will then submit the v2.
+>>
+>>> -----Original Message-----
+>>> From: Max Gurtovoy [mailto:maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
+>>>
+>>> I think we need to add fence to the UMR wqe.
+>>>
+>>> diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+>>> index ad8a263..c38c4fa 100644
+>>> --- a/drivers/infiniband/hw/mlx5/qp.c
+>>> +++ b/drivers/infiniband/hw/mlx5/qp.c
+>>> @@ -3737,8 +3737,7 @@ static void dump_wqe(struct mlx5_ib_qp *qp, int idx,
+>>> int size_16)
+>>>
+>>>   static u8 get_fence(u8 fence, struct ib_send_wr *wr)
+>>>   {
+>>> -       if (unlikely(wr->opcode == IB_WR_LOCAL_INV &&
+>>> -                    wr->send_flags & IB_SEND_FENCE))
+>>> +       if (wr->opcode == IB_WR_LOCAL_INV || wr->opcode == IB_WR_REG_MR)
+>>>                  return MLX5_FENCE_MODE_STRONG_ORDERING;
+>>>
+>>>          if (unlikely(fence)) {
+>>>
+>>> 
+>>
+>> You mention these patches are only for testing.  How do we get to something
+>> which can be submitted to upstream?
 > 
-> Marta, can you please test with higher queue-depth? Say 512 and/or 1024?
+> Yes, we need to be careful and not put the strong_fence if it's not a must.
+> I'll be out for the upcoming week, but I'll ask our mlx5 maintainers to
+> prepare a suitable patch and check some other applications performance
+> numbers.
+> Thanks for the testing, you can use this patch meanwhile till we push
+> the formal solution.
 > 
 
-Yes, we'll do that.
+Hello Max,
+We're seeing the same issue in our setup and we're running this patch
+on our system for some time already. It seems to have fixed the issue.
+When there is a final patch available, we can test it too.
 
+Thanks,
 Marta
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
