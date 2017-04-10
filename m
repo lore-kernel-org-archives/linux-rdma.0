@@ -1,349 +1,48 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-next V2 3/6] IB/IPoIB: Separate control from HW operation on ipoib_open/stop ndo
-Date: Mon, 10 Apr 2017 11:22:27 +0300
-Message-ID: <20170410082230.10662-4-leonro@mellanox.com>
-References: <20170410082230.10662-1-leonro@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170410082230.10662-1-leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [RFC 6/8] nvmet: Be careful about using iomem accesses when
+ dealing with p2pmem
+Date: Mon, 10 Apr 2017 11:29:57 +0300
+Message-ID: <7fcc3ac8-8b96-90f5-3942-87f999c7499d@grimberg.me>
+References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
+ <1490911959-5146-7-git-send-email-logang@deltatee.com>
+ <080b68b4-eba3-861c-4f29-5d829425b5e7@grimberg.me>
+ <20170404154629.GA13552@obsidianresearch.com>
+ <4df229d8-8124-664a-9bc4-6401bc034be1@grimberg.me>
+ <3E85B4D4-9EBC-4299-8209-2D8740947764@raithlin.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <3E85B4D4-9EBC-4299-8209-2D8740947764-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org" <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This patch is preparing the netdev part at the IPoIB driver to be able
-to use the ipoib_options.
+> Sagi
+>
+> As long as legA, legB and the RC are all connected to the same switch then ordering will be preserved (I think many other topologies also work). Here is how it would work for the problem case you are concerned about (which is a read from the NVMe drive).
+>
+> 1. Disk device DMAs out the data to the p2pmem device via a string of PCIe MemWr TLPs.
+> 2. Disk device writes to the completion queue (in system memory) via a MemWr TLP.
+> 3. The last of the MemWrs from step 1 might have got stalled in the PCIe switch due to congestion but if so they are stalled in the egress path of the switch for the p2pmem port.
+> 4. The RC determines the IO is complete when the TLP associated with step 2 updates the memory associated with the CQ. It issues some operation to read the p2pmem.
+> 5. Regardless of whether the MemRd TLP comes from the RC or another device connected to the switch it is queued in the egress queue for the p2pmem FIO behind the last DMA TLP (from step 1).
+> PCIe ordering ensures that this MemRd cannot overtake the MemWr (Reads can never pass writes).
+> Therefore the MemRd can never get to the p2pmem device until after the last DMA MemWr has.
 
-It deals with the two flows from the .ndo: ipoib_open and ipoib_stop.
+What you are saying is surprising to me. The switch needs to preserve
+ordering across different switch ports ??
 
-The code is rearranged as follows:
- * All operations which deal with the hardware resources, (for example
-   change QP state, post-receive etc.) are performed in one place.
- * All operations that are control oriented (like restart multicast task,
-   start the reap_ah etc.) are performed in separate place.
-
-The functions that deal with the hardware resources now located at
-__ipoib_ib_dev_open for the ipoib_open flow and __ipoib_ib_dev_stop
-for ipoib_stop.
-
-Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib.h      |   2 +-
- drivers/infiniband/ulp/ipoib/ipoib_ib.c   | 230 +++++++++++++++++-------------
- drivers/infiniband/ulp/ipoib/ipoib_main.c |   2 +-
- 3 files changed, 131 insertions(+), 103 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index bc71a90c57e3..596c73d01add 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -503,7 +503,7 @@ void ipoib_dev_uninit_default(struct net_device *dev);
- int ipoib_ib_dev_open(struct net_device *dev);
- void ipoib_ib_dev_up(struct net_device *dev);
- void ipoib_ib_dev_down(struct net_device *dev);
--void ipoib_ib_dev_stop(struct net_device *dev);
-+int ipoib_ib_dev_stop_default(struct net_device *dev);
- void ipoib_pkey_dev_check_presence(struct net_device *dev);
-
- int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port);
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index f9dd2bb676aa..9d4f1b456ec4 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -692,24 +692,115 @@ static void ipoib_stop_ah(struct net_device *dev)
- 	ipoib_flush_ah(dev);
- }
-
--void ipoib_ib_tx_timer_func(unsigned long ctx)
-+static int recvs_pending(struct net_device *dev)
- {
--	drain_tx_cq((struct net_device *)ctx);
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	int pending = 0;
-+	int i;
-+
-+	for (i = 0; i < ipoib_recvq_size; ++i)
-+		if (priv->rx_ring[i].skb)
-+			++pending;
-+
-+	return pending;
- }
-
--int ipoib_ib_dev_open(struct net_device *dev)
-+int ipoib_ib_dev_stop_default(struct net_device *dev)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
--	int ret;
-+	struct ib_qp_attr qp_attr;
-+	unsigned long begin;
-+	struct ipoib_tx_buf *tx_req;
-+	int i;
-
--	ipoib_pkey_dev_check_presence(dev);
-+	if (test_and_clear_bit(IPOIB_FLAG_INITIALIZED, &priv->flags))
-+		napi_disable(&priv->napi);
-
--	if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags)) {
--		ipoib_warn(priv, "P_Key 0x%04x is %s\n", priv->pkey,
--			   (!(priv->pkey & 0x7fff) ? "Invalid" : "not found"));
--		return -1;
-+	ipoib_cm_dev_stop(dev);
-+
-+	/*
-+	 * Move our QP to the error state and then reinitialize in
-+	 * when all work requests have completed or have been flushed.
-+	 */
-+	qp_attr.qp_state = IB_QPS_ERR;
-+	if (ib_modify_qp(priv->qp, &qp_attr, IB_QP_STATE))
-+		ipoib_warn(priv, "Failed to modify QP to ERROR state\n");
-+
-+	/* Wait for all sends and receives to complete */
-+	begin = jiffies;
-+
-+	while (priv->tx_head != priv->tx_tail || recvs_pending(dev)) {
-+		if (time_after(jiffies, begin + 5 * HZ)) {
-+			ipoib_warn(priv,
-+				   "timing out; %d sends %d receives not completed\n",
-+				   priv->tx_head - priv->tx_tail,
-+				   recvs_pending(dev));
-+
-+			/*
-+			 * assume the HW is wedged and just free up
-+			 * all our pending work requests.
-+			 */
-+			while ((int)priv->tx_tail - (int)priv->tx_head < 0) {
-+				tx_req = &priv->tx_ring[priv->tx_tail &
-+							(ipoib_sendq_size - 1)];
-+				ipoib_dma_unmap_tx(priv, tx_req);
-+				dev_kfree_skb_any(tx_req->skb);
-+				++priv->tx_tail;
-+				--priv->tx_outstanding;
-+			}
-+
-+			for (i = 0; i < ipoib_recvq_size; ++i) {
-+				struct ipoib_rx_buf *rx_req;
-+
-+				rx_req = &priv->rx_ring[i];
-+				if (!rx_req->skb)
-+					continue;
-+				ipoib_ud_dma_unmap_rx(priv,
-+						      priv->rx_ring[i].mapping);
-+				dev_kfree_skb_any(rx_req->skb);
-+				rx_req->skb = NULL;
-+			}
-+
-+			goto timeout;
-+		}
-+
-+		ipoib_drain_cq(dev);
-+
-+		msleep(1);
- 	}
-
-+	ipoib_dbg(priv, "All sends and receives done.\n");
-+
-+timeout:
-+	del_timer_sync(&priv->poll_timer);
-+	qp_attr.qp_state = IB_QPS_RESET;
-+	if (ib_modify_qp(priv->qp, &qp_attr, IB_QP_STATE))
-+		ipoib_warn(priv, "Failed to modify QP to RESET state\n");
-+
-+	ib_req_notify_cq(priv->recv_cq, IB_CQ_NEXT_COMP);
-+
-+	return 0;
-+}
-+
-+int ipoib_ib_dev_stop(struct net_device *dev)
-+{
-+	ipoib_ib_dev_stop_default(dev);
-+
-+	ipoib_flush_ah(dev);
-+
-+	return 0;
-+}
-+
-+void ipoib_ib_tx_timer_func(unsigned long ctx)
-+{
-+	drain_tx_cq((struct net_device *)ctx);
-+}
-+
-+int ipoib_ib_dev_open_default(struct net_device *dev)
-+{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+	int ret;
-+
- 	ret = ipoib_init_qp(dev);
- 	if (ret) {
- 		ipoib_warn(priv, "ipoib_init_qp returned %d\n", ret);
-@@ -728,10 +819,6 @@ int ipoib_ib_dev_open(struct net_device *dev)
- 		goto dev_stop;
- 	}
-
--	clear_bit(IPOIB_STOP_REAPER, &priv->flags);
--	queue_delayed_work(priv->wq, &priv->ah_reap_task,
--			   round_jiffies_relative(HZ));
--
- 	if (!test_and_set_bit(IPOIB_FLAG_INITIALIZED, &priv->flags))
- 		napi_enable(&priv->napi);
-
-@@ -743,6 +830,35 @@ int ipoib_ib_dev_open(struct net_device *dev)
- 	return -1;
- }
-
-+int ipoib_ib_dev_open(struct net_device *dev)
-+{
-+	struct ipoib_dev_priv *priv = netdev_priv(dev);
-+
-+	ipoib_pkey_dev_check_presence(dev);
-+
-+	if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags)) {
-+		ipoib_warn(priv, "P_Key 0x%04x is %s\n", priv->pkey,
-+			   (!(priv->pkey & 0x7fff) ? "Invalid" : "not found"));
-+		return -1;
-+	}
-+
-+	clear_bit(IPOIB_STOP_REAPER, &priv->flags);
-+	queue_delayed_work(priv->wq, &priv->ah_reap_task,
-+			   round_jiffies_relative(HZ));
-+
-+	if (ipoib_ib_dev_open_default(dev)) {
-+		pr_warn("%s: Failed to open dev\n", dev->name);
-+		goto stop_ah_reap;
-+	}
-+
-+	return 0;
-+
-+stop_ah_reap:
-+	set_bit(IPOIB_STOP_REAPER, &priv->flags);
-+	cancel_delayed_work(&priv->ah_reap_task);
-+	return -1;
-+}
-+
- void ipoib_pkey_dev_check_presence(struct net_device *dev)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
-@@ -786,19 +902,6 @@ void ipoib_ib_dev_down(struct net_device *dev)
- 	ipoib_flush_paths(dev);
- }
-
--static int recvs_pending(struct net_device *dev)
--{
--	struct ipoib_dev_priv *priv = netdev_priv(dev);
--	int pending = 0;
--	int i;
--
--	for (i = 0; i < ipoib_recvq_size; ++i)
--		if (priv->rx_ring[i].skb)
--			++pending;
--
--	return pending;
--}
--
- void ipoib_drain_cq(struct net_device *dev)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
-@@ -838,81 +941,6 @@ void ipoib_drain_cq(struct net_device *dev)
- 	local_bh_enable();
- }
-
--void ipoib_ib_dev_stop(struct net_device *dev)
--{
--	struct ipoib_dev_priv *priv = netdev_priv(dev);
--	struct ib_qp_attr qp_attr;
--	unsigned long begin;
--	struct ipoib_tx_buf *tx_req;
--	int i;
--
--	if (test_and_clear_bit(IPOIB_FLAG_INITIALIZED, &priv->flags))
--		napi_disable(&priv->napi);
--
--	ipoib_cm_dev_stop(dev);
--
--	/*
--	 * Move our QP to the error state and then reinitialize in
--	 * when all work requests have completed or have been flushed.
--	 */
--	qp_attr.qp_state = IB_QPS_ERR;
--	if (ib_modify_qp(priv->qp, &qp_attr, IB_QP_STATE))
--		ipoib_warn(priv, "Failed to modify QP to ERROR state\n");
--
--	/* Wait for all sends and receives to complete */
--	begin = jiffies;
--
--	while (priv->tx_head != priv->tx_tail || recvs_pending(dev)) {
--		if (time_after(jiffies, begin + 5 * HZ)) {
--			ipoib_warn(priv, "timing out; %d sends %d receives not completed\n",
--				   priv->tx_head - priv->tx_tail, recvs_pending(dev));
--
--			/*
--			 * assume the HW is wedged and just free up
--			 * all our pending work requests.
--			 */
--			while ((int) priv->tx_tail - (int) priv->tx_head < 0) {
--				tx_req = &priv->tx_ring[priv->tx_tail &
--							(ipoib_sendq_size - 1)];
--				ipoib_dma_unmap_tx(priv, tx_req);
--				dev_kfree_skb_any(tx_req->skb);
--				++priv->tx_tail;
--				--priv->tx_outstanding;
--			}
--
--			for (i = 0; i < ipoib_recvq_size; ++i) {
--				struct ipoib_rx_buf *rx_req;
--
--				rx_req = &priv->rx_ring[i];
--				if (!rx_req->skb)
--					continue;
--				ipoib_ud_dma_unmap_rx(priv,
--						      priv->rx_ring[i].mapping);
--				dev_kfree_skb_any(rx_req->skb);
--				rx_req->skb = NULL;
--			}
--
--			goto timeout;
--		}
--
--		ipoib_drain_cq(dev);
--
--		msleep(1);
--	}
--
--	ipoib_dbg(priv, "All sends and receives done.\n");
--
--timeout:
--	del_timer_sync(&priv->poll_timer);
--	qp_attr.qp_state = IB_QPS_RESET;
--	if (ib_modify_qp(priv->qp, &qp_attr, IB_QP_STATE))
--		ipoib_warn(priv, "Failed to modify QP to RESET state\n");
--
--	ipoib_flush_ah(dev);
--
--	ib_req_notify_cq(priv->recv_cq, IB_CQ_NEXT_COMP);
--}
--
- /*
-  * Takes whatever value which is in pkey index 0 and updates priv->pkey
-  * returns 0 if the pkey value was changed.
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index ef8e51ccb1cd..08c85084d8f5 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -166,7 +166,7 @@ static int ipoib_stop(struct net_device *dev)
- 	netif_stop_queue(dev);
-
- 	ipoib_ib_dev_down(dev);
--	ipoib_ib_dev_stop(dev);
-+	ipoib_ib_dev_stop_default(dev);
-
- 	if (!test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags)) {
- 		struct ipoib_dev_priv *cpriv;
---
-2.12.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+You are suggesting that there is a *switch-wide* state that tracks
+MemRds never pass MemWrs across all the switch ports? That is a very
+non-trivial statement...
