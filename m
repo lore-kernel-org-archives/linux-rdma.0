@@ -1,138 +1,79 @@
 From: Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
-Subject: Re: [PATCH v2] nvme-rdma: support devices with queue size < 32
-Date: Tue, 11 Apr 2017 13:04:47 +0200 (CEST)
-Message-ID: <1859283592.365069472.1491908687334.JavaMail.zimbra@kalray.eu>
-References: <1519881025.363156294.1491837154312.JavaMail.zimbra@kalray.eu> <1491838338.4199.5.camel@sandisk.com> <1807354347.364485979.1491900728245.JavaMail.zimbra@kalray.eu> <e65126fa-48b7-473e-72f6-4a3a8474d11e@mellanox.com>
+Subject: Re: Unexpected issues with 2 NVME initiators using the same target
+Date: Tue, 11 Apr 2017 14:47:26 +0200 (CEST)
+Message-ID: <1561461455.365724985.1491914846752.JavaMail.zimbra@kalray.eu>
+References: <08131a05-1f56-ef61-990a-7fff04eea095@gmail.com> <DE927C68B458BE418D582EC97927A92854655137@ORSMSX112.amr.corp.intel.com> <3eb5814f-14cb-2b94-adf8-335d4b2eb7e9@grimberg.me> <26912d0c-578f-26e9-490d-94fc95bdf259@mellanox.com> <DE927C68B458BE418D582EC97927A92855031724@ORSMSX113.amr.corp.intel.com> <809f87ab-b787-9d40-5840-07500d12e81a@mellanox.com> <1948057100.362217696.1491824459274.JavaMail.zimbra@kalray.eu> <33e2cc35-f147-d4a4-9a42-8f1245e35842@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <e65126fa-48b7-473e-72f6-4a3a8474d11e-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <33e2cc35-f147-d4a4-9a42-8f1245e35842-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, keith busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, samuel jones <samuel.jones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
+Cc: "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "shahar.salzman" <shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Riches Jr, Robert M" <robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> On 4/11/2017 11:52 AM, Marta Rybczynska wrote:
->>> On Mon, 2017-04-10 at 17:12 +0200, Marta Rybczynska wrote:
->>>> In the case of small NVMe-oF queue size (<32) we may enter
->>>> a deadlock caused by the fact that the IB completions aren't sent
->>>> waiting for 32 and the send queue will fill up.
+----- Mail original -----
+> On 4/10/2017 2:40 PM, Marta Rybczynska wrote:
+>>> On 3/17/2017 8:37 PM, Gruher, Joseph R wrote:
 >>>>
->>>> The error is seen as (using mlx5):
->>>> [ 2048.693355] mlx5_0:mlx5_ib_post_send:3765:(pid 7273):
->>>> [ 2048.693360] nvme nvme1: nvme_rdma_post_send failed with error code -12
 >>>>
->>>> This patch changes the way the signaling is done so
->>>> that it depends on the queue depth now. The magic define has
->>>> been removed completely.
+>>>>> -----Original Message-----
+>>>>> From: Max Gurtovoy [mailto:maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org]
+>>>>>
+>>>>> I think we need to add fence to the UMR wqe.
+>>>>>
+>>>>> diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+>>>>> index ad8a263..c38c4fa 100644
+>>>>> --- a/drivers/infiniband/hw/mlx5/qp.c
+>>>>> +++ b/drivers/infiniband/hw/mlx5/qp.c
+>>>>> @@ -3737,8 +3737,7 @@ static void dump_wqe(struct mlx5_ib_qp *qp, int idx,
+>>>>> int size_16)
+>>>>>
+>>>>>   static u8 get_fence(u8 fence, struct ib_send_wr *wr)
+>>>>>   {
+>>>>> -       if (unlikely(wr->opcode == IB_WR_LOCAL_INV &&
+>>>>> -                    wr->send_flags & IB_SEND_FENCE))
+>>>>> +       if (wr->opcode == IB_WR_LOCAL_INV || wr->opcode == IB_WR_REG_MR)
+>>>>>                  return MLX5_FENCE_MODE_STRONG_ORDERING;
+>>>>>
+>>>>>          if (unlikely(fence)) {
+>>>>>
+>>>>>
 >>>>
->>>> Signed-off-by: Marta Rybczynska <marta.rybczynska-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
->>>> Signed-off-by: Samuel Jones <sjones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
->>>> ---
->>>> Changes from v1:
->>>> * signal by queue size/2, remove hardcoded 32
->>>> * support queue depth of 1
->>>>
->>>>  drivers/nvme/host/rdma.c | 17 +++++++++++++----
->>>>  1 file changed, 13 insertions(+), 4 deletions(-)
->>>>
->>>> diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
->>>> index 47a479f..4de1b92 100644
->>>> --- a/drivers/nvme/host/rdma.c
->>>> +++ b/drivers/nvme/host/rdma.c
->>>> @@ -1029,6 +1029,18 @@ static void nvme_rdma_send_done(struct ib_cq *cq, struct
->>>> ib_wc *wc)
->>>>                 nvme_rdma_wr_error(cq, wc, "SEND");
->>>>  }
->>>>
->>>> +static inline nvme_rdma_queue_sig_limit(struct nvme_rdma_queue *queue)
->>>> +{
->>>> +       int sig_limit;
->>>> +
->>>> +       /* We signal completion every queue depth/2 and also
->>>> +        * handle the case of possible device with queue_depth=1,
->>>> +        * where we would need to signal every message.
->>>> +        */
->>>> +       sig_limit = max(queue->queue_size / 2, 1);
->>>> +       return (++queue->sig_count % sig_limit) == 0;
->>>> +}
->>>> +
->>>>  static int nvme_rdma_post_send(struct nvme_rdma_queue *queue,
->>>>                 struct nvme_rdma_qe *qe, struct ib_sge *sge, u32 num_sge,
->>>>                 struct ib_send_wr *first, bool flush)
->>>> @@ -1056,9 +1068,6 @@ static int nvme_rdma_post_send(struct nvme_rdma_queue
->>>> *queue,
->>>>          * Would have been way to obvious to handle this in hardware or
->>>>          * at least the RDMA stack..
->>>>          *
->>>> -        * This messy and racy code sniplet is copy and pasted from the iSER
->>>> -        * initiator, and the magic '32' comes from there as well.
->>>> -        *
->>>>          * Always signal the flushes. The magic request used for the flush
->>>>          * sequencer is not allocated in our driver's tagset and it's
->>>>          * triggered to be freed by blk_cleanup_queue(). So we need to
->>>> @@ -1066,7 +1075,7 @@ static int nvme_rdma_post_send(struct nvme_rdma_queue
->>>> *queue,
->>>>          * embedded in request's payload, is not freed when __ib_process_cq()
->>>>          * calls wr_cqe->done().
->>>>          */
->>>> -       if ((++queue->sig_count % 32) == 0 || flush)
->>>> +       if (nvme_rdma_queue_sig_limit(queue) || flush)
->>>>                 wr.send_flags |= IB_SEND_SIGNALED;
->>>>
->>>>         if (first)
+>>>> You mention these patches are only for testing.  How do we get to something
+>>>> which can be submitted to upstream?
 >>>
->>> Hello Marta,
->>>
->>> The approach of this patch is suboptimal from a performance point of view.
->>> If the number of WRs that have been submitted since the last signaled WR
->>> was submitted would be tracked in a member variable that would allow to
->>> get rid of the (relatively slow) division operation.
+>>> Yes, we need to be careful and not put the strong_fence if it's not a must.
+>>> I'll be out for the upcoming week, but I'll ask our mlx5 maintainers to
+>>> prepare a suitable patch and check some other applications performance
+>>> numbers.
+>>> Thanks for the testing, you can use this patch meanwhile till we push
+>>> the formal solution.
 >>>
 >>
->> Hello Bart,
->> I think that we can remove the division (the modulo sig_limit). The sig_count
->> is an u8 so it is really a type of variable you propose. It isn't used anywhere
->> it seems so we can change the way it is used in the snippet to count until the
->> signaling moment. It will give something like:
+>> Hello Max,
+>> We're seeing the same issue in our setup and we're running this patch
+>> on our system for some time already. It seems to have fixed the issue.
+>> When there is a final patch available, we can test it too.
 >>
->> static inline nvme_rdma_queue_sig_limit(struct nvme_rdma_queue *queue)
->> {
->>        int sig_limit;
+>> Thanks,
+>> Marta
 >>
->>        /* We signal completion every queue depth/2 and also
->>         * handle the case of possible device with queue_depth=1,
->>         * where we would need to signal every message.
->>         */
->>        sig_limit = max(queue->queue_size / 2, 1);
->>        queue->sig_count++;
->>        if (queue->sig_count < sig_limit)
->>            return 0;
->>        queue->sig_count = 0;
->>        return 1;
->> }
->>
->>
->> Do you like it better?
 > 
 > Hi Marta,
-> I think that Bart (and I agree) meant to avoid doing the division in the
-> fast path. You can set a new variable to rdma_ctrl called sig_limit and
-> set once it during initialization stage. Then just do:
-> 
-> if ((++queue->sig_count % queue->ctrl->sig_limit) == 0 || flush)
-> 
-> in nvme_rdma_post_send function.
-> 
-> Also, as you mentioned sig_count is u8 so you need to avoid setting the
-> sig_limit to a bigger value than 255. So please take a minimum of 32 (or
-> any other suggestions ?? ) and the result of max(queue->queue_size / 2, 1);
+> thanks for testing my patch. I'll send it early next week (holiday's in
+> our country) so it will be available in 4.11 kernel hopefully.
+> if you can share on which NIC's you tested it and the perf numbers you
+> get (with and without the patch), it will be great.
 > 
 
 Hello Max,
-Do you mean the division by 2 or the modulo? I would say that the division
-by two should be compiled as a shift operation on most architectures, won't it?
+That's great news. We're ready to start testing as the final version
+of the patch is out. We're using ConnectX 4. Unfortunately in our use
+case the patch is not a question of performance: the workload doesn't
+work without it. We may think about running other workloads for the
+tests.
 
 Marta
 --
