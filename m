@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 07/13] xprtrdma: Refactor rpcrdma_ep_connect
-Date: Tue, 11 Apr 2017 13:23:18 -0400
-Message-ID: <20170411172318.11300.69958.stgit@manet.1015granger.net>
+Subject: [PATCH v3 09/13] xprtrdma: Revert commit d0f36c46deea
+Date: Tue, 11 Apr 2017 13:23:34 -0400
+Message-ID: <20170411172334.11300.35058.stgit@manet.1015granger.net>
 References: <20170411171820.11300.55637.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,165 +13,104 @@ To: anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I'm about to add another arm to
-
-    if (ep->rep_connected != 0)
-
-It will be cleaner to use a switch statement here. We'll be looking
-for a couple of specific errnos, or "anything else," basically to
-sort out the difference between a normal reconnect and recovery from
-device removal.
-
-This is a refactoring change only.
+Device removal is now adequately supported. Pinning the underlying
+device driver to prevent removal while an NFS mount is active is no
+longer necessary.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/verbs.c |  109 +++++++++++++++++++++++++------------------
- 1 file changed, 63 insertions(+), 46 deletions(-)
+ net/sunrpc/xprtrdma/verbs.c |   33 +++++++--------------------------
+ 1 file changed, 7 insertions(+), 26 deletions(-)
 
 diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 938fd9e..6479ad3 100644
+index b69daa3..d7c1600 100644
 --- a/net/sunrpc/xprtrdma/verbs.c
 +++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -711,6 +711,57 @@ static void rpcrdma_destroy_id(struct rdma_cm_id *id)
- 	ib_free_cq(ep->rep_attr.send_cq);
+@@ -53,7 +53,7 @@
+ #include <linux/sunrpc/addr.h>
+ #include <linux/sunrpc/svc_rdma.h>
+ #include <asm/bitops.h>
+-#include <linux/module.h> /* try_module_get()/module_put() */
++
+ #include <rdma/ib_cm.h>
+ 
+ #include "xprt_rdma.h"
+@@ -344,14 +344,6 @@
+ 	return 0;
  }
  
-+static int
-+rpcrdma_ep_reconnect(struct rpcrdma_xprt *r_xprt, struct rpcrdma_ep *ep,
-+		     struct rpcrdma_ia *ia)
-+{
-+	struct sockaddr *sap = (struct sockaddr *)&r_xprt->rx_data.addr;
-+	struct rdma_cm_id *id, *old;
-+	int err, rc;
-+
-+	dprintk("RPC:       %s: reconnecting...\n", __func__);
-+
-+	rpcrdma_ep_disconnect(ep, ia);
-+
-+	rc = -EHOSTUNREACH;
-+	id = rpcrdma_create_id(r_xprt, ia, sap);
-+	if (IS_ERR(id))
-+		goto out;
-+
-+	/* As long as the new ID points to the same device as the
-+	 * old ID, we can reuse the transport's existing PD and all
-+	 * previously allocated MRs. Also, the same device means
-+	 * the transport's previous DMA mappings are still valid.
-+	 *
-+	 * This is a sanity check only. There should be no way these
-+	 * point to two different devices here.
-+	 */
-+	old = id;
-+	rc = -ENETUNREACH;
-+	if (ia->ri_device != id->device) {
-+		pr_err("rpcrdma: can't reconnect on different device!\n");
-+		goto out_destroy;
-+	}
-+
-+	err = rdma_create_qp(id, ia->ri_pd, &ep->rep_attr);
-+	if (err) {
-+		dprintk("RPC:       %s: rdma_create_qp returned %d\n",
-+			__func__, err);
-+		goto out_destroy;
-+	}
-+
-+	/* Atomically replace the transport's ID and QP. */
-+	rc = 0;
-+	old = ia->ri_id;
-+	ia->ri_id = id;
-+	rdma_destroy_qp(old);
-+
-+out_destroy:
-+	rpcrdma_destroy_id(old);
-+out:
-+	return rc;
-+}
-+
- /*
-  * Connect unconnected endpoint.
-  */
-@@ -719,61 +770,25 @@ static void rpcrdma_destroy_id(struct rdma_cm_id *id)
- {
- 	struct rpcrdma_xprt *r_xprt = container_of(ia, struct rpcrdma_xprt,
- 						   rx_ia);
--	struct rdma_cm_id *id, *old;
--	struct sockaddr *sap;
- 	unsigned int extras;
--	int rc = 0;
-+	int rc;
- 
--	if (ep->rep_connected != 0) {
- retry:
--		dprintk("RPC:       %s: reconnecting...\n", __func__);
+-static void rpcrdma_destroy_id(struct rdma_cm_id *id)
+-{
+-	if (id) {
+-		module_put(id->device->owner);
+-		rdma_destroy_id(id);
+-	}
+-}
 -
--		rpcrdma_ep_disconnect(ep, ia);
--
--		sap = (struct sockaddr *)&r_xprt->rx_data.addr;
--		id = rpcrdma_create_id(r_xprt, ia, sap);
--		if (IS_ERR(id)) {
--			rc = -EHOSTUNREACH;
--			goto out;
--		}
--		/* TEMP TEMP TEMP - fail if new device:
--		 * Deregister/remarshal *all* requests!
--		 * Close and recreate adapter, pd, etc!
--		 * Re-determine all attributes still sane!
--		 * More stuff I haven't thought of!
--		 * Rrrgh!
--		 */
--		if (ia->ri_device != id->device) {
--			printk("RPC:       %s: can't reconnect on "
--				"different device!\n", __func__);
--			rpcrdma_destroy_id(id);
--			rc = -ENETUNREACH;
--			goto out;
--		}
--		/* END TEMP */
--		rc = rdma_create_qp(id, ia->ri_pd, &ep->rep_attr);
--		if (rc) {
--			dprintk("RPC:       %s: rdma_create_qp failed %i\n",
--				__func__, rc);
--			rpcrdma_destroy_id(id);
--			rc = -ENETUNREACH;
--			goto out;
--		}
--
--		old = ia->ri_id;
--		ia->ri_id = id;
--
--		rdma_destroy_qp(old);
--		rpcrdma_destroy_id(old);
--	} else {
-+	switch (ep->rep_connected) {
-+	case 0:
- 		dprintk("RPC:       %s: connecting...\n", __func__);
- 		rc = rdma_create_qp(ia->ri_id, ia->ri_pd, &ep->rep_attr);
- 		if (rc) {
- 			dprintk("RPC:       %s: rdma_create_qp failed %i\n",
- 				__func__, rc);
--			/* do not update ep->rep_connected */
--			return -ENETUNREACH;
-+			rc = -ENETUNREACH;
-+			goto out_noupdate;
- 		}
-+		break;
-+	default:
-+		rc = rpcrdma_ep_reconnect(r_xprt, ep, ia);
-+		if (rc)
-+			goto out;
+ static struct rdma_cm_id *
+ rpcrdma_create_id(struct rpcrdma_xprt *xprt,
+ 			struct rpcrdma_ia *ia, struct sockaddr *addr)
+@@ -386,16 +378,6 @@ static void rpcrdma_destroy_id(struct rdma_cm_id *id)
+ 		goto out;
  	}
  
- 	ep->rep_connected = 0;
-@@ -801,6 +816,8 @@ static void rpcrdma_destroy_id(struct rdma_cm_id *id)
- out:
+-	/* FIXME:
+-	 * Until xprtrdma supports DEVICE_REMOVAL, the provider must
+-	 * be pinned while there are active NFS/RDMA mounts to prevent
+-	 * hangs and crashes at umount time.
+-	 */
+-	if (!ia->ri_async_rc && !try_module_get(id->device->owner)) {
+-		dprintk("RPC:       %s: Failed to get device module\n",
+-			__func__);
+-		ia->ri_async_rc = -ENODEV;
+-	}
+ 	rc = ia->ri_async_rc;
  	if (rc)
- 		ep->rep_connected = rc;
+ 		goto out;
+@@ -405,21 +387,20 @@ static void rpcrdma_destroy_id(struct rdma_cm_id *id)
+ 	if (rc) {
+ 		dprintk("RPC:       %s: rdma_resolve_route() failed %i\n",
+ 			__func__, rc);
+-		goto put;
++		goto out;
+ 	}
+ 	rc = wait_for_completion_interruptible_timeout(&ia->ri_done, wtimeout);
+ 	if (rc < 0) {
+ 		dprintk("RPC:       %s: wait() exited: %i\n",
+ 			__func__, rc);
+-		goto put;
++		goto out;
+ 	}
+ 	rc = ia->ri_async_rc;
+ 	if (rc)
+-		goto put;
++		goto out;
+ 
+ 	return id;
+-put:
+-	module_put(id->device->owner);
 +
-+out_noupdate:
+ out:
+ 	rdma_destroy_id(id);
+ 	return ERR_PTR(rc);
+@@ -546,7 +527,7 @@ static void rpcrdma_destroy_id(struct rdma_cm_id *id)
+ 	if (ia->ri_id != NULL && !IS_ERR(ia->ri_id)) {
+ 		if (ia->ri_id->qp)
+ 			rdma_destroy_qp(ia->ri_id);
+-		rpcrdma_destroy_id(ia->ri_id);
++		rdma_destroy_id(ia->ri_id);
+ 	}
+ 	ia->ri_id = NULL;
+ 	ia->ri_device = NULL;
+@@ -800,7 +781,7 @@ static void rpcrdma_destroy_id(struct rdma_cm_id *id)
+ 	rdma_destroy_qp(old);
+ 
+ out_destroy:
+-	rpcrdma_destroy_id(old);
++	rdma_destroy_id(old);
+ out:
  	return rc;
  }
- 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
