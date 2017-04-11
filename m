@@ -1,8 +1,8 @@
 From: Dasaratharaman Chandramouli
         <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-next 03/18] IB/core: Add braces when using sizeof
-Date: Tue, 11 Apr 2017 13:42:10 -0400
-Message-ID: <1491932545-60894-4-git-send-email-dasaratharaman.chandramouli@intel.com>
+Subject: [PATCH rdma-next 02/18] IB/IPoIB: Remove 'else' when the 'if' has a return.
+Date: Tue, 11 Apr 2017 13:42:09 -0400
+Message-ID: <1491932545-60894-3-git-send-email-dasaratharaman.chandramouli@intel.com>
 References: <1491932545-60894-1-git-send-email-dasaratharaman.chandramouli@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1491932545-60894-1-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -11,30 +11,48 @@ To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds braces around parameters to sizeof
-as called out by checkpatch
+This patch fixes a checkpatch issue related to not having
+to use an 'else' if the 'if' path returns from the function.
 
-Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_marshall.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_marshall.c b/drivers/infiniband/core/uverbs_marshall.c
-index af020f8..ed3e68f 100644
---- a/drivers/infiniband/core/uverbs_marshall.c
-+++ b/drivers/infiniband/core/uverbs_marshall.c
-@@ -36,7 +36,7 @@
- void ib_copy_ah_attr_to_user(struct ib_uverbs_ah_attr *dst,
- 			     struct ib_ah_attr *src)
- {
--	memcpy(dst->grh.dgid, src->grh.dgid.raw, sizeof src->grh.dgid);
-+	memcpy(dst->grh.dgid, src->grh.dgid.raw, sizeof(src->grh.dgid));
- 	dst->grh.flow_label        = src->grh.flow_label;
- 	dst->grh.sgid_index        = src->grh.sgid_index;
- 	dst->grh.hop_limit         = src->grh.hop_limit;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+index 3e3a84f..be2e84d4 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+@@ -293,17 +293,16 @@ static int ipoib_mcast_join_finish(struct ipoib_mcast *mcast,
+ 				-PTR_ERR(ah));
+ 			/* use original error */
+ 			return PTR_ERR(ah);
+-		} else {
+-			spin_lock_irq(&priv->lock);
+-			mcast->ah = ah;
+-			spin_unlock_irq(&priv->lock);
+-
+-			ipoib_dbg_mcast(priv, "MGID %pI6 AV %p, LID 0x%04x, SL %d\n",
+-					mcast->mcmember.mgid.raw,
+-					mcast->ah->ah,
+-					be16_to_cpu(mcast->mcmember.mlid),
+-					mcast->mcmember.sl);
+ 		}
++		spin_lock_irq(&priv->lock);
++		mcast->ah = ah;
++		spin_unlock_irq(&priv->lock);
++
++		ipoib_dbg_mcast(priv, "MGID %pI6 AV %p, LID 0x%04x, SL %d\n",
++				mcast->mcmember.mgid.raw,
++				mcast->ah->ah,
++				be16_to_cpu(mcast->mcmember.mlid),
++				mcast->mcmember.sl);
+ 	}
+ 
+ 	/* actually send any queued packets */
 -- 
 1.8.3.1
 
