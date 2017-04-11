@@ -1,8 +1,8 @@
 From: Dasaratharaman Chandramouli
         <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-next 05/18] IB/rxe: Initialize ib_ah_attr during query_ah
-Date: Tue, 11 Apr 2017 13:42:12 -0400
-Message-ID: <1491932545-60894-6-git-send-email-dasaratharaman.chandramouli@intel.com>
+Subject: [PATCH rdma-next 12/18] IB/mlx5: Rename to_ib_ah_attr to to_rdma_ah_attr
+Date: Tue, 11 Apr 2017 13:42:19 -0400
+Message-ID: <1491932545-60894-13-git-send-email-dasaratharaman.chandramouli@intel.com>
 References: <1491932545-60894-1-git-send-email-dasaratharaman.chandramouli@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1491932545-60894-1-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -11,42 +11,45 @@ To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Zero out ib_ah_attr before calling query_ah. Set ah_flags
-appropriately.
+local function  to_ib_ah_attr is renamed so it in
+sync with the rename of the ib_ah_attr structure
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_av.c    | 1 +
- drivers/infiniband/sw/rxe/rxe_verbs.c | 1 +
- 2 files changed, 2 insertions(+)
+ drivers/infiniband/hw/mlx5/qp.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_av.c b/drivers/infiniband/sw/rxe/rxe_av.c
-index 604f6fe..88a4a7f 100644
---- a/drivers/infiniband/sw/rxe/rxe_av.c
-+++ b/drivers/infiniband/sw/rxe/rxe_av.c
-@@ -69,6 +69,7 @@ int rxe_av_to_attr(struct rxe_dev *rxe, struct rxe_av *av,
- 		   struct ib_ah_attr *attr)
- {
- 	memcpy(&attr->grh, &av->grh, sizeof(av->grh));
-+	attr->ah_flags = IB_AH_GRH;
- 	attr->port_num = av->port_num;
- 	return 0;
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 26803aa..22d8f71 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -4248,9 +4248,9 @@ static int to_ib_qp_access_flags(int mlx5_flags)
+ 	return ib_flags;
  }
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 5113e50..379899f 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -376,6 +376,7 @@ static int rxe_query_ah(struct ib_ah *ibah, struct ib_ah_attr *attr)
- 	struct rxe_dev *rxe = to_rdev(ibah->device);
- 	struct rxe_ah *ah = to_rah(ibah);
  
-+	memset(attr, 0, sizeof(*attr));
- 	rxe_av_to_attr(rxe, &ah->av, attr);
- 	return 0;
- }
+-static void to_ib_ah_attr(struct mlx5_ib_dev *ibdev,
+-			  struct rdma_ah_attr *ib_ah_attr,
+-			  struct mlx5_qp_path *path)
++static void to_rdma_ah_attr(struct mlx5_ib_dev *ibdev,
++			    struct rdma_ah_attr *ib_ah_attr,
++			    struct mlx5_qp_path *path)
+ {
+ 	struct mlx5_core_dev *dev = ibdev->mdev;
+ 
+@@ -4440,8 +4440,8 @@ static int query_qp_attr(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 		to_ib_qp_access_flags(be32_to_cpu(context->params2));
+ 
+ 	if (qp->ibqp.qp_type == IB_QPT_RC || qp->ibqp.qp_type == IB_QPT_UC) {
+-		to_ib_ah_attr(dev, &qp_attr->ah_attr, &context->pri_path);
+-		to_ib_ah_attr(dev, &qp_attr->alt_ah_attr, &context->alt_path);
++		to_rdma_ah_attr(dev, &qp_attr->ah_attr, &context->pri_path);
++		to_rdma_ah_attr(dev, &qp_attr->alt_ah_attr, &context->alt_path);
+ 		qp_attr->alt_pkey_index =
+ 			be16_to_cpu(context->alt_path.pkey_index);
+ 		qp_attr->alt_port_num	= qp_attr->alt_ah_attr.port_num;
 -- 
 1.8.3.1
 
