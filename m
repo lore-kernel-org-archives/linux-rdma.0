@@ -1,8 +1,8 @@
 From: Dasaratharaman Chandramouli
         <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-next 08/18] IB/core: Rename ib_modify_ah to rdma_modify_ah
-Date: Tue, 11 Apr 2017 13:42:15 -0400
-Message-ID: <1491932545-60894-9-git-send-email-dasaratharaman.chandramouli@intel.com>
+Subject: [PATCH rdma-next 07/18] IB/core: Rename ib_create_ah to rdma_create_ah
+Date: Tue, 11 Apr 2017 13:42:14 -0400
+Message-ID: <1491932545-60894-8-git-send-email-dasaratharaman.chandramouli@intel.com>
 References: <1491932545-60894-1-git-send-email-dasaratharaman.chandramouli@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1491932545-60894-1-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -11,7 +11,7 @@ To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Rename ib_modify_ah to rdma_modify_ah so its in sync with the
+Rename ib_create_ah to rdma_create_ah so its in sync with the
 rename of the ib address handle attribute
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -19,50 +19,196 @@ Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c | 4 ++--
- include/rdma/ib_verbs.h         | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/infiniband/core/cm.c            | 2 +-
+ drivers/infiniband/core/sa_query.c      | 2 +-
+ drivers/infiniband/core/user_mad.c      | 2 +-
+ drivers/infiniband/core/verbs.c         | 6 +++---
+ drivers/infiniband/hw/hfi1/verbs.c      | 2 +-
+ drivers/infiniband/hw/mlx4/mad.c        | 8 ++++----
+ drivers/infiniband/hw/mthca/mthca_mad.c | 4 ++--
+ drivers/infiniband/hw/qib/qib_verbs.c   | 2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c | 2 +-
+ include/rdma/ib_verbs.h                 | 4 ++--
+ 10 files changed, 17 insertions(+), 17 deletions(-)
 
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index c9751cc..ac62dd8 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -343,7 +343,7 @@ static int cm_alloc_msg(struct cm_id_private *cm_id_priv,
+ 		ret = -ENODEV;
+ 		goto out;
+ 	}
+-	ah = ib_create_ah(mad_agent->qp->pd, &av->ah_attr);
++	ah = rdma_create_ah(mad_agent->qp->pd, &av->ah_attr);
+ 	if (IS_ERR(ah)) {
+ 		ret = PTR_ERR(ah);
+ 		goto out;
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index bb5192d..5449a3d 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -2043,7 +2043,7 @@ static void update_sm_ah(struct work_struct *work)
+ 			cpu_to_be64(IB_SA_WELL_KNOWN_GUID);
+ 	}
+ 
+-	new_ah->ah = ib_create_ah(port->agent->qp->pd, &ah_attr);
++	new_ah->ah = rdma_create_ah(port->agent->qp->pd, &ah_attr);
+ 	if (IS_ERR(new_ah->ah)) {
+ 		pr_warn("Couldn't create new SM AH\n");
+ 		kfree(new_ah);
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index 7198c40..3ac6f97 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -502,7 +502,7 @@ static ssize_t ib_umad_write(struct file *filp, const char __user *buf,
+ 		ah_attr.grh.traffic_class  = packet->mad.hdr.traffic_class;
+ 	}
+ 
+-	ah = ib_create_ah(agent->qp->pd, &ah_attr);
++	ah = rdma_create_ah(agent->qp->pd, &ah_attr);
+ 	if (IS_ERR(ah)) {
+ 		ret = PTR_ERR(ah);
+ 		goto err_up;
 diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 7123131..72b13ca 100644
+index c182887..7123131 100644
 --- a/drivers/infiniband/core/verbs.c
 +++ b/drivers/infiniband/core/verbs.c
-@@ -571,13 +571,13 @@ struct ib_ah *ib_create_ah_from_wc(struct ib_pd *pd, const struct ib_wc *wc,
+@@ -311,7 +311,7 @@ void ib_dealloc_pd(struct ib_pd *pd)
+ 
+ /* Address handles */
+ 
+-struct ib_ah *ib_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr)
++struct ib_ah *rdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr)
+ {
+ 	struct ib_ah *ah;
+ 
+@@ -326,7 +326,7 @@ struct ib_ah *ib_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr)
+ 
+ 	return ah;
+ }
+-EXPORT_SYMBOL(ib_create_ah);
++EXPORT_SYMBOL(rdma_create_ah);
+ 
+ int ib_get_rdma_header_version(const union rdma_network_hdr *hdr)
+ {
+@@ -567,7 +567,7 @@ struct ib_ah *ib_create_ah_from_wc(struct ib_pd *pd, const struct ib_wc *wc,
+ 	if (ret)
+ 		return ERR_PTR(ret);
+ 
+-	return ib_create_ah(pd, &ah_attr);
++	return rdma_create_ah(pd, &ah_attr);
  }
  EXPORT_SYMBOL(ib_create_ah_from_wc);
  
--int ib_modify_ah(struct ib_ah *ah, struct rdma_ah_attr *ah_attr)
-+int rdma_modify_ah(struct ib_ah *ah, struct rdma_ah_attr *ah_attr)
- {
- 	return ah->device->modify_ah ?
- 		ah->device->modify_ah(ah, ah_attr) :
- 		-ENOSYS;
+diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
+index 24ad070..24144fe 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.c
++++ b/drivers/infiniband/hw/hfi1/verbs.c
+@@ -1516,7 +1516,7 @@ struct ib_ah *hfi1_create_qp0_ah(struct hfi1_ibport *ibp, u16 dlid)
+ 	rcu_read_lock();
+ 	qp0 = rcu_dereference(ibp->rvp.qp[0]);
+ 	if (qp0)
+-		ah = ib_create_ah(qp0->ibqp.pd, &attr);
++		ah = rdma_create_ah(qp0->ibqp.pd, &attr);
+ 	rcu_read_unlock();
+ 	return ah;
  }
--EXPORT_SYMBOL(ib_modify_ah);
-+EXPORT_SYMBOL(rdma_modify_ah);
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index d934959..76010d0 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -200,8 +200,8 @@ static void update_sm_ah(struct mlx4_ib_dev *dev, u8 port_num, u16 lid, u8 sl)
+ 	ah_attr.sl       = sl;
+ 	ah_attr.port_num = port_num;
  
- int ib_query_ah(struct ib_ah *ah, struct rdma_ah_attr *ah_attr)
- {
+-	new_ah = ib_create_ah(dev->send_agent[port_num - 1][0]->qp->pd,
+-			      &ah_attr);
++	new_ah = rdma_create_ah(dev->send_agent[port_num - 1][0]->qp->pd,
++				&ah_attr);
+ 	if (IS_ERR(new_ah))
+ 		return;
+ 
+@@ -563,7 +563,7 @@ int mlx4_ib_send_to_slave(struct mlx4_ib_dev *dev, int slave, u8 port,
+ 			return -EINVAL;
+ 		attr.ah_flags = IB_AH_GRH;
+ 	}
+-	ah = ib_create_ah(tun_ctx->pd, &attr);
++	ah = rdma_create_ah(tun_ctx->pd, &attr);
+ 	if (IS_ERR(ah))
+ 		return -ENOMEM;
+ 
+@@ -1391,7 +1391,7 @@ int mlx4_ib_send_to_wire(struct mlx4_ib_dev *dev, int slave, u8 port,
+ 	/* create ah */
+ 	sgid_index = attr->grh.sgid_index;
+ 	attr->grh.sgid_index = 0;
+-	ah = ib_create_ah(sqp_ctx->pd, attr);
++	ah = rdma_create_ah(sqp_ctx->pd, attr);
+ 	if (IS_ERR(ah))
+ 		return -ENOMEM;
+ 	attr->grh.sgid_index = sgid_index;
+diff --git a/drivers/infiniband/hw/mthca/mthca_mad.c b/drivers/infiniband/hw/mthca/mthca_mad.c
+index 00f7831..7f671a2 100644
+--- a/drivers/infiniband/hw/mthca/mthca_mad.c
++++ b/drivers/infiniband/hw/mthca/mthca_mad.c
+@@ -86,8 +86,8 @@ static void update_sm_ah(struct mthca_dev *dev,
+ 	ah_attr.sl       = sl;
+ 	ah_attr.port_num = port_num;
+ 
+-	new_ah = ib_create_ah(dev->send_agent[port_num - 1][0]->qp->pd,
+-			      &ah_attr);
++	new_ah = rdma_create_ah(dev->send_agent[port_num - 1][0]->qp->pd,
++				&ah_attr);
+ 	if (IS_ERR(new_ah))
+ 		return;
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
+index 421f4fc..d221bbe 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.c
++++ b/drivers/infiniband/hw/qib/qib_verbs.c
+@@ -1374,7 +1374,7 @@ struct ib_ah *qib_create_qp0_ah(struct qib_ibport *ibp, u16 dlid)
+ 	rcu_read_lock();
+ 	qp0 = rcu_dereference(ibp->rvp.qp[0]);
+ 	if (qp0)
+-		ah = ib_create_ah(qp0->ibqp.pd, &attr);
++		ah = rdma_create_ah(qp0->ibqp.pd, &attr);
+ 	rcu_read_unlock();
+ 	return ah;
+ }
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index 9029270..1907f7d 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -65,7 +65,7 @@ struct ipoib_ah *ipoib_create_ah(struct net_device *dev,
+ 	ah->last_send = 0;
+ 	kref_init(&ah->ref);
+ 
+-	vah = ib_create_ah(pd, attr);
++	vah = rdma_create_ah(pd, attr);
+ 	if (IS_ERR(vah)) {
+ 		kfree(ah);
+ 		ah = (struct ipoib_ah *)vah;
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 8eb366e..312cab0 100644
+index f31a757..8eb366e 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -2722,13 +2722,13 @@ struct ib_ah *ib_create_ah_from_wc(struct ib_pd *pd, const struct ib_wc *wc,
- 				   const struct ib_grh *grh, u8 port_num);
+@@ -2664,14 +2664,14 @@ struct ib_pd *__ib_alloc_pd(struct ib_device *device, unsigned int flags,
+ void ib_dealloc_pd(struct ib_pd *pd);
  
  /**
-- * ib_modify_ah - Modifies the address vector associated with an address
-+ * rdma_modify_ah - Modifies the address vector associated with an address
-  *   handle.
-  * @ah: The address handle to modify.
-  * @ah_attr: The new address vector attributes to associate with the
-  *   address handle.
+- * ib_create_ah - Creates an address handle for the given address vector.
++ * rdma_create_ah - Creates an address handle for the given address vector.
+  * @pd: The protection domain associated with the address handle.
+  * @ah_attr: The attributes of the address vector.
+  *
+  * The address handle is used to reference a local or global destination
+  * in all UD QP post sends.
   */
--int ib_modify_ah(struct ib_ah *ah, struct rdma_ah_attr *ah_attr);
-+int rdma_modify_ah(struct ib_ah *ah, struct rdma_ah_attr *ah_attr);
+-struct ib_ah *ib_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr);
++struct ib_ah *rdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr);
  
  /**
-  * ib_query_ah - Queries the address vector associated with an address
+  * ib_get_gids_from_rdma_hdr - Get sgid and dgid from GRH or IPv4 header
 -- 
 1.8.3.1
 
