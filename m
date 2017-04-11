@@ -1,8 +1,8 @@
 From: Dasaratharaman Chandramouli
         <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-next 14/18] IB/PVRDMA: Rename ib_ah_attr related functions
-Date: Tue, 11 Apr 2017 13:42:21 -0400
-Message-ID: <1491932545-60894-15-git-send-email-dasaratharaman.chandramouli@intel.com>
+Subject: [PATCH rdma-next 13/18] IB/mthca: Rename to_ib_ah_attr to to_rdma_ah_attr
+Date: Tue, 11 Apr 2017 13:42:20 -0400
+Message-ID: <1491932545-60894-14-git-send-email-dasaratharaman.chandramouli@intel.com>
 References: <1491932545-60894-1-git-send-email-dasaratharaman.chandramouli@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1491932545-60894-1-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -11,91 +11,45 @@ To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Functions pvrdma_ah_attr_to_ib and ib_ah_attr_to_pvrdma have
-been renamed so they are in sync wit the rename of the
-ib_ah_attr structure
+local function  to_ib_ah_attr is renamed so it in
+sync with the rename of the ib_ah_attr structure
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/vmw_pvrdma/pvrdma.h      | 8 ++++----
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c | 8 ++++----
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c   | 8 ++++----
- 3 files changed, 12 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/mthca/mthca_qp.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-index 4682b6d..0c8b563 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-@@ -437,10 +437,10 @@ void pvrdma_global_route_to_ib(struct ib_global_route *dst,
- 			       const struct pvrdma_global_route *src);
- void ib_global_route_to_pvrdma(struct pvrdma_global_route *dst,
- 			       const struct ib_global_route *src);
--void pvrdma_ah_attr_to_ib(struct rdma_ah_attr *dst,
--			  const struct pvrdma_ah_attr *src);
--void ib_ah_attr_to_pvrdma(struct pvrdma_ah_attr *dst,
--			  const struct rdma_ah_attr *src);
-+void pvrdma_ah_attr_to_rdma(struct rdma_ah_attr *dst,
-+			    const struct pvrdma_ah_attr *src);
-+void rdma_ah_attr_to_pvrdma(struct pvrdma_ah_attr *dst,
-+			    const struct rdma_ah_attr *src);
- 
- int pvrdma_uar_table_init(struct pvrdma_dev *dev);
- void pvrdma_uar_table_cleanup(struct pvrdma_dev *dev);
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c
-index 1562874..d248ec3 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c
-@@ -277,8 +277,8 @@ void ib_global_route_to_pvrdma(struct pvrdma_global_route *dst,
- 	dst->traffic_class = src->traffic_class;
+diff --git a/drivers/infiniband/hw/mthca/mthca_qp.c b/drivers/infiniband/hw/mthca/mthca_qp.c
+index e0b8e43..baf65fe 100644
+--- a/drivers/infiniband/hw/mthca/mthca_qp.c
++++ b/drivers/infiniband/hw/mthca/mthca_qp.c
+@@ -393,9 +393,9 @@ static int to_ib_qp_access_flags(int mthca_flags)
+ 	return ib_flags;
  }
  
--void pvrdma_ah_attr_to_ib(struct rdma_ah_attr *dst,
--			  const struct pvrdma_ah_attr *src)
-+void pvrdma_ah_attr_to_rdma(struct rdma_ah_attr *dst,
-+			    const struct pvrdma_ah_attr *src)
+-static void to_ib_ah_attr(struct mthca_dev *dev,
+-			  struct rdma_ah_attr *ib_ah_attr,
+-			  struct mthca_qp_path *path)
++static void to_rdma_ah_attr(struct mthca_dev *dev,
++			    struct rdma_ah_attr *ib_ah_attr,
++			    struct mthca_qp_path *path)
  {
- 	pvrdma_global_route_to_ib(&dst->grh, &src->grh);
- 	dst->dlid = src->dlid;
-@@ -290,8 +290,8 @@ void pvrdma_ah_attr_to_ib(struct rdma_ah_attr *dst,
- 	memcpy(&dst->dmac, &src->dmac, sizeof(dst->dmac));
- }
+ 	memset(ib_ah_attr, 0, sizeof *ib_ah_attr);
+ 	ib_ah_attr->port_num 	  = (be32_to_cpu(path->port_pkey) >> 24) & 0x3;
+@@ -469,8 +469,8 @@ int mthca_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr, int qp_attr_m
+ 		to_ib_qp_access_flags(be32_to_cpu(context->params2));
  
--void ib_ah_attr_to_pvrdma(struct pvrdma_ah_attr *dst,
--			  const struct rdma_ah_attr *src)
-+void rdma_ah_attr_to_pvrdma(struct pvrdma_ah_attr *dst,
-+			    const struct rdma_ah_attr *src)
- {
- 	ib_global_route_to_pvrdma(&dst->grh, &src->grh);
- 	dst->dlid = src->dlid;
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-index dbbfd35..3212ec7 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-@@ -532,8 +532,8 @@ int pvrdma_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 	cmd->attrs.alt_port_num = attr->alt_port_num;
- 	cmd->attrs.alt_timeout = attr->alt_timeout;
- 	ib_qp_cap_to_pvrdma(&cmd->attrs.cap, &attr->cap);
--	ib_ah_attr_to_pvrdma(&cmd->attrs.ah_attr, &attr->ah_attr);
--	ib_ah_attr_to_pvrdma(&cmd->attrs.alt_ah_attr, &attr->alt_ah_attr);
-+	rdma_ah_attr_to_pvrdma(&cmd->attrs.ah_attr, &attr->ah_attr);
-+	rdma_ah_attr_to_pvrdma(&cmd->attrs.alt_ah_attr, &attr->alt_ah_attr);
- 
- 	ret = pvrdma_cmd_post(dev, &req, &rsp, PVRDMA_CMD_MODIFY_QP_RESP);
- 	if (ret < 0) {
-@@ -944,8 +944,8 @@ int pvrdma_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 	attr->alt_port_num = resp->attrs.alt_port_num;
- 	attr->alt_timeout = resp->attrs.alt_timeout;
- 	pvrdma_qp_cap_to_ib(&attr->cap, &resp->attrs.cap);
--	pvrdma_ah_attr_to_ib(&attr->ah_attr, &resp->attrs.ah_attr);
--	pvrdma_ah_attr_to_ib(&attr->alt_ah_attr, &resp->attrs.alt_ah_attr);
-+	pvrdma_ah_attr_to_rdma(&attr->ah_attr, &resp->attrs.ah_attr);
-+	pvrdma_ah_attr_to_rdma(&attr->alt_ah_attr, &resp->attrs.alt_ah_attr);
- 
- 	qp->state = attr->qp_state;
- 
+ 	if (qp->transport == RC || qp->transport == UC) {
+-		to_ib_ah_attr(dev, &qp_attr->ah_attr, &context->pri_path);
+-		to_ib_ah_attr(dev, &qp_attr->alt_ah_attr, &context->alt_path);
++		to_rdma_ah_attr(dev, &qp_attr->ah_attr, &context->pri_path);
++		to_rdma_ah_attr(dev, &qp_attr->alt_ah_attr, &context->alt_path);
+ 		qp_attr->alt_pkey_index =
+ 			be32_to_cpu(context->alt_path.port_pkey) & 0x7f;
+ 		qp_attr->alt_port_num 	= qp_attr->alt_ah_attr.port_num;
 -- 
 1.8.3.1
 
