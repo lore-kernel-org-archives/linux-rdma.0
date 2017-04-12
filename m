@@ -1,58 +1,116 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Subject: Re: [rdma-core/srp_daemon PATCH] Correct method field for PathRecord
  request
-Date: Wed, 12 Apr 2017 09:34:20 -0400
-Message-ID: <d5a9d1a8-6c38-51f2-d444-a6942db406f9@dev.mellanox.co.il>
+Date: Wed, 12 Apr 2017 09:57:22 -0400
+Message-ID: <f855b360-df94-f41a-1ba3-7440bdbd8db3@dev.mellanox.co.il>
 References: <1491924533-2548-1-git-send-email-honli@redhat.com>
- <20170411154944.GA19917@obsidianresearch.com>
- <20170412132923.GB16375@dhcp-13-42.nay.redhat.com>
+ <9371eab5-ebbb-cfa4-acf6-debc636e44e2@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170412132923.GB16375-Y5OA6DF/u0nid9cnFhDO8BcY2uh10dtjAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <9371eab5-ebbb-cfa4-acf6-debc636e44e2-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
+To: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/12/2017 9:29 AM, Honggang LI wrote:
-> On Tue, Apr 11, 2017 at 09:49:44AM -0600, Jason Gunthorpe wrote:
->> On Tue, Apr 11, 2017 at 11:28:53PM +0800, Honggang LI wrote:
->>> From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->>>
->>> According to InfiniBand Architecture Release 1.2.1, Table 208
->>> Example PathRecord Request MAD Header Fields, MADHeader:Method
->>> should setup to 0x12 (SubnAdmGetTable()).
+On 4/11/2017 12:20 PM, Hal Rosenstock wrote:
+> On 4/11/2017 11:28 AM, Honggang LI wrote:
+>> From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 >>
->> That is just an example, Table 192 shows that Get and GetTable are
->> both valid query types.
+>> According to InfiniBand Architecture Release 1.2.1, Table 208
+>> Example PathRecord Request MAD Header Fields, MADHeader:Method
+>> should setup to 0x12 (SubnAdmGetTable()).
 > 
-> I don't understand this as "Table 192 PortInfoRecord" seems nothing to
-> do with PathRecord request.
-
-In IBA 1.3 volume 1, it's Table 209 Subnet Administration
-Attribute/Method Map shows PathRecord methods are Get and GetTable.
-
+> Both get and get table should be supported for Path Record.
+> 
+>> Before send the MAD packet for PathRecord request, init_srp_mad setup
+>> out_mad->method to SRP_MAD_METHOD_GET (0x01) for get_shared_pkeys. But
+>> get_shared_pkeys setup the attr_id field to SRP_SA_ATTR_PATH_REC (0x35).
 >>
->> I however expect that the SM will fail when using GetTable if the
->> query returns more than one result, could that be what is happening?
->> When you convert it to GET_TABLE does it return more than one result?
+>> Because of this incorrect field in MAD packet, upstream srptools-1.0.3
+>> failed with an embedded subnet manager running on an Intel True Scale
+>> Edge Switch 12300.
 > 
-> strace output shows srptools always received MAD packet in 320 bytes. So
-> the embedded subnet manager only returns one result.
+> Sounds like a bug in the embedded SM.
+> 
+> If it works with GetTable and not with Get, sounds like there is more
+> than 1 path available to be returned.
+> 
+> SA PathRecord:NumbPath says:
+> In a SubnAdmGetTable() query request: Maximum
+> number of paths to return for each unique SGIDDGID
+> combination. If more paths that satisfy the
+> PathRecord query exist for a given SGID-DGID combination,
+> only NumbPath paths shall be returned
+> (implementation defined).
+> In a SubnAdmGet() query request, ignored; a value of
+> 1 is used.
+> 
+> So in case of multiple paths and get method, SM is supposed to pick one
+> rather than return some error (like too many records). Is that the MAD
+> status returned ?
+> 
+> -- Hal
+> 
+>> Upstream srptools-1.0.3 works with upstream opensm, because
+>> sa_mad_ctrl_process post the MAD to the dispatcher based on the attr_id
+>> field. As attr_id had been set to SRP_SA_ATTR_PATH_REC (0x35),
+>> PathRecord query works with opensm.
+>>
+>> opensm/opensm/osm_sa_mad_ctrl.c
+>>    292	static void sa_mad_ctrl_rcv_callback(IN osm_madw_t * p_madw, IN void *context,
+>> .........
+>>    357		switch (p_sa_mad->method) {
+>> .........
+>>    370		case IB_MAD_METHOD_GET:        // 0x01
+>>    371		case IB_MAD_METHOD_GETTABLE:   // 0x12
+>>    372	#if defined (VENDOR_RMPP_SUPPORT) && defined (DUAL_SIDED_RMPP)
+>>    373		case IB_MAD_METHOD_GETMULTI:
+>>    374	#endif
+>>    375			is_get_request = TRUE;
+>>    376		case IB_MAD_METHOD_SET:
+>>    377		case IB_MAD_METHOD_DELETE:
+>>    378			/* if we are closing down simply do nothing */
+>>    379			if (osm_exit_flag)
+>>    380				osm_mad_pool_put(p_ctrl->p_mad_pool, p_madw);
+>>    381			else
+>>    382				sa_mad_ctrl_process(p_ctrl, p_madw, is_get_request);
+>>    383			break;
+>>    384
+>>
+>> 2ad09524931dbf98d412e1912c1bdbf22f8ac81d ("srp_daemon: Work around SM
+>> bug over non-default P_Key support") in the old git tree [1] introduced
+>> this regression issue. Upstream srptools-0.0.4 works with the embedded
+>> subnet manager.
+>>
+>> [1] git://git.openfabrics.org/~bvanassche/srptools.git
+>>
+>> Signed-off-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>> ---
+>>  srp_daemon/srp_daemon.c | 1 +
+>>  1 file changed, 1 insertion(+)
+>>
+>> diff --git a/srp_daemon/srp_daemon.c b/srp_daemon/srp_daemon.c
+>> index 71b5f07..f905c6f 100644
+>> --- a/srp_daemon/srp_daemon.c
+>> +++ b/srp_daemon/srp_daemon.c
+>> @@ -1134,6 +1134,7 @@ static int get_shared_pkeys(struct resources *res,
+>>  			continue;
+>>  
+>>  		/* Mark components: DLID, SLID, PKEY */
+>> +		out_sa_mad->method = SRP_SA_METHOD_GET_TABLE;
+>>  		out_sa_mad->comp_mask = htobe64(1 << 4 | 1 << 5 | 1 << 13);
 
-What is MAD status ?
+Note that just changing this to GetTable is noncompliant. SA PathRecord
+says that for a GetTable request both SGID and NumbPath are required.
 
 -- Hal
 
+>>  		out_sa_mad->rmpp_hdr.rmpp_version = UMAD_RMPP_VERSION;
+>>  		out_sa_mad->rmpp_hdr.rmpp_type = 1;
 >>
->> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
