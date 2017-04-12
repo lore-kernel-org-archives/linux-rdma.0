@@ -1,104 +1,108 @@
-From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
-Date: Thu, 13 Apr 2017 07:55:24 +1000
-Message-ID: <1492034124.7236.77.camel@kernel.crashing.org>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
- <1491974532.7236.43.camel@kernel.crashing.org>
- <5ac22496-56ec-025d-f153-140001d2a7f9@deltatee.com>
+From: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [rdma-core/srp_daemon PATCH] Correct method field for PathRecord
+ request
+Date: Thu, 13 Apr 2017 07:08:58 +0800
+Message-ID: <20170412230858.GA9594@dhcp-13-42.nay.redhat.com>
+References: <1491924533-2548-1-git-send-email-honli@redhat.com>
+ <20170411154944.GA19917@obsidianresearch.com>
+ <20170412132923.GB16375@dhcp-13-42.nay.redhat.com>
+ <d5a9d1a8-6c38-51f2-d444-a6942db406f9@dev.mellanox.co.il>
+ <20170412141800.GA20223@dhcp-13-42.nay.redhat.com>
+ <6e04d44e-fab3-1477-7de4-d3c679301f38@dev.mellanox.co.il>
+ <20170412144946.GC20223@dhcp-13-42.nay.redhat.com>
+ <89c5ad40-cb4d-8b4d-48b3-e53351fb64af@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <5ac22496-56ec-025d-f153-140001d2a7f9-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <89c5ad40-cb4d-8b4d-48b3-e53351fb64af-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE3LTA0LTEyIGF0IDExOjA5IC0wNjAwLCBMb2dhbiBHdW50aG9ycGUgd3JvdGU6
-Cj4gCj4gPiBEbyB5b3UgaGFuZGxlIGZ1bmt5IGFkZHJlc3MgdHJhbnNsYXRpb24gdG9vID8gSUUu
-IHRoZSBmYWN0IHRoYXQgdGhlIFBDSQo+ID4gYWRkcmVzc2VzIGFyZW4ndCB0aGUgc2FtZSBhcyB0
-aGUgQ1BVIHBoeXNpY2FsIGFkZHJlc3NlcyBmb3IgYSBCQVIgPwo+IAo+IE5vLCB3ZSB1c2UgdGhl
-IENQVSBwaHlzaWNhbCBhZGRyZXNzIG9mIHRoZSBCQVIuIElmIGl0J3Mgbm90IG1hcHBlZCB0aGF0
-Cj4gd2F5IHdlIGNhbid0IHVzZSBpdC4KCk9rLCB5b3UgbmVlZCB0byBmaXggdGhhdCBvciBhIGJ1
-bmNoIG9mIGFyY2hpdGVjdHVyZXMgd29uJ3Qgd29yay4gCgpMb29rIGF0IHBjaWJpb3NfcmVzb3Vy
-Y2VfdG9fYnVzKCkgYW5kIHBjaWJpb3NfYnVzX3RvX3Jlc291cmNlKCkuIFRoZXkKd2lsbCBwZXJm
-b3JtIHRoZSBjb252ZXJzaW9uIGJldHdlZW4gdGhlIHN0cnVjdCByZXNvdXJjZSBjb250ZW50IChD
-UFUKcGh5c2ljYWwgYWRkcmVzcykgYW5kIHRoZSBhY3R1YWwgUENJIGJ1cyBzaWRlIGFkZHJlc3Mu
-CgpXaGVuIGJlaGluZCB0aGUgc2FtZSBzd2l0Y2ggeW91IG5lZWQgdG8gdXNlIFBDSSBhZGRyZXNz
-ZXMuIElmIG9uZSB0cmllcwpsYXRlciB0byBkbyBQMlAgYmV0d2VlbiBob3N0IGJyaWRnZXMgKHZp
-YSB0aGUgQ1BVIGZhYnJpYykgdGhpbmdzIGdldAptb3JlIGNvbXBsZXggYW5kIG9uZSB3aWxsIGhh
-dmUgdG8gdXNlIGVpdGhlciBDUFUgYWRkcmVzc2VzIG9yIHNvbWV0aGluZwplbHNlIGFsbHRvZ2V0
-aGVyIChwcm9iYWJseSB3b3VsZCBoYXZlIHRvIHRlYWNoIHRoZSBhcmNoIERNQSBtYXBwaW5nCnJv
-dXRpbmVzIHRvIHdvcmsgd2l0aCB0aG9zZSBzdHJ1Y3QgcGFnZXMgeW91IGNyZWF0ZSBhbmQgcmV0
-dXJuIHRoZQpyaWdodCB0aGluZykuCgo+ID4gPiBUaGlzIHdpbGwgbWVhbiBtYW55IHNldHVwcyB0
-aGF0IGNvdWxkIGxpa2VseQo+ID4gPiB3b3JrIHdlbGwgd2lsbCBub3QgYmUgc3VwcG9ydGVkIHNv
-IHRoYXQgd2UgY2FuIGJlIG1vcmUgY29uZmlkZW50IGl0Cj4gPiA+IHdpbGwgd29yayBhbmQgbm90
-IHBsYWNlIGFueSByZXNwb25zaWJpbGl0eSBvbiB0aGUgdXNlciB0byB1bmRlcnN0YW5kCj4gPiA+
-IHRoZWlyIHRvcG9sb2d5LiAoV2UndmUgY2hvc2VuIHRvIGdvIHRoaXMgcm91dGUgYmFzZWQgb24g
-ZmVlZGJhY2sgd2UKPiA+ID4gcmVjZWl2ZWQgYXQgTFNGKS4KPiA+ID4gCj4gPiA+IEluIG9yZGVy
-IHRvIGVuYWJsZSB0aGlzIGZ1bmN0aW9uYWxpdHkgd2UgaW50cm9kdWNlIGEgbmV3IHAycG1lbSBk
-ZXZpY2UKPiA+ID4gd2hpY2ggY2FuIGJlIGluc3RhbnRpYXRlZCBieSBQQ0kgZHJpdmVycy4gVGhl
-IGRldmljZSB3aWxsIHJlZ2lzdGVyIHNvbWUKPiA+ID4gUENJIG1lbW9yeSBhcyBaT05FX0RFVklD
-RSBhbmQgcHJvdmlkZSBhbiBnZW5hbGxvYyBiYXNlZCBhbGxvY2F0b3IgZm9yCj4gPiA+IHVzZXJz
-IG9mIHRoZXNlIGRldmljZXMgdG8gZ2V0IGJ1ZmZlcnMuCj4gPiAKPiA+IEkgZG9uJ3QgY29tcGxl
-dGVseSB1bmRlcnN0YW5kIHRoaXMuIFRoaXMgaXMgYWN0dWFsIG1lbW9yeSBvbiB0aGUgUENJCj4g
-PiBidXMgPyBXaGVyZSBkb2VzIGl0IGNvbWUgZnJvbSA/IE9yIGFyZSB5b3UganVzdCB0cnlpbmcg
-dG8gY3JlYXRlIHN0cnVjdAo+ID4gcGFnZXMgdGhhdCBjb3ZlciB5b3VyIFBDSWUgRE1BIHRhcmdl
-dCA/Cj4gCj4gWWVzLCB0aGUgbWVtb3J5IGlzIG9uIHRoZSBQQ0kgYnVzIGluIGEgQkFSLiBGb3Ig
-bm93IHdlIGhhdmUgYSBzcGVjaWFsCj4gUENJIGNhcmQgZm9yIHRoaXMsIGJ1dCBpbiB0aGUgZnV0
-dXJlIGl0IHdvdWxkIGxpa2VseSBiZSB0aGUgQ01CIGluIGFuCj4gTlZNZSBjYXJkLiBUaGVzZSBw
-YXRjaGVzIGNyZWF0ZSBzdHJ1Y3QgcGFnZXMgdG8gbWFwIHRoZXNlIEJBUiBhZGRyZXNzZXMKPiB1
-c2luZyBaT05FX0RFVklDRS4KCk9rLgoKU28gaWRlYWxseSB3ZSdkIHdhbnQgdGhpbmdzIGxpa2Ug
-ZG1hX21hcF8qIHRvIGJlIGFibGUgdG8gYmUgZmVkIHRob3NlCnN0cnVjdCBwYWdlcyBhbmQgZG8g
-dGhlIHJpZ2h0IHRoaW5nIHdoaWNoIGlzIC4uLiB0cmlja3ksIGVzcGVjaWFsbHkKd2l0aCB0aGUg
-YWRkcmVzcyB0cmFuc2xhdGlvbiBJIG1lbnRpb25lZCBzaW5jZSB0aGUgYWRkcmVzcyB3aWxsIGJl
-CmRpZmZlcmVudCB3aGV0aGVyIHRoZSBpbml0aWF0b3IgaXMgb24gdGhlIHNhbWUgaG9zdCBicmlk
-Z2UgYXMgdGhlCnRhcmdldCBvciBub3QuCgo+ID4gU28gY29ycmVjdCBtZSBpZiBJJ20gd3Jvbmcs
-IHlvdSBhcmUgdHJ5aW5nIHRvIGNyZWF0ZSBzdHJ1Y3QgcGFnZSdzIHRoYXQKPiA+IG1hcCBhIFBD
-SWUgQkFSIHJpZ2h0ID8gSSdtIHRyeWluZyB0byB1bmRlcnN0YW5kIGhvdyB0aGF0IGludGVyYWN0
-cyB3aXRoCj4gPiB3aGF0IEplcm9tZSBpcyBkb2luZyBmb3IgSE1NLgo+IAo+IFllcywgd2VsbCB3
-ZSBhcmUgdXNpbmcgWk9ORV9ERVZJQ0UgaW4gdGhlIGV4YWN0IHNhbWUgd2F5IGFzIHRoZSBkYXgg
-Y29kZQo+IGlzLiBUaGVzZSBwYXRjaGVzIHVzZSB0aGUgZXhpc3RpbmcgQVBJIHdpdGggbm8gbW9k
-aWZpY2F0aW9ucy4gQXMgSQo+IHVuZGVyc3RhbmQgaXQsIEhNTSB3YXMgdXNpbmcgWk9ORV9ERVZJ
-Q0UgaW4gYSB3YXkgdGhhdCB3YXMgcXVpdGUKPiBkaWZmZXJlbnQgdG8gaG93IGl0IHdhcyBvcmln
-aW5hbGx5IGRlc2lnbmVkLgoKU29ydC1vZi4gSSBkb24ndCBzZWUgd2h5IHRoZXJlIHdvdWxkIGJl
-IGEgY29uZmxpY3Qgd2l0aCB0aGUgc3RydWN0CnBhZ2VzIHVzZSB0aG91Z2guIEplcm9tZSBjYW4g
-eW91IGNoaW1lIGluID8gSmVyb21lOiBJdCBsb29rcyBsaWtlIHRoZXkKYXJlIGp1c3QgbGF5aW5n
-IG91dCBzdHJ1Y3QgcGFnZSBvdmVyIGEgQkFSIHdoaWNoIGlzIHRoZSBzYW1lIHRoaW5nIEkKdGhp
-bmsgeW91IHNob3VsZCBkbyB3aGVuIHRoZSBCQVIgaXMgImxhcmdlIGVub3VnaCIgZm9yIHRoZSBH
-UFUgbWVtb3J5LgoKVGhlIGNhc2Ugd2hlcmUgSE1NIHVzZXMgImhvbGVzIiBpbiB0aGUgYWRkcmVz
-cyBzcGFjZSBmb3IgaXRzIHN0cnVjdApwYWdlIGlzIHNvbWV3aGF0IG9ydGhvZ29uYWwgYnV0IEkg
-YWxzbyBzZWUgbm8gY29uZmxpY3QgaGVyZS4KCj4gPiBUaGUgcmVhc29uIGlzIHRoYXQgdGhlIEhN
-TSBjdXJyZW50bHkgY3JlYXRlcyB0aGUgc3RydWN0IHBhZ2VzIHdpdGgKPiA+ICJmYWtlIiBQRk5z
-IHBvaW50aW5nIHRvIGEgaG9sZSBpbiB0aGUgYWRkcmVzcyBzcGFjZSByYXRoZXIgdGhhbgo+ID4g
-Y292ZXJpbmcgdGhlIGFjdHVhbCBQQ0llIG1lbW9yeSBvZiB0aGUgR1BVLiBIZSBkb2VzIHRoYXQg
-dG8gZGVhbCB3aXRoCj4gPiB0aGUgZmFjdCB0aGF0IHNvbWUgR1BVcyBoYXZlIGEgc21hbGxlciBh
-cGVydHVyZSBvbiBQQ0llIHRoYW4gdGhlaXIKPiA+IHRvdGFsIG1lbW9yeS4KPiAKPiBJJ20gYXdh
-cmUgb2Ygd2hhdCBITU0gaXMgdHJ5aW5nIHRvIGRvIGFuZCBhbHRob3VnaCBJJ20gbm90IGZhbWls
-aWFyIHdpdGgKPiB0aGUgaW50aW1hdGUgZGV0YWlscywgSSBzYXcgaXQgYXMgZmFpcmx5IG9ydGhv
-Z29uYWwgdG8gd2hhdCB3ZSBhcmUKPiBhdHRlbXB0aW5nIHRvIGRvLgoKUmlnaHQuCgo+ID4gSG93
-ZXZlciwgSSBoYXZlIGFza2VkIGhpbSB0byBvbmx5IGFwcGx5IHRoYXQgcG9saWN5IGlmIHRoZSBh
-cGVydHVyZSBpcwo+ID4gaW5kZWVkIHNtYWxsZXIsIGFuZCBpZiBub3QsIGNyZWF0ZSBzdHJ1Y3Qg
-cGFnZXMgdGhhdCBkaXJlY3RseSBjb3ZlciB0aGUKPiA+IFBDSWUgQkFSIG9mIHRoZSBHUFUgaW5z
-dGVhZCwgd2hpY2ggd2lsbCB3b3JrIGJldHRlciBvbiBzeXN0ZW1zIG9yCj4gPiBhcmNoaXRlY3R1
-cmUgdGhhdCBkb24ndCBoYXZlIGEgInBpbmhvbGUiIHdpbmRvdyBsaW1pdGF0aW9uLgo+ID4gSG93
-ZXZlciBoZSB3YXMgdW5kZXIgdGhlIGltcHJlc3Npb24gdGhhdCB0aGlzIHdhcyBnb2luZyB0byBj
-b2xsaWRlIHdpdGgKPiA+IHdoYXQgeW91IGd1eXMgYXJlIGRvaW5nLCBzbyBJJ20gdHJ5aW5nIHRv
-IHVuZGVyc3RhbmQgaG93LsKgCj4gCj4gSSdtIG5vdCBzdXJlIEkgdW5kZXJzdGFuZCBob3cgZWl0
-aGVyLiBIb3dldmVyLCBJIHN1c3BlY3QgaWYgeW91IGNvbGxpZGUKPiB3aXRoIHRoZXNlIHBhdGNo
-ZXMgdGhlbiB5b3UnZCBhbHNvIGJlIGJyZWFraW5nIGRheCB0b28uCgpQb3NzaWJseSBidXQgYXMg
-SSBzYWlkLCBJIGRvbid0IHNlZSB3aHkgc28gSSdsbCBsZXQgSmVyb21lIGNoaW1lIGluCnNpbmNl
-IGhlIHdhcyB1bmRlciB0aGUgaW1wcmVzc2lvbiB0aGF0IHRoZXJlIHdhcyBhIGNvbmZsaWN0IGhl
-cmUgOi0pCgpDaGVlcnMsCkJlbi4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3Rz
-LjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGlt
-bQo=
+On Wed, Apr 12, 2017 at 12:51:25PM -0400, Hal Rosenstock wrote:
+> On 4/12/2017 10:49 AM, Honggang LI wrote:
+> > On Wed, Apr 12, 2017 at 10:34:47AM -0400, Hal Rosenstock wrote:
+> >> On 4/12/2017 10:18 AM, Honggang LI wrote:
+> >>> On Wed, Apr 12, 2017 at 09:34:20AM -0400, Hal Rosenstock wrote:
+> >>>> On 4/12/2017 9:29 AM, Honggang LI wrote:
+> >>>>> On Tue, Apr 11, 2017 at 09:49:44AM -0600, Jason Gunthorpe wrote:
+> >>>>>> On Tue, Apr 11, 2017 at 11:28:53PM +0800, Honggang LI wrote:
+> >>>>>>> From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> >>>>>>>
+> >>>>>>> According to InfiniBand Architecture Release 1.2.1, Table 208
+> >>>>>>> Example PathRecord Request MAD Header Fields, MADHeader:Method
+> >>>>>>> should setup to 0x12 (SubnAdmGetTable()).
+> >>>>>>
+> >>>>>> That is just an example, Table 192 shows that Get and GetTable are
+> >>>>>> both valid query types.
+> >>>>>
+> >>>>> I don't understand this as "Table 192 PortInfoRecord" seems nothing to
+> >>>>> do with PathRecord request.
+> >>>>
+> >>>> In IBA 1.3 volume 1, it's Table 209 Subnet Administration
+> >>>> Attribute/Method Map shows PathRecord methods are Get and GetTable.
+> >>>>
+> >>>
+> >>> http://www.intel.com/content/dam/www/public/us/en/documents/product-briefs/truescale-infiniband-12300-switch-brief.pdf
+> >>> Interoperability
+> >>> • Compliant with IBTA* specifications 1.0a, 1.1, 1.2, and 1.2.
+> >>>
+> >>> It seems the embedded subnet manager does not support IBA 1.3
+> >>
+> >> It's same for IBA 1.2.1. This part hasn't changed.
+> >>
+> >>>>>>
+> >>>>>> I however expect that the SM will fail when using GetTable if the
+> >>>>>> query returns more than one result, could that be what is happening?
+> >>>>>> When you convert it to GET_TABLE does it return more than one result?
+> >>>>>
+> >>>>> strace output shows srptools always received MAD packet in 320 bytes. So
+> >>>>> the embedded subnet manager only returns one result.
+> >>>>
+> >>>> What is MAD status ?
+> >>>
+> >>> ib_user_mad->status     = 0x0
+> >>>
+> >>> I attached the MAD packet dump out with strace. Please see the
+> >>> attachments p4.in amd p4.decode.
+> >>
+> >> p4.decode has:
+> >> rp_dm_rmpp_sa_mad->method		= 0x81 //IB_MAD_METHOD_GET_RESP
+> >> opensm/include/iba/ib_types.h // GetResp() Method (13.4.5)
+> >>
+> >> Proper response to GetTable (0x12) method is GetTableResponse (0x92)
+> >> method but this is GetResp (0x81) response.
+> > 
+> > Yes, you are right. p4.decode was captured with unpatched upstream srptools-1.0.3.
+> 
+> against the embedded SM ? 
+
+Yes.
+
+> If so, this response looks (mostly) good to me and should be accepted by srp_daemon. I think I see the issue in srp_daemon: it's due to the check of the attribute offset which is not being set in the response:
+> 
+>                 size = ib_get_attr_size(in_sa_mad->attr_offset);
+>                 if (!size) {
+>                         if (config->verbose)
+>                                 printf("PathRec Query did not find any targets "
+>                                        "over P_Key %x\n", pkey);
+>                         continue;
+>                 }
+> 
+> p4.decode has:
+> srp_dm_rmpp_sa_mad->attr_offset		= 0x0
+> 
+> Since a get rather than get table is being used, a good MAD status means that a valid PR was returned and there is no need for this check.
+> 
+> Would you try using the original get method without this code block and verify that it works with the embedded SM ?
+>
+
+I sent the scratch RPM with the patch you suggested to third party for testing. Please wait.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
