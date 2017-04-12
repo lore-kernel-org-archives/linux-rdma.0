@@ -1,164 +1,53 @@
-From: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [rdma-core/srp_daemon PATCH] Correct method field for PathRecord
- request
-Date: Wed, 12 Apr 2017 22:49:46 +0800
-Message-ID: <20170412144946.GC20223@dhcp-13-42.nay.redhat.com>
-References: <1491924533-2548-1-git-send-email-honli@redhat.com>
- <20170411154944.GA19917@obsidianresearch.com>
- <20170412132923.GB16375@dhcp-13-42.nay.redhat.com>
- <d5a9d1a8-6c38-51f2-d444-a6942db406f9@dev.mellanox.co.il>
- <20170412141800.GA20223@dhcp-13-42.nay.redhat.com>
- <6e04d44e-fab3-1477-7de4-d3c679301f38@dev.mellanox.co.il>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-next 0/6] Enhanced mode for IPoIB driver
+Date: Wed, 12 Apr 2017 09:50:24 -0600
+Message-ID: <20170412155024.GB14409@obsidianresearch.com>
+References: <20170404191732.31895-1-leon@kernel.org>
+ <2807E5FD2F6FDA4886F6618EAC48510E67C8CAA0@CRSMSX101.amr.corp.intel.com>
+ <20170404200335.GB20443@mtr-leonro.local>
+ <2807E5FD2F6FDA4886F6618EAC48510E67C8DAB7@CRSMSX101.amr.corp.intel.com>
+ <20170406052820.GB2269@mtr-leonro.local>
+ <20170406151014.GA173962@knc-06.sc.intel.com>
+ <20170410080228.GP2269@mtr-leonro.local>
+ <20170410154039.GA7056@obsidianresearch.com>
+ <20170412052223.GQ2269@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="qcHopEYAB45HaUaB"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <6e04d44e-fab3-1477-7de4-d3c679301f38-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20170412052223.GQ2269-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Apr 12, 2017 at 08:22:23AM +0300, Leon Romanovsky wrote:
 
---qcHopEYAB45HaUaB
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+> Yes, you did, however for many reasons hfi ended to be subsystem on
+> its own, and now we are moving this subsystem one layer up. I really
+> failed to understand your point of view, why hfi-vnic is not linked
+> to specific hardware.
 
-On Wed, Apr 12, 2017 at 10:34:47AM -0400, Hal Rosenstock wrote:
-> On 4/12/2017 10:18 AM, Honggang LI wrote:
-> > On Wed, Apr 12, 2017 at 09:34:20AM -0400, Hal Rosenstock wrote:
-> >> On 4/12/2017 9:29 AM, Honggang LI wrote:
-> >>> On Tue, Apr 11, 2017 at 09:49:44AM -0600, Jason Gunthorpe wrote:
-> >>>> On Tue, Apr 11, 2017 at 11:28:53PM +0800, Honggang LI wrote:
-> >>>>> From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> >>>>>
-> >>>>> According to InfiniBand Architecture Release 1.2.1, Table 208
-> >>>>> Example PathRecord Request MAD Header Fields, MADHeader:Method
-> >>>>> should setup to 0x12 (SubnAdmGetTable()).
-> >>>>
-> >>>> That is just an example, Table 192 shows that Get and GetTable are
-> >>>> both valid query types.
-> >>>
-> >>> I don't understand this as "Table 192 PortInfoRecord" seems nothing to
-> >>> do with PathRecord request.
-> >>
-> >> In IBA 1.3 volume 1, it's Table 209 Subnet Administration
-> >> Attribute/Method Map shows PathRecord methods are Get and GetTable.
-> >>
-> > 
-> > http://www.intel.com/content/dam/www/public/us/en/documents/product-briefs/truescale-infiniband-12300-switch-brief.pdf
-> > Interoperability
-> > • Compliant with IBTA* specifications 1.0a, 1.1, 1.2, and 1.2.
-> > 
-> > It seems the embedded subnet manager does not support IBA 1.3
-> 
-> It's same for IBA 1.2.1. This part hasn't changed.
-> 
-> >>>>
-> >>>> I however expect that the SM will fail when using GetTable if the
-> >>>> query returns more than one result, could that be what is happening?
-> >>>> When you convert it to GET_TABLE does it return more than one result?
-> >>>
-> >>> strace output shows srptools always received MAD packet in 320 bytes. So
-> >>> the embedded subnet manager only returns one result.
-> >>
-> >> What is MAD status ?
-> > 
-> > ib_user_mad->status     = 0x0
-> > 
-> > I attached the MAD packet dump out with strace. Please see the
-> > attachments p4.in amd p4.decode.
-> 
-> p4.decode has:
-> rp_dm_rmpp_sa_mad->method		= 0x81 //IB_MAD_METHOD_GET_RESP
-> opensm/include/iba/ib_types.h // GetResp() Method (13.4.5)
-> 
-> Proper response to GetTable (0x12) method is GetTableResponse (0x92)
-> method but this is GetResp (0x81) response.
+Well, the ULP part is clearly not hardware specific, it uses generic
+interfaces like mad and rdma netdev (eg the same generic interfaces as
+ipoib) - that was part of the transformation since the first series
+was presented.
 
-Yes, you are right. p4.decode was captured with unpatched upstream srptools-1.0.3.
+We have been treating OPA as a top level protocol on par with
+rocee,ib,iwarp - so an OPA specific ULP that only uses core interfaces
+seems reasonable.
 
-p4-184.decode was created with patched srptools-1.0.3.
+It has changed alot since the first series, it is no longer tightly
+linked to hfi1. But it does use OPA specific MADs and requires the
+driver implement the opa_vnic rdma_netdev API.
 
-> 
-> -- Hal
-> 
-> >>
-> >> -- Hal
-> >>
-> >>>>
-> >>>> Jason
-> >>> --
-> >>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> >>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>>
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> >> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It very clearly has nothing to do with hfi1, other than hfi1 is the
+only driver implementing OPA.
 
---qcHopEYAB45HaUaB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="p4-184.decode"
+I think there is a path to make this work on IB if someone cared to do
+it, but I think it is unreasonable to demand Intel do that work.
 
-ib_user_mad->agent_id	= 0x0
-ib_user_mad->status	= 0x0
-ib_user_mad->timeout_ms	= 0x0
-ib_user_mad->retries	= 0x0
-ib_user_mad->length	= 0xb8 = 184
-ib_mad_addr->qpn		= BE32 0x1000000
-ib_mad_addr->qkey		= BE32 0x0
-ib_mad_addr->lid		= BE16 0x100
-ib_mad_addr->sl 		= 0x0
-ib_mad_addr->path_bits		= 0x0
-ib_mad_addr->grh_present	= 0x0
-ib_mad_addr->gid_index		= 0x0
-ib_mad_addr->hop_limit		= 0x0
-ib_mad_addr->traffic_class	= 0x0
-ib_mad_addr->gid[16]= 0x\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00
-ib_mad_addr->flow_label		= BE32 0x0
-ib_mad_addr->pkey_index		= BE16 0x0
-ib_mad_addr->reserved[6]= 0x\x00\x00\x00\x00\x00\x00
-srp_dm_rmpp_sa_mad->base_version	= 0x1
-srp_dm_rmpp_sa_mad->mgmt_class		= 0x3
-srp_dm_rmpp_sa_mad->class_version	= 0x2
-srp_dm_rmpp_sa_mad->method		= 0x92 // IB_MAD_METHOD_GETTABLE_RESP opensm/include/iba/ib_types.h // SubnAdmGetTableResp() Method (15.2.2)
-srp_dm_rmpp_sa_mad->status		= 0x0
-srp_dm_rmpp_sa_mad->reserved1		= 0x0
-srp_dm_rmpp_sa_mad->tid			= 0x400000035000000
-srp_dm_rmpp_sa_mad->attr_id		= 0x3500
-srp_dm_rmpp_sa_mad->reserved2		= 0x0
-srp_dm_rmpp_sa_mad->attr_mod		= 0x0
-srp_dm_rmpp_sa_mad->rmpp_version	= 0x1
-srp_dm_rmpp_sa_mad->rmpp_type		= 0x1
-srp_dm_rmpp_sa_mad->rmpp_rtime_flags	= 0xff
-srp_dm_rmpp_sa_mad->rmpp_status		= 0x0
-srp_dm_rmpp_sa_mad->seg_num		= 0x1000000
-srp_dm_rmpp_sa_mad->paylen_newwin	= 0x54000000
-srp_dm_rmpp_sa_mad->sm_key		= 0x0
-srp_dm_rmpp_sa_mad->attr_offset		= 0x800
-srp_dm_rmpp_sa_mad->reserved3		= 0x0
-srp_dm_rmpp_sa_mad->comp_mask		= 0x0
-ib_path_rec_t->resv0[8]			= \x00\x00\x00\x00
-ib_path_rec_t->dgid			= \xfe\x00\x00\x00\x00\x75\x00\x9b
-ib_path_rec_t->sgid			= \xfe\x00\x00\x00\x00\x75\x00\x9a
-ib_path_rec_t->dlid				= ib_net16_t 0x9b01
-ib_path_rec_t->slid				= ib_net16_t 0xed00
-ib_path_rec_t->hop_flow_raw			= ib_net32_t 0x0
-ib_path_rec_t->tclass				= 0x0
-ib_path_rec_t->num_path				= 0x80
-ib_path_rec_t->pkey				= ib_net16_t 0xffff
-ib_path_rec_t->sl				= ib_net16_t 0x0
-ib_path_rec_t->mtu				= 0x84
-ib_path_rec_t->rate				= 0x87
-ib_path_rec_t->pkt_life				= 0x8f
-ib_path_rec_t->preference			= 0x0
-ib_path_rec_t->resv2[6]				= \x00\x00\x00
-
---qcHopEYAB45HaUaB--
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
