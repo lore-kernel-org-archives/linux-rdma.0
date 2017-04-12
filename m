@@ -1,101 +1,130 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
-Date: Wed, 12 Apr 2017 11:09:53 -0600
-Message-ID: <5ac22496-56ec-025d-f153-140001d2a7f9@deltatee.com>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
- <1491974532.7236.43.camel@kernel.crashing.org>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [rdma-core/srp_daemon PATCH] Correct method field for PathRecord
+ request
+Date: Wed, 12 Apr 2017 13:39:02 -0400
+Message-ID: <56ade261-811d-16df-6b3f-7d08c07c882f@dev.mellanox.co.il>
+References: <1491924533-2548-1-git-send-email-honli@redhat.com>
+ <20170411154944.GA19917@obsidianresearch.com>
+ <20170412132923.GB16375@dhcp-13-42.nay.redhat.com>
+ <d5a9d1a8-6c38-51f2-d444-a6942db406f9@dev.mellanox.co.il>
+ <20170412141800.GA20223@dhcp-13-42.nay.redhat.com>
+ <6e04d44e-fab3-1477-7de4-d3c679301f38@dev.mellanox.co.il>
+ <20170412144946.GC20223@dhcp-13-42.nay.redhat.com>
+ <89c5ad40-cb4d-8b4d-48b3-e53351fb64af@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1491974532.7236.43.camel-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <89c5ad40-cb4d-8b4d-48b3-e53351fb64af-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 11/04/17 11:22 PM, Benjamin Herrenschmidt wrote:
-> Another issue of course is that not all systems support P2P
-> between host bridges :-) (Though almost all switches can enable it).
-
-Yes, I'm either going to just let the user enable and test or limit it
-to switches only to start. However, currently our bigger issue is
-working on a way to not violate iomem safety.
-
-> Ok. I suppose that's a reasonable starting point. Do I haven't looked
-> at the patches in detail yet but it would be nice if that policy was in
-> a well isolated component so it can potentially be affected by
-> arch/platform code.
-
-The policy is isolated in the new p2pmem driver. There's no reason the
-policy couldn't become arbitrarily complex with specific arch
-exceptions. It's just people would have to do the work to create those
-exceptions.
-
-> Do you handle funky address translation too ? IE. the fact that the PCI
-> addresses aren't the same as the CPU physical addresses for a BAR ?
-
-No, we use the CPU physical address of the BAR. If it's not mapped that
-way we can't use it.
-
->> This will mean many setups that could likely
->> work well will not be supported so that we can be more confident it
->> will work and not place any responsibility on the user to understand
->> their topology. (We've chosen to go this route based on feedback we
->> received at LSF).
+On 4/12/2017 12:51 PM, Hal Rosenstock wrote:
+> On 4/12/2017 10:49 AM, Honggang LI wrote:
+>> On Wed, Apr 12, 2017 at 10:34:47AM -0400, Hal Rosenstock wrote:
+>>> On 4/12/2017 10:18 AM, Honggang LI wrote:
+>>>> On Wed, Apr 12, 2017 at 09:34:20AM -0400, Hal Rosenstock wrote:
+>>>>> On 4/12/2017 9:29 AM, Honggang LI wrote:
+>>>>>> On Tue, Apr 11, 2017 at 09:49:44AM -0600, Jason Gunthorpe wrote:
+>>>>>>> On Tue, Apr 11, 2017 at 11:28:53PM +0800, Honggang LI wrote:
+>>>>>>>> From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>>>>>>>>
+>>>>>>>> According to InfiniBand Architecture Release 1.2.1, Table 208
+>>>>>>>> Example PathRecord Request MAD Header Fields, MADHeader:Method
+>>>>>>>> should setup to 0x12 (SubnAdmGetTable()).
+>>>>>>>
+>>>>>>> That is just an example, Table 192 shows that Get and GetTable are
+>>>>>>> both valid query types.
+>>>>>>
+>>>>>> I don't understand this as "Table 192 PortInfoRecord" seems nothing to
+>>>>>> do with PathRecord request.
+>>>>>
+>>>>> In IBA 1.3 volume 1, it's Table 209 Subnet Administration
+>>>>> Attribute/Method Map shows PathRecord methods are Get and GetTable.
+>>>>>
+>>>>
+>>>> http://www.intel.com/content/dam/www/public/us/en/documents/product-briefs/truescale-infiniband-12300-switch-brief.pdf
+>>>> Interoperability
+>>>> • Compliant with IBTA* specifications 1.0a, 1.1, 1.2, and 1.2.
+>>>>
+>>>> It seems the embedded subnet manager does not support IBA 1.3
+>>>
+>>> It's same for IBA 1.2.1. This part hasn't changed.
+>>>
+>>>>>>>
+>>>>>>> I however expect that the SM will fail when using GetTable if the
+>>>>>>> query returns more than one result, could that be what is happening?
+>>>>>>> When you convert it to GET_TABLE does it return more than one result?
+>>>>>>
+>>>>>> strace output shows srptools always received MAD packet in 320 bytes. So
+>>>>>> the embedded subnet manager only returns one result.
+>>>>>
+>>>>> What is MAD status ?
+>>>>
+>>>> ib_user_mad->status     = 0x0
+>>>>
+>>>> I attached the MAD packet dump out with strace. Please see the
+>>>> attachments p4.in amd p4.decode.
+>>>
+>>> p4.decode has:
+>>> rp_dm_rmpp_sa_mad->method		= 0x81 //IB_MAD_METHOD_GET_RESP
+>>> opensm/include/iba/ib_types.h // GetResp() Method (13.4.5)
+>>>
+>>> Proper response to GetTable (0x12) method is GetTableResponse (0x92)
+>>> method but this is GetResp (0x81) response.
 >>
->> In order to enable this functionality we introduce a new p2pmem device
->> which can be instantiated by PCI drivers. The device will register some
->> PCI memory as ZONE_DEVICE and provide an genalloc based allocator for
->> users of these devices to get buffers.
+>> Yes, you are right. p4.decode was captured with unpatched upstream srptools-1.0.3.
 > 
-> I don't completely understand this. This is actual memory on the PCI
-> bus ? Where does it come from ? Or are you just trying to create struct
-> pages that cover your PCIe DMA target ?
+> against the embedded SM ? If so, this response looks (mostly) good to me and should be accepted by srp_daemon. I think I see the issue in srp_daemon: it's due to the check of the attribute offset which is not being set in the response:
+> 
+>                 size = ib_get_attr_size(in_sa_mad->attr_offset);
+>                 if (!size) {
+>                         if (config->verbose)
+>                                 printf("PathRec Query did not find any targets "
+>                                        "over P_Key %x\n", pkey);
+>                         continue;
+>                 }
+> 
+> p4.decode has:
+> srp_dm_rmpp_sa_mad->attr_offset		= 0x0
+> 
+> Since a get rather than get table is being used, a good MAD status means that a valid PR was returned and there is no need for this check.
+> 
+> Would you try using the original get method without this code block and verify that it works with the embedded SM ?
 
-Yes, the memory is on the PCI bus in a BAR. For now we have a special
-PCI card for this, but in the future it would likely be the CMB in an
-NVMe card. These patches create struct pages to map these BAR addresses
-using ZONE_DEVICE.
+Just submitted PR for this:
+https://github.com/linux-rdma/rdma-core/pull/116
+I can post patch if you like.
 
+-- Hal
 
-> So correct me if I'm wrong, you are trying to create struct page's that
-> map a PCIe BAR right ? I'm trying to understand how that interacts with
-> what Jerome is doing for HMM.
-
-Yes, well we are using ZONE_DEVICE in the exact same way as the dax code
-is. These patches use the existing API with no modifications. As I
-understand it, HMM was using ZONE_DEVICE in a way that was quite
-different to how it was originally designed.
-
-> The reason is that the HMM currently creates the struct pages with
-> "fake" PFNs pointing to a hole in the address space rather than
-> covering the actual PCIe memory of the GPU. He does that to deal with
-> the fact that some GPUs have a smaller aperture on PCIe than their
-> total memory.
-
-I'm aware of what HMM is trying to do and although I'm not familiar with
-the intimate details, I saw it as fairly orthogonal to what we are
-attempting to do.
-
-> However, I have asked him to only apply that policy if the aperture is
-> indeed smaller, and if not, create struct pages that directly cover the
-> PCIe BAR of the GPU instead, which will work better on systems or
-> architecture that don't have a "pinhole" window limitation.
-> However he was under the impression that this was going to collide with
-> what you guys are doing, so I'm trying to understand how. 
-
-I'm not sure I understand how either. However, I suspect if you collide
-with these patches then you'd also be breaking dax too.
-
-Logan
+> Thanks.
+> 
+> -- Hal
+>  
+>> p4-184.decode was created with patched srptools-1.0.3.
+> 
+>  
+>>>
+>>> -- Hal
+>>>
+>>>>>
+>>>>> -- Hal
+>>>>>
+>>>>>>>
+>>>>>>> Jason
+>>>>>> --
+>>>>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>>>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>>>
+>>>>> --
+>>>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
