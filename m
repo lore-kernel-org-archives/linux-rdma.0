@@ -1,90 +1,76 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [rdma-core/srp_daemon PATCH] Correct method field for PathRecord
- request
-Date: Wed, 12 Apr 2017 10:34:47 -0400
-Message-ID: <6e04d44e-fab3-1477-7de4-d3c679301f38@dev.mellanox.co.il>
-References: <1491924533-2548-1-git-send-email-honli@redhat.com>
- <20170411154944.GA19917@obsidianresearch.com>
- <20170412132923.GB16375@dhcp-13-42.nay.redhat.com>
- <d5a9d1a8-6c38-51f2-d444-a6942db406f9@dev.mellanox.co.il>
- <20170412141800.GA20223@dhcp-13-42.nay.redhat.com>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH rdma-next 17/18] IB/core: Define 'ib' and 'eth'
+ rdma_ah_attr types
+Date: Wed, 12 Apr 2017 14:40:58 +0000
+Message-ID: <VI1PR0502MB3008E05496672AC54D4E1D8BD1030@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+References: <1491932545-60894-1-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <1491932545-60894-18-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <VI1PR0502MB3008F933EA086C3A47C025B3D1000@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <9873c7bd-5fe7-7b9a-c28f-e11ffa5d53e9@intel.com>
+ <VI1PR0502MB30081ACB86A0ADEEE2C68743D1030@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB111C5D@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170412141800.GA20223-Y5OA6DF/u0nid9cnFhDO8BcY2uh10dtjAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB111C5D-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Chandramouli, Dasaratharaman" <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/12/2017 10:18 AM, Honggang LI wrote:
-> On Wed, Apr 12, 2017 at 09:34:20AM -0400, Hal Rosenstock wrote:
->> On 4/12/2017 9:29 AM, Honggang LI wrote:
->>> On Tue, Apr 11, 2017 at 09:49:44AM -0600, Jason Gunthorpe wrote:
->>>> On Tue, Apr 11, 2017 at 11:28:53PM +0800, Honggang LI wrote:
->>>>> From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->>>>>
->>>>> According to InfiniBand Architecture Release 1.2.1, Table 208
->>>>> Example PathRecord Request MAD Header Fields, MADHeader:Method
->>>>> should setup to 0x12 (SubnAdmGetTable()).
->>>>
->>>> That is just an example, Table 192 shows that Get and GetTable are
->>>> both valid query types.
->>>
->>> I don't understand this as "Table 192 PortInfoRecord" seems nothing to
->>> do with PathRecord request.
->>
->> In IBA 1.3 volume 1, it's Table 209 Subnet Administration
->> Attribute/Method Map shows PathRecord methods are Get and GetTable.
->>
-> 
-> http://www.intel.com/content/dam/www/public/us/en/documents/product-briefs/truescale-infiniband-12300-switch-brief.pdf
-> Interoperability
-> • Compliant with IBTA* specifications 1.0a, 1.1, 1.2, and 1.2.
-> 
-> It seems the embedded subnet manager does not support IBA 1.3
 
-It's same for IBA 1.2.1. This part hasn't changed.
 
->>>>
->>>> I however expect that the SM will fail when using GetTable if the
->>>> query returns more than one result, could that be what is happening?
->>>> When you convert it to GET_TABLE does it return more than one result?
->>>
->>> strace output shows srptools always received MAD packet in 320 bytes. So
->>> the embedded subnet manager only returns one result.
->>
->> What is MAD status ?
-> 
-> ib_user_mad->status     = 0x0
-> 
-> I attached the MAD packet dump out with strace. Please see the
-> attachments p4.in amd p4.decode.
+> -----Original Message-----
+> From: Hefty, Sean [mailto:sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
+> Sent: Wednesday, April 12, 2017 9:05 AM
+> To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Chandramouli, Dasaratharaman
+> <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; linux-rdma <linux-
+> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+> Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> Subject: RE: [PATCH rdma-next 17/18] IB/core: Define 'ib' and 'eth'
+> rdma_ah_attr types
+>=20
+> > > I can change the type check into a function if you feel its open
+> > coded.
+> > > One of the benefits of adding type to ah_attr is exactly the above
+> > code.
+> > > The caller doesnt have to call into the core (rdma_cap_eth_ah) to
+> > know what
+> > > 'protocol' its working with. That information is contained in the
+> > ah_attr itself.
+> > >
+> > I was referring to have helper function like rdma_cap_eth_ah, but for
+> > ah_attr_type as, is_ah_attr_eth(ah_attr).
+> >
+> > I think it will be more useful, as there is more code in grh
+> > processing coming up, that needs to diverge based on ib vs roce.
+> > And there are few places we have that comparison anyway below. It just
+> > keep code neat.
+>=20
+> FWIW, I don't see a benefit to converting a simple type check of an enum
+> into a function.  The type allows its use in a switch statement, rather t=
+han
+> needing to use if - else-if - else-if.
+>=20
+Ok. Make sense when we have more ah types than just two, it will be useful.
 
-p4.decode has:
-rp_dm_rmpp_sa_mad->method		= 0x81 //IB_MAD_METHOD_GET_RESP
-opensm/include/iba/ib_types.h // GetResp() Method (13.4.5)
+> > While we are at it, I was thinking since iWarp doesn't use AH, we
+> > better name ah->type as ROCE, to avoid this confusion happening again?
+>=20
+> I agree, though I'm still not sure v1 and v2 need all the same fields or =
+use
+> them in the same way.  Conceptually, a GRH in v2 doesn't make sense to me=
+.
+> (I should go read the spec.)  But in any case v1/v2 separation could come=
+ as
+> follow on changes.
+>=20
+Yes. That can be follow on patch. At minimum naming _roce is fine.
 
-Proper response to GetTable (0x12) method is GetTableResponse (0x92)
-method but this is GetResp (0x81) response.
+> - Sean
 
--- Hal
-
->>
->> -- Hal
->>
->>>>
->>>> Jason
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
