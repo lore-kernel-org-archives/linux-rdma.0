@@ -1,168 +1,118 @@
 From: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [rdma-core/srp_daemon PATCH] Correct method field for PathRecord
  request
-Date: Wed, 12 Apr 2017 22:18:01 +0800
-Message-ID: <20170412141800.GA20223@dhcp-13-42.nay.redhat.com>
+Date: Wed, 12 Apr 2017 22:24:02 +0800
+Message-ID: <20170412142401.GB20223@dhcp-13-42.nay.redhat.com>
 References: <1491924533-2548-1-git-send-email-honli@redhat.com>
- <20170411154944.GA19917@obsidianresearch.com>
- <20170412132923.GB16375@dhcp-13-42.nay.redhat.com>
- <d5a9d1a8-6c38-51f2-d444-a6942db406f9@dev.mellanox.co.il>
+ <9371eab5-ebbb-cfa4-acf6-debc636e44e2@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="VbJkn9YxBvnuCH5J"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <d5a9d1a8-6c38-51f2-d444-a6942db406f9-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <9371eab5-ebbb-cfa4-acf6-debc636e44e2-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
---VbJkn9YxBvnuCH5J
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-On Wed, Apr 12, 2017 at 09:34:20AM -0400, Hal Rosenstock wrote:
-> On 4/12/2017 9:29 AM, Honggang LI wrote:
-> > On Tue, Apr 11, 2017 at 09:49:44AM -0600, Jason Gunthorpe wrote:
-> >> On Tue, Apr 11, 2017 at 11:28:53PM +0800, Honggang LI wrote:
-> >>> From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> >>>
-> >>> According to InfiniBand Architecture Release 1.2.1, Table 208
-> >>> Example PathRecord Request MAD Header Fields, MADHeader:Method
-> >>> should setup to 0x12 (SubnAdmGetTable()).
-> >>
-> >> That is just an example, Table 192 shows that Get and GetTable are
-> >> both valid query types.
+On Tue, Apr 11, 2017 at 12:20:29PM -0400, Hal Rosenstock wrote:
+> On 4/11/2017 11:28 AM, Honggang LI wrote:
+> > From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 > > 
-> > I don't understand this as "Table 192 PortInfoRecord" seems nothing to
-> > do with PathRecord request.
+> > According to InfiniBand Architecture Release 1.2.1, Table 208
+> > Example PathRecord Request MAD Header Fields, MADHeader:Method
+> > should setup to 0x12 (SubnAdmGetTable()).
 > 
-> In IBA 1.3 volume 1, it's Table 209 Subnet Administration
-> Attribute/Method Map shows PathRecord methods are Get and GetTable.
+> Both get and get table should be supported for Path Record.
 > 
-
-http://www.intel.com/content/dam/www/public/us/en/documents/product-briefs/truescale-infiniband-12300-switch-brief.pdf
-Interoperability
-• Compliant with IBTA* specifications 1.0a, 1.1, 1.2, and 1.2.
-
-It seems the embedded subnet manager does not support IBA 1.3
-
-> >>
-> >> I however expect that the SM will fail when using GetTable if the
-> >> query returns more than one result, could that be what is happening?
-> >> When you convert it to GET_TABLE does it return more than one result?
+> > Before send the MAD packet for PathRecord request, init_srp_mad setup
+> > out_mad->method to SRP_MAD_METHOD_GET (0x01) for get_shared_pkeys. But
+> > get_shared_pkeys setup the attr_id field to SRP_SA_ATTR_PATH_REC (0x35).
 > > 
-> > strace output shows srptools always received MAD packet in 320 bytes. So
-> > the embedded subnet manager only returns one result.
+> > Because of this incorrect field in MAD packet, upstream srptools-1.0.3
+> > failed with an embedded subnet manager running on an Intel True Scale
+> > Edge Switch 12300.
 > 
-> What is MAD status ?
+> Sounds like a bug in the embedded SM.
+> 
+> If it works with GetTable and not with Get, sounds like there is more
+> than 1 path available to be returned.
+> 
 
-ib_user_mad->status     = 0x0
+It is a big fat tree IB network. Some SRPT had been connected to the
+same leaf switch as the node srptools running. Other SRPT connected to
+different leaf switch. But PathRecord Request failed for all of SRPTs. 
 
-I attached the MAD packet dump out with strace. Please see the
-attachments p4.in amd p4.decode.
+> SA PathRecord:NumbPath says:
+> In a SubnAdmGetTable() query request: Maximum
+> number of paths to return for each unique SGIDDGID
+> combination. If more paths that satisfy the
+> PathRecord query exist for a given SGID-DGID combination,
+> only NumbPath paths shall be returned
+> (implementation defined).
+> In a SubnAdmGet() query request, ignored; a value of
+> 1 is used.
+> 
+> So in case of multiple paths and get method, SM is supposed to pick one
+> rather than return some error (like too many records). Is that the MAD
+> status returned ?
+
+status always been zero.
 
 > 
 > -- Hal
 > 
-> >>
-> >> Jason
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Upstream srptools-1.0.3 works with upstream opensm, because
+> > sa_mad_ctrl_process post the MAD to the dispatcher based on the attr_id
+> > field. As attr_id had been set to SRP_SA_ATTR_PATH_REC (0x35),
+> > PathRecord query works with opensm.
 > > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---VbJkn9YxBvnuCH5J
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="p4.in"
-Content-Transfer-Encoding: quoted-printable
-
-\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x40\x01\x0=
-0\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x=
-00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\=
-x00\x00\x00\x00\x00\x00\x00\x00\x01\x03\x02\x81\x00\x00\x00\x00\x00\x00\x00=
-\x08\x00\x00\x00\x04\x00\x35\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0=
-0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x=
-00\x00\x00\x00\x00\x00\x20\x30\x00\x00\x00\x00\x00\x00\x00\x00\xfe\x80\x00\=
-x00\x00\x00\x00\x00\x00\x11\x75\x00\x00\x6f\x9b\xba\xfe\x80\x00\x00\x00\x00=
-\x00\x00\x00\x11\x75\x00\x00\x6f\x9a\x34\x01\x9b\x00\xed\x00\x00\x00\x00\x0=
-0\x80\xff\xff\x00\x00\x84\x87\x8f\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x=
-00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\=
-x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00=
-\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0=
-0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x=
-00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\=
-x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00=
-\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x0=
-0\x00
-
---VbJkn9YxBvnuCH5J
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="p4.decode"
-
-ib_user_mad->agent_id	= 0x0
-ib_user_mad->status	= 0x0
-ib_user_mad->timeout_ms	= 0x0
-ib_user_mad->retries	= 0x0
-ib_user_mad->length	= 0x140 = 320
-ib_mad_addr->qpn		= BE32 0x1000000
-ib_mad_addr->qkey		= BE32 0x0
-ib_mad_addr->lid		= BE16 0x100
-ib_mad_addr->sl 		= 0x0
-ib_mad_addr->path_bits		= 0x0
-ib_mad_addr->grh_present	= 0x0
-ib_mad_addr->gid_index		= 0x0
-ib_mad_addr->hop_limit		= 0x0
-ib_mad_addr->traffic_class	= 0x0
-ib_mad_addr->gid[16]= 0x\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00
-ib_mad_addr->flow_label		= BE32 0x0
-ib_mad_addr->pkey_index		= BE16 0x0
-ib_mad_addr->reserved[6]= 0x\x00\x00\x00\x00\x00\x00
-srp_dm_rmpp_sa_mad->base_version	= 0x1
-srp_dm_rmpp_sa_mad->mgmt_class		= 0x3
-srp_dm_rmpp_sa_mad->class_version	= 0x2
-srp_dm_rmpp_sa_mad->method		= 0x81 //IB_MAD_METHOD_GET_RESP opensm/include/iba/ib_types.h // GetResp() Method (13.4.5)
-srp_dm_rmpp_sa_mad->status		= 0x0
-srp_dm_rmpp_sa_mad->reserved1		= 0x0
-srp_dm_rmpp_sa_mad->tid			= 0x400000008000000
-srp_dm_rmpp_sa_mad->attr_id		= 0x3500
-srp_dm_rmpp_sa_mad->reserved2		= 0x0
-srp_dm_rmpp_sa_mad->attr_mod		= 0x0
-srp_dm_rmpp_sa_mad->rmpp_version	= 0x0
-srp_dm_rmpp_sa_mad->rmpp_type		= 0x0
-srp_dm_rmpp_sa_mad->rmpp_rtime_flags	= 0x0
-srp_dm_rmpp_sa_mad->rmpp_status		= 0x0
-srp_dm_rmpp_sa_mad->seg_num		= 0x0
-srp_dm_rmpp_sa_mad->paylen_newwin	= 0x0
-srp_dm_rmpp_sa_mad->sm_key		= 0x0
-srp_dm_rmpp_sa_mad->attr_offset		= 0x0
-srp_dm_rmpp_sa_mad->reserved3		= 0x0
-srp_dm_rmpp_sa_mad->comp_mask		= 0x3020000000000000
-ib_path_rec_t->resv0[8]			= \x00\x00\x00\x00
-ib_path_rec_t->dgid			= \xfe\x00\x00\x00\x00\x75\x00\x9b
-ib_path_rec_t->sgid			= \xfe\x00\x00\x00\x00\x75\x00\x9a
-ib_path_rec_t->dlid				= ib_net16_t 0x9b01
-ib_path_rec_t->slid				= ib_net16_t 0xed00
-ib_path_rec_t->hop_flow_raw			= ib_net32_t 0x0
-ib_path_rec_t->tclass				= 0x0
-ib_path_rec_t->num_path				= 0x80
-ib_path_rec_t->pkey				= ib_net16_t 0xffff
-ib_path_rec_t->sl				= ib_net16_t 0x0
-ib_path_rec_t->mtu				= 0x84
-ib_path_rec_t->rate				= 0x87
-ib_path_rec_t->pkt_life				= 0x8f
-ib_path_rec_t->preference			= 0x0
-ib_path_rec_t->resv2[6]				= \x00\x00\x00
-
---VbJkn9YxBvnuCH5J--
+> > opensm/opensm/osm_sa_mad_ctrl.c
+> >    292	static void sa_mad_ctrl_rcv_callback(IN osm_madw_t * p_madw, IN void *context,
+> > .........
+> >    357		switch (p_sa_mad->method) {
+> > .........
+> >    370		case IB_MAD_METHOD_GET:        // 0x01
+> >    371		case IB_MAD_METHOD_GETTABLE:   // 0x12
+> >    372	#if defined (VENDOR_RMPP_SUPPORT) && defined (DUAL_SIDED_RMPP)
+> >    373		case IB_MAD_METHOD_GETMULTI:
+> >    374	#endif
+> >    375			is_get_request = TRUE;
+> >    376		case IB_MAD_METHOD_SET:
+> >    377		case IB_MAD_METHOD_DELETE:
+> >    378			/* if we are closing down simply do nothing */
+> >    379			if (osm_exit_flag)
+> >    380				osm_mad_pool_put(p_ctrl->p_mad_pool, p_madw);
+> >    381			else
+> >    382				sa_mad_ctrl_process(p_ctrl, p_madw, is_get_request);
+> >    383			break;
+> >    384
+> > 
+> > 2ad09524931dbf98d412e1912c1bdbf22f8ac81d ("srp_daemon: Work around SM
+> > bug over non-default P_Key support") in the old git tree [1] introduced
+> > this regression issue. Upstream srptools-0.0.4 works with the embedded
+> > subnet manager.
+> > 
+> > [1] git://git.openfabrics.org/~bvanassche/srptools.git
+> > 
+> > Signed-off-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> > ---
+> >  srp_daemon/srp_daemon.c | 1 +
+> >  1 file changed, 1 insertion(+)
+> > 
+> > diff --git a/srp_daemon/srp_daemon.c b/srp_daemon/srp_daemon.c
+> > index 71b5f07..f905c6f 100644
+> > --- a/srp_daemon/srp_daemon.c
+> > +++ b/srp_daemon/srp_daemon.c
+> > @@ -1134,6 +1134,7 @@ static int get_shared_pkeys(struct resources *res,
+> >  			continue;
+> >  
+> >  		/* Mark components: DLID, SLID, PKEY */
+> > +		out_sa_mad->method = SRP_SA_METHOD_GET_TABLE;
+> >  		out_sa_mad->comp_mask = htobe64(1 << 4 | 1 << 5 | 1 << 13);
+> >  		out_sa_mad->rmpp_hdr.rmpp_version = UMAD_RMPP_VERSION;
+> >  		out_sa_mad->rmpp_hdr.rmpp_type = 1;
+> > 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
