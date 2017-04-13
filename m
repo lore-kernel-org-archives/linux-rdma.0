@@ -1,42 +1,87 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 0/4] arbitrary sg lists support
-Date: Thu, 13 Apr 2017 16:31:20 +0000
-Message-ID: <1492101079.5176.9.camel@sandisk.com>
-References: <1492098977-5231-1-git-send-email-maxg@mellanox.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [bug report] RDMA/iw_cxgb4: Handle return value of c4iw_ofld_send() in abort_arp_failure()
+Date: Thu, 13 Apr 2017 11:46:09 -0500
+Message-ID: <07bf01d2b475$73ab5fb0$5b021f10$@opengridcomputing.com>
+References: <20170223155809.GA16463@mwanda> <20170413103303.kamrcz4qrd576ock@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1492098977-5231-1-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-Content-ID: <C04CB30BCEFB5F4089ABC92B5049263F-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <20170413103303.kamrcz4qrd576ock@mwanda>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: 'Dan Carpenter' <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-04-13 at 18:56 +0300, Max Gurtovoy wrote:
-> This patch adds an arbitrary sg list support to NVMEoF host for
-> capable devices (such as RDMA CX4/CX5 HCAs).
-> During the review we decided to add an helper function to ib_core
-> that will be used by ULPs in order to avoid code duplication.
+> Any update on this?  It really looks buggy to me.
+>
 
-Hello Max,
+Hey Dan, I think you're correct.  Seems like abort_arp_failure() needs to take a
+ref before calling cxgb4_ofld_send() because cxgb4_ofld_send() will free the skb
+if there is a fatal error.  So abort_arp_failure() will deref the skb if
+cxgb4_ofld_send() suceeds.  Otherwise, the deref will happen in _put_ep_safe().
+The same issue exists with FAKE_CPL_PASS_PUT_EP_SAFE too, and maybe all the arp
+handlers.
 
-A question that is not related to the ULP drivers touched by this patch ser=
-ies:
-some time ago registration of sg-lists with gaps was disabled in the SRP
-initiator because arbitrary sg-lists triggered CQE dumps in combination wit=
-h the
-mlx5 driver. Does this mean that this issue has been resolved? If so, what =
-mlx5
-driver and/or firmware version are needed to reenable arbitrary sg-list sup=
-port
-in the SRP initiator?
 
-Thanks,
+Steve.
 
-Bart.=
+
+ 
+> regards,
+> dan carpenter
+> 
+> On Thu, Feb 23, 2017 at 06:58:09PM +0300, Dan Carpenter wrote:
+> > Hello Hariprasad S,
+> >
+> > The patch 761e19a504af: "RDMA/iw_cxgb4: Handle return value of
+> > c4iw_ofld_send() in abort_arp_failure()" from May 6, 2016, leads to
+> > the following static checker warning:
+> >
+> > 	drivers/infiniband/hw/cxgb4/cm.c:575 abort_arp_failure()
+> > 	warn: passing freed memory 'skb'
+> >
+> > drivers/infiniband/hw/cxgb4/cm.c
+> >    559  /*
+> >    560   * Handle an ARP failure for a CPL_ABORT_REQ.  Change it into a no
+RST
+> variant
+> >    561   * and send it along.
+> >    562   */
+> >    563  static void abort_arp_failure(void *handle, struct sk_buff *skb)
+> >    564  {
+> >    565          int ret;
+> >    566          struct c4iw_ep *ep = handle;
+> >    567          struct c4iw_rdev *rdev = &ep->com.dev->rdev;
+> >    568          struct cpl_abort_req *req = cplhdr(skb);
+> >    569
+> >    570          PDBG("%s rdev %p\n", __func__, rdev);
+> >    571          req->cmd = CPL_ABORT_NO_RST;
+> >    572          ret = c4iw_ofld_send(rdev, skb);
+> >    573          if (ret) {
+> >
+> > If c4iw_ofld_send() fails then it frees skb.
+> >
+> >    574                  __state_set(&ep->com, DEAD);
+> >    575                  queue_arp_failure_cpl(ep, skb,
+FAKE_CPL_PUT_EP_SAFE);
+> >                                                   ^^^
+> > Used after free here.  These are ref counted data so it might actually
+> > be that I have misread it and miscounted the references so perhaps it's
+> > OK, but it looks might suspect at a glance.
+> >
+> >    576          }
+> >    577  }
+> >
+> > regards,
+> > dan carpenter
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
