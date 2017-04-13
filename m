@@ -1,13 +1,17 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 21/22] mmc: tifm_sd: Make use of the new sg_map helper function
-Date: Thu, 13 Apr 2017 16:05:34 -0600
-Message-ID: <1492121135-4437-22-git-send-email-logang@deltatee.com>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
+Date: Fri, 14 Apr 2017 08:37:29 +1000
+Message-ID: <1492123049.7236.123.camel@kernel.crashing.org>
+References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
+ <1491974532.7236.43.camel@kernel.crashing.org>
+ <5ac22496-56ec-025d-f153-140001d2a7f9@deltatee.com>
+ <1492034124.7236.77.camel@kernel.crashing.org>
+ <81888a1e-eb0d-cbbc-dc66-0a09c32e4ea2@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1492121135-4437-1-git-send-email-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <81888a1e-eb0d-cbbc-dc66-0a09c32e4ea2-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -17,205 +21,41 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Sumit Semwal <sumit.semwal-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ming Lin <ming.l-Vzezgt5dB6uUEJcrhfAQsw@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linaro-mm-sig-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, fcoe-devel-s9riP+hp16TNLxjTenLetw@public.gmane.org, open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, megaraidlinux.pdl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, sparmaintainer-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org, devel@driverd
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This conversion is a bit complicated. We modiy the read_fifo,
-write_fifo and copy_page functions to take a scatterlist instead of a
-page. Thus we can use sg_map instead of kmap_atomic. There's a bit of
-accounting that needed to be done for the offset for this to work.
-(Seeing sg_map takes care of the offset but it's already added and
-used earlier in the code.
+On Thu, 2017-04-13 at 15:22 -0600, Logan Gunthorpe wrote:
+> 
+> On 12/04/17 03:55 PM, Benjamin Herrenschmidt wrote:
+> > Look at pcibios_resource_to_bus() and pcibios_bus_to_resource(). They
+> > will perform the conversion between the struct resource content (CPU
+> > physical address) and the actual PCI bus side address.
+> 
+> Ah, thanks for the tip! On my system, this translation returns the same
+> address so it was not necessary. And, yes, that means this would have to
+> find its way into the dma mapping routine somehow. This means we'll
+> eventually need a way to look-up the p2pmem device from the struct page.
+> Which means we will likely need a new flag bit in the struct page or
+> something. The big difficulty I see is testing. Do you know what
+> architectures or in what circumstances are these translations used?
 
-There's also no error path, so if unmappable memory finds its way into
-the sgl we can only WARN.
+I think a bunch of non-x86 architectures but I don't know which ones
+outside of powerpc.
 
-Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
----
- drivers/mmc/host/tifm_sd.c | 88 +++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 67 insertions(+), 21 deletions(-)
+> > When behind the same switch you need to use PCI addresses. If one tries
+> > later to do P2P between host bridges (via the CPU fabric) things get
+> > more complex and one will have to use either CPU addresses or something
+> > else alltogether (probably would have to teach the arch DMA mapping
+> > routines to work with those struct pages you create and return the
+> > right thing).
+> 
+> Probably for starters we'd want to explicitly deny cases between host
+> bridges and add that later if someone wants to do the testing.
 
-diff --git a/drivers/mmc/host/tifm_sd.c b/drivers/mmc/host/tifm_sd.c
-index 93c4b40..75b0d74 100644
---- a/drivers/mmc/host/tifm_sd.c
-+++ b/drivers/mmc/host/tifm_sd.c
-@@ -111,14 +111,26 @@ struct tifm_sd {
- };
- 
- /* for some reason, host won't respond correctly to readw/writew */
--static void tifm_sd_read_fifo(struct tifm_sd *host, struct page *pg,
-+static void tifm_sd_read_fifo(struct tifm_sd *host, struct scatterlist *sg,
- 			      unsigned int off, unsigned int cnt)
- {
- 	struct tifm_dev *sock = host->dev;
- 	unsigned char *buf;
- 	unsigned int pos = 0, val;
- 
--	buf = kmap_atomic(pg) + off;
-+	buf = sg_map_offset(sg, off - sg->offset, SG_KMAP_ATOMIC);
-+	if (IS_ERR(buf)) {
-+		/*
-+		 * This should really never happen unless
-+		 * the code is changed to use memory that is
-+		 * not mappable in the sg. Seeing there doesn't
-+		 * seem to be any error path out of here,
-+		 * we can only WARN.
-+		 */
-+		WARN(1, "Non-mappable memory used in sg!");
-+		return;
-+	}
-+
- 	if (host->cmd_flags & DATA_CARRY) {
- 		buf[pos++] = host->bounce_buf_data[0];
- 		host->cmd_flags &= ~DATA_CARRY;
-@@ -134,17 +146,29 @@ static void tifm_sd_read_fifo(struct tifm_sd *host, struct page *pg,
- 		}
- 		buf[pos++] = (val >> 8) & 0xff;
- 	}
--	kunmap_atomic(buf - off);
-+	sg_unmap_offset(sg, buf, off - sg->offset, SG_KMAP_ATOMIC);
- }
- 
--static void tifm_sd_write_fifo(struct tifm_sd *host, struct page *pg,
-+static void tifm_sd_write_fifo(struct tifm_sd *host, struct scatterlist *sg,
- 			       unsigned int off, unsigned int cnt)
- {
- 	struct tifm_dev *sock = host->dev;
- 	unsigned char *buf;
- 	unsigned int pos = 0, val;
- 
--	buf = kmap_atomic(pg) + off;
-+	buf = sg_map_offset(sg, off - sg->offset, SG_KMAP_ATOMIC);
-+	if (IS_ERR(buf)) {
-+		/*
-+		 * This should really never happen unless
-+		 * the code is changed to use memory that is
-+		 * not mappable in the sg. Seeing there doesn't
-+		 * seem to be any error path out of here,
-+		 * we can only WARN.
-+		 */
-+		WARN(1, "Non-mappable memory used in sg!");
-+		return;
-+	}
-+
- 	if (host->cmd_flags & DATA_CARRY) {
- 		val = host->bounce_buf_data[0] | ((buf[pos++] << 8) & 0xff00);
- 		writel(val, sock->addr + SOCK_MMCSD_DATA);
-@@ -161,7 +185,7 @@ static void tifm_sd_write_fifo(struct tifm_sd *host, struct page *pg,
- 		val |= (buf[pos++] << 8) & 0xff00;
- 		writel(val, sock->addr + SOCK_MMCSD_DATA);
- 	}
--	kunmap_atomic(buf - off);
-+	sg_unmap_offset(sg, buf, off - sg->offset, SG_KMAP_ATOMIC);
- }
- 
- static void tifm_sd_transfer_data(struct tifm_sd *host)
-@@ -170,7 +194,6 @@ static void tifm_sd_transfer_data(struct tifm_sd *host)
- 	struct scatterlist *sg = r_data->sg;
- 	unsigned int off, cnt, t_size = TIFM_MMCSD_FIFO_SIZE * 2;
- 	unsigned int p_off, p_cnt;
--	struct page *pg;
- 
- 	if (host->sg_pos == host->sg_len)
- 		return;
-@@ -192,33 +215,57 @@ static void tifm_sd_transfer_data(struct tifm_sd *host)
- 		}
- 		off = sg[host->sg_pos].offset + host->block_pos;
- 
--		pg = nth_page(sg_page(&sg[host->sg_pos]), off >> PAGE_SHIFT);
- 		p_off = offset_in_page(off);
- 		p_cnt = PAGE_SIZE - p_off;
- 		p_cnt = min(p_cnt, cnt);
- 		p_cnt = min(p_cnt, t_size);
- 
- 		if (r_data->flags & MMC_DATA_READ)
--			tifm_sd_read_fifo(host, pg, p_off, p_cnt);
-+			tifm_sd_read_fifo(host, &sg[host->sg_pos], p_off,
-+					  p_cnt);
- 		else if (r_data->flags & MMC_DATA_WRITE)
--			tifm_sd_write_fifo(host, pg, p_off, p_cnt);
-+			tifm_sd_write_fifo(host, &sg[host->sg_pos], p_off,
-+					   p_cnt);
- 
- 		t_size -= p_cnt;
- 		host->block_pos += p_cnt;
- 	}
- }
- 
--static void tifm_sd_copy_page(struct page *dst, unsigned int dst_off,
--			      struct page *src, unsigned int src_off,
-+static void tifm_sd_copy_page(struct scatterlist *dst, unsigned int dst_off,
-+			      struct scatterlist *src, unsigned int src_off,
- 			      unsigned int count)
- {
--	unsigned char *src_buf = kmap_atomic(src) + src_off;
--	unsigned char *dst_buf = kmap_atomic(dst) + dst_off;
-+	unsigned char *src_buf, *dst_buf;
-+
-+	src_off -= src->offset;
-+	dst_off -= dst->offset;
-+
-+	src_buf = sg_map_offset(src, src_off, SG_KMAP_ATOMIC);
-+	if (IS_ERR(src_buf))
-+		goto sg_map_err;
-+
-+	dst_buf = sg_map_offset(dst, dst_off, SG_KMAP_ATOMIC);
-+	if (IS_ERR(dst_buf))
-+		goto sg_map_err;
- 
- 	memcpy(dst_buf, src_buf, count);
- 
--	kunmap_atomic(dst_buf - dst_off);
--	kunmap_atomic(src_buf - src_off);
-+	sg_unmap_offset(dst, dst_buf, dst_off, SG_KMAP_ATOMIC);
-+	sg_unmap_offset(src, src_buf, src_off, SG_KMAP_ATOMIC);
-+
-+sg_map_err:
-+	if (!IS_ERR(src_buf))
-+		sg_unmap_offset(src, src_buf, src_off, SG_KMAP_ATOMIC);
-+
-+	/*
-+	 * This should really never happen unless
-+	 * the code is changed to use memory that is
-+	 * not mappable in the sg. Seeing there doesn't
-+	 * seem to be any error path out of here,
-+	 * we can only WARN.
-+	 */
-+	WARN(1, "Non-mappable memory used in sg!");
- }
- 
- static void tifm_sd_bounce_block(struct tifm_sd *host, struct mmc_data *r_data)
-@@ -227,7 +274,6 @@ static void tifm_sd_bounce_block(struct tifm_sd *host, struct mmc_data *r_data)
- 	unsigned int t_size = r_data->blksz;
- 	unsigned int off, cnt;
- 	unsigned int p_off, p_cnt;
--	struct page *pg;
- 
- 	dev_dbg(&host->dev->dev, "bouncing block\n");
- 	while (t_size) {
-@@ -241,18 +287,18 @@ static void tifm_sd_bounce_block(struct tifm_sd *host, struct mmc_data *r_data)
- 		}
- 		off = sg[host->sg_pos].offset + host->block_pos;
- 
--		pg = nth_page(sg_page(&sg[host->sg_pos]), off >> PAGE_SHIFT);
- 		p_off = offset_in_page(off);
- 		p_cnt = PAGE_SIZE - p_off;
- 		p_cnt = min(p_cnt, cnt);
- 		p_cnt = min(p_cnt, t_size);
- 
- 		if (r_data->flags & MMC_DATA_WRITE)
--			tifm_sd_copy_page(sg_page(&host->bounce_buf),
-+			tifm_sd_copy_page(&host->bounce_buf,
- 					  r_data->blksz - t_size,
--					  pg, p_off, p_cnt);
-+					  &sg[host->sg_pos], p_off, p_cnt);
- 		else if (r_data->flags & MMC_DATA_READ)
--			tifm_sd_copy_page(pg, p_off, sg_page(&host->bounce_buf),
-+			tifm_sd_copy_page(&sg[host->sg_pos], p_off,
-+					  &host->bounce_buf,
- 					  r_data->blksz - t_size, p_cnt);
- 
- 		t_size -= p_cnt;
--- 
-2.1.4
+Cheers,
+Ben.
+
+> Thanks,
+> 
+> Logan
