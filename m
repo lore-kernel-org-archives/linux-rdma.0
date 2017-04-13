@@ -1,118 +1,52 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH rdma-core 3/3] srp_daemon: Use consistent format when printing
- LID
-Date: Thu, 13 Apr 2017 10:48:40 -0400
-Message-ID: <f6f32353-bdcc-6dfa-bf52-1b03ebab1eee@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: [PATCH 2/7] PCI: call pcie_flr from reset_intel_82599_sfp_virtfn
+Date: Thu, 13 Apr 2017 16:53:34 +0200
+Message-ID: <20170413145339.20186-3-hch@lst.de>
+References: <20170413145339.20186-1-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170413145339.20186-1-hch-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Giovanni Cabiddu <giovanni.cabiddu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Salvatore Benedetto <salvatore.benedetto-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Derek Chickles <derek.chickles-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, Satanand Burla <satananda.burla-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, Felix Manlunas <felix.manlunas-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, Raghu Vatsavayi <raghu.vatsavayi-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, Jeff Kirsher <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, qat-linux-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+The 82599 quirk contained an outdated copy of the FLR code.
 
-%d is not good as LIDs above 32K print as negative numbers.
-%#x seems to be the right choice here; %u was used by IB
-management tools for unicast LID printing.
-
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- srp_daemon/srp_daemon.c       | 12 ++++++------
- srp_daemon/srp_handle_traps.c |  4 ++--
- srp_daemon/srp_sync.c         |  2 +-
- 3 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/pci/quirks.c | 16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
-diff --git a/srp_daemon/srp_daemon.c b/srp_daemon/srp_daemon.c
-index 59a6137..4d8476e 100644
---- a/srp_daemon/srp_daemon.c
-+++ b/srp_daemon/srp_daemon.c
-@@ -632,7 +632,7 @@ recv:
- 			ret = umad_status(in_mad);
- 			if (ret) {
- 				pr_err(
--					"bad MAD status (%u) from lid %d\n",
-+					"bad MAD status (%u) from lid %#x\n",
- 					ret, (uint16_t) be16toh(out_mad->hdr.addr.lid));
- 				return -ret;
- 			}
-@@ -935,7 +935,7 @@ static int do_port(struct resources *res, uint16_t pkey, uint16_t dlid,
+diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+index 673683660b5c..b1775354cc69 100644
+--- a/drivers/pci/quirks.c
++++ b/drivers/pci/quirks.c
+@@ -3642,19 +3642,11 @@ static int reset_intel_82599_sfp_virtfn(struct pci_dev *dev, int probe)
+ 	 *
+ 	 * The 82599 supports FLR on VFs, but FLR support is reported only
+ 	 * in the PF DEVCAP (sec 9.3.10.4), not in the VF DEVCAP (sec 9.5).
+-	 * Therefore, we can't use pcie_flr(), which checks the VF DEVCAP.
++	 * Thus we must call pcie_flr directly without first checking if it is
++	 * supported.
+ 	 */
+-
+-	if (probe)
+-		return 0;
+-
+-	if (!pci_wait_for_pending_transaction(dev))
+-		dev_err(&dev->dev, "transaction is not cleared; proceeding with reset anyway\n");
+-
+-	pcie_capability_set_word(dev, PCI_EXP_DEVCTL, PCI_EXP_DEVCTL_BCR_FLR);
+-
+-	msleep(100);
+-
++	if (!probe)
++		pcie_flr(dev);
+ 	return 0;
+ }
  
- 	ret = get_iou_info(umad_res, dlid, &iou_info);
- 	if (ret < 0) {
--		pr_err("failed to get iou info for dlid %x\n", dlid);
-+		pr_err("failed to get iou info for dlid %#x\n", dlid);
- 		goto out;
- 	}
- 
-@@ -1214,7 +1214,7 @@ static int do_dm_port_list(struct resources *res)
- 		num_pkeys = get_shared_pkeys(res, be16toh(port_info->endport_lid),
- 					     pkeys);
- 		if (num_pkeys < 0) {
--			pr_err("failed to get shared P_Keys with LID %x\n",
-+			pr_err("failed to get shared P_Keys with LID %#x\n",
- 			       be16toh(port_info->endport_lid));
- 			free(in_mad_buf);
- 			return num_pkeys;
-@@ -1235,7 +1235,7 @@ void handle_port(struct resources *res, uint16_t pkey, uint16_t lid, uint64_t h_
- 	uint64_t subnet_prefix;
- 	int isdm;
- 
-- 	pr_debug("enter handle_port for lid %d\n", lid);
-+	pr_debug("enter handle_port for lid %#x\n", lid);
- 	if (get_port_info(umad_res, lid, &subnet_prefix, &isdm))
- 		return;
- 
-@@ -1292,7 +1292,7 @@ static int do_full_port_list(struct resources *res)
- 		num_pkeys = get_shared_pkeys(res, be16toh(node->lid),
- 					     pkeys);
- 		if (num_pkeys < 0) {
--			pr_err("failed to get shared P_Keys with LID %x\n",
-+			pr_err("failed to get shared P_Keys with LID %#x\n",
- 			       be16toh(node->lid));
- 			free(in_mad_buf);
- 			return num_pkeys;
-@@ -2188,7 +2188,7 @@ catas_start:
- 					/* unexpected error - do a full rescan */
- 					schedule_rescan(res->sync_res, 0);
- 				else {
--					pr_debug("lid is %d\n", lid);
-+					pr_debug("lid is %#x\n", lid);
- 
- 					srp_sleep(0, 100);
- 					handle_port(res, pkey, lid,
-diff --git a/srp_daemon/srp_handle_traps.c b/srp_daemon/srp_handle_traps.c
-index f219702..6d94634 100644
---- a/srp_daemon/srp_handle_traps.c
-+++ b/srp_daemon/srp_handle_traps.c
-@@ -561,9 +561,9 @@ static int register_to_trap(struct sync_resources *sync_res,
- 	static uint64_t trans_id = 0x0000FFFF;
- 
- 	if (subscribe)
--		pr_debug("Registering to trap:%d (sm in %d)\n", trap_num, dest_lid);
-+		pr_debug("Registering to trap:%d (sm in %#x)\n", trap_num, dest_lid);
- 	else
--		pr_debug("Deregistering from trap:%d (sm in %d)\n", trap_num, dest_lid);
-+		pr_debug("Deregistering from trap:%d (sm in %#x)\n", trap_num, dest_lid);
- 
- 	memset(res->send_buf, 0, SEND_SIZE);
- 
-diff --git a/srp_daemon/srp_sync.c b/srp_daemon/srp_sync.c
-index 72c41f0..036fbe5 100644
---- a/srp_daemon/srp_sync.c
-+++ b/srp_daemon/srp_sync.c
-@@ -171,7 +171,7 @@ void push_lid_to_list(struct sync_resources *res, uint16_t lid, uint16_t pkey)
- 
- 	for (i=0; i < res->next_task; ++i)
- 		if (res->tasks[i].lid == lid && res->tasks[i].pkey == pkey) {
--			pr_debug("lid %d is already in task list\n", lid);
-+			pr_debug("lid %#x is already in task list\n", lid);
- 			pthread_mutex_unlock(&res->mutex);
- 			return;
- 		}
 -- 
-1.8.2.3
+2.11.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
