@@ -1,74 +1,43 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: cqe dump errors on target while running nvme-of large block read
- IO
-Date: Thu, 13 Apr 2017 14:29:36 +0300
-Message-ID: <47f19583-1882-09d4-ce1c-534b8e59068b@mellanox.com>
-References: <DE927C68B458BE418D582EC97927A9285505C9EA@ORSMSX113.amr.corp.intel.com>
+From: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH] IB/rxe: Don't clamp residual length to mtu
+Date: Thu, 13 Apr 2017 14:00:00 +0200
+Message-ID: <20170413120000.GI6734@linux-x5ow.site>
+References: <20170406124944.11074-1-jthumshirn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <DE927C68B458BE418D582EC97927A9285505C9EA-8oqHQFITsIFQxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170406124944.11074-1-jthumshirn-l3A5Bk7waGM@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "'linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org'" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Sen, Sujoy" <sujoy.sen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Riches Jr, Robert M" <robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Linux Kernel Mailinglist <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hannes Reinecke <hare-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Apr 06, 2017 at 02:49:44PM +0200, Johannes Thumshirn wrote:
+> When reading a RDMA WRITE FIRST packet we copy the DMA length from the RDMA
+> header into the qp->resp.resid variable for later use. Later in check_rkey()
+> we clamp it to the MTU if the packet is an  RDMA WRITE packet and has a
+> residual length bigger than the MTU. Later in write_data_in() we subtract the
+> payload of the packet from the residual length. If the packet happens to have a
+> payload of exactly the MTU size we end up with a residual length of 0 despite
+> the packet not being the last in the conversation. When the next packet in the
+> conversation arrives, we don't have any residual length left and thus set the QP
 
+Hi Moni, Sagi and Max,
 
-On 4/12/2017 7:41 PM, Gruher, Joseph R wrote:
-> Hi folks-
->
-> Wanted to put this issue out there and see if anyone had thoughts.
->
-> Target system - 100Gb dual port CX5, FW 16.19.1000, through Arista 7060X switch with Ethernet flow control
-> Initiator system - 25Gb dual port CX4, FW 14.18.2000, through Arista 7060X switch with Ethernet flow control
->
-> We attach 16 drives from target to initiator, but are only running IO on four of them in this test, two drives per network port on initiator/target.  Drives in use are Intel P3700 400GB.
->
-> We are running Ubuntu 16.10 with the 4.11-rc6 kernel and this patch from Max:
->
-> diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c index ad8a263..c38c4fa 100644
-> --- a/drivers/infiniband/hw/mlx5/qp.c
-> +++ b/drivers/infiniband/hw/mlx5/qp.c
-> @@ -3737,8 +3737,7 @@ static void dump_wqe(struct mlx5_ib_qp *qp, int idx, int size_16)
->
->   static u8 get_fence(u8 fence, struct ib_send_wr *wr)
->   {
-> -       if (unlikely(wr->opcode == IB_WR_LOCAL_INV &&
-> -                    wr->send_flags & IB_SEND_FENCE))
-> +       if (wr->opcode == IB_WR_LOCAL_INV || wr->opcode == IB_WR_REG_MR)
->                  return MLX5_FENCE_MODE_STRONG_ORDERING;
->
->          if (unlikely(fence)) {
->
-> For the most part we can run FIO IO on the initiator against the attached subsystems without problems.  4KB random read and write, 64KB sequential writes are working OK on this setup.  We seem to encounter errors when we run a 64KB sequential read workload.  I would not the 64KB sequential read workload is the only one which generates enough traffic that we could bottleneck on the initiator NIC throughput - not sure if that is relevant, or just a coincidence.  We can reproduce these errors fairly reliably at this time.  See attached dmesg and example below:
->
-> [12728.885267] mlx5_1:dump_cqe:262:(pid 2943): dump error cqe
-> [12728.885271] 00000000 00000000 00000000 00000000
-> [12728.885272] 00000000 00000000 00000000 00000000
-> [12728.885274] 00000000 00000000 00000000 00000000
-> [12728.885275] 00000000 00008813 08000240 0255bcd3
-> [12728.885852] mlx5_1:dump_cqe:262:(pid 2829): dump error cqe
-> [12728.885855] 00000000 00000000 00000000 00000000
-> [12728.885857] 00000000 00000000 00000000 00000000
-> [12728.885859] 00000000 00000000 00000000 00000000
-> [12728.885861] 00000000 00008813 08000239 c2e59fd3
-> [12735.782466] nvmet: ctrl 17 keep-alive timer (15 seconds) expired!
-> [12735.784949] nvmet: ctrl 17 fatal error occurred!
->
-> These target side error prints seem correlated with IO failures and disconnect/reconnect events on the initiator so they are a problem.  Any ideas?  Any additional info we can provide?
+Any comments on this?
 
-hi Joe,
-can you run and repro it with null_blk backing store instead the nvme ? 
-you can emulate the delay of the nvme device using module param 
-completion_nsec.
-is it reproducable in case B2B connectivity ?
+Thanks,
+	Johannes
 
->
-> Thanks,
-> Joe
->
+-- 
+Johannes Thumshirn                                          Storage
+jthumshirn-l3A5Bk7waGM@public.gmane.org                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
+GF: Felix Imendörffer, Jane Smithard, Graham Norton
+HRB 21284 (AG Nürnberg)
+Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
