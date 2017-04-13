@@ -1,112 +1,85 @@
-From: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [rdma-core/srp_daemon PATCH] Correct method field for PathRecord
- request
-Date: Thu, 13 Apr 2017 21:58:32 +0800
-Message-ID: <20170413135832.GB8255@dhcp-13-42.nay.redhat.com>
-References: <1491924533-2548-1-git-send-email-honli@redhat.com>
- <20170411154944.GA19917@obsidianresearch.com>
- <20170412132923.GB16375@dhcp-13-42.nay.redhat.com>
- <d5a9d1a8-6c38-51f2-d444-a6942db406f9@dev.mellanox.co.il>
- <20170412141800.GA20223@dhcp-13-42.nay.redhat.com>
- <6e04d44e-fab3-1477-7de4-d3c679301f38@dev.mellanox.co.il>
- <20170412144946.GC20223@dhcp-13-42.nay.redhat.com>
- <89c5ad40-cb4d-8b4d-48b3-e53351fb64af@dev.mellanox.co.il>
- <56ade261-811d-16df-6b3f-7d08c07c882f@dev.mellanox.co.il>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] IB/rxe: Don't clamp residual length to mtu
+Date: Thu, 13 Apr 2017 17:12:54 +0300
+Message-ID: <CAG9sBKM=Fw7mfpJVHtEEWB82ASePXbKuUCRXVVWKJn7sZhfipA@mail.gmail.com>
+References: <20170406124944.11074-1-jthumshirn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <56ade261-811d-16df-6b3f-7d08c07c882f-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20170406124944.11074-1-jthumshirn-l3A5Bk7waGM@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
+To: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux Kernel Mailinglist <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hannes Reinecke <hare-l3A5Bk7waGM@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 12, 2017 at 01:39:02PM -0400, Hal Rosenstock wrote:
-> On 4/12/2017 12:51 PM, Hal Rosenstock wrote:
-> > On 4/12/2017 10:49 AM, Honggang LI wrote:
-> >> On Wed, Apr 12, 2017 at 10:34:47AM -0400, Hal Rosenstock wrote:
-> >>> On 4/12/2017 10:18 AM, Honggang LI wrote:
-> >>>> On Wed, Apr 12, 2017 at 09:34:20AM -0400, Hal Rosenstock wrote:
-> >>>>> On 4/12/2017 9:29 AM, Honggang LI wrote:
-> >>>>>> On Tue, Apr 11, 2017 at 09:49:44AM -0600, Jason Gunthorpe wrote:
-> >>>>>>> On Tue, Apr 11, 2017 at 11:28:53PM +0800, Honggang LI wrote:
-> >>>>>>>> From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> >>>>>>>>
-> >>>>>>>> According to InfiniBand Architecture Release 1.2.1, Table 208
-> >>>>>>>> Example PathRecord Request MAD Header Fields, MADHeader:Method
-> >>>>>>>> should setup to 0x12 (SubnAdmGetTable()).
-> >>>>>>>
-> >>>>>>> That is just an example, Table 192 shows that Get and GetTable are
-> >>>>>>> both valid query types.
-> >>>>>>
-> >>>>>> I don't understand this as "Table 192 PortInfoRecord" seems nothing to
-> >>>>>> do with PathRecord request.
-> >>>>>
-> >>>>> In IBA 1.3 volume 1, it's Table 209 Subnet Administration
-> >>>>> Attribute/Method Map shows PathRecord methods are Get and GetTable.
-> >>>>>
-> >>>>
-> >>>> http://www.intel.com/content/dam/www/public/us/en/documents/product-briefs/truescale-infiniband-12300-switch-brief.pdf
-> >>>> Interoperability
-> >>>> • Compliant with IBTA* specifications 1.0a, 1.1, 1.2, and 1.2.
-> >>>>
-> >>>> It seems the embedded subnet manager does not support IBA 1.3
-> >>>
-> >>> It's same for IBA 1.2.1. This part hasn't changed.
-> >>>
-> >>>>>>>
-> >>>>>>> I however expect that the SM will fail when using GetTable if the
-> >>>>>>> query returns more than one result, could that be what is happening?
-> >>>>>>> When you convert it to GET_TABLE does it return more than one result?
-> >>>>>>
-> >>>>>> strace output shows srptools always received MAD packet in 320 bytes. So
-> >>>>>> the embedded subnet manager only returns one result.
-> >>>>>
-> >>>>> What is MAD status ?
-> >>>>
-> >>>> ib_user_mad->status     = 0x0
-> >>>>
-> >>>> I attached the MAD packet dump out with strace. Please see the
-> >>>> attachments p4.in amd p4.decode.
-> >>>
-> >>> p4.decode has:
-> >>> rp_dm_rmpp_sa_mad->method		= 0x81 //IB_MAD_METHOD_GET_RESP
-> >>> opensm/include/iba/ib_types.h // GetResp() Method (13.4.5)
-> >>>
-> >>> Proper response to GetTable (0x12) method is GetTableResponse (0x92)
-> >>> method but this is GetResp (0x81) response.
-> >>
-> >> Yes, you are right. p4.decode was captured with unpatched upstream srptools-1.0.3.
-> > 
-> > against the embedded SM ? If so, this response looks (mostly) good to me and should be accepted by srp_daemon. I think I see the issue in srp_daemon: it's due to the check of the attribute offset which is not being set in the response:
-> > 
-> >                 size = ib_get_attr_size(in_sa_mad->attr_offset);
-> >                 if (!size) {
-> >                         if (config->verbose)
-> >                                 printf("PathRec Query did not find any targets "
-> >                                        "over P_Key %x\n", pkey);
-> >                         continue;
-> >                 }
-> > 
-> > p4.decode has:
-> > srp_dm_rmpp_sa_mad->attr_offset		= 0x0
-> > 
-> > Since a get rather than get table is being used, a good MAD status means that a valid PR was returned and there is no need for this check.
-> > 
-> > Would you try using the original get method without this code block and verify that it works with the embedded SM ?
-> 
-> Just submitted PR for this:
-> https://github.com/linux-rdma/rdma-core/pull/116
+On Thu, Apr 6, 2017 at 3:49 PM, Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org> wrote:
+> When reading a RDMA WRITE FIRST packet we copy the DMA length from the RDMA
+> header into the qp->resp.resid variable for later use. Later in check_rkey()
+> we clamp it to the MTU if the packet is an  RDMA WRITE packet and has a
+> residual length bigger than the MTU. Later in write_data_in() we subtract the
+> payload of the packet from the residual length. If the packet happens to have a
+> payload of exactly the MTU size we end up with a residual length of 0 despite
+> the packet not being the last in the conversation. When the next packet in the
+> conversation arrives, we don't have any residual length left and thus set the QP
+> into an error state.
+>
+> This broke NVMe over Fabrics functionality over rdma_rxe.ko
+>
+> The patch was verified using the following test.
+>
+>  # echo eth0 > /sys/module/rdma_rxe/parameters/add
+>  # nvme connect -t rdma -a 192.168.155.101 -s 1023 -n nvmf-test
+>  # mkfs.xfs -fK /dev/nvme0n1
+>  meta-data=/dev/nvme0n1           isize=256    agcount=4, agsize=65536 blks
+>           =                       sectsz=4096  attr=2, projid32bit=1
+>           =                       crc=0        finobt=0, sparse=0
+>  data     =                       bsize=4096   blocks=262144, imaxpct=25
+>           =                       sunit=0      swidth=0 blks
+>  naming   =version 2              bsize=4096   ascii-ci=0 ftype=1
+>  log      =internal log           bsize=4096   blocks=2560, version=2
+>           =                       sectsz=4096  sunit=1 blks, lazy-count=1
+>  realtime =none                   extsz=4096   blocks=0, rtextents=0
+>  # mount /dev/nvme0n1 /tmp/
+>  [  148.923263] XFS (nvme0n1): Mounting V4 Filesystem
+>  [  148.961196] XFS (nvme0n1): Ending clean mount
+>  # dd if=/dev/urandom of=test.bin bs=1M count=128
+>  128+0 records in
+>  128+0 records out
+>  134217728 bytes (134 MB, 128 MiB) copied, 0.437991 s, 306 MB/s
+>  # sha256sum test.bin
+>  cde42941f045efa8c4f0f157ab6f29741753cdd8d1cff93a6b03649d83c4129a  test.bin
+>  # cp test.bin /tmp/
+>  sha256sum /tmp/test.bin
+>  cde42941f045efa8c4f0f157ab6f29741753cdd8d1cff93a6b03649d83c4129a  /tmp/test.bin
+>
+> Signed-off-by: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
+> Cc: Hannes Reinecke <hare-l3A5Bk7waGM@public.gmane.org>
+> Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+> Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/sw/rxe/rxe_resp.c | 2 --
+>  1 file changed, 2 deletions(-)
+>
+> diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+> index c9dd385..58764df 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_resp.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+> @@ -478,8 +478,6 @@ static enum resp_states check_rkey(struct rxe_qp *qp,
+>                                 state = RESPST_ERR_LENGTH;
+>                                 goto err;
+>                         }
+> -
+> -                       qp->resp.resid = mtu;
+>                 } else {
+>                         if (pktlen != resid) {
+>                                 state = RESPST_ERR_LENGTH;
+> --
+> 2.10.2
+>
+> --
+Thanks Johannes
 
-Those three patches PASSED the test.
-
-> I can post patch if you like.
-
-Please fix the typo I mentioned in the PR and post those three patches.
-
-thanks
+Acked-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
