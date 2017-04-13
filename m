@@ -1,516 +1,112 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1] IB/mlx5: Support congestion related counters
-Date: Thu, 13 Apr 2017 16:48:10 +0300
-Message-ID: <20170413134810.13159-1-leon@kernel.org>
+From: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [rdma-core/srp_daemon PATCH] Correct method field for PathRecord
+ request
+Date: Thu, 13 Apr 2017 21:58:32 +0800
+Message-ID: <20170413135832.GB8255@dhcp-13-42.nay.redhat.com>
+References: <1491924533-2548-1-git-send-email-honli@redhat.com>
+ <20170411154944.GA19917@obsidianresearch.com>
+ <20170412132923.GB16375@dhcp-13-42.nay.redhat.com>
+ <d5a9d1a8-6c38-51f2-d444-a6942db406f9@dev.mellanox.co.il>
+ <20170412141800.GA20223@dhcp-13-42.nay.redhat.com>
+ <6e04d44e-fab3-1477-7de4-d3c679301f38@dev.mellanox.co.il>
+ <20170412144946.GC20223@dhcp-13-42.nay.redhat.com>
+ <89c5ad40-cb4d-8b4d-48b3-e53351fb64af@dev.mellanox.co.il>
+ <56ade261-811d-16df-6b3f-7d08c07c882f@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <56ade261-811d-16df-6b3f-7d08c07c882f-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Wed, Apr 12, 2017 at 01:39:02PM -0400, Hal Rosenstock wrote:
+> On 4/12/2017 12:51 PM, Hal Rosenstock wrote:
+> > On 4/12/2017 10:49 AM, Honggang LI wrote:
+> >> On Wed, Apr 12, 2017 at 10:34:47AM -0400, Hal Rosenstock wrote:
+> >>> On 4/12/2017 10:18 AM, Honggang LI wrote:
+> >>>> On Wed, Apr 12, 2017 at 09:34:20AM -0400, Hal Rosenstock wrote:
+> >>>>> On 4/12/2017 9:29 AM, Honggang LI wrote:
+> >>>>>> On Tue, Apr 11, 2017 at 09:49:44AM -0600, Jason Gunthorpe wrote:
+> >>>>>>> On Tue, Apr 11, 2017 at 11:28:53PM +0800, Honggang LI wrote:
+> >>>>>>>> From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> >>>>>>>>
+> >>>>>>>> According to InfiniBand Architecture Release 1.2.1, Table 208
+> >>>>>>>> Example PathRecord Request MAD Header Fields, MADHeader:Method
+> >>>>>>>> should setup to 0x12 (SubnAdmGetTable()).
+> >>>>>>>
+> >>>>>>> That is just an example, Table 192 shows that Get and GetTable are
+> >>>>>>> both valid query types.
+> >>>>>>
+> >>>>>> I don't understand this as "Table 192 PortInfoRecord" seems nothing to
+> >>>>>> do with PathRecord request.
+> >>>>>
+> >>>>> In IBA 1.3 volume 1, it's Table 209 Subnet Administration
+> >>>>> Attribute/Method Map shows PathRecord methods are Get and GetTable.
+> >>>>>
+> >>>>
+> >>>> http://www.intel.com/content/dam/www/public/us/en/documents/product-briefs/truescale-infiniband-12300-switch-brief.pdf
+> >>>> Interoperability
+> >>>> • Compliant with IBTA* specifications 1.0a, 1.1, 1.2, and 1.2.
+> >>>>
+> >>>> It seems the embedded subnet manager does not support IBA 1.3
+> >>>
+> >>> It's same for IBA 1.2.1. This part hasn't changed.
+> >>>
+> >>>>>>>
+> >>>>>>> I however expect that the SM will fail when using GetTable if the
+> >>>>>>> query returns more than one result, could that be what is happening?
+> >>>>>>> When you convert it to GET_TABLE does it return more than one result?
+> >>>>>>
+> >>>>>> strace output shows srptools always received MAD packet in 320 bytes. So
+> >>>>>> the embedded subnet manager only returns one result.
+> >>>>>
+> >>>>> What is MAD status ?
+> >>>>
+> >>>> ib_user_mad->status     = 0x0
+> >>>>
+> >>>> I attached the MAD packet dump out with strace. Please see the
+> >>>> attachments p4.in amd p4.decode.
+> >>>
+> >>> p4.decode has:
+> >>> rp_dm_rmpp_sa_mad->method		= 0x81 //IB_MAD_METHOD_GET_RESP
+> >>> opensm/include/iba/ib_types.h // GetResp() Method (13.4.5)
+> >>>
+> >>> Proper response to GetTable (0x12) method is GetTableResponse (0x92)
+> >>> method but this is GetResp (0x81) response.
+> >>
+> >> Yes, you are right. p4.decode was captured with unpatched upstream srptools-1.0.3.
+> > 
+> > against the embedded SM ? If so, this response looks (mostly) good to me and should be accepted by srp_daemon. I think I see the issue in srp_daemon: it's due to the check of the attribute offset which is not being set in the response:
+> > 
+> >                 size = ib_get_attr_size(in_sa_mad->attr_offset);
+> >                 if (!size) {
+> >                         if (config->verbose)
+> >                                 printf("PathRec Query did not find any targets "
+> >                                        "over P_Key %x\n", pkey);
+> >                         continue;
+> >                 }
+> > 
+> > p4.decode has:
+> > srp_dm_rmpp_sa_mad->attr_offset		= 0x0
+> > 
+> > Since a get rather than get table is being used, a good MAD status means that a valid PR was returned and there is no need for this check.
+> > 
+> > Would you try using the original get method without this code block and verify that it works with the embedded SM ?
+> 
+> Just submitted PR for this:
+> https://github.com/linux-rdma/rdma-core/pull/116
 
-This patch adds support to query the congestion related hardware counters
-through new command and links them with other hw counters being available
-in hw_counters sysfs location.
+Those three patches PASSED the test.
 
-In order to reuse existing infrastructure it renames related q_counter
-data structures to more generic counters to reflect q_counters and
-congestion counters and maybe some other counters in the future.
+> I can post patch if you like.
 
-New hardware counters:
- * rp_cnp_handled - CNP packets handled by the reaction point
- * rp_cnp_ignored - CNP packets ignored by the reaction point
- * np_cnp_sent    - CNP packets sent by notification point to respond to
-                     CE marked RoCE packets
- * np_ecn_marked_roce_packets - CE marked RoCE packets received by
-                                notification point
+Please fix the typo I mentioned in the PR and post those three patches.
 
-It also avoids returning ENOSYS which is specific for invalid
-system call and produces the following checkpatch.pl warning.
-
-WARNING: ENOSYS means 'invalid syscall nr' and nothing else
-+		return -ENOSYS;
-
-Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- Changes from v0:
-  *  fix overflow issue in access to congestion counters
----
- drivers/infiniband/hw/mlx5/cmd.c     |  11 +++
- drivers/infiniband/hw/mlx5/cmd.h     |   2 +
- drivers/infiniband/hw/mlx5/main.c    | 172 ++++++++++++++++++++++++-----------
- drivers/infiniband/hw/mlx5/mlx5_ib.h |   7 +-
- drivers/infiniband/hw/mlx5/qp.c      |   7 +-
- include/linux/mlx5/mlx5_ifc.h        |  18 ++--
- 6 files changed, 150 insertions(+), 67 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx5/cmd.c b/drivers/infiniband/hw/mlx5/cmd.c
-index cdc2d3017da7..18d5e1db93ed 100644
---- a/drivers/infiniband/hw/mlx5/cmd.c
-+++ b/drivers/infiniband/hw/mlx5/cmd.c
-@@ -46,3 +46,14 @@ int mlx5_cmd_null_mkey(struct mlx5_core_dev *dev, u32 *null_mkey)
- 				      null_mkey);
- 	return err;
- }
-+
-+int mlx5_cmd_query_cong_counter(struct mlx5_core_dev *dev,
-+				bool reset, void *out, int out_size)
-+{
-+	u32 in[MLX5_ST_SZ_DW(query_cong_statistics_in)] = { };
-+
-+	MLX5_SET(query_cong_statistics_in, in, opcode,
-+		 MLX5_CMD_OP_QUERY_CONG_STATISTICS);
-+	MLX5_SET(query_cong_statistics_in, in, clear, reset);
-+	return mlx5_cmd_exec(dev, in, sizeof(in), out, out_size);
-+}
-diff --git a/drivers/infiniband/hw/mlx5/cmd.h b/drivers/infiniband/hw/mlx5/cmd.h
-index 7ca8a7b6434d..fa09228193a6 100644
---- a/drivers/infiniband/hw/mlx5/cmd.h
-+++ b/drivers/infiniband/hw/mlx5/cmd.h
-@@ -37,4 +37,6 @@
- #include <linux/mlx5/driver.h>
-
- int mlx5_cmd_null_mkey(struct mlx5_core_dev *dev, u32 *null_mkey);
-+int mlx5_cmd_query_cong_counter(struct mlx5_core_dev *dev,
-+				bool reset, void *out, int out_size);
- #endif /* MLX5_IB_CMD_H */
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 4dc0a8785fe0..9e8ad11e354e 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -57,6 +57,7 @@
- #include <linux/mlx5/fs.h>
- #include <linux/mlx5/vport.h>
- #include "mlx5_ib.h"
-+#include "cmd.h"
-
- #define DRIVER_NAME "mlx5_ib"
- #define DRIVER_VERSION "2.2-1"
-@@ -3133,7 +3134,7 @@ static void mlx5_disable_eth(struct mlx5_ib_dev *dev)
- 		mlx5_nic_vport_disable_roce(dev->mdev);
- }
-
--struct mlx5_ib_q_counter {
-+struct mlx5_ib_counter {
- 	const char *name;
- 	size_t offset;
- };
-@@ -3141,18 +3142,18 @@ struct mlx5_ib_q_counter {
- #define INIT_Q_COUNTER(_name)		\
- 	{ .name = #_name, .offset = MLX5_BYTE_OFF(query_q_counter_out, _name)}
-
--static const struct mlx5_ib_q_counter basic_q_cnts[] = {
-+static const struct mlx5_ib_counter basic_q_cnts[] = {
- 	INIT_Q_COUNTER(rx_write_requests),
- 	INIT_Q_COUNTER(rx_read_requests),
- 	INIT_Q_COUNTER(rx_atomic_requests),
- 	INIT_Q_COUNTER(out_of_buffer),
- };
-
--static const struct mlx5_ib_q_counter out_of_seq_q_cnts[] = {
-+static const struct mlx5_ib_counter out_of_seq_q_cnts[] = {
- 	INIT_Q_COUNTER(out_of_sequence),
- };
-
--static const struct mlx5_ib_q_counter retrans_q_cnts[] = {
-+static const struct mlx5_ib_counter retrans_q_cnts[] = {
- 	INIT_Q_COUNTER(duplicate_request),
- 	INIT_Q_COUNTER(rnr_nak_retry_err),
- 	INIT_Q_COUNTER(packet_seq_err),
-@@ -3160,22 +3161,31 @@ static const struct mlx5_ib_q_counter retrans_q_cnts[] = {
- 	INIT_Q_COUNTER(local_ack_timeout_err),
- };
-
--static void mlx5_ib_dealloc_q_counters(struct mlx5_ib_dev *dev)
-+#define INIT_CONG_COUNTER(_name)		\
-+	{ .name = #_name, .offset =	\
-+		MLX5_BYTE_OFF(query_cong_statistics_out, _name ## _high)}
-+
-+static const struct mlx5_ib_counter cong_cnts[] = {
-+	INIT_CONG_COUNTER(rp_cnp_ignored),
-+	INIT_CONG_COUNTER(rp_cnp_handled),
-+	INIT_CONG_COUNTER(np_ecn_marked_roce_packets),
-+	INIT_CONG_COUNTER(np_cnp_sent),
-+};
-+
-+static void mlx5_ib_dealloc_counters(struct mlx5_ib_dev *dev)
- {
- 	unsigned int i;
-
- 	for (i = 0; i < dev->num_ports; i++) {
- 		mlx5_core_dealloc_q_counter(dev->mdev,
--					    dev->port[i].q_cnts.set_id);
--		kfree(dev->port[i].q_cnts.names);
--		kfree(dev->port[i].q_cnts.offsets);
-+					    dev->port[i].cnts.set_id);
-+		kfree(dev->port[i].cnts.names);
-+		kfree(dev->port[i].cnts.offsets);
- 	}
- }
-
--static int __mlx5_ib_alloc_q_counters(struct mlx5_ib_dev *dev,
--				      const char ***names,
--				      size_t **offsets,
--				      u32 *num)
-+static int __mlx5_ib_alloc_counters(struct mlx5_ib_dev *dev,
-+				    struct mlx5_ib_counters *cnts)
- {
- 	u32 num_counters;
-
-@@ -3186,27 +3196,32 @@ static int __mlx5_ib_alloc_q_counters(struct mlx5_ib_dev *dev,
-
- 	if (MLX5_CAP_GEN(dev->mdev, retransmission_q_counters))
- 		num_counters += ARRAY_SIZE(retrans_q_cnts);
-+	cnts->num_q_counters = num_counters;
-
--	*names = kcalloc(num_counters, sizeof(**names), GFP_KERNEL);
--	if (!*names)
-+	if (MLX5_CAP_GEN(dev->mdev, cc_query_allowed)) {
-+		cnts->num_cong_counters = ARRAY_SIZE(cong_cnts);
-+		num_counters += ARRAY_SIZE(cong_cnts);
-+	}
-+
-+	cnts->names = kcalloc(num_counters, sizeof(cnts->names), GFP_KERNEL);
-+	if (!cnts->names)
- 		return -ENOMEM;
-
--	*offsets = kcalloc(num_counters, sizeof(**offsets), GFP_KERNEL);
--	if (!*offsets)
-+	cnts->offsets = kcalloc(num_counters,
-+				sizeof(cnts->offsets), GFP_KERNEL);
-+	if (!cnts->offsets)
- 		goto err_names;
-
--	*num = num_counters;
--
- 	return 0;
-
- err_names:
--	kfree(*names);
-+	kfree(cnts->names);
- 	return -ENOMEM;
- }
-
--static void mlx5_ib_fill_q_counters(struct mlx5_ib_dev *dev,
--				    const char **names,
--				    size_t *offsets)
-+static void mlx5_ib_fill_counters(struct mlx5_ib_dev *dev,
-+				  const char **names,
-+				  size_t *offsets)
- {
- 	int i;
- 	int j = 0;
-@@ -3229,9 +3244,16 @@ static void mlx5_ib_fill_q_counters(struct mlx5_ib_dev *dev,
- 			offsets[j] = retrans_q_cnts[i].offset;
- 		}
- 	}
-+
-+	if (MLX5_CAP_GEN(dev->mdev, cc_query_allowed)) {
-+		for (i = 0; i < ARRAY_SIZE(cong_cnts); i++, j++) {
-+			names[j] = cong_cnts[i].name;
-+			offsets[j] = cong_cnts[i].offset;
-+		}
-+	}
- }
-
--static int mlx5_ib_alloc_q_counters(struct mlx5_ib_dev *dev)
-+static int mlx5_ib_alloc_counters(struct mlx5_ib_dev *dev)
- {
- 	int i;
- 	int ret;
-@@ -3240,7 +3262,7 @@ static int mlx5_ib_alloc_q_counters(struct mlx5_ib_dev *dev)
- 		struct mlx5_ib_port *port = &dev->port[i];
-
- 		ret = mlx5_core_alloc_q_counter(dev->mdev,
--						&port->q_cnts.set_id);
-+						&port->cnts.set_id);
- 		if (ret) {
- 			mlx5_ib_warn(dev,
- 				     "couldn't allocate queue counter for port %d, err %d\n",
-@@ -3248,15 +3270,12 @@ static int mlx5_ib_alloc_q_counters(struct mlx5_ib_dev *dev)
- 			goto dealloc_counters;
- 		}
-
--		ret = __mlx5_ib_alloc_q_counters(dev,
--						 &port->q_cnts.names,
--						 &port->q_cnts.offsets,
--						 &port->q_cnts.num_counters);
-+		ret = __mlx5_ib_alloc_counters(dev, &port->cnts);
- 		if (ret)
- 			goto dealloc_counters;
-
--		mlx5_ib_fill_q_counters(dev, port->q_cnts.names,
--					port->q_cnts.offsets);
-+		mlx5_ib_fill_counters(dev, port->cnts.names,
-+				      port->cnts.offsets);
- 	}
-
- 	return 0;
-@@ -3264,7 +3283,7 @@ static int mlx5_ib_alloc_q_counters(struct mlx5_ib_dev *dev)
- dealloc_counters:
- 	while (--i >= 0)
- 		mlx5_core_dealloc_q_counter(dev->mdev,
--					    dev->port[i].q_cnts.set_id);
-+					    dev->port[i].cnts.set_id);
-
- 	return ret;
- }
-@@ -3279,44 +3298,93 @@ static struct rdma_hw_stats *mlx5_ib_alloc_hw_stats(struct ib_device *ibdev,
- 	if (port_num == 0)
- 		return NULL;
-
--	return rdma_alloc_hw_stats_struct(port->q_cnts.names,
--					  port->q_cnts.num_counters,
-+	return rdma_alloc_hw_stats_struct(port->cnts.names,
-+					  port->cnts.num_q_counters +
-+					  port->cnts.num_cong_counters,
- 					  RDMA_HW_STATS_DEFAULT_LIFESPAN);
- }
-
--static int mlx5_ib_get_hw_stats(struct ib_device *ibdev,
--				struct rdma_hw_stats *stats,
--				u8 port_num, int index)
-+static int mlx5_ib_query_q_counters(struct mlx5_ib_dev *dev,
-+				    struct mlx5_ib_port *port,
-+				    struct rdma_hw_stats *stats)
- {
--	struct mlx5_ib_dev *dev = to_mdev(ibdev);
--	struct mlx5_ib_port *port = &dev->port[port_num - 1];
- 	int outlen = MLX5_ST_SZ_BYTES(query_q_counter_out);
- 	void *out;
- 	__be32 val;
--	int ret;
--	int i;
--
--	if (!stats)
--		return -ENOSYS;
-+	int ret, i;
-
- 	out = mlx5_vzalloc(outlen);
- 	if (!out)
- 		return -ENOMEM;
-
- 	ret = mlx5_core_query_q_counter(dev->mdev,
--					port->q_cnts.set_id, 0,
-+					port->cnts.set_id, 0,
- 					out, outlen);
- 	if (ret)
- 		goto free;
-
--	for (i = 0; i < port->q_cnts.num_counters; i++) {
--		val = *(__be32 *)(out + port->q_cnts.offsets[i]);
-+	for (i = 0; i < port->cnts.num_q_counters; i++) {
-+		val = *(__be32 *)(out + port->cnts.offsets[i]);
- 		stats->value[i] = (u64)be32_to_cpu(val);
- 	}
-
- free:
- 	kvfree(out);
--	return port->q_cnts.num_counters;
-+	return ret;
-+}
-+
-+static int mlx5_ib_query_cong_counters(struct mlx5_ib_dev *dev,
-+				       struct mlx5_ib_port *port,
-+				       struct rdma_hw_stats *stats)
-+{
-+	int outlen = MLX5_ST_SZ_BYTES(query_cong_statistics_out);
-+	void *out;
-+	int ret, i;
-+	int offset = port->cnts.num_q_counters;
-+
-+	out = mlx5_vzalloc(outlen);
-+	if (!out)
-+		return -ENOMEM;
-+
-+	ret = mlx5_cmd_query_cong_counter(dev->mdev, false, out, outlen);
-+	if (ret)
-+		goto free;
-+
-+	for (i = 0; i < port->cnts.num_cong_counters; i++) {
-+		stats->value[i + offset] =
-+			be64_to_cpup((__be64 *)(out +
-+				     port->cnts.offsets[i + offset]));
-+	}
-+
-+free:
-+	kvfree(out);
-+	return ret;
-+}
-+
-+static int mlx5_ib_get_hw_stats(struct ib_device *ibdev,
-+				struct rdma_hw_stats *stats,
-+				u8 port_num, int index)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(ibdev);
-+	struct mlx5_ib_port *port = &dev->port[port_num - 1];
-+	int ret, num_counters;
-+
-+	if (!stats)
-+		return -EINVAL;
-+
-+	ret = mlx5_ib_query_q_counters(dev, port, stats);
-+	if (ret)
-+		return ret;
-+	num_counters = port->cnts.num_q_counters;
-+
-+	if (MLX5_CAP_GEN(dev->mdev, cc_query_allowed)) {
-+		ret = mlx5_ib_query_cong_counters(dev, port, stats);
-+		if (ret)
-+			return ret;
-+		num_counters += port->cnts.num_cong_counters;
-+	}
-+
-+	return num_counters;
- }
-
- static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
-@@ -3523,14 +3591,14 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 		goto err_rsrc;
-
- 	if (MLX5_CAP_GEN(dev->mdev, max_qp_cnt)) {
--		err = mlx5_ib_alloc_q_counters(dev);
-+		err = mlx5_ib_alloc_counters(dev);
- 		if (err)
- 			goto err_odp;
- 	}
-
- 	dev->mdev->priv.uar = mlx5_get_uars_page(dev->mdev);
- 	if (!dev->mdev->priv.uar)
--		goto err_q_cnt;
-+		goto err_cnt;
-
- 	err = mlx5_alloc_bfreg(dev->mdev, &dev->bfreg, false, false);
- 	if (err)
-@@ -3574,9 +3642,9 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- err_uar_page:
- 	mlx5_put_uars_page(dev->mdev, dev->mdev->priv.uar);
-
--err_q_cnt:
-+err_cnt:
- 	if (MLX5_CAP_GEN(dev->mdev, max_qp_cnt))
--		mlx5_ib_dealloc_q_counters(dev);
-+		mlx5_ib_dealloc_counters(dev);
-
- err_odp:
- 	mlx5_ib_odp_remove_one(dev);
-@@ -3610,7 +3678,7 @@ static void mlx5_ib_remove(struct mlx5_core_dev *mdev, void *context)
- 	mlx5_free_bfreg(dev->mdev, &dev->bfreg);
- 	mlx5_put_uars_page(dev->mdev, mdev->priv.uar);
- 	if (MLX5_CAP_GEN(dev->mdev, max_qp_cnt))
--		mlx5_ib_dealloc_q_counters(dev);
-+		mlx5_ib_dealloc_counters(dev);
- 	destroy_umrc_res(dev);
- 	mlx5_ib_odp_remove_one(dev);
- 	destroy_dev_resources(&dev->devr);
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 3cd064b5f0bf..7f1221cb6a50 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -595,15 +595,16 @@ struct mlx5_ib_resources {
- 	struct mutex	mutex;
- };
-
--struct mlx5_ib_q_counters {
-+struct mlx5_ib_counters {
- 	const char **names;
- 	size_t *offsets;
--	u32 num_counters;
-+	u32 num_q_counters;
-+	u32 num_cong_counters;
- 	u16 set_id;
- };
-
- struct mlx5_ib_port {
--	struct mlx5_ib_q_counters q_cnts;
-+	struct mlx5_ib_counters cnts;
- };
-
- struct mlx5_roce {
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index ad8a2638e339..74a4696b4833 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -2798,7 +2798,7 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 			       qp->port) - 1;
- 		mibport = &dev->port[port_num];
- 		context->qp_counter_set_usr_page |=
--			cpu_to_be32((u32)(mibport->q_cnts.set_id) << 24);
-+			cpu_to_be32((u32)(mibport->cnts.set_id) << 24);
- 	}
-
- 	if (!ibqp->uobject && cur_state == IB_QPS_RESET && new_state == IB_QPS_INIT)
-@@ -2826,7 +2826,7 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
-
- 		raw_qp_param.operation = op;
- 		if (cur_state == IB_QPS_RESET && new_state == IB_QPS_INIT) {
--			raw_qp_param.rq_q_ctr_id = mibport->q_cnts.set_id;
-+			raw_qp_param.rq_q_ctr_id = mibport->cnts.set_id;
- 			raw_qp_param.set_mask |= MLX5_RAW_QP_MOD_SET_RQ_Q_CTR_ID;
- 		}
-
-@@ -4964,7 +4964,8 @@ int mlx5_ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *wq_attr,
- 		if (MLX5_CAP_GEN(dev->mdev, modify_rq_counter_set_id)) {
- 			MLX5_SET64(modify_rq_in, in, modify_bitmask,
- 				   MLX5_MODIFY_RQ_IN_MODIFY_BITMASK_RQ_COUNTER_SET_ID);
--			MLX5_SET(rqc, rqc, counter_set_id, dev->port->q_cnts.set_id);
-+			MLX5_SET(rqc, rqc, counter_set_id,
-+				 dev->port->cnts.set_id);
- 		} else
- 			pr_info_once("%s: Receive WQ counters are not supported on current FW\n",
- 				     dev->ib_dev.name);
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 838242697541..fa22a8f2ad27 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -4623,17 +4623,17 @@ struct mlx5_ifc_query_cong_statistics_out_bits {
-
- 	u8         reserved_at_40[0x40];
-
--	u8         cur_flows[0x20];
-+	u8         rp_cur_flows[0x20];
-
- 	u8         sum_flows[0x20];
-
--	u8         cnp_ignored_high[0x20];
-+	u8         rp_cnp_ignored_high[0x20];
-
--	u8         cnp_ignored_low[0x20];
-+	u8         rp_cnp_ignored_low[0x20];
-
--	u8         cnp_handled_high[0x20];
-+	u8         rp_cnp_handled_high[0x20];
-
--	u8         cnp_handled_low[0x20];
-+	u8         rp_cnp_handled_low[0x20];
-
- 	u8         reserved_at_140[0x100];
-
-@@ -4643,13 +4643,13 @@ struct mlx5_ifc_query_cong_statistics_out_bits {
-
- 	u8         accumulators_period[0x20];
-
--	u8         ecn_marked_roce_packets_high[0x20];
-+	u8         np_ecn_marked_roce_packets_high[0x20];
-
--	u8         ecn_marked_roce_packets_low[0x20];
-+	u8         np_ecn_marked_roce_packets_low[0x20];
-
--	u8         cnps_sent_high[0x20];
-+	u8         np_cnps_sent_high[0x20];
-
--	u8         cnps_sent_low[0x20];
-+	u8         np_cnps_sent_low[0x20];
-
- 	u8         reserved_at_320[0x560];
- };
---
-2.12.2
-
+thanks
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
