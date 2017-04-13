@@ -1,53 +1,112 @@
-From: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [PATCH] IB/rxe: Don't clamp residual length to mtu
-Date: Thu, 13 Apr 2017 14:29:05 +0200
-Message-ID: <20170413122905.GK6734@linux-x5ow.site>
-References: <20170406124944.11074-1-jthumshirn@suse.de>
- <20170413120000.GI6734@linux-x5ow.site>
- <20170413122200.GE1343@mtr-leonro.local>
+From: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [rdma-core/srp_daemon PATCH] Correct method field for PathRecord
+ request
+Date: Thu, 13 Apr 2017 21:42:41 +0800
+Message-ID: <20170413134241.GA8255@dhcp-13-42.nay.redhat.com>
+References: <1491924533-2548-1-git-send-email-honli@redhat.com>
+ <20170411154944.GA19917@obsidianresearch.com>
+ <20170412132923.GB16375@dhcp-13-42.nay.redhat.com>
+ <d5a9d1a8-6c38-51f2-d444-a6942db406f9@dev.mellanox.co.il>
+ <20170412141800.GA20223@dhcp-13-42.nay.redhat.com>
+ <6e04d44e-fab3-1477-7de4-d3c679301f38@dev.mellanox.co.il>
+ <20170412144946.GC20223@dhcp-13-42.nay.redhat.com>
+ <89c5ad40-cb4d-8b4d-48b3-e53351fb64af@dev.mellanox.co.il>
+ <20170412230858.GA9594@dhcp-13-42.nay.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170413122200.GE1343-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20170412230858.GA9594-Y5OA6DF/u0nid9cnFhDO8BcY2uh10dtjAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Kernel Mailinglist <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hannes Reinecke <hare-l3A5Bk7waGM@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 13, 2017 at 03:22:00PM +0300, Leon Romanovsky wrote:
-> On Thu, Apr 13, 2017 at 02:00:00PM +0200, Johannes Thumshirn wrote:
-> > On Thu, Apr 06, 2017 at 02:49:44PM +0200, Johannes Thumshirn wrote:
-> > > When reading a RDMA WRITE FIRST packet we copy the DMA length from the RDMA
-> > > header into the qp->resp.resid variable for later use. Later in check_rkey()
-> > > we clamp it to the MTU if the packet is an  RDMA WRITE packet and has a
-> > > residual length bigger than the MTU. Later in write_data_in() we subtract the
-> > > payload of the packet from the residual length. If the packet happens to have a
-> > > payload of exactly the MTU size we end up with a residual length of 0 despite
-> > > the packet not being the last in the conversation. When the next packet in the
-> > > conversation arrives, we don't have any residual length left and thus set the QP
-> >
-> > Hi Moni, Sagi and Max,
-> >
-> > Any comments on this?
+On Thu, Apr 13, 2017 at 07:08:58AM +0800, Honggang LI wrote:
+> On Wed, Apr 12, 2017 at 12:51:25PM -0400, Hal Rosenstock wrote:
+> > On 4/12/2017 10:49 AM, Honggang LI wrote:
+> > > On Wed, Apr 12, 2017 at 10:34:47AM -0400, Hal Rosenstock wrote:
+> > >> On 4/12/2017 10:18 AM, Honggang LI wrote:
+> > >>> On Wed, Apr 12, 2017 at 09:34:20AM -0400, Hal Rosenstock wrote:
+> > >>>> On 4/12/2017 9:29 AM, Honggang LI wrote:
+> > >>>>> On Tue, Apr 11, 2017 at 09:49:44AM -0600, Jason Gunthorpe wrote:
+> > >>>>>> On Tue, Apr 11, 2017 at 11:28:53PM +0800, Honggang LI wrote:
+> > >>>>>>> From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> > >>>>>>>
+> > >>>>>>> According to InfiniBand Architecture Release 1.2.1, Table 208
+> > >>>>>>> Example PathRecord Request MAD Header Fields, MADHeader:Method
+> > >>>>>>> should setup to 0x12 (SubnAdmGetTable()).
+> > >>>>>>
+> > >>>>>> That is just an example, Table 192 shows that Get and GetTable are
+> > >>>>>> both valid query types.
+> > >>>>>
+> > >>>>> I don't understand this as "Table 192 PortInfoRecord" seems nothing to
+> > >>>>> do with PathRecord request.
+> > >>>>
+> > >>>> In IBA 1.3 volume 1, it's Table 209 Subnet Administration
+> > >>>> Attribute/Method Map shows PathRecord methods are Get and GetTable.
+> > >>>>
+> > >>>
+> > >>> http://www.intel.com/content/dam/www/public/us/en/documents/product-briefs/truescale-infiniband-12300-switch-brief.pdf
+> > >>> Interoperability
+> > >>> â€¢ Compliant with IBTA* specifications 1.0a, 1.1, 1.2, and 1.2.
+> > >>>
+> > >>> It seems the embedded subnet manager does not support IBA 1.3
+> > >>
+> > >> It's same for IBA 1.2.1. This part hasn't changed.
+> > >>
+> > >>>>>>
+> > >>>>>> I however expect that the SM will fail when using GetTable if the
+> > >>>>>> query returns more than one result, could that be what is happening?
+> > >>>>>> When you convert it to GET_TABLE does it return more than one result?
+> > >>>>>
+> > >>>>> strace output shows srptools always received MAD packet in 320 bytes. So
+> > >>>>> the embedded subnet manager only returns one result.
+> > >>>>
+> > >>>> What is MAD status ?
+> > >>>
+> > >>> ib_user_mad->status     = 0x0
+> > >>>
+> > >>> I attached the MAD packet dump out with strace. Please see the
+> > >>> attachments p4.in amd p4.decode.
+> > >>
+> > >> p4.decode has:
+> > >> rp_dm_rmpp_sa_mad->method		= 0x81 //IB_MAD_METHOD_GET_RESP
+> > >> opensm/include/iba/ib_types.h // GetResp() Method (13.4.5)
+> > >>
+> > >> Proper response to GetTable (0x12) method is GetTableResponse (0x92)
+> > >> method but this is GetResp (0x81) response.
+> > > 
+> > > Yes, you are right. p4.decode was captured with unpatched upstream srptools-1.0.3.
+> > 
+> > against the embedded SM ? 
 > 
-> Hi,
+> Yes.
 > 
-> I'm sorry, it looks like this patch failed on the floor. We have
-> Passover vacation these days and many people are OOO now.
-> 
-> But anyway, I'll remind to Moni.
+> > If so, this response looks (mostly) good to me and should be accepted by srp_daemon. I think I see the issue in srp_daemon: it's due to the check of the attribute offset which is not being set in the response:
+> > 
+> >                 size = ib_get_attr_size(in_sa_mad->attr_offset);
+> >                 if (!size) {
+> >                         if (config->verbose)
+> >                                 printf("PathRec Query did not find any targets "
+> >                                        "over P_Key %x\n", pkey);
+> >                         continue;
+> >                 }
+> > 
+> > p4.decode has:
+> > srp_dm_rmpp_sa_mad->attr_offset		= 0x0
+> > 
+> > Since a get rather than get table is being used, a good MAD status means that a valid PR was returned and there is no need for this check.
+> > 
+> > Would you try using the original get method without this code block and verify that it works with the embedded SM ?
 
-Ok, thanks and happy Passover then.
+Yes, it works. Thanks
 
--- 
-Johannes Thumshirn                                          Storage
-jthumshirn-l3A5Bk7waGM@public.gmane.org                                +49 911 74053 689
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
-GF: Felix Imendörffer, Jane Smithard, Graham Norton
-HRB 21284 (AG Nürnberg)
-Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+> >
+> 
+> I sent the scratch RPM with the patch you suggested to third party for testing. Please wait.
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
