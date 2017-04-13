@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH rdma-core 2/3] srp_daemon/srp_daemon.c: Eliminate some
- unneeded code in get_shared_pkeys
-Date: Thu, 13 Apr 2017 10:48:25 -0400
-Message-ID: <a14febfc-a190-6ca8-5dca-dec58f5a3bce@dev.mellanox.co.il>
+Subject: [PATCH rdma-core 3/3] srp_daemon: Use consistent format when printing
+ LID
+Date: Thu, 13 Apr 2017 10:48:40 -0400
+Message-ID: <f6f32353-bdcc-6dfa-bf52-1b03ebab1eee@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
@@ -13,28 +13,104 @@ Cc: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bart Van Assche
 List-Id: linux-rdma@vger.kernel.org
 
 
-PathRecords are obtained using SubAdmGet and not SubAdmGetTable
-so RMPP is not involved. Eliminate unneeded initialization of MAD
-RMPP fields.
+%d is not good as LIDs above 32K print as negative numbers.
+%#x seems to be the right choice here; %u was used by IB
+management tools for unicast LID printing.
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- srp_daemon/srp_daemon.c | 2 --
- 1 file changed, 2 deletions(-)
+ srp_daemon/srp_daemon.c       | 12 ++++++------
+ srp_daemon/srp_handle_traps.c |  4 ++--
+ srp_daemon/srp_sync.c         |  2 +-
+ 3 files changed, 9 insertions(+), 9 deletions(-)
 
 diff --git a/srp_daemon/srp_daemon.c b/srp_daemon/srp_daemon.c
-index 9fb2ecc..59a6137 100644
+index 59a6137..4d8476e 100644
 --- a/srp_daemon/srp_daemon.c
 +++ b/srp_daemon/srp_daemon.c
-@@ -1134,8 +1134,6 @@ static int get_shared_pkeys(struct resources *res,
+@@ -632,7 +632,7 @@ recv:
+ 			ret = umad_status(in_mad);
+ 			if (ret) {
+ 				pr_err(
+-					"bad MAD status (%u) from lid %d\n",
++					"bad MAD status (%u) from lid %#x\n",
+ 					ret, (uint16_t) be16toh(out_mad->hdr.addr.lid));
+ 				return -ret;
+ 			}
+@@ -935,7 +935,7 @@ static int do_port(struct resources *res, uint16_t pkey, uint16_t dlid,
  
- 		/* Mark components: DLID, SLID, PKEY */
- 		out_sa_mad->comp_mask = htobe64(1 << 4 | 1 << 5 | 1 << 13);
--		out_sa_mad->rmpp_hdr.rmpp_version = UMAD_RMPP_VERSION;
--		out_sa_mad->rmpp_hdr.rmpp_type = 1;
- 		path_rec = (struct ib_path_rec *)out_sa_mad->data;
- 		path_rec->slid = htobe16(local_port_lid);
- 		path_rec->dlid = htobe16(dest_port_lid);
+ 	ret = get_iou_info(umad_res, dlid, &iou_info);
+ 	if (ret < 0) {
+-		pr_err("failed to get iou info for dlid %x\n", dlid);
++		pr_err("failed to get iou info for dlid %#x\n", dlid);
+ 		goto out;
+ 	}
+ 
+@@ -1214,7 +1214,7 @@ static int do_dm_port_list(struct resources *res)
+ 		num_pkeys = get_shared_pkeys(res, be16toh(port_info->endport_lid),
+ 					     pkeys);
+ 		if (num_pkeys < 0) {
+-			pr_err("failed to get shared P_Keys with LID %x\n",
++			pr_err("failed to get shared P_Keys with LID %#x\n",
+ 			       be16toh(port_info->endport_lid));
+ 			free(in_mad_buf);
+ 			return num_pkeys;
+@@ -1235,7 +1235,7 @@ void handle_port(struct resources *res, uint16_t pkey, uint16_t lid, uint64_t h_
+ 	uint64_t subnet_prefix;
+ 	int isdm;
+ 
+- 	pr_debug("enter handle_port for lid %d\n", lid);
++	pr_debug("enter handle_port for lid %#x\n", lid);
+ 	if (get_port_info(umad_res, lid, &subnet_prefix, &isdm))
+ 		return;
+ 
+@@ -1292,7 +1292,7 @@ static int do_full_port_list(struct resources *res)
+ 		num_pkeys = get_shared_pkeys(res, be16toh(node->lid),
+ 					     pkeys);
+ 		if (num_pkeys < 0) {
+-			pr_err("failed to get shared P_Keys with LID %x\n",
++			pr_err("failed to get shared P_Keys with LID %#x\n",
+ 			       be16toh(node->lid));
+ 			free(in_mad_buf);
+ 			return num_pkeys;
+@@ -2188,7 +2188,7 @@ catas_start:
+ 					/* unexpected error - do a full rescan */
+ 					schedule_rescan(res->sync_res, 0);
+ 				else {
+-					pr_debug("lid is %d\n", lid);
++					pr_debug("lid is %#x\n", lid);
+ 
+ 					srp_sleep(0, 100);
+ 					handle_port(res, pkey, lid,
+diff --git a/srp_daemon/srp_handle_traps.c b/srp_daemon/srp_handle_traps.c
+index f219702..6d94634 100644
+--- a/srp_daemon/srp_handle_traps.c
++++ b/srp_daemon/srp_handle_traps.c
+@@ -561,9 +561,9 @@ static int register_to_trap(struct sync_resources *sync_res,
+ 	static uint64_t trans_id = 0x0000FFFF;
+ 
+ 	if (subscribe)
+-		pr_debug("Registering to trap:%d (sm in %d)\n", trap_num, dest_lid);
++		pr_debug("Registering to trap:%d (sm in %#x)\n", trap_num, dest_lid);
+ 	else
+-		pr_debug("Deregistering from trap:%d (sm in %d)\n", trap_num, dest_lid);
++		pr_debug("Deregistering from trap:%d (sm in %#x)\n", trap_num, dest_lid);
+ 
+ 	memset(res->send_buf, 0, SEND_SIZE);
+ 
+diff --git a/srp_daemon/srp_sync.c b/srp_daemon/srp_sync.c
+index 72c41f0..036fbe5 100644
+--- a/srp_daemon/srp_sync.c
++++ b/srp_daemon/srp_sync.c
+@@ -171,7 +171,7 @@ void push_lid_to_list(struct sync_resources *res, uint16_t lid, uint16_t pkey)
+ 
+ 	for (i=0; i < res->next_task; ++i)
+ 		if (res->tasks[i].lid == lid && res->tasks[i].pkey == pkey) {
+-			pr_debug("lid %d is already in task list\n", lid);
++			pr_debug("lid %#x is already in task list\n", lid);
+ 			pthread_mutex_unlock(&res->mutex);
+ 			return;
+ 		}
 -- 
 1.8.2.3
 
