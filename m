@@ -1,85 +1,68 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] IB/rxe: Don't clamp residual length to mtu
-Date: Thu, 13 Apr 2017 17:12:54 +0300
-Message-ID: <CAG9sBKM=Fw7mfpJVHtEEWB82ASePXbKuUCRXVVWKJn7sZhfipA@mail.gmail.com>
-References: <20170406124944.11074-1-jthumshirn@suse.de>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH rdma-core 1/3] srp_daemon/srp_daemon.c: Don't rely on
+ attribute offset, in get_shared_pkeys
+Date: Thu, 13 Apr 2017 10:48:00 -0400
+Message-ID: <b3cbb29e-25bf-1785-7a60-8e8d7cab74e3@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170406124944.11074-1-jthumshirn-l3A5Bk7waGM@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux Kernel Mailinglist <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hannes Reinecke <hare-l3A5Bk7waGM@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 6, 2017 at 3:49 PM, Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org> wrote:
-> When reading a RDMA WRITE FIRST packet we copy the DMA length from the RDMA
-> header into the qp->resp.resid variable for later use. Later in check_rkey()
-> we clamp it to the MTU if the packet is an  RDMA WRITE packet and has a
-> residual length bigger than the MTU. Later in write_data_in() we subtract the
-> payload of the packet from the residual length. If the packet happens to have a
-> payload of exactly the MTU size we end up with a residual length of 0 despite
-> the packet not being the last in the conversation. When the next packet in the
-> conversation arrives, we don't have any residual length left and thus set the QP
-> into an error state.
->
-> This broke NVMe over Fabrics functionality over rdma_rxe.ko
->
-> The patch was verified using the following test.
->
->  # echo eth0 > /sys/module/rdma_rxe/parameters/add
->  # nvme connect -t rdma -a 192.168.155.101 -s 1023 -n nvmf-test
->  # mkfs.xfs -fK /dev/nvme0n1
->  meta-data=/dev/nvme0n1           isize=256    agcount=4, agsize=65536 blks
->           =                       sectsz=4096  attr=2, projid32bit=1
->           =                       crc=0        finobt=0, sparse=0
->  data     =                       bsize=4096   blocks=262144, imaxpct=25
->           =                       sunit=0      swidth=0 blks
->  naming   =version 2              bsize=4096   ascii-ci=0 ftype=1
->  log      =internal log           bsize=4096   blocks=2560, version=2
->           =                       sectsz=4096  sunit=1 blks, lazy-count=1
->  realtime =none                   extsz=4096   blocks=0, rtextents=0
->  # mount /dev/nvme0n1 /tmp/
->  [  148.923263] XFS (nvme0n1): Mounting V4 Filesystem
->  [  148.961196] XFS (nvme0n1): Ending clean mount
->  # dd if=/dev/urandom of=test.bin bs=1M count=128
->  128+0 records in
->  128+0 records out
->  134217728 bytes (134 MB, 128 MiB) copied, 0.437991 s, 306 MB/s
->  # sha256sum test.bin
->  cde42941f045efa8c4f0f157ab6f29741753cdd8d1cff93a6b03649d83c4129a  test.bin
->  # cp test.bin /tmp/
->  sha256sum /tmp/test.bin
->  cde42941f045efa8c4f0f157ab6f29741753cdd8d1cff93a6b03649d83c4129a  /tmp/test.bin
->
-> Signed-off-by: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
-> Cc: Hannes Reinecke <hare-l3A5Bk7waGM@public.gmane.org>
-> Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-> Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/sw/rxe/rxe_resp.c | 2 --
->  1 file changed, 2 deletions(-)
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-> index c9dd385..58764df 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_resp.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-> @@ -478,8 +478,6 @@ static enum resp_states check_rkey(struct rxe_qp *qp,
->                                 state = RESPST_ERR_LENGTH;
->                                 goto err;
->                         }
-> -
-> -                       qp->resp.resid = mtu;
->                 } else {
->                         if (pktlen != resid) {
->                                 state = RESPST_ERR_LENGTH;
-> --
-> 2.10.2
->
-> --
-Thanks Johannes
 
-Acked-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+get_shared_pkeys has been using SubAdmGet rather than SubAdmGetTable since
+commit 2ad09524931dbf98d412e1912c1bdbf22f8ac81d
+srp_daemon: Work around SM bug over non-default P_Key support
+
+so RMPP is no longer used in response so it's not safe to
+rely on AttributeOffset field. Good MAD status is sufficient
+to say that valid PathRecord was returned.
+
+Found-by: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+using embedded subnet manager running on an Intel True Scale
+Edge Switch 12300.
+
+This has been broken since srptools-1.0.1 which was first
+release containing commit mentioned above.
+
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ srp_daemon/srp_daemon.c | 9 ---------
+ 1 file changed, 9 deletions(-)
+
+diff --git a/srp_daemon/srp_daemon.c b/srp_daemon/srp_daemon.c
+index 71b5f07..9fb2ecc 100644
+--- a/srp_daemon/srp_daemon.c
++++ b/srp_daemon/srp_daemon.c
+@@ -1102,7 +1102,6 @@ static int get_shared_pkeys(struct resources *res,
+ 	struct umad_sa_packet	       *out_sa_mad, *in_sa_mad;
+ 	struct ib_path_rec	       *path_rec;
+ 	ssize_t len;
+-	int size;
+ 	int i, num_pkeys = 0;
+ 	uint16_t pkey;
+ 	uint16_t local_port_lid = get_port_lid(res->ud_res->ib_ctx,
+@@ -1148,14 +1147,6 @@ static int get_shared_pkeys(struct resources *res,
+ 		if (len < 0)
+ 			goto err;
+ 
+-		size = ib_get_attr_size(in_sa_mad->attr_offset);
+-		if (!size) {
+-			if (config->verbose)
+-				printf("PathRec Query did not find any targets "
+-				       "over P_Key %x\n", pkey);
+-			continue;
+-		}
+-
+ 		path_rec = (struct ib_path_rec *)in_sa_mad->data;
+ 		pkeys[num_pkeys++] = be16toh(path_rec->pkey);
+ 	}
+-- 
+1.8.2.3
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
