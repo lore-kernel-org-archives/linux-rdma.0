@@ -1,181 +1,114 @@
-From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH net-next 09/16] net/mlx5e: IPoIB, Basic netdev ndos open/close
-Date: Thu, 13 Apr 2017 06:36:59 +0300
-Message-ID: <20170413033706.19016-10-saeedm@mellanox.com>
-References: <20170413033706.19016-1-saeedm@mellanox.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 18/20] IB/hfi1: Fix unbalanced braces around else
+Date: Thu, 13 Apr 2017 09:03:43 +0300
+Message-ID: <20170413060343.GC1343@mtr-leonro.local>
+References: <20170409171329.10579.92775.stgit@scvm10.sc.intel.com>
+ <20170409171717.10579.36147.stgit@scvm10.sc.intel.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="qlTNgmc+xy1dBmNv"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170413033706.19016-1-saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170409171717.10579.36147.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Vishwanathapura Niranjana <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Implement open/close of IPoIB netdevice ndos using mlx5e's
-channels API to manage data path resources (RQs/SQs/CQs).
 
-Set IPoIB netdev address on dev_init ndo.
+--qlTNgmc+xy1dBmNv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/net/ethernet/mellanox/mlx5/core/en.h      |  2 +
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c |  4 +-
- drivers/net/ethernet/mellanox/mlx5/core/ipoib.c   | 90 ++++++++++++++++++++++-
- 3 files changed, 93 insertions(+), 3 deletions(-)
+On Sun, Apr 09, 2017 at 10:17:18AM -0700, Dennis Dalessandro wrote:
+> Add missing braces around else blocks in a few places to make checkpatch
+> happy.
+>
+> Fixes: 7724105686e7 ("IB/hfi1: add driver files")
+> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/hfi1/chip.c |    4 ++--
+>  drivers/infiniband/hw/hfi1/init.c |    6 ++++--
+>  2 files changed, 6 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+> index c0cfcd1..19fab90 100644
+> --- a/drivers/infiniband/hw/hfi1/chip.c
+> +++ b/drivers/infiniband/hw/hfi1/chip.c
+> @@ -8147,10 +8147,10 @@ static irqreturn_t sdma_interrupt(int irq, void *data)
+>
+>  		/* handle the interrupt(s) */
+>  		sdma_engine_interrupt(sde, status);
+> -	} else
+> +	} else {
+>  		dd_dev_err(dd, "SDMA engine %u interrupt, but no status bits set\n",
+>  			   sde->this_idx);
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-index 5345d875b695..23b92ec54e12 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-@@ -883,6 +883,8 @@ typedef int (*mlx5e_fp_hw_modify)(struct mlx5e_priv *priv);
- void mlx5e_switch_priv_channels(struct mlx5e_priv *priv,
- 				struct mlx5e_channels *new_chs,
- 				mlx5e_fp_hw_modify hw_modify);
-+void mlx5e_activate_priv_channels(struct mlx5e_priv *priv);
-+void mlx5e_deactivate_priv_channels(struct mlx5e_priv *priv);
- 
- void mlx5e_build_default_indir_rqt(struct mlx5_core_dev *mdev,
- 				   u32 *indirection_rqt, int len,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 1fde4e2301a4..eb657987e9b5 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -2547,7 +2547,7 @@ static void mlx5e_build_channels_tx_maps(struct mlx5e_priv *priv)
- 	}
- }
- 
--static void mlx5e_activate_priv_channels(struct mlx5e_priv *priv)
-+void mlx5e_activate_priv_channels(struct mlx5e_priv *priv)
- {
- 	int num_txqs = priv->channels.num * priv->channels.params.num_tc;
- 	struct net_device *netdev = priv->netdev;
-@@ -2567,7 +2567,7 @@ static void mlx5e_activate_priv_channels(struct mlx5e_priv *priv)
- 	mlx5e_redirect_rqts_to_channels(priv, &priv->channels);
- }
- 
--static void mlx5e_deactivate_priv_channels(struct mlx5e_priv *priv)
-+void mlx5e_deactivate_priv_channels(struct mlx5e_priv *priv)
- {
- 	mlx5e_redirect_rqts_to_drop(priv);
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/ipoib.c b/drivers/net/ethernet/mellanox/mlx5/core/ipoib.c
-index d7d705c840ae..e188d067bc97 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/ipoib.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/ipoib.c
-@@ -34,6 +34,18 @@
- #include "en.h"
- #include "ipoib.h"
- 
-+static int mlx5i_open(struct net_device *netdev);
-+static int mlx5i_close(struct net_device *netdev);
-+static int  mlx5i_dev_init(struct net_device *dev);
-+static void mlx5i_dev_cleanup(struct net_device *dev);
-+
-+static const struct net_device_ops mlx5i_netdev_ops = {
-+	.ndo_open                = mlx5i_open,
-+	.ndo_stop                = mlx5i_close,
-+	.ndo_init                = mlx5i_dev_init,
-+	.ndo_uninit              = mlx5i_dev_cleanup,
-+};
-+
- /* IPoIB mlx5 netdev profile */
- 
- /* Called directly after IPoIB netdevice was created to initialize SW structs */
-@@ -52,7 +64,17 @@ static void mlx5i_init(struct mlx5_core_dev *mdev,
- 	mlx5e_build_nic_params(mdev, &priv->channels.params, profile->max_nch(mdev));
- 
- 	mutex_init(&priv->state_lock);
--	/* TODO : init netdev features here */
-+
-+	netdev->hw_features    |= NETIF_F_SG;
-+	netdev->hw_features    |= NETIF_F_IP_CSUM;
-+	netdev->hw_features    |= NETIF_F_IPV6_CSUM;
-+	netdev->hw_features    |= NETIF_F_GRO;
-+	netdev->hw_features    |= NETIF_F_TSO;
-+	netdev->hw_features    |= NETIF_F_TSO6;
-+	netdev->hw_features    |= NETIF_F_RXCSUM;
-+	netdev->hw_features    |= NETIF_F_RXHASH;
-+
-+	netdev->netdev_ops = &mlx5i_netdev_ops;
- }
- 
- /* Called directly before IPoIB netdevice is destroyed to cleanup SW structs */
-@@ -181,6 +203,72 @@ static const struct mlx5e_profile mlx5i_nic_profile = {
- 	.max_tc		   = MLX5I_MAX_NUM_TC,
- };
- 
-+/* mlx5i netdev NDos */
-+
-+static int mlx5i_dev_init(struct net_device *dev)
-+{
-+	struct mlx5e_priv    *priv   = mlx5i_epriv(dev);
-+	struct mlx5i_priv    *ipriv  = priv->ppriv;
-+
-+	/* Set dev address using underlay QP */
-+	dev->dev_addr[1] = (ipriv->qp.qpn >> 16) & 0xff;
-+	dev->dev_addr[2] = (ipriv->qp.qpn >>  8) & 0xff;
-+	dev->dev_addr[3] = (ipriv->qp.qpn) & 0xff;
-+
-+	return 0;
-+}
-+
-+static void mlx5i_dev_cleanup(struct net_device *dev)
-+{
-+	/* TODO: detach underlay qp from flow-steering by reset it */
-+}
-+
-+static int mlx5i_open(struct net_device *netdev)
-+{
-+	struct mlx5e_priv *priv = mlx5i_epriv(netdev);
-+	int err;
-+
-+	mutex_lock(&priv->state_lock);
-+
-+	set_bit(MLX5E_STATE_OPENED, &priv->state);
-+
-+	err = mlx5e_open_channels(priv, &priv->channels);
-+	if (err)
-+		goto err_clear_state_opened_flag;
-+
-+	mlx5e_refresh_tirs(priv, false);
-+	mlx5e_activate_priv_channels(priv);
-+	mutex_unlock(&priv->state_lock);
-+	return 0;
-+
-+err_clear_state_opened_flag:
-+	clear_bit(MLX5E_STATE_OPENED, &priv->state);
-+	mutex_unlock(&priv->state_lock);
-+	return err;
-+}
-+
-+static int mlx5i_close(struct net_device *netdev)
-+{
-+	struct mlx5e_priv *priv = mlx5i_epriv(netdev);
-+
-+	/* May already be CLOSED in case a previous configuration operation
-+	 * (e.g RX/TX queue size change) that involves close&open failed.
-+	 */
-+	mutex_lock(&priv->state_lock);
-+
-+	if (!test_bit(MLX5E_STATE_OPENED, &priv->state))
-+		goto unlock;
-+
-+	clear_bit(MLX5E_STATE_OPENED, &priv->state);
-+
-+	netif_carrier_off(priv->netdev);
-+	mlx5e_deactivate_priv_channels(priv);
-+	mlx5e_close_channels(&priv->channels);
-+unlock:
-+	mutex_unlock(&priv->state_lock);
-+	return 0;
-+}
-+
- /* IPoIB RDMA netdev callbacks */
- 
- static int mlx5i_check_required_hca_cap(struct mlx5_core_dev *mdev)
--- 
-2.11.0
+Not relevant to this patch, but interesting to hear. Does such error
+print produce dmesg storm in case of error or this is one time failure?
 
+Thanks
+
+> -
+> +	}
+>  	return IRQ_HANDLED;
+>  }
+>
+> diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+> index 838d3a8..e9b33c8 100644
+> --- a/drivers/infiniband/hw/hfi1/init.c
+> +++ b/drivers/infiniband/hw/hfi1/init.c
+> @@ -245,9 +245,10 @@ struct hfi1_ctxtdata *hfi1_create_ctxtdata(struct hfi1_pportdata *ppd, u32 ctxt,
+>  			if (ctxt < kctxt_ngroups) {
+>  				base = ctxt * (dd->rcv_entries.ngroups + 1);
+>  				rcd->rcv_array_groups++;
+> -			} else
+> +			} else {
+>  				base = kctxt_ngroups +
+>  					(ctxt * dd->rcv_entries.ngroups);
+> +			}
+>  		} else {
+>  			u16 ct = ctxt - dd->first_user_ctxt;
+>
+> @@ -256,9 +257,10 @@ struct hfi1_ctxtdata *hfi1_create_ctxtdata(struct hfi1_pportdata *ppd, u32 ctxt,
+>  			if (ct < dd->rcv_entries.nctxt_extra) {
+>  				base += ct * (dd->rcv_entries.ngroups + 1);
+>  				rcd->rcv_array_groups++;
+> -			} else
+> +			} else {
+>  				base += dd->rcv_entries.nctxt_extra +
+>  					(ct * dd->rcv_entries.ngroups);
+> +			}
+>  		}
+>  		rcd->eager_base = base * dd->rcv_entries.group_size;
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--qlTNgmc+xy1dBmNv
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljvFL8ACgkQ5GN7iDZy
+WKfayw//cTnIz5j3UNU2YCQP509wyTvLArXHJYpJYNBRjo1I9DI9fMJuNw5jt0lG
+8oXG40XpkMVBPzN90hPh5Mf3WGmHn4nwE4M8pqqt59jRWhyThNidv3IFzy35muHZ
+sribIAaf2khk6D1yDCgFkFnzdkkLRMfQBZGmvUApZ1XT/du6151F0Omfz7FSvlHT
+UqJ4WWlCfSV+KKybcZaOw/0MRunESc1uHDpKRGY2n2zFOL6cg+foO4OWlU1IfxnQ
+m+7JFfK9gfFmUxeTNzgduL71AaQX7pB7ymVW9Fjm87S2RnH0CLtZRfJ8gAlEbrVE
+AZsjnN9YvBgKM8m9R2Gl9AAoSTUOUT8aIRLK5k9DBIjp9yvaMlaZutGh/yzoSzqV
+lThAlD+TPc6S1Evq5KdODD7L+7xLZuVSCYVKsGMyJvGkMAdduSsJayA5SeQyBtH1
+F0WW900miebrErfiFTwwMEr7WXWfRtgVMUVEQSJqWjroLHRG2gGRrG+0afS5n1Al
+n19S64ZHW5AflJvsYFAZZ1CTCVa5bnVb8mRoc6rAm+6ddZ5uxCZF5P5XKeuZcIXJ
+eSvVX1LyhegPqiVqpWz0nGHPyWXkcU0NNHnp31mu6NhU4hmDfbgdNuYyQNMGmHww
+WEpxG4L+VBK7AwMq4yGDJW/Sc0UZWBERVbwhWrFMtaCaUYJdnfo=
+=DtVk
+-----END PGP SIGNATURE-----
+
+--qlTNgmc+xy1dBmNv--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
