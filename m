@@ -1,182 +1,440 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 3/5] mlx5: Use util/mmio.h
-Date: Thu, 13 Apr 2017 16:38:45 -0600
-Message-ID: <1492123127-6266-4-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 1/5] util: Add common mmio macros
+Date: Thu, 13 Apr 2017 16:38:43 -0600
+Message-ID: <1492123127-6266-2-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1492123127-6266-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1492123127-6266-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Remove now duplicated mmio accessor macros.
-
-This fixes a bug in mlx5_read_clock where a pointer was read twice without any
-sort of barrier, resulting in mis-compilation. (eg the double read of clockhi
-never worked)
+The macros are a mashup of the Mellanox driver macros:
+ - An alternate implementation for S390 is provided
+ - The ia32 XMM based 64 bit store emulation is switched
+   in if supported
+ - The macros are 'relaxed' ordering, so no implicit barrier
+   overheads
+ - If UDMA is not available then MMIO macros are also switched off,
+   this is because the 32 bit emulation relies on the udma barriers.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- providers/mlx5/cq.c       | 13 ++++-----
- providers/mlx5/doorbell.h | 67 -----------------------------------------------
- providers/mlx5/mlx5.c     |  2 --
- providers/mlx5/mlx5.h     |  1 -
- providers/mlx5/qp.c       |  5 ++--
- providers/mlx5/srq.c      |  1 -
- providers/mlx5/verbs.c    |  9 ++++---
- 7 files changed, 14 insertions(+), 84 deletions(-)
- delete mode 100644 providers/mlx5/doorbell.h
+ CMakeLists.txt                |  16 ++++
+ buildlib/config.h.in          |   2 +
+ buildlib/rdma_functions.cmake |   4 +-
+ util/CMakeLists.txt           |  20 +++-
+ util/dummy.c                  |   0
+ util/mmio.c                   |  83 ++++++++++++++++
+ util/mmio.h                   | 214 ++++++++++++++++++++++++++++++++++++++++++
+ 7 files changed, 336 insertions(+), 3 deletions(-)
+ create mode 100644 util/dummy.c
+ create mode 100644 util/mmio.c
+ create mode 100644 util/mmio.h
 
-diff --git a/providers/mlx5/cq.c b/providers/mlx5/cq.c
-index 2e8b584b0930fd..0a1dd55896e775 100644
---- a/providers/mlx5/cq.c
-+++ b/providers/mlx5/cq.c
-@@ -40,11 +40,11 @@
- #include <unistd.h>
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1ff3189c9d295e..5552872e8ca707 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -181,6 +181,19 @@ set(NO_STRICT_ALIASING_FLAGS "")
+ RDMA_AddOptCFlag(NO_STRICT_ALIASING_FLAGS HAVE_NO_STRICT_ALIASING
+   "-fno-strict-aliasing")
  
- #include <util/compiler.h>
-+#include <util/mmio.h>
- #include <infiniband/opcode.h>
- 
- #include "mlx5.h"
- #include "wqe.h"
--#include "doorbell.h"
- 
- enum {
- 	CQ_OK					=  0,
-@@ -1285,7 +1285,7 @@ int mlx5_arm_cq(struct ibv_cq *ibvcq, int solicited)
- {
- 	struct mlx5_cq *cq = to_mcq(ibvcq);
- 	struct mlx5_context *ctx = to_mctx(ibvcq->context);
--	uint32_t doorbell[2];
-+	uint64_t doorbell;
- 	uint32_t sn;
- 	uint32_t ci;
- 	uint32_t cmd;
-@@ -1294,6 +1294,10 @@ int mlx5_arm_cq(struct ibv_cq *ibvcq, int solicited)
- 	ci  = cq->cons_index & 0xffffff;
- 	cmd = solicited ? MLX5_CQ_DB_REQ_NOT_SOL : MLX5_CQ_DB_REQ_NOT;
- 
-+	doorbell = sn << 28 | cmd | ci;
-+	doorbell <<= 32;
-+	doorbell |= cq->cqn;
++CHECK_C_SOURCE_COMPILES("
++ #include <unistd.h>
 +
- 	cq->dbrec[MLX5_CQ_ARM_DB] = htobe32(sn << 28 | cmd | ci);
- 
- 	/*
-@@ -1302,10 +1306,7 @@ int mlx5_arm_cq(struct ibv_cq *ibvcq, int solicited)
- 	 */
- 	mmio_wc_start();
- 
--	doorbell[0] = htobe32(sn << 28 | cmd | ci);
--	doorbell[1] = htobe32(cq->cqn);
--
--	mlx5_write64(doorbell, ctx->uar[0] + MLX5_CQ_DOORBELL, &ctx->lock32);
-+	mmio_write64_be(ctx->uar[0] + MLX5_CQ_DOORBELL, htobe64(doorbell));
- 
- 	mmio_flush_writes();
- 
-diff --git a/providers/mlx5/doorbell.h b/providers/mlx5/doorbell.h
-deleted file mode 100644
-index 2d5ede4604d398..00000000000000
-diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
-index 30f165b0280559..88a808fb045a1a 100644
---- a/providers/mlx5/mlx5.c
-+++ b/providers/mlx5/mlx5.c
-@@ -891,8 +891,6 @@ static int mlx5_init_context(struct verbs_device *vdev,
- 		mlx5_map_internal_clock(mdev, ctx);
- 	}
- 
--	mlx5_spinlock_init(&context->lock32);
--
- 	context->prefer_bf = get_always_bf();
- 	context->shut_up_bf = get_shut_up_bf();
- 	mlx5_read_env(&vdev->device, context);
-diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
-index 0de40a809ffbee..615dea38e4fedd 100644
---- a/providers/mlx5/mlx5.h
-+++ b/providers/mlx5/mlx5.h
-@@ -236,7 +236,6 @@ struct mlx5_context {
- 	pthread_mutex_t                 uidx_table_mutex;
- 
- 	void			       *uar[MLX5_MAX_UARS];
--	struct mlx5_spinlock		lock32;
- 	struct mlx5_db_page	       *db_list;
- 	pthread_mutex_t			db_list_mutex;
- 	int				cache_line_size;
-diff --git a/providers/mlx5/qp.c b/providers/mlx5/qp.c
-index 1d5a2f9238cfe9..7f67a0b61b221f 100644
---- a/providers/mlx5/qp.c
-+++ b/providers/mlx5/qp.c
-@@ -37,10 +37,10 @@
- #include <string.h>
- #include <errno.h>
- #include <stdio.h>
-+#include <util/mmio.h>
- #include <util/compiler.h>
- 
- #include "mlx5.h"
--#include "doorbell.h"
- #include "wqe.h"
- 
- #define MLX5_ATOMIC_SIZE 8
-@@ -942,8 +942,7 @@ out:
- 			mlx5_bf_copy(bf->reg + bf->offset, (unsigned long long *)ctrl,
- 				     align(size * 16, 64), qp);
- 		else
--			mlx5_write64((__be32 *)ctrl, bf->reg + bf->offset,
--				     &ctx->lock32);
-+			mmio_write64_be(bf->reg + bf->offset, *(__be64 *)ctrl);
- 
- 		/*
- 		 * use mmio_flush_writes() to ensure write combining buffers are flushed out
-diff --git a/providers/mlx5/srq.c b/providers/mlx5/srq.c
-index 202fa87aceef59..94528bba94d232 100644
---- a/providers/mlx5/srq.c
-+++ b/providers/mlx5/srq.c
-@@ -38,7 +38,6 @@
- #include <errno.h>
- 
- #include "mlx5.h"
--#include "doorbell.h"
- #include "wqe.h"
- 
- static void *get_wqe(struct mlx5_srq *srq, int n)
-diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-index f0e4aabb0dbcef..4fc186e48847c7 100644
---- a/providers/mlx5/verbs.c
-+++ b/providers/mlx5/verbs.c
-@@ -45,6 +45,8 @@
- #include <sys/mman.h>
- 
- #include <util/compiler.h>
-+#include <util/mmio.h>
++ void entry(void);
 +
- #include "mlx5.h"
- #include "mlx5-abi.h"
- #include "wqe.h"
-@@ -77,7 +79,6 @@ int mlx5_query_device(struct ibv_context *context, struct ibv_device_attr *attr)
- 	return 0;
- }
++ static void do_entry(void) {}
++ void entry(void) __attribute__((ifunc(\"resolve_entry\")));
++ static void *resolve_entry(void) {return &do_entry;}
++
++ int main(int argc,const char *argv[]) { entry(); }"
++  HAVE_FUNC_ATTRIBUTE_IFUNC
++  FAIL_REGEX "warning")
++
+ # The code does not do the racy fcntl if the various CLOEXEC's are not
+ # supported so it really doesn't work right if this isn't available. Thus hard
+ # require it.
+@@ -418,6 +431,9 @@ message(STATUS "Missing Optional Items:")
+ if (NOT HAVE_FUNC_ATTRIBUTE_ALWAYS_INLINE)
+   message(STATUS " Compiler attribute always_inline NOT supported")
+ endif()
++if (NOT HAVE_FUNC_ATTRIBUTE_IFUNC)
++  message(STATUS " Compiler attribute ifunc NOT supported")
++endif()
+ if (NOT HAVE_COHERENT_DMA)
+   message(STATUS " Architecture NOT able to do coherent DMA (check util/udma_barrier.h) some providers disabled!")
+ endif()
+diff --git a/buildlib/config.h.in b/buildlib/config.h.in
+index e4e7b9ee70c857..2eb16be764630e 100644
+--- a/buildlib/config.h.in
++++ b/buildlib/config.h.in
+@@ -28,6 +28,8 @@
+ // FIXME This has been supported in compilers forever, we should just fail to build on such old systems.
+ #cmakedefine HAVE_FUNC_ATTRIBUTE_ALWAYS_INLINE 1
  
--#define READL(ptr) (*((uint32_t *)(ptr)))
- static int mlx5_read_clock(struct ibv_context *context, uint64_t *cycles)
- {
- 	unsigned int clockhi, clocklo, clockhi1;
-@@ -89,9 +90,9 @@ static int mlx5_read_clock(struct ibv_context *context, uint64_t *cycles)
++#cmakedefine HAVE_FUNC_ATTRIBUTE_IFUNC 1
++
+ #cmakedefine HAVE_WORKING_IF_H 1
  
- 	/* Handle wraparound */
- 	for (i = 0; i < 2; i++) {
--		clockhi = be32toh(READL(ctx->hca_core_clock));
--		clocklo = be32toh(READL(ctx->hca_core_clock + 4));
--		clockhi1 = be32toh(READL(ctx->hca_core_clock));
-+		clockhi = be32toh(mmio_read32_be(ctx->hca_core_clock));
-+		clocklo = be32toh(mmio_read32_be(ctx->hca_core_clock + 4));
-+		clockhi1 = be32toh(mmio_read32_be(ctx->hca_core_clock));
- 		if (clockhi == clockhi1)
- 			break;
- 	}
+ @SIZEOF_LONG_CODE@
+diff --git a/buildlib/rdma_functions.cmake b/buildlib/rdma_functions.cmake
+index 01997b51468f55..936e1b256816ef 100644
+--- a/buildlib/rdma_functions.cmake
++++ b/buildlib/rdma_functions.cmake
+@@ -6,8 +6,8 @@
+ # Global list of pairs of (SHARED STATIC) libary target names
+ set(RDMA_STATIC_LIBS "" CACHE INTERNAL "Doc" FORCE)
+ 
+-set(COMMON_LIBS_PIC ccan_pic)
+-set(COMMON_LIBS ccan)
++set(COMMON_LIBS_PIC ccan_pic rdma_util_pic)
++set(COMMON_LIBS ccan rdma_util)
+ 
+ # Create a symlink at filename DEST
+ # If the directory containing DEST does not exist then it is created
+diff --git a/util/CMakeLists.txt b/util/CMakeLists.txt
+index 71e33ac3baaa9b..581bf6822ec39f 100644
+--- a/util/CMakeLists.txt
++++ b/util/CMakeLists.txt
+@@ -1,5 +1,23 @@
+ publish_internal_headers(util
+   compiler.h
+-  udma_barrier.h
+   util.h
+   )
++
++# The empty dummy.c is only needed so that cmake always has something to build
++# into the library.
++set(C_FILES dummy.c)
++
++if (HAVE_COHERENT_DMA)
++  publish_internal_headers(util
++    mmio.h
++    udma_barrier.h
++    )
++
++  set(C_FILES ${C_FILES}
++    mmio.c
++    )
++endif()
++
++add_library(rdma_util STATIC ${C_FILES})
++add_library(rdma_util_pic STATIC ${C_FILES})
++set_property(TARGET rdma_util_pic PROPERTY POSITION_INDEPENDENT_CODE TRUE)
+diff --git a/util/dummy.c b/util/dummy.c
+new file mode 100644
+index 00000000000000..e69de29bb2d1d6
+diff --git a/util/mmio.c b/util/mmio.c
+new file mode 100644
+index 00000000000000..757a46ce5418d8
+--- /dev/null
++++ b/util/mmio.c
+@@ -0,0 +1,83 @@
++/* GPLv2 or OpenIB.org BSD (MIT) See COPYING file */
++#include <util/mmio.h>
++#include <util/udma_barrier.h>
++#include <config.h>
++
++#include <pthread.h>
++#include <stdbool.h>
++
++#if SIZEOF_LONG != 8
++
++static pthread_spinlock_t mmio_spinlock;
++
++static __attribute__((constructor)) void lock_constructor(void)
++{
++	pthread_spin_init(&mmio_spinlock, PTHREAD_PROCESS_PRIVATE);
++}
++
++/* When the arch does not have a 32 bit store we provide an emulation that
++   does two stores in address ascending order while holding a global
++   spinlock. */
++static void pthread_mmio_write64_be(void *addr, __be64 val)
++{
++	__be32 first_dword = htobe32(be64toh(val) >> 32);
++	__be32 second_dword = htobe32(be64toh(val));
++
++	/* The WC spinlock, by definition, provides global ordering for all UC
++	   and WC stores within the critical region. */
++	mmio_wc_spinlock(&mmio_spinlock);
++
++	mmio_write32_be(addr, first_dword);
++	mmio_write32_be(addr + 4, second_dword);
++
++	mmio_wc_spinunlock(&mmio_spinlock);
++}
++
++#if defined(__i386__)
++#include <xmmintrin.h>
++#include <cpuid.h>
++
++/* For ia32 we have historically emitted movlps SSE instructions to do the 64
++   bit operations. */
++static void __attribute__((target("sse")))
++sse_mmio_write64_be(void *addr, __be64 val)
++{
++	__m128 tmp = {};
++	tmp = _mm_loadl_pi(tmp, (__force __m64 *)&val);
++	_mm_storel_pi((__m64 *)addr,tmp);
++}
++
++static bool have_sse(void)
++{
++	unsigned int ax,bx,cx,dx;
++
++	if (!__get_cpuid(1,&ax,&bx,&cx,&dx))
++		return false;
++	return dx & bit_SSE;
++}
++
++#endif /* defined(__i386__) */
++
++typedef void (*write64_fn_t)(void *, __be64);
++
++/* This uses the STT_GNU_IFUNC extension to have the dynamic linker select the
++   best above implementations at runtime. */
++#if HAVE_FUNC_ATTRIBUTE_IFUNC
++void mmio_write64_be(void *addr, __be64 val)
++    __attribute__((ifunc("resolve_mmio_write64_be")));
++static write64_fn_t resolve_mmio_write64_be(void);
++#else
++__asm__(".type mmio_write64_be, %gnu_indirect_function");
++write64_fn_t resolve_mmio_write64_be(void) __asm__("mmio_write64_be");
++#endif
++
++write64_fn_t resolve_mmio_write64_be(void)
++{
++#if defined(__i386__)
++	if (have_sse())
++		return &sse_mmio_write64_be;
++#endif
++	return &pthread_mmio_write64_be;
++}
++
++#endif /* SIZEOF_LONG != 8 */
+diff --git a/util/mmio.h b/util/mmio.h
+new file mode 100644
+index 00000000000000..0b89f5fcbe000e
+--- /dev/null
++++ b/util/mmio.h
+@@ -0,0 +1,214 @@
++/* GPLv2 or OpenIB.org BSD (MIT) See COPYING file
++
++   These accessors always map to PCI-E TLPs in predictable ways. Translation
++   to other buses should follow similar definitions.
++
++   write32(mem, 1)
++      Produce a 4 byte MemWr TLP with bit 0 of DW byte offset 0 set
++   write32_be(mem, htobe32(1))
++      Produce a 4 byte MemWr TLP with bit 0 of DW byte offset 3 set
++   write32_le(mem, htole32(1))
++      Produce a 4 byte MemWr TLP with bit 0 of DW byte offset 0 set
++
++   For ordering these accessors are similar to the Kernel's concept of
++   writel_relaxed(). When working with UC memory the following hold:
++
++   1) Strong ordering is required when talking to the same device (eg BAR),
++      and combining is not permitted:
++
++       write32(mem, 1);
++       write32(mem + 4, 1);
++       write32(mem, 1);
++
++      Must produce three TLPs, in order.
++
++   2) Ordering ignores all pthread locking:
++
++       pthread_spin_lock(&lock);
++       write32(mem, global++);
++       pthread_spin_unlock(&lock);
++
++      When run concurrently on all CPUs the device must observe all stores,
++      but the data value will not be strictly increasing.
++
++   3) Interaction with DMA is not ordered. Explicit use of a barrier from
++      udma_barriers is required:
++
++	*dma_mem = 1;
++	udma_to_device_barrier();
++	write32(mem, GO_DMA);
++
++   4) Access out of program order (eg speculation), either by the CPU or
++      compiler is not permitted:
++
++	if (cond)
++	   read32();
++
++      Must not issue a read TLP if cond is false.
++
++   If these are used with WC memory then #1 and #4 do not apply, and all WC
++   accesses must be bracketed with mmio_wc_start() // mmio_flush_writes()
++*/
++
++#ifndef __UTIL_MMIO_H
++#define __UTIL_MMIO_H
++
++#include <linux/types.h>
++#include <stdatomic.h>
++#include <stdint.h>
++#include <endian.h>
++
++#include <config.h>
++#include <util/compiler.h>
++
++/* The first step is to define the 'raw' accessors. To make this very safe
++   with sparse we define two versions of each, a le and a be - however the
++   code is always identical.
++*/
++#ifdef __s390x__
++#include <unistd.h>
++#include <sys/syscall.h>
++
++/* s390 requires a privileged instruction to access IO memory, these syscalls
++   perform that instruction using a memory buffer copy semantic.
++*/
++static inline void s390_mmio_write(void *mmio_addr, const void *val,
++				   size_t length)
++{
++	// FIXME: Check for error and call abort?
++	syscall(__NR_s390_pci_mmio_write, mmio_addr, val, length);
++}
++
++static inline void s390_mmio_read(const void *mmio_addr, void *val,
++				  size_t length)
++{
++	// FIXME: Check for error and call abort?
++	syscall(__NR_s390_pci_mmio_read, mmio_addr, val, length);
++}
++
++#define MAKE_WRITE(_NAME_, _SZ_)                                               \
++	static inline void _NAME_##_be(void *addr, __be##_SZ_ value)           \
++	{                                                                      \
++		s390_mmio_write(addr, &value, sizeof(value));                  \
++	}                                                                      \
++	static inline void _NAME_##_le(void *addr, __le##_SZ_ value)           \
++	{                                                                      \
++		s390_mmio_write(addr, &value, sizeof(value));                  \
++	}
++#define MAKE_READ(_NAME_, _SZ_)                                                \
++	static inline __be##_SZ_ _NAME_##_be(const void *addr)                 \
++	{                                                                      \
++		__be##_SZ_ res;                                                \
++		s390_mmio_read(addr, &res, sizeof(res));                       \
++		return res;                                                    \
++	}                                                                      \
++	static inline __le##_SZ_ _NAME_##_le(const void *addr)                 \
++	{                                                                      \
++		__le##_SZ_ res;                                                \
++		s390_mmio_read(addr, &res, sizeof(res));                       \
++		return res;                                                    \
++	}
++
++static inline void mmio_read8(void *addr, uint8_t value)
++{
++	s390_mmio_write(addr, &value, sizeof(value));
++}
++
++static inline uint8_t mmio_read8(const void *addr)
++{
++	uint8_t res;
++	s390_mmio_read(addr, &res, sizeof(res));
++	return res;
++}
++
++#else /* __s390x__ */
++
++#define MAKE_WRITE(_NAME_, _SZ_)                                               \
++	static inline void _NAME_##_be(void *addr, __be##_SZ_ value)           \
++	{                                                                      \
++		atomic_store_explicit((_Atomic(uint##_SZ_##_t) *)addr,         \
++				      (__force uint##_SZ_##_t)value,           \
++				      memory_order_relaxed);                   \
++	}                                                                      \
++	static inline void _NAME_##_le(void *addr, __le##_SZ_ value)           \
++	{                                                                      \
++		atomic_store_explicit((_Atomic(uint##_SZ_##_t) *)addr,         \
++				      (__force uint##_SZ_##_t)value,           \
++				      memory_order_relaxed);                   \
++	}
++#define MAKE_READ(_NAME_, _SZ_)                                                \
++	static inline __be##_SZ_ _NAME_##_be(const void *addr)                 \
++	{                                                                      \
++		return (__force __be##_SZ_)atomic_load_explicit(               \
++		    (_Atomic(uint##_SZ_##_t) *)addr, memory_order_relaxed);    \
++	}                                                                      \
++	static inline __le##_SZ_ _NAME_##_le(const void *addr)                 \
++	{                                                                      \
++		return (__force __le##_SZ_)atomic_load_explicit(               \
++		    (_Atomic(uint##_SZ_##_t) *)addr, memory_order_relaxed);    \
++	}
++
++static inline void mmio_write8(void *addr, uint8_t value)
++{
++	atomic_store_explicit((_Atomic(uint8_t) *)addr, value,
++			      memory_order_relaxed);
++}
++static inline uint8_t mmio_read8(const void *addr)
++{
++	return atomic_load_explicit((_Atomic(uint32_t) *)addr,
++				    memory_order_relaxed);
++}
++
++#endif /* __s390x__ */
++
++MAKE_WRITE(mmio_write16, 16)
++MAKE_WRITE(mmio_write32, 32)
++
++MAKE_READ(mmio_read16, 16)
++MAKE_READ(mmio_read32, 32)
++
++#if SIZEOF_LONG == 8
++MAKE_WRITE(mmio_write64, 64)
++MAKE_READ(mmio_read64, 64)
++#else
++void mmio_write64_be(void *addr, __be64 val);
++static inline void mmio_write64_le(void *addr, __le64 val)
++{
++	mmio_write64_be(addr, (__be64 __force)val);
++}
++
++/* There is no way to do read64 atomically, rather than provide some sketchy
++   implementation we leave these functions undefined, users should not call
++   them if SIZEOF_LONG != 8, but instead implement an appropriate version. */
++__be64 mmio_read64_be(const void *addr);
++__le64 mmio_read64_le(const void *addr);
++#endif /* SIZEOF_LONG == 8 */
++
++#undef MAKE_WRITE
++#undef MAKE_READ
++
++/* Now we can define the host endian versions of the operator, this just includes
++   a call to htole. */
++#define MAKE_WRITE(_NAME_, _SZ_)                                               \
++	static inline void _NAME_(void *addr, uint##_SZ_##_t value)            \
++	{                                                                      \
++		_NAME_##_le(addr, htole##_SZ_(value));                         \
++	}
++#define MAKE_READ(_NAME_, _SZ_)                                                \
++	static inline uint##_SZ_##_t _NAME_(const void *addr)                  \
++	{                                                                      \
++		return le##_SZ_##toh(_NAME_##_le(addr));                       \
++	}
++
++MAKE_WRITE(mmio_write16, 16)
++MAKE_WRITE(mmio_write32, 32)
++MAKE_WRITE(mmio_write64, 64)
++
++MAKE_READ(mmio_read16, 16)
++MAKE_READ(mmio_read32, 32)
++MAKE_READ(mmio_read64, 64)
++
++#undef MAKE_WRITE
++#undef MAKE_READ
++
++#endif
 -- 
 2.7.4
 
