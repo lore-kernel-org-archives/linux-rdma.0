@@ -1,59 +1,26 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 3/4] nvme: enable SG gaps support
-Date: Thu, 13 Apr 2017 18:56:16 +0300
-Message-ID: <1492098977-5231-4-git-send-email-maxg@mellanox.com>
-References: <1492098977-5231-1-git-send-email-maxg@mellanox.com>
+From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 rdma-core 3/3] srp_daemon: Use consistent format when
+ printing LID
+Date: Thu, 13 Apr 2017 16:23:12 +0000
+Message-ID: <1492100591.5176.7.camel@sandisk.com>
+References: <0a8e69e9-82bf-3ea7-75e4-ad25b6652004@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1492098977-5231-1-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <0a8e69e9-82bf-3ea7-75e4-ad25b6652004-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
+Content-ID: <FB84E1F7A646C14DA1A236E4B8E375DE-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-For controllers that can handle arbitrarily sized bios (e.g advanced
-RDMA ctrls) we can allow the block layer to pass us gaps by skip
-setting the queue virt_boundary.
+On Thu, 2017-04-13 at 11:54 -0400, Hal Rosenstock wrote:
+> Some LIDs are formatted in hex and others in decimal.
+> Be consistent (use hex LID formatting).
 
-Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Reviewed-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/nvme/host/core.c |    5 ++++-
- drivers/nvme/host/nvme.h |    1 +
- 2 files changed, 5 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
-index 9583a5f..72bc70e 100644
---- a/drivers/nvme/host/core.c
-+++ b/drivers/nvme/host/core.c
-@@ -1252,7 +1252,10 @@ static void nvme_set_queue_limits(struct nvme_ctrl *ctrl,
- 	}
- 	if (ctrl->quirks & NVME_QUIRK_STRIPE_SIZE)
- 		blk_queue_chunk_sectors(q, ctrl->max_hw_sectors);
--	blk_queue_virt_boundary(q, ctrl->page_size - 1);
-+
-+	if (!ctrl->sg_gaps_support)
-+		blk_queue_virt_boundary(q, ctrl->page_size - 1);
-+
- 	if (ctrl->vwc & NVME_CTRL_VWC_PRESENT)
- 		vwc = true;
- 	blk_queue_write_cache(q, vwc, vwc);
-diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
-index 2aa20e3..ccb895a 100644
---- a/drivers/nvme/host/nvme.h
-+++ b/drivers/nvme/host/nvme.h
-@@ -162,6 +162,7 @@ struct nvme_ctrl {
- 	struct work_struct scan_work;
- 	struct work_struct async_event_work;
- 	struct delayed_work ka_work;
-+	bool sg_gaps_support;
- 
- 	/* Power saving configuration */
- 	u64 ps_max_latency_us;
--- 
-1.7.1
-
+Reviewed-by: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
