@@ -1,106 +1,253 @@
-From: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [rdma-core/srp_daemon PATCH] Correct method field for PathRecord
- request
-Date: Thu, 13 Apr 2017 07:08:58 +0800
-Message-ID: <20170412230858.GA9594@dhcp-13-42.nay.redhat.com>
-References: <1491924533-2548-1-git-send-email-honli@redhat.com>
- <20170411154944.GA19917@obsidianresearch.com>
- <20170412132923.GB16375@dhcp-13-42.nay.redhat.com>
- <d5a9d1a8-6c38-51f2-d444-a6942db406f9@dev.mellanox.co.il>
- <20170412141800.GA20223@dhcp-13-42.nay.redhat.com>
- <6e04d44e-fab3-1477-7de4-d3c679301f38@dev.mellanox.co.il>
- <20170412144946.GC20223@dhcp-13-42.nay.redhat.com>
- <89c5ad40-cb4d-8b4d-48b3-e53351fb64af@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH rdma-next v2 00/12] Omni-Path Virtual Network Interface Controller (VNIC)
+Date: Wed, 12 Apr 2017 20:29:18 -0700
+Message-ID: <1492054170-23577-1-git-send-email-niranjana.vishwanathapura@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <89c5ad40-cb4d-8b4d-48b3-e53351fb64af-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sagig-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 12, 2017 at 12:51:25PM -0400, Hal Rosenstock wrote:
-> On 4/12/2017 10:49 AM, Honggang LI wrote:
-> > On Wed, Apr 12, 2017 at 10:34:47AM -0400, Hal Rosenstock wrote:
-> >> On 4/12/2017 10:18 AM, Honggang LI wrote:
-> >>> On Wed, Apr 12, 2017 at 09:34:20AM -0400, Hal Rosenstock wrote:
-> >>>> On 4/12/2017 9:29 AM, Honggang LI wrote:
-> >>>>> On Tue, Apr 11, 2017 at 09:49:44AM -0600, Jason Gunthorpe wrote:
-> >>>>>> On Tue, Apr 11, 2017 at 11:28:53PM +0800, Honggang LI wrote:
-> >>>>>>> From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> >>>>>>>
-> >>>>>>> According to InfiniBand Architecture Release 1.2.1, Table 208
-> >>>>>>> Example PathRecord Request MAD Header Fields, MADHeader:Method
-> >>>>>>> should setup to 0x12 (SubnAdmGetTable()).
-> >>>>>>
-> >>>>>> That is just an example, Table 192 shows that Get and GetTable are
-> >>>>>> both valid query types.
-> >>>>>
-> >>>>> I don't understand this as "Table 192 PortInfoRecord" seems nothing to
-> >>>>> do with PathRecord request.
-> >>>>
-> >>>> In IBA 1.3 volume 1, it's Table 209 Subnet Administration
-> >>>> Attribute/Method Map shows PathRecord methods are Get and GetTable.
-> >>>>
-> >>>
-> >>> http://www.intel.com/content/dam/www/public/us/en/documents/product-briefs/truescale-infiniband-12300-switch-brief.pdf
-> >>> Interoperability
-> >>> • Compliant with IBTA* specifications 1.0a, 1.1, 1.2, and 1.2.
-> >>>
-> >>> It seems the embedded subnet manager does not support IBA 1.3
-> >>
-> >> It's same for IBA 1.2.1. This part hasn't changed.
-> >>
-> >>>>>>
-> >>>>>> I however expect that the SM will fail when using GetTable if the
-> >>>>>> query returns more than one result, could that be what is happening?
-> >>>>>> When you convert it to GET_TABLE does it return more than one result?
-> >>>>>
-> >>>>> strace output shows srptools always received MAD packet in 320 bytes. So
-> >>>>> the embedded subnet manager only returns one result.
-> >>>>
-> >>>> What is MAD status ?
-> >>>
-> >>> ib_user_mad->status     = 0x0
-> >>>
-> >>> I attached the MAD packet dump out with strace. Please see the
-> >>> attachments p4.in amd p4.decode.
-> >>
-> >> p4.decode has:
-> >> rp_dm_rmpp_sa_mad->method		= 0x81 //IB_MAD_METHOD_GET_RESP
-> >> opensm/include/iba/ib_types.h // GetResp() Method (13.4.5)
-> >>
-> >> Proper response to GetTable (0x12) method is GetTableResponse (0x92)
-> >> method but this is GetResp (0x81) response.
-> > 
-> > Yes, you are right. p4.decode was captured with unpatched upstream srptools-1.0.3.
-> 
-> against the embedded SM ? 
+ChangeLog:
+=========
+v1 => v2:
+a) Change error code for unsupported rdma netdev type
+b) Remove some debug messages
 
-Yes.
+v1: posted @ https://www.spinics.net/lists/linux-rdma/msg48518.html
 
-> If so, this response looks (mostly) good to me and should be accepted by srp_daemon. I think I see the issue in srp_daemon: it's due to the check of the attribute offset which is not being set in the response:
-> 
->                 size = ib_get_attr_size(in_sa_mad->attr_offset);
->                 if (!size) {
->                         if (config->verbose)
->                                 printf("PathRec Query did not find any targets "
->                                        "over P_Key %x\n", pkey);
->                         continue;
->                 }
-> 
-> p4.decode has:
-> srp_dm_rmpp_sa_mad->attr_offset		= 0x0
-> 
-> Since a get rather than get table is being used, a good MAD status means that a valid PR was returned and there is no need for this check.
-> 
-> Would you try using the original get method without this code block and verify that it works with the embedded SM ?
->
+v0 => v1:
+a) changes as required by new kernel base (for-4.12)
+b) moved rdma netdev interface into a separate patch 
+c) Return specific error code if specified rdma netdev type is not supported
+d) Some minor fixes (no changes to overall design or interface)
 
-I sent the scratch RPM with the patch you suggested to third party for testing. Please wait.
+v0: Initial post @ https://www.spinics.net/lists/linux-rdma/msg46604.html
+
+Description:
+============
+Intel Omni-Path (OPA) Virtual Network Interface Controller (VNIC) feature
+supports Ethernet functionality over Omni-Path fabric by encapsulating
+the Ethernet packets between HFI nodes.
+
+Architecture
+=============
+The patterns of exchanges of Omni-Path encapsulated Ethernet packets
+involves one or more virtual Ethernet switches overlaid on the Omni-Path
+fabric topology. A subset of HFI nodes on the Omni-Path fabric are
+permitted to exchange encapsulated Ethernet packets across a particular
+virtual Ethernet switch. The virtual Ethernet switches are logical
+abstractions achieved by configuring the HFI nodes on the fabric for
+header generation and processing. In the simplest configuration all HFI
+nodes across the fabric exchange encapsulated Ethernet packets over a
+single virtual Ethernet switch. A virtual Ethernet switch, is effectively
+an independent Ethernet network. The configuration is performed by an
+Ethernet Manager (EM) which is part of the trusted Fabric Manager (FM)
+application. HFI nodes can have multiple VNICs each connected to a
+different virtual Ethernet switch. The below diagram presents a case
+of two virtual Ethernet switches with two HFI nodes.
+
+                             +-------------------+
+                             |      Subnet/      |
+                             |     Ethernet      |
+                             |      Manager      |
+                             +-------------------+
+                                /          /
+                              /           /
+                            /            /
+                          /             /
++-----------------------------+  +------------------------------+
+|  Virtual Ethernet Switch    |  |  Virtual Ethernet Switch     |
+|  +---------+    +---------+ |  | +---------+    +---------+   |
+|  | VPORT   |    |  VPORT  | |  | |  VPORT  |    |  VPORT  |   |
++--+---------+----+---------+-+  +-+---------+----+---------+---+
+         |                 \        /                 |
+         |                   \    /                   |
+         |                     \/                     |
+         |                    /  \                    |
+         |                  /      \                  |
+     +-----------+------------+  +-----------+------------+
+     |   VNIC    |    VNIC    |  |    VNIC   |    VNIC    |
+     +-----------+------------+  +-----------+------------+
+     |          HFI           |  |          HFI           |
+     +------------------------+  +------------------------+
+
+
+The Omni-Path encapsulated Ethernet packet format is as described below.
+
+Bits          Field
+------------------------------------
+Quad Word 0:
+0-19      SLID (lower 20 bits)
+20-30     Length (in Quad Words)
+31        BECN bit
+32-51     DLID (lower 20 bits)
+52-56     SC (Service Class)
+57-59     RC (Routing Control)
+60        FECN bit
+61-62     L2 (=10, 16B format)
+63        LT (=1, Link Transfer Head Flit)
+
+Quad Word 1:
+0-7       L4 type (=0x78 ETHERNET)
+8-11      SLID[23:20]
+12-15     DLID[23:20]
+16-31     PKEY
+32-47     Entropy
+48-63     Reserved
+
+Quad Word 2:
+0-15      Reserved
+16-31     L4 header
+32-63     Ethernet Packet
+
+Quad Words 3 to N-1:
+0-63      Ethernet packet (pad extended)
+
+Quad Word N (last):
+0-23      Ethernet packet (pad extended)
+24-55     ICRC
+56-61     Tail
+62-63     LT (=01, Link Transfer Tail Flit)
+
+Ethernet packet is padded on the transmit side to ensure that the VNIC OPA
+packet is quad word aligned. The 'Tail' field contains the number of bytes
+padded. On the receive side the 'Tail' field is read and the padding is
+removed (along with ICRC, Tail and OPA header) before passing packet up
+the network stack.
+
+The L4 header field contains the virtual Ethernet switch id the VNIC port
+belongs to. On the receive side, this field is used to de-multiplex the
+received VNIC packets to different VNIC ports.
+
+Driver Design
+==============
+Intel OPA VNIC software design is presented in the below diagram.
+OPA VNIC functionality has a HW dependent component and a HW
+independent component.
+
+The support has been added for IB device to allocate and free the RDMA
+netdev devices. The RDMA netdev supports interfacing with the network
+stack thus creating standard network interfaces. OPA_VNIC is an RDMA
+netdev device type.
+
+The HW dependent VNIC functionality is part of the HFI1 driver. It
+implements the verbs to allocate and free the OPA_VNIC RDMA netdev.
+It involves HW resource allocation/management for VNIC functionality.
+It interfaces with the network stack and implements the required
+net_device_ops functions. It expects Omni-Path encapsulated Ethernet
+packets in the transmit path and provides HW access to them. It strips
+the Omni-Path header from the received packets before passing them up
+the network stack. It also implements the RDMA netdev control operations.
+
+The OPA VNIC module implements the HW independent VNIC functionality.
+It consists of two parts. The VNIC Ethernet Management Agent (VEMA)
+registers itself with IB core as an IB client and interfaces with the
+IB MAD stack. It exchanges the management information with the Ethernet
+Manager (EM) and the VNIC netdev. The VNIC netdev part allocates and frees
+the OPA_VNIC RDMA netdev devices. It overrides the net_device_ops functions
+set by HW dependent VNIC driver where required to accommodate any control
+operation. It also handles the encapsulation of Ethernet packets with an
+Omni-Path header in the transmit path. For each VNIC interface, the
+information required for encapsulation is configured by the EM via VEMA MAD
+interface. It also passes any control information to the HW dependent driver
+by invoking the RDMA netdev control operations.
+
+        +-------------------+ +----------------------+
+        |                   | |       Linux          |
+        |     IB MAD        | |      Network         |
+        |                   | |       Stack          |
+        +-------------------+ +----------------------+
+                 |               |          |
+                 |               |          |
+        +----------------------------+      |
+        |                            |      |
+        |      OPA VNIC Module       |      |
+        |  (OPA VNIC RDMA Netdev     |      |
+        |     & EMA functions)       |      |
+        |                            |      |
+        +----------------------------+      |
+                    |                       |
+                    |                       |
+           +------------------+             |
+           |     IB core      |             |
+           +------------------+             |
+                    |                       |
+                    |                       |
+        +--------------------------------------------+
+        |                                            |
+        |      HFI1 Driver with VNIC support         |
+        |                                            |
+        +--------------------------------------------+
+
+
+Vishwanathapura, Niranjana (12):
+  IB/opa-vnic: Virtual Network Interface Controller (VNIC) documentation
+  IB/opa-vnic: RDMA NETDEV interface
+  IB/opa-vnic: Virtual Network Interface Controller (VNIC) interface
+  IB/opa-vnic: Virtual Network Interface Controller (VNIC) netdev
+  IB/opa-vnic: VNIC Ethernet Management (EM) structure definitions
+  IB/opa-vnic: VNIC statistics support
+  IB/opa-vnic: VNIC MAC table support
+  IB/opa-vnic: VNIC Ethernet Management Agent (VEMA) interface
+  IB/opa-vnic: VNIC Ethernet Management Agent (VEMA) function
+  IB/hfi1: OPA_VNIC RDMA netdev support
+  IB/hfi1: Virtual Network Interface Controller (VNIC) HW support
+  IB/hfi1: VNIC SDMA support
+
+ Documentation/infiniband/opa_vnic.txt              |  153 +++
+ MAINTAINERS                                        |    7 +
+ drivers/infiniband/Kconfig                         |    1 +
+ drivers/infiniband/hw/hfi1/Makefile                |    2 +-
+ drivers/infiniband/hw/hfi1/aspm.h                  |   15 +-
+ drivers/infiniband/hw/hfi1/chip.c                  |  291 +++++-
+ drivers/infiniband/hw/hfi1/chip.h                  |    2 +
+ drivers/infiniband/hw/hfi1/debugfs.c               |    8 +-
+ drivers/infiniband/hw/hfi1/driver.c                |   77 +-
+ drivers/infiniband/hw/hfi1/file_ops.c              |   27 +-
+ drivers/infiniband/hw/hfi1/hfi.h                   |   57 +-
+ drivers/infiniband/hw/hfi1/init.c                  |   39 +-
+ drivers/infiniband/hw/hfi1/mad.c                   |   10 +-
+ drivers/infiniband/hw/hfi1/pio.c                   |   19 +-
+ drivers/infiniband/hw/hfi1/pio.h                   |    8 +-
+ drivers/infiniband/hw/hfi1/sysfs.c                 |    4 +-
+ drivers/infiniband/hw/hfi1/user_exp_rcv.c          |    8 +-
+ drivers/infiniband/hw/hfi1/user_pages.c            |    5 +-
+ drivers/infiniband/hw/hfi1/verbs.c                 |    6 +-
+ drivers/infiniband/hw/hfi1/vnic.h                  |  184 ++++
+ drivers/infiniband/hw/hfi1/vnic_main.c             |  907 ++++++++++++++++
+ drivers/infiniband/hw/hfi1/vnic_sdma.c             |  323 ++++++
+ drivers/infiniband/ulp/Makefile                    |    1 +
+ drivers/infiniband/ulp/opa_vnic/Kconfig            |    8 +
+ drivers/infiniband/ulp/opa_vnic/Makefile           |    7 +
+ drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.c   |  475 +++++++++
+ drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h   |  489 +++++++++
+ drivers/infiniband/ulp/opa_vnic/opa_vnic_ethtool.c |  187 ++++
+ .../infiniband/ulp/opa_vnic/opa_vnic_internal.h    |  329 ++++++
+ drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c  |  389 +++++++
+ drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c    | 1078 ++++++++++++++++++++
+ .../infiniband/ulp/opa_vnic/opa_vnic_vema_iface.c  |  390 +++++++
+ include/rdma/ib_verbs.h                            |   34 +
+ include/rdma/opa_port_info.h                       |    3 +-
+ include/rdma/opa_vnic.h                            |  141 +++
+ 35 files changed, 5574 insertions(+), 110 deletions(-)
+ create mode 100644 Documentation/infiniband/opa_vnic.txt
+ create mode 100644 drivers/infiniband/hw/hfi1/vnic.h
+ create mode 100644 drivers/infiniband/hw/hfi1/vnic_main.c
+ create mode 100644 drivers/infiniband/hw/hfi1/vnic_sdma.c
+ create mode 100644 drivers/infiniband/ulp/opa_vnic/Kconfig
+ create mode 100644 drivers/infiniband/ulp/opa_vnic/Makefile
+ create mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.c
+ create mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.h
+ create mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_ethtool.c
+ create mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_internal.h
+ create mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c
+ create mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c
+ create mode 100644 drivers/infiniband/ulp/opa_vnic/opa_vnic_vema_iface.c
+ create mode 100644 include/rdma/opa_vnic.h
+
+-- 
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
