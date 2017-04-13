@@ -1,61 +1,169 @@
-From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
-Date: Fri, 14 Apr 2017 08:37:29 +1000
-Message-ID: <1492123049.7236.123.camel@kernel.crashing.org>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
- <1491974532.7236.43.camel@kernel.crashing.org>
- <5ac22496-56ec-025d-f153-140001d2a7f9@deltatee.com>
- <1492034124.7236.77.camel@kernel.crashing.org>
- <81888a1e-eb0d-cbbc-dc66-0a09c32e4ea2@deltatee.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <81888a1e-eb0d-cbbc-dc66-0a09c32e4ea2-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: [PATCH rdma-core 5/5] Add mmio_memcpy_x64
+Date: Thu, 13 Apr 2017 16:38:47 -0600
+Message-ID: <1492123127-6266-6-git-send-email-jgunthorpe@obsidianresearch.com>
+References: <1492123127-6266-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1492123127-6266-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-04-13 at 15:22 -0600, Logan Gunthorpe wrote:
-> 
-> On 12/04/17 03:55 PM, Benjamin Herrenschmidt wrote:
-> > Look at pcibios_resource_to_bus() and pcibios_bus_to_resource(). They
-> > will perform the conversion between the struct resource content (CPU
-> > physical address) and the actual PCI bus side address.
-> 
-> Ah, thanks for the tip! On my system, this translation returns the same
-> address so it was not necessary. And, yes, that means this would have to
-> find its way into the dma mapping routine somehow. This means we'll
-> eventually need a way to look-up the p2pmem device from the struct page.
-> Which means we will likely need a new flag bit in the struct page or
-> something. The big difficulty I see is testing. Do you know what
-> architectures or in what circumstances are these translations used?
+This pattern is common in a couple of drivers, and needs the s390
+syscall.
 
-I think a bunch of non-x86 architectures but I don't know which ones
-outside of powerpc.
+The common version properly handles 32 bit and prevents reordering of
+the stores, which is the stated reason for this to exist. It is also
+slightly more optimized, since it assumes a non-zero transfer length.
 
-> > When behind the same switch you need to use PCI addresses. If one tries
-> > later to do P2P between host bridges (via the CPU fabric) things get
-> > more complex and one will have to use either CPU addresses or something
-> > else alltogether (probably would have to teach the arch DMA mapping
-> > routines to work with those struct pages you create and return the
-> > right thing).
-> 
-> Probably for starters we'd want to explicitly deny cases between host
-> bridges and add that later if someone wants to do the testing.
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+---
+ providers/mlx4/mmio.h | 43 -----------------------------------------
+ providers/mlx4/qp.c   |  5 ++---
+ providers/mlx5/qp.c   | 17 ++++++-----------
+ util/mmio.h           | 53 ++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 4 files changed, 60 insertions(+), 58 deletions(-)
+ delete mode 100644 providers/mlx4/mmio.h
 
-Cheers,
-Ben.
+diff --git a/providers/mlx4/mmio.h b/providers/mlx4/mmio.h
+deleted file mode 100644
+index 9821e85224dcfd..00000000000000
+diff --git a/providers/mlx4/qp.c b/providers/mlx4/qp.c
+index 423f59533de68d..e7f10b9f1524d5 100644
+--- a/providers/mlx4/qp.c
++++ b/providers/mlx4/qp.c
+@@ -43,7 +43,6 @@
+ 
+ #include "mlx4.h"
+ #include "wqe.h"
+-#include "mmio.h"
+ 
+ static const uint32_t mlx4_ib_opcode[] = {
+ 	[IBV_WR_SEND]			= MLX4_OPCODE_SEND,
+@@ -481,8 +480,8 @@ out:
+ 		 */
+ 		mmio_wc_spinlock(&ctx->bf_lock);
+ 
+-		mlx4_bf_copy(ctx->bf_page + ctx->bf_offset, (unsigned long *) ctrl,
+-			     align(size * 16, 64));
++		mmio_memcpy_x64(ctx->bf_page + ctx->bf_offset, ctrl,
++				align(size * 16, 64));
+ 		/* Flush before toggling bf_offset to be latency oriented */
+ 		mmio_flush_writes();
+ 
+diff --git a/providers/mlx5/qp.c b/providers/mlx5/qp.c
+index 7f67a0b61b221f..c4789bf0d909a4 100644
+--- a/providers/mlx5/qp.c
++++ b/providers/mlx5/qp.c
+@@ -239,19 +239,14 @@ static void set_data_ptr_seg_atomic(struct mlx5_wqe_data_seg *dseg,
+ static void mlx5_bf_copy(unsigned long long *dst, unsigned long long *src,
+ 			 unsigned bytecnt, struct mlx5_qp *qp)
+ {
+-	while (bytecnt > 0) {
+-		*dst++ = *src++;
+-		*dst++ = *src++;
+-		*dst++ = *src++;
+-		*dst++ = *src++;
+-		*dst++ = *src++;
+-		*dst++ = *src++;
+-		*dst++ = *src++;
+-		*dst++ = *src++;
+-		bytecnt -= 8 * sizeof(unsigned long long);
++	do {
++		mmio_memcpy_x64(dst, src, 64);
++		bytecnt -= 64;
++		dst += 8;
++		src += 8;
+ 		if (unlikely(src == qp->sq.qend))
+ 			src = qp->sq_start;
+-	}
++	} while (bytecnt > 0);
+ }
+ 
+ static uint32_t send_ieth(struct ibv_send_wr *wr)
+diff --git a/util/mmio.h b/util/mmio.h
+index 0b89f5fcbe000e..1d45d6d6364d4e 100644
+--- a/util/mmio.h
++++ b/util/mmio.h
+@@ -56,6 +56,7 @@
+ #include <linux/types.h>
+ #include <stdatomic.h>
+ #include <stdint.h>
++#include <stddef.h>
+ #include <endian.h>
+ 
+ #include <config.h>
+@@ -158,7 +159,6 @@ static inline uint8_t mmio_read8(const void *addr)
+ 	return atomic_load_explicit((_Atomic(uint32_t) *)addr,
+ 				    memory_order_relaxed);
+ }
+-
+ #endif /* __s390x__ */
+ 
+ MAKE_WRITE(mmio_write16, 16)
+@@ -200,6 +200,57 @@ __le64 mmio_read64_le(const void *addr);
+ 		return le##_SZ_##toh(_NAME_##_le(addr));                       \
+ 	}
+ 
++/* This strictly guarantees the order of TLP generation for the memory copy to
++   be in ascending address order.
++*/
++#ifdef __s390x__
++static inline void mmio_memcpy_x64(void *dest, const void *src, size_t bytecnt)
++{
++	s390_mmio_write(addr, src, bytecnt);
++}
++#else
++
++/* Transfer is some multiple of 64 bytes */
++static inline void mmio_memcpy_x64(void *dest, const void *src, size_t bytecnt)
++{
++	uintptr_t *dst_p = dest;
++
++	/* Caller must guarantee:
++	    assert(bytecnt != 0);
++	    assert((bytecnt % 64) == 0);
++	    assert(((uintptr_t)dest) % __alignof__(*dst) == 0);
++	    assert(((uintptr_t)src) % __alignof__(*dst) == 0);
++	*/
++
++	/* Use the native word size for the copy */
++	if (sizeof(*dst_p) == 8) {
++		const __be64 *src_p = src;
++
++		do {
++			/* Do 64 bytes at a time */
++			mmio_write64_be(dst_p++, *src_p++);
++			mmio_write64_be(dst_p++, *src_p++);
++			mmio_write64_be(dst_p++, *src_p++);
++			mmio_write64_be(dst_p++, *src_p++);
++			mmio_write64_be(dst_p++, *src_p++);
++			mmio_write64_be(dst_p++, *src_p++);
++			mmio_write64_be(dst_p++, *src_p++);
++			mmio_write64_be(dst_p++, *src_p++);
++
++			bytecnt -= 8 * sizeof(*dst_p);
++		} while (bytecnt > 0);
++	} else if (sizeof(*dst_p) == 4) {
++		const __be32 *src_p = src;
++
++		do {
++			mmio_write32_be(dst_p++, *src_p++);
++			mmio_write32_be(dst_p++, *src_p++);
++			bytecnt -= 2 * sizeof(*dst_p);
++		} while (bytecnt > 0);
++	}
++}
++#endif
++
+ MAKE_WRITE(mmio_write16, 16)
+ MAKE_WRITE(mmio_write32, 32)
+ MAKE_WRITE(mmio_write64, 64)
+-- 
+2.7.4
 
-> Thanks,
-> 
-> Logan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
