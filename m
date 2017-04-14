@@ -1,63 +1,30 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Crashes due to concurrent calls to ib_unmap_fmr()
-Date: Fri, 14 Apr 2017 11:51:39 -0400
-Message-ID: <5C9E097E-938D-4F41-9EA4-003F77A54DAD@oracle.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 1/7] PCI: export pcie_flr
+Date: Fri, 14 Apr 2017 17:56:27 +0200
+Message-ID: <20170414155627.GA22412@lst.de>
+References: <20170413145339.20186-1-hch@lst.de> <20170413145339.20186-2-hch@lst.de> <20170414143416.GA29349@bhelgaas-glaptop.roam.corp.google.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Knut Omang <Knut.Omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Return-path: <linux-crypto-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170414143416.GA29349@bhelgaas-glaptop.roam.corp.google.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>, Bjorn Helgaas <bhelgaas@google.com>, Giovanni Cabiddu <giovanni.cabiddu@intel.com>, Salvatore Benedetto <salvatore.benedetto@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Derek Chickles <derek.chickles@caviumnetworks.com>, Satanand Burla <satananda.burla@caviumnetworks.com>, Felix Manlunas <felix.manlunas@caviumnetworks.com>, Raghu Vatsavayi <raghu.vatsavayi@caviumnetworks.com>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, linux-pci@vger.kernel.org, qat-linux@intel.com, linux-crypto@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Alex Williamson <alex.williamson@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Howdy-
+> s/pcie_has_flr/pcie_has_flr()/
 
-I recently found a way to crash my HCA (and the whole system) using a
-signal on an NFS/RDMA mount point that is using FMR. I've documented
-the issue:
+Ok.
 
-https://bugzilla.linux-nfs.org/show_bug.cgi?id=305
-
-And I have an NFS/RDMA fix I'm testing for v4.13. The fix is to prevent
-simultaneous calls to ib_unmap_fmr with the same FMR.
-
-While working on the fix, I've been looking for any documentation
-regarding serialization requirements for ib_unmap_fmr. Knut Omang pointed
-out to me that Documentation/infiniband/core-locking.txt makes this bold
-statement:
-
-> Reentrancy
+> This performs an FLR (if supported) always, regardless of "probe".
+> I think it should look something like this instead:
 > 
->   All of the methods in struct ib_device exported by a low-level
->   driver must be fully reentrant.  The low-level driver is required to
->   perform all synchronization necessary to maintain consistency, even
->   if multiple function calls using the same object are run
->   simultaneously.
-> 
->   The IB midlayer does not perform any serialization of function calls.
-> 
->   Because low-level drivers are reentrant, upper level protocol
->   consumers are not required to perform any serialization. 
+>   if (pcie_has_flr(dev)) {
+>     if (!probe)
+>       pcie_flr(dev);
+>     rc = 0;
+>     goto done;
+>   }
 
-Does this re-entrancy guarantee apply only when ib_unmap_fmr is called
-concurrently with unique FMRs?
-
-I've been told it is not possible for ib_unmap_fmr to detect when it has
-been invoked in different threads with the same FMR, but apparently the
-user space equivalent does not have the same vulnerability (I did not
-test this assertion).
-
-I'm wondering what is proper closure here (aside from merging the
-NFS/RDMA fix).
-
-
---
-Chuck Lever
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Indeed!
