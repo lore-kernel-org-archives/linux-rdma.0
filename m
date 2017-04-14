@@ -1,70 +1,22 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 09/14] svcrdma: Report Write/Reply chunk overruns
-Date: Fri, 14 Apr 2017 15:07:20 -0400
-Message-ID: <809B3E7B-8991-4358-804F-B2D0101723FF@oracle.com>
-References: <20170409163820.15073.43257.stgit@klimt.1015granger.net> <20170409170641.15073.82788.stgit@klimt.1015granger.net> <20170414155634.GC5362@fieldses.org> <FCC0F429-0799-4416-9A61-ABD19C773AA9@oracle.com> <20170414175216.GA8290@fieldses.org>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: export pcie_flr and remove copies of it in drivers V2
+Date: Fri, 14 Apr 2017 21:11:24 +0200
+Message-ID: <20170414191131.14286-1-hch@lst.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170414175216.GA8290-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Cc: List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Giovanni Cabiddu <giovanni.cabiddu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Salvatore Benedetto <salvatore.benedetto-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Derek Chickles <derek.chickles-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, Satanand Burla <satananda.burla-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, Felix Manlunas <felix.manlunas-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, Raghu Vatsavayi <raghu.vatsavayi-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, Jeff Kirsher <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, qat-linux-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi all,
 
-> On Apr 14, 2017, at 1:52 PM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wrote:
-> 
-> On Fri, Apr 14, 2017 at 12:10:03PM -0400, Chuck Lever wrote:
->> 
->>> On Apr 14, 2017, at 11:56 AM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wrote:
->>> 
->>> On Sun, Apr 09, 2017 at 01:06:41PM -0400, Chuck Lever wrote:
->>>> Observed at Connectathon 2017.
->>>> 
->>>> If a client has underestimated the size of a Write or Reply chunk,
->>>> the Linux server writes as much payload data as it can, then it
->>>> recognizes there was a problem and closes the connection without
->>>> sending the transport header.
->>> 
->>> Why would the client underestimate?  Is this a client-side bug?
->> 
->> It can be a bug, and the behavior in this case is that the
->> client retransmits indefinitely and deadlocks the transport,
->> because the client's upper layer never sees a reply.
->> 
->> But as you know there are some NFS operations where the client
->> cannot predict in advance how large the reply will be. In
->> particular the upper bound size of an NFSACL GETACL reply or
->> certain NFSv4 GETATTR attributes are not predictable.
-> 
-> Oh, I'd forgotten about those cases.
-> 
->> These
->> I might categorize as protocol bugs.
->> 
->> A client can do its best by posting a very large reply buffer
->> for such operations, but since these situations typically
->> are in practice rare, but NFSv4 GETATTR can be a relatively
->> common operation, clients post a few dozen KB for the reply
->> buffer and call it a day.
->> 
->> In these cases (if they should ever fail IRL), returning an
->> error is polite and allows operation of other RPCs on that
->> transport to continue.
-> 
-> Got it, thanks.  (I assume this is documented somewhere in the specs?)
+this exports the PCI layer pcie_flr helper, and removes various opencoded
+copies of it.
 
-I've written about it in rfc5667bis-09. It's a short document,
-review comments welcome.
-
-
---
-Chuck Lever
-
-
-
+Changes since V1:
+ - rebase on top of the pci/virtualization branch
+ - fixed the probe case in __pci_dev_reset
+ - added ACKs from Bjorn
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
