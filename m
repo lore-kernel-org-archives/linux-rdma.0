@@ -1,51 +1,63 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
-Date: Fri, 14 Apr 2017 11:30:14 -0600
-Message-ID: <630c1c63-ff17-1116-e069-2b8f93e50fa2@deltatee.com>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
- <1491974532.7236.43.camel@kernel.crashing.org>
- <5ac22496-56ec-025d-f153-140001d2a7f9@deltatee.com>
- <1492034124.7236.77.camel@kernel.crashing.org>
- <81888a1e-eb0d-cbbc-dc66-0a09c32e4ea2@deltatee.com>
- <20170413232631.GB24910@bhelgaas-glaptop.roam.corp.google.com>
- <20170414041656.GA30694@obsidianresearch.com>
- <1492169849.25766.3.camel@kernel.crashing.org>
+From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH v3 09/14] svcrdma: Report Write/Reply chunk overruns
+Date: Fri, 14 Apr 2017 13:52:16 -0400
+Message-ID: <20170414175216.GA8290@fieldses.org>
+References: <20170409163820.15073.43257.stgit@klimt.1015granger.net>
+ <20170409170641.15073.82788.stgit@klimt.1015granger.net>
+ <20170414155634.GC5362@fieldses.org>
+ <FCC0F429-0799-4416-9A61-ABD19C773AA9@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1492169849.25766.3.camel-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <FCC0F429-0799-4416-9A61-ABD19C773AA9-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, Apr 14, 2017 at 12:10:03PM -0400, Chuck Lever wrote:
+> 
+> > On Apr 14, 2017, at 11:56 AM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wrote:
+> > 
+> > On Sun, Apr 09, 2017 at 01:06:41PM -0400, Chuck Lever wrote:
+> >> Observed at Connectathon 2017.
+> >> 
+> >> If a client has underestimated the size of a Write or Reply chunk,
+> >> the Linux server writes as much payload data as it can, then it
+> >> recognizes there was a problem and closes the connection without
+> >> sending the transport header.
+> > 
+> > Why would the client underestimate?  Is this a client-side bug?
+> 
+> It can be a bug, and the behavior in this case is that the
+> client retransmits indefinitely and deadlocks the transport,
+> because the client's upper layer never sees a reply.
+> 
+> But as you know there are some NFS operations where the client
+> cannot predict in advance how large the reply will be. In
+> particular the upper bound size of an NFSACL GETACL reply or
+> certain NFSv4 GETATTR attributes are not predictable.
 
+Oh, I'd forgotten about those cases.
 
-On 14/04/17 05:37 AM, Benjamin Herrenschmidt wrote:
-> I object to designing a subsystem that by design cannot work on whole
-> categories of architectures out there.
+> These
+> I might categorize as protocol bugs.
+> 
+> A client can do its best by posting a very large reply buffer
+> for such operations, but since these situations typically
+> are in practice rare, but NFSv4 GETATTR can be a relatively
+> common operation, clients post a few dozen KB for the reply
+> buffer and call it a day.
+> 
+> In these cases (if they should ever fail IRL), returning an
+> error is polite and allows operation of other RPCs on that
+> transport to continue.
 
-Hardly. That's extreme. We'd design a subsystem that works for the easy
-cases and needs more work to support the offset cases. It would not be
-designed in such a way that it could _never_ support those
-architectures. It would simply be such that it only permits use by the
-cases that are known to work. Then those cases could be expanded as time
-goes on and people work on adding more support.
+Got it, thanks.  (I assume this is documented somewhere in the specs?)
 
-There's tons of stuff that needs to be done to get this upstream. I'd
-rather not require it to work for every possible architecture from the
-start. The testing alone would be impossible. Many subsystems start by
-working for x86 first and then adding support in other architectures
-later. (Often with that work done by the people who care about those
-systems and actually have the hardware to test with.)
-
-Logan
+--b.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
