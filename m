@@ -1,68 +1,121 @@
-From: Benjamin Herrenschmidt <benh-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
-Date: Fri, 14 Apr 2017 21:39:52 +1000
-Message-ID: <1492169992.25766.5.camel@au1.ibm.com>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
- <1491974532.7236.43.camel@kernel.crashing.org>
- <5ac22496-56ec-025d-f153-140001d2a7f9@deltatee.com>
- <1492034124.7236.77.camel@kernel.crashing.org>
- <81888a1e-eb0d-cbbc-dc66-0a09c32e4ea2@deltatee.com>
- <20170413232631.GB24910@bhelgaas-glaptop.roam.corp.google.com>
- <20170414041656.GA30694@obsidianresearch.com>
- <08c32f0d-6c7c-b65f-6453-dde0d7c173d1@deltatee.com>
- <1492169879.25766.4.camel@kernel.crashing.org>
-Reply-To: benh-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH 1/7] PCI: export pcie_flr
+Date: Fri, 14 Apr 2017 09:34:16 -0500
+Message-ID: <20170414143416.GA29349@bhelgaas-glaptop.roam.corp.google.com>
+References: <20170413145339.20186-1-hch@lst.de>
+ <20170413145339.20186-2-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1492169879.25766.4.camel-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "James
- E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170413145339.20186-2-hch@lst.de>
+Sender: linux-pci-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Giovanni Cabiddu <giovanni.cabiddu@intel.com>, Salvatore Benedetto <salvatore.benedetto@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Derek Chickles <derek.chickles@caviumnetworks.com>, Satanand Burla <satananda.burla@caviumnetworks.com>, Felix Manlunas <felix.manlunas@caviumnetworks.com>, Raghu Vatsavayi <raghu.vatsavayi@caviumnetworks.com>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, linux-pci@vger.kernel.org, qat-linux@intel.com, linux-crypto@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Alex Williamson <alex.williamson@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-04-14 at 21:37 +1000, Benjamin Herrenschmidt wrote:
-> On Thu, 2017-04-13 at 22:40 -0600, Logan Gunthorpe wrote:
-> > 
-> > On 13/04/17 10:16 PM, Jason Gunthorpe wrote:
-> > > I'd suggest just detecting if there is any translation in bus
-> > > addresses anywhere and just hard disabling P2P on such systems.
-> > 
-> > That's a fantastic suggestion. It simplifies things significantly.
-> > Unless there are any significant objections I think I will plan on
-> > doing
-> > that.
+[+cc Alex]
+
+On Thu, Apr 13, 2017 at 04:53:33PM +0200, Christoph Hellwig wrote:
+> Currently we opencode the FLR sequence in lots of place, export a core
+> helper instead.  We split out the probing for FLR support as all the
+> non-core callers already know their hardware.
 > 
-> I object.
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  drivers/pci/pci.c   | 34 +++++++++++++++++++++++++---------
+>  include/linux/pci.h |  1 +
+>  2 files changed, 26 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> index 7904d02ffdb9..3256a63c5d08 100644
+> --- a/drivers/pci/pci.c
+> +++ b/drivers/pci/pci.c
+> @@ -3773,24 +3773,38 @@ static void pci_flr_wait(struct pci_dev *dev)
+>  			 (i - 1) * 100);
+>  }
+>  
+> -static int pcie_flr(struct pci_dev *dev, int probe)
+> +/**
+> + * pcie_has_flr - check if a device supports function level resets
+> + * @dev:	device to check
+> + *
+> + * Returns true if the device advertises support for PCIe function level
+> + * resets.
+> + */
+> +static bool pcie_has_flr(struct pci_dev *dev)
+>  {
+>  	u32 cap;
+>  
+>  	pcie_capability_read_dword(dev, PCI_EXP_DEVCAP, &cap);
+> -	if (!(cap & PCI_EXP_DEVCAP_FLR))
+> -		return -ENOTTY;
+> -
+> -	if (probe)
+> -		return 0;
+> +	return cap & PCI_EXP_DEVCAP_FLR;
+> +}
+>  
+> +/**
+> + * pcie_flr - initiate a PCIe function level reset
+> + * @dev:	device to reset
+> + *
+> + * Initiate a function level reset on @dev.  The caller should ensure the
+> + * device supports FLR before calling this function, e.g. by using the
+> + * pcie_has_flr helper.
 
-Note: It would also make your stuff fundamentally incompatible with
-KVM guest pass-through since KVM plays with remapping BARs all over
-the place.
+s/pcie_has_flr/pcie_has_flr()/
 
-Ben.
+> + */
+> +void pcie_flr(struct pci_dev *dev)
+> +{
+>  	if (!pci_wait_for_pending_transaction(dev))
+>  		dev_err(&dev->dev, "timed out waiting for pending transaction; performing function level reset anyway\n");
+>  
+>  	pcie_capability_set_word(dev, PCI_EXP_DEVCTL, PCI_EXP_DEVCTL_BCR_FLR);
+>  	pci_flr_wait(dev);
+> -	return 0;
+>  }
+> +EXPORT_SYMBOL_GPL(pcie_flr);
+>  
+>  static int pci_af_flr(struct pci_dev *dev, int probe)
+>  {
+> @@ -3971,9 +3985,11 @@ static int __pci_dev_reset(struct pci_dev *dev, int probe)
+>  	if (rc != -ENOTTY)
+>  		goto done;
+>  
+> -	rc = pcie_flr(dev, probe);
+> -	if (rc != -ENOTTY)
+> +	if (pcie_has_flr(dev)) {
+> +		pcie_flr(dev);
+> +		rc = 0;
+>  		goto done;
+> +	}
 
-> > > On modern hardware with 64 bit BARs there is very little reason
-> > > to
-> > > have translation, so I think this is a legacy feature.
-> > 
-> > Yes, p2pmem users are likely to be designing systems around it (ie
-> > JBOFs) and not trying to shoehorn it onto legacy architectures.
-> > 
-> > At the very least, it makes sense to leave it out and if someone
-> > comes
-> > along who cares they can put in the effort to support the address
-> > translation.
-> > 
-> > Thanks,
-> > 
-> > Logan
+This performs an FLR (if supported) always, regardless of "probe".
+I think it should look something like this instead:
+
+  if (pcie_has_flr(dev)) {
+    if (!probe)
+      pcie_flr(dev);
+    rc = 0;
+    goto done;
+  }
+
+>  	rc = pci_af_flr(dev, probe);
+>  	if (rc != -ENOTTY)
+> diff --git a/include/linux/pci.h b/include/linux/pci.h
+> index eb3da1a04e6c..f35e51eddad0 100644
+> --- a/include/linux/pci.h
+> +++ b/include/linux/pci.h
+> @@ -1052,6 +1052,7 @@ int pcie_get_mps(struct pci_dev *dev);
+>  int pcie_set_mps(struct pci_dev *dev, int mps);
+>  int pcie_get_minimum_link(struct pci_dev *dev, enum pci_bus_speed *speed,
+>  			  enum pcie_link_width *width);
+> +void pcie_flr(struct pci_dev *dev);
+>  int __pci_reset_function(struct pci_dev *dev);
+>  int __pci_reset_function_locked(struct pci_dev *dev);
+>  int pci_reset_function(struct pci_dev *dev);
+> -- 
+> 2.11.0
+> 
