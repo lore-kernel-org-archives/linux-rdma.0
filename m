@@ -1,34 +1,51 @@
-From: "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: cqe dump errors on target while running nvme-of large block
- read IO
-Date: Fri, 14 Apr 2017 16:38:34 +0000
-Message-ID: <DE927C68B458BE418D582EC97927A9285505F0C9@ORSMSX113.amr.corp.intel.com>
-References: <DE927C68B458BE418D582EC97927A9285505C9EA@ORSMSX113.amr.corp.intel.com>
- <47f19583-1882-09d4-ce1c-534b8e59068b@mellanox.com>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
+Date: Fri, 14 Apr 2017 11:30:14 -0600
+Message-ID: <630c1c63-ff17-1116-e069-2b8f93e50fa2@deltatee.com>
+References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
+ <1491974532.7236.43.camel@kernel.crashing.org>
+ <5ac22496-56ec-025d-f153-140001d2a7f9@deltatee.com>
+ <1492034124.7236.77.camel@kernel.crashing.org>
+ <81888a1e-eb0d-cbbc-dc66-0a09c32e4ea2@deltatee.com>
+ <20170413232631.GB24910@bhelgaas-glaptop.roam.corp.google.com>
+ <20170414041656.GA30694@obsidianresearch.com>
+ <1492169849.25766.3.camel@kernel.crashing.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <47f19583-1882-09d4-ce1c-534b8e59068b-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "'linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org'" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Sen, Sujoy" <sujoy.sen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Riches Jr, Robert M" <robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <1492169849.25766.3.camel-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> hi Joe,
-> can you run and repro it with null_blk backing store instead the nvme ?
-> you can emulate the delay of the nvme device using module param
-> completion_nsec.
-> is it reproducable in case B2B connectivity ?
 
-Hey Max,
 
-I ran overnight using null_blk devices but was unable to reproduce in that configuration.  I set completion_nsec to 50000.  Although my measured completion latencies in FIO were more like 17-18usec so not sure why they did not come in closer to 50usec.  Anyway, failure did not reproduce using null_blk instead of real NVMe SSDs.
+On 14/04/17 05:37 AM, Benjamin Herrenschmidt wrote:
+> I object to designing a subsystem that by design cannot work on whole
+> categories of architectures out there.
 
-By B2B connectivity do you mean direct target-to-initiator connection with no switch?  I don't think that is possible in this configuration since target uses a 100Gb QSFP NIC and initiator uses a 25Gb SFP28 NIC.  I could perhaps swap the target side NIC for a matching 25Gb device and run direct connected that way if we think we need that data point, we would need to first establish if the failure even happens in that configuration, based on other testing we've done on an all-25Gb configuration I suspect it may not.
+Hardly. That's extreme. We'd design a subsystem that works for the easy
+cases and needs more work to support the offset cases. It would not be
+designed in such a way that it could _never_ support those
+architectures. It would simply be such that it only permits use by the
+cases that are known to work. Then those cases could be expanded as time
+goes on and people work on adding more support.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+There's tons of stuff that needs to be done to get this upstream. I'd
+rather not require it to work for every possible architecture from the
+start. The testing alone would be impossible. Many subsystems start by
+working for x86 first and then adding support in other architectures
+later. (Often with that work done by the people who care about those
+systems and actually have the hardware to test with.)
+
+Logan
