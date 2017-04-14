@@ -1,8 +1,8 @@
 From: Dasaratharaman Chandramouli
         <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 rdma-next 01/18] IB/ocrdma: Add identifier names to function definitions
-Date: Fri, 14 Apr 2017 19:28:41 -0400
-Message-ID: <1492212538-32459-2-git-send-email-dasaratharaman.chandramouli@intel.com>
+Subject: [PATCH v2 rdma-next 03/18] IB/core: Add braces when using sizeof
+Date: Fri, 14 Apr 2017 19:28:43 -0400
+Message-ID: <1492212538-32459-4-git-send-email-dasaratharaman.chandramouli@intel.com>
 References: <1492212538-32459-1-git-send-email-dasaratharaman.chandramouli@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1492212538-32459-1-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,38 +10,30 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Address a checkpatch issue on missing identifier names
-on function definitions.
+This patch adds braces around parameters to sizeof
+as called out by checkpatch
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_ah.h | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/infiniband/core/uverbs_marshall.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.h b/drivers/infiniband/hw/ocrdma/ocrdma_ah.h
-index 0704a24..5370eb7 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.h
-@@ -51,11 +51,11 @@ enum {
- 	OCRDMA_AH_L3_TYPE_SHIFT		= 0x1D /* 29 bits */
- };
- 
--struct ib_ah *ocrdma_create_ah(struct ib_pd *, struct ib_ah_attr *,
--			       struct ib_udata *);
--int ocrdma_destroy_ah(struct ib_ah *);
--int ocrdma_query_ah(struct ib_ah *, struct ib_ah_attr *);
--int ocrdma_modify_ah(struct ib_ah *, struct ib_ah_attr *);
-+struct ib_ah *ocrdma_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr,
-+			       struct ib_udata *udata);
-+int ocrdma_destroy_ah(struct ib_ah *ah);
-+int ocrdma_query_ah(struct ib_ah *ah, struct ib_ah_attr *ah_attr);
-+int ocrdma_modify_ah(struct ib_ah *ah, struct ib_ah_attr *ah_attr);
- 
- int ocrdma_process_mad(struct ib_device *,
- 		       int process_mad_flags,
+diff --git a/drivers/infiniband/core/uverbs_marshall.c b/drivers/infiniband/core/uverbs_marshall.c
+index af020f8..ed3e68f 100644
+--- a/drivers/infiniband/core/uverbs_marshall.c
++++ b/drivers/infiniband/core/uverbs_marshall.c
+@@ -36,7 +36,7 @@
+ void ib_copy_ah_attr_to_user(struct ib_uverbs_ah_attr *dst,
+ 			     struct ib_ah_attr *src)
+ {
+-	memcpy(dst->grh.dgid, src->grh.dgid.raw, sizeof src->grh.dgid);
++	memcpy(dst->grh.dgid, src->grh.dgid.raw, sizeof(src->grh.dgid));
+ 	dst->grh.flow_label        = src->grh.flow_label;
+ 	dst->grh.sgid_index        = src->grh.sgid_index;
+ 	dst->grh.hop_limit         = src->grh.hop_limit;
 -- 
 1.8.3.1
 
