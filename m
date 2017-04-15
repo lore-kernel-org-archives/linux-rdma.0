@@ -1,107 +1,53 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: Crashes due to concurrent calls to ib_unmap_fmr()
-Date: Sat, 15 Apr 2017 12:55:28 +0300
-Message-ID: <20170415095528.GK1343@mtr-leonro.local>
-References: <5C9E097E-938D-4F41-9EA4-003F77A54DAD@oracle.com>
+From: Milan Broz <gmazyland@gmail.com>
+Subject: Re: [PATCH 09/22] dm-crypt: Make use of the new sg_map helper in 4
+ call sites
+Date: Sat, 15 Apr 2017 14:10:17 +0200
+Message-ID: <22703638-27a9-7dc5-5180-536f61661592@gmail.com>
+References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+ <1492121135-4437-10-git-send-email-logang@deltatee.com>
+ <20170414083921.GC25471@lst.de>
+ <302ae5ab-d515-5427-2e54-d58a9cdb8241@deltatee.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="7AwgMNpd3VkAVXjS"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5C9E097E-938D-4F41-9EA4-003F77A54DAD-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Knut Omang <Knut.Omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-raid-owner@vger.kernel.org>
+In-Reply-To: <302ae5ab-d515-5427-2e54-d58a9cdb8241@deltatee.com>
+Sender: linux-raid-owner@vger.kernel.org
+To: Logan Gunthorpe <logang@deltatee.com>, Christoph Hellwig <hch@lst.de>
+Cc: Steve Wise <swise@opengridcomputing.com>, linux-nvme@lists.infradead.org, Stephen Bates <sbates@raithlin.com>, target-devel@vger.kernel.org, Sumit Semwal <sumit.semwal@linaro.org>, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, Sagi Grimberg <sagi@grimberg.me>, linux-scsi@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma@vger.kernel.org, fcoe-devel@open-fcoe.org, Ross Zwisler <ross.zwisler@linux.intel.com>, open-iscsi@googlegroups.com, linux-media@vger.kernel.org, Ming Lin <ming.l@ssi.samsung.com>, intel-gfx@lists.freedesktop.org, sparmaintainer@unisys.com, linux-raid@vger.kernel.org, dri-devel@lists.freedesktop.org, Dan Williams <dan.j.williams@intel.com>, megaraidlinux.pdl@broadcom.com, Jens Axboe <axboe@kernel.dk>, linaro-mm-sig@
 List-Id: linux-rdma@vger.kernel.org
 
+On 04/14/2017 06:03 PM, Logan Gunthorpe wrote:
+> 
+> 
+> On 14/04/17 02:39 AM, Christoph Hellwig wrote:
+>> On Thu, Apr 13, 2017 at 04:05:22PM -0600, Logan Gunthorpe wrote:
+>>> Very straightforward conversion to the new function in all four spots.
+>>
+>> I think the right fix here is to switch dm-crypt to the ahash API
+>> that takes a scatterlist.
+> 
+> Hmm, well I'm not sure I understand the code enough to make that
+> conversion. But I was looking at it. One tricky bit seems to be that
+> crypt_iv_lmk_one adds a seed, skips the first 16 bytes in the page and
+> then hashes another 16 bytes from other data. What would you do
+> construct a new sgl for it and pass it to the ahash api?
+> 
+> The other thing is crypt_iv_lmk_post also seems to modify the page after
+> the hash with a  crypto_xor so you'd still need at least one kmap in there.
 
---7AwgMNpd3VkAVXjS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+yes, it is in fact modification of CBC mode implemented this hacky way.
+These IVs are only for compatibility with loopaes and very old trueCrypt formats.
 
-On Fri, Apr 14, 2017 at 11:51:39AM -0400, Chuck Lever wrote:
-> Howdy-
->
-> I recently found a way to crash my HCA (and the whole system) using a
-> signal on an NFS/RDMA mount point that is using FMR. I've documented
-> the issue:
->
-> https://bugzilla.linux-nfs.org/show_bug.cgi?id=305
->
-> And I have an NFS/RDMA fix I'm testing for v4.13. The fix is to prevent
-> simultaneous calls to ib_unmap_fmr with the same FMR.
->
-> While working on the fix, I've been looking for any documentation
-> regarding serialization requirements for ib_unmap_fmr. Knut Omang pointed
-> out to me that Documentation/infiniband/core-locking.txt makes this bold
-> statement:
->
-> > Reentrancy
-> >
-> >   All of the methods in struct ib_device exported by a low-level
-> >   driver must be fully reentrant.  The low-level driver is required to
-> >   perform all synchronization necessary to maintain consistency, even
-> >   if multiple function calls using the same object are run
-> >   simultaneously.
-> >
-> >   The IB midlayer does not perform any serialization of function calls.
-> >
-> >   Because low-level drivers are reentrant, upper level protocol
-> >   consumers are not required to perform any serialization.
->
-> Does this re-entrancy guarantee apply only when ib_unmap_fmr is called
-> concurrently with unique FMRs?
+I think your patch is ok (if it is just plain conversion), if it is
+really needed, we can switch to ahash later in follow-up patch.
 
-According to description, it should apply to all operations on ib_device
-without any exclusion.
+All common code in dmcrypt uses async API already.
 
->
-> I've been told it is not possible for ib_unmap_fmr to detect when it has
-> been invoked in different threads with the same FMR.
+p.s.
+there is a lot of lists on cc, but for this patch is missing dm-devel, dmcrypt changes
+need to go through Mike's tree (I added dm-devel to cc:)
 
-Right, FMR management is implemented as direct writes to MPT and MTT
-tables. HW doesn't distinguish simultaneous calls to the TPT cache.
+Milan
 
-> but apparently the > user space equivalent does not have the same
-> vulnerability (I did not test this assertion).
->
-> I'm wondering what is proper closure here (aside from merging the
-> NFS/RDMA fix).
 
-Maybe serialize unmap_frm (workqueue) from the driver side?
-
-Thanks
-
->
->
-> --
-> Chuck Lever
->
->
->
-
---7AwgMNpd3VkAVXjS
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljx7hAACgkQ5GN7iDZy
-WKcHChAAjEsbXSs575eIzUTohf6OCXNd4HkfzfiXRszF6ZfQ6mgX0hXsF4I27QpV
-3HNfrpB+6syyfnfKkcv5WFJWFDNNYFVrFoFI8laT16C0APn10lvVkJX3OR6Q3IqV
-1yHhwbMZ1LFsp5Gb2SeXiTVfIpNS0XknFnR52tj33gW4TIfDCI0sWDwsvWIIRwO2
-VivqMkQf3u6pXfjDuMGzl5ssZwrJI2tkwBjZj12/04aWcSDymzewTfscG/bNeZdy
-tdzruu4qsN1ZkhryPKlGY7XmKj9OdOdeKp2GXSNJwLFAv2YlA2oEJczwz6nFHtq+
-tSpPdCrUILdU5fkskrTs3+KaMc4HRJ4GAhyyhNUWqJAtAiL6aXcdFJKZRFrb+mD6
-WIybm8oKwn4mmbf+wfTqcA/7EgvJ+pXFlfFo6sCxAshjWD8mQNFOHcvFmUxlbyTS
-iO05uUn6UoAO27UFpZub55V/P08TvcnT6FFojWqh5klP5uBCjR8u+u83kcyccFKh
-xPh/OHtowALaOuOBpL7u9McYmhioSbWo/CImEO6iDfdwpzAMOwjPRwFHHxjC6gKR
-FwvvH05i7v/Ce/DLRu0GxZOFa7+WdjFeqTOhlk1GkD23xWBL93eeEjWygHiSxEyW
-mdrZyBr56N3mw/ToQoo7nQnSDhHQl+D/wnkdKCn0EBCnYc9xCSI=
-=1JEf
------END PGP SIGNATURE-----
-
---7AwgMNpd3VkAVXjS--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
