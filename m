@@ -1,53 +1,65 @@
-From: Milan Broz <gmazyland@gmail.com>
-Subject: Re: [PATCH 09/22] dm-crypt: Make use of the new sg_map helper in 4
- call sites
-Date: Sat, 15 Apr 2017 14:10:17 +0200
-Message-ID: <22703638-27a9-7dc5-5180-536f61661592@gmail.com>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
- <1492121135-4437-10-git-send-email-logang@deltatee.com>
- <20170414083921.GC25471@lst.de>
- <302ae5ab-d515-5427-2e54-d58a9cdb8241@deltatee.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 rdma-next 05/18] IB/rxe: Initialize ib_ah_attr during
+ query_ah
+Date: Sat, 15 Apr 2017 17:34:30 +0300
+Message-ID: <20170415143430.GL1343@mtr-leonro.local>
+References: <1492212538-32459-1-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <1492212538-32459-6-git-send-email-dasaratharaman.chandramouli@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-raid-owner@vger.kernel.org>
-In-Reply-To: <302ae5ab-d515-5427-2e54-d58a9cdb8241@deltatee.com>
-Sender: linux-raid-owner@vger.kernel.org
-To: Logan Gunthorpe <logang@deltatee.com>, Christoph Hellwig <hch@lst.de>
-Cc: Steve Wise <swise@opengridcomputing.com>, linux-nvme@lists.infradead.org, Stephen Bates <sbates@raithlin.com>, target-devel@vger.kernel.org, Sumit Semwal <sumit.semwal@linaro.org>, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, Sagi Grimberg <sagi@grimberg.me>, linux-scsi@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma@vger.kernel.org, fcoe-devel@open-fcoe.org, Ross Zwisler <ross.zwisler@linux.intel.com>, open-iscsi@googlegroups.com, linux-media@vger.kernel.org, Ming Lin <ming.l@ssi.samsung.com>, intel-gfx@lists.freedesktop.org, sparmaintainer@unisys.com, linux-raid@vger.kernel.org, dri-devel@lists.freedesktop.org, Dan Williams <dan.j.williams@intel.com>, megaraidlinux.pdl@broadcom.com, Jens Axboe <axboe@kernel.dk>, linaro-mm-sig@
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="KaGhPsiNaI6/sRd6"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1492212538-32459-6-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 04/14/2017 06:03 PM, Logan Gunthorpe wrote:
-> 
-> 
-> On 14/04/17 02:39 AM, Christoph Hellwig wrote:
->> On Thu, Apr 13, 2017 at 04:05:22PM -0600, Logan Gunthorpe wrote:
->>> Very straightforward conversion to the new function in all four spots.
->>
->> I think the right fix here is to switch dm-crypt to the ahash API
->> that takes a scatterlist.
-> 
-> Hmm, well I'm not sure I understand the code enough to make that
-> conversion. But I was looking at it. One tricky bit seems to be that
-> crypt_iv_lmk_one adds a seed, skips the first 16 bytes in the page and
-> then hashes another 16 bytes from other data. What would you do
-> construct a new sgl for it and pass it to the ahash api?
-> 
-> The other thing is crypt_iv_lmk_post also seems to modify the page after
-> the hash with a  crypto_xor so you'd still need at least one kmap in there.
 
-yes, it is in fact modification of CBC mode implemented this hacky way.
-These IVs are only for compatibility with loopaes and very old trueCrypt formats.
+--KaGhPsiNaI6/sRd6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I think your patch is ok (if it is just plain conversion), if it is
-really needed, we can switch to ahash later in follow-up patch.
+On Fri, Apr 14, 2017 at 07:28:45PM -0400, Dasaratharaman Chandramouli wrote:
+> Zero out ib_ah_attr before calling query_ah. Set ah_flags
+> appropriately.
+>
+> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/infiniband/sw/rxe/rxe_av.c    | 1 +
+>  drivers/infiniband/sw/rxe/rxe_verbs.c | 1 +
+>  2 files changed, 2 insertions(+)
+>
 
-All common code in dmcrypt uses async API already.
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-p.s.
-there is a lot of lists on cc, but for this patch is missing dm-devel, dmcrypt changes
-need to go through Mike's tree (I added dm-devel to cc:)
+--KaGhPsiNaI6/sRd6
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Milan
+-----BEGIN PGP SIGNATURE-----
 
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljyL3YACgkQ5GN7iDZy
+WKcFdw//Z83NYdIeVn6Dtn/V2J1LB0W7PUA9Hq1eK7YjzHHvXsvZYNWpr36T7Lww
+RVzaIkzR9kv42wAoeV6127vv6dpKNUDQ0YXM2di6lxV/m3Q4VkpMwNiKs+tkUmFI
+q6bPcaY6+d6PXAfADYSVPAYT0eKUNzeZBTwCKXADcj0wYDwpVPgYFIKVOqSK+wRe
+Yz3PXm6mCtFzZ2xfj6GPIyBCEKtuBgjb+mX8blQEOMn7tj14YEnKMfNn8GWKvgCv
+thj5OYtPwhzmzlwNFKBCxjchmzaJSUo1DDuJ3rk0hZUu+6oBVuFBd7fvelKelUo8
+2pYY1Ujf1H8ln96mIVlvCXaX1hhYCrT8/mv1TrS40E3OR1qmXnB9Q7N08h8lwpv9
+EvuhWVUUwYQm/QJK5JPNtewSRib0jM/lPNFJYdIVi8n+7c+CecunaOsdEpo2FTE1
+4hGP/QZzL+/62eYWg8TOp5HqtYmYKJej98b4mICL6onKSU97sWqbxSeG3P57yXDl
+DgbfYjt5kRgcAouYjaRQ8ZuXjvf2EmDTVlS1pCkr0aPBT5MGfwhSUpfhOzuhAjJd
+W72f8wm/2p1CedywrpuepQ6OyyXmDDpWcVmx2kooLilwODJMbJ/G9VRvBWGWfpM4
+SS+9pukdnAzo/Sz5MFBLshNm5DlCFhUCGf3dFNH2bv6AJMSlj2Y=
+=JKU9
+-----END PGP SIGNATURE-----
 
+--KaGhPsiNaI6/sRd6--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
