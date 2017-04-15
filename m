@@ -1,101 +1,107 @@
-From: Harsh Jain <harshjain.prof-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 08/22] crypto: chcr: Make use of the new sg_map helper
- function
-Date: Sat, 15 Apr 2017 10:23:33 +0530
-Message-ID: <CAFXBA=k74+9jRZQX4r_iGoL8yiDbXPDTLw+AELEb1LeT_jeKiQ@mail.gmail.com>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
- <1492121135-4437-9-git-send-email-logang@deltatee.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: Crashes due to concurrent calls to ib_unmap_fmr()
+Date: Sat, 15 Apr 2017 12:55:28 +0300
+Message-ID: <20170415095528.GK1343@mtr-leonro.local>
+References: <5C9E097E-938D-4F41-9EA4-003F77A54DAD@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1492121135-4437-9-git-send-email-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, harsh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sumit Semwal <sumit.semwal-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, fcoe-devel-s9riP+hp16TNLxjTenLetw@public.gmane.org, open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ming Lin <ming.l-Vzezgt5dB6uUEJcrhfAQsw@public.gmane.org>, intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, sparmaintainer-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org, linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, megaraidlinux.pdl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, linaro-mm-sig-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev@
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="7AwgMNpd3VkAVXjS"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5C9E097E-938D-4F41-9EA4-003F77A54DAD-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Knut Omang <Knut.Omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Apr 14, 2017 at 3:35 AM, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org> wrote:
-> The get_page in this area looks *highly* suspect due to there being no
-> corresponding put_page. However, I've left that as is to avoid breaking
-> things.
-chcr driver will post the request to LLD driver cxgb4 and put_page is
-implemented there. it will no harm. Any how
-we have removed the below code from driver.
 
-http://www.mail-archive.com/linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg24561.html
+--7AwgMNpd3VkAVXjS
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-After this merge we can ignore your patch. Thanks
+On Fri, Apr 14, 2017 at 11:51:39AM -0400, Chuck Lever wrote:
+> Howdy-
+>
+> I recently found a way to crash my HCA (and the whole system) using a
+> signal on an NFS/RDMA mount point that is using FMR. I've documented
+> the issue:
+>
+> https://bugzilla.linux-nfs.org/show_bug.cgi?id=305
+>
+> And I have an NFS/RDMA fix I'm testing for v4.13. The fix is to prevent
+> simultaneous calls to ib_unmap_fmr with the same FMR.
+>
+> While working on the fix, I've been looking for any documentation
+> regarding serialization requirements for ib_unmap_fmr. Knut Omang pointed
+> out to me that Documentation/infiniband/core-locking.txt makes this bold
+> statement:
+>
+> > Reentrancy
+> >
+> >   All of the methods in struct ib_device exported by a low-level
+> >   driver must be fully reentrant.  The low-level driver is required to
+> >   perform all synchronization necessary to maintain consistency, even
+> >   if multiple function calls using the same object are run
+> >   simultaneously.
+> >
+> >   The IB midlayer does not perform any serialization of function calls.
+> >
+> >   Because low-level drivers are reentrant, upper level protocol
+> >   consumers are not required to perform any serialization.
+>
+> Does this re-entrancy guarantee apply only when ib_unmap_fmr is called
+> concurrently with unique FMRs?
+
+According to description, it should apply to all operations on ib_device
+without any exclusion.
 
 >
-> I've also removed the KMAP_ATOMIC_ARGS check as it appears to be dead
-> code that dates back to when it was first committed...
+> I've been told it is not possible for ib_unmap_fmr to detect when it has
+> been invoked in different threads with the same FMR.
 
+Right, FMR management is implemented as direct writes to MPT and MTT
+tables. HW doesn't distinguish simultaneous calls to the TPT cache.
+
+> but apparently the > user space equivalent does not have the same
+> vulnerability (I did not test this assertion).
+>
+> I'm wondering what is proper closure here (aside from merging the
+> NFS/RDMA fix).
+
+Maybe serialize unmap_frm (workqueue) from the driver side?
+
+Thanks
 
 >
-> Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/crypto/chelsio/chcr_algo.c | 28 +++++++++++++++-------------
->  1 file changed, 15 insertions(+), 13 deletions(-)
 >
-> diff --git a/drivers/crypto/chelsio/chcr_algo.c b/drivers/crypto/chelsio/chcr_algo.c
-> index 41bc7f4..a993d1d 100644
-> --- a/drivers/crypto/chelsio/chcr_algo.c
-> +++ b/drivers/crypto/chelsio/chcr_algo.c
-> @@ -1489,22 +1489,21 @@ static struct sk_buff *create_authenc_wr(struct aead_request *req,
->         return ERR_PTR(-EINVAL);
->  }
->
-> -static void aes_gcm_empty_pld_pad(struct scatterlist *sg,
-> -                                 unsigned short offset)
-> +static int aes_gcm_empty_pld_pad(struct scatterlist *sg,
-> +                                unsigned short offset)
->  {
-> -       struct page *spage;
->         unsigned char *addr;
->
-> -       spage = sg_page(sg);
-> -       get_page(spage); /* so that it is not freed by NIC */
-> -#ifdef KMAP_ATOMIC_ARGS
-> -       addr = kmap_atomic(spage, KM_SOFTIRQ0);
-> -#else
-> -       addr = kmap_atomic(spage);
-> -#endif
-> -       memset(addr + sg->offset, 0, offset + 1);
-> +       get_page(sg_page(sg)); /* so that it is not freed by NIC */
-> +
-> +       addr = sg_map(sg, SG_KMAP_ATOMIC);
-> +       if (IS_ERR(addr))
-> +               return PTR_ERR(addr);
-> +
-> +       memset(addr, 0, offset + 1);
-> +       sg_unmap(sg, addr, SG_KMAP_ATOMIC);
->
-> -       kunmap_atomic(addr);
-> +       return 0;
->  }
->
->  static int set_msg_len(u8 *block, unsigned int msglen, int csize)
-> @@ -1940,7 +1939,10 @@ static struct sk_buff *create_gcm_wr(struct aead_request *req,
->         if (req->cryptlen) {
->                 write_sg_to_skb(skb, &frags, src, req->cryptlen);
->         } else {
-> -               aes_gcm_empty_pld_pad(req->dst, authsize - 1);
-> +               err = aes_gcm_empty_pld_pad(req->dst, authsize - 1);
-> +               if (err)
-> +                       goto dstmap_fail;
-> +
->                 write_sg_to_skb(skb, &frags, reqctx->dst, crypt_len);
->
->         }
 > --
-> 2.1.4
+> Chuck Lever
 >
+>
+>
+
+--7AwgMNpd3VkAVXjS
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAljx7hAACgkQ5GN7iDZy
+WKcHChAAjEsbXSs575eIzUTohf6OCXNd4HkfzfiXRszF6ZfQ6mgX0hXsF4I27QpV
+3HNfrpB+6syyfnfKkcv5WFJWFDNNYFVrFoFI8laT16C0APn10lvVkJX3OR6Q3IqV
+1yHhwbMZ1LFsp5Gb2SeXiTVfIpNS0XknFnR52tj33gW4TIfDCI0sWDwsvWIIRwO2
+VivqMkQf3u6pXfjDuMGzl5ssZwrJI2tkwBjZj12/04aWcSDymzewTfscG/bNeZdy
+tdzruu4qsN1ZkhryPKlGY7XmKj9OdOdeKp2GXSNJwLFAv2YlA2oEJczwz6nFHtq+
+tSpPdCrUILdU5fkskrTs3+KaMc4HRJ4GAhyyhNUWqJAtAiL6aXcdFJKZRFrb+mD6
+WIybm8oKwn4mmbf+wfTqcA/7EgvJ+pXFlfFo6sCxAshjWD8mQNFOHcvFmUxlbyTS
+iO05uUn6UoAO27UFpZub55V/P08TvcnT6FFojWqh5klP5uBCjR8u+u83kcyccFKh
+xPh/OHtowALaOuOBpL7u9McYmhioSbWo/CImEO6iDfdwpzAMOwjPRwFHHxjC6gKR
+FwvvH05i7v/Ce/DLRu0GxZOFa7+WdjFeqTOhlk1GkD23xWBL93eeEjWygHiSxEyW
+mdrZyBr56N3mw/ToQoo7nQnSDhHQl+D/wnkdKCn0EBCnYc9xCSI=
+=1JEf
+-----END PGP SIGNATURE-----
+
+--7AwgMNpd3VkAVXjS--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
