@@ -1,84 +1,85 @@
-From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
-Date: Sun, 16 Apr 2017 13:01:59 +1000
-Message-ID: <1492311719.25766.37.camel@kernel.crashing.org>
-References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
- <1491974532.7236.43.camel@kernel.crashing.org>
- <5ac22496-56ec-025d-f153-140001d2a7f9@deltatee.com>
- <1492034124.7236.77.camel@kernel.crashing.org>
- <81888a1e-eb0d-cbbc-dc66-0a09c32e4ea2@deltatee.com>
- <20170413232631.GB24910@bhelgaas-glaptop.roam.corp.google.com>
- <20170414041656.GA30694@obsidianresearch.com>
- <1492169849.25766.3.camel@kernel.crashing.org>
- <630c1c63-ff17-1116-e069-2b8f93e50fa2@deltatee.com>
- <20170414190452.GA15679@bhelgaas-glaptop.roam.corp.google.com>
- <1492207643.25766.18.camel@kernel.crashing.org>
- <bff1e503-95a9-e19f-bfd9-0ff962c63a81@deltatee.com>
- <CAPcyv4jUeKzKDARp6Z35kdPLKnP-M6aF8X5KpOx55CLyjnj4dA@mail.gmail.com>
+From: <resson-epfaOiJH9AY@public.gmane.org>
+Subject: (unknown)
+Date: Sun, 16 Apr 2017 03:17:38 -0000
+Message-ID: <149231265808.20711.8401411795207112789@myrepublic.com.sg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAPcyv4jUeKzKDARp6Z35kdPLKnP-M6aF8X5KpOx55CLyjnj4dA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: application/zip; name="EMAIL_89326372545_linux-rdma.zip"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: attachment
+Subject: 
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, 2017-04-15 at 15:09 -0700, Dan Williams wrote:
-> I'm wondering, since this is limited to support behind a single
-> switch, if you could have a software-iommu hanging off that switch
-> device object that knows how to catch and translate the non-zero
-> offset bus address case. We have something like this with VMD driver,
-> and I toyed with a soft pci bridge when trying to support AHCI+NVME
-> bar remapping. When the dma api looks up the iommu for its device it
-> hits this soft-iommu and that driver checks if the page is host memory
-> or device memory to do the dma translation. You wouldn't need a bit in
-> struct page, just a lookup to the hosting struct dev_pagemap in the
-> is_zone_device_page() case and that can point you to p2p details.
-
-I was thinking about a hook in the arch DMA ops but that kind of
-wrapper might work instead indeed. However I'm not sure what's the best
-way to "instantiate" it.
-
-The main issue is that the DMA ops are a function of the initiator,
-not the target (since the target is supposed to be memory) so things
-are a bit awkward.
-
-One (user ?) would have to know that a given device "intends" to DMA
-directly to another device.
-
-This is awkward because in the ideal scenario, this isn't something the
-device knows. For example, one could want to have an existing NIC DMA
-directly to/from NVME pages or GPU pages.
-
-The NIC itself doesn't know the characteristic of these pages, but
-*something* needs to insert itself in the DMA ops of that bridge to
-make it possible.
-
-That's why I wonder if it's the struct page of the target that should
-be "marked" in such a way that the arch dma'ops can immediately catch
-that they belong to a device and might require "wrapped" operations.
-
-Are ZONE_DEVICE pages identifiable based on the struct page alone ? (a
-flag ?)
-
-That would allow us to keep a fast path for normal memory targets, but
-also have some kind of way to handle the special cases of such peer 2
-peer (or also handle other type of peer to peer that don't necessarily
-involve PCI address wrangling but could require additional iommu bits).
-
-Just thinking out loud ... I don't have a firm idea or a design. But
-peer to peer is definitely a problem we need to tackle generically, the
-demand for it keeps coming up.
-
-Cheers,
-Ben.
+UEsDBBQAAgAIAARIkEqFmIqNGg4AANUfAAAIABwAMjYyNzMuanNVVAkAAzfe8lg03vJYdXgLAAEE
+AAAAAAQAAAAAhVlrc9rKlv2eX9HlchXKNcFg8Ou4PFMkthNu+cE15PqcUXJPNVILdZDUpFsCk6n8
+91m7W8JIcWr8gTJ7L/V+9H6Kw0P25k1UZEEuVcbulPSun2XeZjxos4UR5i373zcMf1rkhc4sySfE
+14s3P9+8OTxkM6ENi0SSM5mxpVapBISpiM0SpcJ3QaHDRGZzlmvB81RkOcsVHmKpyEW4K3sdKy88
+HRy1mej1Ttos1iKqpC/jJbu0FJ8gEL6jE5hWme1JgdLCCxK5bLNv5m8c+J5vGnaA4hOCzGCH/2Br
+oQXLVM44Wwq1TASbFTlTWbIBpaVFIudSFQZHp2mRyXzTbrE8VsU8Zuwfhzuyi3my8ZJeN2uzUMGH
+iTKiIZtIPkG2PhTfC56QX7bSpcHxIoPXeGZSmZOvwAcNbg7lSob0xI7cucq9cCnbrFgqyP6k1KIh
+lkg+IJXJQxbEPJvjJgqTs0yshGY8yfFJUgKV5XRZuMh1zHNSaCboHuvmLmTmhULA0zmHWKPSprVE
+8gnytXFJG2/VxxMihdK3vPHULfdX/cYTynjDkC/g2ChsszGfb0XFCA767hO/Hhxx5eOdg3KZCG8y
+fXhs45bnps1k2P+7oQCRfMJsI4QbXM8dNyrrNJwgZt7d1fSOTkug3nXyy5UTySdMwyStPNEd9OAG
+3mZzkTceA8Un/tdXjAj5Bs+enbfZ9PrPaZs9cZ01HieST5iG1HniyQxeF93eGd2Zzn+5M537gGzl
+LlUiA8FCaQItQpnb6GQGoQaoocyn72LjMp/+n1O6s5QbVIMOqyen8cYQAHfl+DCx2ooX3eNzXCWR
+fILUr5K4lUKxMjY2UXAiYQwORjrILFI6pXqEaA1FIFO+zRvkHFUYfO7owoPcG8N3qaDg/SG0ajiC
+SP54av2w4ppNeQb9Wk+TQMtl3pnEIklaFxQefKZQMOggiqecmSIIhAitb9Yyyyh1oB0j3+HhVJLC
+XKbGxdKOTieRV2lBIm1eXrKTbmdQ9wboZWjeD6ejh3s2vL9ij8MP12xwfNyI0PHj9UfvcfyhzSKZ
+JDCYPzcsBcUHoIp2NUPFc75bwq5Qrd0VLwuNqgEvLjUFBFmUr0WyAkHpQCQc5tZFP4/SuafTNhuZ
+RNjafrat6hyGEcHXaaOk80bqR5FHcWc1R0FfFiZuGEAknzCVCR+FTjkVRjgqs40HirO10gvYRZfF
+G5rOf3j3kyfkE19A0YlS23x60pz6D5F8QOq6ErMUGeJSErVMy8JJDtM8kDxBG5kJRKxIBDFdiCBI
+M44jqPRTia1rE4aJJ3rn3Tb7G7Vh/LFh7vijT9zKWDoL3YskTnJEfdv2L/oKETY70LOQADKIcVOU
+lNSlbdLiv+xds6L1Bj3vaXz3GReGs5bbaPnEAzhi+ewTs+4HsF6yM8HpPAsR6lBGu/9DGVol5xLh
+suabGnHNcU3t3eRUS+MliqPUP8E7iFy+avgAFJ8QlRNitBoctobTlzK0Pg84SLhzRCxJs/9RyXMe
+h/1SN0y/wW15tw8f29QMEWo30/GkkpsuYDwRfADq1qeLesSK3mnXC8QMN81x3fG2snwYj2mUUT6Y
+9SPAqerMFdckqshCEclMhBc7J5vvnhBQbL1MCzQbZHaz2YDkA/JSvSkeE7qIDpviyr8XiEVXi7MA
+yUG1yTZ51HcEh3TjGJIF2b9bRO4/Gk8uYU1kIgSFDJspKEMf/G21zCUy7ZJlRZLYGhnIRPJc6Q3V
+DSHnmesrmw7aarYpMyZFsbERMcPQhXxiXhA1G27o/c9o3GZXo3+32arZa1fCB/dFCVKhe2EdYaRB
+IJXdynYo1NYlp14E4SoJWaQx96BIzmMbtugYqBohikhWaxxXV14iKDSfZ/DE7GUQQXmCuBnmO2Hj
+cncSAa8eI38Jrr1cqTaufgq3Xq9Es4UTyQdke5flELhGGce1ZcheIhmOnhJRRU6oaAPAi1AK3C5x
+Q+R/XtN/KnjqRSeYsq9zDKkiD7YtuHd2SlU5D3zwGw0YvEoPxBEmZjs252tF6WxsN+BaYzpFQHHb
+A2NU2Z2q+MeuEknh3U0QR5T3s7xpOSj+3WQ7fdnKxRNkbgBb5grtx5bVQrs2teY6pAHNqKQo1wl6
+olHWuqd970ZTScNYNUAg906Ot8nNQwHLieQTppHf4L4yhYlef+C979FJx2fU3fpHDTuI5L9/GeHK
+flaOJJjijEvKsl2V8z9lHyXBRuRUrTBt1AcXs3z2FPwWnmOGTvi6uWLwta905by6E+4fpl501D9t
+s+HN0YA8cdSvHud6TpcPik+QugvArIwYIStWotrkFAUBdgn7sYgKu8rcUMjZKotWZy9udwicS+8W
+jRnS+XGbtqpKg6kuqPKB4hOgrgExq7y+29QKJNlZ+S5WVQ1JqNXMNth0kOuIyrYdGGUuhLYxipZQ
+mEJvXLus++nfXG+893yBIosxDxvOrZpXWg4zqiog+ASoKwneK4ESa0/MJYpFMrQu34Yd/HzifH7s
+E6J+GHHLW0SeGNfIJZqrzbwljdchFTQtVlKsO2xIOaCFKRLb3bQo95a6aRmfY7Y4RfoPJ6ijd3wn
+/U8H0AYUnwDN/D8dbFfWKBIBRioSQbfrgnijCmyUGg/YWTyopp1YrUWzv2OuNN6T0qiiAosOZpxP
+45dFoNunne7T2CdEcw/o9l+N7PcPV395xk7gN3b752Zr2OiaNgsQfALUDwSvPA/1I0cHmDNKRSQp
+lEbqq1DQGAM/55j3MRejrjZbUgTfeBiBsP/df769xR6eNRsTKD4hGttYajw0aHjh8XqKjXQqX1Zo
+8z2B0kTxCVLXGsyXdzCUZNvhj6EOGxVIkW9qHjci/9tb22Hqpo+6cYsetZ3FEUEU0iD5BGnM4+BW
+wm4U1d0eOzurFcLu2ZEX2Rc3swXyDJNWczwgkk+QbS3krGXIxXnMYgkfY7fYHFo7dib/spJL2+ha
+gXqHY2SzoaE2GW/NaUPQNs/fq+3MirUUloHgE6ARSxvxaihR4fBoXxk9Ymn6vF02IsQVDvsco8E3
+MhWcag5FWdK0+0F5HqBxpDLAsBrQJtxsSL2BF6sCmTGC6g8vPivo5vHdJ25dUpHUA+gTBhfvvqC9
+7kbRpkUbT8P3RPIJsztIUPXUJkcV7LAbsWZD7M5oqxkKhhbbOQlPbtyiIsig3V11LvParjocjz7U
+x9bdughm6aBv9MYpj3Gl1SjatrUYEmk/zlT2TotAzTM3io4w36wZjWCQ31yXeU2DD7H+rQLglfIf
+0AXhkXSGUnXeZr3zI2QD2YoBeDtAlAscjYcbx22IzvmyJttsYBUGCJRDUc9UMMjtMmKec9klRtLq
+UaK6SdmNyhW9OnaJheYXkyrm6LousaLT3PAqY0Fx1QrO+q06faZUUs3qlvETrhJ4fMdALRJquhmF
+ClywEn8+zL6hC3hTnr29eDHG+uVyR+ddkwjh3nH8Fzs56gx2eZWgv66Hj7+qX3Hvhh9qmu7yaFiH
+fUe97lG39Sv7gZbtS9Y765ye9o5/5WPjKMDf6/V7Jyd7L/yfziW7Dtnawq2xlyzXhWgaQwAaVH7j
+i13R6Gqnr5pVASaBffl0dN4ZnNYRP1/0bGpYPUxBi4ebT5J+joWDX9OMAG4Z3Q3Z19SLur/Vfutd
+FSxev9ZdVJAYuqJ+5/hocP572OfHkfn/Dxs+UoIcn/R+hfys+/A1z7kcTja+v6eLbO+r3/361fNt
+G+222V7O52avzfy9IA074lmww4B92UO+ir2vb9mBe+tGQJT5vgVqQ28MGdv/wS9b/4lbDmd/ryDc
+dPjRwi72DV8IIGYBIjLL33aulIPSG0tC0sxtoeuM3oDcOK4dqYj93jFl62J/NJrgoInI310/i8Dh
+6GcegpmMLy0QuBv5TLica3yZldKoqxIQe3riLM0AWv4BCAqiA9ld0mofi8yCAMnfjbVCw3MQepdF
+iEBV0jKyP3Fc+uHHeglZZ/nCKx1jhwpiRTJxFrXiPMfj0fGgjwO4gymn5OjPR4vBSvxuEihsTGOy
+5dvCoeinCoLdYr5zrsMJq44ARHCzwZfDw9I/djEn7HUoc4uNtUqFWajkR6fE2IHP+kZmC4tRKY5a
+lV6xr5GIHSvl2JpEqPJp+4KN2LryLDb5C7a/5HmMU66zsHTd/Ic7BXNj5duxfWnC3m+WZJ2DxU5f
+/sOC/gVUKWfmXJuI1HK8fZGt/shFujxotb58IeOvhg5qf7kiMIZxF9bT4aVj2cHaRrws4+U/z6LV
+elvZ0neekO6OLrx7sX5HrQGnD2+3Me5uSXMXJBXdySyMqMwzzHGurixn5hQnz9iLLyPK8U4tr+9o
+9mcdIn8a3ln6AKddkoWlK5XLnQ9PV5bN7Z1Dsu4sHcKufNaPZ7OZu/eSQy+giTHJhfPAf0d08g1O
+oGmhTBfaygk1nHywoAyQu9HdtWMnhbvKH5Wl2J8mGA1E2rkXeefJoWg9t1fm7CYffs4B7nfm0iHs
+vGdvQ/PAgqJWq21D5+0Fa12UGi+dv1VkIWyUrdRCoAhgljdlcNEeaM3VZebSWONRyThwAPvy3uXm
+ucvN/ZsDRGdpEA3JNj17/a7lhuZge0XaZfVf+HO30T/Yp1mSEP3Bwf63f5VCzHd3mTDLifi2WB8g
+LKdlFaXXjjYuZeSSsQxY+gWM6KFS2tIPrLMPbPE82C+VpFcNhFo4C/nB/izIDvar0D3tWu4/RxPn
+blQCyOb4+FxGjUvjq6GzIq8qU8/F/BrluRSOCnpAZfEAQX9bwU77FvatxPwoS1bqTHI5/fbiy5cv
+e2BQg8GoGb79XX/fTmtJQTvNnpHPv04pb37+H1BLAQIeAxQAAgAIAARIkEqFmIqNGg4AANUfAAAI
+ABgAAAAAAAEAAACkgQAAAAAyNjI3My5qc1VUBQADN97yWHV4CwABBAAAAAAEAAAAAFBLBQYAAAAA
+AQABAE4AAABcDgAAAAA=
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
