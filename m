@@ -1,35 +1,77 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH for-next 6/6] IB/core: Rename uverbs event file structure
-Date: Tue, 18 Apr 2017 15:22:20 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB11476E@ORSMSX109.amr.corp.intel.com>
-References: <1492506222-28999-1-git-send-email-matanb@mellanox.com>
- <1492506222-28999-7-git-send-email-matanb@mellanox.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Subject: Re: [PATCH 16/22] xen-blkfront: Make use of the new sg_map helper
+ function
+Date: Tue, 18 Apr 2017 09:42:20 -0600
+Message-ID: <7930aa93-6106-e12f-ba76-e2771d4ec2dc@deltatee.com>
+References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+ <1492121135-4437-17-git-send-email-logang@deltatee.com>
+ <063D6719AE5E284EB5DD2968C1650D6DCFFD3CD7@AcuExch.aculab.com>
+ <20170418142723.GA27133@char.us.oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1492506222-28999-7-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20170418142723.GA27133@char.us.oracle.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, David Laight <David.Laight@ACULAB.COM>, xen-devel@lists.xensource.com
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Steve Wise <swise@opengridcomputing.com>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>, Sumit Semwal <sumit.semwal@linaro.org>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "rds-devel@oss.oracle.com" <rds-devel@oss.oracle.com>, Sagi Grimberg <sagi@grimberg.me>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, Matthew Wilcox <mawilcox@microsoft.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, "fcoe-devel@open-fcoe.org" <fcoe-devel@open-fcoe.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, "open-iscsi@googlegroups.com" <open-iscsi@googlegroups.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, Ming Lin <ming.l@ssi.samsung.com>, intel-gfx@list
 List-Id: linux-rdma@vger.kernel.org
 
-> Previously, ib_uverbs_event_file was suffixed by _file as it contained
-> the actual file information. Since it's now only used as base struct
-> for ib_uverbs_async_event_file and ib_uverbs_completion_event_file,
-> we change its name to ib_uverbs_event_queue. This represents its
-> logical role better.
-> 
-> Fixes: 1e7710f3f656 ('IB/core: Change completion channel to use the
-> reworked objects schema')
-> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
 
-Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Thanks - all changes look good.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 18/04/17 08:27 AM, Konrad Rzeszutek Wilk wrote:
+> Interesting that you didn't CC any of the maintainers. Could you 
+> do that in the future please?
+
+Please read the cover letter. The distribution list for the patchset
+would have been way too large to cc every maintainer (even as limited as
+it was, I had mailing lists yelling at me). My plan was to get buy in
+for the first patch, get it merged and resend the rest independently to
+their respective maintainers. Of course, though, I'd be open to other
+suggestions.
+
+>>>
+>>> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+>>> ---
+>>>  drivers/block/xen-blkfront.c | 33 +++++++++++++++++++++++++++------
+>>>  1 file changed, 27 insertions(+), 6 deletions(-)
+>>>
+>>> diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
+>>> index 5067a0a..7dcf41d 100644
+>>> --- a/drivers/block/xen-blkfront.c
+>>> +++ b/drivers/block/xen-blkfront.c
+>>> @@ -807,8 +807,19 @@ static int blkif_queue_rw_req(struct request *req, struct blkfront_ring_info *ri
+>>>  		BUG_ON(sg->offset + sg->length > PAGE_SIZE);
+>>>
+>>>  		if (setup.need_copy) {
+>>> -			setup.bvec_off = sg->offset;
+>>> -			setup.bvec_data = kmap_atomic(sg_page(sg));
+>>> +			setup.bvec_off = 0;
+>>> +			setup.bvec_data = sg_map(sg, SG_KMAP_ATOMIC);
+>>> +			if (IS_ERR(setup.bvec_data)) {
+>>> +				/*
+>>> +				 * This should really never happen unless
+>>> +				 * the code is changed to use memory that is
+>>> +				 * not mappable in the sg. Seeing there is a
+>>> +				 * questionable error path out of here,
+>>> +				 * we WARN.
+>>> +				 */
+>>> +				WARN(1, "Non-mappable memory used in sg!");
+>>> +				return 1;
+>>> +			}
+>> ...
+>>
+>> Perhaps add a flag to mark failure as 'unexpected' and trace (and panic?)
+>> inside sg_map().
+
+Thanks, that's a good suggestion. I'll make the change for v2.
+
+Logan
