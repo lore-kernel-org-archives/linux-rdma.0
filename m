@@ -1,49 +1,67 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
-Date: Tue, 18 Apr 2017 13:31:09 -0700
-Message-ID: <CAPcyv4hTWbXkdeCEO9O0UM-EPcSjpdHCh7vDpSoNs1kB-Kup3A@mail.gmail.com>
-References: <CAPcyv4it56J8Voo6kV0bBcO3nHsOHYLENpAtONJZTGceDDwNPg@mail.gmail.com>
- <1492381396.25766.43.camel@kernel.crashing.org> <20170418164557.GA7181@obsidianresearch.com>
- <cce00131-1f28-27b3-40ab-04f8783f1e5a@deltatee.com> <20170418190138.GH7181@obsidianresearch.com>
- <df1351d8-b86c-2e21-1948-4688ece5dc2b@deltatee.com> <CAPcyv4gScx6A7vG9VEHpNF41GOy1Nxst7QQ3QC3uZ54bWoxbMg@mail.gmail.com>
- <1565047873.28680036.1492547352121.JavaMail.zimbra@redhat.com>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: Re: Configure VF trust mode in 4.9
+Date: Tue, 18 Apr 2017 14:36:18 -0600
+Message-ID: <CAANLjFpR+YTGN39g3i9HhF+e8ieBE0_kbKEfm62i0grb64bxOQ@mail.gmail.com>
+References: <CAANLjFoty0qrywFVSWC-LEbJw5LVvM8iN16t9nZaG+eDefA21A@mail.gmail.com>
+ <4911B4F2-1BA6-4E86-A6AD-E7A83DA78598@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1565047873.28680036.1492547352121.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <4911B4F2-1BA6-4E86-A6AD-E7A83DA78598-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Mohamad Haj Yahia <mohamad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-netdev-u79uwXL29TZUeOsH4NMqpg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 18, 2017 at 1:29 PM, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->> On Tue, Apr 18, 2017 at 12:35 PM, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
->> wrote:
->> >
->> >
->> > On 18/04/17 01:01 PM, Jason Gunthorpe wrote:
->> >> Ultimately every dma_ops will need special code to support P2P with
->> >> the special hardware that ops is controlling, so it makes some sense
->> >> to start by pushing the check down there in the first place. This
->> >> advice is partially motivated by how dma_map_sg is just a small
->> >> wrapper around the function pointer call...
->> >
->> > Yes, I noticed this problem too and that makes sense. It just means
->> > every dma_ops will probably need to be modified to either support p2p
->> > pages or fail on them. Though, the only real difficulty there is that it
->> > will be a lot of work.
->>
->> I don't think you need to go touch all dma_ops, I think you can just
->> arrange for devices that are going to do dma to get redirected to a
->> p2p aware provider of operations that overrides the system default
->> dma_ops. I.e. just touch get_dma_ops().
->
-> This would not work well for everyone, for instance on GPU we usualy
-> have buffer object with a mix of device memory and regular system
-> memory but call dma sg map once for the list.
->
+After looking at the OFED 3.4 code compared to the mainline code, it
+seems that the 4.9.x eswitch.c contains everything needed to function
+properly, but the sriov.c doesn't have the necessary bits to call
+mlx5_eswitch_set_vport_spoofchk() or mlx5_eswitch_set_vport_trust()
+like the OFED code has.
 
-...and that dma_map goes through get_dma_ops(), so I don't see the conflict?
+However, I can toggle the spoofchk using `ip link set eth0 vf 0
+spoofchk off|on`, but only after I set a mac address on the VF. It
+seems that the autogenerated mac on the VF isn't good enough for the
+spoofchk command. ([13904.771229] mlx5_core 0000:81:00.0:
+esw_vport_ingress_config:1222:(pid 17753): vport[1] configure ingress
+rules failed, illegal mac with spoofchk)
+
+Running `ip link set eth0 vf 0 trust on` gives: Command line is not
+complete. Try option "help"
+
+I don't know if mainline has gone a different way to configuring
+netdevs from what OFED is using. I seem to remember seeing some change
+to configuring netdevs on the mailing list in the last couple of
+months.
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+
+
+On Tue, Apr 18, 2017 at 1:39 PM, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>
+>> On Apr 18, 2017, at 8:57 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+>>
+>> We have run across how to set the VFs on a ConnectX-4 adapter with
+>> OFED 3.3 [0]. We are trying to do this without OFED in the 4.9.21
+>> kernel. From what I can tell, the ability to add the appropriate rules
+>> into the on-card switch were added into 4.9-rc1
+>> (drivers/net/ethernet/mellanox/mlx5/core/eswitch.c). I just can't
+>> figure out how to enable the settings as the /sys paths don't exist
+>> and the `ip` command doesn't take the trust mode. Can someone give us
+>> a push in the right direction?
+> Added more people that can help..
+>>
+>> [0] https://community.mellanox.com/docs/DOC-2473
+>>
+>> Thanks,
+>> ----------------
+>> Robert LeBlanc
+>> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
