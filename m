@@ -1,50 +1,88 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: cqe dump errors on target while running nvme-of large block read
- IO
-Date: Tue, 18 Apr 2017 15:17:47 +0300
-Message-ID: <52c550c1-849b-7ea5-ab34-56543cb9069d@mellanox.com>
-References: <DE927C68B458BE418D582EC97927A9285505C9EA@ORSMSX113.amr.corp.intel.com>
- <47f19583-1882-09d4-ce1c-534b8e59068b@mellanox.com>
- <DE927C68B458BE418D582EC97927A9285505F0C9@ORSMSX113.amr.corp.intel.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next] IB/mthca: Check validity of output parameter
+ pointer
+Date: Tue, 18 Apr 2017 16:48:56 +0300
+Message-ID: <20170418134855.GA3490@yuval-lap>
+References: <20170415154725.17559-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <DE927C68B458BE418D582EC97927A9285505F0C9-8oqHQFITsIFQxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170415154725.17559-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "'linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org'" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Sen, Sujoy" <sujoy.sen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Riches Jr, Robert M" <robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Sat, Apr 15, 2017 at 06:47:25PM +0300, Leon Romanovsky wrote:
+> The mthca driver didn't check supplied pointer to functions
+> mthca_cmd_poll() and mthca_cmd_wait(). This caused to the following
+> smatch errors:
+> 
+> drivers/infiniband/hw/mthca/mthca_cmd.c:371 mthca_cmd_poll() error: we previously assumed 'out_param' could be null (see line 353)
+> drivers/infiniband/hw/mthca/mthca_cmd.c:454 mthca_cmd_wait() error: we previously assumed 'out_param' could be null (see line 432)
+> 
+> In reality all callers of these functions are setting out_is_imm
+> flag are providing pointer too. However it is better to check
+> again to remove smatch errors to achieve warning free subsystem.
+> 
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> ---
+>  Based on k.o/for-4.12 branch.
+> ---
+>  drivers/infiniband/hw/mthca/mthca_cmd.c | 12 ++++++++++--
+>  1 file changed, 10 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.c b/drivers/infiniband/hw/mthca/mthca_cmd.c
+> index c7f49bbb0c72..9d83a53c0c67 100644
+> --- a/drivers/infiniband/hw/mthca/mthca_cmd.c
+> +++ b/drivers/infiniband/hw/mthca/mthca_cmd.c
+> @@ -367,12 +367,16 @@ static int mthca_cmd_poll(struct mthca_dev *dev,
+>  		goto out;
+>  	}
+> 
+> -	if (out_is_imm)
+> +	if (out_is_imm && out_param) {
+>  		*out_param =
+>  			(u64) be32_to_cpu((__force __be32)
+>  					  __raw_readl(dev->hcr + HCR_OUT_PARAM_OFFSET)) << 32 |
+>  			(u64) be32_to_cpu((__force __be32)
+>  					  __raw_readl(dev->hcr + HCR_OUT_PARAM_OFFSET + 4));
+> +	} else if (out_is_imm) {
+> +		err = -EINVAL;
+> +		goto out;
 
+So if this is a good reason to fail the function - how about doing this
+validation before triggering HW operation (mthca_cmd_post)?
 
-On 4/14/2017 7:38 PM, Gruher, Joseph R wrote:
->> hi Joe,
->> can you run and repro it with null_blk backing store instead the nvme ?
->> you can emulate the delay of the nvme device using module param
->> completion_nsec.
->> is it reproducable in case B2B connectivity ?
->
-> Hey Max,
->
-> I ran overnight using null_blk devices but was unable to reproduce in that configuration.  I set completion_nsec to 50000.  Although my measured completion latencies in FIO were more like 17-18usec so not sure why they did not come in closer to 50usec.  Anyway, failure did not reproduce using null_blk instead of real NVMe SSDs.
+> +	}
+> 
+>  	status = be32_to_cpu((__force __be32) __raw_readl(dev->hcr + HCR_STATUS_OFFSET)) >> 24;
+>  	if (status) {
+> @@ -450,8 +454,12 @@ static int mthca_cmd_wait(struct mthca_dev *dev,
+>  		err = mthca_status_to_errno(context->status);
+>  	}
+> 
+> -	if (out_is_imm)
+> +	if (out_is_imm && out_param) {
+>  		*out_param = context->out_param;
+> +	} else if (out_is_imm) {
+> +		err = -EINVAL;
 
-Hi,
-you should set also the irqmode=2 (timer) and run local fio with 
-iodepth=1 and numjobs=1 to verify the latency (worked for me).
-Let's try to repro again with the new configuration, to be sure that 
-this is not a transport issue.
+Ditto
 
-Thanks.
-
->
-> By B2B connectivity do you mean direct target-to-initiator connection with no switch?  I don't think that is possible in this configuration since target uses a 100Gb QSFP NIC and initiator uses a 25Gb SFP28 NIC.  I could perhaps swap the target side NIC for a matching 25Gb device and run direct connected that way if we think we need that data point, we would need to first establish if the failure even happens in that configuration, based on other testing we've done on an all-25Gb configuration I suspect it may not.
->
+> +		goto out;
+> +	}
+> 
+>  out:
+>  	spin_lock(&dev->cmd.context_lock);
+> --
+> 2.12.2
+> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
