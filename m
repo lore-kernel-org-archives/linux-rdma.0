@@ -1,48 +1,39 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 4/6] IB/core: A small refactor in destroy WQ handler
-Date: Tue, 18 Apr 2017 12:03:40 +0300
-Message-ID: <1492506222-28999-5-git-send-email-matanb@mellanox.com>
-References: <1492506222-28999-1-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next 0/6] IB/core: Small fixes and refactors for IDR locking series
+Date: Tue, 18 Apr 2017 12:03:36 +0300
+Message-ID: <1492506222-28999-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1492506222-28999-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Instead of having uverbs_uobject_put both in the error flow and the
-good flow, we unite them.
+Hi Doug,
 
-Fixes: fd3c7904db6e ('IB/core: Change idr objects to use the new schema')
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/uverbs_cmd.c | 8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+This series comes after the comments Sean and Jason sent in the linux-rdma
+mailing list for the "Change IDR usage and locking in uverbs" series.
+It's focused on small refactors, beautification and fixes
+for that series. It doesn't aim to change anything logically.
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index b9024fa..66cb22e 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -2989,18 +2989,12 @@ int ib_uverbs_ex_destroy_wq(struct ib_uverbs_file *file,
- 	uverbs_uobject_get(uobj);
- 
- 	ret = uobj_remove_commit(uobj);
--	if (ret) {
--		uverbs_uobject_put(uobj);
--		return ret;
--	}
--
- 	resp.events_reported = obj->uevent.events_reported;
- 	uverbs_uobject_put(uobj);
--	ret = ib_copy_to_udata(ucore, &resp, resp.response_length);
- 	if (ret)
- 		return ret;
- 
--	return 0;
-+	return ib_copy_to_udata(ucore, &resp, resp.response_length);
- }
- 
- int ib_uverbs_ex_modify_wq(struct ib_uverbs_file *file,
+Thanks,
+Matan
+
+Matan Barak (6):
+  IB/core: Rename write flag to exclusive in rdma_core
+  IB/core: Don't pass the lock state to _rdma_remove_commit_uobject
+  IB/core: Nullify ib_uobject during allocation
+  IB/core: A small refactor in destroy WQ handler
+  IB/core: Don't use is_async in event files to infer events size
+  IB/core: Rename uverbs event file structure
+
+ drivers/infiniband/core/rdma_core.c        |  86 ++++++++---------
+ drivers/infiniband/core/uverbs.h           |  21 +++--
+ drivers/infiniband/core/uverbs_cmd.c       |  16 +---
+ drivers/infiniband/core/uverbs_main.c      | 146 ++++++++++++++---------------
+ drivers/infiniband/core/uverbs_std_types.c |  20 ++--
+ include/rdma/uverbs_types.h                |  33 +++----
+ 6 files changed, 158 insertions(+), 164 deletions(-)
+
 -- 
 1.8.3.1
 
