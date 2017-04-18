@@ -1,43 +1,184 @@
-From: Logan Gunthorpe <logang@deltatee.com>
-Subject: Re: [PATCH 16/22] xen-blkfront: Make use of the new
- sg_map helper function
-Date: Tue, 18 Apr 2017 09:59:09 -0600
-Message-ID: <bed54c06-eb00-e682-8a50-236ebb9c1db4@deltatee.com>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
- <1492121135-4437-17-git-send-email-logang@deltatee.com>
- <063D6719AE5E284EB5DD2968C1650D6DCFFD3CD7@AcuExch.aculab.com>
- <20170418142723.GA27133@char.us.oracle.com>
- <7930aa93-6106-e12f-ba76-e2771d4ec2dc@deltatee.com>
- <20170418155020.GF12001@char.us.oracle.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-core 5/5] Add mmio_memcpy_x64
+Date: Tue, 18 Apr 2017 19:22:07 +0300
+Message-ID: <413a6c23-2bfe-60b6-f179-ddcb82bb19ab@dev.mellanox.co.il>
+References: <1492123127-6266-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1492123127-6266-6-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <20170418155020.GF12001@char.us.oracle.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Steve Wise <swise@opengridcomputing.com>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "target-devel@vger.kernel.org" <target-devel@vger.kernel.org>, Sumit Semwal <sumit.semwal@linaro.org>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "rds-devel@oss.oracle.com" <rds-devel@oss.oracle.com>, xen-devel@lists.xensource.com, Sagi Grimberg <sagi@grimberg.me>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, Matthew Wilcox <mawilcox@microsoft.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Ross Zwisler <ross.zwisler@linux.intel.com>, "open-iscsi@googlegroups.com" <open-iscsi@googlegroups.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, sparma
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1492123127-6266-6-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-CgpPbiAxOC8wNC8xNyAwOTo1MCBBTSwgS29ucmFkIFJ6ZXN6dXRlayBXaWxrIHdyb3RlOgo+IEkg
-YW0gbm90IHN1cmUgaWYgeW91IGtub3csIGJ1dCB5b3UgY2FuIGFkZCBvbiBlYWNoIHBhdGNoIHRo
-ZSByZXNwZWN0aXZlCj4gbWFpbnRhaW5lciB2aWEgJ0NDJy4gVGhhdCB3YXkgeW91IGNhbiBoYXZl
-IGNlcnRhaW4gbWFpbnRhaW5lcnMgQ0NlZCBvbmx5Cj4gb24gdGhlIHN1YnN5c3RlbXMgdGhleSBj
-b3Zlci4gWW91IHB1dCBpdCBhZnRlciAob3IgYmVmb3JlKSB5b3VyIFNvQiBhbmQKPiBnaXQgc2Vu
-ZC1lbWFpbCBoYXBwaWxseSBwaWNrcyBpdCB1cC4KClllcywgYnV0IEkndmUgc2VlbiBzb21lIG1h
-aW50YWluZXJzIGNvbXBsYWluIHdoZW4gdGhleSByZWNlaXZlIGEgcGF0Y2gKd2l0aCBubyBjb250
-ZXh0IChpZS4gY292ZXIgbGV0dGVyIGFuZCBmaXJzdCBwYXRjaCkuIFNvIEkgY2hvc2UgdG8gZG8g
-aXQKdGhpcyB3YXkuIEkgZXhwZWN0IGluIHRoaXMgc2l0dWF0aW9uLCBubyBtYXR0ZXIgd2hhdCB5
-b3UgZG8sIHNvbWVvbmUgaXMKZ29pbmcgdG8gY29tcGxhaW4gYWJvdXQgdGhlIGFwcHJvYWNoIGNo
-b3Nlbi4KClRoYW5rcyBhbnl3YXkgZm9yIHRoZSB0aXAuCgpMb2dhbgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0Cklu
-dGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5v
-cmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZngK
+On 4/14/2017 1:38 AM, Jason Gunthorpe wrote:
+> This pattern is common in a couple of drivers, and needs the s390
+> syscall.
+>
+> The common version properly handles 32 bit and prevents reordering of
+> the stores, which is the stated reason for this to exist. It is also
+> slightly more optimized, since it assumes a non-zero transfer length.
+>
+> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> ---
+>  providers/mlx4/mmio.h | 43 -----------------------------------------
+>  providers/mlx4/qp.c   |  5 ++---
+>  providers/mlx5/qp.c   | 17 ++++++-----------
+>  util/mmio.h           | 53 ++++++++++++++++++++++++++++++++++++++++++++++++++-
+>  4 files changed, 60 insertions(+), 58 deletions(-)
+>  delete mode 100644 providers/mlx4/mmio.h
+>
+> diff --git a/providers/mlx4/mmio.h b/providers/mlx4/mmio.h
+> deleted file mode 100644
+> index 9821e85224dcfd..00000000000000
+> diff --git a/providers/mlx4/qp.c b/providers/mlx4/qp.c
+> index 423f59533de68d..e7f10b9f1524d5 100644
+> --- a/providers/mlx4/qp.c
+> +++ b/providers/mlx4/qp.c
+> @@ -43,7 +43,6 @@
+>
+>  #include "mlx4.h"
+>  #include "wqe.h"
+> -#include "mmio.h"
+>
+>  static const uint32_t mlx4_ib_opcode[] = {
+>  	[IBV_WR_SEND]			= MLX4_OPCODE_SEND,
+> @@ -481,8 +480,8 @@ out:
+>  		 */
+>  		mmio_wc_spinlock(&ctx->bf_lock);
+>
+> -		mlx4_bf_copy(ctx->bf_page + ctx->bf_offset, (unsigned long *) ctrl,
+> -			     align(size * 16, 64));
+> +		mmio_memcpy_x64(ctx->bf_page + ctx->bf_offset, ctrl,
+> +				align(size * 16, 64));
+>  		/* Flush before toggling bf_offset to be latency oriented */
+>  		mmio_flush_writes();
+>
+> diff --git a/providers/mlx5/qp.c b/providers/mlx5/qp.c
+> index 7f67a0b61b221f..c4789bf0d909a4 100644
+> --- a/providers/mlx5/qp.c
+> +++ b/providers/mlx5/qp.c
+> @@ -239,19 +239,14 @@ static void set_data_ptr_seg_atomic(struct mlx5_wqe_data_seg *dseg,
+>  static void mlx5_bf_copy(unsigned long long *dst, unsigned long long *src,
+>  			 unsigned bytecnt, struct mlx5_qp *qp)
+>  {
+> -	while (bytecnt > 0) {
+> -		*dst++ = *src++;
+> -		*dst++ = *src++;
+> -		*dst++ = *src++;
+> -		*dst++ = *src++;
+> -		*dst++ = *src++;
+> -		*dst++ = *src++;
+> -		*dst++ = *src++;
+> -		*dst++ = *src++;
+> -		bytecnt -= 8 * sizeof(unsigned long long);
+> +	do {
+> +		mmio_memcpy_x64(dst, src, 64);
+> +		bytecnt -= 64;
+> +		dst += 8;
+> +		src += 8;
+
+It looks like the above +=8 is wrong in 32 bit systems, agree ?
+
+>  		if (unlikely(src == qp->sq.qend))
+>  			src = qp->sq_start;
+> -	}
+> +	} while (bytecnt > 0);
+>  }
+>
+>  static uint32_t send_ieth(struct ibv_send_wr *wr)
+> diff --git a/util/mmio.h b/util/mmio.h
+> index 0b89f5fcbe000e..1d45d6d6364d4e 100644
+> --- a/util/mmio.h
+> +++ b/util/mmio.h
+> @@ -56,6 +56,7 @@
+>  #include <linux/types.h>
+>  #include <stdatomic.h>
+>  #include <stdint.h>
+> +#include <stddef.h>
+>  #include <endian.h>
+>
+>  #include <config.h>
+> @@ -158,7 +159,6 @@ static inline uint8_t mmio_read8(const void *addr)
+>  	return atomic_load_explicit((_Atomic(uint32_t) *)addr,
+>  				    memory_order_relaxed);
+>  }
+> -
+>  #endif /* __s390x__ */
+>
+>  MAKE_WRITE(mmio_write16, 16)
+> @@ -200,6 +200,57 @@ __le64 mmio_read64_le(const void *addr);
+>  		return le##_SZ_##toh(_NAME_##_le(addr));                       \
+>  	}
+>
+> +/* This strictly guarantees the order of TLP generation for the memory copy to
+> +   be in ascending address order.
+> +*/
+> +#ifdef __s390x__
+> +static inline void mmio_memcpy_x64(void *dest, const void *src, size_t bytecnt)
+> +{
+> +	s390_mmio_write(addr, src, bytecnt);
+> +}
+> +#else
+> +
+> +/* Transfer is some multiple of 64 bytes */
+> +static inline void mmio_memcpy_x64(void *dest, const void *src, size_t bytecnt)
+> +{
+> +	uintptr_t *dst_p = dest;
+> +
+> +	/* Caller must guarantee:
+> +	    assert(bytecnt != 0);
+> +	    assert((bytecnt % 64) == 0);
+> +	    assert(((uintptr_t)dest) % __alignof__(*dst) == 0);
+> +	    assert(((uintptr_t)src) % __alignof__(*dst) == 0);
+> +	*/
+> +
+> +	/* Use the native word size for the copy */
+> +	if (sizeof(*dst_p) == 8) {
+
+We expect this 'if' to be dropped at compile time to prevent performance 
+penalty comparing the original code, correct ?
+
+> +		const __be64 *src_p = src;
+> +
+> +		do {
+> +			/* Do 64 bytes at a time */
+> +			mmio_write64_be(dst_p++, *src_p++);
+> +			mmio_write64_be(dst_p++, *src_p++);
+> +			mmio_write64_be(dst_p++, *src_p++);
+> +			mmio_write64_be(dst_p++, *src_p++);
+> +			mmio_write64_be(dst_p++, *src_p++);
+> +			mmio_write64_be(dst_p++, *src_p++);
+> +			mmio_write64_be(dst_p++, *src_p++);
+> +			mmio_write64_be(dst_p++, *src_p++);
+> +
+> +			bytecnt -= 8 * sizeof(*dst_p);
+> +		} while (bytecnt > 0);
+> +	} else if (sizeof(*dst_p) == 4) {
+> +		const __be32 *src_p = src;
+> +
+> +		do {
+> +			mmio_write32_be(dst_p++, *src_p++);
+> +			mmio_write32_be(dst_p++, *src_p++);
+> +			bytecnt -= 2 * sizeof(*dst_p);
+
+Any reason not to write at least 64 bytes here before checking byte 
+count and looping again ?
+
+> +		} while (bytecnt > 0);
+> +	}
+> +}
+> +#endif
+> +
+>  MAKE_WRITE(mmio_write16, 16)
+>  MAKE_WRITE(mmio_write32, 32)
+>  MAKE_WRITE(mmio_write64, 64)
+>
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
