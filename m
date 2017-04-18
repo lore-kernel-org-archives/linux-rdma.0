@@ -1,86 +1,97 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
-Date: Tue, 18 Apr 2017 10:27:47 -0700
-Message-ID: <CAPcyv4izLa2vw12ysvVfd=ysaMKcASNFm+=CaqDKhnPY9B5OJg@mail.gmail.com>
-References: <CAPcyv4it56J8Voo6kV0bBcO3nHsOHYLENpAtONJZTGceDDwNPg@mail.gmail.com>
- <1492381396.25766.43.camel@kernel.crashing.org>
- <20170418164557.GA7181@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core 1/5] util: Add common mmio macros
+Date: Tue, 18 Apr 2017 11:28:52 -0600
+Message-ID: <20170418172852.GD7181@obsidianresearch.com>
+References: <1492123127-6266-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1492123127-6266-2-git-send-email-jgunthorpe@obsidianresearch.com>
+ <b35958cf-5e87-3149-5413-eb754ec89b4d@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170418164557.GA7181-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <b35958cf-5e87-3149-5413-eb754ec89b4d-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 18, 2017 at 9:45 AM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Mon, Apr 17, 2017 at 08:23:16AM +1000, Benjamin Herrenschmidt wrote:
->
->> Thanks :-) There's a reason why I'm insisting on this. We have constant
->> requests for this today. We have hacks in the GPU drivers to do it for
->> GPUs behind a switch, but those are just that, ad-hoc hacks in the
->> drivers. We have similar grossness around the corner with some CAPI
->> NICs trying to DMA to GPUs. I have people trying to use PLX DMA engines
->> to whack nVME devices.
->
-> A lot of people feel this way in the RDMA community too. We have had
-> vendors shipping out of tree code to enable P2P for RDMA with GPU
-> years and years now. :(
->
-> Attempts to get things in mainline have always run into the same sort
-> of road blocks you've identified in this thread..
->
-> FWIW, I read this discussion and it sounds closer to an agreement than
-> I've ever seen in the past.
->
-> From Ben's comments, I would think that the 'first class' support that
-> is needed here is simply a function to return the 'struct device'
-> backing a CPU address range.
->
-> This is the minimal required information for the arch or IOMMU code
-> under the dma ops to figure out the fabric source/dest, compute the
-> traffic path, determine if P2P is even possible, what translation
-> hardware is crossed, and what DMA address should be used.
->
-> If there is going to be more core support for this stuff I think it
-> will be under the topic of more robustly describing the fabric to the
-> core and core helpers to extract data from the description: eg compute
-> the path, check if the path crosses translation, etc
->
-> But that isn't really related to P2P, and is probably better left to
-> the arch authors to figure out where they need to enhance the existing
-> topology data..
->
-> I think the key agreement to get out of Logan's series is that P2P DMA
-> means:
->  - The BAR will be backed by struct pages
->  - Passing the CPU __iomem address of the BAR to the DMA API is
->    valid and, long term, dma ops providers are expected to fail
->    or return the right DMA address
->  - Mapping BAR memory into userspace and back to the kernel via
->    get_user_pages works transparently, and with the DMA API above
->  - The dma ops provider must be able to tell if source memory is bar
->    mapped and recover the pci device backing the mapping.
->
-> At least this is what we'd like in RDMA :)
->
-> FWIW, RDMA probably wouldn't want to use a p2mem device either, we
-> already have APIs that map BAR memory to user space, and would like to
-> keep using them. A 'enable P2P for bar' helper function sounds better
-> to me.
+On Tue, Apr 18, 2017 at 06:52:00PM +0300, Yishai Hadas wrote:
 
-...and I think it's not a helper function as much as asking the bus
-provider "can these two device dma to each other". The "helper" is the
-dma api redirecting through a software-iommu that handles bus address
-translation differently than it would handle host memory dma mapping.
+> >+/* When the arch does not have a 32 bit store we provide an emulation that
+> You mean a 64 bit store, correct ?
+
+Yep, thanks
+
+> >+write64_fn_t resolve_mmio_write64_be(void)
+> >+{
+> >+#if defined(__i386__)
+> >+	if (have_sse())
+> >+		return &sse_mmio_write64_be;
+> >+#endif
+> >+	return &pthread_mmio_write64_be;
+> 
+> This will bring in 32 bit systems code that uses global spinlock comparing
+> current usage where a specific spinlock is used, isn't it ?
+
+Yes, that is mostly right. libutil is statically linked to each
+provider, so every provider gets its own instance of the global lock.
+
+The only case this would seem to matter is if multiple devices using
+the same provider are run concurrently.
+
+We could use a hash scheme or something to multiple the lock, but I'm
+really not sure that 32 bit performance matters to anyone anymore?
+
+> see mlx4_write64() which is replaced by that code in downstream patches.
+
+Yes, it will be easier to migrate the entire code base if we don't
+have to add more special locking. Since this brings back lockless SSE
+on ia32 I feel there are very few systems that would actually hit this
+lock and care about the performance of the lock ??
+
+> >+/* The first step is to define the 'raw' accessors. To make this very safe
+> >+   with sparse we define two versions of each, a le and a be - however the
+> >+   code is always identical.
+> >+*/
+
+[..]
+
+> >+#define MAKE_WRITE(_NAME_, _SZ_)                                               \
+> >+	static inline void _NAME_##_be(void *addr, __be##_SZ_ value)           \
+> >+	{                                                                      \
+> >+		s390_mmio_write(addr, &value, sizeof(value));                  \
+> >+	}                                                                      \
+> >+	static inline void _NAME_##_le(void *addr, __le##_SZ_ value)           \
+> >+	{                                                                      \
+> >+		s390_mmio_write(addr, &value, sizeof(value));                  \
+> >+	}
+> 
+> I believe that you introduced two different versions (i.e. le/be only for
+> semantic reasons as code is really similar, is that correct ?
+
+Yes, as the comment above says.
+
+> >+static inline void mmio_read8(void *addr, uint8_t value)
+> 
+> Did you refer here to mmio_write8 ?
+
+Yep, I can't even compile test the s390 stuff..
+
+> >+#define MAKE_WRITE(_NAME_, _SZ_)                                               \
+> >+	static inline void _NAME_##_be(void *addr, __be##_SZ_ value)           \
+> >+	{                                                                      \
+> >+		atomic_store_explicit((_Atomic(uint##_SZ_##_t) *)addr,         \
+> >+				      (__force uint##_SZ_##_t)value,           \
+> >+				      memory_order_relaxed);                   \
+> 
+> Mightn't this code introduce some overhead comparing direct assignment which
+> is used (i.e. mlx5_write64) and replaced by that in downstream patches ?
+
+All of the generated assembly I have inspected says this is at least
+identical.
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
