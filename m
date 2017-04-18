@@ -1,78 +1,68 @@
-From: Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [PATCH 05/22] drm/i915: Make use of the new sg_map
- helper function
-Date: Tue, 18 Apr 2017 08:44:27 +0200
-Message-ID: <20170418064427.r5ewu3p66p2zwdru@phenom.ffwll.local>
-References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
- <1492121135-4437-6-git-send-email-logang@deltatee.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] net/mlx4: suppress 'may be used uninitialized' warning
+Date: Tue, 18 Apr 2017 10:02:19 +0300
+Message-ID: <20170418070219.GA14088@mtr-leonro.local>
+References: <20170418062135.76698-1-gthelen@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="y0ulUmNC+osPPQO6"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1492121135-4437-6-git-send-email-logang@deltatee.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Steve Wise <swise@opengridcomputing.com>, linux-nvme@lists.infradead.org, Stephen Bates <sbates@raithlin.com>, target-devel@vger.kernel.org, Sumit Semwal <sumit.semwal@linaro.org>, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, Sagi Grimberg <sagi@grimberg.me>, linux-scsi@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma@vger.kernel.org, Christoph Hellwig <hch@lst.de>, fcoe-devel@open-fcoe.org, Ross Zwisler <ross.zwisler@linux.intel.com>, open-iscsi@googlegroups.com, linux-media@vger.kernel.org, Ming Lin <ming.l@ssi.samsung.com>, intel-gfx@lists.freedesktop.org, sparmaintainer@unisys.com, linux-raid@vger.kernel.org, dri-devel@lists.freedesktop.org, Dan Williams <dan.j.williams@intel.com>, megaraidlinux.pdl@broadcom.com, Jens Axboe <axboe@kernel.dk>, linaro-mm-sig@lists.linaro.org, "Martin K. Petersen" <martin.petersen@oracle.com>, Greg
+In-Reply-To: <20170418062135.76698-1-gthelen-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg Thelen <gthelen-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ido Shamay <idos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tariq Toukan <tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCBBcHIgMTMsIDIwMTcgYXQgMDQ6MDU6MThQTSAtMDYwMCwgTG9nYW4gR3VudGhvcnBl
-IHdyb3RlOgo+IFRoaXMgaXMgYSBzaW5nbGUgc3RyYWlnaHRmb3J3YXJkIGNvbnZlcnNpb24gZnJv
-bSBrbWFwIHRvIHNnX21hcC4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBMb2dhbiBHdW50aG9ycGUgPGxv
-Z2FuZ0BkZWx0YXRlZS5jb20+CgpBY2tlZC1ieTogRGFuaWVsIFZldHRlciA8ZGFuaWVsLnZldHRl
-ckBmZndsbC5jaD4KClByb2JhYmx5IG1ha2VzIHNlbnNlIHRvIG1lcmdlIHRocm91Z2ggc29tZSBv
-dGhlciB0cmVlLCBidXQgcGxlYXNlIGJlIGF3YXJlCm9mIHRoZSBjb25zaWRlcmFibGUgY2h1cm4g
-cmF0ZSBpbiBpOTE1IChpLmUuIG1ha2Ugc3VyZSB5b3VyIHRyZWUgaXMgaW4KbGludXgtbmV4dCBi
-ZWZvcmUgeW91IHNlbmQgYSBwdWxsIHJlcXVlc3QgZm9yIHRoaXMpLiBQbGFuZSBCIHdvdWxkIGJl
-IHRvCmdldCB0aGUgcHJlcCBwYXRjaCBpbiBmaXJzdCBhbmQgdGhlbiBtZXJnZSB0aGUgaTkxNSBj
-b252ZXJzaW9uIG9uZSBrZXJuZWwKcmVsZWFzZSBsYXRlci4KLURhbmllbAoKPiAtLS0KPiAgZHJp
-dmVycy9ncHUvZHJtL2k5MTUvaTkxNV9nZW0uYyB8IDI3ICsrKysrKysrKysrKysrKystLS0tLS0t
-LS0tLQo+ICAxIGZpbGUgY2hhbmdlZCwgMTYgaW5zZXJ0aW9ucygrKSwgMTEgZGVsZXRpb25zKC0p
-Cj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2k5MTVfZ2VtLmMgYi9kcml2
-ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X2dlbS5jCj4gaW5kZXggNjdiMWZjNS4uMWIxYjkxYSAxMDA2
-NDQKPiAtLS0gYS9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X2dlbS5jCj4gKysrIGIvZHJpdmVy
-cy9ncHUvZHJtL2k5MTUvaTkxNV9nZW0uYwo+IEBAIC0yMTg4LDYgKzIxODgsMTUgQEAgc3RhdGlj
-IHZvaWQgX19pOTE1X2dlbV9vYmplY3RfcmVzZXRfcGFnZV9pdGVyKHN0cnVjdCBkcm1faTkxNV9n
-ZW1fb2JqZWN0ICpvYmopCj4gIAkJcmFkaXhfdHJlZV9kZWxldGUoJm9iai0+bW0uZ2V0X3BhZ2Uu
-cmFkaXgsIGl0ZXIuaW5kZXgpOwo+ICB9Cj4gIAo+ICtzdGF0aWMgdm9pZCBpOTE1X2dlbV9vYmpl
-Y3RfdW5tYXAoY29uc3Qgc3RydWN0IGRybV9pOTE1X2dlbV9vYmplY3QgKm9iaiwKPiArCQkJCSAg
-dm9pZCAqcHRyKQo+ICt7Cj4gKwlpZiAoaXNfdm1hbGxvY19hZGRyKHB0cikpCj4gKwkJdnVubWFw
-KHB0cik7Cj4gKwllbHNlCj4gKwkJc2dfdW5tYXAob2JqLT5tbS5wYWdlcy0+c2dsLCBwdHIsIFNH
-X0tNQVApOwo+ICt9Cj4gKwo+ICB2b2lkIF9faTkxNV9nZW1fb2JqZWN0X3B1dF9wYWdlcyhzdHJ1
-Y3QgZHJtX2k5MTVfZ2VtX29iamVjdCAqb2JqLAo+ICAJCQkJIGVudW0gaTkxNV9tbV9zdWJjbGFz
-cyBzdWJjbGFzcykKPiAgewo+IEBAIC0yMjE1LDEwICsyMjI0LDcgQEAgdm9pZCBfX2k5MTVfZ2Vt
-X29iamVjdF9wdXRfcGFnZXMoc3RydWN0IGRybV9pOTE1X2dlbV9vYmplY3QgKm9iaiwKPiAgCQl2
-b2lkICpwdHI7Cj4gIAo+ICAJCXB0ciA9IHB0cl9tYXNrX2JpdHMob2JqLT5tbS5tYXBwaW5nKTsK
-PiAtCQlpZiAoaXNfdm1hbGxvY19hZGRyKHB0cikpCj4gLQkJCXZ1bm1hcChwdHIpOwo+IC0JCWVs
-c2UKPiAtCQkJa3VubWFwKGttYXBfdG9fcGFnZShwdHIpKTsKPiArCQlpOTE1X2dlbV9vYmplY3Rf
-dW5tYXAob2JqLCBwdHIpOwo+ICAKPiAgCQlvYmotPm1tLm1hcHBpbmcgPSBOVUxMOwo+ICAJfQo+
-IEBAIC0yNDc1LDggKzI0ODEsMTEgQEAgc3RhdGljIHZvaWQgKmk5MTVfZ2VtX29iamVjdF9tYXAo
-Y29uc3Qgc3RydWN0IGRybV9pOTE1X2dlbV9vYmplY3QgKm9iaiwKPiAgCXZvaWQgKmFkZHI7Cj4g
-IAo+ICAJLyogQSBzaW5nbGUgcGFnZSBjYW4gYWx3YXlzIGJlIGttYXBwZWQgKi8KPiAtCWlmIChu
-X3BhZ2VzID09IDEgJiYgdHlwZSA9PSBJOTE1X01BUF9XQikKPiAtCQlyZXR1cm4ga21hcChzZ19w
-YWdlKHNndC0+c2dsKSk7Cj4gKwlpZiAobl9wYWdlcyA9PSAxICYmIHR5cGUgPT0gSTkxNV9NQVBf
-V0IpIHsKPiArCQlhZGRyID0gc2dfbWFwKHNndC0+c2dsLCBTR19LTUFQKTsKPiArCQlpZiAoSVNf
-RVJSKGFkZHIpKQo+ICsJCQlyZXR1cm4gTlVMTDsKPiArCX0KPiAgCj4gIAlpZiAobl9wYWdlcyA+
-IEFSUkFZX1NJWkUoc3RhY2tfcGFnZXMpKSB7Cj4gIAkJLyogVG9vIGJpZyBmb3Igc3RhY2sgLS0g
-YWxsb2NhdGUgdGVtcG9yYXJ5IGFycmF5IGluc3RlYWQgKi8KPiBAQCAtMjU0MywxMSArMjU1Miw3
-IEBAIHZvaWQgKmk5MTVfZ2VtX29iamVjdF9waW5fbWFwKHN0cnVjdCBkcm1faTkxNV9nZW1fb2Jq
-ZWN0ICpvYmosCj4gIAkJCWdvdG8gZXJyX3VucGluOwo+ICAJCX0KPiAgCj4gLQkJaWYgKGlzX3Zt
-YWxsb2NfYWRkcihwdHIpKQo+IC0JCQl2dW5tYXAocHRyKTsKPiAtCQllbHNlCj4gLQkJCWt1bm1h
-cChrbWFwX3RvX3BhZ2UocHRyKSk7Cj4gLQo+ICsJCWk5MTVfZ2VtX29iamVjdF91bm1hcChvYmos
-IHB0cik7Cj4gIAkJcHRyID0gb2JqLT5tbS5tYXBwaW5nID0gTlVMTDsKPiAgCX0KPiAgCj4gLS0g
-Cj4gMi4xLjQKPiAKPiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwo+IGRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKPiBkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0
-b3Aub3JnCj4gaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9k
-cmktZGV2ZWwKCi0tIApEYW5pZWwgVmV0dGVyClNvZnR3YXJlIEVuZ2luZWVyLCBJbnRlbCBDb3Jw
-b3JhdGlvbgpodHRwOi8vYmxvZy5mZndsbC5jaApfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0
-cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9s
-aXN0aW5mby9pbnRlbC1nZngK
+
+--y0ulUmNC+osPPQO6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Mon, Apr 17, 2017 at 11:21:35PM -0700, Greg Thelen wrote:
+> gcc 4.8.4 complains that mlx4_SW2HW_MPT_wrapper() uses an uninitialized
+> 'mpt' variable:
+>   drivers/net/ethernet/mellanox/mlx4/resource_tracker.c: In function 'mlx4_SW2HW_MPT_wrapper':
+>   drivers/net/ethernet/mellanox/mlx4/resource_tracker.c:2802:12: warning: 'mpt' may be used uninitialized in this function [-Wmaybe-uninitialized]
+>      mpt->mtt = mtt;
+>
+> I think this warning is a false complaint.  mpt is only used when
+> mr_res_start_move_to() return zero, and in all such cases it initializes
+> mpt.
+> But apparently gcc cannot see that.
+>
+> Initialize mpt to avoid the warning.
+>
+> Signed-off-by: Greg Thelen <gthelen-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+> ---
+
+It looks like other callers of mr_res_start_move_to() have the same
+"uninitialized" variable.
+
+Thanks
+
+--y0ulUmNC+osPPQO6
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj1ufsACgkQ5GN7iDZy
+WKcYaBAAqDl2pw2RUohGYSWfNig1z0ncrsIEsfurzBoAiEfgMgA21r6IrO3V1PY4
+D7PKZwXVfM8E7pY5Q86FKXZ+9quKi+Lkl9xGD7+isaBLAXcZ1OwElMgP79eThV5H
+VZqCXS0Nqafe+XN5JMAn/0Egi932S34m2EYlRisJBgVyrFWuQ98RxyAjOKS5NEPo
+IFo5uDjkpRYv9mtPtG3WCE2bw3it9rPqHjYfrvvmtybD5Cv+vm4SnA1vG//+fA+3
+7BTmYvnXhoHFh4GWWaCOZpCsv/u0fySAXP0s8WsYiZMGZTQ3kdEV35ERj1xa5bC6
+3UXJvzXPl8Waes0x5T7xjCmMVPk9Tw/C1iVUzlHvSO6D7GdU/vnI7ws50BkQ2xVL
+c/DG02LE455Nb5XllMGq+sEUI713mci9D7RtNpGJcrwj5Z/w88od1jEPyWYcgEtX
+8Tux2XXHunSXgYfBFUJ7L65//iX+L7x2EaNegKlfs7FFONUSX3+FHQjhwnVjLEjR
+e0gASQreEYvdlCFDb/geW+IompeSE8rEZoQZmXmSBmv8107yfG6dVza4oTO1vBWG
+hOaLGw39zvpKn9KI7W8+a/nRX67TZYNFK6hYpXpnIuoftic8YM+mGhws7H/Ohc3E
+8xz9i9vdtIVnLuna29D0SL/ctGVtPLc2MK2m5b9Rup4erVnwFPk=
+=ngpP
+-----END PGP SIGNATURE-----
+
+--y0ulUmNC+osPPQO6--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
