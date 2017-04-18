@@ -1,97 +1,178 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/5] util: Add common mmio macros
-Date: Tue, 18 Apr 2017 11:28:52 -0600
-Message-ID: <20170418172852.GD7181@obsidianresearch.com>
-References: <1492123127-6266-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1492123127-6266-2-git-send-email-jgunthorpe@obsidianresearch.com>
- <b35958cf-5e87-3149-5413-eb754ec89b4d@dev.mellanox.co.il>
+From: Roman Penyaev <roman.penyaev@profitbricks.com>
+Subject: RDMA performance comparison: IBNBD, SCST, NVMEoF
+Date: Tue, 18 Apr 2017 19:33:25 +0200
+Message-ID: <CAJrWOzAM_A6fwFxTZVo9MmiwWF1d6Bp9zTdBvUfnDFCPY_CmCQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <b35958cf-5e87-3149-5413-eb754ec89b4d-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-block-owner@vger.kernel.org>
+Sender: linux-block-owner@vger.kernel.org
+To: Bart Van Assche <Bart.VanAssche@sandisk.com>, Sagi Grimberg <sagi@grimberg.me>, Doug Ledford <dledford@redhat.com>, Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@lst.de>, Fabian Holler <mail@fholler.de>, Milind Dumbare <Milind.dumbare@gmail.com>, Michael Wang <yun.wang@profitbricks.com>, Danil Kipnis <danil.kipnis@profitbricks.com>, Jinpu Wang <jinpu.wang@profitbricks.com>, linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 18, 2017 at 06:52:00PM +0300, Yishai Hadas wrote:
+Hi Bart, Sagi and all,
 
-> >+/* When the arch does not have a 32 bit store we provide an emulation that
-> You mean a 64 bit store, correct ?
+By current email I would like to share some fresh RDMA performance
+results of IBNBD, SCST and NVMEof, based on 4.10 kernel and variety
+of configurations.
 
-Yep, thanks
+All fio runs are grouped by the name of a project, crucial config
+differencies (e.g. CPU pinning or register_always=3DN) and two testing
+modes: MANY-DISKS and MANY-JOBS.  In each group of results amount of
+simultaneous fio jobs is increasing starting from 1 up to 128.  E.g.
+in MANY-DISKS testing mode 1 fio job is dedicated to 1 disk, where
+amount of jobs (and disks) is growing, in its turn, in MANY-JOBS
+testing mode each fio job produces IO for the same disk, i.e.:
 
-> >+write64_fn_t resolve_mmio_write64_be(void)
-> >+{
-> >+#if defined(__i386__)
-> >+	if (have_sse())
-> >+		return &sse_mmio_write64_be;
-> >+#endif
-> >+	return &pthread_mmio_write64_be;
-> 
-> This will bring in 32 bit systems code that uses global spinlock comparing
-> current usage where a specific spinlock is used, isn't it ?
+  MANY-DISKS:
+     x1:
+         numjobs=3D1
+         [job1]
+         filename=3D/dev/nvme0n1
+     ...
+     x128:
+         numjobs=3D1
+         [job1]
+         filename=3D/dev/nvme0n1
+         [job2]
+         filename=3D/dev/nvme0n2
+         ...
+         [job128]
+         filename=3D/dev/nvme0n128
 
-Yes, that is mostly right. libutil is statically linked to each
-provider, so every provider gets its own instance of the global lock.
+  MANY-JOBS:
+     x1:
+         numjobs=3D1
+         [job1]
+         filename=3D/dev/nvme0n1
+     ...
+     x128:
+         numjobs=3D128
+         [job1]
+         filename=3D/dev/nvme0n1
 
-The only case this would seem to matter is if multiple devices using
-the same provider are run concurrently.
+Each group of results represents itself as a performance measurement,
+which can be easily plotted, taking number of jobs as X axis and iops,
+overall IO latencies or anything else extracted from fio json result
+files as Y axis.
 
-We could use a hash scheme or something to multiple the lock, but I'm
-really not sure that 32 bit performance matters to anyone anymore?
+FIO configurations were generated and saved along with produced fio
+json results by the fio-runner.py script [1].  Complete archive with
+FIO configs and results can be downloaded here [2].
 
-> see mlx4_write64() which is replaced by that code in downstream patches.
+The following metrics were taken from fio json results:
 
-Yes, it will be easier to migrate the entire code base if we don't
-have to add more special locking. Since this brings back lockless SSE
-on ia32 I feel there are very few systems that would actually hit this
-lock and care about the performance of the lock ??
+    write/iops     - IOPS
+    write/lat/mean - average latency (=CE=BCs)
 
-> >+/* The first step is to define the 'raw' accessors. To make this very safe
-> >+   with sparse we define two versions of each, a le and a be - however the
-> >+   code is always identical.
-> >+*/
+Here I would like to present reduced results table taking into account
+only runs with CPU pinning in MANY-DISKS testing mode, since CPU pinning
+makes more sense in terms of performance and MANY-DISKS and MANY-JOBS
+results look very much similar:
 
-[..]
+write/iops (MANY-DISKS)
+      IBNBD_pin   NVME_noreg_pin  NVME_pin    SCST_noreg_pin  SCST_pin
+x1    80398.96    75577.24        54110.19    59555.04        48446.05
+x2    109018.60   96478.45        69176.77    73925.81        55557.59
+x4    169164.56   140558.75       93700.96    75419.91        56294.61
+x8    197725.44   159887.33       99773.05    79750.92        55938.84
+x16   176782.36   150448.33       99644.05    92964.23        56463.14
+x32   139666.00   123198.38       81845.30    81287.98        50590.86
+x64   125666.16   82231.77        72117.67    72023.32        45121.17
+x128  120253.63   73911.97        65665.08    74642.27        47268.46
 
-> >+#define MAKE_WRITE(_NAME_, _SZ_)                                               \
-> >+	static inline void _NAME_##_be(void *addr, __be##_SZ_ value)           \
-> >+	{                                                                      \
-> >+		s390_mmio_write(addr, &value, sizeof(value));                  \
-> >+	}                                                                      \
-> >+	static inline void _NAME_##_le(void *addr, __le##_SZ_ value)           \
-> >+	{                                                                      \
-> >+		s390_mmio_write(addr, &value, sizeof(value));                  \
-> >+	}
-> 
-> I believe that you introduced two different versions (i.e. le/be only for
-> semantic reasons as code is really similar, is that correct ?
+write/lat/mean (MANY-DISKS)
+      IBNBD_pin   NVME_noreg_pin  NVME_pin    SCST_noreg_pin  SCST_pin
+x1    647.78      697.91          1032.97     925.51          1173.04
+x2    973.20      1104.38         1612.75     1462.18         2047.11
+x4    1279.49     1528.09         2452.22     3188.41         4235.95
+x8    2356.92     2929.87         4891.70     6248.85         8907.10
+x16   5605.62     6575.70         10046.4     10830.50        17945.57
+x32   14489.54    16516.60        24849.16    24984.26        40335.09
+x64   32364.39    49481.42        56615.23    56559.02        90590.84
+x128  67570.88    110768.70       124249.4    109321.84       171390.00
 
-Yes, as the comment above says.
+    * Where suffixes mean:
 
-> >+static inline void mmio_read8(void *addr, uint8_t value)
-> 
-> Did you refer here to mmio_write8 ?
+     _pin   - CPU pinning
+     _noreg - modules on initiator side (ib_srp, nvme_rdma) were loaded
+              with 'register_always=3DN' param
 
-Yep, I can't even compile test the s390 stuff..
+Complete table results and corresponding graphs are presented on Google
+sheet [3].
 
-> >+#define MAKE_WRITE(_NAME_, _SZ_)                                               \
-> >+	static inline void _NAME_##_be(void *addr, __be##_SZ_ value)           \
-> >+	{                                                                      \
-> >+		atomic_store_explicit((_Atomic(uint##_SZ_##_t) *)addr,         \
-> >+				      (__force uint##_SZ_##_t)value,           \
-> >+				      memory_order_relaxed);                   \
-> 
-> Mightn't this code introduce some overhead comparing direct assignment which
-> is used (i.e. mlx5_write64) and replaced by that in downstream patches ?
+Conclusion:
+    IBNBD outperforms in average by:
 
-All of the generated assembly I have inspected says this is at least
-identical.
+                     NVME_noreg_pin  NVME_pin  SCST_noreg_pin  SCST_pin
+       iops          41%             72%       61%             155%
+       lat/mean      28%             42%       38%             60%
 
-Jason
+       * Complete tables results [3] were taken into account for average
+         percentage calculation.
+
+Test setup is the following:
+
+Initiator and target HW configuration:
+
+    AMD Opteron 6386 SE, 64CPU, 128Gb
+    InfiniBand: Mellanox Technologies MT26428
+                [ConnectX VPI PCIe 2.0 5GT/s - IB QDR / 10GigE]
+
+Initiator and target SW configuration:
+
+    vanilla Linux 4.10
+    + IBNBD patches
+    + SCST from https://github.com/bvanassche/scst, master branch
+
+Initiator side:
+
+    IBNBD and NVME: MQ mode
+    SRP: default RQ, on attempt to set 'use_blk_mq=3DY' IO hangs.
+
+    FIO generic configuration pattern:
+
+        bssplit=3D512/20:1k/16:2k/9:4k/12:8k/19:16k/10:32k/8:64k/4
+        fadvise_hint=3D0
+        rw=3Drandrw:2
+        direct=3D1
+        random_distribution=3Dzipf:1.2
+        time_based=3D1
+        runtime=3D10
+        ioengine=3Dlibaio
+        iodepth=3D128
+        iodepth_batch_submit=3D128
+        iodepth_batch_complete=3D128
+        group_reporting
+
+Target side:
+
+    128 null_blk devices with default configuration, opened as blockio.
+
+NVMEoF configuration script [4].
+SCST configuration script [5].
+
+
+Would be great to receive any feedback.  I am open for further perf
+tuning and testing with other possible configurations and options.
+
+Thanks.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Roman
+
+[1] FIO runner and results extractor script:
+    https://drive.google.com/open?id=3D0B8_SivzwHdgSS2RKcmc4bWg0YjA
+
+[2] Archive with FIO configurations and results:
+    https://drive.google.com/open?id=3D0B8_SivzwHdgSaDlhMXV6THhoRXc
+
+[3] Google sheet with performance measurements:
+    https://drive.google.com/open?id=3D1sCTBKLA5gbhhkgd2USZXY43VL3zLidzdqDe=
+ObZn9Edc
+
+[4] NVMEoF configuration:
+    https://drive.google.com/open?id=3D0B8_SivzwHdgSTzRjbGtmaVR6LWM
+
+[5] SCST configuration:
+    https://drive.google.com/open?id=3D0B8_SivzwHdgSM1B5eGpKWmFJMFk
