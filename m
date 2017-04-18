@@ -1,178 +1,60 @@
-From: Roman Penyaev <roman.penyaev@profitbricks.com>
-Subject: RDMA performance comparison: IBNBD, SCST, NVMEoF
-Date: Tue, 18 Apr 2017 19:33:25 +0200
-Message-ID: <CAJrWOzAM_A6fwFxTZVo9MmiwWF1d6Bp9zTdBvUfnDFCPY_CmCQ@mail.gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core 1/5] util: Add common mmio macros
+Date: Tue, 18 Apr 2017 20:38:15 +0300
+Message-ID: <20170418173815.GC14088@mtr-leonro.local>
+References: <1492123127-6266-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1492123127-6266-2-git-send-email-jgunthorpe@obsidianresearch.com>
+ <b35958cf-5e87-3149-5413-eb754ec89b4d@dev.mellanox.co.il>
+ <20170418172852.GD7181@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-block-owner@vger.kernel.org>
-Sender: linux-block-owner@vger.kernel.org
-To: Bart Van Assche <Bart.VanAssche@sandisk.com>, Sagi Grimberg <sagi@grimberg.me>, Doug Ledford <dledford@redhat.com>, Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@lst.de>, Fabian Holler <mail@fholler.de>, Milind Dumbare <Milind.dumbare@gmail.com>, Michael Wang <yun.wang@profitbricks.com>, Danil Kipnis <danil.kipnis@profitbricks.com>, Jinpu Wang <jinpu.wang@profitbricks.com>, linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="/Uq4LBwYP4y1W6pO"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170418172852.GD7181-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Bart, Sagi and all,
 
-By current email I would like to share some fresh RDMA performance
-results of IBNBD, SCST and NVMEof, based on 4.10 kernel and variety
-of configurations.
+--/Uq4LBwYP4y1W6pO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-All fio runs are grouped by the name of a project, crucial config
-differencies (e.g. CPU pinning or register_always=3DN) and two testing
-modes: MANY-DISKS and MANY-JOBS.  In each group of results amount of
-simultaneous fio jobs is increasing starting from 1 up to 128.  E.g.
-in MANY-DISKS testing mode 1 fio job is dedicated to 1 disk, where
-amount of jobs (and disks) is growing, in its turn, in MANY-JOBS
-testing mode each fio job produces IO for the same disk, i.e.:
+On Tue, Apr 18, 2017 at 11:28:52AM -0600, Jason Gunthorpe wrote:
+> On Tue, Apr 18, 2017 at 06:52:00PM +0300, Yishai Hadas wrote:
+>
+> We could use a hash scheme or something to multiple the lock, but I'm
+> really not sure that 32 bit performance matters to anyone anymore?
 
-  MANY-DISKS:
-     x1:
-         numjobs=3D1
-         [job1]
-         filename=3D/dev/nvme0n1
-     ...
-     x128:
-         numjobs=3D1
-         [job1]
-         filename=3D/dev/nvme0n1
-         [job2]
-         filename=3D/dev/nvme0n2
-         ...
-         [job128]
-         filename=3D/dev/nvme0n128
+In a hard way, I learned that we have a customer who expects that his 32bit
+application will continue to work, so the answer is - no, I care.
 
-  MANY-JOBS:
-     x1:
-         numjobs=3D1
-         [job1]
-         filename=3D/dev/nvme0n1
-     ...
-     x128:
-         numjobs=3D128
-         [job1]
-         filename=3D/dev/nvme0n1
+Thanks
 
-Each group of results represents itself as a performance measurement,
-which can be easily plotted, taking number of jobs as X axis and iops,
-overall IO latencies or anything else extracted from fio json result
-files as Y axis.
+--/Uq4LBwYP4y1W6pO
+Content-Type: application/pgp-signature; name="signature.asc"
 
-FIO configurations were generated and saved along with produced fio
-json results by the fio-runner.py script [1].  Complete archive with
-FIO configs and results can be downloaded here [2].
+-----BEGIN PGP SIGNATURE-----
 
-The following metrics were taken from fio json results:
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj2TwcACgkQ5GN7iDZy
+WKc4nQ//cCjS4eu4F2sYAb5JhElCcUS2nzRnS+d3bnauLHJOOL7RClfgZ94Ghqco
+Bb//pZ3LC4mB4vV0E90X9Spck67D/uFd6IFJ7OeaOD1l9ebdQPK3/PftYHkJyepY
+0/Nn3APh63EdcRMRpvGIy7h2nqHRYiNFZVzFeuQIvZMdBWvpG3zloQkCN50jRWSS
+RECIe0NpDCfsJov9QykwtN8xVDhc5OnFWEzUddR4Kmqt1tRIYbGZi5deZBxiI+VY
+3GnYe56NrR6OD+l17C9y/IuT4tXAERVIcIfTn1ggOmH+lk73UAs8Q+3rr+Xa64t8
+anm74v88kF6KUZ0H+bLk3luREbRi5Z3fTpPCNo+SAsVb1iOPNs5cBnODA/i2LUle
+4tPLOEbQPw1dgJ0edd2UA39YgpMLdUemSeYR8xtdREHg0P+hP6L5mncjJw4GeB0C
+rOrQFM34MoJJV7BdXgOsVZlL3/ORAE27uSQhE/hzd7DbzuiXbF+EYWHu0PPX4FKO
+dwQOQQMuR8GEjwFZ5bNAmathYpwf37Y+DYq6u/BXWeA8NUvxoPIkDiJ46AD0iKo7
+vZlllwFCawnp02ydDlDIdTMpDW5B5dsGvoglZp0Hw2SDB08E6mmZu0imYeNHVy9x
+iGBYlYYlvd4Jh37pSOFQA8y/klplbbVQK4nqh3d9nHbk4o6LF7M=
+=zt8F
+-----END PGP SIGNATURE-----
 
-    write/iops     - IOPS
-    write/lat/mean - average latency (=CE=BCs)
-
-Here I would like to present reduced results table taking into account
-only runs with CPU pinning in MANY-DISKS testing mode, since CPU pinning
-makes more sense in terms of performance and MANY-DISKS and MANY-JOBS
-results look very much similar:
-
-write/iops (MANY-DISKS)
-      IBNBD_pin   NVME_noreg_pin  NVME_pin    SCST_noreg_pin  SCST_pin
-x1    80398.96    75577.24        54110.19    59555.04        48446.05
-x2    109018.60   96478.45        69176.77    73925.81        55557.59
-x4    169164.56   140558.75       93700.96    75419.91        56294.61
-x8    197725.44   159887.33       99773.05    79750.92        55938.84
-x16   176782.36   150448.33       99644.05    92964.23        56463.14
-x32   139666.00   123198.38       81845.30    81287.98        50590.86
-x64   125666.16   82231.77        72117.67    72023.32        45121.17
-x128  120253.63   73911.97        65665.08    74642.27        47268.46
-
-write/lat/mean (MANY-DISKS)
-      IBNBD_pin   NVME_noreg_pin  NVME_pin    SCST_noreg_pin  SCST_pin
-x1    647.78      697.91          1032.97     925.51          1173.04
-x2    973.20      1104.38         1612.75     1462.18         2047.11
-x4    1279.49     1528.09         2452.22     3188.41         4235.95
-x8    2356.92     2929.87         4891.70     6248.85         8907.10
-x16   5605.62     6575.70         10046.4     10830.50        17945.57
-x32   14489.54    16516.60        24849.16    24984.26        40335.09
-x64   32364.39    49481.42        56615.23    56559.02        90590.84
-x128  67570.88    110768.70       124249.4    109321.84       171390.00
-
-    * Where suffixes mean:
-
-     _pin   - CPU pinning
-     _noreg - modules on initiator side (ib_srp, nvme_rdma) were loaded
-              with 'register_always=3DN' param
-
-Complete table results and corresponding graphs are presented on Google
-sheet [3].
-
-Conclusion:
-    IBNBD outperforms in average by:
-
-                     NVME_noreg_pin  NVME_pin  SCST_noreg_pin  SCST_pin
-       iops          41%             72%       61%             155%
-       lat/mean      28%             42%       38%             60%
-
-       * Complete tables results [3] were taken into account for average
-         percentage calculation.
-
-Test setup is the following:
-
-Initiator and target HW configuration:
-
-    AMD Opteron 6386 SE, 64CPU, 128Gb
-    InfiniBand: Mellanox Technologies MT26428
-                [ConnectX VPI PCIe 2.0 5GT/s - IB QDR / 10GigE]
-
-Initiator and target SW configuration:
-
-    vanilla Linux 4.10
-    + IBNBD patches
-    + SCST from https://github.com/bvanassche/scst, master branch
-
-Initiator side:
-
-    IBNBD and NVME: MQ mode
-    SRP: default RQ, on attempt to set 'use_blk_mq=3DY' IO hangs.
-
-    FIO generic configuration pattern:
-
-        bssplit=3D512/20:1k/16:2k/9:4k/12:8k/19:16k/10:32k/8:64k/4
-        fadvise_hint=3D0
-        rw=3Drandrw:2
-        direct=3D1
-        random_distribution=3Dzipf:1.2
-        time_based=3D1
-        runtime=3D10
-        ioengine=3Dlibaio
-        iodepth=3D128
-        iodepth_batch_submit=3D128
-        iodepth_batch_complete=3D128
-        group_reporting
-
-Target side:
-
-    128 null_blk devices with default configuration, opened as blockio.
-
-NVMEoF configuration script [4].
-SCST configuration script [5].
-
-
-Would be great to receive any feedback.  I am open for further perf
-tuning and testing with other possible configurations and options.
-
-Thanks.
-
+--/Uq4LBwYP4y1W6pO--
 --
-Roman
-
-[1] FIO runner and results extractor script:
-    https://drive.google.com/open?id=3D0B8_SivzwHdgSS2RKcmc4bWg0YjA
-
-[2] Archive with FIO configurations and results:
-    https://drive.google.com/open?id=3D0B8_SivzwHdgSaDlhMXV6THhoRXc
-
-[3] Google sheet with performance measurements:
-    https://drive.google.com/open?id=3D1sCTBKLA5gbhhkgd2USZXY43VL3zLidzdqDe=
-ObZn9Edc
-
-[4] NVMEoF configuration:
-    https://drive.google.com/open?id=3D0B8_SivzwHdgSTzRjbGtmaVR6LWM
-
-[5] SCST configuration:
-    https://drive.google.com/open?id=3D0B8_SivzwHdgSM1B5eGpKWmFJMFk
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
