@@ -1,33 +1,69 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: export pcie_flr and remove copies of it in drivers V2
-Date: Tue, 18 Apr 2017 13:36:12 -0500
-Message-ID: <20170418183612.GC25295@bhelgaas-glaptop.roam.corp.google.com>
-References: <20170414191131.14286-1-hch@lst.de>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
+Date: Tue, 18 Apr 2017 13:01:38 -0600
+Message-ID: <20170418190138.GH7181@obsidianresearch.com>
+References: <CAPcyv4it56J8Voo6kV0bBcO3nHsOHYLENpAtONJZTGceDDwNPg@mail.gmail.com>
+ <1492381396.25766.43.camel@kernel.crashing.org>
+ <20170418164557.GA7181@obsidianresearch.com>
+ <cce00131-1f28-27b3-40ab-04f8783f1e5a@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-crypto-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170414191131.14286-1-hch@lst.de>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Giovanni Cabiddu <giovanni.cabiddu@intel.com>, Salvatore Benedetto <salvatore.benedetto@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Derek Chickles <derek.chickles@caviumnetworks.com>, Satanand Burla <satananda.burla@caviumnetworks.com>, Felix Manlunas <felix.manlunas@caviumnetworks.com>, Raghu Vatsavayi <raghu.vatsavayi@caviumnetworks.com>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, linux-pci@vger.kernel.org, qat-linux@intel.com, linux-crypto@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <cce00131-1f28-27b3-40ab-04f8783f1e5a-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Apr 14, 2017 at 09:11:24PM +0200, Christoph Hellwig wrote:
-> Hi all,
-> 
-> this exports the PCI layer pcie_flr helper, and removes various opencoded
-> copies of it.
-> 
-> Changes since V1:
->  - rebase on top of the pci/virtualization branch
->  - fixed the probe case in __pci_dev_reset
->  - added ACKs from Bjorn
+On Tue, Apr 18, 2017 at 12:30:59PM -0600, Logan Gunthorpe wrote:
 
-Applied the first three patches:
- 
-  bc13871ef35a PCI: Export pcie_flr()
-  e641c375d414 PCI: Call pcie_flr() from reset_intel_82599_sfp_virtfn()
-  40e0901ea4bf PCI: Call pcie_flr() from reset_chelsio_generic_dev()
+> >  - The dma ops provider must be able to tell if source memory is bar
+> >    mapped and recover the pci device backing the mapping.
+> 
+> Do you mean to say that every dma-ops provider needs to be taught about
+> p2p backed pages? I was hoping we could have dma_map_* just use special
+> p2p dma-ops if it was passed p2p pages (though there are some
+> complications to this too).
 
-to pci/virtualization for v4.12, thanks!
+I think that is how it will end up working out if this is the path..
+
+Ultimately every dma_ops will need special code to support P2P with
+the special hardware that ops is controlling, so it makes some sense
+to start by pushing the check down there in the first place. This
+advice is partially motivated by how dma_map_sg is just a small
+wrapper around the function pointer call...
+
+Something like:
+
+foo_dma_map_sg(...)
+{
+  for (every page in sg)
+      if (page is p2p)
+           dma_addr[I] = p2p_same_segment_map_page(...);
+}
+
+Where p2p_same_segment_map_page checks if the two devices are on the
+'same switch' and if so returns the address translated to match the
+bus address programmed into the BAR or fails. We knows this case is
+required to work by the PCI spec, so it makes sense to use it as the
+first canned helper.
+
+This also proves out the basic idea that the dma ops can recover the
+pci device and perform an inspection of the traversed fabric path.
+
+>From there every arch would have to expand the implementation to
+support a wider range of things. Eg x86 with no iommu and no offset
+could allow every address to be used based on a host bridge white
+list.
+
+Jason
