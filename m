@@ -1,121 +1,63 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next] IB/mthca: Check validity of output parameter
- pointer
-Date: Tue, 18 Apr 2017 17:02:44 +0300
-Message-ID: <20170418140244.GB14088@mtr-leonro.local>
-References: <20170415154725.17559-1-leon@kernel.org>
- <20170418134855.GA3490@yuval-lap>
+From: David Laight <David.Laight-ZS65k/vG3HxXrIkS9f7CXA@public.gmane.org>
+Subject: RE: [PATCH 16/22] xen-blkfront: Make use of the new sg_map helper
+ function
+Date: Tue, 18 Apr 2017 14:13:59 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6DCFFD3CD7__49074.7788142928$1492525219$gmane$org@AcuExch.aculab.com>
+References: <1492121135-4437-1-git-send-email-logang@deltatee.com>
+ <1492121135-4437-17-git-send-email-logang@deltatee.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="H1spWtNR+x+ondvy"
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170418134855.GA3490@yuval-lap>
+In-Reply-To: <1492121135-4437-17-git-send-email-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Logan Gunthorpe' <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Sumit Semwal <sumit.semwal-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ming Lin <ming.l-Vzezgt5dB6uUEJcrhfAQsw@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "linaro-mm-sig-cunTk1MwBs8s++Sfvej+rw@public.gmane.org" <linaro-mm-sig@lists.>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Logan Gunthorpe
+> Sent: 13 April 2017 23:05
+> Straightforward conversion to the new helper, except due to
+> the lack of error path, we have to warn if unmapable memory
+> is ever present in the sgl.
+> 
+> Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/block/xen-blkfront.c | 33 +++++++++++++++++++++++++++------
+>  1 file changed, 27 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
+> index 5067a0a..7dcf41d 100644
+> --- a/drivers/block/xen-blkfront.c
+> +++ b/drivers/block/xen-blkfront.c
+> @@ -807,8 +807,19 @@ static int blkif_queue_rw_req(struct request *req, struct blkfront_ring_info *ri
+>  		BUG_ON(sg->offset + sg->length > PAGE_SIZE);
+> 
+>  		if (setup.need_copy) {
+> -			setup.bvec_off = sg->offset;
+> -			setup.bvec_data = kmap_atomic(sg_page(sg));
+> +			setup.bvec_off = 0;
+> +			setup.bvec_data = sg_map(sg, SG_KMAP_ATOMIC);
+> +			if (IS_ERR(setup.bvec_data)) {
+> +				/*
+> +				 * This should really never happen unless
+> +				 * the code is changed to use memory that is
+> +				 * not mappable in the sg. Seeing there is a
+> +				 * questionable error path out of here,
+> +				 * we WARN.
+> +				 */
+> +				WARN(1, "Non-mappable memory used in sg!");
+> +				return 1;
+> +			}
+...
 
---H1spWtNR+x+ondvy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Perhaps add a flag to mark failure as 'unexpected' and trace (and panic?)
+inside sg_map().
 
-On Tue, Apr 18, 2017 at 04:48:56PM +0300, Yuval Shaia wrote:
-> On Sat, Apr 15, 2017 at 06:47:25PM +0300, Leon Romanovsky wrote:
-> > The mthca driver didn't check supplied pointer to functions
-> > mthca_cmd_poll() and mthca_cmd_wait(). This caused to the following
-> > smatch errors:
-> >
-> > drivers/infiniband/hw/mthca/mthca_cmd.c:371 mthca_cmd_poll() error: we previously assumed 'out_param' could be null (see line 353)
-> > drivers/infiniband/hw/mthca/mthca_cmd.c:454 mthca_cmd_wait() error: we previously assumed 'out_param' could be null (see line 432)
-> >
-> > In reality all callers of these functions are setting out_is_imm
-> > flag are providing pointer too. However it is better to check
-> > again to remove smatch errors to achieve warning free subsystem.
-> >
-> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > ---
-> >  Based on k.o/for-4.12 branch.
-> > ---
-> >  drivers/infiniband/hw/mthca/mthca_cmd.c | 12 ++++++++++--
-> >  1 file changed, 10 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.c b/drivers/infiniband/hw/mthca/mthca_cmd.c
-> > index c7f49bbb0c72..9d83a53c0c67 100644
-> > --- a/drivers/infiniband/hw/mthca/mthca_cmd.c
-> > +++ b/drivers/infiniband/hw/mthca/mthca_cmd.c
-> > @@ -367,12 +367,16 @@ static int mthca_cmd_poll(struct mthca_dev *dev,
-> >  		goto out;
-> >  	}
-> >
-> > -	if (out_is_imm)
-> > +	if (out_is_imm && out_param) {
-> >  		*out_param =
-> >  			(u64) be32_to_cpu((__force __be32)
-> >  					  __raw_readl(dev->hcr + HCR_OUT_PARAM_OFFSET)) << 32 |
-> >  			(u64) be32_to_cpu((__force __be32)
-> >  					  __raw_readl(dev->hcr + HCR_OUT_PARAM_OFFSET + 4));
-> > +	} else if (out_is_imm) {
-> > +		err = -EINVAL;
-> > +		goto out;
->
-> So if this is a good reason to fail the function - how about doing this
-> validation before triggering HW operation (mthca_cmd_post)?
+	David
 
-It doesn't matter, it will give the same bytecode.
 
->
-> > +	}
-> >
-> >  	status = be32_to_cpu((__force __be32) __raw_readl(dev->hcr + HCR_STATUS_OFFSET)) >> 24;
-> >  	if (status) {
-> > @@ -450,8 +454,12 @@ static int mthca_cmd_wait(struct mthca_dev *dev,
-> >  		err = mthca_status_to_errno(context->status);
-> >  	}
-> >
-> > -	if (out_is_imm)
-> > +	if (out_is_imm && out_param) {
-> >  		*out_param = context->out_param;
-> > +	} else if (out_is_imm) {
-> > +		err = -EINVAL;
->
-> Ditto
->
-> > +		goto out;
-> > +	}
-> >
-> >  out:
-> >  	spin_lock(&dev->cmd.context_lock);
-> > --
-> > 2.12.2
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---H1spWtNR+x+ondvy
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj2HIQACgkQ5GN7iDZy
-WKcQOw//aHqXpyLgPTAjMveXSzgGtJTevcagf4gBrPlFbTZZ5YqnjQQ8x4tG0n9C
-NiMIxeF6av/gtuS5pltFYEoAtC5SPgHm7Zj4ZnqGoSilT2rJaAKIn2BZHeyuR57T
-9BEpriZMtALZ3Z3wEbedjDUyHXqWiRQRjWGYsVNgjNMfK7SYoxeflLeGd49esJLP
-q3IRzjJau/hgUVPTapPfUd7a38V7wXtaCddOOevfgY3afuXxpuFZoL5WgDih00kT
-YzkYapjfKY7obmjJe4W9uLkN97oSc6rYAQRZxweka0xoUI9UMzYbbihIvKw/GyRJ
-OfiTnGGVs2yKHpb4NQt6V5AOAbK8kGG4aTo0TkCm3hA5R7Di9YB6En0TsSfkeZBM
-B8KCojaKmNzjWhpVKnkA24wMAckP8KIGbJnsWTZWibxj06bhjnmQQYP2RKFKmEzG
-q1NkYtcyhOgQfRfWpZgYAIueGSfOfkmJcA3C9+mR6bbcamNf43+R6QIGm3Z0kzny
-BM+oaYhS71K0+WQ1qoIiSndfpyDZKMln5rg08JIdC9HR5gb40Ffi1MgZ2ojplSZL
-JqXISLrwYkLnR9u1U0A7ROUEb9FLbOFvYJYbAEKP20LvfeU5MJiBLBZgRrrmoM2H
-pUmEuyP9PZr/vm1S14NcV0aniR+/lvGHnse7Y4cY6r9sKB7OJxE=
-=5skc
------END PGP SIGNATURE-----
-
---H1spWtNR+x+ondvy--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
