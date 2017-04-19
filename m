@@ -1,53 +1,47 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH net-next] net/mlx5e: IPoIB, Fix error handling in
- mlx5_rdma_netdev_alloc()
-Date: Wed, 19 Apr 2017 13:11:45 +0300
-Message-ID: <20170419101145.GJ14088@mtr-leonro.local>
-References: <20170419095914.GB4266@mwanda>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-next 5/6] IB/SA: Add OPA path record type
+Date: Wed, 19 Apr 2017 10:50:18 -0400
+Message-ID: <632589f6-b39b-f8e0-34b5-680170b5c44a@dev.mellanox.co.il>
+References: <1492462590-64866-1-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <1492462590-64866-6-git-send-email-dasaratharaman.chandramouli@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="+ZmrHH5cGjskQnY1"
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170419095914.GB4266@mwanda>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1492462590-64866-6-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
---+ZmrHH5cGjskQnY1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On 4/17/2017 4:56 PM, Dasaratharaman Chandramouli wrote:
+> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> index 7d6c199..38df02f 100644
+> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
+> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> @@ -1846,6 +1846,7 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+>  	struct srp_login_rej *rej;
+>  	struct ib_cm_rep_param *rep_param;
+>  	struct srpt_rdma_ch *ch, *tmp_ch;
+> +	union ib_gid *sgid = &param->primary_path->sgid;
+>  	__be16 *guid;
+>  	u32 it_iu_len;
+>  	int i, ret = 0;
+> @@ -1992,7 +1993,7 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+>  		goto destroy_ib;
+>  	}
+>  
+> -	guid = (__be16 *)&param->primary_path->sgid.global.interface_id;
+> +	guid = (__be16 *)&sgid->global.interface_id;
 
-On Wed, Apr 19, 2017 at 12:59:15PM +0300, Dan Carpenter wrote:
-> The labels were out of order, so it either could result in an Oops or a
-> leak.
->
-> Fixes: 48935bbb7ae8 ("net/mlx5e: IPoIB, Add netdevice profile skeleton")
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->
+Nit: This seems like an unrelated change.
 
-Thanks,
-Acked-by: Leon Romanovsky <leonro@mellanox.com>
+-- Hal
 
---+ZmrHH5cGjskQnY1
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj3N+EACgkQ5GN7iDZy
-WKf4aw//funXLakxh4Z2ypf2K50fPDMYg4vJxJyfUbGt8F2Homz3g1oZ28D3jvts
-EQxMQpl5BSy5oRNWIUe0Rn6ABJLpLt0hWU5DoM5UDaU2/j0apL7L1D08KP/M2G+A
-2XSNlm+t7uJ4EqGaQEoIR7FecWUiLq1JM2uYWZvW4WvYyQjQNA+V2OLI2JAr21aN
-c8fQ5TXaootuVSxZsNOrvn5lkmqkxLwwzkp4ICZigm77Stfu37XUby8bsPmcYox5
-C5I6FBXdr//2AmNDJ3PXAx9ELopdi4PehnPct5oObbsVuj876OrzM8f6HrEw2S5J
-GPR1z2ttRC8zMWMoy9LOzQ/2EqCFlLW0/Y+qQrg2WL7JKIH/BbZpT8nC+d4pyxO8
-pk0pCya/9m7y8D344/lwG/VmGLDKgognDszXnmy68AY4vJmddsLQPFgRh4JheZTt
-TNjyelx94hK+ljSmRDJIHCv/kaV/urbcU1WLRWO83m9+qhvdGUslXST/xu4Tutx/
-zc6gJJx4kjp/HGfMgiY1tzlWwLFgrI19b05cAjiAAdvPdKIdyrZ4ul/KGbOJjgYV
-u1nNxVLaRwM6zLvDEzgvO+vjBPVDhoZv4RpU87uDXEJC9zL0Ov0OnQHOHLuCOZRF
-e1/kfDMhHhxSAbGQxNf6SwsfkCQw3CrpCAa3FgIRoVjbLBMTAQc=
-=nPF6
------END PGP SIGNATURE-----
-
---+ZmrHH5cGjskQnY1--
+>  	snprintf(ch->ini_guid, sizeof(ch->ini_guid), "%04x:%04x:%04x:%04x",
+>  		 be16_to_cpu(guid[0]), be16_to_cpu(guid[1]),
+>  		 be16_to_cpu(guid[2]), be16_to_cpu(guid[3]));
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
