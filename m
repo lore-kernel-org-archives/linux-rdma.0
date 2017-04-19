@@ -1,79 +1,80 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-next 6/6] IB/SA: Add support to query OPA path
- records
-Date: Wed, 19 Apr 2017 13:59:47 -0400
-Message-ID: <9192caed-fa14-7a5e-0210-a3f30471c3d8@dev.mellanox.co.il>
-References: <1492462590-64866-1-git-send-email-dasaratharaman.chandramouli@intel.com>
- <1492462590-64866-7-git-send-email-dasaratharaman.chandramouli@intel.com>
- <7304d2b8-87f4-e7ec-ebe4-ccaf34c09976@dev.mellanox.co.il>
- <c2ccd3ff-ed35-de86-73da-34a5d8d17551@intel.com>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
+Date: Wed, 19 Apr 2017 12:01:39 -0600
+Message-ID: <b0234176-e86b-6e7c-686d-b4fef719aad7@deltatee.com>
+References: <1492381396.25766.43.camel@kernel.crashing.org>
+ <20170418164557.GA7181@obsidianresearch.com>
+ <cce00131-1f28-27b3-40ab-04f8783f1e5a@deltatee.com>
+ <20170418190138.GH7181@obsidianresearch.com>
+ <df1351d8-b86c-2e21-1948-4688ece5dc2b@deltatee.com>
+ <CAPcyv4gScx6A7vG9VEHpNF41GOy1Nxst7QQ3QC3uZ54bWoxbMg@mail.gmail.com>
+ <20170418210339.GA24257@obsidianresearch.com>
+ <1492564806.25766.124.camel@kernel.crashing.org>
+ <20170419155557.GA8497@obsidianresearch.com>
+ <4899b011-bdfb-18d8-ef00-33a1516216a6@deltatee.com>
+ <20170419171451.GA10020@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <c2ccd3ff-ed35-de86-73da-34a5d8d17551-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Chandramouli, Dasaratharaman" <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20170419171451.GA10020-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Dasa,
 
-On 4/19/2017 12:54 PM, Chandramouli, Dasaratharaman wrote:
-> 
-> Hal,
-> 
-> On 4/19/2017 7:52 AM, Hal Rosenstock wrote:
->> On 4/17/2017 4:56 PM, Dasaratharaman Chandramouli wrote:
->>> When the bit 26 of capmask2 field in OPA classport info
->>> query is set, SA will query for OPA path records instead
->>> of querying for IB path records.
->>
->> If/when additional SA query types are supported for OPA, will each
->> additional SA query type have separate CapMask2 bit or will they be
->> combined into 1 ? For example, would SA MCMemberRecord be different for
->> OPA (perhaps 32 bit MLID) and if so, would support be indicated by
->> different capability bit or same one ? Is that the only other one ?
-> 
-> There are no plans to provide a separate capmask2 bit for each of the
-> other queries.
 
-Glad to hear this.
+On 19/04/17 11:14 AM, Jason Gunthorpe wrote:
+> I don't see a use for the dma_map function pointer at this point..
 
->>
->> Currently, IB SA is using up through bit 13 and new features continue to
->> be added (at least one more coming soon). There is some chance for
->> feature collision if OPA would care about supporting such new IB feature
->> if and when OPA and IB bitmasks meet with IB incrementing from bit 13
->> and OPA decrementing from bit 26. I wouldn't expect that to happen for a
->> while but it would be best to anticipate this if it is of any concern to
->> OPA.
-> 
-> I see your concern. The capmask2 bits for OPA is not intended to be in
-> sync with IB. If, for instance, we have a new IB feature that is exposed
-> by Bit n of capmask, two things are possible. 1) OPA might not support
-> the same feature. If the class port info query that is 'cached' by the
-> SA is of type OPA, it implicitly means that the feature is not
-> supported. This patch series adds a function
-> "ib_sa_sendonly_fullmem_support" that is a good example of that case.
-> When a caller calls this function and if the class port info is of type
-> OPA, we just return 'false' implying that OPA doesn't possess
-> sendonly_fullmember suppprt. 2) OPA might support the feature. In this
-> case, OPA class port info will expose the feature in the capmask2 field
-> bit not necessarily in the same bit n. SA should be able to handle these
-> differences.
+Yes, it is kind of like designing for the future. I just find it a
+little odd calling the pci functions in the iommu.
 
-Yes, those are the choices available.
 
--- Hal
+> It doesn't make alot of sense for the completor of the DMA to provide
+> a mapping op, the mapping process is *path* specific, not specific to
+> a completer/initiator.
 
->> -- Hal
->>
-> 
-> Thanks,
-> Dasa
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm just spit balling here but if HMM wanted to use unaddressable memory
+as a DMA target, it could set that function to create a window ine gpu
+memory, then call the pci_p2p_same_segment and return the result as the
+dma address.
+
+
+> dma_addr_t pci_p2p_same_segment(struct device *initator,
+>                                 struct device *completer,
+> 				struct page *page)
+
+I'm not sure I like the name pci_p2p_same_segment. It reads as though
+it's only checking if the devices are not the same segment. It also may
+be that, in the future, it supports devices on different segments. I'd
+call it more like pci_p2p_dma_map.
+
+
+> for (each sgl) {
+
+Thanks, this code fleshes things out nicely
+
+
+> To me it looks like the code duplication across the iommu stuff comes
+> from just duplicating the basic iommu algorithm in every driver.
+
+Yes, this is true.
+
+> To clean that up I think someone would need to hoist the overall sgl
+> loop and use more ops callbacks eg allocate_iommu_range,
+> assign_page_to_rage, dealloc_range, etc. This is a problem p2p makes
+> worse, but isn't directly causing :\
+
+Yup.
+
+Logan
