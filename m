@@ -1,103 +1,79 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
-Date: Wed, 19 Apr 2017 10:41:42 -0700
-Message-ID: <CAPcyv4gxBgVsbSez7_dZYkZojUWU0X0txs7FxiJ+Z3xsMt6TqQ@mail.gmail.com>
-References: <20170418164557.GA7181@obsidianresearch.com>
- <cce00131-1f28-27b3-40ab-04f8783f1e5a@deltatee.com>
- <20170418190138.GH7181@obsidianresearch.com>
- <df1351d8-b86c-2e21-1948-4688ece5dc2b@deltatee.com>
- <CAPcyv4gScx6A7vG9VEHpNF41GOy1Nxst7QQ3QC3uZ54bWoxbMg@mail.gmail.com>
- <20170418210339.GA24257@obsidianresearch.com>
- <1492564806.25766.124.camel@kernel.crashing.org>
- <20170419155557.GA8497@obsidianresearch.com>
- <4899b011-bdfb-18d8-ef00-33a1516216a6@deltatee.com>
- <CAPcyv4iJ9H8Ykwnjqa2R_D1qG6PsSQmi=QxYH-rKLF_ihrsWyw@mail.gmail.com>
- <20170419173225.GA11255@redhat.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-next 6/6] IB/SA: Add support to query OPA path
+ records
+Date: Wed, 19 Apr 2017 13:59:47 -0400
+Message-ID: <9192caed-fa14-7a5e-0210-a3f30471c3d8@dev.mellanox.co.il>
+References: <1492462590-64866-1-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <1492462590-64866-7-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <7304d2b8-87f4-e7ec-ebe4-ccaf34c09976@dev.mellanox.co.il>
+ <c2ccd3ff-ed35-de86-73da-34a5d8d17551@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170419173225.GA11255-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <c2ccd3ff-ed35-de86-73da-34a5d8d17551-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Chandramouli, Dasaratharaman" <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 19, 2017 at 10:32 AM, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> On Wed, Apr 19, 2017 at 10:01:23AM -0700, Dan Williams wrote:
->> On Wed, Apr 19, 2017 at 9:48 AM, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org> wrote:
->> >
->> >
->> > On 19/04/17 09:55 AM, Jason Gunthorpe wrote:
->> >> I was thinking only this one would be supported with a core code
->> >> helper..
->> >
->> > Pivoting slightly: I was looking at how HMM uses ZONE_DEVICE. They add a
->> > type flag to the dev_pagemap structure which would be very useful to us.
->> > We could add another MEMORY_DEVICE_P2P type to distinguish p2p pages.
->> > Then, potentially, we could add a dma_map callback to the structure
->> > (possibly unioned with an hmm field). The dev_ops providers would then
->> > just need to do something like this (enclosed in a helper):
->> >
->> > if (is_zone_device_page(page)) {
->> >         pgmap = get_dev_pagemap(page_to_pfn(page));
->> >         if (!pgmap || pgmap->type !=  MEMORY_DEVICE_P2P ||
->> >             !pgmap->dma_map)
->> >                 return 0;
->> >
->> >         dma_addr = pgmap->dma_map(dev, pgmap->dev, page);
->> >         put_dev_pagemap(pgmap);
->> >         if (!dma_addr)
->> >                 return 0;
->> >         ...
->> > }
->> >
->> > The pci_enable_p2p_bar function would then just need to call
->> > devm_memremap_pages with the dma_map callback set to a function that
->> > does the segment check and the offset calculation.
->> >
->> > Thoughts?
->> >
->> > @Jerome: my feedback to you would be that your patch assumes all users
->> > of devm_memremap_pages are MEMORY_DEVICE_PERSISTENT. It would be more
->> > useful if it was generic. My suggestion would be to have the caller
->> > allocate the dev_pagemap structure, populate it and pass it into
->> > devm_memremap_pages. Given that pretty much everything in that structure
->> > are already arguments to that function, I feel like this makes sense.
->> > This should also help to unify hmm_devmem_pages_create and
->> > devm_memremap_pages which look very similar to each other.
+Dasa,
+
+On 4/19/2017 12:54 PM, Chandramouli, Dasaratharaman wrote:
+> 
+> Hal,
+> 
+> On 4/19/2017 7:52 AM, Hal Rosenstock wrote:
+>> On 4/17/2017 4:56 PM, Dasaratharaman Chandramouli wrote:
+>>> When the bit 26 of capmask2 field in OPA classport info
+>>> query is set, SA will query for OPA path records instead
+>>> of querying for IB path records.
 >>
->> I like that change. Also the types should describe the memory relative
->> to its relationship to struct page, not whether it is persistent or
->> not. I would consider volatile and persistent memory that is attached
->> to the cpu memory controller and i/o coherent as the same type of
->> memory. DMA incoherent ranges like P2P and HMM should get their own
->> types.
->
-> Dan you asked me to not use devm_memremap_pages() because you didn't
-> want to have HMM memory in the pgmap_radix, did you change opinion
-> on that ? :)
+>> If/when additional SA query types are supported for OPA, will each
+>> additional SA query type have separate CapMask2 bit or will they be
+>> combined into 1 ? For example, would SA MCMemberRecord be different for
+>> OPA (perhaps 32 bit MLID) and if so, would support be indicated by
+>> different capability bit or same one ? Is that the only other one ?
+> 
+> There are no plans to provide a separate capmask2 bit for each of the
+> other queries.
 
-No, not quite ;-). I still don't think we should require the non-HMM
-to pass NULL for all the HMM arguments. What I like about Logan's
-proposal is to have a separate create and register steps dev_pagemap.
-That way call paths that don't care about HMM specifics can just turn
-around and register the vanilla dev_pagemap.
+Glad to hear this.
 
-> Note i won't make any change now on that front but if it make sense
-> i am happy to do it as separate patchset on top of HMM.
->
-> Also i don't want p2pmem to be an exclusive or with HMM, we will want
-> GPU to do peer to peer DMA and thus HMM ZONE_DEVICE pages to support
-> this too.
+>>
+>> Currently, IB SA is using up through bit 13 and new features continue to
+>> be added (at least one more coming soon). There is some chance for
+>> feature collision if OPA would care about supporting such new IB feature
+>> if and when OPA and IB bitmasks meet with IB incrementing from bit 13
+>> and OPA decrementing from bit 26. I wouldn't expect that to happen for a
+>> while but it would be best to anticipate this if it is of any concern to
+>> OPA.
+> 
+> I see your concern. The capmask2 bits for OPA is not intended to be in
+> sync with IB. If, for instance, we have a new IB feature that is exposed
+> by Bit n of capmask, two things are possible. 1) OPA might not support
+> the same feature. If the class port info query that is 'cached' by the
+> SA is of type OPA, it implicitly means that the feature is not
+> supported. This patch series adds a function
+> "ib_sa_sendonly_fullmem_support" that is a good example of that case.
+> When a caller calls this function and if the class port info is of type
+> OPA, we just return 'false' implying that OPA doesn't possess
+> sendonly_fullmember suppprt. 2) OPA might support the feature. In this
+> case, OPA class port info will expose the feature in the capmask2 field
+> bit not necessarily in the same bit n. SA should be able to handle these
+> differences.
 
-Yes, this makes sense I think we really just want to distinguish host
-memory or not in terms of the dev_pagemap type.
+Yes, those are the choices available.
+
+-- Hal
+
+>> -- Hal
+>>
+> 
+> Thanks,
+> Dasa
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
