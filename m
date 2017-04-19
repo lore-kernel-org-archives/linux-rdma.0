@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH RFC 10/10] IB/core: Expose ioctl interface through experimental Kconfig
-Date: Wed, 19 Apr 2017 18:20:25 +0300
-Message-ID: <1492615225-55118-11-git-send-email-matanb@mellanox.com>
+Subject: [PATCH RFC 08/10] IB/core: Add ability to explicitly destroy an uobject
+Date: Wed, 19 Apr 2017 18:20:23 +0300
+Message-ID: <1492615225-55118-9-git-send-email-matanb@mellanox.com>
 References: <1492615225-55118-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1492615225-55118-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,71 +10,80 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add CONFIG_INFINIBAND_EXP_USER_ACCESS that enables the ioctl
-interface. This interface is experimental and is subject to change.
+When some objects are destroyed, we need to extract their status at
+destruction. In order to have the latest and correct status, the
+underlying object should be destroyed, but we should keep the uobject
+alive and read this information off the uobject.
+We introduce a rdma_explicit_destroy function. This function destroys
+the class type object (for example, the IDR class type which destroys
+the underlying object as well) and then convert the uobject to be of a
+null class type. This uobject will then be destroyed as any other
+uobject.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/Kconfig            | 7 +++++++
- drivers/infiniband/core/uverbs.h      | 2 ++
- drivers/infiniband/core/uverbs_main.c | 6 ++++++
- 3 files changed, 15 insertions(+)
+ drivers/infiniband/core/rdma_core.c | 35 +++++++++++++++++++++++++++++++++++
+ include/rdma/uverbs_types.h         |  1 +
+ 2 files changed, 36 insertions(+)
 
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index 66f8602..cabbb11 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -34,6 +34,13 @@ config INFINIBAND_USER_ACCESS
- 	  libibverbs, libibcm and a hardware driver library from
- 	  <http://www.openfabrics.org/git/>.
+diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
+index a6e35b3..c456107 100644
+--- a/drivers/infiniband/core/rdma_core.c
++++ b/drivers/infiniband/core/rdma_core.c
+@@ -450,6 +450,41 @@ int __must_check rdma_remove_commit_uobject(struct ib_uobject *uobj)
+ 	return ret;
+ }
  
-+config INFINIBAND_EXP_USER_ACCESS
-+	bool "Allow experimental support for Infiniband ABI"
-+	depends on INFINIBAND_USER_ACCESS
-+	---help---
-+	  IOCTL based ABI support for Infiniband. This allows userspace
-+	  to invoke the experimental IOCTL based ABI.
++static int null_obj_type_class_remove_commit(struct ib_uobject *uobj,
++					     enum rdma_remove_reason why)
++{
++	return 0;
++}
 +
- config INFINIBAND_USER_MEM
- 	bool
- 	depends on INFINIBAND_USER_ACCESS != n
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index ef37a16..2d1330f 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -225,6 +225,8 @@ void uverbs_copy_query_dev_fields(struct ib_device *ib_dev,
- void ib_uverbs_detach_umcast(struct ib_qp *qp,
- 			     struct ib_uqp_object *uobj);
- 
-+long ib_uverbs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
++const struct uverbs_obj_type null_obj_type = {
++	.type_class = &((const struct uverbs_obj_type_class){
++			.remove_commit = null_obj_type_class_remove_commit,
++			/* be cautious */
++			.needs_kfree_rcu = true}),
++};
 +
- struct ib_uverbs_flow_spec {
- 	union {
- 		union {
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 44c4d92..99e70cb 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -950,6 +950,9 @@ static int ib_uverbs_close(struct inode *inode, struct file *filp)
- 	.open	 = ib_uverbs_open,
- 	.release = ib_uverbs_close,
- 	.llseek	 = no_llseek,
-+#if IS_ENABLED(CONFIG_INFINIBAND_EXP_USER_ACCESS)
-+	.unlocked_ioctl = ib_uverbs_ioctl,
-+#endif
- };
++int rdma_explicit_destroy(struct ib_uobject *uobject)
++{
++	int ret;
++	struct ib_ucontext *ucontext = uobject->context;
++
++	/* Cleanup is running. Calling this should have been impossible */
++	if (!down_read_trylock(&ucontext->cleanup_rwsem)) {
++		WARN(true, "ib_uverbs: Cleanup is running while removing an uobject\n");
++		return 0;
++	}
++	lockdep_check(uobject, true);
++	ret = uobject->type->type_class->remove_commit(uobject,
++						       RDMA_REMOVE_DESTROY);
++	if (ret)
++		return ret;
++
++	uobject->type = &null_obj_type;
++
++	up_read(&ucontext->cleanup_rwsem);
++	return 0;
++}
++
+ static void alloc_commit_idr_uobject(struct ib_uobject *uobj)
+ {
+ 	uverbs_uobject_add(uobj);
+diff --git a/include/rdma/uverbs_types.h b/include/rdma/uverbs_types.h
+index 9760b6d..cc04ec6 100644
+--- a/include/rdma/uverbs_types.h
++++ b/include/rdma/uverbs_types.h
+@@ -129,6 +129,7 @@ struct ib_uobject *rdma_alloc_begin_uobject(const struct uverbs_obj_type *type,
+ void rdma_alloc_abort_uobject(struct ib_uobject *uobj);
+ int __must_check rdma_remove_commit_uobject(struct ib_uobject *uobj);
+ int rdma_alloc_commit_uobject(struct ib_uobject *uobj);
++int rdma_explicit_destroy(struct ib_uobject *uobject);
  
- static const struct file_operations uverbs_mmap_fops = {
-@@ -959,6 +962,9 @@ static int ib_uverbs_close(struct inode *inode, struct file *filp)
- 	.open	 = ib_uverbs_open,
- 	.release = ib_uverbs_close,
- 	.llseek	 = no_llseek,
-+#if IS_ENABLED(CONFIG_INFINIBAND_EXP_USER_ACCESS)
-+	.unlocked_ioctl = ib_uverbs_ioctl,
-+#endif
- };
- 
- static struct ib_client uverbs_client = {
+ struct uverbs_obj_fd_type {
+ 	/*
 -- 
 1.8.3.1
 
