@@ -1,73 +1,95 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: export pcie_flr and remove copies of it in drivers V2
-Date: Wed, 19 Apr 2017 08:37:37 +0300
-Message-ID: <20170419053737.GG14088@mtr-leonro.local>
-References: <20170414191131.14286-1-hch@lst.de>
- <20170418183612.GC25295@bhelgaas-glaptop.roam.corp.google.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core 1/5] util: Add common mmio macros
+Date: Wed, 19 Apr 2017 08:55:17 +0300
+Message-ID: <20170419055517.GH14088@mtr-leonro.local>
+References: <1492123127-6266-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1492123127-6266-2-git-send-email-jgunthorpe@obsidianresearch.com>
+ <b35958cf-5e87-3149-5413-eb754ec89b4d@dev.mellanox.co.il>
+ <20170418172852.GD7181@obsidianresearch.com>
+ <20170418173815.GC14088@mtr-leonro.local>
+ <20170418181736.GF7181@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="R6sEYoIZpp9JErk7"
-Return-path: <netdev-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="RDS4xtyBfx+7DiaI"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170418183612.GC25295@bhelgaas-glaptop.roam.corp.google.com>
-Sender: netdev-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>, Bjorn Helgaas <bhelgaas@google.com>, Giovanni Cabiddu <giovanni.cabiddu@intel.com>, Salvatore Benedetto <salvatore.benedetto@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Derek Chickles <derek.chickles@caviumnetworks.com>, Satanand Burla <satananda.burla@caviumnetworks.com>, Felix Manlunas <felix.manlunas@caviumnetworks.com>, Raghu Vatsavayi <raghu.vatsavayi@caviumnetworks.com>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, linux-pci@vger.kernel.org, qat-linux@intel.com, linux-crypto@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20170418181736.GF7181-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---R6sEYoIZpp9JErk7
+--RDS4xtyBfx+7DiaI
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, Apr 18, 2017 at 01:36:12PM -0500, Bjorn Helgaas wrote:
-> On Fri, Apr 14, 2017 at 09:11:24PM +0200, Christoph Hellwig wrote:
-> > Hi all,
+On Tue, Apr 18, 2017 at 12:17:36PM -0600, Jason Gunthorpe wrote:
+> On Tue, Apr 18, 2017 at 08:38:15PM +0300, Leon Romanovsky wrote:
+> > On Tue, Apr 18, 2017 at 11:28:52AM -0600, Jason Gunthorpe wrote:
+> > > On Tue, Apr 18, 2017 at 06:52:00PM +0300, Yishai Hadas wrote:
+> > >
+> > > We could use a hash scheme or something to multiple the lock, but I'm
+> > > really not sure that 32 bit performance matters to anyone anymore?
 > >
-> > this exports the PCI layer pcie_flr helper, and removes various opencoded
-> > copies of it.
-> >
-> > Changes since V1:
-> >  - rebase on top of the pci/virtualization branch
-> >  - fixed the probe case in __pci_dev_reset
-> >  - added ACKs from Bjorn
+> > In a hard way, I learned that we have a customer who expects that his 3=
+2bit
+> > application will continue to work, so the answer is - no, I care.
 >
-> Applied the first three patches:
+> Of course it continues to work.
 >
->   bc13871ef35a PCI: Export pcie_flr()
->   e641c375d414 PCI: Call pcie_flr() from reset_intel_82599_sfp_virtfn()
->   40e0901ea4bf PCI: Call pcie_flr() from reset_chelsio_generic_dev()
+> Does your customer fit this very narrow definition:
+>  - Would actually upgrade to rdma-core
+>  - 32 bit
+>  - No SSE hardware (any Intel chip capable of PCI-E has SSE hardware)
+>  - Multiple same-provider devices with a single program touching all
+>    devices (single device performance is unchanged)
+>  - Sensitive to the performance difference of a potential spinlock
+>    contention / cache misplacement for ~4 instructions
 >
+> It is hard to understand who cares so much about peformance but leaves
+> a wack on the table by running in 32 bit mode.
 
-Bjorn,
+It doesn't matter if customer cares or not cares about performance. We
+as a company provided satisfactory numbers to them and would like to
+ensure that these numbers don't reduce over time.
 
-How do you suggest to proceed with other patches? They should be applied
-to your tree either, because they depend on "bc13871ef35a PCI: Export
-pcie_flr()".
+I'm not looking for a performance boost in 32bit environment, but I
+don't expect decrease either.
 
-Thanks
+>
+> Is this something like x32? We can certainly improve for x32.
 
+=46rom the customer ticket, the system is x86 (32 bits).
 
-> to pci/virtualization for v4.12, thanks!
+>
+> PPC32 could also potentially have a path like SSE..
+>
+> Jason
 
---R6sEYoIZpp9JErk7
+--RDS4xtyBfx+7DiaI
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj296EACgkQ5GN7iDZy
-WKc1zQ/7BSIXdJRgJoHCW6mGUOl+O5Yyons+9qhBJmCZl75w+f2mgejIm1nl9r32
-2TcWLQful9IsrKUrsoK1205rOmGhjqg6kRMLicHiOYR1B4NOpWji4IA53RJgyGsY
-xlvVHwLuZ5Fl4bjnzRlRP701UYzBkeHJSoOf3ZVLNDtRY7ChDAXN6ny94gMFljbb
-CCOdY2877CQmzKgYQ39Iwc5wWEurTJ8VQatunjaXtrp2vGFjwqmBzkil06ZQM+QQ
-O8v2JufdH1r+RBaSMq8bBGA5iv31VnGXwe7RdC39TWZx8nuffkgyKXDipTx3xjMn
-U0RVFLHAdiOt61EKZu62FST1nibHvQRxohMsLSLCarmN1bVOuJtOEmJShukeUqPS
-afDWl64jXxcgp60wvgakc/P0XDxnqQB3VMjABassA7GFTsr/p3b66G3Y19EmfgzF
-bBGhweRo3GN1chVBRHB2rY+gtpfg4MNGKvHkmp0+GGLxAIDcSuujSp0l0+JliqzL
-tXn/vT3Uy8LFiycpPIpXpNVo14WYJeNbpGCpFy7q+WTA/aqcMv9JoTaM9TuL4yuR
-RIUolT9D3OmuBCgA3NfZj5NYLnfoVWuuDr0jgo3PJjhwVnsbFGSrTiy8PDYtn2wo
-y7hrrmhWh0953gsI6Aso+MZhBCOmL2RoluGzPOk2qM+xVK4FZ4c=
-=uDoL
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj2+8UACgkQ5GN7iDZy
+WKcuRw//ZYT+gclZjYgiVNvE1d3hsbB8NcX1rPk3gDENJaU80YXQCmKIVct/MP6K
+e95OO91jBsgeR3CugTVBCm+9POvmiU62wU22Sj2pRX0vNnnzjSILoxZPwO7Qf9QS
+vpVjqQ5RCNbPnyer6ljEYH2sEu1lQdo35A1gX/Lgm5wcyK9SskkXnNfrR+he1tZI
+gG3tmO2f6SHkOSrHS01JoDQ/Qge8FCSG1vxRdwiuNAfY5dh/LyXgsyzEHUUuAIjg
+ihHcH6qJZT3ppLovr/PBS9ONIH+6pHtF0bX2JBWdG1ik8QokaOFIBBVsMFMK8T14
+42I3x3GHIBOTt0cAKtnrxDlwar2crBPb6SDu3/Iqyp3G11kq20ke1b7gTPllkpEX
+SH6gzT6cGuqSGWQ+8Conyagv8JUrmno7fqBqoPMBM597Jeum1uyukwsT79Wk6wIp
+miHtZhXnYfALT0K75XYo6HgrUIdGiWfSFuVfNK/NrJf/jIE6crA1OEWHR+DsuWgf
+QSR2uHPy2bresrU/I+LPI2EMclvglshmmKJLtXzSNAWTbuV/od8Pc57qFIafRQI3
+qCMgx4rC7K1xHlbKksYM/wo+4IxT0ui9MvPbuV2cnwvKRhlTPXXd3PSkTLkfvKrG
+ybZY/tTuxRujWveJFDnWLi6zZgDo4nEZYEAHQYzDpFqnh6NFEqs=
+=jNUo
 -----END PGP SIGNATURE-----
 
---R6sEYoIZpp9JErk7--
+--RDS4xtyBfx+7DiaI--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
