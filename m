@@ -1,59 +1,73 @@
-From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
-Date: Wed, 19 Apr 2017 11:25:49 +1000
-Message-ID: <1492565149.25766.128.camel@kernel.crashing.org>
-References: <df1351d8-b86c-2e21-1948-4688ece5dc2b@deltatee.com>
- <CAPcyv4gScx6A7vG9VEHpNF41GOy1Nxst7QQ3QC3uZ54bWoxbMg@mail.gmail.com>
- <20170418210339.GA24257@obsidianresearch.com>
- <CAPcyv4h9n9Uzq4FAXR0ufieqvx5_txEwtnaaBWdxe-jF_XfTLg@mail.gmail.com>
- <20170418212258.GA26838@obsidianresearch.com>
- <CAPcyv4g5ifbpukthMXMro8qKdfoXAhftDpiwWWFCLZ4dK8JnnA@mail.gmail.com>
- <96198489-1af5-abcf-f23f-9a7e41aa17f7@deltatee.com>
- <CAPcyv4haUUs1Eew1PZTZkoGU4YFiHOuU93G+kG+CqfKzjz1gpw@mail.gmail.com>
- <20170418224225.GB27113@obsidianresearch.com>
- <CAPcyv4gQxifHcKLv0CZZoXJWz=rtzv-vGoofkek6NxRABd4XyA@mail.gmail.com>
- <20170418232159.GA28477@obsidianresearch.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: export pcie_flr and remove copies of it in drivers V2
+Date: Wed, 19 Apr 2017 08:37:37 +0300
+Message-ID: <20170419053737.GG14088@mtr-leonro.local>
+References: <20170414191131.14286-1-hch@lst.de>
+ <20170418183612.GC25295@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170418232159.GA28477-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="R6sEYoIZpp9JErk7"
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170418183612.GC25295@bhelgaas-glaptop.roam.corp.google.com>
+Sender: netdev-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>, Bjorn Helgaas <bhelgaas@google.com>, Giovanni Cabiddu <giovanni.cabiddu@intel.com>, Salvatore Benedetto <salvatore.benedetto@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Derek Chickles <derek.chickles@caviumnetworks.com>, Satanand Burla <satananda.burla@caviumnetworks.com>, Felix Manlunas <felix.manlunas@caviumnetworks.com>, Raghu Vatsavayi <raghu.vatsavayi@caviumnetworks.com>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, linux-pci@vger.kernel.org, qat-linux@intel.com, linux-crypto@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-04-18 at 17:21 -0600, Jason Gunthorpe wrote:
-> Splitting the sgl is different from iommu batching.
-> 
-> As an example, an O_DIRECT write of 1 MB with a single 4K P2P page in
-> the middle.
-> 
-> The optimum behavior is to allocate a 1MB-4K iommu range and fill it
-> with the CPU memory. Then return a SGL with three entires, two
-> pointing into the range and one to the p2p.
-> 
-> It is creating each range which tends to be expensive, so creating
-> two
-> ranges (or worse, if every SGL created a range it would be 255) is
-> very undesired.
 
-I think it's easier to get us started to just use a helper and
-stick it in the existing sglist processing loop of the architecture.
+--R6sEYoIZpp9JErk7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-As we noticed, stacking dma_ops is actually non-trivial and opens quite
-the can of worms.
+On Tue, Apr 18, 2017 at 01:36:12PM -0500, Bjorn Helgaas wrote:
+> On Fri, Apr 14, 2017 at 09:11:24PM +0200, Christoph Hellwig wrote:
+> > Hi all,
+> >
+> > this exports the PCI layer pcie_flr helper, and removes various opencoded
+> > copies of it.
+> >
+> > Changes since V1:
+> >  - rebase on top of the pci/virtualization branch
+> >  - fixed the probe case in __pci_dev_reset
+> >  - added ACKs from Bjorn
+>
+> Applied the first three patches:
+>
+>   bc13871ef35a PCI: Export pcie_flr()
+>   e641c375d414 PCI: Call pcie_flr() from reset_intel_82599_sfp_virtfn()
+>   40e0901ea4bf PCI: Call pcie_flr() from reset_chelsio_generic_dev()
+>
 
-As Jerome mentioned, you can end up with IOs ops containing an sglist
-that is a collection of memory and GPU pages for example.
+Bjorn,
 
-Cheers,
-Ben.
+How do you suggest to proceed with other patches? They should be applied
+to your tree either, because they depend on "bc13871ef35a PCI: Export
+pcie_flr()".
+
+Thanks
+
+
+> to pci/virtualization for v4.12, thanks!
+
+--R6sEYoIZpp9JErk7
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj296EACgkQ5GN7iDZy
+WKc1zQ/7BSIXdJRgJoHCW6mGUOl+O5Yyons+9qhBJmCZl75w+f2mgejIm1nl9r32
+2TcWLQful9IsrKUrsoK1205rOmGhjqg6kRMLicHiOYR1B4NOpWji4IA53RJgyGsY
+xlvVHwLuZ5Fl4bjnzRlRP701UYzBkeHJSoOf3ZVLNDtRY7ChDAXN6ny94gMFljbb
+CCOdY2877CQmzKgYQ39Iwc5wWEurTJ8VQatunjaXtrp2vGFjwqmBzkil06ZQM+QQ
+O8v2JufdH1r+RBaSMq8bBGA5iv31VnGXwe7RdC39TWZx8nuffkgyKXDipTx3xjMn
+U0RVFLHAdiOt61EKZu62FST1nibHvQRxohMsLSLCarmN1bVOuJtOEmJShukeUqPS
+afDWl64jXxcgp60wvgakc/P0XDxnqQB3VMjABassA7GFTsr/p3b66G3Y19EmfgzF
+bBGhweRo3GN1chVBRHB2rY+gtpfg4MNGKvHkmp0+GGLxAIDcSuujSp0l0+JliqzL
+tXn/vT3Uy8LFiycpPIpXpNVo14WYJeNbpGCpFy7q+WTA/aqcMv9JoTaM9TuL4yuR
+RIUolT9D3OmuBCgA3NfZj5NYLnfoVWuuDr0jgo3PJjhwVnsbFGSrTiy8PDYtn2wo
+y7hrrmhWh0953gsI6Aso+MZhBCOmL2RoluGzPOk2qM+xVK4FZ4c=
+=uDoL
+-----END PGP SIGNATURE-----
+
+--R6sEYoIZpp9JErk7--
