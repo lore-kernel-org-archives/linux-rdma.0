@@ -1,50 +1,41 @@
-From: Roman Penyaev <roman.penyaev@profitbricks.com>
-Subject: Re: RDMA performance comparison: IBNBD, SCST, NVMEoF
-Date: Wed, 19 Apr 2017 08:02:26 +0200
-Message-ID: <CAJrWOzD90kM7cwjpqX3oqK+0bC8L_WTzD+r5xmyx2QEYsajxcA@mail.gmail.com>
-References: <CAJrWOzAM_A6fwFxTZVo9MmiwWF1d6Bp9zTdBvUfnDFCPY_CmCQ@mail.gmail.com>
- <1492539735.2689.7.camel@sandisk.com>
+From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH for-next 6/6] IB/core: Rename uverbs event file structure
+Date: Wed, 19 Apr 2017 10:28:22 +0300
+Message-ID: <CAAKD3BC1Gby4N7dqcZw8GXTKohi45Qtef7cLNojUBAkmok7sCg@mail.gmail.com>
+References: <1492506222-28999-1-git-send-email-matanb@mellanox.com>
+ <1492506222-28999-7-git-send-email-matanb@mellanox.com> <1828884A29C6694DAF28B7E6B8A82373AB11476E@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-block-owner@vger.kernel.org>
-In-Reply-To: <1492539735.2689.7.camel@sandisk.com>
-Sender: linux-block-owner@vger.kernel.org
-To: Bart Van Assche <Bart.VanAssche@sandisk.com>
-Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "mail@fholler.de" <mail@fholler.de>, "sagi@grimberg.me" <sagi@grimberg.me>, "jinpu.wang@profitbricks.com" <jinpu.wang@profitbricks.com>, "yun.wang@profitbricks.com" <yun.wang@profitbricks.com>, "hch@lst.de" <hch@lst.de>, "axboe@kernel.dk" <axboe@kernel.dk>, "danil.kipnis@profitbricks.com" <danil.kipnis@profitbricks.com>, "Milind.dumbare@gmail.com" <Milind.dumbare@gmail.com>, "dledford@redhat.com" <dledford@redhat.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB11476E-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Bart,
-
-On Tue, Apr 18, 2017 at 8:22 PM, Bart Van Assche
-<Bart.VanAssche@sandisk.com> wrote:
-> On Tue, 2017-04-18 at 19:33 +0200, Roman Penyaev wrote:
->> By current email I would like to share some fresh RDMA performance
->> results of IBNBD, SCST and NVMEof, based on 4.10 kernel and variety
->> of configurations.
+On Tue, Apr 18, 2017 at 6:22 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>> Previously, ib_uverbs_event_file was suffixed by _file as it contained
+>> the actual file information. Since it's now only used as base struct
+>> for ib_uverbs_async_event_file and ib_uverbs_completion_event_file,
+>> we change its name to ib_uverbs_event_queue. This represents its
+>> logical role better.
+>>
+>> Fixes: 1e7710f3f656 ('IB/core: Change completion channel to use the
+>> reworked objects schema')
+>> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> ---
 >
-> Hello Roman,
+> Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >
-> Thank you for having shared these results. But please do not expect me
-> to have another look at IBNBD before the design bugs in the driver and
-> also in the protocol get fixed.
+> Thanks - all changes look good.
 
-I expected only that you might find results interesting, where I target
-the following:
+Thanks for the review Sean.
 
-    1) retest on latest kernel
-    2) compare against NVMEoF
-    3) retest using register_always=N
-
-
-> The presentation during Vault 2017 made
-> it clear that the driver does not scale if more than two CPUs submit I/O
-> simultaneously at the initiator side.
-
-On the iops graph, where I increase number of simultaneous fio jobs up to 128
-(initiator has 64 CPUs), NVMEoF tends to repeat the same curve, staying always
-below IBNBD.  So even this is a scalability problem, it can be seen on NVMEoF
-runs also. That's why I posted these results to draw someone's attention.
-
-
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-Roman
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
