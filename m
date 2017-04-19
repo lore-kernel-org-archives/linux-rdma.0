@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH RFC 08/10] IB/core: Add ability to explicitly destroy an uobject
-Date: Wed, 19 Apr 2017 18:20:23 +0300
-Message-ID: <1492615225-55118-9-git-send-email-matanb@mellanox.com>
+Subject: [PATCH RFC 01/10] IB/core: Add a generic way to execute an operation on a uobject
+Date: Wed, 19 Apr 2017 18:20:16 +0300
+Message-ID: <1492615225-55118-2-git-send-email-matanb@mellanox.com>
 References: <1492615225-55118-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1492615225-55118-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,80 +10,182 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When some objects are destroyed, we need to extract their status at
-destruction. In order to have the latest and correct status, the
-underlying object should be destroyed, but we should keep the uobject
-alive and read this information off the uobject.
-We introduce a rdma_explicit_destroy function. This function destroys
-the class type object (for example, the IDR class type which destroys
-the underlying object as well) and then convert the uobject to be of a
-null class type. This uobject will then be destroyed as any other
-uobject.
+The ioctl infrastructure treats all user-objects in the same manner.
+It gets an id from the user-space and by using the object type and
+operation mentioned in the action specification, it executes this
+operation. An operation is split to two stages. The first one is
+carried out before executing the handler and the second one is
+executed afterwards.
+
+In order to abstract these details from the ioctl infrastructure
+layer, we add uverbs_get_uobject_from_context and
+uverbs_finalize_object functions which corresponds to the first
+and second stages respectively.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/rdma_core.c | 35 +++++++++++++++++++++++++++++++++++
- include/rdma/uverbs_types.h         |  1 +
- 2 files changed, 36 insertions(+)
+ drivers/infiniband/core/rdma_core.c | 51 ++++++++++++++++++++++++++++++++++++
+ drivers/infiniband/core/rdma_core.h | 16 ++++++++++++
+ include/rdma/uverbs_ioctl.h         | 52 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 119 insertions(+)
+ create mode 100644 include/rdma/uverbs_ioctl.h
 
 diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
-index a6e35b3..c456107 100644
+index 41c31a2..269fa7f 100644
 --- a/drivers/infiniband/core/rdma_core.c
 +++ b/drivers/infiniband/core/rdma_core.c
-@@ -450,6 +450,41 @@ int __must_check rdma_remove_commit_uobject(struct ib_uobject *uobj)
- 	return ret;
- }
+@@ -35,6 +35,7 @@
+ #include <rdma/ib_verbs.h>
+ #include <rdma/uverbs_types.h>
+ #include <linux/rcupdate.h>
++#include <rdma/uverbs_ioctl.h>
+ #include "uverbs.h"
+ #include "core_priv.h"
+ #include "rdma_core.h"
+@@ -625,3 +626,53 @@ void uverbs_initialize_ucontext(struct ib_ucontext *ucontext)
+ 	.needs_kfree_rcu = false,
+ };
  
-+static int null_obj_type_class_remove_commit(struct ib_uobject *uobj,
-+					     enum rdma_remove_reason why)
++struct ib_uobject *uverbs_get_uobject_from_context(const struct uverbs_obj_type *type_attrs,
++						   struct ib_ucontext *ucontext,
++						   enum uverbs_idr_access access,
++						   int id)
 +{
-+	return 0;
++	switch (access) {
++	case UVERBS_ACCESS_READ:
++		return rdma_lookup_get_uobject(type_attrs, ucontext, id, false);
++	case UVERBS_ACCESS_DESTROY:
++	case UVERBS_ACCESS_WRITE:
++		return rdma_lookup_get_uobject(type_attrs, ucontext, id, true);
++	case UVERBS_ACCESS_NEW:
++		return rdma_alloc_begin_uobject(type_attrs, ucontext);
++	default:
++		WARN_ON(true);
++		return ERR_PTR(-EOPNOTSUPP);
++	}
 +}
 +
-+const struct uverbs_obj_type null_obj_type = {
-+	.type_class = &((const struct uverbs_obj_type_class){
-+			.remove_commit = null_obj_type_class_remove_commit,
-+			/* be cautious */
-+			.needs_kfree_rcu = true}),
++int uverbs_finalize_object(struct ib_uobject *uobj,
++			   enum uverbs_idr_access access,
++			   bool commit)
++{
++	int ret = 0;
++
++	switch (access) {
++	case UVERBS_ACCESS_READ:
++		rdma_lookup_put_uobject(uobj, false);
++		break;
++	case UVERBS_ACCESS_WRITE:
++		rdma_lookup_put_uobject(uobj, true);
++		break;
++	case UVERBS_ACCESS_DESTROY:
++		if (commit)
++			ret = rdma_remove_commit_uobject(uobj);
++		else
++			rdma_lookup_put_uobject(uobj, true);
++		break;
++	case UVERBS_ACCESS_NEW:
++		if (commit)
++			ret = rdma_alloc_commit_uobject(uobj);
++		else
++			rdma_alloc_abort_uobject(uobj);
++		break;
++	default:
++		WARN_ON(true);
++	}
++
++	return ret;
++}
+diff --git a/drivers/infiniband/core/rdma_core.h b/drivers/infiniband/core/rdma_core.h
+index 1b82e7f..5a1da24 100644
+--- a/drivers/infiniband/core/rdma_core.h
++++ b/drivers/infiniband/core/rdma_core.h
+@@ -39,6 +39,7 @@
+ 
+ #include <linux/idr.h>
+ #include <rdma/uverbs_types.h>
++#include <rdma/uverbs_ioctl.h>
+ #include <rdma/ib_verbs.h>
+ #include <linux/mutex.h>
+ 
+@@ -75,4 +76,19 @@
+  */
+ void uverbs_close_fd(struct file *f);
+ 
++/*
++ * Get an ib_uobject that corresponds to the given id from ucontext, assuming
++ * the object is from the given type. Lock it to the required access.
++ * This function could create (access == NEW) or destroy (access == DESTROY)
++ * objects if required. The action will be finalized only when
++ * uverbs_finalize_object is called.
++ */
++struct ib_uobject *uverbs_get_uobject_from_context(const struct uverbs_obj_type *type_attrs,
++						   struct ib_ucontext *ucontext,
++						   enum uverbs_idr_access access,
++						   int id);
++int uverbs_finalize_object(struct ib_uobject *uobj,
++			   enum uverbs_idr_access access,
++			   bool commit);
++
+ #endif /* RDMA_CORE_H */
+diff --git a/include/rdma/uverbs_ioctl.h b/include/rdma/uverbs_ioctl.h
+new file mode 100644
+index 0000000..a18468e
+--- /dev/null
++++ b/include/rdma/uverbs_ioctl.h
+@@ -0,0 +1,52 @@
++/*
++ * Copyright (c) 2016, Mellanox Technologies inc.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#ifndef _UVERBS_IOCTL_
++#define _UVERBS_IOCTL_
++
++#include <rdma/uverbs_types.h>
++
++/*
++ * =======================================
++ *	Verbs action specifications
++ * =======================================
++ */
++
++enum uverbs_idr_access {
++	UVERBS_ACCESS_READ,
++	UVERBS_ACCESS_WRITE,
++	UVERBS_ACCESS_NEW,
++	UVERBS_ACCESS_DESTROY
 +};
 +
-+int rdma_explicit_destroy(struct ib_uobject *uobject)
-+{
-+	int ret;
-+	struct ib_ucontext *ucontext = uobject->context;
++#endif
 +
-+	/* Cleanup is running. Calling this should have been impossible */
-+	if (!down_read_trylock(&ucontext->cleanup_rwsem)) {
-+		WARN(true, "ib_uverbs: Cleanup is running while removing an uobject\n");
-+		return 0;
-+	}
-+	lockdep_check(uobject, true);
-+	ret = uobject->type->type_class->remove_commit(uobject,
-+						       RDMA_REMOVE_DESTROY);
-+	if (ret)
-+		return ret;
-+
-+	uobject->type = &null_obj_type;
-+
-+	up_read(&ucontext->cleanup_rwsem);
-+	return 0;
-+}
-+
- static void alloc_commit_idr_uobject(struct ib_uobject *uobj)
- {
- 	uverbs_uobject_add(uobj);
-diff --git a/include/rdma/uverbs_types.h b/include/rdma/uverbs_types.h
-index 9760b6d..cc04ec6 100644
---- a/include/rdma/uverbs_types.h
-+++ b/include/rdma/uverbs_types.h
-@@ -129,6 +129,7 @@ struct ib_uobject *rdma_alloc_begin_uobject(const struct uverbs_obj_type *type,
- void rdma_alloc_abort_uobject(struct ib_uobject *uobj);
- int __must_check rdma_remove_commit_uobject(struct ib_uobject *uobj);
- int rdma_alloc_commit_uobject(struct ib_uobject *uobj);
-+int rdma_explicit_destroy(struct ib_uobject *uobject);
- 
- struct uverbs_obj_fd_type {
- 	/*
 -- 
 1.8.3.1
 
