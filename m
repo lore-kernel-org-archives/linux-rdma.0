@@ -1,86 +1,63 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: export pcie_flr and remove copies of it in drivers V2
-Date: Wed, 19 Apr 2017 19:40:01 +0300
-Message-ID: <20170419164001.GK14088@mtr-leonro.local>
-References: <20170414191131.14286-1-hch@lst.de>
- <20170418183612.GC25295@bhelgaas-glaptop.roam.corp.google.com>
- <20170419053737.GG14088@mtr-leonro.local>
+Subject: Re: [PATCH v2 rdma-next 12/18] IB/mlx5: Rename to_ib_ah_attr to
+ to_rdma_ah_attr
+Date: Wed, 19 Apr 2017 19:42:05 +0300
+Message-ID: <20170419164205.GL14088@mtr-leonro.local>
+References: <1492212538-32459-1-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <1492212538-32459-13-git-send-email-dasaratharaman.chandramouli@intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="YPJ8CVbwFUtL7OFW"
+        protocol="application/pgp-signature"; boundary="IJAclU0AInkryoed"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170419053737.GG14088-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <1492212538-32459-13-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Giovanni Cabiddu <giovanni.cabiddu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Salvatore Benedetto <salvatore.benedetto-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Derek Chickles <derek.chickles-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, Satanand Burla <satananda.burla-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, Felix Manlunas <felix.manlunas-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, Raghu Vatsavayi <raghu.vatsavayi-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, Jeff Kirsher <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, qat-linux-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---YPJ8CVbwFUtL7OFW
+--IJAclU0AInkryoed
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Apr 19, 2017 at 08:37:37AM +0300, Leon Romanovsky wrote:
-> On Tue, Apr 18, 2017 at 01:36:12PM -0500, Bjorn Helgaas wrote:
-> > On Fri, Apr 14, 2017 at 09:11:24PM +0200, Christoph Hellwig wrote:
-> > > Hi all,
-> > >
-> > > this exports the PCI layer pcie_flr helper, and removes various opencoded
-> > > copies of it.
-> > >
-> > > Changes since V1:
-> > >  - rebase on top of the pci/virtualization branch
-> > >  - fixed the probe case in __pci_dev_reset
-> > >  - added ACKs from Bjorn
-> >
-> > Applied the first three patches:
-> >
-> >   bc13871ef35a PCI: Export pcie_flr()
-> >   e641c375d414 PCI: Call pcie_flr() from reset_intel_82599_sfp_virtfn()
-> >   40e0901ea4bf PCI: Call pcie_flr() from reset_chelsio_generic_dev()
-> >
+On Fri, Apr 14, 2017 at 07:28:52PM -0400, Dasaratharaman Chandramouli wrote:
+> local function  to_ib_ah_attr is renamed so it in
+> sync with the rename of the ib_ah_attr structure
 >
-> Bjorn,
+> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/mlx5/qp.c | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
 >
-> How do you suggest to proceed with other patches? They should be applied
-> to your tree either, because they depend on "bc13871ef35a PCI: Export
-> pcie_flr()".
 
-I finally caught the old emails and found the answer by myself.
-http://marc.info/?l=linux-rdma&m=149218545228343&w=2
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Thanks
-
->
-> Thanks
->
->
-> > to pci/virtualization for v4.12, thanks!
-
-
-
---YPJ8CVbwFUtL7OFW
+--IJAclU0AInkryoed
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj3kuEACgkQ5GN7iDZy
-WKe9UA/6A11Wwv/G5iuMDuQlzercr2B7TKJ1/PlU403Xt1MaVTCZEIy6x5JGtJpd
-UnEEdKdqLT22FQ2jZfFYnrFb7CX9nKgmMyRj63HWMQVNPGo+88WGBQprgyd/QphS
-AUqQuV6cKvqQ/6s1i4gwPwkNzVu9MGNSq7Ud5kkoSxVQN4RDPlBFanL4p5ONd+XP
-ShN/NM5dp4unZysx/hg/n1vaB3meZ4iNZf398AruABe5nOdgadxb78AZG75l5PXM
-DpDa/91XhazAlmibloBPpdsInv9TaTDJFNwhEaYDBfXnGhhqJmZh/HAaPWY1Kq6C
-1C3uuKpUsYYgYWH0w1QGD9dFAu+G0RSYt7qTX2PlJ3KukOecV8HwJt5obOYk/H75
-IGHkjBNWe+KiJC5rTpJ9l2eQJWe2CcEBO1AJ0NU7H6E+7GZ6+rE03fS25lQfhIrg
-lRHedrj9UkR54zc3nbpyEDPoieek8IuC0yHmnRkrFIhh+/tOf/+NqfwJSh8+v5hP
-yOxIqjlb77RZXyXZTYoITcOlnMCh3XE3c4wKNJH0Qjj/12vP650+WnD530hUWins
-tH3NqMT7CsNG10DSDchKp/jZf3zRzFX3gTYR+0cPVE69Q24owlje7LdiZCaes9Jr
-JpvFXL/dwLks1E0OF+GzSIKDOofaHDvfdVrDZXvg7xbCAUppVm0=
-=NaHM
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj3k1wACgkQ5GN7iDZy
+WKfr5RAAzWNavjqyE2mHg2z0347gqLNHe6q9hXyDMRYFfnu90/Mtdl3Rb1KSLEvL
+9lnNKNZlVGDKfglyYEwsTEAbnnM9+/tnXb/cfFIqzcN24gmDlJ2aK+eNeqvCLxx5
+JMmRq6HosTzxpnDnJNxLZPT64HAzK+hy6E/iNZmuxu1a6TL0cbuxhJ1aVt8GvtCI
++eVvgYOZilS3JMPyiKniHE8qHCV5/Vgb6Yg3BAeBQynJeHrll2IGIlW2zra0FS5d
+00qkOmGAfLsmT8sU6EAVINA5NqnB5B53pdgHZmb07ecufpdY062I1LMOlyiwCrnl
+uIpdrvz1Ij9PPYr31ap0esvXpa228L1yqP7dND+y+ZR2QijFx1aE10k2bjuTWy9T
+0hBJc4LeiuQRdkx07lklA+tPhEzbygqOQS0TfHz6R1PBw9xoF2PHPgKhSslUIQYG
+zvAbZGQsYcjltGaJmnAXDY1Cf4X+Mm7mG6X1l9MSXQ1vZXpF2EOG/TERDsUz0fsN
+3WhOeJ2KtrEuNiBEL8rcoPMSmBvWlr3QLLkGYZPEdp5IPWZ+wHJDBjTSEtAwAPQ0
+icXeC1Wm+MF1POHvKUPcfWeImvubBMlJ1cStW2eJd6f1jPmyMFbrGU9XlaRzxX8w
+ZxIX1C27iL1kRCBcfpbMzgZs0ngwys5tTAS7W8hgSt1FaA1kq0Y=
+=aGS1
 -----END PGP SIGNATURE-----
 
---YPJ8CVbwFUtL7OFW--
+--IJAclU0AInkryoed--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
