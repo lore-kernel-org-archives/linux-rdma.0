@@ -1,95 +1,50 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/5] util: Add common mmio macros
-Date: Wed, 19 Apr 2017 08:55:17 +0300
-Message-ID: <20170419055517.GH14088@mtr-leonro.local>
-References: <1492123127-6266-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1492123127-6266-2-git-send-email-jgunthorpe@obsidianresearch.com>
- <b35958cf-5e87-3149-5413-eb754ec89b4d@dev.mellanox.co.il>
- <20170418172852.GD7181@obsidianresearch.com>
- <20170418173815.GC14088@mtr-leonro.local>
- <20170418181736.GF7181@obsidianresearch.com>
+From: Roman Penyaev <roman.penyaev@profitbricks.com>
+Subject: Re: RDMA performance comparison: IBNBD, SCST, NVMEoF
+Date: Wed, 19 Apr 2017 08:02:26 +0200
+Message-ID: <CAJrWOzD90kM7cwjpqX3oqK+0bC8L_WTzD+r5xmyx2QEYsajxcA@mail.gmail.com>
+References: <CAJrWOzAM_A6fwFxTZVo9MmiwWF1d6Bp9zTdBvUfnDFCPY_CmCQ@mail.gmail.com>
+ <1492539735.2689.7.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="RDS4xtyBfx+7DiaI"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170418181736.GF7181-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-block-owner@vger.kernel.org>
+In-Reply-To: <1492539735.2689.7.camel@sandisk.com>
+Sender: linux-block-owner@vger.kernel.org
+To: Bart Van Assche <Bart.VanAssche@sandisk.com>
+Cc: "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "mail@fholler.de" <mail@fholler.de>, "sagi@grimberg.me" <sagi@grimberg.me>, "jinpu.wang@profitbricks.com" <jinpu.wang@profitbricks.com>, "yun.wang@profitbricks.com" <yun.wang@profitbricks.com>, "hch@lst.de" <hch@lst.de>, "axboe@kernel.dk" <axboe@kernel.dk>, "danil.kipnis@profitbricks.com" <danil.kipnis@profitbricks.com>, "Milind.dumbare@gmail.com" <Milind.dumbare@gmail.com>, "dledford@redhat.com" <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
+Hello Bart,
 
---RDS4xtyBfx+7DiaI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Apr 18, 2017 at 12:17:36PM -0600, Jason Gunthorpe wrote:
-> On Tue, Apr 18, 2017 at 08:38:15PM +0300, Leon Romanovsky wrote:
-> > On Tue, Apr 18, 2017 at 11:28:52AM -0600, Jason Gunthorpe wrote:
-> > > On Tue, Apr 18, 2017 at 06:52:00PM +0300, Yishai Hadas wrote:
-> > >
-> > > We could use a hash scheme or something to multiple the lock, but I'm
-> > > really not sure that 32 bit performance matters to anyone anymore?
-> >
-> > In a hard way, I learned that we have a customer who expects that his 3=
-2bit
-> > application will continue to work, so the answer is - no, I care.
+On Tue, Apr 18, 2017 at 8:22 PM, Bart Van Assche
+<Bart.VanAssche@sandisk.com> wrote:
+> On Tue, 2017-04-18 at 19:33 +0200, Roman Penyaev wrote:
+>> By current email I would like to share some fresh RDMA performance
+>> results of IBNBD, SCST and NVMEof, based on 4.10 kernel and variety
+>> of configurations.
 >
-> Of course it continues to work.
+> Hello Roman,
 >
-> Does your customer fit this very narrow definition:
->  - Would actually upgrade to rdma-core
->  - 32 bit
->  - No SSE hardware (any Intel chip capable of PCI-E has SSE hardware)
->  - Multiple same-provider devices with a single program touching all
->    devices (single device performance is unchanged)
->  - Sensitive to the performance difference of a potential spinlock
->    contention / cache misplacement for ~4 instructions
->
-> It is hard to understand who cares so much about peformance but leaves
-> a wack on the table by running in 32 bit mode.
+> Thank you for having shared these results. But please do not expect me
+> to have another look at IBNBD before the design bugs in the driver and
+> also in the protocol get fixed.
 
-It doesn't matter if customer cares or not cares about performance. We
-as a company provided satisfactory numbers to them and would like to
-ensure that these numbers don't reduce over time.
+I expected only that you might find results interesting, where I target
+the following:
 
-I'm not looking for a performance boost in 32bit environment, but I
-don't expect decrease either.
+    1) retest on latest kernel
+    2) compare against NVMEoF
+    3) retest using register_always=N
 
->
-> Is this something like x32? We can certainly improve for x32.
 
-=46rom the customer ticket, the system is x86 (32 bits).
+> The presentation during Vault 2017 made
+> it clear that the driver does not scale if more than two CPUs submit I/O
+> simultaneously at the initiator side.
 
->
-> PPC32 could also potentially have a path like SSE..
->
-> Jason
+On the iops graph, where I increase number of simultaneous fio jobs up to 128
+(initiator has 64 CPUs), NVMEoF tends to repeat the same curve, staying always
+below IBNBD.  So even this is a scalability problem, it can be seen on NVMEoF
+runs also. That's why I posted these results to draw someone's attention.
 
---RDS4xtyBfx+7DiaI
-Content-Type: application/pgp-signature; name="signature.asc"
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj2+8UACgkQ5GN7iDZy
-WKcuRw//ZYT+gclZjYgiVNvE1d3hsbB8NcX1rPk3gDENJaU80YXQCmKIVct/MP6K
-e95OO91jBsgeR3CugTVBCm+9POvmiU62wU22Sj2pRX0vNnnzjSILoxZPwO7Qf9QS
-vpVjqQ5RCNbPnyer6ljEYH2sEu1lQdo35A1gX/Lgm5wcyK9SskkXnNfrR+he1tZI
-gG3tmO2f6SHkOSrHS01JoDQ/Qge8FCSG1vxRdwiuNAfY5dh/LyXgsyzEHUUuAIjg
-ihHcH6qJZT3ppLovr/PBS9ONIH+6pHtF0bX2JBWdG1ik8QokaOFIBBVsMFMK8T14
-42I3x3GHIBOTt0cAKtnrxDlwar2crBPb6SDu3/Iqyp3G11kq20ke1b7gTPllkpEX
-SH6gzT6cGuqSGWQ+8Conyagv8JUrmno7fqBqoPMBM597Jeum1uyukwsT79Wk6wIp
-miHtZhXnYfALT0K75XYo6HgrUIdGiWfSFuVfNK/NrJf/jIE6crA1OEWHR+DsuWgf
-QSR2uHPy2bresrU/I+LPI2EMclvglshmmKJLtXzSNAWTbuV/od8Pc57qFIafRQI3
-qCMgx4rC7K1xHlbKksYM/wo+4IxT0ui9MvPbuV2cnwvKRhlTPXXd3PSkTLkfvKrG
-ybZY/tTuxRujWveJFDnWLi6zZgDo4nEZYEAHQYzDpFqnh6NFEqs=
-=jNUo
------END PGP SIGNATURE-----
-
---RDS4xtyBfx+7DiaI--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Roman
