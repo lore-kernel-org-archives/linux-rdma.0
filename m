@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Subject: Re: [PATCH rdma-next 6/6] IB/SA: Add support to query OPA path
  records
-Date: Wed, 19 Apr 2017 10:50:26 -0400
-Message-ID: <b8def3c6-b289-a3b2-a3a8-a77f3dabf30e@dev.mellanox.co.il>
+Date: Wed, 19 Apr 2017 10:52:11 -0400
+Message-ID: <7304d2b8-87f4-e7ec-ebe4-ccaf34c09976@dev.mellanox.co.il>
 References: <1492462590-64866-1-git-send-email-dasaratharaman.chandramouli@intel.com>
  <1492462590-64866-7-git-send-email-dasaratharaman.chandramouli@intel.com>
 Mime-Version: 1.0
@@ -18,7 +18,7 @@ List-Id: linux-rdma@vger.kernel.org
 On 4/17/2017 4:56 PM, Dasaratharaman Chandramouli wrote:
 > When the bit 26 of capmask2 field in OPA classport info
 > query is set, SA will query for OPA path records instead
-> of querying for IB path records.
+> of querying for IB path records. 
 
 If/when additional SA query types are supported for OPA, will each
 additional SA query type have separate CapMask2 bit or will they be
@@ -31,7 +31,8 @@ be added (at least one more coming soon). There is some chance for
 feature collision if OPA would care about supporting such new IB feature
 if and when OPA and IB bitmasks meet with IB incrementing from bit 13
 and OPA decrementing from bit 26. I wouldn't expect that to happen for a
-while but best
+while but it would be best to anticipate this if it is of any concern to
+OPA.
 
 -- Hal
 --
