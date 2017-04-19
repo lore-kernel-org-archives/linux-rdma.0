@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH RFC 06/10] IB/core: Initialize uverbs types specification
-Date: Wed, 19 Apr 2017 18:20:21 +0300
-Message-ID: <1492615225-55118-7-git-send-email-matanb@mellanox.com>
+Subject: [PATCH RFC 07/10] IB/core: Add macros for declaring actions and attributes
+Date: Wed, 19 Apr 2017 18:20:22 +0300
+Message-ID: <1492615225-55118-8-git-send-email-matanb@mellanox.com>
 References: <1492615225-55118-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1492615225-55118-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,119 +10,164 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In order to accelerate the validation and parsing process, we
-calculate the number of attributes of all groups in an action
-and the mandatory attributes bitmask in advance.
+This patch adds macros for declaring action groups, actions,
+attribute groups and attributes. These definitions are later
+used by downstream patches to declare some of the common types.
+
+In addition, we add some helper inline functions to copy_{from,to}
+user-space buffers and check if an attribute is valid.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs.h       |  3 ++
- drivers/infiniband/core/uverbs_ioctl.c | 58 ++++++++++++++++++++++++++++++++++
- drivers/infiniband/core/uverbs_main.c  |  3 ++
- 3 files changed, 64 insertions(+)
+ include/rdma/uverbs_ioctl.h | 113 +++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 112 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index a3230b6..6e59a00 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -191,7 +191,10 @@ struct ib_ucq_object {
- 	u32			async_events_reported;
+diff --git a/include/rdma/uverbs_ioctl.h b/include/rdma/uverbs_ioctl.h
+index 5c3aa4f..5beb1e1 100644
+--- a/include/rdma/uverbs_ioctl.h
++++ b/include/rdma/uverbs_ioctl.h
+@@ -34,6 +34,11 @@
+ #define _UVERBS_IOCTL_
+ 
+ #include <rdma/uverbs_types.h>
++#include <linux/uaccess.h>
++#include <rdma/rdma_user_ioctl.h>
++
++struct uverbs_object_type;
++struct uverbs_uobject_type;
+ 
+ /*
+  * =======================================
+@@ -120,9 +125,74 @@ struct uverbs_root {
+ 	size_t					num_groups;
  };
  
-+struct uverbs_type_group;
+-#define DECLARE_UVERBS_TYPE(name, _type_attrs)			\
++#define UA_FLAGS(_flags)  .flags = _flags
++#define UVERBS_ATTR(_id, _len, _type, ...)				\
++	[_id] = {.len = _len, .type = _type, ##__VA_ARGS__}
++#define UVERBS_ATTR_PTR_IN_SZ(_id, _len, ...)				\
++	UVERBS_ATTR(_id, _len, UVERBS_ATTR_TYPE_PTR_IN, ##__VA_ARGS__)
++#define UVERBS_ATTR_PTR_IN(_id, _type, ...)				\
++	UVERBS_ATTR_PTR_IN_SZ(_id, sizeof(_type), ##__VA_ARGS__)
++#define UVERBS_ATTR_PTR_OUT_SZ(_id, _len, ...)				\
++	UVERBS_ATTR(_id, _len, UVERBS_ATTR_TYPE_PTR_OUT, ##__VA_ARGS__)
++#define UVERBS_ATTR_PTR_OUT(_id, _type, ...)				\
++	UVERBS_ATTR_PTR_OUT_SZ(_id, sizeof(_type), ##__VA_ARGS__)
++#define UVERBS_ATTR_IDR(_id, _idr_type, _access, ...)			\
++	[_id] = {.type = UVERBS_ATTR_TYPE_IDR,				\
++		 .obj = {.obj_type = _idr_type,				\
++			 .access = _access				\
++		 }, ##__VA_ARGS__ }
++#define UVERBS_ATTR_FD(_id, _fd_type, _access, ...)			\
++	[_id] = {.type = UVERBS_ATTR_TYPE_FD,				\
++		 .obj = {.obj_type = _fd_type,				\
++			 .access = (_access) + BUILD_BUG_ON_ZERO(	\
++				(_access) != UVERBS_ACCESS_NEW &&	\
++				(_access) != UVERBS_ACCESS_READ)	\
++		 }, ##__VA_ARGS__ }
++#define _UVERBS_ATTR_SPEC_SZ(...)					\
++	(sizeof((struct uverbs_attr_spec[]){__VA_ARGS__}) /	\
++	 sizeof(struct uverbs_attr_spec))
++#define UVERBS_ATTR_SPEC(...)					\
++	((struct uverbs_attr_spec_group)				\
++	 {.attrs = (struct uverbs_attr_spec[]){__VA_ARGS__},		\
++	  .num_attrs = _UVERBS_ATTR_SPEC_SZ(__VA_ARGS__),		\
++	 .mandatory_attrs_bitmask =					\
++		((unsigned long[BITS_TO_LONGS(_UVERBS_ATTR_SPEC_SZ(__VA_ARGS__))]) {})})
++#define DECLARE_UVERBS_ATTR_SPEC(name, ...)			\
++	struct uverbs_attr_spec_group name =			\
++		UVERBS_ATTR_SPEC(__VA_ARGS__)
++#define _UVERBS_ATTR_ACTION_SPEC_SZ(...)				  \
++	(sizeof((struct uverbs_attr_spec_group *[]){__VA_ARGS__}) /	  \
++	 sizeof(struct uverbs_attr_spec_group *))
++#define _UVERBS_ACTION(_handler, _flags, ...)				       \
++	((struct uverbs_action) {					       \
++		.flags = _flags,					       \
++		.handler = _handler,					       \
++		.num_groups =	_UVERBS_ATTR_ACTION_SPEC_SZ(__VA_ARGS__),      \
++		.attr_groups = (struct uverbs_attr_spec_group *[]){__VA_ARGS__} })
++#define UVERBS_ACTION(_handler, ...)			\
++	_UVERBS_ACTION(_handler, 0, __VA_ARGS__)
++#define UVERBS_CTX_ACTION(_handler, ...)			\
++	_UVERBS_ACTION(_handler, UVERBS_ACTION_FLAG_CREATE_ROOT, __VA_ARGS__)
++#define _UVERBS_ACTIONS_SZ(...)					\
++	(sizeof((struct uverbs_action *[]){__VA_ARGS__}) /	\
++	 sizeof(struct uverbs_action *))
++#define ADD_UVERBS_ACTION(action_idx, _handler,  ...)		\
++	[action_idx] = &UVERBS_ACTION(_handler, __VA_ARGS__)
++#define ADD_UVERBS_CTX_ACTION(action_idx, _handler,  ...)	\
++	[action_idx] = &UVERBS_CTX_ACTION(_handler, __VA_ARGS__)
++#define UVERBS_ACTIONS(...)						\
++	((const struct uverbs_action_group)			\
++	  {.num_actions = _UVERBS_ACTIONS_SZ(__VA_ARGS__),		\
++	   .actions = (struct uverbs_action *[]){__VA_ARGS__} })
++#define _UVERBS_ACTIONS_GROUP_SZ(...)					\
++	(sizeof((const struct uverbs_action_group*[]){__VA_ARGS__}) / \
++	 sizeof(const struct uverbs_action_group *))
 +
- extern const struct file_operations uverbs_event_fops;
-+void uverbs_initialize_type_group(const struct uverbs_type_group *type_group);
- void ib_uverbs_init_event_queue(struct ib_uverbs_event_queue *ev_queue);
- struct file *ib_uverbs_alloc_async_event_file(struct ib_uverbs_file *uverbs_file,
- 					      struct ib_device *ib_dev);
-diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
-index 3465a18..18c0799 100644
---- a/drivers/infiniband/core/uverbs_ioctl.c
-+++ b/drivers/infiniband/core/uverbs_ioctl.c
-@@ -349,3 +349,61 @@ long ib_uverbs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
++#define DECLARE_UVERBS_TYPE(name, _type_attrs, ...)			\
+ 	const struct uverbs_type name = {				\
+ 		.type_attrs = _type_attrs,				\
++		.num_groups = _UVERBS_ACTIONS_GROUP_SZ(__VA_ARGS__),	\
++		.action_groups = (const struct uverbs_action_group *[]){__VA_ARGS__} \
+ 	}
+ #define _UVERBS_TYPE_SZ(...)						\
+ 	(sizeof((const struct uverbs_type *[]){__VA_ARGS__}) /	\
+@@ -135,6 +205,17 @@ struct uverbs_root {
+ #define DECLARE_UVERBS_TYPES(name, ...)				\
+ 	const struct uverbs_type_group name = UVERBS_TYPES(__VA_ARGS__)
  
- 	return err;
++#define _UVERBS_TYPES_SZ(...)						\
++	(sizeof((const struct uverbs_type_group *[]){__VA_ARGS__}) /	\
++	 sizeof(const struct uverbs_type_group *))
++
++#define UVERBS_TYPES_GROUP(...)						\
++	((const struct uverbs_root){				\
++		.type_groups = (const struct uverbs_type_group *[]){__VA_ARGS__},\
++		.num_groups = _UVERBS_TYPES_SZ(__VA_ARGS__)})
++#define DECLARE_UVERBS_TYPES_GROUP(name, ...)		\
++	const struct uverbs_root name = UVERBS_TYPES_GROUP(__VA_ARGS__)
++
+ /* =================================================
+  *              Parsing infrastructure
+  * =================================================
+@@ -174,5 +255,35 @@ static inline bool uverbs_is_valid(const struct uverbs_attr_array *attr_array,
+ 	return test_bit(idx, attr_array->valid_bitmap);
  }
-+
-+static void uverbs_initialize_action(struct uverbs_action *action)
+ 
++/* TODO: Add debug version for these macros/inline func */
++static inline int uverbs_copy_to(struct uverbs_attr_array *attr_array,
++				 size_t idx, const void *from)
 +{
-+	size_t attr_group_idx;
++	if (!uverbs_is_valid(attr_array, idx))
++		return -ENOENT;
 +
-+	for (attr_group_idx = 0; attr_group_idx < action->num_groups;
-+	     attr_group_idx++) {
-+		struct uverbs_attr_spec_group *attr_group =
-+			action->attr_groups[attr_group_idx];
-+		size_t attr_idx;
-+
-+		if (!attr_group)
-+			continue;
-+		action->num_child_attrs += attr_group->num_attrs;
-+		for (attr_idx = 0; attr_idx < attr_group->num_attrs;
-+		     attr_idx++) {
-+			struct uverbs_attr_spec *attr =
-+				&attr_group->attrs[attr_idx];
-+
-+			if (attr->flags & UVERBS_ATTR_SPEC_F_MANDATORY)
-+				set_bit(attr_idx,
-+					attr_group->mandatory_attrs_bitmask);
-+		}
-+	}
++	return copy_to_user(attr_array->attrs[idx].ptr_attr.ptr, from,
++			    attr_array->attrs[idx].ptr_attr.len) ? -EFAULT : 0;
 +}
 +
-+void uverbs_initialize_type_group(const struct uverbs_type_group *type_group)
-+{
-+	size_t type_idx;
++#define uverbs_copy_from(to, attr_array, idx)				\
++	(uverbs_is_valid((attr_array), idx) ?				\
++	 (sizeof(*to) <= sizeof(((struct ib_uverbs_attr *)0)->data) ?\
++	  (memcpy(to, &(attr_array)->attrs[idx].ptr_attr.ptr,		\
++		 (attr_array)->attrs[idx].ptr_attr.len), 0) :		\
++	  (copy_from_user((to), (attr_array)->attrs[idx].ptr_attr.ptr,	\
++			 (attr_array)->attrs[idx].ptr_attr.len) ?	\
++	   -EFAULT : 0)) : -ENOENT)
++#define uverbs_get_attr(to, attr_array, idx)				\
++	(uverbs_is_valid((attr_array), idx) ?				\
++	 (sizeof(to) <= sizeof(((struct ib_uverbs_attr *)0)->data) ? \
++	  (sizeof(to) == sizeof((&(to))[0]) ?				\
++	   ((to) = *(typeof(to) *)&(attr_array)->attrs[idx].ptr_attr.ptr, 0) :\
++	   (memcpy(&(to), &(attr_array)->attrs[idx].ptr_attr.ptr,	\
++		 (attr_array)->attrs[idx].ptr_attr.len), 0)) :		\
++	  (copy_from_user(&(to), (attr_array)->attrs[idx].ptr_attr.ptr,	\
++			 (attr_array)->attrs[idx].ptr_attr.len) ?	\
++	   -EFAULT : 0)) : -ENOENT)
 +
-+	for (type_idx = 0; type_idx < type_group->num_types; type_idx++) {
-+		const struct uverbs_type *type = type_group->types[type_idx];
-+		size_t action_group_idx;
-+
-+		if (!type)
-+			continue;
-+		for (action_group_idx = 0;
-+		     action_group_idx < type->num_groups;
-+		     action_group_idx++) {
-+			const struct uverbs_action_group *action_group =
-+				type->action_groups[action_group_idx];
-+			size_t action_idx;
-+
-+			if (!action_group)
-+				continue;
-+			for (action_idx = 0;
-+			     action_idx < action_group->num_actions;
-+			     action_idx++) {
-+				struct uverbs_action *action =
-+					action_group->actions[action_idx];
-+
-+				if (!action)
-+					continue;
-+				uverbs_initialize_action(action);
-+			}
-+		}
-+	}
-+}
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index b282daf..44c4d92 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -45,6 +45,7 @@
- #include <linux/cdev.h>
- #include <linux/anon_inodes.h>
- #include <linux/slab.h>
-+#include <rdma/uverbs_std_types.h>
+ #endif
  
- #include <linux/uaccess.h>
- 
-@@ -1253,6 +1254,8 @@ static int __init ib_uverbs_init(void)
- {
- 	int ret;
- 
-+	uverbs_initialize_type_group(&uverbs_common_types);
-+
- 	ret = register_chrdev_region(IB_UVERBS_BASE_DEV, IB_UVERBS_MAX_DEVICES,
- 				     "infiniband_verbs");
- 	if (ret) {
 -- 
 1.8.3.1
 
