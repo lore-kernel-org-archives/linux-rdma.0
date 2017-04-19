@@ -1,64 +1,74 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 rdma-next 02/18] IB/IPoIB: Remove 'else' when the 'if'
- has a return.
-Date: Wed, 19 Apr 2017 19:43:18 +0300
-Message-ID: <20170419164318.GN14088@mtr-leonro.local>
-References: <1492212538-32459-1-git-send-email-dasaratharaman.chandramouli@intel.com>
- <1492212538-32459-3-git-send-email-dasaratharaman.chandramouli@intel.com>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
+Date: Wed, 19 Apr 2017 10:48:51 -0600
+Message-ID: <4899b011-bdfb-18d8-ef00-33a1516216a6@deltatee.com>
+References: <CAPcyv4it56J8Voo6kV0bBcO3nHsOHYLENpAtONJZTGceDDwNPg@mail.gmail.com>
+ <1492381396.25766.43.camel@kernel.crashing.org>
+ <20170418164557.GA7181@obsidianresearch.com>
+ <cce00131-1f28-27b3-40ab-04f8783f1e5a@deltatee.com>
+ <20170418190138.GH7181@obsidianresearch.com>
+ <df1351d8-b86c-2e21-1948-4688ece5dc2b@deltatee.com>
+ <CAPcyv4gScx6A7vG9VEHpNF41GOy1Nxst7QQ3QC3uZ54bWoxbMg@mail.gmail.com>
+ <20170418210339.GA24257@obsidianresearch.com>
+ <1492564806.25766.124.camel@kernel.crashing.org>
+ <20170419155557.GA8497@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="j3zO+32zXj6UcJCE"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1492212538-32459-3-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20170419155557.GA8497-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---j3zO+32zXj6UcJCE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-On Fri, Apr 14, 2017 at 07:28:42PM -0400, Dasaratharaman Chandramouli wrote:
-> This patch fixes a checkpatch issue related to not having
-> to use an 'else' if the 'if' path returns from the function.
->
-> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 19 +++++++++----------
->  1 file changed, 9 insertions(+), 10 deletions(-)
->
+On 19/04/17 09:55 AM, Jason Gunthorpe wrote:
+> I was thinking only this one would be supported with a core code
+> helper..
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Pivoting slightly: I was looking at how HMM uses ZONE_DEVICE. They add a
+type flag to the dev_pagemap structure which would be very useful to us.
+We could add another MEMORY_DEVICE_P2P type to distinguish p2p pages.
+Then, potentially, we could add a dma_map callback to the structure
+(possibly unioned with an hmm field). The dev_ops providers would then
+just need to do something like this (enclosed in a helper):
 
---j3zO+32zXj6UcJCE
-Content-Type: application/pgp-signature; name="signature.asc"
+if (is_zone_device_page(page)) {
+	pgmap = get_dev_pagemap(page_to_pfn(page));
+	if (!pgmap || pgmap->type !=  MEMORY_DEVICE_P2P ||
+	    !pgmap->dma_map)
+		return 0;
+	
+	dma_addr = pgmap->dma_map(dev, pgmap->dev, page);
+	put_dev_pagemap(pgmap);
+	if (!dma_addr)
+		return 0;
+	...
+}
 
------BEGIN PGP SIGNATURE-----
+The pci_enable_p2p_bar function would then just need to call
+devm_memremap_pages with the dma_map callback set to a function that
+does the segment check and the offset calculation.
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj3k6YACgkQ5GN7iDZy
-WKc28xAAwZDjezJNmJcITvEu/ggNL7msIFhPa/HrHMVzn55VrQxwnXjjC/5eRZzR
-iKTkZrCzlBptJRAx7lOIxTVxJ91l0hc87TQDfDN5isWjMH17C5BK3SfucA8BYB6J
-mwBh+7nZVR4zDADN54SGEa/YB3tzWS2kbm8VlSlbi5RDVPlnPPYCAX4NbZn49+rn
-83LIOxP/IMo71zFsTl0cubJtaQeZ3vLX68FuITjEP7625ZnjDdzkUk/N3mGV9uNU
-N7BPZwFniUARGP8l4LzsrBlZBui1O17efuKz9NCnTAJK2JQWjciNdFJ5rHBiUbOA
-8ZEHwygrzCMmytHnFiXXRzh5v/3VcaQA92n9jccUJRsQb8iB7JhM/SsdIxVGuo48
-RRaf13JKyQPnJk/XBWrBuaxbkLtMU7RjnCfgdVGtVxmjRgBCDIqfTdKwe/niEvLL
-wnhl6FHdX/qAIVeVpUgxUjhR10QywraiTUgeXvQQ7FK+w1aGH7YTZsljO0pLw9e3
-rscBjJBq3sG5izmKXXLxpUg2NtLFpfHnWVGU0nuVUUQXXV9NjIXkkgCtggdXo2Xw
-Me0JVl33ZSw2rPFf2WxOSJaeU5ku8++uvawpua0fI318kaJm9XCc3evqWq45CAsV
-nrfdPq9hf8opovM4+n7/TNlk6AwvBcBYebg+ZnXj2OBNZljBF8k=
-=TN+n
------END PGP SIGNATURE-----
+Thoughts?
 
---j3zO+32zXj6UcJCE--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+@Jerome: my feedback to you would be that your patch assumes all users
+of devm_memremap_pages are MEMORY_DEVICE_PERSISTENT. It would be more
+useful if it was generic. My suggestion would be to have the caller
+allocate the dev_pagemap structure, populate it and pass it into
+devm_memremap_pages. Given that pretty much everything in that structure
+are already arguments to that function, I feel like this makes sense.
+This should also help to unify hmm_devmem_pages_create and
+devm_memremap_pages which look very similar to each other.
+
+Logan
