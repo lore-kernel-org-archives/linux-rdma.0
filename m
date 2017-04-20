@@ -1,117 +1,87 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH 02/26] IB/ocrdma: Use kcalloc() in
- ocrdma_mbx_alloc_pd_range()
-Date: Thu, 20 Apr 2017 16:40:58 -0400
-Message-ID: <1492720858.3041.17.camel@redhat.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 00/26] InfiniBand-OCRDMA: Fine-tuning for several
+ function implementations
+Date: Thu, 20 Apr 2017 16:43:19 -0400
+Message-ID: <1492720999.3041.18.camel@redhat.com>
 References: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net>
-         <7abcae42-6bc2-0653-69ea-5112943ff72e@users.sourceforge.net>
-         <20170308140304.GC4828@yuval-lap>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170308140304.GC4828@yuval-lap>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yuval Shaia <yuval.shaia@oracle.com>, SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-rdma@vger.kernel.org, Devesh Sharma <devesh.sharma@avagotech.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Selvin Xavier <selvin.xavier@avagotech.com>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <fc421509-4069-da8a-b308-60b49ea91ada-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-03-08 at 16:03 +0200, Yuval Shaia wrote:
-> On Wed, Mar 08, 2017 at 01:41:00PM +0100, SF Markus Elfring wrote:
-> > 
-> > From: Markus Elfring <elfring@users.sourceforge.net>
-> > Date: Tue, 7 Mar 2017 18:23:54 +0100
-> > 
-> > * Multiplications for the size determination of memory allocations
-> >   indicated that array data structures should be processed.
-> >   Thus reuse the corresponding function "kcalloc".
-> > 
-> >   This issue was detected by using the Coccinelle software.
-> > 
-> > * Delete the local variable "pd_bitmap_size" which became
-> > unnecessary with
-> >   this refactoring.
-> > 
-> > Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> > ---
-> >  drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 16 ++++++++--------
-> >  1 file changed, 8 insertions(+), 8 deletions(-)
-> > 
-> > diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-> > b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-> > index cbac41b15d94..d5a3127b6df8 100644
-> > --- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-> > +++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-> > @@ -1505,7 +1505,6 @@ int ocrdma_mbx_dealloc_pd(struct ocrdma_dev
-> > *dev, struct ocrdma_pd *pd)
-> >  static int ocrdma_mbx_alloc_pd_range(struct ocrdma_dev *dev)
-> >  {
-> >  	int status = -ENOMEM;
-> > -	size_t pd_bitmap_size;
-> >  	struct ocrdma_alloc_pd_range *cmd;
-> >  	struct ocrdma_alloc_pd_range_rsp *rsp;
-> >  
-> > @@ -1527,10 +1526,10 @@ static int ocrdma_mbx_alloc_pd_range(struct
-> > ocrdma_dev *dev)
-> >  			dev->pd_mgr->pd_dpp_start = rsp-
-> > >dpp_page_pdid &
-> >  					OCRDMA_ALLOC_PD_RNG_RSP_ST
-> > ART_PDID_MASK;
-> >  			dev->pd_mgr->max_dpp_pd = rsp->pd_count;
-> > -			pd_bitmap_size =
-> > -				BITS_TO_LONGS(rsp->pd_count) *
-> > sizeof(long);
-> > -			dev->pd_mgr->pd_dpp_bitmap =
-> > kzalloc(pd_bitmap_size,
-> > -							     GFP_K
-> > ERNEL);
-> > +			dev->pd_mgr->pd_dpp_bitmap
-> > +				= kcalloc(BITS_TO_LONGS(rsp-
-> > >pd_count),
-> > +							sizeof(lon
-> > g),
-> > +							GFP_KERNEL
-> > );
+On Wed, 2017-03-08 at 13:30 +0100, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+> Date: Wed, 8 Mar 2017 13:14:56 +0100
 > 
-> kzalloc gives "clean" buffer.
-> Just making sure that it is fine with you if the array is not
-> "clean".
-> (looking at _ocrdma_pd_mgr_get_bitmap i think it should).
+> Several update suggestions were taken into account
+> from static source code analysis.
 
-kcalloc is documented to return memory set to 0.
+I've dropped this entire series.  If you want me to consider it, you
+need to respin it with the following changes:
 
-> > 
-> >  		}
-> >  		kfree(cmd);
-> >  	}
-> > @@ -1546,9 +1545,10 @@ static int ocrdma_mbx_alloc_pd_range(struct
-> > ocrdma_dev *dev)
-> >  		dev->pd_mgr->pd_norm_start = rsp->dpp_page_pdid &
-> >  					OCRDMA_ALLOC_PD_RNG_RSP_ST
-> > ART_PDID_MASK;
-> >  		dev->pd_mgr->max_normal_pd = rsp->pd_count;
-> > -		pd_bitmap_size = BITS_TO_LONGS(rsp->pd_count) *
-> > sizeof(long);
-> > -		dev->pd_mgr->pd_norm_bitmap =
-> > kzalloc(pd_bitmap_size,
-> > -						      GFP_KERNEL);
-> > +		dev->pd_mgr->pd_norm_bitmap
-> > +			= kcalloc(BITS_TO_LONGS(rsp->pd_count),
-> > +						sizeof(long),
-> > +						GFP_KERNEL);
-> >  	}
-> >  	kfree(cmd);
-> >  
-> > -- 
-> > 2.12.0
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-
-> > rdma" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1) Put all similar corrections in a single patch.  If you are replacing
+a sizeof() usage with a safer sizeof() usage, then I don't want one
+patch per replacement, I want one patch for all replacements.
+
+2) Use reasonable git commit messages.  "Improve another" is never a
+reasonable commit message because it implicitly refereces another git
+commit message.  Unless this is a fix for a previous commit, all commit
+messages should be standalone.
+
+3) Keep your git commit message subject lines within the recommended
+size.  You have many that are too long.  As trivial as all of these
+changes are, I'm not going to go fixup 29 commit messages to take them.
+
+4) Make sure to preserve the reviewed-by tags on the resubmission.
+
+> Markus Elfring (26):
+>   Use kcalloc() in ocrdma_create_eqs()
+>   Use kcalloc() in ocrdma_mbx_alloc_pd_range()
+>   Improve size determinations in ocrdma_mbx_get_dcbx_config()
+>   Delete unnecessary variable initialisations in
+> ocrdma_mbx_get_dcbx_config()
+>   Improve another size determination in ocrdma_mbx_query_qp()
+>   Improve another size determination in ocrdma_alloc_pd_pool()
+>   Improve another size determination in ocrdma_mbx_get_ctrl_attribs()
+>   Improve size determinations in ocrdma_mbx_rdma_stats()
+>   Improve another size determination in ocrdma_mq_cq_handler()
+>   Improve another size determination in ocrdma_init_emb_mqe()
+>   Delete unnecessary braces
+>   Adjust ten checks for null pointers
+>   Use kcalloc() in ocrdma_alloc_resources()
+>   Improve another size determination in ocrdma_add()
+>   Delete an error message for a failed memory allocation in
+> ocrdma_add()
+>   Adjust a null pointer check in ocrdma_alloc_resources()
+>   Use kmalloc_array() in ocrdma_create_srq()
+>   Use kcalloc() in three functions
+>   Improve another size determination in ocrdma_alloc_mr()
+>   Delete an unnecessary variable assignment in ocrdma_alloc_mr()
+>   Improve another size determination in ocrdma_create_srq()
+>   Returning only value constants in ocrdma_resize_cq()
+>   Delete an unnecessary variable in ocrdma_dealloc_pd()
+>   One jump label less in ocrdma_alloc_ucontext_pd()
+>   Delete unnecessary braces
+>   Adjust further ten checks for null pointers
+> 
+>  drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |  88 ++++++++++------
+> -----
+>  drivers/infiniband/hw/ocrdma/ocrdma_main.c  |  19 +++--
+>  drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 118 ++++++++++++----
+> ------------
+>  3 files changed, 100 insertions(+), 125 deletions(-)
+
 -- 
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG KeyID: B826A3330E572FDD
    
 Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
