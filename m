@@ -1,80 +1,59 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH net-next 00/16] Mellanox, mlx5 RDMA net device support
-Date: Thu, 20 Apr 2017 21:49:55 +0300
-Message-ID: <20170420184955.GU14088@mtr-leonro.local>
-References: <20170413033706.19016-1-saeedm@mellanox.com>
- <20170417.110851.1496380796999919507.davem@davemloft.net>
- <1492713677.3041.3.camel@redhat.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next V2 0/6] Enhanced mode for IPoIB driver
+Date: Thu, 20 Apr 2017 14:52:03 -0400
+Message-ID: <1492714323.3041.8.camel@redhat.com>
+References: <20170410082230.10662-1-leonro@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="brdEIFGMNIjz5YJG"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1492713677.3041.3.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170410082230.10662-1-leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
---brdEIFGMNIjz5YJG
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Mon, 2017-04-10 at 11:22 +0300, Leon Romanovsky wrote:
+> Hi Doug,
+> 
+> This is third version of IPoIB driver, the main change between
+> previous
+> version is change in author line for the first patch.
+> 
+> This patchset mostly comes from Erez with one exception in the first
+> patch.
+> 
+> That patch origins from two different commits, first from Niranjana
+> who added
+> RDMA netdev interface and second from Erez who added IPoIB support.
+> 
+> During the preparation to submission, I squashed their commits into
+> one
+> and refactored code to allow submission as a standalone topic without
+> creating
+> dependencies between different submissions.
+> 
+> Per-your request, I based this patch set on v4.11-rc3.
 
-On Thu, Apr 20, 2017 at 02:41:17PM -0400, Doug Ledford wrote:
-> On Mon, 2017-04-17 at 11:08 -0400, David Miller wrote:
-> > From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Date: Thu, 13 Apr 2017 06:36:50 +0300
-> >
-> > > This series provides the lower level mlx5 support of RDMA netdevice
-> > > creation API [1] suggested and introduced by Intel's HFI OPA VNIC
-> > > netdevice driver [2], to enable IPoIB mlx5 RDMA netdevice creation.
-> >
-> > Series applied to net-next.
->
-> I've pulled Dave's net-next into a branch in my tree for the IPoIB
-> patches to go on top of so that way it can hold the final touchup patch
-> without any conflicts anywhere.
+Since I put this and the VNIC patches into the same branch, the first
+patch had to be redone.  It is not identical to your code here because
+I didn't do an automatic merge, I hand transferred the changes from the
+first patch that weren't already in the branch from the VNIC series
+over.  Given that I hand did things, it might be wise to double check
+that the patch is suitable for your needs.  In particular, I didn't
+bother to move the private data to the end of the struct, so someone
+might want to change that if it actually matters to performance.
+ Otherwise, series applied to a custom branch based off of DaveM's net-
+next that will allow for the fixup patch to be applied without breaking
+things like 0day because it has both the IPoIB changes and the mlx5
+changes for IPoIB in it.
 
-Thanks,
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+   
+Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
-How and when do you want us to forward it?
-
-Thanks
-
->
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> =A0 =A0 GPG KeyID: B826A3330E572FDD
-> =A0 =A0
-> Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =A01274 B826 A333 0E57 2FDD
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---brdEIFGMNIjz5YJG
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj5AtMACgkQ5GN7iDZy
-WKdIYw/6A1xAer+4I8ynrZiYtIuWmal+LB3PsjXB04wgCfVISijbnUgDiflPber5
-HpL0KNecmiVUogsvbk+Fww5cHV80tjhYJV3sVoaPlo9E8Ra5+dtAj7iZ4opua0Yc
-/X0Rvd9OUl3qB7yFV4ZcZazb+PAYXPBratqhcpAE3iXSsCeXXQx+c84NNvdIr2f9
-GrJiSu3sK+g1x28DxkEiqp4HihtH9JEsutJNKQnIGN4Z6KPjQovZpNWhrfpd+lkn
-2JLXXf0nc27akOcXmbXMj0NOGIJ+p6JSnb2FqBtfSncPqQgQsEzjzQcXWKMemiHH
-wEQdQ3BNM1f5GU7IWKaxd7mYkMKGTw4uqsXoa9lBfHDR/aBfMVdlbWsdb00guPZM
-Xx2M5T3TRVY2vbAOq1ZRRhlL6NrOtPQd7ingjbDsPGGKPs58e3TfdPiB+OOh6e07
-Pxe5D8437rdvc1YcUzVP94edKr5Dvwu4yh2EJTUr7OBpke2w14zDeNgPpSVugwz/
-WJSdEhnnMTXzU1XtqT4zuBRBGqMn3TZ9cNGhEwMKY3MNj93zOXVFZ9PW2/PvaQXt
-V0/nSSUQ52bsi2En5f0JRarqOqN2+cv5iqsuv/L2lYl+VzxAqMiyr6skK+mz5yHH
-cbIpTPb2Yw+Gc063vpxJDN5FUHN8V6ToilPI24eEOIGoJ8+Jsa4=
-=md8b
------END PGP SIGNATURE-----
-
---brdEIFGMNIjz5YJG--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
