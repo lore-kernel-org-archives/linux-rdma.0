@@ -1,58 +1,29 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 0/6] IB/core: Small fixes and refactors for IDR
- locking series
-Date: Thu, 20 Apr 2017 11:45:07 -0400
-Message-ID: <1492703107.3041.0.camel@redhat.com>
-References: <1492506222-28999-1-git-send-email-matanb@mellanox.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: kernel NULL pointer during reset_controller operation with IO on
+ 4.11.0-rc7
+Date: Thu, 20 Apr 2017 19:21:29 +0300
+Message-ID: <97bb90ec-4337-62f7-f08d-a673975a5637@grimberg.me>
+References: <1413097100.14743757.1492668219336.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1492506222-28999-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1413097100.14743757.1492668219336.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+To: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-04-18 at 12:03 +0300, Matan Barak wrote:
-> Hi Doug,
-> 
-> This series comes after the comments Sean and Jason sent in the
-> linux-rdma
-> mailing list for the "Change IDR usage and locking in uverbs" series.
-> It's focused on small refactors, beautification and fixes
-> for that series. It doesn't aim to change anything logically.
-> 
-> Thanks,
-> Matan
-> 
-> Matan Barak (6):
->   IB/core: Rename write flag to exclusive in rdma_core
->   IB/core: Don't pass the lock state to _rdma_remove_commit_uobject
->   IB/core: Nullify ib_uobject during allocation
->   IB/core: A small refactor in destroy WQ handler
->   IB/core: Don't use is_async in event files to infer events size
->   IB/core: Rename uverbs event file structure
-> 
->  drivers/infiniband/core/rdma_core.c        |  86 ++++++++---------
->  drivers/infiniband/core/uverbs.h           |  21 +++--
->  drivers/infiniband/core/uverbs_cmd.c       |  16 +---
->  drivers/infiniband/core/uverbs_main.c      | 146 ++++++++++++++-----
-> ----------
->  drivers/infiniband/core/uverbs_std_types.c |  20 ++--
->  include/rdma/uverbs_types.h                |  33 +++----
->  6 files changed, 158 insertions(+), 164 deletions(-)
 
-Hi Matan,
+> [1]
+> [ 5968.515237] DMAR: DRHD: handling fault status reg 2
+> [ 5968.519449] mlx5_2:dump_cqe:262:(pid 0): dump error cqe
+> [ 5968.519450] 00000000 00000000 00000000 00000000
+> [ 5968.519451] 00000000 00000000 00000000 00000000
+> [ 5968.519451] 00000000 00000000 00000000 00000000
+> [ 5968.519452] 00000000 02005104 00000316 a71710e3
 
-Thanks, series applied.
-
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-   
-Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
+Max, Can you decode this for us?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
