@@ -1,36 +1,30 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH] net/mlx4: suppress 'may be used uninitialized' warning
-Date: Thu, 20 Apr 2017 13:19:49 -0400 (EDT)
-Message-ID: <20170420.131949.157388310132608724.davem@davemloft.net>
-References: <20170418062135.76698-1-gthelen@google.com>
+From: "Sanchez, Sebastian" <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 02/20] IB/hfi1: Remove hyper-thread siblings by walking
+ CPU mask
+Date: Thu, 20 Apr 2017 17:20:18 +0000
+Message-ID: <5CDA63463B33C94CA80846587415F07704076B86@ORSMSX111.amr.corp.intel.com>
+References: <20170409171329.10579.92775.stgit@scvm10.sc.intel.com>
+ <20170409171537.10579.68545.stgit@scvm10.sc.intel.com>
+ <20170410074904.GA26626@infradead.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170418062135.76698-1-gthelen-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170410074904.GA26626-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: gthelen-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org
-Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, idos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Struk, Tadeusz" <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Greg Thelen <gthelen-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Date: Mon, 17 Apr 2017 23:21:35 -0700
-
-> gcc 4.8.4 complains that mlx4_SW2HW_MPT_wrapper() uses an uninitialized
-> 'mpt' variable:
->   drivers/net/ethernet/mellanox/mlx4/resource_tracker.c: In function 'mlx4_SW2HW_MPT_wrapper':
->   drivers/net/ethernet/mellanox/mlx4/resource_tracker.c:2802:12: warning: 'mpt' may be used uninitialized in this function [-Wmaybe-uninitialized]
->      mpt->mtt = mtt;
-> 
-> I think this warning is a false complaint.  mpt is only used when
-> mr_res_start_move_to() return zero, and in all such cases it initializes
-> mpt.  But apparently gcc cannot see that.
-> 
-> Initialize mpt to avoid the warning.
-> 
-> Signed-off-by: Greg Thelen <gthelen-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-
-Appied to net-next.
+VGhlIGlycSBsYXllciBQQ0lfSVJRX0FGRklOSVRZIGZsYWcgbWFrZXMgcGNpX2FsbG9jX2lycV92
+ZWN0b3JzKCkgc3ByZWFkIGFsbCB0aGUgaW50ZXJydXB0cyBhcm91bmQgdGhlIGF2YWlsYWJsZSBD
+UFVzLCBob3dldmVyLCB0aGUgQVBJIGRvZXNuJ3QgYWxsb3cgdG8gZXhjbHVkZSB0aGUgaHlwZXIg
+dGhyZWFkaW5nIENQVSBjb3JlcyBvciBsaW1pdCB0aGUgQ1BVcyB0byB1c2UgZm9yIHRoZSBhZmZp
+bml0eSBtYXNrLiBJZiB0aGUgQVBJIGhhZCBhIHdheSB0byBwcm92aWRlIGFuIGFmZmluaXR5IGhp
+bnQgaW50byB0aGlzIGZ1bmN0aW9uIGluc3RlYWQgb2YgaGF2aW5nIHRoZW0gYXV0b21hdGljYWxs
+eSBnZW5lcmF0ZWQgaXQgcHJvdmlkZSBtb3JlIGZsZXhpYmlsaXR5IHRvIHRoZSBoZmkxIGRyaXZl
+ci4NCg0KU2ViYXN0aWFuDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
