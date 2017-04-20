@@ -1,8 +1,10 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 1/2] IB/rxe: Offload CRC calculation when possible
-Date: Thu, 20 Apr 2017 20:55:55 +0300
-Message-ID: <20170420175556.8573-1-leon@kernel.org>
+Subject: [PATCH rdma-next 2/2] IB/rxe: Cache dst in QP instead of getting it for each send
+Date: Thu, 20 Apr 2017 20:55:56 +0300
+Message-ID: <20170420175556.8573-2-leon@kernel.org>
+References: <20170420175556.8573-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170420175556.8573-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yonatanc <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,217 +12,158 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: yonatanc <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Use CPU ability to perform CRC calculations, by
-replacing direct calls to crc32_le() with crypto_shash_updata().
+In RC QP there is no need to resolve the outgoing interface
+for each packet, as this does not change during QP life cycle.
 
-The overall performance gain measured with ib_send_bw tool is 10% and it
-was tested on "Intel CPU ES-2660 v2 @ 2.20Ghz" CPU.
+Instead cache the interface on the socket and use that one.
+This improves performance by 12% by sparing redundant
+calls to rxe_find_route.
 
 ib_send_bw -d rxe0  -x 1 -n 9000 -e  -s $((1024 * 1024 )) -l 100
 
----------------------------------------------------------------------------------------------
-|             | bytes   | iterations | BW peak[MB/sec] | BW average[MB/sec] | MsgRate[Mpps] |
----------------------------------------------------------------------------------------------
-| crc32_le    | 1048576 | 9000       | inf             | 497.60             | 0.000498      |
-| CRC offload | 1048576 | 9000       | inf             | 546.70             | 0.000547      |
----------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------
+|        | bytes   | iterations | BW peak[MB/sec] | BW average[MB/sec] | MsgRate[Mpps] |
+----------------------------------------------------------------------------------------
+| before | 1048576 | 9000       | inf             | 551.21             | 0.000551      |
+| after  | 1048576 | 9000       | inf             | 615.54             | 0.000616      |
+----------------------------------------------------------------------------------------
 
 Fixes: 8700e3e7c485 ("Soft RoCE driver")
 Signed-off-by: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/Kconfig     |  1 +
- drivers/infiniband/sw/rxe/rxe.c       |  2 ++
- drivers/infiniband/sw/rxe/rxe.h       | 20 ++++++++++++++++++++
- drivers/infiniband/sw/rxe/rxe_icrc.c  |  6 +++---
- drivers/infiniband/sw/rxe/rxe_mr.c    |  6 ++++--
- drivers/infiniband/sw/rxe/rxe_recv.c  |  4 ++--
- drivers/infiniband/sw/rxe/rxe_req.c   |  4 ++--
- drivers/infiniband/sw/rxe/rxe_verbs.c |  9 +++++++++
- drivers/infiniband/sw/rxe/rxe_verbs.h |  1 +
- 9 files changed, 44 insertions(+), 9 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_net.c | 55 ++++++++++++++++++++++++++++++++++---
+ drivers/infiniband/sw/rxe/rxe_qp.c  |  8 ++++++
+ 2 files changed, 59 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/Kconfig b/drivers/infiniband/sw/rxe/Kconfig
-index 7d1ac27ed251..43968fb53bcb 100644
---- a/drivers/infiniband/sw/rxe/Kconfig
-+++ b/drivers/infiniband/sw/rxe/Kconfig
-@@ -2,6 +2,7 @@ config RDMA_RXE
- 	tristate "Software RDMA over Ethernet (RoCE) driver"
- 	depends on INET && PCI && INFINIBAND
- 	depends on NET_UDP_TUNNEL
-+	depends on CRYPTO_CRC32
- 	select DMA_VIRT_OPS
- 	---help---
- 	This driver implements the InfiniBand RDMA transport over
-diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
-index b12dd9b5a89d..cfadd8d8593a 100644
---- a/drivers/infiniband/sw/rxe/rxe.c
-+++ b/drivers/infiniband/sw/rxe/rxe.c
-@@ -64,6 +64,8 @@ static void rxe_cleanup(struct rxe_dev *rxe)
- 	rxe_pool_cleanup(&rxe->mc_elem_pool);
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+index d8610960630a..bf2c5324e107 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -210,6 +210,39 @@ static struct dst_entry *rxe_find_route6(struct net_device *ndev,
 
- 	rxe_cleanup_ports(rxe);
-+
-+	crypto_free_shash(rxe->tfm);
- }
+ #endif
 
- /* called when all references have been dropped */
-diff --git a/drivers/infiniband/sw/rxe/rxe.h b/drivers/infiniband/sw/rxe/rxe.h
-index a696af81e4a5..ecdba2fce083 100644
---- a/drivers/infiniband/sw/rxe/rxe.h
-+++ b/drivers/infiniband/sw/rxe/rxe.h
-@@ -50,6 +50,7 @@
- #include <rdma/ib_umem.h>
- #include <rdma/ib_cache.h>
- #include <rdma/ib_addr.h>
-+#include <crypto/hash.h>
-
- #include "rxe_net.h"
- #include "rxe_opcode.h"
-@@ -64,6 +65,25 @@
-
- #define RXE_ROCE_V2_SPORT		(0xc000)
-
-+static inline u32 rxe_crc32(struct rxe_dev *rxe,
-+			    u32 crc, void *next, size_t len)
++static struct dst_entry *rxe_find_route(struct rxe_dev *rxe,
++					struct rxe_qp *qp,
++					struct rxe_av *av)
 +{
-+	int err;
++	struct dst_entry *dst = NULL;
 +
-+	SHASH_DESC_ON_STACK(shash, rxe->tfm);
++	if (qp_type(qp) == IB_QPT_RC)
++		dst = sk_dst_get(qp->sk->sk);
 +
-+	shash->tfm = rxe->tfm;
-+	shash->flags = 0;
-+	*(u32 *)shash_desc_ctx(shash) = crc;
-+	err = crypto_shash_update(shash, next, len);
-+	if (unlikely(err)) {
-+		pr_warn_ratelimited("failed crc calculation, err: %d\n", err);
-+		return crc32_le(crc, next, len);
++	if (!dst || !(dst->obsolete && dst->ops->check(dst, 0))) {
++		if (dst)
++			dst_release(dst);
++
++		if (av->network_type == RDMA_NETWORK_IPV4) {
++			struct in_addr *saddr;
++			struct in_addr *daddr;
++
++			saddr = &av->sgid_addr._sockaddr_in.sin_addr;
++			daddr = &av->dgid_addr._sockaddr_in.sin_addr;
++			dst = rxe_find_route4(rxe->ndev, saddr, daddr);
++		} else if (av->network_type == RDMA_NETWORK_IPV6) {
++			struct in6_addr *saddr6;
++			struct in6_addr *daddr6;
++
++			saddr6 = &av->sgid_addr._sockaddr_in6.sin6_addr;
++			daddr6 = &av->dgid_addr._sockaddr_in6.sin6_addr;
++			dst = rxe_find_route6(rxe->ndev, saddr6, daddr6);
++		}
 +	}
 +
-+	return *(u32 *)shash_desc_ctx(shash);
++	return dst;
 +}
 +
- int rxe_set_mtu(struct rxe_dev *rxe, unsigned int dev_mtu);
+ static int rxe_udp_encap_recv(struct sock *sk, struct sk_buff *skb)
+ {
+ 	struct udphdr *udph;
+@@ -301,7 +334,7 @@ static void prepare_ipv4_hdr(struct dst_entry *dst, struct sk_buff *skb,
+ 	skb_scrub_packet(skb, xnet);
 
- int rxe_add(struct rxe_dev *rxe, unsigned int mtu);
-diff --git a/drivers/infiniband/sw/rxe/rxe_icrc.c b/drivers/infiniband/sw/rxe/rxe_icrc.c
-index 413b56b23a06..39e0be31aab1 100644
---- a/drivers/infiniband/sw/rxe/rxe_icrc.c
-+++ b/drivers/infiniband/sw/rxe/rxe_icrc.c
-@@ -87,10 +87,10 @@ u32 rxe_icrc_hdr(struct rxe_pkt_info *pkt, struct sk_buff *skb)
- 	bth->qpn |= cpu_to_be32(~BTH_QPN_MASK);
+ 	skb_clear_hash(skb);
+-	skb_dst_set(skb, dst);
++	skb_dst_set(skb, dst_clone(dst));
+ 	memset(IPCB(skb), 0, sizeof(*IPCB(skb)));
 
- 	length = hdr_size + RXE_BTH_BYTES;
--	crc = crc32_le(crc, pshdr, length);
-+	crc = rxe_crc32(pkt->rxe, crc, pshdr, length);
+ 	skb_push(skb, sizeof(struct iphdr));
+@@ -349,13 +382,14 @@ static void prepare_ipv6_hdr(struct dst_entry *dst, struct sk_buff *skb,
+ static int prepare4(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
+ 		    struct sk_buff *skb, struct rxe_av *av)
+ {
++	struct rxe_qp *qp = pkt->qp;
+ 	struct dst_entry *dst;
+ 	bool xnet = false;
+ 	__be16 df = htons(IP_DF);
+ 	struct in_addr *saddr = &av->sgid_addr._sockaddr_in.sin_addr;
+ 	struct in_addr *daddr = &av->dgid_addr._sockaddr_in.sin_addr;
 
- 	/* And finish to compute the CRC on the remainder of the headers. */
--	crc = crc32_le(crc, pkt->hdr + RXE_BTH_BYTES,
--		       rxe_opcode[pkt->opcode].length - RXE_BTH_BYTES);
-+	crc = rxe_crc32(pkt->rxe, crc, pkt->hdr + RXE_BTH_BYTES,
-+			rxe_opcode[pkt->opcode].length - RXE_BTH_BYTES);
- 	return crc;
+-	dst = rxe_find_route4(rxe->ndev, saddr, daddr);
++	dst = rxe_find_route(rxe, qp, av);
+ 	if (!dst) {
+ 		pr_err("Host not reachable\n");
+ 		return -EHOSTUNREACH;
+@@ -369,17 +403,24 @@ static int prepare4(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
+
+ 	prepare_ipv4_hdr(dst, skb, saddr->s_addr, daddr->s_addr, IPPROTO_UDP,
+ 			 av->grh.traffic_class, av->grh.hop_limit, df, xnet);
++
++	if (qp_type(qp) == IB_QPT_RC)
++		sk_dst_set(qp->sk->sk, dst);
++	else
++		dst_release(dst);
++
+ 	return 0;
  }
-diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
-index 37eea7441ca4..154c3ee211ae 100644
---- a/drivers/infiniband/sw/rxe/rxe_mr.c
-+++ b/drivers/infiniband/sw/rxe/rxe_mr.c
-@@ -370,7 +370,8 @@ int rxe_mem_copy(struct rxe_mem *mem, u64 iova, void *addr, int length,
- 			((void *)(uintptr_t)iova) : addr;
 
- 		if (crcp)
--			*crcp = crc32_le(*crcp, src, length);
-+			crc = rxe_crc32(to_rdev(mem->pd->ibpd.device),
-+					*crcp, src, length);
+ static int prepare6(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
+ 		    struct sk_buff *skb, struct rxe_av *av)
+ {
+-	struct dst_entry *dst;
++	struct rxe_qp *qp = pkt->qp;
++	struct dst_entry *dst = NULL;
+ 	struct in6_addr *saddr = &av->sgid_addr._sockaddr_in6.sin6_addr;
+ 	struct in6_addr *daddr = &av->dgid_addr._sockaddr_in6.sin6_addr;
 
- 		memcpy(dest, src, length);
+-	dst = rxe_find_route6(rxe->ndev, saddr, daddr);
++	dst = rxe_find_route(rxe, qp, av);
+ 	if (!dst) {
+ 		pr_err("Host not reachable\n");
+ 		return -EHOSTUNREACH;
+@@ -394,6 +435,12 @@ static int prepare6(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
+ 	prepare_ipv6_hdr(dst, skb, saddr, daddr, IPPROTO_UDP,
+ 			 av->grh.traffic_class,
+ 			 av->grh.hop_limit);
++
++	if (qp_type(qp) == IB_QPT_RC)
++		sk_dst_set(qp->sk->sk, dst);
++	else
++		dst_release(dst);
++
+ 	return 0;
+ }
 
-@@ -403,7 +404,8 @@ int rxe_mem_copy(struct rxe_mem *mem, u64 iova, void *addr, int length,
- 			bytes = length;
+diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
+index f98a19e61a3d..aaaad3fb6849 100644
+--- a/drivers/infiniband/sw/rxe/rxe_qp.c
++++ b/drivers/infiniband/sw/rxe/rxe_qp.c
+@@ -846,6 +846,14 @@ void rxe_qp_cleanup(struct rxe_pool_entry *arg)
+ 		qp->resp.mr = NULL;
+ 	}
 
- 		if (crcp)
--			crc = crc32_le(crc, src, bytes);
-+			crc = rxe_crc32(to_rdev(mem->pd->ibpd.device),
-+					crc, src, bytes);
-
- 		memcpy(dest, src, bytes);
-
-diff --git a/drivers/infiniband/sw/rxe/rxe_recv.c b/drivers/infiniband/sw/rxe/rxe_recv.c
-index 50886031096f..b1b268acc396 100644
---- a/drivers/infiniband/sw/rxe/rxe_recv.c
-+++ b/drivers/infiniband/sw/rxe/rxe_recv.c
-@@ -387,8 +387,8 @@ int rxe_rcv(struct sk_buff *skb)
- 	pack_icrc = be32_to_cpu(*icrcp);
-
- 	calc_icrc = rxe_icrc_hdr(pkt, skb);
--	calc_icrc = crc32_le(calc_icrc, (u8 *)payload_addr(pkt),
--			     payload_size(pkt));
-+	calc_icrc = rxe_crc32(rxe, calc_icrc, (u8 *)payload_addr(pkt),
-+			      payload_size(pkt));
- 	calc_icrc = (__force u32)cpu_to_be32(~calc_icrc);
- 	if (unlikely(calc_icrc != pack_icrc)) {
- 		if (skb->protocol == htons(ETH_P_IPV6))
-diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-index dbfde0dc6ff7..e9a6606f345f 100644
---- a/drivers/infiniband/sw/rxe/rxe_req.c
-+++ b/drivers/infiniband/sw/rxe/rxe_req.c
-@@ -32,6 +32,7 @@
-  */
-
- #include <linux/skbuff.h>
-+#include <crypto/hash.h>
-
- #include "rxe.h"
- #include "rxe_loc.h"
-@@ -483,8 +484,7 @@ static int fill_packet(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
- 		if (wqe->wr.send_flags & IB_SEND_INLINE) {
- 			u8 *tmp = &wqe->dma.inline_data[wqe->dma.sge_offset];
-
--			crc = crc32_le(crc, tmp, paylen);
--
-+			crc = rxe_crc32(rxe, crc, tmp, paylen);
- 			memcpy(payload_addr(pkt), tmp, paylen);
-
- 			wqe->dma.resid -= paylen;
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 5113e502f6f9..32526f644969 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -1319,6 +1319,13 @@ int rxe_register_device(struct rxe_dev *rxe)
- 	dev->attach_mcast = rxe_attach_mcast;
- 	dev->detach_mcast = rxe_detach_mcast;
-
-+	rxe->tfm = crypto_alloc_shash("crc32", 0, 0);
-+	if (IS_ERR(rxe->tfm)) {
-+		pr_err("failed to allocate crc algorithmi err:%ld",
-+		       PTR_ERR(rxe->tfm));
-+		return PTR_ERR(rxe->tfm);
++	if (qp_type(qp) == IB_QPT_RC) {
++		struct dst_entry *dst = NULL;
++
++		dst = sk_dst_get(qp->sk->sk);
++		if (dst)
++			dst_release(dst);
 +	}
 +
- 	err = ib_register_device(dev, NULL);
- 	if (err) {
- 		pr_warn("rxe_register_device failed, err = %d\n", err);
-@@ -1339,6 +1346,8 @@ int rxe_register_device(struct rxe_dev *rxe)
- err2:
- 	ib_unregister_device(dev);
- err1:
-+	crypto_free_shash(rxe->tfm);
-+
- 	return err;
- }
+ 	free_rd_atomic_resources(qp);
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
-index e100c500ae85..911939e1bb9d 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.h
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
-@@ -403,6 +403,7 @@ struct rxe_dev {
-
- 	struct rxe_port		port;
- 	struct list_head	list;
-+	struct crypto_shash	*tfm;
- };
-
- static inline struct rxe_dev *to_rdev(struct ib_device *dev)
+ 	kernel_sock_shutdown(qp->sk, SHUT_RDWR);
 --
 2.12.2
 
