@@ -1,80 +1,137 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next] IB/mlx5: Set correct SL in completion for RoCE
-Date: Thu, 20 Apr 2017 13:26:54 +0300
-Message-ID: <20170420102654.765-1-leon@kernel.org>
+From: =?iso-8859-1?Q?H=E5kon_Bugge?= <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/1] IB/ipoib: add get_settings in ethtool
+Date: Thu, 20 Apr 2017 12:44:37 +0200
+Message-ID: <8D2FA0B2-80AF-4E4A-A66D-0601C4CF94B3@oracle.com>
+References: <1492676141-19639-1-git-send-email-yanjun.zhu@oracle.com> <20170420102010.GB3338@yuval-lap>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170420102010.GB3338@yuval-lap>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-There is a difference when parsing a completion entry between Ethernet
-and IB ports. When link layer is Ethernet the bits describe the type of
-L3 header in the packet. In the case when link layer is Ethernet and VLAN
-header is present the value of SL is equal to the 3 UP bits in the VLAN
-header. If VLAN header is not present then the SL is undefined and consumer
-of the completion should check if IB_WC_WITH_VLAN is set.
+> On 20 Apr 2017, at 12:20, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> 
+> On Thu, Apr 20, 2017 at 04:15:41AM -0400, Zhu Yanjun wrote:
+>> In order to let the bonding driver report the correct speed
+>> of the underlaying interfaces, when they are IPoIB, the ethtool
+>> function get_settings() in the IPoIB driver is implemented.
+>> 
+>> Run ethtool command, the result is as below:
+>> 
+>> [root@xxx ~]#ethtool ib0
+>> Settings for ib0:
+>>        Supported ports: [ ]
+>>        Supported link modes:   Not reported
+>>        Supported pause frame use: No
+>>        Supports auto-negotiation: No
+>>        Advertised link modes:  Not reported
+>>        Advertised pause frame use: No
+>>        Advertised auto-negotiation: No
+>>        Speed: 40000Mb/s
+>>        Duplex: Full
+>>        Port: Twisted Pair
+>>        PHYAD: 0
+>>        Transceiver: internal
+>>        Auto-negotiation: off
+>>        MDI-X: Unknown
+>> 
+>> The speed of ipoib can be reached.
+>> 
+>> Cc: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> Cc: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> Reviewed-by: Håkon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> Reviewed-by: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> ---
+>> drivers/infiniband/ulp/ipoib/ipoib_ethtool.c | 51 ++++++++++++++++++++++++++++
+>> 1 file changed, 51 insertions(+)
+>> 
+>> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
+>> index bac455a..8c81566 100644
+>> --- a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
+>> +++ b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
+>> @@ -155,7 +155,58 @@ static int ipoib_get_sset_count(struct net_device __always_unused *dev,
+>> 	return -EOPNOTSUPP;
+>> }
+>> 
+>> +static int ipoib_get_settings(struct net_device *netdev,
+>> +			       struct ethtool_cmd *ecmd)
+>> +{
+>> +	struct ipoib_dev_priv *priv = netdev_priv(netdev);
+>> +	struct ib_port_attr attr;
+>> +	u32 speed;
+>> +	int ret;
+>> +
+>> +	if (!netif_carrier_ok(netdev)) {
+>> +		ethtool_cmd_speed_set(ecmd, SPEED_UNKNOWN);
+>> +		ecmd->duplex = DUPLEX_UNKNOWN;
+>> +		return 0;
+>> +	}
+>> +
+>> +	ret = ib_query_port(priv->ca, priv->port, &attr);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	switch (attr.active_speed) {
+>> +	case IB_SPEED_DDR:
+>> +		speed = 5000; /* in deci-Mb/sec */
+>> +		break;
+>> +	case IB_SPEED_QDR:
+>> +		speed = 10000;
+>> +		break;
+>> +	case IB_SPEED_FDR10:
+>> +		speed = 10000;
+>> +		break;
+>> +	case IB_SPEED_FDR:
+>> +		speed = 14000;
+>> +		break;
+>> +	case IB_SPEED_EDR:
+>> +		speed = 25000;
+>> +		break;
+>> +	case IB_SPEED_SDR:
+>> +	default:
+>> +		speed = 2500;
+>> +		break;
+>> +	}
+> 
+> Can you consider using the constants from ethtool.h instead of the above
+> numbers?
+> 
+>> +
+>> +	speed *= ib_width_enum_to_int(attr.active_width);
+>> +	if (speed < 0)
 
-While that, this patch also fills the vlan_id field in the completion if
-present.
+Hmm, do not think an unsigned ever can be less than zero.
 
-Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/cq.c | 19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-index 5a31cec947fa..94c049b62c2f 100644
---- a/drivers/infiniband/hw/mlx5/cq.c
-+++ b/drivers/infiniband/hw/mlx5/cq.c
-@@ -172,6 +172,8 @@ static void handle_responder(struct ib_wc *wc, struct mlx5_cqe64 *cqe,
- 	struct mlx5_ib_srq *srq;
- 	struct mlx5_ib_wq *wq;
- 	u16 wqe_ctr;
-+	u8  roce_packet_type;
-+	bool vlan_present;
- 	u8 g;
+Thxs, Håkon
 
- 	if (qp->ibqp.srq || qp->ibqp.xrcd) {
-@@ -223,7 +225,6 @@ static void handle_responder(struct ib_wc *wc, struct mlx5_cqe64 *cqe,
- 		break;
- 	}
- 	wc->slid	   = be16_to_cpu(cqe->slid);
--	wc->sl		   = (be32_to_cpu(cqe->flags_rqpn) >> 24) & 0xf;
- 	wc->src_qp	   = be32_to_cpu(cqe->flags_rqpn) & 0xffffff;
- 	wc->dlid_path_bits = cqe->ml_path;
- 	g = (be32_to_cpu(cqe->flags_rqpn) >> 28) & 3;
-@@ -237,10 +238,22 @@ static void handle_responder(struct ib_wc *wc, struct mlx5_cqe64 *cqe,
- 		wc->pkey_index = 0;
- 	}
-
--	if (ll != IB_LINK_LAYER_ETHERNET)
-+	if (ll != IB_LINK_LAYER_ETHERNET) {
-+		wc->sl = (be32_to_cpu(cqe->flags_rqpn) >> 24) & 0xf;
- 		return;
-+	}
-+
-+	vlan_present = cqe->l4_l3_hdr_type & 0x1;
-+	roce_packet_type   = (be32_to_cpu(cqe->flags_rqpn) >> 24) & 0x3;
-+	if (vlan_present) {
-+		wc->vlan_id = (be16_to_cpu(cqe->vlan_info)) & 0xfff;
-+		wc->sl = (be16_to_cpu(cqe->vlan_info) >> 13) & 0x7;
-+		wc->wc_flags |= IB_WC_WITH_VLAN;
-+	} else {
-+		wc->sl = 0;
-+	}
-
--	switch (wc->sl & 0x3) {
-+	switch (roce_packet_type) {
- 	case MLX5_CQE_ROCE_L3_HEADER_TYPE_GRH:
- 		wc->network_hdr_type = RDMA_NETWORK_IB;
- 		break;
---
-2.12.2
+>> +		return -EINVAL;
+>> +
+>> +	ethtool_cmd_speed_set(ecmd, speed);
+>> +	ecmd->duplex = DUPLEX_FULL;
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> static const struct ethtool_ops ipoib_ethtool_ops = {
+>> +	.get_settings		= ipoib_get_settings,
+>> 	.get_drvinfo		= ipoib_get_drvinfo,
+>> 	.get_coalesce		= ipoib_get_coalesce,
+>> 	.set_coalesce		= ipoib_set_coalesce,
+>> -- 
+>> 2.7.4
+>> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
