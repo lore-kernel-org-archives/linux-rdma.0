@@ -1,116 +1,121 @@
-From: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 1/1] IB/ipoib: add get_settings in ethtool
-Date: Thu, 20 Apr 2017 04:15:41 -0400
-Message-ID: <1492676141-19639-1-git-send-email-yanjun.zhu@oracle.com>
+From: Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
+Subject: [PATCH v3] nvme-rdma: support devices with queue size < 32
+Date: Thu, 20 Apr 2017 11:43:34 +0200 (CEST)
+Message-ID: <1677617891.385461828.1492681414720.JavaMail.zimbra@kalray.eu>
+References: <1519881025.363156294.1491837154312.JavaMail.zimbra@kalray.eu> <1491838338.4199.5.camel@sandisk.com> <1807354347.364485979.1491900728245.JavaMail.zimbra@kalray.eu> <1491923426.2654.1.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1491923426.2654.1.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org, maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, keith busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, samuel jones <samuel.jones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In order to let the bonding driver report the correct speed
-of the underlaying interfaces, when they are IPoIB, the ethtool
-function get_settings() in the IPoIB driver is implemented.
+In the case of small NVMe-oF queue size (<32) we may enter
+a deadlock caused by the fact that the IB completions aren't sent
+waiting for 32 and the send queue will fill up.
 
-Run ethtool command, the result is as below:
+The error is seen as (using mlx5):
+[ 2048.693355] mlx5_0:mlx5_ib_post_send:3765:(pid 7273):
+[ 2048.693360] nvme nvme1: nvme_rdma_post_send failed with error code -12
 
-[root@xxx ~]#ethtool ib0
-Settings for ib0:
-        Supported ports: [ ]
-        Supported link modes:   Not reported
-        Supported pause frame use: No
-        Supports auto-negotiation: No
-        Advertised link modes:  Not reported
-        Advertised pause frame use: No
-        Advertised auto-negotiation: No
-        Speed: 40000Mb/s
-        Duplex: Full
-        Port: Twisted Pair
-        PHYAD: 0
-        Transceiver: internal
-        Auto-negotiation: off
-        MDI-X: Unknown
+This patch changes the way the signalling is done so
+that it depends on the queue depth now. The magic define has
+been removed completely.
 
-The speed of ipoib can be reached.
-
-Cc: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Håkon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Marta Rybczynska <marta.rybczynska-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
+Signed-off-by: Samuel Jones <sjones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_ethtool.c | 51 ++++++++++++++++++++++++++++
- 1 file changed, 51 insertions(+)
+Changes in v3:
+* avoid division in the fast path
+* reverse sig_count logic to simplify the code: it now counts down
+  from the queue depth/2 to 0
+* change sig_count to int to avoid overflows for big queues
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-index bac455a..8c81566 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-@@ -155,7 +155,58 @@ static int ipoib_get_sset_count(struct net_device __always_unused *dev,
- 	return -EOPNOTSUPP;
+Changes in v2:
+* signal by queue size/2, remove hardcoded 32
+* support queue depth of 1
+
+ drivers/nvme/host/rdma.c | 28 +++++++++++++++++++++++-----
+ 1 file changed, 23 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
+index 3d25add..ee6f747 100644
+--- a/drivers/nvme/host/rdma.c
++++ b/drivers/nvme/host/rdma.c
+@@ -88,7 +88,7 @@ enum nvme_rdma_queue_flags {
+ 
+ struct nvme_rdma_queue {
+ 	struct nvme_rdma_qe	*rsp_ring;
+-	u8			sig_count;
++	int			sig_count;
+ 	int			queue_size;
+ 	size_t			cmnd_capsule_len;
+ 	struct nvme_rdma_ctrl	*ctrl;
+@@ -251,6 +251,15 @@ static int nvme_rdma_wait_for_cm(struct nvme_rdma_queue *queue)
+ 	return queue->cm_error;
  }
  
-+static int ipoib_get_settings(struct net_device *netdev,
-+			       struct ethtool_cmd *ecmd)
++static inline int nvme_rdma_init_sig_count(int queue_size)
 +{
-+	struct ipoib_dev_priv *priv = netdev_priv(netdev);
-+	struct ib_port_attr attr;
-+	u32 speed;
-+	int ret;
++	/* We signal completion every queue depth/2 and also
++	 * handle the case of possible device with queue_depth=1,
++	 * where we would need to signal every message.
++	 */
++	return max(queue_size / 2, 1);
++}
 +
-+	if (!netif_carrier_ok(netdev)) {
-+		ethtool_cmd_speed_set(ecmd, SPEED_UNKNOWN);
-+		ecmd->duplex = DUPLEX_UNKNOWN;
-+		return 0;
+ static int nvme_rdma_create_qp(struct nvme_rdma_queue *queue, const int factor)
+ {
+ 	struct nvme_rdma_device *dev = queue->device;
+@@ -556,6 +565,8 @@ static int nvme_rdma_init_queue(struct nvme_rdma_ctrl *ctrl,
+ 
+ 	queue->queue_size = queue_size;
+ 
++	queue->sig_count = nvme_rdma_init_sig_count(queue_size);
++
+ 	queue->cm_id = rdma_create_id(&init_net, nvme_rdma_cm_handler, queue,
+ 			RDMA_PS_TCP, IB_QPT_RC);
+ 	if (IS_ERR(queue->cm_id)) {
+@@ -1011,6 +1022,16 @@ static void nvme_rdma_send_done(struct ib_cq *cq, struct ib_wc *wc)
+ 		nvme_rdma_wr_error(cq, wc, "SEND");
+ }
+ 
++static inline int nvme_rdma_queue_sig_limit(struct nvme_rdma_queue *queue)
++{
++	queue->sig_count--;
++	if (queue->sig_count == 0) {
++		queue->sig_count = nvme_rdma_init_sig_count(queue->queue_size);
++		return 1;
 +	}
-+
-+	ret = ib_query_port(priv->ca, priv->port, &attr);
-+	if (ret)
-+		return ret;
-+
-+	switch (attr.active_speed) {
-+	case IB_SPEED_DDR:
-+		speed = 5000; /* in deci-Mb/sec */
-+		break;
-+	case IB_SPEED_QDR:
-+		speed = 10000;
-+		break;
-+	case IB_SPEED_FDR10:
-+		speed = 10000;
-+		break;
-+	case IB_SPEED_FDR:
-+		speed = 14000;
-+		break;
-+	case IB_SPEED_EDR:
-+		speed = 25000;
-+		break;
-+	case IB_SPEED_SDR:
-+	default:
-+		speed = 2500;
-+		break;
-+	}
-+
-+	speed *= ib_width_enum_to_int(attr.active_width);
-+	if (speed < 0)
-+		return -EINVAL;
-+
-+	ethtool_cmd_speed_set(ecmd, speed);
-+	ecmd->duplex = DUPLEX_FULL;
-+
 +	return 0;
 +}
 +
- static const struct ethtool_ops ipoib_ethtool_ops = {
-+	.get_settings		= ipoib_get_settings,
- 	.get_drvinfo		= ipoib_get_drvinfo,
- 	.get_coalesce		= ipoib_get_coalesce,
- 	.set_coalesce		= ipoib_set_coalesce,
+ static int nvme_rdma_post_send(struct nvme_rdma_queue *queue,
+ 		struct nvme_rdma_qe *qe, struct ib_sge *sge, u32 num_sge,
+ 		struct ib_send_wr *first, bool flush)
+@@ -1038,9 +1059,6 @@ static int nvme_rdma_post_send(struct nvme_rdma_queue *queue,
+ 	 * Would have been way to obvious to handle this in hardware or
+ 	 * at least the RDMA stack..
+ 	 *
+-	 * This messy and racy code sniplet is copy and pasted from the iSER
+-	 * initiator, and the magic '32' comes from there as well.
+-	 *
+ 	 * Always signal the flushes. The magic request used for the flush
+ 	 * sequencer is not allocated in our driver's tagset and it's
+ 	 * triggered to be freed by blk_cleanup_queue(). So we need to
+@@ -1048,7 +1066,7 @@ static int nvme_rdma_post_send(struct nvme_rdma_queue *queue,
+ 	 * embeded in request's payload, is not freed when __ib_process_cq()
+ 	 * calls wr_cqe->done().
+ 	 */
+-	if ((++queue->sig_count % 32) == 0 || flush)
++	if (nvme_rdma_queue_sig_limit(queue) || flush)
+ 		wr.send_flags |= IB_SEND_SIGNALED;
+ 
+ 	if (first)
 -- 
-2.7.4
-
+1.8.3.1
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
