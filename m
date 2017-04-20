@@ -1,29 +1,36 @@
-From: Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [RFC 0/2] IB/core: Add ESP Crypto Flow Steering support
-Date: Thu, 20 Apr 2017 17:15:21 +0000
-Message-ID: <DB6PR05MB31769BDD2742AC626369DDB1B01B0@DB6PR05MB3176.eurprd05.prod.outlook.com>
-References: <cover.1492685328.git.borisp@mellanox.com>
- <040001d2b9e9$0a274530$1e75cf90$@opengridcomputing.com>
- <DB6PR05MB3176852A5F283F850E37DA70B01B0@DB6PR05MB3176.eurprd05.prod.outlook.com>
- <20170420170233.GA6275@obsidianresearch.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH] net/mlx4: suppress 'may be used uninitialized' warning
+Date: Thu, 20 Apr 2017 13:19:49 -0400 (EDT)
+Message-ID: <20170420.131949.157388310132608724.davem@davemloft.net>
+References: <20170418062135.76698-1-gthelen@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170420170233.GA6275-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20170418062135.76698-1-gthelen-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Rony Efraim <ronye-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Aviad Yehezkel <aviadye-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Rosenbaum <alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: gthelen-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org
+Cc: ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, idos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Your patches didn't change any uapi headers - how does this get exported =
-to
-> user space?
+From: Greg Thelen <gthelen-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Date: Mon, 17 Apr 2017 23:21:35 -0700
 
-Right. Sorry about that. The intent is to export both ib_flow_spec_action_e=
-sp_aes_gcm and
-ib_flow_spec_esp to user space.
+> gcc 4.8.4 complains that mlx4_SW2HW_MPT_wrapper() uses an uninitialized
+> 'mpt' variable:
+>   drivers/net/ethernet/mellanox/mlx4/resource_tracker.c: In function 'mlx4_SW2HW_MPT_wrapper':
+>   drivers/net/ethernet/mellanox/mlx4/resource_tracker.c:2802:12: warning: 'mpt' may be used uninitialized in this function [-Wmaybe-uninitialized]
+>      mpt->mtt = mtt;
+> 
+> I think this warning is a false complaint.  mpt is only used when
+> mr_res_start_move_to() return zero, and in all such cases it initializes
+> mpt.  But apparently gcc cannot see that.
+> 
+> Initialize mpt to avoid the warning.
+> 
+> Signed-off-by: Greg Thelen <gthelen-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+
+Appied to net-next.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
