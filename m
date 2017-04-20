@@ -1,125 +1,45 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/1] IB/ipoib: add get_settings in ethtool
-Date: Thu, 20 Apr 2017 13:54:29 +0300
-Message-ID: <20170420105428.GH3338@yuval-lap>
-References: <1492676141-19639-1-git-send-email-yanjun.zhu@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+From: Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [RFC 1/2] Introduce egress IB flow steering flag
+Date: Thu, 20 Apr 2017 14:00:09 +0300
+Message-ID: <8539540c4130ea91bbd128f2ec2845082d6000f8.1492685328.git.borisp@mellanox.com>
+References: <cover.1492685328.git.borisp@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1492676141-19639-1-git-send-email-yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <cover.1492685328.git.borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <cover.1492685328.git.borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+References: <cover.1492685328.git.borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ronye-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, aviadye-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 20, 2017 at 04:15:41AM -0400, Zhu Yanjun wrote:
-> In order to let the bonding driver report the correct speed
-> of the underlaying interfaces, when they are IPoIB, the ethtool
-> function get_settings() in the IPoIB driver is implemented.
-> 
-> Run ethtool command, the result is as below:
-> 
-> [root@xxx ~]#ethtool ib0
-> Settings for ib0:
->         Supported ports: [ ]
->         Supported link modes:   Not reported
->         Supported pause frame use: No
->         Supports auto-negotiation: No
->         Advertised link modes:  Not reported
->         Advertised pause frame use: No
->         Advertised auto-negotiation: No
->         Speed: 40000Mb/s
->         Duplex: Full
->         Port: Twisted Pair
->         PHYAD: 0
->         Transceiver: internal
->         Auto-negotiation: off
->         MDI-X: Unknown
-> 
-> The speed of ipoib can be reached.
-> 
-> Cc: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Cc: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Håkon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/ulp/ipoib/ipoib_ethtool.c | 51 ++++++++++++++++++++++++++++
->  1 file changed, 51 insertions(+)
-> 
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-> index bac455a..8c81566 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-> @@ -155,7 +155,58 @@ static int ipoib_get_sset_count(struct net_device __always_unused *dev,
->  	return -EOPNOTSUPP;
->  }
->  
-> +static int ipoib_get_settings(struct net_device *netdev,
-> +			       struct ethtool_cmd *ecmd)
-> +{
-> +	struct ipoib_dev_priv *priv = netdev_priv(netdev);
-> +	struct ib_port_attr attr;
-> +	u32 speed;
-> +	int ret;
-> +
-> +	if (!netif_carrier_ok(netdev)) {
-> +		ethtool_cmd_speed_set(ecmd, SPEED_UNKNOWN);
-> +		ecmd->duplex = DUPLEX_UNKNOWN;
-> +		return 0;
-> +	}
-> +
-> +	ret = ib_query_port(priv->ca, priv->port, &attr);
-> +	if (ret)
-> +		return ret;
-> +
-> +	switch (attr.active_speed) {
-> +	case IB_SPEED_DDR:
-> +		speed = 5000; /* in deci-Mb/sec */
-> +		break;
-> +	case IB_SPEED_QDR:
-> +		speed = 10000;
-> +		break;
-> +	case IB_SPEED_FDR10:
-> +		speed = 10000;
-> +		break;
-> +	case IB_SPEED_FDR:
-> +		speed = 14000;
-> +		break;
-> +	case IB_SPEED_EDR:
-> +		speed = 25000;
-> +		break;
-> +	case IB_SPEED_SDR:
-> +	default:
-> +		speed = 2500;
-> +		break;
-> +	}
-> +
-> +	speed *= ib_width_enum_to_int(attr.active_width);
-> +	if (speed < 0)
-> +		return -EINVAL;
+From: borisp <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Can you try to combine this function with rate_show so we will not have
-duplication of code?
+This commit introduces egress flow steering. Egress flow steering
+is useful for specifying actions that might be applied by hardware
+to outgoing flows on a specific QP.
 
-> +
-> +	ethtool_cmd_speed_set(ecmd, speed);
-> +	ecmd->duplex = DUPLEX_FULL;
-> +
-> +	return 0;
-> +}
-> +
->  static const struct ethtool_ops ipoib_ethtool_ops = {
-> +	.get_settings		= ipoib_get_settings,
->  	.get_drvinfo		= ipoib_get_drvinfo,
->  	.get_coalesce		= ipoib_get_coalesce,
->  	.set_coalesce		= ipoib_set_coalesce,
-> -- 
-> 2.7.4
-> 
+Signed-off-by: borisp <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ include/rdma/ib_verbs.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 99e4423..6c1c867 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1679,7 +1679,8 @@ enum ib_flow_domain {
+ 
+ enum ib_flow_flags {
+ 	IB_FLOW_ATTR_FLAGS_DONT_TRAP = 1UL << 1, /* Continue match, no steal */
+-	IB_FLOW_ATTR_FLAGS_RESERVED  = 1UL << 2  /* Must be last */
++	IB_FLOW_ATTR_FLAGS_EGRESS = 1UL << 2, /* Egress steering rule */
++	IB_FLOW_ATTR_FLAGS_RESERVED  = 1UL << 3  /* Must be last */
+ };
+ 
+ struct ib_flow_eth_filter {
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
