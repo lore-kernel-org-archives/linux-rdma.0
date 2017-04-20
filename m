@@ -1,37 +1,57 @@
-From: Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [RFC 0/2] IB/core: Add ESP Crypto Flow Steering support
-Date: Thu, 20 Apr 2017 15:24:39 +0000
-Message-ID: <DB6PR05MB3176852A5F283F850E37DA70B01B0@DB6PR05MB3176.eurprd05.prod.outlook.com>
-References: <cover.1492685328.git.borisp@mellanox.com>
- <040001d2b9e9$0a274530$1e75cf90$@opengridcomputing.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next 0/6] IB/core: Small fixes and refactors for IDR
+ locking series
+Date: Thu, 20 Apr 2017 11:45:07 -0400
+Message-ID: <1492703107.3041.0.camel@redhat.com>
+References: <1492506222-28999-1-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <040001d2b9e9$0a274530$1e75cf90$@opengridcomputing.com>
-Content-Language: en-US
+In-Reply-To: <1492506222-28999-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Rony Efraim <ronye-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Aviad Yehezkel <aviadye-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Rosenbaum <alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->=20
-> Do you have any applications that utilize this and other flow steering AP=
-Is?  It
-> would be nice to see example usage.
->=20
+On Tue, 2017-04-18 at 12:03 +0300, Matan Barak wrote:
+> Hi Doug,
+> 
+> This series comes after the comments Sean and Jason sent in the
+> linux-rdma
+> mailing list for the "Change IDR usage and locking in uverbs" series.
+> It's focused on small refactors, beautification and fixes
+> for that series. It doesn't aim to change anything logically.
+> 
+> Thanks,
+> Matan
+> 
+> Matan Barak (6):
+>   IB/core: Rename write flag to exclusive in rdma_core
+>   IB/core: Don't pass the lock state to _rdma_remove_commit_uobject
+>   IB/core: Nullify ib_uobject during allocation
+>   IB/core: A small refactor in destroy WQ handler
+>   IB/core: Don't use is_async in event files to infer events size
+>   IB/core: Rename uverbs event file structure
+> 
+>  drivers/infiniband/core/rdma_core.c        |  86 ++++++++---------
+>  drivers/infiniband/core/uverbs.h           |  21 +++--
+>  drivers/infiniband/core/uverbs_cmd.c       |  16 +---
+>  drivers/infiniband/core/uverbs_main.c      | 146 ++++++++++++++-----
+> ----------
+>  drivers/infiniband/core/uverbs_std_types.c |  20 ++--
+>  include/rdma/uverbs_types.h                |  33 +++----
+>  6 files changed, 158 insertions(+), 164 deletions(-)
 
-Our DPDK PMD already utilizes flow steering and it will use this API.
+Hi Matan,
 
-Also, we have support for this offload in XFRM, but it doesn't use flow ste=
-ering at the moment. In the future, XFRM NDO will use flow steering through=
- our driver.
-Patches for the kernel XFRM code can be found here:=09
-https://patchwork.ozlabs.org/patch/752707/
-Our driver support for this framework in XFRM can be found here:
-https://github.com/Mellanox/ipsec-offload
-XFRM is programmed with iproute2. You can find code for it here:
-https://github.com/Mellanox/iproute2
+Thanks, series applied.
+
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+   
+Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
