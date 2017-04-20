@@ -1,59 +1,74 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 02/20] IB/hfi1: Remove hyper-thread siblings by walking
- CPU mask
-Date: Thu, 20 Apr 2017 20:34:20 +0300
-Message-ID: <20170420173420.GR14088@mtr-leonro.local>
-References: <20170409171329.10579.92775.stgit@scvm10.sc.intel.com>
- <20170409171537.10579.68545.stgit@scvm10.sc.intel.com>
- <20170410074904.GA26626@infradead.org>
- <5CDA63463B33C94CA80846587415F07704076B86@ORSMSX111.amr.corp.intel.com>
+From: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
+Subject: Re: [PATCH 1/1] IB/ipoib: add get_settings in ethtool (fwd)
+Date: Thu, 20 Apr 2017 19:44:04 +0200 (CEST)
+Message-ID: <alpine.DEB.2.20.1704201943070.11573@hadrien>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="DITGHUV3p5DjDsXt"
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5CDA63463B33C94CA80846587415F07704076B86-8oqHQFITsIGkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Sanchez, Sebastian" <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Struk, Tadeusz" <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, kbuild-all-JC7UmRfGjtg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+The complete context is not included, but if speed is unsigned then it is
+not useful to check for < 0.
 
---DITGHUV3p5DjDsXt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+julia
 
-On Thu, Apr 20, 2017 at 05:20:18PM +0000, Sanchez, Sebastian wrote:
-> The irq layer PCI_IRQ_AFFINITY flag makes pci_alloc_irq_vectors() spread all the interrupts around the available CPUs, however, the API doesn't allow to exclude the hyper threading CPU cores or limit the CPUs to use for the affinity mask. If the API had a way to provide an affinity hint into this function instead of having them automatically generated it provide more flexibility to the hfi1 driver.
+---------- Forwarded message ----------
+Date: Thu, 20 Apr 2017 18:27:25 +0800
+From: kbuild test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: kbuild-JC7UmRfGjtg@public.gmane.org
+Cc: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
+Subject: Re: [PATCH 1/1] IB/ipoib: add get_settings in ethtool
 
-It is open source, add it if you need it.
+Hi Zhu,
 
-Thanks
+[auto build test WARNING on rdma/master]
+[also build test WARNING on v4.11-rc7 next-20170420]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
->
-> Sebastian
+url:    https://github.com/0day-ci/linux/commits/Zhu-Yanjun/IB-ipoib-add-get_settings-in-ethtool/20170420-163907
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/dledford/rdma.git master
+:::::: branch date: 2 hours ago
+:::::: commit date: 2 hours ago
 
---DITGHUV3p5DjDsXt
-Content-Type: application/pgp-signature; name="signature.asc"
+>> drivers/infiniband/ulp/ipoib/ipoib_ethtool.c:199:5-10: WARNING: Unsigned expression compared with zero: speed < 0
 
------BEGIN PGP SIGNATURE-----
+git remote add linux-review https://github.com/0day-ci/linux
+git remote update linux-review
+git checkout e83ee68b3051f0002f2185aed6771925cb15f4c5
+vim +199 drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj48RsACgkQ5GN7iDZy
-WKf2gxAApd3EBpoAx31IBt+a9LFMvpz+nfs4StxNZtY+EruJMUnRdiIlhltSE7xO
-eE7DEJrnfxghuc+N59RKf7bZM5U2/TvnKyqKD/LQ26quTgnn9+zOO5/9qUGmyWFp
-Gqq4mDJRYKRBeQr/1zshXvjgPfp3Da+Bl4bxDIdPa0y6VTc0ueU7it94bQo2EGux
-ZVYn0n/VVJ7U/aeIitK+Dao1UxjXW6KttCfwHW59ha9czTgXvBxYdBBmHDU4qSvs
-9blMQECIVOtiCHfDHANYd1IU2/7SPmPu/DHL0Q7GClAetP/6ekxvxhVEsLJ0G6tE
-npmcGC5804XfPCruubbXiipXN3RZxlYxfXLuuatWTqFVVzKr4vvMx/1zOgXAbj4q
-qInRhr5faXfw40gpa/Qc0pQnh0NxHtyryyEoUVaSjiHLWIMPjIHTbg8mmw5YpTOg
-5LJ6DlzhYfZMoT+K8+9ZK6LN7yplLnkb2YocQ05dCG8Y9nTRUoN3xBFSqIejL6ib
-Fci9BtT695r330QyIOBvRlULPMu0m96dK58wffwr7qj/5LFdGFmBtNM5xBYuhIYN
-nmflElaKNHM8tE+fnqhjzzsx3fGLuJffQT+kh630nVipfWUDhvk21UoL42kSo7J3
-4IpiTiqrdRRalsCm0JgVq4UGftUtF8bbSVbXOpCahwC4A9dAjB0=
-=9INZ
------END PGP SIGNATURE-----
+e83ee68b Zhu Yanjun 2017-04-20  183  	case IB_SPEED_FDR10:
+e83ee68b Zhu Yanjun 2017-04-20  184  		speed = 10000;
+e83ee68b Zhu Yanjun 2017-04-20  185  		break;
+e83ee68b Zhu Yanjun 2017-04-20  186  	case IB_SPEED_FDR:
+e83ee68b Zhu Yanjun 2017-04-20  187  		speed = 14000;
+e83ee68b Zhu Yanjun 2017-04-20  188  		break;
+e83ee68b Zhu Yanjun 2017-04-20  189  	case IB_SPEED_EDR:
+e83ee68b Zhu Yanjun 2017-04-20  190  		speed = 25000;
+e83ee68b Zhu Yanjun 2017-04-20  191  		break;
+e83ee68b Zhu Yanjun 2017-04-20  192  	case IB_SPEED_SDR:
+e83ee68b Zhu Yanjun 2017-04-20  193  	default:
+e83ee68b Zhu Yanjun 2017-04-20  194  		speed = 2500;
+e83ee68b Zhu Yanjun 2017-04-20  195  		break;
+e83ee68b Zhu Yanjun 2017-04-20  196  	}
+e83ee68b Zhu Yanjun 2017-04-20  197
+e83ee68b Zhu Yanjun 2017-04-20  198  	speed *= ib_width_enum_to_int(attr.active_width);
+e83ee68b Zhu Yanjun 2017-04-20 @199  	if (speed < 0)
+e83ee68b Zhu Yanjun 2017-04-20  200  		return -EINVAL;
+e83ee68b Zhu Yanjun 2017-04-20  201
+e83ee68b Zhu Yanjun 2017-04-20  202  	ethtool_cmd_speed_set(ecmd, speed);
+e83ee68b Zhu Yanjun 2017-04-20  203  	ecmd->duplex = DUPLEX_FULL;
+e83ee68b Zhu Yanjun 2017-04-20  204
+e83ee68b Zhu Yanjun 2017-04-20  205  	return 0;
+e83ee68b Zhu Yanjun 2017-04-20  206  }
+e83ee68b Zhu Yanjun 2017-04-20  207
 
---DITGHUV3p5DjDsXt--
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
