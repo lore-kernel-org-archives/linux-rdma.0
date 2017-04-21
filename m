@@ -1,8 +1,8 @@
 From: Dasaratharaman Chandramouli
         <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3 rdma-next 04/18] IB/core: Check for global flag when using ah_attr
-Date: Fri, 21 Apr 2017 01:44:49 -0400
-Message-ID: <1492753503-64790-5-git-send-email-dasaratharaman.chandramouli@intel.com>
+Subject: [PATCH v3 rdma-next 07/18] IB/core: Rename ib_create_ah to rdma_create_ah
+Date: Fri, 21 Apr 2017 01:44:52 -0400
+Message-ID: <1492753503-64790-8-git-send-email-dasaratharaman.chandramouli@intel.com>
 References: <1492753503-64790-1-git-send-email-dasaratharaman.chandramouli@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1492753503-64790-1-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,176 +10,204 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Read/write grh fields of the ah_attr only if the
-ah_flags field has the IB_AH_GRH bit enabled
+Rename ib_create_ah to rdma_create_ah so its in sync with the
+rename of the ib address handle attribute
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c      | 80 +++++++++++++++++++------------
- drivers/infiniband/core/uverbs_marshall.c | 12 +++--
- 2 files changed, 57 insertions(+), 35 deletions(-)
+ drivers/infiniband/core/cm.c            | 2 +-
+ drivers/infiniband/core/sa_query.c      | 2 +-
+ drivers/infiniband/core/user_mad.c      | 2 +-
+ drivers/infiniband/core/verbs.c         | 6 +++---
+ drivers/infiniband/hw/hfi1/verbs.c      | 2 +-
+ drivers/infiniband/hw/mlx4/mad.c        | 8 ++++----
+ drivers/infiniband/hw/mthca/mthca_mad.c | 4 ++--
+ drivers/infiniband/hw/qib/qib_verbs.c   | 2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c | 2 +-
+ include/rdma/ib_verbs.h                 | 4 ++--
+ 10 files changed, 17 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 27fcbeb..227491f 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1847,28 +1847,33 @@ ssize_t ib_uverbs_query_qp(struct ib_uverbs_file *file,
- 	resp.alt_port_num           = attr->alt_port_num;
- 	resp.alt_timeout            = attr->alt_timeout;
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index c9751cc..ac62dd8 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -343,7 +343,7 @@ static int cm_alloc_msg(struct cm_id_private *cm_id_priv,
+ 		ret = -ENODEV;
+ 		goto out;
+ 	}
+-	ah = ib_create_ah(mad_agent->qp->pd, &av->ah_attr);
++	ah = rdma_create_ah(mad_agent->qp->pd, &av->ah_attr);
+ 	if (IS_ERR(ah)) {
+ 		ret = PTR_ERR(ah);
+ 		goto out;
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index bb5192d..5449a3d 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -2043,7 +2043,7 @@ static void update_sm_ah(struct work_struct *work)
+ 			cpu_to_be64(IB_SA_WELL_KNOWN_GUID);
+ 	}
  
--	memcpy(resp.dest.dgid, attr->ah_attr.grh.dgid.raw, 16);
--	resp.dest.flow_label        = attr->ah_attr.grh.flow_label;
--	resp.dest.sgid_index        = attr->ah_attr.grh.sgid_index;
--	resp.dest.hop_limit         = attr->ah_attr.grh.hop_limit;
--	resp.dest.traffic_class     = attr->ah_attr.grh.traffic_class;
- 	resp.dest.dlid              = attr->ah_attr.dlid;
- 	resp.dest.sl                = attr->ah_attr.sl;
- 	resp.dest.src_path_bits     = attr->ah_attr.src_path_bits;
- 	resp.dest.static_rate       = attr->ah_attr.static_rate;
- 	resp.dest.is_global         = !!(attr->ah_attr.ah_flags & IB_AH_GRH);
-+	if (resp.dest.is_global) {
-+		memcpy(resp.dest.dgid, attr->ah_attr.grh.dgid.raw, 16);
-+		resp.dest.flow_label        = attr->ah_attr.grh.flow_label;
-+		resp.dest.sgid_index        = attr->ah_attr.grh.sgid_index;
-+		resp.dest.hop_limit         = attr->ah_attr.grh.hop_limit;
-+		resp.dest.traffic_class     = attr->ah_attr.grh.traffic_class;
-+	}
- 	resp.dest.port_num          = attr->ah_attr.port_num;
+-	new_ah->ah = ib_create_ah(port->agent->qp->pd, &ah_attr);
++	new_ah->ah = rdma_create_ah(port->agent->qp->pd, &ah_attr);
+ 	if (IS_ERR(new_ah->ah)) {
+ 		pr_warn("Couldn't create new SM AH\n");
+ 		kfree(new_ah);
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index 7198c40..3ac6f97 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -502,7 +502,7 @@ static ssize_t ib_umad_write(struct file *filp, const char __user *buf,
+ 		ah_attr.grh.traffic_class  = packet->mad.hdr.traffic_class;
+ 	}
  
--	memcpy(resp.alt_dest.dgid, attr->alt_ah_attr.grh.dgid.raw, 16);
--	resp.alt_dest.flow_label    = attr->alt_ah_attr.grh.flow_label;
--	resp.alt_dest.sgid_index    = attr->alt_ah_attr.grh.sgid_index;
--	resp.alt_dest.hop_limit     = attr->alt_ah_attr.grh.hop_limit;
--	resp.alt_dest.traffic_class = attr->alt_ah_attr.grh.traffic_class;
- 	resp.alt_dest.dlid          = attr->alt_ah_attr.dlid;
- 	resp.alt_dest.sl            = attr->alt_ah_attr.sl;
- 	resp.alt_dest.src_path_bits = attr->alt_ah_attr.src_path_bits;
- 	resp.alt_dest.static_rate   = attr->alt_ah_attr.static_rate;
- 	resp.alt_dest.is_global     = !!(attr->alt_ah_attr.ah_flags & IB_AH_GRH);
-+	if (resp.alt_dest.is_global) {
-+		memcpy(resp.alt_dest.dgid, attr->alt_ah_attr.grh.dgid.raw, 16);
-+		resp.alt_dest.flow_label    = attr->alt_ah_attr.grh.flow_label;
-+		resp.alt_dest.sgid_index    = attr->alt_ah_attr.grh.sgid_index;
-+		resp.alt_dest.hop_limit     = attr->alt_ah_attr.grh.hop_limit;
-+		resp.alt_dest.traffic_class =
-+				attr->alt_ah_attr.grh.traffic_class;
-+	}
- 	resp.alt_dest.port_num      = attr->alt_ah_attr.port_num;
+-	ah = ib_create_ah(agent->qp->pd, &ah_attr);
++	ah = rdma_create_ah(agent->qp->pd, &ah_attr);
+ 	if (IS_ERR(ah)) {
+ 		ret = PTR_ERR(ah);
+ 		goto err_up;
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index b1cde14..b52f4a1 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -311,7 +311,7 @@ void ib_dealloc_pd(struct ib_pd *pd)
  
- 	resp.max_send_wr            = init_attr->cap.max_send_wr;
-@@ -1943,30 +1948,41 @@ static int modify_qp(struct ib_uverbs_file *file,
- 	attr->alt_timeout	  = cmd->base.alt_timeout;
- 	attr->rate_limit	  = cmd->rate_limit;
+ /* Address handles */
  
--	memcpy(attr->ah_attr.grh.dgid.raw, cmd->base.dest.dgid, 16);
--	attr->ah_attr.grh.flow_label	= cmd->base.dest.flow_label;
--	attr->ah_attr.grh.sgid_index	= cmd->base.dest.sgid_index;
--	attr->ah_attr.grh.hop_limit	= cmd->base.dest.hop_limit;
--	attr->ah_attr.grh.traffic_class	= cmd->base.dest.traffic_class;
-+	if (cmd->base.dest.is_global) {
-+		memcpy(attr->ah_attr.grh.dgid.raw, cmd->base.dest.dgid, 16);
-+		attr->ah_attr.grh.flow_label	= cmd->base.dest.flow_label;
-+		attr->ah_attr.grh.sgid_index	= cmd->base.dest.sgid_index;
-+		attr->ah_attr.grh.hop_limit	= cmd->base.dest.hop_limit;
-+		attr->ah_attr.grh.traffic_class	= cmd->base.dest.traffic_class;
-+		attr->ah_attr.ah_flags		= IB_AH_GRH;
-+	} else {
-+		attr->ah_attr.ah_flags = 0;
-+	}
- 	attr->ah_attr.dlid		= cmd->base.dest.dlid;
- 	attr->ah_attr.sl		= cmd->base.dest.sl;
- 	attr->ah_attr.src_path_bits	= cmd->base.dest.src_path_bits;
- 	attr->ah_attr.static_rate	= cmd->base.dest.static_rate;
--	attr->ah_attr.ah_flags		= cmd->base.dest.is_global ?
--					  IB_AH_GRH : 0;
- 	attr->ah_attr.port_num		= cmd->base.dest.port_num;
- 
--	memcpy(attr->alt_ah_attr.grh.dgid.raw, cmd->base.alt_dest.dgid, 16);
--	attr->alt_ah_attr.grh.flow_label    = cmd->base.alt_dest.flow_label;
--	attr->alt_ah_attr.grh.sgid_index    = cmd->base.alt_dest.sgid_index;
--	attr->alt_ah_attr.grh.hop_limit     = cmd->base.alt_dest.hop_limit;
--	attr->alt_ah_attr.grh.traffic_class = cmd->base.alt_dest.traffic_class;
-+	if (cmd->base.alt_dest.is_global) {
-+		memcpy(attr->alt_ah_attr.grh.dgid.raw,
-+		       cmd->base.alt_dest.dgid, 16);
-+		attr->alt_ah_attr.grh.flow_label =
-+				cmd->base.alt_dest.flow_label;
-+		attr->alt_ah_attr.grh.sgid_index =
-+				cmd->base.alt_dest.sgid_index;
-+		attr->alt_ah_attr.grh.hop_limit =
-+				cmd->base.alt_dest.hop_limit;
-+		attr->alt_ah_attr.grh.traffic_class =
-+				cmd->base.alt_dest.traffic_class;
-+		attr->alt_ah_attr.ah_flags = IB_AH_GRH;
-+	} else {
-+		attr->alt_ah_attr.ah_flags = 0;
-+	}
- 	attr->alt_ah_attr.dlid		    = cmd->base.alt_dest.dlid;
- 	attr->alt_ah_attr.sl		    = cmd->base.alt_dest.sl;
- 	attr->alt_ah_attr.src_path_bits	    = cmd->base.alt_dest.src_path_bits;
- 	attr->alt_ah_attr.static_rate	    = cmd->base.alt_dest.static_rate;
--	attr->alt_ah_attr.ah_flags	    = cmd->base.alt_dest.is_global ?
--					      IB_AH_GRH : 0;
- 	attr->alt_ah_attr.port_num	    = cmd->base.alt_dest.port_num;
- 
- 	if (qp->real_qp == qp) {
-@@ -2520,14 +2536,18 @@ ssize_t ib_uverbs_create_ah(struct ib_uverbs_file *file,
- 	attr.sl 	       = cmd.attr.sl;
- 	attr.src_path_bits     = cmd.attr.src_path_bits;
- 	attr.static_rate       = cmd.attr.static_rate;
--	attr.ah_flags          = cmd.attr.is_global ? IB_AH_GRH : 0;
- 	attr.port_num 	       = cmd.attr.port_num;
--	attr.grh.flow_label    = cmd.attr.grh.flow_label;
--	attr.grh.sgid_index    = cmd.attr.grh.sgid_index;
--	attr.grh.hop_limit     = cmd.attr.grh.hop_limit;
--	attr.grh.traffic_class = cmd.attr.grh.traffic_class;
- 	memset(&attr.dmac, 0, sizeof(attr.dmac));
--	memcpy(attr.grh.dgid.raw, cmd.attr.grh.dgid, 16);
-+	if (cmd.attr.is_global) {
-+		attr.ah_flags          = IB_AH_GRH;
-+		attr.grh.flow_label    = cmd.attr.grh.flow_label;
-+		attr.grh.sgid_index    = cmd.attr.grh.sgid_index;
-+		attr.grh.hop_limit     = cmd.attr.grh.hop_limit;
-+		attr.grh.traffic_class = cmd.attr.grh.traffic_class;
-+		memcpy(attr.grh.dgid.raw, cmd.attr.grh.dgid, 16);
-+	} else {
-+		attr.ah_flags = 0;
-+	}
- 
- 	ah = pd->device->create_ah(pd, &attr, &udata);
- 
-diff --git a/drivers/infiniband/core/uverbs_marshall.c b/drivers/infiniband/core/uverbs_marshall.c
-index ed3e68f..a9739f3 100644
---- a/drivers/infiniband/core/uverbs_marshall.c
-+++ b/drivers/infiniband/core/uverbs_marshall.c
-@@ -36,17 +36,19 @@
- void ib_copy_ah_attr_to_user(struct ib_uverbs_ah_attr *dst,
- 			     struct ib_ah_attr *src)
+-struct ib_ah *ib_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr)
++struct ib_ah *rdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr)
  {
--	memcpy(dst->grh.dgid, src->grh.dgid.raw, sizeof(src->grh.dgid));
--	dst->grh.flow_label        = src->grh.flow_label;
--	dst->grh.sgid_index        = src->grh.sgid_index;
--	dst->grh.hop_limit         = src->grh.hop_limit;
--	dst->grh.traffic_class     = src->grh.traffic_class;
- 	memset(&dst->grh.reserved, 0, sizeof(dst->grh.reserved));
- 	dst->dlid 	    	   = src->dlid;
- 	dst->sl   	    	   = src->sl;
- 	dst->src_path_bits 	   = src->src_path_bits;
- 	dst->static_rate   	   = src->static_rate;
- 	dst->is_global             = src->ah_flags & IB_AH_GRH ? 1 : 0;
-+	if (dst->is_global) {
-+		memcpy(dst->grh.dgid, src->grh.dgid.raw, sizeof(src->grh.dgid));
-+		dst->grh.flow_label        = src->grh.flow_label;
-+		dst->grh.sgid_index        = src->grh.sgid_index;
-+		dst->grh.hop_limit         = src->grh.hop_limit;
-+		dst->grh.traffic_class     = src->grh.traffic_class;
-+	}
- 	dst->port_num 	    	   = src->port_num;
- 	dst->reserved 		   = 0;
+ 	struct ib_ah *ah;
+ 
+@@ -326,7 +326,7 @@ struct ib_ah *ib_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr)
+ 
+ 	return ah;
  }
+-EXPORT_SYMBOL(ib_create_ah);
++EXPORT_SYMBOL(rdma_create_ah);
+ 
+ int ib_get_rdma_header_version(const union rdma_network_hdr *hdr)
+ {
+@@ -567,7 +567,7 @@ struct ib_ah *ib_create_ah_from_wc(struct ib_pd *pd, const struct ib_wc *wc,
+ 	if (ret)
+ 		return ERR_PTR(ret);
+ 
+-	return ib_create_ah(pd, &ah_attr);
++	return rdma_create_ah(pd, &ah_attr);
+ }
+ EXPORT_SYMBOL(ib_create_ah_from_wc);
+ 
+diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
+index 0faa27a..b9c208d 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.c
++++ b/drivers/infiniband/hw/hfi1/verbs.c
+@@ -1516,7 +1516,7 @@ struct ib_ah *hfi1_create_qp0_ah(struct hfi1_ibport *ibp, u16 dlid)
+ 	rcu_read_lock();
+ 	qp0 = rcu_dereference(ibp->rvp.qp[0]);
+ 	if (qp0)
+-		ah = ib_create_ah(qp0->ibqp.pd, &attr);
++		ah = rdma_create_ah(qp0->ibqp.pd, &attr);
+ 	rcu_read_unlock();
+ 	return ah;
+ }
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index d934959..76010d0 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -200,8 +200,8 @@ static void update_sm_ah(struct mlx4_ib_dev *dev, u8 port_num, u16 lid, u8 sl)
+ 	ah_attr.sl       = sl;
+ 	ah_attr.port_num = port_num;
+ 
+-	new_ah = ib_create_ah(dev->send_agent[port_num - 1][0]->qp->pd,
+-			      &ah_attr);
++	new_ah = rdma_create_ah(dev->send_agent[port_num - 1][0]->qp->pd,
++				&ah_attr);
+ 	if (IS_ERR(new_ah))
+ 		return;
+ 
+@@ -563,7 +563,7 @@ int mlx4_ib_send_to_slave(struct mlx4_ib_dev *dev, int slave, u8 port,
+ 			return -EINVAL;
+ 		attr.ah_flags = IB_AH_GRH;
+ 	}
+-	ah = ib_create_ah(tun_ctx->pd, &attr);
++	ah = rdma_create_ah(tun_ctx->pd, &attr);
+ 	if (IS_ERR(ah))
+ 		return -ENOMEM;
+ 
+@@ -1391,7 +1391,7 @@ int mlx4_ib_send_to_wire(struct mlx4_ib_dev *dev, int slave, u8 port,
+ 	/* create ah */
+ 	sgid_index = attr->grh.sgid_index;
+ 	attr->grh.sgid_index = 0;
+-	ah = ib_create_ah(sqp_ctx->pd, attr);
++	ah = rdma_create_ah(sqp_ctx->pd, attr);
+ 	if (IS_ERR(ah))
+ 		return -ENOMEM;
+ 	attr->grh.sgid_index = sgid_index;
+diff --git a/drivers/infiniband/hw/mthca/mthca_mad.c b/drivers/infiniband/hw/mthca/mthca_mad.c
+index 00f7831..7f671a2 100644
+--- a/drivers/infiniband/hw/mthca/mthca_mad.c
++++ b/drivers/infiniband/hw/mthca/mthca_mad.c
+@@ -86,8 +86,8 @@ static void update_sm_ah(struct mthca_dev *dev,
+ 	ah_attr.sl       = sl;
+ 	ah_attr.port_num = port_num;
+ 
+-	new_ah = ib_create_ah(dev->send_agent[port_num - 1][0]->qp->pd,
+-			      &ah_attr);
++	new_ah = rdma_create_ah(dev->send_agent[port_num - 1][0]->qp->pd,
++				&ah_attr);
+ 	if (IS_ERR(new_ah))
+ 		return;
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
+index 16a9aa1..de04aca 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.c
++++ b/drivers/infiniband/hw/qib/qib_verbs.c
+@@ -1374,7 +1374,7 @@ struct ib_ah *qib_create_qp0_ah(struct qib_ibport *ibp, u16 dlid)
+ 	rcu_read_lock();
+ 	qp0 = rcu_dereference(ibp->rvp.qp[0]);
+ 	if (qp0)
+-		ah = ib_create_ah(qp0->ibqp.pd, &attr);
++		ah = rdma_create_ah(qp0->ibqp.pd, &attr);
+ 	rcu_read_unlock();
+ 	return ah;
+ }
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index 9029270..1907f7d 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -65,7 +65,7 @@ struct ipoib_ah *ipoib_create_ah(struct net_device *dev,
+ 	ah->last_send = 0;
+ 	kref_init(&ah->ref);
+ 
+-	vah = ib_create_ah(pd, attr);
++	vah = rdma_create_ah(pd, attr);
+ 	if (IS_ERR(vah)) {
+ 		kfree(ah);
+ 		ah = (struct ipoib_ah *)vah;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index f31a757..8eb366e 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2664,14 +2664,14 @@ struct ib_pd *__ib_alloc_pd(struct ib_device *device, unsigned int flags,
+ void ib_dealloc_pd(struct ib_pd *pd);
+ 
+ /**
+- * ib_create_ah - Creates an address handle for the given address vector.
++ * rdma_create_ah - Creates an address handle for the given address vector.
+  * @pd: The protection domain associated with the address handle.
+  * @ah_attr: The attributes of the address vector.
+  *
+  * The address handle is used to reference a local or global destination
+  * in all UD QP post sends.
+  */
+-struct ib_ah *ib_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr);
++struct ib_ah *rdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr);
+ 
+ /**
+  * ib_get_gids_from_rdma_hdr - Get sgid and dgid from GRH or IPv4 header
 -- 
 1.8.3.1
 
