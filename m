@@ -1,101 +1,58 @@
-From: Stephen Hemminger <stephen@networkplumber.org>
-Subject: [PATCH net-next 1/3] mlx5: hide unused functions
-Date: Fri, 21 Apr 2017 11:15:56 -0700
-Message-ID: <20170421181558.5414-2-sthemmin@microsoft.com>
-References: <20170421181558.5414-1-sthemmin@microsoft.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170421181558.5414-1-sthemmin@microsoft.com>
-Sender: netdev-owner@vger.kernel.org
-To: davem@davemloft.net, saeedm@mellanox.com, matanb@mellanox.com, leonro@mellanox.com
-Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Stephen Hemminger <sthemmin@microsoft.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH v2 00/17] IB/mlx: Fine-tuning for several function
+ implementations
+Date: Fri, 21 Apr 2017 20:17:52 +0200
+Message-ID: <a56f9301-e116-c59c-681a-9108519920e5@users.sourceforge.net>
+References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>
+ <1492720654.3041.16.camel@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <1492720654.3041.16.camel@redhat.com>
+Content-Language: en-GB
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Leon Romanovsky <leonro@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Matan Barak <matanb@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Fix sparse warnings in recent ipoib support.
-The RDMA functions are not used yet, hide behind #ifdef.
-Based on comment, they will eventually be local so make static.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Fri, 21 Apr 2017 19:56:54 +0200
 
-Signed-off-by: Stephen Hemminger <sthemmin@microsoft.com>
+Several update suggestions were taken into account
+from static source code analysis.
+
+Markus Elfring (17):
+  Use kcalloc() in mlx4_ib_alloc_pv_bufs()
+  Use kmalloc_array() in six functions
+  Improve size determinations in six functions
+  Fix a typo in a comment line
+  Delete four unnecessary return statements
+  Delete an unnecessary check before kfree() in free_pv_object()
+  Move an assignment out of a check in forward_trap()
+  Enclose 46 expressions for sizeof by parentheses
+  Split a condition check in six functions
+  Delete an unnecessary variable in __mlx4_ib_query_gid()
+  Delete an unnecessary variable initialisation in mlx4_ib_add()
+  Delete an unnecessary variable assignment in mlx4_ib_add()
+  Delete an error message for a failed memory allocation in mlx4_ib_add()
+  Delete unnecessary braces in mlx4_ib_add()
+  Delete unwanted spaces behind usages of the sizeof operator
+  Add spaces for better code readability
+  Less function calls in create_kernel_qp() after error detection
 ---
- drivers/net/ethernet/mellanox/mlx5/core/ipoib.c | 24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/ipoib.c b/drivers/net/ethernet/mellanox/mlx5/core/ipoib.c
-index ec78e637840f..3c84e36af018 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/ipoib.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/ipoib.c
-@@ -178,7 +178,7 @@ static int mlx5i_init_tx(struct mlx5e_priv *priv)
- 	return 0;
- }
- 
--void mlx5i_cleanup_tx(struct mlx5e_priv *priv)
-+static void mlx5i_cleanup_tx(struct mlx5e_priv *priv)
- {
- 	struct mlx5i_priv *ipriv = priv->ppriv;
- 
-@@ -359,9 +359,10 @@ static int mlx5i_close(struct net_device *netdev)
- 	return 0;
- }
- 
-+#ifdef notusedyet
- /* IPoIB RDMA netdev callbacks */
--int mlx5i_attach_mcast(struct net_device *netdev, struct ib_device *hca,
--		       union ib_gid *gid, u16 lid, int set_qkey)
-+static int mlx5i_attach_mcast(struct net_device *netdev, struct ib_device *hca,
-+			      union ib_gid *gid, u16 lid, int set_qkey)
- {
- 	struct mlx5e_priv    *epriv = mlx5i_epriv(netdev);
- 	struct mlx5_core_dev *mdev  = epriv->mdev;
-@@ -377,8 +378,8 @@ int mlx5i_attach_mcast(struct net_device *netdev, struct ib_device *hca,
- 	return err;
- }
- 
--int mlx5i_detach_mcast(struct net_device *netdev, struct ib_device *hca,
--		       union ib_gid *gid, u16 lid)
-+static int mlx5i_detach_mcast(struct net_device *netdev, struct ib_device *hca,
-+			      union ib_gid *gid, u16 lid)
- {
- 	struct mlx5e_priv    *epriv = mlx5i_epriv(netdev);
- 	struct mlx5_core_dev *mdev  = epriv->mdev;
-@@ -395,7 +396,7 @@ int mlx5i_detach_mcast(struct net_device *netdev, struct ib_device *hca,
- 	return err;
- }
- 
--int mlx5i_xmit(struct net_device *dev, struct sk_buff *skb,
-+static int mlx5i_xmit(struct net_device *dev, struct sk_buff *skb,
- 	       struct ib_ah *address, u32 dqpn, u32 dqkey)
- {
- 	struct mlx5e_priv *epriv = mlx5i_epriv(dev);
-@@ -404,6 +405,7 @@ int mlx5i_xmit(struct net_device *dev, struct sk_buff *skb,
- 
- 	return mlx5i_sq_xmit(sq, skb, &mah->av, dqpn, dqkey);
- }
-+#endif
- 
- static int mlx5i_check_required_hca_cap(struct mlx5_core_dev *mdev)
- {
-@@ -418,10 +420,10 @@ static int mlx5i_check_required_hca_cap(struct mlx5_core_dev *mdev)
- 	return 0;
- }
- 
--struct net_device *mlx5_rdma_netdev_alloc(struct mlx5_core_dev *mdev,
--					  struct ib_device *ibdev,
--					  const char *name,
--					  void (*setup)(struct net_device *))
-+static struct net_device *mlx5_rdma_netdev_alloc(struct mlx5_core_dev *mdev,
-+						 struct ib_device *ibdev,
-+						 const char *name,
-+						 void (*setup)(struct net_device *))
- {
- 	const struct mlx5e_profile *profile = &mlx5i_nic_profile;
- 	int nch = profile->max_nch(mdev);
-@@ -480,7 +482,7 @@ struct net_device *mlx5_rdma_netdev_alloc(struct mlx5_core_dev *mdev,
- }
- EXPORT_SYMBOL(mlx5_rdma_netdev_alloc);
- 
--void mlx5_rdma_netdev_free(struct net_device *netdev)
-+static void mlx5_rdma_netdev_free(struct net_device *netdev)
- {
- 	struct mlx5e_priv          *priv    = mlx5i_epriv(netdev);
- 	const struct mlx5e_profile *profile = priv->profile;
+v2:
+Changes were rebased on source files from Linux next-20170421.
+Some of them were recombined as requested by Doug Ledford.
+
+ drivers/infiniband/hw/mlx4/mad.c  |  72 ++++++++--------
+ drivers/infiniband/hw/mlx4/main.c | 164 ++++++++++++++++++++----------------
+ drivers/infiniband/hw/mlx4/qp.c   | 173 +++++++++++++++++++-------------------
+ drivers/infiniband/hw/mlx5/qp.c   |  66 ++++++++++-----
+ drivers/infiniband/hw/mlx5/srq.c  |   5 +-
+ 5 files changed, 261 insertions(+), 219 deletions(-)
+
 -- 
-2.11.0
+2.12.2
+
