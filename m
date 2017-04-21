@@ -1,8 +1,8 @@
 From: Dasaratharaman Chandramouli
         <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3 rdma-next 01/18] IB/ocrdma: Add identifier names to function definitions
-Date: Fri, 21 Apr 2017 01:44:46 -0400
-Message-ID: <1492753503-64790-2-git-send-email-dasaratharaman.chandramouli@intel.com>
+Subject: [PATCH v3 rdma-next 02/18] IB/IPoIB: Remove 'else' when the 'if' has a return.
+Date: Fri, 21 Apr 2017 01:44:47 -0400
+Message-ID: <1492753503-64790-3-git-send-email-dasaratharaman.chandramouli@intel.com>
 References: <1492753503-64790-1-git-send-email-dasaratharaman.chandramouli@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1492753503-64790-1-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,38 +10,48 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Address a checkpatch issue on missing identifier names
-on function definitions.
+This patch fixes a checkpatch issue related to not having
+to use an 'else' if the 'if' path returns from the function.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_ah.h | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.h b/drivers/infiniband/hw/ocrdma/ocrdma_ah.h
-index 0704a24..5370eb7 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.h
-@@ -51,11 +51,11 @@ enum {
- 	OCRDMA_AH_L3_TYPE_SHIFT		= 0x1D /* 29 bits */
- };
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+index 3e3a84f..be2e84d4 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+@@ -293,17 +293,16 @@ static int ipoib_mcast_join_finish(struct ipoib_mcast *mcast,
+ 				-PTR_ERR(ah));
+ 			/* use original error */
+ 			return PTR_ERR(ah);
+-		} else {
+-			spin_lock_irq(&priv->lock);
+-			mcast->ah = ah;
+-			spin_unlock_irq(&priv->lock);
+-
+-			ipoib_dbg_mcast(priv, "MGID %pI6 AV %p, LID 0x%04x, SL %d\n",
+-					mcast->mcmember.mgid.raw,
+-					mcast->ah->ah,
+-					be16_to_cpu(mcast->mcmember.mlid),
+-					mcast->mcmember.sl);
+ 		}
++		spin_lock_irq(&priv->lock);
++		mcast->ah = ah;
++		spin_unlock_irq(&priv->lock);
++
++		ipoib_dbg_mcast(priv, "MGID %pI6 AV %p, LID 0x%04x, SL %d\n",
++				mcast->mcmember.mgid.raw,
++				mcast->ah->ah,
++				be16_to_cpu(mcast->mcmember.mlid),
++				mcast->mcmember.sl);
+ 	}
  
--struct ib_ah *ocrdma_create_ah(struct ib_pd *, struct ib_ah_attr *,
--			       struct ib_udata *);
--int ocrdma_destroy_ah(struct ib_ah *);
--int ocrdma_query_ah(struct ib_ah *, struct ib_ah_attr *);
--int ocrdma_modify_ah(struct ib_ah *, struct ib_ah_attr *);
-+struct ib_ah *ocrdma_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr,
-+			       struct ib_udata *udata);
-+int ocrdma_destroy_ah(struct ib_ah *ah);
-+int ocrdma_query_ah(struct ib_ah *ah, struct ib_ah_attr *ah_attr);
-+int ocrdma_modify_ah(struct ib_ah *ah, struct ib_ah_attr *ah_attr);
- 
- int ocrdma_process_mad(struct ib_device *,
- 		       int process_mad_flags,
+ 	/* actually send any queued packets */
 -- 
 1.8.3.1
 
