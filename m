@@ -1,50 +1,129 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 00/29] IB/mlx: Fine-tuning for several function
- implementations
-Date: Thu, 20 Apr 2017 22:23:31 -0400
-Message-ID: <1492741411.3041.23.camel@redhat.com>
-References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>
-         <1492720654.3041.16.camel@redhat.com>
-         <8f433ee0-4dde-44db-cd36-fc2831b45df6@users.sourceforge.net>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next 2/3] IB/mlx5: Set mlx5_query_roce_port's return
+ value to void
+Date: Fri, 21 Apr 2017 05:30:44 +0300
+Message-ID: <20170421023044.GV14088@mtr-leonro.local>
+References: <20170420175333.7082-1-leon@kernel.org>
+ <20170420175333.7082-3-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="jesV4P1FjH8FXPjZ"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <8f433ee0-4dde-44db-cd36-fc2831b45df6-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170420175333.7082-3-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-04-20 at 23:02 +0200, SF Markus Elfring wrote:
-> > 
-> > I've dropped this entire series.  If you want me to consider it,
-> > you
-> > need to respin it with the following changes:
-> 
-> How do you think about to integrate any of my update suggestions
-> which you do not find controversial (or questionable) at the moment?
 
-No.  Far too many of your patches need commit messages fixes and the
-like.  If you want me to include them, then follow all of the
-requirements I gave you.
+--jesV4P1FjH8FXPjZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> 
-> > 
-> > 1) Put all similar corrections in a single patch.
-> 
-> I preferred an other patch granularity so far.
+On Thu, Apr 20, 2017 at 08:53:32PM +0300, Leon Romanovsky wrote:
+> From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+> In case of an error, the properties reported to user
+> are zeroed out, so no need for a return value.
+>
+> Signed-off-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/mlx5/main.c | 20 ++++++++++----------
+>  1 file changed, 10 insertions(+), 10 deletions(-)
+>
+> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+> index 4dc0a8785fe0..6ba8bbc5c74a 100644
+> --- a/drivers/infiniband/hw/mlx5/main.c
+> +++ b/drivers/infiniband/hw/mlx5/main.c
+> @@ -165,15 +165,20 @@ static struct net_device *mlx5_ib_get_netdev(struct ib_device *device,
+>  	return ndev;
+>  }
+>
+> -static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
+> -				struct ib_port_attr *props)
+> +static void mlx5_query_port_roce(struct ib_device *device, u8 port_num,
+> +				 struct ib_port_attr *props)
+>  {
+>  	struct mlx5_ib_dev *dev = to_mdev(device);
+>  	struct net_device *ndev, *upper;
+>  	enum ib_mtu ndev_ib_mtu;
+>  	u16 qkey_viol_cntr;
+>
+> -	/* props being zeroed by the caller, avoid zeroing it here */
+> +	/* Getting netdev before filling out props so in case of an error it
+> +	 * will still be zeroed out.
+> +	 */
+> +	ndev = mlx5_ib_get_netdev(device, port_num);
+> +	if (!ndev)
+> +		return;
+>
 
-Not to be too blunt about it, but your preference is not the one that
-matters in this situation.  If you want me to consider the patches,
-then you need to respin them following the directions I gave.
+It breaks ib_write_bw when netdevice is not bounded to ib device. Need
+to get rid of this chunk. I'll resend.
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-   
-Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+>  	props->port_cap_flags  |= IB_PORT_CM_SUP;
+>  	props->port_cap_flags  |= IB_PORT_IP_BASED_GIDS;
+> @@ -189,10 +194,6 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
+>  	mlx5_query_nic_vport_qkey_viol_cntr(dev->mdev, &qkey_viol_cntr);
+>  	props->qkey_viol_cntr = qkey_viol_cntr;
+>
+> -	ndev = mlx5_ib_get_netdev(device, port_num);
+> -	if (!ndev)
+> -		return 0;
+> -
+>  	if (mlx5_lag_is_active(dev->mdev)) {
+>  		rcu_read_lock();
+>  		upper = netdev_master_upper_dev_get_rcu(ndev);
+> @@ -217,8 +218,6 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
+>
+>  	props->active_width	= IB_WIDTH_4X;  /* TODO */
+>  	props->active_speed	= IB_SPEED_QDR; /* TODO */
+> -
+> -	return 0;
+>  }
+>
+>  static void ib_gid_to_mlx5_roce_addr(const union ib_gid *gid,
+> @@ -924,7 +923,8 @@ int mlx5_ib_query_port(struct ib_device *ibdev, u8 port,
+>  		return mlx5_query_hca_port(ibdev, port, props);
+>
+>  	case MLX5_VPORT_ACCESS_METHOD_NIC:
+> -		return mlx5_query_port_roce(ibdev, port, props);
+> +		mlx5_query_port_roce(ibdev, port, props);
+> +		return 0;
+>
+>  	default:
+>  		return -EINVAL;
+> --
+> 2.12.2
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+--jesV4P1FjH8FXPjZ
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj5btQACgkQ5GN7iDZy
+WKd1tg//a2J1xzrXpgUH41gwyFQvDOyl+9Q/lXUSBTz5ysbFeV+lGSxs9eyBRgN6
+mAxtqm8FcsSQ5HvF+iqeZC4aR6lswf7UtVBbK4NAichpnkoLewA2p+PsVdQ5O2zq
+D+4QyJ1mZ/R/qz5ekJFJ07ObR7fN0w1p4PgHK2dsuyfP6kHh82+nDntpISlczFNk
+hQzh41DeNIxL6TWrvtQuWkzTKgvD1yMWpq2NwipGZVD59e7pPuiM3azCvNssIopP
+yYHjlg1AmtWNOL8+9mnLdTMboxT5PdyclseCKNIJ6R5SIdU5YAsu1q8glccb0U/M
+/aaePirYTuTq7k3HUCozHJG+k/wE522nzBqhrek8JSASEvQPN5PlYV+Vk4AYo74D
+XdBr+awpePDmmWswThA5/JHfmLjc8D8Nlhy324Z3koFU7qr/v9aURItrtWvUb9xQ
+VcPTRxPJqnhbI9wmg32LDSCMl04TW1/i5cmA3UjoT+3VG5aWM+W9HSJInkDClE8z
+bpNxYbPGMLB93XWC7tFetOfmgn5ANkmw7Gp0Y76eI7zsMHMzYD/NCgavxIdCmIto
+Ly9PgRcLfPXMCcVWslrjHqXpua1I1DaUJY7RYjbjFCxHGeHYlHEg5/VQE7+IHhld
+/XDIfq/EHC/D2Lf5buwLPBatRF0dVDq+rUa38KMBg2D8RkoBkkY=
+=tA1j
+-----END PGP SIGNATURE-----
+
+--jesV4P1FjH8FXPjZ--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
