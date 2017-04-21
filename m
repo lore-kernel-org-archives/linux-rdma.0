@@ -1,518 +1,796 @@
-From: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
-Subject: [PATCH net-next 3/3] mlx5: fix space waste from ethtool descriptions
-Date: Fri, 21 Apr 2017 11:15:58 -0700
-Message-ID: <20170421181558.5414-4-sthemmin@microsoft.com>
-References: <20170421181558.5414-1-sthemmin@microsoft.com>
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: [rdma-core v4 3/8] libbnxt_re: Add support for CQ and QP management
+Date: Fri, 21 Apr 2017 13:30:13 -0400
+Message-ID: <1492795818-29618-4-git-send-email-devesh.sharma@broadcom.com>
+References: <1492795818-29618-1-git-send-email-devesh.sharma@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170421181558.5414-1-sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+In-Reply-To: <1492795818-29618-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The ethtool statistics descriptions were declared as static in
-en_stats.h but that file is included indirectly in multiple places
-causing multiple unused redundant copies. This is reported by building
-with W=1.
+This patch adds support for completion queue creation and
+destruction following are the changes:
 
-The solution is to move the description out of en_stats.h into
-the one file that uses them en_ethtool.c
+ - Added User/Kernel ABI to communicate CQ specific parameters.
+ - Added a function in a new file to allocate Page-Aligned address
+   space.
+ - Added a function to free page-aligned address space.
+ - Added function to create and destroy completion queue.
+ - Add ABI to for QP creation and WQE/RQE format.
+ - Add functions to allocate SQ, RQ and Search PSN address
+   space.
+ - Add functions to store/clean qp-handles in the form of
+   a linear table. There is table maintained in every instance
+   of ucontext.
+ - CQ and QP contexts now hold a pointer to the DPI mapped
+   during PD allocation.
+ - Removed hard-coding of page size during mapping DB page.
+ - Renamed a variable in PD code.
+ - Add support for create-qp.
+ - Add support for destroy-qp.
+ - Add support for modify-qp.
+ - Add support for query-qp.
 
-Signed-off-by: Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+v1->v2
+ -- Sorted file list
+ -- Removed inline functions from ahi.h
+
+Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- .../net/ethernet/mellanox/mlx5/core/en_ethtool.c   | 208 +++++++++++++++++++++
- drivers/net/ethernet/mellanox/mlx5/core/en_stats.h | 206 +-------------------
- 2 files changed, 209 insertions(+), 205 deletions(-)
+ providers/bnxt_re/CMakeLists.txt |   1 +
+ providers/bnxt_re/bnxt_re-abi.h  | 106 ++++++++++++++++++
+ providers/bnxt_re/main.c         |   5 +
+ providers/bnxt_re/main.h         |  73 ++++++++++--
+ providers/bnxt_re/memory.c       |  76 +++++++++++++
+ providers/bnxt_re/memory.h       |  76 +++++++++++++
+ providers/bnxt_re/verbs.c        | 236 ++++++++++++++++++++++++++++++++++++++-
+ 7 files changed, 555 insertions(+), 18 deletions(-)
+ create mode 100644 providers/bnxt_re/memory.c
+ create mode 100644 providers/bnxt_re/memory.h
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-index ce7b09d72ff6..b1d9518b2719 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
-@@ -31,6 +31,214 @@
-  */
- 
- #include "en.h"
-+#include "en_stats.h"
-+
-+
-+static const struct counter_desc sw_stats_desc[] = {
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_packets) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_bytes) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_packets) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_bytes) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_tso_packets) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_tso_bytes) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_tso_inner_packets) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_tso_inner_bytes) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_lro_packets) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_lro_bytes) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_csum_unnecessary) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_csum_none) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_csum_complete) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_csum_unnecessary_inner) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_xdp_drop) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_xdp_tx) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_xdp_tx_full) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_csum_partial) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_csum_partial_inner) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_queue_stopped) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_queue_wake) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_queue_dropped) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_xmit_more) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_wqe_err) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_mpwqe_filler) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_buff_alloc_err) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_cqe_compress_blks) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_cqe_compress_pkts) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_cache_reuse) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_cache_full) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_cache_empty) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_cache_busy) },
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, link_down_events_phy) },
-+};
-+
-+static const struct counter_desc q_stats_desc[] = {
-+	{ MLX5E_DECLARE_STAT(struct mlx5e_qcounter_stats, rx_out_of_buffer) },
-+};
-+
-+static const struct counter_desc vport_stats_desc[] = {
-+	{ "rx_vport_unicast_packets",
-+		VPORT_COUNTER_OFF(received_eth_unicast.packets) },
-+	{ "rx_vport_unicast_bytes",
-+		VPORT_COUNTER_OFF(received_eth_unicast.octets) },
-+	{ "tx_vport_unicast_packets",
-+		VPORT_COUNTER_OFF(transmitted_eth_unicast.packets) },
-+	{ "tx_vport_unicast_bytes",
-+		VPORT_COUNTER_OFF(transmitted_eth_unicast.octets) },
-+	{ "rx_vport_multicast_packets",
-+		VPORT_COUNTER_OFF(received_eth_multicast.packets) },
-+	{ "rx_vport_multicast_bytes",
-+		VPORT_COUNTER_OFF(received_eth_multicast.octets) },
-+	{ "tx_vport_multicast_packets",
-+		VPORT_COUNTER_OFF(transmitted_eth_multicast.packets) },
-+	{ "tx_vport_multicast_bytes",
-+		VPORT_COUNTER_OFF(transmitted_eth_multicast.octets) },
-+	{ "rx_vport_broadcast_packets",
-+		VPORT_COUNTER_OFF(received_eth_broadcast.packets) },
-+	{ "rx_vport_broadcast_bytes",
-+		VPORT_COUNTER_OFF(received_eth_broadcast.octets) },
-+	{ "tx_vport_broadcast_packets",
-+		VPORT_COUNTER_OFF(transmitted_eth_broadcast.packets) },
-+	{ "tx_vport_broadcast_bytes",
-+		VPORT_COUNTER_OFF(transmitted_eth_broadcast.octets) },
-+	{ "rx_vport_rdma_unicast_packets",
-+		VPORT_COUNTER_OFF(received_ib_unicast.packets) },
-+	{ "rx_vport_rdma_unicast_bytes",
-+		VPORT_COUNTER_OFF(received_ib_unicast.octets) },
-+	{ "tx_vport_rdma_unicast_packets",
-+		VPORT_COUNTER_OFF(transmitted_ib_unicast.packets) },
-+	{ "tx_vport_rdma_unicast_bytes",
-+		VPORT_COUNTER_OFF(transmitted_ib_unicast.octets) },
-+	{ "rx_vport_rdma_multicast_packets",
-+		VPORT_COUNTER_OFF(received_ib_multicast.packets) },
-+	{ "rx_vport_rdma_multicast_bytes",
-+		VPORT_COUNTER_OFF(received_ib_multicast.octets) },
-+	{ "tx_vport_rdma_multicast_packets",
-+		VPORT_COUNTER_OFF(transmitted_ib_multicast.packets) },
-+	{ "tx_vport_rdma_multicast_bytes",
-+		VPORT_COUNTER_OFF(transmitted_ib_multicast.octets) },
-+};
-+static const struct counter_desc pport_802_3_stats_desc[] = {
-+	{ "tx_packets_phy", PPORT_802_3_OFF(a_frames_transmitted_ok) },
-+	{ "rx_packets_phy", PPORT_802_3_OFF(a_frames_received_ok) },
-+	{ "rx_crc_errors_phy", PPORT_802_3_OFF(a_frame_check_sequence_errors) },
-+	{ "tx_bytes_phy", PPORT_802_3_OFF(a_octets_transmitted_ok) },
-+	{ "rx_bytes_phy", PPORT_802_3_OFF(a_octets_received_ok) },
-+	{ "tx_multicast_phy", PPORT_802_3_OFF(a_multicast_frames_xmitted_ok) },
-+	{ "tx_broadcast_phy", PPORT_802_3_OFF(a_broadcast_frames_xmitted_ok) },
-+	{ "rx_multicast_phy", PPORT_802_3_OFF(a_multicast_frames_received_ok) },
-+	{ "rx_broadcast_phy", PPORT_802_3_OFF(a_broadcast_frames_received_ok) },
-+	{ "rx_in_range_len_errors_phy", PPORT_802_3_OFF(a_in_range_length_errors) },
-+	{ "rx_out_of_range_len_phy", PPORT_802_3_OFF(a_out_of_range_length_field) },
-+	{ "rx_oversize_pkts_phy", PPORT_802_3_OFF(a_frame_too_long_errors) },
-+	{ "rx_symbol_err_phy", PPORT_802_3_OFF(a_symbol_error_during_carrier) },
-+	{ "tx_mac_control_phy", PPORT_802_3_OFF(a_mac_control_frames_transmitted) },
-+	{ "rx_mac_control_phy", PPORT_802_3_OFF(a_mac_control_frames_received) },
-+	{ "rx_unsupported_op_phy", PPORT_802_3_OFF(a_unsupported_opcodes_received) },
-+	{ "rx_pause_ctrl_phy", PPORT_802_3_OFF(a_pause_mac_ctrl_frames_received) },
-+	{ "tx_pause_ctrl_phy", PPORT_802_3_OFF(a_pause_mac_ctrl_frames_transmitted) },
-+};
-+
-+static const struct counter_desc pport_2863_stats_desc[] = {
-+	{ "rx_discards_phy", PPORT_2863_OFF(if_in_discards) },
-+	{ "tx_discards_phy", PPORT_2863_OFF(if_out_discards) },
-+	{ "tx_errors_phy", PPORT_2863_OFF(if_out_errors) },
-+};
-+
-+static const struct counter_desc pport_2819_stats_desc[] = {
-+	{ "rx_undersize_pkts_phy", PPORT_2819_OFF(ether_stats_undersize_pkts) },
-+	{ "rx_fragments_phy", PPORT_2819_OFF(ether_stats_fragments) },
-+	{ "rx_jabbers_phy", PPORT_2819_OFF(ether_stats_jabbers) },
-+	{ "rx_64_bytes_phy", PPORT_2819_OFF(ether_stats_pkts64octets) },
-+	{ "rx_65_to_127_bytes_phy", PPORT_2819_OFF(ether_stats_pkts65to127octets) },
-+	{ "rx_128_to_255_bytes_phy", PPORT_2819_OFF(ether_stats_pkts128to255octets) },
-+	{ "rx_256_to_511_bytes_phy", PPORT_2819_OFF(ether_stats_pkts256to511octets) },
-+	{ "rx_512_to_1023_bytes_phy", PPORT_2819_OFF(ether_stats_pkts512to1023octets) },
-+	{ "rx_1024_to_1518_bytes_phy", PPORT_2819_OFF(ether_stats_pkts1024to1518octets) },
-+	{ "rx_1519_to_2047_bytes_phy", PPORT_2819_OFF(ether_stats_pkts1519to2047octets) },
-+	{ "rx_2048_to_4095_bytes_phy", PPORT_2819_OFF(ether_stats_pkts2048to4095octets) },
-+	{ "rx_4096_to_8191_bytes_phy", PPORT_2819_OFF(ether_stats_pkts4096to8191octets) },
-+	{ "rx_8192_to_10239_bytes_phy", PPORT_2819_OFF(ether_stats_pkts8192to10239octets) },
-+};
-+
-+static const struct counter_desc pport_phy_statistical_stats_desc[] = {
-+	{ "rx_symbol_errors_phy", PPORT_PHY_STATISTICAL_OFF(phy_symbol_errors) },
-+	{ "rx_corrected_bits_phy", PPORT_PHY_STATISTICAL_OFF(phy_corrected_bits) },
-+};
-+
-+static const struct counter_desc pport_per_prio_traffic_stats_desc[] = {
-+	{ "rx_prio%d_bytes", PPORT_PER_PRIO_OFF(rx_octets) },
-+	{ "rx_prio%d_packets", PPORT_PER_PRIO_OFF(rx_frames) },
-+	{ "tx_prio%d_bytes", PPORT_PER_PRIO_OFF(tx_octets) },
-+	{ "tx_prio%d_packets", PPORT_PER_PRIO_OFF(tx_frames) },
-+};
-+
-+static const struct counter_desc pport_per_prio_pfc_stats_desc[] = {
-+	/* %s is "global" or "prio{i}" */
-+	{ "rx_%s_pause", PPORT_PER_PRIO_OFF(rx_pause) },
-+	{ "rx_%s_pause_duration", PPORT_PER_PRIO_OFF(rx_pause_duration) },
-+	{ "tx_%s_pause", PPORT_PER_PRIO_OFF(tx_pause) },
-+	{ "tx_%s_pause_duration", PPORT_PER_PRIO_OFF(tx_pause_duration) },
-+	{ "rx_%s_pause_transition", PPORT_PER_PRIO_OFF(rx_pause_transition) },
-+};
-+
-+static const struct counter_desc pcie_perf_stats_desc[] = {
-+	{ "rx_pci_signal_integrity", PCIE_PERF_OFF(rx_errors) },
-+	{ "tx_pci_signal_integrity", PCIE_PERF_OFF(tx_errors) },
-+};
-+
-+static const struct counter_desc rq_stats_desc[] = {
-+	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, packets) },
-+	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, bytes) },
-+	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, csum_complete) },
-+	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, csum_unnecessary_inner) },
-+	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, csum_none) },
-+	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, xdp_drop) },
-+	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, xdp_tx) },
-+	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, xdp_tx_full) },
-+	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, lro_packets) },
-+	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, lro_bytes) },
-+	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, wqe_err) },
-+	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, mpwqe_filler) },
-+	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, buff_alloc_err) },
-+	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, cqe_compress_blks) },
-+	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, cqe_compress_pkts) },
-+	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, cache_reuse) },
-+	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, cache_full) },
-+	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, cache_empty) },
-+	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, cache_busy) },
-+};
-+
-+static const struct counter_desc sq_stats_desc[] = {
-+	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, packets) },
-+	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, bytes) },
-+	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, tso_packets) },
-+	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, tso_bytes) },
-+	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, tso_inner_packets) },
-+	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, tso_inner_bytes) },
-+	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, csum_partial_inner) },
-+	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, nop) },
-+	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, csum_none) },
-+	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, stopped) },
-+	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, wake) },
-+	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, dropped) },
-+	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, xmit_more) },
-+};
-+
-+static const struct counter_desc mlx5e_pme_status_desc[] = {
-+	{ "module_plug", 0 },
-+	{ "module_unplug", 8 },
-+};
-+
-+static const struct counter_desc mlx5e_pme_error_desc[] = {
-+	{ "module_pwr_budget_exd", 0 },  /* power budget exceed */
-+	{ "module_long_range", 8 },      /* long range for non MLNX cable */
-+	{ "module_bus_stuck", 16 },      /* bus stuck (I2C or data shorted) */
-+	{ "module_no_eeprom", 24 },      /* no eeprom/retry time out */
-+	{ "module_enforce_part", 32 },   /* enforce part number list */
-+	{ "module_unknown_id", 40 },     /* unknown identifier */
-+	{ "module_high_temp", 48 },      /* high temperature */
-+	{ "module_bad_shorted", 56 },    /* bad or shorted cable/module */
-+	{ "module_unknown_status", 64 },
-+};
- 
- static void mlx5e_get_drvinfo(struct net_device *dev,
- 			      struct ethtool_drvinfo *drvinfo)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_stats.h b/drivers/net/ethernet/mellanox/mlx5/core/en_stats.h
-index 53e4992d6511..1c867ee973f2 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_stats.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_stats.h
-@@ -47,7 +47,7 @@
- 
- struct counter_desc {
- 	char		format[ETH_GSTRING_LEN];
--	int		offset; /* Byte offset */
-+	size_t		offset; /* Byte offset */
+diff --git a/providers/bnxt_re/CMakeLists.txt b/providers/bnxt_re/CMakeLists.txt
+index 45e609d..7ea5ed8 100644
+--- a/providers/bnxt_re/CMakeLists.txt
++++ b/providers/bnxt_re/CMakeLists.txt
+@@ -1,4 +1,5 @@
+ rdma_provider(bnxt_re
+ 	main.c
++	memory.c
+ 	verbs.c
+ )
+diff --git a/providers/bnxt_re/bnxt_re-abi.h b/providers/bnxt_re/bnxt_re-abi.h
+index 53645d5..60ef63e 100644
+--- a/providers/bnxt_re/bnxt_re-abi.h
++++ b/providers/bnxt_re/bnxt_re-abi.h
+@@ -47,6 +47,10 @@ struct bnxt_re_cntx_resp {
+ 	struct ibv_get_context_resp resp;
+ 	__u32 dev_id;
+ 	__u32 max_qp; /* To allocate qp-table */
++	__u32 pg_size;
++	__u32 cqe_size;
++	__u32 max_cqd;
++	__u32 rsvd;
  };
  
- struct mlx5e_sw_stats {
-@@ -88,49 +88,10 @@ struct mlx5e_sw_stats {
- 	u64 link_down_events_phy;
+ struct bnxt_re_pd_resp {
+@@ -60,4 +64,106 @@ struct bnxt_re_mr_resp {
+ 	struct ibv_reg_mr_resp resp;
  };
  
--static const struct counter_desc sw_stats_desc[] = {
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_packets) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_bytes) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_packets) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_bytes) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_tso_packets) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_tso_bytes) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_tso_inner_packets) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_tso_inner_bytes) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_lro_packets) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_lro_bytes) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_csum_unnecessary) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_csum_none) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_csum_complete) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_csum_unnecessary_inner) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_xdp_drop) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_xdp_tx) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_xdp_tx_full) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_csum_partial) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_csum_partial_inner) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_queue_stopped) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_queue_wake) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_queue_dropped) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, tx_xmit_more) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_wqe_err) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_mpwqe_filler) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_buff_alloc_err) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_cqe_compress_blks) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_cqe_compress_pkts) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_cache_reuse) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_cache_full) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_cache_empty) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, rx_cache_busy) },
--	{ MLX5E_DECLARE_STAT(struct mlx5e_sw_stats, link_down_events_phy) },
++struct bnxt_re_cq_req {
++	struct ibv_create_cq cmd;
++	__u64 cq_va;
++	__u64 cq_handle;
++};
++
++struct bnxt_re_cq_resp {
++	struct ibv_create_cq_resp resp;
++	__u32 cqid;
++	__u32 tail;
++	__u32 phase;
++	__u32 rsvd;
++};
++
++struct bnxt_re_qp_req {
++	struct ibv_create_qp cmd;
++	__u64 qpsva;
++	__u64 qprva;
++	__u64 qp_handle;
++};
++
++struct bnxt_re_qp_resp {
++	struct ibv_create_qp_resp resp;
++	__u32 qpid;
++	__u32 rsvd;
++};
++
++struct bnxt_re_bsqe {
++	__le32 rsv_ws_fl_wt;
++	__le32 key_immd;
++};
++
++struct bnxt_re_psns {
++	__le32 opc_spsn;
++	__le32 flg_npsn;
++};
++
++struct bnxt_re_sge {
++	__le64 pa;
++	__le32 lkey;
++	__le32 length;
++};
++
++/*  Cu+ max inline data */
++#define BNXT_RE_MAX_INLINE_SIZE		0x60
++
++struct bnxt_re_send {
++	__le32 length;
++	__le32 qkey;
++	__le32 dst_qp;
++	__le32 avid;
++	__le64 rsvd;
++};
++
++struct bnxt_re_raw {
++	__le32 length;
++	__le32 rsvd1;
++	__le32 cfa_meta;
++	__le32 rsvd2;
++	__le64 rsvd3;
++};
++
++struct bnxt_re_rdma {
++	__le32 length;
++	__le32 rsvd1;
++	__le64 rva;
++	__le32 rkey;
++	__le32 rsvd2;
++};
++
++struct bnxt_re_atomic {
++	__le64 rva;
++	__le64 swp_dt;
++	__le64 cmp_dt;
++};
++
++struct bnxt_re_inval {
++	__le64 rsvd[3];
++};
++
++struct bnxt_re_bind {
++	__le32 plkey;
++	__le32 lkey;
++	__le64 va;
++	__le64 len; /* only 40 bits are valid */
++};
++
++struct bnxt_re_brqe {
++	__le32 rsv_ws_fl_wt;
++	__le32 rsvd;
++};
++
++struct bnxt_re_rqe {
++	__le64 rsvd[3];
++};
++
++struct bnxt_re_srqe {
++	__le32 srq_tag; /* 20 bits are valid */
++	__le32 rsvd1;
++	__le64 rsvd[2];
++};
++
+ #endif
+diff --git a/providers/bnxt_re/main.c b/providers/bnxt_re/main.c
+index 24343b8..5612a70 100644
+--- a/providers/bnxt_re/main.c
++++ b/providers/bnxt_re/main.c
+@@ -110,8 +110,10 @@ static int bnxt_re_init_context(struct verbs_device *vdev,
+ {
+ 	struct ibv_get_context cmd;
+ 	struct bnxt_re_cntx_resp resp;
++	struct bnxt_re_dev *dev;
+ 	struct bnxt_re_context *cntx;
+ 
++	dev = to_bnxt_re_dev(&vdev->device);
+ 	cntx = to_bnxt_re_context(ibvctx);
+ 
+ 	memset(&resp, 0, sizeof(resp));
+@@ -122,6 +124,9 @@ static int bnxt_re_init_context(struct verbs_device *vdev,
+ 
+ 	cntx->dev_id = resp.dev_id;
+ 	cntx->max_qp = resp.max_qp;
++	dev->pg_size = resp.pg_size;
++	dev->cqe_size = resp.cqe_size;
++	dev->max_cq_depth = resp.max_cqd;
+ 	ibvctx->ops = bnxt_re_cntx_ops;
+ 
+ 	return 0;
+diff --git a/providers/bnxt_re/main.h b/providers/bnxt_re/main.h
+index d621efa..9677ff7 100644
+--- a/providers/bnxt_re/main.h
++++ b/providers/bnxt_re/main.h
+@@ -48,6 +48,15 @@
+ #include <util/udma_barrier.h>
+ 
+ #include "bnxt_re-abi.h"
++#include "memory.h"
++
++#define DEV	"bnxtre : "
++
++struct bnxt_re_dpi {
++	__u32 dpindx;
++	__u64 *dbpage;
++	pthread_spinlock_t db_lock;
++};
+ 
+ struct bnxt_re_pd {
+ 	struct ibv_pd ibvpd;
+@@ -56,31 +65,48 @@ struct bnxt_re_pd {
+ 
+ struct bnxt_re_cq {
+ 	struct ibv_cq ibvcq;
 -};
 -
- struct mlx5e_qcounter_stats {
- 	u32 rx_out_of_buffer;
+-struct bnxt_re_qp {
+-	struct ibv_qp ibvqp;
++	uint32_t cqid;
++	struct bnxt_re_queue cqq;
++	struct bnxt_re_dpi *udpi;
++	uint32_t cqe_size;
++	uint8_t  phase;
  };
  
--static const struct counter_desc q_stats_desc[] = {
--	{ MLX5E_DECLARE_STAT(struct mlx5e_qcounter_stats, rx_out_of_buffer) },
--};
- 
- #define VPORT_COUNTER_OFF(c) MLX5_BYTE_OFF(query_vport_counter_out, c)
- #define VPORT_COUNTER_GET(vstats, c) MLX5_GET64(query_vport_counter_out, \
-@@ -140,48 +101,6 @@ struct mlx5e_vport_stats {
- 	__be64 query_vport_out[MLX5_ST_SZ_QW(query_vport_counter_out)];
+ struct bnxt_re_srq {
+ 	struct ibv_srq ibvsrq;
  };
  
--static const struct counter_desc vport_stats_desc[] = {
--	{ "rx_vport_unicast_packets",
--		VPORT_COUNTER_OFF(received_eth_unicast.packets) },
--	{ "rx_vport_unicast_bytes",
--		VPORT_COUNTER_OFF(received_eth_unicast.octets) },
--	{ "tx_vport_unicast_packets",
--		VPORT_COUNTER_OFF(transmitted_eth_unicast.packets) },
--	{ "tx_vport_unicast_bytes",
--		VPORT_COUNTER_OFF(transmitted_eth_unicast.octets) },
--	{ "rx_vport_multicast_packets",
--		VPORT_COUNTER_OFF(received_eth_multicast.packets) },
--	{ "rx_vport_multicast_bytes",
--		VPORT_COUNTER_OFF(received_eth_multicast.octets) },
--	{ "tx_vport_multicast_packets",
--		VPORT_COUNTER_OFF(transmitted_eth_multicast.packets) },
--	{ "tx_vport_multicast_bytes",
--		VPORT_COUNTER_OFF(transmitted_eth_multicast.octets) },
--	{ "rx_vport_broadcast_packets",
--		VPORT_COUNTER_OFF(received_eth_broadcast.packets) },
--	{ "rx_vport_broadcast_bytes",
--		VPORT_COUNTER_OFF(received_eth_broadcast.octets) },
--	{ "tx_vport_broadcast_packets",
--		VPORT_COUNTER_OFF(transmitted_eth_broadcast.packets) },
--	{ "tx_vport_broadcast_bytes",
--		VPORT_COUNTER_OFF(transmitted_eth_broadcast.octets) },
--	{ "rx_vport_rdma_unicast_packets",
--		VPORT_COUNTER_OFF(received_ib_unicast.packets) },
--	{ "rx_vport_rdma_unicast_bytes",
--		VPORT_COUNTER_OFF(received_ib_unicast.octets) },
--	{ "tx_vport_rdma_unicast_packets",
--		VPORT_COUNTER_OFF(transmitted_ib_unicast.packets) },
--	{ "tx_vport_rdma_unicast_bytes",
--		VPORT_COUNTER_OFF(transmitted_ib_unicast.octets) },
--	{ "rx_vport_rdma_multicast_packets",
--		VPORT_COUNTER_OFF(received_ib_multicast.packets) },
--	{ "rx_vport_rdma_multicast_bytes",
--		VPORT_COUNTER_OFF(received_ib_multicast.octets) },
--	{ "tx_vport_rdma_multicast_packets",
--		VPORT_COUNTER_OFF(transmitted_ib_multicast.packets) },
--	{ "tx_vport_rdma_multicast_bytes",
--		VPORT_COUNTER_OFF(transmitted_ib_multicast.octets) },
--};
- 
- #define PPORT_802_3_OFF(c) \
- 	MLX5_BYTE_OFF(ppcnt_reg, \
-@@ -224,69 +143,6 @@ struct mlx5e_pport_stats {
- 	__be64 phy_statistical_counters[MLX5_ST_SZ_QW(ppcnt_reg)];
+-struct bnxt_re_mr {
+-	struct ibv_mr ibvmr;
++struct bnxt_re_qp {
++	struct ibv_qp ibvqp;
++	struct bnxt_re_queue *sqq;
++	struct bnxt_re_psns *psns; /* start ptr. */
++	struct bnxt_re_queue *rqq;
++	struct bnxt_re_srq *srq;
++	struct bnxt_re_cq *scq;
++	struct bnxt_re_cq *rcq;
++	struct bnxt_re_dpi *udpi;
++	uint64_t *swrid;
++	uint64_t *rwrid;
++	uint32_t qpid;
++	uint32_t tbl_indx;
++	uint16_t mtu;
++	uint16_t qpst;
++	uint8_t qptyp;
++	/* wrid? */
++	/* irdord? */
  };
  
--static const struct counter_desc pport_802_3_stats_desc[] = {
--	{ "tx_packets_phy", PPORT_802_3_OFF(a_frames_transmitted_ok) },
--	{ "rx_packets_phy", PPORT_802_3_OFF(a_frames_received_ok) },
--	{ "rx_crc_errors_phy", PPORT_802_3_OFF(a_frame_check_sequence_errors) },
--	{ "tx_bytes_phy", PPORT_802_3_OFF(a_octets_transmitted_ok) },
--	{ "rx_bytes_phy", PPORT_802_3_OFF(a_octets_received_ok) },
--	{ "tx_multicast_phy", PPORT_802_3_OFF(a_multicast_frames_xmitted_ok) },
--	{ "tx_broadcast_phy", PPORT_802_3_OFF(a_broadcast_frames_xmitted_ok) },
--	{ "rx_multicast_phy", PPORT_802_3_OFF(a_multicast_frames_received_ok) },
--	{ "rx_broadcast_phy", PPORT_802_3_OFF(a_broadcast_frames_received_ok) },
--	{ "rx_in_range_len_errors_phy", PPORT_802_3_OFF(a_in_range_length_errors) },
--	{ "rx_out_of_range_len_phy", PPORT_802_3_OFF(a_out_of_range_length_field) },
--	{ "rx_oversize_pkts_phy", PPORT_802_3_OFF(a_frame_too_long_errors) },
--	{ "rx_symbol_err_phy", PPORT_802_3_OFF(a_symbol_error_during_carrier) },
--	{ "tx_mac_control_phy", PPORT_802_3_OFF(a_mac_control_frames_transmitted) },
--	{ "rx_mac_control_phy", PPORT_802_3_OFF(a_mac_control_frames_received) },
--	{ "rx_unsupported_op_phy", PPORT_802_3_OFF(a_unsupported_opcodes_received) },
--	{ "rx_pause_ctrl_phy", PPORT_802_3_OFF(a_pause_mac_ctrl_frames_received) },
--	{ "tx_pause_ctrl_phy", PPORT_802_3_OFF(a_pause_mac_ctrl_frames_transmitted) },
--};
+-#define DEV	"bnxtre : "
 -
--static const struct counter_desc pport_2863_stats_desc[] = {
--	{ "rx_discards_phy", PPORT_2863_OFF(if_in_discards) },
--	{ "tx_discards_phy", PPORT_2863_OFF(if_out_discards) },
--	{ "tx_errors_phy", PPORT_2863_OFF(if_out_errors) },
--};
--
--static const struct counter_desc pport_2819_stats_desc[] = {
--	{ "rx_undersize_pkts_phy", PPORT_2819_OFF(ether_stats_undersize_pkts) },
--	{ "rx_fragments_phy", PPORT_2819_OFF(ether_stats_fragments) },
--	{ "rx_jabbers_phy", PPORT_2819_OFF(ether_stats_jabbers) },
--	{ "rx_64_bytes_phy", PPORT_2819_OFF(ether_stats_pkts64octets) },
--	{ "rx_65_to_127_bytes_phy", PPORT_2819_OFF(ether_stats_pkts65to127octets) },
--	{ "rx_128_to_255_bytes_phy", PPORT_2819_OFF(ether_stats_pkts128to255octets) },
--	{ "rx_256_to_511_bytes_phy", PPORT_2819_OFF(ether_stats_pkts256to511octets) },
--	{ "rx_512_to_1023_bytes_phy", PPORT_2819_OFF(ether_stats_pkts512to1023octets) },
--	{ "rx_1024_to_1518_bytes_phy", PPORT_2819_OFF(ether_stats_pkts1024to1518octets) },
--	{ "rx_1519_to_2047_bytes_phy", PPORT_2819_OFF(ether_stats_pkts1519to2047octets) },
--	{ "rx_2048_to_4095_bytes_phy", PPORT_2819_OFF(ether_stats_pkts2048to4095octets) },
--	{ "rx_4096_to_8191_bytes_phy", PPORT_2819_OFF(ether_stats_pkts4096to8191octets) },
--	{ "rx_8192_to_10239_bytes_phy", PPORT_2819_OFF(ether_stats_pkts8192to10239octets) },
--};
--
--static const struct counter_desc pport_phy_statistical_stats_desc[] = {
--	{ "rx_symbol_errors_phy", PPORT_PHY_STATISTICAL_OFF(phy_symbol_errors) },
--	{ "rx_corrected_bits_phy", PPORT_PHY_STATISTICAL_OFF(phy_corrected_bits) },
--};
--
--static const struct counter_desc pport_per_prio_traffic_stats_desc[] = {
--	{ "rx_prio%d_bytes", PPORT_PER_PRIO_OFF(rx_octets) },
--	{ "rx_prio%d_packets", PPORT_PER_PRIO_OFF(rx_frames) },
--	{ "tx_prio%d_bytes", PPORT_PER_PRIO_OFF(tx_octets) },
--	{ "tx_prio%d_packets", PPORT_PER_PRIO_OFF(tx_frames) },
--};
--
--static const struct counter_desc pport_per_prio_pfc_stats_desc[] = {
--	/* %s is "global" or "prio{i}" */
--	{ "rx_%s_pause", PPORT_PER_PRIO_OFF(rx_pause) },
--	{ "rx_%s_pause_duration", PPORT_PER_PRIO_OFF(rx_pause_duration) },
--	{ "tx_%s_pause", PPORT_PER_PRIO_OFF(tx_pause) },
--	{ "tx_%s_pause_duration", PPORT_PER_PRIO_OFF(tx_pause_duration) },
--	{ "rx_%s_pause_transition", PPORT_PER_PRIO_OFF(rx_pause_transition) },
--};
- 
- #define PCIE_PERF_OFF(c) \
- 	MLX5_BYTE_OFF(mpcnt_reg, counter_set.pcie_perf_cntrs_grp_data_layout.c)
-@@ -298,11 +154,6 @@ struct mlx5e_pcie_stats {
- 	__be64 pcie_perf_counters[MLX5_ST_SZ_QW(mpcnt_reg)];
+-struct bnxt_re_dpi {
+-	__u32 dpindx;
+-	__u64 *dbpage;
+-	pthread_spinlock_t db_lock;
++struct bnxt_re_mr {
++	struct ibv_mr ibvmr;
  };
  
--static const struct counter_desc pcie_perf_stats_desc[] = {
--	{ "rx_pci_signal_integrity", PCIE_PERF_OFF(rx_errors) },
--	{ "tx_pci_signal_integrity", PCIE_PERF_OFF(tx_errors) },
--};
--
- struct mlx5e_rq_stats {
- 	u64 packets;
- 	u64 bytes;
-@@ -325,28 +176,6 @@ struct mlx5e_rq_stats {
- 	u64 cache_busy;
+ struct bnxt_re_dev {
+ 	struct verbs_device vdev;
+ 	uint8_t abi_version;
++	uint32_t pg_size;
++
++	uint32_t cqe_size;
++	uint32_t max_cq_depth;
  };
  
--static const struct counter_desc rq_stats_desc[] = {
--	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, packets) },
--	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, bytes) },
--	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, csum_complete) },
--	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, csum_unnecessary_inner) },
--	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, csum_none) },
--	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, xdp_drop) },
--	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, xdp_tx) },
--	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, xdp_tx_full) },
--	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, lro_packets) },
--	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, lro_bytes) },
--	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, wqe_err) },
--	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, mpwqe_filler) },
--	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, buff_alloc_err) },
--	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, cqe_compress_blks) },
--	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, cqe_compress_pkts) },
--	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, cache_reuse) },
--	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, cache_full) },
--	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, cache_empty) },
--	{ MLX5E_DECLARE_RX_STAT(struct mlx5e_rq_stats, cache_busy) },
--};
--
- struct mlx5e_sq_stats {
- 	/* commonly accessed in data path */
- 	u64 packets;
-@@ -365,22 +194,6 @@ struct mlx5e_sq_stats {
- 	u64 dropped;
- };
+ struct bnxt_re_context {
+@@ -107,4 +133,27 @@ static inline struct bnxt_re_pd *to_bnxt_re_pd(struct ibv_pd *ibvpd)
+ 	return container_of(ibvpd, struct bnxt_re_pd, ibvpd);
+ }
  
--static const struct counter_desc sq_stats_desc[] = {
--	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, packets) },
--	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, bytes) },
--	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, tso_packets) },
--	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, tso_bytes) },
--	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, tso_inner_packets) },
--	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, tso_inner_bytes) },
--	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, csum_partial_inner) },
--	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, nop) },
--	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, csum_none) },
--	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, stopped) },
--	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, wake) },
--	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, dropped) },
--	{ MLX5E_DECLARE_TX_STAT(struct mlx5e_sq_stats, xmit_more) },
--};
--
- #define NUM_SW_COUNTERS			ARRAY_SIZE(sw_stats_desc)
- #define NUM_Q_COUNTERS			ARRAY_SIZE(q_stats_desc)
- #define NUM_VPORT_COUNTERS		ARRAY_SIZE(vport_stats_desc)
-@@ -416,21 +229,4 @@ struct mlx5e_stats {
- 	struct mlx5e_pcie_stats pcie;
- };
++static inline struct bnxt_re_cq *to_bnxt_re_cq(struct ibv_cq *ibvcq)
++{
++	return container_of(ibvcq, struct bnxt_re_cq, ibvcq);
++}
++
++static inline struct bnxt_re_qp *to_bnxt_re_qp(struct ibv_qp *ibvqp)
++{
++	return container_of(ibvqp, struct bnxt_re_qp, ibvqp);
++}
++
++static inline uint32_t bnxt_re_get_sqe_sz(void)
++{
++	return sizeof(struct bnxt_re_bsqe) +
++	       sizeof(struct bnxt_re_send) +
++	       BNXT_RE_MAX_INLINE_SIZE;
++}
++
++static inline uint32_t bnxt_re_get_rqe_sz(void)
++{
++	return sizeof(struct bnxt_re_brqe) +
++	       sizeof(struct bnxt_re_rqe) +
++	       BNXT_RE_MAX_INLINE_SIZE;
++}
+ #endif
+diff --git a/providers/bnxt_re/memory.c b/providers/bnxt_re/memory.c
+new file mode 100644
+index 0000000..67125e9
+--- /dev/null
++++ b/providers/bnxt_re/memory.c
+@@ -0,0 +1,76 @@
++/*
++ * Broadcom NetXtreme-E User Space RoCE driver
++ *
++ * Copyright (c) 2015-2017, Broadcom. All rights reserved.  The term
++ * Broadcom refers to Broadcom Limited and/or its subsidiaries.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * BSD license below:
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS''
++ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
++ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
++ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS
++ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
++ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
++ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
++ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * Description: Implements method to allocate page-aligned memory
++ *              buffers.
++ */
++
++#include <string.h>
++#include <sys/mman.h>
++
++#include "main.h"
++
++int bnxt_re_alloc_aligned(struct bnxt_re_queue *que, uint32_t pg_size)
++{
++	int ret, bytes;
++
++	bytes = (que->depth * que->stride);
++	que->bytes = get_aligned(bytes, pg_size);
++	que->va = mmap(NULL, que->bytes, PROT_READ | PROT_WRITE,
++		       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++	if (que->va == MAP_FAILED) {
++		que->bytes = 0;
++		return errno;
++	}
++	/* Touch pages before proceeding. */
++	memset(que->va, 0, que->bytes);
++
++	ret = ibv_dontfork_range(que->va, que->bytes);
++	if (ret) {
++		munmap(que->va, que->bytes);
++		que->bytes = 0;
++	}
++
++	return ret;
++}
++
++void bnxt_re_free_aligned(struct bnxt_re_queue *que)
++{
++	if (que->bytes) {
++		ibv_dofork_range(que->va, que->bytes);
++		munmap(que->va, que->bytes);
++		que->bytes = 0;
++	}
++}
+diff --git a/providers/bnxt_re/memory.h b/providers/bnxt_re/memory.h
+new file mode 100644
+index 0000000..ea29a24
+--- /dev/null
++++ b/providers/bnxt_re/memory.h
+@@ -0,0 +1,76 @@
++/*
++ * Broadcom NetXtreme-E User Space RoCE driver
++ *
++ * Copyright (c) 2015-2017, Broadcom. All rights reserved.  The term
++ * Broadcom refers to Broadcom Limited and/or its subsidiaries.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * BSD license below:
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in
++ *    the documentation and/or other materials provided with the
++ *    distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS''
++ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
++ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
++ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS
++ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
++ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
++ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
++ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
++ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * Description: Implements data-struture to allocate page-aligned
++ *              memory buffer.
++ */
++
++#ifndef __MEMORY_H__
++#define __MEMORY_H__
++
++#include <pthread.h>
++
++struct bnxt_re_queue {
++	void *va;
++	uint32_t bytes; /* for munmap */
++	uint32_t depth; /* no. of entries */
++	uint32_t head;
++	uint32_t tail;
++	uint32_t stride;
++	pthread_spinlock_t qlock;
++};
++
++static inline unsigned long get_aligned(uint32_t size, uint32_t al_size)
++{
++	return (unsigned long)(size + al_size - 1) & ~(al_size - 1);
++}
++
++static inline unsigned long roundup_pow_of_two(unsigned long val)
++{
++	unsigned long roundup = 1;
++
++	if (val == 1)
++		return (roundup << 1);
++
++	while (roundup < val)
++		roundup <<= 1;
++
++	return roundup;
++}
++
++int bnxt_re_alloc_aligned(struct bnxt_re_queue *que, uint32_t pg_size);
++void bnxt_re_free_aligned(struct bnxt_re_queue *que);
++
++#endif
+diff --git a/providers/bnxt_re/verbs.c b/providers/bnxt_re/verbs.c
+index f67e37d..d5b081d 100644
+--- a/providers/bnxt_re/verbs.c
++++ b/providers/bnxt_re/verbs.c
+@@ -79,6 +79,7 @@ struct ibv_pd *bnxt_re_alloc_pd(struct ibv_context *ibvctx)
+ 	struct ibv_alloc_pd cmd;
+ 	struct bnxt_re_pd_resp resp;
+ 	struct bnxt_re_context *cntx = to_bnxt_re_context(ibvctx);
++	struct bnxt_re_dev *dev = to_bnxt_re_dev(ibvctx->device);
+ 	struct bnxt_re_pd *pd;
+ 	uint64_t dbr;
  
--static const struct counter_desc mlx5e_pme_status_desc[] = {
--	{ "module_plug", 0 },
--	{ "module_unplug", 8 },
--};
--
--static const struct counter_desc mlx5e_pme_error_desc[] = {
--	{ "module_pwr_budget_exd", 0 },  /* power budget exceed */
--	{ "module_long_range", 8 },      /* long range for non MLNX cable */
--	{ "module_bus_stuck", 16 },      /* bus stuck (I2C or data shorted) */
--	{ "module_no_eeprom", 24 },      /* no eeprom/retry time out */
--	{ "module_enforce_part", 32 },   /* enforce part number list */
--	{ "module_unknown_id", 40 },     /* unknown identifier */
--	{ "module_high_temp", 48 },      /* high temperature */
--	{ "module_bad_shorted", 56 },    /* bad or shorted cable/module */
--	{ "module_unknown_status", 64 },
--};
--
- #endif /* __MLX5_EN_STATS_H__ */
+@@ -96,7 +97,7 @@ struct ibv_pd *bnxt_re_alloc_pd(struct ibv_context *ibvctx)
+ 
+ 	/* Map DB page now. */
+ 	cntx->udpi.dpindx = resp.dpi;
+-	cntx->udpi.dbpage = mmap(NULL, 4096, PROT_WRITE, MAP_SHARED,
++	cntx->udpi.dbpage = mmap(NULL, dev->pg_size, PROT_WRITE, MAP_SHARED,
+ 				 ibvctx->cmd_fd, dbr);
+ 	if (cntx->udpi.dbpage == MAP_FAILED) {
+ 		(void)ibv_cmd_dealloc_pd(&pd->ibvpd);
+@@ -114,6 +115,7 @@ int bnxt_re_free_pd(struct ibv_pd *ibvpd)
+ {
+ 	struct bnxt_re_pd *pd = to_bnxt_re_pd(ibvpd);
+ 	struct bnxt_re_context *cntx = to_bnxt_re_context(ibvpd->context);
++	struct bnxt_re_dev *dev = to_bnxt_re_dev(cntx->ibvctx.device);
+ 	int status;
+ 
+ 	status = ibv_cmd_dealloc_pd(ibvpd);
+@@ -122,7 +124,8 @@ int bnxt_re_free_pd(struct ibv_pd *ibvpd)
+ 
+ 	pthread_spin_destroy(&cntx->udpi.db_lock);
+ 	if (cntx->udpi.dbpage && (cntx->udpi.dbpage != MAP_FAILED))
+-		munmap(cntx->udpi.dbpage, 4096);
++		munmap(cntx->udpi.dbpage, dev->pg_size);
++
+ 	free(pd);
+ 
+ 	return 0;
+@@ -164,6 +167,48 @@ int bnxt_re_dereg_mr(struct ibv_mr *ibvmr)
+ struct ibv_cq *bnxt_re_create_cq(struct ibv_context *ibvctx, int ncqe,
+ 				 struct ibv_comp_channel *channel, int vec)
+ {
++	struct bnxt_re_cq *cq;
++	struct bnxt_re_cq_req cmd;
++	struct bnxt_re_cq_resp resp;
++
++	struct bnxt_re_context *cntx = to_bnxt_re_context(ibvctx);
++	struct bnxt_re_dev *dev = to_bnxt_re_dev(ibvctx->device);
++
++	if (ncqe > dev->max_cq_depth)
++		return NULL;
++
++	cq = calloc(1, sizeof(*cq));
++	if (!cq)
++		return NULL;
++
++	cq->cqq.depth = roundup_pow_of_two(ncqe + 1);
++	if (cq->cqq.depth > dev->max_cq_depth + 1)
++		cq->cqq.depth = dev->max_cq_depth + 1;
++	cq->cqq.stride = dev->cqe_size;
++	if (bnxt_re_alloc_aligned(&cq->cqq, dev->pg_size))
++		goto fail;
++
++	pthread_spin_init(&cq->cqq.qlock, PTHREAD_PROCESS_PRIVATE);
++
++	cmd.cq_va = (uintptr_t)cq->cqq.va;
++	cmd.cq_handle = (uintptr_t)cq;
++
++	memset(&resp, 0, sizeof(resp));
++	if (ibv_cmd_create_cq(ibvctx, ncqe, channel, vec,
++			      &cq->ibvcq, &cmd.cmd, sizeof(cmd),
++			      &resp.resp, sizeof(resp)))
++		goto cmdfail;
++
++	cq->cqid = resp.cqid;
++	cq->phase = resp.phase;
++	cq->cqq.tail = resp.tail;
++	cq->udpi = &cntx->udpi;
++
++	return &cq->ibvcq;
++cmdfail:
++	bnxt_re_free_aligned(&cq->cqq);
++fail:
++	free(cq);
+ 	return NULL;
+ }
+ 
+@@ -174,7 +219,17 @@ int bnxt_re_resize_cq(struct ibv_cq *ibvcq, int ncqe)
+ 
+ int bnxt_re_destroy_cq(struct ibv_cq *ibvcq)
+ {
+-	return -ENOSYS;
++	int status;
++	struct bnxt_re_cq *cq = to_bnxt_re_cq(ibvcq);
++
++	status = ibv_cmd_destroy_cq(ibvcq);
++	if (status)
++		return status;
++
++	bnxt_re_free_aligned(&cq->cqq);
++	free(cq);
++
++	return 0;
+ }
+ 
+ int bnxt_re_poll_cq(struct ibv_cq *ibvcq, int nwc, struct ibv_wc *wc)
+@@ -192,27 +247,196 @@ int bnxt_re_arm_cq(struct ibv_cq *ibvcq, int flags)
+ 	return -ENOSYS;
+ }
+ 
++static int bnxt_re_check_qp_limits(struct ibv_qp_init_attr *attr)
++{
++	return 0;
++}
++
++static void bnxt_re_free_queue_ptr(struct bnxt_re_qp *qp)
++{
++	if (qp->rqq)
++		free(qp->rqq);
++	if (qp->sqq)
++		free(qp->sqq);
++}
++
++static int bnxt_re_alloc_queue_ptr(struct bnxt_re_qp *qp,
++				   struct ibv_qp_init_attr *attr)
++{
++	qp->sqq = calloc(1, sizeof(struct bnxt_re_queue));
++	if (!qp->sqq)
++		return -ENOMEM;
++	if (attr->srq)
++		qp->srq = NULL;/*TODO: to_bnxt_re_srq(attr->srq);*/
++	else {
++		qp->rqq = calloc(1, sizeof(struct bnxt_re_queue));
++		if (!qp->rqq) {
++			free(qp->sqq);
++			return -ENOMEM;
++		}
++	}
++
++	return 0;
++}
++
++static void bnxt_re_free_queues(struct bnxt_re_qp *qp)
++{
++	if (qp->rwrid)
++		free(qp->rwrid);
++	pthread_spin_destroy(&qp->rqq->qlock);
++	bnxt_re_free_aligned(qp->rqq);
++
++	if (qp->swrid)
++		free(qp->swrid);
++	pthread_spin_destroy(&qp->sqq->qlock);
++	bnxt_re_free_aligned(qp->sqq);
++}
++
++static int bnxt_re_alloc_queues(struct bnxt_re_qp *qp,
++				struct ibv_qp_init_attr *attr,
++				uint32_t pg_size) {
++	struct bnxt_re_queue *que;
++	uint32_t psn_depth;
++	int ret;
++
++	if (attr->cap.max_send_wr) {
++		que = qp->sqq;
++		que->stride = bnxt_re_get_sqe_sz();
++		que->depth = roundup_pow_of_two(attr->cap.max_send_wr);
++		/* psn_depth extra entries of size que->stride */
++		psn_depth = (que->depth * sizeof(struct bnxt_re_psns)) /
++			     que->stride;
++		que->depth += psn_depth;
++		ret = bnxt_re_alloc_aligned(qp->sqq, pg_size);
++		if (ret)
++			return ret;
++		/* exclude psns depth*/
++		que->depth -= psn_depth;
++		/* start of spsn space sizeof(struct bnxt_re_psns) each. */
++		qp->psns = (que->va + que->stride * que->depth);
++		pthread_spin_init(&que->qlock, PTHREAD_PROCESS_PRIVATE);
++		qp->swrid = calloc(que->depth, sizeof(uint64_t));
++		if (!qp->swrid) {
++			ret = -ENOMEM;
++			goto fail;
++		}
++	}
++
++	if (attr->cap.max_recv_wr && qp->rqq) {
++		que = qp->rqq;
++		que->stride = bnxt_re_get_rqe_sz();
++		que->depth = roundup_pow_of_two(attr->cap.max_recv_wr);
++		ret = bnxt_re_alloc_aligned(qp->rqq, pg_size);
++		if (ret)
++			goto fail;
++		pthread_spin_init(&que->qlock, PTHREAD_PROCESS_PRIVATE);
++		qp->rwrid = calloc(que->depth, sizeof(uint64_t));
++		if (!qp->rwrid) {
++			ret = -ENOMEM;
++			goto fail;
++		}
++	}
++
++	return 0;
++
++fail:
++	bnxt_re_free_queues(qp);
++	return ret;
++}
++
+ struct ibv_qp *bnxt_re_create_qp(struct ibv_pd *ibvpd,
+ 				 struct ibv_qp_init_attr *attr)
+ {
++	struct bnxt_re_qp *qp;
++	struct bnxt_re_qp_req req;
++	struct bnxt_re_qp_resp resp;
++
++	struct bnxt_re_context *cntx = to_bnxt_re_context(ibvpd->context);
++	struct bnxt_re_dev *dev = to_bnxt_re_dev(cntx->ibvctx.device);
++
++	if (bnxt_re_check_qp_limits(attr))
++		return NULL;
++
++	qp = calloc(1, sizeof(*qp));
++	if (!qp)
++		return NULL;
++	/* alloc queue pointers */
++	if (bnxt_re_alloc_queue_ptr(qp, attr))
++		goto fail;
++	/* alloc queues */
++	if (bnxt_re_alloc_queues(qp, attr, dev->pg_size))
++		goto failq;
++	/* Fill ibv_cmd */
++	req.qpsva = (uintptr_t)qp->sqq->va;
++	req.qprva = qp->rqq ? (uintptr_t)qp->rqq->va : 0;
++	req.qp_handle = (uintptr_t)qp;
++
++	if (ibv_cmd_create_qp(ibvpd, &qp->ibvqp, attr, &req.cmd, sizeof(req),
++			      &resp.resp, sizeof(resp))) {
++		goto failcmd;
++	}
++
++	qp->qpid = resp.qpid;
++	qp->qptyp = attr->qp_type;
++	qp->qpst = IBV_QPS_RESET;
++	qp->scq = to_bnxt_re_cq(attr->send_cq);
++	qp->rcq = to_bnxt_re_cq(attr->recv_cq);
++	qp->udpi = &cntx->udpi;
++
++	return &qp->ibvqp;
++failcmd:
++	bnxt_re_free_queues(qp);
++failq:
++	bnxt_re_free_queue_ptr(qp);
++fail:
++	free(qp);
++
+ 	return NULL;
+ }
+ 
+ int bnxt_re_modify_qp(struct ibv_qp *ibvqp, struct ibv_qp_attr *attr,
+ 		      int attr_mask)
+ {
+-	return -ENOSYS;
++	struct ibv_modify_qp cmd = {};
++	struct bnxt_re_qp *qp = to_bnxt_re_qp(ibvqp);
++	int rc;
++
++	rc = ibv_cmd_modify_qp(ibvqp, attr, attr_mask, &cmd, sizeof(cmd));
++	if (!rc)
++		qp->qpst = ibvqp->state;
++
++	return rc;
+ }
+ 
+ int bnxt_re_query_qp(struct ibv_qp *ibvqp, struct ibv_qp_attr *attr,
+ 		     int attr_mask, struct ibv_qp_init_attr *init_attr)
+ {
+-	return -ENOSYS;
++	struct ibv_query_qp cmd;
++	struct bnxt_re_qp *qp = to_bnxt_re_qp(ibvqp);
++	int rc;
++
++	rc = ibv_cmd_query_qp(ibvqp, attr, attr_mask, init_attr,
++			      &cmd, sizeof(cmd));
++	if (!rc)
++		qp->qpst = ibvqp->state;
++
++	return rc;
+ }
+ 
+ int bnxt_re_destroy_qp(struct ibv_qp *ibvqp)
+ {
+-	return -ENOSYS;
++	struct bnxt_re_qp *qp = to_bnxt_re_qp(ibvqp);
++	int status;
++
++	status = ibv_cmd_destroy_qp(ibvqp);
++	if (status)
++		return status;
++
++	bnxt_re_free_queues(qp);
++	bnxt_re_free_queue_ptr(qp);
++	free(qp);
++
++	return 0;
+ }
+ 
+ int bnxt_re_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
 -- 
-2.11.0
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
