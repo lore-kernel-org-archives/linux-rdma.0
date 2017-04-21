@@ -1,65 +1,180 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC 0/8] Copy Offload with Peer-to-Peer PCI Memory
-Date: Thu, 20 Apr 2017 21:59:42 -0700
-Message-ID: <CAA9_cmcQaPmF_uGP1FwUW0tO-4xtyJq07opfKcj9FGdADkedgg@mail.gmail.com>
-References: <20170418164557.GA7181@obsidianresearch.com> <cce00131-1f28-27b3-40ab-04f8783f1e5a@deltatee.com>
- <20170418190138.GH7181@obsidianresearch.com> <df1351d8-b86c-2e21-1948-4688ece5dc2b@deltatee.com>
- <CAPcyv4gScx6A7vG9VEHpNF41GOy1Nxst7QQ3QC3uZ54bWoxbMg@mail.gmail.com>
- <20170418210339.GA24257@obsidianresearch.com> <1492564806.25766.124.camel@kernel.crashing.org>
- <20170419155557.GA8497@obsidianresearch.com> <4899b011-bdfb-18d8-ef00-33a1516216a6@deltatee.com>
- <CAPcyv4iJ9H8Ykwnjqa2R_D1qG6PsSQmi=QxYH-rKLF_ihrsWyw@mail.gmail.com>
- <20170419173225.GA11255@redhat.com> <CAPcyv4gxBgVsbSez7_dZYkZojUWU0X0txs7FxiJ+Z3xsMt6TqQ@mail.gmail.com>
- <D79A59A8-DC7E-413F-ABB8-05F373A9DFD4@raithlin.com> <CAPcyv4i+a_14E58SjFHncyq2O2-zf_PB=aT7k0a-Jc0XsfPapQ@mail.gmail.com>
- <D090F830-2753-4479-A291-CEE37DC0A853@raithlin.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+From: Dasaratharaman Chandramouli
+        <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v3 rdma-next 00/18] Enhance ib_ah_attr to specify types
+Date: Fri, 21 Apr 2017 01:44:45 -0400
+Message-ID: <1492753503-64790-1-git-send-email-dasaratharaman.chandramouli@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <D090F830-2753-4479-A291-CEE37DC0A853-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 20, 2017 at 4:07 PM, Stephen  Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org> wrote=
-:
->>> Yes, this makes sense I think we really just want to distinguish host
->>> memory or not in terms of the dev_pagemap type.
->>
->>> I would like to see mutually exclusive flags for host memory (or not) a=
-nd persistence (or not).
->>>
->>
->> Why persistence? It has zero meaning to the mm.
->
-> I like the idea of having properties of the memory in one place.
+This patch series introduces a typed address handle attribute
+that replaces the exisiting IB specific version. One of the 
+drawbacks with the existing attibute was the lack of extensibility
+when underlying drivers wanted to leverage specific fields in the
+attribute structure. This resulted in some of the fields being used
+differently than what it was originally intended for.
+This patch addresses that drawback by defining three address handle
+types namely 'ib', 'roce' and 'opa'. While these these types share most
+of the original fields, the changes provide the infrastucture to 
+extend and cleanup the fields based on their types. 
 
-We do have memory type data in the global iomem_resource tree, see
-IORES_DESC_PERSISTENT_MEMORY.
+Note that these patches apply on the earlier patch series with subject
+"[PATCH v2 0/7] Add support for OPA classport info"
 
-> While mm might not use persistence today it may make use certain things t=
-hat
-> persistence implies (like finite endurance and/or higher write latency) i=
-n the future.
+Changes from v2:
+--------------
 
-A persistence flag does not convey endurance or latency information.
+* Re-spin of the patch series so they apply cleanly over the recent
+  patches that were recently submitted by Denny with Subject:
+  "[PATCH 00/20] IB/hfi1,rdmavt,core: Patches for-next"
 
-> Also the persistence of the memory must have issues for mm security?
+Changes from v1:
+---------------
 
-Not for the mm, data at rest security might be a property of the
-device, but that's not the mm's concern.
+* Collected more common fields onto struct rdma_ah_attr.
+  ib_ah_attr now has dlid and src_path_bits as its type
+  specific attribute. roce_ah_attr has dmac as its type specific
+  attribute. opa ah_attr has the 32 bit dlid and src_path_bits as
+  its type specfic attribute.
+* Rename struct eth_ah_attr to roce_ah_attr
+* Rename RDMA_AH_ATTR_TYPE_ETH to RDMA_AH_ATTR_TYPE_ROCE
 
->Again not addressed today but useful in the future.
+The patches are organized as follows:
+* The first 3 patches perform checkpatch fixes that later patches
+  touch upon.
+* Patch 4 fixes user verbs ABI to read and write grh fields
+  of the address handle only when the appropriate flags are set.
+* Patch 5 has a minor fix the soft roce driver in properly initializing
+  ah_attr fields during query
+* Patch 6 renames struct ib_ah_attr to rdma_ah_attr
+* Patch 7 to 10 renames verbs APIs ib_create_ah, ib_query_ah, ib_modify_ah
+  and ib_destroy_ah
+* Patches 11 to 14 renames some of the internal driver functions
+  so they are in sync with the structure rename of patch 5.
+* Patch 15 introduces set/get accessor functions to access
+  individual elements of the structure
+* Patch 16 applies the accessor functions introduced in patch 15
+* Patch 17 re-defines rdma_ah_attr to now contain types 'ib' and 'roce'.
+  Calling code that uses the attribute are now expected to have
+  knowledge of the type.
+* Patch 18 defines the 'opa' address handle type. Changes to calling
+  code that leverages opa address handle types will be introduced in
+  forthcoming patches which enable 32 bit LID support in the kernel.
 
-Maybe, but to me "Useful for the future" =3D=3D "don't add it to the
-kernel until that future arrives".
+Dasaratharaman Chandramouli (18):
+  IB/ocrdma: Add identifier names to function definitions
+  IB/IPoIB: Remove 'else' when the 'if' has a return.
+  IB/core: Add braces when using sizeof
+  IB/core: Check for global flag when using ah_attr
+  IB/rxe: Initialize ib_ah_attr during query_ah
+  IB/core: Rename struct ib_ah_attr to rdma_ah_attr
+  IB/core: Rename ib_create_ah to rdma_create_ah
+  IB/core: Rename ib_modify_ah to rdma_modify_ah
+  IB/core: Rename ib_query_ah to rdma_query_ah
+  IB/core: Rename ib_destroy_ah to rdma_destroy_ah
+  IB/mlx4: Rename to_ib_ah_attr to to_rdma_ah_attr
+  IB/mlx5: Rename to_ib_ah_attr to to_rdma_ah_attr
+  IB/mthca: Rename to_ib_ah_attr to to_rdma_ah_attr
+  IB/PVRDMA: Rename ib_ah_attr related functions
+  IB/core: Add accessor functions for rdma_ah_attr fields
+  IB/core: Use rdma_ah_attr accessor functions
+  IB/core: Define 'ib' and 'roce' rdma_ah_attr types
+  IB/core: Define 'opa' rdma_ah_attr type
 
-> In addition I am not sure where else would be an appropriate place to put=
- something like a persistence property flag. I know the NVDIMM section of t=
-he kernel uses things like NFIT to describe properties of the memory but we=
- don=E2=80=99t yet (to my knowledge) have something similar for IO memory.
+ drivers/infiniband/core/agent.c                 |   4 +-
+ drivers/infiniband/core/cm.c                    |  24 +--
+ drivers/infiniband/core/cma.c                   |   3 +-
+ drivers/infiniband/core/mad.c                   |  25 +--
+ drivers/infiniband/core/mad_rmpp.c              |  16 +-
+ drivers/infiniband/core/multicast.c             |  27 ++-
+ drivers/infiniband/core/sa_query.c              |  56 ++++---
+ drivers/infiniband/core/user_mad.c              |  44 ++---
+ drivers/infiniband/core/uverbs_cmd.c            | 159 +++++++++++-------
+ drivers/infiniband/core/uverbs_marshall.c       |  29 ++--
+ drivers/infiniband/core/uverbs_std_types.c      |   2 +-
+ drivers/infiniband/core/verbs.c                 |  78 +++++----
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c        |  96 +++++------
+ drivers/infiniband/hw/bnxt_re/ib_verbs.h        |   6 +-
+ drivers/infiniband/hw/cxgb3/iwch_provider.c     |   2 +-
+ drivers/infiniband/hw/cxgb4/provider.c          |   2 +-
+ drivers/infiniband/hw/hfi1/driver.c             |   4 +-
+ drivers/infiniband/hw/hfi1/mad.c                |   4 +-
+ drivers/infiniband/hw/hfi1/qp.c                 |  12 +-
+ drivers/infiniband/hw/hfi1/rc.c                 |  24 +--
+ drivers/infiniband/hw/hfi1/ruc.c                |  82 +++++----
+ drivers/infiniband/hw/hfi1/uc.c                 |   6 +-
+ drivers/infiniband/hw/hfi1/ud.c                 |  55 +++---
+ drivers/infiniband/hw/hfi1/verbs.c              |  34 ++--
+ drivers/infiniband/hw/hfi1/verbs.h              |   4 +-
+ drivers/infiniband/hw/hns/hns_roce_ah.c         |  62 ++++---
+ drivers/infiniband/hw/hns/hns_roce_device.h     |   5 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c      | 117 ++++++-------
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c       |   2 +-
+ drivers/infiniband/hw/mlx4/ah.c                 | 134 ++++++++-------
+ drivers/infiniband/hw/mlx4/mad.c                |  87 +++++-----
+ drivers/infiniband/hw/mlx4/mcg.c                |   8 +-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h            |   6 +-
+ drivers/infiniband/hw/mlx4/qp.c                 | 110 ++++++------
+ drivers/infiniband/hw/mlx5/ah.c                 |  74 ++++----
+ drivers/infiniband/hw/mlx5/mlx5_ib.h            |   4 +-
+ drivers/infiniband/hw/mlx5/qp.c                 | 100 +++++------
+ drivers/infiniband/hw/mthca/mthca_av.c          |  69 ++++----
+ drivers/infiniband/hw/mthca/mthca_dev.h         |   4 +-
+ drivers/infiniband/hw/mthca/mthca_mad.c         |  17 +-
+ drivers/infiniband/hw/mthca/mthca_provider.c    |   2 +-
+ drivers/infiniband/hw/mthca/mthca_qp.c          |  94 ++++++-----
+ drivers/infiniband/hw/nes/nes_verbs.c           |   3 +-
+ drivers/infiniband/hw/ocrdma/ocrdma.h           |   6 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c        |  64 +++----
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.h        |  10 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c        |  23 +--
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c     |  39 ++---
+ drivers/infiniband/hw/qedr/qedr.h               |  15 +-
+ drivers/infiniband/hw/qedr/qedr_cm.c            |  19 ++-
+ drivers/infiniband/hw/qedr/qedr_cm.h            |   2 +-
+ drivers/infiniband/hw/qedr/verbs.c              |  47 +++---
+ drivers/infiniband/hw/qedr/verbs.h              |   2 +-
+ drivers/infiniband/hw/qib/qib_mad.c             |   7 +-
+ drivers/infiniband/hw/qib/qib_qp.c              |   2 +-
+ drivers/infiniband/hw/qib/qib_rc.c              |  21 ++-
+ drivers/infiniband/hw/qib/qib_ruc.c             |  72 ++++----
+ drivers/infiniband/hw/qib/qib_uc.c              |   6 +-
+ drivers/infiniband/hw/qib/qib_ud.c              |  57 ++++---
+ drivers/infiniband/hw/qib/qib_verbs.c           |  22 ++-
+ drivers/infiniband/hw/qib/qib_verbs.h           |   4 +-
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c    |   2 +-
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.h    |   2 +-
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma.h       |   8 +-
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c  |  41 ++---
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c    |   8 +-
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c |  30 ++--
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.h |   2 +-
+ drivers/infiniband/sw/rdmavt/ah.c               |  37 ++--
+ drivers/infiniband/sw/rdmavt/ah.h               |   6 +-
+ drivers/infiniband/sw/rdmavt/mad.c              |   2 +-
+ drivers/infiniband/sw/rdmavt/qp.c               |  12 +-
+ drivers/infiniband/sw/rxe/rxe_av.c              |  32 ++--
+ drivers/infiniband/sw/rxe/rxe_loc.h             |   8 +-
+ drivers/infiniband/sw/rxe/rxe_qp.c              |  12 +-
+ drivers/infiniband/sw/rxe/rxe_verbs.c           |  17 +-
+ drivers/infiniband/ulp/ipoib/ipoib.h            |   2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c         |   6 +-
+ drivers/infiniband/ulp/ipoib/ipoib_main.c       |   2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c  |  61 ++++---
+ drivers/infiniband/ulp/srpt/ib_srpt.c           |   4 +-
+ include/rdma/ib_marshall.h                      |   2 +-
+ include/rdma/ib_sa.h                            |   4 +-
+ include/rdma/ib_verbs.h                         | 213 +++++++++++++++++++++---
+ include/rdma/rdma_cm.h                          |   2 +-
+ include/rdma/rdma_vt.h                          |   8 +-
+ include/rdma/rdmavt_qp.h                        |   4 +-
+ net/smc/smc_ib.c                                |  11 +-
+ 88 files changed, 1523 insertions(+), 1129 deletions(-)
 
-Do the IORES_DESC flags give you what you need?
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
