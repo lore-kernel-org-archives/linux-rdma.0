@@ -1,8 +1,8 @@
 From: Dasaratharaman Chandramouli
         <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3 rdma-next 17/18] IB/core: Define 'ib' and 'roce' rdma_ah_attr types
-Date: Fri, 21 Apr 2017 01:45:02 -0400
-Message-ID: <1492753503-64790-18-git-send-email-dasaratharaman.chandramouli@intel.com>
+Subject: [PATCH v3 rdma-next 16/18] IB/core: Use rdma_ah_attr accessor functions
+Date: Fri, 21 Apr 2017 01:45:01 -0400
+Message-ID: <1492753503-64790-17-git-send-email-dasaratharaman.chandramouli@intel.com>
 References: <1492753503-64790-1-git-send-email-dasaratharaman.chandramouli@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1492753503-64790-1-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,914 +10,4076 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-rdma_ah_attr can now be either ib or roce allowing
-core components to use one type or the other and also
-to define attributes unique to a specific type. struct
-ib_ah is also initialized with the type when its first
-created. This ensures that calls such as modify_ah
-dont modify the type of the address handle attribute.
+Modify core and driver components to use accessor functions
+introduced to access individual fields of rdma_ah_attr
 
+Change-Id: I898dd5649feaf2412cfa6d28978348753f611e43
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/cm.c                    |  4 +-
- drivers/infiniband/core/multicast.c             |  1 +
- drivers/infiniband/core/sa_query.c              |  5 ++-
- drivers/infiniband/core/user_mad.c              |  2 +
- drivers/infiniband/core/uverbs_cmd.c            |  5 +++
- drivers/infiniband/core/verbs.c                 | 13 ++++--
- drivers/infiniband/hw/bnxt_re/ib_verbs.c        | 13 +++---
- drivers/infiniband/hw/hfi1/verbs.c              |  4 ++
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c      |  2 +-
- drivers/infiniband/hw/mlx4/ah.c                 | 25 +++++------
- drivers/infiniband/hw/mlx4/mad.c                |  2 +
- drivers/infiniband/hw/mlx4/qp.c                 | 16 +++----
- drivers/infiniband/hw/mlx5/ah.c                 | 22 +++++-----
- drivers/infiniband/hw/mlx5/qp.c                 |  9 ++--
- drivers/infiniband/hw/mthca/mthca_av.c          |  1 +
- drivers/infiniband/hw/mthca/mthca_mad.c         |  1 +
- drivers/infiniband/hw/mthca/mthca_qp.c          |  1 +
- drivers/infiniband/hw/ocrdma/ocrdma.h           |  2 +-
- drivers/infiniband/hw/ocrdma/ocrdma_ah.c        |  6 ++-
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c     |  1 +
- drivers/infiniband/hw/qedr/qedr_cm.c            |  2 +-
- drivers/infiniband/hw/qedr/verbs.c              |  1 +
- drivers/infiniband/hw/qib/qib_verbs.c           |  2 +
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c  |  5 ++-
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c |  9 ++--
- drivers/infiniband/sw/rxe/rxe_av.c              |  1 +
- drivers/infiniband/sw/rxe/rxe_verbs.c           |  1 +
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c  |  1 +
- include/rdma/ib_verbs.h                         | 58 ++++++++++++++++++++-----
- net/smc/smc_ib.c                                |  3 +-
- 30 files changed, 141 insertions(+), 77 deletions(-)
+ drivers/infiniband/core/cm.c                    |  10 +-
+ drivers/infiniband/core/cma.c                   |   3 +-
+ drivers/infiniband/core/mad.c                   |  21 ++--
+ drivers/infiniband/core/mad_rmpp.c              |   2 +-
+ drivers/infiniband/core/multicast.c             |  20 ++--
+ drivers/infiniband/core/sa_query.c              |  40 ++++---
+ drivers/infiniband/core/user_mad.c              |  32 +++---
+ drivers/infiniband/core/uverbs_cmd.c            | 144 +++++++++++++-----------
+ drivers/infiniband/core/uverbs_marshall.c       |  25 ++--
+ drivers/infiniband/core/verbs.c                 |  45 ++++----
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c        |  77 +++++++------
+ drivers/infiniband/hw/hfi1/driver.c             |   4 +-
+ drivers/infiniband/hw/hfi1/mad.c                |   4 +-
+ drivers/infiniband/hw/hfi1/qp.c                 |  12 +-
+ drivers/infiniband/hw/hfi1/rc.c                 |  24 ++--
+ drivers/infiniband/hw/hfi1/ruc.c                |  82 ++++++++------
+ drivers/infiniband/hw/hfi1/uc.c                 |   6 +-
+ drivers/infiniband/hw/hfi1/ud.c                 |  51 +++++----
+ drivers/infiniband/hw/hfi1/verbs.c              |  20 ++--
+ drivers/infiniband/hw/hfi1/verbs.h              |   2 +-
+ drivers/infiniband/hw/hns/hns_roce_ah.c         |  57 ++++++----
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c      | 115 ++++++++++---------
+ drivers/infiniband/hw/mlx4/ah.c                 | 115 +++++++++++--------
+ drivers/infiniband/hw/mlx4/mad.c                |  43 ++++---
+ drivers/infiniband/hw/mlx4/mcg.c                |   2 +-
+ drivers/infiniband/hw/mlx4/qp.c                 |  92 +++++++--------
+ drivers/infiniband/hw/mlx5/ah.c                 |  54 +++++----
+ drivers/infiniband/hw/mlx5/qp.c                 |  84 +++++++-------
+ drivers/infiniband/hw/mthca/mthca_av.c          |  64 ++++++-----
+ drivers/infiniband/hw/mthca/mthca_mad.c         |   6 +-
+ drivers/infiniband/hw/mthca/mthca_qp.c          |  84 ++++++++------
+ drivers/infiniband/hw/ocrdma/ocrdma.h           |   2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c        |  54 +++++----
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c        |  21 ++--
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c     |  38 +++----
+ drivers/infiniband/hw/qedr/qedr.h               |  11 +-
+ drivers/infiniband/hw/qedr/qedr_cm.c            |  15 +--
+ drivers/infiniband/hw/qedr/qedr_cm.h            |   2 +-
+ drivers/infiniband/hw/qedr/verbs.c              |  44 ++++----
+ drivers/infiniband/hw/qib/qib_mad.c             |   5 +-
+ drivers/infiniband/hw/qib/qib_qp.c              |   2 +-
+ drivers/infiniband/hw/qib/qib_rc.c              |  21 ++--
+ drivers/infiniband/hw/qib/qib_ruc.c             |  72 +++++++-----
+ drivers/infiniband/hw/qib/qib_uc.c              |   6 +-
+ drivers/infiniband/hw/qib/qib_ud.c              |  53 +++++----
+ drivers/infiniband/hw/qib/qib_verbs.c           |  12 +-
+ drivers/infiniband/hw/qib/qib_verbs.h           |   2 +-
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c  |  32 +++---
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c |  27 +++--
+ drivers/infiniband/sw/rdmavt/ah.c               |  29 ++---
+ drivers/infiniband/sw/rdmavt/qp.c               |  12 +-
+ drivers/infiniband/sw/rxe/rxe_av.c              |  24 ++--
+ drivers/infiniband/sw/rxe/rxe_qp.c              |  12 +-
+ drivers/infiniband/sw/rxe/rxe_verbs.c           |   6 +-
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c  |  59 +++++-----
+ net/smc/smc_ib.c                                |   8 +-
+ 56 files changed, 1033 insertions(+), 876 deletions(-)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 2cfc365..d35c2de 100644
+index 7d4db26..2cfc365 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -1761,7 +1761,9 @@ static int cm_req_handler(struct cm_work *work)
- 	cm_process_routed_req(req_msg, work->mad_recv_wc->wc);
+@@ -1722,6 +1722,7 @@ static int cm_req_handler(struct cm_work *work)
+ 	struct cm_req_msg *req_msg;
+ 	union ib_gid gid;
+ 	struct ib_gid_attr gid_attr;
++	const struct ib_global_route *grh;
+ 	int ret;
+ 
+ 	req_msg = (struct cm_req_msg *)work->mad_recv_wc->recv_buf.mad;
+@@ -1761,10 +1762,11 @@ static int cm_req_handler(struct cm_work *work)
  	cm_format_paths_from_req(req_msg, &work->path[0], &work->path[1]);
  
--	memcpy(work->path[0].dmac, cm_id_priv->av.ah_attr.dmac, ETH_ALEN);
-+	if (cm_id_priv->av.ah_attr.type == RDMA_AH_ATTR_TYPE_ROCE)
-+		memcpy(work->path[0].dmac, cm_id_priv->av.ah_attr.roce.dmac,
-+		       ETH_ALEN);
- 	grh = rdma_ah_read_grh(&cm_id_priv->av.ah_attr);
- 	work->path[0].hop_limit = grh->hop_limit;
+ 	memcpy(work->path[0].dmac, cm_id_priv->av.ah_attr.dmac, ETH_ALEN);
+-	work->path[0].hop_limit = cm_id_priv->av.ah_attr.grh.hop_limit;
++	grh = rdma_ah_read_grh(&cm_id_priv->av.ah_attr);
++	work->path[0].hop_limit = grh->hop_limit;
  	ret = ib_get_cached_gid(work->port->cm_dev->ib_device,
+ 				work->port->port_num,
+-				cm_id_priv->av.ah_attr.grh.sgid_index,
++				grh->sgid_index,
+ 				&gid, &gid_attr);
+ 	if (!ret) {
+ 		if (gid_attr.ndev) {
+@@ -3800,7 +3802,7 @@ static int cm_init_qp_rtr_attr(struct cm_id_private *cm_id_priv,
+ 					cm_id_priv->responder_resources;
+ 			qp_attr->min_rnr_timer = 0;
+ 		}
+-		if (cm_id_priv->alt_av.ah_attr.dlid) {
++		if (rdma_ah_get_dlid(&cm_id_priv->alt_av.ah_attr)) {
+ 			*qp_attr_mask |= IB_QP_ALT_PATH;
+ 			qp_attr->alt_port_num = cm_id_priv->alt_av.port->port_num;
+ 			qp_attr->alt_pkey_index = cm_id_priv->alt_av.pkey_index;
+@@ -3854,7 +3856,7 @@ static int cm_init_qp_rts_attr(struct cm_id_private *cm_id_priv,
+ 			default:
+ 				break;
+ 			}
+-			if (cm_id_priv->alt_av.ah_attr.dlid) {
++			if (rdma_ah_get_dlid(&cm_id_priv->alt_av.ah_attr)) {
+ 				*qp_attr_mask |= IB_QP_PATH_MIG_STATE;
+ 				qp_attr->path_mig_state = IB_MIG_REARM;
+ 			}
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 9f9fbbe..21244f7 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -929,7 +929,8 @@ static int cma_modify_qp_rtr(struct rdma_id_private *id_priv,
+ 		goto out;
+ 
+ 	ret = ib_query_gid(id_priv->id.device, id_priv->id.port_num,
+-			   qp_attr.ah_attr.grh.sgid_index, &sgid, NULL);
++			   rdma_ah_read_grh(&qp_attr.ah_attr)->sgid_index,
++			   &sgid, NULL);
+ 	if (ret)
+ 		goto out;
+ 
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 16b4234..25f2207 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -1840,6 +1840,7 @@ static inline int rcv_has_same_gid(const struct ib_mad_agent_private *mad_agent_
+ 	struct ib_device *device = mad_agent_priv->agent.device;
+ 	u8 port_num = mad_agent_priv->agent.port_num;
+ 	u8 lmc;
++	bool has_grh;
+ 
+ 	send_resp = ib_response_mad((struct ib_mad_hdr *)wr->send_buf.mad);
+ 	rcv_resp = ib_response_mad(&rwc->recv_buf.mad->mad_hdr);
+@@ -1852,32 +1853,36 @@ static inline int rcv_has_same_gid(const struct ib_mad_agent_private *mad_agent_
+ 		/* Assume not equal, to avoid false positives. */
+ 		return 0;
+ 
+-	if (!!(attr.ah_flags & IB_AH_GRH) !=
+-	    !!(rwc->wc->wc_flags & IB_WC_GRH))
++	has_grh = !!(rdma_ah_get_ah_flags(&attr) & IB_AH_GRH);
++	if (has_grh != !!(rwc->wc->wc_flags & IB_WC_GRH))
+ 		/* one has GID, other does not.  Assume different */
+ 		return 0;
+ 
+ 	if (!send_resp && rcv_resp) {
+ 		/* is request/response. */
+-		if (!(attr.ah_flags & IB_AH_GRH)) {
++		if (!has_grh) {
+ 			if (ib_get_cached_lmc(device, port_num, &lmc))
+ 				return 0;
+-			return (!lmc || !((attr.src_path_bits ^
++			return (!lmc || !((rdma_ah_get_path_bits(&attr) ^
+ 					   rwc->wc->dlid_path_bits) &
+ 					  ((1 << lmc) - 1)));
+ 		} else {
++			const struct ib_global_route *grh =
++					rdma_ah_read_grh(&attr);
++
+ 			if (ib_get_cached_gid(device, port_num,
+-					      attr.grh.sgid_index, &sgid, NULL))
++					      grh->sgid_index, &sgid, NULL))
+ 				return 0;
+ 			return !memcmp(sgid.raw, rwc->recv_buf.grh->dgid.raw,
+ 				       16);
+ 		}
+ 	}
+ 
+-	if (!(attr.ah_flags & IB_AH_GRH))
+-		return attr.dlid == rwc->wc->slid;
++	if (!has_grh)
++		return rdma_ah_get_dlid(&attr) == rwc->wc->slid;
+ 	else
+-		return !memcmp(attr.grh.dgid.raw, rwc->recv_buf.grh->sgid.raw,
++		return !memcmp(rdma_ah_read_grh(&attr)->dgid.raw,
++			       rwc->recv_buf.grh->sgid.raw,
+ 			       16);
+ }
+ 
+diff --git a/drivers/infiniband/core/mad_rmpp.c b/drivers/infiniband/core/mad_rmpp.c
+index a64f820..0d3cca0 100644
+--- a/drivers/infiniband/core/mad_rmpp.c
++++ b/drivers/infiniband/core/mad_rmpp.c
+@@ -870,7 +870,7 @@ static int init_newwin(struct ib_mad_send_wr_private *mad_send_wr)
+ 		if (rdma_query_ah(mad_send_wr->send_buf.ah, &ah_attr))
+ 			continue;
+ 
+-		if (rmpp_recv->slid == ah_attr.dlid) {
++		if (rmpp_recv->slid == rdma_ah_get_dlid(&ah_attr)) {
+ 			newwin = rmpp_recv->repwin;
+ 			break;
+ 		}
 diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
-index 16eec04..45f2f09 100644
+index d56fd80..16eec04 100644
 --- a/drivers/infiniband/core/multicast.c
 +++ b/drivers/infiniband/core/multicast.c
-@@ -743,6 +743,7 @@ int ib_init_ah_from_mcmember(struct ib_device *device, u8 port_num,
+@@ -743,19 +743,17 @@ int ib_init_ah_from_mcmember(struct ib_device *device, u8 port_num,
  		return ret;
  
  	memset(ah_attr, 0, sizeof *ah_attr);
-+	ah_attr->type = rdma_ah_find_type(device, port_num);
+-	ah_attr->dlid = be16_to_cpu(rec->mlid);
+-	ah_attr->sl = rec->sl;
+-	ah_attr->port_num = port_num;
+-	ah_attr->static_rate = rec->rate;
  
- 	rdma_ah_set_dlid(ah_attr, be16_to_cpu(rec->mlid));
- 	rdma_ah_set_sl(ah_attr, rec->sl);
+-	ah_attr->ah_flags = IB_AH_GRH;
+-	ah_attr->grh.dgid = rec->mgid;
+-
+-	ah_attr->grh.sgid_index = (u8) gid_index;
+-	ah_attr->grh.flow_label = be32_to_cpu(rec->flow_label);
+-	ah_attr->grh.hop_limit = rec->hop_limit;
+-	ah_attr->grh.traffic_class = rec->traffic_class;
++	rdma_ah_set_dlid(ah_attr, be16_to_cpu(rec->mlid));
++	rdma_ah_set_sl(ah_attr, rec->sl);
++	rdma_ah_set_port_num(ah_attr, port_num);
++	rdma_ah_set_static_rate(ah_attr, rec->rate);
+ 
++	rdma_ah_set_grh(ah_attr, &rec->mgid,
++			be32_to_cpu(rec->flow_label),
++			(u8)gid_index,
++			rec->hop_limit,
++			rec->traffic_class);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(ib_init_ah_from_mcmember);
 diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index 6a71b21..c04ac94 100644
+index bacefa7..6a71b21 100644
 --- a/drivers/infiniband/core/sa_query.c
 +++ b/drivers/infiniband/core/sa_query.c
-@@ -1108,6 +1108,7 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
+@@ -1108,13 +1108,13 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
  	struct net_device *ndev = NULL;
  
  	memset(ah_attr, 0, sizeof *ah_attr);
-+	ah_attr->type = rdma_ah_find_type(device, port_num);
+-	ah_attr->dlid = be16_to_cpu(rec->dlid);
+-	ah_attr->sl = rec->sl;
+-	ah_attr->src_path_bits = be16_to_cpu(rec->slid) &
+-				 get_src_path_mask(device, port_num);
+-	ah_attr->port_num = port_num;
+-	ah_attr->static_rate = rec->rate;
  
- 	rdma_ah_set_dlid(ah_attr, be16_to_cpu(rec->dlid));
- 	rdma_ah_set_sl(ah_attr, rec->sl);
-@@ -1192,7 +1193,7 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
++	rdma_ah_set_dlid(ah_attr, be16_to_cpu(rec->dlid));
++	rdma_ah_set_sl(ah_attr, rec->sl);
++	rdma_ah_set_path_bits(ah_attr, be16_to_cpu(rec->slid) &
++			      get_src_path_mask(device, port_num));
++	rdma_ah_set_port_num(ah_attr, port_num);
++	rdma_ah_set_static_rate(ah_attr, rec->rate);
+ 	use_roce = rdma_cap_eth_ah(device, port_num);
+ 
+ 	if (use_roce) {
+@@ -1174,9 +1174,6 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
  	}
  
- 	if (use_roce)
--		memcpy(ah_attr->dmac, rec->dmac, ETH_ALEN);
-+		memcpy(ah_attr->roce.dmac, rec->dmac, ETH_ALEN);
+ 	if (rec->hop_limit > 0 || use_roce) {
+-		ah_attr->ah_flags = IB_AH_GRH;
+-		ah_attr->grh.dgid = rec->dgid;
+-
+ 		ret = ib_find_cached_gid_by_port(device, &rec->sgid,
+ 						 rec->gid_type, port_num, ndev,
+ 						 &gid_index);
+@@ -1186,10 +1183,10 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
+ 			return ret;
+ 		}
  
- 	return 0;
- }
-@@ -2029,6 +2030,8 @@ static void update_sm_ah(struct work_struct *work)
+-		ah_attr->grh.sgid_index    = gid_index;
+-		ah_attr->grh.flow_label    = be32_to_cpu(rec->flow_label);
+-		ah_attr->grh.hop_limit     = rec->hop_limit;
+-		ah_attr->grh.traffic_class = rec->traffic_class;
++		rdma_ah_set_grh(ah_attr, &rec->dgid,
++				be32_to_cpu(rec->flow_label),
++				gid_index, rec->hop_limit,
++				rec->traffic_class);
+ 		if (ndev)
+ 			dev_put(ndev);
+ 	}
+@@ -2032,15 +2029,16 @@ static void update_sm_ah(struct work_struct *work)
  		pr_err("Couldn't find index for default PKey\n");
  
  	memset(&ah_attr, 0, sizeof(ah_attr));
-+	ah_attr.type = rdma_ah_find_type(port->agent->device,
-+					 port->port_num);
- 	rdma_ah_set_dlid(&ah_attr, port_attr.sm_lid);
- 	rdma_ah_set_sl(&ah_attr, port_attr.sm_sl);
- 	rdma_ah_set_port_num(&ah_attr, port->port_num);
+-	ah_attr.dlid     = port_attr.sm_lid;
+-	ah_attr.sl       = port_attr.sm_sl;
+-	ah_attr.port_num = port->port_num;
++	rdma_ah_set_dlid(&ah_attr, port_attr.sm_lid);
++	rdma_ah_set_sl(&ah_attr, port_attr.sm_sl);
++	rdma_ah_set_port_num(&ah_attr, port->port_num);
+ 	if (port_attr.grh_required) {
+-		ah_attr.ah_flags = IB_AH_GRH;
+-		ah_attr.grh.dgid.global.subnet_prefix =
+-			cpu_to_be64(port_attr.subnet_prefix);
+-		ah_attr.grh.dgid.global.interface_id =
+-			cpu_to_be64(IB_SA_WELL_KNOWN_GUID);
++		rdma_ah_set_ah_flags(&ah_attr, IB_AH_GRH);
++
++		rdma_ah_set_subnet_prefix(&ah_attr,
++					  cpu_to_be64(port_attr.subnet_prefix));
++		rdma_ah_set_interface_id(&ah_attr,
++					 cpu_to_be64(IB_SA_WELL_KNOWN_GUID));
+ 	}
+ 
+ 	new_ah->ah = rdma_create_ah(port->agent->qp->pd, &ah_attr);
 diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index c4c5f4b..200422d 100644
+index c699a7d..c4c5f4b 100644
 --- a/drivers/infiniband/core/user_mad.c
 +++ b/drivers/infiniband/core/user_mad.c
-@@ -491,6 +491,8 @@ static ssize_t ib_umad_write(struct file *filp, const char __user *buf,
+@@ -236,16 +236,18 @@ static void recv_handler(struct ib_mad_agent *agent,
+ 	packet->mad.hdr.grh_present = !!(mad_recv_wc->wc->wc_flags & IB_WC_GRH);
+ 	if (packet->mad.hdr.grh_present) {
+ 		struct rdma_ah_attr ah_attr;
++		const struct ib_global_route *grh;
+ 
+ 		ib_init_ah_from_wc(agent->device, agent->port_num,
+ 				   mad_recv_wc->wc, mad_recv_wc->recv_buf.grh,
+ 				   &ah_attr);
+ 
+-		packet->mad.hdr.gid_index = ah_attr.grh.sgid_index;
+-		packet->mad.hdr.hop_limit = ah_attr.grh.hop_limit;
+-		packet->mad.hdr.traffic_class = ah_attr.grh.traffic_class;
+-		memcpy(packet->mad.hdr.gid, &ah_attr.grh.dgid, 16);
+-		packet->mad.hdr.flow_label = cpu_to_be32(ah_attr.grh.flow_label);
++		grh = rdma_ah_read_grh(&ah_attr);
++		packet->mad.hdr.gid_index = grh->sgid_index;
++		packet->mad.hdr.hop_limit = grh->hop_limit;
++		packet->mad.hdr.traffic_class = grh->traffic_class;
++		memcpy(packet->mad.hdr.gid, &grh->dgid, 16);
++		packet->mad.hdr.flow_label = cpu_to_be32(grh->flow_label);
+ 	}
+ 
+ 	if (queue_packet(file, agent, packet))
+@@ -489,17 +491,17 @@ static ssize_t ib_umad_write(struct file *filp, const char __user *buf,
  	}
  
  	memset(&ah_attr, 0, sizeof ah_attr);
-+	ah_attr.type = rdma_ah_find_type(file->port->ib_dev,
-+					 file->port->port_num);
- 	rdma_ah_set_dlid(&ah_attr, be16_to_cpu(packet->mad.hdr.lid));
- 	rdma_ah_set_sl(&ah_attr, packet->mad.hdr.sl);
- 	rdma_ah_set_path_bits(&ah_attr, packet->mad.hdr.path_bits);
+-	ah_attr.dlid          = be16_to_cpu(packet->mad.hdr.lid);
+-	ah_attr.sl            = packet->mad.hdr.sl;
+-	ah_attr.src_path_bits = packet->mad.hdr.path_bits;
+-	ah_attr.port_num      = file->port->port_num;
++	rdma_ah_set_dlid(&ah_attr, be16_to_cpu(packet->mad.hdr.lid));
++	rdma_ah_set_sl(&ah_attr, packet->mad.hdr.sl);
++	rdma_ah_set_path_bits(&ah_attr, packet->mad.hdr.path_bits);
++	rdma_ah_set_port_num(&ah_attr, file->port->port_num);
+ 	if (packet->mad.hdr.grh_present) {
+-		ah_attr.ah_flags = IB_AH_GRH;
+-		memcpy(ah_attr.grh.dgid.raw, packet->mad.hdr.gid, 16);
+-		ah_attr.grh.sgid_index	   = packet->mad.hdr.gid_index;
+-		ah_attr.grh.flow_label	   = be32_to_cpu(packet->mad.hdr.flow_label);
+-		ah_attr.grh.hop_limit	   = packet->mad.hdr.hop_limit;
+-		ah_attr.grh.traffic_class  = packet->mad.hdr.traffic_class;
++		rdma_ah_set_grh(&ah_attr, NULL,
++				be32_to_cpu(packet->mad.hdr.flow_label),
++				packet->mad.hdr.gid_index,
++				packet->mad.hdr.hop_limit,
++				packet->mad.hdr.traffic_class);
++		rdma_ah_set_dgid_raw(&ah_attr, packet->mad.hdr.gid);
+ 	}
+ 
+ 	ah = rdma_create_ah(agent->qp->pd, &ah_attr);
 diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index b00b4db..6ef643a 100644
+index e27c5d6..b00b4db 100644
 --- a/drivers/infiniband/core/uverbs_cmd.c
 +++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1954,6 +1954,8 @@ static int modify_qp(struct ib_uverbs_file *file,
- 	attr->alt_timeout	  = cmd->base.alt_timeout;
+@@ -1798,6 +1798,7 @@ ssize_t ib_uverbs_query_qp(struct ib_uverbs_file *file,
+ 	struct ib_qp                   *qp;
+ 	struct ib_qp_attr              *attr;
+ 	struct ib_qp_init_attr         *init_attr;
++	const struct ib_global_route   *grh;
+ 	int                            ret;
+ 
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+@@ -1847,34 +1848,39 @@ ssize_t ib_uverbs_query_qp(struct ib_uverbs_file *file,
+ 	resp.alt_port_num           = attr->alt_port_num;
+ 	resp.alt_timeout            = attr->alt_timeout;
+ 
+-	resp.dest.dlid              = attr->ah_attr.dlid;
+-	resp.dest.sl                = attr->ah_attr.sl;
+-	resp.dest.src_path_bits     = attr->ah_attr.src_path_bits;
+-	resp.dest.static_rate       = attr->ah_attr.static_rate;
+-	resp.dest.is_global         = !!(attr->ah_attr.ah_flags & IB_AH_GRH);
++	resp.dest.dlid              = rdma_ah_get_dlid(&attr->ah_attr);
++	resp.dest.sl                = rdma_ah_get_sl(&attr->ah_attr);
++	resp.dest.src_path_bits     = rdma_ah_get_path_bits(&attr->ah_attr);
++	resp.dest.static_rate       = rdma_ah_get_static_rate(&attr->ah_attr);
++	resp.dest.is_global         = !!(rdma_ah_get_ah_flags(&attr->ah_attr) &
++					 IB_AH_GRH);
+ 	if (resp.dest.is_global) {
+-		memcpy(resp.dest.dgid, attr->ah_attr.grh.dgid.raw, 16);
+-		resp.dest.flow_label        = attr->ah_attr.grh.flow_label;
+-		resp.dest.sgid_index        = attr->ah_attr.grh.sgid_index;
+-		resp.dest.hop_limit         = attr->ah_attr.grh.hop_limit;
+-		resp.dest.traffic_class     = attr->ah_attr.grh.traffic_class;
+-	}
+-	resp.dest.port_num          = attr->ah_attr.port_num;
+-
+-	resp.alt_dest.dlid          = attr->alt_ah_attr.dlid;
+-	resp.alt_dest.sl            = attr->alt_ah_attr.sl;
+-	resp.alt_dest.src_path_bits = attr->alt_ah_attr.src_path_bits;
+-	resp.alt_dest.static_rate   = attr->alt_ah_attr.static_rate;
+-	resp.alt_dest.is_global     = !!(attr->alt_ah_attr.ah_flags & IB_AH_GRH);
++		grh = rdma_ah_read_grh(&attr->ah_attr);
++		memcpy(resp.dest.dgid, grh->dgid.raw, 16);
++		resp.dest.flow_label        = grh->flow_label;
++		resp.dest.sgid_index        = grh->sgid_index;
++		resp.dest.hop_limit         = grh->hop_limit;
++		resp.dest.traffic_class     = grh->traffic_class;
++	}
++	resp.dest.port_num          = rdma_ah_get_port_num(&attr->ah_attr);
++
++	resp.alt_dest.dlid          = rdma_ah_get_dlid(&attr->alt_ah_attr);
++	resp.alt_dest.sl            = rdma_ah_get_sl(&attr->alt_ah_attr);
++	resp.alt_dest.src_path_bits = rdma_ah_get_path_bits(&attr->alt_ah_attr);
++	resp.alt_dest.static_rate
++			= rdma_ah_get_static_rate(&attr->alt_ah_attr);
++	resp.alt_dest.is_global
++			= !!(rdma_ah_get_ah_flags(&attr->alt_ah_attr) &
++						  IB_AH_GRH);
+ 	if (resp.alt_dest.is_global) {
+-		memcpy(resp.alt_dest.dgid, attr->alt_ah_attr.grh.dgid.raw, 16);
+-		resp.alt_dest.flow_label    = attr->alt_ah_attr.grh.flow_label;
+-		resp.alt_dest.sgid_index    = attr->alt_ah_attr.grh.sgid_index;
+-		resp.alt_dest.hop_limit     = attr->alt_ah_attr.grh.hop_limit;
+-		resp.alt_dest.traffic_class =
+-				attr->alt_ah_attr.grh.traffic_class;
++		grh = rdma_ah_read_grh(&attr->alt_ah_attr);
++		memcpy(resp.alt_dest.dgid, grh->dgid.raw, 16);
++		resp.alt_dest.flow_label    = grh->flow_label;
++		resp.alt_dest.sgid_index    = grh->sgid_index;
++		resp.alt_dest.hop_limit     = grh->hop_limit;
++		resp.alt_dest.traffic_class = grh->traffic_class;
+ 	}
+-	resp.alt_dest.port_num      = attr->alt_ah_attr.port_num;
++	resp.alt_dest.port_num      = rdma_ah_get_port_num(&attr->alt_ah_attr);
+ 
+ 	resp.max_send_wr            = init_attr->cap.max_send_wr;
+ 	resp.max_recv_wr            = init_attr->cap.max_recv_wr;
+@@ -1949,41 +1955,42 @@ static int modify_qp(struct ib_uverbs_file *file,
  	attr->rate_limit	  = cmd->rate_limit;
  
-+	attr->ah_attr.type = rdma_ah_find_type(qp->device,
-+					       cmd->base.dest.port_num);
  	if (cmd->base.dest.is_global) {
- 		rdma_ah_set_grh(&attr->ah_attr, NULL,
- 				cmd->base.dest.flow_label,
-@@ -1971,6 +1973,8 @@ static int modify_qp(struct ib_uverbs_file *file,
- 	rdma_ah_set_port_num(&attr->ah_attr,
- 			     cmd->base.dest.port_num);
+-		memcpy(attr->ah_attr.grh.dgid.raw, cmd->base.dest.dgid, 16);
+-		attr->ah_attr.grh.flow_label	= cmd->base.dest.flow_label;
+-		attr->ah_attr.grh.sgid_index	= cmd->base.dest.sgid_index;
+-		attr->ah_attr.grh.hop_limit	= cmd->base.dest.hop_limit;
+-		attr->ah_attr.grh.traffic_class	= cmd->base.dest.traffic_class;
+-		attr->ah_attr.ah_flags		= IB_AH_GRH;
++		rdma_ah_set_grh(&attr->ah_attr, NULL,
++				cmd->base.dest.flow_label,
++				cmd->base.dest.sgid_index,
++				cmd->base.dest.hop_limit,
++				cmd->base.dest.traffic_class);
++		rdma_ah_set_dgid_raw(&attr->ah_attr, cmd->base.dest.dgid);
+ 	} else {
+-		attr->ah_attr.ah_flags = 0;
++		rdma_ah_set_ah_flags(&attr->ah_attr, 0);
+ 	}
+-	attr->ah_attr.dlid		= cmd->base.dest.dlid;
+-	attr->ah_attr.sl		= cmd->base.dest.sl;
+-	attr->ah_attr.src_path_bits	= cmd->base.dest.src_path_bits;
+-	attr->ah_attr.static_rate	= cmd->base.dest.static_rate;
+-	attr->ah_attr.port_num		= cmd->base.dest.port_num;
++	rdma_ah_set_dlid(&attr->ah_attr, cmd->base.dest.dlid);
++	rdma_ah_set_sl(&attr->ah_attr, cmd->base.dest.sl);
++	rdma_ah_set_path_bits(&attr->ah_attr, cmd->base.dest.src_path_bits);
++	rdma_ah_set_static_rate(&attr->ah_attr, cmd->base.dest.static_rate);
++	rdma_ah_set_port_num(&attr->ah_attr,
++			     cmd->base.dest.port_num);
  
-+	attr->alt_ah_attr.type = rdma_ah_find_type(qp->device,
-+						   cmd->base.dest.port_num);
  	if (cmd->base.alt_dest.is_global) {
- 		rdma_ah_set_grh(&attr->alt_ah_attr, NULL,
- 				cmd->base.alt_dest.flow_label,
-@@ -2540,6 +2544,7 @@ ssize_t ib_uverbs_create_ah(struct ib_uverbs_file *file,
+-		memcpy(attr->alt_ah_attr.grh.dgid.raw,
+-		       cmd->base.alt_dest.dgid, 16);
+-		attr->alt_ah_attr.grh.flow_label =
+-				cmd->base.alt_dest.flow_label;
+-		attr->alt_ah_attr.grh.sgid_index =
+-				cmd->base.alt_dest.sgid_index;
+-		attr->alt_ah_attr.grh.hop_limit =
+-				cmd->base.alt_dest.hop_limit;
+-		attr->alt_ah_attr.grh.traffic_class =
+-				cmd->base.alt_dest.traffic_class;
+-		attr->alt_ah_attr.ah_flags = IB_AH_GRH;
++		rdma_ah_set_grh(&attr->alt_ah_attr, NULL,
++				cmd->base.alt_dest.flow_label,
++				cmd->base.alt_dest.sgid_index,
++				cmd->base.alt_dest.hop_limit,
++				cmd->base.alt_dest.traffic_class);
++		rdma_ah_set_dgid_raw(&attr->alt_ah_attr,
++				     cmd->base.alt_dest.dgid);
+ 	} else {
+-		attr->alt_ah_attr.ah_flags = 0;
++		rdma_ah_set_ah_flags(&attr->alt_ah_attr, 0);
+ 	}
+-	attr->alt_ah_attr.dlid		    = cmd->base.alt_dest.dlid;
+-	attr->alt_ah_attr.sl		    = cmd->base.alt_dest.sl;
+-	attr->alt_ah_attr.src_path_bits	    = cmd->base.alt_dest.src_path_bits;
+-	attr->alt_ah_attr.static_rate	    = cmd->base.alt_dest.static_rate;
+-	attr->alt_ah_attr.port_num	    = cmd->base.alt_dest.port_num;
++
++	rdma_ah_set_dlid(&attr->alt_ah_attr, cmd->base.alt_dest.dlid);
++	rdma_ah_set_sl(&attr->alt_ah_attr, cmd->base.alt_dest.sl);
++	rdma_ah_set_path_bits(&attr->alt_ah_attr,
++			      cmd->base.alt_dest.src_path_bits);
++	rdma_ah_set_static_rate(&attr->alt_ah_attr,
++				cmd->base.alt_dest.static_rate);
++	rdma_ah_set_port_num(&attr->alt_ah_attr,
++			     cmd->base.alt_dest.port_num);
+ 
+ 	if (qp->real_qp == qp) {
+ 		if (cmd->base.attr_mask & IB_QP_AV) {
+@@ -2511,6 +2518,7 @@ ssize_t ib_uverbs_create_ah(struct ib_uverbs_file *file,
+ 	struct rdma_ah_attr		attr;
+ 	int ret;
+ 	struct ib_udata                   udata;
++	u8				*dmac;
+ 
+ 	if (out_len < sizeof resp)
+ 		return -ENOSPC;
+@@ -2532,22 +2540,24 @@ ssize_t ib_uverbs_create_ah(struct ib_uverbs_file *file,
  		goto err;
  	}
  
-+	attr.type = rdma_ah_find_type(ib_dev, cmd.attr.port_num);
- 	rdma_ah_set_dlid(&attr, cmd.attr.dlid);
- 	rdma_ah_set_sl(&attr, cmd.attr.sl);
- 	rdma_ah_set_path_bits(&attr, cmd.attr.src_path_bits);
+-	attr.dlid 	       = cmd.attr.dlid;
+-	attr.sl 	       = cmd.attr.sl;
+-	attr.src_path_bits     = cmd.attr.src_path_bits;
+-	attr.static_rate       = cmd.attr.static_rate;
+-	attr.port_num 	       = cmd.attr.port_num;
+-	memset(&attr.dmac, 0, sizeof(attr.dmac));
++	rdma_ah_set_dlid(&attr, cmd.attr.dlid);
++	rdma_ah_set_sl(&attr, cmd.attr.sl);
++	rdma_ah_set_path_bits(&attr, cmd.attr.src_path_bits);
++	rdma_ah_set_static_rate(&attr, cmd.attr.static_rate);
++	rdma_ah_set_port_num(&attr, cmd.attr.port_num);
++
+ 	if (cmd.attr.is_global) {
+-		attr.ah_flags          = IB_AH_GRH;
+-		attr.grh.flow_label    = cmd.attr.grh.flow_label;
+-		attr.grh.sgid_index    = cmd.attr.grh.sgid_index;
+-		attr.grh.hop_limit     = cmd.attr.grh.hop_limit;
+-		attr.grh.traffic_class = cmd.attr.grh.traffic_class;
+-		memcpy(attr.grh.dgid.raw, cmd.attr.grh.dgid, 16);
++		rdma_ah_set_grh(&attr, NULL, cmd.attr.grh.flow_label,
++				cmd.attr.grh.sgid_index,
++				cmd.attr.grh.hop_limit,
++				cmd.attr.grh.traffic_class);
++		rdma_ah_set_dgid_raw(&attr, cmd.attr.grh.dgid);
+ 	} else {
+-		attr.ah_flags = 0;
++		rdma_ah_set_ah_flags(&attr, 0);
+ 	}
++	dmac = rdma_ah_retrieve_dmac(&attr);
++	if (dmac)
++		memset(dmac, 0, ETH_ALEN);
+ 
+ 	ah = pd->device->create_ah(pd, &attr, &udata);
+ 
+diff --git a/drivers/infiniband/core/uverbs_marshall.c b/drivers/infiniband/core/uverbs_marshall.c
+index 090986f..cb4ba16 100644
+--- a/drivers/infiniband/core/uverbs_marshall.c
++++ b/drivers/infiniband/core/uverbs_marshall.c
+@@ -37,19 +37,22 @@ void ib_copy_ah_attr_to_user(struct ib_uverbs_ah_attr *dst,
+ 			     struct rdma_ah_attr *src)
+ {
+ 	memset(&dst->grh.reserved, 0, sizeof(dst->grh.reserved));
+-	dst->dlid 	    	   = src->dlid;
+-	dst->sl   	    	   = src->sl;
+-	dst->src_path_bits 	   = src->src_path_bits;
+-	dst->static_rate   	   = src->static_rate;
+-	dst->is_global             = src->ah_flags & IB_AH_GRH ? 1 : 0;
++	dst->dlid		   = rdma_ah_get_dlid(src);
++	dst->sl			   = rdma_ah_get_sl(src);
++	dst->src_path_bits	   = rdma_ah_get_path_bits(src);
++	dst->static_rate	   = rdma_ah_get_static_rate(src);
++	dst->is_global             = rdma_ah_get_ah_flags(src) &
++					IB_AH_GRH ? 1 : 0;
+ 	if (dst->is_global) {
+-		memcpy(dst->grh.dgid, src->grh.dgid.raw, sizeof(src->grh.dgid));
+-		dst->grh.flow_label        = src->grh.flow_label;
+-		dst->grh.sgid_index        = src->grh.sgid_index;
+-		dst->grh.hop_limit         = src->grh.hop_limit;
+-		dst->grh.traffic_class     = src->grh.traffic_class;
++		const struct ib_global_route *grh = rdma_ah_read_grh(src);
++
++		memcpy(dst->grh.dgid, grh->dgid.raw, sizeof(grh->dgid));
++		dst->grh.flow_label        = grh->flow_label;
++		dst->grh.sgid_index        = grh->sgid_index;
++		dst->grh.hop_limit         = grh->hop_limit;
++		dst->grh.traffic_class     = grh->traffic_class;
+ 	}
+-	dst->port_num 	    	   = src->port_num;
++	dst->port_num		   = rdma_ah_get_port_num(src);
+ 	dst->reserved 		   = 0;
+ }
+ EXPORT_SYMBOL(ib_copy_ah_attr_to_user);
 diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 98869eb..4792f52 100644
+index a517a46..98869eb 100644
 --- a/drivers/infiniband/core/verbs.c
 +++ b/drivers/infiniband/core/verbs.c
-@@ -321,6 +321,7 @@ struct ib_ah *rdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr)
- 		ah->device  = pd->device;
- 		ah->pd      = pd;
- 		ah->uobject = NULL;
-+		ah->type    = ah_attr->type;
- 		atomic_inc(&pd->usecnt);
+@@ -525,15 +525,12 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num,
+ 			return ret;
  	}
  
-@@ -464,6 +465,7 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num,
- 	union ib_gid sgid;
+-	ah_attr->dlid = wc->slid;
+-	ah_attr->sl = wc->sl;
+-	ah_attr->src_path_bits = wc->dlid_path_bits;
+-	ah_attr->port_num = port_num;
++	rdma_ah_set_dlid(ah_attr, wc->slid);
++	rdma_ah_set_sl(ah_attr, wc->sl);
++	rdma_ah_set_path_bits(ah_attr, wc->dlid_path_bits);
++	rdma_ah_set_port_num(ah_attr, port_num);
  
- 	memset(ah_attr, 0, sizeof *ah_attr);
-+	ah_attr->type = rdma_ah_find_type(device, port_num);
- 	if (rdma_cap_eth_ah(device, port_num)) {
- 		if (wc->wc_flags & IB_WC_WITH_NETWORK_HDR_TYPE)
- 			net_type = wc->network_hdr_type;
-@@ -494,7 +496,7 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num,
- 			return -ENODEV;
+ 	if (wc->wc_flags & IB_WC_GRH) {
+-		ah_attr->ah_flags = IB_AH_GRH;
+-		ah_attr->grh.dgid = sgid;
+-
+ 		if (!rdma_cap_eth_ah(device, port_num)) {
+ 			if (dgid.global.interface_id != cpu_to_be64(IB_SA_WELL_KNOWN_GUID)) {
+ 				ret = ib_find_cached_gid_by_port(device, &dgid,
+@@ -547,11 +544,12 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num,
+ 			}
+ 		}
  
- 		ret = rdma_addr_find_l2_eth_by_grh(&dgid, &sgid,
--						   ah_attr->dmac,
-+						   ah_attr->roce.dmac,
- 						   wc->wc_flags & IB_WC_WITH_VLAN ?
- 						   NULL : &vlan_id,
- 						   &if_index, &hoplimit);
-@@ -571,6 +573,9 @@ struct ib_ah *ib_create_ah_from_wc(struct ib_pd *pd, const struct ib_wc *wc,
- 
- int rdma_modify_ah(struct ib_ah *ah, struct rdma_ah_attr *ah_attr)
- {
-+	if (ah->type != ah_attr->type)
-+		return -EINVAL;
+-		ah_attr->grh.sgid_index = (u8) gid_index;
+ 		flow_class = be32_to_cpu(grh->version_tclass_flow);
+-		ah_attr->grh.flow_label = flow_class & 0xFFFFF;
+-		ah_attr->grh.hop_limit = hoplimit;
+-		ah_attr->grh.traffic_class = (flow_class >> 20) & 0xFF;
++		rdma_ah_set_grh(ah_attr, &sgid,
++				flow_class & 0xFFFFF,
++				(u8)gid_index, hoplimit,
++				(flow_class >> 20) & 0xFF);
 +
- 	return ah->device->modify_ah ?
- 		ah->device->modify_ah(ah, ah_attr) :
- 		-ENOSYS;
-@@ -1207,14 +1212,14 @@ int ib_resolve_eth_dmac(struct ib_device *device,
- 	if (!rdma_is_port_valid(device, rdma_ah_get_port_num(ah_attr)))
+ 	}
+ 	return 0;
+ }
+@@ -1204,15 +1202,18 @@ int ib_resolve_eth_dmac(struct ib_device *device,
+ 			struct rdma_ah_attr *ah_attr)
+ {
+ 	int           ret = 0;
++	struct ib_global_route *grh;
+ 
+-	if (!rdma_is_port_valid(device, ah_attr->port_num))
++	if (!rdma_is_port_valid(device, rdma_ah_get_port_num(ah_attr)))
  		return -EINVAL;
  
--	if (!rdma_cap_eth_ah(device, rdma_ah_get_port_num(ah_attr)))
-+	if (ah_attr->type != RDMA_AH_ATTR_TYPE_ROCE)
+-	if (!rdma_cap_eth_ah(device, ah_attr->port_num))
++	if (!rdma_cap_eth_ah(device, rdma_ah_get_port_num(ah_attr)))
  		return 0;
  
- 	grh = rdma_ah_retrieve_grh(ah_attr);
- 
- 	if (rdma_link_local_addr((struct in6_addr *)grh->dgid.raw)) {
- 		rdma_get_ll_mac((struct in6_addr *)grh->dgid.raw,
--				ah_attr->dmac);
-+				ah_attr->roce.dmac);
+-	if (rdma_link_local_addr((struct in6_addr *)ah_attr->grh.dgid.raw)) {
+-		rdma_get_ll_mac((struct in6_addr *)ah_attr->grh.dgid.raw,
++	grh = rdma_ah_retrieve_grh(ah_attr);
++
++	if (rdma_link_local_addr((struct in6_addr *)grh->dgid.raw)) {
++		rdma_get_ll_mac((struct in6_addr *)grh->dgid.raw,
+ 				ah_attr->dmac);
  	} else {
  		union ib_gid		sgid;
- 		struct ib_gid_attr	sgid_attr;
-@@ -1236,7 +1241,7 @@ int ib_resolve_eth_dmac(struct ib_device *device,
+@@ -1221,8 +1222,8 @@ int ib_resolve_eth_dmac(struct ib_device *device,
+ 		int			hop_limit;
  
- 		ret =
- 		rdma_addr_find_l2_eth_by_grh(&sgid, &grh->dgid,
--					     ah_attr->dmac,
-+					     ah_attr->roce.dmac,
- 					     NULL, &ifindex, &hop_limit);
+ 		ret = ib_query_gid(device,
+-				   ah_attr->port_num,
+-				   ah_attr->grh.sgid_index,
++				   rdma_ah_get_port_num(ah_attr),
++				   grh->sgid_index,
+ 				   &sgid, &sgid_attr);
+ 
+ 		if (ret || !sgid_attr.ndev) {
+@@ -1233,14 +1234,14 @@ int ib_resolve_eth_dmac(struct ib_device *device,
+ 
+ 		ifindex = sgid_attr.ndev->ifindex;
+ 
+-		ret = rdma_addr_find_l2_eth_by_grh(&sgid,
+-						   &ah_attr->grh.dgid,
+-						   ah_attr->dmac,
+-						   NULL, &ifindex, &hop_limit);
++		ret =
++		rdma_addr_find_l2_eth_by_grh(&sgid, &grh->dgid,
++					     ah_attr->dmac,
++					     NULL, &ifindex, &hop_limit);
  
  		dev_put(sgid_attr.ndev);
+ 
+-		ah_attr->grh.hop_limit = hop_limit;
++		grh->hop_limit = hop_limit;
+ 	}
+ out:
+ 	return ret;
 diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index 0de43c7..ce2513a 100644
+index 300d472..0de43c7 100644
 --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
 +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -597,7 +597,7 @@ struct ib_ah *bnxt_re_create_ah(struct ib_pd *ib_pd,
+@@ -530,13 +530,14 @@ struct ib_ah *bnxt_re_create_ah(struct ib_pd *ib_pd,
+ 	struct bnxt_re_pd *pd = container_of(ib_pd, struct bnxt_re_pd, ib_pd);
+ 	struct bnxt_re_dev *rdev = pd->rdev;
+ 	struct bnxt_re_ah *ah;
++	const struct ib_global_route *grh = rdma_ah_read_grh(ah_attr);
+ 	int rc;
+ 	u16 vlan_tag;
+ 	u8 nw_type;
+ 
+ 	struct ib_gid_attr sgid_attr;
+ 
+-	if (!(ah_attr->ah_flags & IB_AH_GRH)) {
++	if (!(rdma_ah_get_ah_flags(ah_attr) & IB_AH_GRH)) {
+ 		dev_err(rdev_to_dev(rdev), "Failed to alloc AH: GRH not set");
+ 		return ERR_PTR(-EINVAL);
+ 	}
+@@ -548,33 +549,33 @@ struct ib_ah *bnxt_re_create_ah(struct ib_pd *ib_pd,
+ 	ah->qplib_ah.pd = &pd->qplib_pd;
+ 
+ 	/* Supply the configuration for the HW */
+-	memcpy(ah->qplib_ah.dgid.data, ah_attr->grh.dgid.raw,
++	memcpy(ah->qplib_ah.dgid.data, grh->dgid.raw,
+ 	       sizeof(union ib_gid));
+ 	/*
+ 	 * If RoCE V2 is enabled, stack will have two entries for
+ 	 * each GID entry. Avoiding this duplicte entry in HW. Dividing
+ 	 * the GID index by 2 for RoCE V2
+ 	 */
+-	ah->qplib_ah.sgid_index = ah_attr->grh.sgid_index / 2;
+-	ah->qplib_ah.host_sgid_index = ah_attr->grh.sgid_index;
+-	ah->qplib_ah.traffic_class = ah_attr->grh.traffic_class;
+-	ah->qplib_ah.flow_label = ah_attr->grh.flow_label;
+-	ah->qplib_ah.hop_limit = ah_attr->grh.hop_limit;
+-	ah->qplib_ah.sl = ah_attr->sl;
++	ah->qplib_ah.sgid_index = grh->sgid_index / 2;
++	ah->qplib_ah.host_sgid_index = grh->sgid_index;
++	ah->qplib_ah.traffic_class = grh->traffic_class;
++	ah->qplib_ah.flow_label = grh->flow_label;
++	ah->qplib_ah.hop_limit = grh->hop_limit;
++	ah->qplib_ah.sl = rdma_ah_get_sl(ah_attr);
+ 	if (ib_pd->uobject &&
+ 	    !rdma_is_multicast_addr((struct in6_addr *)
+-				    ah_attr->grh.dgid.raw) &&
++				    grh->dgid.raw) &&
+ 	    !rdma_link_local_addr((struct in6_addr *)
+-				  ah_attr->grh.dgid.raw)) {
++				  grh->dgid.raw)) {
+ 		union ib_gid sgid;
+ 
+ 		rc = ib_get_cached_gid(&rdev->ibdev, 1,
+-				       ah_attr->grh.sgid_index, &sgid,
++				       grh->sgid_index, &sgid,
+ 				       &sgid_attr);
+ 		if (rc) {
+ 			dev_err(rdev_to_dev(rdev),
+ 				"Failed to query gid at index %d",
+-				ah_attr->grh.sgid_index);
++				grh->sgid_index);
+ 			goto fail;
+ 		}
+ 		if (sgid_attr.ndev) {
+@@ -595,7 +596,7 @@ struct ib_ah *bnxt_re_create_ah(struct ib_pd *ib_pd,
+ 			ah->qplib_ah.nw_type = CMDQ_CREATE_AH_TYPE_V1;
  			break;
  		}
- 		rc = rdma_addr_find_l2_eth_by_grh(&sgid, &grh->dgid,
--						  ah_attr->dmac, &vlan_tag,
-+						  ah_attr->roce.dmac, &vlan_tag,
+-		rc = rdma_addr_find_l2_eth_by_grh(&sgid, &ah_attr->grh.dgid,
++		rc = rdma_addr_find_l2_eth_by_grh(&sgid, &grh->dgid,
+ 						  ah_attr->dmac, &vlan_tag,
  						  &sgid_attr.ndev->ifindex,
  						  NULL);
- 		if (rc) {
-@@ -606,7 +606,7 @@ struct ib_ah *bnxt_re_create_ah(struct ib_pd *ib_pd,
- 		}
- 	}
- 
--	memcpy(ah->qplib_ah.dmac, ah_attr->dmac, ETH_ALEN);
-+	memcpy(ah->qplib_ah.dmac, ah_attr->roce.dmac, ETH_ALEN);
- 	rc = bnxt_qplib_create_ah(&rdev->qplib_res, &ah->qplib_ah);
- 	if (rc) {
- 		dev_err(rdev_to_dev(rdev), "Failed to allocate HW AH");
-@@ -644,8 +644,9 @@ int bnxt_re_query_ah(struct ib_ah *ib_ah, struct rdma_ah_attr *ah_attr)
+@@ -643,15 +644,14 @@ int bnxt_re_query_ah(struct ib_ah *ib_ah, struct rdma_ah_attr *ah_attr)
  {
  	struct bnxt_re_ah *ah = container_of(ib_ah, struct bnxt_re_ah, ib_ah);
  
-+	ah_attr->type = ib_ah->type;
- 	rdma_ah_set_sl(ah_attr, ah->qplib_ah.sl);
--	memcpy(ah_attr->dmac, ah->qplib_ah.dmac, ETH_ALEN);
-+	memcpy(ah_attr->roce.dmac, ah->qplib_ah.dmac, ETH_ALEN);
- 	rdma_ah_set_grh(ah_attr, NULL, 0,
- 			ah->qplib_ah.host_sgid_index,
- 			0, ah->qplib_ah.traffic_class);
-@@ -1280,7 +1281,8 @@ int bnxt_re_modify_qp(struct ib_qp *ib_qp, struct ib_qp_attr *qp_attr,
- 		qp->qplib_qp.ah.hop_limit = grh->hop_limit;
- 		qp->qplib_qp.ah.traffic_class = grh->traffic_class;
- 		qp->qplib_qp.ah.sl = rdma_ah_get_sl(&qp_attr->ah_attr);
--		ether_addr_copy(qp->qplib_qp.ah.dmac, qp_attr->ah_attr.dmac);
-+		ether_addr_copy(qp->qplib_qp.ah.dmac,
-+				qp_attr->ah_attr.roce.dmac);
+-	memcpy(ah_attr->grh.dgid.raw, ah->qplib_ah.dgid.data,
+-	       sizeof(union ib_gid));
+-	ah_attr->grh.sgid_index = ah->qplib_ah.host_sgid_index;
+-	ah_attr->grh.traffic_class = ah->qplib_ah.traffic_class;
+-	ah_attr->sl = ah->qplib_ah.sl;
++	rdma_ah_set_sl(ah_attr, ah->qplib_ah.sl);
+ 	memcpy(ah_attr->dmac, ah->qplib_ah.dmac, ETH_ALEN);
+-	ah_attr->ah_flags = IB_AH_GRH;
+-	ah_attr->port_num = 1;
+-	ah_attr->static_rate = 0;
++	rdma_ah_set_grh(ah_attr, NULL, 0,
++			ah->qplib_ah.host_sgid_index,
++			0, ah->qplib_ah.traffic_class);
++	rdma_ah_set_dgid_raw(ah_attr, ah->qplib_ah.dgid.data);
++	rdma_ah_set_port_num(ah_attr, 1);
++	rdma_ah_set_static_rate(ah_attr, 0);
+ 	return 0;
+ }
+ 
+@@ -1258,6 +1258,9 @@ int bnxt_re_modify_qp(struct ib_qp *ib_qp, struct ib_qp_attr *qp_attr,
+ 		qp->qplib_qp.qkey = qp_attr->qkey;
+ 	}
+ 	if (qp_attr_mask & IB_QP_AV) {
++		const struct ib_global_route *grh =
++			rdma_ah_read_grh(&qp_attr->ah_attr);
++
+ 		qp->qplib_qp.modify_flags |= CMDQ_MODIFY_QP_MODIFY_MASK_DGID |
+ 				     CMDQ_MODIFY_QP_MODIFY_MASK_FLOW_LABEL |
+ 				     CMDQ_MODIFY_QP_MODIFY_MASK_SGID_INDEX |
+@@ -1265,25 +1268,22 @@ int bnxt_re_modify_qp(struct ib_qp *ib_qp, struct ib_qp_attr *qp_attr,
+ 				     CMDQ_MODIFY_QP_MODIFY_MASK_TRAFFIC_CLASS |
+ 				     CMDQ_MODIFY_QP_MODIFY_MASK_DEST_MAC |
+ 				     CMDQ_MODIFY_QP_MODIFY_MASK_VLAN_ID;
+-		memcpy(qp->qplib_qp.ah.dgid.data, qp_attr->ah_attr.grh.dgid.raw,
++		memcpy(qp->qplib_qp.ah.dgid.data, grh->dgid.raw,
+ 		       sizeof(qp->qplib_qp.ah.dgid.data));
+-		qp->qplib_qp.ah.flow_label = qp_attr->ah_attr.grh.flow_label;
++		qp->qplib_qp.ah.flow_label = grh->flow_label;
+ 		/* If RoCE V2 is enabled, stack will have two entries for
+ 		 * each GID entry. Avoiding this duplicte entry in HW. Dividing
+ 		 * the GID index by 2 for RoCE V2
+ 		 */
+-		qp->qplib_qp.ah.sgid_index =
+-					qp_attr->ah_attr.grh.sgid_index / 2;
+-		qp->qplib_qp.ah.host_sgid_index =
+-					qp_attr->ah_attr.grh.sgid_index;
+-		qp->qplib_qp.ah.hop_limit = qp_attr->ah_attr.grh.hop_limit;
+-		qp->qplib_qp.ah.traffic_class =
+-					qp_attr->ah_attr.grh.traffic_class;
+-		qp->qplib_qp.ah.sl = qp_attr->ah_attr.sl;
++		qp->qplib_qp.ah.sgid_index = grh->sgid_index / 2;
++		qp->qplib_qp.ah.host_sgid_index = grh->sgid_index;
++		qp->qplib_qp.ah.hop_limit = grh->hop_limit;
++		qp->qplib_qp.ah.traffic_class = grh->traffic_class;
++		qp->qplib_qp.ah.sl = rdma_ah_get_sl(&qp_attr->ah_attr);
+ 		ether_addr_copy(qp->qplib_qp.ah.dmac, qp_attr->ah_attr.dmac);
  
  		status = ib_get_cached_gid(&rdev->ibdev, 1,
- 					   grh->sgid_index,
-@@ -1423,13 +1425,14 @@ int bnxt_re_query_qp(struct ib_qp *ib_qp, struct ib_qp_attr *qp_attr,
+-					   qp_attr->ah_attr.grh.sgid_index,
++					   grh->sgid_index,
+ 					   &sgid, &sgid_attr);
+ 		if (!status && sgid_attr.ndev) {
+ 			memcpy(qp->qplib_qp.smac, sgid_attr.ndev->dev_addr,
+@@ -1423,13 +1423,12 @@ int bnxt_re_query_qp(struct ib_qp *ib_qp, struct ib_qp_attr *qp_attr,
  	qp_attr->qp_access_flags = __to_ib_access_flags(qplib_qp.access);
  	qp_attr->pkey_index = qplib_qp.pkey_index;
  	qp_attr->qkey = qplib_qp.qkey;
-+	qp_attr->ah_attr.type = RDMA_AH_ATTR_TYPE_ROCE;
- 	rdma_ah_set_grh(&qp_attr->ah_attr, NULL, qplib_qp.ah.flow_label,
- 			qplib_qp.ah.host_sgid_index,
- 			qplib_qp.ah.hop_limit,
- 			qplib_qp.ah.traffic_class);
- 	rdma_ah_set_dgid_raw(&qp_attr->ah_attr, qplib_qp.ah.dgid.data);
- 	rdma_ah_set_sl(&qp_attr->ah_attr, qplib_qp.ah.sl);
--	ether_addr_copy(qp_attr->ah_attr.dmac, qplib_qp.ah.dmac);
-+	ether_addr_copy(qp_attr->ah_attr.roce.dmac, qplib_qp.ah.dmac);
+-	memcpy(qp_attr->ah_attr.grh.dgid.raw, qplib_qp.ah.dgid.data,
+-	       sizeof(qplib_qp.ah.dgid.data));
+-	qp_attr->ah_attr.grh.flow_label = qplib_qp.ah.flow_label;
+-	qp_attr->ah_attr.grh.sgid_index = qplib_qp.ah.host_sgid_index;
+-	qp_attr->ah_attr.grh.hop_limit = qplib_qp.ah.hop_limit;
+-	qp_attr->ah_attr.grh.traffic_class = qplib_qp.ah.traffic_class;
+-	qp_attr->ah_attr.sl = qplib_qp.ah.sl;
++	rdma_ah_set_grh(&qp_attr->ah_attr, NULL, qplib_qp.ah.flow_label,
++			qplib_qp.ah.host_sgid_index,
++			qplib_qp.ah.hop_limit,
++			qplib_qp.ah.traffic_class);
++	rdma_ah_set_dgid_raw(&qp_attr->ah_attr, qplib_qp.ah.dgid.data);
++	rdma_ah_set_sl(&qp_attr->ah_attr, qplib_qp.ah.sl);
+ 	ether_addr_copy(qp_attr->ah_attr.dmac, qplib_qp.ah.dmac);
  	qp_attr->path_mtu = __to_ib_mtu(qplib_qp.path_mtu);
  	qp_attr->timeout = qplib_qp.timeout;
- 	qp_attr->retry_cnt = qplib_qp.retry_cnt;
+diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
+index fc5753c..e1a5117 100644
+--- a/drivers/infiniband/hw/hfi1/driver.c
++++ b/drivers/infiniband/hw/hfi1/driver.c
+@@ -479,12 +479,12 @@ void hfi1_process_ecn_slowpath(struct rvt_qp *qp, struct hfi1_packet *pkt,
+ 			(dlid != be16_to_cpu(IB_LID_PERMISSIVE));
+ 		break;
+ 	case IB_QPT_UC:
+-		rlid = qp->remote_ah_attr.dlid;
++		rlid = rdma_ah_get_dlid(&qp->remote_ah_attr);
+ 		rqpn = qp->remote_qpn;
+ 		svc_type = IB_CC_SVCTYPE_UC;
+ 		break;
+ 	case IB_QPT_RC:
+-		rlid = qp->remote_ah_attr.dlid;
++		rlid = rdma_ah_get_dlid(&qp->remote_ah_attr);
+ 		rqpn = qp->remote_qpn;
+ 		svc_type = IB_CC_SVCTYPE_RC;
+ 		break;
+diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
+index b2db69e..682cccd 100644
+--- a/drivers/infiniband/hw/hfi1/mad.c
++++ b/drivers/infiniband/hw/hfi1/mad.c
+@@ -1162,9 +1162,9 @@ static int __subn_set_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
+ 		spin_lock_irqsave(&ibp->rvp.lock, flags);
+ 		if (ibp->rvp.sm_ah) {
+ 			if (smlid != ibp->rvp.sm_lid)
+-				ibp->rvp.sm_ah->attr.dlid = smlid;
++				rdma_ah_set_dlid(&ibp->rvp.sm_ah->attr, smlid);
+ 			if (msl != ibp->rvp.sm_sl)
+-				ibp->rvp.sm_ah->attr.sl = msl;
++				rdma_ah_set_sl(&ibp->rvp.sm_ah->attr, msl);
+ 		}
+ 		spin_unlock_irqrestore(&ibp->rvp.lock, flags);
+ 		if (smlid != ibp->rvp.sm_lid)
+diff --git a/drivers/infiniband/hw/hfi1/qp.c b/drivers/infiniband/hw/hfi1/qp.c
+index c4ebd09..4573e4c 100644
+--- a/drivers/infiniband/hw/hfi1/qp.c
++++ b/drivers/infiniband/hw/hfi1/qp.c
+@@ -294,7 +294,7 @@ int hfi1_check_send_wqe(struct rvt_qp *qp,
+ 		ah = ibah_to_rvtah(wqe->ud_wr.ah);
+ 		if (wqe->length > (1 << ah->log_pmtu))
+ 			return -EINVAL;
+-		if (ibp->sl_to_sc[ah->attr.sl] == 0xf)
++		if (ibp->sl_to_sc[rdma_ah_get_sl(&ah->attr)] == 0xf)
+ 			return -EINVAL;
+ 	default:
+ 		break;
+@@ -631,8 +631,8 @@ void qp_iter_print(struct seq_file *s, struct qp_iter *iter)
+ 		   qp->s_tail, qp->s_head, qp->s_size,
+ 		   qp->s_avail,
+ 		   qp->remote_qpn,
+-		   qp->remote_ah_attr.dlid,
+-		   qp->remote_ah_attr.sl,
++		   rdma_ah_get_dlid(&qp->remote_ah_attr),
++		   rdma_ah_get_sl(&qp->remote_ah_attr),
+ 		   qp->pmtu,
+ 		   qp->s_retry,
+ 		   qp->s_retry_cnt,
+@@ -748,7 +748,7 @@ void hfi1_migrate_qp(struct rvt_qp *qp)
+ 
+ 	qp->s_mig_state = IB_MIG_MIGRATED;
+ 	qp->remote_ah_attr = qp->alt_ah_attr;
+-	qp->port_num = qp->alt_ah_attr.port_num;
++	qp->port_num = rdma_ah_get_port_num(&qp->alt_ah_attr);
+ 	qp->s_pkey_index = qp->s_alt_pkey_index;
+ 	qp->s_flags |= RVT_S_AHG_CLEAR;
+ 	priv->s_sc = ah_to_sc(qp->ibqp.device, &qp->remote_ah_attr);
+@@ -778,7 +778,7 @@ u32 mtu_from_qp(struct rvt_dev_info *rdi, struct rvt_qp *qp, u32 pmtu)
+ 	u8 sc, vl;
+ 
+ 	ibp = &dd->pport[qp->port_num - 1].ibport_data;
+-	sc = ibp->sl_to_sc[qp->remote_ah_attr.sl];
++	sc = ibp->sl_to_sc[rdma_ah_get_sl(&qp->remote_ah_attr)];
+ 	vl = sc_to_vlt(dd, sc);
+ 
+ 	mtu = verbs_mtu_enum_to_int(qp->ibqp.device, pmtu);
+@@ -861,7 +861,7 @@ void hfi1_error_port_qps(struct hfi1_ibport *ibp, u8 sl)
+ 			if (qp->port_num == ppd->port &&
+ 			    (qp->ibqp.qp_type == IB_QPT_UC ||
+ 			     qp->ibqp.qp_type == IB_QPT_RC) &&
+-			    qp->remote_ah_attr.sl == sl &&
++			    rdma_ah_get_sl(&qp->remote_ah_attr) == sl &&
+ 			    (ib_rvt_state_ops[qp->state] &
+ 			     RVT_POST_SEND_OK)) {
+ 				spin_lock_irq(&qp->r_lock);
+diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
+index 9b3333f..75a729c 100644
+--- a/drivers/infiniband/hw/hfi1/rc.c
++++ b/drivers/infiniband/hw/hfi1/rc.c
+@@ -274,7 +274,7 @@ int hfi1_make_rc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 		goto bail_no_tx;
+ 
+ 	ohdr = &ps->s_txreq->phdr.hdr.u.oth;
+-	if (qp->remote_ah_attr.ah_flags & IB_AH_GRH)
++	if (rdma_ah_get_ah_flags(&qp->remote_ah_attr) & IB_AH_GRH)
+ 		ohdr = &ps->s_txreq->phdr.hdr.u.l.oth;
+ 
+ 	/* Sending responses has higher priority over sending requests. */
+@@ -744,9 +744,10 @@ void hfi1_send_rc_ack(struct hfi1_ctxtdata *rcd, struct rvt_qp *qp,
+ 	/* Construct the header */
+ 	/* header size in 32-bit words LRH+BTH+AETH = (8+12+4)/4 */
+ 	hwords = 6;
+-	if (unlikely(qp->remote_ah_attr.ah_flags & IB_AH_GRH)) {
++	if (unlikely(rdma_ah_get_ah_flags(&qp->remote_ah_attr) & IB_AH_GRH)) {
+ 		hwords += hfi1_make_grh(ibp, &hdr.u.l.grh,
+-				       &qp->remote_ah_attr.grh, hwords, 0);
++					rdma_ah_read_grh(&qp->remote_ah_attr),
++					hwords, 0);
+ 		ohdr = &hdr.u.l.oth;
+ 		lrh0 = HFI1_LRH_GRH;
+ 	} else {
+@@ -763,14 +764,16 @@ void hfi1_send_rc_ack(struct hfi1_ctxtdata *rcd, struct rvt_qp *qp,
+ 					     IB_AETH_CREDIT_SHIFT));
+ 	else
+ 		ohdr->u.aeth = rvt_compute_aeth(qp);
+-	sc5 = ibp->sl_to_sc[qp->remote_ah_attr.sl];
++	sc5 = ibp->sl_to_sc[rdma_ah_get_sl(&qp->remote_ah_attr)];
+ 	/* set PBC_DC_INFO bit (aka SC[4]) in pbc_flags */
+ 	pbc_flags |= ((!!(sc5 & 0x10)) << PBC_DC_INFO_SHIFT);
+-	lrh0 |= (sc5 & 0xf) << 12 | (qp->remote_ah_attr.sl & 0xf) << 4;
++	lrh0 |= (sc5 & 0xf) << 12 | (rdma_ah_get_sl(&qp->remote_ah_attr)
++				     & 0xf) << 4;
+ 	hdr.lrh[0] = cpu_to_be16(lrh0);
+-	hdr.lrh[1] = cpu_to_be16(qp->remote_ah_attr.dlid);
++	hdr.lrh[1] = cpu_to_be16(rdma_ah_get_dlid(&qp->remote_ah_attr));
+ 	hdr.lrh[2] = cpu_to_be16(hwords + SIZE_OF_CRC);
+-	hdr.lrh[3] = cpu_to_be16(ppd->lid | qp->remote_ah_attr.src_path_bits);
++	hdr.lrh[3] = cpu_to_be16(ppd->lid |
++				 rdma_ah_get_path_bits(&qp->remote_ah_attr));
+ 	ohdr->bth[0] = cpu_to_be32(bth0);
+ 	ohdr->bth[1] = cpu_to_be32(qp->remote_qpn);
+ 	ohdr->bth[1] |= cpu_to_be32((!!is_fecn) << IB_BECN_SHIFT);
+@@ -1100,10 +1103,11 @@ static struct rvt_swqe *do_rc_completion(struct rvt_qp *qp,
+ 		 */
+ 		if (ppd->dd->flags & HFI1_HAS_SEND_DMA) {
+ 			struct sdma_engine *engine;
++			u8 sl = rdma_ah_get_sl(&qp->remote_ah_attr);
+ 			u8 sc5;
+ 
+ 			/* For now use sc to find engine */
+-			sc5 = ibp->sl_to_sc[qp->remote_ah_attr.sl];
++			sc5 = ibp->sl_to_sc[sl];
+ 			engine = qp_to_sdma_engine(qp, sc5);
+ 			sdma_engine_progress_schedule(engine);
+ 		}
+@@ -2098,7 +2102,7 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
+ 			wc.opcode = IB_WC_RECV;
+ 		wc.qp = &qp->ibqp;
+ 		wc.src_qp = qp->remote_qpn;
+-		wc.slid = qp->remote_ah_attr.dlid;
++		wc.slid = rdma_ah_get_dlid(&qp->remote_ah_attr);
+ 		/*
+ 		 * It seems that IB mandates the presence of an SL in a
+ 		 * work completion only for the UD transport (see section
+@@ -2110,7 +2114,7 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
+ 		 *
+ 		 * See also OPA Vol. 1, section 9.7.6, and table 9-17.
+ 		 */
+-		wc.sl = qp->remote_ah_attr.sl;
++		wc.sl = rdma_ah_get_sl(&qp->remote_ah_attr);
+ 		/* zero fields that are N/A */
+ 		wc.vendor_err = 0;
+ 		wc.pkey_index = 0;
+diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
+index ccf8d80..891ba0a 100644
+--- a/drivers/infiniband/hw/hfi1/ruc.c
++++ b/drivers/infiniband/hw/hfi1/ruc.c
+@@ -219,23 +219,28 @@ int hfi1_ruc_check_hdr(struct hfi1_ibport *ibp, struct ib_header *hdr,
+ {
+ 	__be64 guid;
+ 	unsigned long flags;
+-	u8 sc5 = ibp->sl_to_sc[qp->remote_ah_attr.sl];
++	u8 sc5 = ibp->sl_to_sc[rdma_ah_get_sl(&qp->remote_ah_attr)];
+ 
+ 	if (qp->s_mig_state == IB_MIG_ARMED && (bth0 & IB_BTH_MIG_REQ)) {
+ 		if (!has_grh) {
+-			if (qp->alt_ah_attr.ah_flags & IB_AH_GRH)
++			if (rdma_ah_get_ah_flags(&qp->alt_ah_attr) &
++			    IB_AH_GRH)
+ 				goto err;
+ 		} else {
+-			if (!(qp->alt_ah_attr.ah_flags & IB_AH_GRH))
++			const struct ib_global_route *grh;
++
++			if (!(rdma_ah_get_ah_flags(&qp->alt_ah_attr) &
++			      IB_AH_GRH))
+ 				goto err;
+-			guid = get_sguid(ibp, qp->alt_ah_attr.grh.sgid_index);
++			grh = rdma_ah_read_grh(&qp->alt_ah_attr);
++			guid = get_sguid(ibp, grh->sgid_index);
+ 			if (!gid_ok(&hdr->u.l.grh.dgid, ibp->rvp.gid_prefix,
+ 				    guid))
+ 				goto err;
+ 			if (!gid_ok(
+ 				&hdr->u.l.grh.sgid,
+-				qp->alt_ah_attr.grh.dgid.global.subnet_prefix,
+-				qp->alt_ah_attr.grh.dgid.global.interface_id))
++				grh->dgid.global.subnet_prefix,
++				grh->dgid.global.interface_id))
+ 				goto err;
+ 		}
+ 		if (unlikely(rcv_pkey_check(ppd_from_ibp(ibp), (u16)bth0, sc5,
+@@ -249,28 +254,34 @@ int hfi1_ruc_check_hdr(struct hfi1_ibport *ibp, struct ib_header *hdr,
+ 			goto err;
+ 		}
+ 		/* Validate the SLID. See Ch. 9.6.1.5 and 17.2.8 */
+-		if (ib_get_slid(hdr) != qp->alt_ah_attr.dlid ||
+-		    ppd_from_ibp(ibp)->port != qp->alt_ah_attr.port_num)
++		if (ib_get_slid(hdr) !=
++			rdma_ah_get_dlid(&qp->alt_ah_attr) ||
++		    ppd_from_ibp(ibp)->port !=
++			rdma_ah_get_port_num(&qp->alt_ah_attr))
+ 			goto err;
+ 		spin_lock_irqsave(&qp->s_lock, flags);
+ 		hfi1_migrate_qp(qp);
+ 		spin_unlock_irqrestore(&qp->s_lock, flags);
+ 	} else {
+ 		if (!has_grh) {
+-			if (qp->remote_ah_attr.ah_flags & IB_AH_GRH)
++			if (rdma_ah_get_ah_flags(&qp->remote_ah_attr) &
++						 IB_AH_GRH)
+ 				goto err;
+ 		} else {
+-			if (!(qp->remote_ah_attr.ah_flags & IB_AH_GRH))
++			const struct ib_global_route *grh;
++
++			if (!(rdma_ah_get_ah_flags(&qp->remote_ah_attr) &
++						   IB_AH_GRH))
+ 				goto err;
+-			guid = get_sguid(ibp,
+-					 qp->remote_ah_attr.grh.sgid_index);
++			grh = rdma_ah_read_grh(&qp->remote_ah_attr);
++			guid = get_sguid(ibp, grh->sgid_index);
+ 			if (!gid_ok(&hdr->u.l.grh.dgid, ibp->rvp.gid_prefix,
+ 				    guid))
+ 				goto err;
+ 			if (!gid_ok(
+ 			     &hdr->u.l.grh.sgid,
+-			     qp->remote_ah_attr.grh.dgid.global.subnet_prefix,
+-			     qp->remote_ah_attr.grh.dgid.global.interface_id))
++			     grh->dgid.global.subnet_prefix,
++			     grh->dgid.global.interface_id))
+ 				goto err;
+ 		}
+ 		if (unlikely(rcv_pkey_check(ppd_from_ibp(ibp), (u16)bth0, sc5,
+@@ -284,7 +295,8 @@ int hfi1_ruc_check_hdr(struct hfi1_ibport *ibp, struct ib_header *hdr,
+ 			goto err;
+ 		}
+ 		/* Validate the SLID. See Ch. 9.6.1.5 */
+-		if (ib_get_slid(hdr) != qp->remote_ah_attr.dlid ||
++		if (ib_get_slid(hdr) !=
++			rdma_ah_get_dlid(&qp->remote_ah_attr) ||
+ 		    ppd_from_ibp(ibp)->port != qp->port_num)
+ 			goto err;
+ 		if (qp->s_mig_state == IB_MIG_REARM &&
+@@ -542,8 +554,8 @@ static void ruc_loopback(struct rvt_qp *sqp)
+ 	wc.byte_len = wqe->length;
+ 	wc.qp = &qp->ibqp;
+ 	wc.src_qp = qp->remote_qpn;
+-	wc.slid = qp->remote_ah_attr.dlid;
+-	wc.sl = qp->remote_ah_attr.sl;
++	wc.slid = rdma_ah_get_dlid(&qp->remote_ah_attr);
++	wc.sl = rdma_ah_get_sl(&qp->remote_ah_attr);
+ 	wc.port_num = 1;
+ 	/* Signal completion event if the solicited bit is set. */
+ 	rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
+@@ -637,7 +649,7 @@ static void ruc_loopback(struct rvt_qp *sqp)
+  * Return the size of the header in 32 bit words.
+  */
+ u32 hfi1_make_grh(struct hfi1_ibport *ibp, struct ib_grh *hdr,
+-		  struct ib_global_route *grh, u32 hwords, u32 nwords)
++		  const struct ib_global_route *grh, u32 hwords, u32 nwords)
+ {
+ 	hdr->version_tclass_flow =
+ 		cpu_to_be32((IB_GRH_VERSION << IB_GRH_VERSION_SHIFT) |
+@@ -731,15 +743,17 @@ void hfi1_make_ruc_header(struct rvt_qp *qp, struct ib_other_headers *ohdr,
+ 	extra_bytes = -ps->s_txreq->s_cur_size & 3;
+ 	nwords = (ps->s_txreq->s_cur_size + extra_bytes) >> 2;
+ 	lrh0 = HFI1_LRH_BTH;
+-	if (unlikely(qp->remote_ah_attr.ah_flags & IB_AH_GRH)) {
+-		qp->s_hdrwords += hfi1_make_grh(ibp,
+-						&ps->s_txreq->phdr.hdr.u.l.grh,
+-						&qp->remote_ah_attr.grh,
+-						qp->s_hdrwords, nwords);
++	if (unlikely(rdma_ah_get_ah_flags(&qp->remote_ah_attr) & IB_AH_GRH)) {
++		qp->s_hdrwords +=
++			hfi1_make_grh(ibp,
++				      &ps->s_txreq->phdr.hdr.u.l.grh,
++				      rdma_ah_read_grh(&qp->remote_ah_attr),
++				      qp->s_hdrwords, nwords);
+ 		lrh0 = HFI1_LRH_GRH;
+ 		middle = 0;
+ 	}
+-	lrh0 |= (priv->s_sc & 0xf) << 12 | (qp->remote_ah_attr.sl & 0xf) << 4;
++	lrh0 |= (priv->s_sc & 0xf) << 12 |
++		(rdma_ah_get_sl(&qp->remote_ah_attr) & 0xf) << 4;
+ 	/*
+ 	 * reset s_ahg/AHG fields
+ 	 *
+@@ -763,11 +777,13 @@ void hfi1_make_ruc_header(struct rvt_qp *qp, struct ib_other_headers *ohdr,
+ 	else
+ 		qp->s_flags &= ~RVT_S_AHG_VALID;
+ 	ps->s_txreq->phdr.hdr.lrh[0] = cpu_to_be16(lrh0);
+-	ps->s_txreq->phdr.hdr.lrh[1] = cpu_to_be16(qp->remote_ah_attr.dlid);
++	ps->s_txreq->phdr.hdr.lrh[1] =
++		cpu_to_be16(rdma_ah_get_dlid(&qp->remote_ah_attr));
+ 	ps->s_txreq->phdr.hdr.lrh[2] =
+ 		cpu_to_be16(qp->s_hdrwords + nwords + SIZE_OF_CRC);
+-	ps->s_txreq->phdr.hdr.lrh[3] = cpu_to_be16(ppd_from_ibp(ibp)->lid |
+-				       qp->remote_ah_attr.src_path_bits);
++	ps->s_txreq->phdr.hdr.lrh[3] =
++		cpu_to_be16(ppd_from_ibp(ibp)->lid |
++			    rdma_ah_get_path_bits(&qp->remote_ah_attr));
+ 	bth0 |= hfi1_get_pkey(ibp, qp->s_pkey_index);
+ 	bth0 |= extra_bytes << 20;
+ 	ohdr->bth[0] = cpu_to_be32(bth0);
+@@ -821,9 +837,9 @@ void hfi1_do_send(struct rvt_qp *qp, bool in_thread)
+ 
+ 	switch (qp->ibqp.qp_type) {
+ 	case IB_QPT_RC:
+-		if (!loopback && ((qp->remote_ah_attr.dlid & ~((1 << ps.ppd->lmc
+-								) - 1)) ==
+-				 ps.ppd->lid)) {
++		if (!loopback && ((rdma_ah_get_dlid(&qp->remote_ah_attr) &
++				   ~((1 << ps.ppd->lmc) - 1)) ==
++				  ps.ppd->lid)) {
+ 			ruc_loopback(qp);
+ 			return;
+ 		}
+@@ -831,9 +847,9 @@ void hfi1_do_send(struct rvt_qp *qp, bool in_thread)
+ 		timeout_int = (qp->timeout_jiffies);
+ 		break;
+ 	case IB_QPT_UC:
+-		if (!loopback && ((qp->remote_ah_attr.dlid & ~((1 << ps.ppd->lmc
+-								) - 1)) ==
+-				 ps.ppd->lid)) {
++		if (!loopback && ((rdma_ah_get_dlid(&qp->remote_ah_attr) &
++				   ~((1 << ps.ppd->lmc) - 1)) ==
++				  ps.ppd->lid)) {
+ 			ruc_loopback(qp);
+ 			return;
+ 		}
+diff --git a/drivers/infiniband/hw/hfi1/uc.c b/drivers/infiniband/hw/hfi1/uc.c
+index f0bdb10..5da1e45 100644
+--- a/drivers/infiniband/hw/hfi1/uc.c
++++ b/drivers/infiniband/hw/hfi1/uc.c
+@@ -94,7 +94,7 @@ int hfi1_make_uc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 	}
+ 
+ 	ohdr = &ps->s_txreq->phdr.hdr.u.oth;
+-	if (qp->remote_ah_attr.ah_flags & IB_AH_GRH)
++	if (rdma_ah_get_ah_flags(&qp->remote_ah_attr) & IB_AH_GRH)
+ 		ohdr = &ps->s_txreq->phdr.hdr.u.l.oth;
+ 
+ 	/* Get the next send request. */
+@@ -451,7 +451,7 @@ void hfi1_uc_rcv(struct hfi1_packet *packet)
+ 		wc.status = IB_WC_SUCCESS;
+ 		wc.qp = &qp->ibqp;
+ 		wc.src_qp = qp->remote_qpn;
+-		wc.slid = qp->remote_ah_attr.dlid;
++		wc.slid = rdma_ah_get_dlid(&qp->remote_ah_attr);
+ 		/*
+ 		 * It seems that IB mandates the presence of an SL in a
+ 		 * work completion only for the UD transport (see section
+@@ -463,7 +463,7 @@ void hfi1_uc_rcv(struct hfi1_packet *packet)
+ 		 *
+ 		 * See also OPA Vol. 1, section 9.7.6, and table 9-17.
+ 		 */
+-		wc.sl = qp->remote_ah_attr.sl;
++		wc.sl = rdma_ah_get_sl(&qp->remote_ah_attr);
+ 		/* zero fields that are N/A */
+ 		wc.vendor_err = 0;
+ 		wc.pkey_index = 0;
+diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
+index 7a438a5..6a4e95c 100644
+--- a/drivers/infiniband/hw/hfi1/ud.c
++++ b/drivers/infiniband/hw/hfi1/ud.c
+@@ -103,17 +103,17 @@ static void ud_loopback(struct rvt_qp *sqp, struct rvt_swqe *swqe)
+ 	if (qp->ibqp.qp_num > 1) {
+ 		u16 pkey;
+ 		u16 slid;
+-		u8 sc5 = ibp->sl_to_sc[ah_attr->sl];
++		u8 sc5 = ibp->sl_to_sc[rdma_ah_get_sl(ah_attr)];
+ 
+ 		pkey = hfi1_get_pkey(ibp, sqp->s_pkey_index);
+-		slid = ppd->lid | (ah_attr->src_path_bits &
++		slid = ppd->lid | (rdma_ah_get_path_bits(ah_attr) &
+ 				   ((1 << ppd->lmc) - 1));
+ 		if (unlikely(ingress_pkey_check(ppd, pkey, sc5,
+ 						qp->s_pkey_index, slid))) {
+ 			hfi1_bad_pqkey(ibp, OPA_TRAP_BAD_P_KEY, pkey,
+-				       ah_attr->sl,
++				       rdma_ah_get_sl(ah_attr),
+ 				       sqp->ibqp.qp_num, qp->ibqp.qp_num,
+-				       slid, ah_attr->dlid);
++				       slid, rdma_ah_get_dlid(ah_attr));
+ 			goto drop;
+ 		}
+ 	}
+@@ -131,13 +131,13 @@ static void ud_loopback(struct rvt_qp *sqp, struct rvt_swqe *swqe)
+ 		if (unlikely(qkey != qp->qkey)) {
+ 			u16 lid;
+ 
+-			lid = ppd->lid | (ah_attr->src_path_bits &
++			lid = ppd->lid | (rdma_ah_get_path_bits(ah_attr) &
+ 					  ((1 << ppd->lmc) - 1));
+ 			hfi1_bad_pqkey(ibp, OPA_TRAP_BAD_Q_KEY, qkey,
+-				       ah_attr->sl,
++				       rdma_ah_get_sl(ah_attr),
+ 				       sqp->ibqp.qp_num, qp->ibqp.qp_num,
+ 				       lid,
+-				       ah_attr->dlid);
++				       rdma_ah_get_dlid(ah_attr));
+ 			goto drop;
+ 		}
+ 	}
+@@ -183,11 +183,11 @@ static void ud_loopback(struct rvt_qp *sqp, struct rvt_swqe *swqe)
+ 		goto bail_unlock;
+ 	}
+ 
+-	if (ah_attr->ah_flags & IB_AH_GRH) {
++	if (rdma_ah_get_ah_flags(ah_attr) & IB_AH_GRH) {
+ 		struct ib_grh grh;
+-		struct ib_global_route grd = ah_attr->grh;
++		const struct ib_global_route *grd = rdma_ah_read_grh(ah_attr);
+ 
+-		hfi1_make_grh(ibp, &grh, &grd, 0, 0);
++		hfi1_make_grh(ibp, &grh, grd, 0, 0);
+ 		hfi1_copy_sge(&qp->r_sge, &grh,
+ 			      sizeof(grh), true, false);
+ 		wc.wc_flags |= IB_WC_GRH;
+@@ -243,12 +243,13 @@ static void ud_loopback(struct rvt_qp *sqp, struct rvt_swqe *swqe)
+ 	} else {
+ 		wc.pkey_index = 0;
+ 	}
+-	wc.slid = ppd->lid | (ah_attr->src_path_bits & ((1 << ppd->lmc) - 1));
++	wc.slid = ppd->lid | (rdma_ah_get_path_bits(ah_attr) &
++			      ((1 << ppd->lmc) - 1));
+ 	/* Check for loopback when the port lid is not set */
+ 	if (wc.slid == 0 && sqp->ibqp.qp_type == IB_QPT_GSI)
+ 		wc.slid = be16_to_cpu(IB_LID_PERMISSIVE);
+-	wc.sl = ah_attr->sl;
+-	wc.dlid_path_bits = ah_attr->dlid & ((1 << ppd->lmc) - 1);
++	wc.sl = rdma_ah_get_sl(ah_attr);
++	wc.dlid_path_bits = rdma_ah_get_dlid(ah_attr) & ((1 << ppd->lmc) - 1);
+ 	wc.port_num = qp->port_num;
+ 	/* Signal completion event if the solicited bit is set. */
+ 	rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
+@@ -319,9 +320,9 @@ int hfi1_make_ud_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 	ibp = to_iport(qp->ibqp.device, qp->port_num);
+ 	ppd = ppd_from_ibp(ibp);
+ 	ah_attr = &ibah_to_rvtah(wqe->ud_wr.ah)->attr;
+-	if (ah_attr->dlid < be16_to_cpu(IB_MULTICAST_LID_BASE) ||
+-	    ah_attr->dlid == be16_to_cpu(IB_LID_PERMISSIVE)) {
+-		lid = ah_attr->dlid & ~((1 << ppd->lmc) - 1);
++	if (rdma_ah_get_dlid(ah_attr) < be16_to_cpu(IB_MULTICAST_LID_BASE) ||
++	    rdma_ah_get_dlid(ah_attr) == be16_to_cpu(IB_LID_PERMISSIVE)) {
++		lid = rdma_ah_get_dlid(ah_attr) & ~((1 << ppd->lmc) - 1);
+ 		if (unlikely(!loopback &&
+ 			     (lid == ppd->lid ||
+ 			      (lid == be16_to_cpu(IB_LID_PERMISSIVE) &&
+@@ -356,7 +357,7 @@ int hfi1_make_ud_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 	qp->s_hdrwords = 7;
+ 	ps->s_txreq->s_cur_size = wqe->length;
+ 	ps->s_txreq->ss = &qp->s_sge;
+-	qp->s_srate = ah_attr->static_rate;
++	qp->s_srate = rdma_ah_get_static_rate(ah_attr);
+ 	qp->srate_mbps = ib_rate_to_mbps(qp->s_srate);
+ 	qp->s_wqe = wqe;
+ 	qp->s_sge.sge = wqe->sg_list[0];
+@@ -364,11 +365,11 @@ int hfi1_make_ud_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 	qp->s_sge.num_sge = wqe->wr.num_sge;
+ 	qp->s_sge.total_len = wqe->length;
+ 
+-	if (ah_attr->ah_flags & IB_AH_GRH) {
++	if (rdma_ah_get_ah_flags(ah_attr) & IB_AH_GRH) {
+ 		/* Header size in 32-bit words. */
+ 		qp->s_hdrwords += hfi1_make_grh(ibp,
+ 						&ps->s_txreq->phdr.hdr.u.l.grh,
+-						&ah_attr->grh,
++						rdma_ah_read_grh(ah_attr),
+ 						qp->s_hdrwords, nwords);
+ 		lrh0 = HFI1_LRH_GRH;
+ 		ohdr = &ps->s_txreq->phdr.hdr.u.l.oth;
+@@ -388,8 +389,8 @@ int hfi1_make_ud_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 	} else {
+ 		bth0 = IB_OPCODE_UD_SEND_ONLY << 24;
+ 	}
+-	sc5 = ibp->sl_to_sc[ah_attr->sl];
+-	lrh0 |= (ah_attr->sl & 0xf) << 4;
++	sc5 = ibp->sl_to_sc[rdma_ah_get_sl(ah_attr)];
++	lrh0 |= (rdma_ah_get_sl(ah_attr) & 0xf) << 4;
+ 	if (qp->ibqp.qp_type == IB_QPT_SMI) {
+ 		lrh0 |= 0xF000; /* Set VL (see ch. 13.5.3.1) */
+ 		priv->s_sc = 0xf;
+@@ -402,15 +403,17 @@ int hfi1_make_ud_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 	priv->s_sendcontext = qp_to_send_context(qp, priv->s_sc);
+ 	ps->s_txreq->psc = priv->s_sendcontext;
+ 	ps->s_txreq->phdr.hdr.lrh[0] = cpu_to_be16(lrh0);
+-	ps->s_txreq->phdr.hdr.lrh[1] = cpu_to_be16(ah_attr->dlid);
++	ps->s_txreq->phdr.hdr.lrh[1] =
++		cpu_to_be16(rdma_ah_get_dlid(ah_attr));
+ 	ps->s_txreq->phdr.hdr.lrh[2] =
+ 		cpu_to_be16(qp->s_hdrwords + nwords + SIZE_OF_CRC);
+-	if (ah_attr->dlid == be16_to_cpu(IB_LID_PERMISSIVE)) {
++	if (rdma_ah_get_dlid(ah_attr) == be16_to_cpu(IB_LID_PERMISSIVE)) {
+ 		ps->s_txreq->phdr.hdr.lrh[3] = IB_LID_PERMISSIVE;
+ 	} else {
+ 		lid = ppd->lid;
+ 		if (lid) {
+-			lid |= ah_attr->src_path_bits & ((1 << ppd->lmc) - 1);
++			lid |= rdma_ah_get_path_bits(ah_attr) &
++				((1 << ppd->lmc) - 1);
+ 			ps->s_txreq->phdr.hdr.lrh[3] = cpu_to_be16(lid);
+ 		} else {
+ 			ps->s_txreq->phdr.hdr.lrh[3] = IB_LID_PERMISSIVE;
 diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index e1d3ae7..f0be34a 100644
+index b9c208d..e1d3ae7 100644
 --- a/drivers/infiniband/hw/hfi1/verbs.c
 +++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -1509,8 +1509,12 @@ struct ib_ah *hfi1_create_qp0_ah(struct hfi1_ibport *ibp, u16 dlid)
- 	struct rdma_ah_attr attr;
- 	struct ib_ah *ah = ERR_PTR(-EINVAL);
+@@ -1459,9 +1459,9 @@ static int hfi1_get_guid_be(struct rvt_dev_info *rdi, struct rvt_ibport *rvp,
+  */
+ u8 ah_to_sc(struct ib_device *ibdev, struct rdma_ah_attr *ah)
+ {
+-	struct hfi1_ibport *ibp = to_iport(ibdev, ah->port_num);
++	struct hfi1_ibport *ibp = to_iport(ibdev, rdma_ah_get_port_num(ah));
+ 
+-	return ibp->sl_to_sc[ah->sl];
++	return ibp->sl_to_sc[rdma_ah_get_sl(ah)];
+ }
+ 
+ static int hfi1_check_ah(struct ib_device *ibdev, struct rdma_ah_attr *ah_attr)
+@@ -1472,9 +1472,9 @@ static int hfi1_check_ah(struct ib_device *ibdev, struct rdma_ah_attr *ah_attr)
+ 	u8 sc5;
+ 
+ 	/* test the mapping for validity */
+-	ibp = to_iport(ibdev, ah_attr->port_num);
++	ibp = to_iport(ibdev, rdma_ah_get_port_num(ah_attr));
+ 	ppd = ppd_from_ibp(ibp);
+-	sc5 = ibp->sl_to_sc[ah_attr->sl];
++	sc5 = ibp->sl_to_sc[rdma_ah_get_sl(ah_attr)];
+ 	dd = dd_from_ppd(ppd);
+ 	if (sc_to_vlt(dd, sc5) > num_vls && sc_to_vlt(dd, sc5) != 0xf)
+ 		return -EINVAL;
+@@ -1495,9 +1495,9 @@ static void hfi1_notify_new_ah(struct ib_device *ibdev,
+ 	 * done being setup. We can however modify things which we need to set.
+ 	 */
+ 
+-	ibp = to_iport(ibdev, ah_attr->port_num);
++	ibp = to_iport(ibdev, rdma_ah_get_port_num(ah_attr));
+ 	ppd = ppd_from_ibp(ibp);
+-	sc5 = ibp->sl_to_sc[ah->attr.sl];
++	sc5 = ibp->sl_to_sc[rdma_ah_get_sl(&ah->attr)];
+ 	dd = dd_from_ppd(ppd);
+ 	ah->vl = sc_to_vlt(dd, sc5);
+ 	if (ah->vl < num_vls || ah->vl == 15)
+@@ -1511,8 +1511,8 @@ struct ib_ah *hfi1_create_qp0_ah(struct hfi1_ibport *ibp, u16 dlid)
  	struct rvt_qp *qp0;
-+	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
-+	struct hfi1_devdata *dd = dd_from_ppd(ppd);
-+	u8 port_num = ppd->port;
  
  	memset(&attr, 0, sizeof(attr));
-+	attr.type = rdma_ah_find_type(&dd->verbs_dev.rdi.ibdev, port_num);
- 	rdma_ah_set_dlid(&attr, dlid);
- 	rdma_ah_set_port_num(&attr, ppd_from_ibp(ibp)->port);
+-	attr.dlid = dlid;
+-	attr.port_num = ppd_from_ibp(ibp)->port;
++	rdma_ah_set_dlid(&attr, dlid);
++	rdma_ah_set_port_num(&attr, ppd_from_ibp(ibp)->port);
  	rcu_read_lock();
+ 	qp0 = rcu_dereference(ibp->rvp.qp[0]);
+ 	if (qp0)
+@@ -1909,12 +1909,12 @@ void hfi1_cnp_rcv(struct hfi1_packet *packet)
+ 
+ 	switch (packet->qp->ibqp.qp_type) {
+ 	case IB_QPT_UC:
+-		rlid = qp->remote_ah_attr.dlid;
++		rlid = rdma_ah_get_dlid(&qp->remote_ah_attr);
+ 		rqpn = qp->remote_qpn;
+ 		svc_type = IB_CC_SVCTYPE_UC;
+ 		break;
+ 	case IB_QPT_RC:
+-		rlid = qp->remote_ah_attr.dlid;
++		rlid = rdma_ah_get_dlid(&qp->remote_ah_attr);
+ 		rqpn = qp->remote_qpn;
+ 		svc_type = IB_CC_SVCTYPE_RC;
+ 		break;
+diff --git a/drivers/infiniband/hw/hfi1/verbs.h b/drivers/infiniband/hw/hfi1/verbs.h
+index fb7f0a2..52ff275 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.h
++++ b/drivers/infiniband/hw/hfi1/verbs.h
+@@ -347,7 +347,7 @@ int hfi1_ruc_check_hdr(struct hfi1_ibport *ibp, struct ib_header *hdr,
+ 		       int has_grh, struct rvt_qp *qp, u32 bth0);
+ 
+ u32 hfi1_make_grh(struct hfi1_ibport *ibp, struct ib_grh *hdr,
+-		  struct ib_global_route *grh, u32 hwords, u32 nwords);
++		  const struct ib_global_route *grh, u32 hwords, u32 nwords);
+ 
+ void hfi1_make_ruc_header(struct rvt_qp *qp, struct ib_other_headers *ohdr,
+ 			  u32 bth0, u32 bth2, int middle,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_ah.c b/drivers/infiniband/hw/hns/hns_roce_ah.c
+index 214c9b4..f78a733 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_ah.c
++++ b/drivers/infiniband/hw/hns/hns_roce_ah.c
+@@ -49,6 +49,7 @@ struct ib_ah *hns_roce_create_ah(struct ib_pd *ibpd,
+ 	struct hns_roce_ah *ah;
+ 	u16 vlan_tag = 0xffff;
+ 	struct in6_addr in6;
++	const struct ib_global_route *grh = rdma_ah_read_grh(ah_attr);
+ 	union ib_gid sgid;
+ 	int ret;
+ 
+@@ -57,15 +58,20 @@ struct ib_ah *hns_roce_create_ah(struct ib_pd *ibpd,
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	/* Get mac address */
+-	memcpy(&in6, ah_attr->grh.dgid.raw, sizeof(ah_attr->grh.dgid.raw));
+-	if (rdma_is_multicast_addr(&in6))
++	memcpy(&in6, grh->dgid.raw, sizeof(grh->dgid.raw));
++	if (rdma_is_multicast_addr(&in6)) {
+ 		rdma_get_mcast_mac(&in6, ah->av.mac);
+-	else
+-		memcpy(ah->av.mac, ah_attr->dmac, sizeof(ah_attr->dmac));
++	} else {
++		u8 *dmac = rdma_ah_retrieve_dmac(ah_attr);
++
++		if (!dmac)
++			return ERR_PTR(-EINVAL);
++		memcpy(ah->av.mac, dmac, ETH_ALEN);
++	}
+ 
+ 	/* Get source gid */
+-	ret = ib_get_cached_gid(ibpd->device, ah_attr->port_num,
+-				ah_attr->grh.sgid_index, &sgid, &gid_attr);
++	ret = ib_get_cached_gid(ibpd->device, rdma_ah_get_port_num(ah_attr),
++				grh->sgid_index, &sgid, &gid_attr);
+ 	if (ret) {
+ 		dev_err(dev, "get sgid failed! ret = %d\n", ret);
+ 		kfree(ah);
+@@ -79,21 +85,23 @@ struct ib_ah *hns_roce_create_ah(struct ib_pd *ibpd,
+ 	}
+ 
+ 	if (vlan_tag < 0x1000)
+-		vlan_tag |= (ah_attr->sl & HNS_ROCE_VLAN_SL_BIT_MASK) <<
++		vlan_tag |= (rdma_ah_get_sl(ah_attr) &
++			     HNS_ROCE_VLAN_SL_BIT_MASK) <<
+ 			     HNS_ROCE_VLAN_SL_SHIFT;
+ 
+-	ah->av.port_pd = cpu_to_be32(to_hr_pd(ibpd)->pdn | (ah_attr->port_num <<
++	ah->av.port_pd = cpu_to_be32(to_hr_pd(ibpd)->pdn |
++				     (rdma_ah_get_port_num(ah_attr) <<
+ 				     HNS_ROCE_PORT_NUM_SHIFT));
+-	ah->av.gid_index = ah_attr->grh.sgid_index;
++	ah->av.gid_index = grh->sgid_index;
+ 	ah->av.vlan = cpu_to_le16(vlan_tag);
+ 	dev_dbg(dev, "gid_index = 0x%x,vlan = 0x%x\n", ah->av.gid_index,
+ 		ah->av.vlan);
+ 
+-	if (ah_attr->static_rate)
++	if (rdma_ah_get_static_rate(ah_attr))
+ 		ah->av.stat_rate = IB_RATE_10_GBPS;
+ 
+-	memcpy(ah->av.dgid, ah_attr->grh.dgid.raw, HNS_ROCE_GID_SIZE);
+-	ah->av.sl_tclass_flowlabel = cpu_to_le32(ah_attr->sl <<
++	memcpy(ah->av.dgid, grh->dgid.raw, HNS_ROCE_GID_SIZE);
++	ah->av.sl_tclass_flowlabel = cpu_to_le32(rdma_ah_get_sl(ah_attr) <<
+ 						 HNS_ROCE_SL_SHIFT);
+ 
+ 	return &ah->ibah;
+@@ -105,19 +113,18 @@ int hns_roce_query_ah(struct ib_ah *ibah, struct rdma_ah_attr *ah_attr)
+ 
+ 	memset(ah_attr, 0, sizeof(*ah_attr));
+ 
+-	ah_attr->sl = le32_to_cpu(ah->av.sl_tclass_flowlabel) >>
+-				  HNS_ROCE_SL_SHIFT;
+-	ah_attr->port_num = le32_to_cpu(ah->av.port_pd) >>
+-					HNS_ROCE_PORT_NUM_SHIFT;
+-	ah_attr->static_rate = ah->av.stat_rate;
+-	ah_attr->ah_flags = IB_AH_GRH;
+-	ah_attr->grh.traffic_class = le32_to_cpu(ah->av.sl_tclass_flowlabel) >>
+-						 HNS_ROCE_TCLASS_SHIFT;
+-	ah_attr->grh.flow_label = le32_to_cpu(ah->av.sl_tclass_flowlabel) &
+-					      HNS_ROCE_FLOW_LABLE_MASK;
+-	ah_attr->grh.hop_limit = ah->av.hop_limit;
+-	ah_attr->grh.sgid_index = ah->av.gid_index;
+-	memcpy(ah_attr->grh.dgid.raw, ah->av.dgid, HNS_ROCE_GID_SIZE);
++	rdma_ah_set_sl(ah_attr, (le32_to_cpu(ah->av.sl_tclass_flowlabel) >>
++				 HNS_ROCE_SL_SHIFT));
++	rdma_ah_set_port_num(ah_attr, (le32_to_cpu(ah->av.port_pd) >>
++				       HNS_ROCE_PORT_NUM_SHIFT));
++	rdma_ah_set_static_rate(ah_attr, ah->av.stat_rate);
++	rdma_ah_set_grh(ah_attr, NULL,
++			(le32_to_cpu(ah->av.sl_tclass_flowlabel) &
++			 HNS_ROCE_FLOW_LABLE_MASK), ah->av.gid_index,
++			ah->av.hop_limit,
++			(le32_to_cpu(ah->av.sl_tclass_flowlabel) >>
++			 HNS_ROCE_TCLASS_SHIFT));
++	rdma_ah_set_dgid_raw(ah_attr, ah->av.dgid);
+ 
+ 	return 0;
+ }
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 6a0353d..7c9b92c 100644
+index 5c48dbf..6a0353d 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -2737,7 +2737,7 @@ static int hns_roce_v1_m_qp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
- 			goto out;
- 		}
+@@ -658,6 +658,7 @@ static int hns_roce_v1_rsv_lp_qp(struct hns_roce_dev *hr_dev)
+ 	struct hns_roce_qp *hr_qp;
+ 	struct ib_cq *cq;
+ 	struct ib_pd *pd;
++	union ib_gid dgid;
+ 	u64 subnet_prefix;
+ 	int attr_mask = 0;
+ 	int i;
+@@ -708,12 +709,8 @@ static int hns_roce_v1_rsv_lp_qp(struct hns_roce_dev *hr_dev)
+ 	attr.rnr_retry		= 7;
+ 	attr.timeout		= 0x12;
+ 	attr.path_mtu		= IB_MTU_256;
+-	attr.ah_attr.ah_flags		= 1;
+-	attr.ah_attr.static_rate	= 3;
+-	attr.ah_attr.grh.sgid_index	= 0;
+-	attr.ah_attr.grh.hop_limit	= 1;
+-	attr.ah_attr.grh.flow_label	= 0;
+-	attr.ah_attr.grh.traffic_class	= 0;
++	rdma_ah_set_grh(&attr.ah_attr, NULL, 0, 0, 1, 0);
++	rdma_ah_set_static_rate(&attr.ah_attr, 3);
  
--		dmac = (u8 *)attr->ah_attr.dmac;
-+		dmac = (u8 *)attr->ah_attr.roce.dmac;
+ 	subnet_prefix = cpu_to_be64(0xfe80000000000000LL);
+ 	for (i = 0; i < HNS_ROCE_V1_RESV_QP; i++) {
+@@ -742,24 +739,22 @@ static int hns_roce_v1_rsv_lp_qp(struct hns_roce_dev *hr_dev)
+ 		hr_qp->ibqp.recv_cq	= cq;
+ 		hr_qp->ibqp.send_cq	= cq;
  
- 		context->sq_rq_bt_l = (u32)(dma_handle);
- 		roce_set_field(context->qpc_bytes_24,
+-		attr.ah_attr.port_num	= phy_port + 1;
+-		attr.ah_attr.sl		= sl;
++		rdma_ah_set_port_num(&attr.ah_attr, phy_port + 1);
++		rdma_ah_set_sl(&attr.ah_attr, phy_port + 1);
+ 		attr.port_num		= phy_port + 1;
+ 
+ 		attr.dest_qp_num	= hr_qp->qpn;
+-		memcpy(attr.ah_attr.dmac, hr_dev->dev_addr[phy_port],
++		memcpy(rdma_ah_retrieve_dmac(&attr.ah_attr),
++		       hr_dev->dev_addr[phy_port],
+ 		       MAC_ADDR_OCTET_NUM);
+ 
+-		memcpy(attr.ah_attr.grh.dgid.raw,
+-			&subnet_prefix, sizeof(u64));
+-		memcpy(&attr.ah_attr.grh.dgid.raw[8],
+-		       hr_dev->dev_addr[phy_port], 3);
+-		memcpy(&attr.ah_attr.grh.dgid.raw[13],
+-		       hr_dev->dev_addr[phy_port] + 3, 3);
+-		attr.ah_attr.grh.dgid.raw[11] = 0xff;
+-		attr.ah_attr.grh.dgid.raw[12] = 0xfe;
+-		attr.ah_attr.grh.dgid.raw[8] ^= 2;
+-
++		memcpy(&dgid.raw, &subnet_prefix, sizeof(u64));
++		memcpy(&dgid.raw[8], hr_dev->dev_addr[phy_port], 3);
++		memcpy(&dgid.raw[13], hr_dev->dev_addr[phy_port] + 3, 3);
++		dgid.raw[11] = 0xff;
++		dgid.raw[12] = 0xfe;
++		dgid.raw[8] ^= 2;
++		rdma_ah_set_dgid_raw(&attr.ah_attr, dgid.raw);
+ 		attr_mask |= IB_QP_PORT;
+ 
+ 		ret = hr_dev->hw->modify_qp(&hr_qp->ibqp, &attr, attr_mask,
+@@ -2566,6 +2561,7 @@ static int hns_roce_v1_m_qp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
+ 	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
+ 	struct device *dev = &hr_dev->pdev->dev;
+ 	struct hns_roce_qp_context *context;
++	const struct ib_global_route *grh = rdma_ah_read_grh(&attr->ah_attr);
+ 	dma_addr_t dma_handle_2 = 0;
+ 	dma_addr_t dma_handle = 0;
+ 	uint32_t doorbell[2] = {0};
+@@ -2574,6 +2570,7 @@ static int hns_roce_v1_m_qp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
+ 	int ret = -EINVAL;
+ 	u64 *mtts = NULL;
+ 	int port;
++	u8 port_num;
+ 	u8 *dmac;
+ 	u8 *smac;
+ 
+@@ -2781,7 +2778,7 @@ static int hns_roce_v1_m_qp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
+ 
+ 		roce_set_bit(context->qpc_bytes_32,
+ 			     QP_CONTEXT_QPC_BYTE_32_GLOBAL_HEADER_S,
+-			     attr->ah_attr.ah_flags);
++			     rdma_ah_get_ah_flags(&attr->ah_attr));
+ 		roce_set_field(context->qpc_bytes_32,
+ 			       QP_CONTEXT_QPC_BYTES_32_RESPONDER_RESOURCES_M,
+ 			       QP_CONTEXT_QPC_BYTES_32_RESPONDER_RESOURCES_S,
+@@ -2793,12 +2790,13 @@ static int hns_roce_v1_m_qp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
+ 			       attr->dest_qp_num);
+ 
+ 		/* Configure GID index */
++		port_num = rdma_ah_get_port_num(&attr->ah_attr);
+ 		roce_set_field(context->qpc_bytes_36,
+ 			       QP_CONTEXT_QPC_BYTES_36_SGID_INDEX_M,
+ 			       QP_CONTEXT_QPC_BYTES_36_SGID_INDEX_S,
+-			       hns_get_gid_index(hr_dev,
+-						 attr->ah_attr.port_num - 1,
+-						 attr->ah_attr.grh.sgid_index));
++				hns_get_gid_index(hr_dev,
++						  port_num - 1,
++						  grh->sgid_index));
+ 
+ 		memcpy(&(context->dmac_l), dmac, 4);
+ 
+@@ -2809,26 +2807,26 @@ static int hns_roce_v1_m_qp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
+ 		roce_set_field(context->qpc_bytes_44,
+ 			       QP_CONTEXT_QPC_BYTES_44_MAXIMUM_STATIC_RATE_M,
+ 			       QP_CONTEXT_QPC_BYTES_44_MAXIMUM_STATIC_RATE_S,
+-			       attr->ah_attr.static_rate);
++			       rdma_ah_get_static_rate(&attr->ah_attr));
+ 		roce_set_field(context->qpc_bytes_44,
+ 			       QP_CONTEXT_QPC_BYTES_44_HOPLMT_M,
+ 			       QP_CONTEXT_QPC_BYTES_44_HOPLMT_S,
+-			       attr->ah_attr.grh.hop_limit);
++			       grh->hop_limit);
+ 
+ 		roce_set_field(context->qpc_bytes_48,
+ 			       QP_CONTEXT_QPC_BYTES_48_FLOWLABEL_M,
+ 			       QP_CONTEXT_QPC_BYTES_48_FLOWLABEL_S,
+-			       attr->ah_attr.grh.flow_label);
++			       grh->flow_label);
+ 		roce_set_field(context->qpc_bytes_48,
+ 			       QP_CONTEXT_QPC_BYTES_48_TCLASS_M,
+ 			       QP_CONTEXT_QPC_BYTES_48_TCLASS_S,
+-			       attr->ah_attr.grh.traffic_class);
++			       grh->traffic_class);
+ 		roce_set_field(context->qpc_bytes_48,
+ 			       QP_CONTEXT_QPC_BYTES_48_MTU_M,
+ 			       QP_CONTEXT_QPC_BYTES_48_MTU_S, attr->path_mtu);
+ 
+-		memcpy(context->dgid, attr->ah_attr.grh.dgid.raw,
+-		       sizeof(attr->ah_attr.grh.dgid.raw));
++		memcpy(context->dgid, grh->dgid.raw,
++		       sizeof(grh->dgid.raw));
+ 
+ 		dev_dbg(dev, "dmac:%x :%lx\n", context->dmac_l,
+ 			roce_get_field(context->qpc_bytes_44,
+@@ -2908,8 +2906,9 @@ static int hns_roce_v1_m_qp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
+ 			       hr_qp->phy_port);
+ 		roce_set_field(context->qpc_bytes_156,
+ 			       QP_CONTEXT_QPC_BYTES_156_SL_M,
+-			       QP_CONTEXT_QPC_BYTES_156_SL_S, attr->ah_attr.sl);
+-		hr_qp->sl = attr->ah_attr.sl;
++			       QP_CONTEXT_QPC_BYTES_156_SL_S,
++			       rdma_ah_get_sl(&attr->ah_attr));
++		hr_qp->sl = rdma_ah_get_sl(&attr->ah_attr);
+ 	} else if (cur_state == IB_QPS_RTR &&
+ 		new_state == IB_QPS_RTS) {
+ 		/* If exist optional param, return error */
+@@ -3020,8 +3019,9 @@ static int hns_roce_v1_m_qp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
+ 			       hr_qp->phy_port);
+ 		roce_set_field(context->qpc_bytes_156,
+ 			       QP_CONTEXT_QPC_BYTES_156_SL_M,
+-			       QP_CONTEXT_QPC_BYTES_156_SL_S, attr->ah_attr.sl);
+-		hr_qp->sl = attr->ah_attr.sl;
++			       QP_CONTEXT_QPC_BYTES_156_SL_S,
++			       rdma_ah_get_sl(&attr->ah_attr));
++		hr_qp->sl = rdma_ah_get_sl(&attr->ah_attr);
+ 		roce_set_field(context->qpc_bytes_156,
+ 			       QP_CONTEXT_QPC_BYTES_156_INITIATOR_DEPTH_M,
+ 			       QP_CONTEXT_QPC_BYTES_156_INITIATOR_DEPTH_S,
+@@ -3356,28 +3356,33 @@ static int hns_roce_v1_q_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
+ 
+ 	if (hr_qp->ibqp.qp_type == IB_QPT_RC ||
+ 	    hr_qp->ibqp.qp_type == IB_QPT_UC) {
+-		qp_attr->ah_attr.sl = roce_get_field(context->qpc_bytes_156,
+-						QP_CONTEXT_QPC_BYTES_156_SL_M,
+-						QP_CONTEXT_QPC_BYTES_156_SL_S);
+-		qp_attr->ah_attr.grh.flow_label = roce_get_field(
+-					context->qpc_bytes_48,
+-					QP_CONTEXT_QPC_BYTES_48_FLOWLABEL_M,
+-					QP_CONTEXT_QPC_BYTES_48_FLOWLABEL_S);
+-		qp_attr->ah_attr.grh.sgid_index = roce_get_field(
+-					context->qpc_bytes_36,
+-					QP_CONTEXT_QPC_BYTES_36_SGID_INDEX_M,
+-					QP_CONTEXT_QPC_BYTES_36_SGID_INDEX_S);
+-		qp_attr->ah_attr.grh.hop_limit = roce_get_field(
+-					context->qpc_bytes_44,
+-					QP_CONTEXT_QPC_BYTES_44_HOPLMT_M,
+-					QP_CONTEXT_QPC_BYTES_44_HOPLMT_S);
+-		qp_attr->ah_attr.grh.traffic_class = roce_get_field(
+-					context->qpc_bytes_48,
+-					QP_CONTEXT_QPC_BYTES_48_TCLASS_M,
+-					QP_CONTEXT_QPC_BYTES_48_TCLASS_S);
+-
+-		memcpy(qp_attr->ah_attr.grh.dgid.raw, context->dgid,
+-		       sizeof(qp_attr->ah_attr.grh.dgid.raw));
++		struct ib_global_route *grh =
++			rdma_ah_retrieve_grh(&qp_attr->ah_attr);
++
++		rdma_ah_set_sl(&qp_attr->ah_attr,
++			       roce_get_field(context->qpc_bytes_156,
++					      QP_CONTEXT_QPC_BYTES_156_SL_M,
++					      QP_CONTEXT_QPC_BYTES_156_SL_S));
++		rdma_ah_set_ah_flags(&qp_attr->ah_attr, IB_AH_GRH);
++		grh->flow_label =
++			roce_get_field(context->qpc_bytes_48,
++				       QP_CONTEXT_QPC_BYTES_48_FLOWLABEL_M,
++				       QP_CONTEXT_QPC_BYTES_48_FLOWLABEL_S);
++		grh->sgid_index =
++			roce_get_field(context->qpc_bytes_36,
++				       QP_CONTEXT_QPC_BYTES_36_SGID_INDEX_M,
++				       QP_CONTEXT_QPC_BYTES_36_SGID_INDEX_S);
++		grh->hop_limit =
++			roce_get_field(context->qpc_bytes_44,
++				       QP_CONTEXT_QPC_BYTES_44_HOPLMT_M,
++				       QP_CONTEXT_QPC_BYTES_44_HOPLMT_S);
++		grh->traffic_class =
++			roce_get_field(context->qpc_bytes_48,
++				       QP_CONTEXT_QPC_BYTES_48_TCLASS_M,
++				       QP_CONTEXT_QPC_BYTES_48_TCLASS_S);
++
++		memcpy(grh->dgid.raw, context->dgid,
++		       sizeof(grh->dgid.raw));
+ 	}
+ 
+ 	qp_attr->pkey_index = roce_get_field(context->qpc_bytes_12,
 diff --git a/drivers/infiniband/hw/mlx4/ah.c b/drivers/infiniband/hw/mlx4/ah.c
-index 3cbac5f..538c46a 100644
+index 17fcb0b..3cbac5f 100644
 --- a/drivers/infiniband/hw/mlx4/ah.c
 +++ b/drivers/infiniband/hw/mlx4/ah.c
-@@ -96,7 +96,7 @@ static struct ib_ah *create_iboe_ah(struct ib_pd *pd,
+@@ -46,25 +46,32 @@ static struct ib_ah *create_ib_ah(struct ib_pd *pd,
+ {
+ 	struct mlx4_dev *dev = to_mdev(pd->device)->dev;
+ 
+-	ah->av.ib.port_pd = cpu_to_be32(to_mpd(pd)->pdn | (ah_attr->port_num << 24));
+-	ah->av.ib.g_slid  = ah_attr->src_path_bits;
+-	ah->av.ib.sl_tclass_flowlabel = cpu_to_be32(ah_attr->sl << 28);
+-	if (ah_attr->ah_flags & IB_AH_GRH) {
++	ah->av.ib.port_pd = cpu_to_be32(to_mpd(pd)->pdn |
++			    (rdma_ah_get_port_num(ah_attr) << 24));
++	ah->av.ib.g_slid  = rdma_ah_get_path_bits(ah_attr);
++	ah->av.ib.sl_tclass_flowlabel =
++			cpu_to_be32(rdma_ah_get_sl(ah_attr) << 28);
++	if (rdma_ah_get_ah_flags(ah_attr) & IB_AH_GRH) {
++		const struct ib_global_route *grh = rdma_ah_read_grh(ah_attr);
++
+ 		ah->av.ib.g_slid   |= 0x80;
+-		ah->av.ib.gid_index = ah_attr->grh.sgid_index;
+-		ah->av.ib.hop_limit = ah_attr->grh.hop_limit;
++		ah->av.ib.gid_index = grh->sgid_index;
++		ah->av.ib.hop_limit = grh->hop_limit;
+ 		ah->av.ib.sl_tclass_flowlabel |=
+-			cpu_to_be32((ah_attr->grh.traffic_class << 20) |
+-				    ah_attr->grh.flow_label);
+-		memcpy(ah->av.ib.dgid, ah_attr->grh.dgid.raw, 16);
++			cpu_to_be32((grh->traffic_class << 20) |
++				    grh->flow_label);
++		memcpy(ah->av.ib.dgid, grh->dgid.raw, 16);
+ 	}
+ 
+-	ah->av.ib.dlid    = cpu_to_be16(ah_attr->dlid);
+-	if (ah_attr->static_rate) {
+-		ah->av.ib.stat_rate = ah_attr->static_rate + MLX4_STAT_RATE_OFFSET;
+-		while (ah->av.ib.stat_rate > IB_RATE_2_5_GBPS + MLX4_STAT_RATE_OFFSET &&
+-		       !(1 << ah->av.ib.stat_rate & dev->caps.stat_rate_support))
+-			--ah->av.ib.stat_rate;
++	ah->av.ib.dlid = cpu_to_be16(rdma_ah_get_dlid(ah_attr));
++	if (rdma_ah_get_static_rate(ah_attr)) {
++		u8 static_rate = rdma_ah_get_static_rate(ah_attr) +
++					MLX4_STAT_RATE_OFFSET;
++
++		while (static_rate > IB_RATE_2_5_GBPS + MLX4_STAT_RATE_OFFSET &&
++		       !(1 << static_rate & dev->caps.stat_rate_support))
++			--static_rate;
++		ah->av.ib.stat_rate = static_rate;
+ 	}
+ 
+ 	return &ah->ibah;
+@@ -81,17 +88,18 @@ static struct ib_ah *create_iboe_ah(struct ib_pd *pd,
+ 	u16 vlan_tag = 0xffff;
+ 	union ib_gid sgid;
+ 	struct ib_gid_attr gid_attr;
++	const struct ib_global_route *grh = rdma_ah_read_grh(ah_attr);
+ 	int ret;
+ 
+-	memcpy(&in6, ah_attr->grh.dgid.raw, sizeof(in6));
++	memcpy(&in6, grh->dgid.raw, sizeof(in6));
+ 	if (rdma_is_multicast_addr(&in6)) {
  		is_mcast = 1;
  		rdma_get_mcast_mac(&in6, ah->av.eth.mac);
  	} else {
--		memcpy(ah->av.eth.mac, ah_attr->dmac, ETH_ALEN);
-+		memcpy(ah->av.eth.mac, ah_attr->roce.dmac, ETH_ALEN);
+ 		memcpy(ah->av.eth.mac, ah_attr->dmac, ETH_ALEN);
  	}
- 	ret = ib_get_cached_gid(pd->device, rdma_ah_get_port_num(ah_attr),
- 				grh->sgid_index, &sgid, &gid_attr);
-@@ -154,9 +154,7 @@ struct ib_ah *mlx4_ib_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
+-	ret = ib_get_cached_gid(pd->device, ah_attr->port_num,
+-				ah_attr->grh.sgid_index, &sgid, &gid_attr);
++	ret = ib_get_cached_gid(pd->device, rdma_ah_get_port_num(ah_attr),
++				grh->sgid_index, &sgid, &gid_attr);
+ 	if (ret)
+ 		return ERR_PTR(ret);
+ 	eth_zero_addr(ah->av.eth.s_mac);
+@@ -102,32 +110,36 @@ static struct ib_ah *create_iboe_ah(struct ib_pd *pd,
+ 		dev_put(gid_attr.ndev);
+ 	}
+ 	if (vlan_tag < 0x1000)
+-		vlan_tag |= (ah_attr->sl & 7) << 13;
+-	ah->av.eth.port_pd = cpu_to_be32(to_mpd(pd)->pdn | (ah_attr->port_num << 24));
+-	ret = mlx4_ib_gid_index_to_real_index(ibdev, ah_attr->port_num, ah_attr->grh.sgid_index);
++		vlan_tag |= (rdma_ah_get_sl(ah_attr) & 7) << 13;
++	ah->av.eth.port_pd = cpu_to_be32(to_mpd(pd)->pdn |
++					 (rdma_ah_get_port_num(ah_attr) << 24));
++	ret = mlx4_ib_gid_index_to_real_index(ibdev,
++					      rdma_ah_get_port_num(ah_attr),
++					      grh->sgid_index);
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
+ 	ah->av.eth.gid_index = ret;
+ 	ah->av.eth.vlan = cpu_to_be16(vlan_tag);
+-	ah->av.eth.hop_limit = ah_attr->grh.hop_limit;
+-	if (ah_attr->static_rate) {
+-		ah->av.eth.stat_rate = ah_attr->static_rate + MLX4_STAT_RATE_OFFSET;
++	ah->av.eth.hop_limit = grh->hop_limit;
++	if (rdma_ah_get_static_rate(ah_attr)) {
++		ah->av.eth.stat_rate = rdma_ah_get_static_rate(ah_attr) +
++					MLX4_STAT_RATE_OFFSET;
+ 		while (ah->av.eth.stat_rate > IB_RATE_2_5_GBPS + MLX4_STAT_RATE_OFFSET &&
+ 		       !(1 << ah->av.eth.stat_rate & dev->caps.stat_rate_support))
+ 			--ah->av.eth.stat_rate;
+ 	}
+ 	ah->av.eth.sl_tclass_flowlabel |=
+-			cpu_to_be32((ah_attr->grh.traffic_class << 20) |
+-				    ah_attr->grh.flow_label);
++			cpu_to_be32((grh->traffic_class << 20) |
++				    grh->flow_label);
+ 	/*
+ 	 * HW requires multicast LID so we just choose one.
+ 	 */
+ 	if (is_mcast)
+ 		ah->av.ib.dlid = cpu_to_be16(0xc000);
+ 
+-	memcpy(ah->av.eth.dgid, ah_attr->grh.dgid.raw, 16);
+-	ah->av.eth.sl_tclass_flowlabel |= cpu_to_be32(ah_attr->sl << 29);
+-
++	memcpy(ah->av.eth.dgid, grh->dgid.raw, 16);
++	ah->av.eth.sl_tclass_flowlabel |= cpu_to_be32(rdma_ah_get_sl(ah_attr)
++						      << 29);
+ 	return &ah->ibah;
+ }
+ 
+@@ -142,8 +154,10 @@ struct ib_ah *mlx4_ib_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
  	if (!ah)
  		return ERR_PTR(-ENOMEM);
  
--	if (rdma_port_get_link_layer(pd->device,
--				     rdma_ah_get_port_num(ah_attr)) ==
--	    IB_LINK_LAYER_ETHERNET) {
-+	if (ah_attr->type == RDMA_AH_ATTR_TYPE_ROCE) {
- 		if (!(rdma_ah_get_ah_flags(ah_attr) & IB_AH_GRH)) {
+-	if (rdma_port_get_link_layer(pd->device, ah_attr->port_num) == IB_LINK_LAYER_ETHERNET) {
+-		if (!(ah_attr->ah_flags & IB_AH_GRH)) {
++	if (rdma_port_get_link_layer(pd->device,
++				     rdma_ah_get_port_num(ah_attr)) ==
++	    IB_LINK_LAYER_ETHERNET) {
++		if (!(rdma_ah_get_ah_flags(ah_attr) & IB_AH_GRH)) {
  			ret = ERR_PTR(-EINVAL);
  		} else {
-@@ -182,30 +180,29 @@ struct ib_ah *mlx4_ib_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
- int mlx4_ib_query_ah(struct ib_ah *ibah, struct rdma_ah_attr *ah_attr)
- {
- 	struct mlx4_ib_ah *ah = to_mah(ibah);
--	enum rdma_link_layer ll;
-+	int port_num = be32_to_cpu(ah->av.ib.port_pd) >> 24;
+ 			/*
+@@ -171,28 +185,35 @@ int mlx4_ib_query_ah(struct ib_ah *ibah, struct rdma_ah_attr *ah_attr)
+ 	enum rdma_link_layer ll;
  
  	memset(ah_attr, 0, sizeof *ah_attr);
--	rdma_ah_set_port_num(ah_attr,
--			     be32_to_cpu(ah->av.ib.port_pd) >> 24);
--	ll = rdma_port_get_link_layer(ibah->device,
--				      rdma_ah_get_port_num(ah_attr));
--	if (ll == IB_LINK_LAYER_ETHERNET)
-+	ah_attr->type = ibah->type;
-+
-+	if (ah_attr->type == RDMA_AH_ATTR_TYPE_ROCE) {
-+		rdma_ah_set_dlid(ah_attr, 0);
- 		rdma_ah_set_sl(ah_attr,
- 			       be32_to_cpu(ah->av.eth.sl_tclass_flowlabel)
- 			       >> 29);
--	else
-+	} else {
-+		rdma_ah_set_dlid(ah_attr, be16_to_cpu(ah->av.ib.dlid));
- 		rdma_ah_set_sl(ah_attr,
- 			       be32_to_cpu(ah->av.ib.sl_tclass_flowlabel)
- 			       >> 28);
-+	}
+-	ah_attr->port_num = be32_to_cpu(ah->av.ib.port_pd) >> 24;
+-	ll = rdma_port_get_link_layer(ibah->device, ah_attr->port_num);
++	rdma_ah_set_port_num(ah_attr,
++			     be32_to_cpu(ah->av.ib.port_pd) >> 24);
++	ll = rdma_port_get_link_layer(ibah->device,
++				      rdma_ah_get_port_num(ah_attr));
+ 	if (ll == IB_LINK_LAYER_ETHERNET)
+-		ah_attr->sl = be32_to_cpu(ah->av.eth.sl_tclass_flowlabel) >> 29;
++		rdma_ah_set_sl(ah_attr,
++			       be32_to_cpu(ah->av.eth.sl_tclass_flowlabel)
++			       >> 29);
+ 	else
+-		ah_attr->sl = be32_to_cpu(ah->av.ib.sl_tclass_flowlabel) >> 28;
++		rdma_ah_set_sl(ah_attr,
++			       be32_to_cpu(ah->av.ib.sl_tclass_flowlabel)
++			       >> 28);
  
--	rdma_ah_set_dlid(ah_attr, (ll == IB_LINK_LAYER_INFINIBAND) ?
--			 be16_to_cpu(ah->av.ib.dlid) : 0);
-+	rdma_ah_set_port_num(ah_attr, port_num);
+-	ah_attr->dlid = ll == IB_LINK_LAYER_INFINIBAND ? be16_to_cpu(ah->av.ib.dlid) : 0;
++	rdma_ah_set_dlid(ah_attr, (ll == IB_LINK_LAYER_INFINIBAND) ?
++			 be16_to_cpu(ah->av.ib.dlid) : 0);
  	if (ah->av.ib.stat_rate)
- 		rdma_ah_set_static_rate(ah_attr,
- 					ah->av.ib.stat_rate -
- 					MLX4_STAT_RATE_OFFSET);
- 	rdma_ah_set_path_bits(ah_attr, ah->av.ib.g_slid & 0x7F);
--
- 	if (mlx4_ib_ah_grh_present(ah)) {
- 		u32 tc_fl = be32_to_cpu(ah->av.ib.sl_tclass_flowlabel);
+-		ah_attr->static_rate = ah->av.ib.stat_rate - MLX4_STAT_RATE_OFFSET;
+-	ah_attr->src_path_bits = ah->av.ib.g_slid & 0x7F;
++		rdma_ah_set_static_rate(ah_attr,
++					ah->av.ib.stat_rate -
++					MLX4_STAT_RATE_OFFSET);
++	rdma_ah_set_path_bits(ah_attr, ah->av.ib.g_slid & 0x7F);
  
+ 	if (mlx4_ib_ah_grh_present(ah)) {
+-		ah_attr->ah_flags = IB_AH_GRH;
+-
+-		ah_attr->grh.traffic_class =
+-			be32_to_cpu(ah->av.ib.sl_tclass_flowlabel) >> 20;
+-		ah_attr->grh.flow_label =
+-			be32_to_cpu(ah->av.ib.sl_tclass_flowlabel) & 0xfffff;
+-		ah_attr->grh.hop_limit  = ah->av.ib.hop_limit;
+-		ah_attr->grh.sgid_index = ah->av.ib.gid_index;
+-		memcpy(ah_attr->grh.dgid.raw, ah->av.ib.dgid, 16);
++		u32 tc_fl = be32_to_cpu(ah->av.ib.sl_tclass_flowlabel);
++
++		rdma_ah_set_grh(ah_attr, NULL,
++				tc_fl & 0xfffff, ah->av.ib.gid_index,
++				ah->av.ib.hop_limit,
++				tc_fl >> 20);
++		rdma_ah_set_dgid_raw(ah_attr, ah->av.ib.dgid);
+ 	}
+ 
+ 	return 0;
 diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index 425515e..b469471 100644
+index 90915c5..425515e 100644
 --- a/drivers/infiniband/hw/mlx4/mad.c
 +++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -196,6 +196,7 @@ static void update_sm_ah(struct mlx4_ib_dev *dev, u8 port_num, u16 lid, u8 sl)
+@@ -196,9 +196,9 @@ static void update_sm_ah(struct mlx4_ib_dev *dev, u8 port_num, u16 lid, u8 sl)
  		return;
  
  	memset(&ah_attr, 0, sizeof ah_attr);
-+	ah_attr.type = rdma_ah_find_type(&dev->ib_dev, port_num);
- 	rdma_ah_set_dlid(&ah_attr, lid);
- 	rdma_ah_set_sl(&ah_attr, sl);
- 	rdma_ah_set_port_num(&ah_attr, port_num);
-@@ -555,6 +556,7 @@ int mlx4_ib_send_to_slave(struct mlx4_ib_dev *dev, int slave, u8 port,
+-	ah_attr.dlid     = lid;
+-	ah_attr.sl       = sl;
+-	ah_attr.port_num = port_num;
++	rdma_ah_set_dlid(&ah_attr, lid);
++	rdma_ah_set_sl(&ah_attr, sl);
++	rdma_ah_set_port_num(&ah_attr, port_num);
+ 
+ 	new_ah = rdma_create_ah(dev->send_agent[port_num - 1][0]->qp->pd,
+ 				&ah_attr);
+@@ -555,13 +555,15 @@ int mlx4_ib_send_to_slave(struct mlx4_ib_dev *dev, int slave, u8 port,
  	/* create ah. Just need an empty one with the port num for the post send.
  	 * The driver will set the force loopback bit in post_send */
  	memset(&attr, 0, sizeof attr);
-+	attr.type = rdma_ah_find_type(&dev->ib_dev, port);
- 
- 	rdma_ah_set_port_num(&attr, port);
+-	attr.port_num = port;
++
++	rdma_ah_set_port_num(&attr, port);
  	if (is_eth) {
+ 		union ib_gid sgid;
++		union ib_gid dgid;
+ 
+-		if (get_gids_from_l3_hdr(grh, &sgid, &attr.grh.dgid))
++		if (get_gids_from_l3_hdr(grh, &sgid, &dgid))
+ 			return -EINVAL;
+-		attr.ah_flags = IB_AH_GRH;
++		rdma_ah_set_grh(&attr, &dgid, 0, 0, 0, 0);
+ 	}
+ 	ah = rdma_create_ah(tun_ctx->pd, &attr);
+ 	if (IS_ERR(ah))
+@@ -1363,6 +1365,7 @@ int mlx4_ib_send_to_wire(struct mlx4_ib_dev *dev, int slave, u8 port,
+ 	struct mlx4_mad_snd_buf *sqp_mad;
+ 	struct ib_ah *ah;
+ 	struct ib_qp *send_qp = NULL;
++	struct ib_global_route *grh;
+ 	unsigned wire_tx_ix = 0;
+ 	int ret = 0;
+ 	u16 wire_pkey_ix;
+@@ -1389,12 +1392,13 @@ int mlx4_ib_send_to_wire(struct mlx4_ib_dev *dev, int slave, u8 port,
+ 	send_qp = sqp->qp;
+ 
+ 	/* create ah */
+-	sgid_index = attr->grh.sgid_index;
+-	attr->grh.sgid_index = 0;
++	grh = rdma_ah_retrieve_grh(attr);
++	sgid_index = grh->sgid_index;
++	grh->sgid_index = 0;
+ 	ah = rdma_create_ah(sqp_ctx->pd, attr);
+ 	if (IS_ERR(ah))
+ 		return -ENOMEM;
+-	attr->grh.sgid_index = sgid_index;
++	grh->sgid_index = sgid_index;
+ 	to_mah(ah)->av.ib.gid_index = sgid_index;
+ 	/* get rid of force-loopback bit */
+ 	to_mah(ah)->av.ib.port_pd &= cpu_to_be32(0x7FFFFFFF);
+@@ -1442,7 +1446,7 @@ int mlx4_ib_send_to_wire(struct mlx4_ib_dev *dev, int slave, u8 port,
+ 	if (s_mac)
+ 		memcpy(to_mah(ah)->av.eth.s_mac, s_mac, 6);
+ 	if (vlan_id < 0x1000)
+-		vlan_id |= (attr->sl & 7) << 13;
++		vlan_id |= (rdma_ah_get_sl(attr) & 7) << 13;
+ 	to_mah(ah)->av.eth.vlan = cpu_to_be16(vlan_id);
+ 
+ 
+@@ -1469,10 +1473,11 @@ static int get_slave_base_gid_ix(struct mlx4_ib_dev *dev, int slave, int port)
+ static void fill_in_real_sgid_index(struct mlx4_ib_dev *dev, int slave, int port,
+ 				    struct rdma_ah_attr *ah_attr)
+ {
++	struct ib_global_route *grh = rdma_ah_retrieve_grh(ah_attr);
+ 	if (rdma_port_get_link_layer(&dev->ib_dev, port) == IB_LINK_LAYER_INFINIBAND)
+-		ah_attr->grh.sgid_index = slave;
++		grh->sgid_index = slave;
+ 	else
+-		ah_attr->grh.sgid_index += get_slave_base_gid_ix(dev, slave, port);
++		grh->sgid_index += get_slave_base_gid_ix(dev, slave, port);
+ }
+ 
+ static void mlx4_ib_multiplex_mad(struct mlx4_ib_demux_pv_ctx *ctx, struct ib_wc *wc)
+@@ -1487,6 +1492,8 @@ static void mlx4_ib_multiplex_mad(struct mlx4_ib_demux_pv_ctx *ctx, struct ib_wc
+ 	int slave;
+ 	int port;
+ 	u16 vlan_id;
++	u8 qos;
++	u8 *dmac;
+ 
+ 	/* Get slave that sent this packet */
+ 	if (wc->src_qp < dev->dev->phys_caps.base_proxy_sqpn ||
+@@ -1571,14 +1578,16 @@ static void mlx4_ib_multiplex_mad(struct mlx4_ib_demux_pv_ctx *ctx, struct ib_wc
+ 	ah.av.ib.port_pd = cpu_to_be32(port << 24 | (be32_to_cpu(ah.av.ib.port_pd) & 0xffffff));
+ 
+ 	mlx4_ib_query_ah(&ah.ibah, &ah_attr);
+-	if (ah_attr.ah_flags & IB_AH_GRH)
++	if (rdma_ah_get_ah_flags(&ah_attr) & IB_AH_GRH)
+ 		fill_in_real_sgid_index(dev, slave, ctx->port, &ah_attr);
+-
+-	memcpy(ah_attr.dmac, tunnel->hdr.mac, 6);
++	dmac = rdma_ah_retrieve_dmac(&ah_attr);
++	if (dmac)
++		memcpy(dmac, tunnel->hdr.mac, ETH_ALEN);
+ 	vlan_id = be16_to_cpu(tunnel->hdr.vlan);
+ 	/* if slave have default vlan use it */
+-	mlx4_get_slave_default_vlan(dev->dev, ctx->port, slave,
+-				    &vlan_id, &ah_attr.sl);
++	if (mlx4_get_slave_default_vlan(dev->dev, ctx->port, slave,
++					&vlan_id, &qos))
++		rdma_ah_set_sl(&ah_attr, qos);
+ 
+ 	mlx4_ib_send_to_wire(dev, slave, ctx->port,
+ 			     is_proxy_qp0(dev, wc->src_qp, slave) ?
+diff --git a/drivers/infiniband/hw/mlx4/mcg.c b/drivers/infiniband/hw/mlx4/mcg.c
+index 34fc77e..4d503d1 100644
+--- a/drivers/infiniband/hw/mlx4/mcg.c
++++ b/drivers/infiniband/hw/mlx4/mcg.c
+@@ -244,7 +244,7 @@ static int send_mad_to_slave(int slave, struct mlx4_ib_demux_ctx *ctx,
+ 	wc.sl = 0;
+ 	wc.dlid_path_bits = 0;
+ 	wc.port_num = ctx->port;
+-	wc.slid = ah_attr.dlid;  /* opensm lid */
++	wc.slid = rdma_ah_get_dlid(&ah_attr);  /* opensm lid */
+ 	wc.src_qp = 1;
+ 	return mlx4_ib_send_to_slave(dev, slave, ctx->port, IB_QPT_GSI, &wc, NULL, mad);
+ }
 diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 0c016d8..bde03d6 100644
+index f985868..0c016d8 100644
 --- a/drivers/infiniband/hw/mlx4/qp.c
 +++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -1388,8 +1388,6 @@ static int _mlx4_set_path(struct mlx4_ib_dev *dev,
- 			  u64 smac, u16 vlan_tag, struct mlx4_qp_path *path,
- 			  struct mlx4_roce_smac_vlan_info *smac_info, u8 port)
- {
--	int is_eth = rdma_port_get_link_layer(&dev->ib_dev, port) ==
--		IB_LINK_LAYER_ETHERNET;
- 	int vidx;
+@@ -1394,21 +1394,22 @@ static int _mlx4_set_path(struct mlx4_ib_dev *dev,
  	int smac_index;
  	int err;
-@@ -1426,7 +1424,7 @@ static int _mlx4_set_path(struct mlx4_ib_dev *dev,
- 		memcpy(path->rgid, grh->dgid.raw, 16);
+ 
+-
+-	path->grh_mylmc     = ah->src_path_bits & 0x7f;
+-	path->rlid	    = cpu_to_be16(ah->dlid);
+-	if (ah->static_rate) {
+-		path->static_rate = ah->static_rate + MLX4_STAT_RATE_OFFSET;
++	path->grh_mylmc = rdma_ah_get_path_bits(ah) & 0x7f;
++	path->rlid = cpu_to_be16(rdma_ah_get_dlid(ah));
++	if (rdma_ah_get_static_rate(ah)) {
++		path->static_rate = rdma_ah_get_static_rate(ah) +
++				    MLX4_STAT_RATE_OFFSET;
+ 		while (path->static_rate > IB_RATE_2_5_GBPS + MLX4_STAT_RATE_OFFSET &&
+ 		       !(1 << path->static_rate & dev->dev->caps.stat_rate_support))
+ 			--path->static_rate;
+ 	} else
+ 		path->static_rate = 0;
+ 
+-	if (ah->ah_flags & IB_AH_GRH) {
+-		int real_sgid_index = mlx4_ib_gid_index_to_real_index(dev,
+-								      port,
+-								      ah->grh.sgid_index);
++	if (rdma_ah_get_ah_flags(ah) & IB_AH_GRH) {
++		const struct ib_global_route *grh = rdma_ah_read_grh(ah);
++		int real_sgid_index =
++			mlx4_ib_gid_index_to_real_index(dev, port,
++							grh->sgid_index);
+ 
+ 		if (real_sgid_index >= dev->dev->caps.gid_table_len[port]) {
+ 			pr_err("sgid_index (%u) too large. max is %d\n",
+@@ -1418,19 +1419,19 @@ static int _mlx4_set_path(struct mlx4_ib_dev *dev,
+ 
+ 		path->grh_mylmc |= 1 << 7;
+ 		path->mgid_index = real_sgid_index;
+-		path->hop_limit  = ah->grh.hop_limit;
++		path->hop_limit  = grh->hop_limit;
+ 		path->tclass_flowlabel =
+-			cpu_to_be32((ah->grh.traffic_class << 20) |
+-				    (ah->grh.flow_label));
+-		memcpy(path->rgid, ah->grh.dgid.raw, 16);
++			cpu_to_be32((grh->traffic_class << 20) |
++				    (grh->flow_label));
++		memcpy(path->rgid, grh->dgid.raw, 16);
  	}
  
--	if (is_eth) {
-+	if (ah->type == RDMA_AH_ATTR_TYPE_ROCE) {
- 		if (!(rdma_ah_get_ah_flags(ah) & IB_AH_GRH))
+ 	if (is_eth) {
+-		if (!(ah->ah_flags & IB_AH_GRH))
++		if (!(rdma_ah_get_ah_flags(ah) & IB_AH_GRH))
  			return -1;
  
-@@ -1490,7 +1488,7 @@ static int _mlx4_set_path(struct mlx4_ib_dev *dev,
+ 		path->sched_queue = MLX4_IB_DEFAULT_SCHED_QUEUE |
+-			((port - 1) << 6) | ((ah->sl & 7) << 3);
++			((port - 1) << 6) | ((rdma_ah_get_sl(ah) & 7) << 3);
+ 
+ 		path->feup |= MLX4_FEUP_FORCE_ETH_UP;
+ 		if (vlan_tag < 0x1000) {
+@@ -1489,14 +1490,13 @@ static int _mlx4_set_path(struct mlx4_ib_dev *dev,
  		} else {
  			smac_index = smac_info->smac_index;
  		}
--		memcpy(path->dmac, ah->dmac, 6);
-+		memcpy(path->dmac, ah->roce.dmac, 6);
+-
+ 		memcpy(path->dmac, ah->dmac, 6);
  		path->ackto = MLX4_IB_LINK_TYPE_ETH;
  		/* put MAC table smac index for IBoE */
  		path->grh_mylmc = (u8) (smac_index) | 0x80;
-@@ -3402,23 +3400,19 @@ static void to_rdma_ah_attr(struct mlx4_ib_dev *ibdev,
+ 	} else {
+ 		path->sched_queue = MLX4_IB_DEFAULT_SCHED_QUEUE |
+-			((port - 1) << 6) | ((ah->sl & 0xf) << 2);
++			((port - 1) << 6) | ((rdma_ah_get_sl(ah) & 0xf) << 2);
+ 	}
+ 
+ 	return 0;
+@@ -1768,11 +1768,13 @@ static int __mlx4_ib_modify_qp(struct ib_qp *ibqp,
+ 		u16 vlan = 0xffff;
+ 		u8 smac[ETH_ALEN];
+ 		int status = 0;
+-		int is_eth = rdma_cap_eth_ah(&dev->ib_dev, port_num) &&
+-			attr->ah_attr.ah_flags & IB_AH_GRH;
++		int is_eth =
++			rdma_cap_eth_ah(&dev->ib_dev, port_num) &&
++			rdma_ah_get_ah_flags(&attr->ah_attr) & IB_AH_GRH;
+ 
+-		if (is_eth && attr->ah_attr.ah_flags & IB_AH_GRH) {
+-			int index = attr->ah_attr.grh.sgid_index;
++		if (is_eth) {
++			int index =
++				rdma_ah_read_grh(&attr->ah_attr)->sgid_index;
+ 
+ 			status = ib_get_cached_gid(ibqp->device, port_num,
+ 						   index, &gid, &gid_attr);
+@@ -3396,39 +3398,40 @@ static int to_ib_qp_access_flags(int mlx4_flags)
+ }
+ 
+ static void to_rdma_ah_attr(struct mlx4_ib_dev *ibdev,
+-			    struct rdma_ah_attr *ib_ah_attr,
++			    struct rdma_ah_attr *ah_attr,
  			    struct mlx4_qp_path *path)
  {
  	struct mlx4_dev *dev = ibdev->dev;
--	int is_eth;
- 	u8 port_num = path->sched_queue & 0x40 ? 2 : 1;
+ 	int is_eth;
++	u8 port_num = path->sched_queue & 0x40 ? 2 : 1;
  
- 	memset(ah_attr, 0, sizeof(*ah_attr));
--	rdma_ah_set_port_num(ah_attr, port_num);
--
-+	ah_attr->type = rdma_ah_find_type(&ibdev->ib_dev, port_num);
- 	if (port_num == 0 || port_num > dev->caps.num_ports)
- 		return;
- 
--	is_eth = rdma_port_get_link_layer(&ibdev->ib_dev,
--					  rdma_ah_get_port_num(ah_attr)) ==
--			IB_LINK_LAYER_ETHERNET;
--	if (is_eth)
-+	if (ah_attr->type == RDMA_AH_ATTR_TYPE_ROCE)
- 		rdma_ah_set_sl(ah_attr, ((path->sched_queue >> 3) & 0x7) |
- 			       ((path->sched_queue & 4) << 1));
- 	else
- 		rdma_ah_set_sl(ah_attr, (path->sched_queue >> 2) & 0xf);
+-	memset(ib_ah_attr, 0, sizeof *ib_ah_attr);
+-	ib_ah_attr->port_num	  = path->sched_queue & 0x40 ? 2 : 1;
++	memset(ah_attr, 0, sizeof(*ah_attr));
 +	rdma_ah_set_port_num(ah_attr, port_num);
  
- 	rdma_ah_set_dlid(ah_attr, be16_to_cpu(path->rlid));
- 	rdma_ah_set_path_bits(ah_attr, path->grh_mylmc & 0x7f);
-diff --git a/drivers/infiniband/hw/mlx5/ah.c b/drivers/infiniband/hw/mlx5/ah.c
-index 5455f3f..3363e29 100644
---- a/drivers/infiniband/hw/mlx5/ah.c
-+++ b/drivers/infiniband/hw/mlx5/ah.c
-@@ -34,8 +34,7 @@
+-	if (ib_ah_attr->port_num == 0 || ib_ah_attr->port_num > dev->caps.num_ports)
++	if (port_num == 0 || port_num > dev->caps.num_ports)
+ 		return;
  
- static struct ib_ah *create_ib_ah(struct mlx5_ib_dev *dev,
- 				  struct mlx5_ib_ah *ah,
--				  struct rdma_ah_attr *ah_attr,
--				  enum rdma_link_layer ll)
-+				  struct rdma_ah_attr *ah_attr)
- {
- 	if (rdma_ah_get_ah_flags(ah_attr) & IB_AH_GRH) {
- 		const struct ib_global_route *grh = rdma_ah_read_grh(ah_attr);
-@@ -50,8 +49,9 @@ static struct ib_ah *create_ib_ah(struct mlx5_ib_dev *dev,
+-	is_eth = rdma_port_get_link_layer(&ibdev->ib_dev, ib_ah_attr->port_num) ==
+-		IB_LINK_LAYER_ETHERNET;
++	is_eth = rdma_port_get_link_layer(&ibdev->ib_dev,
++					  rdma_ah_get_port_num(ah_attr)) ==
++			IB_LINK_LAYER_ETHERNET;
+ 	if (is_eth)
+-		ib_ah_attr->sl = ((path->sched_queue >> 3) & 0x7) |
+-		((path->sched_queue & 4) << 1);
++		rdma_ah_set_sl(ah_attr, ((path->sched_queue >> 3) & 0x7) |
++			       ((path->sched_queue & 4) << 1));
+ 	else
+-		ib_ah_attr->sl = (path->sched_queue >> 2) & 0xf;
++		rdma_ah_set_sl(ah_attr, (path->sched_queue >> 2) & 0xf);
  
- 	ah->av.stat_rate_sl = (rdma_ah_get_static_rate(ah_attr) << 4);
- 
--	if (ll == IB_LINK_LAYER_ETHERNET) {
--		memcpy(ah->av.rmac, ah_attr->dmac, sizeof(ah_attr->dmac));
-+	if (ah_attr->type == RDMA_AH_ATTR_TYPE_ROCE) {
-+		memcpy(ah->av.rmac, ah_attr->roce.dmac,
-+		       sizeof(ah_attr->roce.dmac));
- 		ah->av.udp_sport =
- 		mlx5_get_roce_udp_sport(dev,
- 					rdma_ah_get_port_num(ah_attr),
-@@ -72,16 +72,13 @@ struct ib_ah *mlx5_ib_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
- {
- 	struct mlx5_ib_ah *ah;
- 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
--	enum rdma_link_layer ll;
-+	enum rdma_ah_attr_type ah_type = ah_attr->type;
- 
--	ll = pd->device->get_link_layer(pd->device,
--					rdma_ah_get_port_num(ah_attr));
--
--	if (ll == IB_LINK_LAYER_ETHERNET &&
-+	if ((ah_type == RDMA_AH_ATTR_TYPE_ROCE) &&
- 	    !(rdma_ah_get_ah_flags(ah_attr) & IB_AH_GRH))
- 		return ERR_PTR(-EINVAL);
- 
--	if (ll == IB_LINK_LAYER_ETHERNET && udata) {
-+	if (ah_type == RDMA_AH_ATTR_TYPE_ROCE && udata) {
- 		int err;
- 		struct mlx5_ib_create_ah_resp resp = {};
- 		u32 min_resp_len = offsetof(typeof(resp), dmac) +
-@@ -96,7 +93,7 @@ struct ib_ah *mlx5_ib_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
- 		if (err)
- 			return ERR_PTR(err);
- 
--		memcpy(resp.dmac, ah_attr->dmac, ETH_ALEN);
-+		memcpy(resp.dmac, ah_attr->roce.dmac, ETH_ALEN);
- 		err = ib_copy_to_udata(udata, &resp, resp.response_length);
- 		if (err)
- 			return ERR_PTR(err);
-@@ -106,7 +103,7 @@ struct ib_ah *mlx5_ib_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
- 	if (!ah)
- 		return ERR_PTR(-ENOMEM);
- 
--	return create_ib_ah(dev, ah, ah_attr, ll); /* never fails */
-+	return create_ib_ah(dev, ah, ah_attr); /* never fails */
+-	ib_ah_attr->dlid	  = be16_to_cpu(path->rlid);
+-	ib_ah_attr->src_path_bits = path->grh_mylmc & 0x7f;
+-	ib_ah_attr->static_rate   = path->static_rate ? path->static_rate - 5 : 0;
+-	ib_ah_attr->ah_flags      = (path->grh_mylmc & (1 << 7)) ? IB_AH_GRH : 0;
+-	if (ib_ah_attr->ah_flags) {
+-		ib_ah_attr->grh.sgid_index = path->mgid_index;
+-		ib_ah_attr->grh.hop_limit  = path->hop_limit;
+-		ib_ah_attr->grh.traffic_class =
+-			(be32_to_cpu(path->tclass_flowlabel) >> 20) & 0xff;
+-		ib_ah_attr->grh.flow_label =
+-			be32_to_cpu(path->tclass_flowlabel) & 0xfffff;
+-		memcpy(ib_ah_attr->grh.dgid.raw,
+-			path->rgid, sizeof ib_ah_attr->grh.dgid.raw);
++	rdma_ah_set_dlid(ah_attr, be16_to_cpu(path->rlid));
++	rdma_ah_set_path_bits(ah_attr, path->grh_mylmc & 0x7f);
++	rdma_ah_set_static_rate(ah_attr,
++				path->static_rate ? path->static_rate - 5 : 0);
++	if (path->grh_mylmc & (1 << 7)) {
++		rdma_ah_set_grh(ah_attr, NULL,
++				be32_to_cpu(path->tclass_flowlabel) & 0xfffff,
++				path->mgid_index,
++				path->hop_limit,
++				(be32_to_cpu(path->tclass_flowlabel)
++				 >> 20) & 0xff);
++		rdma_ah_set_dgid_raw(ah_attr, path->rgid);
+ 	}
  }
  
- int mlx5_ib_query_ah(struct ib_ah *ibah, struct rdma_ah_attr *ah_attr)
-@@ -115,6 +112,7 @@ int mlx5_ib_query_ah(struct ib_ah *ibah, struct rdma_ah_attr *ah_attr)
- 	u32 tmp;
+@@ -3472,7 +3475,8 @@ int mlx4_ib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr, int qp_attr
+ 		to_rdma_ah_attr(dev, &qp_attr->ah_attr, &context.pri_path);
+ 		to_rdma_ah_attr(dev, &qp_attr->alt_ah_attr, &context.alt_path);
+ 		qp_attr->alt_pkey_index = context.alt_path.pkey_index & 0x7f;
+-		qp_attr->alt_port_num	= qp_attr->alt_ah_attr.port_num;
++		qp_attr->alt_port_num	=
++			rdma_ah_get_port_num(&qp_attr->alt_ah_attr);
+ 	}
  
- 	memset(ah_attr, 0, sizeof(*ah_attr));
-+	ah_attr->type = ibah->type;
+ 	qp_attr->pkey_index = context.pri_path.pkey_index & 0x7f;
+diff --git a/drivers/infiniband/hw/mlx5/ah.c b/drivers/infiniband/hw/mlx5/ah.c
+index 47529ab..5455f3f 100644
+--- a/drivers/infiniband/hw/mlx5/ah.c
++++ b/drivers/infiniband/hw/mlx5/ah.c
+@@ -37,28 +37,30 @@ static struct ib_ah *create_ib_ah(struct mlx5_ib_dev *dev,
+ 				  struct rdma_ah_attr *ah_attr,
+ 				  enum rdma_link_layer ll)
+ {
+-	if (ah_attr->ah_flags & IB_AH_GRH) {
+-		memcpy(ah->av.rgid, &ah_attr->grh.dgid, 16);
+-		ah->av.grh_gid_fl = cpu_to_be32(ah_attr->grh.flow_label |
++	if (rdma_ah_get_ah_flags(ah_attr) & IB_AH_GRH) {
++		const struct ib_global_route *grh = rdma_ah_read_grh(ah_attr);
++
++		memcpy(ah->av.rgid, &grh->dgid, 16);
++		ah->av.grh_gid_fl = cpu_to_be32(grh->flow_label |
+ 						(1 << 30) |
+-						ah_attr->grh.sgid_index << 20);
+-		ah->av.hop_limit = ah_attr->grh.hop_limit;
+-		ah->av.tclass = ah_attr->grh.traffic_class;
++						grh->sgid_index << 20);
++		ah->av.hop_limit = grh->hop_limit;
++		ah->av.tclass = grh->traffic_class;
+ 	}
+ 
+-	ah->av.stat_rate_sl = (ah_attr->static_rate << 4);
++	ah->av.stat_rate_sl = (rdma_ah_get_static_rate(ah_attr) << 4);
+ 
+ 	if (ll == IB_LINK_LAYER_ETHERNET) {
+ 		memcpy(ah->av.rmac, ah_attr->dmac, sizeof(ah_attr->dmac));
+ 		ah->av.udp_sport =
+-			mlx5_get_roce_udp_sport(dev,
+-						ah_attr->port_num,
+-						ah_attr->grh.sgid_index);
+-		ah->av.stat_rate_sl |= (ah_attr->sl & 0x7) << 1;
++		mlx5_get_roce_udp_sport(dev,
++					rdma_ah_get_port_num(ah_attr),
++					rdma_ah_read_grh(ah_attr)->sgid_index);
++		ah->av.stat_rate_sl |= (rdma_ah_get_sl(ah_attr) & 0x7) << 1;
+ 	} else {
+-		ah->av.rlid = cpu_to_be16(ah_attr->dlid);
+-		ah->av.fl_mlid = ah_attr->src_path_bits & 0x7f;
+-		ah->av.stat_rate_sl |= (ah_attr->sl & 0xf);
++		ah->av.rlid = cpu_to_be16(rdma_ah_get_dlid(ah_attr));
++		ah->av.fl_mlid = rdma_ah_get_path_bits(ah_attr) & 0x7f;
++		ah->av.stat_rate_sl |= (rdma_ah_get_sl(ah_attr) & 0xf);
+ 	}
+ 
+ 	return &ah->ibah;
+@@ -72,9 +74,11 @@ struct ib_ah *mlx5_ib_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
+ 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
+ 	enum rdma_link_layer ll;
+ 
+-	ll = pd->device->get_link_layer(pd->device, ah_attr->port_num);
++	ll = pd->device->get_link_layer(pd->device,
++					rdma_ah_get_port_num(ah_attr));
+ 
+-	if (ll == IB_LINK_LAYER_ETHERNET && !(ah_attr->ah_flags & IB_AH_GRH))
++	if (ll == IB_LINK_LAYER_ETHERNET &&
++	    !(rdma_ah_get_ah_flags(ah_attr) & IB_AH_GRH))
+ 		return ERR_PTR(-EINVAL);
+ 
+ 	if (ll == IB_LINK_LAYER_ETHERNET && udata) {
+@@ -114,16 +118,16 @@ int mlx5_ib_query_ah(struct ib_ah *ibah, struct rdma_ah_attr *ah_attr)
  
  	tmp = be32_to_cpu(ah->av.grh_gid_fl);
  	if (tmp & (1 << 30)) {
+-		ah_attr->ah_flags = IB_AH_GRH;
+-		ah_attr->grh.sgid_index = (tmp >> 20) & 0xff;
+-		ah_attr->grh.flow_label = tmp & 0xfffff;
+-		memcpy(&ah_attr->grh.dgid, ah->av.rgid, 16);
+-		ah_attr->grh.hop_limit = ah->av.hop_limit;
+-		ah_attr->grh.traffic_class = ah->av.tclass;
++		rdma_ah_set_grh(ah_attr, NULL,
++				tmp & 0xfffff,
++				(tmp >> 20) & 0xff,
++				ah->av.hop_limit,
++				ah->av.tclass);
++		rdma_ah_set_dgid_raw(ah_attr, ah->av.rgid);
+ 	}
+-	ah_attr->dlid = be16_to_cpu(ah->av.rlid);
+-	ah_attr->static_rate = ah->av.stat_rate_sl >> 4;
+-	ah_attr->sl = ah->av.stat_rate_sl & 0xf;
++	rdma_ah_set_dlid(ah_attr, be16_to_cpu(ah->av.rlid));
++	rdma_ah_set_static_rate(ah_attr, ah->av.stat_rate_sl >> 4);
++	rdma_ah_set_sl(ah_attr, ah->av.stat_rate_sl & 0xf);
+ 
+ 	return 0;
+ }
 diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index f65adf4..0123104 100644
+index 22d8f71..f65adf4 100644
 --- a/drivers/infiniband/hw/mlx5/qp.c
 +++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -2211,7 +2211,6 @@ static int mlx5_set_path(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+@@ -2210,26 +2210,28 @@ static int mlx5_set_path(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 			 u32 path_flags, const struct ib_qp_attr *attr,
  			 bool alt)
  {
- 	const struct ib_global_route *grh = rdma_ah_read_grh(ah);
--	enum rdma_link_layer ll = rdma_port_get_link_layer(&dev->ib_dev, port);
++	const struct ib_global_route *grh = rdma_ah_read_grh(ah);
+ 	enum rdma_link_layer ll = rdma_port_get_link_layer(&dev->ib_dev, port);
  	int err;
  	enum ib_gid_type gid_type;
- 	u8 ah_flags = rdma_ah_get_ah_flags(ah);
-@@ -2230,14 +2229,15 @@ static int mlx5_set_path(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
++	u8 ah_flags = rdma_ah_get_ah_flags(ah);
++	u8 sl = rdma_ah_get_sl(ah);
+ 
+ 	if (attr_mask & IB_QP_PKEY_INDEX)
+ 		path->pkey_index = cpu_to_be16(alt ? attr->alt_pkey_index :
+ 						     attr->pkey_index);
+ 
+-	if (ah->ah_flags & IB_AH_GRH) {
+-		if (ah->grh.sgid_index >=
++	if (ah_flags & IB_AH_GRH) {
++		if (grh->sgid_index >=
+ 		    dev->mdev->port_caps[port - 1].gid_table_len) {
+ 			pr_err("sgid_index (%u) too large. max is %d\n",
+-			       ah->grh.sgid_index,
++			       grh->sgid_index,
+ 			       dev->mdev->port_caps[port - 1].gid_table_len);
  			return -EINVAL;
  		}
  	}
--	if (ll == IB_LINK_LAYER_ETHERNET) {
-+
-+	if (ah->type == RDMA_AH_ATTR_TYPE_ROCE) {
- 		if (!(ah_flags & IB_AH_GRH))
+-
+ 	if (ll == IB_LINK_LAYER_ETHERNET) {
+-		if (!(ah->ah_flags & IB_AH_GRH))
++		if (!(ah_flags & IB_AH_GRH))
  			return -EINVAL;
--		err = mlx5_get_roce_gid_type(dev, port, ah->grh.sgid_index,
-+		err = mlx5_get_roce_gid_type(dev, port, grh->sgid_index,
+ 		err = mlx5_get_roce_gid_type(dev, port, ah->grh.sgid_index,
  					     &gid_type);
- 		if (err)
+@@ -2237,31 +2239,31 @@ static int mlx5_set_path(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
  			return err;
--		memcpy(path->rmac, ah->dmac, sizeof(ah->dmac));
-+		memcpy(path->rmac, ah->roce.dmac, sizeof(ah->roce.dmac));
+ 		memcpy(path->rmac, ah->dmac, sizeof(ah->dmac));
  		path->udp_sport = mlx5_get_roce_udp_sport(dev, port,
- 							  grh->sgid_index);
- 		path->dci_cfi_prio_sl = (sl & 0x7) << 4;
-@@ -4258,6 +4258,7 @@ static void to_rdma_ah_attr(struct mlx5_ib_dev *ibdev,
+-							  ah->grh.sgid_index);
+-		path->dci_cfi_prio_sl = (ah->sl & 0x7) << 4;
++							  grh->sgid_index);
++		path->dci_cfi_prio_sl = (sl & 0x7) << 4;
+ 		if (gid_type == IB_GID_TYPE_ROCE_UDP_ENCAP)
+-			path->ecn_dscp = (ah->grh.traffic_class >> 2) & 0x3f;
++			path->ecn_dscp = (grh->traffic_class >> 2) & 0x3f;
+ 	} else {
+ 		path->fl_free_ar = (path_flags & MLX5_PATH_FLAG_FL) ? 0x80 : 0;
+ 		path->fl_free_ar |=
+ 			(path_flags & MLX5_PATH_FLAG_FREE_AR) ? 0x40 : 0;
+-		path->rlid = cpu_to_be16(ah->dlid);
+-		path->grh_mlid = ah->src_path_bits & 0x7f;
+-		if (ah->ah_flags & IB_AH_GRH)
++		path->rlid = cpu_to_be16(rdma_ah_get_dlid(ah));
++		path->grh_mlid = rdma_ah_get_path_bits(ah) & 0x7f;
++		if (ah_flags & IB_AH_GRH)
+ 			path->grh_mlid	|= 1 << 7;
+-		path->dci_cfi_prio_sl = ah->sl & 0xf;
++		path->dci_cfi_prio_sl = sl & 0xf;
+ 	}
  
- 	memset(ah_attr, 0, sizeof(*ah_attr));
+-	if (ah->ah_flags & IB_AH_GRH) {
+-		path->mgid_index = ah->grh.sgid_index;
+-		path->hop_limit  = ah->grh.hop_limit;
++	if (ah_flags & IB_AH_GRH) {
++		path->mgid_index = grh->sgid_index;
++		path->hop_limit  = grh->hop_limit;
+ 		path->tclass_flowlabel =
+-			cpu_to_be32((ah->grh.traffic_class << 20) |
+-				    (ah->grh.flow_label));
+-		memcpy(path->rgid, ah->grh.dgid.raw, 16);
++			cpu_to_be32((grh->traffic_class << 20) |
++				    (grh->flow_label));
++		memcpy(path->rgid, grh->dgid.raw, 16);
+ 	}
  
-+	ah_attr->type = rdma_ah_find_type(&ibdev->ib_dev, path->port);
- 	rdma_ah_set_port_num(ah_attr, path->port);
- 	if (rdma_ah_get_port_num(ah_attr) == 0 ||
- 	    rdma_ah_get_port_num(ah_attr) > MLX5_CAP_GEN(dev, num_ports))
+-	err = ib_rate_to_mlx5(dev, ah->static_rate);
++	err = ib_rate_to_mlx5(dev, rdma_ah_get_static_rate(ah));
+ 	if (err < 0)
+ 		return err;
+ 	path->static_rate = err;
+@@ -2273,7 +2275,7 @@ static int mlx5_set_path(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 	if ((qp->ibqp.qp_type == IB_QPT_RAW_PACKET) && qp->sq.wqe_cnt)
+ 		return modify_raw_packet_eth_prio(dev->mdev,
+ 						  &qp->raw_packet_qp.sq,
+-						  ah->sl & 0xf);
++						  sl & 0xf);
+ 
+ 	return 0;
+ }
+@@ -4249,33 +4251,34 @@ static int to_ib_qp_access_flags(int mlx5_flags)
+ }
+ 
+ static void to_rdma_ah_attr(struct mlx5_ib_dev *ibdev,
+-			    struct rdma_ah_attr *ib_ah_attr,
++			    struct rdma_ah_attr *ah_attr,
+ 			    struct mlx5_qp_path *path)
+ {
+ 	struct mlx5_core_dev *dev = ibdev->mdev;
+ 
+-	memset(ib_ah_attr, 0, sizeof(*ib_ah_attr));
+-	ib_ah_attr->port_num	  = path->port;
++	memset(ah_attr, 0, sizeof(*ah_attr));
+ 
+-	if (ib_ah_attr->port_num == 0 ||
+-	    ib_ah_attr->port_num > MLX5_CAP_GEN(dev, num_ports))
++	rdma_ah_set_port_num(ah_attr, path->port);
++	if (rdma_ah_get_port_num(ah_attr) == 0 ||
++	    rdma_ah_get_port_num(ah_attr) > MLX5_CAP_GEN(dev, num_ports))
+ 		return;
+ 
+-	ib_ah_attr->sl = path->dci_cfi_prio_sl & 0xf;
++	rdma_ah_set_port_num(ah_attr, path->port);
++	rdma_ah_set_sl(ah_attr, path->dci_cfi_prio_sl & 0xf);
++
++	rdma_ah_set_dlid(ah_attr, be16_to_cpu(path->rlid));
++	rdma_ah_set_path_bits(ah_attr, path->grh_mlid & 0x7f);
++	rdma_ah_set_static_rate(ah_attr,
++				path->static_rate ? path->static_rate - 5 : 0);
++	if (path->grh_mlid & (1 << 7)) {
++		u32 tc_fl = be32_to_cpu(path->tclass_flowlabel);
+ 
+-	ib_ah_attr->dlid	  = be16_to_cpu(path->rlid);
+-	ib_ah_attr->src_path_bits = path->grh_mlid & 0x7f;
+-	ib_ah_attr->static_rate   = path->static_rate ? path->static_rate - 5 : 0;
+-	ib_ah_attr->ah_flags      = (path->grh_mlid & (1 << 7)) ? IB_AH_GRH : 0;
+-	if (ib_ah_attr->ah_flags) {
+-		ib_ah_attr->grh.sgid_index = path->mgid_index;
+-		ib_ah_attr->grh.hop_limit  = path->hop_limit;
+-		ib_ah_attr->grh.traffic_class =
+-			(be32_to_cpu(path->tclass_flowlabel) >> 20) & 0xff;
+-		ib_ah_attr->grh.flow_label =
+-			be32_to_cpu(path->tclass_flowlabel) & 0xfffff;
+-		memcpy(ib_ah_attr->grh.dgid.raw,
+-		       path->rgid, sizeof(ib_ah_attr->grh.dgid.raw));
++		rdma_ah_set_grh(ah_attr, NULL,
++				tc_fl & 0xfffff,
++				path->mgid_index,
++				path->hop_limit,
++				(tc_fl >> 20) & 0xff);
++		rdma_ah_set_dgid_raw(ah_attr, path->rgid);
+ 	}
+ }
+ 
+@@ -4444,7 +4447,8 @@ static int query_qp_attr(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 		to_rdma_ah_attr(dev, &qp_attr->alt_ah_attr, &context->alt_path);
+ 		qp_attr->alt_pkey_index =
+ 			be16_to_cpu(context->alt_path.pkey_index);
+-		qp_attr->alt_port_num	= qp_attr->alt_ah_attr.port_num;
++		qp_attr->alt_port_num	=
++			rdma_ah_get_port_num(&qp_attr->alt_ah_attr);
+ 	}
+ 
+ 	qp_attr->pkey_index = be16_to_cpu(context->pri_path.pkey_index);
 diff --git a/drivers/infiniband/hw/mthca/mthca_av.c b/drivers/infiniband/hw/mthca/mthca_av.c
-index d315f52..2aec990 100644
+index 0c95668..d315f52 100644
 --- a/drivers/infiniband/hw/mthca/mthca_av.c
 +++ b/drivers/infiniband/hw/mthca/mthca_av.c
-@@ -303,6 +303,7 @@ int mthca_ah_query(struct ib_ah *ibah, struct rdma_ah_attr *attr)
+@@ -196,21 +196,26 @@ int mthca_create_ah(struct mthca_dev *dev,
+ 
+ 	ah->key = pd->ntmr.ibmr.lkey;
+ 
+-	av->port_pd = cpu_to_be32(pd->pd_num | (ah_attr->port_num << 24));
+-	av->g_slid  = ah_attr->src_path_bits;
+-	av->dlid    = cpu_to_be16(ah_attr->dlid);
++	av->port_pd = cpu_to_be32(pd->pd_num |
++				  (rdma_ah_get_port_num(ah_attr) << 24));
++	av->g_slid  = rdma_ah_get_path_bits(ah_attr);
++	av->dlid    = cpu_to_be16(rdma_ah_get_dlid(ah_attr));
+ 	av->msg_sr  = (3 << 4) | /* 2K message */
+-		mthca_get_rate(dev, ah_attr->static_rate, ah_attr->port_num);
+-	av->sl_tclass_flowlabel = cpu_to_be32(ah_attr->sl << 28);
+-	if (ah_attr->ah_flags & IB_AH_GRH) {
++		mthca_get_rate(dev, rdma_ah_get_static_rate(ah_attr),
++			       rdma_ah_get_port_num(ah_attr));
++	av->sl_tclass_flowlabel = cpu_to_be32(rdma_ah_get_sl(ah_attr) << 28);
++	if (rdma_ah_get_ah_flags(ah_attr) & IB_AH_GRH) {
++		const struct ib_global_route *grh = rdma_ah_read_grh(ah_attr);
++
+ 		av->g_slid |= 0x80;
+-		av->gid_index = (ah_attr->port_num - 1) * dev->limits.gid_table_len +
+-			ah_attr->grh.sgid_index;
+-		av->hop_limit = ah_attr->grh.hop_limit;
++		av->gid_index = (rdma_ah_get_port_num(ah_attr) - 1) *
++				  dev->limits.gid_table_len +
++				  grh->sgid_index;
++		av->hop_limit = grh->hop_limit;
+ 		av->sl_tclass_flowlabel |=
+-			cpu_to_be32((ah_attr->grh.traffic_class << 20) |
+-				    ah_attr->grh.flow_label);
+-		memcpy(av->dgid, ah_attr->grh.dgid.raw, 16);
++			cpu_to_be32((grh->traffic_class << 20) |
++				    grh->flow_label);
++		memcpy(av->dgid, grh->dgid.raw, 16);
+ 	} else {
+ 		/* Arbel workaround -- low byte of GID must be 2 */
+ 		av->dgid[3] = cpu_to_be32(2);
+@@ -291,29 +296,30 @@ int mthca_ah_query(struct ib_ah *ibah, struct rdma_ah_attr *attr)
+ {
+ 	struct mthca_ah *ah   = to_mah(ibah);
+ 	struct mthca_dev *dev = to_mdev(ibah->device);
++	u8 port_num = be32_to_cpu(ah->av->port_pd) >> 24;
+ 
+ 	/* Only implement for MAD and memfree ah for now. */
+ 	if (ah->type == MTHCA_AH_ON_HCA)
  		return -ENOSYS;
  
  	memset(attr, 0, sizeof *attr);
-+	attr->type = ibah->type;
- 	rdma_ah_set_dlid(attr, be16_to_cpu(ah->av->dlid));
- 	rdma_ah_set_sl(attr, be32_to_cpu(ah->av->sl_tclass_flowlabel) >> 28);
- 	rdma_ah_set_port_num(attr, port_num);
+-	attr->dlid          = be16_to_cpu(ah->av->dlid);
+-	attr->sl            = be32_to_cpu(ah->av->sl_tclass_flowlabel) >> 28;
+-	attr->port_num      = be32_to_cpu(ah->av->port_pd) >> 24;
+-	attr->static_rate   = mthca_rate_to_ib(dev, ah->av->msg_sr & 0x7,
+-					       attr->port_num);
+-	attr->src_path_bits = ah->av->g_slid & 0x7F;
+-	attr->ah_flags      = mthca_ah_grh_present(ah) ? IB_AH_GRH : 0;
+-
+-	if (attr->ah_flags) {
+-		attr->grh.traffic_class =
+-			be32_to_cpu(ah->av->sl_tclass_flowlabel) >> 20;
+-		attr->grh.flow_label =
+-			be32_to_cpu(ah->av->sl_tclass_flowlabel) & 0xfffff;
+-		attr->grh.hop_limit  = ah->av->hop_limit;
+-		attr->grh.sgid_index = ah->av->gid_index &
+-				       (dev->limits.gid_table_len - 1);
+-		memcpy(attr->grh.dgid.raw, ah->av->dgid, 16);
++	rdma_ah_set_dlid(attr, be16_to_cpu(ah->av->dlid));
++	rdma_ah_set_sl(attr, be32_to_cpu(ah->av->sl_tclass_flowlabel) >> 28);
++	rdma_ah_set_port_num(attr, port_num);
++	rdma_ah_set_static_rate(attr,
++				mthca_rate_to_ib(dev, ah->av->msg_sr & 0x7,
++						 port_num));
++	rdma_ah_set_path_bits(attr, ah->av->g_slid & 0x7F);
++	if (mthca_ah_grh_present(ah)) {
++		u32 tc_fl = be32_to_cpu(ah->av->sl_tclass_flowlabel);
++
++		rdma_ah_set_grh(attr, NULL,
++				tc_fl & 0xfffff,
++				ah->av->gid_index &
++				(dev->limits.gid_table_len - 1),
++				ah->av->hop_limit,
++				(tc_fl >> 20) & 0xff);
++		rdma_ah_set_dgid_raw(attr, ah->av->dgid);
+ 	}
+ 
+ 	return 0;
 diff --git a/drivers/infiniband/hw/mthca/mthca_mad.c b/drivers/infiniband/hw/mthca/mthca_mad.c
-index 45fe150..7df3db7 100644
+index 6f2e448..45fe150 100644
 --- a/drivers/infiniband/hw/mthca/mthca_mad.c
 +++ b/drivers/infiniband/hw/mthca/mthca_mad.c
-@@ -82,6 +82,7 @@ static void update_sm_ah(struct mthca_dev *dev,
+@@ -82,9 +82,9 @@ static void update_sm_ah(struct mthca_dev *dev,
  		return;
  
  	memset(&ah_attr, 0, sizeof ah_attr);
-+	ah_attr.type = rdma_ah_find_type(&dev->ib_dev, port_num);
- 	rdma_ah_set_dlid(&ah_attr, lid);
- 	rdma_ah_set_sl(&ah_attr, sl);
- 	rdma_ah_set_port_num(&ah_attr, port_num);
+-	ah_attr.dlid     = lid;
+-	ah_attr.sl       = sl;
+-	ah_attr.port_num = port_num;
++	rdma_ah_set_dlid(&ah_attr, lid);
++	rdma_ah_set_sl(&ah_attr, sl);
++	rdma_ah_set_port_num(&ah_attr, port_num);
+ 
+ 	new_ah = rdma_create_ah(dev->send_agent[port_num - 1][0]->qp->pd,
+ 				&ah_attr);
 diff --git a/drivers/infiniband/hw/mthca/mthca_qp.c b/drivers/infiniband/hw/mthca/mthca_qp.c
-index 6ef9b6a..d21960c 100644
+index baf65fe..6ef9b6a 100644
 --- a/drivers/infiniband/hw/mthca/mthca_qp.c
 +++ b/drivers/infiniband/hw/mthca/mthca_qp.c
-@@ -403,6 +403,7 @@ static void to_rdma_ah_attr(struct mthca_dev *dev,
- 
- 	if (port_num == 0 || port_num > dev->limits.num_ports)
- 		return;
-+	ah_attr->type = rdma_ah_find_type(&dev->ib_dev, port_num);
- 	rdma_ah_set_port_num(ah_attr, port_num);
- 
- 	rdma_ah_set_dlid(ah_attr, be16_to_cpu(path->rlid));
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/hw/ocrdma/ocrdma.h
-index afcbd2a..7baedc7 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
-@@ -537,7 +537,7 @@ static inline int ocrdma_resolve_dmac(struct ocrdma_dev *dev,
- 	else if (rdma_link_local_addr(&in6))
- 		rdma_get_ll_mac(&in6, mac_addr);
- 	else
--		memcpy(mac_addr, ah_attr->dmac, ETH_ALEN);
-+		memcpy(mac_addr, ah_attr->roce.dmac, ETH_ALEN);
- 	return 0;
+@@ -394,31 +394,34 @@ static int to_ib_qp_access_flags(int mthca_flags)
  }
  
+ static void to_rdma_ah_attr(struct mthca_dev *dev,
+-			    struct rdma_ah_attr *ib_ah_attr,
++			    struct rdma_ah_attr *ah_attr,
+ 			    struct mthca_qp_path *path)
+ {
+-	memset(ib_ah_attr, 0, sizeof *ib_ah_attr);
+-	ib_ah_attr->port_num 	  = (be32_to_cpu(path->port_pkey) >> 24) & 0x3;
++	u8 port_num = (be32_to_cpu(path->port_pkey) >> 24) & 0x3;
+ 
+-	if (ib_ah_attr->port_num == 0 || ib_ah_attr->port_num > dev->limits.num_ports)
+-		return;
++	memset(ah_attr, 0, sizeof(*ah_attr));
+ 
+-	ib_ah_attr->dlid     	  = be16_to_cpu(path->rlid);
+-	ib_ah_attr->sl       	  = be32_to_cpu(path->sl_tclass_flowlabel) >> 28;
+-	ib_ah_attr->src_path_bits = path->g_mylmc & 0x7f;
+-	ib_ah_attr->static_rate   = mthca_rate_to_ib(dev,
+-						     path->static_rate & 0xf,
+-						     ib_ah_attr->port_num);
+-	ib_ah_attr->ah_flags      = (path->g_mylmc & (1 << 7)) ? IB_AH_GRH : 0;
+-	if (ib_ah_attr->ah_flags) {
+-		ib_ah_attr->grh.sgid_index = path->mgid_index & (dev->limits.gid_table_len - 1);
+-		ib_ah_attr->grh.hop_limit  = path->hop_limit;
+-		ib_ah_attr->grh.traffic_class =
+-			(be32_to_cpu(path->sl_tclass_flowlabel) >> 20) & 0xff;
+-		ib_ah_attr->grh.flow_label =
+-			be32_to_cpu(path->sl_tclass_flowlabel) & 0xfffff;
+-		memcpy(ib_ah_attr->grh.dgid.raw,
+-			path->rgid, sizeof ib_ah_attr->grh.dgid.raw);
++	if (port_num == 0 || port_num > dev->limits.num_ports)
++		return;
++	rdma_ah_set_port_num(ah_attr, port_num);
++
++	rdma_ah_set_dlid(ah_attr, be16_to_cpu(path->rlid));
++	rdma_ah_set_sl(ah_attr, be32_to_cpu(path->sl_tclass_flowlabel) >> 28);
++	rdma_ah_set_path_bits(ah_attr, path->g_mylmc & 0x7f);
++	rdma_ah_set_static_rate(ah_attr,
++				mthca_rate_to_ib(dev,
++						 path->static_rate & 0xf,
++						 port_num));
++	if (path->g_mylmc & (1 << 7)) {
++		u32 tc_fl = be32_to_cpu(path->sl_tclass_flowlabel);
++
++		rdma_ah_set_grh(ah_attr, NULL,
++				tc_fl & 0xfffff,
++				path->mgid_index &
++				(dev->limits.gid_table_len - 1),
++				path->hop_limit,
++				(tc_fl >> 20) & 0xff);
++		rdma_ah_set_dgid_raw(ah_attr, path->rgid);
+ 	}
+ }
+ 
+@@ -473,7 +476,8 @@ int mthca_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr, int qp_attr_m
+ 		to_rdma_ah_attr(dev, &qp_attr->alt_ah_attr, &context->alt_path);
+ 		qp_attr->alt_pkey_index =
+ 			be32_to_cpu(context->alt_path.port_pkey) & 0x7f;
+-		qp_attr->alt_port_num 	= qp_attr->alt_ah_attr.port_num;
++		qp_attr->alt_port_num	=
++			rdma_ah_get_port_num(&qp_attr->alt_ah_attr);
+ 	}
+ 
+ 	qp_attr->pkey_index = be32_to_cpu(context->pri_path.port_pkey) & 0x7f;
+@@ -516,27 +520,33 @@ int mthca_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr, int qp_attr_m
+ static int mthca_path_set(struct mthca_dev *dev, const struct rdma_ah_attr *ah,
+ 			  struct mthca_qp_path *path, u8 port)
+ {
+-	path->g_mylmc     = ah->src_path_bits & 0x7f;
+-	path->rlid        = cpu_to_be16(ah->dlid);
+-	path->static_rate = mthca_get_rate(dev, ah->static_rate, port);
++	path->g_mylmc     = rdma_ah_get_path_bits(ah) & 0x7f;
++	path->rlid        = cpu_to_be16(rdma_ah_get_dlid(ah));
++	path->static_rate = mthca_get_rate(dev, rdma_ah_get_static_rate(ah),
++					   port);
++
++	if (rdma_ah_get_ah_flags(ah) & IB_AH_GRH) {
++		const struct ib_global_route *grh = rdma_ah_read_grh(ah);
+ 
+-	if (ah->ah_flags & IB_AH_GRH) {
+-		if (ah->grh.sgid_index >= dev->limits.gid_table_len) {
++		if (grh->sgid_index >= dev->limits.gid_table_len) {
+ 			mthca_dbg(dev, "sgid_index (%u) too large. max is %d\n",
+-				  ah->grh.sgid_index, dev->limits.gid_table_len-1);
++				  grh->sgid_index,
++				  dev->limits.gid_table_len - 1);
+ 			return -1;
+ 		}
+ 
+ 		path->g_mylmc   |= 1 << 7;
+-		path->mgid_index = ah->grh.sgid_index;
+-		path->hop_limit  = ah->grh.hop_limit;
++		path->mgid_index = grh->sgid_index;
++		path->hop_limit  = grh->hop_limit;
+ 		path->sl_tclass_flowlabel =
+-			cpu_to_be32((ah->sl << 28)                |
+-				    (ah->grh.traffic_class << 20) |
+-				    (ah->grh.flow_label));
+-		memcpy(path->rgid, ah->grh.dgid.raw, 16);
+-	} else
+-		path->sl_tclass_flowlabel = cpu_to_be32(ah->sl << 28);
++			cpu_to_be32((rdma_ah_get_sl(ah) << 28) |
++				    (grh->traffic_class << 20) |
++				    (grh->flow_label));
++		memcpy(path->rgid, grh->dgid.raw, 16);
++	} else {
++		path->sl_tclass_flowlabel = cpu_to_be32(rdma_ah_get_sl(ah) <<
++							28);
++	}
+ 
+ 	return 0;
+ }
+@@ -681,7 +691,7 @@ static int __mthca_modify_qp(struct ib_qp *ibqp,
+ 		}
+ 
+ 		if (mthca_path_set(dev, &attr->alt_ah_attr, &qp_context->alt_path,
+-				   attr->alt_ah_attr.port_num))
++				   rdma_ah_get_port_num(&attr->alt_ah_attr)))
+ 			goto out_mailbox;
+ 
+ 		qp_context->alt_path.port_pkey |= cpu_to_be32(attr->alt_pkey_index |
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma.h b/drivers/infiniband/hw/ocrdma/ocrdma.h
+index 49ea7b6..afcbd2a 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma.h
+@@ -531,7 +531,7 @@ static inline int ocrdma_resolve_dmac(struct ocrdma_dev *dev,
+ {
+ 	struct in6_addr in6;
+ 
+-	memcpy(&in6, ah_attr->grh.dgid.raw, sizeof(in6));
++	memcpy(&in6, rdma_ah_read_grh(ah_attr)->dgid.raw, sizeof(in6));
+ 	if (rdma_is_multicast_addr(&in6))
+ 		rdma_get_mcast_mac(&in6, mac_addr);
+ 	else if (rdma_link_local_addr(&in6))
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-index 97a829d..d0249e46 100644
+index 71723db..97a829d 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
-@@ -170,7 +170,8 @@ struct ib_ah *ocrdma_create_ah(struct ib_pd *ibpd, struct rdma_ah_attr *attr,
- 	const struct ib_global_route *grh;
+@@ -81,6 +81,7 @@ static inline int set_av_attr(struct ocrdma_dev *dev, struct ocrdma_ah *ah,
+ 	u16 proto_num = 0;
+ 	u8 nxthdr = 0x11;
+ 	struct iphdr ipv4;
++	const struct ib_global_route *ib_grh;
+ 	union {
+ 		struct sockaddr     _sockaddr;
+ 		struct sockaddr_in  _sockaddr_in;
+@@ -120,32 +121,33 @@ static inline int set_av_attr(struct ocrdma_dev *dev, struct ocrdma_ah *ah,
+ 	status = ocrdma_resolve_dmac(dev, attr, &eth.dmac[0]);
+ 	if (status)
+ 		return status;
+-	ah->sgid_index = attr->grh.sgid_index;
++	ib_grh = rdma_ah_read_grh(attr);
++	ah->sgid_index = ib_grh->sgid_index;
+ 	/* Eth HDR */
+ 	memcpy(&ah->av->eth_hdr, &eth, eth_sz);
+ 	if (ah->hdr_type == RDMA_NETWORK_IPV4) {
+ 		*((__be16 *)&ipv4) = htons((4 << 12) | (5 << 8) |
+-					   attr->grh.traffic_class);
++					   ib_grh->traffic_class);
+ 		ipv4.id = cpu_to_be16(pdid);
+ 		ipv4.frag_off = htons(IP_DF);
+ 		ipv4.tot_len = htons(0);
+-		ipv4.ttl = attr->grh.hop_limit;
++		ipv4.ttl = ib_grh->hop_limit;
+ 		ipv4.protocol = nxthdr;
+ 		rdma_gid2ip(&sgid_addr._sockaddr, sgid);
+ 		ipv4.saddr = sgid_addr._sockaddr_in.sin_addr.s_addr;
+-		rdma_gid2ip(&dgid_addr._sockaddr, &attr->grh.dgid);
++		rdma_gid2ip(&dgid_addr._sockaddr, &ib_grh->dgid);
+ 		ipv4.daddr = dgid_addr._sockaddr_in.sin_addr.s_addr;
+ 		memcpy((u8 *)ah->av + eth_sz, &ipv4, sizeof(struct iphdr));
+ 	} else {
+ 		memcpy(&grh.sgid[0], sgid->raw, sizeof(union ib_gid));
+ 		grh.tclass_flow = cpu_to_be32((6 << 28) |
+-					      (attr->grh.traffic_class << 24) |
+-					      attr->grh.flow_label);
+-		memcpy(&grh.dgid[0], attr->grh.dgid.raw,
+-		       sizeof(attr->grh.dgid.raw));
++					      (ib_grh->traffic_class << 24) |
++					      ib_grh->flow_label);
++		memcpy(&grh.dgid[0], ib_grh->dgid.raw,
++		       sizeof(ib_grh->dgid.raw));
+ 		grh.pdid_hoplimit = cpu_to_be32((pdid << 16) |
+ 						(nxthdr << 8) |
+-						attr->grh.hop_limit);
++						ib_grh->hop_limit);
+ 		memcpy((u8 *)ah->av + eth_sz, &grh, sizeof(struct ocrdma_grh));
+ 	}
+ 	if (*isvlan)
+@@ -165,11 +167,13 @@ struct ib_ah *ocrdma_create_ah(struct ib_pd *ibpd, struct rdma_ah_attr *attr,
+ 	struct ib_gid_attr sgid_attr;
+ 	struct ocrdma_pd *pd = get_ocrdma_pd(ibpd);
+ 	struct ocrdma_dev *dev = get_ocrdma_dev(ibpd->device);
++	const struct ib_global_route *grh;
  	union ib_gid sgid;
  
--	if (!(rdma_ah_get_ah_flags(attr) & IB_AH_GRH))
-+	if ((attr->type != RDMA_AH_ATTR_TYPE_ROCE) ||
-+	    !(rdma_ah_get_ah_flags(attr) & IB_AH_GRH))
+-	if (!(attr->ah_flags & IB_AH_GRH))
++	if (!(rdma_ah_get_ah_flags(attr) & IB_AH_GRH))
  		return ERR_PTR(-EINVAL);
  
- 	grh = rdma_ah_read_grh(attr);
-@@ -204,7 +205,7 @@ struct ib_ah *ocrdma_create_ah(struct ib_pd *ibpd, struct rdma_ah_attr *attr,
- 	    (!rdma_is_multicast_addr((struct in6_addr *)grh->dgid.raw)) &&
- 	    (!rdma_link_local_addr((struct in6_addr *)grh->dgid.raw))) {
- 		status = rdma_addr_find_l2_eth_by_grh(&sgid, &grh->dgid,
--						      attr->dmac,
-+						      attr->roce.dmac,
- 						      &vlan_tag,
++	grh = rdma_ah_read_grh(attr);
+ 	if (atomic_cmpxchg(&dev->update_sl, 1, 0))
+ 		ocrdma_init_service_level(dev);
+ 
+@@ -181,7 +185,7 @@ struct ib_ah *ocrdma_create_ah(struct ib_pd *ibpd, struct rdma_ah_attr *attr,
+ 	if (status)
+ 		goto av_err;
+ 
+-	status = ib_get_cached_gid(&dev->ibdev, 1, attr->grh.sgid_index, &sgid,
++	status = ib_get_cached_gid(&dev->ibdev, 1, grh->sgid_index, &sgid,
+ 				   &sgid_attr);
+ 	if (status) {
+ 		pr_err("%s(): Failed to query sgid, status = %d\n",
+@@ -197,10 +201,11 @@ struct ib_ah *ocrdma_create_ah(struct ib_pd *ibpd, struct rdma_ah_attr *attr,
+ 	ah->hdr_type = ib_gid_to_network_type(sgid_attr.gid_type, &sgid);
+ 
+ 	if ((pd->uctx) &&
+-	    (!rdma_is_multicast_addr((struct in6_addr *)attr->grh.dgid.raw)) &&
+-	    (!rdma_link_local_addr((struct in6_addr *)attr->grh.dgid.raw))) {
+-		status = rdma_addr_find_l2_eth_by_grh(&sgid, &attr->grh.dgid,
+-						      attr->dmac, &vlan_tag,
++	    (!rdma_is_multicast_addr((struct in6_addr *)grh->dgid.raw)) &&
++	    (!rdma_link_local_addr((struct in6_addr *)grh->dgid.raw))) {
++		status = rdma_addr_find_l2_eth_by_grh(&sgid, &grh->dgid,
++						      attr->dmac,
++						      &vlan_tag,
  						      &sgid_attr.ndev->ifindex,
  						      NULL);
-@@ -259,6 +260,7 @@ int ocrdma_query_ah(struct ib_ah *ibah, struct rdma_ah_attr *attr)
+ 		if (status) {
+@@ -216,7 +221,7 @@ struct ib_ah *ocrdma_create_ah(struct ib_pd *ibpd, struct rdma_ah_attr *attr,
+ 
+ 	/* if pd is for the user process, pass the ah_id to user space */
+ 	if ((pd->uctx) && (pd->uctx->ah_tbl.va)) {
+-		ahid_addr = pd->uctx->ah_tbl.va + attr->dlid;
++		ahid_addr = pd->uctx->ah_tbl.va + rdma_ah_get_dlid(attr);
+ 		*ahid_addr = 0;
+ 		*ahid_addr |= ah->id & OCRDMA_AH_ID_MASK;
+ 		if (ocrdma_is_udp_encap_supported(dev)) {
+@@ -253,21 +258,22 @@ int ocrdma_query_ah(struct ib_ah *ibah, struct rdma_ah_attr *attr)
+ 	struct ocrdma_ah *ah = get_ocrdma_ah(ibah);
  	struct ocrdma_av *av = ah->av;
  	struct ocrdma_grh *grh;
- 
-+	attr->type = ibah->type;
+-	attr->ah_flags |= IB_AH_GRH;
++
  	if (ah->av->valid & OCRDMA_AV_VALID) {
  		grh = (struct ocrdma_grh *)((u8 *)ah->av +
  				sizeof(struct ocrdma_eth_vlan));
+-		attr->sl = be16_to_cpu(av->eth_hdr.vlan_tag) >> 13;
++		rdma_ah_set_sl(attr, be16_to_cpu(av->eth_hdr.vlan_tag) >> 13);
+ 	} else {
+ 		grh = (struct ocrdma_grh *)((u8 *)ah->av +
+ 					sizeof(struct ocrdma_eth_basic));
+-		attr->sl = 0;
++		rdma_ah_set_sl(attr, 0);
+ 	}
+-	memcpy(&attr->grh.dgid.raw[0], &grh->dgid[0], sizeof(grh->dgid));
+-	attr->grh.sgid_index = ah->sgid_index;
+-	attr->grh.hop_limit = be32_to_cpu(grh->pdid_hoplimit) & 0xff;
+-	attr->grh.traffic_class = be32_to_cpu(grh->tclass_flow) >> 24;
+-	attr->grh.flow_label = be32_to_cpu(grh->tclass_flow) & 0x00ffffffff;
++	rdma_ah_set_grh(attr, NULL,
++			be32_to_cpu(grh->tclass_flow) & 0xffffffff,
++			ah->sgid_index,
++			be32_to_cpu(grh->pdid_hoplimit) & 0xff,
++			be32_to_cpu(grh->tclass_flow) >> 24);
++	rdma_ah_set_dgid_raw(attr, &grh->dgid[0]);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+index 0ca52fa..dcb5942 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+@@ -2510,25 +2510,28 @@ static int ocrdma_set_av_params(struct ocrdma_qp *qp,
+ 		struct sockaddr_in6 _sockaddr_in6;
+ 	} sgid_addr, dgid_addr;
+ 	struct ocrdma_dev *dev = get_ocrdma_dev(qp->ibqp.device);
++	const struct ib_global_route *grh;
+ 
+-	if ((ah_attr->ah_flags & IB_AH_GRH) == 0)
++	if ((rdma_ah_get_ah_flags(ah_attr) & IB_AH_GRH) == 0)
+ 		return -EINVAL;
++	grh = rdma_ah_read_grh(ah_attr);
+ 	if (atomic_cmpxchg(&dev->update_sl, 1, 0))
+ 		ocrdma_init_service_level(dev);
+ 	cmd->params.tclass_sq_psn |=
+-	    (ah_attr->grh.traffic_class << OCRDMA_QP_PARAMS_TCLASS_SHIFT);
++	    (grh->traffic_class << OCRDMA_QP_PARAMS_TCLASS_SHIFT);
+ 	cmd->params.rnt_rc_sl_fl |=
+-	    (ah_attr->grh.flow_label & OCRDMA_QP_PARAMS_FLOW_LABEL_MASK);
+-	cmd->params.rnt_rc_sl_fl |= (ah_attr->sl << OCRDMA_QP_PARAMS_SL_SHIFT);
++	    (grh->flow_label & OCRDMA_QP_PARAMS_FLOW_LABEL_MASK);
++	cmd->params.rnt_rc_sl_fl |= (rdma_ah_get_sl(ah_attr) <<
++				     OCRDMA_QP_PARAMS_SL_SHIFT);
+ 	cmd->params.hop_lmt_rq_psn |=
+-	    (ah_attr->grh.hop_limit << OCRDMA_QP_PARAMS_HOP_LMT_SHIFT);
++	    (grh->hop_limit << OCRDMA_QP_PARAMS_HOP_LMT_SHIFT);
+ 	cmd->flags |= OCRDMA_QP_PARA_FLOW_LBL_VALID;
+ 
+ 	/* GIDs */
+-	memcpy(&cmd->params.dgid[0], &ah_attr->grh.dgid.raw[0],
++	memcpy(&cmd->params.dgid[0], &grh->dgid.raw[0],
+ 	       sizeof(cmd->params.dgid));
+ 
+-	status = ib_get_cached_gid(&dev->ibdev, 1, ah_attr->grh.sgid_index,
++	status = ib_get_cached_gid(&dev->ibdev, 1, grh->sgid_index,
+ 				   &sgid, &sgid_attr);
+ 	if (!status && sgid_attr.ndev) {
+ 		vlan_id = rdma_vlan_dev_vlan_id(sgid_attr.ndev);
+@@ -2540,7 +2543,7 @@ static int ocrdma_set_av_params(struct ocrdma_qp *qp,
+ 	if (!memcmp(&sgid, &zgid, sizeof(zgid)))
+ 		return -EINVAL;
+ 
+-	qp->sgid_idx = ah_attr->grh.sgid_index;
++	qp->sgid_idx = grh->sgid_index;
+ 	memcpy(&cmd->params.sgid[0], &sgid.raw[0], sizeof(cmd->params.sgid));
+ 	status = ocrdma_resolve_dmac(dev, ah_attr, &mac_addr[0]);
+ 	if (status)
+@@ -2551,7 +2554,7 @@ static int ocrdma_set_av_params(struct ocrdma_qp *qp,
+ 	hdr_type = ib_gid_to_network_type(sgid_attr.gid_type, &sgid);
+ 	if (hdr_type == RDMA_NETWORK_IPV4) {
+ 		rdma_gid2ip(&sgid_addr._sockaddr, &sgid);
+-		rdma_gid2ip(&dgid_addr._sockaddr, &ah_attr->grh.dgid);
++		rdma_gid2ip(&dgid_addr._sockaddr, &grh->dgid);
+ 		memcpy(&cmd->params.dgid[0],
+ 		       &dgid_addr._sockaddr_in.sin_addr.s_addr, 4);
+ 		memcpy(&cmd->params.sgid[0],
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 1cf6c0e..dc96853 100644
+index bc9fb14..1cf6c0e 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -1601,6 +1601,7 @@ int ocrdma_query_qp(struct ib_qp *ibqp,
+@@ -1601,23 +1601,23 @@ int ocrdma_query_qp(struct ib_qp *ibqp,
  	qp_attr->cap.max_recv_sge = qp->rq.max_sges;
  	qp_attr->cap.max_inline_data = qp->max_inline_data;
  	qp_init_attr->cap = qp_attr->cap;
-+	qp_attr->ah_attr.type = RDMA_AH_ATTR_TYPE_ROCE;
+-	memcpy(&qp_attr->ah_attr.grh.dgid, &params.dgid[0],
+-	       sizeof(params.dgid));
+-	qp_attr->ah_attr.grh.flow_label = params.rnt_rc_sl_fl &
+-	    OCRDMA_QP_PARAMS_FLOW_LABEL_MASK;
+-	qp_attr->ah_attr.grh.sgid_index = qp->sgid_idx;
+-	qp_attr->ah_attr.grh.hop_limit = (params.hop_lmt_rq_psn &
+-					  OCRDMA_QP_PARAMS_HOP_LMT_MASK) >>
+-						OCRDMA_QP_PARAMS_HOP_LMT_SHIFT;
+-	qp_attr->ah_attr.grh.traffic_class = (params.tclass_sq_psn &
+-					      OCRDMA_QP_PARAMS_TCLASS_MASK) >>
+-						OCRDMA_QP_PARAMS_TCLASS_SHIFT;
+-
+-	qp_attr->ah_attr.ah_flags = IB_AH_GRH;
+-	qp_attr->ah_attr.port_num = 1;
+-	qp_attr->ah_attr.sl = (params.rnt_rc_sl_fl &
+-			       OCRDMA_QP_PARAMS_SL_MASK) >>
+-				OCRDMA_QP_PARAMS_SL_SHIFT;
++
++	rdma_ah_set_grh(&qp_attr->ah_attr, NULL,
++			params.rnt_rc_sl_fl &
++			  OCRDMA_QP_PARAMS_FLOW_LABEL_MASK,
++			qp->sgid_idx,
++			(params.hop_lmt_rq_psn &
++			 OCRDMA_QP_PARAMS_HOP_LMT_MASK) >>
++			 OCRDMA_QP_PARAMS_HOP_LMT_SHIFT,
++			(params.tclass_sq_psn &
++			 OCRDMA_QP_PARAMS_TCLASS_MASK) >>
++			 OCRDMA_QP_PARAMS_TCLASS_SHIFT);
++	rdma_ah_set_dgid_raw(&qp_attr->ah_attr, &params.dgid[0]);
++
++	rdma_ah_set_port_num(&qp_attr->ah_attr, 1);
++	rdma_ah_set_sl(&qp_attr->ah_attr, (params.rnt_rc_sl_fl &
++					   OCRDMA_QP_PARAMS_SL_MASK) >>
++					   OCRDMA_QP_PARAMS_SL_SHIFT);
+ 	qp_attr->timeout = (params.ack_to_rnr_rtc_dest_qpn &
+ 			    OCRDMA_QP_PARAMS_ACK_TIMEOUT_MASK) >>
+ 				OCRDMA_QP_PARAMS_ACK_TIMEOUT_SHIFT;
+@@ -1630,8 +1630,8 @@ int ocrdma_query_qp(struct ib_qp *ibqp,
+ 	qp_attr->min_rnr_timer = 0;
+ 	qp_attr->pkey_index = 0;
+ 	qp_attr->port_num = 1;
+-	qp_attr->ah_attr.src_path_bits = 0;
+-	qp_attr->ah_attr.static_rate = 0;
++	rdma_ah_set_path_bits(&qp_attr->ah_attr, 0);
++	rdma_ah_set_static_rate(&qp_attr->ah_attr, 0);
+ 	qp_attr->alt_pkey_index = 0;
+ 	qp_attr->alt_port_num = 0;
+ 	qp_attr->alt_timeout = 0;
+diff --git a/drivers/infiniband/hw/qedr/qedr.h b/drivers/infiniband/hw/qedr/qedr.h
+index 775a279..a8f7d81 100644
+--- a/drivers/infiniband/hw/qedr/qedr.h
++++ b/drivers/infiniband/hw/qedr/qedr.h
+@@ -446,15 +446,20 @@ static inline int qedr_get_dmac(struct qedr_dev *dev,
+ {
+ 	union ib_gid zero_sgid = { { 0 } };
+ 	struct in6_addr in6;
++	const struct ib_global_route *grh = rdma_ah_read_grh(ah_attr);
++	u8 *dmac;
  
- 	rdma_ah_set_grh(&qp_attr->ah_attr, NULL,
- 			params.rnt_rc_sl_fl &
-diff --git a/drivers/infiniband/hw/qedr/qedr_cm.c b/drivers/infiniband/hw/qedr/qedr_cm.c
-index bd1d0e8..d8c759b 100644
---- a/drivers/infiniband/hw/qedr/qedr_cm.c
-+++ b/drivers/infiniband/hw/qedr/qedr_cm.c
-@@ -311,7 +311,7 @@ static inline int qedr_gsi_build_header(struct qedr_dev *dev,
+-	if (!memcmp(&ah_attr->grh.dgid, &zero_sgid, sizeof(union ib_gid))) {
++	if (!memcmp(&grh->dgid, &zero_sgid, sizeof(union ib_gid))) {
+ 		DP_ERR(dev, "Local port GID not supported\n");
+ 		eth_zero_addr(mac_addr);
+ 		return -EINVAL;
  	}
  
- 	/* ENET + VLAN headers */
--	ether_addr_copy(udh->eth.dmac_h, ah_attr->dmac);
-+	ether_addr_copy(udh->eth.dmac_h, ah_attr->roce.dmac);
- 	ether_addr_copy(udh->eth.smac_h, dev->ndev->dev_addr);
- 	if (has_vlan) {
- 		udh->eth.type = htons(ETH_P_8021Q);
+-	memcpy(&in6, ah_attr->grh.dgid.raw, sizeof(in6));
+-	ether_addr_copy(mac_addr, ah_attr->dmac);
++	memcpy(&in6, grh->dgid.raw, sizeof(in6));
++	dmac = rdma_ah_retrieve_dmac(ah_attr);
++	if (!dmac)
++		return -EINVAL;
++	ether_addr_copy(mac_addr, dmac);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/infiniband/hw/qedr/qedr_cm.c b/drivers/infiniband/hw/qedr/qedr_cm.c
+index 0c1b823..bd1d0e8 100644
+--- a/drivers/infiniband/hw/qedr/qedr_cm.c
++++ b/drivers/infiniband/hw/qedr/qedr_cm.c
+@@ -247,7 +247,7 @@ static inline int qedr_gsi_build_header(struct qedr_dev *dev,
+ {
+ 	bool has_vlan = false, has_grh_ipv6 = true;
+ 	struct rdma_ah_attr *ah_attr = &get_qedr_ah(ud_wr(swr)->ah)->attr;
+-	struct ib_global_route *grh = &ah_attr->grh;
++	const struct ib_global_route *grh = rdma_ah_read_grh(ah_attr);
+ 	union ib_gid sgid;
+ 	int send_size = 0;
+ 	u16 vlan_id = 0;
+@@ -263,12 +263,13 @@ static inline int qedr_gsi_build_header(struct qedr_dev *dev,
+ 	for (i = 0; i < swr->num_sge; ++i)
+ 		send_size += swr->sg_list[i].length;
+ 
+-	rc = ib_get_cached_gid(qp->ibqp.device, ah_attr->port_num,
++	rc = ib_get_cached_gid(qp->ibqp.device, rdma_ah_get_port_num(ah_attr),
+ 			       grh->sgid_index, &sgid, &sgid_attr);
+ 	if (rc) {
+ 		DP_ERR(dev,
+ 		       "gsi post send: failed to get cached GID (port=%d, ix=%d)\n",
+-		       ah_attr->port_num, grh->sgid_index);
++		       rdma_ah_get_port_num(ah_attr),
++		       grh->sgid_index);
+ 		return rc;
+ 	}
+ 
+@@ -280,7 +281,7 @@ static inline int qedr_gsi_build_header(struct qedr_dev *dev,
+ 
+ 	if (!memcmp(&sgid, &zgid, sizeof(sgid))) {
+ 		DP_ERR(dev, "gsi post send: GID not found GID index %d\n",
+-		       ah_attr->grh.sgid_index);
++		       grh->sgid_index);
+ 		return -ENOENT;
+ 	}
+ 
+@@ -344,13 +345,13 @@ static inline int qedr_gsi_build_header(struct qedr_dev *dev,
+ 		u32 ipv4_addr;
+ 
+ 		udh->ip4.protocol = IPPROTO_UDP;
+-		udh->ip4.tos = htonl(ah_attr->grh.flow_label);
++		udh->ip4.tos = htonl(grh->flow_label);
+ 		udh->ip4.frag_off = htons(IP_DF);
+-		udh->ip4.ttl = ah_attr->grh.hop_limit;
++		udh->ip4.ttl = grh->hop_limit;
+ 
+ 		ipv4_addr = qedr_get_ipv4_from_gid(sgid.raw);
+ 		udh->ip4.saddr = ipv4_addr;
+-		ipv4_addr = qedr_get_ipv4_from_gid(ah_attr->grh.dgid.raw);
++		ipv4_addr = qedr_get_ipv4_from_gid(grh->dgid.raw);
+ 		udh->ip4.daddr = ipv4_addr;
+ 		/* note: checksum is calculated by the device */
+ 	}
+diff --git a/drivers/infiniband/hw/qedr/qedr_cm.h b/drivers/infiniband/hw/qedr/qedr_cm.h
+index 78efb1b..a559163 100644
+--- a/drivers/infiniband/hw/qedr/qedr_cm.h
++++ b/drivers/infiniband/hw/qedr/qedr_cm.h
+@@ -39,7 +39,7 @@
+ 
+ #define QEDR_ROCE_V2_UDP_SPORT	(0000)
+ 
+-static inline u32 qedr_get_ipv4_from_gid(u8 *gid)
++static inline u32 qedr_get_ipv4_from_gid(const u8 *gid)
+ {
+ 	return *(u32 *)(void *)&gid[12];
+ }
 diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index 72e8cf9..6fcd4ed 100644
+index d87f51e..72e8cf9 100644
 --- a/drivers/infiniband/hw/qedr/verbs.c
 +++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -1970,6 +1970,7 @@ int qedr_query_qp(struct ib_qp *ibqp,
+@@ -1025,13 +1025,15 @@ static inline int get_gid_info_from_table(struct ib_qp *ibqp,
+ {
+ 	enum rdma_network_type nw_type;
+ 	struct ib_gid_attr gid_attr;
++	const struct ib_global_route *grh = rdma_ah_read_grh(&attr->ah_attr);
+ 	union ib_gid gid;
+ 	u32 ipv4_addr;
+ 	int rc = 0;
+ 	int i;
+ 
+-	rc = ib_get_cached_gid(ibqp->device, attr->ah_attr.port_num,
+-			       attr->ah_attr.grh.sgid_index, &gid, &gid_attr);
++	rc = ib_get_cached_gid(ibqp->device,
++			       rdma_ah_get_port_num(&attr->ah_attr),
++			       grh->sgid_index, &gid, &gid_attr);
+ 	if (rc)
+ 		return rc;
+ 
+@@ -1048,7 +1050,7 @@ static inline int get_gid_info_from_table(struct ib_qp *ibqp,
+ 			memcpy(&qp_params->sgid.bytes[0], &gid.raw[0],
+ 			       sizeof(qp_params->sgid));
+ 			memcpy(&qp_params->dgid.bytes[0],
+-			       &attr->ah_attr.grh.dgid,
++			       &grh->dgid,
+ 			       sizeof(qp_params->dgid));
+ 			qp_params->roce_mode = ROCE_V2_IPV6;
+ 			SET_FIELD(qp_params->modify_flags,
+@@ -1058,7 +1060,7 @@ static inline int get_gid_info_from_table(struct ib_qp *ibqp,
+ 			memcpy(&qp_params->sgid.bytes[0], &gid.raw[0],
+ 			       sizeof(qp_params->sgid));
+ 			memcpy(&qp_params->dgid.bytes[0],
+-			       &attr->ah_attr.grh.dgid,
++			       &grh->dgid,
+ 			       sizeof(qp_params->dgid));
+ 			qp_params->roce_mode = ROCE_V1;
+ 			break;
+@@ -1068,7 +1070,7 @@ static inline int get_gid_info_from_table(struct ib_qp *ibqp,
+ 			ipv4_addr = qedr_get_ipv4_from_gid(gid.raw);
+ 			qp_params->sgid.ipv4_addr = ipv4_addr;
+ 			ipv4_addr =
+-			    qedr_get_ipv4_from_gid(attr->ah_attr.grh.dgid.raw);
++			    qedr_get_ipv4_from_gid(grh->dgid.raw);
+ 			qp_params->dgid.ipv4_addr = ipv4_addr;
+ 			SET_FIELD(qp_params->modify_flags,
+ 				  QED_ROCE_MODIFY_QP_VALID_ROCE_MODE, 1);
+@@ -1690,6 +1692,7 @@ int qedr_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 	struct qedr_qp *qp = get_qedr_qp(ibqp);
+ 	struct qed_rdma_modify_qp_in_params qp_params = { 0 };
+ 	struct qedr_dev *dev = get_qedr_dev(&qp->dev->ibdev);
++	const struct ib_global_route *grh = rdma_ah_read_grh(&attr->ah_attr);
+ 	enum ib_qp_state old_qp_state, new_qp_state;
+ 	int rc = 0;
+ 
+@@ -1772,17 +1775,17 @@ int qedr_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		SET_FIELD(qp_params.modify_flags,
+ 			  QED_ROCE_MODIFY_QP_VALID_ADDRESS_VECTOR, 1);
+ 
+-		qp_params.traffic_class_tos = attr->ah_attr.grh.traffic_class;
+-		qp_params.flow_label = attr->ah_attr.grh.flow_label;
+-		qp_params.hop_limit_ttl = attr->ah_attr.grh.hop_limit;
++		qp_params.traffic_class_tos = grh->traffic_class;
++		qp_params.flow_label = grh->flow_label;
++		qp_params.hop_limit_ttl = grh->hop_limit;
+ 
+-		qp->sgid_idx = attr->ah_attr.grh.sgid_index;
++		qp->sgid_idx = grh->sgid_index;
+ 
+ 		rc = get_gid_info_from_table(ibqp, attr, attr_mask, &qp_params);
+ 		if (rc) {
+ 			DP_ERR(dev,
+ 			       "modify qp: problems with GID index %d (rc=%d)\n",
+-			       attr->ah_attr.grh.sgid_index, rc);
++			       grh->sgid_index, rc);
+ 			return rc;
+ 		}
+ 
+@@ -1967,25 +1970,20 @@ int qedr_query_qp(struct ib_qp *ibqp,
  	qp_attr->cap.max_inline_data = ROCE_REQ_MAX_INLINE_DATA_SIZE;
  	qp_init_attr->cap = qp_attr->cap;
  
-+	qp_attr->ah_attr.type = RDMA_AH_ATTR_TYPE_ROCE;
- 	rdma_ah_set_grh(&qp_attr->ah_attr, NULL,
- 			params.flow_label, qp->sgid_idx,
- 			params.hop_limit_ttl, params.traffic_class_tos);
+-	memcpy(&qp_attr->ah_attr.grh.dgid.raw[0], &params.dgid.bytes[0],
+-	       sizeof(qp_attr->ah_attr.grh.dgid.raw));
+-
+-	qp_attr->ah_attr.grh.flow_label = params.flow_label;
+-	qp_attr->ah_attr.grh.sgid_index = qp->sgid_idx;
+-	qp_attr->ah_attr.grh.hop_limit = params.hop_limit_ttl;
+-	qp_attr->ah_attr.grh.traffic_class = params.traffic_class_tos;
+-
+-	qp_attr->ah_attr.ah_flags = IB_AH_GRH;
+-	qp_attr->ah_attr.port_num = 1;
+-	qp_attr->ah_attr.sl = 0;
++	rdma_ah_set_grh(&qp_attr->ah_attr, NULL,
++			params.flow_label, qp->sgid_idx,
++			params.hop_limit_ttl, params.traffic_class_tos);
++	rdma_ah_set_dgid_raw(&qp_attr->ah_attr, &params.dgid.bytes[0]);
++	rdma_ah_set_port_num(&qp_attr->ah_attr, 1);
++	rdma_ah_set_sl(&qp_attr->ah_attr, 0);
+ 	qp_attr->timeout = params.timeout;
+ 	qp_attr->rnr_retry = params.rnr_retry;
+ 	qp_attr->retry_cnt = params.retry_cnt;
+ 	qp_attr->min_rnr_timer = params.min_rnr_nak_timer;
+ 	qp_attr->pkey_index = params.pkey_index;
+ 	qp_attr->port_num = 1;
+-	qp_attr->ah_attr.src_path_bits = 0;
+-	qp_attr->ah_attr.static_rate = 0;
++	rdma_ah_set_path_bits(&qp_attr->ah_attr, 0);
++	rdma_ah_set_static_rate(&qp_attr->ah_attr, 0);
+ 	qp_attr->alt_pkey_index = 0;
+ 	qp_attr->alt_port_num = 0;
+ 	qp_attr->alt_timeout = 0;
+diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+index 8593619..da295e0 100644
+--- a/drivers/infiniband/hw/qib/qib_mad.c
++++ b/drivers/infiniband/hw/qib/qib_mad.c
+@@ -717,9 +717,10 @@ static int subn_set_portinfo(struct ib_smp *smp, struct ib_device *ibdev,
+ 		spin_lock_irqsave(&ibp->rvp.lock, flags);
+ 		if (ibp->rvp.sm_ah) {
+ 			if (smlid != ibp->rvp.sm_lid)
+-				ibp->rvp.sm_ah->attr.dlid = smlid;
++				rdma_ah_set_dlid(&ibp->rvp.sm_ah->attr,
++						 smlid);
+ 			if (msl != ibp->rvp.sm_sl)
+-				ibp->rvp.sm_ah->attr.sl = msl;
++				rdma_ah_set_sl(&ibp->rvp.sm_ah->attr, msl);
+ 		}
+ 		spin_unlock_irqrestore(&ibp->rvp.lock, flags);
+ 		if (smlid != ibp->rvp.sm_lid)
+diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
+index 2ac0c0f..5984981 100644
+--- a/drivers/infiniband/hw/qib/qib_qp.c
++++ b/drivers/infiniband/hw/qib/qib_qp.c
+@@ -489,7 +489,7 @@ void qib_qp_iter_print(struct seq_file *s, struct qib_qp_iter *iter)
+ 		   qp->s_last, qp->s_acked, qp->s_cur,
+ 		   qp->s_tail, qp->s_head, qp->s_size,
+ 		   qp->remote_qpn,
+-		   qp->remote_ah_attr.dlid);
++		   rdma_ah_get_dlid(&qp->remote_ah_attr));
+ }
+ 
+ #endif
+diff --git a/drivers/infiniband/hw/qib/qib_rc.c b/drivers/infiniband/hw/qib/qib_rc.c
+index 0234987..fc8b885 100644
+--- a/drivers/infiniband/hw/qib/qib_rc.c
++++ b/drivers/infiniband/hw/qib/qib_rc.c
+@@ -234,7 +234,7 @@ int qib_make_rc_req(struct rvt_qp *qp, unsigned long *flags)
+ 	int delta;
+ 
+ 	ohdr = &priv->s_hdr->u.oth;
+-	if (qp->remote_ah_attr.ah_flags & IB_AH_GRH)
++	if (rdma_ah_get_ah_flags(&qp->remote_ah_attr) & IB_AH_GRH)
+ 		ohdr = &priv->s_hdr->u.l.oth;
+ 
+ 	/* Sending responses has higher priority over sending requests. */
+@@ -637,9 +637,11 @@ void qib_send_rc_ack(struct rvt_qp *qp)
+ 	lrh0 = QIB_LRH_BTH;
+ 	/* header size in 32-bit words LRH+BTH+AETH = (8+12+4)/4. */
+ 	hwords = 6;
+-	if (unlikely(qp->remote_ah_attr.ah_flags & IB_AH_GRH)) {
++	if (unlikely(rdma_ah_get_ah_flags(&qp->remote_ah_attr) &
++		     IB_AH_GRH)) {
+ 		hwords += qib_make_grh(ibp, &hdr.u.l.grh,
+-				       &qp->remote_ah_attr.grh, hwords, 0);
++				       rdma_ah_read_grh(&qp->remote_ah_attr),
++				       hwords, 0);
+ 		ohdr = &hdr.u.l.oth;
+ 		lrh0 = QIB_LRH_GRH;
+ 	}
+@@ -653,12 +655,13 @@ void qib_send_rc_ack(struct rvt_qp *qp)
+ 					     IB_AETH_CREDIT_SHIFT));
+ 	else
+ 		ohdr->u.aeth = rvt_compute_aeth(qp);
+-	lrh0 |= ibp->sl_to_vl[qp->remote_ah_attr.sl] << 12 |
+-		qp->remote_ah_attr.sl << 4;
++	lrh0 |= ibp->sl_to_vl[rdma_ah_get_sl(&qp->remote_ah_attr)] << 12 |
++		rdma_ah_get_sl(&qp->remote_ah_attr) << 4;
+ 	hdr.lrh[0] = cpu_to_be16(lrh0);
+-	hdr.lrh[1] = cpu_to_be16(qp->remote_ah_attr.dlid);
++	hdr.lrh[1] = cpu_to_be16(rdma_ah_get_dlid(&qp->remote_ah_attr));
+ 	hdr.lrh[2] = cpu_to_be16(hwords + SIZE_OF_CRC);
+-	hdr.lrh[3] = cpu_to_be16(ppd->lid | qp->remote_ah_attr.src_path_bits);
++	hdr.lrh[3] = cpu_to_be16(ppd->lid |
++				 rdma_ah_get_path_bits(&qp->remote_ah_attr));
+ 	ohdr->bth[0] = cpu_to_be32(bth0);
+ 	ohdr->bth[1] = cpu_to_be32(qp->remote_qpn);
+ 	ohdr->bth[2] = cpu_to_be32(qp->r_ack_psn & QIB_PSN_MASK);
+@@ -1904,8 +1907,8 @@ void qib_rc_rcv(struct qib_ctxtdata *rcd, struct ib_header *hdr,
+ 			wc.opcode = IB_WC_RECV;
+ 		wc.qp = &qp->ibqp;
+ 		wc.src_qp = qp->remote_qpn;
+-		wc.slid = qp->remote_ah_attr.dlid;
+-		wc.sl = qp->remote_ah_attr.sl;
++		wc.slid = rdma_ah_get_dlid(&qp->remote_ah_attr);
++		wc.sl = rdma_ah_get_sl(&qp->remote_ah_attr);
+ 		/* zero fields that are N/A */
+ 		wc.vendor_err = 0;
+ 		wc.pkey_index = 0;
+diff --git a/drivers/infiniband/hw/qib/qib_ruc.c b/drivers/infiniband/hw/qib/qib_ruc.c
+index 6e1adf7..bd09de7 100644
+--- a/drivers/infiniband/hw/qib/qib_ruc.c
++++ b/drivers/infiniband/hw/qib/qib_ruc.c
+@@ -195,7 +195,7 @@ void qib_migrate_qp(struct rvt_qp *qp)
+ 
+ 	qp->s_mig_state = IB_MIG_MIGRATED;
+ 	qp->remote_ah_attr = qp->alt_ah_attr;
+-	qp->port_num = qp->alt_ah_attr.port_num;
++	qp->port_num = rdma_ah_get_port_num(&qp->alt_ah_attr);
+ 	qp->s_pkey_index = qp->s_alt_pkey_index;
+ 
+ 	ev.device = qp->ibqp.device;
+@@ -235,18 +235,23 @@ int qib_ruc_check_hdr(struct qib_ibport *ibp, struct ib_header *hdr,
+ 
+ 	if (qp->s_mig_state == IB_MIG_ARMED && (bth0 & IB_BTH_MIG_REQ)) {
+ 		if (!has_grh) {
+-			if (qp->alt_ah_attr.ah_flags & IB_AH_GRH)
++			if (rdma_ah_get_ah_flags(&qp->alt_ah_attr) &
++			    IB_AH_GRH)
+ 				goto err;
+ 		} else {
+-			if (!(qp->alt_ah_attr.ah_flags & IB_AH_GRH))
++			const struct ib_global_route *grh;
++
++			if (!(rdma_ah_get_ah_flags(&qp->alt_ah_attr) &
++			      IB_AH_GRH))
+ 				goto err;
+-			guid = get_sguid(ibp, qp->alt_ah_attr.grh.sgid_index);
++			grh = rdma_ah_read_grh(&qp->alt_ah_attr);
++			guid = get_sguid(ibp, grh->sgid_index);
+ 			if (!gid_ok(&hdr->u.l.grh.dgid,
+ 				    ibp->rvp.gid_prefix, guid))
+ 				goto err;
+ 			if (!gid_ok(&hdr->u.l.grh.sgid,
+-			    qp->alt_ah_attr.grh.dgid.global.subnet_prefix,
+-			    qp->alt_ah_attr.grh.dgid.global.interface_id))
++			    grh->dgid.global.subnet_prefix,
++			    grh->dgid.global.interface_id))
+ 				goto err;
+ 		}
+ 		if (!qib_pkey_ok((u16)bth0,
+@@ -259,27 +264,33 @@ int qib_ruc_check_hdr(struct qib_ibport *ibp, struct ib_header *hdr,
+ 			goto err;
+ 		}
+ 		/* Validate the SLID. See Ch. 9.6.1.5 and 17.2.8 */
+-		if (be16_to_cpu(hdr->lrh[3]) != qp->alt_ah_attr.dlid ||
+-		    ppd_from_ibp(ibp)->port != qp->alt_ah_attr.port_num)
++		if ((be16_to_cpu(hdr->lrh[3]) !=
++		     rdma_ah_get_dlid(&qp->alt_ah_attr)) ||
++		    ppd_from_ibp(ibp)->port !=
++			    rdma_ah_get_port_num(&qp->alt_ah_attr))
+ 			goto err;
+ 		spin_lock_irqsave(&qp->s_lock, flags);
+ 		qib_migrate_qp(qp);
+ 		spin_unlock_irqrestore(&qp->s_lock, flags);
+ 	} else {
+ 		if (!has_grh) {
+-			if (qp->remote_ah_attr.ah_flags & IB_AH_GRH)
++			if (rdma_ah_get_ah_flags(&qp->remote_ah_attr) &
++			    IB_AH_GRH)
+ 				goto err;
+ 		} else {
+-			if (!(qp->remote_ah_attr.ah_flags & IB_AH_GRH))
++			const struct ib_global_route *grh;
++
++			if (!(rdma_ah_get_ah_flags(&qp->remote_ah_attr) &
++			      IB_AH_GRH))
+ 				goto err;
+-			guid = get_sguid(ibp,
+-					 qp->remote_ah_attr.grh.sgid_index);
++			grh = rdma_ah_read_grh(&qp->remote_ah_attr);
++			guid = get_sguid(ibp, grh->sgid_index);
+ 			if (!gid_ok(&hdr->u.l.grh.dgid,
+ 				    ibp->rvp.gid_prefix, guid))
+ 				goto err;
+ 			if (!gid_ok(&hdr->u.l.grh.sgid,
+-			    qp->remote_ah_attr.grh.dgid.global.subnet_prefix,
+-			    qp->remote_ah_attr.grh.dgid.global.interface_id))
++			    grh->dgid.global.subnet_prefix,
++			    grh->dgid.global.interface_id))
+ 				goto err;
+ 		}
+ 		if (!qib_pkey_ok((u16)bth0,
+@@ -292,7 +303,8 @@ int qib_ruc_check_hdr(struct qib_ibport *ibp, struct ib_header *hdr,
+ 			goto err;
+ 		}
+ 		/* Validate the SLID. See Ch. 9.6.1.5 */
+-		if (be16_to_cpu(hdr->lrh[3]) != qp->remote_ah_attr.dlid ||
++		if (be16_to_cpu(hdr->lrh[3]) !=
++		    rdma_ah_get_dlid(&qp->remote_ah_attr) ||
+ 		    ppd_from_ibp(ibp)->port != qp->port_num)
+ 			goto err;
+ 		if (qp->s_mig_state == IB_MIG_REARM &&
+@@ -528,8 +540,8 @@ static void qib_ruc_loopback(struct rvt_qp *sqp)
+ 	wc.byte_len = wqe->length;
+ 	wc.qp = &qp->ibqp;
+ 	wc.src_qp = qp->remote_qpn;
+-	wc.slid = qp->remote_ah_attr.dlid;
+-	wc.sl = qp->remote_ah_attr.sl;
++	wc.slid = rdma_ah_get_dlid(&qp->remote_ah_attr);
++	wc.sl = rdma_ah_get_sl(&qp->remote_ah_attr);
+ 	wc.port_num = 1;
+ 	/* Signal completion event if the solicited bit is set. */
+ 	rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
+@@ -619,7 +631,7 @@ static void qib_ruc_loopback(struct rvt_qp *sqp)
+  * Return the size of the header in 32 bit words.
+  */
+ u32 qib_make_grh(struct qib_ibport *ibp, struct ib_grh *hdr,
+-		 struct ib_global_route *grh, u32 hwords, u32 nwords)
++		 const struct ib_global_route *grh, u32 hwords, u32 nwords)
+ {
+ 	hdr->version_tclass_flow =
+ 		cpu_to_be32((IB_GRH_VERSION << IB_GRH_VERSION_SHIFT) |
+@@ -652,20 +664,23 @@ void qib_make_ruc_header(struct rvt_qp *qp, struct ib_other_headers *ohdr,
+ 	extra_bytes = -qp->s_cur_size & 3;
+ 	nwords = (qp->s_cur_size + extra_bytes) >> 2;
+ 	lrh0 = QIB_LRH_BTH;
+-	if (unlikely(qp->remote_ah_attr.ah_flags & IB_AH_GRH)) {
+-		qp->s_hdrwords += qib_make_grh(ibp, &priv->s_hdr->u.l.grh,
+-					       &qp->remote_ah_attr.grh,
+-					       qp->s_hdrwords, nwords);
++	if (unlikely(rdma_ah_get_ah_flags(&qp->remote_ah_attr) & IB_AH_GRH)) {
++		qp->s_hdrwords +=
++			qib_make_grh(ibp, &priv->s_hdr->u.l.grh,
++				     rdma_ah_read_grh(&qp->remote_ah_attr),
++				     qp->s_hdrwords, nwords);
+ 		lrh0 = QIB_LRH_GRH;
+ 	}
+-	lrh0 |= ibp->sl_to_vl[qp->remote_ah_attr.sl] << 12 |
+-		qp->remote_ah_attr.sl << 4;
++	lrh0 |= ibp->sl_to_vl[rdma_ah_get_sl(&qp->remote_ah_attr)] << 12 |
++		rdma_ah_get_sl(&qp->remote_ah_attr) << 4;
+ 	priv->s_hdr->lrh[0] = cpu_to_be16(lrh0);
+-	priv->s_hdr->lrh[1] = cpu_to_be16(qp->remote_ah_attr.dlid);
++	priv->s_hdr->lrh[1] =
++			cpu_to_be16(rdma_ah_get_dlid(&qp->remote_ah_attr));
+ 	priv->s_hdr->lrh[2] =
+ 			cpu_to_be16(qp->s_hdrwords + nwords + SIZE_OF_CRC);
+-	priv->s_hdr->lrh[3] = cpu_to_be16(ppd_from_ibp(ibp)->lid |
+-				       qp->remote_ah_attr.src_path_bits);
++	priv->s_hdr->lrh[3] =
++		cpu_to_be16(ppd_from_ibp(ibp)->lid |
++			    rdma_ah_get_path_bits(&qp->remote_ah_attr));
+ 	bth0 |= qib_get_pkey(ibp, qp->s_pkey_index);
+ 	bth0 |= extra_bytes << 20;
+ 	if (qp->s_mig_state == IB_MIG_MIGRATED)
+@@ -703,7 +718,8 @@ void qib_do_send(struct rvt_qp *qp)
+ 
+ 	if ((qp->ibqp.qp_type == IB_QPT_RC ||
+ 	     qp->ibqp.qp_type == IB_QPT_UC) &&
+-	    (qp->remote_ah_attr.dlid & ~((1 << ppd->lmc) - 1)) == ppd->lid) {
++	    (rdma_ah_get_dlid(&qp->remote_ah_attr) &
++	     ~((1 << ppd->lmc) - 1)) == ppd->lid) {
+ 		qib_ruc_loopback(qp);
+ 		return;
+ 	}
+diff --git a/drivers/infiniband/hw/qib/qib_uc.c b/drivers/infiniband/hw/qib/qib_uc.c
+index b337b60..498e220 100644
+--- a/drivers/infiniband/hw/qib/qib_uc.c
++++ b/drivers/infiniband/hw/qib/qib_uc.c
+@@ -74,7 +74,7 @@ int qib_make_uc_req(struct rvt_qp *qp, unsigned long *flags)
+ 	}
+ 
+ 	ohdr = &priv->s_hdr->u.oth;
+-	if (qp->remote_ah_attr.ah_flags & IB_AH_GRH)
++	if (rdma_ah_get_ah_flags(&qp->remote_ah_attr) & IB_AH_GRH)
+ 		ohdr = &priv->s_hdr->u.l.oth;
+ 
+ 	/* header size in 32-bit words LRH+BTH = (8+12)/4. */
+@@ -394,8 +394,8 @@ void qib_uc_rcv(struct qib_ibport *ibp, struct ib_header *hdr,
+ 		wc.status = IB_WC_SUCCESS;
+ 		wc.qp = &qp->ibqp;
+ 		wc.src_qp = qp->remote_qpn;
+-		wc.slid = qp->remote_ah_attr.dlid;
+-		wc.sl = qp->remote_ah_attr.sl;
++		wc.slid = rdma_ah_get_dlid(&qp->remote_ah_attr);
++		wc.sl = rdma_ah_get_sl(&qp->remote_ah_attr);
+ 		/* zero fields that are N/A */
+ 		wc.vendor_err = 0;
+ 		wc.pkey_index = 0;
+diff --git a/drivers/infiniband/hw/qib/qib_ud.c b/drivers/infiniband/hw/qib/qib_ud.c
+index a99d7e9..341a123 100644
+--- a/drivers/infiniband/hw/qib/qib_ud.c
++++ b/drivers/infiniband/hw/qib/qib_ud.c
+@@ -92,13 +92,13 @@ static void qib_ud_loopback(struct rvt_qp *sqp, struct rvt_swqe *swqe)
+ 		pkey1 = qib_get_pkey(ibp, sqp->s_pkey_index);
+ 		pkey2 = qib_get_pkey(ibp, qp->s_pkey_index);
+ 		if (unlikely(!qib_pkey_ok(pkey1, pkey2))) {
+-			lid = ppd->lid | (ah_attr->src_path_bits &
++			lid = ppd->lid | (rdma_ah_get_path_bits(ah_attr) &
+ 					  ((1 << ppd->lmc) - 1));
+ 			qib_bad_pqkey(ibp, IB_NOTICE_TRAP_BAD_PKEY, pkey1,
+-				      ah_attr->sl,
++				      rdma_ah_get_sl(ah_attr),
+ 				      sqp->ibqp.qp_num, qp->ibqp.qp_num,
+ 				      cpu_to_be16(lid),
+-				      cpu_to_be16(ah_attr->dlid));
++				      cpu_to_be16(rdma_ah_get_dlid(ah_attr)));
+ 			goto drop;
+ 		}
+ 	}
+@@ -116,13 +116,13 @@ static void qib_ud_loopback(struct rvt_qp *sqp, struct rvt_swqe *swqe)
+ 		if (unlikely(qkey != qp->qkey)) {
+ 			u16 lid;
+ 
+-			lid = ppd->lid | (ah_attr->src_path_bits &
++			lid = ppd->lid | (rdma_ah_get_path_bits(ah_attr) &
+ 					  ((1 << ppd->lmc) - 1));
+ 			qib_bad_pqkey(ibp, IB_NOTICE_TRAP_BAD_QKEY, qkey,
+-				      ah_attr->sl,
++				      rdma_ah_get_sl(ah_attr),
+ 				      sqp->ibqp.qp_num, qp->ibqp.qp_num,
+ 				      cpu_to_be16(lid),
+-				      cpu_to_be16(ah_attr->dlid));
++				      cpu_to_be16(rdma_ah_get_dlid(ah_attr)));
+ 			goto drop;
+ 		}
+ 	}
+@@ -168,11 +168,11 @@ static void qib_ud_loopback(struct rvt_qp *sqp, struct rvt_swqe *swqe)
+ 		goto bail_unlock;
+ 	}
+ 
+-	if (ah_attr->ah_flags & IB_AH_GRH) {
++	if (rdma_ah_get_ah_flags(ah_attr) & IB_AH_GRH) {
+ 		struct ib_grh grh;
+-		struct ib_global_route grd = ah_attr->grh;
++		const struct ib_global_route *grd = rdma_ah_read_grh(ah_attr);
+ 
+-		qib_make_grh(ibp, &grh, &grd, 0, 0);
++		qib_make_grh(ibp, &grh, grd, 0, 0);
+ 		qib_copy_sge(&qp->r_sge, &grh,
+ 			     sizeof(grh), 1);
+ 		wc.wc_flags |= IB_WC_GRH;
+@@ -220,9 +220,10 @@ static void qib_ud_loopback(struct rvt_qp *sqp, struct rvt_swqe *swqe)
+ 	wc.src_qp = sqp->ibqp.qp_num;
+ 	wc.pkey_index = qp->ibqp.qp_type == IB_QPT_GSI ?
+ 		swqe->ud_wr.pkey_index : 0;
+-	wc.slid = ppd->lid | (ah_attr->src_path_bits & ((1 << ppd->lmc) - 1));
+-	wc.sl = ah_attr->sl;
+-	wc.dlid_path_bits = ah_attr->dlid & ((1 << ppd->lmc) - 1);
++	wc.slid = ppd->lid | (rdma_ah_get_path_bits(ah_attr) &
++				((1 << ppd->lmc) - 1));
++	wc.sl = rdma_ah_get_sl(ah_attr);
++	wc.dlid_path_bits = rdma_ah_get_dlid(ah_attr) & ((1 << ppd->lmc) - 1);
+ 	wc.port_num = qp->port_num;
+ 	/* Signal completion event if the solicited bit is set. */
+ 	rvt_cq_enter(ibcq_to_rvtcq(qp->ibqp.recv_cq), &wc,
+@@ -289,14 +290,15 @@ int qib_make_ud_req(struct rvt_qp *qp, unsigned long *flags)
+ 	ibp = to_iport(qp->ibqp.device, qp->port_num);
+ 	ppd = ppd_from_ibp(ibp);
+ 	ah_attr = &ibah_to_rvtah(wqe->ud_wr.ah)->attr;
+-	if (ah_attr->dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE)) {
+-		if (ah_attr->dlid != be16_to_cpu(IB_LID_PERMISSIVE))
++	if (rdma_ah_get_dlid(ah_attr) >= be16_to_cpu(IB_MULTICAST_LID_BASE)) {
++		if (rdma_ah_get_dlid(ah_attr) !=
++				be16_to_cpu(IB_LID_PERMISSIVE))
+ 			this_cpu_inc(ibp->pmastats->n_multicast_xmit);
+ 		else
+ 			this_cpu_inc(ibp->pmastats->n_unicast_xmit);
+ 	} else {
+ 		this_cpu_inc(ibp->pmastats->n_unicast_xmit);
+-		lid = ah_attr->dlid & ~((1 << ppd->lmc) - 1);
++		lid = rdma_ah_get_dlid(ah_attr) & ~((1 << ppd->lmc) - 1);
+ 		if (unlikely(lid == ppd->lid)) {
+ 			unsigned long tflags = *flags;
+ 			/*
+@@ -328,17 +330,17 @@ int qib_make_ud_req(struct rvt_qp *qp, unsigned long *flags)
+ 	qp->s_hdrwords = 7;
+ 	qp->s_cur_size = wqe->length;
+ 	qp->s_cur_sge = &qp->s_sge;
+-	qp->s_srate = ah_attr->static_rate;
++	qp->s_srate = rdma_ah_get_static_rate(ah_attr);
+ 	qp->s_wqe = wqe;
+ 	qp->s_sge.sge = wqe->sg_list[0];
+ 	qp->s_sge.sg_list = wqe->sg_list + 1;
+ 	qp->s_sge.num_sge = wqe->wr.num_sge;
+ 	qp->s_sge.total_len = wqe->length;
+ 
+-	if (ah_attr->ah_flags & IB_AH_GRH) {
++	if (rdma_ah_get_ah_flags(ah_attr) & IB_AH_GRH) {
+ 		/* Header size in 32-bit words. */
+ 		qp->s_hdrwords += qib_make_grh(ibp, &priv->s_hdr->u.l.grh,
+-					       &ah_attr->grh,
++					       rdma_ah_read_grh(ah_attr),
+ 					       qp->s_hdrwords, nwords);
+ 		lrh0 = QIB_LRH_GRH;
+ 		ohdr = &priv->s_hdr->u.l.oth;
+@@ -357,18 +359,20 @@ int qib_make_ud_req(struct rvt_qp *qp, unsigned long *flags)
+ 		bth0 = IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE << 24;
+ 	} else
+ 		bth0 = IB_OPCODE_UD_SEND_ONLY << 24;
+-	lrh0 |= ah_attr->sl << 4;
++	lrh0 |= rdma_ah_get_sl(ah_attr) << 4;
+ 	if (qp->ibqp.qp_type == IB_QPT_SMI)
+ 		lrh0 |= 0xF000; /* Set VL (see ch. 13.5.3.1) */
+ 	else
+-		lrh0 |= ibp->sl_to_vl[ah_attr->sl] << 12;
++		lrh0 |= ibp->sl_to_vl[rdma_ah_get_sl(ah_attr)] << 12;
+ 	priv->s_hdr->lrh[0] = cpu_to_be16(lrh0);
+-	priv->s_hdr->lrh[1] = cpu_to_be16(ah_attr->dlid);  /* DEST LID */
++	priv->s_hdr->lrh[1] =
++			cpu_to_be16(rdma_ah_get_dlid(ah_attr));  /* DEST LID */
+ 	priv->s_hdr->lrh[2] =
+ 			cpu_to_be16(qp->s_hdrwords + nwords + SIZE_OF_CRC);
+ 	lid = ppd->lid;
+ 	if (lid) {
+-		lid |= ah_attr->src_path_bits & ((1 << ppd->lmc) - 1);
++		lid |= rdma_ah_get_path_bits(ah_attr) &
++			((1 << ppd->lmc) - 1);
+ 		priv->s_hdr->lrh[3] = cpu_to_be16(lid);
+ 	} else
+ 		priv->s_hdr->lrh[3] = IB_LID_PERMISSIVE;
+@@ -382,8 +386,9 @@ int qib_make_ud_req(struct rvt_qp *qp, unsigned long *flags)
+ 	/*
+ 	 * Use the multicast QP if the destination LID is a multicast LID.
+ 	 */
+-	ohdr->bth[1] = ah_attr->dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE) &&
+-		ah_attr->dlid != be16_to_cpu(IB_LID_PERMISSIVE) ?
++	ohdr->bth[1] = rdma_ah_get_dlid(ah_attr) >=
++			be16_to_cpu(IB_MULTICAST_LID_BASE) &&
++		rdma_ah_get_dlid(ah_attr) != be16_to_cpu(IB_LID_PERMISSIVE) ?
+ 		cpu_to_be32(QIB_MULTICAST_QPN) :
+ 		cpu_to_be32(wqe->ud_wr.remote_qpn);
+ 	ohdr->bth[2] = cpu_to_be32(wqe->psn & QIB_PSN_MASK);
 diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index aa28dbd..ac42dce 100644
+index de04aca..aa28dbd 100644
 --- a/drivers/infiniband/hw/qib/qib_verbs.c
 +++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -1368,9 +1368,11 @@ struct ib_ah *qib_create_qp0_ah(struct qib_ibport *ibp, u16 dlid)
+@@ -1338,7 +1338,7 @@ static int qib_get_guid_be(struct rvt_dev_info *rdi, struct rvt_ibport *rvp,
+ 
+ int qib_check_ah(struct ib_device *ibdev, struct rdma_ah_attr *ah_attr)
+ {
+-	if (ah_attr->sl > 15)
++	if (rdma_ah_get_sl(ah_attr) > 15)
+ 		return -EINVAL;
+ 
+ 	return 0;
+@@ -1356,9 +1356,9 @@ static void qib_notify_new_ah(struct ib_device *ibdev,
+ 	 * done being setup. We can however modify things which we need to set.
+ 	 */
+ 
+-	ibp = to_iport(ibdev, ah_attr->port_num);
++	ibp = to_iport(ibdev, rdma_ah_get_port_num(ah_attr));
+ 	ppd = ppd_from_ibp(ibp);
+-	ah->vl = ibp->sl_to_vl[ah->attr.sl];
++	ah->vl = ibp->sl_to_vl[rdma_ah_get_sl(&ah->attr)];
+ 	ah->log_pmtu = ilog2(ppd->ibmtu);
+ }
+ 
+@@ -1367,10 +1367,12 @@ struct ib_ah *qib_create_qp0_ah(struct qib_ibport *ibp, u16 dlid)
+ 	struct rdma_ah_attr attr;
  	struct ib_ah *ah = ERR_PTR(-EINVAL);
  	struct rvt_qp *qp0;
- 	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
-+	struct qib_devdata *dd = dd_from_ppd(ppd);
- 	u8 port_num = ppd->port;
++	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
++	u8 port_num = ppd->port;
  
  	memset(&attr, 0, sizeof(attr));
-+	attr.type = rdma_ah_find_type(&dd->verbs_dev.rdi.ibdev, port_num);
- 	rdma_ah_set_dlid(&attr, dlid);
- 	rdma_ah_set_port_num(&attr, port_num);
+-	attr.dlid = dlid;
+-	attr.port_num = ppd_from_ibp(ibp)->port;
++	rdma_ah_set_dlid(&attr, dlid);
++	rdma_ah_set_port_num(&attr, port_num);
  	rcu_read_lock();
+ 	qp0 = rcu_dereference(ibp->rvp.qp[0]);
+ 	if (qp0)
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
+index a72c309..da0db54 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.h
++++ b/drivers/infiniband/hw/qib/qib_verbs.h
+@@ -335,7 +335,7 @@ int qib_ruc_check_hdr(struct qib_ibport *ibp, struct ib_header *hdr,
+ 		      int has_grh, struct rvt_qp *qp, u32 bth0);
+ 
+ u32 qib_make_grh(struct qib_ibport *ibp, struct ib_grh *hdr,
+-		 struct ib_global_route *grh, u32 hwords, u32 nwords);
++		 const struct ib_global_route *grh, u32 hwords, u32 nwords);
+ 
+ void qib_make_ruc_header(struct rvt_qp *qp, struct ib_other_headers *ohdr,
+ 			 u32 bth0, u32 bth2);
 diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c
-index d6178c2..26fe6b7 100644
+index d248ec3..d6178c2 100644
 --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c
 +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c
-@@ -280,6 +280,7 @@ void ib_global_route_to_pvrdma(struct pvrdma_global_route *dst,
+@@ -280,25 +280,25 @@ void ib_global_route_to_pvrdma(struct pvrdma_global_route *dst,
  void pvrdma_ah_attr_to_rdma(struct rdma_ah_attr *dst,
  			    const struct pvrdma_ah_attr *src)
  {
-+	dst->type = RDMA_AH_ATTR_TYPE_ROCE;
- 	pvrdma_global_route_to_ib(rdma_ah_retrieve_grh(dst), &src->grh);
- 	rdma_ah_set_dlid(dst, src->dlid);
- 	rdma_ah_set_sl(dst, src->sl);
-@@ -287,7 +288,7 @@ void pvrdma_ah_attr_to_rdma(struct rdma_ah_attr *dst,
- 	rdma_ah_set_static_rate(dst, src->static_rate);
- 	rdma_ah_set_ah_flags(dst, src->ah_flags);
- 	rdma_ah_set_port_num(dst, src->port_num);
--	memcpy(dst->dmac, &src->dmac, ETH_ALEN);
-+	memcpy(dst->roce.dmac, &src->dmac, ETH_ALEN);
+-	pvrdma_global_route_to_ib(&dst->grh, &src->grh);
+-	dst->dlid = src->dlid;
+-	dst->sl = src->sl;
+-	dst->src_path_bits = src->src_path_bits;
+-	dst->static_rate = src->static_rate;
+-	dst->ah_flags = src->ah_flags;
+-	dst->port_num = src->port_num;
+-	memcpy(&dst->dmac, &src->dmac, sizeof(dst->dmac));
++	pvrdma_global_route_to_ib(rdma_ah_retrieve_grh(dst), &src->grh);
++	rdma_ah_set_dlid(dst, src->dlid);
++	rdma_ah_set_sl(dst, src->sl);
++	rdma_ah_set_path_bits(dst, src->src_path_bits);
++	rdma_ah_set_static_rate(dst, src->static_rate);
++	rdma_ah_set_ah_flags(dst, src->ah_flags);
++	rdma_ah_set_port_num(dst, src->port_num);
++	memcpy(dst->dmac, &src->dmac, ETH_ALEN);
  }
  
  void rdma_ah_attr_to_pvrdma(struct pvrdma_ah_attr *dst,
-@@ -300,5 +301,5 @@ void rdma_ah_attr_to_pvrdma(struct pvrdma_ah_attr *dst,
- 	dst->static_rate = rdma_ah_get_static_rate(src);
- 	dst->ah_flags = rdma_ah_get_ah_flags(src);
- 	dst->port_num = rdma_ah_get_port_num(src);
--	memcpy(&dst->dmac, src->dmac, sizeof(dst->dmac));
-+	memcpy(&dst->dmac, src->roce.dmac, sizeof(dst->dmac));
+ 			    const struct rdma_ah_attr *src)
+ {
+-	ib_global_route_to_pvrdma(&dst->grh, &src->grh);
+-	dst->dlid = src->dlid;
+-	dst->sl = src->sl;
+-	dst->src_path_bits = src->src_path_bits;
+-	dst->static_rate = src->static_rate;
+-	dst->ah_flags = src->ah_flags;
+-	dst->port_num = src->port_num;
+-	memcpy(&dst->dmac, &src->dmac, sizeof(dst->dmac));
++	ib_global_route_to_pvrdma(&dst->grh, rdma_ah_read_grh(src));
++	dst->dlid = rdma_ah_get_dlid(src);
++	dst->sl = rdma_ah_get_sl(src);
++	dst->src_path_bits = rdma_ah_get_path_bits(src);
++	dst->static_rate = rdma_ah_get_static_rate(src);
++	dst->ah_flags = rdma_ah_get_ah_flags(src);
++	dst->port_num = rdma_ah_get_port_num(src);
++	memcpy(&dst->dmac, src->dmac, sizeof(dst->dmac));
  }
 diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-index 6b11e57..2851704 100644
+index ae5a03b..6b11e57 100644
 --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
 +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-@@ -525,17 +525,14 @@ struct ib_ah *pvrdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
- {
+@@ -526,14 +526,17 @@ struct ib_ah *pvrdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
  	struct pvrdma_dev *dev = to_vdev(pd->device);
  	struct pvrdma_ah *ah;
--	enum rdma_link_layer ll;
- 	const struct ib_global_route *grh;
- 	u8 port_num = rdma_ah_get_port_num(ah_attr);
+ 	enum rdma_link_layer ll;
++	const struct ib_global_route *grh;
++	u8 port_num = rdma_ah_get_port_num(ah_attr);
  
- 	if (!(rdma_ah_get_ah_flags(ah_attr) & IB_AH_GRH))
+-	if (!(ah_attr->ah_flags & IB_AH_GRH))
++	if (!(rdma_ah_get_ah_flags(ah_attr) & IB_AH_GRH))
  		return ERR_PTR(-EINVAL);
--	ll = rdma_port_get_link_layer(pd->device,
--				      rdma_ah_get_port_num(ah_attr));
--	grh = rdma_ah_read_grh(ah_attr);
- 
--	if (ll != IB_LINK_LAYER_ETHERNET ||
+-
+-	ll = rdma_port_get_link_layer(pd->device, ah_attr->port_num);
++	ll = rdma_port_get_link_layer(pd->device,
++				      rdma_ah_get_port_num(ah_attr));
 +	grh = rdma_ah_read_grh(ah_attr);
-+	if ((ah_attr->type != RDMA_AH_ATTR_TYPE_ROCE)  ||
- 	    rdma_is_multicast_addr((struct in6_addr *)grh->dgid.raw))
+ 
+ 	if (ll != IB_LINK_LAYER_ETHERNET ||
+-	    rdma_is_multicast_addr((struct in6_addr *)ah_attr->grh.dgid.raw))
++	    rdma_is_multicast_addr((struct in6_addr *)grh->dgid.raw))
  		return ERR_PTR(-EINVAL);
  
-@@ -556,7 +553,7 @@ struct ib_ah *pvrdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
- 	ah->av.sl_tclass_flowlabel = (grh->traffic_class << 20) |
- 				      grh->flow_label;
- 	memcpy(ah->av.dgid, grh->dgid.raw, 16);
--	memcpy(ah->av.dmac, ah_attr->dmac, ETH_ALEN);
-+	memcpy(ah->av.dmac, ah_attr->roce.dmac, ETH_ALEN);
+ 	if (!atomic_add_unless(&dev->num_ahs, 1, dev->dsr->caps.max_ah))
+@@ -545,15 +548,15 @@ struct ib_ah *pvrdma_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+ 
+-	ah->av.port_pd = to_vpd(pd)->pd_handle | (ah_attr->port_num << 24);
+-	ah->av.src_path_bits = ah_attr->src_path_bits;
++	ah->av.port_pd = to_vpd(pd)->pd_handle | (port_num << 24);
++	ah->av.src_path_bits = rdma_ah_get_path_bits(ah_attr);
+ 	ah->av.src_path_bits |= 0x80;
+-	ah->av.gid_index = ah_attr->grh.sgid_index;
+-	ah->av.hop_limit = ah_attr->grh.hop_limit;
+-	ah->av.sl_tclass_flowlabel = (ah_attr->grh.traffic_class << 20) |
+-				      ah_attr->grh.flow_label;
+-	memcpy(ah->av.dgid, ah_attr->grh.dgid.raw, 16);
+-	memcpy(ah->av.dmac, ah_attr->dmac, 6);
++	ah->av.gid_index = grh->sgid_index;
++	ah->av.hop_limit = grh->hop_limit;
++	ah->av.sl_tclass_flowlabel = (grh->traffic_class << 20) |
++				      grh->flow_label;
++	memcpy(ah->av.dgid, grh->dgid.raw, 16);
++	memcpy(ah->av.dmac, ah_attr->dmac, ETH_ALEN);
  
  	ah->ibah.device = pd->device;
  	ah->ibah.pd = pd;
+diff --git a/drivers/infiniband/sw/rdmavt/ah.c b/drivers/infiniband/sw/rdmavt/ah.c
+index 4477677..4922048 100644
+--- a/drivers/infiniband/sw/rdmavt/ah.c
++++ b/drivers/infiniband/sw/rdmavt/ah.c
+@@ -63,29 +63,32 @@ int rvt_check_ah(struct ib_device *ibdev,
+ 		 struct rdma_ah_attr *ah_attr)
+ {
+ 	int err;
++	int port_num = rdma_ah_get_port_num(ah_attr);
+ 	struct ib_port_attr port_attr;
+ 	struct rvt_dev_info *rdi = ib_to_rvt(ibdev);
+-	enum rdma_link_layer link = rdma_port_get_link_layer(ibdev,
+-							     ah_attr->port_num);
++	enum rdma_link_layer link = rdma_port_get_link_layer(ibdev, port_num);
++	u32 dlid = rdma_ah_get_dlid(ah_attr);
++	u8 ah_flags = rdma_ah_get_ah_flags(ah_attr);
++	u8 static_rate = rdma_ah_get_static_rate(ah_attr);
+ 
+-	err = ib_query_port(ibdev, ah_attr->port_num, &port_attr);
++	err = ib_query_port(ibdev, port_num, &port_attr);
+ 	if (err)
+ 		return -EINVAL;
+-	if (ah_attr->port_num < 1 ||
+-	    ah_attr->port_num > ibdev->phys_port_cnt)
++	if (port_num < 1 ||
++	    port_num > ibdev->phys_port_cnt)
+ 		return -EINVAL;
+-	if (ah_attr->static_rate != IB_RATE_PORT_CURRENT &&
+-	    ib_rate_to_mbps(ah_attr->static_rate) < 0)
++	if (static_rate != IB_RATE_PORT_CURRENT &&
++	    ib_rate_to_mbps(static_rate) < 0)
+ 		return -EINVAL;
+-	if ((ah_attr->ah_flags & IB_AH_GRH) &&
+-	    ah_attr->grh.sgid_index >= port_attr.gid_tbl_len)
++	if ((ah_flags & IB_AH_GRH) &&
++	    rdma_ah_read_grh(ah_attr)->sgid_index >= port_attr.gid_tbl_len)
+ 		return -EINVAL;
+ 	if (link != IB_LINK_LAYER_ETHERNET) {
+-		if (ah_attr->dlid == 0)
++		if (dlid == 0)
+ 			return -EINVAL;
+-		if (ah_attr->dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE) &&
+-		    ah_attr->dlid != be16_to_cpu(IB_LID_PERMISSIVE) &&
+-		    !(ah_attr->ah_flags & IB_AH_GRH))
++		if (dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE) &&
++		    dlid != be16_to_cpu(IB_LID_PERMISSIVE) &&
++		    !(ah_flags & IB_AH_GRH))
+ 			return -EINVAL;
+ 	}
+ 	if (rdi->driver_f.check_ah)
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index 728f5f1..727e81c 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -1104,14 +1104,15 @@ int rvt_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		goto inval;
+ 
+ 	if (attr_mask & IB_QP_AV) {
+-		if (attr->ah_attr.dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE))
++		if (rdma_ah_get_dlid(&attr->ah_attr) >=
++		    be16_to_cpu(IB_MULTICAST_LID_BASE))
+ 			goto inval;
+ 		if (rvt_check_ah(qp->ibqp.device, &attr->ah_attr))
+ 			goto inval;
+ 	}
+ 
+ 	if (attr_mask & IB_QP_ALT_PATH) {
+-		if (attr->alt_ah_attr.dlid >=
++		if (rdma_ah_get_dlid(&attr->alt_ah_attr) >=
+ 		    be16_to_cpu(IB_MULTICAST_LID_BASE))
+ 			goto inval;
+ 		if (rvt_check_ah(qp->ibqp.device, &attr->alt_ah_attr))
+@@ -1240,7 +1241,7 @@ int rvt_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 
+ 	if (attr_mask & IB_QP_AV) {
+ 		qp->remote_ah_attr = attr->ah_attr;
+-		qp->s_srate = attr->ah_attr.static_rate;
++		qp->s_srate = rdma_ah_get_static_rate(&attr->ah_attr);
+ 		qp->srate_mbps = ib_rate_to_mbps(qp->s_srate);
+ 	}
+ 
+@@ -1253,7 +1254,7 @@ int rvt_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		qp->s_mig_state = attr->path_mig_state;
+ 		if (mig) {
+ 			qp->remote_ah_attr = qp->alt_ah_attr;
+-			qp->port_num = qp->alt_ah_attr.port_num;
++			qp->port_num = rdma_ah_get_port_num(&qp->alt_ah_attr);
+ 			qp->s_pkey_index = qp->s_alt_pkey_index;
+ 		}
+ 	}
+@@ -1424,7 +1425,8 @@ int rvt_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 	attr->timeout = qp->timeout;
+ 	attr->retry_cnt = qp->s_retry_cnt;
+ 	attr->rnr_retry = qp->s_rnr_retry_cnt;
+-	attr->alt_port_num = qp->alt_ah_attr.port_num;
++	attr->alt_port_num =
++		rdma_ah_get_port_num(&qp->alt_ah_attr);
+ 	attr->alt_timeout = qp->alt_timeout;
+ 
+ 	init_attr->event_handler = qp->ibqp.event_handler;
 diff --git a/drivers/infiniband/sw/rxe/rxe_av.c b/drivers/infiniband/sw/rxe/rxe_av.c
-index e043e99..5bddf46 100644
+index fad68aa..e043e99 100644
 --- a/drivers/infiniband/sw/rxe/rxe_av.c
 +++ b/drivers/infiniband/sw/rxe/rxe_av.c
-@@ -70,6 +70,7 @@ int rxe_av_from_attr(struct rxe_dev *rxe, u8 port_num,
+@@ -38,17 +38,18 @@ int rxe_av_chk_attr(struct rxe_dev *rxe, struct rdma_ah_attr *attr)
+ {
+ 	struct rxe_port *port;
+ 
+-	if (attr->port_num != 1) {
+-		pr_info("invalid port_num = %d\n", attr->port_num);
++	if (rdma_ah_get_port_num(attr) != 1) {
++		pr_info("invalid port_num = %d\n", rdma_ah_get_port_num(attr));
+ 		return -EINVAL;
+ 	}
+ 
+ 	port = &rxe->port;
+ 
+-	if (attr->ah_flags & IB_AH_GRH) {
+-		if (attr->grh.sgid_index > port->attr.gid_tbl_len) {
+-			pr_info("invalid sgid index = %d\n",
+-				attr->grh.sgid_index);
++	if (rdma_ah_get_ah_flags(attr) & IB_AH_GRH) {
++		u8 sgid_index = rdma_ah_read_grh(attr)->sgid_index;
++
++		if (sgid_index > port->attr.gid_tbl_len) {
++			pr_info("invalid sgid index = %d\n", sgid_index);
+ 			return -EINVAL;
+ 		}
+ 	}
+@@ -60,7 +61,8 @@ int rxe_av_from_attr(struct rxe_dev *rxe, u8 port_num,
+ 		     struct rxe_av *av, struct rdma_ah_attr *attr)
+ {
+ 	memset(av, 0, sizeof(*av));
+-	memcpy(&av->grh, &attr->grh, sizeof(attr->grh));
++	memcpy(&av->grh, rdma_ah_read_grh(attr),
++	       sizeof(*rdma_ah_read_grh(attr)));
+ 	av->port_num = port_num;
+ 	return 0;
+ }
+@@ -68,9 +70,9 @@ int rxe_av_from_attr(struct rxe_dev *rxe, u8 port_num,
  int rxe_av_to_attr(struct rxe_dev *rxe, struct rxe_av *av,
  		   struct rdma_ah_attr *attr)
  {
-+	attr->type = RDMA_AH_ATTR_TYPE_ROCE;
- 	memcpy(rdma_ah_retrieve_grh(attr), &av->grh, sizeof(av->grh));
- 	rdma_ah_set_ah_flags(attr, IB_AH_GRH);
- 	rdma_ah_set_port_num(attr, av->port_num);
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index f4b382b..830d22e 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -378,6 +378,7 @@ static int rxe_query_ah(struct ib_ah *ibah, struct rdma_ah_attr *attr)
- 	struct rxe_ah *ah = to_rah(ibah);
- 
- 	memset(attr, 0, sizeof(*attr));
-+	attr->type = ibah->type;
- 	rxe_av_to_attr(rxe, &ah->av, attr);
+-	memcpy(&attr->grh, &av->grh, sizeof(av->grh));
+-	attr->ah_flags = IB_AH_GRH;
+-	attr->port_num = av->port_num;
++	memcpy(rdma_ah_retrieve_grh(attr), &av->grh, sizeof(av->grh));
++	rdma_ah_set_ah_flags(attr, IB_AH_GRH);
++	rdma_ah_set_port_num(attr, av->port_num);
  	return 0;
  }
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index 399b1d7..f16fd9e 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -273,6 +273,7 @@ static int ipoib_mcast_join_finish(struct ipoib_mcast *mcast,
+ 
+@@ -81,7 +83,7 @@ int rxe_av_fill_ip_info(struct rxe_dev *rxe,
+ 			union ib_gid *sgid)
+ {
+ 	rdma_gid2ip(&av->sgid_addr._sockaddr, sgid);
+-	rdma_gid2ip(&av->dgid_addr._sockaddr, &attr->grh.dgid);
++	rdma_gid2ip(&av->dgid_addr._sockaddr, &rdma_ah_read_grh(attr)->dgid);
+ 	av->network_type = ib_gid_to_network_type(sgid_attr->gid_type, sgid);
+ 
+ 	return 0;
+diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
+index f98a19e..e8eaf88 100644
+--- a/drivers/infiniband/sw/rxe/rxe_qp.c
++++ b/drivers/infiniband/sw/rxe/rxe_qp.c
+@@ -630,8 +630,8 @@ int rxe_qp_from_attr(struct rxe_qp *qp, struct ib_qp_attr *attr, int mask,
+ 
+ 	if (mask & IB_QP_AV) {
+ 		ib_get_cached_gid(&rxe->ib_dev, 1,
+-				  attr->ah_attr.grh.sgid_index, &sgid,
+-				  &sgid_attr);
++				  rdma_ah_read_grh(&attr->ah_attr)->sgid_index,
++				  &sgid, &sgid_attr);
+ 		rxe_av_from_attr(rxe, attr->port_num, &qp->pri_av,
+ 				 &attr->ah_attr);
+ 		rxe_av_fill_ip_info(rxe, &qp->pri_av, &attr->ah_attr,
+@@ -641,9 +641,11 @@ int rxe_qp_from_attr(struct rxe_qp *qp, struct ib_qp_attr *attr, int mask,
  	}
  
- 	memset(&av, 0, sizeof(av));
-+	av.type = rdma_ah_find_type(priv->ca, priv->port);
- 	rdma_ah_set_dlid(&av, be16_to_cpu(mcast->mcmember.mlid)),
- 	rdma_ah_set_port_num(&av, priv->port);
- 	rdma_ah_set_sl(&av, mcast->mcmember.sl);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index c1f179d..59b600a 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -837,15 +837,31 @@ struct ib_mr_status {
-  */
- __attribute_const__ enum ib_rate mult_to_ib_rate(int mult);
- 
-+enum rdma_ah_attr_type {
-+	RDMA_AH_ATTR_TYPE_IB,
-+	RDMA_AH_ATTR_TYPE_ROCE,
-+};
+ 	if (mask & IB_QP_ALT_PATH) {
+-		ib_get_cached_gid(&rxe->ib_dev, 1,
+-				  attr->alt_ah_attr.grh.sgid_index, &sgid,
+-				  &sgid_attr);
++		u8 sgid_index =
++			rdma_ah_read_grh(&attr->alt_ah_attr)->sgid_index;
 +
-+struct ib_ah_attr {
-+	u16			dlid;
-+	u8			src_path_bits;
-+};
++		ib_get_cached_gid(&rxe->ib_dev, 1, sgid_index,
++				  &sgid, &sgid_attr);
+ 
+ 		rxe_av_from_attr(rxe, attr->alt_port_num, &qp->alt_av,
+ 				 &attr->alt_ah_attr);
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index 7dcf0d1..f4b382b 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -302,15 +302,15 @@ static int rxe_init_av(struct rxe_dev *rxe, struct rdma_ah_attr *attr,
+ 	union ib_gid sgid;
+ 	struct ib_gid_attr sgid_attr;
+ 
+-	err = ib_get_cached_gid(&rxe->ib_dev, attr->port_num,
+-				attr->grh.sgid_index, &sgid,
++	err = ib_get_cached_gid(&rxe->ib_dev, rdma_ah_get_port_num(attr),
++				rdma_ah_read_grh(attr)->sgid_index, &sgid,
+ 				&sgid_attr);
+ 	if (err) {
+ 		pr_err("Failed to query sgid. err = %d\n", err);
+ 		return err;
+ 	}
+ 
+-	err = rxe_av_from_attr(rxe, attr->port_num, av, attr);
++	err = rxe_av_from_attr(rxe, rdma_ah_get_port_num(attr), av, attr);
+ 	if (!err)
+ 		err = rxe_av_fill_ip_info(rxe, av, attr, &sgid_attr, &sgid);
+ 
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+index eda1641..399b1d7 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+@@ -214,6 +214,7 @@ static int ipoib_mcast_join_finish(struct ipoib_mcast *mcast,
+ 	struct net_device *dev = mcast->dev;
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+ 	struct ipoib_ah *ah;
++	struct rdma_ah_attr av;
+ 	int ret;
+ 	int set_qkey = 0;
+ 
+@@ -271,39 +272,33 @@ static int ipoib_mcast_join_finish(struct ipoib_mcast *mcast,
+ 		}
+ 	}
+ 
+-	{
+-		struct rdma_ah_attr av = {
+-			.dlid	       = be16_to_cpu(mcast->mcmember.mlid),
+-			.port_num      = priv->port,
+-			.sl	       = mcast->mcmember.sl,
+-			.ah_flags      = IB_AH_GRH,
+-			.static_rate   = mcast->mcmember.rate,
+-			.grh	       = {
+-				.flow_label    = be32_to_cpu(mcast->mcmember.flow_label),
+-				.hop_limit     = mcast->mcmember.hop_limit,
+-				.sgid_index    = 0,
+-				.traffic_class = mcast->mcmember.traffic_class
+-			}
+-		};
+-		av.grh.dgid = mcast->mcmember.mgid;
+-
+-		ah = ipoib_create_ah(dev, priv->pd, &av);
+-		if (IS_ERR(ah)) {
+-			ipoib_warn(priv, "ib_address_create failed %ld\n",
+-				-PTR_ERR(ah));
+-			/* use original error */
+-			return PTR_ERR(ah);
+-		}
+-		spin_lock_irq(&priv->lock);
+-		mcast->ah = ah;
+-		spin_unlock_irq(&priv->lock);
+-
+-		ipoib_dbg_mcast(priv, "MGID %pI6 AV %p, LID 0x%04x, SL %d\n",
+-				mcast->mcmember.mgid.raw,
+-				mcast->ah->ah,
+-				be16_to_cpu(mcast->mcmember.mlid),
+-				mcast->mcmember.sl);
++	memset(&av, 0, sizeof(av));
++	rdma_ah_set_dlid(&av, be16_to_cpu(mcast->mcmember.mlid)),
++	rdma_ah_set_port_num(&av, priv->port);
++	rdma_ah_set_sl(&av, mcast->mcmember.sl);
++	rdma_ah_set_static_rate(&av, mcast->mcmember.rate);
 +
-+struct roce_ah_attr {
-+	u8			dmac[ETH_ALEN];
-+};
++	rdma_ah_set_grh(&av, &mcast->mcmember.mgid,
++			be32_to_cpu(mcast->mcmember.flow_label),
++			0, mcast->mcmember.hop_limit,
++			mcast->mcmember.traffic_class);
 +
- struct rdma_ah_attr {
- 	struct ib_global_route	grh;
--	u16			dlid;
- 	u8			sl;
--	u8			src_path_bits;
- 	u8			static_rate;
--	u8			ah_flags;
- 	u8			port_num;
--	u8			dmac[ETH_ALEN];
-+	u8			ah_flags;
-+	enum rdma_ah_attr_type type;
-+	union {
-+		struct ib_ah_attr ib;
-+		struct roce_ah_attr roce;
-+	};
- };
- 
- enum ib_wc_status {
-@@ -1463,6 +1479,7 @@ struct ib_ah {
- 	struct ib_device	*device;
- 	struct ib_pd		*pd;
- 	struct ib_uobject	*uobject;
-+	enum rdma_ah_attr_type	type;
- };
- 
- typedef void (*ib_comp_handler)(struct ib_cq *cq, void *cq_context);
-@@ -3411,17 +3428,22 @@ int ib_resolve_eth_dmac(struct ib_device *device,
- 
- static inline u8 *rdma_ah_retrieve_dmac(struct rdma_ah_attr *attr)
- {
--	return attr->dmac;
-+	if (attr->type == RDMA_AH_ATTR_TYPE_ROCE)
-+		return attr->roce.dmac;
-+	return NULL;
- }
- 
--static inline void rdma_ah_set_dlid(struct rdma_ah_attr *attr, u32 dlid)
-+static inline void rdma_ah_set_dlid(struct rdma_ah_attr *attr, u16 dlid)
- {
--	attr->dlid = (u16)dlid;
-+	if (attr->type == RDMA_AH_ATTR_TYPE_IB)
-+		attr->ib.dlid = dlid;
- }
- 
--static inline u32 rdma_ah_get_dlid(const struct rdma_ah_attr *attr)
-+static inline u16 rdma_ah_get_dlid(const struct rdma_ah_attr *attr)
- {
--	return attr->dlid;
-+	if (attr->type == RDMA_AH_ATTR_TYPE_IB)
-+		return attr->ib.dlid;
-+	return 0;
- }
- 
- static inline void rdma_ah_set_sl(struct rdma_ah_attr *attr, u8 sl)
-@@ -3437,12 +3459,15 @@ static inline u8 rdma_ah_get_sl(const struct rdma_ah_attr *attr)
- static inline void rdma_ah_set_path_bits(struct rdma_ah_attr *attr,
- 					 u8 src_path_bits)
- {
--	attr->src_path_bits = src_path_bits;
-+	if (attr->type == RDMA_AH_ATTR_TYPE_IB)
-+		attr->ib.src_path_bits = src_path_bits;
- }
- 
- static inline u8 rdma_ah_get_path_bits(const struct rdma_ah_attr *attr)
- {
--	return attr->src_path_bits;
-+	if (attr->type == RDMA_AH_ATTR_TYPE_IB)
-+		return attr->ib.src_path_bits;
-+	return 0;
- }
- 
- static inline void rdma_ah_set_port_num(struct rdma_ah_attr *attr, u8 port_num)
-@@ -3529,4 +3554,15 @@ static inline void rdma_ah_set_grh(struct rdma_ah_attr *attr,
- 	grh->hop_limit = hop_limit;
- 	grh->traffic_class = traffic_class;
- }
++	ah = ipoib_create_ah(dev, priv->pd, &av);
++	if (IS_ERR(ah)) {
++		ipoib_warn(priv, "ib_address_create failed %ld\n",
++			   -PTR_ERR(ah));
++		/* use original error */
++		return PTR_ERR(ah);
+ 	}
++	spin_lock_irq(&priv->lock);
++	mcast->ah = ah;
++	spin_unlock_irq(&priv->lock);
 +
-+/*Get AH type */
-+static inline enum rdma_ah_attr_type rdma_ah_find_type(struct ib_device *dev,
-+						       u32 port_num)
-+{
-+	if ((rdma_protocol_roce(dev, port_num)) ||
-+	    (rdma_protocol_iwarp(dev, port_num)))
-+		return RDMA_AH_ATTR_TYPE_ROCE;
-+	else
-+		return RDMA_AH_ATTR_TYPE_IB;
-+}
- #endif /* IB_VERBS_H */
++	ipoib_dbg_mcast(priv, "MGID %pI6 AV %p, LID 0x%04x, SL %d\n",
++			mcast->mcmember.mgid.raw,
++			mcast->ah->ah,
++			be16_to_cpu(mcast->mcmember.mlid),
++			mcast->mcmember.sl);
+ 
+ 	/* actually send any queued packets */
+ 	netif_tx_lock_bh(dev);
 diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c
-index f2867b2..bdf2163 100644
+index e6743c0..f2867b2 100644
 --- a/net/smc/smc_ib.c
 +++ b/net/smc/smc_ib.c
-@@ -80,10 +80,11 @@ static int smc_ib_modify_qp_rtr(struct smc_link *lnk)
+@@ -80,11 +80,9 @@ static int smc_ib_modify_qp_rtr(struct smc_link *lnk)
  	memset(&qp_attr, 0, sizeof(qp_attr));
  	qp_attr.qp_state = IB_QPS_RTR;
  	qp_attr.path_mtu = min(lnk->path_mtu, lnk->peer_mtu);
-+	qp_attr.ah_attr.type = RDMA_AH_ATTR_TYPE_ROCE;
- 	rdma_ah_set_port_num(&qp_attr.ah_attr, lnk->ibport);
- 	rdma_ah_set_grh(&qp_attr.ah_attr, NULL, 0, 0, 1, 0);
- 	rdma_ah_set_dgid_raw(&qp_attr.ah_attr, lnk->peer_gid);
--	memcpy(&qp_attr.ah_attr.dmac, lnk->peer_mac,
-+	memcpy(&qp_attr.ah_attr.roce.dmac, lnk->peer_mac,
+-	qp_attr.ah_attr.port_num = lnk->ibport;
+-	qp_attr.ah_attr.ah_flags = IB_AH_GRH;
+-	qp_attr.ah_attr.grh.hop_limit = 1;
+-	memcpy(&qp_attr.ah_attr.grh.dgid, lnk->peer_gid,
+-	       sizeof(lnk->peer_gid));
++	rdma_ah_set_port_num(&qp_attr.ah_attr, lnk->ibport);
++	rdma_ah_set_grh(&qp_attr.ah_attr, NULL, 0, 0, 1, 0);
++	rdma_ah_set_dgid_raw(&qp_attr.ah_attr, lnk->peer_gid);
+ 	memcpy(&qp_attr.ah_attr.dmac, lnk->peer_mac,
  	       sizeof(lnk->peer_mac));
  	qp_attr.dest_qp_num = lnk->peer_qpn;
- 	qp_attr.rq_psn = lnk->peer_psn; /* starting receive packet seq # */
 -- 
 1.8.3.1
 
