@@ -1,7 +1,7 @@
 From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [RESEND rdma-core v4 6/8] libbnxt_re: Enable UD control path and wqe posting
-Date: Fri, 21 Apr 2017 14:57:10 -0400
-Message-ID: <1492801032-17587-7-git-send-email-devesh.sharma@broadcom.com>
+Subject: [RESEND rdma-core v4 8/8] libbnxt_re: Add support for atomic operations
+Date: Fri, 21 Apr 2017 14:57:12 -0400
+Message-ID: <1492801032-17587-9-git-send-email-devesh.sharma@broadcom.com>
 References: <1492801032-17587-1-git-send-email-devesh.sharma@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1492801032-17587-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
@@ -9,269 +9,172 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds infrastructure needed to enable unreliable
-datagram control path. It also adds support to allow posting
-Send WQEs to UD QPs. Following are the major changes:
+This patch adds support for compare-and-swap and fetch-and-add
+atomic operations in user library.
 
- - Mmap the shared page exported from kernel driver to
-   read AH-ID from kernel space.
- - Adds support to create-AH and destroy-AH.
- - Add support to allow posting UD WQEs.
- - Do not use search-psn memory for UD QPs.
-
+v3->v4
+ -- Changed weq init code to match the DMA ABI.
 v1->v2
- --Removed extra ref of PD in ah structure
+ -- Fixed the missing "break"
+ -- Changed macros to inline function
 
 Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- providers/bnxt_re/bnxt_re-abi.h |  7 ++++
- providers/bnxt_re/main.c        | 17 ++++++++
- providers/bnxt_re/main.h        | 12 ++++++
- providers/bnxt_re/verbs.c       | 91 ++++++++++++++++++++++++++++++++++-------
- 4 files changed, 113 insertions(+), 14 deletions(-)
+ providers/bnxt_re/bnxt_re-abi.h |  3 ++-
+ providers/bnxt_re/main.h        |  8 ++++++-
+ providers/bnxt_re/memory.h      | 10 ++++++++
+ providers/bnxt_re/verbs.c       | 52 ++++++++++++++++++++++++++++++++++-------
+ 4 files changed, 63 insertions(+), 10 deletions(-)
 
 diff --git a/providers/bnxt_re/bnxt_re-abi.h b/providers/bnxt_re/bnxt_re-abi.h
-index 7062f3b..36b74cd 100644
+index db11322..205d8c4 100644
 --- a/providers/bnxt_re/bnxt_re-abi.h
 +++ b/providers/bnxt_re/bnxt_re-abi.h
-@@ -174,6 +174,13 @@ enum bnxt_re_ud_flags_mask {
- 	BNXT_RE_UD_FLAGS_ROCE_IPV6	= 0x03
+@@ -54,7 +54,8 @@ enum bnxt_re_wr_opcode {
+ 	BNXT_RE_WR_OPCD_ATOMIC_FA	= 0x0B,
+ 	BNXT_RE_WR_OPCD_LOC_INVAL	= 0x0C,
+ 	BNXT_RE_WR_OPCD_BIND		= 0x0E,
+-	BNXT_RE_WR_OPCD_RECV		= 0x80
++	BNXT_RE_WR_OPCD_RECV		= 0x80,
++	BNXT_RE_WR_OPCD_INVAL		= 0xFF
  };
  
-+enum bnxt_re_shpg_offt {
-+	BNXT_RE_SHPG_BEG_RESV_OFFT	= 0x00,
-+	BNXT_RE_SHPG_AVID_OFFT		= 0x10,
-+	BNXT_RE_SHPG_AVID_SIZE		= 0x04,
-+	BNXT_RE_SHPG_END_RESV_OFFT	= 0xFF0
-+};
-+
- struct bnxt_re_db_hdr {
- 	__le32 indx;
- 	__le32 typ_qid; /* typ: 4, qid:20*/
-diff --git a/providers/bnxt_re/main.c b/providers/bnxt_re/main.c
-index e4c63f6..da4dd06 100644
---- a/providers/bnxt_re/main.c
-+++ b/providers/bnxt_re/main.c
-@@ -129,18 +129,35 @@ static int bnxt_re_init_context(struct verbs_device *vdev,
- 	dev->cqe_size = resp.cqe_size;
- 	dev->max_cq_depth = resp.max_cqd;
- 	pthread_spin_init(&cntx->fqlock, PTHREAD_PROCESS_PRIVATE);
-+	/* mmap shared page. */
-+	cntx->shpg = mmap(NULL, dev->pg_size, PROT_READ | PROT_WRITE,
-+			  MAP_SHARED, cmd_fd, 0);
-+	if (cntx->shpg == MAP_FAILED) {
-+		cntx->shpg = NULL;
-+		goto failed;
-+	}
-+	pthread_mutex_init(&cntx->shlock, NULL);
-+
- 	ibvctx->ops = bnxt_re_cntx_ops;
- 
- 	return 0;
-+failed:
-+	fprintf(stderr, DEV "Failed to allocate context for device\n");
-+	return errno;
- }
- 
- static void bnxt_re_uninit_context(struct verbs_device *vdev,
- 				   struct ibv_context *ibvctx)
- {
-+	struct bnxt_re_dev *dev;
- 	struct bnxt_re_context *cntx;
- 
-+	dev = to_bnxt_re_dev(&vdev->device);
- 	cntx = to_bnxt_re_context(ibvctx);
- 	/* Unmap if anything device specific was mapped in init_context. */
-+	pthread_mutex_destroy(&cntx->shlock);
-+	if (cntx->shpg)
-+		munmap(cntx->shpg, dev->pg_size);
- 	pthread_spin_destroy(&cntx->fqlock);
- }
- 
+ enum bnxt_re_wr_flags {
 diff --git a/providers/bnxt_re/main.h b/providers/bnxt_re/main.h
-index 7c05034..1a4dc06 100644
+index 1a4dc06..4cc8abd 100644
 --- a/providers/bnxt_re/main.h
 +++ b/providers/bnxt_re/main.h
-@@ -123,6 +123,11 @@ struct bnxt_re_mr {
- 	struct ibv_mr ibvmr;
- };
+@@ -236,9 +236,15 @@ static inline uint8_t bnxt_re_ibv_to_bnxt_wr_opcd(uint8_t ibv_opcd)
+ 	case IBV_WR_RDMA_READ:
+ 		bnxt_opcd = BNXT_RE_WR_OPCD_RDMA_READ;
+ 		break;
++	case IBV_WR_ATOMIC_CMP_AND_SWP:
++		bnxt_opcd = BNXT_RE_WR_OPCD_ATOMIC_CS;
++		break;
++	case IBV_WR_ATOMIC_FETCH_AND_ADD:
++		bnxt_opcd = BNXT_RE_WR_OPCD_ATOMIC_FA;
++		break;
+ 		/* TODO: Add other opcodes */
+ 	default:
+-		bnxt_opcd = 0xFF;
++		bnxt_opcd = BNXT_RE_WR_OPCD_INVAL;
+ 		break;
+ 	};
  
-+struct bnxt_re_ah {
-+	struct ibv_ah ibvah;
-+	uint32_t avid;
-+};
-+
- struct bnxt_re_dev {
- 	struct verbs_device vdev;
- 	uint8_t abi_version;
-@@ -138,6 +143,8 @@ struct bnxt_re_context {
- 	uint32_t max_qp;
- 	uint32_t max_srq;
- 	struct bnxt_re_dpi udpi;
-+	void *shpg;
-+	pthread_mutex_t shlock;
- 	pthread_spinlock_t fqlock;
- };
- 
-@@ -175,6 +182,11 @@ static inline struct bnxt_re_qp *to_bnxt_re_qp(struct ibv_qp *ibvqp)
- 	return container_of(ibvqp, struct bnxt_re_qp, ibvqp);
+diff --git a/providers/bnxt_re/memory.h b/providers/bnxt_re/memory.h
+index 0150d80..dc5b352 100644
+--- a/providers/bnxt_re/memory.h
++++ b/providers/bnxt_re/memory.h
+@@ -83,6 +83,16 @@ static inline void iowrite32(__u32 *dst, __le32 *src)
+ 	*(volatile __le32 *)dst = *src;
  }
  
-+static inline struct bnxt_re_ah *to_bnxt_re_ah(struct ibv_ah *ibvah)
++static inline __u32 upper_32_bits(uint64_t n)
 +{
-+        return container_of(ibvah, struct bnxt_re_ah, ibvah);
++	return (__u32)((n >> 16) >> 16);
 +}
 +
- static inline uint32_t bnxt_re_get_sqe_sz(void)
++static inline __u32 lower_32_bits(uint64_t n)
++{
++	return (__u32)(n & 0xFFFFFFFFUL);
++}
++
+ /* Basic queue operation */
+ static inline uint32_t bnxt_re_is_que_full(struct bnxt_re_queue *que)
  {
- 	return sizeof(struct bnxt_re_bsqe) +
 diff --git a/providers/bnxt_re/verbs.c b/providers/bnxt_re/verbs.c
-index 7241fd0..54c8906 100644
+index 1f8ff8e..2768a56 100644
 --- a/providers/bnxt_re/verbs.c
 +++ b/providers/bnxt_re/verbs.c
-@@ -711,9 +711,6 @@ static int bnxt_re_check_qp_limits(struct bnxt_re_context *cntx,
- 	struct ibv_device_attr devattr;
- 	int ret;
+@@ -1068,6 +1068,8 @@ static int bnxt_re_build_send_sqe(struct bnxt_re_qp *qp, void *wqe,
  
--	if (attr->qp_type == IBV_QPT_UD)
--		return -ENOSYS;
--
- 	ret = bnxt_re_query_device(&cntx->ibvctx, &devattr);
- 	if (ret)
- 		return ret;
-@@ -789,6 +786,11 @@ static int bnxt_re_alloc_queues(struct bnxt_re_qp *qp,
- 		psn_depth++;
+ 	/* Fill Header */
+ 	opcode = bnxt_re_ibv_to_bnxt_wr_opcd(wr->opcode);
++	if (opcode == BNXT_RE_WR_OPCD_INVAL)
++		return -EINVAL;
+ 	hdrval = (opcode & BNXT_RE_HDR_WT_MASK);
  
- 	que->depth += psn_depth;
-+	/* PSN-search memory is allocated without checking for
-+	 * QP-Type. Kenrel driver do not map this memory if it
-+	 * is UD-qp. UD-qp use this memory to maintain WC-opcode.
-+	 * See definition of bnxt_re_fill_psns() for the use case.
-+	 */
- 	ret = bnxt_re_alloc_aligned(qp->sqq, pg_size);
- 	if (ret)
- 		return ret;
-@@ -1010,17 +1012,18 @@ static void bnxt_re_fill_psns(struct bnxt_re_qp *qp, struct bnxt_re_psns *psns,
- 	uint32_t pkt_cnt = 0, nxt_psn;
- 
- 	memset(psns, 0, sizeof(*psns));
--	psns->opc_spsn = htole32(qp->sq_psn & BNXT_RE_PSNS_SPSN_MASK);
-+	if (qp->qptyp == IBV_QPT_RC) {
-+		psns->opc_spsn = htole32(qp->sq_psn & BNXT_RE_PSNS_SPSN_MASK);
-+		pkt_cnt = (len / qp->mtu);
-+		if (len % qp->mtu)
-+			pkt_cnt++;
-+		nxt_psn = ((qp->sq_psn + pkt_cnt) & BNXT_RE_PSNS_NPSN_MASK);
-+		psns->flg_npsn = htole32(nxt_psn);
-+		qp->sq_psn = nxt_psn;
-+	}
- 	opcode = bnxt_re_ibv_wr_to_wc_opcd(opcode);
- 	psns->opc_spsn |= htole32(((opcode & BNXT_RE_PSNS_OPCD_MASK) <<
- 				    BNXT_RE_PSNS_OPCD_SHIFT));
--
--	pkt_cnt = (len / qp->mtu);
--	if (len % qp->mtu)
--		pkt_cnt++;
--	nxt_psn = ((qp->sq_psn + pkt_cnt) & BNXT_RE_PSNS_NPSN_MASK);
--	psns->flg_npsn = htole32(nxt_psn);
--	qp->sq_psn = nxt_psn;
- }
- 
- static void bnxt_re_fill_wrid(struct bnxt_re_wrid *wrid, struct ibv_send_wr *wr,
-@@ -1064,6 +1067,26 @@ static int bnxt_re_build_send_sqe(struct bnxt_re_qp *qp, void *wqe,
+ 	if (is_inline) {
+@@ -1115,6 +1117,39 @@ static int bnxt_re_build_rdma_sqe(struct bnxt_re_qp *qp, void *wqe,
  	return len;
  }
  
-+static int bnxt_re_build_ud_sqe(struct bnxt_re_qp *qp, void *wqe,
-+				struct ibv_send_wr *wr, uint8_t is_inline)
++static int bnxt_re_build_cns_sqe(struct bnxt_re_qp *qp, void *wqe,
++				 struct ibv_send_wr *wr)
 +{
-+	struct bnxt_re_send *sqe = ((void *)wqe + sizeof(struct bnxt_re_bsqe));
-+	struct bnxt_re_ah *ah;
++	struct bnxt_re_bsqe *hdr = wqe;
++	struct bnxt_re_atomic *sqe = ((void *)wqe +
++				      sizeof(struct bnxt_re_bsqe));
 +	int len;
 +
-+	len = bnxt_re_build_send_sqe(qp, wqe, wr, is_inline);
-+	sqe->qkey = htole32(wr->wr.ud.remote_qkey);
-+	sqe->dst_qp = htole32(wr->wr.ud.remote_qpn);
-+	if (!wr->wr.ud.ah) {
-+		len = -EINVAL;
-+		goto bail;
-+	}
-+	ah = to_bnxt_re_ah(wr->wr.ud.ah);
-+	sqe->avid = htole32(ah->avid & 0xFFFFF);
-+bail:
++	len = bnxt_re_build_send_sqe(qp, wqe, wr, false);
++	hdr->key_immd = htole32(wr->wr.atomic.rkey);
++	sqe->rva = htole64(wr->wr.atomic.remote_addr);
++	sqe->cmp_dt = htole64(wr->wr.atomic.compare_add);
++	sqe->swp_dt = htole64(wr->wr.atomic.swap);
++
 +	return len;
 +}
 +
- static int bnxt_re_build_rdma_sqe(struct bnxt_re_qp *qp, void *wqe,
- 				  struct ibv_send_wr *wr, uint8_t is_inline)
++static int bnxt_re_build_fna_sqe(struct bnxt_re_qp *qp, void *wqe,
++				 struct ibv_send_wr *wr)
++{
++	struct bnxt_re_bsqe *hdr = wqe;
++	struct bnxt_re_atomic *sqe = ((void *)wqe +
++				      sizeof(struct bnxt_re_bsqe));
++	int len;
++
++	len = bnxt_re_build_send_sqe(qp, wqe, wr, false);
++	hdr->key_immd = htole32(wr->wr.atomic.rkey);
++	sqe->rva = htole64(wr->wr.atomic.remote_addr);
++	sqe->cmp_dt = htole64(wr->wr.atomic.compare_add);
++
++	return len;
++}
++
+ int bnxt_re_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 		      struct ibv_send_wr **bad)
  {
-@@ -1124,9 +1147,14 @@ int bnxt_re_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
- 		case IBV_WR_SEND_WITH_IMM:
- 			hdr->key_immd = htole32(be32toh(wr->imm_data));
- 		case IBV_WR_SEND:
--			bytes = bnxt_re_build_send_sqe(qp, sqe, wr, is_inline);
-+			if (qp->qptyp == IBV_QPT_UD)
-+				bytes = bnxt_re_build_ud_sqe(qp, sqe, wr,
-+							     is_inline);
-+			else
-+				bytes = bnxt_re_build_send_sqe(qp, sqe, wr,
-+							       is_inline);
- 			if (bytes < 0)
--				ret = ENOMEM;
-+				ret = (bytes == -EINVAL) ? EINVAL : ENOMEM;
+@@ -1168,27 +1203,28 @@ int bnxt_re_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 			else
+ 				bytes = bnxt_re_build_send_sqe(qp, sqe, wr,
+ 							       is_inline);
+-			if (bytes < 0)
+-				ret = (bytes == -EINVAL) ? EINVAL : ENOMEM;
  			break;
  		case IBV_WR_RDMA_WRITE_WITH_IMM:
  			hdr->key_immd = htole32(be32toh(wr->imm_data));
-@@ -1262,10 +1290,45 @@ int bnxt_re_post_srq_recv(struct ibv_srq *ibvsrq, struct ibv_recv_wr *wr,
+ 		case IBV_WR_RDMA_WRITE:
+ 			bytes = bnxt_re_build_rdma_sqe(qp, sqe, wr, is_inline);
+-			if (bytes < 0)
+-				ret = ENOMEM;
+ 			break;
+ 		case IBV_WR_RDMA_READ:
+ 			bytes = bnxt_re_build_rdma_sqe(qp, sqe, wr, false);
+-			if (bytes < 0)
+-				ret = ENOMEM;
++			break;
++		case IBV_WR_ATOMIC_CMP_AND_SWP:
++			bytes = bnxt_re_build_cns_sqe(qp, sqe, wr);
++			break;
++		case IBV_WR_ATOMIC_FETCH_AND_ADD:
++			bytes = bnxt_re_build_fna_sqe(qp, sqe, wr);
+ 			break;
+ 		default:
+-			ret = EINVAL;
++			bytes = -EINVAL;
+ 			break;
+ 		}
  
- struct ibv_ah *bnxt_re_create_ah(struct ibv_pd *ibvpd, struct ibv_ah_attr *attr)
- {
-+	struct bnxt_re_context *uctx;
-+	struct bnxt_re_ah *ah;
-+	struct ibv_create_ah_resp resp;
-+	int status;
-+
-+	uctx = to_bnxt_re_context(ibvpd->context);
-+
-+	ah = calloc(1, sizeof(*ah));
-+	if (!ah)
-+		goto failed;
-+
-+	pthread_mutex_lock(&uctx->shlock);
-+	memset(&resp, 0, sizeof(resp));
-+	status = ibv_cmd_create_ah(ibvpd, &ah->ibvah, attr,
-+				   &resp, sizeof(resp));
-+	if (status) {
-+		pthread_mutex_unlock(&uctx->shlock);
-+		free(ah);
-+		goto failed;
-+	}
-+	/* read AV ID now. */
-+	ah->avid = *(uint32_t *)(uctx->shpg + BNXT_RE_SHPG_AVID_OFFT);
-+	pthread_mutex_unlock(&uctx->shlock);
-+
-+	return &ah->ibvah;
-+failed:
- 	return NULL;
- }
- 
- int bnxt_re_destroy_ah(struct ibv_ah *ibvah)
- {
--	return -ENOSYS;
-+	struct bnxt_re_ah *ah;
-+	int status;
-+
-+	ah = to_bnxt_re_ah(ibvah);
-+	status = ibv_cmd_destroy_ah(ibvah);
-+	if (status)
-+		return status;
-+	free(ah);
-+
-+	return 0;
- }
+-		if (ret) {
++		if (bytes < 0) {
++			ret = (bytes == -EINVAL) ? EINVAL : ENOMEM;
+ 			*bad = wr;
+ 			break;
+ 		}
 -- 
 1.8.3.1
 
