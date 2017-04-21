@@ -1,8 +1,8 @@
 From: Dasaratharaman Chandramouli
         <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3 rdma-next 02/18] IB/IPoIB: Remove 'else' when the 'if' has a return.
-Date: Fri, 21 Apr 2017 01:44:47 -0400
-Message-ID: <1492753503-64790-3-git-send-email-dasaratharaman.chandramouli@intel.com>
+Subject: [PATCH v3 rdma-next 05/18] IB/rxe: Initialize ib_ah_attr during query_ah
+Date: Fri, 21 Apr 2017 01:44:50 -0400
+Message-ID: <1492753503-64790-6-git-send-email-dasaratharaman.chandramouli@intel.com>
 References: <1492753503-64790-1-git-send-email-dasaratharaman.chandramouli@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1492753503-64790-1-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,48 +10,42 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch fixes a checkpatch issue related to not having
-to use an 'else' if the 'if' path returns from the function.
+Zero out ib_ah_attr before calling query_ah. Set ah_flags
+appropriately.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_av.c    | 1 +
+ drivers/infiniband/sw/rxe/rxe_verbs.c | 1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index 3e3a84f..be2e84d4 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -293,17 +293,16 @@ static int ipoib_mcast_join_finish(struct ipoib_mcast *mcast,
- 				-PTR_ERR(ah));
- 			/* use original error */
- 			return PTR_ERR(ah);
--		} else {
--			spin_lock_irq(&priv->lock);
--			mcast->ah = ah;
--			spin_unlock_irq(&priv->lock);
--
--			ipoib_dbg_mcast(priv, "MGID %pI6 AV %p, LID 0x%04x, SL %d\n",
--					mcast->mcmember.mgid.raw,
--					mcast->ah->ah,
--					be16_to_cpu(mcast->mcmember.mlid),
--					mcast->mcmember.sl);
- 		}
-+		spin_lock_irq(&priv->lock);
-+		mcast->ah = ah;
-+		spin_unlock_irq(&priv->lock);
-+
-+		ipoib_dbg_mcast(priv, "MGID %pI6 AV %p, LID 0x%04x, SL %d\n",
-+				mcast->mcmember.mgid.raw,
-+				mcast->ah->ah,
-+				be16_to_cpu(mcast->mcmember.mlid),
-+				mcast->mcmember.sl);
- 	}
+diff --git a/drivers/infiniband/sw/rxe/rxe_av.c b/drivers/infiniband/sw/rxe/rxe_av.c
+index 604f6fe..88a4a7f 100644
+--- a/drivers/infiniband/sw/rxe/rxe_av.c
++++ b/drivers/infiniband/sw/rxe/rxe_av.c
+@@ -69,6 +69,7 @@ int rxe_av_to_attr(struct rxe_dev *rxe, struct rxe_av *av,
+ 		   struct ib_ah_attr *attr)
+ {
+ 	memcpy(&attr->grh, &av->grh, sizeof(av->grh));
++	attr->ah_flags = IB_AH_GRH;
+ 	attr->port_num = av->port_num;
+ 	return 0;
+ }
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index 5113e50..379899f 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -376,6 +376,7 @@ static int rxe_query_ah(struct ib_ah *ibah, struct ib_ah_attr *attr)
+ 	struct rxe_dev *rxe = to_rdev(ibah->device);
+ 	struct rxe_ah *ah = to_rah(ibah);
  
- 	/* actually send any queued packets */
++	memset(attr, 0, sizeof(*attr));
+ 	rxe_av_to_attr(rxe, &ah->av, attr);
+ 	return 0;
+ }
 -- 
 1.8.3.1
 
