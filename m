@@ -1,160 +1,38 @@
-From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [RESEND rdma-core v4 7/8] libbnxt_re: Enable polling for UD completions
-Date: Fri, 21 Apr 2017 14:57:11 -0400
-Message-ID: <1492801032-17587-8-git-send-email-devesh.sharma@broadcom.com>
-References: <1492801032-17587-1-git-send-email-devesh.sharma@broadcom.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1492801032-17587-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: Re: IB/mlx: Fine-tuning for several function implementations
+Date: Fri, 21 Apr 2017 21:21:28 +0200
+Message-ID: <6c7fd04f-5c46-a35e-822c-567dd7538521@users.sourceforge.net>
+References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>
+ <1492720654.3041.16.camel@redhat.com>
+ <a56f9301-e116-c59c-681a-9108519920e5@users.sourceforge.net>
+ <1492799374.2550.24.camel@sandisk.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1492799374.2550.24.camel@sandisk.com>
+Content-Language: en-GB
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bart Van Assche <Bart.VanAssche@sandisk.com>, linux-rdma@vger.kernel.org
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Leon Romanovsky <leonro@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Matan Barak <matanb@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Yishai Hadas <yishaih@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds support to allow polling of send
-and recv completions for a UD qp.
+> Patches should either be useful to users of the Linux kernel, e.g. by adding
+> new functionality or by fixing a bug, or to kernel developers, e.g. by making
+> their workflow easier.
 
-Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
----
- providers/bnxt_re/bnxt_re-abi.h |  6 ++++++
- providers/bnxt_re/verbs.c       | 43 +++++++++++++++++++++++++++--------------
- 2 files changed, 35 insertions(+), 14 deletions(-)
+Such an expectation is generally fine.
 
-diff --git a/providers/bnxt_re/bnxt_re-abi.h b/providers/bnxt_re/bnxt_re-abi.h
-index 36b74cd..db11322 100644
---- a/providers/bnxt_re/bnxt_re-abi.h
-+++ b/providers/bnxt_re/bnxt_re-abi.h
-@@ -174,6 +174,12 @@ enum bnxt_re_ud_flags_mask {
- 	BNXT_RE_UD_FLAGS_ROCE_IPV6	= 0x03
- };
- 
-+enum bnxt_re_ud_cqe_mask {
-+	BNXT_RE_UD_CQE_MAC_MASK		= 0xFFFFFFFFFFFFULL,
-+	BNXT_RE_UD_CQE_SRCQPLO_MASK	= 0xFFFF,
-+	BNXT_RE_UD_CQE_SRCQPLO_SHIFT	= 0x30
-+};
-+
- enum bnxt_re_shpg_offt {
- 	BNXT_RE_SHPG_BEG_RESV_OFFT	= 0x00,
- 	BNXT_RE_SHPG_AVID_OFFT		= 0x10,
-diff --git a/providers/bnxt_re/verbs.c b/providers/bnxt_re/verbs.c
-index 54c8906..1f8ff8e 100644
---- a/providers/bnxt_re/verbs.c
-+++ b/providers/bnxt_re/verbs.c
-@@ -338,10 +338,8 @@ static uint8_t bnxt_re_poll_scqe(struct bnxt_re_qp *qp, struct ibv_wc *ibvwc,
- 	return pcqe;
- }
- 
--static int bnxt_re_poll_err_rcqe(struct bnxt_re_qp *qp,
--				 struct ibv_wc *ibvwc,
--				 struct bnxt_re_bcqe *hdr,
--				 struct bnxt_re_rc_cqe *rcqe)
-+static int bnxt_re_poll_err_rcqe(struct bnxt_re_qp *qp, struct ibv_wc *ibvwc,
-+				 struct bnxt_re_bcqe *hdr, void *cqe)
- {
- 	struct bnxt_re_queue *rq = qp->rqq;
- 	struct bnxt_re_wrid *rwrid;
-@@ -366,6 +364,10 @@ static int bnxt_re_poll_err_rcqe(struct bnxt_re_qp *qp,
- 		ibvwc->qp_num = qp->qpid;
- 		ibvwc->opcode = IBV_WC_RECV;
- 		ibvwc->byte_len = 0;
-+		ibvwc->wc_flags = 0;
-+		if (qp->qptyp == IBV_QPT_UD)
-+			ibvwc->src_qp = 0;
-+
- 		bnxt_re_incr_head(qp->rqq);
- 		if (qp->qpst != IBV_QPS_ERR)
- 			qp->qpst = IBV_QPS_ERR;
-@@ -377,16 +379,32 @@ static int bnxt_re_poll_err_rcqe(struct bnxt_re_qp *qp,
- 	return 1;
- }
- 
-+static void bnxt_re_fill_ud_cqe(struct ibv_wc *ibvwc,
-+				struct bnxt_re_bcqe *hdr, void *cqe)
-+{
-+	struct bnxt_re_ud_cqe *ucqe = cqe;
-+	uint32_t qpid;
-+
-+	qpid = ((le32toh(hdr->qphi_rwrid) >> BNXT_RE_BCQE_SRCQP_SHIFT) &
-+		 BNXT_RE_BCQE_SRCQP_SHIFT) << 0x10; /* higher 8 bits of 24 */
-+	qpid |= (le64toh(ucqe->qplo_mac) >> BNXT_RE_UD_CQE_SRCQPLO_SHIFT) &
-+		 BNXT_RE_UD_CQE_SRCQPLO_MASK; /*lower 16 of 24 */
-+	ibvwc->src_qp = qpid;
-+	ibvwc->wc_flags |= IBV_WC_GRH;
-+	/*IB-stack ABI in user do not ask for MAC to be reported. */
-+}
-+
- static void bnxt_re_poll_success_rcqe(struct bnxt_re_qp *qp,
- 				      struct ibv_wc *ibvwc,
--				      struct bnxt_re_bcqe *hdr,
--				      struct bnxt_re_rc_cqe *rcqe)
-+				      struct bnxt_re_bcqe *hdr, void *cqe)
- {
- 	struct bnxt_re_queue *rq = qp->rqq;
- 	struct bnxt_re_wrid *rwrid;
-+	struct bnxt_re_rc_cqe *rcqe;
- 	uint32_t head = rq->head;
- 	uint8_t flags, is_imm, is_rdma;
- 
-+	rcqe = cqe;
- 	rwrid = &qp->rwrid[head];
- 
- 	ibvwc->status = IBV_WC_SUCCESS;
-@@ -409,6 +427,9 @@ static void bnxt_re_poll_success_rcqe(struct bnxt_re_qp *qp,
- 			ibvwc->opcode = IBV_WC_RECV_RDMA_WITH_IMM;
- 	}
- 
-+	if (qp->qptyp == IBV_QPT_UD)
-+		bnxt_re_fill_ud_cqe(ibvwc, hdr, cqe);
-+
- 	bnxt_re_incr_head(rq);
- }
- 
-@@ -416,19 +437,17 @@ static uint8_t bnxt_re_poll_rcqe(struct bnxt_re_qp *qp, struct ibv_wc *ibvwc,
- 				 void *cqe, int *cnt)
- {
- 	struct bnxt_re_bcqe *hdr;
--	struct bnxt_re_rc_cqe *rcqe;
- 	uint8_t status, pcqe = false;
- 
--	rcqe = cqe;
- 	hdr = cqe + sizeof(struct bnxt_re_rc_cqe);
- 
- 	status = (le32toh(hdr->flg_st_typ_ph) >> BNXT_RE_BCQE_STATUS_SHIFT) &
- 		  BNXT_RE_BCQE_STATUS_MASK;
- 	*cnt = 1;
- 	if (status == BNXT_RE_RSP_ST_OK)
--		bnxt_re_poll_success_rcqe(qp, ibvwc, hdr, rcqe);
-+		bnxt_re_poll_success_rcqe(qp, ibvwc, hdr, cqe);
- 	else
--		*cnt = bnxt_re_poll_err_rcqe(qp, ibvwc, hdr, rcqe);
-+		*cnt = bnxt_re_poll_err_rcqe(qp, ibvwc, hdr, cqe);
- 
- 	return pcqe;
- }
-@@ -486,9 +505,6 @@ static int bnxt_re_poll_one(struct bnxt_re_cq *cq, int nwc, struct ibv_wc *wc)
- 			     (uintptr_t)le64toh(scqe->qp_handle);
- 			if (!qp)
- 				break; /*stale cqe. should be rung.*/
--			if (qp->qptyp == IBV_QPT_UD)
--				goto bail; /* TODO: Add UD poll */
--
- 			pcqe = bnxt_re_poll_scqe(qp, wc, cqe, &cnt);
- 			break;
- 		case BNXT_RE_WC_TYPE_RECV_RC:
-@@ -503,7 +519,6 @@ static int bnxt_re_poll_one(struct bnxt_re_cq *cq, int nwc, struct ibv_wc *wc)
- 				goto bail; /*TODO: Add SRQ poll */
- 
- 			pcqe = bnxt_re_poll_rcqe(qp, wc, cqe, &cnt);
--			/* TODO: Process UD rcqe */
- 			break;
- 		case BNXT_RE_WC_TYPE_RECV_RAW:
- 			break;
--- 
-1.8.3.1
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I don't think this patch series falls in either category
+
+I find that my update suggestion touches some aspects for the desired
+source code quality, doesn't it?
+
+
+> so please drop these patches.
+
+I hope that corresponding software improvements will be clarified further.
+
+Regards,
+Markus
