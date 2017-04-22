@@ -1,57 +1,73 @@
-From: Geliang Tang <geliangtang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/3] IB/i40iw: use setup_timer
-Date: Sat, 22 Apr 2017 09:32:54 +0800
-Message-ID: <628d01a8e7c4f93acaa1a6e91f739131704c2ff4.1491892717.git.geliangtang@gmail.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Geliang Tang <geliangtang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Geliang Tang <geliangtang@gmail.com>
+Subject: [PATCH 2/3] IB/nes: use setup_timer
+Date: Sat, 22 Apr 2017 09:32:55 +0800
+Message-ID: <0423fafd41100d763a51d6b30bc10a135f245f76.1491892717.git.geliangtang@gmail.com>
+References: <628d01a8e7c4f93acaa1a6e91f739131704c2ff4.1491892717.git.geliangtang@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <628d01a8e7c4f93acaa1a6e91f739131704c2ff4.1491892717.git.geliangtang@gmail.com>
+In-Reply-To: <628d01a8e7c4f93acaa1a6e91f739131704c2ff4.1491892717.git.geliangtang@gmail.com>
+References: <628d01a8e7c4f93acaa1a6e91f739131704c2ff4.1491892717.git.geliangtang@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Faisal Latif <faisal.latif@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Geliang Tang <geliangtang@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 Use setup_timer() instead of init_timer() to simplify the code.
 
-Signed-off-by: Geliang Tang <geliangtang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Geliang Tang <geliangtang@gmail.com>
 ---
- drivers/infiniband/hw/i40iw/i40iw_cm.c    | 5 ++---
- drivers/infiniband/hw/i40iw/i40iw_utils.c | 5 ++---
- 2 files changed, 4 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/nes/nes_hw.c    | 5 ++---
+ drivers/infiniband/hw/nes/nes_mgt.c   | 5 ++---
+ drivers/infiniband/hw/nes/nes_verbs.c | 5 ++---
+ 3 files changed, 6 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-index 95a0586..f3bc01b 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
-@@ -3184,9 +3184,8 @@ void i40iw_setup_cm_core(struct i40iw_device *iwdev)
- 	INIT_LIST_HEAD(&cm_core->connected_nodes);
- 	INIT_LIST_HEAD(&cm_core->listen_nodes);
+diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw/nes/nes_hw.c
+index 19acd13..5f77f0b 100644
+--- a/drivers/infiniband/hw/nes/nes_hw.c
++++ b/drivers/infiniband/hw/nes/nes_hw.c
+@@ -1849,9 +1849,8 @@ int nes_init_nic_qp(struct nes_device *nesdev, struct net_device *netdev)
+ 		wqe_count -= counter;
+ 		nes_write32(nesdev->regs+NES_WQE_ALLOC, (counter << 24) | nesvnic->nic.qp_id);
+ 	} while (wqe_count);
+-	init_timer(&nesvnic->rq_wqes_timer);
+-	nesvnic->rq_wqes_timer.function = nes_rq_wqes_timeout;
+-	nesvnic->rq_wqes_timer.data = (unsigned long)nesvnic;
++	setup_timer(&nesvnic->rq_wqes_timer, nes_rq_wqes_timeout,
++		    (unsigned long)nesvnic);
+ 	nes_debug(NES_DBG_INIT, "NAPI support Enabled\n");
+ 	if (nesdev->nesadapter->et_use_adaptive_rx_coalesce)
+ 	{
+diff --git a/drivers/infiniband/hw/nes/nes_mgt.c b/drivers/infiniband/hw/nes/nes_mgt.c
+index 33624f1..77226cf 100644
+--- a/drivers/infiniband/hw/nes/nes_mgt.c
++++ b/drivers/infiniband/hw/nes/nes_mgt.c
+@@ -1040,9 +1040,8 @@ int nes_init_mgt_qp(struct nes_device *nesdev, struct net_device *netdev, struct
+ 			mgtvnic->mgt.rx_skb[counter] = skb;
+ 		}
  
--	init_timer(&cm_core->tcp_timer);
--	cm_core->tcp_timer.function = i40iw_cm_timer_tick;
--	cm_core->tcp_timer.data = (unsigned long)cm_core;
-+	setup_timer(&cm_core->tcp_timer, i40iw_cm_timer_tick,
-+		    (unsigned long)cm_core);
+-		init_timer(&mgtvnic->rq_wqes_timer);
+-		mgtvnic->rq_wqes_timer.function = nes_mgt_rq_wqes_timeout;
+-		mgtvnic->rq_wqes_timer.data = (unsigned long)mgtvnic;
++		setup_timer(&mgtvnic->rq_wqes_timer, nes_mgt_rq_wqes_timeout,
++			    (unsigned long)mgtvnic);
  
- 	spin_lock_init(&cm_core->ht_lock);
- 	spin_lock_init(&cm_core->listen_list_lock);
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-index 70c3e9e..f6967d0 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-@@ -1436,9 +1436,8 @@ void i40iw_hw_stats_start_timer(struct i40iw_sc_vsi *vsi)
- {
- 	struct i40iw_vsi_pestat *devstat = vsi->pestat;
+ 		wqe_count = NES_MGT_WQ_COUNT - 1;
+ 		mgtvnic->mgt.rq_head = wqe_count;
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index ccf0a4c..6913237 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -1308,9 +1308,8 @@ static struct ib_qp *nes_create_qp(struct ib_pd *ibpd,
+ 	init_completion(&nesqp->rq_drained);
  
--	init_timer(&devstat->stats_timer);
--	devstat->stats_timer.function = i40iw_hw_stats_timeout;
--	devstat->stats_timer.data = (unsigned long)vsi;
-+	setup_timer(&devstat->stats_timer, i40iw_hw_stats_timeout,
-+		    (unsigned long)vsi);
- 	mod_timer(&devstat->stats_timer,
- 		  jiffies + msecs_to_jiffies(STATS_TIMER_DELAY));
- }
+ 	nesqp->sig_all = (init_attr->sq_sig_type == IB_SIGNAL_ALL_WR);
+-	init_timer(&nesqp->terminate_timer);
+-	nesqp->terminate_timer.function = nes_terminate_timeout;
+-	nesqp->terminate_timer.data = (unsigned long)nesqp;
++	setup_timer(&nesqp->terminate_timer, nes_terminate_timeout,
++		    (unsigned long)nesqp);
+ 
+ 	/* update the QP table */
+ 	nesdev->nesadapter->qp_table[nesqp->hwqp.qp_id-NES_FIRST_QPN] = nesqp;
 -- 
 2.9.3
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
