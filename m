@@ -1,51 +1,48 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH v2 00/12] InfiniBand-OCRDMA: Fine-tuning for several function
- implementations
-Date: Sat, 22 Apr 2017 16:26:14 +0200
-Message-ID: <86425035-7da8-d2b1-8544-d4f7540d50c6@users.sourceforge.net>
-References: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net>
- <1492720999.3041.18.camel@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1492720999.3041.18.camel@redhat.com>
-Content-Language: en-GB
-Sender: linux-kernel-owner@vger.kernel.org
-To: Devesh Sharma <devesh.sharma@avagotech.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Selvin Xavier <selvin.xavier@avagotech.com>, Yuval Shaia <yuval.shaia@oracle.com>, linux-rdma@vger.kernel.org
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next 0/4] Sparse fixes for 4.12
+Date: Sat, 22 Apr 2017 17:28:48 +0300
+Message-ID: <20170422142852.18882-1-leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 22 Apr 2017 16:16:06 +0200
+Hi Doug,
 
-Several update suggestions were taken into account
-from static source code analysis.
+Please find below 4 patches, which fix 45 sparse warnings.
 
-Markus Elfring (12):
-  Use kcalloc() in ocrdma_mbx_alloc_pd_range()
-  Use kcalloc() in five functions
-  Improve size determinations in ten functions
-  Delete unnecessary variable initialisations in ocrdma_mbx_get_dcbx_config()
-  Delete unnecessary braces
-  Use kmalloc_array() in ocrdma_create_srq()
-  Adjust 21 checks for null pointers
-  Delete an error message for a failed memory allocation in ocrdma_add()
-  Delete an unnecessary variable assignment in ocrdma_alloc_mr()
-  Returning only value constants in ocrdma_resize_cq()
-  Delete an unnecessary variable in ocrdma_dealloc_pd()
-  One jump label less in ocrdma_alloc_ucontext_pd()
----
+Patches #1 and #2 are trivial changes. The first adds static keyword
+to the functions declarations and second adds includes of the relevant
+headers.
 
-v2:
-Changes were rebased on source files from Linux next-20170421.
-Some of them were recombined into bigger update steps
-as requested by Doug Ledford.
+Patch #3 refactors code to get rid of one temporal variable. That variable
+was needed to determine if QP is found. Once removed, it allowed to write
+the code with lock and unlock placed together.
 
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |  88 ++++++++++-----------
- drivers/infiniband/hw/ocrdma/ocrdma_main.c  |  19 +++--
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 118 ++++++++++++----------------
- 3 files changed, 100 insertions(+), 125 deletions(-)
+Patch #4 fixes wrong type casting. The opcode is in CPU format and wqe_word
+is in le32 format.
 
--- 
+This series is based on k.o/for-4.12-rdma-netdevice branch.
+
+Thanks
+
+Leon Romanovsky (4):
+  Ib/core: Mark local uverbs_std_types functions to be static
+  Ib/usnic: Explicitly include usnic headers
+  IB/usnic: Simplify the code to balance loc/unlock calls
+  IB/nes: Fix incorrect type in assignment
+
+ drivers/infiniband/core/uverbs_std_types.c   | 48 ++++++++++++++--------------
+ drivers/infiniband/hw/nes/nes_hw.c           |  2 +-
+ drivers/infiniband/hw/usnic/usnic_ib_sysfs.c |  1 +
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c | 46 +++++++++++++-------------
+ 4 files changed, 50 insertions(+), 47 deletions(-)
+
+--
 2.12.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
