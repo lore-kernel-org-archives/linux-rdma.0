@@ -1,107 +1,43 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 3/4] IB/usnic: Simplify the code to balance loc/unlock calls
-Date: Sat, 22 Apr 2017 17:28:51 +0300
-Message-ID: <20170422142852.18882-4-leon@kernel.org>
+Subject: [PATCH rdma-next 4/4] IB/nes: Fix incorrect type in assignment
+Date: Sat, 22 Apr 2017 17:28:52 +0300
+Message-ID: <20170422142852.18882-5-leon@kernel.org>
 References: <20170422142852.18882-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170422142852.18882-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Simplify code in find_free_vf_and_create_qp_grp() to avoid sparse error
-regarding call to unlock in the block other than lock was called.
+Fix mismatch between types, wqe_words are in le32 format, while opcode
+in CPU format.
 
-drivers/infiniband/hw/usnic/usnic_ib_verbs.c:206:9: warning: context imbalance
-			in 'find_free_vf_and_create_qp_grp' - different lock
-			contexts for basic block
+The following sparse warnings are helped to find it:
 
-CC: Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+drivers/infiniband/hw/nes/nes_hw.c:3058:24: warning: incorrect type in assignment (different base types)
+drivers/infiniband/hw/nes/nes_hw.c:3058:24:    expected unsigned int [unsigned] [assigned] [usertype] opcode
+drivers/infiniband/hw/nes/nes_hw.c:3058:24:    got restricted __le32 <noident>
+
+CC: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/usnic/usnic_ib_verbs.c | 45 ++++++++++++++--------------
- 1 file changed, 23 insertions(+), 22 deletions(-)
+ drivers/infiniband/hw/nes/nes_hw.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-index bcd6f7b1c634..44a93326f7b5 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-@@ -152,7 +152,7 @@ find_free_vf_and_create_qp_grp(struct usnic_ib_dev *us_ibdev,
- 	struct usnic_vnic *vnic;
- 	struct usnic_ib_qp_grp *qp_grp;
- 	struct device *dev, **dev_list;
--	int i, found = 0;
-+	int i;
+diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw/nes/nes_hw.c
+index 19acd13c6cb1..4bbff7a33d18 100644
+--- a/drivers/infiniband/hw/nes/nes_hw.c
++++ b/drivers/infiniband/hw/nes/nes_hw.c
+@@ -3055,7 +3055,7 @@ static void nes_cqp_ce_handler(struct nes_device *nesdev, struct nes_hw_cq *cq)
+ 		memcpy(cqp_wqe, &cqp_request->cqp_wqe, sizeof(*cqp_wqe));
+ 		barrier();
 
- 	BUG_ON(!mutex_is_locked(&us_ibdev->usdev_lock));
-
-@@ -174,8 +174,13 @@ find_free_vf_and_create_qp_grp(struct usnic_ib_dev *us_ibdev,
- 						us_ibdev->ib_dev.name,
- 						pci_name(usnic_vnic_get_pdev(
- 									vnic)));
--				found = 1;
--				break;
-+				qp_grp = usnic_ib_qp_grp_create(us_ibdev->ufdev,
-+								vf, pd,
-+								res_spec,
-+								trans_spec);
-+
-+				spin_unlock(&vf->lock);
-+				goto qp_grp_check;
- 			}
- 			spin_unlock(&vf->lock);
-
-@@ -183,34 +188,30 @@ find_free_vf_and_create_qp_grp(struct usnic_ib_dev *us_ibdev,
- 		usnic_uiom_free_dev_list(dev_list);
- 	}
-
--	if (!found) {
--		/* Try to find resources on an unused vf */
--		list_for_each_entry(vf, &us_ibdev->vf_dev_list, link) {
--			spin_lock(&vf->lock);
--			vnic = vf->vnic;
--			if (vf->qp_grp_ref_cnt == 0 &&
--				usnic_vnic_check_room(vnic, res_spec) == 0) {
--				found = 1;
--				break;
--			}
-+	/* Try to find resources on an unused vf */
-+	list_for_each_entry(vf, &us_ibdev->vf_dev_list, link) {
-+		spin_lock(&vf->lock);
-+		vnic = vf->vnic;
-+		if (vf->qp_grp_ref_cnt == 0 &&
-+		    usnic_vnic_check_room(vnic, res_spec) == 0) {
-+			qp_grp = usnic_ib_qp_grp_create(us_ibdev->ufdev, vf,
-+							pd, res_spec,
-+							trans_spec);
-+
- 			spin_unlock(&vf->lock);
-+			goto qp_grp_check;
- 		}
-+		spin_unlock(&vf->lock);
- 	}
-
--	if (!found) {
--		usnic_info("No free qp grp found on %s\n",
--				us_ibdev->ib_dev.name);
--		return ERR_PTR(-ENOMEM);
--	}
-+	usnic_info("No free qp grp found on %s\n", us_ibdev->ib_dev.name);
-+	return ERR_PTR(-ENOMEM);
-
--	qp_grp = usnic_ib_qp_grp_create(us_ibdev->ufdev, vf, pd, res_spec,
--						trans_spec);
--	spin_unlock(&vf->lock);
-+qp_grp_check:
- 	if (IS_ERR_OR_NULL(qp_grp)) {
- 		usnic_err("Failed to allocate qp_grp\n");
- 		return ERR_PTR(qp_grp ? PTR_ERR(qp_grp) : -ENOMEM);
- 	}
--
- 	return qp_grp;
- }
-
+-		opcode = cqp_wqe->wqe_words[NES_CQP_WQE_OPCODE_IDX];
++		opcode = le32_to_cpu(cqp_wqe->wqe_words[NES_CQP_WQE_OPCODE_IDX]);
+ 		if ((opcode & NES_CQP_OPCODE_MASK) == NES_CQP_DOWNLOAD_SEGMENT)
+ 			ctx_index = NES_CQP_WQE_DL_COMP_CTX_LOW_IDX;
+ 		else
 --
 2.12.2
 
