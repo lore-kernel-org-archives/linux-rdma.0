@@ -1,13 +1,14 @@
 From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: [PATCH v2 02/12] IB/ocrdma: Use kcalloc() in five functions
-Date: Sat, 22 Apr 2017 16:33:00 +0200
-Message-ID: <bc2e618f-9bfe-25bb-af16-e915605fc112@users.sourceforge.net>
+Subject: [PATCH v2 03/12] IB/ocrdma: Improve size determinations in ten
+ functions
+Date: Sat, 22 Apr 2017 16:36:19 +0200
+Message-ID: <755f6c2c-03a2-7248-a5e3-9190d119cdaf@users.sourceforge.net>
 References: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net>
  <1492720999.3041.18.camel@redhat.com>
  <86425035-7da8-d2b1-8544-d4f7540d50c6@users.sourceforge.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <86425035-7da8-d2b1-8544-d4f7540d50c6-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Content-Language: en-GB
@@ -17,17 +18,11 @@ Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors
 List-Id: linux-rdma@vger.kernel.org
 
 From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Date: Sat, 22 Apr 2017 11:41:55 +0200
+Date: Sat, 22 Apr 2017 13:26:49 +0200
 
-* Multiplications for the size determination of memory allocations
-  indicated that array data structures should be processed.
-  Thus use the corresponding function "kcalloc".
-
-  This issue was detected by using the Coccinelle software.
-
-* Replace the specification of data types by pointer dereferences
-  to make the corresponding size determinations a bit safer according to
-  the Linux coding style convention.
+Replace the specification of data types by pointer dereferences
+as the parameter for the operator "sizeof" to make the corresponding size
+determinations a bit safer according to the Linux coding style convention.
 
 Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 ---
@@ -36,99 +31,148 @@ v2:
 Changes were rebased on source files from Linux next-20170421.
 These were recombined as requested by Doug Ledford.
 
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |  2 +-
- drivers/infiniband/hw/ocrdma/ocrdma_main.c  | 10 +++++-----
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 19 +++++++++----------
- 3 files changed, 15 insertions(+), 16 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c    | 28 ++++++++++++----------------
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  |  2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c |  4 ++--
+ 3 files changed, 15 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index c868314222b9..d5a3127b6df8 100644
+index d5a3127b6df8..7e58a74102f6 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -3103,7 +3103,7 @@ static int ocrdma_create_eqs(struct ocrdma_dev *dev)
- 	if (!num_eq)
- 		return -EINVAL;
+@@ -352,7 +352,7 @@ static void *ocrdma_init_emb_mqe(u8 opcode, u32 cmd_len)
+ {
+ 	struct ocrdma_mqe *mqe;
  
--	dev->eq_tbl = kzalloc(sizeof(struct ocrdma_eq) * num_eq, GFP_KERNEL);
-+	dev->eq_tbl = kcalloc(num_eq, sizeof(*dev->eq_tbl), GFP_KERNEL);
- 	if (!dev->eq_tbl)
- 		return -ENOMEM;
+-	mqe = kzalloc(sizeof(struct ocrdma_mqe), GFP_KERNEL);
++	mqe = kzalloc(sizeof(*mqe), GFP_KERNEL);
+ 	if (!mqe)
+ 		return NULL;
+ 	mqe->hdr.spcl_sge_cnt_emb |=
+@@ -890,7 +890,7 @@ static int ocrdma_mq_cq_handler(struct ocrdma_dev *dev, u16 cq_id)
+ 			ocrdma_process_acqe(dev, cqe);
+ 		else if (cqe->valid_ae_cmpl_cons & OCRDMA_MCQE_CMPL_MASK)
+ 			ocrdma_process_mcqe(dev, cqe);
+-		memset(cqe, 0, sizeof(struct ocrdma_mcqe));
++		memset(cqe, 0, sizeof(*cqe));
+ 		ocrdma_mcq_inc_tail(dev);
+ 	}
+ 	ocrdma_ring_cq_db(dev, dev->mq.cq.id, true, false, cqe_popped);
+@@ -1302,7 +1302,7 @@ int ocrdma_mbx_rdma_stats(struct ocrdma_dev *dev, bool reset)
+ 	mqe->u.nonemb_req.sge[0].len = dev->stats_mem.size;
  
+ 	/* Cache the old stats */
+-	memcpy(old_stats, req, sizeof(struct ocrdma_rdma_stats_resp));
++	memcpy(old_stats, req, sizeof(*old_stats));
+ 	memset(req, 0, dev->stats_mem.size);
+ 
+ 	ocrdma_init_mch((struct ocrdma_mbx_hdr *)req,
+@@ -1315,7 +1315,7 @@ int ocrdma_mbx_rdma_stats(struct ocrdma_dev *dev, bool reset)
+ 	status = ocrdma_nonemb_mbx_cmd(dev, mqe, dev->stats_mem.va);
+ 	if (status)
+ 		/* Copy from cache, if mbox fails */
+-		memcpy(req, old_stats, sizeof(struct ocrdma_rdma_stats_resp));
++		memcpy(req, old_stats, sizeof(*old_stats));
+ 	else
+ 		ocrdma_le32_to_cpu(req, dev->stats_mem.size);
+ 
+@@ -1331,7 +1331,7 @@ static int ocrdma_mbx_get_ctrl_attribs(struct ocrdma_dev *dev)
+ 	struct ocrdma_get_ctrl_attribs_rsp *ctrl_attr_rsp;
+ 	struct mgmt_hba_attribs *hba_attribs;
+ 
+-	mqe = kzalloc(sizeof(struct ocrdma_mqe), GFP_KERNEL);
++	mqe = kzalloc(sizeof(*mqe), GFP_KERNEL);
+ 	if (!mqe)
+ 		return status;
+ 
+@@ -1595,8 +1595,7 @@ void ocrdma_alloc_pd_pool(struct ocrdma_dev *dev)
+ {
+ 	int status;
+ 
+-	dev->pd_mgr = kzalloc(sizeof(struct ocrdma_pd_resource_mgr),
+-			      GFP_KERNEL);
++	dev->pd_mgr = kzalloc(sizeof(*dev->pd_mgr), GFP_KERNEL);
+ 	if (!dev->pd_mgr)
+ 		return;
+ 
+@@ -2487,7 +2486,7 @@ int ocrdma_mbx_query_qp(struct ocrdma_dev *dev, struct ocrdma_qp *qp,
+ 	if (status)
+ 		goto mbx_err;
+ 	rsp = (struct ocrdma_query_qp_rsp *)cmd;
+-	memcpy(param, &rsp->params, sizeof(struct ocrdma_qp_params));
++	memcpy(param, &rsp->params, sizeof(*param));
+ mbx_err:
+ 	kfree(cmd);
+ 	return status;
+@@ -2901,9 +2900,8 @@ static int ocrdma_mbx_get_dcbx_config(struct ocrdma_dev *dev, u32 ptype,
+ 	struct pci_dev *pdev = dev->nic_info.pdev;
+ 	struct ocrdma_mqe_sge *mqe_sge = cmd.u.nonemb_req.sge;
+ 
+-	memset(&cmd, 0, sizeof(struct ocrdma_mqe));
+-	cmd.hdr.pyld_len = max_t (u32, sizeof(struct ocrdma_get_dcbx_cfg_rsp),
+-					sizeof(struct ocrdma_get_dcbx_cfg_req));
++	memset(&cmd, 0, sizeof(cmd));
++	cmd.hdr.pyld_len = max_t(u32, sizeof(*rsp), sizeof(*req));
+ 	req = dma_alloc_coherent(&pdev->dev, cmd.hdr.pyld_len, &pa, GFP_KERNEL);
+ 	if (!req) {
+ 		status = -ENOMEM;
+@@ -2915,8 +2913,7 @@ static int ocrdma_mbx_get_dcbx_config(struct ocrdma_dev *dev, u32 ptype,
+ 	mqe_sge->pa_lo = (u32) (pa & 0xFFFFFFFFUL);
+ 	mqe_sge->pa_hi = (u32) upper_32_bits(pa);
+ 	mqe_sge->len = cmd.hdr.pyld_len;
+-
+-	memset(req, 0, sizeof(struct ocrdma_get_dcbx_cfg_req));
++	memset(req, 0, sizeof(*req));
+ 	ocrdma_init_mch(&req->hdr, OCRDMA_CMD_GET_DCBX_CONFIG,
+ 			OCRDMA_SUBSYS_DCBX, cmd.hdr.pyld_len);
+ 	req->param_type = ptype;
+@@ -2926,9 +2923,8 @@ static int ocrdma_mbx_get_dcbx_config(struct ocrdma_dev *dev, u32 ptype,
+ 		goto mbx_err;
+ 
+ 	rsp = (struct ocrdma_get_dcbx_cfg_rsp *)req;
+-	ocrdma_le32_to_cpu(rsp, sizeof(struct ocrdma_get_dcbx_cfg_rsp));
+-	memcpy(dcbxcfg, &rsp->cfg, sizeof(struct ocrdma_dcbx_cfg));
+-
++	ocrdma_le32_to_cpu(rsp, sizeof(*rsp));
++	memcpy(dcbxcfg, &rsp->cfg, sizeof(*dcbxcfg));
+ mbx_err:
+ 	dma_free_coherent(&pdev->dev, cmd.hdr.pyld_len, req, pa);
+ mem_err:
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-index 57c9a2ad0260..91705b10f269 100644
+index 91705b10f269..e2aa67d6cbb8 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -225,19 +225,19 @@ static int ocrdma_register_device(struct ocrdma_dev *dev)
- static int ocrdma_alloc_resources(struct ocrdma_dev *dev)
- {
- 	mutex_init(&dev->dev_lock);
--	dev->cq_tbl = kzalloc(sizeof(struct ocrdma_cq *) *
--			      OCRDMA_MAX_CQ, GFP_KERNEL);
-+	dev->cq_tbl = kcalloc(OCRDMA_MAX_CQ, sizeof(*dev->cq_tbl), GFP_KERNEL);
- 	if (!dev->cq_tbl)
- 		goto alloc_err;
+@@ -303,7 +303,7 @@ static struct ocrdma_dev *ocrdma_add(struct be_dev_info *dev_info)
+ 	u8 lstate = 0;
+ 	struct ocrdma_dev *dev;
  
- 	if (dev->attr.max_qp) {
--		dev->qp_tbl = kzalloc(sizeof(struct ocrdma_qp *) *
--				      OCRDMA_MAX_QP, GFP_KERNEL);
-+		dev->qp_tbl = kcalloc(OCRDMA_MAX_QP, sizeof(*dev->qp_tbl),
-+				      GFP_KERNEL);
- 		if (!dev->qp_tbl)
- 			goto alloc_err;
- 	}
- 
--	dev->stag_arr = kzalloc(sizeof(u64) * OCRDMA_MAX_STAG, GFP_KERNEL);
-+	dev->stag_arr = kcalloc(OCRDMA_MAX_STAG, sizeof(*dev->stag_arr),
-+				GFP_KERNEL);
- 	if (dev->stag_arr == NULL)
- 		goto alloc_err;
- 
+-	dev = (struct ocrdma_dev *)ib_alloc_device(sizeof(struct ocrdma_dev));
++	dev = (struct ocrdma_dev *)ib_alloc_device(sizeof(*dev));
+ 	if (!dev) {
+ 		pr_err("Unable to allocate ib device\n");
+ 		return NULL;
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index c52edeafd616..146601c97158 100644
+index 146601c97158..f12d1d458f28 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -879,9 +879,8 @@ static int ocrdma_build_pbl_tbl(struct ocrdma_dev *dev, struct ocrdma_hw_mr *mr)
- 	void *va;
- 	dma_addr_t pa;
- 
--	mr->pbl_table = kzalloc(sizeof(struct ocrdma_pbl) *
--				mr->num_pbls, GFP_KERNEL);
--
-+	mr->pbl_table = kcalloc(mr->num_pbls, sizeof(*mr->pbl_table),
-+				GFP_KERNEL);
- 	if (!mr->pbl_table)
- 		return -ENOMEM;
- 
-@@ -1362,13 +1361,12 @@ static void ocrdma_set_qp_db(struct ocrdma_dev *dev, struct ocrdma_qp *qp,
- 
- static int ocrdma_alloc_wr_id_tbl(struct ocrdma_qp *qp)
- {
--	qp->wqe_wr_id_tbl =
--	    kzalloc(sizeof(*(qp->wqe_wr_id_tbl)) * qp->sq.max_cnt,
--		    GFP_KERNEL);
-+	qp->wqe_wr_id_tbl = kcalloc(qp->sq.max_cnt, sizeof(*qp->wqe_wr_id_tbl),
-+				    GFP_KERNEL);
- 	if (qp->wqe_wr_id_tbl == NULL)
- 		return -ENOMEM;
--	qp->rqe_wr_id_tbl =
--	    kzalloc(sizeof(u64) * qp->rq.max_cnt, GFP_KERNEL);
-+	qp->rqe_wr_id_tbl = kcalloc(qp->rq.max_cnt, sizeof(*qp->rqe_wr_id_tbl),
-+				    GFP_KERNEL);
- 	if (qp->rqe_wr_id_tbl == NULL)
- 		return -ENOMEM;
- 
-@@ -1903,8 +1901,9 @@ struct ib_srq *ocrdma_create_srq(struct ib_pd *ibpd,
- 		goto err;
- 
- 	if (udata == NULL) {
--		srq->rqe_wr_id_tbl = kzalloc(sizeof(u64) * srq->rq.max_cnt,
--			    GFP_KERNEL);
-+		srq->rqe_wr_id_tbl = kcalloc(srq->rq.max_cnt,
-+					     sizeof(*srq->rqe_wr_id_tbl),
-+					     GFP_KERNEL);
- 		if (srq->rqe_wr_id_tbl == NULL)
+@@ -1914,7 +1914,7 @@ struct ib_srq *ocrdma_create_srq(struct ib_pd *ibpd,
+ 		if (srq->idx_bit_fields == NULL)
  			goto arm_err;
+ 		memset(srq->idx_bit_fields, 0xff,
+-		       srq->bit_fields_len * sizeof(u32));
++		       srq->bit_fields_len * sizeof(*srq->idx_bit_fields));
+ 	}
  
+ 	if (init_attr->attr.srq_limit) {
+@@ -3029,7 +3029,7 @@ struct ib_mr *ocrdma_alloc_mr(struct ib_pd *ibpd,
+ 	if (!mr)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	mr->pages = kcalloc(max_num_sg, sizeof(u64), GFP_KERNEL);
++	mr->pages = kcalloc(max_num_sg, sizeof(*mr->pages), GFP_KERNEL);
+ 	if (!mr->pages) {
+ 		status = -ENOMEM;
+ 		goto pl_err;
 -- 
 2.12.2
 
