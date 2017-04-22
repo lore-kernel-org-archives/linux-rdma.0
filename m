@@ -1,8 +1,8 @@
 From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH v2 10/12] IB/ocrdma: Returning only value constants in
- ocrdma_resize_cq()
-Date: Sat, 22 Apr 2017 16:50:51 +0200
-Message-ID: <0ecccc12-7340-927b-3745-8b84a7e137f8@users.sourceforge.net>
+Subject: [PATCH v2 11/12] IB/ocrdma: Delete an unnecessary variable in
+ ocrdma_dealloc_pd()
+Date: Sat, 22 Apr 2017 16:51:50 +0200
+Message-ID: <723017f3-4a6e-5f4d-5431-4caf8af90c2d@users.sourceforge.net>
 References: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net>
  <1492720999.3041.18.camel@redhat.com>
  <86425035-7da8-d2b1-8544-d4f7540d50c6@users.sourceforge.net>
@@ -18,40 +18,47 @@ Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 22 Apr 2017 15:15:09 +0200
+Date: Sat, 22 Apr 2017 15:32:05 +0200
 
-Return constant integer values without storing them in the local
-variable "status".
+1. Return zero in one case directly.
+
+2. Return the value from a call of the function "_ocrdma_dealloc_pd"
+   without using an extra assignment for the local variable.
+
+3. Remove the variable "status" in this function then.
 
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 Acked-by: Devesh Sharma <devesh.sharma@broadcom.com>
 Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 2dc399eeeefd..60b8813aff42 100644
+index 60b8813aff42..712c0dc9c980 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -1122,15 +1122,12 @@ struct ib_cq *ocrdma_create_cq(struct ib_device *ibdev,
- int ocrdma_resize_cq(struct ib_cq *ibcq, int new_cnt,
- 		     struct ib_udata *udata)
- {
+@@ -754,7 +754,6 @@ int ocrdma_dealloc_pd(struct ib_pd *ibpd)
+ 	struct ocrdma_pd *pd = get_ocrdma_pd(ibpd);
+ 	struct ocrdma_dev *dev = get_ocrdma_dev(ibpd->device);
+ 	struct ocrdma_ucontext *uctx = NULL;
 -	int status = 0;
- 	struct ocrdma_cq *cq = get_ocrdma_cq(ibcq);
+ 	u64 usr_db;
  
--	if (new_cnt < 1 || new_cnt > cq->max_hw_cqe) {
--		status = -EINVAL;
--		return status;
--	}
-+	if (new_cnt < 1 || new_cnt > cq->max_hw_cqe)
-+		return -EINVAL;
- 	ibcq->cqe = new_cnt;
+ 	uctx = pd->uctx;
+@@ -768,11 +767,10 @@ int ocrdma_dealloc_pd(struct ib_pd *ibpd)
+ 
+ 		if (is_ucontext_pd(uctx, pd)) {
+ 			ocrdma_release_ucontext_pd(uctx);
+-			return status;
++			return 0;
+ 		}
+ 	}
+-	status = _ocrdma_dealloc_pd(dev, pd);
 -	return status;
-+	return 0;
++	return _ocrdma_dealloc_pd(dev, pd);
  }
  
- static void ocrdma_flush_cq(struct ocrdma_cq *cq)
+ static int ocrdma_alloc_lkey(struct ocrdma_dev *dev, struct ocrdma_mr *mr,
 -- 
 2.12.2
