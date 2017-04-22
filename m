@@ -1,226 +1,51 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RESEND rdma-core v4 8/8] libbnxt_re: Add support for atomic
- operations
-Date: Sat, 22 Apr 2017 13:33:09 +0300
-Message-ID: <20170422103309.GX14088@mtr-leonro.local>
-References: <1492801032-17587-1-git-send-email-devesh.sharma@broadcom.com>
- <1492801032-17587-9-git-send-email-devesh.sharma@broadcom.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH v2 00/12] InfiniBand-OCRDMA: Fine-tuning for several function
+ implementations
+Date: Sat, 22 Apr 2017 16:26:14 +0200
+Message-ID: <86425035-7da8-d2b1-8544-d4f7540d50c6@users.sourceforge.net>
+References: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net>
+ <1492720999.3041.18.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="LtN0I0gXzHUftVCi"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1492801032-17587-9-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1492720999.3041.18.camel@redhat.com>
+Content-Language: en-GB
+Sender: linux-kernel-owner@vger.kernel.org
+To: Devesh Sharma <devesh.sharma@avagotech.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Selvin Xavier <selvin.xavier@avagotech.com>, Yuval Shaia <yuval.shaia@oracle.com>, linux-rdma@vger.kernel.org
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 22 Apr 2017 16:16:06 +0200
 
---LtN0I0gXzHUftVCi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Several update suggestions were taken into account
+from static source code analysis.
 
-On Fri, Apr 21, 2017 at 02:57:12PM -0400, Devesh Sharma wrote:
-> This patch adds support for compare-and-swap and fetch-and-add
-> atomic operations in user library.
->
-> v3->v4
->  -- Changed weq init code to match the DMA ABI.
-> v1->v2
->  -- Fixed the missing "break"
->  -- Changed macros to inline function
->
-> Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> ---
->  providers/bnxt_re/bnxt_re-abi.h |  3 ++-
->  providers/bnxt_re/main.h        |  8 ++++++-
->  providers/bnxt_re/memory.h      | 10 ++++++++
->  providers/bnxt_re/verbs.c       | 52 ++++++++++++++++++++++++++++++++++-------
->  4 files changed, 63 insertions(+), 10 deletions(-)
->
-> diff --git a/providers/bnxt_re/bnxt_re-abi.h b/providers/bnxt_re/bnxt_re-abi.h
-> index db11322..205d8c4 100644
-> --- a/providers/bnxt_re/bnxt_re-abi.h
-> +++ b/providers/bnxt_re/bnxt_re-abi.h
-> @@ -54,7 +54,8 @@ enum bnxt_re_wr_opcode {
->  	BNXT_RE_WR_OPCD_ATOMIC_FA	= 0x0B,
->  	BNXT_RE_WR_OPCD_LOC_INVAL	= 0x0C,
->  	BNXT_RE_WR_OPCD_BIND		= 0x0E,
-> -	BNXT_RE_WR_OPCD_RECV		= 0x80
-> +	BNXT_RE_WR_OPCD_RECV		= 0x80,
-> +	BNXT_RE_WR_OPCD_INVAL		= 0xFF
->  };
->
->  enum bnxt_re_wr_flags {
-> diff --git a/providers/bnxt_re/main.h b/providers/bnxt_re/main.h
-> index 1a4dc06..4cc8abd 100644
-> --- a/providers/bnxt_re/main.h
-> +++ b/providers/bnxt_re/main.h
-> @@ -236,9 +236,15 @@ static inline uint8_t bnxt_re_ibv_to_bnxt_wr_opcd(uint8_t ibv_opcd)
->  	case IBV_WR_RDMA_READ:
->  		bnxt_opcd = BNXT_RE_WR_OPCD_RDMA_READ;
->  		break;
-> +	case IBV_WR_ATOMIC_CMP_AND_SWP:
-> +		bnxt_opcd = BNXT_RE_WR_OPCD_ATOMIC_CS;
-> +		break;
-> +	case IBV_WR_ATOMIC_FETCH_AND_ADD:
-> +		bnxt_opcd = BNXT_RE_WR_OPCD_ATOMIC_FA;
-> +		break;
->  		/* TODO: Add other opcodes */
->  	default:
-> -		bnxt_opcd = 0xFF;
-> +		bnxt_opcd = BNXT_RE_WR_OPCD_INVAL;
->  		break;
->  	};
->
-> diff --git a/providers/bnxt_re/memory.h b/providers/bnxt_re/memory.h
-> index 0150d80..dc5b352 100644
-> --- a/providers/bnxt_re/memory.h
-> +++ b/providers/bnxt_re/memory.h
-> @@ -83,6 +83,16 @@ static inline void iowrite32(__u32 *dst, __le32 *src)
->  	*(volatile __le32 *)dst = *src;
->  }
->
-> +static inline __u32 upper_32_bits(uint64_t n)
-> +{
-> +	return (__u32)((n >> 16) >> 16);
-> +}
-> +
-> +static inline __u32 lower_32_bits(uint64_t n)
-> +{
-> +	return (__u32)(n & 0xFFFFFFFFUL);
-> +}
-> +
+Markus Elfring (12):
+  Use kcalloc() in ocrdma_mbx_alloc_pd_range()
+  Use kcalloc() in five functions
+  Improve size determinations in ten functions
+  Delete unnecessary variable initialisations in ocrdma_mbx_get_dcbx_config()
+  Delete unnecessary braces
+  Use kmalloc_array() in ocrdma_create_srq()
+  Adjust 21 checks for null pointers
+  Delete an error message for a failed memory allocation in ocrdma_add()
+  Delete an unnecessary variable assignment in ocrdma_alloc_mr()
+  Returning only value constants in ocrdma_resize_cq()
+  Delete an unnecessary variable in ocrdma_dealloc_pd()
+  One jump label less in ocrdma_alloc_ucontext_pd()
+---
 
-It looks like leftovers, I don't see any usage of it.
+v2:
+Changes were rebased on source files from Linux next-20170421.
+Some of them were recombined into bigger update steps
+as requested by Doug Ledford.
 
->  /* Basic queue operation */
->  static inline uint32_t bnxt_re_is_que_full(struct bnxt_re_queue *que)
->  {
-> diff --git a/providers/bnxt_re/verbs.c b/providers/bnxt_re/verbs.c
-> index 1f8ff8e..2768a56 100644
-> --- a/providers/bnxt_re/verbs.c
-> +++ b/providers/bnxt_re/verbs.c
-> @@ -1068,6 +1068,8 @@ static int bnxt_re_build_send_sqe(struct bnxt_re_qp *qp, void *wqe,
->
->  	/* Fill Header */
->  	opcode = bnxt_re_ibv_to_bnxt_wr_opcd(wr->opcode);
-> +	if (opcode == BNXT_RE_WR_OPCD_INVAL)
-> +		return -EINVAL;
->  	hdrval = (opcode & BNXT_RE_HDR_WT_MASK);
->
->  	if (is_inline) {
-> @@ -1115,6 +1117,39 @@ static int bnxt_re_build_rdma_sqe(struct bnxt_re_qp *qp, void *wqe,
->  	return len;
->  }
->
-> +static int bnxt_re_build_cns_sqe(struct bnxt_re_qp *qp, void *wqe,
-> +				 struct ibv_send_wr *wr)
-> +{
-> +	struct bnxt_re_bsqe *hdr = wqe;
-> +	struct bnxt_re_atomic *sqe = ((void *)wqe +
-> +				      sizeof(struct bnxt_re_bsqe));
-> +	int len;
-> +
-> +	len = bnxt_re_build_send_sqe(qp, wqe, wr, false);
-> +	hdr->key_immd = htole32(wr->wr.atomic.rkey);
-> +	sqe->rva = htole64(wr->wr.atomic.remote_addr);
-> +	sqe->cmp_dt = htole64(wr->wr.atomic.compare_add);
-> +	sqe->swp_dt = htole64(wr->wr.atomic.swap);
-> +
-> +	return len;
-> +}
-> +
-> +static int bnxt_re_build_fna_sqe(struct bnxt_re_qp *qp, void *wqe,
-> +				 struct ibv_send_wr *wr)
-> +{
-> +	struct bnxt_re_bsqe *hdr = wqe;
-> +	struct bnxt_re_atomic *sqe = ((void *)wqe +
-> +				      sizeof(struct bnxt_re_bsqe));
-> +	int len;
-> +
-> +	len = bnxt_re_build_send_sqe(qp, wqe, wr, false);
-> +	hdr->key_immd = htole32(wr->wr.atomic.rkey);
-> +	sqe->rva = htole64(wr->wr.atomic.remote_addr);
-> +	sqe->cmp_dt = htole64(wr->wr.atomic.compare_add);
-> +
-> +	return len;
-> +}
-> +
->  int bnxt_re_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
->  		      struct ibv_send_wr **bad)
->  {
-> @@ -1168,27 +1203,28 @@ int bnxt_re_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
->  			else
->  				bytes = bnxt_re_build_send_sqe(qp, sqe, wr,
->  							       is_inline);
-> -			if (bytes < 0)
-> -				ret = (bytes == -EINVAL) ? EINVAL : ENOMEM;
->  			break;
->  		case IBV_WR_RDMA_WRITE_WITH_IMM:
->  			hdr->key_immd = htole32(be32toh(wr->imm_data));
->  		case IBV_WR_RDMA_WRITE:
->  			bytes = bnxt_re_build_rdma_sqe(qp, sqe, wr, is_inline);
-> -			if (bytes < 0)
-> -				ret = ENOMEM;
->  			break;
->  		case IBV_WR_RDMA_READ:
->  			bytes = bnxt_re_build_rdma_sqe(qp, sqe, wr, false);
-> -			if (bytes < 0)
-> -				ret = ENOMEM;
-> +			break;
-> +		case IBV_WR_ATOMIC_CMP_AND_SWP:
-> +			bytes = bnxt_re_build_cns_sqe(qp, sqe, wr);
-> +			break;
-> +		case IBV_WR_ATOMIC_FETCH_AND_ADD:
-> +			bytes = bnxt_re_build_fna_sqe(qp, sqe, wr);
->  			break;
->  		default:
-> -			ret = EINVAL;
-> +			bytes = -EINVAL;
->  			break;
->  		}
->
-> -		if (ret) {
-> +		if (bytes < 0) {
-> +			ret = (bytes == -EINVAL) ? EINVAL : ENOMEM;
->  			*bad = wr;
->  			break;
->  		}
-> --
-> 1.8.3.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c    |  88 ++++++++++-----------
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c  |  19 +++--
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c | 118 ++++++++++++----------------
+ 3 files changed, 100 insertions(+), 125 deletions(-)
 
---LtN0I0gXzHUftVCi
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj7MWUACgkQ5GN7iDZy
-WKd5/g/+L2kEyV6jbTgn5ZOx9CDBaIzar8smgCEnbn/brNx6na+bu6qI8gcf5mUG
-+bZOxfzOePjL/sEQlj71TJb0kaVsaylOj940SNpXaNC7+DFRxc0hHk31/zEo1cWg
-BbKeqnt+6Zf0/uh4tQH8HVIxDJbDC/eJz36BdYvtIw0Cq6SUhBZQzolfYAv54gmK
-ScRmR4vAHu8H01GKsSikF5d2o1g32BZt7IAp+kkKtC2sOi7HSBz88vGUIQ9T43FW
-jJFBW0Nx8lg4CEi7opVz02lAtfG/5qpIJJO2B78abIxnfR7UAu12k1MrmP1AD36s
-zqYTDEn9zgHIZ6W9ltXCElZQuJ11rBYRR0RTnssQEVFsoFvpp8tP0vGL1+Pa8xSW
-YrF/WYt4VjjmmDRpdzZOG1lqOzZgdukOvnxlbXXQO9qD/i47Hhwpcv44l338PbpP
-TxG8tS030X9zNAdxSzHDjQ3mp6TuDqQBaMwDoB2auhtS7/SF4Y/nZYbi+So42iE3
-5FRVmyS8iFwQZ9BV0bAQELKmzFItcw5XJfsuacfXkz8r1AQcdrO6cXFFuIeyHUgM
-sUNWM1LzOoEZvPEHNvLQfL6PqvnIGJJC3TEd+KFe3wYcz2oaYkSlfT9Xd3rFzwg6
-sqsvuxP7FeqUAM/Y5MWkN2jcCUG177BKdGULAZjtxhZL9Kt+FSs=
-=Qdeb
------END PGP SIGNATURE-----
-
---LtN0I0gXzHUftVCi--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+2.12.2
