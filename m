@@ -1,38 +1,36 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH rdma-next 2/2] IB/rxe: Cache dst in QP instead of getting
- it for each send
-Date: Sun, 23 Apr 2017 10:00:44 +0300
-Message-ID: <CAG9sBKNDLaFA7oFF+YjpWNFKrJi=-BFd2jJimjV00bQ4gOzXTw@mail.gmail.com>
-References: <20170420175556.8573-1-leon@kernel.org> <20170420175556.8573-2-leon@kernel.org>
- <20170420180114.GA6763@obsidianresearch.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH v2 3/4] nvme: enable SG gaps support
+Date: Sun, 23 Apr 2017 10:20:59 +0300
+Message-ID: <9ff1a2e8-f84f-c772-e294-2339eee8e37d@grimberg.me>
+References: <1492098977-5231-1-git-send-email-maxg@mellanox.com>
+ <1492098977-5231-4-git-send-email-maxg@mellanox.com>
+ <2bd673ee-8455-32b7-1bad-34fa9eebb076@grimberg.me>
+ <20170421064427.GB6095@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170420180114.GA6763-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20170421064427.GB6095-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, yonatanc <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 20, 2017 at 9:01 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Thu, Apr 20, 2017 at 08:55:56PM +0300, Leon Romanovsky wrote:
->> From: yonatanc <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>
->> In RC QP there is no need to resolve the outgoing interface
->> for each packet, as this does not change during QP life cycle.
->
-> At first blush that seems wonky, shouldn't a QP act like a TCP socket
-> and be able to migrate around when things are reconfigured?
+Christoph,
 
-The condition below, which is in the patch, answers this question, doesn't it?
+> All our block I/O must be cache line aligned, so dword aligned SGLs
+> should not be an issue.  And for PRPs or MRs we'll always use the
+> host page size.
 
-  if (!dst || !(dst->obsolete && dst->ops->check(dst, 0))) {
+Where is that constraint coming from? Is that new? Back when I wrote
+GAP support in rdma I tested a single byte alignment via vectored
+direct IO and it seemed to be going through...
 
->
-> IIRC there is some kind of dst cache scheme you should use instead?
->
-> Jason
+I also just tested Bart's unaligned test [1] on scsi_debug and it seems
+to go through as well (alignment and length are 4)...
+
+[1]:
+https://github.com/bvanassche/srp-test/blob/master/discontiguous-io/discontiguous-io.cpp
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
