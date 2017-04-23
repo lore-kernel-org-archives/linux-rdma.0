@@ -1,75 +1,79 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH v2 0/4] arbitrary sg lists support
-Date: Sun, 23 Apr 2017 17:35:56 +0300
-Message-ID: <8ed506ba-ae7b-af27-2d2a-9a434c22353c@grimberg.me>
-References: <1492098977-5231-1-git-send-email-maxg@mellanox.com>
- <1492101079.5176.9.camel@sandisk.com>
- <c52b5ce7-5346-419d-26f2-0d4d45d20471@grimberg.me>
- <20170423103439.GC14088@mtr-leonro.local>
- <d697d360-99ca-c3ed-08e2-b89cc50a15b0@grimberg.me>
- <20170423121254.GD14088@mtr-leonro.local>
- <a3264968-2d9e-bda5-1f23-74da248cf4d5@grimberg.me>
- <9a9668fa-87a7-e730-27e2-8a2b3e7fbc36@mellanox.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 1/1] iw_cxgb4: check return value of alloc_skb
+Date: Sun, 23 Apr 2017 19:51:41 +0300
+Message-ID: <20170423165141.GG14088@mtr-leonro.local>
+References: <1492938551-17824-1-git-send-email-bianpan2016@163.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="GD+uNaHYxbVPHaQt"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <9a9668fa-87a7-e730-27e2-8a2b3e7fbc36-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1492938551-17824-1-git-send-email-bianpan2016-9Onoh4P/yGk@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Pan Bian <bianpan2016-9Onoh4P/yGk@public.gmane.org>
+Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-> I actually answered here:
-> https://www.spinics.net/lists/linux-rdma/msg46412.html
+--GD+uNaHYxbVPHaQt
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Did anything progress with the debug?
+On Sun, Apr 23, 2017 at 05:09:11PM +0800, Pan Bian wrote:
+> Function alloc_skb() will return a NULL pointer when there is no enough
+> memory. However, the return value of alloc_skb() is directly used
+> without validation in function send_fw_pass_open_req(). This patches
+> checks the return value of alloc_skb() against NULL.
+>
+> Signed-off-by: Pan Bian <bianpan2016-9Onoh4P/yGk@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/cxgb4/cm.c | 2 ++
+>  1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+> index 03a1b0e..196969c 100644
+> --- a/drivers/infiniband/hw/cxgb4/cm.c
+> +++ b/drivers/infiniband/hw/cxgb4/cm.c
+> @@ -3800,6 +3800,8 @@ static void send_fw_pass_open_req(struct c4iw_dev *dev, struct sk_buff *skb,
+>  	int ret;
+>
+>  	req_skb = alloc_skb(sizeof(struct fw_ofld_connection_wr), GFP_KERNEL);
+> +	if (!req_skb)
+> +		return;
 
-> Sagi,
-> As you mentioned the IO path is different in SRP and iSER so IMO we
-> should start with SRP debugging. NVMf is similar to iSER (and not SRP)
-> and that's why I think we can apply this patchset.
+The check is right, but the outcome is unpredictable. The function
+send_fw_pass_open_req() doesn't return any error and caller doesn't check
+it.
 
-My concern is that this might be broken due to the fact that we don't
-know what triggers this.
+>  	req = (struct fw_ofld_connection_wr *)__skb_put(req_skb, sizeof(*req));
+>  	memset(req, 0, sizeof(*req));
+>  	req->op_compl = htonl(WR_OP_V(FW_OFLD_CONNECTION_WR) | FW_WR_COMPL_F);
+> --
+> 1.9.1
+>
+>
 
-> If you want to wait till we debug SRP issue it's fine, but I can't repro
-> it in my lab so it can take longer.
+--GD+uNaHYxbVPHaQt
+Content-Type: application/pgp-signature; name="signature.asc"
 
-I'd prefer not to take a non-mandatory feature that is not guaranteed
-to work.
+-----BEGIN PGP SIGNATURE-----
 
-> Lourance,
-> maybe you can update your FW to the latest CX4 from our site and try to
-> repro this issue ?
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj8250ACgkQ5GN7iDZy
+WKdXyBAAgKInHgfqJo9VgRpjqxnX7ETAVw1IsCCFDEkrZpR20xAAMdYC3Tm60T8H
+FL4Jemfgy3Z9r483Ugzhn9BJ4jdutuybHSHQSGNuyY4n4b5tyRa89dbBun13QWdL
+GYXu08X1c/9ayMvZ5pLCQRDE84G4f1Ga6CWEYmQ6uQf15xVRaJ9ihiKixLxtcOTS
+NTcC9jDzw68uQ92Py1pFTdptner7X8H29lo2hm+FiqsaGxIO5QQvQPHpFwqwrjX5
+zc3ezih/ntRlgoWGh8vB2OdYpazZf56fMoQ2WQqNKipr543d7VgWhgO1Aa+GdO7f
+VF8Y9q9NEEzU3Dg4qvFKrsElKL5HDCgT10OGmBzbj6gEG66vOnXbuRaNlnAzvNv2
+FkbtcjSbf7bM1GWGcO9p7ab7SuZpKvZfnp9cSFUMQTmEO7gPo1eJZzBjF3vyrKfg
+WRBlBi+YLDt4TdEIT6hUI5JIO7Mx/lMwU5H/oBVE0zYZ+UpS1o885MS5WX2BOAfM
+oXJ+XF3GYPSyu90KDx/piBAmKB9xmL0UF7tMeH5xWztcvG970HkmbxL2XdwTA5Uj
+RcmPW1hv8vaclgczzHnXaudEG484axXvG8eb91SZgCMNNnCeGv2rHv1ajkKZ3jO5
+0WALb5M7Es7b4AK12a9O/6Ut9bbgWED4ElyzTVrIK+GMKCL8XeA=
+=vWGU
+-----END PGP SIGNATURE-----
 
-Laurence,
-
-Can you please enable srp_add_one debug:
-
-echo "func srp_add_one +p" > /sys/kernel/debug/dynamic_debug/control
-
-In addition apply the following:
---
-diff --git a/drivers/infiniband/hw/mlx5/mr.c 
-b/drivers/infiniband/hw/mlx5/mr.c
-index d9c6c0ea750b..040fbc387e4f 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -1403,6 +1403,8 @@ mlx5_alloc_priv_descs(struct ib_device *device,
-         int add_size;
-         int ret;
-
-+       WARN_ON_ONCE(ndescs > device->attr.max_fast_reg_page_list_len);
-+
-         add_size = max_t(int, MLX5_UMR_ALIGN - ARCH_KMALLOC_MINALIGN, 0);
-
-         mr->descs_alloc = kzalloc(size + add_size, GFP_KERNEL);
---
-
-Cheers,
-Sagi.
+--GD+uNaHYxbVPHaQt--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
