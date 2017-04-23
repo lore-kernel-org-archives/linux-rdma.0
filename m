@@ -1,63 +1,57 @@
 From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v2 3/4] nvme: enable SG gaps support
-Date: Sun, 23 Apr 2017 16:23:32 +0300
-Message-ID: <1e1528f6-718b-2321-7d02-c19e5cffc2ef@mellanox.com>
+Subject: Re: [PATCH v2 0/4] arbitrary sg lists support
+Date: Sun, 23 Apr 2017 16:35:52 +0300
+Message-ID: <9a9668fa-87a7-e730-27e2-8a2b3e7fbc36@mellanox.com>
 References: <1492098977-5231-1-git-send-email-maxg@mellanox.com>
- <1492098977-5231-4-git-send-email-maxg@mellanox.com>
- <2bd673ee-8455-32b7-1bad-34fa9eebb076@grimberg.me>
- <20170421064427.GB6095@lst.de>
- <9ff1a2e8-f84f-c772-e294-2339eee8e37d@grimberg.me>
- <20170423084553.GA24434@lst.de>
- <9fe3f5fa-4496-3819-0288-08a073dd1a1a@grimberg.me>
+ <1492101079.5176.9.camel@sandisk.com>
+ <c52b5ce7-5346-419d-26f2-0d4d45d20471@grimberg.me>
+ <20170423103439.GC14088@mtr-leonro.local>
+ <d697d360-99ca-c3ed-08e2-b89cc50a15b0@grimberg.me>
+ <20170423121254.GD14088@mtr-leonro.local>
+ <a3264968-2d9e-bda5-1f23-74da248cf4d5@grimberg.me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <9fe3f5fa-4496-3819-0288-08a073dd1a1a-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <a3264968-2d9e-bda5-1f23-74da248cf4d5-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 4/23/2017 12:45 PM, Sagi Grimberg wrote:
+On 4/23/2017 3:28 PM, Sagi Grimberg wrote:
 >
->> Each block queue has a ->dma_alignment field, which is set to 511
->> by default unless changed.  Everything not aligned to that will be
->> bounced in __blk_rq_map_user_iov and friends before we send it to
->> the driver.
+>> i asked and didn't get answer too.
+>> https://www.spinics.net/lists/linux-rdma/msg46407.html
 >
-> Thanks, I missed the default setting...
+> OK, I suppose that the question was to Laurence, but I'll try
+> to answer.
 >
->>> I also just tested Bart's unaligned test [1] on scsi_debug and it seems
->>> to go through as well (alignment and length are 4)...
->>
->> SCSI reduces the alignment in __scsi_init_queue:
->>
->>     /*
->>          * set a reasonable default alignment on word boundaries: the
->>      * host and device may alter it using
->>      * blk_queue_update_dma_alignment() later.
->>      */
->>     blk_queue_dma_alignment(q, 0x03);
+> We can't really say, this reproduced for 4M transfers, which iSER
+> does not support without a applying higher max_sectors modparam.
+> But even with that, its a different code path as SRP unlike iSER
+> can use multiple MRs for a single transaction.
 >
-> That explains why I was able to test that with iSER :)
->
-> I guess I didn't test single byte alignment after all, but
-> I definitely remember using less than a sector...
->
->> still would fit NVMe dword-alignment SGLs, though :)
->
-> I would say its useful to have, but its only relevant to ioctls as
-> normal io we explicitly on sub logical block size alignment.
->
-> Anyways, I still think having ctrl->virt_boundary instead of
-> ctrl->sg_gap_support is cleaner...
+> So short answer, can't say...
 
-Sure, I tought about it and actually started my implementation like 
-that. It wasn't so clean, though.
+I actually answered here:
+https://www.spinics.net/lists/linux-rdma/msg46412.html
 
+Sagi,
+As you mentioned the IO path is different in SRP and iSER so IMO we 
+should start with SRP debugging. NVMf is similar to iSER (and not SRP) 
+and that's why I think we can apply this patchset.
+If you want to wait till we debug SRP issue it's fine, but I can't repro 
+it in my lab so it can take longer.
+
+Lourance,
+maybe you can update your FW to the latest CX4 from our site and try to 
+repro this issue ?
+
+thanks,
+Max.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
