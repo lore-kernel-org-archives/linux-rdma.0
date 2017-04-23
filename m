@@ -1,48 +1,35 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH v2 3/4] nvme: enable SG gaps support
-Date: Sun, 23 Apr 2017 10:45:53 +0200
-Message-ID: <20170423084553.GA24434@lst.de>
-References: <1492098977-5231-1-git-send-email-maxg@mellanox.com> <1492098977-5231-4-git-send-email-maxg@mellanox.com> <2bd673ee-8455-32b7-1bad-34fa9eebb076@grimberg.me> <20170421064427.GB6095@lst.de> <9ff1a2e8-f84f-c772-e294-2339eee8e37d@grimberg.me>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <9ff1a2e8-f84f-c772-e294-2339eee8e37d-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+From: Pan Bian <bianpan2016@163.com>
+Subject: [PATCH 1/1] iw_cxgb4: check return value of alloc_skb
+Date: Sun, 23 Apr 2017 17:09:11 +0800
+Message-ID: <1492938551-17824-1-git-send-email-bianpan2016@163.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Steve Wise <swise@chelsio.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Pan Bian <bianpan2016@163.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Apr 23, 2017 at 10:20:59AM +0300, Sagi Grimberg wrote:
-> Christoph,
->
->> All our block I/O must be cache line aligned, so dword aligned SGLs
->> should not be an issue.  And for PRPs or MRs we'll always use the
->> host page size.
->
-> Where is that constraint coming from? Is that new? Back when I wrote
-> GAP support in rdma I tested a single byte alignment via vectored
-> direct IO and it seemed to be going through...
+Function alloc_skb() will return a NULL pointer when there is no enough
+memory. However, the return value of alloc_skb() is directly used
+without validation in function send_fw_pass_open_req(). This patches
+checks the return value of alloc_skb() against NULL.
 
-Each block queue has a ->dma_alignment field, which is set to 511
-by default unless changed.  Everything not aligned to that will be
-bounced in __blk_rq_map_user_iov and friends before we send it to
-the driver.
+Signed-off-by: Pan Bian <bianpan2016@163.com>
+---
+ drivers/infiniband/hw/cxgb4/cm.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-> I also just tested Bart's unaligned test [1] on scsi_debug and it seems
-> to go through as well (alignment and length are 4)...
-
-SCSI reduces the alignment in __scsi_init_queue:
-
-	/*
-         * set a reasonable default alignment on word boundaries: the
-	 * host and device may alter it using
-	 * blk_queue_update_dma_alignment() later.
-	 */
-	blk_queue_dma_alignment(q, 0x03);
-
-still would fit NVMe dword-alignment SGLs, though :)
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index 03a1b0e..196969c 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -3800,6 +3800,8 @@ static void send_fw_pass_open_req(struct c4iw_dev *dev, struct sk_buff *skb,
+ 	int ret;
+ 
+ 	req_skb = alloc_skb(sizeof(struct fw_ofld_connection_wr), GFP_KERNEL);
++	if (!req_skb)
++		return;
+ 	req = (struct fw_ofld_connection_wr *)__skb_put(req_skb, sizeof(*req));
+ 	memset(req, 0, sizeof(*req));
+ 	req->op_compl = htonl(WR_OP_V(FW_OFLD_CONNECTION_WR) | FW_WR_COMPL_F);
+-- 
+1.9.1
