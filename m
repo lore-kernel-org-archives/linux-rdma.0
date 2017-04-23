@@ -1,170 +1,38 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-next 1/4] Ib/core: Mark local uverbs_std_types
- functions to be static
-Date: Sun, 23 Apr 2017 09:47:36 +0300
-Message-ID: <CAAKD3BBTVGAcybsK7g-K+AkaaaRiQCGvSy_HJ=dvNeMgZovGQQ@mail.gmail.com>
-References: <20170422142852.18882-1-leon@kernel.org> <20170422142852.18882-2-leon@kernel.org>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-next 2/2] IB/rxe: Cache dst in QP instead of getting
+ it for each send
+Date: Sun, 23 Apr 2017 10:00:44 +0300
+Message-ID: <CAG9sBKNDLaFA7oFF+YjpWNFKrJi=-BFd2jJimjV00bQ4gOzXTw@mail.gmail.com>
+References: <20170420175556.8573-1-leon@kernel.org> <20170420175556.8573-2-leon@kernel.org>
+ <20170420180114.GA6763@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170422142852.18882-2-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170420180114.GA6763-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, yonatanc <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Apr 22, 2017 at 5:28 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> Functions declared in uverbs_std_types.c are local to that file, but
-> they lack static declarations. This produces a lot of sparse warnings,
-> like the one below:
+On Thu, Apr 20, 2017 at 9:01 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Thu, Apr 20, 2017 at 08:55:56PM +0300, Leon Romanovsky wrote:
+>> From: yonatanc <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>
+>> In RC QP there is no need to resolve the outgoing interface
+>> for each packet, as this does not change during QP life cycle.
 >
-> drivers/infiniband/core/uverbs_std_types.c:41:5: warning: symbol
->                                 'uverbs_free_ah' was not declared.
->                                 Should it be static?
->
-> So mark them as static.
->
-> CC: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> ---
->  drivers/infiniband/core/uverbs_std_types.c | 48 +++++++++++++++---------------
->  1 file changed, 24 insertions(+), 24 deletions(-)
->
-> diff --git a/drivers/infiniband/core/uverbs_std_types.c b/drivers/infiniband/core/uverbs_std_types.c
-> index e3338b19d6a2..ad3caad40945 100644
-> --- a/drivers/infiniband/core/uverbs_std_types.c
-> +++ b/drivers/infiniband/core/uverbs_std_types.c
-> @@ -38,26 +38,26 @@
->  #include "rdma_core.h"
->  #include "uverbs.h"
->
-> -int uverbs_free_ah(struct ib_uobject *uobject,
-> -                  enum rdma_remove_reason why)
-> +static int uverbs_free_ah(struct ib_uobject *uobject,
-> +                         enum rdma_remove_reason why)
->  {
->         return ib_destroy_ah((struct ib_ah *)uobject->object);
->  }
->
-> -int uverbs_free_flow(struct ib_uobject *uobject,
-> -                    enum rdma_remove_reason why)
-> +static int uverbs_free_flow(struct ib_uobject *uobject,
-> +                           enum rdma_remove_reason why)
->  {
->         return ib_destroy_flow((struct ib_flow *)uobject->object);
->  }
->
-> -int uverbs_free_mw(struct ib_uobject *uobject,
-> -                  enum rdma_remove_reason why)
-> +static int uverbs_free_mw(struct ib_uobject *uobject,
-> +                         enum rdma_remove_reason why)
->  {
->         return uverbs_dealloc_mw((struct ib_mw *)uobject->object);
->  }
->
-> -int uverbs_free_qp(struct ib_uobject *uobject,
-> -                  enum rdma_remove_reason why)
-> +static int uverbs_free_qp(struct ib_uobject *uobject,
-> +                         enum rdma_remove_reason why)
->  {
->         struct ib_qp *qp = uobject->object;
->         struct ib_uqp_object *uqp =
-> @@ -82,8 +82,8 @@ int uverbs_free_qp(struct ib_uobject *uobject,
->         return ret;
->  }
->
-> -int uverbs_free_rwq_ind_tbl(struct ib_uobject *uobject,
-> -                           enum rdma_remove_reason why)
-> +static int uverbs_free_rwq_ind_tbl(struct ib_uobject *uobject,
-> +                                  enum rdma_remove_reason why)
->  {
->         struct ib_rwq_ind_table *rwq_ind_tbl = uobject->object;
->         struct ib_wq **ind_tbl = rwq_ind_tbl->ind_tbl;
-> @@ -95,8 +95,8 @@ int uverbs_free_rwq_ind_tbl(struct ib_uobject *uobject,
->         return ret;
->  }
->
-> -int uverbs_free_wq(struct ib_uobject *uobject,
-> -                  enum rdma_remove_reason why)
-> +static int uverbs_free_wq(struct ib_uobject *uobject,
-> +                         enum rdma_remove_reason why)
->  {
->         struct ib_wq *wq = uobject->object;
->         struct ib_uwq_object *uwq =
-> @@ -109,8 +109,8 @@ int uverbs_free_wq(struct ib_uobject *uobject,
->         return ret;
->  }
->
-> -int uverbs_free_srq(struct ib_uobject *uobject,
-> -                   enum rdma_remove_reason why)
-> +static int uverbs_free_srq(struct ib_uobject *uobject,
-> +                          enum rdma_remove_reason why)
->  {
->         struct ib_srq *srq = uobject->object;
->         struct ib_uevent_object *uevent =
-> @@ -134,8 +134,8 @@ int uverbs_free_srq(struct ib_uobject *uobject,
->         return ret;
->  }
->
-> -int uverbs_free_cq(struct ib_uobject *uobject,
-> -                  enum rdma_remove_reason why)
-> +static int uverbs_free_cq(struct ib_uobject *uobject,
-> +                         enum rdma_remove_reason why)
->  {
->         struct ib_cq *cq = uobject->object;
->         struct ib_uverbs_event_queue *ev_queue = cq->cq_context;
-> @@ -153,14 +153,14 @@ int uverbs_free_cq(struct ib_uobject *uobject,
->         return ret;
->  }
->
-> -int uverbs_free_mr(struct ib_uobject *uobject,
-> -                  enum rdma_remove_reason why)
-> +static int uverbs_free_mr(struct ib_uobject *uobject,
-> +                         enum rdma_remove_reason why)
->  {
->         return ib_dereg_mr((struct ib_mr *)uobject->object);
->  }
->
-> -int uverbs_free_xrcd(struct ib_uobject *uobject,
-> -                    enum rdma_remove_reason why)
-> +static int uverbs_free_xrcd(struct ib_uobject *uobject,
-> +                           enum rdma_remove_reason why)
->  {
->         struct ib_xrcd *xrcd = uobject->object;
->         struct ib_uxrcd_object *uxrcd =
-> @@ -178,8 +178,8 @@ int uverbs_free_xrcd(struct ib_uobject *uobject,
->         return ret;
->  }
->
-> -int uverbs_free_pd(struct ib_uobject *uobject,
-> -                  enum rdma_remove_reason why)
-> +static int uverbs_free_pd(struct ib_uobject *uobject,
-> +                         enum rdma_remove_reason why)
->  {
->         struct ib_pd *pd = uobject->object;
->
-> @@ -190,8 +190,8 @@ int uverbs_free_pd(struct ib_uobject *uobject,
->         return 0;
->  }
->
-> -int uverbs_hot_unplug_completion_event_file(struct ib_uobject_file *uobj_file,
-> -                                           enum rdma_remove_reason why)
-> +static int uverbs_hot_unplug_completion_event_file(struct ib_uobject_file *uobj_file,
-> +                                                  enum rdma_remove_reason why)
->  {
->         struct ib_uverbs_completion_event_file *comp_event_file =
->                 container_of(uobj_file, struct ib_uverbs_completion_event_file,
-> --
-> 2.12.2
+> At first blush that seems wonky, shouldn't a QP act like a TCP socket
+> and be able to migrate around when things are reconfigured?
 
-Yeah, you're right. Unless we use them in some custom driver's parse
-tree, they should be static.
+The condition below, which is in the patch, answers this question, doesn't it?
+
+  if (!dst || !(dst->obsolete && dst->ops->check(dst, 0))) {
 
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> IIRC there is some kind of dst cache scheme you should use instead?
+>
+> Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
