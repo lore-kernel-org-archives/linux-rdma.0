@@ -1,38 +1,28 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH v2 0/4] arbitrary sg lists support
-Date: Sun, 23 Apr 2017 14:49:43 +0300
-Message-ID: <d697d360-99ca-c3ed-08e2-b89cc50a15b0@grimberg.me>
-References: <1492098977-5231-1-git-send-email-maxg@mellanox.com>
- <1492101079.5176.9.camel@sandisk.com>
- <c52b5ce7-5346-419d-26f2-0d4d45d20471@grimberg.me>
- <20170423103439.GC14088@mtr-leonro.local>
+From: Sagi Grimberg <sagi@grimberg.me>
+Subject: Re: [PATCH v2 0/6] Automatic affinity settings for nvme over rdma
+Date: Sun, 23 Apr 2017 15:01:45 +0300
+Message-ID: <d0b188f2-9acd-5be8-8539-0428f67a5c57@grimberg.me>
+References: <1491474998-16423-1-git-send-email-sagi@grimberg.me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170423103439.GC14088-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <linux-block-owner@vger.kernel.org>
+In-Reply-To: <1491474998-16423-1-git-send-email-sagi@grimberg.me>
+Sender: linux-block-owner@vger.kernel.org
+To: Saeed Mahameed <saeedm@mellanox.com>
+Cc: Jens Axboe <axboe@kernel.dk>, linux-nvme@lists.infradead.org, linux-block@vger.kernel.org, linux-rdma@vger.kernel.org, Or Gerlitz <ogerlitz@mellanox.com>, Christoph Hellwig <hch@lst.de>, Leon Romanovsky <leonro@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-
->> I'm concerned about the fact that the SRP issue wasn't resolved. There
->> might be a bug hiding there.
->>
->> Max, Leon, my recollection was that the error syndrome you saw with SRP
->> described "too much sgls for a single mr". If this is true, then I still
->> think we need a different device capability for it.
+> This patch set is aiming to automatically find the optimal
+> queue <-> irq multi-queue assignments in storage ULPs (demonstrated
+> on nvme-rdma) based on the underlying rdma device irq affinity
+> settings.
 >
-> I don't remember that Max succeeded to reproduce it.
+> Changes from v1:
+> - Removed mlx5e_get_cpu as Christoph suggested
+> - Fixed up nvme-rdma queue comp_vector selection to get a better match
+> - Added a comment on why we limit on @dev->num_comp_vectors
+> - rebased to Jens's for-4.12/block
+> - Collected review tags
 
-You said Artemy was on this issue:
-https://www.spinics.net/lists/linux-rdma/msg46390.html
-
-and I asked you a question that will help clear things up but
-never received an answer:
-https://www.spinics.net/lists/linux-rdma/msg46394.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Saeed, any comments on this?
