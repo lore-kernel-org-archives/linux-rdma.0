@@ -1,7 +1,7 @@
 From: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Subject: [PATCH] IB/rxe: fix typo: "algorithmi" -> "algorithmi"
-Date: Mon, 24 Apr 2017 10:26:08 +0100
-Message-ID: <20170424092608.29810-1-colin.king@canonical.com>
+Subject: [PATCH][V2] IB/rxe: fix typo: "algorithmi" -> "algorithm"
+Date: Mon, 24 Apr 2017 10:26:42 +0100
+Message-ID: <20170424092642.29862-1-colin.king@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
