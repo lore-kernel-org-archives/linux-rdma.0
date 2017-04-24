@@ -1,56 +1,67 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/3] Add support for active width and speed
- for RoCE
-Date: Mon, 24 Apr 2017 12:30:19 -0400
-Message-ID: <1493051419.3041.49.camel@redhat.com>
-References: <20170420175333.7082-1-leon@kernel.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [RESEND rdma-core v4 4/8] libbnxt_re: Add support for posting
+ and polling
+Date: Mon, 24 Apr 2017 10:34:16 -0600
+Message-ID: <20170424163416.GA23048@obsidianresearch.com>
+References: <1492801032-17587-1-git-send-email-devesh.sharma@broadcom.com>
+ <1492801032-17587-5-git-send-email-devesh.sharma@broadcom.com>
+ <20170421192255.GA12079@obsidianresearch.com>
+ <CANjDDBiG_0C1DTYKgwCPuUzs34yb1b-iBpxRpU=XXZnm-JcOfw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170420175333.7082-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CANjDDBiG_0C1DTYKgwCPuUzs34yb1b-iBpxRpU=XXZnm-JcOfw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-04-20 at 20:53 +0300, Leon Romanovsky wrote:
-> Hi Doug,
+On Mon, Apr 24, 2017 at 09:29:11PM +0530, Devesh Sharma wrote:
+> On Sat, Apr 22, 2017 at 12:52 AM, Jason Gunthorpe
+> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> > On Fri, Apr 21, 2017 at 02:57:08PM -0400, Devesh Sharma wrote:
+> >
+> >> +static void bnxt_re_ring_db(struct bnxt_re_dpi *dpi,
+> >> +                         struct bnxt_re_db_hdr *hdr)
+> >> +{
+> >> +     __le64 *dbval;
+> >> +
+> >> +     pthread_spin_lock(&dpi->db_lock);
+> >> +     dbval = (__le64 *)&hdr->indx;
+> >> +     udma_to_device_barrier();
+> >> +     iowrite64(dpi->dbpage, dbval);
+> >> +     pthread_spin_unlock(&dpi->db_lock);
+> >> +}
+> >
+> > What are you expecting this db_lock to do?
+> >
+> > Is 'dbpage' UC or WC memory?
 > 
-> This series from Noa replaces the current hard-coded active speed
-> and width reported for RoCE in the mlx5 driver.
-> 
-> Two preliminary commits were needed for this change:
-> 1. As a part of proper translation of the ib_port_spped enum,
->    the IB_SPEED_HDR enum entry was added.
-> 2. Set mlx5_query_roce_port's return value to void, since in case of
->    an error, the properties reported back to the user are zeroed.
-> 
-> It is based on k.o/for-4.12 branch.
-> 
-> Thanks,
->   Noa and Leon.
-> 
-> Noa Osherovich (3):
->   IB/core: Add HDR speed enum
->   IB/mlx5: Set mlx5_query_roce_port's return value to void
->   IB/mlx5: Add support for active_width and active_speed in RoCE
-> 
->  drivers/infiniband/core/sysfs.c   |  4 ++
->  drivers/infiniband/hw/mlx5/main.c | 89
-> +++++++++++++++++++++++++++++++++------
->  include/rdma/ib_verbs.h           |  3 +-
->  3 files changed, 82 insertions(+), 14 deletions(-)
+> Driver re-maps it as "UC-" where strong ordering is guaranteed. How
+> system would handle 64-bit writes will it issue two 32-bit consecutive
+> writes on the bus?
 
-I fixed up the second patch so it wouldn't break things any more, then
-series applied.
+64 bit systems support 64 bit writes as a single TLP on the PCI-E, so
+the lock is not required.
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-   
-Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+If the write is broken up into two 32 bit transfers (eg as on a 32 bit
+processor) then the device usually requires them to be presented in
+address increasing order, however the compiler does not guarentee that
+with a simple 64 bit store as above.
 
+Going forward we will merge the new shared mmio accessors:
+
+https://github.com/jgunthorpe/rdma-plumbing/blob/mmio/util/mmio.h
+
+Which provides sane common implementations for these operations.
+
+For this reason I don't think there is much point in your spending
+time to open code a solution in your driver. Now that I know the lock
+is not doing anything it can just be dropped when the mmio accessors
+are merged.
+
+Jasn
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
