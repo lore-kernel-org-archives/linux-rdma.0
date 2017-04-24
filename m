@@ -1,53 +1,59 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] mlx5: Fix mlx5_ib_map_mr_sg mr length
-Date: Mon, 24 Apr 2017 15:20:35 +0000
-Message-ID: <1493047235.3394.1.camel@sandisk.com>
-References: <1492947102-3133-1-git-send-email-sagi@grimberg.me>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v4] {net,IB}/{rxe,usnic}: Utilize generic mac to eui32
+ function
+Date: Mon, 24 Apr 2017 18:46:12 +0300
+Message-ID: <20170424154612.GA2229@yuval-lap>
+References: <1489500117-7937-1-git-send-email-yuval.shaia@oracle.com>
+ <20170314175843.GY2079@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1492947102-3133-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Content-Language: en-US
-Content-ID: <5A17096C57F93842B61721A1B8C009AB-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170314175843.GY2079-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: "maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 2017-04-23 at 14:31 +0300, Sagi Grimberg wrote:
-> In case we got an initial sg_offset, we need to
-> account for it in the mr length.
->=20
-> Fixes: ff2ba9936591 ("IB/core: Add passing an offset into the SG to
-> ib_map_mr_sg")
-> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-> ---
->  drivers/infiniband/hw/mlx5/mr.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5=
-/mr.c
-> index b8f9382a8b7d..d9c6c0ea750b 100644
-> --- a/drivers/infiniband/hw/mlx5/mr.c
-> +++ b/drivers/infiniband/hw/mlx5/mr.c
-> @@ -1782,7 +1782,7 @@ mlx5_ib_sg_to_klms(struct mlx5_ib_mr *mr,
->  		klms[i].va =3D cpu_to_be64(sg_dma_address(sg) + sg_offset);
->  		klms[i].bcount =3D cpu_to_be32(sg_dma_len(sg) - sg_offset);
->  		klms[i].key =3D cpu_to_be32(lkey);
-> -		mr->ibmr.length +=3D sg_dma_len(sg);
-> +		mr->ibmr.length +=3D sg_dma_len(sg) - sg_offset;
-> =20
->  		sg_offset =3D 0;
->  	}
+On Tue, Mar 14, 2017 at 07:58:43PM +0200, Leon Romanovsky wrote:
+> On Tue, Mar 14, 2017 at 04:01:57PM +0200, Yuval Shaia wrote:
+> > This logic seems to be duplicated in (at least) three separate files.
+> > Move it to one place so code can be re-use.
+> >
+> > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > ---
+> > v0 -> v1:
+> > 	* Add missing #include
+> > 	* Rename to genaddrconf_ifid_eui48
+> > v1 -> v2:
+> > 	* Reset eui[0] to default if dev_id is used
+> > v2 -> v3:
+> > 	* Add helper function to avoid re-setting eui[0] to default if
+> > 	  dev_id is used
+> > v3 -> v4:
+> > 	* Remove RXE wrappers
+> > 	* Remove addrconf_addr_eui48_xor and do the eui[0] ^= 2 in the
+> > 	  basic implementation
+> > ---
+> >  drivers/infiniband/hw/usnic/usnic_common_util.h | 11 +++-------
+> >  drivers/infiniband/sw/rxe/rxe.c                 |  4 +++-
+> >  drivers/infiniband/sw/rxe/rxe_loc.h             |  2 --
+> >  drivers/infiniband/sw/rxe/rxe_net.c             | 28 -------------------------
+> >  drivers/infiniband/sw/rxe/rxe_verbs.c           |  4 +++-
+> >  include/net/addrconf.h                          | 22 +++++++++++++++----
+> >  6 files changed, 27 insertions(+), 44 deletions(-)
+> >
+> 
+> Thanks, Yuval.
+> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Hello Sagi,
-
-Please add "Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>" to this patch.
+Hi Doug,
+If no more comments on this one can you consider taking it?
 
 Thanks,
+Yuval
 
-Bart.=
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
