@@ -1,36 +1,28 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: dedicated list for rdma userspace programming
-Date: Mon, 24 Apr 2017 14:10:33 -0600
-Message-ID: <20170424201033.GA28656@obsidianresearch.com>
-References: <20170424104259.GH14088@mtr-leonro.local>
- <CACaajQu9y2HawOjeuwjYSHeFmYfhWreQORB5_61nPiEspoQ2JA@mail.gmail.com>
- <20170424114733.GI14088@mtr-leonro.local>
- <CACaajQs=04be-QDFgqjXj4u=qp4wC6KFU8y5g=kR7vkV0QkbdQ@mail.gmail.com>
- <20170424123413.GJ14088@mtr-leonro.local>
- <CACaajQueUDeiqb0jyPPT-OFL=sgEn=apffC2SpLFZR2pbi04fg@mail.gmail.com>
- <20170424181351.GM14088@mtr-leonro.local>
- <CACaajQvf4fioVGoYqJexhOAbNFJPK0aYGbFW+52z3NFU9RKQcA@mail.gmail.com>
- <20170424183137.GA27506@obsidianresearch.com>
- <CACaajQt8WZrCWXN5-JGovCcknwV9TKiy5gntzNmTjpmdxf6PJg@mail.gmail.com>
+From: "Saleem, Shiraz" <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 1/3] IB/i40iw: use setup_timer
+Date: Mon, 24 Apr 2017 20:26:19 +0000
+Message-ID: <9DD61F30A802C4429A01CA4200E302A730314A7F@fmsmsx116.amr.corp.intel.com>
+References: <628d01a8e7c4f93acaa1a6e91f739131704c2ff4.1491892717.git.geliangtang@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CACaajQt8WZrCWXN5-JGovCcknwV9TKiy5gntzNmTjpmdxf6PJg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <628d01a8e7c4f93acaa1a6e91f739131704c2ff4.1491892717.git.geliangtang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Geliang Tang <geliangtang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 24, 2017 at 10:49:00PM +0300, Vasiliy Tolstov wrote:
-> Hm. For example some times ago i'm use srp/scst that utilize only
-> kernel space code.
-> I don't know any performance issues with it (but may be it presented..).
+> Subject: [PATCH 1/3] IB/i40iw: use setup_timer
+> 
+> Use setup_timer() instead of init_timer() to simplify the code.
+> 
+> Signed-off-by: Geliang Tang <geliangtang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Sorry, I ment the kernel API to userspace. The internal kernal API is
-internally complete of course.
+Thank you Geliang. Can you also change the setup of the terminate
+timer in i40iw_terminate_start_timer? To keep things consistent. 
 
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
