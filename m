@@ -1,70 +1,33 @@
-From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RESEND rdma-core v4 4/8] libbnxt_re: Add support for posting and polling
-Date: Mon, 24 Apr 2017 23:53:37 +0530
-Message-ID: <CANjDDBi6tE6k4iKjF608XLtYBk1mAdAR=x1XiF=Tr6o_59yn4Q@mail.gmail.com>
-References: <1492801032-17587-1-git-send-email-devesh.sharma@broadcom.com>
- <1492801032-17587-5-git-send-email-devesh.sharma@broadcom.com>
- <20170421192255.GA12079@obsidianresearch.com> <CANjDDBiG_0C1DTYKgwCPuUzs34yb1b-iBpxRpU=XXZnm-JcOfw@mail.gmail.com>
- <20170424163416.GA23048@obsidianresearch.com>
+From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Subject: Re: dedicated list for rdma userspace programming
+Date: Mon, 24 Apr 2017 21:26:17 +0300
+Message-ID: <CACaajQvf4fioVGoYqJexhOAbNFJPK0aYGbFW+52z3NFU9RKQcA@mail.gmail.com>
+References: <CACaajQu1jvvCYJk82_oGOGH7jbjXzbkw_YoggqvW7TZhXj4VBw@mail.gmail.com>
+ <20170424104259.GH14088@mtr-leonro.local> <CACaajQu9y2HawOjeuwjYSHeFmYfhWreQORB5_61nPiEspoQ2JA@mail.gmail.com>
+ <20170424114733.GI14088@mtr-leonro.local> <CACaajQs=04be-QDFgqjXj4u=qp4wC6KFU8y5g=kR7vkV0QkbdQ@mail.gmail.com>
+ <20170424123413.GJ14088@mtr-leonro.local> <CACaajQueUDeiqb0jyPPT-OFL=sgEn=apffC2SpLFZR2pbi04fg@mail.gmail.com>
+ <20170424181351.GM14088@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170424163416.GA23048-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20170424181351.GM14088-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 24, 2017 at 10:04 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Mon, Apr 24, 2017 at 09:29:11PM +0530, Devesh Sharma wrote:
->> On Sat, Apr 22, 2017 at 12:52 AM, Jason Gunthorpe
->> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
->> > On Fri, Apr 21, 2017 at 02:57:08PM -0400, Devesh Sharma wrote:
->> >
->> >> +static void bnxt_re_ring_db(struct bnxt_re_dpi *dpi,
->> >> +                         struct bnxt_re_db_hdr *hdr)
->> >> +{
->> >> +     __le64 *dbval;
->> >> +
->> >> +     pthread_spin_lock(&dpi->db_lock);
->> >> +     dbval = (__le64 *)&hdr->indx;
->> >> +     udma_to_device_barrier();
->> >> +     iowrite64(dpi->dbpage, dbval);
->> >> +     pthread_spin_unlock(&dpi->db_lock);
->> >> +}
->> >
->> > What are you expecting this db_lock to do?
->> >
->> > Is 'dbpage' UC or WC memory?
->>
->> Driver re-maps it as "UC-" where strong ordering is guaranteed. How
->> system would handle 64-bit writes will it issue two 32-bit consecutive
->> writes on the bus?
->
-> 64 bit systems support 64 bit writes as a single TLP on the PCI-E, so
-> the lock is not required.
->
-> If the write is broken up into two 32 bit transfers (eg as on a 32 bit
-> processor) then the device usually requires them to be presented in
-> address increasing order, however the compiler does not guarentee that
-> with a simple 64 bit store as above.
->
-> Going forward we will merge the new shared mmio accessors:
->
-> https://github.com/jgunthorpe/rdma-plumbing/blob/mmio/util/mmio.h
->
-> Which provides sane common implementations for these operations.
->
-> For this reason I don't think there is much point in your spending
-> time to open code a solution in your driver. Now that I know the lock
-> is not doing anything it can just be dropped when the mmio accessors
-> are merged.
+2017-04-24 21:13 GMT+03:00 Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>:
+> Yes, if performance is not critical to you.
+> Otherwise, the best solution will be to take a look on implementation
+> of data transfer (various post_send functions) in rdma-core library.
 
-Okay, Thanks for the explanation, I will take care of Leon's comments
-and send out a v5, leaving the lock as it is for now.
->
-> Jasn
+
+Hm.. performance is critical for me... How can i create binding for it
+without C deps.
+
+-- 
+Vasiliy Tolstov,
+e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
