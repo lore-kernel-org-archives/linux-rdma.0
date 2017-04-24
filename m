@@ -1,44 +1,37 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: iwpm_register_pid: Unable to send a nlmsg (client = 2) observed on 4.11.0-rc7 during configure NVMe over iWARP RDMA
-Date: Mon, 24 Apr 2017 10:58:48 -0500
-Message-ID: <09c501d2bd13$a8d58700$fa809500$@opengridcomputing.com>
-References: <1613368219.36836.1492847910707.JavaMail.zimbra@redhat.com> <770183667.36997.1492848597368.JavaMail.zimbra@redhat.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: ibacm: Required-Start on openibd
+Date: Mon, 24 Apr 2017 09:59:07 -0600
+Message-ID: <20170424155907.GB7927@obsidianresearch.com>
+References: <1493046558.17795.8.camel@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <770183667.36997.1492848597368.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <1493046558.17795.8.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Yi Zhang' <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Subject: iwpm_register_pid: Unable to send a nlmsg (client = 2) observed on 4.11.0-
-> rc7 during configure NVMe over iWARP RDMA
+On Mon, Apr 24, 2017 at 05:09:18PM +0200, Benjamin Drung wrote:
+> Hi,
 > 
-> Hello experts
+> The init script for ibacm adds a Required-Start on openibd, but rdma-
+> core does not ship an openibd service. redhat/rdma.service and
+> redhat/rdma.kernel-init seem to do the same job as openibd, but they
+> are only used in rpm packages.
 > 
-> I found below pid_query_error, could anyone help check it? I have attached all the
-> dmesg log. Thanks
-> 
-> [  152.372481] nvmet: adding nsid 1 to subsystem testnqn
-> [  152.398705] iwpm_register_pid: Unable to send a nlmsg (client = 2)
-> [  152.430011] nvmet_rdma: enabling port 2 (172.31.52.12:4420)
-> 
-> 
-> Best Regards,
->   Yi Zhang
->
+> Can rdma-core ship a service that loads all the relevant kernel
+> modules? Then ibacm can depend on that service. I am not sure if
+> rdma.service is the best name for such an service.
 
-Hey Yi, 
+Debian should use the RH for this scripts, I think.. Is there a
+problem with them?
 
-This is the iWARP port mapping kernel service logging that no iwarp port mapper daemon is running on the system.  This is benign in the context of nvme/fabrics.  Are you having other problems with using iw_cxgb4?
+Why does ibacm need to depend on rdma.service anyhow? Ideally we'd fix
+that..
 
-Steve.
- 
-
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
