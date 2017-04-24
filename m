@@ -1,67 +1,38 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RESEND rdma-core v4 4/8] libbnxt_re: Add support for posting
- and polling
-Date: Mon, 24 Apr 2017 10:34:16 -0600
-Message-ID: <20170424163416.GA23048@obsidianresearch.com>
-References: <1492801032-17587-1-git-send-email-devesh.sharma@broadcom.com>
- <1492801032-17587-5-git-send-email-devesh.sharma@broadcom.com>
- <20170421192255.GA12079@obsidianresearch.com>
- <CANjDDBiG_0C1DTYKgwCPuUzs34yb1b-iBpxRpU=XXZnm-JcOfw@mail.gmail.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: iwpm_register_pid: Unable to send a nlmsg (client = 2) observed on 4.11.0-rc7 during configure NVMe over iWARP RDMA
+Date: Mon, 24 Apr 2017 11:37:10 -0500
+Message-ID: <0a6801d2bd19$04eae260$0ec0a720$@opengridcomputing.com>
+References: <1613368219.36836.1492847910707.JavaMail.zimbra@redhat.com> <770183667.36997.1492848597368.JavaMail.zimbra@redhat.com> <09c501d2bd13$a8d58700$fa809500$@opengridcomputing.com> <1387499651.389985.1493050039361.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+        charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CANjDDBiG_0C1DTYKgwCPuUzs34yb1b-iBpxRpU=XXZnm-JcOfw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1387499651.389985.1493050039361.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Yi Zhang' <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 24, 2017 at 09:29:11PM +0530, Devesh Sharma wrote:
-> On Sat, Apr 22, 2017 at 12:52 AM, Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> > On Fri, Apr 21, 2017 at 02:57:08PM -0400, Devesh Sharma wrote:
-> >
-> >> +static void bnxt_re_ring_db(struct bnxt_re_dpi *dpi,
-> >> +                         struct bnxt_re_db_hdr *hdr)
-> >> +{
-> >> +     __le64 *dbval;
-> >> +
-> >> +     pthread_spin_lock(&dpi->db_lock);
-> >> +     dbval = (__le64 *)&hdr->indx;
-> >> +     udma_to_device_barrier();
-> >> +     iowrite64(dpi->dbpage, dbval);
-> >> +     pthread_spin_unlock(&dpi->db_lock);
-> >> +}
-> >
-> > What are you expecting this db_lock to do?
-> >
-> > Is 'dbpage' UC or WC memory?
+
 > 
-> Driver re-maps it as "UC-" where strong ordering is guaranteed. How
-> system would handle 64-bit writes will it issue two 32-bit consecutive
-> writes on the bus?
+> Hi Steve
+> 
+> Here is another issue I filed that using iw_cxgb4.
+> http://lists.infradead.org/pipermail/linux-nvme/2017-April/009458.html
+> 
+> Best Regards,
+>   Yi Zhang
 
-64 bit systems support 64 bit writes as a single TLP on the PCI-E, so
-the lock is not required.
+Oh ok.
 
-If the write is broken up into two 32 bit transfers (eg as on a 32 bit
-processor) then the device usually requires them to be presented in
-address increasing order, however the compiler does not guarentee that
-with a simple 64 bit store as above.
+Chelsio will have a look at this asap.  
 
-Going forward we will merge the new shared mmio accessors:
+Thanks,
 
-https://github.com/jgunthorpe/rdma-plumbing/blob/mmio/util/mmio.h
+Steve.
 
-Which provides sane common implementations for these operations.
-
-For this reason I don't think there is much point in your spending
-time to open code a solution in your driver. Now that I know the lock
-is not doing anything it can just be dropped when the mmio accessors
-are merged.
-
-Jasn
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
