@@ -1,32 +1,36 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 5/7] IB/hfi1: use pcie_flr instead of duplicating it
-Date: Mon, 24 Apr 2017 16:00:50 -0400
-Message-ID: <cc79455c-5d22-5d78-9ea5-46a17961213b@intel.com>
-References: <20170414191131.14286-1-hch@lst.de>
- <20170414191131.14286-6-hch@lst.de>
- <A33E225544E47D4DB5713032774B132783960382@irsmsx105.ger.corp.intel.com>
- <20170424143507.GA28812@lst.de>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: dedicated list for rdma userspace programming
+Date: Mon, 24 Apr 2017 14:10:33 -0600
+Message-ID: <20170424201033.GA28656@obsidianresearch.com>
+References: <20170424104259.GH14088@mtr-leonro.local>
+ <CACaajQu9y2HawOjeuwjYSHeFmYfhWreQORB5_61nPiEspoQ2JA@mail.gmail.com>
+ <20170424114733.GI14088@mtr-leonro.local>
+ <CACaajQs=04be-QDFgqjXj4u=qp4wC6KFU8y5g=kR7vkV0QkbdQ@mail.gmail.com>
+ <20170424123413.GJ14088@mtr-leonro.local>
+ <CACaajQueUDeiqb0jyPPT-OFL=sgEn=apffC2SpLFZR2pbi04fg@mail.gmail.com>
+ <20170424181351.GM14088@mtr-leonro.local>
+ <CACaajQvf4fioVGoYqJexhOAbNFJPK0aYGbFW+52z3NFU9RKQcA@mail.gmail.com>
+ <20170424183137.GA27506@obsidianresearch.com>
+ <CACaajQt8WZrCWXN5-JGovCcknwV9TKiy5gntzNmTjpmdxf6PJg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170424143507.GA28812-jcswGhMUV9g@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CACaajQt8WZrCWXN5-JGovCcknwV9TKiy5gntzNmTjpmdxf6PJg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "Byczkowski, Jakub" <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "Cabiddu, Giovanni" <giovanni.cabiddu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Benedetto, Salvatore" <salvatore.benedetto-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Derek Chickles <derek.chickles-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, Satanand Burla <satananda.burla-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, Felix Manlunas <felix.manlunas-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, Raghu Vatsavayi <raghu.vatsavayi-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, "Kirsher, Jeffrey T" <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, qat-linux <qat-linux-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 04/24/2017 10:35 AM, Christoph Hellwig wrote:
-> On Mon, Apr 24, 2017 at 02:16:31PM +0000, Byczkowski, Jakub wrote:
->> Tested-by: Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->
-> Are you (and Doug) ok with queueing this up in the PCI tree?
+On Mon, Apr 24, 2017 at 10:49:00PM +0300, Vasiliy Tolstov wrote:
+> Hm. For example some times ago i'm use srp/scst that utilize only
+> kernel space code.
+> I don't know any performance issues with it (but may be it presented..).
 
-We are fine however Doug wants to handle it.
+Sorry, I ment the kernel API to userspace. The internal kernal API is
+internally complete of course.
 
--Denny
-
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
