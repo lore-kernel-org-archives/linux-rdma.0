@@ -1,42 +1,49 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next] IB/mlx5: Set correct SL in completion for RoCE
-Date: Mon, 24 Apr 2017 12:29:29 -0400
-Message-ID: <1493051369.3041.48.camel@redhat.com>
-References: <20170420102654.765-1-leon@kernel.org>
+Subject: Re: [PATCH rdma-next 0/3] Add support for active width and speed
+ for RoCE
+Date: Mon, 24 Apr 2017 12:30:19 -0400
+Message-ID: <1493051419.3041.49.camel@redhat.com>
+References: <20170420175333.7082-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170420102654.765-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170420175333.7082-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-04-20 at 13:26 +0300, Leon Romanovsky wrote:
-> From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Thu, 2017-04-20 at 20:53 +0300, Leon Romanovsky wrote:
+> Hi Doug,
 > 
-> There is a difference when parsing a completion entry between
-> Ethernet
-> and IB ports. When link layer is Ethernet the bits describe the type
-> of
-> L3 header in the packet. In the case when link layer is Ethernet and
-> VLAN
-> header is present the value of SL is equal to the 3 UP bits in the
-> VLAN
-> header. If VLAN header is not present then the SL is undefined and
-> consumer
-> of the completion should check if IB_WC_WITH_VLAN is set.
+> This series from Noa replaces the current hard-coded active speed
+> and width reported for RoCE in the mlx5 driver.
 > 
-> While that, this patch also fills the vlan_id field in the completion
-> if
-> present.
+> Two preliminary commits were needed for this change:
+> 1. As a part of proper translation of the ib_port_spped enum,
+>    the IB_SPEED_HDR enum entry was added.
+> 2. Set mlx5_query_roce_port's return value to void, since in case of
+>    an error, the properties reported back to the user are zeroed.
 > 
-> Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> It is based on k.o/for-4.12 branch.
+> 
+> Thanks,
+>   Noa and Leon.
+> 
+> Noa Osherovich (3):
+>   IB/core: Add HDR speed enum
+>   IB/mlx5: Set mlx5_query_roce_port's return value to void
+>   IB/mlx5: Add support for active_width and active_speed in RoCE
+> 
+>  drivers/infiniband/core/sysfs.c   |  4 ++
+>  drivers/infiniband/hw/mlx5/main.c | 89
+> +++++++++++++++++++++++++++++++++------
+>  include/rdma/ib_verbs.h           |  3 +-
+>  3 files changed, 82 insertions(+), 14 deletions(-)
 
-Thanks, applied.
+I fixed up the second patch so it wouldn't break things any more, then
+series applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
