@@ -1,209 +1,109 @@
-From: Parav Pandit <parav@mellanox.com>
-Subject: RE: [PATCH rdma-next 1/3] IB/core: Fix kernel crash during fail to
- initialize device
-Date: Mon, 24 Apr 2017 18:04:57 +0000
-Message-ID: <VI1PR0502MB30082E60B3D3BCAD1725D10BD11F0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <20170319085557.6023-1-leon@kernel.org>
- <20170319085557.6023-2-leon@kernel.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: dedicated list for rdma userspace programming
+Date: Mon, 24 Apr 2017 21:13:51 +0300
+Message-ID: <20170424181351.GM14088@mtr-leonro.local>
+References: <CACaajQu1jvvCYJk82_oGOGH7jbjXzbkw_YoggqvW7TZhXj4VBw@mail.gmail.com>
+ <20170424104259.GH14088@mtr-leonro.local>
+ <CACaajQu9y2HawOjeuwjYSHeFmYfhWreQORB5_61nPiEspoQ2JA@mail.gmail.com>
+ <20170424114733.GI14088@mtr-leonro.local>
+ <CACaajQs=04be-QDFgqjXj4u=qp4wC6KFU8y5g=kR7vkV0QkbdQ@mail.gmail.com>
+ <20170424123413.GJ14088@mtr-leonro.local>
+ <CACaajQueUDeiqb0jyPPT-OFL=sgEn=apffC2SpLFZR2pbi04fg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <stable-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "# v4 . 2+" <stable@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="SqJDPA0lBYgnDFWV"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CACaajQueUDeiqb0jyPPT-OFL=sgEn=apffC2SpLFZR2pbi04fg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I lately saw the ack from you that its merged.
 
-Thanks,
-Parav
+--SqJDPA0lBYgnDFWV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> -----Original Message-----
-> From: Parav Pandit
-> Sent: Monday, April 24, 2017 1:04 PM
-> To: 'Leon Romanovsky' <leon@kernel.org>; Doug Ledford
-> <dledford@redhat.com>
-> Cc: linux-rdma@vger.kernel.org; # v4 . 2+ <stable@vger.kernel.org>
-> Subject: RE: [PATCH rdma-next 1/3] IB/core: Fix kernel crash during fail =
-to
-> initialize device
->=20
-> Hi Doug,
->=20
-> Did you get a chance to merge this fix that avoids kernel crash in error =
-scenario?
->=20
-> Parav
->=20
-> > -----Original Message-----
-> > From: Leon Romanovsky [mailto:leon@kernel.org]
-> > Sent: Sunday, March 19, 2017 3:56 AM
-> > To: Doug Ledford <dledford@redhat.com>
-> > Cc: linux-rdma@vger.kernel.org; Parav Pandit <parav@mellanox.com>; #
-> > v4 . 2+ <stable@vger.kernel.org>
-> > Subject: [PATCH rdma-next 1/3] IB/core: Fix kernel crash during fail
-> > to initialize device
+On Mon, Apr 24, 2017 at 03:45:26PM +0300, Vasiliy Tolstov wrote:
+> 2017-04-24 15:34 GMT+03:00 Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>:
+> >> >> And how much work needs to be done to get this work upstream? (1
+> >> >> month, 6 months, years...) ?
+> >> >
+> >> > At least one kernel cycle, and after transition read/write will be
+> >> > obsolete and will be dropped.
+> >> >
+> >>
+> >> So 4.12-4.13 ?
 > >
-> > From: Parav Pandit <parav@mellanox.com>
+> > 4.12 is almost closed. We are in rc8 now and merge window will be next
+> > week, so it will be 4.13-4.14 (optimistic).
 > >
-> > This patch fixes the kernel crash that occurs during
-> > ib_dealloc_device() called due to provider driver fails with an error
-> > after
-> > ib_alloc_device() and before it can register using ib_register_device()=
-.
+>
+> Fine. So older interfaces will be deprecated and removed in next few
+> cycles. I think i can now create something that used old api and do
+> transition later (i'm use fedora)
+
+Yes, conversion should be possible, Matan and Jason invest a lot of time
+and effort to be sure that conversion will be as minimal as possible.
+
+>
+> >>
+> >> >> If i want to try working with uverbs without C librarary, where i can
+> >> >> find some info about format of messages reader and writed to uverbs
+> >> >> device?
+> >> >
+> >> > Did you see Documentation/infiniband/user_verbs.txt?
+> >>
+> >>
+> >> https://www.kernel.org/doc/Documentation/infiniband/user_verbs.txt as
+> >> i see this nothing says about format of data writed/readed...
+> >>
 > >
-> > This crashed seen in tha lab as below which can occur with any IB
-> > device which fails to perform its device initialization before invoking
-> ib_register_device().
-> >
-> > This patch avoids touching cache and port immutable structures if
-> > device is not yet initialized.
-> > It also releases related memory when cache and port immutable data
-> > structure initialization fails during register_device() state.
-> >
-> > [81416.561946] BUG: unable to handle kernel NULL pointer dereference
-> > at (null) [81416.570340] IP: ib_cache_release_one+0x29/0x80 [ib_core]
-> > [81416.576222] PGD 78da66067 [81416.576223] PUD 7f2d7c067
-> > [81416.579484] PMD 0 [81416.582720] [81416.587242] Oops: 0000 [#1] SMP
-> [81416.722395] task:
-> > ffff8807887515c0 task.stack: ffffc900062c0000 [81416.729148] RIP:
-> > 0010:ib_cache_release_one+0x29/0x80 [ib_core] [81416.735793] RSP:
-> > 0018:ffffc900062c3a90 EFLAGS: 00010202 [81416.741823] RAX:
-> > 0000000000000000 RBX: 0000000000000001 RCX: 0000000000000000
-> > [81416.749785] RDX: 0000000000000000 RSI: 0000000000000282 RDI:
-> > ffff880859fec000 [81416.757757] RBP: ffffc900062c3aa0 R08:
-> > ffff8808536e5ac0 R09: ffff880859fec5b0 [81416.765708] R10:
-> > 00000000536e5c01 R11: ffff8808536e5ac0 R12: ffff880859fec000
-> > [81416.773672] R13: 0000000000000000 R14: ffff8808536e5ac0 R15:
-> > ffff88084ebc0060 [81416.781621] FS:  00007fd879fab740(0000)
-> > GS:ffff88085fac0000(0000) knlGS:0000000000000000 [81416.790522] CS:
-> > 0010
-> > DS: 0000 ES: 0000 CR0: 0000000080050033 [81416.797094] CR2:
-> > 0000000000000000 CR3: 00000007eb215000 CR4: 00000000003406e0
-> > [81416.805051] DR0: 0000000000000000 DR1: 0000000000000000 DR2:
-> > 0000000000000000 [81416.812997] DR3: 0000000000000000 DR6:
-> > 00000000fffe0ff0 DR7: 0000000000000400 [81416.820950] Call Trace:
-> > [81416.824226]  ib_device_release+0x1e/0x40 [ib_core] [81416.829858]
-> > device_release+0x32/0xa0 [81416.834370]  kobject_cleanup+0x63/0x170
-> > [81416.839058]  kobject_put+0x25/0x50 [81416.843319]
-> > ib_dealloc_device+0x25/0x40 [ib_core] [81416.848986]
-> > mlx5_ib_add+0x163/0x1990 [mlx5_ib] [81416.854414]
-> > mlx5_add_device+0x5a/0x160 [mlx5_core] [81416.860191]
-> > mlx5_register_interface+0x8d/0xc0 [mlx5_core] [81416.866587]  ?
-> > 0xffffffffa09e9000 [81416.870816]  mlx5_ib_init+0x15/0x17 [mlx5_ib]
-> > [81416.876094]  do_one_initcall+0x51/0x1b0 [81416.880861]  ?
-> > __vunmap+0x85/0xd0 [81416.885113]  ?
-> > kmem_cache_alloc_trace+0x14b/0x1b0
-> > [81416.890768]  ? vfree+0x2e/0x70
-> > [81416.894762]  do_init_module+0x60/0x1fa [81416.899441]
-> > load_module+0x15f6/0x1af0 [81416.904114]  ? __symbol_put+0x60/0x60
-> > [81416.908709]  ? ima_post_read_file+0x3d/0x80 [81416.913828]  ?
-> > security_kernel_post_read_file+0x6b/0x80
-> > [81416.920006]  SYSC_finit_module+0xa6/0xf0 [81416.924888]
-> > SyS_finit_module+0xe/0x10 [81416.929568]
-> > entry_SYSCALL_64_fastpath+0x1a/0xa9
-> > [81416.935089] RIP: 0033:0x7fd879494949 [81416.939543] RSP:
-> > 002b:00007ffdbc1b4e58 EFLAGS: 00000202 ORIG_RAX:
-> > 0000000000000139 [81416.947982] RAX: ffffffffffffffda RBX:
-> > 0000000001b66f00 RCX: 00007fd879494949 [81416.955965] RDX:
-> > 0000000000000000 RSI: 000000000041a13c RDI: 0000000000000003
-> > [81416.963926] RBP: 0000000000000003 R08: 0000000000000000 R09:
-> > 0000000001b652a0 [81416.971861] R10: 0000000000000003 R11:
-> > 0000000000000202 R12: 00007ffdbc1b3e70 [81416.979763] R13:
-> > 00007ffdbc1b3e50 R14: 0000000000000005 R15: 0000000000000000
-> > [81417.008005] RIP: ib_cache_release_one+0x29/0x80 [ib_core] RSP:
-> > ffffc900062c3a90 [81417.016045] CR2: 0000000000000000
-> >
-> > Fixes: 55aeed0654 ("IB/core: Make ib_alloc_device init the kobject")
-> > Fixes: 7738613e7c ("IB/core: Add per port immutable struct to
-> > ib_device")
-> > Cc: <stable@vger.kernel.org> # v4.2+
-> > Reviewed-by: Daniel Jurgens <danielj@mellanox.com>
-> > Signed-off-by: Parav Pandit <parav@mellanox.com>
-> > Signed-off-by: Leon Romanovsky <leon@kernel.org>
-> > ---
-> >  drivers/infiniband/core/device.c | 33
-> > ++++++++++++++++++++++-----------
-> >  1 file changed, 22 insertions(+), 11 deletions(-)
-> >
-> > diff --git a/drivers/infiniband/core/device.c
-> > b/drivers/infiniband/core/device.c
-> > index 593d2ce6ec7c..64a2ae4d8eaa 100644
-> > --- a/drivers/infiniband/core/device.c
-> > +++ b/drivers/infiniband/core/device.c
-> > @@ -172,8 +172,16 @@ static void ib_device_release(struct device *devic=
-e)  {
-> >  	struct ib_device *dev =3D container_of(device, struct ib_device, dev)=
-;
-> >
-> > -	ib_cache_release_one(dev);
-> > -	kfree(dev->port_immutable);
-> > +	WARN_ON(dev->reg_state =3D=3D IB_DEV_REGISTERED);
-> > +	if (dev->reg_state =3D=3D IB_DEV_UNREGISTERED) {
-> > +		/*
-> > +		 * In IB_DEV_UNINITIALIZED state, cache or port table
-> > +		 * is not even created. Free cache and port table only when
-> > +		 * device reaches UNREGISTERED state.
-> > +		 */
-> > +		ib_cache_release_one(dev);
-> > +		kfree(dev->port_immutable);
-> > +	}
-> >  	kfree(dev);
-> >  }
-> >
-> > @@ -366,32 +374,27 @@ int ib_register_device(struct ib_device *device,
-> >  	ret =3D ib_cache_setup_one(device);
-> >  	if (ret) {
-> >  		pr_warn("Couldn't set up InfiniBand P_Key/GID cache\n");
-> > -		goto out;
-> > +		goto port_cleanup;
-> >  	}
-> >
-> >  	ret =3D ib_device_register_rdmacg(device);
-> >  	if (ret) {
-> >  		pr_warn("Couldn't register device with rdma cgroup\n");
-> > -		ib_cache_cleanup_one(device);
-> > -		goto out;
-> > +		goto cache_cleanup;
-> >  	}
-> >
-> >  	memset(&device->attrs, 0, sizeof(device->attrs));
-> >  	ret =3D device->query_device(device, &device->attrs, &uhw);
-> >  	if (ret) {
-> >  		pr_warn("Couldn't query the device attributes\n");
-> > -		ib_device_unregister_rdmacg(device);
-> > -		ib_cache_cleanup_one(device);
-> > -		goto out;
-> > +		goto cache_cleanup;
-> >  	}
-> >
-> >  	ret =3D ib_device_register_sysfs(device, port_callback);
-> >  	if (ret) {
-> >  		pr_warn("Couldn't register device %s with driver model\n",
-> >  			device->name);
-> > -		ib_device_unregister_rdmacg(device);
-> > -		ib_cache_cleanup_one(device);
-> > -		goto out;
-> > +		goto cache_cleanup;
-> >  	}
-> >
-> >  	device->reg_state =3D IB_DEV_REGISTERED; @@ -403,6 +406,14 @@ int
-> > ib_register_device(struct ib_device *device,
-> >  	down_write(&lists_rwsem);
-> >  	list_add_tail(&device->core_list, &device_list);
-> >  	up_write(&lists_rwsem);
-> > +	mutex_unlock(&device_mutex);
-> > +	return 0;
-> > +
-> > +cache_cleanup:
-> > +	ib_cache_cleanup_one(device);
-> > +	ib_cache_release_one(device);
-> > +port_cleanup:
-> > +	kfree(device->port_immutable);
-> >  out:
-> >  	mutex_unlock(&device_mutex);
-> >  	return ret;
-> > --
-> > 2.12.0
+> > See in include/uapi/rdma/ib_user_verbs.h, User fills struct from that
+> > file, and kernel performs copy_from_user to extract the data. That's
+> > all.
+>
+> Thanks! If i need to establish communication between two nodes and
+> send/recv data (and get notification that data can be readed) does
+> this file  enough to do that?
+
+Yes, if performance is not critical to you.
+Otherwise, the best solution will be to take a look on implementation
+of data transfer (various post_send functions) in rdma-core library.
+
+> (i'm plan to try create plain go binding, now only for fun, create
+> generator for this C struct/enums to plain go types)
+
+
+>
+>
+> --
+> Vasiliy Tolstov,
+> e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+
+--SqJDPA0lBYgnDFWV
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj+QF8ACgkQ5GN7iDZy
+WKdDbBAAndlhjlxcX7natOakfnLUwsvJyQp4tasuKd5ZS6Jk49X9wwBoyKEP8cIw
+LkAm3s1G1WmLW9fis4QZ2mptA53SZpocq9/Lp5aSeKzvBGkz4/S5d6YWKtuWnxma
+uRS341zmehbR7K2n011eVCkkXXXf8mCZA7sE5+sRzF65zxw0tSQoHKpurhde0YTe
+mnX05ve9NxVuRB6U3wToFIgEwuZN13/fMZwgpTceQIf1D2p2Z0J1zNKVemVhgb9x
+hH374DV9AuVWQKe9t8L75Ze9i/ZYFnh009hmEtFsKsPbnj9XEghlCam5KES9Bc0M
+lNECLkcjGb0680NVRjfhnSrz4klTUOW0w4foiPtUMke/sOMc8pJ/r2pvuQq6vnT1
+nCrYHaGnl5GHtUOwuM0DiyfQy7bSWT5nKuULePrNfIDYJBGeBHVh6FF6IpqhVs/2
+vuS1AsKzr1wBpto1mZ09cB083gSeGR6bINeUFOs7Ga5RfBDTX3isBk+XhxChbJpO
+Frla+QbytYOiC/fGoKLldLqOxE1EfxPXxviJLscezLvcVKMyyzm3v914QpN1dvZZ
+2u46m3egxNbJVYB2cjnoCucRZ3Tuakj1D9aNLdwnwAWcRJuJDs9nWJaxht6jrfy/
+j9SYCw4ktC8gsDRnXlfQaiVcZ9B7uxqtvR0qZlc4dsSce9JHyY8=
+=pRIA
+-----END PGP SIGNATURE-----
+
+--SqJDPA0lBYgnDFWV--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
