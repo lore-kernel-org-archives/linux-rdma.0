@@ -1,39 +1,33 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next] IB/cma: Send MRA for reply messages
-Date: Mon, 24 Apr 2017 12:27:26 -0400
-Message-ID: <1493051246.3041.46.camel@redhat.com>
-References: <20170416043134.18860-1-leon@kernel.org>
+Subject: Re: [PATCH rdma-next] IB/mthca: Check validity of output parameter
+ pointer
+Date: Mon, 24 Apr 2017 12:28:24 -0400
+Message-ID: <1493051304.3041.47.camel@redhat.com>
+References: <20170415154725.17559-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170416043134.18860-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170415154725.17559-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 2017-04-16 at 07:31 +0300, Leon Romanovsky wrote:
-> From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Sat, 2017-04-15 at 18:47 +0300, Leon Romanovsky wrote:
+> The mthca driver didn't check supplied pointer to functions
+> mthca_cmd_poll() and mthca_cmd_wait(). This caused to the following
+> smatch errors:
 > 
-> Current implementation of RDMA_CM sends MRA (Message Receipt
-> Acknowledgment) only for request messages but not for response
-> messages.
+> drivers/infiniband/hw/mthca/mthca_cmd.c:371 mthca_cmd_poll() error:
+> we previously assumed 'out_param' could be null (see line 353)
+> drivers/infiniband/hw/mthca/mthca_cmd.c:454 mthca_cmd_wait() error:
+> we previously assumed 'out_param' could be null (see line 432)
 > 
-> As a result, a slow active side of the connection may send a ready-
-> to-use
-> message to the passive side in a delay that is too long for the
-> passive
-> side to wait for.
+> In reality all callers of these functions are setting out_is_imm
+> flag are providing pointer too. However it is better to check
+> again to remove smatch errors to achieve warning free subsystem.
 > 
-> This patch adds a call to ib_send_cm_mra() upon receiving a response
-> message and by this tells the other side to modify the service
-> timeout
-> to a bigger value, 16 times than before. As in the request case, MRA
-> for reply will be sent only if a duplicate response has arrived.
-> 
-> Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Matan Barak <matan-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
 Thanks, applied.
