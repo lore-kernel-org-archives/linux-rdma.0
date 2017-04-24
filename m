@@ -1,115 +1,196 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 03/12] IB/ocrdma: Improve size determinations in ten
- functions
-Date: Mon, 24 Apr 2017 21:02:22 +0300
-Message-ID: <20170424180222.GL14088@mtr-leonro.local>
-References: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net>
- <1492720999.3041.18.camel@redhat.com>
- <86425035-7da8-d2b1-8544-d4f7540d50c6@users.sourceforge.net>
- <755f6c2c-03a2-7248-a5e3-9190d119cdaf@users.sourceforge.net>
- <20170423073311.GA14088@mtr-leonro.local>
- <1f122892-7e67-a7ca-ae7f-7ac8e2b7a037@intel.com>
- <1493051938.3041.52.camel@redhat.com>
+From: Parav Pandit <parav@mellanox.com>
+Subject: RE: [PATCH rdma-next 1/3] IB/core: Fix kernel crash during fail to
+ initialize device
+Date: Mon, 24 Apr 2017 18:03:36 +0000
+Message-ID: <VI1PR0502MB3008BF71FC254410E4476858D11F0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+References: <20170319085557.6023-1-leon@kernel.org>
+ <20170319085557.6023-2-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="5joxkA65nhhP20dL"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1493051938.3041.52.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20170319085557.6023-2-leon@kernel.org>
+Content-Language: en-US
+Sender: stable-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "# v4 . 2+" <stable@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Doug,
 
---5joxkA65nhhP20dL
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Did you get a chance to merge this fix that avoids kernel crash in error sc=
+enario?
 
-On Mon, Apr 24, 2017 at 12:38:58PM -0400, Doug Ledford wrote:
-> On Mon, 2017-04-24 at 08:54 -0400, Dennis Dalessandro wrote:
-> > On 04/23/2017 03:33 AM, Leon Romanovsky wrote:
-> > >
-> > > On Sat, Apr 22, 2017 at 04:36:19PM +0200, SF Markus Elfring wrote:
-> > > >
-> > > > From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-> > > > Date: Sat, 22 Apr 2017 13:26:49 +0200
-> > > >
-> > > > Replace the specification of data types by pointer dereferences
-> > > > as the parameter for the operator "sizeof" to make the
-> > > > corresponding size
-> > > > determinations a bit safer according to the Linux coding style
-> > > > convention.
-> > > >
-> > > > Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-> > > > ---
-> > > >
-> > > > v2:
-> > > > Changes were rebased on source files from Linux next-20170421.
-> > > > These were recombined as requested by Doug Ledford.
-> > >
-> > > Hi Doug,
-> > >
-> > > I recommend you to be extra cautious with this blind automatic
-> > > conversions. It requires inspection that every size before and
-> > > after
-> > > match each other.
-> > >
-> > > I already asked it and would be like to repeat it. Please DON'T
-> > > take any
-> > > patches from Markus, which are related to mlx4/mlx5/rxe without our
-> > > explicit
-> > > review of them.
-> >
-> > I agree with Leon here, and these sort of find/replace automagic=A0
-> > clean-up patches make me nervous sometimes.
->
-> OK, the easiest way to make sure that only the things you want from his
-> patches get through is to have you pull them into a branch and submit
-> them yourself.=A0=A0I'll only take the ones you submit to me, that way
-> there is no confusion about whether or not you have checked them and
-> approved them.
+Parav
 
-Fine to me.
-
-Thanks
-
->
-> > Markus, what have you done to ensure your patches don't break
-> > anything?
-> >
-> > -Denny
-> >
+> -----Original Message-----
+> From: Leon Romanovsky [mailto:leon@kernel.org]
+> Sent: Sunday, March 19, 2017 3:56 AM
+> To: Doug Ledford <dledford@redhat.com>
+> Cc: linux-rdma@vger.kernel.org; Parav Pandit <parav@mellanox.com>; # v4 .=
+ 2+
+> <stable@vger.kernel.org>
+> Subject: [PATCH rdma-next 1/3] IB/core: Fix kernel crash during fail to i=
+nitialize
+> device
+>=20
+> From: Parav Pandit <parav@mellanox.com>
+>=20
+> This patch fixes the kernel crash that occurs during ib_dealloc_device() =
+called
+> due to provider driver fails with an error after
+> ib_alloc_device() and before it can register using ib_register_device().
+>=20
+> This crashed seen in tha lab as below which can occur with any IB device =
+which
+> fails to perform its device initialization before invoking ib_register_de=
+vice().
+>=20
+> This patch avoids touching cache and port immutable structures if device =
+is not
+> yet initialized.
+> It also releases related memory when cache and port immutable data struct=
+ure
+> initialization fails during register_device() state.
+>=20
+> [81416.561946] BUG: unable to handle kernel NULL pointer dereference at (=
+null)
+> [81416.570340] IP: ib_cache_release_one+0x29/0x80 [ib_core] [81416.576222=
+]
+> PGD 78da66067 [81416.576223] PUD 7f2d7c067 [81416.579484] PMD 0
+> [81416.582720] [81416.587242] Oops: 0000 [#1] SMP [81416.722395] task:
+> ffff8807887515c0 task.stack: ffffc900062c0000 [81416.729148] RIP:
+> 0010:ib_cache_release_one+0x29/0x80 [ib_core] [81416.735793] RSP:
+> 0018:ffffc900062c3a90 EFLAGS: 00010202 [81416.741823] RAX:
+> 0000000000000000 RBX: 0000000000000001 RCX: 0000000000000000
+> [81416.749785] RDX: 0000000000000000 RSI: 0000000000000282 RDI:
+> ffff880859fec000 [81416.757757] RBP: ffffc900062c3aa0 R08:
+> ffff8808536e5ac0 R09: ffff880859fec5b0 [81416.765708] R10:
+> 00000000536e5c01 R11: ffff8808536e5ac0 R12: ffff880859fec000
+> [81416.773672] R13: 0000000000000000 R14: ffff8808536e5ac0 R15:
+> ffff88084ebc0060 [81416.781621] FS:  00007fd879fab740(0000)
+> GS:ffff88085fac0000(0000) knlGS:0000000000000000 [81416.790522] CS:  0010
+> DS: 0000 ES: 0000 CR0: 0000000080050033 [81416.797094] CR2:
+> 0000000000000000 CR3: 00000007eb215000 CR4: 00000000003406e0
+> [81416.805051] DR0: 0000000000000000 DR1: 0000000000000000 DR2:
+> 0000000000000000 [81416.812997] DR3: 0000000000000000 DR6:
+> 00000000fffe0ff0 DR7: 0000000000000400 [81416.820950] Call Trace:
+> [81416.824226]  ib_device_release+0x1e/0x40 [ib_core] [81416.829858]
+> device_release+0x32/0xa0 [81416.834370]  kobject_cleanup+0x63/0x170
+> [81416.839058]  kobject_put+0x25/0x50 [81416.843319]
+> ib_dealloc_device+0x25/0x40 [ib_core] [81416.848986]
+> mlx5_ib_add+0x163/0x1990 [mlx5_ib] [81416.854414]
+> mlx5_add_device+0x5a/0x160 [mlx5_core] [81416.860191]
+> mlx5_register_interface+0x8d/0xc0 [mlx5_core] [81416.866587]  ?
+> 0xffffffffa09e9000 [81416.870816]  mlx5_ib_init+0x15/0x17 [mlx5_ib]
+> [81416.876094]  do_one_initcall+0x51/0x1b0 [81416.880861]  ?
+> __vunmap+0x85/0xd0 [81416.885113]  ?
+> kmem_cache_alloc_trace+0x14b/0x1b0
+> [81416.890768]  ? vfree+0x2e/0x70
+> [81416.894762]  do_init_module+0x60/0x1fa [81416.899441]
+> load_module+0x15f6/0x1af0 [81416.904114]  ? __symbol_put+0x60/0x60
+> [81416.908709]  ? ima_post_read_file+0x3d/0x80 [81416.913828]  ?
+> security_kernel_post_read_file+0x6b/0x80
+> [81416.920006]  SYSC_finit_module+0xa6/0xf0 [81416.924888]
+> SyS_finit_module+0xe/0x10 [81416.929568]
+> entry_SYSCALL_64_fastpath+0x1a/0xa9
+> [81416.935089] RIP: 0033:0x7fd879494949
+> [81416.939543] RSP: 002b:00007ffdbc1b4e58 EFLAGS: 00000202 ORIG_RAX:
+> 0000000000000139 [81416.947982] RAX: ffffffffffffffda RBX:
+> 0000000001b66f00 RCX: 00007fd879494949 [81416.955965] RDX:
+> 0000000000000000 RSI: 000000000041a13c RDI: 0000000000000003
+> [81416.963926] RBP: 0000000000000003 R08: 0000000000000000 R09:
+> 0000000001b652a0 [81416.971861] R10: 0000000000000003 R11:
+> 0000000000000202 R12: 00007ffdbc1b3e70 [81416.979763] R13:
+> 00007ffdbc1b3e50 R14: 0000000000000005 R15: 0000000000000000
+> [81417.008005] RIP: ib_cache_release_one+0x29/0x80 [ib_core] RSP:
+> ffffc900062c3a90 [81417.016045] CR2: 0000000000000000
+>=20
+> Fixes: 55aeed0654 ("IB/core: Make ib_alloc_device init the kobject")
+> Fixes: 7738613e7c ("IB/core: Add per port immutable struct to ib_device")
+> Cc: <stable@vger.kernel.org> # v4.2+
+> Reviewed-by: Daniel Jurgens <danielj@mellanox.com>
+> Signed-off-by: Parav Pandit <parav@mellanox.com>
+> Signed-off-by: Leon Romanovsky <leon@kernel.org>
+> ---
+>  drivers/infiniband/core/device.c | 33 ++++++++++++++++++++++-----------
+>  1 file changed, 22 insertions(+), 11 deletions(-)
+>=20
+> diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/d=
+evice.c
+> index 593d2ce6ec7c..64a2ae4d8eaa 100644
+> --- a/drivers/infiniband/core/device.c
+> +++ b/drivers/infiniband/core/device.c
+> @@ -172,8 +172,16 @@ static void ib_device_release(struct device *device)=
+  {
+>  	struct ib_device *dev =3D container_of(device, struct ib_device, dev);
+>=20
+> -	ib_cache_release_one(dev);
+> -	kfree(dev->port_immutable);
+> +	WARN_ON(dev->reg_state =3D=3D IB_DEV_REGISTERED);
+> +	if (dev->reg_state =3D=3D IB_DEV_UNREGISTERED) {
+> +		/*
+> +		 * In IB_DEV_UNINITIALIZED state, cache or port table
+> +		 * is not even created. Free cache and port table only when
+> +		 * device reaches UNREGISTERED state.
+> +		 */
+> +		ib_cache_release_one(dev);
+> +		kfree(dev->port_immutable);
+> +	}
+>  	kfree(dev);
+>  }
+>=20
+> @@ -366,32 +374,27 @@ int ib_register_device(struct ib_device *device,
+>  	ret =3D ib_cache_setup_one(device);
+>  	if (ret) {
+>  		pr_warn("Couldn't set up InfiniBand P_Key/GID cache\n");
+> -		goto out;
+> +		goto port_cleanup;
+>  	}
+>=20
+>  	ret =3D ib_device_register_rdmacg(device);
+>  	if (ret) {
+>  		pr_warn("Couldn't register device with rdma cgroup\n");
+> -		ib_cache_cleanup_one(device);
+> -		goto out;
+> +		goto cache_cleanup;
+>  	}
+>=20
+>  	memset(&device->attrs, 0, sizeof(device->attrs));
+>  	ret =3D device->query_device(device, &device->attrs, &uhw);
+>  	if (ret) {
+>  		pr_warn("Couldn't query the device attributes\n");
+> -		ib_device_unregister_rdmacg(device);
+> -		ib_cache_cleanup_one(device);
+> -		goto out;
+> +		goto cache_cleanup;
+>  	}
+>=20
+>  	ret =3D ib_device_register_sysfs(device, port_callback);
+>  	if (ret) {
+>  		pr_warn("Couldn't register device %s with driver model\n",
+>  			device->name);
+> -		ib_device_unregister_rdmacg(device);
+> -		ib_cache_cleanup_one(device);
+> -		goto out;
+> +		goto cache_cleanup;
+>  	}
+>=20
+>  	device->reg_state =3D IB_DEV_REGISTERED; @@ -403,6 +406,14 @@ int
+> ib_register_device(struct ib_device *device,
+>  	down_write(&lists_rwsem);
+>  	list_add_tail(&device->core_list, &device_list);
+>  	up_write(&lists_rwsem);
+> +	mutex_unlock(&device_mutex);
+> +	return 0;
+> +
+> +cache_cleanup:
+> +	ib_cache_cleanup_one(device);
+> +	ib_cache_release_one(device);
+> +port_cleanup:
+> +	kfree(device->port_immutable);
+>  out:
+>  	mutex_unlock(&device_mutex);
+>  	return ret;
 > --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> =A0 =A0 GPG KeyID: B826A3330E572FDD
-> =A0 =A0
-> Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =A01274 B826 A333 0E57 2FDD
->
-
---5joxkA65nhhP20dL
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj+Pa4ACgkQ5GN7iDZy
-WKfaow/+IALl/tyr+f/8Q8glNA8C6B2hp5kmOStXNxfRsA+wPcQtyYj2PloLf+Dh
-3Lr6JjHERk2cA1jjByB6Pumg9sBgbmFTWpTsb16Ag17wJQJQNGG0FeqW9H7LIKOS
-ABqnxo6qgqmEqZujs5um4LdrhI8wYZzwyJOHXjiD4SJetaJ1DDcxQi6peZJwwCJI
-ttCb6C+c/J846kUo6x9nw9r+3PYbBLa8ydGfjcTveRxXOSxgSFriSVkCufs/3NCX
-ycat4EjGH172hHVyBlurBcJVejsNQOBAx1LPhvmLnRhiIBAZlFGRwV0aqtRo4Gpr
-HF1XtFbbQd3QtZK3UjB21s6NGdkyR7LrEiOztgMPwZBlQdQiBgZdm0RoBDlI/cz0
-qYixmc/0iGuYaVlwg0zYoMqLxRH91g2+tBCxZltDF56QQJFNn06KnZZj26jhIIU8
-ejtLMhfGU2cPRvUv7VDgDGpflcUoXGkK7az/ykBegeVTZ9WFW09d/0XHcn1NXMq8
-xtoAultPSzmPcec0Rr9nv+JVBKyXUbHHRRN7Wsjzpg73h4Cdruhl+7I+0xKXShfu
-00xukuAp6h4TVESKm8ou6PAYlZitCiV/HTu8QSxwaYbpQXkTmA9eXPJQSNej3Yrd
-7dVZvu+BZCisVgJg+24OCUACqoneGono8qW4bS1TUlhEkEkhF2g=
-=g+48
------END PGP SIGNATURE-----
-
---5joxkA65nhhP20dL--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 2.12.0
