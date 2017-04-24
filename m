@@ -1,65 +1,53 @@
-From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
-Subject: Re: dedicated list for rdma userspace programming
-Date: Mon, 24 Apr 2017 15:45:26 +0300
-Message-ID: <CACaajQueUDeiqb0jyPPT-OFL=sgEn=apffC2SpLFZR2pbi04fg@mail.gmail.com>
-References: <CACaajQu1jvvCYJk82_oGOGH7jbjXzbkw_YoggqvW7TZhXj4VBw@mail.gmail.com>
- <20170424104259.GH14088@mtr-leonro.local> <CACaajQu9y2HawOjeuwjYSHeFmYfhWreQORB5_61nPiEspoQ2JA@mail.gmail.com>
- <20170424114733.GI14088@mtr-leonro.local> <CACaajQs=04be-QDFgqjXj4u=qp4wC6KFU8y5g=kR7vkV0QkbdQ@mail.gmail.com>
- <20170424123413.GJ14088@mtr-leonro.local>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: Re: [PATCH v2 03/12] IB/ocrdma: Improve size determinations in ten
+ functions
+Date: Mon, 24 Apr 2017 08:54:13 -0400
+Message-ID: <1f122892-7e67-a7ca-ae7f-7ac8e2b7a037@intel.com>
+References: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net>
+ <1492720999.3041.18.camel@redhat.com>
+ <86425035-7da8-d2b1-8544-d4f7540d50c6@users.sourceforge.net>
+ <755f6c2c-03a2-7248-a5e3-9190d119cdaf@users.sourceforge.net>
+ <20170423073311.GA14088@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170424123413.GJ14088-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <20170423073311.GA14088@mtr-leonro.local>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>
+Cc: SF Markus Elfring <elfring@users.sourceforge.net>, Devesh Sharma <devesh.sharma@avagotech.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Selvin Xavier <selvin.xavier@avagotech.com>, Yuval Shaia <yuval.shaia@oracle.com>, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-2017-04-24 15:34 GMT+03:00 Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>:
->> >> And how much work needs to be done to get this work upstream? (1
->> >> month, 6 months, years...) ?
->> >
->> > At least one kernel cycle, and after transition read/write will be
->> > obsolete and will be dropped.
->> >
+On 04/23/2017 03:33 AM, Leon Romanovsky wrote:
+> On Sat, Apr 22, 2017 at 04:36:19PM +0200, SF Markus Elfring wrote:
+>> From: Markus Elfring <elfring@users.sourceforge.net>
+>> Date: Sat, 22 Apr 2017 13:26:49 +0200
 >>
->> So 4.12-4.13 ?
+>> Replace the specification of data types by pointer dereferences
+>> as the parameter for the operator "sizeof" to make the corresponding size
+>> determinations a bit safer according to the Linux coding style convention.
+>>
+>> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+>> ---
+>>
+>> v2:
+>> Changes were rebased on source files from Linux next-20170421.
+>> These were recombined as requested by Doug Ledford.
 >
-> 4.12 is almost closed. We are in rc8 now and merge window will be next
-> week, so it will be 4.13-4.14 (optimistic).
+> Hi Doug,
 >
-
-Fine. So older interfaces will be deprecated and removed in next few
-cycles. I think i can now create something that used old api and do
-transition later (i'm use fedora)
-
->>
->> >> If i want to try working with uverbs without C librarary, where i can
->> >> find some info about format of messages reader and writed to uverbs
->> >> device?
->> >
->> > Did you see Documentation/infiniband/user_verbs.txt?
->>
->>
->> https://www.kernel.org/doc/Documentation/infiniband/user_verbs.txt as
->> i see this nothing says about format of data writed/readed...
->>
+> I recommend you to be extra cautious with this blind automatic
+> conversions. It requires inspection that every size before and after
+> match each other.
 >
-> See in include/uapi/rdma/ib_user_verbs.h, User fills struct from that
-> file, and kernel performs copy_from_user to extract the data. That's
-> all.
+> I already asked it and would be like to repeat it. Please DON'T take any
+> patches from Markus, which are related to mlx4/mlx5/rxe without our explicit
+> review of them.
 
-Thanks! If i need to establish communication between two nodes and
-send/recv data (and get notification that data can be readed) does
-this file  enough to do that?
-(i'm plan to try create plain go binding, now only for fun, create
-generator for this C struct/enums to plain go types)
+I agree with Leon here, and these sort of find/replace automagic 
+clean-up patches make me nervous sometimes.
 
+Markus, what have you done to ensure your patches don't break anything?
 
--- 
-Vasiliy Tolstov,
-e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Denny
+
