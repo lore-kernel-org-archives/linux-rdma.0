@@ -1,29 +1,32 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next] IB/mlx5: Fix wrong use of kfree at bad flow
- in create_cq_user
-Date: Mon, 24 Apr 2017 12:13:10 -0400
-Message-ID: <1493050390.3041.38.camel@redhat.com>
-References: <20170329031214.6272-1-leon@kernel.org>
+Subject: Re: [PATCH rdma-next 1/2] IB/mlx5: Check supported flow table size
+Date: Mon, 24 Apr 2017 12:13:58 -0400
+Message-ID: <1493050438.3041.39.camel@redhat.com>
+References: <20170329030901.5772-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170329031214.6272-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170329030901.5772-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-03-29 at 06:12 +0300, Leon Romanovsky wrote:
-> From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Wed, 2017-03-29 at 06:09 +0300, Leon Romanovsky wrote:
+> From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> The kfree was called to free cqb, while it should free *cqb.
+> Check that the required flow table size is supported
+> by device. Return ENOMEM error if no space left.
 > 
-> Fixes: 1cbe6fc86ccf ("IB/mlx5: Add support for CQE compressing")
-> Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> In addition change the create flow table routine
+> to return ENOMEM instead of ENOSPC.
+> 
+> Fixes: 038d2ef87572 ('IB/mlx5: Add flow steering support')
+> Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-Thanks, applied.
+Thanks, series applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
