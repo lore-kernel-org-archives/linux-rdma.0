@@ -1,97 +1,77 @@
-From: "Byczkowski, Jakub" <jakub.byczkowski@intel.com>
-Subject: RE: [PATCH 5/7] IB/hfi1: use pcie_flr instead of duplicating it
-Date: Mon, 24 Apr 2017 14:16:31 +0000
-Message-ID: <A33E225544E47D4DB5713032774B132783960382@irsmsx105.ger.corp.intel.com>
-References: <20170414191131.14286-1-hch@lst.de>
- <20170414191131.14286-6-hch@lst.de>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: IB/ocrdma: Improve size determinations in ten functions
+Date: Mon, 24 Apr 2017 17:33:32 +0300
+Message-ID: <20170424143332.GK14088@mtr-leonro.local>
+References: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net>
+ <1492720999.3041.18.camel@redhat.com>
+ <86425035-7da8-d2b1-8544-d4f7540d50c6@users.sourceforge.net>
+ <755f6c2c-03a2-7248-a5e3-9190d119cdaf@users.sourceforge.net>
+ <20170423073311.GA14088@mtr-leonro.local>
+ <1f122892-7e67-a7ca-ae7f-7ac8e2b7a037@intel.com>
+ <a2b014f3-7674-6e33-3b22-72594b38a6b6@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-crypto-owner@vger.kernel.org>
-In-Reply-To: <20170414191131.14286-6-hch@lst.de>
-Content-Language: en-US
-Sender: linux-crypto-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>, Bjorn Helgaas <bhelgaas@google.com>, "Cabiddu, Giovanni" <giovanni.cabiddu@intel.com>, "Benedetto, Salvatore" <salvatore.benedetto@intel.com>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, Derek Chickles <derek.chickles@caviumnetworks.com>, Satanand Burla <satananda.burla@caviumnetworks.com>, Felix Manlunas <felix.manlunas@caviumnetworks.com>, Raghu Vatsavayi <raghu.vatsavayi@caviumnetworks.com>, "Kirsher, Jeffrey T" <jeffrey.t.kirsher@intel.com>
-Cc: "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, qat-linux <qat-linux@intel.com>, "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="SKW69dzTt3T8RCN0"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <a2b014f3-7674-6e33-3b22-72594b38a6b6-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Devesh Sharma <devesh.sharma-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Tested-by: Jakub Byczkowski <jakub.byczkowski@intel.com>
 
------Original Message-----
-From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-owner@vger.kernel.org] On Behalf Of Christoph Hellwig
-Sent: Friday, April 14, 2017 9:11 PM
-To: Bjorn Helgaas <bhelgaas@google.com>; Cabiddu, Giovanni <giovanni.cabiddu@intel.com>; Benedetto, Salvatore <salvatore.benedetto@intel.com>; Marciniszyn, Mike <mike.marciniszyn@intel.com>; Dalessandro, Dennis <dennis.dalessandro@intel.com>; Derek Chickles <derek.chickles@caviumnetworks.com>; Satanand Burla <satananda.burla@caviumnetworks.com>; Felix Manlunas <felix.manlunas@caviumnetworks.com>; Raghu Vatsavayi <raghu.vatsavayi@caviumnetworks.com>; Kirsher, Jeffrey T <jeffrey.t.kirsher@intel.com>
-Cc: linux-pci@vger.kernel.org; qat-linux <qat-linux@intel.com>; linux-crypto@vger.kernel.org; linux-rdma@vger.kernel.org; netdev@vger.kernel.org; linux-kernel@vger.kernel.org
-Subject: [PATCH 5/7] IB/hfi1: use pcie_flr instead of duplicating it
+--SKW69dzTt3T8RCN0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- drivers/infiniband/hw/hfi1/chip.c |  4 ++--  drivers/infiniband/hw/hfi1/hfi.h  |  1 -  drivers/infiniband/hw/hfi1/pcie.c | 30 ------------------------------
- 3 files changed, 2 insertions(+), 33 deletions(-)
+On Mon, Apr 24, 2017 at 03:23:52PM +0200, SF Markus Elfring wrote:
+> > Markus, what have you done to ensure your patches don't break anything?
+>
+> I would expect that this update step will not change the run time behaviour
+> for the OCRDMA module. I guess that it will influence the run time
+> characteristics for compilation of three adjusted source files besides
+> the proposed coding style improvements.
+>
+> Further update steps change other source code places. I hope that their
+> impact can be clarified according to your expectations for each shown update
+> possibility separately. Some of them got a bit of acceptance already.
+>
+> How would you like to reduce any remaining software development concerns here?
+>
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 121a4c920f1b..d037f72e4d96 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -13610,14 +13610,14 @@ static void init_chip(struct hfi1_devdata *dd)
- 		dd_dev_info(dd, "Resetting CSRs with FLR\n");
- 
- 		/* do the FLR, the DC reset will remain */
--		hfi1_pcie_flr(dd);
-+		pcie_flr(dd->pcidev);
- 
- 		/* restore command and BARs */
- 		restore_pci_variables(dd);
- 
- 		if (is_ax(dd)) {
- 			dd_dev_info(dd, "Resetting CSRs with FLR\n");
--			hfi1_pcie_flr(dd);
-+			pcie_flr(dd->pcidev);
- 			restore_pci_variables(dd);
- 		}
- 	} else {
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 0808e3c3ba39..40d7559fa723 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -1764,7 +1764,6 @@ int hfi1_pcie_init(struct pci_dev *, const struct pci_device_id *);  void hfi1_pcie_cleanup(struct pci_dev *);  int hfi1_pcie_ddinit(struct hfi1_devdata *, struct pci_dev *);  void hfi1_pcie_ddcleanup(struct hfi1_devdata *); -void hfi1_pcie_flr(struct hfi1_devdata *);  int pcie_speeds(struct hfi1_devdata *);  void request_msix(struct hfi1_devdata *, u32 *, struct hfi1_msix_entry *);  void hfi1_enable_intx(struct pci_dev *); diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
-index 0829fce06172..c81556e84831 100644
---- a/drivers/infiniband/hw/hfi1/pcie.c
-+++ b/drivers/infiniband/hw/hfi1/pcie.c
-@@ -240,36 +240,6 @@ void hfi1_pcie_ddcleanup(struct hfi1_devdata *dd)
- 		iounmap(dd->piobase);
- }
- 
--/*
-- * Do a Function Level Reset (FLR) on the device.
-- * Based on static function drivers/pci/pci.c:pcie_flr().
-- */
--void hfi1_pcie_flr(struct hfi1_devdata *dd) -{
--	int i;
--	u16 status;
--
--	/* no need to check for the capability - we know the device has it */
--
--	/* wait for Transaction Pending bit to clear, at most a few ms */
--	for (i = 0; i < 4; i++) {
--		if (i)
--			msleep((1 << (i - 1)) * 100);
--
--		pcie_capability_read_word(dd->pcidev, PCI_EXP_DEVSTA, &status);
--		if (!(status & PCI_EXP_DEVSTA_TRPND))
--			goto clear;
--	}
--
--	dd_dev_err(dd, "Transaction Pending bit is not clearing, proceeding with reset anyway\n");
--
--clear:
--	pcie_capability_set_word(dd->pcidev, PCI_EXP_DEVCTL,
--				 PCI_EXP_DEVCTL_BCR_FLR);
--	/* PCIe spec requires the function to be back within 100ms */
--	msleep(100);
--}
--
- static void msix_setup(struct hfi1_devdata *dd, int pos, u32 *msixcnt,
- 		       struct hfi1_msix_entry *hfi1_msix_entry)  {
+Dennis,
+
+He didn't check it, this is why in most susbsystems his patches are
+ignored.
+
+Thanks
+
+> Regards,
+> Markus
+
+--SKW69dzTt3T8RCN0
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj+DLwACgkQ5GN7iDZy
+WKehlg/6AlY2QCEs6aN9ds686v2lAvSupX3PdKoAu90zLPvkxeJAVTwlA1FY5D/e
+erBIghqEJnq364T8qr641JZt8HfczSQLZx5nrerQyUXo6BBAz1rsCsx7TA8Eto6+
+VwAZ1Aer+u7CHcuBOa2yE2fkOET7uM1CBsHRYnIzdjIiwsnhuEEbHCfmg7s6GyBT
+f3cMJkBsqhU8Gza/Lt+CCEsYz0jEuPeF0Y+e/xAljcXe3IXIXrfSCYkjvCwxRE3x
+/PklieRcDnz7A7f1DUu+NmvoNoP+NGdzw59SJkuv78btkmErYWDRKX9D5SYKjBSS
+pQxUJGtlofVJcFm3ZIIB6HTyBxxhlbWLDLVnMFW22fVG1NQFY0bLPm023lIBu2Q9
+AyBu0KofdNaCQQGKpqkiHxeFgBtY4KmHraMYUxBQnCZuKE9ujQuSrxnUNF4hx0em
+tNqHJ240IhpxjKAtFgAvD+OUYRSiPrnv4k6aA1eNC/XUIXnJ0Ga9CDRdEGW3SyOc
+NENIevZvb9nWuoeE15DxrtzYyDvVsNevz7Svsg07J+TdxuUU3xgdeBALqxSwh8Ov
+e3nIRTFB4hHHx4BnzAt1UJ4ZJEZiRh50duUU4WO5i0WflHdxpDfm98YJdFIv1AKd
+Q2zapznkvIbYkcTbPA6IWlEli4XT/Voxj1W5nkQHmZ+3XOUTJFE=
+=9MOP
+-----END PGP SIGNATURE-----
+
+--SKW69dzTt3T8RCN0--
 --
-2.11.0
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
