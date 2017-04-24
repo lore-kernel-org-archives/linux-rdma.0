@@ -1,75 +1,33 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH v2 03/12] IB/ocrdma: Improve size determinations in ten
- functions
-Date: Mon, 24 Apr 2017 12:38:58 -0400
-Message-ID: <1493051938.3041.52.camel@redhat.com>
-References: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net>
-         <1492720999.3041.18.camel@redhat.com>
-         <86425035-7da8-d2b1-8544-d4f7540d50c6@users.sourceforge.net>
-         <755f6c2c-03a2-7248-a5e3-9190d119cdaf@users.sourceforge.net>
-         <20170423073311.GA14088@mtr-leonro.local>
-         <1f122892-7e67-a7ca-ae7f-7ac8e2b7a037@intel.com>
+From: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH][V2] IB/rxe: fix typo: "algorithmi" -> "algorithm"
+Date: Mon, 24 Apr 2017 10:44:56 -0700
+Message-ID: <1493055896.31620.2.camel@perches.com>
+References: <20170424092642.29862-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <1f122892-7e67-a7ca-ae7f-7ac8e2b7a037@intel.com>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Dennis Dalessandro <dennis.dalessandro@intel.com>, Leon Romanovsky <leon@kernel.org>
-Cc: SF Markus Elfring <elfring@users.sourceforge.net>, Devesh Sharma <devesh.sharma@avagotech.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sean Hefty <sean.hefty@intel.com>, Selvin Xavier <selvin.xavier@avagotech.com>, Yuval Shaia <yuval.shaia@oracle.com>, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170424092642.29862-1-colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-04-24 at 08:54 -0400, Dennis Dalessandro wrote:
-> On 04/23/2017 03:33 AM, Leon Romanovsky wrote:
-> > 
-> > On Sat, Apr 22, 2017 at 04:36:19PM +0200, SF Markus Elfring wrote:
-> > > 
-> > > From: Markus Elfring <elfring@users.sourceforge.net>
-> > > Date: Sat, 22 Apr 2017 13:26:49 +0200
-> > > 
-> > > Replace the specification of data types by pointer dereferences
-> > > as the parameter for the operator "sizeof" to make the
-> > > corresponding size
-> > > determinations a bit safer according to the Linux coding style
-> > > convention.
-> > > 
-> > > Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> > > ---
-> > > 
-> > > v2:
-> > > Changes were rebased on source files from Linux next-20170421.
-> > > These were recombined as requested by Doug Ledford.
-> > 
-> > Hi Doug,
-> > 
-> > I recommend you to be extra cautious with this blind automatic
-> > conversions. It requires inspection that every size before and
-> > after
-> > match each other.
-> > 
-> > I already asked it and would be like to repeat it. Please DON'T
-> > take any
-> > patches from Markus, which are related to mlx4/mlx5/rxe without our
-> > explicit
-> > review of them.
-> 
-> I agree with Leon here, and these sort of find/replace automagic 
-> clean-up patches make me nervous sometimes.
+On Mon, 2017-04-24 at 10:26 +0100, Colin King wrote:
+> trivial fix to typo in pr_err message
+[]
+> diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+[]
+> @@ -1324,7 +1324,7 @@ int rxe_register_device(struct rxe_dev *rxe)
+>  
+>  	rxe->tfm = crypto_alloc_shash("crc32", 0, 0);
+>  	if (IS_ERR(rxe->tfm)) {
+> -		pr_err("failed to allocate crc algorithmi err:%ld",
+> +		pr_err("failed to allocate crc algorithm err:%ld",
 
-OK, the easiest way to make sure that only the things you want from his
-patches get through is to have you pull them into a branch and submit
-them yourself.  I'll only take the ones you submit to me, that way
-there is no confusion about whether or not you have checked them and
-approved them.
+nicer to add a newline too
 
-> Markus, what have you done to ensure your patches don't break
-> anything?
-> 
-> -Denny
-> 
--- 
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-   
-Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
