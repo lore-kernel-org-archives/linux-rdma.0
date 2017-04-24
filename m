@@ -1,52 +1,50 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [rdma-core v5 0/8]  Broadcom User Space RoCE Driver
-Date: Mon, 24 Apr 2017 15:51:40 -0600
-Message-ID: <20170424215140.GA14907@obsidianresearch.com>
-References: <1493059995-636-1-git-send-email-devesh.sharma@broadcom.com>
- <1493067443.3041.63.camel@redhat.com>
+From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH, untested] mlx5: Avoid that mlx5_ib_sg_to_klms() overflows the
+ klms[] array
+Date: Mon, 24 Apr 2017 15:15:28 -0700
+Message-ID: <8992bd28-667f-94b1-e582-106e6b41aa4b@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1493067443.3041.63.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 24, 2017 at 04:57:23PM -0400, Doug Ledford wrote:
+ib_map_mr_sg() can pass an SG-list to .map_mr_sg() that is larger
+than what fits into a single MR. .map_mr_sg() must not attempt to
+map more SG-list elements than what fits into a single MR.
+Hence make sure that mlx5_ib_sg_to_klms() does not write outside
+the MR klms[] array.
 
-> I'm not aware of anyway, which is always possible, I prefer to see
-> mutexes instead of spin locks in user space because they are safer and
-> more likely to result in forward progress in the event of
-> contention.
+Fixes: b005d3164713 ("mlx5: Add arbitrary sg list support")
+Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Reviewed-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/mr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-It is true that if the callers of verbs adjust their thread priorities
-we will certainly completely fail to make forward progess in the worst
-case situations, as high priority waiters will no yield the CPU.
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index d9c6c0ea750b..99beacfc4716 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -1777,7 +1777,7 @@ mlx5_ib_sg_to_klms(struct mlx5_ib_mr *mr,
+ 	mr->ndescs = sg_nents;
+ 
+ 	for_each_sg(sgl, sg, sg_nents, i) {
+-		if (unlikely(i > mr->max_descs))
++		if (unlikely(i >= mr->max_descs))
+ 			break;
+ 		klms[i].va = cpu_to_be64(sg_dma_address(sg) + sg_offset);
+ 		klms[i].bcount = cpu_to_be32(sg_dma_len(sg) - sg_offset);
+-- 
+2.12.2
 
-For this reason alone it is probably a really bad idea to use
-spinlocks at all in library code.
-
-However, AFAIK, default pthread mutexes well known to be much slower
-than spinlocks for various cases. They have weird performance aspects
-from the fairness policy on unlock we may not really want.
-
-Perahps this is why Sean open-coded locks using atomics in rdmacm and
-acm?
-
-However, there are many kinds of mutex locks in glibc, and perhaps
-something like PTHREAD_MUTEX_ADAPTIVE_NP gives performance close to a
-spinlock?
-
-Someone would have to benchmark different options and see.
-
-Since we are so very performance sensitive, we might do well to
-open-code our own locking primitive, similar to
-PTHREAD_MUTEX_ADAPTIVE_NP, based on futexes. Inlining the
-non-contended case alone would probably be notably helpful.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
