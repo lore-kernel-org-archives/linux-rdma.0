@@ -1,32 +1,63 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [rdma-core v5 0/8]  Broadcom User Space RoCE Driver
-Date: Mon, 24 Apr 2017 23:47:05 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB1169E4@ORSMSX109.amr.corp.intel.com>
-References: <1493059995-636-1-git-send-email-devesh.sharma@broadcom.com>
- <1493067443.3041.63.camel@redhat.com>
- <20170424215140.GA14907@obsidianresearch.com>
+From: Felix Manlunas <felix.manlunas@cavium.com>
+Subject: Re: [PATCH 7/7] liquidio: use pcie_flr instead of duplicating it
+Date: Mon, 24 Apr 2017 18:53:11 -0700
+Message-ID: <20170425015311.GA1020@felix-thinkpad.cavium.com>
+References: <20170414191131.14286-1-hch@lst.de>
+ <20170414191131.14286-8-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170424215140.GA14907-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170414191131.14286-8-hch@lst.de>
+Sender: linux-pci-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Giovanni Cabiddu <giovanni.cabiddu@intel.com>, Salvatore Benedetto <salvatore.benedetto@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Derek Chickles <derek.chickles@caviumnetworks.com>, Satanand Burla <satananda.burla@caviumnetworks.com>, Felix Manlunas <felix.manlunas@caviumnetworks.com>, Raghu Vatsavayi <raghu.vatsavayi@caviumnetworks.com>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, linux-pci@vger.kernel.org, qat-linux@intel.com, linux-crypto@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-> However, AFAIK, default pthread mutexes well known to be much slower
-> than spinlocks for various cases. They have weird performance aspects
-> from the fairness policy on unlock we may not really want.
+From: Christoph Hellwig <hch@lst.de> 
+Date: Fri, 14 Apr 2017 21:11:31 +0200
+
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  drivers/net/ethernet/cavium/liquidio/lio_vf_main.c | 15 +--------------
+>  1 file changed, 1 insertion(+), 14 deletions(-)
 > 
-> Perahps this is why Sean open-coded locks using atomics in rdmacm and
-> acm?
+> diff --git a/drivers/net/ethernet/cavium/liquidio/lio_vf_main.c b/drivers/net/ethernet/cavium/liquidio/lio_vf_main.c
+> index 9d5e03502c76..afdbf7fa016e 100644
+> --- a/drivers/net/ethernet/cavium/liquidio/lio_vf_main.c
+> +++ b/drivers/net/ethernet/cavium/liquidio/lio_vf_main.c
+> @@ -869,20 +869,7 @@ static void octeon_pci_flr(struct octeon_device *oct)
+>  	pci_write_config_word(oct->pci_dev, PCI_COMMAND,
+>  			      PCI_COMMAND_INTX_DISABLE);
+>  
+> -	/* Wait for Transaction Pending bit clean */
+> -	msleep(100);
+> -	pcie_capability_read_word(oct->pci_dev, PCI_EXP_DEVSTA, &status);
+> -	if (status & PCI_EXP_DEVSTA_TRPND) {
+> -		dev_info(&oct->pci_dev->dev, "Function reset incomplete after 100ms, sleeping for 5 seconds\n");
+> -		ssleep(5);
+> -		pcie_capability_read_word(oct->pci_dev, PCI_EXP_DEVSTA,
+> -					  &status);
+> -		if (status & PCI_EXP_DEVSTA_TRPND)
+> -			dev_info(&oct->pci_dev->dev, "Function reset still incomplete after 5s, reset anyway\n");
+> -	}
+> -	pcie_capability_set_word(oct->pci_dev, PCI_EXP_DEVCTL,
+> -				 PCI_EXP_DEVCTL_BCR_FLR);
+> -	mdelay(100);
+> +	pcie_flr(oct->pci_dev);
+>  
+>  	pci_cfg_access_unlock(oct->pci_dev);
+>  
+> -- 
+> 2.11.0
+> 
 
-I went with open-coded locks based on v-tune (or whatever it's called now -- I should really know this) performance analysis and benchmarking data.  I don't recall the performance gains, but it was definitely measureable.
+This patch works.  I tested it on a LiquidIO NIC and the "next" branch of the
+PCI git tree.
 
-- Sean
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+But the patch causes a gcc warning:
+
+    .../lio_vf_main.c: In function 'octeon_pci_flr':
+    .../lio_vf_main.c:862:6: warning: unused variable 'status' [-Wunused-variable]
+
+Can you rework the patch to get rid of the warning?  Thanks.
