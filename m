@@ -1,26 +1,42 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2] infiniband/uverbs: Fix integer overflows
-Date: Tue, 25 Apr 2017 15:18:42 -0400
-Message-ID: <1493147922.3041.88.camel@redhat.com>
-References: <1490385317-35641-1-git-send-email-vlad@tsyrklevich.net>
-         <1490385702.3312.18.camel@sandisk.com>
-         <CAH0z3hM8a4Hra3+gvz5HeFBcmkqmP0KhFQsFQh30SActK+p7mg@mail.gmail.com>
+Subject: Re: [RESEND PATCH 3/3] infiniband: hns: avoid gcc-7.0.1 warning for
+ uninitialized data
+Date: Tue, 25 Apr 2017 15:19:03 -0400
+Message-ID: <1493147943.3041.89.camel@redhat.com>
+References: <20170324220250.2193128-1-arnd@arndb.de>
+         <20170324220250.2193128-2-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAH0z3hM8a4Hra3+gvz5HeFBcmkqmP0KhFQsFQh30SActK+p7mg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20170324220250.2193128-2-arnd-r2nGTMty4D4@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vlad Tsyrklevich <vlad-NIZqynvkaCU43zv7NVfAiQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "David S . Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Daode Huang <huangdaode-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, Kejian Yan <yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Qianqian Xie <xieqianqian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Yisen Zhuang <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-03-24 at 16:45 -0400, Vlad Tsyrklevich wrote:
-> [replying again to the list with HTML e-mails turned off]
+On Fri, 2017-03-24 at 23:02 +0100, Arnd Bergmann wrote:
+> hns_roce_v1_cq_set_ci() calls roce_set_bit() on an uninitialized
+> field,
+> which will then change only a few of its bits, causing a warning with
+> the latest gcc:
 > 
-> I doubt it. I chose to implement a naive integer overflow check here
-> instead of checking against some device-specific value since I'm
-> unfamiliar with the infiniband internals and don't have appropriate
-> hardware to test such a change against.
+> infiniband/hw/hns/hns_roce_hw_v1.c: In function
+> 'hns_roce_v1_cq_set_ci':
+> infiniband/hw/hns/hns_roce_hw_v1.c:1854:23: error: 'doorbell[1]' is
+> used uninitialized in this function [-Werror=uninitialized]
+>   roce_set_bit(doorbell[1], ROCEE_DB_OTHERS_H_ROCEE_DB_OTH_HW_SYNS_S,
+> 1);
+> 
+> The code is actually correct since we always set all bits of the
+> port_vlan field, but gcc correctly points out that the first
+> access does contain uninitialized data.
+> 
+> This initializes the field to zero first before setting the
+> individual bits.
+> 
+> Fixes: 9a4435375cd1 ("IB/hns: Add driver files for hns RoCE driver")
+> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
 
 Thanks, applied.
 
