@@ -1,76 +1,64 @@
-From: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] IB/IPoIB: Check the headroom size
-Date: Tue, 25 Apr 2017 14:43:59 +0300
-Message-ID: <CAAk-MO-B8Liv6RyGye_Fx-9OELCUrGMj5SwK9UsciC=khSO5fA@mail.gmail.com>
-References: <1493114155-12101-1-git-send-email-honli@redhat.com>
- <CAJ3xEMg4_2ph7QwPsUb-tX-K4d2ppkqz98sPzytsmBCK=29WHw@mail.gmail.com>
- <CAAk-MO8O19iC2Yn-BMn5pKTAYxaSzGPMyta=fwes3XSvzmz_cQ@mail.gmail.com> <CAJ3xEMgw=9sj3rdahPEiST_yDfDJPNSZZLRn43tnb3bK4_RPzg@mail.gmail.com>
+From: Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
+Subject: Re: [RFC 1/8] Introduce Peer-to-Peer memory (p2pmem) device
+Date: Tue, 25 Apr 2017 13:58:53 +0200 (CEST)
+Message-ID: <117239810.400362790.1493121533234.JavaMail.zimbra@kalray.eu>
+References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
+ <c8edc480-a2ac-a763-8438-18f3396db483@deltatee.com>
+ <e2165253dc355d5cb223e754d78047b1@codeaurora.org>
+ <c5d7da85-41fd-2769-fcf8-b3c2a1fab95f@deltatee.com>
+ <f0448277-9381-5c3d-d194-1efa1d1b44a6@codeaurora.org>
+ <63d73995-4dfa-6270-ca13-972e0628011b@deltatee.com>
+ <bed80d4e-7709-5991-498e-0ac361ca96a6@codeaurora.org>
+ <ef507444-d3e5-0454-86a0-b5c4ae4b4dd9@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMgw=9sj3rdahPEiST_yDfDJPNSZZLRn43tnb3bK4_RPzg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <ef507444-d3e5-0454-86a0-b5c4ae4b4dd9-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 25, 2017 at 2:14 PM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> On Tue, Apr 25, 2017 at 2:11 PM, Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->> On Tue, Apr 25, 2017 at 1:32 PM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->>> On Tue, Apr 25, 2017 at 12:55 PM, Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->>>> From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->>>>
->>>> Minimal hard_header_len set by bond_compute_features is ETH_HLEN, which
->>>> is smaller than IPOIB_HARD_LEN. ipoib_hard_header should check the
->>>> size of headroom to avoid skb_under_panic.
->>>
->>> sounds terrible, ipoib bonding is supported since ~2007, thanks for
->>> reporting on that.
->>>
->>>> [  122.871493] ipoib_hard_header: skb->head= ffff8808179d9400, skb->data= ffff8808179d9420, skb_headroom= 0x20
->>>> [  123.055400] bond0: Releasing backup interface mthca_ib1
->>>> [  123.560529] bond_compute_features:1112 bond0 bond_dev->hard_header_len = 14
->>>> [  123.568822] CPU: 0 PID: 12336 Comm: ifdown-ib Not tainted 4.9.0-debug #1
->>>
->>> did you generate this trace by calling dump_stack or this is existing
->>> kernel code.
->>>
->>>> Fixes: fc791b633515 ('IB/ipoib: move back IB LL address into the hard header')
->>>
->>> this is more of WA to avoid some crash or failure but not fixing the
->>> actual problem
->>>
->>> Erez, can you comment?
->>
->> We saw that after commit fc791b633515, it happened while removing bond
->> interface after its slaves (ipoib interface) removed.
->> At that point the bond interface sets its dev_harheader_len to be as
->> eth interfaces (14 instead of 24), and if a process which doesn't
->> aware of the slaves removal or was at the middle of the sending tries
->> to send (igmp) packet it goes to ipoib with no space in the skb for
->> it, and here comes the panic.
->
-> thanks for the info. Is this bug there since ipoib/bonding day one
-> (and hence my bug...)
-> or was indeed introduced later? if later, can you explain how
-> fc791b633515 introduced
-> that or you only know it by bisection?
+> On 02/04/17 03:03 PM, Sinan Kaya wrote:
+>> Push the decision all the way to the user. Let them decide whether they
+>> want this feature to work on a root port connected port or under the
+>> switch.
+> 
+> Yes, I prefer this too. If other folks agree with that I'd be very happy
+> to go back to user chooses. I think Sagi was the most vocal proponent
+> for kernel chooses at LSF so hopefully he will read this thread and
+> offer some opinion.
+> 
+>> I thought the issue was feature didn't work at all with some root ports
+>> or there was some kind of memory corruption issue that you were trying to
+>> avoid with the existing systems.
+> 
+> I *think* there are some much older root ports where P2P TLPs don't even
+> get through. But it doesn't really change the situation: in the nvmet
+> case, the user would enable p2pmem and then be unable to connect and
+> thus choose to disable it going forward. Not a big difference from the
+> user seeing bad performance and not choosing to enable it.
+> 
+>> I think you should get rid of all pci searching business in your code.
+> 
+> Yes, my original proposal was when you configure the nvme target you
+> chose the specific p2pmem device to use. That code had no tie ins to PCI
+> code and could, in theory, work generically with any device and bus.
+> 
 
-commit "fc791b633515" changes the size of the dev_hardlen to be 24 and
-required 24 extra bytes in the skb, before it was only 4, if skb is
-aligned to eth "mode" it already has 14 bytes for hard-header.
-So only after that commit we have the issue.
+I would add one issue that doesn't seem to be addressed: in my experience
+P2P doesn't work when IOMMU activated. It works best with deactivation at
+the BIOS level, even the kernel options are not enough in some cases.
 
->
->> I agree with you that this fix is w/a, and it is a fix in the data
->> path for all the packets while the panic is in a control flow. It
->> probably should be fixed in the bonding driver.
->
-> so what's your suggestion? fc791b633515 is 6m old, and it means the bug
-> is in stable kernels and probably also in inbox drivers
->
-> Or.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This is another argument to leave the chose to user/integrator.
+
+Marta
