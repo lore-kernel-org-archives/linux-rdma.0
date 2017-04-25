@@ -1,76 +1,71 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: dedicated list for rdma userspace programming
-Date: Tue, 25 Apr 2017 20:56:50 +0300
-Message-ID: <20170425175650.GR14088@mtr-leonro.local>
-References: <20170424114733.GI14088@mtr-leonro.local>
- <CACaajQs=04be-QDFgqjXj4u=qp4wC6KFU8y5g=kR7vkV0QkbdQ@mail.gmail.com>
- <20170424123413.GJ14088@mtr-leonro.local>
- <CACaajQueUDeiqb0jyPPT-OFL=sgEn=apffC2SpLFZR2pbi04fg@mail.gmail.com>
- <20170424181351.GM14088@mtr-leonro.local>
- <CACaajQvf4fioVGoYqJexhOAbNFJPK0aYGbFW+52z3NFU9RKQcA@mail.gmail.com>
- <20170424183137.GA27506@obsidianresearch.com>
- <CACaajQt8WZrCWXN5-JGovCcknwV9TKiy5gntzNmTjpmdxf6PJg@mail.gmail.com>
- <20170424201033.GA28656@obsidianresearch.com>
- <CACaajQsMdNt++M=DStZ+27km04xNRRxpbcrSGS9av_qtUgPJHA@mail.gmail.com>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH, untested] mlx5: Avoid that mlx5_ib_sg_to_klms()
+ overflows the klms[] array
+Date: Tue, 25 Apr 2017 20:58:49 +0300
+Message-ID: <20170425175849.GS14088@mtr-leonro.local>
+References: <8992bd28-667f-94b1-e582-106e6b41aa4b@sandisk.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="8QM4kKE+nfbBA4vJ"
+        protocol="application/pgp-signature"; boundary="owpTafYe/1tj88Rh"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CACaajQsMdNt++M=DStZ+27km04xNRRxpbcrSGS9av_qtUgPJHA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <8992bd28-667f-94b1-e582-106e6b41aa4b-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---8QM4kKE+nfbBA4vJ
+--owpTafYe/1tj88Rh
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Apr 25, 2017 at 02:29:58PM +0300, Vasiliy Tolstov wrote:
-> 2017-04-24 23:10 GMT+03:00 Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>:
-> > Sorry, I ment the kernel API to userspace. The internal kernal API is
-> > internally complete of course.
+On Mon, Apr 24, 2017 at 03:15:28PM -0700, Bart Van Assche wrote:
+> ib_map_mr_sg() can pass an SG-list to .map_mr_sg() that is larger
+> than what fits into a single MR. .map_mr_sg() must not attempt to
+> map more SG-list elements than what fits into a single MR.
+> Hence make sure that mlx5_ib_sg_to_klms() does not write outside
+> the MR klms[] array.
 >
+> Fixes: b005d3164713 ("mlx5: Add arbitrary sg list support")
+> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+> Reviewed-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+> Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/mlx5/mr.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> =(. SO as i understand i need to know how mellanox userspace library
-> interract with kernel and hardware ?
 
-Despite the fact that this guide [1] lacks RDMA part, the concepts and
-software interfaces can help you understand (reverse engineering)
-Mellanox HW.
+Bart,
 
-[1] http://www.mellanox.com/related-docs/user_manuals/Ethernet_Adapters_Programming_Manual.pdf
+Thanks a lot, it indeed looks right.
+Acked-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
 Thanks
 
->
-> --
-> Vasiliy Tolstov,
-> e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
-
---8QM4kKE+nfbBA4vJ
+--owpTafYe/1tj88Rh
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj/jeIACgkQ5GN7iDZy
-WKd8bA/+O4GpAO60iivNDm6yO8qY4LN6wkAmImU4msPpTx117ADx66YTA4dtv4RD
-uQkkKlb0Xm04oAUIqmatwau129uyDptzG9K3ItRow/MsK71Ua05NcMD8xAb9nSUN
-cdfT7z72ExOAcRDU/vkdJTO1ItuQ2Cdnk8xXyxYcLKhqhbTQQMfFzbRfEDC/gUn8
-/EKiqESn3Kqezcksyf45gx3pdwFceEa5abuZDObWCWkoDt3mzFnP7DvsEo7MBgUJ
-OUSstS0o1MQ0RsGcJ8rYScsjWxJ6ffMRY+vT5Yc40bRF/pheQbayfShMZN5GjgNi
-rorWbbdU8InrJBDUj+MsTpefcnlYHo/hu+asGCHgY0p/XHiNPaUDeDqR3eSZmILM
-F77gclRyuwn6sVIImxmwULEq0Yt8CyqhO2U4cHWbYS/u3XgNDEV0SCT85PLjMAD7
-q8hc91Au0Kqdc4lpUkOeND6t4we+SewWZDJ8w319wtK15me7f2ZCKerFJxuImhB/
-Cksj/w+x9ihky+lvzUNOylLPxlg3GFz04E6oqEjJUrcWR92Xkai5jWLCrWOTU9dg
-I/tk8mGkY+49O7Uq288GepVqZV9F4hs6k55wl8PHHiTvcmalcR0+G7xa7AEh0uZj
-Tw28C23YXtXPT3IxLv+HAUouwkTkqCuguX56mrw/wBoqiPYgKSI=
-=uI4Z
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj/jlkACgkQ5GN7iDZy
+WKfDlhAAlm/5g5G0zpE4roTyGDuPsOOB67+EzyihCe36OgCHhpkEhmE8qPYIxdjO
+wy0fBpmPZuKVDLKMsrpckY+Fgu+0Rzsnf5Qlyf9TB2z6xfl56XdnYBfvJWKo1zPo
+jWG1LYUVbM4mCBns/yTqIEhGBWAArJ9j7vt2Afe2ruPNZle8iqMJSvbPueRx77bO
+OoWfZjTSmwkQxnmGZnocUyf1fmaw9niaa4vw3XhnPtnRC0hg13uX85u/MSBWRO9C
+KtTaj5gO69Xc7EzrAq8tuyRL/MXRLrwtuS1b2hGp/0gcVBMdDKzO+Ux44sp5tEz6
+NzQ8OyNTcdGon0ofEnagMueaOoiIoYl1hOQNmbkVMwMKJJZtAvKtNCdqr/1r0YpM
+NN26az+DuAw7ivZdwnRKcFfYA/u52dAMgwva/8nL6WsJtl7/0JGpd/rtoDDOK/V8
+DXBM2OKndG0W9TJFBAphU5hgF+Vo8JgK2PpDZdoKiQY0PKQ2N/zmD3ySZBZwYjL6
+dcWQWfld7ya/qoB0cnQAnwwpTuK8wMOFJHt1gj7Ym5IullKS8eNnBMGyLJAkZCyD
+bsbUY7wU2+6gHmotfAvdUV3b32ywYP3Cu2YEFtxsVAD1t2PdiqkF0j7FK6334fqL
+pKpxtSOOwlYNk6u+R5ap16sP/5E9v7IwTqc8IeFL1bz1JLrZwDc=
+=T5+L
 -----END PGP SIGNATURE-----
 
---8QM4kKE+nfbBA4vJ--
+--owpTafYe/1tj88Rh--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
