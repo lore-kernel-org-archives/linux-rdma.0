@@ -1,45 +1,72 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RESEND PATCH 3/3] infiniband: hns: avoid gcc-7.0.1 warning for
- uninitialized data
-Date: Tue, 25 Apr 2017 15:19:03 -0400
-Message-ID: <1493147943.3041.89.camel@redhat.com>
-References: <20170324220250.2193128-1-arnd@arndb.de>
-         <20170324220250.2193128-2-arnd@arndb.de>
+Subject: Re: [PATCH v2 09/23] MAINTAINERS: Add file patterns for infiniband
+ device tree bindings
+Date: Tue, 25 Apr 2017 15:21:19 -0400
+Message-ID: <1493148079.3041.90.camel@redhat.com>
+References: <1489324627-19126-1-git-send-email-geert@linux-m68k.org>
+         <1489324627-19126-10-git-send-email-geert@linux-m68k.org>
+         <1490409626.2404.42.camel@redhat.com>
+         <CAMuHMdVjzXFE19SW++38+EdpnsZx+j54U5CqTeRkN-4cknQ6BA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170324220250.2193128-2-arnd-r2nGTMty4D4@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "David S . Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Daode Huang <huangdaode-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, Kejian Yan <yankejian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Qianqian Xie <xieqianqian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Yisen Zhuang <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAMuHMdVjzXFE19SW++38+EdpnsZx+j54U5CqTeRkN-4cknQ6BA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+Cc: "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-03-24 at 23:02 +0100, Arnd Bergmann wrote:
-> hns_roce_v1_cq_set_ci() calls roce_set_bit() on an uninitialized
-> field,
-> which will then change only a few of its bits, causing a warning with
-> the latest gcc:
+On Sun, 2017-03-26 at 10:45 +0200, Geert Uytterhoeven wrote:
+> Hi Doug,
 > 
-> infiniband/hw/hns/hns_roce_hw_v1.c: In function
-> 'hns_roce_v1_cq_set_ci':
-> infiniband/hw/hns/hns_roce_hw_v1.c:1854:23: error: 'doorbell[1]' is
-> used uninitialized in this function [-Werror=uninitialized]
->   roce_set_bit(doorbell[1], ROCEE_DB_OTHERS_H_ROCEE_DB_OTH_HW_SYNS_S,
-> 1);
+> On Sat, Mar 25, 2017 at 3:40 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> wrote:
+> > 
+> > On Sun, 2017-03-12 at 14:16 +0100, Geert Uytterhoeven wrote:
+> > > 
+> > > Submitters of device tree binding documentation may forget to CC
+> > > the subsystem maintainer if this is missing.
+> > > 
+> > > Signed-off-by: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+> > > Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> > > Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> > > Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > > ---
+> > > Please apply this patch directly if you want to be involved in
+> > > device
+> > > tree binding documentation for your subsystem.
+> > 
+> > I assume this is going through someone else' tree since I only see
 > 
-> The code is actually correct since we always set all bits of the
-> port_vlan field, but gcc correctly points out that the first
-> access does contain uninitialized data.
-> 
-> This initializes the field to zero first before setting the
-> individual bits.
-> 
-> Fixes: 9a4435375cd1 ("IB/hns: Add driver files for hns RoCE driver")
-> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+> That wasn't my intention, though, cfr. the quoted paragraph above
+> ("you" and "your subsystem").
 
-Thanks, applied.
+Sorry, I didn't catch that in the original message.  I've applied it to
+my tree.
 
+> > 
+> > patch 09 of 23 and not the entire series.  But, for this specific
+> > patch:
+> > 
+> > Acked-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> 
+> Thanks!
+> 
+> Gr{oetje,eeting}s,
+> 
+>                         Geert
+> 
+> --
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linu
+> x-m68k.org
+> 
+> In personal conversations with technical people, I call myself a
+> hacker. But
+> when I'm talking to journalists I just say "programmer" or something
+> like that.
+>                                 -- Linus Torvalds
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG KeyID: B826A3330E572FDD
@@ -47,6 +74,6 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
