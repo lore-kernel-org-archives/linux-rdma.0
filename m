@@ -1,10 +1,8 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: dedicated list for rdma userspace programming
-Date: Tue, 25 Apr 2017 17:13:03 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB116E48@ORSMSX109.amr.corp.intel.com>
-References: <20170424104259.GH14088@mtr-leonro.local>
- <CACaajQu9y2HawOjeuwjYSHeFmYfhWreQORB5_61nPiEspoQ2JA@mail.gmail.com>
- <20170424114733.GI14088@mtr-leonro.local>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: dedicated list for rdma userspace programming
+Date: Tue, 25 Apr 2017 11:39:12 -0600
+Message-ID: <20170425173912.GA6242@obsidianresearch.com>
+References: <20170424114733.GI14088@mtr-leonro.local>
  <CACaajQs=04be-QDFgqjXj4u=qp4wC6KFU8y5g=kR7vkV0QkbdQ@mail.gmail.com>
  <20170424123413.GJ14088@mtr-leonro.local>
  <CACaajQueUDeiqb0jyPPT-OFL=sgEn=apffC2SpLFZR2pbi04fg@mail.gmail.com>
@@ -15,24 +13,33 @@ References: <20170424104259.GH14088@mtr-leonro.local>
  <20170424201033.GA28656@obsidianresearch.com>
  <CACaajQsMdNt++M=DStZ+27km04xNRRxpbcrSGS9av_qtUgPJHA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 In-Reply-To: <CACaajQsMdNt++M=DStZ+27km04xNRRxpbcrSGS9av_qtUgPJHA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
 Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiA9KC4gU08gYXMgaSB1bmRlcnN0YW5kIGkgbmVlZCB0byBrbm93IGhvdyBtZWxsYW5veCB1c2Vy
-c3BhY2UgbGlicmFyeQ0KPiBpbnRlcnJhY3Qgd2l0aCBrZXJuZWwgYW5kIGhhcmR3YXJlID8NCg0K
-WWVzIC0gdGhpcyBpcyB0cnVlIGZvciBhbnkgUkRNQSBoYXJkd2FyZS4gIFlvdSBtYXkgYmUgYWJs
-ZSB0byByZXZlcnNlIGVuZ2luZWVyIGl0IGJ5IGxvb2tpbmcgYXQgdGhlIHVzZXIgc3BhY2UgY29k
-ZSBmb3Igd2hpY2hldmVyIGhhcmR3YXJlIHlvdSdyZSBpbnRlcmVzdGVkIGluLiAgQWx0ZXJuYXRp
-dmVseSwgeW91IGNvdWxkIGFsd2F5cyB0YWtlIHRoZSBleGlzdGluZyBjb2RlIGFuZCByZS11c2Ug
-bW9zdCBvZiBpdCwgYnV0IHByb3ZpZGUgb3B0aW1pemVkIHZlcnNpb25zIG9mIHRhcmdldGVkIGNh
-bGxzLCBzdWNoIGFzIHBvc3Qgc2VuZC9yZWN2LCBjcSByZWFkLCBldGMuDQoNCi0gU2Vhbg0K
+On Tue, Apr 25, 2017 at 02:29:58PM +0300, Vasiliy Tolstov wrote:
+> 2017-04-24 23:10 GMT+03:00 Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>:
+> > Sorry, I ment the kernel API to userspace. The internal kernal API is
+> > internally complete of course.
+> 
+> 
+> =(. SO as i understand i need to know how mellanox userspace library
+> interract with kernel and hardware ?
+
+and also how to implement user space access to hardware in your new
+language, this includes something like the C11 multi-threaded memory
+model, unlocked atomics, and processor specific memory barriers (that
+even C requires inline asm for)
+
+You may find implementing the above at all will always require some
+kind of C calls out..
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
