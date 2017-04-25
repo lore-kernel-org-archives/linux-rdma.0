@@ -1,72 +1,42 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/IPoIB: Check the headroom size
-Date: Tue, 25 Apr 2017 11:40:15 -0400
-Message-ID: <1493134815.3041.72.camel@redhat.com>
-References: <1493114155-12101-1-git-send-email-honli@redhat.com>
-         <CAJ3xEMg4_2ph7QwPsUb-tX-K4d2ppkqz98sPzytsmBCK=29WHw@mail.gmail.com>
-         <CAAk-MO8O19iC2Yn-BMn5pKTAYxaSzGPMyta=fwes3XSvzmz_cQ@mail.gmail.com>
-         <CAJ3xEMgw=9sj3rdahPEiST_yDfDJPNSZZLRn43tnb3bK4_RPzg@mail.gmail.com>
-         <CAAk-MO-B8Liv6RyGye_Fx-9OELCUrGMj5SwK9UsciC=khSO5fA@mail.gmail.com>
-         <CAJ3xEMgwS1Bq8+eZC1iAr6xi8ZPHrchsOJ5r4LNJxR8P+6VipA@mail.gmail.com>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC 1/8] Introduce Peer-to-Peer memory (p2pmem) device
+Date: Tue, 25 Apr 2017 10:58:40 -0600
+Message-ID: <190d9a89-e227-e410-5886-ee2e20a9b941@deltatee.com>
+References: <1490911959-5146-1-git-send-email-logang@deltatee.com>
+ <c8edc480-a2ac-a763-8438-18f3396db483@deltatee.com>
+ <e2165253dc355d5cb223e754d78047b1@codeaurora.org>
+ <c5d7da85-41fd-2769-fcf8-b3c2a1fab95f@deltatee.com>
+ <f0448277-9381-5c3d-d194-1efa1d1b44a6@codeaurora.org>
+ <63d73995-4dfa-6270-ca13-972e0628011b@deltatee.com>
+ <bed80d4e-7709-5991-498e-0ac361ca96a6@codeaurora.org>
+ <ef507444-d3e5-0454-86a0-b5c4ae4b4dd9@deltatee.com>
+ <117239810.400362790.1493121533234.JavaMail.zimbra@kalray.eu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJ3xEMgwS1Bq8+eZC1iAr6xi8ZPHrchsOJ5r4LNJxR8P+6VipA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <117239810.400362790.1493121533234.JavaMail.zimbra-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-04-25 at 17:39 +0300, Or Gerlitz wrote:
-> On Tue, Apr 25, 2017 at 2:43 PM, Erez Shitrit <erezsh-LDSdmyG8hGUWn1LaSxwUnA@public.gmane.org
-> .il> wrote:
-> > 
-> > On Tue, Apr 25, 2017 at 2:14 PM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> > wrote:
-> 
-> > 
-> > > 
-> > > thanks for the info. Is this bug there since ipoib/bonding day
-> > > one (and hence my bug...)
-> > > or was indeed introduced later? if later, can you explain how
-> > > fc791b633515 introduced that or you only know it by bisection?
-> 
-> > 
-> > commit "fc791b633515" changes the size of the dev_hardlen to be 24
-> > and
-> > required 24 extra bytes in the skb, before it was only 4, if skb is
-> > aligned to eth "mode" it already has 14 bytes for hard-header.
-> > So only after that commit we have the issue.
-> 
-> If got you right, Paolo's commit introduced a regression, so we (I
-> guess you and
-> Paolo) need to either solve it or we (community) should consider a
-> revert, please suggest.
 
-It's a little more complex than that.  Paolo's commit *re-introduced* a
-regression.  If you recall, long ago the IPoIB layer stuck the dgid
-into the skb, then pulled it out later.  However, we didn't actually
-declare things properly back then, but it worked anyway.  Then we had
-the commit you authored to start using the skb->cb to store the dgid,
-and our usage of hard header dropped to only 4 bytes.  Paolo's commit
-went back to the old way of doing things, but also did the proper
-accounting and setup to tell the netstack what we were doing (which the
-initial implementation never did IIRC).  So, this issue should be
-reproducible either after Paolo's commit or with any kernel prior to
-your commit to use the skb->cb area to store the DGID, but it probably
-requires the specific series of actions in this bug to trigger it.  A
-normal, clean shutdown of the interface doesn't demonstrate the issue.
 
-> The bug is now in stable and distro kernels, so please act.
+On 25/04/17 05:58 AM, Marta Rybczynska wrote:
+> I would add one issue that doesn't seem to be addressed: in my experience
+> P2P doesn't work when IOMMU activated. It works best with deactivation at
+> the BIOS level, even the kernel options are not enough in some cases.
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-   
-Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+Well this would likely be addressed by 'arch_p2p_cross_segment' as
+proposed by Jason.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Logan
