@@ -1,39 +1,67 @@
-From: Vasiliy Tolstov <v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org>
-Subject: Re: dedicated list for rdma userspace programming
-Date: Tue, 25 Apr 2017 23:41:00 +0300
-Message-ID: <CACaajQsh+XUB=8T6YvSQv=70WHJuUxoSeYbh9Kn9bhCEDUH0EQ@mail.gmail.com>
-References: <20170424114733.GI14088@mtr-leonro.local> <CACaajQs=04be-QDFgqjXj4u=qp4wC6KFU8y5g=kR7vkV0QkbdQ@mail.gmail.com>
- <20170424123413.GJ14088@mtr-leonro.local> <CACaajQueUDeiqb0jyPPT-OFL=sgEn=apffC2SpLFZR2pbi04fg@mail.gmail.com>
- <20170424181351.GM14088@mtr-leonro.local> <CACaajQvf4fioVGoYqJexhOAbNFJPK0aYGbFW+52z3NFU9RKQcA@mail.gmail.com>
- <20170424183137.GA27506@obsidianresearch.com> <CACaajQt8WZrCWXN5-JGovCcknwV9TKiy5gntzNmTjpmdxf6PJg@mail.gmail.com>
- <20170424201033.GA28656@obsidianresearch.com> <CACaajQsMdNt++M=DStZ+27km04xNRRxpbcrSGS9av_qtUgPJHA@mail.gmail.com>
- <20170425173912.GA6242@obsidianresearch.com>
+From: Anna Schumaker <Anna.Schumaker-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
+Subject: [GIT PULL] Please pull NFSoRDMA client side changes for 4.12
+Date: Tue, 25 Apr 2017 16:53:11 -0400
+Message-ID: <d114d121-28f5-7057-e193-539260f92476@Netapp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170425173912.GA6242-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Trond Myklebust <trond.myklebust-7I+n7zu2hftEKMMhf/gKZA@public.gmane.org>
+Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-2017-04-25 20:39 GMT+03:00 Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>:
-> and also how to implement user space access to hardware in your new
-> language, this includes something like the C11 multi-threaded memory
-> model, unlocked atomics, and processor specific memory barriers (that
-> even C requires inline asm for)
->
-> You may find implementing the above at all will always require some
-> kind of C calls out..
+Hi Trond,
 
+The following changes since commit 39da7c509acff13fc8cb12ec1bb20337c988ed36:
 
-=( pkay i'm try to stuck at C code now. And if i have some problems,
-try to solve it
+  Linux 4.11-rc6 (2017-04-09 09:49:44 -0700)
 
--- 
-Vasiliy Tolstov,
-e-mail: v.tolstov-+9FY0jupvH6HXe+LvDLADg@public.gmane.org
+are available in the git repository at:
+
+  git://git.linux-nfs.org/projects/anna/nfs-rdma.git tags/nfs-rdma-4.12-1
+
+for you to fetch changes up to 2be1fce95e5b017dd7d23ca039d58cbefd0221e6:
+
+  xprtrdma: Remove rpcrdma_buffer::rb_pool (2017-04-25 16:12:35 -0400)
+----------------------------------------------------------------
+New Features:
+- Break RDMA connections after a connection timeout
+- Support for unloading the underlying device driver
+
+Bugfixes and cleanups:
+- Mark the receive workqueue as "read-mostly"
+- Silence warnings caused by ENOBUFS
+- Update a comment in xdr_init_decode_pages()
+- Remove rpcrdma_buffer->rb_pool.
+
+Thanks,
+Anna
+----------------------------------------------------------------
+Chuck Lever (13):
+      xprtrdma: Cancel refresh worker during buffer shutdown
+      sunrpc: Export xprt_force_disconnect()
+      xprtrdma: Detect unreachable NFS/RDMA servers more reliably
+      xprtrdma: Refactor rpcrdma_ia_open()
+      xprtrdma: Use same device when mapping or syncing DMA buffers
+      xprtrdma: Support unplugging an HCA from under an NFS mount
+      xprtrdma: Refactor rpcrdma_ep_connect
+      xprtrdma: Restore transport after device removal
+      xprtrdma: Revert commit d0f36c46deea
+      xprtrdma: Annotate receive workqueue
+      xprtrdma: Squelch ENOBUFS warnings
+      sunrpc: Fix xdr_init_decode_pages() documenting comment
+      xprtrdma: Remove rpcrdma_buffer::rb_pool
+
+ net/sunrpc/xdr.c                |   2 +-
+ net/sunrpc/xprt.c               |   1 +
+ net/sunrpc/xprtrdma/rpc_rdma.c  |  12 +++++----
+ net/sunrpc/xprtrdma/transport.c |  57 +++++++++++++++++++++++++++++++++------
+ net/sunrpc/xprtrdma/verbs.c     | 323 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++------------------------------------------------------------------------
+ net/sunrpc/xprtrdma/xprt_rdma.h |  22 ++++++++++++---
+ 6 files changed, 295 insertions(+), 122 deletions(-)
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
