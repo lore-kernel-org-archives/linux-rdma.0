@@ -1,71 +1,77 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH, untested] mlx5: Avoid that mlx5_ib_sg_to_klms()
- overflows the klms[] array
-Date: Tue, 25 Apr 2017 20:58:49 +0300
-Message-ID: <20170425175849.GS14088@mtr-leonro.local>
-References: <8992bd28-667f-94b1-e582-106e6b41aa4b@sandisk.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: rdmacm-utils: Missing man pages for cmtime and udpong
+Date: Tue, 25 Apr 2017 21:04:23 +0300
+Message-ID: <20170425180423.GT14088@mtr-leonro.local>
+References: <1493040510.17795.3.camel@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="owpTafYe/1tj88Rh"
+        protocol="application/pgp-signature"; boundary="U/fW6JBK3GqE0Htg"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <8992bd28-667f-94b1-e582-106e6b41aa4b-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1493040510.17795.3.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---owpTafYe/1tj88Rh
-Content-Type: text/plain; charset=us-ascii
+
+--U/fW6JBK3GqE0Htg
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Apr 24, 2017 at 03:15:28PM -0700, Bart Van Assche wrote:
-> ib_map_mr_sg() can pass an SG-list to .map_mr_sg() that is larger
-> than what fits into a single MR. .map_mr_sg() must not attempt to
-> map more SG-list elements than what fits into a single MR.
-> Hence make sure that mlx5_ib_sg_to_klms() does not write outside
-> the MR klms[] array.
+On Mon, Apr 24, 2017 at 03:28:30PM +0200, Benjamin Drung wrote:
+> Hi,
 >
-> Fixes: b005d3164713 ("mlx5: Add arbitrary sg list support")
-> Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> Reviewed-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-> Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-> ---
->  drivers/infiniband/hw/mlx5/mr.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> the rdmacm-utils binaries cmtime and udpong do not have a corresponding
+>  man page. Please add some since Debian recommends to ship man pages
+> for all binaries.
+
+Is it requirement or recommendation?
+
 >
+> --
+> Benjamin Drung
+> System Developer
+> Debian & Ubuntu Developer
+>
+> ProfitBricks GmbH
+> Greifswalder Str. 207
+> D - 10405 Berlin
+>
+> Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
+> Web:=A0https://www.profitbricks.com
+>
+> Sitz der Gesellschaft: Berlin.
+> Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
+> Gesch=E4ftsf=FChrer: Achim Weiss.
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Bart,
-
-Thanks a lot, it indeed looks right.
-Acked-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-Thanks
-
---owpTafYe/1tj88Rh
+--U/fW6JBK3GqE0Htg
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj/jlkACgkQ5GN7iDZy
-WKfDlhAAlm/5g5G0zpE4roTyGDuPsOOB67+EzyihCe36OgCHhpkEhmE8qPYIxdjO
-wy0fBpmPZuKVDLKMsrpckY+Fgu+0Rzsnf5Qlyf9TB2z6xfl56XdnYBfvJWKo1zPo
-jWG1LYUVbM4mCBns/yTqIEhGBWAArJ9j7vt2Afe2ruPNZle8iqMJSvbPueRx77bO
-OoWfZjTSmwkQxnmGZnocUyf1fmaw9niaa4vw3XhnPtnRC0hg13uX85u/MSBWRO9C
-KtTaj5gO69Xc7EzrAq8tuyRL/MXRLrwtuS1b2hGp/0gcVBMdDKzO+Ux44sp5tEz6
-NzQ8OyNTcdGon0ofEnagMueaOoiIoYl1hOQNmbkVMwMKJJZtAvKtNCdqr/1r0YpM
-NN26az+DuAw7ivZdwnRKcFfYA/u52dAMgwva/8nL6WsJtl7/0JGpd/rtoDDOK/V8
-DXBM2OKndG0W9TJFBAphU5hgF+Vo8JgK2PpDZdoKiQY0PKQ2N/zmD3ySZBZwYjL6
-dcWQWfld7ya/qoB0cnQAnwwpTuK8wMOFJHt1gj7Ym5IullKS8eNnBMGyLJAkZCyD
-bsbUY7wU2+6gHmotfAvdUV3b32ywYP3Cu2YEFtxsVAD1t2PdiqkF0j7FK6334fqL
-pKpxtSOOwlYNk6u+R5ap16sP/5E9v7IwTqc8IeFL1bz1JLrZwDc=
-=T5+L
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlj/j6cACgkQ5GN7iDZy
+WKdm2RAAotSYo1fLIIbchNu7p5/JMUjq1FrH5QjrkfhagXUrGVbwLKWcXh/f6w4Q
+UrVdzlK03lL7ra4Zlve1nOekuqYRhuojpS06w4NSBHiIZpmefKyoUNblXIgF5axQ
+i7BAy+I1dw5Cnninq+SfW/Q32hH3y7ueggk1MKalXID0g+IN5YEf1uGyPCuwctnf
+qgc92u4tYdANwi2XVfyLrry3mcRdVql3P+fRxF6VCMXzaLAAyGTqoQNN7TTx3vO9
+dKac2/lZsHvCQcZ0nSrLT5sm0ud57SZ/ktD72x84cVpK8D8a8MMooTfOv6aJ3Mut
+gHuZ9yBzX0E6/yWcS/UTXeNCEQuzP0ZNElCFCNrj1D3IntozsXfLn0bLc2bdoqdD
+0WQDldJ5Rfn+jFsWM/ulaKRCt7AYwNRiJBLrppD4w3rapJTPOzy/p6UGCUMISg/c
+71lqjnt39ebM82JagF2O/1XqlsFJt4DX/ykH+CvgpcNrrGhhoAPgJL3gGPTd6pAE
+FiNKByuNvbFYzn1JFVc01x8RG4lf6SbeOBKksU6mPWejCkOn3drbQHw0Pb37A6Kn
+Ci+G9MNdHRXCxw2ooqm0AcFvhPSUS+qaqXJMyuqyUEA/OKh6CGC1lIzzeDKxRBC4
+vAE6YJq1UqGqSEb7ZsI9YV0ICWLvoVE7+k29sxoVJsCnX4FKw5k=
+=zWCO
 -----END PGP SIGNATURE-----
 
---owpTafYe/1tj88Rh--
+--U/fW6JBK3GqE0Htg--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
