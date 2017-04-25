@@ -1,46 +1,54 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/usnic: Remove unused functions
-Date: Tue, 25 Apr 2017 14:13:52 -0400
-Message-ID: <1493144032.3041.82.camel@redhat.com>
-References: <1488398949-30263-1-git-send-email-yuval.shaia@oracle.com>
-         <20170302134822.GD9525@mtr-leonro.local> <20170424154950.GA2681@yuval-lap>
+From: Logan Gunthorpe <logang@deltatee.com>
+Subject: [PATCH v2 02/21] libiscsi: Add an internal error code
+Date: Tue, 25 Apr 2017 12:20:49 -0600
+Message-ID: <1493144468-22493-3-git-send-email-logang@deltatee.com>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170424154950.GA2681@yuval-lap>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dm-devel@redhat.com
+Cc: Jens Axboe <axboe@kernel.dk>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sumit Semwal <sumit.semwal@linaro.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>, Stephen Bates <sbates@raithlin.com>, Logan Gunthorpe <logang@deltatee.com>, Christoph Hellwig <hch@lst.de>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-04-24 at 18:49 +0300, Yuval Shaia wrote:
-> On Thu, Mar 02, 2017 at 03:48:22PM +0200, Leon Romanovsky wrote:
-> > 
-> > On Wed, Mar 01, 2017 at 10:09:09PM +0200, Yuval Shaia wrote:
-> > > 
-> > > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > > ---
-> > >  drivers/infiniband/hw/usnic/usnic_common_util.h | 29 ---------
-> > > ----------------
-> > >  1 file changed, 29 deletions(-)
-> > > 
-> > 
-> > Thanks,
-> > Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> Hi Doug,
-> If no more comments on this one can you consider taking it?
-
-I've pulled it in, thanks.
-
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-   
-Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+VGhpcyBpcyBhIHByZXAgcGF0Y2ggdG8gYWRkIGEgbmV3IGVycm9yIGNvZGUgdG8gbGliaXNjc2ku
+IFdlIHdhbnQgdG8KcmV3b3JrIHNvbWUga21hcCBjYWxscyB0byBiZSBhYmxlIHRvIGZhaWwuIFdo
+ZW4gd2UgZG8sIHdlJ2QgbGlrZSB0bwp1c2UgdGhpcyBlcnJvciBjb2RlLgoKVGhpcyBwYXRjaCBz
+aW1wbHkgaW50cm9kdWNlcyBJU0NTSV9UQ1BfSU5URVJOQUxfRVJSIGFuZCBwcmludHMKIkludGVy
+bmFsIEVycm9yLiIgd2hlbiBpdCBnZXRzIGhpdC4KClNpZ25lZC1vZmYtYnk6IExvZ2FuIEd1bnRo
+b3JwZSA8bG9nYW5nQGRlbHRhdGVlLmNvbT4KLS0tCiBkcml2ZXJzL3Njc2kvY3hnYmkvbGliY3hn
+YmkuYyB8IDUgKysrKysKIGluY2x1ZGUvc2NzaS9saWJpc2NzaV90Y3AuaCAgIHwgMSArCiAyIGZp
+bGVzIGNoYW5nZWQsIDYgaW5zZXJ0aW9ucygrKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvc2NzaS9j
+eGdiaS9saWJjeGdiaS5jIGIvZHJpdmVycy9zY3NpL2N4Z2JpL2xpYmN4Z2JpLmMKaW5kZXggYmQ3
+ZDM5ZS4uZTM4ZDBjMSAxMDA2NDQKLS0tIGEvZHJpdmVycy9zY3NpL2N4Z2JpL2xpYmN4Z2JpLmMK
+KysrIGIvZHJpdmVycy9zY3NpL2N4Z2JpL2xpYmN4Z2JpLmMKQEAgLTE1NTYsNiArMTU1NiwxMSBA
+QCBzdGF0aWMgaW5saW5lIGludCByZWFkX3BkdV9za2Ioc3RydWN0IGlzY3NpX2Nvbm4gKmNvbm4s
+CiAJCSAqLwogCQlpc2NzaV9jb25uX3ByaW50ayhLRVJOX0VSUiwgY29ubiwgIkludmFsaWQgcGR1
+IG9yIHNrYi4iKTsKIAkJcmV0dXJuIC1FRkFVTFQ7CisJY2FzZSBJU0NTSV9UQ1BfSU5URVJOQUxf
+RVJSOgorCQlwcl9pbmZvKCJza2IgMHglcCwgb2ZmICV1LCAlZCwgVENQX0lOVEVSTkFMX0VSUi5c
+biIsCisJCQlza2IsIG9mZnNldCwgb2ZmbG9hZGVkKTsKKwkJaXNjc2lfY29ubl9wcmludGsoS0VS
+Tl9FUlIsIGNvbm4sICJJbnRlcm5hbCBlcnJvci4iKTsKKwkJcmV0dXJuIC1FRkFVTFQ7CiAJY2Fz
+ZSBJU0NTSV9UQ1BfU0VHTUVOVF9ET05FOgogCQlsb2dfZGVidWcoMSA8PCBDWEdCSV9EQkdfUERV
+X1JYLAogCQkJInNrYiAweCVwLCBvZmYgJXUsICVkLCBUQ1BfU0VHX0RPTkUsIHJjICVkLlxuIiwK
+ZGlmZiAtLWdpdCBhL2luY2x1ZGUvc2NzaS9saWJpc2NzaV90Y3AuaCBiL2luY2x1ZGUvc2NzaS9s
+aWJpc2NzaV90Y3AuaAppbmRleCAzMDUyMGQ1Li45MDY5MWFkIDEwMDY0NAotLS0gYS9pbmNsdWRl
+L3Njc2kvbGliaXNjc2lfdGNwLmgKKysrIGIvaW5jbHVkZS9zY3NpL2xpYmlzY3NpX3RjcC5oCkBA
+IC05Miw2ICs5Miw3IEBAIGVudW0gewogCUlTQ1NJX1RDUF9TS0JfRE9ORSwJCS8qIHNrYiBpcyBv
+dXQgb2YgZGF0YSAqLwogCUlTQ1NJX1RDUF9DT05OX0VSUiwJCS8qIGlzY3NpIGxheWVyIGhhcyBm
+aXJlZCBhIGNvbm4gZXJyICovCiAJSVNDU0lfVENQX1NVU1BFTkRFRCwJCS8qIGNvbm4gaXMgc3Vz
+cGVuZGVkICovCisJSVNDU0lfVENQX0lOVEVSTkFMX0VSUiwgICAgICAgICAvKiBhbiBpbnRlcm5h
+bCBlcnJvciBvY2N1cnJlZCAqLwogfTsKIAogZXh0ZXJuIHZvaWQgaXNjc2lfdGNwX2hkcl9yZWN2
+X3ByZXAoc3RydWN0IGlzY3NpX3RjcF9jb25uICp0Y3BfY29ubik7Ci0tIAoyLjEuNAoKX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4IG1haWxp
+bmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJl
+ZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
