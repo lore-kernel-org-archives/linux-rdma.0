@@ -1,70 +1,71 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/fmr_pool: Convert the cleanup thread into kthread
- worker API
-Date: Tue, 25 Apr 2017 14:29:48 -0400
-Message-ID: <1493144988.3041.86.camel@redhat.com>
-References: <1476718772-9760-1-git-send-email-pmladek@suse.com>
+Subject: Re: [PATCH rdma_core] redhat spec: Avoid conflict due to implicit
+ directory add
+Date: Tue, 25 Apr 2017 15:03:26 -0400
+Message-ID: <1493147006.3041.87.camel@redhat.com>
+References: <9707bd97229b67fe04d29affcb37f61b80e20dca.1484143751.git-series.knut.omang@oracle.com>
+         <20170313170829.GD25664@obsidianresearch.com>
+         <6e210956-a4e0-242f-a24e-691f87de3ddb@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1476718772-9760-1-git-send-email-pmladek-IBi9RG/b67k@public.gmane.org>
+In-Reply-To: <6e210956-a4e0-242f-a24e-691f87de3ddb-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Petr Mladek <pmladek-IBi9RG/b67k@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2016-10-17 at 17:39 +0200, Petr Mladek wrote:
-> Kthreads are currently implemented as an infinite loop. Each
-> has its own variant of checks for terminating, freezing,
-> awakening. In many cases it is unclear to say in which state
-> it is and sometimes it is done a wrong way.
+On Mon, 2017-03-13 at 16:11 -0400, Jarod Wilson wrote:
+> On 2017-03-13 1:08 PM, Jason Gunthorpe wrote:
+> > 
+> > On Wed, Jan 11, 2017 at 03:19:34PM +0100, Knut Omang wrote:
+> > > 
+> > > If *-notation is used to include subdirectories, they
+> > > seem to end as explicit file additions. This causes conflicts
+> > > with other packages that provides the same
+> > > directories, in this case rdma_core-devel conflicts
+> > > with filesystem and kernel-headers.
+> > > 
+> > > Using %dir did not seem to help
+> > > avoiding the issue but rather cause duplicate warnings, eg.
+> > > 
+> > > warning: File listed twice: /usr/include/infiniband
+> > > 
+> > > This should be considered a bug in rpmbuild but
+> > > probably needs to be fixed here anyway:
+> > > 
+> > > List each individual directory with wildcards
+> > > to avoid the issue.
+> > > 
+> > > Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > >  redhat/rdma-core.spec | 3 ++-
+> > >  1 file changed, 2 insertions(+), 1 deletion(-)
+> > 
+> > Did this ever get settled?
+> > 
+> > Jarod? Yes/No?
 > 
-> The plan is to convert kthreads into kthread_worker or workqueues
-> API. It allows to split the functionality into separate operations.
-> It helps to make a better structure. Also it defines a clean state
-> where no locks are taken, IRQs blocked, the kthread might sleep
-> or even be safely migrated.
+> Actually, looking a little closer, I think this is more apropos:
 > 
-> The kthread worker API is useful when we want to have a dedicated
-> single thread for the work. It helps to make sure that it is
-> available when needed. Also it allows a better control, e.g.
-> define a scheduling priority.
+> diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
+> index f3c1c296..383cb965 100644
+> --- a/redhat/rdma-core.spec
+> +++ b/redhat/rdma-core.spec
+> @@ -347,7 +347,10 @@ rm -rf %{buildroot}/%{_initrddir}/
 > 
-> This patch converts the frm_pool kthread into the kthread worker
-> API because I am not sure how busy the thread is. It is well
-> possible that it does not need a dedicated kthread and workqueues
-> would be perfectly fine. Well, the conversion between kthread
-> worker API and workqueues is pretty trivial.
-> 
-> The patch moves one iteration from the kthread into the work
-> function.
-> It is queued only when there is a pending work. Therefore we do not
-> need to compare flush_ser and req_ser at the beginning. On the
-> contrary,
-> the same work could be queued only once at a time. Therefore it has
-> to
-> re-queue itself if some requests are pending.
-> 
-> Otherwise, wake_up_process() is replaced by queuing the work.
-> 
-> Important: The change is only compile tested. I did not find an easy
-> way how to check it in a real life.
-> 
-> Signed-off-by: Petr Mladek <pmladek-IBi9RG/b67k@public.gmane.org>
-> TO: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> CC: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> CC: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> CC: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>   %files devel
+>   %doc %{_docdir}/%{name}-%{version}/MAINTAINERS
+> -%{_includedir}/*
+> +%dir %{_includedir}/infiniband
+> +%dir %{_includedir}/rdma
+> +%{_includedir}/infiniband/*
+> +%{_includedir}/rdma/*
+>   %{_libdir}/lib*.so
+>   %{_mandir}/man3/ibv_*
+>   %{_mandir}/man3/rdma*
 
-Hi Petr,
-
-This patch has sat around for a long time.  I've decided to take it in
-this release, even though it isn't really tested, on the basis that we
-will perform some testing internally using the mthca driver (if you
-combine the mthca driver with certain upper level protocols, you can
-create a situation where FMR memory will be the preferred memory in use
-IIRC) and revert if it doesn't work properly.
+Thanks, applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
