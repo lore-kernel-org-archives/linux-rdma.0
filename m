@@ -1,69 +1,26 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma_core] redhat spec: Avoid conflict due to implicit
- directory add
-Date: Tue, 25 Apr 2017 15:03:26 -0400
-Message-ID: <1493147006.3041.87.camel@redhat.com>
-References: <9707bd97229b67fe04d29affcb37f61b80e20dca.1484143751.git-series.knut.omang@oracle.com>
-         <20170313170829.GD25664@obsidianresearch.com>
-         <6e210956-a4e0-242f-a24e-691f87de3ddb@redhat.com>
+Subject: Re: [PATCH v2] infiniband/uverbs: Fix integer overflows
+Date: Tue, 25 Apr 2017 15:18:42 -0400
+Message-ID: <1493147922.3041.88.camel@redhat.com>
+References: <1490385317-35641-1-git-send-email-vlad@tsyrklevich.net>
+         <1490385702.3312.18.camel@sandisk.com>
+         <CAH0z3hM8a4Hra3+gvz5HeFBcmkqmP0KhFQsFQh30SActK+p7mg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <6e210956-a4e0-242f-a24e-691f87de3ddb-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CAH0z3hM8a4Hra3+gvz5HeFBcmkqmP0KhFQsFQh30SActK+p7mg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vlad Tsyrklevich <vlad-NIZqynvkaCU43zv7NVfAiQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-03-13 at 16:11 -0400, Jarod Wilson wrote:
-> On 2017-03-13 1:08 PM, Jason Gunthorpe wrote:
-> > 
-> > On Wed, Jan 11, 2017 at 03:19:34PM +0100, Knut Omang wrote:
-> > > 
-> > > If *-notation is used to include subdirectories, they
-> > > seem to end as explicit file additions. This causes conflicts
-> > > with other packages that provides the same
-> > > directories, in this case rdma_core-devel conflicts
-> > > with filesystem and kernel-headers.
-> > > 
-> > > Using %dir did not seem to help
-> > > avoiding the issue but rather cause duplicate warnings, eg.
-> > > 
-> > > warning: File listed twice: /usr/include/infiniband
-> > > 
-> > > This should be considered a bug in rpmbuild but
-> > > probably needs to be fixed here anyway:
-> > > 
-> > > List each individual directory with wildcards
-> > > to avoid the issue.
-> > > 
-> > > Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > >  redhat/rdma-core.spec | 3 ++-
-> > >  1 file changed, 2 insertions(+), 1 deletion(-)
-> > 
-> > Did this ever get settled?
-> > 
-> > Jarod? Yes/No?
+On Fri, 2017-03-24 at 16:45 -0400, Vlad Tsyrklevich wrote:
+> [replying again to the list with HTML e-mails turned off]
 > 
-> Actually, looking a little closer, I think this is more apropos:
-> 
-> diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
-> index f3c1c296..383cb965 100644
-> --- a/redhat/rdma-core.spec
-> +++ b/redhat/rdma-core.spec
-> @@ -347,7 +347,10 @@ rm -rf %{buildroot}/%{_initrddir}/
-> 
->   %files devel
->   %doc %{_docdir}/%{name}-%{version}/MAINTAINERS
-> -%{_includedir}/*
-> +%dir %{_includedir}/infiniband
-> +%dir %{_includedir}/rdma
-> +%{_includedir}/infiniband/*
-> +%{_includedir}/rdma/*
->   %{_libdir}/lib*.so
->   %{_mandir}/man3/ibv_*
->   %{_mandir}/man3/rdma*
+> I doubt it. I chose to implement a naive integer overflow check here
+> instead of checking against some device-specific value since I'm
+> unfamiliar with the infiniband internals and don't have appropriate
+> hardware to test such a change against.
 
 Thanks, applied.
 
