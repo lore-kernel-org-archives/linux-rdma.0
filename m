@@ -1,60 +1,62 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [rdma-core/rdma-ndd] Use integer as getopt_long returns integer
-Date: Wed, 26 Apr 2017 09:21:39 +0300
-Message-ID: <20170426062139.GW14088@mtr-leonro.local>
-References: <1493099392-1883-1-git-send-email-honli@redhat.com>
+From: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+Subject: Re: [PATCH v2 09/23] MAINTAINERS: Add file patterns for infiniband
+ device tree bindings
+Date: Wed, 26 Apr 2017 09:36:23 +0200
+Message-ID: <CAMuHMdWLmMyCEpJL_51njOgx4FpCEQhRhCGQNp_rkwiMAzA6KQ@mail.gmail.com>
+References: <1489324627-19126-1-git-send-email-geert@linux-m68k.org>
+ <1489324627-19126-10-git-send-email-geert@linux-m68k.org> <1490409626.2404.42.camel@redhat.com>
+ <CAMuHMdVjzXFE19SW++38+EdpnsZx+j54U5CqTeRkN-4cknQ6BA@mail.gmail.com> <1493148079.3041.90.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="yQifGgTvVVJcdOYJ"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1493099392-1883-1-git-send-email-honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1493148079.3041.90.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Doug,
 
---yQifGgTvVVJcdOYJ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Apr 25, 2017 at 01:49:52PM +0800, Honggang LI wrote:
-> From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+On Tue, Apr 25, 2017 at 9:21 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> On Sun, 2017-03-26 at 10:45 +0200, Geert Uytterhoeven wrote:
+>> On Sat, Mar 25, 2017 at 3:40 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>> wrote:
+>> >
+>> > On Sun, 2017-03-12 at 14:16 +0100, Geert Uytterhoeven wrote:
+>> > >
+>> > > Submitters of device tree binding documentation may forget to CC
+>> > > the subsystem maintainer if this is missing.
+>> > >
+>> > > Signed-off-by: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+>> > > Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>> > > Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> > > Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>> > > Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> > > ---
+>> > > Please apply this patch directly if you want to be involved in
+>> > > device
+>> > > tree binding documentation for your subsystem.
+>> >
+>> > I assume this is going through someone else' tree since I only see
+>>
+>> That wasn't my intention, though, cfr. the quoted paragraph above
+>> ("you" and "your subsystem").
 >
-> ARM chars are unsigned by default. getopt_long return 255 instead -1.
-> That will cause an endless loop for aarch64 platform.
->
-> Signed-off-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> ---
->  rdma-ndd/rdma-ndd.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/rdma-ndd/rdma-ndd.c b/rdma-ndd/rdma-ndd.c
+> Sorry, I didn't catch that in the original message.  I've applied it to
+> my tree.
 
-Thanks, applied.
+Thanks!
 
---yQifGgTvVVJcdOYJ
-Content-Type: application/pgp-signature; name="signature.asc"
+Gr{oetje,eeting}s,
 
------BEGIN PGP SIGNATURE-----
+                        Geert
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkAPHMACgkQ5GN7iDZy
-WKfkoRAAmY1bUdZBzk8szuxvv3pbEU40VQru2bpoqpF+p97UOyb2aQSx07zCgdps
-5ZfWmfamV1e/H5QEfutkbIICFPJrMmpKFQlc4M7DjU3KN45Tc0aOO6th3Q8jETEx
-Ebmfu1uhUNMQVEZQYhMLSeqZzdFGZAWCtNYaQHaXYo0/5U8ILWnSE9xDvWlwZaK5
-zcZqix6SambPHvQoct4MKkcwMEp07KPcJ4E8wOm16Gw9eSC81qkynn/yhblNWUic
-eS41v8uqnltdSf5+UGANak2H6sqZr69yhjlCSSTtZOoyBHFEqKedLYuojp7szXQz
-eSsrawcDu/jYR15KV1/C89zFZB9FZSt86wbOSQ5La37VeO4WSt5uRnCoxciQfNsx
-gP9cQXszEDcrgI9ZdObPkYEv4WEFzYTe9O6X3ZhcnyEtKm/GbPip++Bt4saIGv9s
-uZ3qJy6JLENilcK0yLqpK7siUyN/RIAHg2/2QOt3yJ2HB2DQSKD27XT269XlZOim
-URKKiV9ClYHFuoB8jotT24RkDeAfN0lwrBPF1zbrqKl9q9LiFv+pWKf2EhgN2UyR
-nA9bfFYp8nzVv1crvPZc5/chgZvIM/pBPdvrs5swS9cRj5b9svbZYM4ZB8/dehyM
-Qf05t1ateZrW092Bz7vIefVoGbMd4smyP1ZmC9A9d3T17N6qRP0=
-=JICN
------END PGP SIGNATURE-----
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org
 
---yQifGgTvVVJcdOYJ--
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
