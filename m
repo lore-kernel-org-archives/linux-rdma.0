@@ -1,7 +1,7 @@
 From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Subject: [ANNOUNCE] OFED 4.8-rc2 release is available
-Date: Wed, 26 Apr 2017 15:46:27 +0300
-Message-ID: <590096A3.5090107@dev.mellanox.co.il>
+Date: Wed, 26 Apr 2017 15:46:45 +0300
+Message-ID: <590096B5.3090501@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
