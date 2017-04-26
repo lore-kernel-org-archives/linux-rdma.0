@@ -1,28 +1,66 @@
-From: "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: cqe dump errors on target while running nvme-of large block
- read IO
-Date: Wed, 26 Apr 2017 17:17:32 +0000
-Message-ID: <DE927C68B458BE418D582EC97927A92855072ECF@ORSMSX113.amr.corp.intel.com>
-References: <DE927C68B458BE418D582EC97927A9285505C9EA@ORSMSX113.amr.corp.intel.com>
- <47f19583-1882-09d4-ce1c-534b8e59068b@mellanox.com>
- <DE927C68B458BE418D582EC97927A9285505F0C9@ORSMSX113.amr.corp.intel.com>
- <52c550c1-849b-7ea5-ab34-56543cb9069d@mellanox.com>
- <991b26ec-69d3-9e1c-ed3e-0d6e6618e73a@grimberg.me>
+From: Logan Gunthorpe <logang@deltatee.com>
+Subject: Re: [PATCH v2 01/21] scatterlist: Introduce sg_map helper functions
+Date: Wed, 26 Apr 2017 12:11:33 -0600
+Message-ID: <4736d44e-bbcf-5d59-a1a9-317d0f4da847@deltatee.com>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+ <1493144468-22493-2-git-send-email-logang@deltatee.com>
+ <20170426074416.GA7936@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <991b26ec-69d3-9e1c-ed3e-0d6e6618e73a-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "'linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org'" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20170426074416.GA7936@lst.de>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: dri-devel@lists.freedesktop.org, Stephen Bates <sbates@raithlin.com>, dm-devel@redhat.com, target-devel@vger.kernel.org, Sumit Semwal <sumit.semwal@linaro.org>, devel@driverdev.osuosl.org, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, linux-scsi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-rdma@vger.kernel.org, Ross Zwisler <ross.zwisler@linux.intel.com>, open-iscsi@googlegroups.com, linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org, sparmaintainer@unisys.com, linux-raid@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, megaraidlinux.pdl@broadcom.com, Jens Axboe <axboe@kernel.dk>, "Martin K. Petersen" <martin.petersen@oracle.com>, netdev@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Joseph, are you sure that flow control is correctly configured and working
-> reliably?
-
-Folks, I have to apologize here.  Flow control was at one point configured correctly, but we had a power outage in our lab two weeks ago.  We thought the switch had come back up OK, but late week we were double-checking all the ports in use and we found one port had lost some settings and no longer had flow control enabled (it had also reverted from 100Gb to 50Gb for some reason).  After fixing the port settings we ran IO through the weekend and the early part of this week on a variety of workloads.  We don't seem to be able to reproduce the failure after fixing the port settings.  It looks like this one may have been caused by the lost flow control setting on the switch.  Sorry for the confusion!
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+CgpPbiAyNi8wNC8xNyAwMTo0NCBBTSwgQ2hyaXN0b3BoIEhlbGx3aWcgd3JvdGU6Cj4gSSB0aGlu
+ayB3ZSdsbCBhdCBsZWFzdCBuZWVkIGEgZHJhZnQgb2YgdGhvc2UgdG8gbWFrZSBzZW5zZSBvZiB0
+aGVzZQo+IHBhdGNoZXMuICBPdGhlcndpc2UgdGhleSBqdXN0IGxvb2sgdmVyeSBjbHVtc3kuCgpP
+aywgSSdsbCB3b3JrIHVwIGEgZHJhZnQgcHJvcG9zYWwgYW5kIHNlbmQgaXQgaW4gYSBjb3VwbGUg
+ZGF5cy4gQnV0CndpdGhvdXQgYSBsb3Qgb2YgY2xlYW51cCBzdWNoIGFzIHRoaXMgc2VyaWVzIGl0
+J3Mgbm90IGdvaW5nIHRvIGV2ZW4gYmUKYWJsZSB0byBjb21waWxlLgoKPiBJJ20gc29ycnkgYnV0
+IHRoaXMgQVBJIGlzIGp1c3QgYSB0cmFpbndyZWNrLiAgUmlnaHQgbm93IHdlIGhhdmUgdGhlCj4g
+bmljZSBsaXR0bGUga21hcF9hdG9taWMgQVBJLCB3aGljaCBuZXZlciBmYWlscyBhbmQgaGFzIGEg
+dmVyeSBuaWNlCj4gY2FsbGluZyBjb252ZW50aW9uIHdoZXJlIHdlIGp1c3QgcGFzcyBiYWNrIHRo
+ZSByZXR1cm4gYWRkcmVzcywgYnV0IGRvZXMKPiBub3Qgc3VwcG9ydCBzbGVlcGluZyBpbnNpZGUg
+dGhlIGNyaXRpY2FsIHNlY3Rpb24uCj4gCj4gQW5kIGttYXAsIHdo0ZZjaCBtYXkgZmFpbCBhbmQg
+cmVxdWlyZXMgdGhlIG9yaWdpbmFsIHBhZ2UgdG8gYmUgcGFzc2VkCj4gYmFjay4gIEFueXRoaW5n
+IHRoYXQgbWl4ZXMgdGhlc2UgdHdvIGNvbmNlcHRzIHVwIGlzIHNpbXBseSBhIG5vbi1zdGFydGVy
+LgoKT2ssIHdlbGwgZm9yIHN0YXJ0ZXJzIEkgdGhpbmsgeW91IGFyZSBtaXN0YWtlbiBhYm91dCBr
+bWFwIGJlaW5nIGFibGUgdG8KZmFpbC4gSSdtIGhhdmluZyBhIGhhcmQgdGltZSBmaW5kaW5nIG1h
+bnkgdXNlcnMgb2YgdGhhdCBmdW5jdGlvbiB0aGF0CmJvdGhlciB0byBjaGVjayBmb3IgYW4gZXJy
+b3Igd2hlbiBjYWxsaW5nIGl0LiBUaGUgbWFpbiBkaWZmaWN1bHR5IHdlCmhhdmUgbm93IGlzIHRo
+YXQgbmVpdGhlciBvZiB0aG9zZSBmdW5jdGlvbnMgYXJlIGV4cGVjdGVkIHRvIGZhaWwgYW5kIHdl
+Cm5lZWQgdGhlbSB0byBiZSBhYmxlIHRvIGluIGNhc2VzIHdoZXJlIHRoZSBwYWdlIGRvZXNuJ3Qg
+bWFwIHRvIHN5c3RlbQpSQU0uIFRoaXMgcGF0Y2ggc2VyaWVzIGlzIHRyeWluZyB0byBhZGRyZXNz
+IGl0IGZvciB1c2VycyBvZiBzY2F0dGVybGlzdC4KSSdtIGNlcnRhaW5seSBvcGVuIHRvIG90aGVy
+IHN1Z2dlc3Rpb25zLgoKSSBhbHNvIGhhdmUgdG8gZGlzYWdyZWUgdGhhdCBrbWFwIGFuZCBrbWFw
+X2F0b21pYyBhcmUgYWxsIHRoYXQgIm5pY2UiLgpFeGNlcHQgZm9yIHRoZSBzbGVlcGluZyByZXN0
+cmljdGlvbiBhbmQgcGVyZm9ybWFuY2UsIHRoZXkgZWZmZWN0aXZlbHkgZG8KdGhlIHNhbWUgdGhp
+bmcuIEFuZCBpdCB3YXMgbmVjZXNzYXJ5IHRvIHdyaXRlIGEgbWFjcm8gd3JhcHBlciBhcm91bmQK
+a3VubWFwX2F0b21pYyB0byBlbnN1cmUgdGhhdCB1c2VycyBvZiB0aGF0IGZ1bmN0aW9uIGRvbid0
+IHNjcmV3IGl0IHVwLgooU2VlIDU5Nzc4MWYzZTUuKSBJJ2Qgc2F5IHRoZSBrbWFwL2ttYXBfYXRv
+bWljIGZ1bmN0aW9ucyBhcmUgdGhlCnRyYWlud3JlY2sgYW5kIEknbSB0cnlpbmcgdG8gZG8gbXkg
+YmVzdCB0byBjbGVhbnVwIGEgZmV3IGNhc2VzLgoKVGhlcmUgYXJlIGEgZmFpciBudW1iZXIgb2Yg
+Y2FzZXMgaW4gdGhlIGtlcm5lbCB0aGF0IGRvIHNvbWV0aGluZyBsaWtlOgoKaWYgKHNvbWV0aGlu
+ZykKICAgIHggPSBrbWFwKHBhZ2UpOwplbHNlCiAgICB4ID0ga21hcF9hdG9taWMocGFnZSk7Ci4u
+LgppZiAoc29tZXRoaW5nKQogICAga3VubWFwKHBhZ2UpCmVsc2UKICAgIGt1bm1hcF9hdG9taWMo
+eCkKCldoaWNoIGp1c3Qgc2VlbXMgY3VtYmVyc29tZSB0byBtZS4KCkluIGFueSBjYXNlLCBpZiB5
+b3UgY2FuIGFjY2VwdCBhbiBzZ19rbWFwIGFuZCBzZ19rbWFwX2F0b21pYyBhcGkganVzdApzYXkg
+c28gYW5kIEknbGwgbWFrZSB0aGUgY2hhbmdlLiBCdXQgSSdsbCBzdGlsbCBuZWVkIGEgZmxhZ3Mg
+dmFyaWFibGUKZm9yIFNHX01BUF9NVVNUX05PVF9GQUlMIHRvIHN1cHBvcnQgbGVnYWN5IGNhc2Vz
+IHRoYXQgaGF2ZSBubyBmYWlsIHBhdGgKYW5kIGJvdGggb2YgdGhvc2UgZnVuY3Rpb25zIHdpbGwg
+bmVlZCB0byBiZSBwcmV0dHkgbmVhcmx5IHJlcGxpY2FzIG9mCmVhY2ggb3RoZXIuCgpMb2dhbgoK
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRldmVsIG1h
+aWxpbmcgbGlzdApkZXZlbEBsaW51eGRyaXZlcnByb2plY3Qub3JnCmh0dHA6Ly9kcml2ZXJkZXYu
+bGludXhkcml2ZXJwcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaXZlcmRldi1kZXZlbAo=
