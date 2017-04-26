@@ -1,91 +1,34 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: rdmacm-utils: Missing man pages for cmtime and udpong
-Date: Wed, 26 Apr 2017 11:22:42 +0200
-Message-ID: <1493198562.3837.2.camel@profitbricks.com>
-References: <1493040510.17795.3.camel@profitbricks.com>
-         <20170425180423.GT14088@mtr-leonro.local>
+From: Thomas Bogendoerfer <tbogendoerfer-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCHv2 1/1] IB/ipoib: add get_settings in ethtool
+Date: Wed, 26 Apr 2017 11:31:25 +0200
+Message-ID: <20170426113125.b7d64c5b0760e0316e6aedf6@suse.de>
+References: <1493197354-3025-1-git-send-email-yanjun.zhu@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-SOrXNA1vAsoGrNRzwhX3"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170425180423.GT14088-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <1493197354-3025-1-git-send-email-yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, 26 Apr 2017 05:02:34 -0400
+Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
 
---=-SOrXNA1vAsoGrNRzwhX3
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+> In order to let the bonding driver report the correct speed
+> of the underlaying interfaces, when they are IPoIB, the ethtool
+> function get_settings() in the IPoIB driver is implemented.
 
-Am Dienstag, den 25.04.2017, 21:04 +0300 schrieb Leon Romanovsky:
-> On Mon, Apr 24, 2017 at 03:28:30PM +0200, Benjamin Drung wrote:
-> > Hi,
-> >=20
-> > the rdmacm-utils binaries cmtime and udpong do not have a
-> > corresponding
-> > =C2=A0man page. Please add some since Debian recommends to ship man
-> > pages
-> > for all binaries.
->=20
-> Is it requirement or recommendation?
+FYI get_settings is DEPRECATED. Wouldn't it make more sense to directly
+implement get_link_ksettings ?
 
-I looked it up. It's considered a bug. The Debian policy says in =C2=A712.1=
-:
+Thomas.
 
-"Each program, utility, and function should have an associated manual
-page included in the same package. It is suggested that all
-configuration files also have a manual page included as well. Manual
-pages for protocols and other auxiliary things are optional.
-
-If no manual page is available, this is considered as a bug and should
-be reported to the Debian Bug Tracking System (the maintainer of the
-package is allowed to write this bug report themselves, if they so
-desire). Do not close the bug report until a proper man page is
-available."
-
-See https://www.debian.org/doc/debian-policy/ch-docs.html
-
---=20
-Benjamin Drung
-System Developer
-Debian & Ubuntu Developer
-
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
-
-Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-Web:=C2=A0https://www.profitbricks.com
-
-Sitz der Gesellschaft: Berlin.
-Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-Gesch=C3=A4ftsf=C3=BChrer: Achim Weiss.
-
---=-SOrXNA1vAsoGrNRzwhX3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAABCAAGBQJZAGbiAAoJEN2M1aXejH56POUQAID0nmEUQ/xD7YK70jeH5U7Y
-ad9SIuqGVkKNVesIiB6E8sU3ros7mudVUHomib6/EMPxRDtQ6n5QQSJg7ijyd4Kr
-S6Bmx2TNE9cpeeA+2UK/2ZrJHi9JfCjr55thHl3R7I3BU1ANtjv8lTNJKY4rynlG
-i00mihsgZRhEh1yiyaLU3ZRnz8sPT5ttcywsKDqfUM3pKoXH0K1+DjoVc/mRPTNW
-GDFIKdfzGcLUk0vFVnBM12jbdvXuqGesL2c5oxYL7epQ0Sr8vs9tUF/nfSb53s6t
-4kTDLhycFJDN7d2FiYc1BNZpx7g+DI96BZjKV8wO9UmgvkkbX6aPKqrbMEUbFQxg
-i0PrMP1F9OZVzqhlnfQv76h8qLWvIS9ldDlywbcTD0ff85EorUOCp7N/dJ3XcjsR
-3+uvrLZLSSOyaiYj6Ea9z1VRCAv8Q7eqXnA3VCRktQxdH13fvjGhfZnTEzwvH3gY
-NS2HrILtjBBBUrdvEw3tTb84Co/JZtFlENu6MAA2gUok/mMdwz8EKOuISRU86QG9
-SdGDtbIh7zqLZRGkSPur7VmES+eSDoXpbxpJQh8fPcizPOC+WN0qrTtIlMwjdwZI
-LnXewmbd1orj9OZOC1O0bkyJLIA6CHcyK7fBaJdSzoKGNwAw626c1sGFUK+fSp1u
-vS113/RTthyiiRgxcXQx
-=i2Hm
------END PGP SIGNATURE-----
-
---=-SOrXNA1vAsoGrNRzwhX3--
-
+-- 
+SUSE Linux GmbH
+GF: Felix Imendörffer, Jane Smithard, Graham Norton
+HRB 21284 (AG Nürnberg)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
