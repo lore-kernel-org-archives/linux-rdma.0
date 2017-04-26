@@ -1,63 +1,113 @@
-From: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Subject: Re: [PATCH v2 09/23] MAINTAINERS: Add file patterns for infiniband
- device tree bindings
-Date: Wed, 26 Apr 2017 09:36:23 +0200
-Message-ID: <CAMuHMdWLmMyCEpJL_51njOgx4FpCEQhRhCGQNp_rkwiMAzA6KQ@mail.gmail.com>
-References: <1489324627-19126-1-git-send-email-geert@linux-m68k.org>
- <1489324627-19126-10-git-send-email-geert@linux-m68k.org> <1490409626.2404.42.camel@redhat.com>
- <CAMuHMdVjzXFE19SW++38+EdpnsZx+j54U5CqTeRkN-4cknQ6BA@mail.gmail.com> <1493148079.3041.90.camel@redhat.com>
+From: Roger Pau =?iso-8859-1?Q?Monn=E9?= <roger.pau-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 15/21] xen-blkfront: Make use of the new sg_map helper
+ function
+Date: Wed, 26 Apr 2017 08:37:20 +0100
+Message-ID: <20170426073720.okv33ly2ldepilti@dhcp-3-128.uk.xensource.com>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+ <1493144468-22493-16-git-send-email-logang@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1493148079.3041.90.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1493144468-22493-16-git-send-email-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Cc: Boris Ostrovsky <boris.ostrovsky-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sumit Semwal <sumit.semwal-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Juergen Gross <jgross-IBi9RG/b67k@public.gmane.org>, Julien Grall <julien.grall-5wv7dgnIgG8@public.gmane.org>, intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, sparmaintainer-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org, linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, megaraidlinux.pdl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh@linuxfounda>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+On Tue, Apr 25, 2017 at 12:21:02PM -0600, Logan Gunthorpe wrote:
+> Straightforward conversion to the new helper, except due to the lack
+> of error path, we have to use SG_MAP_MUST_NOT_FAIL which may BUG_ON in
+> certain cases in the future.
+> =
 
-On Tue, Apr 25, 2017 at 9:21 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> On Sun, 2017-03-26 at 10:45 +0200, Geert Uytterhoeven wrote:
->> On Sat, Mar 25, 2017 at 3:40 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->> wrote:
->> >
->> > On Sun, 2017-03-12 at 14:16 +0100, Geert Uytterhoeven wrote:
->> > >
->> > > Submitters of device tree binding documentation may forget to CC
->> > > the subsystem maintainer if this is missing.
->> > >
->> > > Signed-off-by: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
->> > > Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->> > > Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> > > Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> > > Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> > > ---
->> > > Please apply this patch directly if you want to be involved in
->> > > device
->> > > tree binding documentation for your subsystem.
->> >
->> > I assume this is going through someone else' tree since I only see
->>
->> That wasn't my intention, though, cfr. the quoted paragraph above
->> ("you" and "your subsystem").
->
-> Sorry, I didn't catch that in the original message.  I've applied it to
-> my tree.
+> Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+> Cc: Boris Ostrovsky <boris.ostrovsky-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Cc: Juergen Gross <jgross-IBi9RG/b67k@public.gmane.org>
+> Cc: Konrad Rzeszutek Wilk <konrad.wilk-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Cc: "Roger Pau Monn=E9" <roger.pau-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/block/xen-blkfront.c | 20 +++++++++++---------
+>  1 file changed, 11 insertions(+), 9 deletions(-)
+> =
 
-Thanks!
+> diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
+> index 3945963..ed62175 100644
+> --- a/drivers/block/xen-blkfront.c
+> +++ b/drivers/block/xen-blkfront.c
+> @@ -816,8 +816,9 @@ static int blkif_queue_rw_req(struct request *req, st=
+ruct blkfront_ring_info *ri
+>  		BUG_ON(sg->offset + sg->length > PAGE_SIZE);
+>  =
 
-Gr{oetje,eeting}s,
+>  		if (setup.need_copy) {
+> -			setup.bvec_off =3D sg->offset;
+> -			setup.bvec_data =3D kmap_atomic(sg_page(sg));
+> +			setup.bvec_off =3D 0;
+> +			setup.bvec_data =3D sg_map(sg, 0, SG_KMAP_ATOMIC |
+> +						 SG_MAP_MUST_NOT_FAIL);
 
-                        Geert
+I assume that sg_map already adds sg->offset to the address?
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org
+Also wondering whether we can get rid of bvec_off and just increment bvec_d=
+ata,
+adding Julien who IIRC added this code.
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  		}
+>  =
+
+>  		gnttab_foreach_grant_in_range(sg_page(sg),
+> @@ -827,7 +828,7 @@ static int blkif_queue_rw_req(struct request *req, st=
+ruct blkfront_ring_info *ri
+>  					      &setup);
+>  =
+
+>  		if (setup.need_copy)
+> -			kunmap_atomic(setup.bvec_data);
+> +			sg_unmap(sg, setup.bvec_data, 0, SG_KMAP_ATOMIC);
+>  	}
+>  	if (setup.segments)
+>  		kunmap_atomic(setup.segments);
+> @@ -1053,7 +1054,7 @@ static int xen_translate_vdev(int vdevice, int *min=
+or, unsigned int *offset)
+>  		case XEN_SCSI_DISK5_MAJOR:
+>  		case XEN_SCSI_DISK6_MAJOR:
+>  		case XEN_SCSI_DISK7_MAJOR:
+> -			*offset =3D (*minor / PARTS_PER_DISK) + =
+
+> +			*offset =3D (*minor / PARTS_PER_DISK) +
+>  				((major - XEN_SCSI_DISK1_MAJOR + 1) * 16) +
+>  				EMULATED_SD_DISK_NAME_OFFSET;
+>  			*minor =3D *minor +
+> @@ -1068,7 +1069,7 @@ static int xen_translate_vdev(int vdevice, int *min=
+or, unsigned int *offset)
+>  		case XEN_SCSI_DISK13_MAJOR:
+>  		case XEN_SCSI_DISK14_MAJOR:
+>  		case XEN_SCSI_DISK15_MAJOR:
+> -			*offset =3D (*minor / PARTS_PER_DISK) + =
+
+> +			*offset =3D (*minor / PARTS_PER_DISK) +
+>  				((major - XEN_SCSI_DISK8_MAJOR + 8) * 16) +
+>  				EMULATED_SD_DISK_NAME_OFFSET;
+>  			*minor =3D *minor +
+> @@ -1119,7 +1120,7 @@ static int xlvbd_alloc_gendisk(blkif_sector_t capac=
+ity,
+>  	if (!VDEV_IS_EXTENDED(info->vdevice)) {
+>  		err =3D xen_translate_vdev(info->vdevice, &minor, &offset);
+>  		if (err)
+> -			return err;		=
+
+> +			return err;
+
+Cosmetic changes should go in a separate patch please.
+
+Roger.
