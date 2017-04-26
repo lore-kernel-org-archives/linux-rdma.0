@@ -1,32 +1,54 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: cqe dump errors on target while running nvme-of large block read
- IO
-Date: Wed, 26 Apr 2017 21:56:48 +0300
-Message-ID: <8521776c-9557-04f1-9c7c-8389e083052b@grimberg.me>
-References: <DE927C68B458BE418D582EC97927A9285505C9EA@ORSMSX113.amr.corp.intel.com>
- <47f19583-1882-09d4-ce1c-534b8e59068b@mellanox.com>
- <DE927C68B458BE418D582EC97927A9285505F0C9@ORSMSX113.amr.corp.intel.com>
- <52c550c1-849b-7ea5-ab34-56543cb9069d@mellanox.com>
- <991b26ec-69d3-9e1c-ed3e-0d6e6618e73a@grimberg.me>
- <DE927C68B458BE418D582EC97927A92855072ECF@ORSMSX113.amr.corp.intel.com>
+From: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Subject: Re: [PATCH 4/7] ixgbe: use pcie_flr instead of duplicating it
+Date: Wed, 26 Apr 2017 15:09:25 -0700
+Message-ID: <1493244565.2124.5.camel@intel.com>
+References: <20170413145339.20186-1-hch@lst.de>
+         <20170413145339.20186-5-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <DE927C68B458BE418D582EC97927A92855072ECF-8oqHQFITsIFQxe9IK+vIArfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "'linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org'" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg="pgp-sha512";
+        protocol="application/pgp-signature"; boundary="=-TU0ovrfIc01iSJfaN5gq"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170413145339.20186-5-hch@lst.de>
+Sender: netdev-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>, Bjorn Helgaas <bhelgaas@google.com>, Giovanni Cabiddu <giovanni.cabiddu@intel.com>, Salvatore Benedetto <salvatore.benedetto@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Derek Chickles <derek.chickles@caviumnetworks.com>, Satanand Burla <satananda.burla@caviumnetworks.com>, Felix Manlunas <felix.manlunas@caviumnetworks.com>, Raghu Vatsavayi <raghu.vatsavayi@caviumnetworks.com>
+Cc: linux-pci@vger.kernel.org, qat-linux@intel.com, linux-crypto@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-> Folks, I have to apologize here.  Flow control was at one point configured correctly, but we had a power outage in our lab two weeks ago.
-> We thought the switch had come back up OK, but late week we were double-checking all the ports in use and we found one port had lost some
-> settings and no longer had flow control enabled (it had also reverted from 100Gb to 50Gb for some reason).  After fixing the port settings
-> we ran IO through the weekend and the early part of this week on a variety of workloads.  We don't seem to be able to reproduce the failure
-> after fixing the port settings.  It looks like this one may have been caused by the lost flow control setting on the switch.  Sorry for the confusion!
+--=-TU0ovrfIc01iSJfaN5gq
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Yep, don't expect RoCE to work without flow-control.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Thu, 2017-04-13 at 16:53 +0200, Christoph Hellwig wrote:
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+> =C2=A0drivers/net/ethernet/intel/ixgbe/ixgbe_main.c | 16 ++--------------
+> =C2=A01 file changed, 2 insertions(+), 14 deletions(-)
+
+Acked-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+
+Sorry for the late ACK.
+--=-TU0ovrfIc01iSJfaN5gq
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCgAGBQJZARqVAAoJEOVv75VaS+3OvhcQAJR4igUR1x0zklBYqQ+uNahr
+prxixmgMDSylAL+UwlSEmgWXfj/LLNFPZmguMyIhK/uMre5iAu/BbylErOheDrDI
+XzwqAWKdJj6uQ/EVpac6gn3OGjauunNFevkECxtoK5wkhp82MPVBiMlkobOULWLN
+h483gMsMQn/5ZGX8r3edsOHV+sVRFrvIop93AEndiHCruw2PfoY5URtCCJAFXyyl
+o/foFA5QJwVIrzdZ2rVDa94xN9HHBV3QXPqBI6NwK3YkGaKKEOW8s6S0lW3u8FTi
+jBOATwyk+NMbUSxFF338ZjlDp/jNVt3Wfhew+/XIrCcjTMYgVwxzCIbzb6jI7woE
+FCbicg4SWq0T9hISQMHUUPj3F7jUnLHq7GT0Vy9qsBbaCcH6h8sCciDOcl94KmmF
+m02mcxd7AVVlEc4fJ4EU0sfzupAbHbZm21C4aVEwmr+ujf8DGCNk6i6BU1oE1Mt6
+PCJL0fUOvcfiiCOv6y5hefwBpKH1fpta7C/MbnXW0WDOgmDz/j7DEv69z/BlJezA
+evG6Gcbc9k7iVQ9oo8EXh0nS0L/Vsxwr3tsZdT6AMrnzHzrzsOY9tWn4lNmW8XjV
+xHCWpCH/RXYBHJYyMQs2p15FKN1UY1QbG5sJ7Ggmc9cVppk7+a+sZzgB1OXxcPi2
+VeJluyLwN/tXNXbkEbp2
+=nNst
+-----END PGP SIGNATURE-----
+
+--=-TU0ovrfIc01iSJfaN5gq--
