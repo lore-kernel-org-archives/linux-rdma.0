@@ -1,98 +1,39 @@
-From: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/IPoIB: Check the headroom size
-Date: Wed, 26 Apr 2017 22:44:18 +0800
-Message-ID: <20170426144418.GB14635@dhcp-13-42.nay.redhat.com>
-References: <1493134815.3041.72.camel@redhat.com>
- <CAJ3xEMjqkJrKi+6ronuPBn2P6y8p6sdhVppDzFtMwQrhL13bzg@mail.gmail.com>
- <1493192794.2409.3.camel@redhat.com>
- <20170426125230.GB19179@dhcp-13-42.nay.redhat.com>
- <1493213258.3041.98.camel@redhat.com>
- <20170426133353.GA7898@dhcp-13-42.nay.redhat.com>
- <1493214483.3041.108.camel@redhat.com>
- <1493214638.3041.110.camel@redhat.com>
- <20170426141139.GA14635@dhcp-13-42.nay.redhat.com>
- <1493216704.3041.115.camel@redhat.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: Unexpected issues with 2 NVME initiators using the same target
+Date: Wed, 26 Apr 2017 17:45:09 +0300
+Message-ID: <c2a1436f-48a6-bdea-c910-168fc6031364@grimberg.me>
+References: <08131a05-1f56-ef61-990a-7fff04eea095@gmail.com>
+ <1848296658.37025722.1487782361271.JavaMail.zimbra@redhat.com>
+ <1554c1d1-6bf4-9ca2-12d4-a0125d8c5715@gmail.com>
+ <DE927C68B458BE418D582EC97927A92854655137@ORSMSX112.amr.corp.intel.com>
+ <3eb5814f-14cb-2b94-adf8-335d4b2eb7e9@grimberg.me>
+ <26912d0c-578f-26e9-490d-94fc95bdf259@mellanox.com>
+ <DE927C68B458BE418D582EC97927A92855031724@ORSMSX113.amr.corp.intel.com>
+ <809f87ab-b787-9d40-5840-07500d12e81a@mellanox.com>
+ <1948057100.362217696.1491824459274.JavaMail.zimbra@kalray.eu>
+ <33e2cc35-f147-d4a4-9a42-8f1245e35842@mellanox.com>
+ <517fb6d2-a010-1926-b4cb-0e6041722c28@grimberg.me>
+ <af9044c2-fb7c-e8b3-d8fc-4874cfd1bb67@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1493216704.3041.115.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <af9044c2-fb7c-e8b3-d8fc-4874cfd1bb67-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
+Cc: "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "shahar.salzman" <shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Riches Jr, Robert M" <robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 26, 2017 at 10:25:04AM -0400, Doug Ledford wrote:
-> On Wed, 2017-04-26 at 22:11 +0800, Honggang LI wrote:
-> > On Wed, Apr 26, 2017 at 09:50:38AM -0400, Doug Ledford wrote:
-> > > 
-> > > On Wed, 2017-04-26 at 09:48 -0400, Doug Ledford wrote:
-> > > > 
-> > > > On Wed, 2017-04-26 at 21:33 +0800, Honggang LI wrote:
-> > > > > 
-> > > > > 
-> > > > > Yes, it is during the process of removing the final slave. The
-> > > > > reproducer looks like this:
-> > > > > 
-> > > > > ping remote_ip_over_bonding_interface &
-> > > > > while 1; do
-> > > > > 	ifdown bond0
-> > > > > 	ifup   bond0
-> > > > > done
-> > > 
-> > > BTW, rerunning your test as:
-> > > 
-> > > ping remote_ip_over_bonding_interface &
-> > > while 1; do
-> > >     echo -n "Downing interface..."
-> > >     ifdown bond0
-> > 
-> > Confirmed panic in here.
-> 
-> OK, this leads me to suspect that the bonding driver is possibly
-> reconfiguring the skb setup to Ethernet mode before the last slave is
-> fully dropped from the bond, and so the slave is seeing a packet to its
-> hard header routine with the wrong headroom.  I think Paolo's patch is
-> probably the best way to go.  The reason I say that is because we can't
-> definitively say that this is the only pathway we will ever see that
-> causes us to get a packet with Ethernet headroom on our IPoIB
-> interface, and Paolo's patch gives us the possibility of recovering and
-> sending the packet out.  Even in this case, we are downing the
-> interface, but it isn't down entirely yet, so sending the packet out
 
-Sending packet out over a removing interface looks bad. I'd like to drop
-backlog packet.
+>> Can we get it to 4.12 please (we need you to send it out today).
+>
+> Sagi,
+> we are preparing a cap bit for it.
+> I'll send it as soon as it will be ready (otherwise we'll add fence for
+> devices that can handle without it - such as ConnectX5).
 
-> isn't necessarily wrong.  So a method of fix that allows us to
-> recover/continue seems preferable to me.  Can you test Paolo's patch
-> and see if it resolves the problem?
-
-Yes, Paolo's patch fixes the panic issue too. But it seems has side
-effort. For example:
-
-520 struct sk_buff *arp_create(int type, int ptype, __be32 dest_ip,
-.....
-538                 return NULL;
-539 
-540         skb_reserve(skb, hlen);
-541         skb_reset_network_header(skb); <-- it update skb->network_header
-
-
-But skb_cow_head seems does not touch skb->network_header. I have to say
-I did not test the network_header.
-
-> 
-> -- 
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->     GPG KeyID: B826A3330E572FDD
->    
-> Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Why? can't you just get what you have as a fix and incrementally add the
+optimization for CX5?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
