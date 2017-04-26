@@ -1,31 +1,36 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: ibacm: Required-Start on openibd
-Date: Wed, 26 Apr 2017 17:19:10 -0600
-Message-ID: <20170426231910.GA2305@obsidianresearch.com>
-References: <1493046558.17795.8.camel@profitbricks.com>
- <20170424155907.GB7927@obsidianresearch.com>
- <1493247367.3041.140.camel@redhat.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Subject: Re: [PATCH v2 01/21] scatterlist: Introduce sg_map helper functions
+Date: Wed, 26 Apr 2017 17:30:47 -0600
+Message-ID: <5958e5fc-e73f-1457-781f-05378fa1fd46@deltatee.com>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+ <1493144468-22493-2-git-send-email-logang@deltatee.com>
+ <5dfc5bf5-482c-b5bb-029c-7cee80925f37@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1493247367.3041.140.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <5dfc5bf5-482c-b5bb-029c-7cee80925f37@amd.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dm-devel@redhat.com
+Cc: Jens Axboe <axboe@kernel.dk>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Matthew Wilcox <mawilcox@microsoft.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Stephen Bates <sbates@raithlin.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 26, 2017 at 06:56:07PM -0400, Doug Ledford wrote:
 
-> see if it's gone or not, but one would hope so. However, at least in
-> the systemd world, the rdma service is autostarted, so ibacm probably
-> ought to be autostarted too, regardless of whether it depends on the
-> rdma service or not.
 
-systemd socket activation on its unix domain socket is the way to go, imho.
+On 26/04/17 02:59 AM,   wrote:
+> Good to know that somebody is working on this. Those problems troubled
+> us as well.
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks Christian. It's a daunting problem and a there's a lot of work to
+do before we will ever be where we need to be so any help, even an ack,
+is greatly appreciated.
+
+Logan
