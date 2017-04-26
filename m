@@ -1,47 +1,54 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/IPoIB: Check the headroom size
-Date: Wed, 26 Apr 2017 00:50:06 +0300
-Message-ID: <CAJ3xEMjqkJrKi+6ronuPBn2P6y8p6sdhVppDzFtMwQrhL13bzg@mail.gmail.com>
-References: <1493114155-12101-1-git-send-email-honli@redhat.com>
- <CAJ3xEMg4_2ph7QwPsUb-tX-K4d2ppkqz98sPzytsmBCK=29WHw@mail.gmail.com>
- <CAAk-MO8O19iC2Yn-BMn5pKTAYxaSzGPMyta=fwes3XSvzmz_cQ@mail.gmail.com>
- <CAJ3xEMgw=9sj3rdahPEiST_yDfDJPNSZZLRn43tnb3bK4_RPzg@mail.gmail.com>
- <CAAk-MO-B8Liv6RyGye_Fx-9OELCUrGMj5SwK9UsciC=khSO5fA@mail.gmail.com>
- <CAJ3xEMgwS1Bq8+eZC1iAr6xi8ZPHrchsOJ5r4LNJxR8P+6VipA@mail.gmail.com> <1493134815.3041.72.camel@redhat.com>
+From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH, untested] mlx5: Avoid that mlx5_ib_sg_to_klms() overflows
+ the klms[] array
+Date: Wed, 26 Apr 2017 03:39:12 +0000
+Message-ID: <1493177952.3503.1.camel@sandisk.com>
+References: <8992bd28-667f-94b1-e582-106e6b41aa4b@sandisk.com>
+         <20170425175849.GS14088@mtr-leonro.local>
+         <438230391.2090966.1493152655709.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1493134815.3041.72.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <438230391.2090966.1493152655709.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Content-ID: <14039A5DBC618248855A72CA8D0D1D14-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Erez Shitrit <erezsh-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+To: "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 25, 2017 at 6:40 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> On Tue, 2017-04-25 at 17:39 +0300, Or Gerlitz wrote:
-
->> If got you right, Paolo's commit introduced a regression, so we (I
->> guess you and Paolo) need to either solve it or we (community)
->> should consider a revert, please suggest.
-
-> [...] So, this issue should be
-> reproducible either after Paolo's commit or with any kernel prior to
-> your commit to use the skb->cb area to store the DGID, but it probably
-> requires the specific series of actions in this bug to trigger it.
-
-mmm
-
-> A normal, clean shutdown of the interface doesn't demonstrate the issue.
-
-so maybe @ least for the time being, we should be picking Hong's patch
-with proper change log and without the giant stack dump till we have
-something better. If you agree, can you do the re-write of the change
-log?
-
-Or.
-
-
->> The bug is now in stable and distro kernels, so please act.
+T24gVHVlLCAyMDE3LTA0LTI1IGF0IDE2OjM3IC0wNDAwLCBMYXVyZW5jZSBPYmVybWFuIHdyb3Rl
+Og0KPiBIZWxsbyBCYXJ0LCBMZW9uLCBNYXggYW5kIElzcmFlbC4NCj4gDQo+IEkgY2xvbmVkIG9m
+ZiBCYXJ0cyB0cmVlLg0KPiANCj4gZ2l0IGNsb25lIGh0dHBzOi8vZ2l0aHViLmNvbS9idmFuYXNz
+Y2hlL2xpbnV4DQo+IGNkIGxpbnV4DQo+IGdpdCBjaGVja291dCBibG9jay1zY3NpLWZvci1uZXh0
+DQo+IA0KPiBJIGNoZWNrZWQgYWxsIHBhdGNoZXMgd2VyZSBpbiBmb3IgdGhpcyB0ZXN0Lg0KPiAN
+Cj4gYTgzZTQwNCBJQi9zcnA6IFJlZW5hYmxlIElCX01SX1RZUEVfU0dfR0FQUw0KPiBkZmE1YTJi
+IG1seDU6IEF2b2lkIHRoYXQgbWx4NV9pYl9zZ190b19rbG1zKCkgb3ZlcmZsb3dzIHRoZSBrbG1z
+W10gYXJyYXkNCj4gZjc1OWM4MCBtbHg1OiBGaXggbWx4NV9pYl9tYXBfbXJfc2cgbXIgbGVuZ3QN
+Cj4gDQo+IEJ1aWx0IGFuZCB0ZXN0ZWQgdGhlIGtlcm5lbC4NCj4gDQo+IEhvd2V2ZXIgdGhpcyBp
+c3N1ZSBpcyBub3QgcmVzb2x2ZWQgOigNCj4gDQo+IFsgMjcwNy45MzE5MDldIHNjc2kgaG9zdDE6
+IGliX3NycDogZmFpbGVkIFJFQ1Ygc3RhdHVzIFdSIGZsdXNoZWQgKDUpIGZvciBDUUUgZmZmZjg4
+MTdlZGNhODZiMA0KPiBbIDI3MDguMDg5ODA2XSBtbHg1XzA6ZHVtcF9jcWU6MjYyOihwaWQgMjAx
+MjkpOiBkdW1wIGVycm9yIGNxZQ0KPiBbIDI3MDguMTIxMzQyXSAwMDAwMDAwMCAwMDAwMDAwMCAw
+MDAwMDAwMCAwMDAwMDAwMA0KPiBbIDI3MDguMTQ3MTA0XSAwMDAwMDAwMCAwMDAwMDAwMCAwMDAw
+MDAwMCAwMDAwMDAwMA0KPiBbIDI3MDguMTcyNjMzXSAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAw
+MCAwMDAwMDAwMA0KPiBbIDI3MDguMTk4NzAyXSAwMDAwMDAwMCAwZjAwNzgwNiAyNTAwMDAyYSAx
+NGE1MjdkMA0KPiBbIDI3MzIuNDM0MTI3XSBzY3NpIGhvc3QxOiBpYl9zcnA6IHJlY29ubmVjdCBz
+dWNjZWVkZWQNCj4gWyAyNzMzLjA0ODAyM10gc2NzaSBob3N0MTogaWJfc3JwOiBmYWlsZWQgUkVD
+ViBzdGF0dXMgV1IgZmx1c2hlZCAoNSkgZm9yIENRRSBmZmZmODgxN2VkMGE5YzMwDQoNCkhlbGxv
+IExhdXJlbmNlLA0KDQpUaGFuayB5b3UgZm9yIGhhdmluZyBydW4gdGhpcyB0ZXN0LiBCdXQgYXJl
+IHlvdSBhd2FyZSB0aGF0IGlmIGEgZmx1c2ggZXJyb3INCmlzIHJlcG9ydGVkIGF0IHRoZSBpbml0
+aWF0b3Igc2lkZSB0aGF0IGRvZXMgbm90IG5lY2Vzc2FyaWx5IG1lYW4gdGhhdCB0aGVyZQ0KaXMg
+YSBidWcgYXQgdGhlIGluaXRpYXRvciBzaWRlPyBJZiBlLmcuIHRoZSB0YXJnZXQgc3lzdGVtIHdv
+dWxkIGluaXRpYXRlIGENCmRpc2Nvbm5lY3QgdGhhdCB3b3VsZCBhbHNvIHRyaWdnZXIgdGhpcyBr
+aW5kIG9mIGZsdXNoIGVycm9ycy4gV2hhdCBraW5kIG9mDQpTUlAgdGFyZ2V0IHN5c3RlbSB3YXMg
+dXNlZCBpbiB0aGlzIHRlc3Q/IFdlcmUgdGhlIGNsb2NrcyBvZiBpbml0aWF0b3IgYW5kDQp0YXJn
+ZXQgc3lzdGVtIHN5bmNocm9uaXplZD8gQXJlIHRoZSBsb2dzIG9mIHRoZSB0YXJnZXQgc3lzdGVt
+IGF2YWlsYWJsZT8gSWYNCnNvLCBjYW4geW91IGhhdmUgYSBsb29rIHdoZXRoZXIgYW55dGhpbmcg
+aW50ZXJlc3RpbmcgY2FuIGJlIGZvdW5kIGluIHRoZQ0KdGFyZ2V0IGxvZyBhcm91bmQgdGhlIHRp
+bWUgdGhlIGluaXRpYXRvciByZXBvcnRlZCB0aGUgZmx1c2ggZXJyb3I/DQoNClRoYW5rcywNCg0K
+QmFydC4=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
