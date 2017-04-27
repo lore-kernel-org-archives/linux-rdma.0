@@ -1,59 +1,90 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v2 15/21] xen-blkfront: Make use of the new sg_map helper
- function
-Date: Thu, 27 Apr 2017 17:03:45 -0600
-Message-ID: <3a7c0d27-0744-4e91-b37f-3885c50455e8@deltatee.com>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
- <1493144468-22493-16-git-send-email-logang@deltatee.com>
- <20170426073720.okv33ly2ldepilti@dhcp-3-128.uk.xensource.com>
- <df6586e2-7d45-6b0b-facb-4dea882df06e@deltatee.com>
- <20170427205339.GB26330@obsidianresearch.com>
- <02ba3c7b-5fab-a06c-fbbf-c3be1c0fae1b@deltatee.com>
- <20170427221132.GA30036@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20170427221132.GA30036-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Boris Ostrovsky <boris.ostrovsky-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sumit Semwal <sumit.semwal-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Juergen Gross <jgross-IBi9RG/b67k@public.gmane.org>, Julien Grall <julien.grall-5wv7dgnIgG8@public.gmane.org>, intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, sparmaintainer-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org, linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, megaraidlinux.pdl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh@linuxfoundati>
+From: Dasaratharaman Chandramouli
+        <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v3 rdma-next 0/6] Add support for OPA path records
+Date: Thu, 27 Apr 2017 19:05:56 -0400
+Message-ID: <1493334362-24774-1-git-send-email-dasaratharaman.chandramouli@intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Traditional IB path records have 16 bit SLID and DLID
+fields that cannot really be used by applications and ULPs working
+with 32-bit LIDs. OPA path records add support for 32 bit
+SLIDs and DLIDs. Support for OPA path records is specified
+by bit 26 of the capmask2 field in the OPA class portinfo.
 
+Note that these patches apply on the earlier patch series with subject
+"[PATCH v3 rdma-next 00/18] Enhance ib_ah_attr to specify types"
 
-On 27/04/17 04:11 PM, Jason Gunthorpe wrote:
-> On Thu, Apr 27, 2017 at 03:53:37PM -0600, Logan Gunthorpe wrote:
-> Well, that is in the current form, with more users it would make sense
-> to optimize for the single page case, eg by providing the existing
-> call, providing a faster single-page-only variant of the copy, perhaps
-> even one that is inlined.
+Changes from v2:
+---------------
+* Fixes to patch 4:
+  - Perform NULL check before copying dmac from path record.
 
-Ok, does it make sense then to have an sg_copy_page_to_buffer (or some
-such... I'm having trouble thinking of a sane name that isn't too long).
-That just does k(un)map_atomic and memcpy? I could try that if it makes
-sense to people.
+* Fixes to patch 5:
+  - Consider endianness of slid and dlid when converting from OPA
+    to IB path record type.
+  - Fix helper function sa_path_get_dlid
 
->> Switching the for_each_sg to sg_miter is probably the nicer solution as
->> it takes care of the mapping and the offset/length accounting for you
->> and will have similar performance.
-> 
-> sg_miter will still fail when the sg contains __iomem, however I would
-> expect that the sg_copy will work with iomem, by using the __iomem
-> memcpy variant.
+* Fixes to patch 6:
+  - Free path record if path record query fails
 
-Yes, that's true. Any sg_miters that ever see iomem will need to be
-converted to support it. This isn't much different than the other
-kmap(sg_page()) users I was converting that will also fail if they see
-iomem. Though, I suspect an sg_miter user would be easier to convert to
-iomem than a random kmap user.
+Changes from v1:
+---------------
 
-Logan
+* Remove an unneeded change that was introduced in
+  ulp/srpt/ib_srpt.c
+
+This patches are organized as follows:
+* Patch 1 performs checkpatch fixes that later patches
+  touch upon.
+* Patch 2 renames ib_sa_path_rec to sa_path_rec
+* Patch 3 introduces the 'rec_type' field that identifies
+  a path record type. This field replaces the existing
+  'gid_type' field.
+* Patch 4 splits the existing sa_path_rec into a union of
+  sa_path_rec_ib and sa_path_rec_roce structures. Fields that
+  are common to both continue to be part of sa_path_rec.
+* Patch 5 extends sa_path_rec to have path records of type opa
+* Patch 6 enables SA component to query for OPA path records if
+  ULPs and other kernel components request for it
+
+Dasaratharaman Chandramouli (6):
+  IB/CM: Add braces when using sizeof
+  IB/SA: Rename ib_sa_path_rec to sa_path_rec
+  IB/SA: Introduce path record specific types
+  IB/SA: Split struct sa_path_rec based on IB and ROCE specific fields
+  IB/SA: Add OPA path record type
+  IB/SA: Add support to query OPA path records
+
+ drivers/infiniband/core/cm.c              | 103 +++++----
+ drivers/infiniband/core/cma.c             |  50 +++--
+ drivers/infiniband/core/sa_query.c        | 337 ++++++++++++++++++++++++++----
+ drivers/infiniband/core/ucm.c             |   6 +-
+ drivers/infiniband/core/ucma.c            |  24 ++-
+ drivers/infiniband/core/uverbs_marshall.c |  52 +++--
+ drivers/infiniband/ulp/ipoib/ipoib.h      |   2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c   |   6 +-
+ drivers/infiniband/ulp/ipoib/ipoib_fs.c   |   6 +-
+ drivers/infiniband/ulp/ipoib/ipoib_main.c |  22 +-
+ drivers/infiniband/ulp/srp/ib_srp.c       |  13 +-
+ drivers/infiniband/ulp/srp/ib_srp.h       |   2 +-
+ include/rdma/ib_cm.h                      |  14 +-
+ include/rdma/ib_mad.h                     |  13 ++
+ include/rdma/ib_marshall.h                |   4 +-
+ include/rdma/ib_sa.h                      | 287 +++++++++++++++++++++++--
+ include/rdma/opa_addr.h                   |  79 +++++++
+ include/rdma/rdma_cm.h                    |   2 +-
+ include/rdma/rdma_cm_ib.h                 |   2 +-
+ 19 files changed, 859 insertions(+), 165 deletions(-)
+ create mode 100644 include/rdma/opa_addr.h
+
+-- 
+1.8.3.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
