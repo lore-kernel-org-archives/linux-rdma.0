@@ -1,21 +1,25 @@
 From: "ira.weiny" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH TRIVIAL infiniband-diags] ibdiag_common.c: Fix cosmetic formatting issue
-Date: Thu, 27 Apr 2017 17:27:06 -0400
-Message-ID: <20170427212705.GA31202@phlsvsds.ph.intel.com>
-References: <5c06ade8-c86d-b59c-0ee5-c8309af69676@dev.mellanox.co.il>
+Subject: Re: [PATCH infiniband-diags] ibstat.c: Add include for __be64 type
+Date: Thu, 27 Apr 2017 17:28:06 -0400
+Message-ID: <20170427212805.GB31202@phlsvsds.ph.intel.com>
+References: <9747c5f3-7176-564f-8a74-a3f4a8558c71@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <5c06ade8-c86d-b59c-0ee5-c8309af69676-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <9747c5f3-7176-564f-8a74-a3f4a8558c71-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 27, 2017 at 12:56:47PM -0400, Hal Rosenstock wrote:
+On Thu, Apr 27, 2017 at 09:24:22AM -0400, Hal Rosenstock wrote:
 > 
-> Change leading spaces into a tab
+> for supporting libibumad prior to it's inclusion in rdma-core
+> 
+> rdma-core dependency was added by:
+> commit 8e562d3c22840064d7693e22c93f9c0a9112365a
+> infiniband-diags: Fix type passed to umad_get_ca_portguids
 > 
 > Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
@@ -23,25 +27,18 @@ Thanks applied,
 Ira
 
 > ---
->  src/ibdiag_common.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
-> index cbade5b..1f91269 100644
-> --- a/src/ibdiag_common.c
-> +++ b/src/ibdiag_common.c
-> @@ -850,7 +850,7 @@ int vsnprint_field(char *buf, size_t n, enum MAD_FIELDS f, int spacing,
->  	int len, i, ret;
+> diff --git a/src/ibstat.c b/src/ibstat.c
+> index 67ab165..bad4c99 100644
+> --- a/src/ibstat.c
+> +++ b/src/ibstat.c
+> @@ -48,6 +48,7 @@
+>  #include <sys/stat.h>
+>  #include <fcntl.h>
+>  #include <errno.h>
+> +#include <linux/types.h> /* __be64 */
 >  
->  	len = strlen(mad_field_name(f));
-> -        if (len + 2 > n || spacing + 1 > n)
-> +	if (len + 2 > n || spacing + 1 > n)
->  		return 0;
+>  #include <infiniband/umad.h>
 >  
->  	strncpy(buf, mad_field_name(f), n);
-> -- 
-> 2.8.4
-> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
