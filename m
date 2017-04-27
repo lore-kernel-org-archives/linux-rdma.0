@@ -1,249 +1,70 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv2 RESEND infiniband-diags] perfquery.c: Add support for
- additional counters in PortCountersExtended
-Date: Thu, 27 Apr 2017 10:45:42 -0400
-Message-ID: <9f4b2839-8336-28c7-4ed2-e47aad52e1b7@dev.mellanox.co.il>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH v2 01/21] scatterlist: Introduce sg_map helper functions
+Date: Thu, 27 Apr 2017 09:27:20 -0600
+Message-ID: <20170427152720.GA7662@obsidianresearch.com>
+References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
+ <1493144468-22493-2-git-send-email-logang@deltatee.com>
+ <20170426074416.GA7936@lst.de>
+ <4736d44e-bbcf-5d59-a1a9-317d0f4da847@deltatee.com>
+ <20170427065338.GA20677@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Oded Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170427065338.GA20677-jcswGhMUV9g@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sumit Semwal <sumit.semwal-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, sparmaintainer-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org, linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, megaraidlinux.pdl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Oded Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Thu, Apr 27, 2017 at 08:53:38AM +0200, Christoph Hellwig wrote:
 
-Support aggregation when AllPortSelect is not supported
-and reset of those counters.
+> > The main difficulty we
+> > have now is that neither of those functions are expected to fail and we
+> > need them to be able to in cases where the page doesn't map to system
+> > RAM. This patch series is trying to address it for users of scatterlist.
+> > I'm certainly open to other suggestions.
+> 
+> I think you'll need to follow the existing kmap semantics and never
+> fail the iomem version either.  Otherwise you'll have a special case
+> that's almost never used that has a different error path.
 
-Signed-off-by: Oded Nissan <odedni-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-Change since v1:
-Increase buffer size in output_aggregate_perfcounters_ext
+How about first switching as many call sites as possible to use
+sg_copy_X_buffer instead of kmap?
 
- include/ibdiag_common.h |   9 ++++
- src/perfquery.c         | 113 +++++++++++++++++++++++++++++++++++++++++++-----
- 2 files changed, 111 insertions(+), 11 deletions(-)
+A random audit of Logan's series suggests this is actually a fairly
+common thing.
 
-diff --git a/include/ibdiag_common.h b/include/ibdiag_common.h
-index 79d8e72..b8c5987 100644
---- a/include/ibdiag_common.h
-+++ b/include/ibdiag_common.h
-@@ -83,6 +83,15 @@ extern char *ibd_nd_format;
- #define IS_PM_RSFEC_COUNTERS_SUP (CL_HTON16(((uint16_t)1)<<14))
- #endif
- 
-+#ifndef IB_PM_IS_QP1_DROP_SUP
-+#define IB_PM_IS_QP1_DROP_SUP (CL_HTON16(((uint16_t)1)<<15))
-+#endif
-+
-+/* PM ClassPortInfo CapabilityMask2 Bits */
-+#ifndef IB_PM_IS_ADDL_PORT_CTRS_EXT_SUP
-+#define IB_PM_IS_ADDL_PORT_CTRS_EXT_SUP (CL_HTON32(((uint32_t)1)<<1))
-+#endif
-+
- /* SM PortInfo CapabilityMask2 Bits */
- #ifndef IB_PORT_CAP2_IS_PORT_INFO_EXT_SUPPORTED
- #define IB_PORT_CAP2_IS_PORT_INFO_EXT_SUPPORTED (CL_HTON16(0x0002))
-diff --git a/src/perfquery.c b/src/perfquery.c
-index ab6c0f8..384c116 100644
---- a/src/perfquery.c
-+++ b/src/perfquery.c
-@@ -85,13 +85,30 @@ struct perf_count_ext {
- 	uint64_t portunicastrcvpkts;
- 	uint64_t portmulticastxmitpkits;
- 	uint64_t portmulticastrcvpkts;
-+
-+	uint32_t counterSelect2;
-+	uint64_t symbolErrorCounter;
-+	uint64_t linkErrorRecoveryCounter;
-+	uint64_t linkDownedCounter;
-+	uint64_t portRcvErrors;
-+	uint64_t portRcvRemotePhysicalErrors;
-+	uint64_t portRcvSwitchRelayErrors;
-+	uint64_t portXmitDiscards;
-+	uint64_t portXmitConstraintErrors;
-+	uint64_t portRcvConstraintErrors;
-+	uint64_t localLinkIntegrityErrors;
-+	uint64_t excessiveBufferOverrunErrors;
-+	uint64_t VL15Dropped;
-+	uint64_t portXmitWait;
-+	uint64_t QP1Dropped;
- };
- 
- static uint8_t pc[1024];
- 
- struct perf_count perf_count =
-     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
--struct perf_count_ext perf_count_ext = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-+struct perf_count_ext perf_count_ext =
-+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
- 
- #define ALL_PORTS 0xFF
- #define MAX_PORTS 255
-@@ -228,7 +245,7 @@ static void output_aggregate_perfcounters(ib_portid_t * portid,
- 	       portid2str(portid), ALL_PORTS, ntohs(cap_mask), buf);
- }
- 
--static void aggregate_perfcounters_ext(uint16_t cap_mask)
-+static void aggregate_perfcounters_ext(uint16_t cap_mask, uint32_t cap_mask2)
- {
- 	uint32_t val;
- 	uint64_t val64;
-@@ -256,15 +273,48 @@ static void aggregate_perfcounters_ext(uint16_t cap_mask)
- 		mad_decode_field(pc, IB_PC_EXT_RCV_MPKTS_F, &val64);
- 		aggregate_64bit(&perf_count_ext.portmulticastrcvpkts, val64);
- 	}
-+
-+	if (htonl(cap_mask2) & IB_PM_IS_ADDL_PORT_CTRS_EXT_SUP) {
-+		mad_decode_field(pc, IB_PC_EXT_COUNTER_SELECT2_F, &val);
-+		perf_count_ext.counterSelect2 = val;
-+		mad_decode_field(pc, IB_PC_EXT_ERR_SYM_F, &val64);
-+		aggregate_64bit(&perf_count_ext.symbolErrorCounter, val64);
-+		mad_decode_field(pc, IB_PC_EXT_LINK_RECOVERS_F, &val64);
-+		aggregate_64bit(&perf_count_ext.linkErrorRecoveryCounter, val64);
-+		mad_decode_field(pc, IB_PC_EXT_LINK_DOWNED_F, &val64);
-+		aggregate_64bit(&perf_count_ext.linkDownedCounter, val64);
-+		mad_decode_field(pc, IB_PC_EXT_ERR_RCV_F, &val64);
-+		aggregate_64bit(&perf_count_ext.portRcvErrors, val64);
-+		mad_decode_field(pc, IB_PC_EXT_ERR_PHYSRCV_F, &val64);
-+		aggregate_64bit(&perf_count_ext.portRcvRemotePhysicalErrors, val64);
-+		mad_decode_field(pc, IB_PC_EXT_ERR_SWITCH_REL_F, &val64);
-+		aggregate_64bit(&perf_count_ext.portRcvSwitchRelayErrors, val64);
-+		mad_decode_field(pc, IB_PC_EXT_XMT_DISCARDS_F, &val64);
-+		aggregate_64bit(&perf_count_ext.portXmitDiscards, val64);
-+		mad_decode_field(pc, IB_PC_EXT_ERR_XMTCONSTR_F, &val64);
-+		aggregate_64bit(&perf_count_ext.portXmitConstraintErrors, val64);
-+		mad_decode_field(pc, IB_PC_EXT_ERR_RCVCONSTR_F, &val64);
-+		aggregate_64bit(&perf_count_ext.portRcvConstraintErrors, val64);
-+		mad_decode_field(pc, IB_PC_EXT_ERR_LOCALINTEG_F, &val64);
-+		aggregate_64bit(&perf_count_ext.localLinkIntegrityErrors, val64);
-+		mad_decode_field(pc, IB_PC_EXT_ERR_EXCESS_OVR_F, &val64);
-+		aggregate_64bit(&perf_count_ext.excessiveBufferOverrunErrors, val64);
-+		mad_decode_field(pc, IB_PC_EXT_VL15_DROPPED_F, &val64);
-+		aggregate_64bit(&perf_count_ext.VL15Dropped, val64);
-+		mad_decode_field(pc, IB_PC_EXT_XMT_WAIT_F, &val64);
-+		aggregate_64bit(&perf_count_ext.portXmitWait, val64);
-+		mad_decode_field(pc, IB_PC_EXT_QP1_DROP_F, &val64);
-+		aggregate_64bit(&perf_count_ext.QP1Dropped, val64);
-+	}
- }
- 
- static void output_aggregate_perfcounters_ext(ib_portid_t * portid,
--					      uint16_t cap_mask)
-+					      uint16_t cap_mask, uint32_t cap_mask2)
- {
--	char buf[1024];
-+	char buf[1536];
- 	uint32_t val = ALL_PORTS;
- 
--	memset(buf, 0, 1024);
-+	memset(buf, 0, sizeof(buf));
- 
- 	/* set port_select to 255 to emulate AllPortSelect */
- 	mad_encode_field(pc, IB_PC_EXT_PORT_SELECT_F, &val);
-@@ -289,17 +339,50 @@ static void output_aggregate_perfcounters_ext(ib_portid_t * portid,
- 				 &perf_count_ext.portmulticastrcvpkts);
- 	}
- 
-+	if (htonl(cap_mask2) & IB_PM_IS_ADDL_PORT_CTRS_EXT_SUP) {
-+		mad_encode_field(pc, IB_PC_EXT_COUNTER_SELECT2_F,
-+				 &perf_count_ext.counterSelect2);
-+		mad_encode_field(pc, IB_PC_EXT_ERR_SYM_F,
-+				 &perf_count_ext.symbolErrorCounter);
-+		mad_encode_field(pc, IB_PC_EXT_LINK_RECOVERS_F,
-+				 &perf_count_ext.linkErrorRecoveryCounter);
-+		mad_encode_field(pc, IB_PC_EXT_LINK_DOWNED_F,
-+				 &perf_count_ext.linkDownedCounter);
-+		mad_encode_field(pc, IB_PC_EXT_ERR_RCV_F,
-+				 &perf_count_ext.portRcvErrors);
-+		mad_encode_field(pc, IB_PC_EXT_ERR_PHYSRCV_F,
-+				 &perf_count_ext.portRcvRemotePhysicalErrors);
-+		mad_encode_field(pc, IB_PC_EXT_ERR_SWITCH_REL_F,
-+				 &perf_count_ext.portRcvSwitchRelayErrors);
-+		mad_encode_field(pc, IB_PC_EXT_XMT_DISCARDS_F,
-+				 &perf_count_ext.portXmitDiscards);
-+		mad_encode_field(pc, IB_PC_EXT_ERR_XMTCONSTR_F,
-+				 &perf_count_ext.portXmitConstraintErrors);
-+		mad_encode_field(pc, IB_PC_EXT_ERR_RCVCONSTR_F,
-+				 &perf_count_ext.portRcvConstraintErrors);
-+		mad_encode_field(pc, IB_PC_EXT_ERR_LOCALINTEG_F,
-+				 &perf_count_ext.localLinkIntegrityErrors);
-+		mad_encode_field(pc, IB_PC_EXT_ERR_EXCESS_OVR_F,
-+				 &perf_count_ext.excessiveBufferOverrunErrors);
-+		mad_encode_field(pc, IB_PC_EXT_VL15_DROPPED_F,
-+				 &perf_count_ext.VL15Dropped);
-+		mad_encode_field(pc, IB_PC_EXT_XMT_WAIT_F,
-+				 &perf_count_ext.portXmitWait);
-+		mad_encode_field(pc, IB_PC_EXT_QP1_DROP_F,
-+				 &perf_count_ext.QP1Dropped);
-+	}
-+
- 	mad_dump_perfcounters_ext(buf, sizeof buf, pc, sizeof pc);
- 
--	printf("# Port extended counters: %s port %d (CapMask: 0x%02X)\n%s",
--	       portid2str(portid), ALL_PORTS, ntohs(cap_mask), buf);
-+	printf("# Port extended counters: %s port %d (CapMask: 0x%02X CapMask2: 0x%07X)\n%s",
-+	       portid2str(portid), ALL_PORTS, ntohs(cap_mask), cap_mask2, buf);
- }
- 
- static void dump_perfcounters(int extended, int timeout, uint16_t cap_mask,
- 			      uint32_t cap_mask2, ib_portid_t * portid,
- 			      int port, int aggregate)
- {
--	char buf[1024];
-+	char buf[1536];
- 
- 	if (extended != 1) {
- 		memset(pc, 0, sizeof(pc));
-@@ -336,7 +419,7 @@ static void dump_perfcounters(int extended, int timeout, uint16_t cap_mask,
- 				   IB_GSI_PORT_COUNTERS_EXT, srcport))
- 			IBEXIT("perfextquery");
- 		if (aggregate)
--			aggregate_perfcounters_ext(cap_mask);
-+			aggregate_perfcounters_ext(cap_mask, cap_mask2);
- 		else
- 			mad_dump_perfcounters_ext(buf, sizeof buf, pc,
- 						  sizeof pc);
-@@ -958,7 +1041,7 @@ int main(int argc, char **argv)
- 							      cap_mask);
- 			else
- 				output_aggregate_perfcounters_ext(&portid,
--								  cap_mask);
-+								  cap_mask, cap_mask2);
- 		}
- 	} else if (ports_count > 1) {
- 		for (i = 0; i < ports_count; i++)
-@@ -971,7 +1054,7 @@ int main(int argc, char **argv)
- 							      cap_mask);
- 			else
- 				output_aggregate_perfcounters_ext(&portid,
--								  cap_mask);
-+								  cap_mask, cap_mask2);
- 		}
- 	} else
- 		dump_perfcounters(extended, ibd_timeout, cap_mask, cap_mask2,
-@@ -984,6 +1067,14 @@ do_reset:
- 	if (argc <= 2 && !extended && (cap_mask & IB_PM_PC_XMIT_WAIT_SUP))
- 		mask |= (1 << 16);	/* reset portxmitwait */
- 
-+	if (extended) {
-+		mask |= 0xfff0000;
-+		if (cap_mask & IB_PM_PC_XMIT_WAIT_SUP)
-+			mask |= (1 << 28);
-+		if (cap_mask & IB_PM_IS_QP1_DROP_SUP)
-+			mask |= (1 << 29);
-+	}
-+
- 	if (all_ports_loop || (loop_ports && (all_ports || port == ALL_PORTS))) {
- 		for (i = start_port; i <= num_ports; i++)
- 			reset_counters(extended, ibd_timeout, mask, &portid, i);
--- 
-2.8.4
+eg drivers/mmc/host/sdhci.c is only doing this:
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+                                        buffer = sdhci_kmap_atomic(sg, &flags);
+                                        memcpy(buffer, align, size);
+                                        sdhci_kunmap_atomic(buffer, &flags);
+
+drivers/scsi/mvsas/mv_sas.c is this:
+
++			to = sg_map(sg_resp, 0, SG_KMAP_ATOMIC);
++			memcpy(to,
++			       slot->response + sizeof(struct mvs_err_info),
++			       sg_dma_len(sg_resp));
++			sg_unmap(sg_resp, to, 0, SG_KMAP_ATOMIC);
+
+etc.
+
+Lots of other places seem similar, if not sometimes a little bit more
+convoluted..
+
+Switching all the trivial cases to use copy might bring more clarity
+as to what is actually required for the remaining few users? If there
+are only a few then it may no longer matter if the API is not idyllic.
+
+Jason
