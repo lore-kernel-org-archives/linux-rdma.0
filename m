@@ -1,42 +1,25 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH TRIVIAL infiniband-diags] ibdiag_common.c: Fix cosmetic
- formatting issue
-Date: Thu, 27 Apr 2017 12:56:47 -0400
-Message-ID: <5c06ade8-c86d-b59c-0ee5-c8309af69676@dev.mellanox.co.il>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: Re: [PATCH] IB/rdmavt: restore IRQs on error path in rvt_create_ah()
+Date: Thu, 27 Apr 2017 13:14:00 -0400
+Message-ID: <418a9680-c856-5b9c-b3b5-c46aaa367882@intel.com>
+References: <20170427091420.j7kl5tmzqnyami4s@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <20170427091420.j7kl5tmzqnyami4s@mwanda>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>, Kamal Heib <kamalh@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 04/27/2017 05:14 AM, Dan Carpenter wrote:
+> We need to call spin_unlock_irqrestore() instead of vanilla
+> spin_unlock() on this error path.
+>
+> Fixes: 119a8e708d16 ("IB/rdmavt: Add AH to rdmavt")
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Change leading spaces into a tab
+Acked-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- src/ibdiag_common.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
-index cbade5b..1f91269 100644
---- a/src/ibdiag_common.c
-+++ b/src/ibdiag_common.c
-@@ -850,7 +850,7 @@ int vsnprint_field(char *buf, size_t n, enum MAD_FIELDS f, int spacing,
- 	int len, i, ret;
- 
- 	len = strlen(mad_field_name(f));
--        if (len + 2 > n || spacing + 1 > n)
-+	if (len + 2 > n || spacing + 1 > n)
- 		return 0;
- 
- 	strncpy(buf, mad_field_name(f), n);
--- 
-2.8.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
