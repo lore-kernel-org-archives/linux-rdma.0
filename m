@@ -1,37 +1,42 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH 5/7] IB/hfi1: use pcie_flr instead of duplicating it
-Date: Thu, 27 Apr 2017 11:49:46 -0500
-Message-ID: <20170427164946.GA8309@bhelgaas-glaptop.roam.corp.google.com>
-References: <20170414191131.14286-1-hch@lst.de>
- <20170414191131.14286-6-hch@lst.de>
- <A33E225544E47D4DB5713032774B132783960382@irsmsx105.ger.corp.intel.com>
- <20170424143507.GA28812@lst.de>
- <20170425193955.GC29024@bhelgaas-glaptop.roam.corp.google.com>
- <20170427064758.GA20614@lst.de>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH TRIVIAL infiniband-diags] ibdiag_common.c: Fix cosmetic
+ formatting issue
+Date: Thu, 27 Apr 2017 12:56:47 -0400
+Message-ID: <5c06ade8-c86d-b59c-0ee5-c8309af69676@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-crypto-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170427064758.GA20614@lst.de>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: "Byczkowski, Jakub" <jakub.byczkowski@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Cabiddu, Giovanni" <giovanni.cabiddu@intel.com>, "Benedetto, Salvatore" <salvatore.benedetto@intel.com>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, Derek Chickles <derek.chickles@caviumnetworks.com>, Satanand Burla <satananda.burla@caviumnetworks.com>, Felix Manlunas <felix.manlunas@caviumnetworks.com>, Raghu Vatsavayi <raghu.vatsavayi@caviumnetworks.com>, "Kirsher, Jeffrey T" <jeffrey.t.kirsher@intel.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, qat-linux <qat-linux@intel.com>, "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>net
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 27, 2017 at 08:47:58AM +0200, Christoph Hellwig wrote:
-> On Tue, Apr 25, 2017 at 02:39:55PM -0500, Bjorn Helgaas wrote:
-> > This still leaves these:
-> > 
-> >   [PATCH 4/7] ixgbe: use pcie_flr instead of duplicating it
-> >   [PATCH 6/7] crypto: qat: use pcie_flr instead of duplicating it
-> >   [PATCH 7/7] liquidio: use pcie_flr instead of duplicating it
-> > 
-> > I haven't seen any response to 4 and 6.  Felix reported an unused
-> > variable in 7.  Let me know if you'd like me to do anything with
-> > these.
-> 
-> Now that Jeff ACKed 4 it might be worth to add it to the pci tree last
-> minute.  I'll resend liquidio and qat to the respective maintainers for
-> the next merge window.
 
-I applied 4 with Jeff's ack to pci/virtualization for v4.12, thanks!
+Change leading spaces into a tab
+
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ src/ibdiag_common.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
+index cbade5b..1f91269 100644
+--- a/src/ibdiag_common.c
++++ b/src/ibdiag_common.c
+@@ -850,7 +850,7 @@ int vsnprint_field(char *buf, size_t n, enum MAD_FIELDS f, int spacing,
+ 	int len, i, ret;
+ 
+ 	len = strlen(mad_field_name(f));
+-        if (len + 2 > n || spacing + 1 > n)
++	if (len + 2 > n || spacing + 1 > n)
+ 		return 0;
+ 
+ 	strncpy(buf, mad_field_name(f), n);
+-- 
+2.8.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
