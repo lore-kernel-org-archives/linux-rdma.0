@@ -1,61 +1,58 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH v2 07/21] crypto: shash, caam: Make use of the new sg_map
- helper function
-Date: Thu, 27 Apr 2017 11:56:03 +0800
-Message-ID: <20170427035603.GA32212@gondor.apana.org.au>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
- <1493144468-22493-8-git-send-email-logang@deltatee.com>
+From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: cqe dump errors on target while running nvme-of large block read
+ IO
+Date: Thu, 27 Apr 2017 04:29:27 +0000
+Message-ID: <209CAF47-1CE4-4A22-9E11-6377CEF62495@mellanox.com>
+References: <DE927C68B458BE418D582EC97927A9285505C9EA@ORSMSX113.amr.corp.intel.com>
+ <47f19583-1882-09d4-ce1c-534b8e59068b@mellanox.com>
+ <DE927C68B458BE418D582EC97927A9285505F0C9@ORSMSX113.amr.corp.intel.com>
+ <52c550c1-849b-7ea5-ab34-56543cb9069d@mellanox.com>
+ <991b26ec-69d3-9e1c-ed3e-0d6e6618e73a@grimberg.me>
+ <DE927C68B458BE418D582EC97927A92855072ECF@ORSMSX113.amr.corp.intel.com>,<8521776c-9557-04f1-9c7c-8389e083052b@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1493144468-22493-8-git-send-email-logang@deltatee.com>
-Sender: netdev-owner@vger.kernel.org
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, linux-raid@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvdimm@lists.01.org, linux-scsi@vger.kernel.org, open-iscsi@googlegroups.com, megaraidlinux.pdl@broadcom.com, sparmaintainer@unisys.com, devel@driverdev.osuosl.org, target-devel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dm-devel@redhat.com, Christoph Hellwig <hch@lst.de>, "Martin K. Petersen" <martin.petersen@oracle.com>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, Jens Axboe <axboe@kernel.dk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <8521776c-9557-04f1-9c7c-8389e083052b-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 25, 2017 at 12:20:54PM -0600, Logan Gunthorpe wrote:
-> Very straightforward conversion to the new function in the caam driver
-> and shash library.
-> 
-> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-> Cc: Herbert Xu <herbert@gondor.apana.org.au>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> ---
->  crypto/shash.c                | 9 ++++++---
->  drivers/crypto/caam/caamalg.c | 8 +++-----
->  2 files changed, 9 insertions(+), 8 deletions(-)
-> 
-> diff --git a/crypto/shash.c b/crypto/shash.c
-> index 5e31c8d..5914881 100644
-> --- a/crypto/shash.c
-> +++ b/crypto/shash.c
-> @@ -283,10 +283,13 @@ int shash_ahash_digest(struct ahash_request *req, struct shash_desc *desc)
->  	if (nbytes < min(sg->length, ((unsigned int)(PAGE_SIZE)) - offset)) {
->  		void *data;
->  
-> -		data = kmap_atomic(sg_page(sg));
-> -		err = crypto_shash_digest(desc, data + offset, nbytes,
-> +		data = sg_map(sg, 0, SG_KMAP_ATOMIC);
-> +		if (IS_ERR(data))
-> +			return PTR_ERR(data);
-> +
-> +		err = crypto_shash_digest(desc, data, nbytes,
->  					  req->result);
-> -		kunmap_atomic(data);
-> +		sg_unmap(sg, data, 0, SG_KMAP_ATOMIC);
->  		crypto_yield(desc->flags);
->  	} else
->  		err = crypto_shash_init(desc) ?:
 
-Nack.  This is an optimisation for the special case of a single
-SG list entry.  In fact in the common case the kmap_atomic should
-disappear altogether in the no-highmem case.  So replacing it
-with sg_map is not acceptable.
+> On Apr 27, 2017, at 2:57 AM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
+>=20
+>=20
+>> Folks, I have to apologize here.  Flow control was at one point configur=
+ed correctly, but we had a power outage in our lab two weeks ago.
+>> We thought the switch had come back up OK, but late week we were double-=
+checking all the ports in use and we found one port had lost some
+>> settings and no longer had flow control enabled (it had also reverted fr=
+om 100Gb to 50Gb for some reason).  After fixing the port settings
+>> we ran IO through the weekend and the early part of this week on a varie=
+ty of workloads.  We don't seem to be able to reproduce the failure
+>> after fixing the port settings.  It looks like this one may have been ca=
+used by the lost flow control setting on the switch.  Sorry for the confusi=
+on!
+>=20
+> Yep, don't expect RoCE to work without flow-control.
+Sagi and all,
 
-Cheers,
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+Starting in next release, for ConnectX-4 and above PFC isn't required as lo=
+ng as ECN is enabled.
+
+With current release we also expect to get good results with ECN and no PFC=
+.
+
+Joseph - is ECN enabled on your system?
+
+Thanks
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
