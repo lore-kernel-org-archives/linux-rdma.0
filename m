@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 16/19] IB/hfi1: Convert %Lx to %llx
-Date: Fri, 28 Apr 2017 10:40:30 -0700
-Message-ID: <20170428174030.23960.16731.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v2 17/19] IB/hfi1: Fix unbalanced braces around else
+Date: Fri, 28 Apr 2017 10:40:36 -0700
+Message-ID: <20170428174035.23960.48152.stgit@scvm10.sc.intel.com>
 References: <20170428173443.23960.32602.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,28 +13,61 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-According to checkpatch %Lx is not standard C so remove it and use the
-suggested %llx.
+Add missing braces around else blocks in a few places to make checkpatch
+happy.
 
 Fixes: 7724105686e7 ("IB/hfi1: add driver files")
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/pcie.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c |    4 ++--
+ drivers/infiniband/hw/hfi1/init.c |    6 ++++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
-index 0829fce..e39e01b 100644
---- a/drivers/infiniband/hw/hfi1/pcie.c
-+++ b/drivers/infiniband/hw/hfi1/pcie.c
-@@ -583,7 +583,7 @@ static void tune_pcie_caps(struct hfi1_devdata *dd)
- 		if (words == ~0ULL)
- 			ret = PCI_ERS_RESULT_NEED_RESET;
- 		dd_dev_info(dd,
--			    "HFI1 mmio_enabled function called, read wordscntr %Lx, returning %d\n",
-+			    "HFI1 mmio_enabled function called, read wordscntr %llx, returning %d\n",
- 			    words, ret);
- 	}
- 	return  ret;
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index 500b857..e97851a 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -8147,10 +8147,10 @@ static irqreturn_t sdma_interrupt(int irq, void *data)
+ 
+ 		/* handle the interrupt(s) */
+ 		sdma_engine_interrupt(sde, status);
+-	} else
++	} else {
+ 		dd_dev_err(dd, "SDMA engine %u interrupt, but no status bits set\n",
+ 			   sde->this_idx);
+-
++	}
+ 	return IRQ_HANDLED;
+ }
+ 
+diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+index 838d3a8..e9b33c8 100644
+--- a/drivers/infiniband/hw/hfi1/init.c
++++ b/drivers/infiniband/hw/hfi1/init.c
+@@ -245,9 +245,10 @@ struct hfi1_ctxtdata *hfi1_create_ctxtdata(struct hfi1_pportdata *ppd, u32 ctxt,
+ 			if (ctxt < kctxt_ngroups) {
+ 				base = ctxt * (dd->rcv_entries.ngroups + 1);
+ 				rcd->rcv_array_groups++;
+-			} else
++			} else {
+ 				base = kctxt_ngroups +
+ 					(ctxt * dd->rcv_entries.ngroups);
++			}
+ 		} else {
+ 			u16 ct = ctxt - dd->first_user_ctxt;
+ 
+@@ -256,9 +257,10 @@ struct hfi1_ctxtdata *hfi1_create_ctxtdata(struct hfi1_pportdata *ppd, u32 ctxt,
+ 			if (ct < dd->rcv_entries.nctxt_extra) {
+ 				base += ct * (dd->rcv_entries.ngroups + 1);
+ 				rcd->rcv_array_groups++;
+-			} else
++			} else {
+ 				base += dd->rcv_entries.nctxt_extra +
+ 					(ct * dd->rcv_entries.ngroups);
++			}
+ 		}
+ 		rcd->eager_base = base * dd->rcv_entries.group_size;
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
