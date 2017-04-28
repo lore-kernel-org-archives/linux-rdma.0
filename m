@@ -1,8 +1,8 @@
 From: Dasaratharaman Chandramouli
         <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v3 rdma-next 3/8] IB/SA: Remove unwanted braces
-Date: Fri, 28 Apr 2017 17:47:06 -0400
-Message-ID: <1493416031-23917-4-git-send-email-dasaratharaman.chandramouli@intel.com>
+Subject: [PATCH v3 rdma-next 1/8] IB/SA: Fix lines longer than 80 columns
+Date: Fri, 28 Apr 2017 17:47:04 -0400
+Message-ID: <1493416031-23917-2-git-send-email-dasaratharaman.chandramouli@intel.com>
 References: <1493416031-23917-1-git-send-email-dasaratharaman.chandramouli@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1493416031-23917-1-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -20,24 +20,60 @@ Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/sa_query.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/infiniband/core/sa_query.c | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index 23d026f..1106d08 100644
+index ceae153..a37c8aa 100644
 --- a/drivers/infiniband/core/sa_query.c
 +++ b/drivers/infiniband/core/sa_query.c
-@@ -945,9 +945,8 @@ static void update_sm_ah(struct work_struct *work)
+@@ -963,8 +963,10 @@ static void update_sm_ah(struct work_struct *work)
+ 	ah_attr.port_num = port->port_num;
+ 	if (port_attr.grh_required) {
+ 		ah_attr.ah_flags = IB_AH_GRH;
+-		ah_attr.grh.dgid.global.subnet_prefix = cpu_to_be64(port_attr.subnet_prefix);
+-		ah_attr.grh.dgid.global.interface_id = cpu_to_be64(IB_SA_WELL_KNOWN_GUID);
++		ah_attr.grh.dgid.global.subnet_prefix =
++			cpu_to_be64(port_attr.subnet_prefix);
++		ah_attr.grh.dgid.global.interface_id =
++			cpu_to_be64(IB_SA_WELL_KNOWN_GUID);
  	}
  
- 	new_ah = kmalloc(sizeof(*new_ah), GFP_KERNEL);
--	if (!new_ah) {
-+	if (!new_ah)
- 		return;
--	}
+ 	new_ah->ah = ib_create_ah(port->agent->qp->pd, &ah_attr);
+@@ -979,10 +981,10 @@ static void update_sm_ah(struct work_struct *work)
+ 		kref_put(&port->sm_ah->ref, free_sm_ah);
+ 	port->sm_ah = new_ah;
+ 	spin_unlock_irq(&port->ah_lock);
+-
+ }
  
- 	kref_init(&new_ah->ref);
- 	new_ah->src_path_mask = (1 << port_attr.lmc) - 1;
+-static void ib_sa_event(struct ib_event_handler *handler, struct ib_event *event)
++static void ib_sa_event(struct ib_event_handler *handler,
++			struct ib_event *event)
+ {
+ 	if (event->event == IB_EVENT_PORT_ERR    ||
+ 	    event->event == IB_EVENT_PORT_ACTIVE ||
+@@ -993,8 +995,8 @@ static void ib_sa_event(struct ib_event_handler *handler, struct ib_event *event
+ 		unsigned long flags;
+ 		struct ib_sa_device *sa_dev =
+ 			container_of(handler, typeof(*sa_dev), event_handler);
+-		struct ib_sa_port *port =
+-			&sa_dev->port[event->element.port_num - sa_dev->start_port];
++		u8 port_num = event->element.port_num - sa_dev->start_port;
++		struct ib_sa_port *port = &sa_dev->port[port_num];
+ 
+ 		if (!rdma_cap_ib_sa(handler->device, port->port_num))
+ 			return;
+@@ -1012,8 +1014,7 @@ static void ib_sa_event(struct ib_event_handler *handler, struct ib_event *event
+ 			port->classport_info.valid = false;
+ 			spin_unlock_irqrestore(&port->classport_lock, flags);
+ 		}
+-		queue_work(ib_wq, &sa_dev->port[event->element.port_num -
+-					    sa_dev->start_port].update_task);
++		queue_work(ib_wq, &sa_dev->port[port_num].update_task);
+ 	}
+ }
+ 
 -- 
 1.8.3.1
 
