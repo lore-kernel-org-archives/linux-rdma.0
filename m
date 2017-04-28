@@ -1,40 +1,28 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH][V2] IB/rxe: fix typo: "algorithmi" -> "algorithm"
-Date: Fri, 28 Apr 2017 13:08:29 -0400
-Message-ID: <1493399309.3041.158.camel@redhat.com>
-References: <20170424092642.29862-1-colin.king@canonical.com>
-         <1493055896.31620.2.camel@perches.com>
+Subject: Re: [PATCH 1/1] iw_cxgb4: check return value of alloc_skb
+Date: Fri, 28 Apr 2017 13:10:42 -0400
+Message-ID: <1493399442.3041.159.camel@redhat.com>
+References: <1492938551-17824-1-git-send-email-bianpan2016@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1493055896.31620.2.camel-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1492938551-17824-1-git-send-email-bianpan2016-9Onoh4P/yGk@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pan Bian <bianpan2016-9Onoh4P/yGk@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-04-24 at 10:44 -0700, Joe Perches wrote:
-> On Mon, 2017-04-24 at 10:26 +0100, Colin King wrote:
-> > 
-> > trivial fix to typo in pr_err message
-> []
-> > 
-> > diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c
-> > b/drivers/infiniband/sw/rxe/rxe_verbs.c
-> []
-> > 
-> > @@ -1324,7 +1324,7 @@ int rxe_register_device(struct rxe_dev *rxe)
-> >  
-> >  	rxe->tfm = crypto_alloc_shash("crc32", 0, 0);
-> >  	if (IS_ERR(rxe->tfm)) {
-> > -		pr_err("failed to allocate crc algorithmi
-> > err:%ld",
-> > +		pr_err("failed to allocate crc algorithm err:%ld",
+On Sun, 2017-04-23 at 17:09 +0800, Pan Bian wrote:
+> Function alloc_skb() will return a NULL pointer when there is no
+> enough
+> memory. However, the return value of alloc_skb() is directly used
+> without validation in function send_fw_pass_open_req(). This patches
+> checks the return value of alloc_skb() against NULL.
 > 
-> nicer to add a newline too
+> Signed-off-by: Pan Bian <bianpan2016-9Onoh4P/yGk@public.gmane.org>
 
-I added a newline and then applied the patch.  Thanks.
+Thanks, applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
