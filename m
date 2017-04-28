@@ -1,28 +1,41 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/1] iw_cxgb4: check return value of alloc_skb
-Date: Fri, 28 Apr 2017 13:10:42 -0400
-Message-ID: <1493399442.3041.159.camel@redhat.com>
-References: <1492938551-17824-1-git-send-email-bianpan2016@163.com>
+Subject: Re: [PATCH rdma-next 0/4] Sparse fixes for 4.12
+Date: Fri, 28 Apr 2017 13:13:22 -0400
+Message-ID: <1493399602.3041.160.camel@redhat.com>
+References: <20170422142852.18882-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1492938551-17824-1-git-send-email-bianpan2016-9Onoh4P/yGk@public.gmane.org>
+In-Reply-To: <20170422142852.18882-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pan Bian <bianpan2016-9Onoh4P/yGk@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 2017-04-23 at 17:09 +0800, Pan Bian wrote:
-> Function alloc_skb() will return a NULL pointer when there is no
-> enough
-> memory. However, the return value of alloc_skb() is directly used
-> without validation in function send_fw_pass_open_req(). This patches
-> checks the return value of alloc_skb() against NULL.
+On Sat, 2017-04-22 at 17:28 +0300, Leon Romanovsky wrote:
+> Hi Doug,
 > 
-> Signed-off-by: Pan Bian <bianpan2016-9Onoh4P/yGk@public.gmane.org>
+> Please find below 4 patches, which fix 45 sparse warnings.
+> 
+> Patches #1 and #2 are trivial changes. The first adds static keyword
+> to the functions declarations and second adds includes of the
+> relevant
+> headers.
+> 
+> Patch #3 refactors code to get rid of one temporal variable. That
+> variable
+> was needed to determine if QP is found. Once removed, it allowed to
+> write
+> the code with lock and unlock placed together.
+> 
+> Patch #4 fixes wrong type casting. The opcode is in CPU format and
+> wqe_word
+> is in le32 format.
+> 
+> This series is based on k.o/for-4.12-rdma-netdevice branch.
 
-Thanks, applied.
+Thanks, series applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
