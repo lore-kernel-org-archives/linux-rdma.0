@@ -1,72 +1,61 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 02/19] IB/hfi1: Correct MulticastMask/CollectiveMask info
- to SMA output
-Date: Fri, 28 Apr 2017 10:39:04 -0700
-Message-ID: <20170428173902.23960.66689.stgit@scvm10.sc.intel.com>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: [PATCH v2 03/19] IB/core: For multicast functions,
+ verify that LIDs are multicast LIDs
+Date: Fri, 28 Apr 2017 10:39:11 -0700
+Message-ID: <20170428173909.23960.80030.stgit@scvm10.sc.intel.com>
 References: <20170428173443.23960.32602.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170428173443.23960.32602.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20170428173443.23960.32602.stgit@scvm10.sc.intel.com>
+Sender: stable-owner@vger.kernel.org
+To: dledford@redhat.com
+Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Ira Weiny <ira.weiny@intel.com>, stable@vger.kernel.org, Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Michael J. Ruhl <michael.j.ruhl@intel.com>
 
-The FM uses the values of MulticastMask and CollectiveMask to
-determine the number of bits for net masks. The current values of
-0 and 0 are incorrect.  The values should be 4 and 1.  Updated the
-necessary code to reflect the specified values.
+The Infiniband spec defines "A multicast address is defined by a
+MGID and a MLID" (section 10.5).  Currently the MLID value is not
+validated.
 
-Reviewed-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Add check to verify that the MLID value is in the correct address
+range.
+
+Fixes: 0c33aeedb2cf ("[IB] Add checks to multicast attach and detach")
+Cc: stable@vger.kernel.org
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
- drivers/infiniband/hw/hfi1/common.h |    9 +++++++++
- drivers/infiniband/hw/hfi1/mad.c    |    5 +++++
- 2 files changed, 14 insertions(+), 0 deletions(-)
+ drivers/infiniband/core/verbs.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/common.h b/drivers/infiniband/hw/hfi1/common.h
-index 1b783bb..804150f 100644
---- a/drivers/infiniband/hw/hfi1/common.h
-+++ b/drivers/infiniband/hw/hfi1/common.h
-@@ -338,6 +338,15 @@ struct diag_pkt {
- #define HFI1_BECN_MASK 1
- #define HFI1_BECN_SMASK BIT(HFI1_BECN_SHIFT)
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 85ed505..207e5c2 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1519,7 +1519,9 @@ int ib_attach_mcast(struct ib_qp *qp, union ib_gid *gid, u16 lid)
  
-+/**
-+ * 0xF8 - 4 bits of multicast range and 1 bit for collective range
-+ * Example: For 24 bit LID space,
-+ * Multicast range: 0xF00000 to 0xF7FFFF
-+ * Collective range: 0xF80000 to 0xFFFFFE
-+ */
-+#define HFI1_MCAST_NR 0x4 /* Number of top bits set */
-+#define HFI1_COLLECTIVE_NR 0x1 /* Number of bits after MCAST_NR */
-+
- #define HFI1_PSM_IOC_BASE_SEQ 0x0
+ 	if (!qp->device->attach_mcast)
+ 		return -ENOSYS;
+-	if (gid->raw[0] != 0xff || qp->qp_type != IB_QPT_UD)
++	if (gid->raw[0] != 0xff || qp->qp_type != IB_QPT_UD ||
++	    lid < be16_to_cpu(IB_MULTICAST_LID_BASE) ||
++	    lid == be16_to_cpu(IB_LID_PERMISSIVE))
+ 		return -EINVAL;
  
- static inline __u64 rhf_to_cpu(const __le32 *rbuf)
-diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
-index 09cda3c..de34131 100644
---- a/drivers/infiniband/hw/hfi1/mad.c
-+++ b/drivers/infiniband/hw/hfi1/mad.c
-@@ -702,6 +702,11 @@ static int __subn_get_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
- 	pi->buffer_units = cpu_to_be32(buffer_units);
+ 	ret = qp->device->attach_mcast(qp, gid, lid);
+@@ -1535,7 +1537,9 @@ int ib_detach_mcast(struct ib_qp *qp, union ib_gid *gid, u16 lid)
  
- 	pi->opa_cap_mask = cpu_to_be16(OPA_CAP_MASK3_IsSharedSpaceSupported);
-+	/* Driver does not support mcast/collective configuration */
-+	pi->opa_cap_mask &=
-+		cpu_to_be16(~OPA_CAP_MASK3_IsAddrRangeConfigSupported);
-+	pi->collectivemask_multicastmask = ((HFI1_COLLECTIVE_NR & 0x7)
-+					    << 3 | (HFI1_MCAST_NR & 0x7));
+ 	if (!qp->device->detach_mcast)
+ 		return -ENOSYS;
+-	if (gid->raw[0] != 0xff || qp->qp_type != IB_QPT_UD)
++	if (gid->raw[0] != 0xff || qp->qp_type != IB_QPT_UD ||
++	    lid < be16_to_cpu(IB_MULTICAST_LID_BASE) ||
++	    lid == be16_to_cpu(IB_LID_PERMISSIVE))
+ 		return -EINVAL;
  
- 	/* HFI supports a replay buffer 128 LTPs in size */
- 	pi->replay_depth.buffer = 0x80;
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 	ret = qp->device->detach_mcast(qp, gid, lid);
