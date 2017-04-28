@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 12/19] IB/hfi1: Adjust high temperature warning for QSFP
- cable
-Date: Fri, 28 Apr 2017 10:40:07 -0700
-Message-ID: <20170428174007.23960.53721.stgit@scvm10.sc.intel.com>
+Subject: [PATCH v2 14/19] IB/hfi1: Permanently enable P_Key checking in HFI
+Date: Fri, 28 Apr 2017 10:40:19 -0700
+Message-ID: <20170428174018.23960.85793.stgit@scvm10.sc.intel.com>
 References: <20170428173443.23960.32602.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,30 +15,56 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Neel Desai <neel.desai-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-When we receive a QSFP_HIGH_TEMP_ALARM or QSFP_HIGH_TEMP_WARNING
-interrupt, print a "QSFP cable temperature too high" message.
+Ingress and egress port P_Key checking should always be performed for
+HFIs. This patch will enable ingress and egress P_Key checking when
+the port is initialized and will ignore the P_Key information sent by
+the FM in the port info structure which is meant to be used only by the
+switch.
 
 Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Neel Desai <neel.desai-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/hfi1/init.c |    3 +++
+ drivers/infiniband/hw/hfi1/mad.c  |   10 ----------
+ 2 files changed, 3 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 6b70d1d..0fec6be 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -9325,7 +9325,7 @@ static int handle_qsfp_error_conditions(struct hfi1_pportdata *ppd,
+diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+index 55a11a6..838d3a8 100644
+--- a/drivers/infiniband/hw/hfi1/init.c
++++ b/drivers/infiniband/hw/hfi1/init.c
+@@ -482,6 +482,9 @@ void hfi1_init_pportdata(struct pci_dev *pdev, struct hfi1_pportdata *ppd,
+ 	default_pkey_idx = 1;
  
- 	if ((qsfp_interrupt_status[0] & QSFP_HIGH_TEMP_ALARM) ||
- 	    (qsfp_interrupt_status[0] & QSFP_HIGH_TEMP_WARNING))
--		dd_dev_info(dd, "%s: QSFP cable on fire\n",
-+		dd_dev_info(dd, "%s: QSFP cable temperature too high\n",
- 			    __func__);
+ 	ppd->pkeys[default_pkey_idx] = DEFAULT_P_KEY;
++	ppd->part_enforce |= HFI1_PART_ENFORCE_IN;
++	ppd->part_enforce |= HFI1_PART_ENFORCE_OUT;
++
+ 	if (loopback) {
+ 		hfi1_early_err(&pdev->dev,
+ 			       "Faking data partition 0x8001 in idx %u\n",
+diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
+index db5494d..7059a0f 100644
+--- a/drivers/infiniband/hw/hfi1/mad.c
++++ b/drivers/infiniband/hw/hfi1/mad.c
+@@ -1151,16 +1151,6 @@ static int __subn_set_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
+ 		ppd->linkinit_reason =
+ 			(pi->partenforce_filterraw &
+ 			 OPA_PI_MASK_LINKINIT_REASON);
+-	/* enable/disable SW pkey checking as per FM control */
+-	if (pi->partenforce_filterraw & OPA_PI_MASK_PARTITION_ENFORCE_IN)
+-		ppd->part_enforce |= HFI1_PART_ENFORCE_IN;
+-	else
+-		ppd->part_enforce &= ~HFI1_PART_ENFORCE_IN;
+-
+-	if (pi->partenforce_filterraw & OPA_PI_MASK_PARTITION_ENFORCE_OUT)
+-		ppd->part_enforce |= HFI1_PART_ENFORCE_OUT;
+-	else
+-		ppd->part_enforce &= ~HFI1_PART_ENFORCE_OUT;
  
- 	if ((qsfp_interrupt_status[0] & QSFP_LOW_TEMP_ALARM) ||
+ 	/* Must be a valid unicast LID address. */
+ 	if ((smlid == 0 && ls_old > IB_PORT_INIT) ||
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
