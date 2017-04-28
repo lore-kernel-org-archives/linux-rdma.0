@@ -1,56 +1,48 @@
-From: Hakon Bugge <Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 2/2] IB/mlx4: Fix incorrect order of formal and actual parameters
-Date: Fri, 28 Apr 2017 13:06:54 +0200
-Message-ID: <20170428110654.13176-3-Haakon.Bugge@oracle.com>
-References: <20170428110654.13176-1-Haakon.Bugge@oracle.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: rdmacm-utils: Missing man pages for cmtime and udpong
+Date: Fri, 28 Apr 2017 10:18:15 -0400
+Message-ID: <550f6e6a-931a-0aba-2d54-1ca1b3a44150@dev.mellanox.co.il>
+References: <1493040510.17795.3.camel@profitbricks.com>
+ <20170425180423.GT14088@mtr-leonro.local>
+ <1493198562.3837.2.camel@profitbricks.com>
+ <20170427040018.GY14088@mtr-leonro.local>
+ <1493370517.3837.9.camel@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170428110654.13176-1-Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1493370517.3837.9.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Hakon Bugge <Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The last two actual parameters when calling id_map_find_by_sl_id()
-from id_map_get() are swapped. However, the same formal parameters to
-id_map_get() have them swapped as well, inverting the effect of the
-first error.
+On 4/28/2017 5:08 AM, Benjamin Drung wrote:
+> Am Donnerstag, den 27.04.2017, 07:00 +0300 schrieb Leon Romanovsky:
+>> On Wed, Apr 26, 2017 at 11:22:42AM +0200, Benjamin Drung wrote:
+>>> Am Dienstag, den 25.04.2017, 21:04 +0300 schrieb Leon Romanovsky:
+>>>> On Mon, Apr 24, 2017 at 03:28:30PM +0200, Benjamin Drung wrote:
+>>>>> Hi,
+>>>>>
+>>>>> the rdmacm-utils binaries cmtime and udpong do not have a
+>>>>> corresponding
+>>>>>  man page. Please add some since Debian recommends to ship man
+>>>>> pages
+>>>>> for all binaries.
+>>>>
+>>>> Is it requirement or recommendation?
+>>>
+>>> I looked it up. It's considered a bug. The Debian policy says in
+>>> §12.1:
+>>
+>> I understand, I just don't see many volunteers :( to write it.
+> 
+> Normally the authors of the program are in the best position to write
+> such a man page instead of the people from the distributions.
 
-Hence, this commit is a non-functional fix, improving readability.
+There is now PR #124 in rdma-core github to resolve this. I've asked
+Sean to review as he is the author of those examples.
 
-Signed-off-by: Håkon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/cm.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
-index 61f63fe..1e6c526 100644
---- a/drivers/infiniband/hw/mlx4/cm.c
-+++ b/drivers/infiniband/hw/mlx4/cm.c
-@@ -279,14 +279,14 @@ id_map_alloc(struct ib_device *ibdev, int slave_id, u32 sl_cm_id)
- }
- 
- static struct id_map_entry *
--id_map_get(struct ib_device *ibdev, int *pv_cm_id, int sl_cm_id, int slave_id)
-+id_map_get(struct ib_device *ibdev, int *pv_cm_id, int slave_id, int sl_cm_id)
- {
- 	struct id_map_entry *ent;
- 	struct mlx4_ib_sriov *sriov = &to_mdev(ibdev)->sriov;
- 
- 	spin_lock(&sriov->id_map_lock);
- 	if (*pv_cm_id == -1) {
--		ent = id_map_find_by_sl_id(ibdev, sl_cm_id, slave_id);
-+		ent = id_map_find_by_sl_id(ibdev, slave_id, sl_cm_id);
- 		if (ent)
- 			*pv_cm_id = (int) ent->pv_cm_id;
- 	} else
--- 
-2.9.3
-
+-- Hal
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
