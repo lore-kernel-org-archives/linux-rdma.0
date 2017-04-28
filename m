@@ -1,85 +1,88 @@
-From: Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>
-Subject: Re: [PATCH v2 07/21] crypto: shash, caam: Make use of the new sg_map
- helper function
-Date: Fri, 28 Apr 2017 14:30:39 +0800
-Message-ID: <20170428063039.GB6817@gondor.apana.org.au>
-References: <1493144468-22493-1-git-send-email-logang@deltatee.com>
- <1493144468-22493-8-git-send-email-logang@deltatee.com>
- <20170427035603.GA32212@gondor.apana.org.au>
- <94123cbf-3287-f05e-7267-0bcf08ab0a8b@deltatee.com>
+From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: rdmacm-utils: Missing man pages for cmtime and udpong
+Date: Fri, 28 Apr 2017 11:08:37 +0200
+Message-ID: <1493370517.3837.9.camel@profitbricks.com>
+References: <1493040510.17795.3.camel@profitbricks.com>
+         <20170425180423.GT14088@mtr-leonro.local>
+         <1493198562.3837.2.camel@profitbricks.com>
+         <20170427040018.GY14088@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <94123cbf-3287-f05e-7267-0bcf08ab0a8b-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sumit Semwal <sumit.semwal-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, sparmaintainer-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org, linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, megaraidlinux.pdl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-O681+0zPkvOS4OTyyTQW"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170427040018.GY14088-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 27, 2017 at 09:45:57AM -0600, Logan Gunthorpe wrote:
-> 
-> 
-> On 26/04/17 09:56 PM, Herbert Xu wrote:
-> > On Tue, Apr 25, 2017 at 12:20:54PM -0600, Logan Gunthorpe wrote:
-> >> Very straightforward conversion to the new function in the caam driver
-> >> and shash library.
-> >>
-> >> Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-> >> Cc: Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>
-> >> Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-> >> ---
-> >>  crypto/shash.c                | 9 ++++++---
-> >>  drivers/crypto/caam/caamalg.c | 8 +++-----
-> >>  2 files changed, 9 insertions(+), 8 deletions(-)
-> >>
-> >> diff --git a/crypto/shash.c b/crypto/shash.c
-> >> index 5e31c8d..5914881 100644
-> >> --- a/crypto/shash.c
-> >> +++ b/crypto/shash.c
-> >> @@ -283,10 +283,13 @@ int shash_ahash_digest(struct ahash_request *req, struct shash_desc *desc)
-> >>  	if (nbytes < min(sg->length, ((unsigned int)(PAGE_SIZE)) - offset)) {
-> >>  		void *data;
-> >>  
-> >> -		data = kmap_atomic(sg_page(sg));
-> >> -		err = crypto_shash_digest(desc, data + offset, nbytes,
-> >> +		data = sg_map(sg, 0, SG_KMAP_ATOMIC);
-> >> +		if (IS_ERR(data))
-> >> +			return PTR_ERR(data);
-> >> +
-> >> +		err = crypto_shash_digest(desc, data, nbytes,
-> >>  					  req->result);
-> >> -		kunmap_atomic(data);
-> >> +		sg_unmap(sg, data, 0, SG_KMAP_ATOMIC);
-> >>  		crypto_yield(desc->flags);
-> >>  	} else
-> >>  		err = crypto_shash_init(desc) ?:
-> > 
-> > Nack.  This is an optimisation for the special case of a single
-> > SG list entry.  In fact in the common case the kmap_atomic should
-> > disappear altogether in the no-highmem case.  So replacing it
-> > with sg_map is not acceptable.
-> 
-> What you seem to have missed is that sg_map is just a thin wrapper
-> around kmap_atomic. Perhaps with a future check for a mappable page.
-> This change should have zero impact on performance.
 
-You are right.  Indeed the existing code looks buggy as they
-don't take sg->offset into account when doing the kmap.  Could
-you send me some patches that fix these problems first so that
-they can be easily backported?
+--=-O681+0zPkvOS4OTyyTQW
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
--- 
-Email: Herbert Xu <herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+Am Donnerstag, den 27.04.2017, 07:00 +0300 schrieb Leon Romanovsky:
+> On Wed, Apr 26, 2017 at 11:22:42AM +0200, Benjamin Drung wrote:
+> > Am Dienstag, den 25.04.2017, 21:04 +0300 schrieb Leon Romanovsky:
+> > > On Mon, Apr 24, 2017 at 03:28:30PM +0200, Benjamin Drung wrote:
+> > > > Hi,
+> > > >=20
+> > > > the rdmacm-utils binaries cmtime and udpong do not have a
+> > > > corresponding
+> > > > =C2=A0man page. Please add some since Debian recommends to ship man
+> > > > pages
+> > > > for all binaries.
+> > >=20
+> > > Is it requirement or recommendation?
+> >=20
+> > I looked it up. It's considered a bug. The Debian policy says in
+> > =C2=A712.1:
+>=20
+> I understand, I just don't see many volunteers :( to write it.
+
+Normally the authors of the program are in the best position to write
+such a man page instead of the people from the distributions.
+
+--=20
+Benjamin Drung
+System Developer
+Debian & Ubuntu Developer
+
+ProfitBricks GmbH
+Greifswalder Str. 207
+D - 10405 Berlin
+
+Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
+Web:=C2=A0https://www.profitbricks.com
+
+Sitz der Gesellschaft: Berlin.
+Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
+Gesch=C3=A4ftsf=C3=BChrer: Achim Weiss.
+
+--=-O681+0zPkvOS4OTyyTQW
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAABCAAGBQJZAwaVAAoJEN2M1aXejH56zi0P/1+fuL2ts9LIYGX7kxfBcHcS
+SWz8mkK7ZCbcaXoxd8Zkw8/PNp5J+BprbyII3KQFz6L3RseWi5N25HwSDpTWu7cA
+ZVRhzPB9ri7tClezhjhtY+m4Dzb5OAOo5Xjti8wRGI/YrCITujcX0+c4VaZi+vnH
+VzdBGcX3ZumWqkhvne88PFzvssszveuLyxXXNgyWui5X2Pl1uIBhIpWIQJo9ZDwh
+iMdBTWHg+ymSBOeINsR83g+EQhcjqYKuZ4HSMMKkdNaZPAI5pmAzOPVhqkkxSts5
+GFD4nlSUcZqQgBdh6hwCMd2L5Y8XlS6FNayVyLpGwmyU/5VtkpjM5b4k2hDfEPn5
+ZJBXw4PJHN85f2AjcMfzvLQ8GtQ38zfwSwNUwvwBB38HbV+FHplvz/YuWN0dJSLb
+0YPeFALdW2v34Iq5dkpivU+Cua90KFDnL97a14pXVyYDLfkfskT6NrDUYOesUpzR
+qF9u8716I9RzN9YVdwr8rL4QSMB7lzG40bRKvm2JkoqrUPo9CVCMnmktgNkzORJn
++o2xIuDUr3JkW34ZN8+zcM9YTSuaFLgJycD6nAnwI3368l1AB0A2khdeAdB8DHRH
+jJqXb/bXijXiCHsh4iy4WVW0sppG23UaC+qxBBkqPM5hs2m0i3PigtYrdjsb9x19
+wI2y5wtR5gz7baUv66ZX
+=Wso2
+-----END PGP SIGNATURE-----
+
+--=-O681+0zPkvOS4OTyyTQW--
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
