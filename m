@@ -1,45 +1,38 @@
-From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Subject: Re: [PATCH][V2] IB/rxe: fix typo: "algorithmi" -> "algorithm"
-Date: Fri, 28 Apr 2017 18:14:53 +0100
-Message-ID: <ee6de221-24f0-bbb5-d684-a50aef0a73dc@canonical.com>
-References: <20170424092642.29862-1-colin.king@canonical.com>
- <1493055896.31620.2.camel@perches.com> <1493399309.3041.158.camel@redhat.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/3] IB/i40iw: use setup_timer
+Date: Fri, 28 Apr 2017 13:19:49 -0400
+Message-ID: <1493399989.3041.161.camel@redhat.com>
+References: <628d01a8e7c4f93acaa1a6e91f739131704c2ff4.1491892717.git.geliangtang@gmail.com>
+         <9DD61F30A802C4429A01CA4200E302A730314A7F@fmsmsx116.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1493399309.3041.158.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <9DD61F30A802C4429A01CA4200E302A730314A7F-5FK+k9557ZBZtRGVdHMbwrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Saleem, Shiraz" <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Geliang Tang <geliangtang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 28/04/17 18:08, Doug Ledford wrote:
-> On Mon, 2017-04-24 at 10:44 -0700, Joe Perches wrote:
->> On Mon, 2017-04-24 at 10:26 +0100, Colin King wrote:
->>>
->>> trivial fix to typo in pr_err message
->> []
->>>
->>> diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c
->>> b/drivers/infiniband/sw/rxe/rxe_verbs.c
->> []
->>>
->>> @@ -1324,7 +1324,7 @@ int rxe_register_device(struct rxe_dev *rxe)
->>>  
->>>  	rxe->tfm = crypto_alloc_shash("crc32", 0, 0);
->>>  	if (IS_ERR(rxe->tfm)) {
->>> -		pr_err("failed to allocate crc algorithmi
->>> err:%ld",
->>> +		pr_err("failed to allocate crc algorithm err:%ld",
->>
->> nicer to add a newline too
+On Mon, 2017-04-24 at 20:26 +0000, Saleem, Shiraz wrote:
+> > 
+> > Subject: [PATCH 1/3] IB/i40iw: use setup_timer
+> > 
+> > Use setup_timer() instead of init_timer() to simplify the code.
+> > 
+> > Signed-off-by: Geliang Tang <geliangtang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 > 
-> I added a newline and then applied the patch.  Thanks.
-> 
-Thanks Doug. I overlooked replying to the earlier email.
+> Thank you Geliang. Can you also change the setup of the terminate
+> timer in i40iw_terminate_start_timer? To keep things consistent. 
 
-Colin
+I fixed that up as I applied the patch.
+
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+   
+Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
