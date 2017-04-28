@@ -1,66 +1,55 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH 00/20] IB/hfi1,rdmavt,core: Patches for-next
-Date: Fri, 28 Apr 2017 14:09:05 -0400
-Message-ID: <1493402945.3041.165.camel@redhat.com>
-References: <20170409171329.10579.92775.stgit@scvm10.sc.intel.com>
-         <1493401510.3041.164.camel@redhat.com>
-         <8747fd5c-9d71-3503-186c-8a6b8ca51e75@intel.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 0/7] Add support for OPA classport info
+Date: Fri, 28 Apr 2017 14:10:17 -0400
+Message-ID: <1493403017.3041.166.camel@redhat.com>
+References: <1490053090-32840-1-git-send-email-dasaratharaman.chandramouli@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <8747fd5c-9d71-3503-186c-8a6b8ca51e75@intel.com>
-Sender: stable-owner@vger.kernel.org
-To: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, Stuart Summers <john.s.summers@intel.com>, linux-rdma@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, Mitko Haralanov <mitko.haralanov@intel.com>, Tadeusz Struk <tadeusz.struk@intel.com>, stable@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Easwar Hariharan <easwar.hariharan@intel.com>, Don Hiatt <don.hiatt@intel.com>, Neel Desai <neel.desai@intel.com>, Leon Romanovsky <leonro@mellanox.com>, Sebastian Sanchez <sebastian.sanchez@intel.com>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1490053090-32840-1-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-04-28 at 13:50 -0400, Dennis Dalessandro wrote:
-> On 04/28/2017 01:45 PM, Doug Ledford wrote:
-> > 
-> > On Sun, 2017-04-09 at 10:15 -0700, Dennis Dalessandro wrote:
-> > > 
-> > > Doug,
-> > > 
-> > > Here are some patches for the next release. It includes the core
-> > > fix
-> > > that did
-> > > not apply from my last series. Other than that this is the usual
-> > > bug
-> > > fixes
-> > > and some minor clean ups.
-> > > 
-> > > Patches apply on top of your for-4.12 branch and can also be
-> > > found in
-> > > my
-> > > GitHub repo at: https://github.com/ddalessa/kernel/tree/for-4.12
-> > > 
-> > 
-> > Series, minus patch #2 because of community NAK, applied.
-> > 
+On Mon, 2017-03-20 at 19:38 -0400, Dasaratharaman Chandramouli wrote:
+> This series moves the classport info query initiation and update
+> from callers such as ipoib to the ib_sa module itself. The classport
+> info cache is updated whenever ib_sa receives an appropriate state
+> change event.
 > 
-> Looks like we are working at the same time. A v2 was literally sent
-> 5 
-> minutes ago. The only changes were to drop that NAKed patch and fix
-> up 
-> the soft-lockup patch so if you just want to grab:
+> Since classport info is only used to check if sendonly full member
+> support
+> is enabled by the SM, we expose a function
+> ib_sa_sendonly_fullmem_support
+> that can be called to check if the support is enabled. 
 > 
-> https://patchwork.kernel.org/patch/9705175/
+> Additionally, we introduce support for opa classport info. These are
+> defined specifically for OPA devices and expose additional features
+> in the
+> capability mask bits along with longer LID sizes in some of the other
+> fields.
 > 
-> to replace the original:
-> 
-> https://patchwork.kernel.org/patch/9671675/
-> 
-> That would be good or I could send a separate patch with the fix-
-> ups. 
-> Whichever is easiest.
-> 
-> -Denny
+> Patch 1 to 3 fix checkpatch issues (1 issue type per patch) on two
+> functions that patch 4 then moves around. Patch 5 makes changes
+> to implicitly query and cache classport info. Patch 6 adds 
+> verbs capability API for core layers to query and find out if they
+> are running on an OPA device. Finally, patch 7 adds OPA classport
+> info
+> query support.
 
-I grabbed the updated patch 11, it's all good.
+I took patches 1-6 of this series.  However, I need you to rebase patch
+7 against my current k.o/for-4.12-rdma-netdevice branch as there are
+significant conflicts between this and the VNIC patches I've already
+taken.
 
 -- 
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG KeyID: B826A3330E572FDD
    
 Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
