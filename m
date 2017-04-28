@@ -1,86 +1,47 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: rdmacm-utils: Missing man pages for cmtime and udpong
-Date: Fri, 28 Apr 2017 11:08:37 +0200
-Message-ID: <1493370517.3837.9.camel@profitbricks.com>
-References: <1493040510.17795.3.camel@profitbricks.com>
-         <20170425180423.GT14088@mtr-leonro.local>
-         <1493198562.3837.2.camel@profitbricks.com>
-         <20170427040018.GY14088@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-O681+0zPkvOS4OTyyTQW"
+From: Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH rdma] infiniband: call ipv6 route lookup via the stub interface
+Date: Fri, 28 Apr 2017 11:20:01 +0200
+Message-ID: <09d4a8a81a499ab61ed6883ae1aa17c5fa0a5b49.1493368728.git.pabeni@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170427040018.GY14088-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+The infiniband address handle can be triggered to resolve an ipv6
+address in response to MAD packets, regardless of the ipv6
+module being disabled via the kernel command line argument.
 
---=-O681+0zPkvOS4OTyyTQW
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+That will cause a call into the ipv6 routing code, which is not
+initialized, and a conseguent oops.
 
-Am Donnerstag, den 27.04.2017, 07:00 +0300 schrieb Leon Romanovsky:
-> On Wed, Apr 26, 2017 at 11:22:42AM +0200, Benjamin Drung wrote:
-> > Am Dienstag, den 25.04.2017, 21:04 +0300 schrieb Leon Romanovsky:
-> > > On Mon, Apr 24, 2017 at 03:28:30PM +0200, Benjamin Drung wrote:
-> > > > Hi,
-> > > >=20
-> > > > the rdmacm-utils binaries cmtime and udpong do not have a
-> > > > corresponding
-> > > > =C2=A0man page. Please add some since Debian recommends to ship man
-> > > > pages
-> > > > for all binaries.
-> > >=20
-> > > Is it requirement or recommendation?
-> >=20
-> > I looked it up. It's considered a bug. The Debian policy says in
-> > =C2=A712.1:
->=20
-> I understand, I just don't see many volunteers :( to write it.
+This commit addresses the above issue replacing the direct lookup
+call with an indirect one via the ipv6 stub, which is properly
+initialized according to the ipv6 status (e.g. if ipv6 is
+disabled, the routing lookup fails gracefully)
 
-Normally the authors of the program are in the best position to write
-such a man page instead of the people from the distributions.
+Signed-off-by: Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/core/addr.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---=20
-Benjamin Drung
-System Developer
-Debian & Ubuntu Developer
-
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
-
-Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-Web:=C2=A0https://www.profitbricks.com
-
-Sitz der Gesellschaft: Berlin.
-Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-Gesch=C3=A4ftsf=C3=BChrer: Achim Weiss.
-
---=-O681+0zPkvOS4OTyyTQW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAABCAAGBQJZAwaVAAoJEN2M1aXejH56zi0P/1+fuL2ts9LIYGX7kxfBcHcS
-SWz8mkK7ZCbcaXoxd8Zkw8/PNp5J+BprbyII3KQFz6L3RseWi5N25HwSDpTWu7cA
-ZVRhzPB9ri7tClezhjhtY+m4Dzb5OAOo5Xjti8wRGI/YrCITujcX0+c4VaZi+vnH
-VzdBGcX3ZumWqkhvne88PFzvssszveuLyxXXNgyWui5X2Pl1uIBhIpWIQJo9ZDwh
-iMdBTWHg+ymSBOeINsR83g+EQhcjqYKuZ4HSMMKkdNaZPAI5pmAzOPVhqkkxSts5
-GFD4nlSUcZqQgBdh6hwCMd2L5Y8XlS6FNayVyLpGwmyU/5VtkpjM5b4k2hDfEPn5
-ZJBXw4PJHN85f2AjcMfzvLQ8GtQ38zfwSwNUwvwBB38HbV+FHplvz/YuWN0dJSLb
-0YPeFALdW2v34Iq5dkpivU+Cua90KFDnL97a14pXVyYDLfkfskT6NrDUYOesUpzR
-qF9u8716I9RzN9YVdwr8rL4QSMB7lzG40bRKvm2JkoqrUPo9CVCMnmktgNkzORJn
-+o2xIuDUr3JkW34ZN8+zcM9YTSuaFLgJycD6nAnwI3368l1AB0A2khdeAdB8DHRH
-jJqXb/bXijXiCHsh4iy4WVW0sppG23UaC+qxBBkqPM5hs2m0i3PigtYrdjsb9x19
-wI2y5wtR5gz7baUv66ZX
-=Wso2
------END PGP SIGNATURE-----
-
---=-O681+0zPkvOS4OTyyTQW--
+diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+index 0f58f46..8fd108d 100644
+--- a/drivers/infiniband/core/addr.c
++++ b/drivers/infiniband/core/addr.c
+@@ -444,8 +444,8 @@ static int addr6_resolve(struct sockaddr_in6 *src_in,
+ 	fl6.saddr = src_in->sin6_addr;
+ 	fl6.flowi6_oif = addr->bound_dev_if;
+ 
+-	dst = ip6_route_output(addr->net, NULL, &fl6);
+-	if ((ret = dst->error))
++	ret = ipv6_stub->ipv6_dst_lookup(addr->net, NULL, &dst, &fl6);
++	if (ret < 0)
+ 		goto put;
+ 
+ 	rt = (struct rt6_info *)dst;
+-- 
+2.9.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
