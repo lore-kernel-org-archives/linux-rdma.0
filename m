@@ -1,8 +1,8 @@
 From: Dasaratharaman Chandramouli
         <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v4 rdma-next 01/18] IB/ocrdma: Add identifier names to function definitions
-Date: Sat, 29 Apr 2017 14:41:13 -0400
-Message-ID: <1493491290-31621-2-git-send-email-dasaratharaman.chandramouli@intel.com>
+Subject: [PATCH v4 rdma-next 05/18] IB/rxe: Initialize ib_ah_attr during query_ah
+Date: Sat, 29 Apr 2017 14:41:17 -0400
+Message-ID: <1493491290-31621-6-git-send-email-dasaratharaman.chandramouli@intel.com>
 References: <1493491290-31621-1-git-send-email-dasaratharaman.chandramouli@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1493491290-31621-1-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -11,38 +11,42 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Address a checkpatch issue on missing identifier names
-on function definitions.
+Zero out ib_ah_attr before calling query_ah. Set ah_flags
+appropriately.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_ah.h | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_av.c    | 1 +
+ drivers/infiniband/sw/rxe/rxe_verbs.c | 1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.h b/drivers/infiniband/hw/ocrdma/ocrdma_ah.h
-index 0704a24..5370eb7 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.h
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.h
-@@ -51,11 +51,11 @@ enum {
- 	OCRDMA_AH_L3_TYPE_SHIFT		= 0x1D /* 29 bits */
- };
+diff --git a/drivers/infiniband/sw/rxe/rxe_av.c b/drivers/infiniband/sw/rxe/rxe_av.c
+index 604f6fe..88a4a7f 100644
+--- a/drivers/infiniband/sw/rxe/rxe_av.c
++++ b/drivers/infiniband/sw/rxe/rxe_av.c
+@@ -69,6 +69,7 @@ int rxe_av_to_attr(struct rxe_dev *rxe, struct rxe_av *av,
+ 		   struct ib_ah_attr *attr)
+ {
+ 	memcpy(&attr->grh, &av->grh, sizeof(av->grh));
++	attr->ah_flags = IB_AH_GRH;
+ 	attr->port_num = av->port_num;
+ 	return 0;
+ }
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index dbede30..b35201d 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -378,6 +378,7 @@ static int rxe_query_ah(struct ib_ah *ibah, struct ib_ah_attr *attr)
+ 	struct rxe_dev *rxe = to_rdev(ibah->device);
+ 	struct rxe_ah *ah = to_rah(ibah);
  
--struct ib_ah *ocrdma_create_ah(struct ib_pd *, struct ib_ah_attr *,
--			       struct ib_udata *);
--int ocrdma_destroy_ah(struct ib_ah *);
--int ocrdma_query_ah(struct ib_ah *, struct ib_ah_attr *);
--int ocrdma_modify_ah(struct ib_ah *, struct ib_ah_attr *);
-+struct ib_ah *ocrdma_create_ah(struct ib_pd *pd, struct ib_ah_attr *ah_attr,
-+			       struct ib_udata *udata);
-+int ocrdma_destroy_ah(struct ib_ah *ah);
-+int ocrdma_query_ah(struct ib_ah *ah, struct ib_ah_attr *ah_attr);
-+int ocrdma_modify_ah(struct ib_ah *ah, struct ib_ah_attr *ah_attr);
- 
- int ocrdma_process_mad(struct ib_device *,
- 		       int process_mad_flags,
++	memset(attr, 0, sizeof(*attr));
+ 	rxe_av_to_attr(rxe, &ah->av, attr);
+ 	return 0;
+ }
 -- 
 1.8.3.1
 
