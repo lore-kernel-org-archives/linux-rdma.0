@@ -1,153 +1,74 @@
-From: "Chandramouli, Dasaratharaman"
-        <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 0/7] Add support for OPA classport info
-Date: Fri, 28 Apr 2017 16:46:53 -0700
-Message-ID: <05c8bb91-7291-4cda-6299-5f6061ef635e@intel.com>
-References: <1490053090-32840-1-git-send-email-dasaratharaman.chandramouli@intel.com>
- <1493403017.3041.166.camel@redhat.com>
- <9a061845-2a2f-3c19-08b3-00a9ddab8292@intel.com>
- <b6f3caf1-7558-1291-b361-ac58932d10ae@intel.com>
- <1493417741.3041.171.camel@redhat.com>
- <07556307-eea5-5571-66d7-90be9abebba0@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Geliang Tang <geliangtang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2] IB/i40iw: use setup_timer
+Date: Sat, 29 Apr 2017 09:37:28 +0800
+Message-ID: <d2a4d5220abf014f8e5629a7217eaa71262199fd.1493188028.git.geliangtang@gmail.com>
+References: <9DD61F30A802C4429A01CA4200E302A730314A7F@fmsmsx116.amr.corp.intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <07556307-eea5-5571-66d7-90be9abebba0-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <9DD61F30A802C4429A01CA4200E302A730314A7F-5FK+k9557ZBZtRGVdHMbwrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Geliang Tang <geliangtang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Use setup_timer() instead of init_timer() to simplify the code.
 
+Signed-off-by: Geliang Tang <geliangtang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+Changes in v2:
+ - use setup_timer() in i40iw_terminate_start_timer().
+---
+ drivers/infiniband/hw/i40iw/i40iw_cm.c    |  5 ++---
+ drivers/infiniband/hw/i40iw/i40iw_utils.c | 10 ++++------
+ 2 files changed, 6 insertions(+), 9 deletions(-)
 
-On 4/28/2017 4:35 PM, Chandramouli, Dasaratharaman wrote:
->
->
-> On 4/28/2017 3:15 PM, Doug Ledford wrote:
->> On Fri, 2017-04-28 at 12:23 -0700, Chandramouli, Dasaratharaman wrote:
->>>
->>> On 4/28/2017 11:47 AM, Chandramouli, Dasaratharaman wrote:
->>>>
->>>>
->>>>
->>>> On 4/28/2017 11:10 AM, Doug Ledford wrote:
->>>>>
->>>>> On Mon, 2017-03-20 at 19:38 -0400, Dasaratharaman Chandramouli
->>>>> wrote:
->>>>>>
->>>>>> This series moves the classport info query initiation and
->>>>>> update
->>>>>> from callers such as ipoib to the ib_sa module itself. The
->>>>>> classport
->>>>>> info cache is updated whenever ib_sa receives an appropriate
->>>>>> state
->>>>>> change event.
->>>>>>
->>>>>> Since classport info is only used to check if sendonly full
->>>>>> member
->>>>>> support
->>>>>> is enabled by the SM, we expose a function
->>>>>> ib_sa_sendonly_fullmem_support
->>>>>> that can be called to check if the support is enabled.
->>>>>>
->>>>>> Additionally, we introduce support for opa classport info.
->>>>>> These are
->>>>>> defined specifically for OPA devices and expose additional
->>>>>> features
->>>>>> in the
->>>>>> capability mask bits along with longer LID sizes in some of the
->>>>>> other
->>>>>> fields.
->>>>>>
->>>>>> Patch 1 to 3 fix checkpatch issues (1 issue type per patch) on
->>>>>> two
->>>>>> functions that patch 4 then moves around. Patch 5 makes changes
->>>>>> to implicitly query and cache classport info. Patch 6 adds
->>>>>> verbs capability API for core layers to query and find out if
->>>>>> they
->>>>>> are running on an OPA device. Finally, patch 7 adds OPA
->>>>>> classport
->>>>>> info
->>>>>> query support.
->>>>>
->>>>> I took patches 1-6 of this series.  However, I need you to rebase
->>>>> patch
->>>>> 7 against my current k.o/for-4.12-rdma-netdevice branch as there
->>>>> are
->>>>> significant conflicts between this and the VNIC patches I've
->>>>> already
->>>>> taken.
->>>>>
->>>>
->>>> Hi Doug -- I pulled your for-4.12-rdma-netdevice and tried to apply
->>>> patch 7. I see no conflicts. It compiled cleanly as well. May be i
->>>> am
->>>> missing something here. Just want to make sure i have the same
->>>> branch as
->>>> yours.
->>>> Is this your commit at the HEAD currently?
->>>>
->>>> commit 94d595c56077fd8b0f61701e03fd4b3dc8c62038
->>>> Author: Dasaratharaman Chandramouli <dasaratharaman.chandramouli@in
->>>> tel.com>
->>>> Date:   Mon Mar 20 19:38:09 2017 -0400
->>>>
->>>>     IB/core: Add rdma_cap_opa_ah to expose opa address handles
->>>>
->>>>
->>>> Thanks,
->>>> Dasa
->>>
->>> I take that back. It does fail to compile when OPA_VNIC is enabled
->>> since
->>> struct opa_class_port_info is defined at multiple locations. I will
->>> re-spin this series and in lieu of patch 7, i will submit two
->>> patches,
->>> the first one would cleanup some of the re-defined structure
->>> definitions
->>> and the next one would add SA support for OPA class port info.
->>
->> If it were just a matter of removing the duplicate definition in the
->> vnic driver, I would have done that myself (and in fact I *did* do that
->> myself and then reverted the patches when the compile problems were
->> considerably more complex than that).  The vnic driver and this
->> obviously touch some of the same things.
->
-> Yes one common field needed to be renamed in this patch. I had done
-> that, built and tested it but failed to git --amend the patch before
-> submitting. I have fixed it and sent you that one patch which should
-> apply and build fine.
->
-> Since the vnic driver has
->> been accepted, this patchset needs to treat it as something that must
->> be maintained.  Breaking the vnic driver with this patchset is not an
->> option, it's a regression.
->
-> I understand, that was not my intention.
->
-> Go back to the drawing board, don't respin
->> the entire series since I've already taken the first 6 patches, and
->> this time don't post the remainder of the patches until the build
->> actually works!
->>
->>> Once this series is accepted, as cleanup, we can look into fixing
->>> opa_vnic and hfi1 to use the SA to query for OPA classport info.
->>
->> No, do this series right.  Make it fix things up as it goes along.And
->> make sure it builds!  Also, your other two series are on hold until
->> this gets sorted out.
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+index 95a0586..f3bc01b 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+@@ -3184,9 +3184,8 @@ void i40iw_setup_cm_core(struct i40iw_device *iwdev)
+ 	INIT_LIST_HEAD(&cm_core->connected_nodes);
+ 	INIT_LIST_HEAD(&cm_core->listen_nodes);
+ 
+-	init_timer(&cm_core->tcp_timer);
+-	cm_core->tcp_timer.function = i40iw_cm_timer_tick;
+-	cm_core->tcp_timer.data = (unsigned long)cm_core;
++	setup_timer(&cm_core->tcp_timer, i40iw_cm_timer_tick,
++		    (unsigned long)cm_core);
+ 
+ 	spin_lock_init(&cm_core->ht_lock);
+ 	spin_lock_init(&cm_core->listen_list_lock);
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
+index 70c3e9e..409a378 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
+@@ -844,10 +844,9 @@ void i40iw_terminate_start_timer(struct i40iw_sc_qp *qp)
+ 
+ 	iwqp = (struct i40iw_qp *)qp->back_qp;
+ 	i40iw_add_ref(&iwqp->ibqp);
+-	init_timer(&iwqp->terminate_timer);
+-	iwqp->terminate_timer.function = i40iw_terminate_timeout;
++	setup_timer(&iwqp->terminate_timer, i40iw_terminate_timeout,
++		    (unsigned long)iwqp);
+ 	iwqp->terminate_timer.expires = jiffies + HZ;
+-	iwqp->terminate_timer.data = (unsigned long)iwqp;
+ 	add_timer(&iwqp->terminate_timer);
+ }
+ 
+@@ -1436,9 +1435,8 @@ void i40iw_hw_stats_start_timer(struct i40iw_sc_vsi *vsi)
+ {
+ 	struct i40iw_vsi_pestat *devstat = vsi->pestat;
+ 
+-	init_timer(&devstat->stats_timer);
+-	devstat->stats_timer.function = i40iw_hw_stats_timeout;
+-	devstat->stats_timer.data = (unsigned long)vsi;
++	setup_timer(&devstat->stats_timer, i40iw_hw_stats_timeout,
++		    (unsigned long)vsi);
+ 	mod_timer(&devstat->stats_timer,
+ 		  jiffies + msecs_to_jiffies(STATS_TIMER_DELAY));
+ }
+-- 
+2.9.3
 
-Doug, There might be other merge/build issues with the other two patche 
-series as well. I am currently looking at them. I will re-spin the 
-patches if needed.
-
-Thanks.
-
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
