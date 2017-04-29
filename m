@@ -1,8 +1,8 @@
 From: Dasaratharaman Chandramouli
         <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v4 rdma-next 18/18] IB/core: Define 'opa' rdma_ah_attr type
-Date: Sat, 29 Apr 2017 14:41:30 -0400
-Message-ID: <1493491290-31621-19-git-send-email-dasaratharaman.chandramouli@intel.com>
+Subject: [PATCH v4 rdma-next 12/18] IB/mlx5: Rename to_ib_ah_attr to to_rdma_ah_attr
+Date: Sat, 29 Apr 2017 14:41:24 -0400
+Message-ID: <1493491290-31621-13-git-send-email-dasaratharaman.chandramouli@intel.com>
 References: <1493491290-31621-1-git-send-email-dasaratharaman.chandramouli@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1493491290-31621-1-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -11,102 +11,45 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-OPA ah_attr types allows core components to specify
-attributes that may be specific to opa devices.
-For instance, opa type ah_attr provides 32 bit lids
-enabling larger OPA fabric sizes.
+local function  to_ib_ah_attr is renamed so it in
+sync with the rename of the ib_ah_attr structure
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- include/rdma/ib_verbs.h | 24 +++++++++++++++++++++---
- 1 file changed, 21 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mlx5/qp.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 803927b..f0cb490 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -843,6 +843,7 @@ struct ib_mr_status {
- enum rdma_ah_attr_type {
- 	RDMA_AH_ATTR_TYPE_IB,
- 	RDMA_AH_ATTR_TYPE_ROCE,
-+	RDMA_AH_ATTR_TYPE_OPA,
- };
- 
- struct ib_ah_attr {
-@@ -854,6 +855,11 @@ struct roce_ah_attr {
- 	u8			dmac[ETH_ALEN];
- };
- 
-+struct opa_ah_attr {
-+	u32			dlid;
-+	u8			src_path_bits;
-+};
-+
- struct rdma_ah_attr {
- 	struct ib_global_route	grh;
- 	u8			sl;
-@@ -864,6 +870,7 @@ struct rdma_ah_attr {
- 	union {
- 		struct ib_ah_attr ib;
- 		struct roce_ah_attr roce;
-+		struct opa_ah_attr opa;
- 	};
- };
- 
-@@ -3490,16 +3497,20 @@ static inline u8 *rdma_ah_retrieve_dmac(struct rdma_ah_attr *attr)
- 	return NULL;
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 18974c1..22c6739 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -4249,9 +4249,9 @@ static int to_ib_qp_access_flags(int mlx5_flags)
+ 	return ib_flags;
  }
  
--static inline void rdma_ah_set_dlid(struct rdma_ah_attr *attr, u16 dlid)
-+static inline void rdma_ah_set_dlid(struct rdma_ah_attr *attr, u32 dlid)
+-static void to_ib_ah_attr(struct mlx5_ib_dev *ibdev,
+-			  struct rdma_ah_attr *ib_ah_attr,
+-			  struct mlx5_qp_path *path)
++static void to_rdma_ah_attr(struct mlx5_ib_dev *ibdev,
++			    struct rdma_ah_attr *ib_ah_attr,
++			    struct mlx5_qp_path *path)
  {
- 	if (attr->type == RDMA_AH_ATTR_TYPE_IB)
--		attr->ib.dlid = dlid;
-+		attr->ib.dlid = (u16)dlid;
-+	else if (attr->type == RDMA_AH_ATTR_TYPE_OPA)
-+		attr->opa.dlid = dlid;
- }
+ 	struct mlx5_core_dev *dev = ibdev->mdev;
  
--static inline u16 rdma_ah_get_dlid(const struct rdma_ah_attr *attr)
-+static inline u32 rdma_ah_get_dlid(const struct rdma_ah_attr *attr)
- {
- 	if (attr->type == RDMA_AH_ATTR_TYPE_IB)
- 		return attr->ib.dlid;
-+	else if (attr->type == RDMA_AH_ATTR_TYPE_OPA)
-+		return attr->opa.dlid;
- 	return 0;
- }
+@@ -4441,8 +4441,8 @@ static int query_qp_attr(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 		to_ib_qp_access_flags(be32_to_cpu(context->params2));
  
-@@ -3518,12 +3529,16 @@ static inline void rdma_ah_set_path_bits(struct rdma_ah_attr *attr,
- {
- 	if (attr->type == RDMA_AH_ATTR_TYPE_IB)
- 		attr->ib.src_path_bits = src_path_bits;
-+	else if (attr->type == RDMA_AH_ATTR_TYPE_OPA)
-+		attr->opa.src_path_bits = src_path_bits;
- }
- 
- static inline u8 rdma_ah_get_path_bits(const struct rdma_ah_attr *attr)
- {
- 	if (attr->type == RDMA_AH_ATTR_TYPE_IB)
- 		return attr->ib.src_path_bits;
-+	else if (attr->type == RDMA_AH_ATTR_TYPE_OPA)
-+		return attr->opa.src_path_bits;
- 	return 0;
- }
- 
-@@ -3619,6 +3634,9 @@ static inline enum rdma_ah_attr_type rdma_ah_find_type(struct ib_device *dev,
- 	if ((rdma_protocol_roce(dev, port_num)) ||
- 	    (rdma_protocol_iwarp(dev, port_num)))
- 		return RDMA_AH_ATTR_TYPE_ROCE;
-+	else if ((rdma_protocol_ib(dev, port_num)) &&
-+		 (rdma_cap_opa_ah(dev, port_num)))
-+		return RDMA_AH_ATTR_TYPE_OPA;
- 	else
- 		return RDMA_AH_ATTR_TYPE_IB;
- }
+ 	if (qp->ibqp.qp_type == IB_QPT_RC || qp->ibqp.qp_type == IB_QPT_UC) {
+-		to_ib_ah_attr(dev, &qp_attr->ah_attr, &context->pri_path);
+-		to_ib_ah_attr(dev, &qp_attr->alt_ah_attr, &context->alt_path);
++		to_rdma_ah_attr(dev, &qp_attr->ah_attr, &context->pri_path);
++		to_rdma_ah_attr(dev, &qp_attr->alt_ah_attr, &context->alt_path);
+ 		qp_attr->alt_pkey_index =
+ 			be16_to_cpu(context->alt_path.pkey_index);
+ 		qp_attr->alt_port_num	= qp_attr->alt_ah_attr.port_num;
 -- 
 1.8.3.1
 
