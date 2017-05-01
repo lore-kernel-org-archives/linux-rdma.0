@@ -1,40 +1,40 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 17/20] IB/hfi1: Convert %Lx to %llx
-Date: Sun, 09 Apr 2017 10:17:12 -0700
-Message-ID: <20170409171711.10579.68675.stgit@scvm10.sc.intel.com>
-References: <20170409171329.10579.92775.stgit@scvm10.sc.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Michael Mera <dev-5Y08+B5RRAgbhb6IIWwbbQ@public.gmane.org>
+Subject: [PATCH] IB/ocrdma: fix out of bounds access to local buffer
+Date: Mon,  1 May 2017 15:41:16 +0900
+Message-ID: <20170501064116.3900-1-dev@michaelmera.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170409171329.10579.92775.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: Michael Mera <dev-5Y08+B5RRAgbhb6IIWwbbQ@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-According to checkpatch %Lx is not standard C so remove it and use the
-suggested %llx.
+In write to debugfs file 'resource_stats' the local buffer 'tmp_str' is
+written at index 'count-1' where 'count' is the size of the write, so
+potentially 0.
 
-Fixes: 7724105686e7 ("IB/hfi1: add driver files")
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+This patch filters odd values for the write size/position to avoid this
+type of problem.
+
+Signed-off-by: Michael Mera <dev-5Y08+B5RRAgbhb6IIWwbbQ@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/pcie.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/ocrdma/ocrdma_stats.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
-index 0829fce..e39e01b 100644
---- a/drivers/infiniband/hw/hfi1/pcie.c
-+++ b/drivers/infiniband/hw/hfi1/pcie.c
-@@ -583,7 +583,7 @@ static void tune_pcie_caps(struct hfi1_devdata *dd)
- 		if (words == ~0ULL)
- 			ret = PCI_ERS_RESULT_NEED_RESET;
- 		dd_dev_info(dd,
--			    "HFI1 mmio_enabled function called, read wordscntr %Lx, returning %d\n",
-+			    "HFI1 mmio_enabled function called, read wordscntr %llx, returning %d\n",
- 			    words, ret);
- 	}
- 	return  ret;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_stats.c b/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
+index f8e4b0a6486f..66056f9a9700 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
+@@ -643,7 +643,7 @@ static ssize_t ocrdma_dbgfs_ops_write(struct file *filp,
+ 	struct ocrdma_stats *pstats = filp->private_data;
+ 	struct ocrdma_dev *dev = pstats->dev;
+ 
+-	if (count > 32)
++	if (*ppos != 0 || count == 0 || count > sizeof(tmp_str))
+ 		goto err;
+ 
+ 	if (copy_from_user(tmp_str, buffer, count))
+-- 
+2.9.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
