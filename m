@@ -1,89 +1,53 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/rxe: Don't clamp residual length to mtu
-Date: Mon, 01 May 2017 14:44:00 -0400
-Message-ID: <1493664240.3041.183.camel@redhat.com>
-References: <20170406124944.11074-1-jthumshirn@suse.de>
-         <20170425072938.GB16843@linux-x5ow.site>
+Subject: Re: [PATCH v2 0/4] arbitrary sg lists support
+Date: Mon, 01 May 2017 14:50:45 -0400
+Message-ID: <1493664645.3041.184.camel@redhat.com>
+References: <1492098977-5231-1-git-send-email-maxg@mellanox.com>
+         <1492101079.5176.9.camel@sandisk.com>
+         <c52b5ce7-5346-419d-26f2-0d4d45d20471@grimberg.me>
+         <20170423103439.GC14088@mtr-leonro.local>
+         <d697d360-99ca-c3ed-08e2-b89cc50a15b0@grimberg.me>
+         <20170423121254.GD14088@mtr-leonro.local>
+         <a3264968-2d9e-bda5-1f23-74da248cf4d5@grimberg.me>
+         <9a9668fa-87a7-e730-27e2-8a2b3e7fbc36@mellanox.com>
+         <8ed506ba-ae7b-af27-2d2a-9a434c22353c@grimberg.me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170425072938.GB16843-qw2SdCWA0PpjqqEj2zc+bA@public.gmane.org>
+In-Reply-To: <8ed506ba-ae7b-af27-2d2a-9a434c22353c-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
-Cc: Linux Kernel Mailinglist <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hannes Reinecke <hare-l3A5Bk7waGM@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-04-25 at 09:29 +0200, Johannes Thumshirn wrote:
-> On Thu, Apr 06, 2017 at 02:49:44PM +0200, Johannes Thumshirn wrote:
+On Sun, 2017-04-23 at 17:35 +0300, Sagi Grimberg wrote:
 > > 
-> > When reading a RDMA WRITE FIRST packet we copy the DMA length from
-> > the RDMA
-> > header into the qp->resp.resid variable for later use. Later in
-> > check_rkey()
-> > we clamp it to the MTU if the packet is an  RDMA WRITE packet and
-> > has a
-> > residual length bigger than the MTU. Later in write_data_in() we
-> > subtract the
-> > payload of the packet from the residual length. If the packet
-> > happens to have a
-> > payload of exactly the MTU size we end up with a residual length of
-> > 0 despite
-> > the packet not being the last in the conversation. When the next
-> > packet in the
-> > conversation arrives, we don't have any residual length left and
-> > thus set the QP
-> > into an error state.
-> > 
-> > This broke NVMe over Fabrics functionality over rdma_rxe.ko
-> > 
-> > The patch was verified using the following test.
-> > 
-> >  # echo eth0 > /sys/module/rdma_rxe/parameters/add
-> >  # nvme connect -t rdma -a 192.168.155.101 -s 1023 -n nvmf-test
-> >  # mkfs.xfs -fK /dev/nvme0n1
-> >  meta-data=/dev/nvme0n1           isize=256    agcount=4,
-> > agsize=65536 blks
-> >           =                       sectsz=4096  attr=2,
-> > projid32bit=1
-> >           =                       crc=0        finobt=0, sparse=0
-> >  data     =                       bsize=4096   blocks=262144,
-> > imaxpct=25
-> >           =                       sunit=0      swidth=0 blks
-> >  naming   =version 2              bsize=4096   ascii-ci=0 ftype=1
-> >  log      =internal log           bsize=4096   blocks=2560,
-> > version=2
-> >           =                       sectsz=4096  sunit=1 blks, lazy-
-> > count=1
-> >  realtime =none                   extsz=4096   blocks=0,
-> > rtextents=0
-> >  # mount /dev/nvme0n1 /tmp/
-> >  [  148.923263] XFS (nvme0n1): Mounting V4 Filesystem
-> >  [  148.961196] XFS (nvme0n1): Ending clean mount
-> >  # dd if=/dev/urandom of=test.bin bs=1M count=128
-> >  128+0 records in
-> >  128+0 records out
-> >  134217728 bytes (134 MB, 128 MiB) copied, 0.437991 s, 306 MB/s
-> >  # sha256sum test.bin
-> >  cde42941f045efa8c4f0f157ab6f29741753cdd8d1cff93a6b03649d83c4129a  
-> > test.bin
-> >  # cp test.bin /tmp/
-> >  sha256sum /tmp/test.bin
-> >  cde42941f045efa8c4f0f157ab6f29741753cdd8d1cff93a6b03649d83c4129a  
-> > /tmp/test.bin
-> > 
-> > Signed-off-by: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
-> > Cc: Hannes Reinecke <hare-l3A5Bk7waGM@public.gmane.org>
-> > Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-> > Cc: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > ---
+> > I actually answered here:
+> > https://www.spinics.net/lists/linux-rdma/msg46412.html
 > 
-> Doug anything left here? I already have an Ack from Moni. This patch
-> is needed
-> to get NVMe over Fabrics working on rxe so I'd like to see it in
-> v4.12.
+> Did anything progress with the debug?
+> 
+> > 
+> > Sagi,
+> > As you mentioned the IO path is different in SRP and iSER so IMO we
+> > should start with SRP debugging. NVMf is similar to iSER (and not
+> > SRP)
+> > and that's why I think we can apply this patchset.
+> 
+> My concern is that this might be broken due to the fact that we don't
+> know what triggers this.
+> 
+> > 
+> > If you want to wait till we debug SRP issue it's fine, but I can't
+> > repro
+> > it in my lab so it can take longer.
+> 
+> I'd prefer not to take a non-mandatory feature that is not guaranteed
+> to work.
 
-Nope, it's all good.  I applied it today.
+Indeed.  I've left this series on hold (actually, I've removed it from
+patchworks).  When we get this straightened, then please resubmit.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
