@@ -1,53 +1,58 @@
-From: Tim Wright <tim@binbash.co.uk>
-Subject: [PATCH 1/1] IB/mlx5: Add port_xmit_wait to counter registers read
-Date: Mon,  1 May 2017 17:30:08 +0100
-Message-ID: <20170501163008.27043-1-tim@binbash.co.uk>
+From: Bart Van Assche <Bart.VanAssche@sandisk.com>
+Subject: Re: net/smc and the RDMA core
+Date: Mon, 1 May 2017 17:29:38 +0000
+Message-ID: <1493659776.2665.7.camel@sandisk.com>
+References: <20170501163311.GA22209@lst.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170501163311.GA22209@lst.de>
+Content-Language: en-US
+Content-ID: <B7D4EE88D8FC1E4AAD1D128B1471A0C5@namprd04.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: matanb@mellanox.com, leonro@mellanox.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, saeedm@mellanox.com
-Cc: Tim Wright <tim@binbash.co.uk>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
+To: "hch@lst.de" <hch@lst.de>, "davem@davemloft.net" <davem@davemloft.net>, "ubraun@linux.vnet.ibm.com" <ubraun@linux.vnet.ibm.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add port_xmit_wait to the error counters read by mlx5_ib_process_mad to
-ensure sysfs port counter provides correct value for PortXmitWait.
-Otherwise the sysfs port_xmit_wait file always contains zero.
+On Mon, 2017-05-01 at 18:33 +0200, Christoph Hellwig wrote:
+> Hi Ursual, hi netdev reviewers,
+>=20
+> how did the smc protocol manage to get merged without any review=20
+> on linux-rdma at all?  As the results it seems it's very substandard
+> in terms of RDMA API usage, e.g. it neither uses the proper CQ API
+> nor the RDMA R/W API, and other will probably find additional issues
+> as well.
 
-The previous MAD_IFC implementation populated this counter, but it was
-removed during the migration to PPCNT for error counters (32-bit only).
+Hello Dave and Ursula,
 
-Signed-off-by: Tim Wright <tim@binbash.co.uk>
----
- drivers/infiniband/hw/mlx5/mad.c | 2 ++
- include/linux/mlx5/mlx5_ifc.h    | 4 +++-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+It seems very rude to me to have merged the SMC protocol driver without
+having involved the linux-rdma community. Anyway, I have the following
+questions for Dave and Ursula:
+* Since the Linux kernel is standards based: where can we find the standard
+  that defines the SMC wire protocol? If this protocol has not been
+  standardized yet: in what file (other than *.[ch]) in the Linux kernel
+  tree has this protocol been documented?
+* What are the differences between the SMC protocol, the SDP protocol and
+  the rsockets protocol? How do existing implementations for these protocol=
+s
+  compare to each other from a performance point of view? If no performance
+  comparison between these protocols is available, shouldn't the performanc=
+e
+  of these protocols have been compared with each other before a review of
+  the SMC driver even started?
+* What are the reasons why the SDP driver was never accepted upstream? Do
+  the arguments why SDP was not accepted upstream also apply to the SMC
+  driver (SDP =3D Sockets Direct Protocol)?
+* Since SMC has to be selected by specifying AF_SMC, how are users expected
+  to specify whether AF_INET, AF_INET6 or yet another address family should
+  be used to set up a connection between SMC
+endpoints?
+* Is the SMC driver limited to RoCE? Are you aware that the rsockets librar=
+y
+  supports multiple transport layers (RoCE, IB and iWARP)?
+* Since functionality that is similar what the SMC driver provides already
+  exists in user space (rsockets), why has this functionality been
+  reimplemented as a kernel driver (SMC)?
 
-diff --git a/drivers/infiniband/hw/mlx5/mad.c b/drivers/infiniband/hw/mlx5/mad.c
-index 8dacb49..f1b56de6 100644
---- a/drivers/infiniband/hw/mlx5/mad.c
-+++ b/drivers/infiniband/hw/mlx5/mad.c
-@@ -187,6 +187,8 @@ static void pma_cnt_assign(struct ib_pma_portcounters *pma_cnt,
- 			     port_xmit_discards);
- 	MLX5_ASSIGN_PMA_CNTR(pma_cnt->port_xmit_constraint_errors,
- 			     port_xmit_constraint_errors);
-+	MLX5_ASSIGN_PMA_CNTR(pma_cnt->port_xmit_wait,
-+			     port_xmit_wait);
- 	MLX5_ASSIGN_PMA_CNTR(pma_cnt->port_rcv_constraint_errors,
- 			     port_rcv_constraint_errors);
- 	MLX5_ASSIGN_PMA_CNTR(pma_cnt->link_overrun_errors,
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 8382426..e641bc3 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -1452,7 +1452,9 @@ struct mlx5_ifc_ib_port_cntrs_grp_data_layout_bits {
- 
- 	u8         vl_15_dropped[0x10];
- 
--	u8	   reserved_at_a0[0xa0];
-+	u8	   reserved_at_a0[0x80];
-+
-+	u8         port_xmit_wait[0x20];
- };
- 
- struct mlx5_ifc_eth_per_traffic_grp_data_layout_bits {
--- 
-1.8.3.1
+Bart.=
