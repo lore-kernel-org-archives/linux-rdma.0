@@ -1,34 +1,31 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCHv2 1/1] IB/ipoib: add get_settings in ethtool
-Date: Mon, 01 May 2017 14:59:15 -0400
-Message-ID: <1493665155.3041.186.camel@redhat.com>
-References: <1493197354-3025-1-git-send-email-yanjun.zhu@oracle.com>
-         <20170426113125.b7d64c5b0760e0316e6aedf6@suse.de>
+Subject: Re: [PATCH 0/2] IB/mlx4: Code cleanup in cm.c
+Date: Mon, 01 May 2017 16:55:56 -0400
+Message-ID: <1493672156.3041.187.camel@redhat.com>
+References: <20170428110654.13176-1-Haakon.Bugge@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170426113125.b7d64c5b0760e0316e6aedf6-l3A5Bk7waGM@public.gmane.org>
+In-Reply-To: <20170428110654.13176-1-Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Thomas Bogendoerfer <tbogendoerfer-l3A5Bk7waGM@public.gmane.org>, Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: Hakon Bugge <Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-04-26 at 11:31 +0200, Thomas Bogendoerfer wrote:
-> On Wed, 26 Apr 2017 05:02:34 -0400
-> Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+On Fri, 2017-04-28 at 13:06 +0200, Hakon Bugge wrote:
+> This patchset contains two non-functional patches that cleans up two
+> issues.
 > 
-> > 
-> > In order to let the bonding driver report the correct speed
-> > of the underlaying interfaces, when they are IPoIB, the ethtool
-> > function get_settings() in the IPoIB driver is implemented.
+> Hakon Bugge (2):
+>   IB/mlx4: Change flush logic so it adheres to the variable name
+>   IB/mlx4: Fix incorrect order of formal and actual parameters
 > 
-> FYI get_settings is DEPRECATED. Wouldn't it make more sense to
-> directly
-> implement get_link_ksettings ?
+>  drivers/infiniband/hw/mlx4/cm.c | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
 
-Indeed, please redo this patchset using the preferred method of getting
-link settings.  Thanks.
+I made the commit messages a bit clearer, but otherwise, series
+applied, thanks.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
