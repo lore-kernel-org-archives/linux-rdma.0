@@ -1,27 +1,34 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] mlx5: Fix mlx5_ib_map_mr_sg mr length
-Date: Mon, 01 May 2017 14:58:13 -0400
-Message-ID: <1493665093.3041.185.camel@redhat.com>
-References: <1492947102-3133-1-git-send-email-sagi@grimberg.me>
+Subject: Re: [PATCHv2 1/1] IB/ipoib: add get_settings in ethtool
+Date: Mon, 01 May 2017 14:59:15 -0400
+Message-ID: <1493665155.3041.186.camel@redhat.com>
+References: <1493197354-3025-1-git-send-email-yanjun.zhu@oracle.com>
+         <20170426113125.b7d64c5b0760e0316e6aedf6@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1492947102-3133-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <20170426113125.b7d64c5b0760e0316e6aedf6-l3A5Bk7waGM@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Max Gurtuvoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Thomas Bogendoerfer <tbogendoerfer-l3A5Bk7waGM@public.gmane.org>, Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 2017-04-23 at 14:31 +0300, Sagi Grimberg wrote:
-> In case we got an initial sg_offset, we need to
-> account for it in the mr length.
+On Wed, 2017-04-26 at 11:31 +0200, Thomas Bogendoerfer wrote:
+> On Wed, 26 Apr 2017 05:02:34 -0400
+> Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
 > 
-> Fixes: ff2ba9936591 ("IB/core: Add passing an offset into the SG to
-> ib_map_mr_sg")
-> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+> > 
+> > In order to let the bonding driver report the correct speed
+> > of the underlaying interfaces, when they are IPoIB, the ethtool
+> > function get_settings() in the IPoIB driver is implemented.
+> 
+> FYI get_settings is DEPRECATED. Wouldn't it make more sense to
+> directly
+> implement get_link_ksettings ?
 
-Cc: stable added and applied, thanks.
+Indeed, please redo this patchset using the preferred method of getting
+link settings.  Thanks.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
