@@ -1,31 +1,33 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/2] IB/mlx4: Code cleanup in cm.c
-Date: Mon, 01 May 2017 16:55:56 -0400
-Message-ID: <1493672156.3041.187.camel@redhat.com>
-References: <20170428110654.13176-1-Haakon.Bugge@oracle.com>
+Subject: Re: [PATCH 1/1] IB/mlx5: Add port_xmit_wait to counter registers
+ read
+Date: Mon, 01 May 2017 16:56:35 -0400
+Message-ID: <1493672195.3041.188.camel@redhat.com>
+References: <20170501163008.27043-1-tim@binbash.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170428110654.13176-1-Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170501163008.27043-1-tim-r/Uwd3QrhQcqdlJmJB21zg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hakon Bugge <Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Tim Wright <tim-r/Uwd3QrhQcqdlJmJB21zg@public.gmane.org>, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-04-28 at 13:06 +0200, Hakon Bugge wrote:
-> This patchset contains two non-functional patches that cleans up two
-> issues.
+On Mon, 2017-05-01 at 17:30 +0100, Tim Wright wrote:
+> Add port_xmit_wait to the error counters read by mlx5_ib_process_mad
+> to
+> ensure sysfs port counter provides correct value for PortXmitWait.
+> Otherwise the sysfs port_xmit_wait file always contains zero.
 > 
-> Hakon Bugge (2):
->   IB/mlx4: Change flush logic so it adheres to the variable name
->   IB/mlx4: Fix incorrect order of formal and actual parameters
+> The previous MAD_IFC implementation populated this counter, but it
+> was
+> removed during the migration to PPCNT for error counters (32-bit
+> only).
 > 
->  drivers/infiniband/hw/mlx4/cm.c | 10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
+> Signed-off-by: Tim Wright <tim-r/Uwd3QrhQcqdlJmJB21zg@public.gmane.org>
 
-I made the commit messages a bit clearer, but otherwise, series
-applied, thanks.
+Thanks, applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
