@@ -1,75 +1,57 @@
-From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 0/4] arbitrary sg lists support
-Date: Tue, 2 May 2017 12:39:58 -0400 (EDT)
-Message-ID: <665014226.4138173.1493743198816.JavaMail.zimbra@redhat.com>
-References: <1492098977-5231-1-git-send-email-maxg@mellanox.com> <d697d360-99ca-c3ed-08e2-b89cc50a15b0@grimberg.me> <20170423121254.GD14088@mtr-leonro.local> <a3264968-2d9e-bda5-1f23-74da248cf4d5@grimberg.me> <9a9668fa-87a7-e730-27e2-8a2b3e7fbc36@mellanox.com> <8ed506ba-ae7b-af27-2d2a-9a434c22353c@grimberg.me> <1493664645.3041.184.camel@redhat.com> <4a1c94b5-fe13-8b34-762f-e7465182ed27@mellanox.com>
+From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: net/smc and the RDMA core
+Date: Tue, 2 May 2017 18:39:20 +0000
+Message-ID: <1493750358.2552.13.camel@sandisk.com>
+References: <20170501163311.GA22209@lst.de>
+         <d9214af6-1c6f-9f95-fc00-3e4a316b4f81@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4a1c94b5-fe13-8b34-762f-e7465182ed27-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <d9214af6-1c6f-9f95-fc00-3e4a316b4f81-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Content-Language: en-US
+Content-ID: <E901171F32AAB047A577AAEB1A2B0BB3-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, hch-jcswGhMUV9g@public.gmane.org, keith busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Cc: "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, 2017-05-02 at 14:25 +0200, Ursula Braun wrote:
+> if you can point out specific issues, we will be happy to work with you
+> to get them addressed!
 
+Hello Ursula,
 
------ Original Message -----
-> From: "Max Gurtovoy" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> To: "Doug Ledford" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Sagi Grimberg" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "Leon Romanovsky" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Cc: "Bart Van Assche" <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, hch-jcswGhMUV9g@public.gmane.org, "keith busch" <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
-> linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-> Sent: Tuesday, May 2, 2017 12:14:33 PM
-> Subject: Re: [PATCH v2 0/4] arbitrary sg lists support
-> 
-> 
-> 
-> On 5/1/2017 9:50 PM, Doug Ledford wrote:
-> > On Sun, 2017-04-23 at 17:35 +0300, Sagi Grimberg wrote:
-> >>>
-> >>> I actually answered here:
-> >>> https://www.spinics.net/lists/linux-rdma/msg46412.html
-> >>
-> >> Did anything progress with the debug?
-> >>
-> >>>
-> >>> Sagi,
-> >>> As you mentioned the IO path is different in SRP and iSER so IMO we
-> >>> should start with SRP debugging. NVMf is similar to iSER (and not
-> >>> SRP)
-> >>> and that's why I think we can apply this patchset.
-> >>
-> >> My concern is that this might be broken due to the fact that we don't
-> >> know what triggers this.
-> >>
-> >>>
-> >>> If you want to wait till we debug SRP issue it's fine, but I can't
-> >>> repro
-> >>> it in my lab so it can take longer.
-> >>
-> >> I'd prefer not to take a non-mandatory feature that is not guaranteed
-> >> to work.
-> >
-> > Indeed.  I've left this series on hold (actually, I've removed it from
-> > patchworks).  When we get this straightened, then please resubmit.
-> >
-> 
-> Sure, no problem.
-> 
-> Max.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+My list of issues that I would like to see addressed can be found below. Do=
+ug,
+Christoph and others may have additional inputs. The issues that have not y=
+et
+been mentioned in other e-mails are:
+- The SMC driver only supports one RDMA transport type (RoCE v1) but
+=A0 none of the other RDMA transport types (RoCE v2, IB and iWARP). New
+=A0 RDMA drivers should support all RDMA transport types transparently.
+  The traditional approach to support multiple RDMA transport types is
+  by using the RDMA/CM to establish connections.
+- The implementation of the SMC driver only supports RoCEv1. This is
+=A0 a very unfortunate choice because:
+=A0 - RoCEv1 is not routable and hence is limited to a single Ethernet
+=A0=A0=A0=A0broadcast domain.
+=A0 - RoCEv1 packets escape a whole bunch of mechanisms that only work
+=A0=A0=A0=A0for IP packets. Firewalls pass all RoCEv1 packets and switches
+=A0=A0=A0=A0do not restrict RoCEv1 packets to a single VLAN. This means tha=
+t
+=A0=A0=A0=A0if the network configuration is changed after an SMC connection
+=A0=A0=A0=A0has been set up such that IP communication between the endpoint=
+s
+=A0=A0=A0=A0of an SMC connection is blocked that the SMC RoCEv1 packets wil=
+l
+    not be blocked by the network equipment of which the configuration
+=A0=A0=A0=A0has just been changed.
+- As already mentioned by Christoph, the SMC implementation uses RDMA
+  calls that probably will be deprecated soon (ib_create_cq()) and
+  should use the RDMA R/W API instead of building sge lists itself.
 
-Max
-The setup is in place, send me whatever it is you need for debug here.
-Patches, instrumentation etc.
-I will be happy to gather the debug.
-Regards
-Laurence
+Bart.=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
