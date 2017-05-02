@@ -1,40 +1,63 @@
-From: Bart Van Assche <Bart.VanAssche@sandisk.com>
-Subject: Re: net/smc and the RDMA core
-Date: Tue, 2 May 2017 15:37:07 +0000
-Message-ID: <1493739426.2552.1.camel@sandisk.com>
-References: <20170501163311.GA22209@lst.de>
-         <1493659776.2665.7.camel@sandisk.com>
-         <HE1PR0502MB30048AFD086C4B0D535BFC52D1140@HE1PR0502MB3004.eurprd05.prod.outlook.com>
-         <dec979a3-a708-a814-ee99-777953fa4a4f@linux.vnet.ibm.com>
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2 0/4] arbitrary sg lists support
+Date: Tue, 2 May 2017 19:14:33 +0300
+Message-ID: <4a1c94b5-fe13-8b34-762f-e7465182ed27@mellanox.com>
+References: <1492098977-5231-1-git-send-email-maxg@mellanox.com>
+ <1492101079.5176.9.camel@sandisk.com>
+ <c52b5ce7-5346-419d-26f2-0d4d45d20471@grimberg.me>
+ <20170423103439.GC14088@mtr-leonro.local>
+ <d697d360-99ca-c3ed-08e2-b89cc50a15b0@grimberg.me>
+ <20170423121254.GD14088@mtr-leonro.local>
+ <a3264968-2d9e-bda5-1f23-74da248cf4d5@grimberg.me>
+ <9a9668fa-87a7-e730-27e2-8a2b3e7fbc36@mellanox.com>
+ <8ed506ba-ae7b-af27-2d2a-9a434c22353c@grimberg.me>
+ <1493664645.3041.184.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <dec979a3-a708-a814-ee99-777953fa4a4f@linux.vnet.ibm.com>
-Content-Language: en-US
-Content-ID: <3F299F14F648384182E3788903D885C8@namprd04.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: "hch@lst.de" <hch@lst.de>, "davem@davemloft.net" <davem@davemloft.net>, "parav@mellanox.com" <parav@mellanox.com>, "ubraun@linux.vnet.ibm.com" <ubraun@linux.vnet.ibm.com>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1493664645.3041.184.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-05-02 at 14:41 +0200, Ursula Braun wrote:
-> On 05/01/2017 07:55 PM, Parav Pandit wrote:
-> > Hi Bart, Ursula, Dave,
-> >=20
-> > I am particularly concerned about SMC as address family.
-> > It should not be treated as address family, but rather an additional
-> > protocol similar for socket type SOCK_STREAM.
->=20
-> We tried to avoid changes of the kernel TCP code. A new address family
-> seemed to be a feasible way to achieve this.
 
-Hello Ursula,
 
-I agree with Parav that introducing a new address family for SMC was an
-unfortunate choice. As one can see in e.g. the implementation of the SCTP
-protocol no changes to the TCP implementation are needed to add support
-for a new SOCK_STREAM protocol. I think the SCTP implementation uses
-inet_register_protosw() to register itself dynamically.
+On 5/1/2017 9:50 PM, Doug Ledford wrote:
+> On Sun, 2017-04-23 at 17:35 +0300, Sagi Grimberg wrote:
+>>>
+>>> I actually answered here:
+>>> https://www.spinics.net/lists/linux-rdma/msg46412.html
+>>
+>> Did anything progress with the debug?
+>>
+>>>
+>>> Sagi,
+>>> As you mentioned the IO path is different in SRP and iSER so IMO we
+>>> should start with SRP debugging. NVMf is similar to iSER (and not
+>>> SRP)
+>>> and that's why I think we can apply this patchset.
+>>
+>> My concern is that this might be broken due to the fact that we don't
+>> know what triggers this.
+>>
+>>>
+>>> If you want to wait till we debug SRP issue it's fine, but I can't
+>>> repro
+>>> it in my lab so it can take longer.
+>>
+>> I'd prefer not to take a non-mandatory feature that is not guaranteed
+>> to work.
+>
+> Indeed.  I've left this series on hold (actually, I've removed it from
+> patchworks).  When we get this straightened, then please resubmit.
+>
 
-Bart.=
+Sure, no problem.
+
+Max.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
