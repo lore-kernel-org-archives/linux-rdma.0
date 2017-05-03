@@ -1,52 +1,40 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 05/15] IB/hfi1: Adjust default eager_buffer_size to 8MB
-Date: Tue, 02 May 2017 17:41:29 -0700
-Message-ID: <20170503004128.6965.93075.stgit@scvm10.sc.intel.com>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: [PATCH 06/15] IB/hfi1: Return an error on memory allocation failure
+Date: Tue, 02 May 2017 17:41:35 -0700
+Message-ID: <20170503004134.6965.97019.stgit@scvm10.sc.intel.com>
 References: <20170503003734.6965.67405.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170503003734.6965.67405.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tymoteusz Kielan <tymoteusz.kielan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20170503003734.6965.67405.stgit@scvm10.sc.intel.com>
+Sender: stable-owner@vger.kernel.org
+To: dledford@redhat.com
+Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Tymoteusz Kielan <tymoteusz.kielan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Michael J. Ruhl <michael.j.ruhl@intel.com>
 
-Performance analysis shows benefits for PSM2 in increasing eager buffer
-size from 2MB to 8MB. The change has neutral impact on verbs.
-Make change to the module parameter's default value. Allocation
-ring down was verified to work with the larger buffer size.
+If the eager buffer allocation fails, it is necessary to return
+an error code.
 
-Reviewed-by: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Tymoteusz Kielan <tymoteusz.kielan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: stable@vger.kernel.org
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
- drivers/infiniband/hw/hfi1/init.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hfi1/init.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index 71b0204..c573f06 100644
+index c573f06..b2db776 100644
 --- a/drivers/infiniband/hw/hfi1/init.c
 +++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -102,9 +102,9 @@
- module_param_named(rcvarr_split, hfi1_rcvarr_split, uint, S_IRUGO);
- MODULE_PARM_DESC(rcvarr_split, "Percent of context's RcvArray entries used for Eager buffers");
+@@ -1778,6 +1778,7 @@ int hfi1_setup_eagerbufs(struct hfi1_ctxtdata *rcd)
+ 			    !HFI1_CAP_KGET_MASK(rcd->flags, MULTI_PKT_EGR)) {
+ 				dd_dev_err(dd, "ctxt%u: Failed to allocate eager buffers\n",
+ 					   rcd->ctxt);
++				ret = -ENOMEM;
+ 				goto bail_rcvegrbuf_phys;
+ 			}
  
--static uint eager_buffer_size = (2 << 20); /* 2MB */
-+static uint eager_buffer_size = (8 << 20); /* 8MB */
- module_param(eager_buffer_size, uint, S_IRUGO);
--MODULE_PARM_DESC(eager_buffer_size, "Size of the eager buffers, default: 2MB");
-+MODULE_PARM_DESC(eager_buffer_size, "Size of the eager buffers, default: 8MB");
- 
- static uint rcvhdrcnt = 2048; /* 2x the max eager buffer count */
- module_param_named(rcvhdrcnt, rcvhdrcnt, uint, S_IRUGO);
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
