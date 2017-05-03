@@ -1,82 +1,52 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH, untested] mlx5: Avoid that mlx5_ib_sg_to_klms() overflows
- the klms[] array
-Date: Wed, 3 May 2017 17:58:43 +0300
-Message-ID: <374fcc74-4b84-610b-b55e-d385563bef6f@grimberg.me>
-References: <8992bd28-667f-94b1-e582-106e6b41aa4b@sandisk.com>
- <20170425175849.GS14088@mtr-leonro.local>
- <438230391.2090966.1493152655709.JavaMail.zimbra@redhat.com>
- <20170426061640.GV14088@mtr-leonro.local>
- <bcd56de8-0f17-f2bb-b079-bf22c1b92ca2@grimberg.me>
- <501334895.4531615.1493820950718.JavaMail.zimbra@redhat.com>
+Subject: Re: [PATCH v4, under testing] nvme-rdma: support devices with queue
+ size < 32
+Date: Wed, 3 May 2017 18:08:31 +0300
+Message-ID: <823aa3f0-685f-4569-11d6-238cc4f0b126@grimberg.me>
+References: <79901165.5342369.1493805915415.JavaMail.zimbra@kalray.eu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <501334895.4531615.1493820950718.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <79901165.5342369.1493805915415.JavaMail.zimbra-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, axboe-b10kYP2dOMg@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, samuel jones <samuel.jones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-> Hello Sagi
-> Against Bart's tree again
->
-> a83e404 IB/srp: Reenable IB_MR_TYPE_SG_GAPS
-> dfa5a2b mlx5: Avoid that mlx5_ib_sg_to_klms() overflows the klms[] array
-> f759c80 mlx5: Fix mlx5_ib_map_mr_sg mr lengt
->
-> Above are all in
-> Added your most recent patch above
->
-> Same behavior.
-> [  579.368733] scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE ffff8817de9c57b0
-> [  579.369875] mlx5_1:dump_cqe:262:(pid 15140): dump error cqe
-> [  579.369877] 00000000 00000000 00000000 00000000
-> [  579.369877] 00000000 00000000 00000000 00000000
-> [  579.369878] 00000000 00000000 00000000 00000000
-> [  579.369878] 00000000 0f007806 2500002b 1c528dd0
-> [  579.369883] scsi host1: ib_srp: failed FAST REG status memory management operation error (6) for CQE ffff88179a460af8
-> [  594.814222] scsi host1: ib_srp: reconnect succeeded
-> [  594.916876] scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE ffff8817e1d4a6b0
-> [  595.494532] mlx5_1:dump_cqe:262:(pid 15205): dump error cqe
-> [  595.525995] 00000000 00000000 00000000 00000000
-> [  595.552125] 00000000 00000000 00000000 00000000
-> [  595.578204] 00000000 00000000 00000000 00000000
-> [  595.603670] 00000000 0f007806 25000033 002d77d0
-> ^C[  610.821911] scsi host1: ib_srp: reconnect succeeded
-> [  610.933298] scsi host1: ib_srp: failed RECV status WR flushed (5) for CQE ffff8817e1d4a170
-> [  611.514234] mlx5_1:dump_cqe:262:(pid 15242): dump error cqe
-> [  611.543083] 00000000 00000000 00000000 00000000
-> [  611.568670] 00000000 00000000 00000000 00000000
-> [  611.594064] 00000000 00000000 00000000 00000000
-> [  611.620142] 00000000 0f007806 2500003b 003161d0
->
-> I will capture the function traces with your patch applied and the additional logging asked for by Max.
+> +static inline bool nvme_rdma_queue_sig_limit(struct nvme_rdma_queue *queue)
+> +{
+> +       int v, old;
+> +
+> +       v = atomic_read(&queue->sig_count);
+> +       while (1) {
+> +               if (v > 1) {
+> +                       old = atomic_cmpxchg(&queue->sig_count, v, v - 1);
+> +                       if (old == v)
+> +                               return false;
+> +               } else {
+> +                       int new_count;
+> +
+> +                       new_count = nvme_rdma_init_sig_count(queue->queue_size);
+> +                       old = atomic_cmpxchg(&queue->sig_count, v, new_count);
+> +                       if (old == v)
+> +                               return true;
+> +               }
+> +               v = old;
+> +       }
+> +}
+> +
 
-Thanks, that would be helpful,
+Ugh, no...
 
-Can you try the following patch, just to see if there is an off by 1 case:
+How about just do:
 
---
-diff --git a/drivers/infiniband/hw/mlx5/mr.c 
-b/drivers/infiniband/hw/mlx5/mr.c
-index b8f9382a8b7d..3d6ef7bce7d9 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -1525,7 +1525,7 @@ struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
-  {
-         struct mlx5_ib_dev *dev = to_mdev(pd->device);
-         int inlen = MLX5_ST_SZ_BYTES(create_mkey_in);
--       int ndescs = ALIGN(max_num_sg, 4);
-+       int ndescs = ALIGN(max_num_sg + 1, 4);
-         struct mlx5_ib_mr *mr;
-         void *mkc;
-         u32 *in;
---
+	if (atomic_inc_return(queue->sig_count) % queue->sig_limit)
+		return true;
+	return false;
 
-It's not a fix, but if it works it can give us a clue...
+where
+	queue->sig_limit = max(queue->queue_size / 2, 1);
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
