@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 02/15] IB/hfi1,
- IB/rdmavt: Move r_adefered to r_lock cache line
-Date: Tue, 02 May 2017 17:41:11 -0700
-Message-ID: <20170503004110.6965.94767.stgit@scvm10.sc.intel.com>
+Subject: [PATCH 03/15] IB/hfi1: Fix yield logic in send engine
+Date: Tue, 02 May 2017 17:41:17 -0700
+Message-ID: <20170503004116.6965.50961.stgit@scvm10.sc.intel.com>
 References: <20170503003734.6965.67405.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,111 +15,250 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This field is causing excessive cache line bouncing.
+When there are many RC QPs and an RDMA READ request
+is sent, timeouts occur on the requester side because
+of fairness among RC QPs on their relative SDMA engine
+on the responder side.  This also hits write and send, but
+to a lesser extent.
 
-There are spare bytes in the r_lock cache line so the best approach
-is to make an rvt QP field and remove from the hfi1 priv field.
+Complicating the issue is that the current code checks if workqueue
+is congested before scheduling other QPs, however, this
+check is based on the number of active entries in the
+workqueue, which was found to be too big to for
+workqueue_congested() to be effective.
 
+Fix by reducing the number of active entries as revealed by
+experimentation from the default of num_sdma to
+HFI1_MAX_ACTIVE_WORKQUEUE_ENTRIES.  Retry counts were monitored
+to determine the correct value.
+
+Tracing to investigate any future issues is also added.
+
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/qp.c    |    4 +---
- drivers/infiniband/hw/hfi1/rc.c    |   13 ++++---------
- drivers/infiniband/hw/hfi1/verbs.h |    1 -
- include/rdma/rdmavt_qp.h           |    1 +
- 4 files changed, 6 insertions(+), 13 deletions(-)
+ drivers/infiniband/hw/hfi1/init.c     |    3 +
+ drivers/infiniband/hw/hfi1/ruc.c      |   80 +++++++++++++++++++++------------
+ drivers/infiniband/hw/hfi1/trace_tx.h |   34 ++++++++++++++
+ drivers/infiniband/hw/hfi1/verbs.h    |    4 ++
+ 4 files changed, 90 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/qp.c b/drivers/infiniband/hw/hfi1/qp.c
-index 4573e4c..650305c 100644
---- a/drivers/infiniband/hw/hfi1/qp.c
-+++ b/drivers/infiniband/hw/hfi1/qp.c
-@@ -731,9 +731,7 @@ void quiesce_qp(struct rvt_qp *qp)
+diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+index 4d6b9f8..71b0204 100644
+--- a/drivers/infiniband/hw/hfi1/init.c
++++ b/drivers/infiniband/hw/hfi1/init.c
+@@ -70,6 +70,7 @@
+ #undef pr_fmt
+ #define pr_fmt(fmt) DRIVER_NAME ": " fmt
  
- void notify_qp_reset(struct rvt_qp *qp)
++#define HFI1_MAX_ACTIVE_WORKQUEUE_ENTRIES 5
+ /*
+  * min buffers we want to have per context, after driver
+  */
+@@ -623,7 +624,7 @@ static int create_workqueues(struct hfi1_devdata *dd)
+ 				alloc_workqueue(
+ 				    "hfi%d_%d",
+ 				    WQ_SYSFS | WQ_HIGHPRI | WQ_CPU_INTENSIVE,
+-				    dd->num_sdma,
++				    HFI1_MAX_ACTIVE_WORKQUEUE_ENTRIES,
+ 				    dd->unit, pidx);
+ 			if (!ppd->hfi1_wq)
+ 				goto wq_error;
+diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
+index 891ba0a..3a17dab 100644
+--- a/drivers/infiniband/hw/hfi1/ruc.c
++++ b/drivers/infiniband/hw/hfi1/ruc.c
+@@ -800,6 +800,43 @@ void hfi1_make_ruc_header(struct rvt_qp *qp, struct ib_other_headers *ohdr,
+ /* when sending, force a reschedule every one of these periods */
+ #define SEND_RESCHED_TIMEOUT (5 * HZ)  /* 5s in jiffies */
+ 
++/**
++ * schedule_send_yield - test for a yield required for QP send engine
++ * @timeout: Final time for timeout slice for jiffies
++ * @qp: a pointer to QP
++ * @ps: a pointer to a structure with commonly lookup values for
++ *      the the send engine progress
++ *
++ * This routine checks if the time slice for the QP has expired
++ * for RC QPs, if so an additional work entry is queued. At this
++ * point, other QPs have an opportunity to be scheduled. It
++ * returns true if a yield is required, otherwise, false
++ * is returned.
++ */
++static bool schedule_send_yield(struct rvt_qp *qp,
++				struct hfi1_pkt_state *ps)
++{
++	if (unlikely(time_after(jiffies, ps->timeout))) {
++		if (!ps->in_thread ||
++		    workqueue_congested(ps->cpu, ps->ppd->hfi1_wq)) {
++			spin_lock_irqsave(&qp->s_lock, ps->flags);
++			qp->s_flags &= ~RVT_S_BUSY;
++			hfi1_schedule_send(qp);
++			spin_unlock_irqrestore(&qp->s_lock, ps->flags);
++			this_cpu_inc(*ps->ppd->dd->send_schedule);
++			trace_hfi1_rc_expired_time_slice(qp, true);
++			return true;
++		}
++
++		cond_resched();
++		this_cpu_inc(*ps->ppd->dd->send_schedule);
++		ps->timeout = jiffies + ps->timeout_int;
++	}
++
++	trace_hfi1_rc_expired_time_slice(qp, false);
++	return false;
++}
++
+ void hfi1_do_send_from_rvt(struct rvt_qp *qp)
  {
--	struct hfi1_qp_priv *priv = qp->priv;
--
--	priv->r_adefered = 0;
-+	qp->r_adefered = 0;
- 	clear_ahg(qp);
- }
+ 	hfi1_do_send(qp, false);
+@@ -827,13 +864,13 @@ void hfi1_do_send(struct rvt_qp *qp, bool in_thread)
+ 	struct hfi1_pkt_state ps;
+ 	struct hfi1_qp_priv *priv = qp->priv;
+ 	int (*make_req)(struct rvt_qp *qp, struct hfi1_pkt_state *ps);
+-	unsigned long timeout;
+-	unsigned long timeout_int;
+-	int cpu;
  
-diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
-index 75a729c..069bdaf 100644
---- a/drivers/infiniband/hw/hfi1/rc.c
-+++ b/drivers/infiniband/hw/hfi1/rc.c
-@@ -727,10 +727,9 @@ void hfi1_send_rc_ack(struct hfi1_ctxtdata *rcd, struct rvt_qp *qp,
- 	struct ib_header hdr;
- 	struct ib_other_headers *ohdr;
- 	unsigned long flags;
--	struct hfi1_qp_priv *priv = qp->priv;
+ 	ps.dev = to_idev(qp->ibqp.device);
+ 	ps.ibp = to_iport(qp->ibqp.device, qp->port_num);
+ 	ps.ppd = ppd_from_ibp(ps.ibp);
++	ps.in_thread = in_thread;
++
++	trace_hfi1_rc_do_send(qp, in_thread);
  
- 	/* clear the defer count */
--	priv->r_adefered = 0;
-+	qp->r_adefered = 0;
- 
- 	/* Don't send ACK or NAK if a RDMA read or atomic is pending. */
- 	if (qp->s_flags & RVT_S_RESP_PENDING)
-@@ -1604,9 +1603,7 @@ static inline void rc_defered_ack(struct hfi1_ctxtdata *rcd,
- 
- static inline void rc_cancel_ack(struct rvt_qp *qp)
- {
--	struct hfi1_qp_priv *priv = qp->priv;
--
--	priv->r_adefered = 0;
-+	qp->r_adefered = 0;
- 	if (list_empty(&qp->rspwait))
- 		return;
- 	list_del_init(&qp->rspwait);
-@@ -2314,13 +2311,11 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
- 	qp->r_nak_state = 0;
- 	/* Send an ACK if requested or required. */
- 	if (psn & IB_BTH_REQ_ACK) {
--		struct hfi1_qp_priv *priv = qp->priv;
--
- 		if (packet->numpkt == 0) {
- 			rc_cancel_ack(qp);
- 			goto send_ack;
+ 	switch (qp->ibqp.qp_type) {
+ 	case IB_QPT_RC:
+@@ -844,7 +881,7 @@ void hfi1_do_send(struct rvt_qp *qp, bool in_thread)
+ 			return;
  		}
--		if (priv->r_adefered >= HFI1_PSN_CREDIT) {
-+		if (qp->r_adefered >= HFI1_PSN_CREDIT) {
- 			rc_cancel_ack(qp);
- 			goto send_ack;
+ 		make_req = hfi1_make_rc_req;
+-		timeout_int = (qp->timeout_jiffies);
++		ps.timeout_int = qp->timeout_jiffies;
+ 		break;
+ 	case IB_QPT_UC:
+ 		if (!loopback && ((rdma_ah_get_dlid(&qp->remote_ah_attr) &
+@@ -854,11 +891,11 @@ void hfi1_do_send(struct rvt_qp *qp, bool in_thread)
+ 			return;
  		}
-@@ -2328,7 +2323,7 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
- 			rc_cancel_ack(qp);
- 			goto send_ack;
- 		}
--		priv->r_adefered++;
-+		qp->r_adefered++;
- 		rc_defered_ack(rcd, qp);
+ 		make_req = hfi1_make_uc_req;
+-		timeout_int = SEND_RESCHED_TIMEOUT;
++		ps.timeout_int = SEND_RESCHED_TIMEOUT;
+ 		break;
+ 	default:
+ 		make_req = hfi1_make_ud_req;
+-		timeout_int = SEND_RESCHED_TIMEOUT;
++		ps.timeout_int = SEND_RESCHED_TIMEOUT;
  	}
- 	return;
+ 
+ 	spin_lock_irqsave(&qp->s_lock, ps.flags);
+@@ -871,9 +908,11 @@ void hfi1_do_send(struct rvt_qp *qp, bool in_thread)
+ 
+ 	qp->s_flags |= RVT_S_BUSY;
+ 
+-	timeout = jiffies + (timeout_int) / 8;
+-	cpu = priv->s_sde ? priv->s_sde->cpu :
++	ps.timeout_int = ps.timeout_int / 8;
++	ps.timeout = jiffies + ps.timeout_int;
++	ps.cpu = priv->s_sde ? priv->s_sde->cpu :
+ 			cpumask_first(cpumask_of_node(ps.ppd->dd->node));
++
+ 	/* insure a pre-built packet is handled  */
+ 	ps.s_txreq = get_waiting_verbs_txreq(qp);
+ 	do {
+@@ -889,28 +928,9 @@ void hfi1_do_send(struct rvt_qp *qp, bool in_thread)
+ 			/* Record that s_ahg is empty. */
+ 			qp->s_hdrwords = 0;
+ 			/* allow other tasks to run */
+-			if (unlikely(time_after(jiffies, timeout))) {
+-				if (!in_thread ||
+-				    workqueue_congested(
+-						cpu,
+-						ps.ppd->hfi1_wq)) {
+-					spin_lock_irqsave(
+-						&qp->s_lock,
+-						ps.flags);
+-					qp->s_flags &= ~RVT_S_BUSY;
+-					hfi1_schedule_send(qp);
+-					spin_unlock_irqrestore(
+-						&qp->s_lock,
+-						ps.flags);
+-					this_cpu_inc(
+-						*ps.ppd->dd->send_schedule);
+-					return;
+-				}
+-				cond_resched();
+-				this_cpu_inc(
+-					*ps.ppd->dd->send_schedule);
+-				timeout = jiffies + (timeout_int) / 8;
+-			}
++			if (schedule_send_yield(qp, &ps))
++				return;
++
+ 			spin_lock_irqsave(&qp->s_lock, ps.flags);
+ 		}
+ 	} while (make_req(qp, &ps));
+diff --git a/drivers/infiniband/hw/hfi1/trace_tx.h b/drivers/infiniband/hw/hfi1/trace_tx.h
+index 2c9ac57..c59809a 100644
+--- a/drivers/infiniband/hw/hfi1/trace_tx.h
++++ b/drivers/infiniband/hw/hfi1/trace_tx.h
+@@ -676,6 +676,40 @@
+ 	)
+ );
+ 
++DECLARE_EVENT_CLASS(
++	hfi1_do_send_template,
++	TP_PROTO(struct rvt_qp *qp, bool flag),
++	TP_ARGS(qp, flag),
++	TP_STRUCT__entry(
++		DD_DEV_ENTRY(dd_from_ibdev(qp->ibqp.device))
++		__field(u32, qpn)
++		__field(bool, flag)
++	),
++	TP_fast_assign(
++		DD_DEV_ASSIGN(dd_from_ibdev(qp->ibqp.device))
++		__entry->qpn = qp->ibqp.qp_num;
++		__entry->flag = flag;
++	),
++	TP_printk(
++		"[%s] qpn %x flag %d",
++		__get_str(dev),
++		__entry->qpn,
++		__entry->flag
++	)
++);
++
++DEFINE_EVENT(
++	hfi1_do_send_template, hfi1_rc_do_send,
++	TP_PROTO(struct rvt_qp *qp, bool flag),
++	TP_ARGS(qp, flag)
++);
++
++DEFINE_EVENT(
++	hfi1_do_send_template, hfi1_rc_expired_time_slice,
++	TP_PROTO(struct rvt_qp *qp, bool flag),
++	TP_ARGS(qp, flag)
++);
++
+ #endif /* __HFI1_TRACE_TX_H */
+ 
+ #undef TRACE_INCLUDE_PATH
 diff --git a/drivers/infiniband/hw/hfi1/verbs.h b/drivers/infiniband/hw/hfi1/verbs.h
-index 52ff275..c0913c6 100644
+index c0913c6..cd635d0 100644
 --- a/drivers/infiniband/hw/hfi1/verbs.h
 +++ b/drivers/infiniband/hw/hfi1/verbs.h
-@@ -125,7 +125,6 @@ struct hfi1_qp_priv {
- 	struct sdma_engine *s_sde;                /* current sde */
- 	struct send_context *s_sendcontext;       /* current sendcontext */
- 	u8 s_sc;		                  /* SC[0..4] for next packet */
--	u8 r_adefered;                            /* number of acks defered */
- 	struct iowait s_iowait;
- 	struct rvt_qp *owner;
+@@ -139,6 +139,10 @@ struct hfi1_pkt_state {
+ 	struct hfi1_pportdata *ppd;
+ 	struct verbs_txreq *s_txreq;
+ 	unsigned long flags;
++	unsigned long timeout;
++	unsigned long timeout_int;
++	int cpu;
++	bool in_thread;
  };
-diff --git a/include/rdma/rdmavt_qp.h b/include/rdma/rdmavt_qp.h
-index 1d8141a..be6472e 100644
---- a/include/rdma/rdmavt_qp.h
-+++ b/include/rdma/rdmavt_qp.h
-@@ -324,6 +324,7 @@ struct rvt_qp {
- 	u8 r_state;             /* opcode of last packet received */
- 	u8 r_flags;
- 	u8 r_head_ack_queue;    /* index into s_ack_queue[] */
-+	u8 r_adefered;          /* defered ack count */
  
- 	struct list_head rspwait;       /* link for waiting to respond */
- 
+ #define HFI1_PSN_CREDIT  16
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
