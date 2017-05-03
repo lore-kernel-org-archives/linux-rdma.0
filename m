@@ -1,135 +1,165 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v4, under testing] nvme-rdma: support devices with queue
- size < 32
-Date: Wed, 3 May 2017 15:07:45 -0400
-Message-ID: <3bbd412e-f361-e657-1f84-835b5f80388c@redhat.com>
-References: <79901165.5342369.1493805915415.JavaMail.zimbra@kalray.eu>
- <823aa3f0-685f-4569-11d6-238cc4f0b126@grimberg.me>
- <780938034.8003164.1493824767084.JavaMail.zimbra@kalray.eu>
- <20170503155316.GA14334@obsidianresearch.com>
- <1493827096.3901.4.camel@sandisk.com>
- <92010426-c898-0a56-e615-bbf6eb1c5e7e@redhat.com>
- <1493828639.3901.11.camel@sandisk.com>
+From: Daniel Jurgens <danielj@mellanox.com>
+Subject: Re: [PATCH v6 0/9] SELinux support for Infiniband RDMA
+Date: Wed, 3 May 2017 19:45:33 +0000
+Message-ID: <VI1PR05MB167880A4D79F8FC3F8C740A9C4160@VI1PR05MB1678.eurprd05.prod.outlook.com>
+References: <1479910651-43246-1-git-send-email-danielj@mellanox.com>
+ <CAHC9VhSB6AORJf_8cBGt-AynMsEh3snKU5SpsmNXoy9hDSrGaA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="GLdUhLfBSh5dFusQ7E5HRlaCpNLqhl8h3"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1493828639.3901.11.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org" <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
-Cc: "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "axboe-b10kYP2dOMg@public.gmane.org" <axboe-b10kYP2dOMg@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "samuel.jones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org" <samuel.jones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, "keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-security-module-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: owner-linux-security-module@vger.kernel.org
+To: Paul Moore <paul@paul-moore.com>
+Cc: "chrisw@sous-sol.org" <chrisw@sous-sol.org>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, "dledford@redhat.com" <dledford@redhat.com>, "sean.hefty@intel.com" <sean.hefty@intel.com>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "selinux@tycho.nsa.gov" <selinux@tycho.nsa.gov>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yevgeny Petrilin <yevgenyp@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---GLdUhLfBSh5dFusQ7E5HRlaCpNLqhl8h3
-Content-Type: multipart/mixed; boundary="UaE7fCx5S765Ve8LFoleFxTj04SN57UaU";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>,
- "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>,
- "mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org" <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
-Cc: "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
- "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
- "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>,
- "axboe-b10kYP2dOMg@public.gmane.org" <axboe-b10kYP2dOMg@public.gmane.org>,
- "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>,
- "maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
- "samuel.jones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org" <samuel.jones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>,
- "keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Message-ID: <3bbd412e-f361-e657-1f84-835b5f80388c-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v4, under testing] nvme-rdma: support devices with queue
- size < 32
-References: <79901165.5342369.1493805915415.JavaMail.zimbra-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
- <823aa3f0-685f-4569-11d6-238cc4f0b126-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
- <780938034.8003164.1493824767084.JavaMail.zimbra-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
- <20170503155316.GA14334-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
- <1493827096.3901.4.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
- <92010426-c898-0a56-e615-bbf6eb1c5e7e-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <1493828639.3901.11.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-In-Reply-To: <1493828639.3901.11.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-
---UaE7fCx5S765Ve8LFoleFxTj04SN57UaU
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
-
-On 5/3/2017 12:24 PM, Bart Van Assche wrote:
-> On Wed, 2017-05-03 at 12:17 -0400, Doug Ledford wrote:
->> On 5/3/2017 11:58 AM, Bart Van Assche wrote:
->>> On Wed, 2017-05-03 at 09:53 -0600, Jason Gunthorpe wrote:
->>>> On Wed, May 03, 2017 at 05:19:27PM +0200, Marta Rybczynska wrote:
->>>>
->>>>>> where
->>>>>> 	queue->sig_limit =3D max(queue->queue_size / 2, 1);
->>>>>
->>>>> I tried to avoid that because this adds a division in the fast path=
- Bart
->>>>> was unhappy about in v2.
->>>>
->>>> The compiler switches divide/multiply by powers of two into fast bit=
- shifts.
->>>
->>> Hello Jason,
->>>
->>> As far as I know the compiler only does that for compile-time constan=
-ts. In
->>> this case the divisor (max(queue_size / 2, 1)) is not a compile-time =
-constant.
->>
->> Sure it is.  The only thing that needs to be constant for the compiler=
-
->> to do the right thing is the '/ 2' part.  queue_size need not be
->> constant, and the max is performed after the division.  I would fully
->> expect the compiler to get this right and convert it internally to the=
-
->> equivalent bit shift, but if it didn't you could always just write it
->> that way in the first place:
->>
->> queue->sig_limit =3D max(queue->queue_size >> 1, 1);
->=20
-> Hello Doug,
->=20
-> In my comment I was referring to "% max(queue_size / 2, 1)" and not to
-> "queue_size / 2".
-
-Sorry, too much context was cut for that to come through.
-
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
-D
-
-
---UaE7fCx5S765Ve8LFoleFxTj04SN57UaU--
-
---GLdUhLfBSh5dFusQ7E5HRlaCpNLqhl8h3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJZCiqBAAoJELgmozMOVy/dT8MQALr9+OQO99jLMU8cujZmEqwb
-0krIdgxW2Q1ec9n5Sr5D1eXJvtZuG6dD9XiNGUMriHrP9VXzvQVKJREWjMlPh7jO
-XQrJ69fiStLmEgPTLbxCFJ1hRKEO6EqpkVoFnywPw1oU0deVOESZc2dKvXM6Tva/
-j69AW9PNiIgcu57ogTjaEFWnR1C/b11+AHXHb7hBrXxH/bL/oOwx7aiICFiDmU+7
-falSiDZb6GIQDZfIED84WuuNbgM1cvz2Biv4af7LVVjG5YSxZnZFPRUE0kacBUtz
-+FsufMzDRCTDZ9uWLQE29JyxRA3cjh1ZiJ6tLwPtXnKSzBkxl+36Ma2FGNxQG1Uz
-Y/Wgl2ShDNXfnIP3DvAqgVMSZaOgQGhfOoPFXV8+Wnpep1C7yYvNaoPLQLL550ng
-Tnn6LG6xS9Rs3W3ty7tb9/rsYg7sr9ma/qcPF7j7YA945/KbeVA5K/0MGVZttUDs
-WcpfqMLIdqhRnacIRu4R5zE7ImMdedlHKEQCNAENTmDqV5dJqDBxgfUSzfzTtiw2
-FksdtJVX5mPlLbiaJRzHTYhzUsi8Ieer5SXF+2Rwx6Uy5gLysfkcDkVjndRAbokZ
-zgfiBr8bhJZgjEyVesFkhHRsexfw9h+/2aPJZuKAQBn3TsgovSsEkI0uoAbnBtv7
-0sjDZIK7owR3ehCBU47B
-=Z8xX
------END PGP SIGNATURE-----
-
---GLdUhLfBSh5dFusQ7E5HRlaCpNLqhl8h3--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 5/3/2017 9:41 AM, Paul Moore wrote:=0A=
+> On Wed, Nov 23, 2016 at 9:17 AM, Dan Jurgens <danielj@mellanox.com> wrote=
+:=0A=
+>> From: Daniel Jurgens <danielj@mellanox.com>=0A=
+>>=0A=
+>> Infiniband applications access HW from user-space -- traffic is generate=
+d=0A=
+>> directly by HW, bypassing the kernel. Consequently, Infiniband Partition=
+s,=0A=
+>> which are associated directly with HW transport endpoints, are a natural=
+=0A=
+>> choice for enforcing granular mandatory access control for Infiniband. Q=
+Ps may=0A=
+>> only send or receives packets tagged with the corresponding partition ke=
+y=0A=
+>> (PKey). The PKey is not a cryptographic key; it's a 16 bit number identi=
+fying=0A=
+>> the partition.=0A=
+>>=0A=
+>> Every Infiniband fabric is controlled by a central Subnet Manager (SM). =
+The SM=0A=
+>> provisions the partitions by assigning each port with the partitions it =
+can=0A=
+>> access. In addition, the SM tags each port with a subnet prefix, which=
+=0A=
+>> identifies the subnet. Determining which users are allowed to access whi=
+ch=0A=
+>> partition keys on a given subnet forms an effective policy for isolating=
+ users=0A=
+>> on the fabric. Any application that attempts to send traffic on a given =
+subnet=0A=
+>> is automatically subject to the policy, regardless of which device and p=
+ort it=0A=
+>> uses. SM software configures the subnet through a privileged Subnet Mana=
+gement=0A=
+>> Interface (SMI), which is presented by each Infiniband port. Thus, the S=
+MI must=0A=
+>> also be controlled to prevent unauthorized changes to fabric configurati=
+on and=0A=
+>> partitioning.=0A=
+>>=0A=
+>> To support access control for IB partitions and subnet management, secur=
+ity=0A=
+>> contexts must be provided for two new types of objects - PKeys and IB po=
+rts.=0A=
+>>=0A=
+>> A PKey label consists of a subnet prefix and a range of PKey values and =
+is=0A=
+>> similar to the labeling mechanism for netports. Each Infiniband port can=
+ reside=0A=
+>> on a different subnet. So labeling the PKey values for specific subnet p=
+refixes=0A=
+>> provides the user maximum flexibility, as PKey values may be determined=
+=0A=
+>> independently for different subnets. There is a single access vector for=
+ PKeys=0A=
+>> called "access".=0A=
+>>=0A=
+>> An Infiniband port is labeled by device name and port number. There is a=
+ single=0A=
+>> access vector for IB ports called "manage_subnet".=0A=
+>>=0A=
+>> Because RDMA allows kernel bypass, enforcement must be done during conne=
+ction=0A=
+>> setup. Communication over RDMA requires a send and receive queue, collec=
+tively=0A=
+>> known as a Queue Pair (QP). A QP must be initialized by privileged syste=
+m calls=0A=
+>> before it can be used to send or receive data. During initialization the=
+ user=0A=
+>> must provide the PKey and port the QP will use; at this time access cont=
+rol can=0A=
+>> be enforced.=0A=
+>>=0A=
+>> Because there is a possibility that the enforcement settings or security=
+=0A=
+>> policy can change, a means of notifying the ib_core module of such chang=
+es=0A=
+>> is required. To facilitate this a generic notification callback mechanis=
+m=0A=
+>> is added to the LSM. One callback is registered for checking the QP PKey=
+=0A=
+>> associations when the policy changes. Mad agents also register a callbac=
+k,=0A=
+>> they cache the permission to send and receive SMPs to avoid another per=
+=0A=
+>> packet call to the LSM.=0A=
+>>=0A=
+>> Because frequent accesses to the same PKey's SID is expected a cache is=
+=0A=
+>> implemented which is very similar to the netport cache.=0A=
+>>=0A=
+>> In order to properly enforce security when changes to the PKey table or=
+=0A=
+>> security policy or enforcement occur ib_core must track which QPs are=0A=
+>> using which port, pkey index, and alternate path for every IB device.=0A=
+>> This makes operations that used to be atomic transactional.=0A=
+>>=0A=
+>> When modifying a QP, ib_core must associate it with the PKey index, port=
+,=0A=
+>> and alternate path specified. If the QP was already associated with=0A=
+>> different settings, the QP is added to the new list prior to the=0A=
+>> modification. If the modify succeeds then the old listing is removed. If=
+=0A=
+>> the modify fails the new listing is removed and the old listing remains=
+=0A=
+>> unchanged.=0A=
+>>=0A=
+>> When destroying a QP the ib_qp structure is freed by the decive specific=
+=0A=
+>> driver (i.e. mlx4_ib) if the 'destroy' is successful. This requires stor=
+ing=0A=
+>> security related information in a separate structure. When a 'destroy'=
+=0A=
+>> request is in process the ib_qp structure is in an undefined state so if=
+=0A=
+>> there are changes to the security policy or PKey table, the security che=
+cks=0A=
+>> cannot reset the QP if it doesn't have permission for the new setting. I=
+f=0A=
+>> the 'destroy' fails, security for that QP must be enforced again and its=
+=0A=
+>> status in the list is restored. If the 'destroy' succeeds the security i=
+nfo=0A=
+>> can be cleaned up and freed.=0A=
+>>=0A=
+>> There are a number of locks required to protect the QP security structur=
+e=0A=
+>> and the QP to device/port/pkey index lists. If multiple locks are requir=
+ed,=0A=
+>> the safe locking order is: QP security structure mutex first, followed b=
+y=0A=
+>> any list locks needed, which are sorted first by port followed by pkey=
+=0A=
+>> index.=0A=
+> Hi Dan,=0A=
+>=0A=
+> I haven't heard anything from you in a while, where do things stand=0A=
+> with this effort?  Unless I missed them, I believe we are still=0A=
+> waiting on the userspace, SELinux reference policy, and=0A=
+> selinux-testsuite patches.=0A=
+>=0A=
+Hi Paul,=0A=
+=0A=
+    I got distracted for a while.  I've just rebased the kernel and userspa=
+ce.  I'll do some testing and submit the userspace code in the next couple =
+days.  I still have to write the selinux-testsuite tests, I'll work on thos=
+e concurrently with the userspace review cycle.=0A=
+=0A=
