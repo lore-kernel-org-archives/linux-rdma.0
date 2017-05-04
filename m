@@ -1,213 +1,80 @@
-From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH RFC 01/10] IB/core: Add a generic way to execute an
- operation on a uobject
-Date: Thu, 4 May 2017 13:37:33 +0300
-Message-ID: <CAAKD3BALCSD=N90gFa+R64QAyuiuJLFmZzsvRz1roq5x-0s3Jw@mail.gmail.com>
-References: <1492615225-55118-1-git-send-email-matanb@mellanox.com>
- <1492615225-55118-2-git-send-email-matanb@mellanox.com> <20170504102303.GR22833@mtr-leonro.local>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: [PATCH v2 00/15] IB/hfi1: hfi1 driver patches for-next
+Date: Thu, 04 May 2017 05:13:51 -0700
+Message-ID: <20170504120126.32747.45131.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170504102303.GR22833-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: dledford@redhat.com
+Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, Jakub Byczkowski <jakub.byczkowski@intel.com>, Ira Weiny <ira.weiny@intel.com>, Tadeusz Struk <tadeusz.struk@intel.com>, linux-rdma@vger.kernel.org, Tymoteusz Kielan <tymoteusz.kielan@intel.com>, stable@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Easwar Hariharan <easwar.hariharan@intel.com>, Sebastian Sanchez <sebastian.sanchez@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 4, 2017 at 1:23 PM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> On Wed, Apr 19, 2017 at 06:20:16PM +0300, Matan Barak wrote:
->> The ioctl infrastructure treats all user-objects in the same manner.
->> It gets an id from the user-space and by using the object type and
->> operation mentioned in the action specification, it executes this
->> operation. An operation is split to two stages. The first one is
->> carried out before executing the handler and the second one is
->> executed afterwards.
->>
->> In order to abstract these details from the ioctl infrastructure
->> layer, we add uverbs_get_uobject_from_context and
->> uverbs_finalize_object functions which corresponds to the first
->> and second stages respectively.
->>
->> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> ---
->>  drivers/infiniband/core/rdma_core.c | 51 ++++++++++++++++++++++++++++++++++++
->>  drivers/infiniband/core/rdma_core.h | 16 ++++++++++++
->>  include/rdma/uverbs_ioctl.h         | 52 +++++++++++++++++++++++++++++++++++++
->>  3 files changed, 119 insertions(+)
->>  create mode 100644 include/rdma/uverbs_ioctl.h
->>
->> diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
->> index 41c31a2..269fa7f 100644
->> --- a/drivers/infiniband/core/rdma_core.c
->> +++ b/drivers/infiniband/core/rdma_core.c
->> @@ -35,6 +35,7 @@
->>  #include <rdma/ib_verbs.h>
->>  #include <rdma/uverbs_types.h>
->>  #include <linux/rcupdate.h>
->> +#include <rdma/uverbs_ioctl.h>
->>  #include "uverbs.h"
->>  #include "core_priv.h"
->>  #include "rdma_core.h"
->> @@ -625,3 +626,53 @@ void uverbs_initialize_ucontext(struct ib_ucontext *ucontext)
->>       .needs_kfree_rcu = false,
->>  };
->>
->> +struct ib_uobject *uverbs_get_uobject_from_context(const struct uverbs_obj_type *type_attrs,
->> +                                                struct ib_ucontext *ucontext,
->> +                                                enum uverbs_idr_access access,
->> +                                                int id)
->> +{
->> +     switch (access) {
->> +     case UVERBS_ACCESS_READ:
->> +             return rdma_lookup_get_uobject(type_attrs, ucontext, id, false);
->> +     case UVERBS_ACCESS_DESTROY:
->> +     case UVERBS_ACCESS_WRITE:
->> +             return rdma_lookup_get_uobject(type_attrs, ucontext, id, true);
->> +     case UVERBS_ACCESS_NEW:
->> +             return rdma_alloc_begin_uobject(type_attrs, ucontext);
->> +     default:
->> +             WARN_ON(true);
->> +             return ERR_PTR(-EOPNOTSUPP);
->> +     }
->> +}
->> +
->> +int uverbs_finalize_object(struct ib_uobject *uobj,
->> +                        enum uverbs_idr_access access,
->> +                        bool commit)
->> +{
->> +     int ret = 0;
->> +
->> +     switch (access) {
->> +     case UVERBS_ACCESS_READ:
->> +             rdma_lookup_put_uobject(uobj, false);
->> +             break;
->> +     case UVERBS_ACCESS_WRITE:
->> +             rdma_lookup_put_uobject(uobj, true);
->> +             break;
->> +     case UVERBS_ACCESS_DESTROY:
->> +             if (commit)
->> +                     ret = rdma_remove_commit_uobject(uobj);
->> +             else
->> +                     rdma_lookup_put_uobject(uobj, true);
->> +             break;
->> +     case UVERBS_ACCESS_NEW:
->> +             if (commit)
->> +                     ret = rdma_alloc_commit_uobject(uobj);
->> +             else
->> +                     rdma_alloc_abort_uobject(uobj);
->> +             break;
->> +     default:
->> +             WARN_ON(true);
->> +     }
->> +
->> +     return ret;
->> +}
->> diff --git a/drivers/infiniband/core/rdma_core.h b/drivers/infiniband/core/rdma_core.h
->> index 1b82e7f..5a1da24 100644
->> --- a/drivers/infiniband/core/rdma_core.h
->> +++ b/drivers/infiniband/core/rdma_core.h
->> @@ -39,6 +39,7 @@
->>
->>  #include <linux/idr.h>
->>  #include <rdma/uverbs_types.h>
->> +#include <rdma/uverbs_ioctl.h>
->>  #include <rdma/ib_verbs.h>
->>  #include <linux/mutex.h>
->>
->> @@ -75,4 +76,19 @@
->>   */
->>  void uverbs_close_fd(struct file *f);
->>
->> +/*
->> + * Get an ib_uobject that corresponds to the given id from ucontext, assuming
->> + * the object is from the given type. Lock it to the required access.
->> + * This function could create (access == NEW) or destroy (access == DESTROY)
->> + * objects if required. The action will be finalized only when
->> + * uverbs_finalize_object is called.
->> + */
->> +struct ib_uobject *uverbs_get_uobject_from_context(const struct uverbs_obj_type *type_attrs,
->> +                                                struct ib_ucontext *ucontext,
->> +                                                enum uverbs_idr_access access,
->> +                                                int id);
->> +int uverbs_finalize_object(struct ib_uobject *uobj,
->> +                        enum uverbs_idr_access access,
->> +                        bool commit);
->> +
->>  #endif /* RDMA_CORE_H */
->> diff --git a/include/rdma/uverbs_ioctl.h b/include/rdma/uverbs_ioctl.h
->> new file mode 100644
->> index 0000000..a18468e
->> --- /dev/null
->> +++ b/include/rdma/uverbs_ioctl.h
->> @@ -0,0 +1,52 @@
->> +/*
->> + * Copyright (c) 2016, Mellanox Technologies inc.  All rights reserved.
->> + *
->> + * This software is available to you under a choice of one of two
->> + * licenses.  You may choose to be licensed under the terms of the GNU
->> + * General Public License (GPL) Version 2, available from the file
->> + * COPYING in the main directory of this source tree, or the
->> + * OpenIB.org BSD license below:
->> + *
->> + *     Redistribution and use in source and binary forms, with or
->> + *     without modification, are permitted provided that the following
->> + *     conditions are met:
->> + *
->> + *      - Redistributions of source code must retain the above
->> + *        copyright notice, this list of conditions and the following
->> + *        disclaimer.
->> + *
->> + *      - Redistributions in binary form must reproduce the above
->> + *        copyright notice, this list of conditions and the following
->> + *        disclaimer in the documentation and/or other materials
->> + *        provided with the distribution.
->> + *
->> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
->> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
->> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
->> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
->> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
->> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
->> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
->> + * SOFTWARE.
->> + */
->> +
->> +#ifndef _UVERBS_IOCTL_
->> +#define _UVERBS_IOCTL_
->> +
->> +#include <rdma/uverbs_types.h>
->> +
->> +/*
->> + * =======================================
->> + *   Verbs action specifications
->> + * =======================================
->> + */
->> +
->> +enum uverbs_idr_access {
->> +     UVERBS_ACCESS_READ,
->> +     UVERBS_ACCESS_WRITE,
->> +     UVERBS_ACCESS_NEW,
->> +     UVERBS_ACCESS_DESTROY
->> +};
->
-> Does it make sense to have MODIFY too?
->
+Doug,
 
-No, this just set the locking schema for the uobject. When the uobject
-is locked for write (i.e. exclusive lock), you're free to modify the
-underlying object.
+This is a respin of [1] there were some merge problems with the last 5 in
+this series, thanks to Leon for notifciing.
 
->> +
->> +#endif
->> +
->> --
->> 1.8.3.1
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Included are some contex init/usage fixes, a couple performance tweaks, and some
+general code clean up. This is all confined to the hfi1 driver.
+
+I'm OK applying this to next vs the current merge window. We might want to pluck
+out patches 6 and 7 for -rc. They are marked as stable and I think would meet
+-rc criteria. 
+
+Patches apply cleanly on top of: 87f0faa : IB/SA: Add OPA addr header
+
+Patches can can also be found in my GitHub repo at:
+https://github.com/ddalessa/kernel/tree/for-next
+
+[1] http://marc.info/?l=linux-rdma&m=149377206803082&w=2
+
+---
+
+Jakub Byczkowski (1):
+      IB/hfi1: Fix checks for Offline transient state
+
+Michael J. Ruhl (9):
+      IB/hfi1: Return an error on memory allocation failure
+      IB/hfi1: Fix a subcontext memory leak
+      IB/hfi1: Name function prototype parameters
+      IB/hfi1: Use filedata rather than filepointer
+      IB/hfi1: Search shared contexts on the opened device, not all devices
+      IB/hfi1: Correctly clear the pkey
+      IB/hfi1: Clean up context initialization
+      IB/hfi1: Fix an assign/ordering issue with shared context IDs
+      IB/hfi1: Clean up on context initialization failure
+
+Mike Marciniszyn (2):
+      IB/hfi1,IB/rdmavt: Move r_adefered to r_lock cache line
+      IB/hfi1: Fix yield logic in send engine
+
+Sebastian Sanchez (2):
+      IB/hfi1: Get rid of divide when setting the tx request header
+      IB/hfi1: Remove atomic operations for SDMA_REQ_HAVE_AHG bit
+
+Tymoteusz Kielan (1):
+      IB/hfi1: Adjust default eager_buffer_size to 8MB
+
+
+ drivers/infiniband/hw/hfi1/chip.c         |   47 +--
+ drivers/infiniband/hw/hfi1/chip.h         |   10 -
+ drivers/infiniband/hw/hfi1/driver.c       |   42 ---
+ drivers/infiniband/hw/hfi1/file_ops.c     |  425 +++++++++++++++--------------
+ drivers/infiniband/hw/hfi1/hfi.h          |  107 +++----
+ drivers/infiniband/hw/hfi1/init.c         |   33 +-
+ drivers/infiniband/hw/hfi1/intr.c         |    3 
+ drivers/infiniband/hw/hfi1/qp.c           |    4 
+ drivers/infiniband/hw/hfi1/rc.c           |   13 -
+ drivers/infiniband/hw/hfi1/ruc.c          |   80 +++--
+ drivers/infiniband/hw/hfi1/trace_ctxts.h  |   17 +
+ drivers/infiniband/hw/hfi1/trace_tx.h     |   34 ++
+ drivers/infiniband/hw/hfi1/user_exp_rcv.c |  180 +++++++-----
+ drivers/infiniband/hw/hfi1/user_exp_rcv.h |   17 +
+ drivers/infiniband/hw/hfi1/user_sdma.c    |  191 ++++++-------
+ drivers/infiniband/hw/hfi1/user_sdma.h    |   18 +
+ drivers/infiniband/hw/hfi1/verbs.h        |    5 
+ drivers/infiniband/hw/hfi1/vnic_main.c    |    8 -
+ include/rdma/rdmavt_qp.h                  |    1 
+ 19 files changed, 633 insertions(+), 602 deletions(-)
