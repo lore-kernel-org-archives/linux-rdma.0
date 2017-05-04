@@ -1,57 +1,56 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] rxe: expose num_possible_cpus() cnum_comp_vectors
-Date: Thu, 4 May 2017 17:43:51 +0300
-Message-ID: <CAG9sBKOHETvPb3LW_O-6Ntwi=hnviJJncaNBEDi1sO2BwvYgHw@mail.gmail.com>
-References: <1493904187-13686-1-git-send-email-sagi@grimberg.me>
- <CAG9sBKNBXkhJ9viPJ7ZMD8fEdUJ9i_c4FTVg27=GLL2SyBSM2g@mail.gmail.com>
- <5c52626d-3347-173e-a9f5-c1c45cafb508@grimberg.me> <CAG9sBKOc6EK-qrbvFa6x7QM5ZFEvJmUXfuhRkbXNAJpi+FT_Kg@mail.gmail.com>
- <eeea953a-1508-d0c9-66a6-1b73e03ea80a@grimberg.me>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH RFC 02/10] IB/core: Add support to finalize objects in one
+ transaction
+Date: Thu, 4 May 2017 14:50:19 +0000
+Message-ID: <SN1PR07MB22077A1B43881BAF7BAC5ED0F8EA0@SN1PR07MB2207.namprd07.prod.outlook.com>
+References: <1492615225-55118-1-git-send-email-matanb@mellanox.com>
+ <1492615225-55118-3-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <eeea953a-1508-d0c9-66a6-1b73e03ea80a-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <1492615225-55118-3-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-So you say that even if rxe driver doesn't do anything with the
-comp_vector parameter  passed to create cq, a ULP can benefit from rxe
-reporting num_comp_vectors = number of cpus.
-I can agree with that even though that IMHO the benefit deepens on how
-the real eth device handles received packets.
+> The new ioctl based infrastructure either commits or rollbacks
+> all objects of the command as one transaction. In order to do
+> that, we introduce a notion of dealing with a collection of
+> objects that are related to a specific action.
+>=20
+> This also requires adding a notion of an action and attribute.
+> An action contains a groups of attributes, where each group
+> contains several attributes.
+>=20
+> When declaring these actions and attributes, we actually declare
+> their specifications. When a command is executed, we actually
+> allocates some space to hold auxiliary information.
+>=20
+> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
 
-Acked-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Matan, thanks for the RFC!
 
-thanks
+If I got this correctly each object will go through three phases - get, han=
+dler, and a put.
+I don't quite understand how a batch operation, like destroy QPs, can be un=
+done after the handler phase.
+I do see it working if at first multiple gets are performed and one of them=
+ fails.
+In that case undoing is easy because the handlers weren't invoked yet.
+
+In the case were some user-objects failed the operation how is this reflect=
+ed upwards?
+
+Also, I wonder, is there another intention behind batch operations except s=
+peed?
 
 
-
-
-On Thu, May 4, 2017 at 5:26 PM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
->
->>> Because that can change on the fly and should not effect on
->>> the number of logical completion vectors rxe exposes.
->>>
->>> --
->>
->> BTW, what will be the affect of this if rxe driver doesn't use the
->> comp_vector parameter in create_cq()?
->
->
-> Some ULPs won't create more queue-pairs than what the rdma device
-> supports (per multi-queue session). One example for that exists in a
-> patch set I submitted for exposing to ULPs IRQ affinity mappings
-> through the RDMA core so they in turn can make smart assignment
-> decisions for queue<->cpu mappings in a multi-queue environment.
->
-> I think its safe to assume that any modern HCA drivers supports a fair
-> share of completion vectors.
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Ram
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
