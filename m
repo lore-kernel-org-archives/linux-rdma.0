@@ -1,135 +1,144 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC iproute2 0/8] RDMA tool
-Date: Thu, 4 May 2017 22:42:42 +0300
-Message-ID: <20170504194242.GF22833@mtr-leonro.local>
-References: <20170504180216.7665-1-leon@kernel.org>
- <1493921453.2692.6.camel@sandisk.com>
- <20170504182542.GD22833@mtr-leonro.local>
- <1493922625.2692.8.camel@sandisk.com>
- <20170504184531.GE22833@mtr-leonro.local>
- <2dee6cde-0406-b101-0fe6-c1f6de7c1b1a@intel.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [ewg] [ANNOUNCE] OFED 4.8-rc2 release is available
+Date: Thu, 4 May 2017 16:14:55 -0400
+Message-ID: <867b51f9-ad2f-6e8b-6aa8-b5b8fb119931@redhat.com>
+References: <590096A3.5090107@dev.mellanox.co.il>
+ <20170427070657.GA13585@infradead.org> <20170504084933.GA1359@infradead.org>
+ <9C6B67F36DCAFC479B1CF6A967258A8C7E953FA6@ORSMSX115.amr.corp.intel.com>
+ <20170504153003.GA854@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB1199FA@ORSMSX109.amr.corp.intel.com>
+ <75ebb17e-cec3-6605-2a2f-d2533e95a5ec@redhat.com>
+ <9C6B67F36DCAFC479B1CF6A967258A8C7E95451A@ORSMSX115.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="TPGKQYD3WP7vMswh"
+ protocol="application/pgp-signature";
+ boundary="hKJEBndTvCcMXpUErWF2gw6gMeA17bNNn"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <2dee6cde-0406-b101-0fe6-c1f6de7c1b1a-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <9C6B67F36DCAFC479B1CF6A967258A8C7E95451A-8oqHQFITsIFqS6EAlXoojrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org" <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "ariela-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ariela-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--hKJEBndTvCcMXpUErWF2gw6gMeA17bNNn
+Content-Type: multipart/mixed; boundary="8TJjCfwuE85JgbLqCuBGcxRvSti0xqIw4";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>,
+ "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+ "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Message-ID: <867b51f9-ad2f-6e8b-6aa8-b5b8fb119931-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [ewg] [ANNOUNCE] OFED 4.8-rc2 release is available
+References: <590096A3.5090107-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+ <20170427070657.GA13585-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> <20170504084933.GA1359-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+ <9C6B67F36DCAFC479B1CF6A967258A8C7E953FA6-8oqHQFITsIFqS6EAlXoojrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+ <20170504153003.GA854-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+ <1828884A29C6694DAF28B7E6B8A82373AB1199FA-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+ <75ebb17e-cec3-6605-2a2f-d2533e95a5ec-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <9C6B67F36DCAFC479B1CF6A967258A8C7E95451A-8oqHQFITsIFqS6EAlXoojrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <9C6B67F36DCAFC479B1CF6A967258A8C7E95451A-8oqHQFITsIFqS6EAlXoojrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 
---TPGKQYD3WP7vMswh
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--8TJjCfwuE85JgbLqCuBGcxRvSti0xqIw4
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, May 04, 2017 at 03:26:13PM -0400, Dennis Dalessandro wrote:
-> On 05/04/2017 02:45 PM, Leon Romanovsky wrote:
-> > On Thu, May 04, 2017 at 06:30:27PM +0000, Bart Van Assche wrote:
-> > > On Thu, 2017-05-04 at 21:25 +0300, Leon Romanovsky wrote:
-> > > > On Thu, May 04, 2017 at 06:10:54PM +0000, Bart Van Assche wrote:
-> > > > > On Thu, 2017-05-04 at 21:02 +0300, Leon Romanovsky wrote:
-> > > > > > Following our discussion both in mailing list [1] and at the LPC 2016 [2],
-> > > > > > we would like to propose this RDMA tool to be part of iproute2 package
-> > > > > > and finally improve this situation.
-> > > > >
-> > > > > Hello Leon,
-> > > > >
-> > > > > Although I really appreciate your work: can you clarify why you would like to
-> > > > > add *RDMA* functionality to an *IP routing* tool? I haven't found any motivation
-> > > > > for adding RDMA functionality to iproute2 in [1].
-> > > >
-> > > > We are planning to reuse the same infrastructure provided by iproute2,
-> > > > like netlink parsing, access to distributions, same CLI and same standards.
-> > > >
-> > > > Right now, RDMA is already tightened to netdev: iWARP, RoCE, IPoIB, HFI-VNIC.
-> > > > Many drivers (mlx, qed, i40, cxgb) are sharing code between net and
-> > > > RDMA.
-> > > >
-> > > > I do expect that iproute2 will be installed on every machine with any
-> > > > type of connection, including IB and OPA.
-> > > >
-> > > > So I think that it is enough to be part of that suite and don't invent
-> > > > our own for one specific tool.
-> > >
-> > > Hello Leon,
-> > >
-> > > Sorry but to me that sounds like a weak argument for including RDMA functionality
-> > > in iproute2. There is already a library for communication over netlink sockets,
-> > > namely libnl. Is there functionality that is in iproute2 but not in libnl and
-> > > that is needed for the new tool? If so, have you considered to create a new
-> > > library for that functionality?
-> >
-> > It is not hard to create new tool, the hardest part is to ensure that it is
-> > part of the distributions. Did you count how many months we are trying to
-> > add rdma-core to debian?
->
-> I do agree that it is a strange pairing and am not really a fan. However at
-> the end of the day it's just a name for a repo/package. If the iproute folks
-> are fine to include rdma in their repo/package, great we can leverage their
-> code for CLI and other common stuff.
->
-> Now if the interface was something like "ip -FlagForRdma ..." I would object
-> to that, but the interface is "rdma ... " so from users perspective it's
-> different tools. They don't need to care that it was sourced from a common
-> git repo.
->
-> Just as an aside this already works a bit with OPA:
->
->  $ ./rdma link
-> 1/1: hfi1_0/1: ifname NONE cap_mask 0x00410022 lid 0x1 lid_mask_count 0
-> link_layer InfiniBand
->          phys_state 5: LinkUp rate 100 Gb/sec (4X EDR) sm_lid 0x1 sm_sl 0
-> state 4: ACTIVE
->
-> Leon I'll get you more feedback and testing, I've just been really bogged
-> down this week, sorry.
+On 5/4/2017 3:14 PM, Woodruff, Robert J wrote:
+> Doug Ledford wrote,
+>> The OFA has already learned their lesson once with XRC.  I wonder
+>> if they are getting ready to get hit with another lesson over this.
+>> The issue is if the OFA ships an API and it isn't upstream, then
+>> that API needs to legitimately be a >private, should never conflict
+>> with upstream API.  If upstream then implements the same thing in a
+>> different way and users are exposed to the rather unpleasant choice
+>> of code to OFA's API or to upstream's API for the same thing, it
+>> >creates a schism in the user's code base around what API to
+>> use/support.  This is entirely contrary to the OFA's stated goals
+>> about the end user experience of people using their RDMA software.
+>> So Intel can certainly make any cost >analysis they want about
+>> their hardware and the software to support it, but the OFA is not
+>> Intel's personal software distributor and the OFA must look at
+>> other, bigger picture issues than Intel.
+>=20
+> The Xeon-Phi code is somewhat different than what happened in the
+> past with XRC.  In the case of XRC, it was integrated into the base
+> OFED package and built-in by default. For the Xeon-Phi code, it is
+> clearly marked as a technology preview and is not even compiled in at
+> all unless specifically enabled. This is not too terribly different
+> than the experimental branches that the kernel has. Also, the
+> Xeon-Phi code does not add any new APIs.
 
-Thanks Denny,
+It implements a new kernel internal API, yes?
 
-Before you are starting to test it, can you please provide your feedback
-on my initial questions? Usability and need of sysfs.
+> It simply implements a
+> driver set and library, thus there is no risk in someone coding to an
+> API in OFED that gets totally changed once it gets upstream.
 
-----
-This is initial phase to understand if user experience for this tool fits
-RDMA and netdev communities exepectations. Also I would like to get feedback
-if it is really worth to provide legacy sysfs for old kernels, or maybe I should
-implement netlink from the beginning and abandon sysfs completely.
------
+I'm not sure I understand your statement here Woody.  If there's no API,
+then how do people even use the hardware?  Or are you saying that the
+API is in the library, and that API can be preserved even if the
+underlying driver implementation is changed to match whatever upstream
+might implement instead of what you already have implemented?
 
-P.S. I believe this will give you wrong output, because it parses IB port cap_mask.
-$./rdma link show hfi1_0/1 cap_mask
+> you really do not have a say in the matter.
 
-Thanks
+Nope.  I don't.  But, as I pointed out in my other email, if
+relationships matter, then whether or not someone has a say does not
+negate the need to listen.
 
->
-> -Denny
->
->
->
+Personally, I haven't really investigated this code so I'm not going to
+argue against the fact that the OFA ships it, other than what I have
+already which is that it has been a stated goal of the OFA to foster a
+unified code base, so collaborating with upstream is generally
+necessary.  If you are saying that the Xeon Phi support is implemented
+in a library (like nVidia's CUDA support) that insulates the end user
+from a possible fracture if upstream implements things differently, then
+that mostly settles my concerns.  I still think it would be best if the
+Xeon Phi people collaborated with upstream on the kernel internal Peer
+to Peer PCI API as that's evidently a requirement of the Xeon Phi
+library?  It is conceivably possible failure to collaborate could in
+fact break the Xeon Phi library if they simply don't implement something
+the library has a hard requirement on.  But that's outside of my
+particular wheel house so I'm just suggesting that it might be a wise
+thing to do.
 
---TPGKQYD3WP7vMswh
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
+D
+
+
+--8TJjCfwuE85JgbLqCuBGcxRvSti0xqIw4--
+
+--hKJEBndTvCcMXpUErWF2gw6gMeA17bNNn
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkLhDEACgkQ5GN7iDZy
-WKeeYA//TGXXzyV70wSdFdNSi1Sb9jZdZoustfngkIfov0kPdLpT11mvZlevr8mp
-yuYPyGCPu6LAkohlNMQvkyVPllE8LnN8JqtA2BnJ1orkY7Ft7T1IZZPVKqqGG2py
-O3ofJ8Lq6nKPXLbTYLDrvDoRHpUxaW7eL6VsjmaYKqcDW8Q8g64rCx99fxk6CMIH
-E32zcEgKWhuK7KqOS5PXtOFCjfOu9NSHgBlQKTe6WnBwGjuaxS9s6m6WoHaKV0tm
-JQNq/ZIJv9CJJhdsJ5/BuOOgICUKRdMREla7fL4AwIuQY9OxyV2P/8u/MOIUYQ4t
-bDDd7aJ9sacI8sSo4IxWS4gye9XrDjQIWGWd4i0egfS7/dd+aP5o+8FcfYoVAGiz
-3wimddUOBKxm30Tf51sMBr/WyTXQ/Pi/XEY45r08zDimJm63b2Ejl8BajuH7U00B
-pfpIJI+yIaBvpMZSAwp9VC67DCGE9Rm3kJy0EP9+COnhohbocTw281BB2FNeO5Cp
-zKyB/GUvWtQ0GzE7sBoPJl+3dnzExPK6/8+EWB/l4PD4rNHqTzvVNKzAnQo4zGZD
-HrFzTQnbX1+ttZ80ZsbLu/OmMZ/0DWAtFKlhyfeVQ0t3/IwDUZASZLvC4cy3nThF
-Rw2DugcAveMvLKqhs3GTc3UdpXaY4DwyCtpMUUz+/1KHJMpKPWU=
-=3pzw
+iQIcBAEBCAAGBQJZC4u/AAoJELgmozMOVy/ds9IQAL5ff8N++8u5AZ0dXDETi+Fl
+xP/LD2sadq8YrV6PpHu0MYtarLWhuY6dUSpaU4yQID+SuhGp0ixjL+ijR2Hyv8GR
+Dh0lB28zfj/3VG7Wycm8bFIS9IDOnHL+FPb7mF6aRtfZeANLXOe5UavD+PkVN2ui
+SZV/UBHPqxPZBxMm4XH8sktyUhN5mvn5ZA6MknYNXbaQjr1+m/l6EV8OkockBN+b
+vsazAbPBBiYZc76pcVERV6nSrNiX+UJY1h6M9En/yNoBNSiNx2jCZUtCsYxISGsb
+gu6wvzOmIsm5Qe6LR6xmjprOpq7EGAE5S3L6iB0izGPpuTTFtxdPFvZhosysh5w3
+stBiJrIgGDcfuL9mUiFJAROwJ2+aEEhZITsYB1gOCH50UTwvP7Fk7G42E5jRCBtD
+yLvs0L/ZBDOsS49BmOnWNjvCrOI8n9UCz1n0nDqRlZAZ9ohmketGZpANJyIIJxIH
+Ay04wqHPnvey+vM1fL8jTGLV4mzQkGlFZ0FepGnk6DnNW5ADUNs50eYeQw27Lgb+
+dtTlDlOizNQRFeMfwIYPtyFSuiTQACHFV1JN7PaKH6SINf/hS/jdaSx53vXqxhIp
+A+dbh/JAQ2ho81P0kM5hRI4QFvxZz3SzZWsFwjtnponEz8+9Tqwv0KRvYgeplJxl
+eOzeOPXHPKP+hRQH6qrq
+=ikGf
 -----END PGP SIGNATURE-----
 
---TPGKQYD3WP7vMswh--
+--hKJEBndTvCcMXpUErWF2gw6gMeA17bNNn--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
