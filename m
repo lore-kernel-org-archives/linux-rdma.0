@@ -1,55 +1,48 @@
-From: "Boyer, Andrew" <Andrew.Boyer-8PEkshWhKlo@public.gmane.org>
-Subject: Re: [PATCH rdma] IB/rxe: Update caller's CRC for RXE_MEM_TYPE_DMA
- memory type
-Date: Thu, 4 May 2017 13:21:15 +0000
-Message-ID: <D530A2EB.16906%Andrew.Boyer@emc.com>
-References: <20170504123607.22708-1-leon@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: [PATCH] rxe: expose num_possible_cpus() cnum_comp_vectors
+Date: Thu,  4 May 2017 16:23:07 +0300
+Message-ID: <1493904187-13686-1-git-send-email-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170504123607.22708-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Content-Language: en-US
-Content-ID: <DDFEAD2B4878384C92855EB5E99F4EEE-/m+UfqrgI5Tvk4DGDgVwFwC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Their completely logical, so don't pose an artificial limitation.
 
-On 5/4/17, 8:36 AM, "linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org on behalf of Leon
-Romanovsky" <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org on behalf of
-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+---
+ drivers/infiniband/sw/rxe/rxe_param.h | 1 -
+ drivers/infiniband/sw/rxe/rxe_verbs.c | 2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
->From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->
->Callers of rxe_mem_copy() provide pointer to store updated CRC
->value. That pointer was supposed to be updated, but the
->commit cee2688e3cd6 ("IB/rxe: Offload CRC calculation when possible")
->mistakenly removed that assignment for RXE_MEM_TYPE_DMA memory type.
->
->The code worked because there are no actual callers with
->RXE_MEM_TYPE_DMA, who are interested in returned value of crcp.
->The one caller in read_reply(), who uses the returned crcp didn't
->set RXE_MEM_TYPE_DMA as mem->type.
->
->Fixes: cee2688e3cd6 ("IB/rxe: Offload CRC calculation when possible")
->Reported-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
->Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->Acked-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->---
->Hi Doug,
->
->It will be great if you forward this patch as part of your second pull
->request.
->As you can see from the commit message, it fixes issue spotted by Andrew.
->
->Thanks
->---
-> drivers/infiniband/sw/rxe/rxe_mr.c | 2 +-
-> 1 file changed, 1 insertion(+), 1 deletion(-)
-
-Reviewed-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+diff --git a/drivers/infiniband/sw/rxe/rxe_param.h b/drivers/infiniband/sw/rxe/rxe_param.h
+index 13ed2cc6eaa2..1b596fbbe251 100644
+--- a/drivers/infiniband/sw/rxe/rxe_param.h
++++ b/drivers/infiniband/sw/rxe/rxe_param.h
+@@ -114,7 +114,6 @@ enum rxe_device_param {
+ 	RXE_MAX_UCONTEXT		= 512,
+ 
+ 	RXE_NUM_PORT			= 1,
+-	RXE_NUM_COMP_VECTORS		= 1,
+ 
+ 	RXE_MIN_QP_INDEX		= 16,
+ 	RXE_MAX_QP_INDEX		= 0x00020000,
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index 4c9080c94c06..3be4cbe365c6 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -1237,7 +1237,7 @@ int rxe_register_device(struct rxe_dev *rxe)
+ 	dev->owner = THIS_MODULE;
+ 	dev->node_type = RDMA_NODE_IB_CA;
+ 	dev->phys_port_cnt = 1;
+-	dev->num_comp_vectors = RXE_NUM_COMP_VECTORS;
++	dev->num_comp_vectors = num_possible_cpus();
+ 	dev->dev.parent = rxe_dma_device(rxe);
+ 	dev->local_dma_lkey = 0;
+ 	dev->node_guid = rxe_node_guid(rxe);
+-- 
+2.7.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
