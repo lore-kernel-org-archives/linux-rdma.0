@@ -1,39 +1,32 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 00/15] IB/hfi1: hfi1 driver patches for-next
-Date: Thu, 04 May 2017 19:45:08 -0400
-Message-ID: <1493941508.3041.234.camel@redhat.com>
-References: <20170504120126.32747.45131.stgit@scvm10.sc.intel.com>
+Subject: Re: [PATCHv3 1/1] IB/ipoib: add get_link_ksettings in ethtool
+Date: Thu, 04 May 2017 19:45:50 -0400
+Message-ID: <1493941550.3041.235.camel@redhat.com>
+References: <1493665155.3041.186.camel@redhat.com>
+         <1493875491-32048-1-git-send-email-yanjun.zhu@oracle.com>
+         <1493875491-32048-2-git-send-email-yanjun.zhu@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170504120126.32747.45131.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <1493875491-32048-2-git-send-email-yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tymoteusz Kielan <tymoteusz.kielan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, tbogendoerfer-l3A5Bk7waGM@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+Cc: joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-05-04 at 05:13 -0700, Dennis Dalessandro wrote:
-> Doug,
+On Thu, 2017-05-04 at 01:24 -0400, Zhu Yanjun wrote:
+> In order to let the bonding driver report the correct speed
+> of the underlaying interfaces, when they are IPoIB, the ethtool
+> function get_link_ksettings() in the IPoIB driver is implemented.
 > 
-> This is a respin of [1] there were some merge problems with the last
-> 5 in
-> this series, thanks to Leon for notifciing.
-> 
-> Included are some contex init/usage fixes, a couple performance
-> tweaks, and some
-> general code clean up. This is all confined to the hfi1 driver.
-> 
-> I'm OK applying this to next vs the current merge window. We might
-> want to pluck
-> out patches 6 and 7 for -rc. They are marked as stable and I think
-> would meet
-> -rc criteria.
+> Cc: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Cc: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Suggested-by: Håkon Bugge <Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-I think at least 14/15 should be -rc worthy too unless I read the
-problem description wrong.  In any case, I took the series.  I'm going
-to wait for 0day and linux-next before submitting to Linus (probably
-send it Monday or Tuesday of next week).
+Thanks.  Since I had a second pull request to send this merge window,
+I've taken this in for that pull request.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
