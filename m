@@ -1,90 +1,67 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [infiniband-core] question about arguments position
-Date: Thu, 04 May 2017 19:49:06 -0400
-Message-ID: <1493941746.3041.242.camel@redhat.com>
-References: <20170504124209.Horde.B4I2tu9lZ9_KMd07dtjWcl2@gator4166.hostgator.com>
-         <DB6PR0502MB2999ABEFF47AEBF944F8B65BD1EA0@DB6PR0502MB2999.eurprd05.prod.outlook.com>
+From: "Coulter, Susan K" <skc-YOWKrPYUwWM@public.gmane.org>
+Subject: Re: [ANNOUNCE] OFED 4.8-rc2 release is available
+Date: Thu, 4 May 2017 23:47:32 +0000
+Message-ID: <1493941651906.70721@lanl.gov>
+References: <590096A3.5090107@dev.mellanox.co.il>
+ <20170427070657.GA13585@infradead.org> <20170504084933.GA1359@infradead.org>
+ <9C6B67F36DCAFC479B1CF6A967258A8C7E953FA6@ORSMSX115.amr.corp.intel.com>
+ <20170504153003.GA854@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB1199FA@ORSMSX109.amr.corp.intel.com>
+ <20170504174105.GB20449@obsidianresearch.com>
+ <BN6PR11MB139465918AC8DFAAB56030B6B2EA0@BN6PR11MB1394.namprd11.prod.outlook.com>,
+ <20170504201721.GA24298@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <DB6PR0502MB2999ABEFF47AEBF944F8B65BD1EA0-wTfl6qNNZ1N9V1xQXiTFbsDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Gustavo A. R. Silva" <garsilva-L1vi/lXTdts+Va1GwOuvDg@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+In-Reply-To: <20170504201721.GA24298-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Sender: "ewg" <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Paul Grun <grun-WVYJKLFxKCc@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-05-04 at 21:52 +0000, Parav Pandit wrote:
-> Hi,
-> 
-> > 
-> > -----Original Message-----
-> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Gustavo A. R. Silva
-> > Sent: Thursday, May 4, 2017 12:42 PM
-> > To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>; Sean Hefty
-> > <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>;
-> > Sagi
-> > Grimberg <sagi-TmH2Wj2nsNJBDLzU/O5InQ@public.gmane.org>; Bart Van Assche
-> > <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>; Steve Wise <swise@opengridcomputing.c
-> > om>;
-> > Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Yishai Hadas
-> > <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Subject: [infiniband-core] question about arguments position
-> > 
-> > 
-> > Hello everybody,
-> > 
-> > While looking into Coverity ID 1351047 I ran into the following
-> > piece of code at
-> > drivers/infiniband/core/verbs.c:496:
-> > 
-> > ret = rdma_addr_find_l2_eth_by_grh(&dgid, &sgid,
-> >                                     ah_attr->dmac,
-> >                                     wc->wc_flags & IB_WC_WITH_VLAN
-> > ?
-> >                                     NULL : &vlan_id,
-> >                                     &if_index, &hoplimit);
-> > 
-> > 
-> > The issue here is that the position of arguments in the call to
-> > rdma_addr_find_l2_eth_by_grh() function do not match the order of
-> > the
-> > parameters:
-> > 
-> > &dgid is passed to sgid
-> > &sgid is passed to dgid
-> > 
-> > This is the function prototype:
-> > 
-> > int rdma_addr_find_l2_eth_by_grh(const union ib_gid *sgid,
-> > 				 const union ib_gid *dgid,
-> > 				 u8 *dmac, u16 *vlan_id, int *if_index,
-> > 				 int *hoplimit)
-> > 
-> > My question here is if this is intentional?
-> > 
-> Yes. ib_init_ah_from_wc() creates ah from the incoming packet.
-> Incoming packet has dgid of the receiver node on which this code is
-> getting executed
-> And sgid contains the GID of the sender.
-> 
-> When resolving mac address of destination, you use arrived dgid as
-> sgid.
-> And use sgid as dgid because sgid contains destinations GID whom to
-> respond to.
-
-A patch to add a comment and forestall future questions here might be a
-good addition.
-
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-   
-Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ClRoZSB1bnBsZWFzYW50IGZhY3QgaXMgdGhhdCB0aGUgT0ZBIGhhcyBub3QgYmVlbiBkZWVwbHkg
+aW52b2x2ZWQsIGFzIGFuIG9yZ2FuaXphdGlvbiwgaW4gdGhlIGRldmVsb3BtZW50IGFuZCBkaXN0
+cmlidXRpb24gb2YgT0ZFRC4KVGhhdCBtYXkgc2VlbSBjb3VudGVyLWludHVpdGl2ZSwgYW5kIGl0
+IGlzIGNlcnRhaW5seSBub3QgYXBwcm9wcmlhdGUsIGJ1dCBpdCBpcyB0aGUgcmF3IHRydXRoLgpU
+aGUgRVdHIG1hbmFnZXMsIHRlc3RzLCBhbmQgcmVsZWFzZXMgT0ZFRCB2ZXJzaW9ucy4KVW50aWwg
+cmVjZW50bHksIHRoYXQgd2FzIGFsbCBkb25lIHdpdGhvdXQgb2ZmaWNpYWwgcmV2aWV3IG9yIGFw
+cHJvdmFsIGZyb20gdGhlIGxhcmdlciBPRkEgY29uc3RpdHVlbmN5LgoKVGhlcmUgYXJlIG1hbnkg
+aXNzdWVzIHRoZSBPRkEgbmVlZHMgdG8gZ2V0IHN0cmFpZ2h0IGlmIGl0IGlzIHRvIGNvbnRpbnVl
+IHRvIGNvbnRyaWJ1dGUgdG8gdGhlIGNvbW11bml0eSBpbiBhIHBvc2l0aXZlIHdheS4KKCBhbmQg
+SSBmdWxseSBhY2NjZXB0IHNvbWUgZm9sa3Mgd291bGQgcG9zaXQgdGhhdCB0aGUgT0ZBIGhhcyBu
+ZXZlciBjb250cmlidXRlZCBpbiBhIHBvc2l0aXZlIHdheSApClRoaXMgaXMgb25lIG9mIHRoZW0u
+CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpGcm9tOiBsaW51eC1y
+ZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyA8bGludXgtcmRtYS1vd25lckB2Z2VyLmtlcm5lbC5v
+cmc+IG9uIGJlaGFsZiBvZiBKYXNvbiBHdW50aG9ycGUgPGpndW50aG9ycGVAb2JzaWRpYW5yZXNl
+YXJjaC5jb20+ClNlbnQ6IFRodXJzZGF5LCBNYXkgNCwgMjAxNyAyOjE3IFBNClRvOiBQYXVsIEdy
+dW4KQ2M6IEhlZnR5LCBTZWFuOyBXb29kcnVmZiwgUm9iZXJ0IEo7IENocmlzdG9waCBIZWxsd2ln
+OyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgZXdnQGxpc3RzLm9wZW5mYWJyaWNzLm9yZwpT
+dWJqZWN0OiBSZTogW2V3Z10gW0FOTk9VTkNFXSBPRkVEIDQuOC1yYzIgcmVsZWFzZSBpcyBhdmFp
+bGFibGUKCk9uIFRodSwgTWF5IDA0LCAyMDE3IGF0IDA3OjA3OjAyUE0gKzAwMDAsIFBhdWwgR3J1
+biB3cm90ZToKPiA+VGhlIGZvdW5kaW5nIGltcHV0dXMgZm9yIE9GQSB3YXMgdG8gZ2V0IHRoaXMg
+UkRNQSBjb2RlIHVwc3RyZWFtLCBzbyBPRkEKPiA+c2hvdWxkIG5vdCBiZSBzcGVuZGluZyB0aGVp
+ciByZXNvdXJjZXMgc3VwcG9ydGluZyBub24tdXBzdHJlYW0gd29ya3MuCj4KPiBUaGF0J3MgYWN0
+dWFsbHkgbm90IHRydWUuICBUaGUgZm91bmRpbmcgaW1wZXR1cyB3YXMgdG8gcHJldmVudCB0aGUK
+PiBuYXNjZW50IEluZmluaUJhbmQgaW5kdXN0cnkgZnJvbSBmcmFjdHVyaW5nIHVuZGVyIHRoZSB3
+ZWlnaHQgb2YKPiBtdWx0aXBsZSBzb2Z0d2FyZSBpbXBsZW1lbnRhdGlvbnMgb2YgdGhlIHZlcmJz
+IHNlbWFudGljcyBkZXNjcmliZWQKPiBpbiB0aGUgSUIgc3BlY3MuICBUaGUgc29sdXRpb24gdG8g
+dGhhdCB3YXMgdG8gcHJvdmlkZSBhIHNpbmdsZQo+IHNvZnR3YXJlIHN0YWNrIHByb3ZpZGVkIGJ5
+IHRoZSBBbGxpYW5jZS4KCkkgdGhpbmsgeW91IGFyZSBzcGxpdHRpbmcgaGFpcnMsIGZyb20gdGhl
+IHN0YXJ0IGFsbGlhbmNlIG1lbWJlcnMKZm9jdXNlZCB0aGVpciBlZmZvcnRzIHVwc3RyZWFtIChl
+ZyBSb2xhbmQgZ2V0dGluZyBMaW51cyB0byBhY2NlcHQKZHJpdmVycy9pbmZpbmliYW5kKS4KCkph
+c29uCi0tClRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1
+YnNjcmliZSBsaW51eC1yZG1hIiBpbgp0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21v
+QHZnZXIua2VybmVsLm9yZwpNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJu
+ZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KZXdnIG1haWxpbmcgbGlzdApld2dAbGlzdHMub3BlbmZhYnJpY3Mu
+b3JnCmh0dHA6Ly9saXN0cy5vcGVuZmFicmljcy5vcmcvbWFpbG1hbi9saXN0aW5mby9ld2c=
