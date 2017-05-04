@@ -1,40 +1,59 @@
-From: Paul Grun <grun-WVYJKLFxKCc@public.gmane.org>
-Subject: Re: [ANNOUNCE] OFED 4.8-rc2 release is available
-Date: Thu, 4 May 2017 19:07:02 +0000
-Message-ID: <BN6PR11MB139465918AC8DFAAB56030B6B2EA0@BN6PR11MB1394.namprd11.prod.outlook.com>
+From: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [ewg] [ANNOUNCE] OFED 4.8-rc2 release is available
+Date: Thu, 4 May 2017 19:14:51 +0000
+Message-ID: <9C6B67F36DCAFC479B1CF6A967258A8C7E95451A@ORSMSX115.amr.corp.intel.com>
 References: <590096A3.5090107@dev.mellanox.co.il>
  <20170427070657.GA13585@infradead.org> <20170504084933.GA1359@infradead.org>
  <9C6B67F36DCAFC479B1CF6A967258A8C7E953FA6@ORSMSX115.amr.corp.intel.com>
  <20170504153003.GA854@obsidianresearch.com>
  <1828884A29C6694DAF28B7E6B8A82373AB1199FA@ORSMSX109.amr.corp.intel.com>
- <20170504174105.GB20449@obsidianresearch.com>
+ <75ebb17e-cec3-6605-2a2f-d2533e95a5ec@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-In-Reply-To: <20170504174105.GB20449-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <75ebb17e-cec3-6605-2a2f-d2533e95a5ec-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
- <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
- <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Sender: "ewg" <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Cgo+Cj5UaGUgZm91bmRpbmcgaW1wdXR1cyBmb3IgT0ZBIHdhcyB0byBnZXQgdGhpcyBSRE1BIGNv
-ZGUgdXBzdHJlYW0sIHNvIE9GQQo+c2hvdWxkIG5vdCBiZSBzcGVuZGluZyB0aGVpciByZXNvdXJj
-ZXMgc3VwcG9ydGluZyBub24tdXBzdHJlYW0gd29ya3MuCj4KPgo+SmFzb24KPi0tCgpUaGF0J3Mg
-YWN0dWFsbHkgbm90IHRydWUuICBUaGUgZm91bmRpbmcgaW1wZXR1cyB3YXMgdG8gcHJldmVudCB0
-aGUgbmFzY2VudCBJbmZpbmlCYW5kIGluZHVzdHJ5IGZyb20gZnJhY3R1cmluZyB1bmRlciB0aGUg
-d2VpZ2h0IG9mIG11bHRpcGxlIHNvZnR3YXJlIGltcGxlbWVudGF0aW9ucyBvZiB0aGUgdmVyYnMg
-c2VtYW50aWNzIGRlc2NyaWJlZCBpbiB0aGUgSUIgc3BlY3MuICBUaGUgc29sdXRpb24gdG8gdGhh
-dCB3YXMgdG8gcHJvdmlkZSBhIHNpbmdsZSBzb2Z0d2FyZSBzdGFjayBwcm92aWRlZCBieSB0aGUg
-QWxsaWFuY2UuCgotUGF1bApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwpld2cgbWFpbGluZyBsaXN0CmV3Z0BsaXN0cy5vcGVuZmFicmljcy5vcmcKaHR0cDov
-L2xpc3RzLm9wZW5mYWJyaWNzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2V3Zw==
+RG91ZyBMZWRmb3JkIHdyb3RlLA0KPlRoZSBPRkEgaGFzIGFscmVhZHkgbGVhcm5lZCB0aGVpciBs
+ZXNzb24gb25jZSB3aXRoIFhSQy4gIEkgd29uZGVyIGlmIHRoZXkgYXJlIGdldHRpbmcgcmVhZHkg
+dG8gZ2V0IGhpdCB3aXRoIGFub3RoZXIgbGVzc29uIG92ZXIgdGhpcy4gIFRoZSBpc3N1ZSBpcyBp
+ZiB0aGUgT0ZBIHNoaXBzIGFuIEFQSSBhbmQgaXQgaXNuJ3QgdXBzdHJlYW0sIHRoZW4gdGhhdCBB
+UEkgbmVlZHMgdG8gbGVnaXRpbWF0ZWx5IGJlIGEgPnByaXZhdGUsIHNob3VsZCBuZXZlciBjb25m
+bGljdCB3aXRoIHVwc3RyZWFtIEFQSS4gIElmIHVwc3RyZWFtIHRoZW4gaW1wbGVtZW50cyB0aGUg
+c2FtZSB0aGluZyBpbiBhIGRpZmZlcmVudCB3YXkgYW5kIHVzZXJzIGFyZSBleHBvc2VkIHRvIHRo
+ZSByYXRoZXIgdW5wbGVhc2FudCBjaG9pY2Ugb2YgY29kZSB0byBPRkEncyBBUEkgb3IgdG8gdXBz
+dHJlYW0ncyBBUEkgZm9yIHRoZSBzYW1lIHRoaW5nLCBpdCA+Y3JlYXRlcyBhIHNjaGlzbSBpbiB0
+aGUgdXNlcidzIGNvZGUgYmFzZSBhcm91bmQgd2hhdCBBUEkgdG8gdXNlL3N1cHBvcnQuICBUaGlz
+IGlzIGVudGlyZWx5IGNvbnRyYXJ5IHRvIHRoZSBPRkEncyBzdGF0ZWQgZ29hbHMgYWJvdXQgdGhl
+IGVuZCB1c2VyIGV4cGVyaWVuY2Ugb2YgcGVvcGxlIHVzaW5nIHRoZWlyIFJETUEgc29mdHdhcmUu
+ICBTbyBJbnRlbCBjYW4gY2VydGFpbmx5IG1ha2UgYW55IGNvc3QgPmFuYWx5c2lzIHRoZXkgd2Fu
+dCBhYm91dCB0aGVpciBoYXJkd2FyZSBhbmQgdGhlIHNvZnR3YXJlIHRvIHN1cHBvcnQgaXQsIGJ1
+dCB0aGUgT0ZBIGlzIG5vdCBJbnRlbCdzIHBlcnNvbmFsIHNvZnR3YXJlIGRpc3RyaWJ1dG9yIGFu
+ZCB0aGUgT0ZBIG11c3QgbG9vayBhdCBvdGhlciwgYmlnZ2VyIHBpY3R1cmUgaXNzdWVzIHRoYW4g
+SW50ZWwuDQoNClRoZSBYZW9uLVBoaSBjb2RlIGlzIHNvbWV3aGF0IGRpZmZlcmVudCB0aGFuIHdo
+YXQgaGFwcGVuZWQgaW4gdGhlIHBhc3Qgd2l0aCBYUkMuICBJbiB0aGUgY2FzZSBvZiBYUkMsIGl0
+IHdhcyBpbnRlZ3JhdGVkIGludG8gdGhlIGJhc2UgT0ZFRCBwYWNrYWdlIGFuZCBidWlsdC1pbiBi
+eSBkZWZhdWx0LiBGb3IgdGhlIFhlb24tUGhpIGNvZGUsDQppdCBpcyBjbGVhcmx5IG1hcmtlZCBh
+cyBhIHRlY2hub2xvZ3kgcHJldmlldyBhbmQgaXMgbm90IGV2ZW4gY29tcGlsZWQgaW4gYXQgYWxs
+IHVubGVzcyBzcGVjaWZpY2FsbHkgZW5hYmxlZC4gVGhpcyBpcyBub3QgdG9vIHRlcnJpYmx5IGRp
+ZmZlcmVudCB0aGFuIHRoZSBleHBlcmltZW50YWwgYnJhbmNoZXMgdGhhdCB0aGUga2VybmVsIGhh
+cy4NCkFsc28sIHRoZSBYZW9uLVBoaSBjb2RlIGRvZXMgbm90IGFkZCBhbnkgbmV3IEFQSXMuIEl0
+IHNpbXBseSBpbXBsZW1lbnRzIGEgZHJpdmVyIHNldCBhbmQgbGlicmFyeSwgdGh1cyB0aGVyZSBp
+cyBubyByaXNrIGluIHNvbWVvbmUgY29kaW5nIHRvIGFuIEFQSSBpbiBPRkVEIHRoYXQgZ2V0cyB0
+b3RhbGx5IGNoYW5nZWQgb25jZSBpdCBnZXRzIHVwc3RyZWFtLiBUaGUgRVdHIGNoYXJ0ZXIgYWxs
+b3dzIGNvZGUgdGhhdCBpcyBub3QgdXBzdHJlYW0gdG8gYmUgYWRkZWQgYXMgYSB0ZWNobm9sb2d5
+IHByZXZpZXcuIFRoaXMgYWxsb3dzIHBlb3BsZSB0aGF0IHdhbnQgaXQsIHRvIHRyeSBpdCBvdXQg
+YW5kIHVzZSBpdC4gSSBwZXJzb25hbGx5IGRvIG5vdCBzZWUgYSByZWFzb24gdG8gY2hhbmdlIHRo
+YXQuIFlvdSBtYXkgbm90IGxpa2Ugd2hhdCB3ZSBhcmUgZG9pbmcsIGFuZCBpZiB5b3UgYXJlIGFu
+IE9GQSBwcm9tb3RlciBtZW1iZXIsIHlvdSBjb3VsZCBhc2sgZm9yIGEgdm90ZSBvZiB0aGUgYm9h
+cmQgdG8gY2hhbmdlIHRoZSBieWxhd3MgdG8gcHJldmVudCBpdC4gSW4gdGhlIGFic2VuY2Ugb2Yg
+dGhhdCwgeW91IHJlYWxseSBkbyBub3QgaGF2ZSBhIHNheSBpbiB0aGUgbWF0dGVyLiANCg==
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
