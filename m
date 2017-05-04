@@ -1,47 +1,48 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [ANNOUNCE] OFED 4.8-rc2 release is available
-Date: Thu, 4 May 2017 09:30:03 -0600
-Message-ID: <20170504153003.GA854@obsidianresearch.com>
-References: <590096A3.5090107@dev.mellanox.co.il>
- <20170427070657.GA13585@infradead.org>
- <20170504084933.GA1359@infradead.org>
- <9C6B67F36DCAFC479B1CF6A967258A8C7E953FA6@ORSMSX115.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: net/smc and the RDMA core
+Date: Thu, 4 May 2017 09:31:55 -0600
+Message-ID: <20170504153155.GB854@obsidianresearch.com>
+References: <20170501163311.GA22209@lst.de>
+ <d9214af6-1c6f-9f95-fc00-3e4a316b4f81@linux.vnet.ibm.com>
+ <1493750358.2552.13.camel@sandisk.com>
+ <1b79048f-4495-3840-e7a6-d4fa5a8dfb57@grimberg.me>
+ <20170504084825.GA5399@lst.de>
+ <efa9bd6d-1df9-952a-7f32-c2ee6bffcae5@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <9C6B67F36DCAFC479B1CF6A967258A8C7E953FA6-8oqHQFITsIFqS6EAlXoojrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
- <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
- <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Sender: "ewg" <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-To: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+In-Reply-To: <efa9bd6d-1df9-952a-7f32-c2ee6bffcae5@linux.vnet.ibm.com>
+Sender: netdev-owner@vger.kernel.org
+To: Ursula Braun <ubraun@linux.vnet.ibm.com>
+Cc: "hch@lst.de" <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>, Bart Van Assche <Bart.VanAssche@sandisk.com>, "davem@davemloft.net" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCBNYXkgMDQsIDIwMTcgYXQgMDI6Mjg6MjZQTSArMDAwMCwgV29vZHJ1ZmYsIFJvYmVy
-dCBKIHdyb3RlOgo+IENocmlzdG9waCB3cm90ZSwKPiA+cGluZz8gIEhvdyBkb2VzIE9GRUQgbWFu
-YWdlIHRvIGluY2x1ZGUgaGFyZHdhcmUgc3VwcG9ydCAoZm9yIGEgbG9uZyB0aW1lCj4gPmFwcGFy
-ZW50bHkhKSB0aGF0J3MgbmV2ZXIgc2VlbiBhbnkgdXBzdHJlYW0gZXhwb3N1cmU/Cj4gCj4gT0ZF
-RCBhbGxvd3MgY29kZSB0aGF0IGlzIG5vdCB1cHN0cmVhbSB0byBiZSBpbmNsdWRlZCBhcyB0ZWNo
-bm9sb2d5Cj4gcHJldmlldyAobm90IGJ1aWx0IGJ5IGRlZmF1bHQpIHRvIGFsbG93IHBlb3BsZSB0
-byB1c2UgaXQuICBJbiB0aGUKPiBjYXNlIG9mIHRoZSBYZW9uLVBoaSBjb2RlIHRoYXQgdXNlcyBw
-ZWVyIHRvIHBlZXIgUENJIHRyYW5zZmVycywgaXQKPiBpcyBub3QgY2xlYXIgdGhlIExpbnV4IGNv
-bW11bml0eSB3b3VsZCBldmVyeSBhY2NlcHQgaXQgdGhlIHdheSBpdCBpcwo+IG5vdy4KCi4uIGFu
-ZCB5ZXQgSSBoYXZlbid0IHJlYWxseSBzZWVuIHRoYXQgZ3JvdXAgaW4gSW50ZWwgcGFydGljaXBh
-dGluZyBpbgp0aGUgcDJwIGRpc2N1c3Npb25zIHRvIGRlc2lnbiBzb21ldGhpbmcgdGhhdCBpcyBt
-ZXJnYWJsZS4uCgpUaGlzIGlzIGV4YWN0bHkgd2h5IHdlIHNvIHN0cm9uZ2x5IGRpc2NvdXJhZ2Ug
-dGhpcyBvdXQgb2YgdHJlZSBzdHVmZiAtCmdldHRpbmcgc29tZXRoaW5nIHVubWVyZ2FibGUgaW4g
-T0ZFRCBpcyAqTk9UKiBKb2IgRG9uZSwgVGltZSB0byBHbwpIb21lLiBEb3duIHRoaXMgcGF0aCBq
-dXN0IGNyZWF0ZXMgYW5vdGhlciBMdXN0cmUgbWVzcy4KCkRhbiBXaWxsaWFtcyA8ZGFuLmoud2ls
-bGlhbXNAaW50ZWwuY29tPiBoYXMgYmVlbiBhY3RpdmVseQpwYXJ0aWNpcGF0aW5nIGluIHRoZSBw
-MnAgZGlzY3Vzc2lvbnMsIHBlcmhhcHMgeW91IGNhbiBhcnJhbmdlIHNvbWUKaW50ZXJuYWwgY29s
-bGFib3JhdGlvbi4uCgpKYXNvbgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fXwpld2cgbWFpbGluZyBsaXN0CmV3Z0BsaXN0cy5vcGVuZmFicmljcy5vcmcKaHR0
-cDovL2xpc3RzLm9wZW5mYWJyaWNzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2V3Zw==
+On Thu, May 04, 2017 at 03:08:39PM +0200, Ursula Braun wrote:
+> 
+> 
+> On 05/04/2017 10:48 AM, hch@lst.de wrote:
+> > On Thu, May 04, 2017 at 11:43:50AM +0300, Sagi Grimberg wrote:
+> >> I would also suggest that you stop exposing the DMA MR for remote
+> >> access (at least by default) and use a proper reg_mr operations with a
+> >> limited lifetime on a properly sized buffer.
+> > 
+> > Yes, exposing the default DMA MR is a _major_ security risk.  As soon
+> > as SMC is enabled this will mean a remote system has full read/write
+> > access to the local systems memory.
+> > 
+> > There ??s a reason why I removed the ib_get_dma_mr function and replaced
+> > it with the IB_PD_UNSAFE_GLOBAL_RKEY key that has _UNSAFE_ in the name
+> > and a very long comment explaining why, and I'm really disappointed that
+> > we got a driver merged that instead of asking on the relevant list on
+> > why a change unexpertong a function it needed happened and instead
+> > tried the hard way to keep a security vulnerarbility alive.
+> > 
+> Thanks for pointing out these problems. We will address them.
+
+So, you've created a huge security hole in the kernel, anyone who
+loads your smc module is vunerable.
+
+What are you going to do *RIGHT NOW* to mitigate this?
+
+Jason
