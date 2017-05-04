@@ -1,100 +1,152 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC iproute2 0/8] RDMA tool
-Date: Thu, 4 May 2017 21:45:31 +0300
-Message-ID: <20170504184531.GE22833@mtr-leonro.local>
-References: <20170504180216.7665-1-leon@kernel.org>
- <1493921453.2692.6.camel@sandisk.com>
- <20170504182542.GD22833@mtr-leonro.local>
- <1493922625.2692.8.camel@sandisk.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [ANNOUNCE] OFED 4.8-rc2 release is available
+Date: Thu, 4 May 2017 14:58:55 -0400
+Message-ID: <f42d15cc-6bf7-8d9c-07e0-0546eb60b90e@redhat.com>
+References: <590096A3.5090107@dev.mellanox.co.il>
+ <20170427070657.GA13585@infradead.org> <20170504084933.GA1359@infradead.org>
+ <9C6B67F36DCAFC479B1CF6A967258A8C7E953FA6@ORSMSX115.amr.corp.intel.com>
+ <20170504145026.GA22388@infradead.org>
+ <1828884A29C6694DAF28B7E6B8A82373AB1199E1@ORSMSX109.amr.corp.intel.com>
+ <e69349c0-02d0-9266-b5aa-247192e5a46c@redhat.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB119B66@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="GMArzDD+OGn24EFp"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1493922625.2692.8.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: "jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org" <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "ariela-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ariela-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============8245276650770386485=="
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB119B66-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Sender: "ewg" <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--===============8245276650770386485==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="SWQTiSPW3BuBtS0LabrvqREGLvP4B4Cad"
 
---GMArzDD+OGn24EFp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--SWQTiSPW3BuBtS0LabrvqREGLvP4B4Cad
+Content-Type: multipart/mixed; boundary="PsIJXb85Of52AfOrI0XwHnAlfI9mv7eJr";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>,
+ linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Message-ID: <f42d15cc-6bf7-8d9c-07e0-0546eb60b90e-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [ewg] [ANNOUNCE] OFED 4.8-rc2 release is available
+References: <590096A3.5090107-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+ <20170427070657.GA13585-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> <20170504084933.GA1359-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+ <9C6B67F36DCAFC479B1CF6A967258A8C7E953FA6-8oqHQFITsIFqS6EAlXoojrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+ <20170504145026.GA22388-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+ <1828884A29C6694DAF28B7E6B8A82373AB1199E1-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+ <e69349c0-02d0-9266-b5aa-247192e5a46c-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <1828884A29C6694DAF28B7E6B8A82373AB119B66-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB119B66-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 
-On Thu, May 04, 2017 at 06:30:27PM +0000, Bart Van Assche wrote:
-> On Thu, 2017-05-04 at 21:25 +0300, Leon Romanovsky wrote:
-> > On Thu, May 04, 2017 at 06:10:54PM +0000, Bart Van Assche wrote:
-> > > On Thu, 2017-05-04 at 21:02 +0300, Leon Romanovsky wrote:
-> > > > Following our discussion both in mailing list [1] and at the LPC 2016 [2],
-> > > > we would like to propose this RDMA tool to be part of iproute2 package
-> > > > and finally improve this situation.
-> > >
-> > > Hello Leon,
-> > >
-> > > Although I really appreciate your work: can you clarify why you would like to
-> > > add *RDMA* functionality to an *IP routing* tool? I haven't found any motivation
-> > > for adding RDMA functionality to iproute2 in [1].
-> >
-> > We are planning to reuse the same infrastructure provided by iproute2,
-> > like netlink parsing, access to distributions, same CLI and same standards.
-> >
-> > Right now, RDMA is already tightened to netdev: iWARP, RoCE, IPoIB, HFI-VNIC.
-> > Many drivers (mlx, qed, i40, cxgb) are sharing code between net and
-> > RDMA.
-> >
-> > I do expect that iproute2 will be installed on every machine with any
-> > type of connection, including IB and OPA.
-> >
-> > So I think that it is enough to be part of that suite and don't invent
-> > our own for one specific tool.
->
-> Hello Leon,
->
-> Sorry but to me that sounds like a weak argument for including RDMA functionality
-> in iproute2. There is already a library for communication over netlink sockets,
-> namely libnl. Is there functionality that is in iproute2 but not in libnl and
-> that is needed for the new tool? If so, have you considered to create a new
-> library for that functionality?
+--PsIJXb85Of52AfOrI0XwHnAlfI9mv7eJr
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-It is not hard to create new tool, the hardest part is to ensure that it is
-part of the distributions. Did you count how many months we are trying to
-add rdma-core to debian?
+[linux-rdma@ was accidentally dropped on my email, so readding it on
+this response]
 
-I have enough headache with that and don't want another one.
+On 5/4/2017 2:44 PM, Hefty, Sean wrote:
+>>> OFED is a software product of OFA, not Linux.  OFA can put anything
+>>> that they want in it.  Why do you even care?  It's no different than
+>>> Intel or Mellanox or any other company shipping out of tree
+>>> software.
+>>
+>> The primary answer to your question depends on whether or not the
+>> software will ever be upstreamed.  If it will, then it really should
+>> go
+>> there first and not later, and the reason is well exemplified by what
+>> happened with XRC where the version that landed in OFED and the
+>> version
+>> that landed in upstream were two totally different things, and users
+>> had
+>> to go back and fix up all their code because of the difference once it=
 
-Do you have situation in mind where you will have RDMA device without
-iproute2 installed?
+>> finally did land upstream.  It's not nice to put users in that
+>> position
+>> again, and this does sound like it might end up going down that exact
+>> road since upstream is pursuing ways of doing peer to peer PCI
+>> operations and such without any input from the Xeon Phi folks.
+>=20
+> I'm not defending whatever business decisions any organization (includi=
+ng a multi-company non-profit like OFA) wants to make wrt their software =
+distributions.  I'm claiming that that's their decision.
+>=20
 
-Thanks
+I'm not sure I agree with that position.  A company has the right to
+decide for themselves what to do.  An organization like the OFA is
+different, in that it is based upon a collective agreement entered into
+by multiple parties with certain specific stated intents and goals
+written out in bylaws (although we all know the OFA is already in
+violation of those at the moment, let's just assume they aren't for the
+purposes of this conversation).  If the organization then takes to
+violating those bylaws, it essentially becomes in breach of contract to
+itself and all members that originally agreed to those bylaws to my lay
+persons legal mind.  I would say that does give people (at a minimum,
+any member of the organization who entered into this agreement under
+different pretenses, but possibly also to non-member entities affected
+by the actions of the organization) grounds to complain.
 
->
-> Thanks,
->
-> Bart.
+But all that aside, the OFA at least has a pretense of wanting to get
+along with the upstream linux community.  As long as they want to
+preserve that relationship, then they should listen when the community
+has something to say.  It might well be their decision, but the
+ramifications of that decision might sabotage their other interests.
 
---GMArzDD+OGn24EFp
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
+D
+
+
+--PsIJXb85Of52AfOrI0XwHnAlfI9mv7eJr--
+
+--SWQTiSPW3BuBtS0LabrvqREGLvP4B4Cad
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkLdssACgkQ5GN7iDZy
-WKfZtA/+KVhmZtieObVxZhm7rjMtXoxtLbtSbqRCX5EIri54RK5XVDMYYjNyoqrK
-6bnoEvA0Z0PLCqDesyhqJGWkbJ7ZYlfGhR1jB3k0B6pKv+zqCdAVR3B+UQcZEqly
-+h7FO1B8FdAbC8oKufDJPQuZzmj0NO6S9PG6OBM9yxSc94x8ZY+gAI4ybcekXvVL
-+ncP4YAxjLqzL8BENh/cewzfPDEPUmSi1znHI2FyP2k7n8HSuiof2faTU1+tptkI
-sqZTLqrGwAITL9kp344TzMDvO0OPysEh6kEkiIX4x4LgTza8HSx2IxvRBnU31Rns
-kKyBmm4E4fz5qfxMR2D3lEHB0QsxTItqq9EWvUhgo/IFtG7L32HiRYmTiCrTDP71
-lYynOdqPlPT0Y7CHL9VlTlF+gRgoVT2kZi/olCfO1rKdTMlg53tnU/pAs8YBOy3Y
-9eaVMRptxKD6lbvA2qaMYBunB5EI0bemwCCr5k7jvySQdOWuZmOcPkvxhpl6Gbgi
-EI+4JvQTAFbd+1/9VuWjoE+gdutQEuNDeGOIWQAncRtqRJt2aiE/N+7GyJniEhmI
-HC9bdNOhMGla2ssBfERJGbdXDHUXH9g1Z0umT/Ye8VQjHKeL9aMsKjsirinwF/7x
-cwtxNS28Nb2BYyoaRWdKHH08tWnDRmUX3y+GEMeGs7jnWSTKRP0=
-=f6hf
+iQIcBAEBCAAGBQJZC3nvAAoJELgmozMOVy/dPFsQAL3VDWmVnH1nAs6izcnnPu6A
+edVYXlgs7wpA5WmuV8ZTfwLobfDp6qa95jvl+xDvcQbHX6C0ZyPTYuZwhaWK8rKy
+XyIho/5mPCmn8ekshDSgsG7DY60WBf2vgs/O4BMO4fSFgkZa8maxjUqP6fId8bfA
+s7eiGuKGdQo11RyODh8Cgvts7cc4uPGK5OnpvjcmIIB3ZsKU7dzm6d3CRVEh5Xy0
+sMStlp4yJ+MX+wq6CFn3zqZxK3RJGrJxIyJbKmf0MQHb96A65WTHwJRNH93yL3h0
+NQxPmFS7eQSWAD35xjPE1H/Z4oBMbiut/jsmBfgljs5KCDYsdR3ssdwpi1BPJQpx
+0+R7Y87UnnnHmcRpv31+fpBGlXvr0hGxC/q1UcSVuHDS3SA9HQQW/sR5HDFBsL16
+hXDuvyocqMQnLXOsjtvaoKKbeynwmqsNOQyVgo8RT6w3fXBUzGPJ8MVIILAI12e9
+onVhjxfb6HK2/yILJ63zeGldjVDcI2hXmXseGi4AjVBnU3Dh3GDR9OlPDi6wvUYw
+ttJFPn3CmUjxejJN10SSSbbsXB9lXn3AibfKfQqF86Y9ZLwKNLUCzOhds8PQJIQX
+F/MlYqx7u+y0SvKDOL2R8Fyc3w0rAgGD2yyoPJkIw+F5hRSDV0Mxvtu2bgb7SYHd
+FwRwUr1sS3pGDY8D3oY0
+=b1QF
 -----END PGP SIGNATURE-----
 
---GMArzDD+OGn24EFp--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--SWQTiSPW3BuBtS0LabrvqREGLvP4B4Cad--
+
+--===============8245276650770386485==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZXdnIG1haWxp
+bmcgbGlzdApld2dAbGlzdHMub3BlbmZhYnJpY3Mub3JnCmh0dHA6Ly9saXN0cy5vcGVuZmFicmlj
+cy5vcmcvbWFpbG1hbi9saXN0aW5mby9ld2c=
+
+--===============8245276650770386485==--
