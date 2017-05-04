@@ -1,56 +1,30 @@
-From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [PATCH v6 0/9] SELinux support for Infiniband RDMA
-Date: Thu, 4 May 2017 11:51:37 -0400
-Message-ID: <CAHC9VhRE+bkPAnFgqOOQQQZwA8U0tSWHdeM5+LiadXfN63kS=g@mail.gmail.com>
-References: <1479910651-43246-1-git-send-email-danielj@mellanox.com>
- <CAHC9VhSB6AORJf_8cBGt-AynMsEh3snKU5SpsmNXoy9hDSrGaA@mail.gmail.com> <VI1PR05MB167880A4D79F8FC3F8C740A9C4160@VI1PR05MB1678.eurprd05.prod.outlook.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [ANNOUNCE] OFED 4.8-rc2 release is available
+Date: Thu, 4 May 2017 17:19:47 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB1199E1@ORSMSX109.amr.corp.intel.com>
+References: <590096A3.5090107@dev.mellanox.co.il>
+ <20170427070657.GA13585@infradead.org> <20170504084933.GA1359@infradead.org>
+ <9C6B67F36DCAFC479B1CF6A967258A8C7E953FA6@ORSMSX115.amr.corp.intel.com>
+ <20170504145026.GA22388@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <VI1PR05MB167880A4D79F8FC3F8C740A9C4160@VI1PR05MB1678.eurprd05.prod.outlook.com>
-Sender: owner-linux-security-module@vger.kernel.org
-To: Daniel Jurgens <danielj@mellanox.com>
-Cc: "chrisw@sous-sol.org" <chrisw@sous-sol.org>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, "dledford@redhat.com" <dledford@redhat.com>, "sean.hefty@intel.com" <sean.hefty@intel.com>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "selinux@tycho.nsa.gov" <selinux@tycho.nsa.gov>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yevgeny Petrilin <yevgenyp@mellanox.com>
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170504145026.GA22388-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 3, 2017 at 3:45 PM, Daniel Jurgens <danielj@mellanox.com> wrote=
-:
-> On 5/3/2017 9:41 AM, Paul Moore wrote:
->> On Wed, Nov 23, 2016 at 9:17 AM, Dan Jurgens <danielj@mellanox.com> wrot=
-e:
->>> From: Daniel Jurgens <danielj@mellanox.com>
->>>
->>> Infiniband applications access HW from user-space -- traffic is generat=
-ed
->>> directly by HW, bypassing the kernel. Consequently, Infiniband Partitio=
-ns,
->>> which are associated directly with HW transport endpoints, are a natura=
-l
->>> choice for enforcing granular mandatory access control for Infiniband. =
-QPs may
->>> only send or receives packets tagged with the corresponding partition k=
-ey
->>> (PKey). The PKey is not a cryptographic key; it's a 16 bit number ident=
-ifying
->>> the partition ...
->>>
->> Hi Dan,
->>
->> I haven't heard anything from you in a while, where do things stand
->> with this effort?  Unless I missed them, I believe we are still
->> waiting on the userspace, SELinux reference policy, and
->> selinux-testsuite patches.
->>
-> Hi Paul,
->
->     I got distracted for a while.  I've just rebased the kernel and users=
-pace.  I'll do some testing and submit the userspace code in the next coupl=
-e days.  I still have to write the selinux-testsuite tests, I'll work on th=
-ose concurrently with the userspace review cycle.
+> So in plain words: Intel abuses their influence in OFED to ship crap
+> that has absolutely no chance to get upstream in the current form
+> instead of working with the community to improve infrastructure.
+> 
+> That's exactly what I guessed, thanks for confirming.
 
-Great, thanks for the update.  We'll look forward to the patches.
-
---=20
-paul moore
-www.paul-moore.com
+OFED is a software product of OFA, not Linux.  OFA can put anything that they want in it.  Why do you even care?  It's no different than Intel or Mellanox or any other company shipping out of tree software.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
