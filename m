@@ -1,54 +1,46 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [infiniband-core] question about arguments position
-Date: Thu, 4 May 2017 21:52:43 +0000
-Message-ID: <DB6PR0502MB2999ABEFF47AEBF944F8B65BD1EA0@DB6PR0502MB2999.eurprd05.prod.outlook.com>
-References: <20170504124209.Horde.B4I2tu9lZ9_KMd07dtjWcl2@gator4166.hostgator.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 00/15] IB/hfi1: hfi1 driver patches for-next
+Date: Thu, 04 May 2017 19:45:08 -0400
+Message-ID: <1493941508.3041.234.camel@redhat.com>
+References: <20170504120126.32747.45131.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170504124209.Horde.B4I2tu9lZ9_KMd07dtjWcl2-fU+oOHjIBR1LoJgMfuPDHBfZZeVsHd8q@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20170504120126.32747.45131.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gustavo A. R. Silva" <garsilva-L1vi/lXTdts+Va1GwOuvDg@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagi-TmH2Wj2nsNJBDLzU/O5InQ@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tymoteusz Kielan <tymoteusz.kielan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGksDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtcmRtYS1v
-d25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLQ0KPiBvd25lckB2Z2VyLmtl
-cm5lbC5vcmddIE9uIEJlaGFsZiBPZiBHdXN0YXZvIEEuIFIuIFNpbHZhDQo+IFNlbnQ6IFRodXJz
-ZGF5LCBNYXkgNCwgMjAxNyAxMjo0MiBQTQ0KPiBUbzogRG91ZyBMZWRmb3JkIDxkbGVkZm9yZEBy
-ZWRoYXQuY29tPjsgU2VhbiBIZWZ0eQ0KPiA8c2Vhbi5oZWZ0eUBpbnRlbC5jb20+OyBIYWwgUm9z
-ZW5zdG9jayA8aGFsLnJvc2Vuc3RvY2tAZ21haWwuY29tPjsgU2FnaQ0KPiBHcmltYmVyZyA8c2Fn
-aUByaW1iZXJnLm1lPjsgQmFydCBWYW4gQXNzY2hlDQo+IDxiYXJ0LnZhbmFzc2NoZUBzYW5kaXNr
-LmNvbT47IFN0ZXZlIFdpc2UgPHN3aXNlQG9wZW5ncmlkY29tcHV0aW5nLmNvbT47DQo+IExlb24g
-Um9tYW5vdnNreSA8bGVvbnJvQG1lbGxhbm94LmNvbT47IFlpc2hhaSBIYWRhcw0KPiA8eWlzaGFp
-aEBtZWxsYW5veC5jb20+OyBNb25pIFNob3VhIDxtb25pc0BtZWxsYW5veC5jb20+DQo+IENjOiBs
-aW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZw0K
-PiBTdWJqZWN0OiBbaW5maW5pYmFuZC1jb3JlXSBxdWVzdGlvbiBhYm91dCBhcmd1bWVudHMgcG9z
-aXRpb24NCj4gDQo+IA0KPiBIZWxsbyBldmVyeWJvZHksDQo+IA0KPiBXaGlsZSBsb29raW5nIGlu
-dG8gQ292ZXJpdHkgSUQgMTM1MTA0NyBJIHJhbiBpbnRvIHRoZSBmb2xsb3dpbmcgcGllY2Ugb2Yg
-Y29kZSBhdA0KPiBkcml2ZXJzL2luZmluaWJhbmQvY29yZS92ZXJicy5jOjQ5NjoNCj4gDQo+IHJl
-dCA9IHJkbWFfYWRkcl9maW5kX2wyX2V0aF9ieV9ncmgoJmRnaWQsICZzZ2lkLA0KPiAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBhaF9hdHRyLT5kbWFjLA0KPiAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICB3Yy0+d2NfZmxhZ3MgJiBJQl9XQ19XSVRIX1ZMQU4g
-Pw0KPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBOVUxMIDogJnZsYW5faWQs
-DQo+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICZpZl9pbmRleCwgJmhvcGxp
-bWl0KTsNCj4gDQo+IA0KPiBUaGUgaXNzdWUgaGVyZSBpcyB0aGF0IHRoZSBwb3NpdGlvbiBvZiBh
-cmd1bWVudHMgaW4gdGhlIGNhbGwgdG8NCj4gcmRtYV9hZGRyX2ZpbmRfbDJfZXRoX2J5X2dyaCgp
-IGZ1bmN0aW9uIGRvIG5vdCBtYXRjaCB0aGUgb3JkZXIgb2YgdGhlDQo+IHBhcmFtZXRlcnM6DQo+
-IA0KPiAmZGdpZCBpcyBwYXNzZWQgdG8gc2dpZA0KPiAmc2dpZCBpcyBwYXNzZWQgdG8gZGdpZA0K
-PiANCj4gVGhpcyBpcyB0aGUgZnVuY3Rpb24gcHJvdG90eXBlOg0KPiANCj4gaW50IHJkbWFfYWRk
-cl9maW5kX2wyX2V0aF9ieV9ncmgoY29uc3QgdW5pb24gaWJfZ2lkICpzZ2lkLA0KPiAJCQkJIGNv
-bnN0IHVuaW9uIGliX2dpZCAqZGdpZCwNCj4gCQkJCSB1OCAqZG1hYywgdTE2ICp2bGFuX2lkLCBp
-bnQgKmlmX2luZGV4LA0KPiAJCQkJIGludCAqaG9wbGltaXQpDQo+IA0KPiBNeSBxdWVzdGlvbiBo
-ZXJlIGlzIGlmIHRoaXMgaXMgaW50ZW50aW9uYWw/DQo+IA0KWWVzLiBpYl9pbml0X2FoX2Zyb21f
-d2MoKSBjcmVhdGVzIGFoIGZyb20gdGhlIGluY29taW5nIHBhY2tldC4NCkluY29taW5nIHBhY2tl
-dCBoYXMgZGdpZCBvZiB0aGUgcmVjZWl2ZXIgbm9kZSBvbiB3aGljaCB0aGlzIGNvZGUgaXMgZ2V0
-dGluZyBleGVjdXRlZA0KQW5kIHNnaWQgY29udGFpbnMgdGhlIEdJRCBvZiB0aGUgc2VuZGVyLg0K
-DQpXaGVuIHJlc29sdmluZyBtYWMgYWRkcmVzcyBvZiBkZXN0aW5hdGlvbiwgeW91IHVzZSBhcnJp
-dmVkIGRnaWQgYXMgc2dpZC4NCkFuZCB1c2Ugc2dpZCBhcyBkZ2lkIGJlY2F1c2Ugc2dpZCBjb250
-YWlucyBkZXN0aW5hdGlvbnMgR0lEIHdob20gdG8gcmVzcG9uZCB0by4NCg==
+On Thu, 2017-05-04 at 05:13 -0700, Dennis Dalessandro wrote:
+> Doug,
+> 
+> This is a respin of [1] there were some merge problems with the last
+> 5 in
+> this series, thanks to Leon for notifciing.
+> 
+> Included are some contex init/usage fixes, a couple performance
+> tweaks, and some
+> general code clean up. This is all confined to the hfi1 driver.
+> 
+> I'm OK applying this to next vs the current merge window. We might
+> want to pluck
+> out patches 6 and 7 for -rc. They are marked as stable and I think
+> would meet
+> -rc criteria.
+
+I think at least 14/15 should be -rc worthy too unless I read the
+problem description wrong.  In any case, I took the series.  I'm going
+to wait for 0day and linux-next before submitting to Linus (probably
+send it Monday or Tuesday of next week).
+
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+   
+Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
