@@ -1,89 +1,55 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 05/15] IB/hfi1: Adjust default eager_buffer_size to 8MB
-Date: Thu, 4 May 2017 15:42:32 +0300
-Message-ID: <20170504124232.GT22833@mtr-leonro.local>
-References: <20170504120126.32747.45131.stgit@scvm10.sc.intel.com>
- <20170504121421.32747.27378.stgit@scvm10.sc.intel.com>
+From: Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
+Subject: Re: [PATCH v4, under testing] nvme-rdma: support devices with queue
+ size < 32
+Date: Thu, 4 May 2017 14:50:00 +0200 (CEST)
+Message-ID: <310709514.10440651.1493902200194.JavaMail.zimbra@kalray.eu>
+References: <79901165.5342369.1493805915415.JavaMail.zimbra@kalray.eu> <823aa3f0-685f-4569-11d6-238cc4f0b126@grimberg.me> <780938034.8003164.1493824767084.JavaMail.zimbra@kalray.eu> <20170503155316.GA14334@obsidianresearch.com> <1493827096.3901.4.camel@sandisk.com> <77ada146-67eb-9dce-d252-6ac630c9a1e8@grimberg.me> <20170503162708.GO22833@mtr-leonro.local> <1493829456.3901.13.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="Tu8ztk+XgTAiG9Id"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170504121421.32747.27378.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <1493829456.3901.13.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tymoteusz Kielan <tymoteusz.kielan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, samuel jones <samuel.jones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, keith busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+> On Wed, 2017-05-03 at 19:27 +0300, Leon Romanovsky wrote:
+>> On Wed, May 03, 2017 at 07:01:14PM +0300, Sagi Grimberg wrote:
+>> > > As far as I know the compiler only does that for compile-time consta=
+nts. In
+>> > > this case the divisor (max(queue_size / 2, 1)) is not a compile-time=
+ constant.
+>> >=20
+>> > We could theoretically do a (sig_count & max(queue_size / 2, 1)) but
+>> > that would only do well with power of 2 sized queues...
+>>=20
+>> IMHO, It is not-so-big-deal limitation.
+>=20
+> Hello Marta, Sagi and Leon,
+>=20
+> How about changing nvme_rdma_init_sig_count() such that it always returns
+> a power of two? The "+ 1" in the code below makes sure that the argument =
+of
+> ilog2() is larger than zero even if queue_size =3D=3D 1. I'm not sure whe=
+ther
+> the time needed to compute ilog2() would make it necessary to cache the
+> nvme_rdma_init_sig_count() return value.
+>=20
+> static inline int nvme_rdma_init_sig_count(int queue_size)
+> {
+>        /* Return the largest power of two that is not above half of (queu=
+e size + 1) */
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0return 1 << ilog2((queue_size +=
+ 1) / 2);
+> }
+>=20
+> Bart.
 
---Tu8ztk+XgTAiG9Id
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This looks like a good idea to me. Then the division can change into
+an AND. I'll come back with another version soon.
 
-On Thu, May 04, 2017 at 05:14:22AM -0700, Dennis Dalessandro wrote:
-> From: Tymoteusz Kielan <tymoteusz.kielan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->
-> Performance analysis shows benefits for PSM2 in increasing eager buffer
-> size from 2MB to 8MB. The change has neutral impact on verbs.
-> Make change to the module parameter's default value. Allocation
-> ring down was verified to work with the larger buffer size.
->
-> Reviewed-by: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Tymoteusz Kielan <tymoteusz.kielan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
-
-Impressive list :)
-
-
->  drivers/infiniband/hw/hfi1/init.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-> index 71b0204..c573f06 100644
-> --- a/drivers/infiniband/hw/hfi1/init.c
-> +++ b/drivers/infiniband/hw/hfi1/init.c
-> @@ -102,9 +102,9 @@
->  module_param_named(rcvarr_split, hfi1_rcvarr_split, uint, S_IRUGO);
->  MODULE_PARM_DESC(rcvarr_split, "Percent of context's RcvArray entries used for Eager buffers");
->
-> -static uint eager_buffer_size = (2 << 20); /* 2MB */
-> +static uint eager_buffer_size = (8 << 20); /* 8MB */
->  module_param(eager_buffer_size, uint, S_IRUGO);
-> -MODULE_PARM_DESC(eager_buffer_size, "Size of the eager buffers, default: 2MB");
-> +MODULE_PARM_DESC(eager_buffer_size, "Size of the eager buffers, default: 8MB");
->
->  static uint rcvhdrcnt = 2048; /* 2x the max eager buffer count */
->  module_param_named(rcvhdrcnt, rcvhdrcnt, uint, S_IRUGO);
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---Tu8ztk+XgTAiG9Id
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkLIbgACgkQ5GN7iDZy
-WKduMRAAyXD+bCnzlX67pQ4G6V6gaQnGrVDTKt8sxSG10JzEYDsodWP22UBzKTLs
-9qAwtWxy5l74w2dBt2V7wS8Zow220TkG7FUgBt4z9bEzZkC4iEfhozuG5dXtfhjV
-wOkDonqsf7tR0B4UWxTFBmQhT8lN53fNtuHmdDJ0i2cJ7efEPajhMzLT+UdpI6hc
-o2Vs+8dkk2ZemJZjpkJGKd3l5rCFxPrR7R7lxlVGD7qr77fThiJK+fp2oM+RG+Fs
-WKTdy1J1RViBpbbNafv41mlMnZ0jePdbhK2jImStbJfxKn35I3u6VqpAc/CE8+zc
-tjKZbvqntw+8+HWRuknGD/KJipuT0xU924SxoONeh03BJ+HqbtYoDDrTgSg2A9OP
-ZxFxk6FgIcJTKhEOWzhLu4mHxDsMra/mSg4SWh//Lm3yJN+kHHYvzuiTBUQn9C0O
-mbr//Tx4l1fiiw9Naz4LYGMO7nLn1EK9smeuyVXe8aZ33VXoHYz27yfReJwlZ1Da
-w2nPr0RkI0q649at/nnCGOimOOhCN8i928bicnou8radqdcStMWseKXHBNAs7lAK
-myyF53jzPHF/S8eU4byx5V8dsFhMdA8eM9vhkaHgK5ryCG2I0/+NpXGME//lEDS1
-fNlhLzy3+/b8ObHxAq5RGEQoRdtHUotXNFEJHXzUFKHFUIYwwbs=
-=s+XS
------END PGP SIGNATURE-----
-
---Tu8ztk+XgTAiG9Id--
+Marta
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
