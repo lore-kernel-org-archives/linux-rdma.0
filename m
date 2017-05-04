@@ -1,38 +1,40 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH] rxe: expose num_possible_cpus() cnum_comp_vectors
-Date: Thu, 4 May 2017 17:26:19 +0300
-Message-ID: <eeea953a-1508-d0c9-66a6-1b73e03ea80a@grimberg.me>
-References: <1493904187-13686-1-git-send-email-sagi@grimberg.me>
- <CAG9sBKNBXkhJ9viPJ7ZMD8fEdUJ9i_c4FTVg27=GLL2SyBSM2g@mail.gmail.com>
- <5c52626d-3347-173e-a9f5-c1c45cafb508@grimberg.me>
- <CAG9sBKOc6EK-qrbvFa6x7QM5ZFEvJmUXfuhRkbXNAJpi+FT_Kg@mail.gmail.com>
+From: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [ANNOUNCE] OFED 4.8-rc2 release is available
+Date: Thu, 4 May 2017 14:28:26 +0000
+Message-ID: <9C6B67F36DCAFC479B1CF6A967258A8C7E953FA6@ORSMSX115.amr.corp.intel.com>
+References: <590096A3.5090107@dev.mellanox.co.il>
+ <20170427070657.GA13585@infradead.org> <20170504084933.GA1359@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG9sBKOc6EK-qrbvFa6x7QM5ZFEvJmUXfuhRkbXNAJpi+FT_Kg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+In-Reply-To: <20170504084933.GA1359-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Sender: "ewg" <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
->> Because that can change on the fly and should not effect on
->> the number of logical completion vectors rxe exposes.
->>
->> --
-> BTW, what will be the affect of this if rxe driver doesn't use the
-> comp_vector parameter in create_cq()?
-
-Some ULPs won't create more queue-pairs than what the rdma device
-supports (per multi-queue session). One example for that exists in a
-patch set I submitted for exposing to ULPs IRQ affinity mappings
-through the RDMA core so they in turn can make smart assignment
-decisions for queue<->cpu mappings in a multi-queue environment.
-
-I think its safe to assume that any modern HCA drivers supports a fair
-share of completion vectors.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Q2hyaXN0b3BoIHdyb3RlLAo+cGluZz8gIEhvdyBkb2VzIE9GRUQgbWFuYWdlIHRvIGluY2x1ZGUg
+aGFyZHdhcmUgc3VwcG9ydCAoZm9yIGEgbG9uZyB0aW1lCj5hcHBhcmVudGx5ISkgdGhhdCdzIG5l
+dmVyIHNlZW4gYW55IHVwc3RyZWFtIGV4cG9zdXJlPwoKT0ZFRCBhbGxvd3MgY29kZSB0aGF0IGlz
+IG5vdCB1cHN0cmVhbSB0byBiZSBpbmNsdWRlZCBhcyB0ZWNobm9sb2d5IHByZXZpZXcgKG5vdCBi
+dWlsdCBieSBkZWZhdWx0KSB0byBhbGxvdyBwZW9wbGUgdG8gdXNlIGl0LiAKSW4gdGhlIGNhc2Ug
+b2YgdGhlIFhlb24tUGhpIGNvZGUgdGhhdCB1c2VzIHBlZXIgdG8gcGVlciBQQ0kgdHJhbnNmZXJz
+LCBpdCBpcyBub3QgY2xlYXIgdGhlIExpbnV4IGNvbW11bml0eSB3b3VsZCBldmVyeSBhY2NlcHQg
+aXQgdGhlIHdheSBpdCBpcyBub3cuCkkgc2F3IG9uIHRoZSBsaXN0IGEgeWVhciBvciBzbyBiYWNr
+IHNvbWUgcGF0Y2hlcyB0aGF0IE1lbGxhbm94IHN1Ym1pdHRlZCB0byBhbGxvdyBzdXBwb3J0IGZv
+ciBQQ0kgcGVlciB0byBwZWVyIHRyYW5zZmVycyBsaWtlIHdoYXQgdGhlIFhlb24gUGhpIGNvZGUK
+bmVlZHMsIGFuZCB0aGV5IGdvdCBwdWtlZCBhbGwgb3Zlci4gU28gdW50aWwgdGhhdCBnZXRzIGFs
+bCB3b3JrZWQgb3V0IGluIExpbnV4LCBJIHN1c3BlY3QgdGhpcyBjb2RlIHdpbGwgaGF2ZSB0byBz
+dGF5IG91dCBvZiB0cmVlLiAKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KZXdnIG1haWxpbmcgbGlzdApld2dAbGlzdHMub3BlbmZhYnJpY3Mub3JnCmh0dHA6
+Ly9saXN0cy5vcGVuZmFicmljcy5vcmcvbWFpbG1hbi9saXN0aW5mby9ld2c=
