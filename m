@@ -1,41 +1,54 @@
-From: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [ewg] [ANNOUNCE] OFED 4.8-rc2 release is available
-Date: Thu, 4 May 2017 20:54:13 +0000
-Message-ID: <9C6B67F36DCAFC479B1CF6A967258A8C7E95458A@ORSMSX115.amr.corp.intel.com>
-References: <590096A3.5090107@dev.mellanox.co.il>
- <20170427070657.GA13585@infradead.org> <20170504084933.GA1359@infradead.org>
- <9C6B67F36DCAFC479B1CF6A967258A8C7E953FA6@ORSMSX115.amr.corp.intel.com>
- <20170504153003.GA854@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB1199FA@ORSMSX109.amr.corp.intel.com>
- <75ebb17e-cec3-6605-2a2f-d2533e95a5ec@redhat.com>
- <9C6B67F36DCAFC479B1CF6A967258A8C7E95451A@ORSMSX115.amr.corp.intel.com>
- <867b51f9-ad2f-6e8b-6aa8-b5b8fb119931@redhat.com>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [infiniband-core] question about arguments position
+Date: Thu, 4 May 2017 21:52:43 +0000
+Message-ID: <DB6PR0502MB2999ABEFF47AEBF944F8B65BD1EA0@DB6PR0502MB2999.eurprd05.prod.outlook.com>
+References: <20170504124209.Horde.B4I2tu9lZ9_KMd07dtjWcl2@gator4166.hostgator.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <867b51f9-ad2f-6e8b-6aa8-b5b8fb119931-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170504124209.Horde.B4I2tu9lZ9_KMd07dtjWcl2-fU+oOHjIBR1LoJgMfuPDHBfZZeVsHd8q@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: "Gustavo A. R. Silva" <garsilva-L1vi/lXTdts+Va1GwOuvDg@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagi-TmH2Wj2nsNJBDLzU/O5InQ@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-RG91ZyB3cm90ZSwNCj5JJ20gbm90IHN1cmUgSSB1bmRlcnN0YW5kIHlvdXIgc3RhdGVtZW50IGhl
-cmUgV29vZHkuICBJZiB0aGVyZSdzIG5vIEFQSSwgdGhlbiBob3cgZG8gcGVvcGxlIGV2ZW4gdXNl
-IHRoZSBoYXJkd2FyZT8gIE9yIGFyZSB5b3Ugc2F5aW5nIHRoYXQgdGhlIEFQSSBpcyBpbiB0aGUg
-bGlicmFyeSwgYW5kIHRoYXQgQVBJIGNhbiBiZSBwcmVzZXJ2ZWQgZXZlbiBpZiB0aGUgdW5kZXJs
-eWluZyBkcml2ZXIgPmltcGxlbWVudGF0aW9uIGlzIGNoYW5nZWQgdG8gbWF0Y2ggd2hhdGV2ZXIg
-dXBzdHJlYW0gbWlnaHQgaW1wbGVtZW50IGluc3RlYWQgb2Ygd2hhdCB5b3UgYWxyZWFkeSBoYXZl
-IGltcGxlbWVudGVkPw0KDQpUaGUgY29kZSB0aGF0IGdvZXMgaW50byBPRkVEIGRvZXMgbm90IGlt
-cGxlbWVudCBhbnkgbmV3IEFQSXMgb3IgY2hhbmdlcyB0byBleGlzdGluZyB2ZXJicyBBUElzLiBJ
-dCBpbXBsZW1lbnRzIGRyaXZlcnMgYW5kIHVzZXItc3BhY2UgbGlicmFyaWVzIHRoYXQgcGx1ZyBp
-bnRvIHRoZSB1c2VyIGFuZCBrZXJuZWwgc3BhY2UgY29yZQ0KYW5kIGVtdWxhdGUgdGhlIHN0YW5k
-YXJkIFJETUEgdmVyYnMuIFVzZXJzIHVzZSBpdCB0aGUgc2FtZSB3YXkgdGhleSB1c2UgYW55IFJE
-TUEgZGV2aWNlIGluIE9GRUQsIHRocm91Z2ggbGliaWJ2ZXJicy4gQWx0aG91Z2ggdW5kZXIgdGhl
-IGNvdmVycywgdGhlcmUgaXMgbXVjaCBtb3JlIHRvIGl0IHRoYW4gdGhhdA0KYnV0IGZyb20gdGhl
-IHVzZXIncyBwb2ludCBvZiB2aWV3IGl0IGxvb2tzIGp1c3QgbGlrZSBhbiBIQ0EgdGhhdCBpcyB1
-c2VkIHRocm91Z2ggdGhlIHN0YW5kYXJkIHZlcmJzLiANCg==
+SGksDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtcmRtYS1v
+d25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLQ0KPiBvd25lckB2Z2VyLmtl
+cm5lbC5vcmddIE9uIEJlaGFsZiBPZiBHdXN0YXZvIEEuIFIuIFNpbHZhDQo+IFNlbnQ6IFRodXJz
+ZGF5LCBNYXkgNCwgMjAxNyAxMjo0MiBQTQ0KPiBUbzogRG91ZyBMZWRmb3JkIDxkbGVkZm9yZEBy
+ZWRoYXQuY29tPjsgU2VhbiBIZWZ0eQ0KPiA8c2Vhbi5oZWZ0eUBpbnRlbC5jb20+OyBIYWwgUm9z
+ZW5zdG9jayA8aGFsLnJvc2Vuc3RvY2tAZ21haWwuY29tPjsgU2FnaQ0KPiBHcmltYmVyZyA8c2Fn
+aUByaW1iZXJnLm1lPjsgQmFydCBWYW4gQXNzY2hlDQo+IDxiYXJ0LnZhbmFzc2NoZUBzYW5kaXNr
+LmNvbT47IFN0ZXZlIFdpc2UgPHN3aXNlQG9wZW5ncmlkY29tcHV0aW5nLmNvbT47DQo+IExlb24g
+Um9tYW5vdnNreSA8bGVvbnJvQG1lbGxhbm94LmNvbT47IFlpc2hhaSBIYWRhcw0KPiA8eWlzaGFp
+aEBtZWxsYW5veC5jb20+OyBNb25pIFNob3VhIDxtb25pc0BtZWxsYW5veC5jb20+DQo+IENjOiBs
+aW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZw0K
+PiBTdWJqZWN0OiBbaW5maW5pYmFuZC1jb3JlXSBxdWVzdGlvbiBhYm91dCBhcmd1bWVudHMgcG9z
+aXRpb24NCj4gDQo+IA0KPiBIZWxsbyBldmVyeWJvZHksDQo+IA0KPiBXaGlsZSBsb29raW5nIGlu
+dG8gQ292ZXJpdHkgSUQgMTM1MTA0NyBJIHJhbiBpbnRvIHRoZSBmb2xsb3dpbmcgcGllY2Ugb2Yg
+Y29kZSBhdA0KPiBkcml2ZXJzL2luZmluaWJhbmQvY29yZS92ZXJicy5jOjQ5NjoNCj4gDQo+IHJl
+dCA9IHJkbWFfYWRkcl9maW5kX2wyX2V0aF9ieV9ncmgoJmRnaWQsICZzZ2lkLA0KPiAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBhaF9hdHRyLT5kbWFjLA0KPiAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICB3Yy0+d2NfZmxhZ3MgJiBJQl9XQ19XSVRIX1ZMQU4g
+Pw0KPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBOVUxMIDogJnZsYW5faWQs
+DQo+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICZpZl9pbmRleCwgJmhvcGxp
+bWl0KTsNCj4gDQo+IA0KPiBUaGUgaXNzdWUgaGVyZSBpcyB0aGF0IHRoZSBwb3NpdGlvbiBvZiBh
+cmd1bWVudHMgaW4gdGhlIGNhbGwgdG8NCj4gcmRtYV9hZGRyX2ZpbmRfbDJfZXRoX2J5X2dyaCgp
+IGZ1bmN0aW9uIGRvIG5vdCBtYXRjaCB0aGUgb3JkZXIgb2YgdGhlDQo+IHBhcmFtZXRlcnM6DQo+
+IA0KPiAmZGdpZCBpcyBwYXNzZWQgdG8gc2dpZA0KPiAmc2dpZCBpcyBwYXNzZWQgdG8gZGdpZA0K
+PiANCj4gVGhpcyBpcyB0aGUgZnVuY3Rpb24gcHJvdG90eXBlOg0KPiANCj4gaW50IHJkbWFfYWRk
+cl9maW5kX2wyX2V0aF9ieV9ncmgoY29uc3QgdW5pb24gaWJfZ2lkICpzZ2lkLA0KPiAJCQkJIGNv
+bnN0IHVuaW9uIGliX2dpZCAqZGdpZCwNCj4gCQkJCSB1OCAqZG1hYywgdTE2ICp2bGFuX2lkLCBp
+bnQgKmlmX2luZGV4LA0KPiAJCQkJIGludCAqaG9wbGltaXQpDQo+IA0KPiBNeSBxdWVzdGlvbiBo
+ZXJlIGlzIGlmIHRoaXMgaXMgaW50ZW50aW9uYWw/DQo+IA0KWWVzLiBpYl9pbml0X2FoX2Zyb21f
+d2MoKSBjcmVhdGVzIGFoIGZyb20gdGhlIGluY29taW5nIHBhY2tldC4NCkluY29taW5nIHBhY2tl
+dCBoYXMgZGdpZCBvZiB0aGUgcmVjZWl2ZXIgbm9kZSBvbiB3aGljaCB0aGlzIGNvZGUgaXMgZ2V0
+dGluZyBleGVjdXRlZA0KQW5kIHNnaWQgY29udGFpbnMgdGhlIEdJRCBvZiB0aGUgc2VuZGVyLg0K
+DQpXaGVuIHJlc29sdmluZyBtYWMgYWRkcmVzcyBvZiBkZXN0aW5hdGlvbiwgeW91IHVzZSBhcnJp
+dmVkIGRnaWQgYXMgc2dpZC4NCkFuZCB1c2Ugc2dpZCBhcyBkZ2lkIGJlY2F1c2Ugc2dpZCBjb250
+YWlucyBkZXN0aW5hdGlvbnMgR0lEIHdob20gdG8gcmVzcG9uZCB0by4NCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
