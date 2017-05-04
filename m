@@ -1,45 +1,48 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [ewg] [ANNOUNCE] OFED 4.8-rc2 release is available
-Date: Thu, 4 May 2017 11:41:05 -0600
-Message-ID: <20170504174105.GB20449@obsidianresearch.com>
-References: <590096A3.5090107@dev.mellanox.co.il>
- <20170427070657.GA13585@infradead.org>
- <20170504084933.GA1359@infradead.org>
- <9C6B67F36DCAFC479B1CF6A967258A8C7E953FA6@ORSMSX115.amr.corp.intel.com>
- <20170504153003.GA854@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB1199FA@ORSMSX109.amr.corp.intel.com>
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [infiniband-core] question about arguments position
+Date: Thu, 04 May 2017 12:42:09 -0500
+Message-ID: <20170504124209.Horde.B4I2tu9lZ9_KMd07dtjWcl2@gator4166.hostgator.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed; DelSp=Yes
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB1199FA-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sagi Grimberg <sagi@rimberg.me>, Bart Van Assche <bart.vanassche@sandisk.com>, Steve Wise <swise@opengridcomputing.com>, Leon Romanovsky <leonro@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Moni Shoua <monis@mellanox.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 04, 2017 at 05:34:35PM +0000, Hefty, Sean wrote:
-> > This is exactly why we so strongly discourage this out of tree stuff -
-> > getting something unmergable in OFED is *NOT* Job Done, Time to Go
-> > Home. Down this path just creates another Lustre mess.
-> 
-> Actually, this may be 'job done'.  No individual or company is
-> obligated to provide upstream software for any of their hardware.
-> OFA decides what to ship in their software products, not the greater
-> linux kernel community.
 
-The founding imputus for OFA was to get this RDMA code upstream, so
-OFA should not be spending their resources supporting non-upstream
-works.
+Hello everybody,
 
-> Individual companies can decide if out of tree maintenance is more
-> cost effective than trying to merge code upstream.  Because that's
-> what this ultimately comes down to.
+While looking into Coverity ID 1351047 I ran into the following piece  
+of code at drivers/infiniband/core/verbs.c:496:
 
-Sure. Outside the OFA and its works please.
+ret = rdma_addr_find_l2_eth_by_grh(&dgid, &sgid,
+                                    ah_attr->dmac,
+                                    wc->wc_flags & IB_WC_WITH_VLAN ?
+                                    NULL : &vlan_id,
+                                    &if_index, &hoplimit);
 
-Jason
+
+The issue here is that the position of arguments in the call to  
+rdma_addr_find_l2_eth_by_grh() function do not match the order of the  
+parameters:
+
+&dgid is passed to sgid
+&sgid is passed to dgid
+
+This is the function prototype:
+
+int rdma_addr_find_l2_eth_by_grh(const union ib_gid *sgid,
+				 const union ib_gid *dgid,
+				 u8 *dmac, u16 *vlan_id, int *if_index,
+				 int *hoplimit)
+
+My question here is if this is intentional?
+
+In case it is not, I will send a patch to fix it. But first it would  
+be great to hear any comment about it.
+
+Thank you
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Gustavo A. R. Silva
