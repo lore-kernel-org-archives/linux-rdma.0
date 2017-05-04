@@ -1,110 +1,70 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [RFC iproute2 5/8] rdma: Add memory object
-Date: Thu,  4 May 2017 21:02:13 +0300
-Message-ID: <20170504180216.7665-6-leon@kernel.org>
-References: <20170504180216.7665-1-leon@kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170504180216.7665-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Stephen Hemminger <stephen@networkplumber.org>, Doug Ledford <dledford@redhat.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, Jiri Pirko <jiri@mellanox.com>, Ariel Almog <ariela@mellanox.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Ram Amrani <ram.amrani@cavium.com>, Bart Van Assche <Bart.VanAssche@sandisk.com>, Sagi Grimberg <sagi@grimberg.me>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Christoph Hellwig <hch@lst.de>, Or Gerlitz <ogerlitz@mellanox.com>, Linux RDMA <linux-rdma@vger.kernel.org>, Linux Netdev <netdev@vger.kernel.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [ANNOUNCE] OFED 4.8-rc2 release is available
+Date: Thu, 4 May 2017 21:07:13 +0300
+Message-ID: <20170504180713.GA22833@mtr-leonro.local>
+References: <590096A3.5090107@dev.mellanox.co.il>
+ <20170427070657.GA13585@infradead.org>
+ <20170504084933.GA1359@infradead.org>
+ <9C6B67F36DCAFC479B1CF6A967258A8C7E953FA6@ORSMSX115.amr.corp.intel.com>
+ <20170504145026.GA22388@infradead.org>
+ <1828884A29C6694DAF28B7E6B8A82373AB1199E1@ORSMSX109.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="Y9o+fgG4MNl0mnzl"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB1199E1-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
 
-Memory object gives to the user ability to manipulate over general
-properties of memory for the specific devices. The memory properties
-have broader usage than dev object can provide.
+--Y9o+fgG4MNl0mnzl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-For example, on-demand-paging (ODP) configurations are mostly software related.
+On Thu, May 04, 2017 at 05:19:47PM +0000, Hefty, Sean wrote:
+> > So in plain words: Intel abuses their influence in OFED to ship crap
+> > that has absolutely no chance to get upstream in the current form
+> > instead of working with the community to improve infrastructure.
+> >
+> > That's exactly what I guessed, thanks for confirming.
+>
+> OFED is a software product of OFA, not Linux.  OFA can put anything that they want in it.  Why do you even care?  It's no different than Intel or Mellanox or any other company shipping out of tree software.
 
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- rdma/Makefile |  2 +-
- rdma/memory.c | 30 ++++++++++++++++++++++++++++++
- rdma/rdma.c   |  3 ++-
- rdma/rdma.h   |  1 +
- 4 files changed, 34 insertions(+), 2 deletions(-)
- create mode 100644 rdma/memory.c
+It is different. Mellanox doesn't claim that MLNX_OFED is official
+source package for OpenFabrics Alliance and their members.
+https://www.openfabrics.org/index.php/openfabrics-software.html
 
-diff --git a/rdma/Makefile b/rdma/Makefile
-index dd702b9f..5cf0d29f 100644
---- a/rdma/Makefile
-+++ b/rdma/Makefile
-@@ -1,6 +1,6 @@
- include ../Config
 
--RDMA_OBJ = rdma.o utils.o dev.o link.o ipoib.o
-+RDMA_OBJ = rdma.o utils.o dev.o link.o ipoib.o memory.o
- TARGETS=rdma
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
- all:	$(TARGETS) $(LIBS)
-diff --git a/rdma/memory.c b/rdma/memory.c
-new file mode 100644
-index 00000000..68fd5dd3
---- /dev/null
-+++ b/rdma/memory.c
-@@ -0,0 +1,30 @@
-+/*
-+ * memory.c	RDMA tool
-+ *
-+ *              This program is free software; you can redistribute it and/or
-+ *              modify it under the terms of the GNU General Public License
-+ *              as published by the Free Software Foundation; either version
-+ *              2 of the License, or (at your option) any later version.
-+ *
-+ * Authors:     Leon Romanovsky <leonro@mellanox.com>
-+ */
-+
-+#include "rdma.h"
-+
-+static void memory_help(char *filename)
-+{
-+	pr_out("Usage: %s memory show [ DEV ]\n", filename);
-+	pr_out("       %s memory set DEV { odp { off | on } |\n", filename);
-+	pr_out("       %s                  memic SIZE }\n", filename);
-+}
-+
-+int obj_memory(struct rdma *rd)
-+{
-+	if (dev_map_init(rd)) {
-+		pr_err("There are no RDMA devices\n");
-+		return -ENOENT;
-+	}
-+
-+	memory_help(rd->filename);
-+	return 0;
-+}
-diff --git a/rdma/rdma.c b/rdma/rdma.c
-index ffd70899..094d490d 100644
---- a/rdma/rdma.c
-+++ b/rdma/rdma.c
-@@ -17,7 +17,7 @@
- static void help(char *name)
- {
- 	pr_out("Usage: %s [ OPTIONS ] OBJECT { COMMAND | help }\n"
--	       "where  OBJECT := { dev | link | ipoib }\n"
-+	       "where  OBJECT := { dev | link | ipoib | memory }\n"
- 	       "       OPTIONS := { -V[ersion] }\n", name);
- }
+--Y9o+fgG4MNl0mnzl
+Content-Type: application/pgp-signature; name="signature.asc"
 
-@@ -34,6 +34,7 @@ static int rd_cmd(struct rdma *rd)
- 		{ "dev",	obj_dev },
- 		{ "link",	obj_link },
- 		{ "ipoib",	obj_ipoib },
-+		{ "memory",	obj_memory },
- 		{ "help",	obj_help },
- 		{ 0 }
- 	};
-diff --git a/rdma/rdma.h b/rdma/rdma.h
-index 1fef4eb8..dcff066f 100644
---- a/rdma/rdma.h
-+++ b/rdma/rdma.h
-@@ -65,6 +65,7 @@ struct rdma_obj {
- int obj_dev(struct rdma *rd);
- int obj_link(struct rdma *rd);
- int obj_ipoib(struct rdma *rd);
-+int obj_memory(struct rdma *rd);
+-----BEGIN PGP SIGNATURE-----
 
- /*
-  * Parser interface
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkLbdAACgkQ5GN7iDZy
+WKdWxQ/9HEVYYla8esMzgT+bFglQcqIBOLbyyqk8ACCB0cYZj/e9bQkTEwWO7wMR
+cIQV3axv8ZoaLD6ptQEc/8uaZHC2V0JHkDONLgei/TSpJqcB/VpfIZV8jGoq6KUM
+BtFXxMsBzv2w1R4uvo4YmkDPy08wLxOyLWazJwiZGLAaBRxm65dgjcq5DijcFZFp
+IqVfAU67TK9LBz6hjo7lTSzaUwrnblCUfSNX9ThdGwQm0eQR5j8ItQxZ5mDDr8fI
+DR9uyqo5s/PqbtOUEYvlDlER58ou2m5nyZgh7UdMn6RE0sa+ypguHAp33iETtoRa
+Pl3e4dPIF/znStZKOVxV+N+p7ClhzjnVuy+OJcA/SmfiVXg3v966x1TPchTSiSrY
+pf9AOL7/CemXqOzckw67BsfHz1aZA2d6PB0lOXLEncCcj9+xCnFC0adG28X4vbUU
+GKykgbLzMNqE1omXwO2KtltvDY2WLsz6LOJKOjT+uWd+q2IZ0pM89w4HamBrhw6v
++X52sPEurVnh/r70ubi0KsmnoP5PQ5rS41pfkOId4bABpud4iX1V34+xMlVYXGnz
+fjqlFRFzsk15rvN6xxR6ysv0bK8mV/GfWsqX6nixRaDr0pHMwZDcHd++0pjPeDZJ
+rKb3ysXUmnX/HaIJYF7B1TIXAKvhdsY3uwJ2PrfRTNG8y6vb9NU=
+=u3lO
+-----END PGP SIGNATURE-----
+
+--Y9o+fgG4MNl0mnzl--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
