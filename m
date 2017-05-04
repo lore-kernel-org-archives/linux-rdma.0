@@ -1,250 +1,56 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH RFC 01/10] IB/core: Add a generic way to execute an
- operation on a uobject
-Date: Thu, 4 May 2017 15:28:51 +0300
-Message-ID: <20170504122851.GS22833@mtr-leonro.local>
-References: <1492615225-55118-1-git-send-email-matanb@mellanox.com>
- <1492615225-55118-2-git-send-email-matanb@mellanox.com>
- <20170504102303.GR22833@mtr-leonro.local>
- <CAAKD3BALCSD=N90gFa+R64QAyuiuJLFmZzsvRz1roq5x-0s3Jw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="54ZiyWcDhi/7bWb8"
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma] IB/rxe: Update caller's CRC for RXE_MEM_TYPE_DMA memory type
+Date: Thu,  4 May 2017 15:36:07 +0300
+Message-ID: <20170504123607.22708-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAAKD3BALCSD=N90gFa+R64QAyuiuJLFmZzsvRz1roq5x-0s3Jw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
---54ZiyWcDhi/7bWb8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-On Thu, May 04, 2017 at 01:37:33PM +0300, Matan Barak wrote:
-> On Thu, May 4, 2017 at 1:23 PM, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> > On Wed, Apr 19, 2017 at 06:20:16PM +0300, Matan Barak wrote:
-> >> The ioctl infrastructure treats all user-objects in the same manner.
-> >> It gets an id from the user-space and by using the object type and
-> >> operation mentioned in the action specification, it executes this
-> >> operation. An operation is split to two stages. The first one is
-> >> carried out before executing the handler and the second one is
-> >> executed afterwards.
-> >>
-> >> In order to abstract these details from the ioctl infrastructure
-> >> layer, we add uverbs_get_uobject_from_context and
-> >> uverbs_finalize_object functions which corresponds to the first
-> >> and second stages respectively.
-> >>
-> >> Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >> ---
-> >>  drivers/infiniband/core/rdma_core.c | 51 ++++++++++++++++++++++++++++++++++++
-> >>  drivers/infiniband/core/rdma_core.h | 16 ++++++++++++
-> >>  include/rdma/uverbs_ioctl.h         | 52 +++++++++++++++++++++++++++++++++++++
-> >>  3 files changed, 119 insertions(+)
-> >>  create mode 100644 include/rdma/uverbs_ioctl.h
-> >>
-> >> diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
-> >> index 41c31a2..269fa7f 100644
-> >> --- a/drivers/infiniband/core/rdma_core.c
-> >> +++ b/drivers/infiniband/core/rdma_core.c
-> >> @@ -35,6 +35,7 @@
-> >>  #include <rdma/ib_verbs.h>
-> >>  #include <rdma/uverbs_types.h>
-> >>  #include <linux/rcupdate.h>
-> >> +#include <rdma/uverbs_ioctl.h>
-> >>  #include "uverbs.h"
-> >>  #include "core_priv.h"
-> >>  #include "rdma_core.h"
-> >> @@ -625,3 +626,53 @@ void uverbs_initialize_ucontext(struct ib_ucontext *ucontext)
-> >>       .needs_kfree_rcu = false,
-> >>  };
-> >>
-> >> +struct ib_uobject *uverbs_get_uobject_from_context(const struct uverbs_obj_type *type_attrs,
-> >> +                                                struct ib_ucontext *ucontext,
-> >> +                                                enum uverbs_idr_access access,
-> >> +                                                int id)
-> >> +{
-> >> +     switch (access) {
-> >> +     case UVERBS_ACCESS_READ:
-> >> +             return rdma_lookup_get_uobject(type_attrs, ucontext, id, false);
-> >> +     case UVERBS_ACCESS_DESTROY:
-> >> +     case UVERBS_ACCESS_WRITE:
-> >> +             return rdma_lookup_get_uobject(type_attrs, ucontext, id, true);
-> >> +     case UVERBS_ACCESS_NEW:
-> >> +             return rdma_alloc_begin_uobject(type_attrs, ucontext);
-> >> +     default:
-> >> +             WARN_ON(true);
-> >> +             return ERR_PTR(-EOPNOTSUPP);
-> >> +     }
-> >> +}
-> >> +
-> >> +int uverbs_finalize_object(struct ib_uobject *uobj,
-> >> +                        enum uverbs_idr_access access,
-> >> +                        bool commit)
-> >> +{
-> >> +     int ret = 0;
-> >> +
-> >> +     switch (access) {
-> >> +     case UVERBS_ACCESS_READ:
-> >> +             rdma_lookup_put_uobject(uobj, false);
-> >> +             break;
-> >> +     case UVERBS_ACCESS_WRITE:
-> >> +             rdma_lookup_put_uobject(uobj, true);
-> >> +             break;
-> >> +     case UVERBS_ACCESS_DESTROY:
-> >> +             if (commit)
-> >> +                     ret = rdma_remove_commit_uobject(uobj);
-> >> +             else
-> >> +                     rdma_lookup_put_uobject(uobj, true);
-> >> +             break;
-> >> +     case UVERBS_ACCESS_NEW:
-> >> +             if (commit)
-> >> +                     ret = rdma_alloc_commit_uobject(uobj);
-> >> +             else
-> >> +                     rdma_alloc_abort_uobject(uobj);
-> >> +             break;
-> >> +     default:
-> >> +             WARN_ON(true);
-> >> +     }
-> >> +
-> >> +     return ret;
-> >> +}
-> >> diff --git a/drivers/infiniband/core/rdma_core.h b/drivers/infiniband/core/rdma_core.h
-> >> index 1b82e7f..5a1da24 100644
-> >> --- a/drivers/infiniband/core/rdma_core.h
-> >> +++ b/drivers/infiniband/core/rdma_core.h
-> >> @@ -39,6 +39,7 @@
-> >>
-> >>  #include <linux/idr.h>
-> >>  #include <rdma/uverbs_types.h>
-> >> +#include <rdma/uverbs_ioctl.h>
-> >>  #include <rdma/ib_verbs.h>
-> >>  #include <linux/mutex.h>
-> >>
-> >> @@ -75,4 +76,19 @@
-> >>   */
-> >>  void uverbs_close_fd(struct file *f);
-> >>
-> >> +/*
-> >> + * Get an ib_uobject that corresponds to the given id from ucontext, assuming
-> >> + * the object is from the given type. Lock it to the required access.
-> >> + * This function could create (access == NEW) or destroy (access == DESTROY)
-> >> + * objects if required. The action will be finalized only when
-> >> + * uverbs_finalize_object is called.
-> >> + */
-> >> +struct ib_uobject *uverbs_get_uobject_from_context(const struct uverbs_obj_type *type_attrs,
-> >> +                                                struct ib_ucontext *ucontext,
-> >> +                                                enum uverbs_idr_access access,
-> >> +                                                int id);
-> >> +int uverbs_finalize_object(struct ib_uobject *uobj,
-> >> +                        enum uverbs_idr_access access,
-> >> +                        bool commit);
-> >> +
-> >>  #endif /* RDMA_CORE_H */
-> >> diff --git a/include/rdma/uverbs_ioctl.h b/include/rdma/uverbs_ioctl.h
-> >> new file mode 100644
-> >> index 0000000..a18468e
-> >> --- /dev/null
-> >> +++ b/include/rdma/uverbs_ioctl.h
-> >> @@ -0,0 +1,52 @@
-> >> +/*
-> >> + * Copyright (c) 2016, Mellanox Technologies inc.  All rights reserved.
-> >> + *
-> >> + * This software is available to you under a choice of one of two
-> >> + * licenses.  You may choose to be licensed under the terms of the GNU
-> >> + * General Public License (GPL) Version 2, available from the file
-> >> + * COPYING in the main directory of this source tree, or the
-> >> + * OpenIB.org BSD license below:
-> >> + *
-> >> + *     Redistribution and use in source and binary forms, with or
-> >> + *     without modification, are permitted provided that the following
-> >> + *     conditions are met:
-> >> + *
-> >> + *      - Redistributions of source code must retain the above
-> >> + *        copyright notice, this list of conditions and the following
-> >> + *        disclaimer.
-> >> + *
-> >> + *      - Redistributions in binary form must reproduce the above
-> >> + *        copyright notice, this list of conditions and the following
-> >> + *        disclaimer in the documentation and/or other materials
-> >> + *        provided with the distribution.
-> >> + *
-> >> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-> >> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-> >> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-> >> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-> >> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-> >> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-> >> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-> >> + * SOFTWARE.
-> >> + */
-> >> +
-> >> +#ifndef _UVERBS_IOCTL_
-> >> +#define _UVERBS_IOCTL_
-> >> +
-> >> +#include <rdma/uverbs_types.h>
-> >> +
-> >> +/*
-> >> + * =======================================
-> >> + *   Verbs action specifications
-> >> + * =======================================
-> >> + */
-> >> +
-> >> +enum uverbs_idr_access {
-> >> +     UVERBS_ACCESS_READ,
-> >> +     UVERBS_ACCESS_WRITE,
-> >> +     UVERBS_ACCESS_NEW,
-> >> +     UVERBS_ACCESS_DESTROY
-> >> +};
-> >
-> > Does it make sense to have MODIFY too?
-> >
->
-> No, this just set the locking schema for the uobject. When the uobject
-> is locked for write (i.e. exclusive lock), you're free to modify the
-> underlying object.
+Callers of rxe_mem_copy() provide pointer to store updated CRC
+value. That pointer was supposed to be updated, but the
+commit cee2688e3cd6 ("IB/rxe: Offload CRC calculation when possible")
+mistakenly removed that assignment for RXE_MEM_TYPE_DMA memory type.
 
-So why do you need NEW and DESTROY? It can be locked with WRITE.
+The code worked because there are no actual callers with
+RXE_MEM_TYPE_DMA, who are interested in returned value of crcp.
+The one caller in read_reply(), who uses the returned crcp didn't
+set RXE_MEM_TYPE_DMA as mem->type.
 
->
-> >> +
-> >> +#endif
-> >> +
-> >> --
-> >> 1.8.3.1
-> >>
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> >> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Fixes: cee2688e3cd6 ("IB/rxe: Offload CRC calculation when possible")
+Reported-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Acked-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+Hi Doug,
 
---54ZiyWcDhi/7bWb8
-Content-Type: application/pgp-signature; name="signature.asc"
+It will be great if you forward this patch as part of your second pull request.
+As you can see from the commit message, it fixes issue spotted by Andrew.
 
------BEGIN PGP SIGNATURE-----
+Thanks
+---
+ drivers/infiniband/sw/rxe/rxe_mr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkLHoMACgkQ5GN7iDZy
-WKdC3xAApLR4I1OSB8bdmSIZfzvJD2IhVc9172k9nmntcSJMLCD/Ua+vFYBVkFcH
-i/1PbK17Ax48jYaJbh3f7QKpxumSeWyJeturBV8OSLgQ6ySkud44rFc+MxTnftuT
-+zlBppqze1ZneVfwrW/FqgCfBcboNjIUwf6UMhaCMZv5qpUj9v4Dc5ATvtDZzf6B
-cWAchK0YPRrWb7La49g0XY4JCapFZlTGo+FKp7wMUWd7mSdbevicT33aCLbQE6T9
-Hg8uBfi5jiy3G1VKO7pEuVWMMNpTMb1t0Qw9L0BaPyZ+4yxlqJlP5XbI7kzD2fpP
-m6uIMnbsSyEYKEbAyW0ioK+2EE6JJjoSGFpIwCOQyNWoAcXiW2KUjppVnF35xWQi
-dr16VJz9zArTwGiThho9ookBI12KrKZgUHMC9L69kXcreqeoBgN1q6f7WAU7qJ7h
-jj9kPmn7fMUL7Juyc1e0DicvTpo3JgVAoUKb9PHnxMqRruHMoqRUJUqsprIo/oze
-t5X+OjkrSRKcNkZndaKfm3Z1+A1kpEG7c0PV69i1KaLfR7eTCsQQfhlhm5Ho+iSw
-5BabCqDb/Z5GZqH8jfZb+eblq91lyQYnhHkTwDsoj/SgkHn2S5z+ITO9quf5nPDR
-vvE7taT0EW9cbgJAWK5iafQr0bJx20e/fQAxe/Q5YZOT2/1DXKo=
-=+Eb+
------END PGP SIGNATURE-----
+diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
+index ced15c4446bd..e37cc89987e1 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mr.c
++++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+@@ -368,7 +368,7 @@ int rxe_mem_copy(struct rxe_mem *mem, u64 iova, void *addr, int length,
+ 			((void *)(uintptr_t)iova) : addr;
 
---54ZiyWcDhi/7bWb8--
+ 		if (crcp)
+-			crc = rxe_crc32(to_rdev(mem->pd->ibpd.device),
++			*crcp = rxe_crc32(to_rdev(mem->pd->ibpd.device),
+ 					*crcp, src, length);
+
+ 		memcpy(dest, src, length);
+--
+2.12.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
