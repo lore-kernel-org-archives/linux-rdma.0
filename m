@@ -1,57 +1,69 @@
-From: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Subject: [PATCH] IB/hfi1: Replace two seq_puts() calls by seq_putc() in
- sdma_seqfile_dump_cpu_list()
-Date: Fri, 5 May 2017 10:50:28 +0200
-Message-ID: <0bf8f61d-63c6-ba0a-df2f-00340b26afa7@users.sourceforge.net>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [RFC iproute2 0/8] RDMA tool
+Date: Fri, 5 May 2017 16:17:54 +0300
+Message-ID: <20170505131754.GH22833@mtr-leonro.local>
+References: <20170504180216.7665-1-leon@kernel.org>
+ <20170505085457.0029edc9@griffin>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="DMefDzZywwCHZelG"
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170505085457.0029edc9@griffin>
+Sender: netdev-owner@vger.kernel.org
+To: Jiri Benc <jbenc@redhat.com>
+Cc: Stephen Hemminger <stephen@networkplumber.org>, Doug Ledford <dledford@redhat.com>, Jiri Pirko <jiri@mellanox.com>, Ariel Almog <ariela@mellanox.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Ram Amrani <ram.amrani@cavium.com>, Bart Van Assche <Bart.VanAssche@sandisk.com>, Sagi Grimberg <sagi@grimberg.me>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Christoph Hellwig <hch@lst.de>, Or Gerlitz <ogerlitz@mellanox.com>, Linux RDMA <linux-rdma@vger.kernel.org>, Linux Netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Date: Fri, 5 May 2017 10:40:03 +0200
 
-Two single characters should be put into a sequence.
-Thus use the corresponding function "seq_putc".
+--DMefDzZywwCHZelG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This issue was detected by using the Coccinelle software.
+On Fri, May 05, 2017 at 08:54:57AM +0200, Jiri Benc wrote:
+> On Thu,  4 May 2017 21:02:08 +0300, Leon Romanovsky wrote:
+> > In order to close object model, ensure reuse of existing code and make this
+> > tool usable from day one, we decided to implement wrappers over legacy sysfs
+> > prior to implementing netlink functionality. As a nice bonus, it will allow
+> > to use this tool with old kernels too.
+>
+> This sounds wrong. We don't support legacy ioctl interface for the 'ip'
+> command, either. I think rdma should be converted to netlink first and
+> the new tool should only use netlink.
 
-Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
----
- drivers/infiniband/hw/hfi1/sdma.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+RDMA in slightly different situation than "ip" tool was. "ip" was implemented
+when tools like ifconfig existed. It allowed to old and new systems to be
+configured to some degree. In RDMA community, there are no similar tools like
+"ifconfig". Implementation in netlink-only interface will leave old systems without
+common tool at all.
 
-diff --git a/drivers/infiniband/hw/hfi1/sdma.c b/drivers/infiniband/hw/hfi1/sdma.c
-index bfd0d5187e9b..7611a88b86cf 100644
---- a/drivers/infiniband/hw/hfi1/sdma.c
-+++ b/drivers/infiniband/hw/hfi1/sdma.c
-@@ -1130,7 +1130,7 @@ void sdma_seqfile_dump_cpu_list(struct seq_file *s,
- 				continue;
- 
- 			if (j > 0)
--				seq_puts(s, ",");
-+				seq_putc(s, ',');
- 
- 			seq_printf(s, " sdma%2d",
- 				   rht_node->map[i]->sde[j]->this_idx);
-@@ -1138,7 +1138,7 @@ void sdma_seqfile_dump_cpu_list(struct seq_file *s,
- 		seq_puts(s, " ]");
- 	}
- 
--	seq_puts(s, "\n");
-+	seq_putc(s, '\n');
- }
- 
- /*
--- 
-2.12.2
+As an upstream-oriented person, I personally fine with that, but anyway would
+like to get wider agreement/disagreement on that, before removing sysfs
+parsing logic from the rdmatool.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+
+>
+>  Jiri
+
+--DMefDzZywwCHZelG
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkMe4IACgkQ5GN7iDZy
+WKf2WQ/8DkPETSwi9IYEu+gckJiQoOY57lXkGb5MqjWm95gEOyVXvYPM1GMSL8O5
+z55zXrlkpSf4PSW/wtuZ+rZdLg/IbU3dZzv1zGln9MlAcu9mpAxca2FfLIcKpXeM
+fTWdHcwbxFcODSm4IhwU4A12XTNPcXFsYbmhqVIqUSyT06+XYLcgabGCiQg9fvCk
+6VuHuJrPu0WcSBujytIVsOVfc31YwhURcvMjJNXauHpZFxUU9/0Wfkny9mvXVKgA
+UxRtts9OplezKXGC0i0T2lVAmqh84AD4fX06KBx9Lt0FG8NFds9J+31CwtxpEDch
+BrnWkWuMO6zlN8OiLliQpKwn/nJ9AEW0riKIb3Kxu/4JT4I6EM0Rf7Nem6/pznl2
+yMTZhfyz9Y/scq7q2Z0HtWhhW71n9cpYknqA62cF3dUcfmAh8QA6/coiqi0Cr8vy
+dvivF4cpIchJCYfTPqc6wdA3Ve0hd32v6+ZGcftLRQyOfYZ6VPLCtrwBbmpVvqs9
+3QSwO18+dGOfGpwyIezbR019Nm1ZECNOTJtnKYaY8AKeXOpZa/2UnmGJGcv17y0b
+eXwqEoJjr/adPqz329v4UaWjDTUamwWJvdujgoEAt8MAaiT1kCWLr/zL5knEEwlY
+eNnMh7qZlg1WjRTzDFQ07EOxTESoF80q8m93CNm3F5vdfBHf768=
+=/GCt
+-----END PGP SIGNATURE-----
+
+--DMefDzZywwCHZelG--
