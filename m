@@ -1,135 +1,122 @@
-From: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
-Subject: Re: [RFC iproute2 0/8] RDMA tool
-Date: Thu, 4 May 2017 17:05:50 -0700
-Message-ID: <20170504170550.2028349f@xeon-e3>
-References: <20170504180216.7665-1-leon@kernel.org>
-        <1493921453.2692.6.camel@sandisk.com>
-        <20170504182542.GD22833@mtr-leonro.local>
-        <1493922625.2692.8.camel@sandisk.com>
-        <20170504184531.GE22833@mtr-leonro.local>
-        <2dee6cde-0406-b101-0fe6-c1f6de7c1b1a@intel.com>
-        <1493930758.3041.231.camel@redhat.com>
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: Re: [infiniband-core] question about arguments position
+Date: Thu, 04 May 2017 20:38:20 -0500
+Message-ID: <20170504203820.Horde.-XF5wCocLZWytz_Ml2dGEBZ@gator4166.hostgator.com>
+References: <20170504124209.Horde.B4I2tu9lZ9_KMd07dtjWcl2@gator4166.hostgator.com>
+ <DB6PR0502MB2999ABEFF47AEBF944F8B65BD1EA0@DB6PR0502MB2999.eurprd05.prod.outlook.com>
+ <1493941746.3041.242.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1493930758.3041.231.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "ariela-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ariela-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed; DelSp=Yes
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1493941746.3041.242.camel@redhat.com>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: Parav Pandit <parav@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Sagi Grimberg <sagi@grimberg.me>, Bart Van Assche <bart.vanassche@sandisk.com>, Steve Wise <swise@opengridcomputing.com>, Leon Romanovsky <leonro@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Moni Shoua <monis@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 04 May 2017 16:45:58 -0400
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+Hi Parav and Doug,
 
-> On Thu, 2017-05-04 at 15:26 -0400, Dennis Dalessandro wrote:
-> > On 05/04/2017 02:45 PM, Leon Romanovsky wrote: =20
-> > >=20
-> > > On Thu, May 04, 2017 at 06:30:27PM +0000, Bart Van Assche wrote: =20
-> > > >=20
-> > > > On Thu, 2017-05-04 at 21:25 +0300, Leon Romanovsky wrote: =20
-> > > > >=20
-> > > > > On Thu, May 04, 2017 at 06:10:54PM +0000, Bart Van Assche
-> > > > > wrote: =20
-> > > > > >=20
-> > > > > > On Thu, 2017-05-04 at 21:02 +0300, Leon Romanovsky wrote: =20
-> > > > > > >=20
-> > > > > > > Following our discussion both in mailing list [1] and at
-> > > > > > > the LPC 2016 [2],
-> > > > > > > we would like to propose this RDMA tool to be part of
-> > > > > > > iproute2 package
-> > > > > > > and finally improve this situation. =20
-> > > > > >=20
-> > > > > > Hello Leon,
-> > > > > >=20
-> > > > > > Although I really appreciate your work: can you clarify why
-> > > > > > you would like to
-> > > > > > add *RDMA* functionality to an *IP routing* tool? I haven't
-> > > > > > found any motivation
-> > > > > > for adding RDMA functionality to iproute2 in [1]. =20
-> > > > >=20
-> > > > > We are planning to reuse the same infrastructure provided by
-> > > > > iproute2,
-> > > > > like netlink parsing, access to distributions, same CLI and
-> > > > > same standards.
-> > > > >=20
-> > > > > Right now, RDMA is already tightened to netdev: iWARP, RoCE,
-> > > > > IPoIB, HFI-VNIC.
-> > > > > Many drivers (mlx, qed, i40, cxgb) are sharing code between net
-> > > > > and
-> > > > > RDMA.
-> > > > >=20
-> > > > > I do expect that iproute2 will be installed on every machine
-> > > > > with any
-> > > > > type of connection, including IB and OPA.
-> > > > >=20
-> > > > > So I think that it is enough to be part of that suite and don't
-> > > > > invent
-> > > > > our own for one specific tool. =20
-> > > >=20
-> > > > Hello Leon,
-> > > >=20
-> > > > Sorry but to me that sounds like a weak argument for including
-> > > > RDMA functionality
-> > > > in iproute2. There is already a library for communication over
-> > > > netlink sockets,
-> > > > namely libnl. Is there functionality that is in iproute2 but not
-> > > > in libnl and
-> > > > that is needed for the new tool? If so, have you considered to
-> > > > create a new
-> > > > library for that functionality? =20
-> > >=20
-> > > It is not hard to create new tool, the hardest part is to ensure
-> > > that it is
-> > > part of the distributions. Did you count how many months we are
-> > > trying to
-> > > add rdma-core to debian? =20
-> >=20
-> > I do agree that it is a strange pairing and am not really a fan.
-> > However=C2=A0
-> > at the end of the day it's just a name for a repo/package. If the=C2=A0
-> > iproute folks are fine to include rdma in their repo/package, great
-> > we=C2=A0
-> > can leverage their code for CLI and other common stuff. =20
->=20
-> If you look into the iproute2 package, it becomes clear that the name
-> iproute2 is historical and not really accurate any more. =C2=A0It contains
-> things like the bridge control software, tc for controlling send
-> queues, and many things network related but not routing related. =C2=A0The
-> rdma tool is a perfectly fine fit in the sense that it is an additional
-> network management tool IMO.
->=20
-> For reference, here's the list of stuff already in iproute on my Fedora
-> 24 box:
->=20
-> /usr/sbin/arpd
-> /usr/sbin/bridge
-> /usr/sbin/cbq
-> /usr/sbin/ctstat
-> /usr/sbin/genl
-> /usr/sbin/ifcfg
-> /usr/sbin/ifstat
-> /usr/sbin/ip
-> /usr/sbin/lnstat
-> /usr/sbin/nstat
-> /usr/sbin/routef
-> /usr/sbin/routel
-> /usr/sbin/rtacct
-> /usr/sbin/rtmon
-> /usr/sbin/rtpr
-> /usr/sbin/rtstat
-> /usr/sbin/ss
-> /usr/sbin/tc
-> /usr/sbin/tipc
->=20
-> And in fact, if you check, tipc is almost similar to RDMA ;-) =C2=A0So, I
-> suggest people not get hung up on the name iproute2, the fit is fine
-> when you look deeper into the nature of the package.
->=20
+Quoting Doug Ledford <dledford@redhat.com>:
 
-Iproute2 is a collection like busybox. It has bridging, devlink and tipc al=
-ready.
+> On Thu, 2017-05-04 at 21:52 +0000, Parav Pandit wrote:
+>> Hi,
+>>
+>> >
+>> > -----Original Message-----
+>> > From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
+>> > owner@vger.kernel.org] On Behalf Of Gustavo A. R. Silva
+>> > Sent: Thursday, May 4, 2017 12:42 PM
+>> > To: Doug Ledford <dledford@redhat.com>; Sean Hefty
+>> > <sean.hefty@intel.com>; Hal Rosenstock <hal.rosenstock@gmail.com>;
+>> > Sagi
+>> > Grimberg <sagi@rimberg.me>; Bart Van Assche
+>> > <bart.vanassche@sandisk.com>; Steve Wise <swise@opengridcomputing.c
+>> > om>;
+>> > Leon Romanovsky <leonro@mellanox.com>; Yishai Hadas
+>> > <yishaih@mellanox.com>; Moni Shoua <monis@mellanox.com>
+>> > Cc: linux-rdma@vger.kernel.org; linux-kernel@vger.kernel.org
+>> > Subject: [infiniband-core] question about arguments position
+>> >
+>> >
+>> > Hello everybody,
+>> >
+>> > While looking into Coverity ID 1351047 I ran into the following
+>> > piece of code at
+>> > drivers/infiniband/core/verbs.c:496:
+>> >
+>> > ret = rdma_addr_find_l2_eth_by_grh(&dgid, &sgid,
+>> >                                     ah_attr->dmac,
+>> >                                     wc->wc_flags & IB_WC_WITH_VLAN
+>> > ?
+>> >                                     NULL : &vlan_id,
+>> >                                     &if_index, &hoplimit);
+>> >
+>> >
+>> > The issue here is that the position of arguments in the call to
+>> > rdma_addr_find_l2_eth_by_grh() function do not match the order of
+>> > the
+>> > parameters:
+>> >
+>> > &dgid is passed to sgid
+>> > &sgid is passed to dgid
+>> >
+>> > This is the function prototype:
+>> >
+>> > int rdma_addr_find_l2_eth_by_grh(const union ib_gid *sgid,
+>> > 				 const union ib_gid *dgid,
+>> > 				 u8 *dmac, u16 *vlan_id, int *if_index,
+>> > 				 int *hoplimit)
+>> >
+>> > My question here is if this is intentional?
+>> >
+>> Yes. ib_init_ah_from_wc() creates ah from the incoming packet.
+>> Incoming packet has dgid of the receiver node on which this code is
+>> getting executed
+>> And sgid contains the GID of the sender.
+>>
+>> When resolving mac address of destination, you use arrived dgid as
+>> sgid.
+>> And use sgid as dgid because sgid contains destinations GID whom to
+>> respond to.
+>
+> A patch to add a comment and forestall future questions here might be a
+> good addition.
+>
+
+In the case of Coverity, I already triaged and documented this issue.  
+So people can ignore it in the future.
+
+Regarding the code comments, what about the following patch based on  
+Parav's comments:
+
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 85ed505..38864ea 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -450,6 +450,19 @@ int ib_get_gids_from_rdma_hdr(const union  
+rdma_network_hdr *hdr,
+  }
+  EXPORT_SYMBOL(ib_get_gids_from_rdma_hdr);
+
++/*
++ * This function creates ah from the incoming packet.
++ * Incoming packet has dgid of the receiver node on which this code is
++ * getting executed and, sgid contains the GID of the sender.
++ *
++ * When resolving mac address of destination, the arrived dgid is used
++ * as sgid and, sgid is used as dgid because sgid contains destinations
++ * GID whom to respond to.
++ *
++ * This is why when calling rdma_addr_find_l2_eth_by_grh() function, the
++ * position of arguments dgid and sgid do not match the order of the
++ * parameters.
++ */
+  int ib_init_ah_from_wc(struct ib_device *device, u8 port_num,
+                        const struct ib_wc *wc, const struct ib_grh *grh,
+                        struct ib_ah_attr *ah_attr)
+
+Thanks for clarifying
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Gustavo A. R. Silva
