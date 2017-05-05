@@ -1,62 +1,30 @@
-From: Jim Foraker <foraker1-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [ANNOUNCE] OFED 4.8-rc2 release is available
-Date: Thu, 4 May 2017 20:42:33 -0700
-Message-ID: <e982e074-4a0a-397f-fbe2-63ff0232c56d@llnl.gov>
-References: <590096A3.5090107@dev.mellanox.co.il>
- <20170427070657.GA13585@infradead.org> <20170504084933.GA1359@infradead.org>
- <9C6B67F36DCAFC479B1CF6A967258A8C7E953FA6@ORSMSX115.amr.corp.intel.com>
- <20170504153003.GA854@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373AB1199FA@ORSMSX109.amr.corp.intel.com>
+From: Jiri Benc <jbenc-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFC iproute2 0/8] RDMA tool
+Date: Fri, 5 May 2017 08:54:57 +0200
+Message-ID: <20170505085457.0029edc9@griffin>
+References: <20170504180216.7665-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB1199FA-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
- <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
- <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Sender: "ewg" <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170504180216.7665-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jiri Pirko <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ariel Almog <ariela-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ram Amrani <ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gMDUvMDQvMjAxNyAxMDozNCBBTSwgSGVmdHksIFNlYW4gd3JvdGU6Cj4+IFRoaXMgaXMgZXhh
-Y3RseSB3aHkgd2Ugc28gc3Ryb25nbHkgZGlzY291cmFnZSB0aGlzIG91dCBvZiB0cmVlCj4+IHN0
-dWZmIC0gZ2V0dGluZyBzb21ldGhpbmcgdW5tZXJnYWJsZSBpbiBPRkVEIGlzICpOT1QqIEpvYiBE
-b25lLAo+PiBUaW1lIHRvIEdvIEhvbWUuIERvd24gdGhpcyBwYXRoIGp1c3QgY3JlYXRlcyBhbm90
-aGVyIEx1c3RyZSBtZXNzLgo+Cj4gQWN0dWFsbHksIHRoaXMgbWF5IGJlICdqb2IgZG9uZScuICBO
-byBpbmRpdmlkdWFsIG9yIGNvbXBhbnkgaXMKPiBvYmxpZ2F0ZWQgdG8gcHJvdmlkZSB1cHN0cmVh
-bSBzb2Z0d2FyZSBmb3IgYW55IG9mIHRoZWlyIGhhcmR3YXJlLgo+IE9GQSBkZWNpZGVzIHdoYXQg
-dG8gc2hpcCBpbiB0aGVpciBzb2Z0d2FyZSBwcm9kdWN0cywgbm90IHRoZSBncmVhdGVyCj4gbGlu
-dXgga2VybmVsIGNvbW11bml0eS4gIEluZGl2aWR1YWwgY29tcGFuaWVzIGNhbiBkZWNpZGUgaWYg
-b3V0IG9mCj4gdHJlZSBtYWludGVuYW5jZSBpcyBtb3JlIGNvc3QgZWZmZWN0aXZlIHRoYW4gdHJ5
-aW5nIHRvIG1lcmdlIGNvZGUKPiB1cHN0cmVhbS4gIEJlY2F1c2UgdGhhdCdzIHdoYXQgdGhpcyB1
-bHRpbWF0ZWx5IGNvbWVzIGRvd24gdG8uCj4KPiBJTU8sIHRoZSBvbmx5IHBlb3BsZSB3aG8gaGF2
-ZSBsZWdpdGltYXRlIGNvbXBsYWludHMgaGVyZSBhcmUgdGhvc2UKPiBwZW9wbGUgcnVubmluZyBY
-ZW9uIFBoaSB3aXRoIE1lbGxhbm94IEhDQXMgd2hvIGFyZSBiZWluZyBmb3JjZWQgdG8KPiB1c2Ug
-T0ZFRCwgcmF0aGVyIHRoYW4gdXBzdHJlYW0gY29kZS4KCiAgICAgIEFwcGFyZW50bHkgd2UndmUg
-ZXhwZXJpbWVudGVkIHdpdGggZG9pbmcganVzdCB0aGlzLCBzbyBJJ2xsIGJpdGUuIApBbmQgSSB3
-aWxsIHNheSB0aGUgc2FtZSB0aGluZyB3ZSd2ZSB0b2xkIGV2ZXJ5IHZlbmRvciByZXBlYXRlZGx5
-OiAiZ2V0IAp5b3VyIGNvZGUgdXBzdHJlYW0hIgogICAgICBBIHZlbmRvciBtYXkgd2VpZ2ggdGhl
-IGNvc3Qgb2YgbWFpbnRhaW5pbmcgb3V0LW9mLXRyZWUgY29kZSB2ZXJzdXMgCnVwc3RyZWFtaW5n
-IGl0LCBidXQgYXMgYSBjdXN0b21lciwgSSdtIG1vcmUgY29uY2VybmVkIGFib3V0IHRoZSAKYW5u
-b3lhbmNlIGFuZCB0aW1lIHdhc3RlZCBoYXZpbmcgdG8gcnVuIE4gZGlmZmVyZW50IHNvZnR3YXJl
-IHN0YWNrcyBvbiBOIApkaWZmZXJlbnQgaGFyZHdhcmUgdHlwZXMgdmVyc3VzIGJlaW5nIGFibGUg
-dG8gdXNlIHRoZSBSRE1BIHN0YWNrIGZyb20gbXkgCnByZWZlcnJlZCBsaW51eCBkaXN0cmlidXRp
-b24gZXZlcnl3aGVyZS4gIEFuZCB0aGUgYmVzdCB3YXkgdG8gZ2V0IHlvdXIgCmNvZGUgaW50byB0
-aGUgZGlzdHJpYnV0aW9ucyBpcyB0byBnZXQgaXQgdXBzdHJlYW0uCiAgICAgIEkgaGF2ZSBubyBw
-YXJ0aWN1bGFyIG9waW5pb24gb24gd2hldGhlciBvciBub3QgdGhlIHhlb24tcGhpIGRyaXZlciAK
-YmVsb25ncyBpbiBPRkVELiAgQnV0IGNsb2FraW5nIHRoaXMgY29udmVyc2F0aW9uIGluIHRhbGsg
-b2Ygb2JsaWdhdGlvbnMgCmFuZCBmcmFtZXJzJyBpbnRlbnQgbWlzc2VzIGEgYmlnZ2VyIHBvaW50
-LCB3aGljaCBpcyB0aGF0IGFueSBjb2RlIG5vdCAKZnVsbHkgdXBzdHJlYW1lZCwgYW5kIGhlbmNl
-IGxpa2VseSB0byBiZSBmb3VuZCBpbiB5b3VyIHVzZXIncyBkaXN0cm8sIAppbmNvbnZlbmllbmNl
-cyB0aGVtLCBpbmNyZWFzZXMgdGhlaXIgc3VwcG9ydCBjb3N0cywgYW5kIG1ha2VzIGl0IGxlc3Mg
-Cmxpa2VseSB0aGF0IHRoZXkgd2lsbCBhZG9wdCB5b3VyIHByb2R1Y3QuCgogICAgICBKaW0KX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZXdnIG1haWxpbmcg
-bGlzdApld2dAbGlzdHMub3BlbmZhYnJpY3Mub3JnCmh0dHA6Ly9saXN0cy5vcGVuZmFicmljcy5v
-cmcvbWFpbG1hbi9saXN0aW5mby9ld2c=
+On Thu,  4 May 2017 21:02:08 +0300, Leon Romanovsky wrote:
+> In order to close object model, ensure reuse of existing code and make this
+> tool usable from day one, we decided to implement wrappers over legacy sysfs
+> prior to implementing netlink functionality. As a nice bonus, it will allow
+> to use this tool with old kernels too.
+
+This sounds wrong. We don't support legacy ioctl interface for the 'ip'
+command, either. I think rdma should be converted to netlink first and
+the new tool should only use netlink.
+
+ Jiri
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
