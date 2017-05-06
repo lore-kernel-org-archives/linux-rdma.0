@@ -1,20 +1,31 @@
-From: "hch@lst.de" <hch@lst.de>
-Subject: Re: net/smc and the RDMA core
-Date: Sat, 6 May 2017 10:25:39 +0200
-Message-ID: <20170506082539.GA3987@lst.de>
-References: <20170501163311.GA22209@lst.de> <d9214af6-1c6f-9f95-fc00-3e4a316b4f81@linux.vnet.ibm.com> <1493750358.2552.13.camel@sandisk.com> <1b79048f-4495-3840-e7a6-d4fa5a8dfb57@grimberg.me> <20170504084825.GA5399@lst.de> <efa9bd6d-1df9-952a-7f32-c2ee6bffcae5@linux.vnet.ibm.com> <20170504153155.GB854@obsidianresearch.com> <750b09b5-f898-fe7f-1e82-1f6c06cc0f58@linux.vnet.ibm.com> <20170505171017.GA29554@obsidianresearch.com>
+From: Jiri Pirko <jiri@resnulli.us>
+Subject: Re: [RFC iproute2 0/8] RDMA tool
+Date: Sat, 6 May 2017 12:40:47 +0200
+Message-ID: <20170506104047.GC2017@nanopsycho>
+References: <20170504180216.7665-1-leon@kernel.org>
+ <1493921453.2692.6.camel@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170505171017.GA29554@obsidianresearch.com>
+In-Reply-To: <1493921453.2692.6.camel@sandisk.com>
 Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Ursula Braun <ubraun@linux.vnet.ibm.com>, "hch@lst.de" <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>, Bart Van Assche <Bart.VanAssche@sandisk.com>, "davem@davemloft.net" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+To: Bart Van Assche <Bart.VanAssche@sandisk.com>
+Cc: "stephen@networkplumber.org" <stephen@networkplumber.org>, "leon@kernel.org" <leon@kernel.org>, "dledford@redhat.com" <dledford@redhat.com>, "leonro@mellanox.com" <leonro@mellanox.com>, "jiri@mellanox.com" <jiri@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "ram.amrani@cavium.com" <ram.amrani@cavium.com>, "sagi@grimberg.me" <sagi@grimberg.me>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "dennis.dalessandro@intel.com" <dennis.dalessandro@intel.com>, "hch@lst.de" <hch@lst.de>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "jgunthorpe@obsidianresearch.com" <jgunthorpe@obsidianresearch.com>, "ariela@mellanox.com" <ariela@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 05, 2017 at 11:10:17AM -0600, Jason Gunthorpe wrote:
-> I recommend immediately sending a kconfig patch cc'd to stable making
-> SMC require CONFIG_BROKEN so that nobody inadvertantly turns it on.
+Thu, May 04, 2017 at 08:10:54PM CEST, Bart.VanAssche@sandisk.com wrote:
+>On Thu, 2017-05-04 at 21:02 +0300, Leon Romanovsky wrote:
+>> Following our discussion both in mailing list [1] and at the LPC 2016 [2],
+>> we would like to propose this RDMA tool to be part of iproute2 package
+>> and finally improve this situation.
+>
+>Hello Leon,
+>
+>Although I really appreciate your work: can you clarify why you would like to
+>add *RDMA* functionality to an *IP routing* tool? I haven't found any motivation
+>for adding RDMA functionality to iproute2 in [1].
 
-Yes, I'll send the patch.
+Bart, please realize that iproute2 is much more than "*IP routing* tool".
+I understand you got confused by the name. Please see sources. Your comment
+is totally pointless...
