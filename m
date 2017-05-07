@@ -1,59 +1,75 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH RFC 02/10] IB/core: Add support to finalize objects in one
- transaction
-Date: Sun, 7 May 2017 14:29:09 +0000
-Message-ID: <BN3PR07MB2578DD121FF6BD06B7630FFFF8E90@BN3PR07MB2578.namprd07.prod.outlook.com>
-References: <1492615225-55118-1-git-send-email-matanb@mellanox.com>
- <1492615225-55118-3-git-send-email-matanb@mellanox.com>
- <SN1PR07MB22077A1B43881BAF7BAC5ED0F8EA0@SN1PR07MB2207.namprd07.prod.outlook.com>
- <CAAKD3BBfZa_eM2L+LE30uDnoEge6rCBj17YtkVZULUsKMQrQww@mail.gmail.com>
- <BN3PR07MB2578868B660CC388664BE501F8E90@BN3PR07MB2578.namprd07.prod.outlook.com>
- <CAAKD3BAr0GX5rGCq_wcxQ=NKZwyHdrvnj_3G25mhq-c1qqFFRQ@mail.gmail.com>
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: [RFC iproute2 0/8] RDMA tool
+Date: Sun, 7 May 2017 09:14:24 +0300
+Message-ID: <20170507061424.GJ22833@mtr-leonro.local>
+References: <20170504180216.7665-1-leon@kernel.org>
+ <1493921453.2692.6.camel@sandisk.com>
+ <20170506104047.GC2017@nanopsycho>
+ <1494081623.3228.1.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAAKD3BAr0GX5rGCq_wcxQ=NKZwyHdrvnj_3G25mhq-c1qqFFRQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="eGyD7iWN192kf2IJ"
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1494081623.3228.1.camel@sandisk.com>
+Sender: netdev-owner@vger.kernel.org
+To: Bart Van Assche <Bart.VanAssche@sandisk.com>
+Cc: "jiri@resnulli.us" <jiri@resnulli.us>, "jiri@mellanox.com" <jiri@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "ram.amrani@cavium.com" <ram.amrani@cavium.com>, "sagi@grimberg.me" <sagi@grimberg.me>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "dennis.dalessandro@intel.com" <dennis.dalessandro@intel.com>, "hch@lst.de" <hch@lst.de>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "stephen@networkplumber.org" <stephen@networkplumber.org>, "dledford@redhat.com" <dledford@redhat.com>, "jgunthorpe@obsidianresearch.com" <jgunthorpe@obsidianresearch.com>, "ariela@mellanox.com" <ariela@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBUaGUgaW5mcmFzdHJ1Y3R1cmUgaXMgYWdub3N0aWMgdG8gd2hldGhlciB0aGUgb2JqZWN0cyBh
-cmUgY29tbW9uIG9yDQo+IGRyaXZlciBzcGVjaWZpYy4NCj4gSXQgYWN0dWFsbHkgZ2l2ZXMgeW91
-IGEgKGhvcGVmdWxseSkgY29udmVuaWVudCB3YXkgdG8gaW52b2tlIHZlcmJzDQo+IGhhbmRsZXJz
-IGluIHRoZSBrZXJuZWwuDQo+IEVhY2ggaGFuZGxlciBpcyBhIGZ1bmN0aW9uIHdoaWNoIGNvdWxk
-IGhhdmUgc29tZSBhcmd1bWVudHMuIEhvd2V2ZXIsDQo+IHdlIGNhbid0IHBhc3Mga2VybmVsIHBv
-aW50ZXJzDQo+IGZyb20gdXNlci1zcGFjZSB0byBrZXJuZWwgYW5kIHdlIGNhbid0IHRydXN0IHRo
-ZSB1c2VyLXNwYWNlIGZyb20NCj4gZXhlY3V0aW5nIHR3byBjYWxscyBjb25jdXJyZW50bHkgdGhh
-dA0KPiBjb3VsZCB1c2UgYW4gb2JqZWN0IGFuZCBkZXN0cm95IGl0IGF0IHRoZSBzYW1lIHRpbWUu
-IEN1cnJlbnRseQ0KPiAoY3VycmVudCBpbmZyYXN0cnVjdHVyZSksIHdoZW4geW91IHdyaXRlIHN1
-Y2ggYSBoYW5kbGVyLCB5b3UgbmVlZA0KPiB0byBvcGVuIGNvZGUgdGhpcyB5b3Vyc2VsZiAtIG1h
-cCBpZHMgdG8gb2JqZWN0cyBhbmQgbG9jayB0aGVtLg0KPiANCj4gV2hhdCB3ZSBwcm9wb3NlIGhl
-cmUgaXMgdG8gaGF2ZSBzb21lIGFkZGl0aW9uYWwgaW5mbyB0byB0aGUgaGFuZGxlci4NCj4gVGhp
-cyBpbmZvIGNvdWxkIGJlIHRob3VnaHQgYXMgdGhlIGZ1bmN0aW9uJ3MgZGVjZWxlcmF0aW9uLg0K
-PiBUaGlzIGFkZGl0aW9uYWwgaW5mbyBtYWtlcyB0aGUgaW5mcmFzdHJ1Y3R1cmUgdmFsaWRhdGVz
-IHN5bnRhY3RpY2FsbHkNCj4geW91ciBhdHRyaWJ1dGVzLCBtYXAgdGhlbSB0byB0aGUgYWN0dWFs
-IGtlcm5lbCBwb2ludGVycyBhbmQgbG9jayB0aGVtLg0KPiBTaW5jZSB0aGUga2VybmVsIGRldmVs
-b3BlciB3cml0ZXMgdGhpcyAiYWRkaXRpb25hbCBpbmZvIg0KPiAoc3BlY2lmaWNhdGlvbiksIGl0
-IGNhbiBtYWtlIHN1cmUgb25seSBvbmUgIkRFU1RST1kiIG9yICJDUkVBVEUiDQo+IG9iamVjdCBl
-eGlzdHMgcGVyIGEgc3BlY2lmaWNhdGlvbiAodG8gYXZvaWQgdGhlIGJlaGF2aW9yIHlvdQ0KPiBt
-ZW50aW9uZWQpLg0KPiANCj4gQSBjb21tYW5kIGhhbmRsaW5nIGFsd2F5cyBjb25zaXN0cyBvZiAz
-IHN0YWdlczogcHJlLCBoYW5kbGVyIGFuZCBwb3N0DQo+IChmb3IgYWxsIGhhbmRsZXJzKS4NCj4g
-U28sIG92ZXJhbGwsIGlmIHlvdSBoYXZlIGEgY3JlYXRlIGJhc2VkIGNvbW1hbmQsIHRoZSAicHJl
-IiBzdGFnZQ0KPiBjcmVhdGVzIHRoZSB1b2JqZWN0IGFuZCBsb2NrcyBpdHMgZGVwZW5kZW5jaWVz
-LiBJZiB0aGUgaGFuZGxlciBmYWlscywNCj4gdGhpcyBpcyB0b3RhbGx5IHJldmVyc2libGUgKHVu
-bG9jayBkZXBlbmRlbmNpZXMgYW5kIGRlc3Ryb3kgdGhlDQo+IHVvYmplY3QpLg0KPiBJZiB5b3Ug
-aGF2ZSBhIGRlc3Ryb3kgY29tbWFuZCwgdGhlICJwcmUiIHN0YWdlIGxvY2tzIHRoZSB1b2JqZWN0
-IGZvcg0KPiBleGNsdXNpdmUgYWNjZXNzLiBJZiB0aGUgaGFuZGxlciBmYWlscywgaXQganVzdCB1
-bmxvY2tzIHRoZSBvYmplY3QuIElmDQo+IGl0J3Mgc3VjY2Vzc2Z1bCwgdGhlICJwb3N0IiBzdGFn
-ZSBhY3R1YWxseSBkZXN0cm95cyBpdC4NCj4gSW4gb3RoZXIgY29tbWFuZHMsIHRoZSAicHJlIiBz
-dGFnZSBqdXN0IGxvY2tzIHRoZSB1b2JqZWN0cyBhbmQNCj4gb2J2aW91c2x5IGl0J3MgcmV2ZXJz
-aWJsZS4NCj4gDQo+IEkgaG9wZSB0aGF0IGFuc3dlcnMgeW91ciBxdWVzdGlvbnMuDQo+IA0KDQpJ
-J20gaW4gc3luYyB3aXRoIHlvdS4NClRoYW5rcyBmb3IgZnVydGhlciBleHBsYWluaW5nLg0KDQot
-IFJhbQ0KDQoNCg==
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--eGyD7iWN192kf2IJ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Sat, May 06, 2017 at 02:40:24PM +0000, Bart Van Assche wrote:
+> On Sat, 2017-05-06 at 12:40 +0200, Jiri Pirko wrote:
+> > Thu, May 04, 2017 at 08:10:54PM CEST, Bart.VanAssche@sandisk.com wrote:
+> > > On Thu, 2017-05-04 at 21:02 +0300, Leon Romanovsky wrote:
+> > > > Following our discussion both in mailing list [1] and at the LPC 2016 [2],
+> > > > we would like to propose this RDMA tool to be part of iproute2 package
+> > > > and finally improve this situation.
+> > >
+> > > Although I really appreciate your work: can you clarify why you would like to
+> > > add *RDMA* functionality to an *IP routing* tool? I haven't found any motivation
+> > > for adding RDMA functionality to iproute2 in [1].
+> >
+> > Bart, please realize that iproute2 is much more than "*IP routing* tool".
+> > I understand you got confused by the name. Please see sources. Your comment
+> > is totally pointless...
+>
+> I asked for a clarification that should have been in the cover letter but that
+> was missing from that cover letter. So I think that was the right thing to do
+> instead of pointless. BTW, can you explain why you are using an e-mail address
+> that is hiding that you are a Mellanox employee?
+
+For the same reason as I do. It is much easier to use outside servers
+than Mellanox's IT infrastructure.
+
+Right now, I'm speaking for myself, but for me, to properly answer with @mellanox.com,
+I need to use very specific mail setup, while for any other addresses I can and use any
+sane setup, including mobile application.
+
+>
+> Bart.
+
+--eGyD7iWN192kf2IJ
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkOu0AACgkQ5GN7iDZy
+WKfHTQ/+LJdIUqd9u7Oc07+rMCgDCGN2gGWvu+5ZRRW3uh+7Z2oQcvlxJEY6xfDw
+zeAOvYqq0s6RT3jv2yqPnthfeq12efRmN691qZg0SlsDviOjgh3gzPZp/W2OlXOV
+hN5LtWweKhnhz2fRiY51pLBn0xPhAA+iWuILY7lagNKCCuRTs2f/9R7JRxEZ2dz9
+VLkdi9y4Laa0vLUym3SBJSJ0Q2ul/M1rfGts/GBxyyT2Cc/w7gQGQrGJ2i4gYUVr
+9mophggzj3SxFvmNQSdY8Xja3VnfEvUCMXREZhUPHGUJJ3EyJ/9TdL+iSgEWAsTo
+jUbeN5TEUg2V8GTC57m1XNPczKWb3YRItrU185g/rf92edIQbCdijKeYWmijzOVG
+O8URlLd36uNefo9ubMMICN3KbLf7DM2kF3Dp3EkT0iwtX8lay31NUXjpcBCvgwEM
+oFxJTj0bJt0i9EhAgO2Tiap4wE8zoMGVBRjGiwx6/zpDchooIXRQi+mntnFUqkgc
++eO4oU6vHNzTCRWNfgEbcR8DzXSx9eimTnsunul8LmNiWMuxR9mL/2pTisj3ioxj
+f8lVzwa/yCKRPIlabL2AToMx90D0EyTfU2P3dmVSPMQkeIQdwEhfDuAm656ZQro3
+Y8M/+35l0a/07TqwjDzeCcs8NsRcx7ec+rhjL+p/0mSnszV75Aw=
+=0C+O
+-----END PGP SIGNATURE-----
+
+--eGyD7iWN192kf2IJ--
