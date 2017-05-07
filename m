@@ -1,44 +1,59 @@
-From: Jiri Pirko <jiri@resnulli.us>
-Subject: Re: [RFC iproute2 0/8] RDMA tool
-Date: Sun, 7 May 2017 12:20:46 +0200
-Message-ID: <20170507102046.GA1889@nanopsycho.orion>
-References: <20170504180216.7665-1-leon@kernel.org>
- <1493921453.2692.6.camel@sandisk.com>
- <20170506104047.GC2017@nanopsycho>
- <1494081623.3228.1.camel@sandisk.com>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH RFC 02/10] IB/core: Add support to finalize objects in one
+ transaction
+Date: Sun, 7 May 2017 14:29:09 +0000
+Message-ID: <BN3PR07MB2578DD121FF6BD06B7630FFFF8E90@BN3PR07MB2578.namprd07.prod.outlook.com>
+References: <1492615225-55118-1-git-send-email-matanb@mellanox.com>
+ <1492615225-55118-3-git-send-email-matanb@mellanox.com>
+ <SN1PR07MB22077A1B43881BAF7BAC5ED0F8EA0@SN1PR07MB2207.namprd07.prod.outlook.com>
+ <CAAKD3BBfZa_eM2L+LE30uDnoEge6rCBj17YtkVZULUsKMQrQww@mail.gmail.com>
+ <BN3PR07MB2578868B660CC388664BE501F8E90@BN3PR07MB2578.namprd07.prod.outlook.com>
+ <CAAKD3BAr0GX5rGCq_wcxQ=NKZwyHdrvnj_3G25mhq-c1qqFFRQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1494081623.3228.1.camel@sandisk.com>
-Sender: netdev-owner@vger.kernel.org
-To: Bart Van Assche <Bart.VanAssche@sandisk.com>
-Cc: "leonro@mellanox.com" <leonro@mellanox.com>, "jiri@mellanox.com" <jiri@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "ram.amrani@cavium.com" <ram.amrani@cavium.com>, "sagi@grimberg.me" <sagi@grimberg.me>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "dennis.dalessandro@intel.com" <dennis.dalessandro@intel.com>, "hch@lst.de" <hch@lst.de>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "leon@kernel.org" <leon@kernel.org>, "stephen@networkplumber.org" <stephen@networkplumber.org>, "dledford@redhat.com" <dledford@redhat.com>, "jgunthorpe@obsidianresearch.com" <jgunthorpe@obsidianresearch.com>, "ariela@mellanox.com" <ariela@mellanox.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAAKD3BAr0GX5rGCq_wcxQ=NKZwyHdrvnj_3G25mhq-c1qqFFRQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sat, May 06, 2017 at 04:40:24PM CEST, Bart.VanAssche@sandisk.com wrote:
->On Sat, 2017-05-06 at 12:40 +0200, Jiri Pirko wrote:
->> Thu, May 04, 2017 at 08:10:54PM CEST, Bart.VanAssche@sandisk.com wrote:
->> > On Thu, 2017-05-04 at 21:02 +0300, Leon Romanovsky wrote:
->> > > Following our discussion both in mailing list [1] and at the LPC 2016 [2],
->> > > we would like to propose this RDMA tool to be part of iproute2 package
->> > > and finally improve this situation.
->> > 
->> > Although I really appreciate your work: can you clarify why you would like to
->> > add *RDMA* functionality to an *IP routing* tool? I haven't found any motivation
->> > for adding RDMA functionality to iproute2 in [1].
->> 
->> Bart, please realize that iproute2 is much more than "*IP routing* tool".
->> I understand you got confused by the name. Please see sources. Your comment
->> is totally pointless...
->
->I asked for a clarification that should have been in the cover letter but that
->was missing from that cover letter. So I think that was the right thing to do
-
-I think that was just complete misunderstanding about what iproute2 is.
-
-
->instead of pointless. BTW, can you explain why you are using an e-mail address
->that is hiding that you are a Mellanox employee?
-
-Who sais I have to do that? This is funny...
+PiBUaGUgaW5mcmFzdHJ1Y3R1cmUgaXMgYWdub3N0aWMgdG8gd2hldGhlciB0aGUgb2JqZWN0cyBh
+cmUgY29tbW9uIG9yDQo+IGRyaXZlciBzcGVjaWZpYy4NCj4gSXQgYWN0dWFsbHkgZ2l2ZXMgeW91
+IGEgKGhvcGVmdWxseSkgY29udmVuaWVudCB3YXkgdG8gaW52b2tlIHZlcmJzDQo+IGhhbmRsZXJz
+IGluIHRoZSBrZXJuZWwuDQo+IEVhY2ggaGFuZGxlciBpcyBhIGZ1bmN0aW9uIHdoaWNoIGNvdWxk
+IGhhdmUgc29tZSBhcmd1bWVudHMuIEhvd2V2ZXIsDQo+IHdlIGNhbid0IHBhc3Mga2VybmVsIHBv
+aW50ZXJzDQo+IGZyb20gdXNlci1zcGFjZSB0byBrZXJuZWwgYW5kIHdlIGNhbid0IHRydXN0IHRo
+ZSB1c2VyLXNwYWNlIGZyb20NCj4gZXhlY3V0aW5nIHR3byBjYWxscyBjb25jdXJyZW50bHkgdGhh
+dA0KPiBjb3VsZCB1c2UgYW4gb2JqZWN0IGFuZCBkZXN0cm95IGl0IGF0IHRoZSBzYW1lIHRpbWUu
+IEN1cnJlbnRseQ0KPiAoY3VycmVudCBpbmZyYXN0cnVjdHVyZSksIHdoZW4geW91IHdyaXRlIHN1
+Y2ggYSBoYW5kbGVyLCB5b3UgbmVlZA0KPiB0byBvcGVuIGNvZGUgdGhpcyB5b3Vyc2VsZiAtIG1h
+cCBpZHMgdG8gb2JqZWN0cyBhbmQgbG9jayB0aGVtLg0KPiANCj4gV2hhdCB3ZSBwcm9wb3NlIGhl
+cmUgaXMgdG8gaGF2ZSBzb21lIGFkZGl0aW9uYWwgaW5mbyB0byB0aGUgaGFuZGxlci4NCj4gVGhp
+cyBpbmZvIGNvdWxkIGJlIHRob3VnaHQgYXMgdGhlIGZ1bmN0aW9uJ3MgZGVjZWxlcmF0aW9uLg0K
+PiBUaGlzIGFkZGl0aW9uYWwgaW5mbyBtYWtlcyB0aGUgaW5mcmFzdHJ1Y3R1cmUgdmFsaWRhdGVz
+IHN5bnRhY3RpY2FsbHkNCj4geW91ciBhdHRyaWJ1dGVzLCBtYXAgdGhlbSB0byB0aGUgYWN0dWFs
+IGtlcm5lbCBwb2ludGVycyBhbmQgbG9jayB0aGVtLg0KPiBTaW5jZSB0aGUga2VybmVsIGRldmVs
+b3BlciB3cml0ZXMgdGhpcyAiYWRkaXRpb25hbCBpbmZvIg0KPiAoc3BlY2lmaWNhdGlvbiksIGl0
+IGNhbiBtYWtlIHN1cmUgb25seSBvbmUgIkRFU1RST1kiIG9yICJDUkVBVEUiDQo+IG9iamVjdCBl
+eGlzdHMgcGVyIGEgc3BlY2lmaWNhdGlvbiAodG8gYXZvaWQgdGhlIGJlaGF2aW9yIHlvdQ0KPiBt
+ZW50aW9uZWQpLg0KPiANCj4gQSBjb21tYW5kIGhhbmRsaW5nIGFsd2F5cyBjb25zaXN0cyBvZiAz
+IHN0YWdlczogcHJlLCBoYW5kbGVyIGFuZCBwb3N0DQo+IChmb3IgYWxsIGhhbmRsZXJzKS4NCj4g
+U28sIG92ZXJhbGwsIGlmIHlvdSBoYXZlIGEgY3JlYXRlIGJhc2VkIGNvbW1hbmQsIHRoZSAicHJl
+IiBzdGFnZQ0KPiBjcmVhdGVzIHRoZSB1b2JqZWN0IGFuZCBsb2NrcyBpdHMgZGVwZW5kZW5jaWVz
+LiBJZiB0aGUgaGFuZGxlciBmYWlscywNCj4gdGhpcyBpcyB0b3RhbGx5IHJldmVyc2libGUgKHVu
+bG9jayBkZXBlbmRlbmNpZXMgYW5kIGRlc3Ryb3kgdGhlDQo+IHVvYmplY3QpLg0KPiBJZiB5b3Ug
+aGF2ZSBhIGRlc3Ryb3kgY29tbWFuZCwgdGhlICJwcmUiIHN0YWdlIGxvY2tzIHRoZSB1b2JqZWN0
+IGZvcg0KPiBleGNsdXNpdmUgYWNjZXNzLiBJZiB0aGUgaGFuZGxlciBmYWlscywgaXQganVzdCB1
+bmxvY2tzIHRoZSBvYmplY3QuIElmDQo+IGl0J3Mgc3VjY2Vzc2Z1bCwgdGhlICJwb3N0IiBzdGFn
+ZSBhY3R1YWxseSBkZXN0cm95cyBpdC4NCj4gSW4gb3RoZXIgY29tbWFuZHMsIHRoZSAicHJlIiBz
+dGFnZSBqdXN0IGxvY2tzIHRoZSB1b2JqZWN0cyBhbmQNCj4gb2J2aW91c2x5IGl0J3MgcmV2ZXJz
+aWJsZS4NCj4gDQo+IEkgaG9wZSB0aGF0IGFuc3dlcnMgeW91ciBxdWVzdGlvbnMuDQo+IA0KDQpJ
+J20gaW4gc3luYyB3aXRoIHlvdS4NClRoYW5rcyBmb3IgZnVydGhlciBleHBsYWluaW5nLg0KDQot
+IFJhbQ0KDQoNCg==
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
