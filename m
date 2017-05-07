@@ -1,80 +1,44 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH RFC 02/10] IB/core: Add support to finalize objects in one
- transaction
-Date: Sun, 7 May 2017 12:02:31 +0000
-Message-ID: <BN3PR07MB2578868B660CC388664BE501F8E90@BN3PR07MB2578.namprd07.prod.outlook.com>
-References: <1492615225-55118-1-git-send-email-matanb@mellanox.com>
- <1492615225-55118-3-git-send-email-matanb@mellanox.com>
- <SN1PR07MB22077A1B43881BAF7BAC5ED0F8EA0@SN1PR07MB2207.namprd07.prod.outlook.com>
- <CAAKD3BBfZa_eM2L+LE30uDnoEge6rCBj17YtkVZULUsKMQrQww@mail.gmail.com>
+From: Jiri Pirko <jiri@resnulli.us>
+Subject: Re: [RFC iproute2 0/8] RDMA tool
+Date: Sun, 7 May 2017 12:20:46 +0200
+Message-ID: <20170507102046.GA1889@nanopsycho.orion>
+References: <20170504180216.7665-1-leon@kernel.org>
+ <1493921453.2692.6.camel@sandisk.com>
+ <20170506104047.GC2017@nanopsycho>
+ <1494081623.3228.1.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAAKD3BBfZa_eM2L+LE30uDnoEge6rCBj17YtkVZULUsKMQrQww-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1494081623.3228.1.camel@sandisk.com>
+Sender: netdev-owner@vger.kernel.org
+To: Bart Van Assche <Bart.VanAssche@sandisk.com>
+Cc: "leonro@mellanox.com" <leonro@mellanox.com>, "jiri@mellanox.com" <jiri@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "ram.amrani@cavium.com" <ram.amrani@cavium.com>, "sagi@grimberg.me" <sagi@grimberg.me>, "ogerlitz@mellanox.com" <ogerlitz@mellanox.com>, "dennis.dalessandro@intel.com" <dennis.dalessandro@intel.com>, "hch@lst.de" <hch@lst.de>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "leon@kernel.org" <leon@kernel.org>, "stephen@networkplumber.org" <stephen@networkplumber.org>, "dledford@redhat.com" <dledford@redhat.com>, "jgunthorpe@obsidianresearch.com" <jgunthorpe@obsidianresearch.com>, "ariela@mellanox.com" <ariela@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-PiA+PiBUaGUgbmV3IGlvY3RsIGJhc2VkIGluZnJhc3RydWN0dXJlIGVpdGhlciBjb21taXRzIG9y
-IHJvbGxiYWNrcw0KPiA+PiBhbGwgb2JqZWN0cyBvZiB0aGUgY29tbWFuZCBhcyBvbmUgdHJhbnNh
-Y3Rpb24uIEluIG9yZGVyIHRvIGRvDQo+ID4+IHRoYXQsIHdlIGludHJvZHVjZSBhIG5vdGlvbiBv
-ZiBkZWFsaW5nIHdpdGggYSBjb2xsZWN0aW9uIG9mDQo+ID4+IG9iamVjdHMgdGhhdCBhcmUgcmVs
-YXRlZCB0byBhIHNwZWNpZmljIGFjdGlvbi4NCj4gPj4NCj4gPj4gVGhpcyBhbHNvIHJlcXVpcmVz
-IGFkZGluZyBhIG5vdGlvbiBvZiBhbiBhY3Rpb24gYW5kIGF0dHJpYnV0ZS4NCj4gPj4gQW4gYWN0
-aW9uIGNvbnRhaW5zIGEgZ3JvdXBzIG9mIGF0dHJpYnV0ZXMsIHdoZXJlIGVhY2ggZ3JvdXANCj4g
-Pj4gY29udGFpbnMgc2V2ZXJhbCBhdHRyaWJ1dGVzLg0KPiA+Pg0KPiA+PiBXaGVuIGRlY2xhcmlu
-ZyB0aGVzZSBhY3Rpb25zIGFuZCBhdHRyaWJ1dGVzLCB3ZSBhY3R1YWxseSBkZWNsYXJlDQo+ID4+
-IHRoZWlyIHNwZWNpZmljYXRpb25zLiBXaGVuIGEgY29tbWFuZCBpcyBleGVjdXRlZCwgd2UgYWN0
-dWFsbHkNCj4gPj4gYWxsb2NhdGVzIHNvbWUgc3BhY2UgdG8gaG9sZCBhdXhpbGlhcnkgaW5mb3Jt
-YXRpb24uDQo+ID4+DQo+ID4+IFNpZ25lZC1vZmYtYnk6IE1hdGFuIEJhcmFrIDxtYXRhbmJAbWVs
-bGFub3guY29tPg0KPiA+PiAtLS0NCj4gPg0KPiA+IE1hdGFuLCB0aGFua3MgZm9yIHRoZSBSRkMh
-DQo+ID4NCj4gPiBJZiBJIGdvdCB0aGlzIGNvcnJlY3RseSBlYWNoIG9iamVjdCB3aWxsIGdvIHRo
-cm91Z2ggdGhyZWUgcGhhc2VzIC0gZ2V0LCBoYW5kbGVyLCBhbmQgYSBwdXQuDQo+ID4gSSBkb24n
-dCBxdWl0ZSB1bmRlcnN0YW5kIGhvdyBhIGJhdGNoIG9wZXJhdGlvbiwgbGlrZSBkZXN0cm95IFFQ
-cywgY2FuIGJlIHVuZG9uZSBhZnRlciB0aGUgaGFuZGxlciBwaGFzZS4NCj4gPiBJIGRvIHNlZSBp
-dCB3b3JraW5nIGlmIGF0IGZpcnN0IG11bHRpcGxlIGdldHMgYXJlIHBlcmZvcm1lZCBhbmQgb25l
-IG9mIHRoZW0gZmFpbHMuDQo+ID4gSW4gdGhhdCBjYXNlIHVuZG9pbmcgaXMgZWFzeSBiZWNhdXNl
-IHRoZSBoYW5kbGVycyB3ZXJlbid0IGludm9rZWQgeWV0Lg0KPiA+DQo+ID4gSW4gdGhlIGNhc2Ug
-d2VyZSBzb21lIHVzZXItb2JqZWN0cyBmYWlsZWQgdGhlIG9wZXJhdGlvbiBob3cgaXMgdGhpcyBy
-ZWZsZWN0ZWQgdXB3YXJkcz8NCj4gPg0KPiA+IEFsc28sIEkgd29uZGVyLCBpcyB0aGVyZSBhbm90
-aGVyIGludGVudGlvbiBiZWhpbmQgYmF0Y2ggb3BlcmF0aW9ucyBleGNlcHQgc3BlZWQ/DQo+ID4N
-Cj4gDQo+IEl0J3MgcmVhbGx5IG5vdCByZWNvbW1lbmRlZCB0byBiYXRjaCBjcmVhdGUvZGVzdHJv
-eS4gVGhlIHJlYXNvbiBpcw0KPiBleGFjdGx5IHdoYXQgeW91J3ZlIHBvaW50ZXIgb3V0Lg0KPiBJ
-ZiB5b3UgYmF0Y2ggc2V2ZXJhbCAiZGVzdHJveSBvYmplY3RzIiBhbmQgdGhlIG4ndGggb25lIGZh
-aWwsIHlvdQ0KPiBjYW4ndCB1bndpbmQgdGhlIHN1Y2Nlc3NmdWwgb25lcy4NCj4gDQo+IFNvIGJh
-c2ljYWxseSwgd2Ugd2FudCB0byBzdXBwb3J0IGEgc2VtYW50aWMgd2hpY2ggaXMgc2ltaWxhciB0
-byB3aGF0DQo+IHdlIGhhdmUgdG9kYXkgLSBjcmVhdGUgYSBzaW5nbGUgb2JqZWN0IG9yIGRlc3Ry
-b3kgYSBzaW5nbGUgb2JqZWN0Lg0KPiBJbiB0aGlzIGNhc2UsIHRoZSBwcmUtaGFuZGxlciBzdGFn
-ZSBsb2NrcyB0aGUgZGVwZW5kZW5jaWVzIG9mIHRoaXMNCj4gb2JqZWN0IChmb3IgZXhhbXBsZSwg
-aW4gY3JlYXRlX3FwIHlvdSBsb2NrIHRoZSBwZCBhbmQgY3Egc28gdGhleSB3b24ndA0KPiBiZSBk
-ZXN0cm95ZWQpDQo+IGFuZCBjcmVhdGUgdGhlIHVvYmplY3QgZm9yIHRoZSBRUC4gVGhlIGhhbmRs
-ZXIgaXRzZWxmIGNhbiBhc3N1bWUgdGhlDQo+IHJlcXVpcmVtZW50cyBpdCBzdGF0ZWQgaW4gdGhl
-IHNwZWNpZmljYXRpb25zIGFyZSBmaWxsZWQgYW5kIGp1c3QNCj4gY3JlYXRlIHRoZSBRUCBhbmQN
-Cj4gdGllIHRoZSB1b2JqZWN0IHRvIHRoZSBRUCBvYmplY3QuIEluIHRoZSBwb3N0LWhhbmRsZXIg
-c3RhZ2Ugd2UgY29tbWl0DQo+IHRoZSBRUCdzIHVvYmplY3QgYW5kIHVubG9jayB0aGUgZGVwZW5k
-ZW5jaWVzIChhc3N1bWluZyB0aGUgaGFuZGxlcg0KPiBpbmNyZWFzZWQNCj4gdGhlIHJlcXVpcmVk
-IHJlZmNvdW50cykuDQo+IERlc3Ryb3lpbmcgYW4gb2JqZWN0IGlzIHNpbWlsYXIuIFRoZSBvbmx5
-IGRpZmZlcmVudCBpcyB0aGF0IHRoZQ0KPiBkZXN0cnVjdGlvbiBpdHNlbGYgaXNuJ3QgZG9uZSBi
-eSB0aGUgaGFuZGxlciwgYnV0IGluIHRoZQ0KPiBwb3N0LWhhbmRsZXIncyBjb2RlICh0byBzaGFy
-ZSB0aGlzIGNvZGUgYmV0d2Vlbg0KPiByZWd1bGFyICJkZXN0cm95IiBjYWxscyB3aXRoIHByb2Nl
-c3MgdGVhci1kb3duIGFuZCBoYXJkd2FyZSByZW1vdmFsKS4NCiANCkkgdW5kZXJzdGFuZCB0aGVy
-ZSBhcmUgdHdvIHNldHMgb2Ygb2JqZWN0cyBoZXJlLiBMZXQncyBtYWtlIHN1cmUgSSdtIG5vdCBj
-b25mdXNpbmcgdGhlbS4NCg0KKDEpIEEgY29sbGVjdGlvbiBvZiB1c2VyLW9iamVjdHMgcGFzc2Vk
-IHZpYSBpb2N0bC4gVGhpcyBpcyBpbmRpY2F0ZWQgaW4gdGhlIGZpcnN0IHBhcmFncmFwaC4NCkJ1
-dCBhcyB5b3UgaW5kaWNhdGVkIG5vdyB3ZSBzaG91bGRuJ3Qgc3VwcG9ydCB0aGlzLiBTbyB3aHkg
-KGFwcGFyZW50bHkpIGRvIHdlPw0KDQooMikgQSBjb2xsZWN0aW9uIG9mIHVzZXItb2JqZWN0cyB0
-aGF0IHNob3VsZCBiZSBsb2NrZWQgZm9yIHRoZSBjcmVhdGlvbi9kZWxldGlvbi9tb2RpZmljYXRp
-b24NCm9mIGFub3RoZXIgdGhhdCB3YXMgcmVxdWVzdGVkIHZpYSBpb2N0bC4NCkluIHRoaXMgY2Fz
-ZSB0aGUgaGFuZGxlciBkb2Vzbid0IG5lZWQgdG8gYmUgaW52b2tlZCBhdCBhbGwgZm9yIHRoZSBj
-b2xsZWN0aW9uLg0KV2UgY2FuIGVhc2lseSByb2xsIGJhY2sgdGhlICJnZXQiIHBoYXNlLCBpZiBm
-YWlsZWQgZHVyaW5nLg0KV2UgZG9uJ3QgZXhwZWN0IHRoZSAicHV0IiBwaGFzZSB0byBmYWlsLCBp
-ZiBpdCB3aWxsIGZhaWwgZm9yIHNvbWUgcmVhc29uLiBUaGVuIHRoaXMgd29uJ3QgcmVhbGx5DQpi
-ZSBoYW5kbGVkIGFzIHRoZSBoYW5kbGVyIHdhcyBhbHJlYWR5IGludm9rZWQuDQoNClRoYW5rcywN
-ClJhbQ0KDQoNCg==
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sat, May 06, 2017 at 04:40:24PM CEST, Bart.VanAssche@sandisk.com wrote:
+>On Sat, 2017-05-06 at 12:40 +0200, Jiri Pirko wrote:
+>> Thu, May 04, 2017 at 08:10:54PM CEST, Bart.VanAssche@sandisk.com wrote:
+>> > On Thu, 2017-05-04 at 21:02 +0300, Leon Romanovsky wrote:
+>> > > Following our discussion both in mailing list [1] and at the LPC 2016 [2],
+>> > > we would like to propose this RDMA tool to be part of iproute2 package
+>> > > and finally improve this situation.
+>> > 
+>> > Although I really appreciate your work: can you clarify why you would like to
+>> > add *RDMA* functionality to an *IP routing* tool? I haven't found any motivation
+>> > for adding RDMA functionality to iproute2 in [1].
+>> 
+>> Bart, please realize that iproute2 is much more than "*IP routing* tool".
+>> I understand you got confused by the name. Please see sources. Your comment
+>> is totally pointless...
+>
+>I asked for a clarification that should have been in the cover letter but that
+>was missing from that cover letter. So I think that was the right thing to do
+
+I think that was just complete misunderstanding about what iproute2 is.
+
+
+>instead of pointless. BTW, can you explain why you are using an e-mail address
+>that is hiding that you are a Mellanox employee?
+
+Who sais I have to do that? This is funny...
