@@ -1,70 +1,99 @@
-From: Knut Omang <knut.omang@oracle.com>
-Subject: Re: [RFC iproute2 0/8] RDMA tool
-Date: Mon, 08 May 2017 15:04:02 +0200
-Message-ID: <1494248642.10569.23.camel@oracle.com>
-References: <20170504180216.7665-1-leon@kernel.org>
-         <20170505085457.0029edc9@griffin> <20170505131754.GH22833@mtr-leonro.local>
-         <20170506104826.GD2017@nanopsycho>
-         <20170507063329.GL22833@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170507063329.GL22833@mtr-leonro.local>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, Jiri Pirko <jiri@resnulli.us>
-Cc: Jiri Benc <jbenc@redhat.com>, Stephen Hemminger <stephen@networkplumber.org>, Doug Ledford <dledford@redhat.com>, Jiri Pirko <jiri@mellanox.com>, Ariel Almog <ariela@mellanox.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Ram Amrani <ram.amrani@cavium.com>, Bart Van Assche <Bart.VanAssche@sandisk.com>, Sagi Grimberg <sagi@grimberg.me>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Christoph Hellwig <hch@lst.de>, Or Gerlitz <ogerlitz@mellanox.com>, Linux RDMA <linux-rdma@vger.kernel.org>, Linux Netdev <netdev@vger.kernel.org>
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] rdma-core: define link speed and link width enums
+Date: Mon,  8 May 2017 09:44:17 -0400
+Message-ID: <1494251057-1060-1-git-send-email-devesh.sharma@broadcom.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 2017-05-07 at 09:33 +0300, Leon Romanovsky wrote:
-> On Sat, May 06, 2017 at 12:48:26PM +0200, Jiri Pirko wrote:
-> > Fri, May 05, 2017 at 03:17:54PM CEST, leon@kernel.org wrote:
-> > >On Fri, May 05, 2017 at 08:54:57AM +0200, Jiri Benc wrote:
-> > >> On Thu,  4 May 2017 21:02:08 +0300, Leon Romanovsky wrote:
-> > >> > In order to close object model, ensure reuse of existing code and make this
-> > >> > tool usable from day one, we decided to implement wrappers over legacy sysfs
-> > >> > prior to implementing netlink functionality. As a nice bonus, it will allow
-> > >> > to use this tool with old kernels too.
-> > >>
-> > >> This sounds wrong. We don't support legacy ioctl interface for the 'ip'
-> > >> command, either. I think rdma should be converted to netlink first and
-> > >> the new tool should only use netlink.
-> > >
-> > >RDMA in slightly different situation than "ip" tool was. "ip" was implemented
-> > >when tools like ifconfig existed. It allowed to old and new systems to be
-> > >configured to some degree. In RDMA community, there are no similar tools like
-> > >"ifconfig". Implementation in netlink-only interface will leave old systems without
-> > >common tool at all.
-> > >
-> > >As an upstream-oriented person, I personally fine with that, but anyway would
-> > >like to get wider agreement/disagreement on that, before removing sysfs
-> > >parsing logic from the rdmatool.
-> >
-> > I tend to agree with Jiri Benc. I fear that supporting sysfs + netlink
-> > api later on for the same things will make the code unnecessary complex.
-> > Also, the legacy sysfs will most likely stay there forever so there will
-> > be no actual motivation to port the existing things to the new netlink
-> > api.
-> >
-> > For the prototyping purposes, I belive that what you did makes perfect
-> > sense. But for the actual mergable version, my feeling is that we need
-> > to strictly stick with new netlink rdma interface and just forget about
-> > the old sysfs one. Distros would have to backport the new kernel
-> > rdma netlink api.
-> 
-> Thanks,
-> It looks like that most of the comments are in favor of netlink-only
-> solution.
+Currently application either need to define its own enum
+values for link-speed and link-width or use hard coded
+values. This patch inharits the enums from kernel space
+ib_verbs.h and puts into verbs.h for ease of programming.
 
-Leon, I like the thought bw comp support. After all this is a user level tool so it should
-be possible to make a clean implementation that makes the old stuff easy to remove 
-at some point. It will also attract users much sooner than if they have to have 
-their own if-then-else logic around everything to be able to support old and new.
+Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+---
+ libibverbs/examples/devinfo.c | 22 ++++++++++++----------
+ libibverbs/verbs.h            | 18 ++++++++++++++++++
+ 2 files changed, 30 insertions(+), 10 deletions(-)
 
-> > Yes, this will be little bit more painful at the beginning, but in the
-> > long run, I believe it will save some severe headaches.
-> >
+diff --git a/libibverbs/examples/devinfo.c b/libibverbs/examples/devinfo.c
+index 2c1e3f1..42ed50c 100644
+--- a/libibverbs/examples/devinfo.c
++++ b/libibverbs/examples/devinfo.c
+@@ -124,10 +124,10 @@ static const char *mtu_str(enum ibv_mtu max_mtu)
+ static const char *width_str(uint8_t width)
+ {
+ 	switch (width) {
+-	case 1:  return "1";
+-	case 2:  return "4";
+-	case 4:  return "8";
+-	case 8:  return "12";
++	case IBV_WIDTH_1X:  return "1";
++	case IBV_WIDTH_4X:  return "4";
++	case IBV_WIDTH_8X:  return "8";
++	case IBV_WIDTH_12X:  return "12";
+ 	default: return "invalid width";
+ 	}
+ }
+@@ -135,14 +135,16 @@ static const char *width_str(uint8_t width)
+ static const char *speed_str(uint8_t speed)
+ {
+ 	switch (speed) {
+-	case 1:  return "2.5 Gbps";
+-	case 2:  return "5.0 Gbps";
++	case IBV_SPEED_SDR:  return "2.5 Gbps";
++	case IBV_SPEED_DDR:  return "5.0 Gbps";
+ 
+-	case 4:  /* fall through */
+-	case 8:  return "10.0 Gbps";
++	case IBV_SPEED_QDR:  /* fall through */
++	case IBV_SPEED_FDR10:  return "10.0 Gbps";
+ 
+-	case 16: return "14.0 Gbps";
+-	case 32: return "25.0 Gbps";
++	case IBV_SPEED_FDR: return "14.0 Gbps";
++	case IBV_SPEED_EDR: return "25.0 Gbps";
++	case IBV_SPEED_HDR: return "50.0 Gbps";
++	case IBV_SPEE_NDR: return "100.0 Gbps";
+ 	default: return "invalid speed";
+ 	}
+ }
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index b27dfd1..39a65fe 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -290,6 +290,24 @@ enum ibv_port_state {
+ 	IBV_PORT_ACTIVE_DEFER	= 5
+ };
+ 
++enum ibv_port_speed {
++	IBV_SPEED_SDR    = 1,
++	IBV_SPEED_DDR    = 2,
++	IBV_SPEED_QDR    = 4,
++	IBV_SPEED_FDR10  = 8,
++	IBV_SPEED_FDR    = 16,
++	IBV_SPEED_EDR    = 32,
++	IBV_SPEED_HDR    = 64,
++	IBV_SPEED_NDR    = 128
++};
++
++enum ibv_port_width {
++	IBV_WIDTH_1X     = 1,
++	IBV_WIDTH_4X     = 2,
++	IBV_WIDTH_8X     = 4,
++	IBV_WIDTH_12X    = 8
++};
++
+ enum {
+ 	IBV_LINK_LAYER_UNSPECIFIED,
+ 	IBV_LINK_LAYER_INFINIBAND,
+-- 
+1.8.3.1
 
-IMHO, some headache will be there anyway, just a matter of how how far out it gets.
-
-Knut
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
