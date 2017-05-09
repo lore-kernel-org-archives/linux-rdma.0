@@ -1,107 +1,171 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next v1] RDMA/netlink: Reduce exposure of RDMA
- netlink functions
-Date: Tue, 9 May 2017 09:45:47 +0300
-Message-ID: <20170509064547.GA4432@yuval-lap>
-References: <20170509064234.31094-1-leon@kernel.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC iproute2 0/8] RDMA tool
+Date: Tue, 9 May 2017 10:03:27 +0300
+Message-ID: <20170509070327.GH10073@mtr-leonro.local>
+References: <20170504180216.7665-1-leon@kernel.org>
+ <1493921453.2692.6.camel@sandisk.com>
+ <20170504182542.GD22833@mtr-leonro.local>
+ <1493922625.2692.8.camel@sandisk.com>
+ <20170504184531.GE22833@mtr-leonro.local>
+ <2dee6cde-0406-b101-0fe6-c1f6de7c1b1a@intel.com>
+ <20170504194242.GF22833@mtr-leonro.local>
+ <b82f5d3d-f198-3410-af85-85befc14a2ec@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="qOrJKOH36bD5yhNe"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170509064234.31094-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <b82f5d3d-f198-3410-af85-85befc14a2ec-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org" <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "ariela-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ariela-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 09, 2017 at 09:42:34AM +0300, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> RDMA netlink is part of ib_core, hence ibnl_chk_listeners(),
-> ibnl_init() and ibnl_cleanup() don't need to be published
-> in public header file.
-> 
-> Let's remove EXPORT_SYMBOL from ibnl_chk_listeners() and move all these
-> functions to private header file.
-> 
-> CC: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
-> Changes from v0:
->  * Move ibnl_init(), ibnl_cleanup() and ibnl_chk_listeners() functions
->    to private header.
->  * Change titile and commit message to reflect that change
-> ---
->  drivers/infiniband/core/core_priv.h | 10 ++++++++++
->  drivers/infiniband/core/netlink.c   |  1 -
->  include/rdma/rdma_netlink.h         | 10 ----------
->  3 files changed, 10 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-> index cb7d372e4bdf..d92ab4eaa8f3 100644
-> --- a/drivers/infiniband/core/core_priv.h
-> +++ b/drivers/infiniband/core/core_priv.h
-> @@ -169,6 +169,16 @@ void ib_mad_cleanup(void);
->  int ib_sa_init(void);
->  void ib_sa_cleanup(void);
-> 
-> +int ibnl_init(void);
-> +void ibnl_cleanup(void);
-> +
-> +/**
-> + * Check if there are any listeners to the netlink group
-> + * @group: the netlink group ID
-> + * Returns 0 on success or a negative for no listeners.
-> + */
-> +int ibnl_chk_listeners(unsigned int group);
-> +
->  int ib_nl_handle_resolve_resp(struct sk_buff *skb,
->  			      struct netlink_callback *cb);
->  int ib_nl_handle_set_timeout(struct sk_buff *skb,
-> diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-> index 10469b0088b5..ebd16885cfce 100644
-> --- a/drivers/infiniband/core/netlink.c
-> +++ b/drivers/infiniband/core/netlink.c
-> @@ -55,7 +55,6 @@ int ibnl_chk_listeners(unsigned int group)
->  		return -1;
->  	return 0;
->  }
-> -EXPORT_SYMBOL(ibnl_chk_listeners);
-> 
->  int ibnl_add_client(int index, int nops,
->  		    const struct ibnl_client_cbs cb_table[])
-> diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
-> index 585266144329..348c102cb5f6 100644
-> --- a/include/rdma/rdma_netlink.h
-> +++ b/include/rdma/rdma_netlink.h
-> @@ -10,9 +10,6 @@ struct ibnl_client_cbs {
->  	struct module *module;
->  };
-> 
-> -int ibnl_init(void);
-> -void ibnl_cleanup(void);
-> -
->  /**
->   * Add a a client to the list of IB netlink exporters.
->   * @index: Index of the added client
-> @@ -77,11 +74,4 @@ int ibnl_unicast(struct sk_buff *skb, struct nlmsghdr *nlh,
->  int ibnl_multicast(struct sk_buff *skb, struct nlmsghdr *nlh,
->  			unsigned int group, gfp_t flags);
-> 
-> -/**
-> - * Check if there are any listeners to the netlink group
-> - * @group: the netlink group ID
-> - * Returns 0 on success or a negative for no listeners.
-> - */
-> -int ibnl_chk_listeners(unsigned int group);
-> -
->  #endif /* _RDMA_NETLINK_H */
 
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+--qOrJKOH36bD5yhNe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> --
-> 2.12.2
-> 
+On Mon, May 08, 2017 at 11:55:25AM -0400, Dennis Dalessandro wrote:
+> On 05/04/2017 03:42 PM, Leon Romanovsky wrote:
+> > On Thu, May 04, 2017 at 03:26:13PM -0400, Dennis Dalessandro wrote:
+> > > On 05/04/2017 02:45 PM, Leon Romanovsky wrote:
+> > > > On Thu, May 04, 2017 at 06:30:27PM +0000, Bart Van Assche wrote:
+> > > > > On Thu, 2017-05-04 at 21:25 +0300, Leon Romanovsky wrote:
+> > > > > > On Thu, May 04, 2017 at 06:10:54PM +0000, Bart Van Assche wrote:
+> > > > > > > On Thu, 2017-05-04 at 21:02 +0300, Leon Romanovsky wrote:
+> > > > > > > > Following our discussion both in mailing list [1] and at the LPC 2016 [2],
+> > > > > > > > we would like to propose this RDMA tool to be part of iproute2 package
+> > > > > > > > and finally improve this situation.
+> > > > > > >
+> > > > > > > Hello Leon,
+> > > > > > >
+> > > > > > > Although I really appreciate your work: can you clarify why you would like to
+> > > > > > > add *RDMA* functionality to an *IP routing* tool? I haven't found any motivation
+> > > > > > > for adding RDMA functionality to iproute2 in [1].
+> > > > > >
+> > > > > > We are planning to reuse the same infrastructure provided by iproute2,
+> > > > > > like netlink parsing, access to distributions, same CLI and same standards.
+> > > > > >
+> > > > > > Right now, RDMA is already tightened to netdev: iWARP, RoCE, IPoIB, HFI-VNIC.
+> > > > > > Many drivers (mlx, qed, i40, cxgb) are sharing code between net and
+> > > > > > RDMA.
+> > > > > >
+> > > > > > I do expect that iproute2 will be installed on every machine with any
+> > > > > > type of connection, including IB and OPA.
+> > > > > >
+> > > > > > So I think that it is enough to be part of that suite and don't invent
+> > > > > > our own for one specific tool.
+> > > > >
+> > > > > Hello Leon,
+> > > > >
+> > > > > Sorry but to me that sounds like a weak argument for including RDMA functionality
+> > > > > in iproute2. There is already a library for communication over netlink sockets,
+> > > > > namely libnl. Is there functionality that is in iproute2 but not in libnl and
+> > > > > that is needed for the new tool? If so, have you considered to create a new
+> > > > > library for that functionality?
+> > > >
+> > > > It is not hard to create new tool, the hardest part is to ensure that it is
+> > > > part of the distributions. Did you count how many months we are trying to
+> > > > add rdma-core to debian?
+> > >
+> > > I do agree that it is a strange pairing and am not really a fan. However at
+> > > the end of the day it's just a name for a repo/package. If the iproute folks
+> > > are fine to include rdma in their repo/package, great we can leverage their
+> > > code for CLI and other common stuff.
+> > >
+> > > Now if the interface was something like "ip -FlagForRdma ..." I would object
+> > > to that, but the interface is "rdma ... " so from users perspective it's
+> > > different tools. They don't need to care that it was sourced from a common
+> > > git repo.
+> > >
+> > > Just as an aside this already works a bit with OPA:
+> > >
+> > >  $ ./rdma link
+> > > 1/1: hfi1_0/1: ifname NONE cap_mask 0x00410022 lid 0x1 lid_mask_count 0
+> > > link_layer InfiniBand
+> > >          phys_state 5: LinkUp rate 100 Gb/sec (4X EDR) sm_lid 0x1 sm_sl 0
+> > > state 4: ACTIVE
+> > >
+> > > Leon I'll get you more feedback and testing, I've just been really bogged
+> > > down this week, sorry.
+> >
+> > Thanks Denny,
+> >
+> > Before you are starting to test it, can you please provide your feedback
+> > on my initial questions? Usability and need of sysfs.
+> > ----
+> > This is initial phase to understand if user experience for this tool fits
+> > RDMA and netdev communities exepectations. Also I would like to get feedback
+> > if it is really worth to provide legacy sysfs for old kernels, or maybe I should
+> > implement netlink from the beginning and abandon sysfs completely.
+> > -----
+>
+> For the initial phase I think you did the right thing by reading sysfs. I
+> like the ability for the tool to be compatible with legacy kernels, but at
+> the same time I don't know if it's worth the hassle. I won't fight too hard
+> either way.
+>
+> Perhaps we should take a stab and seeing what a dual sysfs/netlink interface
+> would look like, and see just how hard and complicated it really is. Then we
+> can make that call. You already have the sysfs version, and have to do
+> netink anyway, so let's not rip out what's there just yet, this is an RFC
+> after all, not like you are asking for this exact version to be merged yet.
+
+Not at all, it is too early to merge it, at the end it is POC.
+
+>
+> As far as usability, I think what's here is a great start and we can
+> continue to refine. I'm particularly interested in the stats capabilities.
+> In particular being able to filter what stats are shown and watch as they
+> change over time. RDMA devices have lots of counters and stats. A common
+> tool for users to be able to get that data across HW types would be a really
+> good thing.
+
+Yeah, the statistics will be tough nut to crack.
+
+
+>
+> -Denny
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+
+--qOrJKOH36bD5yhNe
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkRab8ACgkQ5GN7iDZy
+WKcjMRAAgzXV+vb6V95pMiPtT7nxF/1hdmIv1oWEQJdVWvUrsPUawQOWC0fv/9cV
+JaFtZa39yx71jd5CqOlky+yIJkZTYjGKHaxbU1uZaTpNmcdDHxuiPTB+nfkZ8ZFU
+ofw2z50qojAPoa4xo+UXY3raDvpcG3HTVIFvRnoQCtVpyL8H/9hsUH/7j6IWey9d
+TAEVjZQRBLGVl3iujvLessJQ97IDzbz+qqpFwPckzFV/Zv++5U/7lVhto1saVGQm
+Xt1FfewvPMNl/x4uC1kxtU8vA1CmN0gYRMQdPGuV9XadoHWe64VQFkrZ3UAwnPvz
+aj6CSx/1qh9z2H+legg0zCAjvpfWlLyxXGMKbIiEGv0N4VbYwBgq58r0pnX5BmRR
+EaKoKo7p6ucLC+26vAHN7xQa3k1FmAffKtsOxZtlwdb2FaOiRJA5kap7YYrLuJyn
+dwk4m4B4a0szpYsu8zEcdB7kFoX/6FE76jnh+Mvdyz80oxBB38hJ19cWrYHR5JEq
+cbrqfBmHmzPh+dTUGK2E7otQwRM9ummNheo286ffwloflfQdIAuOLSWC9w6fYb4l
+o33Yvmpbrn+VrnC2Z9gLITw1OQ8476u3vpf8vX7EFcLBKpdKMVX/xhJhES/LMB6M
+bYSfjkKeri3NNuFxrKhzdTKi9a/Wb0kYxEs7vBWNR5VUg9b+ndk=
+=PhoY
+-----END PGP SIGNATURE-----
+
+--qOrJKOH36bD5yhNe--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
