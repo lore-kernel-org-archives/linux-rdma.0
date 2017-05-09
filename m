@@ -1,104 +1,54 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: srp_daemon :    targets      by default
-Date: Tue, 9 May 2017 21:12:03 +0300
-Message-ID: <20170509181203.GL10073@mtr-leonro.local>
-References: <1494349653.3752.4.camel@profitbricks.com>
- <021b0a17-0552-6ee4-ec19-0e86ead527ef@sandisk.com>
- <1050725096.6555338.1494351706650.JavaMail.zimbra@redhat.com>
- <20170509180159.GK10073@mtr-leonro.local>
- <1494353077.2518.12.camel@sandisk.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: rdma-core in Dabian
+Date: Tue, 9 May 2017 12:18:07 -0600
+Message-ID: <20170509181807.GB9715@obsidianresearch.com>
+References: <20170507064349.GM22833@mtr-leonro.local>
+ <1494351789.3752.5.camel@profitbricks.com>
+ <1494352472.2518.10.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="vtJ+CqYNzKB4ukR4"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1494353077.2518.12.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1494352472.2518.10.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: "loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: "benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "noas-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <noas-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, May 09, 2017 at 05:54:33PM +0000, Bart Van Assche wrote:
+> > * Bonus points: consolidate the srp daemon. Debian ships a different
+> > service file than upstream, but I am against an additional layer
+> > introduced by srp_daemon.sh. It would also be nice to have a systemd
+> > service shipped by upstream (and not just in the redhat directory)
+> 
+> I will have a look at this too.
 
---vtJ+CqYNzKB4ukR4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+My thoughts..
 
-On Tue, May 09, 2017 at 06:04:37PM +0000, Bart Van Assche wrote:
-> On Tue, 2017-05-09 at 21:01 +0300, Leon Romanovsky wrote:
-> > On Tue, May 09, 2017 at 01:41:46PM -0400, Laurence Oberman wrote:
-> > >
-> > >
-> > > ----- Original Message -----
-> > > > From: "Bart Van Assche" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-> > > > To: "Benjamin Drung" <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > > Sent: Tuesday, May 9, 2017 1:11:06 PM
-> > > > Subject: Re: srp_daemon : Disallow all targets if not explicitly allowed by default
-> > > >
-> > > > On 05/09/17 10:07, Benjamin Drung wrote:
-> > > > > srptools 1.0.3-2 in Debian disallows all targets if not explicitly
-> > > > > allowed by default. Motivation (taken from debian/changelog):
-> > > > >
-> > > > > * Don't activate any targets per default. (Closes: #740945)
-> > > > >   This is more sensible than the previous default of bringing
-> > > > >   up all targets in the IB fabric upon boot. In a larger fabric
-> > > > >   with many storage targets available, most of the times only
-> > > > >   one or a few targets are wanted on a particular machine.
-> > > > >
-> > > > > Do you agree and could you change the default upstream? I prefer not to
-> > > > > carry a different behavior in Debian alone.
-> > > >
-> > > > Hello Benjamin,
-> > > >
-> > > > What I expect is that users will hate this change. They will notice that
-> > > > after they have installed and enabled srp_daemon that no targets are
-> > > > discovered without having any clue why no automatic login to SRP targets
-> > > > occurs.
-> > >
-> > > Indeed, I agree with Bart here, this change will lead to a lot of confusion about why users no longer see device discovery.
-> > > For me I would prefer its not changed.
-> >
-> > According to the Benjamin's description, this is already behavior of
-> > Debian and their derivatives. So this change won't change for these users
-> > anything. I think that the best solution will be to keep in sync distros
-> > and upstream. Or enable by default on all systems or disable by default
-> > on all systems.
->
-> Users of large setups know how to edit the srp_daemon configuration file but
-> most users of small setups don't know how to edit that configuration file. So
-> if consistency is required my advice is to change the behavior on Debian to
-> activating all targets by default.
+It looked to me like srp_daemon needed one process per port.
 
-I'm fine with any option as long as Debian and upstream are in sync.
+The best path looked to me like using systemd templates (eg
+srp_daemon@mlx4_0/0) to allow systemd to directly manage the per port
+srp_daemon.
 
-Thanks
+Then the question is how to request the right templates are
+created.. Perhaps udev rules can do this directly, but I'm not sure
+about how to get the port #, perhaps an udev triggered script or
+something can do it.
 
->
-> Bart.--
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Perhaps there could be an inbetween progarm that took the udev events
+and asked systemd to make the right units.
 
---vtJ+CqYNzKB4ukR4
-Content-Type: application/pgp-signature; name="signature.asc"
+Another option is to have a srp_daemon 'runner' that monitors udev and
+actively manages a set of fork'd childern so that the children cover
+all required ports. But this is actually somewhat hard to do well..
 
------BEGIN PGP SIGNATURE-----
+The big issue with the redhat script is that it is not hotplug safe,
+and needs special boot ordering, which we really need to get away from
+in general for robustness.
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkSBnMACgkQ5GN7iDZy
-WKeWGA/5Aeqwjn1qlsWp1b55wu0yeOB+uLmDUQamZJfKQD51GSZkv1SFLqovhw7f
-pNP1GyTnUsTQJktWcJbo6Lf9S7Larhyd38QofkSBj7pXrfXLMlcWsCM/fAxJ9Kcz
-N2SJ/W+vXDP02fiyJ3w17CWIf7rdf/6UzzQel99y/8Arx5DUbYCl3/lhUfuRQefl
-QyNyvIYLb+bQ5iynTaptd6JUCOAICLoQPiSMmz6fOsskfeELUrJo2/hnFn9cjhPI
-BtTnRUWIoZcvYouHDF8c0sbtqpkUFZ0x+SEVRht2ywo4R6sBYqlFGLrp+ESxv37A
-9oIYe6BDyiXt7l9+SLcrVQSkUVlLo3M3TILrcGk3J8/big7kpoEpAOq26Uxt7mrB
-coBZWsJKi0z4IF24+krzYSJraleDFSmsysswWHxdUfKBpKbghpwQNp+eI5lTb4E/
-gH222WV3asUwtWhz1s19NoisniAyF+MXvL+6zBbH7IPbztviq8oRLJbisGd/j//R
-YXFs9JmPKN4cv+uzlJHFz281rpHcnClEfnE7KmBRXzRtlmAmjckIwzUyzTWbBi15
-dexvJ8IHhDXiiT3GCiBoccYFscTFo4s6cWu5oEbhnAjohT4EcWnhRrTlSxosuFad
-uHDlK1R3A3M2a8XSuhQ0ERpz7tdzs/znkL4/2nSe1ifAKr5IHJA=
-=DyPG
------END PGP SIGNATURE-----
-
---vtJ+CqYNzKB4ukR4--
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
