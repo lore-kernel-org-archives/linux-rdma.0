@@ -1,40 +1,47 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 2/2] mlx5: Update supported PCI devices list
-Date: Tue,  9 May 2017 19:45:22 +0300
-Message-ID: <1494348322-4526-3-git-send-email-yishaih@mellanox.com>
-References: <1494348322-4526-1-git-send-email-yishaih@mellanox.com>
+From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: srp_daemon : =?UTF-8?Q?=E2=80=8BDisallow?=
+ =?UTF-8?Q?_=E2=80=8Ball?= targets =?UTF-8?Q?=E2=80=8Bif?=
+ =?UTF-8?Q?_=E2=80=8Bnot?= =?UTF-8?Q?_=E2=80=8Bexplicitly?=
+ =?UTF-8?Q?_=E2=80=8Ballowed?= by default
+Date: Tue, 09 May 2017 19:07:33 +0200
+Message-ID: <1494349653.3752.4.camel@profitbricks.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1494348322-4526-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hi,
 
-Add the BlueField device and VF IDs to the supported devices list.
+srptools 1.0.3-2 in Debian disallows all targets if not explicitly
+allowed by default. Motivation (taken from debian/changelog):
 
-Signed-off-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- providers/mlx5/mlx5.c | 2 ++
- 1 file changed, 2 insertions(+)
+* Don't activate any targets per default. (Closes: #740945)
+  This is more sensible than the previous default of bringing
+  up all targets in the IB fabric upon boot. In a larger fabric
+  with many storage targets available, most of the times only
+  one or a few targets are wanted on a particular machine.
 
-diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
-index 30f165b..1bbc3f2 100644
---- a/providers/mlx5/mlx5.c
-+++ b/providers/mlx5/mlx5.c
-@@ -78,6 +78,8 @@ static struct {
- 	HCA(MELLANOX, 4122),	/* ConnectX-5 Ex VF */
- 	HCA(MELLANOX, 4123),    /* ConnectX-6 */
- 	HCA(MELLANOX, 4124),	/* ConnectX-6 VF */
-+	HCA(MELLANOX, 41682),	/* BlueField integrated ConnectX-5 network controller */
-+	HCA(MELLANOX, 41683),	/* BlueField integrated ConnectX-5 network controller VF */
- };
- 
- uint32_t mlx5_debug_mask = 0;
+Do you agree and could you change the default upstream? I prefer not to
+carry a different behavior in Debian alone.
+
 -- 
-1.8.3.1
+Benjamin Drung
+System Developer
+Debian & Ubuntu Developer
+
+ProfitBricks GmbH
+Greifswalder Str. 207
+D - 10405 Berlin
+
+Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
+Web: https://www.profitbricks.com
+
+Sitz der Gesellschaft: Berlin.
+Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
+Geschäftsführer: Achim Weiss.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
