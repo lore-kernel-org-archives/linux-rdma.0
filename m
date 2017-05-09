@@ -1,52 +1,35 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: rdma-core in Dabian
-Date: Tue, 9 May 2017 12:18:07 -0600
-Message-ID: <20170509181807.GB9715@obsidianresearch.com>
-References: <20170507064349.GM22833@mtr-leonro.local>
- <1494351789.3752.5.camel@profitbricks.com>
- <1494352472.2518.10.camel@sandisk.com>
+Subject: Re: srp_daemon :    targets      by default
+Date: Tue, 9 May 2017 12:21:23 -0600
+Message-ID: <20170509182123.GC9715@obsidianresearch.com>
+References: <1494349653.3752.4.camel@profitbricks.com>
+ <021b0a17-0552-6ee4-ec19-0e86ead527ef@sandisk.com>
+ <1050725096.6555338.1494351706650.JavaMail.zimbra@redhat.com>
+ <20170509180159.GK10073@mtr-leonro.local>
+ <1494353077.2518.12.camel@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1494352472.2518.10.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1494353077.2518.12.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: "benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "noas-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <noas-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 09, 2017 at 05:54:33PM +0000, Bart Van Assche wrote:
-> > * Bonus points: consolidate the srp daemon. Debian ships a different
-> > service file than upstream, but I am against an additional layer
-> > introduced by srp_daemon.sh. It would also be nice to have a systemd
-> > service shipped by upstream (and not just in the redhat directory)
-> 
-> I will have a look at this too.
+On Tue, May 09, 2017 at 06:04:37PM +0000, Bart Van Assche wrote:
 
-My thoughts..
+> Users of large setups know how to edit the srp_daemon configuration file but
+> most users of small setups don't know how to edit that configuration file. So
+> if consistency is required my advice is to change the behavior on Debian to
+> activating all targets by default.
 
-It looked to me like srp_daemon needed one process per port.
+I thought the default in Debain was to have a null list of devices
+anyhow, so if you just install srp_daemon nothing actually happens
+until the .default config file is edited..
 
-The best path looked to me like using systemd templates (eg
-srp_daemon@mlx4_0/0) to allow systemd to directly manage the per port
-srp_daemon.
-
-Then the question is how to request the right templates are
-created.. Perhaps udev rules can do this directly, but I'm not sure
-about how to get the port #, perhaps an udev triggered script or
-something can do it.
-
-Perhaps there could be an inbetween progarm that took the udev events
-and asked systemd to make the right units.
-
-Another option is to have a srp_daemon 'runner' that monitors udev and
-actively manages a set of fork'd childern so that the children cover
-all required ports. But this is actually somewhat hard to do well..
-
-The big issue with the redhat script is that it is not hotplug safe,
-and needs special boot ordering, which we really need to get away from
-in general for robustness.
+Thus it seems really strange to have to edit two config files to make
+it work, particularly if there is no security concern here.
 
 Jason
 --
