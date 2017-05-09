@@ -1,41 +1,77 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: =?UTF-8?Q?Re:_srp=5fdaemon_:_=e2=80=8bDisallow_=e2=80=8ball_targets?=
- =?UTF-8?B?IOKAi2lmIOKAi25vdCDigItleHBsaWNpdGx5IOKAi2FsbG93ZWQgYnkgZGVmYXVs?=
- =?UTF-8?Q?t?=
-Date: Tue, 9 May 2017 10:11:06 -0700
-Message-ID: <021b0a17-0552-6ee4-ec19-0e86ead527ef@sandisk.com>
-References: <1494349653.3752.4.camel@profitbricks.com>
+From: Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
+Subject: mlx5 endpoint driver problem
+Date: Tue, 9 May 2017 18:13:10 +0100
+Message-ID: <18d3cc2e-e235-6ae4-cd69-b5a11d607ee4@synopsys.com>
+References: <f0b8881d-9aa3-8816-7ea6-daccc0e91262@synopsys.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1494349653.3752.4.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <f0b8881d-9aa3-8816-7ea6-daccc0e91262-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/09/17 10:07, Benjamin Drung wrote:
-> srptools 1.0.3-2 in Debian disallows all targets if not explicitly
-> allowed by default. Motivation (taken from debian/changelog):
-> 
-> * Don't activate any targets per default. (Closes: #740945)
->   This is more sensible than the previous default of bringing
->   up all targets in the IB fabric upon boot. In a larger fabric
->   with many storage targets available, most of the times only
->   one or a few targets are wanted on a particular machine.
-> 
-> Do you agree and could you change the default upstream? I prefer not to
-> carry a different behavior in Debian alone.
 
-Hello Benjamin,
+Hello,
 
-What I expect is that users will hate this change. They will notice that
-after they have installed and enabled srp_daemon that no targets are
-discovered without having any clue why no automatic login to SRP targets
-occurs.
+I am making tests with a Mellanox MLX5 Endpoint, and I am getting kernel hangs
+when trying to enable the hca:
 
-Bart.
+mlx5_core 0000:01:00.0: enabling device (0000 -> 0002)
+mlx5_core 0000:01:00.0: Warning: couldn't set 64-bit PCI DMA mask
+mlx5_core 0000:01:00.0: Warning: couldn't set 64-bit consistent PCI DMA mask
+mlx5_core 0000:01:00.0: firmware version: 16.19.21102
+INFO: task swapper:1 blocked for more than 10 seconds.
+      Not tainted 4.11.0-BETAMSIX1 #51
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+swapper         D    0     1      0 0x00000000
 
+Stack Trace:
+  __switch_to+0x0/0x94
+  __schedule+0x1da/0x8b0
+  schedule+0x26/0x6c
+  schedule_timeout+0x2da/0x380
+  wait_for_completion+0x92/0x104
+  mlx5_cmd_exec+0x70e/0xd60
+  mlx5_load_one+0x1b4/0xad8
+  init_one+0x404/0x600
+  pci_device_probe+0x122/0x1f0
+  really_probe+0x1ac/0x348
+  __driver_attach+0xa8/0xd0
+  bus_for_each_dev+0x3c/0x74
+  bus_add_driver+0xc2/0x184
+  driver_register+0x50/0xec
+  init+0x40/0x60
+
+(...)
+
+Stack Trace:
+  __switch_to+0x0/0x94
+  __schedule+0x1da/0x8b0
+  schedule+0x26/0x6c
+  schedule_timeout+0x2da/0x380
+  wait_for_completion+0x92/0x104
+  mlx5_cmd_exec+0x70e/0xd60
+  mlx5_load_one+0x1b4/0xad8
+  init_one+0x404/0x600
+  pci_device_probe+0x122/0x1f0
+  really_probe+0x1ac/0x348
+  __driver_attach+0xa8/0xd0
+  bus_for_each_dev+0x3c/0x74
+  bus_add_driver+0xc2/0x184
+  driver_register+0x50/0xec
+  init+0x40/0x60
+mlx5_core 0000:01:00.0: wait_func:882:(pid 1): ENABLE_HCA(0x104) timeout. Will
+cause a leak of a command resource
+mlx5_core 0000:01:00.0: enable hca failed
+mlx5_core 0000:01:00.0: mlx5_load_one failed with error code -110
+mlx5_core: probe of 0000:01:00.0 failed with error -110
+
+Could you give me a clue of what might be happennig?
+
+Thanks,
+Joao
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
