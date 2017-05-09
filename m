@@ -1,84 +1,50 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: rdma-ndd shipped by infiniband-diags and rdma-core
-Date: Tue, 9 May 2017 20:54:06 +0300
-Message-ID: <20170509175406.GJ10073@mtr-leonro.local>
-References: <1494335693.3752.1.camel@profitbricks.com>
+From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: rdma-core in Dabian
+Date: Tue, 9 May 2017 17:54:33 +0000
+Message-ID: <1494352472.2518.10.camel@sandisk.com>
+References: <20170507064349.GM22833@mtr-leonro.local>
+         <1494351789.3752.5.camel@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="tmoQ0UElFV5VgXgH"
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1494335693.3752.1.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <1494351789.3752.5.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Content-Language: en-US
+Content-ID: <4317D8C6D0C39A4988DB346564A77B97-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "noas-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <noas-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, 2017-05-09 at 19:43 +0200, Benjamin Drung wrote:
+> Am Sonntag, den 07.05.2017, 09:43 +0300 schrieb Leon Romanovsky:
+> * Can we upstream some redhat files, i.e. move them out of the redhat
+> directory and maintain them in their corresponding code? Following
+> files fall in this category:
+> ** ibacm.service
+> ** srp_daemon.service
+> ** rdma service (see next point)
 
---tmoQ0UElFV5VgXgH
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+One of the design goals of the systemd project was to avoid that different
+service files would be needed for different distro's. So I think it's weird
+that these service files exist in the redhat/ directory.
 
-On Tue, May 09, 2017 at 03:14:53PM +0200, Benjamin Drung wrote:
-> Hi,
->
-> /usr/sbin/rdma-ndd is shipped by infiniband-diags (version 1.6.7-1 in
-> Debian) and the rdma-core package. This makes both package not
-> installable in parallel. rdma-ndd should be shipped by only one source
-> package. If rdma-core is the new upstream for it, please remove it from
-> infiniband-diags and publish a new release. Otherwise I cannot add the
-> correctly version Breaks & Replaces to the Debian package.
+>   I: srptools: init.d-script-does-not-implement-optional-
+>      option=A0etc/init.d/srptools status
+>=20
+> I can write that if you decide not to consolidate the srp daemon (see
+> bonus point below)
 
-Ira,
+I will submit a patch.
 
-Didn't you release when you merged rdma-ndd with rdma-core?
+> *=A0Bonus points: consolidate the srp daemon. Debian ships a different
+> service file than upstream, but I am against an additional layer
+> introduced by srp_daemon.sh. It would also be nice to have a systemd
+> service shipped by upstream (and not just in the redhat directory)
 
-Thanks
+I will have a look at this too.
 
->
-> --
-> Benjamin Drung
-> System Developer
-> Debian & Ubuntu Developer
->
-> ProfitBricks GmbH
-> Greifswalder Str. 207
-> D - 10405 Berlin
->
-> Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-> Web:=A0https://www.profitbricks.com
->
-> Sitz der Gesellschaft: Berlin.
-> Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-> Gesch=E4ftsf=FChrer: Achim Weiss.
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---tmoQ0UElFV5VgXgH
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkSAj4ACgkQ5GN7iDZy
-WKcl9w//TTDdrZEvUduJZCIs9TdXJ7ALFIDNB8jikZXAN7TdeZi+NnfrP5vxXeWv
-H0QsKoCKkEwv64Wfhl5FzOKNRZb+u9ILmr556XoQQIRmdhZcH8IS8tAJumvVcc/U
-daVLmlPAkdkErkoVtNrtwekNQotvff0me9Q90zNczh7PN72gevokP/nuQMcbzf8d
-h5UdEuiMiVimsSo/fxnrbh5xg61f00G9/B6iztbL16nIjdTAOSlb8pniBtwAC2vV
-993mAR8ytUSROrQ+CAPBJZzZeEsOdrZBKL0cB9net8nuZ7bAwHIAhXi9Y1FfMAA1
-elDrYrdHZUOGnpbPv6Dmolj4beCqPvfuGG92VNW5VMQM1FzwTYLhrkPP9RBicvQB
-Jq5kCaaEQ6kXB8SVOcC8EkJ8pLEz+kIlWIOFu6WmZITwiEiSlUSv/m5nV4MOjhOf
-eQXUfgSh8+tLmfr/cbyyVBYb2audg/cWU7/2dI4VoLqxHrkkxzYsc5qM42YAjcTe
-xbTK9B06zD0th/xc2/Hlsms3wIyqIuEVGrhMbrL6U72o1r1hi+0H4R6i1jMU2A8F
-rj7L9dtWDAyT3NfGqu1TGvp+5611eC5mjOJlBCjjiEmhbEioSSriAY+MJDz0DWYq
-cMqjaJNuMdByOioGigS7GZvU5AmIt9Ap3qQeDX7SrXCpe4qHVfU=
-=wrro
------END PGP SIGNATURE-----
-
---tmoQ0UElFV5VgXgH--
+Bart.=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
