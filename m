@@ -1,60 +1,123 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] IB/hfi1: fix array termination by appending NULL to attr
- array
-Date: Wed, 10 May 2017 19:18:52 +0300
-Message-ID: <20170510161852.GF1839@mtr-leonro.local>
-References: <1494431652-67941-1-git-send-email-robers97@gmail.com>
+From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: rdma-core in Dabian
+Date: Wed, 10 May 2017 18:19:42 +0200
+Message-ID: <1494433182.3739.13.camel@profitbricks.com>
+References: <20170507064349.GM22833@mtr-leonro.local>
+         <1494351789.3752.5.camel@profitbricks.com>
+         <20170509180517.GA9715@obsidianresearch.com>
+         <1494408947.3739.2.camel@profitbricks.com>
+         <20170510155005.GB1007@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="5Mfx4RzfBqgnTE/w"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1494431652-67941-1-git-send-email-robers97-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20170510155005.GB1007-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Steven L. Roberts" <robers97-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Spanier <noas-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Am Mittwoch, den 10.05.2017, 09:50 -0600 schrieb Jason Gunthorpe:
+> On Wed, May 10, 2017 at 11:35:47AM +0200, Benjamin Drung wrote:
+> > Am Dienstag, den 09.05.2017, 12:05 -0600 schrieb Jason Gunthorpe:
+> > > On Tue, May 09, 2017 at 07:43:09PM +0200, Benjamin Drung wrote:
+> > > 
+> > > > * Can we upstream some redhat files, i.e. move them out of the
+> > > > redhat
+> > > > directory and maintain them in their corresponding code?
+> > > > Following
+> > > > files fall in this category:
+> > > 
+> > > Anything in the redhat directory could be moved out if it is
+> > > going to
+> > > be used by another distro. It is there waiting for other distros
+> > > to
+> > > look at it.
+> > 
+> > * The ifdown-ib and ifup-ib scripts are redhat-specific. It won't
+> > work
+> > with ifupdown from Debian.
+> > 
+> > * The files related to mlx4 look like a special handling for mlx4
+> > to me
+> > and they do not following the KISS principle.
+> 
+> One part is managing the need to setup multi-protocol ports on
+> boot. This seems like a general requirement for mlx4/5 so maybe it
+> should get some more common solution..
 
---5Mfx4RzfBqgnTE/w
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+A common solution would be better.
 
-On Wed, May 10, 2017 at 10:54:12AM -0500, Steven L. Roberts wrote:
-> From: "Steven L. Roberts" <robers97-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> > * What's the purpose of the cxgb{3,4} modprobe files?
+> 
+> cxgb is a multi-kernel module driver, those scripts are an attempt to
+> load the other parts when the main driver is loaded. I'm not sure why
+> cxgb is special enough to get these files but mlx/etc are not.
+> 
+> I suspect it is old cruft because redhat/rdma.kernel-init handles
+> things uniformly on systemd environments.
 >
-> This fixes a kernel panic when loading the hfi driver as a dynamic module.
->
-> Signed-off-by: Steven L Roberts <robers97-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/hfi1/sysfs.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
->
+> I've been thinking we should patch the kernel to solve this problem
+> instead of using this ugly userspace solution..
 
-Thanks a lot,
-Reviewed-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Yes, better fix it in the kernel.
 
---5Mfx4RzfBqgnTE/w
-Content-Type: application/pgp-signature; name="signature.asc"
+> > Jarod already created a rdma-core package in debian/control in
+> > commit
+> > 8df5873b9. Currently we do not have a rdma-core package in Debian
+> > and
+> > no package with a kernel-boot service file. I know that the openibd
+> > and
+> >  mlnx-ofed-kernel-utils packages shipped a openibd service that
+> > does
+> > similar job.
+> 
+> Yes, pulling something like openibd into rdma-core is the idea here..
+> 
+> > Do we want to call the binary package that contains the kernel-boot
+> > service 'rdma-core' or simplify that to 'rdma'? We should use the
+> > same
+> > binary package name across the distributions (unless it's
+> > conflicting
+> > with a naming convention).
+> 
+> I think rdma-core is fine..
 
------BEGIN PGP SIGNATURE-----
+Okay. I am fine with this name.
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkTPWsACgkQ5GN7iDZy
-WKeldQ//RkJkD4CWAuRjIG8I2caFS+OMOK7bMfDrto9BstP/9lD0O4JPBTVfb2qZ
-dEGXq4dXP7jY8II5KySNDvzA4VIodCGbcCUple8b3BirMoaq/BHz9XWvWGa66c/N
-q1hcxIfS3qIcdluR6Ye/d+ZgNK9cY0ry93jRHqSCg4PAAlPIaAfQJB2d922KwTTj
-9+r3E5eCpUDYRW9gE3XQl645E/Q+Ta8EwlVhOyJLf4v1Vub5CegCSGfnB1AaqByw
-uM6rB7G/Wj5SP8oq6DX9hWrIMdXRO+n4UPkF6oLZooLF7dQEK5RtBeK5we8NfK1j
-eYNB+lXzKgYN6BxABMGjHXX0bzELyRZC2h3DzYm55rnmdhIiKmJV6kYiHRrcOXOp
-9DsI+NElws0aDHJAx9OriGynqjRoSM9qyu5tu3F0IhYFGnXGMyqcKEWldbXYnBsO
-PkIgkmviIyM/MPusvv8Sgf901vON7s0pbFMoHEppNTxwhrgkA2hbAtjIyt4E/6qX
-qrY32tDGZIzsPOEEnYl25wFyudQWDT0BL5R5ToYJTn8Rw9X8vpo+A1kreFtW47On
-PfC2imwVvpYySqIo1rjSF/9++IIPo3ebDPPX+VemNnEenhegablBSx3/uUFvWjLV
-Q6ajizuWydk958ihA+p0/dhAifJSXPwx1fDOn3jjucLG485IxNE=
-=vfy1
------END PGP SIGNATURE-----
+> > Can you come up with a patch set? I will be happy to review it.
+> > Note
+> > that paths like /usr/libexec/rdma-init-kernel (in rdma.service)
+> > needs
+> > to be made configurable. In Debian, we would install these helper
+> > scripts in /usr/lib/$packagename/$filename.
+> 
+> Maybe Leon's team will try to tackle some of this? It is complicated,
+> the RH scripts do quite a bit stuff :\
+> 
+> But this doesn't seem particularly urgent for Debian packaging,
+> right?
 
---5Mfx4RzfBqgnTE/w--
+I would love to have it in the Debian package. Currently the rdma-core
+binary package contains only rdma-ndd. If we defer the kernel-init
+part, I have to rename rdma-core or remove it.
+
+-- 
+Benjamin Drung
+System Developer
+Debian & Ubuntu Developer
+
+ProfitBricks GmbH
+Greifswalder Str. 207
+D - 10405 Berlin
+
+Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
+Web: https://www.profitbricks.com
+
+Sitz der Gesellschaft: Berlin.
+Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
+Geschäftsführer: Achim Weiss.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
