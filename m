@@ -1,184 +1,103 @@
-From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH, untested] mlx5: Avoid that mlx5_ib_sg_to_klms()
- overflows the klms[] array
-Date: Wed, 10 May 2017 10:06:47 -0400 (EDT)
-Message-ID: <1415936724.7101967.1494425207538.JavaMail.zimbra@redhat.com>
-References: <8992bd28-667f-94b1-e582-106e6b41aa4b@sandisk.com> <20170425175849.GS14088@mtr-leonro.local> <438230391.2090966.1493152655709.JavaMail.zimbra@redhat.com> <20170426061640.GV14088@mtr-leonro.local> <bcd56de8-0f17-f2bb-b079-bf22c1b92ca2@grimberg.me> <501334895.4531615.1493820950718.JavaMail.zimbra@redhat.com> <374fcc74-4b84-610b-b55e-d385563bef6f@grimberg.me> <1072634318.5542006.1494001866306.JavaMail.zimbra@redhat.com>
+From: Roland Fehrenbacher <rf-PKu+Ek1N2UGzQB+pC5nmwQ@public.gmane.org>
+Subject: Re: srp_daemon : =?utf-8?Q?=E2=80=8BDisallow_=E2=80=8Ball?= targets =?utf-8?Q?=E2=80=8Bif_=E2=80=8Bnot_=E2=80=8Bexplicitly_=E2=80=8Ballowed?= by default
+Date: Wed, 10 May 2017 16:02:29 +0200
+Message-ID: <22803.7541.113159.214164@gargle.gargle.HOWL>
+References: <1494349653.3752.4.camel@profitbricks.com>
+        <021b0a17-0552-6ee4-ec19-0e86ead527ef@sandisk.com>
+        <1050725096.6555338.1494351706650.JavaMail.zimbra@redhat.com>
+        <20170509180159.GK10073@mtr-leonro.local>
+        <1494423046.3739.8.camel@profitbricks.com>
+Reply-To: rf-PKu+Ek1N2UGzQB+pC5nmwQ@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1072634318.5542006.1494001866306.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1494423046.3739.8.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Israel Rukshin <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+>>>>> "BD" == Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org> writes:
 
+Hi all,
 
------ Original Message -----
-> From: "Laurence Oberman" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> To: "Sagi Grimberg" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-> Cc: "Leon Romanovsky" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Bart Van Assche" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "Doug Ledford"
-> <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Max Gurtovoy" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Israel Rukshin" <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
-> linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Sent: Friday, May 5, 2017 12:31:06 PM
-> Subject: Re: [PATCH, untested] mlx5: Avoid that mlx5_ib_sg_to_klms() overflows the klms[] array
-> 
-> 
-> 
-> ----- Original Message -----
-> > From: "Sagi Grimberg" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-> > To: "Laurence Oberman" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> > Cc: "Leon Romanovsky" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Bart Van Assche"
-> > <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "Doug Ledford"
-> > <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Max Gurtovoy" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Israel Rukshin"
-> > <israelr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
-> > linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Sent: Wednesday, May 3, 2017 10:58:43 AM
-> > Subject: Re: [PATCH, untested] mlx5: Avoid that mlx5_ib_sg_to_klms()
-> > overflows the klms[] array
-> > 
-> > 
-> > > Hello Sagi
-> > > Against Bart's tree again
-> > >
-> > > a83e404 IB/srp: Reenable IB_MR_TYPE_SG_GAPS
-> > > dfa5a2b mlx5: Avoid that mlx5_ib_sg_to_klms() overflows the klms[] array
-> > > f759c80 mlx5: Fix mlx5_ib_map_mr_sg mr lengt
-> > >
-> > > Above are all in
-> > > Added your most recent patch above
-> > >
-> > > Same behavior.
-> > > [  579.368733] scsi host1: ib_srp: failed RECV status WR flushed (5) for
-> > > CQE ffff8817de9c57b0
-> > > [  579.369875] mlx5_1:dump_cqe:262:(pid 15140): dump error cqe
-> > > [  579.369877] 00000000 00000000 00000000 00000000
-> > > [  579.369877] 00000000 00000000 00000000 00000000
-> > > [  579.369878] 00000000 00000000 00000000 00000000
-> > > [  579.369878] 00000000 0f007806 2500002b 1c528dd0
-> > > [  579.369883] scsi host1: ib_srp: failed FAST REG status memory
-> > > management
-> > > operation error (6) for CQE ffff88179a460af8
-> > > [  594.814222] scsi host1: ib_srp: reconnect succeeded
-> > > [  594.916876] scsi host1: ib_srp: failed RECV status WR flushed (5) for
-> > > CQE ffff8817e1d4a6b0
-> > > [  595.494532] mlx5_1:dump_cqe:262:(pid 15205): dump error cqe
-> > > [  595.525995] 00000000 00000000 00000000 00000000
-> > > [  595.552125] 00000000 00000000 00000000 00000000
-> > > [  595.578204] 00000000 00000000 00000000 00000000
-> > > [  595.603670] 00000000 0f007806 25000033 002d77d0
-> > > ^C[  610.821911] scsi host1: ib_srp: reconnect succeeded
-> > > [  610.933298] scsi host1: ib_srp: failed RECV status WR flushed (5) for
-> > > CQE ffff8817e1d4a170
-> > > [  611.514234] mlx5_1:dump_cqe:262:(pid 15242): dump error cqe
-> > > [  611.543083] 00000000 00000000 00000000 00000000
-> > > [  611.568670] 00000000 00000000 00000000 00000000
-> > > [  611.594064] 00000000 00000000 00000000 00000000
-> > > [  611.620142] 00000000 0f007806 2500003b 003161d0
-> > >
-> > > I will capture the function traces with your patch applied and the
-> > > additional logging asked for by Max.
-> > 
-> > Thanks, that would be helpful,
-> > 
-> > Can you try the following patch, just to see if there is an off by 1 case:
-> > 
-> > --
-> > diff --git a/drivers/infiniband/hw/mlx5/mr.c
-> > b/drivers/infiniband/hw/mlx5/mr.c
-> > index b8f9382a8b7d..3d6ef7bce7d9 100644
-> > --- a/drivers/infiniband/hw/mlx5/mr.c
-> > +++ b/drivers/infiniband/hw/mlx5/mr.c
-> > @@ -1525,7 +1525,7 @@ struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
-> >   {
-> >          struct mlx5_ib_dev *dev = to_mdev(pd->device);
-> >          int inlen = MLX5_ST_SZ_BYTES(create_mkey_in);
-> > -       int ndescs = ALIGN(max_num_sg, 4);
-> > +       int ndescs = ALIGN(max_num_sg + 1, 4);
-> >          struct mlx5_ib_mr *mr;
-> >          void *mkc;
-> >          u32 *in;
-> > --
-> > 
-> > It's not a fix, but if it works it can give us a clue...
-> > 
-> 
-> Sorry, been delayed this week, will get this done this weekend.
-> Thanks
-> Laurence
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+    BD> Am Dienstag, den 09.05.2017, 21:01 +0300 schrieb Leon
+    BD> Romanovsky:
+    >> On Tue, May 09, 2017 at 01:41:46PM -0400, Laurence Oberman wrote:
+    >> >
+    >> >
+    >> > ----- Original Message -----
+    >> > > From: "Bart Van Assche" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> To:
+    >> > > "Benjamin Drung" <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, linux-rdm
+    >> > > a@vger.kernel.org Sent: Tuesday, May 9, 2017 1:11:06 PM
+    >> > > Subject: Re: srp_daemon : Disallow all targets if not
+    >> > > explicitly allowed by default
+    >> > >
+    >> > > On 05/09/17 10:07, Benjamin Drung wrote:
+    >> > > > srptools 1.0.3-2 in Debian disallows all targets if not
+    >> > > > explicitly allowed by default. Motivation (taken from
+    >> > > > debian/changelog):
+    >> > > >
+    >> > > > * Don't activate any targets per default. (Closes: #740945)
+    >> > > >   This is more sensible than the previous default of
+    >> > > > bringing   up all targets in the IB fabric upon boot. In a
+    >> > > > larger fabric   with many storage targets available, most
+    >> > > > of the times only   one or a few targets are wanted on a
+    >> > > > particular machine.
+    >> > > >
+    >> > > > Do you agree and could you change the default upstream? I
+    >> > > > prefer not to carry a different behavior in Debian alone.
+    >> > >
+    >> > > Hello Benjamin,
+    >> > >
+    >> > > What I expect is that users will hate this change. They will
+    >> > > notice that after they have installed and enabled srp_daemon
+    >> > > that no targets are discovered without having any clue why no
+    >> > > automatic login to SRP targets occurs.
+    >> > >
+    >> > > Bart.
+    >> > >
+    >> > > -- To unsubscribe from this list: send the line "unsubscribe
+    >> > > linux- rdma" in the body of a message to
+    >> > > majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info
+    >> > > at  http://vger.kernel.org/majordomo-info.htm l
+    >> > >
+    >> >
+    >> > Hello
+    >> >
+    >> > Indeed, I agree with Bart here, this change will lead to a lot
+    >> > of confusion about why users no longer see device discovery.
+    >> > For me I would prefer its not changed.
+    >>
+    >> According to the Benjamin's description, this is already behavior
+    >> of Debian and their derivatives. So this change won't change for
+    >> these users anything. I think that the best solution will be to
+    >> keep in sync distros and upstream. Or enable by default on all
+    >> systems or disable by default on all systems.
 
-Sagi, Max 
+    BD> This change was uploaded to Debian unstable two days ago. So it
+    BD> is a recent change done by Roland Fehrenbacher (CCed) which
+    BD> still can be reverted. I'm fine with any option as long as
+    BD> Debian and upstream are in sync.
 
-With the patch below against Barts tree we still see the cqe_dump issue.
+    BD> Bart's objection (that users of large setups know how to edit
+    BD> the srp_daemon configuration file but most users of small setups
+    BD> don't know how to edit that configuration file) seem valid to
+    BD> me. Roland, your input please.
 
-Is what is in the everything you wanted applied.
-Please check I did not miss anything before I start the tracing.
+it's hard to judge what is the most wanted default setup. The reason why
+this was changed was the cited Debian bug report. I'm also a friend of
+well-defined configs, so I agree with that opinion. I believe,
+adding a '#' in front of a line of a config file shouldn't overburden an
+admin who deals with IB storage under Linux, if she/he prefers the most
+simple config. The change in Debian is also clearly communicated (NEWS
+file), so I don't really see a problem. Finally: There are many packages
+in Debian that have a different default config as compared to upstream.
 
-May  9 17:16:00 localhost kernel: scsi host2: ib_srp: failed RECV status WR flushed (5) for CQE ffff8817ed75c830
-May  9 17:16:00 localhost kernel: mlx5_1:dump_cqe:262:(pid 14567): dump error cqe
-May  9 17:16:00 localhost kernel: 00000000 00000000 00000000 00000000
-May  9 17:16:00 localhost kernel: 00000000 00000000 00000000 00000000
-May  9 17:16:00 localhost kernel: 00000000 00000000 00000000 00000000
-May  9 17:16:00 localhost kernel: 00000000 0f007806 2500002a 0b670bd0
-May  9 17:16:00 localhost kernel: scsi host2: ib_srp: failed FAST REG status memory management operation error (6) for CQE ffff8817972ac278
-May  9 17:16:16 localhost kernel: scsi host2: ib_srp: reconnect succeeded
-May  9 17:16:16 localhost kernel: scsi host2: ib_srp: failed RECV status WR flushed (5) for CQE ffff8817d819b130
+Cheers,
 
-
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 99beacf..cf899b4 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -1525,7 +1525,8 @@ struct ib_mr *mlx5_ib_alloc_mr(struct ib_pd *pd,
- {
-        struct mlx5_ib_dev *dev = to_mdev(pd->device);
-        int inlen = MLX5_ST_SZ_BYTES(create_mkey_in);
--       int ndescs = ALIGN(max_num_sg, 4);
-+       //int ndescs = ALIGN(max_num_sg, 4);
-+       int ndescs = ALIGN(max_num_sg + 1, 4);
-        struct mlx5_ib_mr *mr;
-        void *mkc;
-        u32 *in;
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index ad8a263..cb726a5 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -3224,22 +3224,19 @@ static void set_reg_mkey_seg(struct mlx5_mkey_seg *seg,
-                             struct mlx5_ib_mr *mr,
-                             u32 key, int access)
- {
--       int ndescs = ALIGN(mr->ndescs, 8) >> 1;
-+        int size = mr->ndescs * mr->desc_size;
- 
-        memset(seg, 0, sizeof(*seg));
- 
-        if (mr->access_mode == MLX5_MKC_ACCESS_MODE_MTT)
-                seg->log2_page_size = ilog2(mr->ibmr.page_size);
--       else if (mr->access_mode == MLX5_MKC_ACCESS_MODE_KLMS)
--               /* KLMs take twice the size of MTTs */
--               ndescs *= 2;
- 
-        seg->flags = get_umr_flags(access) | mr->access_mode;
-        seg->qpn_mkey7_0 = cpu_to_be32((key & 0xff) | 0xffffff00);
-        seg->flags_pd = cpu_to_be32(MLX5_MKEY_REMOTE_INVAL);
-        seg->start_addr = cpu_to_be64(mr->ibmr.iova);
-        seg->len = cpu_to_be64(mr->ibmr.length);
--       seg->xlt_oct_size = cpu_to_be32(ndescs);
-+        seg->xlt_oct_size = cpu_to_be32(get_xlt_octo(size));
- }
-
-I will see about capturing traces, but I am writing to a RAM disk on the target so likely will have a flood of trace data.
-
-Thanks
-Laurence
---
+Roland--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
