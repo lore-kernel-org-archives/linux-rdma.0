@@ -1,45 +1,22 @@
-From: "Steven L. Roberts" <robers97-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/hfi1: change PCI bar addr assignments to Linux API functions
-Date: Wed, 10 May 2017 14:58:13 -0500
-Message-ID: <1494446293-60448-1-git-send-email-robers97@gmail.com>
+From: Tatyana Nikolova <tatyana.e.nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 0/2] nes: MPA connection establishment flow fixes
+Date: Wed, 10 May 2017 16:46:38 -0500
+Message-ID: <1494452800-25896-1-git-send-email-tatyana.e.nikolova@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: "Steven L. Roberts" <robers97-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: "Steven L. Roberts" <robers97-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+The following patch series contains fixes related to the MPA connection
+establishment flow in the nes driver.
 
-The Omni-path adapter driver fails to load the ppc64le platform
-due to invalid PCI setup.
+Tatyana Nikolova (2):
+  nes: Don't set 0-length FULPDU RTR indication control flag
+  nes: ACK MPA Reply frame
 
-This patch makes the PCI configuration more robust and will
-fix 64 bit addressing for ppc64le.
-
-Signed-off-by: Steven L Roberts <robers97-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Acked-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
----
- drivers/infiniband/hw/hfi1/pcie.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
-index 93faf86..6a9f6f9 100644
---- a/drivers/infiniband/hw/hfi1/pcie.c
-+++ b/drivers/infiniband/hw/hfi1/pcie.c
-@@ -207,8 +207,8 @@ int hfi1_pcie_ddinit(struct hfi1_devdata *dd, struct pci_dev *pdev)
- 	/*
- 	 * Save BARs and command to rewrite after device reset.
- 	 */
--	dd->pcibar0 = addr;
--	dd->pcibar1 = addr >> 32;
-+	pci_read_config_dword(dd->pcidev, PCI_BASE_ADDRESS_0, &dd->pcibar0);
-+	pci_read_config_dword(dd->pcidev, PCI_BASE_ADDRESS_1, &dd->pcibar1);
- 	pci_read_config_dword(dd->pcidev, PCI_ROM_ADDRESS, &dd->pci_rom);
- 	pci_read_config_word(dd->pcidev, PCI_COMMAND, &dd->pci_command);
- 	pcie_capability_read_word(dd->pcidev, PCI_EXP_DEVCTL, &dd->pcie_devctl);
--- 
-1.8.3.1
+ drivers/infiniband/hw/nes/nes_cm.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
