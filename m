@@ -1,70 +1,61 @@
-From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: mlx5 endpoint driver problem
-Date: Wed, 10 May 2017 14:56:33 +0000
-Message-ID: <AM4PR0501MB278757CE912385F3B3324CE7C5EC0@AM4PR0501MB2787.eurprd05.prod.outlook.com>
+From: Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
+Subject: Re: mlx5 endpoint driver problem
+Date: Wed, 10 May 2017 16:00:54 +0100
+Message-ID: <a3f77d2c-086b-91bf-8dc8-e3d60dcce791@synopsys.com>
 References: <f0b8881d-9aa3-8816-7ea6-daccc0e91262@synopsys.com>
  <18d3cc2e-e235-6ae4-cd69-b5a11d607ee4@synopsys.com>
+ <AM4PR0501MB278757CE912385F3B3324CE7C5EC0@AM4PR0501MB2787.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <18d3cc2e-e235-6ae4-cd69-b5a11d607ee4-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <AM4PR0501MB278757CE912385F3B3324CE7C5EC0-dp/nxUn679jFcPxmzbbP+MDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgSm9hbywNCg0KU2luY2UgbWx4NSBzdXBwb3J0ZWQgZGV2aWNlcyBjYW4gZG8gRE1BIHdpdGgg
-NjQgYml0IGFkZHJlc3NlcyB3ZSBzdGFydCBsaWtlIHRoaXMuIFRoaXMgZmFpbHMgaW4geW91ciBz
-eXN0ZW0gc2luY2UgaXQgaXMgbm90IGNhcGFibGUgb2YgaGFuZGxpbmcgNjQgYml0IGFkZHJlc3Nl
-cyBzbyB3ZSBmYWxsIGJhY2sgdG8gMzIgYml0IGFkZHJlc3NlcyB3aGljaCB0aGVuIHN1Y2NlZWQu
-IEhvd2V2ZXIgd2hhdCB5b3UgYXJlIGV4cGVyaWVuY2luZyBpcyB0aGUgZHJpdmVyIGV4ZWN1dGVk
-IGEgY29tbWFuZCBhbmQgZmlybXdhcmUgc3VwcG9zZWRseSBkb2VzIG5vdCByZXNwb25kLiBNb3N0
-IGxpa2VseSB0aGUgZmlybXdhcmUgcmVzcG9uZGVkIGJ1dCB0aGUgZHJpdmVyIGNvdWxkIG5vdCBz
-ZWUgaXQgZHVlIHRvIHByb2JsZW1zIHJlbGF0ZWQgdG8gZG1hIGFkZHJlc3NlcyBpbiB5b3VyIHN5
-c3RlbS4NCg0KTG9uZyBzdG9yeSBzaG9ydCwgdGhlcmUgaXMgYSBwcm9ibGVtIGluIHlvdXIgc3lz
-dGVtLiBUbyBpbnZlc3RpZ2F0ZSB0aGlzIGZ1cnRoZXIgeW91IG1pZ2h0IG5lZWQgaGVhdnkgdG9v
-bHMgc3VjaCBhcyBwY2llIGFuYWx5emVyLg0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0K
-RnJvbTogbGludXgtcmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1h
-LW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEpvYW8gUGludG8NClNlbnQ6IFR1
-ZXNkYXksIE1heSA5LCAyMDE3IDEyOjEzIFBNDQpUbzogbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5v
-cmcNClN1YmplY3Q6IG1seDUgZW5kcG9pbnQgZHJpdmVyIHByb2JsZW0NCg0KDQpIZWxsbywNCg0K
-SSBhbSBtYWtpbmcgdGVzdHMgd2l0aCBhIE1lbGxhbm94IE1MWDUgRW5kcG9pbnQsIGFuZCBJIGFt
-IGdldHRpbmcga2VybmVsIGhhbmdzIHdoZW4gdHJ5aW5nIHRvIGVuYWJsZSB0aGUgaGNhOg0KDQpt
-bHg1X2NvcmUgMDAwMDowMTowMC4wOiBlbmFibGluZyBkZXZpY2UgKDAwMDAgLT4gMDAwMikgbWx4
-NV9jb3JlIDAwMDA6MDE6MDAuMDogV2FybmluZzogY291bGRuJ3Qgc2V0IDY0LWJpdCBQQ0kgRE1B
-IG1hc2sgbWx4NV9jb3JlIDAwMDA6MDE6MDAuMDogV2FybmluZzogY291bGRuJ3Qgc2V0IDY0LWJp
-dCBjb25zaXN0ZW50IFBDSSBETUEgbWFzayBtbHg1X2NvcmUgMDAwMDowMTowMC4wOiBmaXJtd2Fy
-ZSB2ZXJzaW9uOiAxNi4xOS4yMTEwMg0KSU5GTzogdGFzayBzd2FwcGVyOjEgYmxvY2tlZCBmb3Ig
-bW9yZSB0aGFuIDEwIHNlY29uZHMuDQogICAgICBOb3QgdGFpbnRlZCA0LjExLjAtQkVUQU1TSVgx
-ICM1MQ0KImVjaG8gMCA+IC9wcm9jL3N5cy9rZXJuZWwvaHVuZ190YXNrX3RpbWVvdXRfc2VjcyIg
-ZGlzYWJsZXMgdGhpcyBtZXNzYWdlLg0Kc3dhcHBlciAgICAgICAgIEQgICAgMCAgICAgMSAgICAg
-IDAgMHgwMDAwMDAwMA0KDQpTdGFjayBUcmFjZToNCiAgX19zd2l0Y2hfdG8rMHgwLzB4OTQNCiAg
-X19zY2hlZHVsZSsweDFkYS8weDhiMA0KICBzY2hlZHVsZSsweDI2LzB4NmMNCiAgc2NoZWR1bGVf
-dGltZW91dCsweDJkYS8weDM4MA0KICB3YWl0X2Zvcl9jb21wbGV0aW9uKzB4OTIvMHgxMDQNCiAg
-bWx4NV9jbWRfZXhlYysweDcwZS8weGQ2MA0KICBtbHg1X2xvYWRfb25lKzB4MWI0LzB4YWQ4DQog
-IGluaXRfb25lKzB4NDA0LzB4NjAwDQogIHBjaV9kZXZpY2VfcHJvYmUrMHgxMjIvMHgxZjANCiAg
-cmVhbGx5X3Byb2JlKzB4MWFjLzB4MzQ4DQogIF9fZHJpdmVyX2F0dGFjaCsweGE4LzB4ZDANCiAg
-YnVzX2Zvcl9lYWNoX2RldisweDNjLzB4NzQNCiAgYnVzX2FkZF9kcml2ZXIrMHhjMi8weDE4NA0K
-ICBkcml2ZXJfcmVnaXN0ZXIrMHg1MC8weGVjDQogIGluaXQrMHg0MC8weDYwDQoNCiguLi4pDQoN
-ClN0YWNrIFRyYWNlOg0KICBfX3N3aXRjaF90bysweDAvMHg5NA0KICBfX3NjaGVkdWxlKzB4MWRh
-LzB4OGIwDQogIHNjaGVkdWxlKzB4MjYvMHg2Yw0KICBzY2hlZHVsZV90aW1lb3V0KzB4MmRhLzB4
-MzgwDQogIHdhaXRfZm9yX2NvbXBsZXRpb24rMHg5Mi8weDEwNA0KICBtbHg1X2NtZF9leGVjKzB4
-NzBlLzB4ZDYwDQogIG1seDVfbG9hZF9vbmUrMHgxYjQvMHhhZDgNCiAgaW5pdF9vbmUrMHg0MDQv
-MHg2MDANCiAgcGNpX2RldmljZV9wcm9iZSsweDEyMi8weDFmMA0KICByZWFsbHlfcHJvYmUrMHgx
-YWMvMHgzNDgNCiAgX19kcml2ZXJfYXR0YWNoKzB4YTgvMHhkMA0KICBidXNfZm9yX2VhY2hfZGV2
-KzB4M2MvMHg3NA0KICBidXNfYWRkX2RyaXZlcisweGMyLzB4MTg0DQogIGRyaXZlcl9yZWdpc3Rl
-cisweDUwLzB4ZWMNCiAgaW5pdCsweDQwLzB4NjANCm1seDVfY29yZSAwMDAwOjAxOjAwLjA6IHdh
-aXRfZnVuYzo4ODI6KHBpZCAxKTogRU5BQkxFX0hDQSgweDEwNCkgdGltZW91dC4gV2lsbCBjYXVz
-ZSBhIGxlYWsgb2YgYSBjb21tYW5kIHJlc291cmNlIG1seDVfY29yZSAwMDAwOjAxOjAwLjA6IGVu
-YWJsZSBoY2EgZmFpbGVkIG1seDVfY29yZSAwMDAwOjAxOjAwLjA6IG1seDVfbG9hZF9vbmUgZmFp
-bGVkIHdpdGggZXJyb3IgY29kZSAtMTEwDQptbHg1X2NvcmU6IHByb2JlIG9mIDAwMDA6MDE6MDAu
-MCBmYWlsZWQgd2l0aCBlcnJvciAtMTEwDQoNCkNvdWxkIHlvdSBnaXZlIG1lIGEgY2x1ZSBvZiB3
-aGF0IG1pZ2h0IGJlIGhhcHBlbm5pZz8NCg0KVGhhbmtzLA0KSm9hbw0KLS0NClRvIHVuc3Vic2Ny
-aWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1h
-IiBpbiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZyBN
-b3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1p
-bmZvLmh0bWwNCg==
+
+Hi Eli,
+
+Às 3:56 PM de 5/10/2017, Eli Cohen escreveu:
+> Hi Joao,
+> 
+> 
+> 
+> Since mlx5 supported devices can do DMA with 64 bit addresses we start like this. This fails in your system since it is not capable of handling 64 bit addresses so we fall back to 32 bit addresses which then succeed. However what you are experiencing is the driver executed a command and firmware supposedly does not respond. Most likely the firmware responded but the driver could not see it due to problems related to dma addresses in your system.
+> 
+> 
+> 
+> Long story short, there is a problem in your system. To investigate this further you might need heavy tools such as pcie analyzer.
+> 
+
+
+> 
+> 
+
+I have new data for you. My colleague is using a Mellanox MT27800 Family
+(ConnectX-5) with Firmware version 16.19.148 and it does not have hangs, but it
+fails in the CPU mask:
+
+mlx5_core 0000:01:00.0: enabling device (0000 -> 0002)
+mlx5_core 0000:01:00.0: Warning: couldn't set 64-bit PCI DMA mask
+mlx5_core 0000:01:00.0: Warning: couldn't set 64-bit consistent PCI DMA mask
+mlx5_core 0000:01:00.0: firmware version: 16.19.148
+mlx5_core 0000:01:00.0: Port module event: module 0, Cable unplugged
+mlx5_core 0000:01:00.0: mlx5_irq_set_affinity_hint:628:(pid 1):
+irq_set_affinity_hint failed,irq 0x0032
+mlx5_core 0000:01:00.0: Failed to alloc affinity hint cpumask
+mlx5_core 0000:01:00.0: mlx5_load_one failed with error code -22
+mlx5_core: probe of 0000:01:00.0 failed with error -22
+
+Mine is a Mellanox MT28800 Family (ConnectX-5) with Firmware Version
+16.19.21102. I think I have some firmware problem.
+
+The affinity problem might be due to my Root Complex driver does not support
+affinity at the moment.
+
+Thanks,
+Joao
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
