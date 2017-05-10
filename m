@@ -1,8 +1,8 @@
 From: Dasaratharaman Chandramouli
         <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-next 1/4] IB/CM: Convert OPA Path record to IB during CM request
-Date: Wed, 10 May 2017 19:23:15 -0400
-Message-ID: <1494458598-6911-2-git-send-email-dasaratharaman.chandramouli@intel.com>
+Subject: [PATCH rdma-next 2/4] IB/CM: Create appropriate path records when handling CM request
+Date: Wed, 10 May 2017 19:23:16 -0400
+Message-ID: <1494458598-6911-3-git-send-email-dasaratharaman.chandramouli@intel.com>
 References: <1494458598-6911-1-git-send-email-dasaratharaman.chandramouli@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1494458598-6911-1-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,98 +10,103 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-OPA path records need to be converted to IB path records
-during a connection request. If the slid/dlid fields in the
-OPA path records are extended, the resulting converted IB
-path records will have the corresponding GIDs populated as
-OPA GIDs
+When handling an incoming conection request, ib_cm creates
+either an IB or an OPA path record based on the gid field
+in the request.
 
 Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/cm.c | 49 +++++++++++++++++++++++++++++++++-----------
- 1 file changed, 37 insertions(+), 12 deletions(-)
+ drivers/infiniband/core/cm.c | 39 ++++++++++++++++++++++++++++++++-------
+ 1 file changed, 32 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 6b3b0be..9a7f4be 100644
+index 9a7f4be..01cfa24 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -1173,8 +1173,24 @@ static void cm_format_req(struct cm_req_msg *req_msg,
- 			  struct cm_id_private *cm_id_priv,
- 			  struct ib_cm_req_param *param)
- {
--	struct sa_path_rec *pri_path = param->primary_path;
--	struct sa_path_rec *alt_path = param->alternate_path;
-+	struct sa_path_rec *pri_path;
-+	struct sa_path_rec *alt_path;
-+	struct sa_path_rec conv_path;
-+
-+	if (param->primary_path->rec_type == SA_PATH_REC_TYPE_OPA) {
-+		sa_convert_path_opa_to_ib(&conv_path, param->primary_path);
-+		pri_path = &conv_path;
-+	} else {
-+		pri_path = param->primary_path;
-+	}
-+
-+	if ((param->alternate_path) &&
-+	    (param->alternate_path->rec_type == SA_PATH_REC_TYPE_OPA)) {
-+		sa_convert_path_opa_to_ib(&conv_path, param->alternate_path);
-+		alt_path = &conv_path;
-+	} else {
-+		alt_path = param->alternate_path;
-+	}
+@@ -1421,6 +1421,12 @@ static inline int cm_is_active_peer(__be64 local_ca_guid, __be64 remote_ca_guid,
+ 		 (be32_to_cpu(local_qpn) > be32_to_cpu(remote_qpn))));
+ }
  
- 	cm_format_mad_hdr(&req_msg->hdr, CM_REQ_ATTR_ID,
- 			  cm_form_tid(cm_id_priv, CM_MSG_SEQUENCE_REQ));
-@@ -2843,6 +2859,9 @@ static void cm_format_lap(struct cm_lap_msg *lap_msg,
- 			  const void *private_data,
- 			  u8 private_data_len)
- {
-+	struct sa_path_rec conv_path;
-+	struct sa_path_rec *path;
++static bool cm_req_has_alt_path(struct cm_req_msg *req_msg)
++{
++	return ((req_msg->alt_local_lid) ||
++		(ib_is_opa_gid(&req_msg->alt_local_gid)));
++}
 +
- 	cm_format_mad_hdr(&lap_msg->hdr, CM_LAP_ATTR_ID,
- 			  cm_form_tid(cm_id_priv, CM_MSG_SEQUENCE_LAP));
- 	lap_msg->local_comm_id = cm_id_priv->id.local_id;
-@@ -2850,21 +2869,27 @@ static void cm_format_lap(struct cm_lap_msg *lap_msg,
- 	cm_lap_set_remote_qpn(lap_msg, cm_id_priv->remote_qpn);
- 	/* todo: need remote CM response timeout */
- 	cm_lap_set_remote_resp_timeout(lap_msg, 0x1F);
-+	if (alternate_path->rec_type == SA_PATH_REC_TYPE_OPA) {
-+		sa_convert_path_opa_to_ib(&conv_path, alternate_path);
-+		path = &conv_path;
-+	} else {
-+		path = alternate_path;
-+	}
- 	lap_msg->alt_local_lid =
--		htons(ntohl(sa_path_get_slid(alternate_path)));
-+		htons(ntohl(sa_path_get_slid(path)));
- 	lap_msg->alt_remote_lid =
--		htons(ntohl(sa_path_get_dlid(alternate_path)));
--	lap_msg->alt_local_gid = alternate_path->sgid;
--	lap_msg->alt_remote_gid = alternate_path->dgid;
--	cm_lap_set_flow_label(lap_msg, alternate_path->flow_label);
--	cm_lap_set_traffic_class(lap_msg, alternate_path->traffic_class);
--	lap_msg->alt_hop_limit = alternate_path->hop_limit;
--	cm_lap_set_packet_rate(lap_msg, alternate_path->rate);
--	cm_lap_set_sl(lap_msg, alternate_path->sl);
-+		htons(ntohl(sa_path_get_dlid(path)));
-+	lap_msg->alt_local_gid = path->sgid;
-+	lap_msg->alt_remote_gid = path->dgid;
-+	cm_lap_set_flow_label(lap_msg, path->flow_label);
-+	cm_lap_set_traffic_class(lap_msg, path->traffic_class);
-+	lap_msg->alt_hop_limit = path->hop_limit;
-+	cm_lap_set_packet_rate(lap_msg, path->rate);
-+	cm_lap_set_sl(lap_msg, path->sl);
- 	cm_lap_set_subnet_local(lap_msg, 1); /* local only... */
- 	cm_lap_set_local_ack_timeout(lap_msg,
- 		cm_ack_timeout(cm_id_priv->av.port->cm_dev->ack_delay,
--			       alternate_path->packet_life_time));
-+			       path->packet_life_time));
+ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
+ 				     struct sa_path_rec *primary_path,
+ 				     struct sa_path_rec *alt_path)
+@@ -1800,9 +1806,18 @@ static int cm_req_handler(struct cm_work *work)
+ 					 dev_net(gid_attr.ndev));
+ 			dev_put(gid_attr.ndev);
+ 		} else {
+-			work->path[0].rec_type = SA_PATH_REC_TYPE_IB;
++			/*
++			 * If the gid in the request is an OPA GID,
++			 * create an OPA PR
++			 */
++			if (ib_is_opa_gid(&req_msg->primary_local_gid) &&
++			    rdma_cap_opa_ah(work->port->cm_dev->ib_device,
++					    work->port->port_num))
++				work->path[0].rec_type = SA_PATH_REC_TYPE_OPA;
++			else
++				work->path[0].rec_type = SA_PATH_REC_TYPE_IB;
+ 		}
+-		if (req_msg->alt_local_lid)
++		if (cm_req_has_alt_path(req_msg))
+ 			work->path[1].rec_type = work->path[0].rec_type;
+ 		cm_format_paths_from_req(req_msg, &work->path[0],
+ 					 &work->path[1]);
+@@ -1827,16 +1842,21 @@ static int cm_req_handler(struct cm_work *work)
+ 					 dev_net(gid_attr.ndev));
+ 			dev_put(gid_attr.ndev);
+ 		} else {
+-			work->path[0].rec_type = SA_PATH_REC_TYPE_IB;
++			if (ib_is_opa_gid(&req_msg->primary_local_gid) &&
++			    rdma_cap_opa_ah(work->port->cm_dev->ib_device,
++					    work->port->port_num))
++				work->path[0].rec_type = SA_PATH_REC_TYPE_OPA;
++			else
++				work->path[0].rec_type = SA_PATH_REC_TYPE_IB;
+ 		}
+-		if (req_msg->alt_local_lid)
++		if (cm_req_has_alt_path(req_msg))
+ 			work->path[1].rec_type = work->path[0].rec_type;
+ 		ib_send_cm_rej(cm_id, IB_CM_REJ_INVALID_GID,
+ 			       &work->path[0].sgid, sizeof work->path[0].sgid,
+ 			       NULL, 0);
+ 		goto rejected;
+ 	}
+-	if (req_msg->alt_local_lid) {
++	if (cm_req_has_alt_path(req_msg)) {
+ 		ret = cm_init_av_by_path(&work->path[1], &cm_id_priv->alt_av,
+ 					 cm_id_priv);
+ 		if (ret) {
+@@ -2953,8 +2973,6 @@ static void cm_format_path_from_lap(struct cm_id_private *cm_id_priv,
+ 				    struct sa_path_rec *path,
+ 				    struct cm_lap_msg *lap_msg)
+ {
+-	memset(path, 0, sizeof *path);
+-	path->rec_type = SA_PATH_REC_TYPE_IB;
+ 	path->dgid = lap_msg->alt_local_gid;
+ 	path->sgid = lap_msg->alt_remote_gid;
+ 	sa_path_set_dlid(path, htonl(ntohs(lap_msg->alt_local_lid)));
+@@ -2990,6 +3008,13 @@ static int cm_lap_handler(struct cm_work *work)
+ 		return -EINVAL;
  
- 	if (private_data && private_data_len)
- 		memcpy(lap_msg->private_data, private_data, private_data_len);
+ 	param = &work->cm_event.param.lap_rcvd;
++	memset(&work->path[0], 0, sizeof(work->path[0]));
++	if (ib_is_opa_gid(&lap_msg->alt_local_gid) &&
++	    rdma_cap_opa_ah(work->port->cm_dev->ib_device,
++			    work->port->port_num))
++		work->path[0].rec_type = SA_PATH_REC_TYPE_OPA;
++	else
++		work->path[0].rec_type = SA_PATH_REC_TYPE_IB;
+ 	param->alternate_path = &work->path[0];
+ 	cm_format_path_from_lap(cm_id_priv, param->alternate_path, lap_msg);
+ 	work->cm_event.private_data = &lap_msg->private_data;
 -- 
 1.8.3.1
 
