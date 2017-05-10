@@ -1,61 +1,45 @@
-From: Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
-Subject: Re: mlx5 endpoint driver problem
-Date: Wed, 10 May 2017 16:00:54 +0100
-Message-ID: <a3f77d2c-086b-91bf-8dc8-e3d60dcce791@synopsys.com>
-References: <f0b8881d-9aa3-8816-7ea6-daccc0e91262@synopsys.com>
- <18d3cc2e-e235-6ae4-cd69-b5a11d607ee4@synopsys.com>
- <AM4PR0501MB278757CE912385F3B3324CE7C5EC0@AM4PR0501MB2787.eurprd05.prod.outlook.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next 14/14] RDMA/bnxt_re: Update the driver version
+Date: Wed, 10 May 2017 11:06:31 -0400
+Message-ID: <84d9a0ce-0e5c-fc50-237f-b7ad9d541324@intel.com>
+References: <1494413139-11883-1-git-send-email-selvin.xavier@broadcom.com>
+ <1494413139-11883-15-git-send-email-selvin.xavier@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AM4PR0501MB278757CE912385F3B3324CE7C5EC0-dp/nxUn679jFcPxmzbbP+MDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <1494413139-11883-15-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 5/10/2017 6:45 AM, Selvin Xavier wrote:
+> Update the driver version to the scheme used in the internal
+> development branches.
 
-Hi Eli,
+See the feedback [1] we got from Greg KH on a similar patch.
 
-Às 3:56 PM de 5/10/2017, Eli Cohen escreveu:
-> Hi Joao,
-> 
-> 
-> 
-> Since mlx5 supported devices can do DMA with 64 bit addresses we start like this. This fails in your system since it is not capable of handling 64 bit addresses so we fall back to 32 bit addresses which then succeed. However what you are experiencing is the driver executed a command and firmware supposedly does not respond. Most likely the firmware responded but the driver could not see it due to problems related to dma addresses in your system.
-> 
-> 
-> 
-> Long story short, there is a problem in your system. To investigate this further you might need heavy tools such as pcie analyzer.
-> 
+[1] https://patchwork.kernel.org/patch/7490321/
 
-
-> 
-> 
-
-I have new data for you. My colleague is using a Mellanox MT27800 Family
-(ConnectX-5) with Firmware version 16.19.148 and it does not have hangs, but it
-fails in the CPU mask:
-
-mlx5_core 0000:01:00.0: enabling device (0000 -> 0002)
-mlx5_core 0000:01:00.0: Warning: couldn't set 64-bit PCI DMA mask
-mlx5_core 0000:01:00.0: Warning: couldn't set 64-bit consistent PCI DMA mask
-mlx5_core 0000:01:00.0: firmware version: 16.19.148
-mlx5_core 0000:01:00.0: Port module event: module 0, Cable unplugged
-mlx5_core 0000:01:00.0: mlx5_irq_set_affinity_hint:628:(pid 1):
-irq_set_affinity_hint failed,irq 0x0032
-mlx5_core 0000:01:00.0: Failed to alloc affinity hint cpumask
-mlx5_core 0000:01:00.0: mlx5_load_one failed with error code -22
-mlx5_core: probe of 0000:01:00.0 failed with error -22
-
-Mine is a Mellanox MT28800 Family (ConnectX-5) with Firmware Version
-16.19.21102. I think I have some firmware problem.
-
-The affinity problem might be due to my Root Complex driver does not support
-affinity at the moment.
-
-Thanks,
-Joao
+> Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/bnxt_re/bnxt_re.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+> index 30bff05..9041c23b 100644
+> --- a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+> +++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+> @@ -40,7 +40,7 @@
+>  #ifndef __BNXT_RE_H__
+>  #define __BNXT_RE_H__
+>  #define ROCE_DRV_MODULE_NAME		"bnxt_re"
+> -#define ROCE_DRV_MODULE_VERSION		"1.0.0"
+> +#define ROCE_DRV_MODULE_VERSION		"20.6.1.0u"
+>
+>  #define BNXT_RE_DESC	"Broadcom NetXtreme-C/E RoCE Driver"
+>
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
