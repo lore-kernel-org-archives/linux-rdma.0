@@ -1,91 +1,70 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] IB/hfi1: NULL required to terminate attr array
-Date: Wed, 10 May 2017 17:11:30 +0300
-Message-ID: <20170510141130.GB1839@mtr-leonro.local>
-References: <20170509210907.GA29717@oc1783850105.ibm.com>
- <20170510053543.GA1839@mtr-leonro.local>
- <20170510134030.GA28309@oc1783850105.ibm.com>
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: mlx5 endpoint driver problem
+Date: Wed, 10 May 2017 14:56:33 +0000
+Message-ID: <AM4PR0501MB278757CE912385F3B3324CE7C5EC0@AM4PR0501MB2787.eurprd05.prod.outlook.com>
+References: <f0b8881d-9aa3-8816-7ea6-daccc0e91262@synopsys.com>
+ <18d3cc2e-e235-6ae4-cd69-b5a11d607ee4@synopsys.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="vGgW1X5XWziG23Ko"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170510134030.GA28309-i3Uw2LK+iw9rGVE3K263K1aTQe2KTcn/@public.gmane.org>
+In-Reply-To: <18d3cc2e-e235-6ae4-cd69-b5a11d607ee4-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steven Roberts <robers97-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---vGgW1X5XWziG23Ko
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, May 10, 2017 at 08:40:30AM -0500, Steven Roberts wrote:
->
-> This patch fixes a kernel panic when loading the hfi driver as a dynamic module.Addressing this patch will make performance tweaking the driver as a loadable module possible.
->
-> git diff | scripts/checkpatch.pl
-> total: 0 errors, 0 warnings, 9 lines checked
->
-> Your patch has no obvious style problems and is ready for submission.
->
-> Signed-off-by: Steven Roberts <robers97-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->
->  drivers/infiniband/hw/hfi1/sysfs.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-
-Did you use git format-patch to create this patch? There is no --- after
-your Singed-off-by and it says me that the answer will be no.
-
-Please use git send-email to send patches and not as a reply, and please
-limit your commit message to 80 symbols per-line.
-
-You also should check the patch with checkpatch.pl and not the output of
-git diff.
-
-I recommend you to read SubmittingPatches doc.
-
-Thanks
-
->
-> diff --git a/drivers/infiniband/hw/hfi1/sysfs.c b/drivers/infiniband/hw/hfi1/sys
-> index 50d140d..2f3bbca 100644
-> --- a/drivers/infiniband/hw/hfi1/sysfs.c
-> +++ b/drivers/infiniband/hw/hfi1/sysfs.c
-> @@ -196,7 +196,8 @@ static ssize_t cc_attr_store(struct kobject *kobj, struct at
->  };
->
->  static struct attribute *port_cc_default_attributes[] = {
-> -       &cc_prescan_attr.attr
-> +       &cc_prescan_attr.attr,
-> +       NULL
->  };
->
->  static struct kobj_type port_cc_ktype = {
->
-
---vGgW1X5XWziG23Ko
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkTH5IACgkQ5GN7iDZy
-WKd4xA//ScCZ5lCTefcGIVavoV64U4j/5Y+//Y8uVKNVElfE/vUBp2XQhtwP/MdF
-18P6AwUekNNU/UfLVo7QcsLHK/29R8kg/LMkGvo2mnfN9KNpQoML/5iY8kQn//BY
-wjV4Qwh3q/G+2tWZhu8v0z5fHKY3RE2pJ7pNRDctoRc0Gc8LmhSRPSOH+KVfHYrN
-/VPFK9wrSytOzP+fRjzN0ju9vyAgh5NHwrDliytDDcDOMNt11pkOCxTT4YFYfFyX
-Wf0+tRicgfk1S/MZDruraBOyBPZQsp3tGC0ahPLFPwcbYLQUhFkMq1BaV+t+fF7r
-wbij1qNWQHzBwKnUJXZE4s5wydOKGOnGCVR8N4gkO2uc4lt7ng07PspzguSdnCa6
-EJzwjpULztbMguFssyJetkOZ61fhmeK1zdalGcuTr2zewN2dBHQj1FwdnoldUr0o
-aqZkf+zp/lTDfJAZ1w49I5+9kK0yiErO3LXdp/nCdm5aPqZP7as4efVRj9RGfMN/
-hg4bqj/E3X6IXMeyfLm+YbYVNDiTgT0qYAdhzB9mHdcClDa7dl0/N7jOEYjXE9MK
-Bw+iS2PsFS6pktCcs9zTK4/UxVts9LHQG6Jn7BOt2mqGuGsZf4XHaHTkjJZH6qNF
-4Pzq9ueWIqY0BXU1HLrkGfrPH+Iq0MxwPI8lYB/wva2Cumhn7hY=
-=SMXs
------END PGP SIGNATURE-----
-
---vGgW1X5XWziG23Ko--
+SGkgSm9hbywNCg0KU2luY2UgbWx4NSBzdXBwb3J0ZWQgZGV2aWNlcyBjYW4gZG8gRE1BIHdpdGgg
+NjQgYml0IGFkZHJlc3NlcyB3ZSBzdGFydCBsaWtlIHRoaXMuIFRoaXMgZmFpbHMgaW4geW91ciBz
+eXN0ZW0gc2luY2UgaXQgaXMgbm90IGNhcGFibGUgb2YgaGFuZGxpbmcgNjQgYml0IGFkZHJlc3Nl
+cyBzbyB3ZSBmYWxsIGJhY2sgdG8gMzIgYml0IGFkZHJlc3NlcyB3aGljaCB0aGVuIHN1Y2NlZWQu
+IEhvd2V2ZXIgd2hhdCB5b3UgYXJlIGV4cGVyaWVuY2luZyBpcyB0aGUgZHJpdmVyIGV4ZWN1dGVk
+IGEgY29tbWFuZCBhbmQgZmlybXdhcmUgc3VwcG9zZWRseSBkb2VzIG5vdCByZXNwb25kLiBNb3N0
+IGxpa2VseSB0aGUgZmlybXdhcmUgcmVzcG9uZGVkIGJ1dCB0aGUgZHJpdmVyIGNvdWxkIG5vdCBz
+ZWUgaXQgZHVlIHRvIHByb2JsZW1zIHJlbGF0ZWQgdG8gZG1hIGFkZHJlc3NlcyBpbiB5b3VyIHN5
+c3RlbS4NCg0KTG9uZyBzdG9yeSBzaG9ydCwgdGhlcmUgaXMgYSBwcm9ibGVtIGluIHlvdXIgc3lz
+dGVtLiBUbyBpbnZlc3RpZ2F0ZSB0aGlzIGZ1cnRoZXIgeW91IG1pZ2h0IG5lZWQgaGVhdnkgdG9v
+bHMgc3VjaCBhcyBwY2llIGFuYWx5emVyLg0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0K
+RnJvbTogbGludXgtcmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1h
+LW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEpvYW8gUGludG8NClNlbnQ6IFR1
+ZXNkYXksIE1heSA5LCAyMDE3IDEyOjEzIFBNDQpUbzogbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5v
+cmcNClN1YmplY3Q6IG1seDUgZW5kcG9pbnQgZHJpdmVyIHByb2JsZW0NCg0KDQpIZWxsbywNCg0K
+SSBhbSBtYWtpbmcgdGVzdHMgd2l0aCBhIE1lbGxhbm94IE1MWDUgRW5kcG9pbnQsIGFuZCBJIGFt
+IGdldHRpbmcga2VybmVsIGhhbmdzIHdoZW4gdHJ5aW5nIHRvIGVuYWJsZSB0aGUgaGNhOg0KDQpt
+bHg1X2NvcmUgMDAwMDowMTowMC4wOiBlbmFibGluZyBkZXZpY2UgKDAwMDAgLT4gMDAwMikgbWx4
+NV9jb3JlIDAwMDA6MDE6MDAuMDogV2FybmluZzogY291bGRuJ3Qgc2V0IDY0LWJpdCBQQ0kgRE1B
+IG1hc2sgbWx4NV9jb3JlIDAwMDA6MDE6MDAuMDogV2FybmluZzogY291bGRuJ3Qgc2V0IDY0LWJp
+dCBjb25zaXN0ZW50IFBDSSBETUEgbWFzayBtbHg1X2NvcmUgMDAwMDowMTowMC4wOiBmaXJtd2Fy
+ZSB2ZXJzaW9uOiAxNi4xOS4yMTEwMg0KSU5GTzogdGFzayBzd2FwcGVyOjEgYmxvY2tlZCBmb3Ig
+bW9yZSB0aGFuIDEwIHNlY29uZHMuDQogICAgICBOb3QgdGFpbnRlZCA0LjExLjAtQkVUQU1TSVgx
+ICM1MQ0KImVjaG8gMCA+IC9wcm9jL3N5cy9rZXJuZWwvaHVuZ190YXNrX3RpbWVvdXRfc2VjcyIg
+ZGlzYWJsZXMgdGhpcyBtZXNzYWdlLg0Kc3dhcHBlciAgICAgICAgIEQgICAgMCAgICAgMSAgICAg
+IDAgMHgwMDAwMDAwMA0KDQpTdGFjayBUcmFjZToNCiAgX19zd2l0Y2hfdG8rMHgwLzB4OTQNCiAg
+X19zY2hlZHVsZSsweDFkYS8weDhiMA0KICBzY2hlZHVsZSsweDI2LzB4NmMNCiAgc2NoZWR1bGVf
+dGltZW91dCsweDJkYS8weDM4MA0KICB3YWl0X2Zvcl9jb21wbGV0aW9uKzB4OTIvMHgxMDQNCiAg
+bWx4NV9jbWRfZXhlYysweDcwZS8weGQ2MA0KICBtbHg1X2xvYWRfb25lKzB4MWI0LzB4YWQ4DQog
+IGluaXRfb25lKzB4NDA0LzB4NjAwDQogIHBjaV9kZXZpY2VfcHJvYmUrMHgxMjIvMHgxZjANCiAg
+cmVhbGx5X3Byb2JlKzB4MWFjLzB4MzQ4DQogIF9fZHJpdmVyX2F0dGFjaCsweGE4LzB4ZDANCiAg
+YnVzX2Zvcl9lYWNoX2RldisweDNjLzB4NzQNCiAgYnVzX2FkZF9kcml2ZXIrMHhjMi8weDE4NA0K
+ICBkcml2ZXJfcmVnaXN0ZXIrMHg1MC8weGVjDQogIGluaXQrMHg0MC8weDYwDQoNCiguLi4pDQoN
+ClN0YWNrIFRyYWNlOg0KICBfX3N3aXRjaF90bysweDAvMHg5NA0KICBfX3NjaGVkdWxlKzB4MWRh
+LzB4OGIwDQogIHNjaGVkdWxlKzB4MjYvMHg2Yw0KICBzY2hlZHVsZV90aW1lb3V0KzB4MmRhLzB4
+MzgwDQogIHdhaXRfZm9yX2NvbXBsZXRpb24rMHg5Mi8weDEwNA0KICBtbHg1X2NtZF9leGVjKzB4
+NzBlLzB4ZDYwDQogIG1seDVfbG9hZF9vbmUrMHgxYjQvMHhhZDgNCiAgaW5pdF9vbmUrMHg0MDQv
+MHg2MDANCiAgcGNpX2RldmljZV9wcm9iZSsweDEyMi8weDFmMA0KICByZWFsbHlfcHJvYmUrMHgx
+YWMvMHgzNDgNCiAgX19kcml2ZXJfYXR0YWNoKzB4YTgvMHhkMA0KICBidXNfZm9yX2VhY2hfZGV2
+KzB4M2MvMHg3NA0KICBidXNfYWRkX2RyaXZlcisweGMyLzB4MTg0DQogIGRyaXZlcl9yZWdpc3Rl
+cisweDUwLzB4ZWMNCiAgaW5pdCsweDQwLzB4NjANCm1seDVfY29yZSAwMDAwOjAxOjAwLjA6IHdh
+aXRfZnVuYzo4ODI6KHBpZCAxKTogRU5BQkxFX0hDQSgweDEwNCkgdGltZW91dC4gV2lsbCBjYXVz
+ZSBhIGxlYWsgb2YgYSBjb21tYW5kIHJlc291cmNlIG1seDVfY29yZSAwMDAwOjAxOjAwLjA6IGVu
+YWJsZSBoY2EgZmFpbGVkIG1seDVfY29yZSAwMDAwOjAxOjAwLjA6IG1seDVfbG9hZF9vbmUgZmFp
+bGVkIHdpdGggZXJyb3IgY29kZSAtMTEwDQptbHg1X2NvcmU6IHByb2JlIG9mIDAwMDA6MDE6MDAu
+MCBmYWlsZWQgd2l0aCBlcnJvciAtMTEwDQoNCkNvdWxkIHlvdSBnaXZlIG1lIGEgY2x1ZSBvZiB3
+aGF0IG1pZ2h0IGJlIGhhcHBlbm5pZz8NCg0KVGhhbmtzLA0KSm9hbw0KLS0NClRvIHVuc3Vic2Ny
+aWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1h
+IiBpbiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZyBN
+b3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1p
+bmZvLmh0bWwNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
