@@ -1,128 +1,47 @@
 From: Dasaratharaman Chandramouli
         <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-next 5/8] IB/core: Change port_attr.lid size from 16 to 32 bits
-Date: Wed, 10 May 2017 19:22:53 -0400
-Message-ID: <1494458576-6816-6-git-send-email-dasaratharaman.chandramouli@intel.com>
-References: <1494458576-6816-1-git-send-email-dasaratharaman.chandramouli@intel.com>
+Subject: [PATCH rdma-next 0/4] Enhance IB CM to support OPA extended LIDs
+Date: Wed, 10 May 2017 19:23:14 -0400
+Message-ID: <1494458598-6911-1-git-send-email-dasaratharaman.chandramouli@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1494458576-6816-1-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-lid field in struct ib_port_attr is increased to 32 bits. This enables core
-components to use larger LIDs if needed.
-The user ABI is unchanged and return 16 bit values when queried.
+This patch series adds enhancements to support extended LIDs in the
+IB CM protocol. The core idea is to trasmit extended LIDs as OPA GIDs
+on the wire in the primary_local_gid, primary_remote_gid,
+alternate_local_gid and alternate_remote_gid fields of a CM request.
+On the receiving side, the extended LID is retrieved from these
+gids when processing the connection request.
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/core_priv.h     | 1 +
- drivers/infiniband/core/uverbs_cmd.c    | 5 ++++-
- drivers/infiniband/hw/mlx4/alias_GUID.c | 2 +-
- drivers/infiniband/hw/mlx4/mad.c        | 2 +-
- drivers/infiniband/hw/mthca/mthca_mad.c | 2 +-
- include/rdma/ib_verbs.h                 | 2 +-
- include/rdma/opa_addr.h                 | 3 ++-
- 7 files changed, 11 insertions(+), 6 deletions(-)
+The patches are organized as follows:
 
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index cb7d372..0919aeb 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -38,6 +38,7 @@
- #include <linux/cgroup_rdma.h>
- 
- #include <rdma/ib_verbs.h>
-+#include <rdma/opa_addr.h>
- 
- #if IS_ENABLED(CONFIG_INFINIBAND_ADDR_TRANS_CONFIGFS)
- int cma_configfs_init(void);
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 70b7fb1..038b993 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -275,8 +275,11 @@ ssize_t ib_uverbs_query_port(struct ib_uverbs_file *file,
- 	resp.bad_pkey_cntr   = attr.bad_pkey_cntr;
- 	resp.qkey_viol_cntr  = attr.qkey_viol_cntr;
- 	resp.pkey_tbl_len    = attr.pkey_tbl_len;
--	resp.lid 	     = attr.lid;
- 	resp.sm_lid 	     = attr.sm_lid;
-+	if (rdma_cap_opa_ah(ib_dev, cmd.port_num))
-+		resp.lid  = OPA_TO_IB_UCAST_LID(attr.lid);
-+	else
-+		resp.lid     = (u16)attr.lid;
- 	resp.lmc 	     = attr.lmc;
- 	resp.max_vl_num      = attr.max_vl_num;
- 	resp.sm_sl 	     = attr.sm_sl;
-diff --git a/drivers/infiniband/hw/mlx4/alias_GUID.c b/drivers/infiniband/hw/mlx4/alias_GUID.c
-index ea24230..5a897b0 100644
---- a/drivers/infiniband/hw/mlx4/alias_GUID.c
-+++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
-@@ -528,7 +528,7 @@ static int set_guid_rec(struct ib_device *ibdev,
- 
- 	memset(&guid_info_rec, 0, sizeof (struct ib_sa_guidinfo_rec));
- 
--	guid_info_rec.lid = cpu_to_be16(attr.lid);
-+	guid_info_rec.lid = cpu_to_be16((u16)attr.lid);
- 	guid_info_rec.block_num = index;
- 
- 	memcpy(guid_info_rec.guid_info_list, rec_det->all_recs,
-diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index b469471..cd5bfe1 100644
---- a/drivers/infiniband/hw/mlx4/mad.c
-+++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -860,7 +860,7 @@ static int ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
- 	    in_mad->mad_hdr.method == IB_MGMT_METHOD_SET &&
- 	    in_mad->mad_hdr.attr_id == IB_SMP_ATTR_PORT_INFO &&
- 	    !ib_query_port(ibdev, port_num, &pattr))
--		prev_lid = pattr.lid;
-+		prev_lid = (u16)pattr.lid;
- 
- 	err = mlx4_MAD_IFC(to_mdev(ibdev),
- 			   (mad_flags & IB_MAD_IGNORE_MKEY ? MLX4_MAD_IFC_IGNORE_MKEY : 0) |
-diff --git a/drivers/infiniband/hw/mthca/mthca_mad.c b/drivers/infiniband/hw/mthca/mthca_mad.c
-index 7df3db7..617531f 100644
---- a/drivers/infiniband/hw/mthca/mthca_mad.c
-+++ b/drivers/infiniband/hw/mthca/mthca_mad.c
-@@ -256,7 +256,7 @@ int mthca_process_mad(struct ib_device *ibdev,
- 	    in_mad->mad_hdr.method == IB_MGMT_METHOD_SET &&
- 	    in_mad->mad_hdr.attr_id == IB_SMP_ATTR_PORT_INFO &&
- 	    !ib_query_port(ibdev, port_num, &pattr))
--		prev_lid = pattr.lid;
-+		prev_lid = (u16)pattr.lid;
- 
- 	err = mthca_MAD_IFC(to_mdev(ibdev),
- 			    mad_flags & IB_MAD_IGNORE_MKEY,
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index f0cb490..42e0e10 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -548,8 +548,8 @@ struct ib_port_attr {
- 	u32			bad_pkey_cntr;
- 	u32			qkey_viol_cntr;
- 	u16			pkey_tbl_len;
--	u16			lid;
- 	u16			sm_lid;
-+	u32			lid;
- 	u8			lmc;
- 	u8			max_vl_num;
- 	u8			sm_sl;
-diff --git a/include/rdma/opa_addr.h b/include/rdma/opa_addr.h
-index eace28f..46d0567 100644
---- a/include/rdma/opa_addr.h
-+++ b/include/rdma/opa_addr.h
-@@ -50,7 +50,8 @@
- 
- #define	OPA_SPECIAL_OUI		(0x00066AULL)
- #define OPA_MAKE_ID(x)          (cpu_to_be64(OPA_SPECIAL_OUI << 40 | (x)))
--
-+#define OPA_TO_IB_UCAST_LID(x) (((x) >= be16_to_cpu(IB_MULTICAST_LID_BASE)) \
-+				? 0 : x)
- /**
-  * ib_is_opa_gid: Returns true if the top 24 bits of the gid
-  * contains the OPA_STL_OUI identifier. This identifies that
+* Patch 1 converts an OPA path record to an IB path record before
+  placing GIDs from the path record onto a CM reqeust message. If the
+  OPA path records were to contain exteded LIDs, the converted IB path
+  record would contain OPA GIDs in the SGID and DGID fields.
+* Patch 2 creates OPA path records when handling a connection request
+  if the request contained OPA GIDs.
+* Patch 3 'extracts' the OPA extended LIDs from the GID fields when
+  handling the connection request
+* Patch 4 changes the sgid parameter back to an IB GID when handing
+  a request thereby ensuring that underlying handers of the CM request
+  message such as IPoIB continue to work when it compares an incoming
+  GID with the GID assign to its interface.
+
+Please note that these patches apply on top of the previously submmitted
+patch set with subject: "[PATCH rdma-next 0/8] Add OPA extended LID support"
+
+Dasaratharaman Chandramouli (4):
+  IB/CM: Convert OPA Path record to IB during CM request
+  IB/CM: Create appropriate path records when handling CM request
+  IB/CM: Set appropriate slid and dlid when handling CM request
+  IB/CM: Change sgid to IB GID when handling CM request
+
+ drivers/infiniband/core/cm.c | 184 +++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 152 insertions(+), 32 deletions(-)
+
 -- 
 1.8.3.1
 
