@@ -1,8 +1,8 @@
 From: Dasaratharaman Chandramouli
         <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-next 1/8] IB/core: Convert ah_attr from OPA to IB when copying to user
-Date: Wed, 10 May 2017 19:22:49 -0400
-Message-ID: <1494458576-6816-2-git-send-email-dasaratharaman.chandramouli@intel.com>
+Subject: [PATCH rdma-next 8/8] IB/mad: Ensure DR MADs are correctly specified when using OPA devices
+Date: Wed, 10 May 2017 19:22:56 -0400
+Message-ID: <1494458576-6816-9-git-send-email-dasaratharaman.chandramouli@intel.com>
 References: <1494458576-6816-1-git-send-email-dasaratharaman.chandramouli@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1494458576-6816-1-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -10,161 +10,184 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-OPA address handle atttibutes that have 32 bit LIDs would have to
-be converted to IB address handle attribute with the LID field
-programmed in the GID before copying to user space.
+From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Pure DR MADs do not need OPA GIDs to be specified in the GRH since
+they do not rely on LID information.
+
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/ucm.c             |  2 +-
- drivers/infiniband/core/ucma.c            | 10 +++++---
- drivers/infiniband/core/uverbs_marshall.c | 41 +++++++++++++++++++++++++++----
- include/rdma/ib_marshall.h                |  6 +++--
- 4 files changed, 47 insertions(+), 12 deletions(-)
+ drivers/infiniband/core/mad.c | 107 +++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 95 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-index 80d0fca..f9e8958 100644
---- a/drivers/infiniband/core/ucm.c
-+++ b/drivers/infiniband/core/ucm.c
-@@ -618,7 +618,7 @@ static ssize_t ib_ucm_init_qp_attr(struct ib_ucm_file *file,
- 	if (result)
- 		goto out;
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 192ee3da..3fffd3f8 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -41,6 +41,7 @@
+ #include <linux/slab.h>
+ #include <linux/module.h>
+ #include <rdma/ib_cache.h>
++#include <rdma/opa_addr.h>
  
--	ib_copy_qp_attr_to_user(&resp, &qp_attr);
-+	ib_copy_qp_attr_to_user(ctx->cm_id->device, &resp, &qp_attr);
- 
- 	if (copy_to_user((void __user *)(unsigned long)cmd.response,
- 			 &resp, sizeof(resp)))
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 276f0ef..eb85b54 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -248,14 +248,15 @@ static void ucma_copy_conn_event(struct rdma_ucm_conn_param *dst,
- 	dst->qp_num = src->qp_num;
+ #include "mad_priv.h"
+ #include "mad_rmpp.h"
+@@ -732,6 +733,83 @@ static size_t mad_priv_dma_size(const struct ib_mad_private *mp)
+ 	return sizeof(struct ib_grh) + mp->mad_size;
  }
  
--static void ucma_copy_ud_event(struct rdma_ucm_ud_param *dst,
-+static void ucma_copy_ud_event(struct ib_device *device,
-+			       struct rdma_ucm_ud_param *dst,
- 			       struct rdma_ud_param *src)
- {
- 	if (src->private_data_len)
- 		memcpy(dst->private_data, src->private_data,
- 		       src->private_data_len);
- 	dst->private_data_len = src->private_data_len;
--	ib_copy_ah_attr_to_user(&dst->ah_attr, &src->ah_attr);
-+	ib_copy_ah_attr_to_user(device, &dst->ah_attr, &src->ah_attr);
- 	dst->qp_num = src->qp_num;
- 	dst->qkey = src->qkey;
- }
-@@ -335,7 +336,8 @@ static int ucma_event_handler(struct rdma_cm_id *cm_id,
- 	uevent->resp.event = event->event;
- 	uevent->resp.status = event->status;
- 	if (cm_id->qp_type == IB_QPT_UD)
--		ucma_copy_ud_event(&uevent->resp.param.ud, &event->param.ud);
-+		ucma_copy_ud_event(cm_id->device, &uevent->resp.param.ud,
-+				   &event->param.ud);
- 	else
- 		ucma_copy_conn_event(&uevent->resp.param.conn,
- 				     &event->param.conn);
-@@ -1157,7 +1159,7 @@ static ssize_t ucma_init_qp_attr(struct ucma_file *file,
- 	if (ret)
- 		goto out;
- 
--	ib_copy_qp_attr_to_user(&resp, &qp_attr);
-+	ib_copy_qp_attr_to_user(ctx->cm_id->device, &resp, &qp_attr);
- 	if (copy_to_user((void __user *)(unsigned long)cmd.response,
- 			 &resp, sizeof(resp)))
- 		ret = -EFAULT;
-diff --git a/drivers/infiniband/core/uverbs_marshall.c b/drivers/infiniband/core/uverbs_marshall.c
-index 8b9587f..f738d69 100644
---- a/drivers/infiniband/core/uverbs_marshall.c
-+++ b/drivers/infiniband/core/uverbs_marshall.c
-@@ -33,10 +33,40 @@
- #include <linux/export.h>
- #include <rdma/ib_marshall.h>
- 
--void ib_copy_ah_attr_to_user(struct ib_uverbs_ah_attr *dst,
--			     struct rdma_ah_attr *src)
-+static int rdma_ah_conv_opa_to_ib(struct ib_device *dev,
-+				  struct rdma_ah_attr *ib,
-+				  struct rdma_ah_attr *opa)
- {
-+	struct ib_port_attr port_attr;
++static int verify_mad_ah(struct ib_mad_agent_private *mad_agent_priv,
++			 struct ib_mad_send_wr_private *mad_send_wr)
++{
++	struct ib_device *ib_dev = mad_agent_priv->qp_info->port_priv->device;
++	u8 port = mad_agent_priv->qp_info->port_priv->port_num;
++	struct ib_smp *smp = mad_send_wr->send_buf.mad;
++	struct opa_smp *opa_smp = (struct opa_smp *)smp;
++	struct rdma_ah_attr attr;
++	struct ib_global_route *grh;
++	u32 opa_drslid = be32_to_cpu(opa_smp->route.dr.dr_slid);
++	u32 opa_drdlid = be32_to_cpu(opa_smp->route.dr.dr_dlid);
 +
-+	if (ib_query_port(dev, opa->port_num, &port_attr))
-+		return -EINVAL;
++	bool dr_slid_is_permissive = (OPA_LID_PERMISSIVE ==
++				      opa_smp->route.dr.dr_slid) ? true : false;
++	bool dr_dlid_is_permissive = (OPA_LID_PERMISSIVE ==
++				      opa_smp->route.dr.dr_dlid) ? true : false;
++	bool drslid_is_ib_ucast = (opa_drslid <
++				   be16_to_cpu(IB_MULTICAST_LID_BASE)) ?
++					true : false;
++	bool drdlid_is_ib_ucast = (opa_drdlid <
++				   be16_to_cpu(IB_MULTICAST_LID_BASE)) ?
++					true : false;
++	bool drslid_is_ext = !drslid_is_ib_ucast && !dr_slid_is_permissive;
++	bool drdlid_is_ext = !drdlid_is_ib_ucast && !dr_dlid_is_permissive;
++	bool grh_present = false;
++	union ib_gid sgid;
++	int ret = 0;
 +
-+	/* Do structure copy and the over-write fields */
-+	*ib = *opa;
++	ret = rdma_query_ah(mad_send_wr->send_buf.ah, &attr);
++	if (ret)
++		return ret;
++	grh_present = (rdma_ah_get_ah_flags(&attr) & IB_AH_GRH) ?
++			true : false;
++	if (grh_present) {
++		grh = rdma_ah_retrieve_grh(&attr);
++		ret = ib_query_gid(ib_dev, port, grh->sgid_index,
++				   &sgid, NULL);
++		if (ret)
++			return ret;
++	}
 +
-+	ib->type = RDMA_AH_ATTR_TYPE_IB;
-+	rdma_ah_set_grh(ib, NULL, 0, 0, 1, 0);
-+	rdma_ah_set_subnet_prefix(ib, cpu_to_be64(port_attr.subnet_prefix));
-+	rdma_ah_set_interface_id(ib, OPA_MAKE_ID(rdma_ah_get_dlid(opa)));
-+	return 0;
++	if (smp->class_version == OPA_SM_CLASS_VERSION) {
++		/*
++		 * Conditions when GRH info should not be specified
++		 * 1. both dr_slid and dr_dlid are permissve (Pure DR)
++		 * 2. both dr_slid and dr_dlid are less than 0xc000.
++		 *
++		 * Conditions when GRH info should be specified
++		 * 1. dr_dlid is not permissive and above 0xbfff
++		 * OR
++		 * 2. dr_slid is not permissive and above 0xbfff
++		 */
++		if (grh_present) {
++			if ((dr_slid_is_permissive &&
++			     dr_dlid_is_permissive) ||
++			     (drslid_is_ib_ucast && drdlid_is_ib_ucast))
++				if (ib_is_opa_gid(&grh->dgid) &&
++				    ib_is_opa_gid(&sgid))
++					return -EINVAL;
++			if (drslid_is_ext && !ib_is_opa_gid(&sgid))
++				return -EINVAL;
++			if (drdlid_is_ext &&
++			    !ib_is_opa_gid(&grh->dgid))
++				return -EINVAL;
++		} else { /* There is no GRH */
++			if (drslid_is_ext || drdlid_is_ext)
++				return -EINVAL;
++		}
++	} else {
++		if (grh_present)
++			if (ib_is_opa_gid(&grh->dgid) &&
++			    ib_is_opa_gid(&sgid))
++				return -EINVAL;
++	}
++	return ret;
 +}
 +
-+void ib_copy_ah_attr_to_user(struct ib_device *device,
-+			     struct ib_uverbs_ah_attr *dst,
-+			     struct rdma_ah_attr *ah_attr)
-+{
-+	struct rdma_ah_attr *src = ah_attr;
-+	struct rdma_ah_attr conv_ah;
-+
- 	memset(&dst->grh.reserved, 0, sizeof(dst->grh.reserved));
-+
-+	if ((ah_attr->type == RDMA_AH_ATTR_TYPE_OPA) &&
-+	    (rdma_ah_get_dlid(ah_attr) >=
-+	     be16_to_cpu(IB_MULTICAST_LID_BASE)) &&
-+	    (!rdma_ah_conv_opa_to_ib(device, &conv_ah, ah_attr)))
-+		src = &conv_ah;
-+
- 	dst->dlid		   = rdma_ah_get_dlid(src);
- 	dst->sl			   = rdma_ah_get_sl(src);
- 	dst->src_path_bits	   = rdma_ah_get_path_bits(src);
-@@ -57,7 +87,8 @@ void ib_copy_ah_attr_to_user(struct ib_uverbs_ah_attr *dst,
- }
- EXPORT_SYMBOL(ib_copy_ah_attr_to_user);
+ /*
+  * Return 0 if SMP is to be sent
+  * Return 1 if SMP was consumed locally (whether or not solicited)
+@@ -755,8 +833,12 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
+ 	size_t mad_size = port_mad_size(mad_agent_priv->qp_info->port_priv);
+ 	u16 out_mad_pkey_index = 0;
+ 	u16 drslid;
+-	bool opa = rdma_cap_opa_mad(mad_agent_priv->qp_info->port_priv->device,
+-				    mad_agent_priv->qp_info->port_priv->port_num);
++	bool opa_mad =
++		rdma_cap_opa_mad(mad_agent_priv->qp_info->port_priv->device,
++				 mad_agent_priv->qp_info->port_priv->port_num);
++	bool opa_ah =
++		rdma_cap_opa_ah(mad_agent_priv->qp_info->port_priv->device,
++				mad_agent_priv->qp_info->port_priv->port_num);
  
--void ib_copy_qp_attr_to_user(struct ib_uverbs_qp_attr *dst,
-+void ib_copy_qp_attr_to_user(struct ib_device *device,
-+			     struct ib_uverbs_qp_attr *dst,
- 			     struct ib_qp_attr *src)
- {
- 	dst->qp_state	        = src->qp_state;
-@@ -76,8 +107,8 @@ void ib_copy_qp_attr_to_user(struct ib_uverbs_qp_attr *dst,
- 	dst->max_recv_sge	= src->cap.max_recv_sge;
- 	dst->max_inline_data	= src->cap.max_inline_data;
+ 	if (rdma_cap_ib_switch(device) &&
+ 	    smp->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE)
+@@ -764,13 +846,21 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
+ 	else
+ 		port_num = mad_agent_priv->agent.port_num;
  
--	ib_copy_ah_attr_to_user(&dst->ah_attr, &src->ah_attr);
--	ib_copy_ah_attr_to_user(&dst->alt_ah_attr, &src->alt_ah_attr);
-+	ib_copy_ah_attr_to_user(device, &dst->ah_attr, &src->ah_attr);
-+	ib_copy_ah_attr_to_user(device, &dst->alt_ah_attr, &src->alt_ah_attr);
++	if (opa_mad && opa_ah) {
++		ret = verify_mad_ah(mad_agent_priv, mad_send_wr);
++		if (ret) {
++			dev_err(&device->dev,
++				"Error verifying MAD format\n");
++			goto out;
++		}
++	}
+ 	/*
+ 	 * Directed route handling starts if the initial LID routed part of
+ 	 * a request or the ending LID routed part of a response is empty.
+ 	 * If we are at the start of the LID routed part, don't update the
+ 	 * hop_ptr or hop_cnt.  See section 14.2.2, Vol 1 IB spec.
+ 	 */
+-	if (opa && smp->class_version == OPA_SM_CLASS_VERSION) {
++	if (opa_mad && smp->class_version == OPA_SM_CLASS_VERSION) {
+ 		u32 opa_drslid;
  
- 	dst->pkey_index		= src->pkey_index;
- 	dst->alt_pkey_index	= src->alt_pkey_index;
-diff --git a/include/rdma/ib_marshall.h b/include/rdma/ib_marshall.h
-index 68cef3b..8ebf84a 100644
---- a/include/rdma/ib_marshall.h
-+++ b/include/rdma/ib_marshall.h
-@@ -38,10 +38,12 @@
- #include <rdma/ib_user_verbs.h>
- #include <rdma/ib_user_sa.h>
+ 		if ((opa_get_smp_direction(opa_smp)
+@@ -784,13 +874,6 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
+ 			goto out;
+ 		}
+ 		opa_drslid = be32_to_cpu(opa_smp->route.dr.dr_slid);
+-		if (opa_drslid != be32_to_cpu(OPA_LID_PERMISSIVE) &&
+-		    opa_drslid & 0xffff0000) {
+-			ret = -EINVAL;
+-			dev_err(&device->dev, "OPA Invalid dr_slid 0x%x\n",
+-			       opa_drslid);
+-			goto out;
+-		}
+ 		drslid = (u16)(opa_drslid & 0x0000ffff);
  
--void ib_copy_qp_attr_to_user(struct ib_uverbs_qp_attr *dst,
-+void ib_copy_qp_attr_to_user(struct ib_device *device,
-+			     struct ib_uverbs_qp_attr *dst,
- 			     struct ib_qp_attr *src);
+ 		/* Check to post send on QP or process locally */
+@@ -833,7 +916,7 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
+ 		     send_wr->pkey_index,
+ 		     send_wr->port_num, &mad_wc);
  
--void ib_copy_ah_attr_to_user(struct ib_uverbs_ah_attr *dst,
-+void ib_copy_ah_attr_to_user(struct ib_device *device,
-+			     struct ib_uverbs_ah_attr *dst,
- 			     struct rdma_ah_attr *src);
+-	if (opa && smp->base_version == OPA_MGMT_BASE_VERSION) {
++	if (opa_mad && smp->base_version == OPA_MGMT_BASE_VERSION) {
+ 		mad_wc.byte_len = mad_send_wr->send_buf.hdr_len
+ 					+ mad_send_wr->send_buf.data_len
+ 					+ sizeof(struct ib_grh);
+@@ -890,7 +973,7 @@ static int handle_outgoing_dr_smp(struct ib_mad_agent_private *mad_agent_priv,
+ 	}
  
- void ib_copy_path_rec_to_user(struct ib_user_path_rec *dst,
+ 	local->mad_send_wr = mad_send_wr;
+-	if (opa) {
++	if (opa_mad) {
+ 		local->mad_send_wr->send_wr.pkey_index = out_mad_pkey_index;
+ 		local->return_wc_byte_len = mad_size;
+ 	}
 -- 
 1.8.3.1
 
