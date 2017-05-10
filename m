@@ -1,45 +1,57 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 14/14] RDMA/bnxt_re: Update the driver version
-Date: Wed, 10 May 2017 11:06:31 -0400
-Message-ID: <84d9a0ce-0e5c-fc50-237f-b7ad9d541324@intel.com>
-References: <1494413139-11883-1-git-send-email-selvin.xavier@broadcom.com>
- <1494413139-11883-15-git-send-email-selvin.xavier@broadcom.com>
+From: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: mlx5 endpoint driver problem
+Date: Wed, 10 May 2017 15:14:20 +0000
+Message-ID: <AM4PR0501MB27873B51842616191FEEFE3BC5EC0@AM4PR0501MB2787.eurprd05.prod.outlook.com>
+References: <f0b8881d-9aa3-8816-7ea6-daccc0e91262@synopsys.com>
+ <18d3cc2e-e235-6ae4-cd69-b5a11d607ee4@synopsys.com>
+ <AM4PR0501MB278757CE912385F3B3324CE7C5EC0@AM4PR0501MB2787.eurprd05.prod.outlook.com>
+ <a3f77d2c-086b-91bf-8dc8-e3d60dcce791@synopsys.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1494413139-11883-15-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <a3f77d2c-086b-91bf-8dc8-e3d60dcce791-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/10/2017 6:45 AM, Selvin Xavier wrote:
-> Update the driver version to the scheme used in the internal
-> development branches.
-
-See the feedback [1] we got from Greg KH on a similar patch.
-
-[1] https://patchwork.kernel.org/patch/7490321/
-
-> Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/bnxt_re/bnxt_re.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-> index 30bff05..9041c23b 100644
-> --- a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-> +++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-> @@ -40,7 +40,7 @@
->  #ifndef __BNXT_RE_H__
->  #define __BNXT_RE_H__
->  #define ROCE_DRV_MODULE_NAME		"bnxt_re"
-> -#define ROCE_DRV_MODULE_VERSION		"1.0.0"
-> +#define ROCE_DRV_MODULE_VERSION		"20.6.1.0u"
->
->  #define BNXT_RE_DESC	"Broadcom NetXtreme-C/E RoCE Driver"
->
->
+SG93IG1hbnkgQ1BVIGNvcmVzIGRvIHlvdSBoYXZlPw0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
+LS0tLQ0KRnJvbTogSm9hbyBQaW50byBbbWFpbHRvOkpvYW8uUGludG9Ac3lub3BzeXMuY29tXSAN
+ClNlbnQ6IFdlZG5lc2RheSwgTWF5IDEwLCAyMDE3IDEwOjAxIEFNDQpUbzogRWxpIENvaGVuIDxl
+bGlAbWVsbGFub3guY29tPjsgSm9hbyBQaW50byA8Sm9hby5QaW50b0BzeW5vcHN5cy5jb20+OyBs
+aW51eC1yZG1hQHZnZXIua2VybmVsLm9yZw0KU3ViamVjdDogUmU6IG1seDUgZW5kcG9pbnQgZHJp
+dmVyIHByb2JsZW0NCg0KDQpIaSBFbGksDQoNCsOAcyAzOjU2IFBNIGRlIDUvMTAvMjAxNywgRWxp
+IENvaGVuIGVzY3JldmV1Og0KPiBIaSBKb2FvLA0KPiANCj4gDQo+IA0KPiBTaW5jZSBtbHg1IHN1
+cHBvcnRlZCBkZXZpY2VzIGNhbiBkbyBETUEgd2l0aCA2NCBiaXQgYWRkcmVzc2VzIHdlIHN0YXJ0
+IGxpa2UgdGhpcy4gVGhpcyBmYWlscyBpbiB5b3VyIHN5c3RlbSBzaW5jZSBpdCBpcyBub3QgY2Fw
+YWJsZSBvZiBoYW5kbGluZyA2NCBiaXQgYWRkcmVzc2VzIHNvIHdlIGZhbGwgYmFjayB0byAzMiBi
+aXQgYWRkcmVzc2VzIHdoaWNoIHRoZW4gc3VjY2VlZC4gSG93ZXZlciB3aGF0IHlvdSBhcmUgZXhw
+ZXJpZW5jaW5nIGlzIHRoZSBkcml2ZXIgZXhlY3V0ZWQgYSBjb21tYW5kIGFuZCBmaXJtd2FyZSBz
+dXBwb3NlZGx5IGRvZXMgbm90IHJlc3BvbmQuIE1vc3QgbGlrZWx5IHRoZSBmaXJtd2FyZSByZXNw
+b25kZWQgYnV0IHRoZSBkcml2ZXIgY291bGQgbm90IHNlZSBpdCBkdWUgdG8gcHJvYmxlbXMgcmVs
+YXRlZCB0byBkbWEgYWRkcmVzc2VzIGluIHlvdXIgc3lzdGVtLg0KPiANCj4gDQo+IA0KPiBMb25n
+IHN0b3J5IHNob3J0LCB0aGVyZSBpcyBhIHByb2JsZW0gaW4geW91ciBzeXN0ZW0uIFRvIGludmVz
+dGlnYXRlIHRoaXMgZnVydGhlciB5b3UgbWlnaHQgbmVlZCBoZWF2eSB0b29scyBzdWNoIGFzIHBj
+aWUgYW5hbHl6ZXIuDQo+IA0KDQoNCj4gDQo+IA0KDQpJIGhhdmUgbmV3IGRhdGEgZm9yIHlvdS4g
+TXkgY29sbGVhZ3VlIGlzIHVzaW5nIGEgTWVsbGFub3ggTVQyNzgwMCBGYW1pbHkNCihDb25uZWN0
+WC01KSB3aXRoIEZpcm13YXJlIHZlcnNpb24gMTYuMTkuMTQ4IGFuZCBpdCBkb2VzIG5vdCBoYXZl
+IGhhbmdzLCBidXQgaXQgZmFpbHMgaW4gdGhlIENQVSBtYXNrOg0KDQptbHg1X2NvcmUgMDAwMDow
+MTowMC4wOiBlbmFibGluZyBkZXZpY2UgKDAwMDAgLT4gMDAwMikgbWx4NV9jb3JlIDAwMDA6MDE6
+MDAuMDogV2FybmluZzogY291bGRuJ3Qgc2V0IDY0LWJpdCBQQ0kgRE1BIG1hc2sgbWx4NV9jb3Jl
+IDAwMDA6MDE6MDAuMDogV2FybmluZzogY291bGRuJ3Qgc2V0IDY0LWJpdCBjb25zaXN0ZW50IFBD
+SSBETUEgbWFzayBtbHg1X2NvcmUgMDAwMDowMTowMC4wOiBmaXJtd2FyZSB2ZXJzaW9uOiAxNi4x
+OS4xNDggbWx4NV9jb3JlIDAwMDA6MDE6MDAuMDogUG9ydCBtb2R1bGUgZXZlbnQ6IG1vZHVsZSAw
+LCBDYWJsZSB1bnBsdWdnZWQgbWx4NV9jb3JlIDAwMDA6MDE6MDAuMDogbWx4NV9pcnFfc2V0X2Fm
+ZmluaXR5X2hpbnQ6NjI4OihwaWQgMSk6DQppcnFfc2V0X2FmZmluaXR5X2hpbnQgZmFpbGVkLGly
+cSAweDAwMzINCm1seDVfY29yZSAwMDAwOjAxOjAwLjA6IEZhaWxlZCB0byBhbGxvYyBhZmZpbml0
+eSBoaW50IGNwdW1hc2sgbWx4NV9jb3JlIDAwMDA6MDE6MDAuMDogbWx4NV9sb2FkX29uZSBmYWls
+ZWQgd2l0aCBlcnJvciBjb2RlIC0yMg0KbWx4NV9jb3JlOiBwcm9iZSBvZiAwMDAwOjAxOjAwLjAg
+ZmFpbGVkIHdpdGggZXJyb3IgLTIyDQoNCk1pbmUgaXMgYSBNZWxsYW5veCBNVDI4ODAwIEZhbWls
+eSAoQ29ubmVjdFgtNSkgd2l0aCBGaXJtd2FyZSBWZXJzaW9uIDE2LjE5LjIxMTAyLiBJIHRoaW5r
+IEkgaGF2ZSBzb21lIGZpcm13YXJlIHByb2JsZW0uDQoNClRoZSBhZmZpbml0eSBwcm9ibGVtIG1p
+Z2h0IGJlIGR1ZSB0byBteSBSb290IENvbXBsZXggZHJpdmVyIGRvZXMgbm90IHN1cHBvcnQgYWZm
+aW5pdHkgYXQgdGhlIG1vbWVudC4NCg0KVGhhbmtzLA0KSm9hbw0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
