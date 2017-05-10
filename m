@@ -1,43 +1,76 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: srp_daemon :    targets      by default
-Date: Wed, 10 May 2017 16:46:42 +0000
-Message-ID: <1494434801.2578.13.camel@sandisk.com>
-References: <1494349653.3752.4.camel@profitbricks.com>
-         <021b0a17-0552-6ee4-ec19-0e86ead527ef@sandisk.com>
-         <1050725096.6555338.1494351706650.JavaMail.zimbra@redhat.com>
-         <20170509180159.GK10073@mtr-leonro.local>
-         <1494423046.3739.8.camel@profitbricks.com>
-         <22803.7541.113159.214164@gargle.gargle.HOWL>
-         <1494432414.2578.9.camel@sandisk.com>
-         <22803.16933.196383.482890@gargle.gargle.HOWL>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: rdma-core in Dabian
+Date: Wed, 10 May 2017 11:50:06 -0500
+Message-ID: <004001d2c9ad$7a141f70$6e3c5e50$@opengridcomputing.com>
+References: <20170507064349.GM22833@mtr-leonro.local> <1494351789.3752.5.camel@profitbricks.com> <20170509180517.GA9715@obsidianresearch.com> <1494408947.3739.2.camel@profitbricks.com> <20170510155005.GB1007@obsidianresearch.com> <20170510160201.GD1839@mtr-leonro.local> <20170510163341.GA25041@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <22803.16933.196383.482890-4mDQ13Tdud8Jw5R7aSpS0dP8p4LwMBBS@public.gmane.org>
-Content-Language: en-US
-Content-ID: <4819313F9BF5AF45BD510AB2B8F4D2A4-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <20170510163341.GA25041-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "rf-PKu+Ek1N2UGzQB+pC5nmwQ@public.gmane.org" <rf-PKu+Ek1N2UGzQB+pC5nmwQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: 'Benjamin Drung' <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, 'RDMA mailing list' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Bart Van Assche' <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, 'Talat Batheesh' <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Noa Spanier' <noas-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-05-10 at 18:39 +0200, Roland Fehrenbacher wrote:
-> The new package is very new, sits in debian unstable and most likely
-> hasn't made it to Ubuntu 17.04.
+> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
+> 
+> On Wed, May 10, 2017 at 07:02:01PM +0300, Leon Romanovsky wrote:
+> 
+> > > I've been thinking we should patch the kernel to solve this problem
+> > > instead of using this ugly userspace solution.
+> >
+> > Can it be related to the fact that mlx5 core calls to
+> > request_module_nowait for mlx5_ib and chelsio doesn't do it?
+> 
+> Yeah, maybe we should update chelsio kernel drivers instead of using
+> these strange modprobe files...
+> 
+> Steve?
 
-Hello Roland,
+Under what criteria would cxgb4 want to request its Upper Layer Drivers (ULDs)
+to be loaded?  You wouldn't want to load the iwarp and iscsi drivers if they
+aren't going to be used, would you?
 
-Does that mean that most Debian users do not yet have that change in their
-/etc/srp_daemon.conf and when they upgrade and the packaged version of
-/etc/srp_daemon.conf gets installed that SRP login to remote systems will
-not occur anymore after a reboot? Since you wrote in a previous message
-that such changes are mentioned in the NEWS file: how many people do you
-think read that file before or after installing an upgrade?
 
-Thanks,
 
-Bart.=
+> 
+> > > Maybe Leon's team will try to tackle some of this? It is complicated,
+> > > the RH scripts do quite a bit stuff :\
+> >
+> > I would be happy to help, but I'm not sure that I understand what should
+> > be done :(
+> 
+> I'm not totally clear either, TBH. The overall topic is to move files
+> out of redhat/ and into the common directory. This requires removing
+> the redhat-isms and making sure the redhat solution is what we really
+> want upstream.
+> 
+> eg it seems rdma.cxgb[3]4.sys.modprobe is probably best done by patching
+> the kernel instead, not copying the modprobe files.
+> 
+> rdma.kernel-init does:
+>  - Load extra ULP modules
+>     * /etc/rdma/rdma.conf is not appropriate for Debian
+>     * 'TECH_PREVIEW' is a RedHat concept
+>  - Obsolete mttr/errata stuff. This is in the kernel now (delete it)
+>  - Yet another go at loading extra driver kernel modules (move to
+>    kernel)
+>  - Something about SRIOV (?)
+> 
+> For ULP modules, I think we are loading too many by hand, again, the
+> kernel really needs fixing to autoload our stuff on first use. So, I
+> suggest a quick pass over that idea to see how much kernel code can be
+> fixed up.
+> 
+> So the stuff to move to common user space code might just be the port
+> configuration and sriov? But someone needs to study this entire topic
+> with a broad view including the kernel.
+> 
+> Jason
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
