@@ -1,64 +1,68 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v3] net/mlx4_core: Use min3 to select number of MSI-X
- vectors
-Date: Thu, 11 May 2017 13:48:43 +0300
-Message-ID: <20170511104843.GF3616@mtr-leonro.local>
-References: <1494499258-17017-1-git-send-email-yuval.shaia@oracle.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="B0nZA57HJSoPbsHY"
+From: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 1/1] RDMA/iw_cxgb4: Avoid touch after free error in ARP failure handlers
+Date: Thu, 11 May 2017 17:13:54 +0530
+Message-ID: <20170511114354.25046-1-rajur@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1494499258-17017-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+The patch 761e19a504af: "RDMA/iw_cxgb4: Handle return value of
+c4iw_ofld_send() in abort_arp_failure()" from May 6, 2016, leads to the
+following static checker warning:
+	drivers/infiniband/hw/cxgb4/cm.c:575 abort_arp_failure()
+	warn: passing freed memory 'skb'
 
---B0nZA57HJSoPbsHY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Also fixes skb leak when l2t resolution fails
 
-On Thu, May 11, 2017 at 01:40:58PM +0300, Yuval Shaia wrote:
-> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
-> v0 -> v1:
-> 	* s/"min_t("/"min_t(int"
-> v1 -> v2:
-> 	* Use min3 instead of min_t twice
-> v2 -> v3:
-> 	* Change commit log header message to reflect the changes made in
-> 	  v2
-> ---
->  drivers/net/ethernet/mellanox/mlx4/main.c | 9 +++------
->  1 file changed, 3 insertions(+), 6 deletions(-)
->
+Fixes: 761e19a504afa55 (RDMA/iw_cxgb4: Handle return value of
+c4iw_ofld_send() in abort_arp_failure())
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb4/cm.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
---B0nZA57HJSoPbsHY
-Content-Type: application/pgp-signature; name="signature.asc"
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index b6fe45924c6e..06b110213e92 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -488,6 +488,7 @@ static int _put_ep_safe(struct c4iw_dev *dev, struct sk_buff *skb)
+ 
+ 	ep = *((struct c4iw_ep **)(skb->cb + 2 * sizeof(void *)));
+ 	release_ep_resources(ep);
++	kfree_skb(skb);
+ 	return 0;
+ }
+ 
+@@ -498,6 +499,7 @@ static int _put_pass_ep_safe(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	ep = *((struct c4iw_ep **)(skb->cb + 2 * sizeof(void *)));
+ 	c4iw_put_ep(&ep->parent_ep->com);
+ 	release_ep_resources(ep);
++	kfree_skb(skb);
+ 	return 0;
+ }
+ 
+@@ -569,11 +571,13 @@ static void abort_arp_failure(void *handle, struct sk_buff *skb)
+ 
+ 	pr_debug("%s rdev %p\n", __func__, rdev);
+ 	req->cmd = CPL_ABORT_NO_RST;
++	skb_get(skb);
+ 	ret = c4iw_ofld_send(rdev, skb);
+ 	if (ret) {
+ 		__state_set(&ep->com, DEAD);
+ 		queue_arp_failure_cpl(ep, skb, FAKE_CPL_PUT_EP_SAFE);
+-	}
++	} else
++		kfree_skb(skb);
+ }
+ 
+ static int send_flowc(struct c4iw_ep *ep)
+-- 
+2.12.0
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkUQYsACgkQ5GN7iDZy
-WKfh1g/+LvrbCfgEwEuvAEHjM6ENHoXhfksOpgF/NQfbdbUXPmlbvTmlnH7yQDws
-wkMeHjADdzE3WnXZSa8pZZH61iDRRTooioM6MKDgAhU1R5COaRkh5vdOLyJm/zxy
-BZCBZP1xKhryB+FigkIO3uWM8EWZDlFDZp8oA3mPDgX6iJ5jUk5F2V4Gb4nGeiES
-NOvN5Zoenu2vcf6cvz0Z6JG5HMTW7phm3dvvYMsNsPqtHGfdJnQLGsaIpjyiXmdg
-XGzCoaUCwpntyWR3RJkNxLOCqDuEy3fOM8OaJDx/2SIqRHX+TCMHFfy3GGu/7TZq
-70/oRtEpZo/6acY04JfuTsE2EH61P9jeisV4ZcuIPpIVRsBfB4Ph5G3E4+C4iCrW
-hYbvfCxMut/7TdZHHqlLiqQG+DXCpraRGbxW6V+n4H5oRgc6u1rpMXX1QvFl+ZZf
-WiGXAQmTwsD4LPvuk2YqmsXnRz5qkDfqAW6i5KKfHajdHibUWvWC5vBhOQUssA8N
-mjr1OdgIZ3C8ipISminp2cz0rAUl8aGjGnmxORdpsNgCT6Q7ypxBXDw0E3kqleKL
-5GxaY8eLJXVepZRuKUVJy4YBY7ZwtU1A0EROhrjXjFjJXDynwAEsLZmYbTxGvaCw
-335tT0PlVBfezhSKK+ZASt7EUMuaaU/GDbjHhoqyNnzBgg2dVlg=
-=o1Sy
------END PGP SIGNATURE-----
-
---B0nZA57HJSoPbsHY--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
