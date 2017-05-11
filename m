@@ -1,89 +1,144 @@
-From: "Hiatt, Don" <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH rdma-next 7/8] IB/core: Change wc.slid from 16 to 32 bits
-Date: Thu, 11 May 2017 16:34:02 +0000
-Message-ID: <97654A90DB924C44A3AE6C902A3FEAC118B355C2@ORSMSX106.amr.corp.intel.com>
-References: <1494458576-6816-1-git-send-email-dasaratharaman.chandramouli@intel.com>
- <1494458576-6816-8-git-send-email-dasaratharaman.chandramouli@intel.com>
- <830cdb79-3274-4073-126a-a328e49254c6@dev.mellanox.co.il>
+From: Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: Re: net/smc and the RDMA core
+Date: Thu, 11 May 2017 18:50:04 +0200
+Message-ID: <869d9fb6-0d83-5f57-f8e4-5c1ee7477b94@linux.vnet.ibm.com>
+References: <20170501163311.GA22209@lst.de>
+ <d9214af6-1c6f-9f95-fc00-3e4a316b4f81@linux.vnet.ibm.com>
+ <1493750358.2552.13.camel@sandisk.com>
+ <1b79048f-4495-3840-e7a6-d4fa5a8dfb57@grimberg.me>
+ <20170504084825.GA5399@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <830cdb79-3274-4073-126a-a328e49254c6-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20170504084825.GA5399-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Chandramouli, Dasaratharaman" <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gNS8xMC8yMDE3IDc6MjIgUE0sIERhc2FyYXRoYXJhbWFuIENoYW5kcmFtb3VsaSB3cm90ZToN
-Cj4gRnJvbTogRG9uIEhpYXR0IDxkb24uaGlhdHRAaW50ZWwuY29tPg0KPiANCj4gc2xpZCBmaWVs
-ZCBpbiBzdHJ1Y3QgaWJfd2MgaXMgaW5jcmVhc2VkIHRvIDMyIGJpdHMuDQo+IFRoaXMgZW5hYmxl
-cyBjb3JlIGNvbXBvbmVudHMgdG8gdXNlIGxhcmdlciBMSURzIGlmIG5lZWRlZC4NCj4gVGhlIHVz
-ZXIgQUJJIGlzIHVuY2hhbmdlZCBhbmQgcmV0dXJuIDE2IGJpdCB2YWx1ZXMgd2hlbiBxdWVyaWVk
-Lg0KPiANCj4gUmV2aWV3ZWQtYnk6IElyYSBXZWlueSA8aXJhLndlaW55QGludGVsLmNvbT4NCj4g
-U2lnbmVkLW9mZi1ieTogRGFzYXJhdGhhcmFtYW4gQ2hhbmRyYW1vdWxpIA0KPiA8ZGFzYXJhdGhh
-cmFtYW4uY2hhbmRyYW1vdWxpQGludGVsLmNvbT4NCj4gU2lnbmVkLW9mZi1ieTogRG9uIEhpYXR0
-IDxkb24uaGlhdHRAaW50ZWwuY29tPg0KPiAtLS0NCj4gIGRyaXZlcnMvaW5maW5pYmFuZC9jb3Jl
-L2NtLmMgICAgICAgICAgICB8ICA0ICsrLS0NCj4gIGRyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3Vz
-ZXJfbWFkLmMgICAgICB8ICAyICstDQo+ICBkcml2ZXJzL2luZmluaWJhbmQvY29yZS91dmVyYnNf
-Y21kLmMgICAgfCAxMSArKysrKysrKy0tLQ0KPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L2hmaTEv
-bWFkLmMgICAgICAgIHwgIDIgKy0NCj4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg0L21hZC5j
-ICAgICAgICB8ICA2ICsrKy0tLQ0KPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDUvbWFkLmMg
-ICAgICAgIHwgIDIgKy0NCj4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9tdGhjYS9tdGhjYV9jbWQu
-YyB8ICA0ICsrLS0gIA0KPiBkcml2ZXJzL2luZmluaWJhbmQvaHcvbXRoY2EvbXRoY2FfbWFkLmMg
-fCAgMiArLQ0KPiAgZHJpdmVycy9pbmZpbmliYW5kL3N3L3JkbWF2dC9jcS5jICAgICAgIHwgIDIg
-Ky0NCj4gIGluY2x1ZGUvcmRtYS9pYl92ZXJicy5oICAgICAgICAgICAgICAgICB8ICAyICstDQo+
-ICAxMCBmaWxlcyBjaGFuZ2VkLCAyMSBpbnNlcnRpb25zKCspLCAxNiBkZWxldGlvbnMoLSkNCj4g
-DQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9jbS5jIA0KPiBiL2RyaXZl
-cnMvaW5maW5pYmFuZC9jb3JlL2NtLmMgaW5kZXggMTg0NDc3MC4uNmIzYjBiZSAxMDA2NDQNCj4g
-LS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvY20uYw0KPiArKysgYi9kcml2ZXJzL2luZmlu
-aWJhbmQvY29yZS9jbS5jDQo+IEBAIC0xNzAzLDcgKzE3MDMsNyBAQCBzdGF0aWMgdm9pZCBjbV9w
-cm9jZXNzX3JvdXRlZF9yZXEoc3RydWN0IA0KPiBjbV9yZXFfbXNnICpyZXFfbXNnLCBzdHJ1Y3Qg
-aWJfd2MgKndjKSAgew0KPiAgCWlmICghY21fcmVxX2dldF9wcmltYXJ5X3N1Ym5ldF9sb2NhbChy
-ZXFfbXNnKSkgew0KPiAgCQlpZiAocmVxX21zZy0+cHJpbWFyeV9sb2NhbF9saWQgPT0gSUJfTElE
-X1BFUk1JU1NJVkUpIHsNCj4gLQkJCXJlcV9tc2ctPnByaW1hcnlfbG9jYWxfbGlkID0gY3B1X3Rv
-X2JlMTYod2MtPnNsaWQpOw0KPiArCQkJcmVxX21zZy0+cHJpbWFyeV9sb2NhbF9saWQgPSBjcHVf
-dG9fYmUxNigodTE2KXdjLT5zbGlkKTsNCj4gIAkJCWNtX3JlcV9zZXRfcHJpbWFyeV9zbChyZXFf
-bXNnLCB3Yy0+c2wpOw0KPiAgCQl9DQo+ICANCj4gQEAgLTE3MTMsNyArMTcxMyw3IEBAIHN0YXRp
-YyB2b2lkIGNtX3Byb2Nlc3Nfcm91dGVkX3JlcShzdHJ1Y3QgDQo+IGNtX3JlcV9tc2cgKnJlcV9t
-c2csIHN0cnVjdCBpYl93YyAqd2MpDQo+ICANCj4gIAlpZiAoIWNtX3JlcV9nZXRfYWx0X3N1Ym5l
-dF9sb2NhbChyZXFfbXNnKSkgew0KPiAgCQlpZiAocmVxX21zZy0+YWx0X2xvY2FsX2xpZCA9PSBJ
-Ql9MSURfUEVSTUlTU0lWRSkgew0KPiAtCQkJcmVxX21zZy0+YWx0X2xvY2FsX2xpZCA9IGNwdV90
-b19iZTE2KHdjLT5zbGlkKTsNCj4gKwkJCXJlcV9tc2ctPmFsdF9sb2NhbF9saWQgPSBjcHVfdG9f
-YmUxNigodTE2KXdjLT5zbGlkKTsNCj4gIAkJCWNtX3JlcV9zZXRfYWx0X3NsKHJlcV9tc2csIHdj
-LT5zbCk7DQo+ICAJCX0NCj4gIA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL2Nv
-cmUvdXNlcl9tYWQuYyANCj4gYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS91c2VyX21hZC5jDQo+
-IGluZGV4IDIwMDQyMmQuLjgyNzJkNjUgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFu
-ZC9jb3JlL3VzZXJfbWFkLmMNCj4gKysrIGIvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdXNlcl9t
-YWQuYw0KPiBAQCAtMjI5LDcgKzIyOSw3IEBAIHN0YXRpYyB2b2lkIHJlY3ZfaGFuZGxlcihzdHJ1
-Y3QgaWJfbWFkX2FnZW50ICphZ2VudCwNCj4gIAlwYWNrZXQtPm1hZC5oZHIuc3RhdHVzCSAgID0g
-MDsNCj4gIAlwYWNrZXQtPm1hZC5oZHIubGVuZ3RoCSAgID0gaGRyX3NpemUoZmlsZSkgKyBtYWRf
-cmVjdl93Yy0+bWFkX2xlbjsNCj4gIAlwYWNrZXQtPm1hZC5oZHIucXBuCSAgID0gY3B1X3RvX2Jl
-MzIobWFkX3JlY3Zfd2MtPndjLT5zcmNfcXApOw0KPiAtCXBhY2tldC0+bWFkLmhkci5saWQJICAg
-PSBjcHVfdG9fYmUxNihtYWRfcmVjdl93Yy0+d2MtPnNsaWQpOw0KPiArCXBhY2tldC0+bWFkLmhk
-ci5saWQJICAgPSBjcHVfdG9fYmUxNigodTE2KW1hZF9yZWN2X3djLT53Yy0+c2xpZCk7DQo+ICAJ
-cGFja2V0LT5tYWQuaGRyLnNsCSAgID0gbWFkX3JlY3Zfd2MtPndjLT5zbDsNCj4gIAlwYWNrZXQt
-Pm1hZC5oZHIucGF0aF9iaXRzICA9IG1hZF9yZWN2X3djLT53Yy0+ZGxpZF9wYXRoX2JpdHM7DQo+
-ICAJcGFja2V0LT5tYWQuaGRyLnBrZXlfaW5kZXggPSBtYWRfcmVjdl93Yy0+d2MtPnBrZXlfaW5k
-ZXg7IGRpZmYgLS1naXQgDQo+IGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdXZlcmJzX2NtZC5j
-IA0KPiBiL2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3V2ZXJic19jbWQuYw0KPiBpbmRleCA2OTY0
-YzA1Li5iMDgwNDVmIDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvY29yZS91dmVy
-YnNfY21kLmMNCj4gKysrIGIvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdXZlcmJzX2NtZC5jDQo+
-IEBAIC0xMTkwLDcgKzExOTAsOCBAQCBzc2l6ZV90IGliX3V2ZXJic19yZXNpemVfY3Eoc3RydWN0
-IGliX3V2ZXJic19maWxlICpmaWxlLA0KPiAgCXJldHVybiByZXQgPyByZXQgOiBpbl9sZW47DQo+
-ICB9DQo+ICANCj4gLXN0YXRpYyBpbnQgY29weV93Y190b191c2VyKHZvaWQgX191c2VyICpkZXN0
-LCBzdHJ1Y3QgaWJfd2MgKndjKQ0KPiArc3RhdGljIGludCBjb3B5X3djX3RvX3VzZXIoc3RydWN0
-IGliX2RldmljZSAqaWJfZGV2LCB2b2lkIF9fdXNlciAqZGVzdCwNCj4gKwkJCSAgIHN0cnVjdCBp
-Yl93YyAqd2MpDQo+ICB7DQo+ICAJc3RydWN0IGliX3V2ZXJic193YyB0bXA7DQo+ICANCj4gQEAg
-LTEyMDQsNyArMTIwNSwxMSBAQCBzdGF0aWMgaW50IGNvcHlfd2NfdG9fdXNlcih2b2lkIF9fdXNl
-ciAqZGVzdCwgc3RydWN0IGliX3djICp3YykNCj4gIAl0bXAuc3JjX3FwCQk9IHdjLT5zcmNfcXA7
-DQo+ICAJdG1wLndjX2ZsYWdzCQk9IHdjLT53Y19mbGFnczsNCj4gIAl0bXAucGtleV9pbmRleAkJ
-PSB3Yy0+cGtleV9pbmRleDsNCj4gLQl0bXAuc2xpZAkJPSB3Yy0+c2xpZDsNCj4gKwlpZiAocmRt
-YV9jYXBfb3BhX2FoKGliX2Rldiwgd2MtPnBvcnRfbnVtKSkNCj4gKwkJdG1wLnNsaWQgID0gT1BB
-X1RPX0lCX1VDQVNUX0xJRCh3Yy0+c2xpZCk7DQo+ICsJZWxzZQ0KPiArCQl0bXAuc2xpZCAgPSAo
-dTE2KXdjLT5zbGlkOw0KPiArCXRtcC5zbGlkCQk9ICh1MTYpd2MtPnNsaWQ7DQoNCj4+SXMgb25l
-IGxpbmUgdG9vIG1hbnkgYWRkZWQgaGVyZSA/DQo+Pg0KPj4tLSBIYWwNCg0KWWVzIHRoZXJlIGlz
-LiBUaGFua3MgZm9yIGNhdGNoaW5nIHRoaXMhDQoNCmRvbg0KDQo=
+
+
+On 05/04/2017 10:48 AM, hch-jcswGhMUV9g@public.gmane.org wrote:
+> On Thu, May 04, 2017 at 11:43:50AM +0300, Sagi Grimberg wrote:
+>> I would also suggest that you stop exposing the DMA MR for remote
+>> access (at least by default) and use a proper reg_mr operations with a
+>> limited lifetime on a properly sized buffer.
+> 
+> Yes, exposing the default DMA MR is a _major_ security risk.  As soon
+> as SMC is enabled this will mean a remote system has full read/write
+> access to the local systems memory.
+> 
+> There іs a reason why I removed the ib_get_dma_mr function and replaced
+> it with the IB_PD_UNSAFE_GLOBAL_RKEY key that has _UNSAFE_ in the name
+> and a very long comment explaining why, and I'm really disappointed that
+> we got a driver merged that instead of asking on the relevant list on
+> why a change unexpertong a function it needed happened and instead
+> tried the hard way to keep a security vulnerarbility alive.
+> 
+
+Please consider the following patch to make users aware of the
+security implications through existing mechanisms.
+
+Work on proper usage of reg_mr operations is underway, respective
+patches will follow as soon as possible.
+
+---
+ net/smc/smc_core.c | 16 +++-------------
+ net/smc/smc_ib.c   | 21 ++-------------------
+ net/smc/smc_ib.h   |  2 --
+ 3 files changed, 5 insertions(+), 34 deletions(-)
+
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index d52a2ee..6ec3d9a 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -613,19 +613,8 @@ int smc_rmb_create(struct smc_sock *smc)
+ 			rmb_desc = NULL;
+ 			continue; /* if mapping failed, try smaller one */
+ 		}
+-		rc = smc_ib_get_memory_region(lgr->lnk[SMC_SINGLE_LINK].roce_pd,
+-					      IB_ACCESS_REMOTE_WRITE |
+-					      IB_ACCESS_LOCAL_WRITE,
+-					     &rmb_desc->mr_rx[SMC_SINGLE_LINK]);
+-		if (rc) {
+-			smc_ib_buf_unmap(lgr->lnk[SMC_SINGLE_LINK].smcibdev,
+-					 tmp_bufsize, rmb_desc,
+-					 DMA_FROM_DEVICE);
+-			kfree(rmb_desc->cpu_addr);
+-			kfree(rmb_desc);
+-			rmb_desc = NULL;
+-			continue;
+-		}
++		rmb_desc->mr_rx[SMC_SINGLE_LINK] =
++			lgr->lnk[SMC_SINGLE_LINK].roce_pd->__internal_mr;
+ 		rmb_desc->used = 1;
+ 		write_lock_bh(&lgr->rmbs_lock);
+ 		list_add(&rmb_desc->list,
+@@ -668,6 +657,7 @@ int smc_rmb_rtoken_handling(struct smc_connection *conn,
+ 
+ 	for (i = 0; i < SMC_RMBS_PER_LGR_MAX; i++) {
+ 		if ((lgr->rtokens[i][SMC_SINGLE_LINK].rkey == rkey) &&
++		    (lgr->rtokens[i][SMC_SINGLE_LINK].dma_addr == dma_addr) &&
+ 		    test_bit(i, lgr->rtokens_used_mask)) {
+ 			conn->rtoken_idx = i;
+ 			return 0;
+diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c
+index 3d0d91c..6af9ebf 100644
+--- a/net/smc/smc_ib.c
++++ b/net/smc/smc_ib.c
+@@ -37,24 +37,6 @@ u8 local_systemid[SMC_SYSTEMID_LEN] = SMC_LOCAL_SYSTEMID_RESET;	/* unique system
+ 								 * identifier
+ 								 */
+ 
+-int smc_ib_get_memory_region(struct ib_pd *pd, int access_flags,
+-			     struct ib_mr **mr)
+-{
+-	int rc;
+-
+-	if (*mr)
+-		return 0; /* already done */
+-
+-	/* obtain unique key -
+-	 * next invocation of get_dma_mr returns a different key!
+-	 */
+-	*mr = pd->device->get_dma_mr(pd, access_flags);
+-	rc = PTR_ERR_OR_ZERO(*mr);
+-	if (IS_ERR(*mr))
+-		*mr = NULL;
+-	return rc;
+-}
+-
+ static int smc_ib_modify_qp_init(struct smc_link *lnk)
+ {
+ 	struct ib_qp_attr qp_attr;
+@@ -211,7 +193,8 @@ int smc_ib_create_protection_domain(struct smc_link *lnk)
+ {
+ 	int rc;
+ 
+-	lnk->roce_pd = ib_alloc_pd(lnk->smcibdev->ibdev, 0);
++	lnk->roce_pd = ib_alloc_pd(lnk->smcibdev->ibdev,
++				   IB_PD_UNSAFE_GLOBAL_RKEY);
+ 	rc = PTR_ERR_OR_ZERO(lnk->roce_pd);
+ 	if (IS_ERR(lnk->roce_pd))
+ 		lnk->roce_pd = NULL;
+diff --git a/net/smc/smc_ib.h b/net/smc/smc_ib.h
+index e5bb3c9..55c529b 100644
+--- a/net/smc/smc_ib.h
++++ b/net/smc/smc_ib.h
+@@ -60,8 +60,6 @@ void smc_ib_dealloc_protection_domain(struct smc_link *lnk);
+ int smc_ib_create_protection_domain(struct smc_link *lnk);
+ void smc_ib_destroy_queue_pair(struct smc_link *lnk);
+ int smc_ib_create_queue_pair(struct smc_link *lnk);
+-int smc_ib_get_memory_region(struct ib_pd *pd, int access_flags,
+-			     struct ib_mr **mr);
+ int smc_ib_ready_link(struct smc_link *lnk);
+ int smc_ib_modify_qp_rts(struct smc_link *lnk);
+ int smc_ib_modify_qp_reset(struct smc_link *lnk);
+-- 
+
+Do you think it is worth the effort for this intermediate patch?
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
