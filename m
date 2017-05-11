@@ -1,114 +1,37 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 14/14] RDMA/bnxt_re: Update the driver version
-Date: Thu, 11 May 2017 11:27:00 +0300
-Message-ID: <20170511082700.GA3616@mtr-leonro.local>
-References: <1494413139-11883-1-git-send-email-selvin.xavier@broadcom.com>
- <1494413139-11883-15-git-send-email-selvin.xavier@broadcom.com>
- <84d9a0ce-0e5c-fc50-237f-b7ad9d541324@intel.com>
- <20170510155430.GC1839@mtr-leonro.local>
- <CA+sbYW2ObMdDOdhPL9GMe5YNk7P2MsG5q=f+Ke5e4MU6A=WV6w@mail.gmail.com>
+From: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH] net/mlx4_core: Use min_t instead of if for consistency
+Date: Thu, 11 May 2017 10:28:02 +0200
+Message-ID: <f0666f53-2b82-2b15-bf9c-dc84db379a7b@suse.de>
+References: <1494490852-5567-1-git-send-email-yuval.shaia@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="BOKacYhQ+x31HxR3"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CA+sbYW2ObMdDOdhPL9GMe5YNk7P2MsG5q=f+Ke5e4MU6A=WV6w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1494490852-5567-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 05/11/2017 10:20 AM, Yuval Shaia wrote:
+> +		nreq = min_t(nreq, MAX_MSIX);
 
---BOKacYhQ+x31HxR3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Ahm...
+include/linux/kernel.h +802
+#define min_t(type, x, y)				\
+	__min(type, type,				\
+	      __UNIQUE_ID(min1_), __UNIQUE_ID(min2_),	\
+	      x, y)
 
-On Thu, May 11, 2017 at 10:52:31AM +0530, Selvin Xavier wrote:
-> Thanks Leon and Dennis for your comments.
->
-> The main intention of this patch is to easily map the upstream driver
-> to the level of supported features in the
-> internal code base. I understand the point you and others are
-> mentioning while porting to older kernels or during
-> the bug fixes/feature additions from other contributors. But, can we
-> consider it as just a number to enable vendors
-> to track their base branch?
+Did you compile this patch?
 
-It is up to you, just wanted to warn you that in long run it won't give
-you any information. We are in similar situation and decided to change
-versions in really rare situations, like addition of new driver. In other
-cases, it is useless.
-
->
-> If you still feel that this patch doesn't make sense, please let me
-> know. I will post a v2 after dropping the change.
->
-> Thanks,
-> Selvin
->
-> On Wed, May 10, 2017 at 9:24 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> > On Wed, May 10, 2017 at 11:06:31AM -0400, Dennis Dalessandro wrote:
-> >> On 5/10/2017 6:45 AM, Selvin Xavier wrote:
-> >> > Update the driver version to the scheme used in the internal
-> >> > development branches.
-> >>
-> >> See the feedback [1] we got from Greg KH on a similar patch.
-> >>
-> >> [1] https://patchwork.kernel.org/patch/7490321/
-> >
-> > Yeah, the things go worse when this driver ported to old kernel. This
-> > numbers are entirely useless.
-> >
-> >>
-> >> > Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> >> > ---
-> >> >  drivers/infiniband/hw/bnxt_re/bnxt_re.h | 2 +-
-> >> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >> >
-> >> > diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-> >> > index 30bff05..9041c23b 100644
-> >> > --- a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-> >> > +++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-> >> > @@ -40,7 +40,7 @@
-> >> >  #ifndef __BNXT_RE_H__
-> >> >  #define __BNXT_RE_H__
-> >> >  #define ROCE_DRV_MODULE_NAME               "bnxt_re"
-> >> > -#define ROCE_DRV_MODULE_VERSION            "1.0.0"
-> >> > +#define ROCE_DRV_MODULE_VERSION            "20.6.1.0u"
-> >> >
-> >> >  #define BNXT_RE_DESC       "Broadcom NetXtreme-C/E RoCE Driver"
-> >> >
-> >> >
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> >> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---BOKacYhQ+x31HxR3
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkUIFQACgkQ5GN7iDZy
-WKfV4xAAqMbXDrr7E2Ce2mo01oeB0qTRvoYiQtOkzpEoGiQXdpRz5WalKcqeIgJ5
-SZU8O+DmMOMZnO3WdU3l73FqliKzPS9rEfiH1pWzwH5eFDSUqUFBnmKwNw4ynRqJ
-xzFNw0ay7s1iNHanOx9/2R1XS/ULAcGO9Vmh9UV0+KbL3znTFfppZwZ8DPrxmd9A
-6wpwXKrBIgF0TxgRH7xJxTbFnKwVkWzs14DJ/wRRqu13cKUogzTUDgPuBIZeGvBR
-n8Nj9/siWxTr8VpmAYSY83OwXGjnRoElZAyQ9mcWRBgMtFqpxH+WxS0ukSMC8kAg
-Mcgt30TocDDwkqJjxmN/gbBN0ptS4zBG4DUCVV8Y4eYHbWpH2lHOrlh1uR3zSTOU
-lIfbx6v84G7qQpzXZ2F7GdoE/wVnW9KjV9wR3Wn4GKUNPhDZ/92DC98nf/GMpsVn
-zlOn6BOzc1MdMq6A/0Qvjnn+9ujS3XL75wxFvy1Msb61KbHeSGeKMeO0+TMd4Pwu
-OOLMfh/gaQojNaMyEpJr+AO6hKzhrLYh0OSVfeJyXLTSN3S2HOF6tRXSGwq2XmKD
-wJyxIQYA13+TcQ+6v3jxmWQSKJqTN7QySfF8u+bUFA6Oe+BVZeQVV94GTp0BjQsw
-Tkdg1qu9WuqUsqmh/LGKsr1Wp9QpoCuJSjovlBS2G0v29s1RdXg=
-=s8++
------END PGP SIGNATURE-----
-
---BOKacYhQ+x31HxR3--
+-- 
+Johannes Thumshirn                                          Storage
+jthumshirn-l3A5Bk7waGM@public.gmane.org                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
+GF: Felix Imendörffer, Jane Smithard, Graham Norton
+HRB 21284 (AG Nürnberg)
+Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
