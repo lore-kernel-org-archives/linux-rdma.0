@@ -1,84 +1,72 @@
-From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] i40iw: Fix device initialization error path
-Date: Wed, 10 May 2017 23:32:14 -0500
-Message-ID: <20170511043214.51096-1-henry.orosco@intel.com>
+From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next 14/14] RDMA/bnxt_re: Update the driver version
+Date: Thu, 11 May 2017 10:52:31 +0530
+Message-ID: <CA+sbYW2ObMdDOdhPL9GMe5YNk7P2MsG5q=f+Ke5e4MU6A=WV6w@mail.gmail.com>
+References: <1494413139-11883-1-git-send-email-selvin.xavier@broadcom.com>
+ <1494413139-11883-15-git-send-email-selvin.xavier@broadcom.com>
+ <84d9a0ce-0e5c-fc50-237f-b7ad9d541324@intel.com> <20170510155430.GC1839@mtr-leonro.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170510155430.GC1839-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Thanks Leon and Dennis for your comments.
 
-Some error paths in i40iw_initialize_dev are doing
-additional and unnecessary work before exiting.
-Correctly free resources allocated prior to error
-and return with correct status code.
+The main intention of this patch is to easily map the upstream driver
+to the level of supported features in the
+internal code base. I understand the point you and others are
+mentioning while porting to older kernels or during
+the bug fixes/feature additions from other contributors. But, can we
+consider it as just a number to enable vendors
+to track their base branch?
 
-Signed-off-by: Mustafa Ismail <mustafa.ismail@intelcom>
-Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/i40iw/i40iw_main.c | 20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+If you still feel that this patch doesn't make sense, please let me
+know. I will post a v2 after dropping the change.
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
-index 2728af3..a3f18a2 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_main.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
-@@ -1319,13 +1319,13 @@ static enum i40iw_status_code i40iw_initialize_dev(struct i40iw_device *iwdev,
- 	status = i40iw_obj_aligned_mem(iwdev, &mem, I40IW_QUERY_FPM_BUF_SIZE,
- 				       I40IW_FPM_QUERY_BUF_ALIGNMENT_MASK);
- 	if (status)
--		goto exit;
-+		goto error;
- 	info.fpm_query_buf_pa = mem.pa;
- 	info.fpm_query_buf = mem.va;
- 	status = i40iw_obj_aligned_mem(iwdev, &mem, I40IW_COMMIT_FPM_BUF_SIZE,
- 				       I40IW_FPM_COMMIT_BUF_ALIGNMENT_MASK);
- 	if (status)
--		goto exit;
-+		goto error;
- 	info.fpm_commit_buf_pa = mem.pa;
- 	info.fpm_commit_buf = mem.va;
- 	info.hmc_fn_id = ldev->fid;
-@@ -1347,11 +1347,9 @@ static enum i40iw_status_code i40iw_initialize_dev(struct i40iw_device *iwdev,
- 	info.exception_lan_queue = 1;
- 	info.vchnl_send = i40iw_virtchnl_send;
- 	status = i40iw_device_init(&iwdev->sc_dev, &info);
--exit:
--	if (status) {
--		kfree(iwdev->hmc_info_mem);
--		iwdev->hmc_info_mem = NULL;
--	}
-+
-+	if (status)
-+		goto error;
- 	memset(&vsi_info, 0, sizeof(vsi_info));
- 	vsi_info.dev = &iwdev->sc_dev;
- 	vsi_info.back_vsi = (void *)iwdev;
-@@ -1362,11 +1360,19 @@ static enum i40iw_status_code i40iw_initialize_dev(struct i40iw_device *iwdev,
- 		memset(&stats_info, 0, sizeof(stats_info));
- 		stats_info.fcn_id = ldev->fid;
- 		stats_info.pestat = kzalloc(sizeof(*stats_info.pestat), GFP_KERNEL);
-+		if (!stats_info.pestat) {
-+			status = I40IW_ERR_NO_MEMORY;
-+			goto error;
-+		}
- 		stats_info.stats_initialize = true;
- 		if (stats_info.pestat)
- 			i40iw_vsi_stats_init(&iwdev->vsi, &stats_info);
- 	}
- 	return status;
-+error:
-+	kfree(iwdev->hmc_info_mem);
-+	iwdev->hmc_info_mem = NULL;
-+	return status;
- }
- 
- /**
--- 
-2.8.3
+Thanks,
+Selvin
 
+On Wed, May 10, 2017 at 9:24 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> On Wed, May 10, 2017 at 11:06:31AM -0400, Dennis Dalessandro wrote:
+>> On 5/10/2017 6:45 AM, Selvin Xavier wrote:
+>> > Update the driver version to the scheme used in the internal
+>> > development branches.
+>>
+>> See the feedback [1] we got from Greg KH on a similar patch.
+>>
+>> [1] https://patchwork.kernel.org/patch/7490321/
+>
+> Yeah, the things go worse when this driver ported to old kernel. This
+> numbers are entirely useless.
+>
+>>
+>> > Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+>> > ---
+>> >  drivers/infiniband/hw/bnxt_re/bnxt_re.h | 2 +-
+>> >  1 file changed, 1 insertion(+), 1 deletion(-)
+>> >
+>> > diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+>> > index 30bff05..9041c23b 100644
+>> > --- a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+>> > +++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+>> > @@ -40,7 +40,7 @@
+>> >  #ifndef __BNXT_RE_H__
+>> >  #define __BNXT_RE_H__
+>> >  #define ROCE_DRV_MODULE_NAME               "bnxt_re"
+>> > -#define ROCE_DRV_MODULE_VERSION            "1.0.0"
+>> > +#define ROCE_DRV_MODULE_VERSION            "20.6.1.0u"
+>> >
+>> >  #define BNXT_RE_DESC       "Broadcom NetXtreme-C/E RoCE Driver"
+>> >
+>> >
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
