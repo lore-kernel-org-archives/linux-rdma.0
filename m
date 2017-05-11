@@ -1,139 +1,236 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] IB/IPoIB: Replace netdev_priv with ipoib_priv for
- ipoib_get_link_ksettings
-Date: Thu, 11 May 2017 15:40:20 +0300
-Message-ID: <20170511124020.GH3616@mtr-leonro.local>
-References: <1494504868-17204-1-git-send-email-honli@redhat.com>
- <20170511123109.GC18962@yuval-lap>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-next 7/8] IB/core: Change wc.slid from 16 to 32 bits
+Date: Thu, 11 May 2017 08:42:47 -0400
+Message-ID: <830cdb79-3274-4073-126a-a328e49254c6@dev.mellanox.co.il>
+References: <1494458576-6816-1-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <1494458576-6816-8-git-send-email-dasaratharaman.chandramouli@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="D6IIOQQv2Iwyp54J"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170511123109.GC18962@yuval-lap>
+In-Reply-To: <1494458576-6816-8-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 5/10/2017 7:22 PM, Dasaratharaman Chandramouli wrote:
+> From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> slid field in struct ib_wc is increased to 32 bits.
+> This enables core components to use larger LIDs if needed.
+> The user ABI is unchanged and return 16 bit values when queried.
+> 
+> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/infiniband/core/cm.c            |  4 ++--
+>  drivers/infiniband/core/user_mad.c      |  2 +-
+>  drivers/infiniband/core/uverbs_cmd.c    | 11 ++++++++---
+>  drivers/infiniband/hw/hfi1/mad.c        |  2 +-
+>  drivers/infiniband/hw/mlx4/mad.c        |  6 +++---
+>  drivers/infiniband/hw/mlx5/mad.c        |  2 +-
+>  drivers/infiniband/hw/mthca/mthca_cmd.c |  4 ++--
+>  drivers/infiniband/hw/mthca/mthca_mad.c |  2 +-
+>  drivers/infiniband/sw/rdmavt/cq.c       |  2 +-
+>  include/rdma/ib_verbs.h                 |  2 +-
+>  10 files changed, 21 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+> index 1844770..6b3b0be 100644
+> --- a/drivers/infiniband/core/cm.c
+> +++ b/drivers/infiniband/core/cm.c
+> @@ -1703,7 +1703,7 @@ static void cm_process_routed_req(struct cm_req_msg *req_msg, struct ib_wc *wc)
+>  {
+>  	if (!cm_req_get_primary_subnet_local(req_msg)) {
+>  		if (req_msg->primary_local_lid == IB_LID_PERMISSIVE) {
+> -			req_msg->primary_local_lid = cpu_to_be16(wc->slid);
+> +			req_msg->primary_local_lid = cpu_to_be16((u16)wc->slid);
+>  			cm_req_set_primary_sl(req_msg, wc->sl);
+>  		}
+>  
+> @@ -1713,7 +1713,7 @@ static void cm_process_routed_req(struct cm_req_msg *req_msg, struct ib_wc *wc)
+>  
+>  	if (!cm_req_get_alt_subnet_local(req_msg)) {
+>  		if (req_msg->alt_local_lid == IB_LID_PERMISSIVE) {
+> -			req_msg->alt_local_lid = cpu_to_be16(wc->slid);
+> +			req_msg->alt_local_lid = cpu_to_be16((u16)wc->slid);
+>  			cm_req_set_alt_sl(req_msg, wc->sl);
+>  		}
+>  
+> diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+> index 200422d..8272d65 100644
+> --- a/drivers/infiniband/core/user_mad.c
+> +++ b/drivers/infiniband/core/user_mad.c
+> @@ -229,7 +229,7 @@ static void recv_handler(struct ib_mad_agent *agent,
+>  	packet->mad.hdr.status	   = 0;
+>  	packet->mad.hdr.length	   = hdr_size(file) + mad_recv_wc->mad_len;
+>  	packet->mad.hdr.qpn	   = cpu_to_be32(mad_recv_wc->wc->src_qp);
+> -	packet->mad.hdr.lid	   = cpu_to_be16(mad_recv_wc->wc->slid);
+> +	packet->mad.hdr.lid	   = cpu_to_be16((u16)mad_recv_wc->wc->slid);
+>  	packet->mad.hdr.sl	   = mad_recv_wc->wc->sl;
+>  	packet->mad.hdr.path_bits  = mad_recv_wc->wc->dlid_path_bits;
+>  	packet->mad.hdr.pkey_index = mad_recv_wc->wc->pkey_index;
+> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+> index 6964c05..b08045f 100644
+> --- a/drivers/infiniband/core/uverbs_cmd.c
+> +++ b/drivers/infiniband/core/uverbs_cmd.c
+> @@ -1190,7 +1190,8 @@ ssize_t ib_uverbs_resize_cq(struct ib_uverbs_file *file,
+>  	return ret ? ret : in_len;
+>  }
+>  
+> -static int copy_wc_to_user(void __user *dest, struct ib_wc *wc)
+> +static int copy_wc_to_user(struct ib_device *ib_dev, void __user *dest,
+> +			   struct ib_wc *wc)
+>  {
+>  	struct ib_uverbs_wc tmp;
+>  
+> @@ -1204,7 +1205,11 @@ static int copy_wc_to_user(void __user *dest, struct ib_wc *wc)
+>  	tmp.src_qp		= wc->src_qp;
+>  	tmp.wc_flags		= wc->wc_flags;
+>  	tmp.pkey_index		= wc->pkey_index;
+> -	tmp.slid		= wc->slid;
+> +	if (rdma_cap_opa_ah(ib_dev, wc->port_num))
+> +		tmp.slid  = OPA_TO_IB_UCAST_LID(wc->slid);
+> +	else
+> +		tmp.slid  = (u16)wc->slid;
+> +	tmp.slid		= (u16)wc->slid;
 
---D6IIOQQv2Iwyp54J
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Is one line too many added here ?
 
-On Thu, May 11, 2017 at 03:31:10PM +0300, Yuval Shaia wrote:
-> On Thu, May 11, 2017 at 08:14:28PM +0800, Honggang LI wrote:
-> > From: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> >
-> > ipoib_dev_init accesses the private data for IPoIB net_device with
-> > ipoib_priv. ipoib_get_link_ksettings should do as ipoib_dev_init.
-> > Otherwise kernel panic.
-> >
-> > [   27.271938] IPv6: ADDRCONF(NETDEV_CHANGE): mlx5_ib0.8006: link becomes ready
-> > [   28.156790] BUG: unable to handle kernel NULL pointer dereference at 000000000000067c
-> > [   28.166309] IP: ib_query_port+0x30/0x180 [ib_core]
-> > [   28.172364] PGD 0
-> > [   28.172364] P4D 0
-> > [   28.175307]
-> > [   28.180595] Oops: 0000 [#1] SMP
-> > [   28.184802] Modules linked in: bridge 8021q garp mrp stp llc rpcrdma ib_isert iscsi_target_mod ib_iser libiscsi scsi_transport_iscsi ib_srpt target_core_mod ib_srp scsi_transport_srp ib_ipoib rdma_ucm ib_ucm ib_uverbs ib_umad rdma_cm ib_cm iw_cm mlx5_ib ib_core intel_rapl sb_edac x86_pkg_temp_thermal intel_powerclamp coretemp kvm_intel kvm irqbypass crct10dif_pclmul crc32_pclmul ghash_clmulni_intel pcbc aesni_intel ipmi_ssif crypto_simd glue_helper cryptd iTCO_wdt ipmi_si iTCO_vendor_support wmi pcspkr ipmi_devintf dcdbas ipmi_msghandler lpc_ich sg mei_me mei shpchp acpi_power_meter nfsd auth_rpcgss nfs_acl lockd grace sunrpc binfmt_misc ip_tables xfs libcrc32c sd_mod mgag200 i2c_algo_bit drm_kms_helper syscopyarea sysfillrect sysimgblt fb_sys_fops ttm mlx5_core drm tg3 devlink ahci
-  libahci ptp libata
-> > [   28.270227]  crc32c_intel i2c_core pps_core dm_mirror dm_region_hash dm_log dm_mod
-> > [   28.279674] CPU: 0 PID: 1766 Comm: libvirtd Not tainted 4.11.0.56868a4.20170510+ #1
-> > [   28.289242] Hardware name: Dell Inc. PowerEdge R430/03XKDV, BIOS 1.6.2 01/08/2016
-> > [   28.298628] task: ffff8b4777311680 task.stack: ffffb9ab0f7ac000
-> > [   28.306282] RIP: 0010:ib_query_port+0x30/0x180 [ib_core]
-> > [   28.313249] RSP: 0018:ffffb9ab0f7afbb0 EFLAGS: 00010246
-> > [   28.320128] RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000000
-> > [   28.329169] RDX: ffffb9ab0f7afc00 RSI: 0000000000000000 RDI: 0000000000000000
-> > [   28.338202] RBP: ffffb9ab0f7afbf0 R08: 0000000000000000 R09: 0000000000000000
-> > [   28.347246] R10: 0000000000001000 R11: 0000000000000000 R12: 0000000000000000
-> > [   28.356284] R13: ffffb9ab0f7afc00 R14: ffffb9ab0f7afef0 R15: ffff8b377eae9b80
-> > [   28.365316] FS:  00007f9aed612700(0000) GS:ffff8b377f800000(0000) knlGS:0000000000000000
-> > [   28.375431] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> > [   28.383724] CR2: 000000000000067c CR3: 000000202aa7c000 CR4: 00000000001406f0
-> > [   28.393337] Call Trace:
-> > [   28.397594]  ipoib_get_link_ksettings+0x66/0xe0 [ib_ipoib]
-> > [   28.405274]  __ethtool_get_link_ksettings+0xa0/0x1c0
-> > [   28.412353]  speed_show+0x74/0xa0
-> > [   28.417503]  dev_attr_show+0x20/0x50
-> > [   28.422922]  ? mutex_lock+0x12/0x40
-> > [   28.428179]  sysfs_kf_seq_show+0xbf/0x1a0
-> > [   28.434002]  kernfs_seq_show+0x21/0x30
-> > [   28.439470]  seq_read+0x116/0x3b0
-> > [   28.444445]  ? do_filp_open+0xa5/0x100
-> > [   28.449774]  kernfs_fop_read+0xff/0x180
-> > [   28.455220]  __vfs_read+0x37/0x150
-> > [   28.460167]  ? security_file_permission+0x9d/0xc0
-> > [   28.466560]  vfs_read+0x8c/0x130
-> > [   28.471318]  SyS_read+0x55/0xc0
-> > [   28.475950]  do_syscall_64+0x67/0x150
-> > [   28.481163]  entry_SYSCALL64_slow_path+0x25/0x25
-> > [   28.487425] RIP: 0033:0x7f9b1bf4a70d
-> > [   28.492522] RSP: 002b:00007f9aed611a40 EFLAGS: 00000293 ORIG_RAX: 0000000000000000
-> > [   28.502097] RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f9b1bf4a70d
-> > [   28.511178] RDX: 0000000000000401 RSI: 00007f9ae8183650 RDI: 0000000000000017
-> > [   28.520261] RBP: 0000000000000401 R08: 0000000000000080 R09: 0000000000002001
-> > [   28.529322] R10: 000000000000006b R11: 0000000000000293 R12: 00007f9ae8183650
-> > [   28.538368] R13: 0000000000000000 R14: 0000000000000017 R15: 0000000000002001
-> > [   28.547432] Code: 55 48 89 e5 41 55 49 89 d5 41 54 44 0f b6 e6 53 48 89 fb 48 83 e4 f0 48 83 ec 20 65 48 8b 04 25 28 00 00 00 48 89 44 24 18 31 c0 <f6> 87 7c 06 00 00 01 75 2d 45 85 e4 0f 85 ca 00 00 00 b8 ea ff
-> > [   28.570861] RIP: ib_query_port+0x30/0x180 [ib_core] RSP: ffffb9ab0f7afbb0
-> > [   28.579601] CR2: 000000000000067c
-> > [   28.584493] ---[ end trace 3549968a4bf0aa5d ]---
-> >
-> > Fixes:  0d7e2d2166f6 ('IB/ipoib: add get_link_ksettings in ethtool')
-> >
-> > Signed-off-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> > ---
-> >  drivers/infiniband/ulp/ipoib/ipoib_ethtool.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-> > index 874b243..7871379 100644
-> > --- a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-> > @@ -178,7 +178,7 @@ static inline int ib_speed_enum_to_int(int speed)
-> >  static int ipoib_get_link_ksettings(struct net_device *netdev,
-> >  				    struct ethtool_link_ksettings *cmd)
-> >  {
-> > -	struct ipoib_dev_priv *priv = netdev_priv(netdev);
-> > +	struct ipoib_dev_priv *priv = ipoib_priv(netdev);
-> >  	struct ib_port_attr attr;
-> >  	int ret, speed, width;
-> >
->
-> Suggesting to remove kernel oops from commit log message, fix is trivial.
+-- Hal
 
-Please don't, they are useful.
-
->
-> Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->
-
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
---D6IIOQQv2Iwyp54J
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkUW7QACgkQ5GN7iDZy
-WKdCMg//Rec9yTepIJpphL76PERTLqkxMoaDJkDM0NuSbz7mvLV0PX9JPm1JOoxA
-RVe1Y6kM4Q/eK/OCvLTUgzauFEZqBptb86PWRavxVg2cHdKxaQ/xSFPTmETzIcnR
-uYDiJoWV8t0oxF9EAogbNtRcgKkK33zm1CM0Esqd++kmykLpbOn7ydL63atddx0l
-y5EWcjtVAaCzyqeCNNbGYDGPi+YRwOGxOG/e+qEtue1YIfqEAQ2MDPCGtpyABAHq
-pACbWLK5cHFGkWs1mGHQQDSKi4dMnQCbLLD1Fwt62+Uutm1JueDnI9xC5GnmuvMJ
-dTwa8dQKdnBLIx9Qtd3mWRFtHS9mJ090jDHxuBAajbrZyESBAMHSzJh/Xuo2NTGE
-XtkQzxYdSe4FEpB/LaSoLg+3Ruv/KAECGjOAg8iVmKk49bj5ynB0b96oaWpmHuSk
-utjHAjoE1Qp45IZ1o9w+JsyhedEX8ZOGsgOBsIxv6KKv3Z4p9yc1Rva+cIsCzhtK
-WaBOuHLJ6AGGC/fCzTd5ulM3Knp0p+Br9EPv+iM0DdrAhKZauKO213qqGcALltZo
-T2rUOoNdql4B6a7vzR51pWiVA5y+W+lnDNmgcs/zokpgrAwi7Z7nbks43DQ+WeRa
-CGWBGUP1plLnEdb7rhOo9S+q4gm1tM7WKer7D3yhit6bk+sfq8A=
-=qQhN
------END PGP SIGNATURE-----
-
---D6IIOQQv2Iwyp54J--
+>  	tmp.sl			= wc->sl;
+>  	tmp.dlid_path_bits	= wc->dlid_path_bits;
+>  	tmp.port_num		= wc->port_num;
+> @@ -1248,7 +1253,7 @@ ssize_t ib_uverbs_poll_cq(struct ib_uverbs_file *file,
+>  		if (!ret)
+>  			break;
+>  
+> -		ret = copy_wc_to_user(data_ptr, &wc);
+> +		ret = copy_wc_to_user(ib_dev, data_ptr, &wc);
+>  		if (ret)
+>  			goto out_put;
+>  
+> diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
+> index 5977673..345b40e 100644
+> --- a/drivers/infiniband/hw/hfi1/mad.c
+> +++ b/drivers/infiniband/hw/hfi1/mad.c
+> @@ -3958,7 +3958,7 @@ static int opa_local_smp_check(struct hfi1_ibport *ibp,
+>  			       const struct ib_wc *in_wc)
+>  {
+>  	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+> -	u16 slid = in_wc->slid;
+> +	u16 slid = (u16)in_wc->slid;
+>  	u16 pkey;
+>  
+>  	if (in_wc->pkey_index >= ARRAY_SIZE(ppd->pkeys))
+> diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+> index cd5bfe1..27b0cd9 100644
+> --- a/drivers/infiniband/hw/mlx4/mad.c
+> +++ b/drivers/infiniband/hw/mlx4/mad.c
+> @@ -169,7 +169,7 @@ int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int mad_ifc_flags,
+>  
+>  		op_modifier |= 0x4;
+>  
+> -		in_modifier |= in_wc->slid << 16;
+> +		in_modifier |= (u16)in_wc->slid << 16;
+>  	}
+>  
+>  	err = mlx4_cmd_box(dev->dev, inmailbox->dma, outmailbox->dma, in_modifier,
+> @@ -625,7 +625,7 @@ int mlx4_ib_send_to_slave(struct mlx4_ib_dev *dev, int slave, u8 port,
+>  		memcpy((char *)&tun_mad->hdr.slid_mac_47_32, &(wc->smac[4]), 2);
+>  	} else {
+>  		tun_mad->hdr.sl_vid = cpu_to_be16(((u16)(wc->sl)) << 12);
+> -		tun_mad->hdr.slid_mac_47_32 = cpu_to_be16(wc->slid);
+> +		tun_mad->hdr.slid_mac_47_32 = cpu_to_be16((u16)wc->slid);
+>  	}
+>  
+>  	ib_dma_sync_single_for_device(&dev->ib_dev,
+> @@ -826,7 +826,7 @@ static int ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+>  		}
+>  	}
+>  
+> -	slid = in_wc ? in_wc->slid : be16_to_cpu(IB_LID_PERMISSIVE);
+> +	slid = in_wc ? (u16)in_wc->slid : be16_to_cpu(IB_LID_PERMISSIVE);
+>  
+>  	if (in_mad->mad_hdr.method == IB_MGMT_METHOD_TRAP && slid == 0) {
+>  		forward_trap(to_mdev(ibdev), port_num, in_mad);
+> diff --git a/drivers/infiniband/hw/mlx5/mad.c b/drivers/infiniband/hw/mlx5/mad.c
+> index f1b56de6..e867f84 100644
+> --- a/drivers/infiniband/hw/mlx5/mad.c
+> +++ b/drivers/infiniband/hw/mlx5/mad.c
+> @@ -78,7 +78,7 @@ static int process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+>  	u16 slid;
+>  	int err;
+>  
+> -	slid = in_wc ? in_wc->slid : be16_to_cpu(IB_LID_PERMISSIVE);
+> +	slid = in_wc ? (u16)in_wc->slid : be16_to_cpu(IB_LID_PERMISSIVE);
+>  
+>  	if (in_mad->mad_hdr.method == IB_MGMT_METHOD_TRAP && slid == 0)
+>  		return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_CONSUMED;
+> diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.c b/drivers/infiniband/hw/mthca/mthca_cmd.c
+> index 9d83a53..507fa19 100644
+> --- a/drivers/infiniband/hw/mthca/mthca_cmd.c
+> +++ b/drivers/infiniband/hw/mthca/mthca_cmd.c
+> @@ -1921,7 +1921,7 @@ int mthca_MAD_IFC(struct mthca_dev *dev, int ignore_mkey, int ignore_bkey,
+>  			(in_wc->wc_flags & IB_WC_GRH ? 0x80 : 0);
+>  		MTHCA_PUT(inbox, val,               MAD_IFC_G_PATH_OFFSET);
+>  
+> -		MTHCA_PUT(inbox, in_wc->slid,       MAD_IFC_RLID_OFFSET);
+> +		MTHCA_PUT(inbox, (u16)in_wc->slid,       MAD_IFC_RLID_OFFSET);
+>  		MTHCA_PUT(inbox, in_wc->pkey_index, MAD_IFC_PKEY_OFFSET);
+>  
+>  		if (in_grh)
+> @@ -1929,7 +1929,7 @@ int mthca_MAD_IFC(struct mthca_dev *dev, int ignore_mkey, int ignore_bkey,
+>  
+>  		op_modifier |= 0x4;
+>  
+> -		in_modifier |= in_wc->slid << 16;
+> +		in_modifier |= (u16)in_wc->slid << 16;
+>  	}
+>  
+>  	err = mthca_cmd_box(dev, inmailbox->dma, outmailbox->dma,
+> diff --git a/drivers/infiniband/hw/mthca/mthca_mad.c b/drivers/infiniband/hw/mthca/mthca_mad.c
+> index 617531f..e6911ee 100644
+> --- a/drivers/infiniband/hw/mthca/mthca_mad.c
+> +++ b/drivers/infiniband/hw/mthca/mthca_mad.c
+> @@ -205,7 +205,7 @@ int mthca_process_mad(struct ib_device *ibdev,
+>  		      u16 *out_mad_pkey_index)
+>  {
+>  	int err;
+> -	u16 slid = in_wc ? in_wc->slid : be16_to_cpu(IB_LID_PERMISSIVE);
+> +	u16 slid = in_wc ? (u16)in_wc->slid : be16_to_cpu(IB_LID_PERMISSIVE);
+>  	u16 prev_lid = 0;
+>  	struct ib_port_attr pattr;
+>  	const struct ib_mad *in_mad = (const struct ib_mad *)in;
+> diff --git a/drivers/infiniband/sw/rdmavt/cq.c b/drivers/infiniband/sw/rdmavt/cq.c
+> index 0ae2ff8..c1e4fc5 100644
+> --- a/drivers/infiniband/sw/rdmavt/cq.c
+> +++ b/drivers/infiniband/sw/rdmavt/cq.c
+> @@ -107,7 +107,7 @@ void rvt_cq_enter(struct rvt_cq *cq, struct ib_wc *entry, bool solicited)
+>  		wc->uqueue[head].src_qp = entry->src_qp;
+>  		wc->uqueue[head].wc_flags = entry->wc_flags;
+>  		wc->uqueue[head].pkey_index = entry->pkey_index;
+> -		wc->uqueue[head].slid = entry->slid;
+> +		wc->uqueue[head].slid = (u16)entry->slid;
+>  		wc->uqueue[head].sl = entry->sl;
+>  		wc->uqueue[head].dlid_path_bits = entry->dlid_path_bits;
+>  		wc->uqueue[head].port_num = entry->port_num;
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index e161968..ad7cced 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -947,7 +947,7 @@ struct ib_wc {
+>  	u32			src_qp;
+>  	int			wc_flags;
+>  	u16			pkey_index;
+> -	u16			slid;
+> +	u32			slid;
+>  	u8			sl;
+>  	u8			dlid_path_bits;
+>  	u8			port_num;	/* valid only for DR SMPs on switches */
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
