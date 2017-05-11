@@ -1,53 +1,44 @@
 From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 3/8] IB/IPoIB: Increase local_lid to 32 bits
-Date: Thu, 11 May 2017 11:41:26 +0300
-Message-ID: <20170511084126.GF3011@yuval-lap>
-References: <1494458576-6816-1-git-send-email-dasaratharaman.chandramouli@intel.com>
- <1494458576-6816-4-git-send-email-dasaratharaman.chandramouli@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH v1] net/mlx4_core: Use min_t instead of if for consistency
+Date: Thu, 11 May 2017 11:46:29 +0300
+Message-ID: <1494492389-15040-1-git-send-email-yuval.shaia@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1494458576-6816-4-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 10, 2017 at 07:22:51PM -0400, Dasaratharaman Chandramouli wrote:
-> IPoIB contains local_lid field which is 16 bits in
-> length, increase it to 32 bits.
+Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+v0 -> v1:
+	* s/"min_t("/"min_t(int"
+---
+ drivers/net/ethernet/mellanox/mlx4/main.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-Is it IPoIB thing only? i see it also in struct ib_wc
+diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+index 7032054..7bb377e 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+@@ -2862,12 +2862,11 @@ static void mlx4_enable_msi_x(struct mlx4_dev *dev)
+ 	int port = 0;
+ 
+ 	if (msi_x) {
+-		int nreq = dev->caps.num_ports * num_online_cpus() + 1;
++		int nreq = min_t(int,
++				 dev->caps.num_ports * num_online_cpus() + 1,
++				 dev->caps.num_eqs - dev->caps.reserved_eqs);
+ 
+-		nreq = min_t(int, dev->caps.num_eqs - dev->caps.reserved_eqs,
+-			     nreq);
+-		if (nreq > MAX_MSIX)
+-			nreq = MAX_MSIX;
++		nreq = min_t(int, nreq, MAX_MSIX);
+ 
+ 		entries = kcalloc(nreq, sizeof *entries, GFP_KERNEL);
+ 		if (!entries)
+-- 
+2.7.4
 
-> 
-> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/ulp/ipoib/ipoib.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-> index ff50a7b..9e73810 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib.h
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-> @@ -366,7 +366,7 @@ struct ipoib_dev_priv {
->  	u32		  qkey;
->  
->  	union ib_gid local_gid;
-> -	u16	     local_lid;
-> +	u32	     local_lid;
->  
->  	unsigned int admin_mtu;
->  	unsigned int mcast_mtu;
-> -- 
-> 1.8.3.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
