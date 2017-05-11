@@ -1,83 +1,62 @@
-From: Roland Fehrenbacher <rf-PKu+Ek1N2UGzQB+pC5nmwQ@public.gmane.org>
-Subject: Re: srp_daemon :    targets      by default
-Date: Thu, 11 May 2017 10:50:13 +0200
-Message-ID: <22804.9669.234394.488480@gargle.gargle.HOWL>
-References: <1494349653.3752.4.camel@profitbricks.com>
-        <021b0a17-0552-6ee4-ec19-0e86ead527ef@sandisk.com>
-        <1050725096.6555338.1494351706650.JavaMail.zimbra@redhat.com>
-        <20170509180159.GK10073@mtr-leonro.local>
-        <1494423046.3739.8.camel@profitbricks.com>
-        <22803.7541.113159.214164@gargle.gargle.HOWL>
-        <1494432414.2578.9.camel@sandisk.com>
-        <22803.16933.196383.482890@gargle.gargle.HOWL>
-        <1494434801.2578.13.camel@sandisk.com>
-        <22803.19010.749349.461444@gargle.gargle.HOWL>
-        <1494436821.2578.15.camel@sandisk.com>
-Reply-To: rf-PKu+Ek1N2UGzQB+pC5nmwQ@public.gmane.org
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-core] verbs: Corrected description of max_sge and
+ max_sge_rd
+Date: Thu, 11 May 2017 12:44:19 +0300
+Message-ID: <dc3fc605-0636-f6d1-5e8c-b4cd10369260@dev.mellanox.co.il>
+References: <1494433465-1883-1-git-send-email-yishaih@mellanox.com>
+ <20170511083355.GE3011@yuval-lap>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1494436821.2578.15.camel-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20170511083355.GE3011@yuval-lap>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->>>>> "B" == Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org> writes:
+On 5/11/2017 11:33 AM, Yuval Shaia wrote:
+> On Wed, May 10, 2017 at 07:24:25PM +0300, Yishai Hadas wrote:
+>> From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>
+>> This patch corrects ambiguity in documentation of max_sge and max_sge_rd
+>> fields. This ambiguity seems to be created due to [1] and due to mention
+>> of "RD and non RD QPs" in man page.
+>>
+>> Here RD can be understood as reliable datagram QP of Infiniband
+>> specification as opposed to "read".
+>>
+>> max_sge_rd: Maximum number of sges per WR for RDMA Read operations.
+>> max_sge: Maximum number of sges per WR for QP for non RDMA Read
+>> operations.
+>
+> So the new comments makes it clear but can you consider change the name to
+> reflect that?
 
-Hi Bart,
+Those fields are exposed to user applications and can't be renamed 
+without breaking compatibility. Please note that the notation of "rd" is 
+used in other fields as well and are documented correctly (e.g. see man 
+page for max_qp_rd_atom), so this patch just aligns the man page with 
+other fields around and fixes the ambiguity.
 
-    B> On Wed, 2017-05-10 at 19:13 +0200, Roland Fehrenbacher wrote:
-    >> > > > > > "B" == Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-    >> > > > > > writes:
-    >>
-    B> On Wed, 2017-05-10 at 18:39 +0200, Roland Fehrenbacher wrote:
-    >> >> The new package is very new, sits in debian unstable and most
-    >> >> likely hasn't made it to Ubuntu 17.04.
-    >>
-    B> Hello Roland,
-    >>
-    B> Does that mean that most Debian users do not yet have that change
-    B> in their /etc/srp_daemon.conf and when they upgrade and the
-    B> packaged version of /etc/srp_daemon.conf gets installed that SRP
-    B> login to remote systems will not occur anymore after a reboot?
-    >>
-    >> The pre/postinst files of the new package version are written,
-    >> such that the new config file/behavior has to be explicitly
-    >> enabled by the admin when the package is updated. Only new
-    >> installations get the new config file automatically.
-    >>
-    B> Since you wrote in a previous message that such changes are
-    B> mentioned in the NEWS file: how many people do you think read
-    B> that file before or after installing an upgrade?
-    >>
-    >> The NEWS file is displayed automatically if the apt-listchanges
-    >> package is installed.
+>> diff --git a/libibverbs/man/ibv_query_device.3 b/libibverbs/man/ibv_query_device.3
+>> index 35daa53..0e9d286 100644
+>> --- a/libibverbs/man/ibv_query_device.3
+>> +++ b/libibverbs/man/ibv_query_device.3
+>> @@ -33,8 +33,8 @@ uint32_t                hw_ver;                 /* Hardware version */
+>>  int                     max_qp;                 /* Maximum number of supported QPs */
+>>  int                     max_qp_wr;              /* Maximum number of outstanding WR on any work queue */
+>>  int                     device_cap_flags;       /* HCA capabilities mask */
+>> -int                     max_sge;                /* Maximum number of s/g per WR for non-RD QPs */
+>> -int                     max_sge_rd;             /* Maximum number of s/g per WR for RD QPs */
+>> +int                     max_sge;                /* Maximum number of s/g per WR for SQ & RQ of QP for non RDMA Read operations */
+>
+> Should the line be break here as it exceed 80 characters?
+Not really required, this is aligned with having one descriptive line 
+per field as done for other fields which are even longer, when using 
+'man' it looks fine.
 
-    B> Hello Roland,
-
-    B> Please revert this change such that the Debian srptools package
-    B> is again in sync with the upstream srptools package and such that
-    B> SRP users are saved a few hours of frustration by trying to
-    B> figure out why SRP login doesn't work if they would install a
-    B> version of srptools in which /etc/srp_daemon.conf disables login
-    B> by default.
-
-    B> In case you would not be aware of this: I am the maintainer of
-    B> the upstream srptools package.
-
-I didn't find any of the arguments presented against this change really
-convincing. You make an assumption about SRP users whereas the motivation
-of the change came from a bug report by a real user who was frustrated
-with the previous config. Understandably in my opinion.
-
-Anyway, since I'm not a DD, I can't revert it. Benjamin, since you're a
-DD and if you also believe the change should be reverted, please feel free
-to do so.
-
-Roland
-
+Thanks for your review.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
