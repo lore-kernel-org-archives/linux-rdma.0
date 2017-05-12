@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 5/6] IB/hfi1: Setup common IB fields in hfi1_packet
- struct
-Date: Fri, 12 May 2017 09:20:20 -0700
-Message-ID: <20170512162013.1290.4922.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 6/6] IB/rdmavt: Compress adjacent SGEs in
+ rvt_lkey_ok()
+Date: Fri, 12 May 2017 09:20:31 -0700
+Message-ID: <20170512162025.1290.44912.stgit@scvm10.sc.intel.com>
 References: <20170512161106.1290.45891.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,970 +11,364 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170512161106.1290.45891.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Brian Welty <brian.welty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Brian Welty <brian.welty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Venkata Sandeep Dhanalakota <venkata.s.dhanalakota-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-We move many common IB fields into the hfi1_packet structure and
-set them up in a single function. This allows us to set the fields
-in a single place and not deal with them throughout the driver.
+SGEs that are contiguous needlessly consume driver dependent TX resources.
 
-Reviewed-by: Brian Welty <brian.welty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+The lkey validation logic is enhanced to compress the SGE that ends
+up in the send wqe when consecutive addresses are detected.
+
+The lkey validation API used to return 1 (success) or 0 (fail).
+
+The return value is now an -errno, 0 (compressed), or 1 (uncompressed).  A
+additional argument is added to pass the last SQE for the compression.
+
+Loopback callers always pass a NULL to last_sge since the optimization is
+of little benefit in that situation.
+
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Brian Welty <brian.welty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Venkata Sandeep Dhanalakota <venkata.s.dhanalakota-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c   |    9 --
- drivers/infiniband/hw/hfi1/chip.h   |    2 
- drivers/infiniband/hw/hfi1/common.h |    1 
- drivers/infiniband/hw/hfi1/driver.c |  158 +++++++++++++++++++++++++----------
- drivers/infiniband/hw/hfi1/hfi.h    |   21 ++++-
- drivers/infiniband/hw/hfi1/rc.c     |   33 ++-----
- drivers/infiniband/hw/hfi1/ruc.c    |   89 +++++++++-----------
- drivers/infiniband/hw/hfi1/uc.c     |   16 +---
- drivers/infiniband/hw/hfi1/ud.c     |   23 ++---
- drivers/infiniband/hw/hfi1/verbs.c  |   89 ++++++++------------
- drivers/infiniband/hw/hfi1/verbs.h  |    6 -
- 11 files changed, 236 insertions(+), 211 deletions(-)
+ drivers/infiniband/hw/hfi1/ruc.c        |    2 +
+ drivers/infiniband/hw/qib/qib_ruc.c     |    2 +
+ drivers/infiniband/sw/rdmavt/mr.c       |   51 ++++++++++++++++++++++----
+ drivers/infiniband/sw/rdmavt/qp.c       |   23 +++++++-----
+ drivers/infiniband/sw/rdmavt/trace_mr.h |   62 +++++++++++++++++++++++++++++++
+ drivers/infiniband/sw/rdmavt/trace_tx.h |   11 ++++--
+ include/rdma/rdma_vt.h                  |    3 +-
+ 7 files changed, 130 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index bbf7759..a4fb116 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -9810,15 +9810,6 @@ void hfi1_clear_tids(struct hfi1_ctxtdata *rcd)
- 		hfi1_put_tid(dd, i, PT_INVALID, 0, 0);
- }
- 
--struct ib_header *hfi1_get_msgheader(
--	struct hfi1_devdata *dd, __le32 *rhf_addr)
--{
--	u32 offset = rhf_hdrq_offset(rhf_to_cpu(rhf_addr));
--
--	return (struct ib_header *)
--		(rhf_addr - dd->rhf_offset + offset);
--}
--
- static const char * const ib_cfg_name_strings[] = {
- 	"HFI1_IB_CFG_LIDLMC",
- 	"HFI1_IB_CFG_LWID_DG_ENB",
-diff --git a/drivers/infiniband/hw/hfi1/chip.h b/drivers/infiniband/hw/hfi1/chip.h
-index cbe455d..0b4f418 100644
---- a/drivers/infiniband/hw/hfi1/chip.h
-+++ b/drivers/infiniband/hw/hfi1/chip.h
-@@ -1347,8 +1347,6 @@ enum {
- u64 get_all_cpu_total(u64 __percpu *cntr);
- void hfi1_start_cleanup(struct hfi1_devdata *dd);
- void hfi1_clear_tids(struct hfi1_ctxtdata *rcd);
--struct ib_header *hfi1_get_msgheader(
--				struct hfi1_devdata *dd, __le32 *rhf_addr);
- void hfi1_init_ctxt(struct send_context *sc);
- void hfi1_put_tid(struct hfi1_devdata *dd, u32 index,
- 		  u32 type, unsigned long pa, u16 order);
-diff --git a/drivers/infiniband/hw/hfi1/common.h b/drivers/infiniband/hw/hfi1/common.h
-index 995d62c..ba9ab97 100644
---- a/drivers/infiniband/hw/hfi1/common.h
-+++ b/drivers/infiniband/hw/hfi1/common.h
-@@ -325,6 +325,7 @@ struct diag_pkt {
- #define HFI1_LRH_BTH 0x0002      /* 1. word of IB LRH - next header: BTH */
- 
- /* misc. */
-+#define SC15_PACKET 0xF
- #define SIZE_OF_CRC 1
- 
- #define LIM_MGMT_P_KEY       0x7FFF
-diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
-index 0583479..2a1022e 100644
---- a/drivers/infiniband/hw/hfi1/driver.c
-+++ b/drivers/infiniband/hw/hfi1/driver.c
-@@ -224,6 +224,20 @@ int hfi1_count_active_units(void)
- 			(offset * RCV_BUF_BLOCK_SIZE));
- }
- 
-+static inline void *hfi1_get_header(struct hfi1_devdata *dd,
-+				    __le32 *rhf_addr)
-+{
-+	u32 offset = rhf_hdrq_offset(rhf_to_cpu(rhf_addr));
-+
-+	return (void *)(rhf_addr - dd->rhf_offset + offset);
-+}
-+
-+static inline struct ib_header *hfi1_get_msgheader(struct hfi1_devdata *dd,
-+						   __le32 *rhf_addr)
-+{
-+	return (struct ib_header *)hfi1_get_header(dd, rhf_addr);
-+}
-+
- /*
-  * Validate and encode the a given RcvArray Buffer size.
-  * The function will check whether the given size falls within
-@@ -249,7 +263,8 @@ static void rcv_hdrerr(struct hfi1_ctxtdata *rcd, struct hfi1_pportdata *ppd,
- {
- 	struct ib_header *rhdr = packet->hdr;
- 	u32 rte = rhf_rcv_type_err(packet->rhf);
--	int lnh = ib_get_lnh(rhdr);
-+	u8 lnh = ib_get_lnh(rhdr);
-+	bool has_grh = false;
- 	struct hfi1_ibport *ibp = rcd_to_iport(rcd);
- 	struct hfi1_devdata *dd = ppd->dd;
- 	struct rvt_dev_info *rdi = &dd->verbs_dev.rdi;
-@@ -257,37 +272,42 @@ static void rcv_hdrerr(struct hfi1_ctxtdata *rcd, struct hfi1_pportdata *ppd,
- 	if (packet->rhf & (RHF_VCRC_ERR | RHF_ICRC_ERR))
- 		return;
- 
-+	if (lnh == HFI1_LRH_BTH) {
-+		packet->ohdr = &rhdr->u.oth;
-+	} else if (lnh == HFI1_LRH_GRH) {
-+		has_grh = true;
-+		packet->ohdr = &rhdr->u.l.oth;
-+		packet->grh = &rhdr->u.l.grh;
-+	} else {
-+		goto drop;
-+	}
-+
- 	if (packet->rhf & RHF_TID_ERR) {
- 		/* For TIDERR and RC QPs preemptively schedule a NAK */
--		struct ib_other_headers *ohdr = NULL;
- 		u32 tlen = rhf_pkt_len(packet->rhf); /* in bytes */
--		u16 lid  = ib_get_dlid(rhdr);
-+		u32 dlid = ib_get_dlid(rhdr);
- 		u32 qp_num;
--		u32 rcv_flags = 0;
-+		u32 mlid_base = be16_to_cpu(IB_MULTICAST_LID_BASE);
- 
- 		/* Sanity check packet */
- 		if (tlen < 24)
- 			goto drop;
- 
- 		/* Check for GRH */
--		if (lnh == HFI1_LRH_BTH) {
--			ohdr = &rhdr->u.oth;
--		} else if (lnh == HFI1_LRH_GRH) {
-+		if (has_grh) {
- 			u32 vtf;
-+			struct ib_grh *grh = packet->grh;
- 
--			ohdr = &rhdr->u.l.oth;
--			if (rhdr->u.l.grh.next_hdr != IB_GRH_NEXT_HDR)
-+			if (grh->next_hdr != IB_GRH_NEXT_HDR)
- 				goto drop;
--			vtf = be32_to_cpu(rhdr->u.l.grh.version_tclass_flow);
-+			vtf = be32_to_cpu(grh->version_tclass_flow);
- 			if ((vtf >> IB_GRH_VERSION_SHIFT) != IB_GRH_VERSION)
- 				goto drop;
--			rcv_flags |= HFI1_HAS_GRH;
--		} else {
--			goto drop;
- 		}
-+
- 		/* Get the destination QP number. */
--		qp_num = ib_bth_get_qpn(ohdr);
--		if (lid < be16_to_cpu(IB_MULTICAST_LID_BASE)) {
-+		qp_num = ib_bth_get_qpn(packet->ohdr);
-+		if (dlid < mlid_base) {
- 			struct rvt_qp *qp;
- 			unsigned long flags;
- 
-@@ -312,11 +332,7 @@ static void rcv_hdrerr(struct hfi1_ctxtdata *rcd, struct hfi1_pportdata *ppd,
- 
- 			switch (qp->ibqp.qp_type) {
- 			case IB_QPT_RC:
--				hfi1_rc_hdrerr(
--					rcd,
--					rhdr,
--					rcv_flags,
--					qp);
-+				hfi1_rc_hdrerr(rcd, packet, qp);
- 				break;
- 			default:
- 				/* For now don't handle any other QP types */
-@@ -332,9 +348,8 @@ static void rcv_hdrerr(struct hfi1_ctxtdata *rcd, struct hfi1_pportdata *ppd,
- 	switch (rte) {
- 	case RHF_RTE_ERROR_OP_CODE_ERR:
- 	{
--		u32 opcode;
- 		void *ebuf = NULL;
--		__be32 *bth = NULL;
-+		u8 opcode;
- 
- 		if (rhf_use_egr_bfr(packet->rhf))
- 			ebuf = packet->ebuf;
-@@ -342,16 +357,7 @@ static void rcv_hdrerr(struct hfi1_ctxtdata *rcd, struct hfi1_pportdata *ppd,
- 		if (!ebuf)
- 			goto drop; /* this should never happen */
- 
--		if (lnh == HFI1_LRH_BTH)
--			bth = (__be32 *)ebuf;
--		else if (lnh == HFI1_LRH_GRH)
--			bth = (__be32 *)((char *)ebuf + sizeof(struct ib_grh));
--		else
--			goto drop;
--
--		opcode = be32_to_cpu(bth[0]) >> 24;
--		opcode &= 0xff;
--
-+		opcode = ib_bth_get_opcode(packet->ohdr);
- 		if (opcode == IB_OPCODE_CNP) {
- 			/*
- 			 * Only in pre-B0 h/w is the CNP_OPCODE handled
-@@ -365,7 +371,7 @@ static void rcv_hdrerr(struct hfi1_ctxtdata *rcd, struct hfi1_pportdata *ppd,
- 			sc5 = hfi1_9B_get_sc5(rhdr, packet->rhf);
- 			sl = ibp->sc_to_sl[sc5];
- 
--			lqpn = be32_to_cpu(bth[1]) & RVT_QPN_MASK;
-+			lqpn = ib_bth_get_qpn(packet->ohdr);
- 			rcu_read_lock();
- 			qp = rvt_lookup_qpn(rdi, &ibp->rvp, lqpn);
- 			if (!qp) {
-@@ -415,7 +421,6 @@ static inline void init_packet(struct hfi1_ctxtdata *rcd,
- 	packet->rhf = rhf_to_cpu(packet->rhf_addr);
- 	packet->rhqoff = rcd->head;
- 	packet->numpkt = 0;
--	packet->rcv_flags = 0;
- }
- 
- void hfi1_process_ecn_slowpath(struct rvt_qp *qp, struct hfi1_packet *pkt,
-@@ -424,15 +429,12 @@ void hfi1_process_ecn_slowpath(struct rvt_qp *qp, struct hfi1_packet *pkt,
- 	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
- 	struct ib_header *hdr = pkt->hdr;
- 	struct ib_other_headers *ohdr = pkt->ohdr;
--	struct ib_grh *grh = NULL;
-+	struct ib_grh *grh = pkt->grh;
- 	u32 rqpn = 0, bth1;
- 	u16 rlid, dlid = ib_get_dlid(hdr);
- 	u8 sc, svc_type;
- 	bool is_mcast = false;
- 
--	if (pkt->rcv_flags & HFI1_HAS_GRH)
--		grh = &hdr->u.l.grh;
--
- 	switch (qp->ibqp.qp_type) {
- 	case IB_QPT_SMI:
- 	case IB_QPT_GSI:
-@@ -591,9 +593,10 @@ static void __prescan_rxq(struct hfi1_packet *packet)
- 
- 		if (lnh == HFI1_LRH_BTH) {
- 			packet->ohdr = &hdr->u.oth;
-+			packet->grh = NULL;
- 		} else if (lnh == HFI1_LRH_GRH) {
- 			packet->ohdr = &hdr->u.l.oth;
--			packet->rcv_flags |= HFI1_HAS_GRH;
-+			packet->grh = &hdr->u.l.grh;
- 		} else {
- 			goto next; /* just in case */
- 		}
-@@ -698,10 +701,9 @@ static inline int process_rcv_packet(struct hfi1_packet *packet, int thread)
- {
- 	int ret;
- 
--	packet->hdr = hfi1_get_msgheader(packet->rcd->dd,
--					 packet->rhf_addr);
--	packet->hlen = (u8 *)packet->rhf_addr - (u8 *)packet->hdr;
- 	packet->etype = rhf_rcv_type(packet->rhf);
-+
-+	packet->hlen = (u8 *)packet->rhf_addr - (u8 *)packet->hdr;
- 	/* total length */
- 	packet->tlen = rhf_pkt_len(packet->rhf); /* in bytes */
- 	/* retrieve eager buffer details */
-@@ -759,7 +761,7 @@ static inline void process_rcv_update(int last, struct hfi1_packet *packet)
- 			       packet->etail, 0, 0);
- 		packet->updegr = 0;
- 	}
--	packet->rcv_flags = 0;
-+	packet->grh = NULL;
- }
- 
- static inline void finish_packet(struct hfi1_packet *packet)
-@@ -896,12 +898,15 @@ static inline int set_armed_to_active(struct hfi1_ctxtdata *rcd,
- 				      struct hfi1_devdata *dd)
- {
- 	struct work_struct *lsaw = &rcd->ppd->linkstate_active_work;
--	struct ib_header *hdr = hfi1_get_msgheader(packet->rcd->dd,
--						   packet->rhf_addr);
- 	u8 etype = rhf_rcv_type(packet->rhf);
-+	u8 sc = SC15_PACKET;
- 
--	if (etype == RHF_RCV_TYPE_IB &&
--	    hfi1_9B_get_sc5(hdr, packet->rhf) != 0xf) {
-+	if (etype == RHF_RCV_TYPE_IB) {
-+		struct ib_header *hdr = hfi1_get_msgheader(packet->rcd->dd,
-+							   packet->rhf_addr);
-+		sc = hfi1_9B_get_sc5(hdr, packet->rhf);
-+	}
-+	if (sc != SC15_PACKET) {
- 		int hwstate = read_logical_state(dd);
- 
- 		if (hwstate != LSTATE_ACTIVE) {
-@@ -1321,6 +1326,58 @@ int hfi1_reset_device(int unit)
- 	return ret;
- }
- 
-+static inline void hfi1_setup_ib_header(struct hfi1_packet *packet)
-+{
-+	packet->hdr = (struct hfi1_ib_message_header *)
-+			hfi1_get_msgheader(packet->rcd->dd,
-+					   packet->rhf_addr);
-+	packet->hlen = (u8 *)packet->rhf_addr - (u8 *)packet->hdr;
-+}
-+
-+static int hfi1_setup_9B_packet(struct hfi1_packet *packet)
-+{
-+	struct hfi1_ibport *ibp = rcd_to_iport(packet->rcd);
-+	struct ib_header *hdr;
-+	u8 lnh;
-+
-+	hfi1_setup_ib_header(packet);
-+	hdr = packet->hdr;
-+
-+	lnh = ib_get_lnh(hdr);
-+	if (lnh == HFI1_LRH_BTH) {
-+		packet->ohdr = &hdr->u.oth;
-+		packet->grh = NULL;
-+	} else if (lnh == HFI1_LRH_GRH) {
-+		u32 vtf;
-+
-+		packet->ohdr = &hdr->u.l.oth;
-+		packet->grh = &hdr->u.l.grh;
-+		if (packet->grh->next_hdr != IB_GRH_NEXT_HDR)
-+			goto drop;
-+		vtf = be32_to_cpu(packet->grh->version_tclass_flow);
-+		if ((vtf >> IB_GRH_VERSION_SHIFT) != IB_GRH_VERSION)
-+			goto drop;
-+	} else {
-+		goto drop;
-+	}
-+
-+	/* Query commonly used fields from packet header */
-+	packet->opcode = ib_bth_get_opcode(packet->ohdr);
-+	packet->slid = ib_get_slid(hdr);
-+	packet->dlid = ib_get_dlid(hdr);
-+	packet->sl = ib_get_sl(hdr);
-+	packet->sc = hfi1_9B_get_sc5(hdr, packet->rhf);
-+	packet->pad = ib_bth_get_pad(packet->ohdr);
-+	packet->extra_byte = 0;
-+	packet->fecn = ib_bth_get_fecn(packet->ohdr);
-+	packet->becn = ib_bth_get_becn(packet->ohdr);
-+
-+	return 0;
-+drop:
-+	ibp->rvp.n_pkt_drops++;
-+	return -EINVAL;
-+}
-+
- void handle_eflags(struct hfi1_packet *packet)
- {
- 	struct hfi1_ctxtdata *rcd = packet->rcd;
-@@ -1351,6 +1408,9 @@ int process_receive_ib(struct hfi1_packet *packet)
- 	if (unlikely(hfi1_dbg_fault_packet(packet)))
- 		return RHF_RCV_CONTINUE;
- 
-+	if (hfi1_setup_9B_packet(packet))
-+		return RHF_RCV_CONTINUE;
-+
- 	trace_hfi1_rcvhdr(packet->rcd->ppd->dd,
- 			  packet->rcd->ctxt,
- 			  rhf_err_flags(packet->rhf),
-@@ -1422,6 +1482,7 @@ int process_receive_error(struct hfi1_packet *packet)
- 		 rhf_rcv_type_err(packet->rhf) == 3))
- 		return RHF_RCV_CONTINUE;
- 
-+	hfi1_setup_ib_header(packet);
- 	handle_eflags(packet);
- 
- 	if (unlikely(rhf_err_flags(packet->rhf)))
-@@ -1435,6 +1496,8 @@ int kdeth_process_expected(struct hfi1_packet *packet)
- {
- 	if (unlikely(hfi1_dbg_fault_packet(packet)))
- 		return RHF_RCV_CONTINUE;
-+
-+	hfi1_setup_ib_header(packet);
- 	if (unlikely(rhf_err_flags(packet->rhf)))
- 		handle_eflags(packet);
- 
-@@ -1445,6 +1508,7 @@ int kdeth_process_expected(struct hfi1_packet *packet)
- 
- int kdeth_process_eager(struct hfi1_packet *packet)
- {
-+	hfi1_setup_ib_header(packet);
- 	if (unlikely(rhf_err_flags(packet->rhf)))
- 		handle_eflags(packet);
- 	if (unlikely(hfi1_dbg_fault_packet(packet)))
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 2fb0a54..cc69b51 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -356,17 +356,26 @@ struct hfi1_packet {
- 	__le32 *rhf_addr;
- 	struct rvt_qp *qp;
- 	struct ib_other_headers *ohdr;
-+	struct ib_grh *grh;
- 	u64 rhf;
- 	u32 maxcnt;
- 	u32 rhqoff;
-+	u32 dlid;
-+	u32 slid;
- 	u16 tlen;
- 	s16 etail;
- 	u8 hlen;
- 	u8 numpkt;
- 	u8 rsize;
- 	u8 updegr;
--	u8 rcv_flags;
- 	u8 etype;
-+	u8 extra_byte;
-+	u8 pad;
-+	u8 sc;
-+	u8 sl;
-+	u8 opcode;
-+	bool becn;
-+	bool fecn;
- };
- 
- struct rvt_sge_state;
-@@ -2087,4 +2096,14 @@ static inline bool is_integrated(struct hfi1_devdata *dd)
- 
- #define DD_DEV_ENTRY(dd)       __string(dev, dev_name(&(dd)->pcidev->dev))
- #define DD_DEV_ASSIGN(dd)      __assign_str(dev, dev_name(&(dd)->pcidev->dev))
-+
-+/*
-+ * hfi1_check_mcast- Check if the given lid is
-+ * in the IB multicast range.
-+ */
-+static inline bool hfi1_check_mcast(u16 lid)
-+{
-+	return ((lid >= be16_to_cpu(IB_MULTICAST_LID_BASE)) &&
-+		(lid != be16_to_cpu(IB_LID_PERMISSIVE)));
-+}
- #endif                          /* _HFI1_KERNEL_H */
-diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
-index b443c1e..baa67bf 100644
---- a/drivers/infiniband/hw/hfi1/rc.c
-+++ b/drivers/infiniband/hw/hfi1/rc.c
-@@ -1916,17 +1916,16 @@ void process_becn(struct hfi1_pportdata *ppd, u8 sl, u16 rlid, u32 lqpn,
- void hfi1_rc_rcv(struct hfi1_packet *packet)
- {
- 	struct hfi1_ctxtdata *rcd = packet->rcd;
--	struct ib_header *hdr = packet->hdr;
--	u32 rcv_flags = packet->rcv_flags;
- 	void *data = packet->ebuf;
- 	u32 tlen = packet->tlen;
- 	struct rvt_qp *qp = packet->qp;
- 	struct hfi1_ibport *ibp = rcd_to_iport(rcd);
- 	struct ib_other_headers *ohdr = packet->ohdr;
--	u32 bth0, opcode;
-+	u32 bth0;
-+	u32 opcode = packet->opcode;
- 	u32 hdrsize = packet->hlen;
- 	u32 psn;
--	u32 pad;
-+	u32 pad = packet->pad;
- 	struct ib_wc wc;
- 	u32 pmtu = qp->pmtu;
- 	int diff;
-@@ -1938,14 +1937,13 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
- 	u32 rkey;
- 
- 	lockdep_assert_held(&qp->r_lock);
-+
- 	bth0 = be32_to_cpu(ohdr->bth[0]);
--	if (hfi1_ruc_check_hdr(ibp, hdr, rcv_flags & HFI1_HAS_GRH, qp, bth0))
-+	if (hfi1_ruc_check_hdr(ibp, packet))
- 		return;
- 
- 	is_fecn = process_ecn(qp, packet, false);
--
- 	psn = ib_bth_get_psn(ohdr);
--	opcode = ib_bth_get_opcode(ohdr);
- 
- 	/*
- 	 * Process responses (ACKs) before anything else.  Note that the
-@@ -2075,8 +2073,6 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
- 		wc.wc_flags = 0;
- 		wc.ex.imm_data = 0;
- send_last:
--		/* Get the number of bytes the message was padded by. */
--		pad = ib_bth_get_pad(ohdr);
- 		/* Check for invalid length. */
- 		/* LAST len should be >= 1 */
- 		if (unlikely(tlen < (hdrsize + pad + 4)))
-@@ -2369,28 +2365,19 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
- 
- void hfi1_rc_hdrerr(
- 	struct hfi1_ctxtdata *rcd,
--	struct ib_header *hdr,
--	u32 rcv_flags,
-+	struct hfi1_packet *packet,
- 	struct rvt_qp *qp)
- {
--	int has_grh = rcv_flags & HFI1_HAS_GRH;
--	struct ib_other_headers *ohdr;
- 	struct hfi1_ibport *ibp = rcd_to_iport(rcd);
- 	int diff;
- 	u32 opcode;
--	u32 psn, bth0;
--
--	/* Check for GRH */
--	ohdr = &hdr->u.oth;
--	if (has_grh)
--		ohdr = &hdr->u.l.oth;
-+	u32 psn;
- 
--	bth0 = be32_to_cpu(ohdr->bth[0]);
--	if (hfi1_ruc_check_hdr(ibp, hdr, has_grh, qp, bth0))
-+	if (hfi1_ruc_check_hdr(ibp, packet))
- 		return;
- 
--	psn = ib_bth_get_psn(ohdr);
--	opcode = ib_bth_get_opcode(ohdr);
-+	psn = ib_bth_get_psn(packet->ohdr);
-+	opcode = ib_bth_get_opcode(packet->ohdr);
- 
- 	/* Only deal with RDMA Writes for now */
- 	if (opcode < IB_OPCODE_RC_RDMA_READ_RESPONSE_FIRST) {
 diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
-index 3a17dab..9cc9c7b 100644
+index 9cc9c7b..476fe5d 100644
 --- a/drivers/infiniband/hw/hfi1/ruc.c
 +++ b/drivers/infiniband/hw/hfi1/ruc.c
-@@ -214,100 +214,95 @@ static int gid_ok(union ib_gid *gid, __be64 gid_prefix, __be64 id)
-  *
-  * The s_lock will be acquired around the hfi1_migrate_qp() call.
-  */
--int hfi1_ruc_check_hdr(struct hfi1_ibport *ibp, struct ib_header *hdr,
--		       int has_grh, struct rvt_qp *qp, u32 bth0)
-+int hfi1_ruc_check_hdr(struct hfi1_ibport *ibp, struct hfi1_packet *packet)
- {
- 	__be64 guid;
- 	unsigned long flags;
-+	struct rvt_qp *qp = packet->qp;
- 	u8 sc5 = ibp->sl_to_sc[rdma_ah_get_sl(&qp->remote_ah_attr)];
--
--	if (qp->s_mig_state == IB_MIG_ARMED && (bth0 & IB_BTH_MIG_REQ)) {
--		if (!has_grh) {
-+	u32 dlid = packet->dlid;
-+	u32 slid = packet->slid;
-+	u32 sl = packet->sl;
-+	int migrated;
-+	u32 bth0, bth1;
-+
-+	bth0 = be32_to_cpu(packet->ohdr->bth[0]);
-+	bth1 = be32_to_cpu(packet->ohdr->bth[1]);
-+	migrated = bth0 & IB_BTH_MIG_REQ;
-+
-+	if (qp->s_mig_state == IB_MIG_ARMED && migrated) {
-+		if (!packet->grh) {
- 			if (rdma_ah_get_ah_flags(&qp->alt_ah_attr) &
- 			    IB_AH_GRH)
--				goto err;
-+				return 1;
- 		} else {
- 			const struct ib_global_route *grh;
- 
- 			if (!(rdma_ah_get_ah_flags(&qp->alt_ah_attr) &
- 			      IB_AH_GRH))
--				goto err;
-+				return 1;
- 			grh = rdma_ah_read_grh(&qp->alt_ah_attr);
- 			guid = get_sguid(ibp, grh->sgid_index);
--			if (!gid_ok(&hdr->u.l.grh.dgid, ibp->rvp.gid_prefix,
-+			if (!gid_ok(&packet->grh->dgid, ibp->rvp.gid_prefix,
- 				    guid))
--				goto err;
-+				return 1;
- 			if (!gid_ok(
--				&hdr->u.l.grh.sgid,
-+				&packet->grh->sgid,
- 				grh->dgid.global.subnet_prefix,
- 				grh->dgid.global.interface_id))
--				goto err;
-+				return 1;
- 		}
--		if (unlikely(rcv_pkey_check(ppd_from_ibp(ibp), (u16)bth0, sc5,
--					    ib_get_slid(hdr)))) {
--			hfi1_bad_pqkey(ibp, OPA_TRAP_BAD_P_KEY,
--				       (u16)bth0,
--				       ib_get_sl(hdr),
--				       0, qp->ibqp.qp_num,
--				       ib_get_slid(hdr),
--				       ib_get_dlid(hdr));
--			goto err;
-+		if (unlikely(rcv_pkey_check(ppd_from_ibp(ibp), (u16)bth0,
-+					    sc5, slid))) {
-+			hfi1_bad_pqkey(ibp, OPA_TRAP_BAD_P_KEY, (u16)bth0, sl,
-+				       0, qp->ibqp.qp_num, slid, dlid);
-+			return 1;
- 		}
- 		/* Validate the SLID. See Ch. 9.6.1.5 and 17.2.8 */
--		if (ib_get_slid(hdr) !=
--			rdma_ah_get_dlid(&qp->alt_ah_attr) ||
-+		if (slid != rdma_ah_get_dlid(&qp->alt_ah_attr) ||
- 		    ppd_from_ibp(ibp)->port !=
- 			rdma_ah_get_port_num(&qp->alt_ah_attr))
--			goto err;
-+			return 1;
- 		spin_lock_irqsave(&qp->s_lock, flags);
- 		hfi1_migrate_qp(qp);
- 		spin_unlock_irqrestore(&qp->s_lock, flags);
- 	} else {
--		if (!has_grh) {
-+		if (!packet->grh) {
- 			if (rdma_ah_get_ah_flags(&qp->remote_ah_attr) &
- 						 IB_AH_GRH)
--				goto err;
-+				return 1;
- 		} else {
- 			const struct ib_global_route *grh;
- 
- 			if (!(rdma_ah_get_ah_flags(&qp->remote_ah_attr) &
- 						   IB_AH_GRH))
--				goto err;
-+				return 1;
- 			grh = rdma_ah_read_grh(&qp->remote_ah_attr);
- 			guid = get_sguid(ibp, grh->sgid_index);
--			if (!gid_ok(&hdr->u.l.grh.dgid, ibp->rvp.gid_prefix,
-+			if (!gid_ok(&packet->grh->dgid, ibp->rvp.gid_prefix,
- 				    guid))
--				goto err;
-+				return 1;
- 			if (!gid_ok(
--			     &hdr->u.l.grh.sgid,
-+			     &packet->grh->sgid,
- 			     grh->dgid.global.subnet_prefix,
- 			     grh->dgid.global.interface_id))
--				goto err;
-+				return 1;
- 		}
--		if (unlikely(rcv_pkey_check(ppd_from_ibp(ibp), (u16)bth0, sc5,
--					    ib_get_slid(hdr)))) {
--			hfi1_bad_pqkey(ibp, OPA_TRAP_BAD_P_KEY,
--				       (u16)bth0,
--				       ib_get_sl(hdr),
--				       0, qp->ibqp.qp_num,
--				       ib_get_slid(hdr),
--				       ib_get_dlid(hdr));
--			goto err;
-+		if (unlikely(rcv_pkey_check(ppd_from_ibp(ibp), (u16)bth0,
-+					    sc5, slid))) {
-+			hfi1_bad_pqkey(ibp, OPA_TRAP_BAD_P_KEY, (u16)bth0, sl,
-+				       0, qp->ibqp.qp_num, slid, dlid);
-+			return 1;
- 		}
- 		/* Validate the SLID. See Ch. 9.6.1.5 */
--		if (ib_get_slid(hdr) !=
--			rdma_ah_get_dlid(&qp->remote_ah_attr) ||
-+		if ((slid != rdma_ah_get_dlid(&qp->remote_ah_attr)) ||
- 		    ppd_from_ibp(ibp)->port != qp->port_num)
--			goto err;
--		if (qp->s_mig_state == IB_MIG_REARM &&
--		    !(bth0 & IB_BTH_MIG_REQ))
-+			return 1;
-+		if (qp->s_mig_state == IB_MIG_REARM && !migrated)
- 			qp->s_mig_state = IB_MIG_ARMED;
- 	}
- 
- 	return 0;
--
--err:
--	return 1;
+@@ -75,7 +75,7 @@ static int init_sge(struct rvt_qp *qp, struct rvt_rwqe *wqe)
+ 			continue;
+ 		/* Check LKEY */
+ 		if (!rvt_lkey_ok(rkt, pd, j ? &ss->sg_list[j - 1] : &ss->sge,
+-				 &wqe->sg_list[i], IB_ACCESS_LOCAL_WRITE))
++				 NULL, &wqe->sg_list[i], IB_ACCESS_LOCAL_WRITE))
+ 			goto bad_lkey;
+ 		qp->r_len += wqe->sg_list[i].length;
+ 		j++;
+diff --git a/drivers/infiniband/hw/qib/qib_ruc.c b/drivers/infiniband/hw/qib/qib_ruc.c
+index bd09de7..88d84cb 100644
+--- a/drivers/infiniband/hw/qib/qib_ruc.c
++++ b/drivers/infiniband/hw/qib/qib_ruc.c
+@@ -59,7 +59,7 @@ static int qib_init_sge(struct rvt_qp *qp, struct rvt_rwqe *wqe)
+ 			continue;
+ 		/* Check LKEY */
+ 		if (!rvt_lkey_ok(rkt, pd, j ? &ss->sg_list[j - 1] : &ss->sge,
+-				 &wqe->sg_list[i], IB_ACCESS_LOCAL_WRITE))
++				 NULL, &wqe->sg_list[i], IB_ACCESS_LOCAL_WRITE))
+ 			goto bad_lkey;
+ 		qp->r_len += wqe->sg_list[i].length;
+ 		j++;
+diff --git a/drivers/infiniband/sw/rdmavt/mr.c b/drivers/infiniband/sw/rdmavt/mr.c
+index aa5f9ea..ea95672 100644
+--- a/drivers/infiniband/sw/rdmavt/mr.c
++++ b/drivers/infiniband/sw/rdmavt/mr.c
+@@ -778,23 +778,54 @@ int rvt_dealloc_fmr(struct ib_fmr *ibfmr)
  }
  
  /**
-diff --git a/drivers/infiniband/hw/hfi1/uc.c b/drivers/infiniband/hw/hfi1/uc.c
-index 2a5650f..76c2451 100644
---- a/drivers/infiniband/hw/hfi1/uc.c
-+++ b/drivers/infiniband/hw/hfi1/uc.c
-@@ -297,31 +297,25 @@ int hfi1_make_uc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
- void hfi1_uc_rcv(struct hfi1_packet *packet)
- {
- 	struct hfi1_ibport *ibp = rcd_to_iport(packet->rcd);
--	struct ib_header *hdr = packet->hdr;
--	u32 rcv_flags = packet->rcv_flags;
- 	void *data = packet->ebuf;
- 	u32 tlen = packet->tlen;
- 	struct rvt_qp *qp = packet->qp;
- 	struct ib_other_headers *ohdr = packet->ohdr;
--	u32 bth0, opcode;
-+	u32 opcode = packet->opcode;
- 	u32 hdrsize = packet->hlen;
- 	u32 psn;
--	u32 pad;
-+	u32 pad = packet->pad;
- 	struct ib_wc wc;
- 	u32 pmtu = qp->pmtu;
- 	struct ib_reth *reth;
--	int has_grh = rcv_flags & HFI1_HAS_GRH;
- 	int ret;
- 
--	bth0 = be32_to_cpu(ohdr->bth[0]);
--	if (hfi1_ruc_check_hdr(ibp, hdr, has_grh, qp, bth0))
-+	if (hfi1_ruc_check_hdr(ibp, packet))
- 		return;
- 
- 	process_ecn(qp, packet, true);
- 
- 	psn = ib_bth_get_psn(ohdr);
--	opcode = ib_bth_get_opcode(ohdr);
--
- 	/* Compare the PSN verses the expected PSN. */
- 	if (unlikely(cmp_psn(psn, qp->r_psn) != 0)) {
- 		/*
-@@ -432,8 +426,6 @@ void hfi1_uc_rcv(struct hfi1_packet *packet)
- 		wc.ex.imm_data = 0;
- 		wc.wc_flags = 0;
- send_last:
--		/* Get the number of bytes the message was padded by. */
--		pad = ib_bth_get_pad(ohdr);
- 		/* Check for invalid length. */
- 		/* LAST len should be >= 1 */
- 		if (unlikely(tlen < (hdrsize + pad + 4)))
-@@ -527,8 +519,6 @@ void hfi1_uc_rcv(struct hfi1_packet *packet)
- rdma_last_imm:
- 		wc.wc_flags = IB_WC_WITH_IMM;
- 
--		/* Get the number of bytes the message was padded by. */
--		pad = ib_bth_get_pad(ohdr);
- 		/* Check for invalid length. */
- 		/* LAST len should be >= 1 */
- 		if (unlikely(tlen < (hdrsize + pad + 4)))
-diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
-index 49fe179..c995aa5 100644
---- a/drivers/infiniband/hw/hfi1/ud.c
-+++ b/drivers/infiniband/hw/hfi1/ud.c
-@@ -668,36 +668,31 @@ static int opa_smp_check(struct hfi1_ibport *ibp, u16 pkey, u8 sc5,
- void hfi1_ud_rcv(struct hfi1_packet *packet)
- {
- 	struct ib_other_headers *ohdr = packet->ohdr;
--	int opcode;
- 	u32 hdrsize = packet->hlen;
- 	struct ib_wc wc;
- 	u32 qkey;
- 	u32 src_qp;
--	u16 dlid, pkey;
-+	u16 pkey;
- 	int mgmt_pkey_idx = -1;
- 	struct hfi1_ibport *ibp = rcd_to_iport(packet->rcd);
- 	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
- 	struct ib_header *hdr = packet->hdr;
--	u32 rcv_flags = packet->rcv_flags;
- 	void *data = packet->ebuf;
- 	u32 tlen = packet->tlen;
- 	struct rvt_qp *qp = packet->qp;
--	bool has_grh = rcv_flags & HFI1_HAS_GRH;
- 	u8 sc5 = hfi1_9B_get_sc5(hdr, packet->rhf);
- 	u32 bth1;
--	u8 sl_from_sc, sl;
--	u16 slid;
--	u8 extra_bytes;
-+	u8 sl_from_sc;
-+	u8 extra_bytes = packet->pad;
-+	u8 opcode = packet->opcode;
-+	u8 sl = packet->sl;
-+	u32 dlid = packet->dlid;
-+	u32 slid = packet->slid;
- 
-+	bth1 = be32_to_cpu(ohdr->bth[1]);
- 	qkey = ib_get_qkey(ohdr);
- 	src_qp = ib_get_sqpn(ohdr);
--	dlid = ib_get_dlid(hdr);
--	bth1 = be32_to_cpu(ohdr->bth[1]);
--	slid = ib_get_slid(hdr);
- 	pkey = ib_bth_get_pkey(ohdr);
--	opcode = ib_bth_get_opcode(ohdr);
--	sl = ib_get_sl(hdr);
--	extra_bytes = ib_bth_get_pad(ohdr);
- 	extra_bytes += (SIZE_OF_CRC << 2);
- 	sl_from_sc = ibp->sc_to_sl[sc5];
- 
-@@ -811,7 +806,7 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
- 		qp->r_flags |= RVT_R_REUSE_SGE;
- 		goto drop;
- 	}
--	if (has_grh) {
-+	if (packet->grh) {
- 		hfi1_copy_sge(&qp->r_sge, &hdr->u.l.grh,
- 			      sizeof(struct ib_grh), true, false);
- 		wc.wc_flags |= IB_WC_GRH;
-diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index 5f4be35..af54d3f 100644
---- a/drivers/infiniband/hw/hfi1/verbs.c
-+++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -508,13 +508,14 @@ void hfi1_copy_sge(
- /*
-  * Make sure the QP is ready and able to accept the given opcode.
-  */
--static inline opcode_handler qp_ok(int opcode, struct hfi1_packet *packet)
-+static inline opcode_handler qp_ok(struct hfi1_packet *packet)
- {
- 	if (!(ib_rvt_state_ops[packet->qp->state] & RVT_PROCESS_RECV_OK))
- 		return NULL;
--	if (((opcode & RVT_OPCODE_QP_MASK) == packet->qp->allowed_ops) ||
--	    (opcode == IB_OPCODE_CNP))
--		return opcode_handler_tbl[opcode];
-+	if (((packet->opcode & RVT_OPCODE_QP_MASK) ==
-+	     packet->qp->allowed_ops) ||
-+	    (packet->opcode == IB_OPCODE_CNP))
-+		return opcode_handler_tbl[packet->opcode];
- 
- 	return NULL;
- }
-@@ -548,68 +549,34 @@ static u64 hfi1_fault_tx(struct rvt_qp *qp, u8 opcode, u64 pbc)
- 	return pbc;
- }
- 
--/**
-- * hfi1_ib_rcv - process an incoming packet
-- * @packet: data packet information
-- *
-- * This is called to process an incoming packet at interrupt level.
-- *
-- * Tlen is the length of the header + data + CRC in bytes.
-- */
--void hfi1_ib_rcv(struct hfi1_packet *packet)
-+static inline void hfi1_handle_packet(struct hfi1_packet *packet,
-+				      bool is_mcast)
- {
-+	u32 qp_num;
- 	struct hfi1_ctxtdata *rcd = packet->rcd;
--	struct ib_header *hdr = packet->hdr;
--	u32 tlen = packet->tlen;
- 	struct hfi1_pportdata *ppd = rcd->ppd;
- 	struct hfi1_ibport *ibp = rcd_to_iport(rcd);
- 	struct rvt_dev_info *rdi = &ppd->dd->verbs_dev.rdi;
- 	opcode_handler packet_handler;
- 	unsigned long flags;
--	u32 qp_num;
--	int lnh;
--	u8 opcode;
--	u16 lid;
--
--	/* Check for GRH */
--	lnh = ib_get_lnh(hdr);
--	if (lnh == HFI1_LRH_BTH) {
--		packet->ohdr = &hdr->u.oth;
--	} else if (lnh == HFI1_LRH_GRH) {
--		u32 vtf;
--
--		packet->ohdr = &hdr->u.l.oth;
--		if (hdr->u.l.grh.next_hdr != IB_GRH_NEXT_HDR)
--			goto drop;
--		vtf = be32_to_cpu(hdr->u.l.grh.version_tclass_flow);
--		if ((vtf >> IB_GRH_VERSION_SHIFT) != IB_GRH_VERSION)
--			goto drop;
--		packet->rcv_flags |= HFI1_HAS_GRH;
--	} else {
--		goto drop;
--	}
- 
--	trace_input_ibhdr(rcd->dd, packet, !!(packet->rhf & RHF_DC_INFO_SMASK));
--	opcode = ib_bth_get_opcode(packet->ohdr);
--	inc_opstats(tlen, &rcd->opstats->stats[opcode]);
-+	inc_opstats(packet->tlen, &rcd->opstats->stats[packet->opcode]);
- 
--	/* Get the destination QP number. */
--	qp_num = ib_bth_get_qpn(packet->ohdr);
--	lid = ib_get_dlid(hdr);
--	if (unlikely((lid >= be16_to_cpu(IB_MULTICAST_LID_BASE)) &&
--		     (lid != be16_to_cpu(IB_LID_PERMISSIVE)))) {
-+	if (unlikely(is_mcast)) {
- 		struct rvt_mcast *mcast;
- 		struct rvt_mcast_qp *p;
- 
--		if (lnh != HFI1_LRH_GRH)
-+		if (!packet->grh)
- 			goto drop;
--		mcast = rvt_mcast_find(&ibp->rvp, &hdr->u.l.grh.dgid, lid);
-+		mcast = rvt_mcast_find(&ibp->rvp,
-+				       &packet->grh->dgid,
-+				       packet->dlid);
- 		if (!mcast)
- 			goto drop;
- 		list_for_each_entry_rcu(p, &mcast->qp_list, list) {
- 			packet->qp = p->qp;
- 			spin_lock_irqsave(&packet->qp->r_lock, flags);
--			packet_handler = qp_ok(opcode, packet);
-+			packet_handler = qp_ok(packet);
- 			if (likely(packet_handler))
- 				packet_handler(packet);
- 			else
-@@ -623,19 +590,21 @@ void hfi1_ib_rcv(struct hfi1_packet *packet)
- 		if (atomic_dec_return(&mcast->refcount) <= 1)
- 			wake_up(&mcast->wait);
- 	} else {
-+		/* Get the destination QP number. */
-+		qp_num = ib_bth_get_qpn(packet->ohdr);
- 		rcu_read_lock();
- 		packet->qp = rvt_lookup_qpn(rdi, &ibp->rvp, qp_num);
- 		if (!packet->qp) {
- 			rcu_read_unlock();
- 			goto drop;
- 		}
--		if (unlikely(hfi1_dbg_fault_opcode(packet->qp, opcode,
-+		if (unlikely(hfi1_dbg_fault_opcode(packet->qp, packet->opcode,
- 						   true))) {
- 			rcu_read_unlock();
- 			goto drop;
- 		}
- 		spin_lock_irqsave(&packet->qp->r_lock, flags);
--		packet_handler = qp_ok(opcode, packet);
-+		packet_handler = qp_ok(packet);
- 		if (likely(packet_handler))
- 			packet_handler(packet);
- 		else
-@@ -644,11 +613,29 @@ void hfi1_ib_rcv(struct hfi1_packet *packet)
- 		rcu_read_unlock();
- 	}
- 	return;
--
- drop:
- 	ibp->rvp.n_pkt_drops++;
- }
- 
-+/**
-+ * hfi1_ib_rcv - process an incoming packet
-+ * @packet: data packet information
++ * rvt_sge_adjacent - is isge compressible
++ * @isge: outgoing internal SGE
++ * @last_sge: last outgoing SGE written
++ * @sge: SGE to check
 + *
-+ * This is called to process an incoming packet at interrupt level.
++ * If adjacent will update last_sge to add length.
++ *
++ * Return: true if isge is adjacent to last sge
 + */
-+void hfi1_ib_rcv(struct hfi1_packet *packet)
++static inline bool rvt_sge_adjacent(struct rvt_sge *isge,
++				    struct rvt_sge *last_sge,
++				    struct ib_sge *sge)
 +{
-+	struct hfi1_ctxtdata *rcd = packet->rcd;
-+	bool is_mcast = false;
-+
-+	if (unlikely(hfi1_check_mcast(packet->dlid)))
-+		is_mcast = true;
-+
-+	trace_input_ibhdr(rcd->dd, packet,
-+			  !!(packet->rhf & RHF_DC_INFO_SMASK));
-+	hfi1_handle_packet(packet, is_mcast);
++	if (last_sge && sge->lkey == last_sge->mr->lkey &&
++	    ((uint64_t)(last_sge->vaddr + last_sge->length) == sge->addr)) {
++		if (sge->lkey) {
++			if (unlikely((sge->addr - last_sge->mr->user_base +
++			      sge->length > last_sge->mr->length)))
++				return false; /* overrun, caller will catch */
++		} else {
++			last_sge->length += sge->length;
++		}
++		last_sge->sge_length += sge->length;
++		trace_rvt_sge_adjacent(last_sge, sge);
++		return true;
++	}
++	return false;
 +}
 +
- /*
-  * This is called from a timer to check for QPs
-  * which need kernel memory in order to send a packet.
-diff --git a/drivers/infiniband/hw/hfi1/verbs.h b/drivers/infiniband/hw/hfi1/verbs.h
-index cd635d0..17b38cd 100644
---- a/drivers/infiniband/hw/hfi1/verbs.h
-+++ b/drivers/infiniband/hw/hfi1/verbs.h
-@@ -307,8 +307,7 @@ void hfi1_copy_sge(struct rvt_sge_state *ss, void *data, u32 length,
++/**
+  * rvt_lkey_ok - check IB SGE for validity and initialize
+  * @rkt: table containing lkey to check SGE against
+  * @pd: protection domain
+  * @isge: outgoing internal SGE
++ * @last_sge: last outgoing SGE written
+  * @sge: SGE to check
+  * @acc: access flags
+  *
+  * Check the IB SGE for validity and initialize our internal version
+  * of it.
+  *
+- * Return: 1 if valid and successful, otherwise returns 0.
+- *
+- * increments the reference count upon success
++ * Increments the reference count when a new sge is stored.
+  *
++ * Return: 0 if compressed, 1 if added , otherwise returns -errno.
+  */
+ int rvt_lkey_ok(struct rvt_lkey_table *rkt, struct rvt_pd *pd,
+-		struct rvt_sge *isge, struct ib_sge *sge, int acc)
++		struct rvt_sge *isge, struct rvt_sge *last_sge,
++		struct ib_sge *sge, int acc)
+ {
+ 	struct rvt_mregion *mr;
+ 	unsigned n, m;
+@@ -804,12 +835,14 @@ int rvt_lkey_ok(struct rvt_lkey_table *rkt, struct rvt_pd *pd,
+ 	 * We use LKEY == zero for kernel virtual addresses
+ 	 * (see rvt_get_dma_mr() and dma_virt_ops).
+ 	 */
+-	rcu_read_lock();
+ 	if (sge->lkey == 0) {
+ 		struct rvt_dev_info *dev = ib_to_rvt(pd->ibpd.device);
  
- void hfi1_rc_hdrerr(
- 	struct hfi1_ctxtdata *rcd,
--	struct ib_header *hdr,
--	u32 rcv_flags,
-+	struct hfi1_packet *packet,
- 	struct rvt_qp *qp);
- 
- u8 ah_to_sc(struct ib_device *ibdev, struct rdma_ah_attr *ah_attr);
-@@ -346,8 +345,7 @@ static inline u8 get_opcode(struct ib_header *h)
- 		return be32_to_cpu(h->u.l.oth.bth[0]) >> 24;
+ 		if (pd->user)
+-			goto bail;
++			return -EINVAL;
++		if (rvt_sge_adjacent(isge, last_sge, sge))
++			return 0;
++		rcu_read_lock();
+ 		mr = rcu_dereference(dev->dma_mr);
+ 		if (!mr)
+ 			goto bail;
+@@ -824,6 +857,9 @@ int rvt_lkey_ok(struct rvt_lkey_table *rkt, struct rvt_pd *pd,
+ 		isge->n = 0;
+ 		goto ok;
+ 	}
++	if (rvt_sge_adjacent(isge, last_sge, sge))
++		return 0;
++	rcu_read_lock();
+ 	mr = rcu_dereference(rkt->table[sge->lkey >> rkt->shift]);
+ 	if (!mr)
+ 		goto bail;
+@@ -874,12 +910,13 @@ int rvt_lkey_ok(struct rvt_lkey_table *rkt, struct rvt_pd *pd,
+ 	isge->m = m;
+ 	isge->n = n;
+ ok:
++	trace_rvt_sge_new(isge, sge);
+ 	return 1;
+ bail_unref:
+ 	rvt_put_mr(mr);
+ bail:
+ 	rcu_read_unlock();
+-	return 0;
++	return -EINVAL;
  }
+ EXPORT_SYMBOL(rvt_lkey_ok);
  
--int hfi1_ruc_check_hdr(struct hfi1_ibport *ibp, struct ib_header *hdr,
--		       int has_grh, struct rvt_qp *qp, u32 bth0);
-+int hfi1_ruc_check_hdr(struct hfi1_ibport *ibp, struct hfi1_packet *packet);
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index 727e81c..a3dd1e5 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -1646,7 +1646,7 @@ static int rvt_post_one_wr(struct rvt_qp *qp,
+ 	struct rvt_pd *pd;
+ 	struct rvt_dev_info *rdi = ib_to_rvt(qp->ibqp.device);
+ 	u8 log_pmtu;
+-	int ret;
++	int ret, incr;
+ 	size_t cplen;
+ 	bool reserved_op;
+ 	int local_ops_delayed = 0;
+@@ -1719,22 +1719,23 @@ static int rvt_post_one_wr(struct rvt_qp *qp,
+ 	wqe->length = 0;
+ 	j = 0;
+ 	if (wr->num_sge) {
++		struct rvt_sge *last_sge = NULL;
++
+ 		acc = wr->opcode >= IB_WR_RDMA_READ ?
+ 			IB_ACCESS_LOCAL_WRITE : 0;
+ 		for (i = 0; i < wr->num_sge; i++) {
+ 			u32 length = wr->sg_list[i].length;
+-			int ok;
  
- u32 hfi1_make_grh(struct hfi1_ibport *ibp, struct ib_grh *hdr,
- 		  const struct ib_global_route *grh, u32 hwords, u32 nwords);
+ 			if (length == 0)
+ 				continue;
+-			ok = rvt_lkey_ok(rkt, pd, &wqe->sg_list[j],
+-					 &wr->sg_list[i], acc);
+-			if (!ok) {
+-				ret = -EINVAL;
+-				goto bail_inval_free;
+-			}
++			incr = rvt_lkey_ok(rkt, pd, &wqe->sg_list[j], last_sge,
++					   &wr->sg_list[i], acc);
++			if (unlikely(incr < 0))
++				goto bail_lkey_error;
+ 			wqe->length += length;
+-			j++;
++			if (incr)
++				last_sge = &wqe->sg_list[j];
++			j += incr;
+ 		}
+ 		wqe->wr.num_sge = j;
+ 	}
+@@ -1781,12 +1782,14 @@ static int rvt_post_one_wr(struct rvt_qp *qp,
+ 		wqe->wr.send_flags &= ~RVT_SEND_RESERVE_USED;
+ 		qp->s_avail--;
+ 	}
+-	trace_rvt_post_one_wr(qp, wqe);
++	trace_rvt_post_one_wr(qp, wqe, wr->num_sge);
+ 	smp_wmb(); /* see request builders */
+ 	qp->s_head = next;
+ 
+ 	return 0;
+ 
++bail_lkey_error:
++	ret = incr;
+ bail_inval_free:
+ 	/* release mr holds */
+ 	while (j) {
+diff --git a/drivers/infiniband/sw/rdmavt/trace_mr.h b/drivers/infiniband/sw/rdmavt/trace_mr.h
+index 3318a6c..976e482 100644
+--- a/drivers/infiniband/sw/rdmavt/trace_mr.h
++++ b/drivers/infiniband/sw/rdmavt/trace_mr.h
+@@ -103,6 +103,68 @@
+ 	TP_PROTO(struct rvt_mregion *mr, u16 m, u16 n, void *v, size_t len),
+ 	TP_ARGS(mr, m, n, v, len));
+ 
++DECLARE_EVENT_CLASS(
++	rvt_sge_template,
++	TP_PROTO(struct rvt_sge *sge, struct ib_sge *isge),
++	TP_ARGS(sge, isge),
++	TP_STRUCT__entry(
++		RDI_DEV_ENTRY(ib_to_rvt(sge->mr->pd->device))
++		__field(struct rvt_mregion *, mr)
++		__field(struct rvt_sge *, sge)
++		__field(struct ib_sge *, isge)
++		__field(void *, vaddr)
++		__field(u64, ivaddr)
++		__field(u32, lkey)
++		__field(u32, sge_length)
++		__field(u32, length)
++		__field(u32, ilength)
++		__field(int, user)
++		__field(u16, m)
++		__field(u16, n)
++	),
++	TP_fast_assign(
++		RDI_DEV_ASSIGN(ib_to_rvt(sge->mr->pd->device));
++		__entry->mr = sge->mr;
++		__entry->sge = sge;
++		__entry->isge = isge;
++		__entry->vaddr = sge->vaddr;
++		__entry->ivaddr = isge->addr;
++		__entry->lkey = sge->mr->lkey;
++		__entry->sge_length = sge->sge_length;
++		__entry->length = sge->length;
++		__entry->ilength = isge->length;
++		__entry->m = sge->m;
++		__entry->n = sge->m;
++		__entry->user = ibpd_to_rvtpd(sge->mr->pd)->user;
++	),
++	TP_printk(
++		"[%s] mr %p sge %p isge %p vaddr %p ivaddr %llx lkey %x sge_length %u length %u ilength %u m %u n %u user %u",
++		__get_str(dev),
++		__entry->mr,
++		__entry->sge,
++		__entry->isge,
++		__entry->vaddr,
++		__entry->ivaddr,
++		__entry->lkey,
++		__entry->sge_length,
++		__entry->length,
++		__entry->ilength,
++		__entry->m,
++		__entry->n,
++		__entry->user
++	)
++);
++
++DEFINE_EVENT(
++	rvt_sge_template, rvt_sge_adjacent,
++	TP_PROTO(struct rvt_sge *sge, struct ib_sge *isge),
++	TP_ARGS(sge, isge));
++
++DEFINE_EVENT(
++	rvt_sge_template, rvt_sge_new,
++	TP_PROTO(struct rvt_sge *sge, struct ib_sge *isge),
++	TP_ARGS(sge, isge));
++
+ #endif /* __RVT_TRACE_MR_H */
+ 
+ #undef TRACE_INCLUDE_PATH
+diff --git a/drivers/infiniband/sw/rdmavt/trace_tx.h b/drivers/infiniband/sw/rdmavt/trace_tx.h
+index a613a22..0ef25fc 100644
+--- a/drivers/infiniband/sw/rdmavt/trace_tx.h
++++ b/drivers/infiniband/sw/rdmavt/trace_tx.h
+@@ -84,12 +84,12 @@
+ 	wr_opcode_name(RESERVED10))
+ 
+ #define POS_PRN \
+-"[%s] wqe %p wr_id %llx send_flags %x qpn %x qpt %u psn %x lpsn %x ssn %x length %u opcode 0x%.2x,%s size %u avail %u head %u last %u pid %u num_sge %u"
++"[%s] wqe %p wr_id %llx send_flags %x qpn %x qpt %u psn %x lpsn %x ssn %x length %u opcode 0x%.2x,%s size %u avail %u head %u last %u pid %u num_sge %u wr_num_sge %u"
+ 
+ TRACE_EVENT(
+ 	rvt_post_one_wr,
+-	TP_PROTO(struct rvt_qp *qp, struct rvt_swqe *wqe),
+-	TP_ARGS(qp, wqe),
++	TP_PROTO(struct rvt_qp *qp, struct rvt_swqe *wqe, int wr_num_sge),
++	TP_ARGS(qp, wqe, wr_num_sge),
+ 	TP_STRUCT__entry(
+ 		RDI_DEV_ENTRY(ib_to_rvt(qp->ibqp.device))
+ 		__field(u64, wr_id)
+@@ -108,6 +108,7 @@
+ 		__field(int, send_flags)
+ 		__field(pid_t, pid)
+ 		__field(int, num_sge)
++		__field(int, wr_num_sge)
+ 	),
+ 	TP_fast_assign(
+ 		RDI_DEV_ASSIGN(ib_to_rvt(qp->ibqp.device))
+@@ -127,6 +128,7 @@
+ 		__entry->ssn = wqe->ssn;
+ 		__entry->send_flags = wqe->wr.send_flags;
+ 		__entry->num_sge = wqe->wr.num_sge;
++		__entry->wr_num_sge = wr_num_sge;
+ 	),
+ 	TP_printk(
+ 		POS_PRN,
+@@ -146,7 +148,8 @@
+ 		__entry->head,
+ 		__entry->last,
+ 		__entry->pid,
+-		__entry->num_sge
++		__entry->num_sge,
++		__entry->wr_num_sge
+ 	)
+ );
+ 
+diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
+index 4878aaf..d0b9f91 100644
+--- a/include/rdma/rdma_vt.h
++++ b/include/rdma/rdma_vt.h
+@@ -515,7 +515,8 @@ int rvt_fast_reg_mr(struct rvt_qp *qp, struct ib_mr *ibmr, u32 key,
+ int rvt_rkey_ok(struct rvt_qp *qp, struct rvt_sge *sge,
+ 		u32 len, u64 vaddr, u32 rkey, int acc);
+ int rvt_lkey_ok(struct rvt_lkey_table *rkt, struct rvt_pd *pd,
+-		struct rvt_sge *isge, struct ib_sge *sge, int acc);
++		struct rvt_sge *isge, struct rvt_sge *last_sge,
++		struct ib_sge *sge, int acc);
+ struct rvt_mcast *rvt_mcast_find(struct rvt_ibport *ibp, union ib_gid *mgid,
+ 				 u16 lid);
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
