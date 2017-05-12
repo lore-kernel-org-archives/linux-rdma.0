@@ -1,48 +1,50 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH] IB/IPoIB: Delete an error message for a failed memory
- allocation in ipoib_dev_init_default()
-Date: Fri, 12 May 2017 22:34:20 +0200
-Message-ID: <cceafed0-9dd5-259a-634e-b93dae57e92b@users.sourceforge.net>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: iSER with policy based routing error
+Date: Fri, 12 May 2017 15:02:31 -0600
+Message-ID: <CAANLjFoB3V6_exH8TnQQobaHkz2K1Lxj0sVOVa2Q+MKAsCqCKQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: kernel-janitors-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>, Don Hiatt <don.hiatt@intel.com>, Doug Ledford <dledford@redhat.com>, Erez Shitrit <erezsh@mellanox.com>, Feras Daoud <ferasda@mellanox.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Ira Weiny <ira.weiny@intel.com>, Leon Romanovsky <leon@kernel.org>, Mark Bloch <markb@mellanox.com>, Paolo Abeni <pabeni@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Shamir Rabinovitch <shamir.rabinovitch@oracle.com>, Zhu Yanjun <yanjun.zhu@oracle.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Fri, 12 May 2017 22:22:43 +0200
+We are trying to leverage multiple cards/ports for iSER for
+performance and resiliency reasons. The ports are configured with only
+IPv6 addresses and each port is on a separate VLAN/subnet that is
+routable to each other subnet. We are using rules with tables to set a
+default gateway for each adapter/subnet based on the source IPv6
+address (policy based routing). Using TCP for iSCSI, everything works
+fine and traffic ingresses/egresses the right ports. However, when we
+try using iSER, we get connection errors.
 
-Omit an extra message for a memory allocation failure in this function.
+May 12 13:39:27 prv-0-14-roberttest kernel: iser: iser_connect:
+rdma_resolve_addr failed: -101
+May 12 13:39:27 prv-0-14-roberttest iscsid: Received iferror -101:
+Network is unreachable.
+May 12 13:39:27 prv-0-14-roberttest iscsid: cannot make a connection
+to 2604:3140:40:300:0:580:d0:0:3260 (-101,0)
 
-This issue was detected by using the Coccinelle software.
+If we put a default gateway for IPv6 in the 'default' table, then iSER
+is able to make a connection, but we can only use one port. It looks
+as if iSER is not following the rules in the default routing table to
+find the appropriate default gateway in a different table.
 
-Link: http://events.linuxfoundation.org/sites/events/files/slides/LCJ16-Refactor_Strings-WSang_0.pdf
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+In iscsiadm, we are setting up an iface with iface.net_ifacename,
+iface.ipaddress, and iface.transport_name appropriately and using that
+iface with a default gateway in the 'default' routing table works, so
+we feel confident that our problem is not with the iface
+configuration.
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 2869d1adb1de..e31237af2d57 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1618,11 +1618,8 @@ static int ipoib_dev_init_default(struct net_device *dev)
- 		goto out;
- 
- 	priv->tx_ring = vzalloc(ipoib_sendq_size * sizeof *priv->tx_ring);
--	if (!priv->tx_ring) {
--		printk(KERN_WARNING "%s: failed to allocate TX ring (%d entries)\n",
--		       priv->ca->name, ipoib_sendq_size);
-+	if (!priv->tx_ring)
- 		goto out_rx_ring_cleanup;
--	}
- 
- 	/* priv->tx_head, tx_tail & tx_outstanding are already 0 */
- 
--- 
-2.12.3
+Any ideas how to fix this? We are running CentOS 7.2 with 4.9.13 Linux
+kernel, in-box drivers and ConnectX-4 LX 25 Gb cards.
 
+Thanks.
+
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
