@@ -1,74 +1,84 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 0/6] IB/hfi1,qib: Cleanups and updates for-next
-Date: Fri, 12 May 2017 09:19:25 -0700
-Message-ID: <20170512161106.1290.45891.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 1/6] IB/hfi1: Remove unnecessary initialization
+ from tx request
+Date: Fri, 12 May 2017 09:19:36 -0700
+Message-ID: <20170512161930.1290.44487.stgit@scvm10.sc.intel.com>
+References: <20170512161106.1290.45891.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170512161106.1290.45891.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Brian Welty <brian.welty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Venkata Sandeep Dhanalakota <venkata.s.dhanalakota-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Here are some patches for-next. There are some clean ups to remove unused code
-and useless initializations. We also continue cleaning up the code by packing
-more fields into the hfi1_packet to keep them in a single place and adding
-some enhancements to the input/output header tracing.
+The tx request is unnecessarily initialized in the hot
+code path with memset(), however, there's no need to do
+this as most fields are initialized later on. this
+initialization shows to be costly in the profile.
+Remove unnecessary initialization from tx request and make
+sure all variables are initialized properly.
 
-These apply on top of the two patches I just sent for RC.
-
-Patches can can also be found in my GitHub repo at:
-https://github.com/ddalessa/kernel/tree/for-4.13
-
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+ drivers/infiniband/hw/hfi1/user_sdma.c |   12 +++++++++++-
+ 1 files changed, 11 insertions(+), 1 deletions(-)
 
-Don Hiatt (3):
-      IB/hfi1: Add functions to parse BTH/IB headers
-      IB/hfi1: Separate input/output header tracing
-      IB/hfi1: Setup common IB fields in hfi1_packet struct
+diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
+index d55339f..16fd519 100644
+--- a/drivers/infiniband/hw/hfi1/user_sdma.c
++++ b/drivers/infiniband/hw/hfi1/user_sdma.c
+@@ -607,12 +607,19 @@ int hfi1_user_sdma_process_request(struct hfi1_filedata *fd,
+ 	hfi1_cdbg(SDMA, "[%u:%u:%u] Using req/comp entry %u\n", dd->unit,
+ 		  uctxt->ctxt, fd->subctxt, info.comp_idx);
+ 	req = pq->reqs + info.comp_idx;
+-	memset(req, 0, sizeof(*req));
+ 	req->data_iovs = req_iovcnt(info.ctrl) - 1; /* subtract header vector */
++	req->data_len  = 0;
+ 	req->pq = pq;
+ 	req->cq = cq;
+ 	req->status = -1;
+ 	req->ahg_idx = -1;
++	req->iov_idx = 0;
++	req->sent = 0;
++	req->seqnum = 0;
++	req->seqcomp = 0;
++	req->seqsubmitted = 0;
++	req->flags = 0;
++	req->tids = NULL;
+ 	INIT_LIST_HEAD(&req->txps);
+ 
+ 	memcpy(&req->info, &info, sizeof(info));
+@@ -701,12 +708,14 @@ int hfi1_user_sdma_process_request(struct hfi1_filedata *fd,
+ 
+ 	/* Save all the IO vector structures */
+ 	for (i = 0; i < req->data_iovs; i++) {
++		req->iovs[i].offset = 0;
+ 		INIT_LIST_HEAD(&req->iovs[i].list);
+ 		memcpy(&req->iovs[i].iov,
+ 		       iovec + idx++,
+ 		       sizeof(req->iovs[i].iov));
+ 		ret = pin_vector_pages(req, &req->iovs[i]);
+ 		if (ret) {
++			req->data_iovs = i;
+ 			req->status = ret;
+ 			goto free_req;
+ 		}
+@@ -749,6 +758,7 @@ int hfi1_user_sdma_process_request(struct hfi1_filedata *fd,
+ 		}
+ 		req->tids = tmp;
+ 		req->n_tids = ntids;
++		req->tididx = 0;
+ 		idx++;
+ 	}
+ 
 
-Ira Weiny (1):
-      IB/hfi1: Remove unused mk_qpn function
-
-Mike Marciniszyn (1):
-      IB/rdmavt: Compress adjacent SGEs in rvt_lkey_ok()
-
-Sebastian Sanchez (1):
-      IB/hfi1: Remove unnecessary initialization from tx request
-
-
- drivers/infiniband/hw/hfi1/chip.c         |    9 -
- drivers/infiniband/hw/hfi1/chip.h         |    2 
- drivers/infiniband/hw/hfi1/common.h       |    1 
- drivers/infiniband/hw/hfi1/driver.c       |  162 ++++++++++-----
- drivers/infiniband/hw/hfi1/hfi.h          |   68 ++----
- drivers/infiniband/hw/hfi1/qp.c           |    6 -
- drivers/infiniband/hw/hfi1/rc.c           |   42 +---
- drivers/infiniband/hw/hfi1/ruc.c          |   91 ++++----
- drivers/infiniband/hw/hfi1/trace.c        |   58 +++++
- drivers/infiniband/hw/hfi1/trace_ibhdrs.h |  322 +++++++++++++++++++----------
- drivers/infiniband/hw/hfi1/trace_rx.h     |    9 +
- drivers/infiniband/hw/hfi1/uc.c           |   18 --
- drivers/infiniband/hw/hfi1/ud.c           |   27 +-
- drivers/infiniband/hw/hfi1/user_sdma.c    |   12 +
- drivers/infiniband/hw/hfi1/verbs.c        |   98 ++++-----
- drivers/infiniband/hw/hfi1/verbs.h        |    6 -
- drivers/infiniband/hw/qib/qib_ruc.c       |    2 
- drivers/infiniband/sw/rdmavt/mr.c         |   51 ++++-
- drivers/infiniband/sw/rdmavt/qp.c         |   23 +-
- drivers/infiniband/sw/rdmavt/trace_mr.h   |   62 ++++++
- drivers/infiniband/sw/rdmavt/trace_tx.h   |   11 +
- include/rdma/ib_hdrs.h                    |   84 ++++++++
- include/rdma/ib_verbs.h                   |    2 
- include/rdma/rdma_vt.h                    |    3 
- include/rdma/rdmavt_qp.h                  |    2 
- 25 files changed, 751 insertions(+), 420 deletions(-)
-
---
--Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
