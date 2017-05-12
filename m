@@ -1,7 +1,7 @@
 From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 1/5] libbnxt_re: sq needs to be augmented by 128B
-Date: Fri, 12 May 2017 06:24:22 -0400
-Message-ID: <1494584666-11064-2-git-send-email-devesh.sharma@broadcom.com>
+Subject: [PATCH 3/5] libbnxt_re: move rts to rts after a threshold
+Date: Fri, 12 May 2017 06:24:24 -0400
+Message-ID: <1494584666-11064-4-git-send-email-devesh.sharma@broadcom.com>
 References: <1494584666-11064-1-git-send-email-devesh.sharma@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1494584666-11064-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
@@ -11,99 +11,64 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 
-In order to avoid out of order completions there is a
-requirement to augment the SQ of any QP by 128B.
-This patch adds (128 + 1)B delta while SQ allocation and
-updates the queue-full determining logic.
-
-bnxt_re_query_qp is relying on whatever attributes driver
-returns. Thus, dropping to update the max_send_wr and
-max_recv_wr caps during bnxt_re_create_qp.
+Due to a know bug, h/w is stopping UD-WQE processing after
+0x800000 WQEs. Library needs to move the QP from RTS to RTS
+around half-way mark. This patch adds a simple wqe-counter
+and modfies the qp to circumvent the problem.
 
 Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- providers/bnxt_re/bnxt_re-abi.h |  2 ++
- providers/bnxt_re/memory.h      | 10 +++++++++-
- providers/bnxt_re/verbs.c       |  9 ++++++---
- 3 files changed, 17 insertions(+), 4 deletions(-)
+ providers/bnxt_re/main.h  |  3 +++
+ providers/bnxt_re/verbs.c | 12 ++++++++++++
+ 2 files changed, 15 insertions(+)
 
-diff --git a/providers/bnxt_re/bnxt_re-abi.h b/providers/bnxt_re/bnxt_re-abi.h
-index 205d8c4..73beef5 100644
---- a/providers/bnxt_re/bnxt_re-abi.h
-+++ b/providers/bnxt_re/bnxt_re-abi.h
-@@ -43,6 +43,8 @@
+diff --git a/providers/bnxt_re/main.h b/providers/bnxt_re/main.h
+index 4cc8abd..9688fec 100644
+--- a/providers/bnxt_re/main.h
++++ b/providers/bnxt_re/main.h
+@@ -54,6 +54,8 @@
  
- #define BNXT_RE_ABI_VERSION 1
+ #define DEV	"bnxt_re : "
  
-+#define BNXT_RE_FULL_FLAG_DELTA        0x80
++#define BNXT_RE_UD_QP_HW_STALL 0x400000
 +
- enum bnxt_re_wr_opcode {
- 	BNXT_RE_WR_OPCD_SEND		= 0x00,
- 	BNXT_RE_WR_OPCD_SEND_IMM	= 0x01,
-diff --git a/providers/bnxt_re/memory.h b/providers/bnxt_re/memory.h
-index 0150d80..aac0ff3 100644
---- a/providers/bnxt_re/memory.h
-+++ b/providers/bnxt_re/memory.h
-@@ -49,6 +49,14 @@ struct bnxt_re_queue {
- 	uint32_t head;
- 	uint32_t tail;
- 	uint32_t stride;
-+	/* Represents the difference between the real queue depth allocated in
-+	 * HW and the user requested queue depth and is used to correctly flag
-+	 * queue full condition based on user supplied queue depth.
-+	 * This value can vary depending on the type of queue and any HW
-+	 * requirements that mandate keeping a fixed gap between the producer
-+	 * and the consumer indices in the queue
-+	 */
-+	uint32_t diff;
- 	pthread_spinlock_t qlock;
- };
- 
-@@ -86,7 +94,7 @@ static inline void iowrite32(__u32 *dst, __le32 *src)
- /* Basic queue operation */
- static inline uint32_t bnxt_re_is_que_full(struct bnxt_re_queue *que)
- {
--	return (((que->tail + 1) & (que->depth - 1)) == que->head);
-+	return (((que->diff + que->tail) & (que->depth - 1)) == que->head);
- }
- 
- static inline uint32_t bnxt_re_is_que_empty(struct bnxt_re_queue *que)
+ struct bnxt_re_dpi {
+ 	__u32 dpindx;
+ 	__u64 *dbpage;
+@@ -113,6 +115,7 @@ struct bnxt_re_qp {
+ 	uint32_t tbl_indx;
+ 	uint32_t sq_psn;
+ 	uint32_t pending_db;
++	uint64_t wqe_cnt;
+ 	uint16_t mtu;
+ 	uint16_t qpst;
+ 	uint8_t qptyp;
 diff --git a/providers/bnxt_re/verbs.c b/providers/bnxt_re/verbs.c
-index 2768a56..35eb12d 100644
+index 7cf0b86..abe4e2e 100644
 --- a/providers/bnxt_re/verbs.c
 +++ b/providers/bnxt_re/verbs.c
-@@ -793,7 +793,11 @@ static int bnxt_re_alloc_queues(struct bnxt_re_qp *qp,
- 
- 	que = qp->sqq;
- 	que->stride = bnxt_re_get_sqe_sz();
--	que->depth = roundup_pow_of_two(attr->cap.max_send_wr + 1);
-+	/* 8916 adjustment */
-+	que->depth = roundup_pow_of_two(attr->cap.max_send_wr + 1 +
-+					BNXT_RE_FULL_FLAG_DELTA);
-+	que->diff = que->depth - attr->cap.max_send_wr;
+@@ -1240,8 +1240,20 @@ int bnxt_re_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
+ 		bnxt_re_fill_wrid(wrid, wr, bytes, qp->cap.sqsig);
+ 		bnxt_re_fill_psns(qp, psns, wr->opcode, bytes);
+ 		bnxt_re_incr_tail(sq);
++		qp->wqe_cnt++;
+ 		wr = wr->next;
+ 		bnxt_re_ring_sq_db(qp);
++		if (qp->wqe_cnt == BNXT_RE_UD_QP_HW_STALL && qp->qptyp ==
++		    IBV_QPT_UD) {
++			/* Move RTS to RTS since it is time. */
++			struct ibv_qp_attr attr;
++			int attr_mask;
 +
- 	/* psn_depth extra entries of size que->stride */
- 	psn_depth = (que->depth * sizeof(struct bnxt_re_psns)) /
- 		     que->stride;
-@@ -828,6 +832,7 @@ static int bnxt_re_alloc_queues(struct bnxt_re_qp *qp,
- 		que = qp->rqq;
- 		que->stride = bnxt_re_get_rqe_sz();
- 		que->depth = roundup_pow_of_two(attr->cap.max_recv_wr + 1);
-+		que->diff = que->depth - attr->cap.max_recv_wr;
- 		ret = bnxt_re_alloc_aligned(qp->rqq, pg_size);
- 		if (ret)
- 			goto fail;
-@@ -888,9 +893,7 @@ struct ibv_qp *bnxt_re_create_qp(struct ibv_pd *ibvpd,
- 	qp->rcq = to_bnxt_re_cq(attr->recv_cq);
- 	qp->udpi = &cntx->udpi;
- 	/* Save/return the altered Caps. */
--	attr->cap.max_send_wr = cap->max_swr;
- 	cap->max_ssge = attr->cap.max_send_sge;
--	attr->cap.max_recv_wr = cap->max_rwr;
- 	cap->max_rsge = attr->cap.max_recv_sge;
- 	cap->max_inline = attr->cap.max_inline_data;
- 	cap->sqsig = attr->sq_sig_all;
++			attr_mask = IBV_QP_STATE;
++			attr.qp_state = IBV_QPS_RTS;
++			bnxt_re_modify_qp(&qp->ibvqp, &attr, attr_mask);
++			qp->wqe_cnt = 0;
++		}
+ 	}
+ 
+ 	pthread_spin_unlock(&sq->qlock);
 -- 
 1.8.3.1
 
