@@ -1,55 +1,244 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 0/5] libbnxt_re: Critical bug fix series
-Date: Sat, 13 May 2017 13:49:15 +0300
-Message-ID: <20170513104915.GI3616@mtr-leonro.local>
-References: <1494584666-11064-1-git-send-email-devesh.sharma@broadcom.com>
+Subject: Re: [PATCH rdma-next 7/8] IB/core: Change wc.slid from 16 to 32 bits
+Date: Sat, 13 May 2017 13:55:58 +0300
+Message-ID: <20170513105558.GJ3616@mtr-leonro.local>
+References: <1494458576-6816-1-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <1494458576-6816-8-git-send-email-dasaratharaman.chandramouli@intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="NyChO5MpGs3JHJbz"
+        protocol="application/pgp-signature"; boundary="IJFRpmOek+ZRSQoz"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1494584666-11064-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1494458576-6816-8-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---NyChO5MpGs3JHJbz
+--IJFRpmOek+ZRSQoz
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, May 12, 2017 at 06:24:21AM -0400, Devesh Sharma wrote:
-> These are set of bug fix patches for the libbnxt_re user
-> space RDMA provider library. This patch series goes
-> hand-in-hand with recent bnxt_re kernel driver bug fixes.
+On Wed, May 10, 2017 at 07:22:55PM -0400, Dasaratharaman Chandramouli wrote:
+> From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >
-> Devesh Sharma (2):
->   libbnxt_re: unmap DB page during uninit ucontext
->   libbnxt_re: reset head and tail when moving to RST
+> slid field in struct ib_wc is increased to 32 bits.
+> This enables core components to use larger LIDs if needed.
+> The user ABI is unchanged and return 16 bit values when queried.
 >
-> Somnath Kotur (3):
->   libbnxt_re: sq needs to be augmented by 128B
->   libbnxt_re: fix wqe size for the 0-len posting
->   libbnxt_re: move rts to rts after a threshold
->
->  providers/bnxt_re/bnxt_re-abi.h |  2 +
->  providers/bnxt_re/main.c        |  9 +++++
->  providers/bnxt_re/main.h        |  3 ++
->  providers/bnxt_re/memory.h      | 10 ++++-
->  providers/bnxt_re/verbs.c       | 81 +++++++++++++++++++++++++++++++----------
->  5 files changed, 84 insertions(+), 21 deletions(-)
+> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/infiniband/core/cm.c            |  4 ++--
+>  drivers/infiniband/core/user_mad.c      |  2 +-
+>  drivers/infiniband/core/uverbs_cmd.c    | 11 ++++++++---
+>  drivers/infiniband/hw/hfi1/mad.c        |  2 +-
+>  drivers/infiniband/hw/mlx4/mad.c        |  6 +++---
+>  drivers/infiniband/hw/mlx5/mad.c        |  2 +-
+>  drivers/infiniband/hw/mthca/mthca_cmd.c |  4 ++--
+>  drivers/infiniband/hw/mthca/mthca_mad.c |  2 +-
+>  drivers/infiniband/sw/rdmavt/cq.c       |  2 +-
+>  include/rdma/ib_verbs.h                 |  2 +-
+>  10 files changed, 21 insertions(+), 16 deletions(-)
 
-Hi Davesh,
-
-Please use "[PATCH rdma-core ..] ..." in your submissions for rdma-core
-library.
-
-This series applied.
+I disagree that casting from u32 to u16 in various places is right
+thing to do. Please introduce simple common helper, with proper comment
+on it and meaningful name and use it safely.
 
 Thanks
 
 >
+> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+> index 1844770..6b3b0be 100644
+> --- a/drivers/infiniband/core/cm.c
+> +++ b/drivers/infiniband/core/cm.c
+> @@ -1703,7 +1703,7 @@ static void cm_process_routed_req(struct cm_req_msg *req_msg, struct ib_wc *wc)
+>  {
+>  	if (!cm_req_get_primary_subnet_local(req_msg)) {
+>  		if (req_msg->primary_local_lid == IB_LID_PERMISSIVE) {
+> -			req_msg->primary_local_lid = cpu_to_be16(wc->slid);
+> +			req_msg->primary_local_lid = cpu_to_be16((u16)wc->slid);
+>  			cm_req_set_primary_sl(req_msg, wc->sl);
+>  		}
+>
+> @@ -1713,7 +1713,7 @@ static void cm_process_routed_req(struct cm_req_msg *req_msg, struct ib_wc *wc)
+>
+>  	if (!cm_req_get_alt_subnet_local(req_msg)) {
+>  		if (req_msg->alt_local_lid == IB_LID_PERMISSIVE) {
+> -			req_msg->alt_local_lid = cpu_to_be16(wc->slid);
+> +			req_msg->alt_local_lid = cpu_to_be16((u16)wc->slid);
+>  			cm_req_set_alt_sl(req_msg, wc->sl);
+>  		}
+>
+> diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+> index 200422d..8272d65 100644
+> --- a/drivers/infiniband/core/user_mad.c
+> +++ b/drivers/infiniband/core/user_mad.c
+> @@ -229,7 +229,7 @@ static void recv_handler(struct ib_mad_agent *agent,
+>  	packet->mad.hdr.status	   = 0;
+>  	packet->mad.hdr.length	   = hdr_size(file) + mad_recv_wc->mad_len;
+>  	packet->mad.hdr.qpn	   = cpu_to_be32(mad_recv_wc->wc->src_qp);
+> -	packet->mad.hdr.lid	   = cpu_to_be16(mad_recv_wc->wc->slid);
+> +	packet->mad.hdr.lid	   = cpu_to_be16((u16)mad_recv_wc->wc->slid);
+>  	packet->mad.hdr.sl	   = mad_recv_wc->wc->sl;
+>  	packet->mad.hdr.path_bits  = mad_recv_wc->wc->dlid_path_bits;
+>  	packet->mad.hdr.pkey_index = mad_recv_wc->wc->pkey_index;
+> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+> index 6964c05..b08045f 100644
+> --- a/drivers/infiniband/core/uverbs_cmd.c
+> +++ b/drivers/infiniband/core/uverbs_cmd.c
+> @@ -1190,7 +1190,8 @@ ssize_t ib_uverbs_resize_cq(struct ib_uverbs_file *file,
+>  	return ret ? ret : in_len;
+>  }
+>
+> -static int copy_wc_to_user(void __user *dest, struct ib_wc *wc)
+> +static int copy_wc_to_user(struct ib_device *ib_dev, void __user *dest,
+> +			   struct ib_wc *wc)
+>  {
+>  	struct ib_uverbs_wc tmp;
+>
+> @@ -1204,7 +1205,11 @@ static int copy_wc_to_user(void __user *dest, struct ib_wc *wc)
+>  	tmp.src_qp		= wc->src_qp;
+>  	tmp.wc_flags		= wc->wc_flags;
+>  	tmp.pkey_index		= wc->pkey_index;
+> -	tmp.slid		= wc->slid;
+> +	if (rdma_cap_opa_ah(ib_dev, wc->port_num))
+> +		tmp.slid  = OPA_TO_IB_UCAST_LID(wc->slid);
+> +	else
+> +		tmp.slid  = (u16)wc->slid;
+> +	tmp.slid		= (u16)wc->slid;
+>  	tmp.sl			= wc->sl;
+>  	tmp.dlid_path_bits	= wc->dlid_path_bits;
+>  	tmp.port_num		= wc->port_num;
+> @@ -1248,7 +1253,7 @@ ssize_t ib_uverbs_poll_cq(struct ib_uverbs_file *file,
+>  		if (!ret)
+>  			break;
+>
+> -		ret = copy_wc_to_user(data_ptr, &wc);
+> +		ret = copy_wc_to_user(ib_dev, data_ptr, &wc);
+>  		if (ret)
+>  			goto out_put;
+>
+> diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
+> index 5977673..345b40e 100644
+> --- a/drivers/infiniband/hw/hfi1/mad.c
+> +++ b/drivers/infiniband/hw/hfi1/mad.c
+> @@ -3958,7 +3958,7 @@ static int opa_local_smp_check(struct hfi1_ibport *ibp,
+>  			       const struct ib_wc *in_wc)
+>  {
+>  	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+> -	u16 slid = in_wc->slid;
+> +	u16 slid = (u16)in_wc->slid;
+>  	u16 pkey;
+>
+>  	if (in_wc->pkey_index >= ARRAY_SIZE(ppd->pkeys))
+> diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+> index cd5bfe1..27b0cd9 100644
+> --- a/drivers/infiniband/hw/mlx4/mad.c
+> +++ b/drivers/infiniband/hw/mlx4/mad.c
+> @@ -169,7 +169,7 @@ int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int mad_ifc_flags,
+>
+>  		op_modifier |= 0x4;
+>
+> -		in_modifier |= in_wc->slid << 16;
+> +		in_modifier |= (u16)in_wc->slid << 16;
+>  	}
+>
+>  	err = mlx4_cmd_box(dev->dev, inmailbox->dma, outmailbox->dma, in_modifier,
+> @@ -625,7 +625,7 @@ int mlx4_ib_send_to_slave(struct mlx4_ib_dev *dev, int slave, u8 port,
+>  		memcpy((char *)&tun_mad->hdr.slid_mac_47_32, &(wc->smac[4]), 2);
+>  	} else {
+>  		tun_mad->hdr.sl_vid = cpu_to_be16(((u16)(wc->sl)) << 12);
+> -		tun_mad->hdr.slid_mac_47_32 = cpu_to_be16(wc->slid);
+> +		tun_mad->hdr.slid_mac_47_32 = cpu_to_be16((u16)wc->slid);
+>  	}
+>
+>  	ib_dma_sync_single_for_device(&dev->ib_dev,
+> @@ -826,7 +826,7 @@ static int ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+>  		}
+>  	}
+>
+> -	slid = in_wc ? in_wc->slid : be16_to_cpu(IB_LID_PERMISSIVE);
+> +	slid = in_wc ? (u16)in_wc->slid : be16_to_cpu(IB_LID_PERMISSIVE);
+>
+>  	if (in_mad->mad_hdr.method == IB_MGMT_METHOD_TRAP && slid == 0) {
+>  		forward_trap(to_mdev(ibdev), port_num, in_mad);
+> diff --git a/drivers/infiniband/hw/mlx5/mad.c b/drivers/infiniband/hw/mlx5/mad.c
+> index f1b56de6..e867f84 100644
+> --- a/drivers/infiniband/hw/mlx5/mad.c
+> +++ b/drivers/infiniband/hw/mlx5/mad.c
+> @@ -78,7 +78,7 @@ static int process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+>  	u16 slid;
+>  	int err;
+>
+> -	slid = in_wc ? in_wc->slid : be16_to_cpu(IB_LID_PERMISSIVE);
+> +	slid = in_wc ? (u16)in_wc->slid : be16_to_cpu(IB_LID_PERMISSIVE);
+>
+>  	if (in_mad->mad_hdr.method == IB_MGMT_METHOD_TRAP && slid == 0)
+>  		return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_CONSUMED;
+> diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.c b/drivers/infiniband/hw/mthca/mthca_cmd.c
+> index 9d83a53..507fa19 100644
+> --- a/drivers/infiniband/hw/mthca/mthca_cmd.c
+> +++ b/drivers/infiniband/hw/mthca/mthca_cmd.c
+> @@ -1921,7 +1921,7 @@ int mthca_MAD_IFC(struct mthca_dev *dev, int ignore_mkey, int ignore_bkey,
+>  			(in_wc->wc_flags & IB_WC_GRH ? 0x80 : 0);
+>  		MTHCA_PUT(inbox, val,               MAD_IFC_G_PATH_OFFSET);
+>
+> -		MTHCA_PUT(inbox, in_wc->slid,       MAD_IFC_RLID_OFFSET);
+> +		MTHCA_PUT(inbox, (u16)in_wc->slid,       MAD_IFC_RLID_OFFSET);
+>  		MTHCA_PUT(inbox, in_wc->pkey_index, MAD_IFC_PKEY_OFFSET);
+>
+>  		if (in_grh)
+> @@ -1929,7 +1929,7 @@ int mthca_MAD_IFC(struct mthca_dev *dev, int ignore_mkey, int ignore_bkey,
+>
+>  		op_modifier |= 0x4;
+>
+> -		in_modifier |= in_wc->slid << 16;
+> +		in_modifier |= (u16)in_wc->slid << 16;
+>  	}
+>
+>  	err = mthca_cmd_box(dev, inmailbox->dma, outmailbox->dma,
+> diff --git a/drivers/infiniband/hw/mthca/mthca_mad.c b/drivers/infiniband/hw/mthca/mthca_mad.c
+> index 617531f..e6911ee 100644
+> --- a/drivers/infiniband/hw/mthca/mthca_mad.c
+> +++ b/drivers/infiniband/hw/mthca/mthca_mad.c
+> @@ -205,7 +205,7 @@ int mthca_process_mad(struct ib_device *ibdev,
+>  		      u16 *out_mad_pkey_index)
+>  {
+>  	int err;
+> -	u16 slid = in_wc ? in_wc->slid : be16_to_cpu(IB_LID_PERMISSIVE);
+> +	u16 slid = in_wc ? (u16)in_wc->slid : be16_to_cpu(IB_LID_PERMISSIVE);
+>  	u16 prev_lid = 0;
+>  	struct ib_port_attr pattr;
+>  	const struct ib_mad *in_mad = (const struct ib_mad *)in;
+> diff --git a/drivers/infiniband/sw/rdmavt/cq.c b/drivers/infiniband/sw/rdmavt/cq.c
+> index 0ae2ff8..c1e4fc5 100644
+> --- a/drivers/infiniband/sw/rdmavt/cq.c
+> +++ b/drivers/infiniband/sw/rdmavt/cq.c
+> @@ -107,7 +107,7 @@ void rvt_cq_enter(struct rvt_cq *cq, struct ib_wc *entry, bool solicited)
+>  		wc->uqueue[head].src_qp = entry->src_qp;
+>  		wc->uqueue[head].wc_flags = entry->wc_flags;
+>  		wc->uqueue[head].pkey_index = entry->pkey_index;
+> -		wc->uqueue[head].slid = entry->slid;
+> +		wc->uqueue[head].slid = (u16)entry->slid;
+>  		wc->uqueue[head].sl = entry->sl;
+>  		wc->uqueue[head].dlid_path_bits = entry->dlid_path_bits;
+>  		wc->uqueue[head].port_num = entry->port_num;
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index e161968..ad7cced 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -947,7 +947,7 @@ struct ib_wc {
+>  	u32			src_qp;
+>  	int			wc_flags;
+>  	u16			pkey_index;
+> -	u16			slid;
+> +	u32			slid;
+>  	u8			sl;
+>  	u8			dlid_path_bits;
+>  	u8			port_num;	/* valid only for DR SMPs on switches */
 > --
 > 1.8.3.1
 >
@@ -58,27 +247,27 @@ Thanks
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---NyChO5MpGs3JHJbz
+--IJFRpmOek+ZRSQoz
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkW5KsACgkQ5GN7iDZy
-WKfnQg//blBBkFOfUVGQ+FDP/vyAYMJY56QmmqcDMqyzCI7Z/sLutv1Jy3v575Fu
-O1s9TWP8z3o1Qls3heOkY6AlwarlgmTO9HTFgNr/LPX1Kz+4a0CFcP2KPZf3hi8h
-usC7xGTCF3vis50qJK+YXoDxIV9+iBCGCVD3aD+T1ZruS6wDqtF4P784zYjoDMa3
-uzg6ciof9MojWhF1RSCxiM3BC5Ho3DH5i4UqI96fMwk8CyUSYFFGXONqYAp49rUD
-gWjyLFi+H0yFmTmtP82LvOJI57silx0zCqpl5iAg0QCJkY3DH7W7IMeX6fOa6hxy
-EZppr93n/7DAleVHXc0W2Ka+BufZyZlvgY8QGqRbCssnNjzBIjw8vtrVZoG9UcgP
-/y2pCDHB3s7xOpfUCUsBSKh9dc6QDOUr4dBPHUdf/KVYbwg/50/G7DFmaVH3ogrc
-JNjk64eGS9gD/J6YRtWO9MtXUjP7wqKGinrOQHoMdPyvEVL2fCdwIfQOCUIIPIw2
-0tnlr6S0ArQG3+9lBJ6Xa0vJ06Pcq1D/FS07eqW0bkfhVUJFG3IYr5GKdHQdtZHd
-gLxcPlUuwHpor0RRdTfrpAYBG8APLDdPmmIHNr8OFdpWVDu5xTnDEz5TXfUzXUd9
-5qfvVkcjAYtK+RIkrNFoMNuX8IrJHXw0N/uQb48SOAcbLZ9HvPw=
-=t/UQ
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkW5j0ACgkQ5GN7iDZy
+WKeFGQ/+JuGiZLr8ctccw68CVBypkN0b0EhrJavP2m6Zgh7QzF0/dRkPcafDvyp4
+0ZMNFrLFyDA3rRG4QvNgfuFg/W8EEQmlXtsqtMj3IDjKEemgPuirytDQR2gacC/v
+N7d50aW8HC+pj3eRrdct7XRjy1BP1f2TdCFHSaV534a4OJ73PTh17wMxy2XmJpav
+z0AVxLPSNGRuGTrQJ/qzMUHh8uMoqPcRIqJeIxT7xNau01RJPEz9nkrsftEBfXR7
++Y/GZYtO+yv/NcDC/2VpzrTHKTB8H99GHwwhG9r2iBgJjBMcR6fNakS6n/9wsqd5
+zmAGvNr82Mj0j6kfC/xv8I7t6ruIQs5HtPhIg8WYsZc6/CfPsECQw69AN6XiUZWa
+cMf7EXSSQU51MNuv+gUk5agsOgo9l3vUC3dX7tW9q4EptjbAq83CdN/V1RUjj9px
+PX7ArnuVr2hSAy6uzI8iNXBWfTNCtbxNGRNQF92JF+4RGcUiMzqMkzcuu/Yi7Py2
+Vczhis9mYS7ptBxW3BZvFcc8uX/WXOdPmUlSwFZDAykGgRKMrXnL/Q1ssXlKnRdp
+U0SpWMR43ontgRjpB+DvHxfP4Q0pl+n9u/Uj8S3ZN2u+kuEValPPAoNfAlRO6qSR
+iP9Q8A4GCsoNrjSoHk7KEdKOnUTV+CSv89ivZ6ngYXmji0JhXx4=
+=fYs0
 -----END PGP SIGNATURE-----
 
---NyChO5MpGs3JHJbz--
+--IJFRpmOek+ZRSQoz--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
