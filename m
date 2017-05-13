@@ -1,49 +1,84 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: iSER with policy based routing error
-Date: Fri, 12 May 2017 15:02:31 -0600
-Message-ID: <CAANLjFoB3V6_exH8TnQQobaHkz2K1Lxj0sVOVa2Q+MKAsCqCKQ@mail.gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 0/5] libbnxt_re: Critical bug fix series
+Date: Sat, 13 May 2017 13:49:15 +0300
+Message-ID: <20170513104915.GI3616@mtr-leonro.local>
+References: <1494584666-11064-1-git-send-email-devesh.sharma@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="NyChO5MpGs3JHJbz"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1494584666-11064-1-git-send-email-devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-We are trying to leverage multiple cards/ports for iSER for
-performance and resiliency reasons. The ports are configured with only
-IPv6 addresses and each port is on a separate VLAN/subnet that is
-routable to each other subnet. We are using rules with tables to set a
-default gateway for each adapter/subnet based on the source IPv6
-address (policy based routing). Using TCP for iSCSI, everything works
-fine and traffic ingresses/egresses the right ports. However, when we
-try using iSER, we get connection errors.
 
-May 12 13:39:27 prv-0-14-roberttest kernel: iser: iser_connect:
-rdma_resolve_addr failed: -101
-May 12 13:39:27 prv-0-14-roberttest iscsid: Received iferror -101:
-Network is unreachable.
-May 12 13:39:27 prv-0-14-roberttest iscsid: cannot make a connection
-to 2604:3140:40:300:0:580:d0:0:3260 (-101,0)
+--NyChO5MpGs3JHJbz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-If we put a default gateway for IPv6 in the 'default' table, then iSER
-is able to make a connection, but we can only use one port. It looks
-as if iSER is not following the rules in the default routing table to
-find the appropriate default gateway in a different table.
+On Fri, May 12, 2017 at 06:24:21AM -0400, Devesh Sharma wrote:
+> These are set of bug fix patches for the libbnxt_re user
+> space RDMA provider library. This patch series goes
+> hand-in-hand with recent bnxt_re kernel driver bug fixes.
+>
+> Devesh Sharma (2):
+>   libbnxt_re: unmap DB page during uninit ucontext
+>   libbnxt_re: reset head and tail when moving to RST
+>
+> Somnath Kotur (3):
+>   libbnxt_re: sq needs to be augmented by 128B
+>   libbnxt_re: fix wqe size for the 0-len posting
+>   libbnxt_re: move rts to rts after a threshold
+>
+>  providers/bnxt_re/bnxt_re-abi.h |  2 +
+>  providers/bnxt_re/main.c        |  9 +++++
+>  providers/bnxt_re/main.h        |  3 ++
+>  providers/bnxt_re/memory.h      | 10 ++++-
+>  providers/bnxt_re/verbs.c       | 81 +++++++++++++++++++++++++++++++----------
+>  5 files changed, 84 insertions(+), 21 deletions(-)
 
-In iscsiadm, we are setting up an iface with iface.net_ifacename,
-iface.ipaddress, and iface.transport_name appropriately and using that
-iface with a default gateway in the 'default' routing table works, so
-we feel confident that our problem is not with the iface
-configuration.
+Hi Davesh,
 
-Any ideas how to fix this? We are running CentOS 7.2 with 4.9.13 Linux
-kernel, in-box drivers and ConnectX-4 LX 25 Gb cards.
+Please use "[PATCH rdma-core ..] ..." in your submissions for rdma-core
+library.
 
-Thanks.
+This series applied.
 
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+Thanks
+
+>
+> --
+> 1.8.3.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--NyChO5MpGs3JHJbz
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkW5KsACgkQ5GN7iDZy
+WKfnQg//blBBkFOfUVGQ+FDP/vyAYMJY56QmmqcDMqyzCI7Z/sLutv1Jy3v575Fu
+O1s9TWP8z3o1Qls3heOkY6AlwarlgmTO9HTFgNr/LPX1Kz+4a0CFcP2KPZf3hi8h
+usC7xGTCF3vis50qJK+YXoDxIV9+iBCGCVD3aD+T1ZruS6wDqtF4P784zYjoDMa3
+uzg6ciof9MojWhF1RSCxiM3BC5Ho3DH5i4UqI96fMwk8CyUSYFFGXONqYAp49rUD
+gWjyLFi+H0yFmTmtP82LvOJI57silx0zCqpl5iAg0QCJkY3DH7W7IMeX6fOa6hxy
+EZppr93n/7DAleVHXc0W2Ka+BufZyZlvgY8QGqRbCssnNjzBIjw8vtrVZoG9UcgP
+/y2pCDHB3s7xOpfUCUsBSKh9dc6QDOUr4dBPHUdf/KVYbwg/50/G7DFmaVH3ogrc
+JNjk64eGS9gD/J6YRtWO9MtXUjP7wqKGinrOQHoMdPyvEVL2fCdwIfQOCUIIPIw2
+0tnlr6S0ArQG3+9lBJ6Xa0vJ06Pcq1D/FS07eqW0bkfhVUJFG3IYr5GKdHQdtZHd
+gLxcPlUuwHpor0RRdTfrpAYBG8APLDdPmmIHNr8OFdpWVDu5xTnDEz5TXfUzXUd9
+5qfvVkcjAYtK+RIkrNFoMNuX8IrJHXw0N/uQb48SOAcbLZ9HvPw=
+=t/UQ
+-----END PGP SIGNATURE-----
+
+--NyChO5MpGs3JHJbz--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
