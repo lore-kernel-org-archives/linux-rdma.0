@@ -1,53 +1,64 @@
 From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-rc] IB/IPoIB: Limit the ipoib_dev_uninit_default
- scope
-Date: Sun, 14 May 2017 21:26:15 +0300
-Message-ID: <20170514182614.GB28994@yuval-lap>
-References: <20170514103206.6777-1-leon@kernel.org>
+Subject: Re: [PATCH v4] net/mlx4_core: Use min3 to select number of MSI-X
+ vectors
+Date: Sun, 14 May 2017 22:01:34 +0300
+Message-ID: <20170514190133.GC28994@yuval-lap>
+References: <1494569451-2567-1-git-send-email-yuval.shaia@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170514103206.6777-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1494569451-2567-1-git-send-email-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, May 14, 2017 at 01:32:06PM +0300, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> ipoib_dev_uninit_default() call is used in ipoib_main.c file only
-> and it generates the following warning from smatch tool:
-> 	drivers/infiniband/ulp/ipoib/ipoib_main.c:1593:6: warning:
-> 	symbol 'ipoib_dev_uninit_default' was not declared. Should it
-> 	be static?
-> 
-> so let's declare that function as static.
-> 
-> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Fri, May 12, 2017 at 09:10:51AM +0300, Yuval Shaia wrote:
+> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 > ---
->  drivers/infiniband/ulp/ipoib/ipoib_main.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> index 2869d1adb1de..a115c0b7a310 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> @@ -1590,7 +1590,7 @@ static void ipoib_neigh_hash_uninit(struct net_device *dev)
->  	wait_for_completion(&priv->ntbl.deleted);
->  }
-> 
-> -void ipoib_dev_uninit_default(struct net_device *dev)
-> +static void ipoib_dev_uninit_default(struct net_device *dev)
->  {
->  	struct ipoib_dev_priv *priv = ipoib_priv(dev);
-> 
+> v0 -> v1:
+> 	* s/"min_t("/"min_t(int"
+> v1 -> v2:
+> 	* Use min3 instead of min_t twice
+> v2 -> v3:
+> 	* Change commit log header message to reflect the changes made in
+> 	  v2
+> v3 -> v4:
+> 	* Cast return value from num_online_cpus to int to avoid
+> 	  compilation errors from "sparse"
 
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Hi Leon,
+Got your r-b for v3, can you please review v4?
 
-> --
-> 2.12.2
+Thanks,
+
+> ---
+>  drivers/net/ethernet/mellanox/mlx4/main.c | 10 ++++------
+>  1 file changed, 4 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+> index 7032054..83aab1e 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/main.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+> @@ -2862,12 +2862,10 @@ static void mlx4_enable_msi_x(struct mlx4_dev *dev)
+>  	int port = 0;
+>  
+>  	if (msi_x) {
+> -		int nreq = dev->caps.num_ports * num_online_cpus() + 1;
+> -
+> -		nreq = min_t(int, dev->caps.num_eqs - dev->caps.reserved_eqs,
+> -			     nreq);
+> -		if (nreq > MAX_MSIX)
+> -			nreq = MAX_MSIX;
+> +		int nreq = min3(dev->caps.num_ports *
+> +				(int)num_online_cpus() + 1,
+> +				dev->caps.num_eqs - dev->caps.reserved_eqs,
+> +				MAX_MSIX);
+>  
+>  		entries = kcalloc(nreq, sizeof *entries, GFP_KERNEL);
+>  		if (!entries)
+> -- 
+> 2.7.4
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
