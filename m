@@ -1,41 +1,103 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc] IB/IPoIB: Limit the ipoib_dev_uninit_default scope
-Date: Sun, 14 May 2017 13:32:06 +0300
-Message-ID: <20170514103206.6777-1-leon@kernel.org>
+Subject: [PATCH rdma-next v2] RDMA/netlink: Reduce exposure of RDMA netlink functions
+Date: Sun, 14 May 2017 15:49:57 +0300
+Message-ID: <20170514124957.964-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-ipoib_dev_uninit_default() call is used in ipoib_main.c file only
-and it generates the following warning from smatch tool:
-	drivers/infiniband/ulp/ipoib/ipoib_main.c:1593:6: warning:
-	symbol 'ipoib_dev_uninit_default' was not declared. Should it
-	be static?
+RDMA netlink is part of ib_core, hence ibnl_chk_listeners(),
+ibnl_init() and ibnl_cleanup() don't need to be published
+in public header file.
 
-so let's declare that function as static.
+Let's remove EXPORT_SYMBOL from ibnl_chk_listeners() and move all these
+functions to private header file.
 
+CC: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Changes from v1:
+ * Include core_priv.h file and get rid from sparse errors.
+Changes from v0:
+ * Move ibnl_init(), ibnl_cleanup() and ibnl_chk_listeners() functions to private header.
+ * Change titile and commit message to reflect that change
+---
+ drivers/infiniband/core/core_priv.h | 10 ++++++++++
+ drivers/infiniband/core/netlink.c   |  2 +-
+ include/rdma/rdma_netlink.h         | 10 ----------
+ 3 files changed, 11 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 2869d1adb1de..a115c0b7a310 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1590,7 +1590,7 @@ static void ipoib_neigh_hash_uninit(struct net_device *dev)
- 	wait_for_completion(&priv->ntbl.deleted);
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index cb7d372e4bdf..d92ab4eaa8f3 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -169,6 +169,16 @@ void ib_mad_cleanup(void);
+ int ib_sa_init(void);
+ void ib_sa_cleanup(void);
+
++int ibnl_init(void);
++void ibnl_cleanup(void);
++
++/**
++ * Check if there are any listeners to the netlink group
++ * @group: the netlink group ID
++ * Returns 0 on success or a negative for no listeners.
++ */
++int ibnl_chk_listeners(unsigned int group);
++
+ int ib_nl_handle_resolve_resp(struct sk_buff *skb,
+ 			      struct netlink_callback *cb);
+ int ib_nl_handle_set_timeout(struct sk_buff *skb,
+diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+index 10469b0088b5..de90f5307ac7 100644
+--- a/drivers/infiniband/core/netlink.c
++++ b/drivers/infiniband/core/netlink.c
+@@ -37,6 +37,7 @@
+ #include <net/net_namespace.h>
+ #include <net/sock.h>
+ #include <rdma/rdma_netlink.h>
++#include "core_priv.h"
+
+ struct ibnl_client {
+ 	struct list_head		list;
+@@ -55,7 +56,6 @@ int ibnl_chk_listeners(unsigned int group)
+ 		return -1;
+ 	return 0;
  }
+-EXPORT_SYMBOL(ibnl_chk_listeners);
 
--void ipoib_dev_uninit_default(struct net_device *dev)
-+static void ipoib_dev_uninit_default(struct net_device *dev)
- {
- 	struct ipoib_dev_priv *priv = ipoib_priv(dev);
+ int ibnl_add_client(int index, int nops,
+ 		    const struct ibnl_client_cbs cb_table[])
+diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
+index 585266144329..348c102cb5f6 100644
+--- a/include/rdma/rdma_netlink.h
++++ b/include/rdma/rdma_netlink.h
+@@ -10,9 +10,6 @@ struct ibnl_client_cbs {
+ 	struct module *module;
+ };
 
+-int ibnl_init(void);
+-void ibnl_cleanup(void);
+-
+ /**
+  * Add a a client to the list of IB netlink exporters.
+  * @index: Index of the added client
+@@ -77,11 +74,4 @@ int ibnl_unicast(struct sk_buff *skb, struct nlmsghdr *nlh,
+ int ibnl_multicast(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			unsigned int group, gfp_t flags);
+
+-/**
+- * Check if there are any listeners to the netlink group
+- * @group: the netlink group ID
+- * Returns 0 on success or a negative for no listeners.
+- */
+-int ibnl_chk_listeners(unsigned int group);
+-
+ #endif /* _RDMA_NETLINK_H */
 --
 2.12.2
 
