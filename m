@@ -1,107 +1,30 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next v2] RDMA/netlink: Reduce exposure of RDMA netlink functions
-Date: Sun, 14 May 2017 15:49:57 +0300
-Message-ID: <20170514124957.964-1-leon@kernel.org>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] net/smc: mark as BROKEN due to remote memory exposure
+Date: Sun, 14 May 2017 11:51:16 -0400 (EDT)
+Message-ID: <20170514.115116.499149210596634881.davem@davemloft.net>
+References: <20170510072627.12060-1-hch@lst.de>
+        <1494514662.2489.1.camel@sandisk.com>
+        <20170514055848.GA23149@lst.de>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20170514055848.GA23149@lst.de>
+Sender: stable-owner@vger.kernel.org
+To: hch@lst.de
+Cc: Bart.VanAssche@sandisk.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, stable@vger.kernel.org, ubraun@linux.vnet.ibm.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sun, 14 May 2017 07:58:48 +0200
 
-RDMA netlink is part of ib_core, hence ibnl_chk_listeners(),
-ibnl_init() and ibnl_cleanup() don't need to be published
-in public header file.
+> this patch has not been superceeded by anything, can you explain why
+> it has been marked as such in patchworks?
 
-Let's remove EXPORT_SYMBOL from ibnl_chk_listeners() and move all these
-functions to private header file.
+I think you're being overbearing by requiring this to be marked BROKEN
+and I would like you to explore other ways with the authors to fix
+whatever perceived problems you think SMC has.
 
-CC: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-Changes from v1:
- * Include core_priv.h file and get rid from sparse errors.
-Changes from v0:
- * Move ibnl_init(), ibnl_cleanup() and ibnl_chk_listeners() functions to private header.
- * Change titile and commit message to reflect that change
----
- drivers/infiniband/core/core_priv.h | 10 ++++++++++
- drivers/infiniband/core/netlink.c   |  2 +-
- include/rdma/rdma_netlink.h         | 10 ----------
- 3 files changed, 11 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index cb7d372e4bdf..d92ab4eaa8f3 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -169,6 +169,16 @@ void ib_mad_cleanup(void);
- int ib_sa_init(void);
- void ib_sa_cleanup(void);
-
-+int ibnl_init(void);
-+void ibnl_cleanup(void);
-+
-+/**
-+ * Check if there are any listeners to the netlink group
-+ * @group: the netlink group ID
-+ * Returns 0 on success or a negative for no listeners.
-+ */
-+int ibnl_chk_listeners(unsigned int group);
-+
- int ib_nl_handle_resolve_resp(struct sk_buff *skb,
- 			      struct netlink_callback *cb);
- int ib_nl_handle_set_timeout(struct sk_buff *skb,
-diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-index 10469b0088b5..de90f5307ac7 100644
---- a/drivers/infiniband/core/netlink.c
-+++ b/drivers/infiniband/core/netlink.c
-@@ -37,6 +37,7 @@
- #include <net/net_namespace.h>
- #include <net/sock.h>
- #include <rdma/rdma_netlink.h>
-+#include "core_priv.h"
-
- struct ibnl_client {
- 	struct list_head		list;
-@@ -55,7 +56,6 @@ int ibnl_chk_listeners(unsigned int group)
- 		return -1;
- 	return 0;
- }
--EXPORT_SYMBOL(ibnl_chk_listeners);
-
- int ibnl_add_client(int index, int nops,
- 		    const struct ibnl_client_cbs cb_table[])
-diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
-index 585266144329..348c102cb5f6 100644
---- a/include/rdma/rdma_netlink.h
-+++ b/include/rdma/rdma_netlink.h
-@@ -10,9 +10,6 @@ struct ibnl_client_cbs {
- 	struct module *module;
- };
-
--int ibnl_init(void);
--void ibnl_cleanup(void);
--
- /**
-  * Add a a client to the list of IB netlink exporters.
-  * @index: Index of the added client
-@@ -77,11 +74,4 @@ int ibnl_unicast(struct sk_buff *skb, struct nlmsghdr *nlh,
- int ibnl_multicast(struct sk_buff *skb, struct nlmsghdr *nlh,
- 			unsigned int group, gfp_t flags);
-
--/**
-- * Check if there are any listeners to the netlink group
-- * @group: the netlink group ID
-- * Returns 0 on success or a negative for no listeners.
-- */
--int ibnl_chk_listeners(unsigned int group);
--
- #endif /* _RDMA_NETLINK_H */
---
-2.12.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+You claim that this is somehow "urgent" is false.  You can ask
+distributions to disable SMC or whatever in the short term if it
+reallly, truly, bothers you.
