@@ -1,70 +1,317 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 09/14] RDMA/bnxt_re: Do not free the ctx_tbl
- entry if delete GID fails
-Date: Sun, 14 May 2017 09:10:15 +0300
-Message-ID: <20170514061015.GP3616@mtr-leonro.local>
+Subject: Re: [PATCH for-next 08/14] RDMA/bnxt_re: Add vlan tag for untagged
+ RoCE traffic when PFC is configured
+Date: Sun, 14 May 2017 09:23:49 +0300
+Message-ID: <20170514062349.GQ3616@mtr-leonro.local>
 References: <1494413139-11883-1-git-send-email-selvin.xavier@broadcom.com>
- <1494413139-11883-10-git-send-email-selvin.xavier@broadcom.com>
+ <1494413139-11883-9-git-send-email-selvin.xavier@broadcom.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="xNm6VWMD3PcA105u"
+        protocol="application/pgp-signature"; boundary="s3R87C3fwYeCSZ0b"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1494413139-11883-10-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1494413139-11883-9-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kalesh AP <kalesh-anakkur.purayil-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---xNm6VWMD3PcA105u
+--s3R87C3fwYeCSZ0b
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, May 10, 2017 at 03:45:34AM -0700, Selvin Xavier wrote:
-> Do not free context table entry if delete GID fails. Stack may call
-> back the add_gid for the same context again which could result in
-> panic
-
-"may call" ??? Will you leave memory leak if this "may call" won't happen?
-
-
+On Wed, May 10, 2017 at 03:45:33AM -0700, Selvin Xavier wrote:
+> From: Kalesh AP <kalesh-anakkur.purayil-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+>
+> Current implementation does not program vlan header insertion
+> in RoCE packet if no vlan is configured. Firmware does not add
+> prority when there is no vlan tag in the packet. Modify the code
+> to insert vlan header when PFC is enabled on the interface.
 >
 > Signed-off-by: Kalesh AP <kalesh-anakkur.purayil-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 > ---
->  drivers/infiniband/hw/bnxt_re/ib_verbs.c | 16 +++++++++-------
->  1 file changed, 9 insertions(+), 7 deletions(-)
+>  drivers/infiniband/hw/bnxt_re/main.c      | 53 +++++++++++++++++++++++---
+>  drivers/infiniband/hw/bnxt_re/qplib_res.c | 10 +++++
+>  drivers/infiniband/hw/bnxt_re/qplib_res.h |  2 +
+>  drivers/infiniband/hw/bnxt_re/qplib_sp.c  | 63 ++++++++++++++++++++++++++++---
+>  drivers/infiniband/hw/bnxt_re/qplib_sp.h  |  2 +
+>  drivers/infiniband/hw/bnxt_re/roce_hsi.h  |  4 +-
+>  6 files changed, 121 insertions(+), 13 deletions(-)
 >
-> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> index 61703f3..525f4b0 100644
-> --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> @@ -375,15 +375,17 @@ int bnxt_re_del_gid(struct ib_device *ibdev, u8 port_num,
->  			return -EINVAL;
->  		ctx->refcnt--;
->  		if (!ctx->refcnt) {
-> -			rc = bnxt_qplib_del_sgid
-> -					(sgid_tbl,
-> -					 &sgid_tbl->tbl[ctx->idx], true);
-> -			if (rc)
-> +			rc = bnxt_qplib_del_sgid(sgid_tbl,
-> +						 &sgid_tbl->tbl[ctx->idx],
-> +						 true);
-> +			if (rc) {
->  				dev_err(rdev_to_dev(rdev),
->  					"Failed to remove GID: %#x", rc);
-> -			ctx_tbl = sgid_tbl->ctx;
-> -			ctx_tbl[ctx->idx] = NULL;
-> -			kfree(ctx);
-> +			} else {
-> +				ctx_tbl = sgid_tbl->ctx;
-> +				ctx_tbl[ctx->idx] = NULL;
-> +				kfree(ctx);
-> +			}
->  		}
->  	} else {
->  		return -EINVAL;
+> diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+> index 99a54fd..fd61949 100644
+> --- a/drivers/infiniband/hw/bnxt_re/main.c
+> +++ b/drivers/infiniband/hw/bnxt_re/main.c
+> @@ -840,6 +840,42 @@ static void bnxt_re_dev_stop(struct bnxt_re_dev *rdev)
+>  	mutex_unlock(&rdev->qp_lock);
+>  }
+>
+> +static int bnxt_re_update_gid(struct bnxt_re_dev *rdev)
+> +{
+> +	struct bnxt_qplib_sgid_tbl *sgid_tbl = &rdev->qplib_res.sgid_tbl;
+> +	struct bnxt_qplib_gid gid;
+> +	u16 gid_idx, index;
+> +	int rc = 0;
+> +
+> +	if (!test_bit(BNXT_RE_FLAG_IBDEV_REGISTERED, &rdev->flags))
+> +		return 0;
+> +
+> +	if (!sgid_tbl) {
+> +		dev_err(rdev_to_dev(rdev), "QPLIB: SGID table not allocated");
+> +		return -EINVAL;
+> +	}
+> +
+> +	for (index = 0; index < sgid_tbl->active; index++) {
+> +		gid_idx = sgid_tbl->hw_id[index];
+> +
+> +		if (!memcmp(&sgid_tbl->tbl[index], &bnxt_qplib_gid_zero,
+> +			    sizeof(bnxt_qplib_gid_zero)))
+> +			continue;
+> +		/* need to modify the VLAN enable setting of non VLAN GID only
+> +		 * as setting is done for VLAN GID while adding GID
+> +		 */
+> +		if (sgid_tbl->vlan[index])
+> +			continue;
+> +
+> +		memcpy(&gid, &sgid_tbl->tbl[index], sizeof(gid));
+> +
+> +		rc = bnxt_qplib_update_sgid(sgid_tbl, &gid, gid_idx,
+> +					    rdev->qplib_res.netdev->dev_addr);
+> +	}
+> +
+> +	return rc;
+> +}
+> +
+>  static u32 bnxt_re_get_priority_mask(struct bnxt_re_dev *rdev)
+>  {
+>  	u32 prio_map = 0, tmp_map = 0;
+> @@ -859,8 +895,6 @@ static u32 bnxt_re_get_priority_mask(struct bnxt_re_dev *rdev)
+>  	tmp_map = dcb_ieee_getapp_mask(netdev, &app);
+>  	prio_map |= tmp_map;
+>
+> -	if (!prio_map)
+> -		prio_map = -EFAULT;
+>  	return prio_map;
+>  }
+>
+> @@ -886,10 +920,7 @@ static int bnxt_re_setup_qos(struct bnxt_re_dev *rdev)
+>  	int rc;
+>
+>  	/* Get priority for roce */
+> -	rc = bnxt_re_get_priority_mask(rdev);
+> -	if (rc < 0)
+> -		return rc;
+> -	prio_map = (u8)rc;
+> +	prio_map = bnxt_re_get_priority_mask(rdev);
+>
+>  	if (prio_map == rdev->cur_prio_map)
+>  		return 0;
+> @@ -911,6 +942,16 @@ static int bnxt_re_setup_qos(struct bnxt_re_dev *rdev)
+>  		return rc;
+>  	}
+>
+> +	/* Actual priorities are not programmed as they are already
+> +	 * done by L2 driver; just enable or disable priority vlan tagging
+> +	 */
+> +	if ((prio_map == 0 && rdev->qplib_res.prio) ||
+> +	    (prio_map != 0 && !rdev->qplib_res.prio)) {
+> +		rdev->qplib_res.prio = prio_map ? true : false;
+> +
+> +		bnxt_re_update_gid(rdev);
+> +	}
+> +
+>  	return 0;
+>  }
+>
+> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.c b/drivers/infiniband/hw/bnxt_re/qplib_res.c
+> index 62447b3..4e10170 100644
+> --- a/drivers/infiniband/hw/bnxt_re/qplib_res.c
+> +++ b/drivers/infiniband/hw/bnxt_re/qplib_res.c
+> @@ -468,9 +468,11 @@ static void bnxt_qplib_free_sgid_tbl(struct bnxt_qplib_res *res,
+>  	kfree(sgid_tbl->tbl);
+>  	kfree(sgid_tbl->hw_id);
+>  	kfree(sgid_tbl->ctx);
+> +	kfree(sgid_tbl->vlan);
+>  	sgid_tbl->tbl = NULL;
+>  	sgid_tbl->hw_id = NULL;
+>  	sgid_tbl->ctx = NULL;
+> +	sgid_tbl->vlan = NULL;
+>  	sgid_tbl->max = 0;
+>  	sgid_tbl->active = 0;
+>  }
+> @@ -491,8 +493,15 @@ static int bnxt_qplib_alloc_sgid_tbl(struct bnxt_qplib_res *res,
+>  	if (!sgid_tbl->ctx)
+>  		goto out_free2;
+>
+> +	sgid_tbl->vlan = kcalloc(max, sizeof(u8), GFP_KERNEL);
+> +	if (!sgid_tbl->vlan)
+> +		goto out_free3;
+> +
+>  	sgid_tbl->max = max;
+>  	return 0;
+> +out_free3:
+> +	kfree(sgid_tbl->ctx);
+> +	sgid_tbl->ctx = NULL;
+>  out_free2:
+>  	kfree(sgid_tbl->hw_id);
+>  	sgid_tbl->hw_id = NULL;
+> @@ -514,6 +523,7 @@ static void bnxt_qplib_cleanup_sgid_tbl(struct bnxt_qplib_res *res,
+>  	}
+>  	memset(sgid_tbl->tbl, 0, sizeof(struct bnxt_qplib_gid) * sgid_tbl->max);
+>  	memset(sgid_tbl->hw_id, -1, sizeof(u16) * sgid_tbl->max);
+> +	memset(sgid_tbl->vlan, 0, sizeof(u8) * sgid_tbl->max);
+>  	sgid_tbl->active = 0;
+>  }
+>
+> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.h b/drivers/infiniband/hw/bnxt_re/qplib_res.h
+> index 2e48555..e872075 100644
+> --- a/drivers/infiniband/hw/bnxt_re/qplib_res.h
+> +++ b/drivers/infiniband/hw/bnxt_re/qplib_res.h
+> @@ -116,6 +116,7 @@ struct bnxt_qplib_sgid_tbl {
+>  	u16				max;
+>  	u16				active;
+>  	void				*ctx;
+> +	u8				*vlan;
+>  };
+>
+>  struct bnxt_qplib_pkey_tbl {
+> @@ -188,6 +189,7 @@ struct bnxt_qplib_res {
+>  	struct bnxt_qplib_sgid_tbl	sgid_tbl;
+>  	struct bnxt_qplib_pkey_tbl	pkey_tbl;
+>  	struct bnxt_qplib_dpi_tbl	dpi_tbl;
+> +	bool				prio;
+>  };
+>
+>  #define to_bnxt_qplib(ptr, type, member)	\
+> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.c b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
+> index fde18cf..3744d33 100644
+> --- a/drivers/infiniband/hw/bnxt_re/qplib_sp.c
+> +++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
+> @@ -197,6 +197,7 @@ int bnxt_qplib_del_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+>  	}
+>  	memcpy(&sgid_tbl->tbl[index], &bnxt_qplib_gid_zero,
+>  	       sizeof(bnxt_qplib_gid_zero));
+> +	sgid_tbl->vlan[index] = 0;
+>  	sgid_tbl->active--;
+>  	dev_dbg(&res->pdev->dev,
+>  		"QPLIB: SGID deleted hw_id[0x%x] = 0x%x active = 0x%x",
+> @@ -260,11 +261,19 @@ int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+>  		req.gid[1] = cpu_to_be32(temp32[2]);
+>  		req.gid[2] = cpu_to_be32(temp32[1]);
+>  		req.gid[3] = cpu_to_be32(temp32[0]);
+> -		if (vlan_id != 0xFFFF)
+> -			req.vlan = cpu_to_le16((vlan_id &
+> -					CMDQ_ADD_GID_VLAN_VLAN_ID_MASK) |
+> -					CMDQ_ADD_GID_VLAN_TPID_TPID_8100 |
+> -					CMDQ_ADD_GID_VLAN_VLAN_EN);
+> +		/*
+> +		 * driver should ensure that all RoCE traffic is always VLAN
+> +		 * tagged if RoCE traffic is running on non-zero VLAN ID or
+> +		 * RoCE traffic is running on non-zero Priority.
+> +		 */
+> +		if ((vlan_id != 0xFFFF) || res->prio) {
+> +			if (vlan_id != 0xFFFF)
+> +				req.vlan = cpu_to_le16
+> +				(vlan_id & CMDQ_ADD_GID_VLAN_VLAN_ID_MASK);
+> +			req.vlan |= cpu_to_le16
+> +					(CMDQ_ADD_GID_VLAN_TPID_TPID_8100 |
+> +					 CMDQ_ADD_GID_VLAN_VLAN_EN);
+> +		}
+>
+>  		/* MAC in network format */
+>  		memcpy(temp16, smac, 6);
+> @@ -281,6 +290,9 @@ int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+>  	/* Add GID to the sgid_tbl */
+>  	memcpy(&sgid_tbl->tbl[free_idx], gid, sizeof(*gid));
+>  	sgid_tbl->active++;
+> +	if (vlan_id != 0xFFFF)
+> +		sgid_tbl->vlan[free_idx] = 1;
+> +
+>  	dev_dbg(&res->pdev->dev,
+>  		"QPLIB: SGID added hw_id[0x%x] = 0x%x active = 0x%x",
+>  		 free_idx, sgid_tbl->hw_id[free_idx], sgid_tbl->active);
+> @@ -290,6 +302,47 @@ int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+>  	return 0;
+>  }
+>
+> +int bnxt_qplib_update_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+> +			   struct bnxt_qplib_gid *gid, u16 gid_idx,
+> +			   u8 *smac)
+> +{
+> +	struct bnxt_qplib_res *res = to_bnxt_qplib(sgid_tbl,
+> +						   struct bnxt_qplib_res,
+> +						   sgid_tbl);
+> +	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
+> +	struct creq_modify_gid_resp resp;
+> +	struct cmdq_modify_gid req;
+> +	int rc;
+> +	u16 cmd_flags = 0;
+> +	u32 temp32[4];
+> +	u16 temp16[3];
+> +
+> +	RCFW_CMD_PREP(req, MODIFY_GID, cmd_flags);
+> +
+> +	memcpy(temp32, gid->data, sizeof(struct bnxt_qplib_gid));
+> +	req.gid[0] = cpu_to_be32(temp32[3]);
+> +	req.gid[1] = cpu_to_be32(temp32[2]);
+> +	req.gid[2] = cpu_to_be32(temp32[1]);
+> +	req.gid[3] = cpu_to_be32(temp32[0]);
+> +	if (res->prio) {
+> +		req.vlan |= cpu_to_le16
+> +			(CMDQ_ADD_GID_VLAN_TPID_TPID_8100 |
+> +			 CMDQ_ADD_GID_VLAN_VLAN_EN);
+> +	}
+> +
+> +	/* MAC in network format */
+> +	memcpy(temp16, smac, 6);
+> +	req.src_mac[0] = cpu_to_be16(temp16[0]);
+> +	req.src_mac[1] = cpu_to_be16(temp16[1]);
+> +	req.src_mac[2] = cpu_to_be16(temp16[2]);
+> +
+
+All these memcpy to temp* are redundant, temp16[0] can be replaced by smac[0].
+the same goes for temp32.
+
+> +	req.gid_index = cpu_to_le16(gid_idx);
+> +
+> +	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> +					  (void *)&resp, NULL, 0);
+> +	return rc;
+> +}
+> +
+>  /* pkeys */
+>  int bnxt_qplib_get_pkey(struct bnxt_qplib_res *res,
+>  			struct bnxt_qplib_pkey_tbl *pkey_tbl, u16 index,
+> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.h b/drivers/infiniband/hw/bnxt_re/qplib_sp.h
+> index a543f95..e3a3ed9 100644
+> --- a/drivers/infiniband/hw/bnxt_re/qplib_sp.h
+> +++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.h
+> @@ -132,6 +132,8 @@ int bnxt_qplib_del_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+>  int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+>  			struct bnxt_qplib_gid *gid, u8 *mac, u16 vlan_id,
+>  			bool update, u32 *index);
+> +int bnxt_qplib_update_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+> +			   struct bnxt_qplib_gid *gid, u16 gid_idx, u8 *smac);
+>  int bnxt_qplib_get_pkey(struct bnxt_qplib_res *res,
+>  			struct bnxt_qplib_pkey_tbl *pkey_tbl, u16 index,
+>  			u16 *pkey);
+> diff --git a/drivers/infiniband/hw/bnxt_re/roce_hsi.h b/drivers/infiniband/hw/bnxt_re/roce_hsi.h
+> index fc23477..eeb55b2 100644
+> --- a/drivers/infiniband/hw/bnxt_re/roce_hsi.h
+> +++ b/drivers/infiniband/hw/bnxt_re/roce_hsi.h
+> @@ -1473,8 +1473,8 @@ struct cmdq_modify_gid {
+>  	u8 resp_size;
+>  	u8 reserved8;
+>  	__le64 resp_addr;
+> -	__le32 gid[4];
+> -	__le16 src_mac[3];
+> +	__be32 gid[4];
+> +	__be16 src_mac[3];
+>  	__le16 vlan;
+>  	#define CMDQ_MODIFY_GID_VLAN_VLAN_ID_MASK		    0xfffUL
+>  	#define CMDQ_MODIFY_GID_VLAN_VLAN_ID_SFT		    0
 > --
 > 2.5.5
 >
@@ -73,27 +320,27 @@ On Wed, May 10, 2017 at 03:45:34AM -0700, Selvin Xavier wrote:
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---xNm6VWMD3PcA105u
+--s3R87C3fwYeCSZ0b
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkX9McACgkQ5GN7iDZy
-WKcWQhAAlze6uJhB2eCNs8Ogr+z3UVunQXQFx373F8judUeCQckUepJxTlQyHhRS
-kNBDXkAz2HtfqlNoPEHoMUlQP6Aekic4KpfNesmUZvweP3BK3gNBbgpve+Pdjx9g
-TnnbxYvFSdg5mrQmMuMcEGeLARDXDvzaiSRFPghsurOqn6GQfTFrIspSYLy5dCwl
-3PlMnp4jot6QkQHDeU6KxPQ91Dw7axqv6+WfBC2gfBYhKCWIaHAZBApJE47aLnb7
-X8yIEEwwmhY/xylCwtcJ9qDram7bDrPSUaEmwKhLX8kh+i1l3Bwn5oBF6Lu42qrX
-NK8UERm0MDiuFYMfpW+aW/I6vGbS8a4VDAULbjOVxI54n40C1/7GPA4k1o8j2eZ4
-RopPv1yFq0HAHqXZLBfHtSoPhbn2yyhQkUg5sWfEwlNdwtU3y44p64cfEbCrLzak
-IzKsHlQpkNQnm51ZktVQUjDyIN9/Vg4QEQzuDoYX9b6Va1/a7kPhPB5CahcNOmFx
-SwbYvD9Q1OwzWW/Sc9pMVznWimOxIE3ifVkGbblNWoqLexQM0a2MLkIXi70yH+Ow
-8iha2YFBx4/yvUa014/GYuFvKDvLT9YxQ4SLgV/n5+2A2gUPykmbsXAn+WlpD0EE
-UGK1q8gZsBeic886d/nCvTY9ODrgiJKpmZ6mhrOcncAwkWWNzrY=
-=tjSB
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkX9/UACgkQ5GN7iDZy
+WKeP+A/+OVhFs5Q9FFOsuzeLzD7peVwdFhg0NkeQAq9EuTmNtLMeyefYrLawpW8U
+tT85XRs/Fdj1fA1ySn0KHj40rIviLZe4FX41GItOJ13YMbZynfwQex3MHNs7rPMu
+Bmt/AGRap/HI0zB/TKK4J4k6EegJB5DrgxVNc3lRV6FGkBU5TJzYMAlc+kM9m271
+u7vdB9rRG8KZHTOIt0rrE0MIN6P8fCf08Ovjj6Z2sGzYQLaFXzAOBRz+YdvWV4dw
+6Zq4bL8E4uC4pWVz4Sm5cX7wQF5giHMDSf+m5RyrAbZJD7rSKHSOm///YhyJ4MmS
+KfSjZfnlmoeCJdpQQkvsp8g5huseaaDtlSOLumyq8VHRs8R3LcPiS8M7bGTfKqgQ
+mxonIgeqx4ELGN3CjrNWbln9jdbiUu3rGZXnNwIdl94Hxjp8IGWyt86FQKzmbn6d
+OK8hfw619wt5TA+F8hFCLEC6MVOPvmLL4c8cFeW5aqB4Tm5KicWSFFYIPHpIOtA5
+77CSATFcLP8ZtLFgW9oN40APe2GT398HxnAm07pXiRuXTztbLippTfrtBwf3AWxN
+BF0M42nywSXYKF01rOtnpUP16Y7tIw1HZj20/SZZs94iJeNTgp8SYogs0E7x4TXT
+AM38UtzFwQljFcswWI1LDpZMbTJqZiFDQb7Ry1yUL3A5jk2862Q=
+=76mQ
 -----END PGP SIGNATURE-----
 
---xNm6VWMD3PcA105u--
+--s3R87C3fwYeCSZ0b--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
