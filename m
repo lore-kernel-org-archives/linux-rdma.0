@@ -1,81 +1,37 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] ib_core: Enable and expose force_mr module parameter
-Date: Mon, 15 May 2017 11:09:06 -0400
-Message-ID: <02AFF424-A387-47F7-BD24-61C7734B9008@oracle.com>
-References: <20170515145203.10708.16921.stgit@klimt.1015granger.net> <20170515145757.GI3616@mtr-leonro.local>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: [PATCH V3 net 0/1] net/smc and the RDMA core
+Date: Mon, 15 May 2017 17:33:36 +0200
+Message-ID: <20170515153337.31262-1-ubraun@linux.vnet.ibm.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170515145757.GI3616-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Cc: hch-jcswGhMUV9g@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jwi-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, raspl-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Ursula Braun <ursula.braun-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
 
-> On May 15, 2017, at 10:57 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> 
-> On Mon, May 15, 2017 at 10:52:44AM -0400, Chuck Lever wrote:
->> The fourth parameter of the module_param_named macro is a set of
->> file permissions. Passing 0 there means that module parameter is
->> not created and that adding "options ib_core force_mr=1" to a
->> modprobe.conf file has no effect.
->> 
->> The default setting of rdma_rw_force_mr continues to be 0, or false.
->> 
->> Fixes: a060b5629ab0 ("IB/core: generic RDMA READ/WRITE API")
->> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> 
-> Chuck,
-> 
-> Do we really need this parameter?
+Hi Dave,
 
-Hi Leon-
+as requested, here is V3 of the smc-patch with an updated commit log.
 
-Christoph and Sagi introduced this with the new rdma_rw API.
-The default behavior is to avoid the use of FRWR, even for
-devices that can support FRWR but also work without. FRWR is
-used only for iWARP devices, which require it; but FRWR can
-have a (slight) negative performance impact, which is why it
-is not the default.
+V3: update commit log
+V2: do not use _internal_mr
+V1: switch to usage of IB_PD_UNSAFE_GLOBAL_RKEY
 
-The purpose of this module parameter is to enable the use of
-FRWR for devices that can go either way, as a way to test the
-FRWR capability when using those devices.
+Kind regards, Ursula
 
-I'm not sure we _need_ to have the module parameter. But I've
-certainly used it while developing the NFSD conversion to use
-the rdma_rw API, since I have no iWARP devices here.
+Ursula Braun (1):
+  smc: switch to usage of IB_PD_UNSAFE_GLOBAL_RKEY
 
+ net/smc/smc_clc.c  |  4 ++--
+ net/smc/smc_core.c | 16 +++-------------
+ net/smc/smc_core.h |  2 +-
+ net/smc/smc_ib.c   | 21 ++-------------------
+ net/smc/smc_ib.h   |  2 --
+ 5 files changed, 8 insertions(+), 37 deletions(-)
 
->> ---
->> drivers/infiniband/core/rw.c |    2 +-
->> 1 file changed, 1 insertion(+), 1 deletion(-)
->> 
->> diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
->> index dbfd854..1cc8f07 100644
->> --- a/drivers/infiniband/core/rw.c
->> +++ b/drivers/infiniband/core/rw.c
->> @@ -23,7 +23,7 @@ enum {
->> };
->> 
->> static bool rdma_rw_force_mr;
->> -module_param_named(force_mr, rdma_rw_force_mr, bool, 0);
->> +module_param_named(force_mr, rdma_rw_force_mr, bool, 0644);
->> MODULE_PARM_DESC(force_mr, "Force usage of MRs for RDMA READ/WRITE operations");
->> 
->> /*
->> 
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---
-Chuck Lever
-
-
+-- 
+2.10.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
