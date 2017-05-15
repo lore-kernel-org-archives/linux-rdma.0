@@ -1,31 +1,31 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH rdma-next 2/4] IB/CM: Create appropriate path records
- when handling CM request
-Date: Mon, 15 May 2017 17:44:54 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB11DB23@ORSMSX109.amr.corp.intel.com>
-References: <1494458598-6911-1-git-send-email-dasaratharaman.chandramouli@intel.com>
- <1494458598-6911-3-git-send-email-dasaratharaman.chandramouli@intel.com>
- <20170513113936.GM3616@mtr-leonro.local>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] ib_core: Enable and expose force_mr module parameter
+Date: Mon, 15 May 2017 11:46:46 -0600
+Message-ID: <20170515174646.GC6229@obsidianresearch.com>
+References: <20170515145203.10708.16921.stgit@klimt.1015granger.net>
+ <20170515145757.GI3616@mtr-leonro.local>
+ <02AFF424-A387-47F7-BD24-61C7734B9008@oracle.com>
+ <20170515170021.GJ3616@mtr-leonro.local>
+ <AE3152CC-B7C8-4C51-ADDE-C3822533BB94@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170513113936.GM3616-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <AE3152CC-B7C8-4C51-ADDE-C3822533BB94-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Chandramouli, Dasaratharaman" <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > +			if (ib_is_opa_gid(&req_msg->primary_local_gid) &&
-> > +			    rdma_cap_opa_ah(work->port->cm_dev->ib_device,
-> > +					    work->port->port_num))
-> 
-> Why isn't ib_is_opa_gid enough?
+On Mon, May 15, 2017 at 01:22:59PM -0400, Chuck Lever wrote:
 
-It may be in reality, but that implies that IB and OPA are sharing GID space definitions.
+> I find the feature useful. But it is correct to say that such
+> development knobs are often left to kernel compile-time, as
+> it is not especially useful to end users.
 
-It looks like rdma_cap_opa_ah() is basically being used as a check to see if the code is handling the OPA CM protocol or IB CM protocol.  (Even though the two protocols are nearly identical).
+Put it in debugfs?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
