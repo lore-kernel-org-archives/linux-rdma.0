@@ -1,116 +1,91 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: rdma-ndd shipped by infiniband-diags and rdma-core
-Date: Mon, 15 May 2017 07:44:19 +0300
-Message-ID: <20170515044419.GW3616@mtr-leonro.local>
-References: <1494335693.3752.1.camel@profitbricks.com>
- <20170509175406.GJ10073@mtr-leonro.local>
- <2807E5FD2F6FDA4886F6618EAC48510E67CAA0F6@CRSMSX101.amr.corp.intel.com>
+From: "Raju  Rangoju" <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: RE: [PATCH 1/1] RDMA/iw_cxgb4: Avoid touch after free error in ARP
+ failure handlers
+Date: Mon, 15 May 2017 06:40:39 +0000
+Message-ID: <CY1PR12MB07747A68FB1E225E4C702791BCE10@CY1PR12MB0774.namprd12.prod.outlook.com>
+References: <20170511114354.25046-1-rajur@chelsio.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="bGopQmzlzQgFk3Fg"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E67CAA0F6-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20170511114354.25046-1-rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "'Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)'" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---bGopQmzlzQgFk3Fg
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+-----Original Message-----
+From: Raju Rangoju [mailto:rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org]=20
+Sent: 11 May 2017 17:14
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>; Raju Rangoju <rajur-ut6Up61K2waIwRZHo2/mJg@public.gmane.org=
+m>
+Subject: [PATCH 1/1] RDMA/iw_cxgb4: Avoid touch after free error in ARP fai=
+lure handlers
 
-On Mon, May 15, 2017 at 04:42:14AM +0000, Weiny, Ira wrote:
-> >
-> > On Tue, May 09, 2017 at 03:14:53PM +0200, Benjamin Drung wrote:
-> > > Hi,
-> > >
-> > > /usr/sbin/rdma-ndd is shipped by infiniband-diags (version 1.6.7-1
-> > > in
-> > > Debian) and the rdma-core package. This makes both package not
-> > > installable in parallel. rdma-ndd should be shipped by only one
-> > > source package. If rdma-core is the new upstream for it, please
-> > > remove it from infiniband-diags and publish a new release. Otherwise
-> > > I cannot add the correctly version Breaks & Replaces to the Debian pa=
-ckage.
-> >
-> > Ira,
-> >
-> > Didn't you release when you merged rdma-ndd with rdma-core?
->
-> Indeed this has been in the plans.
->
-> Leon, as I have said in the past I want to move the infiniband-diags to t=
-he Linux-rdma github but only after the libibmad merge.
->
-> For review I have put my proposed new infiniband-diags (planned v2.0) her=
-e:
->
-> https://github.com/weiny2/infiniband-diags/tree/master-new
->
-> I'd like to have Hal check it out before I push this officially and relea=
-se it.
->
-> In the meantime Leon can you set me up a repo on Linux-rdma and once we h=
-ave settled on the libibmad merge I will push there with a new v2.0 release.
+The patch 761e19a504af: "RDMA/iw_cxgb4: Handle return value of
+c4iw_ofld_send() in abort_arp_failure()" from May 6, 2016, leads to the fol=
+lowing static checker warning:
+	drivers/infiniband/hw/cxgb4/cm.c:575 abort_arp_failure()
+	warn: passing freed memory 'skb'
 
-Sure, which name do you want for this repo?
+Also fixes skb leak when l2t resolution fails
 
->
-> Ira
->
-> >
-> > Thanks
-> >
-> > >
-> > > --
-> > > Benjamin Drung
-> > > System Developer
-> > > Debian & Ubuntu Developer
-> > >
-> > > ProfitBricks GmbH
-> > > Greifswalder Str. 207
-> > > D - 10405 Berlin
-> > >
-> > > Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-> > > Web:=A0https://www.profitbricks.com
-> > >
-> > > Sitz der Gesellschaft: Berlin.
-> > > Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-> > > Gesch=E4ftsf=FChrer: Achim Weiss.
-> > >
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-rdma"
-> > > in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo
-> > > info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Fixes: 761e19a504afa55 (RDMA/iw_cxgb4: Handle return value of
+c4iw_ofld_send() in abort_arp_failure())
 
---bGopQmzlzQgFk3Fg
-Content-Type: application/pgp-signature; name="signature.asc"
+Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb4/cm.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
------BEGIN PGP SIGNATURE-----
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4=
+/cm.c
+index b6fe45924c6e..06b110213e92 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -488,6 +488,7 @@ static int _put_ep_safe(struct c4iw_dev *dev, struct sk=
+_buff *skb)
+=20
+ 	ep =3D *((struct c4iw_ep **)(skb->cb + 2 * sizeof(void *)));
+ 	release_ep_resources(ep);
++	kfree_skb(skb);
+ 	return 0;
+ }
+=20
+@@ -498,6 +499,7 @@ static int _put_pass_ep_safe(struct c4iw_dev *dev, stru=
+ct sk_buff *skb)
+ 	ep =3D *((struct c4iw_ep **)(skb->cb + 2 * sizeof(void *)));
+ 	c4iw_put_ep(&ep->parent_ep->com);
+ 	release_ep_resources(ep);
++	kfree_skb(skb);
+ 	return 0;
+ }
+=20
+@@ -569,11 +571,13 @@ static void abort_arp_failure(void *handle, struct sk=
+_buff *skb)
+=20
+ 	pr_debug("%s rdev %p\n", __func__, rdev);
+ 	req->cmd =3D CPL_ABORT_NO_RST;
++	skb_get(skb);
+ 	ret =3D c4iw_ofld_send(rdev, skb);
+ 	if (ret) {
+ 		__state_set(&ep->com, DEAD);
+ 		queue_arp_failure_cpl(ep, skb, FAKE_CPL_PUT_EP_SAFE);
+-	}
++	} else
++		kfree_skb(skb);
+ }
+=20
+ static int send_flowc(struct c4iw_ep *ep)
+--
+2.12.0
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkZMiMACgkQ5GN7iDZy
-WKeROQ/+May5JdQKmMLFdjOCW8+tWmbokMwUi+tRNlXfE1faYdhU7sfjRR6akfl1
-P5AzXBjNpzgz+UDWHMRc42PO25qCyneWsC4FE6V/mKBd/fl8IBoE/iulnKDQ/fv2
-hFuwgE2RExU6wuuyCjupkm48eQg+3mv6sWqMJr7M1NhMlKJM26bZloQrZwKNO7Bf
-FUmboSUJO9xSDNTWKREZ7UVt7hGXZlVYsdkqrHFLd9PWgWpdud55Fvw8N90JyG1o
-ImiP48TJm3NmsAY4e1KaWr9ilmaznCngDG2VVsbhQvGp4fuFEe7n4LeNqhS+CscE
-OXH1dmxU4IEGgCQap4fuOMaVaH7OsbHuWUgDSnrkgZllHJR3q5ehVjlEB1ZhbcLZ
-feoqLL8YrUdNxLrE+gkPqd+aXRkblfurGR2r/SI4skFU031tLUj+OpXdc8VJn4N3
-OObUvE6akCq1Lq9DJBKrnmOh4i9e5wLitkmWEuQBuEnkBWB6/hKM4AumZ9DjAruu
-UX1w8ixZnTJDXbdRpQSd5u19P0Nkqqc/LJh0fcWvsGmM7Bqx+1Q7aHxFs30ThgPm
-NkamGLoU++USWgJy2tUHa69PqBgsbehKZJzj/Cjlr2JsWUETtiFjuDE0Xd7UFc+4
-Hgnx6FR+UeIL3tiSZy5TI8QNZovEyegCZ/jtzhY/QEJuTv6+PVk=
-=58MZ
------END PGP SIGNATURE-----
-
---bGopQmzlzQgFk3Fg--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
