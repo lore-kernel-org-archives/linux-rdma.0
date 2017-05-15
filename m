@@ -1,91 +1,47 @@
-From: "Raju  Rangoju" <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: RE: [PATCH 1/1] RDMA/iw_cxgb4: Avoid touch after free error in ARP
- failure handlers
-Date: Mon, 15 May 2017 06:40:39 +0000
-Message-ID: <CY1PR12MB07747A68FB1E225E4C702791BCE10@CY1PR12MB0774.namprd12.prod.outlook.com>
-References: <20170511114354.25046-1-rajur@chelsio.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH] net/smc: mark as BROKEN due to remote memory exposure
+Date: Mon, 15 May 2017 09:41:09 +0300
+Message-ID: <3f1bdc23-2777-0d2b-5cf0-303fa1435a98@grimberg.me>
+References: <20170510072627.12060-1-hch@lst.de>
+ <1494514662.2489.1.camel@sandisk.com> <20170514055848.GA23149@lst.de>
+ <20170514.115116.499149210596634881.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170511114354.25046-1-rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20170514.115116.499149210596634881.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, hch-jcswGhMUV9g@public.gmane.org
+Cc: Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Dave,
 
------Original Message-----
-From: Raju Rangoju [mailto:rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org]=20
-Sent: 11 May 2017 17:14
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>; Raju Rangoju <rajur-ut6Up61K2waIwRZHo2/mJg@public.gmane.org=
-m>
-Subject: [PATCH 1/1] RDMA/iw_cxgb4: Avoid touch after free error in ARP fai=
-lure handlers
+>> this patch has not been superceeded by anything, can you explain why
+>> it has been marked as such in patchworks?
+>
+> I think you're being overbearing by requiring this to be marked BROKEN
+> and I would like you to explore other ways with the authors to fix
+> whatever perceived problems you think SMC has.
 
-The patch 761e19a504af: "RDMA/iw_cxgb4: Handle return value of
-c4iw_ofld_send() in abort_arp_failure()" from May 6, 2016, leads to the fol=
-lowing static checker warning:
-	drivers/infiniband/hw/cxgb4/cm.c:575 abort_arp_failure()
-	warn: passing freed memory 'skb'
+Well, its not one's opinion, its a real problem. To be fair, this
+security breach existed in other RDMA based storage protocols for
+years in the past, but we cleaned it up completely.
 
-Also fixes skb leak when l2t resolution fails
+Our assumption is that *if* the user is willingly choosing to expose its
+entire physical address space to remote access to get some performance
+boost that's fine, but to have the kernel expose it by default, without
+even letting the user to control it is plain irresponsible. IMHO we
+should *not* repeat the mistakes of the past and set a higher bar for
+RDMA protocol implementations.
 
-Fixes: 761e19a504afa55 (RDMA/iw_cxgb4: Handle return value of
-c4iw_ofld_send() in abort_arp_failure())
+> You claim that this is somehow "urgent" is false.  You can ask
+> distributions to disable SMC or whatever in the short term if it
+> reallly, truly, bothers you.
 
-Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
- drivers/infiniband/hw/cxgb4/cm.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4=
-/cm.c
-index b6fe45924c6e..06b110213e92 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -488,6 +488,7 @@ static int _put_ep_safe(struct c4iw_dev *dev, struct sk=
-_buff *skb)
-=20
- 	ep =3D *((struct c4iw_ep **)(skb->cb + 2 * sizeof(void *)));
- 	release_ep_resources(ep);
-+	kfree_skb(skb);
- 	return 0;
- }
-=20
-@@ -498,6 +499,7 @@ static int _put_pass_ep_safe(struct c4iw_dev *dev, stru=
-ct sk_buff *skb)
- 	ep =3D *((struct c4iw_ep **)(skb->cb + 2 * sizeof(void *)));
- 	c4iw_put_ep(&ep->parent_ep->com);
- 	release_ep_resources(ep);
-+	kfree_skb(skb);
- 	return 0;
- }
-=20
-@@ -569,11 +571,13 @@ static void abort_arp_failure(void *handle, struct sk=
-_buff *skb)
-=20
- 	pr_debug("%s rdev %p\n", __func__, rdev);
- 	req->cmd =3D CPL_ABORT_NO_RST;
-+	skb_get(skb);
- 	ret =3D c4iw_ofld_send(rdev, skb);
- 	if (ret) {
- 		__state_set(&ep->com, DEAD);
- 		queue_arp_failure_cpl(ep, skb, FAKE_CPL_PUT_EP_SAFE);
--	}
-+	} else
-+		kfree_skb(skb);
- }
-=20
- static int send_flowc(struct c4iw_ep *ep)
---
-2.12.0
-
+I doubt that is sufficient given that not all implementations
+out there rely on distros. I'm afraid one time is too much in
+this case.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
