@@ -1,38 +1,44 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: Unexpected issues with 2 NVME initiators using the same target
-Date: Mon, 15 May 2017 07:59:52 -0700
-Message-ID: <20170515145952.GA7871@infradead.org>
-References: <1948057100.362217696.1491824459274.JavaMail.zimbra@kalray.eu>
- <33e2cc35-f147-d4a4-9a42-8f1245e35842@mellanox.com>
- <517fb6d2-a010-1926-b4cb-0e6041722c28@grimberg.me>
- <af9044c2-fb7c-e8b3-d8fc-4874cfd1bb67@mellanox.com>
- <c2a1436f-48a6-bdea-c910-168fc6031364@grimberg.me>
- <DE927C68B458BE418D582EC97927A92855088C6F@ORSMSX113.amr.corp.intel.com>
- <82dd5b24-5657-ae5e-8a33-646fddd8b75b@grimberg.me>
- <20170515133122.GG3616@mtr-leonro.local>
- <9465cd0c-83db-b058-7615-5626ef60dbb0@grimberg.me>
- <20170515143632.GH3616@mtr-leonro.local>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: rdma-ndd shipped by infiniband-diags and rdma-core
+Date: Mon, 15 May 2017 15:08:49 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E67CAA44F@CRSMSX101.amr.corp.intel.com>
+References: <1494335693.3752.1.camel@profitbricks.com>
+ <20170509175406.GJ10073@mtr-leonro.local>
+ <2807E5FD2F6FDA4886F6618EAC48510E67CAA0F6@CRSMSX101.amr.corp.intel.com>
+ <20170515044419.GW3616@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170515143632.GH3616-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20170515044419.GW3616-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, "shahar.salzman" <shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Riches Jr, Robert M" <robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "'Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)'" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 15, 2017 at 05:36:32PM +0300, Leon Romanovsky wrote:
-> I understand you and both Max and me are feeling the same as you. For more
-> than 2 months, we constantly (almost on daily basis) asked for a solution from
-> architecture group, but received different answers. The proposals were
-> extremely broad from need for strong fence for all cards to no need for
-> strong fence at all.
+> >
+> > Indeed this has been in the plans.
+> >
+> > Leon, as I have said in the past I want to move the infiniband-diags to the
+> Linux-rdma github but only after the libibmad merge.
+> >
+> > For review I have put my proposed new infiniband-diags (planned v2.0) here:
+> >
+> > https://github.com/weiny2/infiniband-diags/tree/master-new
+> >
+> > I'd like to have Hal check it out before I push this officially and release it.
+> >
+> > In the meantime Leon can you set me up a repo on Linux-rdma and once we
+> have settled on the libibmad merge I will push there with a new v2.0 release.
+> 
+> Sure, which name do you want for this repo?
 
-So let's get the patch to do a strong fence everywhere now, and relax
-it later where possible.
+infiniband-diags
 
-Correntness before speed..
+Thanks,
+Ira
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
