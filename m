@@ -1,48 +1,96 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: iSER with policy based routing error
-Date: Mon, 15 May 2017 13:39:45 +0300
-Message-ID: <71232433-a3d1-1bc0-a995-ae32fc05913f@grimberg.me>
-References: <CAANLjFoB3V6_exH8TnQQobaHkz2K1Lxj0sVOVa2Q+MKAsCqCKQ@mail.gmail.com>
+From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-next 09/14] RDMA/bnxt_re: Do not free the ctx_tbl
+ entry if delete GID fails
+Date: Mon, 15 May 2017 16:24:04 +0530
+Message-ID: <CA+sbYW2LtbCf=DLXfyTKBUZJh5t7ZEBNYGHwJp1tFX49p5QL9g@mail.gmail.com>
+References: <1494413139-11883-1-git-send-email-selvin.xavier@broadcom.com>
+ <1494413139-11883-10-git-send-email-selvin.xavier@broadcom.com> <20170514061015.GP3616@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAANLjFoB3V6_exH8TnQQobaHkz2K1Lxj0sVOVa2Q+MKAsCqCKQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20170514061015.GP3616-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kalesh AP <kalesh-anakkur.purayil-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Robert,
-
-> We are trying to leverage multiple cards/ports for iSER for
-> performance and resiliency reasons. The ports are configured with only
-> IPv6 addresses and each port is on a separate VLAN/subnet that is
-> routable to each other subnet. We are using rules with tables to set a
-> default gateway for each adapter/subnet based on the source IPv6
-> address (policy based routing). Using TCP for iSCSI, everything works
-> fine and traffic ingresses/egresses the right ports. However, when we
-> try using iSER, we get connection errors.
+On Sun, May 14, 2017 at 11:40 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> On Wed, May 10, 2017 at 03:45:34AM -0700, Selvin Xavier wrote:
+>> Do not free context table entry if delete GID fails. Stack may call
+>> back the add_gid for the same context again which could result in
+>> panic
 >
-> May 12 13:39:27 prv-0-14-roberttest kernel: iser: iser_connect:
-> rdma_resolve_addr failed: -101
-> May 12 13:39:27 prv-0-14-roberttest iscsid: Received iferror -101:
-> Network is unreachable.
-> May 12 13:39:27 prv-0-14-roberttest iscsid: cannot make a connection
-> to 2604:3140:40:300:0:580:d0:0:3260 (-101,0)
+> "may call" ??? Will you leave memory leak if this "may call" won't happen?
+>
+This fix was added only to avoid system crash in some a specific scenario.
+When bnxt_re driver is loaded and if user tries to change interface mac address,
+our delete GID fails because QP1 is still associated with existing MAC
+(default GID).
+If the above command fails GID tables are not modified in the h/w or
+driver, but the GID context
+memory is freed. Now, if the user changes the mac back to the original
+value, another add_gid
+comes to the driver where the driver reports that the GID is already
+present in its table
+and tries to access the context which was already freed.
 
-This looks 100% rdma_cm to me. iser is completely agnostic to address
-families and routes.
+So, in this case, in order to  avoid NULL pointer de-reference, this
+patch removes the context memory
+free  if delete_gid fails and the same context memory is re-used in new add_gid.
+Memory cleanup will be taken care during driver unload, while deleting
+the GID table.
 
-> If we put a default gateway for IPv6 in the 'default' table, then iSER
-> is able to make a connection, but we can only use one port. It looks
-> as if iSER is not following the rules in the default routing table to
-> find the appropriate default gateway in a different table.
 
-As I said, iser relies on rdma_cm for routing decisions.
-I would suspect that all rdma_cm based protocols to be
-affected as well (nfs, nvmf).
+I understood that the "may call" comment is not detailing this problem.
+I will update the commit log and send a v2.
 
-Did you check plain rping like Or suggested?
+Thanks for your comments.
+Selvin Xavier
+
+>
+>>
+>> Signed-off-by: Kalesh AP <kalesh-anakkur.purayil-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+>> Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+>> ---
+>>  drivers/infiniband/hw/bnxt_re/ib_verbs.c | 16 +++++++++-------
+>>  1 file changed, 9 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+>> index 61703f3..525f4b0 100644
+>> --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+>> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+>> @@ -375,15 +375,17 @@ int bnxt_re_del_gid(struct ib_device *ibdev, u8 port_num,
+>>                       return -EINVAL;
+>>               ctx->refcnt--;
+>>               if (!ctx->refcnt) {
+>> -                     rc = bnxt_qplib_del_sgid
+>> -                                     (sgid_tbl,
+>> -                                      &sgid_tbl->tbl[ctx->idx], true);
+>> -                     if (rc)
+>> +                     rc = bnxt_qplib_del_sgid(sgid_tbl,
+>> +                                              &sgid_tbl->tbl[ctx->idx],
+>> +                                              true);
+>> +                     if (rc) {
+>>                               dev_err(rdev_to_dev(rdev),
+>>                                       "Failed to remove GID: %#x", rc);
+>> -                     ctx_tbl = sgid_tbl->ctx;
+>> -                     ctx_tbl[ctx->idx] = NULL;
+>> -                     kfree(ctx);
+>> +                     } else {
+>> +                             ctx_tbl = sgid_tbl->ctx;
+>> +                             ctx_tbl[ctx->idx] = NULL;
+>> +                             kfree(ctx);
+>> +                     }
+>>               }
+>>       } else {
+>>               return -EINVAL;
+>> --
+>> 2.5.5
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
