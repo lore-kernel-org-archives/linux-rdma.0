@@ -1,73 +1,126 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: Unexpected issues with 2 NVME initiators using the same target
-Date: Mon, 15 May 2017 20:05:06 +0300
-Message-ID: <20170515170506.GK3616@mtr-leonro.local>
-References: <33e2cc35-f147-d4a4-9a42-8f1245e35842@mellanox.com>
- <517fb6d2-a010-1926-b4cb-0e6041722c28@grimberg.me>
- <af9044c2-fb7c-e8b3-d8fc-4874cfd1bb67@mellanox.com>
- <c2a1436f-48a6-bdea-c910-168fc6031364@grimberg.me>
- <DE927C68B458BE418D582EC97927A92855088C6F@ORSMSX113.amr.corp.intel.com>
- <82dd5b24-5657-ae5e-8a33-646fddd8b75b@grimberg.me>
- <20170515133122.GG3616@mtr-leonro.local>
- <9465cd0c-83db-b058-7615-5626ef60dbb0@grimberg.me>
- <20170515143632.GH3616@mtr-leonro.local>
- <20170515145952.GA7871@infradead.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="VcZjVMblxkg0/8Ur"
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] ib_core: Enable and expose force_mr module parameter
+Date: Mon, 15 May 2017 13:22:59 -0400
+Message-ID: <AE3152CC-B7C8-4C51-ADDE-C3822533BB94@oracle.com>
+References: <20170515145203.10708.16921.stgit@klimt.1015granger.net> <20170515145757.GI3616@mtr-leonro.local> <02AFF424-A387-47F7-BD24-61C7734B9008@oracle.com> <20170515170021.GJ3616@mtr-leonro.local>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170515145952.GA7871-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+In-Reply-To: <20170515170021.GJ3616-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, "shahar.salzman" <shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Riches Jr, Robert M" <robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---VcZjVMblxkg0/8Ur
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> On May 15, 2017, at 1:00 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> 
+> On Mon, May 15, 2017 at 11:09:06AM -0400, Chuck Lever wrote:
+>> 
+>>> On May 15, 2017, at 10:57 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>>> 
+>>> On Mon, May 15, 2017 at 10:52:44AM -0400, Chuck Lever wrote:
+>>>> The fourth parameter of the module_param_named macro is a set of
+>>>> file permissions. Passing 0 there means that module parameter is
+>>>> not created and that adding "options ib_core force_mr=1" to a
+>>>> modprobe.conf file has no effect.
+>>>> 
+>>>> The default setting of rdma_rw_force_mr continues to be 0, or false.
+>>>> 
+>>>> Fixes: a060b5629ab0 ("IB/core: generic RDMA READ/WRITE API")
+>>>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>> 
+>>> Chuck,
+>>> 
+>>> Do we really need this parameter?
+>> 
+>> Hi Leon-
+>> 
+>> Christoph and Sagi introduced this with the new rdma_rw API.
+>> The default behavior is to avoid the use of FRWR, even for
+>> devices that can support FRWR but also work without. FRWR is
+>> used only for iWARP devices, which require it; but FRWR can
+>> have a (slight) negative performance impact, which is why it
+>> is not the default.
+>> 
+>> The purpose of this module parameter is to enable the use of
+>> FRWR for devices that can go either way, as a way to test the
+>> FRWR capability when using those devices.
+>> 
+>> I'm not sure we _need_ to have the module parameter. But I've
+>> certainly used it while developing the NFSD conversion to use
+>> the rdma_rw API, since I have no iWARP devices here.
+> 
+> I asked that question because commit a060b5629ab0 was added a year ago
+> and since then no one noticed that it is not usable, including authors.
 
-On Mon, May 15, 2017 at 07:59:52AM -0700, Christoph Hellwig wrote:
-> On Mon, May 15, 2017 at 05:36:32PM +0300, Leon Romanovsky wrote:
-> > I understand you and both Max and me are feeling the same as you. For more
-> > than 2 months, we constantly (almost on daily basis) asked for a solution from
-> > architecture group, but received different answers. The proposals were
-> > extremely broad from need for strong fence for all cards to no need for
-> > strong fence at all.
->
-> So let's get the patch to do a strong fence everywhere now, and relax
-> it later where possible.
->
-> Correntness before speed..
+I noticed a while ago, but haven't had time to track it down
+until now.
 
-OK, please give me and Max till EOW to stop this saga. One of the two
-options will be: Max will resend original patch, or Max will send patch
-blessed by architecture group.
 
-Thanks
+> I think that we can safely remove it and for development, we can set
+> rdma_rw_force_mr internally in the code.
 
---VcZjVMblxkg0/8Ur
-Content-Type: application/pgp-signature; name="signature.asc"
+It is safe to remove. Since it was never exposed to user
+space due to this bug, removal would not result in a kernel
+API breakage.
 
------BEGIN PGP SIGNATURE-----
+I find the feature useful. But it is correct to say that such
+development knobs are often left to kernel compile-time, as
+it is not especially useful to end users.
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkZ38IACgkQ5GN7iDZy
-WKfj1RAAwAOmZTzYALZro+Z3EyjhTaxdKWJD96IauvDRIaCELw3pv8NeGWD3cNkE
-ONBqpHHsTCeoR5EiUVzC1B6m/tommXBWk9/WX8oOppGdZUjtlySnRxxsoRlOhNvp
-i8lXjZ9pJBnjHhFL2HZRWuukT5BGGlgLKfUG7IoWqhznSkfq/gG/sOoB1ZSVPRza
-WW1ExNcGtshu8almJnuuxzpjSsA8zJU6RokC+xmfHo3AXtaxJ8Rj1MiADBJtssZe
-mHBdno1c7ODk9bGxxWetj8xkK9lWz5Vi5sXPrSlXl3uctQUFOEPorno3Epb0ccZ5
-roWxaMjQucwT3nm0JuxrE2Jsy/0Hl8NMdKPXZYUxpoLJA9ZSXVjmtfYl1uZ89SRC
-Eg29LryusaFBj61XxttXni0EbA4H4eZqbbhPJ/MlYnd21JunuucGhG3td49N4L0c
-Qr6GC9ndRyk4143ahB0NV0AiV/R9N4iun6bcL5VeNuLUR1ngk3d11gRL4iJNtRDZ
-RIFv1C9FTo9N2KqsvePuRZKX5vbkbZ0C+0rSSScvW9E0GxwI5SABMoVr9xd6beht
-Y/98zUDzgYHyrYgQD/uAj2jJoJJpzZ6FiXGT6ta6v2TsiBsAqOz3h9Wnnt9S0OoQ
-5tgcCfm+bUo/uftXfLecCmPQxn7XVfnhebTdz5rOBuV7j/S089w=
-=Qqkv
------END PGP SIGNATURE-----
+In this case, the module parameter is global: one has to take
+some care when there are multiple HCAs in a system and they
+each have different MEMMGT capabilities. Instead of removing
+the setting altogether, one might replace it with a driver-
+mediated per-device-port attribute.
 
---VcZjVMblxkg0/8Ur--
+I will let Sagi and Christoph have the last word.
+
+
+> Thanks
+> 
+>> 
+>> 
+>>>> ---
+>>>> drivers/infiniband/core/rw.c |    2 +-
+>>>> 1 file changed, 1 insertion(+), 1 deletion(-)
+>>>> 
+>>>> diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
+>>>> index dbfd854..1cc8f07 100644
+>>>> --- a/drivers/infiniband/core/rw.c
+>>>> +++ b/drivers/infiniband/core/rw.c
+>>>> @@ -23,7 +23,7 @@ enum {
+>>>> };
+>>>> 
+>>>> static bool rdma_rw_force_mr;
+>>>> -module_param_named(force_mr, rdma_rw_force_mr, bool, 0);
+>>>> +module_param_named(force_mr, rdma_rw_force_mr, bool, 0644);
+>>>> MODULE_PARM_DESC(force_mr, "Force usage of MRs for RDMA READ/WRITE operations");
+>>>> 
+>>>> /*
+>>>> 
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> 
+>> --
+>> Chuck Lever
+>> 
+>> 
+>> 
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+Chuck Lever
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
