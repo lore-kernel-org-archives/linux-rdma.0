@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Subject: [PATCH rdma-core 1/5] srp_daemon.sh: Improve robustness
-Date: Mon, 15 May 2017 15:47:23 -0700
-Message-ID: <20170515224733.29586-2-bart.vanassche@sandisk.com>
+Date: Mon, 15 May 2017 15:47:29 -0700
+Message-ID: <20170515224733.29586-8-bart.vanassche@sandisk.com>
 References: <20170515224733.29586-1-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
 Content-Type: text/plain
