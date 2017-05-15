@@ -1,153 +1,127 @@
-From: Ursula Braun <ubraun@linux.vnet.ibm.com>
-Subject: [PATCH V3 net 1/1] smc: switch to usage of IB_PD_UNSAFE_GLOBAL_RKEY
-Date: Mon, 15 May 2017 17:33:37 +0200
-Message-ID: <20170515153337.31262-2-ubraun@linux.vnet.ibm.com>
-References: <20170515153337.31262-1-ubraun@linux.vnet.ibm.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170515153337.31262-1-ubraun@linux.vnet.ibm.com>
-Sender: netdev-owner@vger.kernel.org
-To: davem@davemloft.net
-Cc: hch@lst.de, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, jwi@linux.vnet.ibm.com, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, raspl@linux.vnet.ibm.com, ubraun@linux.vnet.ibm.com
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] ib_core: Enable and expose force_mr module parameter
+Date: Mon, 15 May 2017 20:00:21 +0300
+Message-ID: <20170515170021.GJ3616@mtr-leonro.local>
+References: <20170515145203.10708.16921.stgit@klimt.1015granger.net>
+ <20170515145757.GI3616@mtr-leonro.local>
+ <02AFF424-A387-47F7-BD24-61C7734B9008@oracle.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="GrZJL/A7LJaW37J8"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <02AFF424-A387-47F7-BD24-61C7734B9008-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Currently, SMC enables remote access to physical memory when a user
-has successfully configured and established an SMC-connection until ten
-minutes after the last SMC connection is closed. Because this is considered
-a security risk, drivers are supposed to use IB_PD_UNSAFE_GLOBAL_RKEY in
-such a case.
 
-This patch changes the current SMC code to use IB_PD_UNSAFE_GLOBAL_RKEY.
-This improves user awareness, but does not remove the security risk itself.
+--GrZJL/A7LJaW37J8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Ursula Braun <ubraun@linux.vnet.ibm.com>
----
- net/smc/smc_clc.c  |  4 ++--
- net/smc/smc_core.c | 16 +++-------------
- net/smc/smc_core.h |  2 +-
- net/smc/smc_ib.c   | 21 ++-------------------
- net/smc/smc_ib.h   |  2 --
- 5 files changed, 8 insertions(+), 37 deletions(-)
+On Mon, May 15, 2017 at 11:09:06AM -0400, Chuck Lever wrote:
+>
+> > On May 15, 2017, at 10:57 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> >
+> > On Mon, May 15, 2017 at 10:52:44AM -0400, Chuck Lever wrote:
+> >> The fourth parameter of the module_param_named macro is a set of
+> >> file permissions. Passing 0 there means that module parameter is
+> >> not created and that adding "options ib_core force_mr=1" to a
+> >> modprobe.conf file has no effect.
+> >>
+> >> The default setting of rdma_rw_force_mr continues to be 0, or false.
+> >>
+> >> Fixes: a060b5629ab0 ("IB/core: generic RDMA READ/WRITE API")
+> >> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> >
+> > Chuck,
+> >
+> > Do we really need this parameter?
+>
+> Hi Leon-
+>
+> Christoph and Sagi introduced this with the new rdma_rw API.
+> The default behavior is to avoid the use of FRWR, even for
+> devices that can support FRWR but also work without. FRWR is
+> used only for iWARP devices, which require it; but FRWR can
+> have a (slight) negative performance impact, which is why it
+> is not the default.
+>
+> The purpose of this module parameter is to enable the use of
+> FRWR for devices that can go either way, as a way to test the
+> FRWR capability when using those devices.
+>
+> I'm not sure we _need_ to have the module parameter. But I've
+> certainly used it while developing the NFSD conversion to use
+> the rdma_rw API, since I have no iWARP devices here.
 
-diff --git a/net/smc/smc_clc.c b/net/smc/smc_clc.c
-index e41f594..03ec058 100644
---- a/net/smc/smc_clc.c
-+++ b/net/smc/smc_clc.c
-@@ -204,7 +204,7 @@ int smc_clc_send_confirm(struct smc_sock *smc)
- 	memcpy(&cclc.lcl.mac, &link->smcibdev->mac[link->ibport - 1], ETH_ALEN);
- 	hton24(cclc.qpn, link->roce_qp->qp_num);
- 	cclc.rmb_rkey =
--		htonl(conn->rmb_desc->mr_rx[SMC_SINGLE_LINK]->rkey);
-+		htonl(conn->rmb_desc->rkey[SMC_SINGLE_LINK]);
- 	cclc.conn_idx = 1; /* for now: 1 RMB = 1 RMBE */
- 	cclc.rmbe_alert_token = htonl(conn->alert_token_local);
- 	cclc.qp_mtu = min(link->path_mtu, link->peer_mtu);
-@@ -256,7 +256,7 @@ int smc_clc_send_accept(struct smc_sock *new_smc, int srv_first_contact)
- 	memcpy(&aclc.lcl.mac, link->smcibdev->mac[link->ibport - 1], ETH_ALEN);
- 	hton24(aclc.qpn, link->roce_qp->qp_num);
- 	aclc.rmb_rkey =
--		htonl(conn->rmb_desc->mr_rx[SMC_SINGLE_LINK]->rkey);
-+		htonl(conn->rmb_desc->rkey[SMC_SINGLE_LINK]);
- 	aclc.conn_idx = 1;			/* as long as 1 RMB = 1 RMBE */
- 	aclc.rmbe_alert_token = htonl(conn->alert_token_local);
- 	aclc.qp_mtu = link->path_mtu;
-diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index 65020e9..3ac09a6 100644
---- a/net/smc/smc_core.c
-+++ b/net/smc/smc_core.c
-@@ -613,19 +613,8 @@ int smc_rmb_create(struct smc_sock *smc)
- 			rmb_desc = NULL;
- 			continue; /* if mapping failed, try smaller one */
- 		}
--		rc = smc_ib_get_memory_region(lgr->lnk[SMC_SINGLE_LINK].roce_pd,
--					      IB_ACCESS_REMOTE_WRITE |
--					      IB_ACCESS_LOCAL_WRITE,
--					     &rmb_desc->mr_rx[SMC_SINGLE_LINK]);
--		if (rc) {
--			smc_ib_buf_unmap(lgr->lnk[SMC_SINGLE_LINK].smcibdev,
--					 tmp_bufsize, rmb_desc,
--					 DMA_FROM_DEVICE);
--			kfree(rmb_desc->cpu_addr);
--			kfree(rmb_desc);
--			rmb_desc = NULL;
--			continue;
--		}
-+		rmb_desc->rkey[SMC_SINGLE_LINK] =
-+			lgr->lnk[SMC_SINGLE_LINK].roce_pd->unsafe_global_rkey;
- 		rmb_desc->used = 1;
- 		write_lock_bh(&lgr->rmbs_lock);
- 		list_add(&rmb_desc->list,
-@@ -668,6 +657,7 @@ int smc_rmb_rtoken_handling(struct smc_connection *conn,
- 
- 	for (i = 0; i < SMC_RMBS_PER_LGR_MAX; i++) {
- 		if ((lgr->rtokens[i][SMC_SINGLE_LINK].rkey == rkey) &&
-+		    (lgr->rtokens[i][SMC_SINGLE_LINK].dma_addr == dma_addr) &&
- 		    test_bit(i, lgr->rtokens_used_mask)) {
- 			conn->rtoken_idx = i;
- 			return 0;
-diff --git a/net/smc/smc_core.h b/net/smc/smc_core.h
-index 27eb3805..b013cb4 100644
---- a/net/smc/smc_core.h
-+++ b/net/smc/smc_core.h
-@@ -93,7 +93,7 @@ struct smc_buf_desc {
- 	u64			dma_addr[SMC_LINKS_PER_LGR_MAX];
- 						/* mapped address of buffer */
- 	void			*cpu_addr;	/* virtual address of buffer */
--	struct ib_mr		*mr_rx[SMC_LINKS_PER_LGR_MAX];
-+	u32			rkey[SMC_LINKS_PER_LGR_MAX];
- 						/* for rmb only:
- 						 * rkey provided to peer
- 						 */
-diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c
-index cb69ab9..b317155 100644
---- a/net/smc/smc_ib.c
-+++ b/net/smc/smc_ib.c
-@@ -37,24 +37,6 @@ u8 local_systemid[SMC_SYSTEMID_LEN] = SMC_LOCAL_SYSTEMID_RESET;	/* unique system
- 								 * identifier
- 								 */
- 
--int smc_ib_get_memory_region(struct ib_pd *pd, int access_flags,
--			     struct ib_mr **mr)
--{
--	int rc;
--
--	if (*mr)
--		return 0; /* already done */
--
--	/* obtain unique key -
--	 * next invocation of get_dma_mr returns a different key!
--	 */
--	*mr = pd->device->get_dma_mr(pd, access_flags);
--	rc = PTR_ERR_OR_ZERO(*mr);
--	if (IS_ERR(*mr))
--		*mr = NULL;
--	return rc;
--}
--
- static int smc_ib_modify_qp_init(struct smc_link *lnk)
- {
- 	struct ib_qp_attr qp_attr;
-@@ -210,7 +192,8 @@ int smc_ib_create_protection_domain(struct smc_link *lnk)
- {
- 	int rc;
- 
--	lnk->roce_pd = ib_alloc_pd(lnk->smcibdev->ibdev, 0);
-+	lnk->roce_pd = ib_alloc_pd(lnk->smcibdev->ibdev,
-+				   IB_PD_UNSAFE_GLOBAL_RKEY);
- 	rc = PTR_ERR_OR_ZERO(lnk->roce_pd);
- 	if (IS_ERR(lnk->roce_pd))
- 		lnk->roce_pd = NULL;
-diff --git a/net/smc/smc_ib.h b/net/smc/smc_ib.h
-index 7e1f0e2..b567152 100644
---- a/net/smc/smc_ib.h
-+++ b/net/smc/smc_ib.h
-@@ -61,8 +61,6 @@ void smc_ib_dealloc_protection_domain(struct smc_link *lnk);
- int smc_ib_create_protection_domain(struct smc_link *lnk);
- void smc_ib_destroy_queue_pair(struct smc_link *lnk);
- int smc_ib_create_queue_pair(struct smc_link *lnk);
--int smc_ib_get_memory_region(struct ib_pd *pd, int access_flags,
--			     struct ib_mr **mr);
- int smc_ib_ready_link(struct smc_link *lnk);
- int smc_ib_modify_qp_rts(struct smc_link *lnk);
- int smc_ib_modify_qp_reset(struct smc_link *lnk);
--- 
-2.10.2
+I asked that question because commit a060b5629ab0 was added a year ago
+and since then no one noticed that it is not usable, including authors.
+
+I think that we can safely remove it and for development, we can set
+rdma_rw_force_mr internally in the code.
+
+Thanks
+
+>
+>
+> >> ---
+> >> drivers/infiniband/core/rw.c |    2 +-
+> >> 1 file changed, 1 insertion(+), 1 deletion(-)
+> >>
+> >> diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
+> >> index dbfd854..1cc8f07 100644
+> >> --- a/drivers/infiniband/core/rw.c
+> >> +++ b/drivers/infiniband/core/rw.c
+> >> @@ -23,7 +23,7 @@ enum {
+> >> };
+> >>
+> >> static bool rdma_rw_force_mr;
+> >> -module_param_named(force_mr, rdma_rw_force_mr, bool, 0);
+> >> +module_param_named(force_mr, rdma_rw_force_mr, bool, 0644);
+> >> MODULE_PARM_DESC(force_mr, "Force usage of MRs for RDMA READ/WRITE operations");
+> >>
+> >> /*
+> >>
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> >> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> --
+> Chuck Lever
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--GrZJL/A7LJaW37J8
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkZ3qUACgkQ5GN7iDZy
+WKecrg/9G3imSAb4dpPk8CNsuXfk9SRG5mlAIVKyOdm5C9GeepOZNXTLWk0sPXVI
+MgGU5fe4M+nWVlQwxNFYXlNzQEXcL7L4zhHL7lCgWoM4GfuvKHua2DJIDbY2zu1w
+n5zMtcmVSokc9Bhk07GbwmKJowBCcHiZIbZDHf/vu3fCfNBI+yTiDu2Ev0EGWWuP
+4dVOjDHjedq5CAHPjwrRFTvtsjv4PZRV5e0RxnKau3aZCXuTKTYoflEWdPJ74QDO
+yzA58Z1EmDKlcvH1tAey3pbIjmzv7jrVkTMfzhDVr1lMsGiGcJ//jUGEtyPMWuQ4
+7DHAavdDyY8FuvGLKwudD076ce/+Ihrnhitr35+lYMJv9R9pcD/4GkfbCfksumcO
+W7fmbdN/1TG3u9vHE/1sp0ajPELj+x0QJjKEInHQuBFae4W6GnelbHZvXxc+dEUi
+bP3XhQP/HN/AbzmO6q5LtDVz1+k7p7PbpBX3fll129mrruCngYXIerTvPzPOeWrh
+LBjeln+lZx6k6pwEmUn3nOeY0Y9tnj8w+TI0mUVLxsPNm9vA7Ycgkr2ofAFCk156
+bMDXY6I/QZ0mach6XnkqJi1SZgEitZcx3i7G3FF0B5CPJGO7du4HwVvrz24OtGYU
+ObHv5Yqsq2Q6zJ05JzHCj1X47cu8hXBSM/ec6MqUFeCQGdQC27c=
+=xYa8
+-----END PGP SIGNATURE-----
+
+--GrZJL/A7LJaW37J8--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
