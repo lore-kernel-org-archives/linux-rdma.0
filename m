@@ -1,120 +1,139 @@
-From: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH rdma-core 2/5] srp_daemon: Use the recommended style in the man page
-Date: Mon, 15 May 2017 15:47:30 -0700
-Message-ID: <20170515224733.29586-9-bart.vanassche@sandisk.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core 5/5] srp_daemon.service: Add support for
+ hot-plugging
+Date: Mon, 15 May 2017 17:25:51 -0600
+Message-ID: <20170515232551.GA10834@obsidianresearch.com>
 References: <20170515224733.29586-1-bart.vanassche@sandisk.com>
+ <20170515224733.29586-12-bart.vanassche@sandisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170515224733.29586-1-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170515224733.29586-12-bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+To: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->From https://liw.fi/manpages/, about the SYNOPSIS section:
+On Mon, May 15, 2017 at 03:47:33PM -0700, Bart Van Assche wrote:
+> srp_daemon.service is modified such that instead of starting
+> /usr/sbin/srp_daemon.sh that it does not start any process. A new
+> template service is added, namely srp_daemon_port@.service. This
+> service replaces srp_daemon.sh and controls /usr/sbin/srp_daemon
+> for a single port. A udev rule is added that instantiates the
+> srp_daemon_port@.service every time an RDMA port is hot-added.
+> Since the per-port service depends on the srp_daemon service,
+> starting or stopping the srp_daemon service affects all per-port
+> services.
 
-Font usage is important here, and carries information. All the
-parts that are in bold are things that the user is expected to
-write verbatim. Italic indicates values the user is expected to
-fill in. Normal font is used for syntax meta-characters: for
-the brackets that indicate optionality, and the ellipsis that
-indicates repetition.
+This looks pretty good to me ... You are happy with how the user experience works?
 
-Additionally, change the identifiers that refer to arguments to
-lower case.
+A few minor thoughts
 
-Signed-off-by: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
----
- srp_daemon/srp_daemon.1.in | 41 +++++++++++++++++++++++++++--------------
- 1 file changed, 27 insertions(+), 14 deletions(-)
+> +++ b/srp_daemon/90-srp-daemon.rules
+> @@ -0,0 +1 @@
+> +ACTION=="add", SUBSYSTEM=="infiniband_mad", PROGRAM:="/usr/bin/systemctl show srp_daemon -p UnitFileState", RESULT=="UnitFileState=enabled", TAG+="systemd", ENV{SYSTEMD_WANTS}+="srp_daemon_port@$attr{ibdev}:$attr{port}.service"
 
-diff --git a/srp_daemon/srp_daemon.1.in b/srp_daemon/srp_daemon.1.in
-index 008d53a2..02e1f2df 100644
---- a/srp_daemon/srp_daemon.1.in
-+++ b/srp_daemon/srp_daemon.1.in
-@@ -5,18 +5,30 @@
- srp_daemon \- Discovers SRP targets in an InfiniBand Fabric
- 
- .SH SYNOPSIS
--.B srp_daemon [-vVcaeon] [-d \fIumad-device\fR | -i \fIinfiniband-device\fR [-p \fIport-num\fR]] [-t \fItimeout(ms)\fR] [-r \fIretries\fR] [-R \fIRescan-time\fR] [-f \fIrules-File\fR]
-+.B srp_daemon\fR [\fB-vVcaeon\fR] [\fB-d \fIumad-device\fR | \fB-i \fIinfiniband-device\fR [\fB-p \fIport-num\fR]] [\fB-t \fItimeout(ms)\fR] [\fB-r \fIretries\fR] [\fB-R \fIrescan-time\fR] [\fB-f \fIrules-file\fR]
- 
- 
- .SH DESCRIPTION
- .PP
- Discovers and connects to InfiniBand SCSI RDMA Protocol (SRP) targets in an IB fabric.
- 
--Each srp_daemon instance operates on one local port. Upon boot it performs a full rescan of the fabric then waits for an srp_daemon event. An srp_daemon event can be a join of a new machine to the fabric, a change in the capabilities of a machine, an SA change, or an expiration of a predefined timeout.
-+Each srp_daemon instance operates on one local port. Upon boot it performs a
-+full rescan of the fabric and then waits for an srp_daemon event. An
-+srp_daemon event can be a join of a new machine to the fabric, a change in the
-+capabilities of a machine, an SA change, or an expiration of a predefined
-+timeout.
- 
--When a new machine joins the fabric, srp_daemon checks if it is a target. When there is a change of capabilities, srp_daemon checks if the machine has turned into a target. When there is an SA change or a timeout expiration, srp_daemon performs a full rescan of the fabric.
-+When a new machine joins the fabric, srp_daemon checks if it is an SRP
-+target. When there is a change of capabilities, srp_daemon checks if the
-+machine has turned into an SRP target. When there is an SA change or a timeout
-+expiration, srp_daemon performs a full rescan of the fabric.
- 
--For each target srp_daemon finds, it checks if it should connect to this target according to its rules (default rules file is @CMAKE_INSTALL_FULL_SYSCONFDIR@/srp_daemon.conf) and if it is already connected to the local port. If it should connect to this target and if it is not connected yet, srp_daemon can either print the target details or connect to it.
-+For each target srp_daemon finds, it checks if it should connect to this
-+target according to its rules (the default rules file is
-+@CMAKE_INSTALL_FULL_SYSCONFDIR@/srp_daemon.conf) and if it is already
-+connected to the local port. If it should connect to this target and if it is
-+not connected yet, srp_daemon can either print the target details or connect
-+to it.
- 
- .SH OPTIONS
- 
-@@ -42,24 +54,25 @@ Generate output suitable for piping directly to a
- /sys/class/infiniband_srp/srp\-<device>\-<port>/add_target file. 
- .TP
- \fB\-a\fR
--Prints all the targets in the fabric, not only targets that are not connected through the local port. (The same as ibsrpdm.)
-+Prints all the targets in the fabric, not only targets that are not connected
-+through the local port. This is the same behavior as that of ibsrpdm.
- .TP
- \fB\-e\fR
- Execute the connection command, i.e., make the connection to the target.
- .TP
- \fB\-o\fR
--Perform only one rescan and exit. (The same as ibsrpdm.)
-+Perform only one rescan and exit just like ibsrpdm.
- .TP
--\fB\-R\fR \fIRescan-time\fR
--Force a complete rescan every \fIRescan-time\fR seconds. If -R is not specified, no timeout rescans will be performed.
-+\fB\-R\fR \fIrescan-time\fR
-+Force a complete rescan every \fIrescan-time\fR seconds. If -R is not specified, no timeout rescans will be performed.
- .TP
--\fB\-T\fR \fIretry-Timeout\fR
--Retries to connect to existing target after \fIretry-Timeout\fR seconds. If -R is not specified, uses 5 Seconds timeout. if retry-Timeout is 0, will not try to reconnect. The reason srp_daemon retries to connect to the target is because there may be a rare scnerio in which srp_daemon will try to connect to add a target when the target is about to be removed, but is not removed yet.
-+\fB\-T\fR \fIretry-timeout\fR
-+Retries to connect to existing target after \fIretry-timeout\fR seconds. If -R is not specified, uses 5 Seconds timeout. if retry-timeout is 0, will not try to reconnect. The reason srp_daemon retries to connect to the target is because there may be a rare scnerio in which srp_daemon will try to connect to add a target when the target is about to be removed, but is not removed yet.
- .TP
--\fB\-f\fR \fIrules-File\fR
--Decide to which targets to connect according to the rules in \fIrules-File\fR. 
-+\fB\-f\fR \fIrules-file\fR
-+Decide to which targets to connect according to the rules in \fIrules-file\fR.
- If \fB\-f\fR is not specified, uses the default rules file @CMAKE_INSTALL_FULL_SYSCONFDIR@/srp_daemon.conf.
--Each line in the \fIrules-File\fR is a rule which can be either an allow connection or a disallow connection according to 
-+Each line in the \fIrules-file\fR is a rule which can be either an allow connection or a disallow connection according to
- the first character in the line (a or d accordingly). The rest of the line is values for id_ext, ioc_guid, dgid, 
- service_id. Please take a look at the example section for an example of the file. srp_daemon decide whether to allow or disallow each target according  to first rule that match the target. If no rule matches the target, the target is allowed and will be connected. In an allow rule it is possible to set attributes for the connection to the target. Supported attributes are max_cmd_per_lun and max_sect.
- .TP
-@@ -74,7 +87,7 @@ New format - use also initiator_ext in the connection command.
- 
- .SH FILES
- @CMAKE_INSTALL_FULL_SYSCONFDIR@/srp_daemon.conf -
--Default rules configuration file that indicates to which targets to connect. Can be overridden using the \fB\-f\fR \fIrules-File\fR option. 
-+Default rules configuration file that indicates to which targets to connect. Can be overridden using the \fB\-f\fR \fIrules-file\fR option.
- Each line in this file is a rule which can be either an allow connection or a disallow connection according to 
- the first character in the line (a or d accordingly). The rest of the line is values for id_ext, ioc_guid, dgid, 
- service_id. Please take a look at the example section for an example of the file. srp_daemon decide whether to allow or disallow each target according  to first rule that match the target. If no rule matches the target, the target is allowed and will be connected. In an allow rule it is possible to set attributes for the connection to the target. Supported attributes are max_cmd_per_lun and max_sect.
--- 
-2.12.2
+I think we should have a main rdma udev rules file that always creates
+.device targets inside systemd for umad, unconditionally. This should
+be useful for other things like opensm/etc.
 
+So we'd have a line like:
+
+ACTION=="add", SUBSYSTEM=="infiniband_mad", TAG+="systemd", ENV{SYSTEMD_ALIAS}="/dev/infiniband/umad/$attr{ibdev}:$attr{port}"
+
+So we get (unescaped)
+
+/dev/infiniband/umad0.device
+/dev/infiniband/umad/mlx4_0:0.device
+
+Then the srp-daemon.rule would just be the wants:
+
+ACTION=="add", SUBSYSTEM=="infiniband_mad", PROGRAM:="/usr/bin/systemctl show srp_daemon -p UnitFileState", RESULT=="UnitFileState=enabled", ENV{SYSTEMD_WANTS}+="srp_daemon_port@$attr{ibdev}:$attr{port}.service"
+
+> index 00000000..666400ab
+> +++ b/srp_daemon/srp_daemon_port@.service
+> @@ -0,0 +1,18 @@
+> +[Unit]
+> +Description=SRP daemon that monitors port %i
+> +Documentation=man:srp_daemon file:/etc/rdma/rdma.conf file:/etc/srp_daemon.conf
+> +DefaultDependencies=false
+> +Conflicts=emergency.target emergency.service
+> +Requires=rdma.service
+> +Wants=opensm.service
+> +After=rdma.service opensm.service srp_daemon.service
+> +After=network.target
+> +Before=remote-fs-pre.target
+> +BindsTo=srp_daemon.service
+
+Using the new .device, we can add a requires:
+
+Requires: -dev-infiniband-umad0-%i.device
+
+Now, systemd will never start the port service until udev says that
+the umad is available for that port. It will actually wait until udev
+says that umad is present if something requires it.
+
+This would allow the admin to setup various things to guarentee
+ordering, most directly, adding a
+    Requires: srp_daemon_port@mlx4_0:1
+To a .mount unit will make everything very reliable. (Suggest adding
+notes about this to a man page)
+
+I also wonder if the systemd activation protocol should be used by
+srp_daemon, this should defer mount until srp_daemon has done the
+right stuff, but that might be no good if the 'right stuff' requires a
+link up?
+
+However, if the admin is using the above .mount unit Requires then
+they would want to wait until the link is up and the SM has been
+contacted before attempting the first mount? systemd obnoxiously does
+not have mount retries so everything should be perfect before mount is
+done.
+
+Probably something about this should be in the man page?
+
+[You could also consider using umad0 as the %I, which would avoid the
+alias, unclear to me if that good/bad for an admin.]
+
+With the other changes you did, this means we can drop this:
+
+> +After=rdma.service opensm.service srp_daemon.service
+
+rdma.service would now be obsolete because the Requires on the .device
+guarentees this will not start until something has loaded the modules.
+
+Also, when you fixed the port state issue, I think that solved the need for
+opensm.service.
+
+Thus, the after should be:
+
+After=srp_daemon.service
+
+Which is good because rdma.service or opensm.service should not appear
+outside the redhat/ directory.
+
+> +The srp_daemon_port@\&.service controls whether or not an srp_daemon process
+> +is monitoring the RDMA port specified as template argument. The format for the
+> +RDMA port name is \fIdev:port\fR where \fIdev\fR is the name of an RDMA device
+> +and \fIport\fR is an port number starting from one. Starting an instance of
+> +this template will start an srp_daemon process. Stopping an instance of this
+> +template will stop the srp_daemon process for the specified port.  Here is an
+> +example of how to obtain a list of all RDMA device and port number
+> pairs:
+
+Does
+  sysemctl mask srp_daemon_port@mlx4_0:1
+
+Work to inhibit the daemon on a specific port? If yes that should be
+mentioned in here I think. Otherwise, we probably still need a way to
+do that.
+
+The final bits would be to see if any security sandboxing options are
+appropriate for the .unit file, since srp_daemon is network
+facing. Drop caps, ro filesystems, etc. It should also dump root
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
