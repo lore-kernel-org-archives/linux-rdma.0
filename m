@@ -1,50 +1,62 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: [PATCH] [net, 4.12] mlx5e: add CONFIG_INET dependency
-Date: Tue, 16 May 2017 13:27:49 +0200
-Message-ID: <20170516112807.4107417-1-arnd@arndb.de>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] ib_core: Enable and expose force_mr module parameter
+Date: Tue, 16 May 2017 10:57:20 -0400
+Message-ID: <92A6DB1F-E9C6-4793-88A6-BA068F7E2AFB@oracle.com>
+References: <20170515145203.10708.16921.stgit@klimt.1015granger.net> <20170515145757.GI3616@mtr-leonro.local> <02AFF424-A387-47F7-BD24-61C7734B9008@oracle.com> <20170515170021.GJ3616@mtr-leonro.local> <AE3152CC-B7C8-4C51-ADDE-C3822533BB94@oracle.com> <20170516054256.GA4013@lst.de> <d46b0a41-92c2-2ce2-5cf2-ac5c6c3811cd@grimberg.me>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <d46b0a41-92c2-2ce2-5cf2-ac5c6c3811cd-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-We now reference the arp_tbl, which requires IPv4 support to be
-enabled in the kernel, otherwise we get a link error:
 
-drivers/net/built-in.o: In function `mlx5e_tc_update_neigh_used_value':
-(.text+0x16afec): undefined reference to `arp_tbl'
-drivers/net/built-in.o: In function `mlx5e_rep_neigh_init':
-en_rep.c:(.text+0x16c16d): undefined reference to `arp_tbl'
-drivers/net/built-in.o: In function `mlx5e_rep_netevent_event':
-en_rep.c:(.text+0x16cbb5): undefined reference to `arp_tbl'
+> On May 16, 2017, at 3:22 AM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
+> 
+> 
+>> I think I only added it on requests from someone (you?), and when
+>> writing the code debugged it by manually forcing it to on.  Thay
+>> being said a module parameter is entirely trivial and thus I'm fine
+>> with it.  Think like debugfs or per-device setting for such a trivial
+>> debug tool have just way to much boilerplate code.
 
-This adds a Kconfig dependency for it.
+Agree that debugfs would work, but might be overkill.
 
-Fixes: 232c001398ae ("net/mlx5e: Add support to neighbour update flow")
-Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
----
-Note: the mlxsw driver has referenced the same symbol for a while,
-but had an implicit dependency on CONFIG_INET since it also depends
-on SWITCHDEV.
 
- drivers/net/ethernet/mellanox/mlx5/core/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> I tend to agree. It's a very simple knob, can't imagine why we'd want it
+> to be per-device.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/Kconfig b/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
-index fc52d742b7f7..27251a78075c 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
-@@ -13,7 +13,7 @@ config MLX5_CORE
- 
- config MLX5_CORE_EN
- 	bool "Mellanox Technologies ConnectX-4 Ethernet support"
--	depends on NETDEVICES && ETHERNET && PCI && MLX5_CORE
-+	depends on NETDEVICES && ETHERNET && INET && PCI && MLX5_CORE
- 	depends on IPV6=y || IPV6=n || MLX5_CORE=m
- 	imply PTP_1588_CLOCK
- 	default n
--- 
-2.9.0
+Per-device port ... The internal helper includes @port_num as a
+parameter:
+
+static inline bool rdma_rw_can_use_mr(struct ib_device *dev, u8 port_num)
+
+IIRC the idea was to eventually have a white list of devices
+(besides iWARP devices, which require it) that prefer FRWR. And
+some modes of operation (VF, or split RoCE-IB) might want to
+force FRWR or not. See core/rw.c:
+
+ 48  * XXX: In the future we can hopefully fine tune this based on HCA driver
+ 49  * input.
+
+The original impetus was to have a simple method of forcing the
+use of FRWR so we could study the performance differences. When I
+started using rdma_rw for NFSD, however, it was clear that there
+were different constraints on ULP behavior depending on whether
+FRWR was used or not.
+
+However, I'm not stuck on keeping it. It's certainly not hard to
+build a patched kernel that forces the use of FRWR, when I need
+to test specific code paths.
+
+
+--
+Chuck Lever
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
