@@ -1,106 +1,35 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: rdma-ndd shipped by infiniband-diags and rdma-core
-Date: Tue, 16 May 2017 20:43:48 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E67CAB41D@CRSMSX101.amr.corp.intel.com>
-References: <1494335693.3752.1.camel@profitbricks.com>
- <20170509175406.GJ10073@mtr-leonro.local>
- <2807E5FD2F6FDA4886F6618EAC48510E67CAA0F6@CRSMSX101.amr.corp.intel.com>
+From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next 1/4] IB/CM: Convert OPA Path record to IB during
+ CM request
+Date: Tue, 16 May 2017 13:50:46 -0700
+Message-ID: <9fa0b429-364f-0f49-fc2c-390d606a6ff6@intel.com>
+References: <1494458598-6911-1-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <1494458598-6911-2-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB11E1D7@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E67CAA0F6-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB11E1D7-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "'Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)'" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Chandramouli, Dasaratharaman" <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-One other thing I forgot to mention...
 
-Infiniband-diags has a configure option to disable rdma-ndd.
 
-16:43:16 > ./configure --help | grep rdma
-  --enable-rdma-ndd build rdma-ndd (default=yes)
-  --with-rdma-service=name
-                          name of the RDMA service: "rdma" when using
-                          /etc/init.d/rdma to start RDMA services; "openibd"
-                          services [default=${default_rdma_service}]
+On 5/16/2017 1:34 PM, Hefty, Sean wrote:
+>> OPA path records need to be converted to IB path records
+>> during a connection request. If the slid/dlid fields in the
+>> OPA path records are extended, the resulting converted IB
+>> path records will have the corresponding GIDs populated as
+>> OPA GIDs
+> 
+> I'm getting lost.  Why is a conversion from OPA PRs to IB PRs needed?
+> 
 
-Benjamin, would that be ok for you to continue your work?
-
-Ira
-
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Weiny, Ira
-> Sent: Sunday, May 14, 2017 9:42 PM
-> To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>; Benjamin Drung
-> <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>; 'Hal Rosenstock (hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org)'
-> <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: RE: rdma-ndd shipped by infiniband-diags and rdma-core
-> 
-> >
-> > On Tue, May 09, 2017 at 03:14:53PM +0200, Benjamin Drung wrote:
-> > > Hi,
-> > >
-> > > /usr/sbin/rdma-ndd is shipped by infiniband-diags (version 1.6.7-1
-> > > in
-> > > Debian) and the rdma-core package. This makes both package not
-> > > installable in parallel. rdma-ndd should be shipped by only one
-> > > source package. If rdma-core is the new upstream for it, please
-> > > remove it from infiniband-diags and publish a new release. Otherwise
-> > > I cannot add the correctly version Breaks & Replaces to the Debian package.
-> >
-> > Ira,
-> >
-> > Didn't you release when you merged rdma-ndd with rdma-core?
-> 
-> Indeed this has been in the plans.
-> 
-> Leon, as I have said in the past I want to move the infiniband-diags to the Linux-
-> rdma github but only after the libibmad merge.
-> 
-> For review I have put my proposed new infiniband-diags (planned v2.0) here:
-> 
-> https://github.com/weiny2/infiniband-diags/tree/master-new
-> 
-> I'd like to have Hal check it out before I push this officially and release it.
-> 
-> In the meantime Leon can you set me up a repo on Linux-rdma and once we
-> have settled on the libibmad merge I will push there with a new v2.0 release.
-> 
-> Ira
-> 
-> >
-> > Thanks
-> >
-> > >
-> > > --
-> > > Benjamin Drung
-> > > System Developer
-> > > Debian & Ubuntu Developer
-> > >
-> > > ProfitBricks GmbH
-> > > Greifswalder Str. 207
-> > > D - 10405 Berlin
-> > >
-> > > Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-> > > Web: https://www.profitbricks.com
-> > >
-> > > Sitz der Gesellschaft: Berlin.
-> > > Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-> > > Geschäftsführer: Achim Weiss.
-> > >
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-rdma"
-> > > in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo
-> > > info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body
-> of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+If the OPA path record contained extended LIDS then the SGID/DGID fields 
+of the IB path record would contain OPA GIDS.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
