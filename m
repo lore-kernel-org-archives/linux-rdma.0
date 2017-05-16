@@ -1,70 +1,87 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next 2/4] IB/CM: Create appropriate path records
- when handling CM request
-Date: Tue, 16 May 2017 09:08:52 +0300
-Message-ID: <20170516060852.GO3616@mtr-leonro.local>
-References: <1494458598-6911-1-git-send-email-dasaratharaman.chandramouli@intel.com>
- <1494458598-6911-3-git-send-email-dasaratharaman.chandramouli@intel.com>
- <20170513113936.GM3616@mtr-leonro.local>
- <1828884A29C6694DAF28B7E6B8A82373AB11DB23@ORSMSX109.amr.corp.intel.com>
+Subject: Re: [PATCH net v1] net/smc: Add warning about remote memory exposure
+Date: Tue, 16 May 2017 10:03:30 +0300
+Message-ID: <20170516070330.GP3616@mtr-leonro.local>
+References: <20170516065138.24789-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="ijywFOGgtBfiIjQx"
+        protocol="application/pgp-signature"; boundary="pcjGMRtmGLNVN1Bo"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB11DB23-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20170516065138.24789-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Chandramouli, Dasaratharaman" <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Cc: ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---ijywFOGgtBfiIjQx
+--pcjGMRtmGLNVN1Bo
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, May 15, 2017 at 05:44:54PM +0000, Hefty, Sean wrote:
-> > > +			if (ib_is_opa_gid(&req_msg->primary_local_gid) &&
-> > > +			    rdma_cap_opa_ah(work->port->cm_dev->ib_device,
-> > > +					    work->port->port_num))
-> >
-> > Why isn't ib_is_opa_gid enough?
++ linux-rdma ML.
+
+On Tue, May 16, 2017 at 09:51:38AM +0300, Leon Romanovsky wrote:
+> From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 >
-> It may be in reality, but that implies that IB and OPA are sharing GID space definitions.
-
-I understood from Ira's presentation [1] that it is the case.
-And doesn't it need to be "||" and not "&&"?
-
+> The driver explicitly bypasses APIs to register all memory once a
+> connection is made, and thus allows remote access to memory.
 >
-> It looks like rdma_cap_opa_ah() is basically being used as a check to see if the code is handling the OPA CM protocol or IB CM protocol.  (Even though the two protocols are nearly identical).
+> Signed-off-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> ---
+> Dave,
+> Can you please forward this patch to stable?
+> Thanks
+> ---
+>  Changes from v0:
+>   * Remove BROKEN Kconfig option as a followup of this discussion
+>     https://patchwork.ozlabs.org/patch/760454/
+>   * Refine commit message
+> ---
+>  net/smc/Kconfig | 4 ++++
+>  1 file changed, 4 insertions(+)
+>
+> diff --git a/net/smc/Kconfig b/net/smc/Kconfig
+> index c717ef0896aa..33954852f3f8 100644
+> --- a/net/smc/Kconfig
+> +++ b/net/smc/Kconfig
+> @@ -8,6 +8,10 @@ config SMC
+>  	  The Linux implementation of the SMC-R solution is designed as
+>  	  a separate socket family SMC.
+>
+> +	  Warning: SMC will expose all memory for remote reads and writes
+> +	  once a connection is established.  Don't enable this option except
+> +	  for tightly controlled lab environment.
+> +
+>  	  Select this option if you want to run SMC socket applications
+>
+>  config SMC_DIAG
+> --
+> 2.12.2
+>
 
-Where can I read the difference between these protocols?
-
-[1] https://www.openfabrics.org/images/eventpresos/2016presentations/104rdmaaltfabs.pdf
-
-Thanks
-
---ijywFOGgtBfiIjQx
+--pcjGMRtmGLNVN1Bo
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkal3QACgkQ5GN7iDZy
-WKfzRQ//UCfRE4mQCDrwrnTq0ZEzBVmxKmVn5qIwJ/krxxMzVLBmaIN/d23LKl+J
-5F5bvgHl9T//SeH2VOzZd50VDopIpDKUpHFHztbiF2jw5qwZ3R1ZABm+gBI1tUpd
-MWcIu0BJH33qbShunsJK5/2nOXsKO3HNixrfOk7cXvqRCGUCU5lI6c5uDmqgHtiG
-VE7rg1cCwTbprP645iXWkW3ZdSuW/BjKvetfRT5+jpC3c5oY0LFBlwqCdOK3SEqH
-xx0O/KJepq7IL5gohEbiMMZZvX4UDKUmekuxJYtzpc6uUOXGY31C6Z7jGK1dPW0q
-kmbXFuB8poVPEB8JlkAPo6wjZ2CsEUhCBmU/0KXhsBfKVYDJEGw3vK+hoifMr1jf
-agvAe5+sVHBuffKNU3CRG3lK3+xJZOAwRX2lZSjxW3/r0rchTQFVfxoph50jSz12
-CP+zRb+QSnX2TnzL79zckMmSREarvB6Bsh/h3vIzEP+XsARYTlvzL7k9XjIDolh8
-BlQFpyWbSR3HPoLRBI94F25U7Qy3oOxFQl/9vM+r8dbsvL+jFr98DlqCIU/fPcTM
-ORNtK1x6UpZq8eexbCtzyM+IFC6aWgRHGmXV3EPuA90K0XR76TeQhYNxG8+Ocx0/
-SLpOBddxMjVxtIwM5QsTvM48jHmarhFBBPs81qaXahrn5CyKCsg=
-=275y
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkapEIACgkQ5GN7iDZy
+WKdBBA/8DXby2A62qie2ViXY8R5uxDkVinaqb1qf7NBfraDHxXnFclfdhW5IqGDh
+qey7j94myaoigIWsH7vquq/EUW2v7uvM/8yYuFyDwosNliffRWdimjK5FZcHOTcH
+QCLweYqBhuQHhrYLkEMU7awu6w5v5u5e1Oi9YOSKO6Wo90ppp61cibkckyExgzTg
+9BXkzTSpVccMsNNIBD34Xape/jWspa9xgcmgBspDlI3Nh477yMV1N89HomjtChK+
+i9ei5VoOp55qMoJ0xVutZQR0Cs7TnYfhjf7fGZ3VcirRjLnYJMCpe7uQTMezpybS
+hZb1SjYAGz6TLXvuL/ekOH55vweJ7aHqG1rEbawDqKXf7/UOKbz9kOxsUBWsAtGA
+jQYx+8MN2TBn//P3IJ4ks8s0fX5hrulRu/JKoKZ4b8si3xvfGCmesicjlSLk4XiG
+uk0mX8UYOeMsVy2i7JMjCwu0tyK3owkbKm9d0LRbrmLIYco4O/2OIB0bd6/gRCWk
+NURn5I7eVnrgmfA7AtWNrwyRwMXLCyHhzCIecMAZDgZcRBuo/IJXF5VCSW7B8gs4
+OM4SpSkYGQwDDxB4zK4Go0pgi0vlB2Rx/nneFgfmZlgxp3ekDSpRDNF6CPxWEAEF
+6X0fyXVzJGSzuZqu6viB6r0rHSi+A7K4wmiUz1ObY/s8eZv4eCM=
+=UzGt
 -----END PGP SIGNATURE-----
 
---ijywFOGgtBfiIjQx--
+--pcjGMRtmGLNVN1Bo--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
