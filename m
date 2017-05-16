@@ -1,32 +1,52 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH] ib_core: Enable and expose force_mr module parameter
-Date: Tue, 16 May 2017 10:22:12 +0300
-Message-ID: <d46b0a41-92c2-2ce2-5cf2-ac5c6c3811cd@grimberg.me>
-References: <20170515145203.10708.16921.stgit@klimt.1015granger.net>
- <20170515145757.GI3616@mtr-leonro.local>
- <02AFF424-A387-47F7-BD24-61C7734B9008@oracle.com>
- <20170515170021.GJ3616@mtr-leonro.local>
- <AE3152CC-B7C8-4C51-ADDE-C3822533BB94@oracle.com>
- <20170516054256.GA4013@lst.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-rc] IB/uverbs: Declare local function to be static
+Date: Tue, 16 May 2017 14:07:27 +0300
+Message-ID: <20170516110727.4733-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170516054256.GA4013-jcswGhMUV9g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-> I think I only added it on requests from someone (you?), and when
-> writing the code debugged it by manually forcing it to on.  Thay
-> being said a module parameter is entirely trivial and thus I'm fine
-> with it.  Think like debugfs or per-device setting for such a trivial
-> debug tool have just way to much boilerplate code.
+Commit 57520751445b ("IB/SA: Add OPA path record type") introduced
+new local function __ib_copy_path_rec_to_user, but didn't limit its
+scope. This produces the following sparse warning:
 
-I tend to agree. It's a very simple knob, can't imagine why we'd want it
-to be per-device.
+	drivers/infiniband/core/uverbs_marshall.c:99:6: warning:
+	symbol '__ib_copy_path_rec_to_user' was not declared. Should it be
+	static?
+
+Fixes: 57520751445b ("IB/SA: Add OPA path record type")
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/uverbs_marshall.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/infiniband/core/uverbs_marshall.c b/drivers/infiniband/core/uverbs_marshall.c
+index 8b9587fe2303..94fd989c9060 100644
+--- a/drivers/infiniband/core/uverbs_marshall.c
++++ b/drivers/infiniband/core/uverbs_marshall.c
+@@ -96,11 +96,11 @@ void ib_copy_qp_attr_to_user(struct ib_uverbs_qp_attr *dst,
+ }
+ EXPORT_SYMBOL(ib_copy_qp_attr_to_user);
+
+-void __ib_copy_path_rec_to_user(struct ib_user_path_rec *dst,
+-				struct sa_path_rec *src)
++static void __ib_copy_path_rec_to_user(struct ib_user_path_rec *dst,
++				       struct sa_path_rec *src)
+ {
+-	memcpy(dst->dgid, src->dgid.raw, sizeof src->dgid);
+-	memcpy(dst->sgid, src->sgid.raw, sizeof src->sgid);
++	memcpy(dst->dgid, src->dgid.raw, sizeof(src->dgid));
++	memcpy(dst->sgid, src->sgid.raw, sizeof(src->sgid));
+
+ 	dst->dlid		= htons(ntohl(sa_path_get_dlid(src)));
+ 	dst->slid		= htons(ntohl(sa_path_get_slid(src)));
+--
+2.12.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
