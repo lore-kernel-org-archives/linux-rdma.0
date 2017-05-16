@@ -1,79 +1,133 @@
-From: Doug Ledford <dledford@redhat.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH] net/smc: mark as BROKEN due to remote memory exposure
-Date: Tue, 16 May 2017 13:12:37 -0400
-Message-ID: <1494954757.3259.123.camel@redhat.com>
-References: <20170516.122923.869994491617365845.davem@davemloft.net>
-         <20170516163041.GA5132@lst.de> <1494952561.3259.104.camel@redhat.com>
-         <20170516.124129.292555623308256441.davem@davemloft.net>
+Date: Tue, 16 May 2017 13:20:44 -0400
+Message-ID: <1494955244.3259.130.camel@redhat.com>
+References: <1494950224.3259.98.camel@redhat.com>
+         <20170516.122923.869994491617365845.davem@davemloft.net>
+         <1494952963.3259.109.camel@redhat.com>
+         <20170516.124945.386235742645153398.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20170516.124129.292555623308256441.davem@davemloft.net>
-Sender: stable-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: hch@lst.de, Bart.VanAssche@sandisk.com, torvalds@linux-foundation.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, stable@vger.kernel.org, ubraun@linux.vnet.ibm.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170516.124945.386235742645153398.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-05-16 at 12:41 -0400, David Miller wrote:
-> From: Doug Ledford <dledford@redhat.com>
-> Date: Tue, 16 May 2017 12:36:01 -0400
+On Tue, 2017-05-16 at 12:49 -0400, David Miller wrote:
+> From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Date: Tue, 16 May 2017 12:42:43 -0400
 > 
-> > On Tue, 2017-05-16 at 18:30 +0200, Christoph Hellwig wrote:
-> >> On Tue, May 16, 2017 at 12:29:23PM -0400, David Miller wrote:
-> >> > 
-> >> > I can't push back on people with silly coding style and small
-> >> > semantic
-> >> > issues forever.  And I think I made a serious effort to keep the
-> >> > patches getting posted over and over again to make sure they got
-> >> > more
-> >> > exposure.
+> > On Tue, 2017-05-16 at 12:29 -0400, David Miller wrote:
+> >> From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> >> Date: Tue, 16 May 2017 11:57:04 -0400
 > >> 
-> >> You can tell them to go to linux-rdma.  I'm sending people to the
-> >> right
-> >> mailing list all the time.
-> > 
-> > Indeed.  Every single time a patch comes into linux-rdma that
-> touches
-> > things in net/ or include/net, unless it is exceedingly minor, I
-> check
-> > the To:/Cc: lines on the email and if netdev@ isn't included, or in
+> >> > Regardless though, I'm rather purturbed about this entire thing.
+> >>  If
+> >> > you are right that because this got into 4.11, it's now a done
+> >> deal,
+> >> > then the fact that this went through 4 review cycles on netdev@
+> >> that,
+> >> > as I understand it, spanned roughly one years time, and not one
+> >> single
+> >> > person bothered to note that this was as much an RDMA driver as
+> >> > anything else, and not one person bothered to note that linux-
+> rdma@ 
+> >> was
+> >> > not on the Cc: list, and not one person told the submitters that
+> >> they
+> >> > needed to include linux-rdma@ on the Cc: list of these
+> submissions,
+> >> and
+> >> > you took it without any review comments from any RDMA people in
 > the
-> > case of complex/tricky items, you aren't directly Cc:ed, then I
-> > specifically tell them to include netdev@ and/or you.  I've even
-> had
-> > things like a 12 patch series that buried three netdev@ appropriate
-> > patches at different points in the series and told the submitter to
-> > move all of the netdev@ related patches to the front and submit
-> them to
-> > netdev@ so they can be reviewed as a group before I would move on
+> >> > course of a year, or an ack from me to show that the RDMA
+> portion
+> >> of
+> >> > this had at least been given some sort of review, was a collosal
+> >> fuckup
+> >> > of cross tree maintainer cooperation.
+> >> 
+> >> We rely on people from various areas of expertiece to contribute
 > to
-> > the others.  It's just what you do.  I've always considered that
-> part
-> > of my job.
+> >> patch review on netdev and give appropriate feedback.
+> >> 
+> >> If you actually look through the history, I made many semantic
+> >> reviews
+> >> of the SMC changes, and kept pushing back.
+> >> 
+> >> And in fact I did this several times, making them go through
+> several
+> >> revisions, in the hopes that someone would review more of the meat
+> >> and
+> >> substance of the patch set.
+> > 
+> > If you want to walk to the mailbox, you walk to the mailbox, you
+> don't
+> > walk to the grocery store, to the gym, and never even go to the
+> > mailbox.  Likewise, if you want review from RDMA experts, most
+> (maybe
+> > even all) don't subscribe to netdev@ because it's too high traffic,
+> you
+> > don't waste time on silly semantic pushbacks, you send a single
+> email
+> > that says "Please get review from linux-rdma@, thank you."  Don't
+> beat
+> > around the bush, be direct and get it over with.  That's exactly
+> what I
+> > do for all netdev@ related patches coming to linux-rdma@ without a
+> > proper Cc: to netdev@.
 > 
-> To be quite honest it wasn't exceedingly clear, even to me, that this
-> had such implications or was directly a RDMA thing.  From my
-> perspective while reviewing I saw a patch series adding it's own
-> protocol stack living inside of it's own directory under net/
+> Read my other email, it wasn't %100 clear to me that this was so
+> strictly RDMA related.  And I kept pushing back with semantic changes
+> in part because it wasn't clear.
 
-OK.  Fair enough.  That implies to me that you probably dove right into
-the patches and skimmed the cover letter (http://marc.info/?l=linux-s39
-0&m=148397751211964&w=2), because when I read the cover letter, it
-seems pretty clear to me that this is very much RDMA related.  In any
-case, there are already two other code bases that live under net/ but
-also involve RDMA heavily: nfs and rds.  This is a third now.  So, for
-future reference, just like the RDMA related nfs/rds patches already
-get Cc:ed to linux-rdma@, these probably should be too.
+See my other email.  I think in the fact that you are overloaded on
+netdev@ you skimmed the cover letter, which is the one thing that would
+have made things clear.
 
-> And, if even one RDMA/infiniband person said to me "you really
-> shouldn't apply this" then I would have dropped it on the spot.
+> So as far as I was concerned I was not necessarily going to the wrong
+> store, in fact I wasn't sure what store to go to.
+> 
+> And none of the thousands of subscribers to netdev intuit'd this
+> either.  Maybe there is a reason for that.
 
-I'm glad to hear that.  I wish we had managed to get together on this
-sooner.
+Yeah, it's an overloaded list would be my guess.  I imagine no one can
+keep up with it fully in truth.  Maybe it's time to split some of it
+out into sublists?  netdev-core/netdev-ethernet/netdev-packet?  I don't
+know, but I know I can't keep up with it.  That you do as well as you
+do is probably only because you know how to not spend too much time on
+any one thing.  I'm sure you have people you know are submitting
+important work that effects the overall net subsystem and you focus on
+their stuff, but ancillary things probably only get half attention at
+double speed in order to allow you to make it through the day.
+
+> Furthermore, if netdev is too much traffic for one or two RDMA people
+> to just casually subscribe to on the off chance that a situationm
+> like
+> this comes up, guess what it is like for me who has to read and
+> review
+> pretty much every single posting that is placed there?
+
+I get it.  I don't have the time to both be responsible for linux-rdma
+and follow netdev.  I can already tell you what would happen if I
+tried.  Eventually netdev would get so far behind I would just mass
+delete and start over.  So that doesn't solve the problem.
+
+Anyway, we're just talking out what happened, when what we really need
+to focus on is moving forward.  Again, your thoughts on marking SMC
+EXPERIMENTAL until it's fixed up and unfreezing the API in case we need
+to adjust it to work on different link layers?
 
 -- 
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG KeyID: B826A3330E572FDD
    
 Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
