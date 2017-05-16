@@ -1,134 +1,77 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: rping segfault with 4.9.28 on CentOS 7.3
-Date: Tue, 16 May 2017 13:23:14 -0600
-Message-ID: <CAANLjFpvrMWpcPY5BK=5yka6WndjHHTQrsvA13oTFZx5V8rb=Q@mail.gmail.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] net/smc: mark as BROKEN due to remote memory exposure
+Date: Tue, 16 May 2017 15:28:19 -0400
+Message-ID: <1494962899.3259.141.camel@redhat.com>
+References: <1494955244.3259.130.camel@redhat.com>
+         <20170516.133644.850927380166261577.davem@davemloft.net>
+         <1494957802.3259.131.camel@redhat.com>
+         <20170516.145249.871010194359061722.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170516.145249.871010194359061722.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is using ConnectX-4 LX RoCE cards, using only in-box drivers.
+On Tue, 2017-05-16 at 14:52 -0400, David Miller wrote:
+> From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Date: Tue, 16 May 2017 14:03:22 -0400
+> 
+> > On Tue, 2017-05-16 at 13:36 -0400, David Miller wrote:
+> >> From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> >> Date: Tue, 16 May 2017 13:20:44 -0400
+> >> 
+> >> > Anyway, we're just talking out what happened, when what we
+> really
+> >> need
+> >> > to focus on is moving forward.  Again, your thoughts on marking
+> SMC
+> >> > EXPERIMENTAL until it's fixed up and unfreezing the API in case
+> we
+> >> need
+> >> > to adjust it to work on different link layers?
+> >> 
+> >> Something like:
+> >> 
+> >>         http://patchwork.ozlabs.org/patch/762803/
+> >> 
+> >> with the addition of the EXPERIMENTAL dependency?
+> >> 
+> >> Sure.
+> > 
+> > Perfect.  I assume you'll submit it since it's in your patchworks?
+> 
+> Ok I applied the patch referenced above, but we don't actually have
+> an EXPERIMENTAL symbol.  The closest thing we have is BROKEN and
+> even in this situation that's a bit harsh.
 
-While trying to debug some iSER issues, I'm trying to do rping between
-the two hosts, but I'm getting a segfault. Sagi suggested that there
-may be something wrong with my kernel ABI. I did a make mrproper and
-built the latest 4.9.28 kernel and installed the kernel headers.
+I hadn't realized EXPERIMENTAL was gone.  Which is too bad, because
+that's entirely appropriate in this case, and would have had the
+desired side effect of keeping it out of any non-cutting edge distros
+and warning people of possible API changes.  With EXPERIMENTAL gone,
+the closest thing we have is drivers/staging, since that tends to imply
+some of the same consequences.  I know you think BROKEN is overly
+harsh, but I'm not sure we should just do nothing.  How about we take a
+few days to let some of the RDMA people closely review the 143 page
+(egads!) rfc (http://www.rfc-editor.org/info/rfc7609) to see if we
+think it can be fixed to use multiple link layers with the existing API
+in place or if it will require something other than AF_SMC.  If we need
+to break API, then I think we should either fix it ASAP and send that
+fix to the 4.11 stable series (which probably violates the normative
+stable patch size/scope) or if the fix will take longer than this
+kernel cycle, then move it to staging both here and in 4.11 stable, and
+fix it there and then move it back.  Something like that would prevent
+the kind of API flappage we ought not do....
 
-make -j 32 && sudo make modules_install && sudo make install && sudo
-make headers_install INSTALL_HDR_PATH=/usr
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+   
+Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
-After booting into the new kernel, I kept getting the segfaults, so I
-rebuilt the libibverbs, libibumad, librdmacm packages in case they
-aren't picking up the new kernel headers. Still no luck.
-
-Here is the server of rping with the rebuilt packages:
-# gdb rping core.22936
-GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-94.el7
-Copyright (C) 2013 Free Software Foundation, Inc.
-License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
-and "show warranty" for details.
-This GDB was configured as "x86_64-redhat-linux-gnu".
-For bug reporting instructions, please see:
-<http://www.gnu.org/software/gdb/bugs/>...
-Reading symbols from /usr/bin/rping...Reading symbols from
-/usr/lib/debug/usr/bin/rping.debug...done.
-done.
-[New LWP 22936]
-[New LWP 22939]
-[Thread debugging using libthread_db enabled]
-Using host libthread_db library "/lib64/libthread_db.so.1".
-Core was generated by `rping -s'.
-Program terminated with signal 11, Segmentation fault.
-#0  __ibv_alloc_pd (context=0x0) at src/verbs.c:196
-196             pd = context->ops.alloc_pd(context);
-(gdb) bt
-#0  __ibv_alloc_pd (context=0x0) at src/verbs.c:196
-#1  0x000055f60331d5f6 in rping_setup_qp (cb=cb@entry=0x55f603d74780,
-cm_id=<optimized out>) at examples/rping.c:519
-#2  0x000055f60331be7e in rping_run_server (cb=0x55f603d74780) at
-examples/rping.c:890
-#3  main (argc=2, argv=0x7ffcd16aae88) at examples/rping.c:1268
-(gdb) f 0
-#0  __ibv_alloc_pd (context=0x0) at src/verbs.c:196
-196             pd = context->ops.alloc_pd(context);
-(gdb) list
-191
-192     struct ibv_pd *__ibv_alloc_pd(struct ibv_context *context)
-193     {
-194             struct ibv_pd *pd;
-195
-196             pd = context->ops.alloc_pd(context);
-197             if (pd)
-198                     pd->context = context;
-199
-200             return pd;
-(gdb) p context
-$1 = (struct ibv_context *) 0x0
-
-Here is the rping client that does not have the rebuilt packages:
-# gdb rping core.8253
-GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-94.el7
-Copyright (C) 2013 Free Software Foundation, Inc.
-License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
-and "show warranty" for details.
-This GDB was configured as "x86_64-redhat-linux-gnu".
-For bug reporting instructions, please see:
-<http://www.gnu.org/software/gdb/bugs/>...
-Reading symbols from /usr/bin/rping...Reading symbols from
-/usr/lib/debug/usr/bin/rping.debug...done.
-done.
-[New LWP 8253]
-[New LWP 8256]
-[Thread debugging using libthread_db enabled]
-Using host libthread_db library "/lib64/libthread_db.so.1".
-Core was generated by `rping -c -a 192.168.13.13'.
-Program terminated with signal 11, Segmentation fault.
-#0  __ibv_dereg_mr (mr=0x560e295e93b0) at src/verbs.c:299
-299             ret = mr->context->ops.dereg_mr(mr);
-(gdb) bt
-#0  __ibv_dereg_mr (mr=0x560e295e93b0) at src/verbs.c:299
-#1  0x0000560e293cd917 in rping_free_buffers (cb=0x560e295e5780) at
-examples/rping.c:470
-#2  0x0000560e293cbf57 in rping_run_client (cb=<optimized out>) at
-examples/rping.c:1111
-#3  main (argc=<optimized out>, argv=<optimized out>) at examples/rping.c:1270
-(gdb) f 9
-#0  0x0000000000000000 in ?? ()
-(gdb) f 0
-#0  __ibv_dereg_mr (mr=0x560e295e93b0) at src/verbs.c:299
-299             ret = mr->context->ops.dereg_mr(mr);
-(gdb) list
-294     {
-295             int ret;
-296             void *addr      = mr->addr;
-297             size_t length   = mr->length;
-298
-299             ret = mr->context->ops.dereg_mr(mr);
-300             if (!ret)
-301                     ibv_dofork_range(addr, length);
-302
-303             return ret;
-(gdb) p mr
-$1 = (struct ibv_mr *) 0x560e295e93b0
-(gdb) p *mr
-$2 = {context = 0x7fd423be5090, pd = 0x560e295e9960, addr =
-0x560e295e57e8, length = 16, handle = 0, lkey = 72829, rkey = 72829}
-(gdb) p *mr->context
-Cannot access memory at address 0x7fd423be5090
-
-Any ideas on what I'm doing wrong?
-
-Thanks,
-
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
