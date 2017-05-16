@@ -1,60 +1,35 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH rdma-next 1/8] IB/core: Convert ah_attr from OPA to IB
- when copying to user
-Date: Tue, 16 May 2017 18:08:30 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB11E128@ORSMSX109.amr.corp.intel.com>
-References: <1494458576-6816-1-git-send-email-dasaratharaman.chandramouli@intel.com>
- <1494458576-6816-2-git-send-email-dasaratharaman.chandramouli@intel.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH V3 net 1/1] smc: switch to usage of
+ IB_PD_UNSAFE_GLOBAL_RKEY
+Date: Tue, 16 May 2017 14:53:08 -0400 (EDT)
+Message-ID: <20170516.145308.1101082394249977339.davem@davemloft.net>
+References: <20170515153337.31262-1-ubraun@linux.vnet.ibm.com>
+        <20170515153337.31262-2-ubraun@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1494458576-6816-2-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20170515153337.31262-2-ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Chandramouli, Dasaratharaman" <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
+Cc: hch-jcswGhMUV9g@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jwi-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, raspl-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> -void ib_copy_ah_attr_to_user(struct ib_uverbs_ah_attr *dst,
-> -			     struct rdma_ah_attr *src)
-> +static int rdma_ah_conv_opa_to_ib(struct ib_device *dev,
-> +				  struct rdma_ah_attr *ib,
-> +				  struct rdma_ah_attr *opa)
->  {
-> +	struct ib_port_attr port_attr;
-> +
-> +	if (ib_query_port(dev, opa->port_num, &port_attr))
-> +		return -EINVAL;
-> +
-> +	/* Do structure copy and the over-write fields */
-> +	*ib = *opa;
-> +
-> +	ib->type = RDMA_AH_ATTR_TYPE_IB;
-> +	rdma_ah_set_grh(ib, NULL, 0, 0, 1, 0);
-> +	rdma_ah_set_subnet_prefix(ib,
-> cpu_to_be64(port_attr.subnet_prefix));
-> +	rdma_ah_set_interface_id(ib,
-> OPA_MAKE_ID(rdma_ah_get_dlid(opa)));
-> +	return 0;
-> +}
-> +
-> +void ib_copy_ah_attr_to_user(struct ib_device *device,
-> +			     struct ib_uverbs_ah_attr *dst,
-> +			     struct rdma_ah_attr *ah_attr)
-> +{
-> +	struct rdma_ah_attr *src = ah_attr;
-> +	struct rdma_ah_attr conv_ah;
-> +
->  	memset(&dst->grh.reserved, 0, sizeof(dst->grh.reserved));
-> +
-> +	if ((ah_attr->type == RDMA_AH_ATTR_TYPE_OPA) &&
-> +	    (rdma_ah_get_dlid(ah_attr) >=
-> +	     be16_to_cpu(IB_MULTICAST_LID_BASE)) &&
-> +	    (!rdma_ah_conv_opa_to_ib(device, &conv_ah, ah_attr)))
+From: Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Date: Mon, 15 May 2017 17:33:37 +0200
 
-Doesn't a failure result in copying the wrong data to user space?  Can rdma_ah_conv_opa_to_ib() use some sort of default subnet prefix if query_port fails?
+> Currently, SMC enables remote access to physical memory when a user
+> has successfully configured and established an SMC-connection until ten
+> minutes after the last SMC connection is closed. Because this is considered
+> a security risk, drivers are supposed to use IB_PD_UNSAFE_GLOBAL_RKEY in
+> such a case.
+> 
+> This patch changes the current SMC code to use IB_PD_UNSAFE_GLOBAL_RKEY.
+> This improves user awareness, but does not remove the security risk itself.
+> 
+> Signed-off-by: Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 
-- Sean
+Applied.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
