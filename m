@@ -1,37 +1,28 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH] [net, 4.12] mlx5e: add CONFIG_INET dependency
-Date: Tue, 16 May 2017 15:48:20 -0400 (EDT)
-Message-ID: <20170516.154820.1799235741418300305.davem@davemloft.net>
-References: <20170516112807.4107417-1-arnd@arndb.de>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH rdma-next 1/4] IB/CM: Convert OPA Path record to IB
+ during CM request
+Date: Tue, 16 May 2017 20:34:17 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB11E1D7@ORSMSX109.amr.corp.intel.com>
+References: <1494458598-6911-1-git-send-email-dasaratharaman.chandramouli@intel.com>
+ <1494458598-6911-2-git-send-email-dasaratharaman.chandramouli@intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170516112807.4107417-1-arnd-r2nGTMty4D4@public.gmane.org>
+In-Reply-To: <1494458598-6911-2-git-send-email-dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: arnd-r2nGTMty4D4@public.gmane.org
-Cc: saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Chandramouli, Dasaratharaman" <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Date: Tue, 16 May 2017 13:27:49 +0200
+> OPA path records need to be converted to IB path records
+> during a connection request. If the slid/dlid fields in the
+> OPA path records are extended, the resulting converted IB
+> path records will have the corresponding GIDs populated as
+> OPA GIDs
 
-> We now reference the arp_tbl, which requires IPv4 support to be
-> enabled in the kernel, otherwise we get a link error:
-> 
-> drivers/net/built-in.o: In function `mlx5e_tc_update_neigh_used_value':
-> (.text+0x16afec): undefined reference to `arp_tbl'
-> drivers/net/built-in.o: In function `mlx5e_rep_neigh_init':
-> en_rep.c:(.text+0x16c16d): undefined reference to `arp_tbl'
-> drivers/net/built-in.o: In function `mlx5e_rep_netevent_event':
-> en_rep.c:(.text+0x16cbb5): undefined reference to `arp_tbl'
-> 
-> This adds a Kconfig dependency for it.
-> 
-> Fixes: 232c001398ae ("net/mlx5e: Add support to neighbour update flow")
-> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+I'm getting lost.  Why is a conversion from OPA PRs to IB PRs needed? 
 
-Applied, thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
