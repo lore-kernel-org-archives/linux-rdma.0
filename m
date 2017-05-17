@@ -1,137 +1,115 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/hfi1: Prevent kernel QP post send hard lockups
-Date: Wed, 17 May 2017 14:22:58 -0400
-Message-ID: <20170517182257.17757.74508.stgit@phlsvslse11.ph.intel.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH] net/smc: mark as BROKEN due to remote memory exposure
+Date: Wed, 17 May 2017 16:37:47 -0400
+Message-ID: <1495053467.2240.29.camel@redhat.com>
+References: <1494955244.3259.130.camel@redhat.com>
+         <20170516.133644.850927380166261577.davem@davemloft.net>
+         <1494957802.3259.131.camel@redhat.com>
+         <20170516.145249.871010194359061722.davem@davemloft.net>
+         <1494962899.3259.141.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-commits-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <1494962899.3259.141.camel@redhat.com>
+Sender: stable-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: Bart.VanAssche@sandisk.com, torvalds@linux-foundation.org, hch@lst.de, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, stable@vger.kernel.org, ubraun@linux.vnet.ibm.com
 List-Id: linux-rdma@vger.kernel.org
 
-commit b6eac931b9bb2bce4db7032c35b41e5e34ec22a5 upstream.
+On Tue, 2017-05-16 at 15:28 -0400, Doug Ledford wrote:
+> I hadn't realized EXPERIMENTAL was gone.  Which is too bad, because
+> that's entirely appropriate in this case, and would have had the
+> desired side effect of keeping it out of any non-cutting edge distros
+> and warning people of possible API changes.  With EXPERIMENTAL gone,
+> the closest thing we have is drivers/staging, since that tends to
+> imply
+> some of the same consequences.  I know you think BROKEN is overly
+> harsh, but I'm not sure we should just do nothing.  How about we take
+> a
+> few days to let some of the RDMA people closely review the 143 page
+> (egads!) rfc (http://www.rfc-editor.org/info/rfc7609) to see if we
+> think it can be fixed to use multiple link layers with the existing
+> API
+> in place or if it will require something other than AF_SMC.  If we
+> need
+> to break API, then I think we should either fix it ASAP and send that
+> fix to the 4.11 stable series (which probably violates the normative
+> stable patch size/scope) or if the fix will take longer than this
+> kernel cycle, then move it to staging both here and in 4.11 stable,
+> and
+> fix it there and then move it back.  Something like that would
+> prevent
+> the kind of API flappage we ought not do....
 
-The driver progress routines can call cond_resched() when
-a timeslice is exhausted and irqs are enabled.
+So, I've skimmed the entire RFC, focusing on things were I needed to.
+ Here's my take on it:
 
-If the ULP had been holding a spin lock without disabling irqs and
-the post send directly called the progress routine, the cond_resched()
-could yield allowing another thread from the same ULP to deadlock
-on that same lock.
+It would have been better with AF_INET/AF_INET6 and an option to enable
+SMC than AF_SMC.  The first implementation simply assumes AF_INET in
+the presence of AF_SMC.  When IPv6 support is added, some sort of
+guessing logic will have to be put in place to try and determine if an
+AF_SMC address is actually AF_INET or AF_INET6 since we won't have a
+guaranteed way of telling.  Apps can use struct sockaddr_storage as
+their normal element to stick the address into, and could rely on the
+kernel to interpret it properly based on the AF_INET/AF_INET6
+differentiation, and this breaks that.  The RFC gives *some* thought to
+adding IPv6 in the future, but not a lot.  It may be that the answer is
+that in the future, IPv6 support is enabled by making the IPv6 API be
+AF_INET6 + setsockopt(SMC) or the equivalent.  If that's the case, then
+I would suggest making the later API specifically call out AF_INET +
+setsockopt(SMC) be identical to AF_SMC.
 
-Correct by replacing the current hfi1_do_send() calldown with a unique
-one for post send and adding an argument to hfi1_do_send() to indicate
-that the send engine is running in a thread.   If the routine is not
-running in a thread, avoid calling cond_resched().
+The protocol included a version header in the negotation messages.
+ This is good as it allows us to almost immediately start work on
+version 2 that fixes the shortcomings of version 1 while maintaining
+back compatibility.
 
-CC: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 4.11.x
-Fixes: Commit 831464ce4b74 ("IB/hfi1: Don't call cond_resched in atomic mode when sending packets")
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/hfi1/ruc.c   |   24 +++++++++++++++---------
- drivers/infiniband/hw/hfi1/verbs.c |    2 +-
- drivers/infiniband/hw/hfi1/verbs.h |    4 +++-
- 3 files changed, 19 insertions(+), 11 deletions(-)
+After reading the RFC, I can see why they only support one link layer:
+RoCE.  The issue here is that they punted on the hard issue of doing
+any sort of work to determine if security restrictions on the TCP
+connection should also be applied to the RDMA connection.  The RFC
+basically says "the RoCE link needs to have the same physical
+restrictions (vlan) as the TCP/IP link so that the security limitations
+are the same" because they don't do anything to check them essentially.
+ For v2 of the protocol, and for different link layer support, this is
+no longer sufficient, so there will be significant work to determine
+the security context of specific TCP connections and then make sure
+that they meet the security context of the RDMA links allowed.
 
-diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
-index aa15bcb..2f1853b 100644
---- a/drivers/infiniband/hw/hfi1/ruc.c
-+++ b/drivers/infiniband/hw/hfi1/ruc.c
-@@ -784,23 +784,29 @@ void hfi1_make_ruc_header(struct rvt_qp *qp, struct ib_other_headers *ohdr,
- /* when sending, force a reschedule every one of these periods */
- #define SEND_RESCHED_TIMEOUT (5 * HZ)  /* 5s in jiffies */
- 
-+void hfi1_do_send_from_rvt(struct rvt_qp *qp)
-+{
-+	hfi1_do_send(qp, false);
-+}
-+
- void _hfi1_do_send(struct work_struct *work)
- {
- 	struct iowait *wait = container_of(work, struct iowait, iowork);
- 	struct rvt_qp *qp = iowait_to_qp(wait);
- 
--	hfi1_do_send(qp);
-+	hfi1_do_send(qp, true);
- }
- 
- /**
-  * hfi1_do_send - perform a send on a QP
-  * @work: contains a pointer to the QP
-+ * @in_thread: true if in a workqueue thread
-  *
-  * Process entries in the send work queue until credit or queue is
-  * exhausted.  Only allow one CPU to send a packet per QP.
-  * Otherwise, two threads could send packets out of order.
-  */
--void hfi1_do_send(struct rvt_qp *qp)
-+void hfi1_do_send(struct rvt_qp *qp, bool in_thread)
- {
- 	struct hfi1_pkt_state ps;
- 	struct hfi1_qp_priv *priv = qp->priv;
-@@ -868,8 +874,10 @@ void hfi1_do_send(struct rvt_qp *qp)
- 			qp->s_hdrwords = 0;
- 			/* allow other tasks to run */
- 			if (unlikely(time_after(jiffies, timeout))) {
--				if (workqueue_congested(cpu,
--							ps.ppd->hfi1_wq)) {
-+				if (!in_thread ||
-+				    workqueue_congested(
-+						cpu,
-+						ps.ppd->hfi1_wq)) {
- 					spin_lock_irqsave(
- 						&qp->s_lock,
- 						ps.flags);
-@@ -882,11 +890,9 @@ void hfi1_do_send(struct rvt_qp *qp)
- 						*ps.ppd->dd->send_schedule);
- 					return;
- 				}
--				if (!irqs_disabled()) {
--					cond_resched();
--					this_cpu_inc(
--					   *ps.ppd->dd->send_schedule);
--				}
-+				cond_resched();
-+				this_cpu_inc(
-+					*ps.ppd->dd->send_schedule);
- 				timeout = jiffies + (timeout_int) / 8;
- 			}
- 			spin_lock_irqsave(&qp->s_lock, ps.flags);
-diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index 222315f..26f1242 100644
---- a/drivers/infiniband/hw/hfi1/verbs.c
-+++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -1751,7 +1751,7 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
- 	dd->verbs_dev.rdi.driver_f.qp_priv_free = qp_priv_free;
- 	dd->verbs_dev.rdi.driver_f.free_all_qps = free_all_qps;
- 	dd->verbs_dev.rdi.driver_f.notify_qp_reset = notify_qp_reset;
--	dd->verbs_dev.rdi.driver_f.do_send = hfi1_do_send;
-+	dd->verbs_dev.rdi.driver_f.do_send = hfi1_do_send_from_rvt;
- 	dd->verbs_dev.rdi.driver_f.schedule_send = hfi1_schedule_send;
- 	dd->verbs_dev.rdi.driver_f.schedule_send_no_lock = _hfi1_schedule_send;
- 	dd->verbs_dev.rdi.driver_f.get_pmtu_from_attr = get_pmtu_from_attr;
-diff --git a/drivers/infiniband/hw/hfi1/verbs.h b/drivers/infiniband/hw/hfi1/verbs.h
-index 3a0b589..3f0bf1c 100644
---- a/drivers/infiniband/hw/hfi1/verbs.h
-+++ b/drivers/infiniband/hw/hfi1/verbs.h
-@@ -350,7 +350,9 @@ void hfi1_make_ruc_header(struct rvt_qp *qp, struct ib_other_headers *ohdr,
- 
- void _hfi1_do_send(struct work_struct *work);
- 
--void hfi1_do_send(struct rvt_qp *qp);
-+void hfi1_do_send_from_rvt(struct rvt_qp *qp);
-+
-+void hfi1_do_send(struct rvt_qp *qp, bool in_thread);
- 
- void hfi1_send_complete(struct rvt_qp *qp, struct rvt_swqe *wqe,
- 			enum ib_wc_status status);
+Additionally, the same is likely to be true in terms of SELinux
+options.  The addition of the IB/OPA link layers will throw a bit of a
+monkey wrench in things because the SELinux control over those links is
+slightly different than a normal TCP/IP SELinux control.  For instance,
+you might create rules about processes and ports to make sure that the
+httpd daemon can only access specific ports on TCP/IP, but on IB/OPA
+you would need to create process and P_Key rules as IB/OPA don't have
+the same port level semantics, and it's the P_Key on communications
+that is enforced network wide, including in the switches, so
+controlling what P_Key a process can send/receive on is your best way
+to limit what a process can do.  Translation from one to the other
+might be rather difficult to do in any sort of automated fashion.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+There might have to be some additional work to get this to properly
+account items for the RDMA control group elements that were recently
+taken into the kernel.
+
+Finally, the RDMA subsystem is in the process of switching to
+structured option processing similar to how netlink does it.  For
+version 2 of this protocol, since it will be interacting with the RDMA
+core in many ways, will be simpler if it switches the on-wire
+negotiation packets to follow the same methods as that will allow reuse
+of code that it will have to have for properly dealing with the RDMA
+subsystem in the future.
+
+So, I'm fine with it being left as is since you accepted the patch that
+makes note of the memory registration insecurity in the Kconfig text.
+ The fact that this is a versioned protocol means that we can fix the
+things we see as being wrong without having to have it all right from
+the very start, it can be done incrementally.
+
+-- 
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+   
+Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
