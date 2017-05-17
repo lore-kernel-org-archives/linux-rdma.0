@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn@intel.com>
 Subject: [PATCH] IB/hfi1: Prevent kernel QP post send hard lockups
-Date: Wed, 17 May 2017 14:19:13 -0400
-Message-ID: <20170517181913.15710.87045.stgit@phlsvslse11.ph.intel.com>
+Date: Wed, 17 May 2017 14:21:45 -0400
+Message-ID: <20170517182145.17528.34036.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -26,7 +26,7 @@ one for post send and adding an argument to hfi1_do_send() to indicate
 that the send engine is running in a thread.   If the routine is not
 running in a thread, avoid calling cond_resched().
 
-CC: <stable@vger.kernel.org> # 4.9.x
+CC: <stable@vger.kernel.org> # 4.10.x
 Fixes: Commit 831464ce4b74 ("IB/hfi1: Don't call cond_resched in atomic mode when sending packets")
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
@@ -39,10 +39,10 @@ Signed-off-by: Doug Ledford <dledford@redhat.com>
  3 files changed, 19 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
-index a1576ae..b945a6b 100644
+index 717ed4b15..6589642 100644
 --- a/drivers/infiniband/hw/hfi1/ruc.c
 +++ b/drivers/infiniband/hw/hfi1/ruc.c
-@@ -833,23 +833,29 @@ void hfi1_make_ruc_header(struct rvt_qp *qp, struct ib_other_headers *ohdr,
+@@ -823,23 +823,29 @@ void hfi1_make_ruc_header(struct rvt_qp *qp, struct ib_other_headers *ohdr,
  /* when sending, force a reschedule every one of these periods */
  #define SEND_RESCHED_TIMEOUT (5 * HZ)  /* 5s in jiffies */
  
@@ -74,7 +74,7 @@ index a1576ae..b945a6b 100644
  {
  	struct hfi1_pkt_state ps;
  	struct hfi1_qp_priv *priv = qp->priv;
-@@ -917,8 +923,10 @@ void hfi1_do_send(struct rvt_qp *qp)
+@@ -907,8 +913,10 @@ void hfi1_do_send(struct rvt_qp *qp)
  			qp->s_hdrwords = 0;
  			/* allow other tasks to run */
  			if (unlikely(time_after(jiffies, timeout))) {
@@ -87,7 +87,7 @@ index a1576ae..b945a6b 100644
  					spin_lock_irqsave(
  						&qp->s_lock,
  						ps.flags);
-@@ -931,11 +939,9 @@ void hfi1_do_send(struct rvt_qp *qp)
+@@ -921,11 +929,9 @@ void hfi1_do_send(struct rvt_qp *qp)
  						*ps.ppd->dd->send_schedule);
  					return;
  				}
@@ -103,10 +103,10 @@ index a1576ae..b945a6b 100644
  			}
  			spin_lock_irqsave(&qp->s_lock, ps.flags);
 diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index 4b7a16c..478c4f0 100644
+index 95ed4d6..8f843de 100644
 --- a/drivers/infiniband/hw/hfi1/verbs.c
 +++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -1697,7 +1697,7 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
+@@ -1832,7 +1832,7 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
  	dd->verbs_dev.rdi.driver_f.qp_priv_free = qp_priv_free;
  	dd->verbs_dev.rdi.driver_f.free_all_qps = free_all_qps;
  	dd->verbs_dev.rdi.driver_f.notify_qp_reset = notify_qp_reset;
@@ -116,10 +116,10 @@ index 4b7a16c..478c4f0 100644
  	dd->verbs_dev.rdi.driver_f.schedule_send_no_lock = _hfi1_schedule_send;
  	dd->verbs_dev.rdi.driver_f.get_pmtu_from_attr = get_pmtu_from_attr;
 diff --git a/drivers/infiniband/hw/hfi1/verbs.h b/drivers/infiniband/hw/hfi1/verbs.h
-index 1c3815d..10790cf 100644
+index e6b8930..72683cf 100644
 --- a/drivers/infiniband/hw/hfi1/verbs.h
 +++ b/drivers/infiniband/hw/hfi1/verbs.h
-@@ -372,7 +372,9 @@ void hfi1_make_ruc_header(struct rvt_qp *qp, struct ib_other_headers *ohdr,
+@@ -370,7 +370,9 @@ void hfi1_make_ruc_header(struct rvt_qp *qp, struct ib_other_headers *ohdr,
  
  void _hfi1_do_send(struct work_struct *work);
  
