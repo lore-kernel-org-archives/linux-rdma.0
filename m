@@ -1,75 +1,61 @@
-From: Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>
-Subject: Re: [PATCH v6 0/9] SELinux support for Infiniband RDMA
-Date: Wed, 17 May 2017 17:23:38 -0400
-Message-ID: <CAHC9VhTkOVN6KHQQY42QUTuBYO7D52A07aJjo_SiQs1o=Q0uzg@mail.gmail.com>
-References: <1479910651-43246-1-git-send-email-danielj@mellanox.com>
- <CAHC9VhSB6AORJf_8cBGt-AynMsEh3snKU5SpsmNXoy9hDSrGaA@mail.gmail.com>
- <VI1PR05MB167880A4D79F8FC3F8C740A9C4160@VI1PR05MB1678.eurprd05.prod.outlook.com>
- <CAHC9VhRE+bkPAnFgqOOQQQZwA8U0tSWHdeM5+LiadXfN63kS=g@mail.gmail.com>
+From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [infiniband-hw-i40iw] question about identical code for different
+ branches
+Date: Wed, 17 May 2017 17:06:54 -0500
+Message-ID: <20170517170654.Horde.cfktFjC4G4wPJvJ8X1ZyUvW@gator4166.hostgator.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAHC9VhRE+bkPAnFgqOOQQQZwA8U0tSWHdeM5+LiadXfN63kS=g@mail.gmail.com>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Stephen Smalley <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, Eric Paris <eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed; DelSp=Yes
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Faisal Latif <faisal.latif@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 4, 2017 at 11:51 AM, Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org> wrote:
-> On Wed, May 3, 2017 at 3:45 PM, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wro=
-te:
->> On 5/3/2017 9:41 AM, Paul Moore wrote:
->>> On Wed, Nov 23, 2016 at 9:17 AM, Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wro=
-te:
->>>> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>>>
->>>> Infiniband applications access HW from user-space -- traffic is genera=
-ted
->>>> directly by HW, bypassing the kernel. Consequently, Infiniband Partiti=
-ons,
->>>> which are associated directly with HW transport endpoints, are a natur=
-al
->>>> choice for enforcing granular mandatory access control for Infiniband.=
- QPs may
->>>> only send or receives packets tagged with the corresponding partition =
-key
->>>> (PKey). The PKey is not a cryptographic key; it's a 16 bit number iden=
-tifying
->>>> the partition ...
->>>>
->>> Hi Dan,
->>>
->>> I haven't heard anything from you in a while, where do things stand
->>> with this effort?  Unless I missed them, I believe we are still
->>> waiting on the userspace, SELinux reference policy, and
->>> selinux-testsuite patches.
->>>
->> Hi Paul,
->>
->>     I got distracted for a while.  I've just rebased the kernel and user=
-space.  I'll do some testing and submit the userspace code in the next coup=
-le days.  I still have to write the selinux-testsuite tests, I'll work on t=
-hose concurrently with the userspace review cycle.
->
-> Great, thanks for the update.  We'll look forward to the patches.
 
-I took a closer look at the patchset and I think it looks fine,
-coupled with the recent progress on the SELinux userspace and test
-suite I think it would be good to get this into the selinux/next tree
-so we can start playing with it.  Dan, I know there were some IB merge
-conflicts with this patch could you do a respin against the current
-selinux/next tree?
+Hello everybody,
 
-* git://git.infradead.org/users/pcmoore/selinux
-* http://git.infradead.org/users/pcmoore/selinux
+While looking into Coverity ID 1362263 I ran into the following piece  
+of code at drivers/infiniband/hw/i40iw/i40iw_virtchnl.c:445:
 
-Thanks.
+445        if (vchnl_msg->iw_op_code == I40IW_VCHNL_OP_GET_VER) {
+446                if (vchnl_msg->iw_op_ver != I40IW_VCHNL_OP_GET_VER_V0)
+447                        vchnl_pf_send_get_ver_resp(dev, vf_id, vchnl_msg);
+448                else
+449                        vchnl_pf_send_get_ver_resp(dev, vf_id, vchnl_msg);
+450                return I40IW_SUCCESS;
+451        }
 
---=20
-paul moore
-www.paul-moore.com
+The issue is that lines of code 447 and 449 are identical for  
+different branches.
+
+My question here is if one of the branches should be modified, or the  
+entire _if_ statement replaced?
+
+Maybe a patch like the following could be applied:
+
+index f4d1368..48fd327 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_virtchnl.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_virtchnl.c
+@@ -443,10 +443,7 @@ enum i40iw_status_code i40iw_vchnl_recv_pf(struct  
+i40iw_sc_dev *dev,
+         if (!dev->vchnl_up)
+                 return I40IW_ERR_NOT_READY;
+         if (vchnl_msg->iw_op_code == I40IW_VCHNL_OP_GET_VER) {
+-               if (vchnl_msg->iw_op_ver != I40IW_VCHNL_OP_GET_VER_V0)
+-                       vchnl_pf_send_get_ver_resp(dev, vf_id, vchnl_msg);
+-               else
+-                       vchnl_pf_send_get_ver_resp(dev, vf_id, vchnl_msg);
++               vchnl_pf_send_get_ver_resp(dev, vf_id, vchnl_msg);
+                 return I40IW_SUCCESS;
+         }
+         for (iw_vf_idx = 0; iw_vf_idx <  
+I40IW_MAX_PE_ENABLED_VF_COUNT; iw_vf_idx++) {
+
+What do you think?
+
+I'd really appreciate any comment on this.
+
+Thank you!
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Gustavo A. R. Silva
