@@ -1,162 +1,50 @@
 From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V2 for-next 05/15] RDMA/bnxt_re: Free doorbell page index (DPI) during dealloc ucontext
-Date: Wed, 17 May 2017 02:19:41 -0700
-Message-ID: <1495012791-5053-6-git-send-email-selvin.xavier@broadcom.com>
+Subject: [PATCH V2 for-next 04/15] RDMA/bnxt_re: Dereg MR in FW before freeing the fast_reg_page_list
+Date: Wed, 17 May 2017 02:19:40 -0700
+Message-ID: <1495012791-5053-5-git-send-email-selvin.xavier@broadcom.com>
 References: <1495012791-5053-1-git-send-email-selvin.xavier@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1495012791-5053-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+If the host buffers are freed before destroying MR in HW,
+HW could try accessing these buffers. This could cause a host
+crash. Fixing the code to avoid this condition.
 
-The driver must free the DPI during the dealloc_ucontext
-instead of freeing it during dealloc_pd. However, the DPI
-allocation scheme remains unchanged.
-
-Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 58 ++++++++++++++++----------------
- drivers/infiniband/hw/bnxt_re/ib_verbs.h |  3 +-
- 2 files changed, 30 insertions(+), 31 deletions(-)
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index e317783..bf59666 100644
+index 23f309e..e317783 100644
 --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
 +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -604,30 +604,13 @@ int bnxt_re_dealloc_pd(struct ib_pd *ib_pd)
- 	int rc;
+@@ -3042,6 +3042,12 @@ int bnxt_re_dereg_mr(struct ib_mr *ib_mr)
+ 	struct bnxt_re_dev *rdev = mr->rdev;
+ 	int rc = 0;
  
- 	bnxt_re_destroy_fence_mr(pd);
--	if (ib_pd->uobject && pd->dpi.dbr) {
--		struct ib_ucontext *ib_uctx = ib_pd->uobject->context;
--		struct bnxt_re_ucontext *ucntx;
- 
--		/* Free DPI only if this is the first PD allocated by the
--		 * application and mark the context dpi as NULL
--		 */
--		ucntx = container_of(ib_uctx, struct bnxt_re_ucontext, ib_uctx);
--
--		rc = bnxt_qplib_dealloc_dpi(&rdev->qplib_res,
--					    &rdev->qplib_res.dpi_tbl,
--					    &pd->dpi);
-+	if (pd->qplib_pd.id) {
-+		rc = bnxt_qplib_dealloc_pd(&rdev->qplib_res,
-+					   &rdev->qplib_res.pd_tbl,
-+					   &pd->qplib_pd);
- 		if (rc)
--			dev_err(rdev_to_dev(rdev), "Failed to deallocate HW DPI");
--			/* Don't fail, continue*/
--		ucntx->dpi = NULL;
--	}
--
--	rc = bnxt_qplib_dealloc_pd(&rdev->qplib_res,
--				   &rdev->qplib_res.pd_tbl,
--				   &pd->qplib_pd);
--	if (rc) {
--		dev_err(rdev_to_dev(rdev), "Failed to deallocate HW PD");
--		return rc;
-+			dev_err(rdev_to_dev(rdev), "Failed to deallocate HW PD");
- 	}
- 
- 	kfree(pd);
-@@ -659,23 +642,22 @@ struct ib_pd *bnxt_re_alloc_pd(struct ib_device *ibdev,
- 	if (udata) {
- 		struct bnxt_re_pd_resp resp;
- 
--		if (!ucntx->dpi) {
-+		if (!ucntx->dpi.dbr) {
- 			/* Allocate DPI in alloc_pd to avoid failing of
- 			 * ibv_devinfo and family of application when DPIs
- 			 * are depleted.
- 			 */
- 			if (bnxt_qplib_alloc_dpi(&rdev->qplib_res.dpi_tbl,
--						 &pd->dpi, ucntx)) {
-+						 &ucntx->dpi, ucntx)) {
- 				rc = -ENOMEM;
- 				goto dbfail;
- 			}
--			ucntx->dpi = &pd->dpi;
- 		}
- 
- 		resp.pdid = pd->qplib_pd.id;
- 		/* Still allow mapping this DBR to the new user PD. */
--		resp.dpi = ucntx->dpi->dpi;
--		resp.dbr = (u64)ucntx->dpi->umdbr;
-+		resp.dpi = ucntx->dpi.dpi;
-+		resp.dbr = (u64)ucntx->dpi.umdbr;
- 
- 		rc = ib_copy_to_udata(udata, &resp, sizeof(resp));
- 		if (rc) {
-@@ -951,7 +933,7 @@ static int bnxt_re_init_user_qp(struct bnxt_re_dev *rdev, struct bnxt_re_pd *pd,
- 		qplib_qp->rq.nmap = umem->nmap;
- 	}
- 
--	qplib_qp->dpi = cntx->dpi;
-+	qplib_qp->dpi = &cntx->dpi;
- 	return 0;
- rqfail:
- 	ib_umem_release(qp->sumem);
-@@ -2359,7 +2341,7 @@ struct ib_cq *bnxt_re_create_cq(struct ib_device *ibdev,
- 		}
- 		cq->qplib_cq.sghead = cq->umem->sg_head.sgl;
- 		cq->qplib_cq.nmap = cq->umem->nmap;
--		cq->qplib_cq.dpi = uctx->dpi;
-+		cq->qplib_cq.dpi = &uctx->dpi;
- 	} else {
- 		cq->max_cql = min_t(u32, entries, MAX_CQL_PER_POLL);
- 		cq->cql = kcalloc(cq->max_cql, sizeof(struct bnxt_qplib_cqe),
-@@ -3438,8 +3420,26 @@ int bnxt_re_dealloc_ucontext(struct ib_ucontext *ib_uctx)
- 	struct bnxt_re_ucontext *uctx = container_of(ib_uctx,
- 						   struct bnxt_re_ucontext,
- 						   ib_uctx);
-+
-+	struct bnxt_re_dev *rdev = uctx->rdev;
-+	int rc = 0;
-+
- 	if (uctx->shpg)
- 		free_page((unsigned long)uctx->shpg);
-+
-+	if (uctx->dpi.dbr) {
-+		/* Free DPI only if this is the first PD allocated by the
-+		 * application and mark the context dpi as NULL
-+		 */
-+		rc = bnxt_qplib_dealloc_dpi(&rdev->qplib_res,
-+					    &rdev->qplib_res.dpi_tbl,
-+					    &uctx->dpi);
-+		if (rc)
-+			dev_err(rdev_to_dev(rdev), "Deallocte HW DPI failed!");
-+			/* Don't fail, continue*/
-+		uctx->dpi.dbr = NULL;
++	rc = bnxt_qplib_free_mrw(&rdev->qplib_res, &mr->qplib_mr);
++	if (rc) {
++		dev_err(rdev_to_dev(rdev), "Dereg MR failed: %#x\n", rc);
++		return rc;
 +	}
 +
- 	kfree(uctx);
- 	return 0;
- }
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.h b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-index 7135c78..381e4e9 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-@@ -58,7 +58,6 @@ struct bnxt_re_pd {
- 	struct bnxt_re_dev	*rdev;
- 	struct ib_pd		ib_pd;
- 	struct bnxt_qplib_pd	qplib_pd;
--	struct bnxt_qplib_dpi	dpi;
- 	struct bnxt_re_fence_data fence;
- };
+ 	if (mr->npages && mr->pages) {
+ 		rc = bnxt_qplib_free_fast_reg_page_list(&rdev->qplib_res,
+ 							&mr->qplib_frpl);
+@@ -3049,8 +3055,6 @@ int bnxt_re_dereg_mr(struct ib_mr *ib_mr)
+ 		mr->npages = 0;
+ 		mr->pages = NULL;
+ 	}
+-	rc = bnxt_qplib_free_mrw(&rdev->qplib_res, &mr->qplib_mr);
+-
+ 	if (!IS_ERR(mr->ib_umem) && mr->ib_umem)
+ 		ib_umem_release(mr->ib_umem);
  
-@@ -125,7 +124,7 @@ struct bnxt_re_mw {
- struct bnxt_re_ucontext {
- 	struct bnxt_re_dev	*rdev;
- 	struct ib_ucontext	ib_uctx;
--	struct bnxt_qplib_dpi	*dpi;
-+	struct bnxt_qplib_dpi	dpi;
- 	void			*shpg;
- 	spinlock_t		sh_lock;	/* protect shpg */
- };
 -- 
 2.5.5
 
