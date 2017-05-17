@@ -1,32 +1,409 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: rdma-ndd shipped by infiniband-diags and rdma-core
-Date: Wed, 17 May 2017 10:41:30 -0400
-Message-ID: <dcbcb03c-244e-b124-fa40-42423f4f4aa3@dev.mellanox.co.il>
-References: <1494335693.3752.1.camel@profitbricks.com>
- <20170509175406.GJ10073@mtr-leonro.local>
- <2807E5FD2F6FDA4886F6618EAC48510E67CAA0F6@CRSMSX101.amr.corp.intel.com>
- <20170515044419.GW3616@mtr-leonro.local>
- <2807E5FD2F6FDA4886F6618EAC48510E67CAA44F@CRSMSX101.amr.corp.intel.com>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: rdma_cm segfaults on RoCE with ConnectX-4 [WAS: Re: rping segfault
+ with 4.9.28 on CentOS 7.3]
+Date: Wed, 17 May 2017 12:14:18 -0600
+Message-ID: <CAANLjFp3PWJBiVabMGksarwg9BTM7Cg4mPrBsXY+mYh_zBbsgA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E67CAA44F-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/15/2017 11:08 AM, Weiny, Ira wrote:
-> For review I have put my proposed new infiniband-diags (planned v2.0) here:
-> 
-> https://github.com/weiny2/infiniband-diags/tree/master-new
-> 
-> I'd like to have Hal check it out before I push this officially and release it.
+Since I have a connectX-3 card in this same box, I set it up as
+Infiniband. I can run all the tests (udaddy, rping, ib_send_bw with -R
+or -z) using the Infiniband link, but the RoCE ConnectX-4 LX segfault
+on any rdma_cm communications.
 
-Branch looks good to me but I only did a cursory evaluation.
+I put the ConnectX-3 into Ethernet mode and ran the tests again and it
+passed all of them while the ConnectX-4 LX cards still failed. We have
+some ConnectX-4 EN 100 Gb cards in other boxes that have the same
+problem.
 
--- Hal
+It really looks like this problem is specific to ConnectX-4 (mlx5
+driver) when running in RoCE. I _don't_ have ConnectX-4 IB cards to
+test. We are also seeing the problem with the Mellanox drivers. I
+can't find http://www.mellanox.com/page/custom_firmware_table to build
+a new OEM firmware for my SuperMicro branded cards to test the latest
+firmware.
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+
+
+On Tue, May 16, 2017 at 4:00 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+> The ib_read_bw looks like it can use rdma_cm or not. By default, I can
+> get things to work between the nodes. If I specify -R or -z, it fails.
+> It seems that the context is not being set properly when using
+> rdma_cm.
+>
+> "Server"
+> -----------
+>
+> # ib_read_bw
+>
+> ************************************
+> * Waiting for client to connect... *
+> ************************************
+> ---------------------------------------------------------------------------------------
+>                    RDMA_Read BW Test
+> Dual-port       : OFF          Device         : mlx5_0
+> Number of qps   : 1            Transport type : IB
+> Connection type : RC           Using SRQ      : OFF
+> CQ Moderation   : 100
+> Mtu             : 1024[B]
+> Link type       : Ethernet
+> GID index       : 2
+> Outstand reads  : 16
+> rdma_cm QPs     : OFF
+> Data ex. method : Ethernet
+> ---------------------------------------------------------------------------------------
+> local address: LID 0000 QPN 0x011a PSN 0xa0e9fd OUT 0x10 RKey 0x00175e
+> VAddr 0x007fc73fd6e000
+> GID: 00:00:00:00:00:00:00:00:00:00:255:255:192:168:13:13
+> remote address: LID 0000 QPN 0x011a PSN 0xf7747b OUT 0x10 RKey
+> 0x002797 VAddr 0x007fe5cccc5000
+> GID: 00:00:00:00:00:00:00:00:00:00:255:255:192:168:13:14
+> ---------------------------------------------------------------------------------------
+> #bytes     #iterations    BW peak[MB/sec]    BW average[MB/sec]   MsgRate[Mpps]
+> 65536      1000             2728.79            2728.77            0.043660
+> ---------------------------------------------------------------------------------------
+>
+> # ib_read_bw -R
+>
+> ************************************
+> * Waiting for client to connect... *
+> ************************************
+> Segmentation fault (core dumped)
+>
+> # gdb ib_read_bw core.8319
+> GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-94.el7
+> Copyright (C) 2013 Free Software Foundation, Inc.
+> License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+> This is free software: you are free to change and redistribute it.
+> There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+> and "show warranty" for details.
+> This GDB was configured as "x86_64-redhat-linux-gnu".
+> For bug reporting instructions, please see:
+> <http://www.gnu.org/software/gdb/bugs/>...
+> Reading symbols from /usr/bin/ib_read_bw...Reading symbols from
+> /usr/lib/debug/usr/bin/ib_read_bw.debug...done.
+> done.
+> [New LWP 8319]
+> [Thread debugging using libthread_db enabled]
+> Using host libthread_db library "/lib64/libthread_db.so.1".
+> Core was generated by `ib_read_bw -R'.
+> Program terminated with signal 11, Segmentation fault.
+> #0  __ibv_query_device (context=0x0, device_attr=0x7ffcd8fec160) at
+> src/verbs.c:135
+> 135             return context->ops.query_device(context, device_attr);
+> (gdb) bt
+> #0  __ibv_query_device (context=0x0, device_attr=0x7ffcd8fec160) at
+> src/verbs.c:135
+> #1  0x0000000000410518 in check_for_contig_pages_support
+> (context=<optimized out>) at src/perftest_resources.c:262
+> #2  ctx_init (ctx=ctx@entry=0x110b000,
+> user_param=user_param@entry=0x110ad70) at
+> src/perftest_resources.c:1314
+> #3  0x000000000040585c in rdma_server_connect (ctx=0x110b000,
+> user_param=0x110ad70) at src/perftest_communication.c:1119
+> #4  0x0000000000405f53 in establish_connection
+> (comm=comm@entry=0x7ffcd8fec470) at src/perftest_communication.c:1244
+> #5  0x0000000000402b37 in main (argc=<optimized out>, argv=<optimized
+> out>) at src/read_bw.c:110
+> (gdb) f 0
+> #0  __ibv_query_device (context=0x0, device_attr=0x7ffcd8fec160) at
+> src/verbs.c:135
+> 135             return context->ops.query_device(context, device_attr);
+> (gdb) list
+> 130     }
+> 131
+> 132     int __ibv_query_device(struct ibv_context *context,
+> 133                            struct ibv_device_attr *device_attr)
+> 134     {
+> 135             return context->ops.query_device(context, device_attr);
+> 136     }
+> 137     default_symver(__ibv_query_device, ibv_query_device);
+> 138
+> 139     int __ibv_query_port(struct ibv_context *context, uint8_t port_num,
+> (gdb) p context
+> $1 = (struct ibv_context *) 0x0
+>
+> # ib_read_bw -z
+>
+> ************************************
+> * Waiting for client to connect... *
+> ************************************
+> Segmentation fault (core dumped)
+>
+> # gdb ib_read_bw core.8369
+> GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-94.el7
+> Copyright (C) 2013 Free Software Foundation, Inc.
+> License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+> This is free software: you are free to change and redistribute it.
+> There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+> and "show warranty" for details.
+> This GDB was configured as "x86_64-redhat-linux-gnu".
+> For bug reporting instructions, please see:
+> <http://www.gnu.org/software/gdb/bugs/>...
+> Reading symbols from /usr/bin/ib_read_bw...Reading symbols from
+> /usr/lib/debug/usr/bin/ib_read_bw.debug...done.
+> done.
+> [New LWP 8369]
+> [Thread debugging using libthread_db enabled]
+> Using host libthread_db library "/lib64/libthread_db.so.1".
+> Core was generated by `ib_read_bw -z'.
+> Program terminated with signal 11, Segmentation fault.
+> #0  __ibv_query_device (context=0x0, device_attr=0x7ffe5f5ee4b0) at
+> src/verbs.c:135
+> 135             return context->ops.query_device(context, device_attr);
+> (gdb) bt
+> #0  __ibv_query_device (context=0x0, device_attr=0x7ffe5f5ee4b0) at
+> src/verbs.c:135
+> #1  0x0000000000410518 in check_for_contig_pages_support
+> (context=<optimized out>) at src/perftest_resources.c:262
+> #2  ctx_init (ctx=ctx@entry=0x1b3d000,
+> user_param=user_param@entry=0x1b3cd70) at
+> src/perftest_resources.c:1314
+> #3  0x000000000040585c in rdma_server_connect (ctx=0x1b3d000,
+> user_param=0x1b3cd70)
+>    at src/perftest_communication.c:1119
+> #4  0x0000000000405f53 in establish_connection
+> (comm=comm@entry=0x7ffe5f5ee7c0) at src/perftest_communication.c:1244
+> #5  0x0000000000402b37 in main (argc=<optimized out>, argv=<optimized
+> out>) at src/read_bw.c:110
+> (gdb) f 0
+> #0  __ibv_query_device (context=0x0, device_attr=0x7ffe5f5ee4b0) at
+> src/verbs.c:135
+> 135             return context->ops.query_device(context, device_attr);
+> (gdb) list
+> 130     }
+> 131
+> 132     int __ibv_query_device(struct ibv_context *context,
+> 133                            struct ibv_device_attr *device_attr)
+> 134     {
+> 135             return context->ops.query_device(context, device_attr);
+> 136     }
+> 137     default_symver(__ibv_query_device, ibv_query_device);
+> 138
+> 139     int __ibv_query_port(struct ibv_context *context, uint8_t port_num,
+> (gdb) p context
+> $1 = (struct ibv_context *) 0x0
+>
+>
+> "Client"
+> ----------
+> # ib_read_bw 192.168.13.13
+> ---------------------------------------------------------------------------------------
+>                    RDMA_Read BW Test
+> Dual-port       : OFF          Device         : mlx5_0
+> Number of qps   : 1            Transport type : IB
+> Connection type : RC           Using SRQ      : OFF
+> TX depth        : 128
+> CQ Moderation   : 100
+> Mtu             : 1024[B]
+> Link type       : Ethernet
+> GID index       : 2
+> Outstand reads  : 16
+> rdma_cm QPs     : OFF
+> Data ex. method : Ethernet
+> ---------------------------------------------------------------------------------------
+> local address: LID 0000 QPN 0x011a PSN 0xf7747b OUT 0x10 RKey 0x002797
+> VAddr 0x007fe5cccc5000
+> GID: 00:00:00:00:00:00:00:00:00:00:255:255:192:168:13:14
+> remote address: LID 0000 QPN 0x011a PSN 0xa0e9fd OUT 0x10 RKey
+> 0x00175e VAddr 0x007fc73fd6e000
+> GID: 00:00:00:00:00:00:00:00:00:00:255:255:192:168:13:13
+> ---------------------------------------------------------------------------------------
+> #bytes     #iterations    BW peak[MB/sec]    BW average[MB/sec]   MsgRate[Mpps]
+> Conflicting CPU frequency values detected: 1200.024000 != 2600.000000.
+> CPU Frequency is not max.
+> 65536      1000             2728.79            2728.77            0.043660
+> ---------------------------------------------------------------------------------------
+>
+> # ib_read_bw -R 192.168.13.13
+> Unexpected CM event bl blka 8
+> Unable to perform rdma_client function
+> Unable to init the socket connection
+>
+> # ib_read_bw -z 192.168.13.13
+> Unexpected CM event bl blka 8
+> Unable to perform rdma_client function
+> Unable to init the socket connection
+> ----------------
+> Robert LeBlanc
+> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+>
+>
+> On Tue, May 16, 2017 at 2:50 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+>> I installed OFED 4.0-2.0.0.1 on a fresh snapshot with the stock kernel
+>> (3.10.0-514.16.1.el7.x86_64). I'm getting a segfault on the server
+>> side, but not on the client side. I don't see any debug packages in
+>> the OFED package to load the symbols.
+>>
+>> rping server:
+>>
+>> # gdb rping core.10405
+>> GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-94.el7
+>> Copyright (C) 2013 Free Software Foundation, Inc.
+>> License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+>> This is free software: you are free to change and redistribute it.
+>> There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+>> and "show warranty" for details.
+>> This GDB was configured as "x86_64-redhat-linux-gnu".
+>> For bug reporting instructions, please see:
+>> <http://www.gnu.org/software/gdb/bugs/>...
+>> Reading symbols from /usr/bin/rping...Reading symbols from
+>> /usr/bin/rping...(no debugging symbols found)...done.
+>> (no debugging symbols found)...done.
+>> [New LWP 10405]
+>> [New LWP 10408]
+>> [Thread debugging using libthread_db enabled]
+>> Using host libthread_db library "/lib64/libthread_db.so.1".
+>> Core was generated by `rping -s'.
+>> Program terminated with signal 11, Segmentation fault.
+>> #0  0x00007f31883d45b4 in ibv_alloc_pd () from /usr/lib64/libibverbs.so.1
+>> Missing separate debuginfos, use: debuginfo-install
+>> librdmacm-utils-1.1.0mlnx-OFED.4.0.1.6.1.40200.x86_64
+>> (gdb) bt
+>> #0  0x00007f31883d45b4 in ibv_alloc_pd () from /usr/lib64/libibverbs.so.1
+>> #1  0x0000000000402fe6 in rping_setup_qp.isra.7 ()
+>> #2  0x0000000000401d04 in main ()
+>> (gdb) list
+>> No symbol table is loaded.  Use the "file" command.
+>>
+>> rping client:
+>>
+>> # rping -c -a 192.168.13.13
+>> cma event RDMA_CM_EVENT_REJECTED, error 28
+>> wait for CONNECTED state 4
+>> connect error -1
+>> ----------------
+>> Robert LeBlanc
+>> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+>>
+>>
+>> On Tue, May 16, 2017 at 1:23 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+>>> This is using ConnectX-4 LX RoCE cards, using only in-box drivers.
+>>>
+>>> While trying to debug some iSER issues, I'm trying to do rping between
+>>> the two hosts, but I'm getting a segfault. Sagi suggested that there
+>>> may be something wrong with my kernel ABI. I did a make mrproper and
+>>> built the latest 4.9.28 kernel and installed the kernel headers.
+>>>
+>>> make -j 32 && sudo make modules_install && sudo make install && sudo
+>>> make headers_install INSTALL_HDR_PATH=/usr
+>>>
+>>> After booting into the new kernel, I kept getting the segfaults, so I
+>>> rebuilt the libibverbs, libibumad, librdmacm packages in case they
+>>> aren't picking up the new kernel headers. Still no luck.
+>>>
+>>> Here is the server of rping with the rebuilt packages:
+>>> # gdb rping core.22936
+>>> GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-94.el7
+>>> Copyright (C) 2013 Free Software Foundation, Inc.
+>>> License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+>>> This is free software: you are free to change and redistribute it.
+>>> There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+>>> and "show warranty" for details.
+>>> This GDB was configured as "x86_64-redhat-linux-gnu".
+>>> For bug reporting instructions, please see:
+>>> <http://www.gnu.org/software/gdb/bugs/>...
+>>> Reading symbols from /usr/bin/rping...Reading symbols from
+>>> /usr/lib/debug/usr/bin/rping.debug...done.
+>>> done.
+>>> [New LWP 22936]
+>>> [New LWP 22939]
+>>> [Thread debugging using libthread_db enabled]
+>>> Using host libthread_db library "/lib64/libthread_db.so.1".
+>>> Core was generated by `rping -s'.
+>>> Program terminated with signal 11, Segmentation fault.
+>>> #0  __ibv_alloc_pd (context=0x0) at src/verbs.c:196
+>>> 196             pd = context->ops.alloc_pd(context);
+>>> (gdb) bt
+>>> #0  __ibv_alloc_pd (context=0x0) at src/verbs.c:196
+>>> #1  0x000055f60331d5f6 in rping_setup_qp (cb=cb@entry=0x55f603d74780,
+>>> cm_id=<optimized out>) at examples/rping.c:519
+>>> #2  0x000055f60331be7e in rping_run_server (cb=0x55f603d74780) at
+>>> examples/rping.c:890
+>>> #3  main (argc=2, argv=0x7ffcd16aae88) at examples/rping.c:1268
+>>> (gdb) f 0
+>>> #0  __ibv_alloc_pd (context=0x0) at src/verbs.c:196
+>>> 196             pd = context->ops.alloc_pd(context);
+>>> (gdb) list
+>>> 191
+>>> 192     struct ibv_pd *__ibv_alloc_pd(struct ibv_context *context)
+>>> 193     {
+>>> 194             struct ibv_pd *pd;
+>>> 195
+>>> 196             pd = context->ops.alloc_pd(context);
+>>> 197             if (pd)
+>>> 198                     pd->context = context;
+>>> 199
+>>> 200             return pd;
+>>> (gdb) p context
+>>> $1 = (struct ibv_context *) 0x0
+>>>
+>>> Here is the rping client that does not have the rebuilt packages:
+>>> # gdb rping core.8253
+>>> GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-94.el7
+>>> Copyright (C) 2013 Free Software Foundation, Inc.
+>>> License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+>>> This is free software: you are free to change and redistribute it.
+>>> There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+>>> and "show warranty" for details.
+>>> This GDB was configured as "x86_64-redhat-linux-gnu".
+>>> For bug reporting instructions, please see:
+>>> <http://www.gnu.org/software/gdb/bugs/>...
+>>> Reading symbols from /usr/bin/rping...Reading symbols from
+>>> /usr/lib/debug/usr/bin/rping.debug...done.
+>>> done.
+>>> [New LWP 8253]
+>>> [New LWP 8256]
+>>> [Thread debugging using libthread_db enabled]
+>>> Using host libthread_db library "/lib64/libthread_db.so.1".
+>>> Core was generated by `rping -c -a 192.168.13.13'.
+>>> Program terminated with signal 11, Segmentation fault.
+>>> #0  __ibv_dereg_mr (mr=0x560e295e93b0) at src/verbs.c:299
+>>> 299             ret = mr->context->ops.dereg_mr(mr);
+>>> (gdb) bt
+>>> #0  __ibv_dereg_mr (mr=0x560e295e93b0) at src/verbs.c:299
+>>> #1  0x0000560e293cd917 in rping_free_buffers (cb=0x560e295e5780) at
+>>> examples/rping.c:470
+>>> #2  0x0000560e293cbf57 in rping_run_client (cb=<optimized out>) at
+>>> examples/rping.c:1111
+>>> #3  main (argc=<optimized out>, argv=<optimized out>) at examples/rping.c:1270
+>>> (gdb) f 9
+>>> #0  0x0000000000000000 in ?? ()
+>>> (gdb) f 0
+>>> #0  __ibv_dereg_mr (mr=0x560e295e93b0) at src/verbs.c:299
+>>> 299             ret = mr->context->ops.dereg_mr(mr);
+>>> (gdb) list
+>>> 294     {
+>>> 295             int ret;
+>>> 296             void *addr      = mr->addr;
+>>> 297             size_t length   = mr->length;
+>>> 298
+>>> 299             ret = mr->context->ops.dereg_mr(mr);
+>>> 300             if (!ret)
+>>> 301                     ibv_dofork_range(addr, length);
+>>> 302
+>>> 303             return ret;
+>>> (gdb) p mr
+>>> $1 = (struct ibv_mr *) 0x560e295e93b0
+>>> (gdb) p *mr
+>>> $2 = {context = 0x7fd423be5090, pd = 0x560e295e9960, addr =
+>>> 0x560e295e57e8, length = 16, handle = 0, lkey = 72829, rkey = 72829}
+>>> (gdb) p *mr->context
+>>> Cannot access memory at address 0x7fd423be5090
+>>>
+>>> Any ideas on what I'm doing wrong?
+>>>
+>>> Thanks,
+>>>
+>>> ----------------
+>>> Robert LeBlanc
+>>> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
