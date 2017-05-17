@@ -1,33 +1,79 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH v4, under testing] nvme-rdma: support devices with queue
- size < 32
-Date: Wed, 17 May 2017 02:02:02 -0700
-Message-ID: <20170517090202.GA23880@infradead.org>
-References: <79901165.5342369.1493805915415.JavaMail.zimbra@kalray.eu>
- <823aa3f0-685f-4569-11d6-238cc4f0b126@grimberg.me>
- <780938034.8003164.1493824767084.JavaMail.zimbra@kalray.eu>
- <20170503155316.GA14334@obsidianresearch.com>
- <1493827096.3901.4.camel@sandisk.com>
- <77ada146-67eb-9dce-d252-6ac630c9a1e8@grimberg.me>
- <20170503162708.GO22833@mtr-leonro.local>
- <1493829456.3901.13.camel@sandisk.com>
- <310709514.10440651.1493902200194.JavaMail.zimbra@kalray.eu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V2 for-next 00/15]RDMA/bnxt_re: Bug fixes
+Date: Wed, 17 May 2017 02:19:36 -0700
+Message-ID: <1495012791-5053-1-git-send-email-selvin.xavier@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <310709514.10440651.1493902200194.JavaMail.zimbra-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
-Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, axboe-b10kYP2dOMg@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, samuel jones <samuel.jones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, keith busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, hch-jcswGhMUV9g@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> This looks like a good idea to me. Then the division can change into
-> an AND. I'll come back with another version soon.
+The patch series includes some bug fixes for bnxt_re driver.
+This series includes implementation of some of the workarounds
+required for the HW and FW. The driver version is also updated
+in this series.
+I have added a new patch in this series to enable/disable FMR
+support using a config option, as we found some issues with
+curent implementation. We are currently debugging it.
 
-Did you get a chance to look at this?  I'm tempted to just merge v2
-with the division in it and leave any fixing up for the time we move this
-guestimate into the rdma core..
+Changes v1 -> v2:
+	- Changes suggested by Leon in one of the patches
+        - Updates commit message with more description
+	- Disables FMR support using a config option
+
+Doug,
+ Please apply these changes to your repository.
+
+Thanks,
+Selvin Xavier
+
+Devesh Sharma (3):
+  RDMA/bnxt_re: Fixing the Control path command and response handling
+  RDMA/bnxt_re: Free doorbell page index (DPI) during dealloc ucontext
+  RDMA/bnxt_re: Fix RQE posting logic
+
+Eddie Wai (2):
+  RDMA/bnxt_re: HW workarounds for handling specific conditions
+  RDMA/bnxt_re: Fixed the max_rd_atomic support for initiator and
+    destination QP
+
+Kalesh AP (1):
+  RDMA/bnxt_re: Add vlan tag for untagged RoCE traffic when PFC is
+    configured
+
+Selvin Xavier (5):
+  RDMA/bnxt_re: Dereg MR in FW before freeing the fast_reg_page_list
+  RDMA/bnxt_re: Do not free the ctx_tbl entry if delete GID fails
+  RDMA/bnxt_re: Report supported value to IB stack in query_device
+  RDMA/bnxt_re: Update the driver version
+  RDMA/bnxt_re: Disable FMR by default
+
+Somnath Kotur (4):
+  RDMA/bnxt_re: Fix race between netdev register and unregister events
+  RDMA/bnxt_re: Add HW workaround for avoiding stall for UD QPs
+  RDMA/bnxt_re: Fix WQE Size posted to HW to prevent it from throwing
+    error
+  RDMA/bnxt_re: Specify RDMA component when allocating stats context
+
+ drivers/infiniband/hw/bnxt_re/Kconfig      |   8 +
+ drivers/infiniband/hw/bnxt_re/bnxt_re.h    |  21 +-
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c   | 552 +++++++++++++++++++++++------
+ drivers/infiniband/hw/bnxt_re/ib_verbs.h   |  20 +-
+ drivers/infiniband/hw/bnxt_re/main.c       |  95 ++++-
+ drivers/infiniband/hw/bnxt_re/qplib_fp.c   | 393 ++++++++++----------
+ drivers/infiniband/hw/bnxt_re/qplib_fp.h   |  18 +-
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 314 ++++++++--------
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.h |  61 ++--
+ drivers/infiniband/hw/bnxt_re/qplib_res.c  |  10 +
+ drivers/infiniband/hw/bnxt_re/qplib_res.h  |   6 +
+ drivers/infiniband/hw/bnxt_re/qplib_sp.c   | 404 ++++++++-------------
+ drivers/infiniband/hw/bnxt_re/qplib_sp.h   |   4 +
+ drivers/infiniband/hw/bnxt_re/roce_hsi.h   |   4 +-
+ 14 files changed, 1148 insertions(+), 762 deletions(-)
+
+-- 
+2.5.5
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
