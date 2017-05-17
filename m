@@ -1,14 +1,14 @@
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: [PATCH] IB/hfi1: Prevent kernel QP post send hard lockups
-Date: Wed, 17 May 2017 14:21:45 -0400
-Message-ID: <20170517182145.17528.34036.stgit@phlsvslse11.ph.intel.com>
+Date: Wed, 17 May 2017 14:22:58 -0400
+Message-ID: <20170517182257.17757.74508.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: stable@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org, stable-commits@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-commits-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 commit b6eac931b9bb2bce4db7032c35b41e5e34ec22a5 upstream.
@@ -26,12 +26,12 @@ one for post send and adding an argument to hfi1_do_send() to indicate
 that the send engine is running in a thread.   If the routine is not
 running in a thread, avoid calling cond_resched().
 
-CC: <stable@vger.kernel.org> # 4.10.x
+CC: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 4.11.x
 Fixes: Commit 831464ce4b74 ("IB/hfi1: Don't call cond_resched in atomic mode when sending packets")
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Doug Ledford <dledford@redhat.com>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 ---
  drivers/infiniband/hw/hfi1/ruc.c   |   24 +++++++++++++++---------
  drivers/infiniband/hw/hfi1/verbs.c |    2 +-
@@ -39,10 +39,10 @@ Signed-off-by: Doug Ledford <dledford@redhat.com>
  3 files changed, 19 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
-index 717ed4b15..6589642 100644
+index aa15bcb..2f1853b 100644
 --- a/drivers/infiniband/hw/hfi1/ruc.c
 +++ b/drivers/infiniband/hw/hfi1/ruc.c
-@@ -823,23 +823,29 @@ void hfi1_make_ruc_header(struct rvt_qp *qp, struct ib_other_headers *ohdr,
+@@ -784,23 +784,29 @@ void hfi1_make_ruc_header(struct rvt_qp *qp, struct ib_other_headers *ohdr,
  /* when sending, force a reschedule every one of these periods */
  #define SEND_RESCHED_TIMEOUT (5 * HZ)  /* 5s in jiffies */
  
@@ -74,7 +74,7 @@ index 717ed4b15..6589642 100644
  {
  	struct hfi1_pkt_state ps;
  	struct hfi1_qp_priv *priv = qp->priv;
-@@ -907,8 +913,10 @@ void hfi1_do_send(struct rvt_qp *qp)
+@@ -868,8 +874,10 @@ void hfi1_do_send(struct rvt_qp *qp)
  			qp->s_hdrwords = 0;
  			/* allow other tasks to run */
  			if (unlikely(time_after(jiffies, timeout))) {
@@ -87,7 +87,7 @@ index 717ed4b15..6589642 100644
  					spin_lock_irqsave(
  						&qp->s_lock,
  						ps.flags);
-@@ -921,11 +929,9 @@ void hfi1_do_send(struct rvt_qp *qp)
+@@ -882,11 +890,9 @@ void hfi1_do_send(struct rvt_qp *qp)
  						*ps.ppd->dd->send_schedule);
  					return;
  				}
@@ -103,10 +103,10 @@ index 717ed4b15..6589642 100644
  			}
  			spin_lock_irqsave(&qp->s_lock, ps.flags);
 diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index 95ed4d6..8f843de 100644
+index 222315f..26f1242 100644
 --- a/drivers/infiniband/hw/hfi1/verbs.c
 +++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -1832,7 +1832,7 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
+@@ -1751,7 +1751,7 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
  	dd->verbs_dev.rdi.driver_f.qp_priv_free = qp_priv_free;
  	dd->verbs_dev.rdi.driver_f.free_all_qps = free_all_qps;
  	dd->verbs_dev.rdi.driver_f.notify_qp_reset = notify_qp_reset;
@@ -116,10 +116,10 @@ index 95ed4d6..8f843de 100644
  	dd->verbs_dev.rdi.driver_f.schedule_send_no_lock = _hfi1_schedule_send;
  	dd->verbs_dev.rdi.driver_f.get_pmtu_from_attr = get_pmtu_from_attr;
 diff --git a/drivers/infiniband/hw/hfi1/verbs.h b/drivers/infiniband/hw/hfi1/verbs.h
-index e6b8930..72683cf 100644
+index 3a0b589..3f0bf1c 100644
 --- a/drivers/infiniband/hw/hfi1/verbs.h
 +++ b/drivers/infiniband/hw/hfi1/verbs.h
-@@ -370,7 +370,9 @@ void hfi1_make_ruc_header(struct rvt_qp *qp, struct ib_other_headers *ohdr,
+@@ -350,7 +350,9 @@ void hfi1_make_ruc_header(struct rvt_qp *qp, struct ib_other_headers *ohdr,
  
  void _hfi1_do_send(struct work_struct *work);
  
@@ -130,3 +130,8 @@ index e6b8930..72683cf 100644
  
  void hfi1_send_complete(struct rvt_qp *qp, struct rvt_swqe *wqe,
  			enum ib_wc_status status);
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
