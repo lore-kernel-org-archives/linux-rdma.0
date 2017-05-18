@@ -1,457 +1,369 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: rdma_cm segfaults on RoCE with ConnectX-4 [WAS: Re: rping
- segfault with 4.9.28 on CentOS 7.3]
-Date: Thu, 18 May 2017 08:07:45 +0300
-Message-ID: <20170518050745.GZ3616@mtr-leonro.local>
-References: <CAANLjFp3PWJBiVabMGksarwg9BTM7Cg4mPrBsXY+mYh_zBbsgA@mail.gmail.com>
+Subject: Re: [PATCH V2 for-next 08/15] RDMA/bnxt_re: Add vlan tag for
+ untagged RoCE traffic when PFC is configured
+Date: Thu, 18 May 2017 09:56:12 +0300
+Message-ID: <20170518065612.GA3616@mtr-leonro.local>
+References: <1495012791-5053-1-git-send-email-selvin.xavier@broadcom.com>
+ <1495012791-5053-9-git-send-email-selvin.xavier@broadcom.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="07UuamFNDT4U/3KT"
+        protocol="application/pgp-signature"; boundary="SUcp5/vPb8ZOOFiR"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAANLjFp3PWJBiVabMGksarwg9BTM7Cg4mPrBsXY+mYh_zBbsgA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1495012791-5053-9-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kalesh AP <kalesh-anakkur.purayil-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---07UuamFNDT4U/3KT
+--SUcp5/vPb8ZOOFiR
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, May 17, 2017 at 12:14:18PM -0600, Robert LeBlanc wrote:
-> Since I have a connectX-3 card in this same box, I set it up as
-> Infiniband. I can run all the tests (udaddy, rping, ib_send_bw with -R
-> or -z) using the Infiniband link, but the RoCE ConnectX-4 LX segfault
-> on any rdma_cm communications.
+On Wed, May 17, 2017 at 02:19:44AM -0700, Selvin Xavier wrote:
+> From: Kalesh AP <kalesh-anakkur.purayil-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 >
-> I put the ConnectX-3 into Ethernet mode and ran the tests again and it
-> passed all of them while the ConnectX-4 LX cards still failed. We have
-> some ConnectX-4 EN 100 Gb cards in other boxes that have the same
-> problem.
+> Current implementation does not program vlan header insertion
+> in RoCE packet if no vlan is configured. Firmware does not add
+> prority when there is no vlan tag in the packet. Modify the code
+> to insert vlan header when PFC is enabled on the interface.
 >
-> It really looks like this problem is specific to ConnectX-4 (mlx5
-> driver) when running in RoCE. I _don't_ have ConnectX-4 IB cards to
-> test. We are also seeing the problem with the Mellanox drivers. I
-> can't find http://www.mellanox.com/page/custom_firmware_table to build
-> a new OEM firmware for my SuperMicro branded cards to test the latest
-> firmware.
+> v1 -> v2:
+> 	Avoid unnecessary memcpy while populating smac and gid
 
-Robert,
+Not in commit message please.
 
-Please avoid top-posting, It is unreadable.
-
-In regards to your issue, the best way to move forward is to open
-customer issue request and leverage established procedures to get
-proper and prompt customer channel support.
-
-Thanks
-
-> ----------------
-> Robert LeBlanc
-> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 >
+> Signed-off-by: Kalesh AP <kalesh-anakkur.purayil-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/bnxt_re/main.c      | 53 ++++++++++++++++++++---
+>  drivers/infiniband/hw/bnxt_re/qplib_res.c | 10 +++++
+>  drivers/infiniband/hw/bnxt_re/qplib_res.h |  2 +
+>  drivers/infiniband/hw/bnxt_re/qplib_sp.c  | 71 +++++++++++++++++++++++++++----
+>  drivers/infiniband/hw/bnxt_re/qplib_sp.h  |  2 +
+>  drivers/infiniband/hw/bnxt_re/roce_hsi.h  |  4 +-
+>  6 files changed, 125 insertions(+), 17 deletions(-)
 >
-> On Tue, May 16, 2017 at 4:00 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
-> > The ib_read_bw looks like it can use rdma_cm or not. By default, I can
-> > get things to work between the nodes. If I specify -R or -z, it fails.
-> > It seems that the context is not being set properly when using
-> > rdma_cm.
-> >
-> > "Server"
-> > -----------
-> >
-> > # ib_read_bw
-> >
-> > ************************************
-> > * Waiting for client to connect... *
-> > ************************************
-> > ---------------------------------------------------------------------------------------
-> >                    RDMA_Read BW Test
-> > Dual-port       : OFF          Device         : mlx5_0
-> > Number of qps   : 1            Transport type : IB
-> > Connection type : RC           Using SRQ      : OFF
-> > CQ Moderation   : 100
-> > Mtu             : 1024[B]
-> > Link type       : Ethernet
-> > GID index       : 2
-> > Outstand reads  : 16
-> > rdma_cm QPs     : OFF
-> > Data ex. method : Ethernet
-> > ---------------------------------------------------------------------------------------
-> > local address: LID 0000 QPN 0x011a PSN 0xa0e9fd OUT 0x10 RKey 0x00175e
-> > VAddr 0x007fc73fd6e000
-> > GID: 00:00:00:00:00:00:00:00:00:00:255:255:192:168:13:13
-> > remote address: LID 0000 QPN 0x011a PSN 0xf7747b OUT 0x10 RKey
-> > 0x002797 VAddr 0x007fe5cccc5000
-> > GID: 00:00:00:00:00:00:00:00:00:00:255:255:192:168:13:14
-> > ---------------------------------------------------------------------------------------
-> > #bytes     #iterations    BW peak[MB/sec]    BW average[MB/sec]   MsgRate[Mpps]
-> > 65536      1000             2728.79            2728.77            0.043660
-> > ---------------------------------------------------------------------------------------
-> >
-> > # ib_read_bw -R
-> >
-> > ************************************
-> > * Waiting for client to connect... *
-> > ************************************
-> > Segmentation fault (core dumped)
-> >
-> > # gdb ib_read_bw core.8319
-> > GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-94.el7
-> > Copyright (C) 2013 Free Software Foundation, Inc.
-> > License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
-> > This is free software: you are free to change and redistribute it.
-> > There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
-> > and "show warranty" for details.
-> > This GDB was configured as "x86_64-redhat-linux-gnu".
-> > For bug reporting instructions, please see:
-> > <http://www.gnu.org/software/gdb/bugs/>...
-> > Reading symbols from /usr/bin/ib_read_bw...Reading symbols from
-> > /usr/lib/debug/usr/bin/ib_read_bw.debug...done.
-> > done.
-> > [New LWP 8319]
-> > [Thread debugging using libthread_db enabled]
-> > Using host libthread_db library "/lib64/libthread_db.so.1".
-> > Core was generated by `ib_read_bw -R'.
-> > Program terminated with signal 11, Segmentation fault.
-> > #0  __ibv_query_device (context=0x0, device_attr=0x7ffcd8fec160) at
-> > src/verbs.c:135
-> > 135             return context->ops.query_device(context, device_attr);
-> > (gdb) bt
-> > #0  __ibv_query_device (context=0x0, device_attr=0x7ffcd8fec160) at
-> > src/verbs.c:135
-> > #1  0x0000000000410518 in check_for_contig_pages_support
-> > (context=<optimized out>) at src/perftest_resources.c:262
-> > #2  ctx_init (ctx=ctx@entry=0x110b000,
-> > user_param=user_param@entry=0x110ad70) at
-> > src/perftest_resources.c:1314
-> > #3  0x000000000040585c in rdma_server_connect (ctx=0x110b000,
-> > user_param=0x110ad70) at src/perftest_communication.c:1119
-> > #4  0x0000000000405f53 in establish_connection
-> > (comm=comm@entry=0x7ffcd8fec470) at src/perftest_communication.c:1244
-> > #5  0x0000000000402b37 in main (argc=<optimized out>, argv=<optimized
-> > out>) at src/read_bw.c:110
-> > (gdb) f 0
-> > #0  __ibv_query_device (context=0x0, device_attr=0x7ffcd8fec160) at
-> > src/verbs.c:135
-> > 135             return context->ops.query_device(context, device_attr);
-> > (gdb) list
-> > 130     }
-> > 131
-> > 132     int __ibv_query_device(struct ibv_context *context,
-> > 133                            struct ibv_device_attr *device_attr)
-> > 134     {
-> > 135             return context->ops.query_device(context, device_attr);
-> > 136     }
-> > 137     default_symver(__ibv_query_device, ibv_query_device);
-> > 138
-> > 139     int __ibv_query_port(struct ibv_context *context, uint8_t port_num,
-> > (gdb) p context
-> > $1 = (struct ibv_context *) 0x0
-> >
-> > # ib_read_bw -z
-> >
-> > ************************************
-> > * Waiting for client to connect... *
-> > ************************************
-> > Segmentation fault (core dumped)
-> >
-> > # gdb ib_read_bw core.8369
-> > GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-94.el7
-> > Copyright (C) 2013 Free Software Foundation, Inc.
-> > License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
-> > This is free software: you are free to change and redistribute it.
-> > There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
-> > and "show warranty" for details.
-> > This GDB was configured as "x86_64-redhat-linux-gnu".
-> > For bug reporting instructions, please see:
-> > <http://www.gnu.org/software/gdb/bugs/>...
-> > Reading symbols from /usr/bin/ib_read_bw...Reading symbols from
-> > /usr/lib/debug/usr/bin/ib_read_bw.debug...done.
-> > done.
-> > [New LWP 8369]
-> > [Thread debugging using libthread_db enabled]
-> > Using host libthread_db library "/lib64/libthread_db.so.1".
-> > Core was generated by `ib_read_bw -z'.
-> > Program terminated with signal 11, Segmentation fault.
-> > #0  __ibv_query_device (context=0x0, device_attr=0x7ffe5f5ee4b0) at
-> > src/verbs.c:135
-> > 135             return context->ops.query_device(context, device_attr);
-> > (gdb) bt
-> > #0  __ibv_query_device (context=0x0, device_attr=0x7ffe5f5ee4b0) at
-> > src/verbs.c:135
-> > #1  0x0000000000410518 in check_for_contig_pages_support
-> > (context=<optimized out>) at src/perftest_resources.c:262
-> > #2  ctx_init (ctx=ctx@entry=0x1b3d000,
-> > user_param=user_param@entry=0x1b3cd70) at
-> > src/perftest_resources.c:1314
-> > #3  0x000000000040585c in rdma_server_connect (ctx=0x1b3d000,
-> > user_param=0x1b3cd70)
-> >    at src/perftest_communication.c:1119
-> > #4  0x0000000000405f53 in establish_connection
-> > (comm=comm@entry=0x7ffe5f5ee7c0) at src/perftest_communication.c:1244
-> > #5  0x0000000000402b37 in main (argc=<optimized out>, argv=<optimized
-> > out>) at src/read_bw.c:110
-> > (gdb) f 0
-> > #0  __ibv_query_device (context=0x0, device_attr=0x7ffe5f5ee4b0) at
-> > src/verbs.c:135
-> > 135             return context->ops.query_device(context, device_attr);
-> > (gdb) list
-> > 130     }
-> > 131
-> > 132     int __ibv_query_device(struct ibv_context *context,
-> > 133                            struct ibv_device_attr *device_attr)
-> > 134     {
-> > 135             return context->ops.query_device(context, device_attr);
-> > 136     }
-> > 137     default_symver(__ibv_query_device, ibv_query_device);
-> > 138
-> > 139     int __ibv_query_port(struct ibv_context *context, uint8_t port_num,
-> > (gdb) p context
-> > $1 = (struct ibv_context *) 0x0
-> >
-> >
-> > "Client"
-> > ----------
-> > # ib_read_bw 192.168.13.13
-> > ---------------------------------------------------------------------------------------
-> >                    RDMA_Read BW Test
-> > Dual-port       : OFF          Device         : mlx5_0
-> > Number of qps   : 1            Transport type : IB
-> > Connection type : RC           Using SRQ      : OFF
-> > TX depth        : 128
-> > CQ Moderation   : 100
-> > Mtu             : 1024[B]
-> > Link type       : Ethernet
-> > GID index       : 2
-> > Outstand reads  : 16
-> > rdma_cm QPs     : OFF
-> > Data ex. method : Ethernet
-> > ---------------------------------------------------------------------------------------
-> > local address: LID 0000 QPN 0x011a PSN 0xf7747b OUT 0x10 RKey 0x002797
-> > VAddr 0x007fe5cccc5000
-> > GID: 00:00:00:00:00:00:00:00:00:00:255:255:192:168:13:14
-> > remote address: LID 0000 QPN 0x011a PSN 0xa0e9fd OUT 0x10 RKey
-> > 0x00175e VAddr 0x007fc73fd6e000
-> > GID: 00:00:00:00:00:00:00:00:00:00:255:255:192:168:13:13
-> > ---------------------------------------------------------------------------------------
-> > #bytes     #iterations    BW peak[MB/sec]    BW average[MB/sec]   MsgRate[Mpps]
-> > Conflicting CPU frequency values detected: 1200.024000 != 2600.000000.
-> > CPU Frequency is not max.
-> > 65536      1000             2728.79            2728.77            0.043660
-> > ---------------------------------------------------------------------------------------
-> >
-> > # ib_read_bw -R 192.168.13.13
-> > Unexpected CM event bl blka 8
-> > Unable to perform rdma_client function
-> > Unable to init the socket connection
-> >
-> > # ib_read_bw -z 192.168.13.13
-> > Unexpected CM event bl blka 8
-> > Unable to perform rdma_client function
-> > Unable to init the socket connection
-> > ----------------
-> > Robert LeBlanc
-> > PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
-> >
-> >
-> > On Tue, May 16, 2017 at 2:50 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
-> >> I installed OFED 4.0-2.0.0.1 on a fresh snapshot with the stock kernel
-> >> (3.10.0-514.16.1.el7.x86_64). I'm getting a segfault on the server
-> >> side, but not on the client side. I don't see any debug packages in
-> >> the OFED package to load the symbols.
-> >>
-> >> rping server:
-> >>
-> >> # gdb rping core.10405
-> >> GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-94.el7
-> >> Copyright (C) 2013 Free Software Foundation, Inc.
-> >> License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
-> >> This is free software: you are free to change and redistribute it.
-> >> There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
-> >> and "show warranty" for details.
-> >> This GDB was configured as "x86_64-redhat-linux-gnu".
-> >> For bug reporting instructions, please see:
-> >> <http://www.gnu.org/software/gdb/bugs/>...
-> >> Reading symbols from /usr/bin/rping...Reading symbols from
-> >> /usr/bin/rping...(no debugging symbols found)...done.
-> >> (no debugging symbols found)...done.
-> >> [New LWP 10405]
-> >> [New LWP 10408]
-> >> [Thread debugging using libthread_db enabled]
-> >> Using host libthread_db library "/lib64/libthread_db.so.1".
-> >> Core was generated by `rping -s'.
-> >> Program terminated with signal 11, Segmentation fault.
-> >> #0  0x00007f31883d45b4 in ibv_alloc_pd () from /usr/lib64/libibverbs.so.1
-> >> Missing separate debuginfos, use: debuginfo-install
-> >> librdmacm-utils-1.1.0mlnx-OFED.4.0.1.6.1.40200.x86_64
-> >> (gdb) bt
-> >> #0  0x00007f31883d45b4 in ibv_alloc_pd () from /usr/lib64/libibverbs.so.1
-> >> #1  0x0000000000402fe6 in rping_setup_qp.isra.7 ()
-> >> #2  0x0000000000401d04 in main ()
-> >> (gdb) list
-> >> No symbol table is loaded.  Use the "file" command.
-> >>
-> >> rping client:
-> >>
-> >> # rping -c -a 192.168.13.13
-> >> cma event RDMA_CM_EVENT_REJECTED, error 28
-> >> wait for CONNECTED state 4
-> >> connect error -1
-> >> ----------------
-> >> Robert LeBlanc
-> >> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
-> >>
-> >>
-> >> On Tue, May 16, 2017 at 1:23 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
-> >>> This is using ConnectX-4 LX RoCE cards, using only in-box drivers.
-> >>>
-> >>> While trying to debug some iSER issues, I'm trying to do rping between
-> >>> the two hosts, but I'm getting a segfault. Sagi suggested that there
-> >>> may be something wrong with my kernel ABI. I did a make mrproper and
-> >>> built the latest 4.9.28 kernel and installed the kernel headers.
-> >>>
-> >>> make -j 32 && sudo make modules_install && sudo make install && sudo
-> >>> make headers_install INSTALL_HDR_PATH=/usr
-> >>>
-> >>> After booting into the new kernel, I kept getting the segfaults, so I
-> >>> rebuilt the libibverbs, libibumad, librdmacm packages in case they
-> >>> aren't picking up the new kernel headers. Still no luck.
-> >>>
-> >>> Here is the server of rping with the rebuilt packages:
-> >>> # gdb rping core.22936
-> >>> GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-94.el7
-> >>> Copyright (C) 2013 Free Software Foundation, Inc.
-> >>> License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
-> >>> This is free software: you are free to change and redistribute it.
-> >>> There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
-> >>> and "show warranty" for details.
-> >>> This GDB was configured as "x86_64-redhat-linux-gnu".
-> >>> For bug reporting instructions, please see:
-> >>> <http://www.gnu.org/software/gdb/bugs/>...
-> >>> Reading symbols from /usr/bin/rping...Reading symbols from
-> >>> /usr/lib/debug/usr/bin/rping.debug...done.
-> >>> done.
-> >>> [New LWP 22936]
-> >>> [New LWP 22939]
-> >>> [Thread debugging using libthread_db enabled]
-> >>> Using host libthread_db library "/lib64/libthread_db.so.1".
-> >>> Core was generated by `rping -s'.
-> >>> Program terminated with signal 11, Segmentation fault.
-> >>> #0  __ibv_alloc_pd (context=0x0) at src/verbs.c:196
-> >>> 196             pd = context->ops.alloc_pd(context);
-> >>> (gdb) bt
-> >>> #0  __ibv_alloc_pd (context=0x0) at src/verbs.c:196
-> >>> #1  0x000055f60331d5f6 in rping_setup_qp (cb=cb@entry=0x55f603d74780,
-> >>> cm_id=<optimized out>) at examples/rping.c:519
-> >>> #2  0x000055f60331be7e in rping_run_server (cb=0x55f603d74780) at
-> >>> examples/rping.c:890
-> >>> #3  main (argc=2, argv=0x7ffcd16aae88) at examples/rping.c:1268
-> >>> (gdb) f 0
-> >>> #0  __ibv_alloc_pd (context=0x0) at src/verbs.c:196
-> >>> 196             pd = context->ops.alloc_pd(context);
-> >>> (gdb) list
-> >>> 191
-> >>> 192     struct ibv_pd *__ibv_alloc_pd(struct ibv_context *context)
-> >>> 193     {
-> >>> 194             struct ibv_pd *pd;
-> >>> 195
-> >>> 196             pd = context->ops.alloc_pd(context);
-> >>> 197             if (pd)
-> >>> 198                     pd->context = context;
-> >>> 199
-> >>> 200             return pd;
-> >>> (gdb) p context
-> >>> $1 = (struct ibv_context *) 0x0
-> >>>
-> >>> Here is the rping client that does not have the rebuilt packages:
-> >>> # gdb rping core.8253
-> >>> GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-94.el7
-> >>> Copyright (C) 2013 Free Software Foundation, Inc.
-> >>> License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
-> >>> This is free software: you are free to change and redistribute it.
-> >>> There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
-> >>> and "show warranty" for details.
-> >>> This GDB was configured as "x86_64-redhat-linux-gnu".
-> >>> For bug reporting instructions, please see:
-> >>> <http://www.gnu.org/software/gdb/bugs/>...
-> >>> Reading symbols from /usr/bin/rping...Reading symbols from
-> >>> /usr/lib/debug/usr/bin/rping.debug...done.
-> >>> done.
-> >>> [New LWP 8253]
-> >>> [New LWP 8256]
-> >>> [Thread debugging using libthread_db enabled]
-> >>> Using host libthread_db library "/lib64/libthread_db.so.1".
-> >>> Core was generated by `rping -c -a 192.168.13.13'.
-> >>> Program terminated with signal 11, Segmentation fault.
-> >>> #0  __ibv_dereg_mr (mr=0x560e295e93b0) at src/verbs.c:299
-> >>> 299             ret = mr->context->ops.dereg_mr(mr);
-> >>> (gdb) bt
-> >>> #0  __ibv_dereg_mr (mr=0x560e295e93b0) at src/verbs.c:299
-> >>> #1  0x0000560e293cd917 in rping_free_buffers (cb=0x560e295e5780) at
-> >>> examples/rping.c:470
-> >>> #2  0x0000560e293cbf57 in rping_run_client (cb=<optimized out>) at
-> >>> examples/rping.c:1111
-> >>> #3  main (argc=<optimized out>, argv=<optimized out>) at examples/rping.c:1270
-> >>> (gdb) f 9
-> >>> #0  0x0000000000000000 in ?? ()
-> >>> (gdb) f 0
-> >>> #0  __ibv_dereg_mr (mr=0x560e295e93b0) at src/verbs.c:299
-> >>> 299             ret = mr->context->ops.dereg_mr(mr);
-> >>> (gdb) list
-> >>> 294     {
-> >>> 295             int ret;
-> >>> 296             void *addr      = mr->addr;
-> >>> 297             size_t length   = mr->length;
-> >>> 298
-> >>> 299             ret = mr->context->ops.dereg_mr(mr);
-> >>> 300             if (!ret)
-> >>> 301                     ibv_dofork_range(addr, length);
-> >>> 302
-> >>> 303             return ret;
-> >>> (gdb) p mr
-> >>> $1 = (struct ibv_mr *) 0x560e295e93b0
-> >>> (gdb) p *mr
-> >>> $2 = {context = 0x7fd423be5090, pd = 0x560e295e9960, addr =
-> >>> 0x560e295e57e8, length = 16, handle = 0, lkey = 72829, rkey = 72829}
-> >>> (gdb) p *mr->context
-> >>> Cannot access memory at address 0x7fd423be5090
-> >>>
-> >>> Any ideas on what I'm doing wrong?
-> >>>
-> >>> Thanks,
-> >>>
-> >>> ----------------
-> >>> Robert LeBlanc
-> >>> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+> diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+> index 99a54fd..fd61949 100644
+> --- a/drivers/infiniband/hw/bnxt_re/main.c
+> +++ b/drivers/infiniband/hw/bnxt_re/main.c
+> @@ -840,6 +840,42 @@ static void bnxt_re_dev_stop(struct bnxt_re_dev *rdev)
+>  	mutex_unlock(&rdev->qp_lock);
+>  }
+>
+> +static int bnxt_re_update_gid(struct bnxt_re_dev *rdev)
+> +{
+> +	struct bnxt_qplib_sgid_tbl *sgid_tbl = &rdev->qplib_res.sgid_tbl;
+> +	struct bnxt_qplib_gid gid;
+> +	u16 gid_idx, index;
+> +	int rc = 0;
+> +
+> +	if (!test_bit(BNXT_RE_FLAG_IBDEV_REGISTERED, &rdev->flags))
+> +		return 0;
+> +
+> +	if (!sgid_tbl) {
+> +		dev_err(rdev_to_dev(rdev), "QPLIB: SGID table not allocated");
+> +		return -EINVAL;
+> +	}
+> +
+> +	for (index = 0; index < sgid_tbl->active; index++) {
+> +		gid_idx = sgid_tbl->hw_id[index];
+> +
+> +		if (!memcmp(&sgid_tbl->tbl[index], &bnxt_qplib_gid_zero,
+> +			    sizeof(bnxt_qplib_gid_zero)))
+> +			continue;
+> +		/* need to modify the VLAN enable setting of non VLAN GID only
+> +		 * as setting is done for VLAN GID while adding GID
+> +		 */
+> +		if (sgid_tbl->vlan[index])
+> +			continue;
+> +
+> +		memcpy(&gid, &sgid_tbl->tbl[index], sizeof(gid));
+> +
+> +		rc = bnxt_qplib_update_sgid(sgid_tbl, &gid, gid_idx,
+> +					    rdev->qplib_res.netdev->dev_addr);
+> +	}
+> +
+> +	return rc;
+> +}
+> +
+>  static u32 bnxt_re_get_priority_mask(struct bnxt_re_dev *rdev)
+>  {
+>  	u32 prio_map = 0, tmp_map = 0;
+> @@ -859,8 +895,6 @@ static u32 bnxt_re_get_priority_mask(struct bnxt_re_dev *rdev)
+>  	tmp_map = dcb_ieee_getapp_mask(netdev, &app);
+>  	prio_map |= tmp_map;
+>
+> -	if (!prio_map)
+> -		prio_map = -EFAULT;
+>  	return prio_map;
+>  }
+>
+> @@ -886,10 +920,7 @@ static int bnxt_re_setup_qos(struct bnxt_re_dev *rdev)
+>  	int rc;
+>
+>  	/* Get priority for roce */
+> -	rc = bnxt_re_get_priority_mask(rdev);
+> -	if (rc < 0)
+> -		return rc;
+> -	prio_map = (u8)rc;
+> +	prio_map = bnxt_re_get_priority_mask(rdev);
+>
+>  	if (prio_map == rdev->cur_prio_map)
+>  		return 0;
+> @@ -911,6 +942,16 @@ static int bnxt_re_setup_qos(struct bnxt_re_dev *rdev)
+>  		return rc;
+>  	}
+>
+> +	/* Actual priorities are not programmed as they are already
+> +	 * done by L2 driver; just enable or disable priority vlan tagging
+> +	 */
+> +	if ((prio_map == 0 && rdev->qplib_res.prio) ||
+> +	    (prio_map != 0 && !rdev->qplib_res.prio)) {
+> +		rdev->qplib_res.prio = prio_map ? true : false;
+> +
+> +		bnxt_re_update_gid(rdev);
+> +	}
+> +
+>  	return 0;
+>  }
+>
+> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.c b/drivers/infiniband/hw/bnxt_re/qplib_res.c
+> index 62447b3..4e10170 100644
+> --- a/drivers/infiniband/hw/bnxt_re/qplib_res.c
+> +++ b/drivers/infiniband/hw/bnxt_re/qplib_res.c
+> @@ -468,9 +468,11 @@ static void bnxt_qplib_free_sgid_tbl(struct bnxt_qplib_res *res,
+>  	kfree(sgid_tbl->tbl);
+>  	kfree(sgid_tbl->hw_id);
+>  	kfree(sgid_tbl->ctx);
+> +	kfree(sgid_tbl->vlan);
+>  	sgid_tbl->tbl = NULL;
+>  	sgid_tbl->hw_id = NULL;
+>  	sgid_tbl->ctx = NULL;
+> +	sgid_tbl->vlan = NULL;
+>  	sgid_tbl->max = 0;
+>  	sgid_tbl->active = 0;
+>  }
+> @@ -491,8 +493,15 @@ static int bnxt_qplib_alloc_sgid_tbl(struct bnxt_qplib_res *res,
+>  	if (!sgid_tbl->ctx)
+>  		goto out_free2;
+>
+> +	sgid_tbl->vlan = kcalloc(max, sizeof(u8), GFP_KERNEL);
+> +	if (!sgid_tbl->vlan)
+> +		goto out_free3;
+> +
+>  	sgid_tbl->max = max;
+>  	return 0;
+> +out_free3:
+> +	kfree(sgid_tbl->ctx);
+> +	sgid_tbl->ctx = NULL;
+>  out_free2:
+>  	kfree(sgid_tbl->hw_id);
+>  	sgid_tbl->hw_id = NULL;
+> @@ -514,6 +523,7 @@ static void bnxt_qplib_cleanup_sgid_tbl(struct bnxt_qplib_res *res,
+>  	}
+>  	memset(sgid_tbl->tbl, 0, sizeof(struct bnxt_qplib_gid) * sgid_tbl->max);
+>  	memset(sgid_tbl->hw_id, -1, sizeof(u16) * sgid_tbl->max);
+> +	memset(sgid_tbl->vlan, 0, sizeof(u8) * sgid_tbl->max);
+>  	sgid_tbl->active = 0;
+>  }
+>
+> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.h b/drivers/infiniband/hw/bnxt_re/qplib_res.h
+> index 2e48555..e872075 100644
+> --- a/drivers/infiniband/hw/bnxt_re/qplib_res.h
+> +++ b/drivers/infiniband/hw/bnxt_re/qplib_res.h
+> @@ -116,6 +116,7 @@ struct bnxt_qplib_sgid_tbl {
+>  	u16				max;
+>  	u16				active;
+>  	void				*ctx;
+> +	u8				*vlan;
+>  };
+>
+>  struct bnxt_qplib_pkey_tbl {
+> @@ -188,6 +189,7 @@ struct bnxt_qplib_res {
+>  	struct bnxt_qplib_sgid_tbl	sgid_tbl;
+>  	struct bnxt_qplib_pkey_tbl	pkey_tbl;
+>  	struct bnxt_qplib_dpi_tbl	dpi_tbl;
+> +	bool				prio;
+>  };
+>
+>  #define to_bnxt_qplib(ptr, type, member)	\
+> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.c b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
+> index fde18cf..36f45ff 100644
+> --- a/drivers/infiniband/hw/bnxt_re/qplib_sp.c
+> +++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
+> @@ -197,6 +197,7 @@ int bnxt_qplib_del_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+>  	}
+>  	memcpy(&sgid_tbl->tbl[index], &bnxt_qplib_gid_zero,
+>  	       sizeof(bnxt_qplib_gid_zero));
+> +	sgid_tbl->vlan[index] = 0;
+>  	sgid_tbl->active--;
+>  	dev_dbg(&res->pdev->dev,
+>  		"QPLIB: SGID deleted hw_id[0x%x] = 0x%x active = 0x%x",
+> @@ -249,25 +250,33 @@ int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+>  		struct cmdq_add_gid req;
+>  		struct creq_add_gid_resp resp;
+>  		u16 cmd_flags = 0;
+> -		u32 temp32[4];
+> -		u16 temp16[3];
+> +		u32 *temp32;
+> +		u16 *temp16;
+>  		int rc;
+>
+>  		RCFW_CMD_PREP(req, ADD_GID, cmd_flags);
+>
+> -		memcpy(temp32, gid->data, sizeof(struct bnxt_qplib_gid));
+> +		temp32 = (u32 *)gid->data;
+>  		req.gid[0] = cpu_to_be32(temp32[3]);
+>  		req.gid[1] = cpu_to_be32(temp32[2]);
+>  		req.gid[2] = cpu_to_be32(temp32[1]);
+>  		req.gid[3] = cpu_to_be32(temp32[0]);
+
+You can completely remove tmep* variables and use directly.
+
+> -		if (vlan_id != 0xFFFF)
+> -			req.vlan = cpu_to_le16((vlan_id &
+> -					CMDQ_ADD_GID_VLAN_VLAN_ID_MASK) |
+> -					CMDQ_ADD_GID_VLAN_TPID_TPID_8100 |
+> -					CMDQ_ADD_GID_VLAN_VLAN_EN);
+> +		/*
+> +		 * driver should ensure that all RoCE traffic is always VLAN
+> +		 * tagged if RoCE traffic is running on non-zero VLAN ID or
+> +		 * RoCE traffic is running on non-zero Priority.
+> +		 */
+> +		if ((vlan_id != 0xFFFF) || res->prio) {
+> +			if (vlan_id != 0xFFFF)
+> +				req.vlan = cpu_to_le16
+> +				(vlan_id & CMDQ_ADD_GID_VLAN_VLAN_ID_MASK);
+> +			req.vlan |= cpu_to_le16
+> +					(CMDQ_ADD_GID_VLAN_TPID_TPID_8100 |
+> +					 CMDQ_ADD_GID_VLAN_VLAN_EN);
+> +		}
+>
+>  		/* MAC in network format */
+> -		memcpy(temp16, smac, 6);
+> +		temp16 = (u16 *)smac;
+>  		req.src_mac[0] = cpu_to_be16(temp16[0]);
+>  		req.src_mac[1] = cpu_to_be16(temp16[1]);
+>  		req.src_mac[2] = cpu_to_be16(temp16[2]);
+> @@ -281,6 +290,9 @@ int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+>  	/* Add GID to the sgid_tbl */
+>  	memcpy(&sgid_tbl->tbl[free_idx], gid, sizeof(*gid));
+>  	sgid_tbl->active++;
+> +	if (vlan_id != 0xFFFF)
+> +		sgid_tbl->vlan[free_idx] = 1;
+> +
+>  	dev_dbg(&res->pdev->dev,
+>  		"QPLIB: SGID added hw_id[0x%x] = 0x%x active = 0x%x",
+>  		 free_idx, sgid_tbl->hw_id[free_idx], sgid_tbl->active);
+> @@ -290,6 +302,47 @@ int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+>  	return 0;
+>  }
+>
+> +int bnxt_qplib_update_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+> +			   struct bnxt_qplib_gid *gid, u16 gid_idx,
+> +			   u8 *smac)
+> +{
+> +	struct bnxt_qplib_res *res = to_bnxt_qplib(sgid_tbl,
+> +						   struct bnxt_qplib_res,
+> +						   sgid_tbl);
+> +	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
+> +	struct creq_modify_gid_resp resp;
+> +	struct cmdq_modify_gid req;
+> +	int rc;
+> +	u16 cmd_flags = 0;
+> +	u32 *temp32;
+> +	u16 *temp16;
+> +
+> +	RCFW_CMD_PREP(req, MODIFY_GID, cmd_flags);
+> +
+> +	temp32 = (u32 *)gid->data;
+> +	req.gid[0] = cpu_to_be32(temp32[3]);
+> +	req.gid[1] = cpu_to_be32(temp32[2]);
+> +	req.gid[2] = cpu_to_be32(temp32[1]);
+> +	req.gid[3] = cpu_to_be32(temp32[0]);
+> +	if (res->prio) {
+> +		req.vlan |= cpu_to_le16
+> +			(CMDQ_ADD_GID_VLAN_TPID_TPID_8100 |
+> +			 CMDQ_ADD_GID_VLAN_VLAN_EN);
+> +	}
+> +
+> +	/* MAC in network format */
+> +	temp16 = (u16 *)smac;
+> +	req.src_mac[0] = cpu_to_be16(temp16[0]);
+> +	req.src_mac[1] = cpu_to_be16(temp16[1]);
+> +	req.src_mac[2] = cpu_to_be16(temp16[2]);
+> +
+> +	req.gid_index = cpu_to_le16(gid_idx);
+> +
+> +	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> +					  (void *)&resp, NULL, 0);
+> +	return rc;
+> +}
+> +
+>  /* pkeys */
+>  int bnxt_qplib_get_pkey(struct bnxt_qplib_res *res,
+>  			struct bnxt_qplib_pkey_tbl *pkey_tbl, u16 index,
+> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.h b/drivers/infiniband/hw/bnxt_re/qplib_sp.h
+> index a543f95..e3a3ed9 100644
+> --- a/drivers/infiniband/hw/bnxt_re/qplib_sp.h
+> +++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.h
+> @@ -132,6 +132,8 @@ int bnxt_qplib_del_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+>  int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+>  			struct bnxt_qplib_gid *gid, u8 *mac, u16 vlan_id,
+>  			bool update, u32 *index);
+> +int bnxt_qplib_update_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+> +			   struct bnxt_qplib_gid *gid, u16 gid_idx, u8 *smac);
+>  int bnxt_qplib_get_pkey(struct bnxt_qplib_res *res,
+>  			struct bnxt_qplib_pkey_tbl *pkey_tbl, u16 index,
+>  			u16 *pkey);
+> diff --git a/drivers/infiniband/hw/bnxt_re/roce_hsi.h b/drivers/infiniband/hw/bnxt_re/roce_hsi.h
+> index fc23477..eeb55b2 100644
+> --- a/drivers/infiniband/hw/bnxt_re/roce_hsi.h
+> +++ b/drivers/infiniband/hw/bnxt_re/roce_hsi.h
+> @@ -1473,8 +1473,8 @@ struct cmdq_modify_gid {
+>  	u8 resp_size;
+>  	u8 reserved8;
+>  	__le64 resp_addr;
+> -	__le32 gid[4];
+> -	__le16 src_mac[3];
+> +	__be32 gid[4];
+> +	__be16 src_mac[3];
+>  	__le16 vlan;
+>  	#define CMDQ_MODIFY_GID_VLAN_VLAN_ID_MASK		    0xfffUL
+>  	#define CMDQ_MODIFY_GID_VLAN_VLAN_ID_SFT		    0
+> --
+> 2.5.5
+>
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---07UuamFNDT4U/3KT
+--SUcp5/vPb8ZOOFiR
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkdLCEACgkQ5GN7iDZy
-WKdTEg/9GF2Rm5T92Q2o5JW5vQyYKcC/NIMzUM0KlsSA7ljyb9NV6P9EmlKOeO3P
-yC6EPS8KVDnqpybssp/RnOzub2CldQfHgvgv46PQ+4PLTF4QY5o5oQVXZvoVXAAC
-wKNsUYeS2od6KCRXzvboI6+OFI0LMfOCKKjh6a2P72EIFWCD6dswrxrzzxooQxgs
-tkT74KjDjpJfprELT6bN71h/hB7UaXPzHJ+jKOe3hB9mtw97ViahowZIYOBVGY1F
-3QJ2dNt3Y+SI2g2GKZsWYoG0w1UzXfhLHj5ffeSllyd5kJdl+f1074AwaVTd8iWV
-mmj5gbNegcv+wnW7IzaeQAT7EsPrjYvyFi5mv9glhmIfe1sFeXm/i6jMGrY4YR9W
-kXgzjCcu+KcmsMZC+wYNFcydwKBGLmqbnyFhBmGvl5dycMC2CTzyLiohEb6eB8GI
-Hei4GzrikAhn7QNntHxgZuEdejPOJ9CNgrXwWYhDsYFcNvAh7xsjHDsxMm2ScJXy
-2rqNX/Otq9iXH9EjtgtIKYLuWi5WR/t+D7D42hNBOmpIVvBxX5GZ+Bk3pDWW2BnL
-XGSTzf+Lt6zOuIFlA9ocOvg0Ge7HwFCW7myAQt14SkgJ5bmCrR9wiy83UwiQOiVO
-NLU1t0XXIJFYKDq+5vUQQ3E56x4e39GjutB/IJ40Fp4iqcQlWSg=
-=flwJ
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkdRYwACgkQ5GN7iDZy
+WKdeYRAAo94ZSefVOQ46F+L5iEyIZzSfOY+SsV2877SoifrvhXJC9Pt0QvnkRz7c
+7e/NNW6TdnbhpzJU0kZVYndBpFy4yhjX04dgKrI1UmYUlN9Mf1zLm7/payVCV0xk
+V4RpMoEAyTqMS26HYiZtcwQLPDjddLDLClGKOgm5PnVAVW4d6kZHwZOmH1qW88uE
+OxlDyX5TlfIvibXGtx/tNl3P1z52kvZ9UgrAfGhECRjyL+qkiX8QONqK/lnr2UKT
+83kYZ3eVLplxibnwsUnY2mXgfFzd4N+yva7sTVCMN3eURoCbcauxByTWvIDsJ260
+gbZNT8AQULuIs/NgMfEf2lwsvsbMQvhFBacArBd2susLEKDbCEkRdSwrj6HYbysL
+pYCFQwZRacUbRHlczzSgarS7UolTmH18e3SBdQ3rDkDzV6v2IkD5DrBWWSCkg1Un
+vlnPBws+9Jje+AbrSldvxievQhq/GSPypHx1HsCEVxzGNiPb8KmyeImd2QXi6QYw
+KohljYD7dXCL9O7uOAPzejn35VFpr6s+2kDu4VUrRWERuskMsN9z8iHoDeqYlDLz
+EfHkWkjnx+hKp1nRR0Jvhvy9jHc7j5Go9y0huipWyjPTge36dkPhLI1kz0KD0c/z
+db5xP1Wg8quUR7/Mw4GBXaTpp2HjdTDUr1TADGiiYOHUbD+im+c=
+=zzZa
 -----END PGP SIGNATURE-----
 
---07UuamFNDT4U/3KT--
+--SUcp5/vPb8ZOOFiR--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
