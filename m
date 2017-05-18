@@ -1,340 +1,1551 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V2 for-next 08/15] RDMA/bnxt_re: Add vlan tag for
- untagged RoCE traffic when PFC is configured
-Date: Thu, 18 May 2017 09:56:12 +0300
-Message-ID: <20170518065612.GA3616@mtr-leonro.local>
+Subject: Re: [PATCH V2 for-next 01/15] RDMA/bnxt_re: Fixing the Control path
+ command and response handling
+Date: Thu, 18 May 2017 13:53:11 +0300
+Message-ID: <20170518105311.GB3616@mtr-leonro.local>
 References: <1495012791-5053-1-git-send-email-selvin.xavier@broadcom.com>
- <1495012791-5053-9-git-send-email-selvin.xavier@broadcom.com>
+ <1495012791-5053-2-git-send-email-selvin.xavier@broadcom.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="SUcp5/vPb8ZOOFiR"
+        protocol="application/pgp-signature"; boundary="Cp+VOSm8VfVBUvcG"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1495012791-5053-9-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1495012791-5053-2-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kalesh AP <kalesh-anakkur.purayil-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---SUcp5/vPb8ZOOFiR
+--Cp+VOSm8VfVBUvcG
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, May 17, 2017 at 02:19:44AM -0700, Selvin Xavier wrote:
-> From: Kalesh AP <kalesh-anakkur.purayil-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+On Wed, May 17, 2017 at 02:19:37AM -0700, Selvin Xavier wrote:
+> From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 >
-> Current implementation does not program vlan header insertion
-> in RoCE packet if no vlan is configured. Firmware does not add
-> prority when there is no vlan tag in the packet. Modify the code
-> to insert vlan header when PFC is enabled on the interface.
+> Fixing a concurrency issue with creq handling. Each caller
+> was given a globally managed crsq element, which was
+> accessed outside a lock. This could result in corruption,
+> if lot of applications are simultaneously issuing Control Path
+> commands. Now, each caller will provide its own response buffer
+> and the responses will be copied under a lock.
+> Also, Fixing the queue full condition check for the CMDQ.
 >
-> v1 -> v2:
-> 	Avoid unnecessary memcpy while populating smac and gid
-
-Not in commit message please.
-
+> As a part of these changes, the control path code is refactored
+> to remove the code replication in the response status checking.
 >
-> Signed-off-by: Kalesh AP <kalesh-anakkur.purayil-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 > ---
->  drivers/infiniband/hw/bnxt_re/main.c      | 53 ++++++++++++++++++++---
->  drivers/infiniband/hw/bnxt_re/qplib_res.c | 10 +++++
->  drivers/infiniband/hw/bnxt_re/qplib_res.h |  2 +
->  drivers/infiniband/hw/bnxt_re/qplib_sp.c  | 71 +++++++++++++++++++++++++++----
->  drivers/infiniband/hw/bnxt_re/qplib_sp.h  |  2 +
->  drivers/infiniband/hw/bnxt_re/roce_hsi.h  |  4 +-
->  6 files changed, 125 insertions(+), 17 deletions(-)
+>  drivers/infiniband/hw/bnxt_re/qplib_fp.c   | 215 +++++--------------
+>  drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 314 ++++++++++++++-------------
+>  drivers/infiniband/hw/bnxt_re/qplib_rcfw.h |  61 ++----
+>  drivers/infiniband/hw/bnxt_re/qplib_res.h  |   5 +
+>  drivers/infiniband/hw/bnxt_re/qplib_sp.c   | 328 +++++++----------------------
+>  5 files changed, 318 insertions(+), 605 deletions(-)
 >
-> diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-> index 99a54fd..fd61949 100644
-> --- a/drivers/infiniband/hw/bnxt_re/main.c
-> +++ b/drivers/infiniband/hw/bnxt_re/main.c
-> @@ -840,6 +840,42 @@ static void bnxt_re_dev_stop(struct bnxt_re_dev *rdev)
->  	mutex_unlock(&rdev->qp_lock);
+> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+> index 43d08b5..ea9ce4f 100644
+> --- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+> +++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+> @@ -284,7 +284,7 @@ int bnxt_qplib_create_qp1(struct bnxt_qplib_res *res, struct bnxt_qplib_qp *qp)
+>  {
+>  	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
+>  	struct cmdq_create_qp1 req;
+> -	struct creq_create_qp1_resp *resp;
+> +	struct creq_create_qp1_resp resp;
+>  	struct bnxt_qplib_pbl *pbl;
+>  	struct bnxt_qplib_q *sq = &qp->sq;
+>  	struct bnxt_qplib_q *rq = &qp->rq;
+> @@ -394,31 +394,12 @@ int bnxt_qplib_create_qp1(struct bnxt_qplib_res *res, struct bnxt_qplib_qp *qp)
+>
+>  	req.pd_id = cpu_to_le32(qp->pd->id);
+>
+> -	resp = (struct creq_create_qp1_resp *)
+> -			bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> -						     NULL, 0);
+> -	if (!resp) {
+> -		dev_err(&res->pdev->dev, "QPLIB: FP: CREATE_QP1 send failed");
+> -		rc = -EINVAL;
+> -		goto fail;
+> -	}
+> -	if (!bnxt_qplib_rcfw_wait_for_resp(rcfw, le16_to_cpu(req.cookie))) {
+> -		/* Cmd timed out */
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: FP: CREATE_QP1 timed out");
+> -		rc = -ETIMEDOUT;
+> -		goto fail;
+> -	}
+> -	if (resp->status ||
+> -	    le16_to_cpu(resp->cookie) != le16_to_cpu(req.cookie)) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: FP: CREATE_QP1 failed ");
+> -		dev_err(&rcfw->pdev->dev,
+> -			"QPLIB: with status 0x%x cmdq 0x%x resp 0x%x",
+> -			resp->status, le16_to_cpu(req.cookie),
+> -			le16_to_cpu(resp->cookie));
+> -		rc = -EINVAL;
+> +	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> +					  (void *)&resp, NULL, 0);
+> +	if (rc)
+>  		goto fail;
+> -	}
+> -	qp->id = le32_to_cpu(resp->xid);
+> +
+> +	qp->id = le32_to_cpu(resp.xid);
+>  	qp->cur_qp_state = CMDQ_MODIFY_QP_NEW_STATE_RESET;
+>  	sq->flush_in_progress = false;
+>  	rq->flush_in_progress = false;
+> @@ -442,7 +423,7 @@ int bnxt_qplib_create_qp(struct bnxt_qplib_res *res, struct bnxt_qplib_qp *qp)
+>  	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
+>  	struct sq_send *hw_sq_send_hdr, **hw_sq_send_ptr;
+>  	struct cmdq_create_qp req;
+> -	struct creq_create_qp_resp *resp;
+> +	struct creq_create_qp_resp resp;
+>  	struct bnxt_qplib_pbl *pbl;
+>  	struct sq_psn_search **psn_search_ptr;
+>  	unsigned long int psn_search, poff = 0;
+> @@ -627,31 +608,12 @@ int bnxt_qplib_create_qp(struct bnxt_qplib_res *res, struct bnxt_qplib_qp *qp)
+>  	}
+>  	req.pd_id = cpu_to_le32(qp->pd->id);
+>
+> -	resp = (struct creq_create_qp_resp *)
+> -			bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> -						     NULL, 0);
+> -	if (!resp) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: FP: CREATE_QP send failed");
+> -		rc = -EINVAL;
+> -		goto fail;
+> -	}
+> -	if (!bnxt_qplib_rcfw_wait_for_resp(rcfw, le16_to_cpu(req.cookie))) {
+> -		/* Cmd timed out */
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: FP: CREATE_QP timed out");
+> -		rc = -ETIMEDOUT;
+> -		goto fail;
+> -	}
+> -	if (resp->status ||
+> -	    le16_to_cpu(resp->cookie) != le16_to_cpu(req.cookie)) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: FP: CREATE_QP failed ");
+> -		dev_err(&rcfw->pdev->dev,
+> -			"QPLIB: with status 0x%x cmdq 0x%x resp 0x%x",
+> -			resp->status, le16_to_cpu(req.cookie),
+> -			le16_to_cpu(resp->cookie));
+> -		rc = -EINVAL;
+> +	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> +					  (void *)&resp, NULL, 0);
+> +	if (rc)
+>  		goto fail;
+> -	}
+> -	qp->id = le32_to_cpu(resp->xid);
+> +
+> +	qp->id = le32_to_cpu(resp.xid);
+>  	qp->cur_qp_state = CMDQ_MODIFY_QP_NEW_STATE_RESET;
+>  	sq->flush_in_progress = false;
+>  	rq->flush_in_progress = false;
+> @@ -769,10 +731,11 @@ int bnxt_qplib_modify_qp(struct bnxt_qplib_res *res, struct bnxt_qplib_qp *qp)
+>  {
+>  	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
+>  	struct cmdq_modify_qp req;
+> -	struct creq_modify_qp_resp *resp;
+> +	struct creq_modify_qp_resp resp;
+>  	u16 cmd_flags = 0, pkey;
+>  	u32 temp32[4];
+>  	u32 bmask;
+> +	int rc;
+>
+>  	RCFW_CMD_PREP(req, MODIFY_QP, cmd_flags);
+>
+> @@ -862,27 +825,10 @@ int bnxt_qplib_modify_qp(struct bnxt_qplib_res *res, struct bnxt_qplib_qp *qp)
+>
+>  	req.vlan_pcp_vlan_dei_vlan_id = cpu_to_le16(qp->vlan_id);
+>
+> -	resp = (struct creq_modify_qp_resp *)
+> -			bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> -						     NULL, 0);
+> -	if (!resp) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: FP: MODIFY_QP send failed");
+> -		return -EINVAL;
+> -	}
+> -	if (!bnxt_qplib_rcfw_wait_for_resp(rcfw, le16_to_cpu(req.cookie))) {
+> -		/* Cmd timed out */
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: FP: MODIFY_QP timed out");
+> -		return -ETIMEDOUT;
+> -	}
+> -	if (resp->status ||
+> -	    le16_to_cpu(resp->cookie) != le16_to_cpu(req.cookie)) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: FP: MODIFY_QP failed ");
+> -		dev_err(&rcfw->pdev->dev,
+> -			"QPLIB: with status 0x%x cmdq 0x%x resp 0x%x",
+> -			resp->status, le16_to_cpu(req.cookie),
+> -			le16_to_cpu(resp->cookie));
+> -		return -EINVAL;
+> -	}
+> +	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> +					  (void *)&resp, NULL, 0);
+> +	if (rc)
+> +		return rc;
+>  	qp->cur_qp_state = qp->state;
+>  	return 0;
+>  }
+> @@ -891,37 +837,26 @@ int bnxt_qplib_query_qp(struct bnxt_qplib_res *res, struct bnxt_qplib_qp *qp)
+>  {
+>  	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
+>  	struct cmdq_query_qp req;
+> -	struct creq_query_qp_resp *resp;
+> +	struct creq_query_qp_resp resp;
+> +	struct bnxt_qplib_rcfw_sbuf *sbuf;
+>  	struct creq_query_qp_resp_sb *sb;
+>  	u16 cmd_flags = 0;
+>  	u32 temp32[4];
+> -	int i;
+> +	int i, rc = 0;
+>
+>  	RCFW_CMD_PREP(req, QUERY_QP, cmd_flags);
+>
+> +	sbuf = bnxt_qplib_rcfw_alloc_sbuf(rcfw, sizeof(*sb));
+> +	if (!sbuf)
+> +		return -ENOMEM;
+> +	sb = sbuf->sb;
+> +
+>  	req.qp_cid = cpu_to_le32(qp->id);
+>  	req.resp_size = sizeof(*sb) / BNXT_QPLIB_CMDQE_UNITS;
+> -	resp = (struct creq_query_qp_resp *)
+> -			bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> -						     (void **)&sb, 0);
+> -	if (!resp) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: FP: QUERY_QP send failed");
+> -		return -EINVAL;
+> -	}
+> -	if (!bnxt_qplib_rcfw_wait_for_resp(rcfw, le16_to_cpu(req.cookie))) {
+> -		/* Cmd timed out */
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: FP: QUERY_QP timed out");
+> -		return -ETIMEDOUT;
+> -	}
+> -	if (resp->status ||
+> -	    le16_to_cpu(resp->cookie) != le16_to_cpu(req.cookie)) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: FP: QUERY_QP failed ");
+> -		dev_err(&rcfw->pdev->dev,
+> -			"QPLIB: with status 0x%x cmdq 0x%x resp 0x%x",
+> -			resp->status, le16_to_cpu(req.cookie),
+> -			le16_to_cpu(resp->cookie));
+> -		return -EINVAL;
+> -	}
+> +	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req, (void *)&resp,
+> +					  (void *)sbuf, 0);
+> +	if (rc)
+> +		goto bail;
+>  	/* Extract the context from the side buffer */
+>  	qp->state = sb->en_sqd_async_notify_state &
+>  			CREQ_QUERY_QP_RESP_SB_STATE_MASK;
+> @@ -976,7 +911,9 @@ int bnxt_qplib_query_qp(struct bnxt_qplib_res *res, struct bnxt_qplib_qp *qp)
+>  	qp->dest_qpn = le32_to_cpu(sb->dest_qp_id);
+>  	memcpy(qp->smac, sb->src_mac, 6);
+>  	qp->vlan_id = le16_to_cpu(sb->vlan_pcp_vlan_dei_vlan_id);
+> -	return 0;
+> +bail:
+> +	bnxt_qplib_rcfw_free_sbuf(rcfw, sbuf);
+> +	return rc;
 >  }
 >
-> +static int bnxt_re_update_gid(struct bnxt_re_dev *rdev)
+>  static void __clean_cq(struct bnxt_qplib_cq *cq, u64 qp)
+> @@ -1021,34 +958,18 @@ int bnxt_qplib_destroy_qp(struct bnxt_qplib_res *res,
+>  {
+>  	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
+>  	struct cmdq_destroy_qp req;
+> -	struct creq_destroy_qp_resp *resp;
+> +	struct creq_destroy_qp_resp resp;
+>  	unsigned long flags;
+>  	u16 cmd_flags = 0;
+> +	int rc;
+>
+>  	RCFW_CMD_PREP(req, DESTROY_QP, cmd_flags);
+>
+>  	req.qp_cid = cpu_to_le32(qp->id);
+> -	resp = (struct creq_destroy_qp_resp *)
+> -			bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> -						     NULL, 0);
+> -	if (!resp) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: FP: DESTROY_QP send failed");
+> -		return -EINVAL;
+> -	}
+> -	if (!bnxt_qplib_rcfw_wait_for_resp(rcfw, le16_to_cpu(req.cookie))) {
+> -		/* Cmd timed out */
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: FP: DESTROY_QP timed out");
+> -		return -ETIMEDOUT;
+> -	}
+> -	if (resp->status ||
+> -	    le16_to_cpu(resp->cookie) != le16_to_cpu(req.cookie)) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: FP: DESTROY_QP failed ");
+> -		dev_err(&rcfw->pdev->dev,
+> -			"QPLIB: with status 0x%x cmdq 0x%x resp 0x%x",
+> -			resp->status, le16_to_cpu(req.cookie),
+> -			le16_to_cpu(resp->cookie));
+> -		return -EINVAL;
+> -	}
+> +	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> +					  (void *)&resp, NULL, 0);
+> +	if (rc)
+> +		return rc;
+>
+>  	/* Must walk the associated CQs to nullified the QP ptr */
+>  	spin_lock_irqsave(&qp->scq->hwq.lock, flags);
+> @@ -1483,7 +1404,7 @@ int bnxt_qplib_create_cq(struct bnxt_qplib_res *res, struct bnxt_qplib_cq *cq)
+>  {
+>  	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
+>  	struct cmdq_create_cq req;
+> -	struct creq_create_cq_resp *resp;
+> +	struct creq_create_cq_resp resp;
+>  	struct bnxt_qplib_pbl *pbl;
+>  	u16 cmd_flags = 0;
+>  	int rc;
+> @@ -1525,30 +1446,12 @@ int bnxt_qplib_create_cq(struct bnxt_qplib_res *res, struct bnxt_qplib_cq *cq)
+>  			(cq->cnq_hw_ring_id & CMDQ_CREATE_CQ_CNQ_ID_MASK) <<
+>  			 CMDQ_CREATE_CQ_CNQ_ID_SFT);
+>
+> -	resp = (struct creq_create_cq_resp *)
+> -			bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> -						     NULL, 0);
+> -	if (!resp) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: FP: CREATE_CQ send failed");
+> -		return -EINVAL;
+> -	}
+> -	if (!bnxt_qplib_rcfw_wait_for_resp(rcfw, le16_to_cpu(req.cookie))) {
+> -		/* Cmd timed out */
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: FP: CREATE_CQ timed out");
+> -		rc = -ETIMEDOUT;
+> -		goto fail;
+> -	}
+> -	if (resp->status ||
+> -	    le16_to_cpu(resp->cookie) != le16_to_cpu(req.cookie)) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: FP: CREATE_CQ failed ");
+> -		dev_err(&rcfw->pdev->dev,
+> -			"QPLIB: with status 0x%x cmdq 0x%x resp 0x%x",
+> -			resp->status, le16_to_cpu(req.cookie),
+> -			le16_to_cpu(resp->cookie));
+> -		rc = -EINVAL;
+> +	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> +					  (void *)&resp, NULL, 0);
+> +	if (rc)
+>  		goto fail;
+> -	}
+> -	cq->id = le32_to_cpu(resp->xid);
+> +
+> +	cq->id = le32_to_cpu(resp.xid);
+>  	cq->dbr_base = res->dpi_tbl.dbr_bar_reg_iomem;
+>  	cq->period = BNXT_QPLIB_QUEUE_START_PERIOD;
+>  	init_waitqueue_head(&cq->waitq);
+> @@ -1566,33 +1469,17 @@ int bnxt_qplib_destroy_cq(struct bnxt_qplib_res *res, struct bnxt_qplib_cq *cq)
+>  {
+>  	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
+>  	struct cmdq_destroy_cq req;
+> -	struct creq_destroy_cq_resp *resp;
+> +	struct creq_destroy_cq_resp resp;
+>  	u16 cmd_flags = 0;
+> +	int rc;
+>
+>  	RCFW_CMD_PREP(req, DESTROY_CQ, cmd_flags);
+>
+>  	req.cq_cid = cpu_to_le32(cq->id);
+> -	resp = (struct creq_destroy_cq_resp *)
+> -			bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> -						     NULL, 0);
+> -	if (!resp) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: FP: DESTROY_CQ send failed");
+> -		return -EINVAL;
+> -	}
+> -	if (!bnxt_qplib_rcfw_wait_for_resp(rcfw, le16_to_cpu(req.cookie))) {
+> -		/* Cmd timed out */
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: FP: DESTROY_CQ timed out");
+> -		return -ETIMEDOUT;
+> -	}
+> -	if (resp->status ||
+> -	    le16_to_cpu(resp->cookie) != le16_to_cpu(req.cookie)) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: FP: DESTROY_CQ failed ");
+> -		dev_err(&rcfw->pdev->dev,
+> -			"QPLIB: with status 0x%x cmdq 0x%x resp 0x%x",
+> -			resp->status, le16_to_cpu(req.cookie),
+> -			le16_to_cpu(resp->cookie));
+> -		return -EINVAL;
+> -	}
+> +	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> +					  (void *)&resp, NULL, 0);
+> +	if (rc)
+> +		return rc;
+>  	bnxt_qplib_free_hwq(res->pdev, &cq->hwq);
+>  	return 0;
+>  }
+> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+> index 23fb726..16e4275 100644
+> --- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+> +++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+> @@ -39,72 +39,55 @@
+>  #include <linux/spinlock.h>
+>  #include <linux/pci.h>
+>  #include <linux/prefetch.h>
+> +#include <linux/delay.h>
+> +
+>  #include "roce_hsi.h"
+>  #include "qplib_res.h"
+>  #include "qplib_rcfw.h"
+>  static void bnxt_qplib_service_creq(unsigned long data);
+>
+>  /* Hardware communication channel */
+> -int bnxt_qplib_rcfw_wait_for_resp(struct bnxt_qplib_rcfw *rcfw, u16 cookie)
+> +static int __wait_for_resp(struct bnxt_qplib_rcfw *rcfw, u16 cookie)
+>  {
+>  	u16 cbit;
+>  	int rc;
+>
+> -	cookie &= RCFW_MAX_COOKIE_VALUE;
+>  	cbit = cookie % RCFW_MAX_OUTSTANDING_CMD;
+> -	if (!test_bit(cbit, rcfw->cmdq_bitmap))
+> -		dev_warn(&rcfw->pdev->dev,
+> -			 "QPLIB: CMD bit %d for cookie 0x%x is not set?",
+> -			 cbit, cookie);
+> -
+>  	rc = wait_event_timeout(rcfw->waitq,
+>  				!test_bit(cbit, rcfw->cmdq_bitmap),
+>  				msecs_to_jiffies(RCFW_CMD_WAIT_TIME_MS));
+> -	if (!rc) {
+> -		dev_warn(&rcfw->pdev->dev,
+> -			 "QPLIB: Bono Error: timeout %d msec, msg {0x%x}\n",
+> -			 RCFW_CMD_WAIT_TIME_MS, cookie);
+> -	}
+> -
+> -	return rc;
+> +	return rc ? 0 : -ETIMEDOUT;
+>  };
+>
+> -int bnxt_qplib_rcfw_block_for_resp(struct bnxt_qplib_rcfw *rcfw, u16 cookie)
+> +static int __block_for_resp(struct bnxt_qplib_rcfw *rcfw, u16 cookie)
+>  {
+> -	u32 count = -1;
+> +	u32 count = RCFW_BLOCKED_CMD_WAIT_COUNT;
+>  	u16 cbit;
+>
+> -	cookie &= RCFW_MAX_COOKIE_VALUE;
+>  	cbit = cookie % RCFW_MAX_OUTSTANDING_CMD;
+>  	if (!test_bit(cbit, rcfw->cmdq_bitmap))
+>  		goto done;
+>  	do {
+> +		mdelay(1); /* 1m sec */
+
+It doesn't work as you may expect. msleep below 20 ms is not reliable.
+See my queued for this cycle commit
+https://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git/commit/?h=topic/msleep-to-usleep_range
+
+>  		bnxt_qplib_service_creq((unsigned long)rcfw);
+>  	} while (test_bit(cbit, rcfw->cmdq_bitmap) && --count);
+>  done:
+> -	return count;
+> +	return count ? 0 : -ETIMEDOUT;
+>  };
+>
+> -void *bnxt_qplib_rcfw_send_message(struct bnxt_qplib_rcfw *rcfw,
+> -				   struct cmdq_base *req, void **crsbe,
+> -				   u8 is_block)
+> +static int __send_message(struct bnxt_qplib_rcfw *rcfw, struct cmdq_base *req,
+> +			  struct creq_base *resp, void *sb, u8 is_block)
+>  {
+> -	struct bnxt_qplib_crsq *crsq = &rcfw->crsq;
+>  	struct bnxt_qplib_cmdqe *cmdqe, **cmdq_ptr;
+>  	struct bnxt_qplib_hwq *cmdq = &rcfw->cmdq;
+> -	struct bnxt_qplib_hwq *crsb = &rcfw->crsb;
+> -	struct bnxt_qplib_crsqe *crsqe = NULL;
+> -	struct bnxt_qplib_crsbe **crsb_ptr;
+> +	struct bnxt_qplib_crsq *crsqe;
+>  	u32 sw_prod, cmdq_prod;
+> -	u8 retry_cnt = 0xFF;
+> -	dma_addr_t dma_addr;
+>  	unsigned long flags;
+>  	u32 size, opcode;
+>  	u16 cookie, cbit;
+>  	int pg, idx;
+>  	u8 *preq;
+>
+> -retry:
+>  	opcode = req->opcode;
+>  	if (!test_bit(FIRMWARE_INITIALIZED_FLAG, &rcfw->flags) &&
+>  	    (opcode != CMDQ_BASE_OPCODE_QUERY_FUNC &&
+> @@ -112,63 +95,50 @@ void *bnxt_qplib_rcfw_send_message(struct bnxt_qplib_rcfw *rcfw,
+>  		dev_err(&rcfw->pdev->dev,
+>  			"QPLIB: RCFW not initialized, reject opcode 0x%x",
+>  			opcode);
+> -		return NULL;
+> +		return -EINVAL;
+>  	}
+>
+>  	if (test_bit(FIRMWARE_INITIALIZED_FLAG, &rcfw->flags) &&
+>  	    opcode == CMDQ_BASE_OPCODE_INITIALIZE_FW) {
+>  		dev_err(&rcfw->pdev->dev, "QPLIB: RCFW already initialized!");
+> -		return NULL;
+> +		return -EINVAL;
+>  	}
+>
+>  	/* Cmdq are in 16-byte units, each request can consume 1 or more
+>  	 * cmdqe
+>  	 */
+>  	spin_lock_irqsave(&cmdq->lock, flags);
+> -	if (req->cmd_size > cmdq->max_elements -
+> -	    ((HWQ_CMP(cmdq->prod, cmdq) - HWQ_CMP(cmdq->cons, cmdq)) &
+> -	     (cmdq->max_elements - 1))) {
+> +	if (req->cmd_size >= HWQ_FREE_SLOTS(cmdq)) {
+>  		dev_err(&rcfw->pdev->dev, "QPLIB: RCFW: CMDQ is full!");
+>  		spin_unlock_irqrestore(&cmdq->lock, flags);
+> -
+> -		if (!retry_cnt--)
+> -			return NULL;
+> -		goto retry;
+> +		return -EAGAIN;
+>  	}
+>
+> -	retry_cnt = 0xFF;
+>
+> -	cookie = atomic_inc_return(&rcfw->seq_num) & RCFW_MAX_COOKIE_VALUE;
+> +	cookie = rcfw->seq_num & RCFW_MAX_COOKIE_VALUE;
+>  	cbit = cookie % RCFW_MAX_OUTSTANDING_CMD;
+>  	if (is_block)
+>  		cookie |= RCFW_CMD_IS_BLOCKING;
+> +
+> +	set_bit(cbit, rcfw->cmdq_bitmap);
+>  	req->cookie = cpu_to_le16(cookie);
+> -	if (test_and_set_bit(cbit, rcfw->cmdq_bitmap)) {
+> -		dev_err(&rcfw->pdev->dev,
+> -			"QPLIB: RCFW MAX outstanding cmd reached!");
+> -		atomic_dec(&rcfw->seq_num);
+> +	crsqe = &rcfw->crsqe_tbl[cbit];
+> +	if (crsqe->resp) {
+>  		spin_unlock_irqrestore(&cmdq->lock, flags);
+> -
+> -		if (!retry_cnt--)
+> -			return NULL;
+> -		goto retry;
+> +		return -EBUSY;
+>  	}
+> -	/* Reserve a resp buffer slot if requested */
+> -	if (req->resp_size && crsbe) {
+> -		spin_lock(&crsb->lock);
+> -		sw_prod = HWQ_CMP(crsb->prod, crsb);
+> -		crsb_ptr = (struct bnxt_qplib_crsbe **)crsb->pbl_ptr;
+> -		*crsbe = (void *)&crsb_ptr[get_crsb_pg(sw_prod)]
+> -					  [get_crsb_idx(sw_prod)];
+> -		bnxt_qplib_crsb_dma_next(crsb->pbl_dma_ptr, sw_prod, &dma_addr);
+> -		req->resp_addr = cpu_to_le64(dma_addr);
+> -		crsb->prod++;
+> -		spin_unlock(&crsb->lock);
+> -
+> -		req->resp_size = (sizeof(struct bnxt_qplib_crsbe) +
+> -				  BNXT_QPLIB_CMDQE_UNITS - 1) /
+> -				 BNXT_QPLIB_CMDQE_UNITS;
+> +	memset(resp, 0, sizeof(*resp));
+> +	crsqe->resp = (struct creq_qp_event *)resp;
+> +	crsqe->resp->cookie = req->cookie;
+> +	crsqe->req_size = req->cmd_size;
+> +	if (req->resp_size && sb) {
+> +		struct bnxt_qplib_rcfw_sbuf *sbuf = sb;
+> +
+> +		req->resp_addr = cpu_to_le64(sbuf->dma_addr);
+> +		req->resp_size = (sbuf->size + BNXT_QPLIB_CMDQE_UNITS - 1) /
+> +				  BNXT_QPLIB_CMDQE_UNITS;
+>  	}
+> +
+>  	cmdq_ptr = (struct bnxt_qplib_cmdqe **)cmdq->pbl_ptr;
+>  	preq = (u8 *)req;
+>  	size = req->cmd_size * BNXT_QPLIB_CMDQE_UNITS;
+> @@ -190,23 +160,24 @@ void *bnxt_qplib_rcfw_send_message(struct bnxt_qplib_rcfw *rcfw,
+>  		preq += min_t(u32, size, sizeof(*cmdqe));
+>  		size -= min_t(u32, size, sizeof(*cmdqe));
+>  		cmdq->prod++;
+> +		rcfw->seq_num++;
+>  	} while (size > 0);
+>
+> +	rcfw->seq_num++;
+> +
+>  	cmdq_prod = cmdq->prod;
+>  	if (rcfw->flags & FIRMWARE_FIRST_FLAG) {
+> -		/* The very first doorbell write is required to set this flag
+> -		 * which prompts the FW to reset its internal pointers
+> +		/* The very first doorbell write
+> +		 * is required to set this flag
+> +		 * which prompts the FW to reset
+> +		 * its internal pointers
+>  		 */
+>  		cmdq_prod |= FIRMWARE_FIRST_FLAG;
+>  		rcfw->flags &= ~FIRMWARE_FIRST_FLAG;
+>  	}
+> -	sw_prod = HWQ_CMP(crsq->prod, crsq);
+> -	crsqe = &crsq->crsq[sw_prod];
+> -	memset(crsqe, 0, sizeof(*crsqe));
+> -	crsq->prod++;
+> -	crsqe->req_size = req->cmd_size;
+>
+>  	/* ring CMDQ DB */
+> +	wmb();
+>  	writel(cmdq_prod, rcfw->cmdq_bar_reg_iomem +
+>  	       rcfw->cmdq_bar_reg_prod_off);
+>  	writel(RCFW_CMDQ_TRIG_VAL, rcfw->cmdq_bar_reg_iomem +
+> @@ -214,9 +185,56 @@ void *bnxt_qplib_rcfw_send_message(struct bnxt_qplib_rcfw *rcfw,
+>  done:
+>  	spin_unlock_irqrestore(&cmdq->lock, flags);
+>  	/* Return the CREQ response pointer */
+> -	return crsqe ? &crsqe->qp_event : NULL;
+> +	return 0;
+>  }
+>
+> +int bnxt_qplib_rcfw_send_message(struct bnxt_qplib_rcfw *rcfw,
+> +				 struct cmdq_base *req,
+> +				 struct creq_base *resp,
+> +				 void *sb, u8 is_block)
 > +{
-> +	struct bnxt_qplib_sgid_tbl *sgid_tbl = &rdev->qplib_res.sgid_tbl;
-> +	struct bnxt_qplib_gid gid;
-> +	u16 gid_idx, index;
+> +	struct creq_qp_event *evnt = (struct creq_qp_event *)resp;
+> +	u16 cookie;
+> +	u8 opcode, retry_cnt = 0xFF;
 > +	int rc = 0;
 > +
-> +	if (!test_bit(BNXT_RE_FLAG_IBDEV_REGISTERED, &rdev->flags))
-> +		return 0;
+> +	do {
+> +		opcode = req->opcode;
+> +		rc = __send_message(rcfw, req, resp, sb, is_block);
+> +		cookie = le16_to_cpu(req->cookie) & RCFW_MAX_COOKIE_VALUE;
+> +		if (!rc)
+> +			break;
 > +
-> +	if (!sgid_tbl) {
-> +		dev_err(rdev_to_dev(rdev), "QPLIB: SGID table not allocated");
-> +		return -EINVAL;
+> +		if (!retry_cnt || (rc != -EAGAIN && rc != -EBUSY)) {
+> +			/* send failed */
+> +			dev_err(&rcfw->pdev->dev, "QPLIB: cmdq[%#x]=%#x send failed",
+> +				cookie, opcode);
+> +			return rc;
+> +		}
+> +		is_block ? mdelay(1) : usleep_range(500, 1000);
+
+The same as above.
+
+> +
+> +	} while (retry_cnt--);
+> +
+> +	if (is_block)
+> +		rc = __block_for_resp(rcfw, cookie);
+> +	else
+> +		rc = __wait_for_resp(rcfw, cookie);
+> +	if (rc) {
+> +		/* timed out */
+> +		dev_err(&rcfw->pdev->dev, "QPLIB: cmdq[%#x]=%#x timedout (%d)msec",
+> +			cookie, opcode, RCFW_CMD_WAIT_TIME_MS);
+> +		return rc;
 > +	}
 > +
-> +	for (index = 0; index < sgid_tbl->active; index++) {
-> +		gid_idx = sgid_tbl->hw_id[index];
-> +
-> +		if (!memcmp(&sgid_tbl->tbl[index], &bnxt_qplib_gid_zero,
-> +			    sizeof(bnxt_qplib_gid_zero)))
-> +			continue;
-> +		/* need to modify the VLAN enable setting of non VLAN GID only
-> +		 * as setting is done for VLAN GID while adding GID
-> +		 */
-> +		if (sgid_tbl->vlan[index])
-> +			continue;
-> +
-> +		memcpy(&gid, &sgid_tbl->tbl[index], sizeof(gid));
-> +
-> +		rc = bnxt_qplib_update_sgid(sgid_tbl, &gid, gid_idx,
-> +					    rdev->qplib_res.netdev->dev_addr);
+> +	if (evnt->status) {
+> +		/* failed with status */
+> +		dev_err(&rcfw->pdev->dev, "QPLIB: cmdq[%#x]=%#x status %#x",
+> +			cookie, opcode, evnt->status);
+> +		rc = -EFAULT;
 > +	}
 > +
 > +	return rc;
 > +}
-> +
->  static u32 bnxt_re_get_priority_mask(struct bnxt_re_dev *rdev)
+>  /* Completions */
+>  static int bnxt_qplib_process_func_event(struct bnxt_qplib_rcfw *rcfw,
+>  					 struct creq_func_event *func_event)
+> @@ -260,12 +278,12 @@ static int bnxt_qplib_process_func_event(struct bnxt_qplib_rcfw *rcfw,
+>  static int bnxt_qplib_process_qp_event(struct bnxt_qplib_rcfw *rcfw,
+>  				       struct creq_qp_event *qp_event)
 >  {
->  	u32 prio_map = 0, tmp_map = 0;
-> @@ -859,8 +895,6 @@ static u32 bnxt_re_get_priority_mask(struct bnxt_re_dev *rdev)
->  	tmp_map = dcb_ieee_getapp_mask(netdev, &app);
->  	prio_map |= tmp_map;
+> -	struct bnxt_qplib_crsq *crsq = &rcfw->crsq;
+>  	struct bnxt_qplib_hwq *cmdq = &rcfw->cmdq;
+> -	struct bnxt_qplib_crsqe *crsqe;
+> -	u16 cbit, cookie, blocked = 0;
+> +	struct bnxt_qplib_crsq *crsqe;
+>  	unsigned long flags;
+> -	u32 sw_cons;
+> +	u16 cbit, blocked = 0;
+> +	u16 cookie;
+> +	__le16  mcookie;
 >
-> -	if (!prio_map)
-> -		prio_map = -EFAULT;
->  	return prio_map;
+>  	switch (qp_event->event) {
+>  	case CREQ_QP_EVENT_EVENT_QP_ERROR_NOTIFICATION:
+> @@ -275,24 +293,31 @@ static int bnxt_qplib_process_qp_event(struct bnxt_qplib_rcfw *rcfw,
+>  	default:
+>  		/* Command Response */
+>  		spin_lock_irqsave(&cmdq->lock, flags);
+> -		sw_cons = HWQ_CMP(crsq->cons, crsq);
+> -		crsqe = &crsq->crsq[sw_cons];
+> -		crsq->cons++;
+> -		memcpy(&crsqe->qp_event, qp_event, sizeof(crsqe->qp_event));
+> -
+> -		cookie = le16_to_cpu(crsqe->qp_event.cookie);
+> +		cookie = le16_to_cpu(qp_event->cookie);
+> +		mcookie = qp_event->cookie;
+>  		blocked = cookie & RCFW_CMD_IS_BLOCKING;
+>  		cookie &= RCFW_MAX_COOKIE_VALUE;
+>  		cbit = cookie % RCFW_MAX_OUTSTANDING_CMD;
+> +		crsqe = &rcfw->crsqe_tbl[cbit];
+> +		if (crsqe->resp &&
+> +		    crsqe->resp->cookie  == mcookie) {
+> +			memcpy(crsqe->resp, qp_event, sizeof(*qp_event));
+> +			crsqe->resp = NULL;
+> +		} else {
+> +			dev_err(&rcfw->pdev->dev,
+> +				"QPLIB: CMD %s resp->cookie = %#x, evnt->cookie = %#x",
+> +				crsqe->resp ? "mismatch" : "collision",
+> +				crsqe->resp ? crsqe->resp->cookie : 0, mcookie);
+> +		}
+>  		if (!test_and_clear_bit(cbit, rcfw->cmdq_bitmap))
+>  			dev_warn(&rcfw->pdev->dev,
+>  				 "QPLIB: CMD bit %d was not requested", cbit);
+> -
+>  		cmdq->cons += crsqe->req_size;
+> -		spin_unlock_irqrestore(&cmdq->lock, flags);
+> +		crsqe->req_size = 0;
+> +
+>  		if (!blocked)
+>  			wake_up(&rcfw->waitq);
+> -		break;
+> +		spin_unlock_irqrestore(&cmdq->lock, flags);
+>  	}
+>  	return 0;
+>  }
+> @@ -305,12 +330,12 @@ static void bnxt_qplib_service_creq(unsigned long data)
+>  	struct creq_base *creqe, **creq_ptr;
+>  	u32 sw_cons, raw_cons;
+>  	unsigned long flags;
+> -	u32 type;
+> +	u32 type, budget = CREQ_ENTRY_POLL_BUDGET;
+>
+> -	/* Service the CREQ until empty */
+> +	/* Service the CREQ until budget is over */
+>  	spin_lock_irqsave(&creq->lock, flags);
+>  	raw_cons = creq->cons;
+> -	while (1) {
+> +	while (budget > 0) {
+>  		sw_cons = HWQ_CMP(raw_cons, creq);
+>  		creq_ptr = (struct creq_base **)creq->pbl_ptr;
+>  		creqe = &creq_ptr[get_creq_pg(sw_cons)][get_creq_idx(sw_cons)];
+> @@ -320,15 +345,9 @@ static void bnxt_qplib_service_creq(unsigned long data)
+>  		type = creqe->type & CREQ_BASE_TYPE_MASK;
+>  		switch (type) {
+>  		case CREQ_BASE_TYPE_QP_EVENT:
+> -			if (!bnxt_qplib_process_qp_event
+> -			    (rcfw, (struct creq_qp_event *)creqe))
+> -				rcfw->creq_qp_event_processed++;
+> -			else {
+> -				dev_warn(&rcfw->pdev->dev, "QPLIB: crsqe with");
+> -				dev_warn(&rcfw->pdev->dev,
+> -					 "QPLIB: type = 0x%x not handled",
+> -					 type);
+> -			}
+> +			bnxt_qplib_process_qp_event
+> +				(rcfw, (struct creq_qp_event *)creqe);
+> +			rcfw->creq_qp_event_processed++;
+>  			break;
+>  		case CREQ_BASE_TYPE_FUNC_EVENT:
+>  			if (!bnxt_qplib_process_func_event
+> @@ -346,7 +365,9 @@ static void bnxt_qplib_service_creq(unsigned long data)
+>  			break;
+>  		}
+>  		raw_cons++;
+> +		budget--;
+>  	}
+> +
+>  	if (creq->cons != raw_cons) {
+>  		creq->cons = raw_cons;
+>  		CREQ_DB_REARM(rcfw->creq_bar_reg_iomem, raw_cons,
+> @@ -375,23 +396,16 @@ static irqreturn_t bnxt_qplib_creq_irq(int irq, void *dev_instance)
+>  /* RCFW */
+>  int bnxt_qplib_deinit_rcfw(struct bnxt_qplib_rcfw *rcfw)
+>  {
+> -	struct creq_deinitialize_fw_resp *resp;
+>  	struct cmdq_deinitialize_fw req;
+> +	struct creq_deinitialize_fw_resp resp;
+>  	u16 cmd_flags = 0;
+> +	int rc;
+>
+>  	RCFW_CMD_PREP(req, DEINITIALIZE_FW, cmd_flags);
+> -	resp = (struct creq_deinitialize_fw_resp *)
+> -			bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> -						     NULL, 0);
+> -	if (!resp)
+> -		return -EINVAL;
+> -
+> -	if (!bnxt_qplib_rcfw_wait_for_resp(rcfw, le16_to_cpu(req.cookie)))
+> -		return -ETIMEDOUT;
+> -
+> -	if (resp->status ||
+> -	    le16_to_cpu(resp->cookie) != le16_to_cpu(req.cookie))
+> -		return -EFAULT;
+> +	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req, (void *)&resp,
+> +					  NULL, 0);
+> +	if (rc)
+> +		return rc;
+>
+>  	clear_bit(FIRMWARE_INITIALIZED_FLAG, &rcfw->flags);
+>  	return 0;
+> @@ -417,9 +431,10 @@ static int __get_pbl_pg_idx(struct bnxt_qplib_pbl *pbl)
+>  int bnxt_qplib_init_rcfw(struct bnxt_qplib_rcfw *rcfw,
+>  			 struct bnxt_qplib_ctx *ctx, int is_virtfn)
+>  {
+> -	struct creq_initialize_fw_resp *resp;
+>  	struct cmdq_initialize_fw req;
+> +	struct creq_initialize_fw_resp resp;
+>  	u16 cmd_flags = 0, level;
+> +	int rc;
+>
+>  	RCFW_CMD_PREP(req, INITIALIZE_FW, cmd_flags);
+>
+> @@ -482,37 +497,19 @@ int bnxt_qplib_init_rcfw(struct bnxt_qplib_rcfw *rcfw,
+>
+>  skip_ctx_setup:
+>  	req.stat_ctx_id = cpu_to_le32(ctx->stats.fw_id);
+> -	resp = (struct creq_initialize_fw_resp *)
+> -			bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> -						     NULL, 0);
+> -	if (!resp) {
+> -		dev_err(&rcfw->pdev->dev,
+> -			"QPLIB: RCFW: INITIALIZE_FW send failed");
+> -		return -EINVAL;
+> -	}
+> -	if (!bnxt_qplib_rcfw_wait_for_resp(rcfw, le16_to_cpu(req.cookie))) {
+> -		/* Cmd timed out */
+> -		dev_err(&rcfw->pdev->dev,
+> -			"QPLIB: RCFW: INITIALIZE_FW timed out");
+> -		return -ETIMEDOUT;
+> -	}
+> -	if (resp->status ||
+> -	    le16_to_cpu(resp->cookie) != le16_to_cpu(req.cookie)) {
+> -		dev_err(&rcfw->pdev->dev,
+> -			"QPLIB: RCFW: INITIALIZE_FW failed");
+> -		return -EINVAL;
+> -	}
+> +	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req, (void *)&resp,
+> +					  NULL, 0);
+> +	if (rc)
+> +		return rc;
+>  	set_bit(FIRMWARE_INITIALIZED_FLAG, &rcfw->flags);
+>  	return 0;
 >  }
 >
-> @@ -886,10 +920,7 @@ static int bnxt_re_setup_qos(struct bnxt_re_dev *rdev)
+>  void bnxt_qplib_free_rcfw_channel(struct bnxt_qplib_rcfw *rcfw)
+>  {
+> -	bnxt_qplib_free_hwq(rcfw->pdev, &rcfw->crsb);
+> -	kfree(rcfw->crsq.crsq);
+> +	kfree(rcfw->crsqe_tbl);
+>  	bnxt_qplib_free_hwq(rcfw->pdev, &rcfw->cmdq);
+>  	bnxt_qplib_free_hwq(rcfw->pdev, &rcfw->creq);
+> -
+>  	rcfw->pdev = NULL;
+>  }
+>
+> @@ -539,21 +536,11 @@ int bnxt_qplib_alloc_rcfw_channel(struct pci_dev *pdev,
+>  		goto fail;
+>  	}
+>
+> -	rcfw->crsq.max_elements = rcfw->cmdq.max_elements;
+> -	rcfw->crsq.crsq = kcalloc(rcfw->crsq.max_elements,
+> -				  sizeof(*rcfw->crsq.crsq), GFP_KERNEL);
+> -	if (!rcfw->crsq.crsq)
+> +	rcfw->crsqe_tbl = kcalloc(rcfw->cmdq.max_elements,
+> +				  sizeof(*rcfw->crsqe_tbl), GFP_KERNEL);
+> +	if (!rcfw->crsqe_tbl)
+>  		goto fail;
+>
+> -	rcfw->crsb.max_elements = BNXT_QPLIB_CRSBE_MAX_CNT;
+> -	if (bnxt_qplib_alloc_init_hwq(rcfw->pdev, &rcfw->crsb, NULL, 0,
+> -				      &rcfw->crsb.max_elements,
+> -				      BNXT_QPLIB_CRSBE_UNITS, 0, PAGE_SIZE,
+> -				      HWQ_TYPE_CTX)) {
+> -		dev_err(&rcfw->pdev->dev,
+> -			"QPLIB: HW channel CRSB allocation failed");
+> -		goto fail;
+> -	}
+>  	return 0;
+>
+>  fail:
+> @@ -606,7 +593,7 @@ int bnxt_qplib_enable_rcfw_channel(struct pci_dev *pdev,
 >  	int rc;
 >
->  	/* Get priority for roce */
-> -	rc = bnxt_re_get_priority_mask(rdev);
-> -	if (rc < 0)
-> -		return rc;
-> -	prio_map = (u8)rc;
-> +	prio_map = bnxt_re_get_priority_mask(rdev);
+>  	/* General */
+> -	atomic_set(&rcfw->seq_num, 0);
+> +	rcfw->seq_num = 0;
+>  	rcfw->flags = FIRMWARE_FIRST_FLAG;
+>  	bmap_size = BITS_TO_LONGS(RCFW_MAX_OUTSTANDING_CMD *
+>  				  sizeof(unsigned long));
+> @@ -636,10 +623,6 @@ int bnxt_qplib_enable_rcfw_channel(struct pci_dev *pdev,
 >
->  	if (prio_map == rdev->cur_prio_map)
->  		return 0;
-> @@ -911,6 +942,16 @@ static int bnxt_re_setup_qos(struct bnxt_re_dev *rdev)
->  		return rc;
->  	}
+>  	rcfw->cmdq_bar_reg_trig_off = RCFW_COMM_TRIG_OFFSET;
 >
-> +	/* Actual priorities are not programmed as they are already
-> +	 * done by L2 driver; just enable or disable priority vlan tagging
-> +	 */
-> +	if ((prio_map == 0 && rdev->qplib_res.prio) ||
-> +	    (prio_map != 0 && !rdev->qplib_res.prio)) {
-> +		rdev->qplib_res.prio = prio_map ? true : false;
-> +
-> +		bnxt_re_update_gid(rdev);
-> +	}
-> +
+> -	/* CRSQ */
+> -	rcfw->crsq.prod = 0;
+> -	rcfw->crsq.cons = 0;
+> -
+>  	/* CREQ */
+>  	rcfw->creq_bar_reg = RCFW_COMM_CONS_PCI_BAR_REGION;
+>  	res_base = pci_resource_start(pdev, rcfw->creq_bar_reg);
+> @@ -692,3 +675,34 @@ int bnxt_qplib_enable_rcfw_channel(struct pci_dev *pdev,
+>  	__iowrite32_copy(rcfw->cmdq_bar_reg_iomem, &init, sizeof(init) / 4);
 >  	return 0;
 >  }
->
-> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.c b/drivers/infiniband/hw/bnxt_re/qplib_res.c
-> index 62447b3..4e10170 100644
-> --- a/drivers/infiniband/hw/bnxt_re/qplib_res.c
-> +++ b/drivers/infiniband/hw/bnxt_re/qplib_res.c
-> @@ -468,9 +468,11 @@ static void bnxt_qplib_free_sgid_tbl(struct bnxt_qplib_res *res,
->  	kfree(sgid_tbl->tbl);
->  	kfree(sgid_tbl->hw_id);
->  	kfree(sgid_tbl->ctx);
-> +	kfree(sgid_tbl->vlan);
->  	sgid_tbl->tbl = NULL;
->  	sgid_tbl->hw_id = NULL;
->  	sgid_tbl->ctx = NULL;
-> +	sgid_tbl->vlan = NULL;
->  	sgid_tbl->max = 0;
->  	sgid_tbl->active = 0;
->  }
-> @@ -491,8 +493,15 @@ static int bnxt_qplib_alloc_sgid_tbl(struct bnxt_qplib_res *res,
->  	if (!sgid_tbl->ctx)
->  		goto out_free2;
->
-> +	sgid_tbl->vlan = kcalloc(max, sizeof(u8), GFP_KERNEL);
-> +	if (!sgid_tbl->vlan)
-> +		goto out_free3;
 > +
->  	sgid_tbl->max = max;
->  	return 0;
-> +out_free3:
-> +	kfree(sgid_tbl->ctx);
-> +	sgid_tbl->ctx = NULL;
->  out_free2:
->  	kfree(sgid_tbl->hw_id);
->  	sgid_tbl->hw_id = NULL;
-> @@ -514,6 +523,7 @@ static void bnxt_qplib_cleanup_sgid_tbl(struct bnxt_qplib_res *res,
->  	}
->  	memset(sgid_tbl->tbl, 0, sizeof(struct bnxt_qplib_gid) * sgid_tbl->max);
->  	memset(sgid_tbl->hw_id, -1, sizeof(u16) * sgid_tbl->max);
-> +	memset(sgid_tbl->vlan, 0, sizeof(u8) * sgid_tbl->max);
->  	sgid_tbl->active = 0;
->  }
+> +struct bnxt_qplib_rcfw_sbuf *bnxt_qplib_rcfw_alloc_sbuf(
+> +		struct bnxt_qplib_rcfw *rcfw,
+> +		u32 size)
+> +{
+> +	struct bnxt_qplib_rcfw_sbuf *sbuf;
+> +
+> +	sbuf = kzalloc(sizeof(*sbuf), GFP_ATOMIC);
+> +	if (!sbuf)
+> +		return NULL;
+> +
+> +	sbuf->size = size;
+> +	sbuf->sb = dma_zalloc_coherent(&rcfw->pdev->dev, sbuf->size,
+> +				       &sbuf->dma_addr, GFP_ATOMIC);
+> +	if (!sbuf->sb)
+> +		goto bail;
+> +
+> +	return sbuf;
+> +bail:
+> +	kfree(sbuf);
+> +	return NULL;
+> +}
+> +
+> +void bnxt_qplib_rcfw_free_sbuf(struct bnxt_qplib_rcfw *rcfw,
+> +			       struct bnxt_qplib_rcfw_sbuf *sbuf)
+> +{
+> +	if (sbuf->sb)
+> +		dma_free_coherent(&rcfw->pdev->dev, sbuf->size,
+> +				  sbuf->sb, sbuf->dma_addr);
+> +	kfree(sbuf);
+> +}
+> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h
+> index d3567d7..09ce121 100644
+> --- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h
+> +++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.h
+> @@ -73,6 +73,7 @@
+>  #define RCFW_MAX_OUTSTANDING_CMD	BNXT_QPLIB_CMDQE_MAX_CNT
+>  #define RCFW_MAX_COOKIE_VALUE		0x7FFF
+>  #define RCFW_CMD_IS_BLOCKING		0x8000
+> +#define RCFW_BLOCKED_CMD_WAIT_COUNT	0x4E20
 >
+>  /* Cmdq contains a fix number of a 16-Byte slots */
+>  struct bnxt_qplib_cmdqe {
+> @@ -94,32 +95,6 @@ struct bnxt_qplib_crsbe {
+>  	u8			data[1024];
+>  };
+>
+> -/* CRSQ SB */
+> -#define BNXT_QPLIB_CRSBE_MAX_CNT	4
+> -#define BNXT_QPLIB_CRSBE_UNITS		sizeof(struct bnxt_qplib_crsbe)
+> -#define BNXT_QPLIB_CRSBE_CNT_PER_PG	(PAGE_SIZE / BNXT_QPLIB_CRSBE_UNITS)
+> -
+> -#define MAX_CRSB_IDX			(BNXT_QPLIB_CRSBE_MAX_CNT - 1)
+> -#define MAX_CRSB_IDX_PER_PG		(BNXT_QPLIB_CRSBE_CNT_PER_PG - 1)
+> -
+> -static inline u32 get_crsb_pg(u32 val)
+> -{
+> -	return (val & ~MAX_CRSB_IDX_PER_PG) / BNXT_QPLIB_CRSBE_CNT_PER_PG;
+> -}
+> -
+> -static inline u32 get_crsb_idx(u32 val)
+> -{
+> -	return val & MAX_CRSB_IDX_PER_PG;
+> -}
+> -
+> -static inline void bnxt_qplib_crsb_dma_next(dma_addr_t *pg_map_arr,
+> -					    u32 prod, dma_addr_t *dma_addr)
+> -{
+> -		*dma_addr = pg_map_arr[(prod) / BNXT_QPLIB_CRSBE_CNT_PER_PG];
+> -		*dma_addr += ((prod) % BNXT_QPLIB_CRSBE_CNT_PER_PG) *
+> -			      BNXT_QPLIB_CRSBE_UNITS;
+> -}
+> -
+>  /* CREQ */
+>  /* Allocate 1 per QP for async error notification for now */
+>  #define BNXT_QPLIB_CREQE_MAX_CNT	(64 * 1024)
+> @@ -158,17 +133,19 @@ static inline u32 get_creq_idx(u32 val)
+>  #define CREQ_DB(db, raw_cons, cp_bit)				\
+>  	writel(CREQ_DB_CP_FLAGS | ((raw_cons) & ((cp_bit) - 1)), db)
+>
+> +#define CREQ_ENTRY_POLL_BUDGET		0x100
+> +
+>  /* HWQ */
+> -struct bnxt_qplib_crsqe {
+> -	struct creq_qp_event	qp_event;
+> +
+> +struct bnxt_qplib_crsq {
+> +	struct creq_qp_event	*resp;
+>  	u32			req_size;
+>  };
+>
+> -struct bnxt_qplib_crsq {
+> -	struct bnxt_qplib_crsqe	*crsq;
+> -	u32			prod;
+> -	u32			cons;
+> -	u32			max_elements;
+> +struct bnxt_qplib_rcfw_sbuf {
+> +	void *sb;
+> +	dma_addr_t dma_addr;
+> +	u32 size;
+>  };
+>
+>  /* RCFW Communication Channels */
+> @@ -185,7 +162,7 @@ struct bnxt_qplib_rcfw {
+>  	wait_queue_head_t	waitq;
+>  	int			(*aeq_handler)(struct bnxt_qplib_rcfw *,
+>  					       struct creq_func_event *);
+> -	atomic_t		seq_num;
+> +	u32			seq_num;
+>
+>  	/* Bar region info */
+>  	void __iomem		*cmdq_bar_reg_iomem;
+> @@ -203,8 +180,7 @@ struct bnxt_qplib_rcfw {
+>
+>  	/* Actual Cmd and Resp Queues */
+>  	struct bnxt_qplib_hwq	cmdq;
+> -	struct bnxt_qplib_crsq	crsq;
+> -	struct bnxt_qplib_hwq	crsb;
+> +	struct bnxt_qplib_crsq	*crsqe_tbl;
+>  };
+>
+>  void bnxt_qplib_free_rcfw_channel(struct bnxt_qplib_rcfw *rcfw);
+> @@ -219,11 +195,14 @@ int bnxt_qplib_enable_rcfw_channel(struct pci_dev *pdev,
+>  					(struct bnxt_qplib_rcfw *,
+>  					 struct creq_func_event *));
+>
+> -int bnxt_qplib_rcfw_block_for_resp(struct bnxt_qplib_rcfw *rcfw, u16 cookie);
+> -int bnxt_qplib_rcfw_wait_for_resp(struct bnxt_qplib_rcfw *rcfw, u16 cookie);
+> -void *bnxt_qplib_rcfw_send_message(struct bnxt_qplib_rcfw *rcfw,
+> -				   struct cmdq_base *req, void **crsbe,
+> -				   u8 is_block);
+> +struct bnxt_qplib_rcfw_sbuf *bnxt_qplib_rcfw_alloc_sbuf(
+> +				struct bnxt_qplib_rcfw *rcfw,
+> +				u32 size);
+> +void bnxt_qplib_rcfw_free_sbuf(struct bnxt_qplib_rcfw *rcfw,
+> +			       struct bnxt_qplib_rcfw_sbuf *sbuf);
+> +int bnxt_qplib_rcfw_send_message(struct bnxt_qplib_rcfw *rcfw,
+> +				 struct cmdq_base *req, struct creq_base *resp,
+> +				 void *sbuf, u8 is_block);
+>
+>  int bnxt_qplib_deinit_rcfw(struct bnxt_qplib_rcfw *rcfw);
+>  int bnxt_qplib_init_rcfw(struct bnxt_qplib_rcfw *rcfw,
 > diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.h b/drivers/infiniband/hw/bnxt_re/qplib_res.h
-> index 2e48555..e872075 100644
+> index 6277d80..4103e60 100644
 > --- a/drivers/infiniband/hw/bnxt_re/qplib_res.h
 > +++ b/drivers/infiniband/hw/bnxt_re/qplib_res.h
-> @@ -116,6 +116,7 @@ struct bnxt_qplib_sgid_tbl {
->  	u16				max;
->  	u16				active;
->  	void				*ctx;
-> +	u8				*vlan;
->  };
+> @@ -48,6 +48,11 @@ extern const struct bnxt_qplib_gid bnxt_qplib_gid_zero;
 >
->  struct bnxt_qplib_pkey_tbl {
-> @@ -188,6 +189,7 @@ struct bnxt_qplib_res {
->  	struct bnxt_qplib_sgid_tbl	sgid_tbl;
->  	struct bnxt_qplib_pkey_tbl	pkey_tbl;
->  	struct bnxt_qplib_dpi_tbl	dpi_tbl;
-> +	bool				prio;
->  };
+>  #define HWQ_CMP(idx, hwq)	((idx) & ((hwq)->max_elements - 1))
 >
->  #define to_bnxt_qplib(ptr, type, member)	\
+> +#define HWQ_FREE_SLOTS(hwq)	(hwq->max_elements - \
+> +				((HWQ_CMP(hwq->prod, hwq)\
+> +				- HWQ_CMP(hwq->cons, hwq))\
+> +				& (hwq->max_elements - 1)))
+> +
+>  enum bnxt_qplib_hwq_type {
+>  	HWQ_TYPE_CTX,
+>  	HWQ_TYPE_QUEUE,
 > diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.c b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-> index fde18cf..36f45ff 100644
+> index 7b31ecc..cf7c9cb 100644
 > --- a/drivers/infiniband/hw/bnxt_re/qplib_sp.c
 > +++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-> @@ -197,6 +197,7 @@ int bnxt_qplib_del_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+> @@ -55,37 +55,30 @@ int bnxt_qplib_get_dev_attr(struct bnxt_qplib_rcfw *rcfw,
+>  			    struct bnxt_qplib_dev_attr *attr)
+>  {
+>  	struct cmdq_query_func req;
+> -	struct creq_query_func_resp *resp;
+> +	struct creq_query_func_resp resp;
+> +	struct bnxt_qplib_rcfw_sbuf *sbuf;
+>  	struct creq_query_func_resp_sb *sb;
+>  	u16 cmd_flags = 0;
+>  	u32 temp;
+>  	u8 *tqm_alloc;
+> -	int i;
+> +	int i, rc = 0;
+>
+>  	RCFW_CMD_PREP(req, QUERY_FUNC, cmd_flags);
+>
+> -	req.resp_size = sizeof(*sb) / BNXT_QPLIB_CMDQE_UNITS;
+> -	resp = (struct creq_query_func_resp *)
+> -		bnxt_qplib_rcfw_send_message(rcfw, (void *)&req, (void **)&sb,
+> -					     0);
+> -	if (!resp) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: SP: QUERY_FUNC send failed");
+> -		return -EINVAL;
+> -	}
+> -	if (!bnxt_qplib_rcfw_wait_for_resp(rcfw, le16_to_cpu(req.cookie))) {
+> -		/* Cmd timed out */
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: SP: QUERY_FUNC timed out");
+> -		return -ETIMEDOUT;
+> -	}
+> -	if (resp->status ||
+> -	    le16_to_cpu(resp->cookie) != le16_to_cpu(req.cookie)) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: SP: QUERY_FUNC failed ");
+> +	sbuf = bnxt_qplib_rcfw_alloc_sbuf(rcfw, sizeof(*sb));
+> +	if (!sbuf) {
+>  		dev_err(&rcfw->pdev->dev,
+> -			"QPLIB: with status 0x%x cmdq 0x%x resp 0x%x",
+> -			resp->status, le16_to_cpu(req.cookie),
+> -			le16_to_cpu(resp->cookie));
+> -		return -EINVAL;
+> +			"QPLIB: SP: QUERY_FUNC alloc side buffer failed");
+> +		return -ENOMEM;
+>  	}
+> +
+> +	sb = sbuf->sb;
+> +	req.resp_size = sizeof(*sb) / BNXT_QPLIB_CMDQE_UNITS;
+> +	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req, (void *)&resp,
+> +					  (void *)sbuf, 0);
+> +	if (rc)
+> +		goto bail;
+> +
+>  	/* Extract the context from the side buffer */
+>  	attr->max_qp = le32_to_cpu(sb->max_qp);
+>  	attr->max_qp_rd_atom =
+> @@ -130,7 +123,10 @@ int bnxt_qplib_get_dev_attr(struct bnxt_qplib_rcfw *rcfw,
+>  		attr->tqm_alloc_reqs[i * 4 + 2] = *(++tqm_alloc);
+>  		attr->tqm_alloc_reqs[i * 4 + 3] = *(++tqm_alloc);
+>  	}
+> -	return 0;
+> +
+> +bail:
+> +	bnxt_qplib_rcfw_free_sbuf(rcfw, sbuf);
+> +	return rc;
+>  }
+>
+>  /* SGID */
+> @@ -178,8 +174,9 @@ int bnxt_qplib_del_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+>  	/* Remove GID from the SGID table */
+>  	if (update) {
+>  		struct cmdq_delete_gid req;
+> -		struct creq_delete_gid_resp *resp;
+> +		struct creq_delete_gid_resp resp;
+>  		u16 cmd_flags = 0;
+> +		int rc;
+>
+>  		RCFW_CMD_PREP(req, DELETE_GID, cmd_flags);
+>  		if (sgid_tbl->hw_id[index] == 0xFFFF) {
+> @@ -188,31 +185,10 @@ int bnxt_qplib_del_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+>  			return -EINVAL;
+>  		}
+>  		req.gid_index = cpu_to_le16(sgid_tbl->hw_id[index]);
+> -		resp = (struct creq_delete_gid_resp *)
+> -			bnxt_qplib_rcfw_send_message(rcfw, (void *)&req, NULL,
+> -						     0);
+> -		if (!resp) {
+> -			dev_err(&res->pdev->dev,
+> -				"QPLIB: SP: DELETE_GID send failed");
+> -			return -EINVAL;
+> -		}
+> -		if (!bnxt_qplib_rcfw_wait_for_resp(rcfw,
+> -						   le16_to_cpu(req.cookie))) {
+> -			/* Cmd timed out */
+> -			dev_err(&res->pdev->dev,
+> -				"QPLIB: SP: DELETE_GID timed out");
+> -			return -ETIMEDOUT;
+> -		}
+> -		if (resp->status ||
+> -		    le16_to_cpu(resp->cookie) != le16_to_cpu(req.cookie)) {
+> -			dev_err(&res->pdev->dev,
+> -				"QPLIB: SP: DELETE_GID failed ");
+> -			dev_err(&res->pdev->dev,
+> -				"QPLIB: with status 0x%x cmdq 0x%x resp 0x%x",
+> -				resp->status, le16_to_cpu(req.cookie),
+> -				le16_to_cpu(resp->cookie));
+> -			return -EINVAL;
+> -		}
+> +		rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> +						  (void *)&resp, NULL, 0);
+> +		if (rc)
+> +			return rc;
 >  	}
 >  	memcpy(&sgid_tbl->tbl[index], &bnxt_qplib_gid_zero,
 >  	       sizeof(bnxt_qplib_gid_zero));
-> +	sgid_tbl->vlan[index] = 0;
->  	sgid_tbl->active--;
->  	dev_dbg(&res->pdev->dev,
->  		"QPLIB: SGID deleted hw_id[0x%x] = 0x%x active = 0x%x",
-> @@ -249,25 +250,33 @@ int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+> @@ -234,7 +210,7 @@ int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+>  						   struct bnxt_qplib_res,
+>  						   sgid_tbl);
+>  	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
+> -	int i, free_idx, rc = 0;
+> +	int i, free_idx;
+>
+>  	if (!sgid_tbl) {
+>  		dev_err(&res->pdev->dev, "QPLIB: SGID table not allocated");
+> @@ -266,10 +242,11 @@ int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+>  	}
+>  	if (update) {
 >  		struct cmdq_add_gid req;
->  		struct creq_add_gid_resp resp;
+> -		struct creq_add_gid_resp *resp;
+> +		struct creq_add_gid_resp resp;
 >  		u16 cmd_flags = 0;
-> -		u32 temp32[4];
-> -		u16 temp16[3];
-> +		u32 *temp32;
-> +		u16 *temp16;
->  		int rc;
+>  		u32 temp32[4];
+>  		u16 temp16[3];
+> +		int rc;
 >
 >  		RCFW_CMD_PREP(req, ADD_GID, cmd_flags);
 >
-> -		memcpy(temp32, gid->data, sizeof(struct bnxt_qplib_gid));
-> +		temp32 = (u32 *)gid->data;
->  		req.gid[0] = cpu_to_be32(temp32[3]);
->  		req.gid[1] = cpu_to_be32(temp32[2]);
->  		req.gid[2] = cpu_to_be32(temp32[1]);
->  		req.gid[3] = cpu_to_be32(temp32[0]);
-
-You can completely remove tmep* variables and use directly.
-
-> -		if (vlan_id != 0xFFFF)
-> -			req.vlan = cpu_to_le16((vlan_id &
-> -					CMDQ_ADD_GID_VLAN_VLAN_ID_MASK) |
-> -					CMDQ_ADD_GID_VLAN_TPID_TPID_8100 |
-> -					CMDQ_ADD_GID_VLAN_VLAN_EN);
-> +		/*
-> +		 * driver should ensure that all RoCE traffic is always VLAN
-> +		 * tagged if RoCE traffic is running on non-zero VLAN ID or
-> +		 * RoCE traffic is running on non-zero Priority.
-> +		 */
-> +		if ((vlan_id != 0xFFFF) || res->prio) {
-> +			if (vlan_id != 0xFFFF)
-> +				req.vlan = cpu_to_le16
-> +				(vlan_id & CMDQ_ADD_GID_VLAN_VLAN_ID_MASK);
-> +			req.vlan |= cpu_to_le16
-> +					(CMDQ_ADD_GID_VLAN_TPID_TPID_8100 |
-> +					 CMDQ_ADD_GID_VLAN_VLAN_EN);
-> +		}
->
->  		/* MAC in network format */
-> -		memcpy(temp16, smac, 6);
-> +		temp16 = (u16 *)smac;
->  		req.src_mac[0] = cpu_to_be16(temp16[0]);
+> @@ -290,31 +267,11 @@ int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
 >  		req.src_mac[1] = cpu_to_be16(temp16[1]);
 >  		req.src_mac[2] = cpu_to_be16(temp16[2]);
-> @@ -281,6 +290,9 @@ int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+>
+> -		resp = (struct creq_add_gid_resp *)
+> -			bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> -						     NULL, 0);
+> -		if (!resp) {
+> -			dev_err(&res->pdev->dev,
+> -				"QPLIB: SP: ADD_GID send failed");
+> -			return -EINVAL;
+> -		}
+> -		if (!bnxt_qplib_rcfw_wait_for_resp(rcfw,
+> -						   le16_to_cpu(req.cookie))) {
+> -			/* Cmd timed out */
+> -			dev_err(&res->pdev->dev,
+> -				"QPIB: SP: ADD_GID timed out");
+> -			return -ETIMEDOUT;
+> -		}
+> -		if (resp->status ||
+> -		    le16_to_cpu(resp->cookie) != le16_to_cpu(req.cookie)) {
+> -			dev_err(&res->pdev->dev, "QPLIB: SP: ADD_GID failed ");
+> -			dev_err(&res->pdev->dev,
+> -				"QPLIB: with status 0x%x cmdq 0x%x resp 0x%x",
+> -				resp->status, le16_to_cpu(req.cookie),
+> -				le16_to_cpu(resp->cookie));
+> -			return -EINVAL;
+> -		}
+> -		sgid_tbl->hw_id[free_idx] = le32_to_cpu(resp->xid);
+> +		rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> +						  (void *)&resp, NULL, 0);
+> +		if (rc)
+> +			return rc;
+> +		sgid_tbl->hw_id[free_idx] = le32_to_cpu(resp.xid);
+>  	}
 >  	/* Add GID to the sgid_tbl */
 >  	memcpy(&sgid_tbl->tbl[free_idx], gid, sizeof(*gid));
->  	sgid_tbl->active++;
-> +	if (vlan_id != 0xFFFF)
-> +		sgid_tbl->vlan[free_idx] = 1;
+> @@ -325,7 +282,7 @@ int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+>
+>  	*index = free_idx;
+>  	/* unlock */
+> -	return rc;
+> +	return 0;
+>  }
+>
+>  /* pkeys */
+> @@ -422,10 +379,11 @@ int bnxt_qplib_create_ah(struct bnxt_qplib_res *res, struct bnxt_qplib_ah *ah)
+>  {
+>  	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
+>  	struct cmdq_create_ah req;
+> -	struct creq_create_ah_resp *resp;
+> +	struct creq_create_ah_resp resp;
+>  	u16 cmd_flags = 0;
+>  	u32 temp32[4];
+>  	u16 temp16[3];
+> +	int rc;
+>
+>  	RCFW_CMD_PREP(req, CREATE_AH, cmd_flags);
+>
+> @@ -450,28 +408,12 @@ int bnxt_qplib_create_ah(struct bnxt_qplib_res *res, struct bnxt_qplib_ah *ah)
+>  	req.dest_mac[1] = cpu_to_le16(temp16[1]);
+>  	req.dest_mac[2] = cpu_to_le16(temp16[2]);
+>
+> -	resp = (struct creq_create_ah_resp *)
+> -			bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> -						     NULL, 1);
+> -	if (!resp) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: SP: CREATE_AH send failed");
+> -		return -EINVAL;
+> -	}
+> -	if (!bnxt_qplib_rcfw_block_for_resp(rcfw, le16_to_cpu(req.cookie))) {
+> -		/* Cmd timed out */
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: SP: CREATE_AH timed out");
+> -		return -ETIMEDOUT;
+> -	}
+> -	if (resp->status ||
+> -	    le16_to_cpu(resp->cookie) != le16_to_cpu(req.cookie)) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: SP: CREATE_AH failed ");
+> -		dev_err(&rcfw->pdev->dev,
+> -			"QPLIB: with status 0x%x cmdq 0x%x resp 0x%x",
+> -			resp->status, le16_to_cpu(req.cookie),
+> -			le16_to_cpu(resp->cookie));
+> -		return -EINVAL;
+> -	}
+> -	ah->id = le32_to_cpu(resp->xid);
+> +	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req, (void *)&resp,
+> +					  NULL, 1);
+> +	if (rc)
+> +		return rc;
 > +
->  	dev_dbg(&res->pdev->dev,
->  		"QPLIB: SGID added hw_id[0x%x] = 0x%x active = 0x%x",
->  		 free_idx, sgid_tbl->hw_id[free_idx], sgid_tbl->active);
-> @@ -290,6 +302,47 @@ int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+> +	ah->id = le32_to_cpu(resp.xid);
 >  	return 0;
 >  }
 >
-> +int bnxt_qplib_update_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
-> +			   struct bnxt_qplib_gid *gid, u16 gid_idx,
-> +			   u8 *smac)
-> +{
-> +	struct bnxt_qplib_res *res = to_bnxt_qplib(sgid_tbl,
-> +						   struct bnxt_qplib_res,
-> +						   sgid_tbl);
-> +	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
-> +	struct creq_modify_gid_resp resp;
-> +	struct cmdq_modify_gid req;
+> @@ -479,35 +421,19 @@ int bnxt_qplib_destroy_ah(struct bnxt_qplib_res *res, struct bnxt_qplib_ah *ah)
+>  {
+>  	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
+>  	struct cmdq_destroy_ah req;
+> -	struct creq_destroy_ah_resp *resp;
+> +	struct creq_destroy_ah_resp resp;
+>  	u16 cmd_flags = 0;
 > +	int rc;
-> +	u16 cmd_flags = 0;
-> +	u32 *temp32;
-> +	u16 *temp16;
+>
+>  	/* Clean up the AH table in the device */
+>  	RCFW_CMD_PREP(req, DESTROY_AH, cmd_flags);
+>
+>  	req.ah_cid = cpu_to_le32(ah->id);
+>
+> -	resp = (struct creq_destroy_ah_resp *)
+> -			bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> -						     NULL, 1);
+> -	if (!resp) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: SP: DESTROY_AH send failed");
+> -		return -EINVAL;
+> -	}
+> -	if (!bnxt_qplib_rcfw_block_for_resp(rcfw, le16_to_cpu(req.cookie))) {
+> -		/* Cmd timed out */
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: SP: DESTROY_AH timed out");
+> -		return -ETIMEDOUT;
+> -	}
+> -	if (resp->status ||
+> -	    le16_to_cpu(resp->cookie) != le16_to_cpu(req.cookie)) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: SP: DESTROY_AH failed ");
+> -		dev_err(&rcfw->pdev->dev,
+> -			"QPLIB: with status 0x%x cmdq 0x%x resp 0x%x",
+> -			resp->status, le16_to_cpu(req.cookie),
+> -			le16_to_cpu(resp->cookie));
+> -		return -EINVAL;
+> -	}
+> +	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req, (void *)&resp,
+> +					  NULL, 1);
+> +	if (rc)
+> +		return rc;
+>  	return 0;
+>  }
+>
+> @@ -516,8 +442,9 @@ int bnxt_qplib_free_mrw(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mrw)
+>  {
+>  	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
+>  	struct cmdq_deallocate_key req;
+> -	struct creq_deallocate_key_resp *resp;
+> +	struct creq_deallocate_key_resp resp;
+>  	u16 cmd_flags = 0;
+> +	int rc;
+>
+>  	if (mrw->lkey == 0xFFFFFFFF) {
+>  		dev_info(&res->pdev->dev,
+> @@ -536,27 +463,11 @@ int bnxt_qplib_free_mrw(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mrw)
+>  	else
+>  		req.key = cpu_to_le32(mrw->lkey);
+>
+> -	resp = (struct creq_deallocate_key_resp *)
+> -			bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> -						     NULL, 0);
+> -	if (!resp) {
+> -		dev_err(&res->pdev->dev, "QPLIB: SP: FREE_MR send failed");
+> -		return -EINVAL;
+> -	}
+> -	if (!bnxt_qplib_rcfw_wait_for_resp(rcfw, le16_to_cpu(req.cookie))) {
+> -		/* Cmd timed out */
+> -		dev_err(&res->pdev->dev, "QPLIB: SP: FREE_MR timed out");
+> -		return -ETIMEDOUT;
+> -	}
+> -	if (resp->status ||
+> -	    le16_to_cpu(resp->cookie) != le16_to_cpu(req.cookie)) {
+> -		dev_err(&res->pdev->dev, "QPLIB: SP: FREE_MR failed ");
+> -		dev_err(&res->pdev->dev,
+> -			"QPLIB: with status 0x%x cmdq 0x%x resp 0x%x",
+> -			resp->status, le16_to_cpu(req.cookie),
+> -			le16_to_cpu(resp->cookie));
+> -		return -EINVAL;
+> -	}
+> +	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req, (void *)&resp,
+> +					  NULL, 0);
+> +	if (rc)
+> +		return rc;
 > +
-> +	RCFW_CMD_PREP(req, MODIFY_GID, cmd_flags);
-> +
-> +	temp32 = (u32 *)gid->data;
-> +	req.gid[0] = cpu_to_be32(temp32[3]);
-> +	req.gid[1] = cpu_to_be32(temp32[2]);
-> +	req.gid[2] = cpu_to_be32(temp32[1]);
-> +	req.gid[3] = cpu_to_be32(temp32[0]);
-> +	if (res->prio) {
-> +		req.vlan |= cpu_to_le16
-> +			(CMDQ_ADD_GID_VLAN_TPID_TPID_8100 |
-> +			 CMDQ_ADD_GID_VLAN_VLAN_EN);
-> +	}
-> +
-> +	/* MAC in network format */
-> +	temp16 = (u16 *)smac;
-> +	req.src_mac[0] = cpu_to_be16(temp16[0]);
-> +	req.src_mac[1] = cpu_to_be16(temp16[1]);
-> +	req.src_mac[2] = cpu_to_be16(temp16[2]);
-> +
-> +	req.gid_index = cpu_to_le16(gid_idx);
-> +
+>  	/* Free the qplib's MRW memory */
+>  	if (mrw->hwq.max_elements)
+>  		bnxt_qplib_free_hwq(res->pdev, &mrw->hwq);
+> @@ -568,9 +479,10 @@ int bnxt_qplib_alloc_mrw(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mrw)
+>  {
+>  	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
+>  	struct cmdq_allocate_mrw req;
+> -	struct creq_allocate_mrw_resp *resp;
+> +	struct creq_allocate_mrw_resp resp;
+>  	u16 cmd_flags = 0;
+>  	unsigned long tmp;
+> +	int rc;
+>
+>  	RCFW_CMD_PREP(req, ALLOCATE_MRW, cmd_flags);
+>
+> @@ -584,33 +496,17 @@ int bnxt_qplib_alloc_mrw(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mrw)
+>  	tmp = (unsigned long)mrw;
+>  	req.mrw_handle = cpu_to_le64(tmp);
+>
+> -	resp = (struct creq_allocate_mrw_resp *)
+> -			bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> -						     NULL, 0);
+> -	if (!resp) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: SP: ALLOC_MRW send failed");
+> -		return -EINVAL;
+> -	}
+> -	if (!bnxt_qplib_rcfw_wait_for_resp(rcfw, le16_to_cpu(req.cookie))) {
+> -		/* Cmd timed out */
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: SP: ALLOC_MRW timed out");
+> -		return -ETIMEDOUT;
+> -	}
+> -	if (resp->status ||
+> -	    le16_to_cpu(resp->cookie) != le16_to_cpu(req.cookie)) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: SP: ALLOC_MRW failed ");
+> -		dev_err(&rcfw->pdev->dev,
+> -			"QPLIB: with status 0x%x cmdq 0x%x resp 0x%x",
+> -			resp->status, le16_to_cpu(req.cookie),
+> -			le16_to_cpu(resp->cookie));
+> -		return -EINVAL;
+> -	}
 > +	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
 > +					  (void *)&resp, NULL, 0);
-> +	return rc;
-> +}
+> +	if (rc)
+> +		return rc;
 > +
->  /* pkeys */
->  int bnxt_qplib_get_pkey(struct bnxt_qplib_res *res,
->  			struct bnxt_qplib_pkey_tbl *pkey_tbl, u16 index,
-> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.h b/drivers/infiniband/hw/bnxt_re/qplib_sp.h
-> index a543f95..e3a3ed9 100644
-> --- a/drivers/infiniband/hw/bnxt_re/qplib_sp.h
-> +++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.h
-> @@ -132,6 +132,8 @@ int bnxt_qplib_del_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
->  int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
->  			struct bnxt_qplib_gid *gid, u8 *mac, u16 vlan_id,
->  			bool update, u32 *index);
-> +int bnxt_qplib_update_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
-> +			   struct bnxt_qplib_gid *gid, u16 gid_idx, u8 *smac);
->  int bnxt_qplib_get_pkey(struct bnxt_qplib_res *res,
->  			struct bnxt_qplib_pkey_tbl *pkey_tbl, u16 index,
->  			u16 *pkey);
-> diff --git a/drivers/infiniband/hw/bnxt_re/roce_hsi.h b/drivers/infiniband/hw/bnxt_re/roce_hsi.h
-> index fc23477..eeb55b2 100644
-> --- a/drivers/infiniband/hw/bnxt_re/roce_hsi.h
-> +++ b/drivers/infiniband/hw/bnxt_re/roce_hsi.h
-> @@ -1473,8 +1473,8 @@ struct cmdq_modify_gid {
->  	u8 resp_size;
->  	u8 reserved8;
->  	__le64 resp_addr;
-> -	__le32 gid[4];
-> -	__le16 src_mac[3];
-> +	__be32 gid[4];
-> +	__be16 src_mac[3];
->  	__le16 vlan;
->  	#define CMDQ_MODIFY_GID_VLAN_VLAN_ID_MASK		    0xfffUL
->  	#define CMDQ_MODIFY_GID_VLAN_VLAN_ID_SFT		    0
+>  	if ((mrw->type == CMDQ_ALLOCATE_MRW_MRW_FLAGS_MW_TYPE1)  ||
+>  	    (mrw->type == CMDQ_ALLOCATE_MRW_MRW_FLAGS_MW_TYPE2A) ||
+>  	    (mrw->type == CMDQ_ALLOCATE_MRW_MRW_FLAGS_MW_TYPE2B))
+> -		mrw->rkey = le32_to_cpu(resp->xid);
+> +		mrw->rkey = le32_to_cpu(resp.xid);
+>  	else
+> -		mrw->lkey = le32_to_cpu(resp->xid);
+> +		mrw->lkey = le32_to_cpu(resp.xid);
+>  	return 0;
+>  }
+>
+> @@ -619,40 +515,17 @@ int bnxt_qplib_dereg_mrw(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mrw,
+>  {
+>  	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
+>  	struct cmdq_deregister_mr req;
+> -	struct creq_deregister_mr_resp *resp;
+> +	struct creq_deregister_mr_resp resp;
+>  	u16 cmd_flags = 0;
+>  	int rc;
+>
+>  	RCFW_CMD_PREP(req, DEREGISTER_MR, cmd_flags);
+>
+>  	req.lkey = cpu_to_le32(mrw->lkey);
+> -	resp = (struct creq_deregister_mr_resp *)
+> -			bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> -						     NULL, block);
+> -	if (!resp) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: SP: DEREG_MR send failed");
+> -		return -EINVAL;
+> -	}
+> -	if (block)
+> -		rc = bnxt_qplib_rcfw_block_for_resp(rcfw,
+> -						    le16_to_cpu(req.cookie));
+> -	else
+> -		rc = bnxt_qplib_rcfw_wait_for_resp(rcfw,
+> -						   le16_to_cpu(req.cookie));
+> -	if (!rc) {
+> -		/* Cmd timed out */
+> -		dev_err(&res->pdev->dev, "QPLIB: SP: DEREG_MR timed out");
+> -		return -ETIMEDOUT;
+> -	}
+> -	if (resp->status ||
+> -	    le16_to_cpu(resp->cookie) != le16_to_cpu(req.cookie)) {
+> -		dev_err(&rcfw->pdev->dev, "QPLIB: SP: DEREG_MR failed ");
+> -		dev_err(&rcfw->pdev->dev,
+> -			"QPLIB: with status 0x%x cmdq 0x%x resp 0x%x",
+> -			resp->status, le16_to_cpu(req.cookie),
+> -			le16_to_cpu(resp->cookie));
+> -		return -EINVAL;
+> -	}
+> +	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> +					  (void *)&resp, NULL, block);
+> +	if (rc)
+> +		return rc;
+>
+>  	/* Free the qplib's MR memory */
+>  	if (mrw->hwq.max_elements) {
+> @@ -669,7 +542,7 @@ int bnxt_qplib_reg_mr(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mr,
+>  {
+>  	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
+>  	struct cmdq_register_mr req;
+> -	struct creq_register_mr_resp *resp;
+> +	struct creq_register_mr_resp resp;
+>  	u16 cmd_flags = 0, level;
+>  	int pg_ptrs, pages, i, rc;
+>  	dma_addr_t **pbl_ptr;
+> @@ -730,36 +603,11 @@ int bnxt_qplib_reg_mr(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mr,
+>  	req.key = cpu_to_le32(mr->lkey);
+>  	req.mr_size = cpu_to_le64(mr->total_size);
+>
+> -	resp = (struct creq_register_mr_resp *)
+> -			bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> -						     NULL, block);
+> -	if (!resp) {
+> -		dev_err(&res->pdev->dev, "SP: REG_MR send failed");
+> -		rc = -EINVAL;
+> -		goto fail;
+> -	}
+> -	if (block)
+> -		rc = bnxt_qplib_rcfw_block_for_resp(rcfw,
+> -						    le16_to_cpu(req.cookie));
+> -	else
+> -		rc = bnxt_qplib_rcfw_wait_for_resp(rcfw,
+> -						   le16_to_cpu(req.cookie));
+> -	if (!rc) {
+> -		/* Cmd timed out */
+> -		dev_err(&res->pdev->dev, "SP: REG_MR timed out");
+> -		rc = -ETIMEDOUT;
+> -		goto fail;
+> -	}
+> -	if (resp->status ||
+> -	    le16_to_cpu(resp->cookie) != le16_to_cpu(req.cookie)) {
+> -		dev_err(&res->pdev->dev, "QPLIB: SP: REG_MR failed ");
+> -		dev_err(&res->pdev->dev,
+> -			"QPLIB: SP: with status 0x%x cmdq 0x%x resp 0x%x",
+> -			resp->status, le16_to_cpu(req.cookie),
+> -			le16_to_cpu(resp->cookie));
+> -		rc = -EINVAL;
+> +	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> +					  (void *)&resp, NULL, block);
+> +	if (rc)
+>  		goto fail;
+> -	}
+> +
+>  	return 0;
+>
+>  fail:
+> @@ -804,35 +652,15 @@ int bnxt_qplib_map_tc2cos(struct bnxt_qplib_res *res, u16 *cids)
+>  {
+>  	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
+>  	struct cmdq_map_tc_to_cos req;
+> -	struct creq_map_tc_to_cos_resp *resp;
+> +	struct creq_map_tc_to_cos_resp resp;
+>  	u16 cmd_flags = 0;
+> -	int tleft;
+> +	int rc = 0;
+>
+>  	RCFW_CMD_PREP(req, MAP_TC_TO_COS, cmd_flags);
+>  	req.cos0 = cpu_to_le16(cids[0]);
+>  	req.cos1 = cpu_to_le16(cids[1]);
+>
+> -	resp = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req, NULL, 0);
+> -	if (!resp) {
+> -		dev_err(&res->pdev->dev, "QPLIB: SP: MAP_TC2COS send failed");
+> -		return -EINVAL;
+> -	}
+> -
+> -	tleft = bnxt_qplib_rcfw_block_for_resp(rcfw, le16_to_cpu(req.cookie));
+> -	if (!tleft) {
+> -		dev_err(&res->pdev->dev, "QPLIB: SP: MAP_TC2COS timed out");
+> -		return -ETIMEDOUT;
+> -	}
+> -
+> -	if (resp->status ||
+> -	    le16_to_cpu(resp->cookie) != le16_to_cpu(req.cookie)) {
+> -		dev_err(&res->pdev->dev, "QPLIB: SP: MAP_TC2COS failed ");
+> -		dev_err(&res->pdev->dev,
+> -			"QPLIB: with status 0x%x cmdq 0x%x resp 0x%x",
+> -			resp->status, le16_to_cpu(req.cookie),
+> -			le16_to_cpu(resp->cookie));
+> -		return -EINVAL;
+> -	}
+> -
+> +	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
+> +					  (void *)&resp, NULL, 0);
+>  	return 0;
+>  }
 > --
 > 2.5.5
 >
@@ -343,27 +1554,27 @@ You can completely remove tmep* variables and use directly.
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---SUcp5/vPb8ZOOFiR
+--Cp+VOSm8VfVBUvcG
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkdRYwACgkQ5GN7iDZy
-WKdeYRAAo94ZSefVOQ46F+L5iEyIZzSfOY+SsV2877SoifrvhXJC9Pt0QvnkRz7c
-7e/NNW6TdnbhpzJU0kZVYndBpFy4yhjX04dgKrI1UmYUlN9Mf1zLm7/payVCV0xk
-V4RpMoEAyTqMS26HYiZtcwQLPDjddLDLClGKOgm5PnVAVW4d6kZHwZOmH1qW88uE
-OxlDyX5TlfIvibXGtx/tNl3P1z52kvZ9UgrAfGhECRjyL+qkiX8QONqK/lnr2UKT
-83kYZ3eVLplxibnwsUnY2mXgfFzd4N+yva7sTVCMN3eURoCbcauxByTWvIDsJ260
-gbZNT8AQULuIs/NgMfEf2lwsvsbMQvhFBacArBd2susLEKDbCEkRdSwrj6HYbysL
-pYCFQwZRacUbRHlczzSgarS7UolTmH18e3SBdQ3rDkDzV6v2IkD5DrBWWSCkg1Un
-vlnPBws+9Jje+AbrSldvxievQhq/GSPypHx1HsCEVxzGNiPb8KmyeImd2QXi6QYw
-KohljYD7dXCL9O7uOAPzejn35VFpr6s+2kDu4VUrRWERuskMsN9z8iHoDeqYlDLz
-EfHkWkjnx+hKp1nRR0Jvhvy9jHc7j5Go9y0huipWyjPTge36dkPhLI1kz0KD0c/z
-db5xP1Wg8quUR7/Mw4GBXaTpp2HjdTDUr1TADGiiYOHUbD+im+c=
-=zzZa
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkdfRcACgkQ5GN7iDZy
+WKelzg//RCzfnxb28jFmJgpRS94JJn/AC7Zg/uSuJF7WJr3mrmf1BuBc125k64fr
+Ipc13EQbUoaMBvpT2XYDhZq9jqAkcq3ZzCrGKZSGWSeOfxvbHHQJmFGeFnJ8/UuA
+Vx+7mIJYfJ5Hr0CHqG8A3Ao2IiGWCY/YGP+yTm7etrJDuyrw0L2erPbuyIo/GFSy
+0WEttzQL8PyhpjTnm45cxA+fg9Q8m7e7+GliYOIvrwBJsTtO/jwmo/5I3S3BDbDV
+7oFcesvODz1oCSZBO2mGVmsCHzx0Kfqktugxb7dSPjjcKrKZr/3fumYHIgncXAIF
+lGl6Kt/8Z5vyhDBvTPwfvgBwEhmJtdNiuhVzgA15ZFr5JvNRyR/JXo0WTBB15DFt
+k+riIwhRaADKwzi/IIugNisYengAptyTF+qwCEcvqHZDNvtkmNvTTLvatQxQVfOX
+pwBMFr1X3QcY/l5S+2GXuYYepDf8BXP61IiZKT47hrez2xScoatgO4YQ6qOVZgVJ
+meoz3jOK/w1lR4s6zCKZzQVLNVm4RQupPxeUrx0QisMkyHE6Bt7pHEQ1F1MGOcPV
+BAYOGS/5Tmgs/77hF6n2XHw0BMQIoVgmIh2VLBfWO7+DJxfV2wnFFamklaUrgHI+
+xSxaUfJfI2WqIgGzCVkNeGH3t5zsqf94M1rG8XzyG35Wnaze3Y8=
+=9C7B
 -----END PGP SIGNATURE-----
 
---SUcp5/vPb8ZOOFiR--
+--Cp+VOSm8VfVBUvcG--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
