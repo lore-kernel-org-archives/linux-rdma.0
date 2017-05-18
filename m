@@ -1,80 +1,38 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [infiniband-hw-i40iw] question about identical code for
- different branches
-Date: Thu, 18 May 2017 09:00:39 +0300
-Message-ID: <20170518060038.GB6326@yuval-lap>
-References: <20170517170654.Horde.cfktFjC4G4wPJvJ8X1ZyUvW@gator4166.hostgator.com>
+From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V2 for-next 14/15] RDMA/bnxt_re: Update the driver version
+Date: Thu, 18 May 2017 11:45:10 +0530
+Message-ID: <CA+sbYW3CuQXep-WSaJDf5P5UK2ghJXOsuBDSAS5BVA8rXQP_ZA@mail.gmail.com>
+References: <1495012791-5053-1-git-send-email-selvin.xavier@broadcom.com>
+ <1495012791-5053-15-git-send-email-selvin.xavier@broadcom.com> <406d0aab-2eb8-51bf-7082-f337e655c8f5@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170517170654.Horde.cfktFjC4G4wPJvJ8X1ZyUvW-fU+oOHjIBR1LoJgMfuPDHBfZZeVsHd8q@public.gmane.org>
+In-Reply-To: <406d0aab-2eb8-51bf-7082-f337e655c8f5-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gustavo A. R. Silva" <garsilva-L1vi/lXTdts+Va1GwOuvDg@public.gmane.org>
-Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 17, 2017 at 05:06:54PM -0500, Gustavo A. R. Silva wrote:
-> 
-> Hello everybody,
-> 
-> While looking into Coverity ID 1362263 I ran into the following piece of
-> code at drivers/infiniband/hw/i40iw/i40iw_virtchnl.c:445:
-> 
-> 445        if (vchnl_msg->iw_op_code == I40IW_VCHNL_OP_GET_VER) {
-> 446                if (vchnl_msg->iw_op_ver != I40IW_VCHNL_OP_GET_VER_V0)
-> 447                        vchnl_pf_send_get_ver_resp(dev, vf_id, vchnl_msg);
-> 448                else
-> 449                        vchnl_pf_send_get_ver_resp(dev, vf_id, vchnl_msg);
-> 450                return I40IW_SUCCESS;
-> 451        }
-> 
-> The issue is that lines of code 447 and 449 are identical for different
-> branches.
-> 
-> My question here is if one of the branches should be modified, or the entire
-> _if_ statement replaced?
-> 
-> Maybe a patch like the following could be applied:
-> 
-> index f4d1368..48fd327 100644
-> --- a/drivers/infiniband/hw/i40iw/i40iw_virtchnl.c
-> +++ b/drivers/infiniband/hw/i40iw/i40iw_virtchnl.c
-> @@ -443,10 +443,7 @@ enum i40iw_status_code i40iw_vchnl_recv_pf(struct
-> i40iw_sc_dev *dev,
->         if (!dev->vchnl_up)
->                 return I40IW_ERR_NOT_READY;
->         if (vchnl_msg->iw_op_code == I40IW_VCHNL_OP_GET_VER) {
-> -               if (vchnl_msg->iw_op_ver != I40IW_VCHNL_OP_GET_VER_V0)
-> -                       vchnl_pf_send_get_ver_resp(dev, vf_id, vchnl_msg);
-> -               else
-> -                       vchnl_pf_send_get_ver_resp(dev, vf_id, vchnl_msg);
-> +               vchnl_pf_send_get_ver_resp(dev, vf_id, vchnl_msg);
->                 return I40IW_SUCCESS;
->         }
->         for (iw_vf_idx = 0; iw_vf_idx < I40IW_MAX_PE_ENABLED_VF_COUNT;
-> iw_vf_idx++) {
-> 
-> What do you think?
+Hi Dennis,
 
-This looks like a nice catch!
+I will update the commit log in V3
 
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Thanks,
+Selvin Xavier
 
-> 
-> I'd really appreciate any comment on this.
-> 
-> Thank you!
-> --
-> Gustavo A. R. Silva
-> 
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Wed, May 17, 2017 at 5:54 PM, Dennis Dalessandro
+<dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> On 5/17/2017 5:19 AM, Selvin Xavier wrote:
+>>
+>> Update the driver version to the scheme used in the internal
+>> development branches.
+>
+>
+> I'm not opposed to the concept of a module version if you can make a valid
+> reason for it. This is not a valid one though.
+>
+> -Denny
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
