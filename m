@@ -1,43 +1,30 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [ANNOUNCE] OFED 4.8-rc3 release is available
-Date: Thu, 18 May 2017 21:01:57 +0300
-Message-ID: <591DE195.50009@dev.mellanox.co.il>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH net-next] net/mlx5e: Fix possible memory leak
+Date: Thu, 18 May 2017 15:19:09 -0400 (EDT)
+Message-ID: <20170518.151909.1042064929995125830.davem@davemloft.net>
+References: <20170518153441.24398-1-weiyj.lk@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170518153441.24398-1-weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
-OFED-4.8-rc3 is available at:
-https://openfabrics.org/downloads/OFED/ofed-4.8/OFED-4.8-rc3.tgz
+From: Wei Yongjun <weiyj.lk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date: Thu, 18 May 2017 15:34:41 +0000
 
-To get BUILD_ID run ofed_info
+> From: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> 
+> 'encap_header' is malloced and should be freed before leaving from
+> the error handling cases, otherwise it will cause memory leak.
+> 
+> Fixes: 232c001398ae ("net/mlx5e: Add support to neighbour update flow")
+> Signed-off-by: Wei Yongjun <weiyongjun1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 
-Please report any issues in bugzilla
-http://bugs.openfabrics.org/bugzilla/ for OFED 4.8
-
-Release notes:
-http://openfabrics.org/downloads/OFED/release_notes/OFED_4.8-rc3_release_notes
-
-OFED-4.8-rc3 Main Changes from OFED 4.8-rc2
--------------------------------------------------------------------------------
-1. compat-rdma:
-- iwpmd: Enable the port mapper service for iWarp providers.
-- compat-rdma: Add i40iw to openibd
-- Interop related fixes for iWarp drivers i40iw and nes
-- configure: Fix typo
-- compat: Cleanup auto-generated defines
-
-2. Updated packages:
-- libfabric-1.4.2
-- fabtests-1.4.2
-
-Regards,
-Vladimir
+Applied.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
