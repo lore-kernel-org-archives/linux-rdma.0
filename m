@@ -1,43 +1,50 @@
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] infiniband: hw: i40iw: fix duplicated code for different
- branches
-Date: Thu, 18 May 2017 13:11:17 -0500
-Message-ID: <20170518181117.GA14287@embeddedgus>
-References: <20170518125413.Horde.xnD_6K5mFzkhQLdyz7R3LXt@gator4166.hostgator.com>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: Re: iSER with policy based routing error
+Date: Thu, 18 May 2017 12:51:41 -0600
+Message-ID: <CAANLjFqNkNVDiGr-yW9y6XCiWE_O7+OewmxWM+xmWHQ39n4wkw@mail.gmail.com>
+References: <CAANLjFoB3V6_exH8TnQQobaHkz2K1Lxj0sVOVa2Q+MKAsCqCKQ@mail.gmail.com>
+ <CAJ3xEMiYwGDott_gLrh7e4tG9Ti71vftMPuvyT3+czu7jWwqFA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170518125413.Horde.xnD_6K5mFzkhQLdyz7R3LXt@gator4166.hostgator.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Faisal Latif <faisal.latif@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Yuval Shaia <yuval.shaia@oracle.com>, "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAJ3xEMiYwGDott_gLrh7e4tG9Ti71vftMPuvyT3+czu7jWwqFA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Refactor code to avoid identical code for different branches.
+On Sat, May 13, 2017 at 11:55 AM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> On Sat, May 13, 2017 at 12:02 AM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+> [...]
+>> If we put a default gateway for IPv6 in the 'default' table, then iSER
+>> is able to make a connection, but we can only use one port. It looks
+>> as if iSER is not following the rules in the default routing table to
+>> find the appropriate default gateway in a different table.
+>
+> can you just try to make rdma connection with the rping utility? do
+> you see the same problem/s?
 
-Addresses-Coverity-ID: 1357356
-Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
-Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
----
- drivers/infiniband/hw/i40iw/i40iw_virtchnl.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+Using mlx4 cards with IB/RoCE, I am seeing the same connection problem
+with rping. There seems to be a bug that prevents rping from working
+with RoCE on mlx5.
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_virtchnl.c b/drivers/infiniband/hw/i40iw/i40iw_virtchnl.c
-index f4d1368..48fd327 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_virtchnl.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_virtchnl.c
-@@ -443,10 +443,7 @@ enum i40iw_status_code i40iw_vchnl_recv_pf(struct i40iw_sc_dev *dev,
- 	if (!dev->vchnl_up)
- 		return I40IW_ERR_NOT_READY;
- 	if (vchnl_msg->iw_op_code == I40IW_VCHNL_OP_GET_VER) {
--		if (vchnl_msg->iw_op_ver != I40IW_VCHNL_OP_GET_VER_V0)
--			vchnl_pf_send_get_ver_resp(dev, vf_id, vchnl_msg);
--		else
--			vchnl_pf_send_get_ver_resp(dev, vf_id, vchnl_msg);
-+		vchnl_pf_send_get_ver_resp(dev, vf_id, vchnl_msg);
- 		return I40IW_SUCCESS;
- 	}
- 	for (iw_vf_idx = 0; iw_vf_idx < I40IW_MAX_PE_ENABLED_VF_COUNT; iw_vf_idx++) {
--- 
-2.5.0
+I also found a thread between you and Mike Christie
+https://groups.google.com/forum/#!topic/open-iscsi/IywifztV7Xs. It
+doesn't say that things were all worked out about binding to dev/ip
+address. Should iSER be able to bind to ip address (my preference), or
+by device name (workable) to provide multipathing? Should this binding
+be able to work with additional tables for finding the proper gateway?
+We are intending to route all RoCE traffic over L3 boundaries as it
+greatly simplifies the network configuration.
+
+Here is the test that I ran to show the problem (it is also in the
+"rdma_cm unable to find route on sub-table" thread):
+
+
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
