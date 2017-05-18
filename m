@@ -1,990 +1,457 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V2 for-next 02/15] RDMA/bnxt_re: HW workarounds for
- handling specific conditions
-Date: Thu, 18 May 2017 07:52:41 +0300
-Message-ID: <20170518045241.GX3616@mtr-leonro.local>
-References: <1495012791-5053-1-git-send-email-selvin.xavier@broadcom.com>
- <1495012791-5053-3-git-send-email-selvin.xavier@broadcom.com>
+Subject: Re: rdma_cm segfaults on RoCE with ConnectX-4 [WAS: Re: rping
+ segfault with 4.9.28 on CentOS 7.3]
+Date: Thu, 18 May 2017 08:07:45 +0300
+Message-ID: <20170518050745.GZ3616@mtr-leonro.local>
+References: <CAANLjFp3PWJBiVabMGksarwg9BTM7Cg4mPrBsXY+mYh_zBbsgA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="4KEJhRss/+5IzdUf"
+        protocol="application/pgp-signature"; boundary="07UuamFNDT4U/3KT"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1495012791-5053-3-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CAANLjFp3PWJBiVabMGksarwg9BTM7Cg4mPrBsXY+mYh_zBbsgA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---4KEJhRss/+5IzdUf
+--07UuamFNDT4U/3KT
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, May 17, 2017 at 02:19:38AM -0700, Selvin Xavier wrote:
-> From: Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+On Wed, May 17, 2017 at 12:14:18PM -0600, Robert LeBlanc wrote:
+> Since I have a connectX-3 card in this same box, I set it up as
+> Infiniband. I can run all the tests (udaddy, rping, ib_send_bw with -R
+> or -z) using the Infiniband link, but the RoCE ConnectX-4 LX segfault
+> on any rdma_cm communications.
 >
-> This patch implements the following HW workarounds
+> I put the ConnectX-3 into Ethernet mode and ran the tests again and it
+> passed all of them while the ConnectX-4 LX cards still failed. We have
+> some ConnectX-4 EN 100 Gb cards in other boxes that have the same
+> problem.
 >
-> 1. The SQ depth needs to be augmented  by 128 + 1 to avoid running
->    into an Out of order CQE issue
-> 2. Workaround to handle the problem where the HW fast path engine continues
->    to access DMA memory in retranmission mode even after the WQE has
->    already been completed. If the HW reports this condition, driver detects
->    it and posts a Fence WQE. The driver stops reporting the completions
->    to stack until it receives completion  for Fence WQE.
->
-> v1 -> v2 :
->     - Small Correction in the commit message
->     - Fixes q_full_delta for SQ by setting it to 128
+> It really looks like this problem is specific to ConnectX-4 (mlx5
+> driver) when running in RoCE. I _don't_ have ConnectX-4 IB cards to
+> test. We are also seeing the problem with the Mellanox drivers. I
+> can't find http://www.mellanox.com/page/custom_firmware_table to build
+> a new OEM firmware for my SuperMicro branded cards to test the latest
+> firmware.
 
-Please put changelog under ---- lines, below your signatures. There is
-no need to add changelog into git history.
+Robert,
 
->
-> Signed-off-by: Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/bnxt_re/ib_verbs.c  | 380 ++++++++++++++++++++++++++----
->  drivers/infiniband/hw/bnxt_re/ib_verbs.h  |  14 ++
->  drivers/infiniband/hw/bnxt_re/qplib_fp.c  | 165 +++++++++++--
->  drivers/infiniband/hw/bnxt_re/qplib_fp.h  |  17 +-
->  drivers/infiniband/hw/bnxt_re/qplib_res.h |   1 -
->  drivers/infiniband/hw/bnxt_re/qplib_sp.c  |   5 +
->  drivers/infiniband/hw/bnxt_re/qplib_sp.h  |   2 +
->  7 files changed, 514 insertions(+), 70 deletions(-)
->
-> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> index 33af2e3..347b1ce 100644
-> --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> @@ -61,6 +61,48 @@
->  #include "ib_verbs.h"
->  #include <rdma/bnxt_re-abi.h>
->
-> +static int __from_ib_access_flags(int iflags)
-> +{
-> +	int qflags = 0;
-> +
-> +	if (iflags & IB_ACCESS_LOCAL_WRITE)
-> +		qflags |= BNXT_QPLIB_ACCESS_LOCAL_WRITE;
-> +	if (iflags & IB_ACCESS_REMOTE_READ)
-> +		qflags |= BNXT_QPLIB_ACCESS_REMOTE_READ;
-> +	if (iflags & IB_ACCESS_REMOTE_WRITE)
-> +		qflags |= BNXT_QPLIB_ACCESS_REMOTE_WRITE;
-> +	if (iflags & IB_ACCESS_REMOTE_ATOMIC)
-> +		qflags |= BNXT_QPLIB_ACCESS_REMOTE_ATOMIC;
-> +	if (iflags & IB_ACCESS_MW_BIND)
-> +		qflags |= BNXT_QPLIB_ACCESS_MW_BIND;
-> +	if (iflags & IB_ZERO_BASED)
-> +		qflags |= BNXT_QPLIB_ACCESS_ZERO_BASED;
-> +	if (iflags & IB_ACCESS_ON_DEMAND)
-> +		qflags |= BNXT_QPLIB_ACCESS_ON_DEMAND;
-> +	return qflags;
-> +};
-> +
-> +static enum ib_access_flags __to_ib_access_flags(int qflags)
-> +{
-> +	enum ib_access_flags iflags = 0;
-> +
-> +	if (qflags & BNXT_QPLIB_ACCESS_LOCAL_WRITE)
-> +		iflags |= IB_ACCESS_LOCAL_WRITE;
-> +	if (qflags & BNXT_QPLIB_ACCESS_REMOTE_WRITE)
-> +		iflags |= IB_ACCESS_REMOTE_WRITE;
-> +	if (qflags & BNXT_QPLIB_ACCESS_REMOTE_READ)
-> +		iflags |= IB_ACCESS_REMOTE_READ;
-> +	if (qflags & BNXT_QPLIB_ACCESS_REMOTE_ATOMIC)
-> +		iflags |= IB_ACCESS_REMOTE_ATOMIC;
-> +	if (qflags & BNXT_QPLIB_ACCESS_MW_BIND)
-> +		iflags |= IB_ACCESS_MW_BIND;
-> +	if (qflags & BNXT_QPLIB_ACCESS_ZERO_BASED)
-> +		iflags |= IB_ZERO_BASED;
-> +	if (qflags & BNXT_QPLIB_ACCESS_ON_DEMAND)
-> +		iflags |= IB_ACCESS_ON_DEMAND;
-> +	return iflags;
-> +};
-> +
->  static int bnxt_re_build_sgl(struct ib_sge *ib_sg_list,
->  			     struct bnxt_qplib_sge *sg_list, int num)
->  {
-> @@ -410,6 +452,165 @@ enum rdma_link_layer bnxt_re_get_link_layer(struct ib_device *ibdev,
->  	return IB_LINK_LAYER_ETHERNET;
->  }
->
-> +#define BNXT_RE_FENCE_BYTES	64
-> +#define	BNXT_RE_FENCE_PBL_SIZE	DIV_ROUND_UP(BNXT_RE_FENCE_BYTES, PAGE_SIZE)
-> +
-> +static void bnxt_re_create_fence_wqe(struct bnxt_re_pd *pd)
-> +{
-> +	struct bnxt_re_fence_data *fence = &pd->fence;
-> +	struct ib_mr *ib_mr = &fence->mr->ib_mr;
-> +	struct bnxt_qplib_swqe *wqe = &fence->bind_wqe;
-> +
-> +	memset(wqe, 0, sizeof(*wqe));
-> +	wqe->type = BNXT_QPLIB_SWQE_TYPE_BIND_MW;
-> +	wqe->wr_id = BNXT_QPLIB_FENCE_WRID;
-> +	wqe->flags |= BNXT_QPLIB_SWQE_FLAGS_SIGNAL_COMP;
-> +	wqe->flags |= BNXT_QPLIB_SWQE_FLAGS_UC_FENCE;
-> +	wqe->bind.zero_based = false;
-> +	wqe->bind.parent_l_key = ib_mr->lkey;
-> +	wqe->bind.va = (u64)fence->va;
-> +	wqe->bind.length = fence->size;
-> +	wqe->bind.access_cntl = __from_ib_access_flags(IB_ACCESS_REMOTE_READ);
-> +	wqe->bind.mw_type = SQ_BIND_MW_TYPE_TYPE1;
-> +
-> +	/* Save the initial rkey in fence structure for now;
-> +	 * wqe->bind.r_key will be set at (re)bind time.
-> +	 */
-> +	fence->bind_rkey = ib_inc_rkey(fence->mw->rkey);
-> +}
-> +
-> +static int bnxt_re_bind_fence_mw(struct bnxt_qplib_qp *qplib_qp)
-> +{
-> +	struct bnxt_re_qp *qp = container_of(qplib_qp, struct bnxt_re_qp,
-> +					     qplib_qp);
-> +	struct ib_pd *ib_pd = qp->ib_qp.pd;
-> +	struct bnxt_re_pd *pd = container_of(ib_pd, struct bnxt_re_pd, ib_pd);
-> +	struct bnxt_re_fence_data *fence = &pd->fence;
-> +	struct bnxt_qplib_swqe *fence_wqe = &fence->bind_wqe;
-> +	struct bnxt_qplib_swqe wqe;
-> +	int rc;
-> +
-> +	/* TODO: Need SQ locking here when Fence WQE
-> +	 * posting moves up into bnxt_re from bnxt_qplib.
-> +	 */
-> +	memcpy(&wqe, fence_wqe, sizeof(wqe));
-> +	wqe.bind.r_key = fence->bind_rkey;
-> +	fence->bind_rkey = ib_inc_rkey(fence->bind_rkey);
-> +
-> +	dev_dbg(rdev_to_dev(qp->rdev),
-> +		"Posting bind fence-WQE: rkey: %#x QP: %d PD: %p\n",
-> +		wqe.bind.r_key, qp->qplib_qp.id, pd);
-> +	rc = bnxt_qplib_post_send(&qp->qplib_qp, &wqe);
-> +	if (rc) {
-> +		dev_err(rdev_to_dev(qp->rdev), "Failed to bind fence-WQE\n");
-> +		return rc;
-> +	}
-> +	bnxt_qplib_post_send_db(&qp->qplib_qp);
-> +
-> +	return rc;
-> +}
-> +
-> +static void bnxt_re_destroy_fence_mr(struct bnxt_re_pd *pd)
-> +{
-> +	struct bnxt_re_fence_data *fence = &pd->fence;
-> +	struct bnxt_re_dev *rdev = pd->rdev;
-> +	struct device *dev = &rdev->en_dev->pdev->dev;
-> +	struct bnxt_re_mr *mr = fence->mr;
-> +
-> +	if (fence->mw) {
-> +		bnxt_re_dealloc_mw(fence->mw);
-> +		fence->mw = NULL;
-> +	}
-> +	if (mr) {
-> +		if (mr->ib_mr.rkey)
-> +			bnxt_qplib_dereg_mrw(&rdev->qplib_res, &mr->qplib_mr,
-> +					     true);
-> +		if (mr->ib_mr.lkey)
-> +			bnxt_qplib_free_mrw(&rdev->qplib_res, &mr->qplib_mr);
-> +		kfree(mr);
-> +		fence->mr = NULL;
-> +	}
-> +	if (fence->dma_addr) {
-> +		dma_unmap_single(dev, fence->dma_addr, BNXT_RE_FENCE_BYTES,
-> +				 DMA_BIDIRECTIONAL);
-> +		fence->dma_addr = 0;
-> +	}
-> +	kfree(fence->va);
-> +	fence->va = NULL;
-> +}
-> +
-> +static int bnxt_re_create_fence_mr(struct bnxt_re_pd *pd)
-> +{
-> +	int mr_access_flags = IB_ACCESS_LOCAL_WRITE | IB_ACCESS_MW_BIND;
-> +	struct bnxt_re_fence_data *fence = &pd->fence;
-> +	struct bnxt_re_dev *rdev = pd->rdev;
-> +	struct device *dev = &rdev->en_dev->pdev->dev;
-> +	struct bnxt_re_mr *mr = NULL;
-> +	dma_addr_t dma_addr = 0;
-> +	struct ib_mw *mw;
-> +	void *va = NULL;
-> +	u64 pbl_tbl;
-> +	int rc;
-> +
-> +	/* Allocate a small chunk of memory and dma-map it */
-> +	fence->va = kzalloc(BNXT_RE_FENCE_BYTES, GFP_KERNEL);
+Please avoid top-posting, It is unreadable.
 
-You need to check allocation failure and I wonder if it is really worth
-to dynamically allocate 64 bytes which are hard coded.
+In regards to your issue, the best way to move forward is to open
+customer issue request and leverage established procedures to get
+proper and prompt customer channel support.
 
-> +	dma_addr = dma_map_single(dev, va, BNXT_RE_FENCE_BYTES,
-> +				  DMA_BIDIRECTIONAL);
-> +	rc = dma_mapping_error(dev, dma_addr);
-> +	if (rc) {
-> +		dev_err(rdev_to_dev(rdev), "Failed to dma-map fence-MR-mem\n");
-> +		rc = -EIO;
-> +		fence->dma_addr = 0;
-> +		goto fail;
-> +	}
-> +	fence->dma_addr = dma_addr;
-> +
-> +	/* Allocate a MR */
-> +	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
-> +	if (!mr)
-> +		return -ENOMEM;
+Thanks
 
-Need to destroy fence here.
-
-> +	fence->mr = mr;
-> +	mr->rdev = rdev;
-> +	mr->qplib_mr.pd = &pd->qplib_pd;
-> +	mr->qplib_mr.type = CMDQ_ALLOCATE_MRW_MRW_FLAGS_PMR;
-> +	mr->qplib_mr.flags = __from_ib_access_flags(mr_access_flags);
-> +	rc = bnxt_qplib_alloc_mrw(&rdev->qplib_res, &mr->qplib_mr);
-> +	if (rc) {
-> +		dev_err(rdev_to_dev(rdev), "Failed to alloc fence-HW-MR\n");
-> +		goto fail;
-> +	}
-> +
-> +	/* Register MR */
-> +	mr->ib_mr.lkey = mr->qplib_mr.lkey;
-> +	mr->qplib_mr.va         = (u64)va;
-> +	mr->qplib_mr.total_size = BNXT_RE_FENCE_BYTES;
-> +	pbl_tbl = dma_addr;
-> +	rc = bnxt_qplib_reg_mr(&rdev->qplib_res, &mr->qplib_mr, &pbl_tbl,
-> +			       BNXT_RE_FENCE_PBL_SIZE, false);
-> +	if (rc) {
-> +		dev_err(rdev_to_dev(rdev), "Failed to register fence-MR\n");
-> +		goto fail;
-> +	}
-> +	mr->ib_mr.rkey = mr->qplib_mr.rkey;
-> +
-> +	/* Create a fence MW only for kernel consumers */
-> +	mw = bnxt_re_alloc_mw(&pd->ib_pd, IB_MW_TYPE_1, NULL);
-> +	if (!mw) {
-> +		dev_err(rdev_to_dev(rdev),
-> +			"Failed to create fence-MW for PD: %p\n", pd);
-> +		rc = -EINVAL;
-> +		goto fail;
-> +	}
-> +	fence->mw = mw;
-> +
-> +	bnxt_re_create_fence_wqe(pd);
-> +	return 0;
-> +
-> +fail:
-> +	bnxt_re_destroy_fence_mr(pd);
-> +	return rc;
-> +}
-> +
->  /* Protection Domains */
->  int bnxt_re_dealloc_pd(struct ib_pd *ib_pd)
->  {
-> @@ -417,6 +618,7 @@ int bnxt_re_dealloc_pd(struct ib_pd *ib_pd)
->  	struct bnxt_re_dev *rdev = pd->rdev;
->  	int rc;
+> ----------------
+> Robert LeBlanc
+> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 >
-> +	bnxt_re_destroy_fence_mr(pd);
->  	if (ib_pd->uobject && pd->dpi.dbr) {
->  		struct ib_ucontext *ib_uctx = ib_pd->uobject->context;
->  		struct bnxt_re_ucontext *ucntx;
-> @@ -498,6 +700,10 @@ struct ib_pd *bnxt_re_alloc_pd(struct ib_device *ibdev,
->  		}
->  	}
 >
-> +	if (!udata)
-> +		if (bnxt_re_create_fence_mr(pd))
-> +			dev_warn(rdev_to_dev(rdev),
-> +				 "Failed to create Fence-MR\n");
->  	return &pd->ib_pd;
->  dbfail:
->  	(void)bnxt_qplib_dealloc_pd(&rdev->qplib_res, &rdev->qplib_res.pd_tbl,
-> @@ -848,12 +1054,16 @@ static struct bnxt_re_qp *bnxt_re_create_shadow_qp
->  	/* Shadow QP SQ depth should be same as QP1 RQ depth */
->  	qp->qplib_qp.sq.max_wqe = qp1_qp->rq.max_wqe;
->  	qp->qplib_qp.sq.max_sge = 2;
-> +	/* Q full delta can be 1 since it is internal QP */
-> +	qp->qplib_qp.sq.q_full_delta = 1;
->
->  	qp->qplib_qp.scq = qp1_qp->scq;
->  	qp->qplib_qp.rcq = qp1_qp->rcq;
->
->  	qp->qplib_qp.rq.max_wqe = qp1_qp->rq.max_wqe;
->  	qp->qplib_qp.rq.max_sge = qp1_qp->rq.max_sge;
-> +	/* Q full delta can be 1 since it is internal QP */
-> +	qp->qplib_qp.rq.q_full_delta = 1;
->
->  	qp->qplib_qp.mtu = qp1_qp->mtu;
->
-> @@ -916,10 +1126,6 @@ struct ib_qp *bnxt_re_create_qp(struct ib_pd *ib_pd,
->  	qp->qplib_qp.sig_type = ((qp_init_attr->sq_sig_type ==
->  				  IB_SIGNAL_ALL_WR) ? true : false);
->
-> -	entries = roundup_pow_of_two(qp_init_attr->cap.max_send_wr + 1);
-> -	qp->qplib_qp.sq.max_wqe = min_t(u32, entries,
-> -					dev_attr->max_qp_wqes + 1);
-> -
->  	qp->qplib_qp.sq.max_sge = qp_init_attr->cap.max_send_sge;
->  	if (qp->qplib_qp.sq.max_sge > dev_attr->max_qp_sges)
->  		qp->qplib_qp.sq.max_sge = dev_attr->max_qp_sges;
-> @@ -958,6 +1164,9 @@ struct ib_qp *bnxt_re_create_qp(struct ib_pd *ib_pd,
->  		qp->qplib_qp.rq.max_wqe = min_t(u32, entries,
->  						dev_attr->max_qp_wqes + 1);
->
-> +		qp->qplib_qp.rq.q_full_delta = qp->qplib_qp.rq.max_wqe -
-> +						qp_init_attr->cap.max_recv_wr;
-> +
->  		qp->qplib_qp.rq.max_sge = qp_init_attr->cap.max_recv_sge;
->  		if (qp->qplib_qp.rq.max_sge > dev_attr->max_qp_sges)
->  			qp->qplib_qp.rq.max_sge = dev_attr->max_qp_sges;
-> @@ -966,6 +1175,12 @@ struct ib_qp *bnxt_re_create_qp(struct ib_pd *ib_pd,
->  	qp->qplib_qp.mtu = ib_mtu_enum_to_int(iboe_get_mtu(rdev->netdev->mtu));
->
->  	if (qp_init_attr->qp_type == IB_QPT_GSI) {
-> +		/* Allocate 1 more than what's provided */
-> +		entries = roundup_pow_of_two(qp_init_attr->cap.max_send_wr + 1);
-> +		qp->qplib_qp.sq.max_wqe = min_t(u32, entries,
-> +						dev_attr->max_qp_wqes + 1);
-> +		qp->qplib_qp.sq.q_full_delta = qp->qplib_qp.sq.max_wqe -
-> +						qp_init_attr->cap.max_send_wr;
->  		qp->qplib_qp.rq.max_sge = dev_attr->max_qp_sges;
->  		if (qp->qplib_qp.rq.max_sge > dev_attr->max_qp_sges)
->  			qp->qplib_qp.rq.max_sge = dev_attr->max_qp_sges;
-> @@ -1005,6 +1220,22 @@ struct ib_qp *bnxt_re_create_qp(struct ib_pd *ib_pd,
->  		}
->
->  	} else {
-> +		/* Allocate 128 + 1 more than what's provided */
-> +		entries = roundup_pow_of_two(qp_init_attr->cap.max_send_wr +
-> +					     BNXT_QPLIB_RESERVED_QP_WRS + 1);
-> +		qp->qplib_qp.sq.max_wqe = min_t(u32, entries,
-> +						dev_attr->max_qp_wqes +
-> +						BNXT_QPLIB_RESERVED_QP_WRS + 1);
-> +		qp->qplib_qp.sq.q_full_delta = BNXT_QPLIB_RESERVED_QP_WRS + 1;
-> +
-> +		/*
-> +		 * Reserving one slot for Phantom WQE. Application can
-> +		 * post one extra entry in this case. But allowing this to avoid
-> +		 * unexpected Queue full condition
-> +		 */
-> +
-> +		qp->qplib_qp.sq.q_full_delta -= 1;
-> +
->  		qp->qplib_qp.max_rd_atomic = dev_attr->max_qp_rd_atom;
->  		qp->qplib_qp.max_dest_rd_atomic = dev_attr->max_qp_init_rd_atom;
->  		if (udata) {
-> @@ -1128,48 +1359,6 @@ static enum ib_mtu __to_ib_mtu(u32 mtu)
->  	}
->  }
->
-> -static int __from_ib_access_flags(int iflags)
-> -{
-> -	int qflags = 0;
-> -
-> -	if (iflags & IB_ACCESS_LOCAL_WRITE)
-> -		qflags |= BNXT_QPLIB_ACCESS_LOCAL_WRITE;
-> -	if (iflags & IB_ACCESS_REMOTE_READ)
-> -		qflags |= BNXT_QPLIB_ACCESS_REMOTE_READ;
-> -	if (iflags & IB_ACCESS_REMOTE_WRITE)
-> -		qflags |= BNXT_QPLIB_ACCESS_REMOTE_WRITE;
-> -	if (iflags & IB_ACCESS_REMOTE_ATOMIC)
-> -		qflags |= BNXT_QPLIB_ACCESS_REMOTE_ATOMIC;
-> -	if (iflags & IB_ACCESS_MW_BIND)
-> -		qflags |= BNXT_QPLIB_ACCESS_MW_BIND;
-> -	if (iflags & IB_ZERO_BASED)
-> -		qflags |= BNXT_QPLIB_ACCESS_ZERO_BASED;
-> -	if (iflags & IB_ACCESS_ON_DEMAND)
-> -		qflags |= BNXT_QPLIB_ACCESS_ON_DEMAND;
-> -	return qflags;
-> -};
-> -
-> -static enum ib_access_flags __to_ib_access_flags(int qflags)
-> -{
-> -	enum ib_access_flags iflags = 0;
-> -
-> -	if (qflags & BNXT_QPLIB_ACCESS_LOCAL_WRITE)
-> -		iflags |= IB_ACCESS_LOCAL_WRITE;
-> -	if (qflags & BNXT_QPLIB_ACCESS_REMOTE_WRITE)
-> -		iflags |= IB_ACCESS_REMOTE_WRITE;
-> -	if (qflags & BNXT_QPLIB_ACCESS_REMOTE_READ)
-> -		iflags |= IB_ACCESS_REMOTE_READ;
-> -	if (qflags & BNXT_QPLIB_ACCESS_REMOTE_ATOMIC)
-> -		iflags |= IB_ACCESS_REMOTE_ATOMIC;
-> -	if (qflags & BNXT_QPLIB_ACCESS_MW_BIND)
-> -		iflags |= IB_ACCESS_MW_BIND;
-> -	if (qflags & BNXT_QPLIB_ACCESS_ZERO_BASED)
-> -		iflags |= IB_ZERO_BASED;
-> -	if (qflags & BNXT_QPLIB_ACCESS_ON_DEMAND)
-> -		iflags |= IB_ACCESS_ON_DEMAND;
-> -	return iflags;
-> -};
-> -
->  static int bnxt_re_modify_shadow_qp(struct bnxt_re_dev *rdev,
->  				    struct bnxt_re_qp *qp1_qp,
->  				    int qp_attr_mask)
-> @@ -1376,11 +1565,21 @@ int bnxt_re_modify_qp(struct ib_qp *ib_qp, struct ib_qp_attr *qp_attr,
->  		entries = roundup_pow_of_two(qp_attr->cap.max_send_wr);
->  		qp->qplib_qp.sq.max_wqe = min_t(u32, entries,
->  						dev_attr->max_qp_wqes + 1);
-> +		qp->qplib_qp.sq.q_full_delta = qp->qplib_qp.sq.max_wqe -
-> +						qp_attr->cap.max_send_wr;
-> +		/*
-> +		 * Reserving one slot for Phantom WQE. Some application can
-> +		 * post one extra entry in this case. Allowing this to avoid
-> +		 * unexpected Queue full condition
-> +		 */
-> +		qp->qplib_qp.sq.q_full_delta -= 1;
->  		qp->qplib_qp.sq.max_sge = qp_attr->cap.max_send_sge;
->  		if (qp->qplib_qp.rq.max_wqe) {
->  			entries = roundup_pow_of_two(qp_attr->cap.max_recv_wr);
->  			qp->qplib_qp.rq.max_wqe =
->  				min_t(u32, entries, dev_attr->max_qp_wqes + 1);
-> +			qp->qplib_qp.rq.q_full_delta = qp->qplib_qp.rq.max_wqe -
-> +						       qp_attr->cap.max_recv_wr;
->  			qp->qplib_qp.rq.max_sge = qp_attr->cap.max_recv_sge;
->  		} else {
->  			/* SRQ was used prior, just ignore the RQ caps */
-> @@ -2641,12 +2840,36 @@ static void bnxt_re_process_res_ud_wc(struct ib_wc *wc,
->  		wc->opcode = IB_WC_RECV_RDMA_WITH_IMM;
->  }
->
-> +static int send_phantom_wqe(struct bnxt_re_qp *qp)
-> +{
-> +	struct bnxt_qplib_qp *lib_qp = &qp->qplib_qp;
-> +	unsigned long flags;
-> +	int rc = 0;
-> +
-> +	spin_lock_irqsave(&qp->sq_lock, flags);
-> +
-> +	rc = bnxt_re_bind_fence_mw(lib_qp);
-> +	if (!rc) {
-> +		lib_qp->sq.phantom_wqe_cnt++;
-> +		dev_dbg(&lib_qp->sq.hwq.pdev->dev,
-> +			"qp %#x sq->prod %#x sw_prod %#x phantom_wqe_cnt %d\n",
-> +			lib_qp->id, lib_qp->sq.hwq.prod,
-> +			HWQ_CMP(lib_qp->sq.hwq.prod, &lib_qp->sq.hwq),
-> +			lib_qp->sq.phantom_wqe_cnt);
-> +	}
-> +
-> +	spin_unlock_irqrestore(&qp->sq_lock, flags);
-> +	return rc;
-> +}
-> +
->  int bnxt_re_poll_cq(struct ib_cq *ib_cq, int num_entries, struct ib_wc *wc)
->  {
->  	struct bnxt_re_cq *cq = container_of(ib_cq, struct bnxt_re_cq, ib_cq);
->  	struct bnxt_re_qp *qp;
->  	struct bnxt_qplib_cqe *cqe;
->  	int i, ncqe, budget;
-> +	struct bnxt_qplib_q *sq;
-> +	struct bnxt_qplib_qp *lib_qp;
->  	u32 tbl_idx;
->  	struct bnxt_re_sqp_entries *sqp_entry = NULL;
->  	unsigned long flags;
-> @@ -2659,7 +2882,21 @@ int bnxt_re_poll_cq(struct ib_cq *ib_cq, int num_entries, struct ib_wc *wc)
->  	}
->  	cqe = &cq->cql[0];
->  	while (budget) {
-> -		ncqe = bnxt_qplib_poll_cq(&cq->qplib_cq, cqe, budget);
-> +		lib_qp = NULL;
-> +		ncqe = bnxt_qplib_poll_cq(&cq->qplib_cq, cqe, budget, &lib_qp);
-> +		if (lib_qp) {
-> +			sq = &lib_qp->sq;
-> +			if (sq->send_phantom) {
-> +				qp = container_of(lib_qp,
-> +						  struct bnxt_re_qp, qplib_qp);
-> +				if (send_phantom_wqe(qp) == -ENOMEM)
-> +					dev_err(rdev_to_dev(cq->rdev),
-> +						"Phantom failed! Scheduled to send again\n");
-> +				else
-> +					sq->send_phantom = false;
-> +			}
-> +		}
-> +
->  		if (!ncqe)
->  			break;
->
-> @@ -2912,6 +3149,55 @@ struct ib_mr *bnxt_re_alloc_mr(struct ib_pd *ib_pd, enum ib_mr_type type,
->  	return ERR_PTR(rc);
->  }
->
-> +struct ib_mw *bnxt_re_alloc_mw(struct ib_pd *ib_pd, enum ib_mw_type type,
-> +			       struct ib_udata *udata)
-> +{
-> +	struct bnxt_re_pd *pd = container_of(ib_pd, struct bnxt_re_pd, ib_pd);
-> +	struct bnxt_re_dev *rdev = pd->rdev;
-> +	struct bnxt_re_mw *mw;
-> +	int rc;
-> +
-> +	mw = kzalloc(sizeof(*mw), GFP_KERNEL);
-> +	if (!mw)
-> +		return ERR_PTR(-ENOMEM);
-> +	mw->rdev = rdev;
-> +	mw->qplib_mw.pd = &pd->qplib_pd;
-> +
-> +	mw->qplib_mw.type = (type == IB_MW_TYPE_1 ?
-> +			       CMDQ_ALLOCATE_MRW_MRW_FLAGS_MW_TYPE1 :
-> +			       CMDQ_ALLOCATE_MRW_MRW_FLAGS_MW_TYPE2B);
-> +	rc = bnxt_qplib_alloc_mrw(&rdev->qplib_res, &mw->qplib_mw);
-> +	if (rc) {
-> +		dev_err(rdev_to_dev(rdev), "Allocate MW failed!");
-> +		goto fail;
-> +	}
-> +	mw->ib_mw.rkey = mw->qplib_mw.rkey;
-> +
-> +	atomic_inc(&rdev->mw_count);
-> +	return &mw->ib_mw;
-> +
-> +fail:
-> +	kfree(mw);
-> +	return ERR_PTR(rc);
-> +}
-> +
-> +int bnxt_re_dealloc_mw(struct ib_mw *ib_mw)
-> +{
-> +	struct bnxt_re_mw *mw = container_of(ib_mw, struct bnxt_re_mw, ib_mw);
-> +	struct bnxt_re_dev *rdev = mw->rdev;
-> +	int rc;
-> +
-> +	rc = bnxt_qplib_free_mrw(&rdev->qplib_res, &mw->qplib_mw);
-> +	if (rc) {
-> +		dev_err(rdev_to_dev(rdev), "Free MW failed: %#x\n", rc);
-> +		return rc;
-> +	}
-> +
-> +	kfree(mw);
-> +	atomic_dec(&rdev->mw_count);
-> +	return rc;
-> +}
-> +
->  /* Fast Memory Regions */
->  struct ib_fmr *bnxt_re_alloc_fmr(struct ib_pd *ib_pd, int mr_access_flags,
->  				 struct ib_fmr_attr *fmr_attr)
-> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.h b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-> index b4084c2..7135c78 100644
-> --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-> @@ -44,11 +44,22 @@ struct bnxt_re_gid_ctx {
->  	u32			refcnt;
->  };
->
-> +struct bnxt_re_fence_data {
-> +	u32 size;
-> +	void *va;
-> +	dma_addr_t dma_addr;
-> +	struct bnxt_re_mr *mr;
-> +	struct ib_mw *mw;
-> +	struct bnxt_qplib_swqe bind_wqe;
-> +	u32 bind_rkey;
-> +};
-> +
->  struct bnxt_re_pd {
->  	struct bnxt_re_dev	*rdev;
->  	struct ib_pd		ib_pd;
->  	struct bnxt_qplib_pd	qplib_pd;
->  	struct bnxt_qplib_dpi	dpi;
-> +	struct bnxt_re_fence_data fence;
->  };
->
->  struct bnxt_re_ah {
-> @@ -181,6 +192,9 @@ int bnxt_re_map_mr_sg(struct ib_mr *ib_mr, struct scatterlist *sg, int sg_nents,
->  struct ib_mr *bnxt_re_alloc_mr(struct ib_pd *ib_pd, enum ib_mr_type mr_type,
->  			       u32 max_num_sg);
->  int bnxt_re_dereg_mr(struct ib_mr *mr);
-> +struct ib_mw *bnxt_re_alloc_mw(struct ib_pd *ib_pd, enum ib_mw_type type,
-> +			       struct ib_udata *udata);
-> +int bnxt_re_dealloc_mw(struct ib_mw *mw);
->  struct ib_fmr *bnxt_re_alloc_fmr(struct ib_pd *pd, int mr_access_flags,
->  				 struct ib_fmr_attr *fmr_attr);
->  int bnxt_re_map_phys_fmr(struct ib_fmr *fmr, u64 *page_list, int list_len,
-> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-> index ea9ce4f..66abec0 100644
-> --- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-> +++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-> @@ -1083,8 +1083,12 @@ int bnxt_qplib_post_send(struct bnxt_qplib_qp *qp,
->  		rc = -EINVAL;
->  		goto done;
->  	}
-> -	if (HWQ_CMP((sq->hwq.prod + 1), &sq->hwq) ==
-> -	    HWQ_CMP(sq->hwq.cons, &sq->hwq)) {
-> +
-> +	if (bnxt_qplib_queue_full(sq)) {
-> +		dev_err(&sq->hwq.pdev->dev,
-> +			"QPLIB: prod = %#x cons = %#x qdepth = %#x delta = %#x",
-> +			sq->hwq.prod, sq->hwq.cons, sq->hwq.max_elements,
-> +			sq->q_full_delta);
->  		rc = -ENOMEM;
->  		goto done;
->  	}
-> @@ -1332,8 +1336,7 @@ int bnxt_qplib_post_recv(struct bnxt_qplib_qp *qp,
->  		rc = -EINVAL;
->  		goto done;
->  	}
-> -	if (HWQ_CMP((rq->hwq.prod + 1), &rq->hwq) ==
-> -	    HWQ_CMP(rq->hwq.cons, &rq->hwq)) {
-> +	if (bnxt_qplib_queue_full(rq)) {
->  		dev_err(&rq->hwq.pdev->dev,
->  			"QPLIB: FP: QP (0x%x) RQ is full!", qp->id);
->  		rc = -EINVAL;
-> @@ -1551,14 +1554,112 @@ static int __flush_rq(struct bnxt_qplib_q *rq, struct bnxt_qplib_qp *qp,
->  	return rc;
->  }
->
-> +/* Note: SQE is valid from sw_sq_cons up to cqe_sq_cons (exclusive)
-> + *       CQE is track from sw_cq_cons to max_element but valid only if VALID=1
-> + */
-> +static int do_wa9060(struct bnxt_qplib_qp *qp, struct bnxt_qplib_cq *cq,
-> +		     u32 cq_cons, u32 sw_sq_cons, u32 cqe_sq_cons)
-> +{
-> +	struct bnxt_qplib_q *sq = &qp->sq;
-> +	struct bnxt_qplib_swq *swq;
-> +	u32 peek_sw_cq_cons, peek_raw_cq_cons, peek_sq_cons_idx;
-> +	struct cq_base *peek_hwcqe, **peek_hw_cqe_ptr;
-> +	struct cq_req *peek_req_hwcqe;
-> +	struct bnxt_qplib_qp *peek_qp;
-> +	struct bnxt_qplib_q *peek_sq;
-> +	int i, rc = 0;
-> +
-> +	/* Normal mode */
-> +	/* Check for the psn_search marking before completing */
-> +	swq = &sq->swq[sw_sq_cons];
-> +	if (swq->psn_search &&
-> +	    le32_to_cpu(swq->psn_search->flags_next_psn) & 0x80000000) {
-> +		/* Unmark */
-> +		swq->psn_search->flags_next_psn = cpu_to_le32
-> +			(le32_to_cpu(swq->psn_search->flags_next_psn)
-> +				     & ~0x80000000);
-> +		dev_dbg(&cq->hwq.pdev->dev,
-> +			"FP: Process Req cq_cons=0x%x qp=0x%x sq cons sw=0x%x cqe=0x%x marked!\n",
-> +			cq_cons, qp->id, sw_sq_cons, cqe_sq_cons);
-> +		sq->condition = true;
-> +		sq->send_phantom = true;
-> +
-> +		/* TODO: Only ARM if the previous SQE is ARMALL */
-> +		bnxt_qplib_arm_cq(cq, DBR_DBR_TYPE_CQ_ARMALL);
-> +
-> +		rc = -EAGAIN;
-> +		goto out;
-> +	}
-> +	if (sq->condition) {
-> +		/* Peek at the completions */
-> +		peek_raw_cq_cons = cq->hwq.cons;
-> +		peek_sw_cq_cons = cq_cons;
-> +		i = cq->hwq.max_elements;
-> +		while (i--) {
-> +			peek_sw_cq_cons = HWQ_CMP((peek_sw_cq_cons), &cq->hwq);
-> +			peek_hw_cqe_ptr = (struct cq_base **)cq->hwq.pbl_ptr;
-> +			peek_hwcqe = &peek_hw_cqe_ptr[CQE_PG(peek_sw_cq_cons)]
-> +						     [CQE_IDX(peek_sw_cq_cons)];
-> +			/* If the next hwcqe is VALID */
-> +			if (CQE_CMP_VALID(peek_hwcqe, peek_raw_cq_cons,
-> +					  cq->hwq.max_elements)) {
-> +				/* If the next hwcqe is a REQ */
-> +				if ((peek_hwcqe->cqe_type_toggle &
-> +				    CQ_BASE_CQE_TYPE_MASK) ==
-> +				    CQ_BASE_CQE_TYPE_REQ) {
-> +					peek_req_hwcqe = (struct cq_req *)
-> +							 peek_hwcqe;
-> +					peek_qp = (struct bnxt_qplib_qp *)
-> +						le64_to_cpu(
-> +						peek_req_hwcqe->qp_handle);
-> +					peek_sq = &peek_qp->sq;
-> +					peek_sq_cons_idx = HWQ_CMP(le16_to_cpu(
-> +						peek_req_hwcqe->sq_cons_idx) - 1
-> +						, &sq->hwq);
-> +					/* If the hwcqe's sq's wr_id matches */
-> +					if (peek_sq == sq &&
-> +					    sq->swq[peek_sq_cons_idx].wr_id ==
-> +					    BNXT_QPLIB_FENCE_WRID) {
-> +						/*
-> +						 *  Unbreak only if the phantom
-> +						 *  comes back
-> +						 */
-> +						dev_dbg(&cq->hwq.pdev->dev,
-> +							"FP:Got Phantom CQE");
-> +						sq->condition = false;
-> +						sq->single = true;
-> +						rc = 0;
-> +						goto out;
-> +					}
-> +				}
-> +				/* Valid but not the phantom, so keep looping */
-> +			} else {
-> +				/* Not valid yet, just exit and wait */
-> +				rc = -EINVAL;
-> +				goto out;
-> +			}
-> +			peek_sw_cq_cons++;
-> +			peek_raw_cq_cons++;
-> +		}
-> +		dev_err(&cq->hwq.pdev->dev,
-> +			"Should not have come here! cq_cons=0x%x qp=0x%x sq cons sw=0x%x hw=0x%x",
-> +			cq_cons, qp->id, sw_sq_cons, cqe_sq_cons);
-> +		rc = -EINVAL;
-> +	}
-> +out:
-> +	return rc;
-> +}
-> +
->  static int bnxt_qplib_cq_process_req(struct bnxt_qplib_cq *cq,
->  				     struct cq_req *hwcqe,
-> -				     struct bnxt_qplib_cqe **pcqe, int *budget)
-> +				     struct bnxt_qplib_cqe **pcqe, int *budget,
-> +				     u32 cq_cons, struct bnxt_qplib_qp **lib_qp)
->  {
->  	struct bnxt_qplib_qp *qp;
->  	struct bnxt_qplib_q *sq;
->  	struct bnxt_qplib_cqe *cqe;
-> -	u32 sw_cons, cqe_cons;
-> +	u32 sw_sq_cons, cqe_sq_cons;
-> +	struct bnxt_qplib_swq *swq;
->  	int rc = 0;
->
->  	qp = (struct bnxt_qplib_qp *)((unsigned long)
-> @@ -1570,13 +1671,13 @@ static int bnxt_qplib_cq_process_req(struct bnxt_qplib_cq *cq,
->  	}
->  	sq = &qp->sq;
->
-> -	cqe_cons = HWQ_CMP(le16_to_cpu(hwcqe->sq_cons_idx), &sq->hwq);
-> -	if (cqe_cons > sq->hwq.max_elements) {
-> +	cqe_sq_cons = HWQ_CMP(le16_to_cpu(hwcqe->sq_cons_idx), &sq->hwq);
-> +	if (cqe_sq_cons > sq->hwq.max_elements) {
->  		dev_err(&cq->hwq.pdev->dev,
->  			"QPLIB: FP: CQ Process req reported ");
->  		dev_err(&cq->hwq.pdev->dev,
->  			"QPLIB: sq_cons_idx 0x%x which exceeded max 0x%x",
-> -			cqe_cons, sq->hwq.max_elements);
-> +			cqe_sq_cons, sq->hwq.max_elements);
->  		return -EINVAL;
->  	}
->  	/* If we were in the middle of flushing the SQ, continue */
-> @@ -1585,53 +1686,74 @@ static int bnxt_qplib_cq_process_req(struct bnxt_qplib_cq *cq,
->
->  	/* Require to walk the sq's swq to fabricate CQEs for all previously
->  	 * signaled SWQEs due to CQE aggregation from the current sq cons
-> -	 * to the cqe_cons
-> +	 * to the cqe_sq_cons
->  	 */
->  	cqe = *pcqe;
->  	while (*budget) {
-> -		sw_cons = HWQ_CMP(sq->hwq.cons, &sq->hwq);
-> -		if (sw_cons == cqe_cons)
-> +		sw_sq_cons = HWQ_CMP(sq->hwq.cons, &sq->hwq);
-> +		if (sw_sq_cons == cqe_sq_cons)
-> +			/* Done */
->  			break;
-> +
-> +		swq = &sq->swq[sw_sq_cons];
->  		memset(cqe, 0, sizeof(*cqe));
->  		cqe->opcode = CQ_BASE_CQE_TYPE_REQ;
->  		cqe->qp_handle = (u64)(unsigned long)qp;
->  		cqe->src_qp = qp->id;
-> -		cqe->wr_id = sq->swq[sw_cons].wr_id;
-> -		cqe->type = sq->swq[sw_cons].type;
-> +		cqe->wr_id = swq->wr_id;
-> +		if (cqe->wr_id == BNXT_QPLIB_FENCE_WRID)
-> +			goto skip;
-> +		cqe->type = swq->type;
->
->  		/* For the last CQE, check for status.  For errors, regardless
->  		 * of the request being signaled or not, it must complete with
->  		 * the hwcqe error status
->  		 */
-> -		if (HWQ_CMP((sw_cons + 1), &sq->hwq) == cqe_cons &&
-> +		if (HWQ_CMP((sw_sq_cons + 1), &sq->hwq) == cqe_sq_cons &&
->  		    hwcqe->status != CQ_REQ_STATUS_OK) {
->  			cqe->status = hwcqe->status;
->  			dev_err(&cq->hwq.pdev->dev,
->  				"QPLIB: FP: CQ Processed Req ");
->  			dev_err(&cq->hwq.pdev->dev,
->  				"QPLIB: wr_id[%d] = 0x%llx with status 0x%x",
-> -				sw_cons, cqe->wr_id, cqe->status);
-> +				sw_sq_cons, cqe->wr_id, cqe->status);
->  			cqe++;
->  			(*budget)--;
->  			sq->flush_in_progress = true;
->  			/* Must block new posting of SQ and RQ */
->  			qp->state = CMDQ_MODIFY_QP_NEW_STATE_ERR;
-> +			sq->condition = false;
-> +			sq->single = false;
->  		} else {
-> -			if (sq->swq[sw_cons].flags &
-> -			    SQ_SEND_FLAGS_SIGNAL_COMP) {
-> +			if (swq->flags & SQ_SEND_FLAGS_SIGNAL_COMP) {
-> +				/* Before we complete, do WA 9060 */
-> +				if (do_wa9060(qp, cq, cq_cons, sw_sq_cons,
-> +					      cqe_sq_cons)) {
-> +					*lib_qp = qp;
-> +					goto out;
-> +				}
->  				cqe->status = CQ_REQ_STATUS_OK;
->  				cqe++;
->  				(*budget)--;
->  			}
->  		}
-> +skip:
->  		sq->hwq.cons++;
-> +		if (sq->single)
-> +			break;
->  	}
-> +out:
->  	*pcqe = cqe;
-> -	if (!*budget && HWQ_CMP(sq->hwq.cons, &sq->hwq) != cqe_cons) {
-> +	if (HWQ_CMP(sq->hwq.cons, &sq->hwq) != cqe_sq_cons) {
->  		/* Out of budget */
->  		rc = -EAGAIN;
->  		goto done;
->  	}
-> +	/*
-> +	 * Back to normal completion mode only after it has completed all of
-> +	 * the WC for this CQE
-> +	 */
-> +	sq->single = false;
->  	if (!sq->flush_in_progress)
->  		goto done;
->  flush:
-> @@ -1961,7 +2083,7 @@ static int bnxt_qplib_cq_process_cutoff(struct bnxt_qplib_cq *cq,
->  }
->
->  int bnxt_qplib_poll_cq(struct bnxt_qplib_cq *cq, struct bnxt_qplib_cqe *cqe,
-> -		       int num_cqes)
-> +		       int num_cqes, struct bnxt_qplib_qp **lib_qp)
->  {
->  	struct cq_base *hw_cqe, **hw_cqe_ptr;
->  	unsigned long flags;
-> @@ -1986,7 +2108,8 @@ int bnxt_qplib_poll_cq(struct bnxt_qplib_cq *cq, struct bnxt_qplib_cqe *cqe,
->  		case CQ_BASE_CQE_TYPE_REQ:
->  			rc = bnxt_qplib_cq_process_req(cq,
->  						       (struct cq_req *)hw_cqe,
-> -						       &cqe, &budget);
-> +						       &cqe, &budget,
-> +						       sw_cons, lib_qp);
->  			break;
->  		case CQ_BASE_CQE_TYPE_RES_RC:
->  			rc = bnxt_qplib_cq_process_res_rc(cq,
-> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.h b/drivers/infiniband/hw/bnxt_re/qplib_fp.h
-> index f0150f8..71539ea 100644
-> --- a/drivers/infiniband/hw/bnxt_re/qplib_fp.h
-> +++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.h
-> @@ -88,6 +88,7 @@ struct bnxt_qplib_swq {
->
->  struct bnxt_qplib_swqe {
->  	/* General */
-> +#define	BNXT_QPLIB_FENCE_WRID	0x46454E43	/* "FENC" */
->  	u64				wr_id;
->  	u8				reqs_type;
->  	u8				type;
-> @@ -216,9 +217,16 @@ struct bnxt_qplib_q {
->  	struct scatterlist		*sglist;
->  	u32				nmap;
->  	u32				max_wqe;
-> +	u16				q_full_delta;
->  	u16				max_sge;
->  	u32				psn;
->  	bool				flush_in_progress;
-> +	bool				condition;
-> +	bool				single;
-> +	bool				send_phantom;
-> +	u32				phantom_wqe_cnt;
-> +	u32				phantom_cqe_cnt;
-> +	u32				next_cq_cons;
->  };
->
->  struct bnxt_qplib_qp {
-> @@ -301,6 +309,13 @@ struct bnxt_qplib_qp {
->  	(!!((hdr)->cqe_type_toggle & CQ_BASE_TOGGLE) ==		\
->  	   !((raw_cons) & (cp_bit)))
->
-> +static inline bool bnxt_qplib_queue_full(struct bnxt_qplib_q *qplib_q)
-> +{
-> +	return HWQ_CMP((qplib_q->hwq.prod + qplib_q->q_full_delta),
-> +		       &qplib_q->hwq) == HWQ_CMP(qplib_q->hwq.cons,
-> +						 &qplib_q->hwq);
-> +}
-> +
->  struct bnxt_qplib_cqe {
->  	u8				status;
->  	u8				type;
-> @@ -432,7 +447,7 @@ int bnxt_qplib_post_recv(struct bnxt_qplib_qp *qp,
->  int bnxt_qplib_create_cq(struct bnxt_qplib_res *res, struct bnxt_qplib_cq *cq);
->  int bnxt_qplib_destroy_cq(struct bnxt_qplib_res *res, struct bnxt_qplib_cq *cq);
->  int bnxt_qplib_poll_cq(struct bnxt_qplib_cq *cq, struct bnxt_qplib_cqe *cqe,
-> -		       int num);
-> +		       int num, struct bnxt_qplib_qp **qp);
->  void bnxt_qplib_req_notify_cq(struct bnxt_qplib_cq *cq, u32 arm_type);
->  void bnxt_qplib_free_nq(struct bnxt_qplib_nq *nq);
->  int bnxt_qplib_alloc_nq(struct pci_dev *pdev, struct bnxt_qplib_nq *nq);
-> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.h b/drivers/infiniband/hw/bnxt_re/qplib_res.h
-> index 4103e60..2e48555 100644
-> --- a/drivers/infiniband/hw/bnxt_re/qplib_res.h
-> +++ b/drivers/infiniband/hw/bnxt_re/qplib_res.h
-> @@ -52,7 +52,6 @@ extern const struct bnxt_qplib_gid bnxt_qplib_gid_zero;
->  				((HWQ_CMP(hwq->prod, hwq)\
->  				- HWQ_CMP(hwq->cons, hwq))\
->  				& (hwq->max_elements - 1)))
-> -
->  enum bnxt_qplib_hwq_type {
->  	HWQ_TYPE_CTX,
->  	HWQ_TYPE_QUEUE,
-> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.c b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-> index cf7c9cb..fde18cf 100644
-> --- a/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-> +++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-> @@ -88,6 +88,11 @@ int bnxt_qplib_get_dev_attr(struct bnxt_qplib_rcfw *rcfw,
->  		sb->max_qp_init_rd_atom > BNXT_QPLIB_MAX_OUT_RD_ATOM ?
->  		BNXT_QPLIB_MAX_OUT_RD_ATOM : sb->max_qp_init_rd_atom;
->  	attr->max_qp_wqes = le16_to_cpu(sb->max_qp_wr);
-> +	/*
-> +	 * 128 WQEs needs to be reserved for the HW (8916). Prevent
-> +	 * reporting the max number
-> +	 */
-> +	attr->max_qp_wqes -= BNXT_QPLIB_RESERVED_QP_WRS;
->  	attr->max_qp_sges = sb->max_sge;
->  	attr->max_cq = le32_to_cpu(sb->max_cq);
->  	attr->max_cq_wqes = le32_to_cpu(sb->max_cqe);
-> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.h b/drivers/infiniband/hw/bnxt_re/qplib_sp.h
-> index 1442a61..a543f95 100644
-> --- a/drivers/infiniband/hw/bnxt_re/qplib_sp.h
-> +++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.h
-> @@ -40,6 +40,8 @@
->  #ifndef __BNXT_QPLIB_SP_H__
->  #define __BNXT_QPLIB_SP_H__
->
-> +#define BNXT_QPLIB_RESERVED_QP_WRS	128
-> +
->  struct bnxt_qplib_dev_attr {
->  	char				fw_ver[32];
->  	u16				max_sgid;
-> --
-> 2.5.5
->
+> On Tue, May 16, 2017 at 4:00 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+> > The ib_read_bw looks like it can use rdma_cm or not. By default, I can
+> > get things to work between the nodes. If I specify -R or -z, it fails.
+> > It seems that the context is not being set properly when using
+> > rdma_cm.
+> >
+> > "Server"
+> > -----------
+> >
+> > # ib_read_bw
+> >
+> > ************************************
+> > * Waiting for client to connect... *
+> > ************************************
+> > ---------------------------------------------------------------------------------------
+> >                    RDMA_Read BW Test
+> > Dual-port       : OFF          Device         : mlx5_0
+> > Number of qps   : 1            Transport type : IB
+> > Connection type : RC           Using SRQ      : OFF
+> > CQ Moderation   : 100
+> > Mtu             : 1024[B]
+> > Link type       : Ethernet
+> > GID index       : 2
+> > Outstand reads  : 16
+> > rdma_cm QPs     : OFF
+> > Data ex. method : Ethernet
+> > ---------------------------------------------------------------------------------------
+> > local address: LID 0000 QPN 0x011a PSN 0xa0e9fd OUT 0x10 RKey 0x00175e
+> > VAddr 0x007fc73fd6e000
+> > GID: 00:00:00:00:00:00:00:00:00:00:255:255:192:168:13:13
+> > remote address: LID 0000 QPN 0x011a PSN 0xf7747b OUT 0x10 RKey
+> > 0x002797 VAddr 0x007fe5cccc5000
+> > GID: 00:00:00:00:00:00:00:00:00:00:255:255:192:168:13:14
+> > ---------------------------------------------------------------------------------------
+> > #bytes     #iterations    BW peak[MB/sec]    BW average[MB/sec]   MsgRate[Mpps]
+> > 65536      1000             2728.79            2728.77            0.043660
+> > ---------------------------------------------------------------------------------------
+> >
+> > # ib_read_bw -R
+> >
+> > ************************************
+> > * Waiting for client to connect... *
+> > ************************************
+> > Segmentation fault (core dumped)
+> >
+> > # gdb ib_read_bw core.8319
+> > GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-94.el7
+> > Copyright (C) 2013 Free Software Foundation, Inc.
+> > License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+> > This is free software: you are free to change and redistribute it.
+> > There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+> > and "show warranty" for details.
+> > This GDB was configured as "x86_64-redhat-linux-gnu".
+> > For bug reporting instructions, please see:
+> > <http://www.gnu.org/software/gdb/bugs/>...
+> > Reading symbols from /usr/bin/ib_read_bw...Reading symbols from
+> > /usr/lib/debug/usr/bin/ib_read_bw.debug...done.
+> > done.
+> > [New LWP 8319]
+> > [Thread debugging using libthread_db enabled]
+> > Using host libthread_db library "/lib64/libthread_db.so.1".
+> > Core was generated by `ib_read_bw -R'.
+> > Program terminated with signal 11, Segmentation fault.
+> > #0  __ibv_query_device (context=0x0, device_attr=0x7ffcd8fec160) at
+> > src/verbs.c:135
+> > 135             return context->ops.query_device(context, device_attr);
+> > (gdb) bt
+> > #0  __ibv_query_device (context=0x0, device_attr=0x7ffcd8fec160) at
+> > src/verbs.c:135
+> > #1  0x0000000000410518 in check_for_contig_pages_support
+> > (context=<optimized out>) at src/perftest_resources.c:262
+> > #2  ctx_init (ctx=ctx@entry=0x110b000,
+> > user_param=user_param@entry=0x110ad70) at
+> > src/perftest_resources.c:1314
+> > #3  0x000000000040585c in rdma_server_connect (ctx=0x110b000,
+> > user_param=0x110ad70) at src/perftest_communication.c:1119
+> > #4  0x0000000000405f53 in establish_connection
+> > (comm=comm@entry=0x7ffcd8fec470) at src/perftest_communication.c:1244
+> > #5  0x0000000000402b37 in main (argc=<optimized out>, argv=<optimized
+> > out>) at src/read_bw.c:110
+> > (gdb) f 0
+> > #0  __ibv_query_device (context=0x0, device_attr=0x7ffcd8fec160) at
+> > src/verbs.c:135
+> > 135             return context->ops.query_device(context, device_attr);
+> > (gdb) list
+> > 130     }
+> > 131
+> > 132     int __ibv_query_device(struct ibv_context *context,
+> > 133                            struct ibv_device_attr *device_attr)
+> > 134     {
+> > 135             return context->ops.query_device(context, device_attr);
+> > 136     }
+> > 137     default_symver(__ibv_query_device, ibv_query_device);
+> > 138
+> > 139     int __ibv_query_port(struct ibv_context *context, uint8_t port_num,
+> > (gdb) p context
+> > $1 = (struct ibv_context *) 0x0
+> >
+> > # ib_read_bw -z
+> >
+> > ************************************
+> > * Waiting for client to connect... *
+> > ************************************
+> > Segmentation fault (core dumped)
+> >
+> > # gdb ib_read_bw core.8369
+> > GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-94.el7
+> > Copyright (C) 2013 Free Software Foundation, Inc.
+> > License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+> > This is free software: you are free to change and redistribute it.
+> > There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+> > and "show warranty" for details.
+> > This GDB was configured as "x86_64-redhat-linux-gnu".
+> > For bug reporting instructions, please see:
+> > <http://www.gnu.org/software/gdb/bugs/>...
+> > Reading symbols from /usr/bin/ib_read_bw...Reading symbols from
+> > /usr/lib/debug/usr/bin/ib_read_bw.debug...done.
+> > done.
+> > [New LWP 8369]
+> > [Thread debugging using libthread_db enabled]
+> > Using host libthread_db library "/lib64/libthread_db.so.1".
+> > Core was generated by `ib_read_bw -z'.
+> > Program terminated with signal 11, Segmentation fault.
+> > #0  __ibv_query_device (context=0x0, device_attr=0x7ffe5f5ee4b0) at
+> > src/verbs.c:135
+> > 135             return context->ops.query_device(context, device_attr);
+> > (gdb) bt
+> > #0  __ibv_query_device (context=0x0, device_attr=0x7ffe5f5ee4b0) at
+> > src/verbs.c:135
+> > #1  0x0000000000410518 in check_for_contig_pages_support
+> > (context=<optimized out>) at src/perftest_resources.c:262
+> > #2  ctx_init (ctx=ctx@entry=0x1b3d000,
+> > user_param=user_param@entry=0x1b3cd70) at
+> > src/perftest_resources.c:1314
+> > #3  0x000000000040585c in rdma_server_connect (ctx=0x1b3d000,
+> > user_param=0x1b3cd70)
+> >    at src/perftest_communication.c:1119
+> > #4  0x0000000000405f53 in establish_connection
+> > (comm=comm@entry=0x7ffe5f5ee7c0) at src/perftest_communication.c:1244
+> > #5  0x0000000000402b37 in main (argc=<optimized out>, argv=<optimized
+> > out>) at src/read_bw.c:110
+> > (gdb) f 0
+> > #0  __ibv_query_device (context=0x0, device_attr=0x7ffe5f5ee4b0) at
+> > src/verbs.c:135
+> > 135             return context->ops.query_device(context, device_attr);
+> > (gdb) list
+> > 130     }
+> > 131
+> > 132     int __ibv_query_device(struct ibv_context *context,
+> > 133                            struct ibv_device_attr *device_attr)
+> > 134     {
+> > 135             return context->ops.query_device(context, device_attr);
+> > 136     }
+> > 137     default_symver(__ibv_query_device, ibv_query_device);
+> > 138
+> > 139     int __ibv_query_port(struct ibv_context *context, uint8_t port_num,
+> > (gdb) p context
+> > $1 = (struct ibv_context *) 0x0
+> >
+> >
+> > "Client"
+> > ----------
+> > # ib_read_bw 192.168.13.13
+> > ---------------------------------------------------------------------------------------
+> >                    RDMA_Read BW Test
+> > Dual-port       : OFF          Device         : mlx5_0
+> > Number of qps   : 1            Transport type : IB
+> > Connection type : RC           Using SRQ      : OFF
+> > TX depth        : 128
+> > CQ Moderation   : 100
+> > Mtu             : 1024[B]
+> > Link type       : Ethernet
+> > GID index       : 2
+> > Outstand reads  : 16
+> > rdma_cm QPs     : OFF
+> > Data ex. method : Ethernet
+> > ---------------------------------------------------------------------------------------
+> > local address: LID 0000 QPN 0x011a PSN 0xf7747b OUT 0x10 RKey 0x002797
+> > VAddr 0x007fe5cccc5000
+> > GID: 00:00:00:00:00:00:00:00:00:00:255:255:192:168:13:14
+> > remote address: LID 0000 QPN 0x011a PSN 0xa0e9fd OUT 0x10 RKey
+> > 0x00175e VAddr 0x007fc73fd6e000
+> > GID: 00:00:00:00:00:00:00:00:00:00:255:255:192:168:13:13
+> > ---------------------------------------------------------------------------------------
+> > #bytes     #iterations    BW peak[MB/sec]    BW average[MB/sec]   MsgRate[Mpps]
+> > Conflicting CPU frequency values detected: 1200.024000 != 2600.000000.
+> > CPU Frequency is not max.
+> > 65536      1000             2728.79            2728.77            0.043660
+> > ---------------------------------------------------------------------------------------
+> >
+> > # ib_read_bw -R 192.168.13.13
+> > Unexpected CM event bl blka 8
+> > Unable to perform rdma_client function
+> > Unable to init the socket connection
+> >
+> > # ib_read_bw -z 192.168.13.13
+> > Unexpected CM event bl blka 8
+> > Unable to perform rdma_client function
+> > Unable to init the socket connection
+> > ----------------
+> > Robert LeBlanc
+> > PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+> >
+> >
+> > On Tue, May 16, 2017 at 2:50 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+> >> I installed OFED 4.0-2.0.0.1 on a fresh snapshot with the stock kernel
+> >> (3.10.0-514.16.1.el7.x86_64). I'm getting a segfault on the server
+> >> side, but not on the client side. I don't see any debug packages in
+> >> the OFED package to load the symbols.
+> >>
+> >> rping server:
+> >>
+> >> # gdb rping core.10405
+> >> GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-94.el7
+> >> Copyright (C) 2013 Free Software Foundation, Inc.
+> >> License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+> >> This is free software: you are free to change and redistribute it.
+> >> There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+> >> and "show warranty" for details.
+> >> This GDB was configured as "x86_64-redhat-linux-gnu".
+> >> For bug reporting instructions, please see:
+> >> <http://www.gnu.org/software/gdb/bugs/>...
+> >> Reading symbols from /usr/bin/rping...Reading symbols from
+> >> /usr/bin/rping...(no debugging symbols found)...done.
+> >> (no debugging symbols found)...done.
+> >> [New LWP 10405]
+> >> [New LWP 10408]
+> >> [Thread debugging using libthread_db enabled]
+> >> Using host libthread_db library "/lib64/libthread_db.so.1".
+> >> Core was generated by `rping -s'.
+> >> Program terminated with signal 11, Segmentation fault.
+> >> #0  0x00007f31883d45b4 in ibv_alloc_pd () from /usr/lib64/libibverbs.so.1
+> >> Missing separate debuginfos, use: debuginfo-install
+> >> librdmacm-utils-1.1.0mlnx-OFED.4.0.1.6.1.40200.x86_64
+> >> (gdb) bt
+> >> #0  0x00007f31883d45b4 in ibv_alloc_pd () from /usr/lib64/libibverbs.so.1
+> >> #1  0x0000000000402fe6 in rping_setup_qp.isra.7 ()
+> >> #2  0x0000000000401d04 in main ()
+> >> (gdb) list
+> >> No symbol table is loaded.  Use the "file" command.
+> >>
+> >> rping client:
+> >>
+> >> # rping -c -a 192.168.13.13
+> >> cma event RDMA_CM_EVENT_REJECTED, error 28
+> >> wait for CONNECTED state 4
+> >> connect error -1
+> >> ----------------
+> >> Robert LeBlanc
+> >> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+> >>
+> >>
+> >> On Tue, May 16, 2017 at 1:23 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+> >>> This is using ConnectX-4 LX RoCE cards, using only in-box drivers.
+> >>>
+> >>> While trying to debug some iSER issues, I'm trying to do rping between
+> >>> the two hosts, but I'm getting a segfault. Sagi suggested that there
+> >>> may be something wrong with my kernel ABI. I did a make mrproper and
+> >>> built the latest 4.9.28 kernel and installed the kernel headers.
+> >>>
+> >>> make -j 32 && sudo make modules_install && sudo make install && sudo
+> >>> make headers_install INSTALL_HDR_PATH=/usr
+> >>>
+> >>> After booting into the new kernel, I kept getting the segfaults, so I
+> >>> rebuilt the libibverbs, libibumad, librdmacm packages in case they
+> >>> aren't picking up the new kernel headers. Still no luck.
+> >>>
+> >>> Here is the server of rping with the rebuilt packages:
+> >>> # gdb rping core.22936
+> >>> GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-94.el7
+> >>> Copyright (C) 2013 Free Software Foundation, Inc.
+> >>> License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+> >>> This is free software: you are free to change and redistribute it.
+> >>> There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+> >>> and "show warranty" for details.
+> >>> This GDB was configured as "x86_64-redhat-linux-gnu".
+> >>> For bug reporting instructions, please see:
+> >>> <http://www.gnu.org/software/gdb/bugs/>...
+> >>> Reading symbols from /usr/bin/rping...Reading symbols from
+> >>> /usr/lib/debug/usr/bin/rping.debug...done.
+> >>> done.
+> >>> [New LWP 22936]
+> >>> [New LWP 22939]
+> >>> [Thread debugging using libthread_db enabled]
+> >>> Using host libthread_db library "/lib64/libthread_db.so.1".
+> >>> Core was generated by `rping -s'.
+> >>> Program terminated with signal 11, Segmentation fault.
+> >>> #0  __ibv_alloc_pd (context=0x0) at src/verbs.c:196
+> >>> 196             pd = context->ops.alloc_pd(context);
+> >>> (gdb) bt
+> >>> #0  __ibv_alloc_pd (context=0x0) at src/verbs.c:196
+> >>> #1  0x000055f60331d5f6 in rping_setup_qp (cb=cb@entry=0x55f603d74780,
+> >>> cm_id=<optimized out>) at examples/rping.c:519
+> >>> #2  0x000055f60331be7e in rping_run_server (cb=0x55f603d74780) at
+> >>> examples/rping.c:890
+> >>> #3  main (argc=2, argv=0x7ffcd16aae88) at examples/rping.c:1268
+> >>> (gdb) f 0
+> >>> #0  __ibv_alloc_pd (context=0x0) at src/verbs.c:196
+> >>> 196             pd = context->ops.alloc_pd(context);
+> >>> (gdb) list
+> >>> 191
+> >>> 192     struct ibv_pd *__ibv_alloc_pd(struct ibv_context *context)
+> >>> 193     {
+> >>> 194             struct ibv_pd *pd;
+> >>> 195
+> >>> 196             pd = context->ops.alloc_pd(context);
+> >>> 197             if (pd)
+> >>> 198                     pd->context = context;
+> >>> 199
+> >>> 200             return pd;
+> >>> (gdb) p context
+> >>> $1 = (struct ibv_context *) 0x0
+> >>>
+> >>> Here is the rping client that does not have the rebuilt packages:
+> >>> # gdb rping core.8253
+> >>> GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-94.el7
+> >>> Copyright (C) 2013 Free Software Foundation, Inc.
+> >>> License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+> >>> This is free software: you are free to change and redistribute it.
+> >>> There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+> >>> and "show warranty" for details.
+> >>> This GDB was configured as "x86_64-redhat-linux-gnu".
+> >>> For bug reporting instructions, please see:
+> >>> <http://www.gnu.org/software/gdb/bugs/>...
+> >>> Reading symbols from /usr/bin/rping...Reading symbols from
+> >>> /usr/lib/debug/usr/bin/rping.debug...done.
+> >>> done.
+> >>> [New LWP 8253]
+> >>> [New LWP 8256]
+> >>> [Thread debugging using libthread_db enabled]
+> >>> Using host libthread_db library "/lib64/libthread_db.so.1".
+> >>> Core was generated by `rping -c -a 192.168.13.13'.
+> >>> Program terminated with signal 11, Segmentation fault.
+> >>> #0  __ibv_dereg_mr (mr=0x560e295e93b0) at src/verbs.c:299
+> >>> 299             ret = mr->context->ops.dereg_mr(mr);
+> >>> (gdb) bt
+> >>> #0  __ibv_dereg_mr (mr=0x560e295e93b0) at src/verbs.c:299
+> >>> #1  0x0000560e293cd917 in rping_free_buffers (cb=0x560e295e5780) at
+> >>> examples/rping.c:470
+> >>> #2  0x0000560e293cbf57 in rping_run_client (cb=<optimized out>) at
+> >>> examples/rping.c:1111
+> >>> #3  main (argc=<optimized out>, argv=<optimized out>) at examples/rping.c:1270
+> >>> (gdb) f 9
+> >>> #0  0x0000000000000000 in ?? ()
+> >>> (gdb) f 0
+> >>> #0  __ibv_dereg_mr (mr=0x560e295e93b0) at src/verbs.c:299
+> >>> 299             ret = mr->context->ops.dereg_mr(mr);
+> >>> (gdb) list
+> >>> 294     {
+> >>> 295             int ret;
+> >>> 296             void *addr      = mr->addr;
+> >>> 297             size_t length   = mr->length;
+> >>> 298
+> >>> 299             ret = mr->context->ops.dereg_mr(mr);
+> >>> 300             if (!ret)
+> >>> 301                     ibv_dofork_range(addr, length);
+> >>> 302
+> >>> 303             return ret;
+> >>> (gdb) p mr
+> >>> $1 = (struct ibv_mr *) 0x560e295e93b0
+> >>> (gdb) p *mr
+> >>> $2 = {context = 0x7fd423be5090, pd = 0x560e295e9960, addr =
+> >>> 0x560e295e57e8, length = 16, handle = 0, lkey = 72829, rkey = 72829}
+> >>> (gdb) p *mr->context
+> >>> Cannot access memory at address 0x7fd423be5090
+> >>>
+> >>> Any ideas on what I'm doing wrong?
+> >>>
+> >>> Thanks,
+> >>>
+> >>> ----------------
+> >>> Robert LeBlanc
+> >>> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---4KEJhRss/+5IzdUf
+--07UuamFNDT4U/3KT
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkdKJgACgkQ5GN7iDZy
-WKdg0Q/9H3g00dvm37nR1J15NMlAzp/yJHLjQWJMXM5C6PwHl1q38KwBhhdSwyG7
-7LR4EPA1nJe+jdPNNc5VtdQffC8C5FdDSQGGF8ESFZEIyngedtttc0VJUiVeeJf7
-yrLKNy9VJpKrowVeSkQKkXMPEa8kCsPMAgvd6odCF83WptRFTTy+fZvNkE/idOQ7
-sDkKI8HyNOc2+FGNBv2OpUfB9hqzUnLBRW+HTG6bq6aKZE7CPgbpxqWyxcXWYxnJ
-DBxoUVFj0TMQWdgmYYI9nsJXDS2T8qC/dTcrNSVeSLpPYj+bgZ2SMq8MySx5g4Fu
-7AVC/oTHpw62Q2IjRha5BQUB7oywfmNpnEMmUZrEGrFmFXOPqrjnKABncil0Hml9
-/yB2hrCfBNvvWwZIU91dM7yW68KzDeQBCakkaVuGifRp3L28itFjox9TvGeQLB6W
-s7G0RAz7eYLYCCQYOkN+vNsydoG9oIe7gipnfmqe4qFpFfEccBeEXJp8ELGpzXd0
-LF3z3B1K6JeXb+zKwPA5EMNfSDvnIlxvZP+1wEk55whNKtY3PPGuUL9bAquAyKkh
-XIbIGjEGU/T/OBVdofGfcTL3jwNJPgTtOhPdM8iV/ItG7Fyt4Ra6NxUxIZSFuzrT
-P35fc2i8adnU7PIRffdxyXGEQrUhjVTksocyh5BeAY+18axtLBk=
-=AVQ0
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkdLCEACgkQ5GN7iDZy
+WKdTEg/9GF2Rm5T92Q2o5JW5vQyYKcC/NIMzUM0KlsSA7ljyb9NV6P9EmlKOeO3P
+yC6EPS8KVDnqpybssp/RnOzub2CldQfHgvgv46PQ+4PLTF4QY5o5oQVXZvoVXAAC
+wKNsUYeS2od6KCRXzvboI6+OFI0LMfOCKKjh6a2P72EIFWCD6dswrxrzzxooQxgs
+tkT74KjDjpJfprELT6bN71h/hB7UaXPzHJ+jKOe3hB9mtw97ViahowZIYOBVGY1F
+3QJ2dNt3Y+SI2g2GKZsWYoG0w1UzXfhLHj5ffeSllyd5kJdl+f1074AwaVTd8iWV
+mmj5gbNegcv+wnW7IzaeQAT7EsPrjYvyFi5mv9glhmIfe1sFeXm/i6jMGrY4YR9W
+kXgzjCcu+KcmsMZC+wYNFcydwKBGLmqbnyFhBmGvl5dycMC2CTzyLiohEb6eB8GI
+Hei4GzrikAhn7QNntHxgZuEdejPOJ9CNgrXwWYhDsYFcNvAh7xsjHDsxMm2ScJXy
+2rqNX/Otq9iXH9EjtgtIKYLuWi5WR/t+D7D42hNBOmpIVvBxX5GZ+Bk3pDWW2BnL
+XGSTzf+Lt6zOuIFlA9ocOvg0Ge7HwFCW7myAQt14SkgJ5bmCrR9wiy83UwiQOiVO
+NLU1t0XXIJFYKDq+5vUQQ3E56x4e39GjutB/IJ40Fp4iqcQlWSg=
+=flwJ
 -----END PGP SIGNATURE-----
 
---4KEJhRss/+5IzdUf--
+--07UuamFNDT4U/3KT--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
