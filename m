@@ -1,176 +1,115 @@
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] i40iw: Remove MSS change support
-Date: Fri, 19 May 2017 16:14:02 -0500
-Message-ID: <20170519211402.17700-1-shiraz.saleem@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, sassmann-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Daniel Jurgens <danielj@mellanox.com>
+Subject: Re: [PATCH v7 4/9] IB/core: Enforce security on management datagrams
+Date: Fri, 19 May 2017 23:57:05 +0000
+Message-ID: <DB5PR05MB1671BF6DE9B1EC2E66867870C4E50@DB5PR05MB1671.eurprd05.prod.outlook.com>
+References: <1495198139-69993-1-git-send-email-danielj@mellanox.com>
+ <1495198139-69993-5-git-send-email-danielj@mellanox.com>
+ <CAHC9VhSqarh9TepvumkQxcS51bvtm_bH+gWpSeiR-XG83JbT-w@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-security-module-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: owner-linux-security-module@vger.kernel.org
+To: Paul Moore <paul@paul-moore.com>
+Cc: "chrisw@sous-sol.org" <chrisw@sous-sol.org>, Stephen Smalley <sds@tycho.nsa.gov>, Eric Paris <eparis@parisplace.org>, "dledford@redhat.com" <dledford@redhat.com>, "sean.hefty@intel.com" <sean.hefty@intel.com>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "selinux@tycho.nsa.gov" <selinux@tycho.nsa.gov>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yevgeny Petrilin <yevgenyp@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-MSS change on active QPs is not supported. Store new MSS
-value for new QPs only. Remove code to modify MSS on the fly.
-This also resolves a crash on QP modify to QP 0.
-
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
-IP: i40iw_sc_qp_modify+0x22/0x280 [i40iw]
-Oops: 0000 [#1] SMP KASAN
-CPU: 2 PID: 1236 Comm: kworker/u16:4 Not tainted 4.12.0-rc1 #5
-Hardware name: Gigabyte Technology Co., Ltd. To be filled by O.E.M./Q87M-D2H,
-BIOS F7 01/17/2014
-Workqueue: l2params i40iw_l2params_worker [i40iw]
-task: ffff88070f5a9b40 task.stack: ffff88070f5a0000
-RIP: 0010:i40iw_sc_qp_modify+0x22/0x280 [i40iw]
-...
-Call Trace:
-i40iw_exec_cqp_cmd+0x2ce/0x410 [i40iw]
-? _raw_spin_lock_irqsave+0x6f/0x80
-? i40iw_process_cqp_cmd+0x1d/0x80 [i40iw]
-i40iw_process_cqp_cmd+0x7c/0x80 [i40iw]
-i40iw_handle_cqp_op+0x2f/0x200 [i40iw]
-? trace_hardirqs_off+0xd/0x10
-? _raw_spin_unlock_irqrestore+0x46/0x50
-i40iw_hw_modify_qp+0x5e/0x90 [i40iw]
-i40iw_qp_mss_modify+0x52/0x60 [i40iw]
-i40iw_change_l2params+0x145/0x160 [i40iw]
-i40iw_l2params_worker+0x1f/0x40 [i40iw]
-process_one_work+0x1f5/0x650
-? process_one_work+0x161/0x650
-worker_thread+0x48/0x3b0
-kthread+0x112/0x150
-? process_one_work+0x650/0x650
-? kthread_create_on_node+0x40/0x40
-ret_from_fork+0x2e/0x40
-Code: 2e 0f 1f 84 00 00 00 00 00 55 48 89 e5 41 56 41 55 41 89 cd 41 54 49 89 fc
-53 48 89 f3 48 89 d6 48 83 ec 08 48 8b 87 10 01 00 00 <48> 8b 40 08 4c 8b b0 40 04
-00 00 4c 89 f7 e8 1b e5 ff ff 48 85
-RIP: i40iw_sc_qp_modify+0x22/0x280 [i40iw] RSP: ffff88070f5a7c28
-CR2: 0000000000000008
----[ end trace 77a405931e296060 ]---
-
-Reported-by: Stefan Assmann <sassmann-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/i40iw/i40iw_ctrl.c  | 12 +-----------
- drivers/infiniband/hw/i40iw/i40iw_osdep.h |  1 -
- drivers/infiniband/hw/i40iw/i40iw_type.h  |  2 --
- drivers/infiniband/hw/i40iw/i40iw_utils.c | 17 -----------------
- 4 files changed, 1 insertion(+), 31 deletions(-)
-
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-index f82483b..a027e20 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-@@ -285,28 +285,20 @@ void i40iw_change_l2params(struct i40iw_sc_vsi *vsi, struct i40iw_l2params *l2pa
- 	struct i40iw_sc_dev *dev = vsi->dev;
- 	struct i40iw_sc_qp *qp = NULL;
- 	bool qs_handle_change = false;
--	bool mss_change = false;
- 	unsigned long flags;
- 	u16 qs_handle;
- 	int i;
- 
--	if (vsi->mss != l2params->mss) {
--		mss_change = true;
--		vsi->mss = l2params->mss;
--	}
-+	vsi->mss = l2params->mss;
- 
- 	i40iw_fill_qos_list(l2params->qs_handle_list);
- 	for (i = 0; i < I40IW_MAX_USER_PRIORITY; i++) {
- 		qs_handle = l2params->qs_handle_list[i];
- 		if (vsi->qos[i].qs_handle != qs_handle)
- 			qs_handle_change = true;
--		else if (!mss_change)
--			continue;       /* no MSS nor qs handle change */
- 		spin_lock_irqsave(&vsi->qos[i].lock, flags);
- 		qp = i40iw_get_qp(&vsi->qos[i].qplist, qp);
- 		while (qp) {
--			if (mss_change)
--				i40iw_qp_mss_modify(dev, qp);
- 			if (qs_handle_change) {
- 				qp->qs_handle = qs_handle;
- 				/* issue cqp suspend command */
-@@ -2395,7 +2387,6 @@ static enum i40iw_status_code i40iw_sc_qp_modify(
- 
- 	set_64bit_val(wqe,
- 		      8,
--		      LS_64(info->new_mss, I40IW_CQPSQ_QP_NEWMSS) |
- 		      LS_64(term_len, I40IW_CQPSQ_QP_TERMLEN));
- 
- 	set_64bit_val(wqe, 16, qp->hw_host_ctx_pa);
-@@ -2410,7 +2401,6 @@ static enum i40iw_status_code i40iw_sc_qp_modify(
- 		 LS_64(info->cq_num_valid, I40IW_CQPSQ_QP_CQNUMVALID) |
- 		 LS_64(info->force_loopback, I40IW_CQPSQ_QP_FORCELOOPBACK) |
- 		 LS_64(qp->qp_type, I40IW_CQPSQ_QP_QPTYPE) |
--		 LS_64(info->mss_change, I40IW_CQPSQ_QP_MSSCHANGE) |
- 		 LS_64(info->static_rsrc, I40IW_CQPSQ_QP_STATRSRC) |
- 		 LS_64(info->remove_hash_idx, I40IW_CQPSQ_QP_REMOVEHASHENTRY) |
- 		 LS_64(term_actions, I40IW_CQPSQ_QP_TERMACT) |
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_osdep.h b/drivers/infiniband/hw/i40iw/i40iw_osdep.h
-index aa66c1c..f27be3e 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_osdep.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_osdep.h
-@@ -199,7 +199,6 @@ void i40iw_cqp_spawn_worker(struct i40iw_sc_dev *dev,
- 			    struct i40iw_virtchnl_work_info *work_info, u32 iw_vf_idx);
- void *i40iw_remove_head(struct list_head *list);
- void i40iw_qp_suspend_resume(struct i40iw_sc_dev *dev, struct i40iw_sc_qp *qp, bool suspend);
--void i40iw_qp_mss_modify(struct i40iw_sc_dev *dev, struct i40iw_sc_qp *qp);
- 
- void i40iw_term_modify_qp(struct i40iw_sc_qp *qp, u8 next_state, u8 term, u8 term_len);
- void i40iw_terminate_done(struct i40iw_sc_qp *qp, int timeout_occurred);
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_type.h b/drivers/infiniband/hw/i40iw/i40iw_type.h
-index 7b76259..959ec81 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_type.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_type.h
-@@ -541,7 +541,6 @@ struct i40iw_create_qp_info {
- struct i40iw_modify_qp_info {
- 	u64 rx_win0;
- 	u64 rx_win1;
--	u16 new_mss;
- 	u8 next_iwarp_state;
- 	u8 termlen;
- 	bool ord_valid;
-@@ -554,7 +553,6 @@ struct i40iw_modify_qp_info {
- 	bool dont_send_term;
- 	bool dont_send_fin;
- 	bool cached_var_valid;
--	bool mss_change;
- 	bool force_loopback;
- };
- 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-index 409a378..56d9869 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-@@ -757,23 +757,6 @@ void i40iw_qp_suspend_resume(struct i40iw_sc_dev *dev, struct i40iw_sc_qp *qp, b
- }
- 
- /**
-- * i40iw_qp_mss_modify - modify mss for qp
-- * @dev: hardware control device structure
-- * @qp: hardware control qp
-- */
--void i40iw_qp_mss_modify(struct i40iw_sc_dev *dev, struct i40iw_sc_qp *qp)
--{
--	struct i40iw_device *iwdev = (struct i40iw_device *)dev->back_dev;
--	struct i40iw_qp *iwqp = (struct i40iw_qp *)qp->back_qp;
--	struct i40iw_modify_qp_info info;
--
--	memset(&info, 0, sizeof(info));
--	info.mss_change = true;
--	info.new_mss = qp->vsi->mss;
--	i40iw_hw_modify_qp(iwdev, iwqp, &info, false);
--}
--
--/**
-  * i40iw_term_modify_qp - modify qp for term message
-  * @qp: hardware control qp
-  * @next_state: qp's next state
--- 
-2.1.3
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 5/19/2017 2:21 PM, Paul Moore wrote:=0A=
+> On Fri, May 19, 2017 at 8:48 AM, Dan Jurgens <danielj@mellanox.com> wrote=
+:=0A=
+>> From: Daniel Jurgens <danielj@mellanox.com>=0A=
+>>=0A=
+>> Allocate and free a security context when creating and destroying a MAD=
+=0A=
+>> agent.  This context is used for controlling access to PKeys and sending=
+=0A=
+>> and receiving SMPs.=0A=
+>>=0A=
+>> When sending or receiving a MAD check that the agent has permission to=
+=0A=
+>> access the PKey for the Subnet Prefix of the port.=0A=
+>>=0A=
+>> During MAD and snoop agent registration for SMI QPs check that the=0A=
+>> calling process has permission to access the manage the subnet  and=0A=
+>> register a callback with the LSM to be notified of policy changes. When=
+=0A=
+>> notificaiton of a policy change occurs recheck permission and set a flag=
+=0A=
+>> indicating sending and receiving SMPs is allowed.=0A=
+>>=0A=
+>> When sending and receiving MADs check that the agent has access to the=
+=0A=
+>> SMI if it's on an SMI QP.  Because security policy can change it's=0A=
+>> possible permission was allowed when creating the agent, but no longer=
+=0A=
+>> is.=0A=
+>>=0A=
+>> Signed-off-by: Daniel Jurgens <danielj@mellanox.com>=0A=
+>>=0A=
+>> ---=0A=
+>> v2:=0A=
+>> - Squashed LSM hook additions. Paul Moore=0A=
+>> - Changed security blobs to void*. Paul Moore=0A=
+>> - Shorten end_port to port. Paul Moore=0A=
+>> - Change "smp" to "manage_subnet". Paul Moore=0A=
+>> - Use the LSM policy change notification and a flag to track permission=
+=0A=
+>>   instead of calling the LSM hook for every SMP. Dan Jurgens=0A=
+>> - Squashed PKey and SMP enforcement into the same patch and moved the=0A=
+>>   logic into security.c. Dan Jurgens=0A=
+>>=0A=
+>> v3:=0A=
+>> - ib_port -> ib_endport. Paul Moore=0A=
+>> - Use notifier chains for LSM notification. Paul Moore=0A=
+>> - Reorder LSM hook parameters to put sec first. Paul Moore=0A=
+>>=0A=
+>>  drivers/infiniband/core/core_priv.h | 35 ++++++++++++++=0A=
+>>  drivers/infiniband/core/mad.c       | 52 +++++++++++++++++----=0A=
+>>  drivers/infiniband/core/security.c  | 92 ++++++++++++++++++++++++++++++=
++++++++=0A=
+>>  include/linux/lsm_hooks.h           |  8 ++++=0A=
+>>  include/linux/security.h            |  6 +++=0A=
+>>  include/rdma/ib_mad.h               |  4 ++=0A=
+>>  security/security.c                 |  8 ++++=0A=
+>>  7 files changed, 197 insertions(+), 8 deletions(-)=0A=
+> ...=0A=
+>=0A=
+>> diff --git a/security/security.c b/security/security.c=0A=
+>> index 6eef315..b69fe6f 100644=0A=
+>> --- a/security/security.c=0A=
+>> +++ b/security/security.c=0A=
+>> @@ -1540,6 +1540,12 @@ int security_ib_pkey_access(void *sec, u64 subnet=
+_prefix, u16 pkey)=0A=
+>>  }=0A=
+>>  EXPORT_SYMBOL(security_ib_pkey_access);=0A=
+>>=0A=
+>> +int security_ib_endport_manage_subnet(void *sec, const char *dev_name, =
+u8 port_num)=0A=
+>> +{=0A=
+>> +       return call_int_hook(ib_endport_manage_subnet, 0, sec, dev_name,=
+ port_num);=0A=
+>> +}=0A=
+>> +EXPORT_SYMBOL(security_ib_endport_manage_subnet);=0A=
+>> +=0A=
+>>  int security_ib_alloc_security(void **sec)=0A=
+>>  {=0A=
+>>         return call_int_hook(ib_alloc_security, 0, sec);=0A=
+>> @@ -2014,6 +2020,8 @@ struct security_hook_heads security_hook_heads __l=
+sm_ro_after_init =3D {=0A=
+>>=0A=
+>>  #ifdef CONFIG_SECURITY_INFINIBAND=0A=
+>>         .ib_pkey_access =3D LIST_HEAD_INIT(security_hook_heads.ib_pkey_a=
+ccess),=0A=
+>> +       .ib_endport_manage_subnet =3D=0A=
+>> +               LIST_HEAD_INIT(security_hook_heads.ib_endport_manage_sub=
+net),=0A=
+>>         .ib_alloc_security =3D=0A=
+>>                 LIST_HEAD_INIT(security_hook_heads.ib_alloc_security),=
+=0A=
+>>         .ib_free_security =3D=0A=
+> The same problem as 2/9 regarding the LSM hook code.  I'll also drop=0A=
+> this block, but update your patch in case you need to respin.=0A=
+>=0A=
+Thanks, updated locally as well in both cases.=0A=
+=0A=
