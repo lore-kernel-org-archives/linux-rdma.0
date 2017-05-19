@@ -1,41 +1,176 @@
-From: Paul Moore <paul@paul-moore.com>
-Subject: Re: [PATCH v7 0/9] SELinux support for Infiniband RDMA
-Date: Fri, 19 May 2017 15:35:11 -0400
-Message-ID: <CAHC9VhQtw4fFrCdKcznHrLDkAJVDhi=y9dYMxtOP23XVKq+rCw@mail.gmail.com>
-References: <1495198139-69993-1-git-send-email-danielj@mellanox.com> <VI1PR05MB1678F822760B7C5F8E263573C4E50@VI1PR05MB1678.eurprd05.prod.outlook.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <VI1PR05MB1678F822760B7C5F8E263573C4E50@VI1PR05MB1678.eurprd05.prod.outlook.com>
-Sender: owner-linux-security-module@vger.kernel.org
-To: Daniel Jurgens <danielj@mellanox.com>, "dledford@redhat.com" <dledford@redhat.com>
-Cc: "chrisw@sous-sol.org" <chrisw@sous-sol.org>, "sds@tycho.nsa.gov" <sds@tycho.nsa.gov>, "eparis@parisplace.org" <eparis@parisplace.org>, "sean.hefty@intel.com" <sean.hefty@intel.com>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "selinux@tycho.nsa.gov" <selinux@tycho.nsa.gov>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yevgeny Petrilin <yevgenyp@mellanox.com>
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] i40iw: Remove MSS change support
+Date: Fri, 19 May 2017 16:14:02 -0500
+Message-ID: <20170519211402.17700-1-shiraz.saleem@intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, sassmann-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 19, 2017 at 12:47 PM, Daniel Jurgens <danielj@mellanox.com> wrote:
-> On 5/19/2017 7:49 AM, Dan Jurgens wrote:
->> From: Daniel Jurgens <danielj@mellanox.com>
->>
->> Note on v7, it applies cleanly on Paul Moores' tree.  'git am' fails to
->> apply patch 0002* to Dougs' tree, but 'patch' applies it without rejects.
->> There's a new file that needs to be added before resolving the git am,
->> drivers/infiniband/core/security.c
->
-> There's actually a trivial merge conflict in drivers/infiniband/core/uverbs.c that doesn't cause patch to create a reject file, in the function create_qp a my patch adds a "goto err_destroy;".  In Dougs' tree it needs to be changed to "goto err_cb".
+MSS change on active QPs is not supported. Store new MSS
+value for new QPs only. Remove code to modify MSS on the fly.
+This also resolves a crash on QP modify to QP 0.
 
-Thanks for the rebase Daniel.  Aside from the small problems with LSM
-hook init code that I already mentioned it looks good to me.
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
+IP: i40iw_sc_qp_modify+0x22/0x280 [i40iw]
+Oops: 0000 [#1] SMP KASAN
+CPU: 2 PID: 1236 Comm: kworker/u16:4 Not tainted 4.12.0-rc1 #5
+Hardware name: Gigabyte Technology Co., Ltd. To be filled by O.E.M./Q87M-D2H,
+BIOS F7 01/17/2014
+Workqueue: l2params i40iw_l2params_worker [i40iw]
+task: ffff88070f5a9b40 task.stack: ffff88070f5a0000
+RIP: 0010:i40iw_sc_qp_modify+0x22/0x280 [i40iw]
+...
+Call Trace:
+i40iw_exec_cqp_cmd+0x2ce/0x410 [i40iw]
+? _raw_spin_lock_irqsave+0x6f/0x80
+? i40iw_process_cqp_cmd+0x1d/0x80 [i40iw]
+i40iw_process_cqp_cmd+0x7c/0x80 [i40iw]
+i40iw_handle_cqp_op+0x2f/0x200 [i40iw]
+? trace_hardirqs_off+0xd/0x10
+? _raw_spin_unlock_irqrestore+0x46/0x50
+i40iw_hw_modify_qp+0x5e/0x90 [i40iw]
+i40iw_qp_mss_modify+0x52/0x60 [i40iw]
+i40iw_change_l2params+0x145/0x160 [i40iw]
+i40iw_l2params_worker+0x1f/0x40 [i40iw]
+process_one_work+0x1f5/0x650
+? process_one_work+0x161/0x650
+worker_thread+0x48/0x3b0
+kthread+0x112/0x150
+? process_one_work+0x650/0x650
+? kthread_create_on_node+0x40/0x40
+ret_from_fork+0x2e/0x40
+Code: 2e 0f 1f 84 00 00 00 00 00 55 48 89 e5 41 56 41 55 41 89 cd 41 54 49 89 fc
+53 48 89 f3 48 89 d6 48 83 ec 08 48 8b 87 10 01 00 00 <48> 8b 40 08 4c 8b b0 40 04
+00 00 4c 89 f7 e8 1b e5 ff ff 48 85
+RIP: i40iw_sc_qp_modify+0x22/0x280 [i40iw] RSP: ffff88070f5a7c28
+CR2: 0000000000000008
+---[ end trace 77a405931e296060 ]---
 
-Considering that we got an ACK from the IB folks on v6 of your
-patchset I went ahead and merged it into the selinux/next tree.  I do
-reserve the right to yank it out before the next merge window if we
-discover any problems with the userspace, policy, or tests, but I
-think those are moving along nicely at the moment.
+Reported-by: Stefan Assmann <sassmann-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/i40iw/i40iw_ctrl.c  | 12 +-----------
+ drivers/infiniband/hw/i40iw/i40iw_osdep.h |  1 -
+ drivers/infiniband/hw/i40iw/i40iw_type.h  |  2 --
+ drivers/infiniband/hw/i40iw/i40iw_utils.c | 17 -----------------
+ 4 files changed, 1 insertion(+), 31 deletions(-)
 
-Doug, and other IB folks, can I get an explicit ACK on this rebased
-patchset from Daniel?  I don't like sending cross-subsystem changes
-this large upstream without the associated ACKs.
-
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+index f82483b..a027e20 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+@@ -285,28 +285,20 @@ void i40iw_change_l2params(struct i40iw_sc_vsi *vsi, struct i40iw_l2params *l2pa
+ 	struct i40iw_sc_dev *dev = vsi->dev;
+ 	struct i40iw_sc_qp *qp = NULL;
+ 	bool qs_handle_change = false;
+-	bool mss_change = false;
+ 	unsigned long flags;
+ 	u16 qs_handle;
+ 	int i;
+ 
+-	if (vsi->mss != l2params->mss) {
+-		mss_change = true;
+-		vsi->mss = l2params->mss;
+-	}
++	vsi->mss = l2params->mss;
+ 
+ 	i40iw_fill_qos_list(l2params->qs_handle_list);
+ 	for (i = 0; i < I40IW_MAX_USER_PRIORITY; i++) {
+ 		qs_handle = l2params->qs_handle_list[i];
+ 		if (vsi->qos[i].qs_handle != qs_handle)
+ 			qs_handle_change = true;
+-		else if (!mss_change)
+-			continue;       /* no MSS nor qs handle change */
+ 		spin_lock_irqsave(&vsi->qos[i].lock, flags);
+ 		qp = i40iw_get_qp(&vsi->qos[i].qplist, qp);
+ 		while (qp) {
+-			if (mss_change)
+-				i40iw_qp_mss_modify(dev, qp);
+ 			if (qs_handle_change) {
+ 				qp->qs_handle = qs_handle;
+ 				/* issue cqp suspend command */
+@@ -2395,7 +2387,6 @@ static enum i40iw_status_code i40iw_sc_qp_modify(
+ 
+ 	set_64bit_val(wqe,
+ 		      8,
+-		      LS_64(info->new_mss, I40IW_CQPSQ_QP_NEWMSS) |
+ 		      LS_64(term_len, I40IW_CQPSQ_QP_TERMLEN));
+ 
+ 	set_64bit_val(wqe, 16, qp->hw_host_ctx_pa);
+@@ -2410,7 +2401,6 @@ static enum i40iw_status_code i40iw_sc_qp_modify(
+ 		 LS_64(info->cq_num_valid, I40IW_CQPSQ_QP_CQNUMVALID) |
+ 		 LS_64(info->force_loopback, I40IW_CQPSQ_QP_FORCELOOPBACK) |
+ 		 LS_64(qp->qp_type, I40IW_CQPSQ_QP_QPTYPE) |
+-		 LS_64(info->mss_change, I40IW_CQPSQ_QP_MSSCHANGE) |
+ 		 LS_64(info->static_rsrc, I40IW_CQPSQ_QP_STATRSRC) |
+ 		 LS_64(info->remove_hash_idx, I40IW_CQPSQ_QP_REMOVEHASHENTRY) |
+ 		 LS_64(term_actions, I40IW_CQPSQ_QP_TERMACT) |
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_osdep.h b/drivers/infiniband/hw/i40iw/i40iw_osdep.h
+index aa66c1c..f27be3e 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_osdep.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_osdep.h
+@@ -199,7 +199,6 @@ void i40iw_cqp_spawn_worker(struct i40iw_sc_dev *dev,
+ 			    struct i40iw_virtchnl_work_info *work_info, u32 iw_vf_idx);
+ void *i40iw_remove_head(struct list_head *list);
+ void i40iw_qp_suspend_resume(struct i40iw_sc_dev *dev, struct i40iw_sc_qp *qp, bool suspend);
+-void i40iw_qp_mss_modify(struct i40iw_sc_dev *dev, struct i40iw_sc_qp *qp);
+ 
+ void i40iw_term_modify_qp(struct i40iw_sc_qp *qp, u8 next_state, u8 term, u8 term_len);
+ void i40iw_terminate_done(struct i40iw_sc_qp *qp, int timeout_occurred);
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_type.h b/drivers/infiniband/hw/i40iw/i40iw_type.h
+index 7b76259..959ec81 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_type.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_type.h
+@@ -541,7 +541,6 @@ struct i40iw_create_qp_info {
+ struct i40iw_modify_qp_info {
+ 	u64 rx_win0;
+ 	u64 rx_win1;
+-	u16 new_mss;
+ 	u8 next_iwarp_state;
+ 	u8 termlen;
+ 	bool ord_valid;
+@@ -554,7 +553,6 @@ struct i40iw_modify_qp_info {
+ 	bool dont_send_term;
+ 	bool dont_send_fin;
+ 	bool cached_var_valid;
+-	bool mss_change;
+ 	bool force_loopback;
+ };
+ 
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
+index 409a378..56d9869 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
+@@ -757,23 +757,6 @@ void i40iw_qp_suspend_resume(struct i40iw_sc_dev *dev, struct i40iw_sc_qp *qp, b
+ }
+ 
+ /**
+- * i40iw_qp_mss_modify - modify mss for qp
+- * @dev: hardware control device structure
+- * @qp: hardware control qp
+- */
+-void i40iw_qp_mss_modify(struct i40iw_sc_dev *dev, struct i40iw_sc_qp *qp)
+-{
+-	struct i40iw_device *iwdev = (struct i40iw_device *)dev->back_dev;
+-	struct i40iw_qp *iwqp = (struct i40iw_qp *)qp->back_qp;
+-	struct i40iw_modify_qp_info info;
+-
+-	memset(&info, 0, sizeof(info));
+-	info.mss_change = true;
+-	info.new_mss = qp->vsi->mss;
+-	i40iw_hw_modify_qp(iwdev, iwqp, &info, false);
+-}
+-
+-/**
+  * i40iw_term_modify_qp - modify qp for term message
+  * @qp: hardware control qp
+  * @next_state: qp's next state
 -- 
-paul moore
-www.paul-moore.com
+2.1.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
