@@ -1,58 +1,103 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc] IB/mlx4: Fix MAD tunneling when SRIOV is enabled
-Date: Sun, 21 May 2017 19:11:13 +0300
-Message-ID: <20170521161113.20772-1-leon@kernel.org>
+Subject: [PATCH rdma-next] IB/iser: Fix connection teardown race condition
+Date: Sun, 21 May 2017 19:17:31 +0300
+Message-ID: <20170521161731.22223-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vladimir Neyelov <vladimirn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+From: Vladimir Neyelov <vladimirn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The cited patch added a type field to structures ib_ah and rdma_ah_attr.
+Under heavy iser target(scst) start/stop stress during login/logout
+on iser intitiator side happened trace call provided below.
 
-Function mlx4_ib_query_ah() builds an rdma_ah_attr structure from the
-data in an mlx4_ib_ah structure (which contains both an ib_ah structure
-and an address vector).
+The function iscsi_iser_slave_alloc iser_conn pointer could be NULL,
+due to the fact that function iscsi_iser_conn_stop can be called before
+and free iser connection. Let's protect that flow by introducing global mutex.
 
-For mlx4_ib_query_ah() to work properly, the type field in the contained
-ib_ah structure must be set correctly.
+BUG: unable to handle kernel paging request at 0000000000001018
+IP: [<ffffffffc0426f7e>] iscsi_iser_slave_alloc+0x1e/0x50 [ib_iser]
+Call Trace:
+? scsi_alloc_sdev+0x242/0x300
+scsi_probe_and_add_lun+0x9e1/0xea0
+? kfree_const+0x21/0x30
+? kobject_set_name_vargs+0x76/0x90
+? __pm_runtime_resume+0x5b/0x70
+__scsi_scan_target+0xf6/0x250
+scsi_scan_target+0xea/0x100
+iscsi_user_scan_session.part.13+0x101/0x130 [scsi_transport_iscsi]
+? iscsi_user_scan_session.part.13+0x130/0x130 [scsi_transport_iscsi]
+iscsi_user_scan_session+0x1e/0x30 [scsi_transport_iscsi]
+device_for_each_child+0x50/0x90
+iscsi_user_scan+0x44/0x60 [scsi_transport_iscsi]
+store_scan+0xa8/0x100
+? common_file_perm+0x5d/0x1c0
+dev_attr_store+0x18/0x30
+sysfs_kf_write+0x37/0x40
+kernfs_fop_write+0x12c/0x1c0
+__vfs_write+0x18/0x40
+vfs_write+0xb5/0x1a0
+SyS_write+0x55/0xc0
 
-In the outgoing MAD tunneling flow, procedure mlx4_ib_multiplex_mad()
-paravirtualizes a MAD received from a slave and sends the processed
-mad out over the wire. During this processing, it populates an
-mlx4_ib_ah structure and calls mlx4_ib_query_ah().
-
-The cited commit overlooked setting the type field in the contained
-ib_ah structure before invoking mlx4_ib_query_ah(). As a result, the
-type field remained uninitialized, and the rdma_ah_attr structure was
-incorrectly built. This resulted in improperly built MADs being sent out
-over the wire.
-
-This patch properly initializes the type field in the contained ib_ah
-structure before calling mlx4_ib_query_ah(). The rdma_ah_attr structure
-is then generated correctly.
-
-Fixes: 44c58487d51a ("IB/core: Define 'ib' and 'roce' rdma_ah_attr types")
-Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Fixes: 318d311e8f01 ("iser: Accept arbitrary sg lists mapping if the device supports it")
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v4.5+
+Signed-off-by: Vladimir Neyelov <vladimirn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/mad.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/ulp/iser/iscsi_iser.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index b4694717f6f3..21d31cb1325f 100644
---- a/drivers/infiniband/hw/mlx4/mad.c
-+++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -1578,6 +1578,7 @@ static void mlx4_ib_multiplex_mad(struct mlx4_ib_demux_pv_ctx *ctx, struct ib_wc
- 	if (port < 0)
- 		return;
- 	ah.av.ib.port_pd = cpu_to_be32(port << 24 | (be32_to_cpu(ah.av.ib.port_pd) & 0xffffff));
-+	ah.ibah.type = rdma_ah_find_type(&dev->ib_dev, port);
+diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
+index 5a887efb4bdf..9ba649836d86 100644
+--- a/drivers/infiniband/ulp/iser/iscsi_iser.c
++++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
+@@ -83,6 +83,7 @@ static struct scsi_host_template iscsi_iser_sht;
+ static struct iscsi_transport iscsi_iser_transport;
+ static struct scsi_transport_template *iscsi_iser_scsi_transport;
+ static struct workqueue_struct *release_wq;
++static DEFINE_MUTEX(unbind_iser_conn_mutex);
+ struct iser_global ig;
 
- 	mlx4_ib_query_ah(&ah.ibah, &ah_attr);
- 	if (rdma_ah_get_ah_flags(&ah_attr) & IB_AH_GRH)
+ int iser_debug_level = 0;
+@@ -550,12 +551,14 @@ iscsi_iser_conn_stop(struct iscsi_cls_conn *cls_conn, int flag)
+ 	 */
+ 	if (iser_conn) {
+ 		mutex_lock(&iser_conn->state_mutex);
++		mutex_lock(&unbind_iser_conn_mutex);
+ 		iser_conn_terminate(iser_conn);
+ 		iscsi_conn_stop(cls_conn, flag);
+
+ 		/* unbind */
+ 		iser_conn->iscsi_conn = NULL;
+ 		conn->dd_data = NULL;
++		mutex_unlock(&unbind_iser_conn_mutex);
+
+ 		complete(&iser_conn->stop_completion);
+ 		mutex_unlock(&iser_conn->state_mutex);
+@@ -977,13 +980,21 @@ static int iscsi_iser_slave_alloc(struct scsi_device *sdev)
+ 	struct iser_conn *iser_conn;
+ 	struct ib_device *ib_dev;
+
++	mutex_lock(&unbind_iser_conn_mutex);
++
+ 	session = starget_to_session(scsi_target(sdev))->dd_data;
+ 	iser_conn = session->leadconn->dd_data;
++	if (!iser_conn) {
++		mutex_unlock(&unbind_iser_conn_mutex);
++		return -ENOTCONN;
++	}
+ 	ib_dev = iser_conn->ib_conn.device->ib_device;
+
+ 	if (!(ib_dev->attrs.device_cap_flags & IB_DEVICE_SG_GAPS_REG))
+ 		blk_queue_virt_boundary(sdev->request_queue, ~MASK_4K);
+
++	mutex_unlock(&unbind_iser_conn_mutex);
++
+ 	return 0;
+ }
+
 --
 2.12.2
 
