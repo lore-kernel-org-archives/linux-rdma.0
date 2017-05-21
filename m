@@ -1,90 +1,155 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: rdma_cm NULL deref in 4.11.0+
-Date: Sun, 21 May 2017 14:30:04 +0000
-Message-ID: <VI1PR0502MB30083E6CB505CA90A9E047C0D1FB0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: rdma_cm NULL deref in 4.11.0+
+Date: Sun, 21 May 2017 18:44:43 +0300
+Message-ID: <20170521154443.GD17751@mtr-leonro.local>
 References: <acc72471-eb22-4474-04f5-db23227faadd@grimberg.me>
+ <VI1PR0502MB30083E6CB505CA90A9E047C0D1FB0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="z6Eq5LdranGa6ru8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <acc72471-eb22-4474-04f5-db23227faadd-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <VI1PR0502MB30083E6CB505CA90A9E047C0D1FB0-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgU2FnaSwNCg0KTWFqZCBlbmNvdW50ZXJlZCBzYW1lIHNvbWV0aW1lIGJhY2sgYW5kIHJlcG9y
-dGVkIFsxXS4NCkhlIGhhcyB0aGUgZml4IHNob3VsZCBiZSBwb3N0aW5nIHRoZSBmaXggc29vbi4N
-Cg0KTWFqZC9MZW9uPw0KDQpQYXJhdg0KDQpbMV0gaHR0cHM6Ly93d3cuc3Bpbmljcy5uZXQvbGlz
-dHMvbGludXgtcmRtYS9tc2c0OTg1Ny5odG1sDQoNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
-LS0tLQ0KPiBGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxp
-bnV4LXJkbWEtDQo+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIFNhZ2kgR3Jp
-bWJlcmcNCj4gU2VudDogU3VuZGF5LCBNYXkgMjEsIDIwMTcgOTowMCBBTQ0KPiBUbzogbGludXgt
-cmRtYUB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogcmRtYV9jbSBOVUxMIGRlcmVmIGluIDQu
-MTEuMCsNCj4gDQo+IEp1c3Qgc3RlcHBlZCBvbiBpdCwNCj4gDQo+IFNpbXBsZSBudm1mIGNvbm5l
-Y3QgdHJpZ2dlcnMgaXQsIGlzIHRoaXMga25vd24/DQo+IEFsc28sIHJwaW5nIGNsaWVudCBzZWdm
-YXVsdHMgc28gbGlicmRtYWNtIHNlZW1zIHRvIGJlIGJyb2tlbi4NCj4gDQo+IC0tDQo+IFsgICAx
-Ni44MDk0OThdIEJVRzogdW5hYmxlIHRvIGhhbmRsZSBrZXJuZWwgTlVMTCBwb2ludGVyIGRlcmVm
-ZXJlbmNlIGF0DQo+IDAwMDAwMDAwMDAwMDAwMDgNCj4gWyAgIDE2LjgxMjU3MF0gSVA6IF9fcmFk
-aXhfdHJlZV9sb29rdXArMHhlLzB4ZjANCj4gWyAgIDE2LjgxNDE3Ml0gUEdEIDANCj4gWyAgIDE2
-LjgxNDE3NF0gUDREIDANCj4gDQo+IFsgICAxNi44MTUwNTJdIE9vcHM6IDAwMDAgWyMxXSBTTVAN
-Cj4gWyAgIDE2LjgxNTQwMV0gTW9kdWxlcyBsaW5rZWQgaW46IG52bWVfbG9vcCBudm1lX2ZhYnJp
-Y3MgbnZtZV9jb3JlDQo+IG52bWV0X3JkbWEgbnZtZXQgcmRtYV9jbSBpd19jbSBudWxsX2JsayBt
-bHg1X2liIGlzY3NpX3RhcmdldF9tb2QNCj4gaWJfc3JwdCBpYl9jbSBpYl9jb3JlIHRjbV9sb29w
-IHRjbV9mYyBsaWJmYyB0Y21fcWxhMnh4eCBxbGEyeHh4DQo+IHNjc2lfdHJhbnNwb3J0X2ZjIHVz
-Yl9mX3RjbSB0Y21fdXNiX2dhZGdldCBsaWJjb21wb3NpdGUgdWRjX2NvcmUNCj4gdmhvc3Rfc2Nz
-aSB2aG9zdCB0YXJnZXRfY29yZV9maWxlIHRhcmdldF9jb3JlX2libG9jayB0YXJnZXRfY29yZV9w
-c2NzaQ0KPiB0YXJnZXRfY29yZV9tb2QgY29uZmlnZnMga3ZtX2ludGVsIGt2bSBpcnFieXBhc3Mg
-cHBkZXYgY3JjdDEwZGlmX3BjbG11bA0KPiBjcmMzMl9wY2xtdWwgZ2hhc2hfY2xtdWxuaV9pbnRl
-bCBwY2JjIGFlc25pX2ludGVsIGFlc194ODZfNjQgY3J5cHRvX3NpbWQNCj4gZ2x1ZV9oZWxwZXIg
-Y3J5cHRkIGlucHV0X2xlZHMgam95ZGV2IHNlcmlvX3JhdyBpMmNfcGlpeDQgcGFycG9ydF9wYyBw
-YXJwb3J0DQo+IG1hY19oaWQgc3VucnBjIGF1dG9mczQgODEzOXRvbyBjaXJydXMgdHRtIGRybV9r
-bXNfaGVscGVyIG1seDVfY29yZQ0KPiBzeXNjb3B5YXJlYSBwdHAgc3lzZmlsbHJlY3QgcHNtb3Vz
-ZSBzeXNpbWdibHQgZmJfc3lzX2ZvcHMgcHBzX2NvcmUgZHJtDQo+IGZsb3BweSA4MTM5Y3AgbWlp
-IHBhdGFfYWNwaQ0KPiBbICAgMTYuODIxOTcyXSBDUFU6IDAgUElEOiAzIENvbW06IGt3b3JrZXIv
-MDowIE5vdCB0YWludGVkIDQuMTEuMCsgIzE1OA0KPiBbICAgMTYuODIyNjU2XSBIYXJkd2FyZSBu
-YW1lOiBRRU1VIFN0YW5kYXJkIFBDIChpNDQwRlggKyBQSUlYLCAxOTk2KSwNCj4gQklPUyBVYnVu
-dHUtMS44LjItMXVidW50dTEgMDQvMDEvMjAxNA0KPiBbICAgMTYuODIzNjMwXSBXb3JrcXVldWU6
-IGliX2NtIGNtX3dvcmtfaGFuZGxlciBbaWJfY21dDQo+IFsgICAxNi44MjQxNDRdIHRhc2s6IGZm
-ZmY4ZTAxM2Q5ODEwYzAgdGFzay5zdGFjazogZmZmZjlhZmM4MDFhNDAwMA0KPiBbICAgMTYuODI0
-NzU0XSBSSVA6IDAwMTA6X19yYWRpeF90cmVlX2xvb2t1cCsweGUvMHhmMA0KPiBbICAgMTYuODI1
-MjQ4XSBSU1A6IDAwMTg6ZmZmZjlhZmM4MDFhN2I0OCBFRkxBR1M6IDAwMDEwMjQ2DQo+IFsgICAx
-Ni44MjU3OTFdIFJBWDogZmZmZjhlMDEzNWQ3MGY4MCBSQlg6IGZmZmY4ZTAxMzcxMzBhMDAgUkNY
-Og0KPiAwMDAwMDAwMDAwMDAwMDAwDQo+IFsgICAxNi44MjY0OTddIFJEWDogMDAwMDAwMDAwMDAw
-MDAwMCBSU0k6IDAwMDAwMDAwMDAwMDAwMDAgUkRJOg0KPiAwMDAwMDAwMDAwMDAwMDAwDQo+IFsg
-ICAxNi44MjcyMDldIFJCUDogZmZmZjlhZmM4MDFhN2I1MCBSMDg6IGZmZmY5YWZjODAxYTdhNDgg
-UjA5Og0KPiBmZmZmOGUwMTM5YjM1MDMwDQo+IFsgICAxNi44Mjc5MTZdIFIxMDogMDAwMDAwMDAw
-MDAwMDAwMCBSMTE6IDAwMDAwMDAwMDAwMDAwNDAgUjEyOg0KPiBmZmZmOGUwMTM3MTMwYTg4DQo+
-IFsgICAxNi44Mjg2MzFdIFIxMzogZmZmZjhlMDEzNzEzMGE4OCBSMTQ6IGZmZmY4ZTAxMzU3ODYy
-MDAgUjE1Og0KPiBmZmZmOGUwMTM3MTMwYzAwDQo+IFsgICAxNi44MjkzMTddIEZTOiAgMDAwMDAw
-MDAwMDAwMDAwMCgwMDAwKSBHUzpmZmZmOGUwMTNmYzAwMDAwKDAwMDApDQo+IGtubEdTOjAwMDAw
-MDAwMDAwMDAwMDANCj4gWyAgIDE2LjgzMDA4NF0gQ1M6ICAwMDEwIERTOiAwMDAwIEVTOiAwMDAw
-IENSMDogMDAwMDAwMDA4MDA1MDAzMw0KPiBbICAgMTYuODMwNjI5XSBDUjI6IDAwMDAwMDAwMDAw
-MDAwMDggQ1IzOiAwMDAwMDAwMDBmZTA5MDAwIENSNDoNCj4gMDAwMDAwMDAwMDM0MDZmMA0KPiBb
-ICAgMTYuODMxMjc4XSBDYWxsIFRyYWNlOg0KPiBbICAgMTYuODMxNTExXSAgcmFkaXhfdHJlZV9s
-b29rdXArMHhkLzB4MTANCj4gWyAgIDE2LjgzMTg2NV0gIGNtYV9wc19maW5kKzB4NTkvMHg3MCBb
-cmRtYV9jbV0NCj4gWyAgIDE2LjgzMjI4N10gIGNtYV9pZF9mcm9tX2V2ZW50KzB4ZTgvMHg1YTAg
-W3JkbWFfY21dDQo+IFsgICAxNi44MzI3MzRdICBjbWFfcmVxX2hhbmRsZXIrMHg0OS8weDk3MCBb
-cmRtYV9jbV0NCj4gWyAgIDE2LjgzMzE2Nl0gID8gY21hX3JlcV9oYW5kbGVyKzB4NDkvMHg5NzAg
-W3JkbWFfY21dDQo+IFsgICAxNi44MzM2MTJdICBjbV9wcm9jZXNzX3dvcmsrMHgyNS8weDEyMCBb
-aWJfY21dDQo+IFsgICAxNi44MzQwMjZdICA/IGNtX3Byb2Nlc3Nfd29yaysweDI1LzB4MTIwIFtp
-Yl9jbV0NCj4gWyAgIDE2LjgzNDQ1NV0gID8gY21fZ2V0X2J0aF9wa2V5LmlzcmEuMzYrMHgzYS8w
-eGEwIFtpYl9jbV0NCj4gWyAgIDE2LjgzNDkzOF0gIGNtX3JlcV9oYW5kbGVyKzB4YWQyLzB4ZDMw
-IFtpYl9jbV0NCj4gWyAgIDE2LjgzNTM1Nl0gIGNtX3dvcmtfaGFuZGxlcisweDE5Ni8weDE2ZmEg
-W2liX2NtXQ0KPiBbICAgMTYuODM1Nzg1XSAgPyBjbV93b3JrX2hhbmRsZXIrMHgxOTYvMHgxNmZh
-IFtpYl9jbV0NCj4gWyAgIDE2LjgzNjI2M10gIHByb2Nlc3Nfb25lX3dvcmsrMHgxNTYvMHgzZjAN
-Cj4gWyAgIDE2LjgzNjYzMV0gIHdvcmtlcl90aHJlYWQrMHg0Yi8weDQxMA0KPiBbICAgMTYuODM2
-OTY5XSAga3RocmVhZCsweDEwOS8weDE0MA0KPiBbICAgMTYuODM3MjY4XSAgPyBwcm9jZXNzX29u
-ZV93b3JrKzB4M2YwLzB4M2YwDQo+IFsgICAxNi44Mzc2NTBdICA/IGt0aHJlYWRfY3JlYXRlX29u
-X25vZGUrMHg0MC8weDQwDQo+IFsgICAxNi44MzgwNzBdICByZXRfZnJvbV9mb3JrKzB4MmMvMHg0
-MA0KPiBbICAgMTYuODM4Mzk5XSBDb2RlOiBmZiA0NSAwMCA3ZSAwMyBlOSA2NCBmZiBmZiBmZiA0
-YyA4OSAyMyBlOSAwZSBmZiBmZg0KPiBmZiA5MCA2NiAyZSAwZiAxZiA4NCAwMCAwMCAwMCAwMCAw
-MCA1NSA0OSA4OSBjYSA0MSBiYiA0MCAwMCAwMCAwMCA0OCA4OQ0KPiBlNSA1MyA8NGM+IDhiIDQ3
-IDA4IDRjIDg5IGMwIDgzIGUwIDAzIDQ4IDgzIGY4IDAxIDBmIDg1IGE5IDAwIDAwIDAwIDRjDQo+
-IC0tDQo+IC0tDQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5l
-ICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIiBpbiB0aGUNCj4gYm9keSBvZiBhIG1lc3NhZ2UgdG8g
-bWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZyBNb3JlIG1ham9yZG9tbyBpbmZvIGF0DQo+IGh0dHA6
-Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
+
+--z6Eq5LdranGa6ru8
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Sun, May 21, 2017 at 02:30:04PM +0000, Parav Pandit wrote:
+> Hi Sagi,
+>
+> Majd encountered same sometime back and reported [1].
+> He has the fix should be posting the fix soon.
+>
+> Majd/Leon?
+
+The fix is in our rdma-rc branch.
+https://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git/commit/=
+?h=3Drdma-rc&id=3Df1fff656d55c52aeb12129f57347886b02f90e1d
+
+I planned to submit it today.
+
+Thanks
+
+
+>
+> Parav
+>
+> [1] https://www.spinics.net/lists/linux-rdma/msg49857.html
+>
+>
+> > -----Original Message-----
+> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Sagi Grimberg
+> > Sent: Sunday, May 21, 2017 9:00 AM
+> > To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Subject: rdma_cm NULL deref in 4.11.0+
+> >
+> > Just stepped on it,
+> >
+> > Simple nvmf connect triggers it, is this known?
+> > Also, rping client segfaults so librdmacm seems to be broken.
+> >
+> > --
+> > [   16.809498] BUG: unable to handle kernel NULL pointer dereference at
+> > 0000000000000008
+> > [   16.812570] IP: __radix_tree_lookup+0xe/0xf0
+> > [   16.814172] PGD 0
+> > [   16.814174] P4D 0
+> >
+> > [   16.815052] Oops: 0000 [#1] SMP
+> > [   16.815401] Modules linked in: nvme_loop nvme_fabrics nvme_core
+> > nvmet_rdma nvmet rdma_cm iw_cm null_blk mlx5_ib iscsi_target_mod
+> > ib_srpt ib_cm ib_core tcm_loop tcm_fc libfc tcm_qla2xxx qla2xxx
+> > scsi_transport_fc usb_f_tcm tcm_usb_gadget libcomposite udc_core
+> > vhost_scsi vhost target_core_file target_core_iblock target_core_pscsi
+> > target_core_mod configfs kvm_intel kvm irqbypass ppdev crct10dif_pclmul
+> > crc32_pclmul ghash_clmulni_intel pcbc aesni_intel aes_x86_64 crypto_simd
+> > glue_helper cryptd input_leds joydev serio_raw i2c_piix4 parport_pc par=
+port
+> > mac_hid sunrpc autofs4 8139too cirrus ttm drm_kms_helper mlx5_core
+> > syscopyarea ptp sysfillrect psmouse sysimgblt fb_sys_fops pps_core drm
+> > floppy 8139cp mii pata_acpi
+> > [   16.821972] CPU: 0 PID: 3 Comm: kworker/0:0 Not tainted 4.11.0+ #158
+> > [   16.822656] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996),
+> > BIOS Ubuntu-1.8.2-1ubuntu1 04/01/2014
+> > [   16.823630] Workqueue: ib_cm cm_work_handler [ib_cm]
+> > [   16.824144] task: ffff8e013d9810c0 task.stack: ffff9afc801a4000
+> > [   16.824754] RIP: 0010:__radix_tree_lookup+0xe/0xf0
+> > [   16.825248] RSP: 0018:ffff9afc801a7b48 EFLAGS: 00010246
+> > [   16.825791] RAX: ffff8e0135d70f80 RBX: ffff8e0137130a00 RCX:
+> > 0000000000000000
+> > [   16.826497] RDX: 0000000000000000 RSI: 0000000000000000 RDI:
+> > 0000000000000000
+> > [   16.827209] RBP: ffff9afc801a7b50 R08: ffff9afc801a7a48 R09:
+> > ffff8e0139b35030
+> > [   16.827916] R10: 0000000000000000 R11: 0000000000000040 R12:
+> > ffff8e0137130a88
+> > [   16.828631] R13: ffff8e0137130a88 R14: ffff8e0135786200 R15:
+> > ffff8e0137130c00
+> > [   16.829317] FS:  0000000000000000(0000) GS:ffff8e013fc00000(0000)
+> > knlGS:0000000000000000
+> > [   16.830084] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> > [   16.830629] CR2: 0000000000000008 CR3: 000000000fe09000 CR4:
+> > 00000000003406f0
+> > [   16.831278] Call Trace:
+> > [   16.831511]  radix_tree_lookup+0xd/0x10
+> > [   16.831865]  cma_ps_find+0x59/0x70 [rdma_cm]
+> > [   16.832287]  cma_id_from_event+0xe8/0x5a0 [rdma_cm]
+> > [   16.832734]  cma_req_handler+0x49/0x970 [rdma_cm]
+> > [   16.833166]  ? cma_req_handler+0x49/0x970 [rdma_cm]
+> > [   16.833612]  cm_process_work+0x25/0x120 [ib_cm]
+> > [   16.834026]  ? cm_process_work+0x25/0x120 [ib_cm]
+> > [   16.834455]  ? cm_get_bth_pkey.isra.36+0x3a/0xa0 [ib_cm]
+> > [   16.834938]  cm_req_handler+0xad2/0xd30 [ib_cm]
+> > [   16.835356]  cm_work_handler+0x196/0x16fa [ib_cm]
+> > [   16.835785]  ? cm_work_handler+0x196/0x16fa [ib_cm]
+> > [   16.836263]  process_one_work+0x156/0x3f0
+> > [   16.836631]  worker_thread+0x4b/0x410
+> > [   16.836969]  kthread+0x109/0x140
+> > [   16.837268]  ? process_one_work+0x3f0/0x3f0
+> > [   16.837650]  ? kthread_create_on_node+0x40/0x40
+> > [   16.838070]  ret_from_fork+0x2c/0x40
+> > [   16.838399] Code: ff 45 00 7e 03 e9 64 ff ff ff 4c 89 23 e9 0e ff ff
+> > ff 90 66 2e 0f 1f 84 00 00 00 00 00 55 49 89 ca 41 bb 40 00 00 00 48 89
+> > e5 53 <4c> 8b 47 08 4c 89 c0 83 e0 03 48 83 f8 01 0f 85 a9 00 00 00 4c
+> > --
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n the
+> > body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
+> > http://vger.kernel.org/majordomo-info.html
+> N?????r??y????b?X??=C7=A7v?^?)=DE=BA{.n?+????{??=D9=9A?{ay?=1D=CA=87=DA=
+=99?,j=07??f???h???z?=1E?w???=0C???j:+v???w?j?m????=07????zZ+?????=DD=A2j"?=
+?!
+
+--z6Eq5LdranGa6ru8
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkhtesACgkQ5GN7iDZy
+WKfgXhAAmJAZWdS+Cs4ejxaTKzw0oBWiwTFB4axrxqGvQLDfAgIRO9kGlBKs0wAT
+NJGP20o/c10ab9wyVpwSJ96KyBDGQj1jloL/qJASjSJvLRBnFouLIgxVoSf4suMb
+Ge5ngH1CsEuqu0r/ny6kqHB20d1FyTRjrSCvDt6FsN+Qo0WRmz9AIiaqWhXeyj9q
+qyUo52qehR8T68NW1scyeIdWWY/PKnzyELgkHjRIZ3WMCl9ybFEY8Hym6gyoemem
+uv7NXCLNJfyqSMS/Vb/bftpYQaAnJCXIQKyrk+TOvC5PM+2nC9mWFhuvzerNGwpu
+QxKqhVopyjbvl36MTB2wCjPyzF7WfJr3oDplP4l9CUe3Zew3MneuQ5pY6cte+iMx
+n6QVlHKhEteMN4aaFlQ43iICanIpBQOXemOf66VfXy+C05rhD/7yLidOHNXL8lJ8
+K6wlMjMJlJi4USgaAguOexGz+16jcHK4J910VW6rtMj9NpDeTTtL/+a7GsnBLoLM
+fdHUk06wVNugWAUjqnI85N8XvsvursRlj1aFz11/bPILVYVNh2K5r81KY5bE7yQ8
+jh5dqDXZtI9cRNFJB5XT7wQBVdleunLd+Kj6WYDGyx+xBJK+mj8pNrb7iuzDu1yZ
+yb5pUhCMEjohDJdeCg2Tdfl6pGg1LxQou6liiPX2KGO5Vkqw6bw=
+=VA56
+-----END PGP SIGNATURE-----
+
+--z6Eq5LdranGa6ru8--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
