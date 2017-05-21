@@ -1,107 +1,34 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next] IB/iser: Fix connection teardown race condition
-Date: Sun, 21 May 2017 19:17:31 +0300
-Message-ID: <20170521161731.22223-1-leon@kernel.org>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vladimir Neyelov <vladimirn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: James Morris <jmorris@namei.org>
+Subject: Re: [PATCH v7 1/9] IB/core: IB cache enhancements to support Infiniband
+ security
+Date: Mon, 22 May 2017 09:56:18 +1000 (AEST)
+Message-ID: <alpine.LRH.2.20.1705220956020.3502@namei.org>
+References: <1495198139-69993-1-git-send-email-danielj@mellanox.com> <1495198139-69993-2-git-send-email-danielj@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <1495198139-69993-2-git-send-email-danielj@mellanox.com>
+Sender: owner-linux-security-module@vger.kernel.org
+To: Dan Jurgens <danielj@mellanox.com>
+Cc: chrisw@sous-sol.org, paul@paul-moore.com, sds@tycho.nsa.gov, eparis@parisplace.org, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, selinux@tycho.nsa.gov, linux-security-module@vger.kernel.org, linux-rdma@vger.kernel.org, yevgenyp@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Vladimir Neyelov <vladimirn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Fri, 19 May 2017, Dan Jurgens wrote:
 
-Under heavy iser target(scst) start/stop stress during login/logout
-on iser intitiator side happened trace call provided below.
+> From: Daniel Jurgens <danielj@mellanox.com>
+> 
+> Cache the subnet prefix and add a function to access it. Enforcing
+> security requires frequent queries of the subnet prefix and the pkeys in
+> the pkey table.
+> 
+> Signed-off-by: Daniel Jurgens <danielj@mellanox.com>
+> Reviewed-by: Eli Cohen <eli@mellanox.com>
+> Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 
-The function iscsi_iser_slave_alloc iser_conn pointer could be NULL,
-due to the fact that function iscsi_iser_conn_stop can be called before
-and free iser connection. Let's protect that flow by introducing global mutex.
+Reviewed-by: James Morris <james.l.morris@oracle.com>
 
-BUG: unable to handle kernel paging request at 0000000000001018
-IP: [<ffffffffc0426f7e>] iscsi_iser_slave_alloc+0x1e/0x50 [ib_iser]
-Call Trace:
-? scsi_alloc_sdev+0x242/0x300
-scsi_probe_and_add_lun+0x9e1/0xea0
-? kfree_const+0x21/0x30
-? kobject_set_name_vargs+0x76/0x90
-? __pm_runtime_resume+0x5b/0x70
-__scsi_scan_target+0xf6/0x250
-scsi_scan_target+0xea/0x100
-iscsi_user_scan_session.part.13+0x101/0x130 [scsi_transport_iscsi]
-? iscsi_user_scan_session.part.13+0x130/0x130 [scsi_transport_iscsi]
-iscsi_user_scan_session+0x1e/0x30 [scsi_transport_iscsi]
-device_for_each_child+0x50/0x90
-iscsi_user_scan+0x44/0x60 [scsi_transport_iscsi]
-store_scan+0xa8/0x100
-? common_file_perm+0x5d/0x1c0
-dev_attr_store+0x18/0x30
-sysfs_kf_write+0x37/0x40
-kernfs_fop_write+0x12c/0x1c0
-__vfs_write+0x18/0x40
-vfs_write+0xb5/0x1a0
-SyS_write+0x55/0xc0
 
-Fixes: 318d311e8f01 ("iser: Accept arbitrary sg lists mapping if the device supports it")
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v4.5+
-Signed-off-by: Vladimir Neyelov <vladimirn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/ulp/iser/iscsi_iser.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+-- 
+James Morris
+<jmorris@namei.org>
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-index 5a887efb4bdf..9ba649836d86 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.c
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-@@ -83,6 +83,7 @@ static struct scsi_host_template iscsi_iser_sht;
- static struct iscsi_transport iscsi_iser_transport;
- static struct scsi_transport_template *iscsi_iser_scsi_transport;
- static struct workqueue_struct *release_wq;
-+static DEFINE_MUTEX(unbind_iser_conn_mutex);
- struct iser_global ig;
-
- int iser_debug_level = 0;
-@@ -550,12 +551,14 @@ iscsi_iser_conn_stop(struct iscsi_cls_conn *cls_conn, int flag)
- 	 */
- 	if (iser_conn) {
- 		mutex_lock(&iser_conn->state_mutex);
-+		mutex_lock(&unbind_iser_conn_mutex);
- 		iser_conn_terminate(iser_conn);
- 		iscsi_conn_stop(cls_conn, flag);
-
- 		/* unbind */
- 		iser_conn->iscsi_conn = NULL;
- 		conn->dd_data = NULL;
-+		mutex_unlock(&unbind_iser_conn_mutex);
-
- 		complete(&iser_conn->stop_completion);
- 		mutex_unlock(&iser_conn->state_mutex);
-@@ -977,13 +980,21 @@ static int iscsi_iser_slave_alloc(struct scsi_device *sdev)
- 	struct iser_conn *iser_conn;
- 	struct ib_device *ib_dev;
-
-+	mutex_lock(&unbind_iser_conn_mutex);
-+
- 	session = starget_to_session(scsi_target(sdev))->dd_data;
- 	iser_conn = session->leadconn->dd_data;
-+	if (!iser_conn) {
-+		mutex_unlock(&unbind_iser_conn_mutex);
-+		return -ENOTCONN;
-+	}
- 	ib_dev = iser_conn->ib_conn.device->ib_device;
-
- 	if (!(ib_dev->attrs.device_cap_flags & IB_DEVICE_SG_GAPS_REG))
- 		blk_queue_virt_boundary(sdev->request_queue, ~MASK_4K);
-
-+	mutex_unlock(&unbind_iser_conn_mutex);
-+
- 	return 0;
- }
-
---
-2.12.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
