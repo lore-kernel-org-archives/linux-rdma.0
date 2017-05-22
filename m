@@ -1,50 +1,69 @@
 From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V4 for-next 04/14] RDMA/bnxt_re: Dereg MR in FW before freeing the fast_reg_page_list
-Date: Mon, 22 May 2017 03:15:34 -0700
-Message-ID: <1495448144-18966-5-git-send-email-selvin.xavier@broadcom.com>
+Subject: [PATCH V4 for-next 09/14] RDMA/bnxt_re: Do not free the ctx_tbl entry if delete GID fails
+Date: Mon, 22 May 2017 03:15:39 -0700
+Message-ID: <1495448144-18966-10-git-send-email-selvin.xavier@broadcom.com>
 References: <1495448144-18966-1-git-send-email-selvin.xavier@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1495448144-18966-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Kalesh AP <kalesh-anakkur.purayil-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If the host buffers are freed before destroying MR in HW,
-HW could try accessing these buffers. This could cause a host
-crash. Fixing the code to avoid this condition.
+This fix is added only to avoid system crash in some a
+specific scenario. When bnxt_re driver is loaded and if
+user tries to change interface mac address, delete GID
+fails because QP1 is still associated with existing MAC
+(default GID). If the above command fails GID tables are
+not modified in the h/w or driver, but the GID context memory
+is freed. Now, if the user changes the mac back to the original
+value, another add_gid comes to the driver where the driver
+reports that the GID is already present in its table
+and tries to access the context which was already freed.
 
+So, in this case, in order to  avoid NULL pointer de-reference,
+this patch removes the context memory free  if delete_gid fails
+and the same context memory is re-used in new add_gid.
+Memory cleanup will be taken care during driver unload, while
+deleting the GID table.
+
+Signed-off-by: Kalesh AP <kalesh-anakkur.purayil-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+v1 -> v2 : Adds the bug description in commit message
+
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index a89f095..e91bd68 100644
+index 6ec3ab2..43f7d66 100644
 --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
 +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -3035,6 +3035,12 @@ int bnxt_re_dereg_mr(struct ib_mr *ib_mr)
- 	struct bnxt_re_dev *rdev = mr->rdev;
- 	int rc = 0;
- 
-+	rc = bnxt_qplib_free_mrw(&rdev->qplib_res, &mr->qplib_mr);
-+	if (rc) {
-+		dev_err(rdev_to_dev(rdev), "Dereg MR failed: %#x\n", rc);
-+		return rc;
-+	}
-+
- 	if (mr->npages && mr->pages) {
- 		rc = bnxt_qplib_free_fast_reg_page_list(&rdev->qplib_res,
- 							&mr->qplib_frpl);
-@@ -3042,8 +3048,6 @@ int bnxt_re_dereg_mr(struct ib_mr *ib_mr)
- 		mr->npages = 0;
- 		mr->pages = NULL;
- 	}
--	rc = bnxt_qplib_free_mrw(&rdev->qplib_res, &mr->qplib_mr);
--
- 	if (!IS_ERR(mr->ib_umem) && mr->ib_umem)
- 		ib_umem_release(mr->ib_umem);
- 
+@@ -375,15 +375,17 @@ int bnxt_re_del_gid(struct ib_device *ibdev, u8 port_num,
+ 			return -EINVAL;
+ 		ctx->refcnt--;
+ 		if (!ctx->refcnt) {
+-			rc = bnxt_qplib_del_sgid
+-					(sgid_tbl,
+-					 &sgid_tbl->tbl[ctx->idx], true);
+-			if (rc)
++			rc = bnxt_qplib_del_sgid(sgid_tbl,
++						 &sgid_tbl->tbl[ctx->idx],
++						 true);
++			if (rc) {
+ 				dev_err(rdev_to_dev(rdev),
+ 					"Failed to remove GID: %#x", rc);
+-			ctx_tbl = sgid_tbl->ctx;
+-			ctx_tbl[ctx->idx] = NULL;
+-			kfree(ctx);
++			} else {
++				ctx_tbl = sgid_tbl->ctx;
++				ctx_tbl[ctx->idx] = NULL;
++				kfree(ctx);
++			}
+ 		}
+ 	} else {
+ 		return -EINVAL;
 -- 
 2.5.5
 
