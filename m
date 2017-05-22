@@ -1,39 +1,85 @@
 From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V3 for-next 14/15] RDMA/bnxt_re: Sync up the module
- version to internal release version
-Date: Mon, 22 May 2017 15:33:40 +0530
-Message-ID: <CA+sbYW1B8QNhe-xLkByhtWC+jfsx5K8ceXew7tw5HhG4-qc2hg@mail.gmail.com>
-References: <1495169074-12641-1-git-send-email-selvin.xavier@broadcom.com>
- <1495169074-12641-15-git-send-email-selvin.xavier@broadcom.com> <7f6e879e-175b-d126-17c3-e1314025ae33@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH V4 for-next 00/14] RDMA/bnxt_re: Bug fixes
+Date: Mon, 22 May 2017 03:15:30 -0700
+Message-ID: <1495448144-18966-1-git-send-email-selvin.xavier@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <7f6e879e-175b-d126-17c3-e1314025ae33-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Dennis,
- I am dropping this patch from this series. Posting v4 without this patch.
+The patch series has some bug fixes for bnxt_re driver.
+This series includes implementation of some of the workarounds
+required for the HW and FW and removes the FMR verb support from
+the driver.
+I have addressed all the review comments from Leon and Dennis in
+this series.
+
+Doug,
+ Please review and apply these changes to your repository.
+
 Thanks,
 Selvin Xavier
 
-On Fri, May 19, 2017 at 6:18 PM, Dennis Dalessandro
-<dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> On 5/19/2017 12:44 AM, Selvin Xavier wrote:
->>
->> Updates the module version. The new version number will enable us to
->> map the upstream driver to the level of supported features in the
->> internal code base.
->
->
-> Your internal code base doesn't mean anything at all to the kernel. If you
-> don't have a valid reason why the kernel needs this version number get rid
-> of this patch please.
->
-> -Denny
->
+v3 -> v4:
+	- Dropped the version change patch from this series
+
+v2 -> v3:
+	- Updates the commit log for the module version change patch
+	- Removes temp variables from one of the patches
+	- Fixes memory leak in one of the patches.
+	- Removes the FMR verbs support
+
+v1 -> v2:
+	- Changes suggested by Leon in one of the patches
+        - Updates commit message with more description
+	- Disables FMR support using a config option
+
+Devesh Sharma (3):
+  RDMA/bnxt_re: Fixing the Control path command and response handling
+  RDMA/bnxt_re: Free doorbell page index (DPI) during dealloc ucontext
+  RDMA/bnxt_re: Fix RQE posting logic
+
+Eddie Wai (2):
+  RDMA/bnxt_re: HW workarounds for handling specific conditions
+  RDMA/bnxt_re: Fixed the max_rd_atomic support for initiator and
+    destination QP
+
+Kalesh AP (1):
+  RDMA/bnxt_re: Add vlan tag for untagged RoCE traffic when PFC is
+    configured
+
+Selvin Xavier (4):
+  RDMA/bnxt_re: Dereg MR in FW before freeing the fast_reg_page_list
+  RDMA/bnxt_re: Do not free the ctx_tbl entry if delete GID fails
+  RDMA/bnxt_re: Report supported value to IB stack in query_device
+  RDMA/bnxt_re: Remove FMR support
+
+Somnath Kotur (4):
+  RDMA/bnxt_re: Fix race between netdev register and unregister events
+  RDMA/bnxt_re: Add HW workaround for avoiding stall for UD QPs
+  RDMA/bnxt_re: Fix WQE Size posted to HW to prevent it from throwing
+    error
+  RDMA/bnxt_re: Specify RDMA component when allocating stats context
+
+ drivers/infiniband/hw/bnxt_re/bnxt_re.h    |  19 +-
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c   | 593 ++++++++++++++++++++---------
+ drivers/infiniband/hw/bnxt_re/ib_verbs.h   |  25 +-
+ drivers/infiniband/hw/bnxt_re/main.c       |  97 ++++-
+ drivers/infiniband/hw/bnxt_re/qplib_fp.c   | 393 ++++++++++---------
+ drivers/infiniband/hw/bnxt_re/qplib_fp.h   |  18 +-
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 314 +++++++--------
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.h |  61 +--
+ drivers/infiniband/hw/bnxt_re/qplib_res.c  |  10 +
+ drivers/infiniband/hw/bnxt_re/qplib_res.h  |   6 +
+ drivers/infiniband/hw/bnxt_re/qplib_sp.c   | 412 +++++++-------------
+ drivers/infiniband/hw/bnxt_re/qplib_sp.h   |   4 +
+ drivers/infiniband/hw/bnxt_re/roce_hsi.h   |   4 +-
+ 13 files changed, 1104 insertions(+), 852 deletions(-)
+
+-- 
+2.5.5
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
