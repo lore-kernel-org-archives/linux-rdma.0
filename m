@@ -1,326 +1,103 @@
 From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V4 for-next 08/14] RDMA/bnxt_re: Add vlan tag for untagged RoCE traffic when PFC is configured
-Date: Mon, 22 May 2017 03:15:38 -0700
-Message-ID: <1495448144-18966-9-git-send-email-selvin.xavier@broadcom.com>
+Subject: [PATCH V4 for-next 10/14] RDMA/bnxt_re: Fix RQE posting logic
+Date: Mon, 22 May 2017 03:15:40 -0700
+Message-ID: <1495448144-18966-11-git-send-email-selvin.xavier@broadcom.com>
 References: <1495448144-18966-1-git-send-email-selvin.xavier@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1495448144-18966-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kalesh AP <kalesh-anakkur.purayil-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Kalesh AP <kalesh-anakkur.purayil-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kalesh AP <kalesh-anakkur.purayil-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 
-Current implementation does not program vlan header insertion
-in RoCE packet if no vlan is configured. Firmware does not add
-prority when there is no vlan tag in the packet. Modify the code
-to insert vlan header when PFC is enabled on the interface.
+This patch adds code to ring RQ Doorbell aggressively
+so that the adapter can DMA RQ buffers sooner, instead
+of DMA all WQEs in the post_recv WR list together at the
+end of the post_recv verb.
+Also use spinlock to serialize RQ posting
 
 Signed-off-by: Kalesh AP <kalesh-anakkur.purayil-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
-v2 -> v3:
-	Avoid temp variables while populating smac and gid
-v1 -> v2:
-	Avoid unnecessary memcpy while populating smac and gid
+ drivers/infiniband/hw/bnxt_re/bnxt_re.h  |  2 ++
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 18 +++++++++++++++++-
+ drivers/infiniband/hw/bnxt_re/ib_verbs.h |  1 +
+ 3 files changed, 20 insertions(+), 1 deletion(-)
 
- drivers/infiniband/hw/bnxt_re/main.c      | 53 ++++++++++++++++++---
- drivers/infiniband/hw/bnxt_re/qplib_res.c | 10 ++++
- drivers/infiniband/hw/bnxt_re/qplib_res.h |  2 +
- drivers/infiniband/hw/bnxt_re/qplib_sp.c  | 77 ++++++++++++++++++++++++-------
- drivers/infiniband/hw/bnxt_re/qplib_sp.h  |  2 +
- drivers/infiniband/hw/bnxt_re/roce_hsi.h  |  4 +-
- 6 files changed, 124 insertions(+), 24 deletions(-)
-
-diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-index 99a54fd..fd61949 100644
---- a/drivers/infiniband/hw/bnxt_re/main.c
-+++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -840,6 +840,42 @@ static void bnxt_re_dev_stop(struct bnxt_re_dev *rdev)
- 	mutex_unlock(&rdev->qp_lock);
- }
+diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+index 277c2da..12950ec 100644
+--- a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
++++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+@@ -58,6 +58,8 @@
  
-+static int bnxt_re_update_gid(struct bnxt_re_dev *rdev)
-+{
-+	struct bnxt_qplib_sgid_tbl *sgid_tbl = &rdev->qplib_res.sgid_tbl;
-+	struct bnxt_qplib_gid gid;
-+	u16 gid_idx, index;
-+	int rc = 0;
+ #define BNXT_RE_UD_QP_HW_STALL		0x400000
+ 
++#define BNXT_RE_RQ_WQE_THRESHOLD	32
 +
-+	if (!test_bit(BNXT_RE_FLAG_IBDEV_REGISTERED, &rdev->flags))
-+		return 0;
+ struct bnxt_re_work {
+ 	struct work_struct	work;
+ 	unsigned long		event;
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index 43f7d66..ebacc5a 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -1217,6 +1217,7 @@ struct ib_qp *bnxt_re_create_qp(struct ib_pd *ib_pd,
+ 
+ 	qp->ib_qp.qp_num = qp->qplib_qp.id;
+ 	spin_lock_init(&qp->sq_lock);
++	spin_lock_init(&qp->rq_lock);
+ 
+ 	if (udata) {
+ 		struct bnxt_re_qp_resp resp;
+@@ -2248,7 +2249,10 @@ int bnxt_re_post_recv(struct ib_qp *ib_qp, struct ib_recv_wr *wr,
+ 	struct bnxt_re_qp *qp = container_of(ib_qp, struct bnxt_re_qp, ib_qp);
+ 	struct bnxt_qplib_swqe wqe;
+ 	int rc = 0, payload_sz = 0;
++	unsigned long flags;
++	u32 count = 0;
+ 
++	spin_lock_irqsave(&qp->rq_lock, flags);
+ 	while (wr) {
+ 		/* House keeping */
+ 		memset(&wqe, 0, sizeof(wqe));
+@@ -2277,9 +2281,21 @@ int bnxt_re_post_recv(struct ib_qp *ib_qp, struct ib_recv_wr *wr,
+ 			*bad_wr = wr;
+ 			break;
+ 		}
 +
-+	if (!sgid_tbl) {
-+		dev_err(rdev_to_dev(rdev), "QPLIB: SGID table not allocated");
-+		return -EINVAL;
-+	}
-+
-+	for (index = 0; index < sgid_tbl->active; index++) {
-+		gid_idx = sgid_tbl->hw_id[index];
-+
-+		if (!memcmp(&sgid_tbl->tbl[index], &bnxt_qplib_gid_zero,
-+			    sizeof(bnxt_qplib_gid_zero)))
-+			continue;
-+		/* need to modify the VLAN enable setting of non VLAN GID only
-+		 * as setting is done for VLAN GID while adding GID
-+		 */
-+		if (sgid_tbl->vlan[index])
-+			continue;
-+
-+		memcpy(&gid, &sgid_tbl->tbl[index], sizeof(gid));
-+
-+		rc = bnxt_qplib_update_sgid(sgid_tbl, &gid, gid_idx,
-+					    rdev->qplib_res.netdev->dev_addr);
-+	}
-+
-+	return rc;
-+}
-+
- static u32 bnxt_re_get_priority_mask(struct bnxt_re_dev *rdev)
- {
- 	u32 prio_map = 0, tmp_map = 0;
-@@ -859,8 +895,6 @@ static u32 bnxt_re_get_priority_mask(struct bnxt_re_dev *rdev)
- 	tmp_map = dcb_ieee_getapp_mask(netdev, &app);
- 	prio_map |= tmp_map;
- 
--	if (!prio_map)
--		prio_map = -EFAULT;
- 	return prio_map;
- }
- 
-@@ -886,10 +920,7 @@ static int bnxt_re_setup_qos(struct bnxt_re_dev *rdev)
- 	int rc;
- 
- 	/* Get priority for roce */
--	rc = bnxt_re_get_priority_mask(rdev);
--	if (rc < 0)
--		return rc;
--	prio_map = (u8)rc;
-+	prio_map = bnxt_re_get_priority_mask(rdev);
- 
- 	if (prio_map == rdev->cur_prio_map)
- 		return 0;
-@@ -911,6 +942,16 @@ static int bnxt_re_setup_qos(struct bnxt_re_dev *rdev)
- 		return rc;
- 	}
- 
-+	/* Actual priorities are not programmed as they are already
-+	 * done by L2 driver; just enable or disable priority vlan tagging
-+	 */
-+	if ((prio_map == 0 && rdev->qplib_res.prio) ||
-+	    (prio_map != 0 && !rdev->qplib_res.prio)) {
-+		rdev->qplib_res.prio = prio_map ? true : false;
-+
-+		bnxt_re_update_gid(rdev);
-+	}
-+
- 	return 0;
- }
- 
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.c b/drivers/infiniband/hw/bnxt_re/qplib_res.c
-index 62447b3..4e10170 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_res.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_res.c
-@@ -468,9 +468,11 @@ static void bnxt_qplib_free_sgid_tbl(struct bnxt_qplib_res *res,
- 	kfree(sgid_tbl->tbl);
- 	kfree(sgid_tbl->hw_id);
- 	kfree(sgid_tbl->ctx);
-+	kfree(sgid_tbl->vlan);
- 	sgid_tbl->tbl = NULL;
- 	sgid_tbl->hw_id = NULL;
- 	sgid_tbl->ctx = NULL;
-+	sgid_tbl->vlan = NULL;
- 	sgid_tbl->max = 0;
- 	sgid_tbl->active = 0;
- }
-@@ -491,8 +493,15 @@ static int bnxt_qplib_alloc_sgid_tbl(struct bnxt_qplib_res *res,
- 	if (!sgid_tbl->ctx)
- 		goto out_free2;
- 
-+	sgid_tbl->vlan = kcalloc(max, sizeof(u8), GFP_KERNEL);
-+	if (!sgid_tbl->vlan)
-+		goto out_free3;
-+
- 	sgid_tbl->max = max;
- 	return 0;
-+out_free3:
-+	kfree(sgid_tbl->ctx);
-+	sgid_tbl->ctx = NULL;
- out_free2:
- 	kfree(sgid_tbl->hw_id);
- 	sgid_tbl->hw_id = NULL;
-@@ -514,6 +523,7 @@ static void bnxt_qplib_cleanup_sgid_tbl(struct bnxt_qplib_res *res,
- 	}
- 	memset(sgid_tbl->tbl, 0, sizeof(struct bnxt_qplib_gid) * sgid_tbl->max);
- 	memset(sgid_tbl->hw_id, -1, sizeof(u16) * sgid_tbl->max);
-+	memset(sgid_tbl->vlan, 0, sizeof(u8) * sgid_tbl->max);
- 	sgid_tbl->active = 0;
- }
- 
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.h b/drivers/infiniband/hw/bnxt_re/qplib_res.h
-index 2e48555..e872075 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_res.h
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_res.h
-@@ -116,6 +116,7 @@ struct bnxt_qplib_sgid_tbl {
- 	u16				max;
- 	u16				active;
- 	void				*ctx;
-+	u8				*vlan;
- };
- 
- struct bnxt_qplib_pkey_tbl {
-@@ -188,6 +189,7 @@ struct bnxt_qplib_res {
- 	struct bnxt_qplib_sgid_tbl	sgid_tbl;
- 	struct bnxt_qplib_pkey_tbl	pkey_tbl;
- 	struct bnxt_qplib_dpi_tbl	dpi_tbl;
-+	bool				prio;
- };
- 
- #define to_bnxt_qplib(ptr, type, member)	\
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.c b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-index fde18cf..5a633b4 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-@@ -197,6 +197,7 @@ int bnxt_qplib_del_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
- 	}
- 	memcpy(&sgid_tbl->tbl[index], &bnxt_qplib_gid_zero,
- 	       sizeof(bnxt_qplib_gid_zero));
-+	sgid_tbl->vlan[index] = 0;
- 	sgid_tbl->active--;
- 	dev_dbg(&res->pdev->dev,
- 		"QPLIB: SGID deleted hw_id[0x%x] = 0x%x active = 0x%x",
-@@ -249,28 +250,32 @@ int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
- 		struct cmdq_add_gid req;
- 		struct creq_add_gid_resp resp;
- 		u16 cmd_flags = 0;
--		u32 temp32[4];
--		u16 temp16[3];
- 		int rc;
- 
- 		RCFW_CMD_PREP(req, ADD_GID, cmd_flags);
- 
--		memcpy(temp32, gid->data, sizeof(struct bnxt_qplib_gid));
--		req.gid[0] = cpu_to_be32(temp32[3]);
--		req.gid[1] = cpu_to_be32(temp32[2]);
--		req.gid[2] = cpu_to_be32(temp32[1]);
--		req.gid[3] = cpu_to_be32(temp32[0]);
--		if (vlan_id != 0xFFFF)
--			req.vlan = cpu_to_le16((vlan_id &
--					CMDQ_ADD_GID_VLAN_VLAN_ID_MASK) |
--					CMDQ_ADD_GID_VLAN_TPID_TPID_8100 |
--					CMDQ_ADD_GID_VLAN_VLAN_EN);
-+		req.gid[0] = cpu_to_be32(((u32 *)gid->data)[3]);
-+		req.gid[1] = cpu_to_be32(((u32 *)gid->data)[2]);
-+		req.gid[2] = cpu_to_be32(((u32 *)gid->data)[1]);
-+		req.gid[3] = cpu_to_be32(((u32 *)gid->data)[0]);
-+		/*
-+		 * driver should ensure that all RoCE traffic is always VLAN
-+		 * tagged if RoCE traffic is running on non-zero VLAN ID or
-+		 * RoCE traffic is running on non-zero Priority.
-+		 */
-+		if ((vlan_id != 0xFFFF) || res->prio) {
-+			if (vlan_id != 0xFFFF)
-+				req.vlan = cpu_to_le16
-+				(vlan_id & CMDQ_ADD_GID_VLAN_VLAN_ID_MASK);
-+			req.vlan |= cpu_to_le16
-+					(CMDQ_ADD_GID_VLAN_TPID_TPID_8100 |
-+					 CMDQ_ADD_GID_VLAN_VLAN_EN);
++		/* Ring DB if the RQEs posted reaches a threshold value */
++		if (++count >= BNXT_RE_RQ_WQE_THRESHOLD) {
++			bnxt_qplib_post_recv_db(&qp->qplib_qp);
++			count = 0;
 +		}
- 
- 		/* MAC in network format */
--		memcpy(temp16, smac, 6);
--		req.src_mac[0] = cpu_to_be16(temp16[0]);
--		req.src_mac[1] = cpu_to_be16(temp16[1]);
--		req.src_mac[2] = cpu_to_be16(temp16[2]);
-+		req.src_mac[0] = cpu_to_be16(((u16 *)smac)[0]);
-+		req.src_mac[1] = cpu_to_be16(((u16 *)smac)[1]);
-+		req.src_mac[2] = cpu_to_be16(((u16 *)smac)[2]);
- 
- 		rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
- 						  (void *)&resp, NULL, 0);
-@@ -281,6 +286,9 @@ int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
- 	/* Add GID to the sgid_tbl */
- 	memcpy(&sgid_tbl->tbl[free_idx], gid, sizeof(*gid));
- 	sgid_tbl->active++;
-+	if (vlan_id != 0xFFFF)
-+		sgid_tbl->vlan[free_idx] = 1;
 +
- 	dev_dbg(&res->pdev->dev,
- 		"QPLIB: SGID added hw_id[0x%x] = 0x%x active = 0x%x",
- 		 free_idx, sgid_tbl->hw_id[free_idx], sgid_tbl->active);
-@@ -290,6 +298,43 @@ int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
- 	return 0;
+ 		wr = wr->next;
+ 	}
+-	bnxt_qplib_post_recv_db(&qp->qplib_qp);
++
++	if (count)
++		bnxt_qplib_post_recv_db(&qp->qplib_qp);
++
++	spin_unlock_irqrestore(&qp->rq_lock, flags);
++
+ 	return rc;
  }
  
-+int bnxt_qplib_update_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
-+			   struct bnxt_qplib_gid *gid, u16 gid_idx,
-+			   u8 *smac)
-+{
-+	struct bnxt_qplib_res *res = to_bnxt_qplib(sgid_tbl,
-+						   struct bnxt_qplib_res,
-+						   sgid_tbl);
-+	struct bnxt_qplib_rcfw *rcfw = res->rcfw;
-+	struct creq_modify_gid_resp resp;
-+	struct cmdq_modify_gid req;
-+	int rc;
-+	u16 cmd_flags = 0;
-+
-+	RCFW_CMD_PREP(req, MODIFY_GID, cmd_flags);
-+
-+	req.gid[0] = cpu_to_be32(((u32 *)gid->data)[3]);
-+	req.gid[1] = cpu_to_be32(((u32 *)gid->data)[2]);
-+	req.gid[2] = cpu_to_be32(((u32 *)gid->data)[1]);
-+	req.gid[3] = cpu_to_be32(((u32 *)gid->data)[0]);
-+	if (res->prio) {
-+		req.vlan |= cpu_to_le16
-+			(CMDQ_ADD_GID_VLAN_TPID_TPID_8100 |
-+			 CMDQ_ADD_GID_VLAN_VLAN_EN);
-+	}
-+
-+	/* MAC in network format */
-+	req.src_mac[0] = cpu_to_be16(((u16 *)smac)[0]);
-+	req.src_mac[1] = cpu_to_be16(((u16 *)smac)[1]);
-+	req.src_mac[2] = cpu_to_be16(((u16 *)smac)[2]);
-+
-+	req.gid_index = cpu_to_le16(gid_idx);
-+
-+	rc = bnxt_qplib_rcfw_send_message(rcfw, (void *)&req,
-+					  (void *)&resp, NULL, 0);
-+	return rc;
-+}
-+
- /* pkeys */
- int bnxt_qplib_get_pkey(struct bnxt_qplib_res *res,
- 			struct bnxt_qplib_pkey_tbl *pkey_tbl, u16 index,
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.h b/drivers/infiniband/hw/bnxt_re/qplib_sp.h
-index a543f95..e3a3ed9 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_sp.h
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.h
-@@ -132,6 +132,8 @@ int bnxt_qplib_del_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
- int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
- 			struct bnxt_qplib_gid *gid, u8 *mac, u16 vlan_id,
- 			bool update, u32 *index);
-+int bnxt_qplib_update_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
-+			   struct bnxt_qplib_gid *gid, u16 gid_idx, u8 *smac);
- int bnxt_qplib_get_pkey(struct bnxt_qplib_res *res,
- 			struct bnxt_qplib_pkey_tbl *pkey_tbl, u16 index,
- 			u16 *pkey);
-diff --git a/drivers/infiniband/hw/bnxt_re/roce_hsi.h b/drivers/infiniband/hw/bnxt_re/roce_hsi.h
-index fc23477..eeb55b2 100644
---- a/drivers/infiniband/hw/bnxt_re/roce_hsi.h
-+++ b/drivers/infiniband/hw/bnxt_re/roce_hsi.h
-@@ -1473,8 +1473,8 @@ struct cmdq_modify_gid {
- 	u8 resp_size;
- 	u8 reserved8;
- 	__le64 resp_addr;
--	__le32 gid[4];
--	__le16 src_mac[3];
-+	__be32 gid[4];
-+	__be16 src_mac[3];
- 	__le16 vlan;
- 	#define CMDQ_MODIFY_GID_VLAN_VLAN_ID_MASK		    0xfffUL
- 	#define CMDQ_MODIFY_GID_VLAN_VLAN_ID_SFT		    0
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.h b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
+index f0be321..a89ab3f 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.h
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
+@@ -73,6 +73,7 @@ struct bnxt_re_qp {
+ 	struct bnxt_re_dev	*rdev;
+ 	struct ib_qp		ib_qp;
+ 	spinlock_t		sq_lock;	/* protect sq */
++	spinlock_t		rq_lock;	/* protect rq */
+ 	struct bnxt_qplib_qp	qplib_qp;
+ 	struct ib_umem		*sumem;
+ 	struct ib_umem		*rumem;
 -- 
 2.5.5
 
