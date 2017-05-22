@@ -1,43 +1,32 @@
-From: Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>
-Subject: Re: [PATCH v7 0/9] SELinux support for Infiniband RDMA
-Date: Mon, 22 May 2017 15:14:02 -0400
-Message-ID: <CAHC9VhQbLmdzQDyeY=j4M=hw-arSmft68ri08Pu1cxpCaFPGpA@mail.gmail.com>
-References: <1495198139-69993-1-git-send-email-danielj@mellanox.com> <alpine.LRH.2.20.1705221033550.3502@namei.org>
+From: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 2/3] RDS: IB: Improve a size determination in
+ rds_ib_add_one()
+Date: Mon, 22 May 2017 12:22:32 -0700
+Message-ID: <ecb55de0-72bb-8afd-cb24-c9a3ae26c586@oracle.com>
+References: <44b46c51-3665-5f14-dd3b-6e6f230258a7@users.sourceforge.net>
+ <e8486283-62ac-ea77-1169-edca3e630637@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.LRH.2.20.1705221033550.3502-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org>
+In-Reply-To: <e8486283-62ac-ea77-1169-edca3e630637-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: James Morris <jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org>, Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org, Stephen Smalley <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, Eric Paris <eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Sowmini Varadhan <sowmini.varadhan-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, May 21, 2017 at 8:35 PM, James Morris <jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org> wrote:
-> On Fri, 19 May 2017, Dan Jurgens wrote:
->
->> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->
-> What kind of testing has this code had?  It's relatively complex and as a
-> security feature, it especially needs to be well-tested.
-
-Check the relevant threads on the SELinux list as well as Daniel's
-response.  Aside from the usual developer unit testing, we've gone
-through multiple rounds of reviews and have gotten ACKs from the IB
-folks.  Daniel is currently working on adding tests to the
-selinux-testsuite (see the SELinux list for the patches) and I merged
-this to the selinux/next branch last week so we could get as much
-exposure as possible before the next merge window (linux-next has
-already caught two things).  I did let Daniel know that inclusion in
-the next pull request is contingent on the tests being in place (as
-well as the userspace, policy, etc.).
-
-I think we are in a good spot right now with this patchset, especially
-considering we are only at -rc2 and still have several weeks before
-the next merge window opens.
-
--- 
-paul moore
-www.paul-moore.com
+On 5/22/2017 7:12 AM, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+> Date: Mon, 22 May 2017 15:40:21 +0200
+> 
+> Replace the specification of a data structure by a pointer dereference
+> as the parameter for the operator "sizeof" to make the corresponding size
+> determination a bit safer according to the Linux coding style convention.
+> 
+> Signed-off-by: Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+> ---
+Acked-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
