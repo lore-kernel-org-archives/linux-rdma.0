@@ -1,53 +1,31 @@
-From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH rdma-core] libibumad: clean up htonll/ntohnll handling
-Date: Mon, 22 May 2017 10:17:22 -0400
-Message-ID: <20170522141722.50502-1-jarod@redhat.com>
+From: Sowmini Varadhan <sowmini.varadhan-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 3/3] RDS: TCP: Delete an error message for a failed
+ memory allocation in rds_tcp_init_net()
+Date: Mon, 22 May 2017 10:26:51 -0400
+Message-ID: <20170522142651.GA29434@oracle.com>
+References: <44b46c51-3665-5f14-dd3b-6e6f230258a7@users.sourceforge.net>
+ <5d523cf8-1540-e704-2301-a5e0205cb536@users.sourceforge.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5d523cf8-1540-e704-2301-a5e0205cb536-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Only ntohll was being checked to see if it wasn't defined, and was then
-redefining htonll as well as ntohll. This was causing some problems for
-the compile of the opa-ff package. Simple enough to rearrange this code a
-bit such that htonll and ntohll are handled entirely independent of one
-another.
+On (05/22/17 16:13), SF Markus Elfring wrote:
+> 
+> Omit an extra message for a memory allocation failure in this function.
 
-Reported-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- libibumad/umad.h | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+The change itself is harmless,  but I'm curious about the "extra"
+part: "extra" from what? If this happens, hopefully this will be logged
+somewhere? Note that this type of (infrequent) logging noise is useful
+in some cases, e.g., with 8ce675ff, when one is trying to do the
+post-mortem of where things first went wrong.
 
-diff --git a/libibumad/umad.h b/libibumad/umad.h
-index 81811380..479165a8 100644
---- a/libibumad/umad.h
-+++ b/libibumad/umad.h
-@@ -247,15 +247,17 @@ static inline void umad_free(void *umad)
- 	free(umad);
- }
- 
-+/* Users should use the glibc functions directly, not these wrappers */
- #ifndef ntohll
--#undef htonll
- #undef ntohll
--/* Users should use the glibc functions directly, not these wrappers */
--static inline __attribute__((deprecated)) uint64_t htonll(uint64_t x) { return htobe64(x); }
- static inline __attribute__((deprecated)) uint64_t ntohll(uint64_t x) { return be64toh(x); }
--#define htonll htonll
- #define ntohll ntohll
- #endif
-+#ifndef htonll
-+#undef htonll
-+static inline __attribute__((deprecated)) uint64_t htonll(uint64_t x) { return htobe64(x); }
-+#define htonll htonll
-+#endif
- 
- END_C_DECLS
- #endif				/* _UMAD_H */
--- 
-2.12.1
+--Sowmini
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
