@@ -1,13 +1,12 @@
 From: James Morris <jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org>
-Subject: Re: [PATCH v7 7/9] selinux: Implement Infiniband PKey "Access" access
- vector
-Date: Mon, 22 May 2017 10:31:52 +1000 (AEST)
-Message-ID: <alpine.LRH.2.20.1705221031310.3502@namei.org>
-References: <1495198139-69993-1-git-send-email-danielj@mellanox.com> <1495198139-69993-8-git-send-email-danielj@mellanox.com>
+Subject: Re: [PATCH v7 8/9] selinux: Add IB Port SMP access vector
+Date: Mon, 22 May 2017 10:32:43 +1000 (AEST)
+Message-ID: <alpine.LRH.2.20.1705221032250.3502@namei.org>
+References: <1495198139-69993-1-git-send-email-danielj@mellanox.com> <1495198139-69993-9-git-send-email-danielj@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1495198139-69993-8-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1495198139-69993-9-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org, paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org, sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
@@ -17,10 +16,12 @@ On Fri, 19 May 2017, Dan Jurgens wrote:
 
 > From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> Add a type and access vector for PKeys. Implement the ib_pkey_access
-> hook to check that the caller has permission to access the PKey on the
-> given subnet prefix. Add an interface to get the PKey SID. Walk the PKey
-> ocontexts to find an entry for the given subnet prefix and pkey.
+> Add a type for Infiniband ports and an access vector for subnet
+> management packets. Implement the ib_port_smp hook to check that the
+> caller has permission to send and receive SMPs on the end port specified
+> by the device name and port. Add interface to query the SID for a IB
+> port, which walks the IB_PORT ocontexts to find an entry for the
+> given name and port.
 > 
 > Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
