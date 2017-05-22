@@ -1,32 +1,113 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH rdma-core] libibumad: clean up htonll/ntohnll handling
-Date: Mon, 22 May 2017 11:31:23 -0400
-Message-ID: <567bd675-a952-e593-70d0-6e7a5ef50e5d@dev.mellanox.co.il>
-References: <20170522141722.50502-1-jarod@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170522141722.50502-1-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Romain Perier <romain.perier@collabora.com>
+Subject: [PATCH v9 00/15] Replace PCI pool by DMA pool API
+Date: Mon, 22 May 2017 18:48:52 +0200
+Message-ID: <20170522164907.22915-1-romain.perier@collabora.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, jeffrey.t.kirsher@intel.com, "David S. Miller" <davem@davemloft.net>, stas.yakovlev@gmail.com, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, Romain Perier <romain.perier@collabora.com>, Peter Senna Tschudin <peter.senna@collabora.co.uk>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/22/2017 10:17 AM, Jarod Wilson wrote:
-> Only ntohll was being checked to see if it wasn't defined, and was then
-> redefining htonll as well as ntohll. This was causing some problems for
-> the compile of the opa-ff package. Simple enough to rearrange this code a
-> bit such that htonll and ntohll are handled entirely independent of one
-> another.
+The current PCI pool API are simple macro functions direct expanded to
+the appropriate dma pool functions. The prototypes are almost the same
+and semantically, they are very similar. I propose to use the DMA pool
+API directly and get rid of the old API.
 
-It used to be the case that they were treated independently.
+This set of patches, replaces the old API by the dma pool API
+and remove the defines.
 
-> Reported-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Changes in v9:
+- Rebased series onto next-20170522
+- I have fixed and improved the patch for lpfc driver
 
-Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Changes in v8:
+- Rebased series onto next-20170428
+
+Changes in v7:
+- Rebased series onto next-20170416
+- Added Acked-by, Tested-by and Reviwed-by tags
+
+Changes in v6:
+- Fixed an issue reported by kbuild test robot about changes in DAC960
+- Removed patches 15/19,16/19,17/19,18/19. They have been merged by Greg
+- Added Acked-by Tags
+
+Changes in v5:
+- Re-worded the cover letter (remove sentence about checkpatch.pl)
+- Rebased series onto next-20170308
+- Fix typos in commit message
+- Added Acked-by Tags
+
+Changes in v4:
+- Rebased series onto next-20170301
+- Removed patch 20/20: checks done by checkpath.pl, no longer required.
+  Thanks to Peter and Joe for their feedbacks.
+- Added Reviewed-by tags
+
+Changes in v3:
+- Rebased series onto next-20170224
+- Fix checkpath.pl reports for patch 11/20 and patch 12/20
+- Remove prefix RFC
+Changes in v2:
+- Introduced patch 18/20
+- Fixed cosmetic changes: spaces before brace, live over 80 characters
+- Removed some of the check for NULL pointers before calling dma_pool_destroy
+- Improved the regexp in checkpatch for pci_pool, thanks to Joe Perches
+- Added Tested-by and Acked-by tags
+
+Romain Perier (15):
+  block: DAC960: Replace PCI pool old API
+  dmaengine: pch_dma: Replace PCI pool old API
+  IB/mthca: Replace PCI pool old API
+  net: e100: Replace PCI pool old API
+  mlx4: Replace PCI pool old API
+  mlx5: Replace PCI pool old API
+  wireless: ipw2200: Replace PCI pool old API
+  scsi: be2iscsi: Replace PCI pool old API
+  scsi: csiostor: Replace PCI pool old API
+  scsi: lpfc: Replace PCI pool old API
+  scsi: megaraid: Replace PCI pool old API
+  scsi: mpt3sas: Replace PCI pool old API
+  scsi: mvsas: Replace PCI pool old API
+  scsi: pmcraid: Replace PCI pool old API
+  PCI: Remove PCI pool macro functions
+
+ drivers/block/DAC960.c                        | 38 ++++++-----
+ drivers/block/DAC960.h                        |  4 +-
+ drivers/dma/pch_dma.c                         | 12 ++--
+ drivers/infiniband/hw/mthca/mthca_av.c        | 10 +--
+ drivers/infiniband/hw/mthca/mthca_cmd.c       |  8 +--
+ drivers/infiniband/hw/mthca/mthca_dev.h       |  4 +-
+ drivers/net/ethernet/intel/e100.c             | 12 ++--
+ drivers/net/ethernet/mellanox/mlx4/cmd.c      | 10 +--
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h     |  2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 11 ++--
+ drivers/net/wireless/intel/ipw2x00/ipw2200.c  | 13 ++--
+ drivers/scsi/be2iscsi/be_iscsi.c              |  6 +-
+ drivers/scsi/be2iscsi/be_main.c               |  6 +-
+ drivers/scsi/be2iscsi/be_main.h               |  2 +-
+ drivers/scsi/csiostor/csio_hw.h               |  2 +-
+ drivers/scsi/csiostor/csio_init.c             | 11 ++--
+ drivers/scsi/csiostor/csio_scsi.c             |  6 +-
+ drivers/scsi/lpfc/lpfc.h                      | 16 ++---
+ drivers/scsi/lpfc/lpfc_init.c                 | 16 ++---
+ drivers/scsi/lpfc/lpfc_mem.c                  | 90 +++++++++++++--------------
+ drivers/scsi/lpfc/lpfc_nvme.c                 |  6 +-
+ drivers/scsi/lpfc/lpfc_nvmet.c                |  4 +-
+ drivers/scsi/lpfc/lpfc_scsi.c                 | 12 ++--
+ drivers/scsi/lpfc/lpfc_sli.c                  |  6 +-
+ drivers/scsi/megaraid/megaraid_mbox.c         | 33 +++++-----
+ drivers/scsi/megaraid/megaraid_mm.c           | 32 +++++-----
+ drivers/scsi/megaraid/megaraid_sas_base.c     | 29 +++++----
+ drivers/scsi/megaraid/megaraid_sas_fusion.c   | 66 +++++++++-----------
+ drivers/scsi/mpt3sas/mpt3sas_base.c           | 73 ++++++++++------------
+ drivers/scsi/mvsas/mv_init.c                  |  6 +-
+ drivers/scsi/mvsas/mv_sas.c                   |  6 +-
+ drivers/scsi/pmcraid.c                        | 10 +--
+ drivers/scsi/pmcraid.h                        |  2 +-
+ include/linux/mlx5/driver.h                   |  2 +-
+ include/linux/pci.h                           |  9 ---
+ 35 files changed, 278 insertions(+), 297 deletions(-)
+
+-- 
+2.11.0
