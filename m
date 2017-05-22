@@ -1,58 +1,155 @@
-From: Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>
-Subject: Re: [PATCH v7 2/9] IB/core: Enforce PKey security on QPs
-Date: Mon, 22 May 2017 16:59:15 -0400
-Message-ID: <CAHC9VhS-W6NaraJB9uCzpAQvUq1+XL+f6YUnqOzAPa6Q56b0FQ@mail.gmail.com>
-References: <1495198139-69993-1-git-send-email-danielj@mellanox.com>
- <1495198139-69993-3-git-send-email-danielj@mellanox.com> <alpine.LRH.2.20.1705220959450.3502@namei.org>
- <VI1PR05MB167814F66EEF8A1BD77C793AC4F80@VI1PR05MB1678.eurprd05.prod.outlook.com>
+From: Qing Huang <qing.huang@oracle.com>
+Subject: Re: [PATCH] ib/core: not to set page dirty bit if it's already set.
+Date: Mon, 22 May 2017 16:32:31 -0700
+Message-ID: <7e81f9e6-b1ac-2132-e698-32f576d087db@oracle.com>
+References: <20170518233353.14370-1-qing.huang@oracle.com>
+ <20170519130541.GA8017@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR05MB167814F66EEF8A1BD77C793AC4F80-79XLn2atqDOzmZAjKwT+HdqRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: James Morris <jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org>, Chris Wright <chrisw-69jw2NvuJkxg9hUCZPvPmw@public.gmane.org>, Stephen Smalley <sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, Eric Paris <eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org" <selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org>, "linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: multipart/alternative;
+ boundary="------------5CF65BE950645F578F20BFB9"
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20170519130541.GA8017@infradead.org>
+Sender: owner-linux-mm@kvack.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, dledford@redhat.com, sean.hefty@intel.com, artemyko@mellanox.com, linux-mm@kvack.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 22, 2017 at 6:42 AM, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> On 5/21/2017 7:13 PM, James Morris wrote:
->> On Fri, 19 May 2017, Dan Jurgens wrote:
->>
->>> security/security.c                  | 385 ++++++++++++++++++++++
->> This looks wrong -- merge problem?
->
-> Yes, it was a merge problem.  I added back the per field initialization of the security head hooks.  Paul stripped this (and the same problem in patch 0004) himself before merging.
->
->>
->>
->>> +    if (pps->alt.state != IB_PORT_PKEY_NOT_VALID) {
->>> +            get_pkey_and_subnet_prefix(&pps->alt,
->>> +                                       &pkey,
->>> +                                       &subnet_prefix);
->>> +
->>> +            ret = enforce_qp_pkey_security(pkey,
->>> +                                           subnet_prefix,
->>> +                                           sec);
->>> +    }
->>> +
->>> +    if (ret)
->>> +            goto out;
->> The above if/goto is unnecessary.
->
-> Right.
->
-> Paul, do you want me to fix this with a new patch?
+This is a multi-part message in MIME format.
+--------------5CF65BE950645F578F20BFB9
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Since this isn't a build or runtime failure, just a style correction,
-I'll leave it up to you: either post a 10/9 patch which converts all
-the jumps-to-return to just return, or respin/resubmit the patches.
-If you do the latter, just resubmit the affected patches and not the
-whole patchset.
 
+
+On 5/19/2017 6:05 AM, Christoph Hellwig wrote:
+> On Thu, May 18, 2017 at 04:33:53PM -0700, Qing Huang wrote:
+>> This change will optimize kernel memory deregistration operations.
+>> __ib_umem_release() used to call set_page_dirty_lock() against every
+>> writable page in its memory region. Its purpose is to keep data
+>> synced between CPU and DMA device when swapping happens after mem
+>> deregistration ops. Now we choose not to set page dirty bit if it's
+>> already set by kernel prior to calling __ib_umem_release(). This
+>> reduces memory deregistration time by half or even more when we ran
+>> application simulation test program.
+> As far as I can tell this code doesn't even need set_page_dirty_lock
+> and could just use set_page_dirty
+
+It seems that set_page_dirty_lock has been used here for more than 10 
+years. Don't know the original purpose. Maybe it was used to prevent 
+races between setting dirty bits and swapping out pages?
+
+Perhaps we can call set_page_dirty before calling ib_dma_unmap_sg?
+
+>> Signed-off-by: Qing Huang<qing.huang@oracle.com>
+>> ---
+>>   drivers/infiniband/core/umem.c | 2 +-
+>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+>> index 3dbf811..21e60b1 100644
+>> --- a/drivers/infiniband/core/umem.c
+>> +++ b/drivers/infiniband/core/umem.c
+>> @@ -58,7 +58,7 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
+>>   	for_each_sg(umem->sg_head.sgl, sg, umem->npages, i) {
+>>   
+>>   		page = sg_page(sg);
+>> -		if (umem->writable && dirty)
+>> +		if (!PageDirty(page) && umem->writable && dirty)
+>>   			set_page_dirty_lock(page);
+>>   		put_page(page);
+>>   	}
+>> -- 
+>> 2.9.3
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message tomajordomo@vger.kernel.org
+>> More majordomo info athttp://vger.kernel.org/majordomo-info.html
+> ---end quoted text---
+
+
+--------------5CF65BE950645F578F20BFB9
+Content-Type: text/html; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+
+<html>
+  <head>
+    <meta content="text/html; charset=windows-1252"
+      http-equiv="Content-Type">
+  </head>
+  <body bgcolor="#FFFFFF" text="#000000">
+    <p><br>
+    </p>
+    <br>
+    <div class="moz-cite-prefix">On 5/19/2017 6:05 AM, Christoph Hellwig
+      wrote:<br>
+    </div>
+    <blockquote cite="mid:20170519130541.GA8017@infradead.org"
+      type="cite">
+      <pre wrap="">On Thu, May 18, 2017 at 04:33:53PM -0700, Qing Huang wrote:
+</pre>
+      <blockquote type="cite">
+        <pre wrap="">This change will optimize kernel memory deregistration operations.
+__ib_umem_release() used to call set_page_dirty_lock() against every
+writable page in its memory region. Its purpose is to keep data
+synced between CPU and DMA device when swapping happens after mem
+deregistration ops. Now we choose not to set page dirty bit if it's
+already set by kernel prior to calling __ib_umem_release(). This
+reduces memory deregistration time by half or even more when we ran
+application simulation test program.
+</pre>
+      </blockquote>
+      <pre wrap="">As far as I can tell this code doesn't even need set_page_dirty_lock
+and could just use set_page_dirty</pre>
+    </blockquote>
+    <br>
+    It seems that set_page_dirty_lock has been used here for more than
+    10 years. Don't know the original purpose. Maybe it was used to
+    prevent races between setting dirty bits and swapping out pages?<br>
+    <br>
+    Perhaps we can call set_page_dirty before calling ib_dma_unmap_sg?<br>
+    <br>
+    <blockquote cite="mid:20170519130541.GA8017@infradead.org"
+      type="cite">
+      <blockquote type="cite">
+        <pre wrap="">Signed-off-by: Qing Huang <a class="moz-txt-link-rfc2396E" href="mailto:qing.huang@oracle.com">&lt;qing.huang@oracle.com&gt;</a>
+---
+ drivers/infiniband/core/umem.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index 3dbf811..21e60b1 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -58,7 +58,7 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
+ 	for_each_sg(umem-&gt;sg_head.sgl, sg, umem-&gt;npages, i) {
+ 
+ 		page = sg_page(sg);
+-		if (umem-&gt;writable &amp;&amp; dirty)
++		if (!PageDirty(page) &amp;&amp; umem-&gt;writable &amp;&amp; dirty)
+ 			set_page_dirty_lock(page);
+ 		put_page(page);
+ 	}
 -- 
-paul moore
-www.paul-moore.com
+2.9.3
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+the body of a message to <a class="moz-txt-link-abbreviated" href="mailto:majordomo@vger.kernel.org">majordomo@vger.kernel.org</a>
+More majordomo info at  <a class="moz-txt-link-freetext" href="http://vger.kernel.org/majordomo-info.html">http://vger.kernel.org/majordomo-info.html</a>
+</pre>
+      </blockquote>
+      <pre wrap="">---end quoted text---
+</pre>
+    </blockquote>
+    <br>
+  </body>
+</html>
+
+--------------5CF65BE950645F578F20BFB9--
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
