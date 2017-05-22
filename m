@@ -1,47 +1,24 @@
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] infiniband: hw: qedr: add null check before pointer
- dereference
-Date: Mon, 22 May 2017 13:30:15 -0500
-Message-ID: <20170522183015.GA22310@embeddedgus>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH v2] nvme-rdma: support devices with queue size < 32
+Date: Mon, 22 May 2017 11:51:27 -0700
+Message-ID: <20170522185127.GA27542@infradead.org>
+References: <1519881025.363156294.1491837154312.JavaMail.zimbra@kalray.eu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+In-Reply-To: <1519881025.363156294.1491837154312.JavaMail.zimbra-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keith busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, axboe-b10kYP2dOMg@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Samuel Jones <samuel.jones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add null check before dereferencing pointer sgid_attr.ndev
-inside function rdma_vlan_dev_vlan_id().
-
-Addresses-Coverity-ID: 1373979
-Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
----
- drivers/infiniband/hw/qedr/qedr_cm.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/infiniband/hw/qedr/qedr_cm.c b/drivers/infiniband/hw/qedr/qedr_cm.c
-index 3d7705c..d86dbe8 100644
---- a/drivers/infiniband/hw/qedr/qedr_cm.c
-+++ b/drivers/infiniband/hw/qedr/qedr_cm.c
-@@ -270,11 +270,13 @@ static inline int qedr_gsi_build_header(struct qedr_dev *dev,
- 		return rc;
- 	}
- 
--	vlan_id = rdma_vlan_dev_vlan_id(sgid_attr.ndev);
--	if (vlan_id < VLAN_CFI_MASK)
--		has_vlan = true;
--	if (sgid_attr.ndev)
-+	if (sgid_attr.ndev) {
-+		vlan_id = rdma_vlan_dev_vlan_id(sgid_attr.ndev);
-+		if (vlan_id < VLAN_CFI_MASK)
-+			has_vlan = true;
-+
- 		dev_put(sgid_attr.ndev);
-+	}
- 
- 	if (!memcmp(&sgid, &zgid, sizeof(sgid))) {
- 		DP_ERR(dev, "gsi post send: GID not found GID index %d\n",
--- 
-2.5.0
+I've hand applies this once with a few formatting tweaks now that
+I got the ACK from Sagi.  І'd love to see if someone could figure
+out how we could move the improved atomic + ilog version into the
+rdma core somehow.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
