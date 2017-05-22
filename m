@@ -1,7 +1,7 @@
 From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V4 for-next 11/14] RDMA/bnxt_re: Report supported value to IB stack in query_device
-Date: Mon, 22 May 2017 03:15:41 -0700
-Message-ID: <1495448144-18966-12-git-send-email-selvin.xavier@broadcom.com>
+Subject: [PATCH V4 for-next 14/14] RDMA/bnxt_re: Remove FMR support
+Date: Mon, 22 May 2017 03:15:44 -0700
+Message-ID: <1495448144-18966-15-git-send-email-selvin.xavier@broadcom.com>
 References: <1495448144-18966-1-git-send-email-selvin.xavier@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1495448144-18966-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
@@ -10,79 +10,169 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- - Report supported value for max_mr_size to IB stack in query_device.
-   Also, check and log if MR size requested by application in
-   reg_user_mr() is greater than value currently supported by driver.
- - Report only 4K page size support for now
- - Fix Max_QP value returned by ibv_devinfo -vv.
-   In case of PF, FW reserves 129 QPs for creating QP1s of VFs
-   and PF. So the max_qp value reported by FW for PF doesn'tt include
-   the QP1. Fixing this issue by adding 1 with the value reported
-   by FW.
+Some issues observed with FMR implementation
+while running stress traffic. So removing the
+FMR verbs support for now.
 
 Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Acked-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 ---
- drivers/infiniband/hw/bnxt_re/bnxt_re.h  |  2 ++
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 12 ++++++++----
- drivers/infiniband/hw/bnxt_re/qplib_sp.c |  2 ++
- 3 files changed, 12 insertions(+), 4 deletions(-)
+v2 -> v3:
+	- Removes the FMR verbs instead of the config option
 
-diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-index 12950ec..30bff05 100644
---- a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-+++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-@@ -51,6 +51,8 @@
- #define BNXT_RE_PAGE_SIZE_8M		BIT(23)
- #define BNXT_RE_PAGE_SIZE_1G		BIT(30)
- 
-+#define BNXT_RE_MAX_MR_SIZE		BIT(30)
-+
- #define BNXT_RE_MAX_QPC_COUNT		(64 * 1024)
- #define BNXT_RE_MAX_MRW_COUNT		(64 * 1024)
- #define BNXT_RE_MAX_SRQC_COUNT		(64 * 1024)
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 98 +-------------------------------
+ drivers/infiniband/hw/bnxt_re/ib_verbs.h |  6 --
+ drivers/infiniband/hw/bnxt_re/main.c     |  4 --
+ 3 files changed, 2 insertions(+), 106 deletions(-)
+
 diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index ebacc5a..ced8806 100644
+index 67285e3..4966757 100644
 --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
 +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -145,10 +145,8 @@ int bnxt_re_query_device(struct ib_device *ibdev,
- 	ib_attr->fw_ver = (u64)(unsigned long)(dev_attr->fw_ver);
- 	bnxt_qplib_get_guid(rdev->netdev->dev_addr,
- 			    (u8 *)&ib_attr->sys_image_guid);
--	ib_attr->max_mr_size = ~0ull;
--	ib_attr->page_size_cap = BNXT_RE_PAGE_SIZE_4K | BNXT_RE_PAGE_SIZE_8K |
--				 BNXT_RE_PAGE_SIZE_64K | BNXT_RE_PAGE_SIZE_2M |
--				 BNXT_RE_PAGE_SIZE_8M | BNXT_RE_PAGE_SIZE_1G;
-+	ib_attr->max_mr_size = BNXT_RE_MAX_MR_SIZE;
-+	ib_attr->page_size_cap = BNXT_RE_PAGE_SIZE_4K;
+@@ -189,8 +189,8 @@ int bnxt_re_query_device(struct ib_device *ibdev,
+ 	ib_attr->max_total_mcast_qp_attach = 0;
+ 	ib_attr->max_ah = dev_attr->max_ah;
  
- 	ib_attr->vendor_id = rdev->en_dev->pdev->vendor;
- 	ib_attr->vendor_part_id = rdev->en_dev->pdev->device;
-@@ -3306,6 +3304,12 @@ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *ib_pd, u64 start, u64 length,
- 	struct scatterlist *sg;
- 	int entry;
+-	ib_attr->max_fmr = dev_attr->max_fmr;
+-	ib_attr->max_map_per_fmr = 1;	/* ? */
++	ib_attr->max_fmr = 0;
++	ib_attr->max_map_per_fmr = 0;
  
-+	if (length > BNXT_RE_MAX_MR_SIZE) {
-+		dev_err(rdev_to_dev(rdev), "MR Size: %lld > Max supported:%ld\n",
-+			length, BNXT_RE_MAX_MR_SIZE);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
- 	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
- 	if (!mr)
- 		return ERR_PTR(-ENOMEM);
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.c b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-index 5a633b4..33c04a0 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
-@@ -81,6 +81,8 @@ int bnxt_qplib_get_dev_attr(struct bnxt_qplib_rcfw *rcfw,
+ 	ib_attr->max_srq = dev_attr->max_srq;
+ 	ib_attr->max_srq_wr = dev_attr->max_srq_wqes;
+@@ -3207,100 +3207,6 @@ int bnxt_re_dealloc_mw(struct ib_mw *ib_mw)
+ 	return rc;
+ }
  
- 	/* Extract the context from the side buffer */
- 	attr->max_qp = le32_to_cpu(sb->max_qp);
-+	/* max_qp value reported by FW for PF doesn't include the QP1 for PF */
-+	attr->max_qp += 1;
- 	attr->max_qp_rd_atom =
- 		sb->max_qp_rd_atom > BNXT_QPLIB_MAX_OUT_RD_ATOM ?
- 		BNXT_QPLIB_MAX_OUT_RD_ATOM : sb->max_qp_rd_atom;
+-/* Fast Memory Regions */
+-struct ib_fmr *bnxt_re_alloc_fmr(struct ib_pd *ib_pd, int mr_access_flags,
+-				 struct ib_fmr_attr *fmr_attr)
+-{
+-	struct bnxt_re_pd *pd = container_of(ib_pd, struct bnxt_re_pd, ib_pd);
+-	struct bnxt_re_dev *rdev = pd->rdev;
+-	struct bnxt_re_fmr *fmr;
+-	int rc;
+-
+-	if (fmr_attr->max_pages > MAX_PBL_LVL_2_PGS ||
+-	    fmr_attr->max_maps > rdev->dev_attr.max_map_per_fmr) {
+-		dev_err(rdev_to_dev(rdev), "Allocate FMR exceeded Max limit");
+-		return ERR_PTR(-ENOMEM);
+-	}
+-	fmr = kzalloc(sizeof(*fmr), GFP_KERNEL);
+-	if (!fmr)
+-		return ERR_PTR(-ENOMEM);
+-
+-	fmr->rdev = rdev;
+-	fmr->qplib_fmr.pd = &pd->qplib_pd;
+-	fmr->qplib_fmr.type = CMDQ_ALLOCATE_MRW_MRW_FLAGS_PMR;
+-
+-	rc = bnxt_qplib_alloc_mrw(&rdev->qplib_res, &fmr->qplib_fmr);
+-	if (rc)
+-		goto fail;
+-
+-	fmr->qplib_fmr.flags = __from_ib_access_flags(mr_access_flags);
+-	fmr->ib_fmr.lkey = fmr->qplib_fmr.lkey;
+-	fmr->ib_fmr.rkey = fmr->ib_fmr.lkey;
+-
+-	atomic_inc(&rdev->mr_count);
+-	return &fmr->ib_fmr;
+-fail:
+-	kfree(fmr);
+-	return ERR_PTR(rc);
+-}
+-
+-int bnxt_re_map_phys_fmr(struct ib_fmr *ib_fmr, u64 *page_list, int list_len,
+-			 u64 iova)
+-{
+-	struct bnxt_re_fmr *fmr = container_of(ib_fmr, struct bnxt_re_fmr,
+-					     ib_fmr);
+-	struct bnxt_re_dev *rdev = fmr->rdev;
+-	int rc;
+-
+-	fmr->qplib_fmr.va = iova;
+-	fmr->qplib_fmr.total_size = list_len * PAGE_SIZE;
+-
+-	rc = bnxt_qplib_reg_mr(&rdev->qplib_res, &fmr->qplib_fmr, page_list,
+-			       list_len, true);
+-	if (rc)
+-		dev_err(rdev_to_dev(rdev), "Failed to map FMR for lkey = 0x%x!",
+-			fmr->ib_fmr.lkey);
+-	return rc;
+-}
+-
+-int bnxt_re_unmap_fmr(struct list_head *fmr_list)
+-{
+-	struct bnxt_re_dev *rdev;
+-	struct bnxt_re_fmr *fmr;
+-	struct ib_fmr *ib_fmr;
+-	int rc = 0;
+-
+-	/* Validate each FMRs inside the fmr_list */
+-	list_for_each_entry(ib_fmr, fmr_list, list) {
+-		fmr = container_of(ib_fmr, struct bnxt_re_fmr, ib_fmr);
+-		rdev = fmr->rdev;
+-
+-		if (rdev) {
+-			rc = bnxt_qplib_dereg_mrw(&rdev->qplib_res,
+-						  &fmr->qplib_fmr, true);
+-			if (rc)
+-				break;
+-		}
+-	}
+-	return rc;
+-}
+-
+-int bnxt_re_dealloc_fmr(struct ib_fmr *ib_fmr)
+-{
+-	struct bnxt_re_fmr *fmr = container_of(ib_fmr, struct bnxt_re_fmr,
+-					       ib_fmr);
+-	struct bnxt_re_dev *rdev = fmr->rdev;
+-	int rc;
+-
+-	rc = bnxt_qplib_free_mrw(&rdev->qplib_res, &fmr->qplib_fmr);
+-	if (rc)
+-		dev_err(rdev_to_dev(rdev), "Failed to free FMR");
+-
+-	kfree(fmr);
+-	atomic_dec(&rdev->mr_count);
+-	return rc;
+-}
+-
+ /* uverbs */
+ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *ib_pd, u64 start, u64 length,
+ 				  u64 virt_addr, int mr_access_flags,
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.h b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
+index a89ab3f..200c5ec 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.h
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
+@@ -196,12 +196,6 @@ int bnxt_re_dereg_mr(struct ib_mr *mr);
+ struct ib_mw *bnxt_re_alloc_mw(struct ib_pd *ib_pd, enum ib_mw_type type,
+ 			       struct ib_udata *udata);
+ int bnxt_re_dealloc_mw(struct ib_mw *mw);
+-struct ib_fmr *bnxt_re_alloc_fmr(struct ib_pd *pd, int mr_access_flags,
+-				 struct ib_fmr_attr *fmr_attr);
+-int bnxt_re_map_phys_fmr(struct ib_fmr *fmr, u64 *page_list, int list_len,
+-			 u64 iova);
+-int bnxt_re_unmap_fmr(struct list_head *fmr_list);
+-int bnxt_re_dealloc_fmr(struct ib_fmr *fmr);
+ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 				  u64 virt_addr, int mr_access_flags,
+ 				  struct ib_udata *udata);
+diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+index 00dab7c..c067b9c 100644
+--- a/drivers/infiniband/hw/bnxt_re/main.c
++++ b/drivers/infiniband/hw/bnxt_re/main.c
+@@ -510,10 +510,6 @@ static int bnxt_re_register_ib(struct bnxt_re_dev *rdev)
+ 	ibdev->dereg_mr			= bnxt_re_dereg_mr;
+ 	ibdev->alloc_mr			= bnxt_re_alloc_mr;
+ 	ibdev->map_mr_sg		= bnxt_re_map_mr_sg;
+-	ibdev->alloc_fmr		= bnxt_re_alloc_fmr;
+-	ibdev->map_phys_fmr		= bnxt_re_map_phys_fmr;
+-	ibdev->unmap_fmr		= bnxt_re_unmap_fmr;
+-	ibdev->dealloc_fmr		= bnxt_re_dealloc_fmr;
+ 
+ 	ibdev->reg_user_mr		= bnxt_re_reg_user_mr;
+ 	ibdev->alloc_ucontext		= bnxt_re_alloc_ucontext;
 -- 
 2.5.5
 
