@@ -1,116 +1,88 @@
 From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V4 for-next 06/14] RDMA/bnxt_re: Add HW workaround for avoiding stall for UD QPs
-Date: Mon, 22 May 2017 03:15:36 -0700
-Message-ID: <1495448144-18966-7-git-send-email-selvin.xavier@broadcom.com>
+Subject: [PATCH V4 for-next 11/14] RDMA/bnxt_re: Report supported value to IB stack in query_device
+Date: Mon, 22 May 2017 03:15:41 -0700
+Message-ID: <1495448144-18966-12-git-send-email-selvin.xavier@broadcom.com>
 References: <1495448144-18966-1-git-send-email-selvin.xavier@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1495448144-18966-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+ - Report supported value for max_mr_size to IB stack in query_device.
+   Also, check and log if MR size requested by application in
+   reg_user_mr() is greater than value currently supported by driver.
+ - Report only 4K page size support for now
+ - Fix Max_QP value returned by ibv_devinfo -vv.
+   In case of PF, FW reserves 129 QPs for creating QP1s of VFs
+   and PF. So the max_qp value reported by FW for PF doesn'tt include
+   the QP1. Fixing this issue by adding 1 with the value reported
+   by FW.
 
-HW stalls out after 0x800000 WQEs are posted for UD QPs.
-To workaround this problem, driver will send a modify_qp cmd
-to the HW at around the halfway mark(0x400000) so that FW
-can accordingly modify the QP context in the HW to prevent this
-stall.
-This workaround needs to be done for UD, QP1 and Raw Ethertype
-packets. Added a counter to keep track of WQEs posted during post_send.
-
-Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
  drivers/infiniband/hw/bnxt_re/bnxt_re.h  |  2 ++
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 18 ++++++++++++++++++
- drivers/infiniband/hw/bnxt_re/qplib_fp.c |  3 +++
- drivers/infiniband/hw/bnxt_re/qplib_fp.h |  1 +
- 4 files changed, 24 insertions(+)
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 12 ++++++++----
+ drivers/infiniband/hw/bnxt_re/qplib_sp.c |  2 ++
+ 3 files changed, 12 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-index fad04b2..277c2da 100644
+index 12950ec..30bff05 100644
 --- a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
 +++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-@@ -56,6 +56,8 @@
- #define BNXT_RE_MAX_SRQC_COUNT		(64 * 1024)
- #define BNXT_RE_MAX_CQ_COUNT		(64 * 1024)
+@@ -51,6 +51,8 @@
+ #define BNXT_RE_PAGE_SIZE_8M		BIT(23)
+ #define BNXT_RE_PAGE_SIZE_1G		BIT(30)
  
-+#define BNXT_RE_UD_QP_HW_STALL		0x400000
++#define BNXT_RE_MAX_MR_SIZE		BIT(30)
 +
- struct bnxt_re_work {
- 	struct work_struct	work;
- 	unsigned long		event;
+ #define BNXT_RE_MAX_QPC_COUNT		(64 * 1024)
+ #define BNXT_RE_MAX_MRW_COUNT		(64 * 1024)
+ #define BNXT_RE_MAX_SRQC_COUNT		(64 * 1024)
 diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index 42dfbf3..6ec3ab2 100644
+index ebacc5a..ced8806 100644
 --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
 +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -2040,6 +2040,22 @@ static int bnxt_re_copy_wr_payload(struct bnxt_re_dev *rdev,
- 	return payload_sz;
- }
+@@ -145,10 +145,8 @@ int bnxt_re_query_device(struct ib_device *ibdev,
+ 	ib_attr->fw_ver = (u64)(unsigned long)(dev_attr->fw_ver);
+ 	bnxt_qplib_get_guid(rdev->netdev->dev_addr,
+ 			    (u8 *)&ib_attr->sys_image_guid);
+-	ib_attr->max_mr_size = ~0ull;
+-	ib_attr->page_size_cap = BNXT_RE_PAGE_SIZE_4K | BNXT_RE_PAGE_SIZE_8K |
+-				 BNXT_RE_PAGE_SIZE_64K | BNXT_RE_PAGE_SIZE_2M |
+-				 BNXT_RE_PAGE_SIZE_8M | BNXT_RE_PAGE_SIZE_1G;
++	ib_attr->max_mr_size = BNXT_RE_MAX_MR_SIZE;
++	ib_attr->page_size_cap = BNXT_RE_PAGE_SIZE_4K;
  
-+static void bnxt_ud_qp_hw_stall_workaround(struct bnxt_re_qp *qp)
-+{
-+	if ((qp->ib_qp.qp_type == IB_QPT_UD ||
-+	     qp->ib_qp.qp_type == IB_QPT_GSI ||
-+	     qp->ib_qp.qp_type == IB_QPT_RAW_ETHERTYPE) &&
-+	     qp->qplib_qp.wqe_cnt == BNXT_RE_UD_QP_HW_STALL) {
-+		int qp_attr_mask;
-+		struct ib_qp_attr qp_attr;
-+
-+		qp_attr_mask = IB_QP_STATE;
-+		qp_attr.qp_state = IB_QPS_RTS;
-+		bnxt_re_modify_qp(&qp->ib_qp, &qp_attr, qp_attr_mask, NULL);
-+		qp->qplib_qp.wqe_cnt = 0;
+ 	ib_attr->vendor_id = rdev->en_dev->pdev->vendor;
+ 	ib_attr->vendor_part_id = rdev->en_dev->pdev->device;
+@@ -3306,6 +3304,12 @@ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *ib_pd, u64 start, u64 length,
+ 	struct scatterlist *sg;
+ 	int entry;
+ 
++	if (length > BNXT_RE_MAX_MR_SIZE) {
++		dev_err(rdev_to_dev(rdev), "MR Size: %lld > Max supported:%ld\n",
++			length, BNXT_RE_MAX_MR_SIZE);
++		return ERR_PTR(-ENOMEM);
 +	}
-+}
 +
- static int bnxt_re_post_send_shadow_qp(struct bnxt_re_dev *rdev,
- 				       struct bnxt_re_qp *qp,
- 				struct ib_send_wr *wr)
-@@ -2085,6 +2101,7 @@ static int bnxt_re_post_send_shadow_qp(struct bnxt_re_dev *rdev,
- 		wr = wr->next;
- 	}
- 	bnxt_qplib_post_send_db(&qp->qplib_qp);
-+	bnxt_ud_qp_hw_stall_workaround(qp);
- 	spin_unlock_irqrestore(&qp->sq_lock, flags);
- 	return rc;
- }
-@@ -2181,6 +2198,7 @@ int bnxt_re_post_send(struct ib_qp *ib_qp, struct ib_send_wr *wr,
- 		wr = wr->next;
- 	}
- 	bnxt_qplib_post_send_db(&qp->qplib_qp);
-+	bnxt_ud_qp_hw_stall_workaround(qp);
- 	spin_unlock_irqrestore(&qp->sq_lock, flags);
+ 	mr = kzalloc(sizeof(*mr), GFP_KERNEL);
+ 	if (!mr)
+ 		return ERR_PTR(-ENOMEM);
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.c b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
+index 5a633b4..33c04a0 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_sp.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
+@@ -81,6 +81,8 @@ int bnxt_qplib_get_dev_attr(struct bnxt_qplib_rcfw *rcfw,
  
- 	return rc;
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-index 66abec0..0716298 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-@@ -1298,6 +1298,9 @@ int bnxt_qplib_post_send(struct bnxt_qplib_qp *qp,
- 	}
- 
- 	sq->hwq.prod++;
-+
-+	qp->wqe_cnt++;
-+
- done:
- 	return rc;
- }
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.h b/drivers/infiniband/hw/bnxt_re/qplib_fp.h
-index 71539ea..36b7b7d 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_fp.h
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.h
-@@ -250,6 +250,7 @@ struct bnxt_qplib_qp {
- 	u8				timeout;
- 	u8				retry_cnt;
- 	u8				rnr_retry;
-+	u64				wqe_cnt;
- 	u32				min_rnr_timer;
- 	u32				max_rd_atomic;
- 	u32				max_dest_rd_atomic;
+ 	/* Extract the context from the side buffer */
+ 	attr->max_qp = le32_to_cpu(sb->max_qp);
++	/* max_qp value reported by FW for PF doesn't include the QP1 for PF */
++	attr->max_qp += 1;
+ 	attr->max_qp_rd_atom =
+ 		sb->max_qp_rd_atom > BNXT_QPLIB_MAX_OUT_RD_ATOM ?
+ 		BNXT_QPLIB_MAX_OUT_RD_ATOM : sb->max_qp_rd_atom;
 -- 
 2.5.5
 
