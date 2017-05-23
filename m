@@ -1,92 +1,61 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] infiniband: hw: qedr: add null check before pointer
- dereference
-Date: Tue, 23 May 2017 10:13:49 +0300
-Message-ID: <20170523071349.GF17751@mtr-leonro.local>
-References: <20170522183015.GA22310@embeddedgus>
+Subject: Re: [PATCH V4 for-next 14/14] RDMA/bnxt_re: Remove FMR support
+Date: Tue, 23 May 2017 10:19:59 +0300
+Message-ID: <20170523071959.GG17751@mtr-leonro.local>
+References: <1495448144-18966-1-git-send-email-selvin.xavier@broadcom.com>
+ <1495448144-18966-15-git-send-email-selvin.xavier@broadcom.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="KdquIMZPjGJQvRdI"
+        protocol="application/pgp-signature"; boundary="ZInfyf7laFu/Kiw7"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170522183015.GA22310@embeddedgus>
+In-Reply-To: <1495448144-18966-15-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gustavo A. R. Silva" <garsilva-L1vi/lXTdts+Va1GwOuvDg@public.gmane.org>, Ram Amrani <ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---KdquIMZPjGJQvRdI
+--ZInfyf7laFu/Kiw7
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, May 22, 2017 at 01:30:15PM -0500, Gustavo A. R. Silva wrote:
-> Add null check before dereferencing pointer sgid_attr.ndev
-> inside function rdma_vlan_dev_vlan_id().
+On Mon, May 22, 2017 at 03:15:44AM -0700, Selvin Xavier wrote:
+> Some issues observed with FMR implementation
+> while running stress traffic. So removing the
+> FMR verbs support for now.
 >
-> Addresses-Coverity-ID: 1373979
-> Signed-off-by: Gustavo A. R. Silva <garsilva-L1vi/lXTdts+Va1GwOuvDg@public.gmane.org>
+> Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> Acked-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 > ---
->  drivers/infiniband/hw/qedr/qedr_cm.c | 10 ++++++----
->  1 file changed, 6 insertions(+), 4 deletions(-)
-
-+ Ram,
-
-Ram, IB part of qedr driver doesn't exist in MAINTAINERS file.
-
->
-> diff --git a/drivers/infiniband/hw/qedr/qedr_cm.c b/drivers/infiniband/hw/qedr/qedr_cm.c
-> index 3d7705c..d86dbe8 100644
-> --- a/drivers/infiniband/hw/qedr/qedr_cm.c
-> +++ b/drivers/infiniband/hw/qedr/qedr_cm.c
-> @@ -270,11 +270,13 @@ static inline int qedr_gsi_build_header(struct qedr_dev *dev,
->  		return rc;
->  	}
->
-> -	vlan_id = rdma_vlan_dev_vlan_id(sgid_attr.ndev);
-> -	if (vlan_id < VLAN_CFI_MASK)
-> -		has_vlan = true;
-> -	if (sgid_attr.ndev)
-> +	if (sgid_attr.ndev) {
-> +		vlan_id = rdma_vlan_dev_vlan_id(sgid_attr.ndev);
-> +		if (vlan_id < VLAN_CFI_MASK)
-> +			has_vlan = true;
-> +
->  		dev_put(sgid_attr.ndev);
-> +	}
-
-I do agree that it is better than kernel panic trying to access NULL
-pointer, but I'm not sure that retaining default vlan_id = 0 is correct
-solution here.
-
->
->  	if (!memcmp(&sgid, &zgid, sizeof(sgid))) {
->  		DP_ERR(dev, "gsi post send: GID not found GID index %d\n",
-> --
-> 2.5.0
+> v2 -> v3:
+> 	- Removes the FMR verbs instead of the config option
 >
 
---KdquIMZPjGJQvRdI
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+--ZInfyf7laFu/Kiw7
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkj4SwACgkQ5GN7iDZy
-WKc3jQ//boVwBX8ZCnt2udvU9YTNPq1814nQm2hRJ+P7VhAGdOoC+Gheo/JAOjvY
-yEZUO0fSAAtWBnC0ll2jx2gs17J0AgwUqDGrB6lKm3MVLGlp12VlAB7qWtCO8/hO
-RASaYwvQzNeF7RdTJblFNwgjKUpiKrWRHS9Cg4AQUPFdMe1WFMG+9IZK5ViaF7u/
-Wu3la6EjU5qogn2bO90VErQfTHVuTg0+vm8sxvgzY9cEdaj7ZrMjmgiUI3ks0pRd
-0ff/ZSBQ6jazgcV5n3RL3Da53Km4KJZwKP4pw9z7Z93I7SLkYo6KVk5tkamIM/e1
-Hu+BF770/4iaeGcpP9brJ6ZR+0D5ypsrvQNl+fuPmV+PttYNOvztVUDRgSwPGxwP
-4Mub6OgWv9mVC41gYXp6ipRaJfs9hCtyVClc5x3GUvdDb7IAhaWiU9zxKDTXgkdC
-6loE31uqTF0qQ74jGgVmkvI32WJ6nPLFgRq+or4r5wj+PjG4kpDwSMPXudeH1LHV
-hqGcQh2+pMy7sB9ETvxp0IRfHGFOE7WaUKPkpoOOv9ecM4HdvPhiaBMTkxhI4soR
-JShh3Z0T58kSZenfz7XqDTc3f9HH93FIBzMUiCHOssZNd1K/svtgzoI5IkAREwJn
-aTwlNObw1ucs9x76n+Q3v/oquAhKNh0YVTcEHzYCuLI2VTB5lXs=
-=cpP+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkj4p8ACgkQ5GN7iDZy
+WKdaoQ//fW1qONjxnISlkpCSbFvv8861tZoGdjdGe8uON9zqaFEH9u+PlSxrq37Q
+CygXjlmiAcR4fzaZQ0qgAzhRe1ljmdqoMR9ZQ3jq/VeZZlKcwj2bAEQvAlb+CxTo
+JfAREnnymSwY3xsZ0eDI3QA8wOKRAp1pZ4yS6kyXWWRcj8vSxWXi4jemf9Lh+X99
+2CInJN+OSfeVgv9dkn2/TppRGd4BrMo0paywCoiGyl5XzZEJ2UuhkFPErLRBIaVH
+IMSE0PPrOvqTwFcgBVg08LP0E6Xhsc1aHXRTiNbs0sNOTUw5H7dNYcQbd9jw/kR8
+65Szitz8ivbOercrIqwBHkzhkrN9Rht+MSdBWlTVBEnFsPr17t9QbimW0NKg2uAc
+728hDilYt2S72NGMvgQkGR2bML22+5A32GgaoiBCiJsm2TOf0UryqGnIWFT8VhfP
+lOcxUXBF0tAZPNmU6CqsEeVbwNb6AFGMy92qA9rxdsyRXET69SCpSLBlt/IP0Kjk
+3z+cFuBogIj54YZWEE/F8eb9piEFUSthkgAr8fS1KTL9fkSOaUT9FbrlCh+Bs5CD
+UQQQmg8r35/t5u8XEQc5Qo5ggJHvNgHLlIM97vikKNjhldfZOm28PmhKeF1/e6vL
+fcXwwlx/yOEb2ZAaijr1rxivf/c2oK0JdfHFuM0czV0Kc1sZxrw=
+=j9KH
 -----END PGP SIGNATURE-----
 
---KdquIMZPjGJQvRdI--
+--ZInfyf7laFu/Kiw7--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
