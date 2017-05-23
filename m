@@ -1,51 +1,145 @@
-From: Qing Huang <qing.huang@oracle.com>
-Subject: Re: [PATCH] ib/core: not to set page dirty bit if it's already set.
-Date: Tue, 23 May 2017 14:39:38 -0700
-Message-ID: <045c8fb5-fa64-c0e0-c5e4-2734f849a66a@oracle.com>
-References: <20170518233353.14370-1-qing.huang@oracle.com>
- <20170519130541.GA8017@infradead.org>
- <9f4a4f90-a7b1-b1dc-6e7a-042f26254681@oracle.com>
- <20170523074234.GE29525@infradead.org>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: Re: iSER with policy based routing error
+Date: Tue, 23 May 2017 17:17:16 -0600
+Message-ID: <CAANLjFqhPUd=kyuv0CBR69KuAwGZzne8ZY3-1J6YiNHuWqZBZA@mail.gmail.com>
+References: <CAANLjFoB3V6_exH8TnQQobaHkz2K1Lxj0sVOVa2Q+MKAsCqCKQ@mail.gmail.com>
+ <CAJ3xEMiYwGDott_gLrh7e4tG9Ti71vftMPuvyT3+czu7jWwqFA@mail.gmail.com>
+ <CAANLjFqNkNVDiGr-yW9y6XCiWE_O7+OewmxWM+xmWHQ39n4wkw@mail.gmail.com> <CAANLjFpKGoruxvwhtHwF-fBH+dLT9RKqkd3POYwLVK856WEfFA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20170523074234.GE29525@infradead.org>
-Sender: owner-linux-mm@kvack.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, dledford@redhat.com, sean.hefty@intel.com, artemyko@mellanox.com, linux-mm@kvack.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAANLjFpKGoruxvwhtHwF-fBH+dLT9RKqkd3POYwLVK856WEfFA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+I could not replicate ping6 working today without passing the -I
+parameter. I created https://github.com/linux-rdma/rdma-core/pull/136
+and now you can pass -I to rping to have it bind to a source address
+just like ping and the rules and additional routing table works for
+rping.
+
+However, iSER is not able to find a network route. Where do you think
+I should look next? It seems that RDMA_CM is able to work properly if
+given the right information.
+
+Thanks,
+Robert
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 
 
-On 5/23/2017 12:42 AM, Christoph Hellwig wrote:
-> On Mon, May 22, 2017 at 04:43:57PM -0700, Qing Huang wrote:
->> On 5/19/2017 6:05 AM, Christoph Hellwig wrote:
->>> On Thu, May 18, 2017 at 04:33:53PM -0700, Qing Huang wrote:
->>>> This change will optimize kernel memory deregistration operations.
->>>> __ib_umem_release() used to call set_page_dirty_lock() against every
->>>> writable page in its memory region. Its purpose is to keep data
->>>> synced between CPU and DMA device when swapping happens after mem
->>>> deregistration ops. Now we choose not to set page dirty bit if it's
->>>> already set by kernel prior to calling __ib_umem_release(). This
->>>> reduces memory deregistration time by half or even more when we ran
->>>> application simulation test program.
->>> As far as I can tell this code doesn't even need set_page_dirty_lock
->>> and could just use set_page_dirty
->> It seems that set_page_dirty_lock has been used here for more than 10 years.
->> Don't know the original purpose. Maybe it was used to prevent races between
->> setting dirty bits and swapping out pages?
-> I suspect copy & paste.  Or maybe I don't actually understand the
-> explanation of set_page_dirty vs set_page_dirty_lock enough.  But
-> I'd rather not hack around the problem.
-> --
-I think there are two parts here. First part is that we don't need to 
-set the dirty bit if it's already set. Second part is whether we use 
-set_page_dirty or set_page_dirty_lock to set dirty bits.
-
-
+On Thu, May 18, 2017 at 12:52 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+> On Thu, May 18, 2017 at 12:51 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+>> On Sat, May 13, 2017 at 11:55 AM, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>>> On Sat, May 13, 2017 at 12:02 AM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+>>> [...]
+>>>> If we put a default gateway for IPv6 in the 'default' table, then iSER
+>>>> is able to make a connection, but we can only use one port. It looks
+>>>> as if iSER is not following the rules in the default routing table to
+>>>> find the appropriate default gateway in a different table.
+>>>
+>>> can you just try to make rdma connection with the rping utility? do
+>>> you see the same problem/s?
+>>
+>> Using mlx4 cards with IB/RoCE, I am seeing the same connection problem
+>> with rping. There seems to be a bug that prevents rping from working
+>> with RoCE on mlx5.
+>>
+>> I also found a thread between you and Mike Christie
+>> https://groups.google.com/forum/#!topic/open-iscsi/IywifztV7Xs. It
+>> doesn't say that things were all worked out about binding to dev/ip
+>> address. Should iSER be able to bind to ip address (my preference), or
+>> by device name (workable) to provide multipathing? Should this binding
+>> be able to work with additional tables for finding the proper gateway?
+>> We are intending to route all RoCE traffic over L3 boundaries as it
+>> greatly simplifies the network configuration.
+>>
+>> Here is the test that I ran to show the problem (it is also in the
+>> "rdma_cm unable to find route on sub-table" thread):
+>
+> Test #1
+> -------
+> Using ConnectX-3 and Infiniband with two hosts back to back.
+>
+> Server
+> ------
+>
+> # systemctl start opensm
+>
+> # ip -6 addr add dev ib0 fd00::13/64
+>
+> # ip link set ib0 up
+>
+> # rping -s -a ::0
+> server DISCONNECT EVENT...
+> wait for RDMA_READ_ADV state 10
+>
+>
+> Client
+> ------
+>
+> # ip -6 addr add dev ib0 fd00::14/64
+>
+> # ip link set ib0 up
+>
+> # ping6 fd00::13
+> PING fd00::13(fd00::13) 56 data bytes
+> 64 bytes from fd00::13: icmp_seq=1 ttl=64 time=0.927 ms
+> 64 bytes from fd00::13: icmp_seq=2 ttl=64 time=0.134 ms
+> ^C
+> --- fd00::13 ping statistics ---
+> 2 packets transmitted, 2 received, 0% packet loss, time 1002ms
+> rtt min/avg/max/mdev = 0.134/0.530/0.927/0.397 ms
+>
+> # rping -c -a fd00::13
+> ^C
+>
+> Results #1
+> ----------
+> Tests complete successfully
+>
+>
+> Test #2
+> -------
+> Built upon the configuration of Test #1
+>
+> Server
+> ------
+> # rping -s -a ::0
+>
+> Client
+> ------
+> # echo "100 r0" >> /etc/iproute2/rt_tables
+>
+> # ip -6 route del fd00::/64 dev ib0
+>
+> # ip -6 rule add from fd00::14 table r0
+>
+> # ip -6 route add fd00::/64 dev ib0 table r0
+>
+> # ping6 fd00::13
+> PING fd00::13(fd00::13) 56 data bytes
+> 64 bytes from fd00::13: icmp_seq=1 ttl=64 time=0.158 ms
+> 64 bytes from fd00::13: icmp_seq=2 ttl=64 time=0.136 ms
+> ^C
+> --- fd00::13 ping statistics ---
+> 2 packets transmitted, 2 received, 0% packet loss, time 1020ms
+> rtt min/avg/max/mdev = 0.136/0.147/0.158/0.011 ms
+>
+> # rping -c -a fd00::13
+> rdma_resolve_addr: Network is unreachable
+>
+> Results #2
+> ----------
+> rping is unable to find a route to use
+>
+> ----------------
+> Robert LeBlanc
+> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
