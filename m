@@ -1,42 +1,89 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 02/12] xprtrdma: On invalidation failure,
- remove MWs from rl_registered
-Date: Tue, 23 May 2017 10:53:54 -0400
-Message-ID: <20170523145354.961.18377.stgit@manet.1015granger.net>
+Subject: [PATCH v1 03/12] xprtrdma: Fix FRWR invalidation error recovery
+Date: Tue, 23 May 2017 10:54:02 -0400
+Message-ID: <20170523145402.961.7601.stgit@manet.1015granger.net>
 References: <20170523142629.961.81233.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170523142629.961.81233.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Callers assume the ro_unmap_sync and ro_unmap_safe methods empty
-the list of registered MRs. Ensure that all paths through
-fmr_op_unmap_sync() remove MWs from that list.
+When ib_post_send() fails, all LOCAL_INV WRs past @bad_wr have to be
+examined, and the MRs reset by hand.
 
-Fixes: 9d6b04097882 ("xprtrdma: Place registered MWs on a ... ")
+I'm not sure how the existing code can work by comparing R_keys.
+Restructure the logic so that instead it walks the chain of WRs,
+starting from the first bad one.
+
+Make sure to wait for completion if at least one WR was actually
+posted. Otherwise, if the ib_post_send fails, we can end up
+DMA-unmapping the MR while LOCAL_INV operations are in flight.
+
+Commit 7a89f9c626e3 ("xprtrdma: Honor ->send_request API contract")
+added the rdma_disconnect() call site. The disconnect actually
+causes more problems than it solves, and SQ overruns happen only as
+a result of software bugs. So remove it.
+
+Fixes: d7a21c1bed54 ("xprtrdma: Reset MRs in frwr_op_unmap_sync()")
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/fmr_ops.c |    1 +
- 1 file changed, 1 insertion(+)
+ net/sunrpc/xprtrdma/frwr_ops.c |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
-index 9ee573f..7b2de86 100644
---- a/net/sunrpc/xprtrdma/fmr_ops.c
-+++ b/net/sunrpc/xprtrdma/fmr_ops.c
-@@ -295,6 +295,7 @@ enum {
- 	pr_err("rpcrdma: ib_unmap_fmr failed (%i)\n", rc);
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index 33ede72..98808d0 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -521,12 +521,13 @@
+ 	 * unless ri_id->qp is a valid pointer.
+ 	 */
+ 	r_xprt->rx_stats.local_inv_needed++;
++	bad_wr = NULL;
+ 	rc = ib_post_send(ia->ri_id->qp, first, &bad_wr);
++	if (bad_wr != first)
++		wait_for_completion(&f->fr_linv_done);
+ 	if (rc)
+ 		goto reset_mrs;
  
- 	list_for_each_entry_safe(mw, tmp, &req->rl_registered, mw_list) {
-+		list_del_init(&mw->mw_list);
- 		list_del_init(&mw->fmr.fm_mr->list);
- 		fmr_op_recover_mr(mw);
+-	wait_for_completion(&f->fr_linv_done);
+-
+ 	/* ORDER: Now DMA unmap all of the req's MRs, and return
+ 	 * them to the free MW list.
+ 	 */
+@@ -543,17 +544,19 @@
+ 
+ reset_mrs:
+ 	pr_err("rpcrdma: FRMR invalidate ib_post_send returned %i\n", rc);
+-	rdma_disconnect(ia->ri_id);
+ 
+ 	/* Find and reset the MRs in the LOCAL_INV WRs that did not
+-	 * get posted. This is synchronous, and slow.
++	 * get posted.
+ 	 */
+-	list_for_each_entry(mw, &req->rl_registered, mw_list) {
+-		f = &mw->frmr;
+-		if (mw->mw_handle == bad_wr->ex.invalidate_rkey) {
+-			__frwr_reset_mr(ia, mw);
+-			bad_wr = bad_wr->next;
+-		}
++	rpcrdma_init_cqcount(&r_xprt->rx_ep, -count);
++	while (bad_wr) {
++		f = container_of(bad_wr, struct rpcrdma_frmr,
++				 fr_invwr);
++		mw = container_of(f, struct rpcrdma_mw, frmr);
++
++		__frwr_reset_mr(ia, mw);
++
++		bad_wr = bad_wr->next;
  	}
+ 	goto unmap;
+ }
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
