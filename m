@@ -1,10 +1,8 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 1/4] IB/IPoIB: Convert IPoIB to memalloc_noio_* calls
-Date: Tue, 23 May 2017 11:39:50 +0300
-Message-ID: <20170523083953.14892-2-leon@kernel.org>
-References: <20170523083953.14892-1-leon@kernel.org>
+Subject: [PATCH rdma-next 0/4] Add support of NOIO allocations to IPoIB
+Date: Tue, 23 May 2017 11:39:49 +0300
+Message-ID: <20170523083953.14892-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170523083953.14892-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mel Gorman <mgorman-3eNAlZScCAx27rWaFMvyedHuzzzSOjJt@public.gmane.org>, Jiri Kosina <jikos-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -12,87 +10,57 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Commit 21caf2fc1931 ("mm: teach mm by current context info to not do I/O
-during memory allocation") added the memalloc_noio_(save|restore) functions
-to enable people to modify the MM behavior by disabling I/O during memory
-allocation. This was further extended in Fixes: 934f3072c17c ("mm: clear
-__GFP_FS when PF_MEMALLOC_NOIO is set"). memalloc_noio_* functions prevent
-allocation paths recursing back into the filesystem without explicitly
-changing the flags for every allocation site.
+Hi Doug,
 
-However the IPoIB hasn't been keeping up with the changes and missed
-completely these memalloc_noio_* calls. This led to update of
-allocation site with special QP creation flag, see commit 09b93088d750
-("IB: Add a QP creation flag to use GFP_NOIO allocations"), while this
-flag is supported by small number of drivers in IB stack.
+These patches adds native support to NOIO allocations during
+create QP for IPoIB.
 
-Let's change it by updating to memalloc_noio_* calls and allow
-for every driver underneath enjoy NOIO allocations.
+In contrast to the commit 09b93088d750 ("IB: Add a QP creation flag
+to use GFP_NOIO allocations"), which added specific QP create flag,
+this series uses standard memalloc_noio_* calls to mark GFP_NOIO
+for all allocations paths below.
 
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_cm.c | 16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+This change allows to all drivers benefit from this facitlity
+and not only mlx4 and qib. As a nice outcome, there is a lot
+simplification in the mlx4 and qib drivers by removing need to
+carry GFP flags.
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index 7cbcfdac6529..31daeacaa1f9 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -39,6 +39,7 @@
- #include <linux/vmalloc.h>
- #include <linux/moduleparam.h>
- #include <linux/sched/signal.h>
-+#include <linux/sched/mm.h>
+Thanks
 
- #include "ipoib.h"
+Cc: Mel Gorman <mgorman-3eNAlZScCAx27rWaFMvyedHuzzzSOjJt@public.gmane.org>
+Cc: Jiri Kosina <jikos-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-@@ -1047,9 +1048,8 @@ static struct ib_qp *ipoib_cm_create_tx_qp(struct net_device *dev, struct ipoib_
- 		.sq_sig_type		= IB_SIGNAL_ALL_WR,
- 		.qp_type		= IB_QPT_RC,
- 		.qp_context		= tx,
--		.create_flags		= IB_QP_CREATE_USE_GFP_NOIO
-+		.create_flags		= 0
- 	};
--
- 	struct ib_qp *tx_qp;
+Leon Romanovsky (4):
+  IB/IPoIB: Convert IPoIB to memalloc_noio_* calls
+  IB/{rdmavt, qib}: Remove gfp flags argument
+  {net, IB}/mlx4: Remove gfp flags argument
+  IB/core: Remove NOIO QP create flag
 
- 	if (dev->features & NETIF_F_SG)
-@@ -1057,10 +1057,6 @@ static struct ib_qp *ipoib_cm_create_tx_qp(struct net_device *dev, struct ipoib_
- 			min_t(u32, priv->ca->attrs.max_sge, MAX_SKB_FRAGS + 1);
-
- 	tx_qp = ib_create_qp(priv->pd, &attr);
--	if (PTR_ERR(tx_qp) == -EINVAL) {
--		attr.create_flags &= ~IB_QP_CREATE_USE_GFP_NOIO;
--		tx_qp = ib_create_qp(priv->pd, &attr);
--	}
- 	tx->max_send_sge = attr.cap.max_send_sge;
- 	return tx_qp;
- }
-@@ -1131,10 +1127,11 @@ static int ipoib_cm_tx_init(struct ipoib_cm_tx *p, u32 qpn,
- 			    struct sa_path_rec *pathrec)
- {
- 	struct ipoib_dev_priv *priv = ipoib_priv(p->dev);
-+	unsigned int noio_flag;
- 	int ret;
-
--	p->tx_ring = __vmalloc(ipoib_sendq_size * sizeof *p->tx_ring,
--			       GFP_NOIO, PAGE_KERNEL);
-+	noio_flag = memalloc_noio_save();
-+	p->tx_ring = vzalloc(ipoib_sendq_size * sizeof(*p->tx_ring));
- 	if (!p->tx_ring) {
- 		ret = -ENOMEM;
- 		goto err_tx;
-@@ -1142,9 +1139,10 @@ static int ipoib_cm_tx_init(struct ipoib_cm_tx *p, u32 qpn,
- 	memset(p->tx_ring, 0, ipoib_sendq_size * sizeof *p->tx_ring);
-
- 	p->qp = ipoib_cm_create_tx_qp(p->dev, p);
-+	memalloc_noio_restore(noio_flag);
- 	if (IS_ERR(p->qp)) {
- 		ret = PTR_ERR(p->qp);
--		ipoib_warn(priv, "failed to allocate tx qp: %d\n", ret);
-+		ipoib_warn(priv, "failed to create tx qp: %d\n", ret);
- 		goto err_qp;
- 	}
+ drivers/infiniband/hw/mlx4/cq.c                    |  6 +--
+ drivers/infiniband/hw/mlx4/mlx4_ib.h               |  1 -
+ drivers/infiniband/hw/mlx4/qp.c                    | 40 ++++++++----------
+ drivers/infiniband/hw/mlx4/srq.c                   |  8 ++--
+ drivers/infiniband/hw/qib/qib_qp.c                 | 15 ++++---
+ drivers/infiniband/hw/qib/qib_verbs.h              |  4 +-
+ drivers/infiniband/sw/rdmavt/qp.c                  | 48 ++++++----------------
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c            | 16 ++++----
+ drivers/net/ethernet/mellanox/mlx4/alloc.c         | 29 +++++++------
+ drivers/net/ethernet/mellanox/mlx4/cq.c            |  4 +-
+ drivers/net/ethernet/mellanox/mlx4/en_rx.c         |  6 +--
+ drivers/net/ethernet/mellanox/mlx4/en_tx.c         |  2 +-
+ drivers/net/ethernet/mellanox/mlx4/icm.c           |  7 ++--
+ drivers/net/ethernet/mellanox/mlx4/icm.h           |  3 +-
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h          |  4 +-
+ drivers/net/ethernet/mellanox/mlx4/mr.c            | 17 ++++----
+ drivers/net/ethernet/mellanox/mlx4/qp.c            | 20 ++++-----
+ .../net/ethernet/mellanox/mlx4/resource_tracker.c  |  4 +-
+ drivers/net/ethernet/mellanox/mlx4/srq.c           |  4 +-
+ include/linux/mlx4/device.h                        | 10 ++---
+ include/rdma/ib_verbs.h                            |  2 +-
+ include/rdma/rdma_vt.h                             |  5 +--
+ 22 files changed, 108 insertions(+), 147 deletions(-)
 
 --
 2.12.2
