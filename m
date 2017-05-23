@@ -1,61 +1,39 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH v9 06/15] mlx5: Replace PCI pool old API
-Date: Tue, 23 May 2017 10:27:43 +0300
-Message-ID: <20170523072743.GJ17751@mtr-leonro.local>
-References: <20170522164907.22915-1-romain.perier@collabora.com>
- <20170522164907.22915-7-romain.perier@collabora.com>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH] ib/core: not to set page dirty bit if it's already set.
+Date: Tue, 23 May 2017 00:42:34 -0700
+Message-ID: <20170523074234.GE29525@infradead.org>
+References: <20170518233353.14370-1-qing.huang@oracle.com>
+ <20170519130541.GA8017@infradead.org>
+ <9f4a4f90-a7b1-b1dc-6e7a-042f26254681@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="/Gk0KcsbyUMelFU1"
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170522164907.22915-7-romain.perier@collabora.com>
-Sender: netdev-owner@vger.kernel.org
-To: Romain Perier <romain.perier@collabora.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, jeffrey.t.kirsher@intel.com, "David S. Miller" <davem@davemloft.net>, stas.yakovlev@gmail.com, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Senna Tschudin <peter.senna@collabora.co.uk>
+In-Reply-To: <9f4a4f90-a7b1-b1dc-6e7a-042f26254681@oracle.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Qing Huang <qing.huang@oracle.com>
+Cc: Christoph Hellwig <hch@infradead.org>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, dledford@redhat.com, sean.hefty@intel.com, artemyko@mellanox.com, linux-mm@kvack.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, May 22, 2017 at 04:43:57PM -0700, Qing Huang wrote:
+> 
+> On 5/19/2017 6:05 AM, Christoph Hellwig wrote:
+> > On Thu, May 18, 2017 at 04:33:53PM -0700, Qing Huang wrote:
+> > > This change will optimize kernel memory deregistration operations.
+> > > __ib_umem_release() used to call set_page_dirty_lock() against every
+> > > writable page in its memory region. Its purpose is to keep data
+> > > synced between CPU and DMA device when swapping happens after mem
+> > > deregistration ops. Now we choose not to set page dirty bit if it's
+> > > already set by kernel prior to calling __ib_umem_release(). This
+> > > reduces memory deregistration time by half or even more when we ran
+> > > application simulation test program.
+> > As far as I can tell this code doesn't even need set_page_dirty_lock
+> > and could just use set_page_dirty
+> 
+> It seems that set_page_dirty_lock has been used here for more than 10 years.
+> Don't know the original purpose. Maybe it was used to prevent races between
+> setting dirty bits and swapping out pages?
 
---/Gk0KcsbyUMelFU1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, May 22, 2017 at 06:48:58PM +0200, Romain Perier wrote:
-> The PCI pool API is deprecated. This commit replaces the PCI pool old
-> API by the appropriate function with the DMA pool API.
->
-> Signed-off-by: Romain Perier <romain.perier@collabora.com>
-> Reviewed-by: Peter Senna Tschudin <peter.senna@collabora.com>
-> Acked-by: Doug Ledford <dledford@redhat.com>
-> Tested-by: Doug Ledford <dledford@redhat.com>
-> ---
->  drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 11 ++++++-----
->  include/linux/mlx5/driver.h                   |  2 +-
->  2 files changed, 7 insertions(+), 6 deletions(-)
->
-
-Who is supposed to merge this patch series?
-
-Acked-by: Leon Romanovsky <leonro@mellanox.com>
-
---/Gk0KcsbyUMelFU1
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkj5G8ACgkQ5GN7iDZy
-WKen5BAAy/3mvGSpTP8qDRSTN+YZtXD5my5DkkPXxjkjJ8Pp6mnHS83Ez6DuL8QT
-s1x/XurCYGqXoKqaMiSx+nHKq7zirCnLG+MEelvkEXSZ1bTpLTfQYEX4Sq6Dp3Wz
-gq5BkQl31V4Pgi9EuO24fhHxXNU8U0GXN0f97EHaa7X1OXUpSJChpsQjBVrD1K1R
-8kvu3FO8Pj7XrFCRStNjnGyUkWxFr4wI4f0SouuSJ8uyQHE7yoe2k/wj/vCj4b1u
-Q/olXUx3Q/uo1w003q2sHQQkq+aP8+j5fCTLA8eVIAEEWR8wUrTZ8bh7/ROwWJZf
-VWIPjByvRQp1tnMukQfkh8WwlyjpWXsVxonRly1Nb0ZDMbp5TOHaMgJg/VY5n7cW
-FKVZ1kHy8xFhtdT/b19HfaFcn3RAObrrU/BeEI3AiLvgxKJ0XE8xc4sfwaTjEtQa
-3bOioETPWCRebQf+W63gUSLZM5Voj46+wiYBjQNpAOw2wjIuyfnt6MwWZamTBhVI
-ST5Lrhw9aIK2//JFbbd4IxVwcrHTxSUXWswqig784im/CBw44m785IHPZP5LFPOl
-Py9/rSQ8lj2kBr4jZ/ZKZTf4nqxjVAck2PJ77zdMFln68n37u6INCItxIGOA26Fm
-yOZkqsmDWcgXRrv/BmY3/gbxfgX+99dbySWhjrS+5Hs3mEc2nlc=
-=QF6J
------END PGP SIGNATURE-----
-
---/Gk0KcsbyUMelFU1--
+I suspect copy & paste.  Or maybe I don't actually understand the
+explanation of set_page_dirty vs set_page_dirty_lock enough.  But
+I'd rather not hack around the problem.
