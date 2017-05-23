@@ -1,31 +1,51 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v2] IB/hfi1: Protect the global dev_cntr_names and
- port_cntr_names
-Date: Tue, 23 May 2017 22:06:07 +0200
-Message-ID: <20170523200607.GA4896@kroah.com>
-References: <20170523194407.28059.59929.stgit@phlsvslse11.ph.intel.com>
- <20170523195533.GA17694@kroah.com>
- <32E1700B9017364D9B60AED9960492BC342FD4B2@fmsmsx120.amr.corp.intel.com>
+From: Qing Huang <qing.huang@oracle.com>
+Subject: Re: [PATCH] ib/core: not to set page dirty bit if it's already set.
+Date: Tue, 23 May 2017 14:39:38 -0700
+Message-ID: <045c8fb5-fa64-c0e0-c5e4-2734f849a66a@oracle.com>
+References: <20170518233353.14370-1-qing.huang@oracle.com>
+ <20170519130541.GA8017@infradead.org>
+ <9f4a4f90-a7b1-b1dc-6e7a-042f26254681@oracle.com>
+ <20170523074234.GE29525@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC342FD4B2@fmsmsx120.amr.corp.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
-Cc: "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "stable-commits@vger.kernel.org" <stable-commits@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20170523074234.GE29525@infradead.org>
+Sender: owner-linux-mm@kvack.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, dledford@redhat.com, sean.hefty@intel.com, artemyko@mellanox.com, linux-mm@kvack.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 23, 2017 at 07:59:21PM +0000, Marciniszyn, Mike wrote:
-> > > Cc: stable <stable@vger.kernel.org> # v4.10
-> > 
-> > Why resend this???
-> 
-> There are two patches, one for 4.10 and one for 4.11.
-> 
-> Each of the v2's should have had a different version on the stable cc line in the signoff block.
 
-But I already emailed you saying, 4.10 is end-of-life, no one is doing
-anything with it, so why resend it?
 
-greg k-h
+On 5/23/2017 12:42 AM, Christoph Hellwig wrote:
+> On Mon, May 22, 2017 at 04:43:57PM -0700, Qing Huang wrote:
+>> On 5/19/2017 6:05 AM, Christoph Hellwig wrote:
+>>> On Thu, May 18, 2017 at 04:33:53PM -0700, Qing Huang wrote:
+>>>> This change will optimize kernel memory deregistration operations.
+>>>> __ib_umem_release() used to call set_page_dirty_lock() against every
+>>>> writable page in its memory region. Its purpose is to keep data
+>>>> synced between CPU and DMA device when swapping happens after mem
+>>>> deregistration ops. Now we choose not to set page dirty bit if it's
+>>>> already set by kernel prior to calling __ib_umem_release(). This
+>>>> reduces memory deregistration time by half or even more when we ran
+>>>> application simulation test program.
+>>> As far as I can tell this code doesn't even need set_page_dirty_lock
+>>> and could just use set_page_dirty
+>> It seems that set_page_dirty_lock has been used here for more than 10 years.
+>> Don't know the original purpose. Maybe it was used to prevent races between
+>> setting dirty bits and swapping out pages?
+> I suspect copy & paste.  Or maybe I don't actually understand the
+> explanation of set_page_dirty vs set_page_dirty_lock enough.  But
+> I'd rather not hack around the problem.
+> --
+I think there are two parts here. First part is that we don't need to 
+set the dirty bit if it's already set. Second part is whether we use 
+set_page_dirty or set_page_dirty_lock to set dirty bits.
+
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
