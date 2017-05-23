@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 4/4] IB/core: Remove NOIO QP create flag
-Date: Tue, 23 May 2017 14:38:16 +0300
-Message-ID: <20170523113816.32657-5-leon@kernel.org>
+Subject: [PATCH rdma-next V1 3/4] {net, IB}/mlx4: Remove gfp flags argument
+Date: Tue, 23 May 2017 14:38:15 +0300
+Message-ID: <20170523113816.32657-4-leon@kernel.org>
 References: <20170523113816.32657-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170523113816.32657-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,28 +12,725 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-There are no users for IB_QP_CREATE_USE_GFP_NOIO flag,
-so let's remove it.
+The caller to the driver marks GFP_NOIO allocations with help
+of memalloc_noio-* calls now. This makes redundant to pass down
+to the driver gfp flags, which can be GFP_KERNEL only.
+
+The patch removes the gfp flags argument and updates all driver paths.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- include/rdma/ib_verbs.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx4/cq.c                    |  6 ++--
+ drivers/infiniband/hw/mlx4/mlx4_ib.h               |  1 -
+ drivers/infiniband/hw/mlx4/qp.c                    | 40 +++++++++-------------
+ drivers/infiniband/hw/mlx4/srq.c                   |  8 ++---
+ drivers/net/ethernet/mellanox/mlx4/alloc.c         | 29 ++++++++--------
+ drivers/net/ethernet/mellanox/mlx4/cq.c            |  4 +--
+ drivers/net/ethernet/mellanox/mlx4/en_rx.c         |  6 ++--
+ drivers/net/ethernet/mellanox/mlx4/en_tx.c         |  2 +-
+ drivers/net/ethernet/mellanox/mlx4/icm.c           |  7 ++--
+ drivers/net/ethernet/mellanox/mlx4/icm.h           |  3 +-
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h          |  4 +--
+ drivers/net/ethernet/mellanox/mlx4/mr.c            | 17 +++++----
+ drivers/net/ethernet/mellanox/mlx4/qp.c            | 20 +++++------
+ .../net/ethernet/mellanox/mlx4/resource_tracker.c  |  4 +--
+ drivers/net/ethernet/mellanox/mlx4/srq.c           |  4 +--
+ include/linux/mlx4/device.h                        | 10 +++---
+ 16 files changed, 76 insertions(+), 89 deletions(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index ba8314ec5768..b07ea8ab1b9b 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1056,7 +1056,7 @@ enum ib_qp_create_flags {
- 	IB_QP_CREATE_MANAGED_RECV               = 1 << 4,
- 	IB_QP_CREATE_NETIF_QP			= 1 << 5,
- 	IB_QP_CREATE_SIGNATURE_EN		= 1 << 6,
--	IB_QP_CREATE_USE_GFP_NOIO		= 1 << 7,
-+	/* FREE					= 1 << 7, */
- 	IB_QP_CREATE_SCATTER_FCS		= 1 << 8,
- 	IB_QP_CREATE_CVLAN_STRIPPING		= 1 << 9,
- 	/* reserve bits 26-31 for low level drivers' internal use */
+diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
+index 4f5a143fc0a7..ff931c580557 100644
+--- a/drivers/infiniband/hw/mlx4/cq.c
++++ b/drivers/infiniband/hw/mlx4/cq.c
+@@ -102,7 +102,7 @@ static int mlx4_ib_alloc_cq_buf(struct mlx4_ib_dev *dev, struct mlx4_ib_cq_buf *
+ 	int err;
+ 
+ 	err = mlx4_buf_alloc(dev->dev, nent * dev->dev->caps.cqe_size,
+-			     PAGE_SIZE * 2, &buf->buf, GFP_KERNEL);
++			     PAGE_SIZE * 2, &buf->buf);
+ 
+ 	if (err)
+ 		goto out;
+@@ -113,7 +113,7 @@ static int mlx4_ib_alloc_cq_buf(struct mlx4_ib_dev *dev, struct mlx4_ib_cq_buf *
+ 	if (err)
+ 		goto err_buf;
+ 
+-	err = mlx4_buf_write_mtt(dev->dev, &buf->mtt, &buf->buf, GFP_KERNEL);
++	err = mlx4_buf_write_mtt(dev->dev, &buf->mtt, &buf->buf);
+ 	if (err)
+ 		goto err_mtt;
+ 
+@@ -219,7 +219,7 @@ struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev,
+ 
+ 		uar = &to_mucontext(context)->uar;
+ 	} else {
+-		err = mlx4_db_alloc(dev->dev, &cq->db, 1, GFP_KERNEL);
++		err = mlx4_db_alloc(dev->dev, &cq->db, 1);
+ 		if (err)
+ 			goto err_cq;
+ 
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index c2b9cbf4da05..9db82e67e959 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -185,7 +185,6 @@ enum mlx4_ib_qp_flags {
+ 	MLX4_IB_QP_LSO = IB_QP_CREATE_IPOIB_UD_LSO,
+ 	MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK = IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK,
+ 	MLX4_IB_QP_NETIF = IB_QP_CREATE_NETIF_QP,
+-	MLX4_IB_QP_CREATE_USE_GFP_NOIO = IB_QP_CREATE_USE_GFP_NOIO,
+ 
+ 	/* Mellanox specific flags start from IB_QP_CREATE_RESERVED_START */
+ 	MLX4_IB_ROCE_V2_GSI_QP = MLX4_IB_QP_CREATE_ROCE_V2_GSI,
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 996e9058e515..75c0e6c5dd56 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -634,8 +634,8 @@ static void mlx4_ib_free_qp_counter(struct mlx4_ib_dev *dev,
+ 
+ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
+ 			    struct ib_qp_init_attr *init_attr,
+-			    struct ib_udata *udata, int sqpn, struct mlx4_ib_qp **caller_qp,
+-			    gfp_t gfp)
++			    struct ib_udata *udata, int sqpn,
++			    struct mlx4_ib_qp **caller_qp)
+ {
+ 	int qpn;
+ 	int err;
+@@ -691,14 +691,14 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
+ 		if (qp_type == MLX4_IB_QPT_SMI || qp_type == MLX4_IB_QPT_GSI ||
+ 		    (qp_type & (MLX4_IB_QPT_PROXY_SMI | MLX4_IB_QPT_PROXY_SMI_OWNER |
+ 				MLX4_IB_QPT_PROXY_GSI | MLX4_IB_QPT_TUN_SMI_OWNER))) {
+-			sqp = kzalloc(sizeof (struct mlx4_ib_sqp), gfp);
++			sqp = kzalloc(sizeof(struct mlx4_ib_sqp), GFP_KERNEL);
+ 			if (!sqp)
+ 				return -ENOMEM;
+ 			qp = &sqp->qp;
+ 			qp->pri.vid = 0xFFFF;
+ 			qp->alt.vid = 0xFFFF;
+ 		} else {
+-			qp = kzalloc(sizeof (struct mlx4_ib_qp), gfp);
++			qp = kzalloc(sizeof(struct mlx4_ib_qp), GFP_KERNEL);
+ 			if (!qp)
+ 				return -ENOMEM;
+ 			qp->pri.vid = 0xFFFF;
+@@ -780,7 +780,7 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
+ 			goto err;
+ 
+ 		if (qp_has_rq(init_attr)) {
+-			err = mlx4_db_alloc(dev->dev, &qp->db, 0, gfp);
++			err = mlx4_db_alloc(dev->dev, &qp->db, 0);
+ 			if (err)
+ 				goto err;
+ 
+@@ -788,7 +788,7 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
+ 		}
+ 
+ 		if (mlx4_buf_alloc(dev->dev, qp->buf_size, qp->buf_size,
+-				   &qp->buf, gfp)) {
++				   &qp->buf)) {
+ 			memcpy(&init_attr->cap, &backup_cap,
+ 			       sizeof(backup_cap));
+ 			err = set_kernel_sq_size(dev, &init_attr->cap, qp_type,
+@@ -797,7 +797,7 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
+ 				goto err_db;
+ 
+ 			if (mlx4_buf_alloc(dev->dev, qp->buf_size,
+-					   PAGE_SIZE * 2, &qp->buf, gfp)) {
++					   PAGE_SIZE * 2, &qp->buf)) {
+ 				err = -ENOMEM;
+ 				goto err_db;
+ 			}
+@@ -808,20 +808,20 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
+ 		if (err)
+ 			goto err_buf;
+ 
+-		err = mlx4_buf_write_mtt(dev->dev, &qp->mtt, &qp->buf, gfp);
++		err = mlx4_buf_write_mtt(dev->dev, &qp->mtt, &qp->buf);
+ 		if (err)
+ 			goto err_mtt;
+ 
+ 		qp->sq.wrid = kmalloc_array(qp->sq.wqe_cnt, sizeof(u64),
+-					gfp | __GFP_NOWARN);
++					GFP_KERNEL | __GFP_NOWARN);
+ 		if (!qp->sq.wrid)
+ 			qp->sq.wrid = __vmalloc(qp->sq.wqe_cnt * sizeof(u64),
+-						gfp, PAGE_KERNEL);
++						GFP_KERNEL, PAGE_KERNEL);
+ 		qp->rq.wrid = kmalloc_array(qp->rq.wqe_cnt, sizeof(u64),
+-					gfp | __GFP_NOWARN);
++					GFP_KERNEL | __GFP_NOWARN);
+ 		if (!qp->rq.wrid)
+ 			qp->rq.wrid = __vmalloc(qp->rq.wqe_cnt * sizeof(u64),
+-						gfp, PAGE_KERNEL);
++						GFP_KERNEL, PAGE_KERNEL);
+ 		if (!qp->sq.wrid || !qp->rq.wrid) {
+ 			err = -ENOMEM;
+ 			goto err_wrid;
+@@ -859,7 +859,7 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
+ 	if (init_attr->create_flags & IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK)
+ 		qp->flags |= MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK;
+ 
+-	err = mlx4_qp_alloc(dev->dev, qpn, &qp->mqp, gfp);
++	err = mlx4_qp_alloc(dev->dev, qpn, &qp->mqp);
+ 	if (err)
+ 		goto err_qpn;
+ 
+@@ -1127,10 +1127,7 @@ static struct ib_qp *_mlx4_ib_create_qp(struct ib_pd *pd,
+ 	int err;
+ 	int sup_u_create_flags = MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK;
+ 	u16 xrcdn = 0;
+-	gfp_t gfp;
+ 
+-	gfp = (init_attr->create_flags & MLX4_IB_QP_CREATE_USE_GFP_NOIO) ?
+-		GFP_NOIO : GFP_KERNEL;
+ 	/*
+ 	 * We only support LSO, vendor flag1, and multicast loopback blocking,
+ 	 * and only for kernel UD QPs.
+@@ -1140,8 +1137,7 @@ static struct ib_qp *_mlx4_ib_create_qp(struct ib_pd *pd,
+ 					MLX4_IB_SRIOV_TUNNEL_QP |
+ 					MLX4_IB_SRIOV_SQP |
+ 					MLX4_IB_QP_NETIF |
+-					MLX4_IB_QP_CREATE_ROCE_V2_GSI |
+-					MLX4_IB_QP_CREATE_USE_GFP_NOIO))
++					MLX4_IB_QP_CREATE_ROCE_V2_GSI))
+ 		return ERR_PTR(-EINVAL);
+ 
+ 	if (init_attr->create_flags & IB_QP_CREATE_NETIF_QP) {
+@@ -1154,7 +1150,6 @@ static struct ib_qp *_mlx4_ib_create_qp(struct ib_pd *pd,
+ 			return ERR_PTR(-EINVAL);
+ 
+ 		if ((init_attr->create_flags & ~(MLX4_IB_SRIOV_SQP |
+-						 MLX4_IB_QP_CREATE_USE_GFP_NOIO |
+ 						 MLX4_IB_QP_CREATE_ROCE_V2_GSI  |
+ 						 MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK) &&
+ 		     init_attr->qp_type != IB_QPT_UD) ||
+@@ -1179,7 +1174,7 @@ static struct ib_qp *_mlx4_ib_create_qp(struct ib_pd *pd,
+ 	case IB_QPT_RC:
+ 	case IB_QPT_UC:
+ 	case IB_QPT_RAW_PACKET:
+-		qp = kzalloc(sizeof *qp, gfp);
++		qp = kzalloc(sizeof(*qp), GFP_KERNEL);
+ 		if (!qp)
+ 			return ERR_PTR(-ENOMEM);
+ 		qp->pri.vid = 0xFFFF;
+@@ -1188,7 +1183,7 @@ static struct ib_qp *_mlx4_ib_create_qp(struct ib_pd *pd,
+ 	case IB_QPT_UD:
+ 	{
+ 		err = create_qp_common(to_mdev(pd->device), pd, init_attr,
+-				       udata, 0, &qp, gfp);
++				       udata, 0, &qp);
+ 		if (err) {
+ 			kfree(qp);
+ 			return ERR_PTR(err);
+@@ -1217,8 +1212,7 @@ static struct ib_qp *_mlx4_ib_create_qp(struct ib_pd *pd,
+ 		}
+ 
+ 		err = create_qp_common(to_mdev(pd->device), pd, init_attr, udata,
+-				       sqpn,
+-				       &qp, gfp);
++				       sqpn, &qp);
+ 		if (err)
+ 			return ERR_PTR(err);
+ 
+diff --git a/drivers/infiniband/hw/mlx4/srq.c b/drivers/infiniband/hw/mlx4/srq.c
+index e32dd58937a8..0facaf5f6d23 100644
+--- a/drivers/infiniband/hw/mlx4/srq.c
++++ b/drivers/infiniband/hw/mlx4/srq.c
+@@ -135,14 +135,14 @@ struct ib_srq *mlx4_ib_create_srq(struct ib_pd *pd,
+ 		if (err)
+ 			goto err_mtt;
+ 	} else {
+-		err = mlx4_db_alloc(dev->dev, &srq->db, 0, GFP_KERNEL);
++		err = mlx4_db_alloc(dev->dev, &srq->db, 0);
+ 		if (err)
+ 			goto err_srq;
+ 
+ 		*srq->db.db = 0;
+ 
+-		if (mlx4_buf_alloc(dev->dev, buf_size, PAGE_SIZE * 2, &srq->buf,
+-				   GFP_KERNEL)) {
++		if (mlx4_buf_alloc(dev->dev, buf_size, PAGE_SIZE * 2,
++				   &srq->buf)) {
+ 			err = -ENOMEM;
+ 			goto err_db;
+ 		}
+@@ -167,7 +167,7 @@ struct ib_srq *mlx4_ib_create_srq(struct ib_pd *pd,
+ 		if (err)
+ 			goto err_buf;
+ 
+-		err = mlx4_buf_write_mtt(dev->dev, &srq->mtt, &srq->buf, GFP_KERNEL);
++		err = mlx4_buf_write_mtt(dev->dev, &srq->mtt, &srq->buf);
+ 		if (err)
+ 			goto err_mtt;
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx4/alloc.c b/drivers/net/ethernet/mellanox/mlx4/alloc.c
+index 249a4584401a..d94b3744a5b9 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/alloc.c
++++ b/drivers/net/ethernet/mellanox/mlx4/alloc.c
+@@ -578,7 +578,7 @@ u32 mlx4_zone_free_entries_unique(struct mlx4_zone_allocator *zones, u32 obj, u3
+ }
+ 
+ static int mlx4_buf_direct_alloc(struct mlx4_dev *dev, int size,
+-				 struct mlx4_buf *buf, gfp_t gfp)
++				 struct mlx4_buf *buf)
+ {
+ 	dma_addr_t t;
+ 
+@@ -587,7 +587,7 @@ static int mlx4_buf_direct_alloc(struct mlx4_dev *dev, int size,
+ 	buf->page_shift   = get_order(size) + PAGE_SHIFT;
+ 	buf->direct.buf   =
+ 		dma_zalloc_coherent(&dev->persist->pdev->dev,
+-				    size, &t, gfp);
++				    size, &t, GFP_KERNEL);
+ 	if (!buf->direct.buf)
+ 		return -ENOMEM;
+ 
+@@ -607,10 +607,10 @@ static int mlx4_buf_direct_alloc(struct mlx4_dev *dev, int size,
+  *  multiple pages, so we don't require too much contiguous memory.
+  */
+ int mlx4_buf_alloc(struct mlx4_dev *dev, int size, int max_direct,
+-		   struct mlx4_buf *buf, gfp_t gfp)
++		   struct mlx4_buf *buf)
+ {
+ 	if (size <= max_direct) {
+-		return mlx4_buf_direct_alloc(dev, size, buf, gfp);
++		return mlx4_buf_direct_alloc(dev, size, buf);
+ 	} else {
+ 		dma_addr_t t;
+ 		int i;
+@@ -620,14 +620,14 @@ int mlx4_buf_alloc(struct mlx4_dev *dev, int size, int max_direct,
+ 		buf->npages	= buf->nbufs;
+ 		buf->page_shift  = PAGE_SHIFT;
+ 		buf->page_list   = kcalloc(buf->nbufs, sizeof(*buf->page_list),
+-					   gfp);
++					   GFP_KERNEL);
+ 		if (!buf->page_list)
+ 			return -ENOMEM;
+ 
+ 		for (i = 0; i < buf->nbufs; ++i) {
+ 			buf->page_list[i].buf =
+ 				dma_zalloc_coherent(&dev->persist->pdev->dev,
+-						    PAGE_SIZE, &t, gfp);
++						    PAGE_SIZE, &t, GFP_KERNEL);
+ 			if (!buf->page_list[i].buf)
+ 				goto err_free;
+ 
+@@ -663,12 +663,11 @@ void mlx4_buf_free(struct mlx4_dev *dev, int size, struct mlx4_buf *buf)
+ }
+ EXPORT_SYMBOL_GPL(mlx4_buf_free);
+ 
+-static struct mlx4_db_pgdir *mlx4_alloc_db_pgdir(struct device *dma_device,
+-						 gfp_t gfp)
++static struct mlx4_db_pgdir *mlx4_alloc_db_pgdir(struct device *dma_device)
+ {
+ 	struct mlx4_db_pgdir *pgdir;
+ 
+-	pgdir = kzalloc(sizeof *pgdir, gfp);
++	pgdir = kzalloc(sizeof(*pgdir), GFP_KERNEL);
+ 	if (!pgdir)
+ 		return NULL;
+ 
+@@ -676,7 +675,7 @@ static struct mlx4_db_pgdir *mlx4_alloc_db_pgdir(struct device *dma_device,
+ 	pgdir->bits[0] = pgdir->order0;
+ 	pgdir->bits[1] = pgdir->order1;
+ 	pgdir->db_page = dma_alloc_coherent(dma_device, PAGE_SIZE,
+-					    &pgdir->db_dma, gfp);
++					    &pgdir->db_dma, GFP_KERNEL);
+ 	if (!pgdir->db_page) {
+ 		kfree(pgdir);
+ 		return NULL;
+@@ -716,7 +715,7 @@ static int mlx4_alloc_db_from_pgdir(struct mlx4_db_pgdir *pgdir,
+ 	return 0;
+ }
+ 
+-int mlx4_db_alloc(struct mlx4_dev *dev, struct mlx4_db *db, int order, gfp_t gfp)
++int mlx4_db_alloc(struct mlx4_dev *dev, struct mlx4_db *db, int order)
+ {
+ 	struct mlx4_priv *priv = mlx4_priv(dev);
+ 	struct mlx4_db_pgdir *pgdir;
+@@ -728,7 +727,7 @@ int mlx4_db_alloc(struct mlx4_dev *dev, struct mlx4_db *db, int order, gfp_t gfp
+ 		if (!mlx4_alloc_db_from_pgdir(pgdir, db, order))
+ 			goto out;
+ 
+-	pgdir = mlx4_alloc_db_pgdir(&dev->persist->pdev->dev, gfp);
++	pgdir = mlx4_alloc_db_pgdir(&dev->persist->pdev->dev);
+ 	if (!pgdir) {
+ 		ret = -ENOMEM;
+ 		goto out;
+@@ -780,13 +779,13 @@ int mlx4_alloc_hwq_res(struct mlx4_dev *dev, struct mlx4_hwq_resources *wqres,
+ {
+ 	int err;
+ 
+-	err = mlx4_db_alloc(dev, &wqres->db, 1, GFP_KERNEL);
++	err = mlx4_db_alloc(dev, &wqres->db, 1);
+ 	if (err)
+ 		return err;
+ 
+ 	*wqres->db.db = 0;
+ 
+-	err = mlx4_buf_direct_alloc(dev, size, &wqres->buf, GFP_KERNEL);
++	err = mlx4_buf_direct_alloc(dev, size, &wqres->buf);
+ 	if (err)
+ 		goto err_db;
+ 
+@@ -795,7 +794,7 @@ int mlx4_alloc_hwq_res(struct mlx4_dev *dev, struct mlx4_hwq_resources *wqres,
+ 	if (err)
+ 		goto err_buf;
+ 
+-	err = mlx4_buf_write_mtt(dev, &wqres->mtt, &wqres->buf, GFP_KERNEL);
++	err = mlx4_buf_write_mtt(dev, &wqres->mtt, &wqres->buf);
+ 	if (err)
+ 		goto err_mtt;
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx4/cq.c b/drivers/net/ethernet/mellanox/mlx4/cq.c
+index fa6d2354a0e9..c56a511b918e 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/cq.c
++++ b/drivers/net/ethernet/mellanox/mlx4/cq.c
+@@ -224,11 +224,11 @@ int __mlx4_cq_alloc_icm(struct mlx4_dev *dev, int *cqn)
+ 	if (*cqn == -1)
+ 		return -ENOMEM;
+ 
+-	err = mlx4_table_get(dev, &cq_table->table, *cqn, GFP_KERNEL);
++	err = mlx4_table_get(dev, &cq_table->table, *cqn);
+ 	if (err)
+ 		goto err_out;
+ 
+-	err = mlx4_table_get(dev, &cq_table->cmpt_table, *cqn, GFP_KERNEL);
++	err = mlx4_table_get(dev, &cq_table->cmpt_table, *cqn);
+ 	if (err)
+ 		goto err_put;
+ 	return 0;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/en_rx.c b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
+index 77abd1813047..930e6632fed0 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/en_rx.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
+@@ -1021,7 +1021,7 @@ static int mlx4_en_config_rss_qp(struct mlx4_en_priv *priv, int qpn,
+ 	if (!context)
+ 		return -ENOMEM;
+ 
+-	err = mlx4_qp_alloc(mdev->dev, qpn, qp, GFP_KERNEL);
++	err = mlx4_qp_alloc(mdev->dev, qpn, qp);
+ 	if (err) {
+ 		en_err(priv, "Failed to allocate qp #%x\n", qpn);
+ 		goto out;
+@@ -1065,7 +1065,7 @@ int mlx4_en_create_drop_qp(struct mlx4_en_priv *priv)
+ 		en_err(priv, "Failed reserving drop qpn\n");
+ 		return err;
+ 	}
+-	err = mlx4_qp_alloc(priv->mdev->dev, qpn, &priv->drop_qp, GFP_KERNEL);
++	err = mlx4_qp_alloc(priv->mdev->dev, qpn, &priv->drop_qp);
+ 	if (err) {
+ 		en_err(priv, "Failed allocating drop qp\n");
+ 		mlx4_qp_release_range(priv->mdev->dev, qpn, 1);
+@@ -1121,7 +1121,7 @@ int mlx4_en_config_rss_steer(struct mlx4_en_priv *priv)
+ 	}
+ 
+ 	/* Configure RSS indirection qp */
+-	err = mlx4_qp_alloc(mdev->dev, priv->base_qpn, &rss_map->indir_qp, GFP_KERNEL);
++	err = mlx4_qp_alloc(mdev->dev, priv->base_qpn, &rss_map->indir_qp);
+ 	if (err) {
+ 		en_err(priv, "Failed to allocate RSS indirection QP\n");
+ 		goto rss_err;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/en_tx.c b/drivers/net/ethernet/mellanox/mlx4/en_tx.c
+index 6ffd1849a604..5f6788599fb4 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/en_tx.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_tx.c
+@@ -111,7 +111,7 @@ int mlx4_en_create_tx_ring(struct mlx4_en_priv *priv,
+ 		goto err_hwq_res;
+ 	}
+ 
+-	err = mlx4_qp_alloc(mdev->dev, ring->qpn, &ring->sp_qp, GFP_KERNEL);
++	err = mlx4_qp_alloc(mdev->dev, ring->qpn, &ring->sp_qp);
+ 	if (err) {
+ 		en_err(priv, "Failed allocating qp %d\n", ring->qpn);
+ 		goto err_reserve;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/icm.c b/drivers/net/ethernet/mellanox/mlx4/icm.c
+index e1f9e7cebf8f..5a7816e7c7b4 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/icm.c
++++ b/drivers/net/ethernet/mellanox/mlx4/icm.c
+@@ -251,8 +251,7 @@ int mlx4_UNMAP_ICM_AUX(struct mlx4_dev *dev)
+ 			MLX4_CMD_TIME_CLASS_B, MLX4_CMD_NATIVE);
+ }
+ 
+-int mlx4_table_get(struct mlx4_dev *dev, struct mlx4_icm_table *table, u32 obj,
+-		   gfp_t gfp)
++int mlx4_table_get(struct mlx4_dev *dev, struct mlx4_icm_table *table, u32 obj)
+ {
+ 	u32 i = (obj & (table->num_obj - 1)) /
+ 			(MLX4_TABLE_CHUNK_SIZE / table->obj_size);
+@@ -266,7 +265,7 @@ int mlx4_table_get(struct mlx4_dev *dev, struct mlx4_icm_table *table, u32 obj,
+ 	}
+ 
+ 	table->icm[i] = mlx4_alloc_icm(dev, MLX4_TABLE_CHUNK_SIZE >> PAGE_SHIFT,
+-				       (table->lowmem ? gfp : GFP_HIGHUSER) |
++				       (table->lowmem ? GFP_KERNEL : GFP_HIGHUSER) |
+ 				       __GFP_NOWARN, table->coherent);
+ 	if (!table->icm[i]) {
+ 		ret = -ENOMEM;
+@@ -363,7 +362,7 @@ int mlx4_table_get_range(struct mlx4_dev *dev, struct mlx4_icm_table *table,
+ 	u32 i;
+ 
+ 	for (i = start; i <= end; i += inc) {
+-		err = mlx4_table_get(dev, table, i, GFP_KERNEL);
++		err = mlx4_table_get(dev, table, i);
+ 		if (err)
+ 			goto fail;
+ 	}
+diff --git a/drivers/net/ethernet/mellanox/mlx4/icm.h b/drivers/net/ethernet/mellanox/mlx4/icm.h
+index 0c7364550150..dee67fa39107 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/icm.h
++++ b/drivers/net/ethernet/mellanox/mlx4/icm.h
+@@ -71,8 +71,7 @@ struct mlx4_icm *mlx4_alloc_icm(struct mlx4_dev *dev, int npages,
+ 				gfp_t gfp_mask, int coherent);
+ void mlx4_free_icm(struct mlx4_dev *dev, struct mlx4_icm *icm, int coherent);
+ 
+-int mlx4_table_get(struct mlx4_dev *dev, struct mlx4_icm_table *table, u32 obj,
+-		   gfp_t gfp);
++int mlx4_table_get(struct mlx4_dev *dev, struct mlx4_icm_table *table, u32 obj);
+ void mlx4_table_put(struct mlx4_dev *dev, struct mlx4_icm_table *table, u32 obj);
+ int mlx4_table_get_range(struct mlx4_dev *dev, struct mlx4_icm_table *table,
+ 			 u32 start, u32 end);
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+index b4f1bc56cc68..eab0732e6bfd 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
++++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+@@ -971,7 +971,7 @@ void mlx4_cleanup_cq_table(struct mlx4_dev *dev);
+ void mlx4_cleanup_qp_table(struct mlx4_dev *dev);
+ void mlx4_cleanup_srq_table(struct mlx4_dev *dev);
+ void mlx4_cleanup_mcg_table(struct mlx4_dev *dev);
+-int __mlx4_qp_alloc_icm(struct mlx4_dev *dev, int qpn, gfp_t gfp);
++int __mlx4_qp_alloc_icm(struct mlx4_dev *dev, int qpn);
+ void __mlx4_qp_free_icm(struct mlx4_dev *dev, int qpn);
+ int __mlx4_cq_alloc_icm(struct mlx4_dev *dev, int *cqn);
+ void __mlx4_cq_free_icm(struct mlx4_dev *dev, int cqn);
+@@ -979,7 +979,7 @@ int __mlx4_srq_alloc_icm(struct mlx4_dev *dev, int *srqn);
+ void __mlx4_srq_free_icm(struct mlx4_dev *dev, int srqn);
+ int __mlx4_mpt_reserve(struct mlx4_dev *dev);
+ void __mlx4_mpt_release(struct mlx4_dev *dev, u32 index);
+-int __mlx4_mpt_alloc_icm(struct mlx4_dev *dev, u32 index, gfp_t gfp);
++int __mlx4_mpt_alloc_icm(struct mlx4_dev *dev, u32 index);
+ void __mlx4_mpt_free_icm(struct mlx4_dev *dev, u32 index);
+ u32 __mlx4_alloc_mtt_range(struct mlx4_dev *dev, int order);
+ void __mlx4_free_mtt_range(struct mlx4_dev *dev, u32 first_seg, int order);
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mr.c b/drivers/net/ethernet/mellanox/mlx4/mr.c
+index ce852ca22a96..24282cd017d3 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mr.c
++++ b/drivers/net/ethernet/mellanox/mlx4/mr.c
+@@ -479,14 +479,14 @@ static void mlx4_mpt_release(struct mlx4_dev *dev, u32 index)
+ 	__mlx4_mpt_release(dev, index);
+ }
+ 
+-int __mlx4_mpt_alloc_icm(struct mlx4_dev *dev, u32 index, gfp_t gfp)
++int __mlx4_mpt_alloc_icm(struct mlx4_dev *dev, u32 index)
+ {
+ 	struct mlx4_mr_table *mr_table = &mlx4_priv(dev)->mr_table;
+ 
+-	return mlx4_table_get(dev, &mr_table->dmpt_table, index, gfp);
++	return mlx4_table_get(dev, &mr_table->dmpt_table, index);
+ }
+ 
+-static int mlx4_mpt_alloc_icm(struct mlx4_dev *dev, u32 index, gfp_t gfp)
++static int mlx4_mpt_alloc_icm(struct mlx4_dev *dev, u32 index)
+ {
+ 	u64 param = 0;
+ 
+@@ -497,7 +497,7 @@ static int mlx4_mpt_alloc_icm(struct mlx4_dev *dev, u32 index, gfp_t gfp)
+ 							MLX4_CMD_TIME_CLASS_A,
+ 							MLX4_CMD_WRAPPED);
+ 	}
+-	return __mlx4_mpt_alloc_icm(dev, index, gfp);
++	return __mlx4_mpt_alloc_icm(dev, index);
+ }
+ 
+ void __mlx4_mpt_free_icm(struct mlx4_dev *dev, u32 index)
+@@ -629,7 +629,7 @@ int mlx4_mr_enable(struct mlx4_dev *dev, struct mlx4_mr *mr)
+ 	struct mlx4_mpt_entry *mpt_entry;
+ 	int err;
+ 
+-	err = mlx4_mpt_alloc_icm(dev, key_to_hw_index(mr->key), GFP_KERNEL);
++	err = mlx4_mpt_alloc_icm(dev, key_to_hw_index(mr->key));
+ 	if (err)
+ 		return err;
+ 
+@@ -787,14 +787,13 @@ int mlx4_write_mtt(struct mlx4_dev *dev, struct mlx4_mtt *mtt,
+ EXPORT_SYMBOL_GPL(mlx4_write_mtt);
+ 
+ int mlx4_buf_write_mtt(struct mlx4_dev *dev, struct mlx4_mtt *mtt,
+-		       struct mlx4_buf *buf, gfp_t gfp)
++		       struct mlx4_buf *buf)
+ {
+ 	u64 *page_list;
+ 	int err;
+ 	int i;
+ 
+-	page_list = kmalloc(buf->npages * sizeof *page_list,
+-			    gfp);
++	page_list = kcalloc(buf->npages, sizeof(*page_list), GFP_KERNEL);
+ 	if (!page_list)
+ 		return -ENOMEM;
+ 
+@@ -841,7 +840,7 @@ int mlx4_mw_enable(struct mlx4_dev *dev, struct mlx4_mw *mw)
+ 	struct mlx4_mpt_entry *mpt_entry;
+ 	int err;
+ 
+-	err = mlx4_mpt_alloc_icm(dev, key_to_hw_index(mw->key), GFP_KERNEL);
++	err = mlx4_mpt_alloc_icm(dev, key_to_hw_index(mw->key));
+ 	if (err)
+ 		return err;
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx4/qp.c b/drivers/net/ethernet/mellanox/mlx4/qp.c
+index 2d6abd4662b1..6131c743b679 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/qp.c
++++ b/drivers/net/ethernet/mellanox/mlx4/qp.c
+@@ -301,29 +301,29 @@ void mlx4_qp_release_range(struct mlx4_dev *dev, int base_qpn, int cnt)
+ }
+ EXPORT_SYMBOL_GPL(mlx4_qp_release_range);
+ 
+-int __mlx4_qp_alloc_icm(struct mlx4_dev *dev, int qpn, gfp_t gfp)
++int __mlx4_qp_alloc_icm(struct mlx4_dev *dev, int qpn)
+ {
+ 	struct mlx4_priv *priv = mlx4_priv(dev);
+ 	struct mlx4_qp_table *qp_table = &priv->qp_table;
+ 	int err;
+ 
+-	err = mlx4_table_get(dev, &qp_table->qp_table, qpn, gfp);
++	err = mlx4_table_get(dev, &qp_table->qp_table, qpn);
+ 	if (err)
+ 		goto err_out;
+ 
+-	err = mlx4_table_get(dev, &qp_table->auxc_table, qpn, gfp);
++	err = mlx4_table_get(dev, &qp_table->auxc_table, qpn);
+ 	if (err)
+ 		goto err_put_qp;
+ 
+-	err = mlx4_table_get(dev, &qp_table->altc_table, qpn, gfp);
++	err = mlx4_table_get(dev, &qp_table->altc_table, qpn);
+ 	if (err)
+ 		goto err_put_auxc;
+ 
+-	err = mlx4_table_get(dev, &qp_table->rdmarc_table, qpn, gfp);
++	err = mlx4_table_get(dev, &qp_table->rdmarc_table, qpn);
+ 	if (err)
+ 		goto err_put_altc;
+ 
+-	err = mlx4_table_get(dev, &qp_table->cmpt_table, qpn, gfp);
++	err = mlx4_table_get(dev, &qp_table->cmpt_table, qpn);
+ 	if (err)
+ 		goto err_put_rdmarc;
+ 
+@@ -345,7 +345,7 @@ int __mlx4_qp_alloc_icm(struct mlx4_dev *dev, int qpn, gfp_t gfp)
+ 	return err;
+ }
+ 
+-static int mlx4_qp_alloc_icm(struct mlx4_dev *dev, int qpn, gfp_t gfp)
++static int mlx4_qp_alloc_icm(struct mlx4_dev *dev, int qpn)
+ {
+ 	u64 param = 0;
+ 
+@@ -355,7 +355,7 @@ static int mlx4_qp_alloc_icm(struct mlx4_dev *dev, int qpn, gfp_t gfp)
+ 				    MLX4_CMD_ALLOC_RES, MLX4_CMD_TIME_CLASS_A,
+ 				    MLX4_CMD_WRAPPED);
+ 	}
+-	return __mlx4_qp_alloc_icm(dev, qpn, gfp);
++	return __mlx4_qp_alloc_icm(dev, qpn);
+ }
+ 
+ void __mlx4_qp_free_icm(struct mlx4_dev *dev, int qpn)
+@@ -384,7 +384,7 @@ static void mlx4_qp_free_icm(struct mlx4_dev *dev, int qpn)
+ 		__mlx4_qp_free_icm(dev, qpn);
+ }
+ 
+-int mlx4_qp_alloc(struct mlx4_dev *dev, int qpn, struct mlx4_qp *qp, gfp_t gfp)
++int mlx4_qp_alloc(struct mlx4_dev *dev, int qpn, struct mlx4_qp *qp)
+ {
+ 	struct mlx4_priv *priv = mlx4_priv(dev);
+ 	struct mlx4_qp_table *qp_table = &priv->qp_table;
+@@ -395,7 +395,7 @@ int mlx4_qp_alloc(struct mlx4_dev *dev, int qpn, struct mlx4_qp *qp, gfp_t gfp)
+ 
+ 	qp->qpn = qpn;
+ 
+-	err = mlx4_qp_alloc_icm(dev, qpn, gfp);
++	err = mlx4_qp_alloc_icm(dev, qpn);
+ 	if (err)
+ 		return err;
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
+index 07516545474f..d35502b841bc 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
++++ b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
+@@ -1822,7 +1822,7 @@ static int qp_alloc_res(struct mlx4_dev *dev, int slave, int op, int cmd,
+ 			return err;
+ 
+ 		if (!fw_reserved(dev, qpn)) {
+-			err = __mlx4_qp_alloc_icm(dev, qpn, GFP_KERNEL);
++			err = __mlx4_qp_alloc_icm(dev, qpn);
+ 			if (err) {
+ 				res_abort_move(dev, slave, RES_QP, qpn);
+ 				return err;
+@@ -1909,7 +1909,7 @@ static int mpt_alloc_res(struct mlx4_dev *dev, int slave, int op, int cmd,
+ 		if (err)
+ 			return err;
+ 
+-		err = __mlx4_mpt_alloc_icm(dev, mpt->key, GFP_KERNEL);
++		err = __mlx4_mpt_alloc_icm(dev, mpt->key);
+ 		if (err) {
+ 			res_abort_move(dev, slave, RES_MPT, id);
+ 			return err;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/srq.c b/drivers/net/ethernet/mellanox/mlx4/srq.c
+index f44d089e2ca6..bedf52126824 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/srq.c
++++ b/drivers/net/ethernet/mellanox/mlx4/srq.c
+@@ -100,11 +100,11 @@ int __mlx4_srq_alloc_icm(struct mlx4_dev *dev, int *srqn)
+ 	if (*srqn == -1)
+ 		return -ENOMEM;
+ 
+-	err = mlx4_table_get(dev, &srq_table->table, *srqn, GFP_KERNEL);
++	err = mlx4_table_get(dev, &srq_table->table, *srqn);
+ 	if (err)
+ 		goto err_out;
+ 
+-	err = mlx4_table_get(dev, &srq_table->cmpt_table, *srqn, GFP_KERNEL);
++	err = mlx4_table_get(dev, &srq_table->cmpt_table, *srqn);
+ 	if (err)
+ 		goto err_put;
+ 	return 0;
+diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+index d5bed0875d30..aad5d81dfb44 100644
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -1068,7 +1068,7 @@ static inline int mlx4_is_eth(struct mlx4_dev *dev, int port)
+ }
+ 
+ int mlx4_buf_alloc(struct mlx4_dev *dev, int size, int max_direct,
+-		   struct mlx4_buf *buf, gfp_t gfp);
++		   struct mlx4_buf *buf);
+ void mlx4_buf_free(struct mlx4_dev *dev, int size, struct mlx4_buf *buf);
+ static inline void *mlx4_buf_offset(struct mlx4_buf *buf, int offset)
+ {
+@@ -1105,10 +1105,9 @@ int mlx4_mw_enable(struct mlx4_dev *dev, struct mlx4_mw *mw);
+ int mlx4_write_mtt(struct mlx4_dev *dev, struct mlx4_mtt *mtt,
+ 		   int start_index, int npages, u64 *page_list);
+ int mlx4_buf_write_mtt(struct mlx4_dev *dev, struct mlx4_mtt *mtt,
+-		       struct mlx4_buf *buf, gfp_t gfp);
++		       struct mlx4_buf *buf);
+ 
+-int mlx4_db_alloc(struct mlx4_dev *dev, struct mlx4_db *db, int order,
+-		  gfp_t gfp);
++int mlx4_db_alloc(struct mlx4_dev *dev, struct mlx4_db *db, int order);
+ void mlx4_db_free(struct mlx4_dev *dev, struct mlx4_db *db);
+ 
+ int mlx4_alloc_hwq_res(struct mlx4_dev *dev, struct mlx4_hwq_resources *wqres,
+@@ -1124,8 +1123,7 @@ int mlx4_qp_reserve_range(struct mlx4_dev *dev, int cnt, int align,
+ 			  int *base, u8 flags);
+ void mlx4_qp_release_range(struct mlx4_dev *dev, int base_qpn, int cnt);
+ 
+-int mlx4_qp_alloc(struct mlx4_dev *dev, int qpn, struct mlx4_qp *qp,
+-		  gfp_t gfp);
++int mlx4_qp_alloc(struct mlx4_dev *dev, int qpn, struct mlx4_qp *qp);
+ void mlx4_qp_free(struct mlx4_dev *dev, struct mlx4_qp *qp);
+ 
+ int mlx4_srq_alloc(struct mlx4_dev *dev, u32 pdn, u32 cqn, u16 xrcdn,
 -- 
 2.12.2
 
