@@ -1,28 +1,27 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH v2] IB/hfi1: Protect the global dev_cntr_names and
+From: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
+Subject: RE: [PATCH v2] IB/hfi1: Protect the global dev_cntr_names and
  port_cntr_names
-Date: Tue, 23 May 2017 21:55:33 +0200
-Message-ID: <20170523195533.GA17694@kroah.com>
+Date: Tue, 23 May 2017 19:59:21 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC342FD4B2@fmsmsx120.amr.corp.intel.com>
 References: <20170523194407.28059.59929.stgit@phlsvslse11.ph.intel.com>
+ <20170523195533.GA17694@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170523194407.28059.59929.stgit@phlsvslse11.ph.intel.com>
+In-Reply-To: <20170523195533.GA17694@kroah.com>
+Content-Language: en-US
 Sender: stable-owner@vger.kernel.org
-To: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Cc: stable@vger.kernel.org, linux-rdma@vger.kernel.org, stable-commits@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "stable-commits@vger.kernel.org" <stable-commits@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 23, 2017 at 03:44:29PM -0400, Mike Marciniszyn wrote:
-> From: Tadeusz Struk <tadeusz.struk@intel.com>
+> > Cc: stable <stable@vger.kernel.org> # v4.10
 > 
-> commit 62eed66e98b4c2286fef2ce5911d8d75b7515f7b upstream.
-> 
-> Protect the global dev_cntr_names and port_cntr_names with the global
-> mutex as they are allocated and freed in a function called per device.
-> Otherwise there is a danger of double free and memory leaks.
-> 
-> Cc: stable <stable@vger.kernel.org> # v4.10
+> Why resend this???
 
-Why resend this???
+There are two patches, one for 4.10 and one for 4.11.
+
+Each of the v2's should have had a different version on the stable cc line in the signoff block.
+
+Mike
