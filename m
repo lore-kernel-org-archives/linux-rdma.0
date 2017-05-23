@@ -1,84 +1,61 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V4 for-next 02/14] RDMA/bnxt_re: HW workarounds for
- handling specific conditions
-Date: Tue, 23 May 2017 10:23:21 +0300
-Message-ID: <20170523072321.GI17751@mtr-leonro.local>
-References: <1495448144-18966-1-git-send-email-selvin.xavier@broadcom.com>
- <1495448144-18966-3-git-send-email-selvin.xavier@broadcom.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH v9 06/15] mlx5: Replace PCI pool old API
+Date: Tue, 23 May 2017 10:27:43 +0300
+Message-ID: <20170523072743.GJ17751@mtr-leonro.local>
+References: <20170522164907.22915-1-romain.perier@collabora.com>
+ <20170522164907.22915-7-romain.perier@collabora.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="doKZ0ri6bHmN2Q5y"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="/Gk0KcsbyUMelFU1"
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1495448144-18966-3-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20170522164907.22915-7-romain.perier@collabora.com>
+Sender: netdev-owner@vger.kernel.org
+To: Romain Perier <romain.perier@collabora.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, jeffrey.t.kirsher@intel.com, "David S. Miller" <davem@davemloft.net>, stas.yakovlev@gmail.com, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Senna Tschudin <peter.senna@collabora.co.uk>
 List-Id: linux-rdma@vger.kernel.org
 
 
---doKZ0ri6bHmN2Q5y
+--/Gk0KcsbyUMelFU1
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, May 22, 2017 at 03:15:32AM -0700, Selvin Xavier wrote:
-> From: Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+On Mon, May 22, 2017 at 06:48:58PM +0200, Romain Perier wrote:
+> The PCI pool API is deprecated. This commit replaces the PCI pool old
+> API by the appropriate function with the DMA pool API.
 >
-> This patch implements the following HW workarounds
->
-> 1. The SQ depth needs to be augmented  by 128 + 1 to avoid running
->    into an Out of order CQE issue
-> 2. Workaround to handle the problem where the HW fast path engine continues
->    to access DMA memory in retranmission mode even after the WQE has
->    already been completed. If the HW reports this condition, driver detects
->    it and posts a Fence WQE. The driver stops reporting the completions
->    to stack until it receives completion  for Fence WQE.
->
-> Signed-off-by: Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Romain Perier <romain.perier@collabora.com>
+> Reviewed-by: Peter Senna Tschudin <peter.senna@collabora.com>
+> Acked-by: Doug Ledford <dledford@redhat.com>
+> Tested-by: Doug Ledford <dledford@redhat.com>
 > ---
-> v2 -> v3 :
-> 	- Fixes the memory leak pointed out by Leon
-> v1 -> v2 :
-> 	- Small Correction in the commit message
-> 	- Fixes q_full_delta for SQ by setting it to 128
->
->  drivers/infiniband/hw/bnxt_re/ib_verbs.c  | 373 ++++++++++++++++++++++++++----
->  drivers/infiniband/hw/bnxt_re/ib_verbs.h  |  15 ++
->  drivers/infiniband/hw/bnxt_re/qplib_fp.c  | 165 +++++++++++--
->  drivers/infiniband/hw/bnxt_re/qplib_fp.h  |  17 +-
->  drivers/infiniband/hw/bnxt_re/qplib_res.h |   1 -
->  drivers/infiniband/hw/bnxt_re/qplib_sp.c  |   5 +
->  drivers/infiniband/hw/bnxt_re/qplib_sp.h  |   2 +
->  7 files changed, 508 insertions(+), 70 deletions(-)
+>  drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 11 ++++++-----
+>  include/linux/mlx5/driver.h                   |  2 +-
+>  2 files changed, 7 insertions(+), 6 deletions(-)
 >
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Who is supposed to merge this patch series?
 
---doKZ0ri6bHmN2Q5y
+Acked-by: Leon Romanovsky <leonro@mellanox.com>
+
+--/Gk0KcsbyUMelFU1
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkj42gACgkQ5GN7iDZy
-WKdlrg/+JCnKAewazaCWCROU3ywYcs66m0/8/yf6F7anZdJ+NZadGnZ16UaiPQMh
-Dx3+yKdzNDN8w7gozwPog1xWN/Z4A7aAxBCth7dLM7CPUWJ9VIfCvq510jyoQaEl
-PGf/BlNS+l5wUcpcUHtIzgxe0+pYYAdkPymh4Xlp0B88kDL5FRhmZBYonLXjF9gV
-Lxq27zTXLGWL0y1MRzYYXpPJJ8Wqo/34MIdAlAPvmRW+9vpdDVF7a8Ej4luDpX76
-libd5jB8ab+rGzGO258ZKKanKJUsJsncpxcc1WUCYk0z0cTx9PGCG9p4PMr165f7
-LhbjMrfc3Jr0skg1LvhaeJoyZ1JW+2LSTIPEcddR8CCdC4LKCPlEiF+pKK4aS/mc
-ZiVALFEB+I3d1Iz0pWie8wFEI7muZnBar6dbiuy7y9ilQZQV5pRGP4K8Y+SZIc2x
-2qAPcewZ6Khl7ZqyvSDwxgVDbIBdCpZGA9icqu8jHbpSur7orQ5qBo345+L/0zxb
-uVdIedAUoKMWUbZhiSEFECy78yzG+6RnXTs0OyIbShexG4gbhSTXeg19X2GOSOlA
-nhgsPv/oX6rZW8vSc0ApVPsDmLrlzlA95XxYvmfefann9PqrOKUTrDplbJyDVfDo
-JUrk8JqK+wiAoZW1NBy8LLlT49uJA5BfxiAtBWQ9ACvPFnA1vx8=
-=eni/
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkj5G8ACgkQ5GN7iDZy
+WKen5BAAy/3mvGSpTP8qDRSTN+YZtXD5my5DkkPXxjkjJ8Pp6mnHS83Ez6DuL8QT
+s1x/XurCYGqXoKqaMiSx+nHKq7zirCnLG+MEelvkEXSZ1bTpLTfQYEX4Sq6Dp3Wz
+gq5BkQl31V4Pgi9EuO24fhHxXNU8U0GXN0f97EHaa7X1OXUpSJChpsQjBVrD1K1R
+8kvu3FO8Pj7XrFCRStNjnGyUkWxFr4wI4f0SouuSJ8uyQHE7yoe2k/wj/vCj4b1u
+Q/olXUx3Q/uo1w003q2sHQQkq+aP8+j5fCTLA8eVIAEEWR8wUrTZ8bh7/ROwWJZf
+VWIPjByvRQp1tnMukQfkh8WwlyjpWXsVxonRly1Nb0ZDMbp5TOHaMgJg/VY5n7cW
+FKVZ1kHy8xFhtdT/b19HfaFcn3RAObrrU/BeEI3AiLvgxKJ0XE8xc4sfwaTjEtQa
+3bOioETPWCRebQf+W63gUSLZM5Voj46+wiYBjQNpAOw2wjIuyfnt6MwWZamTBhVI
+ST5Lrhw9aIK2//JFbbd4IxVwcrHTxSUXWswqig784im/CBw44m785IHPZP5LFPOl
+Py9/rSQ8lj2kBr4jZ/ZKZTf4nqxjVAck2PJ77zdMFln68n37u6INCItxIGOA26Fm
+yOZkqsmDWcgXRrv/BmY3/gbxfgX+99dbySWhjrS+5Hs3mEc2nlc=
+=QF6J
 -----END PGP SIGNATURE-----
 
---doKZ0ri6bHmN2Q5y--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--/Gk0KcsbyUMelFU1--
