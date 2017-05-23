@@ -1,75 +1,83 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V4 for-next 08/14] RDMA/bnxt_re: Add vlan tag for
- untagged RoCE traffic when PFC is configured
-Date: Tue, 23 May 2017 10:21:59 +0300
-Message-ID: <20170523072159.GH17751@mtr-leonro.local>
+Subject: Re: [PATCH V4 for-next 02/14] RDMA/bnxt_re: HW workarounds for
+ handling specific conditions
+Date: Tue, 23 May 2017 10:23:21 +0300
+Message-ID: <20170523072321.GI17751@mtr-leonro.local>
 References: <1495448144-18966-1-git-send-email-selvin.xavier@broadcom.com>
- <1495448144-18966-9-git-send-email-selvin.xavier@broadcom.com>
+ <1495448144-18966-3-git-send-email-selvin.xavier@broadcom.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="9ADF8FXzFeE7X4jE"
+        protocol="application/pgp-signature"; boundary="doKZ0ri6bHmN2Q5y"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1495448144-18966-9-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1495448144-18966-3-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kalesh AP <kalesh-anakkur.purayil-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---9ADF8FXzFeE7X4jE
+--doKZ0ri6bHmN2Q5y
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, May 22, 2017 at 03:15:38AM -0700, Selvin Xavier wrote:
-> From: Kalesh AP <kalesh-anakkur.purayil-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+On Mon, May 22, 2017 at 03:15:32AM -0700, Selvin Xavier wrote:
+> From: Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 >
-> Current implementation does not program vlan header insertion
-> in RoCE packet if no vlan is configured. Firmware does not add
-> prority when there is no vlan tag in the packet. Modify the code
-> to insert vlan header when PFC is enabled on the interface.
+> This patch implements the following HW workarounds
 >
-> Signed-off-by: Kalesh AP <kalesh-anakkur.purayil-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> 1. The SQ depth needs to be augmented  by 128 + 1 to avoid running
+>    into an Out of order CQE issue
+> 2. Workaround to handle the problem where the HW fast path engine continues
+>    to access DMA memory in retranmission mode even after the WQE has
+>    already been completed. If the HW reports this condition, driver detects
+>    it and posts a Fence WQE. The driver stops reporting the completions
+>    to stack until it receives completion  for Fence WQE.
+>
+> Signed-off-by: Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 > Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 > ---
-> v2 -> v3:
-> 	Avoid temp variables while populating smac and gid
-> v1 -> v2:
-> 	Avoid unnecessary memcpy while populating smac and gid
+> v2 -> v3 :
+> 	- Fixes the memory leak pointed out by Leon
+> v1 -> v2 :
+> 	- Small Correction in the commit message
+> 	- Fixes q_full_delta for SQ by setting it to 128
 >
->  drivers/infiniband/hw/bnxt_re/main.c      | 53 ++++++++++++++++++---
->  drivers/infiniband/hw/bnxt_re/qplib_res.c | 10 ++++
->  drivers/infiniband/hw/bnxt_re/qplib_res.h |  2 +
->  drivers/infiniband/hw/bnxt_re/qplib_sp.c  | 77 ++++++++++++++++++++++++-------
->  drivers/infiniband/hw/bnxt_re/qplib_sp.h  |  2 +
->  drivers/infiniband/hw/bnxt_re/roce_hsi.h  |  4 +-
->  6 files changed, 124 insertions(+), 24 deletions(-)
+>  drivers/infiniband/hw/bnxt_re/ib_verbs.c  | 373 ++++++++++++++++++++++++++----
+>  drivers/infiniband/hw/bnxt_re/ib_verbs.h  |  15 ++
+>  drivers/infiniband/hw/bnxt_re/qplib_fp.c  | 165 +++++++++++--
+>  drivers/infiniband/hw/bnxt_re/qplib_fp.h  |  17 +-
+>  drivers/infiniband/hw/bnxt_re/qplib_res.h |   1 -
+>  drivers/infiniband/hw/bnxt_re/qplib_sp.c  |   5 +
+>  drivers/infiniband/hw/bnxt_re/qplib_sp.h  |   2 +
+>  7 files changed, 508 insertions(+), 70 deletions(-)
 >
 
 Thanks,
 Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---9ADF8FXzFeE7X4jE
+--doKZ0ri6bHmN2Q5y
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkj4xcACgkQ5GN7iDZy
-WKd0mA/9EMnPlS0wpS2YJA3+jYWkI2HKToCap/JvRz7lcxu4Z0nIPV6U1glc/pmf
-nmHuMTey9IUBXbg/9S8XEqRYXHc8uiKeuTggz5UU+I/87uPXX9XcPLfCKW0OFhJN
-f7MWq5vkK96x+eEZtqgVdyBguoELfdfuy4qwlN2Yi6CyG6fh7WhmIcHZ3xu2f0Tl
-Vy0aUhggtRgTD9+QrWaKdZ2Jz/PXTsB0eo/2vTBJUhpYIkJKR5gNsv7ds3SA89ho
-EIoPPXz9Lin0MLA6Jc9CDmmFR5Bg41dsQHZS7ad/5Ts0MGphHJYO0TVnTwpM0B1u
-4NTO775HVh/Nidt2Ot/Ad9DsratiApHbv6KrRWMsZNWp+UYJGWI96Nw3GD9r4KaA
-ijYVihgxa73earLQ09bWvNLULoXxh6Y0ZEpTIGf34bvyrbOeWJCbAWn7MtKHXirW
-Tyzqc2pd6Svlxv6+WM3++U2glzWLIWlqZN9oN0pqgN/PrwBIcVlVcvl1BoaDIycH
-KqgnBHgiyaOSgICWFY03pkyLm6VlE+NE9DG8F8bo2xIeSK6VFvqRJ358t0B3qYbc
-+1ph5bWUtViYm52rqQH4WAZWAJHolVQJLJEssFZKTKZ3EZtlZ1w6YIAxk/q3NyOf
-3eD6BrV6rVrGR5c+6gu6ZpPVEb2dBt86sjEX8lWWToFiYDy2CKw=
-=k6Vx
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkj42gACgkQ5GN7iDZy
+WKdlrg/+JCnKAewazaCWCROU3ywYcs66m0/8/yf6F7anZdJ+NZadGnZ16UaiPQMh
+Dx3+yKdzNDN8w7gozwPog1xWN/Z4A7aAxBCth7dLM7CPUWJ9VIfCvq510jyoQaEl
+PGf/BlNS+l5wUcpcUHtIzgxe0+pYYAdkPymh4Xlp0B88kDL5FRhmZBYonLXjF9gV
+Lxq27zTXLGWL0y1MRzYYXpPJJ8Wqo/34MIdAlAPvmRW+9vpdDVF7a8Ej4luDpX76
+libd5jB8ab+rGzGO258ZKKanKJUsJsncpxcc1WUCYk0z0cTx9PGCG9p4PMr165f7
+LhbjMrfc3Jr0skg1LvhaeJoyZ1JW+2LSTIPEcddR8CCdC4LKCPlEiF+pKK4aS/mc
+ZiVALFEB+I3d1Iz0pWie8wFEI7muZnBar6dbiuy7y9ilQZQV5pRGP4K8Y+SZIc2x
+2qAPcewZ6Khl7ZqyvSDwxgVDbIBdCpZGA9icqu8jHbpSur7orQ5qBo345+L/0zxb
+uVdIedAUoKMWUbZhiSEFECy78yzG+6RnXTs0OyIbShexG4gbhSTXeg19X2GOSOlA
+nhgsPv/oX6rZW8vSc0ApVPsDmLrlzlA95XxYvmfefann9PqrOKUTrDplbJyDVfDo
+JUrk8JqK+wiAoZW1NBy8LLlT49uJA5BfxiAtBWQ9ACvPFnA1vx8=
+=eni/
 -----END PGP SIGNATURE-----
 
---9ADF8FXzFeE7X4jE--
+--doKZ0ri6bHmN2Q5y--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
