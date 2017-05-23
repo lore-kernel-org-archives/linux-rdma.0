@@ -1,8 +1,8 @@
 From: Mike Marciniszyn <mike.marciniszyn@intel.com>
 Subject: [PATCH v2] IB/hfi1: Protect the global dev_cntr_names and
  port_cntr_names
-Date: Tue, 23 May 2017 15:42:29 -0400
-Message-ID: <20170523194210.27882.64949.stgit@phlsvslse11.ph.intel.com>
+Date: Tue, 23 May 2017 15:44:29 -0400
+Message-ID: <20170523194407.28059.59929.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -20,7 +20,7 @@ Protect the global dev_cntr_names and port_cntr_names with the global
 mutex as they are allocated and freed in a function called per device.
 Otherwise there is a danger of double free and memory leaks.
 
-Cc: stable <stable@vger.kernel.org> # v4.11
+Cc: stable <stable@vger.kernel.org> # v4.10
 Fixes: Commit b7481944b06e ("IB/hfi1: Show statistics counters under IB stats interface")
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 Reviewed-by: Easwar Hariharan <easwar.hariharan@intel.com>
@@ -29,15 +29,15 @@ Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
 Signed-off-by: Doug Ledford <dledford@redhat.com>
 ---
-v2 - fix upstream commit id
+v2 - fix upstream commit id.
  drivers/infiniband/hw/hfi1/verbs.c |   12 +++++++++++-
  1 file changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index 16ef7b1..1c67745 100644
+index 6002aa9..5105b95 100644
 --- a/drivers/infiniband/hw/hfi1/verbs.c
 +++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -1524,6 +1524,7 @@ static void hfi1_get_dev_fw_str(struct ib_device *ibdev, char *str,
+@@ -1605,6 +1605,7 @@ static void hfi1_get_dev_fw_str(struct ib_device *ibdev, char *str,
  	"DRIVER_EgrHdrFull"
  };
  
@@ -45,7 +45,7 @@ index 16ef7b1..1c67745 100644
  static const char **dev_cntr_names;
  static const char **port_cntr_names;
  static int num_driver_cntrs = ARRAY_SIZE(driver_cntr_names);
-@@ -1578,6 +1579,7 @@ static struct rdma_hw_stats *alloc_hw_stats(struct ib_device *ibdev,
+@@ -1659,6 +1660,7 @@ static struct rdma_hw_stats *alloc_hw_stats(struct ib_device *ibdev,
  {
  	int i, err;
  
@@ -53,7 +53,7 @@ index 16ef7b1..1c67745 100644
  	if (!cntr_names_initialized) {
  		struct hfi1_devdata *dd = dd_from_ibdev(ibdev);
  
-@@ -1586,8 +1588,10 @@ static struct rdma_hw_stats *alloc_hw_stats(struct ib_device *ibdev,
+@@ -1667,8 +1669,10 @@ static struct rdma_hw_stats *alloc_hw_stats(struct ib_device *ibdev,
  				      num_driver_cntrs,
  				      &num_dev_cntrs,
  				      &dev_cntr_names);
@@ -65,7 +65,7 @@ index 16ef7b1..1c67745 100644
  
  		for (i = 0; i < num_driver_cntrs; i++)
  			dev_cntr_names[num_dev_cntrs + i] =
-@@ -1601,10 +1605,12 @@ static struct rdma_hw_stats *alloc_hw_stats(struct ib_device *ibdev,
+@@ -1682,10 +1686,12 @@ static struct rdma_hw_stats *alloc_hw_stats(struct ib_device *ibdev,
  		if (err) {
  			kfree(dev_cntr_names);
  			dev_cntr_names = NULL;
@@ -78,7 +78,7 @@ index 16ef7b1..1c67745 100644
  
  	if (!port_num)
  		return rdma_alloc_hw_stats_struct(
-@@ -1823,9 +1829,13 @@ void hfi1_unregister_ib_device(struct hfi1_devdata *dd)
+@@ -1903,9 +1909,13 @@ void hfi1_unregister_ib_device(struct hfi1_devdata *dd)
  	del_timer_sync(&dev->mem_timer);
  	verbs_txreq_exit(dev);
  
