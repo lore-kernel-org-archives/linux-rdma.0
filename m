@@ -1,120 +1,86 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next] IB/IPoIB: Forward MTU change to driver below
-Date: Tue, 23 May 2017 12:24:28 +0300
-Message-ID: <20170523092428.GK17751@mtr-leonro.local>
-References: <20170523084252.16018-1-leon@kernel.org>
- <20170523085645.GA5877@yuval-lap>
+Subject: Re: [PATCH v9 06/15] mlx5: Replace PCI pool old API
+Date: Tue, 23 May 2017 12:28:53 +0300
+Message-ID: <20170523092853.GL17751@mtr-leonro.local>
+References: <20170522164907.22915-1-romain.perier@collabora.com>
+ <20170522164907.22915-7-romain.perier@collabora.com>
+ <20170523072743.GJ17751@mtr-leonro.local>
+ <18745ec7-020a-a3d2-3e50-6a2405baaac2@collabora.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="J+eNKFoVC4T1DV3f"
+        protocol="application/pgp-signature"; boundary="EVh9lyqKgK19OcEf"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170523085645.GA5877@yuval-lap>
+In-Reply-To: <18745ec7-020a-a3d2-3e50-6a2405baaac2-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Romain Perier <romain.perier-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, stas.yakovlev-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Felipe Balbi <balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Senna Tschudin <peter.senna-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---J+eNKFoVC4T1DV3f
-Content-Type: text/plain; charset=us-ascii
+--EVh9lyqKgK19OcEf
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, May 23, 2017 at 11:56:45AM +0300, Yuval Shaia wrote:
-> On Tue, May 23, 2017 at 11:42:52AM +0300, Leon Romanovsky wrote:
-> > From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >
-> > This patch checks if there is a driver below that
+On Tue, May 23, 2017 at 10:53:36AM +0200, Romain Perier wrote:
+> Hello,
 >
-> Is it "below" or "upper" in the driver hierarchy?
-
-The part which  close to the HW. I called it "below".
-
 >
-> > needs to be updated on the new MTU and calls it
-> > accordingly.
+> Le 23/05/2017 =E0 09:27, Leon Romanovsky a =E9crit :
+> > On Mon, May 22, 2017 at 06:48:58PM +0200, Romain Perier wrote:
+> >> The PCI pool API is deprecated. This commit replaces the PCI pool old
+> >> API by the appropriate function with the DMA pool API.
+> >>
+> >> Signed-off-by: Romain Perier <romain.perier-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+> >> Reviewed-by: Peter Senna Tschudin <peter.senna-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+> >> Acked-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> >> Tested-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> >> ---
+> >>  drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 11 ++++++-----
+> >>  include/linux/mlx5/driver.h                   |  2 +-
+> >>  2 files changed, 7 insertions(+), 6 deletions(-)
+> >>
+> > Who is supposed to merge this patch series?
 > >
-> > Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Reviewed by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > ---
-> >  drivers/infiniband/ulp/ipoib/ipoib_main.c | 19 +++++++++++++++++--
-> >  1 file changed, 17 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > index 2869d1adb1de..28068140800c 100644
-> > --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > @@ -233,6 +233,7 @@ static netdev_features_t ipoib_fix_features(struct net_device *dev, netdev_featu
-> >  static int ipoib_change_mtu(struct net_device *dev, int new_mtu)
-> >  {
-> >  	struct ipoib_dev_priv *priv = ipoib_priv(dev);
-> > +	int ret = 0;
-> >
-> >  	/* dev->mtu > 2K ==> connected mode */
-> >  	if (ipoib_cm_admin_enabled(dev)) {
-> > @@ -256,9 +257,23 @@ static int ipoib_change_mtu(struct net_device *dev, int new_mtu)
-> >  		ipoib_dbg(priv, "MTU must be smaller than the underlying "
-> >  				"link layer MTU - 4 (%u)\n", priv->mcast_mtu);
-> >
-> > -	dev->mtu = min(priv->mcast_mtu, priv->admin_mtu);
-> > +	new_mtu = min(priv->mcast_mtu, priv->admin_mtu);
-> >
-> > -	return 0;
-> > +	if (priv->rn_ops->ndo_change_mtu) {
-> > +		bool carrier_status = netif_carrier_ok(dev);
-> > +
-> > +		netif_carrier_off(dev);
-> > +
-> > +		/* notify lower level on the real mtu */
-> > +		ret = priv->rn_ops->ndo_change_mtu(dev, new_mtu);
-> > +
-> > +		if (carrier_status)
-> > +			netif_carrier_on(dev);
-> > +	} else {
-> > +		dev->mtu = new_mtu;
-> > +	}
->
-> So we don't want dev->mtu to be updated if driver was registered?
+> > Acked-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Each maintainer of the corresponding subsystem, can take a patch, I
+> guess. No ?
 
-It is updated in ndo_change_mtu call. See nes. cxgb3/4 and mlx4/5 as an
-example.
+I wonder if they know that.
+
+Dave,
+
+Do you want us to resubmit mlx4/mlx5 patches as part of our general series,
+or do you prefer to grab them from this patch series?
+
+Thanks
+
 
 >
-> > +
-> > +	return ret;
-> >  }
-> >
-> >  /* Called with an RCU read lock taken */
-> > --
-> > 2.12.2
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Romain
 
---J+eNKFoVC4T1DV3f
+--EVh9lyqKgK19OcEf
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkj/8sACgkQ5GN7iDZy
-WKcYKQ/+JMyA9oht7SCspJwZZ1C8H877xPe2IxiuJTrAVtnTx9Wa4ZrNfEWVFtgZ
-jNCKvlTwQVAibQ/xTQvoDBa9GPpWdYbBgpGE4wZBI3LlmFLSJNt7IZpiWaFpQiBx
-q/9jKJANO2e/W42wsa3aTYo4MzUJV8JTVbXLBEkQ6Tke8xcq9B7bEzXTdTOf1n8r
-BGMgOfC3wHw+I0oshAEwCWYhGGU2WhHJWXbyqjhB+wQD0xC7Dx5jgfqF21jeDFMT
-cMZPR38RmJt/nHdFHNRP6MY6tq5wD0zQgVGD+gv+ZLZQhogZ8kGJ2P91FwR2p/42
-ASoFUOiPuZ/kJ2tjGAiepOSNWFyAANPA+Xm0uVipbk4pZU9iUjvH/wyPttvhiwyy
-HcNIbELfoUeVYZt7S9P6xI+0HX2pqRSuBQXroc4YozVMMFqu2vXbYdraW5REg0+E
-GKRMjzZPRD5exNl1q4uvhT5gyVN/PUOW2OEq/pGu0JuztMBNdIo4LiYRcsNdHM4s
-AL474wQpPZ+EZdGqTmZZwyhARMTkKmPrxLtM04Qjx14SzOb/LRDMq4GVwCriQ3xS
-9r700RWHA3mNxRJsWwalARpkryScKQP1LV/qclgnAXxTpntS7W831ypHcmy69POE
-ivvOjMrK9C7Bwur4WzMgempDatGbeiK1Qn1I1KihZ3sIsbOxj/4=
-=RhDY
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkkANUACgkQ5GN7iDZy
+WKdBSQ//akrEhgcSBBwwAKW/zMdcOs98lhPxnXXfTQBlOhDHlDtJXh/lGwHjP+/9
+kr0UjoTcv5y01F+CnLBwV3kJHvcPf8HAQ+QID29hNH9RmY7/0vNJ92MXyFWkeaJM
+o1oNMdnrDDdD5N/CYT0Bb9VMYpMeEcU6trs3G9cQkZ+58K13br3HO0z/JORmfrjq
+G59y64WJbS4XM48dD9xu9DfQY2Z2G57JmVk5luHw6Nef9OShd1tcjd0aBTWNLevH
+MVCUujcaBqLBvWuc79niFq8vMVzIg8jkeKQKxKOM6yzS0IEcudN3SYuLgVqiKd8A
+DqD/GHWfp1oUUzwin2BgrDsftdc35VsvtQrtgs8gHKoTY8g+X+7435tqy+zo2/QS
+Xrdo09S+YyDYAO5Ycvz2jWN54y55Qek0P+LtDFCUHW7IUK9RBtlAGceQrFEXkz4L
+gjudNrtD636SgfibSO/ExWHgahiwuCRaGOBIitJ1dp1EJsMcyHslzix1GtthX6ts
+1TnqzM5uzqVd0PAyZgkij8GV3UhK60acDhE5LnemKJozjjcVYtFW5OL3dPqJ5rVh
+r5ohPz+x2O70A2Tk47UepqZ/557jlH11evUZPIh8hzfy/5zpZf2YenG7PU2dzdo8
+TO0jDjdI/BGqwe2DPLyY2nARvH7myhRR2d/ELbVsd7lM6HG+4eA=
+=ncEe
 -----END PGP SIGNATURE-----
 
---J+eNKFoVC4T1DV3f--
+--EVh9lyqKgK19OcEf--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
