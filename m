@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 03/12] xprtrdma: Fix FRWR invalidation error recovery
-Date: Tue, 23 May 2017 10:54:02 -0400
-Message-ID: <20170523145402.961.7601.stgit@manet.1015granger.net>
+Subject: [PATCH v1 04/12] xprtrdma: Pre-mark remotely invalidated MRs
+Date: Tue, 23 May 2017 10:54:10 -0400
+Message-ID: <20170523145410.961.68330.stgit@manet.1015granger.net>
 References: <20170523142629.961.81233.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -12,76 +12,128 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When ib_post_send() fails, all LOCAL_INV WRs past @bad_wr have to be
-examined, and the MRs reset by hand.
+There are rare cases where an rpcrdma_req and its matched
+rpcrdma_rep can be re-used, via rpcrdma_buffer_put, while the RPC
+reply handler is still using that req. This is typically due to a
+signal firing at just the wrong instant.
 
-I'm not sure how the existing code can work by comparing R_keys.
-Restructure the logic so that instead it walks the chain of WRs,
-starting from the first bad one.
+As part of closing this race window, avoid using the wrong
+rpcrdma_rep to detect remotely invalidated MRs. Mark MRs as
+invalidated while we are sure the rep is still OK to use.
 
-Make sure to wait for completion if at least one WR was actually
-posted. Otherwise, if the ib_post_send fails, we can end up
-DMA-unmapping the MR while LOCAL_INV operations are in flight.
-
-Commit 7a89f9c626e3 ("xprtrdma: Honor ->send_request API contract")
-added the rdma_disconnect() call site. The disconnect actually
-causes more problems than it solves, and SQ overruns happen only as
-a result of software bugs. So remove it.
-
-Fixes: d7a21c1bed54 ("xprtrdma: Reset MRs in frwr_op_unmap_sync()")
+BugLink: https://bugzilla.linux-nfs.org/show_bug.cgi?id=305
+Fixes: 68791649a725 ('xprtrdma: Invalidate in the RPC reply ... ')
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/frwr_ops.c |   23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+ net/sunrpc/xprtrdma/frwr_ops.c  |    4 +---
+ net/sunrpc/xprtrdma/rpc_rdma.c  |   22 ++++++++++++++++++++--
+ net/sunrpc/xprtrdma/verbs.c     |    1 +
+ net/sunrpc/xprtrdma/xprt_rdma.h |    6 ++++++
+ 4 files changed, 28 insertions(+), 5 deletions(-)
 
 diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-index 33ede72..98808d0 100644
+index 98808d0..9c0fa4a 100644
 --- a/net/sunrpc/xprtrdma/frwr_ops.c
 +++ b/net/sunrpc/xprtrdma/frwr_ops.c
-@@ -521,12 +521,13 @@
- 	 * unless ri_id->qp is a valid pointer.
- 	 */
- 	r_xprt->rx_stats.local_inv_needed++;
-+	bad_wr = NULL;
- 	rc = ib_post_send(ia->ri_id->qp, first, &bad_wr);
-+	if (bad_wr != first)
-+		wait_for_completion(&f->fr_linv_done);
- 	if (rc)
- 		goto reset_mrs;
+@@ -461,7 +461,6 @@
+ frwr_op_unmap_sync(struct rpcrdma_xprt *r_xprt, struct rpcrdma_req *req)
+ {
+ 	struct ib_send_wr *first, **prev, *last, *bad_wr;
+-	struct rpcrdma_rep *rep = req->rl_reply;
+ 	struct rpcrdma_ia *ia = &r_xprt->rx_ia;
+ 	struct rpcrdma_frmr *f;
+ 	struct rpcrdma_mw *mw;
+@@ -480,8 +479,7 @@
+ 	list_for_each_entry(mw, &req->rl_registered, mw_list) {
+ 		mw->frmr.fr_state = FRMR_IS_INVALID;
  
--	wait_for_completion(&f->fr_linv_done);
--
- 	/* ORDER: Now DMA unmap all of the req's MRs, and return
- 	 * them to the free MW list.
- 	 */
-@@ -543,17 +544,19 @@
+-		if ((rep->rr_wc_flags & IB_WC_WITH_INVALIDATE) &&
+-		    (mw->mw_handle == rep->rr_inv_rkey))
++		if (mw->mw_flags & RPCRDMA_MW_F_RI)
+ 			continue;
  
- reset_mrs:
- 	pr_err("rpcrdma: FRMR invalidate ib_post_send returned %i\n", rc);
--	rdma_disconnect(ia->ri_id);
- 
- 	/* Find and reset the MRs in the LOCAL_INV WRs that did not
--	 * get posted. This is synchronous, and slow.
-+	 * get posted.
- 	 */
--	list_for_each_entry(mw, &req->rl_registered, mw_list) {
--		f = &mw->frmr;
--		if (mw->mw_handle == bad_wr->ex.invalidate_rkey) {
--			__frwr_reset_mr(ia, mw);
--			bad_wr = bad_wr->next;
--		}
-+	rpcrdma_init_cqcount(&r_xprt->rx_ep, -count);
-+	while (bad_wr) {
-+		f = container_of(bad_wr, struct rpcrdma_frmr,
-+				 fr_invwr);
-+		mw = container_of(f, struct rpcrdma_mw, frmr);
-+
-+		__frwr_reset_mr(ia, mw);
-+
-+		bad_wr = bad_wr->next;
- 	}
- 	goto unmap;
+ 		f = &mw->frmr;
+diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+index 694e9b1..2356a63 100644
+--- a/net/sunrpc/xprtrdma/rpc_rdma.c
++++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+@@ -928,6 +928,24 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
+ 	return fixup_copy_count;
  }
+ 
++/* Caller must guarantee @rep remains stable during this call.
++ */
++static void
++rpcrdma_mark_remote_invalidation(struct list_head *mws,
++				 struct rpcrdma_rep *rep)
++{
++	struct rpcrdma_mw *mw;
++
++	if (!(rep->rr_wc_flags & IB_WC_WITH_INVALIDATE))
++		return;
++
++	list_for_each_entry(mw, mws, mw_list)
++		if (mw->mw_handle == rep->rr_inv_rkey) {
++			mw->mw_flags = RPCRDMA_MW_F_RI;
++			break; /* only one invalidated MR per RPC */
++		}
++}
++
+ #if defined(CONFIG_SUNRPC_BACKCHANNEL)
+ /* By convention, backchannel calls arrive via rdma_msg type
+  * messages, and never populate the chunk lists. This makes
+@@ -1006,13 +1024,13 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
+ 	/* Sanity checking has passed. We are now committed
+ 	 * to complete this transaction.
+ 	 */
++	rpcrdma_mark_remote_invalidation(&req->rl_registered, rep);
+ 	list_del_init(&rqst->rq_list);
++	req->rl_reply = rep;
+ 	spin_unlock_bh(&xprt->transport_lock);
+ 	dprintk("RPC:       %s: reply %p completes request %p (xid 0x%08x)\n",
+ 		__func__, rep, req, be32_to_cpu(headerp->rm_xid));
+ 
+-	/* from here on, the reply is no longer an orphan */
+-	req->rl_reply = rep;
+ 	xprt->reestablish_timeout = 0;
+ 
+ 	if (headerp->rm_vers != rpcrdma_version)
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index 3dbce9a..a8be66d 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -1187,6 +1187,7 @@ struct rpcrdma_mw *
+ 
+ 	if (!mw)
+ 		goto out_nomws;
++	mw->mw_flags = 0;
+ 	return mw;
+ 
+ out_nomws:
+diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
+index 1d66acf..2e02733 100644
+--- a/net/sunrpc/xprtrdma/xprt_rdma.h
++++ b/net/sunrpc/xprtrdma/xprt_rdma.h
+@@ -271,6 +271,7 @@ struct rpcrdma_mw {
+ 	struct scatterlist	*mw_sg;
+ 	int			mw_nents;
+ 	enum dma_data_direction	mw_dir;
++	unsigned long		mw_flags;
+ 	union {
+ 		struct rpcrdma_fmr	fmr;
+ 		struct rpcrdma_frmr	frmr;
+@@ -282,6 +283,11 @@ struct rpcrdma_mw {
+ 	struct list_head	mw_all;
+ };
+ 
++/* mw_flags */
++enum {
++	RPCRDMA_MW_F_RI		= 1,
++};
++
+ /*
+  * struct rpcrdma_req -- structure central to the request/reply sequence.
+  *
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
