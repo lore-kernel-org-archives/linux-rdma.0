@@ -1,78 +1,129 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 00/12] NFS/RDMA client-side patches proposed for v4.13
-Date: Tue, 23 May 2017 10:53:37 -0400
-Message-ID: <20170523142629.961.81233.stgit@manet.1015granger.net>
+Subject: [PATCH v1 01/12] xprtrdma: Don't defer MR recovery if ro_map fails
+Date: Tue, 23 May 2017 10:53:46 -0400
+Message-ID: <20170523145346.961.93720.stgit@manet.1015granger.net>
+References: <20170523142629.961.81233.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170523142629.961.81233.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This series contains a major fix for client-side NFS/RDMA.
+Deferred MR recovery does a DMA-unmapping of the MW. However, ro_map
+invokes rpcrdma_defer_mr_recovery in some error cases where the MW
+has not even been DMA-mapped yet.
 
-When a signal fires, it's possible for the server's RPC reply to
-race with the client code that terminates the RPC after a signal.
-The result is both of these code paths try to invalidate the same
-MR at the same time.
+Avoid a DMA-unmapping error replacing rpcrdma_defer_mr_recovery.
 
-Because FRWR invalidation is typically fast, it's nearly impossible
-to hit the race with FRWR. However, FMR invalidation happens at
-about the same speed as the NFS server responds, so it's more likely
-to hit this window when using FMR. FMR is also more sensitive to
-concurrent operations on the same MR, which can result in a kernel
-crash or an HCA firmware reset.
+Also note that if ib_dma_map_sg is asked to map 0 nents, it will
+return 0. So the extra "if (i == 0)" check is no longer needed.
 
-As part of closing the signal race window, the reply handler is
-restructured and several error recovery paths in the invalidation
-code are fixed.
+Fixes: 42fe28f60763 ("xprtrdma: Do not leak an MW during a DMA ...")
+Fixes: 505bbe64dd04 ("xprtrdma: Refactor MR recovery work queues")
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ net/sunrpc/xprtrdma/fmr_ops.c  |   18 +++++++++---------
+ net/sunrpc/xprtrdma/frwr_ops.c |   19 ++++++++-----------
+ 2 files changed, 17 insertions(+), 20 deletions(-)
 
-In addition to this fix, there is a small but important change to
-make NFSv4.1 Transparent State Migration work. This enables basic
-test cases to pass successfully. However, NFSv4.1 TSM is still under
-test, so the default setting of CONFIG_NFS_V4_1_MIGRATION remains
-unchanged for the moment.
-
-
-Available in the "nfs-rdma-for-4.13" topic branch of this git repo:
-
-git://git.linux-nfs.org/projects/cel/cel-2.6.git
-
-
-Or for browsing:
-
-http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfs-rdma-for-4.13
-
-
-Chuck Lever (12):
-      xprtrdma: Don't defer MR recovery if ro_map fails
-      xprtrdma: On invalidation failure, remove MWs from rl_registered
-      xprtrdma: Fix FRWR invalidation error recovery
-      xprtrdma: Pre-mark remotely invalidated MRs
-      xprtrdma: Pass only the list of registered MRs to ro_unmap_sync
-      xprtrdma: Rename rpcrdma_req::rl_free
-      xprtrdma: Fix client lock-up after application signal fires
-      NFSv4.1: Handle EXCHGID4_FLAG_CONFIRMED_R during NFSv4.1 migration
-      xprtrdma: Demote "connect" log messages
-      xprtrdma: FMR does not need list_del_init()
-      xprtrdma: Replace PAGE_MASK with offset_in_page()
-      xprtrdma: Fix documenting comments in frwr_ops.c
-
-
- fs/nfs/nfs4proc.c               |    2 -
- fs/nfs/nfs4state.c              |   11 +++
- net/sunrpc/xprtrdma/fmr_ops.c   |   47 ++++++++-------
- net/sunrpc/xprtrdma/frwr_ops.c  |   69 ++++++++++------------
- net/sunrpc/xprtrdma/rpc_rdma.c  |  125 +++++++++++++++++++++++++--------------
- net/sunrpc/xprtrdma/transport.c |    3 +
- net/sunrpc/xprtrdma/verbs.c     |   55 ++++-------------
- net/sunrpc/xprtrdma/xprt_rdma.h |   40 ++++++++++++
- 8 files changed, 204 insertions(+), 148 deletions(-)
+diff --git a/net/sunrpc/xprtrdma/fmr_ops.c b/net/sunrpc/xprtrdma/fmr_ops.c
+index 59e6402..9ee573f 100644
+--- a/net/sunrpc/xprtrdma/fmr_ops.c
++++ b/net/sunrpc/xprtrdma/fmr_ops.c
+@@ -213,13 +213,11 @@ enum {
+ 		    offset_in_page((seg-1)->mr_offset + (seg-1)->mr_len))
+ 			break;
+ 	}
+-	mw->mw_nents = i;
+ 	mw->mw_dir = rpcrdma_data_dir(writing);
+-	if (i == 0)
+-		goto out_dmamap_err;
+ 
+-	if (!ib_dma_map_sg(r_xprt->rx_ia.ri_device,
+-			   mw->mw_sg, mw->mw_nents, mw->mw_dir))
++	mw->mw_nents = ib_dma_map_sg(r_xprt->rx_ia.ri_device,
++				     mw->mw_sg, i, mw->mw_dir);
++	if (!mw->mw_nents)
+ 		goto out_dmamap_err;
+ 
+ 	for (i = 0, dma_pages = mw->fmr.fm_physaddrs; i < mw->mw_nents; i++)
+@@ -237,16 +235,18 @@ enum {
+ 	return mw->mw_nents;
+ 
+ out_dmamap_err:
+-	pr_err("rpcrdma: failed to dma map sg %p sg_nents %u\n",
+-	       mw->mw_sg, mw->mw_nents);
+-	rpcrdma_defer_mr_recovery(mw);
++	pr_err("rpcrdma: failed to DMA map sg %p sg_nents %d\n",
++	       mw->mw_sg, i);
++	rpcrdma_put_mw(r_xprt, mw);
+ 	return -EIO;
+ 
+ out_maperr:
+ 	pr_err("rpcrdma: ib_map_phys_fmr %u@0x%llx+%i (%d) status %i\n",
+ 	       len, (unsigned long long)dma_pages[0],
+ 	       pageoff, mw->mw_nents, rc);
+-	rpcrdma_defer_mr_recovery(mw);
++	ib_dma_unmap_sg(r_xprt->rx_ia.ri_device,
++			mw->mw_sg, mw->mw_nents, mw->mw_dir);
++	rpcrdma_put_mw(r_xprt, mw);
+ 	return -EIO;
+ }
+ 
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index f81dd93..33ede72 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -355,7 +355,7 @@
+ 	struct ib_mr *mr;
+ 	struct ib_reg_wr *reg_wr;
+ 	struct ib_send_wr *bad_wr;
+-	int rc, i, n, dma_nents;
++	int rc, i, n;
+ 	u8 key;
+ 
+ 	mw = NULL;
+@@ -391,14 +391,10 @@
+ 		    offset_in_page((seg-1)->mr_offset + (seg-1)->mr_len))
+ 			break;
+ 	}
+-	mw->mw_nents = i;
+ 	mw->mw_dir = rpcrdma_data_dir(writing);
+-	if (i == 0)
+-		goto out_dmamap_err;
+ 
+-	dma_nents = ib_dma_map_sg(ia->ri_device,
+-				  mw->mw_sg, mw->mw_nents, mw->mw_dir);
+-	if (!dma_nents)
++	mw->mw_nents = ib_dma_map_sg(ia->ri_device, mw->mw_sg, i, mw->mw_dir);
++	if (!mw->mw_nents)
+ 		goto out_dmamap_err;
+ 
+ 	n = ib_map_mr_sg(mr, mw->mw_sg, mw->mw_nents, NULL, PAGE_SIZE);
+@@ -436,13 +432,14 @@
+ 	return mw->mw_nents;
+ 
+ out_dmamap_err:
+-	pr_err("rpcrdma: failed to dma map sg %p sg_nents %u\n",
+-	       mw->mw_sg, mw->mw_nents);
+-	rpcrdma_defer_mr_recovery(mw);
++	pr_err("rpcrdma: failed to DMA map sg %p sg_nents %d\n",
++	       mw->mw_sg, i);
++	frmr->fr_state = FRMR_IS_INVALID;
++	rpcrdma_put_mw(r_xprt, mw);
+ 	return -EIO;
+ 
+ out_mapmr_err:
+-	pr_err("rpcrdma: failed to map mr %p (%u/%u)\n",
++	pr_err("rpcrdma: failed to map mr %p (%d/%d)\n",
+ 	       frmr->fr_mr, n, mw->mw_nents);
+ 	rpcrdma_defer_mr_recovery(mw);
+ 	return -EIO;
 
 --
-Chuck Lever
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
