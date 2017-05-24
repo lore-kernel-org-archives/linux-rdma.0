@@ -1,102 +1,75 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: Re: iSER with policy based routing error
-Date: Wed, 24 May 2017 12:14:53 -0600
-Message-ID: <CAANLjFpHbMXjMnxO0B7sn9rRz2Sn3CEx-bEWKW5BrYj3itQ0HQ@mail.gmail.com>
-References: <CAANLjFoB3V6_exH8TnQQobaHkz2K1Lxj0sVOVa2Q+MKAsCqCKQ@mail.gmail.com>
- <CAJ3xEMiYwGDott_gLrh7e4tG9Ti71vftMPuvyT3+czu7jWwqFA@mail.gmail.com>
- <CAANLjFqNkNVDiGr-yW9y6XCiWE_O7+OewmxWM+xmWHQ39n4wkw@mail.gmail.com>
- <CAANLjFpKGoruxvwhtHwF-fBH+dLT9RKqkd3POYwLVK856WEfFA@mail.gmail.com> <CAANLjFqhPUd=kyuv0CBR69KuAwGZzne8ZY3-1J6YiNHuWqZBZA@mail.gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: rdma_cm NULL deref in 4.11.0+
+Date: Wed, 24 May 2017 21:52:56 +0300
+Message-ID: <20170524185256.GT17751@mtr-leonro.local>
+References: <acc72471-eb22-4474-04f5-db23227faadd@grimberg.me>
+ <VI1PR0502MB30083E6CB505CA90A9E047C0D1FB0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170521154443.GD17751@mtr-leonro.local>
+ <20170524163832.GA23034@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="tZCmRiovzb4sxAVa"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAANLjFqhPUd=kyuv0CBR69KuAwGZzne8ZY3-1J6YiNHuWqZBZA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170524163832.GA23034-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 23, 2017 at 5:17 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
-> I could not replicate ping6 working today without passing the -I
-> parameter. I created https://github.com/linux-rdma/rdma-core/pull/136
-> and now you can pass -I to rping to have it bind to a source address
-> just like ping and the rules and additional routing table works for
-> rping.
+
+--tZCmRiovzb4sxAVa
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Wed, May 24, 2017 at 10:38:32AM -0600, Jason Gunthorpe wrote:
+> On Sun, May 21, 2017 at 06:44:43PM +0300, Leon Romanovsky wrote:
+> > On Sun, May 21, 2017 at 02:30:04PM +0000, Parav Pandit wrote:
+> > > Hi Sagi,
+> > >
+> > > Majd encountered same sometime back and reported [1].
+> > > He has the fix should be posting the fix soon.
+> > >
+> > > Majd/Leon?
+> >
+> > The fix is in our rdma-rc branch.
+> > https://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git/commit/?h=rdma-rc&id=f1fff656d55c52aeb12129f57347886b02f90e1d
+> >
+> > I planned to submit it today.
 >
-> However, iSER is not able to find a network route. Where do you think
-> I should look next? It seems that RDMA_CM is able to work properly if
-> given the right information.
+> Is someone going to look at the segfault in librdmacm?
+
+Does it reproduce with these two patches?
+https://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git/commit/?h=rdma-rc&id=f1fff656d55c52aeb12129f57347886b02f90e1d
+https://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git/commit/?h=rdma-rc&id=1d6af11df23f7df4963af7513a3dad109acbcd4c
+
+We are successfully run our regression suite on my rdma-rc branch.
+https://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git/log/?h=rdma-rc
+
 >
-> Thanks,
-> Robert
-> ----------------
-> Robert LeBlanc
-> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
->
->
+> Jason
 
-Looks like the bug is in iSER, it is always passing NULL for the source address.
+--tZCmRiovzb4sxAVa
+Content-Type: application/pgp-signature; name="signature.asc"
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c
-b/drivers/infiniband/ulp/iser/iscsi_iser.c
-index 5a887ef..e9741df 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.c
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-@@ -59,6 +59,7 @@
-#include <linux/delay.h>
-#include <linux/slab.h>
-#include <linux/module.h>
-+#include <linux/inet.h>
+-----BEGIN PGP SIGNATURE-----
 
-#include <net/sock.h>
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkl1ogACgkQ5GN7iDZy
+WKdNMRAAuKNbfH2CQRYzMxwj6FMktJ0bQO5LtMVokiW8cQytGHMFdLoFmf/Pohc3
+gucin51XLZzisQ6qwT08ug8FtETv9zJm4sE+Lp3pNdpK5jFuTDRFIvHduYQ8fp+r
+G/tAjQvX9aidLb8Y+KVLg02AO+YCbSt1ilNaRCCHGFp5idI0ipYV/HRp2k7HOMEU
+U4ustr7Uw45CTUhZslo2umOh8UuCEYBa6YQ9JLknE8qq6/Z2JoJN13qisd66TrAn
+QBrt3WmkJyYB4hhJ8tXBWT7SgozL64kv3DUUWNqxf6OCY3+gWhu9cq0glbFy44Pe
+EL0GfT7uqiDrYdVJGv64UvrCXAjhtdztj8zqn1i8HoO4BkEJryP1Em6RPM9EwryF
+iQzcy0t1PECX/6kT6WNqFwYbcDHCRobsh0YzkIYni1aUdCiYhtlI+qR5x6kp9lYY
+4q7nomWI4TbrAj3FXAxo0lBBorYTHwaw1tmZExTQdHUnIDypINHXGDHwtdwn3XEl
+Ti/BRgXkdQ9TMdX06SEHWsV/+ZcroIVtC1IIXlJaZnUYSqMm8887XcJvyV6AX21L
+c5GXWOye198+nFSOwiaC5LrLlwj/5VJ7kgn7Buf4luOoWmDQGB2FXJuHYrrqwwPf
+a6JOWjC9+2uWGik/SsK041btORVc5WyzfwrqBBwixt9VyvFrw/U=
+=Q+XU
+-----END PGP SIGNATURE-----
 
-@@ -814,6 +815,10 @@ static int iscsi_iser_get_ep_param(struct
-iscsi_endpoint *ep,
-       int err;
-       struct iser_conn *iser_conn;
-       struct iscsi_endpoint *ep;
-+       struct sockaddr_in s_addr;
-+       memset(&s_addr, 0, sizeof(s_addr));
-+       s_addr.sin_family = AF_INET;
-+       s_addr.sin_addr.s_addr = in_aton("192.168.13.14");
-
-       ep = iscsi_create_endpoint(0);
-       if (!ep)
-@@ -829,7 +834,8 @@ static int iscsi_iser_get_ep_param(struct
-iscsi_endpoint *ep,
-       iser_conn->ep = ep;
-       iser_conn_init(iser_conn);
-
--       err = iser_connect(iser_conn, NULL, dst_addr, non_blocking);
-+       //err = iser_connect(iser_conn, NULL, dst_addr, non_blocking);
-+       err = iser_connect(iser_conn, (struct sockaddr *) &s_addr,
-dst_addr, non_blocking);
-       if (err)
-               goto failure;
-
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c
-b/drivers/infiniband/ulp/iser/iser_verbs.c
-index c538a38..6ce1845 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -953,6 +953,7 @@ int iser_connect(struct iser_conn   *iser_conn,
-       sprintf(iser_conn->name, "%pISp", dst_addr);
-
-       iser_info("connecting to: %s\n", iser_conn->name);
-+       iser_err("connecting from: %p\n", src_addr);
-
-       /* the device is known only --after-- address resolution */
-       ib_conn->device = NULL;
-
-Hard coding the source IP address allows the connection to work fine.
-It seems for some reason, it is not using the information from the
-iface that we configured. I can try to create a patch, but I'm not
-sure where to query the ifaces for the required info. If you can point
-me in the right place, I can give it a shot.
-
-Thanks,
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+--tZCmRiovzb4sxAVa--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
