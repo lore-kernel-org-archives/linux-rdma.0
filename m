@@ -1,8 +1,7 @@
 From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: [RFC PATCH 08/16] scatterlist: add iomem support to sg_miter and
- sg_copy_*
-Date: Wed, 24 May 2017 15:42:19 -0600
-Message-ID: <1495662147-18277-9-git-send-email-logang@deltatee.com>
+Subject: [RFC PATCH 16/16] nvmet: use unmappable sgl in rdma target
+Date: Wed, 24 May 2017 15:42:27 -0600
+Message-ID: <1495662147-18277-17-git-send-email-logang@deltatee.com>
 References: <1495662147-18277-1-git-send-email-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,117 +21,141 @@ To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-block-u79uwXL29T
 Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Johannes Berg <johannes.berg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-IO memory support can be indicated by an iteratee with the
-SG_MITRE_SUPPORTS_IOMEM flag. If an unmappable sgl gets into a miter
-without this support, the kernel will BUGON.
+This is incomplete but is given to test the unmappable sg page code.
+Further work would actually use p2p memory in the rdma target. (One
+should imagine something vaguely resembling our original p2pmem RFC[1]
+being on top of this.)
 
-For supported cases, the sg_miter code will set the ioaddr pointer and
-leave addr NULL.
+We convert to using an unmappable sgl in the rdma nvme target driver and
+nvme pci driver. We also fix up any remaining uses that would have caused
+a BUG_ON.
 
-sg_copy_buffer is changed to support IO memory by simply calling
-the appropriate memcpy when required.
+This still needs a fair bit of work before it's fully safe. No bugs are hit
+with nvme or nullb and Intel swiotlb but more testing (and likely fixes)
+need to be done for other block drivers and dma_map arches.
+
+It may make sense to add a flag in the request_queue which indicates
+the driver is not going to BUG_ON with an unmappable SGL and it may also
+make sense to have CONFIG_SG_UNMAPPABLE depend on architectures that
+are known have unmappable safe dma mapping code.
+
+[1] https://lwn.net/Articles/718593/
 
 Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
 ---
- include/linux/scatterlist.h |  3 +++
- lib/scatterlist.c           | 35 +++++++++++++++++++++++++++++------
- 2 files changed, 32 insertions(+), 6 deletions(-)
+ drivers/nvme/host/pci.c      |  3 ++-
+ drivers/nvme/target/Kconfig  | 12 ++++++++++++
+ drivers/nvme/target/io-cmd.c |  2 +-
+ drivers/nvme/target/rdma.c   | 29 +++++++++++++++++++++++++----
+ 4 files changed, 40 insertions(+), 6 deletions(-)
 
-diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
-index 8cb662c..2c54c6c 100644
---- a/include/linux/scatterlist.h
-+++ b/include/linux/scatterlist.h
-@@ -447,11 +447,14 @@ static inline dma_addr_t sg_page_iter_dma_address(struct sg_page_iter *piter)
- #define SG_MITER_ATOMIC		(1 << 0)	 /* use kmap_atomic */
- #define SG_MITER_TO_SG		(1 << 1)	/* flush back to phys on unmap */
- #define SG_MITER_FROM_SG	(1 << 2)	/* nop */
-+#define SG_MITRE_SUPPORTS_IOMEM (1 << 3)	/* io memory is supported by
-+						 * the iteratee */
+diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
+index adf4133..56becec 100644
+--- a/drivers/nvme/host/pci.c
++++ b/drivers/nvme/host/pci.c
+@@ -625,7 +625,8 @@ static int nvme_map_data(struct nvme_dev *dev, struct request *req,
+ 			DMA_TO_DEVICE : DMA_FROM_DEVICE;
+ 	int ret = BLK_MQ_RQ_QUEUE_ERROR;
  
- struct sg_mapping_iter {
- 	/* the following three fields can be accessed directly */
- 	struct page		*page;		/* currently mapped page */
- 	void			*addr;		/* pointer to the mapped area */
-+	void __iomem            *ioaddr;	/* address to io memory */
- 	size_t			length;		/* length of the mapped area */
- 	size_t			consumed;	/* number of consumed bytes */
- 	struct sg_page_iter	piter;		/* page iterator */
-diff --git a/lib/scatterlist.c b/lib/scatterlist.c
-index 6bc33e0..1ec768e 100644
---- a/lib/scatterlist.c
-+++ b/lib/scatterlist.c
-@@ -601,6 +601,8 @@ EXPORT_SYMBOL(sg_miter_skip);
-  */
- bool sg_miter_next(struct sg_mapping_iter *miter)
- {
-+	pfn_t pfn = miter->piter.sg->__pfn;
+-	sg_init_table(iod->sg, blk_rq_nr_phys_segments(req));
++	sg_init_unmappable_table(iod->sg, blk_rq_nr_phys_segments(req));
 +
- 	sg_miter_stop(miter);
+ 	iod->nents = blk_rq_map_sg(q, req, iod->sg);
+ 	if (!iod->nents)
+ 		goto out;
+diff --git a/drivers/nvme/target/Kconfig b/drivers/nvme/target/Kconfig
+index 03e4ab6..bc71cb1 100644
+--- a/drivers/nvme/target/Kconfig
++++ b/drivers/nvme/target/Kconfig
+@@ -35,6 +35,18 @@ config NVME_TARGET_RDMA
  
- 	/*
-@@ -610,9 +612,20 @@ bool sg_miter_next(struct sg_mapping_iter *miter)
- 	if (!sg_miter_get_next_page(miter))
- 		return false;
+ 	  If unsure, say N.
  
--	miter->page = sg_page_iter_page(&miter->piter);
- 	miter->consumed = miter->length = miter->__remaining;
++config NVME_TARGET_RDMA_P2PMEM
++	bool "Support Peer-2-Peer memory (Experimental)"
++	depends on NVME_TARGET_RDMA
++	select SG_UNMAPPABLE
++	help
++	  This enable experimental support for using Peer 2 Peer PCI
++	  memory in the NVME RDMA target driver. Enabling this could trigger
++	  BUG_ONs when using the target with architectures or block devices
++	  that do not currently support DMAing to unmappable memory.
++
++	  If unsure, say N.
++
+ config NVME_TARGET_FC
+ 	tristate "NVMe over Fabrics FC target driver"
+ 	depends on NVME_TARGET
+diff --git a/drivers/nvme/target/io-cmd.c b/drivers/nvme/target/io-cmd.c
+index c77940d..84f1804 100644
+--- a/drivers/nvme/target/io-cmd.c
++++ b/drivers/nvme/target/io-cmd.c
+@@ -75,7 +75,7 @@ static void nvmet_execute_rw(struct nvmet_req *req)
+ 	bio_set_op_attrs(bio, op, op_flags);
  
-+	if (!(miter->__flags & SG_MITRE_SUPPORTS_IOMEM)) {
-+		BUG_ON(!pfn_t_is_always_mappable(pfn));
-+	} else if (pfn_t_is_iomem(pfn)) {
-+		miter->ioaddr = ioremap(pfn_t_to_phys(pfn), PAGE_SIZE);
-+		miter->addr = NULL;
-+		return true;
+ 	for_each_sg(req->sg, sg, req->sg_cnt, i) {
+-		while (bio_add_page(bio, sg_page(sg), sg->length, sg->offset)
++		while (bio_add_pfn(bio, sg_pfn_t(sg), sg->length, sg->offset)
+ 				!= sg->length) {
+ 			struct bio *prev = bio;
+ 
+diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
+index 9e45cde..6f926da 100644
+--- a/drivers/nvme/target/rdma.c
++++ b/drivers/nvme/target/rdma.c
+@@ -193,11 +193,30 @@ static void nvmet_rdma_free_sgl(struct scatterlist *sgl, unsigned int nents)
+ 	if (!sgl || !nents)
+ 		return;
+ 
+-	for_each_sg(sgl, sg, nents, count)
+-		__free_page(sg_page(sg));
++	for_each_sg(sgl, sg, nents, count) {
++		struct page *pg = pfn_t_to_page(sg_pfn_t(sg));
++
++		if (pg)
++			__free_page(pg);
 +	}
 +
-+	miter->ioaddr = NULL;
-+	miter->page = pfn_t_to_page(pfn);
-+	BUG_ON(!miter->page);
-+
- 	if (miter->__flags & SG_MITER_ATOMIC)
- 		miter->addr = kmap_atomic(miter->page) + miter->__offset;
- 	else
-@@ -660,6 +673,9 @@ void sg_miter_stop(struct sg_mapping_iter *miter)
- 		miter->length = 0;
- 		miter->consumed = 0;
- 	}
-+
-+	if (miter->ioaddr)
-+		iounmap(miter->ioaddr);
+ 	kfree(sgl);
  }
- EXPORT_SYMBOL(sg_miter_stop);
  
-@@ -681,7 +697,7 @@ size_t sg_copy_buffer(struct scatterlist *sgl, unsigned int nents, void *buf,
++#ifdef CONFIG_NVME_TARGET_RDMA_P2PMEM
++static void nvmet_rdma_init_sg(struct scatterlist *sg,
++			       unsigned int nent)
++{
++	sg_init_unmappable_table(sg, nent);
++}
++#else
++static void nvmet_rdma_init_sg(struct scatterlist *sg,
++			       unsigned int nent)
++{
++	sg_init_table(sg, nent);
++}
++#endif
++
+ static int nvmet_rdma_alloc_sgl(struct scatterlist **sgl, unsigned int *nents,
+ 		u32 length)
  {
- 	unsigned int offset = 0;
- 	struct sg_mapping_iter miter;
--	unsigned int sg_flags = SG_MITER_ATOMIC;
-+	unsigned int sg_flags = SG_MITER_ATOMIC | SG_MITRE_SUPPORTS_IOMEM;
+@@ -211,7 +230,7 @@ static int nvmet_rdma_alloc_sgl(struct scatterlist **sgl, unsigned int *nents,
+ 	if (!sg)
+ 		goto out;
  
- 	if (to_buffer)
- 		sg_flags |= SG_MITER_FROM_SG;
-@@ -698,10 +714,17 @@ size_t sg_copy_buffer(struct scatterlist *sgl, unsigned int nents, void *buf,
+-	sg_init_table(sg, nent);
++	nvmet_rdma_init_sg(sg, nent);
  
- 		len = min(miter.length, buflen - offset);
- 
--		if (to_buffer)
--			memcpy(buf + offset, miter.addr, len);
--		else
--			memcpy(miter.addr, buf + offset, len);
-+		if (miter.addr) {
-+			if (to_buffer)
-+				memcpy(buf + offset, miter.addr, len);
-+			else
-+				memcpy(miter.addr, buf + offset, len);
-+		} else if (miter.ioaddr) {
-+			if (to_buffer)
-+				memcpy_fromio(buf + offset, miter.addr, len);
-+			else
-+				memcpy_toio(miter.addr, buf + offset, len);
-+		}
- 
- 		offset += len;
+ 	while (length) {
+ 		u32 page_len = min_t(u32, length, PAGE_SIZE);
+@@ -231,7 +250,9 @@ static int nvmet_rdma_alloc_sgl(struct scatterlist **sgl, unsigned int *nents,
+ out_free_pages:
+ 	while (i > 0) {
+ 		i--;
+-		__free_page(sg_page(&sg[i]));
++		page = pfn_t_to_page(sg_pfn_t(&sg[i]));
++		if (page)
++			__free_page(page);
  	}
+ 	kfree(sg);
+ out:
 -- 
 2.1.4
