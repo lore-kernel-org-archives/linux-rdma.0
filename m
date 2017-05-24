@@ -1,7 +1,8 @@
 From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: [RFC PATCH 16/16] nvmet: use unmappable sgl in rdma target
-Date: Wed, 24 May 2017 15:42:27 -0600
-Message-ID: <1495662147-18277-17-git-send-email-logang@deltatee.com>
+Subject: [RFC PATCH 14/16] block: bio: go straight from pfn_t to phys instead
+ of through page
+Date: Wed, 24 May 2017 15:42:25 -0600
+Message-ID: <1495662147-18277-15-git-send-email-logang@deltatee.com>
 References: <1495662147-18277-1-git-send-email-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,141 +22,46 @@ To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-block-u79uwXL29T
 Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Johannes Berg <johannes.berg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is incomplete but is given to test the unmappable sg page code.
-Further work would actually use p2p memory in the rdma target. (One
-should imagine something vaguely resembling our original p2pmem RFC[1]
-being on top of this.)
-
-We convert to using an unmappable sgl in the rdma nvme target driver and
-nvme pci driver. We also fix up any remaining uses that would have caused
-a BUG_ON.
-
-This still needs a fair bit of work before it's fully safe. No bugs are hit
-with nvme or nullb and Intel swiotlb but more testing (and likely fixes)
-need to be done for other block drivers and dma_map arches.
-
-It may make sense to add a flag in the request_queue which indicates
-the driver is not going to BUG_ON with an unmappable SGL and it may also
-make sense to have CONFIG_SG_UNMAPPABLE depend on architectures that
-are known have unmappable safe dma mapping code.
-
-[1] https://lwn.net/Articles/718593/
+Going straight from pfn_t to physical address is cheaper and
+avoids the potential BUG_ON in bvec_page for unmappable memory.
 
 Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/nvme/host/pci.c      |  3 ++-
- drivers/nvme/target/Kconfig  | 12 ++++++++++++
- drivers/nvme/target/io-cmd.c |  2 +-
- drivers/nvme/target/rdma.c   | 29 +++++++++++++++++++++++++----
- 4 files changed, 40 insertions(+), 6 deletions(-)
+ include/linux/bio.h | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
-index adf4133..56becec 100644
---- a/drivers/nvme/host/pci.c
-+++ b/drivers/nvme/host/pci.c
-@@ -625,7 +625,8 @@ static int nvme_map_data(struct nvme_dev *dev, struct request *req,
- 			DMA_TO_DEVICE : DMA_FROM_DEVICE;
- 	int ret = BLK_MQ_RQ_QUEUE_ERROR;
+diff --git a/include/linux/bio.h b/include/linux/bio.h
+index bc5f5d3..890c94d 100644
+--- a/include/linux/bio.h
++++ b/include/linux/bio.h
+@@ -46,6 +46,8 @@
+ #define bio_iter_iovec(bio, iter)				\
+ 	bvec_iter_bvec((bio)->bi_io_vec, (iter))
  
--	sg_init_table(iod->sg, blk_rq_nr_phys_segments(req));
-+	sg_init_unmappable_table(iod->sg, blk_rq_nr_phys_segments(req));
-+
- 	iod->nents = blk_rq_map_sg(q, req, iod->sg);
- 	if (!iod->nents)
- 		goto out;
-diff --git a/drivers/nvme/target/Kconfig b/drivers/nvme/target/Kconfig
-index 03e4ab6..bc71cb1 100644
---- a/drivers/nvme/target/Kconfig
-+++ b/drivers/nvme/target/Kconfig
-@@ -35,6 +35,18 @@ config NVME_TARGET_RDMA
++#define bio_iter_pfn_t(bio, iter)				\
++	bvec_iter_pfn_t((bio)->bi_io_vec, (iter))
+ #define bio_iter_page(bio, iter)				\
+ 	bvec_iter_page((bio)->bi_io_vec, (iter))
+ #define bio_iter_len(bio, iter)					\
+@@ -53,6 +55,7 @@
+ #define bio_iter_offset(bio, iter)				\
+ 	bvec_iter_offset((bio)->bi_io_vec, (iter))
  
- 	  If unsure, say N.
++#define bio_pfn_t(bio)		bio_iter_pfn_t((bio), (bio)->bi_iter)
+ #define bio_page(bio)		bio_iter_page((bio), (bio)->bi_iter)
+ #define bio_offset(bio)		bio_iter_offset((bio), (bio)->bi_iter)
+ #define bio_iovec(bio)		bio_iter_iovec((bio), (bio)->bi_iter)
+@@ -118,8 +121,8 @@ static inline void *bio_data(struct bio *bio)
+ /*
+  * will die
+  */
+-#define bio_to_phys(bio)	(page_to_phys(bio_page((bio))) + (unsigned long) bio_offset((bio)))
+-#define bvec_to_phys(bv)	(page_to_phys(bvec_page((bv))) + (unsigned long) (bv)->bv_offset)
++#define bio_to_phys(bio)	(pfn_t_to_phys(bio_pfn_t((bio))) + (unsigned long) bio_offset((bio)))
++#define bvec_to_phys(bv)	(pfn_t_to_phys((bv)->bv_pfn) + (unsigned long) (bv)->bv_offset)
  
-+config NVME_TARGET_RDMA_P2PMEM
-+	bool "Support Peer-2-Peer memory (Experimental)"
-+	depends on NVME_TARGET_RDMA
-+	select SG_UNMAPPABLE
-+	help
-+	  This enable experimental support for using Peer 2 Peer PCI
-+	  memory in the NVME RDMA target driver. Enabling this could trigger
-+	  BUG_ONs when using the target with architectures or block devices
-+	  that do not currently support DMAing to unmappable memory.
-+
-+	  If unsure, say N.
-+
- config NVME_TARGET_FC
- 	tristate "NVMe over Fabrics FC target driver"
- 	depends on NVME_TARGET
-diff --git a/drivers/nvme/target/io-cmd.c b/drivers/nvme/target/io-cmd.c
-index c77940d..84f1804 100644
---- a/drivers/nvme/target/io-cmd.c
-+++ b/drivers/nvme/target/io-cmd.c
-@@ -75,7 +75,7 @@ static void nvmet_execute_rw(struct nvmet_req *req)
- 	bio_set_op_attrs(bio, op, op_flags);
- 
- 	for_each_sg(req->sg, sg, req->sg_cnt, i) {
--		while (bio_add_page(bio, sg_page(sg), sg->length, sg->offset)
-+		while (bio_add_pfn(bio, sg_pfn_t(sg), sg->length, sg->offset)
- 				!= sg->length) {
- 			struct bio *prev = bio;
- 
-diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
-index 9e45cde..6f926da 100644
---- a/drivers/nvme/target/rdma.c
-+++ b/drivers/nvme/target/rdma.c
-@@ -193,11 +193,30 @@ static void nvmet_rdma_free_sgl(struct scatterlist *sgl, unsigned int nents)
- 	if (!sgl || !nents)
- 		return;
- 
--	for_each_sg(sgl, sg, nents, count)
--		__free_page(sg_page(sg));
-+	for_each_sg(sgl, sg, nents, count) {
-+		struct page *pg = pfn_t_to_page(sg_pfn_t(sg));
-+
-+		if (pg)
-+			__free_page(pg);
-+	}
-+
- 	kfree(sgl);
- }
- 
-+#ifdef CONFIG_NVME_TARGET_RDMA_P2PMEM
-+static void nvmet_rdma_init_sg(struct scatterlist *sg,
-+			       unsigned int nent)
-+{
-+	sg_init_unmappable_table(sg, nent);
-+}
-+#else
-+static void nvmet_rdma_init_sg(struct scatterlist *sg,
-+			       unsigned int nent)
-+{
-+	sg_init_table(sg, nent);
-+}
-+#endif
-+
- static int nvmet_rdma_alloc_sgl(struct scatterlist **sgl, unsigned int *nents,
- 		u32 length)
- {
-@@ -211,7 +230,7 @@ static int nvmet_rdma_alloc_sgl(struct scatterlist **sgl, unsigned int *nents,
- 	if (!sg)
- 		goto out;
- 
--	sg_init_table(sg, nent);
-+	nvmet_rdma_init_sg(sg, nent);
- 
- 	while (length) {
- 		u32 page_len = min_t(u32, length, PAGE_SIZE);
-@@ -231,7 +250,9 @@ static int nvmet_rdma_alloc_sgl(struct scatterlist **sgl, unsigned int *nents,
- out_free_pages:
- 	while (i > 0) {
- 		i--;
--		__free_page(sg_page(&sg[i]));
-+		page = pfn_t_to_page(sg_pfn_t(&sg[i]));
-+		if (page)
-+			__free_page(page);
- 	}
- 	kfree(sg);
- out:
+ /*
+  * queues that have highmem support enabled may still need to revert to
 -- 
 2.1.4
