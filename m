@@ -1,7 +1,8 @@
 From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: [RFC PATCH 05/16] tile: provide default ioremap declaration
-Date: Wed, 24 May 2017 15:42:16 -0600
-Message-ID: <1495662147-18277-6-git-send-email-logang@deltatee.com>
+Subject: [RFC PATCH 09/16] bvec: introduce bvec_page and bvec_set_page
+ accessors
+Date: Wed, 24 May 2017 15:42:20 -0600
+Message-ID: <1495662147-18277-10-git-send-email-logang@deltatee.com>
 References: <1495662147-18277-1-git-send-email-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,41 +22,36 @@ To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-block-u79uwXL29T
 Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Johannes Berg <johannes.berg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add a default ioremap function which was not provided in all
-circumstances. (Only when CONFIG_PCI and CONFIG_TILEGX was set).
-
-I have designs to use them in scatterlist.c where they'd likely never
-be called with this architecture, but it is needed to compile.
+Introduce two accessor functions for bv_page: bvec_page to return the
+page and bvec_set_page. A follow on patch will mechanically convert all the
+individual uses within the kernel.
 
 Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
 ---
- arch/tile/mm/pgtable.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ include/linux/bvec.h | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/arch/tile/mm/pgtable.c b/arch/tile/mm/pgtable.c
-index 492a736..c61df18 100644
---- a/arch/tile/mm/pgtable.c
-+++ b/arch/tile/mm/pgtable.c
-@@ -503,6 +503,19 @@ void __iomem *ioremap_prot(resource_size_t phys_addr, unsigned long size,
- }
- EXPORT_SYMBOL(ioremap_prot);
+diff --git a/include/linux/bvec.h b/include/linux/bvec.h
+index 89b65b8..b5369a0 100644
+--- a/include/linux/bvec.h
++++ b/include/linux/bvec.h
+@@ -43,6 +43,16 @@ struct bvec_iter {
+ 						   current bvec */
+ };
  
-+#if !defined(CONFIG_PCI) || !defined(CONFIG_TILEGX)
-+/* ioremap is conditionally declared in pci_gx.c */
-+
-+void __iomem *ioremap(resource_size_t phys_addr, unsigned long size)
++static inline struct page *bvec_page(const struct bio_vec *bvec)
 +{
-+	pgprot_t pgprot = {};
-+
-+	return ioremap_prot(phys_addr, size, pgprot);
++	return bvec->bv_page;
 +}
-+EXPORT_SYMBOL(ioremap);
 +
-+#endif
++static inline void bvec_set_page(struct bio_vec *bvec, struct page *page)
++{
++	bvec->bv_page = page;
++}
 +
- /* Unmap an MMIO VA mapping. */
- void iounmap(volatile void __iomem *addr_in)
- {
+ /*
+  * various member access, note that bio_data should of course not be used
+  * on highmem page vectors
 -- 
 2.1.4
