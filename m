@@ -1,8 +1,8 @@
 From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: [RFC PATCH 01/16] dmaengine: ste_dma40,
- imx-dma: Cleanup scatterlist layering violations
-Date: Wed, 24 May 2017 15:42:12 -0600
-Message-ID: <1495662147-18277-2-git-send-email-logang@deltatee.com>
+Subject: [RFC PATCH 15/16] dma-mapping: introduce and use unmappable safe
+ sg_virt call
+Date: Wed, 24 May 2017 15:42:26 -0600
+Message-ID: <1495662147-18277-16-git-send-email-logang@deltatee.com>
 References: <1495662147-18277-1-git-send-email-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,58 +22,66 @@ To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-block-u79uwXL29T
 Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Johannes Berg <johannes.berg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Two dma engine drivers directly accesses page_link assuming knowledge
-that should be contained only in scatterlist.h.
+Introduce sg_try_virt which is safe to call with a potentially
+unmappable sgl. sg_try_virt returns NULL in cases that the sgl doesn't
+have an accessible virtual address to return.
 
-We replace these with calls to sg_chain and sg_assign_page.
+Then, in dma_map_sg_attrs, we use the new function instead of sg_virt
+when marking memory as initialized.
 
 Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/dma/imx-dma.c   | 7 ++-----
- drivers/dma/ste_dma40.c | 5 +----
- 2 files changed, 3 insertions(+), 9 deletions(-)
+ include/linux/dma-mapping.h |  9 +++++++--
+ include/linux/scatterlist.h | 16 ++++++++++++++++
+ 2 files changed, 23 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/dma/imx-dma.c b/drivers/dma/imx-dma.c
-index ab0fb80..f681df8 100644
---- a/drivers/dma/imx-dma.c
-+++ b/drivers/dma/imx-dma.c
-@@ -888,7 +888,7 @@ static struct dma_async_tx_descriptor *imxdma_prep_dma_cyclic(
- 	sg_init_table(imxdmac->sg_list, periods);
+diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
+index 4f3eece..5ef1ab5 100644
+--- a/include/linux/dma-mapping.h
++++ b/include/linux/dma-mapping.h
+@@ -241,8 +241,13 @@ static inline int dma_map_sg_attrs(struct device *dev, struct scatterlist *sg,
+ 	int i, ents;
+ 	struct scatterlist *s;
  
- 	for (i = 0; i < periods; i++) {
--		imxdmac->sg_list[i].page_link = 0;
-+		sg_assign_page(&imxdmac->sg_list[i], NULL);
- 		imxdmac->sg_list[i].offset = 0;
- 		imxdmac->sg_list[i].dma_address = dma_addr;
- 		sg_dma_len(&imxdmac->sg_list[i]) = period_len;
-@@ -896,10 +896,7 @@ static struct dma_async_tx_descriptor *imxdma_prep_dma_cyclic(
- 	}
+-	for_each_sg(sg, s, nents, i)
+-		kmemcheck_mark_initialized(sg_virt(s), s->length);
++	for_each_sg(sg, s, nents, i) {
++		void *addr = sg_try_virt(sg);
++
++		if (addr)
++			kmemcheck_mark_initialized(addr, s->length);
++	}
++
+ 	BUG_ON(!valid_dma_direction(dir));
+ 	ents = ops->map_sg(dev, sg, nents, dir, attrs);
+ 	BUG_ON(ents < 0);
+diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
+index 2c54c6c..1e11af9 100644
+--- a/include/linux/scatterlist.h
++++ b/include/linux/scatterlist.h
+@@ -298,6 +298,22 @@ static inline void *sg_virt(struct scatterlist *sg)
+ 	return page_address(sg_page(sg)) + sg->offset;
+ }
  
- 	/* close the loop */
--	imxdmac->sg_list[periods].offset = 0;
--	sg_dma_len(&imxdmac->sg_list[periods]) = 0;
--	imxdmac->sg_list[periods].page_link =
--		((unsigned long)imxdmac->sg_list | 0x01) & ~0x02;
-+	sg_chain(imxdmac->sg_list, periods + 1, imxdmac->sg_list);
- 
- 	desc->type = IMXDMA_DESC_CYCLIC;
- 	desc->sg = imxdmac->sg_list;
-diff --git a/drivers/dma/ste_dma40.c b/drivers/dma/ste_dma40.c
-index a6620b6..c3052fb 100644
---- a/drivers/dma/ste_dma40.c
-+++ b/drivers/dma/ste_dma40.c
-@@ -2528,10 +2528,7 @@ dma40_prep_dma_cyclic(struct dma_chan *chan, dma_addr_t dma_addr,
- 		dma_addr += period_len;
- 	}
- 
--	sg[periods].offset = 0;
--	sg_dma_len(&sg[periods]) = 0;
--	sg[periods].page_link =
--		((unsigned long)sg | 0x01) & ~0x02;
-+	sg_chain(sg, periods + 1, sg);
- 
- 	txd = d40_prep_sg(chan, sg, sg, periods, direction,
- 			  DMA_PREP_INTERRUPT);
++/**
++ * sg_try_virt - Return virtual address of an sg entry or NULL if it is
++ *	unmappable
++ * @sg:      SG entry
++ *
++ * Description:
++ *   This is the same as sg_virt but is safe to call with unmappable
++ *   memory. This function will return NULL in case the sg is is
++ *   unmappable.
++ *
++ **/
++static inline void *sg_try_virt(struct scatterlist *sg)
++{
++	return pfn_t_to_virt(sg->__pfn);
++}
++
+ int sg_nents(struct scatterlist *sg);
+ int sg_nents_for_len(struct scatterlist *sg, u64 len);
+ struct scatterlist *sg_next(struct scatterlist *);
 -- 
 2.1.4
