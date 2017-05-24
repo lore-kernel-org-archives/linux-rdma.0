@@ -1,7 +1,8 @@
 From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: [RFC PATCH 11/16] bvec: convert to using pfn_t internally
-Date: Wed, 24 May 2017 15:42:22 -0600
-Message-ID: <1495662147-18277-12-git-send-email-logang@deltatee.com>
+Subject: [RFC PATCH 07/16] scatterlist: support unmappable memory in the
+ scatterlist
+Date: Wed, 24 May 2017 15:42:18 -0600
+Message-ID: <1495662147-18277-8-git-send-email-logang@deltatee.com>
 References: <1495662147-18277-1-git-send-email-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,127 +22,249 @@ To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-block-u79uwXL29T
 Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Johannes Berg <johannes.berg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-With bv_page fenced off, we can now convert it to a pfn_t fairly simply.
-Everything should work the same with the exception of a BUG_ON
-for potentially unmappable pfns.
+This patch introduces the PFN_MAYBE_UNMAPPABLE flag which indicates the
+sgl or pfn may point to unmappable memory. This flag would be set by a
+call to sg_init_unmappable_table which sets the flag for all entries in
+the table. Once set, any attempt to call sg_page, sg_virt, etc on the sgl
+will BUG_ON. It can also indicate to other parts of the kernel that
+a specific pfn_t may not always return a valid page or virtual address.
 
-A couple of initializers that assign {NULL} to a bio_vec had to also be
-changed to {} to prevent a warning seeing pfn_t is actually a struct.
+When it is set, it also allows assigning pfns that may be backed by
+IO memory or may not have struct pages. (Indicated by the new PFN_IOMEM
+flags).
+
+This new functionality is disabled unless a driver explicitly selects
+CONFIG_SG_UNMAPPABLE seeing it may cause unexpected BUG_ONs with drivers
+or dma_map implementations that aren't prepared for it.
+
+With this patch, we can start safely supporting IO memory in sgl lists
+without needing to cleanup all the existing use cases in the kernel
+and deal with the ugly cases that assume memory within an sgl is always
+mappable. Developers that want to support io memory then just need
+to optionally depend on CONFIG_SG_UNMAPPABLE, call
+sg_init_unmappable_table and fix any BUG_ONs that may result. They may
+then safely DMA to io memory, memory that is unmappable, or memory that
+doesn't have struct page backings.
 
 Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
 ---
- block/blk-integrity.c |  4 ++--
- block/blk-merge.c     |  6 +++---
- include/linux/bvec.h  | 13 +++++++++----
- 3 files changed, 14 insertions(+), 9 deletions(-)
+ include/linux/pfn_t.h       | 37 ++++++++++++++++++++++++++++++++++++-
+ include/linux/scatterlist.h | 31 +++++++++++++++++++++++++++++--
+ lib/Kconfig                 | 11 +++++++++++
+ lib/scatterlist.c           | 30 ++++++++++++++++++++++++++++++
+ 4 files changed, 106 insertions(+), 3 deletions(-)
 
-diff --git a/block/blk-integrity.c b/block/blk-integrity.c
-index 857138a..2ba66f7 100644
---- a/block/blk-integrity.c
-+++ b/block/blk-integrity.c
-@@ -40,7 +40,7 @@
+diff --git a/include/linux/pfn_t.h b/include/linux/pfn_t.h
+index a49b325..07bd5ba 100644
+--- a/include/linux/pfn_t.h
++++ b/include/linux/pfn_t.h
+@@ -8,6 +8,10 @@
+  * PFN_SG_LAST - pfn references a page and is the last scatterlist entry
+  * PFN_DEV - pfn is not covered by system memmap by default
+  * PFN_MAP - pfn has a dynamic page mapping established by a device driver
++ * PFN_MAYBE_UNMAPPABLE - flag used by SG and others to indicate that the
++ *	pfn may sometimes be unmappable and should not be mixed with
++ *	code that tries to map it.
++ * PFN_IOMEM - pfn points to io memory
   */
- int blk_rq_count_integrity_sg(struct request_queue *q, struct bio *bio)
- {
--	struct bio_vec iv, ivprv = { NULL };
-+	struct bio_vec iv, ivprv = {};
- 	unsigned int segments = 0;
- 	unsigned int seg_size = 0;
- 	struct bvec_iter iter;
-@@ -86,7 +86,7 @@ EXPORT_SYMBOL(blk_rq_count_integrity_sg);
- int blk_rq_map_integrity_sg(struct request_queue *q, struct bio *bio,
- 			    struct scatterlist *sglist)
- {
--	struct bio_vec iv, ivprv = { NULL };
-+	struct bio_vec iv, ivprv = {};
- 	struct scatterlist *sg = NULL;
- 	unsigned int segments = 0;
- 	struct bvec_iter iter;
-diff --git a/block/blk-merge.c b/block/blk-merge.c
-index 65dcee9..93e87fe 100644
---- a/block/blk-merge.c
-+++ b/block/blk-merge.c
-@@ -245,7 +245,7 @@ static unsigned int __blk_recalc_rq_segments(struct request_queue *q,
- 					     struct bio *bio,
- 					     bool no_sg_merge)
- {
--	struct bio_vec bv, bvprv = { NULL };
-+	struct bio_vec bv, bvprv = {};
- 	int cluster, prev = 0;
- 	unsigned int seg_size, nr_phys_segs;
- 	struct bio *fbio, *bbio;
-@@ -347,7 +347,7 @@ EXPORT_SYMBOL(blk_recount_segments);
- static int blk_phys_contig_segment(struct request_queue *q, struct bio *bio,
- 				   struct bio *nxt)
- {
--	struct bio_vec end_bv = { NULL }, nxt_bv;
-+	struct bio_vec end_bv = {}, nxt_bv;
+ #define PFN_FLAGS_MASK (((u64) ~PAGE_MASK) << (BITS_PER_LONG_LONG - PAGE_SHIFT))
+ #define PFN_SG_CHAIN (1ULL << (BITS_PER_LONG_LONG - 1))
+@@ -15,6 +19,11 @@
+ #define PFN_DEV (1ULL << (BITS_PER_LONG_LONG - 3))
+ #define PFN_MAP (1ULL << (BITS_PER_LONG_LONG - 4))
  
- 	if (!blk_queue_cluster(q))
- 		return 0;
-@@ -430,7 +430,7 @@ static int __blk_bios_map_sg(struct request_queue *q, struct bio *bio,
- 			     struct scatterlist *sglist,
- 			     struct scatterlist **sg)
- {
--	struct bio_vec bvec, bvprv = { NULL };
-+	struct bio_vec bvec, bvprv = {};
- 	struct bvec_iter iter;
- 	int cluster = blk_queue_cluster(q), nsegs = 0;
- 
-diff --git a/include/linux/bvec.h b/include/linux/bvec.h
-index b53b879..d950288 100644
---- a/include/linux/bvec.h
-+++ b/include/linux/bvec.h
-@@ -22,12 +22,13 @@
- 
- #include <linux/kernel.h>
- #include <linux/bug.h>
-+#include <linux/pfn_t.h>
- 
- /*
-  * was unsigned short, but we might as well be ready for > 64kB I/O pages
-  */
- struct bio_vec {
--	struct page	*bv_page;
-+	pfn_t		bv_pfn;
- 	unsigned int	bv_len;
- 	unsigned int	bv_offset;
- };
-@@ -45,12 +46,13 @@ struct bvec_iter {
- 
- static inline struct page *bvec_page(const struct bio_vec *bvec)
- {
--	return bvec->bv_page;
-+	BUG_ON(!pfn_t_is_always_mappable(bvec->bv_pfn));
-+	return pfn_t_to_page(bvec->bv_pfn);
- }
- 
- static inline void bvec_set_page(struct bio_vec *bvec, struct page *page)
- {
--	bvec->bv_page = page;
-+	bvec->bv_pfn = page_to_pfn_t(page);
- }
- 
- /*
-@@ -59,6 +61,9 @@ static inline void bvec_set_page(struct bio_vec *bvec, struct page *page)
-  */
- #define __bvec_iter_bvec(bvec, iter)	(&(bvec)[(iter).bi_idx])
- 
-+#define bvec_iter_pfn_t(bvec, iter)				\
-+	(__bvec_iter_bvec((bvec), (iter))->bv_pfn)
++#ifdef CONFIG_SG_UNMAPPABLE
++#define PFN_MAYBE_UNMAPPABLE (1ULL << (BITS_PER_LONG_LONG - 5))
++#define PFN_IOMEM (1ULL << (BITS_PER_LONG_LONG - 6))
++#endif
 +
- #define bvec_iter_page(bvec, iter)				\
- 	(bvec_page(__bvec_iter_bvec((bvec), (iter))))
+ #define PFN_FLAGS_TRACE \
+ 	{ PFN_SG_CHAIN,	"SG_CHAIN" }, \
+ 	{ PFN_SG_LAST,	"SG_LAST" }, \
+@@ -44,6 +53,32 @@ static inline bool pfn_t_has_page(pfn_t pfn)
+ 	return (pfn.val & PFN_MAP) == PFN_MAP || (pfn.val & PFN_DEV) == 0;
+ }
  
-@@ -71,7 +76,7 @@ static inline void bvec_set_page(struct bio_vec *bvec, struct page *page)
++#ifdef CONFIG_SG_UNMAPPABLE
++
++static inline bool pfn_t_is_always_mappable(pfn_t pfn)
++{
++	return !(pfn.val & (PFN_MAYBE_UNMAPPABLE | PFN_IOMEM));
++}
++
++static inline bool pfn_t_is_iomem(pfn_t pfn)
++{
++	return pfn.val & PFN_IOMEM;
++}
++
++#else
++
++static inline bool pfn_t_is_always_mappable(pfn_t pfn)
++{
++	return 1;
++}
++
++static inline bool pfn_t_is_iomem(pfn_t pfn)
++{
++	return 0;
++}
++
++#endif /* CONFIG_SG_UNMAPPABLE */
++
+ static inline unsigned long pfn_t_to_pfn(pfn_t pfn)
+ {
+ 	return pfn.val & ~PFN_FLAGS_MASK;
+@@ -63,7 +98,7 @@ static inline phys_addr_t pfn_t_to_phys(pfn_t pfn)
  
- #define bvec_iter_bvec(bvec, iter)				\
- ((struct bio_vec) {						\
--	.bv_page	= bvec_iter_page((bvec), (iter)),	\
-+	.bv_pfn		= bvec_iter_pfn_t((bvec), (iter)),	\
- 	.bv_len		= bvec_iter_len((bvec), (iter)),	\
- 	.bv_offset	= bvec_iter_offset((bvec), (iter)),	\
- })
+ static inline void *pfn_t_to_virt(pfn_t pfn)
+ {
+-	if (pfn_t_has_page(pfn))
++	if (pfn_t_has_page(pfn) && !pfn_t_is_iomem(pfn))
+ 		return __va(pfn_t_to_phys(pfn));
+ 	return NULL;
+ }
+diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
+index cce3af9..8cb662c 100644
+--- a/include/linux/scatterlist.h
++++ b/include/linux/scatterlist.h
+@@ -71,6 +71,12 @@ static inline struct scatterlist *sg_chain_ptr(struct scatterlist *sg)
+ 	return sg->__chain;
+ }
+ 
++#ifdef CONFIG_SG_UNMAPPABLE
++#define SG_STICKY_FLAGS (PFN_SG_LAST | PFN_MAYBE_UNMAPPABLE)
++#else
++#define SG_STICKY_FLAGS PFN_SG_LAST
++#endif
++
+ /**
+  * sg_assign_pfn - Assign a given pfn to an SG entry
+  * @sg:		   SG entry
+@@ -83,10 +89,14 @@ static inline struct scatterlist *sg_chain_ptr(struct scatterlist *sg)
+  **/
+ static inline void sg_assign_pfn(struct scatterlist *sg, pfn_t pfn)
+ {
+-	u64 flags = sg->__pfn.val & PFN_SG_LAST;
++	u64 flags = sg->__pfn.val & SG_STICKY_FLAGS;
+ 
+ 	pfn.val &= ~(PFN_SG_CHAIN | PFN_SG_LAST);
+-	BUG_ON(!pfn_t_has_page(pfn));
++
++	if (likely(pfn_t_is_always_mappable(sg->__pfn))) {
++		BUG_ON(!pfn_t_has_page(pfn) ||
++		       !pfn_t_is_always_mappable(pfn));
++	}
+ 
+ #ifdef CONFIG_DEBUG_SG
+ 	BUG_ON(sg->sg_magic != SG_MAGIC);
+@@ -159,6 +169,8 @@ static inline struct page *sg_page(struct scatterlist *sg)
+ 	BUG_ON(sg->sg_magic != SG_MAGIC);
+ 	BUG_ON(sg_is_chain(sg));
+ #endif
++
++	BUG_ON(!pfn_t_is_always_mappable(sg->__pfn));
+ 	return pfn_t_to_page(sg->__pfn);
+ }
+ 
+@@ -172,6 +184,11 @@ static inline pfn_t sg_pfn_t(struct scatterlist *sg)
+ 	return sg->__pfn;
+ }
+ 
++static inline bool sg_is_always_mappable(struct scatterlist *sg)
++{
++	return pfn_t_is_always_mappable(sg->__pfn);
++}
++
+ /**
+  * sg_set_buf - Set sg entry to point at given data
+  * @sg:		 SG entry
+@@ -207,6 +224,9 @@ static inline void sg_set_buf(struct scatterlist *sg, const void *buf,
+ static inline void sg_chain(struct scatterlist *prv, unsigned int prv_nents,
+ 			    struct scatterlist *sgl)
+ {
++	BUG_ON(pfn_t_is_always_mappable(prv->__pfn) !=
++	       pfn_t_is_always_mappable(sgl->__pfn));
++
+ 	prv[prv_nents - 1].__pfn = __pfn_to_pfn_t(0, PFN_SG_CHAIN);
+ 	prv[prv_nents - 1].__chain = sgl;
+ }
+@@ -283,6 +303,13 @@ int sg_nents_for_len(struct scatterlist *sg, u64 len);
+ struct scatterlist *sg_next(struct scatterlist *);
+ struct scatterlist *sg_last(struct scatterlist *s, unsigned int);
+ void sg_init_table(struct scatterlist *, unsigned int);
++
++#ifdef CONFIG_SG_UNMAPPABLE
++void sg_init_unmappable_table(struct scatterlist *sg, unsigned int nents);
++#else
++#define sg_init_unmappable_table sg_init_table
++#endif
++
+ void sg_init_one(struct scatterlist *, const void *, unsigned int);
+ int sg_split(struct scatterlist *in, const int in_mapped_nents,
+ 	     const off_t skip, const int nb_splits,
+diff --git a/lib/Kconfig b/lib/Kconfig
+index 0c8b78a..a953cf7 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -538,6 +538,17 @@ config SG_POOL
+ 	 selected by a driver or an API which whishes to allocate chained
+ 	 scatterlist.
+ 
++config SG_UNMAPPABLE
++	def_bool n
++	help
++	  This turns on support to enable safely putting unmappable memory
++	  into scatter-gather lists. It turns on a number of BUG_ONs
++	  that may prevent drivers that expect memory to always be mappable
++	  from working with drivers that are using unmappable memory.
++	  This should be selected by a driver wishing to enable
++	  DMA transfers to unmappable memory (eg. Peer-2-Peer DMA transfers
++	  or struct page-less dma).
++
+ #
+ # sg chaining option
+ #
+diff --git a/lib/scatterlist.c b/lib/scatterlist.c
+index c6cf822..6bc33e0 100644
+--- a/lib/scatterlist.c
++++ b/lib/scatterlist.c
+@@ -143,6 +143,36 @@ void sg_init_table(struct scatterlist *sgl, unsigned int nents)
+ }
+ EXPORT_SYMBOL(sg_init_table);
+ 
++#ifdef CONFIG_SG_UNMAPPABLE
++
++/**
++ * sg_init_unmappable_table - Initialize SG table for use with unmappable
++ *	memory
++ * @sgl:	   The SG table
++ * @nents:	   Number of entries in table
++ *
++ * Notes:
++ *   Unmappable scatterlists have more restrictions than regular scatter
++ *   list that may trigger unexpected BUG_ONs with code that is not ready
++ *   for them. However, they are safe to add IO memory or struct page-less
++ *   memory.
++ *
++ *   Also see the notes for sg_init_table
++ *
++ **/
++void sg_init_unmappable_table(struct scatterlist *sgl, unsigned int nents)
++{
++	unsigned int i;
++
++	sg_init_table(sgl, nents);
++
++	for (i = 0; i < nents; i++)
++		sgl[i].__pfn.val |= PFN_MAYBE_UNMAPPABLE;
++}
++EXPORT_SYMBOL(sg_init_unmappable_table);
++
++#endif
++
+ /**
+  * sg_init_one - Initialize a single entry sg list
+  * @sg:		 SG entry
 -- 
 2.1.4
