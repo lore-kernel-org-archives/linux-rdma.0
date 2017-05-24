@@ -1,7 +1,8 @@
 From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: [RFC PATCH 06/16] scatterlist: convert page_link to pfn_t
-Date: Wed, 24 May 2017 15:42:17 -0600
-Message-ID: <1495662147-18277-7-git-send-email-logang@deltatee.com>
+Subject: [RFC PATCH 02/16] staging: ccree: Cleanup: remove references to
+ page_link
+Date: Wed, 24 May 2017 15:42:13 -0600
+Message-ID: <1495662147-18277-3-git-send-email-logang@deltatee.com>
 References: <1495662147-18277-1-git-send-email-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,260 +22,74 @@ To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-block-u79uwXL29T
 Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Johannes Berg <johannes.berg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Ming Lei <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch replaces the old page_link bits with the somewhat safer
-pfn_t. This change seems to have been planned for in the design of pfn_t
-by Dan.
-
-The conversion is surprisingly straightforward. sg_assign_pfn and
-sg_set_pfn helpers are added which are similar analogs to their
-page_link versions. A union for the chain pointer (with length and
-offset) is also used instead of trying to shoehorn a pointer (that may
-not be page aligned) into a pfn_t.
-
-This results in some code that feels a fair bit cleaner seeing it avoids
-a lot of casting and use of hard coded ones and twos.
-
-The one side affect is that, on 32 bit systems, the sgl entry will be
-32 bits larger seeing pfn_t is always 64 bits and the unsigned long it
-replaced was 32 bits. However, it should still fit the same
-SG_CHUNK_SIZE entries into a single page so this probably isn't a huge
-issue.
+This is a layering violation so we replace it with calls to
+sg_page. This is a prep patch for replacing page_link and this
+is one of the very few uses outside of scatterlist.h.
 
 Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/memstick/core/mspro_block.c |   2 +-
- include/linux/scatterlist.h         | 145 ++++++++++++++++++++++--------------
- 2 files changed, 92 insertions(+), 55 deletions(-)
+ drivers/staging/ccree/ssi_buffer_mgr.c | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/memstick/core/mspro_block.c b/drivers/memstick/core/mspro_block.c
-index c00d8a2..38ae9ef 100644
---- a/drivers/memstick/core/mspro_block.c
-+++ b/drivers/memstick/core/mspro_block.c
-@@ -580,7 +580,7 @@ static int h_mspro_block_transfer_data(struct memstick_dev *card,
- {
- 	struct mspro_block_data *msb = memstick_get_drvdata(card);
- 	unsigned char t_val = 0;
--	struct scatterlist t_sg = { 0 };
-+	struct scatterlist t_sg = {};
- 	size_t t_offset;
- 
- 	if ((*mrq)->error)
-diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
-index cb3c8fe..cce3af9 100644
---- a/include/linux/scatterlist.h
-+++ b/include/linux/scatterlist.h
-@@ -5,16 +5,25 @@
- #include <linux/types.h>
- #include <linux/bug.h>
- #include <linux/mm.h>
-+#include <linux/pfn_t.h>
- #include <asm/io.h>
- 
- struct scatterlist {
- #ifdef CONFIG_DEBUG_SG
- 	unsigned long	sg_magic;
- #endif
--	unsigned long	page_link;
--	unsigned int	offset;
--	unsigned int	length;
-+	pfn_t		__pfn;
-+	union {
-+		struct {
-+			unsigned int	offset;
-+			unsigned int	length;
-+		};
-+
-+		struct scatterlist *__chain;
-+	};
-+
- 	dma_addr_t	dma_address;
-+
- #ifdef CONFIG_NEED_SG_DMA_LENGTH
- 	unsigned int	dma_length;
- #endif
-@@ -41,33 +50,71 @@ struct sg_table {
- 	unsigned int orig_nents;	/* original size of list */
- };
- 
--/*
-- * Notes on SG table design.
-- *
-- * We use the unsigned long page_link field in the scatterlist struct to place
-- * the page pointer AND encode information about the sg table as well. The two
-- * lower bits are reserved for this information.
-- *
-- * If bit 0 is set, then the page_link contains a pointer to the next sg
-- * table list. Otherwise the next entry is at sg + 1.
-- *
-- * If bit 1 is set, then this sg entry is the last element in a list.
-+#define SG_MAGIC	0x87654321
-+
-+static inline bool sg_is_chain(struct scatterlist *sg)
-+{
-+	return sg->__pfn.val & PFN_SG_CHAIN;
-+}
-+
-+static inline bool sg_is_last(struct scatterlist *sg)
-+{
-+	return sg->__pfn.val & PFN_SG_LAST;
-+}
-+
-+static inline struct scatterlist *sg_chain_ptr(struct scatterlist *sg)
-+{
-+#ifdef CONFIG_DEBUG_SG
-+	BUG_ON(!sg_is_chain(sg));
-+#endif
-+
-+	return sg->__chain;
-+}
-+
-+/**
-+ * sg_assign_pfn - Assign a given pfn to an SG entry
-+ * @sg:		   SG entry
-+ * @pfn:	   The pfn
-  *
-- * See sg_next().
-+ * Description:
-+ *   Assign a to sg entry. Also see sg_set_pfn(), the most commonly used
-+ *   variant.
-  *
-- */
-+ **/
-+static inline void sg_assign_pfn(struct scatterlist *sg, pfn_t pfn)
-+{
-+	u64 flags = sg->__pfn.val & PFN_SG_LAST;
- 
--#define SG_MAGIC	0x87654321
-+	pfn.val &= ~(PFN_SG_CHAIN | PFN_SG_LAST);
-+	BUG_ON(!pfn_t_has_page(pfn));
- 
--/*
-- * We overload the LSB of the page pointer to indicate whether it's
-- * a valid sg entry, or whether it points to the start of a new scatterlist.
-- * Those low bits are there for everyone! (thanks mason :-)
-- */
--#define sg_is_chain(sg)		((sg)->page_link & 0x01)
--#define sg_is_last(sg)		((sg)->page_link & 0x02)
--#define sg_chain_ptr(sg)	\
--	((struct scatterlist *) ((sg)->page_link & ~0x03))
-+#ifdef CONFIG_DEBUG_SG
-+	BUG_ON(sg->sg_magic != SG_MAGIC);
-+	BUG_ON(sg_is_chain(sg));
-+#endif
-+
-+	sg->__pfn.val = pfn.val | flags;
-+}
-+
-+/**
-+ * sg_set_pfn - Set sg entry to point at given pfn
-+ * @sg:		 SG entry
-+ * @pfn:	 The pfn
-+ * @len:	 Length of data
-+ * @offset:	 Offset into page
-+ *
-+ * Description:
-+ *   Use this function to set an sg entry pointing at a pfn, never assign
-+ *   the pfn directly.
-+ *
-+ **/
-+static inline void sg_set_pfn(struct scatterlist *sg, pfn_t pfn,
-+			      unsigned int len, unsigned int offset)
-+{
-+	sg_assign_pfn(sg, pfn);
-+	sg->offset = offset;
-+	sg->length = len;
-+}
- 
- /**
-  * sg_assign_page - Assign a given page to an SG entry
-@@ -81,18 +128,7 @@ struct sg_table {
-  **/
- static inline void sg_assign_page(struct scatterlist *sg, struct page *page)
- {
--	unsigned long page_link = sg->page_link & 0x3;
+diff --git a/drivers/staging/ccree/ssi_buffer_mgr.c b/drivers/staging/ccree/ssi_buffer_mgr.c
+index 038e2ff..07bbf8f 100644
+--- a/drivers/staging/ccree/ssi_buffer_mgr.c
++++ b/drivers/staging/ccree/ssi_buffer_mgr.c
+@@ -43,8 +43,8 @@
+ #ifdef CC_DEBUG
+ #define DUMP_SGL(sg) \
+ 	while (sg) { \
+-		SSI_LOG_DEBUG("page=%lu offset=%u length=%u (dma_len=%u) " \
+-			     "dma_addr=%08x\n", (sg)->page_link, (sg)->offset, \
++		SSI_LOG_DEBUG("page=%p offset=%u length=%u (dma_len=%u) " \
++			     "dma_addr=%08x\n", sg_page(sg), (sg)->offset, \
+ 			(sg)->length, sg_dma_len(sg), (sg)->dma_address); \
+ 		(sg) = sg_next(sg); \
+ 	}
+@@ -442,10 +442,10 @@ static int ssi_buffer_mgr_map_scatterlist(
+ 			return -ENOMEM;
+ 		} 
+ 		SSI_LOG_DEBUG("Mapped sg: dma_address=0x%llX "
+-			     "page_link=0x%08lX addr=%pK offset=%u "
++			     "page=%p addr=%pK offset=%u "
+ 			     "length=%u\n",
+ 			     (unsigned long long)sg_dma_address(sg), 
+-			     sg->page_link, 
++			     sg_page(sg),
+ 			     sg_virt(sg), 
+ 			     sg->offset, sg->length);
+ 		*lbytes = nbytes;
+@@ -505,10 +505,10 @@ ssi_aead_handle_config_buf(struct device *dev,
+ 			return -ENOMEM;
+ 	}
+ 	SSI_LOG_DEBUG("Mapped curr_buff: dma_address=0x%llX "
+-		     "page_link=0x%08lX addr=%pK "
++		     "page=%p addr=%pK "
+ 		     "offset=%u length=%u\n",
+ 		     (unsigned long long)sg_dma_address(&areq_ctx->ccm_adata_sg), 
+-		     areq_ctx->ccm_adata_sg.page_link, 
++		     sg_page(&areq_ctx->ccm_adata_sg),
+ 		     sg_virt(&areq_ctx->ccm_adata_sg),
+ 		     areq_ctx->ccm_adata_sg.offset, 
+ 		     areq_ctx->ccm_adata_sg.length);
+@@ -540,10 +540,10 @@ static inline int ssi_ahash_handle_curr_buf(struct device *dev,
+ 			return -ENOMEM;
+ 	}
+ 	SSI_LOG_DEBUG("Mapped curr_buff: dma_address=0x%llX "
+-		     "page_link=0x%08lX addr=%pK "
++		     "page=%p addr=%pK "
+ 		     "offset=%u length=%u\n",
+ 		     (unsigned long long)sg_dma_address(areq_ctx->buff_sg), 
+-		     areq_ctx->buff_sg->page_link, 
++		     sg_page(areq_ctx->buff_sg),
+ 		     sg_virt(areq_ctx->buff_sg),
+ 		     areq_ctx->buff_sg->offset, 
+ 		     areq_ctx->buff_sg->length);
+@@ -1870,4 +1870,3 @@ int ssi_buffer_mgr_fini(struct ssi_drvdata *drvdata)
+ 	}
+ 	return 0;
+ }
 -
--	/*
--	 * In order for the low bit stealing approach to work, pages
--	 * must be aligned at a 32-bit boundary as a minimum.
--	 */
--	BUG_ON((unsigned long) page & 0x03);
--#ifdef CONFIG_DEBUG_SG
--	BUG_ON(sg->sg_magic != SG_MAGIC);
--	BUG_ON(sg_is_chain(sg));
--#endif
--	sg->page_link = page_link | (unsigned long) page;
-+	sg_assign_pfn(sg, page_to_pfn_t(page));
- }
- 
- /**
-@@ -123,7 +159,17 @@ static inline struct page *sg_page(struct scatterlist *sg)
- 	BUG_ON(sg->sg_magic != SG_MAGIC);
- 	BUG_ON(sg_is_chain(sg));
- #endif
--	return (struct page *)((sg)->page_link & ~0x3);
-+	return pfn_t_to_page(sg->__pfn);
-+}
-+
-+static inline pfn_t sg_pfn_t(struct scatterlist *sg)
-+{
-+#ifdef CONFIG_DEBUG_SG
-+	BUG_ON(sg->sg_magic != SG_MAGIC);
-+	BUG_ON(sg_is_chain(sg));
-+#endif
-+
-+	return sg->__pfn;
- }
- 
- /**
-@@ -161,17 +207,8 @@ static inline void sg_set_buf(struct scatterlist *sg, const void *buf,
- static inline void sg_chain(struct scatterlist *prv, unsigned int prv_nents,
- 			    struct scatterlist *sgl)
- {
--	/*
--	 * offset and length are unused for chain entry.  Clear them.
--	 */
--	prv[prv_nents - 1].offset = 0;
--	prv[prv_nents - 1].length = 0;
--
--	/*
--	 * Set lowest bit to indicate a link pointer, and make sure to clear
--	 * the termination bit if it happens to be set.
--	 */
--	prv[prv_nents - 1].page_link = ((unsigned long) sgl | 0x01) & ~0x02;
-+	prv[prv_nents - 1].__pfn = __pfn_to_pfn_t(0, PFN_SG_CHAIN);
-+	prv[prv_nents - 1].__chain = sgl;
- }
- 
- /**
-@@ -191,8 +228,8 @@ static inline void sg_mark_end(struct scatterlist *sg)
- 	/*
- 	 * Set termination bit, clear potential chain bit
- 	 */
--	sg->page_link |= 0x02;
--	sg->page_link &= ~0x01;
-+	sg->__pfn.val |= PFN_SG_LAST;
-+	sg->__pfn.val &= ~PFN_SG_CHAIN;
- }
- 
- /**
-@@ -208,7 +245,7 @@ static inline void sg_unmark_end(struct scatterlist *sg)
- #ifdef CONFIG_DEBUG_SG
- 	BUG_ON(sg->sg_magic != SG_MAGIC);
- #endif
--	sg->page_link &= ~0x02;
-+	sg->__pfn.val &= ~PFN_SG_LAST;
- }
- 
- /**
-@@ -223,7 +260,7 @@ static inline void sg_unmark_end(struct scatterlist *sg)
-  **/
- static inline dma_addr_t sg_phys(struct scatterlist *sg)
- {
--	return page_to_phys(sg_page(sg)) + sg->offset;
-+	return pfn_t_to_phys(sg->__pfn) + sg->offset;
- }
- 
- /**
 -- 
 2.1.4
