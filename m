@@ -1,36 +1,37 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: iSER with policy based routing error
-Date: Wed, 24 May 2017 15:13:18 -0600
-Message-ID: <20170524211318.GC30878@obsidianresearch.com>
-References: <CAANLjFoB3V6_exH8TnQQobaHkz2K1Lxj0sVOVa2Q+MKAsCqCKQ@mail.gmail.com>
- <CAJ3xEMiYwGDott_gLrh7e4tG9Ti71vftMPuvyT3+czu7jWwqFA@mail.gmail.com>
- <CAANLjFqNkNVDiGr-yW9y6XCiWE_O7+OewmxWM+xmWHQ39n4wkw@mail.gmail.com>
- <CAANLjFpKGoruxvwhtHwF-fBH+dLT9RKqkd3POYwLVK856WEfFA@mail.gmail.com>
- <CAANLjFqhPUd=kyuv0CBR69KuAwGZzne8ZY3-1J6YiNHuWqZBZA@mail.gmail.com>
- <CAANLjFpHbMXjMnxO0B7sn9rRz2Sn3CEx-bEWKW5BrYj3itQ0HQ@mail.gmail.com>
- <20170524192550.GB25200@obsidianresearch.com>
- <CAANLjFpZU6GodD-HAaTtive+dQZs4Gfgpw=u-1=UgC4zDTryKQ@mail.gmail.com>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: Re: rdma_cm NULL deref in 4.11.0+
+Date: Wed, 24 May 2017 15:21:13 -0600
+Message-ID: <CAANLjFqb7CGJOu_T4_PhuJLOsX0mxTo6SO_R67daRHKpnMFdvQ@mail.gmail.com>
+References: <acc72471-eb22-4474-04f5-db23227faadd@grimberg.me>
+ <VI1PR0502MB30083E6CB505CA90A9E047C0D1FB0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170521154443.GD17751@mtr-leonro.local> <20170524163832.GA23034@obsidianresearch.com>
+ <20170524185256.GT17751@mtr-leonro.local> <20170524191900.GA25200@obsidianresearch.com>
+ <F8149B59-E43D-4E54-A901-1351BED23946@mellanox.com> <20170524204000.GA30878@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB120B2E@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAANLjFpZU6GodD-HAaTtive+dQZs4Gfgpw=u-1=UgC4zDTryKQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB120B2E-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Cc: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 24, 2017 at 01:41:25PM -0600, Robert LeBlanc wrote:
+On Wed, May 24, 2017 at 3:13 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>> The original report refered to a user space seg fault, is that just
+>> blowback from the kernel panic?
+>
+> I think it was rping that was seg faulting, not librdmacm.
 
-> > Do not try an extract a source address from some other information..
-> 
-> I want to get the source address (iface.ipaddress) from the iface
-> (eth0iser in this case) and pass that into iser_connect().
+If this is in regard to "rdma_cm segfaults on RoCE with ConnectX-4
+[WAS: Re: rping segfault with 4.9.28 on CentOS 7.3]", I think we have
+narrowed it down to the node GUID being '0' or something along those
+lines. We are still digging into it. We are not getting a kernel
+backtrace when librdmacm segfaults.
 
-That makes sense, I can't help you figure out where iface.ipaddress
-appears in the kernel though :)
-
-Jason
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
