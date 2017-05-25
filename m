@@ -1,128 +1,58 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 2/2] IB/mlx5: set UMR wqe fence according to HCA cap
-Date: Thu, 25 May 2017 23:13:39 +0300
-Message-ID: <1495743219-1085-2-git-send-email-maxg@mellanox.com>
-References: <1495743219-1085-1-git-send-email-maxg@mellanox.com>
+From: Jes Sorensen <jsorensen-b10kYP2dOMg@public.gmane.org>
+Subject: Re: [for-next 4/6] net/mlx5: FPGA, Add basic support for Innova
+Date: Thu, 25 May 2017 16:48:22 -0400
+Message-ID: <00716e5a-8b51-0b3f-a1b8-1bb7b346a66a@fb.com>
+References: <20170523114404.20387-1-saeedm@mellanox.com>
+ <20170523114404.20387-5-saeedm@mellanox.com>
+ <20170524165059.42lmrwzzcxvi2sf7@ast-mbp>
+ <AM4PR0501MB1940885C2F1CEF4DDE4EA8D1DBFF0@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+ <CALzJLG-B_tAmASn_SMmPNiucq-tTpywHniRTkb4N32oGF6Y3Ng@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1495743219-1085-1-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CALzJLG-B_tAmASn_SMmPNiucq-tTpywHniRTkb4N32oGF6Y3Ng-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org
-Cc: shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Alexei Starovoitov <alexei.starovoitov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Cache the needed umr_fence and set the wqe ctrl segmennt
-accordingly.
+On 05/25/2017 06:40 AM, Saeed Mahameed wrote:
+> On Thu, May 25, 2017 at 8:20 AM, Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>>> -----Original Message-----
+>>> Can you put it into different driver? Dumping everything into by far
+>>> the biggest nic driver already is already huge headache in terms on
+>>> maintainability, debugging and back ports.
+>>> Look at how intel splits their drivers.
+>>> ixgb, ixgbe, ixgbevf are different drivers thought they have a lot in
+>>> common. On one side it's a bit of copy paste, but on the other side
+> 
+> I don't think the ixgb example is the same, simply  ixgb, ixgbe,
+> ixgbevf have different PCI IDs
+> and even different SW/FW interfaces. On the other hand, same mlx5
+> driver can support all of
+> ConnetX4/5/6 device IDs with the same code flows, same interfaces.
+> 
+>>> it makes drivers much easier to develop and maintain independently.
+>>> ConnectX-6 code and any future hw support doesn't belong to
+>>> mlx5 driver at all.
+> 
+> Sorry i must disagree with you on this for the same reasons Ilan mentioned.
+> We can perfectly achieve the same with modular driver design all under the
+> same .ko module, with some kconfig flags to reduce the amount of code/features
+> this .ko provides.
 
-Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Acked-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/main.c    |   14 ++++++++++++++
- drivers/infiniband/hw/mlx5/mlx5_ib.h |    1 +
- drivers/infiniband/hw/mlx5/qp.c      |   15 +++++++--------
- 3 files changed, 22 insertions(+), 8 deletions(-)
+If I get this right, the FPGA is independent and could in theory be used 
+for non network stuff. It really should have it's own driver in that 
+case, and you should provide accessor functionality via the mlx5 driver.
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index d45772d..83d1f9b 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2979,6 +2979,18 @@ static int create_umr_res(struct mlx5_ib_dev *dev)
- 	return ret;
- }
- 
-+static u8 mlx5_get_umr_fence(u8 umr_fence_cap)
-+{
-+	switch (umr_fence_cap) {
-+	case MLX5_CAP_UMR_FENCE_STRONG:
-+		return MLX5_FENCE_MODE_STRONG_ORDERING;
-+	case MLX5_CAP_UMR_FENCE_SMALL:
-+		return MLX5_FENCE_MODE_INITIATOR_SMALL;
-+	default:
-+		return MLX5_FENCE_MODE_NONE;
-+	}
-+}
-+
- static int create_dev_resources(struct mlx5_ib_resources *devr)
- {
- 	struct ib_srq_init_attr attr;
-@@ -3693,6 +3705,8 @@ static void mlx5_ib_free_rdma_netdev(struct net_device *netdev)
- 
- 	mlx5_ib_internal_fill_odp_caps(dev);
- 
-+	dev->umr_fence = mlx5_get_umr_fence(MLX5_CAP_GEN(mdev, umr_fence));
-+
- 	if (MLX5_CAP_GEN(mdev, imaicl)) {
- 		dev->ib_dev.alloc_mw		= mlx5_ib_alloc_mw;
- 		dev->ib_dev.dealloc_mw		= mlx5_ib_dealloc_mw;
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 38c877b..0e08a58 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -654,6 +654,7 @@ struct mlx5_ib_dev {
- 	struct mlx5_ib_port	*port;
- 	struct mlx5_sq_bfreg     bfreg;
- 	struct mlx5_sq_bfreg     fp_bfreg;
-+	u8				umr_fence;
- };
- 
- static inline struct mlx5_ib_cq *to_mibcq(struct mlx5_core_cq *mcq)
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 93959e1..876a429 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -3738,11 +3738,10 @@ static void dump_wqe(struct mlx5_ib_qp *qp, int idx, int size_16)
- 	}
- }
- 
--static u8 get_fence(u8 fence, struct ib_send_wr *wr)
-+static u8 get_fence(u8 fence, struct ib_send_wr *wr, struct mlx5_ib_dev *dev)
- {
--	if (unlikely(wr->opcode == IB_WR_LOCAL_INV &&
--		     wr->send_flags & IB_SEND_FENCE))
--		return MLX5_FENCE_MODE_STRONG_ORDERING;
-+	if (wr->opcode == IB_WR_LOCAL_INV || wr->opcode == IB_WR_REG_MR)
-+		return dev->umr_fence;
- 
- 	if (unlikely(fence)) {
- 		if (wr->send_flags & IB_SEND_FENCE)
-@@ -3928,7 +3927,7 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 				}
- 
- 				finish_wqe(qp, ctrl, size, idx, wr->wr_id,
--					   nreq, get_fence(fence, wr),
-+					   nreq, get_fence(fence, wr, dev),
- 					   next_fence, MLX5_OPCODE_UMR);
- 				/*
- 				 * SET_PSV WQEs are not signaled and solicited
-@@ -3955,7 +3954,7 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 				}
- 
- 				finish_wqe(qp, ctrl, size, idx, wr->wr_id,
--					   nreq, get_fence(fence, wr),
-+					   nreq, get_fence(fence, wr, dev),
- 					   next_fence, MLX5_OPCODE_SET_PSV);
- 				err = begin_wqe(qp, &seg, &ctrl, wr,
- 						&idx, &size, nreq);
-@@ -3977,7 +3976,7 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 				}
- 
- 				finish_wqe(qp, ctrl, size, idx, wr->wr_id,
--					   nreq, get_fence(fence, wr),
-+					   nreq, get_fence(fence, wr, dev),
- 					   next_fence, MLX5_OPCODE_SET_PSV);
- 				num_sge = 0;
- 				goto skip_psv;
-@@ -4090,7 +4089,7 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 		}
- 
- 		finish_wqe(qp, ctrl, size, idx, wr->wr_id, nreq,
--			   get_fence(fence, wr), next_fence,
-+			   get_fence(fence, wr, dev), next_fence,
- 			   mlx5_ib_opcode[wr->opcode]);
- skip_psv:
- 		if (0)
--- 
-1.7.1
+We have this with other devices in the kernel where a primary device 
+driver provides an interface for an additional sub-driver to access 
+another device behind it. Like bt-coexist in some of the wifi drivers 
+allowing access to a bluetooth device behind it.
 
+Jes
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
