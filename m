@@ -1,96 +1,125 @@
-From: Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [for-next 4/6] net/mlx5: FPGA, Add basic support for Innova
-Date: Thu, 25 May 2017 05:20:04 +0000
-Message-ID: <AM4PR0501MB1940885C2F1CEF4DDE4EA8D1DBFF0@AM4PR0501MB1940.eurprd05.prod.outlook.com>
-References: <20170523114404.20387-1-saeedm@mellanox.com>
- <20170523114404.20387-5-saeedm@mellanox.com>
- <20170524165059.42lmrwzzcxvi2sf7@ast-mbp>
+From: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [for-next 4/6] net/mlx5: FPGA, Add basic support for Innova
+Date: Thu, 25 May 2017 13:40:38 +0300
+Message-ID: <CALzJLG-B_tAmASn_SMmPNiucq-tTpywHniRTkb4N32oGF6Y3Ng@mail.gmail.com>
+References: <20170523114404.20387-1-saeedm@mellanox.com> <20170523114404.20387-5-saeedm@mellanox.com>
+ <20170524165059.42lmrwzzcxvi2sf7@ast-mbp> <AM4PR0501MB1940885C2F1CEF4DDE4EA8D1DBFF0@AM4PR0501MB1940.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170524165059.42lmrwzzcxvi2sf7@ast-mbp>
-Content-Language: en-US
+In-Reply-To: <AM4PR0501MB1940885C2F1CEF4DDE4EA8D1DBFF0-dp/nxUn679gfNUYDR5dMTsDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexei Starovoitov <alexei.starovoitov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jsorensen-b10kYP2dOMg@public.gmane.org" <jsorensen-b10kYP2dOMg@public.gmane.org>
+To: Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Alexei Starovoitov <alexei.starovoitov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jsorensen-b10kYP2dOMg@public.gmane.org" <jsorensen-b10kYP2dOMg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBBbGV4ZWkgU3Rhcm92b2l0b3Yg
-W21haWx0bzphbGV4ZWkuc3Rhcm92b2l0b3ZAZ21haWwuY29tXQ0KPiANCj4gT24gVHVlLCBNYXkg
-MjMsIDIwMTcgYXQgMDI6NDQ6MDJQTSArMDMwMCwgU2FlZWQgTWFoYW1lZWQgd3JvdGU6DQo+ID4g
-RnJvbTogSWxhbiBUYXlhcmkgPGlsYW50QG1lbGxhbm94LmNvbT4NCj4gPg0KPiA+IE1lbGxhbm94
-IElubm92YSBpcyBhIE5JQyB3aXRoIENvbm5lY3RYIGFuZCBhbiBGUEdBIG9uIHRoZSBzYW1lDQo+
-ID4gYm9hcmQuIFRoZSBGUEdBIGlzIGEgYnVtcC1vbi10aGUtd2lyZSBhbmQgdGh1cyBhZmZlY3Rz
-IG9wZXJhdGlvbiBvZg0KPiA+IHRoZSBtbHg1X2NvcmUgZHJpdmVyIG9uIHRoZSBDb25uZWN0WCBB
-U0lDLg0KPiA+DQo+ID4gQWRkIGJhc2ljIHN1cHBvcnQgZm9yIElubm92YSBpbiBtbHg1X2NvcmUu
-DQo+ID4NCj4gPiBUaGlzIGFsbG93cyB1c2luZyB0aGUgSW5ub3ZhIGNhcmQgYXMgYSByZWd1bGFy
-IE5JQywgYnkgZGV0ZWN0aW5nDQo+ID4gdGhlIEZQR0EgY2FwYWJpbGl0eSBiaXQsIGFuZCB2ZXJp
-ZnlpbmcgaXRzIGxvYWQgc3RhdGUgYmVmb3JlDQo+ID4gaW5pdGlhbGl6aW5nIENvbm5lY3RYIGlu
-dGVyZmFjZXMuDQo+IA0KPiBUaGF0IGRvZXNuJ3Qgc291bmQgbGlrZSBjeDQvY3g1IGh3IHRoYXQg
-bWx4NSBkcml2ZXIgc3VwcG9zZSB0byBzdXBwb3J0Lg0KDQpIaSBBbGV4ZWksDQpUaGFua3MgZm9y
-IHlvdXIgZmVlZGJhY2suDQpMZXQgbWUgYWRkcmVzcyB5b3VyIGNvbmNlcm5zLg0KDQpJIGRpZG4n
-dCBzdGF0ZSBpdCwgYnV0IHRoZSBjdXJyZW50IGl0ZXJhdGlvbnMgb2YgSW5ub3ZhIGNhcmRzIGlu
-Y2x1ZGUgdGhlDQpDb25uZWN0WC00TFggY2hpcCwgd2hpY2ggaXMgZXhhY3RseSB3aGF0IG1seDUg
-ZHJpdmVyIHN1cHBvcnRzLg0KDQpUaGUgUENJIGludGVyZmFjZSBpcyAqb25seSogdGhyb3VnaCB0
-aGUgQ29ubmVjdFggY2hpcCB3aXRoIHNvbWUgbmV3DQpGaXJtd2FyZSBjb21tYW5kcy4gVGhpcyBw
-YXRjaCBkb2Vzbid0IHJlZ2lzdGVyIGFueSBuZXcgUENJIGRldmljZSwgDQpzbyBpdCBkb2VzIG5v
-dCBtYWtlIHNlbnNlIHRvIGNyZWF0ZSBhIHNlcGFyYXRlIGRyaXZlci4NCg0KPiANCj4gPiBBbHNv
-IGRldGVjdCBGUEdBIGZhdGFsIHJ1bnRpbWUgZmFpbHVyZXMgYW5kIGVudGVyIGVycm9yIHN0YXRl
-IGlmDQo+ID4gdGhleSBldmVyIGhhcHBlbi4NCj4gPg0KPiA+IEFsbCBuZXcgRlBHQS1yZWxhdGVk
-IGxvZ2ljIGlzIHBsYWNlZCBpbiBpdHMgb3duIHN1YmRpcmVjdG9yeSAnZnBnYScsDQo+ID4gd2hp
-Y2ggbWF5IGJlIGJ1aWx0IGJ5IHNlbGVjdGluZyBDT05GSUdfTUxYNV9GUEdBLg0KPiA+IFRoaXMg
-cHJlcGFyZXMgZm9yIGZ1cnRoZXIgc3VwcG9ydCBvZiB2YXJpb3VzIElubm92YSBmZWF0dXJlcyBp
-biBsYXRlcg0KPiA+IHBhdGNoc2V0cy4NCj4gPiBBZGRpdGlvbmFsIGRldGFpbHMgYWJvdXQgaGFy
-ZHdhcmUgYXJjaGl0ZWN0dXJlIHdpbGwgYmUgcHJvdmlkZWQgYXMNCj4gPiBtb3JlIGZlYXR1cmVz
-IGdldCBzdWJtaXR0ZWQuDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBJbGFuIFRheWFyaSA8aWxh
-bnRAbWVsbGFub3guY29tPg0KPiA+IFJldmlld2VkLWJ5OiBCb3JpcyBQaXNtZW5ueSA8Ym9yaXNw
-QG1lbGxhbm94LmNvbT4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBTYWVlZCBNYWhhbWVlZCA8c2FlZWRt
-QG1lbGxhbm94LmNvbT4NCj4gPiAtLS0NCj4gPiAgTUFJTlRBSU5FUlMgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgfCAgMTAgKw0KPiA+ICBkcml2ZXJzL25ldC9ldGhlcm5l
-dC9tZWxsYW5veC9tbHg1L2NvcmUvS2NvbmZpZyAgICB8ICAxMCArDQo+ID4gIGRyaXZlcnMvbmV0
-L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9NYWtlZmlsZSAgIHwgICAzICsNCj4gPiAgZHJp
-dmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2VxLmMgICAgICAgfCAgMTEgKysN
-Cj4gPiAgZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2ZwZ2EvY21kLmMg
-fCAgNjQgKysrKysrKw0KPiA+ICBkcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2Nv
-cmUvZnBnYS9jbWQuaCB8ICA1OSArKysrKysNCj4gPiAgLi4uL25ldC9ldGhlcm5ldC9tZWxsYW5v
-eC9tbHg1L2NvcmUvZnBnYS9jb3JlLmMgICAgfCAyMDINCj4gKysrKysrKysrKysrKysrKysrKysr
-DQo+ID4gIC4uLi9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2ZwZ2EvY29yZS5oICAg
-IHwgIDk5ICsrKysrKysrKysNCj4gPiAgZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4
-NS9jb3JlL21haW4uYyAgICAgfCAgMTkgKy0NCj4gPiAgaW5jbHVkZS9saW51eC9tbHg1L2Rldmlj
-ZS5oICAgICAgICAgICAgICAgICAgICAgICAgfCAgIDYgKw0KPiA+ICBpbmNsdWRlL2xpbnV4L21s
-eDUvZHJpdmVyLmggICAgICAgICAgICAgICAgICAgICAgICB8ICAgNSArDQo+ID4gIGluY2x1ZGUv
-bGludXgvbWx4NS9tbHg1X2lmYy5oICAgICAgICAgICAgICAgICAgICAgIHwgIDExICstDQo+ID4g
-IGluY2x1ZGUvbGludXgvbWx4NS9tbHg1X2lmY19mcGdhLmggICAgICAgICAgICAgICAgIHwgMTQ0
-DQo+ICsrKysrKysrKysrKysrKw0KPiA+ICAxMyBmaWxlcyBjaGFuZ2VkLCA2NDAgaW5zZXJ0aW9u
-cygrKSwgMyBkZWxldGlvbnMoLSkNCj4gDQo+IENhbiB5b3UgcHV0IGl0IGludG8gZGlmZmVyZW50
-IGRyaXZlcj8gRHVtcGluZyBldmVyeXRoaW5nIGludG8gYnkgZmFyDQo+IHRoZSBiaWdnZXN0IG5p
-YyBkcml2ZXIgYWxyZWFkeSBpcyBhbHJlYWR5IGh1Z2UgaGVhZGFjaGUgaW4gdGVybXMgb24NCj4g
-bWFpbnRhaW5hYmlsaXR5LCBkZWJ1Z2dpbmcgYW5kIGJhY2sgcG9ydHMuDQo+IExvb2sgYXQgaG93
-IGludGVsIHNwbGl0cyB0aGVpciBkcml2ZXJzLg0KPiBpeGdiLCBpeGdiZSwgaXhnYmV2ZiBhcmUg
-ZGlmZmVyZW50IGRyaXZlcnMgdGhvdWdodCB0aGV5IGhhdmUgYSBsb3QgaW4NCj4gY29tbW9uLiBP
-biBvbmUgc2lkZSBpdCdzIGEgYml0IG9mIGNvcHkgcGFzdGUsIGJ1dCBvbiB0aGUgb3RoZXIgc2lk
-ZQ0KPiBpdCBtYWtlcyBkcml2ZXJzIG11Y2ggZWFzaWVyIHRvIGRldmVsb3AgYW5kIG1haW50YWlu
-IGluZGVwZW5kZW50bHkuDQo+IENvbm5lY3RYLTYgY29kZSBhbmQgYW55IGZ1dHVyZSBodyBzdXBw
-b3J0IGRvZXNuJ3QgYmVsb25nIHRvDQo+IG1seDUgZHJpdmVyIGF0IGFsbC4NCg0KSWYgeW91IGJ1
-aWxkIHlvdXIgZHJpdmVyIHdpdGhvdXQgZXhwbGljaXRseSBlbmFibGluZyBDT05GSUdfTUxYNV9G
-UEdBPXkNCihkZWZhdWx0IGlzIE4pIHRoZW4geW91IGdldCBub25lIG9mIHRoaXMsIGFuZCB5b3Vy
-IGRyaXZlciBpcyBwcmFjdGljYWxseQ0KdGhlIHNhbWUgYXMgYmVmb3JlLg0KDQpUaGUgRlBHQSBh
-bmQgQ1ggb3BlcmF0aW9uIGlzIHZlcnkgdGlnaHRseSBpbnRlZ3JhdGVkLg0KSWYgeW91IGRvbid0
-IHdhbnQgYW55IG9mIHRoaXMsIHNpbXBseSBkb24ndCBvcHQtaW4gdG8gQ09ORklHX01MWDVfRlBH
-QS4NCg0KSWYgeW91IGRvIHdhbnQgdGhpcywgdGhlbiBzcGxpdHRpbmcgc29tZSBvZiB0aGUgbG9n
-aWMgdG8gYQ0Kc2VwYXJhdGUga2VybmVsIG9iamVjdCB3aWxsIG5vdCBnYWluIGFueXRoaW5nIHVz
-ZWZ1bCAobG9naWMgd291bGQgc3RheQ0KdGhlIHNhbWUpLCBhbmQganVzdCBwb2xsdXRlIHRoZSBl
-eHBvcnRlZCBzeW1ib2wgdGFibGUgYW5kIG9wZW4gdXAgdGhlIGRvb3INCmZvciBpc3N1ZXMgb2Yg
-aW50ZXItbW9kdWxlIGNvbXBhdGliaWxpdHkgYW5kIHNvIG9uLg0KDQpGdXJ0aGVybW9yZSwgdGhl
-IG5leHQgcGF0Y2hzZXQgd2lsbCBpbnRyb2R1Y2UgSVBTZWMgb2ZmbG9hZCBjYXBhYmlsaXRpZXMN
-CldoaWNoIGFyZSBkZWNsYXJlZCBpbiBuZXRkZXYtPmh3X2ZlYXR1cmVzLiBUaG9zZSBjYW5ub3Qg
-YmUgbW9kaWZpZWQNCmFmdGVyIHRoZSBuZXRkZXZpY2UgaXMgY3JlYXRlZCwgc28gYWxsIHRoZSBl
-eHRyYSBsb2dpYyBoYXMgdG8gYmUgDQppbnRlZ3JhdGVkIGludG8gdGhlIG1seDUgZXRoZXJuZXQg
-ZHJpdmVyLiBUaGlzIGlzIGFub3RoZXIgcmVhc29uIHdoeQ0KYSBzZXBhcmF0ZSBkcml2ZXIgaXMg
-YSBiYWQgaWRlYS4NCg0KV2Ugd2lsbCBpbmNsdWRlIGRldGFpbHMgYWJvdXQgdGhlIGJvYXJkIGFu
-ZCBob3cgdGhpbmdzIHdvcmsgaW4gdGhlDQpjb3ZlciBsZXR0ZXIgb2YgdGhlIElQU2VjIG9mZmxv
-YWQgcGF0Y2hzZXQuDQoNCklsYW4uDQo=
+On Thu, May 25, 2017 at 8:20 AM, Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>> -----Original Message-----
+>> From: Alexei Starovoitov [mailto:alexei.starovoitov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
+>>
+>> On Tue, May 23, 2017 at 02:44:02PM +0300, Saeed Mahameed wrote:
+>> > From: Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> >
+>> > Mellanox Innova is a NIC with ConnectX and an FPGA on the same
+>> > board. The FPGA is a bump-on-the-wire and thus affects operation of
+>> > the mlx5_core driver on the ConnectX ASIC.
+>> >
+>> > Add basic support for Innova in mlx5_core.
+>> >
+>> > This allows using the Innova card as a regular NIC, by detecting
+>> > the FPGA capability bit, and verifying its load state before
+>> > initializing ConnectX interfaces.
+>>
+>> That doesn't sound like cx4/cx5 hw that mlx5 driver suppose to support.
+>
+> Hi Alexei,
+> Thanks for your feedback.
+> Let me address your concerns.
+>
+> I didn't state it, but the current iterations of Innova cards include the
+> ConnectX-4LX chip, which is exactly what mlx5 driver supports.
+>
+> The PCI interface is *only* through the ConnectX chip with some new
+> Firmware commands. This patch doesn't register any new PCI device,
+> so it does not make sense to create a separate driver.
+>
+>>
+>> > Also detect FPGA fatal runtime failures and enter error state if
+>> > they ever happen.
+>> >
+>> > All new FPGA-related logic is placed in its own subdirectory 'fpga',
+>> > which may be built by selecting CONFIG_MLX5_FPGA.
+>> > This prepares for further support of various Innova features in later
+>> > patchsets.
+>> > Additional details about hardware architecture will be provided as
+>> > more features get submitted.
+>> >
+>> > Signed-off-by: Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> > Reviewed-by: Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> > Signed-off-by: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> > ---
+>> >  MAINTAINERS                                        |  10 +
+>> >  drivers/net/ethernet/mellanox/mlx5/core/Kconfig    |  10 +
+>> >  drivers/net/ethernet/mellanox/mlx5/core/Makefile   |   3 +
+>> >  drivers/net/ethernet/mellanox/mlx5/core/eq.c       |  11 ++
+>> >  drivers/net/ethernet/mellanox/mlx5/core/fpga/cmd.c |  64 +++++++
+>> >  drivers/net/ethernet/mellanox/mlx5/core/fpga/cmd.h |  59 ++++++
+>> >  .../net/ethernet/mellanox/mlx5/core/fpga/core.c    | 202
+>> +++++++++++++++++++++
+>> >  .../net/ethernet/mellanox/mlx5/core/fpga/core.h    |  99 ++++++++++
+>> >  drivers/net/ethernet/mellanox/mlx5/core/main.c     |  19 +-
+>> >  include/linux/mlx5/device.h                        |   6 +
+>> >  include/linux/mlx5/driver.h                        |   5 +
+>> >  include/linux/mlx5/mlx5_ifc.h                      |  11 +-
+>> >  include/linux/mlx5/mlx5_ifc_fpga.h                 | 144
+>> +++++++++++++++
+>> >  13 files changed, 640 insertions(+), 3 deletions(-)
+>>
+>> Can you put it into different driver? Dumping everything into by far
+>> the biggest nic driver already is already huge headache in terms on
+>> maintainability, debugging and back ports.
+>> Look at how intel splits their drivers.
+>> ixgb, ixgbe, ixgbevf are different drivers thought they have a lot in
+>> common. On one side it's a bit of copy paste, but on the other side
+
+I don't think the ixgb example is the same, simply  ixgb, ixgbe,
+ixgbevf have different PCI IDs
+and even different SW/FW interfaces. On the other hand, same mlx5
+driver can support all of
+ConnetX4/5/6 device IDs with the same code flows, same interfaces.
+
+>> it makes drivers much easier to develop and maintain independently.
+>> ConnectX-6 code and any future hw support doesn't belong to
+>> mlx5 driver at all.
+
+Sorry i must disagree with you on this for the same reasons Ilan mentioned.
+We can perfectly achieve the same with modular driver design all under the
+same .ko module, with some kconfig flags to reduce the amount of code/features
+this .ko provides.
+
+>
+> If you build your driver without explicitly enabling CONFIG_MLX5_FPGA=y
+> (default is N) then you get none of this, and your driver is practically
+> the same as before.
+>
+> The FPGA and CX operation is very tightly integrated.
+> If you don't want any of this, simply don't opt-in to CONFIG_MLX5_FPGA.
+>
+> If you do want this, then splitting some of the logic to a
+> separate kernel object will not gain anything useful (logic would stay
+> the same), and just pollute the exported symbol table and open up the door
+> for issues of inter-module compatibility and so on.
+>
+> Furthermore, the next patchset will introduce IPSec offload capabilities
+> Which are declared in netdev->hw_features. Those cannot be modified
+> after the netdevice is created, so all the extra logic has to be
+> integrated into the mlx5 ethernet driver. This is another reason why
+> a separate driver is a bad idea.
+>
+> We will include details about the board and how things work in the
+> cover letter of the IPSec offload patchset.
+>
+> Ilan.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
