@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 5/9] IB/core, rdmavt,
- hfi1: Send OPA cap_mask3 in trap
-Date: Fri, 26 May 2017 05:35:37 -0700
-Message-ID: <20170526123536.8158.237.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 6/9] IB/hfi1: Remove atomic SDMA_REQ_SEND_DONE bit
+ operation
+Date: Fri, 26 May 2017 05:35:44 -0700
+Message-ID: <20170526123542.8158.14590.stgit@scvm10.sc.intel.com>
 References: <20170526123257.8158.23943.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,130 +11,88 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170526123257.8158.23943.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Michael N. Henry" <michael.n.henry-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michael N. Henry <michael.n.henry-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Provide the ability for IB clients to modify the OPA specific
-capability mask and include this mask in the subsequent trap data.
+The atomic SDMA_REQ_SEND_DONE bit is set by the
+process-level code, and then the same process-level
+code uses the bit to test that all packets have been
+submitted incurring a costly atomic read.
 
-Reviewed-by: Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Michael N. Henry <michael.n.henry-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Use a bool type with a READ_ONCE/WRITE_ONCE
+pairing for this bit, and use the same condition that
+is used to set the bit to test that all packets have
+been submitted.
+
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/mad.c   |    7 ++-----
- drivers/infiniband/hw/hfi1/mad.h   |    2 +-
- drivers/infiniband/hw/hfi1/verbs.c |    7 ++++++-
- drivers/infiniband/sw/rdmavt/vt.c  |    9 +++++++--
- include/rdma/ib_verbs.h            |    3 ++-
- include/rdma/rdma_vt.h             |    1 +
- 6 files changed, 19 insertions(+), 10 deletions(-)
+ drivers/infiniband/hw/hfi1/user_sdma.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
-index 5977673..70831ad 100644
---- a/drivers/infiniband/hw/hfi1/mad.c
-+++ b/drivers/infiniband/hw/hfi1/mad.c
-@@ -260,6 +260,7 @@ void hfi1_cap_mask_chg(struct rvt_dev_info *rdi, u8 port_num)
- 	data.issuer_lid = cpu_to_be32(lid);
- 	data.ntc_144.lid = data.issuer_lid;
- 	data.ntc_144.new_cap_mask = cpu_to_be32(ibp->rvp.port_cap_flags);
-+	data.ntc_144.cap_mask3 = cpu_to_be16(ibp->rvp.port_cap3_flags);
+diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
+index 92517ce..6fb70f0 100644
+--- a/drivers/infiniband/hw/hfi1/user_sdma.c
++++ b/drivers/infiniband/hw/hfi1/user_sdma.c
+@@ -154,10 +154,8 @@
+ #define TXREQ_FLAGS_REQ_DISABLE_SH BIT(1) /* Disable header suppression */
  
- 	send_trap(ibp, &data, sizeof(data));
- }
-@@ -704,11 +705,7 @@ static int __subn_get_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
- 	buffer_units |= (dd->vl15_init << 11) & OPA_PI_MASK_BUF_UNIT_VL15_INIT;
- 	pi->buffer_units = cpu_to_be32(buffer_units);
+ /* SDMA request flag bits */
+-#define SDMA_REQ_FOR_THREAD 1
+-#define SDMA_REQ_SEND_DONE  2
+-#define SDMA_REQ_HAS_ERROR  3
+-#define SDMA_REQ_DONE_ERROR 4
++#define SDMA_REQ_HAS_ERROR  1
++#define SDMA_REQ_DONE_ERROR 2
  
--	pi->opa_cap_mask = cpu_to_be16(OPA_CAP_MASK3_IsSharedSpaceSupported |
--				       OPA_CAP_MASK3_IsEthOnFabricSupported);
--	/* Driver does not support mcast/collective configuration */
--	pi->opa_cap_mask &=
--		cpu_to_be16(~OPA_CAP_MASK3_IsAddrRangeConfigSupported);
-+	pi->opa_cap_mask = cpu_to_be16(ibp->rvp.port_cap3_flags);
- 	pi->collectivemask_multicastmask = ((HFI1_COLLECTIVE_NR & 0x7)
- 					    << 3 | (HFI1_MCAST_NR & 0x7));
+ #define SDMA_PKT_Q_INACTIVE BIT(0)
+ #define SDMA_PKT_Q_ACTIVE   BIT(1)
+@@ -258,6 +256,7 @@ struct user_sdma_request {
+ 	u16 tididx;
+ 	/* progress index moving along the iovs array */
+ 	u8 iov_idx;
++	u8 done;
  
-diff --git a/drivers/infiniband/hw/hfi1/mad.h b/drivers/infiniband/hw/hfi1/mad.h
-index 5aa3fd1..a4e2506 100644
---- a/drivers/infiniband/hw/hfi1/mad.h
-+++ b/drivers/infiniband/hw/hfi1/mad.h
-@@ -115,7 +115,7 @@ struct opa_mad_notice_attr {
- 			__be32	lid;		/* LID where change occurred */
- 			__be32	new_cap_mask;	/* new capability mask */
- 			__be16	reserved2;
--			__be16	cap_mask;
-+			__be16	cap_mask3;
- 			__be16	change_flags;	/* low 4 bits only */
- 		} __packed ntc_144;
+ 	struct user_sdma_iovec iovs[MAX_VECTORS_PER_REQ];
+ } ____cacheline_aligned_in_smp;
+@@ -628,6 +627,7 @@ int hfi1_user_sdma_process_request(struct hfi1_filedata *fd,
+ 	req->seqsubmitted = 0;
+ 	req->flags = 0;
+ 	req->tids = NULL;
++	req->done = 0;
+ 	INIT_LIST_HEAD(&req->txps);
  
-diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index af54d3f..2881798 100644
---- a/drivers/infiniband/hw/hfi1/verbs.c
-+++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -1537,9 +1537,14 @@ static void init_ibport(struct hfi1_pportdata *ppd)
- 	/* Set the prefix to the default value (see ch. 4.1.1) */
- 	ibp->rvp.gid_prefix = IB_DEFAULT_GID_PREFIX;
- 	ibp->rvp.sm_lid = 0;
--	/* Below should only set bits defined in OPA PortInfo.CapabilityMask */
-+	/*
-+	 * Below should only set bits defined in OPA PortInfo.CapabilityMask
-+	 * and PortInfo.CapabilityMask3
-+	 */
- 	ibp->rvp.port_cap_flags = IB_PORT_AUTO_MIGR_SUP |
- 		IB_PORT_CAP_MASK_NOTICE_SUP;
-+	ibp->rvp.port_cap3_flags = OPA_CAP_MASK3_IsSharedSpaceSupported |
-+				   OPA_CAP_MASK3_IsEthOnFabricSupported;
- 	ibp->rvp.pma_counter_select[0] = IB_PMA_PORT_XMIT_DATA;
- 	ibp->rvp.pma_counter_select[1] = IB_PMA_PORT_RCV_DATA;
- 	ibp->rvp.pma_counter_select[2] = IB_PMA_PORT_XMIT_PKTS;
-diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-index 0d7c6bb..64bdd44 100644
---- a/drivers/infiniband/sw/rdmavt/vt.c
-+++ b/drivers/infiniband/sw/rdmavt/vt.c
-@@ -202,8 +202,13 @@ static int rvt_modify_port(struct ib_device *ibdev, u8 port_num,
- 		return -EINVAL;
- 
- 	rvp = rdi->ports[port_index];
--	rvp->port_cap_flags |= props->set_port_cap_mask;
--	rvp->port_cap_flags &= ~props->clr_port_cap_mask;
-+	if (port_modify_mask & IB_PORT_OPA_MASK_CHG) {
-+		rvp->port_cap3_flags |= props->set_port_cap_mask;
-+		rvp->port_cap3_flags &= ~props->clr_port_cap_mask;
-+	} else {
-+		rvp->port_cap_flags |= props->set_port_cap_mask;
-+		rvp->port_cap_flags &= ~props->clr_port_cap_mask;
-+	}
- 
- 	if (props->set_port_cap_mask || props->clr_port_cap_mask)
- 		rdi->driver_f.cap_mask_chg(rdi, port_num);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 785e927..6c4f6da 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -576,7 +576,8 @@ struct ib_device_modify {
- enum ib_port_modify_flags {
- 	IB_PORT_SHUTDOWN		= 1,
- 	IB_PORT_INIT_TYPE		= (1<<2),
--	IB_PORT_RESET_QKEY_CNTR		= (1<<3)
-+	IB_PORT_RESET_QKEY_CNTR		= (1<<3),
-+	IB_PORT_OPA_MASK_CHG		= (1<<4)
- };
- 
- struct ib_port_modify {
-diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
-index d0b9f91..0f18ffd 100644
---- a/include/rdma/rdma_vt.h
-+++ b/include/rdma/rdma_vt.h
-@@ -75,6 +75,7 @@ struct rvt_ibport {
- 	__be64 mkey;
- 	u64 tid;
- 	u32 port_cap_flags;
-+	u16 port_cap3_flags;
- 	u32 pma_sample_start;
- 	u32 pma_sample_interval;
- 	__be16 pma_counter_select[5];
+ 	memcpy(&req->info, &info, sizeof(info));
+@@ -809,7 +809,7 @@ int hfi1_user_sdma_process_request(struct hfi1_filedata *fd,
+ 	 * request have been submitted to the SDMA engine. However, it
+ 	 * will not wait for send completions.
+ 	 */
+-	while (!test_bit(SDMA_REQ_SEND_DONE, &req->flags)) {
++	while (req->seqsubmitted != req->info.npkts) {
+ 		ret = user_sdma_send_pkts(req, pcount);
+ 		if (ret < 0) {
+ 			if (ret != -EBUSY) {
+@@ -1118,7 +1118,7 @@ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
+ 	ret = sdma_send_txlist(req->sde, &pq->busy, &req->txps, &count);
+ 	req->seqsubmitted += count;
+ 	if (req->seqsubmitted == req->info.npkts) {
+-		set_bit(SDMA_REQ_SEND_DONE, &req->flags);
++		WRITE_ONCE(req->done, 1);
+ 		/*
+ 		 * The txreq has already been submitted to the HW queue
+ 		 * so we can free the AHG entry now. Corruption will not
+@@ -1585,7 +1585,7 @@ static void user_sdma_txreq_cb(struct sdma_txreq *txreq, int status)
+ 		if (status != SDMA_TXREQ_S_OK)
+ 			req->status = status;
+ 		if (req->seqcomp == (ACCESS_ONCE(req->seqsubmitted) - 1) &&
+-		    (test_bit(SDMA_REQ_SEND_DONE, &req->flags) ||
++		    (READ_ONCE(req->done) ||
+ 		     test_bit(SDMA_REQ_DONE_ERROR, &req->flags))) {
+ 			user_sdma_free_request(req, false);
+ 			pq_update(pq);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
