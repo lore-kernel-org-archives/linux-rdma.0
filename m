@@ -1,78 +1,52 @@
-From: Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Subject: Re: please revert. Was: [for-next 4/6] net/mlx5: FPGA, Add basic
- support for Innova
-Date: Thu, 25 May 2017 21:40:59 -0700
-Message-ID: <20170526044057.qpk3stulth5tfxcx@ast-mbp>
-References: <20170523114404.20387-1-saeedm@mellanox.com>
- <20170523114404.20387-5-saeedm@mellanox.com>
- <20170526035830.mrnmxosh262bwjcr@ast-mbp>
- <20170526.001327.1776674102154218120.davem@davemloft.net>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [PATCH 2/2] IB/mlx5: set UMR wqe fence according to HCA cap
+Date: Fri, 26 May 2017 08:50:20 +0200
+Message-ID: <20170526065020.GA19681@lst.de>
+References: <1495743219-1085-1-git-send-email-maxg@mellanox.com> <1495743219-1085-2-git-send-email-maxg@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170526.001327.1776674102154218120.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+In-Reply-To: <1495743219-1085-2-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 26, 2017 at 12:13:27AM -0400, David Miller wrote:
-> From: Alexei Starovoitov <alexei.starovoitov@gmail.com>
-> Date: Thu, 25 May 2017 20:58:32 -0700
+On Thu, May 25, 2017 at 11:13:39PM +0300, Max Gurtovoy wrote:
+> Cache the needed umr_fence and set the wqe ctrl segmennt
+> accordingly.
 > 
-> > Dave, please revert this Innova fpga stuff.
-> > I think you pushed it by accident, since it was mixed with
-> > other valid changes.
-> > The discussion didn't conclude.
-> > Myself and Jes are clearly against such changes.
-> > It definitely needs more discussion and wider consensus.
+> Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Acked-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/mlx5/main.c    |   14 ++++++++++++++
+>  drivers/infiniband/hw/mlx5/mlx5_ib.h |    1 +
+>  drivers/infiniband/hw/mlx5/qp.c      |   15 +++++++--------
+>  3 files changed, 22 insertions(+), 8 deletions(-)
 > 
-> Why don't you finish your discussion, then I can revert or leave it in
-> there?
+> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+> index d45772d..83d1f9b 100644
+> --- a/drivers/infiniband/hw/mlx5/main.c
+> +++ b/drivers/infiniband/hw/mlx5/main.c
+> @@ -2979,6 +2979,18 @@ static int create_umr_res(struct mlx5_ib_dev *dev)
+>  	return ret;
+>  }
+>  
+> +static u8 mlx5_get_umr_fence(u8 umr_fence_cap)
+> +{
+> +	switch (umr_fence_cap) {
+> +	case MLX5_CAP_UMR_FENCE_STRONG:
+> +		return MLX5_FENCE_MODE_STRONG_ORDERING;
+> +	case MLX5_CAP_UMR_FENCE_SMALL:
+> +		return MLX5_FENCE_MODE_INITIATOR_SMALL;
+> +	default:
+> +		return MLX5_FENCE_MODE_NONE;
 
-Not really. What you're saying is 'shut up. mellanox can do
-whatever they like as long as it's hidden behind pcie id'.
-
-> If someone puts an FPGA inside of a device, and it's still behind the
-> PCI ID of the ethernet card, how they expose that thing is largely at
-> the discression of the driver author.
-
-So you're saying it's ok to program fpga through nic whereas larger
-kernel community is trying to come up with a solution to represent
-fpga as a proper device for the kernel.
-I suspect there will be popcorn threads during the next merge window.
-
-> So feel free to discuss things with them, but in the end unless I am
-> convinced otherwise (and I'm currently not), what they are doing now
-> is fine by me.
-
-If you didn't merge it already it would be fair course of action,
-but it's clearly not the case.
-
-> I will also state that it can't be that every time Mellanox tries to
-> add something significant to their driver everyone screams "oh my,
-> this thing is so hard to maintain as it is, you can't add this feature
-> _too_."
-
-Maintaining is only small part of it. The key argument against it
-that all these things fpga, eswitch, etc are _hidden_ behind the nic.
-It already causes headaches in production, because kernel cannot see
-them.
-
-> Sorry, it's an important driver, it's big, it has a lot of features,
-> and all those problems people talk about simply come with the
-> territory.
-
-It's not a driver feature. It's not a nic.
-It's a different physical device that mlx choose to program via nic.
-There is also 'bluefield' nic on the horizon.
->From host point of view it looks like the same cx5/6 nic,
-but it has arm cpus on board. Are you going to allow programming
-it via nic as part of mlx5 driver as well?
-It's no different than fpga hiding behind the nic...
-
-> Use a less featurefull device, which uses a driver with slower
-> development and less changes, if these things truly bother you.
-
-like google did. food for thought.
+Of course I don't really understand your firmware interface, but
+shouldn't strong ordering be the default, and only certain fw
+cap bits would relax it?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
