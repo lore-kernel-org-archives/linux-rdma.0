@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 4/9] IB/hfi1: Replace deprecated pci functions with
- new API
-Date: Fri, 26 May 2017 05:35:31 -0700
-Message-ID: <20170526123530.8158.71940.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 5/9] IB/core, rdmavt,
+ hfi1: Send OPA cap_mask3 in trap
+Date: Fri, 26 May 2017 05:35:37 -0700
+Message-ID: <20170526123536.8158.237.stgit@scvm10.sc.intel.com>
 References: <20170526123257.8158.23943.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,414 +11,130 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170526123257.8158.23943.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Michael N. Henry" <michael.n.henry-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Michael N. Henry <michael.n.henry-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-pci_enable_msix_range() and pci_disable_msix() have been deprecated.
-Updating to the new pci_alloc_irq_vectors() interface.
+Provide the ability for IB clients to modify the OPA specific
+capability mask and include this mask in the subsequent trap data.
 
-Reviewed-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Michael N. Henry <michael.n.henry-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/affinity.c |   18 +++---
- drivers/infiniband/hw/hfi1/chip.c     |  105 ++++++++++++++++-----------------
- drivers/infiniband/hw/hfi1/hfi.h      |    6 +-
- drivers/infiniband/hw/hfi1/pcie.c     |   80 +++++--------------------
- 4 files changed, 78 insertions(+), 131 deletions(-)
+ drivers/infiniband/hw/hfi1/mad.c   |    7 ++-----
+ drivers/infiniband/hw/hfi1/mad.h   |    2 +-
+ drivers/infiniband/hw/hfi1/verbs.c |    7 ++++++-
+ drivers/infiniband/sw/rdmavt/vt.c  |    9 +++++++--
+ include/rdma/ib_verbs.h            |    3 ++-
+ include/rdma/rdma_vt.h             |    1 +
+ 6 files changed, 19 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/affinity.c b/drivers/infiniband/hw/hfi1/affinity.c
-index e2cd2cd..a97055d 100644
---- a/drivers/infiniband/hw/hfi1/affinity.c
-+++ b/drivers/infiniband/hw/hfi1/affinity.c
-@@ -1,5 +1,5 @@
- /*
-- * Copyright(c) 2015, 2016 Intel Corporation.
-+ * Copyright(c) 2015 - 2017 Intel Corporation.
-  *
-  * This file is provided under a dual BSD/GPLv2 license.  When using or
-  * redistributing this file, you may do so under either license.
-@@ -335,10 +335,10 @@ static void hfi1_update_sdma_affinity(struct hfi1_msix_entry *msix, int cpu)
- 	sde->cpu = cpu;
- 	cpumask_clear(&msix->mask);
- 	cpumask_set_cpu(cpu, &msix->mask);
--	dd_dev_dbg(dd, "IRQ vector: %u, type %s engine %u -> cpu: %d\n",
--		   msix->msix.vector, irq_type_names[msix->type],
-+	dd_dev_dbg(dd, "IRQ: %u, type %s engine %u -> cpu: %d\n",
-+		   msix->irq, irq_type_names[msix->type],
- 		   sde->this_idx, cpu);
--	irq_set_affinity_hint(msix->msix.vector, &msix->mask);
-+	irq_set_affinity_hint(msix->irq, &msix->mask);
+diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
+index 5977673..70831ad 100644
+--- a/drivers/infiniband/hw/hfi1/mad.c
++++ b/drivers/infiniband/hw/hfi1/mad.c
+@@ -260,6 +260,7 @@ void hfi1_cap_mask_chg(struct rvt_dev_info *rdi, u8 port_num)
+ 	data.issuer_lid = cpu_to_be32(lid);
+ 	data.ntc_144.lid = data.issuer_lid;
+ 	data.ntc_144.new_cap_mask = cpu_to_be32(ibp->rvp.port_cap_flags);
++	data.ntc_144.cap_mask3 = cpu_to_be16(ibp->rvp.port_cap3_flags);
  
- 	/*
- 	 * Set the new cpu in the hfi1_affinity_node and clean
-@@ -387,7 +387,7 @@ static void hfi1_setup_sdma_notifier(struct hfi1_msix_entry *msix)
- {
- 	struct irq_affinity_notify *notify = &msix->notify;
- 
--	notify->irq = msix->msix.vector;
-+	notify->irq = msix->irq;
- 	notify->notify = hfi1_irq_notifier_notify;
- 	notify->release = hfi1_irq_notifier_release;
- 
-@@ -472,10 +472,10 @@ static int get_irq_affinity(struct hfi1_devdata *dd,
- 	}
- 
- 	cpumask_set_cpu(cpu, &msix->mask);
--	dd_dev_info(dd, "IRQ vector: %u, type %s %s -> cpu: %d\n",
--		    msix->msix.vector, irq_type_names[msix->type],
-+	dd_dev_info(dd, "IRQ: %u, type %s %s -> cpu: %d\n",
-+		    msix->irq, irq_type_names[msix->type],
- 		    extra, cpu);
--	irq_set_affinity_hint(msix->msix.vector, &msix->mask);
-+	irq_set_affinity_hint(msix->irq, &msix->mask);
- 
- 	if (msix->type == IRQ_SDMA) {
- 		sde->cpu = cpu;
-@@ -533,7 +533,7 @@ void hfi1_put_irq_affinity(struct hfi1_devdata *dd,
- 		}
- 	}
- 
--	irq_set_affinity_hint(msix->msix.vector, NULL);
-+	irq_set_affinity_hint(msix->irq, NULL);
- 	cpumask_clear(&msix->mask);
- 	mutex_unlock(&node_affinity.lock);
+ 	send_trap(ibp, &data, sizeof(data));
  }
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index a4fb116..aab107f 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -12800,30 +12800,24 @@ static void clean_up_interrupts(struct hfi1_devdata *dd)
- 		for (i = 0; i < dd->num_msix_entries; i++, me++) {
- 			if (!me->arg) /* => no irq, no affinity */
- 				continue;
--			hfi1_put_irq_affinity(dd, &dd->msix_entries[i]);
--			free_irq(me->msix.vector, me->arg);
-+			hfi1_put_irq_affinity(dd, me);
-+			free_irq(me->irq, me->arg);
- 		}
-+
-+		/* clean structures */
-+		kfree(dd->msix_entries);
-+		dd->msix_entries = NULL;
-+		dd->num_msix_entries = 0;
- 	} else {
- 		/* INTx */
- 		if (dd->requested_intx_irq) {
- 			free_irq(dd->pcidev->irq, dd);
- 			dd->requested_intx_irq = 0;
- 		}
--	}
--
--	/* turn off interrupts */
--	if (dd->num_msix_entries) {
--		/* MSI-X */
--		pci_disable_msix(dd->pcidev);
--	} else {
--		/* INTx */
- 		disable_intx(dd->pcidev);
- 	}
+@@ -704,11 +705,7 @@ static int __subn_get_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
+ 	buffer_units |= (dd->vl15_init << 11) & OPA_PI_MASK_BUF_UNIT_VL15_INIT;
+ 	pi->buffer_units = cpu_to_be32(buffer_units);
  
--	/* clean structures */
--	kfree(dd->msix_entries);
--	dd->msix_entries = NULL;
--	dd->num_msix_entries = 0;
-+	pci_free_irq_vectors(dd->pcidev);
- }
+-	pi->opa_cap_mask = cpu_to_be16(OPA_CAP_MASK3_IsSharedSpaceSupported |
+-				       OPA_CAP_MASK3_IsEthOnFabricSupported);
+-	/* Driver does not support mcast/collective configuration */
+-	pi->opa_cap_mask &=
+-		cpu_to_be16(~OPA_CAP_MASK3_IsAddrRangeConfigSupported);
++	pi->opa_cap_mask = cpu_to_be16(ibp->rvp.port_cap3_flags);
+ 	pi->collectivemask_multicastmask = ((HFI1_COLLECTIVE_NR & 0x7)
+ 					    << 3 | (HFI1_MCAST_NR & 0x7));
  
- /*
-@@ -12972,13 +12966,21 @@ static int request_msix_irqs(struct hfi1_devdata *dd)
- 			continue;
- 		/* make sure the name is terminated */
- 		me->name[sizeof(me->name) - 1] = 0;
-+		me->irq = pci_irq_vector(dd->pcidev, i);
-+		/*
-+		 * On err return me->irq.  Don't need to clear this
-+		 * because 'arg' has not been set, and cleanup will
-+		 * do the right thing.
-+		 */
-+		if (me->irq < 0)
-+			return me->irq;
+diff --git a/drivers/infiniband/hw/hfi1/mad.h b/drivers/infiniband/hw/hfi1/mad.h
+index 5aa3fd1..a4e2506 100644
+--- a/drivers/infiniband/hw/hfi1/mad.h
++++ b/drivers/infiniband/hw/hfi1/mad.h
+@@ -115,7 +115,7 @@ struct opa_mad_notice_attr {
+ 			__be32	lid;		/* LID where change occurred */
+ 			__be32	new_cap_mask;	/* new capability mask */
+ 			__be16	reserved2;
+-			__be16	cap_mask;
++			__be16	cap_mask3;
+ 			__be16	change_flags;	/* low 4 bits only */
+ 		} __packed ntc_144;
  
--		ret = request_threaded_irq(me->msix.vector, handler, thread, 0,
-+		ret = request_threaded_irq(me->irq, handler, thread, 0,
- 					   me->name, arg);
- 		if (ret) {
- 			dd_dev_err(dd,
--				   "unable to allocate %s interrupt, vector %d, index %d, err %d\n",
--				   err_info, me->msix.vector, idx, ret);
-+				   "unable to allocate %s interrupt, irq %d, index %d, err %d\n",
-+				   err_info, me->irq, idx, ret);
- 			return ret;
- 		}
- 		/*
-@@ -12989,8 +12991,7 @@ static int request_msix_irqs(struct hfi1_devdata *dd)
+diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
+index af54d3f..2881798 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.c
++++ b/drivers/infiniband/hw/hfi1/verbs.c
+@@ -1537,9 +1537,14 @@ static void init_ibport(struct hfi1_pportdata *ppd)
+ 	/* Set the prefix to the default value (see ch. 4.1.1) */
+ 	ibp->rvp.gid_prefix = IB_DEFAULT_GID_PREFIX;
+ 	ibp->rvp.sm_lid = 0;
+-	/* Below should only set bits defined in OPA PortInfo.CapabilityMask */
++	/*
++	 * Below should only set bits defined in OPA PortInfo.CapabilityMask
++	 * and PortInfo.CapabilityMask3
++	 */
+ 	ibp->rvp.port_cap_flags = IB_PORT_AUTO_MIGR_SUP |
+ 		IB_PORT_CAP_MASK_NOTICE_SUP;
++	ibp->rvp.port_cap3_flags = OPA_CAP_MASK3_IsSharedSpaceSupported |
++				   OPA_CAP_MASK3_IsEthOnFabricSupported;
+ 	ibp->rvp.pma_counter_select[0] = IB_PMA_PORT_XMIT_DATA;
+ 	ibp->rvp.pma_counter_select[1] = IB_PMA_PORT_RCV_DATA;
+ 	ibp->rvp.pma_counter_select[2] = IB_PMA_PORT_XMIT_PKTS;
+diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
+index 0d7c6bb..64bdd44 100644
+--- a/drivers/infiniband/sw/rdmavt/vt.c
++++ b/drivers/infiniband/sw/rdmavt/vt.c
+@@ -202,8 +202,13 @@ static int rvt_modify_port(struct ib_device *ibdev, u8 port_num,
+ 		return -EINVAL;
  
- 		ret = hfi1_get_irq_affinity(dd, me);
- 		if (ret)
--			dd_dev_err(dd,
--				   "unable to pin IRQ %d\n", ret);
-+			dd_dev_err(dd, "unable to pin IRQ %d\n", ret);
- 	}
- 
- 	return ret;
-@@ -13009,7 +13010,7 @@ void hfi1_vnic_synchronize_irq(struct hfi1_devdata *dd)
- 		struct hfi1_ctxtdata *rcd = dd->vnic.ctxt[i];
- 		struct hfi1_msix_entry *me = &dd->msix_entries[rcd->msix_intr];
- 
--		synchronize_irq(me->msix.vector);
-+		synchronize_irq(me->irq);
- 	}
- }
- 
-@@ -13022,7 +13023,7 @@ void hfi1_reset_vnic_msix_info(struct hfi1_ctxtdata *rcd)
- 		return;
- 
- 	hfi1_put_irq_affinity(dd, me);
--	free_irq(me->msix.vector, me->arg);
-+	free_irq(me->irq, me->arg);
- 
- 	me->arg = NULL;
- }
-@@ -13050,14 +13051,19 @@ void hfi1_set_vnic_msix_info(struct hfi1_ctxtdata *rcd)
- 		 DRIVER_NAME "_%d kctxt%d", dd->unit, idx);
- 	me->name[sizeof(me->name) - 1] = 0;
- 	me->type = IRQ_RCVCTXT;
--
-+	me->irq = pci_irq_vector(dd->pcidev, rcd->msix_intr);
-+	if (me->irq < 0) {
-+		dd_dev_err(dd, "vnic irq vector request (idx %d) fail %d\n",
-+			   idx, me->irq);
-+		return;
+ 	rvp = rdi->ports[port_index];
+-	rvp->port_cap_flags |= props->set_port_cap_mask;
+-	rvp->port_cap_flags &= ~props->clr_port_cap_mask;
++	if (port_modify_mask & IB_PORT_OPA_MASK_CHG) {
++		rvp->port_cap3_flags |= props->set_port_cap_mask;
++		rvp->port_cap3_flags &= ~props->clr_port_cap_mask;
++	} else {
++		rvp->port_cap_flags |= props->set_port_cap_mask;
++		rvp->port_cap_flags &= ~props->clr_port_cap_mask;
 +	}
- 	remap_intr(dd, IS_RCVAVAIL_START + idx, rcd->msix_intr);
  
--	ret = request_threaded_irq(me->msix.vector, receive_context_interrupt,
-+	ret = request_threaded_irq(me->irq, receive_context_interrupt,
- 				   receive_context_thread, 0, me->name, arg);
- 	if (ret) {
--		dd_dev_err(dd, "vnic irq request (vector %d, idx %d) fail %d\n",
--			   me->msix.vector, idx, ret);
-+		dd_dev_err(dd, "vnic irq request (irq %d, idx %d) fail %d\n",
-+			   me->irq, idx, ret);
- 		return;
- 	}
- 	/*
-@@ -13070,7 +13076,7 @@ void hfi1_set_vnic_msix_info(struct hfi1_ctxtdata *rcd)
- 	if (ret) {
- 		dd_dev_err(dd,
- 			   "unable to pin IRQ %d\n", ret);
--		free_irq(me->msix.vector, me->arg);
-+		free_irq(me->irq, me->arg);
- 	}
- }
+ 	if (props->set_port_cap_mask || props->clr_port_cap_mask)
+ 		rdi->driver_f.cap_mask_chg(rdi, port_num);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 785e927..6c4f6da 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -576,7 +576,8 @@ struct ib_device_modify {
+ enum ib_port_modify_flags {
+ 	IB_PORT_SHUTDOWN		= 1,
+ 	IB_PORT_INIT_TYPE		= (1<<2),
+-	IB_PORT_RESET_QKEY_CNTR		= (1<<3)
++	IB_PORT_RESET_QKEY_CNTR		= (1<<3),
++	IB_PORT_OPA_MASK_CHG		= (1<<4)
+ };
  
-@@ -13093,9 +13099,8 @@ static void reset_interrupts(struct hfi1_devdata *dd)
- 
- static int set_up_interrupts(struct hfi1_devdata *dd)
- {
--	struct hfi1_msix_entry *entries;
--	u32 total, request;
--	int i, ret;
-+	u32 total;
-+	int ret, request;
- 	int single_interrupt = 0; /* we expect to have all the interrupts */
- 
- 	/*
-@@ -13107,39 +13112,31 @@ static int set_up_interrupts(struct hfi1_devdata *dd)
- 	 */
- 	total = 1 + dd->num_sdma + dd->n_krcv_queues + HFI1_NUM_VNIC_CTXT;
- 
--	entries = kcalloc(total, sizeof(*entries), GFP_KERNEL);
--	if (!entries) {
--		ret = -ENOMEM;
--		goto fail;
--	}
--	/* 1-1 MSI-X entry assignment */
--	for (i = 0; i < total; i++)
--		entries[i].msix.entry = i;
--
- 	/* ask for MSI-X interrupts */
--	request = total;
--	request_msix(dd, &request, entries);
--
--	if (request == 0) {
-+	request = request_msix(dd, total);
-+	if (request < 0) {
-+		ret = request;
-+		goto fail;
-+	} else if (request == 0) {
- 		/* using INTx */
- 		/* dd->num_msix_entries already zero */
--		kfree(entries);
- 		single_interrupt = 1;
- 		dd_dev_err(dd, "MSI-X failed, using INTx interrupts\n");
-+	} else if (request < total) {
-+		/* using MSI-X, with reduced interrupts */
-+		dd_dev_err(dd, "reduced interrupt found, wanted %u, got %u\n",
-+			   total, request);
-+		ret = -EINVAL;
-+		goto fail;
- 	} else {
--		/* using MSI-X */
--		dd->num_msix_entries = request;
--		dd->msix_entries = entries;
--
--		if (request != total) {
--			/* using MSI-X, with reduced interrupts */
--			dd_dev_err(
--				dd,
--				"cannot handle reduced interrupt case, want %u, got %u\n",
--				total, request);
--			ret = -EINVAL;
-+		dd->msix_entries = kcalloc(total, sizeof(*dd->msix_entries),
-+					   GFP_KERNEL);
-+		if (!dd->msix_entries) {
-+			ret = -ENOMEM;
- 			goto fail;
- 		}
-+		/* using MSI-X */
-+		dd->num_msix_entries = total;
- 		dd_dev_info(dd, "%u MSI-X interrupts allocated\n", total);
- 	}
- 
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index cc69b51..e1cd468 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -521,7 +521,7 @@ static inline void incr_cntr32(u32 *cntr)
- #define MAX_NAME_SIZE 64
- struct hfi1_msix_entry {
- 	enum irq_type type;
--	struct msix_entry msix;
-+	int irq;
- 	void *arg;
- 	char name[MAX_NAME_SIZE];
- 	cpumask_t mask;
-@@ -1839,9 +1839,7 @@ int hfi1_create_port_files(struct ib_device *ibdev, u8 port_num,
- void hfi1_pcie_ddcleanup(struct hfi1_devdata *);
- void hfi1_pcie_flr(struct hfi1_devdata *dd);
- int pcie_speeds(struct hfi1_devdata *dd);
--void request_msix(struct hfi1_devdata *dd, u32 *nent,
--		  struct hfi1_msix_entry *entry);
--void hfi1_enable_intx(struct pci_dev *pdev);
-+int request_msix(struct hfi1_devdata *dd, u32 msireq);
- void restore_pci_variables(struct hfi1_devdata *dd);
- int do_pcie_gen3_transition(struct hfi1_devdata *dd);
- int parse_platform_config(struct hfi1_devdata *dd);
-diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
-index e39e01b..e666264 100644
---- a/drivers/infiniband/hw/hfi1/pcie.c
-+++ b/drivers/infiniband/hw/hfi1/pcie.c
-@@ -1,5 +1,5 @@
- /*
-- * Copyright(c) 2015, 2016 Intel Corporation.
-+ * Copyright(c) 2015 - 2017 Intel Corporation.
-  *
-  * This file is provided under a dual BSD/GPLv2 license.  When using or
-  * redistributing this file, you may do so under either license.
-@@ -270,50 +270,6 @@ void hfi1_pcie_flr(struct hfi1_devdata *dd)
- 	msleep(100);
- }
- 
--static void msix_setup(struct hfi1_devdata *dd, int pos, u32 *msixcnt,
--		       struct hfi1_msix_entry *hfi1_msix_entry)
--{
--	int ret;
--	int nvec = *msixcnt;
--	struct msix_entry *msix_entry;
--	int i;
--
--	/*
--	 * We can't pass hfi1_msix_entry array to msix_setup
--	 * so use a dummy msix_entry array and copy the allocated
--	 * irq back to the hfi1_msix_entry array.
--	 */
--	msix_entry = kmalloc_array(nvec, sizeof(*msix_entry), GFP_KERNEL);
--	if (!msix_entry) {
--		ret = -ENOMEM;
--		goto do_intx;
--	}
--
--	for (i = 0; i < nvec; i++)
--		msix_entry[i] = hfi1_msix_entry[i].msix;
--
--	ret = pci_enable_msix_range(dd->pcidev, msix_entry, 1, nvec);
--	if (ret < 0)
--		goto free_msix_entry;
--	nvec = ret;
--
--	for (i = 0; i < nvec; i++)
--		hfi1_msix_entry[i].msix = msix_entry[i];
--
--	kfree(msix_entry);
--	*msixcnt = nvec;
--	return;
--
--free_msix_entry:
--	kfree(msix_entry);
--
--do_intx:
--	dd_dev_err(dd, "pci_enable_msix_range %d vectors failed: %d, falling back to INTx\n",
--		   nvec, ret);
--	*msixcnt = 0;
--	hfi1_enable_intx(dd->pcidev);
--}
--
- /* return the PCIe link speed from the given link status */
- static u32 extract_speed(u16 linkstat)
- {
-@@ -394,33 +350,29 @@ int pcie_speeds(struct hfi1_devdata *dd)
- }
- 
- /*
-- * Returns in *nent:
-- *	- actual number of interrupts allocated
-+ * Returns:
-+ *	- actual number of interrupts allocated or
-  *	- 0 if fell back to INTx.
-+ *      - error
-  */
--void request_msix(struct hfi1_devdata *dd, u32 *nent,
--		  struct hfi1_msix_entry *entry)
-+int request_msix(struct hfi1_devdata *dd, u32 msireq)
- {
--	int pos;
-+	int nvec;
- 
--	pos = dd->pcidev->msix_cap;
--	if (*nent && pos) {
--		msix_setup(dd, pos, nent, entry);
--		/* did it, either MSI-X or INTx */
--	} else {
--		*nent = 0;
--		hfi1_enable_intx(dd->pcidev);
-+	nvec = pci_alloc_irq_vectors(dd->pcidev, 1, msireq,
-+				     PCI_IRQ_MSIX | PCI_IRQ_LEGACY);
-+	if (nvec < 0) {
-+		dd_dev_err(dd, "pci_alloc_irq_vectors() failed: %d\n", nvec);
-+		return nvec;
- 	}
- 
- 	tune_pcie_caps(dd);
--}
- 
--void hfi1_enable_intx(struct pci_dev *pdev)
--{
--	/* first, turn on INTx */
--	pci_intx(pdev, 1);
--	/* then turn off MSI-X */
--	pci_disable_msix(pdev);
-+	/* check for legacy IRQ */
-+	if (nvec == 1 && !dd->pcidev->msix_enabled)
-+		return 0;
-+
-+	return nvec;
- }
- 
- /* restore command and BARs after a reset has wiped them out */
+ struct ib_port_modify {
+diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
+index d0b9f91..0f18ffd 100644
+--- a/include/rdma/rdma_vt.h
++++ b/include/rdma/rdma_vt.h
+@@ -75,6 +75,7 @@ struct rvt_ibport {
+ 	__be64 mkey;
+ 	u64 tid;
+ 	u32 port_cap_flags;
++	u16 port_cap3_flags;
+ 	u32 pma_sample_start;
+ 	u32 pma_sample_interval;
+ 	__be16 pma_counter_select[5];
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
