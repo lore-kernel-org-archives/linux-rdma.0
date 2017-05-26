@@ -1,61 +1,56 @@
-From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 2/2] IB/mlx5: set UMR wqe fence according to HCA cap
-Date: Fri, 26 May 2017 22:04:28 +0300
-Message-ID: <082ef80e-b7c1-135c-130f-24a1196e2dad@mellanox.com>
-References: <1495743219-1085-1-git-send-email-maxg@mellanox.com>
- <1495743219-1085-2-git-send-email-maxg@mellanox.com>
- <20170526065020.GA19681@lst.de>
+From: Jakub Kicinski <kubakici@wp.pl>
+Subject: Re: [for-next 5/6] net/mlx5: Bump driver version
+Date: Fri, 26 May 2017 14:53:18 -0700
+Message-ID: <20170526145318.7fd8c8e2@cakuba.netronome.com>
+References: <20170523114404.20387-1-saeedm@mellanox.com>
+        <20170523114404.20387-6-saeedm@mellanox.com>
+        <3733699c-480b-a1aa-14e1-4f27f86cfead@intel.com>
+        <CALzJLG_ha-XiPAMnoKrUgm_EwPx2yH0T2y4EBRfrWNYSZi1cTg@mail.gmail.com>
+        <ee23ad82-4a2e-8546-d41b-11f979b127bb@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170526065020.GA19681-jcswGhMUV9g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <ee23ad82-4a2e-8546-d41b-11f979b127bb@intel.com>
+Sender: netdev-owner@vger.kernel.org
+To: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc: Saeed Mahameed <saeedm@dev.mellanox.co.il>, Saeed Mahameed <saeedm@mellanox.com>, "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>, Linux Netdev List <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, Ilan Tayari <ilant@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, 26 May 2017 12:55:22 -0400, Dennis Dalessandro wrote:
+> >> I realize Dave has already pulled this and I'm not asking for it to be
+> >> reverted but maybe some discussion will help guide future patch submissions
+> >> which do this stuff.
+> >>  
+> > 
+> > Sure, although i don't think we are going to use those version fields
+> > in the future,
+> > please allow me to ask, how do you do your driver versioning ? how do
+> > you track things ?
+> > and what is your future vision regarding ethool->drv_version ?  
+> 
+> That's just the thing, we don't do anything with it either really. I'm 
+> trying to justify its existence to myself and if you folks had some whiz 
+> bang idea for a driver version I was interested in hearing what it was.
 
+FWIW I put VERMAGIC_STRING in drv_version:
 
-On 5/26/2017 9:50 AM, Christoph Hellwig wrote:
-> On Thu, May 25, 2017 at 11:13:39PM +0300, Max Gurtovoy wrote:
->> Cache the needed umr_fence and set the wqe ctrl segmennt
->> accordingly.
->>
->> Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Acked-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->> ---
->>  drivers/infiniband/hw/mlx5/main.c    |   14 ++++++++++++++
->>  drivers/infiniband/hw/mlx5/mlx5_ib.h |    1 +
->>  drivers/infiniband/hw/mlx5/qp.c      |   15 +++++++--------
->>  3 files changed, 22 insertions(+), 8 deletions(-)
->>
->> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
->> index d45772d..83d1f9b 100644
->> --- a/drivers/infiniband/hw/mlx5/main.c
->> +++ b/drivers/infiniband/hw/mlx5/main.c
->> @@ -2979,6 +2979,18 @@ static int create_umr_res(struct mlx5_ib_dev *dev)
->>  	return ret;
->>  }
->>
->> +static u8 mlx5_get_umr_fence(u8 umr_fence_cap)
->> +{
->> +	switch (umr_fence_cap) {
->> +	case MLX5_CAP_UMR_FENCE_STRONG:
->> +		return MLX5_FENCE_MODE_STRONG_ORDERING;
->> +	case MLX5_CAP_UMR_FENCE_SMALL:
->> +		return MLX5_FENCE_MODE_INITIATOR_SMALL;
->> +	default:
->> +		return MLX5_FENCE_MODE_NONE;
->
-> Of course I don't really understand your firmware interface, but
-> shouldn't strong ordering be the default, and only certain fw
-> cap bits would relax it?
->
+# ethtool -i p4p1
+driver: nfp
+version: 4.12.0-rc2-perf-00282-gc42dfc79
+...
 
-Actually it's a default value (MLX5_CAP_UMR_FENCE_STRONG = 0x0), but I 
-can set it default in this function too in V2.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I think I got that idea from Felix Fietkau.  The backport-ified version
+of the driver [1] uses git hash and "o-o-t" sting:
+
+# ethtool -i p4p1
+driver: nfp
+version: 49e5c6abf5b2 (o-o-t)
+...
+
+So it's pretty easy to tell which driver the customer is using.  I
+could probably throw in the output of $(git rev-list --count HEAD) to
+have an automatic monotonically increasing "version" when built
+out-of-tree, hm...
+
+[1] https://github.com/Netronome/nfp-drv-kmods
