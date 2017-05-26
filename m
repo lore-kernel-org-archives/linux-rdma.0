@@ -1,52 +1,77 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH 2/2] IB/mlx5: set UMR wqe fence according to HCA cap
-Date: Fri, 26 May 2017 08:50:20 +0200
-Message-ID: <20170526065020.GA19681@lst.de>
-References: <1495743219-1085-1-git-send-email-maxg@mellanox.com> <1495743219-1085-2-git-send-email-maxg@mellanox.com>
+From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
+Subject: Re: [for-next 4/6] net/mlx5: FPGA, Add basic support for Innova
+Date: Fri, 26 May 2017 11:29:37 +0300
+Message-ID: <CALzJLG9YNpagdJAcrh6O0jJhZWtsck6KigRtVxyjkArTm=82ew@mail.gmail.com>
+References: <20170523114404.20387-1-saeedm@mellanox.com> <20170523114404.20387-5-saeedm@mellanox.com>
+ <20170524165059.42lmrwzzcxvi2sf7@ast-mbp> <AM4PR0501MB1940885C2F1CEF4DDE4EA8D1DBFF0@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+ <CALzJLG-B_tAmASn_SMmPNiucq-tTpywHniRTkb4N32oGF6Y3Ng@mail.gmail.com> <00716e5a-8b51-0b3f-a1b8-1bb7b346a66a@fb.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1495743219-1085-2-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <00716e5a-8b51-0b3f-a1b8-1bb7b346a66a@fb.com>
+Sender: netdev-owner@vger.kernel.org
+To: Jes Sorensen <jsorensen@fb.com>
+Cc: Ilan Tayari <ilant@mellanox.com>, Alexei Starovoitov <alexei.starovoitov@gmail.com>, Saeed Mahameed <saeedm@mellanox.com>, "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 25, 2017 at 11:13:39PM +0300, Max Gurtovoy wrote:
-> Cache the needed umr_fence and set the wqe ctrl segmennt
-> accordingly.
-> 
-> Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Acked-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> ---
->  drivers/infiniband/hw/mlx5/main.c    |   14 ++++++++++++++
->  drivers/infiniband/hw/mlx5/mlx5_ib.h |    1 +
->  drivers/infiniband/hw/mlx5/qp.c      |   15 +++++++--------
->  3 files changed, 22 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-> index d45772d..83d1f9b 100644
-> --- a/drivers/infiniband/hw/mlx5/main.c
-> +++ b/drivers/infiniband/hw/mlx5/main.c
-> @@ -2979,6 +2979,18 @@ static int create_umr_res(struct mlx5_ib_dev *dev)
->  	return ret;
->  }
->  
-> +static u8 mlx5_get_umr_fence(u8 umr_fence_cap)
-> +{
-> +	switch (umr_fence_cap) {
-> +	case MLX5_CAP_UMR_FENCE_STRONG:
-> +		return MLX5_FENCE_MODE_STRONG_ORDERING;
-> +	case MLX5_CAP_UMR_FENCE_SMALL:
-> +		return MLX5_FENCE_MODE_INITIATOR_SMALL;
-> +	default:
-> +		return MLX5_FENCE_MODE_NONE;
+On Thu, May 25, 2017 at 11:48 PM, Jes Sorensen <jsorensen@fb.com> wrote:
+> On 05/25/2017 06:40 AM, Saeed Mahameed wrote:
+>>
+>> On Thu, May 25, 2017 at 8:20 AM, Ilan Tayari <ilant@mellanox.com> wrote:
+>>>>
+>>>> -----Original Message-----
+>>>> Can you put it into different driver? Dumping everything into by far
+>>>> the biggest nic driver already is already huge headache in terms on
+>>>> maintainability, debugging and back ports.
+>>>> Look at how intel splits their drivers.
+>>>> ixgb, ixgbe, ixgbevf are different drivers thought they have a lot in
+>>>> common. On one side it's a bit of copy paste, but on the other side
+>>
+>>
+>> I don't think the ixgb example is the same, simply  ixgb, ixgbe,
+>> ixgbevf have different PCI IDs
+>> and even different SW/FW interfaces. On the other hand, same mlx5
+>> driver can support all of
+>> ConnetX4/5/6 device IDs with the same code flows, same interfaces.
+>>
+>>>> it makes drivers much easier to develop and maintain independently.
+>>>> ConnectX-6 code and any future hw support doesn't belong to
+>>>> mlx5 driver at all.
+>>
+>>
+>> Sorry i must disagree with you on this for the same reasons Ilan
+>> mentioned.
+>> We can perfectly achieve the same with modular driver design all under the
+>> same .ko module, with some kconfig flags to reduce the amount of
+>> code/features
+>> this .ko provides.
+>
+>
+> If I get this right, the FPGA is independent and could in theory be used for
+> non network stuff. It really should have it's own driver in that case, and
+> you should provide accessor functionality via the mlx5 driver.
+>
 
-Of course I don't really understand your firmware interface, but
-shouldn't strong ordering be the default, and only certain fw
-cap bits would relax it?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Jes,
+
+No, It is clearly stated in the commit message :
+
+"The FPGA is a bump-on-the-wire and thus affects operation of
+the mlx5_core driver on the ConnectX ASIC."
+
+Which means mlx5 FPGA user can only write logic which affects only
+packets going in/out
+A ConnectX chip - so it is only network stuff -.
+
+> We have this with other devices in the kernel where a primary device driver
+> provides an interface for an additional sub-driver to access another device
+> behind it. Like bt-coexist in some of the wifi drivers allowing access to a
+> bluetooth device behind it.
+>
+
+Blutooth over wifi or vise versa is a very good example to what you
+are requesting.
+But, it doesn't fit to what we are trying to do here. mlx5 FGPA is a
+ConnectX card feature, not a new protocol.
+
+> Jes
