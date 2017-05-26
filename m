@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 7/9] IB/hfi1: Remove atomic SDMA_REQ_HAS_ERROR bit
- operation
-Date: Fri, 26 May 2017 05:35:50 -0700
-Message-ID: <20170526123549.8158.88663.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 8/9] IB/hfi1: Reclassify type of messages printed
+ for platform config logic
+Date: Fri, 26 May 2017 05:35:57 -0700
+Message-ID: <20170526123555.8158.42385.stgit@scvm10.sc.intel.com>
 References: <20170526123257.8158.23943.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,114 +16,87 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Atomic bit tests are used to single errors and the
-completion of request submissions. These operations
-don't need to be atomic and show to be expensive on
-the profile.
-
-Replace each atomic bit operation with a bool type
-and a READ_ONCE/WRITE_ONCE pairing.
+Reclassify messages printed out to /var/log/messages into
+warnings and errors to facilitate debugging in the future
+for issues related to the platform config logic.
 
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/user_sdma.c |   22 +++++++---------------
- 1 files changed, 7 insertions(+), 15 deletions(-)
+ drivers/infiniband/hw/hfi1/platform.c |   20 ++++++++++----------
+ 1 files changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
-index 6fb70f0..fcadbb9 100644
---- a/drivers/infiniband/hw/hfi1/user_sdma.c
-+++ b/drivers/infiniband/hw/hfi1/user_sdma.c
-@@ -153,10 +153,6 @@
- #define TXREQ_FLAGS_REQ_ACK   BIT(0)      /* Set the ACK bit in the header */
- #define TXREQ_FLAGS_REQ_DISABLE_SH BIT(1) /* Disable header suppression */
+diff --git a/drivers/infiniband/hw/hfi1/platform.c b/drivers/infiniband/hw/hfi1/platform.c
+index 838fe84..cbda9b1 100644
+--- a/drivers/infiniband/hw/hfi1/platform.c
++++ b/drivers/infiniband/hw/hfi1/platform.c
+@@ -242,7 +242,7 @@ static int qual_power(struct hfi1_pportdata *ppd)
  
--/* SDMA request flag bits */
--#define SDMA_REQ_HAS_ERROR  1
--#define SDMA_REQ_DONE_ERROR 2
--
- #define SDMA_PKT_Q_INACTIVE BIT(0)
- #define SDMA_PKT_Q_ACTIVE   BIT(1)
- #define SDMA_PKT_Q_DEFERRED BIT(2)
-@@ -232,7 +228,6 @@ struct user_sdma_request {
- 	/* Writeable fields shared with interrupt */
- 	u64 seqcomp ____cacheline_aligned_in_smp;
- 	u64 seqsubmitted;
--	unsigned long flags;
- 	/* status of the last txreq completed */
- 	int status;
+ 	if (ppd->offline_disabled_reason ==
+ 			HFI1_ODR_MASK(OPA_LINKDOWN_REASON_POWER_POLICY)) {
+-		dd_dev_info(
++		dd_dev_err(
+ 			ppd->dd,
+ 			"%s: Port disabled due to system power restrictions\n",
+ 			__func__);
+@@ -268,7 +268,7 @@ static int qual_bitrate(struct hfi1_pportdata *ppd)
  
-@@ -257,6 +252,7 @@ struct user_sdma_request {
- 	/* progress index moving along the iovs array */
- 	u8 iov_idx;
- 	u8 done;
-+	u8 has_error;
- 
- 	struct user_sdma_iovec iovs[MAX_VECTORS_PER_REQ];
- } ____cacheline_aligned_in_smp;
-@@ -625,9 +621,9 @@ int hfi1_user_sdma_process_request(struct hfi1_filedata *fd,
- 	req->seqnum = 0;
- 	req->seqcomp = 0;
- 	req->seqsubmitted = 0;
--	req->flags = 0;
- 	req->tids = NULL;
- 	req->done = 0;
-+	req->has_error = 0;
- 	INIT_LIST_HEAD(&req->txps);
- 
- 	memcpy(&req->info, &info, sizeof(info));
-@@ -814,7 +810,7 @@ int hfi1_user_sdma_process_request(struct hfi1_filedata *fd,
- 		if (ret < 0) {
- 			if (ret != -EBUSY) {
- 				req->status = ret;
--				set_bit(SDMA_REQ_DONE_ERROR, &req->flags);
-+				WRITE_ONCE(req->has_error, 1);
- 				if (ACCESS_ONCE(req->seqcomp) ==
- 				    req->seqsubmitted - 1)
- 					goto free_req;
-@@ -916,10 +912,8 @@ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
- 	pq = req->pq;
- 
- 	/* If tx completion has reported an error, we are done. */
--	if (test_bit(SDMA_REQ_HAS_ERROR, &req->flags)) {
--		set_bit(SDMA_REQ_DONE_ERROR, &req->flags);
-+	if (READ_ONCE(req->has_error))
- 		return -EFAULT;
--	}
- 
- 	/*
- 	 * Check if we might have sent the entire request already
-@@ -942,10 +936,8 @@ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
- 		 * with errors. If so, we are not going to process any
- 		 * more packets from this request.
- 		 */
--		if (test_bit(SDMA_REQ_HAS_ERROR, &req->flags)) {
--			set_bit(SDMA_REQ_DONE_ERROR, &req->flags);
-+		if (READ_ONCE(req->has_error))
- 			return -EFAULT;
--		}
- 
- 		tx = kmem_cache_alloc(pq->txreq_cache, GFP_KERNEL);
- 		if (!tx)
-@@ -1566,7 +1558,7 @@ static void user_sdma_txreq_cb(struct sdma_txreq *txreq, int status)
- 	if (status != SDMA_TXREQ_S_OK) {
- 		SDMA_DBG(req, "SDMA completion with error %d",
- 			 status);
--		set_bit(SDMA_REQ_HAS_ERROR, &req->flags);
-+		WRITE_ONCE(req->has_error, 1);
+ 	if (ppd->offline_disabled_reason ==
+ 			HFI1_ODR_MASK(OPA_LINKDOWN_REASON_LINKSPEED_POLICY)) {
+-		dd_dev_info(
++		dd_dev_err(
+ 			ppd->dd,
+ 			"%s: Cable failed bitrate check, disabling port\n",
+ 			__func__);
+@@ -709,15 +709,15 @@ static void apply_tunings(
+ 		ret = load_8051_config(ppd->dd, DC_HOST_COMM_SETTINGS,
+ 				       GENERAL_CONFIG, config_data);
+ 		if (ret != HCMD_SUCCESS)
+-			dd_dev_info(ppd->dd,
+-				    "%s: Failed set ext device config params\n",
+-				    __func__);
++			dd_dev_err(ppd->dd,
++				   "%s: Failed set ext device config params\n",
++				   __func__);
  	}
  
- 	req->seqcomp = tx->seqnum;
-@@ -1586,7 +1578,7 @@ static void user_sdma_txreq_cb(struct sdma_txreq *txreq, int status)
- 			req->status = status;
- 		if (req->seqcomp == (ACCESS_ONCE(req->seqsubmitted) - 1) &&
- 		    (READ_ONCE(req->done) ||
--		     test_bit(SDMA_REQ_DONE_ERROR, &req->flags))) {
-+		     READ_ONCE(req->has_error))) {
- 			user_sdma_free_request(req, false);
- 			pq_update(pq);
- 			set_comp_state(pq, cq, idx, ERROR, req->status);
+ 	if (tx_preset_index == OPA_INVALID_INDEX) {
+ 		if (ppd->port_type == PORT_TYPE_QSFP && limiting_active)
+-			dd_dev_info(ppd->dd, "%s: Invalid Tx preset index\n",
+-				    __func__);
++			dd_dev_err(ppd->dd, "%s: Invalid Tx preset index\n",
++				   __func__);
+ 		return;
+ 	}
+ 
+@@ -900,7 +900,7 @@ static int tune_qsfp(struct hfi1_pportdata *ppd,
+ 	case 0xD: /* fallthrough */
+ 	case 0xF:
+ 	default:
+-		dd_dev_info(ppd->dd, "%s: Unknown/unsupported cable\n",
++		dd_dev_warn(ppd->dd, "%s: Unknown/unsupported cable\n",
+ 			    __func__);
+ 		break;
+ 	}
+@@ -942,7 +942,7 @@ void tune_serdes(struct hfi1_pportdata *ppd)
+ 	case PORT_TYPE_DISCONNECTED:
+ 		ppd->offline_disabled_reason =
+ 			HFI1_ODR_MASK(OPA_LINKDOWN_REASON_DISCONNECTED);
+-		dd_dev_info(dd, "%s: Port disconnected, disabling port\n",
++		dd_dev_warn(dd, "%s: Port disconnected, disabling port\n",
+ 			    __func__);
+ 		goto bail;
+ 	case PORT_TYPE_FIXED:
+@@ -1027,7 +1027,7 @@ void tune_serdes(struct hfi1_pportdata *ppd)
+ 		}
+ 		break;
+ 	default:
+-		dd_dev_info(ppd->dd, "%s: Unknown port type\n", __func__);
++		dd_dev_warn(ppd->dd, "%s: Unknown port type\n", __func__);
+ 		ppd->port_type = PORT_TYPE_UNKNOWN;
+ 		tuning_method = OPA_UNKNOWN_TUNING;
+ 		total_atten = 0;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
