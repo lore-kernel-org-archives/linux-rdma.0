@@ -1,56 +1,57 @@
-From: Jakub Kicinski <kubakici@wp.pl>
-Subject: Re: [for-next 5/6] net/mlx5: Bump driver version
-Date: Fri, 26 May 2017 14:53:18 -0700
-Message-ID: <20170526145318.7fd8c8e2@cakuba.netronome.com>
-References: <20170523114404.20387-1-saeedm@mellanox.com>
-        <20170523114404.20387-6-saeedm@mellanox.com>
-        <3733699c-480b-a1aa-14e1-4f27f86cfead@intel.com>
-        <CALzJLG_ha-XiPAMnoKrUgm_EwPx2yH0T2y4EBRfrWNYSZi1cTg@mail.gmail.com>
-        <ee23ad82-4a2e-8546-d41b-11f979b127bb@intel.com>
+From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core] libibumad: clean up htonll/ntohnll handling
+Date: Sat, 27 May 2017 18:01:08 -0400
+Message-ID: <ab35bf90-5d66-d972-1561-d519bb7289fd@redhat.com>
+References: <20170522141722.50502-1-jarod@redhat.com>
+ <20170524163301.GA7054@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <ee23ad82-4a2e-8546-d41b-11f979b127bb@intel.com>
-Sender: netdev-owner@vger.kernel.org
-To: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: Saeed Mahameed <saeedm@dev.mellanox.co.il>, Saeed Mahameed <saeedm@mellanox.com>, "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>, Linux Netdev List <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, Ilan Tayari <ilant@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170524163301.GA7054-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 26 May 2017 12:55:22 -0400, Dennis Dalessandro wrote:
-> >> I realize Dave has already pulled this and I'm not asking for it to be
-> >> reverted but maybe some discussion will help guide future patch submissions
-> >> which do this stuff.
-> >>  
-> > 
-> > Sure, although i don't think we are going to use those version fields
-> > in the future,
-> > please allow me to ask, how do you do your driver versioning ? how do
-> > you track things ?
-> > and what is your future vision regarding ethool->drv_version ?  
+On 2017-05-24 12:33 PM, Jason Gunthorpe wrote:
+> On Mon, May 22, 2017 at 10:17:22AM -0400, Jarod Wilson wrote:
+>> Only ntohll was being checked to see if it wasn't defined, and was then
+>> redefining htonll as well as ntohll. This was causing some problems for
+>> the compile of the opa-ff package. Simple enough to rearrange this code a
+>> bit such that htonll and ntohll are handled entirely independent of one
+>> another.
 > 
-> That's just the thing, we don't do anything with it either really. I'm 
-> trying to justify its existence to myself and if you folks had some whiz 
-> bang idea for a driver version I was interested in hearing what it was.
+> What problem did this cause?
+> 
+>> +/* Users should use the glibc functions directly, not these wrappers */
+>>   #ifndef ntohll
+>> -#undef htonll
+>>   #undef ntohll
+>> -/* Users should use the glibc functions directly, not these wrappers */
+>> -static inline __attribute__((deprecated)) uint64_t htonll(uint64_t x) { return htobe64(x); }
+>>   static inline __attribute__((deprecated)) uint64_t ntohll(uint64_t x) { return be64toh(x); }
+>> -#define htonll htonll
+>>   #define ntohll ntohll
+>>   #endif
+>> +#ifndef htonll
+>> +#undef htonll
+> 
+> Both these undefs are not needed anymore.
+> 
+> Seems fine to me, if not weird that something would have a problem
+> here.
 
-FWIW I put VERMAGIC_STRING in drv_version:
+My understanding from Honggang is that this was necessary for him to get 
+opa-ff and infiniband-diags to compile (along with an update to our 
+libibmad package). He should be able to fill in the blanks with further 
+details.
 
-# ethtool -i p4p1
-driver: nfp
-version: 4.12.0-rc2-perf-00282-gc42dfc79
-...
-
-I think I got that idea from Felix Fietkau.  The backport-ified version
-of the driver [1] uses git hash and "o-o-t" sting:
-
-# ethtool -i p4p1
-driver: nfp
-version: 49e5c6abf5b2 (o-o-t)
-...
-
-So it's pretty easy to tell which driver the customer is using.  I
-could probably throw in the output of $(git rev-list --count HEAD) to
-have an automatic monotonically increasing "version" when built
-out-of-tree, hm...
-
-[1] https://github.com/Netronome/nfp-drv-kmods
+-- 
+Jarod Wilson
+jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
