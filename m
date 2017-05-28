@@ -1,56 +1,68 @@
-From: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core] libibumad: clean up htonll/ntohnll handling
-Date: Sat, 27 May 2017 18:01:08 -0400
-Message-ID: <ab35bf90-5d66-d972-1561-d519bb7289fd@redhat.com>
-References: <20170522141722.50502-1-jarod@redhat.com>
- <20170524163301.GA7054@obsidianresearch.com>
+From: Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [for-next 4/6] net/mlx5: FPGA, Add basic support for Innova
+Date: Sun, 28 May 2017 07:22:27 +0000
+Message-ID: <AM4PR0501MB1940330F0EBAA819C87C5278DBF20@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+References: <20170523114404.20387-1-saeedm@mellanox.com>
+ <20170523114404.20387-5-saeedm@mellanox.com>
+ <20170524165059.42lmrwzzcxvi2sf7@ast-mbp>
+ <AM4PR0501MB1940885C2F1CEF4DDE4EA8D1DBFF0@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+ <20170526030701.du4345mbprhcwjyi@ast-mbp>
+ <CALzJLG98D=3yMJV_q4sjVNG41AERFRU+6rwqQJsxnRuVeDTPdA@mail.gmail.com>
+ <20170526175624.5xxflpf24je5673h@ast-mbp>
+ <20170526181517.GA3860@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170524163301.GA7054-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20170526181517.GA3860-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Alexei Starovoitov <alexei.starovoitov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jsorensen-b10kYP2dOMg@public.gmane.org" <jsorensen-b10kYP2dOMg@public.gmane.org>, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-fpga-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fpga-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Tull <atull-yzvPICuk2ABMcg4IHK0kFoH6Mc4MB0Vx@public.gmane.org>, "yi1.li-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <yi1.li-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2017-05-24 12:33 PM, Jason Gunthorpe wrote:
-> On Mon, May 22, 2017 at 10:17:22AM -0400, Jarod Wilson wrote:
->> Only ntohll was being checked to see if it wasn't defined, and was then
->> redefining htonll as well as ntohll. This was causing some problems for
->> the compile of the opa-ff package. Simple enough to rearrange this code a
->> bit such that htonll and ntohll are handled entirely independent of one
->> another.
-> 
-> What problem did this cause?
-> 
->> +/* Users should use the glibc functions directly, not these wrappers */
->>   #ifndef ntohll
->> -#undef htonll
->>   #undef ntohll
->> -/* Users should use the glibc functions directly, not these wrappers */
->> -static inline __attribute__((deprecated)) uint64_t htonll(uint64_t x) { return htobe64(x); }
->>   static inline __attribute__((deprecated)) uint64_t ntohll(uint64_t x) { return be64toh(x); }
->> -#define htonll htonll
->>   #define ntohll ntohll
->>   #endif
->> +#ifndef htonll
->> +#undef htonll
-> 
-> Both these undefs are not needed anymore.
-> 
-> Seems fine to me, if not weird that something would have a problem
-> here.
-
-My understanding from Honggang is that this was necessary for him to get 
-opa-ff and infiniband-diags to compile (along with an update to our 
-libibmad package). He should be able to fill in the blanks with further 
-details.
-
--- 
-Jarod Wilson
-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBKYXNvbiBHdW50aG9ycGUgW21h
+aWx0bzpqZ3VudGhvcnBlQG9ic2lkaWFucmVzZWFyY2guY29tXQ0KPiANCj4gT24gRnJpLCBNYXkg
+MjYsIDIwMTcgYXQgMTA6NTY6MjVBTSAtMDcwMCwgQWxleGVpIFN0YXJvdm9pdG92IHdyb3RlOg0K
+PiANCj4gPiA+IGZvciB0aGF0IGZlYXR1cmUgd2hpY2ggaXMgdGhlIG9yaWdpbmF0aW5nIHBsYWNl
+LCBiZWZvcmUgZGVmaW5pbmcNCj4gPiA+IEFQSXMvaW5mcmFzdHJ1Y3R1cmVzLA0KPiA+ID4gdW50
+aWwgdGhlIGZlYXR1cmUgaXMgY29tcGxldGUgYW5kIGV2ZXJ5IGJvZHkgaXMgaGFwcHkgYWJvdXQg
+aXQuDQo+ID4NCj4gPiBUaGVyZSBpcyBkcml2ZXIvZnBnYSB0byBtYW5hZ2UgZnBnYSwgYnV0IG1s
+eCBmcGdhK25pYyBjb21ibw0KPiA+IHdpbGwgYmUgbWFuYWdlZCB2aWEgbWx4NS9jb3JlL2ZwZ2Ev
+DQo+ID4NCj4gPiBBZGRpbmcgZnBnYSBmb2xrcyBmb3IgdmlzaWJpbGl0eS4NCj4gDQo+IEl0IHdv
+dWxkIGJlIGdvb2QgdG8gdXNlIHRoZSBleGlzdGluZyBmcGdhIGxvYWRpbmcgaW5mcmFzdHJ1Y3R1
+cmUgdG8NCj4gZ2V0IHRoZSBiaXRzdHJlYW0gaW50byB0aGUgTklDLCBhbmQgdG8gdXNlIHRoZSBz
+YW1lIFhpbGlueCBiaXRzdHJlYW0NCj4gZm9ybWF0IGFzIGVnIFp5bnEgZG9lcyBmb3IgY29uc2lz
+dGVuY3kuDQo+IA0KPiBJJ20gdW5jbGVhciBob3cgdGhpcyB3b3JrcyAtIHRoZXJlIG11c3QgYmUg
+bW9yZSB0byBpdCB0aGFuIGp1c3QgYQ0KPiAnYnVtcCBvbiB0aGUgd2lyZScsIHRoZXJlIG11c3Qg
+YmUgc29tZSBjb21tdW5pY2F0aW9uIGNoYW5uZWwgYmV0d2Vlbg0KPiB0aGUgRlBHQSBhbmQgTGlu
+dXggdG8gc2V0IG9wZXJhdGlvbmFsIGRhdGEgKGVnIGxvYWQga2V5cykgZXRjLg0KPiANCj4gSWYg
+dGhhdCBpcyByZWdpc3RlciBtYXBwZWQgaW50byBhIFBDSS1CQVIgc29tZXBsYWNlIHRoZW4gaXQg
+cmVhbGx5DQo+IHNob3VsZCB1c2UgdGhlIEZQR0EgbGF5ZXIgZnVuY3Rpb25zIHRvIG1hbmFnZSBi
+aW5kaW5nIGRyaXZlcnMgdG8gdGhhdA0KPiByZWdpc3RlciB3aW5kb3cuDQo+IA0KPiBJZiBpdCBp
+cyBtYWlsYm94IGNvbW1hbmQgYmFzZWQgdGhlbiBpdCBpcyBub3QgYXMgZ29vZCBvZiBhIGZpdC4N
+Cj4gDQoNCkhpIEphc29uLA0KVGhhbmtzIGZvciB0YWtpbmcgdGhlIHRpbWUgdG8gY29uc2lkZXIg
+dGhpcyENCg0KVGhpcyBpcyBuZWl0aGVyIFBDSS1iYXIgbWFwcGVkLCBub3IgbWFpbGJveCBjb21t
+YW5kLg0KVGhlIEZQR0EgaXMgaW5kZWVkIGEgYnVtcC1vbi10aGUtd2lyZS4NCihJdCBoYXMgSTJD
+IHRvIHRoZSBDWDQgY2hpcCwgYnV0IHRoYXQgaXMgZm9yIGRlYnVnIHB1cnBvc2VzLCBhbmQgdG9v
+IHNsb3cNCnRvIHBlcmZvcm0gcmVhbCBwcm9ncmFtbWluZykNCg0KVGhlIEZQR0EgaXMgcHJvZ3Jh
+bW1lZCB3aXRoIFJvQ0UgcGFja2V0cy4gV2UgYXJlIGdvaW5nIHRvIHNoYXJlIGEgbG90IG9mDQpk
+ZXRhaWxzIGFib3V0IHRoaXMgaW4gdGhlIElQU2VjIG9mZmxvYWQgcGF0Y2hzZXQsIHNvIEkgZG9u
+J3Qgd2FudCB0byANCnJlcGVhdCBpdCBoZXJlLg0KSW4gc2hvcnQsIHdlIG9wZW4gYSBSb0NFdjIg
+UVAgYmV0d2VlbiB0aGUgY29ubmVjdCBhbmQgdGhlIEZQR0EgY2hpcHMuDQpPdmVyIHRoaXMgUVAs
+IHdlIGNhbiBjb21tdW5pY2F0ZSBhdCBoaWdoIHNwZWVkIHdpdGggdGhlIEZQR0EuDQoNCj4gSXMg
+dGhpcyBGUEdBIGV4cGVjdGVkIHRvIGJlIGN1c3RvbWVyIHByb2dyYW1tYWJsZT8gSW4gdGhhdCBj
+YXNlIHlvdQ0KPiByZWFsbHkgbmVlZCB0aGUgZnVsbCBpbmZyYXN0cnVjdHVyZSB0byBiaW5kIHRo
+ZSByaWdodCBkcml2ZXIgKHBvc3NpYmx5DQo+IGEgY3VzdG9tZXIgZHJpdmVyKSB0byB0aGUgY3Vy
+cmVudCBGUEdBLCB0byBleHBvc2UgdGhlIGNvcnJlY3QNCj4gb3BlcmF0aW9uYWwgaW50ZXJmYWNl
+IHRvIHRoZSBrZXJuZWwuDQoNCk1vc3Qgb2YgdGhlIElubm92YSBmYW1pbHkgb2YgY2FyZHMgYXJl
+IG5vdCBjdXN0b21lci1wcm9ncmFtbWFibGUuDQpPdmVyIHRpbWUsIHRoZXkgbWF5IHJlcXVpcmUg
+YW4gdXBncmFkZSAoZXNzZW50aWFsbHkgYSBGVyB1cGdyYWRlKSBidXQgbm90DQp3aXRoIGN1c3Rv
+bWVyIGxvZ2ljLg0KDQpPbmUgZmxhdm9yIG9mIHRoZSBwcm9kdWN0LCB0aGUgSW5ub3ZhIEZsZXgs
+IGFsbG93cyBjdXN0b21lciBsb2dpYyBpbiB0aGUNCkZQR0EuIEJ1dCBldmVuIHRoZW4gaXQgaXMg
+IndyYXBwZWQiIGJ5IE1lbGxhbm94IHNoZWxsIGxvZ2ljLg0KV2UgcGxhbiB0byBoYXZlIGFuIGlu
+LWtlcm5lbCBBUEkgZm9yIHdyaXRpbmcgY2xpZW50IGRyaXZlcnMgZm9yIElubm92YQ0KRmxleC4N
+Cg0KPiANCj4gSmFzb24NCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
