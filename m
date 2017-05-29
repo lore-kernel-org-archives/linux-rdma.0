@@ -1,42 +1,63 @@
-From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH rdma-next v2] RDMA/qedr: Add qedr to MAINTAINERS file
-Date: Mon, 29 May 2017 11:18:54 +0300
-Message-ID: <1496045934-4727-1-git-send-email-Ram.Amrani@cavium.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next] Revert "IB/core: Add flow control to the portmapper netlink calls"
+Date: Mon, 29 May 2017 11:24:23 +0300
+Message-ID: <20170529082423.1180-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-Nfu5REtnQAJWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
----
- MAINTAINERS | 8 ++++++++
- 1 file changed, 8 insertions(+)
+From: Leon Romanovsky <leonro-Nfu5REtnQAJWk0Htik3J/w@public.gmane.org>
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index c776906..c8fee60 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -10339,6 +10339,14 @@ L:	linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
- S:	Supported
- F:	drivers/scsi/qedf/
- 
-+QLOGIC QL4xxx RDMA DRIVER
-+M:	Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-+M:	Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-+L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+S:	Supported
-+F:	drivers/infiniband/hw/qedr/
-+F:	include/uapi/rdma/qedr-abi.h
-+
- QNX4 FILESYSTEM
- M:	Anders Larsen <al-V9/YLgxv/GvR7s880joybQ@public.gmane.org>
- W:	http://www.alarsen.net/linux/qnx4fs/
--- 
-1.8.3.1
+The commit cea05eadded0 ("IB/core: Add flow control to the portmapper netlink calls")
+changed netlink to be blocked for all RDMA clients. This workaround
+worked perfectly for portmapper, but is not correct for the whole
+NETLINK_RDMA family.
+
+The request/response should always be blocking and asynchronous
+notification should always be non-blocking.
+
+It is library and user-space application to chose how to handle recvmgs,
+as an example see nl_recvmsgs() and nl_socket_set_nonblocking() calls of
+libnl library.
+
+Send timeout is not needed too and can be configured with SO_SNDTIMEO socket
+option.
+
+This reverts commit cea05eadded0d4eb59f7be6e1f1560eb6bfde2bf.
+
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/netlink.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+index b784055423c8..fcc9702efd38 100644
+--- a/drivers/infiniband/core/netlink.c
++++ b/drivers/infiniband/core/netlink.c
+@@ -230,10 +230,7 @@ static void ibnl_rcv(struct sk_buff *skb)
+ int ibnl_unicast(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			__u32 pid)
+ {
+-	int err;
+-
+-	err = netlink_unicast(nls, skb, pid, 0);
+-	return (err < 0) ? err : 0;
++	return nlmsg_unicast(nls, skb, pid);
+ }
+ EXPORT_SYMBOL(ibnl_unicast);
+
+@@ -256,7 +253,6 @@ int __init ibnl_init(void)
+ 		return -ENOMEM;
+ 	}
+
+-	nls->sk_sndtimeo = 10 * HZ;
+ 	return 0;
+ }
+
+--
+2.12.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
