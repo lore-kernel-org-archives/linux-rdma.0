@@ -1,275 +1,62 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 2/9] IB/hfi1: Optimize cachelines for user SDMA
- request structure
-Date: Mon, 29 May 2017 19:16:57 +0300
-Message-ID: <20170529161657.GC17751@mtr-leonro.local>
-References: <20170526123257.8158.23943.stgit@scvm10.sc.intel.com>
- <20170526123517.8158.80658.stgit@scvm10.sc.intel.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next V1 1/4] IB/IPoIB: Convert IPoIB to
+ memalloc_noio_* calls
+Date: Mon, 29 May 2017 12:44:46 -0400
+Message-ID: <6f8f8d7b-40ba-f0ec-77cd-3c5b20dead23@intel.com>
+References: <20170523113816.32657-1-leon@kernel.org>
+ <20170523113816.32657-2-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="OtXN0xDA1zr/oUEL"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170526123517.8158.80658.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20170523113816.32657-2-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mel Gorman <mgorman-3eNAlZScCAx27rWaFMvyedHuzzzSOjJt@public.gmane.org>, Jiri Kosina <jikos-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 5/23/2017 7:38 AM, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> Commit 21caf2fc1931 ("mm: teach mm by current context info to not do I/O
+> during memory allocation") added the memalloc_noio_(save|restore) functions
+> to enable people to modify the MM behavior by disabling I/O during memory
+> allocation. This was further extended in Fixes: 934f3072c17c ("mm: clear
+> __GFP_FS when PF_MEMALLOC_NOIO is set"). memalloc_noio_* functions prevent
+> allocation paths recursing back into the filesystem without explicitly
+> changing the flags for every allocation site.
+> 
+> However the IPoIB hasn't been keeping up with the changes and missed
+> completely these memalloc_noio_* calls. This led to update of
+> allocation site with special QP creation flag, see commit 09b93088d750
+> ("IB: Add a QP creation flag to use GFP_NOIO allocations"), while this
+> flag is supported by small number of drivers in IB stack.
+> 
+> Let's change it by updating to memalloc_noio_* calls and allow
+> for every driver underneath enjoy NOIO allocations.
+> 
+> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
---OtXN0xDA1zr/oUEL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-On Fri, May 26, 2017 at 05:35:18AM -0700, Dennis Dalessandro wrote:
-> From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->
-> The current user SDMA request structure layout has holes.
-> The cachelines can be reduced to improve cacheline trading.
-> Separate fields in the following categories: mostly read,
-> writable and shared with interrupt.
->
-> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/hw/hfi1/user_sdma.c |  106 ++++++++++++++++++--------------
->  1 files changed, 58 insertions(+), 48 deletions(-)
->
-> diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
-> index 79450cf..92517ce 100644
-> --- a/drivers/infiniband/hw/hfi1/user_sdma.c
-> +++ b/drivers/infiniband/hw/hfi1/user_sdma.c
-> @@ -117,6 +117,7 @@
->
->  #define AHG_KDETH_INTR_SHIFT 12
->  #define AHG_KDETH_SH_SHIFT   13
-> +#define AHG_KDETH_ARRAY_SIZE  9
->
->  #define PBC2LRH(x) ((((x) & 0xfff) << 2) - 4)
->  #define LRH2PBC(x) ((((x) >> 2) + 1) & 0xfff)
-> @@ -204,25 +205,42 @@ struct evict_data {
->  };
->
->  struct user_sdma_request {
-> -	struct sdma_req_info info;
-> -	struct hfi1_user_sdma_pkt_q *pq;
-> -	struct hfi1_user_sdma_comp_q *cq;
->  	/* This is the original header from user space */
->  	struct hfi1_pkt_header hdr;
-> +
-> +	/* Read mostly fields */
-> +	struct hfi1_user_sdma_pkt_q *pq ____cacheline_aligned_in_smp;
-> +	struct hfi1_user_sdma_comp_q *cq;
->  	/*
->  	 * Pointer to the SDMA engine for this request.
->  	 * Since different request could be on different VLs,
->  	 * each request will need it's own engine pointer.
->  	 */
->  	struct sdma_engine *sde;
-> -	s8 ahg_idx;
-> -	u32 ahg[9];
-> +	struct sdma_req_info info;
-> +	/* TID array values copied from the tid_iov vector */
-> +	u32 *tids;
-> +	/* total length of the data in the request */
-> +	u32 data_len;
-> +	/* number of elements copied to the tids array */
-> +	u16 n_tids;
->  	/*
-> -	 * KDETH.Offset (Eager) field
-> -	 * We need to remember the initial value so the headers
-> -	 * can be updated properly.
-> +	 * We copy the iovs for this request (based on
-> +	 * info.iovcnt). These are only the data vectors
->  	 */
-> -	u32 koffset;
-> +	u8 data_iovs;
-> +	s8 ahg_idx;
-> +
-> +	/* Writeable fields shared with interrupt */
-> +	u64 seqcomp ____cacheline_aligned_in_smp;
-> +	u64 seqsubmitted;
-> +	unsigned long flags;
-> +	/* status of the last txreq completed */
-> +	int status;
-> +
-> +	/* Send side fields */
-> +	struct list_head txps ____cacheline_aligned_in_smp;
-> +	u64 seqnum;
->  	/*
->  	 * KDETH.OFFSET (TID) field
->  	 * The offset can cover multiple packets, depending on the
-> @@ -230,29 +248,19 @@ struct user_sdma_request {
->  	 */
->  	u32 tidoffset;
->  	/*
-> -	 * We copy the iovs for this request (based on
-> -	 * info.iovcnt). These are only the data vectors
-> +	 * KDETH.Offset (Eager) field
-> +	 * We need to remember the initial value so the headers
-> +	 * can be updated properly.
->  	 */
-> -	unsigned data_iovs;
-> -	/* total length of the data in the request */
-> -	u32 data_len;
-> +	u32 koffset;
-> +	u32 sent;
-> +	/* TID index copied from the tid_iov vector */
-> +	u16 tididx;
->  	/* progress index moving along the iovs array */
-> -	unsigned iov_idx;
-> +	u8 iov_idx;
-> +
->  	struct user_sdma_iovec iovs[MAX_VECTORS_PER_REQ];
-> -	/* number of elements copied to the tids array */
-> -	u16 n_tids;
-> -	/* TID array values copied from the tid_iov vector */
-> -	u32 *tids;
-> -	u16 tididx;
-> -	u32 sent;
-> -	u64 seqnum;
-> -	u64 seqcomp;
-> -	u64 seqsubmitted;
-> -	struct list_head txps;
-> -	unsigned long flags;
-> -	/* status of the last txreq completed */
-> -	int status;
-> -};
-> +} ____cacheline_aligned_in_smp;
+> @@ -1131,10 +1127,11 @@ static int ipoib_cm_tx_init(struct ipoib_cm_tx *p, u32 qpn,
+>   			    struct sa_path_rec *pathrec)
+>   {
+>   	struct ipoib_dev_priv *priv = ipoib_priv(p->dev);
+> +	unsigned int noio_flag;
 
-Out of curiosity, do you have pahole data before vs. after to share?
+>   	int ret;
+>   
+> -	p->tx_ring = __vmalloc(ipoib_sendq_size * sizeof *p->tx_ring,
+> -			       GFP_NOIO, PAGE_KERNEL);
+> +	noio_flag = memalloc_noio_save();
 
->
->  /*
->   * A single txreq could span up to 3 physical pages when the MTU
-> @@ -1034,11 +1042,6 @@ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
->  							       datalen);
->  				if (changes < 0)
->  					goto free_tx;
-> -				sdma_txinit_ahg(&tx->txreq,
-> -						SDMA_TXREQ_F_USE_AHG,
-> -						datalen, req->ahg_idx, changes,
-> -						req->ahg, sizeof(req->hdr),
-> -						user_sdma_txreq_cb);
->  			}
->  		} else {
->  			ret = sdma_txinit(&tx->txreq, 0, sizeof(req->hdr) +
-> @@ -1442,21 +1445,22 @@ static int set_txreq_header(struct user_sdma_request *req,
->  }
->
->  static int set_txreq_header_ahg(struct user_sdma_request *req,
-> -				struct user_sdma_txreq *tx, u32 len)
-> +				struct user_sdma_txreq *tx, u32 datalen)
->  {
-> +	u32 ahg[AHG_KDETH_ARRAY_SIZE];
->  	int diff = 0;
->  	u8 omfactor; /* KDETH.OM */
->  	struct hfi1_user_sdma_pkt_q *pq = req->pq;
->  	struct hfi1_pkt_header *hdr = &req->hdr;
->  	u16 pbclen = le16_to_cpu(hdr->pbc[0]);
-> -	u32 val32, tidval = 0, lrhlen = get_lrh_len(*hdr, pad_len(len));
-> +	u32 val32, tidval = 0, lrhlen = get_lrh_len(*hdr, pad_len(datalen));
->
->  	if (PBC2LRH(pbclen) != lrhlen) {
->  		/* PBC.PbcLengthDWs */
-> -		AHG_HEADER_SET(req->ahg, diff, 0, 0, 12,
-> +		AHG_HEADER_SET(ahg, diff, 0, 0, 12,
->  			       cpu_to_le16(LRH2PBC(lrhlen)));
->  		/* LRH.PktLen (we need the full 16 bits due to byte swap) */
-> -		AHG_HEADER_SET(req->ahg, diff, 3, 0, 16,
-> +		AHG_HEADER_SET(ahg, diff, 3, 0, 16,
->  			       cpu_to_be16(lrhlen >> 2));
->  	}
->
-> @@ -1468,13 +1472,12 @@ static int set_txreq_header_ahg(struct user_sdma_request *req,
->  		(HFI1_CAP_IS_KSET(EXTENDED_PSN) ? 0x7fffffff : 0xffffff);
->  	if (unlikely(tx->flags & TXREQ_FLAGS_REQ_ACK))
->  		val32 |= 1UL << 31;
-> -	AHG_HEADER_SET(req->ahg, diff, 6, 0, 16, cpu_to_be16(val32 >> 16));
-> -	AHG_HEADER_SET(req->ahg, diff, 6, 16, 16, cpu_to_be16(val32 & 0xffff));
-> +	AHG_HEADER_SET(ahg, diff, 6, 0, 16, cpu_to_be16(val32 >> 16));
-> +	AHG_HEADER_SET(ahg, diff, 6, 16, 16, cpu_to_be16(val32 & 0xffff));
->  	/* KDETH.Offset */
-> -	AHG_HEADER_SET(req->ahg, diff, 15, 0, 16,
-> +	AHG_HEADER_SET(ahg, diff, 15, 0, 16,
->  		       cpu_to_le16(req->koffset & 0xffff));
-> -	AHG_HEADER_SET(req->ahg, diff, 15, 16, 16,
-> -		       cpu_to_le16(req->koffset >> 16));
-> +	AHG_HEADER_SET(ahg, diff, 15, 16, 16, cpu_to_le16(req->koffset >> 16));
->  	if (req_opcode(req->info.ctrl) == EXPECTED) {
->  		__le16 val;
->
-> @@ -1492,9 +1495,8 @@ static int set_txreq_header_ahg(struct user_sdma_request *req,
->  			 * we have to check again.
->  			 */
->  			if (++req->tididx > req->n_tids - 1 ||
-> -			    !req->tids[req->tididx]) {
-> +			    !req->tids[req->tididx])
->  				return -EINVAL;
-> -			}
->  			tidval = req->tids[req->tididx];
->  		}
->  		omfactor = ((EXP_TID_GET(tidval, LEN) *
-> @@ -1502,7 +1504,7 @@ static int set_txreq_header_ahg(struct user_sdma_request *req,
->  				 KDETH_OM_MAX_SIZE) ? KDETH_OM_LARGE_SHIFT :
->  				 KDETH_OM_SMALL_SHIFT;
->  		/* KDETH.OM and KDETH.OFFSET (TID) */
-> -		AHG_HEADER_SET(req->ahg, diff, 7, 0, 16,
-> +		AHG_HEADER_SET(ahg, diff, 7, 0, 16,
->  			       ((!!(omfactor - KDETH_OM_SMALL_SHIFT)) << 15 |
->  				((req->tidoffset >> omfactor)
->  				 & 0x7fff)));
-> @@ -1522,12 +1524,20 @@ static int set_txreq_header_ahg(struct user_sdma_request *req,
->  					     AHG_KDETH_INTR_SHIFT));
->  		}
->
-> -		AHG_HEADER_SET(req->ahg, diff, 7, 16, 14, val);
-> +		AHG_HEADER_SET(ahg, diff, 7, 16, 14, val);
->  	}
-> +	if (diff < 0)
-> +		return diff;
->
->  	trace_hfi1_sdma_user_header_ahg(pq->dd, pq->ctxt, pq->subctxt,
->  					req->info.comp_idx, req->sde->this_idx,
-> -					req->ahg_idx, req->ahg, diff, tidval);
-> +					req->ahg_idx, ahg, diff, tidval);
-> +	sdma_txinit_ahg(&tx->txreq,
-> +			SDMA_TXREQ_F_USE_AHG,
-> +			datalen, req->ahg_idx, diff,
-> +			ahg, sizeof(req->hdr),
-> +			user_sdma_txreq_cb);
-> +
->  	return diff;
->  }
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+NIT: Maybe just call this "flags" since there could be other flags in 
+current->flags when calling memalloc_noio_save()
 
---OtXN0xDA1zr/oUEL
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlksSXkACgkQ5GN7iDZy
-WKfcwg//ZvpebFisLJ2bQoWukxYJLifSoqhIFVLxCWpF3qxtCgRqUpsAqfkPe762
-XAvtB3TX8vlx6UZw/sCjwexDaSEpGAf8tHGiQ31rE38LcppUAwJz4LAqeAhqY0NH
-fMt5erthU88zB40asl9i1yVqRxNTHRuATVLFB7VCqaYQ6ucmawm/iENKYxDMsGf9
-sQUKfNwCKwMhHcsmRpMEG8hqg41n5JcWFH8WWIOfLbFffIizHtPjjBbtM6WO0EPj
-ell6rkCnKSI89LI1oF0/bc3SrNx6DBrreX+jftktgHtAMInBTWs3R6hkKM7RAjNO
-74IvNHWUFR0gzvuz4mfpQrDnsHKS4PVzBIX2p6O0R0z1NeCfUuoIJRXZPnmMvnq3
-X2DW4WjlOeVRcdKi0YcI9m/zEWEVQWoBYTj3+Q8qGUpnUohF3zHQSYcz4eCrFTIU
-XvjfAiVQuQh4ajFeuG+0JI6vKl1ACMqJp2w1kBebLc0hs6Bh5ylqzx+uVyTfLza1
-wSOmJqqQ2qHtHWtIWDTZkoHYerlRp6uONq9c9vvD99EQEeMTvuHlVOLQJrwEdFNA
-AbKVUvN24JfyLtt/BDuuBFP+tcyOFBZ5MXj84qFawN1J04LuwYQBgXQDNFLb+3RV
-1hFnblYoiEOpvDQ4AcYloOiRz2ufjd7GgXNOevaP6A8F+i059l8=
-=2KCr
------END PGP SIGNATURE-----
-
---OtXN0xDA1zr/oUEL--
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
