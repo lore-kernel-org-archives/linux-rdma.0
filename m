@@ -1,178 +1,275 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 5/9] IB/core, rdmavt, hfi1: Send OPA cap_mask3
- in trap
-Date: Mon, 29 May 2017 19:14:07 +0300
-Message-ID: <20170529161407.GB17751@mtr-leonro.local>
+Subject: Re: [PATCH for-next 2/9] IB/hfi1: Optimize cachelines for user SDMA
+ request structure
+Date: Mon, 29 May 2017 19:16:57 +0300
+Message-ID: <20170529161657.GC17751@mtr-leonro.local>
 References: <20170526123257.8158.23943.stgit@scvm10.sc.intel.com>
- <20170526123536.8158.237.stgit@scvm10.sc.intel.com>
+ <20170526123517.8158.80658.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="UTjKcilERHWBCdCp"
+        protocol="application/pgp-signature"; boundary="OtXN0xDA1zr/oUEL"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170526123536.8158.237.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20170526123517.8158.80658.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Michael N. Henry" <michael.n.henry-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---UTjKcilERHWBCdCp
+--OtXN0xDA1zr/oUEL
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, May 26, 2017 at 05:35:37AM -0700, Dennis Dalessandro wrote:
-> From: Michael N. Henry <michael.n.henry-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Fri, May 26, 2017 at 05:35:18AM -0700, Dennis Dalessandro wrote:
+> From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >
-> Provide the ability for IB clients to modify the OPA specific
-> capability mask and include this mask in the subsequent trap data.
+> The current user SDMA request structure layout has holes.
+> The cachelines can be reduced to improve cacheline trading.
+> Separate fields in the following categories: mostly read,
+> writable and shared with interrupt.
 >
-> Reviewed-by: Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Michael N. Henry <michael.n.henry-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > ---
->  drivers/infiniband/hw/hfi1/mad.c   |    7 ++-----
->  drivers/infiniband/hw/hfi1/mad.h   |    2 +-
->  drivers/infiniband/hw/hfi1/verbs.c |    7 ++++++-
->  drivers/infiniband/sw/rdmavt/vt.c  |    9 +++++++--
->  include/rdma/ib_verbs.h            |    3 ++-
->  include/rdma/rdma_vt.h             |    1 +
->  6 files changed, 19 insertions(+), 10 deletions(-)
+>  drivers/infiniband/hw/hfi1/user_sdma.c |  106 ++++++++++++++++++--------------
+>  1 files changed, 58 insertions(+), 48 deletions(-)
 >
-> diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
-> index 5977673..70831ad 100644
-> --- a/drivers/infiniband/hw/hfi1/mad.c
-> +++ b/drivers/infiniband/hw/hfi1/mad.c
-> @@ -260,6 +260,7 @@ void hfi1_cap_mask_chg(struct rvt_dev_info *rdi, u8 port_num)
->  	data.issuer_lid = cpu_to_be32(lid);
->  	data.ntc_144.lid = data.issuer_lid;
->  	data.ntc_144.new_cap_mask = cpu_to_be32(ibp->rvp.port_cap_flags);
-> +	data.ntc_144.cap_mask3 = cpu_to_be16(ibp->rvp.port_cap3_flags);
+> diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
+> index 79450cf..92517ce 100644
+> --- a/drivers/infiniband/hw/hfi1/user_sdma.c
+> +++ b/drivers/infiniband/hw/hfi1/user_sdma.c
+> @@ -117,6 +117,7 @@
 >
->  	send_trap(ibp, &data, sizeof(data));
->  }
-> @@ -704,11 +705,7 @@ static int __subn_get_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
->  	buffer_units |= (dd->vl15_init << 11) & OPA_PI_MASK_BUF_UNIT_VL15_INIT;
->  	pi->buffer_units = cpu_to_be32(buffer_units);
+>  #define AHG_KDETH_INTR_SHIFT 12
+>  #define AHG_KDETH_SH_SHIFT   13
+> +#define AHG_KDETH_ARRAY_SIZE  9
 >
-> -	pi->opa_cap_mask = cpu_to_be16(OPA_CAP_MASK3_IsSharedSpaceSupported |
-> -				       OPA_CAP_MASK3_IsEthOnFabricSupported);
-> -	/* Driver does not support mcast/collective configuration */
-> -	pi->opa_cap_mask &=
-> -		cpu_to_be16(~OPA_CAP_MASK3_IsAddrRangeConfigSupported);
-> +	pi->opa_cap_mask = cpu_to_be16(ibp->rvp.port_cap3_flags);
->  	pi->collectivemask_multicastmask = ((HFI1_COLLECTIVE_NR & 0x7)
->  					    << 3 | (HFI1_MCAST_NR & 0x7));
->
-> diff --git a/drivers/infiniband/hw/hfi1/mad.h b/drivers/infiniband/hw/hfi1/mad.h
-> index 5aa3fd1..a4e2506 100644
-> --- a/drivers/infiniband/hw/hfi1/mad.h
-> +++ b/drivers/infiniband/hw/hfi1/mad.h
-> @@ -115,7 +115,7 @@ struct opa_mad_notice_attr {
->  			__be32	lid;		/* LID where change occurred */
->  			__be32	new_cap_mask;	/* new capability mask */
->  			__be16	reserved2;
-> -			__be16	cap_mask;
-> +			__be16	cap_mask3;
->  			__be16	change_flags;	/* low 4 bits only */
->  		} __packed ntc_144;
->
-> diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-> index af54d3f..2881798 100644
-> --- a/drivers/infiniband/hw/hfi1/verbs.c
-> +++ b/drivers/infiniband/hw/hfi1/verbs.c
-> @@ -1537,9 +1537,14 @@ static void init_ibport(struct hfi1_pportdata *ppd)
->  	/* Set the prefix to the default value (see ch. 4.1.1) */
->  	ibp->rvp.gid_prefix = IB_DEFAULT_GID_PREFIX;
->  	ibp->rvp.sm_lid = 0;
-> -	/* Below should only set bits defined in OPA PortInfo.CapabilityMask */
-> +	/*
-> +	 * Below should only set bits defined in OPA PortInfo.CapabilityMask
-> +	 * and PortInfo.CapabilityMask3
-> +	 */
->  	ibp->rvp.port_cap_flags = IB_PORT_AUTO_MIGR_SUP |
->  		IB_PORT_CAP_MASK_NOTICE_SUP;
-> +	ibp->rvp.port_cap3_flags = OPA_CAP_MASK3_IsSharedSpaceSupported |
-> +				   OPA_CAP_MASK3_IsEthOnFabricSupported;
->  	ibp->rvp.pma_counter_select[0] = IB_PMA_PORT_XMIT_DATA;
->  	ibp->rvp.pma_counter_select[1] = IB_PMA_PORT_RCV_DATA;
->  	ibp->rvp.pma_counter_select[2] = IB_PMA_PORT_XMIT_PKTS;
-> diff --git a/drivers/infiniband/sw/rdmavt/vt.c b/drivers/infiniband/sw/rdmavt/vt.c
-> index 0d7c6bb..64bdd44 100644
-> --- a/drivers/infiniband/sw/rdmavt/vt.c
-> +++ b/drivers/infiniband/sw/rdmavt/vt.c
-> @@ -202,8 +202,13 @@ static int rvt_modify_port(struct ib_device *ibdev, u8 port_num,
->  		return -EINVAL;
->
->  	rvp = rdi->ports[port_index];
-> -	rvp->port_cap_flags |= props->set_port_cap_mask;
-> -	rvp->port_cap_flags &= ~props->clr_port_cap_mask;
-> +	if (port_modify_mask & IB_PORT_OPA_MASK_CHG) {
-> +		rvp->port_cap3_flags |= props->set_port_cap_mask;
-> +		rvp->port_cap3_flags &= ~props->clr_port_cap_mask;
-> +	} else {
-> +		rvp->port_cap_flags |= props->set_port_cap_mask;
-> +		rvp->port_cap_flags &= ~props->clr_port_cap_mask;
-> +	}
->
->  	if (props->set_port_cap_mask || props->clr_port_cap_mask)
->  		rdi->driver_f.cap_mask_chg(rdi, port_num);
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index 785e927..6c4f6da 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -576,7 +576,8 @@ struct ib_device_modify {
->  enum ib_port_modify_flags {
->  	IB_PORT_SHUTDOWN		= 1,
->  	IB_PORT_INIT_TYPE		= (1<<2),
-> -	IB_PORT_RESET_QKEY_CNTR		= (1<<3)
-> +	IB_PORT_RESET_QKEY_CNTR		= (1<<3),
-> +	IB_PORT_OPA_MASK_CHG		= (1<<4)
-
-How will this flag be set?
-
+>  #define PBC2LRH(x) ((((x) & 0xfff) << 2) - 4)
+>  #define LRH2PBC(x) ((((x) >> 2) + 1) & 0xfff)
+> @@ -204,25 +205,42 @@ struct evict_data {
 >  };
 >
->  struct ib_port_modify {
-> diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
-> index d0b9f91..0f18ffd 100644
-> --- a/include/rdma/rdma_vt.h
-> +++ b/include/rdma/rdma_vt.h
-> @@ -75,6 +75,7 @@ struct rvt_ibport {
->  	__be64 mkey;
->  	u64 tid;
->  	u32 port_cap_flags;
-> +	u16 port_cap3_flags;
->  	u32 pma_sample_start;
->  	u32 pma_sample_interval;
->  	__be16 pma_counter_select[5];
+>  struct user_sdma_request {
+> -	struct sdma_req_info info;
+> -	struct hfi1_user_sdma_pkt_q *pq;
+> -	struct hfi1_user_sdma_comp_q *cq;
+>  	/* This is the original header from user space */
+>  	struct hfi1_pkt_header hdr;
+> +
+> +	/* Read mostly fields */
+> +	struct hfi1_user_sdma_pkt_q *pq ____cacheline_aligned_in_smp;
+> +	struct hfi1_user_sdma_comp_q *cq;
+>  	/*
+>  	 * Pointer to the SDMA engine for this request.
+>  	 * Since different request could be on different VLs,
+>  	 * each request will need it's own engine pointer.
+>  	 */
+>  	struct sdma_engine *sde;
+> -	s8 ahg_idx;
+> -	u32 ahg[9];
+> +	struct sdma_req_info info;
+> +	/* TID array values copied from the tid_iov vector */
+> +	u32 *tids;
+> +	/* total length of the data in the request */
+> +	u32 data_len;
+> +	/* number of elements copied to the tids array */
+> +	u16 n_tids;
+>  	/*
+> -	 * KDETH.Offset (Eager) field
+> -	 * We need to remember the initial value so the headers
+> -	 * can be updated properly.
+> +	 * We copy the iovs for this request (based on
+> +	 * info.iovcnt). These are only the data vectors
+>  	 */
+> -	u32 koffset;
+> +	u8 data_iovs;
+> +	s8 ahg_idx;
+> +
+> +	/* Writeable fields shared with interrupt */
+> +	u64 seqcomp ____cacheline_aligned_in_smp;
+> +	u64 seqsubmitted;
+> +	unsigned long flags;
+> +	/* status of the last txreq completed */
+> +	int status;
+> +
+> +	/* Send side fields */
+> +	struct list_head txps ____cacheline_aligned_in_smp;
+> +	u64 seqnum;
+>  	/*
+>  	 * KDETH.OFFSET (TID) field
+>  	 * The offset can cover multiple packets, depending on the
+> @@ -230,29 +248,19 @@ struct user_sdma_request {
+>  	 */
+>  	u32 tidoffset;
+>  	/*
+> -	 * We copy the iovs for this request (based on
+> -	 * info.iovcnt). These are only the data vectors
+> +	 * KDETH.Offset (Eager) field
+> +	 * We need to remember the initial value so the headers
+> +	 * can be updated properly.
+>  	 */
+> -	unsigned data_iovs;
+> -	/* total length of the data in the request */
+> -	u32 data_len;
+> +	u32 koffset;
+> +	u32 sent;
+> +	/* TID index copied from the tid_iov vector */
+> +	u16 tididx;
+>  	/* progress index moving along the iovs array */
+> -	unsigned iov_idx;
+> +	u8 iov_idx;
+> +
+>  	struct user_sdma_iovec iovs[MAX_VECTORS_PER_REQ];
+> -	/* number of elements copied to the tids array */
+> -	u16 n_tids;
+> -	/* TID array values copied from the tid_iov vector */
+> -	u32 *tids;
+> -	u16 tididx;
+> -	u32 sent;
+> -	u64 seqnum;
+> -	u64 seqcomp;
+> -	u64 seqsubmitted;
+> -	struct list_head txps;
+> -	unsigned long flags;
+> -	/* status of the last txreq completed */
+> -	int status;
+> -};
+> +} ____cacheline_aligned_in_smp;
+
+Out of curiosity, do you have pahole data before vs. after to share?
+
+>
+>  /*
+>   * A single txreq could span up to 3 physical pages when the MTU
+> @@ -1034,11 +1042,6 @@ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
+>  							       datalen);
+>  				if (changes < 0)
+>  					goto free_tx;
+> -				sdma_txinit_ahg(&tx->txreq,
+> -						SDMA_TXREQ_F_USE_AHG,
+> -						datalen, req->ahg_idx, changes,
+> -						req->ahg, sizeof(req->hdr),
+> -						user_sdma_txreq_cb);
+>  			}
+>  		} else {
+>  			ret = sdma_txinit(&tx->txreq, 0, sizeof(req->hdr) +
+> @@ -1442,21 +1445,22 @@ static int set_txreq_header(struct user_sdma_request *req,
+>  }
+>
+>  static int set_txreq_header_ahg(struct user_sdma_request *req,
+> -				struct user_sdma_txreq *tx, u32 len)
+> +				struct user_sdma_txreq *tx, u32 datalen)
+>  {
+> +	u32 ahg[AHG_KDETH_ARRAY_SIZE];
+>  	int diff = 0;
+>  	u8 omfactor; /* KDETH.OM */
+>  	struct hfi1_user_sdma_pkt_q *pq = req->pq;
+>  	struct hfi1_pkt_header *hdr = &req->hdr;
+>  	u16 pbclen = le16_to_cpu(hdr->pbc[0]);
+> -	u32 val32, tidval = 0, lrhlen = get_lrh_len(*hdr, pad_len(len));
+> +	u32 val32, tidval = 0, lrhlen = get_lrh_len(*hdr, pad_len(datalen));
+>
+>  	if (PBC2LRH(pbclen) != lrhlen) {
+>  		/* PBC.PbcLengthDWs */
+> -		AHG_HEADER_SET(req->ahg, diff, 0, 0, 12,
+> +		AHG_HEADER_SET(ahg, diff, 0, 0, 12,
+>  			       cpu_to_le16(LRH2PBC(lrhlen)));
+>  		/* LRH.PktLen (we need the full 16 bits due to byte swap) */
+> -		AHG_HEADER_SET(req->ahg, diff, 3, 0, 16,
+> +		AHG_HEADER_SET(ahg, diff, 3, 0, 16,
+>  			       cpu_to_be16(lrhlen >> 2));
+>  	}
+>
+> @@ -1468,13 +1472,12 @@ static int set_txreq_header_ahg(struct user_sdma_request *req,
+>  		(HFI1_CAP_IS_KSET(EXTENDED_PSN) ? 0x7fffffff : 0xffffff);
+>  	if (unlikely(tx->flags & TXREQ_FLAGS_REQ_ACK))
+>  		val32 |= 1UL << 31;
+> -	AHG_HEADER_SET(req->ahg, diff, 6, 0, 16, cpu_to_be16(val32 >> 16));
+> -	AHG_HEADER_SET(req->ahg, diff, 6, 16, 16, cpu_to_be16(val32 & 0xffff));
+> +	AHG_HEADER_SET(ahg, diff, 6, 0, 16, cpu_to_be16(val32 >> 16));
+> +	AHG_HEADER_SET(ahg, diff, 6, 16, 16, cpu_to_be16(val32 & 0xffff));
+>  	/* KDETH.Offset */
+> -	AHG_HEADER_SET(req->ahg, diff, 15, 0, 16,
+> +	AHG_HEADER_SET(ahg, diff, 15, 0, 16,
+>  		       cpu_to_le16(req->koffset & 0xffff));
+> -	AHG_HEADER_SET(req->ahg, diff, 15, 16, 16,
+> -		       cpu_to_le16(req->koffset >> 16));
+> +	AHG_HEADER_SET(ahg, diff, 15, 16, 16, cpu_to_le16(req->koffset >> 16));
+>  	if (req_opcode(req->info.ctrl) == EXPECTED) {
+>  		__le16 val;
+>
+> @@ -1492,9 +1495,8 @@ static int set_txreq_header_ahg(struct user_sdma_request *req,
+>  			 * we have to check again.
+>  			 */
+>  			if (++req->tididx > req->n_tids - 1 ||
+> -			    !req->tids[req->tididx]) {
+> +			    !req->tids[req->tididx])
+>  				return -EINVAL;
+> -			}
+>  			tidval = req->tids[req->tididx];
+>  		}
+>  		omfactor = ((EXP_TID_GET(tidval, LEN) *
+> @@ -1502,7 +1504,7 @@ static int set_txreq_header_ahg(struct user_sdma_request *req,
+>  				 KDETH_OM_MAX_SIZE) ? KDETH_OM_LARGE_SHIFT :
+>  				 KDETH_OM_SMALL_SHIFT;
+>  		/* KDETH.OM and KDETH.OFFSET (TID) */
+> -		AHG_HEADER_SET(req->ahg, diff, 7, 0, 16,
+> +		AHG_HEADER_SET(ahg, diff, 7, 0, 16,
+>  			       ((!!(omfactor - KDETH_OM_SMALL_SHIFT)) << 15 |
+>  				((req->tidoffset >> omfactor)
+>  				 & 0x7fff)));
+> @@ -1522,12 +1524,20 @@ static int set_txreq_header_ahg(struct user_sdma_request *req,
+>  					     AHG_KDETH_INTR_SHIFT));
+>  		}
+>
+> -		AHG_HEADER_SET(req->ahg, diff, 7, 16, 14, val);
+> +		AHG_HEADER_SET(ahg, diff, 7, 16, 14, val);
+>  	}
+> +	if (diff < 0)
+> +		return diff;
+>
+>  	trace_hfi1_sdma_user_header_ahg(pq->dd, pq->ctxt, pq->subctxt,
+>  					req->info.comp_idx, req->sde->this_idx,
+> -					req->ahg_idx, req->ahg, diff, tidval);
+> +					req->ahg_idx, ahg, diff, tidval);
+> +	sdma_txinit_ahg(&tx->txreq,
+> +			SDMA_TXREQ_F_USE_AHG,
+> +			datalen, req->ahg_idx, diff,
+> +			ahg, sizeof(req->hdr),
+> +			user_sdma_txreq_cb);
+> +
+>  	return diff;
+>  }
+>
 >
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---UTjKcilERHWBCdCp
+--OtXN0xDA1zr/oUEL
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlksSM4ACgkQ5GN7iDZy
-WKfjWg/+K9ntousUxpH072kMvkRk1ipeqELtVJk4FMkG6Nm3U0kKdwo50qIItJMG
-U7VakLM30hTCdTRB7k62FS5HLBdrrKtt6dMjIijNaXkUy4mDp6miqJEu8D2IJNfz
-zsR55SLGh6Q97QC68CscHiC+wTYvCHZDJr3gYPP0Opku8VGri3ZI3qTeMwClgUFh
-snQzs839GmUds3TZCyKZ1ejIMrWfkHlIOtUgnZpcJcYBCR++HVZr2PHq+1B6leAX
-ECtLnFfvHbFop7tQfIOVpoEUvtI0zKJFXs5F6h7+P8dHsjSv1Jy86Jk48DacjnLg
-43mSLjQkAdbJh28S2i1znVBmmMQggOM/l6hPIBozmG3AGajuki4ef+5Si3c1RuDQ
-47nQMtGM2NRS2Wfl9GXbXxP9tfg1Akckjs2aTMF5oZxbWiJRf6H0Hi7Xou31I64k
-zqcpzzUyM6yvugtbupIXSu0bTkzm4we750JU0+PpAkymZToDqpzlC31PHqpytPjK
-NTvLUVdb9nEJqg/MZG+pYJBp15QZ6q6+7GNQ9ohjTmAjFD/5sgvXP4uOt8JK89oC
-k3t2IgQPldBFneqmMlN92N7VDnnHG+nKM6RFTMdjxlrA4bt1S/eqEMYAFUxWi/7Z
-bWZ3catb/fxdd/15cygBrfuyhpyB56LkFukZ9IbYMDOTC9GTFzc=
-=i5uw
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlksSXkACgkQ5GN7iDZy
+WKfcwg//ZvpebFisLJ2bQoWukxYJLifSoqhIFVLxCWpF3qxtCgRqUpsAqfkPe762
+XAvtB3TX8vlx6UZw/sCjwexDaSEpGAf8tHGiQ31rE38LcppUAwJz4LAqeAhqY0NH
+fMt5erthU88zB40asl9i1yVqRxNTHRuATVLFB7VCqaYQ6ucmawm/iENKYxDMsGf9
+sQUKfNwCKwMhHcsmRpMEG8hqg41n5JcWFH8WWIOfLbFffIizHtPjjBbtM6WO0EPj
+ell6rkCnKSI89LI1oF0/bc3SrNx6DBrreX+jftktgHtAMInBTWs3R6hkKM7RAjNO
+74IvNHWUFR0gzvuz4mfpQrDnsHKS4PVzBIX2p6O0R0z1NeCfUuoIJRXZPnmMvnq3
+X2DW4WjlOeVRcdKi0YcI9m/zEWEVQWoBYTj3+Q8qGUpnUohF3zHQSYcz4eCrFTIU
+XvjfAiVQuQh4ajFeuG+0JI6vKl1ACMqJp2w1kBebLc0hs6Bh5ylqzx+uVyTfLza1
+wSOmJqqQ2qHtHWtIWDTZkoHYerlRp6uONq9c9vvD99EQEeMTvuHlVOLQJrwEdFNA
+AbKVUvN24JfyLtt/BDuuBFP+tcyOFBZ5MXj84qFawN1J04LuwYQBgXQDNFLb+3RV
+1hFnblYoiEOpvDQ4AcYloOiRz2ufjd7GgXNOevaP6A8F+i059l8=
+=2KCr
 -----END PGP SIGNATURE-----
 
---UTjKcilERHWBCdCp--
+--OtXN0xDA1zr/oUEL--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
