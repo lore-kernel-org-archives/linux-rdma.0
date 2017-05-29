@@ -1,104 +1,66 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 2/2] IB/mlx5: set UMR wqe fence according to HCA cap
-Date: Mon, 29 May 2017 19:06:09 +0300
-Message-ID: <20170529160609.GA17751@mtr-leonro.local>
-References: <1495957991-19223-1-git-send-email-maxg@mellanox.com>
- <1495957991-19223-2-git-send-email-maxg@mellanox.com>
- <20170528090705.GM13083@lst.de>
- <19a1d347-91da-7e5f-8877-86772204a80a@mellanox.com>
- <20170529100504.GZ17751@mtr-leonro.local>
- <89409b6d-466d-070a-7082-1f7bbb9ad7c7@mellanox.com>
+From: Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [for-next 4/6] net/mlx5: FPGA, Add basic support for Innova
+Date: Mon, 29 May 2017 16:09:06 +0000
+Message-ID: <AM4PR0501MB19409139227E11A4A7F82F0FDBF30@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+References: <20170523114404.20387-5-saeedm@mellanox.com>
+ <20170524165059.42lmrwzzcxvi2sf7@ast-mbp>
+ <AM4PR0501MB1940885C2F1CEF4DDE4EA8D1DBFF0@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+ <20170526030701.du4345mbprhcwjyi@ast-mbp>
+ <CALzJLG98D=3yMJV_q4sjVNG41AERFRU+6rwqQJsxnRuVeDTPdA@mail.gmail.com>
+ <20170526175624.5xxflpf24je5673h@ast-mbp>
+ <20170526181517.GA3860@obsidianresearch.com>
+ <AM4PR0501MB1940330F0EBAA819C87C5278DBF20@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+ <20170529153131.GB7924@obsidianresearch.com>
+ <AM4PR0501MB1940D05A19F098286B99EAD0DBF30@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+ <20170529160252.GA27550@obsidianresearch.com>
+ <AM4PR0501MB194037FF8F17466BC9ECC73DDBF30@AM4PR0501MB1940.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="D2rVImvqWGvKULsk"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <89409b6d-466d-070a-7082-1f7bbb9ad7c7-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <AM4PR0501MB194037FF8F17466BC9ECC73DDBF30-dp/nxUn679gfNUYDR5dMTsDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org, vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Alexei Starovoitov <alexei.starovoitov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jsorensen-b10kYP2dOMg@public.gmane.org" <jsorensen-b10kYP2dOMg@public.gmane.org>, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-fpga-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fpga-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Tull <atull-yzvPICuk2ABMcg4IHK0kFoH6Mc4MB0Vx@public.gmane.org>, "yi1.li-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <yi1.li-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---D2rVImvqWGvKULsk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, May 29, 2017 at 03:21:11PM +0300, Max Gurtovoy wrote:
->
->
-> On 5/29/2017 1:05 PM, Leon Romanovsky wrote:
-> > On Sun, May 28, 2017 at 12:53:00PM +0300, Max Gurtovoy wrote:
-> > >
-> > >
-> > > On 5/28/2017 12:07 PM, Christoph Hellwig wrote:
-> > > > On Sun, May 28, 2017 at 10:53:11AM +0300, Max Gurtovoy wrote:
-> > > > > Cache the needed umr_fence and set the wqe ctrl segmennt
-> > > > > accordingly.
-> > > >
-> > > > Looks good,
-> > > >
-> > > > Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-> > >
-> > > Thanks.
-> > >
-> > > >
-> > > > But that whole fence logic looks awkward to me.  Does the following
-> > > > patch to reorder it make sense to you?
-> > > >
-> > >
-> > >
-> > > Yes it make sense to me.
-> > > Sagi/Leon, any comments ?
-> >
-> > Max,
-> >
-> > Do you see any performance impact for IB_WR_RDMA_READ, IB_WR_RDMA_WRITE
-> > and IB_WR_RDMA_WRITE_WITH_IMM flows? They don't need fences and such
-> > change can cause to performance losses.
-> >
-> > Thanks
-> >
->
-> We don't fence those WR's.
-> Christoph just re-write it to be more intuitive code. I don't see logic
-> difference, am I wrong here ?
-
-A little bit, before Christoph's suggestion, we calculated fence for
-the paths which need such fence, after we will calculate for all paths.
-
-Thanks
-
->
-> >
-> > >
-> > >
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---D2rVImvqWGvKULsk
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlksRvEACgkQ5GN7iDZy
-WKdlmg/+MHYdGiUaypLVniOkHEDa6tbW590y8/uWHLbEIqSOySKGhH5zZghQR3sV
-oFsYIBKYrD8Dmdegr15aNykVfsBKp2//n+4cK1/T0KPlc5O/RRvhFXYPaTkqf7gT
-6R0jng/LohV2d2gjiKSWkJCZUApC7UveM9VI/XYt4wf4DcW86liDVbOnzGJRm/sb
-5hjQ6V2tX/TafJdBw6jO5uVNlpOTEv7y75U3JJJgc+1b2iMHkgxK0g0HNnms6Iji
-TcJ79aZv0r8BdMDBx3PzAB7rn3X5Pl36IfC6tSAFVlP5hpcBGN5UBfrdSXtuvkLV
-Kmuf6BWS+5md/7rIul/gxO5/uUFs+UB8FfZsDv4pslSJvDVuBdoId0K0OLUWjJuf
-hhghD5BECww71ief5LByPtLooMAYnsiCqgveXlW4Tc47BRSNH2thRvtge0dkVvJc
-wshZK4+x1dFv+EC2MeTPK1JctWkh0miG0UHo4G9tUcYIWtDahkCe6WP2Dh9HkIIO
-jc9gKFWzGCtHueqS3cG0+qAPbkZNcsdJHqRke6+WZXeOE6BnMoQqOhA8pWNKFxxp
-L7dqisnU2LU06CbED7gO/h6NNlKM0ZVLpJQlOGixqUR96BGDZuVvAkwUFZE76N+e
-FXCRbLbhLSUnBnWtb1I6VREcL+dSqeauWHVfDZLv3ThZ5/D+aZM=
-=ZOuv
------END PGP SIGNATURE-----
-
---D2rVImvqWGvKULsk--
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbmV0ZGV2LW93bmVyQHZn
+ZXIua2VybmVsLm9yZyBbbWFpbHRvOm5ldGRldi1vd25lckB2Z2VyLmtlcm5lbC5vcmddDQo+IA0K
+PiA+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4gRnJvbTogSmFzb24gR3VudGhvcnBl
+IFttYWlsdG86amd1bnRob3JwZUBvYnNpZGlhbnJlc2VhcmNoLmNvbV0NCj4gPiBTdWJqZWN0OiBS
+ZTogW2Zvci1uZXh0IDQvNl0gbmV0L21seDU6IEZQR0EsIEFkZCBiYXNpYyBzdXBwb3J0IGZvciBJ
+bm5vdmENCj4gPg0KPiA+IE9uIE1vbiwgTWF5IDI5LCAyMDE3IGF0IDAzOjU4OjMzUE0gKzAwMDAs
+IElsYW4gVGF5YXJpIHdyb3RlOg0KPiA+ID4gPiBGcm9tOiBKYXNvbiBHdW50aG9ycGUgW21haWx0
+bzpqZ3VudGhvcnBlQG9ic2lkaWFucmVzZWFyY2guY29tXQ0KPiA+ID4gPiBTdWJqZWN0OiBSZTog
+W2Zvci1uZXh0IDQvNl0gbmV0L21seDU6IEZQR0EsIEFkZCBiYXNpYyBzdXBwb3J0IGZvcg0KPiA+
+IElubm92YQ0KPiA+ID4gPg0KPiA+ID4gPiBPbiBTdW4sIE1heSAyOCwgMjAxNyBhdCAwNzoyMjoy
+N0FNICswMDAwLCBJbGFuIFRheWFyaSB3cm90ZToNCj4gPiA+ID4NCj4gPiA+ID4gPiBUaGlzIGlz
+IG5laXRoZXIgUENJLWJhciBtYXBwZWQsIG5vciBtYWlsYm94IGNvbW1hbmQuDQo+ID4gPiA+ID4g
+VGhlIEZQR0EgaXMgaW5kZWVkIGEgYnVtcC1vbi10aGUtd2lyZS4NCj4gPiA+ID4gPiAoSXQgaGFz
+IEkyQyB0byB0aGUgQ1g0IGNoaXAsIGJ1dCB0aGF0IGlzIGZvciBkZWJ1ZyBwdXJwb3NlcywgYW5k
+DQo+IHRvbw0KPiA+ID4gPiBzbG93DQo+ID4gPiA+ID4gdG8gcGVyZm9ybSByZWFsIHByb2dyYW1t
+aW5nKQ0KPiA+ID4gPg0KPiA+ID4gPiBXYWl0Li4gU28gaWYgaXQgdHJ1ZWx5IGhhcyBub3RoaW5n
+IHRvIGRvIHdpdGggdGhlIGV4aXN0aW5nIG1lbGxhbm94DQo+ID4gPiA+IGRyaXZlciwgdGhlbiBu
+b3RoaW5nIG1vcmUgdGhhbiB0aGUgZnBnYSBsb2FkZXIgc2hvdWxkIGJlIGluIHRoZSBtbHg1DQo+
+ID4gPiA+IGRpcmVjdG9yeT8NCj4gPiA+DQo+ID4gPiBUcnVlLCBleGNlcHQgaW4gc3BlY2lmaWMg
+Y2FzZXMgd2hlbiB0aGUgRlBHQSBtYXkgbWFuZ2xlIHRoZSBwYWNrZXRzIGluDQo+ID4gPiBhIHdh
+eSB0aGF0IHRoZSBuZXRkZXZpY2UgY29uZmlndXJlcywgYW5kIHRoZSBkcml2ZXIgbmVlZHMgdG8g
+YWRhcHQgdGhlDQo+ID4gPiBkYXRhIHBhdGguDQo+ID4NCj4gPiA+IFN1Y2ggaXMgdGhlIGNhc2Ug
+b2YgSVBTZWMgYW5kIFRMUyBvZmZsb2Fkcy4NCj4gPiA+IFRob3NlIGFyZSB0aWVkIHRvIHRoZSBt
+bHg1IEV0aGVybmV0IGRyaXZlciAoaXNvbGF0ZWQgd2l0aCBhIGtjb25maWcpLg0KPiA+DQo+ID4g
+QnV0IHRoZXJlIGlzIG5vdGhpbmcgc3RvcHBpbmcgdGhpcyBzb3J0IG9mIEZQR0EgbWFuZ2xpbmcg
+bG9naWMgYmVpbmcNCj4gPiBkb3duc3RyZWFtIG9mIGFueSBOSUMsIE1lbGxhbm94IGlzIGp1c3Qg
+dGhlIGZpcnN0IHRvIGRvIHRoaXMuDQo+ID4NCj4gPiBJIHRoaW5rIHlvdSdkIGJlIGJldHRlciB0
+byBhZGQgc29tZXRoaW5nIHRvIHRoZSBuZXQgc3RhY2sgdG8gbW9kZWwNCj4gPiB0aGlzIHBvc3Qt
+bmljIG1hbmdsaW5nIGhhcmR3YXJlLCB0aGFuIHRyeWluZyB0byBoaWRlIGl0IGluIGEgZHJpdmVy
+Lg0KPiANCj4gT2YgY291cnNlLg0KPiANCj4gRm9yIElQU2VjLCB0aGlzIGlzIGFscmVhZHkgaW4g
+dGhlIGtlcm5lbC4NCj4gU2VlIHRoaXMgcGF0Y2hzZXQ6DQo+IGh0dHA6Ly93d3cubWFpbC1hcmNo
+aXZlLmNvbS9uZXRkZXZAdmdlci5rZXJuZWwub3JnL21zZzE2Mjg3Ni5odG1sDQoNClNvcnJ5LCBJ
+IHBvaW50ZWQgYXQgdGhlIFJGQyBieSBtaXN0YWtlLg0KDQpUaGlzIGlzIHRoZSByZWxldmFudCBw
+dWxsIHJlcXVlc3Q6DQpodHRwczovL3BhdGNod29yay5vemxhYnMub3JnL3BhdGNoLzc1MjcwNy8N
+Cg0KPiANCj4gRm9yIFRMUywgRGF2ZSBXYXRzb24gaXMgd29ya2luZyB3aXRoIG91ciBndXlzIHRv
+IGFkZCBpdC4NCj4gDQo+ID4NCj4gPiBKYXNvbg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
