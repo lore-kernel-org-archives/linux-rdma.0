@@ -1,170 +1,46 @@
-From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 2/2] RDMA/qedr: Add 64KB PAGE_SIZE support to user-space queues
-Date: Mon, 29 May 2017 16:23:11 +0300
-Message-ID: <1496064191-11442-3-git-send-email-Ram.Amrani@cavium.com>
-References: <1496064191-11442-1-git-send-email-Ram.Amrani@cavium.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [for-next 4/6] net/mlx5: FPGA, Add basic support for Innova
+Date: Mon, 29 May 2017 09:31:31 -0600
+Message-ID: <20170529153131.GB7924@obsidianresearch.com>
+References: <20170523114404.20387-1-saeedm@mellanox.com>
+ <20170523114404.20387-5-saeedm@mellanox.com>
+ <20170524165059.42lmrwzzcxvi2sf7@ast-mbp>
+ <AM4PR0501MB1940885C2F1CEF4DDE4EA8D1DBFF0@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+ <20170526030701.du4345mbprhcwjyi@ast-mbp>
+ <CALzJLG98D=3yMJV_q4sjVNG41AERFRU+6rwqQJsxnRuVeDTPdA@mail.gmail.com>
+ <20170526175624.5xxflpf24je5673h@ast-mbp>
+ <20170526181517.GA3860@obsidianresearch.com>
+ <AM4PR0501MB1940330F0EBAA819C87C5278DBF20@AM4PR0501MB1940.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1496064191-11442-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <AM4PR0501MB1940330F0EBAA819C87C5278DBF20-dp/nxUn679gfNUYDR5dMTsDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Alexei Starovoitov <alexei.starovoitov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jsorensen-b10kYP2dOMg@public.gmane.org" <jsorensen-b10kYP2dOMg@public.gmane.org>, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-fpga-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fpga-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Tull <atull-yzvPICuk2ABMcg4IHK0kFoH6Mc4MB0Vx@public.gmane.org>, "yi1.li-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <yi1.li-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add 64KB PAGE_SIZE support to user-space CQ, SQ and RQ queues.
-De-facto it means that code was added to translate 64KB
-pages to smaller 4KB pages that the FW can handle. Otherwise,
-the FW would wrap (or jump to the next page)  when reaching 4KB
-while the user space library will continue on the same large page.
+On Sun, May 28, 2017 at 07:22:27AM +0000, Ilan Tayari wrote:
 
-Note that MR code remains as is since the FW supports larger pages
-for MRs.
+> This is neither PCI-bar mapped, nor mailbox command.
+> The FPGA is indeed a bump-on-the-wire.
+> (It has I2C to the CX4 chip, but that is for debug purposes, and too slow
+> to perform real programming)
 
-Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/qedr/qedr.h  |  4 ++-
- drivers/infiniband/hw/qedr/verbs.c | 64 ++++++++++++++++++++++----------------
- 2 files changed, 40 insertions(+), 28 deletions(-)
+Wait.. So if it truely has nothing to do with the existing mellanox
+driver, then nothing more than the fpga loader should be in the mlx5
+directory?
 
-diff --git a/drivers/infiniband/hw/qedr/qedr.h b/drivers/infiniband/hw/qedr/qedr.h
-index bb32e47..b55a961 100644
---- a/drivers/infiniband/hw/qedr/qedr.h
-+++ b/drivers/infiniband/hw/qedr/qedr.h
-@@ -57,7 +57,9 @@
- #define QEDR_MSG_QP   "  QP"
- #define QEDR_MSG_GSI  " GSI"
- 
--#define QEDR_CQ_MAGIC_NUMBER   (0x11223344)
-+#define QEDR_CQ_MAGIC_NUMBER	(0x11223344)
-+
-+#define FW_PAGE_SIZE		(RDMA_RING_PAGE_SIZE)
- 
- struct qedr_dev;
- 
-diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index f3ed4cc..7007450 100644
---- a/drivers/infiniband/hw/qedr/verbs.c
-+++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -652,14 +652,15 @@ static int qedr_prepare_pbl_tbl(struct qedr_dev *dev,
- 
- static void qedr_populate_pbls(struct qedr_dev *dev, struct ib_umem *umem,
- 			       struct qedr_pbl *pbl,
--			       struct qedr_pbl_info *pbl_info)
-+			       struct qedr_pbl_info *pbl_info, u32 pg_size)
- {
- 	int shift, pg_cnt, pages, pbe_cnt, total_num_pbes = 0;
-+	u32 fw_pg_cnt, fw_pg_per_umem_pg;
- 	struct qedr_pbl *pbl_tbl;
- 	struct scatterlist *sg;
- 	struct regpair *pbe;
-+	u64 pg_addr;
- 	int entry;
--	u32 addr;
- 
- 	if (!pbl_info->num_pbes)
- 		return;
-@@ -682,29 +683,35 @@ static void qedr_populate_pbls(struct qedr_dev *dev, struct ib_umem *umem,
- 
- 	shift = ilog2(umem->page_size);
- 
-+	fw_pg_per_umem_pg = umem->page_size / pg_size;
-+
- 	for_each_sg(umem->sg_head.sgl, sg, umem->nmap, entry) {
- 		pages = sg_dma_len(sg) >> shift;
-+		pg_addr = sg_dma_address(sg);
- 		for (pg_cnt = 0; pg_cnt < pages; pg_cnt++) {
--			/* store the page address in pbe */
--			pbe->lo = cpu_to_le32(sg_dma_address(sg) +
--					      umem->page_size * pg_cnt);
--			addr = upper_32_bits(sg_dma_address(sg) +
--					     umem->page_size * pg_cnt);
--			pbe->hi = cpu_to_le32(addr);
--			pbe_cnt++;
--			total_num_pbes++;
--			pbe++;
--
--			if (total_num_pbes == pbl_info->num_pbes)
--				return;
--
--			/* If the given pbl is full storing the pbes,
--			 * move to next pbl.
--			 */
--			if (pbe_cnt == (pbl_info->pbl_size / sizeof(u64))) {
--				pbl_tbl++;
--				pbe = (struct regpair *)pbl_tbl->va;
--				pbe_cnt = 0;
-+			for (fw_pg_cnt = 0; fw_pg_cnt < fw_pg_per_umem_pg;) {
-+				pbe->lo = cpu_to_le32(pg_addr);
-+				pbe->hi = cpu_to_le32(upper_32_bits(pg_addr));
-+
-+				pg_addr += pg_size;
-+				pbe_cnt++;
-+				total_num_pbes++;
-+				pbe++;
-+
-+				if (total_num_pbes == pbl_info->num_pbes)
-+					return;
-+
-+				/* If the given pbl is full storing the pbes,
-+				 * move to next pbl.
-+				 */
-+				if (pbe_cnt ==
-+				    (pbl_info->pbl_size / sizeof(u64))) {
-+					pbl_tbl++;
-+					pbe = (struct regpair *)pbl_tbl->va;
-+					pbe_cnt = 0;
-+				}
-+
-+				fw_pg_cnt++;
- 			}
- 		}
- 	}
-@@ -753,7 +760,7 @@ static inline int qedr_init_user_queue(struct ib_ucontext *ib_ctx,
- 				       u64 buf_addr, size_t buf_len,
- 				       int access, int dmasync)
- {
--	int page_cnt;
-+	u32 fw_pages;
- 	int rc;
- 
- 	q->buf_addr = buf_addr;
-@@ -765,8 +772,10 @@ static inline int qedr_init_user_queue(struct ib_ucontext *ib_ctx,
- 		return PTR_ERR(q->umem);
- 	}
- 
--	page_cnt = ib_umem_page_count(q->umem);
--	rc = qedr_prepare_pbl_tbl(dev, &q->pbl_info, page_cnt, 0);
-+	fw_pages = ib_umem_page_count(q->umem) *
-+	    (q->umem->page_size / FW_PAGE_SIZE);
-+
-+	rc = qedr_prepare_pbl_tbl(dev, &q->pbl_info, fw_pages, 0);
- 	if (rc)
- 		goto err0;
- 
-@@ -776,7 +785,8 @@ static inline int qedr_init_user_queue(struct ib_ucontext *ib_ctx,
- 		goto err0;
- 	}
- 
--	qedr_populate_pbls(dev, q->umem, q->pbl_tbl, &q->pbl_info);
-+		qedr_populate_pbls(dev, q->umem, q->pbl_tbl, &q->pbl_info,
-+				   FW_PAGE_SIZE);
- 
- 	return 0;
- 
-@@ -2168,7 +2178,7 @@ struct ib_mr *qedr_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 len,
- 		goto err1;
- 
- 	qedr_populate_pbls(dev, mr->umem, mr->info.pbl_table,
--			   &mr->info.pbl_info);
-+			   &mr->info.pbl_info, mr->umem->page_size);
- 
- 	rc = dev->ops->rdma_alloc_tid(dev->rdma_ctx, &mr->hw_mr.itid);
- 	if (rc) {
--- 
-1.8.3.1
+> One flavor of the product, the Innova Flex, allows customer logic in the
+> FPGA. But even then it is "wrapped" by Mellanox shell logic.
+> We plan to have an in-kernel API for writing client drivers for Innova
+> Flex.
 
+The FPGA subsystem already has APIs for partial reconfiguration use
+cases, you probably should not re-invent that under the mlx5 driver.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
