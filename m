@@ -1,55 +1,68 @@
-From: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH net] net/mlx5: avoid build warning for uniprocessor
-Date: Tue, 30 May 2017 10:23:49 +0300
-Message-ID: <CALzJLG9oVmbOe8K-t0ZKzeztz0NBrFjcEu9e45xo0V29-SywJg@mail.gmail.com>
-References: <20170529130030.244337-1-arnd@arndb.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next 0/5] Dropples RQ
+Date: Tue, 30 May 2017 10:29:09 +0300
+Message-ID: <20170530072914.9709-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170529130030.244337-1-arnd-r2nGTMty4D4@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Mohamad Haj Yahia <mohamad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Aviv Heller <avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Huy Nguyen <huyn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 29, 2017 at 4:00 PM, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> wrote:
-> Building the driver with CONFIG_SMP disabled results in a harmless
-> warning:
->
-> ethernet/mellanox/mlx5/core/main.c: In function 'mlx5_irq_set_affinity_hint':
-> ethernet/mellanox/mlx5/core/main.c:615:6: error: unused variable 'irq' [-Werror=unused-variable]
->
-> It's better to express the conditional compilation using IS_ENABLED()
-> here, as that lets the compiler see what the intented use for the variable
-> is, and that it can be silently discarded.
->
-> Fixes: b665d98edc9a ("net/mlx5: Tolerate irq_set_affinity_hint() failures")
-> igned-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-> ---
->  drivers/net/ethernet/mellanox/mlx5/core/main.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-> index 361cd112bb5b..9274d93d3183 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-> @@ -622,10 +622,9 @@ static int mlx5_irq_set_affinity_hint(struct mlx5_core_dev *mdev, int i)
->         cpumask_set_cpu(cpumask_local_spread(i, priv->numa_node),
->                         priv->irq_info[i].mask);
->
-> -#ifdef CONFIG_SMP
-> -       if (irq_set_affinity_hint(irq, priv->irq_info[i].mask))
-> +       if (IS_ENABLED(CONFIG_SMP) &&
-> +           irq_set_affinity_hint(irq, priv->irq_info[i].mask))
->                 mlx5_core_warn(mdev, "irq_set_affinity_hint failed, irq 0x%.4x", irq);
-> -#endif
->
->         return 0;
->  }
+Hi Doug,
 
-Acked-by: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>From Maor:
+---
+This series adding support to avoid RAW ethernet packet drops.
 
-Thank you Arnd !!
+When packets received and there are no receive WQEs, then
+the packets are dropped. In certain scenarios it may be preferred
+to configure the device to avoid such packet drops, assuming
+the posting of WQEs will resume shortly.
+
+Under such configuration, when a packet is received for a
+WQ with no receive WQEs, the packet processing is delayed
+until receive WQEs are posted.
+
+If receive WQEs are still not posted after a device configured
+time, the packet is dropped.
+
+To enable this delay drop feature on a WQ, the user should
+set the IB_WQ_FLAGS_DELAY_DROP flag on creation.
+
+---
+Available in the "topic/dropless-rq" topic branch of this git repo:
+git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+
+Or for browsing:
+https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/dropless-rq
+
+Possible merge conflicts resolution is available in:
+https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=testing/queue-next
+
+Thanks
+
+Maor Gottlieb (5):
+  IB/core: Introduce delay drop for a WQ
+  net/mlx5: Introduce set delay drop command
+  net/mlx5: Introduce general notification event
+  IB/mlx5: Add support to dropless RQ
+  IB/mlx5: Add delay drop configuration and statistics
+
+ drivers/infiniband/hw/mlx5/main.c            | 163 ++++++++++++++++++++++++++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h         |  29 +++++
+ drivers/infiniband/hw/mlx5/qp.c              |  50 +++++++-
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c |  23 ++++
+ drivers/net/ethernet/mellanox/mlx5/core/qp.c |  14 +++
+ include/linux/mlx5/device.h                  |   5 +
+ include/linux/mlx5/driver.h                  |   1 +
+ include/linux/mlx5/mlx5_ifc.h                |  30 ++++-
+ include/linux/mlx5/qp.h                      |   3 +
+ include/rdma/ib_verbs.h                      |   5 +
+ 10 files changed, 313 insertions(+), 10 deletions(-)
+
+--
+2.12.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
