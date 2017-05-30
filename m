@@ -1,32 +1,85 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net] net/mlx5: avoid build warning for uniprocessor
-Date: Tue, 30 May 2017 14:09:38 -0400 (EDT)
-Message-ID: <20170530.140938.195927218396234401.davem@davemloft.net>
-References: <20170529130030.244337-1-arnd@arndb.de>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v1 00/17] Server-side NFS/RDMA changes proposed for v4.13
+Date: Tue, 30 May 2017 14:14:02 -0400
+Message-ID: <20170530175808.2992.60365.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170529130030.244337-1-arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: arnd@arndb.de
-Cc: saeedm@mellanox.com, matanb@mellanox.com, leonro@mellanox.com, mohamad@mellanox.com, danielj@mellanox.com, eli@mellanox.com, avivh@mellanox.com, huyn@mellanox.com, artemyko@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Mon, 29 May 2017 15:00:17 +0200
+This series overhauls the "call receive" side of the RPC-over-RDMA
+transport to use the new rdma_rw API. A slight performance increase
+(better throughput and latency) has been seen. Benefits include:
 
-> Building the driver with CONFIG_SMP disabled results in a harmless
-> warning:
-> 
-> ethernet/mellanox/mlx5/core/main.c: In function 'mlx5_irq_set_affinity_hint':
-> ethernet/mellanox/mlx5/core/main.c:615:6: error: unused variable 'irq' [-Werror=unused-variable]
-> 
-> It's better to express the conditional compilation using IS_ENABLED()
-> here, as that lets the compiler see what the intented use for the variable
-> is, and that it can be silently discarded.
-> 
-> Fixes: b665d98edc9a ("net/mlx5: Tolerate irq_set_affinity_hint() failures")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+ o Fewer ib_post_send calls per RPC Call
 
-Applied, thank you.
+ o Code duplicated by other ULPs is replaced with core functions
+
+ o Position-Zero Read chunks are handled in one function
+
+ o More thorough transport header sanity checking
+
+
+Available in the "nfsd-rdma-for-4.13" topic branch of this git repo:
+
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
+
+
+Or for browsing:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-for-4.13
+
+
+In order to keep the for-4.13 series to about 15 patches, I've
+updated the "nfsd-rdma-rw-api" topic branch to include a few
+additional patches. A new rdma_rw API is provided to expose the
+number of MRs needed for a given payload size so that queue depths
+can be more accurately calculated.
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-rw-api
+
+
+---
+
+Chuck Lever (17):
+      ib_core: Enable and expose force_mr module parameter
+      svcrdma: Squelch disconnection messages
+      svcrdma: Avoid Send Queue overflow
+      svcrdma: Remove svc_rdma_marshal.c
+      svcrdma: Improve Read chunk sanity checking
+      svcrdma: Improve Write chunk sanity checking
+      svcrdma: Improve Reply chunk sanity checking
+      svcrdma: Don't account for Receive queue "starvation"
+      sunrpc: Allocate one more page per svc_rqst
+      svcrdma: Add recvfrom helpers to svc_rdma_rw.c
+      svcrdma: Use generic RDMA R/W API in RPC Call path
+      svcrdma: Properly compute .len and .buflen for received RPC Calls
+      svcrdma: Remove unused Read completion handlers
+      svcrdma: Remove frmr cache
+      svcrdma: Clean-up svc_rdma_unmap_dma
+      svcrdma: Clean up after converting svc_rdma_recvfrom to rdma_rw API
+      svcrdma: use offset_in_page() macro
+
+
+ drivers/infiniband/core/rw.c             |    2 
+ include/linux/sunrpc/svc.h               |    3 
+ include/linux/sunrpc/svc_rdma.h          |   46 --
+ net/sunrpc/svc_xprt.c                    |    8 
+ net/sunrpc/xprtrdma/Makefile             |    4 
+ net/sunrpc/xprtrdma/svc_rdma_marshal.c   |  168 -------
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c  |  734 ++++++++++++------------------
+ net/sunrpc/xprtrdma/svc_rdma_rw.c        |  433 ++++++++++++++++++
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c    |   15 -
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |  250 +---------
+ 10 files changed, 760 insertions(+), 903 deletions(-)
+ delete mode 100644 net/sunrpc/xprtrdma/svc_rdma_marshal.c
+
+--
+Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
