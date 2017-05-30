@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 5/6] net/mlx5: Report enhanced capabilities for IPoIB
-Date: Tue, 30 May 2017 10:16:01 +0300
-Message-ID: <20170530071602.8139-6-leon@kernel.org>
+Subject: [PATCH rdma-next 4/6] IB/mlx5: Add multicast flow steering support for underlay QP
+Date: Tue, 30 May 2017 10:16:00 +0300
+Message-ID: <20170530071602.8139-5-leon@kernel.org>
 References: <20170530071602.8139-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170530071602.8139-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,58 +12,103 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Report 'ipoib_enhanced_offloads' capabilities from
-the core layer, it will be used in the next patch from this series.
+In order to add multicast flow steering support, there is need
+to block the attaching of mcg flow for underlay QP, recognize
+multicast IB_FLOW_SPEC_IPV4 based on its IP and enable
+creating/destroying flow for IB layer.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fw.c | 6 ++++++
- include/linux/mlx5/device.h                  | 6 +++++-
- 2 files changed, 11 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/main.c | 43 ++++++++++++++++++++++++++++-----------
+ 1 file changed, 31 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fw.c b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-index 1bc14d0fded8..cf468be1479c 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fw.c
-@@ -119,6 +119,12 @@ int mlx5_query_hca_caps(struct mlx5_core_dev *dev)
- 			return err;
- 	}
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 9f3ba320ce70..d3f1c33a29fb 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -2044,21 +2044,32 @@ static int parse_flow_attr(struct mlx5_core_dev *mdev, u32 *match_c,
+  */
+ static bool flow_is_multicast_only(struct ib_flow_attr *ib_attr)
+ {
+-	struct ib_flow_spec_eth *eth_spec;
++	union ib_flow_spec *flow_spec;
 
-+	if (MLX5_CAP_GEN(dev, ipoib_enhanced_offloads)) {
-+		err = mlx5_core_get_caps(dev, MLX5_CAP_IPOIB_ENHANCED_OFFLOADS);
-+		if (err)
-+			return err;
+ 	if (ib_attr->type != IB_FLOW_ATTR_NORMAL ||
+-	    ib_attr->size < sizeof(struct ib_flow_attr) +
+-	    sizeof(struct ib_flow_spec_eth) ||
+ 	    ib_attr->num_of_specs < 1)
+ 		return false;
+
+-	eth_spec = (struct ib_flow_spec_eth *)(ib_attr + 1);
+-	if (eth_spec->type != IB_FLOW_SPEC_ETH ||
+-	    eth_spec->size != sizeof(*eth_spec))
++	flow_spec = (union ib_flow_spec *)(ib_attr + 1);
++	if (flow_spec->type == IB_FLOW_SPEC_IPV4) {
++		struct ib_flow_spec_ipv4 *ipv4_spec;
++
++		ipv4_spec = (struct ib_flow_spec_ipv4 *)flow_spec;
++		if (ipv4_is_multicast(ipv4_spec->val.dst_ip))
++			return true;
++
+ 		return false;
 +	}
 +
- 	if (MLX5_CAP_GEN(dev, pg)) {
- 		err = mlx5_core_get_caps(dev, MLX5_CAP_ODP);
- 		if (err)
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index dd9a263ed368..1256501959b5 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -960,7 +960,7 @@ enum mlx5_cap_type {
- 	MLX5_CAP_ATOMIC,
- 	MLX5_CAP_ROCE,
- 	MLX5_CAP_IPOIB_OFFLOADS,
--	MLX5_CAP_EOIB_OFFLOADS,
-+	MLX5_CAP_IPOIB_ENHANCED_OFFLOADS,
- 	MLX5_CAP_FLOW_TABLE,
- 	MLX5_CAP_ESWITCH_FLOW_TABLE,
- 	MLX5_CAP_ESWITCH,
-@@ -1002,6 +1002,10 @@ enum mlx5_mcam_feature_groups {
- 	MLX5_GET(per_protocol_networking_offload_caps,\
- 		 mdev->caps.hca_max[MLX5_CAP_ETHERNET_OFFLOADS], cap)
-
-+#define MLX5_CAP_IPOIB_ENHANCED(mdev, cap) \
-+	MLX5_GET(per_protocol_networking_offload_caps,\
-+		 mdev->caps.hca_cur[MLX5_CAP_IPOIB_ENHANCED_OFFLOADS], cap)
++	if (flow_spec->type == IB_FLOW_SPEC_ETH) {
++		struct ib_flow_spec_eth *eth_spec;
 +
- #define MLX5_CAP_ROCE(mdev, cap) \
- 	MLX5_GET(roce_cap, mdev->caps.hca_cur[MLX5_CAP_ROCE], cap)
++		eth_spec = (struct ib_flow_spec_eth *)flow_spec;
++		return is_multicast_ether_addr(eth_spec->mask.dst_mac) &&
++		       is_multicast_ether_addr(eth_spec->val.dst_mac);
++	}
 
+-	return is_multicast_ether_addr(eth_spec->mask.dst_mac) &&
+-	       is_multicast_ether_addr(eth_spec->val.dst_mac);
++	return false;
+ }
+
+ static bool is_valid_ethertype(struct mlx5_core_dev *mdev,
+@@ -2536,8 +2547,14 @@ static struct ib_flow *mlx5_ib_create_flow(struct ib_qp *qp,
+ static int mlx5_ib_mcg_attach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(ibqp->device);
++	struct mlx5_ib_qp *mqp = to_mqp(ibqp);
+ 	int err;
+
++	if (mqp->flags & MLX5_IB_QP_UNDERLAY) {
++		mlx5_ib_dbg(dev, "Attaching a multi cast group to underlay QP is not supported\n");
++		return -EOPNOTSUPP;
++	}
++
+ 	err = mlx5_core_attach_mcg(dev->mdev, gid, ibqp->qp_num);
+ 	if (err)
+ 		mlx5_ib_warn(dev, "failed attaching QPN 0x%x, MGID %pI6\n",
+@@ -3692,18 +3709,20 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 			(1ull << IB_USER_VERBS_CMD_CLOSE_XRCD);
+ 	}
+
++	dev->ib_dev.create_flow	= mlx5_ib_create_flow;
++	dev->ib_dev.destroy_flow = mlx5_ib_destroy_flow;
++	dev->ib_dev.uverbs_ex_cmd_mask |=
++			(1ull << IB_USER_VERBS_EX_CMD_CREATE_FLOW) |
++			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_FLOW);
++
+ 	if (mlx5_ib_port_link_layer(&dev->ib_dev, 1) ==
+ 	    IB_LINK_LAYER_ETHERNET) {
+-		dev->ib_dev.create_flow	= mlx5_ib_create_flow;
+-		dev->ib_dev.destroy_flow = mlx5_ib_destroy_flow;
+ 		dev->ib_dev.create_wq	 = mlx5_ib_create_wq;
+ 		dev->ib_dev.modify_wq	 = mlx5_ib_modify_wq;
+ 		dev->ib_dev.destroy_wq	 = mlx5_ib_destroy_wq;
+ 		dev->ib_dev.create_rwq_ind_table = mlx5_ib_create_rwq_ind_table;
+ 		dev->ib_dev.destroy_rwq_ind_table = mlx5_ib_destroy_rwq_ind_table;
+ 		dev->ib_dev.uverbs_ex_cmd_mask |=
+-			(1ull << IB_USER_VERBS_EX_CMD_CREATE_FLOW) |
+-			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_FLOW) |
+ 			(1ull << IB_USER_VERBS_EX_CMD_CREATE_WQ) |
+ 			(1ull << IB_USER_VERBS_EX_CMD_MODIFY_WQ) |
+ 			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_WQ) |
 --
 2.12.2
 
