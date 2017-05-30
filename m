@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 3/5] net/mlx5: Introduce general notification event
-Date: Tue, 30 May 2017 10:29:12 +0300
-Message-ID: <20170530072914.9709-4-leon@kernel.org>
+Subject: [PATCH rdma-next 4/5] IB/mlx5: Add support to dropless RQ
+Date: Tue, 30 May 2017 10:29:13 +0300
+Message-ID: <20170530072914.9709-5-leon@kernel.org>
 References: <20170530072914.9709-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170530072914.9709-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,125 +12,281 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When delay drop timeout is expired, the firmware raises
-general notification event of DELAY_DROP_TIMEOUT subtype.
-In addition the feature is disable so the driver have to
-reactivate the timeout.
+RQs that were configured for "delay drop" will prevent packet drops
+when their WQEs are depleted.
+Marking an RQ to be drop-less is done by setting delay_drop_en in RQ
+context using CREATE_RQ command.
+
+Since this feature is globally activated/deactivated by using the
+SET_DELAY_DROP command on all the marked RQs, we activated/deactivated
+it according to the number of RQs with 'delay_drop' enabled.
+
+When timeout is expired, then the feature is deactivated. Therefore
+the driver handles the delay drop timeout event and reactivate it.
 
 Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/eq.c | 23 +++++++++++++++++++++++
- include/linux/mlx5/device.h                  |  5 +++++
- include/linux/mlx5/driver.h                  |  1 +
- include/linux/mlx5/mlx5_ifc.h                |  3 ++-
- 4 files changed, 31 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/main.c    | 60 +++++++++++++++++++++++++++++++++---
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 19 ++++++++++++
+ drivers/infiniband/hw/mlx5/qp.c      | 37 ++++++++++++++++++++++
+ include/linux/mlx5/mlx5_ifc.h        |  2 +-
+ 4 files changed, 113 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-index 01d2cd7e4746..afbd9171acb0 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-@@ -159,6 +159,8 @@ static const char *eqe_type_str(u8 type)
- 		return "MLX5_EVENT_TYPE_PPS_EVENT";
- 	case MLX5_EVENT_TYPE_FPGA_ERROR:
- 		return "MLX5_EVENT_TYPE_FPGA_ERROR";
-+	case MLX5_EVENT_TYPE_GENERAL_EVENT:
-+		return "MLX5_EVENT_TYPE_GENERAL_EVENT";
- 	default:
- 		return "Unrecognized event";
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 42defaa0d6c6..e76891a2a3b9 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -692,6 +692,10 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 		props->device_cap_flags |= IB_DEVICE_UD_TSO;
  	}
-@@ -376,6 +378,20 @@ int mlx5_core_page_fault_resume(struct mlx5_core_dev *dev, u32 token,
- EXPORT_SYMBOL_GPL(mlx5_core_page_fault_resume);
- #endif
 
-+static void general_event_handler(struct mlx5_core_dev *dev,
-+				  struct mlx5_eqe *eqe)
++	if (MLX5_CAP_GEN(dev->mdev, rq_delay_drop) &&
++	    MLX5_CAP_GEN(dev->mdev, general_notification_event))
++		props->raw_packet_caps |= IB_RAW_PACKET_CAP_DELAY_DROP;
++
+ 	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads) &&
+ 	    MLX5_CAP_ETH(dev->mdev, scatter_fcs)) {
+ 		/* Legacy bit to support old userspace libraries */
+@@ -2698,6 +2702,24 @@ static void mlx5_ib_handle_internal_error(struct mlx5_ib_dev *ibdev)
+ 	spin_unlock_irqrestore(&ibdev->reset_flow_resource_lock, flags);
+ }
+
++static void delay_drop_handler(struct work_struct *work)
 +{
-+	switch (eqe->sub_type) {
-+	case MLX5_GENERAL_SUBTYPE_DELAY_DROP_TIMEOUT:
-+		if (dev->event)
-+			dev->event(dev, MLX5_DEV_EVENT_DELAY_DROP_TIMEOUT, 0);
-+		break;
-+	default:
-+		mlx5_core_dbg(dev, "General event with unrecognized subtype: sub_type %d\n",
-+			      eqe->sub_type);
++	int err;
++	struct mlx5_ib_delay_drop *delay_drop =
++		container_of(work, struct mlx5_ib_delay_drop,
++			     delay_drop_work);
++
++	mutex_lock(&delay_drop->lock);
++	err = mlx5_core_set_delay_drop(delay_drop->dev->mdev,
++				       delay_drop->timeout);
++	if (err) {
++		mlx5_ib_warn(delay_drop->dev, "Failed to set delay drop, timeout=%u\n",
++			     delay_drop->timeout);
++		delay_drop->activate = false;
 +	}
++	mutex_unlock(&delay_drop->lock);
 +}
 +
- static irqreturn_t mlx5_eq_int(int irq, void *eq_ptr)
+ static void mlx5_ib_event(struct mlx5_core_dev *dev, void *context,
+ 			  enum mlx5_dev_event event, unsigned long param)
  {
- 	struct mlx5_eq *eq = eq_ptr;
-@@ -484,6 +500,9 @@ static irqreturn_t mlx5_eq_int(int irq, void *eq_ptr)
- 			mlx5_fpga_event(dev, eqe->type, &eqe->data.raw);
- 			break;
+@@ -2750,8 +2772,11 @@ static void mlx5_ib_event(struct mlx5_core_dev *dev, void *context,
+ 		ibev.event = IB_EVENT_CLIENT_REREGISTER;
+ 		port = (u8)param;
+ 		break;
++	case MLX5_DEV_EVENT_DELAY_DROP_TIMEOUT:
++		schedule_work(&ibdev->delay_drop.delay_drop_work);
++		goto out;
+ 	default:
+-		return;
++		goto out;
+ 	}
 
-+		case MLX5_EVENT_TYPE_GENERAL_EVENT:
-+			general_event_handler(dev, eqe);
-+			break;
- 		default:
- 			mlx5_core_warn(dev, "Unhandled event 0x%x on EQ 0x%x\n",
- 				       eqe->type, eq->eqn);
-@@ -693,6 +712,10 @@ int mlx5_start_eqs(struct mlx5_core_dev *dev)
- 	    mlx5_core_is_pf(dev))
- 		async_event_mask |= (1ull << MLX5_EVENT_TYPE_NIC_VPORT_CHANGE);
+ 	ibev.device	      = &ibdev->ib_dev;
+@@ -2759,7 +2784,7 @@ static void mlx5_ib_event(struct mlx5_core_dev *dev, void *context,
 
-+	if (MLX5_CAP_GEN(dev, port_type) == MLX5_CAP_PORT_TYPE_ETH &&
-+	    MLX5_CAP_GEN(dev, general_notification_event))
-+		async_event_mask |= (1ull << MLX5_EVENT_TYPE_GENERAL_EVENT);
+ 	if (port < 1 || port > ibdev->num_ports) {
+ 		mlx5_ib_warn(ibdev, "warning: event on port %d\n", port);
+-		return;
++		goto out;
+ 	}
+
+ 	if (ibdev->ib_active)
+@@ -2767,6 +2792,9 @@ static void mlx5_ib_event(struct mlx5_core_dev *dev, void *context,
+
+ 	if (fatal)
+ 		ibdev->ib_active = false;
 +
- 	if (MLX5_CAP_GEN(dev, port_module_event))
- 		async_event_mask |= (1ull << MLX5_EVENT_TYPE_PORT_MODULE_EVENT);
- 	else
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index 786a43843da9..586f9f8a1481 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -290,6 +290,7 @@ enum mlx5_event {
- 	MLX5_EVENT_TYPE_GPIO_EVENT	   = 0x15,
- 	MLX5_EVENT_TYPE_PORT_MODULE_EVENT  = 0x16,
- 	MLX5_EVENT_TYPE_REMOTE_CONFIG	   = 0x19,
-+	MLX5_EVENT_TYPE_GENERAL_EVENT	   = 0x22,
- 	MLX5_EVENT_TYPE_PPS_EVENT          = 0x25,
++out:
++	return;
+ }
 
- 	MLX5_EVENT_TYPE_DB_BF_CONGESTION   = 0x1a,
-@@ -305,6 +306,10 @@ enum mlx5_event {
+ static int set_has_smi_cap(struct mlx5_ib_dev *dev)
+@@ -3549,6 +3577,26 @@ static void mlx5_ib_free_rdma_netdev(struct net_device *netdev)
+ 	return mlx5_rdma_netdev_free(netdev);
+ }
+
++static void cancel_delay_drop(struct mlx5_ib_dev *dev)
++{
++	if (!(dev->ib_dev.attrs.raw_packet_caps & IB_RAW_PACKET_CAP_DELAY_DROP))
++		return;
++
++	cancel_work_sync(&dev->delay_drop.delay_drop_work);
++}
++
++static void init_delay_drop(struct mlx5_ib_dev *dev)
++{
++	if (!(dev->ib_dev.attrs.raw_packet_caps & IB_RAW_PACKET_CAP_DELAY_DROP))
++		return;
++
++	mutex_init(&dev->delay_drop.lock);
++	dev->delay_drop.dev = dev;
++	dev->delay_drop.activate = false;
++	dev->delay_drop.timeout = MLX5_MAX_DELAY_DROP_TIMEOUT_MS * 1000;
++	INIT_WORK(&dev->delay_drop.delay_drop_work, delay_drop_handler);
++}
++
+ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ {
+ 	struct mlx5_ib_dev *dev;
+@@ -3780,18 +3828,21 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 	if (err)
+ 		goto err_dev;
+
++	init_delay_drop(dev);
++
+ 	for (i = 0; i < ARRAY_SIZE(mlx5_class_attributes); i++) {
+ 		err = device_create_file(&dev->ib_dev.dev,
+ 					 mlx5_class_attributes[i]);
+ 		if (err)
+-			goto err_umrc;
++			goto err_delay_drop;
+ 	}
+
+ 	dev->ib_active = true;
+
+ 	return dev;
+
+-err_umrc:
++err_delay_drop:
++	cancel_delay_drop(dev);
+ 	destroy_umrc_res(dev);
+
+ err_dev:
+@@ -3836,6 +3887,7 @@ static void mlx5_ib_remove(struct mlx5_core_dev *mdev, void *context)
+ 	struct mlx5_ib_dev *dev = context;
+ 	enum rdma_link_layer ll = mlx5_ib_port_link_layer(&dev->ib_dev, 1);
+
++	cancel_delay_drop(dev);
+ 	mlx5_remove_netdev_notifier(dev);
+ 	ib_unregister_device(&dev->ib_dev);
+ 	mlx5_free_bfreg(dev->mdev, &dev->fp_bfreg);
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 38c877bc45e5..dd44624de56a 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -247,6 +247,10 @@ struct mlx5_ib_wq {
+ 	void		       *qend;
+ };
+
++enum mlx5_ib_wq_flags {
++	MLX5_IB_WQ_FLAGS_DELAY_DROP = 0x1,
++};
++
+ struct mlx5_ib_rwq {
+ 	struct ib_wq		ibwq;
+ 	struct mlx5_core_qp	core_qp;
+@@ -264,6 +268,7 @@ struct mlx5_ib_rwq {
+ 	u32			wqe_count;
+ 	u32			wqe_shift;
+ 	int			wq_sig;
++	u32			create_flags; /* Use enum mlx5_ib_wq_flags */
  };
 
  enum {
-+	MLX5_GENERAL_SUBTYPE_DELAY_DROP_TIMEOUT = 0x1,
-+};
-+
-+enum {
- 	MLX5_PORT_CHANGE_SUBTYPE_DOWN		= 1,
- 	MLX5_PORT_CHANGE_SUBTYPE_ACTIVE		= 4,
- 	MLX5_PORT_CHANGE_SUBTYPE_INITIALIZED	= 5,
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 55bb712643cb..e88b710d3cb0 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -180,6 +180,7 @@ enum mlx5_dev_event {
- 	MLX5_DEV_EVENT_GUID_CHANGE,
- 	MLX5_DEV_EVENT_CLIENT_REREG,
- 	MLX5_DEV_EVENT_PPS,
-+	MLX5_DEV_EVENT_DELAY_DROP_TIMEOUT,
+@@ -618,6 +623,19 @@ struct mlx5_roce {
+ 	atomic_t		next_port;
  };
 
- enum mlx5_port_status {
++enum {
++	MLX5_MAX_DELAY_DROP_TIMEOUT_MS = 100,
++};
++
++struct mlx5_ib_delay_drop {
++	struct mlx5_ib_dev     *dev;
++	struct work_struct	delay_drop_work;
++	/* serialize setting of delay drop */
++	struct mutex		lock;
++	u32			timeout;
++	bool			activate;
++};
++
+ struct mlx5_ib_dev {
+ 	struct ib_device		ib_dev;
+ 	struct mlx5_core_dev		*mdev;
+@@ -654,6 +672,7 @@ struct mlx5_ib_dev {
+ 	struct mlx5_ib_port	*port;
+ 	struct mlx5_sq_bfreg     bfreg;
+ 	struct mlx5_sq_bfreg     fp_bfreg;
++	struct mlx5_ib_delay_drop delay_drop;
+ };
+
+ static inline struct mlx5_ib_cq *to_mibcq(struct mlx5_core_cq *mcq)
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index d17aad0f54c0..fe519487461e 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -4610,6 +4610,24 @@ static void mlx5_ib_wq_event(struct mlx5_core_qp *core_qp, int type)
+ 	}
+ }
+
++static int set_delay_drop(struct mlx5_ib_dev *dev)
++{
++	int err = 0;
++
++	mutex_lock(&dev->delay_drop.lock);
++	if (dev->delay_drop.activate)
++		goto out;
++
++	err = mlx5_core_set_delay_drop(dev->mdev, dev->delay_drop.timeout);
++	if (err)
++		goto out;
++
++	dev->delay_drop.activate = true;
++out:
++	mutex_unlock(&dev->delay_drop.lock);
++	return err;
++}
++
+ static int  create_rq(struct mlx5_ib_rwq *rwq, struct ib_pd *pd,
+ 		      struct ib_wq_init_attr *init_attr)
+ {
+@@ -4664,9 +4682,28 @@ static int  create_rq(struct mlx5_ib_rwq *rwq, struct ib_pd *pd,
+ 		}
+ 		MLX5_SET(rqc, rqc, scatter_fcs, 1);
+ 	}
++	if (init_attr->create_flags & IB_WQ_FLAGS_DELAY_DROP) {
++		if (!(dev->ib_dev.attrs.raw_packet_caps &
++		      IB_RAW_PACKET_CAP_DELAY_DROP)) {
++			mlx5_ib_dbg(dev, "Delay drop is not supported\n");
++			err = -EOPNOTSUPP;
++			goto out;
++		}
++		MLX5_SET(rqc, rqc, delay_drop_en, 1);
++	}
+ 	rq_pas0 = (__be64 *)MLX5_ADDR_OF(wq, wq, pas);
+ 	mlx5_ib_populate_pas(dev, rwq->umem, rwq->page_shift, rq_pas0, 0);
+ 	err = mlx5_core_create_rq_tracked(dev->mdev, in, inlen, &rwq->core_qp);
++	if (!err && init_attr->create_flags & IB_WQ_FLAGS_DELAY_DROP) {
++		err = set_delay_drop(dev);
++		if (err) {
++			mlx5_ib_warn(dev, "Failed to enable delay drop err=%d\n",
++				     err);
++			mlx5_core_destroy_rq_tracked(dev->mdev, &rwq->core_qp);
++		} else {
++			rwq->create_flags |= MLX5_IB_WQ_FLAGS_DELAY_DROP;
++		}
++	}
+ out:
+ 	kvfree(in);
+ 	return err;
 diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 5b9f836e66ca..1e107d474802 100644
+index 1e107d474802..b0578e46ed6d 100644
 --- a/include/linux/mlx5/mlx5_ifc.h
 +++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -858,7 +858,8 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 	u8         max_tc[0x4];
- 	u8         reserved_at_1d0[0x1];
- 	u8         dcbx[0x1];
--	u8         reserved_at_1d2[0x3];
-+	u8         general_notification_event[0x1];
-+	u8         reserved_at_1d3[0x2];
- 	u8         fpga[0x1];
- 	u8         rol_s[0x1];
- 	u8         rol_g[0x1];
+@@ -2498,7 +2498,7 @@ enum {
+
+ struct mlx5_ifc_rqc_bits {
+ 	u8         rlky[0x1];
+-	u8         reserved_at_1[0x1];
++	u8	   delay_drop_en[0x1];
+ 	u8         scatter_fcs[0x1];
+ 	u8         vsd[0x1];
+ 	u8         mem_rq_type[0x4];
 --
 2.12.2
 
