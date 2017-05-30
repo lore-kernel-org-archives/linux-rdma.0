@@ -1,34 +1,33 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH v2 2/2] IB/mlx5: set UMR wqe fence according to HCA cap
-Date: Tue, 30 May 2017 17:28:43 +0300
-Message-ID: <ad73e8d4-f519-3f50-400f-905d075e5ceb@grimberg.me>
-References: <1495957991-19223-1-git-send-email-maxg@mellanox.com>
- <1495957991-19223-2-git-send-email-maxg@mellanox.com>
- <700d9410-56e7-d70f-9de4-87e4e37bca28@grimberg.me>
- <9562e253-bc15-4ea1-3880-0430fd540410@mellanox.com>
- <bcd8ef4b-60f9-34e4-a020-0d34407da61e@grimberg.me>
- <e93ca49a-63d0-495f-1348-89d6fecf9f54@mellanox.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-next 1/6] IB/core: Enable QP creation which is
+ associated to underlay QP
+Date: Tue, 30 May 2017 10:04:47 -0600
+Message-ID: <20170530160447.GA21513@obsidianresearch.com>
+References: <20170530071602.8139-1-leon@kernel.org>
+ <20170530071602.8139-2-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <e93ca49a-63d0-495f-1348-89d6fecf9f54-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170530071602.8139-2-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org
-Cc: shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, May 30, 2017 at 10:15:57AM +0300, Leon Romanovsky wrote:
+> From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> Enable QP creation which is associated to underlay QP.
+> The created QP will manage the scattering objects as of RQ and SQ, while
+> the transport attributes will be managed by its underlay QP
+> 
+> This comes as a pre-patch for downstream patches in this series to
+> enable flow steering on the underlay IPoIB QP.
 
-> Yes.
+I think you need to define the semantics here much more precisely.
 
-So for the series:
-
-Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-
-Doug, can you mark this for stable?
-
-Max, I'm not sure how far back this needs a fix,
-probably since day 1.
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
