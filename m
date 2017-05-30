@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 1/9] IB/rdmavt: Remove duplicated functions
-Date: Mon, 29 May 2017 17:17:28 -0700
-Message-ID: <20170530001646.534.64909.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 2/9] IB/hfi1: Ensure dd->gi_mask can not be
+ overflowed
+Date: Mon, 29 May 2017 17:18:14 -0700
+Message-ID: <20170530001733.534.8558.stgit@scvm10.sc.intel.com>
 References: <20170530000314.534.72983.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,84 +14,35 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The free_qpn() function from the hfi1/qib driver which was the basis for
-rdmavt_free_qpn() function was accidentally left in the code. Remove it.
+As the code stands today the array access in remap_intr() is OK. To
+future proof the code though we should explicitly check to ensure the
+index value is not outside of the valid range. This is not a straight
+forward calculation so err on the side of caution.
 
 Reviewed-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/qp.c |   37 ++++++++++++++-----------------------
- 1 files changed, 14 insertions(+), 23 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
-index a3dd1e5..a372afb 100644
---- a/drivers/infiniband/sw/rdmavt/qp.c
-+++ b/drivers/infiniband/sw/rdmavt/qp.c
-@@ -422,15 +422,6 @@ static int alloc_qpn(struct rvt_dev_info *rdi, struct rvt_qpn_table *qpt,
- 	return ret;
- }
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index aab107f..33fd7fe 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -12832,7 +12832,12 @@ static void remap_intr(struct hfi1_devdata *dd, int isrc, int msix_intr)
+ 	/* clear from the handled mask of the general interrupt */
+ 	m = isrc / 64;
+ 	n = isrc % 64;
+-	dd->gi_mask[m] &= ~((u64)1 << n);
++	if (likely(m < CCE_NUM_INT_CSRS)) {
++		dd->gi_mask[m] &= ~((u64)1 << n);
++	} else {
++		dd_dev_err(dd, "remap interrupt err\n");
++		return;
++	}
  
--static void free_qpn(struct rvt_qpn_table *qpt, u32 qpn)
--{
--	struct rvt_qpn_map *map;
--
--	map = qpt->map + qpn / RVT_BITS_PER_PAGE;
--	if (map->page)
--		clear_bit(qpn & RVT_BITS_PER_PAGE_MASK, map->page);
--}
--
- /**
-  * rvt_clear_mr_refs - Drop help mr refs
-  * @qp: rvt qp data structure
-@@ -646,6 +637,19 @@ static void rvt_reset_qp(struct rvt_dev_info *rdi, struct rvt_qp *qp,
- 	lockdep_assert_held(&qp->s_lock);
- }
- 
-+/** rvt_free_qpn - Free a qpn from the bit map
-+ * @qpt: QP table
-+ * @qpn: queue pair number to free
-+ */
-+static void rvt_free_qpn(struct rvt_qpn_table *qpt, u32 qpn)
-+{
-+	struct rvt_qpn_map *map;
-+
-+	map = qpt->map + qpn / RVT_BITS_PER_PAGE;
-+	if (map->page)
-+		clear_bit(qpn & RVT_BITS_PER_PAGE_MASK, map->page);
-+}
-+
- /**
-  * rvt_create_qp - create a queue pair for a device
-  * @ibpd: the protection domain who's device we create the queue pair for
-@@ -936,7 +940,7 @@ struct ib_qp *rvt_create_qp(struct ib_pd *ibpd,
- 		kref_put(&qp->ip->ref, rvt_release_mmap_info);
- 
- bail_qpn:
--	free_qpn(&rdi->qp_dev->qpn_table, qp->ibqp.qp_num);
-+	rvt_free_qpn(&rdi->qp_dev->qpn_table, qp->ibqp.qp_num);
- 
- bail_rq_wq:
- 	if (!qp->ip)
-@@ -1325,19 +1329,6 @@ int rvt_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 	return -EINVAL;
- }
- 
--/** rvt_free_qpn - Free a qpn from the bit map
-- * @qpt: QP table
-- * @qpn: queue pair number to free
-- */
--static void rvt_free_qpn(struct rvt_qpn_table *qpt, u32 qpn)
--{
--	struct rvt_qpn_map *map;
--
--	map = qpt->map + qpn / RVT_BITS_PER_PAGE;
--	if (map->page)
--		clear_bit(qpn & RVT_BITS_PER_PAGE_MASK, map->page);
--}
--
- /**
-  * rvt_destroy_qp - destroy a queue pair
-  * @ibqp: the queue pair to destroy
+ 	/* direct the chip source to the given MSI-X interrupt */
+ 	m = isrc / 8;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
