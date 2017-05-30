@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 2/9] IB/hfi1: Ensure dd->gi_mask can not be
- overflowed
-Date: Mon, 29 May 2017 17:18:14 -0700
-Message-ID: <20170530001733.534.8558.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 3/9] IB/hfi1: Fix spelling mistake in linkdown
+ reason
+Date: Mon, 29 May 2017 17:18:46 -0700
+Message-ID: <20170530001819.534.55715.stgit@scvm10.sc.intel.com>
 References: <20170530000314.534.72983.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,35 +14,27 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-As the code stands today the array access in remap_intr() is OK. To
-future proof the code though we should explicitly check to ensure the
-index value is not outside of the valid range. This is not a straight
-forward calculation so err on the side of caution.
+Spell receive correctly in OPA_LINKDOWN_REASON_RCV_ERROR
 
 Reviewed-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index aab107f..33fd7fe 100644
+index 33fd7fe..619ce0b 100644
 --- a/drivers/infiniband/hw/hfi1/chip.c
 +++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -12832,7 +12832,12 @@ static void remap_intr(struct hfi1_devdata *dd, int isrc, int msix_intr)
- 	/* clear from the handled mask of the general interrupt */
- 	m = isrc / 64;
- 	n = isrc % 64;
--	dd->gi_mask[m] &= ~((u64)1 << n);
-+	if (likely(m < CCE_NUM_INT_CSRS)) {
-+		dd->gi_mask[m] &= ~((u64)1 << n);
-+	} else {
-+		dd_dev_err(dd, "remap interrupt err\n");
-+		return;
-+	}
+@@ -6906,7 +6906,7 @@ static void reset_neighbor_info(struct hfi1_pportdata *ppd)
  
- 	/* direct the chip source to the given MSI-X interrupt */
- 	m = isrc / 8;
+ static const char * const link_down_reason_strs[] = {
+ 	[OPA_LINKDOWN_REASON_NONE] = "None",
+-	[OPA_LINKDOWN_REASON_RCV_ERROR_0] = "Recive error 0",
++	[OPA_LINKDOWN_REASON_RCV_ERROR_0] = "Receive error 0",
+ 	[OPA_LINKDOWN_REASON_BAD_PKT_LEN] = "Bad packet length",
+ 	[OPA_LINKDOWN_REASON_PKT_TOO_LONG] = "Packet too long",
+ 	[OPA_LINKDOWN_REASON_PKT_TOO_SHORT] = "Packet too short",
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
