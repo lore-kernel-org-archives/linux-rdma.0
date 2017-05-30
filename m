@@ -1,123 +1,112 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 05/17] svcrdma: Improve Read chunk sanity checking
-Date: Tue, 30 May 2017 14:14:42 -0400
-Message-ID: <20170530181442.2992.70479.stgit@klimt.1015granger.net>
+Subject: [PATCH v1 06/17] svcrdma: Improve Write chunk sanity checking
+Date: Tue, 30 May 2017 14:14:50 -0400
+Message-ID: <20170530181450.2992.29755.stgit@klimt.1015granger.net>
 References: <20170530175808.2992.60365.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170530175808.2992.60365.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 Identify malformed transport headers and unsupported chunk
 combinations as early as possible.
 
-- Reject RPC-over-RDMA messages that contain more than one Read chunk,
-  since this implementation currently does not support more than one
-  per RPC transaction.
+- Reject RPC-over-RDMA messages that contain more than one Write
+chunk, since this implementation does not support more than one per
+message.
 
 - Ensure that segment lengths are not crazy.
 
-- Remove the segment count check. With a 1KB inline threshold, the
-  largest number of Read segments that can be conveyed is about 40
-  (for a RDMA_NOMSG Call message). This is nowhere near
-  RPCSVC_MAXPAGES. As far as I can tell, that was just a sanity
-  check and does not enforce an implementation limit.
+- Ensure that the chunk's segment count is not crazy.
+
+With a 1KB inline threshold, the largest number of Write segments
+that can be conveyed is about 60 (for a RDMA_NOMSG Reply message).
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |   55 +++++++++++++++++++++----------
- 1 file changed, 37 insertions(+), 18 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |   52 ++++++++++++++++++++++++++++---
+ 1 file changed, 47 insertions(+), 5 deletions(-)
 
 diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index 55ad335..885ad95 100644
+index 885ad95..cf8be18 100644
 --- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
 +++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -117,15 +117,47 @@ static void rdma_build_arg_xdr(struct svc_rqst *rqstp,
+@@ -117,6 +117,11 @@ static void rdma_build_arg_xdr(struct svc_rqst *rqstp,
  	rqstp->rq_arg.tail[0].iov_len = 0;
  }
  
--static __be32 *xdr_check_read_list(__be32 *p, __be32 *end)
-+/* This accommodates the largest possible Position-Zero
-+ * Read chunk or Reply chunk, in one segment.
++/* This accommodates the largest possible Write chunk,
++ * in one segment.
 + */
-+#define MAX_BYTES_SPECIAL_SEG	((u32)((RPCSVC_MAXPAGES + 2) << PAGE_SHIFT))
++#define MAX_BYTES_WRITE_SEG	((u32)(RPCSVC_MAXPAGES << PAGE_SHIFT))
 +
-+/* Sanity check the Read list.
-+ *
-+ * Implementation limits:
-+ * - This implementation supports only one Read chunk.
-+ *
-+ * Sanity checks:
-+ * - Read list does not overflow buffer.
-+ * - Segment size limited by largest NFS data payload.
-+ *
-+ * The segment count is limited to how many segments can
+ /* This accommodates the largest possible Position-Zero
+  * Read chunk or Reply chunk, in one segment.
+  */
+@@ -162,15 +167,52 @@ static __be32 *xdr_check_read_list(__be32 *p, const __be32 *end)
+ 	return p;
+ }
+ 
+-static __be32 *xdr_check_write_list(__be32 *p, __be32 *end)
++/* The segment count is limited to how many segments can
 + * fit in the transport header without overflowing the
-+ * buffer. That's about 40 Read segments for a 1KB inline
++ * buffer. That's about 60 Write segments for a 1KB inline
 + * threshold.
-+ *
-+ * Returns pointer to the following Write list.
 + */
-+static __be32 *xdr_check_read_list(__be32 *p, const __be32 *end)
++static __be32 *xdr_check_write_chunk(__be32 *p, const __be32 *end,
++				     u32 maxlen)
  {
 -	__be32 *next;
-+	u32 position;
-+	bool first;
- 
-+	first = true;
- 	while (*p++ != xdr_zero) {
--		next = p + rpcrdma_readchunk_maxsz - 1;
--		if (next > end)
-+		if (first) {
-+			position = be32_to_cpup(p++);
-+			first = false;
-+		} else if (be32_to_cpup(p++) != position) {
-+			return NULL;
-+		}
++	u32 i, segcount;
++
++	segcount = be32_to_cpup(p++);
++	for (i = 0; i < segcount; i++) {
 +		p++;	/* handle */
-+		if (be32_to_cpup(p++) > MAX_BYTES_SPECIAL_SEG)
++		if (be32_to_cpup(p++) > maxlen)
 +			return NULL;
 +		p += 2;	/* offset */
 +
 +		if (p > end)
++			return NULL;
++	}
++
++	return p;
++}
+ 
++/* Sanity check the Write list.
++ *
++ * Implementation limits:
++ * - This implementation supports only one Write chunk.
++ *
++ * Sanity checks:
++ * - Write list does not overflow buffer.
++ * - Segment size limited by largest NFS data payload.
++ *
++ * Returns pointer to the following Reply chunk.
++ */
++static __be32 *xdr_check_write_list(__be32 *p, const __be32 *end)
++{
++	u32 chcount;
++
++	chcount = 0;
+ 	while (*p++ != xdr_zero) {
+-		next = p + 1 + be32_to_cpup(p) * rpcrdma_segment_maxsz;
+-		if (next > end)
++		p = xdr_check_write_chunk(p, end, MAX_BYTES_WRITE_SEG);
++		if (!p)
++			return NULL;
++		if (chcount++ > 1)
  			return NULL;
 -		p = next;
  	}
  	return p;
  }
-@@ -478,16 +510,6 @@ int rdma_read_chunk_frmr(struct svcxprt_rdma *xprt,
- 	return ret;
- }
- 
--static unsigned int
--rdma_rcl_chunk_count(struct rpcrdma_read_chunk *ch)
--{
--	unsigned int count;
--
--	for (count = 0; ch->rc_discrim != xdr_zero; ch++)
--		count++;
--	return count;
--}
--
- /* If there was additional inline content, append it to the end of arg.pages.
-  * Tail copy has to be done after the reader function has determined how many
-  * pages are needed for RDMA READ.
-@@ -567,9 +589,6 @@ static int rdma_read_chunks(struct svcxprt_rdma *xprt,
- 	if (!ch)
- 		return 0;
- 
--	if (rdma_rcl_chunk_count(ch) > RPCSVC_MAXPAGES)
--		return -EINVAL;
--
- 	/* The request is completed when the RDMA_READs complete. The
- 	 * head context keeps all the pages that comprise the
- 	 * request.
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
