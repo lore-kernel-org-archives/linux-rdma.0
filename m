@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 1/3] net/mlx5: Add raw ethernet local loopback firmware command
-Date: Tue, 30 May 2017 09:42:53 +0300
-Message-ID: <20170530064255.3745-2-leon@kernel.org>
+Subject: [PATCH rdma-next 2/3] IB/mlx5: Add raw ethernet local loopback support
+Date: Tue, 30 May 2017 09:42:54 +0300
+Message-ID: <20170530064255.3745-3-leon@kernel.org>
 References: <20170530064255.3745-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170530064255.3745-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,139 +12,191 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Huy Nguyen <huyn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add support for raw ethernet local loopback firmware command.
+Currently, unicast/multicast loopback raw ethernet
+(non-RDMA) packets are sent back to the vport.
+A unicast loopback packet is the packet with destination
+MAC address the same as the source MAC address.
+For multicast, the destination MAC address is in the
+vport's multicast filter list.
+
+Moreover, the local loopback is not needed if
+there is one or none user space context.
+
+After this patch, the raw ethernet unicast and multicast
+local loopback are disabled by default. When there is more
+than one user space context, the local loopback is enabled.
+
+Note that when local loopback is disabled, raw ethernet
+packets are not looped back to the vport and are forwarded
+to the next routing level (eswitch, or multihost switch,
+or out to the wire depending on the configuration).
 
 Signed-off-by: Huy Nguyen <huyn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/vport.c | 62 +++++++++++++++++++++++++
- include/linux/mlx5/mlx5_ifc.h                   | 11 +++--
- include/linux/mlx5/vport.h                      |  3 +-
- 3 files changed, 72 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c              | 51 ++++++++++++++++++++++++--
+ drivers/infiniband/hw/mlx5/mlx5_ib.h           |  4 ++
+ drivers/net/ethernet/mellanox/mlx5/core/main.c | 19 ++++++++++
+ 3 files changed, 70 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/vport.c b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-index 15c2294dd2b4..3eaa4aac13dd 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/vport.c
-@@ -901,6 +901,68 @@ int mlx5_modify_nic_vport_promisc(struct mlx5_core_dev *mdev,
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index d45772da0963..69412baf2bf9 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -58,6 +58,7 @@
+ #include <linux/mlx5/vport.h>
+ #include "mlx5_ib.h"
+ #include "cmd.h"
++#include <linux/mlx5/vport.h>
+
+ #define DRIVER_NAME "mlx5_ib"
+ #define DRIVER_VERSION "2.2-1"
+@@ -1201,6 +1202,45 @@ static int deallocate_uars(struct mlx5_ib_dev *dev, struct mlx5_ib_ucontext *con
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(mlx5_modify_nic_vport_promisc);
- 
-+enum {
-+	UC_LOCAL_LB,
-+	MC_LOCAL_LB
-+};
-+
-+int mlx5_nic_vport_update_local_lb(struct mlx5_core_dev *mdev, bool enable)
+
++static int mlx5_ib_alloc_transport_domain(struct mlx5_ib_dev *dev, u32 *tdn)
 +{
-+	int inlen = MLX5_ST_SZ_BYTES(modify_nic_vport_context_in);
-+	void *in;
 +	int err;
 +
-+	mlx5_core_dbg(mdev, "%s local_lb\n", enable ? "enable" : "disable");
-+	in = kvzalloc(inlen, GFP_KERNEL);
-+	if (!in)
-+		return -ENOMEM;
-+
-+	MLX5_SET(modify_nic_vport_context_in, in,
-+		 field_select.disable_mc_local_lb, 1);
-+	MLX5_SET(modify_nic_vport_context_in, in,
-+		 nic_vport_context.disable_mc_local_lb, !enable);
-+
-+	MLX5_SET(modify_nic_vport_context_in, in,
-+		 field_select.disable_uc_local_lb, 1);
-+	MLX5_SET(modify_nic_vport_context_in, in,
-+		 nic_vport_context.disable_uc_local_lb, !enable);
-+
-+	err = mlx5_modify_nic_vport_context(mdev, in, inlen);
-+
-+	kvfree(in);
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(mlx5_nic_vport_update_local_lb);
-+
-+int mlx5_nic_vport_query_local_lb(struct mlx5_core_dev *mdev, bool *status)
-+{
-+	int outlen = MLX5_ST_SZ_BYTES(query_nic_vport_context_out);
-+	u32 *out;
-+	int value;
-+	int err;
-+
-+	out = kzalloc(outlen, GFP_KERNEL);
-+	if (!out)
-+		return -ENOMEM;
-+
-+	err = mlx5_query_nic_vport_context(mdev, 0, out, outlen);
++	err = mlx5_core_alloc_transport_domain(dev->mdev, tdn);
 +	if (err)
-+		goto out;
++		return err;
 +
-+	value = MLX5_GET(query_nic_vport_context_out, out,
-+			 nic_vport_context.disable_mc_local_lb) << MC_LOCAL_LB;
++	if ((MLX5_CAP_GEN(dev->mdev, port_type) != MLX5_CAP_PORT_TYPE_ETH) ||
++	    !MLX5_CAP_GEN(dev->mdev, disable_local_lb))
++		return err;
 +
-+	value |= MLX5_GET(query_nic_vport_context_out, out,
-+			  nic_vport_context.disable_uc_local_lb) << UC_LOCAL_LB;
++	mutex_lock(&dev->lb_mutex);
++	dev->user_td++;
 +
-+	*status = !value;
++	if (dev->user_td == 2)
++		err = mlx5_nic_vport_update_local_lb(dev->mdev, true);
 +
-+out:
-+	kfree(out);
++	mutex_unlock(&dev->lb_mutex);
 +	return err;
 +}
-+EXPORT_SYMBOL_GPL(mlx5_nic_vport_query_local_lb);
 +
- enum mlx5_vport_roce_state {
- 	MLX5_VPORT_ROCE_DISABLED = 0,
- 	MLX5_VPORT_ROCE_ENABLED  = 1,
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 32de0724b400..d55076bb4646 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -994,7 +994,8 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 	u8         log_max_wq_sz[0x5];
- 
- 	u8         nic_vport_change_event[0x1];
--	u8         reserved_at_3e1[0xa];
-+	u8         disable_local_lb[0x1];
-+	u8         reserved_at_3e2[0x9];
- 	u8         log_max_vlan_list[0x5];
- 	u8         reserved_at_3f0[0x3];
- 	u8         log_max_current_mc_list[0x5];
-@@ -2538,7 +2539,9 @@ struct mlx5_ifc_rmpc_bits {
- struct mlx5_ifc_nic_vport_context_bits {
- 	u8         reserved_at_0[0x5];
- 	u8         min_wqe_inline_mode[0x3];
--	u8         reserved_at_8[0x17];
-+	u8         reserved_at_8[0x15];
-+	u8         disable_mc_local_lb[0x1];
-+	u8         disable_uc_local_lb[0x1];
- 	u8         roce_en[0x1];
- 
- 	u8         arm_change_event[0x1];
-@@ -5197,7 +5200,9 @@ struct mlx5_ifc_modify_nic_vport_context_out_bits {
++static void mlx5_ib_dealloc_transport_domain(struct mlx5_ib_dev *dev, u32 tdn)
++{
++	mlx5_core_dealloc_transport_domain(dev->mdev, tdn);
++
++	if ((MLX5_CAP_GEN(dev->mdev, port_type) != MLX5_CAP_PORT_TYPE_ETH) ||
++	    !MLX5_CAP_GEN(dev->mdev, disable_local_lb))
++		return;
++
++	mutex_lock(&dev->lb_mutex);
++	dev->user_td--;
++
++	if (dev->user_td < 2)
++		mlx5_nic_vport_update_local_lb(dev->mdev, false);
++
++	mutex_unlock(&dev->lb_mutex);
++}
++
+ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+ 						  struct ib_udata *udata)
+ {
+@@ -1309,8 +1349,7 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+ 	mutex_init(&context->upd_xlt_page_mutex);
+
+ 	if (MLX5_CAP_GEN(dev->mdev, log_max_transport_domain)) {
+-		err = mlx5_core_alloc_transport_domain(dev->mdev,
+-						       &context->tdn);
++		err = mlx5_ib_alloc_transport_domain(dev, &context->tdn);
+ 		if (err)
+ 			goto out_page;
+ 	}
+@@ -1376,7 +1415,7 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+
+ out_td:
+ 	if (MLX5_CAP_GEN(dev->mdev, log_max_transport_domain))
+-		mlx5_core_dealloc_transport_domain(dev->mdev, context->tdn);
++		mlx5_ib_dealloc_transport_domain(dev, context->tdn);
+
+ out_page:
+ 	free_page(context->upd_xlt_page);
+@@ -1404,7 +1443,7 @@ static int mlx5_ib_dealloc_ucontext(struct ib_ucontext *ibcontext)
+
+ 	bfregi = &context->bfregi;
+ 	if (MLX5_CAP_GEN(dev->mdev, log_max_transport_domain))
+-		mlx5_core_dealloc_transport_domain(dev->mdev, context->tdn);
++		mlx5_ib_dealloc_transport_domain(dev, context->tdn);
+
+ 	free_page(context->upd_xlt_page);
+ 	deallocate_uars(dev, context);
+@@ -3788,6 +3827,10 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 			goto err_umrc;
+ 	}
+
++	if ((MLX5_CAP_GEN(mdev, port_type) == MLX5_CAP_PORT_TYPE_ETH) &&
++	    MLX5_CAP_GEN(mdev, disable_local_lb))
++		mutex_init(&dev->lb_mutex);
++
+ 	dev->ib_active = true;
+
+ 	return dev;
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 38c877bc45e5..a6a563b9c92c 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -654,6 +654,10 @@ struct mlx5_ib_dev {
+ 	struct mlx5_ib_port	*port;
+ 	struct mlx5_sq_bfreg     bfreg;
+ 	struct mlx5_sq_bfreg     fp_bfreg;
++
++	/* protect the user_td */
++	struct mutex             lb_mutex;
++	u32                      user_td;
  };
- 
- struct mlx5_ifc_modify_nic_vport_field_select_bits {
--	u8         reserved_at_0[0x16];
-+	u8         reserved_at_0[0x14];
-+	u8         disable_uc_local_lb[0x1];
-+	u8         disable_mc_local_lb[0x1];
- 	u8         node_guid[0x1];
- 	u8         port_guid[0x1];
- 	u8         min_inline[0x1];
-diff --git a/include/linux/mlx5/vport.h b/include/linux/mlx5/vport.h
-index 656c70b65dd2..aaa0bb9e7655 100644
---- a/include/linux/mlx5/vport.h
-+++ b/include/linux/mlx5/vport.h
-@@ -114,5 +114,6 @@ int mlx5_core_modify_hca_vport_context(struct mlx5_core_dev *dev,
- 				       u8 other_vport, u8 port_num,
- 				       int vf,
- 				       struct mlx5_hca_vport_context *req);
--
-+int mlx5_nic_vport_update_local_lb(struct mlx5_core_dev *mdev, bool enable);
-+int mlx5_nic_vport_query_local_lb(struct mlx5_core_dev *mdev, bool *status);
- #endif /* __MLX5_VPORT_H__ */
--- 
+
+ static inline struct mlx5_ib_cq *to_mibcq(struct mlx5_core_cq *mcq)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index 0c123d571b4c..1cafcae97aea 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -47,6 +47,7 @@
+ #include <linux/debugfs.h>
+ #include <linux/kmod.h>
+ #include <linux/mlx5/mlx5_ifc.h>
++#include <linux/mlx5/vport.h>
+ #ifdef CONFIG_RFS_ACCEL
+ #include <linux/cpu_rmap.h>
+ #endif
+@@ -574,6 +575,18 @@ static int set_hca_ctrl(struct mlx5_core_dev *dev)
+ 	return err;
+ }
+
++static int mlx5_core_set_hca_defaults(struct mlx5_core_dev *dev)
++{
++	int ret = 0;
++
++	/* Disable local_lb by default */
++	if ((MLX5_CAP_GEN(dev, port_type) == MLX5_CAP_PORT_TYPE_ETH) &&
++	    MLX5_CAP_GEN(dev, disable_local_lb))
++		ret = mlx5_nic_vport_update_local_lb(dev, false);
++
++	return ret;
++}
++
+ int mlx5_core_enable_hca(struct mlx5_core_dev *dev, u16 func_id)
+ {
+ 	u32 out[MLX5_ST_SZ_DW(enable_hca_out)] = {0};
+@@ -1137,6 +1150,12 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
+ 		goto err_fs;
+ 	}
+
++	err = mlx5_core_set_hca_defaults(dev);
++	if (err) {
++		dev_err(&pdev->dev, "Failed to set hca defaults\n");
++		goto err_fs;
++	}
++
+ #ifdef CONFIG_MLX5_CORE_EN
+ 	mlx5_eswitch_attach(dev->priv.eswitch);
+ #endif
+--
 2.12.2
 
 --
