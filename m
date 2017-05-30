@@ -1,109 +1,87 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next] IB/mlx5: Change logic for dispatching IB events for port state
-Date: Tue, 30 May 2017 09:56:05 +0300
-Message-ID: <20170530065605.5814-1-leon@kernel.org>
+Subject: [PATCH rdma-next] IB/core: Add ordered workqueue for RoCE GID management
+Date: Tue, 30 May 2017 09:58:06 +0300
+Message-ID: <20170530065806.6245-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The old logic ignored link state. This led to missing IB events like
-when link goes down on the switch while admin state is up or to redundant
-events like when admin state goes up while link is down.
-To fix that, probe the port state on NETDEV events and compare to last
-known state to decide if IB events needs to be dispatched.
+Currently the RoCE GID management uses the ib_wq to do add and delete new GIDs
+according to the netdev events.
 
-FIxes: 5ec8c83e3ad3 ("IB/mlx5: Port events in RoCE now rely on netdev events")
-Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+The ib_wq isn't an ordered workqueue and thus two work elements can be executed
+concurrently which will result in unexpected behavior and inconsistency of the
+GIDs cache content.
+
+Example:
+ifconfig eth1 11.11.11.11/16 up
+
+This command will invoke the following netdev events in the following order:
+1. NETDEV_UP
+2. NETDEV_DOWN
+3. NETDEV_UP
+
+If (2) and (3) will be executed concurrently or in reverse order, instead of
+having a new GID with 11.11.11.11 IP, we will end up without any new GIDs.
+
+Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c    | 33 +++++++++++++++++++++++++++++++--
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 +
- 2 files changed, 32 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/roce_gid_mgmt.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index d45772da0963..5944b4a34a73 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -98,6 +98,20 @@ mlx5_ib_port_link_layer(struct ib_device *device, u8 port_num)
- 	return mlx5_port_type_cap_to_rdma_ll(port_type_cap);
- }
+diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
+index db958d3207ef..94a9eefb3cfc 100644
+--- a/drivers/infiniband/core/roce_gid_mgmt.c
++++ b/drivers/infiniband/core/roce_gid_mgmt.c
+@@ -42,6 +42,8 @@
+ #include <rdma/ib_cache.h>
+ #include <rdma/ib_addr.h>
 
-+static int get_port_state(struct ib_device *ibdev,
-+			  u8 port_num,
-+			  enum ib_port_state *state)
-+{
-+	struct ib_port_attr attr;
-+	int ret;
++static struct workqueue_struct *gid_cache_wq;
 +
-+	memset(&attr, 0, sizeof(attr));
-+	ret = mlx5_ib_query_port(ibdev, port_num, &attr);
-+	if (!ret)
-+		*state = attr.state;
-+	return ret;
-+}
-+
- static int mlx5_netdev_event(struct notifier_block *this,
- 			     unsigned long event, void *ptr)
- {
-@@ -115,6 +129,7 @@ static int mlx5_netdev_event(struct notifier_block *this,
- 		write_unlock(&ibdev->roce.netdev_lock);
- 		break;
-
-+	case NETDEV_CHANGE:
- 	case NETDEV_UP:
- 	case NETDEV_DOWN: {
- 		struct net_device *lag_ndev = mlx5_lag_get_roce_netdev(ibdev->mdev);
-@@ -128,10 +143,23 @@ static int mlx5_netdev_event(struct notifier_block *this,
- 		if ((upper == ndev || (!upper && ndev == ibdev->roce.netdev))
- 		    && ibdev->ib_active) {
- 			struct ib_event ibev = { };
-+			enum ib_port_state port_state;
-
-+			if (get_port_state(&ibdev->ib_dev, 1, &port_state))
-+				return NOTIFY_DONE;
-+
-+			if (ibdev->roce.last_port_state == port_state)
-+				return NOTIFY_DONE;
-+
-+			ibdev->roce.last_port_state = port_state;
- 			ibev.device = &ibdev->ib_dev;
--			ibev.event = (event == NETDEV_UP) ?
--				     IB_EVENT_PORT_ACTIVE : IB_EVENT_PORT_ERR;
-+			if (port_state == IB_PORT_DOWN)
-+				ibev.event = IB_EVENT_PORT_ERR;
-+			else if (port_state == IB_PORT_ACTIVE)
-+				ibev.event = IB_EVENT_PORT_ACTIVE;
-+			else
-+				return NOTIFY_DONE;
-+
- 			ibev.element.port_num = 1;
- 			ib_dispatch_event(&ibev);
- 		}
-@@ -3745,6 +3773,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 		err = mlx5_enable_eth(dev);
- 		if (err)
- 			goto err_free_port;
-+		dev->roce.last_port_state = IB_PORT_DOWN;
+ enum gid_op_type {
+ 	GID_DEL = 0,
+ 	GID_ADD
+@@ -560,7 +562,7 @@ static int netdevice_queue_work(struct netdev_event_work_cmd *cmds,
  	}
+ 	INIT_WORK(&ndev_work->work, netdevice_event_work_handler);
 
- 	err = create_dev_resources(&dev->devr);
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 38c877bc45e5..5b78b09b4a23 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -616,6 +616,7 @@ struct mlx5_roce {
- 	struct net_device	*netdev;
- 	struct notifier_block	nb;
- 	atomic_t		next_port;
-+	enum ib_port_state last_port_state;
- };
+-	queue_work(ib_wq, &ndev_work->work);
++	queue_work(gid_cache_wq, &ndev_work->work);
 
- struct mlx5_ib_dev {
+ 	return NOTIFY_DONE;
+ }
+@@ -693,7 +695,7 @@ static int addr_event(struct notifier_block *this, unsigned long event,
+ 	dev_hold(ndev);
+ 	work->gid_attr.ndev   = ndev;
+
+-	queue_work(ib_wq, &work->work);
++	queue_work(gid_cache_wq, &work->work);
+
+ 	return NOTIFY_DONE;
+ }
+@@ -740,6 +742,10 @@ static struct notifier_block nb_inet6addr = {
+
+ int __init roce_gid_mgmt_init(void)
+ {
++	gid_cache_wq = alloc_ordered_workqueue("gid-cache-wq", 0);
++	if (!gid_cache_wq)
++		return -ENOMEM;
++
+ 	register_inetaddr_notifier(&nb_inetaddr);
+ 	if (IS_ENABLED(CONFIG_IPV6))
+ 		register_inet6addr_notifier(&nb_inet6addr);
+@@ -764,4 +770,5 @@ void __exit roce_gid_mgmt_cleanup(void)
+ 	 * ib-core is removed, all physical devices have been removed,
+ 	 * so no issue with remaining hardware contexts.
+ 	 */
++	destroy_workqueue(gid_cache_wq);
+ }
 --
 2.12.2
 
