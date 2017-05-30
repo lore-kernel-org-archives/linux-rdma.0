@@ -1,65 +1,48 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-core] Bump version to be v15
-Date: Tue, 30 May 2017 08:56:48 +0300
-Message-ID: <20170530055648.1754-1-leon@kernel.org>
+Subject: [PATCH rdma-next 0/3] Add raw ethernet local loopback
+Date: Tue, 30 May 2017 09:42:52 +0300
+Message-ID: <20170530064255.3745-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- CMakeLists.txt        | 2 +-
- debian/changelog      | 2 +-
- rdma-core.spec        | 2 +-
- redhat/rdma-core.spec | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+Hi Doug,
 
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 29c61644..76b31ed2 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -44,7 +44,7 @@ endif()
- set(PACKAGE_NAME "RDMA")
+The following patch set from Huy adds ability to disable/enable
+raw ethernet loopbacks based on actual number of user contexts.
 
- # See Documentation/versioning.md
--set(PACKAGE_VERSION "14")
-+set(PACKAGE_VERSION "15")
+The one or less user space context simply says that no actual consumer
+of this packets and they don't need to be forwarded to the vport.
 
- #-------------------------
- # Basic standard paths
-diff --git a/debian/changelog b/debian/changelog
-index 37c1df2d..86b402f4 100644
---- a/debian/changelog
-+++ b/debian/changelog
-@@ -1,4 +1,4 @@
--rdma-core (14-1) unstable; urgency=low
-+rdma-core (15-1) unstable; urgency=low
+After this patch set, the raw ethernet unicast and multicast
+local loopbacks are disabled by default and packets are forwarded
+to the next routing level (eswitch, or multihost switch, or out to the
+wire depending on the configuration).
 
-   * New version.
-   * Adding debian/copyright.
-diff --git a/rdma-core.spec b/rdma-core.spec
-index 2cb67c50..b923a5d7 100644
---- a/rdma-core.spec
-+++ b/rdma-core.spec
-@@ -1,5 +1,5 @@
- Name: rdma-core
--Version: 14
-+Version: 15
- Release: 1%{?dist}
- Summary: RDMA core userspace libraries and daemons
+Available in the "topic/local_lb" topic branch of this git repo:
+git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
 
-diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
-index 8e6cf3ae..1f5cd146 100644
---- a/redhat/rdma-core.spec
-+++ b/redhat/rdma-core.spec
-@@ -1,5 +1,5 @@
- Name: rdma-core
--Version: 14
-+Version: 15
- Release: 1%{?dist}
- Summary: RDMA core userspace libraries and daemons
+Or for browsing:
+https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/local_lb
+
+Possible merge conflicts resolution is available in:
+https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=testing/queue-next
+
+Huy Nguyen (3):
+  net/mlx5: Add raw ethernet local loopback firmware command
+  IB/mlx5: Add raw ethernet local loopback support
+  net/mlx5e: Enable local loopback in loopback selftest
+
+ drivers/infiniband/hw/mlx5/main.c                  | 51 ++++++++++++++++--
+ drivers/infiniband/hw/mlx5/mlx5_ib.h               |  4 ++
+ .../net/ethernet/mellanox/mlx5/core/en_selftest.c  | 13 +++++
+ drivers/net/ethernet/mellanox/mlx5/core/main.c     | 19 +++++++
+ drivers/net/ethernet/mellanox/mlx5/core/vport.c    | 62 ++++++++++++++++++++++
+ include/linux/mlx5/mlx5_ifc.h                      | 11 ++--
+ include/linux/mlx5/vport.h                         |  3 +-
+ 7 files changed, 155 insertions(+), 8 deletions(-)
 
 --
 2.12.2
