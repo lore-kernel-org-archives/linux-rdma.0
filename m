@@ -1,37 +1,52 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+From: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH v2 2/2] IB/mlx5: set UMR wqe fence according to HCA cap
-Date: Tue, 30 May 2017 13:51:33 +0300
-Message-ID: <d23a5a6f-bd9f-3b1a-34d5-25e8eb2a041c@grimberg.me>
+Date: Tue, 30 May 2017 14:15:48 +0300
+Message-ID: <9562e253-bc15-4ea1-3880-0430fd540410@mellanox.com>
 References: <1495957991-19223-1-git-send-email-maxg@mellanox.com>
  <1495957991-19223-2-git-send-email-maxg@mellanox.com>
- <20170528090705.GM13083@lst.de>
- <19a1d347-91da-7e5f-8877-86772204a80a@mellanox.com>
- <20170529100504.GZ17751@mtr-leonro.local>
- <89409b6d-466d-070a-7082-1f7bbb9ad7c7@mellanox.com>
- <20170529160609.GA17751@mtr-leonro.local>
+ <700d9410-56e7-d70f-9de4-87e4e37bca28@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170529160609.GA17751-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <700d9410-56e7-d70f-9de4-87e4e37bca28-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org, vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org
+Cc: shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Leon,
 
->> We don't fence those WR's.
->> Christoph just re-write it to be more intuitive code. I don't see logic
->> difference, am I wrong here ?
+
+On 5/30/2017 1:48 PM, Sagi Grimberg wrote:
+>> +static u8 mlx5_get_umr_fence(u8 umr_fence_cap)
+>> +{
+>> +    switch (umr_fence_cap) {
+>> +    case MLX5_CAP_UMR_FENCE_NONE:
+>> +        return MLX5_FENCE_MODE_NONE;
+>> +    case MLX5_CAP_UMR_FENCE_SMALL:
+>> +        return MLX5_FENCE_MODE_INITIATOR_SMALL;
+>> +    default:
+>> +        return MLX5_FENCE_MODE_STRONG_ORDERING;
+>> +    }
+>> +}
 >
-> A little bit, before Christoph's suggestion, we calculated fence for
-> the paths which need such fence, after we will calculate for all paths.
+> Where are the MLX5_CAP_UMR defines declared? Am I missing something?
+>
+> What is the value of MLX5_CAP_UMR_FENCE_NONE? if its zero then this
+> change is not backwards compatible with older FW.
 
-Every WQE posted to a send queue must include a fence bit. All work
-request posted on the send queue calculate the required fence, this
-used to happen in finish_wqe call-sites with get_fence(), Christoph
-just inlin'ed it.
+
+they are declared in patch 1/2:
+
++enum {
++	MLX5_CAP_UMR_FENCE_STRONG	= 0x0,
++	MLX5_CAP_UMR_FENCE_SMALL	= 0x1,
++	MLX5_CAP_UMR_FENCE_NONE		= 0x2,
++};
++
+
+Thanks,
+Max.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
