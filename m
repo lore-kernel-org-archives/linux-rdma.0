@@ -1,43 +1,49 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 17/17] svcrdma: use offset_in_page() macro
-Date: Tue, 30 May 2017 14:16:18 -0400
-Message-ID: <20170530181618.2992.39799.stgit@klimt.1015granger.net>
-References: <20170530175808.2992.60365.stgit@klimt.1015granger.net>
+From: "Henry, Michael N" <michael.n.henry-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH for-next 5/9] IB/core, rdmavt, hfi1: Send OPA cap_mask3 in
+ trap
+Date: Tue, 30 May 2017 11:32:22 -0700
+Message-ID: <2fc7a7d6-9ba3-2365-45e3-946f56827dd9@intel.com>
+References: <20170526123257.8158.23943.stgit@scvm10.sc.intel.com>
+ <20170526123536.8158.237.stgit@scvm10.sc.intel.com>
+ <20170529161407.GB17751@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170530175808.2992.60365.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170529161407.GB17751-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up: Use offset_in_page() macro instead of open-coding.
+On 5/29/2017 9:14 AM, Leon Romanovsky wrote:
+> On Fri, May 26, 2017 at 05:35:37AM -0700, Dennis Dalessandro wrote:
+>> From: Michael N. Henry <michael.n.henry-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>
+>> Provide the ability for IB clients to modify the OPA specific
+>> capability mask and include this mask in the subsequent trap data.
+>>
+>> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+>> index 785e927..6c4f6da 100644
+>> --- a/include/rdma/ib_verbs.h
+>> +++ b/include/rdma/ib_verbs.h
+>> @@ -576,7 +576,8 @@ struct ib_device_modify {
+>>   enum ib_port_modify_flags {
+>>   	IB_PORT_SHUTDOWN		= 1,
+>>   	IB_PORT_INIT_TYPE		= (1<<2),
+>> -	IB_PORT_RESET_QKEY_CNTR		= (1<<3)
+>> +	IB_PORT_RESET_QKEY_CNTR		= (1<<3),
+>> +	IB_PORT_OPA_MASK_CHG		= (1<<4)
+> How will this flag be set?
+>
+This flag can be set as the port_modify_mask when calling ib_modify_port(..)
 
-Reported-by: Geliang Tang <geliangtang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/svc_rdma_rw.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Thanks,
 
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_rw.c b/net/sunrpc/xprtrdma/svc_rdma_rw.c
-index d91ef56..4276c1c 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_rw.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_rw.c
-@@ -371,8 +371,9 @@ static void svc_rdma_pagelist_to_sg(struct svc_rdma_write_info *info,
- 	struct scatterlist *sg;
- 	struct page **page;
- 
--	page_off = (info->wi_next_off + xdr->page_base) & ~PAGE_MASK;
--	page_no = (info->wi_next_off + xdr->page_base) >> PAGE_SHIFT;
-+	page_off = info->wi_next_off + xdr->page_base;
-+	page_no = page_off >> PAGE_SHIFT;
-+	page_off = offset_in_page(page_off);
- 	page = xdr->pages + page_no;
- 	info->wi_next_off += remaining;
- 	sg = ctxt->rw_sg_table.sgl;
+-Mike
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
