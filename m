@@ -1,61 +1,70 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core] libibumad: clean up htonll/ntohnll handling
-Date: Tue, 30 May 2017 06:52:39 +0300
-Message-ID: <20170530035239.GE17751@mtr-leonro.local>
-References: <20170522141722.50502-1-jarod@redhat.com>
+Subject: [ANNOUNCE] rdma-core-14 release available
+Date: Tue, 30 May 2017 08:26:15 +0300
+Message-ID: <20170530052615.GF17751@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="8M+BMcg+0CmQ2H7L"
+        protocol="application/pgp-signature"; boundary="d6nDKxlhctiV7bVq"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170522141722.50502-1-jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---8M+BMcg+0CmQ2H7L
+--d6nDKxlhctiV7bVq
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, May 22, 2017 at 10:17:22AM -0400, Jarod Wilson wrote:
-> Only ntohll was being checked to see if it wasn't defined, and was then
-> redefining htonll as well as ntohll. This was causing some problems for
-> the compile of the opa-ff package. Simple enough to rearrange this code a
-> bit such that htonll and ntohll are handled entirely independent of one
-> another.
->
-> Reported-by: Honggang Li <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> ---
->  libibumad/umad.h | 10 ++++++----
->  1 file changed, 6 insertions(+), 4 deletions(-)
->
+The rdma-core-14 package is now available at the normal place.
 
-Thanks, applied.
+https://github.com/linux-rdma/rdma-core/releases
 
---8M+BMcg+0CmQ2H7L
+Version 14
+
+@rleon rleon released this 35 minutes ago
+
+Updates from version 13:
+
+	AARCH64 compilations are checked now as part of travis build
+	Sparse checks were added to travis
+	Introduction of bnxt_re driver
+	Multiple fixes to Debian package
+	Rework srp_daemon's systemd integration
+	Various fixes in qedr, mlx4, mlx5, bnxrt_re and rxe drivers
+	New supported PCI ID were added to mlx5
+	Addition of manual pages for cmtime and udpong programs
+	Multiple fixes of spelling types and documentation clarifications
+	Sparse fixes
+	rping gained ability to bind to source IP address
+	Various improvements in cmake and cbuild infrastructures
+	Add support for flow tag, CVLAN and VXLAN specifications
+	Provide ability to pass private data to create CQ
+	Exposure various device capabilities to user applications
+
+Thanks
+
+--d6nDKxlhctiV7bVq
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlks7IcACgkQ5GN7iDZy
-WKcsVA/+PpXOBUjW08GXPFoAT3PTikFVNIw9iOkVDDB4zWVYbWJlyL8OypeSHuHA
-WQUauAbrtNi15SEUD61+Rv8aq+WLtOUgunAfhyZC5KRqmGob+GKQMGJfvYS9AGN6
-e7axuo2uw2Nw3Gv9ENzmOrajyRHtODyS1nvn6YIsabR9cCTuobXgMdywJJE8kqU4
-Z+4z2gh2Zd2mJsvpREkLhg3wJB73So6IC3XUEsrJD7wyAsuPG6zOq6PEC0XnBNop
-JstMDE0fHFevzDqL997AAOHCwt/SJzsXYgVkdlYxvOo1DKEI6bPuSHlXc5vxZHC2
-EWSi9fU/jPPrwk3iIAFmp/PeMUHKpRo24EpiFyqmZO/wslcx5jBIVMBawvzwmfd+
-dBfYy23IRZib0uBTmUoAXkV471Kv1tUM1fh8yPLi6H0UIT8irwGomxJZvCLrvTAc
-N8Mog3cftRLaWcdhMG3eVLcYJ48DhCfowH12qbJSXTqdte3HLbGtWlfRGlfAtk6b
-ArlGQxIIy+nZB4afyDKqQj8rchUIcgeK7gf8Pr1NH1v8yh2a8WhW2cbA4Fx9svqJ
-eY4vkbflCM/U7B9b1FYRXDuOvHuZAu4yOAC3lzsRc4Dautk2QDdEyPWzbA9Wo1c9
-7yLu7CwroAP5yxMuNKRL3X0IXVCkwOGm+iqUu/dug6wfxI1nS6A=
-=pvbT
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlktAncACgkQ5GN7iDZy
+WKdkNw//aFnrP1EyexnSZaWzZ0dPAB3vA23F+orfl6JMPNHdyEkE/wzvxKterJF3
+3htDaHt3spWvYjhMaMG23w9NwPoF1Xor3QPVg3/j/z4l49tFiWxLCpWjLeDDp3U9
+LMFvMI6zkfYxgNjc/3A19Fa0X84CX5aD1tZbben69mj2CltmN5Ym8wFma8sIc128
+4qGrO7sXt0dCOdtOFQpsA6nQKWVMw6UxGCC0gsO17IFvaxX4k1aYNbzRvsHb4AX7
+piGj7ONPoYxYEIIP8Xy7NYMf6jIYoRWvo1Z2khegc6jFjNAhfVlJr0574AtWLQhl
+ypivr8MCVT550L9VWF5qhxLH5Kmwu93hZQQJPLbGmg0ctcWx49CcmCysHVF7PicD
+7Q8lV8dyfDl+DW06KUh6c6onr7INVNc3UbCy0m46dM2scgEpxEqbUSug1pP4wk6m
+hsO3pM0yMMBXSSk9pWKADq7oIA5UD9teCjxlO+/XK65rKA5CERvwXQOSXAV720CX
+aelvSggkeLnrXg5fR9IA7wqZp4x5cq3urMrPqgFgShKPmdV6q8nbzfY8V0f5vE1R
+fEZVvOZxeTQanQljqEMISndNaIa2V9dGzmvcPOBw1dZ9VAvh639jX7CAptN3zxo2
+F0w6XHwcc1+GhzmyHa9BKp+VKy1AOS4uqsLnRp/kJnCKFQMvsvY=
+=66HX
 -----END PGP SIGNATURE-----
 
---8M+BMcg+0CmQ2H7L--
+--d6nDKxlhctiV7bVq--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
