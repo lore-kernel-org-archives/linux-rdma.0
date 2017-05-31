@@ -1,42 +1,47 @@
-From: Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH] iw_cxgb4: fix the calculation of ipv6 header size
-Date: Wed, 31 May 2017 12:06:58 +0530
-Message-ID: <1496212618-18785-1-git-send-email-ganeshgr@chelsio.com>
+From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: How do I generate and set a GUID on an Ethernet VF with
+ ConnectX-4?
+Date: Wed, 31 May 2017 08:28:19 +0000
+Message-ID: <847B5D33-D362-40F1-82B6-DB2F7B2BA1AA@mellanox.com>
+References: <CAANLjFoHJhCJpZ+9uogHE4nSLkrdTRbGgS4mO5un_M+mNYdmCw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAANLjFoHJhCJpZ+9uogHE4nSLkrdTRbGgS4mO5un_M+mNYdmCw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, indranil-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 
-Take care of ipv6 checks while computing header length for deducing mtu
-size of ipv6 servers. Due to the incorrect header length computation for
-ipv6 servers, wrong mss is reported to the peer (client).
+> On May 30, 2017, at 8:55 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+>=20
+> One problem we found with rping is that when the GUID is '0', it
+> fails. However, all of the VFs that are created are created with a '0'
+> GUID. How do I generate a GUID that will not conflict for the VFs?
+Hi Robert,
 
-Signed-off-by: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Signed-off-by: Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
----
- drivers/infiniband/hw/cxgb4/cm.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+IIRC, once you set a MAC address for a VF, the node guid will be derived au=
+tomatically for it. Also, it can be controlled using iptool.
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index b6fe459..b54e184 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -2517,7 +2517,8 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
- 		goto reject;
- 	}
- 
--	hdrs = sizeof(struct iphdr) + sizeof(struct tcphdr) +
-+	hdrs = ((iptype == 4) ? sizeof(struct iphdr) : sizeof(struct ipv6hdr)) +
-+	       sizeof(struct tcphdr) +
- 	       ((enable_tcp_timestamps && req->tcpopt.tstamp) ? 12 : 0);
- 	if (peer_mss && child_ep->mtu > (peer_mss + hdrs))
- 		child_ep->mtu = peer_mss + hdrs;
--- 
-2.1.0
 
+> Once I have a generated GUID, how do I set it on a VF using the inbox
+> drivers? I can't find a /sys entry that will allow me to write it and
+> the one mentioned in the Mellanox OFED doesn't exist.
+>=20
+> I'll need to find a way to script this as part of my udev rules that
+> adds the VFs.
+>=20
+> Thank you,
+> ----------------
+> Robert LeBlanc
+> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
