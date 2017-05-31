@@ -1,30 +1,40 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: Issue with MLX5 IB driver
-Date: Wed, 31 May 2017 12:44:26 -0700
-Message-ID: <20170531194426.GA23120@infradead.org>
-References: <ae8a8bbf-edb5-1909-824c-f98384f506b0@synopsys.com>
- <20170531161819.GK5406@mtr-leonro.local>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH rdma-next 2/6] IB/uverbs: Enable QP creation which is
+ associated to underlay QP
+Date: Wed, 31 May 2017 20:05:55 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB13DC53@ORSMSX109.amr.corp.intel.com>
+References: <20170530071602.8139-1-leon@kernel.org>
+ <20170530071602.8139-3-leon@kernel.org> <20170530073352.GA1838@nanopsycho>
+ <20170530075845.GA5406@mtr-leonro.local> <20170530081514.GB1838@nanopsycho>
+ <20170530172259.GD5406@mtr-leonro.local> <20170530180357.GB24898@nanopsycho>
+ <20170531042031.GG5406@mtr-leonro.local> <20170531053711.GA1882@nanopsycho>
+ <20170531083955.GJ5406@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170531161819.GK5406-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20170531083955.GJ5406-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jiri Pirko <jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 31, 2017 at 07:18:19PM +0300, Leon Romanovsky wrote:
-> I think that you are hitting the side effect of these commits
-> 7d0cc6edcc70 ("IB/mlx5: Add MR cache for large UMR regions") and
-> 81713d3788d2 ("IB/mlx5: Add implicit MR support")
+> > How do you know? I might have one in my drawer :)
 > 
-> Do you have CONFIG_INFINIBAND_ON_DEMAND_PAGING on? Can you disable it
-> for the test?
+> Because, we had this brave man [1] who wanted to implement libibverbs
+> by
+> himself in GO language and Jason gave a very good explanation [2, 3]
+> why it
+> is not likely to happen in near future.
+> 
+> [1] http://marc.info/?l=linux-rdma&m=149302796407374&w=2
+> [2] http://marc.info/?l=linux-rdma&m=149305872017354&w=2
+> [3] http://marc.info/?l=linux-rdma&m=149314196207011&w=2
 
-Eww.  Please make sure mlx5 gracefully handles cases where it can't use
-crazy amount of memory, including disabling features like the above
-at runtime when the required resources aren't available.
+I agree with Jiri.  This breaks uapi, and you can't assume that it's not being used, possibly by a forked version of libibverbs.
+
+You could introduce an unnamed union.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
