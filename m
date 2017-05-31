@@ -1,129 +1,75 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next 2/6] IB/uverbs: Enable QP creation which is
- associated to underlay QP
-Date: Wed, 31 May 2017 11:39:55 +0300
-Message-ID: <20170531083955.GJ5406@mtr-leonro.local>
-References: <20170530071602.8139-1-leon@kernel.org>
- <20170530071602.8139-3-leon@kernel.org>
- <20170530073352.GA1838@nanopsycho>
- <20170530075845.GA5406@mtr-leonro.local>
- <20170530081514.GB1838@nanopsycho>
- <20170530172259.GD5406@mtr-leonro.local>
- <20170530180357.GB24898@nanopsycho>
- <20170531042031.GG5406@mtr-leonro.local>
- <20170531053711.GA1882@nanopsycho>
+From: <p.mueller-spz-hgw-Mmb7MZpHnFY@public.gmane.org>
+Subject: (unknown)
+Date: Wed, 31 May 2017 11:36:10 -0000
+Message-ID: <149623057020.12492.14587752445680747722@zaural.ru>
+Reply-To: <p.mueller-spz-hgw-Mmb7MZpHnFY@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="3CAnR4CLEnEWqRMR"
+Content-Type: application/zip; name="775_linux-rdma.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170531053711.GA1882@nanopsycho>
+Subject: 
+Content-Disposition: attachment
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jiri Pirko <jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
---3CAnR4CLEnEWqRMR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, May 31, 2017 at 07:37:11AM +0200, Jiri Pirko wrote:
-> Wed, May 31, 2017 at 06:20:31AM CEST, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org wrote:
-> >On Tue, May 30, 2017 at 08:03:58PM +0200, Jiri Pirko wrote:
-> >> Tue, May 30, 2017 at 07:22:59PM CEST, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org wrote:
-> >> >On Tue, May 30, 2017 at 10:15:14AM +0200, Jiri Pirko wrote:
-> >> >> Tue, May 30, 2017 at 09:58:45AM CEST, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org wrote:
-> >> >> >On Tue, May 30, 2017 at 09:33:52AM +0200, Jiri Pirko wrote:
-> >> >> >> Tue, May 30, 2017 at 09:15:58AM CEST, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org wrote:
-> >> >> >> >From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >> >> >> >
-> >> >> >> >Enable QP creation which is associated to underlay QP. This comes as a
-> >> >> >> >pre-patch for downstream patches in this series to enable flow steering
-> >> >> >> >from user space application on the underlay IPoIB QP.
-> >> >> >> >
-> >> >> >> >Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >> >> >> >Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-> >> >> >> >Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> >> >> >> >---
-> >> >> >>
-> >> >> >> [...]
-> >> >> >>
-> >> >> >>
-> >> >> >> >diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-> >> >> >> >index 477d629f539d..422b20456975 100644
-> >> >> >> >--- a/include/uapi/rdma/ib_user_verbs.h
-> >> >> >> >+++ b/include/uapi/rdma/ib_user_verbs.h
-> >> >> >> >@@ -578,7 +578,7 @@ struct ib_uverbs_ex_create_qp {
-> >> >> >> > 	__u32 comp_mask;
-> >> >> >> > 	__u32 create_flags;
-> >> >> >> > 	__u32 rwq_ind_tbl_handle;
-> >> >> >> >-	__u32  reserved1;
-> >> >> >> >+	__u32  associated_qpn;
-> >> >> >>
-> >> >> >> This breaks uapi...
-> >> >> >
-> >> >> >Not really, we are using comp_mask scheme to signal changes/predecessor
-> >> >> >of these structs. Users of this file and structs check comp_mask and
-> >> >> >access new fields only if they are exposed there.
-> >> >> >
-> >> >> >In this case, there are no users of reserved1 and hence it can be
-> >> >> >replace to the new field with corresponding comp_mask flag (IB_QP_CREATE_ASSOC_QPN)
-> >> >> >without worry of breakage.
-> >> >>
-> >> >> I, as an app could include ib_user_verbs.h and do:
-> >> >>
-> >> >> struct ib_uverbs_ex_create_qp something;
-> >> >>
-> >> >> something.reserved1 = 0;
-> >> >>
-> >> >> Than I won't compile, would I?
-> >> >
-> >> >You are right, the good thing that in IB world, there is no direct usage
-> >> >of these files and they are needed for rdma-core (libibverbs) library.
-> >>
-> >> Unfortunatelly, that does not make any difference. UAPI is UAPI...
-> >
-> >Yes, it makes. Changes in UAPI are allowed as long they don't break user
-> >space applications. In this case, there are no applications which uses
-> >this reserved fields directly.
->
-> How do you know? I might have one in my drawer :)
-
-Because, we had this brave man [1] who wanted to implement libibverbs by
-himself in GO language and Jason gave a very good explanation [2, 3] why it
-is not likely to happen in near future.
-
-[1] http://marc.info/?l=linux-rdma&m=149302796407374&w=2
-[2] http://marc.info/?l=linux-rdma&m=149305872017354&w=2
-[3] http://marc.info/?l=linux-rdma&m=149314196207011&w=2
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---3CAnR4CLEnEWqRMR
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkugVsACgkQ5GN7iDZy
-WKf30g//Wq7vv1mQvlPP6aawybtruVQJBBLP6fiBRN3H77356/cXCM2XGgc5AvgO
-uAf1IiUoCyNCS+4ZjaE0TngnD7UWsoYQ31fSXXVH1WoANKEqfFgMm6TuazvlAsel
-SgYcW31f6LjovEFu6H9bs2hmPn+8JdqwfZCseNAa6YI9Nppd8JNJrn/Q/T8Cza3D
-u29fThTMKl1R4RqLrUtydU6vNWgcAO1Fojaas0Q+kvg/bAbrKuFplpfNvFRHAIrf
-bRmGwXS3/cPzuzI/mVVtlQ4qDECEjs7EwFekq4QkTPeTn9tmk5rrAkvvL3xVSRi2
-/e6gDK18FHoJpQ5UAHhvgMnCWBpr2zCPZII1ldwqcOt2Ld9jxrks5YhXr08ep1Dg
-3ZNYOqog1+GHfiE4khggk6sSsNZ/xDb5jiaE1Ua7nUu6hHDlsrxbF6bS79fBOyaA
-bUI/ijy6o2qRLpNZ7BMa7C6gQm+6RCw1qR0BdermZyUkgSpTpgHbY9f5NKge6A2G
-0eD0zuwGkAaXi1QLSo6VkNuUvo4gV357gvircg2lsBwxNxqGazyH3xwv8jpGm0ot
-tzVBFHN38gWprkFvETz+7hs5cSOo1sXMduXeFBH81BSs0Q0sGVCKSufmPYmbWBvT
-sLRoZHVD7KLMiyz5t/TIw04BzdqLt3oxaqhAmU/dMncd3pe6JVA=
-=OXP+
------END PGP SIGNATURE-----
-
---3CAnR4CLEnEWqRMR--
+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
+AAAAHAwAAAAA
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
