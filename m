@@ -1,75 +1,31 @@
-From: <p.mueller-spz-hgw-Mmb7MZpHnFY@public.gmane.org>
-Subject: (unknown)
-Date: Wed, 31 May 2017 11:36:10 -0000
-Message-ID: <149623057020.12492.14587752445680747722@zaural.ru>
-Reply-To: <p.mueller-spz-hgw-Mmb7MZpHnFY@public.gmane.org>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH] iw_cxgb4: fix the calculation of ipv6 header size
+Date: Wed, 31 May 2017 09:09:01 -0500
+Message-ID: <004101d2da17$7443a960$5ccafc20$@opengridcomputing.com>
+References: <1496212618-18785-1-git-send-email-ganeshgr@chelsio.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="775_linux-rdma.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Subject: 
-Content-Disposition: attachment
+In-Reply-To: <1496212618-18785-1-git-send-email-ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Ganesh Goudar' <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, indranil-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, 'Raju Rangoju' <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-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
-AAAAHAwAAAAA
+> From: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+> 
+> Take care of ipv6 checks while computing header length for deducing mtu
+> size of ipv6 servers. Due to the incorrect header length computation for
+> ipv6 servers, wrong mss is reported to the peer (client).
+> 
+> Signed-off-by: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+> Signed-off-by: Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+
+Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
