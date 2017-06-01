@@ -1,31 +1,28 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] ib/core: not to set page dirty bit if it's already set.
-Date: Thu, 01 Jun 2017 18:33:59 -0400
-Message-ID: <1496356439.7171.73.camel@redhat.com>
-References: <20170518233353.14370-1-qing.huang@oracle.com>
+Subject: Re: [PATCH v2 1/2] net/mlx5: Define interface bits for fencing UMR
+ wqe
+Date: Thu, 01 Jun 2017 18:51:03 -0400
+Message-ID: <1496357463.7171.74.camel@redhat.com>
+References: <1495957991-19223-1-git-send-email-maxg@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170518233353.14370-1-qing.huang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1495957991-19223-1-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Qing Huang <qing.huang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org
+Cc: shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-05-18 at 16:33 -0700, Qing Huang wrote:
-> This change will optimize kernel memory deregistration operations.
-> __ib_umem_release() used to call set_page_dirty_lock() against every
-> writable page in its memory region. Its purpose is to keep data
-> synced between CPU and DMA device when swapping happens after mem
-> deregistration ops. Now we choose not to set page dirty bit if it's
-> already set by kernel prior to calling __ib_umem_release(). This
-> reduces memory deregistration time by half or even more when we ran
-> application simulation test program.
+On Sun, 2017-05-28 at 10:53 +0300, Max Gurtovoy wrote:
+> HW can implement UMR wqe re-transmission in various ways.
+> Thus, add HCA cap to distinguish the needed fence for UMR to make
+> sure that the wqe wouldn't fail on mkey checks.
 > 
-> Signed-off-by: Qing Huang <qing.huang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Acked-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-Thanks, applied.
+Series, with Christoph's fixup, applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
