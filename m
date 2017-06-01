@@ -1,32 +1,27 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/IPoIB: Replace netdev_priv with ipoib_priv for
- ipoib_get_link_ksettings
-Date: Thu, 01 Jun 2017 18:26:09 -0400
-Message-ID: <1496355969.7171.65.camel@redhat.com>
-References: <1494504868-17204-1-git-send-email-honli@redhat.com>
-         <20170511123109.GC18962@yuval-lap> <20170511124020.GH3616@mtr-leonro.local>
-         <92da39f0-2c7a-5039-234e-94da89d5eacb@oracle.com>
+Subject: Re: [PATCH] iw_cxgb4: calculate t4_eq_status_entries properly
+Date: Thu, 01 Jun 2017 18:26:45 -0400
+Message-ID: <1496356005.7171.66.camel@redhat.com>
+References: <1495185522-8055-1-git-send-email-ganeshgr@chelsio.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <92da39f0-2c7a-5039-234e-94da89d5eacb-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1495185522-8055-1-git-send-email-ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yanjun Zhu <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org, Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-05-19 at 11:15 +0800, Yanjun Zhu wrote:
-> >> Suggesting to remove kernel oops from commit log message, fix is
-> trivial.
-> > Please don't, they are useful.
-> Can we explain this in commit log message?
+On Fri, 2017-05-19 at 14:48 +0530, Ganesh Goudar wrote:
+> use egrstatuspagesize to calculate t4_eq_status_entries.
 > 
-> The patch "IB/IPoIB: Support acceleration options callbacks" makes 
-> ipoib_pirv different from netdev_priv.
+> Fixes: bb58d07964f2 ("cxgb4: Update IngPad and IngPack values")
+> Reported-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+> Signed-off-by: Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 
-I reworked the commit message considerably to resolve this issue, and
-then applied the patch.
+Thanks, applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
