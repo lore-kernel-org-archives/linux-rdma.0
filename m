@@ -1,29 +1,34 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-rc] IB/IPoIB: Limit the ipoib_dev_uninit_default
- scope
-Date: Thu, 01 Jun 2017 18:18:19 -0400
-Message-ID: <1496355499.7171.62.camel@redhat.com>
-References: <20170514103206.6777-1-leon@kernel.org>
+Subject: Re: [PATCH 1/1] RDMA/iw_cxgb4: Avoid touch after free error in ARP
+ failure handlers
+Date: Thu, 01 Jun 2017 18:21:35 -0400
+Message-ID: <1496355695.7171.64.camel@redhat.com>
+References: <20170511114354.25046-1-rajur@chelsio.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170514103206.6777-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170511114354.25046-1-rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 2017-05-14 at 13:32 +0300, Leon Romanovsky wrote:
-> ipoib_dev_uninit_default() call is used in ipoib_main.c file only
-> and it generates the following warning from smatch tool:
->         drivers/infiniband/ulp/ipoib/ipoib_main.c:1593:6: warning:
->         symbol 'ipoib_dev_uninit_default' was not declared. Should it
->         be static?
+On Thu, 2017-05-11 at 17:13 +0530, Raju Rangoju wrote:
+> The patch 761e19a504af: "RDMA/iw_cxgb4: Handle return value of
+> c4iw_ofld_send() in abort_arp_failure()" from May 6, 2016, leads to
+> the
+> following static checker warning:
+>         drivers/infiniband/hw/cxgb4/cm.c:575 abort_arp_failure()
+>         warn: passing freed memory 'skb'
 > 
-> so let's declare that function as static.
+> Also fixes skb leak when l2t resolution fails
 > 
-> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Fixes: 761e19a504afa55 (RDMA/iw_cxgb4: Handle return value of
+> c4iw_ofld_send() in abort_arp_failure())
+> 
+> Signed-off-by: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+> Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
 Thanks, applied.
 
