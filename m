@@ -1,105 +1,83 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 5/9] IB/core, rdmavt, hfi1: Send OPA cap_mask3
- in trap
-Date: Thu, 1 Jun 2017 08:55:42 +0300
-Message-ID: <20170601055542.GQ5406@mtr-leonro.local>
-References: <20170526123257.8158.23943.stgit@scvm10.sc.intel.com>
- <20170526123536.8158.237.stgit@scvm10.sc.intel.com>
- <20170529161407.GB17751@mtr-leonro.local>
- <2fc7a7d6-9ba3-2365-45e3-946f56827dd9@intel.com>
- <20170531043235.GH5406@mtr-leonro.local>
- <20170531175821.GA29853@knc-06.sc.intel.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="8RsyD0KswhpoK73Z"
+Subject: [PATCH] RDMA/bnxt_re: Delete unsupported modify_port function
+Date: Thu,  1 Jun 2017 09:24:34 +0300
+Message-ID: <20170601062434.22566-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170531175821.GA29853-wPcXA7LoDC+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Henry, Michael N" <michael.n.henry-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---8RsyD0KswhpoK73Z
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+There is no need to return always zero for function which is not
+supported. The IB stack treats uninitialized ib_device->functions as
+not implemented.
 
-On Wed, May 31, 2017 at 10:58:21AM -0700, Vishwanathapura, Niranjana wrote:
-> On Wed, May 31, 2017 at 07:32:35AM +0300, Leon Romanovsky wrote:
-> > On Tue, May 30, 2017 at 11:32:22AM -0700, Henry, Michael N wrote:
-> > > On 5/29/2017 9:14 AM, Leon Romanovsky wrote:
-> > > > On Fri, May 26, 2017 at 05:35:37AM -0700, Dennis Dalessandro wrote:
-> > > > > From: Michael N. Henry <michael.n.henry-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > > >
-> > > > > Provide the ability for IB clients to modify the OPA specific
-> > > > > capability mask and include this mask in the subsequent trap data.
-> > > > >
-> > > > > diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> > > > > index 785e927..6c4f6da 100644
-> > > > > --- a/include/rdma/ib_verbs.h
-> > > > > +++ b/include/rdma/ib_verbs.h
-> > > > > @@ -576,7 +576,8 @@ struct ib_device_modify {
-> > > > >   enum ib_port_modify_flags {
-> > > > >   	IB_PORT_SHUTDOWN		= 1,
-> > > > >   	IB_PORT_INIT_TYPE		= (1<<2),
-> > > > > -	IB_PORT_RESET_QKEY_CNTR		= (1<<3)
-> > > > > +	IB_PORT_RESET_QKEY_CNTR		= (1<<3),
-> > > > > +	IB_PORT_OPA_MASK_CHG		= (1<<4)
-> > > > How will this flag be set?
-> > > >
-> > > This flag can be set as the port_modify_mask when calling ib_modify_port(..)
-> >
-> > My question is more general. I'm as a representative of these "IB
-> > clients" would like to know when and why should I use this flag.
-> >
->
-> Hi,
-> We have an OPA VNIC use case (patch coming up) to set/clear OPA capmask as
-> below.
->
-> pm.set/clear_port_cap_mask = OPA_CAP_MASK3_IsEthOnFabricSupported;
-> ib_modify_port(hca, port, IB_PORT_OPA_MASK_CHG, &pm);
->
-> This patch support such usecase and we want to get comments early (if any)
-> for that, hence this patch.
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 17 -----------------
+ drivers/infiniband/hw/bnxt_re/ib_verbs.h |  3 ---
+ drivers/infiniband/hw/bnxt_re/main.c     |  1 -
+ 3 files changed, 21 deletions(-)
 
-The comment is pretty simple, please don't post patches which are not
-backed up by actual usage.
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index 7ba9e699d7ab..c2a12b8fe8fb 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -271,23 +271,6 @@ int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
+ 	return 0;
+ }
 
-Right now, we have IB_PORT_SHUTDOWN, IB_PORT_INIT_TYPE and
-IB_PORT_RESET_QKEY_CNTR are not written in any place. We don't want to
-see another one.
+-int bnxt_re_modify_port(struct ib_device *ibdev, u8 port_num,
+-			int port_modify_mask,
+-			struct ib_port_modify *port_modify)
+-{
+-	switch (port_modify_mask) {
+-	case IB_PORT_SHUTDOWN:
+-		break;
+-	case IB_PORT_INIT_TYPE:
+-		break;
+-	case IB_PORT_RESET_QKEY_CNTR:
+-		break;
+-	default:
+-		break;
+-	}
+-	return 0;
+-}
+-
+ int bnxt_re_get_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 			       struct ib_port_immutable *immutable)
+ {
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.h b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
+index 5c3d71765454..4e8d9010f112 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.h
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
+@@ -129,9 +129,6 @@ int bnxt_re_modify_device(struct ib_device *ibdev,
+ 			  struct ib_device_modify *device_modify);
+ int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
+ 		       struct ib_port_attr *port_attr);
+-int bnxt_re_modify_port(struct ib_device *ibdev, u8 port_num,
+-			int port_modify_mask,
+-			struct ib_port_modify *port_modify);
+ int bnxt_re_get_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 			       struct ib_port_immutable *immutable);
+ int bnxt_re_query_pkey(struct ib_device *ibdev, u8 port_num,
+diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+index 5d355401179b..6951f4b688d1 100644
+--- a/drivers/infiniband/hw/bnxt_re/main.c
++++ b/drivers/infiniband/hw/bnxt_re/main.c
+@@ -473,7 +473,6 @@ static int bnxt_re_register_ib(struct bnxt_re_dev *rdev)
+ 	ibdev->modify_device		= bnxt_re_modify_device;
 
-And semantic of usage are more than welcomed.
+ 	ibdev->query_port		= bnxt_re_query_port;
+-	ibdev->modify_port		= bnxt_re_modify_port;
+ 	ibdev->get_port_immutable	= bnxt_re_get_port_immutable;
+ 	ibdev->query_pkey		= bnxt_re_query_pkey;
+ 	ibdev->query_gid		= bnxt_re_query_gid;
+--
+2.12.2
 
-Thanks
-
->
-> Niranjana
->
-
---8RsyD0KswhpoK73Z
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkvrF4ACgkQ5GN7iDZy
-WKeJtQ/9HUO6qi9xJMSi+D055mrlszMEE3q7zk/VDkWz8bceoOt8kFRNIFUWd0r8
-LOJ4cFdAPtVOAuhZke6DULMzDv3s5eQ9yKYdvq9cTPU5d3mfVbgyvF77giY2EDCU
-EBH751ZN6TBmAJ73vhY+Sn2LFyocsY1ZVHUWHb82umDT0QUp9bFHuQDZOA56ldFH
-JbOue5p8sXETWrgzNwVmKpWMoJ+h0LhT3T6J7cGWe5fA2Y4dxjmJBv7zIC2jffG1
-K11PHcZDkat+GxWJS22Q1fFU2DWFhxVDKMALPliJ9mRZvuuyUdxM1so9rxQtg4y9
-WsAjGFZ2AM68AS+Wr/AQ7/6Ly5wEGQ9uQ2ljiI8gEW2uk4xc879Rc0K8oS+hSs1x
-eiH/ie88XfJ7ujgTxw+vVwyLtIrRXffP/KkeuUkr2NI4EpFM4NOVXNKbh3cYc5U7
-5a6f/0VXWmQvKZKhDKUibe0iX2f3zcI7roSPJJMopGrP+XFs41OZC3nEENx3Wusg
-a4cxScxcrjot6fJHSNGzhvAJbNgoEIVGSuwR4Z158FKtrBOBIeUu5iSRVMiGfRSZ
-DC82C9GYuMnujHF4cSjgC9YosI06kAfT3VQjEtQ/zyPIOV1ZO6F7dT7QyME04U81
-Cytsmr3t9WKB5WMLCkEpY5KaqvtRIcyWDZ6uSp1LICZZ9zQmvYQ=
-=UXIB
------END PGP SIGNATURE-----
-
---8RsyD0KswhpoK73Z--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
