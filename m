@@ -1,40 +1,41 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/2] IB/hfi1,qib: Fixes for 4.12-rc
-Date: Thu, 01 Jun 2017 18:12:54 -0400
-Message-ID: <1496355174.7171.60.camel@redhat.com>
-References: <20170512155936.27868.7128.stgit@scvm10.sc.intel.com>
+Subject: Re: [PATCH rdma-next v2] RDMA/netlink: Reduce exposure of RDMA
+ netlink functions
+Date: Thu, 01 Jun 2017 18:17:45 -0400
+Message-ID: <1496355465.7171.61.camel@redhat.com>
+References: <20170514124957.964-1-leon@kernel.org>
+         <20170514182450.GA28994@yuval-lap>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170512155936.27868.7128.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20170514182450.GA28994@yuval-lap>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stable <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-05-12 at 09:01 -0700, Dennis Dalessandro wrote:
-> Hi Doug,
+On Sun, 2017-05-14 at 21:24 +0300, Yuval Shaia wrote:
+> On Sun, May 14, 2017 at 03:49:57PM +0300, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > 
+> > RDMA netlink is part of ib_core, hence ibnl_chk_listeners(),
+> > ibnl_init() and ibnl_cleanup() don't need to be published
+> > in public header file.
+> > 
+> > Let's remove EXPORT_SYMBOL from ibnl_chk_listeners() and move all
+> these
+> > functions to private header file.
+> > 
+> > CC: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > ---
+> > Changes from v1:
+> >  * Include core_priv.h file and get rid from sparse errors.
 > 
-> Here are two patches that I think should be RC worthy. One fixes a
-> bug where
-> packets could be sent before the other side is ready. The other fixes
-> an MR ref
-> count leak for write-only-with-immediate when the buffer allocation
-> for the
-> immediate data fails. This one is in both qib and hfi1. Ideally we
-> will move
-> this code to rdmavt to get rid of the duplication but would like to
-> get this fix
-> out for RC and the stable kernels.
-> 
-> These apply on top of:
-> 67cf362 : rxe: expose num_possible_cpus() cnum_comp_vectors
-> 
-> Patches can can also be found in my GitHub repo at:
-> https://github.com/ddalessa/kernel/tree/for-4.12
+> Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-Thanks, series applied.
+Thanks, applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
