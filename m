@@ -1,68 +1,111 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V3] rxe: Fix a sleep-in-atomic bug in post_one_send
-Date: Thu, 1 Jun 2017 12:32:29 +0300
-Message-ID: <CAG9sBKMgUSdBEgub2V0VD4c9WLZYSfW+aU+dS887Pg_-1eucKA@mail.gmail.com>
-References: <1496305735-21741-1-git-send-email-baijiaju1990@163.com>
+From: Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
+Subject: Re: Issue with MLX5 IB driver
+Date: Thu, 1 Jun 2017 11:05:01 +0100
+Message-ID: <09d8f6bc-5994-82d1-9a0f-59540b6c525f@synopsys.com>
+References: <ae8a8bbf-edb5-1909-824c-f98384f506b0@synopsys.com>
+ <20170531161819.GK5406@mtr-leonro.local>
+ <20170531194426.GA23120@infradead.org>
+ <20170601043013.GN5406@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1496305735-21741-1-git-send-email-baijiaju1990-9Onoh4P/yGk@public.gmane.org>
+In-Reply-To: <20170601043013.GN5406-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jia-Ju Bai <baijiaju1990-9Onoh4P/yGk@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailinglist <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 1, 2017 at 11:28 AM, Jia-Ju Bai <baijiaju1990-9Onoh4P/yGk@public.gmane.org> wrote:
-> The driver may sleep under a spin lock, and the function call path is:
-> post_one_send (acquire the lock by spin_lock_irqsave)
->   init_send_wqe
->     copy_from_user --> may sleep
->
-> To fix it, the lock is released before copy_from_user, and the lock is
-> acquired again after this function. The parameter "flags" is used to
-> restore and save the irq status.
-> Thank Leon for good advice.
->
-> This patch corrects the mistakes in V2. (Thank Ram for pointing it out)
->
-> Signed-off-by: Jia-Ju Bai <baijiaju1990-9Onoh4P/yGk@public.gmane.org>
-> ---
->  drivers/infiniband/sw/rxe/rxe_verbs.c |   13 ++++++++-----
->  1 file changed, 8 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-> index 83d709e..5293d15 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-> @@ -721,11 +721,11 @@ static void init_send_wr(struct rxe_qp *qp, struct rxe_send_wr *wr,
->
->  static int init_send_wqe(struct rxe_qp *qp, struct ib_send_wr *ibwr,
->                          unsigned int mask, unsigned int length,
-> -                        struct rxe_send_wqe *wqe)
-> +                        struct rxe_send_wqe *wqe, unsigned long *flags)
->  {
->         int num_sge = ibwr->num_sge;
->         struct ib_sge *sge;
-> -       int i;
-> +       int i, err;
->         u8 *p;
->
->         init_send_wr(qp, &wqe->wr, ibwr);
-> @@ -740,8 +740,11 @@ static int init_send_wqe(struct rxe_qp *qp, struct ib_send_wr *ibwr,
->
->                 sge = ibwr->sg_list;
->                 for (i = 0; i < num_sge; i++, sge++) {
-> -                       if (qp->is_user && copy_from_user(p, (__user void *)
-> -                                           (uintptr_t)sge->addr, sge->length))
-> +                       spin_unlock_irqrestore(&qp->sq.sq_lock, *flags);
 
-Before the patch, copy_from_user() was called only if qp->is_user was
-true. After the patch it is always called.
-Second, I think that  there is no flow that leads to this function
-when qp->is user is true so maybe the correct action is to remove this
-line completely
+Hello,
 
-if (qp->is_user && copy_from_user(p, (__user void *)
+Às 5:30 AM de 6/1/2017, Leon Romanovsky escreveu:
+> On Wed, May 31, 2017 at 12:44:26PM -0700, Christoph Hellwig wrote:
+>> On Wed, May 31, 2017 at 07:18:19PM +0300, Leon Romanovsky wrote:
+>>> I think that you are hitting the side effect of these commits
+>>> 7d0cc6edcc70 ("IB/mlx5: Add MR cache for large UMR regions") and
+>>> 81713d3788d2 ("IB/mlx5: Add implicit MR support")
+>>>
+>>> Do you have CONFIG_INFINIBAND_ON_DEMAND_PAGING on? Can you disable it
+>>> for the test?
+>>
+>> Eww.  Please make sure mlx5 gracefully handles cases where it can't use
+>> crazy amount of memory, including disabling features like the above
+>> at runtime when the required resources aren't available.
+> 
+> Right, the real consumer of memory in mlx5_ib is mr_cache, so the
+> question is how can we check in advance if we have enough memory
+> without calling allocations with GFP_NOWARN flag.
+> 
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  https://urldefense.proofpoint.com/v2/url?u=http-3A__vger.kernel.org_majordomo-2Dinfo.html&d=DwIBAg&c=DPL6_X_6JkXFx7AXWqB0tg&r=s2fO0hii0OGNOv9qQy_HRXy-xAJUD1NNoEcc3io_kx0&m=Uf5GrWBvnD9y_cvJHxE3U34WbGfrJ6SH6xoBLXn3-iA&s=qOiYqKtZvTJzs3QPNC_YxrNg-S_g-1PfDr0ZvDTE5pY&e= 
+
+With CONFIG_INFINIBAND_ON_DEMAND_PAGING disabled:
+Crashes the same way.
+
+With MLX5_DEFAULT_PROF defined as 0:
+
+There is no crash.
+
+mlx5_core 0000:01:00.0: enabling device (0000 -> 0002)
+mlx5_core 0000:01:00.0: Warning: couldn't set 64-bit PCI DMA mask
+mlx5_core 0000:01:00.0: Warning: couldn't set 64-bit consistent PCI DMA mask
+mlx5_core 0000:01:00.0: firmware version: 16.19.21102
+(...)
+mlx5_ib: Mellanox Connect-IB Infiniband driver v2.2-1 (Feb 2014)
+(...)
+mlx5_core 0000:01:00.0: device's health compromised - reached miss count
+mlx5_core 0000:01:00.0: assert_var[0] 0x00000001
+mlx5_core 0000:01:00.0: assert_var[1] 0x00000000
+mlx5_core 0000:01:00.0: assert_var[2] 0x00000000
+mlx5_core 0000:01:00.0: assert_var[3] 0x00000000
+mlx5_core 0000:01:00.0: assert_var[4] 0x00000000
+mlx5_core 0000:01:00.0: assert_exit_ptr 0x006994c0
+mlx5_core 0000:01:00.0: assert_callra 0x00699680
+mlx5_core 0000:01:00.0: fw_ver 16.19.21102
+mlx5_core 0000:01:00.0: hw_id 0x0000020d
+mlx5_core 0000:01:00.0: irisc_index 0
+mlx5_core 0000:01:00.0: synd 0x1: firmware internal error
+mlx5_core 0000:01:00.0: ext_synd 0x11c5
+mlx5_core 0000:01:00.0: raw fw_ver 0x1013526e
+
+lspci -v result:
+
+01:00.0 Infiniband controller: Mellanox Technologies MT28800 Family [ConnectX-5 Ex]
+        Subsystem: Mellanox Technologies Device 0002
+        Flags: bus master, fast devsel, latency 0
+        Memory at d2000000 (64-bit, prefetchable) [size=32M]
+        Capabilities: [60] Express Endpoint, MSI 00
+        Capabilities: [48] Vital Product Data
+        Capabilities: [9c] MSI-X: Enable+ Count=64 Masked-
+        Capabilities: [c0] Vendor Specific Information: Len=18 <?>
+        Capabilities: [40] Power Management version 3
+        Capabilities: [100] Advanced Error Reporting
+        Capabilities: [150] Alternative Routing-ID Interpretation (ARI)
+        Capabilities: [1c0] #19
+        Capabilities: [320] #27
+        Kernel driver in use: mlx5_core
+
+Interrupts:
+
+ 45:          0   PCI-MSI   0  aerdrv
+ 46:          2   PCI-MSI 524288  mlx5_pages_eq@pci:0000:01:00.0
+ 47:        347   PCI-MSI 524289  mlx5_cmd_eq@pci:0000:01:00.0
+ 48:          0   PCI-MSI 524290  mlx5_async_eq@pci:0000:01:00.0
+ 50:          0   PCI-MSI 524292  mlx5_comp0@pci:0000:01:00.0
+
+List of devices:
+
+# ls /dev/infiniband/
+issm0    rdma_cm  ucm0     umad0    uverbs0
+
+Shouldn't I be getting some mellanox devices?
+
+Thanks,
+Joao
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
