@@ -1,58 +1,43 @@
-From: Jia-Ju Bai <baijiaju1990-9Onoh4P/yGk@public.gmane.org>
-Subject: [PATCH] rxe: Fix a sleep-in-atomic bug in post_one_send
-Date: Thu,  1 Jun 2017 09:48:34 +0800
-Message-ID: <1496281714-3035-1-git-send-email-baijiaju1990@163.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jia-Ju Bai <baijiaju1990-9Onoh4P/yGk@public.gmane.org>
+From: Jia-Ju Bai <baijiaju1990@163.com>
+Subject: [PATCH] i40iw: Add a value assignment to avoid sleep-in-atomic bug caused by uninitialized value
+Date: Thu,  1 Jun 2017 10:11:16 +0800
+Message-ID: <1496283076-6915-1-git-send-email-baijiaju1990@163.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: faisal.latif@intel.com, shiraz.saleem@intel.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Jia-Ju Bai <baijiaju1990@163.com>
 List-Id: linux-rdma@vger.kernel.org
 
-The driver may sleep under a spin lock, and the function call path is:
-post_one_send (acquire the lock by spin_lock_irqsave)
-  init_send_wqe
-    copy_from_user --> may sleep
+The value "cqp_request->waiting" indicates whether the sleeping operation 
+should be performed, and it is not assigned in i40iw_get_cqp_request, so 
+the driver may sleep in interrupt handling. The function call path is:
 
-To fix it, the lock is released before copy_from_user, and the lock is
-acquired again after this function.
+i40iw_dpc (tasklet_init indicates it handles interrupt)
+  i40iw_process_aeq
+    i40iw_next_iw_state
+      i40iw_hw_modify_qp (call i40iw_get_cqp_request)
+        i40iw_handle_cqp_op
+          i40iw_wait_event --> may sleep
 
-Signed-off-by: Jia-Ju Bai <baijiaju1990-9Onoh4P/yGk@public.gmane.org>
+To fix it, "cqp_request->waiting" is assigned in "else" branch in
+i40iw_get_cqp_request.
+
+Signed-off-by: Jia-Ju Bai <baijiaju1990@163.com>
 ---
- drivers/infiniband/sw/rxe/rxe_verbs.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_utils.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 83d709e..6fb7e1a 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -725,7 +725,7 @@ static int init_send_wqe(struct rxe_qp *qp, struct ib_send_wr *ibwr,
- {
- 	int num_sge = ibwr->num_sge;
- 	struct ib_sge *sge;
--	int i;
-+	int i, err;
- 	u8 *p;
- 
- 	init_send_wr(qp, &wqe->wr, ibwr);
-@@ -740,8 +740,11 @@ static int init_send_wqe(struct rxe_qp *qp, struct ib_send_wr *ibwr,
- 
- 		sge = ibwr->sg_list;
- 		for (i = 0; i < num_sge; i++, sge++) {
--			if (qp->is_user && copy_from_user(p, (__user void *)
--					    (uintptr_t)sge->addr, sge->length))
-+			spin_unlock_irq(&qp->sq.sq_lock);
-+			err = copy_from_user(p, (__user void *)
-+					    (uintptr_t)sge->addr, sge->length);
-+			spin_lock_irq(&qp->sq.sq_lock);
-+			if (qp->is_user && err)
- 				return -EFAULT;
- 
- 			else if (!qp->is_user)
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
+index 409a378..0f4e633 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
+@@ -326,6 +326,7 @@ struct i40iw_cqp_request *i40iw_get_cqp_request(struct i40iw_cqp *cqp, bool wait
+ 		cqp_request->waiting = true;
+ 	} else {
+ 		atomic_set(&cqp_request->refcount, 1);
++		cqp_request->waiting = false;
+ 	}
+ 	return cqp_request;
+ }
 -- 
 1.7.9.5
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
