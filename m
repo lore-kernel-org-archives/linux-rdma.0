@@ -1,118 +1,111 @@
-From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
 Subject: Re: Issue with MLX5 IB driver
-Date: Thu, 1 Jun 2017 11:57:44 +0000
-Message-ID: <52727D4A-F647-4924-8DF0-4D7F248626AA@mellanox.com>
+Date: Thu, 1 Jun 2017 12:59:39 +0100
+Message-ID: <7a4e8dce-f1af-d664-bb0b-062f84b45b60@synopsys.com>
 References: <ae8a8bbf-edb5-1909-824c-f98384f506b0@synopsys.com>
  <20170531161819.GK5406@mtr-leonro.local>
  <20170531194426.GA23120@infradead.org>
  <20170601043013.GN5406@mtr-leonro.local>
- <09d8f6bc-5994-82d1-9a0f-59540b6c525f@synopsys.com>,<fbb4b7cb-e3e4-b540-22e4-5d920857e8fe@synopsys.com>
+ <09d8f6bc-5994-82d1-9a0f-59540b6c525f@synopsys.com>
+ <fbb4b7cb-e3e4-b540-22e4-5d920857e8fe@synopsys.com>
+ <52727D4A-F647-4924-8DF0-4D7F248626AA@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <fbb4b7cb-e3e4-b540-22e4-5d920857e8fe-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <52727D4A-F647-4924-8DF0-4D7F248626AA-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
+To: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Joao Pinto <Joao.Pinto-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
 Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-DQo+IE9uIEp1biAxLCAyMDE3LCBhdCAyOjE5IFBNLCBKb2FvIFBpbnRvIDxKb2FvLlBpbnRvQHN5
-bm9wc3lzLmNvbT4gd3JvdGU6DQo+IA0KPiDDgHMgMTE6MDUgQU0gZGUgNi8xLzIwMTcsIEpvYW8g
-UGludG8gZXNjcmV2ZXU6DQo+PiANCj4+IEhlbGxvLA0KPj4gDQo+PiDDgHMgNTozMCBBTSBkZSA2
-LzEvMjAxNywgTGVvbiBSb21hbm92c2t5IGVzY3JldmV1Og0KPj4+PiBPbiBXZWQsIE1heSAzMSwg
-MjAxNyBhdCAxMjo0NDoyNlBNIC0wNzAwLCBDaHJpc3RvcGggSGVsbHdpZyB3cm90ZToNCj4+Pj4+
-IE9uIFdlZCwgTWF5IDMxLCAyMDE3IGF0IDA3OjE4OjE5UE0gKzAzMDAsIExlb24gUm9tYW5vdnNr
-eSB3cm90ZToNCj4+Pj4+IEkgdGhpbmsgdGhhdCB5b3UgYXJlIGhpdHRpbmcgdGhlIHNpZGUgZWZm
-ZWN0IG9mIHRoZXNlIGNvbW1pdHMNCj4+Pj4+IDdkMGNjNmVkY2M3MCAoIklCL21seDU6IEFkZCBN
-UiBjYWNoZSBmb3IgbGFyZ2UgVU1SIHJlZ2lvbnMiKSBhbmQNCj4+Pj4+IDgxNzEzZDM3ODhkMiAo
-IklCL21seDU6IEFkZCBpbXBsaWNpdCBNUiBzdXBwb3J0IikNCj4+Pj4+IA0KPj4+Pj4gRG8geW91
-IGhhdmUgQ09ORklHX0lORklOSUJBTkRfT05fREVNQU5EX1BBR0lORyBvbj8gQ2FuIHlvdSBkaXNh
-YmxlIGl0DQo+Pj4+PiBmb3IgdGhlIHRlc3Q/DQo+Pj4+IA0KPj4+PiBFd3cuICBQbGVhc2UgbWFr
-ZSBzdXJlIG1seDUgZ3JhY2VmdWxseSBoYW5kbGVzIGNhc2VzIHdoZXJlIGl0IGNhbid0IHVzZQ0K
-Pj4+PiBjcmF6eSBhbW91bnQgb2YgbWVtb3J5LCBpbmNsdWRpbmcgZGlzYWJsaW5nIGZlYXR1cmVz
-IGxpa2UgdGhlIGFib3ZlDQo+Pj4+IGF0IHJ1bnRpbWUgd2hlbiB0aGUgcmVxdWlyZWQgcmVzb3Vy
-Y2VzIGFyZW4ndCBhdmFpbGFibGUuDQo+Pj4gDQo+Pj4gUmlnaHQsIHRoZSByZWFsIGNvbnN1bWVy
-IG9mIG1lbW9yeSBpbiBtbHg1X2liIGlzIG1yX2NhY2hlLCBzbyB0aGUNCj4+PiBxdWVzdGlvbiBp
-cyBob3cgY2FuIHdlIGNoZWNrIGluIGFkdmFuY2UgaWYgd2UgaGF2ZSBlbm91Z2ggbWVtb3J5DQo+
-Pj4gd2l0aG91dCBjYWxsaW5nIGFsbG9jYXRpb25zIHdpdGggR0ZQX05PV0FSTiBmbGFnLg0KPj4+
-IA0KPj4+PiAtLQ0KPj4+PiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUg
-bGluZSAidW5zdWJzY3JpYmUgbGludXgtcmRtYSIgaW4NCj4+Pj4gdGhlIGJvZHkgb2YgYSBtZXNz
-YWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCj4+Pj4gTW9yZSBtYWpvcmRvbW8gaW5m
-byBhdCAgaHR0cHM6Ly91cmxkZWZlbnNlLnByb29mcG9pbnQuY29tL3YyL3VybD91PWh0dHAtM0Ff
-X3ZnZXIua2VybmVsLm9yZ19tYWpvcmRvbW8tMkRpbmZvLmh0bWwmZD1Ed0lCQWcmYz1EUEw2X1hf
-NkprWEZ4N0FYV3FCMHRnJnI9czJmTzBoaWkwT0dOT3Y5cVF5X0hSWHkteEFKVUQxTk5vRWNjM2lv
-X2t4MCZtPVVmNUdyV0J2bkQ5eV9jdkpIeEUzVTM0V2JHZnJKNlNINnhvQkxYbjMtaUEmcz1xT2lZ
-cUt0WnZUSnpzM1FQTkNfWXhyTmctU19nLTFQZkRyMFp2RFRFNXBZJmU9IA0KPj4gDQo+PiBXaXRo
-IENPTkZJR19JTkZJTklCQU5EX09OX0RFTUFORF9QQUdJTkcgZGlzYWJsZWQ6DQo+PiBDcmFzaGVz
-IHRoZSBzYW1lIHdheS4NCj4+IA0KPj4gV2l0aCBNTFg1X0RFRkFVTFRfUFJPRiBkZWZpbmVkIGFz
-IDA6DQo+PiANCj4+IFRoZXJlIGlzIG5vIGNyYXNoLg0KPj4gDQo+PiBtbHg1X2NvcmUgMDAwMDow
-MTowMC4wOiBlbmFibGluZyBkZXZpY2UgKDAwMDAgLT4gMDAwMikNCj4+IG1seDVfY29yZSAwMDAw
-OjAxOjAwLjA6IFdhcm5pbmc6IGNvdWxkbid0IHNldCA2NC1iaXQgUENJIERNQSBtYXNrDQo+PiBt
-bHg1X2NvcmUgMDAwMDowMTowMC4wOiBXYXJuaW5nOiBjb3VsZG4ndCBzZXQgNjQtYml0IGNvbnNp
-c3RlbnQgUENJIERNQSBtYXNrDQo+PiBtbHg1X2NvcmUgMDAwMDowMTowMC4wOiBmaXJtd2FyZSB2
-ZXJzaW9uOiAxNi4xOS4yMTEwMg0KPj4gKC4uLikNCj4+IG1seDVfaWI6IE1lbGxhbm94IENvbm5l
-Y3QtSUIgSW5maW5pYmFuZCBkcml2ZXIgdjIuMi0xIChGZWIgMjAxNCkNCj4+ICguLi4pDQo+PiBt
-bHg1X2NvcmUgMDAwMDowMTowMC4wOiBkZXZpY2UncyBoZWFsdGggY29tcHJvbWlzZWQgLSByZWFj
-aGVkIG1pc3MgY291bnQNCj4+IG1seDVfY29yZSAwMDAwOjAxOjAwLjA6IGFzc2VydF92YXJbMF0g
-MHgwMDAwMDAwMQ0KPj4gbWx4NV9jb3JlIDAwMDA6MDE6MDAuMDogYXNzZXJ0X3ZhclsxXSAweDAw
-MDAwMDAwDQo+PiBtbHg1X2NvcmUgMDAwMDowMTowMC4wOiBhc3NlcnRfdmFyWzJdIDB4MDAwMDAw
-MDANCj4+IG1seDVfY29yZSAwMDAwOjAxOjAwLjA6IGFzc2VydF92YXJbM10gMHgwMDAwMDAwMA0K
-Pj4gbWx4NV9jb3JlIDAwMDA6MDE6MDAuMDogYXNzZXJ0X3Zhcls0XSAweDAwMDAwMDAwDQo+PiBt
-bHg1X2NvcmUgMDAwMDowMTowMC4wOiBhc3NlcnRfZXhpdF9wdHIgMHgwMDY5OTRjMA0KPj4gbWx4
-NV9jb3JlIDAwMDA6MDE6MDAuMDogYXNzZXJ0X2NhbGxyYSAweDAwNjk5NjgwDQo+PiBtbHg1X2Nv
-cmUgMDAwMDowMTowMC4wOiBmd192ZXIgMTYuMTkuMjExMDINCj4+IG1seDVfY29yZSAwMDAwOjAx
-OjAwLjA6IGh3X2lkIDB4MDAwMDAyMGQNCj4+IG1seDVfY29yZSAwMDAwOjAxOjAwLjA6IGlyaXNj
-X2luZGV4IDANCj4+IG1seDVfY29yZSAwMDAwOjAxOjAwLjA6IHN5bmQgMHgxOiBmaXJtd2FyZSBp
-bnRlcm5hbCBlcnJvcg0KPj4gbWx4NV9jb3JlIDAwMDA6MDE6MDAuMDogZXh0X3N5bmQgMHgxMWM1
-DQo+PiBtbHg1X2NvcmUgMDAwMDowMTowMC4wOiByYXcgZndfdmVyIDB4MTAxMzUyNmUNCj4+IA0K
-Pj4gbHNwY2kgLXYgcmVzdWx0Og0KPj4gDQo+PiAwMTowMC4wIEluZmluaWJhbmQgY29udHJvbGxl
-cjogTWVsbGFub3ggVGVjaG5vbG9naWVzIE1UMjg4MDAgRmFtaWx5IFtDb25uZWN0WC01IEV4XQ0K
-Pj4gICAgICAgIFN1YnN5c3RlbTogTWVsbGFub3ggVGVjaG5vbG9naWVzIERldmljZSAwMDAyDQo+
-PiAgICAgICAgRmxhZ3M6IGJ1cyBtYXN0ZXIsIGZhc3QgZGV2c2VsLCBsYXRlbmN5IDANCj4+ICAg
-ICAgICBNZW1vcnkgYXQgZDIwMDAwMDAgKDY0LWJpdCwgcHJlZmV0Y2hhYmxlKSBbc2l6ZT0zMk1d
-DQo+PiAgICAgICAgQ2FwYWJpbGl0aWVzOiBbNjBdIEV4cHJlc3MgRW5kcG9pbnQsIE1TSSAwMA0K
-Pj4gICAgICAgIENhcGFiaWxpdGllczogWzQ4XSBWaXRhbCBQcm9kdWN0IERhdGENCj4+ICAgICAg
-ICBDYXBhYmlsaXRpZXM6IFs5Y10gTVNJLVg6IEVuYWJsZSsgQ291bnQ9NjQgTWFza2VkLQ0KPj4g
-ICAgICAgIENhcGFiaWxpdGllczogW2MwXSBWZW5kb3IgU3BlY2lmaWMgSW5mb3JtYXRpb246IExl
-bj0xOCA8Pz4NCj4+ICAgICAgICBDYXBhYmlsaXRpZXM6IFs0MF0gUG93ZXIgTWFuYWdlbWVudCB2
-ZXJzaW9uIDMNCj4+ICAgICAgICBDYXBhYmlsaXRpZXM6IFsxMDBdIEFkdmFuY2VkIEVycm9yIFJl
-cG9ydGluZw0KPj4gICAgICAgIENhcGFiaWxpdGllczogWzE1MF0gQWx0ZXJuYXRpdmUgUm91dGlu
-Zy1JRCBJbnRlcnByZXRhdGlvbiAoQVJJKQ0KPj4gICAgICAgIENhcGFiaWxpdGllczogWzFjMF0g
-IzE5DQo+PiAgICAgICAgQ2FwYWJpbGl0aWVzOiBbMzIwXSAjMjcNCj4+ICAgICAgICBLZXJuZWwg
-ZHJpdmVyIGluIHVzZTogbWx4NV9jb3JlDQo+PiANCj4+IEludGVycnVwdHM6DQo+PiANCj4+IDQ1
-OiAgICAgICAgICAwICAgUENJLU1TSSAgIDAgIGFlcmRydg0KPj4gNDY6ICAgICAgICAgIDIgICBQ
-Q0ktTVNJIDUyNDI4OCAgbWx4NV9wYWdlc19lcUBwY2k6MDAwMDowMTowMC4wDQo+PiA0NzogICAg
-ICAgIDM0NyAgIFBDSS1NU0kgNTI0Mjg5ICBtbHg1X2NtZF9lcUBwY2k6MDAwMDowMTowMC4wDQo+
-PiA0ODogICAgICAgICAgMCAgIFBDSS1NU0kgNTI0MjkwICBtbHg1X2FzeW5jX2VxQHBjaTowMDAw
-OjAxOjAwLjANCj4+IDUwOiAgICAgICAgICAwICAgUENJLU1TSSA1MjQyOTIgIG1seDVfY29tcDBA
-cGNpOjAwMDA6MDE6MDAuMA0KPj4gDQo+PiBMaXN0IG9mIGRldmljZXM6DQo+PiANCj4+ICMgbHMg
-L2Rldi9pbmZpbmliYW5kLw0KPj4gaXNzbTAgICAgcmRtYV9jbSAgdWNtMCAgICAgdW1hZDAgICAg
-dXZlcmJzMA0KPj4gDQo+PiBTaG91bGRuJ3QgSSBiZSBnZXR0aW5nIHNvbWUgbWVsbGFub3ggZGV2
-aWNlcz8NCj4+IA0KPj4gVGhhbmtzLA0KPj4gSm9hbw0KPj4gDQo+IA0KPiBBZnRlciBzZWFyY2gg
-aW4gL3N5cyBJIGZvdW5kIHRoZSBtZWxsYW5veCBkZXZpY2UgbWx4NV8wDQo+ICgvc3lzL2NsYXNz
-L2luZmluaWJhbmQvbWx4NV8wLykgYW5kIHdhcyBhYmxlIHRvIGV4ZWN1dGUgaWJzdGF0IG9uIGl0
-Og0KPiANCj4gIyAgaWJzdGF0IG1seDVfMA0KPiBDQSAnbWx4NV8wJw0KPiAgICAgICAgQ0EgdHlw
-ZTogTVQ0MTIxDQo+ICAgICAgICBOdW1iZXIgb2YgcG9ydHM6IDENCj4gICAgICAgIEZpcm13YXJl
-IHZlcnNpb246IDE2LjE5LjIxMTAyDQo+ICAgICAgICBIYXJkd2FyZSB2ZXJzaW9uOiAwDQo+ICAg
-ICAgICBOb2RlIEdVSUQ6IDB4MjQ4YTA3MDMwMGFhODQ2Ng0KPiAgICAgICAgU3lzdGVtIGltYWdl
-IEdVSUQ6IDB4MjQ4YTA3MDMwMGFhODQ2Ng0KPiAgICAgICAgUG9ydCAxOg0KPiAgICAgICAgICAg
-ICAgICBTdGF0ZTogRG93bg0KPiAgICAgICAgICAgICAgICBQaHlzaWNhbCBzdGF0ZTogRGlzYWJs
-ZWQNCj4gICAgICAgICAgICAgICAgUmF0ZTogMTANCj4gICAgICAgICAgICAgICAgQmFzZSBsaWQ6
-IDY1NTM1DQo+ICAgICAgICAgICAgICAgIExNQzogMA0KPiAgICAgICAgICAgICAgICBTTSBsaWQ6
-IDANCj4gICAgICAgICAgICAgICAgQ2FwYWJpbGl0eSBtYXNrOiAweDI2NTFlODQ4DQo+ICAgICAg
-ICAgICAgICAgIFBvcnQgR1VJRDogMHgyNDhhMDcwMzAwYWE4NDY2DQo+ICAgICAgICAgICAgICAg
-IExpbmsgbGF5ZXI6IEluZmluaUJhbmQNCj4gIw0KPiAjDQo+ICMgcHdkDQo+IA0KPiBTaG91bGRu
-J3QgdGhlIGRldmljZSBiZSB2aXNpYmxlIGluIC9kZXY/DQpIaSBKb2FvLA0KDQpJJ20gZ2xhZCB0
-aGlzIHNvbHZlZCB5b3VyIGlzc3VlLg0KVW5kZXIgZGV2IHlvdSB3aWxsIG5vdCBzZWUgTWVsbGFu
-b3ggZGV2aWNlcy4gVGhleSBhcmUgdmlzaWJsZSBvbmx5IHVuZGVyIHRoZSBzeXNmcyBwYXRoIHlv
-dSBmb3VuZC4NCkluIC9kZXYgeW91IG1pZ2h0IHNlZSB0aGUgbXN0IGRldmljZXMgaWYgeW91IGhh
-dmUgbXN0IHJ1bm5pbmcuLg0KPiANCj4gVGhhbmtzLg0KPiANCj4gLS0NCj4gVG8gdW5zdWJzY3Jp
-YmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LXJkbWEi
-IGluDQo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3Jn
-DQo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jk
-b21vLWluZm8uaHRtbA0K
+Hi,
+
+> 
+>> After search in /sys I found the mellanox device mlx5_0
+> 
+>> (/sys/class/infiniband/mlx5_0/) and was able to execute ibstat on it:
+> 
+>>
+> 
+>> #  ibstat mlx5_0
+> 
+>> CA 'mlx5_0'
+> 
+>>        CA type: MT4121
+> 
+>>        Number of ports: 1
+> 
+>>        Firmware version: 16.19.21102
+> 
+>>        Hardware version: 0
+> 
+>>        Node GUID: 0x248a070300aa8466
+> 
+>>        System image GUID: 0x248a070300aa8466
+> 
+>>        Port 1:
+> 
+>>                State: Down
+> 
+>>                Physical state: Disabled
+> 
+>>                Rate: 10
+> 
+>>                Base lid: 65535
+> 
+>>                LMC: 0
+> 
+>>                SM lid: 0
+> 
+>>                Capability mask: 0x2651e848
+> 
+>>                Port GUID: 0x248a070300aa8466
+> 
+>>                Link layer: InfiniBand
+> 
+>> #
+> 
+>> #
+> 
+>> # pwd
+> 
+>>
+> 
+>> Shouldn't the device be visible in /dev?
+> 
+> Hi Joao,
+> 
+> 
+> 
+> I'm glad this solved your issue.
+> 
+> Under dev you will not see Mellanox devices. They are visible only under the sysfs path you found.
+> 
+> In /dev you might see the mst devices if you have mst running..
+
+Thanks for the help Majd! I suggest the driver uses the 0 profile by default to
+avoid this kind of meomory problems. What do you think? I can make a patch for
+it if you agree.
+
+Thanks.
+
+> 
+>>
+> 
+>> Thanks.
+> 
+>>
+> 
+>> --
+> 
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> 
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> 
+>> More majordomo info at  https://urldefense.proofpoint.com/v2/url?u=http-3A__vger.kernel.org_majordomo-2Dinfo.html&d=DwIGaQ&c=DPL6_X_6JkXFx7AXWqB0tg&r=s2fO0hii0OGNOv9qQy_HRXy-xAJUD1NNoEcc3io_kx0&m=MZ71e2hCV-Ipb5oWcgk4I1Z6_Wd8shDLv1AtVKJPigw&s=EvobH0aYP1erS-5GZpBL5Zpabx5LMnEJWTRExwPWSdY&e= 
+> 
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
