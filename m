@@ -1,44 +1,124 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [for-next 4/6] net/mlx5: FPGA, Add basic support for Innova
-Date: Thu, 1 Jun 2017 09:37:04 -0600
-Message-ID: <20170601153704.GA1680@obsidianresearch.com>
-References: <20170526030701.du4345mbprhcwjyi@ast-mbp>
- <CALzJLG98D=3yMJV_q4sjVNG41AERFRU+6rwqQJsxnRuVeDTPdA@mail.gmail.com>
- <20170526175624.5xxflpf24je5673h@ast-mbp>
- <20170526181517.GA3860@obsidianresearch.com>
- <AM4PR0501MB1940330F0EBAA819C87C5278DBF20@AM4PR0501MB1940.eurprd05.prod.outlook.com>
- <20170529153131.GB7924@obsidianresearch.com>
- <AM4PR0501MB1940D05A19F098286B99EAD0DBF30@AM4PR0501MB1940.eurprd05.prod.outlook.com>
- <20170529160252.GA27550@obsidianresearch.com>
- <AM4PR0501MB194037FF8F17466BC9ECC73DDBF30@AM4PR0501MB1940.eurprd05.prod.outlook.com>
- <AM4PR0501MB19409139227E11A4A7F82F0FDBF30@AM4PR0501MB1940.eurprd05.prod.outlook.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH rdma-core] verbs: Introduce flow steering drop action
+Date: Thu,  1 Jun 2017 18:47:14 +0300
+Message-ID: <1496332034-14758-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <AM4PR0501MB19409139227E11A4A7F82F0FDBF30-dp/nxUn679gfNUYDR5dMTsDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Alexei Starovoitov <alexei.starovoitov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jsorensen-b10kYP2dOMg@public.gmane.org" <jsorensen-b10kYP2dOMg@public.gmane.org>, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-fpga-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fpga-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Tull <atull-yzvPICuk2ABMcg4IHK0kFoH6Mc4MB0Vx@public.gmane.org>, "yi1.li-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <yi1.li-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, slavash-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 29, 2017 at 04:09:06PM +0000, Ilan Tayari wrote:
+From: Slava Shwartsman <slavash-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-> > For IPSec, this is already in the kernel.
-> > See this patchset:
-> > http://www.mail-archive.com/netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg162876.html
-> 
-> Sorry, I pointed at the RFC by mistake.
-> 
-> This is the relevant pull request:
-> https://patchwork.ozlabs.org/patch/752707/
+This flow steering specification identifies a drop flow to the
+hardware.
 
-This is connecting ipsec to a netdev, while Innova seems to be a
-network connected ipsec accelerator configured using IP packets.
+If user creates a flow only with the drop specification, then all the
+packets that hit this flow will be dropped, otherwise the hardware will
+drop only the packets that match the other L2/L3/L4 specifications.
 
-Those two things don't seem to be the same.
+Signed-off-by: Slava Shwartsman <slavash-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
 
-Jason
+This is the complementary user space part of the kernel code that was merged
+into 4.12.
+
+ libibverbs/cmd.c                 | 3 +++
+ libibverbs/kern-abi.h            | 7 +++++++
+ libibverbs/man/ibv_create_flow.3 | 1 +
+ libibverbs/verbs.h               | 9 ++++++++-
+ 4 files changed, 19 insertions(+), 1 deletion(-)
+
+diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
+index 3a5aa4e..7a266ee 100644
+--- a/libibverbs/cmd.c
++++ b/libibverbs/cmd.c
+@@ -1823,6 +1823,9 @@ static int ib_spec_to_kern_spec(struct ibv_flow_spec *ib_spec,
+ 			sizeof(struct ibv_kern_spec_action_tag);
+ 		kern_spec->flow_tag.tag_id = ib_spec->flow_tag.tag_id;
+ 		break;
++	case IBV_FLOW_SPEC_ACTION_DROP:
++		kern_spec->drop.size = sizeof(struct ibv_kern_spec_action_drop);
++		break;
+ 	default:
+ 		return EINVAL;
+ 	}
+diff --git a/libibverbs/kern-abi.h b/libibverbs/kern-abi.h
+index 448b2e8..8d42faf 100644
+--- a/libibverbs/kern-abi.h
++++ b/libibverbs/kern-abi.h
+@@ -938,6 +938,12 @@ struct ibv_kern_spec_tunnel {
+ 	struct ibv_kern_tunnel_filter mask;
+ };
+ 
++struct ibv_kern_spec_action_drop {
++	__u32  type;
++	__u16  size;
++	__u16 reserved;
++};
++
+ struct ibv_kern_spec {
+ 	union {
+ 		struct {
+@@ -952,6 +958,7 @@ struct ibv_kern_spec {
+ 		struct ibv_kern_spec_ipv6 ipv6;
+ 		struct ibv_kern_spec_tunnel tunnel;
+ 		struct ibv_kern_spec_action_tag flow_tag;
++		struct ibv_kern_spec_action_drop drop;
+ 	};
+ };
+ 
+diff --git a/libibverbs/man/ibv_create_flow.3 b/libibverbs/man/ibv_create_flow.3
+index 32d47ad..48bbb14 100644
+--- a/libibverbs/man/ibv_create_flow.3
++++ b/libibverbs/man/ibv_create_flow.3
+@@ -69,6 +69,7 @@ IBV_FLOW_SPEC_UDP                       = 0x41,   /* Flow specification of UDP h
+ IBV_FLOW_SPEC_VXLAN_TUNNEL             	= 0x50,   /* Flow specification of VXLAN header */
+ IBV_FLOW_SPEC_INNER                    	= 0x100,  /* Flag making L2/L3/L4 specifications to be applied on the inner header */
+ IBV_FLOW_SPEC_ACTION_TAG                = 0x1000, /* Action tagging matched packet */
++IBV_FLOW_SPEC_ACTION_DROP               = 0x1001, /* Action dropping matched packet */
+ .in -8
+ };
+ .br
+diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+index b27dfd1..4f0765e 100644
+--- a/libibverbs/verbs.h
++++ b/libibverbs/verbs.h
+@@ -1233,7 +1233,8 @@ enum ibv_flow_spec_type {
+ 	IBV_FLOW_SPEC_UDP		= 0x41,
+ 	IBV_FLOW_SPEC_VXLAN_TUNNEL	= 0x50,
+ 	IBV_FLOW_SPEC_INNER		= 0x100,
+-	IBV_FLOW_SPEC_ACTION_TAG	= 0x1000
++	IBV_FLOW_SPEC_ACTION_TAG	= 0x1000,
++	IBV_FLOW_SPEC_ACTION_DROP	= 0x1001,
+ };
+ 
+ struct ibv_flow_eth_filter {
+@@ -1326,6 +1327,11 @@ struct ibv_flow_spec_action_tag {
+ 	uint32_t  tag_id;
+ };
+ 
++struct ibv_flow_spec_action_drop {
++	enum ibv_flow_spec_type  type;
++	uint16_t  size;
++};
++
+ struct ibv_flow_spec {
+ 	union {
+ 		struct {
+@@ -1339,6 +1345,7 @@ struct ibv_flow_spec {
+ 		struct ibv_flow_spec_ipv6 ipv6;
+ 		struct ibv_flow_spec_tunnel tunnel;
+ 		struct ibv_flow_spec_action_tag flow_tag;
++		struct ibv_flow_spec_action_drop drop;
+ 	};
+ };
+ 
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
