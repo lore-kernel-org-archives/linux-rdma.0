@@ -1,25 +1,22 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] infiniband: hw: i40iw: fix duplicated code for
- different branches
-Date: Thu, 01 Jun 2017 18:27:20 -0400
-Message-ID: <1496356040.7171.67.camel@redhat.com>
-References: <20170518181117.GA14287@embeddedgus>
+Subject: Re: [PATCH] i40iw: Remove MSS change support
+Date: Thu, 01 Jun 2017 18:27:50 -0400
+Message-ID: <1496356070.7171.68.camel@redhat.com>
+References: <20170519211402.17700-1-shiraz.saleem@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170518181117.GA14287@embeddedgus>
+In-Reply-To: <20170519211402.17700-1-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gustavo A. R. Silva" <garsilva-L1vi/lXTdts+Va1GwOuvDg@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, sassmann-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-05-18 at 13:11 -0500, Gustavo A. R. Silva wrote:
-> Refactor code to avoid identical code for different branches.
-> 
-> Addresses-Coverity-ID: 1357356
-> Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Gustavo A. R. Silva <garsilva-L1vi/lXTdts+Va1GwOuvDg@public.gmane.org>
+On Fri, 2017-05-19 at 16:14 -0500, Shiraz Saleem wrote:
+> MSS change on active QPs is not supported. Store new MSS
+> value for new QPs only. Remove code to modify MSS on the fly.
+> This also resolves a crash on QP modify to QP 0.
 
 Thanks, applied.
 
