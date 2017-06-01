@@ -1,28 +1,35 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 1/2] net/mlx5: Define interface bits for fencing UMR
- wqe
-Date: Thu, 01 Jun 2017 18:51:03 -0400
-Message-ID: <1496357463.7171.74.camel@redhat.com>
-References: <1495957991-19223-1-git-send-email-maxg@mellanox.com>
+Subject: Re: [PATCH] iw_cxgb4: fix the calculation of ipv6 header size
+Date: Thu, 01 Jun 2017 18:51:46 -0400
+Message-ID: <1496357506.7171.75.camel@redhat.com>
+References: <1496212618-18785-1-git-send-email-ganeshgr@chelsio.com>
+         <004101d2da17$7443a960$5ccafc20$@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1495957991-19223-1-git-send-email-maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <004101d2da17$7443a960$5ccafc20$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org
-Cc: shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, vladimirk-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Ganesh Goudar' <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, indranil-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, 'Raju Rangoju' <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 2017-05-28 at 10:53 +0300, Max Gurtovoy wrote:
-> HW can implement UMR wqe re-transmission in various ways.
-> Thus, add HCA cap to distinguish the needed fence for UMR to make
-> sure that the wqe wouldn't fail on mkey checks.
+On Wed, 2017-05-31 at 09:09 -0500, Steve Wise wrote:
+> > 
+> > From: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+> > 
+> > Take care of ipv6 checks while computing header length for deducing
+> > mtu
+> > size of ipv6 servers. Due to the incorrect header length
+> > computation for
+> > ipv6 servers, wrong mss is reported to the peer (client).
+> > 
+> > Signed-off-by: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+> > Signed-off-by: Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 > 
-> Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Acked-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
-Series, with Christoph's fixup, applied.
+Thanks, applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
