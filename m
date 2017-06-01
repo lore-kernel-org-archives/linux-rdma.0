@@ -1,124 +1,102 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core] verbs: Introduce flow steering drop action
-Date: Thu,  1 Jun 2017 18:47:14 +0300
-Message-ID: <1496332034-14758-1-git-send-email-yishaih@mellanox.com>
+From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [ANNOUNCE] ***libibmad users please read*** -- infiniband-diags
+ v2.0.0 released
+Date: Thu, 1 Jun 2017 18:27:55 +0000
+Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E67CC83B4@CRSMSX101.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, slavash-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Slava Shwartsman <slavash-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+*** libibmad users should note that libibmad is no longer a separate repo/package ***
 
-This flow steering specification identifies a drop flow to the
-hardware.
+There have just been too many changes to libibmad which are directly related to infiniband-diags changes.  Keeping a separate repo/package did not seem reasonable any longer.
 
-If user creates a flow only with the drop specification, then all the
-packets that hit this flow will be dropped, otherwise the hardware will
-drop only the packets that match the other L2/L3/L4 specifications.
+Infiniband-diags v2.0.0 now includes/provides libibmad
 
-Signed-off-by: Slava Shwartsman <slavash-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
+The package has also been moved to the Linux-rdma github.  V2.0.0 release is here:
 
-This is the complementary user space part of the kernel code that was merged
-into 4.12.
+https://github.com/linux-rdma/infiniband-diags/releases
 
- libibverbs/cmd.c                 | 3 +++
- libibverbs/kern-abi.h            | 7 +++++++
- libibverbs/man/ibv_create_flow.3 | 1 +
- libibverbs/verbs.h               | 9 ++++++++-
- 4 files changed, 19 insertions(+), 1 deletion(-)
 
-diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
-index 3a5aa4e..7a266ee 100644
---- a/libibverbs/cmd.c
-+++ b/libibverbs/cmd.c
-@@ -1823,6 +1823,9 @@ static int ib_spec_to_kern_spec(struct ibv_flow_spec *ib_spec,
- 			sizeof(struct ibv_kern_spec_action_tag);
- 		kern_spec->flow_tag.tag_id = ib_spec->flow_tag.tag_id;
- 		break;
-+	case IBV_FLOW_SPEC_ACTION_DROP:
-+		kern_spec->drop.size = sizeof(struct ibv_kern_spec_action_drop);
-+		break;
- 	default:
- 		return EINVAL;
- 	}
-diff --git a/libibverbs/kern-abi.h b/libibverbs/kern-abi.h
-index 448b2e8..8d42faf 100644
---- a/libibverbs/kern-abi.h
-+++ b/libibverbs/kern-abi.h
-@@ -938,6 +938,12 @@ struct ibv_kern_spec_tunnel {
- 	struct ibv_kern_tunnel_filter mask;
- };
- 
-+struct ibv_kern_spec_action_drop {
-+	__u32  type;
-+	__u16  size;
-+	__u16 reserved;
-+};
-+
- struct ibv_kern_spec {
- 	union {
- 		struct {
-@@ -952,6 +958,7 @@ struct ibv_kern_spec {
- 		struct ibv_kern_spec_ipv6 ipv6;
- 		struct ibv_kern_spec_tunnel tunnel;
- 		struct ibv_kern_spec_action_tag flow_tag;
-+		struct ibv_kern_spec_action_drop drop;
- 	};
- };
- 
-diff --git a/libibverbs/man/ibv_create_flow.3 b/libibverbs/man/ibv_create_flow.3
-index 32d47ad..48bbb14 100644
---- a/libibverbs/man/ibv_create_flow.3
-+++ b/libibverbs/man/ibv_create_flow.3
-@@ -69,6 +69,7 @@ IBV_FLOW_SPEC_UDP                       = 0x41,   /* Flow specification of UDP h
- IBV_FLOW_SPEC_VXLAN_TUNNEL             	= 0x50,   /* Flow specification of VXLAN header */
- IBV_FLOW_SPEC_INNER                    	= 0x100,  /* Flag making L2/L3/L4 specifications to be applied on the inner header */
- IBV_FLOW_SPEC_ACTION_TAG                = 0x1000, /* Action tagging matched packet */
-+IBV_FLOW_SPEC_ACTION_DROP               = 0x1001, /* Action dropping matched packet */
- .in -8
- };
- .br
-diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index b27dfd1..4f0765e 100644
---- a/libibverbs/verbs.h
-+++ b/libibverbs/verbs.h
-@@ -1233,7 +1233,8 @@ enum ibv_flow_spec_type {
- 	IBV_FLOW_SPEC_UDP		= 0x41,
- 	IBV_FLOW_SPEC_VXLAN_TUNNEL	= 0x50,
- 	IBV_FLOW_SPEC_INNER		= 0x100,
--	IBV_FLOW_SPEC_ACTION_TAG	= 0x1000
-+	IBV_FLOW_SPEC_ACTION_TAG	= 0x1000,
-+	IBV_FLOW_SPEC_ACTION_DROP	= 0x1001,
- };
- 
- struct ibv_flow_eth_filter {
-@@ -1326,6 +1327,11 @@ struct ibv_flow_spec_action_tag {
- 	uint32_t  tag_id;
- };
- 
-+struct ibv_flow_spec_action_drop {
-+	enum ibv_flow_spec_type  type;
-+	uint16_t  size;
-+};
-+
- struct ibv_flow_spec {
- 	union {
- 		struct {
-@@ -1339,6 +1345,7 @@ struct ibv_flow_spec {
- 		struct ibv_flow_spec_ipv6 ipv6;
- 		struct ibv_flow_spec_tunnel tunnel;
- 		struct ibv_flow_spec_action_tag flow_tag;
-+		struct ibv_flow_spec_action_drop drop;
- 	};
- };
- 
--- 
-1.8.3.1
+Dependencies:
 
+	1) libibumad >= 1.3.7
+	2) opensm-libs >= 3.3.10
+	3) ib_umad kernel module
+	4) glib2
+
+
+Release notes 1.6.7 => 2.0.0
+
+   1) combine libibmad
+   2) Removed rdma-ndd
+   	2a) Removed need for systemd
+   	2b) Removed need for udev
+
+
+Authors since 1.6.7
+
+*Preserved full history from libibmad*
+
+Ana Guerrero López (4):
+  Update AM_INIT_AUTOMAKE to use subdir-objects
+  Replace INCLUDES with AM_CPPFLAGS
+  Update the shebang to point to /bin/bash
+  A few typo fixes in the manpages
+
+Dag Moxnes (1):
+  ibportstate: Fixed switch peer port probing when using DR routing
+
+Eitan Zahavi (1):
+  ibsendtrap.c: Add support for security traps
+
+Hal Rosenstock (13):
+  ibportstate.c: When not switch, port can be router port
+  ibaddr.c: Fix LID printfs to be unsigned rather than signed
+  libibnetdisc/internal.h: Remove duplicated declaration of
+    add_to_portlid_hash
+  ibtracert.c: Enable m_key option
+  Add Bull device ID support to device white lists
+  infiniband-diags: Add Connect-X5 device ID to device white
+  scripts: Add mkey support into ibhosts, ibswitches, and ibrouters
+  ibdiag_common.c: Disambiguate link speed when QDR and could be FDR10
+  saquery.c: Remove use of to be deprecated ib_gid_t
+  ibdiag_common.c: Fix endian conversion in resolve_self for umad_port
+    GID prefix and GUID
+  ibdiag_common.c: Fix cosmetic formatting issue
+  ibstat.c: Add include for __be64 type
+  perfquery.c: Output PerfMgt ClassPortInfo CapabilityMask2
+
+Ira Weiny (15):
+  doc/man/*.in: update pre-built *.in files
+  scripts: Add m_key to man pages
+  infiniband-diags: Use modern glibc htobe64/be64toh macros
+  infiniband-diags: Fix type passed to umad_get_ca_portguids
+  infiniband-diags/perfquery: Use universal zero init for perf_count
+  infiniband-diags: Update README files to reflect new merged repo
+  infiniband-diags: Bump version to 2.0.0
+  infiniband-diags: Update COPYING files to reflect the new repo
+  infiniband-diags: Remove redundant AUTHORS file
+  infiniband-diags: Move libibmad auto-configuration to main dir
+  infiniband-diags: Merge makefiles and build against internal libibmad
+  infiniband-diags: Combine libibmad spec into infiniband-diags
+  infiniband-diags: Remove outdated scripts for ChangeLog
+  infiniband-diags: set noreplace on config files
+  infiniband-diags: Remove rdma-ndd
+
+
+Oded Nissan (2):
+  ibstat.c: If port is 1x SDR, rate is 2.5 rather than 2 Gbps
+  perfquery.c: Add support for additional counters in
+    PortCountersExtended
+
+Vincent Ficet (1):
+  infiniband-diags: Add Bull device ID support to device white lists
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
