@@ -1,43 +1,46 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] iw_cxgb4: fix the calculation of ipv6 header size
-Date: Thu, 01 Jun 2017 18:51:46 -0400
-Message-ID: <1496357506.7171.75.camel@redhat.com>
-References: <1496212618-18785-1-git-send-email-ganeshgr@chelsio.com>
-         <004101d2da17$7443a960$5ccafc20$@opengridcomputing.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [pull request][for-next 0/6] Mellanox mlx5 updates 2017-05-23
+Date: Thu, 01 Jun 2017 18:57:59 -0400
+Message-ID: <1496357879.7171.76.camel@redhat.com>
+References: <20170523114404.20387-1-saeedm@mellanox.com>
+         <20170525.120220.1812199263503283242.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <004101d2da17$7443a960$5ccafc20$@opengridcomputing.com>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Ganesh Goudar' <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, indranil-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, 'Raju Rangoju' <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170525.120220.1812199263503283242.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>, saeedm@mellanox.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, ilant@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-05-31 at 09:09 -0500, Steve Wise wrote:
-> > 
-> > From: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-> > 
-> > Take care of ipv6 checks while computing header length for deducing
-> > mtu
-> > size of ipv6 servers. Due to the incorrect header length
-> > computation for
-> > ipv6 servers, wrong mss is reported to the peer (client).
-> > 
-> > Signed-off-by: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-> > Signed-off-by: Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+On Thu, 2017-05-25 at 12:02 -0400, David Miller wrote:
+> From: Saeed Mahameed <saeedm@mellanox.com>
+> Date: Tue, 23 May 2017 14:43:58 +0300
 > 
-> Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> > Hi Dave and Doug,
+> > 
+> > This series introduces some small updates and FPGA support to the
+> mlx5
+> > core/ethernet and IB drivers.
+> > 
+> > For more details please see below.
+> > 
+> > Please pull and let me know if there's any problem.
+> 
+> Ok, I've pulled this into net-next.
+> 
+> Doug let me know if there are any merge hassles we need to coordinate
+> on.
+> 
+> Thanks.
 
-Thanks, applied.
+Will do.  But is the question of a possible revert settled?  Because
+once I pull, a revert means I have to pull all the way up to the revert
+as well...
 
 -- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
     GPG KeyID: B826A3330E572FDD
    
 Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
