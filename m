@@ -1,36 +1,32 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/1] RDMA/iw_cxgb4: Avoid touch after free error in ARP
- failure handlers
-Date: Thu, 01 Jun 2017 18:21:35 -0400
-Message-ID: <1496355695.7171.64.camel@redhat.com>
-References: <20170511114354.25046-1-rajur@chelsio.com>
+Subject: Re: [PATCH] IB/IPoIB: Replace netdev_priv with ipoib_priv for
+ ipoib_get_link_ksettings
+Date: Thu, 01 Jun 2017 18:26:09 -0400
+Message-ID: <1496355969.7171.65.camel@redhat.com>
+References: <1494504868-17204-1-git-send-email-honli@redhat.com>
+         <20170511123109.GC18962@yuval-lap> <20170511124020.GH3616@mtr-leonro.local>
+         <92da39f0-2c7a-5039-234e-94da89d5eacb@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170511114354.25046-1-rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <92da39f0-2c7a-5039-234e-94da89d5eacb-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
+To: Yanjun Zhu <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Honggang LI <honli-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-05-11 at 17:13 +0530, Raju Rangoju wrote:
-> The patch 761e19a504af: "RDMA/iw_cxgb4: Handle return value of
-> c4iw_ofld_send() in abort_arp_failure()" from May 6, 2016, leads to
-> the
-> following static checker warning:
->         drivers/infiniband/hw/cxgb4/cm.c:575 abort_arp_failure()
->         warn: passing freed memory 'skb'
+On Fri, 2017-05-19 at 11:15 +0800, Yanjun Zhu wrote:
+> >> Suggesting to remove kernel oops from commit log message, fix is
+> trivial.
+> > Please don't, they are useful.
+> Can we explain this in commit log message?
 > 
-> Also fixes skb leak when l2t resolution fails
-> 
-> Fixes: 761e19a504afa55 (RDMA/iw_cxgb4: Handle return value of
-> c4iw_ofld_send() in abort_arp_failure())
-> 
-> Signed-off-by: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-> Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> The patch "IB/IPoIB: Support acceleration options callbacks" makes 
+> ipoib_pirv different from netdev_priv.
 
-Thanks, applied.
+I reworked the commit message considerably to resolve this issue, and
+then applied the patch.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
