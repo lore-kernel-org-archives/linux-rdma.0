@@ -1,22 +1,28 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] i40iw: Remove MSS change support
-Date: Thu, 01 Jun 2017 18:27:50 -0400
-Message-ID: <1496356070.7171.68.camel@redhat.com>
-References: <20170519211402.17700-1-shiraz.saleem@intel.com>
+Subject: Re: [PATCH rdma-rc] IB/umem: Fix missing mmap_sem in get umem ODP
+ call
+Date: Thu, 01 Jun 2017 18:28:28 -0400
+Message-ID: <1496356108.7171.69.camel@redhat.com>
+References: <20170521160809.19793-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170519211402.17700-1-shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20170521160809.19793-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, sassmann-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-05-19 at 16:14 -0500, Shiraz Saleem wrote:
-> MSS change on active QPs is not supported. Store new MSS
-> value for new QPs only. Remove code to modify MSS on the fly.
-> This also resolves a crash on QP modify to QP 0.
+On Sun, 2017-05-21 at 19:08 +0300, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> Add mmap_sem lock around VMA inspection in ib_umem_odp_get().
+> 
+> Fixes: 0008b84ea9af ('IB/umem: Add support to huge ODP')
+> Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
 Thanks, applied.
 
