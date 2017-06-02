@@ -1,46 +1,49 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [for-next 4/6] net/mlx5: FPGA, Add basic support for Innova
-Date: Fri, 02 Jun 2017 16:33:39 -0400
-Message-ID: <1496435619.7171.107.camel@redhat.com>
-References: <20170523114404.20387-1-saeedm@mellanox.com>
-         <20170523114404.20387-5-saeedm@mellanox.com>
-         <20170524165059.42lmrwzzcxvi2sf7@ast-mbp>
-         <AM4PR0501MB1940885C2F1CEF4DDE4EA8D1DBFF0@AM4PR0501MB1940.eurprd05.prod.outlook.com>
-         <CALzJLG-B_tAmASn_SMmPNiucq-tTpywHniRTkb4N32oGF6Y3Ng@mail.gmail.com>
-         <00716e5a-8b51-0b3f-a1b8-1bb7b346a66a@fb.com>
-         <CALzJLG9YNpagdJAcrh6O0jJhZWtsck6KigRtVxyjkArTm=82ew@mail.gmail.com>
-         <f47d7519-4f58-bc94-2387-20342afd91b8@fb.com>
-         <AM4PR0501MB19406FF2555888457C00E217DBF20@AM4PR0501MB1940.eurprd05.prod.outlook.com>
-         <4c164e09-0103-7daf-e9f8-9260223ada08@fb.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH v4] add the option of fortified string.h functions
+Date: Fri, 2 Jun 2017 14:07:43 -0700
+Message-ID: <20170602140743.274b9babba6118bfd12c7a26@linux-foundation.org>
+References: <20170526095404.20439-1-danielmicay@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4c164e09-0103-7daf-e9f8-9260223ada08-b10kYP2dOMg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jes Sorensen <jsorensen-b10kYP2dOMg@public.gmane.org>, Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Alexei Starovoitov <alexei.starovoitov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kernel Team <kernel-team-b10kYP2dOMg@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20170526095404.20439-1-danielmicay@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Daniel Micay <danielmicay@gmail.com>
+Cc: linux-mm@kvack.org, Kees Cook <keescook@chromium.org>, kernel-hardening@lists.openwall.com, linux-kernel <linux-kernel@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Daniel Axtens <dja@axtens.net>, Moni Shoua <monis@mellanox.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-06-02 at 16:31 -0400, Jes Sorensen wrote:
-> 
-> > It is already modular like that. See CONFIG_MLX5_FPGA.
-> 
-> [jes@xpeas netdev.git]$ grep CONFIG_MLX5_FPGA 
-> drivers/net/ethernet/mellanox/mlx5/core/*
-> [jes@xpeas netdev.git]$
-> 
-> Which git tree am I supposed to look at?
+On Fri, 26 May 2017 05:54:04 -0400 Daniel Micay <danielmicay@gmail.com> wrote:
 
-net-next
+> This adds support for compiling with a rough equivalent to the glibc
+> _FORTIFY_SOURCE=1 feature, providing compile-time and runtime buffer
+> overflow checks for string.h functions when the compiler determines the
+> size of the source or destination buffer at compile-time. Unlike glibc,
+> it covers buffer reads in addition to writes.
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-   
-Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+Did we find a bug in drivers/infiniband/sw/rxe/rxe_resp.c?
+
+i386 allmodconfig:
+
+In file included from ./include/linux/bitmap.h:8:0,
+                 from ./include/linux/cpumask.h:11,
+                 from ./include/linux/mm_types_task.h:13,
+                 from ./include/linux/mm_types.h:4,
+                 from ./include/linux/kmemcheck.h:4,
+                 from ./include/linux/skbuff.h:18,
+                 from drivers/infiniband/sw/rxe/rxe_resp.c:34:
+In function 'memcpy',
+    inlined from 'send_atomic_ack.constprop' at drivers/infiniband/sw/rxe/rxe_resp.c:998:2,
+    inlined from 'acknowledge' at drivers/infiniband/sw/rxe/rxe_resp.c:1026:3,
+    inlined from 'rxe_responder' at drivers/infiniband/sw/rxe/rxe_resp.c:1286:10:
+./include/linux/string.h:309:4: error: call to '__read_overflow2' declared with attribute error: detected read beyond size of object passed as 2nd parameter
+    __read_overflow2();
+
+
+If so, can you please interpret this for the infiniband developers?
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
