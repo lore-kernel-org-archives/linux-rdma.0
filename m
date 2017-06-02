@@ -1,81 +1,91 @@
-From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 5/9] IB/core, rdmavt, hfi1: Send OPA cap_mask3
- in trap
-Date: Thu, 1 Jun 2017 17:09:18 -0700
-Message-ID: <20170602000918.GA58426@knc-06.sc.intel.com>
-References: <20170526123257.8158.23943.stgit@scvm10.sc.intel.com>
- <20170526123536.8158.237.stgit@scvm10.sc.intel.com>
- <20170529161407.GB17751@mtr-leonro.local>
- <2fc7a7d6-9ba3-2365-45e3-946f56827dd9@intel.com>
- <20170531043235.GH5406@mtr-leonro.local>
- <20170531175821.GA29853@knc-06.sc.intel.com>
- <20170601055542.GQ5406@mtr-leonro.local>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [pull request][for-next 0/6] Mellanox mlx5 updates 2017-05-23
+Date: Fri, 2 Jun 2017 18:39:40 +0300
+Message-ID: <20170602153940.GX5406@mtr-leonro.local>
+References: <20170523114404.20387-1-saeedm@mellanox.com>
+ <20170525.120220.1812199263503283242.davem@davemloft.net>
+ <1496357879.7171.76.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="3jK+0sHr6j/jwA0V"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170601055542.GQ5406-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <1496357879.7171.76.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "Henry, Michael N" <michael.n.henry-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 01, 2017 at 08:55:42AM +0300, Leon Romanovsky wrote:
->On Wed, May 31, 2017 at 10:58:21AM -0700, Vishwanathapura, Niranjana wrote:
->> On Wed, May 31, 2017 at 07:32:35AM +0300, Leon Romanovsky wrote:
->> > On Tue, May 30, 2017 at 11:32:22AM -0700, Henry, Michael N wrote:
->> > > On 5/29/2017 9:14 AM, Leon Romanovsky wrote:
->> > > > On Fri, May 26, 2017 at 05:35:37AM -0700, Dennis Dalessandro wrote:
->> > > > > From: Michael N. Henry <michael.n.henry-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> > > > >
->> > > > > Provide the ability for IB clients to modify the OPA specific
->> > > > > capability mask and include this mask in the subsequent trap data.
->> > > > >
->> > > > > diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
->> > > > > index 785e927..6c4f6da 100644
->> > > > > --- a/include/rdma/ib_verbs.h
->> > > > > +++ b/include/rdma/ib_verbs.h
->> > > > > @@ -576,7 +576,8 @@ struct ib_device_modify {
->> > > > >   enum ib_port_modify_flags {
->> > > > >   	IB_PORT_SHUTDOWN		= 1,
->> > > > >   	IB_PORT_INIT_TYPE		= (1<<2),
->> > > > > -	IB_PORT_RESET_QKEY_CNTR		= (1<<3)
->> > > > > +	IB_PORT_RESET_QKEY_CNTR		= (1<<3),
->> > > > > +	IB_PORT_OPA_MASK_CHG		= (1<<4)
->> > > > How will this flag be set?
->> > > >
->> > > This flag can be set as the port_modify_mask when calling ib_modify_port(..)
->> >
->> > My question is more general. I'm as a representative of these "IB
->> > clients" would like to know when and why should I use this flag.
->> >
->>
->> Hi,
->> We have an OPA VNIC use case (patch coming up) to set/clear OPA capmask as
->> below.
->>
->> pm.set/clear_port_cap_mask = OPA_CAP_MASK3_IsEthOnFabricSupported;
->> ib_modify_port(hca, port, IB_PORT_OPA_MASK_CHG, &pm);
->>
->> This patch support such usecase and we want to get comments early (if any)
->> for that, hence this patch.
->
->The comment is pretty simple, please don't post patches which are not
->backed up by actual usage.
->
->Right now, we have IB_PORT_SHUTDOWN, IB_PORT_INIT_TYPE and
->IB_PORT_RESET_QKEY_CNTR are not written in any place. We don't want to
->see another one.
->
->And semantic of usage are more than welcomed.
->
 
-Revised patch along with OPA-VNIC usage is posted below
-https://patchwork.kernel.org/patch/9761375/
+--3jK+0sHr6j/jwA0V
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Niranjana
+On Thu, Jun 01, 2017 at 06:57:59PM -0400, Doug Ledford wrote:
+> On Thu, 2017-05-25 at 12:02 -0400, David Miller wrote:
+> > From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Date: Tue, 23 May 2017 14:43:58 +0300
+> >
+> > > Hi Dave and Doug,
+> > >=A0
+> > > This series introduces some small updates and FPGA support to the
+> > mlx5
+> > > core/ethernet and IB drivers.
+> > >=A0
+> > > For more details please see below.
+> > >=A0
+> > > Please pull and let me know if there's any problem.
+> >
+> > Ok, I've pulled this into net-next.
+> >
+> > Doug let me know if there are any merge hassles we need to coordinate
+> > on.
+> >
+> > Thanks.
+>
+> Will do. =A0But is the question of a possible revert settled? =A0Because
+> once I pull, a revert means I have to pull all the way up to the revert
+> as well...
 
+Revert is unlikely to happen, Saeed is working with Alexey to resolve
+his raised concerns.
 
+Thanks
+
+>
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> =A0 =A0 GPG KeyID: B826A3330E572FDD
+> =A0 =A0
+> Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =A01274 B826 A333 0E57 2FDD
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--3jK+0sHr6j/jwA0V
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkxhrwACgkQ5GN7iDZy
+WKfV3xAAybbErZFaTN4vy4Av8vh54Wi9UJPsBlEAcklqmvAkO7JR0FruBBE/d3/z
+XUlyEXTHiFXf/DkVGsVyM3CsDnqVSselDEzbyPY/YWrHWncWlKVnGhJlJGz4yaWL
+WPvP679nBzxrn+B4OWRlO2OLmMsQkQLaQjcKROUe5JtsljISSnRRK7rlxixTOP+v
++vPCNdfW7FmA3KG6Joq/MCHWdw5mWl0axdUppCDq9eQtVvAu6U3jO+Copx2rHzCW
+NT+1a32UXmWwT7Zpqs8J9izcUeP5bEPbciqoxL/5AJwuFZkieMxAoBPsKG7miLoj
+0NNnZ4bN381NHaR26UxLMNi+MSVqUqUpNYsbVWVf0WJQMn9FFJPXO73uu0GzgN7j
+u4SOHiOBP04+t8ZTZu6UmGcWJruJ2LDF0kV8qeMyMwHc/Lt+7msLiROzALLSf8rA
+u4FDh2okjUKscFO/istDHqw0FBxGHfEKtKBsqSjonhS2VMl/d7+AVhdXg2jXRQWk
+SMGgF5F7A2DFExgBgV6t2K6JtWNb59G9ogdH1MSTws78Ccv2DZRYYp/LYzzKt8Y9
+93EdG/2d2vAf9+C/pm7s3iSsL4asAVB0FuRYFn7gIT1CA5ENXrzaVE9SUmjP9VnW
++6HTeen9grqmOdSPDbXE4t2Ew31PQQD8E+oYyJ+yHR5igA/O4e4=
+=OlTJ
+-----END PGP SIGNATURE-----
+
+--3jK+0sHr6j/jwA0V--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
