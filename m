@@ -1,63 +1,78 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [pull request][for-next 0/6] Mellanox mlx5 updates 2017-05-23
-Date: Fri, 02 Jun 2017 12:08:39 -0400 (EDT)
-Message-ID: <20170602.120839.1394660754953676217.davem@davemloft.net>
-References: <1496357879.7171.76.camel@redhat.com>
-        <20170602153940.GX5406@mtr-leonro.local>
-        <20170602160641.ylowbobe5v72ui7g@ast-mbp.dhcp.thefacebook.com>
+From: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next] Revert "IB/core: Add flow control to the
+ portmapper netlink calls"
+Date: Fri, 2 Jun 2017 11:21:03 -0500
+Message-ID: <20170602162103.GA12468@ctung-MOBL3.amr.corp.intel.com>
+References: <20170529082423.1180-1-leon@kernel.org>
+ <20170530212431.GA21008@ssaleem-MOBL4.amr.corp.intel.com>
+ <20170531040437.GE5406@mtr-leonro.local>
+ <20170531174245.GA16304@ssaleem-MOBL4.amr.corp.intel.com>
+ <20170601041022.GM5406@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170602160641.ylowbobe5v72ui7g-+o4/htvd0TCa6kscz5V53/3mLCh9rsb+VpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170601041022.GM5406-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: alexei.starovoitov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-Nfu5REtnQAJWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Alexei Starovoitov <alexei.starovoitov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date: Fri, 2 Jun 2017 09:06:43 -0700
-
-> On Fri, Jun 02, 2017 at 06:39:40PM +0300, Leon Romanovsky wrote:
->> On Thu, Jun 01, 2017 at 06:57:59PM -0400, Doug Ledford wrote:
->> > On Thu, 2017-05-25 at 12:02 -0400, David Miller wrote:
->> > > From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> > > Date: Tue, 23 May 2017 14:43:58 +0300
->> > >
->> > > > Hi Dave and Doug,
->> > > > 
->> > > > This series introduces some small updates and FPGA support to the
->> > > mlx5
->> > > > core/ethernet and IB drivers.
->> > > > 
->> > > > For more details please see below.
->> > > > 
->> > > > Please pull and let me know if there's any problem.
->> > >
->> > > Ok, I've pulled this into net-next.
->> > >
->> > > Doug let me know if there are any merge hassles we need to coordinate
->> > > on.
->> > >
->> > > Thanks.
->> >
->> > Will do.  But is the question of a possible revert settled?  Because
->> > once I pull, a revert means I have to pull all the way up to the revert
->> > as well...
->> 
->> Revert is unlikely to happen, Saeed is working with Alexey to resolve
->> his raised concerns.
+On Thu, Jun 01, 2017 at 07:10:22AM +0300, Leon Romanovsky wrote:
+> On Wed, May 31, 2017 at 12:42:45PM -0500, Shiraz Saleem wrote:
+> > On Wed, May 31, 2017 at 07:04:37AM +0300, Leon Romanovsky wrote:
+> > > On Tue, May 30, 2017 at 04:24:31PM -0500, Shiraz Saleem wrote:
+> > > > On Mon, May 29, 2017 at 11:24:23AM +0300, Leon Romanovsky wrote:
+> > > > > From: Leon Romanovsky <leonro-Nfu5REtnQAJWk0Htik3J/w@public.gmane.org>
+> > > > >
+> >
+> > > 3. The commit cea05eadde made libnl library (basic block of user-space part of netlink)
+> > > to work incorrectly and not according to _blocking/_nonblocking semantics.
+> >
+> > How? Is libnl calling ibnl_unicast? As far we can understand ibnl_unicast is only called
+> > by portmapper kernel code.
 > 
-> I still think the direction is absolutely wrong.
-> Reinventing fpga interfaces via nic driver is no-go.
-> mlx needs to send a patch to revert it to show that they are willing
-> to listen to the community.
+> Yes, libnl is calling to ibnl_unicast() and this is why it brought my
+> attention to regression caused by commit which I'm reverting.
+> 
+> Bottom-up flow:
+> 						ibnl_unicast
+> 					send_nlmsg_done
+> 				iwpm_send_mapinfo
+> 			iwpm_mapping_info_cb
+> 		[RDMA_NL_IWPM_MAPINFO] = {.dump = iwpm_mapping_info_cb}
+> 	ibnl_rcv_msg
+> netlink_rcv_skb(skb, &ibnl_rcv_msg);
+> -----
+> libnl:
+> nl_recvmsgs()
 
-"Two people from Facebook" is not the commnity Alexei. :-)
+Assuming your stack trace is correct, it is showing the normal use case of ibnl_unicate()
+by portmapper from the iWARP side.  I'm still waiting on evidence of this patch breaking
+rest of RDMA as you so claimed.
 
-And ironically, you guys will want to be one of the main users of
-these facilities for the KTLS offload bits, so the desire to separate
-it out and make "backports easier" really confuses me.
+> > > 4. Reverting is a common practice in Linux kernel. Patches are not
+> > > carved in stones.
+> >
+> > Reverting a patch that's introduced during RC cycle is fine, introducing
+> > regression is NOT and that is what you are doing by simply proposing to revert
+> > this patch.  Reverting this patch will introduce a REGRESSION error with respect to
+> > port mapping functionality for all iWARP vendors.
+> 
+> Interesting and how did all these iWARP vendors survive before your
+> patch?
+
+We are all still here. :-)  But if we let you simply revert a patch that fixes portmapper
+for all iWARP vendors then we may be not.
+
+> > > 5. I proposed a solution -> go and fix your user space program.
+> > This is a kernel patch you are trying to revert, you are breaking existing
+> > kernel functionality.  Nothing to do with user space.
+
+Here is a better solution.  Post a patch to the kernel that will not introduce a regression
+and fix whatever the probelm you think there is, then I will personally review the patch.
+
+Chien
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
