@@ -1,91 +1,71 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [pull request][for-next 0/6] Mellanox mlx5 updates 2017-05-23
-Date: Fri, 2 Jun 2017 18:39:40 +0300
-Message-ID: <20170602153940.GX5406@mtr-leonro.local>
-References: <20170523114404.20387-1-saeedm@mellanox.com>
- <20170525.120220.1812199263503283242.davem@davemloft.net>
- <1496357879.7171.76.camel@redhat.com>
+Subject: Re: [ANNOUNCE] qperf maintainer change
+Date: Fri, 2 Jun 2017 18:45:53 +0300
+Message-ID: <20170602154553.GY5406@mtr-leonro.local>
+References: <2807E5FD2F6FDA4886F6618EAC48510E67CC8DC0@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="3jK+0sHr6j/jwA0V"
+        protocol="application/pgp-signature"; boundary="ngiTnHdmUEG79yp6"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1496357879.7171.76.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E67CC8DC0-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Regmi, Manish" <manish.regmi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---3jK+0sHr6j/jwA0V
-Content-Type: text/plain; charset=iso-8859-1
+--ngiTnHdmUEG79yp6
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jun 01, 2017 at 06:57:59PM -0400, Doug Ledford wrote:
-> On Thu, 2017-05-25 at 12:02 -0400, David Miller wrote:
-> > From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Date: Tue, 23 May 2017 14:43:58 +0300
-> >
-> > > Hi Dave and Doug,
-> > >=A0
-> > > This series introduces some small updates and FPGA support to the
-> > mlx5
-> > > core/ethernet and IB drivers.
-> > >=A0
-> > > For more details please see below.
-> > >=A0
-> > > Please pull and let me know if there's any problem.
-> >
-> > Ok, I've pulled this into net-next.
-> >
-> > Doug let me know if there are any merge hassles we need to coordinate
-> > on.
-> >
-> > Thanks.
+On Thu, Jun 01, 2017 at 10:30:57PM +0000, Weiny, Ira wrote:
+> As discussed here:
 >
-> Will do. =A0But is the question of a possible revert settled? =A0Because
-> once I pull, a revert means I have to pull all the way up to the revert
-> as well...
+> https://www.spinics.net/lists/linux-rdma/msg45916.html
+>
+> I took temporary  maintainership for qperf.
+>
+> Manish has graciously stepped up to take permanent maintainership for qperf going forward.  I will let him take care of a release to ensure his process is followed.
+>
+> Leon, can you add Manish to the github?
 
-Revert is unlikely to happen, Saeed is working with Alexey to resolve
-his raised concerns.
+Manish,
+
+I sent an invitation to your @intel.com email.
 
 Thanks
 
 >
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> =A0 =A0 GPG KeyID: B826A3330E572FDD
-> =A0 =A0
-> Key fingerprint =3D AE6B 1BDA 122B 23B4 265B =A01274 B826 A333 0E57 2FDD
+> Thanks,
+> Ira
 >
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---3jK+0sHr6j/jwA0V
+--ngiTnHdmUEG79yp6
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkxhrwACgkQ5GN7iDZy
-WKfV3xAAybbErZFaTN4vy4Av8vh54Wi9UJPsBlEAcklqmvAkO7JR0FruBBE/d3/z
-XUlyEXTHiFXf/DkVGsVyM3CsDnqVSselDEzbyPY/YWrHWncWlKVnGhJlJGz4yaWL
-WPvP679nBzxrn+B4OWRlO2OLmMsQkQLaQjcKROUe5JtsljISSnRRK7rlxixTOP+v
-+vPCNdfW7FmA3KG6Joq/MCHWdw5mWl0axdUppCDq9eQtVvAu6U3jO+Copx2rHzCW
-NT+1a32UXmWwT7Zpqs8J9izcUeP5bEPbciqoxL/5AJwuFZkieMxAoBPsKG7miLoj
-0NNnZ4bN381NHaR26UxLMNi+MSVqUqUpNYsbVWVf0WJQMn9FFJPXO73uu0GzgN7j
-u4SOHiOBP04+t8ZTZu6UmGcWJruJ2LDF0kV8qeMyMwHc/Lt+7msLiROzALLSf8rA
-u4FDh2okjUKscFO/istDHqw0FBxGHfEKtKBsqSjonhS2VMl/d7+AVhdXg2jXRQWk
-SMGgF5F7A2DFExgBgV6t2K6JtWNb59G9ogdH1MSTws78Ccv2DZRYYp/LYzzKt8Y9
-93EdG/2d2vAf9+C/pm7s3iSsL4asAVB0FuRYFn7gIT1CA5ENXrzaVE9SUmjP9VnW
-+6HTeen9grqmOdSPDbXE4t2Ew31PQQD8E+oYyJ+yHR5igA/O4e4=
-=OlTJ
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlkxiDEACgkQ5GN7iDZy
+WKdl0Q//XK50Idbsj0imudswRpa6TjUCEJxnDP+W/CsYkyHu6n8ctynVWDfTgQCp
+q4/xSjjPA74219NPDDXpATAF8n3Uy7+p8CoV2yr74EnGBJ/fIIJSvFG4jki7r29a
+G7Dd+9x9GpYN/9CmSlpvN8MNqdUxl+rz3LgP1P9EvTrCe6VyQREJju3XonzIxC8d
+ai/W//lR5t5rm4yX3qTP1xRy2YFKtqMdmHzlnsEakJBFEhqht1ZdfcTvAPpgyQhp
+5bfHtEWqSblKRuGwASkJXWidMxzGe2kGcOvdWWi/CjqTDe5BRlyO8c5Q+oTLR0Bi
+gTLb91KJyzwM7sqRgILEwC4Jvfb/zqPzwpdsoUJIQWdUwxPrZMuQuoqadF7xt+bj
+shJGD9qoftpeSJppbvF7qRrY9jbWD9R5Tq1UWUCqXjbv5UXDPEnPEag1fKb+xBQq
+9GLUoVB5jmYhJHiILj1Uces4v5C2m1asFAsYkZ/z2FrEvkpI4+LCEwoayRP9Qxkq
+m6BqOSjrGSAFl+aGY8Uz+IVZTLv6pgDqLqaPQx1VMbojjHESsfVSDxTp8qGNonAk
+fRT/BQyZHRqwjLN6qHxG6zo/niDofXXDE4hOovjmyk1MGwcJdFFRXZu4oX5otXK+
+CDZRZeR38CAk7TGopwuepoLWwPtAlYpngOjNEalYsuS9j8Ni2GQ=
+=sEVZ
 -----END PGP SIGNATURE-----
 
---3jK+0sHr6j/jwA0V--
+--ngiTnHdmUEG79yp6--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
