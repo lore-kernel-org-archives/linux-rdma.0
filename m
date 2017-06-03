@@ -1,116 +1,53 @@
-From: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH v4] add the option of fortified string.h functions
-Date: Fri, 2 Jun 2017 22:07:12 -0700
-Message-ID: <CAGXu5jLGU_HzjKGOCqc5qnCW9Zta6YNcoz2QeNBpvViyUS0GVg@mail.gmail.com>
-References: <20170526095404.20439-1-danielmicay@gmail.com> <20170602140743.274b9babba6118bfd12c7a26@linux-foundation.org>
- <1496439121.13303.1.camel@gmail.com>
+From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH rdma-next] Revert "IB/core: Add flow control to the
+ portmapper netlink calls"
+Date: Sat, 3 Jun 2017 13:02:50 +0000
+Message-ID: <1496494969.3056.1.camel@sandisk.com>
+References: <20170529082423.1180-1-leon@kernel.org>
+         <20170530212431.GA21008@ssaleem-MOBL4.amr.corp.intel.com>
+         <20170531040437.GE5406@mtr-leonro.local>
+         <20170531174245.GA16304@ssaleem-MOBL4.amr.corp.intel.com>
+         <1496261429.2608.15.camel@sandisk.com>
+         <20170602162849.GA28660@ssaleem-MOBL4.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1496439121.13303.1.camel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20170602162849.GA28660-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
+Content-Language: en-US
+Content-ID: <A2D71B33D1D7A746A72C1A64268FBD11-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Daniel Micay <danielmicay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux-MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, "kernel-hardening-ZwoEplunGu1jrUoiu81ncdBPR1lH4CV8@public.gmane.org" <kernel-hardening-ZwoEplunGu1jrUoiu81ncdBPR1lH4CV8@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Daniel Axtens <dja-Yfaxwxk/+vWsTnJN9+BGXg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "leonro-Nfu5REtnQAJWk0Htik3J/w@public.gmane.org" <leonro-Nfu5REtnQAJWk0Htik3J/w@public.gmane.org>, "mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jun 2, 2017 at 2:32 PM, Daniel Micay <danielmicay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> On Fri, 2017-06-02 at 14:07 -0700, Andrew Morton wrote:
->> On Fri, 26 May 2017 05:54:04 -0400 Daniel Micay <danielmicay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
->> > wrote:
->>
->> > This adds support for compiling with a rough equivalent to the glibc
->> > _FORTIFY_SOURCE=1 feature, providing compile-time and runtime buffer
->> > overflow checks for string.h functions when the compiler determines
->> > the
->> > size of the source or destination buffer at compile-time. Unlike
->> > glibc,
->> > it covers buffer reads in addition to writes.
->>
->> Did we find a bug in drivers/infiniband/sw/rxe/rxe_resp.c?
->>
->> i386 allmodconfig:
->>
->> In file included from ./include/linux/bitmap.h:8:0,
->>                  from ./include/linux/cpumask.h:11,
->>                  from ./include/linux/mm_types_task.h:13,
->>                  from ./include/linux/mm_types.h:4,
->>                  from ./include/linux/kmemcheck.h:4,
->>                  from ./include/linux/skbuff.h:18,
->>                  from drivers/infiniband/sw/rxe/rxe_resp.c:34:
->> In function 'memcpy',
->>     inlined from 'send_atomic_ack.constprop' at
->> drivers/infiniband/sw/rxe/rxe_resp.c:998:2,
->>     inlined from 'acknowledge' at
->> drivers/infiniband/sw/rxe/rxe_resp.c:1026:3,
->>     inlined from 'rxe_responder' at
->> drivers/infiniband/sw/rxe/rxe_resp.c:1286:10:
->> ./include/linux/string.h:309:4: error: call to '__read_overflow2'
->> declared with attribute error: detected read beyond size of object
->> passed as 2nd parameter
->>     __read_overflow2();
->>
->>
->> If so, can you please interpret this for the infiniband developers?
->
-> It copies sizeof(skb->cb) bytes with memcpy which is 48 bytes since cb
-> is a 48 byte char array in `struct sk_buff`. The source buffer is a
-> `struct rxe_pkt_info`:
->
-> struct rxe_pkt_info {
->         struct rxe_dev          *rxe;           /* device that owns packet */
->         struct rxe_qp           *qp;            /* qp that owns packet */
->         struct rxe_send_wqe     *wqe;           /* send wqe */
->         u8                      *hdr;           /* points to bth */
->         u32                     mask;           /* useful info about pkt */
->         u32                     psn;            /* bth psn of packet */
->         u16                     pkey_index;     /* partition of pkt */
->         u16                     paylen;         /* length of bth - icrc */
->         u8                      port_num;       /* port pkt received on */
->         u8                      opcode;         /* bth opcode of packet */
->         u8                      offset;         /* bth offset from pkt->hdr */
-> };
->
-> That looks like 32 bytes (1 byte of padding) on 32-bit and 48 bytes on
-> 64-bit (1 byte of padding), so on 32-bit there's a read overflow of 16
-> bytes from the stack here.
-
-This should work (untested):
-
-diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c
-b/drivers/infiniband/sw/rxe/rxe_resp.c
-index 23039768f541..7b226deb83bb 100644
---- a/drivers/infiniband/sw/rxe/rxe_resp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-@@ -995,7 +995,9 @@ static int send_atomic_ack(struct rxe_qp *qp,
-struct rxe_pkt_info *pkt,
-        free_rd_atomic_resource(qp, res);
-        rxe_advance_resp_resource(qp);
-
--       memcpy(SKB_TO_PKT(skb), &ack_pkt, sizeof(skb->cb));
-+       memcpy(SKB_TO_PKT(skb), &ack_pkt, sizeof(ack_ptr));
-+       memset(SKB_TO_PKT(skb) + sizeof(ack_ptr), 0,
-+              sizeof(skb->cb) - sizeof(ack_ptr));
-
-        res->type = RXE_ATOMIC_MASK;
-        res->atomic.skb = skb;
-
-Andrew, there are other fortify fixes too:
-
-https://git.kernel.org/pub/scm/linux/kernel/git/kees/linux.git/commit/?h=kspp/fortify&id=af6b0151896240457ef0fdc18ace533c3d3fbb75
-https://git.kernel.org/pub/scm/linux/kernel/git/kees/linux.git/commit/?h=kspp/fortify&id=186eaf81b43bf90d6b533732fb11ad31ca27df9d
-https://git.kernel.org/pub/scm/linux/kernel/git/kees/linux.git/commit/?h=kspp/fortify&id=95d589f21b3aef757f0eb3d0224b78648a4b22d2
-https://github.com/thestinger/linux-hardened/commit/576e64469b0c4634c007445c5f16bfde610b3600
-
-Do you want me to resend these for you to carry, or reping
-maintainers? Other fixes have already landed in -next.
-
-(And there are two arm64 fixes, too.)
-
--Kees
-
--- 
-Kees Cook
-Pixel Security
+T24gRnJpLCAyMDE3LTA2LTAyIGF0IDExOjI4IC0wNTAwLCBTaGlyYXogU2FsZWVtIHdyb3RlOg0K
+PiBPbiBXZWQsIE1heSAzMSwgMjAxNyBhdCAwMjoxMDozMVBNIC0wNjAwLCBCYXJ0IFZhbiBBc3Nj
+aGUgd3JvdGU6DQo+ID4gT24gV2VkLCAyMDE3LTA1LTMxIGF0IDEyOjQyIC0wNTAwLCBTaGlyYXog
+U2FsZWVtIHdyb3RlOg0KPiA+ID4gPiA1LiBJIHByb3Bvc2VkIGEgc29sdXRpb24gLT4gZ28gYW5k
+IGZpeCB5b3VyIHVzZXIgc3BhY2UgcHJvZ3JhbS4NCj4gPiA+IA0KPiA+ID4gVGhpcyBpcyBhIGtl
+cm5lbCBwYXRjaCB5b3UgYXJlIHRyeWluZyB0byByZXZlcnQsIHlvdSBhcmUgYnJlYWtpbmcgZXhp
+c3RpbmcNCj4gPiA+IGtlcm5lbCBmdW5jdGlvbmFsaXR5LiAgTm90aGluZyB0byBkbyB3aXRoIHVz
+ZXIgc3BhY2UuDQo+ID4gPiANCj4gPiA+IEJvdHRvbSBsaW5lLCBjb21lIHVwIHdpdGggYSBzb2x1
+dGlvbiB0aGF0IHdpbGwgYWRkcmVzcyBib3RoIHBvcnQgbWFwcGVyDQo+ID4gPiBmdW5jdGlvbmFs
+aXR5IGFuZCB5b3VyIGlzc3VlLg0KPiA+IA0KPiA+IEhlbGxvIFNoaXJheiwNCj4gPiANCj4gPiBT
+b3JyeSB0aGF0IHRoaXMgbWVhbnMgYWRkaXRpb25hbCB3b3JrIGZvciB5b3UsIGJ1dCBJIGFncmVl
+IHdpdGggTGVvbiB0aGF0DQo+ID4gdXNlciBzcGFjZSBzb2Z0d2FyZSBzaG91bGQgbm90IGFzc3Vt
+ZSB0aGF0IG5ldGxpbmsgc29ja2V0cyBhcmUgYSByZWxpYWJsZQ0KPiA+IGNvbW11bmljYXRpb24g
+bWVjaGFuaXNtLg0KPiANCj4gSGkgQmFydCAtIFRoYW5rIHlvdSBmb3IgeW91ciByZXNwb25zZS4N
+Cj4gDQo+IFRoZSBvcmlnaW5hbCBwcm9ibGVtIHdhcyB0aGF0IGlibmxfdW5pY2FzdCwgd2hpY2gg
+aXMgdXNlZCB0byBzZW5kIG5sIG1lc3NhZ2VzIGZyb20gDQo+IHBvcnRtYXBwZXIga2VybmVsIHNw
+YWNlIHRvIHVzZXItc3BhY2UsIHdvdWxkIG9jY2FzaW9uYWxseSBhbmQgbW9tZW50YXJpbHkgZmFp
+bCB1bmRlciBzdHJlc3MuIA0KPiBXZSBjb3VsZCBoYXZlIHJldHJpZWQgdGhlIGNhbGwgZm9yIGEg
+Y2VydGFpbiBhbW91bnQgb2YgdGltZSwgYnV0IHNpbmNlIG5ldGxpbmtfdW5pY2FzdCBoYXMgYSAN
+Cj4gbm9uYmxvY2svYmxvY2sgcGFyYW1ldGVyLCB3ZSBjaG9zZSB0byB1c2UgdGhlIGJsb2NraW5n
+IG9wdGlvbiB3aXRoIGEgdGltZW91dC4gU28gd2UgdGhvdWdodCB3ZSANCj4gZGlkIGFjY291bnQg
+Zm9yIGRlYWRsb2NrcyB3aXRoIHRoaXMgdGltZW91dC4NCg0KSGVsbG8gU2hpcmF6LA0KDQpBY2Nv
+cmRpbmcgdG8gd2hhdCBJIHNlZSBpbiBpd3BtZC9pd3BtZC5jb25mIHRoZSBkZWZhdWx0IHZhbHVl
+IGZvciB0aGUgaXdwbWQNCm5ldGxpbmsgc29ja2V0IHJlY2VpdmUgYnVmZmVyIHNpemUgaXMgNDE5
+NDMwNDAwIGJ5dGVzLiBTbyBJJ20gc3VycHJpc2VkIHRoYXQNCnNlbmRpbmcgbmV0bGluayBtZXNz
+YWdlcyBvY2Nhc2lvbmFsbHkgZmFpbHMgc2luY2UgdGhlIHJlY2VpdmUgYnVmZmVyIGlzIHNvDQps
+YXJnZT8NCg0KQmFydC4NCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
