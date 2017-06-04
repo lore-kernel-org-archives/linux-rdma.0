@@ -1,97 +1,59 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 2/6] IB/uverbs: Enable QP creation which is
- associated to underlay QP
-Date: Sun, 04 Jun 2017 10:25:30 -0400
-Message-ID: <1496586330.7171.136.camel@redhat.com>
-References: <20170530071602.8139-1-leon@kernel.org>
-         <20170530071602.8139-3-leon@kernel.org> <20170530073352.GA1838@nanopsycho>
-         <1496583794.7171.134.camel@redhat.com>
-         <20170604135122.GC1910@nanopsycho.orion>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: mlx4_core 0000:07:00.0: swiotlb buffer is full and OOM observed
+ during stress test on reset_controller
+Date: Sun, 4 Jun 2017 18:49:20 +0300
+Message-ID: <6bf26cbc-71e4-a030-628b-a2ee1d1de94b@grimberg.me>
+References: <2013049462.31187009.1488542111040.JavaMail.zimbra@redhat.com>
+ <56e8ccd3-8116-89a1-2f65-eb61a91c5f84@mellanox.com>
+ <860db62d-ae93-d94c-e5fb-88e7b643f737@redhat.com>
+ <0a825b18-df06-9a6d-38c9-402f4ee121f7@mellanox.com>
+ <7496c68a-15f3-d8cb-b17f-20f5a59a24d2@redhat.com>
+ <31678a43-f76c-a921-e40c-470b0de1a86c@grimberg.me>
+ <20170319070115.GP2079@mtr-leonro.local>
+ <136275928.8307994.1495126919829.JavaMail.zimbra@redhat.com>
+ <358169046.8629042.1495210672801.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170604135122.GC1910-6KJVSR23iU488b5SBfVpbw@public.gmane.org>
+In-Reply-To: <358169046.8629042.1495210672801.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jiri Pirko <jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 2017-06-04 at 15:51 +0200, Jiri Pirko wrote:
-> Sun, Jun 04, 2017 at 03:43:14PM CEST, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org wrote:
-> > 
-> > > This breaks uapi...
-> > 
-> > We don't really care about this particular uapi breakage.
-> > 
-> > First, this is the ib_uverbs_*ex*_create_qp struct, so this is
-> > already
-> > part of the "extensible uAPI" we created back when we included XRC
-> > support into the mainline kernel.  A fundamental part of that uAPI
-> > was
-> > that we were allowed to extend structs (but not reorganize them) so
-> > that we could add new stuff to the end as we added features, but
-> > old
-> > apps would continue to work.  As a result, it was understood that
-> > the
-> > uapi structs would continue to grow.
-> > 
-> > Given that fact, if we put a reserved1 element into a struct to pad
-> > it
-> > out to a given size (which we did roughly 1 year ago with
-> > commit c70285f880e88 (IB/uverbs: Extend create QP to get RWQ
-> > indirection table) which made this change to the ex_create_qp
-> > struct:
-> > 
-> >         __u32 create_flags;
-> > +       __u32 rwq_ind_tbl_handle;
-> > +       __u32  reserved1;
-> >  };
-> > 
-> > that doesn't mean a user of the uapi should directly reference this
-> > element, it means we added 32 bits out of a 64 bit line and we'll
-> > add
-> > the other 32 bits later, so don't reference that pad element by
-> > name,
-> > use the preferred means of clearing the struct prior to use:
-> > memset(sizeof(struct)) or calloc or equivalent.  Given that only
-> > user
-> > space verbs providers that have been updated to support the RWQ
-> > indirection table would possibly ever even have seen this API
-> > element,
-> > and given that those should be fairly rare at this point (I doubt
-> > that
-> > any exist besides possibly libibverbs or rdma-core, I'm not sure if
-> > this support went into libibverbs before we merged it into rdma-
-> > core,
-> > but if it didn't, then only rdma-core would have been updated to
-> > know
-> > about these last two struct elements), I'm not going to have
-> > Mellanox
-> > put a bunch of ugly cruft in here for probably non-existent, but
-> > very
-> > recently updated if it even exists, consumers that don't follow
-> > best
-> > practice when accessing/clearing elements of an extensible struct.
+Hi Yi,
+
+> Finally found below patch [1] that fixed this issue.
+> With [1], I can see the speed of reset_controller operation[2] is obviously slow than before.
 > 
-> I understand all the reasons why this breakage should not cause any
-> harm, don't get me wrong Doug. It's just, it is a breakage, no matter
-> how pink you paint it :) Either the uapi is guaranteed to be backward
-> compatible, or not. Nothing in between. Just saying...
+> 
+> [1]
+> commit b7363e67b23e04c23c2a99437feefac7292a88bc
+> Author: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+> Date:   Wed Mar 8 22:03:17 2017 +0200
+> 
+>      IB/device: Convert ib-comp-wq to be CPU-bound
 
-We can make it explicit then that the uapi requires the use of
-memset/calloc on structs to zero them, and people are not allowed to
-access any reserved elements.  Under that understanding, this is *not*
-a uapi break and it is an acceptable extension.  This was more or less
-understood already, just adding a comment to the uapi header is all we
-need.
+This is very unlikely.
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-   
-Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+I think that what made this go away is:
 
+commit 777dc82395de6e04b3a5fedcf153eb99bf5f1241
+Author: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Date:   Tue Mar 21 16:29:49 2017 +0200
+
+     nvmet-rdma: occasionally flush ongoing controller teardown
+
+     If we are attacked with establishments/teradowns we need to
+     make sure we do not consume too much system memory. Thus
+     let ongoing controller teardowns complete before accepting
+     new controller establishments.
+
+
+Cheers,
+Sagi.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
