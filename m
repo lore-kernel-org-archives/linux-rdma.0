@@ -1,51 +1,96 @@
-From: Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [for-next 4/6] net/mlx5: FPGA, Add basic support for Innova
-Date: Sun, 4 Jun 2017 07:51:24 +0000
-Message-ID: <AM4PR0501MB19404B83A69B87AFB1326B45DBF50@AM4PR0501MB1940.eurprd05.prod.outlook.com>
-References: <20170526030701.du4345mbprhcwjyi@ast-mbp>
- <CALzJLG98D=3yMJV_q4sjVNG41AERFRU+6rwqQJsxnRuVeDTPdA@mail.gmail.com>
- <20170526175624.5xxflpf24je5673h@ast-mbp>
- <20170526181517.GA3860@obsidianresearch.com>
- <AM4PR0501MB1940330F0EBAA819C87C5278DBF20@AM4PR0501MB1940.eurprd05.prod.outlook.com>
- <20170529153131.GB7924@obsidianresearch.com>
- <AM4PR0501MB1940D05A19F098286B99EAD0DBF30@AM4PR0501MB1940.eurprd05.prod.outlook.com>
- <20170529160252.GA27550@obsidianresearch.com>
- <AM4PR0501MB194037FF8F17466BC9ECC73DDBF30@AM4PR0501MB1940.eurprd05.prod.outlook.com>
- <AM4PR0501MB19409139227E11A4A7F82F0FDBF30@AM4PR0501MB1940.eurprd05.prod.outlook.com>
- <20170601153704.GA1680@obsidianresearch.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next 2/6] IB/uverbs: Enable QP creation which is
+ associated to underlay QP
+Date: Sun, 04 Jun 2017 09:43:14 -0400
+Message-ID: <1496583794.7171.134.camel@redhat.com>
+References: <20170530071602.8139-1-leon@kernel.org>
+         <20170530071602.8139-3-leon@kernel.org> <20170530073352.GA1838@nanopsycho>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170601153704.GA1680-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20170530073352.GA1838@nanopsycho>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Alexei Starovoitov <alexei.starovoitov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jsorensen-b10kYP2dOMg@public.gmane.org" <jsorensen-b10kYP2dOMg@public.gmane.org>, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-fpga-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fpga-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Tull <atull-yzvPICuk2ABMcg4IHK0kFoH6Mc4MB0Vx@public.gmane.org>, "yi1.li-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <yi1.li-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jiri Pirko <jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBKYXNvbiBHdW50aG9ycGUgW21h
-aWx0bzpqZ3VudGhvcnBlQG9ic2lkaWFucmVzZWFyY2guY29tXQ0KPiBTdWJqZWN0OiBSZTogW2Zv
-ci1uZXh0IDQvNl0gbmV0L21seDU6IEZQR0EsIEFkZCBiYXNpYyBzdXBwb3J0IGZvciBJbm5vdmEN
-Cj4gDQo+IE9uIE1vbiwgTWF5IDI5LCAyMDE3IGF0IDA0OjA5OjA2UE0gKzAwMDAsIElsYW4gVGF5
-YXJpIHdyb3RlOg0KPiANCj4gPiA+IEZvciBJUFNlYywgdGhpcyBpcyBhbHJlYWR5IGluIHRoZSBr
-ZXJuZWwuDQo+ID4gPiBTZWUgdGhpcyBwYXRjaHNldDoNCj4gPiA+IGh0dHA6Ly93d3cubWFpbC1h
-cmNoaXZlLmNvbS9uZXRkZXZAdmdlci5rZXJuZWwub3JnL21zZzE2Mjg3Ni5odG1sDQo+ID4NCj4g
-PiBTb3JyeSwgSSBwb2ludGVkIGF0IHRoZSBSRkMgYnkgbWlzdGFrZS4NCj4gPg0KPiA+IFRoaXMg
-aXMgdGhlIHJlbGV2YW50IHB1bGwgcmVxdWVzdDoNCj4gPiBodHRwczovL3BhdGNod29yay5vemxh
-YnMub3JnL3BhdGNoLzc1MjcwNy8NCj4gDQo+IFRoaXMgaXMgY29ubmVjdGluZyBpcHNlYyB0byBh
-IG5ldGRldiwgd2hpbGUgSW5ub3ZhIHNlZW1zIHRvIGJlIGENCg0KSmFzb24sDQoNCiJuZXR3b3Jr
-IGNvbm5lY3RlZCBpcHNlYyBhY2NlbGVyYXRvciBjb25maWd1cmVkIHVzaW5nIElQIHBhY2tldHMu
-Ig0KTm8uIFRoaXMgaXMgaW5jb3JyZWN0Lg0KV2hlcmUgZGlkIHlvdSBnZXQgdGhhdCBmcm9tPw0K
-DQpJdCBpcyBhbiBJUFNlYy1jYXBhYmxlIE5JQy4NClNlZSBoZXJlIGZvciBkZXRhaWxzOg0KaHR0
-cDovL3d3dy5tZWxsYW5veC5jb20vcGFnZS9wcm9kdWN0c19keW4/cHJvZHVjdF9mYW1pbHk9MjQ5
-Jm10YWc9cHJvZ3JhbW1hYmxlX25ldHdvcmtfYWRhcHRlcnMNCg0KVGhlIGRyaXZlciB3ZSBhcmUg
-aW50ZW5kaW5nIHRvIHN1Ym1pdCBmb3IgaXQsIGludGVyZmFjZXMgd2l0aCB0aGUgbWVudGlvbmVk
-IEFQSSBpbiB0aGUgcHVsbC1yZXF1ZXN0IChOZXRkZXYgeGRvIGNhbGxiYWNrcykNCg0KU28geW91
-IGNvbmZpZ3VyZSBpdCBmcm9tIHVzZXJzcGFjZSB3aXRoIHJlZ3VsYXIgSVBTZWMgJ2lwIHhmcm0g
-c3RhdGUnIGNvbW1hbmRzIG9yIG92ZXIgbmV0bGluayB3aXRoIHlvdXIgZmF2b3JpdGUgSUtFIGRh
-ZW1vbi4NCg0KPiANCj4gVGhvc2UgdHdvIHRoaW5ncyBkb24ndCBzZWVtIHRvIGJlIHRoZSBzYW1l
-Lg0KPiANCj4gSmFzb24NCg==
+On Tue, 2017-05-30 at 09:33 +0200, Jiri Pirko wrote:
+> Tue, May 30, 2017 at 09:15:58AM CEST, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org wrote:
+> > 
+> > From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > 
+> > Enable QP creation which is associated to underlay QP. This comes
+> > as a
+> > pre-patch for downstream patches in this series to enable flow
+> > steering
+> > from user space application on the underlay IPoIB QP.
+> > 
+> > Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > ---
+> 
+> [...]
+> 
+> 
+> > 
+> > diff --git a/include/uapi/rdma/ib_user_verbs.h
+> > b/include/uapi/rdma/ib_user_verbs.h
+> > index 477d629f539d..422b20456975 100644
+> > --- a/include/uapi/rdma/ib_user_verbs.h
+> > +++ b/include/uapi/rdma/ib_user_verbs.h
+> > @@ -578,7 +578,7 @@ struct ib_uverbs_ex_create_qp {
+> > 	__u32 comp_mask;
+> > 	__u32 create_flags;
+> > 	__u32 rwq_ind_tbl_handle;
+> > -	__u32  reserved1;
+> > +	__u32  associated_qpn;
+> 
+> This breaks uapi...
+
+We don't really care about this particular uapi breakage.
+
+First, this is the ib_uverbs_*ex*_create_qp struct, so this is already
+part of the "extensible uAPI" we created back when we included XRC
+support into the mainline kernel.  A fundamental part of that uAPI was
+that we were allowed to extend structs (but not reorganize them) so
+that we could add new stuff to the end as we added features, but old
+apps would continue to work.  As a result, it was understood that the
+uapi structs would continue to grow.
+
+Given that fact, if we put a reserved1 element into a struct to pad it
+out to a given size (which we did roughly 1 year ago with
+commit c70285f880e88 (IB/uverbs: Extend create QP to get RWQ
+indirection table) which made this change to the ex_create_qp struct:
+
+        __u32 create_flags;
++       __u32 rwq_ind_tbl_handle;
++       __u32  reserved1;
+ };
+
+that doesn't mean a user of the uapi should directly reference this
+element, it means we added 32 bits out of a 64 bit line and we'll add
+the other 32 bits later, so don't reference that pad element by name,
+use the preferred means of clearing the struct prior to use:
+memset(sizeof(struct)) or calloc or equivalent.  Given that only user
+space verbs providers that have been updated to support the RWQ
+indirection table would possibly ever even have seen this API element,
+and given that those should be fairly rare at this point (I doubt that
+any exist besides possibly libibverbs or rdma-core, I'm not sure if
+this support went into libibverbs before we merged it into rdma-core,
+but if it didn't, then only rdma-core would have been updated to know
+about these last two struct elements), I'm not going to have Mellanox
+put a bunch of ugly cruft in here for probably non-existent, but very
+recently updated if it even exists, consumers that don't follow best
+practice when accessing/clearing elements of an extensible struct.
+
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+   
+Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
