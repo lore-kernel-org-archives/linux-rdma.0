@@ -1,99 +1,82 @@
-From: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next] Revert "IB/core: Add flow control to the
- portmapper netlink calls"
-Date: Sun, 4 Jun 2017 23:50:43 -0500
-Message-ID: <20170605045043.GA17148@ctung-MOBL3.amr.corp.intel.com>
-References: <20170529082423.1180-1-leon@kernel.org>
- <20170530212431.GA21008@ssaleem-MOBL4.amr.corp.intel.com>
- <20170531040437.GE5406@mtr-leonro.local>
- <20170531174245.GA16304@ssaleem-MOBL4.amr.corp.intel.com>
- <1496261429.2608.15.camel@sandisk.com>
- <20170602162849.GA28660@ssaleem-MOBL4.amr.corp.intel.com>
- <20170604053635.GD6868@mtr-leonro.local>
- <20170605022313.GB18172@ctung-MOBL3.amr.corp.intel.com>
- <20170605040030.GG6868@mtr-leonro.local>
- <20170605042007.GA19068@ctung-MOBL3.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next V1 0/6] Enable flow steering on IPoIB UD QP
+Date: Mon,  5 Jun 2017 08:00:15 +0300
+Message-ID: <20170605050021.12236-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170605042007.GA19068-TZeIlv3TuzOfrEmaQUPKxl95YUYmaKo1UNDiOz3kqAs@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "leonro-Nfu5REtnQAJWk0Htik3J/w@public.gmane.org" <leonro-Nfu5REtnQAJWk0Htik3J/w@public.gmane.org>, "Ismail, Mustafa" <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-You jump around in this thread so much it is hard for a sane person to follow
-so I will attempt to summarize what has taken place.
+Hi Doug,
 
-You try to revert a patch that fixed a real problem in portmapper, claiming:
+This is second version of underlay QP patches from Yishai. He updated
+commit message for the first patch (IB/core) to have better semantics
+description.
 
-1) Code in question impacts the whole RDMA subsystem.
-	which is false by my multiple replies on this.
-2) There is a deadlock.
-	Which is false.  I'm still asking for proof.
-3) you want netlink receive to be non-blocking and asynchronous
-	what does that have to do with the non-existing deadlock?
-	Asnwer is you can't when there isn't one.
-	If you want it, create a patch for it instead of creating a
-	regression with a lazy revert.
+Thanks
 
-I will continue this discussion if you answer directly to any of those
-points.  If you choose to dance around the subject and claim falsehood, you
-will only damage your own creditibility on the list.  I hope you take that
-to heart.
+---
+>From Yishai:
 
-Chien
+This series comes to allow user space applications to accelerate send
+and receive traffic which is typically handled by IPoIB ULP. On the
+receive flow, the user space application will use flow steering rules to
+direct the ingress IPoIB UD QP traffic to its own user space UD QP. On
+the send flow, the user space application will send from its own UD QP
+with UD AH, while the packet on the wire will have the source QPN of the
+underlay IPoIB UD QP, which is the network interface advertised L2
+hardware address.
 
-On Sun, Jun 04, 2017 at 11:20:07PM -0500, Chien Tin Tung wrote:
->  Mon, Jun 05, 2017 at 07:00:30AM +0300, Leon Romanovsky wrote:
-> > On Sun, Jun 04, 2017 at 09:23:13PM -0500, Chien Tin Tung wrote:
-> > >  Sun, Jun 04, 2017 at 08:36:35AM +0300, Leon Romanovsky wrote:
-> > > > On Fri, Jun 02, 2017 at 11:28:49AM -0500, Shiraz Saleem wrote:
-> > > > > On Wed, May 31, 2017 at 02:10:31PM -0600, Bart Van Assche wrote:
-> > > > > > On Wed, 2017-05-31 at 12:42 -0500, Shiraz Saleem wrote:
-> > > > > > > > 5. I proposed a solution -> go and fix your user space program.
-> > > > > > >
-> > > > > > > This is a kernel patch you are trying to revert, you are breaking existing
-> > > > > > > kernel functionality.  Nothing to do with user space.
-> > > > > > >
-> > > > > > > Bottom line, come up with a solution that will address both port mapper
-> > > > > > > functionality and your issue.
-> > > > > >
-> > > > > > Hello Shiraz,
-> > > > > >
-> > > > > > Sorry that this means additional work for you, but I agree with Leon that
-> > > > > > user space software should not assume that netlink sockets are a reliable
-> > > > > > communication mechanism.
-> > > > >
-> > > > > Hi Bart - Thank you for your response.
-> > > > >
-> > > > > The original problem was that ibnl_unicast, which is used to send nl messages from
-> > > > > portmapper kernel space to user-space, would occasionally and momentarily fail under stress.
-> > > > > We could have retried the call for a certain amount of time, but since netlink_unicast has a
-> > > > > nonblock/block parameter, we chose to use the blocking option with a timeout. So we thought we
-> > > > > did account for deadlocks with this timeout.
-> > > >
-> > > > Not really, you just reduced the chances. In very large scale, you will
-> > > > have a very large chances of such deadlocks.
-> > >
-> > > Please stop using the word deadlock until you can prove that the deadlock exists with the timeout
-> > > in place.
-> > 
-> > Can you please post the whole list of forbidden words? It will be great to
-> > have it accompanied with technical response to my and Bart's claims, and
-> > to summarize it, it is very simple: "netlink receive should be
-> > non-blocking and asynchronous".
-> 
-> Non-blocking and asynchronous is not deadlock, please get it right.  Again, provide proof of
-> deadlock, until then refrain from using that word in support of your argument.  Which you still
-> have not proved there is a problem.
-> 
-> Chien
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This will be achieved by extending QP creation of IB UD QP to be
+"Associated" with IPoIB UD QP number. In order to create such a UD QP
+which can receive and send IPoIB traffic, needs to provide the
+associated QPN of the IPoIB network interface. The created QP will
+manage the scattering objects as of RQ and SQ, while the transport
+attributes will be managed by its underlay QP which is owned by IPoIB
+ULP.
+
+The QPN should be achieved by using some networking tool as of ifconfig
+,ip link show on the associated interface. For example, when IPoIB is
+used, the QPN is the value of 3 bytes from the hardware address starting
+after the first byte as defined by rfc4391 [1]
+
+This API enables generic QPN association, current mlx5 driver implements
+this API for the IPoIB ULP.
+
+[1] https://tools.ietf.org/html/rfc4391#page-11
+---
+
+Available in the "topic/underlay_qp" topic branch of this git repo:
+git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+
+Or for browsing:
+https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/underlay_qp_v1
+
+Possible merge conflicts resolution is available in:
+https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=testing/queue-next
+
+Yishai Hadas (6):
+  IB/core: Enable QP creation which is associated to underlay QP
+  IB/uverbs: Enable QP creation which is associated to underlay QP
+  IB/mlx5: Add support for underlay QP managing
+  IB/mlx5: Add multicast flow steering support for underlay QP
+  net/mlx5: Report enhanced capabilities for IPoIB
+  IB/mlx5: Report RX checksum capabilities for IPoIB
+
+ drivers/infiniband/core/uverbs_cmd.c         | 11 +++--
+ drivers/infiniband/hw/mlx5/main.c            | 47 +++++++++++++-----
+ drivers/infiniband/hw/mlx5/mlx5_ib.h         |  2 +
+ drivers/infiniband/hw/mlx5/qp.c              | 72 ++++++++++++++++++++++------
+ drivers/net/ethernet/mellanox/mlx5/core/fw.c |  6 +++
+ include/linux/mlx5/device.h                  |  6 ++-
+ include/rdma/ib_verbs.h                      |  2 +
+ include/uapi/rdma/ib_user_verbs.h            |  2 +-
+ 8 files changed, 116 insertions(+), 32 deletions(-)
+
+--
+2.12.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
