@@ -1,41 +1,56 @@
 From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/rxe: Check return value from get_settings
-Date: Mon, 5 Jun 2017 10:59:38 +0300
-Message-ID: <20170605075937.GG2572@yuvallap>
-References: <20170604170619.3697-1-yuval.shaia@oracle.com>
- <20170604172630.GF6868@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH 1/2] IB/rxe: Check return value from get_settings
+Date: Mon,  5 Jun 2017 11:12:40 +0300
+Message-ID: <20170605081241.17920-2-yuval.shaia@oracle.com>
+References: <20170605081241.17920-1-yuval.shaia@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170604172630.GF6868-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20170605081241.17920-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jun 04, 2017 at 08:26:30PM +0300, Leon Romanovsky wrote:
-> On Sun, Jun 04, 2017 at 08:06:19PM +0300, Yuval Shaia wrote:
-> > The functions get_link_ksettings and get_settings might return bad
-> > status indicating a failure to retrieve interface atttibutes.
-> > Check return value to cover this case.
-> >
-> > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > ---
-> >  drivers/infiniband/sw/rxe/rxe_verbs.c | 8 +++++---
-> >  1 file changed, 5 insertions(+), 3 deletions(-)
-> >
-> 
-> Thanks,
-> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+The functions get_link_ksettings and get_settings might return bad
+status indicating a failure to retrieve interface atttibutes.
+Check return value to cover this case.
 
-Thanks Leon for your review.
-I'm about to post another version for this patch and will appreciate your
-review.
-Looks like call to get_link_ksettings should be protected by rtnl lock, it
-is undocumented but for example __ethtool_get_link_ksettings prints an ugly
-dump_stack when this happen.
-I will do the same as what is done in function __to_ib_speed_width
+Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/sw/rxe/rxe_verbs.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index 83d709e..ffd3888 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -81,6 +81,7 @@ static int rxe_query_port(struct ib_device *dev,
+ 	struct rxe_dev *rxe = to_rdev(dev);
+ 	struct rxe_port *port;
+ 	u32 speed;
++	int rc = -EINVAL;
+ 
+ 	if (unlikely(port_num != 1)) {
+ 		pr_warn("invalid port_number %d\n", port_num);
+@@ -96,14 +97,15 @@ static int rxe_query_port(struct ib_device *dev,
+ 	if (rxe->ndev->ethtool_ops->get_link_ksettings) {
+ 		struct ethtool_link_ksettings ks;
+ 
+-		rxe->ndev->ethtool_ops->get_link_ksettings(rxe->ndev, &ks);
++		rc = rxe->ndev->ethtool_ops->get_link_ksettings(rxe->ndev, &ks);
+ 		speed = ks.base.speed;
+ 	} else if (rxe->ndev->ethtool_ops->get_settings) {
+ 		struct ethtool_cmd cmd;
+ 
+-		rxe->ndev->ethtool_ops->get_settings(rxe->ndev, &cmd);
++		rc = rxe->ndev->ethtool_ops->get_settings(rxe->ndev, &cmd);
+ 		speed = cmd.speed;
+-	} else {
++	}
++	if (rc) {
+ 		pr_warn("%s speed is unknown, defaulting to 1000\n",
+ 			rxe->ndev->name);
+ 		speed = 1000;
+-- 
+2.9.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
