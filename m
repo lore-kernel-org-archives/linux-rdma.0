@@ -1,32 +1,41 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH rdma-next 2/3] IB/CM: Create appropriate path records
- when handling CM request
-Date: Mon, 5 Jun 2017 20:40:51 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB140319@ORSMSX109.amr.corp.intel.com>
-References: <1496686803-51338-1-git-send-email-don.hiatt@intel.com>
- <1496686803-51338-3-git-send-email-don.hiatt@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC] libibverbs IB Device Memory support
+Date: Mon, 5 Jun 2017 17:11:18 -0500 (CDT)
+Message-ID: <alpine.DEB.2.20.1706051705350.886@east.gentwo.org>
+References: <CADWppnpd9Up7wUTxRgSinhgx3kt3+0bKwgt6P_d3CV1oA90isQ@mail.gmail.com> <alpine.DEB.2.20.1706051141230.26831@east.gentwo.org> <20170605170825.GP6868@mtr-leonro.local> <20170605171749.GA20477@obsidianresearch.com>
+ <20170605174151.GR6868@mtr-leonro.local>
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1496686803-51338-3-git-send-email-don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20170605174151.GR6868-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hiatt, Don" <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, ahmad omary <ahmad151084-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ahmad Omary <ahmad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Rosenbaum <Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> +			/*
-> +			 * If the gid in the request is an OPA GID,
-> +			 * create an OPA PR
-> +			 */
-> +			if (ib_is_opa_gid(&req_msg->primary_local_gid) &&
-> +			    rdma_cap_opa_ah(work->port->cm_dev->ib_device,
-> +					    work->port->port_num))
-> +				work->path[0].rec_type = SA_PATH_REC_TYPE_OPA;
-> +			else
-> +				work->path[0].rec_type = SA_PATH_REC_TYPE_IB;
+On Mon, 5 Jun 2017, Leon Romanovsky wrote:
 
-Maybe create a function for this logic (repeated 3 times)?  E.g. cm_path_rec_type(device, port, gid)
+> It is rough calculation for 1MB, when I asked Ahmad about this
+> limitation (4K) he explained to me that exposed device memory is less
+> than 1MB.
+
+Still doesnt that mean more than 256 MPI instances or so per node?
+
+The use case for a semaphore indicates that a 4k page would be
+shared between multiple processes? Therefore there is even less of a need
+of multiple pages.
+
+You may not be able to avoid the 4k page since page
+protection works only on a 4k level. The kernel futexes rely on 4k page
+protection tricks.
+
+Please come up with a reasonable use case here.... We do not run MPI but
+our use cases work fine with mmapped 4k pages. There are some who actually
+would like 2M pages for that use case since some of the adapters have
+quite a bit of memory available.
+
+A small object allocator with the need to go through an intermediate
+layer seems to be not very productive.
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
