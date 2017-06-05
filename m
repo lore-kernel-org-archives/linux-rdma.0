@@ -1,59 +1,32 @@
-From: Jia-Ju Bai <baijiaju1990-9Onoh4P/yGk@public.gmane.org>
-Subject: [PATCH V4] rxe: Fix a sleep-in-atomic bug in post_one_send
-Date: Mon,  5 Jun 2017 17:39:48 +0800
-Message-ID: <1496655588-5598-1-git-send-email-baijiaju1990@163.com>
+From: Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
+Subject: Re: [PATCH v2] nvme-rdma: support devices with queue size < 32
+Date: Mon, 5 Jun 2017 11:47:39 +0200 (CEST)
+Message-ID: <1547490771.73884959.1496656059974.JavaMail.zimbra@kalray.eu>
+References: <1519881025.363156294.1491837154312.JavaMail.zimbra@kalray.eu> <20170522185127.GA27542@infradead.org> <2015307566.53586286.1495553554276.JavaMail.zimbra@kalray.eu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <2015307566.53586286.1495553554276.JavaMail.zimbra-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jia-Ju Bai <baijiaju1990-9Onoh4P/yGk@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, keith busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, axboe-b10kYP2dOMg@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Samuel Jones <samuel.jones-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The driver may sleep under a spin lock, and the function call path is:
-post_one_send (acquire the lock by spin_lock_irqsave)
-  init_send_wqe
-    copy_from_user --> may sleep
+>> I've hand applies this once with a few formatting tweaks now that
+>> I got the ACK from Sagi.  =D0=86'd love to see if someone could figure
+>> out how we could move the improved atomic + ilog version into the
+>> rdma core somehow.
+>=20
+> I'll submit the atomic+ilog version in nvme next week. I have no
+> access to the test systems this week.
+>=20
 
-There is no flow that makes "qp->is_user" true, and copy_from_user may 
-cause bug when a non-user pointer is used. So, the line of copy_from_user
-is removed.
+I've just posted the new version, with changed title as the v2 is
+merged. The new thread name is:
+[PATCH] nvme-rdma: remove race conditions from IB signalling
 
-Signed-off-by: Jia-Ju Bai <baijiaju1990-9Onoh4P/yGk@public.gmane.org>
----
-V4:
-* Remove the line of copy_from_user.
-
-V3:
-* It corrects the mistakes of remaining legacy code in V2.
-  (Thank Ram for pointing it out)
-
-V2:
-* The parameter "flags" is added to restore and save the irq status.
-  Thank Leon for good advice.
----
- drivers/infiniband/sw/rxe/rxe_verbs.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
-
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 83d709e..7c52c7c 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -740,11 +740,7 @@ static int init_send_wqe(struct rxe_qp *qp, struct ib_send_wr *ibwr,
- 
- 		sge = ibwr->sg_list;
- 		for (i = 0; i < num_sge; i++, sge++) {
--			if (qp->is_user && copy_from_user(p, (__user void *)
--					    (uintptr_t)sge->addr, sge->length))
--				return -EFAULT;
--
--			else if (!qp->is_user)
-+			if (!qp->is_user)
- 				memcpy(p, (void *)(uintptr_t)sge->addr,
- 				       sge->length);
- 
--- 
-1.7.9.5
-
-
+Marta
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
