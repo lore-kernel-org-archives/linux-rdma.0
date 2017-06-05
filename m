@@ -1,49 +1,75 @@
-From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting this week
- - 06/06/17 at 11:00PDT
-Date: Sun, 4 Jun 2017 19:26:32 +0000
-Message-ID: <HE1PR0501MB2812BD88414D82F8078193FFB1F50@HE1PR0501MB2812.eurprd05.prod.outlook.com>
+From: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next] Revert "IB/core: Add flow control to the
+ portmapper netlink calls"
+Date: Sun, 4 Jun 2017 21:21:13 -0500
+Message-ID: <20170605022113.GA18172@ctung-MOBL3.amr.corp.intel.com>
+References: <20170529082423.1180-1-leon@kernel.org>
+ <20170530212431.GA21008@ssaleem-MOBL4.amr.corp.intel.com>
+ <20170531040437.GE5406@mtr-leonro.local>
+ <20170531174245.GA16304@ssaleem-MOBL4.amr.corp.intel.com>
+ <20170601041022.GM5406@mtr-leonro.local>
+ <20170602162103.GA12468@ctung-MOBL3.amr.corp.intel.com>
+ <20170604053123.GC6868@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20170604053123.GC6868-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "'ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org'" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Ahmad Omary <ahmad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-Nfu5REtnQAJWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Agenda: Introduction to RDMA Device Memory
+> I think that I understand the differences between our views on the subject. The main
+> difference is if iWARP portmapper is part of large ecosystem (my view) or some
+> standalone feature (your view).
 
-Device memory allows RDMA applications to allocate buffers on the device, a=
-nd use them as a source/target of subsequent RDMA data transfers.
-Ahmad Omary will review the motivation, operational model, and proposed API=
- [1] for RDMA device memory.
-Various uses cases for high performance messaging, HPC, and storage will be=
- presented.
+Please do not speak for me.
 
-[1] http://www.spinics.net/lists/linux-rdma/msg49702.html
+Portmapper is a part of the ecosystem but the only user of it is on the iWARP side.
+It is no different from iw_cm which is only used from iWARP side.
 
-Please find the concall details below.
---Liran
+> I see iWARP as an integral part of IB core and I do expect that all consumers of
+> NETLINK_RDMA will be complied to libnl library and work in similar manner to whole
+> network stack. I do expect that newcomer won't learn in hard way that
+> his non-blocking calls to netdev NETLINKs and NETLINK_RDMA work except
+> for iWARP portmapper part.
 
+You are trying to generalize portmapper into something which it is not to justify
+your argument.  Please stop this line of argument.  It won't work on me.
 
-Concall details
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-JOIN WEBEX MEETING
-https://mellanox-tech.webex.com/join/Liran.Liss  |  702 830 424
+> > > > > 4. Reverting is a common practice in Linux kernel. Patches are not
+> > > > > carved in stones.
+> > > >
+> > > > Reverting a patch that's introduced during RC cycle is fine, introducing
+> > > > regression is NOT and that is what you are doing by simply proposing to revert
+> > > > this patch.  Reverting this patch will introduce a REGRESSION error with respect to
+> > > > port mapping functionality for all iWARP vendors.
+> > >
+> > > Interesting and how did all these iWARP vendors survive before your
+> > > patch?
+> >
+> > We are all still here. :-)  But if we let you simply revert a patch that fixes portmapper
+> > for all iWARP vendors then we may be not.
+> 
+> It is not really fixing but hiding, and it is not related to vendors which want
+> or don't want, it is related to the community and to the right infrastructure for
+> everyone, so everyone will benefit from it.
 
-JOIN BY PHONE
-1-80-9453550 Israel toll free
-1-855-299-5224 USA/Canada toll free
-Access code: 702 830 424
+Again, over generalization.
 
-Global call-in numbers:
-https://mellanox-tech.webex.com/mellanox-tech/globalcallin.php?serviceType=
-=3DMC&ED=3D457637257&tollFree=3D1
+> > > > > 5. I proposed a solution -> go and fix your user space program.
+> > > > This is a kernel patch you are trying to revert, you are breaking existing
+> > > > kernel functionality.  Nothing to do with user space.
+> >
+> > Here is a better solution.  Post a patch to the kernel that will not introduce a regression
+> > and fix whatever the probelm you think there is, then I will personally review the patch.
+> 
+> You got proposal, which is not related to kernel.
 
-Toll-free calling restrictions:
-http://www.webex.com/pdf/tollfree_restrictions.pdf
+Still waiting on a usable patch from you, no more unsubstantiated arguments from you.
+
+Chien
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
