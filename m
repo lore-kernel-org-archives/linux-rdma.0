@@ -1,76 +1,43 @@
-From: Jia-Ju Bai <baijiaju1990@163.com>
-Subject: [PATCH V3] rxe: Fix a sleep-in-atomic bug in post_one_send
-Date: Mon,  5 Jun 2017 15:55:31 +0800
-Message-ID: <1496649331-1405-1-git-send-email-baijiaju1990@163.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: yuval.shaia@oracle.com, monis@mellanox.com, sean.hefty@intel.com, dledford@redhat.com, hal.rosenstock@gmail.com, leon@kernel.org
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Jia-Ju Bai <baijiaju1990@163.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/rxe: Check return value from get_settings
+Date: Mon, 5 Jun 2017 10:59:38 +0300
+Message-ID: <20170605075937.GG2572@yuvallap>
+References: <20170604170619.3697-1-yuval.shaia@oracle.com>
+ <20170604172630.GF6868@mtr-leonro.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170604172630.GF6868-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The driver may sleep under a spin lock, and the function call path is:
-post_one_send (acquire the lock by spin_lock_irqsave)
-  init_send_wqe
-    copy_from_user --> may sleep
+On Sun, Jun 04, 2017 at 08:26:30PM +0300, Leon Romanovsky wrote:
+> On Sun, Jun 04, 2017 at 08:06:19PM +0300, Yuval Shaia wrote:
+> > The functions get_link_ksettings and get_settings might return bad
+> > status indicating a failure to retrieve interface atttibutes.
+> > Check return value to cover this case.
+> >
+> > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > ---
+> >  drivers/infiniband/sw/rxe/rxe_verbs.c | 8 +++++---
+> >  1 file changed, 5 insertions(+), 3 deletions(-)
+> >
+> 
+> Thanks,
+> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-To fix it, the lock is released before copy_from_user, and the lock is
-acquired again after this function. The parameter "flags" is used to
-restore and save the irq status.
+Thanks Leon for your review.
+I'm about to post another version for this patch and will appreciate your
+review.
+Looks like call to get_link_ksettings should be protected by rtnl lock, it
+is undocumented but for example __ethtool_get_link_ksettings prints an ugly
+dump_stack when this happen.
+I will do the same as what is done in function __to_ib_speed_width
 
-
-Signed-off-by: Jia-Ju Bai <baijiaju1990@163.com>
----
-V3:
-* It corrects the mistakes of remaining legacy code in V2. 
-  (Thank Ram for pointing it out)
-
-V2:
-* The parameter "flags" is added to restore and save the irq status.
-  Thank Leon for good advice.
----
- drivers/infiniband/sw/rxe/rxe_verbs.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 83d709e..5293d15 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -721,11 +721,11 @@ static void init_send_wr(struct rxe_qp *qp, struct rxe_send_wr *wr,
- 
- static int init_send_wqe(struct rxe_qp *qp, struct ib_send_wr *ibwr,
- 			 unsigned int mask, unsigned int length,
--			 struct rxe_send_wqe *wqe)
-+			 struct rxe_send_wqe *wqe, unsigned long *flags)
- {
- 	int num_sge = ibwr->num_sge;
- 	struct ib_sge *sge;
--	int i;
-+	int i, err;
- 	u8 *p;
- 
- 	init_send_wr(qp, &wqe->wr, ibwr);
-@@ -740,8 +740,11 @@ static int init_send_wqe(struct rxe_qp *qp, struct ib_send_wr *ibwr,
- 
- 		sge = ibwr->sg_list;
- 		for (i = 0; i < num_sge; i++, sge++) {
--			if (qp->is_user && copy_from_user(p, (__user void *)
--					    (uintptr_t)sge->addr, sge->length))
-+			spin_unlock_irqrestore(&qp->sq.sq_lock, *flags);
-+			err = copy_from_user(p, (__user void *)
-+					(uintptr_t)sge->addr, sge->length);
-+			spin_lock_irqsave(&qp->sq.sq_lock, *flags);
-+			if (qp->is_user && err)
- 				return -EFAULT;
- 
- 			else if (!qp->is_user)
-@@ -794,7 +797,7 @@ static int post_one_send(struct rxe_qp *qp, struct ib_send_wr *ibwr,
- 
- 	send_wqe = producer_addr(sq->queue);
- 
--	err = init_send_wqe(qp, ibwr, mask, length, send_wqe);
-+	err = init_send_wqe(qp, ibwr, mask, length, send_wqe, &flags);
- 	if (unlikely(err))
- 		goto err1;
- 
--- 
-1.7.9.5
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
