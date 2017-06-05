@@ -1,120 +1,71 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] IB/bnxt_re: Check return value from get_link_ksettings
-Date: Mon, 5 Jun 2017 16:38:31 +0300
-Message-ID: <20170605133831.GO6868@mtr-leonro.local>
-References: <20170605091429.16232-1-yuval.shaia@oracle.com>
- <CAG9sBKODJaecc2m-GTqU8H=jttPAr+iCcZK0wknEfXerz6TL+A@mail.gmail.com>
- <20170605124213.GA2750@yuvallap>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next] Revert "IB/core: Add flow control to the
+ portmapper netlink calls"
+Date: Mon, 05 Jun 2017 10:27:47 -0400
+Message-ID: <1496672867.7171.146.camel@redhat.com>
+References: <20170529082423.1180-1-leon@kernel.org>
+         <20170530212431.GA21008@ssaleem-MOBL4.amr.corp.intel.com>
+         <20170531040437.GE5406@mtr-leonro.local>
+         <20170531174245.GA16304@ssaleem-MOBL4.amr.corp.intel.com>
+         <1496261429.2608.15.camel@sandisk.com>
+         <20170602162849.GA28660@ssaleem-MOBL4.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="YIwHDYD8sUXtBKvt"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170605124213.GA2750@yuvallap>
+In-Reply-To: <20170602162849.GA28660-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Ismail, Mustafa" <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, 2017-06-02 at 11:28 -0500, Shiraz Saleem wrote:
+> On Wed, May 31, 2017 at 02:10:31PM -0600, Bart Van Assche wrote:
+> > 
+> > On Wed, 2017-05-31 at 12:42 -0500, Shiraz Saleem wrote:
+> > > 
+> > > > 
+> > > > 5. I proposed a solution -> go and fix your user space program.
+> > > 
+> > > This is a kernel patch you are trying to revert, you are breaking
+> > > existing
+> > > kernel functionality.  Nothing to do with user space.
+> > > 
+> > > Bottom line, come up with a solution that will address both port
+> > > mapper
+> > > functionality and your issue.
+> > 
+> > Hello Shiraz,
+> > 
+> > Sorry that this means additional work for you, but I agree with
+> > Leon that
+> > user space software should not assume that netlink sockets are a
+> > reliable
+> > communication mechanism.
+> 
+> Hi Bart - Thank you for your response.
+> 
+> The original problem was that ibnl_unicast, which is used to send nl
+> messages from 
+> portmapper kernel space to user-space, would occasionally and
+> momentarily fail under stress. 
+> We could have retried the call for a certain amount of time, but
+> since netlink_unicast has a 
+> nonblock/block parameter, we chose to use the blocking option with a
+> timeout. So we thought we 
+> did account for deadlocks with this timeout.
 
---YIwHDYD8sUXtBKvt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Just to be clear, replacing a non-blocking and occasionally dropping
+function with a blocking function but with a timeout does not actually
+solve the problem, it merely moves the goal post out.  It is entirely
+possible that you will have the problem again given sufficient load.
 
-On Mon, Jun 05, 2017 at 03:42:14PM +0300, Yuval Shaia wrote:
-> On Mon, Jun 05, 2017 at 01:42:37PM +0300, Moni Shoua wrote:
-> > On Mon, Jun 5, 2017 at 12:14 PM, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> > > The function get_link_ksettings might return bad status indicating a
-> > > failure to retrieve interface atttibutes.
-> > > Check return value to cover this case.
-> > >
-> > > While there, change the zero-initialization to "compiler-helper" instead
-> > > of an expensive call to memcpy.
-> > >
-> > > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > > ---
-> > >  drivers/infiniband/hw/bnxt_re/ib_verbs.c | 16 +++++++++-------
-> > >  1 file changed, 9 insertions(+), 7 deletions(-)
-> > >
-> > > diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> > > index 7ba9e69..10c7189 100644
-> > > --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> > > +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> > > @@ -183,17 +183,19 @@ int bnxt_re_modify_device(struct ib_device *ibdev,
-> > >
-> > >  static void __to_ib_speed_width(struct net_device *netdev, u8 *speed, u8 *width)
-> > >  {
-> > > -       struct ethtool_link_ksettings lksettings;
-> > > -       u32 espeed;
-> > > +       u32 espeed = SPEED_UNKNOWN;
-> > >
-> > >         if (netdev->ethtool_ops && netdev->ethtool_ops->get_link_ksettings) {
-> > > -               memset(&lksettings, 0, sizeof(lksettings));
-> > > +               struct ethtool_link_ksettings lksettings = {0};
-> > > +               int rc;
-> > > +
-> > >                 rtnl_lock();
-> > > -               netdev->ethtool_ops->get_link_ksettings(netdev, &lksettings);
-> > > +               rc = netdev->ethtool_ops->get_link_ksettings(netdev,
-> > > +                                                            &lksettings);
-> > >                 rtnl_unlock();
-> > > -               espeed = lksettings.base.speed;
-> > > -       } else {
-> > > -               espeed = SPEED_UNKNOWN;
-> > > +
-> > > +               if (!rc)
-> > > +                       espeed = lksettings.base.speed;
-> > >         }
-> > >         switch (espeed) {
-> > >         case SPEED_1000:
-> > > --
-> > > 2.9.4
-> > >
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> > It looks like that bnxt driver also has similar code (function
-> > __to_ib_speed_width() in drivers/infiniband/hw/bnxt_re/ib_verbs.c)
->
-> Sorry, i'm not following, this one fixes bnxt_re
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+   
+Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
-IMHO, he wanted to point your attention that RXE has very similar piece
-of code.
-
->
-> > Maybe you can move this function to IB/core and use it in both places (or more)
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---YIwHDYD8sUXtBKvt
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlk1XtcACgkQ5GN7iDZy
-WKeMOxAAxlV/NqIf7wa839U/oBFllnMQQH8+WetdJqnZWYYkXlCM6IudG420/CAu
-f2E+r5oTqCCkXcPjVNhZXnJNv8U1xXvVCFnbfTigLmYhRooNPYNmbNBEhFLOQTns
-mJ3qtuDanWEymqFvTyybqMMK48QOMVkwv3KbQJLzFcpuCVfGuarMnhu1pnRGACl9
-TKgV4hksg9g0eGdYbRuUIBNBEOoATjbtUNHD2nLr17bc0znCD6tjzd7QlLqlWecQ
-50c8aLBo5WD7hkGCui4ny21E3xe1AXphOw9A7n6/IFt9qCKDhjOMY+2ik2P3Irah
-+hTLQrdEz2JiQMdCHdErZkA9E3UoW8PdNin3UQNe6/VC3aLuP80kY4ehsbO0oQ0i
-yijADcIilIUS8yH1HSZS0sfjbSX+pgu8fbKXpcY71YgqEXpsC8DjwL/tZZJauuUO
-aAd8orQcQaZs3Qucq6izddl3UOeiaUk6XXCERzUeDk6LvrH6sjYIKvNnvXuHvmK5
-I/zOd3aq+8VIawAAnU7ThteHzfAiS5Fm0/HyVwLQPWPKLiArksMh58Acq9y3eevB
-se8k5uoRFT1lA2CI70UhMzMgGcrX+wjObR3xyOUT+oxwSI8uFhb74BFr8iNna72e
-mWqcjyqbcEW9zaYihX1mpc4kiswGcEqVO+zQLBRxp4Rl9zUsCYg=
-=HfpH
------END PGP SIGNATURE-----
-
---YIwHDYD8sUXtBKvt--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
