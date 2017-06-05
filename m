@@ -1,7 +1,7 @@
 From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-next 1/8] IB/core: Convert ah_attr from OPA to IB when copying to user
-Date: Mon,  5 Jun 2017 14:19:44 -0400
-Message-ID: <1496686791-51297-2-git-send-email-don.hiatt@intel.com>
+Subject: [PATCH rdma-next 7/8] IB/core: Change wc.slid from 16 to 32 bits
+Date: Mon,  5 Jun 2017 14:19:50 -0400
+Message-ID: <1496686791-51297-8-git-send-email-don.hiatt@intel.com>
 References: <1496686791-51297-1-git-send-email-don.hiatt@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1496686791-51297-1-git-send-email-don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -9,170 +9,231 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+slid field in struct ib_wc is increased to 32 bits.
+This enables core components to use larger LIDs if needed.
+The user ABI is unchanged and return 16 bit values when queried.
 
-OPA address handle atttibutes that have 32 bit LIDs would have to
-be converted to IB address handle attribute with the LID field
-programmed in the GID before copying to user space.
-
-Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/ucm.c             |  2 +-
- drivers/infiniband/core/ucma.c            | 10 ++++---
- drivers/infiniband/core/uverbs_marshall.c | 48 +++++++++++++++++++++++++++----
- include/rdma/ib_marshall.h                |  6 ++--
- 4 files changed, 54 insertions(+), 12 deletions(-)
+ drivers/infiniband/core/cm.c            |  4 ++--
+ drivers/infiniband/core/user_mad.c      |  2 +-
+ drivers/infiniband/core/uverbs_cmd.c    | 10 +++++++---
+ drivers/infiniband/hw/hfi1/mad.c        |  2 +-
+ drivers/infiniband/hw/mlx4/mad.c        |  6 +++---
+ drivers/infiniband/hw/mlx5/mad.c        |  2 +-
+ drivers/infiniband/hw/mthca/mthca_cmd.c |  4 ++--
+ drivers/infiniband/hw/mthca/mthca_mad.c |  2 +-
+ drivers/infiniband/sw/rdmavt/cq.c       |  2 +-
+ include/rdma/ib_verbs.h                 | 14 +++++++++++++-
+ 10 files changed, 32 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-index 80d0fca..f9e8958 100644
---- a/drivers/infiniband/core/ucm.c
-+++ b/drivers/infiniband/core/ucm.c
-@@ -618,7 +618,7 @@ static ssize_t ib_ucm_init_qp_attr(struct ib_ucm_file *file,
- 	if (result)
- 		goto out;
- 
--	ib_copy_qp_attr_to_user(&resp, &qp_attr);
-+	ib_copy_qp_attr_to_user(ctx->cm_id->device, &resp, &qp_attr);
- 
- 	if (copy_to_user((void __user *)(unsigned long)cmd.response,
- 			 &resp, sizeof(resp)))
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 276f0ef..eb85b54 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -248,14 +248,15 @@ static void ucma_copy_conn_event(struct rdma_ucm_conn_param *dst,
- 	dst->qp_num = src->qp_num;
- }
- 
--static void ucma_copy_ud_event(struct rdma_ucm_ud_param *dst,
-+static void ucma_copy_ud_event(struct ib_device *device,
-+			       struct rdma_ucm_ud_param *dst,
- 			       struct rdma_ud_param *src)
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 1844770..8525d65 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -1703,7 +1703,7 @@ static void cm_process_routed_req(struct cm_req_msg *req_msg, struct ib_wc *wc)
  {
- 	if (src->private_data_len)
- 		memcpy(dst->private_data, src->private_data,
- 		       src->private_data_len);
- 	dst->private_data_len = src->private_data_len;
--	ib_copy_ah_attr_to_user(&dst->ah_attr, &src->ah_attr);
-+	ib_copy_ah_attr_to_user(device, &dst->ah_attr, &src->ah_attr);
- 	dst->qp_num = src->qp_num;
- 	dst->qkey = src->qkey;
+ 	if (!cm_req_get_primary_subnet_local(req_msg)) {
+ 		if (req_msg->primary_local_lid == IB_LID_PERMISSIVE) {
+-			req_msg->primary_local_lid = cpu_to_be16(wc->slid);
++			req_msg->primary_local_lid = ib_slid_be16(wc->slid);
+ 			cm_req_set_primary_sl(req_msg, wc->sl);
+ 		}
+ 
+@@ -1713,7 +1713,7 @@ static void cm_process_routed_req(struct cm_req_msg *req_msg, struct ib_wc *wc)
+ 
+ 	if (!cm_req_get_alt_subnet_local(req_msg)) {
+ 		if (req_msg->alt_local_lid == IB_LID_PERMISSIVE) {
+-			req_msg->alt_local_lid = cpu_to_be16(wc->slid);
++			req_msg->alt_local_lid = ib_slid_be16(wc->slid);
+ 			cm_req_set_alt_sl(req_msg, wc->sl);
+ 		}
+ 
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index 200422d..0f8fc01 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -229,7 +229,7 @@ static void recv_handler(struct ib_mad_agent *agent,
+ 	packet->mad.hdr.status	   = 0;
+ 	packet->mad.hdr.length	   = hdr_size(file) + mad_recv_wc->mad_len;
+ 	packet->mad.hdr.qpn	   = cpu_to_be32(mad_recv_wc->wc->src_qp);
+-	packet->mad.hdr.lid	   = cpu_to_be16(mad_recv_wc->wc->slid);
++	packet->mad.hdr.lid	   = ib_slid_be16(mad_recv_wc->wc->slid);
+ 	packet->mad.hdr.sl	   = mad_recv_wc->wc->sl;
+ 	packet->mad.hdr.path_bits  = mad_recv_wc->wc->dlid_path_bits;
+ 	packet->mad.hdr.pkey_index = mad_recv_wc->wc->pkey_index;
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 6964c05..45791ce 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1190,7 +1190,8 @@ ssize_t ib_uverbs_resize_cq(struct ib_uverbs_file *file,
+ 	return ret ? ret : in_len;
  }
-@@ -335,7 +336,8 @@ static int ucma_event_handler(struct rdma_cm_id *cm_id,
- 	uevent->resp.event = event->event;
- 	uevent->resp.status = event->status;
- 	if (cm_id->qp_type == IB_QPT_UD)
--		ucma_copy_ud_event(&uevent->resp.param.ud, &event->param.ud);
-+		ucma_copy_ud_event(cm_id->device, &uevent->resp.param.ud,
-+				   &event->param.ud);
+ 
+-static int copy_wc_to_user(void __user *dest, struct ib_wc *wc)
++static int copy_wc_to_user(struct ib_device *ib_dev, void __user *dest,
++			   struct ib_wc *wc)
+ {
+ 	struct ib_uverbs_wc tmp;
+ 
+@@ -1204,7 +1205,10 @@ static int copy_wc_to_user(void __user *dest, struct ib_wc *wc)
+ 	tmp.src_qp		= wc->src_qp;
+ 	tmp.wc_flags		= wc->wc_flags;
+ 	tmp.pkey_index		= wc->pkey_index;
+-	tmp.slid		= wc->slid;
++	if (rdma_cap_opa_ah(ib_dev, wc->port_num))
++		tmp.slid  = OPA_TO_IB_UCAST_LID(wc->slid);
++	else
++		tmp.slid  = ib_slid_cpu16(wc->slid);
+ 	tmp.sl			= wc->sl;
+ 	tmp.dlid_path_bits	= wc->dlid_path_bits;
+ 	tmp.port_num		= wc->port_num;
+@@ -1248,7 +1252,7 @@ ssize_t ib_uverbs_poll_cq(struct ib_uverbs_file *file,
+ 		if (!ret)
+ 			break;
+ 
+-		ret = copy_wc_to_user(data_ptr, &wc);
++		ret = copy_wc_to_user(ib_dev, data_ptr, &wc);
+ 		if (ret)
+ 			goto out_put;
+ 
+diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
+index a081a98..6270bf3 100644
+--- a/drivers/infiniband/hw/hfi1/mad.c
++++ b/drivers/infiniband/hw/hfi1/mad.c
+@@ -4022,7 +4022,7 @@ static int opa_local_smp_check(struct hfi1_ibport *ibp,
+ 			       const struct ib_wc *in_wc)
+ {
+ 	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+-	u16 slid = in_wc->slid;
++	u16 slid = ib_slid_cpu16(in_wc->slid);
+ 	u16 pkey;
+ 
+ 	if (in_wc->pkey_index >= ARRAY_SIZE(ppd->pkeys))
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index cd5bfe1..c29ec65 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -169,7 +169,7 @@ int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int mad_ifc_flags,
+ 
+ 		op_modifier |= 0x4;
+ 
+-		in_modifier |= in_wc->slid << 16;
++		in_modifier |= ib_slid_cpu16(in_wc->slid) << 16;
+ 	}
+ 
+ 	err = mlx4_cmd_box(dev->dev, inmailbox->dma, outmailbox->dma, in_modifier,
+@@ -625,7 +625,7 @@ int mlx4_ib_send_to_slave(struct mlx4_ib_dev *dev, int slave, u8 port,
+ 		memcpy((char *)&tun_mad->hdr.slid_mac_47_32, &(wc->smac[4]), 2);
+ 	} else {
+ 		tun_mad->hdr.sl_vid = cpu_to_be16(((u16)(wc->sl)) << 12);
+-		tun_mad->hdr.slid_mac_47_32 = cpu_to_be16(wc->slid);
++		tun_mad->hdr.slid_mac_47_32 = ib_slid_be16(wc->slid);
+ 	}
+ 
+ 	ib_dma_sync_single_for_device(&dev->ib_dev,
+@@ -826,7 +826,7 @@ static int ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+ 		}
+ 	}
+ 
+-	slid = in_wc ? in_wc->slid : be16_to_cpu(IB_LID_PERMISSIVE);
++	slid = in_wc ? ib_slid_cpu16(in_wc->slid) : be16_to_cpu(IB_LID_PERMISSIVE);
+ 
+ 	if (in_mad->mad_hdr.method == IB_MGMT_METHOD_TRAP && slid == 0) {
+ 		forward_trap(to_mdev(ibdev), port_num, in_mad);
+diff --git a/drivers/infiniband/hw/mlx5/mad.c b/drivers/infiniband/hw/mlx5/mad.c
+index f1b56de6..f1a406c 100644
+--- a/drivers/infiniband/hw/mlx5/mad.c
++++ b/drivers/infiniband/hw/mlx5/mad.c
+@@ -78,7 +78,7 @@ static int process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+ 	u16 slid;
+ 	int err;
+ 
+-	slid = in_wc ? in_wc->slid : be16_to_cpu(IB_LID_PERMISSIVE);
++	slid = in_wc ? ib_slid_cpu16(in_wc->slid) : be16_to_cpu(IB_LID_PERMISSIVE);
+ 
+ 	if (in_mad->mad_hdr.method == IB_MGMT_METHOD_TRAP && slid == 0)
+ 		return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_CONSUMED;
+diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.c b/drivers/infiniband/hw/mthca/mthca_cmd.c
+index 9d83a53..e19ae0b 100644
+--- a/drivers/infiniband/hw/mthca/mthca_cmd.c
++++ b/drivers/infiniband/hw/mthca/mthca_cmd.c
+@@ -1921,7 +1921,7 @@ int mthca_MAD_IFC(struct mthca_dev *dev, int ignore_mkey, int ignore_bkey,
+ 			(in_wc->wc_flags & IB_WC_GRH ? 0x80 : 0);
+ 		MTHCA_PUT(inbox, val,               MAD_IFC_G_PATH_OFFSET);
+ 
+-		MTHCA_PUT(inbox, in_wc->slid,       MAD_IFC_RLID_OFFSET);
++		MTHCA_PUT(inbox, ib_slid_cpu16(in_wc->slid), MAD_IFC_RLID_OFFSET);
+ 		MTHCA_PUT(inbox, in_wc->pkey_index, MAD_IFC_PKEY_OFFSET);
+ 
+ 		if (in_grh)
+@@ -1929,7 +1929,7 @@ int mthca_MAD_IFC(struct mthca_dev *dev, int ignore_mkey, int ignore_bkey,
+ 
+ 		op_modifier |= 0x4;
+ 
+-		in_modifier |= in_wc->slid << 16;
++		in_modifier |= ib_slid_cpu16(in_wc->slid) << 16;
+ 	}
+ 
+ 	err = mthca_cmd_box(dev, inmailbox->dma, outmailbox->dma,
+diff --git a/drivers/infiniband/hw/mthca/mthca_mad.c b/drivers/infiniband/hw/mthca/mthca_mad.c
+index 617531f..a9caada 100644
+--- a/drivers/infiniband/hw/mthca/mthca_mad.c
++++ b/drivers/infiniband/hw/mthca/mthca_mad.c
+@@ -205,7 +205,7 @@ int mthca_process_mad(struct ib_device *ibdev,
+ 		      u16 *out_mad_pkey_index)
+ {
+ 	int err;
+-	u16 slid = in_wc ? in_wc->slid : be16_to_cpu(IB_LID_PERMISSIVE);
++	u16 slid = in_wc ? ib_slid_cpu16(in_wc->slid) : be16_to_cpu(IB_LID_PERMISSIVE);
+ 	u16 prev_lid = 0;
+ 	struct ib_port_attr pattr;
+ 	const struct ib_mad *in_mad = (const struct ib_mad *)in;
+diff --git a/drivers/infiniband/sw/rdmavt/cq.c b/drivers/infiniband/sw/rdmavt/cq.c
+index 0ae2ff8..0335a3d 100644
+--- a/drivers/infiniband/sw/rdmavt/cq.c
++++ b/drivers/infiniband/sw/rdmavt/cq.c
+@@ -107,7 +107,7 @@ void rvt_cq_enter(struct rvt_cq *cq, struct ib_wc *entry, bool solicited)
+ 		wc->uqueue[head].src_qp = entry->src_qp;
+ 		wc->uqueue[head].wc_flags = entry->wc_flags;
+ 		wc->uqueue[head].pkey_index = entry->pkey_index;
+-		wc->uqueue[head].slid = entry->slid;
++		wc->uqueue[head].slid = ib_slid_cpu16(entry->slid);
+ 		wc->uqueue[head].sl = entry->sl;
+ 		wc->uqueue[head].dlid_path_bits = entry->dlid_path_bits;
+ 		wc->uqueue[head].port_num = entry->port_num;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index f88aeb6..cf57b00 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -950,7 +950,7 @@ struct ib_wc {
+ 	u32			src_qp;
+ 	int			wc_flags;
+ 	u16			pkey_index;
+-	u16			slid;
++	u32			slid;
+ 	u8			sl;
+ 	u8			dlid_path_bits;
+ 	u8			port_num;	/* valid only for DR SMPs on switches */
+@@ -3643,4 +3643,16 @@ static inline enum rdma_ah_attr_type rdma_ah_find_type(struct ib_device *dev,
  	else
- 		ucma_copy_conn_event(&uevent->resp.param.conn,
- 				     &event->param.conn);
-@@ -1157,7 +1159,7 @@ static ssize_t ucma_init_qp_attr(struct ucma_file *file,
- 	if (ret)
- 		goto out;
- 
--	ib_copy_qp_attr_to_user(&resp, &qp_attr);
-+	ib_copy_qp_attr_to_user(ctx->cm_id->device, &resp, &qp_attr);
- 	if (copy_to_user((void __user *)(unsigned long)cmd.response,
- 			 &resp, sizeof(resp)))
- 		ret = -EFAULT;
-diff --git a/drivers/infiniband/core/uverbs_marshall.c b/drivers/infiniband/core/uverbs_marshall.c
-index 8b9587f..92a6475 100644
---- a/drivers/infiniband/core/uverbs_marshall.c
-+++ b/drivers/infiniband/core/uverbs_marshall.c
-@@ -33,10 +33,47 @@
- #include <linux/export.h>
- #include <rdma/ib_marshall.h>
- 
--void ib_copy_ah_attr_to_user(struct ib_uverbs_ah_attr *dst,
--			     struct rdma_ah_attr *src)
-+#define OPA_DEFAULT_GID_PREFIX cpu_to_be64(0xfe80000000000000ULL)
-+static int rdma_ah_conv_opa_to_ib(struct ib_device *dev,
-+				  struct rdma_ah_attr *ib,
-+				  struct rdma_ah_attr *opa)
- {
-+	struct ib_port_attr port_attr;
-+	int ret = 0;
+ 		return RDMA_AH_ATTR_TYPE_IB;
+ }
 +
-+	/* Do structure copy and the over-write fields */
-+	*ib = *opa;
-+
-+	ib->type = RDMA_AH_ATTR_TYPE_IB;
-+	rdma_ah_set_grh(ib, NULL, 0, 0, 1, 0);
-+
-+	if (ib_query_port(dev, opa->port_num, &port_attr)) {
-+		/* Set to default subnet to indicate error */
-+		rdma_ah_set_subnet_prefix(ib, OPA_DEFAULT_GID_PREFIX);
-+		ret = -EINVAL;
-+	} else {
-+		rdma_ah_set_subnet_prefix(ib,
-+					  cpu_to_be64(port_attr.subnet_prefix));
-+	}
-+	rdma_ah_set_interface_id(ib, OPA_MAKE_ID(rdma_ah_get_dlid(opa)));
-+	return ret;
++/* Return slid in 16bit CPU encoding */
++static inline u16 ib_slid_cpu16(u32 slid)
++{
++	return (u16)slid;
 +}
 +
-+void ib_copy_ah_attr_to_user(struct ib_device *device,
-+			     struct ib_uverbs_ah_attr *dst,
-+			     struct rdma_ah_attr *ah_attr)
++/* Return slid in 16bit BE encoding */
++static inline u16 ib_slid_be16(u32 slid)
 +{
-+	struct rdma_ah_attr *src = ah_attr;
-+	struct rdma_ah_attr conv_ah;
-+
- 	memset(&dst->grh.reserved, 0, sizeof(dst->grh.reserved));
-+
-+	if ((ah_attr->type == RDMA_AH_ATTR_TYPE_OPA) &&
-+	    (rdma_ah_get_dlid(ah_attr) >=
-+	     be16_to_cpu(IB_MULTICAST_LID_BASE)) &&
-+	    (!rdma_ah_conv_opa_to_ib(device, &conv_ah, ah_attr)))
-+		src = &conv_ah;
-+
- 	dst->dlid		   = rdma_ah_get_dlid(src);
- 	dst->sl			   = rdma_ah_get_sl(src);
- 	dst->src_path_bits	   = rdma_ah_get_path_bits(src);
-@@ -57,7 +94,8 @@ void ib_copy_ah_attr_to_user(struct ib_uverbs_ah_attr *dst,
- }
- EXPORT_SYMBOL(ib_copy_ah_attr_to_user);
- 
--void ib_copy_qp_attr_to_user(struct ib_uverbs_qp_attr *dst,
-+void ib_copy_qp_attr_to_user(struct ib_device *device,
-+			     struct ib_uverbs_qp_attr *dst,
- 			     struct ib_qp_attr *src)
- {
- 	dst->qp_state	        = src->qp_state;
-@@ -76,8 +114,8 @@ void ib_copy_qp_attr_to_user(struct ib_uverbs_qp_attr *dst,
- 	dst->max_recv_sge	= src->cap.max_recv_sge;
- 	dst->max_inline_data	= src->cap.max_inline_data;
- 
--	ib_copy_ah_attr_to_user(&dst->ah_attr, &src->ah_attr);
--	ib_copy_ah_attr_to_user(&dst->alt_ah_attr, &src->alt_ah_attr);
-+	ib_copy_ah_attr_to_user(device, &dst->ah_attr, &src->ah_attr);
-+	ib_copy_ah_attr_to_user(device, &dst->alt_ah_attr, &src->alt_ah_attr);
- 
- 	dst->pkey_index		= src->pkey_index;
- 	dst->alt_pkey_index	= src->alt_pkey_index;
-diff --git a/include/rdma/ib_marshall.h b/include/rdma/ib_marshall.h
-index 68cef3b..8ebf84a 100644
---- a/include/rdma/ib_marshall.h
-+++ b/include/rdma/ib_marshall.h
-@@ -38,10 +38,12 @@
- #include <rdma/ib_user_verbs.h>
- #include <rdma/ib_user_sa.h>
- 
--void ib_copy_qp_attr_to_user(struct ib_uverbs_qp_attr *dst,
-+void ib_copy_qp_attr_to_user(struct ib_device *device,
-+			     struct ib_uverbs_qp_attr *dst,
- 			     struct ib_qp_attr *src);
- 
--void ib_copy_ah_attr_to_user(struct ib_uverbs_ah_attr *dst,
-+void ib_copy_ah_attr_to_user(struct ib_device *device,
-+			     struct ib_uverbs_ah_attr *dst,
- 			     struct rdma_ah_attr *src);
- 
- void ib_copy_path_rec_to_user(struct ib_user_path_rec *dst,
++	return cpu_to_be16((u16)slid);
++}
+ #endif /* IB_VERBS_H */
 -- 
 1.8.3.1
 
