@@ -1,79 +1,66 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 0/6] Enable flow steering on IPoIB UD QP
-Date: Mon,  5 Jun 2017 08:00:15 +0300
-Message-ID: <20170605050021.12236-1-leon@kernel.org>
+Subject: [PATCH rdma-next V1 1/6] IB/core: Enable QP creation which is associated to underlay QP
+Date: Mon,  5 Jun 2017 08:00:16 +0300
+Message-ID: <20170605050021.12236-2-leon@kernel.org>
+References: <20170605050021.12236-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170605050021.12236-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This is second version of underlay QP patches from Yishai. He updated
-commit message for the first patch (IB/core) to have better semantics
-description.
+Enable QP creation which is associated to some underlay QP as of IPoIB QP.
+It comes to allow in downstream patches  a user space applications to
+accelerate send and receive traffic which is typically handled by IPoIB ULP.
 
-Thanks
+A successful QP creation will end-up by having an overlay QP (e.g. the
+created one) which is associated to an already existing underlay one
+(e.g. IPoIB QP).
 
+The underlay QP is responsible for the transport, the packets on the
+wire will hold its QPN, its pkey will be used, etc.
+
+The overlay QP can steer incoming packets which were target to the
+underlay QP into its own RQ. It can post send WQEs on its own SQ, the
+hardware will use the transport properties of the underlay QP
+to format the packets on the wire.
+Note: The underlay QP should be in an RTR/RTS state in order to enable
+the overlay QP to work properly.
+
+Each QP should manage its properties and objects via modify, query and
+destroy. Specifically, overlay QP can't affect the underlay QP
+properties and vice versa.
+
+Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
->From Yishai:
+ include/rdma/ib_verbs.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-This series comes to allow user space applications to accelerate send
-and receive traffic which is typically handled by IPoIB ULP. On the
-receive flow, the user space application will use flow steering rules to
-direct the ingress IPoIB UD QP traffic to its own user space UD QP. On
-the send flow, the user space application will send from its own UD QP
-with UD AH, while the packet on the wire will have the source QPN of the
-underlay IPoIB UD QP, which is the network interface advertised L2
-hardware address.
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index ba8314ec5768..ba97b33f31c5 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1059,6 +1059,7 @@ enum ib_qp_create_flags {
+ 	IB_QP_CREATE_USE_GFP_NOIO		= 1 << 7,
+ 	IB_QP_CREATE_SCATTER_FCS		= 1 << 8,
+ 	IB_QP_CREATE_CVLAN_STRIPPING		= 1 << 9,
++	IB_QP_CREATE_ASSOC_QPN			= 1 << 10,
+ 	/* reserve bits 26-31 for low level drivers' internal use */
+ 	IB_QP_CREATE_RESERVED_START		= 1 << 26,
+ 	IB_QP_CREATE_RESERVED_END		= 1 << 31,
+@@ -1086,6 +1087,7 @@ struct ib_qp_init_attr {
+ 	 */
+ 	u8			port_num;
+ 	struct ib_rwq_ind_table *rwq_ind_tbl;
++	u32			associated_qpn;
+ };
 
-This will be achieved by extending QP creation of IB UD QP to be
-"Associated" with IPoIB UD QP number. In order to create such a UD QP
-which can receive and send IPoIB traffic, needs to provide the
-associated QPN of the IPoIB network interface. The created QP will
-manage the scattering objects as of RQ and SQ, while the transport
-attributes will be managed by its underlay QP which is owned by IPoIB
-ULP.
-
-The QPN should be achieved by using some networking tool as of ifconfig
-,ip link show on the associated interface. For example, when IPoIB is
-used, the QPN is the value of 3 bytes from the hardware address starting
-after the first byte as defined by rfc4391 [1]
-
-This API enables generic QPN association, current mlx5 driver implements
-this API for the IPoIB ULP.
-
-[1] https://tools.ietf.org/html/rfc4391#page-11
----
-
-Available in the "topic/underlay_qp" topic branch of this git repo:
-git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
-
-Or for browsing:
-https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/underlay_qp_v1
-
-Possible merge conflicts resolution is available in:
-https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=testing/queue-next
-
-Yishai Hadas (6):
-  IB/core: Enable QP creation which is associated to underlay QP
-  IB/uverbs: Enable QP creation which is associated to underlay QP
-  IB/mlx5: Add support for underlay QP managing
-  IB/mlx5: Add multicast flow steering support for underlay QP
-  net/mlx5: Report enhanced capabilities for IPoIB
-  IB/mlx5: Report RX checksum capabilities for IPoIB
-
- drivers/infiniband/core/uverbs_cmd.c         | 11 +++--
- drivers/infiniband/hw/mlx5/main.c            | 47 +++++++++++++-----
- drivers/infiniband/hw/mlx5/mlx5_ib.h         |  2 +
- drivers/infiniband/hw/mlx5/qp.c              | 72 ++++++++++++++++++++++------
- drivers/net/ethernet/mellanox/mlx5/core/fw.c |  6 +++
- include/linux/mlx5/device.h                  |  6 ++-
- include/rdma/ib_verbs.h                      |  2 +
- include/uapi/rdma/ib_user_verbs.h            |  2 +-
- 8 files changed, 116 insertions(+), 32 deletions(-)
-
+ struct ib_qp_open_attr {
 --
 2.12.2
 
