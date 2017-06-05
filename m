@@ -1,20 +1,60 @@
-From: Moni Shoua <monis@mellanox.com>
-Subject: Re: [PATCH V3] rxe: Fix a sleep-in-atomic bug in post_one_send
-Date: Mon, 5 Jun 2017 12:21:15 +0300
-Message-ID: <CAG9sBKNFUizb3EGHXC8ac_wrPEnDZ=yOoj0x0h-nL5GY=3TK0Q@mail.gmail.com>
-References: <1496648342-906-1-git-send-email-baijiaju1990@163.com>
- <CAG9sBKNKTT8ceHrXRhLRns53ejH0kwaLMy-qAzdmo=Hy5h02Yw@mail.gmail.com> <5935190F.7090708@163.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5935190F.7090708@163.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jia-Ju Bai <baijiaju1990@163.com>
-Cc: yuval.shaia@oracle.com, Sean Hefty <sean.hefty@intel.com>, Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>
+From: Jia-Ju Bai <baijiaju1990-9Onoh4P/yGk@public.gmane.org>
+Subject: [PATCH V4] rxe: Fix a sleep-in-atomic bug in post_one_send
+Date: Mon,  5 Jun 2017 17:39:48 +0800
+Message-ID: <1496655588-5598-1-git-send-email-baijiaju1990@163.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jia-Ju Bai <baijiaju1990-9Onoh4P/yGk@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> I agree.
-> So, it is fine to me to remove this line, as you said in the former email:
->
-Thanks.
-Can you please send a patch like that?
+The driver may sleep under a spin lock, and the function call path is:
+post_one_send (acquire the lock by spin_lock_irqsave)
+  init_send_wqe
+    copy_from_user --> may sleep
+
+There is no flow that makes "qp->is_user" true, and copy_from_user may 
+cause bug when a non-user pointer is used. So, the line of copy_from_user
+is removed.
+
+Signed-off-by: Jia-Ju Bai <baijiaju1990-9Onoh4P/yGk@public.gmane.org>
+---
+V4:
+* Remove the line of copy_from_user.
+
+V3:
+* It corrects the mistakes of remaining legacy code in V2.
+  (Thank Ram for pointing it out)
+
+V2:
+* The parameter "flags" is added to restore and save the irq status.
+  Thank Leon for good advice.
+---
+ drivers/infiniband/sw/rxe/rxe_verbs.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index 83d709e..7c52c7c 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -740,11 +740,7 @@ static int init_send_wqe(struct rxe_qp *qp, struct ib_send_wr *ibwr,
+ 
+ 		sge = ibwr->sg_list;
+ 		for (i = 0; i < num_sge; i++, sge++) {
+-			if (qp->is_user && copy_from_user(p, (__user void *)
+-					    (uintptr_t)sge->addr, sge->length))
+-				return -EFAULT;
+-
+-			else if (!qp->is_user)
++			if (!qp->is_user)
+ 				memcpy(p, (void *)(uintptr_t)sge->addr,
+ 				       sge->length);
+ 
+-- 
+1.7.9.5
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
