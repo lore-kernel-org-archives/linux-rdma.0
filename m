@@ -1,39 +1,79 @@
 From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-next 4/8] IB/mad: Change slid in RMPP recv from 16 to 32 bits
-Date: Mon,  5 Jun 2017 14:19:47 -0400
-Message-ID: <1496686791-51297-5-git-send-email-don.hiatt@intel.com>
-References: <1496686791-51297-1-git-send-email-don.hiatt@intel.com>
+Subject: [PATCH rdma-next 0/8] Add OPA extended LID support
+Date: Mon,  5 Jun 2017 14:19:43 -0400
+Message-ID: <1496686791-51297-1-git-send-email-don.hiatt@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1496686791-51297-1-git-send-email-don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-MAD RMPP contains slid field which is 16 bits in
-length, increase it to 32 bits.
+This patch series primarily increases sizes of variables that hold
+lid values from 16 to 32 bits. Additionally, it adds a check in
+the IB mad stack to verify a properly formatted MAD when OPA
+extended LIDs are used.
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/mad_rmpp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Changes from v1:
+---------------
+* Remove extraneous slid set. 
+* Replace slid casts with helper function.
+* Return default subnet prefix on rdma_ah_conv_opa_to_ib() failure.
 
-diff --git a/drivers/infiniband/core/mad_rmpp.c b/drivers/infiniband/core/mad_rmpp.c
-index 0d3cca0..e5cf09c 100644
---- a/drivers/infiniband/core/mad_rmpp.c
-+++ b/drivers/infiniband/core/mad_rmpp.c
-@@ -64,7 +64,7 @@ struct mad_rmpp_recv {
- 
- 	__be64 tid;
- 	u32 src_qp;
--	u16 slid;
-+	u32 slid;
- 	u8 mgmt_class;
- 	u8 class_version;
- 	u8 method;
+The patches are origanized as follows:
+
+* Patch 1 converts an OPA ah_attr to an IB ah_attr when
+  copying from kernel to user. Since OPA ah_attr is only defined
+  in the kernel, the function takes care of adding OPA GIDs
+  that contain the extended LID before copying to user.
+* Patch 2 increases the lid and sm_lid variables in srpt
+  to 32 bits.
+* Patch 3 increases the local_lid variable in IPoIB to 32
+  bits.
+* Patch 4 increases the slid variable in MAD RMPP to 32 bits.
+* Patch 5 increases the lid field in struct ib_port_attr from
+  16 to 32 bits.
+* Patch 6 increases the sm_lid field in struct ib_port_attr
+  from 16 to 32 bits.
+* Patch 7 increases the slid field in struct ib_wc from 16
+  to 32 bits.
+* Patch 8 adds a check in IB mad to ensure a MAD payload is
+  properly formatted when using extended LIDs.
+
+Dasaratharaman Chandramouli (6):
+  IB/core: Convert ah_attr from OPA to IB when copying to user
+  IB/srpt: Increase lid and sm_lid to 32 bits
+  IB/IPoIB: Increase local_lid to 32 bits
+  IB/mad: Change slid in RMPP recv from 16 to 32 bits
+  IB/core: Change port_attr.lid size from 16 to 32 bits
+  IB/core: Change port_attr.sm_lid from 16 to 32 bits
+
+Don Hiatt (2):
+  IB/core: Change wc.slid from 16 to 32 bits
+  IB/mad: Ensure DR MADs are correctly specified when using OPA devices
+
+ drivers/infiniband/core/cm.c              |   4 +-
+ drivers/infiniband/core/core_priv.h       |   1 +
+ drivers/infiniband/core/mad.c             | 107 ++++++++++++++++++++++++++----
+ drivers/infiniband/core/mad_rmpp.c        |   2 +-
+ drivers/infiniband/core/ucm.c             |   2 +-
+ drivers/infiniband/core/ucma.c            |  10 +--
+ drivers/infiniband/core/user_mad.c        |   2 +-
+ drivers/infiniband/core/uverbs_cmd.c      |  19 ++++--
+ drivers/infiniband/core/uverbs_marshall.c |  48 ++++++++++++--
+ drivers/infiniband/hw/hfi1/mad.c          |   2 +-
+ drivers/infiniband/hw/mlx4/alias_GUID.c   |   2 +-
+ drivers/infiniband/hw/mlx4/mad.c          |   8 +--
+ drivers/infiniband/hw/mlx5/mad.c          |   2 +-
+ drivers/infiniband/hw/mthca/mthca_cmd.c   |   4 +-
+ drivers/infiniband/hw/mthca/mthca_mad.c   |   4 +-
+ drivers/infiniband/sw/rdmavt/cq.c         |   2 +-
+ drivers/infiniband/ulp/ipoib/ipoib.h      |   2 +-
+ drivers/infiniband/ulp/srpt/ib_srpt.h     |   4 +-
+ include/rdma/ib_marshall.h                |   6 +-
+ include/rdma/ib_verbs.h                   |  18 ++++-
+ include/rdma/opa_addr.h                   |   3 +-
+ 21 files changed, 200 insertions(+), 52 deletions(-)
+
 -- 
 1.8.3.1
 
