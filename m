@@ -1,7 +1,7 @@
 From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-next 3/3] IB/CM: Set appropriate slid and dlid when handling CM request
-Date: Mon,  5 Jun 2017 14:20:03 -0400
-Message-ID: <1496686803-51338-4-git-send-email-don.hiatt@intel.com>
+Subject: [PATCH rdma-next 1/3] IB/CM: Add OPA Path record support to CM
+Date: Mon,  5 Jun 2017 14:20:01 -0400
+Message-ID: <1496686803-51338-2-git-send-email-don.hiatt@intel.com>
 References: <1496686803-51338-1-git-send-email-don.hiatt@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1496686803-51338-1-git-send-email-don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -9,140 +9,146 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Add OPA path record support to the Connection Manager.
 
-If extended LIDs are being used, a connection request contains
-OPA GIDs in them. Extract the lids from the OPA gids and populate
-slid/dlid fields in the path records that are created when handling
-a connection request.
-
-Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/cm.c | 67 ++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 56 insertions(+), 11 deletions(-)
+ drivers/infiniband/core/cm.c | 50 +++++++++++++++++++++++++++++++++++++-------
+ include/rdma/opa_addr.h      | 18 ++++++++++++++++
+ 2 files changed, 60 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 43d84cb..5a38671 100644
+index 8525d65..f8602e0 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -1434,16 +1434,48 @@ static bool cm_req_has_alt_path(struct cm_req_msg *req_msg)
- 		(ib_is_opa_gid(&req_msg->alt_local_gid)));
- }
- 
-+static void cm_format_path_lid_from_req(struct cm_req_msg *req_msg,
-+					struct sa_path_rec *primary_path,
-+					struct sa_path_rec *alt_path)
-+{
-+	u32 lid;
-+
-+	if (primary_path->rec_type != SA_PATH_REC_TYPE_OPA) {
-+		sa_path_set_dlid(primary_path,
-+				 htonl(ntohs(req_msg->primary_local_lid)));
-+		sa_path_set_slid(primary_path,
-+				 htonl(ntohs(req_msg->primary_remote_lid)));
-+	} else {
-+		lid = opa_get_lid_from_gid(&req_msg->primary_local_gid);
-+		sa_path_set_dlid(primary_path, cpu_to_be32(lid));
-+
-+		lid = opa_get_lid_from_gid(&req_msg->primary_remote_gid);
-+		sa_path_set_slid(primary_path, cpu_to_be32(lid));
-+	}
-+
-+	if (!cm_req_has_alt_path(req_msg))
-+		return;
-+
-+	if (alt_path->rec_type != SA_PATH_REC_TYPE_OPA) {
-+		sa_path_set_dlid(alt_path,
-+				 htonl(ntohs(req_msg->alt_local_lid)));
-+		sa_path_set_slid(alt_path,
-+				 htonl(ntohs(req_msg->alt_remote_lid)));
-+	} else {
-+		lid = opa_get_lid_from_gid(&req_msg->alt_local_gid);
-+		sa_path_set_dlid(alt_path, cpu_to_be32(lid));
-+
-+		lid = opa_get_lid_from_gid(&req_msg->alt_remote_gid);
-+		sa_path_set_slid(alt_path, cpu_to_be32(lid));
-+	}
-+}
-+
- static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
- 				     struct sa_path_rec *primary_path,
- 				     struct sa_path_rec *alt_path)
+@@ -1175,6 +1175,11 @@ static void cm_format_req(struct cm_req_msg *req_msg,
  {
- 	primary_path->dgid = req_msg->primary_local_gid;
- 	primary_path->sgid = req_msg->primary_remote_gid;
--	sa_path_set_dlid(primary_path,
--			 htonl(ntohs(req_msg->primary_local_lid)));
--	sa_path_set_slid(primary_path,
--			 htonl(ntohs(req_msg->primary_remote_lid)));
- 	primary_path->flow_label = cm_req_get_primary_flow_label(req_msg);
- 	primary_path->hop_limit = req_msg->primary_hop_limit;
- 	primary_path->traffic_class = req_msg->primary_traffic_class;
-@@ -1460,13 +1492,9 @@ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
- 	primary_path->packet_life_time -= (primary_path->packet_life_time > 0);
- 	sa_path_set_service_id(primary_path, req_msg->service_id);
+ 	struct sa_path_rec *pri_path = param->primary_path;
+ 	struct sa_path_rec *alt_path = param->alternate_path;
++	bool pri_ext = false;
++
++	if (pri_path->rec_type == SA_PATH_REC_TYPE_OPA)
++		pri_ext = opa_is_extended_lid(pri_path->opa.dlid,
++					      pri_path->opa.slid);
  
--	if (req_msg->alt_local_lid) {
-+	if (cm_req_has_alt_path(req_msg)) {
- 		alt_path->dgid = req_msg->alt_local_gid;
- 		alt_path->sgid = req_msg->alt_remote_gid;
--		sa_path_set_dlid(alt_path,
--				 htonl(ntohs(req_msg->alt_local_lid)));
--		sa_path_set_slid(alt_path,
--				 htonl(ntohs(req_msg->alt_remote_lid)));
- 		alt_path->flow_label = cm_req_get_alt_flow_label(req_msg);
- 		alt_path->hop_limit = req_msg->alt_hop_limit;
- 		alt_path->traffic_class = req_msg->alt_traffic_class;
-@@ -1483,6 +1511,7 @@ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
- 		alt_path->packet_life_time -= (alt_path->packet_life_time > 0);
- 		sa_path_set_service_id(alt_path, req_msg->service_id);
+ 	cm_format_mad_hdr(&req_msg->hdr, CM_REQ_ATTR_ID,
+ 			  cm_form_tid(cm_id_priv, CM_MSG_SEQUENCE_REQ));
+@@ -1202,18 +1207,24 @@ static void cm_format_req(struct cm_req_msg *req_msg,
+ 		cm_req_set_srq(req_msg, param->srq);
  	}
-+	cm_format_path_lid_from_req(req_msg, primary_path, alt_path);
- }
  
- static u16 cm_get_bth_pkey(struct cm_work *work)
-@@ -2978,14 +3007,29 @@ int ib_send_cm_lap(struct ib_cm_id *cm_id,
- }
- EXPORT_SYMBOL(ib_send_cm_lap);
- 
-+static void cm_format_path_lid_from_lap(struct cm_lap_msg *lap_msg,
-+					struct sa_path_rec *path)
-+{
-+	u32 lid;
-+
-+	if (path->rec_type != SA_PATH_REC_TYPE_OPA) {
-+		sa_path_set_dlid(path, htonl(ntohs(lap_msg->alt_local_lid)));
-+		sa_path_set_slid(path, htonl(ntohs(lap_msg->alt_remote_lid)));
-+	} else {
-+		lid = opa_get_lid_from_gid(&lap_msg->alt_local_gid);
-+		sa_path_set_dlid(path, cpu_to_be32(lid));
-+
-+		lid = opa_get_lid_from_gid(&lap_msg->alt_remote_gid);
-+		sa_path_set_slid(path, cpu_to_be32(lid));
++	req_msg->primary_local_gid = pri_path->sgid;
++	req_msg->primary_remote_gid = pri_path->dgid;
++	if (pri_ext) {
++		req_msg->primary_local_gid.global.interface_id
++			= OPA_MAKE_ID(be32_to_cpu(pri_path->opa.slid));
++		req_msg->primary_remote_gid.global.interface_id
++			= OPA_MAKE_ID(be32_to_cpu(pri_path->opa.dlid));
 +	}
-+}
-+
- static void cm_format_path_from_lap(struct cm_id_private *cm_id_priv,
- 				    struct sa_path_rec *path,
- 				    struct cm_lap_msg *lap_msg)
- {
- 	path->dgid = lap_msg->alt_local_gid;
- 	path->sgid = lap_msg->alt_remote_gid;
--	sa_path_set_dlid(path, htonl(ntohs(lap_msg->alt_local_lid)));
--	sa_path_set_slid(path, htonl(ntohs(lap_msg->alt_remote_lid)));
- 	path->flow_label = cm_lap_get_flow_label(lap_msg);
- 	path->hop_limit = lap_msg->alt_hop_limit;
- 	path->traffic_class = cm_lap_get_traffic_class(lap_msg);
-@@ -2999,6 +3043,7 @@ static void cm_format_path_from_lap(struct cm_id_private *cm_id_priv,
- 	path->packet_life_time_selector = IB_SA_EQ;
- 	path->packet_life_time = cm_lap_get_local_ack_timeout(lap_msg);
- 	path->packet_life_time -= (path->packet_life_time > 0);
-+	cm_format_path_lid_from_lap(lap_msg, path);
- }
+ 	if (pri_path->hop_limit <= 1) {
+-		req_msg->primary_local_lid =
++		req_msg->primary_local_lid = pri_ext ? 0 :
+ 			htons(ntohl(sa_path_get_slid(pri_path)));
+-		req_msg->primary_remote_lid =
++		req_msg->primary_remote_lid = pri_ext ? 0 :
+ 			htons(ntohl(sa_path_get_dlid(pri_path)));
+ 	} else {
+ 		/* Work-around until there's a way to obtain remote LID info */
+ 		req_msg->primary_local_lid = IB_LID_PERMISSIVE;
+ 		req_msg->primary_remote_lid = IB_LID_PERMISSIVE;
+ 	}
+-	req_msg->primary_local_gid = pri_path->sgid;
+-	req_msg->primary_remote_gid = pri_path->dgid;
+ 	cm_req_set_primary_flow_label(req_msg, pri_path->flow_label);
+ 	cm_req_set_primary_packet_rate(req_msg, pri_path->rate);
+ 	req_msg->primary_traffic_class = pri_path->traffic_class;
+@@ -1225,17 +1236,29 @@ static void cm_format_req(struct cm_req_msg *req_msg,
+ 			       pri_path->packet_life_time));
  
- static int cm_lap_handler(struct cm_work *work)
+ 	if (alt_path) {
++		bool alt_ext = false;
++
++		if (alt_path->rec_type == SA_PATH_REC_TYPE_OPA)
++			alt_ext = opa_is_extended_lid(alt_path->opa.dlid,
++						      alt_path->opa.slid);
++
++		req_msg->alt_local_gid = alt_path->sgid;
++		req_msg->alt_remote_gid = alt_path->dgid;
++		if (alt_ext) {
++			req_msg->alt_local_gid.global.interface_id
++				= OPA_MAKE_ID(be32_to_cpu(alt_path->opa.slid));
++			req_msg->alt_remote_gid.global.interface_id
++				= OPA_MAKE_ID(be32_to_cpu(alt_path->opa.dlid));
++		}
+ 		if (alt_path->hop_limit <= 1) {
+-			req_msg->alt_local_lid =
++			req_msg->alt_local_lid = alt_ext ? 0 :
+ 				htons(ntohl(sa_path_get_slid(alt_path)));
+-			req_msg->alt_remote_lid =
++			req_msg->alt_remote_lid = alt_ext ? 0 :
+ 				htons(ntohl(sa_path_get_dlid(alt_path)));
+ 		} else {
+ 			req_msg->alt_local_lid = IB_LID_PERMISSIVE;
+ 			req_msg->alt_remote_lid = IB_LID_PERMISSIVE;
+ 		}
+-		req_msg->alt_local_gid = alt_path->sgid;
+-		req_msg->alt_remote_gid = alt_path->dgid;
+ 		cm_req_set_alt_flow_label(req_msg,
+ 					  alt_path->flow_label);
+ 		cm_req_set_alt_packet_rate(req_msg, alt_path->rate);
+@@ -2843,6 +2866,11 @@ static void cm_format_lap(struct cm_lap_msg *lap_msg,
+ 			  const void *private_data,
+ 			  u8 private_data_len)
+ {
++	bool alt_ext = false;
++
++	if (alternate_path->rec_type == SA_PATH_REC_TYPE_OPA)
++		alt_ext = opa_is_extended_lid(alternate_path->opa.dlid,
++					      alternate_path->opa.slid);
+ 	cm_format_mad_hdr(&lap_msg->hdr, CM_LAP_ATTR_ID,
+ 			  cm_form_tid(cm_id_priv, CM_MSG_SEQUENCE_LAP));
+ 	lap_msg->local_comm_id = cm_id_priv->id.local_id;
+@@ -2856,6 +2884,12 @@ static void cm_format_lap(struct cm_lap_msg *lap_msg,
+ 		htons(ntohl(sa_path_get_dlid(alternate_path)));
+ 	lap_msg->alt_local_gid = alternate_path->sgid;
+ 	lap_msg->alt_remote_gid = alternate_path->dgid;
++	if (alt_ext) {
++		lap_msg->alt_local_gid.global.interface_id
++			= OPA_MAKE_ID(be32_to_cpu(alternate_path->opa.slid));
++		lap_msg->alt_remote_gid.global.interface_id
++			= OPA_MAKE_ID(be32_to_cpu(alternate_path->opa.dlid));
++	}
+ 	cm_lap_set_flow_label(lap_msg, alternate_path->flow_label);
+ 	cm_lap_set_traffic_class(lap_msg, alternate_path->traffic_class);
+ 	lap_msg->alt_hop_limit = alternate_path->hop_limit;
+diff --git a/include/rdma/opa_addr.h b/include/rdma/opa_addr.h
+index 46d0567..9b5e642 100644
+--- a/include/rdma/opa_addr.h
++++ b/include/rdma/opa_addr.h
+@@ -77,4 +77,22 @@ static inline u32 opa_get_lid_from_gid(union ib_gid *gid)
+ {
+ 	return be64_to_cpu(gid->global.interface_id) & 0xFFFFFFFF;
+ }
++
++/**
++ * opa_is_extended_lid: Returns true if dlid or slid are
++ * extended.
++ *
++ * @dlid: The DLID
++ * @slid: The SLID
++ */
++static inline bool opa_is_extended_lid(u32 dlid, u32 slid)
++{
++	if ((be32_to_cpu(dlid) >=
++	     be16_to_cpu(IB_MULTICAST_LID_BASE)) ||
++	    (be32_to_cpu(slid) >=
++	     be16_to_cpu(IB_MULTICAST_LID_BASE)))
++		return true;
++	else
++		return false;
++}
+ #endif /* OPA_ADDR_H */
 -- 
 1.8.3.1
 
