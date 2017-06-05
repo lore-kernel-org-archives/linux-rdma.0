@@ -1,7 +1,7 @@
 From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-next 6/8] IB/core: Change port_attr.sm_lid from 16 to 32 bits
-Date: Mon,  5 Jun 2017 14:19:49 -0400
-Message-ID: <1496686791-51297-7-git-send-email-don.hiatt@intel.com>
+Subject: [PATCH rdma-next 2/8] IB/srpt: Increase lid and sm_lid to 32 bits
+Date: Mon,  5 Jun 2017 14:19:45 -0400
+Message-ID: <1496686791-51297-3-git-send-email-don.hiatt@intel.com>
 References: <1496686791-51297-1-git-send-email-don.hiatt@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1496686791-51297-1-git-send-email-don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -11,52 +11,31 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-sm_lid field in struct ib_port_attr is increased to 32 bits. This
-enables core components to use larger LIDs if needed.
-The user ABI is unchanged and return 16 bit values when queried.
+srpt contains lid and sm_lid fields which are 16 bits in
+length, increase them to 32 bits.
 
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 8 +++++---
- include/rdma/ib_verbs.h              | 2 +-
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 038b993..6964c05 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -275,11 +275,13 @@ ssize_t ib_uverbs_query_port(struct ib_uverbs_file *file,
- 	resp.bad_pkey_cntr   = attr.bad_pkey_cntr;
- 	resp.qkey_viol_cntr  = attr.qkey_viol_cntr;
- 	resp.pkey_tbl_len    = attr.pkey_tbl_len;
--	resp.sm_lid 	     = attr.sm_lid;
--	if (rdma_cap_opa_ah(ib_dev, cmd.port_num))
-+	if (rdma_cap_opa_ah(ib_dev, cmd.port_num)) {
- 		resp.lid  = OPA_TO_IB_UCAST_LID(attr.lid);
--	else
-+		resp.sm_lid  = OPA_TO_IB_UCAST_LID(attr.sm_lid);
-+	} else {
- 		resp.lid     = (u16)attr.lid;
-+		resp.sm_lid  = (u16)attr.sm_lid;
-+	}
- 	resp.lmc 	     = attr.lmc;
- 	resp.max_vl_num      = attr.max_vl_num;
- 	resp.sm_sl 	     = attr.sm_sl;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 3b442229..f88aeb6 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -548,7 +548,7 @@ struct ib_port_attr {
- 	u32			bad_pkey_cntr;
- 	u32			qkey_viol_cntr;
- 	u16			pkey_tbl_len;
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
+index cc118385..1b817e5 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.h
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
+@@ -328,8 +328,8 @@ struct srpt_port {
+ 	u8			port_guid[24];
+ 	u8			port_gid[64];
+ 	u8			port;
 -	u16			sm_lid;
+-	u16			lid;
 +	u32			sm_lid;
- 	u32			lid;
- 	u8			lmc;
- 	u8			max_vl_num;
++	u32			lid;
+ 	union ib_gid		gid;
+ 	struct work_struct	work;
+ 	struct se_portal_group	port_guid_tpg;
 -- 
 1.8.3.1
 
