@@ -1,7 +1,7 @@
 From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 1/5] IB/hns: Fix the bug of polling cq failed for loopback Qps
-Date: Tue, 6 Jun 2017 09:24:44 +0800
-Message-ID: <1496712288-63434-2-git-send-email-oulijun@huawei.com>
+Subject: [PATCH for-next 2/5] IB/hns: Fix the bug with wild pointer when destroy rc qp
+Date: Tue, 6 Jun 2017 09:24:45 +0800
+Message-ID: <1496712288-63434-3-git-send-email-oulijun@huawei.com>
 References: <1496712288-63434-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,144 +12,73 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-In hip06 SoC, RoCE driver creates 8 reserved loopback QPs to
-ensure zero wqe when free mr. However, if the enabled phy
-port number is less than 6, it will fail in polling cqe with
-8 reserved loopback QPs.
+When destroyed rc qp, the hr_qp will be used after freed. This patch
+will fix it.
 
-In order to solve this problem, the number of loopback Qps
-will be adjusted based on the number of enabled phy port.
-
-Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 52 +++++++++++++++++++-----------
- 1 file changed, 33 insertions(+), 19 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 37d5d29..4b886c6 100644
+index 4b886c6..aa2e31da 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -661,9 +661,11 @@ static int hns_roce_v1_rsv_lp_qp(struct hns_roce_dev *hr_dev)
- 	union ib_gid dgid;
- 	u64 subnet_prefix;
- 	int attr_mask = 0;
--	int i;
-+	int i, j;
+@@ -3655,6 +3655,7 @@ static void hns_roce_v1_destroy_qp_work_fn(struct work_struct *work)
+ 	struct hns_roce_dev *hr_dev;
+ 	struct hns_roce_qp *hr_qp;
+ 	struct device *dev;
++	unsigned long qpn;
  	int ret;
-+	u8 queue_en[HNS_ROCE_V1_RESV_QP] = { 0 };
- 	u8 phy_port;
-+	u8 port = 0;
- 	u8 sl;
  
+ 	qp_work_entry = container_of(work, struct hns_roce_qp_work, work);
+@@ -3662,8 +3663,9 @@ static void hns_roce_v1_destroy_qp_work_fn(struct work_struct *work)
+ 	dev = &hr_dev->pdev->dev;
  	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
-@@ -714,6 +716,21 @@ static int hns_roce_v1_rsv_lp_qp(struct hns_roce_dev *hr_dev)
+ 	hr_qp = qp_work_entry->qp;
++	qpn = hr_qp->qpn;
  
- 	subnet_prefix = cpu_to_be64(0xfe80000000000000LL);
- 	for (i = 0; i < HNS_ROCE_V1_RESV_QP; i++) {
-+		phy_port = (i >= HNS_ROCE_MAX_PORTS) ? (i - 2) :
-+				(i % HNS_ROCE_MAX_PORTS);
-+		sl = i / HNS_ROCE_MAX_PORTS;
-+
-+		for (j = 0; j < caps->num_ports; j++) {
-+			if (hr_dev->iboe.phy_port[j] == phy_port) {
-+				queue_en[i] = 1;
-+				port = j;
-+				break;
-+			}
-+		}
-+
-+		if (!queue_en[i])
-+			continue;
-+
- 		free_mr->mr_free_qp[i] = hns_roce_v1_create_lp_qp(hr_dev, pd);
- 		if (IS_ERR(free_mr->mr_free_qp[i])) {
- 			dev_err(dev, "Create loop qp failed!\n");
-@@ -721,15 +738,7 @@ static int hns_roce_v1_rsv_lp_qp(struct hns_roce_dev *hr_dev)
- 		}
- 		hr_qp = free_mr->mr_free_qp[i];
+-	dev_dbg(dev, "Schedule destroy QP(0x%lx) work.\n", hr_qp->qpn);
++	dev_dbg(dev, "Schedule destroy QP(0x%lx) work.\n", qpn);
  
--		sl = i / caps->num_ports;
--
--		if (caps->num_ports == HNS_ROCE_MAX_PORTS)
--			phy_port = (i >= HNS_ROCE_MAX_PORTS) ? (i - 2) :
--				(i % caps->num_ports);
--		else
--			phy_port = i % caps->num_ports;
--
--		hr_qp->port		= phy_port + 1;
-+		hr_qp->port		= port;
- 		hr_qp->phy_port		= phy_port;
- 		hr_qp->ibqp.qp_type	= IB_QPT_RC;
- 		hr_qp->ibqp.device	= &hr_dev->ib_dev;
-@@ -739,23 +748,22 @@ static int hns_roce_v1_rsv_lp_qp(struct hns_roce_dev *hr_dev)
- 		hr_qp->ibqp.recv_cq	= cq;
- 		hr_qp->ibqp.send_cq	= cq;
+ 	qp_work_entry->sche_cnt++;
  
--		rdma_ah_set_port_num(&attr.ah_attr, phy_port + 1);
--		rdma_ah_set_sl(&attr.ah_attr, phy_port + 1);
--		attr.port_num		= phy_port + 1;
-+		rdma_ah_set_port_num(&attr.ah_attr, port + 1);
-+		rdma_ah_set_sl(&attr.ah_attr, sl);
-+		attr.port_num		= port + 1;
- 
- 		attr.dest_qp_num	= hr_qp->qpn;
- 		memcpy(rdma_ah_retrieve_dmac(&attr.ah_attr),
--		       hr_dev->dev_addr[phy_port],
-+		       hr_dev->dev_addr[port],
- 		       MAC_ADDR_OCTET_NUM);
- 
- 		memcpy(&dgid.raw, &subnet_prefix, sizeof(u64));
--		memcpy(&dgid.raw[8], hr_dev->dev_addr[phy_port], 3);
--		memcpy(&dgid.raw[13], hr_dev->dev_addr[phy_port] + 3, 3);
-+		memcpy(&dgid.raw[8], hr_dev->dev_addr[port], 3);
-+		memcpy(&dgid.raw[13], hr_dev->dev_addr[port] + 3, 3);
- 		dgid.raw[11] = 0xff;
- 		dgid.raw[12] = 0xfe;
- 		dgid.raw[8] ^= 2;
- 		rdma_ah_set_dgid_raw(&attr.ah_attr, dgid.raw);
--		attr_mask |= IB_QP_PORT;
- 
- 		ret = hr_dev->hw->modify_qp(&hr_qp->ibqp, &attr, attr_mask,
- 					    IB_QPS_RESET, IB_QPS_INIT);
-@@ -812,6 +820,9 @@ static void hns_roce_v1_release_lp_qp(struct hns_roce_dev *hr_dev)
- 
- 	for (i = 0; i < HNS_ROCE_V1_RESV_QP; i++) {
- 		hr_qp = free_mr->mr_free_qp[i];
-+		if (!hr_qp)
-+			continue;
-+
- 		ret = hns_roce_v1_destroy_qp(&hr_qp->ibqp);
- 		if (ret)
- 			dev_err(dev, "Destroy qp %d for mr free failed(%d)!\n",
-@@ -963,7 +974,7 @@ static void hns_roce_v1_mr_free_work_fn(struct work_struct *work)
- 		msecs_to_jiffies(HNS_ROCE_V1_FREE_MR_TIMEOUT_MSECS) + jiffies;
- 	int i;
- 	int ret;
--	int ne;
-+	int ne = 0;
- 
- 	mr_work = container_of(work, struct hns_roce_mr_free_work, work);
- 	hr_mr = (struct hns_roce_mr *)mr_work->mr;
-@@ -976,6 +987,10 @@ static void hns_roce_v1_mr_free_work_fn(struct work_struct *work)
- 
- 	for (i = 0; i < HNS_ROCE_V1_RESV_QP; i++) {
- 		hr_qp = free_mr->mr_free_qp[i];
-+		if (!hr_qp)
-+			continue;
-+		ne++;
-+
- 		ret = hns_roce_v1_send_lp_wqe(hr_qp);
- 		if (ret) {
- 			dev_err(dev,
-@@ -985,7 +1000,6 @@ static void hns_roce_v1_mr_free_work_fn(struct work_struct *work)
- 		}
+@@ -3674,7 +3676,7 @@ static void hns_roce_v1_destroy_qp_work_fn(struct work_struct *work)
+ 					 &qp_work_entry->db_wait_stage);
+ 	if (ret) {
+ 		dev_err(dev, "Check QP(0x%lx) db process status failed!\n",
+-			hr_qp->qpn);
++			qpn);
+ 		return;
  	}
  
--	ne = HNS_ROCE_V1_RESV_QP;
- 	do {
- 		ret = hns_roce_v1_poll_cq(&mr_free_cq->ib_cq, ne, wc);
- 		if (ret < 0) {
+@@ -3688,7 +3690,7 @@ static void hns_roce_v1_destroy_qp_work_fn(struct work_struct *work)
+ 	ret = hns_roce_v1_modify_qp(&hr_qp->ibqp, NULL, 0, hr_qp->state,
+ 				    IB_QPS_RESET);
+ 	if (ret) {
+-		dev_err(dev, "Modify QP(0x%lx) to RST failed!\n", hr_qp->qpn);
++		dev_err(dev, "Modify QP(0x%lx) to RST failed!\n", qpn);
+ 		return;
+ 	}
+ 
+@@ -3697,14 +3699,14 @@ static void hns_roce_v1_destroy_qp_work_fn(struct work_struct *work)
+ 
+ 	if (hr_qp->ibqp.qp_type == IB_QPT_RC) {
+ 		/* RC QP, release QPN */
+-		hns_roce_release_range_qp(hr_dev, hr_qp->qpn, 1);
++		hns_roce_release_range_qp(hr_dev, qpn, 1);
+ 		kfree(hr_qp);
+ 	} else
+ 		kfree(hr_to_hr_sqp(hr_qp));
+ 
+ 	kfree(qp_work_entry);
+ 
+-	dev_dbg(dev, "Accomplished destroy QP(0x%lx) work.\n", hr_qp->qpn);
++	dev_dbg(dev, "Accomplished destroy QP(0x%lx) work.\n", qpn);
+ }
+ 
+ int hns_roce_v1_destroy_qp(struct ib_qp *ibqp)
 -- 
 1.9.1
 
