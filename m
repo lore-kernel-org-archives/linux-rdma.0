@@ -1,178 +1,63 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: [PATCH 3/7] ib/iSER: Add binding to source IP address.
-Date: Tue,  6 Jun 2017 12:07:13 -0600
-Message-ID: <20170606180717.5007-4-robert@leblancnet.us>
-References: <20170606180717.5007-1-robert@leblancnet.us>
-Reply-To: open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: rdma-core out-of-tree user library
+Date: Tue, 6 Jun 2017 21:14:29 +0300
+Message-ID: <20170606181428.GW6868@mtr-leonro.local>
+References: <BN3PR07MB25781554943206E577DFC714F8CB0@BN3PR07MB2578.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <open-iscsi+bncBCE4FWGB4QCRBYW63PEQKGQEKC6P6SA-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-Sender: open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-In-Reply-To: <20170606180717.5007-1-robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-List-Post: <https://groups.google.com/group/open-iscsi/post>, <mailto:open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <https://groups.google.com/support/>, <mailto:open-iscsi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <https://groups.google.com/group/open-iscsi
-List-Subscribe: <https://groups.google.com/group/open-iscsi/subscribe>, <mailto:open-iscsi+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+856124926423+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <https://groups.google.com/group/open-iscsi/subscribe>
-To: lduncan-IBi9RG/b67k@public.gmane.org
-Cc: cleech-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, subbu.seetharaman-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, ketan.mukadam-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, jitendra.bhivare-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, QLogic-Storage-Upstream-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, varun-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="xPLL5cPndR2UZ7Mw"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <BN3PR07MB25781554943206E577DFC714F8CB0-EldUQEzkDQfpW3VS/XPqkOFPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If the iface passed in has ip address set, then attept to create an RDMA
-connection using it as the source IP address. This allows iSER to use
-multiple ports on the same network or in more complex routing
-configurations. Also update to accepting sockaddr_storage.
 
-Signed-off-by: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
----
- drivers/infiniband/ulp/iser/iscsi_iser.c     | 33 ++++++++++++++++++++++++----
- drivers/infiniband/ulp/iser/iscsi_iser.h     |  4 ++--
- drivers/infiniband/ulp/iser/iser_initiator.c |  1 +
- drivers/infiniband/ulp/iser/iser_memory.c    |  1 +
- drivers/infiniband/ulp/iser/iser_verbs.c     |  8 ++++---
- 5 files changed, 38 insertions(+), 9 deletions(-)
+--xPLL5cPndR2UZ7Mw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-index 5a887efb4bdf..7ba5ed9afe05 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.c
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-@@ -59,6 +59,7 @@
- #include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/module.h>
-+#include <linux/inet.h>
- 
- #include <net/sock.h>
- 
-@@ -808,12 +809,16 @@ static int iscsi_iser_get_ep_param(struct iscsi_endpoint *ep,
-  *         if fails.
-  */
- static struct iscsi_endpoint *
--iscsi_iser_ep_connect(struct Scsi_Host *shost, struct sockaddr *dst_addr,
--		      int non_blocking)
-+iscsi_iser_ep_connect(struct Scsi_Host *shost, struct sockaddr_storage *dst_addr,
-+		      int non_blocking, struct iface_rec *iface)
- {
- 	int err;
- 	struct iser_conn *iser_conn;
- 	struct iscsi_endpoint *ep;
-+	struct sockaddr_storage src_addr;
-+	struct sockaddr_in *tmp_addr;
-+	struct sockaddr_in6 *tmp_addr6;
-+	memset(&src_addr, 0, sizeof(src_addr));
- 
- 	ep = iscsi_create_endpoint(0);
- 	if (!ep)
-@@ -828,8 +833,28 @@ iscsi_iser_ep_connect(struct Scsi_Host *shost, struct sockaddr *dst_addr,
- 	ep->dd_data = iser_conn;
- 	iser_conn->ep = ep;
- 	iser_conn_init(iser_conn);
--
--	err = iser_connect(iser_conn, NULL, dst_addr, non_blocking);
-+	if (iface && iface->ipaddress[0]) {
-+		if (strchr(iface->ipaddress, ':')) {
-+			tmp_addr6 = (struct sockaddr_in6 *)&src_addr;
-+			tmp_addr6->sin6_family = AF_INET6;
-+			if(!in6_pton(iface->ipaddress, -1,
-+				 tmp_addr6->sin6_addr.s6_addr,
-+				 -1, NULL)) {
-+				err = -EINVAL;
-+				goto failure;
-+			}
-+		} else {
-+			tmp_addr = (struct sockaddr_in *)&src_addr;
-+			tmp_addr->sin_family = AF_INET;
-+			if (!in4_pton(iface->ipaddress, -1,
-+				 (u8 *)&tmp_addr->sin_addr.s_addr,
-+				 -1, NULL)) {
-+				err = -EINVAL;
-+				goto failure;
-+			}
-+		}
-+	}
-+	err = iser_connect(iser_conn, &src_addr, dst_addr, non_blocking);
- 	if (err)
- 		goto failure;
- 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.h b/drivers/infiniband/ulp/iser/iscsi_iser.h
-index c1ae4aeae2f9..1eda6ff49bdc 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.h
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.h
-@@ -628,8 +628,8 @@ void iser_unreg_rdma_mem(struct iscsi_iser_task *task,
- 			 enum iser_data_dir dir);
- 
- int  iser_connect(struct iser_conn *iser_conn,
--		  struct sockaddr *src_addr,
--		  struct sockaddr *dst_addr,
-+		  struct sockaddr_storage *src_addr,
-+		  struct sockaddr_storage *dst_addr,
- 		  int non_blocking);
- 
- void iser_unreg_mem_fmr(struct iscsi_iser_task *iser_task,
-diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
-index 12ed62ce9ff7..361d5e411fe7 100644
---- a/drivers/infiniband/ulp/iser/iser_initiator.c
-+++ b/drivers/infiniband/ulp/iser/iser_initiator.c
-@@ -35,6 +35,7 @@
- #include <linux/mm.h>
- #include <linux/scatterlist.h>
- #include <linux/kfifo.h>
-+#include <linux/if.h>
- #include <scsi/scsi_cmnd.h>
- #include <scsi/scsi_host.h>
- 
-diff --git a/drivers/infiniband/ulp/iser/iser_memory.c b/drivers/infiniband/ulp/iser/iser_memory.c
-index 9c3e9ab53a41..c9d95b997820 100644
---- a/drivers/infiniband/ulp/iser/iser_memory.c
-+++ b/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -36,6 +36,7 @@
- #include <linux/mm.h>
- #include <linux/highmem.h>
- #include <linux/scatterlist.h>
-+#include <linux/if.h>
- 
- #include "iscsi_iser.h"
- static
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index c538a38c91ce..0a43009296b6 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -35,6 +35,7 @@
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/delay.h>
-+#include <linux/if.h>
- 
- #include "iscsi_iser.h"
- 
-@@ -941,8 +942,8 @@ void iser_conn_init(struct iser_conn *iser_conn)
-  * sleeps until the connection is established or rejected
-  */
- int iser_connect(struct iser_conn   *iser_conn,
--		 struct sockaddr    *src_addr,
--		 struct sockaddr    *dst_addr,
-+		 struct sockaddr_storage *src_addr,
-+		 struct sockaddr_storage *dst_addr,
- 		 int                 non_blocking)
- {
- 	struct ib_conn *ib_conn = &iser_conn->ib_conn;
-@@ -968,7 +969,8 @@ int iser_connect(struct iser_conn   *iser_conn,
- 		goto id_failure;
- 	}
- 
--	err = rdma_resolve_addr(ib_conn->cma_id, src_addr, dst_addr, 1000);
-+	err = rdma_resolve_addr(ib_conn->cma_id, (struct sockaddr *)src_addr,
-+		       		(struct sockaddr *)dst_addr, 1000);
- 	if (err) {
- 		iser_err("rdma_resolve_addr failed: %d\n", err);
- 		goto addr_failure;
--- 
-2.11.0
+On Tue, Jun 06, 2017 at 12:49:21PM +0000, Amrani, Ram wrote:
+> How are other providers handling this?
 
--- 
-You received this message because you are subscribed to the Google Groups "open-iscsi" group.
-To unsubscribe from this group and stop receiving emails from it, send an email to open-iscsi+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-To post to this group, send email to open-iscsi-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-Visit this group at https://groups.google.com/group/open-iscsi.
-For more options, visit https://groups.google.com/d/optout.
+We are opening bugzilla tickets in RH system (other distro similar) to
+update relevant libraries.
+
+Thanks
+
+>
+> Thanks,
+> Ram
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--xPLL5cPndR2UZ7Mw
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlk28QQACgkQ5GN7iDZy
+WKcfHg/+P8UerOZXf3HLENrCqZkLR/rKJIL1smY2BauDxWtZjTxP0iajVtw7EFwd
+qeAFPRCJ7XYgG4uMEwYyNWmfa/O/b1znsXTAPOvuikTmcyUE3SNipxdrptRGJOph
+UGgxBWPrDhsKp3OVm4N7iLjojq2irtrxON0Kt4HSuIGKqO9tBOhexII1tG4bla6a
+q+GQSGDbCJvTF/x2Lqm1KXwSnVQs5TyoPS6CzW73YL0wh1D2M5/X/wk2IMqfVyV5
+MnliF2z+lMaQ2R5nfKcOjZv2ah5mZGcWAt7nOKlQcX8wGFZwEANBZQRQEQu0Jneq
+AAtv0WzQ67EAvX1rNYlSpqkit/gsa6aXFTlumZZxuGZYpq+kaydpK6XYSLyjSCnF
+bFMKsqApb8IxoKqNRGVLN9T/ZqHv3nP/B/Aa/kyIfAM3/n5PW4XLDQUlltCviWCt
+hey80lUmiSOeyKlQHzrMLkkCGUWZIq9X7NU/TH65KeCQ7FFta7LV3oCGpcYKLn2T
+kvBnOkzvXsYJ2fDSGTxpJ4WO2dBEpjf6504DkR4obXORFLy2ft6uOe11wkRZe+JA
+VtdJ3oS/83LMyPlWvlfZPU2mDbLw7Wl+JtVq9lQlnUf4KVLt+SFFqof3a3gxcf0R
+wDM+aJMMqk9En/3wEaGL5kje2rhm3nmeoOroZCzSMfbaes+iBR4=
+=kpuN
+-----END PGP SIGNATURE-----
+
+--xPLL5cPndR2UZ7Mw--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
