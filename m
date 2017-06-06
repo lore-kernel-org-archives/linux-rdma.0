@@ -1,239 +1,45 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/core: Add generic function to extract IB speed from netdev
-Date: Tue,  6 Jun 2017 15:38:54 +0300
-Message-ID: <20170606123854.1236-1-yuval.shaia@oracle.com>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: rdma-core out-of-tree user library
+Date: Tue, 6 Jun 2017 12:49:21 +0000
+Message-ID: <BN3PR07MB25781554943206E577DFC714F8CB0@BN3PR07MB2578.namprd07.prod.outlook.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagi-TmH2Wj2nsNJBDLzU/O5InQ@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Logic of retriving netdev speed from net_device and translating it to IB
-speed is implemented both in rxe and bnxt drivers.
+Hi Jason, Leon, Doug, All,
+A provider's out-of-tree user library cannot be built against rdma-core, be=
+cause the
+API is hidden to out-of-tree libraries. This was due to a decision taken mo=
+nths back.
+The distros have adopted this approach as-is and it is going to be part of =
+the next
+releases. While this approach ensures all of the components are in-sync, it=
+ has its
+disadvantages.
 
-Define new function which merges both.
+There is typically a gap of several months between two inbox releases.
+New features and fixes are delivered to the next inbox releases, but we wou=
+ld like to
+have the ability to supply an outbox user library to customers in between. =
+It may
+also happen that customers can only adopt the new inbox version with a dela=
+y, or even
+worse, if they cannot adopt it at all due to various reasons.
 
-Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
-Please note that this patch kills the following mail threads:
-	* [PATCH] IB/bnxt_re: Check return value from get_link_ksettings
-	* [PATCH 1/2] IB/rxe: Check return value from get_settings
-	* [PATCH 2/2] IB/rxe: Protect call to get_link_ksettings with rtnl lock
----
- drivers/infiniband/core/verbs.c          | 52 ++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 48 ++---------------------------
- drivers/infiniband/sw/rxe/rxe_verbs.c    | 43 +-------------------------
- include/rdma/ib_verbs.h                  |  1 +
- 4 files changed, 56 insertions(+), 88 deletions(-)
+I guess this is something you have thought of. If so, what were/are your th=
+oughts about
+creating intermediate out-of-box versions?
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 4792f52..de40434 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1253,6 +1253,58 @@ int ib_resolve_eth_dmac(struct ib_device *device,
- }
- EXPORT_SYMBOL(ib_resolve_eth_dmac);
- 
-+void ib_get_speed(struct net_device *netdev, u8 *speed, u8 *width)
-+{
-+	int rc;
-+	u32 netdev_speed = SPEED_UNKNOWN;
-+
-+	if (netdev->ethtool_ops->get_link_ksettings) {
-+		struct ethtool_link_ksettings lksettings;
-+
-+		rtnl_lock();
-+		rc = netdev->ethtool_ops->get_link_ksettings(netdev,
-+							     &lksettings);
-+		rtnl_unlock();
-+
-+		if (!rc)
-+			netdev_speed = lksettings.base.speed;
-+	} else if (netdev->ethtool_ops->get_settings) {
-+		struct ethtool_cmd cmd;
-+
-+		rc = netdev->ethtool_ops->get_settings(netdev, &cmd);
-+
-+		if (!rc)
-+			netdev_speed = cmd.speed;
-+	}
-+
-+	if (netdev_speed == SPEED_UNKNOWN) {
-+		netdev_speed = SPEED_1000;
-+		pr_warn("%s speed is unknown, defaulting to %d\n", netdev->name,
-+			netdev_speed);
-+	}
-+
-+	if (netdev_speed <= SPEED_1000) {
-+		*width = IB_WIDTH_1X;
-+		*speed = IB_SPEED_SDR;
-+	} else if (netdev_speed <= SPEED_10000) {
-+		*width = IB_WIDTH_1X;
-+		*speed = IB_SPEED_FDR10;
-+	} else if (netdev_speed <= SPEED_20000) {
-+		*width = IB_WIDTH_4X;
-+		*speed = IB_SPEED_DDR;
-+	} else if (netdev_speed <= SPEED_25000) {
-+		*width = IB_WIDTH_1X;
-+		*speed = IB_SPEED_EDR;
-+	} else if (netdev_speed <= SPEED_40000) {
-+		*width = IB_WIDTH_4X;
-+		*speed = IB_SPEED_FDR10;
-+	} else {
-+		*width = IB_WIDTH_4X;
-+		*speed = IB_SPEED_EDR;
-+	}
-+}
-+EXPORT_SYMBOL(ib_get_speed);
-+
- int ib_modify_qp(struct ib_qp *qp,
- 		 struct ib_qp_attr *qp_attr,
- 		 int qp_attr_mask)
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index 7ba9e69..9a34c06 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -181,50 +181,6 @@ int bnxt_re_modify_device(struct ib_device *ibdev,
- 	return 0;
- }
- 
--static void __to_ib_speed_width(struct net_device *netdev, u8 *speed, u8 *width)
--{
--	struct ethtool_link_ksettings lksettings;
--	u32 espeed;
--
--	if (netdev->ethtool_ops && netdev->ethtool_ops->get_link_ksettings) {
--		memset(&lksettings, 0, sizeof(lksettings));
--		rtnl_lock();
--		netdev->ethtool_ops->get_link_ksettings(netdev, &lksettings);
--		rtnl_unlock();
--		espeed = lksettings.base.speed;
--	} else {
--		espeed = SPEED_UNKNOWN;
--	}
--	switch (espeed) {
--	case SPEED_1000:
--		*speed = IB_SPEED_SDR;
--		*width = IB_WIDTH_1X;
--		break;
--	case SPEED_10000:
--		*speed = IB_SPEED_QDR;
--		*width = IB_WIDTH_1X;
--		break;
--	case SPEED_20000:
--		*speed = IB_SPEED_DDR;
--		*width = IB_WIDTH_4X;
--		break;
--	case SPEED_25000:
--		*speed = IB_SPEED_EDR;
--		*width = IB_WIDTH_1X;
--		break;
--	case SPEED_40000:
--		*speed = IB_SPEED_QDR;
--		*width = IB_WIDTH_4X;
--		break;
--	case SPEED_50000:
--		break;
--	default:
--		*speed = IB_SPEED_SDR;
--		*width = IB_WIDTH_1X;
--		break;
--	}
--}
--
- /* Port */
- int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
- 		       struct ib_port_attr *port_attr)
-@@ -266,8 +222,8 @@ int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
- 	 * IB stack to avoid race in the NETDEV_UNREG path
- 	 */
- 	if (test_bit(BNXT_RE_FLAG_IBDEV_REGISTERED, &rdev->flags))
--		__to_ib_speed_width(rdev->netdev, &port_attr->active_speed,
--				    &port_attr->active_width);
-+		ib_get_speed(rdev->netdev, &port_attr->active_speed,
-+			     &port_attr->active_width);
- 	return 0;
- }
- 
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 83d709e..cdac9f2 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -51,36 +51,11 @@ static int rxe_query_device(struct ib_device *dev,
- 	return 0;
- }
- 
--static void rxe_eth_speed_to_ib_speed(int speed, u8 *active_speed,
--				      u8 *active_width)
--{
--	if (speed <= 1000) {
--		*active_width = IB_WIDTH_1X;
--		*active_speed = IB_SPEED_SDR;
--	} else if (speed <= 10000) {
--		*active_width = IB_WIDTH_1X;
--		*active_speed = IB_SPEED_FDR10;
--	} else if (speed <= 20000) {
--		*active_width = IB_WIDTH_4X;
--		*active_speed = IB_SPEED_DDR;
--	} else if (speed <= 30000) {
--		*active_width = IB_WIDTH_4X;
--		*active_speed = IB_SPEED_QDR;
--	} else if (speed <= 40000) {
--		*active_width = IB_WIDTH_4X;
--		*active_speed = IB_SPEED_FDR10;
--	} else {
--		*active_width = IB_WIDTH_4X;
--		*active_speed = IB_SPEED_EDR;
--	}
--}
--
- static int rxe_query_port(struct ib_device *dev,
- 			  u8 port_num, struct ib_port_attr *attr)
- {
- 	struct rxe_dev *rxe = to_rdev(dev);
- 	struct rxe_port *port;
--	u32 speed;
- 
- 	if (unlikely(port_num != 1)) {
- 		pr_warn("invalid port_number %d\n", port_num);
-@@ -93,23 +68,7 @@ static int rxe_query_port(struct ib_device *dev,
- 	*attr = port->attr;
- 
- 	mutex_lock(&rxe->usdev_lock);
--	if (rxe->ndev->ethtool_ops->get_link_ksettings) {
--		struct ethtool_link_ksettings ks;
--
--		rxe->ndev->ethtool_ops->get_link_ksettings(rxe->ndev, &ks);
--		speed = ks.base.speed;
--	} else if (rxe->ndev->ethtool_ops->get_settings) {
--		struct ethtool_cmd cmd;
--
--		rxe->ndev->ethtool_ops->get_settings(rxe->ndev, &cmd);
--		speed = cmd.speed;
--	} else {
--		pr_warn("%s speed is unknown, defaulting to 1000\n",
--			rxe->ndev->name);
--		speed = 1000;
--	}
--	rxe_eth_speed_to_ib_speed(speed, &attr->active_speed,
--				  &attr->active_width);
-+	ib_get_speed(rxe->ndev, &attr->active_speed, &attr->active_width);
- 	mutex_unlock(&rxe->usdev_lock);
- 
- 	return 0;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index ba8314e..2c57f32 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -3488,6 +3488,7 @@ void ib_drain_qp(struct ib_qp *qp);
- 
- int ib_resolve_eth_dmac(struct ib_device *device,
- 			struct rdma_ah_attr *ah_attr);
-+void ib_get_speed(struct net_device *netdev, u8 *speed, u8 *width);
- 
- static inline u8 *rdma_ah_retrieve_dmac(struct rdma_ah_attr *attr)
- {
--- 
-2.9.4
+How are other providers handling this?
+
+Thanks,
+Ram
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
