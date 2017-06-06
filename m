@@ -1,81 +1,71 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC] libibverbs IB Device Memory support
-Date: Tue, 6 Jun 2017 08:52:29 +0300
-Message-ID: <20170606055229.GT6868@mtr-leonro.local>
-References: <CADWppnpd9Up7wUTxRgSinhgx3kt3+0bKwgt6P_d3CV1oA90isQ@mail.gmail.com>
- <20170605172058.GB20477@obsidianresearch.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH for-next 0/5] Some fixes for HNS RoCE driver
+Date: Tue, 6 Jun 2017 09:21:44 +0300
+Message-ID: <20170606062144.GU6868@mtr-leonro.local>
+References: <1496712288-63434-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="SvyA5ywaG/v2A5dH"
+        protocol="application/pgp-signature"; boundary="Q8a9NmTVi5AMeZ2v"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170605172058.GB20477-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1496712288-63434-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: ahmad omary <ahmad151084-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ahmad Omary <ahmad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Rosenbaum <Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---SvyA5ywaG/v2A5dH
+--Q8a9NmTVi5AMeZ2v
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Jun 05, 2017 at 11:20:58AM -0600, Jason Gunthorpe wrote:
-> On Wed, May 10, 2017 at 02:25:23PM +0300, ahmad omary wrote:
+On Tue, Jun 06, 2017 at 09:24:43AM +0800, Lijun Ou wrote:
+> This patchset introduces some fixes for the identified problems
+> according to the changed IB/core and others reviews.
 >
-> > struct ibv_dm *ibv_alloc_dm(struct ibv_context *context,
-> >    struct ibv_alloc_dm_attr *dm_attr);
-> >
-> > struct ibv_alloc_dm_attr{
-> > size_t length;
-> > uint32_t comp_mask; /*enable future extensions*/
-> > }
->
-> Can we please stop this madness where every function call needs to
-> accept a struct?
->
-> It is perfectly fine to add new function calls if new arguments are
-> needed someday.
+> Lijun Ou (5):
+>   IB/hns: Fix the bug of polling cq failed for loopback Qps
+>   IB/hns: Fix the bug with wild pointer when destroy rc qp
+>   IB/hns: Fix the bug with rdma operation
+>   IB/hns: Fix the bug with modifying the MAC address without removing
+>     the driver
+>   IB/hns: Fix for checkpatch.pl comment style warnings
 
-IMHO, generally speaking, it is better and cleaner to have similar functions
-signatures for all APIs which is exported to user.
+It will be really helpful if you follow the SubmittingPatches guide,
+use proper title, add Fixes line and provide meaningful description.
+
+Thanks
 
 >
-> > int ibv_memcpy_dm(struct ibv_dm *dm, struct ibv_memcpy_dm_attr *
-> > memcpy_dm_attr);
+>  drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 82 ++++++++++++++++++------------
+>  drivers/infiniband/hw/hns/hns_roce_main.c  |  3 --
+>  2 files changed, 50 insertions(+), 35 deletions(-)
 >
-> To be clear, this is has to be a sycall, right?
-
-Yes
-
->
-> Jason
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 1.9.1
+>
 
---SvyA5ywaG/v2A5dH
+--Q8a9NmTVi5AMeZ2v
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlk2QxwACgkQ5GN7iDZy
-WKdQjBAApB3FC2Y09tZJu8uaxhtmkMSXdScG/HI8ZwVv1bfzkYtBZMXMqLOhYhn/
-WUqXwZXFl42lcrResO/s6c/tliAT5m06R+n2D4JxhrRY/bcVFKUvL8q61uScyytK
-ozfe+bG4+qz9Uv7FUMJ8sVqO1jyhiiziRa+JGyIvCxax1pu2WI6RDxCgnhPN11QY
-6CYPi4f0oxHALuVSaH0Xeei7rZaZZx/yftPW247KjwSxtei5ip1uxH+cLhbO545Q
-GcMkKV3ZHVXPeHrv4TA8BvsM7u3DfTSkNliuXnTpwoejbBYli8GU6SnG+KppyPrK
-jjtRK8FVCYjBLgMCnnZmQUB76WHlUq2NFnP2aQFq7qQn1PVhNtaKnCuvB097tdqu
-4sN5fiL3KbwQzm0kr9OWKlWmZUzOadyKnEtlvoqRmkZ05bkgNghEwunP64UlBSSW
-/4yAiDRdTeanIyUBHONdBjzB/fadsoa5LZK5YRh87O8Mg+F1YcECrrzQEzxauYKx
-zl9/lOfnUSI1iLhakCpnaRFXQy5HdYztk9hk5FNuSucwtRz7Dsby5lcp/fGerjBA
-VeR2nbHrAar0kqzGZgmGa0/G+Ipz6bGHzpftBV1aVq0G70oICVTHWLWacnvSeT6y
-NSISFfqnqP1oYHwEnS/1pl+MoufxMNOzvIEJDhWU+dxoNuY4f70=
-=zEV3
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlk2SfgACgkQ5GN7iDZy
+WKfX/RAAkHs6BqzbITutgRhQOtjOrBnk6pPkZp9E3xVJJ34SiJ1urVOYiI7hWRyg
+hvAVbjPHltM71cQwOpyV+Je9Z8G4Oe+xptpLADqD+YXa9QN99djnKTzKDGk1ttLW
+oWFymE1OomBmDbAkMYP6VZfHbS/aPi6dajSuYiH86Arvz9Nt3MbPArdoIbwymC6l
+1diIt/yieXPeWz24XwmlIGSR6sWUzdEdQraamV3UfZ2hvaBYu2yWpWcJSfPg/DAR
+LFy3sQd/HynA3ERn/mZx1xgu6095uA+ebwDfV2Gs9kIvEezZn0wmU1nx6NlyDM9O
+MKMdjQ1qMpMwbF51Ezv5KZ4cauJBpJKo0yno6DMFOxBDjm4uEgp+XuQX2FIMxmqJ
+oOtIEwAKbvN/W+Ay9rdS0VC+SG3Ey3bKXh9iIJNVQd77SM2Nc96fvTah/eFZ6rxG
+iF09IadBmEUPrmteiQC4BOksyybuPajY11x8u2nopL/SxjH2bXWTLZlHed9yjRmX
+dC77eQBWG0HvD5vHcDPFS3aMz3IA+GPxMqTejzTWRABXzhbNtClD3QF2jQqeQVR8
+QlxCWXTeQAlid8HZT/uxODq2heenY2hfCoE6zRmwCitc/F8AUM/IfB8dVXj6T8JP
+8y1TcIhsp7dNREdoRK1RaJK/lTpnuCAlz3e+XDtjqnUYLAqD1uU=
+=S3Jo
 -----END PGP SIGNATURE-----
 
---SvyA5ywaG/v2A5dH--
+--Q8a9NmTVi5AMeZ2v--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
