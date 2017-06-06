@@ -1,24 +1,45 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH v3 for-4.13 0/6] Automatic affinity settings for nvme
-        over rdma
-Date: Tue, 6 Jun 2017 11:31:38 +0200
-Message-ID: <20170606093138.GA18646@lst.de>
-References: <1496644560-28923-1-git-send-email-sagi@grimberg.me>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/bnxt_re: Check return value from get_link_ksettings
+Date: Tue, 6 Jun 2017 14:30:27 +0300
+Message-ID: <20170606113026.GA21437@yuvallap>
+References: <20170605091429.16232-1-yuval.shaia@oracle.com>
+ <CAG9sBKODJaecc2m-GTqU8H=jttPAr+iCcZK0wknEfXerz6TL+A@mail.gmail.com>
+ <20170605124213.GA2750@yuvallap>
+ <20170605133831.GO6868@mtr-leonro.local>
+ <20170605143028.GB3391@yuvallap>
+ <CAG9sBKPkW9kedMUTOYPESUm8gJkYk4vRSuC3amOCNa+fHEnw+g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1496644560-28923-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <CAG9sBKPkW9kedMUTOYPESUm8gJkYk4vRSuC3amOCNa+fHEnw+g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 05, 2017 at 09:35:54AM +0300, Sagi Grimberg wrote:
-> Doug, please consider this patch set for 4.13.
+On Mon, Jun 05, 2017 at 06:04:18PM +0300, Moni Shoua wrote:
+> >
+> > In this case i have two questions.
+> > - rxe_query_port translates speeds to ib_speed by range where
+> >   __to_ib_speed_width translates by fixed speeds. Which one is correct?
+> it depends. If lksettings.base.speed is an enum value of any value.
+> only one can be true
+> > - rxe_query_port fallback to get_settings where __to_ib_speed_width just
+> >   take default if get_link_ksettings is not implemented. Which one is correct?
+> In this case I would go for rxe implementation.
+> >
 
-Yes, please.  It would also be great if the maintainers of non-mlx5
-HCA drivers could look into supporting this scheme.
+Ok, i will do my best to merge the two functions correctly.
+In addition to the above two questions (and thanks for your quick
+response), i've noticed some conflicts in how bnxt translate to IB speed
+and how rxe does. For example bnxt.10000=QDR while rxe.10000=FDR10 so will
+appreciate a careful review here.
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
