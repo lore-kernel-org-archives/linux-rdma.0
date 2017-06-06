@@ -1,91 +1,87 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC] libibverbs IB Device Memory support
-Date: Tue, 6 Jun 2017 09:31:08 +0300
-Message-ID: <20170606063108.GV6868@mtr-leonro.local>
-References: <CADWppnpd9Up7wUTxRgSinhgx3kt3+0bKwgt6P_d3CV1oA90isQ@mail.gmail.com>
- <20170605172058.GB20477@obsidianresearch.com>
- <20170606055229.GT6868@mtr-leonro.local>
+From: Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [for-next 4/6] net/mlx5: FPGA, Add basic support for Innova
+Date: Tue, 6 Jun 2017 06:52:15 +0000
+Message-ID: <AM4PR0501MB194008AAABEB6AAAA2ADFC82DBCB0@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+References: <20170526175624.5xxflpf24je5673h@ast-mbp>
+ <20170526181517.GA3860@obsidianresearch.com>
+ <AM4PR0501MB1940330F0EBAA819C87C5278DBF20@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+ <20170529153131.GB7924@obsidianresearch.com>
+ <AM4PR0501MB1940D05A19F098286B99EAD0DBF30@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+ <20170529160252.GA27550@obsidianresearch.com>
+ <AM4PR0501MB194037FF8F17466BC9ECC73DDBF30@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+ <AM4PR0501MB19409139227E11A4A7F82F0FDBF30@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+ <20170601153704.GA1680@obsidianresearch.com>
+ <AM4PR0501MB19404B83A69B87AFB1326B45DBF50@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+ <20170605151724.GA20182@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="YvpO9wCO44Ze8QQC"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170606055229.GT6868-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20170605151724.GA20182-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: ahmad omary <ahmad151084-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ahmad Omary <ahmad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Rosenbaum <Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Alexei Starovoitov <alexei.starovoitov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jsorensen-b10kYP2dOMg@public.gmane.org" <jsorensen-b10kYP2dOMg@public.gmane.org>, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-fpga-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fpga-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Tull <atull-yzvPICuk2ABMcg4IHK0kFoH6Mc4MB0Vx@public.gmane.org>, "yi1.li-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <yi1.li-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---YvpO9wCO44Ze8QQC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Jun 06, 2017 at 08:52:29AM +0300, Leon Romanovsky wrote:
-> On Mon, Jun 05, 2017 at 11:20:58AM -0600, Jason Gunthorpe wrote:
-> > On Wed, May 10, 2017 at 02:25:23PM +0300, ahmad omary wrote:
-> >
-> > > struct ibv_dm *ibv_alloc_dm(struct ibv_context *context,
-> > >    struct ibv_alloc_dm_attr *dm_attr);
-> > >
-> > > struct ibv_alloc_dm_attr{
-> > > size_t length;
-> > > uint32_t comp_mask; /*enable future extensions*/
-> > > }
-> >
-> > Can we please stop this madness where every function call needs to
-> > accept a struct?
-> >
-> > It is perfectly fine to add new function calls if new arguments are
-> > needed someday.
->
-> IMHO, generally speaking, it is better and cleaner to have similar functions
-> signatures for all APIs which is exported to user.
->
-> >
-> > > int ibv_memcpy_dm(struct ibv_dm *dm, struct ibv_memcpy_dm_attr *
-> > > memcpy_dm_attr);
-> >
-> > To be clear, this is has to be a sycall, right?
->
-> Yes
-
-Or to be more clear, it depends on the memory type exposed and specific vendor
-implementation (memcpy, e.t.c.).
-
-Thanks
-
->
-> >
-> > Jason
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
---YvpO9wCO44Ze8QQC
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlk2TCwACgkQ5GN7iDZy
-WKezJg/9HIa3M1WlCFJK8bxZqHF4ybn6v4DN0mth+HPHIAIXe63mogRzLT/0DugR
-3uyxVbYiisbHcMscM870hHtofYuSGTdteJawyomQbnUvYxLwWx9ojsj9TD+jekBk
-6yBjnAObM6IcG/1aYf84wcGUabD1v5LrtHKxB2qgcoTHOQef3ShnZrJfg1YsiQQw
-wIty6Q7a3eDfPcxr4w72mKWUH+ymZ+fc32fQ6kERHdaQm7/PC/mGhLJF+PywlK3E
-wuZ5bExThADuvCu1Lfe/mP6MqmmwPRkh6lafv+ahgabezGV4Le7BZPYGt2WlSK7P
-eqrb4cWUxDUAYtP9z9nQkQVpyZR02+IFVf/vAxHSwCFEFTBXcGGmgdkB+SDWJYk7
-pFbMbb1uYt54Cjs9ClWaETLiyFSpBzeOCmlZ0Gg1YlDe6ppdEQZYtfq1jHwQtgdz
-LoTXLoRiSTBc53FO7DepnLOtxhbFea4LgEe8z/VUjTxfPQijrUYks3LUvZ8ZezFj
-kEPZAYLc32jjJD+sfgxUzasiHXC7QTYjDrJ4+mfDZFlWlsnG2JOUDDZEeZTvQfFQ
-hyZpI/anqoP1zBsS45HfvriReecc0Gtan8iXLIt5341lXRea4NRxXHgJ8R1tzex5
-iFSJjom5RMcqK4urSCPzpXf0fS5gRKXaAdNMdKUE2chcDjAsYiY=
-=WbWl
------END PGP SIGNATURE-----
-
---YvpO9wCO44Ze8QQC--
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBKYXNvbiBHdW50aG9ycGUgW21h
+aWx0bzpqZ3VudGhvcnBlQG9ic2lkaWFucmVzZWFyY2guY29tXQ0KPiBTdWJqZWN0OiBSZTogW2Zv
+ci1uZXh0IDQvNl0gbmV0L21seDU6IEZQR0EsIEFkZCBiYXNpYyBzdXBwb3J0IGZvciBJbm5vdmEN
+Cj4gDQo+IE9uIFN1biwgSnVuIDA0LCAyMDE3IGF0IDA3OjUxOjI0QU0gKzAwMDAsIElsYW4gVGF5
+YXJpIHdyb3RlOg0KPiA+ID4gRnJvbTogSmFzb24gR3VudGhvcnBlIFttYWlsdG86amd1bnRob3Jw
+ZUBvYnNpZGlhbnJlc2VhcmNoLmNvbV0NCj4gPiA+IFN1YmplY3Q6IFJlOiBbZm9yLW5leHQgNC82
+XSBuZXQvbWx4NTogRlBHQSwgQWRkIGJhc2ljIHN1cHBvcnQgZm9yDQo+IElubm92YQ0KPiA+ID4N
+Cj4gPiA+IE9uIE1vbiwgTWF5IDI5LCAyMDE3IGF0IDA0OjA5OjA2UE0gKzAwMDAsIElsYW4gVGF5
+YXJpIHdyb3RlOg0KPiA+ID4NCj4gPiA+ID4gPiBGb3IgSVBTZWMsIHRoaXMgaXMgYWxyZWFkeSBp
+biB0aGUga2VybmVsLg0KPiA+ID4gPiA+IFNlZSB0aGlzIHBhdGNoc2V0Og0KPiA+ID4gPiA+IGh0
+dHA6Ly93d3cubWFpbC1hcmNoaXZlLmNvbS9uZXRkZXZAdmdlci5rZXJuZWwub3JnL21zZzE2Mjg3
+Ni5odG1sDQo+ID4gPiA+DQo+ID4gPiA+IFNvcnJ5LCBJIHBvaW50ZWQgYXQgdGhlIFJGQyBieSBt
+aXN0YWtlLg0KPiA+ID4gPg0KPiA+ID4gPiBUaGlzIGlzIHRoZSByZWxldmFudCBwdWxsIHJlcXVl
+c3Q6DQo+ID4gPiA+IGh0dHBzOi8vcGF0Y2h3b3JrLm96bGFicy5vcmcvcGF0Y2gvNzUyNzA3Lw0K
+PiA+ID4NCj4gPiA+IFRoaXMgaXMgY29ubmVjdGluZyBpcHNlYyB0byBhIG5ldGRldiwgd2hpbGUg
+SW5ub3ZhIHNlZW1zIHRvIGJlIGENCj4gPg0KPiA+IEphc29uLA0KPiA+DQo+ID4gIm5ldHdvcmsg
+Y29ubmVjdGVkIGlwc2VjIGFjY2VsZXJhdG9yIGNvbmZpZ3VyZWQgdXNpbmcgSVAgcGFja2V0cy4i
+DQo+ID4gTm8uIFRoaXMgaXMgaW5jb3JyZWN0Lg0KPiA+IFdoZXJlIGRpZCB5b3UgZ2V0IHRoYXQg
+ZnJvbT8NCj4gDQo+IFRoYXQgaXMgd2hhdCB5b3UgZGVzY3JpYmVkIHRvIG1lIC0geW91IHNhaWQg
+dGhlIG9ubHkgd2F5IHRvIGNvbmZpZ3VyZQ0KPiB0aGUgRlBHQSB3YXMgdmlhIElQIHBhY2tldHMg
+aW4tYmFuZC4gSXQgaXMgbm90IHBhcnQgb2YgdGhlIE5JQyBhbmQgdGhlDQo+IE5JQyBvbmx5IGxv
+YWRzIHRoZSBGUEdBIGJpdHN0cmVhbS4NCj4gDQo+IE1heWJlIHlvdSBzaG91bGQgZXhwbGFpbiBt
+b3JlIGhvdyB0aGlzIHdvcmtzPw0KDQpJIHRoaW5rIHRoaXMgaXMganVzdCBhIG1pc3VuZGVyc3Rh
+bmRpbmcuDQpUaGUgRlBHQSBpcyBwYXJ0IG9mIHRoaXMgTklDLCBub3Qgc29tZXRoaW5nIGV4dGVy
+bmFsLg0KDQpUaGUgZmFjdCB0aGF0IHdlIGNvbmZpZ3VyZSB0aGUgRlBHQSB1c2luZyBzcGVjaWFs
+IGluYmFuZCBwYWNrZXRzIGlzbid0DQpjaGFuZ2luZyBhbnl0aGluZy4gSU1PLCBpdCBtaWdodCBo
+YXZlIGJlZW4gYW55IG90aGVyIGJ1cyBvbiB0aGUgY2FyZCwNCnN0YW5kYXJkIG9yIHByb3ByaWV0
+YXJ5LCBhbmQgdGhlIGFyZ3VtZW50cyBmb3IgaG93IHRvIGRlc2lnbiB0aGUgZHJpdmVyDQp3b3Vs
+ZCBzdGF5IHRoZSBzYW1lLg0KDQpOb3RlIHRoYXQgdGhlc2UgcGFja2V0cyBhcmUgbm90IGdlbmVy
+YXRlZCBhcyBJUCBwYWNrZXRzIGF0IHRoZSBob3N0Lg0KVGhleSBhcmUgUm9DRSBwYWNrZXRzLiBU
+aGUgY29tbWFuZCBwYXlsb2FkIGlzIGdlbmVyYXRlZCBieSB0aGUgZHJpdmVyLA0KdGhlbiB0aGUg
+UVAgYW5kIFJvQ0UgaGVhZGVycyBhcmUgZ2VuZXJhdGVzIGJ5IHRoZSBDb25uZWN0WCBBU0lDLiBU
+aGUgcGFja2V0DQppcyB0aGVuIGNvbnN1bWVkIGJ5IHRoZSBGUEdBLg0KT24gdGhlIHdheSBiYWNr
+LCB0aGUgcmVzcG9uc2UgaXMgZ2VuZXJhdGVkIGJ5IHRoZSBGUEdBLCBhbmQgY29uc3VtZWQgYnkN
+CnRoZSBDb25uZWN0WCBBU0lDLCB3aXRoIHRoZSByZXNwb25zZSBwYXlsb2FkIGRlbGl2ZXJlZCB0
+byB0aGUgUVAgaW4gdGhlDQpkcml2ZXIuDQoNClNvIG5laXRoZXIgdGhlIGhvc3Qgc3RhY2sgbm9y
+IHRoZSBuZXR3b3JrIGFyZSBhd2FyZSBvZiB0aGVtLg0KVGhleSBleGlzdCBtb21lbnRhcmlseSBv
+bmx5IG9uIHRoZSBpbnRlcm5hbCB0cmFjZXMgb24gdGhlIGJvYXJkIGFuZCBub3QNCmFueXdoZXJl
+IGVsc2UuDQoNCj4gDQo+ID4gU28geW91IGNvbmZpZ3VyZSBpdCBmcm9tIHVzZXJzcGFjZSB3aXRo
+IHJlZ3VsYXIgSVBTZWMgJ2lwIHhmcm0NCj4gPiBzdGF0ZScgY29tbWFuZHMgb3Igb3ZlciBuZXRs
+aW5rIHdpdGggeW91ciBmYXZvcml0ZSBJS0UgZGFlbW9uLg0KPiANCj4gQnV0IHlvdSBkb24ndCBn
+aXZlIGFuIGlwIHhmcm0gY29uZmlndXJhdGlvbiB0byB0aGUgTklDIHdoZW4geW91IHN1Ym1pdA0K
+PiB0aGUgd29yayByZXF1ZXN0PyBCeSB5b3VyIGRlc2NyaXB0aW9uIGl0IHNvdW5kZWQgbGlrZWQg
+dGhlIEZQR0ENCj4gcGF0dGVybiBtYXRjaGVzIHBhY2tldHMgZnJvbSB0aGUgTklDIHNpZGUgdG8g
+YXBwbHkgdGhlIHhmcm0uDQo+IA0KPiBKYXNvbg0KDQpJIGRpZG4ndCB3YW50IHRvIGRpZyBpbnRv
+IHRoaXMsIGJlY2F1c2UgaXQncyBub3Qgc3VibWl0dGVkIHlldC4NCg0KQnV0IGhlcmUncyBhbiBl
+eGFtcGxlIGNvbmZpZ3VyYXRpb24gZmxvdyBmb3IgY3JlYXRpbmcgYW4gSVBTZWMgU0E6DQoNCiog
+VXNlciBnaXZlcyAnaXAgeGZybSBzdGF0ZSBhZGQnIGNvbW1hbmQgaW4gc2hlbGwsIHdpdGggJ29m
+ZmxvYWQnIGFyZ3VtZW50DQoqIGlwcm91dGUyIHNlbmRzIFhGUk1fTVNHX05FV1NBIG5ldGxpbmsg
+bWVzc2FnZSB3aXRoIFhGUk1BX09GRkxPQURfREVWIGF0dHJpYnV0ZQ0KKiBYZnJtIHN0YWNrIGdl
+bmVyYXRlcyBhIG5ldyB4ZnJtX3N0YXRlIG9iamVjdCBhbmQgY2FsbHMgdGhlIG5ldGRldmljZSdz
+IHhkb19kZXZfc3RhdGVfYWRkIGNhbGxiYWNrDQoqIG1seDVlIGRyaXZlciBmb3JtYXRzIEhXLXNw
+ZWNpZmljIEFERF9TQSBjb21tYW5kIHBhY2tldCBhbmQgc2VuZHMgaXQgb3ZlciBSb0NFIFFQIHRv
+IEZQR0ENCiogRlBHQSBhZGRzIHRoZSBTQSB0byBpdHMgb2ZmbG9hZGVkIFNBREIsIGFuZCBzZW5k
+cyBhIHJlc3BvbnNlIHBhY2tldCBmb3IgJ3N1Y2Nlc3MnDQoNClRoYXQncyBwcmV0dHkgbXVjaCBp
+dC4NCkRvZXMgdGhpcyBoZWxwIHRvIHVuZGVyc3RhbmQgd2hhdCBnb2VzIG9uPw0KDQpJIGRvbid0
+IG1pbmQgZXhwbGFpbmluZyBmdXJ0aGVyLCBidXQgSSB0aGluayB5b3Ugd2lsbCBqdXN0IHNlZSBp
+dCBpbiB0aGUNCnBhdGNoc2V0IHdoZW4gd2Ugc3VibWl0Lg0KDQpJbGFuLg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
