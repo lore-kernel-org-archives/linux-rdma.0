@@ -1,51 +1,57 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: rdma-core out-of-tree user library
-Date: Tue, 6 Jun 2017 10:24:00 -0600
-Message-ID: <20170606162400.GB8671@obsidianresearch.com>
-References: <BN3PR07MB25781554943206E577DFC714F8CB0@BN3PR07MB2578.namprd07.prod.outlook.com>
+Subject: Re: [PATCH rdma-next 1/6] IB/core: Enable QP creation which is
+ associated to underlay QP
+Date: Tue, 6 Jun 2017 10:33:20 -0600
+Message-ID: <20170606163320.GC8671@obsidianresearch.com>
+References: <20170530071602.8139-1-leon@kernel.org>
+ <20170530071602.8139-2-leon@kernel.org>
+ <20170530160447.GA21513@obsidianresearch.com>
+ <1d799662-bc2b-ed12-882c-42d12d1ed8a1@dev.mellanox.co.il>
+ <20170605153644.GA6749@obsidianresearch.com>
+ <CAFgAxU9c1SwehkCY3o0RZPO_CTHGJb2A1omjVvJvyabO0V57iQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <BN3PR07MB25781554943206E577DFC714F8CB0-EldUQEzkDQfpW3VS/XPqkOFPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+In-Reply-To: <CAFgAxU9c1SwehkCY3o0RZPO_CTHGJb2A1omjVvJvyabO0V57iQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Alex @ Mellanox" <Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 06, 2017 at 12:49:21PM +0000, Amrani, Ram wrote:
-> Hi Jason, Leon, Doug, All,
+On Tue, Jun 06, 2017 at 06:49:52PM +0300, Alex Rosenbaum wrote:
+>    IPoIB is a tunneled protocol. The underlay part, a UD QP, has a set of
+>    properties that define its L2-L4 characteristics. In this suggestion we
+>    wanted to make sure the overlay will use the same QP so that there are
+>    no mismatches between the IB layer properties. An example for such a
+>    mistake can be if the overlay sets a PKey which is different than the
+>    IPoIB UD QP. A mistake example on the receive flow; when setting
+>    multiple ingress steering on using multiple different PKey's into a
+>    single user space UD QP.
 
-> A provider's out-of-tree user library cannot be built against
-> rdma-core, because the API is hidden to out-of-tree libraries. This
-> was due to a decision taken months back.  The distros have adopted
-> this approach as-is and it is going to be part of the next
-> releases. While this approach ensures all of the components are
-> in-sync, it has its disadvantages.
-> 
-> There is typically a gap of several months between two inbox
-> releases.  New features and fixes are delivered to the next inbox
-> releases, but we would like to have the ability to supply an outbox
-> user library to customers in between. It may also happen that
-> customers can only adopt the new inbox version with a delay, or even
-> worse, if they cannot adopt it at all due to various reasons.
+That seems like a strange thing to worry about, any user of this
+already has to closely track all of the IB parameters as they are
+required to issue path records.
 
-Two options,
+So this underlay/overlay complexity really doesn't do much for
+safety/usability, IMHO - it just introduces more complexity and more
+failure modes.
 
-1) The 'ofed' approach: just use the latest rdma-core. We want
-   rdma-core to run on any kernel version and any distro release, so
-   this should not be a major problem
-2) For each targetted distro release back port the changes you want
-   into the exact distro rdma-core source and distribute your driver
-   binary from that build. This keeps everything very much the same
-   but upgrades that driver.
+>    Naming it "source_qpn" instead of associated, as you suggest, sound
+>    more appropriate.
 
-> How are other providers handling this?
+Simpler, certainly if you completely eliminate the notion of a linkage
+to another QP. This is just creating a TX QP with a specified QPN that
+can overlap an existing bidir QP's QPN.
 
-Most things I've seen have followed an OFED like approach because they
-also want to ship an updated kernel component. Historically we have
-not seen that much churn in the user space provider that is not linked
-to kernel changes.
+This could then also be potentially used for applications that desire a
+fixed QPN.
+
+>    As noted in previous email, the overlay QP can work properly only when
+>    the underlay QP is not in RTR or RTS. Meaning no egress or ingress
+>    traffic will happen once underlay is not in these states. This is
+
+Yuk, a hidden variable that causes undetectable failure is gross.
 
 Jason
 --
