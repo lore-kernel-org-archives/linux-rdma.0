@@ -1,45 +1,60 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: rdma-core out-of-tree user library
-Date: Tue, 6 Jun 2017 12:49:21 +0000
-Message-ID: <BN3PR07MB25781554943206E577DFC714F8CB0@BN3PR07MB2578.namprd07.prod.outlook.com>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] RDMA/qib: Fix MR reference count leak on write with
+ immediate
+Date: Tue, 06 Jun 2017 11:02:44 -0400
+Message-ID: <20170606150244.14663.71707.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-commits-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Jason, Leon, Doug, All,
-A provider's out-of-tree user library cannot be built against rdma-core, be=
-cause the
-API is hidden to out-of-tree libraries. This was due to a decision taken mo=
-nths back.
-The distros have adopted this approach as-is and it is going to be part of =
-the next
-releases. While this approach ensures all of the components are in-sync, it=
- has its
-disadvantages.
+commit 1feb40067cf04ae48d65f728d62ca255c9449178 upstream.
 
-There is typically a gap of several months between two inbox releases.
-New features and fixes are delivered to the next inbox releases, but we wou=
-ld like to
-have the ability to supply an outbox user library to customers in between. =
-It may
-also happen that customers can only adopt the new inbox version with a dela=
-y, or even
-worse, if they cannot adopt it at all due to various reasons.
+The handling of IB_RDMA_WRITE_ONLY_WITH_IMMEDIATE will leak a memory
+reference when a buffer cannot be allocated for returning the immediate
+data.
 
-I guess this is something you have thought of. If so, what were/are your th=
-oughts about
-creating intermediate out-of-box versions?
+The issue is that the rkey validation has already occurred and the RNR
+nak fails to release the reference that was fruitlessly gotten.  The
+the peer will send the identical single packet request when its RNR
+timer pops.
 
-How are other providers handling this?
+The fix is to release the held reference prior to the rnr nak exit.
+This is the only sequence the requires both rkey validation and the
+buffer allocation on the same packet.
 
-Thanks,
-Ram
+[This backports the fix for pre-rdmavt based qib drivers]
+
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 3.10.x,3.16.x,4.1.x,4.4.x
+Tested-by: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_rc.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/qib/qib_rc.c b/drivers/infiniband/hw/qib/qib_rc.c
+index e6b7556..cbc4216 100644
+--- a/drivers/infiniband/hw/qib/qib_rc.c
++++ b/drivers/infiniband/hw/qib/qib_rc.c
+@@ -2088,8 +2088,10 @@ send_last:
+ 		ret = qib_get_rwqe(qp, 1);
+ 		if (ret < 0)
+ 			goto nack_op_err;
+-		if (!ret)
++		if (!ret) {
++			qib_put_ss(&qp->r_sge);
+ 			goto rnr_nak;
++		}
+ 		wc.ex.imm_data = ohdr->u.rc.imm_data;
+ 		hdrsize += 4;
+ 		wc.wc_flags = IB_WC_WITH_IMM;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
