@@ -1,56 +1,61 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC] libibverbs IB Device Memory support
-Date: Tue, 6 Jun 2017 10:49:33 -0600
-Message-ID: <6a12c83f-ba3f-663f-6f41-b434d016f420@deltatee.com>
-References: <CADWppnpd9Up7wUTxRgSinhgx3kt3+0bKwgt6P_d3CV1oA90isQ@mail.gmail.com>
- <46b1a06d-5936-799c-7743-097c579971ef@grimberg.me>
+From: Alexei Starovoitov <alexei.starovoitov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [for-next 4/6] net/mlx5: FPGA, Add basic support for Innova
+Date: Tue, 6 Jun 2017 10:42:35 -0700
+Message-ID: <20170606174233.w377ctwtapzccsk7@ast-mbp.dhcp.thefacebook.com>
+References: <20170529153131.GB7924@obsidianresearch.com>
+ <AM4PR0501MB1940D05A19F098286B99EAD0DBF30@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+ <20170529160252.GA27550@obsidianresearch.com>
+ <AM4PR0501MB194037FF8F17466BC9ECC73DDBF30@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+ <AM4PR0501MB19409139227E11A4A7F82F0FDBF30@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+ <20170601153704.GA1680@obsidianresearch.com>
+ <AM4PR0501MB19404B83A69B87AFB1326B45DBF50@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+ <20170605151724.GA20182@obsidianresearch.com>
+ <AM4PR0501MB194008AAABEB6AAAA2ADFC82DBCB0@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+ <20170606161709.GA8671@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <46b1a06d-5936-799c-7743-097c579971ef-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170606161709.GA8671-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, ahmad omary <ahmad151084-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Ahmad Omary <ahmad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Rosenbaum <Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ariel Levkovich <lariel-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jsorensen-b10kYP2dOMg@public.gmane.org" <jsorensen-b10kYP2dOMg@public.gmane.org>, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-fpga-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fpga-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Tull <atull-yzvPICuk2ABMcg4IHK0kFoH6Mc4MB0Vx@public.gmane.org>, "yi1.li-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <yi1.li-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On Tue, Jun 06, 2017 at 10:17:09AM -0600, Jason Gunthorpe wrote:
+> On Tue, Jun 06, 2017 at 06:52:15AM +0000, Ilan Tayari wrote:
+> 
+> > So neither the host stack nor the network are aware of them.
+> > They exist momentarily only on the internal traces on the board and not
+> > anywhere else.
+> 
+> Is that really true? If you are creating rocee QPs' then the RDMA
+> stack sees this stuff and now we have buried a RDMA ULP inside an
+> ethernet driver which seems really wonky..
+> 
+> > I don't mind explaining further, but I think you will just see it in the
+> > patchset when we submit.
+> 
+> You described exactly what I thought.. I just disagree with you that
+> an ethernet connected and controlled IP accelerator is 'part of the
+> NIC', even if it happens to be colocated on the same circuit board.
 
-On 06/06/17 01:35 AM, Sagi Grimberg wrote:
-> This is useful to kernel consumers too, Adding Stephen and Logan to the
-> party.
++1
 
-Thanks for copying us.
-
-> Personally I agree with Christoph Lamater that we are far better off
-> sticking to standard mmap to expose it to user-space.
-> From the thread I don't really understand the problem the API is trying
-> to solve, AFAICT it boils down to a plain bar, and as such it needs to
-> be treated as such.
-
-We always get push back on IO safety (and for good reason). If the PCI
-bar is exposed to userspace through mmap, users should be reading and
-writing it through IO operations and if the buffers get used in any
-kernel calls, the kernel also has to know that it is now dealing with IO
-memory. The kernel is really not ready for this. A kernel-only API would
-be able to do this safely and may make sense here.
-
-However, without being able to do P2P DMAs with this memory (which is
-what we have been working on) I don't really see the point. My intuition
-is that copying from system to IO memory, or having the CPU populate
-data structures in IO memory, would overall be slower than just doing it
-in system memory and letting the DMA transfer be slightly slower.
-
-Also, I have been told that, at least the two major RDMA NIC vendors
-don't currently have working memory available in hardware to expose for
-such uses. If there is hardware, I sure would like to get my hands on some.
-
-In any case, this all seems slightly premature.
-
-Logan
-
-
-
+what Ilan described is a kernel bypass done by hw.
+This is non starter in production. Same as eswitch this fpga is not
+represented as a kernel object, there is no way to debug it.
+NIC crafts roce packets back and forth?!
+so it's like rdma, but without using kernel rdma stack?
+When hw ipsec or tls will mysteriously drop or mangle the packets
+how this can be debugged? Does fpga have attached ddr to
+store/forward the packets? How memory issues will be reported?
+No MCE errors ever? Buffer overflow? How many receive queues inside fpga?
+How health check of fgpa itself will be done? Through roce packets?
+I would buy the lack of kernel visibility if this fpga+nic combo
+was a prototype, but it's being presented as a production device
+with subsequent changes to core networking stack and that's where
+I have a problem with its sw architecture.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
