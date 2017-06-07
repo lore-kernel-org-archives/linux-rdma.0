@@ -1,53 +1,32 @@
-From: Tariq Toukan <tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH net-next 1/3] net/mlx4_core: Bump driver version
-Date: Wed,  7 Jun 2017 16:26:13 +0300
-Message-ID: <1496841975-7728-2-git-send-email-tariqt@mellanox.com>
-References: <1496841975-7728-1-git-send-email-tariqt@mellanox.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] RDMA/qib: Fix MR reference count leak on write with
+ immediate
+Date: Wed, 7 Jun 2017 14:38:00 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC3431EF6A@fmsmsx120.amr.corp.intel.com>
+References: <20170606150244.14663.71707.stgit@phlsvslse11.ph.intel.com>
+ <201706071515.DptFcIHE%fengguang.wu@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1496841975-7728-1-git-send-email-tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <201706071515.DptFcIHE%fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eran Ben Elisha <eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tariq Toukan <tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: lkp <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "kbuild-all-JC7UmRfGjtg@public.gmane.org" <kbuild-all-JC7UmRfGjtg@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-commits-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-commits-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Remove date and bump version for mlx4_core driver.
+>    drivers/infiniband/hw/qib/qib_rc.c: In function 'qib_rc_rcv':
+> >> drivers/infiniband/hw/qib/qib_rc.c:1960:4: error: implicit declaration of
+> function 'qib_put_ss' [-Werror=implicit-function-declaration]
+>        qib_put_ss(&qp->r_sge);
+>        ^~~~~~~~~~
 
-Signed-off-by: Tariq Toukan <tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/net/ethernet/mellanox/mlx4/main.c | 2 +-
- drivers/net/ethernet/mellanox/mlx4/mlx4.h | 3 +--
- 2 files changed, 2 insertions(+), 3 deletions(-)
+The patch is intended for stable kernels as noted in:
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index 83aab1e4c8c8..ccae3c6593c4 100644
---- a/drivers/net/ethernet/mellanox/mlx4/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -119,7 +119,7 @@
- 
- static char mlx4_version[] =
- 	DRV_NAME ": Mellanox ConnectX core driver v"
--	DRV_VERSION " (" DRV_RELDATE ")\n";
-+	DRV_VERSION "\n";
- 
- static struct mlx4_profile default_profile = {
- 	.num_qp		= 1 << 18,
-diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-index b4f1bc56cc68..6ea2b7a0c34d 100644
---- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-+++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
-@@ -56,8 +56,7 @@
- 
- #define DRV_NAME	"mlx4_core"
- #define PFX		DRV_NAME ": "
--#define DRV_VERSION	"2.2-1"
--#define DRV_RELDATE	"Feb, 2014"
-+#define DRV_VERSION	"4.0-0"
- 
- #define MLX4_FS_UDP_UC_EN		(1 << 1)
- #define MLX4_FS_TCP_UC_EN		(1 << 2)
--- 
-1.8.3.1
+ Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # 3.10.x,3.16.x,4.1.x,4.4.x
 
+Mike
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
