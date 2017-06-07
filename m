@@ -1,323 +1,129 @@
-From: Ganesh Goudar <ganeshgr@chelsio.com>
-Subject: [PATCH net-next] cxgb4: Fix tids count for ipv6 offload connection
-Date: Wed,  7 Jun 2017 15:04:51 +0530
-Message-ID: <1496828091-13947-1-git-send-email-ganeshgr@chelsio.com>
-Return-path: <target-devel-owner@vger.kernel.org>
-Sender: target-devel-owner@vger.kernel.org
-To: netdev@vger.kernel.org, davem@davemloft.net
-Cc: nirranjan@chelsio.com, indranil@chelsio.com, swise@opengridcomputing.com, dledford@redhat.com, linux-rdma@vger.kernel.org, jejb@linux.vnet.ibm.com, linux-scsi@vger.kernel.org, nab@linux-iscsi.org, target-devel@vger.kernel.org, Ganesh Goudar <ganeshgr@chelsio.com>, Rizwan Ansari <rizwana@chelsio.com>, Varun Prakash <varun@chelsio.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH v3 for-4.13 2/6] mlx5: move affinity hints assignments to
+ generic code
+Date: Wed, 7 Jun 2017 12:48:08 +0300
+Message-ID: <9332ed02-9711-0196-14d9-e9641c4dc932@grimberg.me>
+References: <1496644560-28923-1-git-send-email-sagi@grimberg.me>
+ <1496644560-28923-3-git-send-email-sagi@grimberg.me>
+ <CALzJLG-SQj2OsOOjhHsMaD8gKC0JKD068L=ZjYRPBG=iwf9r8Q@mail.gmail.com>
+ <20170607083156.GB24876@lst.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170607083156.GB24876-jcswGhMUV9g@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-the adapter consumes two tids for every ipv6 offload
-connection be it active or passive, calculate tid usage
-count accordingly.
 
-Also change the signatures of relevant functions to get
-the address family.
+>> I am not sure the new assignment will match what we tried to do before
+>> this patch, and i would like to preserve that behavior
+>> from before we simply spread comp vectors to the close numa cpus first
+>> then to other cores uniformly.
+>> i.e prefer first IRQs to go to close numa cores.
+>>
+>> for example if you have 2 numa nodes each have 4 cpus, and the device
+>> is on 2nd numa,
+>> Numa 1 cpus: 0 1 2 3
+>> Numa 2 cpus: 4 5 6 7
+>>
+>> this should be the affinity:
+>>
+>> IRQ[0] -> cpu[4] (Numa 2)
+>> IRQ[1] -> cpu[5]
+>> IRQ[2] -> cpu[6]
+>> IRQ[3] -> cpu[7]
+>>
+>> IRQ[4] -> cpu[0] (Numa 1)
+>> IRQ[5] -> cpu[1]
+>> IRQ[6] -> cpu[2]
+>> IRQ[7] -> cpu[3]
+>>
+>> looking at irq_create_affinity_masks, and it seems not to be the case !
+>> "nodemask_t nodemsk = NODE_MASK_NONE;" it doesn't seem to prefer any numa node.
+> 
+> nodemsk is set up by get_nodes_in_cpumask.  The mask you should
+> get with the new code is:
+> 
+> IRQ[0] -> cpu[0] (Numa 1)
+> IRQ[1] -> cpu[1]
+> IRQ[2] -> cpu[2]
+> IRQ[3] -> cpu[3]
+> 
+> IRQ[4] -> cpu[4] (Numa 2)
+> IRQ[5] -> cpu[5]
+> IRQ[6] -> cpu[6]
+> IRQ[7] -> cpu[7]
+> 
+> is there any reason you want to start assining vectors on the local
+> node?  This is doable, but would complicate the code quite a bit
+> so it needs a good argument.
 
-Signed-off-by: Rizwan Ansari <rizwana@chelsio.com>
-Signed-off-by: Varun Prakash <varun@chelsio.com>
-Signed-off-by: Ganesh Goudar <ganeshgr@chelsio.com>
----
- drivers/infiniband/hw/cxgb4/cm.c                   | 14 +++++---
- drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c | 12 +++++--
- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c    | 38 +++++++++++++++-------
- drivers/net/ethernet/chelsio/cxgb4/cxgb4_uld.h     | 24 ++++++++++----
- drivers/scsi/cxgbi/cxgb4i/cxgb4i.c                 |  8 +++--
- drivers/target/iscsi/cxgbit/cxgbit_cm.c            |  6 ++--
- 6 files changed, 71 insertions(+), 31 deletions(-)
+My interpretation is that mlx5 tried to do this for the (rather esoteric
+in my mind) case where the platform does not have enough vectors for the
+driver to allocate percpu. In this case, the next best thing is to stay
+as close to the device affinity as possible.
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 0910faf..b0ae4f0 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -398,7 +398,8 @@ void _c4iw_free_ep(struct kref *kref)
- 					(const u32 *)&sin6->sin6_addr.s6_addr,
- 					1);
- 		}
--		cxgb4_remove_tid(ep->com.dev->rdev.lldi.tids, 0, ep->hwtid);
-+		cxgb4_remove_tid(ep->com.dev->rdev.lldi.tids, 0, ep->hwtid,
-+				 ep->com.local_addr.ss_family);
- 		dst_release(ep->dst);
- 		cxgb4_l2t_release(ep->l2t);
- 		if (ep->mpa_skb)
-@@ -1199,7 +1200,7 @@ static int act_establish(struct c4iw_dev *dev, struct sk_buff *skb)
- 
- 	/* setup the hwtid for this connection */
- 	ep->hwtid = tid;
--	cxgb4_insert_tid(t, ep, tid);
-+	cxgb4_insert_tid(t, ep, tid, ep->com.local_addr.ss_family);
- 	insert_ep_tid(ep);
- 
- 	ep->snd_seq = be32_to_cpu(req->snd_isn);
-@@ -2304,7 +2305,8 @@ static int act_open_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
- 				   (const u32 *)&sin6->sin6_addr.s6_addr, 1);
- 	}
- 	if (status && act_open_has_tid(status))
--		cxgb4_remove_tid(ep->com.dev->rdev.lldi.tids, 0, GET_TID(rpl));
-+		cxgb4_remove_tid(ep->com.dev->rdev.lldi.tids, 0, GET_TID(rpl),
-+				 ep->com.local_addr.ss_family);
- 
- 	remove_handle(ep->com.dev, &ep->com.dev->atid_idr, atid);
- 	cxgb4_free_atid(t, atid);
-@@ -2581,7 +2583,8 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
- 		 child_ep->tx_chan, child_ep->smac_idx, child_ep->rss_qid);
- 
- 	init_timer(&child_ep->timer);
--	cxgb4_insert_tid(t, child_ep, hwtid);
-+	cxgb4_insert_tid(t, child_ep, hwtid,
-+			 child_ep->com.local_addr.ss_family);
- 	insert_ep_tid(child_ep);
- 	if (accept_cr(child_ep, skb, req)) {
- 		c4iw_put_ep(&parent_ep->com);
-@@ -2849,7 +2852,8 @@ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
- 					1);
- 		}
- 		remove_handle(ep->com.dev, &ep->com.dev->hwtid_idr, ep->hwtid);
--		cxgb4_remove_tid(ep->com.dev->rdev.lldi.tids, 0, ep->hwtid);
-+		cxgb4_remove_tid(ep->com.dev->rdev.lldi.tids, 0, ep->hwtid,
-+				 ep->com.local_addr.ss_family);
- 		dst_release(ep->dst);
- 		cxgb4_l2t_release(ep->l2t);
- 		c4iw_reconnect(ep);
-diff --git a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c
-index 1fa34b0..00044d7 100644
---- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c
-+++ b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c
-@@ -2669,6 +2669,8 @@ static int tid_info_show(struct seq_file *seq, void *v)
- 
- 	if (t4_read_reg(adap, LE_DB_CONFIG_A) & HASHEN_F) {
- 		unsigned int sb;
-+		seq_printf(seq, "Connections in use: %u\n",
-+			   atomic_read(&t->conns_in_use));
- 
- 		if (chip <= CHELSIO_T5)
- 			sb = t4_read_reg(adap, LE_DB_SERVER_INDEX_A) / 4;
-@@ -2699,17 +2701,23 @@ static int tid_info_show(struct seq_file *seq, void *v)
- 				   atomic_read(&t->hash_tids_in_use));
- 		}
- 	} else if (t->ntids) {
-+		seq_printf(seq, "Connections in use: %u\n",
-+			   atomic_read(&t->conns_in_use));
-+
- 		seq_printf(seq, "TID range: 0..%u", t->ntids - 1);
- 		seq_printf(seq, ", in use: %u\n",
- 			   atomic_read(&t->tids_in_use));
- 	}
- 
- 	if (t->nstids)
--		seq_printf(seq, "STID range: %u..%u, in use: %u\n",
-+		seq_printf(seq, "STID range: %u..%u, in use-IPv4/IPv6: %u/%u\n",
- 			   (!t->stid_base &&
- 			   (chip <= CHELSIO_T5)) ?
- 			   t->stid_base + 1 : t->stid_base,
--			   t->stid_base + t->nstids - 1, t->stids_in_use);
-+			   t->stid_base + t->nstids - 1,
-+			   t->stids_in_use - t->v6_stids_in_use,
-+			   t->v6_stids_in_use);
-+
- 	if (t->natids)
- 		seq_printf(seq, "ATID range: 0..%u, in use: %u\n",
- 			   t->natids - 1, t->atids_in_use);
-diff --git a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-index 6c46370..91685bf 100644
---- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-+++ b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-@@ -1093,10 +1093,12 @@ int cxgb4_alloc_stid(struct tid_info *t, int family, void *data)
- 		 * This is equivalent to 4 TIDs. With CLIP enabled it
- 		 * needs 2 TIDs.
- 		 */
--		if (family == PF_INET)
--			t->stids_in_use++;
--		else
-+		if (family == PF_INET6) {
- 			t->stids_in_use += 2;
-+			t->v6_stids_in_use += 2;
-+		} else {
-+			t->stids_in_use++;
-+		}
- 	}
- 	spin_unlock_bh(&t->stid_lock);
- 	return stid;
-@@ -1150,13 +1152,16 @@ void cxgb4_free_stid(struct tid_info *t, unsigned int stid, int family)
- 		bitmap_release_region(t->stid_bmap, stid, 1);
- 	t->stid_tab[stid].data = NULL;
- 	if (stid < t->nstids) {
--		if (family == PF_INET)
--			t->stids_in_use--;
--		else
-+		if (family == PF_INET6) {
- 			t->stids_in_use -= 2;
-+			t->v6_stids_in_use -= 2;
-+		} else {
-+			t->stids_in_use--;
-+		}
- 	} else {
- 		t->sftids_in_use--;
- 	}
-+
- 	spin_unlock_bh(&t->stid_lock);
- }
- EXPORT_SYMBOL(cxgb4_free_stid);
-@@ -1232,7 +1237,8 @@ static void process_tid_release_list(struct work_struct *work)
-  * Release a TID and inform HW.  If we are unable to allocate the release
-  * message we defer to a work queue.
-  */
--void cxgb4_remove_tid(struct tid_info *t, unsigned int chan, unsigned int tid)
-+void cxgb4_remove_tid(struct tid_info *t, unsigned int chan, unsigned int tid,
-+		      unsigned short family)
- {
- 	struct sk_buff *skb;
- 	struct adapter *adap = container_of(t, struct adapter, tids);
-@@ -1241,10 +1247,18 @@ void cxgb4_remove_tid(struct tid_info *t, unsigned int chan, unsigned int tid)
- 
- 	if (t->tid_tab[tid]) {
- 		t->tid_tab[tid] = NULL;
--		if (t->hash_base && (tid >= t->hash_base))
--			atomic_dec(&t->hash_tids_in_use);
--		else
--			atomic_dec(&t->tids_in_use);
-+		atomic_dec(&t->conns_in_use);
-+		if (t->hash_base && (tid >= t->hash_base)) {
-+			if (family == AF_INET6)
-+				atomic_sub(2, &t->hash_tids_in_use);
-+			else
-+				atomic_dec(&t->hash_tids_in_use);
-+		} else {
-+			if (family == AF_INET6)
-+				atomic_sub(2, &t->tids_in_use);
-+			else
-+				atomic_dec(&t->tids_in_use);
-+		}
- 	}
- 
- 	skb = alloc_skb(sizeof(struct cpl_tid_release), GFP_ATOMIC);
-@@ -1292,10 +1306,12 @@ static int tid_init(struct tid_info *t)
- 	spin_lock_init(&t->ftid_lock);
- 
- 	t->stids_in_use = 0;
-+	t->v6_stids_in_use = 0;
- 	t->sftids_in_use = 0;
- 	t->afree = NULL;
- 	t->atids_in_use = 0;
- 	atomic_set(&t->tids_in_use, 0);
-+	atomic_set(&t->conns_in_use, 0);
- 	atomic_set(&t->hash_tids_in_use, 0);
- 
- 	/* Setup the free list for atid_tab and clear the stid bitmap. */
-diff --git a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_uld.h b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_uld.h
-index 6e74040..ce0d9fb 100644
---- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_uld.h
-+++ b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_uld.h
-@@ -123,12 +123,14 @@ struct tid_info {
- 
- 	spinlock_t stid_lock;
- 	unsigned int stids_in_use;
-+	unsigned int v6_stids_in_use;
- 	unsigned int sftids_in_use;
- 
- 	/* TIDs in the TCAM */
- 	atomic_t tids_in_use;
- 	/* TIDs in the HASH */
- 	atomic_t hash_tids_in_use;
-+	atomic_t conns_in_use;
- 	/* lock for setting/clearing filter bitmap */
- 	spinlock_t ftid_lock;
- };
-@@ -157,13 +159,21 @@ static inline void *lookup_stid(const struct tid_info *t, unsigned int stid)
- }
- 
- static inline void cxgb4_insert_tid(struct tid_info *t, void *data,
--				    unsigned int tid)
-+				    unsigned int tid, unsigned short family)
- {
- 	t->tid_tab[tid] = data;
--	if (t->hash_base && (tid >= t->hash_base))
--		atomic_inc(&t->hash_tids_in_use);
--	else
--		atomic_inc(&t->tids_in_use);
-+	if (t->hash_base && (tid >= t->hash_base)) {
-+		if (family == AF_INET6)
-+			atomic_add(2, &t->hash_tids_in_use);
-+		else
-+			atomic_inc(&t->hash_tids_in_use);
-+	} else {
-+		if (family == AF_INET6)
-+			atomic_add(2, &t->tids_in_use);
-+		else
-+			atomic_inc(&t->tids_in_use);
-+	}
-+	atomic_inc(&t->conns_in_use);
- }
- 
- int cxgb4_alloc_atid(struct tid_info *t, void *data);
-@@ -171,8 +181,8 @@ int cxgb4_alloc_stid(struct tid_info *t, int family, void *data);
- int cxgb4_alloc_sftid(struct tid_info *t, int family, void *data);
- void cxgb4_free_atid(struct tid_info *t, unsigned int atid);
- void cxgb4_free_stid(struct tid_info *t, unsigned int stid, int family);
--void cxgb4_remove_tid(struct tid_info *t, unsigned int qid, unsigned int tid);
--
-+void cxgb4_remove_tid(struct tid_info *t, unsigned int qid, unsigned int tid,
-+		      unsigned short family);
- struct in6_addr;
- 
- int cxgb4_create_server(const struct net_device *dev, unsigned int stid,
-diff --git a/drivers/scsi/cxgbi/cxgb4i/cxgb4i.c b/drivers/scsi/cxgbi/cxgb4i/cxgb4i.c
-index 1076c15..9a92b51 100644
---- a/drivers/scsi/cxgbi/cxgb4i/cxgb4i.c
-+++ b/drivers/scsi/cxgbi/cxgb4i/cxgb4i.c
-@@ -806,7 +806,7 @@ static void do_act_establish(struct cxgbi_device *cdev, struct sk_buff *skb)
- 
- 	cxgbi_sock_get(csk);
- 	csk->tid = tid;
--	cxgb4_insert_tid(lldi->tids, csk, tid);
-+	cxgb4_insert_tid(lldi->tids, csk, tid, csk->csk_family);
- 	cxgbi_sock_set_flag(csk, CTPF_HAS_TID);
- 
- 	free_atid(csk);
-@@ -956,7 +956,8 @@ static void do_act_open_rpl(struct cxgbi_device *cdev, struct sk_buff *skb)
- 	if (status && status != CPL_ERR_TCAM_FULL &&
- 	    status != CPL_ERR_CONN_EXIST &&
- 	    status != CPL_ERR_ARP_MISS)
--		cxgb4_remove_tid(lldi->tids, csk->port_id, GET_TID(rpl));
-+		cxgb4_remove_tid(lldi->tids, csk->port_id, GET_TID(rpl),
-+				 csk->csk_family);
- 
- 	cxgbi_sock_get(csk);
- 	spin_lock_bh(&csk->lock);
-@@ -1590,7 +1591,8 @@ static void release_offload_resources(struct cxgbi_sock *csk)
- 		free_atid(csk);
- 	else if (cxgbi_sock_flag(csk, CTPF_HAS_TID)) {
- 		lldi = cxgbi_cdev_priv(csk->cdev);
--		cxgb4_remove_tid(lldi->tids, 0, csk->tid);
-+		cxgb4_remove_tid(lldi->tids, 0, csk->tid,
-+				 csk->csk_family);
- 		cxgbi_sock_clear_flag(csk, CTPF_HAS_TID);
- 		cxgbi_sock_put(csk);
- 	}
-diff --git a/drivers/target/iscsi/cxgbit/cxgbit_cm.c b/drivers/target/iscsi/cxgbit/cxgbit_cm.c
-index 37a0518..939c6ec 100644
---- a/drivers/target/iscsi/cxgbit/cxgbit_cm.c
-+++ b/drivers/target/iscsi/cxgbit/cxgbit_cm.c
-@@ -752,7 +752,8 @@ void _cxgbit_free_csk(struct kref *kref)
- 				   &sin6->sin6_addr.s6_addr, 1);
- 	}
- 
--	cxgb4_remove_tid(csk->com.cdev->lldi.tids, 0, csk->tid);
-+	cxgb4_remove_tid(csk->com.cdev->lldi.tids, 0, csk->tid,
-+			 csk->com.local_addr.ss_family);
- 	dst_release(csk->dst);
- 	cxgb4_l2t_release(csk->l2t);
- 
-@@ -1313,8 +1314,7 @@ cxgbit_pass_accept_req(struct cxgbit_device *cdev, struct sk_buff *skb)
- 	spin_lock(&cdev->cskq.lock);
- 	list_add_tail(&csk->list, &cdev->cskq.list);
- 	spin_unlock(&cdev->cskq.lock);
--
--	cxgb4_insert_tid(t, csk, tid);
-+	cxgb4_insert_tid(t, csk, tid, csk->com.local_addr.ss_family);
- 	cxgbit_pass_accept_rpl(csk, req);
- 	goto rel_skb;
- 
--- 
-2.1.0
+>> I am sure that there is a way to force our mlx5 affinity strategy and
+>> override the default one with the new API.
+> 
+> No, there is not.  The whole point is that we want to come up with
+> a common policy instead of each driver doing their own weird little
+> thing.
+
+Agreed.
+
+>>> -static int mlx5e_get_cpu(struct mlx5e_priv *priv, int ix)
+>>> -{
+>>> -       return cpumask_first(priv->mdev->priv.irq_info[ix].mask);
+>>> -}
+>>>
+>>
+>> let's keep this abstraction, even let's consider moving this to a
+>> helper function in the mlx5_core dirver main.c,
+>> it is not right when mlx5_ib and mlx5e netdev know about internal mdev
+>> structures and implementations of stuff.
+>>
+>> I suggest to move mlx5_ib_get_vector_affinity from patch #4 into
+>> drivers/net/ethernet/../mlx5/core/main.c
+>> and rename it to mlx5_get_vector_affinity and use it from both rdma
+>> and netdevice
+>>
+>> and change the above function to:
+>>
+>> static int mlx5e_get_cpu(struct mlx5e_priv *priv, int ix)
+>> {
+>>         return cpumask_first(mlx5_get_vector_affinity(priv->mdev, ix));
+>> }
+> 
+> Take a look at my comment to Sagi's repost.  The driver never
+> actually cares about this weird cpu value - it cares about a node
+> for the vectors and PCI layer provides the pci_irq_get_node helper
+> for that.  We could wrap this with a mlx5e helper, but that's not
+> really the normal style in the kernel.
+> 
+>>>          int err;
+>>>
+>>> -       c = kzalloc_node(sizeof(*c), GFP_KERNEL, cpu_to_node(cpu));
+>>> +       c = kzalloc_node(sizeof(*c), GFP_KERNEL,
+>>> +               pci_irq_get_node(priv->mdev->pdev, MLX5_EQ_VEC_COMP_BASE + ix));
+>>
+>> this might yield different behavior of what originally intended we
+>> want to get the node of the CPU and not of the IRQ's, maybe there is
+>> no difference but
+
+There is no difference, the node of the CPU _is_ the node of the IRQs
+(it originates from irq affinity).
+
+>> let's keep mlx5e_get_cpu abstraction as above.
+> 
+> It's a completely bogus abstraction.
+
+I tend to agree, but can easily change it.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
