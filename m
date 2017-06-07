@@ -1,50 +1,82 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: rdma-core out-of-tree user library
-Date: Wed, 7 Jun 2017 10:00:57 -0600
-Message-ID: <20170607160057.GC30124@obsidianresearch.com>
-References: <BN3PR07MB25781554943206E577DFC714F8CB0@BN3PR07MB2578.namprd07.prod.outlook.com>
- <20170606162400.GB8671@obsidianresearch.com>
- <BN3PR07MB25781E538767514E0585E7C4F8C80@BN3PR07MB2578.namprd07.prod.outlook.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: [PATCH v5 for-4.13 3/6] RDMA/core: expose affinity mappings per completion vector
+Date: Wed,  7 Jun 2017 19:02:39 +0300
+Message-ID: <1496851362-1344-4-git-send-email-sagi@grimberg.me>
+References: <1496851362-1344-1-git-send-email-sagi@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <BN3PR07MB25781E538767514E0585E7C4F8C80-EldUQEzkDQfpW3VS/XPqkOFPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+In-Reply-To: <1496851362-1344-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Rahman, Ameen" <Ameen.Rahman-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 07, 2017 at 07:30:43AM +0000, Amrani, Ram wrote:
-> > Two options,
-> > 
-> > 1) The 'ofed' approach: just use the latest rdma-core. We want
-> >    rdma-core to run on any kernel version and any distro release, so
-> >    this should not be a major problem
-> 
-> My major concern was that when it comes to distros we don't have their
-> exact code base and/or can't release it. They take rdma-core X and
-> apply patches on it so it becomes rdma-core X.Y.
+This will allow ULPs to intelligently locate threads based
+on completion vector cpu affinity mappings. In case the
+driver does not expose a get_vector_affinity callout, return
+NULL so the caller can maintain a fallback logic.
 
-All distros I know of provide full source - GPL requires it for most
-packages, and you would have a right to redistibute it, of
-course.. This is no different than the kernel.
+Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Reviewed-by: Håkon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Acked-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+---
+ include/rdma/ib_verbs.h | 25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
 
-> Assuming backward-and-forward support, I might as well take rdma-core X+1
-> and base upon it my newer patches.
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index ba8314ec5768..2349143297c9 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2245,6 +2245,8 @@ struct ib_device {
+ 	 */
+ 	int (*get_port_immutable)(struct ib_device *, u8, struct ib_port_immutable *);
+ 	void (*get_dev_fw_str)(struct ib_device *, char *str, size_t str_len);
++	const struct cpumask *(*get_vector_affinity)(struct ib_device *ibdev,
++						     int comp_vector);
+ };
+ 
+ struct ib_client {
+@@ -3609,7 +3611,6 @@ static inline void rdma_ah_set_interface_id(struct rdma_ah_attr *attr,
+ 
+ 	grh->dgid.global.interface_id = if_id;
+ }
+-
+ static inline void rdma_ah_set_grh(struct rdma_ah_attr *attr,
+ 				   union ib_gid *dgid, u32 flow_label,
+ 				   u8 sgid_index, u8 hop_limit,
+@@ -3639,4 +3640,26 @@ static inline enum rdma_ah_attr_type rdma_ah_find_type(struct ib_device *dev,
+ 	else
+ 		return RDMA_AH_ATTR_TYPE_IB;
+ }
++
++/**
++ * ib_get_vector_affinity - Get the affinity mappings of a given completion
++ *   vector
++ * @device:         the rdma device
++ * @comp_vector:    index of completion vector
++ *
++ * Returns NULL on failure, otherwise a corresponding cpu map of the
++ * completion vector (returns all-cpus map if the device driver doesn't
++ * implement get_vector_affinity).
++ */
++static inline const struct cpumask *
++ib_get_vector_affinity(struct ib_device *device, int comp_vector)
++{
++	if (comp_vector < 0 || comp_vector >= device->num_comp_vectors ||
++	    !device->get_vector_affinity)
++		return NULL;
++
++	return device->get_vector_affinity(device, comp_vector);
++
++}
++
+ #endif /* IB_VERBS_H */
+-- 
+2.7.4
 
-Right, that is what I ment when I said 'latest rdma-core'
-
-The very best thing you can do for your cusomters is to provide your
-changes in a way that the distro itself would be willing to backport
-and release as a minor update to their users. eg provide clear commit
-messages, a fixes tag, content that is appropriate for stable
-backporting and inform the distro via your corporate relationship to
-take the patch. This is what Leon is talking about.
-
-This is no different than the process for the kernel.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
