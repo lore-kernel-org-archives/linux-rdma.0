@@ -1,64 +1,94 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Netlink messages without NLM_F_REQUEST flag
-Date: Wed, 7 Jun 2017 19:19:01 +0300
-Message-ID: <20170607161901.GD1127@mtr-leonro.local>
+From: Chris Leech <cleech-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 0/7] Enable iSCSI offload drivers to use information from
+ iface.
+Date: Wed, 7 Jun 2017 09:28:39 -0700
+Message-ID: <20170607162839.ludxvmddghx5ocn2@straylight.hirudinean.org>
+References: <20170606180717.5007-1-robert@leblancnet.us>
+Reply-To: open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="F8dlzb82+Fcn6AgP"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <open-iscsi+bncBCYMVIPVXQMBBPGT4DEQKGQEXC2ZXKQ-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+Sender: open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Thomas Graf <tgraf-G/eBtMaohhA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jiri Pirko <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20170606180717.5007-1-robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+List-Post: <https://groups.google.com/group/open-iscsi/post>, <mailto:open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <https://groups.google.com/support/>, <mailto:open-iscsi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <https://groups.google.com/group/open-iscsi
+List-Subscribe: <https://groups.google.com/group/open-iscsi/subscribe>, <mailto:open-iscsi+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <mailto:googlegroups-manage+856124926423+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
+ <https://groups.google.com/group/open-iscsi/subscribe>
+To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Cc: lduncan-IBi9RG/b67k@public.gmane.org, jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, subbu.seetharaman-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, ketan.mukadam-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, jitendra.bhivare-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, QLogic-Storage-Upstream-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, varun-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Jun 06, 2017 at 12:07:10PM -0600, Robert LeBlanc wrote:
+> This patchset enables iSCSI offload drivers to have access to the iface
+> information provided by iscsid. This allows users to have more control
+> of how the driver connects to the iSCSI target. iSER is updated to use
+> iface.ipaddress to set the source IP address if configured. This allows
+> iSER to use multiple ports on the same network or in more complicated
+> routed configurations.
+> 
+> Since there is already a change to the function parameters, dst_addr
+> is upgraded to sockaddr_storage so that it is more future proof and makes
+> the size of the struct static and not dependent on checking the SA_FAMILY.
+> 
+> This is dependent on updates to Open-iSCSI.
 
---F8dlzb82+Fcn6AgP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hi Robert,
 
-Hi Kaike,
+I don't think that passing the iface_rec structure directly from the
+iscsid internals into a netlink message is a good way to go about this.
+It's really big, there's an embedded list_head with user address
+pointers that needs to be left out, and there are 32/64-bit layout
+differences.
 
-In the commit bc10ed7d3d19 ("IB/core: Add rdma netlink helper functions"),
-part of larger series [1], you introduced ibnl_rcv_reply_skb(), which is very
-similar to netlink_rcv_skb() with one major change.
+Let me take a look at how you're proposing using this info for iSER, if
+it makes sense I think we should come up with a better designed
+structure for passing the information.
 
-The netlink messages without NLM_F_REQUEST flag are handled by ibnl_rcv_reply_skb(),
-while netlink_rcv_skb() doesn't. The comment introduced in commit d35b685640ae
-"[NETLINK]: Ignore !NLM_F_REQUEST messages directly in netlink_run_queue()")
-says that "Only requests are handled by the kernel".
+Thanks,
+Chris
+ 
+> Robert LeBlanc (7):
+>   scsi/scsi_transport_iscsi: Add iface struct to kernel.
+>   scsi/scsi_transport_iscsi: Update ep_connect to include iface.
+>   ib/iSER: Add binding to source IP address.
+>   scsi/be2iscsi: Update beiscsi_ep_connect to accept iface and
+>     sockaddr_storage.
+>   scsi/bnx2i: Update bnx2i_ep_connect to accept iface and
+>     sockaddr_storage.
+>   scsi/cxgbi: Update cxgbi_ep_connect to accept iface and
+>     sockaddr_storage.
+>   scsi/qla4xxx: Update qla4xxx_ep_connect to accept iface and
+>     sockaddr_storage.
+> 
+>  drivers/infiniband/ulp/iser/iscsi_iser.c     |  33 +++++++--
+>  drivers/infiniband/ulp/iser/iscsi_iser.h     |   4 +-
+>  drivers/infiniband/ulp/iser/iser_initiator.c |   1 +
+>  drivers/infiniband/ulp/iser/iser_memory.c    |   1 +
+>  drivers/infiniband/ulp/iser/iser_verbs.c     |   8 ++-
+>  drivers/scsi/be2iscsi/be_cmds.c              |   1 +
+>  drivers/scsi/be2iscsi/be_iscsi.c             |   8 ++-
+>  drivers/scsi/be2iscsi/be_iscsi.h             |   5 +-
+>  drivers/scsi/be2iscsi/be_main.c              |   1 +
+>  drivers/scsi/be2iscsi/be_mgmt.c              |   1 +
+>  drivers/scsi/bnx2i/bnx2i_hwi.c               |   1 +
+>  drivers/scsi/bnx2i/bnx2i_iscsi.c             |  13 ++--
+>  drivers/scsi/cxgbi/libcxgbi.c                |  15 ++--
+>  drivers/scsi/cxgbi/libcxgbi.h                |   2 +-
+>  drivers/scsi/qla4xxx/ql4_os.c                |  15 ++--
+>  drivers/scsi/scsi_transport_iscsi.c          |   9 ++-
+>  include/scsi/scsi_transport_iscsi.h          | 100 ++++++++++++++++++++++++++-
+>  17 files changed, 179 insertions(+), 39 deletions(-)
+> 
+> -- 
+> 2.11.0
+> 
 
-It makes me wonder if it is expected behavior for ibnl_rcv_reply_skb()
-to handle !NLM_F_REQUEST messages and do we really need it? What are the scenarios?
-In my use case, which is for sure different from yours, I'm always setting NLM_F_REQUEST
-while communicating with kernel.
-
-Thanks
-
-[1] http://www.spinics.net/lists/linux-rdma/msg28153.html
-
---F8dlzb82+Fcn6AgP
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlk4J3UACgkQ5GN7iDZy
-WKcGvA//ayiQkgvCeP4/ySiCg/GBNQxgXyZqJ0rKvW13VcHTfgbF+zrf7DGqE0DO
-n17E3fGQwLzxNqv9QJDl4+nVvBZBBCSifw94TFBOeenQMqrX5O9BATpHIaEDD0oU
-/d6NeZ5ZoyHCabWvb7EZobitY2EsUgV6iG6iU8RciRkwCv8+2VJM+epnAcFH50ui
-COC/tEH7JtmXa+XLA/6G6l5bqd20vxiobZV6WDpudNKnmigVzuV5/HMJshvxD59t
-whVrCLaH5zmuhO3WVB6wt2RVbW44TTNsFpMwV9at4OR7iPO3cbvmckKjbOpJ8VO4
-zKyV80fbhawh02m0EW0RGfl6CNWpW9uEmPbtlAcgSBvk4CcAxmys0VtohzLF4VTS
-0OBrfbt8imWlNcF3Wb4YKGVO/tvmTJuvPAVruZ3AbafMVY1DYBzNhOqMb+5R55EN
-SoJBsUFZNYPSBTPh5K7Atry+SsrYB2AM5KpIaJh56B6/0Eb3fn99DJkfqtRsxVKt
-oM3w7TxxcCz1O/DtGuDbisclXE7rgmvZnv1GO+Of646UVWInMv3pYzLw/jH4M53/
-ZB8MY5anmOUENHBJtf0lKFQOSSYkR1sRw0RHGg8G7zb4wfFxIt+WeVzb1U53qAJb
-1yf3LqPvsTc5Av9z88p+tf2TX//FdGxKrP7EbegFTgHf3VVXPlM=
-=LDcQ
------END PGP SIGNATURE-----
-
---F8dlzb82+Fcn6AgP--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+You received this message because you are subscribed to the Google Groups "open-iscsi" group.
+To unsubscribe from this group and stop receiving emails from it, send an email to open-iscsi+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+To post to this group, send email to open-iscsi-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+Visit this group at https://groups.google.com/group/open-iscsi.
+For more options, visit https://groups.google.com/d/optout.
