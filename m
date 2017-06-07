@@ -1,7 +1,7 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 06/13] IB/core: Initialize uverbs types specification
-Date: Wed,  7 Jun 2017 15:22:45 +0300
-Message-ID: <1496838172-39671-7-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-next 10/13] IB/core: Add legacy driver's user-data
+Date: Wed,  7 Jun 2017 15:22:49 +0300
+Message-ID: <1496838172-39671-11-git-send-email-matanb@mellanox.com>
 References: <1496838172-39671-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1496838172-39671-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,120 +10,125 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In order to accelerate the validation and parsing process, we
-calculate the number of attributes of all groups in an action
-and the mandatory attributes bitmask in advance.
+In this phase, we don't want to change all the drivers to use
+flexible driver's specific attributes. Therefore, we add two default
+attributes: UHW_IN and UHW_OUT. These attributes are optional in some
+commands and they encode the driver specific command data. We add
+a function that extract this data and creates the legacy udata over
+it.
 
 Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs.h       |  3 ++
- drivers/infiniband/core/uverbs_ioctl.c | 58 ++++++++++++++++++++++++++++++++++
- drivers/infiniband/core/uverbs_main.c  |  3 ++
- 3 files changed, 64 insertions(+)
+ drivers/infiniband/core/rdma_core.c        |  1 +
+ drivers/infiniband/core/uverbs_std_types.c | 39 ++++++++++++++++++++++++++++++
+ include/rdma/uverbs_ioctl.h                |  3 ---
+ include/uapi/rdma/ib_user_ioctl_verbs.h    | 10 ++++++++
+ 4 files changed, 50 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index 64d494a..6bb1302 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -191,7 +191,10 @@ struct ib_ucq_object {
- 	u32			async_events_reported;
+diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
+index de30016..f684f2f 100644
+--- a/drivers/infiniband/core/rdma_core.c
++++ b/drivers/infiniband/core/rdma_core.c
+@@ -36,6 +36,7 @@
+ #include <rdma/uverbs_types.h>
+ #include <linux/rcupdate.h>
+ #include <rdma/uverbs_ioctl.h>
++#include <rdma/ib_user_ioctl_verbs.h>
+ #include "uverbs.h"
+ #include "core_priv.h"
+ #include "rdma_core.h"
+diff --git a/drivers/infiniband/core/uverbs_std_types.c b/drivers/infiniband/core/uverbs_std_types.c
+index 4c97be8..caf82a0 100644
+--- a/drivers/infiniband/core/uverbs_std_types.c
++++ b/drivers/infiniband/core/uverbs_std_types.c
+@@ -209,6 +209,45 @@ static int uverbs_hot_unplug_completion_event_file(struct ib_uobject_file *uobj_
+ 	return 0;
  };
  
-+struct uverbs_type_group;
++/*
++ * This spec is used in order to pass information to the hardware driver in a
++ * legacy way. Every verb that could get driver specific data should get this
++ * spec.
++ */
++static DECLARE_UVERBS_ATTR_SPEC(
++	uverbs_uhw_compat_spec,
++	UVERBS_ATTR_PTR_IN_SZ(UVERBS_UHW_IN, 0, UA_FLAGS(UVERBS_ATTR_SPEC_F_MIN_SZ)),
++	UVERBS_ATTR_PTR_OUT_SZ(UVERBS_UHW_OUT, 0, UA_FLAGS(UVERBS_ATTR_SPEC_F_MIN_SZ)));
 +
- extern const struct file_operations uverbs_event_fops;
-+void uverbs_initialize_type_group(const struct uverbs_type_group *type_group);
- void ib_uverbs_init_event_queue(struct ib_uverbs_event_queue *ev_queue);
- struct file *ib_uverbs_alloc_async_event_file(struct ib_uverbs_file *uverbs_file,
- 					      struct ib_device *ib_dev);
-diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
-index a375a7b..4f7491e 100644
---- a/drivers/infiniband/core/uverbs_ioctl.c
-+++ b/drivers/infiniband/core/uverbs_ioctl.c
-@@ -358,3 +358,61 @@ long ib_uverbs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- 
- 	return err;
- }
-+
-+static void uverbs_initialize_action(struct uverbs_action *action)
++static void create_udata(struct uverbs_attr_array *ctx, size_t num,
++			 struct ib_udata *udata)
 +{
-+	size_t attr_group_idx;
++	/*
++	 * This is for ease of conversion. The purpose is to convert all drivers
++	 * to use uverbs_attr_array instead of ib_udata.
++	 * Assume attr == 0 is input and attr == 1 is output.
++	 */
++	void __user *inbuf;
++	size_t inbuf_len = 0;
++	void __user *outbuf;
++	size_t outbuf_len = 0;
 +
-+	for (attr_group_idx = 0; attr_group_idx < action->num_groups;
-+	     attr_group_idx++) {
-+		struct uverbs_attr_spec_group *attr_group =
-+			action->attr_groups[attr_group_idx];
-+		size_t attr_idx;
++	if (num > UVERBS_UDATA_DRIVER_DATA_GROUP) {
++		struct uverbs_attr_array *driver = &ctx[UVERBS_UDATA_DRIVER_DATA_GROUP];
 +
-+		if (!attr_group)
-+			continue;
-+		action->num_child_attrs += attr_group->num_attrs;
-+		for (attr_idx = 0; attr_idx < attr_group->num_attrs;
-+		     attr_idx++) {
-+			struct uverbs_attr_spec *attr =
-+				&attr_group->attrs[attr_idx];
++		if (uverbs_is_valid(driver, UVERBS_UHW_IN)) {
++			inbuf = driver->attrs[UVERBS_UHW_IN].ptr_attr.ptr;
++			inbuf_len = driver->attrs[UVERBS_UHW_IN].ptr_attr.len;
++		}
 +
-+			if (attr->flags & UVERBS_ATTR_SPEC_F_MANDATORY)
-+				set_bit(attr_idx,
-+					attr_group->mandatory_attrs_bitmask);
++		if (driver->num_attrs >= UVERBS_UHW_OUT &&
++		    uverbs_is_valid(driver, UVERBS_UHW_OUT)) {
++			outbuf = driver->attrs[UVERBS_UHW_OUT].ptr_attr.ptr;
++			outbuf_len = driver->attrs[UVERBS_UHW_OUT].ptr_attr.len;
 +		}
 +	}
++	INIT_UDATA_BUF_OR_NULL(udata, inbuf, outbuf, inbuf_len, outbuf_len);
 +}
-+
-+void uverbs_initialize_type_group(const struct uverbs_type_group *type_group)
-+{
-+	size_t type_idx;
-+
-+	for (type_idx = 0; type_idx < type_group->num_types; type_idx++) {
-+		const struct uverbs_type *type = type_group->types[type_idx];
-+		size_t action_group_idx;
-+
-+		if (!type)
-+			continue;
-+		for (action_group_idx = 0;
-+		     action_group_idx < type->num_groups;
-+		     action_group_idx++) {
-+			const struct uverbs_action_group *action_group =
-+				type->action_groups[action_group_idx];
-+			size_t action_idx;
-+
-+			if (!action_group)
-+				continue;
-+			for (action_idx = 0;
-+			     action_idx < action_group->num_actions;
-+			     action_idx++) {
-+				struct uverbs_action *action =
-+					action_group->actions[action_idx];
-+
-+				if (!action)
-+					continue;
-+				uverbs_initialize_action(action);
-+			}
-+		}
-+	}
-+}
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 3d26096..1836a36 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -45,6 +45,7 @@
- #include <linux/cdev.h>
- #include <linux/anon_inodes.h>
- #include <linux/slab.h>
-+#include <rdma/uverbs_std_types.h>
+ DECLARE_UVERBS_TYPE(uverbs_type_comp_channel,
+ 		    &UVERBS_TYPE_ALLOC_FD(0,
+ 					  sizeof(struct ib_uverbs_completion_event_file),
+diff --git a/include/rdma/uverbs_ioctl.h b/include/rdma/uverbs_ioctl.h
+index 4a03659..c7b3439 100644
+--- a/include/rdma/uverbs_ioctl.h
++++ b/include/rdma/uverbs_ioctl.h
+@@ -46,9 +46,6 @@
+  * =======================================
+  */
  
- #include <linux/uaccess.h>
+-#define UVERBS_ID_GROUP_MASK 0xF000
+-#define UVERBS_ID_GROUP_SHIFT 12
+-
+ enum uverbs_attr_type {
+ 	UVERBS_ATTR_TYPE_NA,
+ 	UVERBS_ATTR_TYPE_PTR_IN,
+diff --git a/include/uapi/rdma/ib_user_ioctl_verbs.h b/include/uapi/rdma/ib_user_ioctl_verbs.h
+index 9db94d0..4165738 100644
+--- a/include/uapi/rdma/ib_user_ioctl_verbs.h
++++ b/include/uapi/rdma/ib_user_ioctl_verbs.h
+@@ -33,6 +33,11 @@
+ #ifndef IB_USER_IOCTL_VERBS_H
+ #define IB_USER_IOCTL_VERBS_H
  
-@@ -1254,6 +1255,8 @@ static int __init ib_uverbs_init(void)
- {
- 	int ret;
- 
-+	uverbs_initialize_type_group(&uverbs_common_types);
++#define UVERBS_ID_GROUP_MASK 0xF000
++#define UVERBS_ID_GROUP_SHIFT 12
++#define UVERBS_UDATA_DRIVER_DATA_GROUP	1
++#define UVERBS_UDATA_DRIVER_DATA_FLAG	(1UL << UVERBS_ID_GROUP_SHIFT)
 +
- 	ret = register_chrdev_region(IB_UVERBS_BASE_DEV, IB_UVERBS_MAX_DEVICES,
- 				     "infiniband_verbs");
- 	if (ret) {
+ enum uverbs_common_types {
+ 	UVERBS_TYPE_DEVICE, /* No instances of DEVICE are allowed */
+ 	UVERBS_TYPE_PD,
+@@ -50,5 +55,10 @@ enum uverbs_common_types {
+ 	UVERBS_TYPE_LAST,
+ };
+ 
++enum {
++	UVERBS_UHW_IN,
++	UVERBS_UHW_OUT,
++};
++
+ #endif
+ 
 -- 
 1.8.3.1
 
