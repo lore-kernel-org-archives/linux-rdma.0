@@ -1,56 +1,30 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core] util: Fix mmio_flush_writes for SPARC and S390x
-Date: Wed, 7 Jun 2017 19:31:26 +0300
-Message-ID: <20170607163126.GE1127@mtr-leonro.local>
-References: <88cef736-88c3-08d9-4042-fd73b2d4cb97@suse.de>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Netlink messages without NLM_F_REQUEST flag
+Date: Wed, 7 Jun 2017 10:37:58 -0600
+Message-ID: <20170607163758.GA25313@obsidianresearch.com>
+References: <20170607161901.GD1127@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="UnaWdueM1EBWVRzC"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <88cef736-88c3-08d9-4042-fd73b2d4cb97-l3A5Bk7waGM@public.gmane.org>
+In-Reply-To: <20170607161901.GD1127-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Thomas Graf <tgraf-G/eBtMaohhA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jiri Pirko <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Jun 07, 2017 at 07:19:01PM +0300, Leon Romanovsky wrote:
+> It makes me wonder if it is expected behavior for
+> ibnl_rcv_reply_skb() to handle !NLM_F_REQUEST messages and do we
+> really need it? What are the scenarios?  In my use case, which is
+> for sure different from yours, I'm always setting NLM_F_REQUEST
+> while communicating with kernel.
 
---UnaWdueM1EBWVRzC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+If I recall the user space SA code issues REQUESTS from the kernel to
+userspace, so userspace returns with the response format. This is
+abnormal for netlink hence the special function.
 
-On Wed, Jun 07, 2017 at 02:58:39PM +0200, Nicolas Morey-Chaisemartin wrote:
-> Due to a missing #else, udma_barrier.h failed on sparc and s390x
->
-> Signed-off-by: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-IBi9RG/b67k@public.gmane.org>
-> ---
->  util/udma_barrier.h | 1 +
->  1 file changed, 1 insertion(+)
->
-
-Thanks, applied.
-
---UnaWdueM1EBWVRzC
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlk4Kl0ACgkQ5GN7iDZy
-WKcRzxAAzXlOo/2U9HKBMlmrkTMxqjpJ6IDvUAeSDKpHewrI7SJImcqQMgeUPWv9
-iRFq8vO6nO0SEzzRHOIne97kxFkbyr1coRIa0PiwNHqMwMCUFfcMoCZoWeROoVKM
-h/Tbu7w+MG6Yr2lx5UKvefKTdJA8N205utsDbA/6PebJ0eiJePninRbiS1DdbfQU
-X8HAEZkW3BsDKDM2x1DJzisIJ8U0IlW+WuSwtigA3MbDODW6AOt0LqQao3DdFCrY
-/LJDVuq9E4N9yaAm7Qh9DtKsKQCy1e2FTdZ3vcyGB9f+4avCYwOe9JHUC7NY9VOx
-WdQvlJEnF976zxF4vutPpMbtR4wqHRWvYd+rLFQ+ggI6nyij7kEHm5SyL5uBUiGP
-WxH0roXx2tkG4XgtvDmUCiZjz/BvFR+gO9Y5PE37fGfN5PPFzNZNxZhe6/ixiyoC
-+fKOVcZSdvmn/dBw4ncDMUoqm+N5VMaKXwgO6iD5YrfaNOMXH8pLrHlg7mVbG9/f
-IcOmcFQ7X0a4g0hipmctZaxRPrD25sbrttZNREw4oaizm2BfPtix4pCZlgYOIE2h
-szPLyiahYZEDgFpeBercLMakPEZTrxFcd56w6KoMXEpbRf9VEskdRz4kifop0Sze
-7+bFqykW4hp86U68BmHoYtoCjxAPHEc1xFgdA2knid63BY178xM=
-=r7Ij
------END PGP SIGNATURE-----
-
---UnaWdueM1EBWVRzC--
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
