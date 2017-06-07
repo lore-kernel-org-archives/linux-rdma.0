@@ -1,181 +1,337 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: Re: iSER Connection via LIO not working
-Date: Wed, 7 Jun 2017 13:46:55 -0600
-Message-ID: <CAANLjFqt_RqU6UFPCcZJ5Mec-ku__YErFb-VLrV4Qx9G7ArAZA@mail.gmail.com>
-References: <2E68B5D1-49CF-4F2C-B7F3-DA20E05503B8@creamfinance.com>
- <CAANLjFraKgxAC09VH8u72SbQZs8WhXnnk87VQB0ywoVavC2hSg@mail.gmail.com>
- <2E0A092F-9530-44FB-8A6F-D76D8E94ABE0@creamfinance.com> <CAANLjFqg1ked1Ls0W=BRRw5o5vheHKnUw5C_5OVciFQd0H8djg@mail.gmail.com>
- <827EC8DD-86E7-4011-8F68-B29396B2034D@creamfinance.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1] IB/core: Add generic function to extract IB speed
+ from netdev
+Date: Wed, 7 Jun 2017 22:46:36 +0300
+Message-ID: <20170607194635.GA7042@yuvallap>
+References: <20170606193622.25552-1-yuval.shaia@oracle.com>
+ <20170607165022.GF1127@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <827EC8DD-86E7-4011-8F68-B29396B2034D-+32LHaKS/h5VtLMLtJdGzA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170607165022.GF1127-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Thomas Rosenstein <thomas.rosenstein-+32LHaKS/h5VtLMLtJdGzA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagi-TmH2Wj2nsNJBDLzU/O5InQ@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 7, 2017 at 1:26 PM, Thomas Rosenstein
-<thomas.rosenstein-+32LHaKS/h5VtLMLtJdGzA@public.gmane.org> wrote:
-> Okay, just did that:
->
-> printk(KERN_WARNING PFX "Debug pool %d - %d\n", list_len, pool->max_pages);
->
-> result is:
->
-> fmr_pool: Debug pool 1 - 0
->
-> means that the max_pages is set to 0
->
-> any idea how why and how to solve that?
->
+On Wed, Jun 07, 2017 at 07:50:22PM +0300, Leon Romanovsky wrote:
+> On Tue, Jun 06, 2017 at 10:36:22PM +0300, Yuval Shaia wrote:
+> > Logic of retrieving netdev speed from net_device and translating it to IB
+> > speed is implemented in rxe, in usnic and in bnxt drivers.
+> >
+> > Define new function which merges all.
+> >
+> > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > ---
+> > v0 -> v1:
+> > 	* Invite usnic to the party.
+> >
+> > Please note that this patch kills the following mail threads:
+> > 	* [PATCH] IB/bnxt_re: Check return value from get_link_ksettings
+> > 	* [PATCH 1/2] IB/rxe: Check return value from get_settings
+> > 	* [PATCH 2/2] IB/rxe: Protect call to get_link_ksettings with rtnl lock
+> > ---
+> >  drivers/infiniband/core/verbs.c              | 52 ++++++++++++++++++++++++++++
+> >  drivers/infiniband/hw/bnxt_re/ib_verbs.c     | 48 ++-----------------------
+> >  drivers/infiniband/hw/usnic/usnic_ib_verbs.c | 27 ++-------------
+> >  drivers/infiniband/sw/rxe/rxe_verbs.c        | 43 +----------------------
+> >  include/rdma/ib_verbs.h                      |  1 +
+> >  5 files changed, 58 insertions(+), 113 deletions(-)
+> >
+> > diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+> > index 4792f52..de40434 100644
+> > --- a/drivers/infiniband/core/verbs.c
+> > +++ b/drivers/infiniband/core/verbs.c
+> > @@ -1253,6 +1253,58 @@ int ib_resolve_eth_dmac(struct ib_device *device,
+> >  }
+> >  EXPORT_SYMBOL(ib_resolve_eth_dmac);
+> >
+> > +void ib_get_speed(struct net_device *netdev, u8 *speed, u8 *width)
+> > +{
+> > +	int rc;
+> > +	u32 netdev_speed = SPEED_UNKNOWN;
+> > +
 
-Again, this is out of my wheelhouse and I'm having trouble tracing all
-the callbacks (I usually have to do a ton of print statements to
-figure out the callbacks). I do think that the pool_handle is being
-set further down in drivers/infiniband/ulp/iser/iser_memory.c in the
-iser_reg_rdma_mem() funtion as part of the "struct iser_fr_desc *desc"
-component. I think it is probably being set in this code:
+[1]
 
-        if (!use_dma_key) {
-                desc = device->reg_ops->reg_desc_get(ib_conn);
-                reg->mem_h = desc;
-        }
+> > +	if (netdev->ethtool_ops->get_link_ksettings) {
+> > +		struct ethtool_link_ksettings lksettings;
+> > +
+> > +		rtnl_lock();
+> > +		rc = netdev->ethtool_ops->get_link_ksettings(netdev,
+> > +							     &lksettings);
+> > +		rtnl_unlock();
+> > +
+> > +		if (!rc)
+> > +			netdev_speed = lksettings.base.speed;
+> > +	} else if (netdev->ethtool_ops->get_settings) {
+> > +		struct ethtool_cmd cmd;
+> > +
+> > +		rc = netdev->ethtool_ops->get_settings(netdev, &cmd);
+> > +
+> > +		if (!rc)
+> > +			netdev_speed = cmd.speed;
+> > +	}
 
-Now it could be set by reg_desc_get (which I think is an iSER
-callback) or more likely as part of ib_conn which I think the driver
-sets up. Hopefully someone smarter than I can chime in and give you
-some help as to why the pool->max_pages is zero.
+[2]
 
-Good luck!
+> > +
+> > +	if (netdev_speed == SPEED_UNKNOWN) {
+> > +		netdev_speed = SPEED_1000;
+> > +		pr_warn("%s speed is unknown, defaulting to %d\n", netdev->name,
+> > +			netdev_speed);
+> > +	}
+> 
+> Are you sure that it works for usnic?
+> I didn't check in the code, but from the patch usnic doesn't depend on
+> "netdev->ethtool_ops" and in its case, you will be here with
+> netdev_speed == SPEED_UNKNOWN.
 
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+Looking at __ethtool_get_link_ksettings, which is what usnic is using and
+it is doing the exact flow as above so we should be fine.
+However, this makes me think maybe to replace the above ([1] to [2]) with a
+call to __ethtool_get_link_ksettings.
+
+What do you think?
+
+> 
+> 
+> > +
+> > +	if (netdev_speed <= SPEED_1000) {
+> > +		*width = IB_WIDTH_1X;
+> > +		*speed = IB_SPEED_SDR;
+> > +	} else if (netdev_speed <= SPEED_10000) {
+> > +		*width = IB_WIDTH_1X;
+> > +		*speed = IB_SPEED_FDR10;
+> > +	} else if (netdev_speed <= SPEED_20000) {
+> > +		*width = IB_WIDTH_4X;
+> > +		*speed = IB_SPEED_DDR;
+> > +	} else if (netdev_speed <= SPEED_25000) {
+> > +		*width = IB_WIDTH_1X;
+> > +		*speed = IB_SPEED_EDR;
+> > +	} else if (netdev_speed <= SPEED_40000) {
+> > +		*width = IB_WIDTH_4X;
+> > +		*speed = IB_SPEED_FDR10;
+> > +	} else {
+> > +		*width = IB_WIDTH_4X;
+> > +		*speed = IB_SPEED_EDR;
+> > +	}
+> > +}
+> > +EXPORT_SYMBOL(ib_get_speed);
+> > +
+> >  int ib_modify_qp(struct ib_qp *qp,
+> >  		 struct ib_qp_attr *qp_attr,
+> >  		 int qp_attr_mask)
+> > diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> > index 7ba9e69..9a34c06 100644
+> > --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> > +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> > @@ -181,50 +181,6 @@ int bnxt_re_modify_device(struct ib_device *ibdev,
+> >  	return 0;
+> >  }
+> >
+> > -static void __to_ib_speed_width(struct net_device *netdev, u8 *speed, u8 *width)
+> > -{
+> > -	struct ethtool_link_ksettings lksettings;
+> > -	u32 espeed;
+> > -
+> > -	if (netdev->ethtool_ops && netdev->ethtool_ops->get_link_ksettings) {
+> > -		memset(&lksettings, 0, sizeof(lksettings));
+> > -		rtnl_lock();
+> > -		netdev->ethtool_ops->get_link_ksettings(netdev, &lksettings);
+> > -		rtnl_unlock();
+> > -		espeed = lksettings.base.speed;
+> > -	} else {
+> > -		espeed = SPEED_UNKNOWN;
+> > -	}
+> > -	switch (espeed) {
+> > -	case SPEED_1000:
+> > -		*speed = IB_SPEED_SDR;
+> > -		*width = IB_WIDTH_1X;
+> > -		break;
+> > -	case SPEED_10000:
+> > -		*speed = IB_SPEED_QDR;
+> > -		*width = IB_WIDTH_1X;
+> > -		break;
+> > -	case SPEED_20000:
+> > -		*speed = IB_SPEED_DDR;
+> > -		*width = IB_WIDTH_4X;
+> > -		break;
+> > -	case SPEED_25000:
+> > -		*speed = IB_SPEED_EDR;
+> > -		*width = IB_WIDTH_1X;
+> > -		break;
+> > -	case SPEED_40000:
+> > -		*speed = IB_SPEED_QDR;
+> > -		*width = IB_WIDTH_4X;
+> > -		break;
+> > -	case SPEED_50000:
+> > -		break;
+> > -	default:
+> > -		*speed = IB_SPEED_SDR;
+> > -		*width = IB_WIDTH_1X;
+> > -		break;
+> > -	}
+> > -}
+> > -
+> >  /* Port */
+> >  int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
+> >  		       struct ib_port_attr *port_attr)
+> > @@ -266,8 +222,8 @@ int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
+> >  	 * IB stack to avoid race in the NETDEV_UNREG path
+> >  	 */
+> >  	if (test_bit(BNXT_RE_FLAG_IBDEV_REGISTERED, &rdev->flags))
+> > -		__to_ib_speed_width(rdev->netdev, &port_attr->active_speed,
+> > -				    &port_attr->active_width);
+> > +		ib_get_speed(rdev->netdev, &port_attr->active_speed,
+> > +			     &port_attr->active_width);
+> >  	return 0;
+> >  }
+> >
+> > diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+> > index 4996984..097a3b1 100644
+> > --- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+> > +++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+> > @@ -226,27 +226,6 @@ static void qp_grp_destroy(struct usnic_ib_qp_grp *qp_grp)
+> >  	spin_unlock(&vf->lock);
+> >  }
+> >
+> > -static void eth_speed_to_ib_speed(int speed, u8 *active_speed,
+> > -					u8 *active_width)
+> > -{
+> > -	if (speed <= 10000) {
+> > -		*active_width = IB_WIDTH_1X;
+> > -		*active_speed = IB_SPEED_FDR10;
+> > -	} else if (speed <= 20000) {
+> > -		*active_width = IB_WIDTH_4X;
+> > -		*active_speed = IB_SPEED_DDR;
+> > -	} else if (speed <= 30000) {
+> > -		*active_width = IB_WIDTH_4X;
+> > -		*active_speed = IB_SPEED_QDR;
+> > -	} else if (speed <= 40000) {
+> > -		*active_width = IB_WIDTH_4X;
+> > -		*active_speed = IB_SPEED_FDR10;
+> > -	} else {
+> > -		*active_width = IB_WIDTH_4X;
+> > -		*active_speed = IB_SPEED_EDR;
+> > -	}
+> > -}
+> > -
+> >  static int create_qp_validate_user_data(struct usnic_ib_create_qp_cmd cmd)
+> >  {
+> >  	if (cmd.spec.trans_type <= USNIC_TRANSPORT_UNKNOWN ||
+> > @@ -326,12 +305,12 @@ int usnic_ib_query_port(struct ib_device *ibdev, u8 port,
+> >  				struct ib_port_attr *props)
+> >  {
+> >  	struct usnic_ib_dev *us_ibdev = to_usdev(ibdev);
+> > -	struct ethtool_link_ksettings cmd;
+> >
+> >  	usnic_dbg("\n");
+> >
+> >  	mutex_lock(&us_ibdev->usdev_lock);
+> > -	__ethtool_get_link_ksettings(us_ibdev->netdev, &cmd);
+> > +	ib_get_speed(us_ibdev->netdev, &props->active_speed,
+> > +		     &props->active_width);
+> >  	/* props being zeroed by the caller, avoid zeroing it here */
+> >
+> >  	props->lid = 0;
+> > @@ -355,8 +334,6 @@ int usnic_ib_query_port(struct ib_device *ibdev, u8 port,
+> >  	props->pkey_tbl_len = 1;
+> >  	props->bad_pkey_cntr = 0;
+> >  	props->qkey_viol_cntr = 0;
+> > -	eth_speed_to_ib_speed(cmd.base.speed, &props->active_speed,
+> > -			      &props->active_width);
+> >  	props->max_mtu = IB_MTU_4096;
+> >  	props->active_mtu = iboe_get_mtu(us_ibdev->ufdev->mtu);
+> >  	/* Userspace will adjust for hdrs */
+> > diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+> > index 83d709e..cdac9f2 100644
+> > --- a/drivers/infiniband/sw/rxe/rxe_verbs.c
+> > +++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+> > @@ -51,36 +51,11 @@ static int rxe_query_device(struct ib_device *dev,
+> >  	return 0;
+> >  }
+> >
+> > -static void rxe_eth_speed_to_ib_speed(int speed, u8 *active_speed,
+> > -				      u8 *active_width)
+> > -{
+> > -	if (speed <= 1000) {
+> > -		*active_width = IB_WIDTH_1X;
+> > -		*active_speed = IB_SPEED_SDR;
+> > -	} else if (speed <= 10000) {
+> > -		*active_width = IB_WIDTH_1X;
+> > -		*active_speed = IB_SPEED_FDR10;
+> > -	} else if (speed <= 20000) {
+> > -		*active_width = IB_WIDTH_4X;
+> > -		*active_speed = IB_SPEED_DDR;
+> > -	} else if (speed <= 30000) {
+> > -		*active_width = IB_WIDTH_4X;
+> > -		*active_speed = IB_SPEED_QDR;
+> > -	} else if (speed <= 40000) {
+> > -		*active_width = IB_WIDTH_4X;
+> > -		*active_speed = IB_SPEED_FDR10;
+> > -	} else {
+> > -		*active_width = IB_WIDTH_4X;
+> > -		*active_speed = IB_SPEED_EDR;
+> > -	}
+> > -}
+> > -
+> >  static int rxe_query_port(struct ib_device *dev,
+> >  			  u8 port_num, struct ib_port_attr *attr)
+> >  {
+> >  	struct rxe_dev *rxe = to_rdev(dev);
+> >  	struct rxe_port *port;
+> > -	u32 speed;
+> >
+> >  	if (unlikely(port_num != 1)) {
+> >  		pr_warn("invalid port_number %d\n", port_num);
+> > @@ -93,23 +68,7 @@ static int rxe_query_port(struct ib_device *dev,
+> >  	*attr = port->attr;
+> >
+> >  	mutex_lock(&rxe->usdev_lock);
+> > -	if (rxe->ndev->ethtool_ops->get_link_ksettings) {
+> > -		struct ethtool_link_ksettings ks;
+> > -
+> > -		rxe->ndev->ethtool_ops->get_link_ksettings(rxe->ndev, &ks);
+> > -		speed = ks.base.speed;
+> > -	} else if (rxe->ndev->ethtool_ops->get_settings) {
+> > -		struct ethtool_cmd cmd;
+> > -
+> > -		rxe->ndev->ethtool_ops->get_settings(rxe->ndev, &cmd);
+> > -		speed = cmd.speed;
+> > -	} else {
+> > -		pr_warn("%s speed is unknown, defaulting to 1000\n",
+> > -			rxe->ndev->name);
+> > -		speed = 1000;
+> > -	}
+> > -	rxe_eth_speed_to_ib_speed(speed, &attr->active_speed,
+> > -				  &attr->active_width);
+> > +	ib_get_speed(rxe->ndev, &attr->active_speed, &attr->active_width);
+> >  	mutex_unlock(&rxe->usdev_lock);
+> >
+> >  	return 0;
+> > diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> > index ba8314e..2c57f32 100644
+> > --- a/include/rdma/ib_verbs.h
+> > +++ b/include/rdma/ib_verbs.h
+> > @@ -3488,6 +3488,7 @@ void ib_drain_qp(struct ib_qp *qp);
+> >
+> >  int ib_resolve_eth_dmac(struct ib_device *device,
+> >  			struct rdma_ah_attr *ah_attr);
+> > +void ib_get_speed(struct net_device *netdev, u8 *speed, u8 *width);
+> >
+> >  static inline u8 *rdma_ah_retrieve_dmac(struct rdma_ah_attr *attr)
+> >  {
+> > --
+> > 2.9.4
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
-On Wed, Jun 7, 2017 at 1:26 PM, Thomas Rosenstein
-<thomas.rosenstein-+32LHaKS/h5VtLMLtJdGzA@public.gmane.org> wrote:
-> Okay, just did that:
->
-> printk(KERN_WARNING PFX "Debug pool %d - %d\n", list_len, pool->max_pages);
->
-> result is:
->
-> fmr_pool: Debug pool 1 - 0
->
-> means that the max_pages is set to 0
->
-> any idea how why and how to solve that?
->
-> On 7 Jun 2017, at 21:05, Robert LeBlanc wrote:
->
-> On Wed, Jun 7, 2017 at 12:46 PM, Thomas Rosenstein
-> <thomas.rosenstein-+32LHaKS/h5VtLMLtJdGzA@public.gmane.org> wrote:
->
-> Hi,
->
-> lio config (extract - .json file attached)
->
-> o- iscsi
-> ...........................................................................................
-> [1-way disc auth, Targets: 1]
-> | o- iqn.2017-01.at.cf-it.at-storage-01
-> ................................................................................
-> [TPGs: 1]
-> | o- tpg1
-> ..........................................................................................
-> [no-gen-acls, auth per-acl]
-> | o- acls
-> ..........................................................................................................
-> [ACLs: 1]
-> | | o- iqn.2017-01.at.cf-it.kubernetes.db-1
-> ..................................................... [1-way auth, Mapped
-> LUNs: 1]
-> | | o- mapped_lun0
-> ...................................................................... [lun0
-> fileio/kubernetes_db_1 (rw)]
-> | o- luns
-> ..........................................................................................................
-> [LUNs: 1]
-> | | o- lun0 ..........................................
-> [fileio/kubernetes_db_1 (/data/kubernetes_storage/kubernetes_db_1.img)]
-> | o- portals
-> ....................................................................................................
-> [Portals: 1]
-> | o- 0.0.0.0:3260
-> ...................................................................................................
-> [iser]
->
-> at-storage-01 modules:
->
-> ib_isert 49152 4
-> iscsi_target_mod 294912 8 ib_isert
-> ib_iser 49152 0
-> libiscsi 57344 1 ib_iser
-> scsi_transport_iscsi 98304 2 ib_iser,libiscsi
-> target_core_mod 352256 43
-> iscsi_target_mod,ib_isert,target_core_iblock,ib_srpt,target_core_user,target_core_file,target_core_pscsi
-> rdma_cm 53248 4 ib_iser,ib_isert,rpcrdma,rdma_ucm
-> ib_core 208896 15
-> ib_iser,ib_cm,rdma_cm,ib_umad,ib_srp,ib_isert,ib_uverbs,rpcrdma,ib_ipoib,iw_cm,ib_srpt,ib_ucm,rdmavt,ib_qib,rdma_ucm
->
-> at-host-18 modules:
->
-> ib_isert 49152 0
-> iscsi_target_mod 299008 1 ib_isert
-> ib_iser 49152 0
-> libiscsi 57344 1 ib_iser
-> scsi_transport_iscsi 98304 3 ib_iser,libiscsi
-> target_core_mod 352256 3 iscsi_target_mod,ib_isert,ib_srpt
-> rdma_cm 53248 4 ib_iser,ib_isert,rpcrdma,rdma_ucm
-> ib_core 208896 15
-> ib_iser,ib_cm,rdma_cm,ib_umad,ib_srp,ib_isert,ib_uverbs,rpcrdma,ib_ipoib,iw_cm,ib_srpt,ib_ucm,rdmavt,ib_qib,rdma_ucm
->
->
-> Commands to initialize iscsiadm:
->
-> iscsiadm -m discovery -t st -p 10.0.13.3:3260 -I iser
->
-> iscsiadm -m node -P 1
-> Target: iqn.2017-01.at.cf-it.at-storage-01
-> Portal: 10.0.13.3:3260,1
-> Iface Name: iser
->
-> iscsiadm -m node -l
->
-> ->> creates the logs
->
->
-> @deleted and recreated, multiple times
-> ib_isert and ib_iser are loaded on both servers
->
-> BR
-> Thomas
->
-> The config looks good to me. I did have a similar problem with a RoCE
-> card where I could not get iSER working although RDMA did work.
-> Looking at the code, it seems that maybe the QLogic driver is not
-> properly allocating some memory that iSER is trying to use. I'm not an
-> expert in this so I could be completely off base here, just trying to
-> help out.
->
-> If you are adventerious, you can add some print statements in
-> drivers/infiniband/core/fmr_pool.c in the ib_fmr_pool_map_phys
-> function to see what may be going on. I think you are hitting this
-> line:
->
-> if (list_len < 1 || list_len > pool->max_pages)
-> return ERR_PTR(-EINVAL);
->
-> I would check the values of list_len and pool->max_pages before that.
->
-> ----------------
-> Robert LeBlanc
-> PGP Fingerprint 79A2 9CA4 6CC4 45DD A904 C70E E654 3BB2 FA62 B9F1
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
