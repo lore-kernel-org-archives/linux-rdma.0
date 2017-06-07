@@ -1,347 +1,75 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v1] IB/core: Add generic function to extract IB speed
- from netdev
-Date: Wed, 7 Jun 2017 19:50:22 +0300
-Message-ID: <20170607165022.GF1127@mtr-leonro.local>
-References: <20170606193622.25552-1-yuval.shaia@oracle.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: Netlink messages without NLM_F_REQUEST flag
+Date: Wed, 7 Jun 2017 20:00:37 +0300
+Message-ID: <20170607170037.GG1127@mtr-leonro.local>
+References: <20170607161901.GD1127@mtr-leonro.local>
+ <20170607163758.GA25313@obsidianresearch.com>
+ <CALq1K=Jj_jJ5_OAiiws-es37tFEsLeLJeSvnU+bfwd0KLkGM3Q@mail.gmail.com>
+ <20170607164750.GA7507@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="4f28nU6agdXSinmL"
+        protocol="application/pgp-signature"; boundary="YH9Qf6Fh2G5kB/85"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170606193622.25552-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170607164750.GA7507-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagi-TmH2Wj2nsNJBDLzU/O5InQ@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, John Fleck <john.fleck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Thomas Graf <tgraf-G/eBtMaohhA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jiri Pirko <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---4f28nU6agdXSinmL
+--YH9Qf6Fh2G5kB/85
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Jun 06, 2017 at 10:36:22PM +0300, Yuval Shaia wrote:
-> Logic of retrieving netdev speed from net_device and translating it to IB
-> speed is implemented in rxe, in usnic and in bnxt drivers.
+On Wed, Jun 07, 2017 at 10:47:50AM -0600, Jason Gunthorpe wrote:
+> On Wed, Jun 07, 2017 at 07:43:44PM +0300, Leon Romanovsky wrote:
+> > On Wed, Jun 7, 2017 at 7:37 PM, Jason Gunthorpe
+> > <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> > > On Wed, Jun 07, 2017 at 07:19:01PM +0300, Leon Romanovsky wrote:
+> > >> It makes me wonder if it is expected behavior for
+> > >> ibnl_rcv_reply_skb() to handle !NLM_F_REQUEST messages and do we
+> > >> really need it? What are the scenarios?  In my use case, which is
+> > >> for sure different from yours, I'm always setting NLM_F_REQUEST
+> > >> while communicating with kernel.
+> > >
+> > > If I recall the user space SA code issues REQUESTS from the kernel to
+> > > userspace, so userspace returns with the response format. This is
+> > > abnormal for netlink hence the special function.
+> >
+> > In netlink semantics, kernel side is supposed to send netlink
+> > notification message and userspace is supposed to send REQUEST.
 >
-> Define new function which merges all.
->
-> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
-> v0 -> v1:
-> 	* Invite usnic to the party.
->
-> Please note that this patch kills the following mail threads:
-> 	* [PATCH] IB/bnxt_re: Check return value from get_link_ksettings
-> 	* [PATCH 1/2] IB/rxe: Check return value from get_settings
-> 	* [PATCH 2/2] IB/rxe: Protect call to get_link_ksettings with rtnl lock
-> ---
->  drivers/infiniband/core/verbs.c              | 52 ++++++++++++++++++++++++++++
->  drivers/infiniband/hw/bnxt_re/ib_verbs.c     | 48 ++-----------------------
->  drivers/infiniband/hw/usnic/usnic_ib_verbs.c | 27 ++-------------
->  drivers/infiniband/sw/rxe/rxe_verbs.c        | 43 +----------------------
->  include/rdma/ib_verbs.h                      |  1 +
->  5 files changed, 58 insertions(+), 113 deletions(-)
->
-> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-> index 4792f52..de40434 100644
-> --- a/drivers/infiniband/core/verbs.c
-> +++ b/drivers/infiniband/core/verbs.c
-> @@ -1253,6 +1253,58 @@ int ib_resolve_eth_dmac(struct ib_device *device,
->  }
->  EXPORT_SYMBOL(ib_resolve_eth_dmac);
->
-> +void ib_get_speed(struct net_device *netdev, u8 *speed, u8 *width)
-> +{
-> +	int rc;
-> +	u32 netdev_speed = SPEED_UNKNOWN;
-> +
-> +	if (netdev->ethtool_ops->get_link_ksettings) {
-> +		struct ethtool_link_ksettings lksettings;
-> +
-> +		rtnl_lock();
-> +		rc = netdev->ethtool_ops->get_link_ksettings(netdev,
-> +							     &lksettings);
-> +		rtnl_unlock();
-> +
-> +		if (!rc)
-> +			netdev_speed = lksettings.base.speed;
-> +	} else if (netdev->ethtool_ops->get_settings) {
-> +		struct ethtool_cmd cmd;
-> +
-> +		rc = netdev->ethtool_ops->get_settings(netdev, &cmd);
-> +
-> +		if (!rc)
-> +			netdev_speed = cmd.speed;
-> +	}
-> +
-> +	if (netdev_speed == SPEED_UNKNOWN) {
-> +		netdev_speed = SPEED_1000;
-> +		pr_warn("%s speed is unknown, defaulting to %d\n", netdev->name,
-> +			netdev_speed);
-> +	}
+> That pattern is for async communications, the SA stuff needs a sync
+> protocol, unfortunately.
 
-Are you sure that it works for usnic?
-I didn't check in the code, but from the patch usnic doesn't depend on
-"netdev->ethtool_ops" and in its case, you will be here with
-netdev_speed == SPEED_UNKNOWN.
+There is special flag NLM_F_ACK for it and userspace will set
+NLM_F_REQUEST | NLM_F_ACK once synchronization is needed.
 
+>
+> Jason
 
-> +
-> +	if (netdev_speed <= SPEED_1000) {
-> +		*width = IB_WIDTH_1X;
-> +		*speed = IB_SPEED_SDR;
-> +	} else if (netdev_speed <= SPEED_10000) {
-> +		*width = IB_WIDTH_1X;
-> +		*speed = IB_SPEED_FDR10;
-> +	} else if (netdev_speed <= SPEED_20000) {
-> +		*width = IB_WIDTH_4X;
-> +		*speed = IB_SPEED_DDR;
-> +	} else if (netdev_speed <= SPEED_25000) {
-> +		*width = IB_WIDTH_1X;
-> +		*speed = IB_SPEED_EDR;
-> +	} else if (netdev_speed <= SPEED_40000) {
-> +		*width = IB_WIDTH_4X;
-> +		*speed = IB_SPEED_FDR10;
-> +	} else {
-> +		*width = IB_WIDTH_4X;
-> +		*speed = IB_SPEED_EDR;
-> +	}
-> +}
-> +EXPORT_SYMBOL(ib_get_speed);
-> +
->  int ib_modify_qp(struct ib_qp *qp,
->  		 struct ib_qp_attr *qp_attr,
->  		 int qp_attr_mask)
-> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> index 7ba9e69..9a34c06 100644
-> --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> @@ -181,50 +181,6 @@ int bnxt_re_modify_device(struct ib_device *ibdev,
->  	return 0;
->  }
->
-> -static void __to_ib_speed_width(struct net_device *netdev, u8 *speed, u8 *width)
-> -{
-> -	struct ethtool_link_ksettings lksettings;
-> -	u32 espeed;
-> -
-> -	if (netdev->ethtool_ops && netdev->ethtool_ops->get_link_ksettings) {
-> -		memset(&lksettings, 0, sizeof(lksettings));
-> -		rtnl_lock();
-> -		netdev->ethtool_ops->get_link_ksettings(netdev, &lksettings);
-> -		rtnl_unlock();
-> -		espeed = lksettings.base.speed;
-> -	} else {
-> -		espeed = SPEED_UNKNOWN;
-> -	}
-> -	switch (espeed) {
-> -	case SPEED_1000:
-> -		*speed = IB_SPEED_SDR;
-> -		*width = IB_WIDTH_1X;
-> -		break;
-> -	case SPEED_10000:
-> -		*speed = IB_SPEED_QDR;
-> -		*width = IB_WIDTH_1X;
-> -		break;
-> -	case SPEED_20000:
-> -		*speed = IB_SPEED_DDR;
-> -		*width = IB_WIDTH_4X;
-> -		break;
-> -	case SPEED_25000:
-> -		*speed = IB_SPEED_EDR;
-> -		*width = IB_WIDTH_1X;
-> -		break;
-> -	case SPEED_40000:
-> -		*speed = IB_SPEED_QDR;
-> -		*width = IB_WIDTH_4X;
-> -		break;
-> -	case SPEED_50000:
-> -		break;
-> -	default:
-> -		*speed = IB_SPEED_SDR;
-> -		*width = IB_WIDTH_1X;
-> -		break;
-> -	}
-> -}
-> -
->  /* Port */
->  int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
->  		       struct ib_port_attr *port_attr)
-> @@ -266,8 +222,8 @@ int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
->  	 * IB stack to avoid race in the NETDEV_UNREG path
->  	 */
->  	if (test_bit(BNXT_RE_FLAG_IBDEV_REGISTERED, &rdev->flags))
-> -		__to_ib_speed_width(rdev->netdev, &port_attr->active_speed,
-> -				    &port_attr->active_width);
-> +		ib_get_speed(rdev->netdev, &port_attr->active_speed,
-> +			     &port_attr->active_width);
->  	return 0;
->  }
->
-> diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-> index 4996984..097a3b1 100644
-> --- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-> +++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-> @@ -226,27 +226,6 @@ static void qp_grp_destroy(struct usnic_ib_qp_grp *qp_grp)
->  	spin_unlock(&vf->lock);
->  }
->
-> -static void eth_speed_to_ib_speed(int speed, u8 *active_speed,
-> -					u8 *active_width)
-> -{
-> -	if (speed <= 10000) {
-> -		*active_width = IB_WIDTH_1X;
-> -		*active_speed = IB_SPEED_FDR10;
-> -	} else if (speed <= 20000) {
-> -		*active_width = IB_WIDTH_4X;
-> -		*active_speed = IB_SPEED_DDR;
-> -	} else if (speed <= 30000) {
-> -		*active_width = IB_WIDTH_4X;
-> -		*active_speed = IB_SPEED_QDR;
-> -	} else if (speed <= 40000) {
-> -		*active_width = IB_WIDTH_4X;
-> -		*active_speed = IB_SPEED_FDR10;
-> -	} else {
-> -		*active_width = IB_WIDTH_4X;
-> -		*active_speed = IB_SPEED_EDR;
-> -	}
-> -}
-> -
->  static int create_qp_validate_user_data(struct usnic_ib_create_qp_cmd cmd)
->  {
->  	if (cmd.spec.trans_type <= USNIC_TRANSPORT_UNKNOWN ||
-> @@ -326,12 +305,12 @@ int usnic_ib_query_port(struct ib_device *ibdev, u8 port,
->  				struct ib_port_attr *props)
->  {
->  	struct usnic_ib_dev *us_ibdev = to_usdev(ibdev);
-> -	struct ethtool_link_ksettings cmd;
->
->  	usnic_dbg("\n");
->
->  	mutex_lock(&us_ibdev->usdev_lock);
-> -	__ethtool_get_link_ksettings(us_ibdev->netdev, &cmd);
-> +	ib_get_speed(us_ibdev->netdev, &props->active_speed,
-> +		     &props->active_width);
->  	/* props being zeroed by the caller, avoid zeroing it here */
->
->  	props->lid = 0;
-> @@ -355,8 +334,6 @@ int usnic_ib_query_port(struct ib_device *ibdev, u8 port,
->  	props->pkey_tbl_len = 1;
->  	props->bad_pkey_cntr = 0;
->  	props->qkey_viol_cntr = 0;
-> -	eth_speed_to_ib_speed(cmd.base.speed, &props->active_speed,
-> -			      &props->active_width);
->  	props->max_mtu = IB_MTU_4096;
->  	props->active_mtu = iboe_get_mtu(us_ibdev->ufdev->mtu);
->  	/* Userspace will adjust for hdrs */
-> diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-> index 83d709e..cdac9f2 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-> @@ -51,36 +51,11 @@ static int rxe_query_device(struct ib_device *dev,
->  	return 0;
->  }
->
-> -static void rxe_eth_speed_to_ib_speed(int speed, u8 *active_speed,
-> -				      u8 *active_width)
-> -{
-> -	if (speed <= 1000) {
-> -		*active_width = IB_WIDTH_1X;
-> -		*active_speed = IB_SPEED_SDR;
-> -	} else if (speed <= 10000) {
-> -		*active_width = IB_WIDTH_1X;
-> -		*active_speed = IB_SPEED_FDR10;
-> -	} else if (speed <= 20000) {
-> -		*active_width = IB_WIDTH_4X;
-> -		*active_speed = IB_SPEED_DDR;
-> -	} else if (speed <= 30000) {
-> -		*active_width = IB_WIDTH_4X;
-> -		*active_speed = IB_SPEED_QDR;
-> -	} else if (speed <= 40000) {
-> -		*active_width = IB_WIDTH_4X;
-> -		*active_speed = IB_SPEED_FDR10;
-> -	} else {
-> -		*active_width = IB_WIDTH_4X;
-> -		*active_speed = IB_SPEED_EDR;
-> -	}
-> -}
-> -
->  static int rxe_query_port(struct ib_device *dev,
->  			  u8 port_num, struct ib_port_attr *attr)
->  {
->  	struct rxe_dev *rxe = to_rdev(dev);
->  	struct rxe_port *port;
-> -	u32 speed;
->
->  	if (unlikely(port_num != 1)) {
->  		pr_warn("invalid port_number %d\n", port_num);
-> @@ -93,23 +68,7 @@ static int rxe_query_port(struct ib_device *dev,
->  	*attr = port->attr;
->
->  	mutex_lock(&rxe->usdev_lock);
-> -	if (rxe->ndev->ethtool_ops->get_link_ksettings) {
-> -		struct ethtool_link_ksettings ks;
-> -
-> -		rxe->ndev->ethtool_ops->get_link_ksettings(rxe->ndev, &ks);
-> -		speed = ks.base.speed;
-> -	} else if (rxe->ndev->ethtool_ops->get_settings) {
-> -		struct ethtool_cmd cmd;
-> -
-> -		rxe->ndev->ethtool_ops->get_settings(rxe->ndev, &cmd);
-> -		speed = cmd.speed;
-> -	} else {
-> -		pr_warn("%s speed is unknown, defaulting to 1000\n",
-> -			rxe->ndev->name);
-> -		speed = 1000;
-> -	}
-> -	rxe_eth_speed_to_ib_speed(speed, &attr->active_speed,
-> -				  &attr->active_width);
-> +	ib_get_speed(rxe->ndev, &attr->active_speed, &attr->active_width);
->  	mutex_unlock(&rxe->usdev_lock);
->
->  	return 0;
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index ba8314e..2c57f32 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -3488,6 +3488,7 @@ void ib_drain_qp(struct ib_qp *qp);
->
->  int ib_resolve_eth_dmac(struct ib_device *device,
->  			struct rdma_ah_attr *ah_attr);
-> +void ib_get_speed(struct net_device *netdev, u8 *speed, u8 *width);
->
->  static inline u8 *rdma_ah_retrieve_dmac(struct rdma_ah_attr *attr)
->  {
-> --
-> 2.9.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---4f28nU6agdXSinmL
+--YH9Qf6Fh2G5kB/85
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlk4Ls4ACgkQ5GN7iDZy
-WKciDA//egnsMsqi+3xYTU0umD/5cNVxaR+cdItqGexRVcXdSOFzf7Pmm7Z4ynBX
-YqERB60HI4MUj1pUkz10TmBRNjzAvvdt/Pe9I9s15sqTlY/Kan8D9lRyhOOPz7yD
-zIFsHRk8tsueWUbDwbWpSZCdw0Q4jVWfSmCzcJ5UjuFM2H3zzmX6dIIejacnLGZu
-W+PkQkJfgFa9GJu09unVfMTfO+qrv/K+mqifLhtgKXwSiOU2YUXDnNTUlJozaqSs
-9BHIUjcYtNjNl28wfe0vjOD70q1GeIjzMUqrN4igxgWL1czWmy8pe/g89ooIjjLv
-YiF5JIEd1pvdNRNQXzkl3pJsrqTtT8lRfyZv0Vh+zic+XrXlo+qKClRUftP2i+oy
-ct5eSZZ9kIPH+IUbNEqvrN4yXu2jEYjOpUDF3eIcgNhDvOR54bz2h4yAowkwWQ4k
-bPoyw2W1aUlxmuvDgv0HP31WOKnE2GhLXtbd0gYnHHnzrmqxd9Nussg4tgKJah29
-y73oNXmVQ/6/4Mgc8jkhvS3W6E2JpbONy54Yh9tSsThzs96jRMNhP9NuI4ZgHNPW
-yKOQERME3kha6fDrjhroz8xR5Zv6YHpt5fQ3KAg0ypaA3Oi5rhJs+6aWxlw8wjcZ
-rCXLqJxFjTxijgVVKgp4yepuYP7br9bKnBwud1LNjdE5p9jBXVY=
-=2j9Y
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlk4MTUACgkQ5GN7iDZy
+WKf/PQ//TuTB8yVW1rT8ya0bcJBhuJpuaLR7LJWuWi6S1FKisuhBE53zK5mVlGiJ
+Lmga4nxAfJuCk+8OpXPaDspbq68ZazZI2/Mn4DHBxTgG5jKokCuWERxUr+WDokMK
+wq5I1Om7JCiRaXNbGURZnkLZ+lGlI/Qv/UbhZpNEYFHSNsblt6HuqnoDyCFmF5bQ
+egohnb/tCqSHP1aufhQjy3R+ghlwk1nAIqbKG/eOaNc7HFeLxXYAut0lOSuTun1t
+df3GQ5X/3qyB6nLPb/CqEtyWff1/z7ChVTPc+Fl57EzyKGm1rOySSW3nZC8rRpNK
+MGNj60FAhN9wwluojrgjlKRUe0aDiQcvs34yLirke1WcxNkcKLttSVW/dN0s37Om
++JqpR2fq3XiSJRS+3OgIdxYYPfNqTnwkEWE1jyVk0PB7mQmIxlrLGKmzZ9iXHkiU
+o3YF7g6ANs3+7zSTz8wWMJuyFFnasC01FlJQ7U3D12tf++fVJSAvDQ3tDjSjeTz5
+V8SFH9yoNsFWomxRnJYo+UmVNNuXgFMFbt12SWfXOutPieLKcDBau5RVwhiRbJOF
+gQK7fIyQSwph3reThy9fwEEdWwX2fQo8+pNHo4b8v+B7HBSO0oFnC4QRglcRRWEl
+NMbeUzvkSZIy9ivFPOHNZpr23nA/OMQARTsNo3HES8ibOuUGlMo=
+=d3N2
 -----END PGP SIGNATURE-----
 
---4f28nU6agdXSinmL--
+--YH9Qf6Fh2G5kB/85--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
