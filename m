@@ -1,41 +1,95 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-next 1/6] IB/core: Enable QP creation which is
- associated to underlay QP
-Date: Wed, 7 Jun 2017 11:44:10 -0600
-Message-ID: <20170607174410.GA9757@obsidianresearch.com>
-References: <20170530071602.8139-1-leon@kernel.org>
- <20170530071602.8139-2-leon@kernel.org>
- <20170530160447.GA21513@obsidianresearch.com>
- <1d799662-bc2b-ed12-882c-42d12d1ed8a1@dev.mellanox.co.il>
- <20170605153644.GA6749@obsidianresearch.com>
- <CAFgAxU9c1SwehkCY3o0RZPO_CTHGJb2A1omjVvJvyabO0V57iQ@mail.gmail.com>
- <20170606163320.GC8671@obsidianresearch.com>
- <CAFgAxU-=i2=yNnjE2kYHV0Re6Vrd=LyTB55q=p_1fc+zuotwvA@mail.gmail.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: Netlink messages without NLM_F_REQUEST flag
+Date: Wed, 7 Jun 2017 21:13:58 +0300
+Message-ID: <20170607181358.GH1127@mtr-leonro.local>
+References: <20170607161901.GD1127@mtr-leonro.local>
+ <20170607163758.GA25313@obsidianresearch.com>
+ <CALq1K=Jj_jJ5_OAiiws-es37tFEsLeLJeSvnU+bfwd0KLkGM3Q@mail.gmail.com>
+ <20170607164750.GA7507@obsidianresearch.com>
+ <20170607170037.GG1127@mtr-leonro.local>
+ <2807E5FD2F6FDA4886F6618EAC48510E67CCE1CD@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="6lXr1rPCNTf1w0X8"
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAFgAxU-=i2=yNnjE2kYHV0Re6Vrd=LyTB55q=p_1fc+zuotwvA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Alex @ Mellanox" <Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E67CCE1CD@CRSMSX101.amr.corp.intel.com>
+Sender: netdev-owner@vger.kernel.org
+To: "Weiny, Ira" <ira.weiny@intel.com>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, "Wan, Kaike" <kaike.wan@intel.com>, "Fleck, John" <john.fleck@intel.com>, Thomas Graf <tgraf@suug.ch>, Doug Ledford <dledford@redhat.com>, Jiri Pirko <jiri@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 07, 2017 at 03:23:35PM +0300, Alex Rosenbaum wrote:
-> We reviewed your suggestion in deeper details and agree with your
-> suggested semantics to allow user to create a QP with user defined
-> wire QPN, without mandating association of an overlay with underlay
-> QP.
 
-It would be excellent if this could be allowed for QP1 as well - the
-user space SA could be greatly accelerated if it could send QP1
-traffic without going through umad.
+--6lXr1rPCNTf1w0X8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This would require multiple QP's with the source_qpn=1 set, for the
-range of required PKeys.
+On Wed, Jun 07, 2017 at 05:10:35PM +0000, Weiny, Ira wrote:
+> >
+> > On Wed, Jun 07, 2017 at 10:47:50AM -0600, Jason Gunthorpe wrote:
+> > > On Wed, Jun 07, 2017 at 07:43:44PM +0300, Leon Romanovsky wrote:
+> > > > On Wed, Jun 7, 2017 at 7:37 PM, Jason Gunthorpe
+> > > > <jgunthorpe@obsidianresearch.com> wrote:
+> > > > > On Wed, Jun 07, 2017 at 07:19:01PM +0300, Leon Romanovsky wrote:
+> > > > >> It makes me wonder if it is expected behavior for
+> > > > >> ibnl_rcv_reply_skb() to handle !NLM_F_REQUEST messages and do
+> > > > >> we really need it? What are the scenarios?  In my use case,
+> > > > >> which is for sure different from yours, I'm always setting
+> > > > >> NLM_F_REQUEST while communicating with kernel.
+> > > > >
+> > > > > If I recall the user space SA code issues REQUESTS from the
+> > > > > kernel to userspace, so userspace returns with the response
+> > > > > format. This is abnormal for netlink hence the special function.
+> > > >
+> > > > In netlink semantics, kernel side is supposed to send netlink
+> > > > notification message and userspace is supposed to send REQUEST.
+> > >
+> > > That pattern is for async communications, the SA stuff needs a sync
+> > > protocol, unfortunately.
+> >
+> > There is special flag NLM_F_ACK for it and userspace will set
+> > NLM_F_REQUEST | NLM_F_ACK once synchronization is needed.
+> >
+>
+> Reference?
+>
+> From my understanding, NLM_F_REQUEST | NLM_F_ACK is simply requesting an ack from the kernel on a request.  In our case the message is a response to the kernel request.
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+There is a large chance that we are talking about different aspects of
+"sync protocol" and for sure it is due to  my misunderstanding. Can you
+elaborate more about the protocol? Why is so unique to RDMA?
+
+Why is ACK + sequence number tracking not enough?
+
+https://www.infradead.org/~tgr/libnl/doc/core.html#core_msg_ack
+
+>
+> Ira
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--6lXr1rPCNTf1w0X8
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlk4QmYACgkQ5GN7iDZy
+WKcuEBAAhy4lwPJMqNF/A2sLrkn97U+CgnT9d5nbv0B6WZcYmIopO5/O8VfbYxEo
+7x4J8zqf8+6LAVrXvbpmRLp0TGwfzrUfCVI8hhiHnN9XQoUYGr5EaEuwT1os/zZd
+0Ekk57UVWW1/ENIiXNR1DB+o9I/rVF7zi5G0evvDTOYpx/lJ6K1NTDeFtERZzoHE
+LdB3tOlsvsbyjb8zwsJbXf7Pptl6MwE1wq7AsB1q/nEiEZiObkKpVAvAYDk+VNCs
+OVKlYjnJPy68QBNXNI2Qn+DvGeyM+BL1PO1DnHLAKatV84/xlVdtYTuk2D/yZ9bi
++vXfLx0Kzi+nET/jD0gUahR/5dpbW2+c9WNyXWLf14ruv3Yl66a/PBGTS9+l09Sv
+T7p+YW9ghPmJOBqDwajsMRApkksB624uPDsXgfoywR/LR4itNJlWbQ16z522HhSa
+XDVPPqZ1qihrZ+JAH1tdP688QW8YY2BUk523Wv+wfO+gnNUY+JWa/FiYRDFGYd7a
+LM0gwHk7VYTO06K7fK1czDD9EQv1szgSQncjyG4Re8QoLcB9p0jCy8kIZD4r6js4
+nEdY5xkJuiYV43uRnPwRbpMRksblFZElVcDPb/n5hlMbHfH/PXmnsJhBqKAi5cOH
+75rrGz1pNMBZJxncQoYCmTOdTaZkssc5fNngi/LrlzPg6682Bl0=
+=jE3d
+-----END PGP SIGNATURE-----
+
+--6lXr1rPCNTf1w0X8--
