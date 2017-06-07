@@ -1,124 +1,74 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH v3 for-4.13 2/6] mlx5: move affinity hints assignments
-        to generic code
-Date: Wed, 7 Jun 2017 10:31:56 +0200
-Message-ID: <20170607083156.GB24876@lst.de>
-References: <1496644560-28923-1-git-send-email-sagi@grimberg.me> <1496644560-28923-3-git-send-email-sagi@grimberg.me> <CALzJLG-SQj2OsOOjhHsMaD8gKC0JKD068L=ZjYRPBG=iwf9r8Q@mail.gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next] IB/cma: Set default gid type to RoCEv2
+Date: Wed, 7 Jun 2017 12:07:50 +0300
+Message-ID: <20170607090750.GC1127@mtr-leonro.local>
+References: <20170530064734.4731-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="GZVR6ND4mMseVXL/"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CALzJLG-SQj2OsOOjhHsMaD8gKC0JKD068L=ZjYRPBG=iwf9r8Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20170530064734.4731-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 07, 2017 at 09:16:47AM +0300, Saeed Mahameed wrote:
-> On Mon, Jun 5, 2017 at 9:35 AM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
-> > generic api takes care of spreading affinity similar to
-> > what mlx5 open coded (and even handles better asymmetric
-> > configurations). Ask the generic API to spread affinity
-> > for us, and feed him pre_vectors that do not participate
-> > in affinity settings (which is an improvement to what we
-> > had before).
-> >
-> > The affinity assignments should match what mlx5 tried to
-> > do earlier but now we do not set affinity to async, cmd
-> > and pages dedicated vectors.
-> >
-> 
-> I am not sure the new assignment will match what we tried to do before
-> this patch, and i would like to preserve that behavior
-> from before we simply spread comp vectors to the close numa cpus first
-> then to other cores uniformly.
-> i.e prefer first IRQs to go to close numa cores.
-> 
-> for example if you have 2 numa nodes each have 4 cpus, and the device
-> is on 2nd numa,
-> Numa 1 cpus: 0 1 2 3
-> Numa 2 cpus: 4 5 6 7
-> 
-> this should be the affinity:
-> 
-> IRQ[0] -> cpu[4] (Numa 2)
-> IRQ[1] -> cpu[5]
-> IRQ[2] -> cpu[6]
-> IRQ[3] -> cpu[7]
-> 
-> IRQ[4] -> cpu[0] (Numa 1)
-> IRQ[5] -> cpu[1]
-> IRQ[6] -> cpu[2]
-> IRQ[7] -> cpu[3]
-> 
-> looking at irq_create_affinity_masks, and it seems not to be the case !
-> "nodemask_t nodemsk = NODE_MASK_NONE;" it doesn't seem to prefer any numa node.
 
-nodemsk is set up by get_nodes_in_cpumask.  The mask you should
-get with the new code is:
+--GZVR6ND4mMseVXL/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-IRQ[0] -> cpu[0] (Numa 1)
-IRQ[1] -> cpu[1]
-IRQ[2] -> cpu[2]
-IRQ[3] -> cpu[3]
+On Tue, May 30, 2017 at 09:47:34AM +0300, Leon Romanovsky wrote:
+> From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+> RoCEv2 is the preferred RDMA protocol for Ethernet link layer because
+> of its advantages over RoCEv1. For better user experience make it the
+> default choice for RDMA_CM connections if device/port support it.
+>
+> Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> ---
+>  drivers/infiniband/core/cma.c | 9 +++++++--
+>  1 file changed, 7 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+> index 91b7a2fe5a55..5ce3c9e1657e 100644
+> --- a/drivers/infiniband/core/cma.c
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -72,6 +72,7 @@ MODULE_LICENSE("Dual BSD/GPL");
+>  #define CMA_MAX_CM_RETRIES 15
+>  #define CMA_CM_MRA_SETTING (IB_CM_MRA_FLAG_DELAY | 24)
+>  #define CMA_IBOE_PACKET_LIFETIME 18
+> +#define CMA_PREFERRED_ROCE_GID_TYPE IB_GID_TYPE_ROCE_UDP_ENCAP
 
-IRQ[4] -> cpu[4] (Numa 2)
-IRQ[5] -> cpu[5]
-IRQ[6] -> cpu[6]
-IRQ[7] -> cpu[7]
+It should be (1 << IB_GID_TYPE_ROCE_UDP_ENCAP) and not as was written
+above. We will send a fix for that.
 
-is there any reason you want to start assining vectors on the local
-node?  This is doable, but would complicate the code quite a bit
-so it needs a good argument.
- 
-> I am sure that there is a way to force our mlx5 affinity strategy and
-> override the default one with the new API.
+Thanks
 
-No, there is not.  The whole point is that we want to come up with
-a common policy instead of each driver doing their own weird little
-thing.
+--GZVR6ND4mMseVXL/
+Content-Type: application/pgp-signature; name="signature.asc"
 
-> > -static int mlx5e_get_cpu(struct mlx5e_priv *priv, int ix)
-> > -{
-> > -       return cpumask_first(priv->mdev->priv.irq_info[ix].mask);
-> > -}
-> >
-> 
-> let's keep this abstraction, even let's consider moving this to a
-> helper function in the mlx5_core dirver main.c,
-> it is not right when mlx5_ib and mlx5e netdev know about internal mdev
-> structures and implementations of stuff.
-> 
-> I suggest to move mlx5_ib_get_vector_affinity from patch #4 into
-> drivers/net/ethernet/../mlx5/core/main.c
-> and rename it to mlx5_get_vector_affinity and use it from both rdma
-> and netdevice
-> 
-> and change the above function to:
-> 
-> static int mlx5e_get_cpu(struct mlx5e_priv *priv, int ix)
-> {
->        return cpumask_first(mlx5_get_vector_affinity(priv->mdev, ix));
-> }
+-----BEGIN PGP SIGNATURE-----
 
-Take a look at my comment to Sagi's repost.  The driver never
-actually cares about this weird cpu value - it cares about a node
-for the vectors and PCI layer provides the pci_irq_get_node helper
-for that.  We could wrap this with a mlx5e helper, but that's not
-really the normal style in the kernel.
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlk3wmUACgkQ5GN7iDZy
+WKf4ABAAvCP4JXlb0linD2BFi9f/HkryKOJetZSKGN0e1PgHIcUjkPV1CdeP84m1
+CAWoDl0VKZ/VdFdkVgQR3d1SELaLWw5PtqYb10xW0CReqSVTGKfBUiOqc1+3HefO
+XzUbky4zYik/hhSk8HwtyPjePJmhJPp2++/Hf9xfkN0PT/j5HwWcBcCaKS+8Px6R
+DY5OgTwYm693YmUAWq7LfSuI4ES6J0RxwPAw9CCFw94hBAob+Au4QMx9AvKJmHok
+/J5vflyMLbgTbLJ7zm+DHAm1DfA9EDXU0ldZNzz/+yYrxbvKeMrYrispSmhqvTEC
+gALqrL2UqqWVeCk/uJgFL5kSS4NztPHUX2sPT1o5R6w0Kcl3CNN49loceuBevS60
+qlPbxnPeBPtcRs4yRo7+N4hi1DCk8yxCDPLgDpFOlWPVYAhg7vA5SMT7Xm9ms9QP
+8VBNo35WlPFuHNa1iR3oErkJAUvdwpgyyXUFffCkTu1JP6TU/8gbC7O5KyXK118x
+REskerw22GLUP0ULu8OYFSjUunCJpbJIATg7suxFAkSso8n62a9M5LysBy+QI24k
+ZpSAkptXIHFhsPFmPzcGZmARoj40xz1y3hEaR4S7yS7HFWqUawW7ABV/Zo2WUIyp
+MajSDwkLmZA3OhbJXK/vEIDIOa0051dh/1xKTbntioUd43IEj2U=
+=Aezs
+-----END PGP SIGNATURE-----
 
-> >         int err;
-> >
-> > -       c = kzalloc_node(sizeof(*c), GFP_KERNEL, cpu_to_node(cpu));
-> > +       c = kzalloc_node(sizeof(*c), GFP_KERNEL,
-> > +               pci_irq_get_node(priv->mdev->pdev, MLX5_EQ_VEC_COMP_BASE + ix));
-> 
-> this might yield different behavior of what originally intended we
-> want to get the node of the CPU and not of the IRQ's, maybe there is
-> no difference but
-> let's keep mlx5e_get_cpu abstraction as above.
-
-It's a completely bogus abstraction.
+--GZVR6ND4mMseVXL/--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
