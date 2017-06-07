@@ -1,94 +1,57 @@
-From: Chris Leech <cleech-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/7] Enable iSCSI offload drivers to use information from
- iface.
-Date: Wed, 7 Jun 2017 09:28:39 -0700
-Message-ID: <20170607162839.ludxvmddghx5ocn2@straylight.hirudinean.org>
-References: <20170606180717.5007-1-robert@leblancnet.us>
-Reply-To: open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core] util: Fix mmio_flush_writes for SPARC and S390x
+Date: Wed, 7 Jun 2017 19:31:26 +0300
+Message-ID: <20170607163126.GE1127@mtr-leonro.local>
+References: <88cef736-88c3-08d9-4042-fd73b2d4cb97@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <open-iscsi+bncBCYMVIPVXQMBBPGT4DEQKGQEXC2ZXKQ-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-Sender: open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="UnaWdueM1EBWVRzC"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170606180717.5007-1-robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-List-Post: <https://groups.google.com/group/open-iscsi/post>, <mailto:open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <https://groups.google.com/support/>, <mailto:open-iscsi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <https://groups.google.com/group/open-iscsi
-List-Subscribe: <https://groups.google.com/group/open-iscsi/subscribe>, <mailto:open-iscsi+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+856124926423+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <https://groups.google.com/group/open-iscsi/subscribe>
-To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Cc: lduncan-IBi9RG/b67k@public.gmane.org, jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, subbu.seetharaman-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, ketan.mukadam-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, jitendra.bhivare-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, QLogic-Storage-Upstream-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, varun-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+In-Reply-To: <88cef736-88c3-08d9-4042-fd73b2d4cb97-l3A5Bk7waGM@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 06, 2017 at 12:07:10PM -0600, Robert LeBlanc wrote:
-> This patchset enables iSCSI offload drivers to have access to the iface
-> information provided by iscsid. This allows users to have more control
-> of how the driver connects to the iSCSI target. iSER is updated to use
-> iface.ipaddress to set the source IP address if configured. This allows
-> iSER to use multiple ports on the same network or in more complicated
-> routed configurations.
-> 
-> Since there is already a change to the function parameters, dst_addr
-> is upgraded to sockaddr_storage so that it is more future proof and makes
-> the size of the struct static and not dependent on checking the SA_FAMILY.
-> 
-> This is dependent on updates to Open-iSCSI.
 
-Hi Robert,
+--UnaWdueM1EBWVRzC
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I don't think that passing the iface_rec structure directly from the
-iscsid internals into a netlink message is a good way to go about this.
-It's really big, there's an embedded list_head with user address
-pointers that needs to be left out, and there are 32/64-bit layout
-differences.
+On Wed, Jun 07, 2017 at 02:58:39PM +0200, Nicolas Morey-Chaisemartin wrote:
+> Due to a missing #else, udma_barrier.h failed on sparc and s390x
+>
+> Signed-off-by: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-IBi9RG/b67k@public.gmane.org>
+> ---
+>  util/udma_barrier.h | 1 +
+>  1 file changed, 1 insertion(+)
+>
 
-Let me take a look at how you're proposing using this info for iSER, if
-it makes sense I think we should come up with a better designed
-structure for passing the information.
+Thanks, applied.
 
-Thanks,
-Chris
- 
-> Robert LeBlanc (7):
->   scsi/scsi_transport_iscsi: Add iface struct to kernel.
->   scsi/scsi_transport_iscsi: Update ep_connect to include iface.
->   ib/iSER: Add binding to source IP address.
->   scsi/be2iscsi: Update beiscsi_ep_connect to accept iface and
->     sockaddr_storage.
->   scsi/bnx2i: Update bnx2i_ep_connect to accept iface and
->     sockaddr_storage.
->   scsi/cxgbi: Update cxgbi_ep_connect to accept iface and
->     sockaddr_storage.
->   scsi/qla4xxx: Update qla4xxx_ep_connect to accept iface and
->     sockaddr_storage.
-> 
->  drivers/infiniband/ulp/iser/iscsi_iser.c     |  33 +++++++--
->  drivers/infiniband/ulp/iser/iscsi_iser.h     |   4 +-
->  drivers/infiniband/ulp/iser/iser_initiator.c |   1 +
->  drivers/infiniband/ulp/iser/iser_memory.c    |   1 +
->  drivers/infiniband/ulp/iser/iser_verbs.c     |   8 ++-
->  drivers/scsi/be2iscsi/be_cmds.c              |   1 +
->  drivers/scsi/be2iscsi/be_iscsi.c             |   8 ++-
->  drivers/scsi/be2iscsi/be_iscsi.h             |   5 +-
->  drivers/scsi/be2iscsi/be_main.c              |   1 +
->  drivers/scsi/be2iscsi/be_mgmt.c              |   1 +
->  drivers/scsi/bnx2i/bnx2i_hwi.c               |   1 +
->  drivers/scsi/bnx2i/bnx2i_iscsi.c             |  13 ++--
->  drivers/scsi/cxgbi/libcxgbi.c                |  15 ++--
->  drivers/scsi/cxgbi/libcxgbi.h                |   2 +-
->  drivers/scsi/qla4xxx/ql4_os.c                |  15 ++--
->  drivers/scsi/scsi_transport_iscsi.c          |   9 ++-
->  include/scsi/scsi_transport_iscsi.h          | 100 ++++++++++++++++++++++++++-
->  17 files changed, 179 insertions(+), 39 deletions(-)
-> 
-> -- 
-> 2.11.0
-> 
+--UnaWdueM1EBWVRzC
+Content-Type: application/pgp-signature; name="signature.asc"
 
--- 
-You received this message because you are subscribed to the Google Groups "open-iscsi" group.
-To unsubscribe from this group and stop receiving emails from it, send an email to open-iscsi+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-To post to this group, send email to open-iscsi-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-Visit this group at https://groups.google.com/group/open-iscsi.
-For more options, visit https://groups.google.com/d/optout.
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlk4Kl0ACgkQ5GN7iDZy
+WKcRzxAAzXlOo/2U9HKBMlmrkTMxqjpJ6IDvUAeSDKpHewrI7SJImcqQMgeUPWv9
+iRFq8vO6nO0SEzzRHOIne97kxFkbyr1coRIa0PiwNHqMwMCUFfcMoCZoWeROoVKM
+h/Tbu7w+MG6Yr2lx5UKvefKTdJA8N205utsDbA/6PebJ0eiJePninRbiS1DdbfQU
+X8HAEZkW3BsDKDM2x1DJzisIJ8U0IlW+WuSwtigA3MbDODW6AOt0LqQao3DdFCrY
+/LJDVuq9E4N9yaAm7Qh9DtKsKQCy1e2FTdZ3vcyGB9f+4avCYwOe9JHUC7NY9VOx
+WdQvlJEnF976zxF4vutPpMbtR4wqHRWvYd+rLFQ+ggI6nyij7kEHm5SyL5uBUiGP
+WxH0roXx2tkG4XgtvDmUCiZjz/BvFR+gO9Y5PE37fGfN5PPFzNZNxZhe6/ixiyoC
++fKOVcZSdvmn/dBw4ncDMUoqm+N5VMaKXwgO6iD5YrfaNOMXH8pLrHlg7mVbG9/f
+IcOmcFQ7X0a4g0hipmctZaxRPrD25sbrttZNREw4oaizm2BfPtix4pCZlgYOIE2h
+szPLyiahYZEDgFpeBercLMakPEZTrxFcd56w6KoMXEpbRf9VEskdRz4kifop0Sze
+7+bFqykW4hp86U68BmHoYtoCjxAPHEc1xFgdA2knid63BY178xM=
+=r7Ij
+-----END PGP SIGNATURE-----
+
+--UnaWdueM1EBWVRzC--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
