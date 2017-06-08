@@ -1,170 +1,397 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 5/5] RDMA/iwcm: Remove extra EXPORT_SYMBOLS
-Date: Thu,  8 Jun 2017 17:38:52 +0300
-Message-ID: <20170608143852.9072-6-leon@kernel.org>
-References: <20170608143852.9072-1-leon@kernel.org>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2] IB/core: Add generic function to extract IB speed
+ from netdev
+Date: Thu, 8 Jun 2017 18:03:47 +0300
+Message-ID: <20170608150346.GA12171@yuvallap>
+References: <20170608135655.12079-1-yuval.shaia@oracle.com>
+ <CAG9sBKMqZK+WaDFYMdz5coCM_F_E4bAVuww1VTr-b+maHdzz=A@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170608143852.9072-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAG9sBKMqZK+WaDFYMdz5coCM_F_E4bAVuww1VTr-b+maHdzz=A@mail.gmail.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, sagi-TmH2Wj2nsNJBDLzU/O5InQ@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Thu, Jun 08, 2017 at 05:21:50PM +0300, Moni Shoua wrote:
+> On Thu, Jun 8, 2017 at 4:56 PM, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> > Logic of retrieving netdev speed from net_device and translating it to IB
+> > speed is implemented in rxe, in usnic and in bnxt drivers.
+> >
+> > Define new function which merges all.
+> >
+> > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > ---
+> > v0 -> v1:
+> >         * Invite usnic to the party.
+> > v1 -> v2:
+> >         * Utilize __ethtool_get_link_ksettings
+> >         * Rename to ib_get_eth_speed
+> >         * Add some validation checks
+> >         * Implement get_netdev in usnic
+> > ---
+> >  drivers/infiniband/core/verbs.c              | 55 ++++++++++++++++++++++++++++
+> >  drivers/infiniband/hw/bnxt_re/ib_verbs.c     | 49 ++-----------------------
+> >  drivers/infiniband/hw/usnic/usnic_ib_main.c  |  1 +
+> >  drivers/infiniband/hw/usnic/usnic_ib_verbs.c | 43 +++++++++-------------
+> >  drivers/infiniband/hw/usnic/usnic_ib_verbs.h |  1 +
+> >  drivers/infiniband/sw/rxe/rxe_verbs.c        | 53 +++------------------------
+> >  include/rdma/ib_verbs.h                      |  1 +
+> >  7 files changed, 85 insertions(+), 118 deletions(-)
+> >
+> > diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+> > index 4792f52..19e6b78 100644
+> > --- a/drivers/infiniband/core/verbs.c
+> > +++ b/drivers/infiniband/core/verbs.c
+> > @@ -1253,6 +1253,61 @@ int ib_resolve_eth_dmac(struct ib_device *device,
+> >  }
+> >  EXPORT_SYMBOL(ib_resolve_eth_dmac);
+> >
+> > +int ib_get_eth_speed(struct ib_device *dev, u8 port_num, u8 *speed, u8 *width)
+> > +{
+> > +       int rc;
+> > +       u32 netdev_speed;
+> > +       struct net_device *netdev;
+> > +       struct ethtool_link_ksettings lksettings;
+> > +
+> > +       if (rdma_port_get_link_layer(dev, port_num) != IB_LINK_LAYER_ETHERNET)
+> > +               return -EINVAL;
+> > +
+> > +       if (!dev->get_netdev)
+> > +               return -EINVAL;
+> > +
+> > +       netdev = dev->get_netdev(dev, port_num);
+> > +       if (!netdev)
+> > +               return -EINVAL;
+> > +
+> > +       rtnl_lock();
+> > +       rc = __ethtool_get_link_ksettings(netdev, &lksettings);
+> > +       rtnl_unlock();
+> > +
+> > +       dev_put(netdev);
+> > +
+> > +       if (!rc) {
+> > +               netdev_speed = lksettings.base.speed;
+> > +       } else {
+> > +               netdev_speed = SPEED_1000;
+> > +               pr_warn("%s speed is unknown, defaulting to %d\n", netdev->name,
+> > +                       netdev_speed);
+> Why did you drop the block that did ethtool_ops->get_settings(netdev, &cmd)?
 
-The iwcm exports functions which are not used outside of ib_core.
-This patch simply removes these EXPORT_SYMBOLS.
+The entire block was replaced by single call to
+__ethtool_get_link_ksettings which take care of fall-backing to
+ethtool_ops->get_settings.
 
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/iwpm_msg.c  | 12 ------------
- drivers/infiniband/core/iwpm_util.c |  5 -----
- 2 files changed, 17 deletions(-)
+> > +       }
+> > +
+> > +       if (netdev_speed <= SPEED_1000) {
+> > +               *width = IB_WIDTH_1X;
+> > +               *speed = IB_SPEED_SDR;
+> > +       } else if (netdev_speed <= SPEED_10000) {
+> > +               *width = IB_WIDTH_1X;
+> > +               *speed = IB_SPEED_FDR10;
+> > +       } else if (netdev_speed <= SPEED_20000) {
+> > +               *width = IB_WIDTH_4X;
+> > +               *speed = IB_SPEED_DDR;
+> > +       } else if (netdev_speed <= SPEED_25000) {
+> > +               *width = IB_WIDTH_1X;
+> > +               *speed = IB_SPEED_EDR;
+> > +       } else if (netdev_speed <= SPEED_40000) {
+> > +               *width = IB_WIDTH_4X;
+> > +               *speed = IB_SPEED_FDR10;
+> > +       } else {
+> > +               *width = IB_WIDTH_4X;
+> > +               *speed = IB_SPEED_EDR;
+> > +       }
+> > +
+> > +       return 0;
+> > +}
+> > +EXPORT_SYMBOL(ib_get_eth_speed);
+> > +
+> >  int ib_modify_qp(struct ib_qp *qp,
+> >                  struct ib_qp_attr *qp_attr,
+> >                  int qp_attr_mask)
+> > diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> > index 7ba9e69..d0e0f90 100644
+> > --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> > +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> > @@ -181,50 +181,6 @@ int bnxt_re_modify_device(struct ib_device *ibdev,
+> >         return 0;
+> >  }
+> >
+> > -static void __to_ib_speed_width(struct net_device *netdev, u8 *speed, u8 *width)
+> > -{
+> > -       struct ethtool_link_ksettings lksettings;
+> > -       u32 espeed;
+> > -
+> > -       if (netdev->ethtool_ops && netdev->ethtool_ops->get_link_ksettings) {
+> > -               memset(&lksettings, 0, sizeof(lksettings));
+> > -               rtnl_lock();
+> > -               netdev->ethtool_ops->get_link_ksettings(netdev, &lksettings);
+> > -               rtnl_unlock();
+> > -               espeed = lksettings.base.speed;
+> > -       } else {
+> > -               espeed = SPEED_UNKNOWN;
+> > -       }
+> > -       switch (espeed) {
+> > -       case SPEED_1000:
+> > -               *speed = IB_SPEED_SDR;
+> > -               *width = IB_WIDTH_1X;
+> > -               break;
+> > -       case SPEED_10000:
+> > -               *speed = IB_SPEED_QDR;
+> > -               *width = IB_WIDTH_1X;
+> > -               break;
+> > -       case SPEED_20000:
+> > -               *speed = IB_SPEED_DDR;
+> > -               *width = IB_WIDTH_4X;
+> > -               break;
+> > -       case SPEED_25000:
+> > -               *speed = IB_SPEED_EDR;
+> > -               *width = IB_WIDTH_1X;
+> > -               break;
+> > -       case SPEED_40000:
+> > -               *speed = IB_SPEED_QDR;
+> > -               *width = IB_WIDTH_4X;
+> > -               break;
+> > -       case SPEED_50000:
+> > -               break;
+> > -       default:
+> > -               *speed = IB_SPEED_SDR;
+> > -               *width = IB_WIDTH_1X;
+> > -               break;
+> > -       }
+> > -}
+> > -
+> >  /* Port */
+> >  int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
+> >                        struct ib_port_attr *port_attr)
+> > @@ -266,8 +222,9 @@ int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
+> >          * IB stack to avoid race in the NETDEV_UNREG path
+> >          */
+> >         if (test_bit(BNXT_RE_FLAG_IBDEV_REGISTERED, &rdev->flags))
+> > -               __to_ib_speed_width(rdev->netdev, &port_attr->active_speed,
+> > -                                   &port_attr->active_width);
+> > +               if (!ib_get_eth_speed(ibdev, port_num, &port_attr->active_speed,
+> > +                                     &port_attr->active_width))
+> > +                       return -EINVAL;
+> >         return 0;
+> >  }
+> >
+> > diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+> > index c0c1e8b..80577b9 100644
+> > --- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
+> > +++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+> > @@ -409,6 +409,7 @@ static void *usnic_ib_device_add(struct pci_dev *dev)
+> >         us_ibdev->ib_dev.query_port = usnic_ib_query_port;
+> >         us_ibdev->ib_dev.query_pkey = usnic_ib_query_pkey;
+> >         us_ibdev->ib_dev.query_gid = usnic_ib_query_gid;
+> > +       us_ibdev->ib_dev.get_netdev = usnic_get_netdev;
+> >         us_ibdev->ib_dev.get_link_layer = usnic_ib_port_link_layer;
+> >         us_ibdev->ib_dev.alloc_pd = usnic_ib_alloc_pd;
+> >         us_ibdev->ib_dev.dealloc_pd = usnic_ib_dealloc_pd;
+> > diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+> > index 4996984..a71aea5 100644
+> > --- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+> > +++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+> > @@ -226,27 +226,6 @@ static void qp_grp_destroy(struct usnic_ib_qp_grp *qp_grp)
+> >         spin_unlock(&vf->lock);
+> >  }
+> >
+> > -static void eth_speed_to_ib_speed(int speed, u8 *active_speed,
+> > -                                       u8 *active_width)
+> > -{
+> > -       if (speed <= 10000) {
+> > -               *active_width = IB_WIDTH_1X;
+> > -               *active_speed = IB_SPEED_FDR10;
+> > -       } else if (speed <= 20000) {
+> > -               *active_width = IB_WIDTH_4X;
+> > -               *active_speed = IB_SPEED_DDR;
+> > -       } else if (speed <= 30000) {
+> > -               *active_width = IB_WIDTH_4X;
+> > -               *active_speed = IB_SPEED_QDR;
+> > -       } else if (speed <= 40000) {
+> > -               *active_width = IB_WIDTH_4X;
+> > -               *active_speed = IB_SPEED_FDR10;
+> > -       } else {
+> > -               *active_width = IB_WIDTH_4X;
+> > -               *active_speed = IB_SPEED_EDR;
+> > -       }
+> > -}
+> > -
+> >  static int create_qp_validate_user_data(struct usnic_ib_create_qp_cmd cmd)
+> >  {
+> >         if (cmd.spec.trans_type <= USNIC_TRANSPORT_UNKNOWN ||
+> > @@ -326,12 +305,16 @@ int usnic_ib_query_port(struct ib_device *ibdev, u8 port,
+> >                                 struct ib_port_attr *props)
+> >  {
+> >         struct usnic_ib_dev *us_ibdev = to_usdev(ibdev);
+> > -       struct ethtool_link_ksettings cmd;
+> >
+> >         usnic_dbg("\n");
+> >
+> >         mutex_lock(&us_ibdev->usdev_lock);
+> > -       __ethtool_get_link_ksettings(us_ibdev->netdev, &cmd);
+> > +       if (!ib_get_eth_speed(ibdev, port, &props->active_speed,
+> > +                             &props->active_width)) {
+> > +               mutex_unlock(&us_ibdev->usdev_lock);
+> > +               return -EINVAL;
+> > +       }
+> > +
+> >         /* props being zeroed by the caller, avoid zeroing it here */
+> >
+> >         props->lid = 0;
+> > @@ -355,8 +338,6 @@ int usnic_ib_query_port(struct ib_device *ibdev, u8 port,
+> >         props->pkey_tbl_len = 1;
+> >         props->bad_pkey_cntr = 0;
+> >         props->qkey_viol_cntr = 0;
+> > -       eth_speed_to_ib_speed(cmd.base.speed, &props->active_speed,
+> > -                             &props->active_width);
+> >         props->max_mtu = IB_MTU_4096;
+> >         props->active_mtu = iboe_get_mtu(us_ibdev->ufdev->mtu);
+> >         /* Userspace will adjust for hdrs */
+> > @@ -424,6 +405,18 @@ int usnic_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
+> >         return 0;
+> >  }
+> >
+> > +struct net_device *usnic_get_netdev(struct ib_device *device, u8 port_num)
+> > +{
+> > +       struct usnic_ib_dev *us_ibdev = to_usdev(device);
+> > +
+> > +       if (us_ibdev->netdev) {
+> > +               dev_hold(us_ibdev->netdev);
+> > +               return us_ibdev->netdev;
+> > +       }
+> > +
+> > +       return NULL;
+> > +}
+> > +
+> I think that this belongs to a separate patch (you should split)
 
-diff --git a/drivers/infiniband/core/iwpm_msg.c b/drivers/infiniband/core/iwpm_msg.c
-index a0e7c16d8bd8..1fab707b1f68 100644
---- a/drivers/infiniband/core/iwpm_msg.c
-+++ b/drivers/infiniband/core/iwpm_msg.c
-@@ -42,7 +42,6 @@ int iwpm_valid_pid(void)
- {
- 	return iwpm_user_pid > 0;
- }
--EXPORT_SYMBOL(iwpm_valid_pid);
+I see, make sense.
 
- /*
-  * iwpm_register_pid - Send a netlink query to user space
-@@ -122,7 +121,6 @@ int iwpm_register_pid(struct iwpm_dev_data *pm_msg, u8 nl_client)
- 		iwpm_free_nlmsg_request(&nlmsg_request->kref);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_register_pid);
-
- /*
-  * iwpm_add_mapping - Send a netlink add mapping message
-@@ -191,7 +189,6 @@ int iwpm_add_mapping(struct iwpm_sa_data *pm_msg, u8 nl_client)
- 		iwpm_free_nlmsg_request(&nlmsg_request->kref);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_add_mapping);
-
- /*
-  * iwpm_add_and_query_mapping - Send a netlink add and query
-@@ -267,7 +264,6 @@ int iwpm_add_and_query_mapping(struct iwpm_sa_data *pm_msg, u8 nl_client)
- 		iwpm_free_nlmsg_request(&nlmsg_request->kref);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_add_and_query_mapping);
-
- /*
-  * iwpm_remove_mapping - Send a netlink remove mapping message
-@@ -328,7 +324,6 @@ int iwpm_remove_mapping(struct sockaddr_storage *local_addr, u8 nl_client)
- 		dev_kfree_skb_any(skb);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_remove_mapping);
-
- /* netlink attribute policy for the received response to register pid request */
- static const struct nla_policy resp_reg_policy[IWPM_NLA_RREG_PID_MAX] = {
-@@ -397,7 +392,6 @@ int iwpm_register_pid_cb(struct sk_buff *skb, struct netlink_callback *cb)
- 	up(&nlmsg_request->sem);
- 	return 0;
- }
--EXPORT_SYMBOL(iwpm_register_pid_cb);
-
- /* netlink attribute policy for the received response to add mapping request */
- static const struct nla_policy resp_add_policy[IWPM_NLA_RMANAGE_MAPPING_MAX] = {
-@@ -466,7 +460,6 @@ int iwpm_add_mapping_cb(struct sk_buff *skb, struct netlink_callback *cb)
- 	up(&nlmsg_request->sem);
- 	return 0;
- }
--EXPORT_SYMBOL(iwpm_add_mapping_cb);
-
- /* netlink attribute policy for the response to add and query mapping request
-  * and response with remote address info */
-@@ -558,7 +551,6 @@ int iwpm_add_and_query_mapping_cb(struct sk_buff *skb,
- 	up(&nlmsg_request->sem);
- 	return 0;
- }
--EXPORT_SYMBOL(iwpm_add_and_query_mapping_cb);
-
- /*
-  * iwpm_remote_info_cb - Process a port mapper message, containing
-@@ -627,7 +619,6 @@ int iwpm_remote_info_cb(struct sk_buff *skb, struct netlink_callback *cb)
- 			"remote_info: Mapped remote sockaddr:");
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_remote_info_cb);
-
- /* netlink attribute policy for the received request for mapping info */
- static const struct nla_policy resp_mapinfo_policy[IWPM_NLA_MAPINFO_REQ_MAX] = {
-@@ -677,7 +668,6 @@ int iwpm_mapping_info_cb(struct sk_buff *skb, struct netlink_callback *cb)
- 	ret = iwpm_send_mapinfo(nl_client, iwpm_user_pid);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_mapping_info_cb);
-
- /* netlink attribute policy for the received mapping info ack */
- static const struct nla_policy ack_mapinfo_policy[IWPM_NLA_MAPINFO_NUM_MAX] = {
-@@ -707,7 +697,6 @@ int iwpm_ack_mapping_info_cb(struct sk_buff *skb, struct netlink_callback *cb)
- 	atomic_set(&echo_nlmsg_seq, cb->nlh->nlmsg_seq);
- 	return 0;
- }
--EXPORT_SYMBOL(iwpm_ack_mapping_info_cb);
-
- /* netlink attribute policy for the received port mapper error message */
- static const struct nla_policy map_error_policy[IWPM_NLA_ERR_MAX] = {
-@@ -751,4 +740,3 @@ int iwpm_mapping_error_cb(struct sk_buff *skb, struct netlink_callback *cb)
- 	up(&nlmsg_request->sem);
- 	return 0;
- }
--EXPORT_SYMBOL(iwpm_mapping_error_cb);
-diff --git a/drivers/infiniband/core/iwpm_util.c b/drivers/infiniband/core/iwpm_util.c
-index 32ca2aaa4e3b..c46442ac71a2 100644
---- a/drivers/infiniband/core/iwpm_util.c
-+++ b/drivers/infiniband/core/iwpm_util.c
-@@ -81,7 +81,6 @@ int iwpm_init(u8 nl_client)
- 	}
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_init);
-
- static void free_hash_bucket(void);
- static void free_reminfo_bucket(void);
-@@ -107,7 +106,6 @@ int iwpm_exit(u8 nl_client)
- 	iwpm_set_registration(nl_client, IWPM_REG_UNDEF);
- 	return 0;
- }
--EXPORT_SYMBOL(iwpm_exit);
-
- static struct hlist_head *get_mapinfo_hash_bucket(struct sockaddr_storage *,
- 					       struct sockaddr_storage *);
-@@ -146,7 +144,6 @@ int iwpm_create_mapinfo(struct sockaddr_storage *local_sockaddr,
- 	spin_unlock_irqrestore(&iwpm_mapinfo_lock, flags);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_create_mapinfo);
-
- int iwpm_remove_mapinfo(struct sockaddr_storage *local_sockaddr,
- 			struct sockaddr_storage *mapped_local_addr)
-@@ -182,7 +179,6 @@ int iwpm_remove_mapinfo(struct sockaddr_storage *local_sockaddr,
- 	spin_unlock_irqrestore(&iwpm_mapinfo_lock, flags);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_remove_mapinfo);
-
- static void free_hash_bucket(void)
- {
-@@ -295,7 +291,6 @@ int iwpm_get_remote_info(struct sockaddr_storage *mapped_loc_addr,
- 	spin_unlock_irqrestore(&iwpm_reminfo_lock, flags);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_get_remote_info);
-
- struct iwpm_nlmsg_request *iwpm_get_nlmsg_request(__u32 nlmsg_seq,
- 					u8 nl_client, gfp_t gfp)
---
-2.12.2
-
+> 
+> >  int usnic_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
+> >                                 u16 *pkey)
+> >  {
+> > diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.h b/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
+> > index 172e43b..1fda944 100644
+> > --- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
+> > +++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
+> > @@ -48,6 +48,7 @@ int usnic_ib_query_qp(struct ib_qp *qp, struct ib_qp_attr *qp_attr,
+> >                                 struct ib_qp_init_attr *qp_init_attr);
+> >  int usnic_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
+> >                                 union ib_gid *gid);
+> > +struct net_device *usnic_get_netdev(struct ib_device *device, u8 port_num);
+> >  int usnic_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
+> >                                 u16 *pkey);
+> >  struct ib_pd *usnic_ib_alloc_pd(struct ib_device *ibdev,
+> > diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+> > index 83d709e..4570f04 100644
+> > --- a/drivers/infiniband/sw/rxe/rxe_verbs.c
+> > +++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+> > @@ -51,40 +51,16 @@ static int rxe_query_device(struct ib_device *dev,
+> >         return 0;
+> >  }
+> >
+> > -static void rxe_eth_speed_to_ib_speed(int speed, u8 *active_speed,
+> > -                                     u8 *active_width)
+> > -{
+> > -       if (speed <= 1000) {
+> > -               *active_width = IB_WIDTH_1X;
+> > -               *active_speed = IB_SPEED_SDR;
+> > -       } else if (speed <= 10000) {
+> > -               *active_width = IB_WIDTH_1X;
+> > -               *active_speed = IB_SPEED_FDR10;
+> > -       } else if (speed <= 20000) {
+> > -               *active_width = IB_WIDTH_4X;
+> > -               *active_speed = IB_SPEED_DDR;
+> > -       } else if (speed <= 30000) {
+> > -               *active_width = IB_WIDTH_4X;
+> > -               *active_speed = IB_SPEED_QDR;
+> > -       } else if (speed <= 40000) {
+> > -               *active_width = IB_WIDTH_4X;
+> > -               *active_speed = IB_SPEED_FDR10;
+> > -       } else {
+> > -               *active_width = IB_WIDTH_4X;
+> > -               *active_speed = IB_SPEED_EDR;
+> > -       }
+> > -}
+> > -
+> >  static int rxe_query_port(struct ib_device *dev,
+> >                           u8 port_num, struct ib_port_attr *attr)
+> >  {
+> >         struct rxe_dev *rxe = to_rdev(dev);
+> >         struct rxe_port *port;
+> > -       u32 speed;
+> > +       int rc = -EINVAL;
+> >
+> >         if (unlikely(port_num != 1)) {
+> >                 pr_warn("invalid port_number %d\n", port_num);
+> > -               goto err1;
+> > +               goto out;
+> >         }
+> >
+> >         port = &rxe->port;
+> > @@ -93,29 +69,12 @@ static int rxe_query_port(struct ib_device *dev,
+> >         *attr = port->attr;
+> >
+> >         mutex_lock(&rxe->usdev_lock);
+> > -       if (rxe->ndev->ethtool_ops->get_link_ksettings) {
+> > -               struct ethtool_link_ksettings ks;
+> > -
+> > -               rxe->ndev->ethtool_ops->get_link_ksettings(rxe->ndev, &ks);
+> > -               speed = ks.base.speed;
+> > -       } else if (rxe->ndev->ethtool_ops->get_settings) {
+> > -               struct ethtool_cmd cmd;
+> > -
+> > -               rxe->ndev->ethtool_ops->get_settings(rxe->ndev, &cmd);
+> > -               speed = cmd.speed;
+> > -       } else {
+> > -               pr_warn("%s speed is unknown, defaulting to 1000\n",
+> > -                       rxe->ndev->name);
+> > -               speed = 1000;
+> > -       }
+> > -       rxe_eth_speed_to_ib_speed(speed, &attr->active_speed,
+> > -                                 &attr->active_width);
+> > +       rc = ib_get_eth_speed(dev, port_num, &attr->active_speed,
+> > +                             &attr->active_width);
+> >         mutex_unlock(&rxe->usdev_lock);
+> >
+> > -       return 0;
+> > -
+> > -err1:
+> > -       return -EINVAL;
+> > +out:
+> > +       return rc;
+> >  }
+> >
+> >  static int rxe_query_gid(struct ib_device *device,
+> > diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> > index ba8314e..860cb30 100644
+> > --- a/include/rdma/ib_verbs.h
+> > +++ b/include/rdma/ib_verbs.h
+> > @@ -3488,6 +3488,7 @@ void ib_drain_qp(struct ib_qp *qp);
+> >
+> >  int ib_resolve_eth_dmac(struct ib_device *device,
+> >                         struct rdma_ah_attr *ah_attr);
+> > +int ib_get_eth_speed(struct ib_device *dev, u8 port_num, u8 *speed, u8 *width);
+> >
+> >  static inline u8 *rdma_ah_retrieve_dmac(struct rdma_ah_attr *attr)
+> >  {
+> > --
+> > 2.9.4
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
