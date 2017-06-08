@@ -1,7 +1,7 @@
 From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-next v3 3/7] IB/IPoIB: Increase local_lid to 32 bits
-Date: Thu,  8 Jun 2017 13:37:45 -0400
-Message-ID: <1496943469-44017-4-git-send-email-don.hiatt@intel.com>
+Subject: [PATCH rdma-next v3 2/7] IB/srpt: Increase lid and sm_lid to 32 bits
+Date: Thu,  8 Jun 2017 13:37:44 -0400
+Message-ID: <1496943469-44017-3-git-send-email-don.hiatt@intel.com>
 References: <1496943469-44017-1-git-send-email-don.hiatt@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1496943469-44017-1-git-send-email-don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -11,29 +11,31 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-IPoIB contains local_lid field which is 16 bits in
-length, increase it to 32 bits.
+srpt contains lid and sm_lid fields which are 16 bits in
+length, increase them to 32 bits.
 
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index ff50a7b..9e73810 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -366,7 +366,7 @@ struct ipoib_dev_priv {
- 	u32		  qkey;
- 
- 	union ib_gid local_gid;
--	u16	     local_lid;
-+	u32	     local_lid;
- 
- 	unsigned int admin_mtu;
- 	unsigned int mcast_mtu;
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
+index cc118385..1b817e5 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.h
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
+@@ -328,8 +328,8 @@ struct srpt_port {
+ 	u8			port_guid[24];
+ 	u8			port_gid[64];
+ 	u8			port;
+-	u16			sm_lid;
+-	u16			lid;
++	u32			sm_lid;
++	u32			lid;
+ 	union ib_gid		gid;
+ 	struct work_struct	work;
+ 	struct se_portal_group	port_guid_tpg;
 -- 
 1.8.3.1
 
