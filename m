@@ -1,61 +1,58 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 13/13] xprtrdma: Fix documenting comments in frwr_ops.c
-Date: Thu, 08 Jun 2017 11:53:24 -0400
-Message-ID: <20170608155324.18945.10549.stgit@manet.1015granger.net>
-References: <20170608154339.18945.5500.stgit@manet.1015granger.net>
+From: Yuval Mintz <Yuval.Mintz@cavium.com>
+Subject: [PATCH net-next 0/8] qed*: Light L2 updates
+Date: Thu, 8 Jun 2017 19:13:15 +0300
+Message-ID: <20170608161323.7597-1-Yuval.Mintz@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170608154339.18945.5500.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org, davem@davemloft.net
+Cc: linux-rdma@vger.kernel.org, Michal.Kalderon@cavium.com, Yuval Mintz <Yuval.Mintz@cavium.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up.
+This series does a major overhaul of the LL2 logic in qed.
+The single biggest change done here is in #5 where we're changing
+the API qed provides for LL2 [both internally in case of storage and
+externally in case of RoCE] to become callback-based to allow cleaner
+scalability in preperation to the future iWARP submission which would
+aadd additional flavors of LL2. It's also the only patch in series
+to modify !qed logic [qedr].
 
-FASTREG and LOCAL_INV WRs are typically not signaled. localinv_wake
-is used for the last LOCAL_INV WR in a chain, which is always
-signaled. The documenting comments should reflect that.
+Patches prior to that mostly deal with refactoring LL2 code,
+encapsulating varaious parameters into structure and re-ordering
+of LL2 code. The latter patches add some small missing bits of LL2
+ffunctionality.
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/frwr_ops.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Dave,
 
-diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
-index 8f63d38..6aea36a 100644
---- a/net/sunrpc/xprtrdma/frwr_ops.c
-+++ b/net/sunrpc/xprtrdma/frwr_ops.c
-@@ -277,7 +277,7 @@
- }
- 
- /**
-- * frwr_wc_fastreg - Invoked by RDMA provider for each polled FastReg WC
-+ * frwr_wc_fastreg - Invoked by RDMA provider for a flushed FastReg WC
-  * @cq:	completion queue (ignored)
-  * @wc:	completed WR
-  *
-@@ -298,7 +298,7 @@
- }
- 
- /**
-- * frwr_wc_localinv - Invoked by RDMA provider for each polled LocalInv WC
-+ * frwr_wc_localinv - Invoked by RDMA provider for a flushed LocalInv WC
-  * @cq:	completion queue (ignored)
-  * @wc:	completed WR
-  *
-@@ -319,7 +319,7 @@
- }
- 
- /**
-- * frwr_wc_localinv - Invoked by RDMA provider for each polled LocalInv WC
-+ * frwr_wc_localinv_wake - Invoked by RDMA provider for a signaled LocalInv WC
-  * @cq:	completion queue (ignored)
-  * @wc:	completed WR
-  *
+Please consider applying this series to `net-next'.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Yuval
+
+Michal Kalderon (1):
+  qed*: LL2 callback operations
+
+Yuval Mintz (7):
+  qed: LL2 to use packed information for tx
+  qed: Revise ll2 Rx completion
+  qed: Cleaner seperation of LL2 inputs
+  qed: LL2 code relocations
+  qed: No need for LL2 frags indication
+  qed: Call rx_release_cb() when flushing LL2
+  qed: collect GSI port statistics
+
+ drivers/infiniband/hw/qedr/main.c          |   6 +-
+ drivers/infiniband/hw/qedr/qedr.h          |   2 +
+ drivers/infiniband/hw/qedr/qedr_cm.c       | 238 ++++++--
+ drivers/net/ethernet/qlogic/qed/qed.h      |   1 -
+ drivers/net/ethernet/qlogic/qed/qed_ll2.c  | 882 +++++++++++++++--------------
+ drivers/net/ethernet/qlogic/qed/qed_ll2.h  | 113 +---
+ drivers/net/ethernet/qlogic/qed/qed_roce.c | 295 +---------
+ drivers/net/ethernet/qlogic/qed/qed_roce.h |  43 --
+ include/linux/qed/qed_ll2_if.h             | 126 +++++
+ include/linux/qed/qed_roce_if.h            |  80 +--
+ 10 files changed, 842 insertions(+), 944 deletions(-)
+
+-- 
+2.9.4
