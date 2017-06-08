@@ -1,48 +1,65 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: iSER Connection via LIO not working
-Date: Thu, 8 Jun 2017 16:35:24 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC3431F91D@fmsmsx120.amr.corp.intel.com>
-References: <2E68B5D1-49CF-4F2C-B7F3-DA20E05503B8@creamfinance.com>
-         <CAANLjFraKgxAC09VH8u72SbQZs8WhXnnk87VQB0ywoVavC2hSg@mail.gmail.com>
-         <2E0A092F-9530-44FB-8A6F-D76D8E94ABE0@creamfinance.com>
-         <CAANLjFqg1ked1Ls0W=BRRw5o5vheHKnUw5C_5OVciFQd0H8djg@mail.gmail.com>
-         <827EC8DD-86E7-4011-8F68-B29396B2034D@creamfinance.com>
-         <CAANLjFqt_RqU6UFPCcZJ5Mec-ku__YErFb-VLrV4Qx9G7ArAZA@mail.gmail.com>
-         <1790271E-1A6B-492D-B4B6-701873B23A01@creamfinance.com>
-         <32E1700B9017364D9B60AED9960492BC3431F8F1@fmsmsx120.amr.corp.intel.com>
- <1496939302.3028.3.camel@wdc.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH rdma-next v3 6/7] IB/core: Change port_attr.sm_lid from 16 to 32 bits
+Date: Thu,  8 Jun 2017 13:37:48 -0400
+Message-ID: <1496943469-44017-7-git-send-email-don.hiatt@intel.com>
+References: <1496943469-44017-1-git-send-email-don.hiatt@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1496939302.3028.3.camel-Sjgp3cTcYWE@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1496943469-44017-1-git-send-email-don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org" <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, "thomas.rosenstein-+32LHaKS/h5VtLMLtJdGzA@public.gmane.org" <thomas.rosenstein-+32LHaKS/h5VtLMLtJdGzA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Bart Van Assche [mailto:Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org]
-> Sent: Thursday, June 8, 2017 12:28 PM
-> To: robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org; thomas.rosenstein-+32LHaKS/h5VtLMLtJdGzA@public.gmane.org;
-> Marciniszyn, Mike <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: iSER Connection via LIO not working
-> 
-> On Thu, 2017-06-08 at 16:23 +0000, Marciniszyn, Mike wrote:
-> > This appears to be the only storage ULP that reads this field exported from
-> drivers.
-> 
-> Hello Mike,
-> 
-> Are you sure of this? This is what grep tells me:
-> 
+From: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-I only checked within ulp.    Perhaps it is a wider issue.
+sm_lid field in struct ib_port_attr is increased to 32 bits. This
+enables core components to use larger LIDs if needed.
+The user ABI is unchanged and return 16 bit values when queried.
 
-srp appears to only use the variable when use_fast_reg is set, which looks to be based on the device exported bit.
+Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/core/uverbs_cmd.c | 8 +++++---
+ include/rdma/ib_verbs.h              | 2 +-
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-Mike
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 038b993..6964c05 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -275,11 +275,13 @@ ssize_t ib_uverbs_query_port(struct ib_uverbs_file *file,
+ 	resp.bad_pkey_cntr   = attr.bad_pkey_cntr;
+ 	resp.qkey_viol_cntr  = attr.qkey_viol_cntr;
+ 	resp.pkey_tbl_len    = attr.pkey_tbl_len;
+-	resp.sm_lid 	     = attr.sm_lid;
+-	if (rdma_cap_opa_ah(ib_dev, cmd.port_num))
++	if (rdma_cap_opa_ah(ib_dev, cmd.port_num)) {
+ 		resp.lid  = OPA_TO_IB_UCAST_LID(attr.lid);
+-	else
++		resp.sm_lid  = OPA_TO_IB_UCAST_LID(attr.sm_lid);
++	} else {
+ 		resp.lid     = (u16)attr.lid;
++		resp.sm_lid  = (u16)attr.sm_lid;
++	}
+ 	resp.lmc 	     = attr.lmc;
+ 	resp.max_vl_num      = attr.max_vl_num;
+ 	resp.sm_sl 	     = attr.sm_sl;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 3b442229..f88aeb6 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -548,7 +548,7 @@ struct ib_port_attr {
+ 	u32			bad_pkey_cntr;
+ 	u32			qkey_viol_cntr;
+ 	u16			pkey_tbl_len;
+-	u16			sm_lid;
++	u32			sm_lid;
+ 	u32			lid;
+ 	u8			lmc;
+ 	u8			max_vl_num;
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
