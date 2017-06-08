@@ -1,28 +1,21 @@
 From: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/7] scsi/scsi_transport_iscsi: Add iface struct to
- kernel.
-Date: Thu, 8 Jun 2017 20:29:52 +0800
-Message-ID: <201706082029.CMPSzrLX%fengguang.wu@intel.com>
-References: <20170606180717.5007-2-robert@leblancnet.us>
-Reply-To: open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Subject: Re: [PATCH 2/7] scsi/scsi_transport_iscsi: Update ep_connect to
+ include iface.
+Date: Thu, 8 Jun 2017 20:53:55 +0800
+Message-ID: <201706082045.Ug460cKN%fengguang.wu@intel.com>
+References: <20170606180717.5007-3-robert@leblancnet.us>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="VS++wcV0S1rZb1Fb"
-Return-path: <open-iscsi+bncBDJ4N37Q6EERB6EG4XEQKGQEB7W3NWY-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-Sender: open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Content-Type: multipart/mixed; boundary="J/dobhs11T7y2rNN"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170606180717.5007-2-robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-List-Post: <https://groups.google.com/group/open-iscsi/post>, <mailto:open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Help: <https://groups.google.com/support/>, <mailto:open-iscsi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Archive: <https://groups.google.com/group/open-iscsi
-List-Subscribe: <https://groups.google.com/group/open-iscsi/subscribe>, <mailto:open-iscsi+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
-List-Unsubscribe: <mailto:googlegroups-manage+856124926423+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>,
- <https://groups.google.com/group/open-iscsi/subscribe>
+In-Reply-To: <20170606180717.5007-3-robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: kbuild-all-JC7UmRfGjtg@public.gmane.org, lduncan-IBi9RG/b67k@public.gmane.org, cleech-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, subbu.seetharaman-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, ketan.mukadam-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, jitendra.bhivare-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, QLogic-Storage-Upstream-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, varun-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---VS++wcV0S1rZb1Fb
-Content-Type: text/plain; charset="UTF-8"
+--J/dobhs11T7y2rNN
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
 Hi Robert,
@@ -43,42 +36,56 @@ reproduce:
 
 All errors (new ones prefixed by >>):
 
-   In file included from include/scsi/libiscsi.h:35:0,
-                    from drivers/scsi/be2iscsi/be_iscsi.c:15:
->> include/scsi/scsi_transport_iscsi.h:308:16: error: 'IFNAMSIZ' undeclared here (not in a function)
-     char   netdev[IFNAMSIZ];
-                   ^~~~~~~~
+>> drivers/scsi//qedi/qedi_iscsi.c:1402:16: error: initialization from incompatible pointer type [-Werror=incompatible-pointer-types]
+     .ep_connect = qedi_ep_connect,
+                   ^~~~~~~~~~~~~~~
+   drivers/scsi//qedi/qedi_iscsi.c:1402:16: note: (near initialization for 'qedi_iscsi_transport.ep_connect')
+   cc1: some warnings being treated as errors
 
-vim +/IFNAMSIZ +308 include/scsi/scsi_transport_iscsi.h
+vim +1402 drivers/scsi//qedi/qedi_iscsi.c
 
-   302	struct iface_rec {
-   303		struct list_head	list;
-   304		/* iscsi iface record name */
-   305		char			name[ISCSI_MAX_IFACE_LEN];
-   306		uint32_t		iface_num;
-   307		/* network layer iface name (eth0) */
- > 308		char			netdev[IFNAMSIZ];
-   309		char			ipaddress[NI_MAXHOST];
-   310		char			subnet_mask[NI_MAXHOST];
-   311		char			gateway[NI_MAXHOST];
+ace7f46b Manish Rangankar 2016-12-01  1386  	.destroy_session = qedi_session_destroy,
+ace7f46b Manish Rangankar 2016-12-01  1387  	.create_conn = qedi_conn_create,
+ace7f46b Manish Rangankar 2016-12-01  1388  	.bind_conn = qedi_conn_bind,
+ace7f46b Manish Rangankar 2016-12-01  1389  	.start_conn = qedi_conn_start,
+ace7f46b Manish Rangankar 2016-12-01  1390  	.stop_conn = iscsi_conn_stop,
+ace7f46b Manish Rangankar 2016-12-01  1391  	.destroy_conn = qedi_conn_destroy,
+ace7f46b Manish Rangankar 2016-12-01  1392  	.set_param = iscsi_set_param,
+ace7f46b Manish Rangankar 2016-12-01  1393  	.get_ep_param = qedi_ep_get_param,
+ace7f46b Manish Rangankar 2016-12-01  1394  	.get_conn_param = iscsi_conn_get_param,
+ace7f46b Manish Rangankar 2016-12-01  1395  	.get_session_param = iscsi_session_get_param,
+ace7f46b Manish Rangankar 2016-12-01  1396  	.get_host_param = qedi_host_get_param,
+ace7f46b Manish Rangankar 2016-12-01  1397  	.send_pdu = iscsi_conn_send_pdu,
+ace7f46b Manish Rangankar 2016-12-01  1398  	.get_stats = qedi_conn_get_stats,
+ace7f46b Manish Rangankar 2016-12-01  1399  	.xmit_task = qedi_task_xmit,
+ace7f46b Manish Rangankar 2016-12-01  1400  	.cleanup_task = qedi_cleanup_task,
+ace7f46b Manish Rangankar 2016-12-01  1401  	.session_recovery_timedout = iscsi_session_recovery_timedout,
+ace7f46b Manish Rangankar 2016-12-01 @1402  	.ep_connect = qedi_ep_connect,
+ace7f46b Manish Rangankar 2016-12-01  1403  	.ep_poll = qedi_ep_poll,
+ace7f46b Manish Rangankar 2016-12-01  1404  	.ep_disconnect = qedi_ep_disconnect,
+ace7f46b Manish Rangankar 2016-12-01  1405  	.set_path = qedi_set_path,
+ace7f46b Manish Rangankar 2016-12-01  1406  	.attr_is_visible = qedi_attr_is_visible,
+ace7f46b Manish Rangankar 2016-12-01  1407  };
+ace7f46b Manish Rangankar 2016-12-01  1408  
+ace7f46b Manish Rangankar 2016-12-01  1409  void qedi_start_conn_recovery(struct qedi_ctx *qedi,
+ace7f46b Manish Rangankar 2016-12-01  1410  			      struct qedi_conn *qedi_conn)
+
+:::::: The code at line 1402 was first introduced by commit
+:::::: ace7f46ba5fde7273207c7122b0650ceb72510e0 scsi: qedi: Add QLogic FastLinQ offload iSCSI driver framework.
+
+:::::: TO: Manish Rangankar <manish.rangankar-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+:::::: CC: Martin K. Petersen <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
 ---
 0-DAY kernel test infrastructure                Open Source Technology Center
 https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
--- 
-You received this message because you are subscribed to the Google Groups "open-iscsi" group.
-To unsubscribe from this group and stop receiving emails from it, send an email to open-iscsi+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-To post to this group, send email to open-iscsi-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
-Visit this group at https://groups.google.com/group/open-iscsi.
-For more options, visit https://groups.google.com/d/optout.
-
---VS++wcV0S1rZb1Fb
+--J/dobhs11T7y2rNN
 Content-Type: application/gzip
 Content-Disposition: attachment; filename=".config.gz"
 Content-Transfer-Encoding: base64
 
-H4sICEFAOVkAAy5jb25maWcAlDxdc9u2su/9FZr0PrQz9zSxk7rtnPEDCIISjkgCAUDZ8gvH
+H4sICK1EOVkAAy5jb25maWcAlDxdc9u2su/9FZr0PrQz9zSxk7rtnPEDCIISjkgCAUDZ8gvH
 cZTUU1vKkZX29P76swt+ASBI5b4k5u5iASz2G6S+/+77Bfl6Ojzfnx4f7p+e/l583u13x/vT
 7uPi0+PT7p+LVCxKYRYs5eYnIM4f91//8/rx/urd4t1PFxc/vVmsd8f97mlBD/tPj5+/wtDH
 w/6777+josz4spZLQ5Kc1TnbsFxfv+3gKcvav3KuzfWr10+PH14/Hz5+fdq9vP6fqiQFqxXL
@@ -962,4 +969,8 @@ G4G+iJiMw0ygmChR1/wEogkxY0Ztr+SLIq/9uFJEtcN0+nbqIXzcEnTyxuMTCfr8Nps7EGad
 TYUCFTRNLuCYIKCdvwkvO3Cg2cHbzH1aN7lQU0Bnh2+HTLZo9OJM+WmJxtSw3MWP5goOWXMT
 e2K7GITrKC4L/nzndzQqp47PEGhGWdzmIFQt9yZzrfzgpfD/WHLVfnvjAgA=
 
---VS++wcV0S1rZb1Fb--
+--J/dobhs11T7y2rNN--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
