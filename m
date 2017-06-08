@@ -1,89 +1,61 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 12/13] xprtrdma: Replace PAGE_MASK with offset_in_page()
-Date: Thu, 08 Jun 2017 11:53:16 -0400
-Message-ID: <20170608155316.18945.60694.stgit@manet.1015granger.net>
+Subject: [PATCH v2 13/13] xprtrdma: Fix documenting comments in frwr_ops.c
+Date: Thu, 08 Jun 2017 11:53:24 -0400
+Message-ID: <20170608155324.18945.10549.stgit@manet.1015granger.net>
 References: <20170608154339.18945.5500.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170608154339.18945.5500.stgit-FYjufvaPoItvLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 Clean up.
 
-Reported by: Geliang Tang <geliangtang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+FASTREG and LOCAL_INV WRs are typically not signaled. localinv_wake
+is used for the last LOCAL_INV WR in a chain, which is always
+signaled. The documenting comments should reflect that.
+
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/rpc_rdma.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ net/sunrpc/xprtrdma/frwr_ops.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
-index b6584ae..ca4d6e4 100644
---- a/net/sunrpc/xprtrdma/rpc_rdma.c
-+++ b/net/sunrpc/xprtrdma/rpc_rdma.c
-@@ -141,7 +141,7 @@ static bool rpcrdma_args_inline(struct rpcrdma_xprt *r_xprt,
+diff --git a/net/sunrpc/xprtrdma/frwr_ops.c b/net/sunrpc/xprtrdma/frwr_ops.c
+index 8f63d38..6aea36a 100644
+--- a/net/sunrpc/xprtrdma/frwr_ops.c
++++ b/net/sunrpc/xprtrdma/frwr_ops.c
+@@ -277,7 +277,7 @@
+ }
  
- 	if (xdr->page_len) {
- 		remaining = xdr->page_len;
--		offset = xdr->page_base & ~PAGE_MASK;
-+		offset = offset_in_page(xdr->page_base);
- 		count = 0;
- 		while (remaining) {
- 			remaining -= min_t(unsigned int,
-@@ -222,7 +222,7 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
+ /**
+- * frwr_wc_fastreg - Invoked by RDMA provider for each polled FastReg WC
++ * frwr_wc_fastreg - Invoked by RDMA provider for a flushed FastReg WC
+  * @cq:	completion queue (ignored)
+  * @wc:	completed WR
+  *
+@@ -298,7 +298,7 @@
+ }
  
- 	len = xdrbuf->page_len;
- 	ppages = xdrbuf->pages + (xdrbuf->page_base >> PAGE_SHIFT);
--	page_base = xdrbuf->page_base & ~PAGE_MASK;
-+	page_base = offset_in_page(xdrbuf->page_base);
- 	p = 0;
- 	while (len && n < RPCRDMA_MAX_SEGS) {
- 		if (!ppages[p]) {
-@@ -540,7 +540,7 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
- 			goto out;
+ /**
+- * frwr_wc_localinv - Invoked by RDMA provider for each polled LocalInv WC
++ * frwr_wc_localinv - Invoked by RDMA provider for a flushed LocalInv WC
+  * @cq:	completion queue (ignored)
+  * @wc:	completed WR
+  *
+@@ -319,7 +319,7 @@
+ }
  
- 		page = virt_to_page(xdr->tail[0].iov_base);
--		page_base = (unsigned long)xdr->tail[0].iov_base & ~PAGE_MASK;
-+		page_base = offset_in_page(xdr->tail[0].iov_base);
- 
- 		/* If the content in the page list is an odd length,
- 		 * xdr_write_pages() has added a pad at the beginning
-@@ -557,7 +557,7 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
- 	 */
- 	if (xdr->page_len) {
- 		ppages = xdr->pages + (xdr->page_base >> PAGE_SHIFT);
--		page_base = xdr->page_base & ~PAGE_MASK;
-+		page_base = offset_in_page(xdr->page_base);
- 		remaining = xdr->page_len;
- 		while (remaining) {
- 			sge_no++;
-@@ -587,7 +587,7 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
- 	 */
- 	if (xdr->tail[0].iov_len) {
- 		page = virt_to_page(xdr->tail[0].iov_base);
--		page_base = (unsigned long)xdr->tail[0].iov_base & ~PAGE_MASK;
-+		page_base = offset_in_page(xdr->tail[0].iov_base);
- 		len = xdr->tail[0].iov_len;
- 
- map_tail:
-@@ -878,9 +878,9 @@ static bool rpcrdma_results_inline(struct rpcrdma_xprt *r_xprt,
- 	srcp += curlen;
- 	copy_len -= curlen;
- 
--	page_base = rqst->rq_rcv_buf.page_base;
--	ppages = rqst->rq_rcv_buf.pages + (page_base >> PAGE_SHIFT);
--	page_base &= ~PAGE_MASK;
-+	ppages = rqst->rq_rcv_buf.pages +
-+		(rqst->rq_rcv_buf.page_base >> PAGE_SHIFT);
-+	page_base = offset_in_page(rqst->rq_rcv_buf.page_base);
- 	fixup_copy_count = 0;
- 	if (copy_len && rqst->rq_rcv_buf.page_len) {
- 		int pagelist_len;
+ /**
+- * frwr_wc_localinv - Invoked by RDMA provider for each polled LocalInv WC
++ * frwr_wc_localinv_wake - Invoked by RDMA provider for a signaled LocalInv WC
+  * @cq:	completion queue (ignored)
+  * @wc:	completed WR
+  *
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
