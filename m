@@ -1,8 +1,8 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 08/13] NFSv4.1: Handle EXCHGID4_FLAG_CONFIRMED_R during
- NFSv4.1 migration
-Date: Thu, 08 Jun 2017 11:52:44 -0400
-Message-ID: <20170608155244.18945.66640.stgit@manet.1015granger.net>
+Subject: [PATCH v2 09/13] NFSv4.1: Use seqid returned by EXCHANGE_ID after
+ state migration
+Date: Thu, 08 Jun 2017 11:52:52 -0400
+Message-ID: <20170608155252.18945.61089.stgit@manet.1015granger.net>
 References: <20170608154339.18945.5500.stgit@manet.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -23,102 +23,44 @@ destination server sets EXCHGID4_FLAG_CONFIRMED_R when replying to
 the client. This is because the lease was confirmed on the source
 server (before it was copied).
 
-Normally, when CONFIRMED_R is set, a client purges the lease and
-creates a new one. However, that throws away the entire benefit of
-Transparent State Migration.
+When CONFIRMED_R is set, the client throws away the sequence ID
+returned by the server. During a Transparent State Migration, however
+there's no other way for the client to know what sequence ID to use
+with a lease that's been migrated.
 
-Therefore, the client must not purge that lease when it is possible
-that Transparent State Migration has occurred.
+Therefore, the client must save and use the contrived slot sequence
+value returned by the destination server even when CONFIRMED_R is
+set.
+
+Note that some servers always return a seqid of 1 after a migration.
 
 Reported-by: Xuan Qi <xuan.qi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Tested-by: Xuan Qi <xuan.qi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- fs/nfs/nfs4client.c       |    5 +++++
- fs/nfs/nfs4state.c        |   16 +++++++++++-----
- include/linux/nfs_fs_sb.h |    2 ++
- 3 files changed, 18 insertions(+), 5 deletions(-)
+ fs/nfs/nfs4proc.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/fs/nfs/nfs4client.c b/fs/nfs/nfs4client.c
-index 692a7a8..203d7a3 100644
---- a/fs/nfs/nfs4client.c
-+++ b/fs/nfs/nfs4client.c
-@@ -414,6 +414,7 @@ struct nfs_client *nfs4_init_client(struct nfs_client *clp,
- 	if (clp != old)
- 		clp->cl_preserve_clid = true;
- 	nfs_put_client(clp);
-+	clear_bit(NFS_CS_TSM_POSSIBLE, &clp->cl_flags);
- 	return old;
+diff --git a/fs/nfs/nfs4proc.c b/fs/nfs/nfs4proc.c
+index c08c46a..04dd718 100644
+--- a/fs/nfs/nfs4proc.c
++++ b/fs/nfs/nfs4proc.c
+@@ -7375,12 +7375,11 @@ static void nfs4_exchange_id_done(struct rpc_task *task, void *data)
+ 	if (status == 0) {
+ 		clp->cl_clientid = cdata->res.clientid;
+ 		clp->cl_exchange_flags = cdata->res.flags;
++		clp->cl_seqid = cdata->res.seqid;
+ 		/* Client ID is not confirmed */
+-		if (!(cdata->res.flags & EXCHGID4_FLAG_CONFIRMED_R)) {
++		if (!(cdata->res.flags & EXCHGID4_FLAG_CONFIRMED_R))
+ 			clear_bit(NFS4_SESSION_ESTABLISHED,
+-			&clp->cl_session->session_state);
+-			clp->cl_seqid = cdata->res.seqid;
+-		}
++				  &clp->cl_session->session_state);
  
- error:
-@@ -853,6 +854,8 @@ static int nfs4_set_client(struct nfs_server *server,
- 		set_bit(NFS_CS_NORESVPORT, &cl_init.init_flags);
- 	if (server->options & NFS_OPTION_MIGRATION)
- 		set_bit(NFS_CS_MIGRATION, &cl_init.init_flags);
-+	if (test_bit(NFS_MIG_TSM_POSSIBLE, &server->mig_status))
-+		set_bit(NFS_CS_TSM_POSSIBLE, &cl_init.init_flags);
- 
- 	/* Allocate or find a client reference we can use */
- 	clp = nfs_get_client(&cl_init);
-@@ -1213,9 +1216,11 @@ int nfs4_update_server(struct nfs_server *server, const char *hostname,
- 		return -EAFNOSUPPORT;
- 
- 	nfs_server_remove_lists(server);
-+	set_bit(NFS_MIG_TSM_POSSIBLE, &server->mig_status);
- 	error = nfs4_set_client(server, hostname, sap, salen, buf,
- 				clp->cl_proto, clnt->cl_timeout,
- 				clp->cl_minorversion, net);
-+	clear_bit(NFS_MIG_TSM_POSSIBLE, &server->mig_status);
- 	nfs_put_client(clp);
- 	if (error != 0) {
- 		nfs_server_insert_lists(server);
-diff --git a/fs/nfs/nfs4state.c b/fs/nfs/nfs4state.c
-index b34de03..83f8e60 100644
---- a/fs/nfs/nfs4state.c
-+++ b/fs/nfs/nfs4state.c
-@@ -352,11 +352,17 @@ int nfs41_discover_server_trunking(struct nfs_client *clp,
- 	if (clp != *result)
- 		return 0;
- 
--	/* Purge state if the client id was established in a prior instance */
--	if (clp->cl_exchange_flags & EXCHGID4_FLAG_CONFIRMED_R)
--		set_bit(NFS4CLNT_PURGE_STATE, &clp->cl_state);
--	else
--		set_bit(NFS4CLNT_LEASE_CONFIRM, &clp->cl_state);
-+	/*
-+	 * Purge state if the client id was established in a prior
-+	 * instance and the client id could not have arrived on the
-+	 * server via Transparent State Migration.
-+	 */
-+	if (clp->cl_exchange_flags & EXCHGID4_FLAG_CONFIRMED_R) {
-+		if (!test_bit(NFS_CS_TSM_POSSIBLE, &clp->cl_flags))
-+			set_bit(NFS4CLNT_PURGE_STATE, &clp->cl_state);
-+		else
-+			set_bit(NFS4CLNT_LEASE_CONFIRM, &clp->cl_state);
-+	}
- 	nfs4_schedule_state_manager(clp);
- 	status = nfs_wait_client_init_complete(clp);
- 	if (status < 0)
-diff --git a/include/linux/nfs_fs_sb.h b/include/linux/nfs_fs_sb.h
-index e418a10..74c4466 100644
---- a/include/linux/nfs_fs_sb.h
-+++ b/include/linux/nfs_fs_sb.h
-@@ -42,6 +42,7 @@ struct nfs_client {
- #define NFS_CS_MIGRATION	2		/* - transparent state migr */
- #define NFS_CS_INFINITE_SLOTS	3		/* - don't limit TCP slots */
- #define NFS_CS_NO_RETRANS_TIMEOUT	4	/* - Disable retransmit timeouts */
-+#define NFS_CS_TSM_POSSIBLE	5		/* - Maybe state migration */
- 	struct sockaddr_storage	cl_addr;	/* server identifier */
- 	size_t			cl_addrlen;
- 	char *			cl_hostname;	/* hostname of server */
-@@ -210,6 +211,7 @@ struct nfs_server {
- 	unsigned long		mig_status;
- #define NFS_MIG_IN_TRANSITION		(1)
- #define NFS_MIG_FAILED			(2)
-+#define NFS_MIG_TSM_POSSIBLE		(3)
- 
- 	void (*destroy)(struct nfs_server *);
- 
+ 		kfree(clp->cl_serverowner);
+ 		clp->cl_serverowner = cdata->res.server_owner;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
