@@ -1,72 +1,103 @@
 From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-rdma] IB/hns: Support compile test for hns RoCE driver
-Date: Thu,  8 Jun 2017 17:23:50 +0300
-Message-ID: <1496931830-116773-1-git-send-email-matanb@mellanox.com>
+Subject: [PATCH for-rdma] IB/core: Fix sparse warnings
+Date: Thu,  8 Jun 2017 17:30:47 +0300
+Message-ID: <1496932247-119899-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Compiling the hns RoCE driver requires ARM architecture.
-In order to simplify development of IB/core, support
-compile test. Add the necessary includes for that too.
+Delete unused variables to prevent sparse warnings.
 
-Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Fixes: db1b5ddd5336 ("IB/core: Rename uverbs event file structure")
+Fixes: fd3c7904db6e ("IB/core: Change idr objects to use the new schema")
 ---
 
-Hi Lijun and Wei,
+Hi Doug,
 
-This simple patch allow the hns RoCE driver to be compiled in other
-architectures other than ARM. This simplifies testing IB/core and
-avoids unnecessary breaks of your driver.
-Since I don't have a hns hardware, I can't test this, so please do.
+This simple patch deletes some unused variables which cause sparse
+warnings. This is based over your k.o/for-4.12-rc branch.
 
 Regards,
 Matan
 
- drivers/infiniband/hw/hns/Kconfig          | 2 +-
- drivers/infiniband/hw/hns/hns_roce_alloc.c | 1 +
- drivers/infiniband/hw/hns/hns_roce_mr.c    | 1 +
- 3 files changed, 3 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/uverbs_cmd.c | 10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/Kconfig b/drivers/infiniband/hw/hns/Kconfig
-index e1a6e05..cbe6b51 100644
---- a/drivers/infiniband/hw/hns/Kconfig
-+++ b/drivers/infiniband/hw/hns/Kconfig
-@@ -1,7 +1,7 @@
- config INFINIBAND_HNS
- 	tristate "HNS RoCE Driver"
- 	depends on NET_VENDOR_HISILICON
--	depends on ARM64 && HNS && HNS_DSAF && HNS_ENET
-+	depends on (ARM64 || COMPILE_TEST) && HNS && HNS_DSAF && HNS_ENET
- 	---help---
- 	  This is a RoCE/RDMA driver for the Hisilicon RoCE engine. The engine
- 	  is used in Hisilicon Hi1610 and more further ICT SoC.
-diff --git a/drivers/infiniband/hw/hns/hns_roce_alloc.c b/drivers/infiniband/hw/hns/hns_roce_alloc.c
-index 605962f..e1b433c 100644
---- a/drivers/infiniband/hw/hns/hns_roce_alloc.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_alloc.c
-@@ -32,6 +32,7 @@
-  */
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 70b7fb1..09d19d7 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1296,7 +1296,6 @@ ssize_t ib_uverbs_destroy_cq(struct ib_uverbs_file *file,
+ 	struct ib_uobject		*uobj;
+ 	struct ib_cq               	*cq;
+ 	struct ib_ucq_object        	*obj;
+-	struct ib_uverbs_event_queue	*ev_queue;
+ 	int                        	 ret = -EINVAL;
  
- #include <linux/platform_device.h>
-+#include <linux/vmalloc.h>
- #include "hns_roce_device.h"
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+@@ -1313,7 +1312,6 @@ ssize_t ib_uverbs_destroy_cq(struct ib_uverbs_file *file,
+ 	 */
+ 	uverbs_uobject_get(uobj);
+ 	cq      = uobj->object;
+-	ev_queue = cq->cq_context;
+ 	obj     = container_of(cq->uobject, struct ib_ucq_object, uobject);
  
- int hns_roce_bitmap_alloc(struct hns_roce_bitmap *bitmap, unsigned long *obj)
-diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
-index 80fc01f..e387360 100644
---- a/drivers/infiniband/hw/hns/hns_roce_mr.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
-@@ -32,6 +32,7 @@
-  */
+ 	memset(&resp, 0, sizeof(resp));
+@@ -2091,7 +2089,6 @@ ssize_t ib_uverbs_destroy_qp(struct ib_uverbs_file *file,
+ 	struct ib_uverbs_destroy_qp      cmd;
+ 	struct ib_uverbs_destroy_qp_resp resp;
+ 	struct ib_uobject		*uobj;
+-	struct ib_qp               	*qp;
+ 	struct ib_uqp_object        	*obj;
+ 	int                        	 ret = -EINVAL;
  
- #include <linux/platform_device.h>
-+#include <linux/vmalloc.h>
- #include <rdma/ib_umem.h>
- #include "hns_roce_device.h"
- #include "hns_roce_cmd.h"
+@@ -2105,7 +2102,6 @@ ssize_t ib_uverbs_destroy_qp(struct ib_uverbs_file *file,
+ 	if (IS_ERR(uobj))
+ 		return PTR_ERR(uobj);
+ 
+-	qp  = uobj->object;
+ 	obj = container_of(uobj, struct ib_uqp_object, uevent.uobject);
+ 	/*
+ 	 * Make sure we don't free the memory in remove_commit as we still
+@@ -3004,7 +3000,6 @@ int ib_uverbs_ex_destroy_wq(struct ib_uverbs_file *file,
+ {
+ 	struct ib_uverbs_ex_destroy_wq	cmd = {};
+ 	struct ib_uverbs_ex_destroy_wq_resp	resp = {};
+-	struct ib_wq			*wq;
+ 	struct ib_uobject		*uobj;
+ 	struct ib_uwq_object		*obj;
+ 	size_t required_cmd_sz;
+@@ -3038,7 +3033,6 @@ int ib_uverbs_ex_destroy_wq(struct ib_uverbs_file *file,
+ 	if (IS_ERR(uobj))
+ 		return PTR_ERR(uobj);
+ 
+-	wq = uobj->object;
+ 	obj = container_of(uobj, struct ib_uwq_object, uevent.uobject);
+ 	/*
+ 	 * Make sure we don't free the memory in remove_commit as we still
+@@ -3728,10 +3722,8 @@ ssize_t ib_uverbs_destroy_srq(struct ib_uverbs_file *file,
+ 	struct ib_uverbs_destroy_srq      cmd;
+ 	struct ib_uverbs_destroy_srq_resp resp;
+ 	struct ib_uobject		 *uobj;
+-	struct ib_srq               	 *srq;
+ 	struct ib_uevent_object        	 *obj;
+ 	int                         	  ret = -EINVAL;
+-	enum ib_srq_type		  srq_type;
+ 
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+ 		return -EFAULT;
+@@ -3741,9 +3733,7 @@ ssize_t ib_uverbs_destroy_srq(struct ib_uverbs_file *file,
+ 	if (IS_ERR(uobj))
+ 		return PTR_ERR(uobj);
+ 
+-	srq = uobj->object;
+ 	obj = container_of(uobj, struct ib_uevent_object, uobject);
+-	srq_type = srq->srq_type;
+ 	/*
+ 	 * Make sure we don't free the memory in remove_commit as we still
+ 	 * needs the uobject memory to create the response.
 -- 
 1.8.3.1
 
