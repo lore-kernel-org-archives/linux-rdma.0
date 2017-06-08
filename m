@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V2 4/6] IB/mlx5: Add multicast flow steering support for underlay QP
-Date: Thu,  8 Jun 2017 16:15:09 +0300
-Message-ID: <20170608131511.21040-5-leon@kernel.org>
+Subject: [PATCH rdma-next V2 3/6] IB/mlx5: Add support for QP with a given source QPN
+Date: Thu,  8 Jun 2017 16:15:08 +0300
+Message-ID: <20170608131511.21040-4-leon@kernel.org>
 References: <20170608131511.21040-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170608131511.21040-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,103 +12,246 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-In order to add multicast flow steering support, there is need
-to block the attaching of mcg flow for underlay QP, recognize
-multicast IB_FLOW_SPEC_IPV4 based on its IP and enable
-creating/destroying flow for IB layer.
+Allow user space applications to accelerate send and receive
+traffic which is typically handled by IPoIB ULP by creating
+a UD QP with a given source QPN of the IPoIB UD QP.
+
+UD QP with a given source QPN should basically be similar to
+RAW QP from point of view of its created resources.
+
+However,
+- Its TIS should point to the source QPN.
+- Modify can be done only on its state as the transport attributes
+  are managed by its source QP.
+
+This patch manages below:
+- Creating/destroying/modifying UD QP with a given source QPN.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 43 ++++++++++++++++++++++++++++-----------
- 1 file changed, 31 insertions(+), 12 deletions(-)
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 +
+ drivers/infiniband/hw/mlx5/qp.c      | 72 ++++++++++++++++++++++++++++--------
+ 2 files changed, 59 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 0c79983c8b1a..6659abe0e24b 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2044,21 +2044,32 @@ static int parse_flow_attr(struct mlx5_core_dev *mdev, u32 *match_c,
-  */
- static bool flow_is_multicast_only(struct ib_flow_attr *ib_attr)
- {
--	struct ib_flow_spec_eth *eth_spec;
-+	union ib_flow_spec *flow_spec;
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index bdcf25410c99..ee8436033ba2 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -378,6 +378,7 @@ struct mlx5_ib_qp {
+ 	struct list_head	cq_recv_list;
+ 	struct list_head	cq_send_list;
+ 	u32			rate_limit;
++	u32                     underlay_qpn;
+ };
  
- 	if (ib_attr->type != IB_FLOW_ATTR_NORMAL ||
--	    ib_attr->size < sizeof(struct ib_flow_attr) +
--	    sizeof(struct ib_flow_spec_eth) ||
- 	    ib_attr->num_of_specs < 1)
- 		return false;
+ struct mlx5_ib_cq_buf {
+@@ -399,6 +400,7 @@ enum mlx5_ib_qp_flags {
+ 	MLX5_IB_QP_CAP_SCATTER_FCS		= 1 << 7,
+ 	MLX5_IB_QP_RSS				= 1 << 8,
+ 	MLX5_IB_QP_CVLAN_STRIPPING		= 1 << 9,
++	MLX5_IB_QP_UNDERLAY			= 1 << 10,
+ };
  
--	eth_spec = (struct ib_flow_spec_eth *)(ib_attr + 1);
--	if (eth_spec->type != IB_FLOW_SPEC_ETH ||
--	    eth_spec->size != sizeof(*eth_spec))
-+	flow_spec = (union ib_flow_spec *)(ib_attr + 1);
-+	if (flow_spec->type == IB_FLOW_SPEC_IPV4) {
-+		struct ib_flow_spec_ipv4 *ipv4_spec;
-+
-+		ipv4_spec = (struct ib_flow_spec_ipv4 *)flow_spec;
-+		if (ipv4_is_multicast(ipv4_spec->val.dst_ip))
-+			return true;
-+
- 		return false;
-+	}
-+
-+	if (flow_spec->type == IB_FLOW_SPEC_ETH) {
-+		struct ib_flow_spec_eth *eth_spec;
-+
-+		eth_spec = (struct ib_flow_spec_eth *)flow_spec;
-+		return is_multicast_ether_addr(eth_spec->mask.dst_mac) &&
-+		       is_multicast_ether_addr(eth_spec->val.dst_mac);
-+	}
+ struct mlx5_umr_wr {
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index ebb6768684de..cc0f6d3b4268 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -34,6 +34,7 @@
+ #include <rdma/ib_umem.h>
+ #include <rdma/ib_cache.h>
+ #include <rdma/ib_user_verbs.h>
++#include <linux/mlx5/fs.h>
+ #include "mlx5_ib.h"
  
--	return is_multicast_ether_addr(eth_spec->mask.dst_mac) &&
--	       is_multicast_ether_addr(eth_spec->val.dst_mac);
-+	return false;
- }
- 
- static bool is_valid_ethertype(struct mlx5_core_dev *mdev,
-@@ -2536,8 +2547,14 @@ static struct ib_flow *mlx5_ib_create_flow(struct ib_qp *qp,
- static int mlx5_ib_mcg_attach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
- {
- 	struct mlx5_ib_dev *dev = to_mdev(ibqp->device);
-+	struct mlx5_ib_qp *mqp = to_mqp(ibqp);
- 	int err;
- 
-+	if (mqp->flags & MLX5_IB_QP_UNDERLAY) {
-+		mlx5_ib_dbg(dev, "Attaching a multi cast group to underlay QP is not supported\n");
-+		return -EOPNOTSUPP;
-+	}
-+
- 	err = mlx5_core_attach_mcg(dev->mdev, gid, ibqp->qp_num);
- 	if (err)
- 		mlx5_ib_warn(dev, "failed attaching QPN 0x%x, MGID %pI6\n",
-@@ -3728,18 +3745,20 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 			(1ull << IB_USER_VERBS_CMD_CLOSE_XRCD);
+ /* not supported currently */
+@@ -453,7 +454,8 @@ static int set_user_buf_size(struct mlx5_ib_dev *dev,
+ 		return -EINVAL;
  	}
  
-+	dev->ib_dev.create_flow	= mlx5_ib_create_flow;
-+	dev->ib_dev.destroy_flow = mlx5_ib_destroy_flow;
-+	dev->ib_dev.uverbs_ex_cmd_mask |=
-+			(1ull << IB_USER_VERBS_EX_CMD_CREATE_FLOW) |
-+			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_FLOW);
+-	if (attr->qp_type == IB_QPT_RAW_PACKET) {
++	if (attr->qp_type == IB_QPT_RAW_PACKET ||
++	    qp->flags & MLX5_IB_QP_UNDERLAY) {
+ 		base->ubuffer.buf_size = qp->rq.wqe_cnt << qp->rq.wqe_shift;
+ 		qp->raw_packet_qp.sq.ubuffer.buf_size = qp->sq.wqe_cnt << 6;
+ 	} else {
+@@ -1021,12 +1023,16 @@ static int is_connected(enum ib_qp_type qp_type)
+ }
+ 
+ static int create_raw_packet_qp_tis(struct mlx5_ib_dev *dev,
++				    struct mlx5_ib_qp *qp,
+ 				    struct mlx5_ib_sq *sq, u32 tdn)
+ {
+ 	u32 in[MLX5_ST_SZ_DW(create_tis_in)] = {0};
+ 	void *tisc = MLX5_ADDR_OF(create_tis_in, in, ctx);
+ 
+ 	MLX5_SET(tisc, tisc, transport_domain, tdn);
++	if (qp->flags & MLX5_IB_QP_UNDERLAY)
++		MLX5_SET(tisc, tisc, underlay_qpn, qp->underlay_qpn);
 +
- 	if (mlx5_ib_port_link_layer(&dev->ib_dev, 1) ==
- 	    IB_LINK_LAYER_ETHERNET) {
--		dev->ib_dev.create_flow	= mlx5_ib_create_flow;
--		dev->ib_dev.destroy_flow = mlx5_ib_destroy_flow;
- 		dev->ib_dev.create_wq	 = mlx5_ib_create_wq;
- 		dev->ib_dev.modify_wq	 = mlx5_ib_modify_wq;
- 		dev->ib_dev.destroy_wq	 = mlx5_ib_destroy_wq;
- 		dev->ib_dev.create_rwq_ind_table = mlx5_ib_create_rwq_ind_table;
- 		dev->ib_dev.destroy_rwq_ind_table = mlx5_ib_destroy_rwq_ind_table;
- 		dev->ib_dev.uverbs_ex_cmd_mask |=
--			(1ull << IB_USER_VERBS_EX_CMD_CREATE_FLOW) |
--			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_FLOW) |
- 			(1ull << IB_USER_VERBS_EX_CMD_CREATE_WQ) |
- 			(1ull << IB_USER_VERBS_EX_CMD_MODIFY_WQ) |
- 			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_WQ) |
+ 	return mlx5_core_create_tis(dev->mdev, in, sizeof(in), &sq->tisn);
+ }
+ 
+@@ -1229,7 +1235,7 @@ static int create_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 	u32 tdn = mucontext->tdn;
+ 
+ 	if (qp->sq.wqe_cnt) {
+-		err = create_raw_packet_qp_tis(dev, sq, tdn);
++		err = create_raw_packet_qp_tis(dev, qp, sq, tdn);
+ 		if (err)
+ 			return err;
+ 
+@@ -1502,10 +1508,6 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 	u32 *in;
+ 	int err;
+ 
+-	base = init_attr->qp_type == IB_QPT_RAW_PACKET ?
+-	       &qp->raw_packet_qp.rq.base :
+-	       &qp->trans_qp.base;
+-
+ 	mutex_init(&qp->mutex);
+ 	spin_lock_init(&qp->sq.lock);
+ 	spin_lock_init(&qp->rq.lock);
+@@ -1587,10 +1589,28 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 
+ 		qp->wq_sig = !!(ucmd.flags & MLX5_QP_FLAG_SIGNATURE);
+ 		qp->scat_cqe = !!(ucmd.flags & MLX5_QP_FLAG_SCATTER_CQE);
++
++		if (init_attr->create_flags & IB_QP_CREATE_SOURCE_QPN) {
++			if (init_attr->qp_type != IB_QPT_UD ||
++			    (MLX5_CAP_GEN(dev->mdev, port_type) !=
++			     MLX5_CAP_PORT_TYPE_IB) ||
++			    !mlx5_get_flow_namespace(dev->mdev, MLX5_FLOW_NAMESPACE_BYPASS)) {
++				mlx5_ib_dbg(dev, "Source QP option isn't supported\n");
++				return -EOPNOTSUPP;
++			}
++
++			qp->flags |= MLX5_IB_QP_UNDERLAY;
++			qp->underlay_qpn = init_attr->source_qpn;
++		}
+ 	} else {
+ 		qp->wq_sig = !!wq_signature;
+ 	}
+ 
++	base = (init_attr->qp_type == IB_QPT_RAW_PACKET ||
++		qp->flags & MLX5_IB_QP_UNDERLAY) ?
++	       &qp->raw_packet_qp.rq.base :
++	       &qp->trans_qp.base;
++
+ 	qp->has_rq = qp_has_rq(init_attr);
+ 	err = set_rq_size(dev, &init_attr->cap, qp->has_rq,
+ 			  qp, (pd && pd->uobject) ? &ucmd : NULL);
+@@ -1741,7 +1761,8 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 		qp->flags |= MLX5_IB_QP_LSO;
+ 	}
+ 
+-	if (init_attr->qp_type == IB_QPT_RAW_PACKET) {
++	if (init_attr->qp_type == IB_QPT_RAW_PACKET ||
++	    qp->flags & MLX5_IB_QP_UNDERLAY) {
+ 		qp->raw_packet_qp.sq.ubuffer.buf_addr = ucmd.sq_buf_addr;
+ 		raw_packet_qp_copy_info(qp, &qp->raw_packet_qp);
+ 		err = create_raw_packet_qp(dev, qp, in, pd);
+@@ -1893,7 +1914,7 @@ static int modify_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ static void destroy_qp_common(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
+ {
+ 	struct mlx5_ib_cq *send_cq, *recv_cq;
+-	struct mlx5_ib_qp_base *base = &qp->trans_qp.base;
++	struct mlx5_ib_qp_base *base;
+ 	unsigned long flags;
+ 	int err;
+ 
+@@ -1902,12 +1923,14 @@ static void destroy_qp_common(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
+ 		return;
+ 	}
+ 
+-	base = qp->ibqp.qp_type == IB_QPT_RAW_PACKET ?
++	base = (qp->ibqp.qp_type == IB_QPT_RAW_PACKET ||
++		qp->flags & MLX5_IB_QP_UNDERLAY) ?
+ 	       &qp->raw_packet_qp.rq.base :
+ 	       &qp->trans_qp.base;
+ 
+ 	if (qp->state != IB_QPS_RESET) {
+-		if (qp->ibqp.qp_type != IB_QPT_RAW_PACKET) {
++		if (qp->ibqp.qp_type != IB_QPT_RAW_PACKET &&
++		    !(qp->flags & MLX5_IB_QP_UNDERLAY)) {
+ 			err = mlx5_core_qp_modify(dev->mdev,
+ 						  MLX5_CMD_OP_2RST_QP, 0,
+ 						  NULL, &base->mqp);
+@@ -1946,7 +1969,8 @@ static void destroy_qp_common(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
+ 	mlx5_ib_unlock_cqs(send_cq, recv_cq);
+ 	spin_unlock_irqrestore(&dev->reset_flow_resource_lock, flags);
+ 
+-	if (qp->ibqp.qp_type == IB_QPT_RAW_PACKET) {
++	if (qp->ibqp.qp_type == IB_QPT_RAW_PACKET ||
++	    qp->flags & MLX5_IB_QP_UNDERLAY) {
+ 		destroy_raw_packet_qp(dev, qp);
+ 	} else {
+ 		err = mlx5_core_destroy_qp(dev->mdev, &base->mqp);
+@@ -2702,7 +2726,8 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 
+ 	if (is_sqp(ibqp->qp_type)) {
+ 		context->mtu_msgmax = (IB_MTU_256 << 5) | 8;
+-	} else if (ibqp->qp_type == IB_QPT_UD ||
++	} else if ((ibqp->qp_type == IB_QPT_UD &&
++		    !(qp->flags & MLX5_IB_QP_UNDERLAY)) ||
+ 		   ibqp->qp_type == MLX5_IB_QPT_REG_UMR) {
+ 		context->mtu_msgmax = (IB_MTU_4096 << 5) | 12;
+ 	} else if (attr_mask & IB_QP_PATH_MTU) {
+@@ -2799,6 +2824,11 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 	if (cur_state == IB_QPS_RESET && new_state == IB_QPS_INIT) {
+ 		u8 port_num = (attr_mask & IB_QP_PORT ? attr->port_num :
+ 			       qp->port) - 1;
++
++		/* Underlay port should be used - index 0 function per port */
++		if (qp->flags & MLX5_IB_QP_UNDERLAY)
++			port_num = 0;
++
+ 		mibport = &dev->port[port_num];
+ 		context->qp_counter_set_usr_page |=
+ 			cpu_to_be32((u32)(mibport->cnts.set_id) << 24);
+@@ -2824,7 +2854,8 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 	optpar = ib_mask_to_mlx5_opt(attr_mask);
+ 	optpar &= opt_mask[mlx5_cur][mlx5_new][mlx5_st];
+ 
+-	if (qp->ibqp.qp_type == IB_QPT_RAW_PACKET) {
++	if (qp->ibqp.qp_type == IB_QPT_RAW_PACKET ||
++	    qp->flags & MLX5_IB_QP_UNDERLAY) {
+ 		struct mlx5_modify_raw_qp_param raw_qp_param = {};
+ 
+ 		raw_qp_param.operation = op;
+@@ -2913,7 +2944,13 @@ int mlx5_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		ll = dev->ib_dev.get_link_layer(&dev->ib_dev, port);
+ 	}
+ 
+-	if (qp_type != MLX5_IB_QPT_REG_UMR &&
++	if (qp->flags & MLX5_IB_QP_UNDERLAY) {
++		if (attr_mask & ~(IB_QP_STATE | IB_QP_CUR_STATE)) {
++			mlx5_ib_dbg(dev, "invalid attr_mask 0x%x when underlay QP is used\n",
++				    attr_mask);
++			goto out;
++		}
++	} else if (qp_type != MLX5_IB_QPT_REG_UMR &&
+ 	    !ib_modify_qp_is_ok(cur_state, new_state, qp_type, attr_mask, ll)) {
+ 		mlx5_ib_dbg(dev, "invalid QP state transition from %d to %d, qp_type %d, attr_mask 0x%x\n",
+ 			    cur_state, new_state, ibqp->qp_type, attr_mask);
+@@ -4477,9 +4514,14 @@ int mlx5_ib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr,
+ 		return mlx5_ib_gsi_query_qp(ibqp, qp_attr, qp_attr_mask,
+ 					    qp_init_attr);
+ 
++	/* Not all of output fields are applicable, make sure to zero them */
++	memset(qp_init_attr, 0, sizeof(*qp_init_attr));
++	memset(qp_attr, 0, sizeof(*qp_attr));
++
+ 	mutex_lock(&qp->mutex);
+ 
+-	if (qp->ibqp.qp_type == IB_QPT_RAW_PACKET) {
++	if (qp->ibqp.qp_type == IB_QPT_RAW_PACKET ||
++	    qp->flags & MLX5_IB_QP_UNDERLAY) {
+ 		err = query_raw_packet_qp_state(dev, qp, &raw_packet_qp_state);
+ 		if (err)
+ 			goto out;
 -- 
 2.12.2
 
