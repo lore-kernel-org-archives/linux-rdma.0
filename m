@@ -1,69 +1,27 @@
-From: Yuval Mintz <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 net-next 8/8] qed: collect GSI port statistics
-Date: Fri, 9 Jun 2017 17:13:25 +0300
-Message-ID: <20170609141325.20547-9-Yuval.Mintz@cavium.com>
-References: <20170609141325.20547-1-Yuval.Mintz@cavium.com>
+From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 02/11] IB: nes: convert to use DRIVER_ATTR_RW
+Date: Fri, 9 Jun 2017 15:23:35 +0000
+Message-ID: <1497021814.2710.2.camel@wdc.com>
+References: <20170609090314.13991-1-gregkh@linuxfoundation.org>
+         <20170609090314.13991-2-gregkh@linuxfoundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170609141325.20547-1-Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170609090314.13991-2-gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Content-Language: en-US
+Content-ID: <B971FCC2548B914D8856EB677519AB09-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Yuval Mintz <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: "faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The LL2 statistics already have place holders for these, but haven't
-populated them so far.
+On Fri, 2017-06-09 at 11:03 +0200, Greg Kroah-Hartman wrote:
+> We are trying to get rid of DRIVER_ATTR(), and all of the nes.c driver
+> attributes can be trivially changed to use DRIVER_ATTR_RW(), making the
+> code smaller and easier to manage over time.
 
-Signed-off-by: Yuval Mintz <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
----
- drivers/net/ethernet/qlogic/qed/qed_ll2.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
-
-diff --git a/drivers/net/ethernet/qlogic/qed/qed_ll2.c b/drivers/net/ethernet/qlogic/qed/qed_ll2.c
-index c6172a77e..0e26193 100644
---- a/drivers/net/ethernet/qlogic/qed/qed_ll2.c
-+++ b/drivers/net/ethernet/qlogic/qed/qed_ll2.c
-@@ -1902,6 +1902,27 @@ void qed_ll2_free(struct qed_hwfn *p_hwfn)
- 	p_hwfn->p_ll2_info = NULL;
- }
- 
-+static void _qed_ll2_get_port_stats(struct qed_hwfn *p_hwfn,
-+				    struct qed_ptt *p_ptt,
-+				    struct qed_ll2_stats *p_stats)
-+{
-+	struct core_ll2_port_stats port_stats;
-+
-+	memset(&port_stats, 0, sizeof(port_stats));
-+	qed_memcpy_from(p_hwfn, p_ptt, &port_stats,
-+			BAR0_MAP_REG_TSDM_RAM +
-+			TSTORM_LL2_PORT_STAT_OFFSET(MFW_PORT(p_hwfn)),
-+			sizeof(port_stats));
-+
-+	p_stats->gsi_invalid_hdr = HILO_64_REGPAIR(port_stats.gsi_invalid_hdr);
-+	p_stats->gsi_invalid_pkt_length =
-+	    HILO_64_REGPAIR(port_stats.gsi_invalid_pkt_length);
-+	p_stats->gsi_unsupported_pkt_typ =
-+	    HILO_64_REGPAIR(port_stats.gsi_unsupported_pkt_typ);
-+	p_stats->gsi_crcchksm_error =
-+	    HILO_64_REGPAIR(port_stats.gsi_crcchksm_error);
-+}
-+
- static void _qed_ll2_get_tstats(struct qed_hwfn *p_hwfn,
- 				struct qed_ptt *p_ptt,
- 				struct qed_ll2_info *p_ll2_conn,
-@@ -1986,6 +2007,8 @@ int qed_ll2_get_stats(void *cxt,
- 		return -EINVAL;
- 	}
- 
-+	if (p_ll2_conn->input.gsi_enable)
-+		_qed_ll2_get_port_stats(p_hwfn, p_ptt, p_stats);
- 	_qed_ll2_get_tstats(p_hwfn, p_ptt, p_ll2_conn, p_stats);
- 	_qed_ll2_get_ustats(p_hwfn, p_ptt, p_ll2_conn, p_stats);
- 	if (p_ll2_conn->tx_stats_en)
--- 
-2.9.4
-
+Reviewed-by: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
