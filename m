@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 06/10] IB/hfi1: Add traces for TID operations
-Date: Fri, 09 Jun 2017 15:59:59 -0700
-Message-ID: <20170609225958.26710.56627.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 07/10] IB/qib: Replace deprecated pci functions
+ with new API
+Date: Fri, 09 Jun 2017 16:00:06 -0700
+Message-ID: <20170609230004.26710.93484.stgit@scvm10.sc.intel.com>
 References: <20170609225424.26710.70167.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,150 +11,477 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170609225424.26710.70167.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: Ashutosh Dixit <ashutosh.dixit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This patch adds a trace for putting a TID and
-for writing the RcvArray CSR.
+pci_enable_msix_range() and pci_disable_msix() have been deprecated.
+Updating to the new pci_alloc_irq_vectors() interface.
 
-The CSR access template can be easily extended for additional
-CSR readq/writeq calls.
-
-Reviewed-by: Ashutosh Dixit <ashutosh.dixit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c       |   16 ++------------
- drivers/infiniband/hw/hfi1/trace_misc.h |   20 ++++++++++++++++++
- drivers/infiniband/hw/hfi1/trace_rx.h   |   35 +++++++++++++++++++++++++++++++
- 3 files changed, 57 insertions(+), 14 deletions(-)
+ drivers/infiniband/hw/qib/qib.h         |    8 +-
+ drivers/infiniband/hw/qib/qib_iba6120.c |    6 +
+ drivers/infiniband/hw/qib/qib_iba7220.c |    7 +
+ drivers/infiniband/hw/qib/qib_iba7322.c |   48 ++++++----
+ drivers/infiniband/hw/qib/qib_pcie.c    |  149 ++++++++++++-------------------
+ 5 files changed, 98 insertions(+), 120 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 358559c..61cc567 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -9745,17 +9745,6 @@ static inline int init_cpu_counters(struct hfi1_devdata *dd)
- 	return 0;
+diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
+index a3e21a2..f9e1c69 100644
+--- a/drivers/infiniband/hw/qib/qib.h
++++ b/drivers/infiniband/hw/qib/qib.h
+@@ -1,7 +1,7 @@
+ #ifndef _QIB_KERNEL_H
+ #define _QIB_KERNEL_H
+ /*
+- * Copyright (c) 2012, 2013 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2012 - 2017 Intel Corporation.  All rights reserved.
+  * Copyright (c) 2006 - 2012 QLogic Corporation. All rights reserved.
+  * Copyright (c) 2003, 2004, 2005, 2006 PathScale, Inc. All rights reserved.
+  *
+@@ -443,7 +443,7 @@ struct qib_verbs_txreq {
+ #endif
+ 
+ struct qib_msix_entry {
+-	struct msix_entry msix;
++	int irq;
+ 	void *arg;
+ #ifdef CONFIG_INFINIBAND_QIB_DCA
+ 	int dca;
+@@ -1433,9 +1433,9 @@ int qib_create_port_files(struct ib_device *ibdev, u8 port_num,
+ int qib_pcie_ddinit(struct qib_devdata *, struct pci_dev *,
+ 		    const struct pci_device_id *);
+ void qib_pcie_ddcleanup(struct qib_devdata *);
+-int qib_pcie_params(struct qib_devdata *, u32, u32 *, struct qib_msix_entry *);
++int qib_pcie_params(struct qib_devdata *dd, u32 minw, u32 *nent);
+ int qib_reinit_intr(struct qib_devdata *);
+-void qib_enable_intx(struct pci_dev *);
++void qib_enable_intx(struct qib_devdata *dd);
+ void qib_nomsi(struct qib_devdata *);
+ void qib_nomsix(struct qib_devdata *);
+ void qib_pcie_getcmd(struct qib_devdata *, u16 *, u8 *, u8 *);
+diff --git a/drivers/infiniband/hw/qib/qib_iba6120.c b/drivers/infiniband/hw/qib/qib_iba6120.c
+index e423b71..46045fc 100644
+--- a/drivers/infiniband/hw/qib/qib_iba6120.c
++++ b/drivers/infiniband/hw/qib/qib_iba6120.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2013 Intel Corporation. All rights reserved.
++ * Copyright (c) 2013 - 2017 Intel Corporation. All rights reserved.
+  * Copyright (c) 2006, 2007, 2008, 2009, 2010 QLogic Corporation.
+  * All rights reserved.
+  * Copyright (c) 2003, 2004, 2005, 2006 PathScale, Inc. All rights reserved.
+@@ -1838,7 +1838,7 @@ static int qib_6120_setup_reset(struct qib_devdata *dd)
+ 
+ bail:
+ 	if (ret) {
+-		if (qib_pcie_params(dd, dd->lbus_width, NULL, NULL))
++		if (qib_pcie_params(dd, dd->lbus_width, NULL))
+ 			qib_dev_err(dd,
+ 				"Reset failed to setup PCIe or interrupts; continuing anyway\n");
+ 		/* clear the reset error, init error/hwerror mask */
+@@ -3562,7 +3562,7 @@ struct qib_devdata *qib_init_iba6120_funcs(struct pci_dev *pdev,
+ 	if (qib_mini_init)
+ 		goto bail;
+ 
+-	if (qib_pcie_params(dd, 8, NULL, NULL))
++	if (qib_pcie_params(dd, 8, NULL))
+ 		qib_dev_err(dd,
+ 			"Failed to setup PCIe or interrupts; continuing anyway\n");
+ 	dd->cspec->irq = pdev->irq; /* save IRQ */
+diff --git a/drivers/infiniband/hw/qib/qib_iba7220.c b/drivers/infiniband/hw/qib/qib_iba7220.c
+index c3679c4..49cd6e3 100644
+--- a/drivers/infiniband/hw/qib/qib_iba7220.c
++++ b/drivers/infiniband/hw/qib/qib_iba7220.c
+@@ -1,4 +1,5 @@
+ /*
++ * Copyright (c) 2011 - 2017 Intel Corporation.  All rights reserved.
+  * Copyright (c) 2006, 2007, 2008, 2009, 2010 QLogic Corporation.
+  * All rights reserved.
+  * Copyright (c) 2003, 2004, 2005, 2006 PathScale, Inc. All rights reserved.
+@@ -2148,7 +2149,7 @@ static int qib_setup_7220_reset(struct qib_devdata *dd)
+ 
+ bail:
+ 	if (ret) {
+-		if (qib_pcie_params(dd, dd->lbus_width, NULL, NULL))
++		if (qib_pcie_params(dd, dd->lbus_width, NULL))
+ 			qib_dev_err(dd,
+ 				"Reset failed to setup PCIe or interrupts; continuing anyway\n");
+ 
+@@ -3309,7 +3310,7 @@ static int qib_7220_intr_fallback(struct qib_devdata *dd)
+ 	qib_devinfo(dd->pcidev,
+ 		"MSI interrupt not detected, trying INTx interrupts\n");
+ 	qib_7220_free_irq(dd);
+-	qib_enable_intx(dd->pcidev);
++	qib_enable_intx(dd);
+ 	/*
+ 	 * Some newer kernels require free_irq before disable_msi,
+ 	 * and irq can be changed during disable and INTx enable
+@@ -4619,7 +4620,7 @@ struct qib_devdata *qib_init_iba7220_funcs(struct pci_dev *pdev,
+ 		minwidth = 8; /* x8 capable boards */
+ 		break;
+ 	}
+-	if (qib_pcie_params(dd, minwidth, NULL, NULL))
++	if (qib_pcie_params(dd, minwidth, NULL))
+ 		qib_dev_err(dd,
+ 			"Failed to setup PCIe or interrupts; continuing anyway\n");
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
+index bb2439f..2653064 100644
+--- a/drivers/infiniband/hw/qib/qib_iba7322.c
++++ b/drivers/infiniband/hw/qib/qib_iba7322.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2012 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2012 - 2017 Intel Corporation.  All rights reserved.
+  * Copyright (c) 2008 - 2012 QLogic Corporation. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+@@ -2841,10 +2841,10 @@ static void qib_7322_nomsix(struct qib_devdata *dd)
+ 			reset_dca_notifier(dd, &dd->cspec->msix_entries[i]);
+ #endif
+ 			irq_set_affinity_hint(
+-			  dd->cspec->msix_entries[i].msix.vector, NULL);
++				dd->cspec->msix_entries[i].irq, NULL);
+ 			free_cpumask_var(dd->cspec->msix_entries[i].mask);
+-			free_irq(dd->cspec->msix_entries[i].msix.vector,
+-			   dd->cspec->msix_entries[i].arg);
++			free_irq(dd->cspec->msix_entries[i].irq,
++				 dd->cspec->msix_entries[i].arg);
+ 		}
+ 		qib_nomsix(dd);
+ 	}
+@@ -3336,9 +3336,9 @@ static void reset_dca_notifier(struct qib_devdata *dd, struct qib_msix_entry *m)
+ 	qib_devinfo(dd->pcidev,
+ 		"Disabling notifier on HCA %d irq %d\n",
+ 		dd->unit,
+-		m->msix.vector);
++		m->irq);
+ 	irq_set_affinity_notifier(
+-		m->msix.vector,
++		m->irq,
+ 		NULL);
+ 	m->notifier = NULL;
+ }
+@@ -3354,7 +3354,7 @@ static void setup_dca_notifier(struct qib_devdata *dd, struct qib_msix_entry *m)
+ 		int ret;
+ 
+ 		m->notifier = n;
+-		n->notify.irq = m->msix.vector;
++		n->notify.irq = m->irq;
+ 		n->notify.notify = qib_irq_notifier_notify;
+ 		n->notify.release = qib_irq_notifier_release;
+ 		n->arg = m->arg;
+@@ -3500,10 +3500,21 @@ static void qib_setup_7322_interrupt(struct qib_devdata *dd, int clearpend)
+ 				 - 1,
+ 				QIB_DRV_NAME "%d (kctx)", dd->unit);
+ 		}
+-		ret = request_irq(
+-			dd->cspec->msix_entries[msixnum].msix.vector,
+-			handler, 0, dd->cspec->msix_entries[msixnum].name,
+-			arg);
++
++		dd->cspec->msix_entries[msixnum].irq = pci_irq_vector(
++			dd->pcidev, msixnum);
++		if (dd->cspec->msix_entries[msixnum].irq < 0) {
++			qib_dev_err(dd,
++				    "Couldn't get MSIx irq (vec=%d): %d\n",
++				    msixnum,
++				    dd->cspec->msix_entries[msixnum].irq);
++			qib_7322_nomsix(dd);
++			goto try_intx;
++		}
++		ret = request_irq(dd->cspec->msix_entries[msixnum].irq,
++				  handler, 0,
++				  dd->cspec->msix_entries[msixnum].name,
++				  arg);
+ 		if (ret) {
+ 			/*
+ 			 * Shouldn't happen since the enable said we could
+@@ -3512,7 +3523,7 @@ static void qib_setup_7322_interrupt(struct qib_devdata *dd, int clearpend)
+ 			qib_dev_err(dd,
+ 				"Couldn't setup MSIx interrupt (vec=%d, irq=%d): %d\n",
+ 				msixnum,
+-				dd->cspec->msix_entries[msixnum].msix.vector,
++				dd->cspec->msix_entries[msixnum].irq,
+ 				ret);
+ 			qib_7322_nomsix(dd);
+ 			goto try_intx;
+@@ -3548,7 +3559,7 @@ static void qib_setup_7322_interrupt(struct qib_devdata *dd, int clearpend)
+ 					dd->cspec->msix_entries[msixnum].mask);
+ 			}
+ 			irq_set_affinity_hint(
+-				dd->cspec->msix_entries[msixnum].msix.vector,
++				dd->cspec->msix_entries[msixnum].irq,
+ 				dd->cspec->msix_entries[msixnum].mask);
+ 		}
+ 		msixnum++;
+@@ -3744,7 +3755,6 @@ static int qib_do_7322_reset(struct qib_devdata *dd)
+ 	if (msix_entries) {
+ 		/* restore the MSIx vector address and data if saved above */
+ 		for (i = 0; i < msix_entries; i++) {
+-			dd->cspec->msix_entries[i].msix.entry = i;
+ 			if (!msix_vecsave || !msix_vecsave[2 * i])
+ 				continue;
+ 			qib_write_kreg(dd, 2 * i +
+@@ -3762,8 +3772,7 @@ static int qib_do_7322_reset(struct qib_devdata *dd)
+ 	write_7322_initregs(dd);
+ 
+ 	if (qib_pcie_params(dd, dd->lbus_width,
+-			    &dd->cspec->num_msix_entries,
+-			    dd->cspec->msix_entries))
++			    &dd->cspec->num_msix_entries))
+ 		qib_dev_err(dd,
+ 			"Reset failed to setup PCIe or interrupts; continuing anyway\n");
+ 
+@@ -5195,7 +5204,7 @@ static int qib_7322_intr_fallback(struct qib_devdata *dd)
+ 	qib_devinfo(dd->pcidev,
+ 		"MSIx interrupt not detected, trying INTx interrupts\n");
+ 	qib_7322_nomsix(dd);
+-	qib_enable_intx(dd->pcidev);
++	qib_enable_intx(dd);
+ 	qib_setup_7322_interrupt(dd, 0);
+ 	return 1;
+ }
+@@ -7327,10 +7336,7 @@ struct qib_devdata *qib_init_iba7322_funcs(struct pci_dev *pdev,
+ 	if (!dd->cspec->msix_entries)
+ 		tabsize = 0;
+ 
+-	for (i = 0; i < tabsize; i++)
+-		dd->cspec->msix_entries[i].msix.entry = i;
+-
+-	if (qib_pcie_params(dd, 8, &tabsize, dd->cspec->msix_entries))
++	if (qib_pcie_params(dd, 8, &tabsize))
+ 		qib_dev_err(dd,
+ 			"Failed to setup PCIe or interrupts; continuing anyway\n");
+ 	/* may be less than we wanted, if not enough available */
+diff --git a/drivers/infiniband/hw/qib/qib_pcie.c b/drivers/infiniband/hw/qib/qib_pcie.c
+index c379b83..d90403e 100644
+--- a/drivers/infiniband/hw/qib/qib_pcie.c
++++ b/drivers/infiniband/hw/qib/qib_pcie.c
+@@ -1,4 +1,5 @@
+ /*
++ * Copyright (c) 2010 - 2017 Intel Corporation.  All rights reserved.
+  * Copyright (c) 2008, 2009 QLogic Corporation. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+@@ -187,112 +188,84 @@ void qib_pcie_ddcleanup(struct qib_devdata *dd)
+ 	pci_set_drvdata(dd->pcidev, NULL);
  }
  
--static const char * const pt_names[] = {
--	"expected",
--	"eager",
--	"invalid"
--};
--
--static const char *pt_name(u32 type)
+-static void qib_msix_setup(struct qib_devdata *dd, int pos, u32 *msixcnt,
+-			   struct qib_msix_entry *qib_msix_entry)
 -{
--	return type >= ARRAY_SIZE(pt_names) ? "unknown" : pt_names[type];
+-	int ret;
+-	int nvec = *msixcnt;
+-	struct msix_entry *msix_entry;
+-	int i;
+-
+-	ret = pci_msix_vec_count(dd->pcidev);
+-	if (ret < 0)
+-		goto do_intx;
+-
+-	nvec = min(nvec, ret);
+-
+-	/* We can't pass qib_msix_entry array to qib_msix_setup
+-	 * so use a dummy msix_entry array and copy the allocated
+-	 * irq back to the qib_msix_entry array. */
+-	msix_entry = kcalloc(nvec, sizeof(*msix_entry), GFP_KERNEL);
+-	if (!msix_entry)
+-		goto do_intx;
+-
+-	for (i = 0; i < nvec; i++)
+-		msix_entry[i] = qib_msix_entry[i].msix;
+-
+-	ret = pci_enable_msix_range(dd->pcidev, msix_entry, 1, nvec);
+-	if (ret < 0)
+-		goto free_msix_entry;
+-	else
+-		nvec = ret;
+-
+-	for (i = 0; i < nvec; i++)
+-		qib_msix_entry[i].msix = msix_entry[i];
+-
+-	kfree(msix_entry);
+-	*msixcnt = nvec;
+-	return;
+-
+-free_msix_entry:
+-	kfree(msix_entry);
+-
+-do_intx:
+-	qib_dev_err(
+-		dd,
+-		"pci_enable_msix_range %d vectors failed: %d, falling back to INTx\n",
+-		nvec, ret);
+-	*msixcnt = 0;
+-	qib_enable_intx(dd->pcidev);
 -}
 -
- /*
-  * index is the index into the receive array
+ /**
+  * We save the msi lo and hi values, so we can restore them after
+  * chip reset (the kernel PCI infrastructure doesn't yet handle that
+  * correctly.
   */
-@@ -9777,15 +9766,14 @@ void hfi1_put_tid(struct hfi1_devdata *dd, u32 index,
- 			   type, index);
- 		goto done;
- 	}
+-static int qib_msi_setup(struct qib_devdata *dd, int pos)
++static void qib_msi_setup(struct qib_devdata *dd, int pos)
+ {
+ 	struct pci_dev *pdev = dd->pcidev;
+ 	u16 control;
+-	int ret;
+ 
+-	ret = pci_enable_msi(pdev);
+-	if (ret)
+-		qib_dev_err(dd,
+-			"pci_enable_msi failed: %d, interrupts may not work\n",
+-			ret);
+-	/* continue even if it fails, we may still be OK... */
 -
--	hfi1_cdbg(TID, "type %s, index 0x%x, pa 0x%lx, bsize 0x%lx",
--		  pt_name(type), index, pa, (unsigned long)order);
-+	trace_hfi1_put_tid(dd, index, type, pa, order);
- 
- #define RT_ADDR_SHIFT 12	/* 4KB kernel address boundary */
- 	reg = RCV_ARRAY_RT_WRITE_ENABLE_SMASK
- 		| (u64)order << RCV_ARRAY_RT_BUF_SIZE_SHIFT
- 		| ((pa >> RT_ADDR_SHIFT) & RCV_ARRAY_RT_ADDR_MASK)
- 					<< RCV_ARRAY_RT_ADDR_SHIFT;
-+	trace_hfi1_write_rcvarray(base + (index * 8), reg);
- 	writeq(reg, base + (index * 8));
- 
- 	if (type == PT_EAGER)
-diff --git a/drivers/infiniband/hw/hfi1/trace_misc.h b/drivers/infiniband/hw/hfi1/trace_misc.h
-index deac77d..8db2253 100644
---- a/drivers/infiniband/hw/hfi1/trace_misc.h
-+++ b/drivers/infiniband/hw/hfi1/trace_misc.h
-@@ -72,6 +72,26 @@
- 		      __entry->src)
- );
- 
-+DECLARE_EVENT_CLASS(
-+	hfi1_csr_template,
-+	TP_PROTO(void __iomem *addr, u64 value),
-+	TP_ARGS(addr, value),
-+	TP_STRUCT__entry(
-+		__field(void __iomem *, addr)
-+		__field(u64, value)
-+	),
-+	TP_fast_assign(
-+		__entry->addr = addr;
-+		__entry->value = value;
-+	),
-+	TP_printk("addr %p value %llx", __entry->addr, __entry->value)
-+);
+-	pci_read_config_dword(pdev, pos + PCI_MSI_ADDRESS_LO,
+-			      &dd->msi_lo);
+-	pci_read_config_dword(pdev, pos + PCI_MSI_ADDRESS_HI,
+-			      &dd->msi_hi);
++	pci_read_config_dword(pdev, pos + PCI_MSI_ADDRESS_LO, &dd->msi_lo);
++	pci_read_config_dword(pdev, pos + PCI_MSI_ADDRESS_HI, &dd->msi_hi);
+ 	pci_read_config_word(pdev, pos + PCI_MSI_FLAGS, &control);
 +
-+DEFINE_EVENT(
-+	hfi1_csr_template, hfi1_write_rcvarray,
-+	TP_PROTO(void __iomem *addr, u64 value),
-+	TP_ARGS(addr, value));
+ 	/* now save the data (vector) info */
+-	pci_read_config_word(pdev, pos + ((control & PCI_MSI_FLAGS_64BIT)
+-				    ? 12 : 8),
++	pci_read_config_word(pdev,
++			     pos + ((control & PCI_MSI_FLAGS_64BIT) ? 12 : 8),
+ 			     &dd->msi_data);
+-	return ret;
+ }
+ 
+-int qib_pcie_params(struct qib_devdata *dd, u32 minw, u32 *nent,
+-		    struct qib_msix_entry *entry)
++static int qib_allocate_irqs(struct qib_devdata *dd, u32 maxvec)
++{
++	unsigned int flags = PCI_IRQ_LEGACY;
 +
- #ifdef CONFIG_FAULT_INJECTION
- TRACE_EVENT(hfi1_fault_opcode,
- 	    TP_PROTO(struct rvt_qp *qp, u8 opcode),
-diff --git a/drivers/infiniband/hw/hfi1/trace_rx.h b/drivers/infiniband/hw/hfi1/trace_rx.h
-index 7af5938..8492957 100644
---- a/drivers/infiniband/hw/hfi1/trace_rx.h
-+++ b/drivers/infiniband/hw/hfi1/trace_rx.h
-@@ -52,6 +52,13 @@
- 
- #include "hfi.h"
- 
-+#define tidtype_name(type) { PT_##type, #type }
-+#define show_tidtype(type)                   \
-+__print_symbolic(type,                       \
-+	tidtype_name(EXPECTED),              \
-+	tidtype_name(EAGER),                 \
-+	tidtype_name(INVALID))               \
++	/* Check our capabilities */
++	if (dd->pcidev->msix_cap) {
++		flags |= PCI_IRQ_MSIX;
++	} else {
++		if (dd->pcidev->msi_cap) {
++			flags |= PCI_IRQ_MSI;
++			/* Get msi_lo and msi_hi */
++			qib_msi_setup(dd, dd->pcidev->msi_cap);
++		}
++	}
 +
- #undef TRACE_SYSTEM
- #define TRACE_SYSTEM hfi1_rx
- 
-@@ -185,6 +192,34 @@
- 		 unsigned long va, unsigned long pa, dma_addr_t dma),
- 	TP_ARGS(ctxt, subctxt, rarr, npages, va, pa, dma));
- 
-+TRACE_EVENT(
-+	hfi1_put_tid,
-+	TP_PROTO(struct hfi1_devdata *dd,
-+		 u32 index, u32 type, unsigned long pa, u16 order),
-+	TP_ARGS(dd, index, type, pa, order),
-+	TP_STRUCT__entry(
-+		DD_DEV_ENTRY(dd)
-+		__field(unsigned long, pa);
-+		__field(u32, index);
-+		__field(u32, type);
-+		__field(u16, order);
-+	),
-+	TP_fast_assign(
-+		DD_DEV_ASSIGN(dd);
-+		__entry->pa = pa;
-+		__entry->index = index;
-+		__entry->type = type;
-+		__entry->order = order;
-+	),
-+	TP_printk("[%s] type %s pa %lx index %u order %u",
-+		  __get_str(dev),
-+		  show_tidtype(__entry->type),
-+		  __entry->pa,
-+		  __entry->index,
-+		  __entry->order
-+	)
-+);
++	if (!(flags & (PCI_IRQ_MSIX | PCI_IRQ_MSI)))
++		qib_dev_err(dd, "No PCI MSI or MSIx capability!\n");
 +
- TRACE_EVENT(hfi1_exp_tid_inval,
- 	    TP_PROTO(unsigned int ctxt, u16 subctxt, unsigned long va, u32 rarr,
- 		     u32 npages, dma_addr_t dma),
++	return pci_alloc_irq_vectors(dd->pcidev, 1, maxvec, flags);
++}
++
++int qib_pcie_params(struct qib_devdata *dd, u32 minw, u32 *nent)
+ {
+ 	u16 linkstat, speed;
+-	int pos = 0, ret = 1;
++	int nvec;
++	int maxvec;
++	int ret = 0;
+ 
+ 	if (!pci_is_pcie(dd->pcidev)) {
+ 		qib_dev_err(dd, "Can't find PCI Express capability!\n");
+ 		/* set up something... */
+ 		dd->lbus_width = 1;
+ 		dd->lbus_speed = 2500; /* Gen1, 2.5GHz */
++		ret = -1;
+ 		goto bail;
+ 	}
+ 
+-	pos = dd->pcidev->msix_cap;
+-	if (nent && *nent && pos) {
+-		qib_msix_setup(dd, pos, nent, entry);
+-		ret = 0; /* did it, either MSIx or INTx */
+-	} else {
+-		pos = dd->pcidev->msi_cap;
+-		if (pos)
+-			ret = qib_msi_setup(dd, pos);
+-		else
+-			qib_dev_err(dd, "No PCI MSI or MSIx capability!\n");
++	maxvec = (nent && *nent) ? *nent : 1;
++	nvec = qib_allocate_irqs(dd, maxvec);
++	if (nvec < 0) {
++		ret = nvec;
++		goto bail;
++	}
++
++	/*
++	 * If nent exists, make sure to record how many vectors were allocated
++	 */
++	if (nent) {
++		*nent = nvec;
++
++		/*
++		 * If we requested (nent) MSIX, but msix_enabled is not set,
++		 * pci_alloc_irq_vectors() enabled INTx.
++		 */
++		if (!dd->pcidev->msix_enabled)
++			qib_dev_err(dd,
++				    "no msix vectors allocated, using INTx\n");
+ 	}
+-	if (!pos)
+-		qib_enable_intx(dd->pcidev);
+ 
+ 	pcie_capability_read_word(dd->pcidev, PCI_EXP_LNKSTA, &linkstat);
+ 	/*
+@@ -379,7 +352,7 @@ int qib_reinit_intr(struct qib_devdata *dd)
+ 	ret = 1;
+ bail:
+ 	if (!ret && (dd->flags & QIB_HAS_INTX)) {
+-		qib_enable_intx(dd->pcidev);
++		qib_enable_intx(dd);
+ 		ret = 1;
+ 	}
+ 
+@@ -397,7 +370,7 @@ int qib_reinit_intr(struct qib_devdata *dd)
+ void qib_nomsi(struct qib_devdata *dd)
+ {
+ 	dd->msi_lo = 0;
+-	pci_disable_msi(dd->pcidev);
++	pci_free_irq_vectors(dd->pcidev);
+ }
+ 
+ /*
+@@ -405,23 +378,21 @@ void qib_nomsi(struct qib_devdata *dd)
+  */
+ void qib_nomsix(struct qib_devdata *dd)
+ {
+-	pci_disable_msix(dd->pcidev);
++	pci_free_irq_vectors(dd->pcidev);
+ }
+ 
+ /*
+  * Similar to pci_intx(pdev, 1), except that we make sure
+  * msi(x) is off.
+  */
+-void qib_enable_intx(struct pci_dev *pdev)
++void qib_enable_intx(struct qib_devdata *dd)
+ {
+ 	u16 cw, new;
+ 	int pos;
++	struct pci_dev *pdev = dd->pcidev;
+ 
+-	/* first, turn on INTx */
+-	pci_read_config_word(pdev, PCI_COMMAND, &cw);
+-	new = cw & ~PCI_COMMAND_INTX_DISABLE;
+-	if (new != cw)
+-		pci_write_config_word(pdev, PCI_COMMAND, new);
++	if (pci_alloc_irq_vectors(pdev, 1, 1, PCI_IRQ_LEGACY) < 0)
++		qib_dev_err(dd,	"Failed to enable INTx\n");
+ 
+ 	pos = pdev->msi_cap;
+ 	if (pos) {
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
