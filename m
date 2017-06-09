@@ -1,152 +1,32 @@
-From: Anna Schumaker <schumaker.anna-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 04/13] xprtrdma: Rename rpcrdma_req::rl_free
-Date: Fri, 9 Jun 2017 15:15:33 -0400
-Message-ID: <4e6f6463-e023-f5c2-5771-d8a1ff9bbd27@gmail.com>
-References: <20170608154339.18945.5500.stgit@manet.1015granger.net>
- <20170608155212.18945.37327.stgit@manet.1015granger.net>
- <7ee9b1fd-9628-2767-444e-90c6736d63f9@Netapp.com>
- <5332A4D9-ADC4-4DA4-A20E-ACC6019F83BF@oracle.com>
- <C0C5BD8B-9D97-48F4-A0AD-C7FC17DA9C00@oracle.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v2 net-next 0/8] qed*: Light L2 updates
+Date: Fri, 09 Jun 2017 15:49:43 -0400 (EDT)
+Message-ID: <20170609.154943.1439503170540178586.davem@davemloft.net>
+References: <20170609141325.20547-1-Yuval.Mintz@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <C0C5BD8B-9D97-48F4-A0AD-C7FC17DA9C00-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Anna Schumaker <Anna.Schumaker-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org>
-Cc: List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170609141325.20547-1-Yuval.Mintz@cavium.com>
+Sender: netdev-owner@vger.kernel.org
+To: Yuval.Mintz@cavium.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Michal.Kalderon@cavium.com
 List-Id: linux-rdma@vger.kernel.org
 
+From: Yuval Mintz <Yuval.Mintz@cavium.com>
+Date: Fri, 9 Jun 2017 17:13:17 +0300
 
+> This series does a major overhaul of the LL2 logic in qed.
+> The single biggest change done here is in #5 where we're changing
+> the API qed provides for LL2 [both internally in case of storage and
+> externally in case of RoCE] to become callback-based to allow cleaner
+> scalability in preperation to the future iWARP submission which would
+> aadd additional flavors of LL2. It's also the only patch in series
+> to modify !qed logic [qedr].
+> 
+> Patches prior to that mostly deal with refactoring LL2 code,
+> encapsulating varaious parameters into structure and re-ordering
+> of LL2 code. The latter patches add some small missing bits of LL2
+> ffunctionality.
 
-On 06/09/2017 03:12 PM, Chuck Lever wrote:
-> 
->> On Jun 9, 2017, at 3:03 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
->>
->>>
->>> On Jun 9, 2017, at 2:58 PM, Anna Schumaker <Anna.Schumaker-ZwjVKphTwtPQT0dZR+AlfA@public.gmane.org> wrote:
->>>
->>> Hi Chuck,
->>>
->>> On 06/08/2017 11:52 AM, Chuck Lever wrote:
->>>> Clean up: I'm about to use the rl_free field for purposes other than
->>>> a free list. So use a more generic name.
->>>>
->>>> This is a refactoring change only.
->>>>
->>>> BugLink: https://bugzilla.linux-nfs.org/show_bug.cgi?id=305
->>>> Fixes: 68791649a725 ('xprtrdma: Invalidate in the RPC reply ... ')
->>>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>>> ---
->>>> net/sunrpc/xprtrdma/verbs.c     |    9 ++++-----
->>>> net/sunrpc/xprtrdma/xprt_rdma.h |    2 +-
->>>> 2 files changed, 5 insertions(+), 6 deletions(-)
->>>>
->>>> diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
->>>> index a8be66d..df72224 100644
->>>> --- a/net/sunrpc/xprtrdma/verbs.c
->>>> +++ b/net/sunrpc/xprtrdma/verbs.c
->>>> @@ -971,7 +971,6 @@ struct rpcrdma_req *
->>>> 	if (req == NULL)
->>>> 		return ERR_PTR(-ENOMEM);
->>>>
->>>> -	INIT_LIST_HEAD(&req->rl_free);
->>>
->>> Does rl_list still need to get initialized somewhere?
->>
->> rl_free/rl_list isn't the anchor of a list. It is only
->> ever a member of a list. So this INIT_LIST_HEAD is actually
->> unnecessary.
-> 
-> Or, put another way: since list_empty() is not used
-> on this field anywhere, it shouldn't be necessary to
-> ensure it is initialized.
-
-Thanks for the explanation!  I took a second look, and that all sounds right :)
-
-> 
-> 
->>> Thanks,
->>> Anna
->>>
->>>> 	spin_lock(&buffer->rb_reqslock);
->>>> 	list_add(&req->rl_all, &buffer->rb_allreqs);
->>>> 	spin_unlock(&buffer->rb_reqslock);
->>>> @@ -1055,7 +1054,7 @@ struct rpcrdma_rep *
->>>> 			goto out;
->>>> 		}
->>>> 		req->rl_backchannel = false;
->>>> -		list_add(&req->rl_free, &buf->rb_send_bufs);
->>>> +		list_add(&req->rl_list, &buf->rb_send_bufs);
->>>> 	}
->>>>
->>>> 	INIT_LIST_HEAD(&buf->rb_recv_bufs);
->>>> @@ -1084,8 +1083,8 @@ struct rpcrdma_rep *
->>>> 	struct rpcrdma_req *req;
->>>>
->>>> 	req = list_first_entry(&buf->rb_send_bufs,
->>>> -			       struct rpcrdma_req, rl_free);
->>>> -	list_del(&req->rl_free);
->>>> +			       struct rpcrdma_req, rl_list);
->>>> +	list_del(&req->rl_list);
->>>> 	return req;
->>>> }
->>>>
->>>> @@ -1268,7 +1267,7 @@ struct rpcrdma_req *
->>>>
->>>> 	spin_lock(&buffers->rb_lock);
->>>> 	buffers->rb_send_count--;
->>>> -	list_add_tail(&req->rl_free, &buffers->rb_send_bufs);
->>>> +	list_add_tail(&req->rl_list, &buffers->rb_send_bufs);
->>>> 	if (rep) {
->>>> 		buffers->rb_recv_count--;
->>>> 		list_add_tail(&rep->rr_list, &buffers->rb_recv_bufs);
->>>> diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
->>>> index 1c23117..ad918c8 100644
->>>> --- a/net/sunrpc/xprtrdma/xprt_rdma.h
->>>> +++ b/net/sunrpc/xprtrdma/xprt_rdma.h
->>>> @@ -340,7 +340,7 @@ enum {
->>>>
->>>> struct rpcrdma_buffer;
->>>> struct rpcrdma_req {
->>>> -	struct list_head	rl_free;
->>>> +	struct list_head	rl_list;
->>>> 	unsigned int		rl_mapped_sges;
->>>> 	unsigned int		rl_connect_cookie;
->>>> 	struct rpcrdma_buffer	*rl_buffer;
->>>>
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
->>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->> --
->> Chuck Lever
->>
->>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> --
-> Chuck Lever
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Series applied, thank you.
