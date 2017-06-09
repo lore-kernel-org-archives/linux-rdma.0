@@ -1,34 +1,46 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-core] verbs: Introduce flow steering drop action
-Date: Fri, 09 Jun 2017 17:20:32 -0400
-Message-ID: <1497043232.7171.226.camel@redhat.com>
-References: <1496332034-14758-1-git-send-email-yishaih@mellanox.com>
+Subject: Re: [PATCH net-next 0/3] mlx4 drivers: version update
+Date: Fri, 09 Jun 2017 17:26:53 -0400
+Message-ID: <1497043613.7171.227.camel@redhat.com>
+References: <1496841975-7728-1-git-send-email-tariqt@mellanox.com>
+         <20170607.153333.2137691985139660875.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1496332034-14758-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20170607.153333.2137691985139660875.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, slavash-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eranbe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-06-01 at 18:47 +0300, Yishai Hadas wrote:
-> From: Slava Shwartsman <slavash-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Wed, 2017-06-07 at 15:33 -0400, David Miller wrote:
+> From: Tariq Toukan <tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Date: Wed,  7 Jun 2017 16:26:12 +0300
 > 
-> This flow steering specification identifies a drop flow to the
-> hardware.
+> > This patchset contains version updates for the MLX4 drivers:
+> > Core, EN, and IB.
+> > 
+> > Just like we've done in mlx5, we modify the outdated driver
+> > version (reported in ethtool for example).
+> > This better reflects the current driver state, and removes the
+> > redundant date string.
+> > We are not going to change this frequently or even use it.
+> > 
+> > I include the IB patch in this series as it has similar subject
+> > and content.
+> > It does not cause any kind of conflict with Doug's tree.
+> > The rdma mailing list is CCed.
+> > Please let me know if I need to submit this differently.
 > 
-> If user creates a flow only with the drop specification, then all the
-> packets that hit this flow will be dropped, otherwise the hardware
-> will
-> drop only the packets that match the other L2/L3/L4 specifications.
+> Ok, series applied.
 > 
-> Signed-off-by: Slava Shwartsman <slavash-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Doug, let me know if you want to handle this differently or want
+> me to change something.
+> 
+> Thanks.
 
-Thanks, applied.
+You've got it, I'll skip it, it's all good.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
