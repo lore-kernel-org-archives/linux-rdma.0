@@ -1,48 +1,32 @@
-From: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 1/1] rdma: copy the saddr if it is already resolved
-Date: Fri,  9 Jun 2017 16:19:25 +0530
-Message-ID: <20170609104925.28927-1-rajur@chelsio.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH net-next 1/8] qed: LL2 to use packed information for tx
+Date: Fri, 09 Jun 2017 09:59:43 -0400 (EDT)
+Message-ID: <20170609.095943.828238777523466278.davem@davemloft.net>
+References: <20170608161323.7597-2-Yuval.Mintz@cavium.com>
+        <20170608.192358.1444190196602150329.davem@davemloft.net>
+        <BLUPR0701MB200415C3D80FB06774CF2C7B8DCE0@BLUPR0701MB2004.namprd07.prod.outlook.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <BLUPR0701MB200415C3D80FB06774CF2C7B8DCE0-v5ruerSQ/oj1oiTf6dR/AE5OhdzP3rhOnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The recent changes to addr6_resolve() to call ipv6 route lookup via
-the stub interface broke cxgb4/ipv6. If the source address is already
-resolved by ipv6_dst_lookup() then the check ipv6_addr_any(&fl6.saddr)
-would fail; consequently, copying saddr to the src_in buffer is omitted.
+From: "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Date: Fri, 9 Jun 2017 07:08:54 +0000
 
-This commit addresses the above issue by moving the copy code out of
-the ipv6_addr_any() block in addr6_resolve().
+> But one thing I thought of asking - do we consider layouts of relatively
+> insignificant structures to be some golden coding standard?
 
-Signed-off-by: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
----
- drivers/infiniband/core/addr.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+It just shows lack of thought when writing things.
 
-diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-index 02971e239a18..c32477907765 100644
---- a/drivers/infiniband/core/addr.c
-+++ b/drivers/infiniband/core/addr.c
-@@ -454,11 +454,11 @@ static int addr6_resolve(struct sockaddr_in6 *src_in,
- 					 &fl6.daddr, 0, &fl6.saddr);
- 		if (ret)
- 			goto put;
--
--		src_in->sin6_family = AF_INET6;
--		src_in->sin6_addr = fl6.saddr;
- 	}
- 
-+	src_in->sin6_family = AF_INET6;
-+	src_in->sin6_addr = fl6.saddr;
-+
- 	/* If there's a gateway and type of device not ARPHRD_INFINIBAND, we're
- 	 * definitely in RoCE v2 (as RoCE v1 isn't routable) set the network
- 	 * type accordingly.
--- 
-2.13.1
+I want to see code that shows the author put some care into it
+and didn't just slap things together.
 
+Thank you.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
