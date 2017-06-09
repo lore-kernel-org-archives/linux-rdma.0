@@ -1,27 +1,67 @@
-From: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 02/11] IB: nes: convert to use DRIVER_ATTR_RW
-Date: Fri, 9 Jun 2017 15:23:35 +0000
-Message-ID: <1497021814.2710.2.camel@wdc.com>
-References: <20170609090314.13991-1-gregkh@linuxfoundation.org>
-         <20170609090314.13991-2-gregkh@linuxfoundation.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+From: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 1/1] rdma/cxgb4: Fix memory leaks during module exit
+Date: Fri,  9 Jun 2017 22:17:49 +0530
+Message-ID: <20170609164749.28399-1-rajur@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170609090314.13991-2-gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Content-Language: en-US
-Content-ID: <B971FCC2548B914D8856EB677519AB09-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: "faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-06-09 at 11:03 +0200, Greg Kroah-Hartman wrote:
-> We are trying to get rid of DRIVER_ATTR(), and all of the nes.c driver
-> attributes can be trivially changed to use DRIVER_ATTR_RW(), making the
-> code smaller and easier to manage over time.
+Fix memory leaks of iw_cxgb4 module in the exit path
 
-Reviewed-by: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>=
+Signed-off-by: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb4/device.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index f96a96dbcf1f..ae0b79aeea2e 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -767,7 +767,7 @@ void c4iw_release_dev_ucontext(struct c4iw_rdev *rdev,
+ 		kfree(entry);
+ 	}
+ 
+-	list_for_each_safe(pos, nxt, &uctx->qpids) {
++	list_for_each_safe(pos, nxt, &uctx->cqids) {
+ 		entry = list_entry(pos, struct c4iw_qid_list, entry);
+ 		list_del_init(&entry->entry);
+ 		kfree(entry);
+@@ -880,13 +880,15 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
+ 	rdev->free_workq = create_singlethread_workqueue("iw_cxgb4_free");
+ 	if (!rdev->free_workq) {
+ 		err = -ENOMEM;
+-		goto err_free_status_page;
++		goto err_free_status_page_and_wr_log;
+ 	}
+ 
+ 	rdev->status_page->db_off = 0;
+ 
+ 	return 0;
+-err_free_status_page:
++err_free_status_page_and_wr_log:
++	if (c4iw_wr_log && rdev->wr_log)
++		kfree(rdev->wr_log);
+ 	free_page((unsigned long)rdev->status_page);
+ destroy_ocqp_pool:
+ 	c4iw_ocqp_pool_destroy(rdev);
+@@ -903,9 +905,11 @@ static void c4iw_rdev_close(struct c4iw_rdev *rdev)
+ {
+ 	destroy_workqueue(rdev->free_workq);
+ 	kfree(rdev->wr_log);
++	c4iw_release_dev_ucontext(rdev, &rdev->uctx);
+ 	free_page((unsigned long)rdev->status_page);
+ 	c4iw_pblpool_destroy(rdev);
+ 	c4iw_rqtpool_destroy(rdev);
++	c4iw_ocqp_pool_destroy(rdev);
+ 	c4iw_destroy_resource(&rdev->resource);
+ }
+ 
+-- 
+2.12.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
