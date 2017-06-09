@@ -1,32 +1,67 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH net-next 1/8] qed: LL2 to use packed information for tx
-Date: Fri, 09 Jun 2017 09:59:43 -0400 (EDT)
-Message-ID: <20170609.095943.828238777523466278.davem@davemloft.net>
-References: <20170608161323.7597-2-Yuval.Mintz@cavium.com>
-        <20170608.192358.1444190196602150329.davem@davemloft.net>
-        <BLUPR0701MB200415C3D80FB06774CF2C7B8DCE0@BLUPR0701MB2004.namprd07.prod.outlook.com>
+From: Yuval Mintz <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v2 net-next 0/8] qed*: Light L2 updates
+Date: Fri, 9 Jun 2017 17:13:17 +0300
+Message-ID: <20170609141325.20547-1-Yuval.Mintz@cavium.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BLUPR0701MB200415C3D80FB06774CF2C7B8DCE0-v5ruerSQ/oj1oiTf6dR/AE5OhdzP3rhOnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Yuval Mintz <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Date: Fri, 9 Jun 2017 07:08:54 +0000
+This series does a major overhaul of the LL2 logic in qed.
+The single biggest change done here is in #5 where we're changing
+the API qed provides for LL2 [both internally in case of storage and
+externally in case of RoCE] to become callback-based to allow cleaner
+scalability in preperation to the future iWARP submission which would
+aadd additional flavors of LL2. It's also the only patch in series
+to modify !qed logic [qedr].
 
-> But one thing I thought of asking - do we consider layouts of relatively
-> insignificant structures to be some golden coding standard?
+Patches prior to that mostly deal with refactoring LL2 code,
+encapsulating varaious parameters into structure and re-ordering
+of LL2 code. The latter patches add some small missing bits of LL2
+ffunctionality.
 
-It just shows lack of thought when writing things.
+Dave,
 
-I want to see code that shows the author put some care into it
-and didn't just slap things together.
+Please consider applying this series to `net-next'.
 
-Thank you.
+Thanks,
+Yuval
+
+Changes from previous versions
+------------------------------
+ - V2 - Change layout of strucutres introduced in #1, #2
+        to mend gaps due to alignment.
+
+Michal Kalderon (1):
+  qed*: LL2 callback operations
+
+Yuval Mintz (7):
+  qed: LL2 to use packed information for tx
+  qed: Revise ll2 Rx completion
+  qed: Cleaner seperation of LL2 inputs
+  qed: LL2 code relocations
+  qed: No need for LL2 frags indication
+  qed: Call rx_release_cb() when flushing LL2
+  qed: collect GSI port statistics
+
+ drivers/infiniband/hw/qedr/main.c          |   6 +-
+ drivers/infiniband/hw/qedr/qedr.h          |   2 +
+ drivers/infiniband/hw/qedr/qedr_cm.c       | 238 ++++++--
+ drivers/net/ethernet/qlogic/qed/qed.h      |   1 -
+ drivers/net/ethernet/qlogic/qed/qed_ll2.c  | 882 +++++++++++++++--------------
+ drivers/net/ethernet/qlogic/qed/qed_ll2.h  | 113 +---
+ drivers/net/ethernet/qlogic/qed/qed_roce.c | 295 +---------
+ drivers/net/ethernet/qlogic/qed/qed_roce.h |  43 --
+ include/linux/qed/qed_ll2_if.h             | 128 +++++
+ include/linux/qed/qed_roce_if.h            |  80 +--
+ 10 files changed, 844 insertions(+), 944 deletions(-)
+
+-- 
+2.9.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
