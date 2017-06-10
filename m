@@ -1,84 +1,40 @@
 From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 for-rdma 2/5] IB/hns: Fix the bug with wild pointer when destroy rc qp
-Date: Sat, 10 Jun 2017 18:49:22 +0800
-Message-ID: <1497091765-10513-3-git-send-email-oulijun@huawei.com>
-References: <1497091765-10513-1-git-send-email-oulijun@huawei.com>
+Subject: [PATCH v2 for-rdma 0/5] Expose Issues for HNS driver
+Date: Sat, 10 Jun 2017 18:49:20 +0800
+Message-ID: <1497091765-10513-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1497091765-10513-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When destroyed rc qp, the hr_qp will be used after freed. This patch
-will fix it.
+This patch set mainly fixes some issues exposed for hns driver. The issue
+list as follows:
+  1. Unload hns driver when test on the board which its ports less than six
+  2. May happen wild pointer error excepted exit when destroy rc qp
+  3. Should use rdma_wr() for RDMA operation when post send
+  4. Delete unnecessary lock operation in hns_roce_mac()
+  5. Fix checkpatch.pl check warnings.
 
-Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+Change from v1:
+- re-write the changelog
+- assgin rdma_ah_type type for roce in hns_roce_rsv_lp_qp()
+  according to 4.12
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 060cfb7..1db10d1 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -3656,6 +3656,7 @@ static void hns_roce_v1_destroy_qp_work_fn(struct work_struct *work)
- 	struct hns_roce_dev *hr_dev;
- 	struct hns_roce_qp *hr_qp;
- 	struct device *dev;
-+	unsigned long qpn;
- 	int ret;
- 
- 	qp_work_entry = container_of(work, struct hns_roce_qp_work, work);
-@@ -3663,8 +3664,9 @@ static void hns_roce_v1_destroy_qp_work_fn(struct work_struct *work)
- 	dev = &hr_dev->pdev->dev;
- 	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
- 	hr_qp = qp_work_entry->qp;
-+	qpn = hr_qp->qpn;
- 
--	dev_dbg(dev, "Schedule destroy QP(0x%lx) work.\n", hr_qp->qpn);
-+	dev_dbg(dev, "Schedule destroy QP(0x%lx) work.\n", qpn);
- 
- 	qp_work_entry->sche_cnt++;
- 
-@@ -3675,7 +3677,7 @@ static void hns_roce_v1_destroy_qp_work_fn(struct work_struct *work)
- 					 &qp_work_entry->db_wait_stage);
- 	if (ret) {
- 		dev_err(dev, "Check QP(0x%lx) db process status failed!\n",
--			hr_qp->qpn);
-+			qpn);
- 		return;
- 	}
- 
-@@ -3689,7 +3691,7 @@ static void hns_roce_v1_destroy_qp_work_fn(struct work_struct *work)
- 	ret = hns_roce_v1_modify_qp(&hr_qp->ibqp, NULL, 0, hr_qp->state,
- 				    IB_QPS_RESET);
- 	if (ret) {
--		dev_err(dev, "Modify QP(0x%lx) to RST failed!\n", hr_qp->qpn);
-+		dev_err(dev, "Modify QP(0x%lx) to RST failed!\n", qpn);
- 		return;
- 	}
- 
-@@ -3698,14 +3700,14 @@ static void hns_roce_v1_destroy_qp_work_fn(struct work_struct *work)
- 
- 	if (hr_qp->ibqp.qp_type == IB_QPT_RC) {
- 		/* RC QP, release QPN */
--		hns_roce_release_range_qp(hr_dev, hr_qp->qpn, 1);
-+		hns_roce_release_range_qp(hr_dev, qpn, 1);
- 		kfree(hr_qp);
- 	} else
- 		kfree(hr_to_hr_sqp(hr_qp));
- 
- 	kfree(qp_work_entry);
- 
--	dev_dbg(dev, "Accomplished destroy QP(0x%lx) work.\n", hr_qp->qpn);
-+	dev_dbg(dev, "Accomplished destroy QP(0x%lx) work.\n", qpn);
- }
- 
- int hns_roce_v1_destroy_qp(struct ib_qp *ibqp)
+Lijun Ou (5):
+  IB/hns: Fix the bug of polling cq failed for loopback Qps
+  IB/hns: Fix the bug with wild pointer when destroy rc qp
+  IB/hns: Fix the bug with rdma operation
+  IB/hns: Fix the bug with modifying the MAC address without removing
+    the driver
+  IB/hns: Fix for checkpatch.pl comment style warnings
+
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 83 ++++++++++++++++++------------
+ drivers/infiniband/hw/hns/hns_roce_main.c  |  3 --
+ 2 files changed, 51 insertions(+), 35 deletions(-)
+
 -- 
 1.9.1
 
