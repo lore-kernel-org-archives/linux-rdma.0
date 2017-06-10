@@ -1,7 +1,7 @@
 From: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 for-rdma 4/5] IB/hns: Fix the bug with modifying the MAC address without removing the driver
-Date: Sat, 10 Jun 2017 18:49:24 +0800
-Message-ID: <1497091765-10513-5-git-send-email-oulijun@huawei.com>
+Subject: [PATCH v2 for-rdma 3/5] IB/hns: Fix the bug with rdma operation
+Date: Sat, 10 Jun 2017 18:49:23 +0800
+Message-ID: <1497091765-10513-4-git-send-email-oulijun@huawei.com>
 References: <1497091765-10513-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,36 +12,38 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When modified the MAC address used hns_roce_mac function, we release and create
-reserved qp again, It is not necessary to use spin_lock_bh and spin_unlock_bh in
-handle_en_event, Otherwise, it will occur a error. This patch mainly fixes it.
+When opcode of work request is RDMA read and write, it
+should use rdma_wr to get remote_addr and rkey. This
+patch fixes it.
 
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_main.c | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index c3b41f9..d9777b6 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -125,8 +125,6 @@ static int handle_en_event(struct hns_roce_dev *hr_dev, u8 port,
- 		return -ENODEV;
- 	}
- 
--	spin_lock_bh(&hr_dev->iboe.lock);
--
- 	switch (event) {
- 	case NETDEV_UP:
- 	case NETDEV_CHANGE:
-@@ -144,7 +142,6 @@ static int handle_en_event(struct hns_roce_dev *hr_dev, u8 port,
- 		break;
- 	}
- 
--	spin_unlock_bh(&hr_dev->iboe.lock);
- 	return 0;
- }
- 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+index 1db10d1..fa30989 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+@@ -228,14 +228,14 @@ int hns_roce_v1_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 			switch (wr->opcode) {
+ 			case IB_WR_RDMA_READ:
+ 				ps_opcode = HNS_ROCE_WQE_OPCODE_RDMA_READ;
+-				set_raddr_seg(wqe, atomic_wr(wr)->remote_addr,
+-					      atomic_wr(wr)->rkey);
++				set_raddr_seg(wqe,  rdma_wr(wr)->remote_addr,
++					       rdma_wr(wr)->rkey);
+ 				break;
+ 			case IB_WR_RDMA_WRITE:
+ 			case IB_WR_RDMA_WRITE_WITH_IMM:
+ 				ps_opcode = HNS_ROCE_WQE_OPCODE_RDMA_WRITE;
+-				set_raddr_seg(wqe, atomic_wr(wr)->remote_addr,
+-					      atomic_wr(wr)->rkey);
++				set_raddr_seg(wqe,  rdma_wr(wr)->remote_addr,
++					      rdma_wr(wr)->rkey);
+ 				break;
+ 			case IB_WR_SEND:
+ 			case IB_WR_SEND_WITH_INV:
 -- 
 1.9.1
 
