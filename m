@@ -1,55 +1,70 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 0/5] Refactor RDMA netlink infrastructure
-Date: Sun, 11 Jun 2017 11:39:26 +0300
-Message-ID: <20170611083931.13686-1-leon@kernel.org>
+Subject: [PATCH rdma-next V1 2/5] RDMA/netlink: Remove redundant owner option for netlink callbacks
+Date: Sun, 11 Jun 2017 11:39:28 +0300
+Message-ID: <20170611083931.13686-3-leon@kernel.org>
+References: <20170611083931.13686-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170611083931.13686-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The following patch set is a preparation to addition of
-netlink handlers to support RDMA tool. It simplifies the code,
-removes useless client infrastructure, concentrates netlink validity
-checks and allows future patches to remove a lot of dead code
-from iwcm* code base (all operations related to nl_clients).
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-It is based on already sent to the mailing list patch [1]
-"Revert "IB/core: Add flow control to the portmapper netlink calls""
+Owner field is not needed to be set because netlink is part of ib_core
+which will be unloaded last after all other modules are unloaded.
 
-[1] https://patchwork.kernel.org/patch/9752865/
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/cma.c     | 3 +--
+ drivers/infiniband/core/netlink.c | 2 --
+ include/rdma/rdma_netlink.h       | 1 -
+ 3 files changed, 1 insertion(+), 5 deletions(-)
 
-Changelog v0->v1:
- * Moved to separate topic from rdmatool.
- Patch #1:
-  * Add check to catch already initialized callback table to avoid
-    double registration of the same protocol.
-  * Rewrite the validity check to use array instead of switch().
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index d7e29d86469b..a4013b0908e2 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -4478,8 +4478,7 @@ static int cma_get_id_stats(struct sk_buff *skb, struct netlink_callback *cb)
+ }
 
-CC: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+ static const struct ibnl_client_cbs cma_cb_table[] = {
+-	[RDMA_NL_RDMA_CM_ID_STATS] = { .dump = cma_get_id_stats,
+-				       .module = THIS_MODULE },
++	[RDMA_NL_RDMA_CM_ID_STATS] = { .dump = cma_get_id_stats},
+ };
 
-Available in the "topic/betlink-refactor-v1" topic branch of this git repo:
-git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+ static int cma_init_net(struct net *net)
+diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+index 7f498ecc0f0b..70e4ac143956 100644
+--- a/drivers/infiniband/core/netlink.c
++++ b/drivers/infiniband/core/netlink.c
+@@ -180,12 +180,10 @@ static int ibnl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 		cb.skb = skb;
+ 		cb.nlh = nlh;
+ 		cb.dump = rdma_nl_types[index].cb_table[op].dump;
+-		cb.module = rdma_nl_types[index].cb_table[op].module;
+ 		return cb.dump(skb, &cb);
+ 	}
 
-Or for browsing:
-https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/netlink-refactor-v1
+ 	c.dump = rdma_nl_types[index].cb_table[op].dump;
+-	c.module = rdma_nl_types[index].cb_table[op].module;
+ 	return netlink_dump_start(nls, skb, nlh, &c);
+ }
 
-Leon Romanovsky (5):
-  RDMA/netlink: Remove netlink clients infrastructure
-  RDMA/netlink: Remove redundant owner option for netlink callbacks
-  RDMA/netlink: Avoid double pass for RDMA netlink messages
-  RDMA/iwcm: Remove useless check of nelink client validity
-  RDMA/iwcm: Remove extra EXPORT_SYMBOLS
+diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
+index 6735dcf5d2a3..761517105a36 100644
+--- a/include/rdma/rdma_netlink.h
++++ b/include/rdma/rdma_netlink.h
+@@ -7,7 +7,6 @@
 
- drivers/infiniband/core/cma.c       |   9 +-
- drivers/infiniband/core/device.c    |  41 ++----
- drivers/infiniband/core/iwcm.c      |  10 +-
- drivers/infiniband/core/iwpm_msg.c  |  12 --
- drivers/infiniband/core/iwpm_util.c |  11 --
- drivers/infiniband/core/netlink.c   | 249 +++++++++++++++++++-----------------
- include/rdma/rdma_netlink.h         |  18 +--
- 7 files changed, 155 insertions(+), 195 deletions(-)
+ struct ibnl_client_cbs {
+ 	int (*dump)(struct sk_buff *skb, struct netlink_callback *nlcb);
+-	struct module *module;
+ };
 
+ int rdma_nl_init(void);
 --
 2.12.2
 
