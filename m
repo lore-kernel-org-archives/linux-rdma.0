@@ -1,7 +1,7 @@
-From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/3] Support out of order data placement
-Date: Mon, 12 Jun 2017 19:44:12 -0400
-Message-ID: <d3a436a0-9ace-b11a-2e4c-387fc575877e@talpey.com>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH rdma-next 0/3] Support out of order data placement
+Date: Mon, 12 Jun 2017 23:59:29 +0000
+Message-ID: <VI1PR0502MB3008E04612EED6BC83F37115D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 References: <20170612064918.12510-1-leon@kernel.org>
  <1497281280.2770.1.camel@wdc.com>
  <VI1PR0502MB3008478FC7C70D1F398FE2B2D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
@@ -14,66 +14,89 @@ References: <20170612064918.12510-1-leon@kernel.org>
  <VI1PR0502MB30080B672B80836FF0A328DCD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
  <475e1873-e842-ecb9-d260-34777da57e51@talpey.com>
  <VI1PR0502MB3008B7FE60CAB3BD49907A1BD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <d3a436a0-9ace-b11a-2e4c-387fc575877e@talpey.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR0502MB3008B7FE60CAB3BD49907A1BD1CD0-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <d3a436a0-9ace-b11a-2e4c-387fc575877e-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/12/2017 6:54 PM, Parav Pandit wrote:
-> Hi Tom,
-> 
->> -----Original Message-----
->> From: Tom Talpey [mailto:tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org]
->> Sent: Monday, June 12, 2017 5:20 PM
->> To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Jason Gunthorpe
->> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
->> Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>; leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org;
->> dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Idan Burstein
->> <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Subject: Re: [PATCH rdma-next 0/3] Support out of order data placement
->>
->> On 6/12/2017 5:32 PM, Parav Pandit wrote:
->>> Hi Tom,
->> ...
->>>>
->>>> I agree with Jason, the bit should be 1 by default, if defined as you
->> propose.
->>>> Out-of-order is the norm, not the exception, for ULPs.
->>>> Honestly, I think you should perhaps consider making it the default
->>>> on your devices, and allowing only MLX-aware ULPs to turn it off.
->>>>
->>>
->>> There can be cases in deployment where responder has support for
->> receiving out-of-order, but requester doesn't.
->>
->> Yuck! So this needs to be negotiated end-to-end, and by the upper layer?
->> Talk about barriers to adoption, and opportunities for disaster.
->>
-> As Jason confirmed that all Linux kernel consumers are coded to be compliant to o9-20 requirement,
-> So I think kernel based rdma-cm consumers can be transparently enabled end-to-end without ULP's involvement with rdma_accept() and rdma_connect().
-
-I have two thoughts here.
-
-1) You seem to assume all consumers are Linux, and do not
-need to negotiate. This is a dangerous assumption.
-
-2) I assume that there is some performance benefit to toggling
-this setting to non-strict. So, how do existing consumers get
-this advantage, especially since they don't need strict
-semantics? Bearing in mind that they do have to negotiate
-this end-to-end, meaning they require a protocol extension.
-
-Actually. I have a third thought. Since this is an attribute
-to qp creation, performed even before establishing a connection,
-how does the upper layer know when to set it?
-
-Tom.
+SGkgVG9tLA0KDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogVG9tIFRh
+bHBleSBbbWFpbHRvOnRvbUB0YWxwZXkuY29tXQ0KPiBTZW50OiBNb25kYXksIEp1bmUgMTIsIDIw
+MTcgNjo0NCBQTQ0KPiBUbzogUGFyYXYgUGFuZGl0IDxwYXJhdkBtZWxsYW5veC5jb20+OyBKYXNv
+biBHdW50aG9ycGUNCj4gPGpndW50aG9ycGVAb2JzaWRpYW5yZXNlYXJjaC5jb20+DQo+IENjOiBC
+YXJ0IFZhbiBBc3NjaGUgPEJhcnQuVmFuQXNzY2hlQHNhbmRpc2suY29tPjsgbGVvbkBrZXJuZWwu
+b3JnOw0KPiBkbGVkZm9yZEByZWRoYXQuY29tOyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsg
+SWRhbiBCdXJzdGVpbg0KPiA8aWRhbmJAbWVsbGFub3guY29tPg0KPiBTdWJqZWN0OiBSZTogW1BB
+VENIIHJkbWEtbmV4dCAwLzNdIFN1cHBvcnQgb3V0IG9mIG9yZGVyIGRhdGEgcGxhY2VtZW50DQo+
+IA0KPiBPbiA2LzEyLzIwMTcgNjo1NCBQTSwgUGFyYXYgUGFuZGl0IHdyb3RlOg0KPiA+IEhpIFRv
+bSwNCj4gPg0KPiA+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+PiBGcm9tOiBUb20g
+VGFscGV5IFttYWlsdG86dG9tQHRhbHBleS5jb21dDQo+ID4+IFNlbnQ6IE1vbmRheSwgSnVuZSAx
+MiwgMjAxNyA1OjIwIFBNDQo+ID4+IFRvOiBQYXJhdiBQYW5kaXQgPHBhcmF2QG1lbGxhbm94LmNv
+bT47IEphc29uIEd1bnRob3JwZQ0KPiA+PiA8amd1bnRob3JwZUBvYnNpZGlhbnJlc2VhcmNoLmNv
+bT4NCj4gPj4gQ2M6IEJhcnQgVmFuIEFzc2NoZSA8QmFydC5WYW5Bc3NjaGVAc2FuZGlzay5jb20+
+OyBsZW9uQGtlcm5lbC5vcmc7DQo+ID4+IGRsZWRmb3JkQHJlZGhhdC5jb207IGxpbnV4LXJkbWFA
+dmdlci5rZXJuZWwub3JnOyBJZGFuIEJ1cnN0ZWluDQo+ID4+IDxpZGFuYkBtZWxsYW5veC5jb20+
+DQo+ID4+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggcmRtYS1uZXh0IDAvM10gU3VwcG9ydCBvdXQgb2Yg
+b3JkZXIgZGF0YQ0KPiA+PiBwbGFjZW1lbnQNCj4gPj4NCj4gPj4gT24gNi8xMi8yMDE3IDU6MzIg
+UE0sIFBhcmF2IFBhbmRpdCB3cm90ZToNCj4gPj4+IEhpIFRvbSwNCj4gPj4gLi4uDQo+ID4+Pj4N
+Cj4gPj4+PiBJIGFncmVlIHdpdGggSmFzb24sIHRoZSBiaXQgc2hvdWxkIGJlIDEgYnkgZGVmYXVs
+dCwgaWYgZGVmaW5lZCBhcw0KPiA+Pj4+IHlvdQ0KPiA+PiBwcm9wb3NlLg0KPiA+Pj4+IE91dC1v
+Zi1vcmRlciBpcyB0aGUgbm9ybSwgbm90IHRoZSBleGNlcHRpb24sIGZvciBVTFBzLg0KPiA+Pj4+
+IEhvbmVzdGx5LCBJIHRoaW5rIHlvdSBzaG91bGQgcGVyaGFwcyBjb25zaWRlciBtYWtpbmcgaXQg
+dGhlIGRlZmF1bHQNCj4gPj4+PiBvbiB5b3VyIGRldmljZXMsIGFuZCBhbGxvd2luZyBvbmx5IE1M
+WC1hd2FyZSBVTFBzIHRvIHR1cm4gaXQgb2ZmLg0KPiA+Pj4+DQo+ID4+Pg0KPiA+Pj4gVGhlcmUg
+Y2FuIGJlIGNhc2VzIGluIGRlcGxveW1lbnQgd2hlcmUgcmVzcG9uZGVyIGhhcyBzdXBwb3J0IGZv
+cg0KPiA+PiByZWNlaXZpbmcgb3V0LW9mLW9yZGVyLCBidXQgcmVxdWVzdGVyIGRvZXNuJ3QuDQo+
+ID4+DQo+ID4+IFl1Y2shIFNvIHRoaXMgbmVlZHMgdG8gYmUgbmVnb3RpYXRlZCBlbmQtdG8tZW5k
+LCBhbmQgYnkgdGhlIHVwcGVyIGxheWVyPw0KPiA+PiBUYWxrIGFib3V0IGJhcnJpZXJzIHRvIGFk
+b3B0aW9uLCBhbmQgb3Bwb3J0dW5pdGllcyBmb3IgZGlzYXN0ZXIuDQo+ID4+DQo+ID4gQXMgSmFz
+b24gY29uZmlybWVkIHRoYXQgYWxsIExpbnV4IGtlcm5lbCBjb25zdW1lcnMgYXJlIGNvZGVkIHRv
+IGJlDQo+ID4gY29tcGxpYW50IHRvIG85LTIwIHJlcXVpcmVtZW50LCBTbyBJIHRoaW5rIGtlcm5l
+bCBiYXNlZCByZG1hLWNtDQo+IGNvbnN1bWVycyBjYW4gYmUgdHJhbnNwYXJlbnRseSBlbmFibGVk
+IGVuZC10by1lbmQgd2l0aG91dCBVTFAncw0KPiBpbnZvbHZlbWVudCB3aXRoIHJkbWFfYWNjZXB0
+KCkgYW5kIHJkbWFfY29ubmVjdCgpLg0KPiANCj4gSSBoYXZlIHR3byB0aG91Z2h0cyBoZXJlLg0K
+PiANCj4gMSkgWW91IHNlZW0gdG8gYXNzdW1lIGFsbCBjb25zdW1lcnMgYXJlIExpbnV4LCBhbmQg
+ZG8gbm90IG5lZWQgdG8NCj4gbmVnb3RpYXRlLiBUaGlzIGlzIGEgZGFuZ2Vyb3VzIGFzc3VtcHRp
+b24uDQpDZXJ0YWlubHkgbm90LiBJIGRpZG4ndCBhc3N1bWUgdGhhdC4gSSBqdXN0IGdhdmUgb25l
+IGV4YW1wbGUgdGhhdCBrbm93biBjb25zdW1lcnMgY2FuIGJlIGRvbmUgd2l0aG91dCBtb2RpZnlp
+bmcgdGhlIFVMUC4NCkV4cGxhaW5lZCBmdXJ0aGVyIGluIDNyZCBxdWVzdGlvbi4NCkV2ZW4gb3Ro
+ZXIgY29uc3VtZXJzIGNhbiB3b3JrIHdpdGggdGhpcyBzb2x1dGlvbi4gDQpGb3IgZXhhbXBsZSBM
+aW51eCByZG1hY20gYmFzZWQgY2xpZW50IGFuZCBPdGhlciBPUyBiYXNlZCBzZXJ2ZXIuDQpDbGll
+bnQgaXMgb29vIGNhcGFibGUuDQpTZXJ2ZXIgaXMgb29vIG5vdCBjYXBhYmxlLg0KT25jZSB5b3Ug
+Zm9sbG93IGJlbG93IHJkbWFjbSBiYXNlZCBzZXF1ZW5jZSwgaXQgd2lsbCBiZSBjbGVhciBob3cg
+dGhpcyB3aWxsIHdvcmtzLg0KDQo+IA0KPiAyKSBJIGFzc3VtZSB0aGF0IHRoZXJlIGlzIHNvbWUg
+cGVyZm9ybWFuY2UgYmVuZWZpdCB0byB0b2dnbGluZyB0aGlzIHNldHRpbmcNCj4gdG8gbm9uLXN0
+cmljdC4gU28sIGhvdyBkbyBleGlzdGluZyBjb25zdW1lcnMgZ2V0IHRoaXMgYWR2YW50YWdlLCBl
+c3BlY2lhbGx5DQo+IHNpbmNlIHRoZXkgZG9uJ3QgbmVlZCBzdHJpY3Qgc2VtYW50aWNzPyBCZWFy
+aW5nIGluIG1pbmQgdGhhdCB0aGV5IGRvIGhhdmUNCj4gdG8gbmVnb3RpYXRlIHRoaXMgZW5kLXRv
+LWVuZCwgbWVhbmluZyB0aGV5IHJlcXVpcmUgYSBwcm90b2NvbCBleHRlbnNpb24uDQpJIGRvbid0
+IGhhdmUgY29tcGxldGVseSB0cmFuc3BhcmVudCB1cHN0cmVhbSBzb2x1dGlvbiBmb3IgZXhpc3Rp
+bmcgY29uc3VtZXJzIHlldC4NCj4gDQo+IEFjdHVhbGx5LiBJIGhhdmUgYSB0aGlyZCB0aG91Z2h0
+LiBTaW5jZSB0aGlzIGlzIGFuIGF0dHJpYnV0ZSB0byBxcCBjcmVhdGlvbiwNCj4gcGVyZm9ybWVk
+IGV2ZW4gYmVmb3JlIGVzdGFibGlzaGluZyBhIGNvbm5lY3Rpb24sIGhvdyBkb2VzIHRoZSB1cHBl
+ciBsYXllcg0KPiBrbm93IHdoZW4gdG8gc2V0IGl0Pw0KVGhpcyBpcyBub3QgYXQgUVAgY3JlYXRp
+b24gdGltZS4gSSBoYXZlIGRlc2NyaWJlZCBpbiBEb2N1bWVudGF0aW9uL291dF9vZl9vcmRlci50
+eHQgaW4gdXNhZ2Ugc2VjdGlvbiAzLg0KVGhpcyBpcyBhdCBRUCBzdGF0ZSB0cmFuc2l0aW9uIGZy
+b20gSU5JVCB0byBSVFIuDQpIZXJlIGlzIHRoZSBmbG93LiBJdCdzIGp1c3Qgbm90IGNvZGVkIGVu
+b3VnaCBmb3IgcG9zdGluZyBwYXRjaGVzLg0KDQoxLiBXaGVuIHJkbWFjbSBhY3RpdmUgc2lkZSBj
+cmVhdGVzIHRoZSBRUCwgSXQgaXMgSU5JVCBzdGF0ZS4NCjIuIFNlbmQgTUFEX1JlcSBtc2cgKGlu
+ZGljYXRpbmcgb29vX3JlcXVlc3RlZD0xKQ0KMy4gV2hlbiByZG1hY20gcGFzc2l2ZSBzaWRlIHJl
+Y2VpdmVzIHRoZSBtZXNzYWdlLCBpdCBsb29rcyB1cCBkZXZpY2VfY2FwIGF0dHJpYnV0ZSBhbmQg
+bWF0Y2hlcyBpdCBhZ2FpbnN0IG9vb19yZXF1ZXN0ZWQgZmxhZy4NCjQuIHdoZW4gZGV2aWNlIHN1
+cHBvcnRzIGl0LCBNQURfUnNwIG1zZyBzZXRzIG9vb19lbmFibGVkPTEsIGlmIGl0IGRvZXNuJ3Qg
+c3VwcG9ydCBpdCwgb29vX2VuYWJsZWQ9MA0KNS4gcmRtYWNtIHBhc3NpdmUgc2lkZSBjcmVhdGVz
+IHRoZSBRUCBhbmQgbW92ZXMgdG8gUlRSIHN0YXRlICh3aXRoIFFQIG9vbyBlbmFibGVkIGJpdCBz
+ZXQpLg0KNi4gYWN0aXZlIHNpZGUgcmVjZWl2ZXMgdGhlIG1lc3NhZ2UgYW5kIHB1dHMgdGhlIFFQ
+IHRvIFJUUiwgUlRTIHN0YXRlIGJhc2VkIG9uIHJlY2VpdmVkIGJpdCBzZXR0aW5nIGZyb20gcGFz
+c2l2ZSBzaWRlLg0KDQpGbG93IGlzIG5vIGRpZmZlcmVudCB0aGFuIGhvdyByZXN0IG9mIHRoZSBj
+b25uZWN0aW9uIHNwZWNpZmljIHBhcmFtZXRlcnMgYXJlIHNoYXJlZCBzdWNoIGFzIElSRC9PUkQs
+IFBTTiwgdGltZW91dHMsIG10dSBldGMuDQoNCg0KDQo+IA0KPiBUb20uDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
