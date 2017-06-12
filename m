@@ -1,109 +1,89 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 2/3] IB/uverbs: Enable user space programs to use out of order placement
-Date: Mon, 12 Jun 2017 09:49:17 +0300
-Message-ID: <20170612064918.12510-3-leon@kernel.org>
-References: <20170612064918.12510-1-leon@kernel.org>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170612064918.12510-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH 1/2] IB/mlx5: Fix cached MR allocation flow
+Date: Mon, 12 Jun 2017 10:36:15 +0300
+Message-ID: <20170612073616.14852-1-leon@kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org, Majd Dibbiny <majd@mellanox.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Majd Dibbiny <majd@mellanox.com>
 
-This patch enables user space programs to query out of order device
-capability.
+When we have a miss in one order of the mkey cache, we try to get
+an mkey from a higher order.
 
-Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+We still need to check that the higher order can be used with UMR
+before using it. Otherwise, we will get an mkey with 0 entries and
+the post send operation that is used to fill it will complete with
+the following error:
+
+mlx5_0:dump_cqe:275:(pid 0): dump error cqe
+00000000 00000000 00000000 00000000
+00000000 00000000 00000000 00000000
+00000000 0f007806 25000025 49ce59d2
+
+Fixes: 49780d42dfc9 ("IB/mlx5: Expose MR cache for mlx5_ib")
+Cc: <stable@vger.kernel.org> # v4.10+
+Signed-off-by: Majd Dibbiny <majd@mellanox.com>
+Reviewed-by: Ilya Lesokhin <ilyal@mellanox.com>
+Signed-off-by: Leon Romanovsky <leon@kernel.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 16 ++++++++++++++++
- include/uapi/rdma/ib_user_verbs.h    | 16 ++++++++++++++--
- 2 files changed, 30 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx5/mr.c | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 70b7fb156414..122ba59c633b 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -3766,6 +3766,15 @@ ssize_t ib_uverbs_destroy_srq(struct ib_uverbs_file *file,
- 	return in_len;
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 366433f71b58..69dc10bf73c4 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -48,6 +48,7 @@ enum {
+ #define MLX5_UMR_ALIGN 2048
+ 
+ static int clean_mr(struct mlx5_ib_mr *mr);
++static int max_umr_order(struct mlx5_ib_dev *dev);
+ static int use_umr(struct mlx5_ib_dev *dev, int order);
+ static int unreg_umr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr);
+ 
+@@ -491,16 +492,18 @@ static struct mlx5_ib_mr *alloc_cached_mr(struct mlx5_ib_dev *dev, int order)
+ 	struct mlx5_mr_cache *cache = &dev->cache;
+ 	struct mlx5_ib_mr *mr = NULL;
+ 	struct mlx5_cache_ent *ent;
++	int last_umr_cache_entry;
+ 	int c;
+ 	int i;
+ 
+ 	c = order2idx(dev, order);
+-	if (c < 0 || c > MAX_UMR_CACHE_ENTRY) {
++	last_umr_cache_entry = order2idx(dev, max_umr_order(dev));
++	if (c < 0 || c > last_umr_cache_entry) {
+ 		mlx5_ib_warn(dev, "order %d, cache index %d\n", order, c);
+ 		return NULL;
+ 	}
+ 
+-	for (i = c; i < MAX_UMR_CACHE_ENTRY; i++) {
++	for (i = c; i <= last_umr_cache_entry; i++) {
+ 		ent = &cache->ent[i];
+ 
+ 		mlx5_ib_dbg(dev, "order %d, cache index %d\n", ent->order, i);
+@@ -806,11 +809,16 @@ static int get_octo_len(u64 addr, u64 len, int page_size)
+ 	return (npages + 1) / 2;
  }
  
-+static void copy_ooo_caps(struct ib_uverbs_ooo_caps *uverb_caps,
-+			  struct ib_ooo_caps *attr_caps)
-+{
-+	uverb_caps->rc_caps = attr_caps->rc_caps;
-+	uverb_caps->xrc_caps = attr_caps->xrc_caps;
-+	uverb_caps->ud_caps = attr_caps->ud_caps;
-+	uverb_caps->uc_caps = attr_caps->uc_caps;
+-static int use_umr(struct mlx5_ib_dev *dev, int order)
++static int max_umr_order(struct mlx5_ib_dev *dev)
+ {
+ 	if (MLX5_CAP_GEN(dev->mdev, umr_extended_translation_offset))
+-		return order <= MAX_UMR_CACHE_ENTRY + 2;
+-	return order <= MLX5_MAX_UMR_SHIFT;
++		return MAX_UMR_CACHE_ENTRY + 2;
++	return MLX5_MAX_UMR_SHIFT;
 +}
 +
- int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
- 			      struct ib_device *ib_dev,
- 			      struct ib_udata *ucore,
-@@ -3854,6 +3863,13 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
++static int use_umr(struct mlx5_ib_dev *dev, int order)
++{
++	return order <= max_umr_order(dev);
+ }
  
- 	resp.raw_packet_caps = attr.raw_packet_caps;
- 	resp.response_length += sizeof(resp.raw_packet_caps);
-+
-+	if (ucore->outlen < resp.response_length + sizeof(resp.ooo_caps))
-+		goto end;
-+
-+	copy_ooo_caps(&resp.ooo_caps, &attr.ooo_caps);
-+	resp.response_length += sizeof(resp.ooo_caps);
-+
- end:
- 	err = ib_copy_to_udata(ucore, &resp, resp.response_length);
- 	return err;
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index 270c350bedc6..3519ff8e34cd 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -236,6 +236,17 @@ struct ib_uverbs_rss_caps {
- 	__u32 reserved;
- };
- 
-+struct ib_uverbs_ooo_caps {
-+	/*
-+	 * Per transport capability indicating whether out of order data
-+	 * placement is supported or not.
-+	 */
-+	 __u32 rc_caps;
-+	 __u32 xrc_caps;
-+	 __u32 ud_caps;
-+	 __u32 uc_caps;
-+};
-+
- struct ib_uverbs_ex_query_device_resp {
- 	struct ib_uverbs_query_device_resp base;
- 	__u32 comp_mask;
-@@ -247,6 +258,7 @@ struct ib_uverbs_ex_query_device_resp {
- 	struct ib_uverbs_rss_caps rss_caps;
- 	__u32  max_wq_type_rq;
- 	__u32 raw_packet_caps;
-+	struct ib_uverbs_ooo_caps ooo_caps;
- };
- 
- struct ib_uverbs_query_port {
-@@ -555,9 +567,9 @@ enum {
- 
- enum {
- 	/*
--	 * This value is equal to IB_QP_RATE_LIMIT.
-+	 * This value is equal to IB_QP_OOO_RW_DATA_PLACEMENT.
- 	 */
--	IB_USER_LAST_QP_ATTR_MASK = 1ULL << 25,
-+	IB_USER_LAST_QP_ATTR_MASK = 1ULL << 26,
- };
- 
- struct ib_uverbs_ex_create_qp {
+ static int mr_umem_get(struct ib_pd *pd, u64 start, u64 length,
 -- 
 2.12.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
