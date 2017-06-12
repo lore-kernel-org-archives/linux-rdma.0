@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 3/3] IB/mlx5: Support out of order data placement
-Date: Mon, 12 Jun 2017 09:49:18 +0300
-Message-ID: <20170612064918.12510-4-leon@kernel.org>
+Subject: [PATCH rdma-next 2/3] IB/uverbs: Enable user space programs to use out of order placement
+Date: Mon, 12 Jun 2017 09:49:17 +0300
+Message-ID: <20170612064918.12510-3-leon@kernel.org>
 References: <20170612064918.12510-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170612064918.12510-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,110 +12,94 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This patch sets out of order data placement capability whenever
-device supports it. Currently its supports on RC and XRC QPs.
-It also extends the support to set such attribute for a QP during
-state transition.
+This patch enables user space programs to query out of order device
+capability.
 
 Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 12 ++++++++++++
- drivers/infiniband/hw/mlx5/qp.c   | 25 +++++++++++++++++++++++++
- include/linux/mlx5/mlx5_ifc.h     |  5 ++++-
- 3 files changed, 41 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/uverbs_cmd.c | 16 ++++++++++++++++
+ include/uapi/rdma/ib_user_verbs.h    | 16 ++++++++++++++--
+ 2 files changed, 30 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 0c79983c8b1a..7f5284c08b8d 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -572,6 +572,16 @@ static int mlx5_query_node_desc(struct mlx5_ib_dev *dev, char *node_desc)
- 				    MLX5_REG_NODE_DESC, 0, 0);
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 70b7fb156414..122ba59c633b 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -3766,6 +3766,15 @@ ssize_t ib_uverbs_destroy_srq(struct ib_uverbs_file *file,
+ 	return in_len;
  }
  
-+static void mlx5_ib_fill_ooo_caps(struct mlx5_ib_dev *dev,
-+				  struct ib_ooo_caps *caps)
++static void copy_ooo_caps(struct ib_uverbs_ooo_caps *uverb_caps,
++			  struct ib_ooo_caps *attr_caps)
 +{
-+	if (MLX5_CAP_GEN(dev->mdev, multi_path_rc_rdma))
-+		caps->rc_caps |= IB_OOO_RW_DATA_PLACEMENT;
-+
-+	if (MLX5_CAP_GEN(dev->mdev, multi_path_xrc_rdma))
-+		caps->xrc_caps |= IB_OOO_RW_DATA_PLACEMENT;
++	uverb_caps->rc_caps = attr_caps->rc_caps;
++	uverb_caps->xrc_caps = attr_caps->xrc_caps;
++	uverb_caps->ud_caps = attr_caps->ud_caps;
++	uverb_caps->uc_caps = attr_caps->uc_caps;
 +}
 +
- static int mlx5_ib_query_device(struct ib_device *ibdev,
- 				struct ib_device_attr *props,
- 				struct ib_udata *uhw)
-@@ -765,6 +775,8 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 			1 << MLX5_CAP_GEN(dev->mdev, log_max_rq);
- 	}
+ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
+ 			      struct ib_device *ib_dev,
+ 			      struct ib_udata *ucore,
+@@ -3854,6 +3863,13 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
  
-+	mlx5_ib_fill_ooo_caps(dev, &props->ooo_caps);
+ 	resp.raw_packet_caps = attr.raw_packet_caps;
+ 	resp.response_length += sizeof(resp.raw_packet_caps);
 +
- 	if (field_avail(typeof(resp), cqe_comp_caps, uhw->outlen)) {
- 		resp.cqe_comp_caps.max_num =
- 			MLX5_CAP_GEN(dev->mdev, cqe_compression) ?
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index ebb6768684de..bbe616e373b3 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -54,6 +54,10 @@ enum {
- 	MLX5_IB_SQ_STRIDE	= 6,
++	if (ucore->outlen < resp.response_length + sizeof(resp.ooo_caps))
++		goto end;
++
++	copy_ooo_caps(&resp.ooo_caps, &attr.ooo_caps);
++	resp.response_length += sizeof(resp.ooo_caps);
++
+ end:
+ 	err = ib_copy_to_udata(ucore, &resp, resp.response_length);
+ 	return err;
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index 270c350bedc6..3519ff8e34cd 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -236,6 +236,17 @@ struct ib_uverbs_rss_caps {
+ 	__u32 reserved;
  };
  
-+enum {
-+	MLX5_QP_OOO_ATTR	= 25,
++struct ib_uverbs_ooo_caps {
++	/*
++	 * Per transport capability indicating whether out of order data
++	 * placement is supported or not.
++	 */
++	 __u32 rc_caps;
++	 __u32 xrc_caps;
++	 __u32 ud_caps;
++	 __u32 uc_caps;
 +};
 +
- static const u32 mlx5_ib_opcode[] = {
- 	[IB_WR_SEND]				= MLX5_OPCODE_SEND,
- 	[IB_WR_LSO]				= MLX5_OPCODE_LSO,
-@@ -2810,6 +2814,27 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 	if (qp->flags & MLX5_IB_QP_SQPN_QP1)
- 		context->deth_sqpn = cpu_to_be32(1);
+ struct ib_uverbs_ex_query_device_resp {
+ 	struct ib_uverbs_query_device_resp base;
+ 	__u32 comp_mask;
+@@ -247,6 +258,7 @@ struct ib_uverbs_ex_query_device_resp {
+ 	struct ib_uverbs_rss_caps rss_caps;
+ 	__u32  max_wq_type_rq;
+ 	__u32 raw_packet_caps;
++	struct ib_uverbs_ooo_caps ooo_caps;
+ };
  
-+	if (attr_mask & IB_QP_OOO_RW_DATA_PLACEMENT) {
-+		if (ibqp->qp_type == IB_QPT_RC) {
-+			if (MLX5_CAP_GEN(dev->mdev, multi_path_rc_rdma)) {
-+				context->flags_pd |=
-+					cpu_to_be32(1 << MLX5_QP_OOO_ATTR);
-+			} else {
-+				err = -EINVAL;
-+				goto out;
-+			}
-+		} else if (ibqp->qp_type == IB_QPT_XRC_INI ||
-+			   ibqp->qp_type == IB_QPT_XRC_TGT) {
-+			if (MLX5_CAP_GEN(dev->mdev, multi_path_xrc_rdma)) {
-+				context->flags_pd |=
-+					cpu_to_be32(1 << MLX5_QP_OOO_ATTR);
-+			} else {
-+				err = -EINVAL;
-+				goto out;
-+			}
-+		}
-+	}
-+
- 	mlx5_cur = to_mlx5_state(cur_state);
- 	mlx5_new = to_mlx5_state(new_state);
- 	mlx5_st = to_mlx5_st(ibqp->qp_type);
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index edafedb7b509..3d1e77e97552 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -856,7 +856,10 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 	u8         pps[0x1];
- 	u8         pps_modify[0x1];
- 	u8         log_max_msg[0x5];
--	u8         reserved_at_1c8[0x4];
-+	u8         multi_path_xrc_rdma[0x1];
-+	u8         reserved_at_1c9[0x1];
-+	u8         multi_path_rc_rdma[0x1];
-+	u8         reserved_at_1cb[0x1];
- 	u8         max_tc[0x4];
- 	u8         reserved_at_1d0[0x1];
- 	u8         dcbx[0x1];
+ struct ib_uverbs_query_port {
+@@ -555,9 +567,9 @@ enum {
+ 
+ enum {
+ 	/*
+-	 * This value is equal to IB_QP_RATE_LIMIT.
++	 * This value is equal to IB_QP_OOO_RW_DATA_PLACEMENT.
+ 	 */
+-	IB_USER_LAST_QP_ATTR_MASK = 1ULL << 25,
++	IB_USER_LAST_QP_ATTR_MASK = 1ULL << 26,
+ };
+ 
+ struct ib_uverbs_ex_create_qp {
 -- 
 2.12.2
 
