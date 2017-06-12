@@ -1,64 +1,63 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH rdma-next 0/3] Support out of order data placement
-Date: Mon, 12 Jun 2017 21:25:44 +0000
-Message-ID: <VI1PR0502MB3008ADC90899CEEB136E17FAD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <20170612064918.12510-1-leon@kernel.org>
- <074a01d2e39f$edc28860$c9479920$@opengridcomputing.com>
- <VI1PR0502MB3008CE85A4F274886B74DF2BD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <3fa7a4b5-5c19-8c6a-d78b-93219a9be888@intel.com>
- <1828884A29C6694DAF28B7E6B8A82373AB142A9B@ORSMSX109.amr.corp.intel.com>
- <VI1PR0502MB300885A1DD676E1649CDB268D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <1828884A29C6694DAF28B7E6B8A82373AB142BC8@ORSMSX109.amr.corp.intel.com>
+From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC 2/5] verbs: Introduce tag matching SRQ
+Date: Tue, 13 Jun 2017 00:31:11 +0300
+Message-ID: <bd402c01-f12e-52e8-c96f-0d2db0459b22@mellanox.com>
+References: <1497249767-15353-1-git-send-email-artemyko@mellanox.com>
+ <1497249767-15353-3-git-send-email-artemyko@mellanox.com>
+ <20170612163856.GA12282@obsidianresearch.com>
+ <0c00c167-1cfb-d169-134d-d608079b53df@mellanox.com>
+ <20170612205015.GA24893@obsidianresearch.com>
+ <af1d8a49-7d4a-6f3c-b5a1-c4aba79d74d1@mellanox.com>
+ <20170612211816.GA27649@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB142BC8-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20170612211816.GA27649-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yosefe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, anag-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgU2VhbiwNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBIZWZ0eSwg
-U2VhbiBbbWFpbHRvOnNlYW4uaGVmdHlAaW50ZWwuY29tXQ0KPiBTZW50OiBNb25kYXksIEp1bmUg
-MTIsIDIwMTcgMzo0MSBQTQ0KPiBUbzogUGFyYXYgUGFuZGl0IDxwYXJhdkBtZWxsYW5veC5jb20+
-OyBEYWxlc3NhbmRybywgRGVubmlzDQo+IDxkZW5uaXMuZGFsZXNzYW5kcm9AaW50ZWwuY29tPjsg
-U3RldmUgV2lzZQ0KPiA8c3dpc2VAb3BlbmdyaWRjb21wdXRpbmcuY29tPjsgJ0xlb24gUm9tYW5v
-dnNreScgPGxlb25Aa2VybmVsLm9yZz47DQo+ICdEb3VnIExlZGZvcmQnIDxkbGVkZm9yZEByZWRo
-YXQuY29tPg0KPiBDYzogbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IElkYW4gQnVyc3RlaW4g
-PGlkYW5iQG1lbGxhbm94LmNvbT4NCj4gU3ViamVjdDogUkU6IFtQQVRDSCByZG1hLW5leHQgMC8z
-XSBTdXBwb3J0IG91dCBvZiBvcmRlciBkYXRhIHBsYWNlbWVudA0KPiANCj4gPiA+IEZvciBleGFt
-cGxlLCBjYW4gc2VuZHMgYmUgcmUtb3JkZXJlZCBieSB0aGUgbmV0d29yaywgc3VjaCB0aGF0IHRo
-ZXkNCj4gPiA+IG1heSBiZSByZWNlaXZlZCBpbiB0aGUgb3Bwb3NpdGUgb3JkZXINCj4gPiB0aGF0
-IHRoZXkNCj4gPiA+IHdlcmUgc2VudD8NCj4gPg0KPiA+IE5vLiBPbmx5IHJkbWEgcmVhZHMgYW5k
-IHdyaXRlcy4gVGFibGUgNzkgb2YgSUIgc3BlYyBzdGlsbCBob2xkcyB0cnVlLg0KPiA+IEluIGlu
-dGVybmFsIHBhdGNoIHJldmlldyBJIGhhZCB0aGUgdGFibGUsIGJ1dCBzaW5jZSB0aGVyZSB3YXMg
-bm8NCj4gPiBjaGFuZ2UsIEkganVzdCByZW1vdmVkIGl0Lg0KPiA+IEkgdGhpbmsgaXQncyB3b3J0
-aCB0byBtZW50aW9uIGluIHRoZSBvdXRfb2Zfb3JkZXIudHh0IHRoYXQgaXQgc3RpbGwNCj4gPiBo
-b2xkcyB0cnVlLiBJIHdpbGwgYWRkIHRoaXMgbGluZS4NCj4gPg0KPiA+IEkgd291bGQgYWxzbyBk
-b2N1bWVudCB3aGljaCBjb21wbGlhbnQgc3RhdGVtZW50cyBhcmUgbm90IGFwcGxpY2FibGUNCj4g
-PiB3aGVuIHN1Y2ggZmxhZyBpcyBzZXQuDQo+ID4gSG93IGFib3V0IGhhdmluZyByZXNwb25kZXIg
-c2lkZSB0YWJsZSwgc2ltaWxhciB0byB0YWJsZSA3OSBpbg0KPiA+IERvY3VtZW50YXRpb24vb3V0
-X29mX29yZGVyLnR4dCBUaGF0IG1ha2VzIGl0IG1vcmUgcmVhZGFibGUgZm9yIHVzZXJzLg0KPiA+
-DQo+ID4gPiBDYW4gcmRtYSB3cml0ZXMgYmUgcHJvY2Vzc2VkIG91dCBvZiBvcmRlciwgc3VjaCB0
-aGF0IHRoZSB0YXJnZXQgZGF0YQ0KPiA+ID4gZW5kcyB1cCB3aXRoIHNvbWUgc29ydCBvZiBpbnRl
-cmxlYXZpbmcgb2YgdGhlIHdyaXR0ZW4gZGF0YT8NCj4gPiBZZXMuDQo+ID4NCj4gPiA+IEFyZSB0
-aGVyZSBzaXplIGxpbWl0cyB0byBvcmRlcmluZyBjb25zdHJhaW50cz8NCj4gPiBOby4NCj4gDQo+
-IE15IHF1ZXN0aW9ucyB3ZXJlIG1vcmUgZXhhbXBsZXMgb2YgdGhlIGxldmVsIG9mIGRldGFpbCB0
-aGF0IEkgdGhpbmsgYW55IEFQSQ0KPiBjaGFuZ2UgbmVlZHMgdG8gKGV2ZW50dWFsbHkpIGJlIGFi
-bGUgdG8gYWRkcmVzcy4gIExpYmlidmVyYnMgaXMgc3VwcG9zZWQgdG8NCj4gd29yayBvdmVyIGl3
-YXJwIGFzIHdlbGwsIHdoaWNoIGhhcyBkaWZmZXJlbnQgb3JkZXJpbmcgc2VtYW50aWNzIGFscmVh
-ZHkuICBJDQo+IHRoaW5rIHRoYXQgd2FzIHBhcnQgb2YgU3RldmUncyBwb2ludCBhcyB0byB3aHkg
-YW55IGNoYW5nZSBpcyBuZWVkZWQgdG8gdGhlDQo+IGFwaS4NCj4gDQo+IElNTywgcmVhZCBhbmQg
-d3JpdGUgb3JkZXJpbmcgc2hvdWxkIGJlIGRldGVybWluZWQgc2VwYXJhdGVseSBmcm9tIHRoZQ0K
-PiBwZXJzcGVjdGl2ZSBvZiB0aGUgYXBpLiAgVGhpcyBpcyBleHBvc2luZyBhIGh3IHNwZWNpZmlj
-IGxpbWl0YXRpb24gd2hlcmUgdGhlc2UNCj4gc2VtYW50aWNzIGFyZSBqb2luZWQsIGFuZCBzZW5k
-L3JlY2VpdmUgaXMgbm90IHN1cHBvcnRlZC4NCg0KVGhleSBhcmUgam9pbmVkIGZvciBzaW1wbGlj
-aXR5LiBJZiB0aGVyZSBpcyBlc3RhYmxpc2hlZCB1c2UgY2FzZSB0aGF0IEkgbGlrZSB0byBoZWFy
-IGZyb20gdXNlcnMgDQphbmQgaWYgaGFyZHdhcmUgc3VwcG9ydHMgaXQsIG1vcmUgY2FwcyBjYW4g
-YmUgYWRkZWQuDQpUaGF04oCZcyB3aHkgY2FwcyBpcyAzMi1iaXQgbnVtYmVyIGZvciBmdXR1cmUg
-YWRkaXRpb24gb2YgUkRfT05MWSwgV1JfT05MWSBtb2Rlcy4NCg==
+
+
+On 13/06/2017 00:18, Jason Gunthorpe wrote:
+> On Tue, Jun 13, 2017 at 12:09:29AM +0300, Artemy Kovalyov wrote:
+>>
+>>
+>> On 12/06/2017 23:50, Jason Gunthorpe wrote:
+>>> On Mon, Jun 12, 2017 at 11:38:09PM +0300, Artemy Kovalyov wrote:
+>>>>
+>>>>
+>>>> On 12/06/2017 19:38, Jason Gunthorpe wrote:
+>>>>> On Mon, Jun 12, 2017 at 09:42:44AM +0300, Artemy Kovalyov wrote:
+>>>>>> enum ibv_srq_type {
+>>>>>> 	IBV_SRQT_BASIC,
+>>>>>> -	IBV_SRQT_XRC
+>>>>>> +	IBV_SRQT_XRC,
+>>>>>> +	IBV_SRQT_TAG_MATCHING
+>>>>>> };
+>>>>>
+>>>>> Please put trailing commas on all these enum changes in all patches
+>>>>
+>>>> So do we drop overboard all -Wpedantic users?
+>>>
+>>> Eh? Try it.
+>>>
+>>> You only get warnings if your compiler is running in c89 or ansi mode,
+>>> which went 'overboard' a long time ago.
+>> Bare -Wpedantic -Werror fails with this.
+>
+> You need -std=c99 on older compilers.
+
+That was my point - implying new standards' ubiquity we narrowing 
+compatibility.
+I not insist, just want to clarify whether this code standard was chosen 
+for the project.
+
+>
+> Jason
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
