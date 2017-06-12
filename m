@@ -1,72 +1,50 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/3] Support out of order data placement
-Date: Mon, 12 Jun 2017 15:02:59 -0600
-Message-ID: <20170612210259.GA25652@obsidianresearch.com>
-References: <20170612064918.12510-1-leon@kernel.org>
- <074a01d2e39f$edc28860$c9479920$@opengridcomputing.com>
- <VI1PR0502MB3008CE85A4F274886B74DF2BD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <3fa7a4b5-5c19-8c6a-d78b-93219a9be888@intel.com>
- <1828884A29C6694DAF28B7E6B8A82373AB142A9B@ORSMSX109.amr.corp.intel.com>
- <VI1PR0502MB300885A1DD676E1649CDB268D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <b5279c09-027f-e374-ffde-7f236c52322c@intel.com>
- <1828884A29C6694DAF28B7E6B8A82373AB142BEC@ORSMSX109.amr.corp.intel.com>
- <085201d2e3be$81070ce0$831526a0$@opengridcomputing.com>
+From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC 2/5] verbs: Introduce tag matching SRQ
+Date: Tue, 13 Jun 2017 00:09:29 +0300
+Message-ID: <af1d8a49-7d4a-6f3c-b5a1-c4aba79d74d1@mellanox.com>
+References: <1497249767-15353-1-git-send-email-artemyko@mellanox.com>
+ <1497249767-15353-3-git-send-email-artemyko@mellanox.com>
+ <20170612163856.GA12282@obsidianresearch.com>
+ <0c00c167-1cfb-d169-134d-d608079b53df@mellanox.com>
+ <20170612205015.GA24893@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <085201d2e3be$81070ce0$831526a0$@opengridcomputing.com>
+In-Reply-To: <20170612205015.GA24893-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "'Dalessandro, Dennis'" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Parav Pandit' <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Idan Burstein' <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yosefe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, anag-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 12, 2017 at 03:57:29PM -0500, Steve Wise wrote:
-> > > > When transmitter and receiver is enabled to do so, as I described in
-> > > overview section of Documentation, it helps
-> > > > (a) to avoid retransmission - improves network utilization
-> > > > (b) reduces latency due to timers not kicking in.
-> > >
-> > > Yes those benefits are clear. I see no reason why it shouldn't always
-> > > be
-> > > done is my point. Application shouldn't have to care and there is no
-> > > need to make this an additional flag.
-> > 
-> > The app cares when data from write 2 can be written at the target before data
-> > from write 1, especially if the writes target the same memory buffers.  (At least I
-> > think this is the intent of exposing this to the app.)
-> > 
-> > Note that the provider can always provide stronger ordering than what the app
-> > needs.
-> 
-> My understanding is that IB or IW apps should never assume ingress
-> write or read response data is _placed_ into local memory in the
-> order it was transmitted from the peer.  The only guarantee is that
-> the _indication_ of the arrived data preserve the sender's ordering.
-> However, I'm thinking that there are applications out there that
-> spin polling local memory that is the target of a write or read
-> response and assume the last bit of that memory will get written
-> last...
 
-That is with respect to the CPU, but IB requires strong ordering
-between messages within the same QP, eg if I do
 
-RDMA WRITE addr=0 data=1
-RDMA WRITE addr=0 data=2
-RDMA WRITE addr=0 data=3
-RDMA READ  addr=0
+On 12/06/2017 23:50, Jason Gunthorpe wrote:
+> On Mon, Jun 12, 2017 at 11:38:09PM +0300, Artemy Kovalyov wrote:
+>>
+>>
+>> On 12/06/2017 19:38, Jason Gunthorpe wrote:
+>>> On Mon, Jun 12, 2017 at 09:42:44AM +0300, Artemy Kovalyov wrote:
+>>>> enum ibv_srq_type {
+>>>> 	IBV_SRQT_BASIC,
+>>>> -	IBV_SRQT_XRC
+>>>> +	IBV_SRQT_XRC,
+>>>> +	IBV_SRQT_TAG_MATCHING
+>>>> };
+>>>
+>>> Please put trailing commas on all these enum changes in all patches
+>>
+>> So do we drop overboard all -Wpedantic users?
+>
+> Eh? Try it.
+>
+> You only get warnings if your compiler is running in c89 or ansi mode,
+> which went 'overboard' a long time ago.
+Bare -Wpedantic -Werror fails with this.
 
-I must always get 3, not something else.
-
-It would be notable if this 'out of order' feature violated that
-invariant, but many ULPs would probably still be OK.
-
-Frankly, Parav's original message doesn't seem to describe at all what
-this is about, so maybe we should all wait until v2, and maybe more
-people from Mellanox could contribute to sensibly describing it if
-they want it in ibverbs.
-
-Jason
+>
+> Jason
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
