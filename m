@@ -1,40 +1,80 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [for-next 4/6] net/mlx5: FPGA, Add basic support for Innova
-Date: Mon, 12 Jun 2017 10:17:46 -0600
-Message-ID: <20170612161746.GC24829@obsidianresearch.com>
-References: <AM4PR0501MB19404B83A69B87AFB1326B45DBF50@AM4PR0501MB1940.eurprd05.prod.outlook.com>
- <20170605151724.GA20182@obsidianresearch.com>
- <AM4PR0501MB194008AAABEB6AAAA2ADFC82DBCB0@AM4PR0501MB1940.eurprd05.prod.outlook.com>
- <20170606161709.GA8671@obsidianresearch.com>
- <CALzJLG9Rdjme2piWX+CDeHZZebWArM_wGjLJPh8=COOxBHuFkw@mail.gmail.com>
- <20170607154858.GA30124@obsidianresearch.com>
- <CALzJLG8epxWp1pmTd_fxOUfzXF5YoOFfnrRBJ0-YZVL1Gi_yOw@mail.gmail.com>
- <20170607192132.GA10929@obsidianresearch.com>
- <1497047041.7171.234.camel@redhat.com>
- <CC17D182-E8FF-48C7-8667-67429C6F8259@mellanox.com>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH rdma-next 0/3] Support out of order data placement
+Date: Mon, 12 Jun 2017 16:19:37 +0000
+Message-ID: <VI1PR0502MB3008478FC7C70D1F398FE2B2D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+References: <20170612064918.12510-1-leon@kernel.org>
+ <1497281280.2770.1.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CC17D182-E8FF-48C7-8667-67429C6F8259@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: Majd Dibbiny <majd@mellanox.com>
-Cc: Doug Ledford <dledford@redhat.com>, Saeed Mahameed <saeedm@dev.mellanox.co.il>, Ilan Tayari <ilant@mellanox.com>, Alexei Starovoitov <alexei.starovoitov@gmail.com>, "David S. Miller" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "jsorensen@fb.com" <jsorensen@fb.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "linux-fpga@vger.kernel.org" <linux-fpga@vger.kernel.org>, Alan Tull <atull@opensource.altera.com>, "yi1.li@linux.intel.com" <yi1.li@linux.intel.com>, Boris Pismenny <borisp@mellanox.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1497281280.2770.1.camel-Sjgp3cTcYWE@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Jun 10, 2017 at 02:11:13PM +0000, Majd Dibbiny wrote:
+Hi Bart,
 
-> >> This is especially true for mlx nics as there are many raw packet
-> >> bypass mechanisms available to userspace.
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Bart Van Assche
+> Sent: Monday, June 12, 2017 10:28 AM
+> To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Subject: Re: [PATCH rdma-next 0/3] Support out of order data placement
+>=20
+> On Mon, 2017-06-12 at 09:49 +0300, Leon Romanovsky wrote:
+> > Out of order data placement capability indicates that if HCA receives
+> > out of order RDMA packets, their data placement can be done at the
+> > desired memory destination given in the packet(s). This is applicable
+> > to RDMA read and write operations.
+>=20
+> Hello Leon and Parav,
+>=20
+> Since PCIe writes can be executed out of order, shouldn't that be mention=
+ed
+> in Documentation/infiniband/out_of_order.txt? See also the
+> documentation of the=A0Device Control Register and the Enable Relaxed
+> Ordering bit in the PCIe spec.
+There is no change in the way PCIe writes are done with respect to this per=
+ QP bit.
+Meaning, if this bit is cleared, PCIe subsystem can still do out of order w=
+rites depending on relaxed ordering flag.
 
-> All of the Raw packet bypass mechanisms are restricted to
-> CAP_NET_RAW, and thus malicious users can't simply open a RAW Packet
-> QP and send it to the FPGA..
+>=20
+> Additionally, since not handling out-of-order RDMA writes correctly is an
+> ULP bug and since there are more ULPs that handle out-of-order writes
+> correctly than ULPs that don't handle out-of-order writes correctly, if a=
+ new
+> flag is introduced, shouldn't that be a flag to disable out-of-order writ=
+es?
+Not sure I understood correctly. This bit is not a bug fix for ULPs who don=
+'t handle out-of-order writes.
+As I described in Documentation,
+" Out of order data placement capability indicates that if HCA receives out=
+ of order RDMA packets, their data placement can be done at the desired mem=
+ory destination given in the packet(s). This is applicable to RDMA read and=
+ write operations."
+This flag indicates that - in above condition, HCA can do data placement ou=
+t-of-order.
+Without enabling this flag, when HCA receives out of order packets, it woul=
+d drop them due to PSN sequence error.
 
-It is big expansion of CAP_NET_RAW to also basically also include
-reconfiguring ipsec xfrm.
+So, - to your question - shouldn't that be a flag to disable out-of-order w=
+rites?
+By default, its disabled at RDMA level.
 
-Plus, if someone configures ethernet bridging (eg in a VM situation)
-then could a hacked VM reconfigure this FPGA?
-
-Jason
+>=20
+> Thanks,
+>=20
+> Bart.--
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in =
+the
+> body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info
+> at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
