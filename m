@@ -1,49 +1,49 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/3] Support out of order data placement
-Date: Mon, 12 Jun 2017 15:06:38 -0400
-Message-ID: <3fa7a4b5-5c19-8c6a-d78b-93219a9be888@intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH rdma-next 0/3] Support out of order data placement
+Date: Mon, 12 Jun 2017 19:19:06 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB142A9B@ORSMSX109.amr.corp.intel.com>
 References: <20170612064918.12510-1-leon@kernel.org>
  <074a01d2e39f$edc28860$c9479920$@opengridcomputing.com>
  <VI1PR0502MB3008CE85A4F274886B74DF2BD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <3fa7a4b5-5c19-8c6a-d78b-93219a9be888@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR0502MB3008CE85A4F274886B74DF2BD1CD0-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <3fa7a4b5-5c19-8c6a-d78b-93219a9be888-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/12/2017 1:37 PM, Parav Pandit wrote:
->> Given the application follows the above semantics, why does it care if data
->> is placed out of order?  IE Why does this impact the application API at all?
->>
-> If application wants to benefit from out-of-order placement, it should enable this flag.
-> Following semantics is fine, but letting HCA enable something under the hood for all QPs, is not good.
-> HCA or stack doesn't know which all applications are running, handling/following such semantics.
-> So its best left to the end user applications to benefit or not from it.
-
-I don't understand why the application has to care about this at all. If 
-the HW wants to place things out of order. Ok go for it. Applications 
-should be depending on the correct mechanism to know when it's OK to 
-look at the data. Why do they care what order it arrived in?
-
-The only reason to care is if the applications wants to do something 
-that is not compliant and look at parts of the data early. Perhaps you 
-can explain *how* an application may benefit from out-of-order placement 
-and likewise, why it wouldn't want to benefit.
-
-It seems to me, the real benefit is reducing the number of 
-retransmissions which the application shouldn't care about.
-
--Denny
-
-
-
-
-
+PiBJIGRvbid0IHVuZGVyc3RhbmQgd2h5IHRoZSBhcHBsaWNhdGlvbiBoYXMgdG8gY2FyZSBhYm91
+dCB0aGlzIGF0IGFsbC4NCj4gSWYNCj4gdGhlIEhXIHdhbnRzIHRvIHBsYWNlIHRoaW5ncyBvdXQg
+b2Ygb3JkZXIuIE9rIGdvIGZvciBpdC4gQXBwbGljYXRpb25zDQo+IHNob3VsZCBiZSBkZXBlbmRp
+bmcgb24gdGhlIGNvcnJlY3QgbWVjaGFuaXNtIHRvIGtub3cgd2hlbiBpdCdzIE9LIHRvDQo+IGxv
+b2sgYXQgdGhlIGRhdGEuIFdoeSBkbyB0aGV5IGNhcmUgd2hhdCBvcmRlciBpdCBhcnJpdmVkIGlu
+Pw0KPiANCj4gVGhlIG9ubHkgcmVhc29uIHRvIGNhcmUgaXMgaWYgdGhlIGFwcGxpY2F0aW9ucyB3
+YW50cyB0byBkbyBzb21ldGhpbmcNCj4gdGhhdCBpcyBub3QgY29tcGxpYW50IGFuZCBsb29rIGF0
+IHBhcnRzIG9mIHRoZSBkYXRhIGVhcmx5LiBQZXJoYXBzIHlvdQ0KPiBjYW4gZXhwbGFpbiAqaG93
+KiBhbiBhcHBsaWNhdGlvbiBtYXkgYmVuZWZpdCBmcm9tIG91dC1vZi1vcmRlcg0KPiBwbGFjZW1l
+bnQNCj4gYW5kIGxpa2V3aXNlLCB3aHkgaXQgd291bGRuJ3Qgd2FudCB0byBiZW5lZml0Lg0KDQpS
+ZWxheGVkIG9yZGVyaW5nIGNhbiBpbXByb3ZlIHBlcmZvcm1hbmNlIGJ5IGFsbG93aW5nIHBhY2tl
+dHMgdG8gdGFrZSBtdWx0aXBsZSBwYXRocyBmcm9tIHRoZSBzb3VyY2UgdG8gZGVzdGluYXRpb24u
+ICBGV0lXLCB0aGUgb2Zpd2cgYWN0dWFsbHkgZGlzY3Vzc2VkIG9yZGVyaW5nIGF0IGxlbmd0aCwg
+YW5kIGxpYmZhYnJpYyBleHBvc2VzIHNldmVyYWwgb3JkZXJpbmcgcmVsYXRlZCBhdHRyaWJ1dGVz
+Lg0KDQpUaGUgYXBwbGljYXRpb24gdXN1YWxseSBuZWVkcyB0byBrbm93IHdoYXQgc29ydCBvZiBv
+cmRlcmluZyB0aGUgbmV0d29yayBpcyBwcm92aWRpbmcgZm9yIGNvcnJlY3Qgb3BlcmF0aW9uLiAg
+Rm9yIGV4YW1wbGUsIGNhbiBzZW5kcyBiZSByZS1vcmRlcmVkIGJ5IHRoZSBuZXR3b3JrLCBzdWNo
+IHRoYXQgdGhleSBtYXkgYmUgcmVjZWl2ZWQgaW4gdGhlIG9wcG9zaXRlIG9yZGVyIHRoYXQgdGhl
+eSB3ZXJlIHNlbnQ/ICBDYW4gcmRtYSB3cml0ZXMgYmUgcHJvY2Vzc2VkIG91dCBvZiBvcmRlciwg
+c3VjaCB0aGF0IHRoZSB0YXJnZXQgZGF0YSBlbmRzIHVwIHdpdGggc29tZSBzb3J0IG9mIGludGVy
+bGVhdmluZyBvZiB0aGUgd3JpdHRlbiBkYXRhPyAgQXJlIHRoZXJlIHNpemUgbGltaXRzIHRvIG9y
+ZGVyaW5nIGNvbnN0cmFpbnRzPw0KDQpJdCdzIGhhcmQgdG8gY2FwdHVyZSB0aGlzIGxldmVsIG9m
+IGRldGFpbCB3aXRoIGEgc2luZ2xlIGZsYWcuICBUaGVyZSdzIG9yZGVyaW5nIG9mIGRhdGEgd2l0
+aGluIGEgc2luZ2xlIG1lc3NhZ2UsIGFzIHdlbGwgYXMgb3JkZXJpbmcgb2YgZGF0YSBiZXR3ZWVu
+IG1lc3NhZ2VzLiAgSSBkb24ndCBrbm93IGhvdyB0aGlzIHByb3Bvc2FsIHdvcmtzIHdpdGggZXhw
+bGljaXQgcGF0aGluZyB0aGF0IElCIGRlZmluZXMsIG9yIHBhdGggZmFpbG92ZXIuDQoNCi0gU2Vh
+bg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
