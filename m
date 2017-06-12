@@ -1,50 +1,77 @@
-From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC 2/5] verbs: Introduce tag matching SRQ
-Date: Tue, 13 Jun 2017 00:09:29 +0300
-Message-ID: <af1d8a49-7d4a-6f3c-b5a1-c4aba79d74d1@mellanox.com>
-References: <1497249767-15353-1-git-send-email-artemyko@mellanox.com>
- <1497249767-15353-3-git-send-email-artemyko@mellanox.com>
- <20170612163856.GA12282@obsidianresearch.com>
- <0c00c167-1cfb-d169-134d-d608079b53df@mellanox.com>
- <20170612205015.GA24893@obsidianresearch.com>
+From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next 0/3] Support out of order data placement
+Date: Mon, 12 Jun 2017 17:09:10 -0400
+Message-ID: <6747e257-67b0-a364-be21-04f73ef82ffe@talpey.com>
+References: <20170612064918.12510-1-leon@kernel.org>
+ <1497281280.2770.1.camel@wdc.com>
+ <VI1PR0502MB3008478FC7C70D1F398FE2B2D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170612162917.GA11993@obsidianresearch.com>
+ <VI1PR0502MB3008EA451DA9ECEBECE27362D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170612164343.GA12435@obsidianresearch.com>
+ <VI1PR0502MB300831A1560531E67B29589DD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170612165536.GB12435@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170612205015.GA24893-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20170612165536.GB12435-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yosefe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, anag-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 12/06/2017 23:50, Jason Gunthorpe wrote:
-> On Mon, Jun 12, 2017 at 11:38:09PM +0300, Artemy Kovalyov wrote:
+On 6/12/2017 12:55 PM, Jason Gunthorpe wrote:
+> On Mon, Jun 12, 2017 at 04:53:28PM +0000, Parav Pandit wrote:
 >>
 >>
->> On 12/06/2017 19:38, Jason Gunthorpe wrote:
->>> On Mon, Jun 12, 2017 at 09:42:44AM +0300, Artemy Kovalyov wrote:
->>>> enum ibv_srq_type {
->>>> 	IBV_SRQT_BASIC,
->>>> -	IBV_SRQT_XRC
->>>> +	IBV_SRQT_XRC,
->>>> +	IBV_SRQT_TAG_MATCHING
->>>> };
+>>> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
+>>> Sent: Monday, June 12, 2017 11:44 AM
+>>> To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>> Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>; leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org;
+>>> dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Idan Burstein
+>>> <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>> Subject: Re: [PATCH rdma-next 0/3] Support out of order data placement
 >>>
->>> Please put trailing commas on all these enum changes in all patches
+>>> On Mon, Jun 12, 2017 at 04:42:27PM +0000, Parav Pandit wrote:
+>>>
+>>>>> I would suggest at least using the inverted sense like Bart
+>>>>> describes in the kernel - every kernel ULP is safe.
+>>>
+>>>> I don't see a need to use inverted sense in code. I can surely make
+>>> documentation more descriptive as Bart suggested.
+>>>
+>>> If this is 'better' then it should be on as much as possible, and I certianly
+>>> don't want to see kernel ULPs query caps and other pointless things when
+>>> they already, necessarily, deal with out of order.
 >>
->> So do we drop overboard all -Wpedantic users?
->
-> Eh? Try it.
->
-> You only get warnings if your compiler is running in c89 or ansi mode,
-> which went 'overboard' a long time ago.
-Bare -Wpedantic -Werror fails with this.
+>> Sure. Kernel ULPs and any other user ULPs can skip query caps.
+> 
+> No, they can't because only mlx5 accepts the new flag.
+> 
+> This is why inverting the flag in the kernel makes much more sense.
 
->
-> Jason
->
+Absolutely. All iWARP adapters support multiple RDMA Writes in flight,
+and their placement is not ordered. It's a quirk of the MLX devices,
+and in turn their implementation of the IB protocol, that they place
+writes in-order. I'm happy to see Mellanox become aware of this, it
+limits write performance on networks with any significant latencies.
+
+I agree with Jason, the bit should be 1 by default, if defined as you
+propose. Out-of-order is the norm, not the exception, for ULPs.
+Honestly, I think you should perhaps consider making it the default
+on your devices, and allowing only MLX-aware ULPs to turn it off.
+
+The Windows NDK API has a similar concept, by the way, it flips your
+meaning and defaults to 0. Also, it's not settable by the ULP. The
+flag isn't used for much, as a result.
+
+NDK_ADAPTER_FLAG_IN_ORDER_DMA_SUPPORTED
+
+https://msdn.microsoft.com/en-us/library/windows/hardware/hh439851(v=vs.85).aspx
+
+
+Tom.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
