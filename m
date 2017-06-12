@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 1/3] IB/core: Expose out of order data placement capability
-Date: Mon, 12 Jun 2017 09:49:16 +0300
-Message-ID: <20170612064918.12510-2-leon@kernel.org>
+Subject: [PATCH rdma-next 3/3] IB/mlx5: Support out of order data placement
+Date: Mon, 12 Jun 2017 09:49:18 +0300
+Message-ID: <20170612064918.12510-4-leon@kernel.org>
 References: <20170612064918.12510-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170612064918.12510-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,159 +12,110 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This patch exposes out of order data placement capability to enable
-HCA to report it.
-It also defines optional QP attribute that can be set when moving QP
-from INIT to RTR state to make use of this feature on a particular QP.
+This patch sets out of order data placement capability whenever
+device supports it. Currently its supports on RC and XRC QPs.
+It also extends the support to set such attribute for a QP during
+state transition.
 
 Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- Documentation/infiniband/out_of_order.txt | 60 +++++++++++++++++++++++++++++++
- drivers/infiniband/core/verbs.c           |  9 +++--
- include/rdma/ib_verbs.h                   | 22 ++++++++++++
- 3 files changed, 88 insertions(+), 3 deletions(-)
- create mode 100644 Documentation/infiniband/out_of_order.txt
+ drivers/infiniband/hw/mlx5/main.c | 12 ++++++++++++
+ drivers/infiniband/hw/mlx5/qp.c   | 25 +++++++++++++++++++++++++
+ include/linux/mlx5/mlx5_ifc.h     |  5 ++++-
+ 3 files changed, 41 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/infiniband/out_of_order.txt b/Documentation/infiniband/out_of_order.txt
-new file mode 100644
-index 000000000000..9c585f6801fc
---- /dev/null
-+++ b/Documentation/infiniband/out_of_order.txt
-@@ -0,0 +1,60 @@
-+Out of order data placement
-+===========================
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 0c79983c8b1a..7f5284c08b8d 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -572,6 +572,16 @@ static int mlx5_query_node_desc(struct mlx5_ib_dev *dev, char *node_desc)
+ 				    MLX5_REG_NODE_DESC, 0, 0);
+ }
+ 
++static void mlx5_ib_fill_ooo_caps(struct mlx5_ib_dev *dev,
++				  struct ib_ooo_caps *caps)
++{
++	if (MLX5_CAP_GEN(dev->mdev, multi_path_rc_rdma))
++		caps->rc_caps |= IB_OOO_RW_DATA_PLACEMENT;
 +
-+This document describes out of order data placement feature and its
-+user interface.
++	if (MLX5_CAP_GEN(dev->mdev, multi_path_xrc_rdma))
++		caps->xrc_caps |= IB_OOO_RW_DATA_PLACEMENT;
++}
 +
-+1. Overview
-+===========
+ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 				struct ib_device_attr *props,
+ 				struct ib_udata *uhw)
+@@ -765,6 +775,8 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 			1 << MLX5_CAP_GEN(dev->mdev, log_max_rq);
+ 	}
+ 
++	mlx5_ib_fill_ooo_caps(dev, &props->ooo_caps);
 +
-+In certain fabric configurations IB packets for a given QP may take up
-+different paths in a network from source to destination. This results
-+into reaching packets out of order at the receiver side. Instead of
-+dropping packets, handling out of order packets can improve overall
-+network performance in following ways.
-+(a) improve network utilization by avoiding retransmission
-+(b) avoiding latency increase due to retransmission
-+
-+2. Description
-+==============
-+
-+This is optional feature of an HCA.
-+Enablement of this feature is done on per QP basis.
-+This optional QP attribute is set when a QP state is changed from INIT
-+to RTR.
-+
-+Out of order data placement capability indicates that if HCA receives
-+out of order RDMA packets, their data placement can be done at the
-+desired memory destination given in the packet(s). This is applicable
-+to RDMA read and write operations.
-+
-+Send queue work requests are still completed in-order regardless of
-+their data placement order at requester or responder side.
-+
-+In-order semantics is always guaranteed by setting the Fence
-+indicator for appropriate WRs.
-+
-+An application shall not depend on the contents of the RDMA write buffer
-+at the responder until one of the following occurred:
-+- Completion of the RDMA WRITE with immediate data receive completion.
-+- Arrival and completion of the subsequent SEND message.
-+- Update of a memory element by subsequent ATOMIC operation.
-+
-+An application shall not depend on the contents of the RDMA read buffer
-+at the requester until one of the following occurred:
-+- Completion of the RDMA READ work request if requested or such
-+  work request completes with error status.
-+- Completion of the subsequent work request.
-+
-+3. Usage
-+========
-+
-+(a) ibv_query_device_ex returns out of order data placement
-+capability at ooo_caps structure for a given transport.
-+Whenever HCA supports such capability for each transport user
-+should get IB_OOO_RW_DATA_PLACEMENT set in the caps.
-+
-+(b) When such capability is set, user can set
-+IB_QP_OOO_RW_DATA_PLACEMENT while invoking ibv_modify_qp().
-+IB_QP_OOO_RW_DATA_PLACEMENT is optional attribute which is supported
-+only when QP state transions from INIT to RTR state.
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 4792f5209ac2..7e761bedd1ad 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -957,13 +957,16 @@ static const struct {
- 						 IB_QP_PKEY_INDEX),
- 				 [IB_QPT_RC]  = (IB_QP_ALT_PATH			|
- 						 IB_QP_ACCESS_FLAGS		|
--						 IB_QP_PKEY_INDEX),
-+						 IB_QP_PKEY_INDEX		|
-+						 IB_QP_OOO_RW_DATA_PLACEMENT),
- 				 [IB_QPT_XRC_INI] = (IB_QP_ALT_PATH		|
- 						 IB_QP_ACCESS_FLAGS		|
--						 IB_QP_PKEY_INDEX),
-+						 IB_QP_PKEY_INDEX		|
-+						 IB_QP_OOO_RW_DATA_PLACEMENT),
- 				 [IB_QPT_XRC_TGT] = (IB_QP_ALT_PATH		|
- 						 IB_QP_ACCESS_FLAGS		|
--						 IB_QP_PKEY_INDEX),
-+						 IB_QP_PKEY_INDEX		|
-+						 IB_QP_OOO_RW_DATA_PLACEMENT),
- 				 [IB_QPT_SMI] = (IB_QP_PKEY_INDEX		|
- 						 IB_QP_QKEY),
- 				 [IB_QPT_GSI] = (IB_QP_PKEY_INDEX		|
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index ba8314ec5768..c507f2f0773a 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -278,6 +278,26 @@ struct ib_rss_caps {
- 	u32 max_rwq_indirection_table_size;
+ 	if (field_avail(typeof(resp), cqe_comp_caps, uhw->outlen)) {
+ 		resp.cqe_comp_caps.max_num =
+ 			MLX5_CAP_GEN(dev->mdev, cqe_compression) ?
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index ebb6768684de..bbe616e373b3 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -54,6 +54,10 @@ enum {
+ 	MLX5_IB_SQ_STRIDE	= 6,
  };
  
-+/*
-+ * Out of order data placement capability bits.
-+ * Out of order data placement means, if HCA receives RDMA packets in
-+ * out of order manner, their data placement can be done at the desired
-+ * memory destination given in the packet(s). This is applicable
-+ * to RDMA read and write operations.
-+ * Send queue work requests are still completed in-order regardless of their
-+ * data placement order at local or remote end.
-+ */
-+enum ib_ooo_transport_caps {
-+	IB_OOO_RW_DATA_PLACEMENT	= (1 << 0),
++enum {
++	MLX5_QP_OOO_ATTR	= 25,
 +};
 +
-+struct ib_ooo_caps {
-+	u32 rc_caps;
-+	u32 xrc_caps;
-+	u32 ud_caps;
-+	u32 uc_caps;
-+};
+ static const u32 mlx5_ib_opcode[] = {
+ 	[IB_WR_SEND]				= MLX5_OPCODE_SEND,
+ 	[IB_WR_LSO]				= MLX5_OPCODE_LSO,
+@@ -2810,6 +2814,27 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 	if (qp->flags & MLX5_IB_QP_SQPN_QP1)
+ 		context->deth_sqpn = cpu_to_be32(1);
+ 
++	if (attr_mask & IB_QP_OOO_RW_DATA_PLACEMENT) {
++		if (ibqp->qp_type == IB_QPT_RC) {
++			if (MLX5_CAP_GEN(dev->mdev, multi_path_rc_rdma)) {
++				context->flags_pd |=
++					cpu_to_be32(1 << MLX5_QP_OOO_ATTR);
++			} else {
++				err = -EINVAL;
++				goto out;
++			}
++		} else if (ibqp->qp_type == IB_QPT_XRC_INI ||
++			   ibqp->qp_type == IB_QPT_XRC_TGT) {
++			if (MLX5_CAP_GEN(dev->mdev, multi_path_xrc_rdma)) {
++				context->flags_pd |=
++					cpu_to_be32(1 << MLX5_QP_OOO_ATTR);
++			} else {
++				err = -EINVAL;
++				goto out;
++			}
++		}
++	}
 +
- enum ib_cq_creation_flags {
- 	IB_CQ_FLAGS_TIMESTAMP_COMPLETION   = 1 << 0,
- 	IB_CQ_FLAGS_IGNORE_OVERRUN	   = 1 << 1,
-@@ -338,6 +358,7 @@ struct ib_device_attr {
- 	struct ib_rss_caps	rss_caps;
- 	u32			max_wq_type_rq;
- 	u32			raw_packet_caps; /* Use ib_raw_packet_caps enum */
-+	struct ib_ooo_caps	ooo_caps;
- };
- 
- enum ib_mtu {
-@@ -1157,6 +1178,7 @@ enum ib_qp_attr_mask {
- 	IB_QP_RESERVED3			= (1<<23),
- 	IB_QP_RESERVED4			= (1<<24),
- 	IB_QP_RATE_LIMIT		= (1<<25),
-+	IB_QP_OOO_RW_DATA_PLACEMENT	= (1 << 26),
- };
- 
- enum ib_qp_state {
+ 	mlx5_cur = to_mlx5_state(cur_state);
+ 	mlx5_new = to_mlx5_state(new_state);
+ 	mlx5_st = to_mlx5_st(ibqp->qp_type);
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index edafedb7b509..3d1e77e97552 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -856,7 +856,10 @@ struct mlx5_ifc_cmd_hca_cap_bits {
+ 	u8         pps[0x1];
+ 	u8         pps_modify[0x1];
+ 	u8         log_max_msg[0x5];
+-	u8         reserved_at_1c8[0x4];
++	u8         multi_path_xrc_rdma[0x1];
++	u8         reserved_at_1c9[0x1];
++	u8         multi_path_rc_rdma[0x1];
++	u8         reserved_at_1cb[0x1];
+ 	u8         max_tc[0x4];
+ 	u8         reserved_at_1d0[0x1];
+ 	u8         dcbx[0x1];
 -- 
 2.12.2
 
