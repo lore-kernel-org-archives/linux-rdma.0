@@ -1,36 +1,36 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC 2/5] verbs: Introduce tag matching SRQ
-Date: Mon, 12 Jun 2017 15:40:47 -0600
-Message-ID: <20170612214047.GA30578@obsidianresearch.com>
-References: <1497249767-15353-1-git-send-email-artemyko@mellanox.com>
- <1497249767-15353-3-git-send-email-artemyko@mellanox.com>
- <20170612163856.GA12282@obsidianresearch.com>
- <0c00c167-1cfb-d169-134d-d608079b53df@mellanox.com>
- <20170612205015.GA24893@obsidianresearch.com>
- <af1d8a49-7d4a-6f3c-b5a1-c4aba79d74d1@mellanox.com>
- <20170612211816.GA27649@obsidianresearch.com>
- <bd402c01-f12e-52e8-c96f-0d2db0459b22@mellanox.com>
+Subject: Re: [PATCH rdma-next 0/3] Support out of order data placement
+Date: Mon, 12 Jun 2017 15:41:35 -0600
+Message-ID: <20170612214135.GB30578@obsidianresearch.com>
+References: <20170612064918.12510-1-leon@kernel.org>
+ <1497281280.2770.1.camel@wdc.com>
+ <VI1PR0502MB3008478FC7C70D1F398FE2B2D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170612162917.GA11993@obsidianresearch.com>
+ <VI1PR0502MB3008EA451DA9ECEBECE27362D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170612164343.GA12435@obsidianresearch.com>
+ <VI1PR0502MB300831A1560531E67B29589DD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170612165536.GB12435@obsidianresearch.com>
+ <6747e257-67b0-a364-be21-04f73ef82ffe@talpey.com>
+ <VI1PR0502MB30080B672B80836FF0A328DCD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <bd402c01-f12e-52e8-c96f-0d2db0459b22-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <VI1PR0502MB30080B672B80836FF0A328DCD1CD0-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yosefe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, anag-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 13, 2017 at 12:31:11AM +0300, Artemy Kovalyov wrote:
+On Mon, Jun 12, 2017 at 09:32:30PM +0000, Parav Pandit wrote:
 
-> I not insist, just want to clarify whether this code standard was
-> chosen for the project.
+> There can be cases in deployment where responder has support for
+> receiving out-of-order, but requester doesn't.  Read responses
 
-It is, and we already have things that are not C89 in the public
-headers for some time.
+You still haven't explained at all what the transmitter side does
+differently..
 
-If someone wishes to support C89 then they will need to make a patch
-and travis support, otherwise please continue to follow the existing
-examples of adding the trailing, as other new cases do.
+Is this actually some kind of selective retransmit scheme?
 
 Jason
 --
