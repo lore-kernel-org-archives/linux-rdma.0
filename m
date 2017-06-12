@@ -1,7 +1,7 @@
 From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [RFC 3/5] verbs: Tag matching list manipulation interface
-Date: Mon, 12 Jun 2017 09:42:45 +0300
-Message-ID: <1497249767-15353-4-git-send-email-artemyko@mellanox.com>
+Subject: [RFC 1/5] verbs: Expose tag matching capabilities
+Date: Mon, 12 Jun 2017 09:42:43 +0300
+Message-ID: <1497249767-15353-2-git-send-email-artemyko@mellanox.com>
 References: <1497249767-15353-1-git-send-email-artemyko@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1497249767-15353-1-git-send-email-artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,121 +10,58 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yosefe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, anag-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-TM-SRQ shows demand of robust offload configuration primitive.
-This patch introduced a new verb named ibv_post_srq_ops() to supply an
-API to perform such operations like tag matching list manipulations.
+Expose tag matching capabilities and show them in ibv_devinfo.
 
-Change-Id: I9fd8df2152b12f06b6b1545afec9ea1a259c0f58
+* max_rndv_hdr_size - Max size of RNDV message
+* max_num_tags - Max number of entries in tag matching list
+* max_ops - Max number of outstanding list operations
+* max_sge - Max number of SGE in a tag matching entry
+* capability_flags - TM capabilities mask:
+    - IBV_TM_CAP_RC - Support tag matching on RC transport
+
+Change-Id: I6f15a6db209155be6406bb54c714796047979f68
 Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libibverbs/verbs.h | 58 +++++++++++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 55 insertions(+), 3 deletions(-)
+ libibverbs/verbs.h | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
 diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index 120471a..42d7967 100644
+index b27dfd1..43fa386 100644
 --- a/libibverbs/verbs.h
 +++ b/libibverbs/verbs.h
-@@ -420,7 +420,8 @@ enum ibv_wc_status {
- 	IBV_WC_INV_EEC_STATE_ERR,
- 	IBV_WC_FATAL_ERR,
- 	IBV_WC_RESP_TIMEOUT_ERR,
--	IBV_WC_GENERAL_ERR
-+	IBV_WC_GENERAL_ERR,
-+	IBV_WC_TM_ERR
- };
- const char *ibv_wc_status_str(enum ibv_wc_status status);
- 
-@@ -438,7 +439,11 @@ enum ibv_wc_opcode {
-  * receive by testing (opcode & IBV_WC_RECV).
-  */
- 	IBV_WC_RECV			= 1 << 7,
--	IBV_WC_RECV_RDMA_WITH_IMM
-+	IBV_WC_RECV_RDMA_WITH_IMM,
-+
-+	IBV_WC_TM_ADD,
-+	IBV_WC_TM_DEL,
-+	IBV_WC_TM_SYNC
+@@ -259,6 +259,23 @@ enum ibv_raw_packet_caps {
+ 	IBV_RAW_PACKET_CAP_IP_CSUM		= 1 << 2,
  };
  
- enum {
-@@ -479,7 +484,8 @@ enum ibv_wc_flags {
- 	IBV_WC_GRH		= 1 << 0,
- 	IBV_WC_WITH_IMM		= 1 << 1,
- 	IBV_WC_IP_CSUM_OK	= 1 << IBV_WC_IP_CSUM_OK_SHIFT,
--	IBV_WC_WITH_INV         = 1 << 3
-+	IBV_WC_WITH_INV		= 1 << 3,
-+	IBV_WC_TM_SYNC_REQ	= 1 << 4
- };
- 
- struct ibv_wc {
-@@ -1011,6 +1017,35 @@ struct ibv_recv_wr {
- 	int			num_sge;
- };
- 
-+enum ibv_ops_wr_opcode {
-+	IBV_WR_TAG_ADD,
-+	IBV_WR_TAG_DEL,
-+	IBV_WR_TAG_SYNC
++enum ibv_tm_cap_flags {
++	IBV_TM_CAP_RC		    = 1 << 0
 +};
 +
-+enum ibv_ops_flags {
-+	IBV_OPS_SIGNALED = 1 << 0,
-+	IBV_OPS_TM_SYNC  = 1 << 1
++struct ibv_tm_caps {
++	/* Max size for RNDV message */
++	uint32_t max_rndv_hdr_size;
++	/* Max number of entries in tag matching list */
++	uint32_t max_num_tags;
++	/* TM capabilities mask - enumerated in ibv_tm_cap_flags */
++	uint32_t capability_flags;
++	/* Max number of outstanding list operations */
++	uint32_t max_ops;
++	/* Max number of SGE in a tag matching entry */
++	uint32_t max_sge;
 +};
 +
-+struct ibv_ops_wr {
-+	uint64_t				wr_id;
-+	struct ibv_ops_wr		       *next;
-+	enum ibv_ops_wr_opcode			opcode;
-+	int					flags;
-+	struct {
-+		uint32_t			unexpected_cnt;
-+		uint32_t			handle;
-+		struct {
-+			uint64_t		recv_wr_id;
-+			struct ibv_sge	       *sg_list;
-+			int			num_sge;
-+			uint64_t		tag;
-+			uint64_t		mask;
-+		} add;
-+	} tm;
-+};
-+
- struct ibv_mw_bind {
- 	uint64_t		wr_id;
- 	int			send_flags;
-@@ -1540,6 +1575,9 @@ enum verbs_context_mask {
+ struct ibv_device_attr_ex {
+ 	struct ibv_device_attr	orig_attr;
+ 	uint32_t		comp_mask;
+@@ -271,6 +288,7 @@ struct ibv_device_attr_ex {
+ 	uint32_t		max_wq_type_rq;
+ 	struct ibv_packet_pacing_caps packet_pacing_caps;
+ 	uint32_t		raw_packet_caps; /* Use ibv_raw_packet_caps */
++	struct ibv_tm_caps	tm_caps;
+ };
  
- struct verbs_context {
- 	/*  "grows up" - new fields go here */
-+	int (*post_srq_ops)(struct ibv_srq *srq,
-+			    struct ibv_ops_wr *op,
-+			    struct ibv_ops_wr **bad_op);
- 	int (*destroy_rwq_ind_table)(struct ibv_rwq_ind_table *rwq_ind_table);
- 	struct ibv_rwq_ind_table *(*create_rwq_ind_table)(struct ibv_context *context,
- 							  struct ibv_rwq_ind_table_init_attr *init_attr);
-@@ -2038,6 +2076,20 @@ static inline int ibv_post_srq_recv(struct ibv_srq *srq,
- 	return srq->context->ops.post_srq_recv(srq, recv_wr, bad_recv_wr);
- }
- 
-+static inline int ibv_post_srq_ops(struct ibv_srq *srq,
-+				   struct ibv_ops_wr *op,
-+				   struct ibv_ops_wr **bad_op)
-+{
-+	struct verbs_context *vctx;
-+
-+	vctx = verbs_get_ctx_op(srq->context, post_srq_ops);
-+	if (!vctx) {
-+		*bad_op = op;
-+		return ENOSYS;
-+	}
-+	return vctx->post_srq_ops(srq, op, bad_op);
-+}
-+
- /**
-  * ibv_create_qp - Create a queue pair.
-  */
+ enum ibv_mtu {
 -- 
 1.8.3.1
 
