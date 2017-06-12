@@ -1,84 +1,108 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH rdma-next 0/3] Support out of order data placement
-Date: Mon, 12 Jun 2017 12:18:37 -0500
-Message-ID: <074a01d2e39f$edc28860$c9479920$@opengridcomputing.com>
-References: <20170612064918.12510-1-leon@kernel.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next V1 1/5] RDMA/netlink: Remove netlink clients
+ infrastructure
+Date: Mon, 12 Jun 2017 20:24:26 +0300
+Message-ID: <20170612172426.GD2576@mtr-leonro.local>
+References: <20170611083931.13686-1-leon@kernel.org>
+ <20170611083931.13686-2-leon@kernel.org>
+ <073401d2e39b$d935bf60$8ba13e20$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="Q0rSlbzrZN6k9QnT"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170612064918.12510-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <073401d2e39b$d935bf60$8ba13e20$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Idan Burstein' <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Bart Van Assche' <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
-> Sent: Monday, June 12, 2017 1:49 AM
-> To: Doug Ledford
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Idan Burstein
-> Subject: [PATCH rdma-next 0/3] Support out of order data placement
-> 
-> Hi Doug,
-> 
-> This patch set which is based on v4.12-rc4 comes from Parav and it
-> adds support for out of order data placement for RDMA read and
-> write requests.
-> 
-> Thanks
-> 
-> ---
-> >From Parav:
-> 
-> In certain fabric configurations IB packets for a given QP may take up
-> different paths in a network from source to destination. This results
-> into reaching packets out of order at the receiver side. Instead of
-> dropping packets, handling out of order packets can improve overall
-> network performance in following ways:
->  * improve network utilization by avoiding retransmission
->  * avoiding latency increase due to retransmission
-> 
-> This patchset allows HCA to expose out of order data placement
-> capability to users who can take benefit of such feature.
-> 
-> This is optional feature of an HCA and enablement of this feature
-> is done on per QP basis. The optional QP attribute is set when a QP
-> state is changed from INIT to RTR.
-> 
-> Out of order data placement capability indicates that if HCA receives
-> out of order RDMA packets, their data placement can be done at the
-> desired memory destination given in the packet(s). This is applicable
-> to RDMA read and write operations.
-> 
-> Send queue work requests are still completed in-order regardless of
-> their data placement order at requester or responder side.
-> 
-> In-order semantics is always guaranteed by setting the Fence
-> indicator for appropriate WRs.
-> 
-> An application shall not depend on the contents of the RDMA write buffer
-> at the responder until one of the following occurred:
-> - Completion of the RDMA WRITE with immediate data receive completion.
-> - Arrival and completion of the subsequent SEND message.
-> - Update of a memory element by subsequent ATOMIC operation.
-> 
-> An application shall not depend on the contents of the RDMA read buffer
-> at the requester until one of the following occurred:
-> - Completion of the RDMA READ work request if requested or such
->   work request completes with error status.
-> - Completion of the subsequent work request.
 
+--Q0rSlbzrZN6k9QnT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Given the application follows the above semantics, why does it care if data is
-placed out of order?  IE Why does this impact the application API at all?
- 
-Steve.
+On Mon, Jun 12, 2017 at 11:49:25AM -0500, Steve Wise wrote:
+> Hey Leon:
+>
+> > diff --git a/drivers/infiniband/core/netlink.c
+> b/drivers/infiniband/core/netlink.c
+> > index fcc9702efd38..7f498ecc0f0b 100644
+> > --- a/drivers/infiniband/core/netlink.c
+> > +++ b/drivers/infiniband/core/netlink.c
+> > @@ -38,16 +38,13 @@
+> >  #include <net/sock.h>
+> >  #include <rdma/rdma_netlink.h>
+> >
+> > -struct ibnl_client {
+> > -	struct list_head		list;
+> > -	int				index;
+> > -	int				nops;
+> > -	const struct ibnl_client_cbs   *cb_table;
+> > -};
+> > +#include "core_priv.h"
+> >
+> > -static DEFINE_MUTEX(ibnl_mutex);
+> > +static DEFINE_MUTEX(rdma_nl_mutex);
+> >  static struct sock *nls;
+> > -static LIST_HEAD(client_list);
+> > +static struct {
+> > +	const struct ibnl_client_cbs   *cb_table;
+> > +} rdma_nl_types[RDMA_NL_NUM_CLIENTS];
+> >
+> >  int ibnl_chk_listeners(unsigned int group)
+> >  {
+> > @@ -57,58 +54,74 @@ int ibnl_chk_listeners(unsigned int group)
+> >  }
+> >  EXPORT_SYMBOL(ibnl_chk_listeners);
+> >
+> > -int ibnl_add_client(int index, int nops,
+> > -		    const struct ibnl_client_cbs cb_table[])
+> > +static bool is_nl_msg_valid(unsigned int type, unsigned int op)
+> >  {
+> > -	struct ibnl_client *cur;
+> > -	struct ibnl_client *nl_client;
+> > +	unsigned int max_num_ops[RDMA_NL_NUM_CLIENTS - 1] = {
+> > +				  RDMA_NL_RDMA_CM_NUM_OPS,
+> > +				  RDMA_NL_IWPM_NUM_OPS,
+> > +				  0,
+> > +				  RDMA_NL_LS_NUM_OPS,
+> > +				  0 };
+>
+> Why build max_num_ops on every call to is_nl_msg_valid()?  Shouldn't it be
+> global and static and const?
 
+Should and will :)
 
+It is my fault, I'll post new version.
+
+Thanks
+
+>
+> Steve.
+>
+
+--Q0rSlbzrZN6k9QnT
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlk+zkoACgkQ5GN7iDZy
+WKc/tRAAhh/xFcA66SO38EUjzRmifs6EhBB0ufefB3fPzObrSZXzVI08yK7ttS4P
+XIu56P3AN91qVZEfglgX8Fr+YgplsDkgqxIv1z+CNLlj03wAZa+x73XOXrqG46ZR
+NoBoK6fkxkCRjnU3Q2I8AvX0KtWeRu1UGOz8SwkUBYPPlR/2LURb9V0LYwvgIJz2
+aHR1KjWsGN7qjNAd1Vqhg0mWt60i/TbewNrXqdI9YmJJQk0is0bgZBocKQiLMXFa
+9ZB5Gsjs4+RbrUxQSUwJYaUsNpsk16/fZvd3T91fAUy57bPg5sC7ErDZ72H2P0di
+0qNm0TNeQPG/4LGLymwLSo5cl9jEZdZLA5+qNHMLRlNsvZTbmSuRnQhVtgamNiUu
+sjVaVpvYJ/csFQp7DXGpuOsacCahbPeyxEfsyp5bkm8l2QBW3Bo6ZKNSPqRmo5iN
+sE75u1D0VkoMGCVPMXvKOJUXWo23kuH2SgCAvdc842+4jaaEcacE7w7SyMpdbleV
+HdyCujjqPmUQJEyidw1DEU6szp0H8KOI6KKbUK1WDp+envWVx2VxcuO8cKU2NkCq
+zEfmhV0lQ93BnmcJKQ9GHL8qy0YxmLpR9hxHot3X6FnKbcJeLiRdoSEvxhqrQV2/
+C3Ftb7M9imjVLW7SPbAofdIDXey0eClNb9MHORLckafZ/grtLrQ=
+=Y0X3
+-----END PGP SIGNATURE-----
+
+--Q0rSlbzrZN6k9QnT--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
