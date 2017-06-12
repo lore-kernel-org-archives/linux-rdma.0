@@ -1,41 +1,62 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/3] Support out of order data placement
-Date: Mon, 12 Jun 2017 15:57:41 -0600
-Message-ID: <20170612215741.GA31693@obsidianresearch.com>
-References: <VI1PR0502MB3008CE85A4F274886B74DF2BD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <3fa7a4b5-5c19-8c6a-d78b-93219a9be888@intel.com>
- <1828884A29C6694DAF28B7E6B8A82373AB142A9B@ORSMSX109.amr.corp.intel.com>
- <VI1PR0502MB300885A1DD676E1649CDB268D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <b5279c09-027f-e374-ffde-7f236c52322c@intel.com>
- <1828884A29C6694DAF28B7E6B8A82373AB142BEC@ORSMSX109.amr.corp.intel.com>
- <085201d2e3be$81070ce0$831526a0$@opengridcomputing.com>
- <20170612210259.GA25652@obsidianresearch.com>
- <086401d2e3c1$72d54b20$587fe160$@opengridcomputing.com>
- <VI1PR0502MB30082486BC3B1669FE48764ED1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH rdma-next 0/3] Support out of order data placement
+Date: Mon, 12 Jun 2017 21:59:22 +0000
+Message-ID: <VI1PR0502MB30087762738A4E02A1DA24D0D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+References: <20170612064918.12510-1-leon@kernel.org>
+ <1497281280.2770.1.camel@wdc.com>
+ <VI1PR0502MB3008478FC7C70D1F398FE2B2D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170612162917.GA11993@obsidianresearch.com>
+ <VI1PR0502MB3008EA451DA9ECEBECE27362D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170612164343.GA12435@obsidianresearch.com>
+ <VI1PR0502MB300831A1560531E67B29589DD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170612165536.GB12435@obsidianresearch.com>
+ <6747e257-67b0-a364-be21-04f73ef82ffe@talpey.com>
+ <VI1PR0502MB30080B672B80836FF0A328DCD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170612214135.GB30578@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <VI1PR0502MB30082486BC3B1669FE48764ED1CD0-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <20170612214135.GB30578-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "'Dalessandro, Dennis'" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 12, 2017 at 09:53:55PM +0000, Parav Pandit wrote:
-> I will add following more details to Documentation.
-> 1. Mention about pcie relax ordering - Barts point
-> 2. Include responder side table like Table 79 to crisply describe all cases and ordering with respect to send and other messages
-> 3. Also indicate that C9-28 is relaxed when ooo is enabled on a QP as a description to new responder side table.
-> This was offline comment that I received.
-> 4. Provide examples that Steve and Jason highlighted, with multiple writes to same memory location.
-> 5. Reiterate table 79, to make it clear that what doesn't change, or changes.
-> Let me know if you want to see any more details.
+Hi Jason,
 
-Explain why this needs to be negotiated and what it does to the
-transmit side of a QP.
+> -----Original Message-----
+> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
+> Sent: Monday, June 12, 2017 4:42 PM
+> To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>; Bart Van Assche
+> <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>; leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org;
+> linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Subject: Re: [PATCH rdma-next 0/3] Support out of order data placement
+>=20
+> On Mon, Jun 12, 2017 at 09:32:30PM +0000, Parav Pandit wrote:
+>=20
+> > There can be cases in deployment where responder has support for
+> > receiving out-of-order, but requester doesn't.  Read responses
+>=20
+> You still haven't explained at all what the transmitter side does differe=
+ntly..
 
-Jason
+Let's say
+Read-1
+Read-2 are issued by requester.
+
+For some reason read response for each read arrived via different path to r=
+equester,
+If ooo is enabled on a QP they will be processed correctly. Else read respo=
+nses for 2nd read could be dropped.
+Here transmitter of read responder is different when ooo is enabled.
+
+>=20
+> Is this actually some kind of selective retransmit scheme?
+>=20
+> Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
