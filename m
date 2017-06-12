@@ -1,89 +1,51 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH 1/2] IB/mlx5: Fix cached MR allocation flow
-Date: Mon, 12 Jun 2017 10:36:15 +0300
-Message-ID: <20170612073616.14852-1-leon@kernel.org>
+Subject: [PATCH 2/2] IB/mlx5: Fix existence check for extended address vector
+Date: Mon, 12 Jun 2017 10:36:16 +0300
+Message-ID: <20170612073616.14852-2-leon@kernel.org>
+References: <20170612073616.14852-1-leon@kernel.org>
 Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20170612073616.14852-1-leon@kernel.org>
 Sender: stable-owner@vger.kernel.org
 To: Doug Ledford <dledford@redhat.com>
-Cc: linux-rdma@vger.kernel.org, Majd Dibbiny <majd@mellanox.com>, stable@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, Majd Dibbiny <majd@mellanox.com>, stable@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Majd Dibbiny <majd@mellanox.com>
+From: Leon Romanovsky <leonro@mellanox.com>
 
-When we have a miss in one order of the mkey cache, we try to get
-an mkey from a higher order.
+The extended address vector is the highest bit in be32 variable,
+but it was compared with the lowest. This patch fixes the endianness
+of that check and removes already declared define.
 
-We still need to check that the higher order can be used with UMR
-before using it. Otherwise, we will get an mkey with 0 entries and
-the post send operation that is used to fill it will complete with
-the following error:
-
-mlx5_0:dump_cqe:275:(pid 0): dump error cqe
-00000000 00000000 00000000 00000000
-00000000 00000000 00000000 00000000
-00000000 0f007806 25000025 49ce59d2
-
-Fixes: 49780d42dfc9 ("IB/mlx5: Expose MR cache for mlx5_ib")
-Cc: <stable@vger.kernel.org> # v4.10+
-Signed-off-by: Majd Dibbiny <majd@mellanox.com>
-Reviewed-by: Ilya Lesokhin <ilyal@mellanox.com>
-Signed-off-by: Leon Romanovsky <leon@kernel.org>
+Fixes: 17d2f88f92ce ("IB/mlx5: Add ODP atomics support")
+Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/mr.c | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/mlx5/odp.c | 2 +-
+ include/linux/mlx5/qp.h          | 1 -
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 366433f71b58..69dc10bf73c4 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -48,6 +48,7 @@ enum {
- #define MLX5_UMR_ALIGN 2048
- 
- static int clean_mr(struct mlx5_ib_mr *mr);
-+static int max_umr_order(struct mlx5_ib_dev *dev);
- static int use_umr(struct mlx5_ib_dev *dev, int order);
- static int unreg_umr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr);
- 
-@@ -491,16 +492,18 @@ static struct mlx5_ib_mr *alloc_cached_mr(struct mlx5_ib_dev *dev, int order)
- 	struct mlx5_mr_cache *cache = &dev->cache;
- 	struct mlx5_ib_mr *mr = NULL;
- 	struct mlx5_cache_ent *ent;
-+	int last_umr_cache_entry;
- 	int c;
- 	int i;
- 
- 	c = order2idx(dev, order);
--	if (c < 0 || c > MAX_UMR_CACHE_ENTRY) {
-+	last_umr_cache_entry = order2idx(dev, max_umr_order(dev));
-+	if (c < 0 || c > last_umr_cache_entry) {
- 		mlx5_ib_warn(dev, "order %d, cache index %d\n", order, c);
- 		return NULL;
- 	}
- 
--	for (i = c; i < MAX_UMR_CACHE_ENTRY; i++) {
-+	for (i = c; i <= last_umr_cache_entry; i++) {
- 		ent = &cache->ent[i];
- 
- 		mlx5_ib_dbg(dev, "order %d, cache index %d\n", ent->order, i);
-@@ -806,11 +809,16 @@ static int get_octo_len(u64 addr, u64 len, int page_size)
- 	return (npages + 1) / 2;
- }
- 
--static int use_umr(struct mlx5_ib_dev *dev, int order)
-+static int max_umr_order(struct mlx5_ib_dev *dev)
- {
- 	if (MLX5_CAP_GEN(dev->mdev, umr_extended_translation_offset))
--		return order <= MAX_UMR_CACHE_ENTRY + 2;
--	return order <= MLX5_MAX_UMR_SHIFT;
-+		return MAX_UMR_CACHE_ENTRY + 2;
-+	return MLX5_MAX_UMR_SHIFT;
-+}
-+
-+static int use_umr(struct mlx5_ib_dev *dev, int order)
-+{
-+	return order <= max_umr_order(dev);
- }
- 
- static int mr_umem_get(struct ib_pd *pd, u64 start, u64 length,
--- 
-2.12.2
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+index ae0746754008..3d701c7a4c91 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -939,7 +939,7 @@ static int mlx5_ib_mr_initiator_pfault_handler(
+
+ 	if (qp->ibqp.qp_type != IB_QPT_RC) {
+ 		av = *wqe;
+-		if (av->dqp_dct & be32_to_cpu(MLX5_WQE_AV_EXT))
++		if (av->dqp_dct & cpu_to_be32(MLX5_EXTENDED_UD_AV))
+ 			*wqe += sizeof(struct mlx5_av);
+ 		else
+ 			*wqe += sizeof(struct mlx5_base_av);
+diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
+index bef80d0a0e30..a6d710aa6db3 100644
+--- a/include/linux/mlx5/qp.h
++++ b/include/linux/mlx5/qp.h
+@@ -212,7 +212,6 @@ struct mlx5_wqe_ctrl_seg {
+ #define MLX5_WQE_CTRL_OPCODE_MASK 0xff
+ #define MLX5_WQE_CTRL_WQE_INDEX_MASK 0x00ffff00
+ #define MLX5_WQE_CTRL_WQE_INDEX_SHIFT 8
+-#define MLX5_WQE_AV_EXT 0x80000000
+
+ enum {
+ 	MLX5_ETH_WQE_L3_INNER_CSUM      = 1 << 4,
