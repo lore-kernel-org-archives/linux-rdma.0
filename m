@@ -1,63 +1,86 @@
-From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC 2/5] verbs: Introduce tag matching SRQ
-Date: Tue, 13 Jun 2017 00:31:11 +0300
-Message-ID: <bd402c01-f12e-52e8-c96f-0d2db0459b22@mellanox.com>
-References: <1497249767-15353-1-git-send-email-artemyko@mellanox.com>
- <1497249767-15353-3-git-send-email-artemyko@mellanox.com>
- <20170612163856.GA12282@obsidianresearch.com>
- <0c00c167-1cfb-d169-134d-d608079b53df@mellanox.com>
- <20170612205015.GA24893@obsidianresearch.com>
- <af1d8a49-7d4a-6f3c-b5a1-c4aba79d74d1@mellanox.com>
- <20170612211816.GA27649@obsidianresearch.com>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH rdma-next 0/3] Support out of order data placement
+Date: Mon, 12 Jun 2017 21:32:30 +0000
+Message-ID: <VI1PR0502MB30080B672B80836FF0A328DCD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+References: <20170612064918.12510-1-leon@kernel.org>
+ <1497281280.2770.1.camel@wdc.com>
+ <VI1PR0502MB3008478FC7C70D1F398FE2B2D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170612162917.GA11993@obsidianresearch.com>
+ <VI1PR0502MB3008EA451DA9ECEBECE27362D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170612164343.GA12435@obsidianresearch.com>
+ <VI1PR0502MB300831A1560531E67B29589DD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170612165536.GB12435@obsidianresearch.com>
+ <6747e257-67b0-a364-be21-04f73ef82ffe@talpey.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170612211816.GA27649-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <6747e257-67b0-a364-be21-04f73ef82ffe-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yosefe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, anag-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 13/06/2017 00:18, Jason Gunthorpe wrote:
-> On Tue, Jun 13, 2017 at 12:09:29AM +0300, Artemy Kovalyov wrote:
->>
->>
->> On 12/06/2017 23:50, Jason Gunthorpe wrote:
->>> On Mon, Jun 12, 2017 at 11:38:09PM +0300, Artemy Kovalyov wrote:
->>>>
->>>>
->>>> On 12/06/2017 19:38, Jason Gunthorpe wrote:
->>>>> On Mon, Jun 12, 2017 at 09:42:44AM +0300, Artemy Kovalyov wrote:
->>>>>> enum ibv_srq_type {
->>>>>> 	IBV_SRQT_BASIC,
->>>>>> -	IBV_SRQT_XRC
->>>>>> +	IBV_SRQT_XRC,
->>>>>> +	IBV_SRQT_TAG_MATCHING
->>>>>> };
->>>>>
->>>>> Please put trailing commas on all these enum changes in all patches
->>>>
->>>> So do we drop overboard all -Wpedantic users?
->>>
->>> Eh? Try it.
->>>
->>> You only get warnings if your compiler is running in c89 or ansi mode,
->>> which went 'overboard' a long time ago.
->> Bare -Wpedantic -Werror fails with this.
->
-> You need -std=c99 on older compilers.
-
-That was my point - implying new standards' ubiquity we narrowing 
-compatibility.
-I not insist, just want to clarify whether this code standard was chosen 
-for the project.
-
->
-> Jason
->
+SGkgVG9tLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFRvbSBUYWxw
+ZXkgW21haWx0bzp0b21AdGFscGV5LmNvbV0NCj4gU2VudDogTW9uZGF5LCBKdW5lIDEyLCAyMDE3
+IDQ6MDkgUE0NCj4gVG86IEphc29uIEd1bnRob3JwZSA8amd1bnRob3JwZUBvYnNpZGlhbnJlc2Vh
+cmNoLmNvbT47IFBhcmF2IFBhbmRpdA0KPiA8cGFyYXZAbWVsbGFub3guY29tPg0KPiBDYzogQmFy
+dCBWYW4gQXNzY2hlIDxCYXJ0LlZhbkFzc2NoZUBzYW5kaXNrLmNvbT47IGxlb25Aa2VybmVsLm9y
+ZzsNCj4gZGxlZGZvcmRAcmVkaGF0LmNvbTsgbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IElk
+YW4gQnVyc3RlaW4NCj4gPGlkYW5iQG1lbGxhbm94LmNvbT4NCj4gU3ViamVjdDogUmU6IFtQQVRD
+SCByZG1hLW5leHQgMC8zXSBTdXBwb3J0IG91dCBvZiBvcmRlciBkYXRhIHBsYWNlbWVudA0KPiAN
+Cj4gT24gNi8xMi8yMDE3IDEyOjU1IFBNLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6DQo+ID4gT24g
+TW9uLCBKdW4gMTIsIDIwMTcgYXQgMDQ6NTM6MjhQTSArMDAwMCwgUGFyYXYgUGFuZGl0IHdyb3Rl
+Og0KPiA+Pg0KPiA+Pg0KPiA+Pj4gRnJvbTogSmFzb24gR3VudGhvcnBlIFttYWlsdG86amd1bnRo
+b3JwZUBvYnNpZGlhbnJlc2VhcmNoLmNvbV0NCj4gPj4+IFNlbnQ6IE1vbmRheSwgSnVuZSAxMiwg
+MjAxNyAxMTo0NCBBTQ0KPiA+Pj4gVG86IFBhcmF2IFBhbmRpdCA8cGFyYXZAbWVsbGFub3guY29t
+Pg0KPiA+Pj4gQ2M6IEJhcnQgVmFuIEFzc2NoZSA8QmFydC5WYW5Bc3NjaGVAc2FuZGlzay5jb20+
+OyBsZW9uQGtlcm5lbC5vcmc7DQo+ID4+PiBkbGVkZm9yZEByZWRoYXQuY29tOyBsaW51eC1yZG1h
+QHZnZXIua2VybmVsLm9yZzsgSWRhbiBCdXJzdGVpbg0KPiA+Pj4gPGlkYW5iQG1lbGxhbm94LmNv
+bT4NCj4gPj4+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggcmRtYS1uZXh0IDAvM10gU3VwcG9ydCBvdXQg
+b2Ygb3JkZXIgZGF0YQ0KPiA+Pj4gcGxhY2VtZW50DQo+ID4+Pg0KPiA+Pj4gT24gTW9uLCBKdW4g
+MTIsIDIwMTcgYXQgMDQ6NDI6MjdQTSArMDAwMCwgUGFyYXYgUGFuZGl0IHdyb3RlOg0KPiA+Pj4N
+Cj4gPj4+Pj4gSSB3b3VsZCBzdWdnZXN0IGF0IGxlYXN0IHVzaW5nIHRoZSBpbnZlcnRlZCBzZW5z
+ZSBsaWtlIEJhcnQNCj4gPj4+Pj4gZGVzY3JpYmVzIGluIHRoZSBrZXJuZWwgLSBldmVyeSBrZXJu
+ZWwgVUxQIGlzIHNhZmUuDQo+ID4+Pg0KPiA+Pj4+IEkgZG9uJ3Qgc2VlIGEgbmVlZCB0byB1c2Ug
+aW52ZXJ0ZWQgc2Vuc2UgaW4gY29kZS4gSSBjYW4gc3VyZWx5IG1ha2UNCj4gPj4+IGRvY3VtZW50
+YXRpb24gbW9yZSBkZXNjcmlwdGl2ZSBhcyBCYXJ0IHN1Z2dlc3RlZC4NCj4gPj4+DQo+ID4+PiBJ
+ZiB0aGlzIGlzICdiZXR0ZXInIHRoZW4gaXQgc2hvdWxkIGJlIG9uIGFzIG11Y2ggYXMgcG9zc2li
+bGUsIGFuZCBJDQo+ID4+PiBjZXJ0aWFubHkgZG9uJ3Qgd2FudCB0byBzZWUga2VybmVsIFVMUHMg
+cXVlcnkgY2FwcyBhbmQgb3RoZXINCj4gPj4+IHBvaW50bGVzcyB0aGluZ3Mgd2hlbiB0aGV5IGFs
+cmVhZHksIG5lY2Vzc2FyaWx5LCBkZWFsIHdpdGggb3V0IG9mIG9yZGVyLg0KPiA+Pg0KPiA+PiBT
+dXJlLiBLZXJuZWwgVUxQcyBhbmQgYW55IG90aGVyIHVzZXIgVUxQcyBjYW4gc2tpcCBxdWVyeSBj
+YXBzLg0KPiA+DQo+ID4gTm8sIHRoZXkgY2FuJ3QgYmVjYXVzZSBvbmx5IG1seDUgYWNjZXB0cyB0
+aGUgbmV3IGZsYWcuDQo+ID4NCj4gPiBUaGlzIGlzIHdoeSBpbnZlcnRpbmcgdGhlIGZsYWcgaW4g
+dGhlIGtlcm5lbCBtYWtlcyBtdWNoIG1vcmUgc2Vuc2UuDQo+IA0KPiBBYnNvbHV0ZWx5LiBBbGwg
+aVdBUlAgYWRhcHRlcnMgc3VwcG9ydCBtdWx0aXBsZSBSRE1BIFdyaXRlcyBpbiBmbGlnaHQsIGFu
+ZA0KPiB0aGVpciBwbGFjZW1lbnQgaXMgbm90IG9yZGVyZWQuIEl0J3MgYSBxdWlyayBvZiB0aGUg
+TUxYIGRldmljZXMsIGFuZCBpbiB0dXJuDQo+IHRoZWlyIGltcGxlbWVudGF0aW9uIG9mIHRoZSBJ
+QiBwcm90b2NvbCwgdGhhdCB0aGV5IHBsYWNlIHdyaXRlcyBpbi1vcmRlci4gSSdtDQo+IGhhcHB5
+IHRvIHNlZSBNZWxsYW5veCBiZWNvbWUgYXdhcmUgb2YgdGhpcywgaXQgbGltaXRzIHdyaXRlIHBl
+cmZvcm1hbmNlIG9uDQo+IG5ldHdvcmtzIHdpdGggYW55IHNpZ25pZmljYW50IGxhdGVuY2llcy4N
+Cj4gDQo+IEkgYWdyZWUgd2l0aCBKYXNvbiwgdGhlIGJpdCBzaG91bGQgYmUgMSBieSBkZWZhdWx0
+LCBpZiBkZWZpbmVkIGFzIHlvdSBwcm9wb3NlLg0KPiBPdXQtb2Ytb3JkZXIgaXMgdGhlIG5vcm0s
+IG5vdCB0aGUgZXhjZXB0aW9uLCBmb3IgVUxQcy4NCj4gSG9uZXN0bHksIEkgdGhpbmsgeW91IHNo
+b3VsZCBwZXJoYXBzIGNvbnNpZGVyIG1ha2luZyBpdCB0aGUgZGVmYXVsdCBvbiB5b3VyDQo+IGRl
+dmljZXMsIGFuZCBhbGxvd2luZyBvbmx5IE1MWC1hd2FyZSBVTFBzIHRvIHR1cm4gaXQgb2ZmLg0K
+PiANCg0KVGhlcmUgY2FuIGJlIGNhc2VzIGluIGRlcGxveW1lbnQgd2hlcmUgcmVzcG9uZGVyIGhh
+cyBzdXBwb3J0IGZvciByZWNlaXZpbmcgb3V0LW9mLW9yZGVyLCBidXQgcmVxdWVzdGVyIGRvZXNu
+J3QuDQpSZWFkIHJlc3BvbnNlcyBhcnJpdmluZyBvdXQgb2Ygb3JkZXIgZm9yIGRpZmZlcmVudCBt
+ZXNzYWdlcyBhdCByZXF1ZXN0ZXIgc2lkZSB3b3VsZCBicmVhay4NCkluIG90aGVyIGNhc2UgaWYg
+aXRzIHN1cHBvcnRlZCBvbiByZXF1ZXN0ZXIgc2lkZSwgYnV0IG5vdCBzdXBwb3J0ZWQgb24gcmVz
+cG9uZGVyIHNpZGUsIHdvdWxkIHJlc3VsdCBpbnRvIG1vcmUgcmV0cmFuc21pc3Npb24gYmVjYXVz
+ZSByZXNwb25kZXIgY2Fubm90IGhhbmRsZSB0aGVtIGFuZCB0cmlnZ2VycyBQU04gc2VxdWVuY2Ug
+ZXJyb3IuDQpSZXF1ZXN0ZXIgYW5kIHJlc3BvbmRlciBib3RoIG5lZWRzIHRvIGtub3cgd2hlbiB0
+aGV5IGVuYWJsZSBvdXQtb2Ytb3JkZXIgb24gYSBnaXZlbiBRUC4NClNvIHdlIHNob3VsZG7igJl0
+IGVuYWJsZSBpdCBieSBkZWZhdWx0IG9uIGFsbCBRUHMuDQoNCj4gVGhlIFdpbmRvd3MgTkRLIEFQ
+SSBoYXMgYSBzaW1pbGFyIGNvbmNlcHQsIGJ5IHRoZSB3YXksIGl0IGZsaXBzIHlvdXINCj4gbWVh
+bmluZyBhbmQgZGVmYXVsdHMgdG8gMC4gQWxzbywgaXQncyBub3Qgc2V0dGFibGUgYnkgdGhlIFVM
+UC4gVGhlIGZsYWcgaXNuJ3QNCj4gdXNlZCBmb3IgbXVjaCwgYXMgYSByZXN1bHQuDQo+IA0KPiBO
+REtfQURBUFRFUl9GTEFHX0lOX09SREVSX0RNQV9TVVBQT1JURUQNCj4gDQo+IGh0dHBzOi8vbXNk
+bi5taWNyb3NvZnQuY29tL2VuLQ0KPiB1cy9saWJyYXJ5L3dpbmRvd3MvaGFyZHdhcmUvaGg0Mzk4
+NTEodj12cy44NSkuYXNweA0KPiANCj4gDQo+IFRvbS4NCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
