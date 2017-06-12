@@ -1,35 +1,43 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-next V2 3/6] IB/mlx5: Add support for QP with a
- given source QPN
-Date: Mon, 12 Jun 2017 10:02:57 -0600
-Message-ID: <20170612160257.GA24829@obsidianresearch.com>
-References: <20170608131511.21040-1-leon@kernel.org>
- <20170608131511.21040-4-leon@kernel.org>
- <20170608163020.GA16857@obsidianresearch.com>
- <0ee2641a-4308-6b35-cd0a-e1a5b8b84a6a@dev.mellanox.co.il>
+Subject: Re: [for-next 4/6] net/mlx5: FPGA, Add basic support for Innova
+Date: Mon, 12 Jun 2017 10:14:23 -0600
+Message-ID: <20170612161423.GB24829@obsidianresearch.com>
+References: <20170601153704.GA1680@obsidianresearch.com>
+ <AM4PR0501MB19404B83A69B87AFB1326B45DBF50@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+ <20170605151724.GA20182@obsidianresearch.com>
+ <AM4PR0501MB194008AAABEB6AAAA2ADFC82DBCB0@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+ <20170606161709.GA8671@obsidianresearch.com>
+ <CALzJLG9Rdjme2piWX+CDeHZZebWArM_wGjLJPh8=COOxBHuFkw@mail.gmail.com>
+ <20170607154858.GA30124@obsidianresearch.com>
+ <CALzJLG8epxWp1pmTd_fxOUfzXF5YoOFfnrRBJ0-YZVL1Gi_yOw@mail.gmail.com>
+ <20170607192132.GA10929@obsidianresearch.com>
+ <AM4PR0501MB19401208254971445E61367EDBCC0@AM4PR0501MB1940.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <0ee2641a-4308-6b35-cd0a-e1a5b8b84a6a-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <AM4PR0501MB19401208254971445E61367EDBCC0-dp/nxUn679gfNUYDR5dMTsDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Alexei Starovoitov <alexei.starovoitov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jsorensen-b10kYP2dOMg@public.gmane.org" <jsorensen-b10kYP2dOMg@public.gmane.org>, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-fpga-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-fpga-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Tull <atull-yzvPICuk2ABMcg4IHK0kFoH6Mc4MB0Vx@public.gmane.org>, "yi1.li-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <yi1.li-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jun 11, 2017 at 09:51:49AM +0300, Yishai Hadas wrote:
-> On 6/8/2017 7:30 PM, Jason Gunthorpe wrote:
+On Sun, Jun 11, 2017 at 05:59:04AM +0000, Ilan Tayari wrote:
+> > This is especially true for mlx nics as there are many raw packet
+> > bypass mechanisms available to userspace.
 > 
-> >I thought the discussion conclusion was to get rid of this confusing
-> >linkage from the API?
-> >
-> 
-> We agreed that from API point of view as introduced in the IB patches there
-> is no linkage, however, each vendor can implement it according to its
-> hardware.
+> The device uses internal signaling that ensures that no entity other
+> than the mlx5 driver can talk over the FPGA channel.  This is also
+> the reason why this is not a "ULP in a driver", but rather an
+> internal bus that happens to use some of our existing HW features.
 
-That doesn't even make sense. An API is an API, if the API does not
-require linkage then the hardware can't either.
+You are taking both positions at once - that this is *just* a 'bump on
+the wire' and everything is done via ethernet packets, and also that
+there is a special internal bus that nothing needs to know about.
+
+It is hard to be both ways, if it is ethernet packets there there are
+ways to create those packets outside the driver's control and security
+is a big question.
 
 Jason
 --
