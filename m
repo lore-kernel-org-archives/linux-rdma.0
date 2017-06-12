@@ -1,75 +1,282 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC 0/5] Hardware tag matching
-Date: Mon, 12 Jun 2017 14:13:48 +0300
-Message-ID: <20170612111348.GB2576@mtr-leonro.local>
-References: <1497249767-15353-1-git-send-email-artemyko@mellanox.com>
- <20170612074055.GA24879@infradead.org>
- <628acd1f-7502-be87-df2e-48475f34fdd8@mellanox.com>
- <20170612104600.GA2576@mtr-leonro.local>
- <20170612110507.GA14990@infradead.org>
+From: <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: patch "IB: nes: convert to use DRIVER_ATTR_RW" added to driver-core-testing
+Date: Mon, 12 Jun 2017 16:15:20 +0200
+Message-ID: <1497276920274@kroah.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="4SFOXa2GPu3tIq4H"
+Content-Type: text/plain; charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170612110507.GA14990-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yosefe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, anag-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---4SFOXa2GPu3tIq4H
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This is a note to let you know that I've just added the patch titled
 
-On Mon, Jun 12, 2017 at 04:05:07AM -0700, Christoph Hellwig wrote:
-> On Mon, Jun 12, 2017 at 01:46:00PM +0300, Leon Romanovsky wrote:
-> > On Mon, Jun 12, 2017 at 12:41:12PM +0300, Artemy Kovalyov wrote:
-> > > On 12/06/2017 10:40, Christoph Hellwig wrote:
-> > > > Artem, what firmware version / what specific hardware do I need for
-> > > > this?  I've been working on prototyping a simpler subset of this
-> > > > (1:1 tag matching) for use in NVMe or NFS over RDMA, so I'd like to
-> > > > play around with your code to see if it matches my use case as well.
-> > >
-> > > Christoph, here is Contect-X5 firmware with Tag matching support:
-> > >  http://www.mellanox.com/page/firmware_table_ConnectX5IB
-> >
-> > Latest available FW for ConnectX-5 supports Tag Matching.
->
-> Is there support for ConnectX-4 as well?
+    IB: nes: convert to use DRIVER_ATTR_RW
 
-Right now - no.
-AFAIK, there is need HW support and CX-4 lacks it.
+to my driver-core git tree which can be found at
+    git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core.git
+in the driver-core-testing branch.
 
-Thanks
+The patch will show up in the next release of the linux-next tree
+(usually sometime within the next 24 hours during the week.)
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The patch will be merged to the driver-core-next branch sometime soon,
+after it passes testing, and the merge window is open.
 
---4SFOXa2GPu3tIq4H
-Content-Type: application/pgp-signature; name="signature.asc"
+If you have any questions about this process, please let me know.
 
------BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlk+d2wACgkQ5GN7iDZy
-WKcIfBAAlKj4mEuEBh6pxIldosgNSPJ5CtW4jirP+9zvEAwWfNJ8ZJavwgDF87Jh
-/bvsw6Gwt4F1bdtEJbqhQWSCon18+SH5gF/iJJa8gMtiAAu/JVkHA8tARpEmNrWU
-qAX0HWJjFuxWBsr8hRKYwh+Tq6nCwP/RTG17ouDYvX9RSZoMbg1ooKd3txpPxzWj
-Ectw281c4xUv/PWfT6GCEco+qeT0mem7xTEctxN2oNZ0N9aFXjIRVWL9NdKYHWIN
-KtSfeAMRaX0ABzrcoMxVWqaoDo+X6qanoLCpywjN0e7kDeIIWA66gFWIrGtxtQOE
-omP9FZ3NA91Ilsky6vdaCNN1Elyy/Wd5rQuBRaMMHP7mvS2oD0rdni01nTRnN1OA
-Hj0j6UaenQj4rGgH68NN1w5au6CKaSJcxdhzsSnQhhvPMiQ5kDsC6jXsoXODAvOt
-wqTCrB4w2gWvhcGgmdS+ybAT4gmlqNOymJfKnwbH2jRETrnvCAalMSwurL2Xb94L
-HdvkU+noyuE1Lc2OEP25V5ziMNg4Q515Md7GABzBQMpYOPl5j2n96x54RKtg3gnc
-F74hhQP6YWenmNhaonhHWkpHwaYudPzFu2ym0VUgIVGvrVwoJ/cEy4/3eZ/iOoi3
-n6l8Q//hvDcjipucRdar2HXdtPmXEdJtWRcf1OCSZGxj0a8TL8A=
-=K3ev
------END PGP SIGNATURE-----
+>From c1357e452dc2b0a8c4826144d780e9a552782afe Mon Sep 17 00:00:00 2001
+From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Date: Fri, 9 Jun 2017 11:03:05 +0200
+Subject: IB: nes: convert to use DRIVER_ATTR_RW
 
---4SFOXa2GPu3tIq4H--
+We are trying to get rid of DRIVER_ATTR(), and all of the nes.c driver
+attributes can be trivially changed to use DRIVER_ATTR_RW(), making the
+code smaller and easier to manage over time.
+
+Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Reviewed-by: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+---
+ drivers/infiniband/hw/nes/nes.c | 80 ++++++++++++++++-------------------------
+ 1 file changed, 31 insertions(+), 49 deletions(-)
+
+diff --git a/drivers/infiniband/hw/nes/nes.c b/drivers/infiniband/hw/nes/nes.c
+index 5b9601014f0c..a30aa6527f7e 100644
+--- a/drivers/infiniband/hw/nes/nes.c
++++ b/drivers/infiniband/hw/nes/nes.c
+@@ -815,7 +815,7 @@ static struct pci_driver nes_pci_driver = {
+ 	.remove = nes_remove,
+ };
+ 
+-static ssize_t nes_show_adapter(struct device_driver *ddp, char *buf)
++static ssize_t adapter_show(struct device_driver *ddp, char *buf)
+ {
+ 	unsigned int  devfn = 0xffffffff;
+ 	unsigned char bus_number = 0xff;
+@@ -834,7 +834,7 @@ static ssize_t nes_show_adapter(struct device_driver *ddp, char *buf)
+ 	return snprintf(buf, PAGE_SIZE, "%x:%x\n", bus_number, devfn);
+ }
+ 
+-static ssize_t nes_store_adapter(struct device_driver *ddp,
++static ssize_t adapter_store(struct device_driver *ddp,
+ 	const char *buf, size_t count)
+ {
+ 	char *p = (char *)buf;
+@@ -843,7 +843,7 @@ static ssize_t nes_store_adapter(struct device_driver *ddp,
+ 	return strnlen(buf, count);
+ }
+ 
+-static ssize_t nes_show_ee_cmd(struct device_driver *ddp, char *buf)
++static ssize_t eeprom_cmd_show(struct device_driver *ddp, char *buf)
+ {
+ 	u32 eeprom_cmd = 0xdead;
+ 	u32 i = 0;
+@@ -859,7 +859,7 @@ static ssize_t nes_show_ee_cmd(struct device_driver *ddp, char *buf)
+ 	return snprintf(buf, PAGE_SIZE, "0x%x\n", eeprom_cmd);
+ }
+ 
+-static ssize_t nes_store_ee_cmd(struct device_driver *ddp,
++static ssize_t eeprom_cmd_store(struct device_driver *ddp,
+ 	const char *buf, size_t count)
+ {
+ 	char *p = (char *)buf;
+@@ -880,7 +880,7 @@ static ssize_t nes_store_ee_cmd(struct device_driver *ddp,
+ 	return strnlen(buf, count);
+ }
+ 
+-static ssize_t nes_show_ee_data(struct device_driver *ddp, char *buf)
++static ssize_t eeprom_data_show(struct device_driver *ddp, char *buf)
+ {
+ 	u32 eeprom_data = 0xdead;
+ 	u32 i = 0;
+@@ -897,7 +897,7 @@ static ssize_t nes_show_ee_data(struct device_driver *ddp, char *buf)
+ 	return  snprintf(buf, PAGE_SIZE, "0x%x\n", eeprom_data);
+ }
+ 
+-static ssize_t nes_store_ee_data(struct device_driver *ddp,
++static ssize_t eeprom_data_store(struct device_driver *ddp,
+ 	const char *buf, size_t count)
+ {
+ 	char *p = (char *)buf;
+@@ -918,7 +918,7 @@ static ssize_t nes_store_ee_data(struct device_driver *ddp,
+ 	return strnlen(buf, count);
+ }
+ 
+-static ssize_t nes_show_flash_cmd(struct device_driver *ddp, char *buf)
++static ssize_t flash_cmd_show(struct device_driver *ddp, char *buf)
+ {
+ 	u32 flash_cmd = 0xdead;
+ 	u32 i = 0;
+@@ -935,7 +935,7 @@ static ssize_t nes_show_flash_cmd(struct device_driver *ddp, char *buf)
+ 	return  snprintf(buf, PAGE_SIZE, "0x%x\n", flash_cmd);
+ }
+ 
+-static ssize_t nes_store_flash_cmd(struct device_driver *ddp,
++static ssize_t flash_cmd_store(struct device_driver *ddp,
+ 	const char *buf, size_t count)
+ {
+ 	char *p = (char *)buf;
+@@ -956,7 +956,7 @@ static ssize_t nes_store_flash_cmd(struct device_driver *ddp,
+ 	return strnlen(buf, count);
+ }
+ 
+-static ssize_t nes_show_flash_data(struct device_driver *ddp, char *buf)
++static ssize_t flash_data_show(struct device_driver *ddp, char *buf)
+ {
+ 	u32 flash_data = 0xdead;
+ 	u32 i = 0;
+@@ -973,7 +973,7 @@ static ssize_t nes_show_flash_data(struct device_driver *ddp, char *buf)
+ 	return  snprintf(buf, PAGE_SIZE, "0x%x\n", flash_data);
+ }
+ 
+-static ssize_t nes_store_flash_data(struct device_driver *ddp,
++static ssize_t flash_data_store(struct device_driver *ddp,
+ 	const char *buf, size_t count)
+ {
+ 	char *p = (char *)buf;
+@@ -994,12 +994,12 @@ static ssize_t nes_store_flash_data(struct device_driver *ddp,
+ 	return strnlen(buf, count);
+ }
+ 
+-static ssize_t nes_show_nonidx_addr(struct device_driver *ddp, char *buf)
++static ssize_t nonidx_addr_show(struct device_driver *ddp, char *buf)
+ {
+ 	return  snprintf(buf, PAGE_SIZE, "0x%x\n", sysfs_nonidx_addr);
+ }
+ 
+-static ssize_t nes_store_nonidx_addr(struct device_driver *ddp,
++static ssize_t nonidx_addr_store(struct device_driver *ddp,
+ 	const char *buf, size_t count)
+ {
+ 	char *p = (char *)buf;
+@@ -1010,7 +1010,7 @@ static ssize_t nes_store_nonidx_addr(struct device_driver *ddp,
+ 	return strnlen(buf, count);
+ }
+ 
+-static ssize_t nes_show_nonidx_data(struct device_driver *ddp, char *buf)
++static ssize_t nonidx_data_show(struct device_driver *ddp, char *buf)
+ {
+ 	u32 nonidx_data = 0xdead;
+ 	u32 i = 0;
+@@ -1027,7 +1027,7 @@ static ssize_t nes_show_nonidx_data(struct device_driver *ddp, char *buf)
+ 	return  snprintf(buf, PAGE_SIZE, "0x%x\n", nonidx_data);
+ }
+ 
+-static ssize_t nes_store_nonidx_data(struct device_driver *ddp,
++static ssize_t nonidx_data_store(struct device_driver *ddp,
+ 	const char *buf, size_t count)
+ {
+ 	char *p = (char *)buf;
+@@ -1048,12 +1048,12 @@ static ssize_t nes_store_nonidx_data(struct device_driver *ddp,
+ 	return strnlen(buf, count);
+ }
+ 
+-static ssize_t nes_show_idx_addr(struct device_driver *ddp, char *buf)
++static ssize_t idx_addr_show(struct device_driver *ddp, char *buf)
+ {
+ 	return  snprintf(buf, PAGE_SIZE, "0x%x\n", sysfs_idx_addr);
+ }
+ 
+-static ssize_t nes_store_idx_addr(struct device_driver *ddp,
++static ssize_t idx_addr_store(struct device_driver *ddp,
+ 	const char *buf, size_t count)
+ {
+ 	char *p = (char *)buf;
+@@ -1064,7 +1064,7 @@ static ssize_t nes_store_idx_addr(struct device_driver *ddp,
+ 	return strnlen(buf, count);
+ }
+ 
+-static ssize_t nes_show_idx_data(struct device_driver *ddp, char *buf)
++static ssize_t idx_data_show(struct device_driver *ddp, char *buf)
+ {
+ 	u32 idx_data = 0xdead;
+ 	u32 i = 0;
+@@ -1081,7 +1081,7 @@ static ssize_t nes_show_idx_data(struct device_driver *ddp, char *buf)
+ 	return  snprintf(buf, PAGE_SIZE, "0x%x\n", idx_data);
+ }
+ 
+-static ssize_t nes_store_idx_data(struct device_driver *ddp,
++static ssize_t idx_data_store(struct device_driver *ddp,
+ 	const char *buf, size_t count)
+ {
+ 	char *p = (char *)buf;
+@@ -1102,11 +1102,7 @@ static ssize_t nes_store_idx_data(struct device_driver *ddp,
+ 	return strnlen(buf, count);
+ }
+ 
+-
+-/**
+- * nes_show_wqm_quanta
+- */
+-static ssize_t nes_show_wqm_quanta(struct device_driver *ddp, char *buf)
++static ssize_t wqm_quanta_show(struct device_driver *ddp, char *buf)
+ {
+ 	u32 wqm_quanta_value = 0xdead;
+ 	u32 i = 0;
+@@ -1123,12 +1119,8 @@ static ssize_t nes_show_wqm_quanta(struct device_driver *ddp, char *buf)
+ 	return  snprintf(buf, PAGE_SIZE, "0x%X\n", wqm_quanta_value);
+ }
+ 
+-
+-/**
+- * nes_store_wqm_quanta
+- */
+-static ssize_t nes_store_wqm_quanta(struct device_driver *ddp,
+-					const char *buf, size_t count)
++static ssize_t wqm_quanta_store(struct device_driver *ddp, const char *buf,
++				size_t count)
+ {
+ 	unsigned long wqm_quanta_value;
+ 	u32 wqm_config1;
+@@ -1153,26 +1145,16 @@ static ssize_t nes_store_wqm_quanta(struct device_driver *ddp,
+ 	return strnlen(buf, count);
+ }
+ 
+-static DRIVER_ATTR(adapter, S_IRUSR | S_IWUSR,
+-		   nes_show_adapter, nes_store_adapter);
+-static DRIVER_ATTR(eeprom_cmd, S_IRUSR | S_IWUSR,
+-		   nes_show_ee_cmd, nes_store_ee_cmd);
+-static DRIVER_ATTR(eeprom_data, S_IRUSR | S_IWUSR,
+-		   nes_show_ee_data, nes_store_ee_data);
+-static DRIVER_ATTR(flash_cmd, S_IRUSR | S_IWUSR,
+-		   nes_show_flash_cmd, nes_store_flash_cmd);
+-static DRIVER_ATTR(flash_data, S_IRUSR | S_IWUSR,
+-		   nes_show_flash_data, nes_store_flash_data);
+-static DRIVER_ATTR(nonidx_addr, S_IRUSR | S_IWUSR,
+-		   nes_show_nonidx_addr, nes_store_nonidx_addr);
+-static DRIVER_ATTR(nonidx_data, S_IRUSR | S_IWUSR,
+-		   nes_show_nonidx_data, nes_store_nonidx_data);
+-static DRIVER_ATTR(idx_addr, S_IRUSR | S_IWUSR,
+-		   nes_show_idx_addr, nes_store_idx_addr);
+-static DRIVER_ATTR(idx_data, S_IRUSR | S_IWUSR,
+-		   nes_show_idx_data, nes_store_idx_data);
+-static DRIVER_ATTR(wqm_quanta, S_IRUSR | S_IWUSR,
+-		   nes_show_wqm_quanta, nes_store_wqm_quanta);
++static DRIVER_ATTR_RW(adapter);
++static DRIVER_ATTR_RW(eeprom_cmd);
++static DRIVER_ATTR_RW(eeprom_data);
++static DRIVER_ATTR_RW(flash_cmd);
++static DRIVER_ATTR_RW(flash_data);
++static DRIVER_ATTR_RW(nonidx_addr);
++static DRIVER_ATTR_RW(nonidx_data);
++static DRIVER_ATTR_RW(idx_addr);
++static DRIVER_ATTR_RW(idx_data);
++static DRIVER_ATTR_RW(wqm_quanta);
+ 
+ static int nes_create_driver_sysfs(struct pci_driver *drv)
+ {
+-- 
+2.13.1
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
