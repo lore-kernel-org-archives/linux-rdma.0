@@ -1,49 +1,42 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH rdma-next 0/3] Support out of order data placement
-Date: Mon, 12 Jun 2017 20:41:12 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB142BC8@ORSMSX109.amr.corp.intel.com>
-References: <20170612064918.12510-1-leon@kernel.org>
- <074a01d2e39f$edc28860$c9479920$@opengridcomputing.com>
- <VI1PR0502MB3008CE85A4F274886B74DF2BD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <3fa7a4b5-5c19-8c6a-d78b-93219a9be888@intel.com>
- <1828884A29C6694DAF28B7E6B8A82373AB142A9B@ORSMSX109.amr.corp.intel.com>
- <VI1PR0502MB300885A1DD676E1649CDB268D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC 0/5] Hardware tag matching
+Date: Mon, 12 Jun 2017 23:43:42 +0300
+Message-ID: <a6757fac-f4a6-4877-9d90-9feb0d67df8b@mellanox.com>
+References: <1497249767-15353-1-git-send-email-artemyko@mellanox.com>
+ <20170612164001.GB11993@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR0502MB300885A1DD676E1649CDB268D1CD0-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20170612164001.GB11993-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yosefe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, anag-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiA+IEZvciBleGFtcGxlLCBjYW4gc2VuZHMgYmUgcmUtb3JkZXJlZCBieQ0KPiA+IHRoZSBuZXR3
-b3JrLCBzdWNoIHRoYXQgdGhleSBtYXkgYmUgcmVjZWl2ZWQgaW4gdGhlIG9wcG9zaXRlIG9yZGVy
-DQo+IHRoYXQgdGhleQ0KPiA+IHdlcmUgc2VudD8NCj4gDQo+IE5vLiBPbmx5IHJkbWEgcmVhZHMg
-YW5kIHdyaXRlcy4gVGFibGUgNzkgb2YgSUIgc3BlYyBzdGlsbCBob2xkcyB0cnVlLg0KPiBJbiBp
-bnRlcm5hbCBwYXRjaCByZXZpZXcgSSBoYWQgdGhlIHRhYmxlLCBidXQgc2luY2UgdGhlcmUgd2Fz
-IG5vDQo+IGNoYW5nZSwgSSBqdXN0IHJlbW92ZWQgaXQuDQo+IEkgdGhpbmsgaXQncyB3b3J0aCB0
-byBtZW50aW9uIGluIHRoZSBvdXRfb2Zfb3JkZXIudHh0IHRoYXQgaXQgc3RpbGwNCj4gaG9sZHMg
-dHJ1ZS4gSSB3aWxsIGFkZCB0aGlzIGxpbmUuDQo+IA0KPiBJIHdvdWxkIGFsc28gZG9jdW1lbnQg
-d2hpY2ggY29tcGxpYW50IHN0YXRlbWVudHMgYXJlIG5vdCBhcHBsaWNhYmxlDQo+IHdoZW4gc3Vj
-aCBmbGFnIGlzIHNldC4NCj4gSG93IGFib3V0IGhhdmluZyByZXNwb25kZXIgc2lkZSB0YWJsZSwg
-c2ltaWxhciB0byB0YWJsZSA3OSBpbg0KPiBEb2N1bWVudGF0aW9uL291dF9vZl9vcmRlci50eHQN
-Cj4gVGhhdCBtYWtlcyBpdCBtb3JlIHJlYWRhYmxlIGZvciB1c2Vycy4NCj4gDQo+ID4gQ2FuIHJk
-bWEgd3JpdGVzIGJlIHByb2Nlc3NlZCBvdXQgb2Ygb3JkZXIsIHN1Y2ggdGhhdCB0aGUgdGFyZ2V0
-DQo+ID4gZGF0YSBlbmRzIHVwIHdpdGggc29tZSBzb3J0IG9mIGludGVybGVhdmluZyBvZiB0aGUg
-d3JpdHRlbiBkYXRhPw0KPiBZZXMuDQo+IA0KPiA+IEFyZSB0aGVyZSBzaXplIGxpbWl0cyB0byBv
-cmRlcmluZyBjb25zdHJhaW50cz8NCj4gTm8uDQoNCk15IHF1ZXN0aW9ucyB3ZXJlIG1vcmUgZXhh
-bXBsZXMgb2YgdGhlIGxldmVsIG9mIGRldGFpbCB0aGF0IEkgdGhpbmsgYW55IEFQSSBjaGFuZ2Ug
-bmVlZHMgdG8gKGV2ZW50dWFsbHkpIGJlIGFibGUgdG8gYWRkcmVzcy4gIExpYmlidmVyYnMgaXMg
-c3VwcG9zZWQgdG8gd29yayBvdmVyIGl3YXJwIGFzIHdlbGwsIHdoaWNoIGhhcyBkaWZmZXJlbnQg
-b3JkZXJpbmcgc2VtYW50aWNzIGFscmVhZHkuICBJIHRoaW5rIHRoYXQgd2FzIHBhcnQgb2YgU3Rl
-dmUncyBwb2ludCBhcyB0byB3aHkgYW55IGNoYW5nZSBpcyBuZWVkZWQgdG8gdGhlIGFwaS4NCg0K
-SU1PLCByZWFkIGFuZCB3cml0ZSBvcmRlcmluZyBzaG91bGQgYmUgZGV0ZXJtaW5lZCBzZXBhcmF0
-ZWx5IGZyb20gdGhlIHBlcnNwZWN0aXZlIG9mIHRoZSBhcGkuICBUaGlzIGlzIGV4cG9zaW5nIGEg
-aHcgc3BlY2lmaWMgbGltaXRhdGlvbiB3aGVyZSB0aGVzZSBzZW1hbnRpY3MgYXJlIGpvaW5lZCwg
-YW5kIHNlbmQvcmVjZWl2ZSBpcyBub3Qgc3VwcG9ydGVkLg0K
+
+
+On 12/06/2017 19:40, Jason Gunthorpe wrote:
+> On Mon, Jun 12, 2017 at 09:42:42AM +0300, Artemy Kovalyov wrote:
+>> Introduction
+>> ============
+>
+> This entire text should go into a documentation/ file in rdma-core, or
+> perhaps a man page.
+Sure.
+
+This is only request for comments.
+For the beginning I send only conceptual things - proposed API changes
+and documentation to explain it.
+
+Once it will get acceptance I'll send patch series, with all technical
+stuff: this text in Documentation/tag_matching.md, CMakeLists.txt
+update, man pages updates, examples updates and provider/mlx5
+implementation.
+
+>
+> Jason
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
