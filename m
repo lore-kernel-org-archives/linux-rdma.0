@@ -1,42 +1,39 @@
-From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC 0/5] Hardware tag matching
-Date: Mon, 12 Jun 2017 23:43:42 +0300
-Message-ID: <a6757fac-f4a6-4877-9d90-9feb0d67df8b@mellanox.com>
-References: <1497249767-15353-1-git-send-email-artemyko@mellanox.com>
- <20170612164001.GB11993@obsidianresearch.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH rdma-next 0/3] Support out of order data placement
+Date: Mon, 12 Jun 2017 20:46:47 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB142BEC@ORSMSX109.amr.corp.intel.com>
+References: <20170612064918.12510-1-leon@kernel.org>
+ <074a01d2e39f$edc28860$c9479920$@opengridcomputing.com>
+ <VI1PR0502MB3008CE85A4F274886B74DF2BD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <3fa7a4b5-5c19-8c6a-d78b-93219a9be888@intel.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB142A9B@ORSMSX109.amr.corp.intel.com>
+ <VI1PR0502MB300885A1DD676E1649CDB268D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <b5279c09-027f-e374-ffde-7f236c52322c@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170612164001.GB11993-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <b5279c09-027f-e374-ffde-7f236c52322c-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yosefe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, anag-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 12/06/2017 19:40, Jason Gunthorpe wrote:
-> On Mon, Jun 12, 2017 at 09:42:42AM +0300, Artemy Kovalyov wrote:
->> Introduction
->> ============
->
-> This entire text should go into a documentation/ file in rdma-core, or
-> perhaps a man page.
-Sure.
-
-This is only request for comments.
-For the beginning I send only conceptual things - proposed API changes
-and documentation to explain it.
-
-Once it will get acceptance I'll send patch series, with all technical
-stuff: this text in Documentation/tag_matching.md, CMakeLists.txt
-update, man pages updates, examples updates and provider/mlx5
-implementation.
-
->
-> Jason
->
+PiA+IFdoZW4gdHJhbnNtaXR0ZXIgYW5kIHJlY2VpdmVyIGlzIGVuYWJsZWQgdG8gZG8gc28sIGFz
+IEkgZGVzY3JpYmVkIGluDQo+IG92ZXJ2aWV3IHNlY3Rpb24gb2YgRG9jdW1lbnRhdGlvbiwgaXQg
+aGVscHMNCj4gPiAoYSkgdG8gYXZvaWQgcmV0cmFuc21pc3Npb24gLSBpbXByb3ZlcyBuZXR3b3Jr
+IHV0aWxpemF0aW9uDQo+ID4gKGIpIHJlZHVjZXMgbGF0ZW5jeSBkdWUgdG8gdGltZXJzIG5vdCBr
+aWNraW5nIGluLg0KPiANCj4gWWVzIHRob3NlIGJlbmVmaXRzIGFyZSBjbGVhci4gSSBzZWUgbm8g
+cmVhc29uIHdoeSBpdCBzaG91bGRuJ3QgYWx3YXlzDQo+IGJlDQo+IGRvbmUgaXMgbXkgcG9pbnQu
+IEFwcGxpY2F0aW9uIHNob3VsZG4ndCBoYXZlIHRvIGNhcmUgYW5kIHRoZXJlIGlzIG5vDQo+IG5l
+ZWQgdG8gbWFrZSB0aGlzIGFuIGFkZGl0aW9uYWwgZmxhZy4NCg0KVGhlIGFwcCBjYXJlcyB3aGVu
+IGRhdGEgZnJvbSB3cml0ZSAyIGNhbiBiZSB3cml0dGVuIGF0IHRoZSB0YXJnZXQgYmVmb3JlIGRh
+dGEgZnJvbSB3cml0ZSAxLCBlc3BlY2lhbGx5IGlmIHRoZSB3cml0ZXMgdGFyZ2V0IHRoZSBzYW1l
+IG1lbW9yeSBidWZmZXJzLiAgKEF0IGxlYXN0IEkgdGhpbmsgdGhpcyBpcyB0aGUgaW50ZW50IG9m
+IGV4cG9zaW5nIHRoaXMgdG8gdGhlIGFwcC4pDQoNCk5vdGUgdGhhdCB0aGUgcHJvdmlkZXIgY2Fu
+IGFsd2F5cyBwcm92aWRlIHN0cm9uZ2VyIG9yZGVyaW5nIHRoYW4gd2hhdCB0aGUgYXBwIG5lZWRz
+Lg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
