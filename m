@@ -1,171 +1,101 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V2 5/5] RDMA/iwcm: Remove extra EXPORT_SYMBOLS
-Date: Tue, 13 Jun 2017 11:59:27 +0300
-Message-ID: <20170613085927.2908-6-leon@kernel.org>
-References: <20170613085927.2908-1-leon@kernel.org>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v3 1/2] IB/usnic: Implement get_netdev hook
+Date: Tue, 13 Jun 2017 13:37:19 +0300
+Message-ID: <20170613103719.GO2576@mtr-leonro.local>
+References: <20170611054450.7221-1-yuval.shaia@oracle.com>
+ <20170611054450.7221-2-yuval.shaia@oracle.com>
+ <20170613072526.GM2576@mtr-leonro.local>
+ <20170613073502.GC28008@yuvallap>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="UUMz/kfoogzZ9WLZ"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170613085927.2908-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170613073502.GC28008@yuvallap>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagi-TmH2Wj2nsNJBDLzU/O5InQ@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The iwcm exports functions which are not used outside of ib_core.
-This patch simply removes these EXPORT_SYMBOLS.
+--UUMz/kfoogzZ9WLZ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/iwpm_msg.c  | 12 ------------
- drivers/infiniband/core/iwpm_util.c |  5 -----
- 2 files changed, 17 deletions(-)
+On Tue, Jun 13, 2017 at 10:35:03AM +0300, Yuval Shaia wrote:
+> On Tue, Jun 13, 2017 at 10:25:26AM +0300, Leon Romanovsky wrote:
+> > On Sun, Jun 11, 2017 at 08:44:49AM +0300, Yuval Shaia wrote:
+> > > usnic's get_netdev hook for struct ib_device is missing - add it.
+> > >
+> > > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > > ---
+> > > Per Moni Shoua's suggestion - create seperate patch for this purpose.
+> > > ---
+> > >  drivers/infiniband/hw/usnic/usnic_ib_main.c  |  1 +
+> > >  drivers/infiniband/hw/usnic/usnic_ib_verbs.c | 10 ++++++++++
+> > >  drivers/infiniband/hw/usnic/usnic_ib_verbs.h |  1 +
+> > >  3 files changed, 12 insertions(+)
+> > >
+> > > diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+> > > index c0c1e8b..80577b9 100644
+> > > --- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
+> > > +++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+> > > @@ -409,6 +409,7 @@ static void *usnic_ib_device_add(struct pci_dev *dev)
+> > >  	us_ibdev->ib_dev.query_port = usnic_ib_query_port;
+> > >  	us_ibdev->ib_dev.query_pkey = usnic_ib_query_pkey;
+> > >  	us_ibdev->ib_dev.query_gid = usnic_ib_query_gid;
+> > > +	us_ibdev->ib_dev.get_netdev = usnic_get_netdev;
+> > >  	us_ibdev->ib_dev.get_link_layer = usnic_ib_port_link_layer;
+> > >  	us_ibdev->ib_dev.alloc_pd = usnic_ib_alloc_pd;
+> > >  	us_ibdev->ib_dev.dealloc_pd = usnic_ib_dealloc_pd;
+> > > diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+> > > index 4996984..f9dc1e80 100644
+> > > --- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+> > > +++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+> > > @@ -424,6 +424,16 @@ int usnic_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
+> > >  	return 0;
+> > >  }
+> > >
+> > > +struct net_device *usnic_get_netdev(struct ib_device *device, u8 port_num)
+> > > +{
+> > > +	struct usnic_ib_dev *us_ibdev = to_usdev(device);
+> > > +
+> > > +	if (us_ibdev->netdev)
+> > > +		dev_hold(us_ibdev->netdev);
+> >
+> > Who will release this reference?
+>
+> I followed the instructions in struct ib_device so assuming the one that
+> calls get_netdev will do it.
+> See ib_cache_gid_add as an example.
+>
+> Patch #2 aslo take care of it.
+>
 
-diff --git a/drivers/infiniband/core/iwpm_msg.c b/drivers/infiniband/core/iwpm_msg.c
-index a0e7c16d8bd8..1fab707b1f68 100644
---- a/drivers/infiniband/core/iwpm_msg.c
-+++ b/drivers/infiniband/core/iwpm_msg.c
-@@ -42,7 +42,6 @@ int iwpm_valid_pid(void)
- {
- 	return iwpm_user_pid > 0;
- }
--EXPORT_SYMBOL(iwpm_valid_pid);
- 
- /*
-  * iwpm_register_pid - Send a netlink query to user space
-@@ -122,7 +121,6 @@ int iwpm_register_pid(struct iwpm_dev_data *pm_msg, u8 nl_client)
- 		iwpm_free_nlmsg_request(&nlmsg_request->kref);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_register_pid);
- 
- /*
-  * iwpm_add_mapping - Send a netlink add mapping message
-@@ -191,7 +189,6 @@ int iwpm_add_mapping(struct iwpm_sa_data *pm_msg, u8 nl_client)
- 		iwpm_free_nlmsg_request(&nlmsg_request->kref);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_add_mapping);
- 
- /*
-  * iwpm_add_and_query_mapping - Send a netlink add and query
-@@ -267,7 +264,6 @@ int iwpm_add_and_query_mapping(struct iwpm_sa_data *pm_msg, u8 nl_client)
- 		iwpm_free_nlmsg_request(&nlmsg_request->kref);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_add_and_query_mapping);
- 
- /*
-  * iwpm_remove_mapping - Send a netlink remove mapping message
-@@ -328,7 +324,6 @@ int iwpm_remove_mapping(struct sockaddr_storage *local_addr, u8 nl_client)
- 		dev_kfree_skb_any(skb);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_remove_mapping);
- 
- /* netlink attribute policy for the received response to register pid request */
- static const struct nla_policy resp_reg_policy[IWPM_NLA_RREG_PID_MAX] = {
-@@ -397,7 +392,6 @@ int iwpm_register_pid_cb(struct sk_buff *skb, struct netlink_callback *cb)
- 	up(&nlmsg_request->sem);
- 	return 0;
- }
--EXPORT_SYMBOL(iwpm_register_pid_cb);
- 
- /* netlink attribute policy for the received response to add mapping request */
- static const struct nla_policy resp_add_policy[IWPM_NLA_RMANAGE_MAPPING_MAX] = {
-@@ -466,7 +460,6 @@ int iwpm_add_mapping_cb(struct sk_buff *skb, struct netlink_callback *cb)
- 	up(&nlmsg_request->sem);
- 	return 0;
- }
--EXPORT_SYMBOL(iwpm_add_mapping_cb);
- 
- /* netlink attribute policy for the response to add and query mapping request
-  * and response with remote address info */
-@@ -558,7 +551,6 @@ int iwpm_add_and_query_mapping_cb(struct sk_buff *skb,
- 	up(&nlmsg_request->sem);
- 	return 0;
- }
--EXPORT_SYMBOL(iwpm_add_and_query_mapping_cb);
- 
- /*
-  * iwpm_remote_info_cb - Process a port mapper message, containing
-@@ -627,7 +619,6 @@ int iwpm_remote_info_cb(struct sk_buff *skb, struct netlink_callback *cb)
- 			"remote_info: Mapped remote sockaddr:");
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_remote_info_cb);
- 
- /* netlink attribute policy for the received request for mapping info */
- static const struct nla_policy resp_mapinfo_policy[IWPM_NLA_MAPINFO_REQ_MAX] = {
-@@ -677,7 +668,6 @@ int iwpm_mapping_info_cb(struct sk_buff *skb, struct netlink_callback *cb)
- 	ret = iwpm_send_mapinfo(nl_client, iwpm_user_pid);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_mapping_info_cb);
- 
- /* netlink attribute policy for the received mapping info ack */
- static const struct nla_policy ack_mapinfo_policy[IWPM_NLA_MAPINFO_NUM_MAX] = {
-@@ -707,7 +697,6 @@ int iwpm_ack_mapping_info_cb(struct sk_buff *skb, struct netlink_callback *cb)
- 	atomic_set(&echo_nlmsg_seq, cb->nlh->nlmsg_seq);
- 	return 0;
- }
--EXPORT_SYMBOL(iwpm_ack_mapping_info_cb);
- 
- /* netlink attribute policy for the received port mapper error message */
- static const struct nla_policy map_error_policy[IWPM_NLA_ERR_MAX] = {
-@@ -751,4 +740,3 @@ int iwpm_mapping_error_cb(struct sk_buff *skb, struct netlink_callback *cb)
- 	up(&nlmsg_request->sem);
- 	return 0;
- }
--EXPORT_SYMBOL(iwpm_mapping_error_cb);
-diff --git a/drivers/infiniband/core/iwpm_util.c b/drivers/infiniband/core/iwpm_util.c
-index 32ca2aaa4e3b..c46442ac71a2 100644
---- a/drivers/infiniband/core/iwpm_util.c
-+++ b/drivers/infiniband/core/iwpm_util.c
-@@ -81,7 +81,6 @@ int iwpm_init(u8 nl_client)
- 	}
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_init);
- 
- static void free_hash_bucket(void);
- static void free_reminfo_bucket(void);
-@@ -107,7 +106,6 @@ int iwpm_exit(u8 nl_client)
- 	iwpm_set_registration(nl_client, IWPM_REG_UNDEF);
- 	return 0;
- }
--EXPORT_SYMBOL(iwpm_exit);
- 
- static struct hlist_head *get_mapinfo_hash_bucket(struct sockaddr_storage *,
- 					       struct sockaddr_storage *);
-@@ -146,7 +144,6 @@ int iwpm_create_mapinfo(struct sockaddr_storage *local_sockaddr,
- 	spin_unlock_irqrestore(&iwpm_mapinfo_lock, flags);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_create_mapinfo);
- 
- int iwpm_remove_mapinfo(struct sockaddr_storage *local_sockaddr,
- 			struct sockaddr_storage *mapped_local_addr)
-@@ -182,7 +179,6 @@ int iwpm_remove_mapinfo(struct sockaddr_storage *local_sockaddr,
- 	spin_unlock_irqrestore(&iwpm_mapinfo_lock, flags);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_remove_mapinfo);
- 
- static void free_hash_bucket(void)
- {
-@@ -295,7 +291,6 @@ int iwpm_get_remote_info(struct sockaddr_storage *mapped_loc_addr,
- 	spin_unlock_irqrestore(&iwpm_reminfo_lock, flags);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_get_remote_info);
- 
- struct iwpm_nlmsg_request *iwpm_get_nlmsg_request(__u32 nlmsg_seq,
- 					u8 nl_client, gfp_t gfp)
--- 
-2.12.2
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
+--UUMz/kfoogzZ9WLZ
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlk/wF8ACgkQ5GN7iDZy
+WKe7yhAAq3BOO1vWw/DOhZqXK5nd7teg5Amta2PtothX1yDykfvwUQ5eQ19XSTIT
+mTwcSR29xRYSJKk4qSPgGsfaHXrLjUcMnwJ9jeelxAiWGKK9CO+hX5RAoHCUN0Qs
+4fD6QbxSx7WrgO1L4Luz8FLOf0/jfvEHpvpZpAAGMmB1CcPkbFhnNRbL8j24nc2r
+RqgudVvNrH+a8oVGdjs6MT2kwoS1ROqQTBeC9GlLaMeb+XFnp9DSo6i22mNwcimM
+tzQQmm8ptEsRJAoaj+Rtxfp55s/xqw0XQzVuB7bATyoDWdY3BanFT3VaDy+vukIp
+rMvxgHn0ZJNX8/pD7UAua5lZ1E5n+juKGsW/6SygcNyokVcQzBhp44NcVsidRbge
+/X3/einYbRrlXepyNUIrDL3RKC4ryqPw2SoJiyVbr3EsxtvhwqgDCJl5yTKpS5J1
+c/pYIwSr/svRaBbsVq8deGAE5rOKAHl1yEJrwdezKAXBr93xCmEAc3qqow9CgQbg
+DkVkuhR6/C4IPX9wvlNlPDVden8392oOaQB8G19f4z3JmXb5SBrbdtq8Jorssmz+
+x3Zz/4pr1Rbc7PQsn7CBT1YGJNErXmJf9mFCaZEb/7+NrFLfAmcAfuF/tCKe/YoY
+i2z29YL46jgJE1YlQDt7uNMWzNwqR9Fluw6BYfJ7SbjIlFO2B3U=
+=6zFv
+-----END PGP SIGNATURE-----
+
+--UUMz/kfoogzZ9WLZ--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
