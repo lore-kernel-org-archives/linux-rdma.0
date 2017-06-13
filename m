@@ -1,89 +1,45 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core] mlx5: Hexify device IDs
-Date: Tue, 13 Jun 2017 20:13:08 +0300
-Message-ID: <1497373988-26357-1-git-send-email-ogerlitz@mellanox.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-next 0/3] Support out of order data placement
+Date: Tue, 13 Jun 2017 13:17:04 -0600
+Message-ID: <20170613191704.GA17727@obsidianresearch.com>
+References: <20170612165536.GB12435@obsidianresearch.com>
+ <6747e257-67b0-a364-be21-04f73ef82ffe@talpey.com>
+ <VI1PR0502MB30080B672B80836FF0A328DCD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <475e1873-e842-ecb9-d260-34777da57e51@talpey.com>
+ <VI1PR0502MB3008B7FE60CAB3BD49907A1BD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <d3a436a0-9ace-b11a-2e4c-387fc575877e@talpey.com>
+ <VI1PR0502MB3008E04612EED6BC83F37115D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <fbdcf05b-ccd8-bd9c-c9c8-86f373303250@talpey.com>
+ <VI1PR0502MB30089271EB542493AA58060CD1C20@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <fb11f261-b80b-f71a-8076-204706267798@talpey.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <fb11f261-b80b-f71a-8076-204706267798-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Cc: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-To make things less eye damaging and align with the mlx4 provided
-and both kernel drivers -- lets have the device IDs in hex, as seen
-e.g by lspci:
+On Mon, Jun 12, 2017 at 09:30:05PM -0400, Tom Talpey wrote:
+> >>Again, I'd be a lot less concerned if non-strict were the default, and strict
+> >>mode was negotiated. It's all just so upside-down.
+> >
+> >In IB spec, in-order delivery is default.
+> 
+> I don't agree. Requests are sent in-order, and the responder
+> processes them in-order, but the bytes thenselves are not
+> guaranteed to appear in-order. Additionally, if retries occur,
+> this is most definitely not the case.
 
-81:00.0 Ethernet controller [0200]: Mellanox Technologies MT27710 Family [ConnectX-4 Lx] [15b3:1015]
-82:00.0 Ethernet controller [0200]: Mellanox Technologies MT28800 Family [ConnectX-5 Ex] [15b3:1019]
-82:00.2 Ethernet controller [0200]: Mellanox Technologies MT27800 Family [ConnectX-5 Virtual Function] [15b3:1018]
++1
 
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
+And again, if message ordering and table 79 are unchanged in this new
+mode it is still fully conformant to the IBTA (and again, I don't see
+how the transmitter can change behavior and not break table 79)
 
-Stepped on that while debugging something, for quick ref here's the relevant kernel code:
-
-        { PCI_VDEVICE(MELLANOX, 0x1011) },                      /* Connect-IB */
-        { PCI_VDEVICE(MELLANOX, 0x1012), MLX5_PCI_DEV_IS_VF},   /* Connect-IB VF */
-        { PCI_VDEVICE(MELLANOX, 0x1013) },                      /* ConnectX-4 */
-        { PCI_VDEVICE(MELLANOX, 0x1014), MLX5_PCI_DEV_IS_VF},   /* ConnectX-4 VF */
-        { PCI_VDEVICE(MELLANOX, 0x1015) },                      /* ConnectX-4LX */
-        { PCI_VDEVICE(MELLANOX, 0x1016), MLX5_PCI_DEV_IS_VF},   /* ConnectX-4LX VF */
-        { PCI_VDEVICE(MELLANOX, 0x1017) },                      /* ConnectX-5, PCIe 3.0 */
-        { PCI_VDEVICE(MELLANOX, 0x1018), MLX5_PCI_DEV_IS_VF},   /* ConnectX-5 VF */
-        { PCI_VDEVICE(MELLANOX, 0x1019) },                      /* ConnectX-5 Ex */
-        { PCI_VDEVICE(MELLANOX, 0x101a), MLX5_PCI_DEV_IS_VF},   /* ConnectX-5 Ex VF */
-        { PCI_VDEVICE(MELLANOX, 0x101b) },                      /* ConnectX-6 */
-        { PCI_VDEVICE(MELLANOX, 0x101c), MLX5_PCI_DEV_IS_VF},   /* ConnectX-6 VF */
-        { PCI_VDEVICE(MELLANOX, 0xa2d2) },                      /* BlueField integrated ConnectX-5 network controller */
-        { PCI_VDEVICE(MELLANOX, 0xa2d3), MLX5_PCI_DEV_IS_VF},   /* BlueField integrated ConnectX-5 network controller VF */
-
-Also, Doug/Jason, it would be cool if you can set dnf builddep rdma-core on FC to
-work, this way ppl can just blindly run it instead of the manual dnf install thing.
-
- providers/mlx5/mlx5.c | 28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
-
-diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
-index 1bbc3f2..ecd5d6a 100644
---- a/providers/mlx5/mlx5.c
-+++ b/providers/mlx5/mlx5.c
-@@ -66,20 +66,20 @@ static struct {
- 	unsigned		vendor;
- 	unsigned		device;
- } hca_table[] = {
--	HCA(MELLANOX, 4113),	/* MT4113 Connect-IB */
--	HCA(MELLANOX, 4114),	/* Connect-IB Virtual Function */
--	HCA(MELLANOX, 4115),	/* ConnectX-4 */
--	HCA(MELLANOX, 4116),	/* ConnectX-4 Virtual Function */
--	HCA(MELLANOX, 4117),	/* ConnectX-4LX */
--	HCA(MELLANOX, 4118),	/* ConnectX-4LX Virtual Function */
--	HCA(MELLANOX, 4119),	/* ConnectX-5, PCIe 3.0 */
--	HCA(MELLANOX, 4120),	/* ConnectX-5 Virtual Function */
--	HCA(MELLANOX, 4121),    /* ConnectX-5 Ex */
--	HCA(MELLANOX, 4122),	/* ConnectX-5 Ex VF */
--	HCA(MELLANOX, 4123),    /* ConnectX-6 */
--	HCA(MELLANOX, 4124),	/* ConnectX-6 VF */
--	HCA(MELLANOX, 41682),	/* BlueField integrated ConnectX-5 network controller */
--	HCA(MELLANOX, 41683),	/* BlueField integrated ConnectX-5 network controller VF */
-+	HCA(MELLANOX, 0x1011),	/* MT4113 Connect-IB */
-+	HCA(MELLANOX, 0x1012),	/* Connect-IB Virtual Function */
-+	HCA(MELLANOX, 0x1013),	/* ConnectX-4 */
-+	HCA(MELLANOX, 0x1014),	/* ConnectX-4 Virtual Function */
-+	HCA(MELLANOX, 0x1015),	/* ConnectX-4LX */
-+	HCA(MELLANOX, 0x1016),	/* ConnectX-4LX Virtual Function */
-+	HCA(MELLANOX, 0x1017),	/* ConnectX-5, PCIe 3.0 */
-+	HCA(MELLANOX, 0x1018),	/* ConnectX-5 Virtual Function */
-+	HCA(MELLANOX, 0x1019),    /* ConnectX-5 Ex */
-+	HCA(MELLANOX, 0x101a),	/* ConnectX-5 Ex VF */
-+	HCA(MELLANOX, 0x101b),    /* ConnectX-6 */
-+	HCA(MELLANOX, 0x101c),	/* ConnectX-6 VF */
-+	HCA(MELLANOX, 0xa2d2),	/* BlueField integrated ConnectX-5 network controller */
-+	HCA(MELLANOX, 0xa2d3),	/* BlueField integrated ConnectX-5 network controller VF */
- };
- 
- uint32_t mlx5_debug_mask = 0;
--- 
-2.3.7
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
