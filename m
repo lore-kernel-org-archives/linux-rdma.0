@@ -1,9 +1,8 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH rdma-next 0/3] Support out of order data placement
-Date: Tue, 13 Jun 2017 00:36:33 +0000
-Message-ID: <VI1PR0502MB30089271EB542493AA58060CD1C20@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next 0/3] Support out of order data placement
+Date: Mon, 12 Jun 2017 21:30:05 -0400
+Message-ID: <fb11f261-b80b-f71a-8076-204706267798@talpey.com>
 References: <20170612064918.12510-1-leon@kernel.org>
- <1497281280.2770.1.camel@wdc.com>
  <VI1PR0502MB3008478FC7C70D1F398FE2B2D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
  <20170612162917.GA11993@obsidianresearch.com>
  <VI1PR0502MB3008EA451DA9ECEBECE27362D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
@@ -17,124 +16,196 @@ References: <20170612064918.12510-1-leon@kernel.org>
  <d3a436a0-9ace-b11a-2e4c-387fc575877e@talpey.com>
  <VI1PR0502MB3008E04612EED6BC83F37115D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
  <fbdcf05b-ccd8-bd9c-c9c8-86f373303250@talpey.com>
+ <VI1PR0502MB30089271EB542493AA58060CD1C20@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <fbdcf05b-ccd8-bd9c-c9c8-86f373303250-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <VI1PR0502MB30089271EB542493AA58060CD1C20-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgVG9tLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFRvbSBUYWxw
-ZXkgW21haWx0bzp0b21AdGFscGV5LmNvbV0NCj4gU2VudDogTW9uZGF5LCBKdW5lIDEyLCAyMDE3
-IDc6MTIgUE0NCj4gVG86IFBhcmF2IFBhbmRpdCA8cGFyYXZAbWVsbGFub3guY29tPjsgSmFzb24g
-R3VudGhvcnBlDQo+IDxqZ3VudGhvcnBlQG9ic2lkaWFucmVzZWFyY2guY29tPg0KPiBDYzogQmFy
-dCBWYW4gQXNzY2hlIDxCYXJ0LlZhbkFzc2NoZUBzYW5kaXNrLmNvbT47IGxlb25Aa2VybmVsLm9y
-ZzsNCj4gZGxlZGZvcmRAcmVkaGF0LmNvbTsgbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IElk
-YW4gQnVyc3RlaW4NCj4gPGlkYW5iQG1lbGxhbm94LmNvbT4NCj4gU3ViamVjdDogUmU6IFtQQVRD
-SCByZG1hLW5leHQgMC8zXSBTdXBwb3J0IG91dCBvZiBvcmRlciBkYXRhIHBsYWNlbWVudA0KPiAN
-Cj4gT24gNi8xMi8yMDE3IDc6NTkgUE0sIFBhcmF2IFBhbmRpdCB3cm90ZToNCj4gPj4gLS0tLS1P
-cmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4gRnJvbTogVG9tIFRhbHBleSBbbWFpbHRvOnRvbUB0
-YWxwZXkuY29tXQ0KPiA+PiBTZW50OiBNb25kYXksIEp1bmUgMTIsIDIwMTcgNjo0NCBQTQ0KPiA+
-PiBUbzogUGFyYXYgUGFuZGl0IDxwYXJhdkBtZWxsYW5veC5jb20+OyBKYXNvbiBHdW50aG9ycGUN
-Cj4gPj4gPGpndW50aG9ycGVAb2JzaWRpYW5yZXNlYXJjaC5jb20+DQo+ID4+IENjOiBCYXJ0IFZh
-biBBc3NjaGUgPEJhcnQuVmFuQXNzY2hlQHNhbmRpc2suY29tPjsgbGVvbkBrZXJuZWwub3JnOw0K
-PiA+PiBkbGVkZm9yZEByZWRoYXQuY29tOyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgSWRh
-biBCdXJzdGVpbg0KPiA+PiA8aWRhbmJAbWVsbGFub3guY29tPg0KPiA+PiBTdWJqZWN0OiBSZTog
-W1BBVENIIHJkbWEtbmV4dCAwLzNdIFN1cHBvcnQgb3V0IG9mIG9yZGVyIGRhdGENCj4gPj4gcGxh
-Y2VtZW50DQo+ID4+DQo+ID4+IE9uIDYvMTIvMjAxNyA2OjU0IFBNLCBQYXJhdiBQYW5kaXQgd3Jv
-dGU6DQo+ID4+PiBIaSBUb20sDQo+ID4+Pg0KPiA+Pj4+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0t
-LS0tDQo+ID4+Pj4gRnJvbTogVG9tIFRhbHBleSBbbWFpbHRvOnRvbUB0YWxwZXkuY29tXQ0KPiA+
-Pj4+IFNlbnQ6IE1vbmRheSwgSnVuZSAxMiwgMjAxNyA1OjIwIFBNDQo+ID4+Pj4gVG86IFBhcmF2
-IFBhbmRpdCA8cGFyYXZAbWVsbGFub3guY29tPjsgSmFzb24gR3VudGhvcnBlDQo+ID4+Pj4gPGpn
-dW50aG9ycGVAb2JzaWRpYW5yZXNlYXJjaC5jb20+DQo+ID4+Pj4gQ2M6IEJhcnQgVmFuIEFzc2No
-ZSA8QmFydC5WYW5Bc3NjaGVAc2FuZGlzay5jb20+Ow0KPiBsZW9uQGtlcm5lbC5vcmc7DQo+ID4+
-Pj4gZGxlZGZvcmRAcmVkaGF0LmNvbTsgbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IElkYW4g
-QnVyc3RlaW4NCj4gPj4+PiA8aWRhbmJAbWVsbGFub3guY29tPg0KPiA+Pj4+IFN1YmplY3Q6IFJl
-OiBbUEFUQ0ggcmRtYS1uZXh0IDAvM10gU3VwcG9ydCBvdXQgb2Ygb3JkZXIgZGF0YQ0KPiA+Pj4+
-IHBsYWNlbWVudA0KPiA+Pj4+DQo+ID4+Pj4gT24gNi8xMi8yMDE3IDU6MzIgUE0sIFBhcmF2IFBh
-bmRpdCB3cm90ZToNCj4gPj4+Pj4gSGkgVG9tLA0KPiA+Pj4+IC4uLg0KPiA+Pj4+Pj4NCj4gPj4+
-Pj4+IEkgYWdyZWUgd2l0aCBKYXNvbiwgdGhlIGJpdCBzaG91bGQgYmUgMSBieSBkZWZhdWx0LCBp
-ZiBkZWZpbmVkIGFzDQo+ID4+Pj4+PiB5b3UNCj4gPj4+PiBwcm9wb3NlLg0KPiA+Pj4+Pj4gT3V0
-LW9mLW9yZGVyIGlzIHRoZSBub3JtLCBub3QgdGhlIGV4Y2VwdGlvbiwgZm9yIFVMUHMuDQo+ID4+
-Pj4+PiBIb25lc3RseSwgSSB0aGluayB5b3Ugc2hvdWxkIHBlcmhhcHMgY29uc2lkZXIgbWFraW5n
-IGl0IHRoZQ0KPiA+Pj4+Pj4gZGVmYXVsdCBvbiB5b3VyIGRldmljZXMsIGFuZCBhbGxvd2luZyBv
-bmx5IE1MWC1hd2FyZSBVTFBzIHRvIHR1cm4NCj4gaXQgb2ZmLg0KPiA+Pj4+Pj4NCj4gPj4+Pj4N
-Cj4gPj4+Pj4gVGhlcmUgY2FuIGJlIGNhc2VzIGluIGRlcGxveW1lbnQgd2hlcmUgcmVzcG9uZGVy
-IGhhcyBzdXBwb3J0IGZvcg0KPiA+Pj4+IHJlY2VpdmluZyBvdXQtb2Ytb3JkZXIsIGJ1dCByZXF1
-ZXN0ZXIgZG9lc24ndC4NCj4gPj4+Pg0KPiA+Pj4+IFl1Y2shIFNvIHRoaXMgbmVlZHMgdG8gYmUg
-bmVnb3RpYXRlZCBlbmQtdG8tZW5kLCBhbmQgYnkgdGhlIHVwcGVyDQo+IGxheWVyPw0KPiA+Pj4+
-IFRhbGsgYWJvdXQgYmFycmllcnMgdG8gYWRvcHRpb24sIGFuZCBvcHBvcnR1bml0aWVzIGZvciBk
-aXNhc3Rlci4NCj4gPj4+Pg0KPiA+Pj4gQXMgSmFzb24gY29uZmlybWVkIHRoYXQgYWxsIExpbnV4
-IGtlcm5lbCBjb25zdW1lcnMgYXJlIGNvZGVkIHRvIGJlDQo+ID4+PiBjb21wbGlhbnQgdG8gbzkt
-MjAgcmVxdWlyZW1lbnQsIFNvIEkgdGhpbmsga2VybmVsIGJhc2VkIHJkbWEtY20NCj4gPj4gY29u
-c3VtZXJzIGNhbiBiZSB0cmFuc3BhcmVudGx5IGVuYWJsZWQgZW5kLXRvLWVuZCB3aXRob3V0IFVM
-UCdzDQo+ID4+IGludm9sdmVtZW50IHdpdGggcmRtYV9hY2NlcHQoKSBhbmQgcmRtYV9jb25uZWN0
-KCkuDQo+ID4+DQo+ID4+IEkgaGF2ZSB0d28gdGhvdWdodHMgaGVyZS4NCj4gPj4NCj4gPj4gMSkg
-WW91IHNlZW0gdG8gYXNzdW1lIGFsbCBjb25zdW1lcnMgYXJlIExpbnV4LCBhbmQgZG8gbm90IG5l
-ZWQgdG8NCj4gPj4gbmVnb3RpYXRlLiBUaGlzIGlzIGEgZGFuZ2Vyb3VzIGFzc3VtcHRpb24uDQo+
-ID4gQ2VydGFpbmx5IG5vdC4gSSBkaWRuJ3QgYXNzdW1lIHRoYXQuIEkganVzdCBnYXZlIG9uZSBl
-eGFtcGxlIHRoYXQga25vd24NCj4gY29uc3VtZXJzIGNhbiBiZSBkb25lIHdpdGhvdXQgbW9kaWZ5
-aW5nIHRoZSBVTFAuDQo+ID4gRXhwbGFpbmVkIGZ1cnRoZXIgaW4gM3JkIHF1ZXN0aW9uLg0KPiA+
-IEV2ZW4gb3RoZXIgY29uc3VtZXJzIGNhbiB3b3JrIHdpdGggdGhpcyBzb2x1dGlvbi4NCj4gPiBG
-b3IgZXhhbXBsZSBMaW51eCByZG1hY20gYmFzZWQgY2xpZW50IGFuZCBPdGhlciBPUyBiYXNlZCBz
-ZXJ2ZXIuDQo+ID4gQ2xpZW50IGlzIG9vbyBjYXBhYmxlLg0KPiA+IFNlcnZlciBpcyBvb28gbm90
-IGNhcGFibGUuDQo+ID4gT25jZSB5b3UgZm9sbG93IGJlbG93IHJkbWFjbSBiYXNlZCBzZXF1ZW5j
-ZSwgaXQgd2lsbCBiZSBjbGVhciBob3cgdGhpcw0KPiB3aWxsIHdvcmtzLg0KPiANCj4gT2gsIHNv
-IHRoZXJlJ3MgYSBNQUQgcHJvdG9jb2wgY2hhbmdlIHVuZGVyIHRoZSBob29kLiANCk5vLiBUaGVy
-ZSBpcyBubyBjaGFuZ2UgdW5kZXIgdGhlIGhvb2QuDQpZb3VyIHF1ZXN0aW9uIHdhcyBob3cgY2Fu
-IHdlIGF2b2lkIFVMUCBjaGFuZ2UgYW5kIHN0aWxsIHRoZXkgY2FuIGJlbmVmaXQgb2YgdGhpcyBm
-ZWF0dXJlPw0KU28gSSBzYWlkIHJkbWFjbSBiYXNlZCBMaW51eCBrZXJuZWwgY29uc3VtZXJzIHRo
-YXQgd2Uga25vdyBvZiBjb21wbHkgdG8gbzktMjAsIGNhbiB0YWtlIHRoZSBiZW5lZml0IG9uY2Ug
-cmRtYWNtIGlzIGV4dGVuZGVkIGFzIGJlbG93IGV4YW1wbGUuDQoNCj4gV2VsbCwgdGhhdCdzIGEg
-d2lkZXINCj4gcXVlc3Rpb24uIEFuZCBJIHN0aWxsIGRvbid0IHVuZGVyc3RhbmQgaG93IGV4aXN0
-aW5nLCBub24tc3RyaWN0LXJlcXVpcmluZw0KPiBwcm90b2NvbHMgY2FuIHRha2UgYWR2YW50YWdl
-IG9mIHRoaXMuDQo+IE5vciBob3cgdGhpcyB3b3JrcyBmb3Igbm9uLU1lbGxhbm94LCBub24tSUIv
-Um9DRSBpbXBsZW1lbnRhdGlvbnMuDQoNCkRldmljZSBjYXBhYmlsaXR5IGluZGljYXRlcyB0aGF0
-IHdoaWNoIGRldmljZSBzdXBwb3J0cyB0aGlzLiBFeHBsYWluZWQgaW4gRG9jdW1lbnRhdGlvbi9v
-dXRfb2Zfb3JkZXIudHh0IHVzYWdlIHNlY3Rpb24uDQpTbyB3aGljaGV2ZXIgdmVuZG9yIHN1cHBv
-cnRzIGl0LCB3aGljaGV2ZXIgcHJvdG9jb2wgc3VwcG9ydHMgaXQsIGNhbiBzZXQgdGhpcyBvcHRp
-b25hbCBkZXZpY2UgY2FwYWJpbGl0eS4NCg0KPiANCj4gQWdhaW4sIEknZCBiZSBhIGxvdCBsZXNz
-IGNvbmNlcm5lZCBpZiBub24tc3RyaWN0IHdlcmUgdGhlIGRlZmF1bHQsIGFuZCBzdHJpY3QNCj4g
-bW9kZSB3YXMgbmVnb3RpYXRlZC4gSXQncyBhbGwganVzdCBzbyB1cHNpZGUtZG93bi4NCg0KSW4g
-SUIgc3BlYywgaW4tb3JkZXIgZGVsaXZlcnkgaXMgZGVmYXVsdC4gU28gY2FuIHlvdSBzdWdnZXN0
-IGhvdyBjYW4gd2UgY2hhbmdlIGRlZmF1bHQgSUIgYmVoYXZpb3Igd2l0aG91dCBicmVha2luZyBh
-bnl0aGluZz8NCkFkZGluZyBvcHRpb25hbCBhdHRyaWJ1dGUgc2VlbXMgdGhlIHJpZ2h0IHdheSB0
-aGF0IGVuc3VyZXMgY29tcGF0aWJpbGl0eS4NCj4gDQo+IFRvbS4NCj4gDQo+ID4+IDIpIEkgYXNz
-dW1lIHRoYXQgdGhlcmUgaXMgc29tZSBwZXJmb3JtYW5jZSBiZW5lZml0IHRvIHRvZ2dsaW5nIHRo
-aXMNCj4gPj4gc2V0dGluZyB0byBub24tc3RyaWN0LiBTbywgaG93IGRvIGV4aXN0aW5nIGNvbnN1
-bWVycyBnZXQgdGhpcw0KPiA+PiBhZHZhbnRhZ2UsIGVzcGVjaWFsbHkgc2luY2UgdGhleSBkb24n
-dCBuZWVkIHN0cmljdCBzZW1hbnRpY3M/IEJlYXJpbmcNCj4gPj4gaW4gbWluZCB0aGF0IHRoZXkg
-ZG8gaGF2ZSB0byBuZWdvdGlhdGUgdGhpcyBlbmQtdG8tZW5kLCBtZWFuaW5nIHRoZXkNCj4gcmVx
-dWlyZSBhIHByb3RvY29sIGV4dGVuc2lvbi4NCj4gPiBJIGRvbid0IGhhdmUgY29tcGxldGVseSB0
-cmFuc3BhcmVudCB1cHN0cmVhbSBzb2x1dGlvbiBmb3IgZXhpc3RpbmcNCj4gY29uc3VtZXJzIHll
-dC4NCj4gPj4NCj4gPj4gQWN0dWFsbHkuIEkgaGF2ZSBhIHRoaXJkIHRob3VnaHQuIFNpbmNlIHRo
-aXMgaXMgYW4gYXR0cmlidXRlIHRvIHFwDQo+ID4+IGNyZWF0aW9uLCBwZXJmb3JtZWQgZXZlbiBi
-ZWZvcmUgZXN0YWJsaXNoaW5nIGEgY29ubmVjdGlvbiwgaG93IGRvZXMNCj4gPj4gdGhlIHVwcGVy
-IGxheWVyIGtub3cgd2hlbiB0byBzZXQgaXQ/DQo+ID4gVGhpcyBpcyBub3QgYXQgUVAgY3JlYXRp
-b24gdGltZS4gSSBoYXZlIGRlc2NyaWJlZCBpbg0KPiBEb2N1bWVudGF0aW9uL291dF9vZl9vcmRl
-ci50eHQgaW4gdXNhZ2Ugc2VjdGlvbiAzLg0KPiA+IFRoaXMgaXMgYXQgUVAgc3RhdGUgdHJhbnNp
-dGlvbiBmcm9tIElOSVQgdG8gUlRSLg0KPiA+IEhlcmUgaXMgdGhlIGZsb3cuIEl0J3MganVzdCBu
-b3QgY29kZWQgZW5vdWdoIGZvciBwb3N0aW5nIHBhdGNoZXMuDQo+ID4NCj4gPiAxLiBXaGVuIHJk
-bWFjbSBhY3RpdmUgc2lkZSBjcmVhdGVzIHRoZSBRUCwgSXQgaXMgSU5JVCBzdGF0ZS4NCj4gPiAy
-LiBTZW5kIE1BRF9SZXEgbXNnIChpbmRpY2F0aW5nIG9vb19yZXF1ZXN0ZWQ9MSkgMy4gV2hlbiBy
-ZG1hY20NCj4gPiBwYXNzaXZlIHNpZGUgcmVjZWl2ZXMgdGhlIG1lc3NhZ2UsIGl0IGxvb2tzIHVw
-IGRldmljZV9jYXAgYXR0cmlidXRlIGFuZA0KPiBtYXRjaGVzIGl0IGFnYWluc3Qgb29vX3JlcXVl
-c3RlZCBmbGFnLg0KPiA+IDQuIHdoZW4gZGV2aWNlIHN1cHBvcnRzIGl0LCBNQURfUnNwIG1zZyBz
-ZXRzIG9vb19lbmFibGVkPTEsIGlmIGl0DQo+ID4gZG9lc24ndCBzdXBwb3J0IGl0LCBvb29fZW5h
-YmxlZD0wIDUuIHJkbWFjbSBwYXNzaXZlIHNpZGUgY3JlYXRlcyB0aGUgUVANCj4gYW5kIG1vdmVz
-IHRvIFJUUiBzdGF0ZSAod2l0aCBRUCBvb28gZW5hYmxlZCBiaXQgc2V0KS4NCj4gPiA2LiBhY3Rp
-dmUgc2lkZSByZWNlaXZlcyB0aGUgbWVzc2FnZSBhbmQgcHV0cyB0aGUgUVAgdG8gUlRSLCBSVFMg
-c3RhdGUNCj4gYmFzZWQgb24gcmVjZWl2ZWQgYml0IHNldHRpbmcgZnJvbSBwYXNzaXZlIHNpZGUu
-DQo+ID4NCj4gPiBGbG93IGlzIG5vIGRpZmZlcmVudCB0aGFuIGhvdyByZXN0IG9mIHRoZSBjb25u
-ZWN0aW9uIHNwZWNpZmljIHBhcmFtZXRlcnMNCj4gYXJlIHNoYXJlZCBzdWNoIGFzIElSRC9PUkQs
-IFBTTiwgdGltZW91dHMsIG10dSBldGMuDQo+ID4NCj4gPg0KPiA+DQo+ID4+DQo+ID4+IFRvbS4N
-Cj4gPiBOICAgICByICB5ICAgYiBYICDHp3YgXiAp3rp7Lm4gKyAgICB7ICDZmiB7YXkgHcqH2pkg
-LGogICBmICAgaCAgIHogHiB3DQo+IA0KPiAgICBqOit2ICAgdyBqIG0gICAgICAgICB6WisgICAg
-IN2iaiIgICF0bWw9DQo+ID4NCg==
+On 6/12/2017 8:36 PM, Parav Pandit wrote:
+>> -----Original Message-----
+>> From: Tom Talpey [mailto:tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org]
+>> Sent: Monday, June 12, 2017 7:12 PM
+>> To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Jason Gunthorpe
+>> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+>> Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>; leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org;
+>> dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Idan Burstein
+>> <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Subject: Re: [PATCH rdma-next 0/3] Support out of order data placement
+>>
+>> On 6/12/2017 7:59 PM, Parav Pandit wrote:
+>>>> -----Original Message-----
+>>>> From: Tom Talpey [mailto:tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org]
+>>>> Sent: Monday, June 12, 2017 6:44 PM
+>>>> To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Jason Gunthorpe
+>>>> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+>>>> Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>; leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org;
+>>>> dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Idan Burstein
+>>>> <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>>> Subject: Re: [PATCH rdma-next 0/3] Support out of order data
+>>>> placement
+>>>>
+>>>> On 6/12/2017 6:54 PM, Parav Pandit wrote:
+>>>>> Hi Tom,
+>>>>>
+>>>>>> -----Original Message-----
+>>>>>> From: Tom Talpey [mailto:tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org]
+>>>>>> Sent: Monday, June 12, 2017 5:20 PM
+>>>>>> To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Jason Gunthorpe
+>>>>>> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+>>>>>> Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>;
+>> leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org;
+>>>>>> dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Idan Burstein
+>>>>>> <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>>>>> Subject: Re: [PATCH rdma-next 0/3] Support out of order data
+>>>>>> placement
+>>>>>>
+>>>>>> On 6/12/2017 5:32 PM, Parav Pandit wrote:
+>>>>>>> Hi Tom,
+>>>>>> ...
+>>>>>>>>
+>>>>>>>> I agree with Jason, the bit should be 1 by default, if defined as
+>>>>>>>> you
+>>>>>> propose.
+>>>>>>>> Out-of-order is the norm, not the exception, for ULPs.
+>>>>>>>> Honestly, I think you should perhaps consider making it the
+>>>>>>>> default on your devices, and allowing only MLX-aware ULPs to turn
+>> it off.
+>>>>>>>>
+>>>>>>>
+>>>>>>> There can be cases in deployment where responder has support for
+>>>>>> receiving out-of-order, but requester doesn't.
+>>>>>>
+>>>>>> Yuck! So this needs to be negotiated end-to-end, and by the upper
+>> layer?
+>>>>>> Talk about barriers to adoption, and opportunities for disaster.
+>>>>>>
+>>>>> As Jason confirmed that all Linux kernel consumers are coded to be
+>>>>> compliant to o9-20 requirement, So I think kernel based rdma-cm
+>>>> consumers can be transparently enabled end-to-end without ULP's
+>>>> involvement with rdma_accept() and rdma_connect().
+>>>>
+>>>> I have two thoughts here.
+>>>>
+>>>> 1) You seem to assume all consumers are Linux, and do not need to
+>>>> negotiate. This is a dangerous assumption.
+>>> Certainly not. I didn't assume that. I just gave one example that known
+>> consumers can be done without modifying the ULP.
+>>> Explained further in 3rd question.
+>>> Even other consumers can work with this solution.
+>>> For example Linux rdmacm based client and Other OS based server.
+>>> Client is ooo capable.
+>>> Server is ooo not capable.
+>>> Once you follow below rdmacm based sequence, it will be clear how this
+>> will works.
+>>
+>> Oh, so there's a MAD protocol change under the hood.
+> No. There is no change under the hood.
+> Your question was how can we avoid ULP change and still they can benefit of this feature?
+> So I said rdmacm based Linux kernel consumers that we know of comply to o9-20, can take the benefit once rdmacm is extended as below example.
+> 
+>> Well, that's a wider
+>> question. And I still don't understand how existing, non-strict-requiring
+>> protocols can take advantage of this.
+>> Nor how this works for non-Mellanox, non-IB/RoCE implementations.
+> 
+> Device capability indicates that which device supports this. Explained in Documentation/out_of_order.txt usage section.
+> So whichever vendor supports it, whichever protocol supports it, can set this optional device capability.
+> 
+>>
+>> Again, I'd be a lot less concerned if non-strict were the default, and strict
+>> mode was negotiated. It's all just so upside-down.
+> 
+> In IB spec, in-order delivery is default.
+
+I don't agree. Requests are sent in-order, and the responder
+processes them in-order, but the bytes thenselves are not
+guaranteed to appear in-order. Additionally, if retries occur,
+this is most definitely not the case.
+
+Section 9.5 Transaction Ordering, I believe, covers these
+requirements. Can you tell me where I misunderstand them?
+In fact, c9-28 explicitly warns:
+
+   • An application shall not depend upon the order of data writes to
+   memory within a message. For example, if an application sets up
+   data buffers that overlap, for separate data segments within a
+   message, it is not guaranteed that the last sent data will always
+   overwrite the earlier.
+
+My guess is that this bit overrides the MLX behavior of
+never pipelining RDMA Write requests, allowing more packets
+to be queued at the responder and making better use of the
+network. This is not at all prohibited by the spec, nor is
+it unexpected by properly-coded upper layers, which all the
+kernel consumers are.
+
+I have one other question on the Documentation out-of-order.txt.
+It states the fence bit can be used to force ordering on a
+non-strict connection. But fence doesn't apply to RDMA Write?
+It only applies to operations which produce a reply, such as
+RDMA Read or Atomic. Have you changed the semantic?
+
+Tom.
+
+
+
+So can you suggest how can we change default IB behavior without 
+breaking anything?
+> Adding optional attribute seems the right way that ensures compatibility.
+>>
+>> Tom.
+>>
+>>>> 2) I assume that there is some performance benefit to toggling this
+>>>> setting to non-strict. So, how do existing consumers get this
+>>>> advantage, especially since they don't need strict semantics? Bearing
+>>>> in mind that they do have to negotiate this end-to-end, meaning they
+>> require a protocol extension.
+>>> I don't have completely transparent upstream solution for existing
+>> consumers yet.
+>>>>
+>>>> Actually. I have a third thought. Since this is an attribute to qp
+>>>> creation, performed even before establishing a connection, how does
+>>>> the upper layer know when to set it?
+>>> This is not at QP creation time. I have described in
+>> Documentation/out_of_order.txt in usage section 3.
+>>> This is at QP state transition from INIT to RTR.
+>>> Here is the flow. It's just not coded enough for posting patches.
+>>>
+>>> 1. When rdmacm active side creates the QP, It is INIT state.
+>>> 2. Send MAD_Req msg (indicating ooo_requested=1) 3. When rdmacm
+>>> passive side receives the message, it looks up device_cap attribute and
+>> matches it against ooo_requested flag.
+>>> 4. when device supports it, MAD_Rsp msg sets ooo_enabled=1, if it
+>>> doesn't support it, ooo_enabled=0 5. rdmacm passive side creates the QP
+>> and moves to RTR state (with QP ooo enabled bit set).
+>>> 6. active side receives the message and puts the QP to RTR, RTS state
+>> based on received bit setting from passive side.
+>>>
+>>> Flow is no different than how rest of the connection specific parameters
+>> are shared such as IRD/ORD, PSN, timeouts, mtu etc.
+>>>
+>>>
+>>>
+>>>>
+>>>> Tom.
+>>> N     r  y   b X  ǧv ^ )޺{.n +    {  ٚ {ay 
+ʇڙ ,j   f   h   z 
+ w
+>>
+>>     j:+v   w j m         zZ+     ݢj"  !tml=
+>>>
+> N�����r��y���b�X��ǧv�^�)޺{.n�+����{��ٚ�{ay�
+ʇڙ�,j��f���h���z�
+�w���
+���j:+v���w�j�m��������zZ+�����ݢj"��!tml=
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
