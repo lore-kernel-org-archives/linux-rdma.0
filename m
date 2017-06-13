@@ -1,46 +1,74 @@
-From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
-Subject: Re: [for-next 4/6] net/mlx5: FPGA, Add basic support for Innova
-Date: Tue, 13 Jun 2017 19:05:33 +0300
-Message-ID: <CALzJLG8P6J5S4mx92uDYzXzT5+cDuY897FkBBRWFVtbcee-ueg@mail.gmail.com>
-References: <AM4PR0501MB19404B83A69B87AFB1326B45DBF50@AM4PR0501MB1940.eurprd05.prod.outlook.com>
- <20170605151724.GA20182@obsidianresearch.com> <AM4PR0501MB194008AAABEB6AAAA2ADFC82DBCB0@AM4PR0501MB1940.eurprd05.prod.outlook.com>
- <20170606161709.GA8671@obsidianresearch.com> <CALzJLG9Rdjme2piWX+CDeHZZebWArM_wGjLJPh8=COOxBHuFkw@mail.gmail.com>
- <20170607154858.GA30124@obsidianresearch.com> <CALzJLG8epxWp1pmTd_fxOUfzXF5YoOFfnrRBJ0-YZVL1Gi_yOw@mail.gmail.com>
- <20170607192132.GA10929@obsidianresearch.com> <1497047041.7171.234.camel@redhat.com>
- <CC17D182-E8FF-48C7-8667-67429C6F8259@mellanox.com> <20170612161746.GC24829@obsidianresearch.com>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: Re: [PATCH 0/7] Enable iSCSI offload drivers to use information from iface.
+Date: Tue, 13 Jun 2017 10:49:22 -0600
+Message-ID: <CAANLjFrJ2g8JfB-3bcVwVXxK41rB3aaSeP3ho7J5F0YLO=3sUw@mail.gmail.com>
+References: <20170606180717.5007-1-robert@leblancnet.us> <20170607162839.ludxvmddghx5ocn2@straylight.hirudinean.org>
+ <CAANLjFomYCEmjfE7HLAsE7SgVqBKH8KSxYzFqxuV7t8as8+-ZQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170612161746.GC24829@obsidianresearch.com>
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Majd Dibbiny <majd@mellanox.com>, Doug Ledford <dledford@redhat.com>, Ilan Tayari <ilant@mellanox.com>, Alexei Starovoitov <alexei.starovoitov@gmail.com>, "David S. Miller" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "jsorensen@fb.com" <jsorensen@fb.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, "linux-fpga@vger.kernel.org" <linux-fpga@vger.kernel.org>, Alan Tull <atull@opensource.altera.com>, "yi1.li@linux.intel.com" <yi1.li@linux.intel.com>, Boris Pismenny <borisp@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAANLjFomYCEmjfE7HLAsE7SgVqBKH8KSxYzFqxuV7t8as8+-ZQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chris Leech <cleech-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, lduncan-IBi9RG/b67k@public.gmane.org, jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Linux-Kernel@Vger. Kernel. Org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, subbu.seetharaman-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, ketan.mukadam-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, jitendra.bhivare-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, QLogic-Storage-Upstream-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, varun-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 12, 2017 at 7:17 PM, Jason Gunthorpe
-<jgunthorpe@obsidianresearch.com> wrote:
-> On Sat, Jun 10, 2017 at 02:11:13PM +0000, Majd Dibbiny wrote:
+On Wed, Jun 7, 2017 at 12:30 PM, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org> wrote:
+> On Wed, Jun 7, 2017 at 10:28 AM, Chris Leech <cleech-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>> On Tue, Jun 06, 2017 at 12:07:10PM -0600, Robert LeBlanc wrote:
+>>> This patchset enables iSCSI offload drivers to have access to the iface
+>>> information provided by iscsid. This allows users to have more control
+>>> of how the driver connects to the iSCSI target. iSER is updated to use
+>>> iface.ipaddress to set the source IP address if configured. This allows
+>>> iSER to use multiple ports on the same network or in more complicated
+>>> routed configurations.
+>>>
+>>> Since there is already a change to the function parameters, dst_addr
+>>> is upgraded to sockaddr_storage so that it is more future proof and makes
+>>> the size of the struct static and not dependent on checking the SA_FAMILY.
+>>>
+>>> This is dependent on updates to Open-iSCSI.
+>>
+>> Hi Robert,
+>>
+>> I don't think that passing the iface_rec structure directly from the
+>> iscsid internals into a netlink message is a good way to go about this.
+>> It's really big, there's an embedded list_head with user address
+>> pointers that needs to be left out, and there are 32/64-bit layout
+>> differences.
+>>
+>> Let me take a look at how you're proposing using this info for iSER, if
+>> it makes sense I think we should come up with a better designed
+>> structure for passing the information.
+>>
+>> Thanks,
+>> Chris
+>>
 >
->> >> This is especially true for mlx nics as there are many raw packet
->> >> bypass mechanisms available to userspace.
+> Chris,
 >
->> All of the Raw packet bypass mechanisms are restricted to
->> CAP_NET_RAW, and thus malicious users can't simply open a RAW Packet
->> QP and send it to the FPGA..
+> Thank you for your feedback. I agree that the entire iface is probably
+> overkill, it was more of a proof of concept. We are only using the
+> ipaddress in the iface for iSER (in my patch), but I could see other
+> drivers benefiting from some of the other data in the iface (mac,
+> interface_name, vlan, etc) so I didn't want to be too restrictive so
+> that it wouldn't have to be extended later. I've not worked on
+> userspace/kernel interaction before so I need some guidance to make
+> the transition between userspace and kernel versions smoother.
 >
-> It is big expansion of CAP_NET_RAW to also basically also include
-> reconfiguring ipsec xfrm.
->
-> Plus, if someone configures ethernet bridging (eg in a VM situation)
-> then could a hacked VM reconfigure this FPGA?
->
-> Jason
+> This patchset works for what we need and it is very important for us
+> (and I'm sure others once the feature is available) and I'm happy to
+> put in the time to get it accepted upstream, I'm just new to kernel
+> development and need some guidance.
 
-Hi Jason
+Are there other comments/ideas/suggestions specifically from the
+iSCSI/iSER guys? I'd like to keep this patch moving.
 
-As we mentioned earlier, the device ensures that only the FPGA
-component in the driver can configure the FPGA regardless of any type
-of standard traffic.
+Thanks.
 
-Thanks,
-Saeed.
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
