@@ -1,31 +1,35 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 0/2] RDMA/qedr: A couple of patches
-Date: Tue, 13 Jun 2017 16:42:15 -0400
-Message-ID: <1497386535.7171.242.camel@redhat.com>
-References: <1496064191-11442-1-git-send-email-Ram.Amrani@cavium.com>
+Subject: Re: [PATCH V4 for-next 00/14] RDMA/bnxt_re: Bug fixes
+Date: Tue, 13 Jun 2017 16:44:51 -0400
+Message-ID: <1497386691.7171.244.camel@redhat.com>
+References: <1495448144-18966-1-git-send-email-selvin.xavier@broadcom.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1496064191-11442-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1495448144-18966-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-05-29 at 16:23 +0300, Ram Amrani wrote:
-> Michal Kalderon (1):
->   RDMA/qedr: Initialize byte_len in WC of READ and SEND commands
+On Mon, 2017-05-22 at 03:15 -0700, Selvin Xavier wrote:
+> The patch series has some bug fixes for bnxt_re driver.
+> This series includes implementation of some of the workarounds
+> required for the HW and FW and removes the FMR verb support from
+> the driver.
+> I have addressed all the review comments from Leon and Dennis in
+> this series.
 > 
-> Ram Amrani (1):
->   RDMA/qedr: Add 64KB PAGE_SIZE support to user-space queues
-> 
->  drivers/infiniband/hw/qedr/qedr.h  |  4 ++-
->  drivers/infiniband/hw/qedr/verbs.c | 69 +++++++++++++++++++++++-----
-> ----------
->  2 files changed, 45 insertions(+), 28 deletions(-)
+> Doug,
+>  Please review and apply these changes to your repository.
 
-This series dropped because you resubmitted it for rc instead of next.
+As we discussed off-list, I took the most important of these for -rc
+(but I have to say, you requested both 1/14 and 2/14 for -rc, and I
+took them, but they are *much* larger than I like to see in -rc
+patches...please try to keep -rc patches smaller in the future).
+
+1, 2, 4, 6, 10, 14 in -rc.  The rest being reviewed for for-next.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
