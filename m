@@ -1,109 +1,282 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/3] Support out of order data placement
-Date: Tue, 13 Jun 2017 08:29:38 +0300
-Message-ID: <20170613052938.GE2576@mtr-leonro.local>
-References: <20170612064918.12510-1-leon@kernel.org>
- <074a01d2e39f$edc28860$c9479920$@opengridcomputing.com>
- <VI1PR0502MB3008CE85A4F274886B74DF2BD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <3fa7a4b5-5c19-8c6a-d78b-93219a9be888@intel.com>
- <1828884A29C6694DAF28B7E6B8A82373AB142A9B@ORSMSX109.amr.corp.intel.com>
- <VI1PR0502MB300885A1DD676E1649CDB268D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <b5279c09-027f-e374-ffde-7f236c52322c@intel.com>
- <1828884A29C6694DAF28B7E6B8A82373AB142BEC@ORSMSX109.amr.corp.intel.com>
- <085201d2e3be$81070ce0$831526a0$@opengridcomputing.com>
- <20170612210259.GA25652@obsidianresearch.com>
+From: <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: patch "IB: nes: convert to use DRIVER_ATTR_RW" added to driver-core-next
+Date: Tue, 13 Jun 2017 07:58:50 +0200
+Message-ID: <149733353020069@kroah.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="//IivP0gvsAy3Can"
+Content-Type: text/plain; charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170612210259.GA25652-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "'Dalessandro, Dennis'" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Parav Pandit' <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Idan Burstein' <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---//IivP0gvsAy3Can
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This is a note to let you know that I've just added the patch titled
 
-On Mon, Jun 12, 2017 at 03:02:59PM -0600, Jason Gunthorpe wrote:
-> On Mon, Jun 12, 2017 at 03:57:29PM -0500, Steve Wise wrote:
-> > > > > When transmitter and receiver is enabled to do so, as I described in
-> > > > overview section of Documentation, it helps
-> > > > > (a) to avoid retransmission - improves network utilization
-> > > > > (b) reduces latency due to timers not kicking in.
-> > > >
-> > > > Yes those benefits are clear. I see no reason why it shouldn't always
-> > > > be
-> > > > done is my point. Application shouldn't have to care and there is no
-> > > > need to make this an additional flag.
-> > >
-> > > The app cares when data from write 2 can be written at the target before data
-> > > from write 1, especially if the writes target the same memory buffers.  (At least I
-> > > think this is the intent of exposing this to the app.)
-> > >
-> > > Note that the provider can always provide stronger ordering than what the app
-> > > needs.
-> >
-> > My understanding is that IB or IW apps should never assume ingress
-> > write or read response data is _placed_ into local memory in the
-> > order it was transmitted from the peer.  The only guarantee is that
-> > the _indication_ of the arrived data preserve the sender's ordering.
-> > However, I'm thinking that there are applications out there that
-> > spin polling local memory that is the target of a write or read
-> > response and assume the last bit of that memory will get written
-> > last...
->
-> That is with respect to the CPU, but IB requires strong ordering
-> between messages within the same QP, eg if I do
->
-> RDMA WRITE addr=0 data=1
-> RDMA WRITE addr=0 data=2
-> RDMA WRITE addr=0 data=3
-> RDMA READ  addr=0
->
-> I must always get 3, not something else.
->
-> It would be notable if this 'out of order' feature violated that
-> invariant, but many ULPs would probably still be OK.
->
-> Frankly, Parav's original message doesn't seem to describe at all what
-> this is about, so maybe we should all wait until v2, and maybe more
-> people from Mellanox could contribute to sensibly describing it if
-> they want it in ibverbs.
+    IB: nes: convert to use DRIVER_ATTR_RW
 
-I sent this patch series in US timezone to allow Parav to answer on the
-questions if they arise, but for other people from Mellanox it was night
-and it limited number of participants.
+to my driver-core git tree which can be found at
+    git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core.git
+in the driver-core-next branch.
 
-Thanks
+The patch will show up in the next release of the linux-next tree
+(usually sometime within the next 24 hours during the week.)
 
->
-> Jason
+The patch will also be merged in the next major kernel release
+during the merge window.
 
---//IivP0gvsAy3Can
-Content-Type: application/pgp-signature; name="signature.asc"
+If you have any questions about this process, please let me know.
 
------BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlk/eEIACgkQ5GN7iDZy
-WKfrYg/+M6EOlkd6zAq8AZjmQoaxFZ2t0gqlmr4sHFOpDlq1a4YhHGg+DJJXciOj
-63JHPDLo2zpdXk73xCEnGsg5M1MbkdDOYk3xUUs9ske7LNNmEtjAdro/4XrUax0d
-wcrSK+OXb9Bacj9amm4Q44fLGHuaow4K0453APRtbClpPrwjqq3o2wGP5V7DP0It
-I4OgGyoWBCDW1AVomLnl8wfS+pPzkmFUyTXcou9bvI43ugeO0IlDYfFoAX1XOsTb
-rKaZ0R7495D2qsRyu9hVK6TRGsoQuDt+azpe7e9YdOvUKS7s22crUv95YjEKm2ry
-QXiZOobq+zubdbhSdb//IEGQ6y4f1Ky+OXJ1LiLCb4yvGpIKuttgZPzVAq8sa/CS
-1oTDcfJnqtLmSVr9jXteypejs0kwe/+kegUmjUwK+5AslxDFfkH/3lunnUgfw9aO
-uzodZkRCF8pD58XUI9ZMhJmqlBr3kk44TMM6EhXc0vnofrLuRPFdQnltD5Xn0OCL
-LLjLgaThD3wBCl50Dma83TDwTIa7gzeE7NFddTKTOpzlb1oienCcjsacTpbQ2vkV
-Me2PQ0w8RslPdqbsbtKpRE6e9ORRSwZaqF+vmrlzZUm4x8oX87rkeObN88cmzh5/
-0jLM2hhjhvzSKXHPzZQU5ven/dkl1sUK6oexfJVFUjwtNvxGMkM=
-=USrZ
------END PGP SIGNATURE-----
+>From c1357e452dc2b0a8c4826144d780e9a552782afe Mon Sep 17 00:00:00 2001
+From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Date: Fri, 9 Jun 2017 11:03:05 +0200
+Subject: IB: nes: convert to use DRIVER_ATTR_RW
 
---//IivP0gvsAy3Can--
+We are trying to get rid of DRIVER_ATTR(), and all of the nes.c driver
+attributes can be trivially changed to use DRIVER_ATTR_RW(), making the
+code smaller and easier to manage over time.
+
+Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Reviewed-by: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+---
+ drivers/infiniband/hw/nes/nes.c | 80 ++++++++++++++++-------------------------
+ 1 file changed, 31 insertions(+), 49 deletions(-)
+
+diff --git a/drivers/infiniband/hw/nes/nes.c b/drivers/infiniband/hw/nes/nes.c
+index 5b9601014f0c..a30aa6527f7e 100644
+--- a/drivers/infiniband/hw/nes/nes.c
++++ b/drivers/infiniband/hw/nes/nes.c
+@@ -815,7 +815,7 @@ static struct pci_driver nes_pci_driver = {
+ 	.remove = nes_remove,
+ };
+ 
+-static ssize_t nes_show_adapter(struct device_driver *ddp, char *buf)
++static ssize_t adapter_show(struct device_driver *ddp, char *buf)
+ {
+ 	unsigned int  devfn = 0xffffffff;
+ 	unsigned char bus_number = 0xff;
+@@ -834,7 +834,7 @@ static ssize_t nes_show_adapter(struct device_driver *ddp, char *buf)
+ 	return snprintf(buf, PAGE_SIZE, "%x:%x\n", bus_number, devfn);
+ }
+ 
+-static ssize_t nes_store_adapter(struct device_driver *ddp,
++static ssize_t adapter_store(struct device_driver *ddp,
+ 	const char *buf, size_t count)
+ {
+ 	char *p = (char *)buf;
+@@ -843,7 +843,7 @@ static ssize_t nes_store_adapter(struct device_driver *ddp,
+ 	return strnlen(buf, count);
+ }
+ 
+-static ssize_t nes_show_ee_cmd(struct device_driver *ddp, char *buf)
++static ssize_t eeprom_cmd_show(struct device_driver *ddp, char *buf)
+ {
+ 	u32 eeprom_cmd = 0xdead;
+ 	u32 i = 0;
+@@ -859,7 +859,7 @@ static ssize_t nes_show_ee_cmd(struct device_driver *ddp, char *buf)
+ 	return snprintf(buf, PAGE_SIZE, "0x%x\n", eeprom_cmd);
+ }
+ 
+-static ssize_t nes_store_ee_cmd(struct device_driver *ddp,
++static ssize_t eeprom_cmd_store(struct device_driver *ddp,
+ 	const char *buf, size_t count)
+ {
+ 	char *p = (char *)buf;
+@@ -880,7 +880,7 @@ static ssize_t nes_store_ee_cmd(struct device_driver *ddp,
+ 	return strnlen(buf, count);
+ }
+ 
+-static ssize_t nes_show_ee_data(struct device_driver *ddp, char *buf)
++static ssize_t eeprom_data_show(struct device_driver *ddp, char *buf)
+ {
+ 	u32 eeprom_data = 0xdead;
+ 	u32 i = 0;
+@@ -897,7 +897,7 @@ static ssize_t nes_show_ee_data(struct device_driver *ddp, char *buf)
+ 	return  snprintf(buf, PAGE_SIZE, "0x%x\n", eeprom_data);
+ }
+ 
+-static ssize_t nes_store_ee_data(struct device_driver *ddp,
++static ssize_t eeprom_data_store(struct device_driver *ddp,
+ 	const char *buf, size_t count)
+ {
+ 	char *p = (char *)buf;
+@@ -918,7 +918,7 @@ static ssize_t nes_store_ee_data(struct device_driver *ddp,
+ 	return strnlen(buf, count);
+ }
+ 
+-static ssize_t nes_show_flash_cmd(struct device_driver *ddp, char *buf)
++static ssize_t flash_cmd_show(struct device_driver *ddp, char *buf)
+ {
+ 	u32 flash_cmd = 0xdead;
+ 	u32 i = 0;
+@@ -935,7 +935,7 @@ static ssize_t nes_show_flash_cmd(struct device_driver *ddp, char *buf)
+ 	return  snprintf(buf, PAGE_SIZE, "0x%x\n", flash_cmd);
+ }
+ 
+-static ssize_t nes_store_flash_cmd(struct device_driver *ddp,
++static ssize_t flash_cmd_store(struct device_driver *ddp,
+ 	const char *buf, size_t count)
+ {
+ 	char *p = (char *)buf;
+@@ -956,7 +956,7 @@ static ssize_t nes_store_flash_cmd(struct device_driver *ddp,
+ 	return strnlen(buf, count);
+ }
+ 
+-static ssize_t nes_show_flash_data(struct device_driver *ddp, char *buf)
++static ssize_t flash_data_show(struct device_driver *ddp, char *buf)
+ {
+ 	u32 flash_data = 0xdead;
+ 	u32 i = 0;
+@@ -973,7 +973,7 @@ static ssize_t nes_show_flash_data(struct device_driver *ddp, char *buf)
+ 	return  snprintf(buf, PAGE_SIZE, "0x%x\n", flash_data);
+ }
+ 
+-static ssize_t nes_store_flash_data(struct device_driver *ddp,
++static ssize_t flash_data_store(struct device_driver *ddp,
+ 	const char *buf, size_t count)
+ {
+ 	char *p = (char *)buf;
+@@ -994,12 +994,12 @@ static ssize_t nes_store_flash_data(struct device_driver *ddp,
+ 	return strnlen(buf, count);
+ }
+ 
+-static ssize_t nes_show_nonidx_addr(struct device_driver *ddp, char *buf)
++static ssize_t nonidx_addr_show(struct device_driver *ddp, char *buf)
+ {
+ 	return  snprintf(buf, PAGE_SIZE, "0x%x\n", sysfs_nonidx_addr);
+ }
+ 
+-static ssize_t nes_store_nonidx_addr(struct device_driver *ddp,
++static ssize_t nonidx_addr_store(struct device_driver *ddp,
+ 	const char *buf, size_t count)
+ {
+ 	char *p = (char *)buf;
+@@ -1010,7 +1010,7 @@ static ssize_t nes_store_nonidx_addr(struct device_driver *ddp,
+ 	return strnlen(buf, count);
+ }
+ 
+-static ssize_t nes_show_nonidx_data(struct device_driver *ddp, char *buf)
++static ssize_t nonidx_data_show(struct device_driver *ddp, char *buf)
+ {
+ 	u32 nonidx_data = 0xdead;
+ 	u32 i = 0;
+@@ -1027,7 +1027,7 @@ static ssize_t nes_show_nonidx_data(struct device_driver *ddp, char *buf)
+ 	return  snprintf(buf, PAGE_SIZE, "0x%x\n", nonidx_data);
+ }
+ 
+-static ssize_t nes_store_nonidx_data(struct device_driver *ddp,
++static ssize_t nonidx_data_store(struct device_driver *ddp,
+ 	const char *buf, size_t count)
+ {
+ 	char *p = (char *)buf;
+@@ -1048,12 +1048,12 @@ static ssize_t nes_store_nonidx_data(struct device_driver *ddp,
+ 	return strnlen(buf, count);
+ }
+ 
+-static ssize_t nes_show_idx_addr(struct device_driver *ddp, char *buf)
++static ssize_t idx_addr_show(struct device_driver *ddp, char *buf)
+ {
+ 	return  snprintf(buf, PAGE_SIZE, "0x%x\n", sysfs_idx_addr);
+ }
+ 
+-static ssize_t nes_store_idx_addr(struct device_driver *ddp,
++static ssize_t idx_addr_store(struct device_driver *ddp,
+ 	const char *buf, size_t count)
+ {
+ 	char *p = (char *)buf;
+@@ -1064,7 +1064,7 @@ static ssize_t nes_store_idx_addr(struct device_driver *ddp,
+ 	return strnlen(buf, count);
+ }
+ 
+-static ssize_t nes_show_idx_data(struct device_driver *ddp, char *buf)
++static ssize_t idx_data_show(struct device_driver *ddp, char *buf)
+ {
+ 	u32 idx_data = 0xdead;
+ 	u32 i = 0;
+@@ -1081,7 +1081,7 @@ static ssize_t nes_show_idx_data(struct device_driver *ddp, char *buf)
+ 	return  snprintf(buf, PAGE_SIZE, "0x%x\n", idx_data);
+ }
+ 
+-static ssize_t nes_store_idx_data(struct device_driver *ddp,
++static ssize_t idx_data_store(struct device_driver *ddp,
+ 	const char *buf, size_t count)
+ {
+ 	char *p = (char *)buf;
+@@ -1102,11 +1102,7 @@ static ssize_t nes_store_idx_data(struct device_driver *ddp,
+ 	return strnlen(buf, count);
+ }
+ 
+-
+-/**
+- * nes_show_wqm_quanta
+- */
+-static ssize_t nes_show_wqm_quanta(struct device_driver *ddp, char *buf)
++static ssize_t wqm_quanta_show(struct device_driver *ddp, char *buf)
+ {
+ 	u32 wqm_quanta_value = 0xdead;
+ 	u32 i = 0;
+@@ -1123,12 +1119,8 @@ static ssize_t nes_show_wqm_quanta(struct device_driver *ddp, char *buf)
+ 	return  snprintf(buf, PAGE_SIZE, "0x%X\n", wqm_quanta_value);
+ }
+ 
+-
+-/**
+- * nes_store_wqm_quanta
+- */
+-static ssize_t nes_store_wqm_quanta(struct device_driver *ddp,
+-					const char *buf, size_t count)
++static ssize_t wqm_quanta_store(struct device_driver *ddp, const char *buf,
++				size_t count)
+ {
+ 	unsigned long wqm_quanta_value;
+ 	u32 wqm_config1;
+@@ -1153,26 +1145,16 @@ static ssize_t nes_store_wqm_quanta(struct device_driver *ddp,
+ 	return strnlen(buf, count);
+ }
+ 
+-static DRIVER_ATTR(adapter, S_IRUSR | S_IWUSR,
+-		   nes_show_adapter, nes_store_adapter);
+-static DRIVER_ATTR(eeprom_cmd, S_IRUSR | S_IWUSR,
+-		   nes_show_ee_cmd, nes_store_ee_cmd);
+-static DRIVER_ATTR(eeprom_data, S_IRUSR | S_IWUSR,
+-		   nes_show_ee_data, nes_store_ee_data);
+-static DRIVER_ATTR(flash_cmd, S_IRUSR | S_IWUSR,
+-		   nes_show_flash_cmd, nes_store_flash_cmd);
+-static DRIVER_ATTR(flash_data, S_IRUSR | S_IWUSR,
+-		   nes_show_flash_data, nes_store_flash_data);
+-static DRIVER_ATTR(nonidx_addr, S_IRUSR | S_IWUSR,
+-		   nes_show_nonidx_addr, nes_store_nonidx_addr);
+-static DRIVER_ATTR(nonidx_data, S_IRUSR | S_IWUSR,
+-		   nes_show_nonidx_data, nes_store_nonidx_data);
+-static DRIVER_ATTR(idx_addr, S_IRUSR | S_IWUSR,
+-		   nes_show_idx_addr, nes_store_idx_addr);
+-static DRIVER_ATTR(idx_data, S_IRUSR | S_IWUSR,
+-		   nes_show_idx_data, nes_store_idx_data);
+-static DRIVER_ATTR(wqm_quanta, S_IRUSR | S_IWUSR,
+-		   nes_show_wqm_quanta, nes_store_wqm_quanta);
++static DRIVER_ATTR_RW(adapter);
++static DRIVER_ATTR_RW(eeprom_cmd);
++static DRIVER_ATTR_RW(eeprom_data);
++static DRIVER_ATTR_RW(flash_cmd);
++static DRIVER_ATTR_RW(flash_data);
++static DRIVER_ATTR_RW(nonidx_addr);
++static DRIVER_ATTR_RW(nonidx_data);
++static DRIVER_ATTR_RW(idx_addr);
++static DRIVER_ATTR_RW(idx_data);
++static DRIVER_ATTR_RW(wqm_quanta);
+ 
+ static int nes_create_driver_sysfs(struct pci_driver *drv)
+ {
+-- 
+2.13.1
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
