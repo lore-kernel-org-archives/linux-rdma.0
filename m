@@ -1,41 +1,30 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-next V2 3/6] IB/mlx5: Add support for QP with a
- given source QPN
-Date: Tue, 13 Jun 2017 13:21:55 -0600
-Message-ID: <20170613192155.GD17727@obsidianresearch.com>
-References: <20170608131511.21040-1-leon@kernel.org>
- <20170608131511.21040-4-leon@kernel.org>
- <20170608163020.GA16857@obsidianresearch.com>
- <0ee2641a-4308-6b35-cd0a-e1a5b8b84a6a@dev.mellanox.co.il>
- <20170612160257.GA24829@obsidianresearch.com>
- <CAFgAxU88cfMu7fe9J4Tu=8OFwnND6UfCKF=xi7ZaNHStFpQJog@mail.gmail.com>
+Subject: Re: [PATCH rdma-core] mlx5: Hexify device IDs
+Date: Tue, 13 Jun 2017 13:24:33 -0600
+Message-ID: <20170613192433.GE17727@obsidianresearch.com>
+References: <1497373988-26357-1-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAFgAxU88cfMu7fe9J4Tu=8OFwnND6UfCKF=xi7ZaNHStFpQJog-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1497373988-26357-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Alex @ Mellanox" <Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 13, 2017 at 06:58:39PM +0300, Alex Rosenbaum wrote:
-> On Mon, Jun 12, 2017 at 7:02 PM, Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> > On Sun, Jun 11, 2017 at 09:51:49AM +0300, Yishai Hadas wrote:
-> >> On 6/8/2017 7:30 PM, Jason Gunthorpe wrote:
-> >>
-> >
-> > That doesn't even make sense. An API is an API, if the API does not
-> > require linkage then the hardware can't either.
-> 
-> The API is well defined now and doesn't require the linkage.
-> But our current HW implementation requires creation of the internal
-> underlay object in order to support this.
+On Tue, Jun 13, 2017 at 08:13:08PM +0300, Or Gerlitz wrote:
 
-Well, so long as mlx5 takes the pkey/etc from the qp that has
-source_qpn set, and allows the source_qpn to be set to a QP that does
-not already exist, I have no objection..
+> Also, Doug/Jason, it would be cool if you can set dnf builddep
+> rdma-core on FC to work, this way ppl can just blindly run it
+> instead of the manual dnf install thing.
+
+Doesn't
+
+$ dnf builddep ./rdma-core.spec
+
+Already work OK? If yes please send a patch to update the readme to
+recommend that instead..
 
 Jason
 --
