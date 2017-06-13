@@ -1,35 +1,34 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V4 for-next 00/14] RDMA/bnxt_re: Bug fixes
-Date: Tue, 13 Jun 2017 16:44:51 -0400
-Message-ID: <1497386691.7171.244.camel@redhat.com>
-References: <1495448144-18966-1-git-send-email-selvin.xavier@broadcom.com>
+Subject: Re: [PATCH V5] rxe: Fix a sleep-in-atomic bug in post_one_send
+Date: Tue, 13 Jun 2017 17:01:52 -0400
+Message-ID: <1497387712.7171.245.camel@redhat.com>
+References: <1496665420-8100-1-git-send-email-baijiaju1990@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1495448144-18966-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1496665420-8100-1-git-send-email-baijiaju1990-9Onoh4P/yGk@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jia-Ju Bai <baijiaju1990-9Onoh4P/yGk@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-05-22 at 03:15 -0700, Selvin Xavier wrote:
-> The patch series has some bug fixes for bnxt_re driver.
-> This series includes implementation of some of the workarounds
-> required for the HW and FW and removes the FMR verb support from
-> the driver.
-> I have addressed all the review comments from Leon and Dennis in
-> this series.
+On Mon, 2017-06-05 at 20:23 +0800, Jia-Ju Bai wrote:
+> The driver may sleep under a spin lock, and the function call path
+> is:
+> post_one_send (acquire the lock by spin_lock_irqsave)
+>   init_send_wqe
+>     copy_from_user --> may sleep
 > 
-> Doug,
->  Please review and apply these changes to your repository.
+> There is no flow that makes "qp->is_user" true, and copy_from_user
+> may
+> cause bug when a non-user pointer is used. So the lines of
+> copy_from_user
+> and check of "qp->is_user" are removed.
+> 
+> Signed-off-by: Jia-Ju Bai <baijiaju1990-9Onoh4P/yGk@public.gmane.org>
 
-As we discussed off-list, I took the most important of these for -rc
-(but I have to say, you requested both 1/14 and 2/14 for -rc, and I
-took them, but they are *much* larger than I like to see in -rc
-patches...please try to keep -rc patches smaller in the future).
-
-1, 2, 4, 6, 10, 14 in -rc.  The rest being reviewed for for-next.
+Thanks, applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
