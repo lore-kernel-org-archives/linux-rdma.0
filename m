@@ -1,99 +1,64 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 1/2] IB/usnic: Implement get_netdev hook
-Date: Tue, 13 Jun 2017 10:35:03 +0300
-Message-ID: <20170613073502.GC28008@yuvallap>
-References: <20170611054450.7221-1-yuval.shaia@oracle.com>
- <20170611054450.7221-2-yuval.shaia@oracle.com>
- <20170613072526.GM2576@mtr-leonro.local>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-next 1/3] IB/core: Fix the validations of a multicast
+ LID in attach or detach operations
+Date: Tue, 13 Jun 2017 10:44:51 +0300
+Message-ID: <CAG9sBKNCbS0zYmKKwkLi5pFBFd6QMORqQq6-_k2=OYa_kj-=pA@mail.gmail.com>
+References: <20170612081404.17553-1-leon@kernel.org> <20170612081404.17553-2-leon@kernel.org>
+ <1828884A29C6694DAF28B7E6B8A82373AB142896@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170613072526.GM2576-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB142896-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagi-TmH2Wj2nsNJBDLzU/O5InQ@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 13, 2017 at 10:25:26AM +0300, Leon Romanovsky wrote:
-> On Sun, Jun 11, 2017 at 08:44:49AM +0300, Yuval Shaia wrote:
-> > usnic's get_netdev hook for struct ib_device is missing - add it.
-> >
-> > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > ---
-> > Per Moni Shoua's suggestion - create seperate patch for this purpose.
-> > ---
-> >  drivers/infiniband/hw/usnic/usnic_ib_main.c  |  1 +
-> >  drivers/infiniband/hw/usnic/usnic_ib_verbs.c | 10 ++++++++++
-> >  drivers/infiniband/hw/usnic/usnic_ib_verbs.h |  1 +
-> >  3 files changed, 12 insertions(+)
-> >
-> > diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-> > index c0c1e8b..80577b9 100644
-> > --- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
-> > +++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-> > @@ -409,6 +409,7 @@ static void *usnic_ib_device_add(struct pci_dev *dev)
-> >  	us_ibdev->ib_dev.query_port = usnic_ib_query_port;
-> >  	us_ibdev->ib_dev.query_pkey = usnic_ib_query_pkey;
-> >  	us_ibdev->ib_dev.query_gid = usnic_ib_query_gid;
-> > +	us_ibdev->ib_dev.get_netdev = usnic_get_netdev;
-> >  	us_ibdev->ib_dev.get_link_layer = usnic_ib_port_link_layer;
-> >  	us_ibdev->ib_dev.alloc_pd = usnic_ib_alloc_pd;
-> >  	us_ibdev->ib_dev.dealloc_pd = usnic_ib_dealloc_pd;
-> > diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-> > index 4996984..f9dc1e80 100644
-> > --- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-> > +++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-> > @@ -424,6 +424,16 @@ int usnic_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
-> >  	return 0;
-> >  }
-> >
-> > +struct net_device *usnic_get_netdev(struct ib_device *device, u8 port_num)
-> > +{
-> > +	struct usnic_ib_dev *us_ibdev = to_usdev(device);
-> > +
-> > +	if (us_ibdev->netdev)
-> > +		dev_hold(us_ibdev->netdev);
-> 
-> Who will release this reference?
-
-I followed the instructions in struct ib_device so assuming the one that
-calls get_netdev will do it.
-See ib_cache_gid_add as an example.
-
-Patch #2 aslo take care of it.
-
-> 
-> Thanks
-> 
-> > +
-> > +	return us_ibdev->netdev;
-> > +}
-> > +
-> >  int usnic_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
-> >  				u16 *pkey)
-> >  {
-> > diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.h b/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
-> > index 172e43b..1fda944 100644
-> > --- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
-> > +++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
-> > @@ -48,6 +48,7 @@ int usnic_ib_query_qp(struct ib_qp *qp, struct ib_qp_attr *qp_attr,
-> >  				struct ib_qp_init_attr *qp_init_attr);
-> >  int usnic_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
-> >  				union ib_gid *gid);
-> > +struct net_device *usnic_get_netdev(struct ib_device *device, u8 port_num);
-> >  int usnic_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
-> >  				u16 *pkey);
-> >  struct ib_pd *usnic_ib_alloc_pd(struct ib_device *ibdev,
-> > --
-> > 2.9.4
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+On Mon, Jun 12, 2017 at 7:15 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>> +static bool is_valid_mcast_lid(struct ib_qp *qp, u16 lid)
+>> +{
+>> +     struct ib_qp_init_attr init_attr = {};
+>> +     struct ib_qp_attr attr = {};
+>> +     int num_eth_ports = 0;
+>> +     int port;
+>> +
+>> +     /* If QP state >= init, it is assigned to a port and we can
+>> check this
+>> +      * port only.
+>> +      */
+>> +     if (!ib_query_qp(qp, &attr, IB_QP_STATE | IB_QP_PORT,
+>> &init_attr)) {
+>> +             if (attr.qp_state >= IB_QPS_INIT) {
+>> +                     if (qp->device->get_link_layer(qp->device,
+>> attr.port_num) !=
+>> +                         IB_LINK_LAYER_INFINIBAND)
+>> +                             return true;
+>> +                     goto lid_check;
+>> +             }
+>> +     }
+>> +
+>> +     /* Can't get a quick answer, iterate over all ports */
+>> +     for (port = 0; port < qp->device->phys_port_cnt; port++)
+>> +             if (qp->device->get_link_layer(qp->device, port) !=
+>> +                 IB_LINK_LAYER_INFINIBAND)
+>> +                     num_eth_ports++;
+>> +
+>> +     /* If we have at lease one Ethernet port, RoCE annex declares
+>> that
+>> +      * multicast LID should be ignored. We can't tell at this step
+>> if the
+>> +      * QP belongs to an IB or Ethernet port.
+>> +      */
+>> +     if (num_eth_ports)
+>> +             return true;
+>
+> Reporting that a lid *might* be valid is a really weak check.  Can we require that RoCE QPs be in the INIT state prior to joining, or use the mgid, or something to make the validation check work?  Do we even know if the qp is a roce qp?
+>
+>
+This is not a join flow but attach flow. AFAIK, attaching a QP to a
+mcast group can be when QP is in RESET state. This patch does the best
+it can to give a valid answer but when QP is in RESET state and at
+least one of the ports is Eth port then we can't invalidate a MLID.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
