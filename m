@@ -1,45 +1,41 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] rdma-core: Make room for source GIDs to be added
-Date: Tue, 13 Jun 2017 13:20:17 -0600
-Message-ID: <20170613192017.GC17727@obsidianresearch.com>
-References: <20170613025451.31416-1-somnath.kotur@broadcom.com>
- <20170613060325.GF2576@mtr-leonro.local>
+Subject: Re: [PATCH rdma-next V2 3/6] IB/mlx5: Add support for QP with a
+ given source QPN
+Date: Tue, 13 Jun 2017 13:21:55 -0600
+Message-ID: <20170613192155.GD17727@obsidianresearch.com>
+References: <20170608131511.21040-1-leon@kernel.org>
+ <20170608131511.21040-4-leon@kernel.org>
+ <20170608163020.GA16857@obsidianresearch.com>
+ <0ee2641a-4308-6b35-cd0a-e1a5b8b84a6a@dev.mellanox.co.il>
+ <20170612160257.GA24829@obsidianresearch.com>
+ <CAFgAxU88cfMu7fe9J4Tu=8OFwnND6UfCKF=xi7ZaNHStFpQJog@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170613060325.GF2576-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <CAFgAxU88cfMu7fe9J4Tu=8OFwnND6UfCKF=xi7ZaNHStFpQJog-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Alex @ Mellanox" <Alexr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 13, 2017 at 09:03:25AM +0300, Leon Romanovsky wrote:
-> On Tue, Jun 13, 2017 at 08:24:51AM +0530, Somnath Kotur wrote:
-> > Currently sgid_index is of type 'u8' so we can't really go beyond 128
-> > unique GID entries(one for each type so total of 256 GID entries).
-> > Change it to u16 so atleast 4k GID entries (as many VLANs that can be added)
-> > can be accomodated.
+On Tue, Jun 13, 2017 at 06:58:39PM +0300, Alex Rosenbaum wrote:
+> On Mon, Jun 12, 2017 at 7:02 PM, Jason Gunthorpe
+> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> > On Sun, Jun 11, 2017 at 09:51:49AM +0300, Yishai Hadas wrote:
+> >> On 6/8/2017 7:30 PM, Jason Gunthorpe wrote:
+> >>
 > >
-> > Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> >  drivers/infiniband/core/verbs.c | 2 +-
-> >  include/rdma/ib_verbs.h         | 4 ++--
-> >  2 files changed, 3 insertions(+), 3 deletions(-)
+> > That doesn't even make sense. An API is an API, if the API does not
+> > require linkage then the hardware can't either.
 > 
-> What type of testing did this change get?
-> According to spec, "The maximum number (N) of unicast GIDs supported per endport is
-> implementation specific".
-> 
-> mlx5 and mlx4 are limited to 128 GIDs and user will get errors if he try to set
-> more than that.
+> The API is well defined now and doesn't require the linkage.
+> But our current HW implementation requires creation of the internal
+> underlay object in order to support this.
 
-At a minimum I think this patch will need to add overflow protection
-on the uapi paths that cast this back to a u8, and Matan should
-consider expanding sgid_index to u16 in the new uapi, whenever
-possible..
-
-.. and Somnath you should review Matan's uABI patches since you want
-such a fundamental change :)
+Well, so long as mlx5 takes the pkey/etc from the qp that has
+source_qpn set, and allows the source_qpn to be set to a QP that does
+not already exist, I have no objection..
 
 Jason
 --
