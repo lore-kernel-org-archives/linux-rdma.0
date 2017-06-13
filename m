@@ -1,43 +1,45 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/3] Support out of order data placement
-Date: Tue, 13 Jun 2017 13:17:04 -0600
-Message-ID: <20170613191704.GA17727@obsidianresearch.com>
-References: <20170612165536.GB12435@obsidianresearch.com>
- <6747e257-67b0-a364-be21-04f73ef82ffe@talpey.com>
- <VI1PR0502MB30080B672B80836FF0A328DCD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <475e1873-e842-ecb9-d260-34777da57e51@talpey.com>
- <VI1PR0502MB3008B7FE60CAB3BD49907A1BD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <d3a436a0-9ace-b11a-2e4c-387fc575877e@talpey.com>
- <VI1PR0502MB3008E04612EED6BC83F37115D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <fbdcf05b-ccd8-bd9c-c9c8-86f373303250@talpey.com>
- <VI1PR0502MB30089271EB542493AA58060CD1C20@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <fb11f261-b80b-f71a-8076-204706267798@talpey.com>
+Subject: Re: [PATCH] rdma-core: Make room for source GIDs to be added
+Date: Tue, 13 Jun 2017 13:20:17 -0600
+Message-ID: <20170613192017.GC17727@obsidianresearch.com>
+References: <20170613025451.31416-1-somnath.kotur@broadcom.com>
+ <20170613060325.GF2576@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <fb11f261-b80b-f71a-8076-204706267798-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170613060325.GF2576-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Cc: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 12, 2017 at 09:30:05PM -0400, Tom Talpey wrote:
-> >>Again, I'd be a lot less concerned if non-strict were the default, and strict
-> >>mode was negotiated. It's all just so upside-down.
+On Tue, Jun 13, 2017 at 09:03:25AM +0300, Leon Romanovsky wrote:
+> On Tue, Jun 13, 2017 at 08:24:51AM +0530, Somnath Kotur wrote:
+> > Currently sgid_index is of type 'u8' so we can't really go beyond 128
+> > unique GID entries(one for each type so total of 256 GID entries).
+> > Change it to u16 so atleast 4k GID entries (as many VLANs that can be added)
+> > can be accomodated.
 > >
-> >In IB spec, in-order delivery is default.
+> > Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> >  drivers/infiniband/core/verbs.c | 2 +-
+> >  include/rdma/ib_verbs.h         | 4 ++--
+> >  2 files changed, 3 insertions(+), 3 deletions(-)
 > 
-> I don't agree. Requests are sent in-order, and the responder
-> processes them in-order, but the bytes thenselves are not
-> guaranteed to appear in-order. Additionally, if retries occur,
-> this is most definitely not the case.
+> What type of testing did this change get?
+> According to spec, "The maximum number (N) of unicast GIDs supported per endport is
+> implementation specific".
+> 
+> mlx5 and mlx4 are limited to 128 GIDs and user will get errors if he try to set
+> more than that.
 
-+1
+At a minimum I think this patch will need to add overflow protection
+on the uapi paths that cast this back to a u8, and Matan should
+consider expanding sgid_index to u16 in the new uapi, whenever
+possible..
 
-And again, if message ordering and table 79 are unchanged in this new
-mode it is still fully conformant to the IBTA (and again, I don't see
-how the transmitter can change behavior and not break table 79)
+.. and Somnath you should review Matan's uABI patches since you want
+such a fundamental change :)
 
 Jason
 --
