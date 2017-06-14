@@ -1,86 +1,88 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V4 for-next 00/14] RDMA/bnxt_re: Bug fixes
-Date: Tue, 13 Jun 2017 22:32:45 -0400
-Message-ID: <1497407565.7171.249.camel@redhat.com>
-References: <1495448144-18966-1-git-send-email-selvin.xavier@broadcom.com>
-         <1497386691.7171.244.camel@redhat.com>
+From: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] rdma-core: Make room for source GIDs to be added
+Date: Wed, 14 Jun 2017 09:54:31 +0530
+Message-ID: <CAOBf=mv=EuAUM9Ccy+dHp31jmppir7rDsuNg7wbuP2t6MbFpUA@mail.gmail.com>
+References: <20170613025451.31416-1-somnath.kotur@broadcom.com> <20170613060325.GF2576@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1497386691.7171.244.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170613060325.GF2576-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-06-13 at 16:44 -0400, Doug Ledford wrote:
-> On Mon, 2017-05-22 at 03:15 -0700, Selvin Xavier wrote:
-> > 
-> > The patch series has some bug fixes for bnxt_re driver.
-> > This series includes implementation of some of the workarounds
-> > required for the HW and FW and removes the FMR verb support from
-> > the driver.
-> > I have addressed all the review comments from Leon and Dennis in
-> > this series.
-> > 
-> > Doug,
-> >  Please review and apply these changes to your repository.
-> 
-> As we discussed off-list, I took the most important of these for -rc
-> (but I have to say, you requested both 1/14 and 2/14 for -rc, and I
-> took them, but they are *much* larger than I like to see in -rc
-> patches...please try to keep -rc patches smaller in the future).
-> 
-> 1, 2, 4, 6, 10, 14 in -rc.  The rest being reviewed for for-next.
+Hi Leon,
 
-Patch 2/14 cause a build regression:
+On Tue, Jun 13, 2017 at 11:33 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> On Tue, Jun 13, 2017 at 08:24:51AM +0530, Somnath Kotur wrote:
+>> Currently sgid_index is of type 'u8' so we can't really go beyond 128
+>> unique GID entries(one for each type so total of 256 GID entries).
+>> Change it to u16 so atleast 4k GID entries (as many VLANs that can be added)
+>> can be accomodated.
+>>
+>> Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+>> ---
+>>  drivers/infiniband/core/verbs.c | 2 +-
+>>  include/rdma/ib_verbs.h         | 4 ++--
+>>  2 files changed, 3 insertions(+), 3 deletions(-)
+>
+> What type of testing did this change get?
+> According to spec, "The maximum number (N) of unicast GIDs supported per endport is
+> implementation specific".
+>
 
-tree:   https://github.com/dledford/linux.git k.o/for-4.12-rc
-head:   1e40a786493e7256cc9192165b431fba3fb2023b
-commit: fabfb8786409d7be24ac84150b1fa025e181861d [29/36] RDMA/bnxt_re:
-HW workarounds for handling specific conditions
-config: xtensa-allmodconfig (attached as .config)
-compiler: xtensa-linux-gcc (GCC) 4.9.0
-reproduce:
-        wget https://raw.githubusercontent.com/01org/lkp-tests/master/s
-bin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        git checkout fabfb8786409d7be24ac84150b1fa025e181861d
-        # save the attached .config to linux build tree
-        make.cross ARCH=xtensa 
+> mlx5 and mlx4 are limited to 128 GIDs and user will get errors if he try to set
+> more than that.
+>
+Agree with your points, and yes this was tested against an adapter
+that could support more than 128 GIDs
 
-All warnings (new ones prefixed by >>):
-
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c: In function
-'bnxt_re_create_fence_wqe':
->> drivers/infiniband/hw/bnxt_re/ib_verbs.c:470:17: warning: cast from
-pointer to integer of different size [-Wpointer-to-int-cast]
-     wqe->bind.va = (u64)fence->va;
-                    ^
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c: In function
-'bnxt_re_create_fence_mr':
-   drivers/infiniband/hw/bnxt_re/ib_verbs.c:578:28: warning: cast from
-pointer to integer of different size [-Wpointer-to-int-cast]
-     mr->qplib_mr.va         = (u64)fence->va;
-                               ^
---
-   drivers/infiniband/hw/bnxt_re/qplib_fp.c: In function 'do_wa9060':
->> drivers/infiniband/hw/bnxt_re/qplib_fp.c:1612:16: warning: cast to
-pointer from integer of different size [-Wint-to-pointer-cast]
-         peek_qp = (struct bnxt_qplib_qp *)
-                   ^
-
-This appears to be a general problem on 32bit arches (at least i386,
-parisc, and xtensa all reported this problem).  Please fix ASAP or I'll
-need to remove this patch from the series.
-
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-   
-Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
+Thanks
+Som
+>>
+>> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+>> index 4792f52..3161e2c 100644
+>> --- a/drivers/infiniband/core/verbs.c
+>> +++ b/drivers/infiniband/core/verbs.c
+>> @@ -549,7 +549,7 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num,
+>>               flow_class = be32_to_cpu(grh->version_tclass_flow);
+>>               rdma_ah_set_grh(ah_attr, &sgid,
+>>                               flow_class & 0xFFFFF,
+>> -                             (u8)gid_index, hoplimit,
+>> +                             (u16)gid_index, hoplimit,
+>>                               (flow_class >> 20) & 0xFF);
+>>
+>>       }
+>> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+>> index ba8314e..30ce942 100644
+>> --- a/include/rdma/ib_verbs.h
+>> +++ b/include/rdma/ib_verbs.h
+>> @@ -639,7 +639,7 @@ struct ib_event_handler {
+>>  struct ib_global_route {
+>>       union ib_gid    dgid;
+>>       u32             flow_label;
+>> -     u8              sgid_index;
+>> +     u16             sgid_index;
+>>       u8              hop_limit;
+>>       u8              traffic_class;
+>>  };
+>> @@ -3612,7 +3612,7 @@ static inline void rdma_ah_set_interface_id(struct rdma_ah_attr *attr,
+>>
+>>  static inline void rdma_ah_set_grh(struct rdma_ah_attr *attr,
+>>                                  union ib_gid *dgid, u32 flow_label,
+>> -                                u8 sgid_index, u8 hop_limit,
+>> +                                u16 sgid_index, u8 hop_limit,
+>>                                  u8 traffic_class)
+>>  {
+>>       struct ib_global_route *grh = rdma_ah_retrieve_grh(attr);
+>> --
+>> 1.8.3.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
