@@ -1,99 +1,81 @@
-From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 2/2] IB/core: Add generic function to extract IB speed
- from netdev
-Date: Wed, 14 Jun 2017 20:45:12 +0530
-Message-ID: <CA+sbYW07k=UoFvJVLvjfTcuUosoJJk34mSZJAfXRaUJuHwS3cA@mail.gmail.com>
-References: <20170611054450.7221-1-yuval.shaia@oracle.com> <20170611054450.7221-3-yuval.shaia@oracle.com>
+From: "Thomas Rosenstein" <thomas.rosenstein-+32LHaKS/h5VtLMLtJdGzA@public.gmane.org>
+Subject: Re: iSER Connection via LIO not working
+Date: Wed, 14 Jun 2017 18:16:07 +0200
+Message-ID: <881ADBDD-3970-4197-B920-28FA36EEF7AC@creamfinance.com>
+References: <2E68B5D1-49CF-4F2C-B7F3-DA20E05503B8@creamfinance.com>
+ <CAANLjFraKgxAC09VH8u72SbQZs8WhXnnk87VQB0ywoVavC2hSg@mail.gmail.com>
+ <2E0A092F-9530-44FB-8A6F-D76D8E94ABE0@creamfinance.com>
+ <CAANLjFqg1ked1Ls0W=BRRw5o5vheHKnUw5C_5OVciFQd0H8djg@mail.gmail.com>
+ <827EC8DD-86E7-4011-8F68-B29396B2034D@creamfinance.com>
+ <CAANLjFqt_RqU6UFPCcZJ5Mec-ku__YErFb-VLrV4Qx9G7ArAZA@mail.gmail.com>
+ <1790271E-1A6B-492D-B4B6-701873B23A01@creamfinance.com>
+ <32E1700B9017364D9B60AED9960492BC3431F8F1@fmsmsx120.amr.corp.intel.com>
+ <1496939302.3028.3.camel@wdc.com>
+ <32E1700B9017364D9B60AED9960492BC3431F91D@fmsmsx120.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; format=flowed; markup=markdown
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170611054450.7221-3-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC3431F91D-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagi-TmH2Wj2nsNJBDLzU/O5InQ@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jun 11, 2017 at 11:14 AM, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> index 7ba9e69..d0e0f90 100644
-> --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> @@ -181,50 +181,6 @@ int bnxt_re_modify_device(struct ib_device *ibdev,
->         return 0;
->  }
+Hi
+
+I ran into a second bug, but I'm not sure where to check that:
+
+[150874.509144] iSCSI Target < 0
+[150874.509146] iSCSI Login negotiation failed.
+[150874.525818] Moving to TARG_CONN_STATE_FREE.
+[150876.307247] Added timeout timer to iSCSI login request for 15 
+seconds.
+[150876.307250] Moving to TARG_CONN_STATE_XPT_UP.
+[150877.307358] Received iSCSI login request from 10.0.13.23:36088 on 
+IB/iSER Network Portal 10.0.13.3:3260
+[150877.307360] Moving to TARG_CONN_STATE_IN_LOGIN.
+
+the iSCSI Target < 0 is from me and is placed at
+
+  rc = iscsi_target_locate_portal(np, conn, login);
+
+  if (rc < 0) {
+      pr_debug("iSCSI Target < 0");
+
+
+I added more logs there, the issue is, it's only happening after a few 
+hours with new connections!
+Anyone experienced that, or has an idea what the issue could be?
+
+BTW logging in the iSCSI Target and Portal needs to be improved!
+
+BR
+Thomas
+
+On 8 Jun 2017, at 18:35, Marciniszyn, Mike wrote:
+
+>> From: Bart Van Assche [mailto:Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org]
+>> Sent: Thursday, June 8, 2017 12:28 PM
+>> To: robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org; thomas.rosenstein-+32LHaKS/h5VtLMLtJdGzA@public.gmane.org;
+>> Marciniszyn, Mike <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Subject: Re: iSER Connection via LIO not working
+>>
+>> On Thu, 2017-06-08 at 16:23 +0000, Marciniszyn, Mike wrote:
+>>> This appears to be the only storage ULP that reads this field 
+>>> exported from
+>> drivers.
+>>
+>> Hello Mike,
+>>
+>> Are you sure of this? This is what grep tells me:
+>>
 >
-> -static void __to_ib_speed_width(struct net_device *netdev, u8 *speed, u8 *width)
-> -{
-> -       struct ethtool_link_ksettings lksettings;
-> -       u32 espeed;
-> -
-> -       if (netdev->ethtool_ops && netdev->ethtool_ops->get_link_ksettings) {
-> -               memset(&lksettings, 0, sizeof(lksettings));
-> -               rtnl_lock();
-> -               netdev->ethtool_ops->get_link_ksettings(netdev, &lksettings);
-> -               rtnl_unlock();
-> -               espeed = lksettings.base.speed;
-> -       } else {
-> -               espeed = SPEED_UNKNOWN;
-> -       }
-> -       switch (espeed) {
-> -       case SPEED_1000:
-> -               *speed = IB_SPEED_SDR;
-> -               *width = IB_WIDTH_1X;
-> -               break;
-> -       case SPEED_10000:
-> -               *speed = IB_SPEED_QDR;
-> -               *width = IB_WIDTH_1X;
-> -               break;
-> -       case SPEED_20000:
-> -               *speed = IB_SPEED_DDR;
-> -               *width = IB_WIDTH_4X;
-> -               break;
-> -       case SPEED_25000:
-> -               *speed = IB_SPEED_EDR;
-> -               *width = IB_WIDTH_1X;
-> -               break;
-> -       case SPEED_40000:
-> -               *speed = IB_SPEED_QDR;
-> -               *width = IB_WIDTH_4X;
-> -               break;
-> -       case SPEED_50000:
-> -               break;
-> -       default:
-> -               *speed = IB_SPEED_SDR;
-> -               *width = IB_WIDTH_1X;
-> -               break;
-> -       }
-> -}
-> -
->  /* Port */
->  int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
->                        struct ib_port_attr *port_attr)
-> @@ -266,8 +222,9 @@ int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
->          * IB stack to avoid race in the NETDEV_UNREG path
->          */
->         if (test_bit(BNXT_RE_FLAG_IBDEV_REGISTERED, &rdev->flags))
-> -               __to_ib_speed_width(rdev->netdev, &port_attr->active_speed,
-> -                                   &port_attr->active_width);
-> +               if (!ib_get_eth_speed(ibdev, port_num, &port_attr->active_speed,
-> +                                     &port_attr->active_width))
-> +                       return -EINVAL;
->         return 0;
->  }
-
-The bnxt_re changes looks good to me.
-
-But this change conflicts with one of the patches i submitted as a
-part of the bug fix series.
-
-https://patchwork.kernel.org/patch/9786057/
-
-Depending on the order in which Doug pulls these patches, one of us
-might have to
-re-spin the patch.
-
-Thanks,
-Selvin Xavier
+> I only checked within ulp.    Perhaps it is a wider issue.
+>
+> srp appears to only use the variable when use_fast_reg is set, which 
+> looks to be based on the device exported bit.
+>
+> Mike
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
