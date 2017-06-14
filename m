@@ -1,53 +1,49 @@
 From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] RDS: IB: NULL dereference on error in rds_ib_alloc_frmr()
-Date: Wed, 14 Jun 2017 15:54:24 +0300
-Message-ID: <20170614125423.GA3329@yuvallap>
-References: <20170614103924.GK29394@elgon.mountain>
+Subject: Re: [PATCH v3 2/2] IB/core: Add generic function to extract IB speed
+ from netdev
+Date: Wed, 14 Jun 2017 16:02:35 +0300
+Message-ID: <20170614130235.GB3329@yuvallap>
+References: <20170611054450.7221-1-yuval.shaia@oracle.com>
+ <20170611054450.7221-3-yuval.shaia@oracle.com>
+ <e58c9e7782774aa1b710b779c44f918d@XCH-RCD-017.cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170614103924.GK29394-mgFCXtclrQlZLf2FXnZxJA@public.gmane.org>
+In-Reply-To: <e58c9e7782774aa1b710b779c44f918d-NcvnDpcxJI+VcpH5Q1TwH6BKnGwkPULj@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Avinash Repaka <avinash.repaka-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Christian Benvenuti (benve)" <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org" <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, "devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org" <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, "somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org" <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, "sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org" <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, "Dave Goodell (dgoodell)" <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "sagi-TmH2Wj2nsNJBDLzU/O5InQ@public.gmane.org" <sagi-TmH2Wj2nsNJBDLzU/O5InQ@public.gmane.org>, "bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, yishaih@
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 14, 2017 at 01:39:24PM +0300, Dan Carpenter wrote:
-> We accidentally return ERR_PTR(0) if ib_alloc_mr() fails.  The caller
-> is expecting error pointers so it results in a NULL dereference.
+On Tue, Jun 13, 2017 at 08:07:48AM +0000, Christian Benvenuti (benve) wrote:
+> > 
+> > +int ib_get_eth_speed(struct ib_device *dev, u8 port_num, u8 *speed, u8
+> > +*width) {
+> > +	int rc;
+> > +	u32 netdev_speed;
+> > +	struct net_device *netdev;
+> > +	struct ethtool_link_ksettings lksettings;
+> > +
+> > +	if (rdma_port_get_link_layer(dev, port_num) != IB_LINK_LAYER_ETHERNET)
+> > +		return -EINVAL;
+> > +
+> > +	if (!dev->get_netdev)
+> > +		return -EINVAL;
 > 
-> Fixes: 1659185fb4d0 ("RDS: IB: Support Fastreg MR (FRMR) memory registration mode")
-> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> -EOPNOTSUPP ?
+
+Looks better.
+Assuming the same should be for the above one and the one below, right?
+
 > 
-> diff --git a/net/rds/ib_frmr.c b/net/rds/ib_frmr.c
-> index 48332a6ed738..74a66cc162ed 100644
-> --- a/net/rds/ib_frmr.c
-> +++ b/net/rds/ib_frmr.c
-> @@ -38,7 +38,7 @@ static struct rds_ib_mr *rds_ib_alloc_frmr(struct rds_ib_device *rds_ibdev,
->  	struct rds_ib_mr_pool *pool;
->  	struct rds_ib_mr *ibmr = NULL;
->  	struct rds_ib_frmr *frmr;
-> -	int err = 0;
-> +	int err;
-
-Can we trust it'll be zero?
-
->  
->  	if (npages <= RDS_MR_8K_MSG_SIZE)
->  		pool = rds_ibdev->mr_8k_pool;
-> @@ -61,6 +61,7 @@ static struct rds_ib_mr *rds_ib_alloc_frmr(struct rds_ib_device *rds_ibdev,
->  			 pool->fmr_attr.max_pages);
->  	if (IS_ERR(frmr->mr)) {
->  		pr_warn("RDS/IB: %s failed to allocate MR", __func__);
-> +		err = -ENOMEM;
->  		goto out_no_cigar;
->  	}
->  
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > +	netdev = dev->get_netdev(dev, port_num);
+> > +	if (!netdev)
+> > +		return -EINVAL;
+> > +
+> > +	rtnl_lock();
+> > +	rc = __ethtool_get_link_ksettings(netdev, &lksettings);
+> > +	rtnl_unlock();
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
