@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 2/5] IB/ipoib: Limit call to free rdma_netdev for capable devices
-Date: Wed, 14 Jun 2017 09:59:06 +0300
-Message-ID: <20170614065909.23650-3-leon@kernel.org>
+Subject: [PATCH rdma-rc 3/5] IB/ipoib: Delete napi in device uninit default
+Date: Wed, 14 Jun 2017 09:59:07 +0300
+Message-ID: <20170614065909.23650-4-leon@kernel.org>
 References: <20170614065909.23650-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170614065909.23650-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,49 +12,38 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Limit calls to free_rdma_netdev() for capable devices only.
+This patch mekas init_default and uninit_default symmetric
+with a call to delete napi. Additionally, the uninit_default
+gained delete napi call in case of init_default fails.
 
-Fixes: cd565b4b51e5 ('IB/IPoIB: Support acceleration options callbacks')
+Fixes: 515ed4f3aab4 ('IB/IPoIB: Separate control and data related initializations')
 Signed-off-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c         | 6 ++++--
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 5 ++++-
- 2 files changed, 8 insertions(+), 3 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 0c79983c8b1a..9ecc089d4529 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -3692,8 +3692,10 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 	dev->ib_dev.check_mr_status	= mlx5_ib_check_mr_status;
- 	dev->ib_dev.get_port_immutable  = mlx5_port_immutable;
- 	dev->ib_dev.get_dev_fw_str      = get_dev_fw_str;
--	dev->ib_dev.alloc_rdma_netdev	= mlx5_ib_alloc_rdma_netdev;
--	dev->ib_dev.free_rdma_netdev	= mlx5_ib_free_rdma_netdev;
-+	if (MLX5_CAP_GEN(mdev, ipoib_enhanced_offloads)) {
-+		dev->ib_dev.alloc_rdma_netdev	= mlx5_ib_alloc_rdma_netdev;
-+		dev->ib_dev.free_rdma_netdev	= mlx5_ib_free_rdma_netdev;
-+	}
- 	if (mlx5_core_is_pf(mdev)) {
- 		dev->ib_dev.get_vf_config	= mlx5_ib_get_vf_config;
- 		dev->ib_dev.set_vf_link_state	= mlx5_ib_set_vf_link_state;
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 0ddd9709e1df..91fae34bdd4f 100644
+index 91fae34bdd4f..1015a63de6ae 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -2301,7 +2301,10 @@ static void ipoib_remove_one(struct ib_device *device, void *client_data)
- 		flush_workqueue(priv->wq);
+@@ -1596,6 +1596,8 @@ static void ipoib_dev_uninit_default(struct net_device *dev)
  
- 		unregister_netdev(priv->dev);
--		free_netdev(priv->dev);
-+		if (device->free_rdma_netdev)
-+			device->free_rdma_netdev(priv->dev);
-+		else
-+			free_netdev(priv->dev);
+ 	ipoib_transport_dev_cleanup(dev);
  
- 		list_for_each_entry_safe(cpriv, tcpriv, &priv->child_intfs, list)
- 			kfree(cpriv);
++	netif_napi_del(&priv->napi);
++
+ 	ipoib_cm_dev_cleanup(dev);
+ 
+ 	kfree(priv->rx_ring);
+@@ -1649,6 +1651,7 @@ static int ipoib_dev_init_default(struct net_device *dev)
+ 	kfree(priv->rx_ring);
+ 
+ out:
++	netif_napi_del(&priv->napi);
+ 	return -ENOMEM;
+ }
+ 
 -- 
 2.12.2
 
