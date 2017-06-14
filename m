@@ -1,152 +1,51 @@
-From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/2] IB/opa_vnic: Use spinlock instead of mutex for stats_lock
-Date: Wed, 14 Jun 2017 12:34:42 -0700
-Message-ID: <1497468882-19161-3-git-send-email-niranjana.vishwanathapura@intel.com>
-References: <1497468882-19161-1-git-send-email-niranjana.vishwanathapura@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1497468882-19161-1-git-send-email-niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [pull request][for-next 0/6] Mellanox mlx5 updates 2017-05-23
+Date: Wed, 14 Jun 2017 15:44:59 -0400 (EDT)
+Message-ID: <20170614.154459.634473134120134636.davem@davemloft.net>
+References: <20170523114404.20387-1-saeedm@mellanox.com>
+        <20170525.120220.1812199263503283242.davem@davemloft.net>
+        <1497468613.7171.264.camel@redhat.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1497468613.7171.264.camel@redhat.com>
+Sender: netdev-owner@vger.kernel.org
+To: dledford@redhat.com
+Cc: saeedm@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, ilant@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-Stats can be read from atomic context, hence make stats_lock as
-a spinlock.
+From: Doug Ledford <dledford@redhat.com>
+Date: Wed, 14 Jun 2017 15:30:13 -0400
 
-Fix the following trace with debug kernel.
+> On Thu, 2017-05-25 at 12:02 -0400, David Miller wrote:
+>> From: Saeed Mahameed <saeedm@mellanox.com>
+>> Date: Tue, 23 May 2017 14:43:58 +0300
+>> 
+>> > Hi Dave and Doug,
+>> > 
+>> > This series introduces some small updates and FPGA support to the
+>> mlx5
+>> > core/ethernet and IB drivers.
+>> > 
+>> > For more details please see below.
+>> > 
+>> > Please pull and let me know if there's any problem.
+>> 
+>> Ok, I've pulled this into net-next.
+>> 
+>> Doug let me know if there are any merge hassles we need to coordinate
+>> on.
+> 
+> Turns out that you had pulled this prior to your net-next tree making
+> it up to v4.12-rc3, while I had my -rc branch based on v4.12-rc3, so
+> when I pulled just up to your merge commit for this pull request, it
+> meant a later merge of my -rc branch would pull in a bunch of stuff
+> between here and -rc3.  So I ended up pulling your latest net-next as
+> of today as the easiest way to resolve that issue.  Now I can merge my
+> -rc branch in and it won't cause any extra noise in the merge.  It
+> seems to be a fairly regular pattern that I'm going to have to hold my
+> pull request to Linus until after your tree is pulled, so I might just
+> start planning on that from now on ;-)
 
-BUG: sleeping function called from invalid context at
-kernel/locking/mutex.c:238
-in_atomic(): 1, irqs_disabled(): 0, pid: 6487, name: sadc
-Call Trace:
- dump_stack+0x63/0x90
- ___might_sleep+0xda/0x130
- __might_sleep+0x4a/0x90
- mutex_lock+0x20/0x50
- opa_vnic_get_stats64+0x56/0x140 [opa_vnic]
- dev_get_stats+0x74/0x130
- dev_seq_printf_stats+0x37/0x120
- dev_seq_show+0x14/0x30
- seq_read+0x26d/0x3d0
-
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/ulp/opa_vnic/opa_vnic_ethtool.c    | 4 ++--
- drivers/infiniband/ulp/opa_vnic/opa_vnic_internal.h   | 2 +-
- drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c     | 8 +++-----
- drivers/infiniband/ulp/opa_vnic/opa_vnic_vema_iface.c | 8 ++++----
- 4 files changed, 10 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_ethtool.c b/drivers/infiniband/ulp/opa_vnic/opa_vnic_ethtool.c
-index d66540e..62390e9 100644
---- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_ethtool.c
-+++ b/drivers/infiniband/ulp/opa_vnic/opa_vnic_ethtool.c
-@@ -146,15 +146,15 @@ static void vnic_get_ethtool_stats(struct net_device *netdev,
- 	int i;
- 
- 	memset(&vstats, 0, sizeof(vstats));
--	mutex_lock(&adapter->stats_lock);
-+	spin_lock(&adapter->stats_lock);
- 	adapter->rn_ops->ndo_get_stats64(netdev, &vstats.netstats);
-+	spin_unlock(&adapter->stats_lock);
- 	for (i = 0; i < VNIC_STATS_LEN; i++) {
- 		char *p = (char *)&vstats + vnic_gstrings_stats[i].stat_offset;
- 
- 		data[i] = (vnic_gstrings_stats[i].sizeof_stat ==
- 			   sizeof(u64)) ? *(u64 *)p : *(u32 *)p;
- 	}
--	mutex_unlock(&adapter->stats_lock);
- }
- 
- /* vnic_get_strings - get strings */
-diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_internal.h b/drivers/infiniband/ulp/opa_vnic/opa_vnic_internal.h
-index 6bba886..ca29e6d 100644
---- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_internal.h
-+++ b/drivers/infiniband/ulp/opa_vnic/opa_vnic_internal.h
-@@ -214,7 +214,7 @@ struct opa_vnic_adapter {
- 	struct mutex mactbl_lock;
- 
- 	/* Lock used to protect access to vnic counters */
--	struct mutex stats_lock;
-+	spinlock_t stats_lock;
- 
- 	u8 flow_tbl[OPA_VNIC_FLOW_TBL_SIZE];
- 
-diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c b/drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c
-index 905f39d..78d9007 100644
---- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c
-+++ b/drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c
-@@ -69,9 +69,9 @@ static void opa_vnic_get_stats64(struct net_device *netdev,
- 	struct opa_vnic_stats vstats;
- 
- 	memset(&vstats, 0, sizeof(vstats));
--	mutex_lock(&adapter->stats_lock);
-+	spin_lock(&adapter->stats_lock);
- 	adapter->rn_ops->ndo_get_stats64(netdev, &vstats.netstats);
--	mutex_unlock(&adapter->stats_lock);
-+	spin_unlock(&adapter->stats_lock);
- 	memcpy(stats, &vstats.netstats, sizeof(*stats));
- }
- 
-@@ -344,7 +344,7 @@ struct opa_vnic_adapter *opa_vnic_add_netdev(struct ib_device *ibdev,
- 	netdev->hard_header_len += OPA_VNIC_SKB_HEADROOM;
- 	mutex_init(&adapter->lock);
- 	mutex_init(&adapter->mactbl_lock);
--	mutex_init(&adapter->stats_lock);
-+	spin_lock_init(&adapter->stats_lock);
- 
- 	SET_NETDEV_DEV(netdev, ibdev->dev.parent);
- 
-@@ -364,7 +364,6 @@ struct opa_vnic_adapter *opa_vnic_add_netdev(struct ib_device *ibdev,
- netdev_err:
- 	mutex_destroy(&adapter->lock);
- 	mutex_destroy(&adapter->mactbl_lock);
--	mutex_destroy(&adapter->stats_lock);
- 	kfree(adapter);
- adapter_err:
- 	ibdev->free_rdma_netdev(netdev);
-@@ -383,7 +382,6 @@ void opa_vnic_rem_netdev(struct opa_vnic_adapter *adapter)
- 	opa_vnic_release_mac_tbl(adapter);
- 	mutex_destroy(&adapter->lock);
- 	mutex_destroy(&adapter->mactbl_lock);
--	mutex_destroy(&adapter->stats_lock);
- 	kfree(adapter);
- 	ibdev->free_rdma_netdev(netdev);
- }
-diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema_iface.c b/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema_iface.c
-index a51bf97..c273396 100644
---- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema_iface.c
-+++ b/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema_iface.c
-@@ -89,9 +89,9 @@ void opa_vnic_get_summary_counters(struct opa_vnic_adapter *adapter,
- 	u64 *src;
- 
- 	memset(&vstats, 0, sizeof(vstats));
--	mutex_lock(&adapter->stats_lock);
-+	spin_lock(&adapter->stats_lock);
- 	adapter->rn_ops->ndo_get_stats64(adapter->netdev, &vstats.netstats);
--	mutex_unlock(&adapter->stats_lock);
-+	spin_unlock(&adapter->stats_lock);
- 
- 	cntrs->vp_instance = cpu_to_be16(adapter->vport_num);
- 	cntrs->vesw_id = cpu_to_be16(adapter->info.vesw.vesw_id);
-@@ -128,9 +128,9 @@ void opa_vnic_get_error_counters(struct opa_vnic_adapter *adapter,
- 	struct opa_vnic_stats vstats;
- 
- 	memset(&vstats, 0, sizeof(vstats));
--	mutex_lock(&adapter->stats_lock);
-+	spin_lock(&adapter->stats_lock);
- 	adapter->rn_ops->ndo_get_stats64(adapter->netdev, &vstats.netstats);
--	mutex_unlock(&adapter->stats_lock);
-+	spin_unlock(&adapter->stats_lock);
- 
- 	cntrs->vp_instance = cpu_to_be16(adapter->vport_num);
- 	cntrs->vesw_id = cpu_to_be16(adapter->info.vesw.vesw_id);
--- 
-1.8.3.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hehe, ok :)
