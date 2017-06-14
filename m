@@ -1,43 +1,53 @@
-From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH infiniband-diags] Fix the gen_chlog.sh script to support builds in a separate directory
-Date: Wed, 14 Jun 2017 12:48:24 +0200
-Message-ID: <20170614104824.21599-1-knut.omang@oracle.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] RDS: IB: NULL dereference on error in rds_ib_alloc_frmr()
+Date: Wed, 14 Jun 2017 15:54:24 +0300
+Message-ID: <20170614125423.GA3329@yuvallap>
+References: <20170614103924.GK29394@elgon.mountain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170614103924.GK29394-mgFCXtclrQlZLf2FXnZxJA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Avinash Repaka <avinash.repaka-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Configuring and building in a separate directory breaks
-because gen_chlog.sh assumes it runs from the git tree.
-Instead of making this assumption, rather assume the more
-generic, that the gen_chlog.sh script itself is located
-in the top sourcedir.
+On Wed, Jun 14, 2017 at 01:39:24PM +0300, Dan Carpenter wrote:
+> We accidentally return ERR_PTR(0) if ib_alloc_mr() fails.  The caller
+> is expecting error pointers so it results in a NULL dereference.
+> 
+> Fixes: 1659185fb4d0 ("RDS: IB: Support Fastreg MR (FRMR) memory registration mode")
+> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> 
+> diff --git a/net/rds/ib_frmr.c b/net/rds/ib_frmr.c
+> index 48332a6ed738..74a66cc162ed 100644
+> --- a/net/rds/ib_frmr.c
+> +++ b/net/rds/ib_frmr.c
+> @@ -38,7 +38,7 @@ static struct rds_ib_mr *rds_ib_alloc_frmr(struct rds_ib_device *rds_ibdev,
+>  	struct rds_ib_mr_pool *pool;
+>  	struct rds_ib_mr *ibmr = NULL;
+>  	struct rds_ib_frmr *frmr;
+> -	int err = 0;
+> +	int err;
 
-With this fix configuring and building in a separate
-tree from the source tree works.
+Can we trust it'll be zero?
 
-Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- gen_chlog.sh | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/gen_chlog.sh b/gen_chlog.sh
-index 34dfa24..59a9e1f 100755
---- a/gen_chlog.sh
-+++ b/gen_chlog.sh
-@@ -10,6 +10,8 @@ if [ "$1" = "--spec" ] ; then
- 	spec_format=1
- fi
- 
-+cd `dirname $0`
-+
- GIT_DIR=`git rev-parse --git-dir 2>/dev/null`
- 
- test -z "$GIT_DIR" && usage
--- 
-2.9.4
-
+>  
+>  	if (npages <= RDS_MR_8K_MSG_SIZE)
+>  		pool = rds_ibdev->mr_8k_pool;
+> @@ -61,6 +61,7 @@ static struct rds_ib_mr *rds_ib_alloc_frmr(struct rds_ib_device *rds_ibdev,
+>  			 pool->fmr_attr.max_pages);
+>  	if (IS_ERR(frmr->mr)) {
+>  		pr_warn("RDS/IB: %s failed to allocate MR", __func__);
+> +		err = -ENOMEM;
+>  		goto out_no_cigar;
+>  	}
+>  
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
