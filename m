@@ -1,11 +1,11 @@
 From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: [PATCH 0/2] Fix OPA_VNIC issues with debug kernel
-Date: Wed, 14 Jun 2017 12:33:20 -0700
-Message-ID: <1497468802-19082-1-git-send-email-niranjana.vishwanathapura@intel.com>
+Date: Wed, 14 Jun 2017 12:34:26 -0700
+Message-ID: <1497468868-19122-1-git-send-email-niranjana.vishwanathapura@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 Hi Doug,
