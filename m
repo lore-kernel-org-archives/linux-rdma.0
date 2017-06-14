@@ -1,27 +1,37 @@
-From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V4 for-next 00/14] RDMA/bnxt_re: Bug fixes
-Date: Wed, 14 Jun 2017 10:50:34 +0530
-Message-ID: <CA+sbYW0LVMbSOnYHHn8-5ayCryJbwLeCF+E2S38rHpA4NerTjg@mail.gmail.com>
-References: <1495448144-18966-1-git-send-email-selvin.xavier@broadcom.com>
- <1497386691.7171.244.camel@redhat.com> <1497407565.7171.249.camel@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-rc 0/5] Fixes for IPoIB flows
+Date: Wed, 14 Jun 2017 09:59:04 +0300
+Message-ID: <20170614065909.23650-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1497407565.7171.249.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 14, 2017 at 8:02 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> This appears to be a general problem on 32bit arches (at least i386,
-> parisc, and xtensa all reported this problem).  Please fix ASAP or I'll
-> need to remove this patch from the series.
+Hi Doug,
 
-I will fix it and repost the series
+There are 5 small patches from Alex and Feras for IPoIB flows.
 
 Thanks
-Selvin Xavier
+
+Alex Vesker (4):
+  IB/ipoib: Fix memory leaks for child interfaces priv
+  IB/ipoib: Limit call to free rdma_netdev for capable devices
+  IB/ipoib: Delete napi in device uninit default
+  IB/ipoib: Fix access to un-initialized napi struct
+
+Feras Daoud (1):
+  IB/ipoib: Fix memory leak in create child syscall
+
+ drivers/infiniband/hw/mlx5/main.c         |  6 ++++--
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c   |  1 -
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 15 +++++++++++++--
+ drivers/infiniband/ulp/ipoib/ipoib_vlan.c | 11 +++++++----
+ 4 files changed, 24 insertions(+), 9 deletions(-)
+
+--
+2.12.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
