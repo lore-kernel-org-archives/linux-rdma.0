@@ -1,33 +1,51 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/1] rdma/cxgb4: Fix memory leaks during module exit
-Date: Wed, 14 Jun 2017 15:25:55 -0400
-Message-ID: <1497468355.7171.261.camel@redhat.com>
-References: <20170609164749.28399-1-rajur@chelsio.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [pull request][for-next 0/6] Mellanox mlx5 updates 2017-05-23
+Date: Wed, 14 Jun 2017 15:30:13 -0400
+Message-ID: <1497468613.7171.264.camel@redhat.com>
+References: <20170523114404.20387-1-saeedm@mellanox.com>
+         <20170525.120220.1812199263503283242.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170609164749.28399-1-rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170525.120220.1812199263503283242.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>, saeedm@mellanox.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, ilant@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-06-09 at 22:17 +0530, Raju Rangoju wrote:
-> Fix memory leaks of iw_cxgb4 module in the exit path
+On Thu, 2017-05-25 at 12:02 -0400, David Miller wrote:
+> From: Saeed Mahameed <saeedm@mellanox.com>
+> Date: Tue, 23 May 2017 14:43:58 +0300
 > 
-> Signed-off-by: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-> Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> > Hi Dave and Doug,
+> > 
+> > This series introduces some small updates and FPGA support to the
+> mlx5
+> > core/ethernet and IB drivers.
+> > 
+> > For more details please see below.
+> > 
+> > Please pull and let me know if there's any problem.
+> 
+> Ok, I've pulled this into net-next.
+> 
+> Doug let me know if there are any merge hassles we need to coordinate
+> on.
 
-Thanks, applied.
+Turns out that you had pulled this prior to your net-next tree making
+it up to v4.12-rc3, while I had my -rc branch based on v4.12-rc3, so
+when I pulled just up to your merge commit for this pull request, it
+meant a later merge of my -rc branch would pull in a bunch of stuff
+between here and -rc3.  So I ended up pulling your latest net-next as
+of today as the easiest way to resolve that issue.  Now I can merge my
+-rc branch in and it won't cause any extra noise in the merge.  It
+seems to be a fairly regular pattern that I'm going to have to hold my
+pull request to Linus until after your tree is pulled, so I might just
+start planning on that from now on ;-)
 
 -- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
     GPG KeyID: B826A3330E572FDD
    
 Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
