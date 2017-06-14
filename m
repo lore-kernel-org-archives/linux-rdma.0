@@ -1,55 +1,44 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH v2] IB/mlx5: Fix a warning message
-Date: Wed, 14 Jun 2017 13:41:21 +0300
-Message-ID: <20170614104121.GA17846@mtr-leonro.local>
-References: <CAAKD3BDGH1STMhcCgz=K6-8EtnGGOYkx7KPS+iPidUiuLmpjNw@mail.gmail.com>
- <20170614102009.GA5171@elgon.mountain>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="2fHTh5uZTiUOsy+g"
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170614102009.GA5171@elgon.mountain>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Matan Barak <matanb@mellanox.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH infiniband-diags] Fix the gen_chlog.sh script to support builds in a separate directory
+Date: Wed, 14 Jun 2017 12:48:24 +0200
+Message-ID: <20170614104824.21599-1-knut.omang@oracle.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Configuring and building in a separate directory breaks
+because gen_chlog.sh assumes it runs from the git tree.
+Instead of making this assumption, rather assume the more
+generic, that the gen_chlog.sh script itself is located
+in the top sourcedir.
 
---2fHTh5uZTiUOsy+g
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+With this fix configuring and building in a separate
+tree from the source tree works.
 
-On Wed, Jun 14, 2017 at 01:20:09PM +0300, Dan Carpenter wrote:
-> "umem" is a valid pointer.  We intended to print "*umem" or even just
-> "err" instead.
->
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> ---
-> v2: style change
->
+Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ gen_chlog.sh | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Thanks,
-Acked-by: Leon Romanovsky <leonro@mellanox.com>
+diff --git a/gen_chlog.sh b/gen_chlog.sh
+index 34dfa24..59a9e1f 100755
+--- a/gen_chlog.sh
++++ b/gen_chlog.sh
+@@ -10,6 +10,8 @@ if [ "$1" = "--spec" ] ; then
+ 	spec_format=1
+ fi
+ 
++cd `dirname $0`
++
+ GIT_DIR=`git rev-parse --git-dir 2>/dev/null`
+ 
+ test -z "$GIT_DIR" && usage
+-- 
+2.9.4
 
---2fHTh5uZTiUOsy+g
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllBEtEACgkQ5GN7iDZy
-WKfosA//balkH6XR99u8UsMOaORl/MbsYJxA2kzkXOvw0SoDe+DF53Em0AaJ+7kP
-W/PdJYvzp6XNYEoubWbBwigQcsApl4gHx86X9ArH4A5iJE7d6cM/y5vynVq1f/QZ
-zdHUIkG8tE8KjzMmr8D4fU/6+njrO2LGa1GYGm7WxTJQ5VwU2VSNK7lmHD1ZcVjR
-sbr/yVs+3JrDY1LyNMmQ9PMFNnfMXXddpoBsn5u7LWa45b9LRdNANPQgk2bG65PO
-W4nFpR7KGBeqzHlGH2SJxNkHRW5Zsy3ykoaTuGFMz9VHIvGtPTtk784Qfqd9sQQ2
-gxrXNUT+qG7Kh2YYHJ/CgAVC0G+ZtKkK4zZZ4jKn83mWGvyYQUMDRDBUOJYclLGc
-/lZ7MAgxiqUInadGwCslwSdQK/hqtvBHfFk5f2Ufyom5MH4safQCaImK30rjQetd
-l2smOdLkBhja9ZmLjep7DBPnArInNuzG9KmsYw+t67autpPhOLZ1vxqM0xDHB1fO
-Gdz05HEDQuvxizIhgCLUDfP3EiSAJkxTiWfyd8Hiv/A9VLHIAsyy/3ECei4LLsP0
-f7wq5TePPGmyA1FUXWa5cudfh8k6EPFenrpr3XesfqaJQ4vXOB2nDAZgluuYW0yC
-s3MFjAlkK7t8k7MQYtVMs9m3lnLyntugq5VIvik4ReIYFH3uWpM=
-=mpKw
------END PGP SIGNATURE-----
-
---2fHTh5uZTiUOsy+g--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
