@@ -1,51 +1,100 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [pull request][for-next 0/6] Mellanox mlx5 updates 2017-05-23
-Date: Wed, 14 Jun 2017 15:44:59 -0400 (EDT)
-Message-ID: <20170614.154459.634473134120134636.davem@davemloft.net>
-References: <20170523114404.20387-1-saeedm@mellanox.com>
-        <20170525.120220.1812199263503283242.davem@davemloft.net>
-        <1497468613.7171.264.camel@redhat.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 2/2] IB/core: Add generic function to extract IB speed
+ from netdev
+Date: Wed, 14 Jun 2017 23:00:36 +0300
+Message-ID: <20170614200035.GA2872@yuvallap>
+References: <20170611054450.7221-1-yuval.shaia@oracle.com>
+ <20170611054450.7221-3-yuval.shaia@oracle.com>
+ <e58c9e7782774aa1b710b779c44f918d@XCH-RCD-017.cisco.com>
+ <20170614130235.GB3329@yuvallap>
+ <e61752e6cd164574b08161ae5f4c43f6@XCH-RCD-017.cisco.com>
+ <20170614191406.GA2375@yuvallap>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1497468613.7171.264.camel@redhat.com>
-Sender: netdev-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: saeedm@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, ilant@mellanox.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170614191406.GA2375@yuvallap>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Christian Benvenuti (benve)" <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org" <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, "devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org" <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, "somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org" <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, "sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org" <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, "Dave Goodell (dgoodell)" <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "sagi-TmH2Wj2nsNJBDLzU/O5InQ@public.gmane.org" <sagi-TmH2Wj2nsNJBDLzU/O5InQ@public.gmane.org>, "bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org" <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, yishaih@
 List-Id: linux-rdma@vger.kernel.org
 
-From: Doug Ledford <dledford@redhat.com>
-Date: Wed, 14 Jun 2017 15:30:13 -0400
-
-> On Thu, 2017-05-25 at 12:02 -0400, David Miller wrote:
->> From: Saeed Mahameed <saeedm@mellanox.com>
->> Date: Tue, 23 May 2017 14:43:58 +0300
->> 
->> > Hi Dave and Doug,
->> > 
->> > This series introduces some small updates and FPGA support to the
->> mlx5
->> > core/ethernet and IB drivers.
->> > 
->> > For more details please see below.
->> > 
->> > Please pull and let me know if there's any problem.
->> 
->> Ok, I've pulled this into net-next.
->> 
->> Doug let me know if there are any merge hassles we need to coordinate
->> on.
+On Wed, Jun 14, 2017 at 10:14:07PM +0300, Yuval Shaia wrote:
+> On Wed, Jun 14, 2017 at 03:04:43PM +0000, Christian Benvenuti (benve) wrote:
+> > > -----Original Message-----
+> > > From: Yuval Shaia [mailto:yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org]
+> > > Sent: Wednesday, June 14, 2017 6:03 AM
+> > > To: Christian Benvenuti (benve)
+> > > Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org; hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org;
+> > > selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org; devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org;
+> > > somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org; sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org; Dave Goodell
+> > > (dgoodell); monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org;
+> > > dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org; sagi-TmH2Wj2nsNJBDLzU/O5InQ@public.gmane.org;
+> > > bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org; yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > > Subject: Re: [PATCH v3 2/2] IB/core: Add generic function to extract IB speed
+> > > from netdev
+> > > 
+> > > On Tue, Jun 13, 2017 at 08:07:48AM +0000, Christian Benvenuti (benve) wrote:
+> > > > >
+> > > > > +int ib_get_eth_speed(struct ib_device *dev, u8 port_num, u8 *speed, u8
+> > > > > +*width) {
+> > > > > +	int rc;
+> > > > > +	u32 netdev_speed;
+> > > > > +	struct net_device *netdev;
+> > > > > +	struct ethtool_link_ksettings lksettings;
+> > > > > +
+> > > > > +	if (rdma_port_get_link_layer(dev, port_num) != IB_LINK_LAYER_ETHERNET)
+> > > > > +		return -EINVAL;
+> > > > > +
+> > > > > +	if (!dev->get_netdev)
+> > > > > +		return -EINVAL;
+> > > >
+> > > > -EOPNOTSUPP ?
+> > > 
+> > > Looks better.
+> > > Assuming the same should be for the above one and the one below, right?
+> > 
+> > I am not sure about the other two:
+> > - rdma_port_get_link_layer() does not entirely depend on ib_device->get_link_layer()
+> > - ib_device->get_netdev() can fail for different reasons I guess
 > 
-> Turns out that you had pulled this prior to your net-next tree making
-> it up to v4.12-rc3, while I had my -rc branch based on v4.12-rc3, so
-> when I pulled just up to your merge commit for this pull request, it
-> meant a later merge of my -rc branch would pull in a bunch of stuff
-> between here and -rc3.  So I ended up pulling your latest net-next as
-> of today as the easiest way to resolve that issue.  Now I can merge my
-> -rc branch in and it won't cause any extra noise in the merge.  It
-> seems to be a fairly regular pattern that I'm going to have to hold my
-> pull request to Linus until after your tree is pulled, so I might just
-> start planning on that from now on ;-)
+> I see,
+> 
+> So back to your proposal, the fact that dev->get_netdev is not set means
+> that the IB device is not relayed on Ethernet one (RoCE folks, correct me
+> if i'm wrong) so with the given input - the operation is not supported. Is
+> that means that -EINVAL is better than -EOPNOTSUPP?
+> 
+> As far as the name suggest, EINVAL is where input values are wrong while
+> EOPNOTSUPP is where input values are fine but the operation is not
+> supported.
 
-Hehe, ok :)
+Please ignore, i looked at some other places.
+Will post v4 soon.
+
+> 
+> Yuval
+> 
+> > 
+> > /Chris
+> > 
+> > > >
+> > > > > +	netdev = dev->get_netdev(dev, port_num);
+> > > > > +	if (!netdev)
+> > > > > +		return -EINVAL;
+> > > > > +
+> > > > > +	rtnl_lock();
+> > > > > +	rc = __ethtool_get_link_ksettings(netdev, &lksettings);
+> > > > > +	rtnl_unlock();
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
