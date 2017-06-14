@@ -1,44 +1,55 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] RDS: IB: NULL dereference on error in rds_ib_alloc_frmr()
-Date: Wed, 14 Jun 2017 13:39:24 +0300
-Message-ID: <20170614103924.GK29394@elgon.mountain>
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: [PATCH v2] IB/mlx5: Fix a warning message
+Date: Wed, 14 Jun 2017 13:41:21 +0300
+Message-ID: <20170614104121.GA17846@mtr-leonro.local>
+References: <CAAKD3BDGH1STMhcCgz=K6-8EtnGGOYkx7KPS+iPidUiuLmpjNw@mail.gmail.com>
+ <20170614102009.GA5171@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="2fHTh5uZTiUOsy+g"
+Return-path: <kernel-janitors-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Avinash Repaka <avinash.repaka-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20170614102009.GA5171@elgon.mountain>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Matan Barak <matanb@mellanox.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-We accidentally return ERR_PTR(0) if ib_alloc_mr() fails.  The caller
-is expecting error pointers so it results in a NULL dereference.
 
-Fixes: 1659185fb4d0 ("RDS: IB: Support Fastreg MR (FRMR) memory registration mode")
-Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+--2fHTh5uZTiUOsy+g
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/net/rds/ib_frmr.c b/net/rds/ib_frmr.c
-index 48332a6ed738..74a66cc162ed 100644
---- a/net/rds/ib_frmr.c
-+++ b/net/rds/ib_frmr.c
-@@ -38,7 +38,7 @@ static struct rds_ib_mr *rds_ib_alloc_frmr(struct rds_ib_device *rds_ibdev,
- 	struct rds_ib_mr_pool *pool;
- 	struct rds_ib_mr *ibmr = NULL;
- 	struct rds_ib_frmr *frmr;
--	int err = 0;
-+	int err;
- 
- 	if (npages <= RDS_MR_8K_MSG_SIZE)
- 		pool = rds_ibdev->mr_8k_pool;
-@@ -61,6 +61,7 @@ static struct rds_ib_mr *rds_ib_alloc_frmr(struct rds_ib_device *rds_ibdev,
- 			 pool->fmr_attr.max_pages);
- 	if (IS_ERR(frmr->mr)) {
- 		pr_warn("RDS/IB: %s failed to allocate MR", __func__);
-+		err = -ENOMEM;
- 		goto out_no_cigar;
- 	}
- 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Wed, Jun 14, 2017 at 01:20:09PM +0300, Dan Carpenter wrote:
+> "umem" is a valid pointer.  We intended to print "*umem" or even just
+> "err" instead.
+>
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> ---
+> v2: style change
+>
+
+Thanks,
+Acked-by: Leon Romanovsky <leonro@mellanox.com>
+
+--2fHTh5uZTiUOsy+g
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllBEtEACgkQ5GN7iDZy
+WKfosA//balkH6XR99u8UsMOaORl/MbsYJxA2kzkXOvw0SoDe+DF53Em0AaJ+7kP
+W/PdJYvzp6XNYEoubWbBwigQcsApl4gHx86X9ArH4A5iJE7d6cM/y5vynVq1f/QZ
+zdHUIkG8tE8KjzMmr8D4fU/6+njrO2LGa1GYGm7WxTJQ5VwU2VSNK7lmHD1ZcVjR
+sbr/yVs+3JrDY1LyNMmQ9PMFNnfMXXddpoBsn5u7LWa45b9LRdNANPQgk2bG65PO
+W4nFpR7KGBeqzHlGH2SJxNkHRW5Zsy3ykoaTuGFMz9VHIvGtPTtk784Qfqd9sQQ2
+gxrXNUT+qG7Kh2YYHJ/CgAVC0G+ZtKkK4zZZ4jKn83mWGvyYQUMDRDBUOJYclLGc
+/lZ7MAgxiqUInadGwCslwSdQK/hqtvBHfFk5f2Ufyom5MH4safQCaImK30rjQetd
+l2smOdLkBhja9ZmLjep7DBPnArInNuzG9KmsYw+t67autpPhOLZ1vxqM0xDHB1fO
+Gdz05HEDQuvxizIhgCLUDfP3EiSAJkxTiWfyd8Hiv/A9VLHIAsyy/3ECei4LLsP0
+f7wq5TePPGmyA1FUXWa5cudfh8k6EPFenrpr3XesfqaJQ4vXOB2nDAZgluuYW0yC
+s3MFjAlkK7t8k7MQYtVMs9m3lnLyntugq5VIvik4ReIYFH3uWpM=
+=mpKw
+-----END PGP SIGNATURE-----
+
+--2fHTh5uZTiUOsy+g--
