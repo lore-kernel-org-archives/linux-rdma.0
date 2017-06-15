@@ -1,129 +1,89 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next 4/5] IB/rxe: Use __func__ to print function's
- name
-Date: Thu, 15 Jun 2017 12:09:31 +0300
-Message-ID: <20170615090931.GG17846@mtr-leonro.local>
-References: <20170615082907.5658-1-leon@kernel.org>
- <20170615082907.5658-5-leon@kernel.org>
- <20170615085117.GA3066@yuvallap>
+From: "Raju  Rangoju" <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: RE: [PATCH 1/1] rdma: copy the saddr if it is already resolved
+Date: Thu, 15 Jun 2017 09:19:08 +0000
+Message-ID: <CY1PR12MB07743C4FE35D249D4522EAFFBCC00@CY1PR12MB0774.namprd12.prod.outlook.com>
+References: <20170609104925.28927-1-rajur@chelsio.com>
+         <1497468245.7171.260.camel@redhat.com>
+         <CAANLjFo=VOhUSb494rskZ38fHn=xSUYPi+XL4Vuu0R1Y0czmSQ@mail.gmail.com>
+ <1497485577.7171.273.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="Wtrm9ATX0sn6fFKv"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170615085117.GA3066@yuvallap>
+In-Reply-To: <1497485577.7171.273.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kamal Heib <kamalheib1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---Wtrm9ATX0sn6fFKv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, Jun 15, 2017 at 11:51:17AM +0300, Yuval Shaia wrote:
-> On Thu, Jun 15, 2017 at 11:29:06AM +0300, Leon Romanovsky wrote:
-> > From: Kamal Heib <kamalheib1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> >
-> > Its better to use __func__ to print functions name instead of writing
-> > the name in the print statement.
-> >
-> > Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > ---
-> >  drivers/infiniband/sw/rxe/rxe_task.c  | 4 ++--
-> >  drivers/infiniband/sw/rxe/rxe_verbs.c | 6 +++---
-> >  2 files changed, 5 insertions(+), 5 deletions(-)
-> >
-> > diff --git a/drivers/infiniband/sw/rxe/rxe_task.c b/drivers/infiniband/sw/rxe/rxe_task.c
-> > index d2a14a1bdc7f..ea3810b29273 100644
-> > --- a/drivers/infiniband/sw/rxe/rxe_task.c
-> > +++ b/drivers/infiniband/sw/rxe/rxe_task.c
-> > @@ -78,7 +78,7 @@ void rxe_do_task(unsigned long data)
-> >
-> >  	default:
-> >  		spin_unlock_irqrestore(&task->state_lock, flags);
-> > -		pr_warn("bad state = %d in rxe_do_task\n", task->state);
-> > +		pr_warn("%s failed with bad state %d\n", __func__, task->state);
-> >  		return;
-> >  	}
-> >
-> > @@ -105,7 +105,7 @@ void rxe_do_task(unsigned long data)
-> >  			break;
-> >
-> >  		default:
-> > -			pr_warn("bad state = %d in rxe_do_task\n",
-> > +			pr_warn("%s failed with bad state %d\n", __func__,
-> >  				task->state);
-> >  		}
-> >  		spin_unlock_irqrestore(&task->state_lock, flags);
-> > diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-> > index 92156025db73..a65a330b15b6 100644
-> > --- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-> > +++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-> > @@ -1336,15 +1336,15 @@ int rxe_register_device(struct rxe_dev *rxe)
-> >
-> >  	err = ib_register_device(dev, NULL);
-> >  	if (err) {
-> > -		pr_warn("rxe_register_device failed, err = %d\n", err);
-> > +		pr_warn("%s failed with error %d\n", __func__, err);
-> >  		goto err1;
-> >  	}
-> >
-> >  	for (i = 0; i < ARRAY_SIZE(rxe_dev_attributes); ++i) {
-> >  		err = device_create_file(&dev->dev, rxe_dev_attributes[i]);
-> >  		if (err) {
-> > -			pr_warn("device_create_file failed, i = %d, err = %d\n",
-> > -				i, err);
-> > +			pr_warn("%s failed with error %d for attr number %d\n",
-> > +				__func__, err, i);
->
-> Before this fix the warn shows the call which fails (device_create_file)
-> and now it will show the caller (rxe_register_device).
-> Hope it is still fine with you.
-
-This warning is unique to this function, so it will be much easier to
-find the root cause. Instead of unknown place for "device_create_file failed", the user
-can go directly to rxe_register_device) and see the reason of the failure.
-
-So, it is fine and it is intentionally :)
-
-Thanks
-
->
-> >  			goto err2;
-> >  		}
-> >  	}
-> > --
-> > 2.12.2
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---Wtrm9ATX0sn6fFKv
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllCTssACgkQ5GN7iDZy
-WKehqQ/7BbkyQ0QklbPLhR2O7sWNrVz6z3qyLfbUy1HQbQ5NFaBBTjWdrC6U8AKm
-5L/X+OxRZwDlM9YVo8gfHiTAYSvn05Sr3d+MN9MCALIqz3NC5umui6fMNSjnmw1B
-h+iygzuyHXfvy3Uv15VYEoKe/E6B0zaC6BnIm/xBU6h+dgXbA+KU/nFjJnK56URg
-/MpXldUlPo9cNnS2vt08Ik8gWJK0AipfzKbk5gjxNfeiBOnYfvTGQ3yEw5knYi9l
-qNjkLOLZZMuhy7HRZlGE1HLct+93Vh4ZBu3nV61LeKHmm0yVM6X6hLWbeMrq3nIn
-6lAL+ghmuohNC+BtX3vEaoxAoWw4VIWV7pVcqaTxISuVfxiddriy0WCPjiyyqcrB
-5VaKLqmts9uy5gl5e2LB5zbnvjT9NpPi1iJSeldu/d/HpbYsMM3plCPN8i7a1huR
-x5ACkZlkIHgGoT1xEfpC/DKdH/HhhcSMPAHX/jYZWYIFQHvB8OwZYyDagxEgvXeR
-QS0CVxn7/UmfJZcY3PrCEpUD+1Kf2E9VUzTf1r7dX3R7uZFGWr9pWWK+EUUyI4Sn
-+bKix3/iAdegQWtGl8l4S2bwfVohPlKJalOZqHPxlGBhCCe1o4juo3IpRk+yhQ6o
-33aLcJSthRWpwG5o2tmICp5M1B6Y1J9M693xqoFdQSEMxBkq108=
-=fgvz
------END PGP SIGNATURE-----
-
---Wtrm9ATX0sn6fFKv--
+SGkgRG91ZywNCg0KUm9sYW5kIERyaWVyJ3MgcGF0Y2ggd29ya3MgZm9yIG1lLCB5b3UgY291bGQg
+YWRkIG1lIGFzIFRlc3RlZC1ieS4NCg0KLVRoYW5rcywNCg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdl
+LS0tLS0NCkZyb206IERvdWcgTGVkZm9yZCBbbWFpbHRvOmRsZWRmb3JkQHJlZGhhdC5jb21dIA0K
+U2VudDogMTUgSnVuZSAyMDE3IDA1OjQzDQpUbzogUm9iZXJ0IExlQmxhbmMgPHJvYmVydEBsZWJs
+YW5jbmV0LnVzPg0KQ2M6IFJhanUgUmFuZ29qdSA8cmFqdXJAY2hlbHNpby5jb20+OyBsaW51eC1y
+ZG1hIDxsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZz47IFNXaXNlIE9HQyA8c3dpc2VAb3Blbmdy
+aWRjb21wdXRpbmcuY29tPg0KU3ViamVjdDogUmU6IFtQQVRDSCAxLzFdIHJkbWE6IGNvcHkgdGhl
+IHNhZGRyIGlmIGl0IGlzIGFscmVhZHkgcmVzb2x2ZWQNCg0KT24gV2VkLCAyMDE3LTA2LTE0IGF0
+IDE2OjI4IC0wNjAwLCBSb2JlcnQgTGVCbGFuYyB3cm90ZToNCj4gRG91ZywNCj4gDQo+IEkndmUg
+cnVuIGludG8gdGhpcyB3aXRoIDQuOS4zMC4gVGhlIGFmb3JlbWVudGlvbmVkIHBhdGNoIGZpeGVz
+IGl0IGluIA0KPiB0aGUgNC45IHNlcmllcywgYnV0IGFsc28gcmVxdWlyZXMgMjRiNDNjOTk2IGFz
+IHdlbGwuIENhbiB3ZSBnZXQgdGhpcyANCj4gZml4IGludG8gc3RhYmxlLiBJZiBuZWVkZWQgeW91
+IGNhbiBhZGQgbWUgYXMgdGVzdGVkLWJ5Lg0KPiANCj4gVGVzdGVkLWJ5OiBSb2JlcnQgTGVCbGFu
+YyA8cm9iZXJ0QGxlYmxhbmNuZXQudXM+DQoNCldoaWxlIEkgZG9uJ3QgZG91YnQgdGhhdCB0aGlz
+IGZpeGVkIHRoZSBwcm9ibGVtLCB0aGUgcGF0Y2ggZnJvbSBSb2xhbmQgRHJpZXIgbG9va3MgbW9y
+ZSBjb3JyZWN0IHRvIG1lLiDCoEFzIEkndmUgYWxyZWFkeSB0YWtlbiBSb2xhbmQncyBwYXRjaCwg
+YW5kIGl0IGlzIENjOmVkIGZvciBzdGFibGUsIGl0IHNob3VsZCBiZSByZXNvbHZlZCBhbHJlYWR5
+LiDCoEkganVzdCBuZWVkIFJhanUgdG8gY29uZmlybSB0aGlzIGZvciBtZS4NCg0KPiAtLS0tLS0t
+LS0tLS0tLS0tDQo+IFJvYmVydCBMZUJsYW5jDQo+IFBHUCBGaW5nZXJwcmludCA3OUEyIDlDQTQg
+NkNDNCA0NUREIEE5MDTCoMKgQzcwRSBFNjU0IDNCQjIgRkE2MiBCOUYxDQo+IA0KPiANCj4gT24g
+V2VkLCBKdW4gMTQsIDIwMTcgYXQgMToyNCBQTSwgRG91ZyBMZWRmb3JkIDxkbGVkZm9yZEByZWRo
+YXQuY29tPg0KPiB3cm90ZToNCj4gPiANCj4gPiBPbiBGcmksIDIwMTctMDYtMDkgYXQgMTY6MTkg
+KzA1MzAsIFJhanUgUmFuZ29qdSB3cm90ZToNCj4gPiA+IA0KPiA+ID4gVGhlIHJlY2VudCBjaGFu
+Z2VzIHRvIGFkZHI2X3Jlc29sdmUoKSB0byBjYWxsIGlwdjYgcm91dGUgbG9va3VwIA0KPiA+ID4g
+dmlhIHRoZSBzdHViIGludGVyZmFjZSBicm9rZSBjeGdiNC9pcHY2LiBJZiB0aGUgc291cmNlIGFk
+ZHJlc3MgaXMgDQo+ID4gPiBhbHJlYWR5IHJlc29sdmVkIGJ5IGlwdjZfZHN0X2xvb2t1cCgpIHRo
+ZW4gdGhlIGNoZWNrDQo+ID4gPiBpcHY2X2FkZHJfYW55KCZmbDYuc2FkZHIpDQo+ID4gPiB3b3Vs
+ZCBmYWlsOyBjb25zZXF1ZW50bHksIGNvcHlpbmcgc2FkZHIgdG8gdGhlIHNyY19pbiBidWZmZXIg
+aXMgDQo+ID4gPiBvbWl0dGVkLg0KPiA+ID4gDQo+ID4gPiBUaGlzIGNvbW1pdCBhZGRyZXNzZXMg
+dGhlIGFib3ZlIGlzc3VlIGJ5IG1vdmluZyB0aGUgY29weSBjb2RlIG91dCANCj4gPiA+IG9mIHRo
+ZSBpcHY2X2FkZHJfYW55KCkgYmxvY2sgaW4gYWRkcjZfcmVzb2x2ZSgpLg0KPiA+ID4gDQo+ID4g
+PiBTaWduZWQtb2ZmLWJ5OiBSYWp1IFJhbmdvanUgPHJhanVyQGNoZWxzaW8uY29tPg0KPiA+ID4g
+LS0tDQo+ID4gPiDCoGRyaXZlcnMvaW5maW5pYmFuZC9jb3JlL2FkZHIuYyB8IDYgKysrLS0tDQo+
+ID4gPiDCoDEgZmlsZSBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKyksIDMgZGVsZXRpb25zKC0pDQo+
+ID4gPiANCj4gPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9hZGRyLmMg
+DQo+ID4gPiBiL2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL2FkZHIuYyBpbmRleCAwMjk3MWUyMzlh
+MTguLmMzMjQ3NzkwNzc2NSANCj4gPiA+IDEwMDY0NA0KPiA+ID4gLS0tIGEvZHJpdmVycy9pbmZp
+bmliYW5kL2NvcmUvYWRkci5jDQo+ID4gPiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9h
+ZGRyLmMNCj4gPiA+IEBAIC00NTQsMTEgKzQ1NCwxMSBAQCBzdGF0aWMgaW50IGFkZHI2X3Jlc29s
+dmUoc3RydWN0DQo+ID4gPiBzb2NrYWRkcl9pbjYNCj4gPiA+ICpzcmNfaW4sDQo+ID4gPiDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqAmZmw2LmRhZGRyLCAwLCAmZmw2LnNhZGRyKTsNCj4gPiA+IMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBpZiAocmV0KQ0KPiA+ID4gwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBnb3RvIHB1dDsNCj4gPiA+IC0NCj4gPiA+IC3CoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoHNyY19pbi0+c2luNl9mYW1pbHkgPSBBRl9JTkVUNjsNCj4g
+PiA+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHNyY19pbi0+c2luNl9hZGRyID0gZmw2LnNh
+ZGRyOw0KPiA+ID4gwqDCoMKgwqDCoMKgfQ0KPiA+ID4gDQo+ID4gPiArwqDCoMKgwqDCoHNyY19p
+bi0+c2luNl9mYW1pbHkgPSBBRl9JTkVUNjsNCj4gPiA+ICvCoMKgwqDCoMKgc3JjX2luLT5zaW42
+X2FkZHIgPSBmbDYuc2FkZHI7DQo+ID4gPiArDQo+ID4gPiDCoMKgwqDCoMKgwqAvKiBJZiB0aGVy
+ZSdzIGEgZ2F0ZXdheSBhbmQgdHlwZSBvZiBkZXZpY2Ugbm90IA0KPiA+ID4gQVJQSFJEX0lORklO
+SUJBTkQsIHdlJ3JlDQo+ID4gPiDCoMKgwqDCoMKgwqDCoCogZGVmaW5pdGVseSBpbiBSb0NFIHYy
+IChhcyBSb0NFIHYxIGlzbid0IHJvdXRhYmxlKSBzZXQgdGhlIA0KPiA+ID4gbmV0d29yaw0KPiA+
+ID4gwqDCoMKgwqDCoMKgwqAqIHR5cGUgYWNjb3JkaW5nbHkuDQo+ID4gDQo+ID4gVGhlcmUgd2Fz
+IGEgZGlmZmVyZW50IGZpeCBmb3IgdGhpcyBzdWJtaXR0ZWQgYnkgUm9sYW5kIERyaWVyLsKgwqBJ
+dCANCj4gPiBoYXMgYmVlbiB0YWtlbiBpbnRvIG15IGsuby9mb3ItNC4xMi1yYyBicmFuY2guwqDC
+oEkgbmVlZCB5b3UgdG8gY2hlY2sgDQo+ID4gdGhhdCBoaXMgcGF0Y2ggd29ya3MgZm9yIHlvdSBh
+bmQgcmVuZGVycyB0aGlzIHBhdGNoIG5vIGxvbmdlciANCj4gPiBuZWVkZWQuDQo+ID4gDQo+ID4g
+LS0NCj4gPiBEb3VnIExlZGZvcmQgPGRsZWRmb3JkQHJlZGhhdC5jb20+DQo+ID4gwqDCoMKgwqBH
+UEcgS2V5SUQ6IEI4MjZBMzMzMEU1NzJGREQNCj4gPiANCj4gPiBLZXkgZmluZ2VycHJpbnQgPSBB
+RTZCIDFCREEgMTIyQiAyM0I0IDI2NULCoMKgMTI3NCBCODI2IEEzMzMgMEU1NyAyRkREDQo+ID4g
+DQo+ID4gLS0NCj4gPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGlu
+ZSAidW5zdWJzY3JpYmUgbGludXgtIA0KPiA+IHJkbWEiIGluIHRoZSBib2R5IG9mIGEgbWVzc2Fn
+ZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnIE1vcmUgDQo+ID4gbWFqb3Jkb21vIGluZm8g
+YXTCoMKgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQotLQ0KRG91
+ZyBMZWRmb3JkIDxkbGVkZm9yZEByZWRoYXQuY29tPg0KwqAgwqAgR1BHIEtleUlEOiBCODI2QTMz
+MzBFNTcyRkREDQrCoCDCoA0KS2V5IGZpbmdlcnByaW50ID0gQUU2QiAxQkRBIDEyMkIgMjNCNCAy
+NjVCIMKgMTI3NCBCODI2IEEzMzMgMEU1NyAyRkREDQoNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
