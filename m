@@ -1,66 +1,72 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 2/5] IB/rxe: Prefer 'unsigned int' to bare use of 'unsigned'
-Date: Thu, 15 Jun 2017 11:29:04 +0300
-Message-ID: <20170615082907.5658-3-leon@kernel.org>
-References: <20170615082907.5658-1-leon@kernel.org>
+From: Yi Zhang <yizhan-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: mlx4_core 0000:07:00.0: swiotlb buffer is full and OOM observed
+ during stress test on reset_controller
+Date: Thu, 15 Jun 2017 16:45:37 +0800
+Message-ID: <6f5249b4-e8fe-5def-bbc9-0079b7457df9@redhat.com>
+References: <2013049462.31187009.1488542111040.JavaMail.zimbra@redhat.com>
+ <56e8ccd3-8116-89a1-2f65-eb61a91c5f84@mellanox.com>
+ <860db62d-ae93-d94c-e5fb-88e7b643f737@redhat.com>
+ <0a825b18-df06-9a6d-38c9-402f4ee121f7@mellanox.com>
+ <7496c68a-15f3-d8cb-b17f-20f5a59a24d2@redhat.com>
+ <31678a43-f76c-a921-e40c-470b0de1a86c@grimberg.me>
+ <20170319070115.GP2079@mtr-leonro.local>
+ <136275928.8307994.1495126919829.JavaMail.zimbra@redhat.com>
+ <358169046.8629042.1495210672801.JavaMail.zimbra@redhat.com>
+ <6bf26cbc-71e4-a030-628b-a2ee1d1de94b@grimberg.me>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170615082907.5658-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <6bf26cbc-71e4-a030-628b-a2ee1d1de94b-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kamal Heib <kamalheib1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kamal Heib <kamalheib1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/sw/rxe/rxe_loc.h  | 2 +-
- drivers/infiniband/sw/rxe/rxe_pool.c | 2 +-
- drivers/infiniband/sw/rxe/rxe_req.c  | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-index d6299edf9a5b..6b65c0132289 100644
---- a/drivers/infiniband/sw/rxe/rxe_loc.h
-+++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-@@ -250,7 +250,7 @@ void rxe_resp_queue_pkt(struct rxe_dev *rxe,
- void rxe_comp_queue_pkt(struct rxe_dev *rxe,
- 			struct rxe_qp *qp, struct sk_buff *skb);
- 
--static inline unsigned wr_opcode_mask(int opcode, struct rxe_qp *qp)
-+static inline unsigned int wr_opcode_mask(int opcode, struct rxe_qp *qp)
- {
- 	return rxe_wr_opcode_info[opcode].mask[qp->ibqp.qp_type];
- }
-diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
-index 75d11ee635ec..c1b5f38f31a5 100644
---- a/drivers/infiniband/sw/rxe/rxe_pool.c
-+++ b/drivers/infiniband/sw/rxe/rxe_pool.c
-@@ -188,7 +188,7 @@ int rxe_pool_init(
- 	struct rxe_dev		*rxe,
- 	struct rxe_pool		*pool,
- 	enum rxe_elem_type	type,
--	unsigned		max_elem)
-+	unsigned int		max_elem)
- {
- 	int			err = 0;
- 	size_t			size = rxe_type_info[type].size;
-diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-index 7ee465d1a1e1..db7161456f45 100644
---- a/drivers/infiniband/sw/rxe/rxe_req.c
-+++ b/drivers/infiniband/sw/rxe/rxe_req.c
-@@ -43,7 +43,7 @@ static int next_opcode(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
- 
- static inline void retry_first_write_send(struct rxe_qp *qp,
- 					  struct rxe_send_wqe *wqe,
--					  unsigned mask, int npsn)
-+					  unsigned int mask, int npsn)
- {
- 	int i;
- 
--- 
-2.12.2
+On 06/04/2017 11:49 PM, Sagi Grimberg wrote:
+> Hi Yi,
+>
+>> Finally found below patch [1] that fixed this issue.
+>> With [1], I can see the speed of reset_controller operation[2] is 
+>> obviously slow than before.
+>>
+>>
+>> [1]
+>> commit b7363e67b23e04c23c2a99437feefac7292a88bc
+>> Author: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+>> Date:   Wed Mar 8 22:03:17 2017 +0200
+>>
+>>      IB/device: Convert ib-comp-wq to be CPU-bound
+>
+> This is very unlikely.
+>
+> I think that what made this go away is:
+>
+> commit 777dc82395de6e04b3a5fedcf153eb99bf5f1241
+> Author: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+> Date:   Tue Mar 21 16:29:49 2017 +0200
+>
+>     nvmet-rdma: occasionally flush ongoing controller teardown
+>
+>     If we are attacked with establishments/teradowns we need to
+>     make sure we do not consume too much system memory. Thus
+>     let ongoing controller teardowns complete before accepting
+>     new controller establishments.
+>
+Hi Sagi
+This patch fixed the issue, thanks again.
+
+Yi
+>
+> Cheers,
+> Sagi.
+>
+> _______________________________________________
+> Linux-nvme mailing list
+> Linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+> http://lists.infradead.org/mailman/listinfo/linux-nvme
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
