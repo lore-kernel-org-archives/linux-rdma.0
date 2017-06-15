@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 3/5] IB/rxe: Use DEVICE_ATTR_RO macro to show parent field
-Date: Thu, 15 Jun 2017 11:29:05 +0300
-Message-ID: <20170615082907.5658-4-leon@kernel.org>
+Subject: [PATCH rdma-next 4/5] IB/rxe: Use __func__ to print function's name
+Date: Thu, 15 Jun 2017 11:29:06 +0300
+Message-ID: <20170615082907.5658-5-leon@kernel.org>
 References: <20170615082907.5658-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170615082907.5658-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,38 +12,61 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Kamal Heib <kamalheib1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Use DEVICE_ATTR RO() macro and rename the show function accordingly.
+Its better to use __func__ to print functions name instead of writing
+the name in the print statement.
 
 Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
+ drivers/infiniband/sw/rxe/rxe_task.c  | 4 ++--
  drivers/infiniband/sw/rxe/rxe_verbs.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
+diff --git a/drivers/infiniband/sw/rxe/rxe_task.c b/drivers/infiniband/sw/rxe/rxe_task.c
+index d2a14a1bdc7f..ea3810b29273 100644
+--- a/drivers/infiniband/sw/rxe/rxe_task.c
++++ b/drivers/infiniband/sw/rxe/rxe_task.c
+@@ -78,7 +78,7 @@ void rxe_do_task(unsigned long data)
+ 
+ 	default:
+ 		spin_unlock_irqrestore(&task->state_lock, flags);
+-		pr_warn("bad state = %d in rxe_do_task\n", task->state);
++		pr_warn("%s failed with bad state %d\n", __func__, task->state);
+ 		return;
+ 	}
+ 
+@@ -105,7 +105,7 @@ void rxe_do_task(unsigned long data)
+ 			break;
+ 
+ 		default:
+-			pr_warn("bad state = %d in rxe_do_task\n",
++			pr_warn("%s failed with bad state %d\n", __func__,
+ 				task->state);
+ 		}
+ 		spin_unlock_irqrestore(&task->state_lock, flags);
 diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index 83d709e74dfb..92156025db73 100644
+index 92156025db73..a65a330b15b6 100644
 --- a/drivers/infiniband/sw/rxe/rxe_verbs.c
 +++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -1212,8 +1212,8 @@ static int rxe_detach_mcast(struct ib_qp *ibqp, union ib_gid *mgid, u16 mlid)
- 	return rxe_mcast_drop_grp_elem(rxe, qp, mgid);
- }
+@@ -1336,15 +1336,15 @@ int rxe_register_device(struct rxe_dev *rxe)
  
--static ssize_t rxe_show_parent(struct device *device,
--			       struct device_attribute *attr, char *buf)
-+static ssize_t parent_show(struct device *device,
-+			   struct device_attribute *attr, char *buf)
- {
- 	struct rxe_dev *rxe = container_of(device, struct rxe_dev,
- 					   ib_dev.dev);
-@@ -1221,7 +1221,7 @@ static ssize_t rxe_show_parent(struct device *device,
- 	return snprintf(buf, 16, "%s\n", rxe_parent_name(rxe, 1));
- }
+ 	err = ib_register_device(dev, NULL);
+ 	if (err) {
+-		pr_warn("rxe_register_device failed, err = %d\n", err);
++		pr_warn("%s failed with error %d\n", __func__, err);
+ 		goto err1;
+ 	}
  
--static DEVICE_ATTR(parent, S_IRUGO, rxe_show_parent, NULL);
-+static DEVICE_ATTR_RO(parent);
- 
- static struct device_attribute *rxe_dev_attributes[] = {
- 	&dev_attr_parent,
+ 	for (i = 0; i < ARRAY_SIZE(rxe_dev_attributes); ++i) {
+ 		err = device_create_file(&dev->dev, rxe_dev_attributes[i]);
+ 		if (err) {
+-			pr_warn("device_create_file failed, i = %d, err = %d\n",
+-				i, err);
++			pr_warn("%s failed with error %d for attr number %d\n",
++				__func__, err, i);
+ 			goto err2;
+ 		}
+ 	}
 -- 
 2.12.2
 
