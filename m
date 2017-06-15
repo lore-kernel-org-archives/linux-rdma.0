@@ -1,56 +1,82 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/1] rdma: copy the saddr if it is already resolved
-Date: Thu, 15 Jun 2017 15:46:10 -0400
-Message-ID: <1497555970.7171.298.camel@redhat.com>
-References: <20170609104925.28927-1-rajur@chelsio.com>
-         <1497468245.7171.260.camel@redhat.com>
-         <CAANLjFo=VOhUSb494rskZ38fHn=xSUYPi+XL4Vuu0R1Y0czmSQ@mail.gmail.com>
-         <1497485577.7171.273.camel@redhat.com>
-         <CAANLjFo2GXw8kTXDO87k9oaER5PxXZTb0JAV3qHqRz8aHxA7FA@mail.gmail.com>
+From: Yuval Mintz <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH net-next 0/7] qed*: RDMA and infrastructure for iWARP
+Date: Thu, 15 Jun 2017 23:29:26 +0300
+Message-ID: <20170615202933.20934-1-Yuval.Mintz@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAANLjFo2GXw8kTXDO87k9oaER5PxXZTb0JAV3qHqRz8aHxA7FA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Cc: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yuval Mintz <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-06-15 at 09:20 -0600, Robert LeBlanc wrote:
-> On Wed, Jun 14, 2017 at 6:12 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> wrote:
-> > 
-> > On Wed, 2017-06-14 at 16:28 -0600, Robert LeBlanc wrote:
-> > > 
-> > > Doug,
-> > > 
-> > > I've run into this with 4.9.30. The aforementioned patch fixes it
-> > > in
-> > > the 4.9 series, but also requires 24b43c996 as well. Can we get
-> > > this
-> > > fix into stable. If needed you can add me as tested-by.
-> > > 
-> > > Tested-by: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-> > 
-> > While I don't doubt that this fixed the problem, the patch from
-> > Roland
-> > Drier looks more correct to me.  As I've already taken Roland's
-> > patch,
-> > and it is Cc:ed for stable, it should be resolved already.  I just
-> > need
-> > Raju to confirm this for me.
-> 
-> Sorry, I meant to say that I tested Roland's patch and it fixes the
-> issue for us. Thanks for getting this sent to stable.
+This series focuses on RDMA in general with emphasis on required changes
+toward adding iWARP support. The vast majority of the changes introduced
+are in qed/qede, with a couple of small changes to qedr
+[mentioned below].
 
-I've added a git notes entry for your testing.  Thanks.
+The infrastructure changes:
+ - Patch #1 adds the ability to pass PBL memory externally for a newly
+created chain.
+ - Patches #4, #5 rename qede_roce.[ch] into qede_rdma.[ch] + change
+prefixes from _roce_ to _rdma_, as the API between qede and qedr is
+agnostic to the variant of the RDMA protocol used. These patches also
+touch qedr [basically to align it with the renaming, nothing more].
+ - Patch #7 replaces the current SPQ async mechanism into serving
+registered callbacks [before adding iWARP which would add another client
+in need of this sort of functionallity].
+
+The non-infrastrucutre changes:
+ - Patches #2, #3 contain DCB-related changes to better align RDMA with
+configured DCB.
+ - Patch #6 contains a minor [mostly theoretical fix] to release flow.
+
+Dave,
+
+Please consider applying this series to `net-next'.
+
+Thanks,
+Yuval
+
+Michal Kalderon (4):
+  qed*: Rename qede_roce.[ch]
+  qed*: Set rdma generic functions prefix
+  qed: Wait for resources before FUNC_CLOSE
+  qed: SPQ async callback registration
+
+Yuval Mintz (3):
+  qed: Chain support for external PBL
+  qed: RoCE EDPM to honor PFC
+  qed: Disable RoCE dpm when DCBx change occurs
+
+ drivers/infiniband/hw/qedr/main.c                  |  10 +-
+ drivers/infiniband/hw/qedr/qedr.h                  |   2 +-
+ drivers/infiniband/hw/qedr/verbs.c                 |   6 +-
+ drivers/net/ethernet/qlogic/qed/qed_dcbx.c         |  24 ++++
+ drivers/net/ethernet/qlogic/qed/qed_dev.c          |  35 +++--
+ drivers/net/ethernet/qlogic/qed/qed_dev_api.h      |   5 +-
+ drivers/net/ethernet/qlogic/qed/qed_iscsi.c        |  30 ++++-
+ drivers/net/ethernet/qlogic/qed/qed_ll2.c          |   6 +-
+ drivers/net/ethernet/qlogic/qed/qed_reg_addr.h     |   6 +
+ drivers/net/ethernet/qlogic/qed/qed_roce.c         |  87 ++++++++++---
+ drivers/net/ethernet/qlogic/qed/qed_roce.h         |   9 +-
+ drivers/net/ethernet/qlogic/qed/qed_sp.h           |  17 +++
+ drivers/net/ethernet/qlogic/qed/qed_spq.c          |  60 +++++----
+ drivers/net/ethernet/qlogic/qed/qed_sriov.c        |  16 ++-
+ drivers/net/ethernet/qlogic/qed/qed_sriov.h        |  18 ---
+ drivers/net/ethernet/qlogic/qede/Makefile          |   2 +-
+ drivers/net/ethernet/qlogic/qede/qede.h            |   5 +-
+ drivers/net/ethernet/qlogic/qede/qede_main.c       |  21 ++-
+ .../qlogic/qede/{qede_roce.c => qede_rdma.c}       | 144 ++++++++++-----------
+ include/linux/qed/qed_chain.h                      |   7 +
+ include/linux/qed/qed_if.h                         |   3 +-
+ include/linux/qed/{qede_roce.h => qede_rdma.h}     |  37 +++---
+ 22 files changed, 348 insertions(+), 202 deletions(-)
+ rename drivers/net/ethernet/qlogic/qede/{qede_roce.c => qede_rdma.c} (59%)
+ rename include/linux/qed/{qede_roce.h => qede_rdma.h} (67%)
 
 -- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-   
-Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+2.9.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
