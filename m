@@ -1,39 +1,53 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: Re: [PATCH 1/1] rdma: copy the saddr if it is already resolved
-Date: Thu, 15 Jun 2017 09:20:38 -0600
-Message-ID: <CAANLjFo2GXw8kTXDO87k9oaER5PxXZTb0JAV3qHqRz8aHxA7FA@mail.gmail.com>
-References: <20170609104925.28927-1-rajur@chelsio.com> <1497468245.7171.260.camel@redhat.com>
- <CAANLjFo=VOhUSb494rskZ38fHn=xSUYPi+XL4Vuu0R1Y0czmSQ@mail.gmail.com> <1497485577.7171.273.camel@redhat.com>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: rdma-core 13 fails to build on Ubuntu 16.04.1 LTS
+Date: Thu, 15 Jun 2017 16:29:29 +0000
+Message-ID: <CO2PR07MB2584B40776D19F8302B387F2F8C00@CO2PR07MB2584.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1497485577.7171.273.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Raju Rangoju <rajur-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, SWise OGC <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 14, 2017 at 6:12 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> On Wed, 2017-06-14 at 16:28 -0600, Robert LeBlanc wrote:
->> Doug,
->>
->> I've run into this with 4.9.30. The aforementioned patch fixes it in
->> the 4.9 series, but also requires 24b43c996 as well. Can we get this
->> fix into stable. If needed you can add me as tested-by.
->>
->> Tested-by: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
->
-> While I don't doubt that this fixed the problem, the patch from Roland
-> Drier looks more correct to me.  As I've already taken Roland's patch,
-> and it is Cc:ed for stable, it should be resolved already.  I just need
-> Raju to confirm this for me.
+I failed to build rdma-core on Ubuntu 16.04.1 LTS.
 
-Sorry, I meant to say that I tested Roland's patch and it fixes the
-issue for us. Thanks for getting this sent to stable.
+Most errors looked like this: undefined reference to `udma_to_device_barrie=
+r'.
 
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+e.g.:
+[115/175] Building C object providers/mlx4/CMakeFiles/mlx4-rdmav2.dir/qp.c.=
+o
+../providers/mlx4/qp.c: In function 'set_data_seg':
+../providers/mlx4/qp.c:206:2: warning: implicit declaration of function 'ud=
+ma_to_device_barrier' [-Wimplicit-function-declaration]
+=A0 udma_to_device_barrier();
+=A0 ^
+[115/175] Building C object providers/mthca/CMakeFiles/mthca-rdmav2.dir/qp.=
+c.o
+../providers/mthca/qp.c: In function 'mthca_tavor_post_send':
+../providers/mthca/qp.c:115:2: warning: implicit declaration of function 'u=
+dma_to_device_barrier' [-Wimplicit-function-declaration]
+=A0 udma_to_device_barrier();
+=A0 ^
+[115/175] Building C object providers/i40iw/CMakeFiles/i40iw-rdmav2.dir/i40=
+iw_uk.c.o
+../providers/i40iw/i40iw_uk.c: In function 'i40iw_nop_1':
+../providers/i40iw/i40iw_uk.c:79:2: warning: implicit declaration of functi=
+on 'udma_to_device_barrier' [-Wimplicit-function-declaration]
+=A0 udma_to_device_barrier(); /* Memory barrier to ensure data is written b=
+efore valid bit is set */
+
+rdma-core 14 works well, however.
+
+Is this a known issue?
+
+Thanks,
+Ram
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
