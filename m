@@ -1,34 +1,37 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 0/5] RXE checkpatch cleanup
-Date: Thu, 15 Jun 2017 11:29:02 +0300
-Message-ID: <20170615082907.5658-1-leon@kernel.org>
+Subject: [PATCH rdma-next 1/5] IB/rxe: Use "foo *bar" instead of "foo * bar"
+Date: Thu, 15 Jun 2017 11:29:03 +0300
+Message-ID: <20170615082907.5658-2-leon@kernel.org>
+References: <20170615082907.5658-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170615082907.5658-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kamal Heib <kamalheib1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patchset from Kamal cleanups some of the warnings
-and errors that he got from applying checkpatch.pl script
-on RXE files.
+From: Kamal Heib <kamalheib1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Kamal Heib (5):
-  IB/rxe: Use "foo *bar" instead of "foo * bar"
-  IB/rxe: Prefer 'unsigned int' to bare use of 'unsigned'
-  IB/rxe: Use DEVICE_ATTR_RO macro to show parent field
-  IB/rxe: Use __func__ to print function's name
-  IB/rxe: Constify static rxe_vm_ops
+Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/sw/rxe/rxe.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- drivers/infiniband/sw/rxe/rxe.h       |  2 +-
- drivers/infiniband/sw/rxe/rxe_loc.h   |  2 +-
- drivers/infiniband/sw/rxe/rxe_mmap.c  |  2 +-
- drivers/infiniband/sw/rxe/rxe_pool.c  |  2 +-
- drivers/infiniband/sw/rxe/rxe_req.c   |  2 +-
- drivers/infiniband/sw/rxe/rxe_task.c  |  4 ++--
- drivers/infiniband/sw/rxe/rxe_verbs.c | 12 ++++++------
- 7 files changed, 13 insertions(+), 13 deletions(-)
-
---
+diff --git a/drivers/infiniband/sw/rxe/rxe.h b/drivers/infiniband/sw/rxe/rxe.h
+index ecdba2fce083..40ff6b23ddbc 100644
+--- a/drivers/infiniband/sw/rxe/rxe.h
++++ b/drivers/infiniband/sw/rxe/rxe.h
+@@ -94,7 +94,7 @@ int rxe_rcv(struct sk_buff *skb);
+ 
+ void rxe_dev_put(struct rxe_dev *rxe);
+ struct rxe_dev *net_to_rxe(struct net_device *ndev);
+-struct rxe_dev *get_rxe_by_name(const char* name);
++struct rxe_dev *get_rxe_by_name(const char *name);
+ 
+ void rxe_port_up(struct rxe_dev *rxe);
+ void rxe_port_down(struct rxe_dev *rxe);
+-- 
 2.12.2
 
 --
