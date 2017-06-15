@@ -1,8 +1,11 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: [PATCH v5 for-4.13 3/7] mlx5: move affinity hints assignments to generic code
-Date: Thu, 15 Jun 2017 16:33:10 +0300
-Message-ID: <1497533594-11579-4-git-send-email-sagi@grimberg.me>
+Subject: [PATCH v5 for-4.13 4/7] RDMA/core: expose affinity mappings per completion vector
+Date: Thu, 15 Jun 2017 16:33:11 +0300
+Message-ID: <1497533594-11579-5-git-send-email-sagi@grimberg.me>
 References: <1497533594-11579-1-git-send-email-sagi@grimberg.me>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1497533594-11579-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
@@ -10,348 +13,67 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-generic api takes care of spreading affinity similar to
-what mlx5 open coded (and even handles better asymmetric
-configurations). Ask the generic API to spread affinity
-for us, and feed him pre_vectors that do not participate
-in affinity settings (which is an improvement to what we
-had before).
-
-The affinity assignments should match what mlx5 tried to
-do earlier but now we do not set affinity to async, cmd
-and pages dedicated vectors.
-
-Also, remove mlx5e_get_cpu and introduce mlx5e_get_node
-(used for allocation purposes) and mlx5_get_vector_affinity
-(for indirection table construction) as they provide the needed
-information. Luckily, we have generic helpers to get cpumask
-and node given a irq vector. mlx5_get_vector_affinity will
-be used by mlx5_ib in a subsequent patch.
+This will allow ULPs to intelligently locate threads based
+on completion vector cpu affinity mappings. In case the
+driver does not expose a get_vector_affinity callout, return
+NULL so the caller can maintain a fallback logic.
 
 Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Acked-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Håkon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Acked-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en.h      |  1 -
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 44 ++++++-------
- drivers/net/ethernet/mellanox/mlx5/core/main.c    | 75 ++---------------------
- include/linux/mlx5/driver.h                       |  7 ++-
- 4 files changed, 34 insertions(+), 93 deletions(-)
+ include/rdma/ib_verbs.h | 25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-index 2fd044b23875..98b233716ba9 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-@@ -569,7 +569,6 @@ struct mlx5e_channel {
- 	struct mlx5_core_dev      *mdev;
- 	struct mlx5e_tstamp       *tstamp;
- 	int                        ix;
--	int                        cpu;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index ba8314ec5768..2349143297c9 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2245,6 +2245,8 @@ struct ib_device {
+ 	 */
+ 	int (*get_port_immutable)(struct ib_device *, u8, struct ib_port_immutable *);
+ 	void (*get_dev_fw_str)(struct ib_device *, char *str, size_t str_len);
++	const struct cpumask *(*get_vector_affinity)(struct ib_device *ibdev,
++						     int comp_vector);
  };
  
- struct mlx5e_channels {
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 1e344b445a47..e4a33ae48227 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -68,6 +68,11 @@ struct mlx5e_channel_param {
- 	struct mlx5e_cq_param      icosq_cq;
- };
+ struct ib_client {
+@@ -3609,7 +3611,6 @@ static inline void rdma_ah_set_interface_id(struct rdma_ah_attr *attr,
  
-+static int mlx5e_get_node(struct mlx5e_priv *priv, int ix)
-+{
-+	return pci_irq_get_node(priv->mdev->pdev, MLX5_EQ_VEC_COMP_BASE + ix);
-+}
+ 	grh->dgid.global.interface_id = if_id;
+ }
+-
+ static inline void rdma_ah_set_grh(struct rdma_ah_attr *attr,
+ 				   union ib_gid *dgid, u32 flow_label,
+ 				   u8 sgid_index, u8 hop_limit,
+@@ -3639,4 +3640,26 @@ static inline enum rdma_ah_attr_type rdma_ah_find_type(struct ib_device *dev,
+ 	else
+ 		return RDMA_AH_ATTR_TYPE_IB;
+ }
 +
- static bool mlx5e_check_fragmented_striding_rq_cap(struct mlx5_core_dev *mdev)
- {
- 	return MLX5_CAP_GEN(mdev, striding_rq) &&
-@@ -432,16 +437,17 @@ static int mlx5e_rq_alloc_mpwqe_info(struct mlx5e_rq *rq,
- 	int wq_sz = mlx5_wq_ll_get_size(&rq->wq);
- 	int mtt_sz = mlx5e_get_wqe_mtt_sz();
- 	int mtt_alloc = mtt_sz + MLX5_UMR_ALIGN - 1;
-+	int node = mlx5e_get_node(c->priv, c->ix);
- 	int i;
- 
- 	rq->mpwqe.info = kzalloc_node(wq_sz * sizeof(*rq->mpwqe.info),
--				      GFP_KERNEL, cpu_to_node(c->cpu));
-+					GFP_KERNEL, node);
- 	if (!rq->mpwqe.info)
- 		goto err_out;
- 
- 	/* We allocate more than mtt_sz as we will align the pointer */
--	rq->mpwqe.mtt_no_align = kzalloc_node(mtt_alloc * wq_sz, GFP_KERNEL,
--					cpu_to_node(c->cpu));
-+	rq->mpwqe.mtt_no_align = kzalloc_node(mtt_alloc * wq_sz,
-+					GFP_KERNEL, node);
- 	if (unlikely(!rq->mpwqe.mtt_no_align))
- 		goto err_free_wqe_info;
- 
-@@ -550,7 +556,7 @@ static int mlx5e_alloc_rq(struct mlx5e_channel *c,
- 	int err;
- 	int i;
- 
--	rqp->wq.db_numa_node = cpu_to_node(c->cpu);
-+	rqp->wq.db_numa_node = mlx5e_get_node(c->priv, c->ix);
- 
- 	err = mlx5_wq_ll_create(mdev, &rqp->wq, rqc_wq, &rq->wq,
- 				&rq->wq_ctrl);
-@@ -614,7 +620,7 @@ static int mlx5e_alloc_rq(struct mlx5e_channel *c,
- 		break;
- 	default: /* MLX5_WQ_TYPE_LINKED_LIST */
- 		rq->dma_info = kzalloc_node(wq_sz * sizeof(*rq->dma_info),
--					    GFP_KERNEL, cpu_to_node(c->cpu));
-+				GFP_KERNEL, mlx5e_get_node(c->priv, c->ix));
- 		if (!rq->dma_info) {
- 			err = -ENOMEM;
- 			goto err_rq_wq_destroy;
-@@ -963,13 +969,13 @@ static int mlx5e_alloc_xdpsq(struct mlx5e_channel *c,
- 	sq->uar_map   = mdev->mlx5e_res.bfreg.map;
- 	sq->min_inline_mode = params->tx_min_inline_mode;
- 
--	param->wq.db_numa_node = cpu_to_node(c->cpu);
-+	param->wq.db_numa_node = mlx5e_get_node(c->priv, c->ix);
- 	err = mlx5_wq_cyc_create(mdev, &param->wq, sqc_wq, &sq->wq, &sq->wq_ctrl);
- 	if (err)
- 		return err;
- 	sq->wq.db = &sq->wq.db[MLX5_SND_DBR];
- 
--	err = mlx5e_alloc_xdpsq_db(sq, cpu_to_node(c->cpu));
-+	err = mlx5e_alloc_xdpsq_db(sq, mlx5e_get_node(c->priv, c->ix));
- 	if (err)
- 		goto err_sq_wq_destroy;
- 
-@@ -1017,13 +1023,13 @@ static int mlx5e_alloc_icosq(struct mlx5e_channel *c,
- 	sq->channel   = c;
- 	sq->uar_map   = mdev->mlx5e_res.bfreg.map;
- 
--	param->wq.db_numa_node = cpu_to_node(c->cpu);
-+	param->wq.db_numa_node = mlx5e_get_node(c->priv, c->ix);
- 	err = mlx5_wq_cyc_create(mdev, &param->wq, sqc_wq, &sq->wq, &sq->wq_ctrl);
- 	if (err)
- 		return err;
- 	sq->wq.db = &sq->wq.db[MLX5_SND_DBR];
- 
--	err = mlx5e_alloc_icosq_db(sq, cpu_to_node(c->cpu));
-+	err = mlx5e_alloc_icosq_db(sq, mlx5e_get_node(c->priv, c->ix));
- 	if (err)
- 		goto err_sq_wq_destroy;
- 
-@@ -1087,13 +1093,13 @@ static int mlx5e_alloc_txqsq(struct mlx5e_channel *c,
- 	sq->max_inline      = params->tx_max_inline;
- 	sq->min_inline_mode = params->tx_min_inline_mode;
- 
--	param->wq.db_numa_node = cpu_to_node(c->cpu);
-+	param->wq.db_numa_node = mlx5e_get_node(c->priv, c->ix);
- 	err = mlx5_wq_cyc_create(mdev, &param->wq, sqc_wq, &sq->wq, &sq->wq_ctrl);
- 	if (err)
- 		return err;
- 	sq->wq.db    = &sq->wq.db[MLX5_SND_DBR];
- 
--	err = mlx5e_alloc_txqsq_db(sq, cpu_to_node(c->cpu));
-+	err = mlx5e_alloc_txqsq_db(sq, mlx5e_get_node(c->priv, c->ix));
- 	if (err)
- 		goto err_sq_wq_destroy;
- 
-@@ -1465,8 +1471,8 @@ static int mlx5e_alloc_cq(struct mlx5e_channel *c,
- 	struct mlx5_core_dev *mdev = c->priv->mdev;
- 	int err;
- 
--	param->wq.buf_numa_node = cpu_to_node(c->cpu);
--	param->wq.db_numa_node  = cpu_to_node(c->cpu);
-+	param->wq.buf_numa_node = mlx5e_get_node(c->priv, c->ix);
-+	param->wq.db_numa_node  = mlx5e_get_node(c->priv, c->ix);
- 	param->eq_ix   = c->ix;
- 
- 	err = mlx5e_alloc_cq_common(mdev, param, cq);
-@@ -1565,11 +1571,6 @@ static void mlx5e_close_cq(struct mlx5e_cq *cq)
- 	mlx5e_free_cq(cq);
- }
- 
--static int mlx5e_get_cpu(struct mlx5e_priv *priv, int ix)
--{
--	return cpumask_first(priv->mdev->priv.irq_info[ix].mask);
--}
--
- static int mlx5e_open_tx_cqs(struct mlx5e_channel *c,
- 			     struct mlx5e_params *params,
- 			     struct mlx5e_channel_param *cparam)
-@@ -1718,11 +1719,10 @@ static int mlx5e_open_channel(struct mlx5e_priv *priv, int ix,
- {
- 	struct mlx5e_cq_moder icocq_moder = {0, 0};
- 	struct net_device *netdev = priv->netdev;
--	int cpu = mlx5e_get_cpu(priv, ix);
- 	struct mlx5e_channel *c;
- 	int err;
- 
--	c = kzalloc_node(sizeof(*c), GFP_KERNEL, cpu_to_node(cpu));
-+	c = kzalloc_node(sizeof(*c), GFP_KERNEL, mlx5e_get_node(priv, ix));
- 	if (!c)
- 		return -ENOMEM;
- 
-@@ -1730,7 +1730,6 @@ static int mlx5e_open_channel(struct mlx5e_priv *priv, int ix,
- 	c->mdev     = priv->mdev;
- 	c->tstamp   = &priv->tstamp;
- 	c->ix       = ix;
--	c->cpu      = cpu;
- 	c->pdev     = &priv->mdev->pdev->dev;
- 	c->netdev   = priv->netdev;
- 	c->mkey_be  = cpu_to_be32(priv->mdev->mlx5e_res.mkey.key);
-@@ -1816,7 +1815,8 @@ static void mlx5e_activate_channel(struct mlx5e_channel *c)
- 	for (tc = 0; tc < c->num_tc; tc++)
- 		mlx5e_activate_txqsq(&c->sq[tc]);
- 	mlx5e_activate_rq(&c->rq);
--	netif_set_xps_queue(c->netdev, get_cpu_mask(c->cpu), c->ix);
-+	netif_set_xps_queue(c->netdev,
-+		mlx5_get_vector_affinity(c->priv->mdev, c->ix), c->ix);
- }
- 
- static void mlx5e_deactivate_channel(struct mlx5e_channel *c)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index cf64bd2a6966..a5d8826ff758 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -312,6 +312,9 @@ static int mlx5_alloc_irq_vectors(struct mlx5_core_dev *dev)
- {
- 	struct mlx5_priv *priv = &dev->priv;
- 	struct mlx5_eq_table *table = &priv->eq_table;
-+	struct irq_affinity irqdesc = {
-+		.pre_vectors = MLX5_EQ_VEC_COMP_BASE,
-+	};
- 	int num_eqs = 1 << MLX5_CAP_GEN(dev, log_max_eq);
- 	int nvec;
- 
-@@ -325,9 +328,10 @@ static int mlx5_alloc_irq_vectors(struct mlx5_core_dev *dev)
- 	if (!priv->irq_info)
- 		goto err_free_msix;
- 
--	nvec = pci_alloc_irq_vectors(dev->pdev,
-+	nvec = pci_alloc_irq_vectors_affinity(dev->pdev,
- 			MLX5_EQ_VEC_COMP_BASE + 1, nvec,
--			PCI_IRQ_MSIX);
-+			PCI_IRQ_MSIX | PCI_IRQ_AFFINITY,
-+			&irqdesc);
- 	if (nvec < 0)
- 		return nvec;
- 
-@@ -600,63 +604,6 @@ u64 mlx5_read_internal_timer(struct mlx5_core_dev *dev)
- 	return (u64)timer_l | (u64)timer_h1 << 32;
- }
- 
--static int mlx5_irq_set_affinity_hint(struct mlx5_core_dev *mdev, int i)
--{
--	struct mlx5_priv *priv  = &mdev->priv;
--	int irq = pci_irq_vector(mdev->pdev, MLX5_EQ_VEC_COMP_BASE + i);
--
--	if (!zalloc_cpumask_var(&priv->irq_info[i].mask, GFP_KERNEL)) {
--		mlx5_core_warn(mdev, "zalloc_cpumask_var failed");
--		return -ENOMEM;
--	}
--
--	cpumask_set_cpu(cpumask_local_spread(i, priv->numa_node),
--			priv->irq_info[i].mask);
--
--	if (IS_ENABLED(CONFIG_SMP) &&
--	    irq_set_affinity_hint(irq, priv->irq_info[i].mask))
--		mlx5_core_warn(mdev, "irq_set_affinity_hint failed, irq 0x%.4x", irq);
--
--	return 0;
--}
--
--static void mlx5_irq_clear_affinity_hint(struct mlx5_core_dev *mdev, int i)
--{
--	struct mlx5_priv *priv  = &mdev->priv;
--	int irq = pci_irq_vector(mdev->pdev, MLX5_EQ_VEC_COMP_BASE + i);
--
--	irq_set_affinity_hint(irq, NULL);
--	free_cpumask_var(priv->irq_info[i].mask);
--}
--
--static int mlx5_irq_set_affinity_hints(struct mlx5_core_dev *mdev)
--{
--	int err;
--	int i;
--
--	for (i = 0; i < mdev->priv.eq_table.num_comp_vectors; i++) {
--		err = mlx5_irq_set_affinity_hint(mdev, i);
--		if (err)
--			goto err_out;
--	}
--
--	return 0;
--
--err_out:
--	for (i--; i >= 0; i--)
--		mlx5_irq_clear_affinity_hint(mdev, i);
--
--	return err;
--}
--
--static void mlx5_irq_clear_affinity_hints(struct mlx5_core_dev *mdev)
--{
--	int i;
--
--	for (i = 0; i < mdev->priv.eq_table.num_comp_vectors; i++)
--		mlx5_irq_clear_affinity_hint(mdev, i);
--}
--
- int mlx5_vector2eqn(struct mlx5_core_dev *dev, int vector, int *eqn,
- 		    unsigned int *irqn)
- {
-@@ -1108,12 +1055,6 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
- 		goto err_stop_eqs;
- 	}
- 
--	err = mlx5_irq_set_affinity_hints(dev);
--	if (err) {
--		dev_err(&pdev->dev, "Failed to alloc affinity hint cpumask\n");
--		goto err_affinity_hints;
--	}
--
- 	err = mlx5_init_fs(dev);
- 	if (err) {
- 		dev_err(&pdev->dev, "Failed to init flow steering\n");
-@@ -1157,9 +1098,6 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
- 	mlx5_cleanup_fs(dev);
- 
- err_fs:
--	mlx5_irq_clear_affinity_hints(dev);
--
--err_affinity_hints:
- 	free_comp_eqs(dev);
- 
- err_stop_eqs:
-@@ -1226,7 +1164,6 @@ static int mlx5_unload_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
- 	mlx5_eswitch_detach(dev->priv.eswitch);
- #endif
- 	mlx5_cleanup_fs(dev);
--	mlx5_irq_clear_affinity_hints(dev);
- 	free_comp_eqs(dev);
- 	mlx5_stop_eqs(dev);
- 	mlx5_put_uars_page(dev, priv->uar);
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index d48b9164a316..3d4d5b0f56c7 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -527,7 +527,6 @@ struct mlx5_core_sriov {
- };
- 
- struct mlx5_irq_info {
--	cpumask_var_t mask;
- 	char name[MLX5_MAX_IRQ_NAME];
- };
- 
-@@ -1157,4 +1156,10 @@ enum {
- 	MLX5_TRIGGERED_CMD_COMP = (u64)1 << 32,
- };
- 
++/**
++ * ib_get_vector_affinity - Get the affinity mappings of a given completion
++ *   vector
++ * @device:         the rdma device
++ * @comp_vector:    index of completion vector
++ *
++ * Returns NULL on failure, otherwise a corresponding cpu map of the
++ * completion vector (returns all-cpus map if the device driver doesn't
++ * implement get_vector_affinity).
++ */
 +static inline const struct cpumask *
-+mlx5_get_vector_affinity(struct mlx5_core_dev *dev, int vector)
++ib_get_vector_affinity(struct ib_device *device, int comp_vector)
 +{
-+	return pci_irq_get_affinity(dev->pdev, MLX5_EQ_VEC_COMP_BASE + vector);
++	if (comp_vector < 0 || comp_vector >= device->num_comp_vectors ||
++	    !device->get_vector_affinity)
++		return NULL;
++
++	return device->get_vector_affinity(device, comp_vector);
++
 +}
 +
- #endif /* MLX5_DRIVER_H */
+ #endif /* IB_VERBS_H */
 -- 
 2.7.4
 
