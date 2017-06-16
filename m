@@ -1,60 +1,41 @@
-From: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH infiniband-diags] Fix the gen_chlog.sh script to support
- builds in a separate directory
-Date: Fri, 16 Jun 2017 14:01:27 +0200
-Message-ID: <1497614487.15929.18.camel@oracle.com>
-References: <20170614104824.21599-1-knut.omang@oracle.com>
+From: "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH net-next 4/7] qed*: Rename qede_roce.[ch]
+Date: Fri, 16 Jun 2017 12:41:15 +0000
+Message-ID: <BLUPR0701MB2004F40778215AD277D4FF348DC10@BLUPR0701MB2004.namprd07.prod.outlook.com>
+References: <20170615202933.20934-5-Yuval.Mintz@cavium.com>
+ <201706160552.EYIdXcuM%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170614104824.21599-1-knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <201706160552.EYIdXcuM%fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: "kbuild-all-JC7UmRfGjtg@public.gmane.org" <kbuild-all-JC7UmRfGjtg@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Never mind - after some head scratching I realized my git remote reference 
-had become obsolete since the last time I pulled it.
+>    In file included from drivers/net//ethernet/qlogic/qede/qede.h:43:0,
+>                     from drivers/net//ethernet/qlogic/qede/qede_ptp.h:38,
+>                     from drivers/net//ethernet/qlogic/qede/qede_fp.c:43:
+> >> include/linux/qed/qede_rdma.h:57:12: warning: 'struct pci_dev' declare=
+d
+> inside parameter list [enabled by default]
+> >> include/linux/qed/qede_rdma.h:57:12: warning: its scope is only this
+> definition or declaration, which is probably not what you want [enabled b=
+y
+> default]
 
-This patch was against the obsolete (but still existing)
-git://git.openfabrics.org/~iraweiny/infiniband-diags.git
+This patch is merely renaming qede_roce.h -> qede_rdma.h.
+I guess the kbuild test robot got better scripts than the time we've added =
+qede_rdma.h,
+or else it would have catched the fact there are no inclusion since then.
 
-not the current
-
-https://github.com/linux-rdma/infiniband-diags
-
-Thanks,
-Knut
-
-On Wed, 2017-06-14 at 12:48 +0200, Knut Omang wrote:
-> Configuring and building in a separate directory breaks
-> because gen_chlog.sh assumes it runs from the git tree.
-> Instead of making this assumption, rather assume the more
-> generic, that the gen_chlog.sh script itself is located
-> in the top sourcedir.
-> 
-> With this fix configuring and building in a separate
-> tree from the source tree works.
-> 
-> Signed-off-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->  gen_chlog.sh | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/gen_chlog.sh b/gen_chlog.sh
-> index 34dfa24..59a9e1f 100755
-> --- a/gen_chlog.sh
-> +++ b/gen_chlog.sh
-> @@ -10,6 +10,8 @@ if [ "$1" = "--spec" ] ; then
->  	spec_format=1
->  fi
->  
-> +cd `dirname $0`
-> +
->  GIT_DIR=`git rev-parse --git-dir 2>/dev/null`
->  
->  test -z "$GIT_DIR" && usage
+Dave - given this is an existing warning exposed due to a rename [and not s=
+omething
+that actually got introduced in this patch], do you want us to fix it via v=
+2 of this series?
+Or send a fix for it later?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
