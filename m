@@ -1,113 +1,46 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 19/19] sunrpc: Disable splice for krb5i
-Date: Fri, 16 Jun 2017 11:22:54 -0400
-Message-ID: <20170616152254.14210.48071.stgit@klimt.1015granger.net>
-References: <20170616151535.14210.34926.stgit@klimt.1015granger.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next 4/7] qed*: Rename qede_roce.[ch]
+Date: Fri, 16 Jun 2017 11:44:28 -0400 (EDT)
+Message-ID: <20170616.114428.630059630310905770.davem@davemloft.net>
+References: <20170615202933.20934-5-Yuval.Mintz@cavium.com>
+        <201706160552.EYIdXcuM%fengguang.wu@intel.com>
+        <BLUPR0701MB2004F40778215AD277D4FF348DC10@BLUPR0701MB2004.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170616151535.14210.34926.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <BLUPR0701MB2004F40778215AD277D4FF348DC10@BLUPR0701MB2004.namprd07.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: Yuval.Mintz@cavium.com
+Cc: lkp@intel.com, kbuild-all@01.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Michal.Kalderon@cavium.com
 List-Id: linux-rdma@vger.kernel.org
 
-Running a multi-threaded 8KB fio test (70/30 mix), three or four out
-of twelve of the jobs fail when using krb5i. The failure is an EIO
-on a read.
+From: "Mintz, Yuval" <Yuval.Mintz@cavium.com>
+Date: Fri, 16 Jun 2017 12:41:15 +0000
 
-Troubleshooting confirmed the EIO results when the client fails to
-verify the MIC of an NFS READ reply. Bruce suggested the problem
-could be due to the data payload changing between the time the
-reply's MIC was computed on the server and the time the reply was
-actually sent.
+>>    In file included from drivers/net//ethernet/qlogic/qede/qede.h:43:0,
+>>                     from drivers/net//ethernet/qlogic/qede/qede_ptp.h:38,
+>>                     from drivers/net//ethernet/qlogic/qede/qede_fp.c:43:
+>> >> include/linux/qed/qede_rdma.h:57:12: warning: 'struct pci_dev' declared
+>> inside parameter list [enabled by default]
+>> >> include/linux/qed/qede_rdma.h:57:12: warning: its scope is only this
+>> definition or declaration, which is probably not what you want [enabled by
+>> default]
+> 
+> This patch is merely renaming qede_roce.h -> qede_rdma.h.
+> I guess the kbuild test robot got better scripts than the time we've added qede_rdma.h,
+> or else it would have catched the fact there are no inclusion since then.
+> 
+> Dave - given this is an existing warning exposed due to a rename [and not something
+> that actually got introduced in this patch], do you want us to fix it via v2 of this series?
+> Or send a fix for it later?
 
-krb5p gets around this problem by disabling RQ_SPLICE_OK.
+I don't know, look at what you're doing in main.c, you're removing an include
+rather than changing the name of the file being included.
 
-"iozone -i0 -i1 -s128m -y1k -az -I", export is tmpfs, mount is
-sec=krb5i,vers=3,proto=rdma. The important numbers are the
-read / reread column.
+That is not a zero-change rename at all.
 
-Here's without the RQ_SPLICE_OK patch:
+Please respin this and fix all of the things the build bot is reporting as
+well as what I just mentioned.
 
-              kB  reclen    write  rewrite    read    reread
-          131072       1     7546     7929     8396     8267
-          131072       2    14375    14600    15843    15639
-          131072       4    19280    19248    21303    21410
-          131072       8    32350    31772    35199    34883
-          131072      16    36748    37477    49365    51706
-          131072      32    55669    56059    57475    57389
-          131072      64    74599    75190    74903    75550
-          131072     128    99810   101446   102828   102724
-          131072     256   122042   122612   124806   125026
-          131072     512   137614   138004   141412   141267
-          131072    1024   146601   148774   151356   151409
-          131072    2048   180684   181727   293140   292840
-          131072    4096   206907   207658   552964   549029
-          131072    8192   223982   224360   454493   473469
-          131072   16384   228927   228390   654734   632607
-
-And here's with it:
-
-              kB  reclen    write  rewrite    read    reread
-          131072       1     7700     7365     7958     8011
-          131072       2    13211    13303    14937    14414
-          131072       4    19001    19265    20544    20657
-          131072       8    30883    31097    34255    33566
-          131072      16    36868    34908    51499    49944
-          131072      32    56428    55535    58710    56952
-          131072      64    73507    74676    75619    74378
-          131072     128   100324   101442   103276   102736
-          131072     256   122517   122995   124639   124150
-          131072     512   137317   139007   140530   140830
-          131072    1024   146807   148923   151246   151072
-          131072    2048   179656   180732   292631   292034
-          131072    4096   206216   208583   543355   541951
-          131072    8192   223738   224273   494201   489372
-          131072   16384   229313   229840   691719   668427
-
-I would say that there is not much difference in this test.
-
-For good measure, here's the same test with sec=krb5p:
-
-              kB  reclen    write  rewrite    read    reread
-          131072       1     5982     5881     6137     6218
-          131072       2    10216    10252    10850    10932
-          131072       4    12236    12575    15375    15526
-          131072       8    15461    15462    23821    22351
-          131072      16    25677    25811    27529    27640
-          131072      32    31903    32354    34063    33857
-          131072      64    42989    43188    45635    45561
-          131072     128    52848    53210    56144    56141
-          131072     256    59123    59214    62691    62933
-          131072     512    63140    63277    66887    67025
-          131072    1024    65255    65299    69213    69140
-          131072    2048    76454    76555   133767   133862
-          131072    4096    84726    84883   251925   250702
-          131072    8192    89491    89482   270821   276085
-          131072   16384    91572    91597   361768   336868
-
-BugLink: https://bugzilla.linux-nfs.org/show_bug.cgi?id=307
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/auth_gss/svcauth_gss.c |    2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/net/sunrpc/auth_gss/svcauth_gss.c b/net/sunrpc/auth_gss/svcauth_gss.c
-index a54a7a3..ab329f4 100644
---- a/net/sunrpc/auth_gss/svcauth_gss.c
-+++ b/net/sunrpc/auth_gss/svcauth_gss.c
-@@ -838,6 +838,8 @@ u32 svcauth_gss_flavor(struct auth_domain *dom)
- 	struct xdr_netobj mic;
- 	struct xdr_buf integ_buf;
- 
-+	clear_bit(RQ_SPLICE_OK, &rqstp->rq_flags);
-+
- 	/* Did we already verify the signature on the original pass through? */
- 	if (rqstp->rq_deferred)
- 		return 0;
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thank you.
