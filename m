@@ -1,46 +1,53 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next 4/7] qed*: Rename qede_roce.[ch]
-Date: Fri, 16 Jun 2017 11:44:28 -0400 (EDT)
-Message-ID: <20170616.114428.630059630310905770.davem@davemloft.net>
-References: <20170615202933.20934-5-Yuval.Mintz@cavium.com>
-        <201706160552.EYIdXcuM%fengguang.wu@intel.com>
-        <BLUPR0701MB2004F40778215AD277D4FF348DC10@BLUPR0701MB2004.namprd07.prod.outlook.com>
+From: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org (J. Bruce Fields)
+Subject: Re: [PATCH v2 19/19] sunrpc: Disable splice for krb5i
+Date: Fri, 16 Jun 2017 13:52:53 -0400
+Message-ID: <20170616175253.GF12030@fieldses.org>
+References: <20170616151535.14210.34926.stgit@klimt.1015granger.net>
+ <20170616152254.14210.48071.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <BLUPR0701MB2004F40778215AD277D4FF348DC10@BLUPR0701MB2004.namprd07.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: Yuval.Mintz@cavium.com
-Cc: lkp@intel.com, kbuild-all@01.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Michal.Kalderon@cavium.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170616152254.14210.48071.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: "Mintz, Yuval" <Yuval.Mintz@cavium.com>
-Date: Fri, 16 Jun 2017 12:41:15 +0000
+Just repeating some comments from the bug:
 
->>    In file included from drivers/net//ethernet/qlogic/qede/qede.h:43:0,
->>                     from drivers/net//ethernet/qlogic/qede/qede_ptp.h:38,
->>                     from drivers/net//ethernet/qlogic/qede/qede_fp.c:43:
->> >> include/linux/qed/qede_rdma.h:57:12: warning: 'struct pci_dev' declared
->> inside parameter list [enabled by default]
->> >> include/linux/qed/qede_rdma.h:57:12: warning: its scope is only this
->> definition or declaration, which is probably not what you want [enabled by
->> default]
+On Fri, Jun 16, 2017 at 11:22:54AM -0400, Chuck Lever wrote:
+> Running a multi-threaded 8KB fio test (70/30 mix), three or four out
+> of twelve of the jobs fail when using krb5i. The failure is an EIO
+> on a read.
 > 
-> This patch is merely renaming qede_roce.h -> qede_rdma.h.
-> I guess the kbuild test robot got better scripts than the time we've added qede_rdma.h,
-> or else it would have catched the fact there are no inclusion since then.
+> Troubleshooting confirmed the EIO results when the client fails to
+> verify the MIC of an NFS READ reply. Bruce suggested the problem
+> could be due to the data payload changing between the time the
+> reply's MIC was computed on the server and the time the reply was
+> actually sent.
 > 
-> Dave - given this is an existing warning exposed due to a rename [and not something
-> that actually got introduced in this patch], do you want us to fix it via v2 of this series?
-> Or send a fix for it later?
+> krb5p gets around this problem by disabling RQ_SPLICE_OK.
 
-I don't know, look at what you're doing in main.c, you're removing an include
-rather than changing the name of the file being included.
+And you verified that this does fix the problem in your case.
 
-That is not a zero-change rename at all.
+So, I think it's a simple fix and probably the best we can do without a
+lot more work, so I'm happy applying it.
 
-Please respin this and fix all of the things the build bot is reporting as
-well as what I just mentioned.
+That said, I'm still curious about the performance:
 
-Thank you.
+> I would say that there is not much difference in this test.
+
+We added an extra copy to the read path and it didn't seem to affect
+throughput of streaming read much--I think that just says memory
+bandwidth isn't the bottlneck in this case?  Which doesn't seem too
+surprising.
+
+I wonder what we should be looking for--maybe running the same test but
+also measuring CPU usage somehow.
+
+--b.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
