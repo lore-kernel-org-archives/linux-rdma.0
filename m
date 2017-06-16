@@ -1,72 +1,89 @@
-From: "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH net-next 5/7] qed*: Set rdma generic functions prefix
-Date: Fri, 16 Jun 2017 12:42:35 +0000
-Message-ID: <BLUPR0701MB200405BFBC116EE4ADECB6028DC10@BLUPR0701MB2004.namprd07.prod.outlook.com>
-References: <20170615202933.20934-6-Yuval.Mintz@cavium.com>
- <201706160519.OPbPzq8J%fengguang.wu@intel.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v2 00/19] Server-side NFS/RDMA changes proposed for v4.13
+Date: Fri, 16 Jun 2017 11:20:21 -0400
+Message-ID: <20170616151535.14210.34926.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201706160519.OPbPzq8J%fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "kbuild-all-JC7UmRfGjtg@public.gmane.org" <kbuild-all-JC7UmRfGjtg@public.gmane.org>, "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Hi Michal,
->=20
-> [auto build test ERROR on net-next/master]
->=20
-> url:    https://github.com/0day-ci/linux/commits/Yuval-Mintz/qed-RDMA-
-> and-infrastructure-for-iWARP/20170616-043925
-> config: i386-randconfig-x076-06120530 (attached as .config)
-> compiler: gcc-6 (Debian 6.2.0-3) 6.2.0 20160901
-> reproduce:
->         # save the attached .config to linux build tree
->         make ARCH=3Di386
->=20
-> All error/warnings (new ones prefixed by >>):
->=20
->=20
-> vim +80 include/linux/qed/qede_rdma.h
+This series overhauls the "call receive" side of the RPC-over-RDMA
+transport to use the new rdma_rw API. A slight performance increase
+(better throughput and latency) has been seen. Benefits include:
 
-... I can't really say I understand the warning from the message.
+o Fewer ib_post_send calls per RPC Call
 
->=20
-> b4d583a63 include/linux/qed/qede_rdma.h Michal Kalderon 2017-06-15  73
-> void qede_rdma_dev_event_open(struct qede_dev *dev);
-> b4d583a63 include/linux/qed/qede_rdma.h Michal Kalderon 2017-06-15  74
-> void qede_rdma_dev_event_close(struct qede_dev *dev);
-> b4d583a63 include/linux/qed/qede_rdma.h Michal Kalderon 2017-06-15  75
-> void qede_rdma_dev_remove(struct qede_dev *dev);
-> b4d583a63 include/linux/qed/qede_rdma.h Michal Kalderon 2017-06-15  76
-> void qede_rdma_event_changeaddr(struct qede_dev *edr);
-> b4d583a63 include/linux/qed/qede_rdma.h Michal Kalderon 2017-06-15  77
-> cee9fbd8e include/linux/qed/qede_roce.h Ram Amrani      2016-10-01  78
-> #else
-> b4d583a63 include/linux/qed/qede_rdma.h Michal Kalderon 2017-06-15
-> @79  static inline int qede_rdma_dev_add(struct qede_dev *dev);
-> cee9fbd8e include/linux/qed/qede_roce.h Ram Amrani      2016-10-01 @80  {
-> cee9fbd8e include/linux/qed/qede_roce.h Ram Amrani      2016-10-01  81
-> 	return 0;
-> cee9fbd8e include/linux/qed/qede_roce.h Ram Amrani      2016-10-01  82  }
-> cee9fbd8e include/linux/qed/qede_roce.h Ram Amrani      2016-10-01  83
->=20
-> :::::: The code at line 80 was first introduced by commit
-> :::::: cee9fbd8e2e9e713cd8bf227c6492fd8854de74b qede: Add qedr
-> framework
->=20
-> :::::: TO: Ram Amrani <Ram.Amrani-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
-> :::::: CC: David S. Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
->=20
-> ---
-> 0-DAY kernel test infrastructure                Open Source Technology Ce=
-nter
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corpora=
-tion
+o Code duplicated by other ULPs is replaced with core functions
+
+o Position-Zero Read chunks are handled in one function
+
+o More thorough transport header sanity checking
+
+
+Available in the "nfsd-rdma-for-4.13" topic branch of this git repo:
+
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
+
+
+Or for browsing:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-for-4.13
+
+
+Remaining rdma_rw API changes are here:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-rw-api
+
+
+Changes since v1:
+* Fixed bugzilla.linux-nfs 307
+* Cleaned up struct svc_rdma_chunk_ctxt
+
+
+---
+
+Chuck Lever (19):
+      ib_core: Enable and expose force_mr module parameter
+      svcrdma: Squelch disconnection messages
+      svcrdma: Avoid Send Queue overflow
+      svcrdma: Remove svc_rdma_marshal.c
+      svcrdma: Improve Read chunk sanity checking
+      svcrdma: Improve Write chunk sanity checking
+      svcrdma: Improve Reply chunk sanity checking
+      svcrdma: Don't account for Receive queue "starvation"
+      sunrpc: Allocate one more page per svc_rqst
+      svcrdma: Add recvfrom helpers to svc_rdma_rw.c
+      svcrdma: Use generic RDMA R/W API in RPC Call path
+      svcrdma: Properly compute .len and .buflen for received RPC Calls
+      svcrdma: Remove unused Read completion handlers
+      svcrdma: Remove frmr cache
+      svcrdma: Clean-up svc_rdma_unmap_dma
+      svcrdma: Clean up after converting svc_rdma_recvfrom to rdma_rw API
+      svcrdma: use offset_in_page() macro
+      svcrdma: Remove svc_rdma_chunk_ctxt::cc_dir field
+      sunrpc: Disable splice for krb5i
+
+
+ drivers/infiniband/core/rw.c             |    2 
+ include/linux/sunrpc/svc.h               |    3 
+ include/linux/sunrpc/svc_rdma.h          |   46 --
+ net/sunrpc/auth_gss/svcauth_gss.c        |    2 
+ net/sunrpc/svc_xprt.c                    |    8 
+ net/sunrpc/xprtrdma/Makefile             |    4 
+ net/sunrpc/xprtrdma/svc_rdma_marshal.c   |  168 -------
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c  |  734 ++++++++++++------------------
+ net/sunrpc/xprtrdma/svc_rdma_rw.c        |  448 ++++++++++++++++++
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c    |   15 -
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |  250 +---------
+ 11 files changed, 769 insertions(+), 911 deletions(-)
+ delete mode 100644 net/sunrpc/xprtrdma/svc_rdma_marshal.c
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
