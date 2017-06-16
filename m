@@ -1,89 +1,43 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 19/19] sunrpc: Disable splice for krb5i
-Date: Fri, 16 Jun 2017 14:44:04 -0400
-Message-ID: <06B886A4-D8B2-4416-A983-56FE57090CD9@oracle.com>
-References: <20170616151535.14210.34926.stgit@klimt.1015granger.net> <20170616152254.14210.48071.stgit@klimt.1015granger.net> <20170616175253.GF12030@fieldses.org> <D8C547C0-C361-43F4-8E5C-AF8A6C45C500@oracle.com> <20170616184208.GH12030@fieldses.org>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: 281e36cbaf causes FlexBoot iSCSI errors
+Date: Fri, 16 Jun 2017 13:41:33 -0600
+Message-ID: <CAANLjFpJHvGmVX54_DZm80tbP094UwEWyhPs8KCocg4YzNyq=A@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170616184208.GH12030-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Cc: List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+281e36cbaf : iscsi-target: Drop work-around for legacy GlobalSAN initiator
 
-> On Jun 16, 2017, at 2:42 PM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wrote:
-> 
-> On Fri, Jun 16, 2017 at 02:37:40PM -0400, Chuck Lever wrote:
->> 
->>> On Jun 16, 2017, at 1:52 PM, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org wrote:
->>> 
->>> Just repeating some comments from the bug:
->>> 
->>> On Fri, Jun 16, 2017 at 11:22:54AM -0400, Chuck Lever wrote:
->>>> Running a multi-threaded 8KB fio test (70/30 mix), three or four out
->>>> of twelve of the jobs fail when using krb5i. The failure is an EIO
->>>> on a read.
->>>> 
->>>> Troubleshooting confirmed the EIO results when the client fails to
->>>> verify the MIC of an NFS READ reply. Bruce suggested the problem
->>>> could be due to the data payload changing between the time the
->>>> reply's MIC was computed on the server and the time the reply was
->>>> actually sent.
->>>> 
->>>> krb5p gets around this problem by disabling RQ_SPLICE_OK.
->>> 
->>> And you verified that this does fix the problem in your case.
->> 
->> I've had this applied to my server for a week or so. There
->> hasn't been a single recurrence of the issue.
->> 
->> 
->>> So, I think it's a simple fix and probably the best we can do without a
->>> lot more work, so I'm happy applying it.
->>> 
->>> That said, I'm still curious about the performance:
->>> 
->>>> I would say that there is not much difference in this test.
->>> 
->>> We added an extra copy to the read path and it didn't seem to affect
->>> throughput of streaming read much--I think that just says memory
->>> bandwidth isn't the bottlneck in this case?  Which doesn't seem too
->>> surprising.
->> 
->> With krb5i, an additional memory copy is minor compared to the
->> computation needed.
->> 
->> I'm testing with 56Gbps networking and a tmpfs export. I'm not
->> exhausting the CPU on my 4-core server, even with krb5p. The
->> effects could be seen in a scalability test, but I don't have
->> anything that pushes my server that hard.
->> 
->> 
->>> I wonder what we should be looking for--maybe running the same test but
->>> also measuring CPU usage somehow.
->> 
->> Maybe an increase in latency. But I didn't see much change, and
->> the throughput numbers don't reflect any underlying increase in
->> per-RPC latency.
-> 
-> OK!  Thanks for looking into this.
+Causes "No response for proposed key "FirstBurstLength"." when the
+target is running 4.9.32. We tested both FlexBoot 3.5.109 and 3.5.110.
+If we revert 281e36cbaf then FlexBoot 3.5.109 boots fine, but FlexBoot
+3.5.110 fails with messages "cmd exceeds last lba 64 (lba 64, sectors
+1)".
 
-I just noticed this comment in svc_process_common:
+It seems that FlexBoot has relied upon the workaround that now has been removed.
 
-1169         /* Will be turned off only in gss privacy case: */
-1170         set_bit(RQ_SPLICE_OK, &rqstp->rq_flags);
+We have had to revert the patch and downgrade the firmware to get
+things working again.
 
-That should probably be removed by this patch.
+# flint -d /dev/mst/mt4115_pciconf0 q
+Image type:          FS3
+FW Version:          12.18.1000
+FW Release Date:     25.1.2017
+Product Version:     rel-12_18_1000
+Rom Info:            type=PXE version=3.5.109 devid=4115
+Description:         UID                GuidsNumber
+Base GUID:           248a0703001e7cc8        4
+Base MAC:            0000248a071e7cc8        4
+Image VSD:
+Device VSD:
+PSID:                MT_2150110033
 
-
---
-Chuck Lever
-
-
-
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
