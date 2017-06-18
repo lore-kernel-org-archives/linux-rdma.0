@@ -1,72 +1,79 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: [PATCH v6 for-4.13 0/7] Automatic affinity settings for nvme over rdma
-Date: Sun, 18 Jun 2017 17:37:50 +0300
-Message-ID: <1497796677-15794-1-git-send-email-sagi@grimberg.me>
+Subject: [PATCH v6 for-4.13 4/7] RDMA/core: expose affinity mappings per completion vector
+Date: Sun, 18 Jun 2017 17:37:54 +0300
+Message-ID: <1497796677-15794-5-git-send-email-sagi@grimberg.me>
+References: <1497796677-15794-1-git-send-email-sagi@grimberg.me>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1497796677-15794-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Doug, please consider this patch set for 4.13.
-Saeed, care to get this into your testing environment?
+This will allow ULPs to intelligently locate threads based
+on completion vector cpu affinity mappings. In case the
+driver does not expose a get_vector_affinity callout, return
+NULL so the caller can maintain a fallback logic.
 
-This patch set is aiming to automatically find the optimal
-queue <-> irq multi-queue assignments in storage ULPs (demonstrated
-on nvme-rdma) based on the underlying rdma device irq affinity
-settings.
+Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Reviewed-by: Håkon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Acked-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+---
+ include/rdma/ib_verbs.h | 25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
 
-Changes from v5:
-- updated change log for patch #2
-- removed nit indentation changes
-
-Changes from v4:
-- removed mlx5e assumptions on device home node irq affinity mappings
-- rebased to 4.12-rc5
-
-Changes from v3:
-- Renamed mlx5_disable_msix -> mlx5_free_pci_vectors for symmetry reasons
-
-Changes from v2:
-- rebased to 4.12
-- added review tags
-
-Changes from v1:
-- Removed mlx5e_get_cpu as Christoph suggested
-- Fixed up nvme-rdma queue comp_vector selection to get a better match
-- Added a comment on why we limit on @dev->num_comp_vectors
-- rebased to Jens's for-4.12/block
-- Collected review tags
-
-Sagi Grimberg (7):
-  mlx5: convert to generic pci_alloc_irq_vectors
-  mlx5e: don't assume anything on the irq affinity mappings of the
-    device
-  mlx5: move affinity hints assignments to generic code
-  RDMA/core: expose affinity mappings per completion vector
-  mlx5: support ->get_vector_affinity
-  block: Add rdma affinity based queue mapping helper
-  nvme-rdma: use intelligent affinity based queue mappings
-
- block/Kconfig                                      |   5 +
- block/Makefile                                     |   1 +
- block/blk-mq-rdma.c                                |  54 +++++++++++
- drivers/infiniband/hw/mlx5/main.c                  |   9 ++
- drivers/net/ethernet/mellanox/mlx5/core/en.h       |   1 -
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c  |  54 +++++------
- drivers/net/ethernet/mellanox/mlx5/core/eq.c       |   9 +-
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.c  |   2 +-
- drivers/net/ethernet/mellanox/mlx5/core/health.c   |   2 +-
- drivers/net/ethernet/mellanox/mlx5/core/main.c     | 106 ++++-----------------
- .../net/ethernet/mellanox/mlx5/core/mlx5_core.h    |   1 -
- drivers/nvme/host/rdma.c                           |  29 ++++--
- include/linux/blk-mq-rdma.h                        |  10 ++
- include/linux/mlx5/driver.h                        |   8 +-
- include/rdma/ib_verbs.h                            |  25 ++++-
- 15 files changed, 174 insertions(+), 142 deletions(-)
- create mode 100644 block/blk-mq-rdma.c
- create mode 100644 include/linux/blk-mq-rdma.h
-
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index ba8314ec5768..2349143297c9 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2245,6 +2245,8 @@ struct ib_device {
+ 	 */
+ 	int (*get_port_immutable)(struct ib_device *, u8, struct ib_port_immutable *);
+ 	void (*get_dev_fw_str)(struct ib_device *, char *str, size_t str_len);
++	const struct cpumask *(*get_vector_affinity)(struct ib_device *ibdev,
++						     int comp_vector);
+ };
+ 
+ struct ib_client {
+@@ -3609,7 +3611,6 @@ static inline void rdma_ah_set_interface_id(struct rdma_ah_attr *attr,
+ 
+ 	grh->dgid.global.interface_id = if_id;
+ }
+-
+ static inline void rdma_ah_set_grh(struct rdma_ah_attr *attr,
+ 				   union ib_gid *dgid, u32 flow_label,
+ 				   u8 sgid_index, u8 hop_limit,
+@@ -3639,4 +3640,26 @@ static inline enum rdma_ah_attr_type rdma_ah_find_type(struct ib_device *dev,
+ 	else
+ 		return RDMA_AH_ATTR_TYPE_IB;
+ }
++
++/**
++ * ib_get_vector_affinity - Get the affinity mappings of a given completion
++ *   vector
++ * @device:         the rdma device
++ * @comp_vector:    index of completion vector
++ *
++ * Returns NULL on failure, otherwise a corresponding cpu map of the
++ * completion vector (returns all-cpus map if the device driver doesn't
++ * implement get_vector_affinity).
++ */
++static inline const struct cpumask *
++ib_get_vector_affinity(struct ib_device *device, int comp_vector)
++{
++	if (comp_vector < 0 || comp_vector >= device->num_comp_vectors ||
++	    !device->get_vector_affinity)
++		return NULL;
++
++	return device->get_vector_affinity(device, comp_vector);
++
++}
++
+ #endif /* IB_VERBS_H */
 -- 
 2.7.4
 
