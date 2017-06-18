@@ -1,24 +1,58 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH v2 net-next 0/7] qed*: RDMA and infrastructure for iWARP
-Date: Sun, 18 Jun 2017 06:14:43 -0700
-Message-ID: <20170618131443.GA27458@infradead.org>
-References: <20170618115035.2156-1-Yuval.Mintz@cavium.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170618115035.2156-1-Yuval.Mintz@cavium.com>
-Sender: netdev-owner@vger.kernel.org
-To: Yuval Mintz <Yuval.Mintz@cavium.com>
-Cc: davem@davemloft.net, netdev@vger.kernel.org, Michal.Kalderon@cavium.com, linux-rdma@vger.kernel.org
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: [PATCH v6 for-4.13 2/7] mlx5e: don't assume anything on the irq affinity mappings of the device
+Date: Sun, 18 Jun 2017 17:37:52 +0300
+Message-ID: <1497796677-15794-3-git-send-email-sagi@grimberg.me>
+References: <1497796677-15794-1-git-send-email-sagi@grimberg.me>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1497796677-15794-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jun 18, 2017 at 02:50:28PM +0300, Yuval Mintz wrote:
-> This series focuses on RDMA in general with emphasis on required changes
-> toward adding iWARP support. The vast majority of the changes introduced
-> are in qed/qede, with a couple of small changes to qedr
-> [mentioned below].
+mlx5e currently assumes that irq affinity is really spread first
+irq vectors across device home node cpus. This was designed to provide
+a good OOB performance, however, feeding RSS indirection table with
+only a subset if the RX rings is overall a loss both in RX efficiency
+(napi is processing more flows per-cpu) and in latency QoS in case the
+application is running on a cpu core that is not included in the RSS
+indirection table (with more QPI traffic).
 
-Btw, can you explain us how you are going to expose RoCE vs iWarp?
-Is it going to be a per-port setting?  Are you going to use different
-ib_device structures or do you plan to differenciate at another level?
+With the new generic affinity mappings this is no longer the case,
+hence mlx5e should not rely on this anymore.
+
+Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 10 ----------
+ 1 file changed, 10 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index 2a3c59e55dcf..1e344b445a47 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -3733,18 +3733,8 @@ void mlx5e_build_default_indir_rqt(struct mlx5_core_dev *mdev,
+ 				   u32 *indirection_rqt, int len,
+ 				   int num_channels)
+ {
+-	int node = mdev->priv.numa_node;
+-	int node_num_of_cores;
+ 	int i;
+ 
+-	if (node == -1)
+-		node = first_online_node;
+-
+-	node_num_of_cores = cpumask_weight(cpumask_of_node(node));
+-
+-	if (node_num_of_cores)
+-		num_channels = min_t(int, num_channels, node_num_of_cores);
+-
+ 	for (i = 0; i < len; i++)
+ 		indirection_rqt[i] = i % num_channels;
+ }
+-- 
+2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
