@@ -1,32 +1,35 @@
-From: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v2 net-next 4/7] qed*: Rename qede_roce.[ch]
-Date: Sun, 18 Jun 2017 12:00:57 +0000
-Message-ID: <DM2PR0701MB139295AEAC4E2A9C444D2FD588C70@DM2PR0701MB1392.namprd07.prod.outlook.com>
-References: <20170618115035.2156-1-Yuval.Mintz@cavium.com>
- <20170618115035.2156-5-Yuval.Mintz@cavium.com>
+From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH for-next 0/2] RDMA/qedr: Add feature indications to user-space
+Date: Sun, 18 Jun 2017 16:01:09 +0300
+Message-ID: <1497790871-23945-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170618115035.2156-5-Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
->=20
-> Once we have iWARP support, the qede portion of the qedr<->qede would
-> serve all the RDMA protocols - so rename the file to be appropriate to it=
-s
-> function.
->=20
-> CC: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Yuval Mintz <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Sorry, patch was mistakenly created without signed-off
+The first patch passes user space indication whether EDPM is supported
+or not. EDPM stands for Enhanced Direct Packet Mode for low latency.
 
-Signed-off-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+The second patch passes the indication of whether WIDs are supported
+and how many, per user application. WIDs are per CPU areas in the BAR
+that are used for parallel simultaneous doorbells.
+
+Ram Amrani (2):
+  RDMA/qedr: notify user application if EDPM is supported
+  RDMA/qedr: notify user application number of supported WIDs
+
+ drivers/infiniband/hw/qedr/main.c  | 1 +
+ drivers/infiniband/hw/qedr/qedr.h  | 2 ++
+ drivers/infiniband/hw/qedr/verbs.c | 9 +++++++++
+ include/uapi/rdma/qedr-abi.h       | 3 +++
+ 4 files changed, 15 insertions(+)
+
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
