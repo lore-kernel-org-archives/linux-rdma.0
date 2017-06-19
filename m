@@ -1,20 +1,55 @@
-From: "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH v3 net-next 0/7] qed*: RDMA and infrastructure for iWARP
-Date: Mon, 19 Jun 2017 07:44:20 +0000
-Message-ID: <BLUPR0701MB20048EA0D29B69B1001414EC8DC40@BLUPR0701MB2004.namprd07.prod.outlook.com>
-References: <20170619074139.30014-1-Yuval.Mintz@cavium.com>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC 0/5] Hardware tag matching
+Date: Mon, 19 Jun 2017 13:39:28 +0300
+Message-ID: <20170619103928.GL17846@mtr-leonro.local>
+References: <1497249767-15353-1-git-send-email-artemyko@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="5VuzLDXibKSJvVYD"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170619074139.30014-1-Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1497249767-15353-1-git-send-email-artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yosefe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, anag-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This one was a too-early send. Please ignore [sorry].
+
+--5VuzLDXibKSJvVYD
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Mon, Jun 12, 2017 at 09:42:42AM +0300, Artemy Kovalyov wrote:
+
+<snip>
+
+Hi All,
+
+Next OFVWG meeting will be dedicated to discussion about TAG matching.
+
+Thanks
+
+--5VuzLDXibKSJvVYD
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllHqeAACgkQ5GN7iDZy
+WKdcSQ/8DfHhz/D5CNY/ThjxfBibPFsi9mxGqD1Qi+7SAMsTHo/YhoYHMV0Fbf7i
+twEiDi2AaxdzSyZMY+as1HEVXyIFE7O5GWNtYt+mFx30jKLdL6YC4eKJjd0dQTR7
+xQ5VlHyfvG6cUcA3MsiXeCl+zhDKhIAkL84gS5G2EjewizCWvJZZoy0MbuwQcE2e
+rhGyOlo/OBd4kzjde0iH6AHAQbP6SXPwi9JzpIO0ZduHSeiyyi38vZItpqMopO+k
+TwaBaAgmHD6Rxi9GLiqEvc5XkREA+sytDaBvj/+UmGoMfRKzXhzODaW4fM8k9T2X
+/S+IPMcsZk3oNYA9mLmEIm1XC/os9qDGE1D3BS4mnMw6nMNzZHaaogFKRQtt9k2d
+S5FIyvNesgdy3+38cOhWqlbqeaPnSQx3h4LJN+P29J/7ap8JR05EOIU/p7dPqf3G
+Iu4N9LKnbWtpI68rfNhC/N4UtLjaaMjhyjSwzkBwp4vtV9JjLdSpISrxYKUaeuu/
+XghkTa1Zwv6UuSXHPaEbKvGOvBDloKPsO/Yy0nvFqO2Qg+0CQUXKC69YOIdjvNtY
+jvhigDNAtTEbtx9XBOVg35Jj8WJmAEZnxg44BxrPvyawgYl2mDHMtUuZqhBrW1c2
+AsJc8qPRnRRQrZNeBDm9QH/JyjpSDvX9BXCUKblDeK95SS2PR80=
+=Bamn
+-----END PGP SIGNATURE-----
+
+--5VuzLDXibKSJvVYD--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
