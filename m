@@ -1,55 +1,89 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [RFC 0/5] Hardware tag matching
-Date: Mon, 19 Jun 2017 13:39:28 +0300
-Message-ID: <20170619103928.GL17846@mtr-leonro.local>
-References: <1497249767-15353-1-git-send-email-artemyko@mellanox.com>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [PATCH v6 for-4.13 0/7] Automatic affinity settings for nvme
+        over rdma
+Date: Mon, 19 Jun 2017 14:28:06 +0200
+Message-ID: <20170619122806.GA29061@lst.de>
+References: <1497796677-15794-1-git-send-email-sagi@grimberg.me>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="5VuzLDXibKSJvVYD"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1497249767-15353-1-git-send-email-artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1497796677-15794-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yosefe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, anag-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Thanks Sagi,
 
---5VuzLDXibKSJvVYD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+the whole series looks great to me.
 
-On Mon, Jun 12, 2017 at 09:42:42AM +0300, Artemy Kovalyov wrote:
+It would be even nicer if the maintainers of the various HCA drivers
+could look into adding support..
 
-<snip>
-
-Hi All,
-
-Next OFVWG meeting will be dedicated to discussion about TAG matching.
-
-Thanks
-
---5VuzLDXibKSJvVYD
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllHqeAACgkQ5GN7iDZy
-WKdcSQ/8DfHhz/D5CNY/ThjxfBibPFsi9mxGqD1Qi+7SAMsTHo/YhoYHMV0Fbf7i
-twEiDi2AaxdzSyZMY+as1HEVXyIFE7O5GWNtYt+mFx30jKLdL6YC4eKJjd0dQTR7
-xQ5VlHyfvG6cUcA3MsiXeCl+zhDKhIAkL84gS5G2EjewizCWvJZZoy0MbuwQcE2e
-rhGyOlo/OBd4kzjde0iH6AHAQbP6SXPwi9JzpIO0ZduHSeiyyi38vZItpqMopO+k
-TwaBaAgmHD6Rxi9GLiqEvc5XkREA+sytDaBvj/+UmGoMfRKzXhzODaW4fM8k9T2X
-/S+IPMcsZk3oNYA9mLmEIm1XC/os9qDGE1D3BS4mnMw6nMNzZHaaogFKRQtt9k2d
-S5FIyvNesgdy3+38cOhWqlbqeaPnSQx3h4LJN+P29J/7ap8JR05EOIU/p7dPqf3G
-Iu4N9LKnbWtpI68rfNhC/N4UtLjaaMjhyjSwzkBwp4vtV9JjLdSpISrxYKUaeuu/
-XghkTa1Zwv6UuSXHPaEbKvGOvBDloKPsO/Yy0nvFqO2Qg+0CQUXKC69YOIdjvNtY
-jvhigDNAtTEbtx9XBOVg35Jj8WJmAEZnxg44BxrPvyawgYl2mDHMtUuZqhBrW1c2
-AsJc8qPRnRRQrZNeBDm9QH/JyjpSDvX9BXCUKblDeK95SS2PR80=
-=Bamn
------END PGP SIGNATURE-----
-
---5VuzLDXibKSJvVYD--
+On Sun, Jun 18, 2017 at 05:37:50PM +0300, Sagi Grimberg wrote:
+> Doug, please consider this patch set for 4.13.
+> Saeed, care to get this into your testing environment?
+> 
+> This patch set is aiming to automatically find the optimal
+> queue <-> irq multi-queue assignments in storage ULPs (demonstrated
+> on nvme-rdma) based on the underlying rdma device irq affinity
+> settings.
+> 
+> Changes from v5:
+> - updated change log for patch #2
+> - removed nit indentation changes
+> 
+> Changes from v4:
+> - removed mlx5e assumptions on device home node irq affinity mappings
+> - rebased to 4.12-rc5
+> 
+> Changes from v3:
+> - Renamed mlx5_disable_msix -> mlx5_free_pci_vectors for symmetry reasons
+> 
+> Changes from v2:
+> - rebased to 4.12
+> - added review tags
+> 
+> Changes from v1:
+> - Removed mlx5e_get_cpu as Christoph suggested
+> - Fixed up nvme-rdma queue comp_vector selection to get a better match
+> - Added a comment on why we limit on @dev->num_comp_vectors
+> - rebased to Jens's for-4.12/block
+> - Collected review tags
+> 
+> Sagi Grimberg (7):
+>   mlx5: convert to generic pci_alloc_irq_vectors
+>   mlx5e: don't assume anything on the irq affinity mappings of the
+>     device
+>   mlx5: move affinity hints assignments to generic code
+>   RDMA/core: expose affinity mappings per completion vector
+>   mlx5: support ->get_vector_affinity
+>   block: Add rdma affinity based queue mapping helper
+>   nvme-rdma: use intelligent affinity based queue mappings
+> 
+>  block/Kconfig                                      |   5 +
+>  block/Makefile                                     |   1 +
+>  block/blk-mq-rdma.c                                |  54 +++++++++++
+>  drivers/infiniband/hw/mlx5/main.c                  |   9 ++
+>  drivers/net/ethernet/mellanox/mlx5/core/en.h       |   1 -
+>  drivers/net/ethernet/mellanox/mlx5/core/en_main.c  |  54 +++++------
+>  drivers/net/ethernet/mellanox/mlx5/core/eq.c       |   9 +-
+>  drivers/net/ethernet/mellanox/mlx5/core/eswitch.c  |   2 +-
+>  drivers/net/ethernet/mellanox/mlx5/core/health.c   |   2 +-
+>  drivers/net/ethernet/mellanox/mlx5/core/main.c     | 106 ++++-----------------
+>  .../net/ethernet/mellanox/mlx5/core/mlx5_core.h    |   1 -
+>  drivers/nvme/host/rdma.c                           |  29 ++++--
+>  include/linux/blk-mq-rdma.h                        |  10 ++
+>  include/linux/mlx5/driver.h                        |   8 +-
+>  include/rdma/ib_verbs.h                            |  25 ++++-
+>  15 files changed, 174 insertions(+), 142 deletions(-)
+>  create mode 100644 block/blk-mq-rdma.c
+>  create mode 100644 include/linux/blk-mq-rdma.h
+> 
+> -- 
+> 2.7.4
+---end quoted text---
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
