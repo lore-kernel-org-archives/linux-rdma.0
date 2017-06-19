@@ -1,30 +1,43 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH v2 19/19] sunrpc: Disable splice for krb5i
-Date: Mon, 19 Jun 2017 08:30:18 -0700
-Message-ID: <20170619153018.GA2667@infradead.org>
-References: <20170616151535.14210.34926.stgit@klimt.1015granger.net>
- <20170616152254.14210.48071.stgit@klimt.1015granger.net>
- <20170617150705.GA27917@infradead.org>
- <A573E1EB-48DB-4E4A-B710-34914B0CF016@oracle.com>
- <20170618073438.GA15358@infradead.org>
- <14AD4311-5092-441C-8A3B-F7EC7E801358@oracle.com>
+From: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting tomorrow
+ - 6/20/2017 at 11:00PST - on tag matching
+Date: Mon, 19 Jun 2017 17:18:26 +0000
+Message-ID: <HE1PR0501MB28120C2E9A04C8FFCE91AF37B1C40@HE1PR0501MB2812.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <14AD4311-5092-441C-8A3B-F7EC7E801358-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org'" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 19, 2017 at 11:22:41AM -0400, Chuck Lever wrote:
-> I'm going to submit this again with a comment change and
-> Jeff's Reviewed-by. Can I add your Reviewed-by as well?
+Agenda: discuss Verbs tag-matching support as proposed in: http://www.spini=
+cs.net/lists/linux-rdma/msg50838.html
+=20
+Regards,
+--Liran
 
-It looks ok as a quick fix for me but at least needs a big comment.
-I'd also be much happier if we could find and fix the root cause.
+
+Concall details
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+JOIN WEBEX MEETING
+https://mellanox-tech.webex.com/join/Liran.Liss  |  702 830 424
+
+JOIN BY PHONE
+1-80-9453550 Israel toll free
+1-855-299-5224 USA/Canada toll free
+Access code: 702 830 424
+
+Global call-in numbers:
+https://mellanox-tech.webex.com/mellanox-tech/globalcallin.php?serviceType=
+=3DMC&ED=3D457637257&tollFree=3D1
+
+Toll-free calling restrictions:
+http://www.webex.com/pdf/tollfree_restrictions.pdf
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
