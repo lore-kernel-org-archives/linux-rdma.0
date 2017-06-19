@@ -1,104 +1,30 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next 1/2] RDMA/qedr: Notify user application if DPM
- is supported
-Date: Mon, 19 Jun 2017 09:55:53 -0600
-Message-ID: <20170619155553.GB10188@obsidianresearch.com>
-References: <1497790871-23945-1-git-send-email-Ram.Amrani@cavium.com>
- <1497790871-23945-2-git-send-email-Ram.Amrani@cavium.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH v2 19/19] sunrpc: Disable splice for krb5i
+Date: Mon, 19 Jun 2017 08:30:18 -0700
+Message-ID: <20170619153018.GA2667@infradead.org>
+References: <20170616151535.14210.34926.stgit@klimt.1015granger.net>
+ <20170616152254.14210.48071.stgit@klimt.1015granger.net>
+ <20170617150705.GA27917@infradead.org>
+ <A573E1EB-48DB-4E4A-B710-34914B0CF016@oracle.com>
+ <20170618073438.GA15358@infradead.org>
+ <14AD4311-5092-441C-8A3B-F7EC7E801358@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1497790871-23945-2-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <14AD4311-5092-441C-8A3B-F7EC7E801358-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jun 18, 2017 at 04:01:10PM +0300, Ram Amrani wrote:
-> Direct Packet Mode support may be disabled, e.g, due to limited BAR
-> resources. Notifying the user application prevents wasting cycles
-> on attempting to send these kind of packets.
-> 
-> Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
->  drivers/infiniband/hw/qedr/main.c  | 1 +
->  drivers/infiniband/hw/qedr/qedr.h  | 2 ++
->  drivers/infiniband/hw/qedr/verbs.c | 6 ++++++
->  include/uapi/rdma/qedr-abi.h       | 1 +
->  4 files changed, 10 insertions(+)
-> 
-> diff --git a/drivers/infiniband/hw/qedr/main.c b/drivers/infiniband/hw/qedr/main.c
-> index 6a72095..d228718 100644
-> +++ b/drivers/infiniband/hw/qedr/main.c
-> @@ -778,6 +778,7 @@ static struct qedr_dev *qedr_add(struct qed_dev *cdev, struct pci_dev *pdev,
->  	if (rc)
->  		goto init_err;
->  
-> +	dev->user_dpm_enabled = dev_info.user_dpm_enabled;
->  	dev->num_hwfns = dev_info.common.num_hwfns;
->  	dev->rdma_ctx = dev->ops->rdma_get_rdma_ctx(cdev);
->  
-> diff --git a/drivers/infiniband/hw/qedr/qedr.h b/drivers/infiniband/hw/qedr/qedr.h
-> index aa08c76..42af9b6 100644
-> +++ b/drivers/infiniband/hw/qedr/qedr.h
-> @@ -158,6 +158,8 @@ struct qedr_dev {
->  	struct qedr_qp		*gsi_qp;
->  
->  	unsigned long enet_state;
-> +
-> +	u8 user_dpm_enabled;
->  };
->  
->  #define QEDR_MAX_SQ_PBL			(0x8000)
-> diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-> index 17685cf..6a0acfa 100644
-> +++ b/drivers/infiniband/hw/qedr/verbs.c
-> @@ -335,6 +335,9 @@ static bool qedr_search_mmap(struct qedr_ucontext *uctx, u64 phy_addr,
->  	return found;
->  }
->  
-> +#define QEDR_LIB_UCXT_SUPPORT(field, udata, value)			      \
-> +	((offsetof(struct qedr_alloc_ucontext_resp, field) < udata->outlen) ? \
-> +	 (value) : 0)
->  struct ib_ucontext *qedr_alloc_ucontext(struct ib_device *ibdev,
->  					struct ib_udata *udata)
->  {
-> @@ -368,6 +371,9 @@ struct ib_ucontext *qedr_alloc_ucontext(struct ib_device *ibdev,
->  
->  	memset(&uresp, 0, sizeof(uresp));
->  
-> +	uresp.dpm_enabled = QEDR_LIB_UCXT_SUPPORT(dpm_enabled, udata,
-> +						  dev->user_dpm_enabled);
-> +
->  	uresp.db_pa = ctx->dpi_phys_addr;
->  	uresp.db_size = ctx->dpi_size;
->  	uresp.max_send_wr = dev->attr.max_sqe;
-> diff --git a/include/uapi/rdma/qedr-abi.h b/include/uapi/rdma/qedr-abi.h
-> index 75c270d..2684004 100644
-> +++ b/include/uapi/rdma/qedr-abi.h
-> @@ -49,6 +49,7 @@ struct qedr_alloc_ucontext_resp {
->  	__u32 sges_per_recv_wr;
->  	__u32 sges_per_srq_wr;
->  	__u32 max_cqes;
-> +	__u8 dpm_enabled;
->  };
+On Mon, Jun 19, 2017 at 11:22:41AM -0400, Chuck Lever wrote:
+> I'm going to submit this again with a comment change and
+> Jeff's Reviewed-by. Can I add your Reviewed-by as well?
 
-
-Um, how is uapi compatibility achieved here? I don't see any size
-tests related to qedr_alloc_ucontext_resp:
-
-struct ib_ucontext *qedr_alloc_ucontext(struct ib_device *ibdev,
-                                        struct ib_udata *udata)
-{
-        struct qedr_alloc_ucontext_resp uresp;
-        rc = ib_copy_to_udata(udata, &uresp, sizeof(uresp));
-
-Seems bad.
-
-Same with the other patch.
-
-Jason
+It looks ok as a quick fix for me but at least needs a big comment.
+I'd also be much happier if we could find and fix the root cause.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
