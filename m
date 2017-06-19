@@ -1,45 +1,37 @@
-From: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH infiniband-diags] Fix the gen_chlog.sh script to support
- builds in a separate directory
-Date: Mon, 19 Jun 2017 23:46:06 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E67CD6E7F@CRSMSX101.amr.corp.intel.com>
-References: <20170614104824.21599-1-knut.omang@oracle.com>
- <1497614487.15929.18.camel@oracle.com>
+From: INFO <mguerrero-GNjpPIGPYwWIwRZHo2/mJg@public.gmane.org>
+Subject: Re: Reply Urgent
+Date: Mon, 19 Jun 2017 14:39:18 -0500
+Message-ID: <20170619143918.2132176qvnaamicm__45963.508092291$1497917325$gmane$org@correo.huv.gov.co>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain;
+ charset=ISO-8859-1;
+ DelSp="Yes";
+ format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1497614487.15929.18.camel-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBOZXZlciBtaW5kIC0gYWZ0ZXIgc29tZSBoZWFkIHNjcmF0Y2hpbmcgSSByZWFsaXplZCBteSBn
-aXQgcmVtb3RlIHJlZmVyZW5jZSBoYWQNCj4gYmVjb21lIG9ic29sZXRlIHNpbmNlIHRoZSBsYXN0
-IHRpbWUgSSBwdWxsZWQgaXQuDQo+IA0KPiBUaGlzIHBhdGNoIHdhcyBhZ2FpbnN0IHRoZSBvYnNv
-bGV0ZSAoYnV0IHN0aWxsIGV4aXN0aW5nKQ0KPiBnaXQ6Ly9naXQub3BlbmZhYnJpY3Mub3JnL35p
-cmF3ZWlueS9pbmZpbmliYW5kLWRpYWdzLmdpdA0KPiANCj4gbm90IHRoZSBjdXJyZW50DQo+IA0K
-PiBodHRwczovL2dpdGh1Yi5jb20vbGludXgtcmRtYS9pbmZpbmliYW5kLWRpYWdzDQoNCkNvcnJl
-Y3QuICBJIHJlbW92ZWQgdGhhdCBmdW5jdGlvbmFsaXR5Lg0KDQpUaGFua3MsDQpJcmENCg0KPiAN
-Cj4gVGhhbmtzLA0KPiBLbnV0DQo+IA0KPiBPbiBXZWQsIDIwMTctMDYtMTQgYXQgMTI6NDggKzAy
-MDAsIEtudXQgT21hbmcgd3JvdGU6DQo+ID4gQ29uZmlndXJpbmcgYW5kIGJ1aWxkaW5nIGluIGEg
-c2VwYXJhdGUgZGlyZWN0b3J5IGJyZWFrcyBiZWNhdXNlDQo+ID4gZ2VuX2NobG9nLnNoIGFzc3Vt
-ZXMgaXQgcnVucyBmcm9tIHRoZSBnaXQgdHJlZS4NCj4gPiBJbnN0ZWFkIG9mIG1ha2luZyB0aGlz
-IGFzc3VtcHRpb24sIHJhdGhlciBhc3N1bWUgdGhlIG1vcmUgZ2VuZXJpYywNCj4gPiB0aGF0IHRo
-ZSBnZW5fY2hsb2cuc2ggc2NyaXB0IGl0c2VsZiBpcyBsb2NhdGVkIGluIHRoZSB0b3Agc291cmNl
-ZGlyLg0KPiA+DQo+ID4gV2l0aCB0aGlzIGZpeCBjb25maWd1cmluZyBhbmQgYnVpbGRpbmcgaW4g
-YSBzZXBhcmF0ZSB0cmVlIGZyb20gdGhlDQo+ID4gc291cmNlIHRyZWUgd29ya3MuDQo+ID4NCj4g
-PiBTaWduZWQtb2ZmLWJ5OiBLbnV0IE9tYW5nIDxrbnV0Lm9tYW5nQG9yYWNsZS5jb20+DQo+ID4g
-LS0tDQo+ID4gwqBnZW5fY2hsb2cuc2ggfCAyICsrDQo+ID4gwqAxIGZpbGUgY2hhbmdlZCwgMiBp
-bnNlcnRpb25zKCspDQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEvZ2VuX2NobG9nLnNoIGIvZ2VuX2No
-bG9nLnNoIGluZGV4IDM0ZGZhMjQuLjU5YTllMWYgMTAwNzU1DQo+ID4gLS0tIGEvZ2VuX2NobG9n
-LnNoDQo+ID4gKysrIGIvZ2VuX2NobG9nLnNoDQo+ID4gQEAgLTEwLDYgKzEwLDggQEAgaWYgWyAi
-JDEiID0gIi0tc3BlYyIgXSA7IHRoZW4NCj4gPiDCoAlzcGVjX2Zvcm1hdD0xDQo+ID4gwqBmaQ0K
-PiA+DQo+ID4gK2NkIGBkaXJuYW1lICQwYA0KPiA+ICsNCj4gPiDCoEdJVF9ESVI9YGdpdCByZXYt
-cGFyc2UgLS1naXQtZGlyIDI+L2Rldi9udWxsYA0KPiA+DQo+ID4gwqB0ZXN0IC16ICIkR0lUX0RJ
-UiIgJiYgdXNhZ2UNCg==
+Hello,
+
+How are you doing? I have been sent to inform you that, We have an  
+inheritance of a deceased client with your surname. Contact Mr Andrew  
+Bailey Reply Email To: myinfand-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org with your "Full Names" for  
+more info.  Thanks for your understanding.
+
+Reply ASAP thank you.
+
+Melissa.
+----------------------------------
+Correo Corporativo Hospital Universitario del Valle E.S.E
+*******************************************************************************
+
+"Estamos re-dimensionandonos para crecer!"
+
+******************************************************************************
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
