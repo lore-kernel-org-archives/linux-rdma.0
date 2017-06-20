@@ -1,77 +1,71 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: iSER Connection via LIO not working
-Date: Tue, 20 Jun 2017 14:10:01 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC34324801@fmsmsx120.amr.corp.intel.com>
-References: <2E68B5D1-49CF-4F2C-B7F3-DA20E05503B8@creamfinance.com>
- <CAANLjFraKgxAC09VH8u72SbQZs8WhXnnk87VQB0ywoVavC2hSg@mail.gmail.com>
- <2E0A092F-9530-44FB-8A6F-D76D8E94ABE0@creamfinance.com>
- <CAANLjFqg1ked1Ls0W=BRRw5o5vheHKnUw5C_5OVciFQd0H8djg@mail.gmail.com>
- <827EC8DD-86E7-4011-8F68-B29396B2034D@creamfinance.com>
- <CAANLjFqt_RqU6UFPCcZJ5Mec-ku__YErFb-VLrV4Qx9G7ArAZA@mail.gmail.com>
- <1790271E-1A6B-492D-B4B6-701873B23A01@creamfinance.com>
- <32E1700B9017364D9B60AED9960492BC3431F8F1@fmsmsx120.amr.corp.intel.com>
- <193ee311-f8a7-cf78-9dbc-190c89769adf@grimberg.me>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: Re: Unexpected issues with 2 NVME initiators using the same target
+Date: Tue, 20 Jun 2017 08:41:09 -0600
+Message-ID: <CAANLjFqay8rTR_a7e+XN4zRkvO-cdLkJ1RoXFS=65Mz8b85c9g@mail.gmail.com>
+References: <82dd5b24-5657-ae5e-8a33-646fddd8b75b@grimberg.me>
+ <20170515133122.GG3616@mtr-leonro.local> <9465cd0c-83db-b058-7615-5626ef60dbb0@grimberg.me>
+ <20170515143632.GH3616@mtr-leonro.local> <20170515145952.GA7871@infradead.org>
+ <20170515170506.GK3616@mtr-leonro.local> <779753075.36035391.1495025796237.JavaMail.zimbra@kalray.eu>
+ <20170518133439.GD3616@mtr-leonro.local> <CAANLjFrCLpX3nb3q7LpFPpLJKciU+1Hvmt_hxyTovQJM2-zQmg@mail.gmail.com>
+ <6073e553-e8c2-6d14-ba5d-c2bd5aff15eb@grimberg.me> <20170620074639.GP17846@mtr-leonro.local>
+ <1c706958-992e-b104-6bae-4a6616c0a9f9@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <193ee311-f8a7-cf78-9dbc-190c89769adf-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1c706958-992e-b104-6bae-4a6616c0a9f9-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Thomas Rosenstein <thomas.rosenstein-+32LHaKS/h5VtLMLtJdGzA@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "shahar.salzman" <shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Riches Jr, Robert M" <robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiANCj4gPiBHb29kIGpvYiB0cmFja2luZyB0aGlzIGRvd24uICAgVGhhbmtzIQ0KPiA+DQo+ID4g
-c3RhdGljIHZvaWQNCj4gPiBpc2VyX2NhbGNfc2NzaV9wYXJhbXMoc3RydWN0IGlzZXJfY29ubiAq
-aXNlcl9jb25uLA0KPiA+ICAgICAgICAgICAgICAgICAgICAgICAgdW5zaWduZWQgaW50IG1heF9z
-ZWN0b3JzKQ0KPiA+IHsNCj4gPiAgICAgICAgICBzdHJ1Y3QgaXNlcl9kZXZpY2UgKmRldmljZSA9
-IGlzZXJfY29ubi0+aWJfY29ubi5kZXZpY2U7DQo+ID4gICAgICAgICAgdW5zaWduZWQgc2hvcnQg
-c2dfdGFibGVzaXplLCBzdXBfc2dfdGFibGVzaXplOw0KPiA+DQo+ID4gICAgICAgICAgc2dfdGFi
-bGVzaXplID0gRElWX1JPVU5EX1VQKG1heF9zZWN0b3JzICogNTEyLCBTSVpFXzRLKTsNCj4gPiAg
-ICAgICAgICBzdXBfc2dfdGFibGVzaXplID0gbWluX3QodW5zaWduZWQsIElTQ1NJX0lTRVJfTUFY
-X1NHX1RBQkxFU0laRSwNCj4gPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZGV2
-aWNlLT5pYl9kZXZpY2UtPmF0dHJzLm1heF9mYXN0X3JlZ19wYWdlX2xpc3RfbGVuKTsNCj4gPg0K
-PiA+ICAgICAgICAgIGlzZXJfY29ubi0+c2NzaV9zZ190YWJsZXNpemUgPSBtaW4oc2dfdGFibGVz
-aXplLCBzdXBfc2dfdGFibGVzaXplKTsNCj4gPiB9DQo+ID4NCj4gPiBUaGUgYnVnIGlzIHRoYXQg
-ZGV2aWNlLT5pYl9kZXZpY2UtPmF0dHJzLm1heF9mYXN0X3JlZ19wYWdlX2xpc3RfbGVuDQo+IHNo
-b3VsZCBvbmx5IGJlIGNvbnNpZGVyZWQgdmFsaWQgSUZGIElCX0RFVklDRV9NRU1fTUdUX0VYVEVO
-U0lPTlMgaXMNCj4gc2V0IGluDQo+ID4gZGV2aWNlLT5pYl9kZXZpY2UtPmRldmljZV9jYXBfZmxh
-Z3MuICBUaGUgYXNzaWdubWVudCB5b3Ugc3VnZ2VzdCBzaG91bGQNCj4gYmUgYW4gZWxzZSBvbiBh
-biBpZiB0ZXN0IG9mIHRoZSBkZXZpY2VfY2FwX2ZsYWdzIGJpdC4NCj4gDQo+IEhpIEd1eXMsDQo+
-IA0KPiBHb29kIGpvYiB0cmFja2luZyBpdCBkb3duIQ0KPiANCj4gSSB0aGluayB5b3UgYXJlIHRo
-ZSBmaXJzdCBvbmUgdG8gdGVzdCBpU0VSIG9uIHRvcCBvZiBxaWIuDQo+IA0KPiBNaWtlLCBXaGF0
-IG90aGVyIHZhcmlhYmxlIGRvIHdlIG5lZWQgdG8gbG9vayBhdCB0byBkZXRlcm1pbmUgdGhlDQo+
-IG1heGltdW0gcmVnaXN0ZXJlZCBzaXplIHBlciBmbXI/IEkgd2FzIHVuZGVyIHRoZSBpbXByZXNz
-aW9uIHRoYXQNCj4gbWF4X2Zhc3RfcmVnX3BhZ2VfbGlzdF9sZW4gaXMgbm90IGRpcmVjdGx5IHJl
-bGF0ZWQgdG8NCj4gSUJfREVWSUNFX01FTV9NR1RfRVhURU5TSU9OUyBhcyBmbXJzIGFsc28gYWNj
-ZXB0cyBwYWdlIGxpc3RzLg0KPiANCg0KSSdtIGdldHRpbmcgcmVhZHkgdG8gc2VuZCBhIHBhdGNo
-Lg0KDQpGb3IgZm1ycywgdGhlcmUgaXMgbm8gc3VjaCBpbmRpY2F0aW9uIGF2YWlsYWJsZSBvdGhl
-ciB0aGFuIGhhdmluZyB0aGUgVUxQcyB1c2UgdHJpYWwgZm1yIGNyZWF0aW9uIGNhbGxzLg0KDQpG
-b3IgcWliLCB0aGUgb25seSBsaW1pdCBpcyBtZW1vcnkgdG8gY3JlYXRlIHRoZSBsaXN0IGVtYmVk
-ZGVkIGluIHRoZSBNUi4gICBGb3IgaGZpMSwgdGhlIGxpbWl0IGlzIFVJTlRfTUFYLg0KDQpJIHN1
-Z2dlc3QgdGhhdCB3ZSBqdXN0IGhhbmRsZSB0aGUgY2FzZSBvZiBOT1Qgc2VlaW5nIHRoZSBiaXQg
-YnkgYXNzdW1pbmcgSVNDU0lfSVNFUl9NQVhfU0dfVEFCTEVfU0laRS4NCg0KQW4gYWx0ZXJuYXRp
-dmUgaXMgZm9yIG5vbi1leHRlbnNpb24gZHJpdmVycyB0byBhc3NpZ24gdGhpcyBmaWVsZCBhcyB0
-aGV5IHNlZSBmaXQuICAgU29tZSBvdGhlciBkcml2ZXJzIHNlZW0gdG8gaGF2ZSBsaW1pdHMgdGhh
-dCB3aWxsIGZhaWwgY3JlYXRpb24uDQoNCm1heF9mYXN0X3JlZ19wYWdlX2xpc3RfbGVuIGlzIHBv
-b3JseSBuYW1lZCB0aG91Z2guDQoNCkl0IHNlZW1zIHNpbXBsZXIganVzdCB0byBmaXggaXNlci4u
-Lg0KIA0KPiBBbnl3YXksDQo+IENhbiB3ZSBwbGVhc2UgcGxlYXNlIHBsZWFzZSBhZGQgcHJvcGVy
-IHN1cHBvcnQgZm9yIHdyIGJhc2VkIG1lbW9yeQ0KPiByZWdpc3RyYXRpb25zIGluIHFpYj8gSSBo
-YXZlIGEgcGF0Y2ggcGlwZWQgZm9yIHJlbW92aW5nIEZNUnMgZnJvbSBpc2VyDQo+IGFsdG9nZXRo
-ZXIsIG5vdyB0aGF0IHRoaXMgY2FtZSB1cCBJIG9idmlvdXNseSBjYW4ndCBzZW5kIGl0Li4uDQo+
-IA0KDQpUaGlzIGNhbm5vdCBiZSBkb25lIHdpdGhvdXQgZHJvcHBpbmcgc3VwcG9ydCBmb3Igb2xk
-ZXIgaGFyZHdhcmUuDQoNCnFpYiB2YXJpYW50cyAoYW5kIHBlcmhhcHMgb3RoZXIgaGFyZHdhcmUp
-IGNhbm5vdCBkZWFsIHdpdGggdGhlIHJlY2VpdmluZyB0aGUgc2VuZCB3aXRoIGludmFsaWRhdGUg
-cGFja2V0cy4NCg0KPiBMb29raW5nIGF0IHRoZSBjb2RlLCBsb29rcyBsaWtlIHFpYiBpbmhlcml0
-cyByZG1hdnQgbWVtb3J5IHJlZ2lzdHJhdGlvbg0KPiB3aXRoIHRoZSBuZXcgYXBpLCB0aGUgb25s
-eSBtaXNzaW5nIHBpZWNlIGFmYWljdCBpcyB0aGUgcmVtb3RlIGludmFsaWRhdGUNCj4gYW5kIHFp
-YiBjYW4gdHVybiBvbiBJQl9ERVZJQ0VfTUVNX01HVF9FWFRFTlNJT05TLg0KDQpUaGUgY29kZSBp
-biB0aGUgcGF0Y2ggeW91IHN1Z2dlc3RlZCB3aWxsIG5ldmVyIGdldCBleGVjdXRlZCBiZWNhdXNl
-IG9mIHRoZSBhYm92ZSBoYXJkd2FyZSBsaW1pdGF0aW9uLiAgIFRoZSBoYXJkd2FyZSB3aWxsIHF1
-ZXVlIGFuIGVycm9yIGFuZCBkcm9wIGFueSBkYXRhLg0KDQpyZG1hdnQgcmVhY3RzIHRvIGNvbnRy
-b2wgdGFibGVzIHRvIGhhbmRsZSB0aGUgc3Vib3JkaW5hdGUgZHJpdmVyIGV4dGVuc2lvbiBzdXBw
-b3J0IGNvcnJlY3RseS4NCg0KTWlrZQ0KDQoNCg0KDQoNCg0K
+On Tue, Jun 20, 2017 at 1:58 AM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
+>
+>>> Hi Robert,
+>>>
+>>>> I ran into this with 4.9.32 when I rebooted the target. I tested
+>>>> 4.12-rc6 and this particular error seems to have been resolved, but I
+>>>> now get a new one on the initiator. This one doesn't seem as
+>>>> impactful.
+>>>>
+>>>> [Mon Jun 19 11:17:20 2017] mlx5_0:dump_cqe:275:(pid 0): dump error cqe
+>>>> [Mon Jun 19 11:17:20 2017] 00000000 00000000 00000000 00000000
+>>>> [Mon Jun 19 11:17:20 2017] 00000000 00000000 00000000 00000000
+>>>> [Mon Jun 19 11:17:20 2017] 00000000 00000000 00000000 00000000
+>>>> [Mon Jun 19 11:17:20 2017] 00000000 93005204 0a0001bd 45c8e0d2
+>>>
+>>>
+>>> Max, Leon,
+>>>
+>>> Care to parse this syndrome for us? ;)
+>>
+>>
+>> Here the parsed output, it says that it was access to mkey which is
+>> free.
+>>
+>> ======== cqe_with_error ========
+>> wqe_id                           : 0x0
+>> srqn_usr_index                   : 0x0
+>> byte_cnt                         : 0x0
+>> hw_error_syndrome                : 0x93
+>> hw_syndrome_type                 : 0x0
+>> vendor_error_syndrome            : 0x52
+>
+>
+> Can you share the check that correlates to the vendor+hw syndrome?
+>
+>> syndrome                         : LOCAL_PROTECTION_ERROR (0x4)
+>> s_wqe_opcode                     : SEND (0xa)
+>
+>
+> That's interesting, the opcode is a send operation. I'm assuming
+> that this is immediate-data write? Robert, did this happen when
+> you issued >4k writes to the target?
+
+I was running dd with oflag=direct, so yes.
+
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
