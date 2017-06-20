@@ -1,55 +1,33 @@
-From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+From: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org (J. Bruce Fields)
 Subject: Re: [PATCH v2 19/19] sunrpc: Disable splice for krb5i
-Date: Tue, 20 Jun 2017 15:28:08 -0400
-Message-ID: <20170620192808.GC13008@fieldses.org>
+Date: Tue, 20 Jun 2017 15:41:45 -0400
+Message-ID: <20170620194145.GD13008@fieldses.org>
 References: <20170616151535.14210.34926.stgit@klimt.1015granger.net>
  <20170616152254.14210.48071.stgit@klimt.1015granger.net>
- <20170617150705.GA27917@infradead.org>
- <A573E1EB-48DB-4E4A-B710-34914B0CF016@oracle.com>
- <20170618073438.GA15358@infradead.org>
- <20170620192449.GB13008@fieldses.org>
+ <1497693712.4684.4.camel@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170620192449.GB13008-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1497693712.4684.4.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jeff Layton <jlayton-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 20, 2017 at 03:24:49PM -0400, J. Bruce Fields wrote:
-> On Sun, Jun 18, 2017 at 12:34:38AM -0700, Christoph Hellwig wrote:
-> > On Sat, Jun 17, 2017 at 01:23:24PM -0400, Chuck Lever wrote:
-> > > 
-> > > > On Jun 17, 2017, at 11:07 AM, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org> wrote:
-> > > > 
-> > > > On Fri, Jun 16, 2017 at 11:22:54AM -0400, Chuck Lever wrote:
-> > > >> Running a multi-threaded 8KB fio test (70/30 mix), three or four out
-> > > >> of twelve of the jobs fail when using krb5i. The failure is an EIO
-> > > >> on a read.
-> > > > 
-> > > > Just curious: what is the backing fs that you tested with?  I'd be
-> > > > curious if you see this on XFS for example.
-> > > 
-> > > I was able to reproduce this with a tmpfs share and
-> > > with an XFS share on NVMe LUNs.
-> > 
-> > Interesting.  XFS actually locks out all writes while doing a buffered
-> > read, so we end up with two different read instance for the hash vs
-> > the data, which does indeed sound dangerous.
-> 
-> In the bad case Chuck was seeing, we were going through
-> splice_direct_to_actor(), is that a buffered read for the purposes of
-> the above statement?
+On Sat, Jun 17, 2017 at 06:01:52AM -0400, Jeff Layton wrote:
+> This seems like the right thing to do, IMO. It's nice to avoid copies
+> where we can, but this is just one of the places where we can't, at
+> least with the way things stand now. It is a pity we don't have a way to
+> CoW these things though.
 
-But, even if xfs is holding a lock across that splice operation, nfsd is
-still left holding references to the pages, and they'll be checksumed
-and transmitted some time later, so I don't see how xfs has much control
-over the problem.
+We have to run all the data through CPU anyway for the checksum, so I
+guess what I was thinking we could do--if we decided we needed the
+optimization--was to figure out how to copy and checksum (or encrypt)
+simultaneously in one pass.
 
 --b.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
