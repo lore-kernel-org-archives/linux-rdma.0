@@ -1,63 +1,91 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next 1/2] RDMA/qedr: Notify user application if DPM
- is supported
-Date: Tue, 20 Jun 2017 09:39:28 -0600
-Message-ID: <20170620153928.GB29283@obsidianresearch.com>
-References: <1497790871-23945-1-git-send-email-Ram.Amrani@cavium.com>
- <1497790871-23945-2-git-send-email-Ram.Amrani@cavium.com>
- <20170619155553.GB10188@obsidianresearch.com>
- <BN3PR07MB2578EC6DD9C3DF920388418AF8C50@BN3PR07MB2578.namprd07.prod.outlook.com>
- <20170620104104.GS17846@mtr-leonro.local>
-Mime-Version: 1.0
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] ib_core: Enable and expose force_mr module parameter
+Date: Tue, 20 Jun 2017 11:43:56 -0400
+Message-ID: <DE0C511C-A4CB-4D76-8BA7-6BFF81F590B3@oracle.com>
+References: <20170619152351.2866.11046.stgit@klimt.1015granger.net> <20170620073236.GO17846@mtr-leonro.local>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170620104104.GS17846-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20170620073236.GO17846-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: doug.ledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 20, 2017 at 01:41:04PM +0300, Leon Romanovsky wrote:
-> On Tue, Jun 20, 2017 at 08:34:24AM +0000, Amrani, Ram wrote:
-> > > Um, how is uapi compatibility achieved here? I don't see any size
-> > > tests related to qedr_alloc_ucontext_resp:
-> > >
-> > > struct ib_ucontext *qedr_alloc_ucontext(struct ib_device *ibdev,
-> > >                                         struct ib_udata *udata)
-> > > {
-> > >         struct qedr_alloc_ucontext_resp uresp;
-> > >         rc = ib_copy_to_udata(udata, &uresp, sizeof(uresp));
-> > >
-> > > Seems bad.
-> > >
-> > > Same with the other patch.
-> > >
-> > > Jason
-> >
-> > It does seem bad. Did you had in mind something like this:
-> >          struct qedr_alloc_ucontext_resp uresp;
-> >          size_t copy_size = min_t(size_t, sizeof(uresp), udata->outlen);
-> >
-> >          rc = ib_copy_to_udata(udata, &uresp, copy_size);
-> >
-> > If so, it makes sense to me to protect everybody's transactions.
-> > I.e.:
-> > 	static inline int ib_copy_to_udata(struct ib_udata *udata, void *src, size_t len)
-> > 	{
-> > 		size_t copy_size = min_t(size_t, sizeof(uresp), udata->outlen);
-> > 		return copy_to_user(udata->outbuf, src, copy_size) ? -EFAULT : 0;
-> > 	}
-> >
-> > Likewise, a protection can be added for ib_copy_from_udata() too.
+Hi Leon-
+
+
+> On Jun 20, 2017, at 3:32 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
 > 
-> mlx4 and mlx5 don't need such protection, because they calculates the
-> response length and ensure that no extra data is copied.
+> On Mon, Jun 19, 2017 at 11:26:40AM -0400, Chuck Lever wrote:
+>> The fourth parameter of the module_param_named macro is a set of
+>> file permissions. Passing 0 there means that module parameter is
+>> not created and that adding "options ib_core force_mr=1" to a
+>> modprobe.conf file has no effect.
+>> 
+>> The default setting of rdma_rw_force_mr continues to be 0, or false.
+>> 
+>> Fixes: a060b5629ab0 ("IB/core: generic RDMA READ/WRITE API")
+>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> ---
+>> Hi Doug-
+>> 
+>> This doesn't seem appropriate to go through Bruce's tree for 4.13.
+>> 
+>> Last discussion didn't seem to conclude with full consensus.
+>> Probably people don't care enough one way or another. But I'd like
+>> to see this get fixed if there aren't strong objections. Would you
+>> take it for 4.13?
+> 
+> I care and believe that it should be removed from exposure to users.
+> The variable force_mr should be leaved in the code for the debug,
+> but module_param should be removed.
 
-so you need to to whatever mlx4/5 do, and if we have some code
-duplication then maybe a new ib_copy_to_udate_ex function is sensible.
+I don't understand the technical grounds of your objection.
+Why is
 
-Jason
+ options mlx4_core internal_err_reset=0
+
+acceptable, but
+
+ options ib_core force_mr=1
+
+not?
+
+
+> Thanks
+> 
+> 
+>> 
+>> 
+>> drivers/infiniband/core/rw.c |    2 +-
+>> 1 file changed, 1 insertion(+), 1 deletion(-)
+>> 
+>> diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
+>> index dbfd854..1cc8f07 100644
+>> --- a/drivers/infiniband/core/rw.c
+>> +++ b/drivers/infiniband/core/rw.c
+>> @@ -23,7 +23,7 @@ enum {
+>> };
+>> 
+>> static bool rdma_rw_force_mr;
+>> -module_param_named(force_mr, rdma_rw_force_mr, bool, 0);
+>> +module_param_named(force_mr, rdma_rw_force_mr, bool, 0644);
+>> MODULE_PARM_DESC(force_mr, "Force usage of MRs for RDMA READ/WRITE operations");
+>> 
+>> /*
+>> 
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+Chuck Lever
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
