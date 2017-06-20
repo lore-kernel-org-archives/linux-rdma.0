@@ -1,141 +1,108 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
 Subject: Re: Unexpected issues with 2 NVME initiators using the same target
-Date: Tue, 20 Jun 2017 15:19:58 -0600
-Message-ID: <20170620211958.GA5574@obsidianresearch.com>
-References: <20170620074639.GP17846@mtr-leonro.local>
- <1c706958-992e-b104-6bae-4a6616c0a9f9@grimberg.me>
- <20170620083309.GQ17846@mtr-leonro.local>
- <bd0b986f-9bed-3dfa-7454-0661559a527b@grimberg.me>
- <614481c7-22dd-d93b-e97e-52f868727ec3@grimberg.me>
- <59FF0C04-2BFB-4F66-81BA-A598A9A087FC@oracle.com>
- <20170620173532.GA827@obsidianresearch.com>
- <D3DC49A2-FFC9-4F62-8876-3E6AD5167DE5@oracle.com>
- <20170620192742.GB827@obsidianresearch.com>
- <C14B071E-F1B2-466A-82CF-4E20BFAD9DC1@oracle.com>
+Date: Tue, 20 Jun 2017 16:58:52 -0600
+Message-ID: <CAANLjFrzsTFZP536L2G2CHy=JmDb3W+ePB_mOLHm2qp2Bb2iaw@mail.gmail.com>
+References: <9465cd0c-83db-b058-7615-5626ef60dbb0@grimberg.me>
+ <20170515143632.GH3616@mtr-leonro.local> <20170515145952.GA7871@infradead.org>
+ <20170515170506.GK3616@mtr-leonro.local> <779753075.36035391.1495025796237.JavaMail.zimbra@kalray.eu>
+ <20170518133439.GD3616@mtr-leonro.local> <CAANLjFrCLpX3nb3q7LpFPpLJKciU+1Hvmt_hxyTovQJM2-zQmg@mail.gmail.com>
+ <6073e553-e8c2-6d14-ba5d-c2bd5aff15eb@grimberg.me> <20170620074639.GP17846@mtr-leonro.local>
+ <1c706958-992e-b104-6bae-4a6616c0a9f9@grimberg.me> <20170620083309.GQ17846@mtr-leonro.local>
+ <bd0b986f-9bed-3dfa-7454-0661559a527b@grimberg.me> <78b2c1db-6ece-0274-c4c9-5ee1f7c88469@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <C14B071E-F1B2-466A-82CF-4E20BFAD9DC1-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <78b2c1db-6ece-0274-c4c9-5ee1f7c88469-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "shahar.salzman" <shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Riches Jr, Robert M" <robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "shahar.salzman" <shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Riches Jr, Robert M" <robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 20, 2017 at 04:56:39PM -0400, Chuck Lever wrote:
+On Tue, Jun 20, 2017 at 4:31 AM, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>
+>
+> On 6/20/2017 12:33 PM, Sagi Grimberg wrote:
+>>
+>>
+>>>>> Here the parsed output, it says that it was access to mkey which is
+>>>>> free.
+>>
+>>
+>> Missed that :)
+>>
+>>>>> ======== cqe_with_error ========
+>>>>> wqe_id                           : 0x0
+>>>>> srqn_usr_index                   : 0x0
+>>>>> byte_cnt                         : 0x0
+>>>>> hw_error_syndrome                : 0x93
+>>>>> hw_syndrome_type                 : 0x0
+>>>>> vendor_error_syndrome            : 0x52
+>>>>
+>>>>
+>>>> Can you share the check that correlates to the vendor+hw syndrome?
+>>>
+>>>
+>>> mkey.free == 1
+>>
+>>
+>> Hmm, the way I understand it is that the HW is trying to access
+>> (locally via send) a MR which was already invalidated.
+>>
+>> Thinking of this further, this can happen in a case where the target
+>> already completed the transaction, sent SEND_WITH_INVALIDATE but the
+>> original send ack was lost somewhere causing the device to retransmit
+>> from the MR (which was already invalidated). This is highly unlikely
+>> though.
+>>
+>> Shouldn't this be protected somehow by the device?
+>> Can someone explain why the above cannot happen? Jason? Liran? Anyone?
+>>
+>> Say host register MR (a) and send (1) from that MR to a target,
+>> send (1) ack got lost, and the target issues SEND_WITH_INVALIDATE
+>> on MR (a) and the host HCA process it, then host HCA timeout on send (1)
+>> so it retries, but ehh, its already invalidated.
+>
+>
+> This might happen IMO.
+> Robert, can you test this untested patch (this is not the full solution,
+> just something to think about):
+>
+> diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c
+> b/drivers/infiniband/ulp/iser/iser_verbs.c
+> index c538a38..e93bd40 100644
+> --- a/drivers/infiniband/ulp/iser/iser_verbs.c
+> +++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+> @@ -1079,7 +1079,7 @@ int iser_post_send(struct ib_conn *ib_conn, struct
+> iser_tx_desc *tx_desc,
+>         wr->sg_list = tx_desc->tx_sg;
+>         wr->num_sge = tx_desc->num_sge;
+>         wr->opcode = IB_WR_SEND;
+> -       wr->send_flags = signal ? IB_SEND_SIGNALED : 0;
+> +       wr->send_flags = IB_SEND_SIGNALED;
+>
+>         ib_ret = ib_post_send(ib_conn->qp, &tx_desc->wrs[0].send, &bad_wr);
+>         if (ib_ret)
+>
+>
+>>
+>> Or, we can also have a race where we destroy all our MRs when I/O
+>> is still running (but from the code we should be safe here).
+>>
+>> Robert, when you rebooted the target, I assume iscsi ping
+>> timeout expired and the connection teardown started correct?
 
-> > I thought the use of MR's with SEND was a new invention? If you use
-> > the local rdma lkey with send, it is never invalidated, and this is
-> > not an issue, which IIRC, was the historical configuration for NFS.
-> 
-> We may be conflating things a bit.
-> 
-> RPC-over-RDMA client uses persistently registered buffers, using
-> the lkey, for inline data. The use of MRs is reserved for NFS READ
-> and WRITE payloads. The inline buffers are never explicitly
-> invalidated by RPC-over-RDMA.
+I still get the local protection errors with this patch. I am seeing a
+ping timeout on the initiator when I reboot the target.
+[Tue Jun 20 16:41:21 2017]  connection7:0: detected conn error (1011)
+[Tue Jun 20 16:41:26 2017]  session7: session recovery timed out after 5 secs
 
-That makes much more sense, but is that the original question in this
-thread? Why are we even talking about invalidate ordering then?
+Since I'm gracefully shutting down the targets in this case, shouldn't
+the connection be closed gracefully by the target instead of the
+initiator having to wait for ping to fail?
 
-> > All ULPs must ensure SEND/RDMA Write resources remain stable until the
-> > CQ indicates that work is completed. 'In a perfect world' this
-> > includes not changing the source memory as that would cause
-> > retransmitted packets to be different.
-> 
-> I assume you mean the sending side (the server) for RDMA
-> Write. I believe rdma_rw uses the local rdma lkey by default
-> for RDMA Write source buffers.
-
-RDMA Write or SEND
-
-> >>> No. The SQ side is asynchronous to the CQ side, the HCA will pipeline
-> >>> send packets on the wire up to some internal limit.
-> >> 
-> >> So if my ULP issues FastReg followed by Send followed by
-> >> LocalInv (signaled), I can't rely on the LocalInv completion
-> >> to imply that the Send is also complete?
-> > 
-> > Correct.
-> > 
-> > This is explicitly defined in Table 79 of the IBA.
-> > 
-> > It describes the ordering requirements, if you order Send followed by
-> > LocalInv the ordering is 'L' which means they are not ordered unless
-> > the WR has the Local Invalidate Fence bit set.
-> > 
-> > LIF is an optional feature, I do not know if any of our hardware
-> > supports it, but it is defined to cause the local invalidate to wait
-> > until all ongoing references to the MR are completed.
-> 
-> Now, since there was confusion about using an MR for a
-> Send operation, let me clarify. If the client does:
-
-> FastReg(payload buffer)
-> Send(inline buffer)
-> ...
-> Recv
-> LocalInv(payload buffer)
-> wait for LI completion
-
-Not sure what you are describing?
-
-Is Recv landing memory for a SEND? In that case it is using a lkey,
-lkeys are not remotely usable, so it does not need synchronous
-invalidation. In all cases the LocalInv must only be posted once a CQE
-for the Recv is observed.
-
-If Recv is RDMA WRITE target memory, then it using the rkey and it
-does does need synchronous invalidation. This must be done once a recv
-CQE is observed, or optimized by having the other send via one of the
-_INV operations.
-
-In no case can you pipeline a LocalInv into the SQ that would impact
-RQ activity, even with any of the fences.
-
-> Is setting IB_SEND_FENCE on the LocalInv enough to ensure
-> that the Send is complete?
-
-No.
-
-There are two fences in the spec, IB_SEND_FENCE is the mandatory one,
-and it only interacts with RDMA READ and ATOMIC entries.
-
-Local Invalidate Fence (the optinal one) also will not order the two
-because LIF is only defined to order against SQE's that use the
-MR. Since Send is using the global dma lkey it does not interact with
-the LocalInv and LIF will not order them.
-
-> > No idea on the relative performance of LIF vs doing it manually, but
-> > the need for one or the other is unambigously clear in the spec.
-> 
-> It seems to me that the guarantee that the server sees
-> only one copy of the Send payload is good enough. That
-> means that by the time Recv completion occurs on the
-> client, even if the client HCA still thinks it needs to
-> retransmit the Send containing the RPC Call, the server
-> ULP has already seen and processed that Send payload,
-> and the HCA on the server won't deliver that payload a
-> second time.
-
-Yes, that is OK reasoning.
-
-> If the only concern about preserving that inline buffer is
-> guaranteeing that retransmits contain the same content, I
-> don't think we have a problem. All HCA retransmits of an
-> RPC Call, until the matching RPC Reply is received on the
-> client, will contain the same content.
-
-Right.
-
-> The issue about the HCA not being able to access the inline
-> buffer during a retransmit is also not an issue for RPC-
-> over-RDMA because these buffers are always registered with
-> the local rdma lkey.
-
-Exactly.
-
-Jason
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
