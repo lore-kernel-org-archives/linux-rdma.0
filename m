@@ -1,75 +1,90 @@
-From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/mlx4: Fix CM REQ retries in paravirt mode
-Date: Tue, 20 Jun 2017 14:07:50 +0200
-Message-ID: <20170620120750.32268-1-Haakon.Bugge@oracle.com>
+From: Yuval Mintz <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v4 net-next 0/7] qed*: RDMA and infrastructure for iWARP
+Date: Tue, 20 Jun 2017 15:59:59 +0300
+Message-ID: <20170620130006.307-1-Yuval.Mintz@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, =?UTF-8?q?H=C3=A5kon=20Bugge?= <Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yuval Mintz <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-CM REQs cannot be successfully retried, because a new pv_cm_id is
-created for each request, without checking if one already exists.
+This series focuses on RDMA in general with emphasis on required changes
+toward adding iWARP support. The vast majority of the changes introduced
+are in qed/qede, with a couple of small changes to qedr
+[mentioned below].
 
-By checking if an id exists before creating one, the bug is fixed.
+The infrastructure changes:
+ - Patch #1 adds the ability to pass PBL memory externally for a newly
+created chain.
+ - Patches #4, #5 rename qede_roce.[ch] into qede_rdma.[ch] + change
+prefixes from _roce_ to _rdma_, as the API between qede and qedr is
+agnostic to the variant of the RDMA protocol used. These patches also
+touch qedr [basically to align it with the renaming, nothing more].
+ - Patch #7 replaces the current SPQ async mechanism into serving
+registered callbacks [before adding iWARP which would add another client
+in need of this sort of functionallity].
 
-This bug can be provoked by running an RDMA CM user-land application,
-but inserting a five seconds delay before the rdma_accept() call on
-the passive side. This delay is larger than the default CMA timeout,
-and triggers a retry from the active side. The retried REQ will use
-another pv_cm_id (the cm_id on the wire). This confuses the CM
-protocol and two REJs are sent from the passive side.
+The non-infrastrucutre changes:
+ - Patches #2, #3 contain DCB-related changes to better align RDMA with
+configured DCB.
+ - Patch #6 contains a minor [mostly theoretical fix] to release flow.
 
-Here is an excerpt from ibdump running without the patch:
+Dave,
 
-3.285092       LID: 4 -> LID: 4       SDP 290 CM: ConnectRequest(SDP Hello)
-7.382711       LID: 4 -> LID: 4       SDP 290 CM: ConnectRequest(SDP Hello)
-7.382861       LID: 4 -> LID: 4       InfiniBand 290 CM: ConnectReject
-7.387644       LID: 4 -> LID: 4       InfiniBand 290 CM: ConnectReject
+Please consider applying this series to `net-next'.
 
-and here is the same with bug fix applied:
+Thanks,
+Yuval
 
-3.251010       LID: 4 -> LID: 4       SDP 290 CM: ConnectRequest(SDP Hello)
-7.349387       LID: 4 -> LID: 4       SDP 290 CM: ConnectRequest(SDP Hello)
-8.258443       LID: 4 -> LID: 4       SDP 290 CM: ConnectReply(SDP Hello)
-8.259890       LID: 4 -> LID: 4       InfiniBand 290 CM: ReadyToUse
+Changes from previous versions
+------------------------------
+ - V4: This is actually a repost of V3 due to some confusion regarding
+   the sent cover-letter
+ - V3: Add commit log message in #4 indicating change in header inclusion
+ - V2: Add several inclusion into qede_rdma.h to have proper declarations
+   of all variable types used in it
 
-Suggested-by: Venkat Venkatsubra <venkat.x.venkatsubra-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Håkon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reported-by: Wei Lin Guay <wei.lin.guay-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Tested-by: Wei Lin Guay <wei.lin.guay-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/cm.c | 4 ++++
- 1 file changed, 4 insertions(+)
+Michal Kalderon (3):
+  qed*: qede_roce.[ch] -> qede_rdma.[ch]
+  qed*: Set rdma generic functions prefix
+  qed: Wait for resources before FUNC_CLOSE
+  qed: SPQ async callback registration
 
-diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
-index 1e6c526..fedaf82 100644
---- a/drivers/infiniband/hw/mlx4/cm.c
-+++ b/drivers/infiniband/hw/mlx4/cm.c
-@@ -323,6 +323,9 @@ int mlx4_ib_multiplex_cm_handler(struct ib_device *ibdev, int port, int slave_id
- 			mad->mad_hdr.attr_id == CM_REP_ATTR_ID ||
- 			mad->mad_hdr.attr_id == CM_SIDR_REQ_ATTR_ID) {
- 		sl_cm_id = get_local_comm_id(mad);
-+		id = id_map_get(ibdev, &pv_cm_id, slave_id, sl_cm_id);
-+		if (id)
-+			goto cont;
- 		id = id_map_alloc(ibdev, slave_id, sl_cm_id);
- 		if (IS_ERR(id)) {
- 			mlx4_ib_warn(ibdev, "%s: id{slave: %d, sl_cm_id: 0x%x} Failed to id_map_alloc\n",
-@@ -343,6 +346,7 @@ int mlx4_ib_multiplex_cm_handler(struct ib_device *ibdev, int port, int slave_id
- 		return -EINVAL;
- 	}
- 
-+cont:
- 	set_local_comm_id(mad, id->pv_cm_id);
- 
- 	if (mad->mad_hdr.attr_id == CM_DREQ_ATTR_ID)
+Yuval Mintz (4):
+  qed: Chain support for external PBL
+  qed: RoCE EDPM to honor PFC
+  qed: Disable RoCE dpm when DCBx change occurs
+
+ drivers/infiniband/hw/qedr/main.c                  |  10 +-
+ drivers/infiniband/hw/qedr/qedr.h                  |   2 +-
+ drivers/infiniband/hw/qedr/verbs.c                 |   6 +-
+ drivers/net/ethernet/qlogic/qed/qed_dcbx.c         |  24 ++++
+ drivers/net/ethernet/qlogic/qed/qed_dev.c          |  35 +++--
+ drivers/net/ethernet/qlogic/qed/qed_dev_api.h      |   5 +-
+ drivers/net/ethernet/qlogic/qed/qed_iscsi.c        |  30 ++++-
+ drivers/net/ethernet/qlogic/qed/qed_ll2.c          |   6 +-
+ drivers/net/ethernet/qlogic/qed/qed_reg_addr.h     |   6 +
+ drivers/net/ethernet/qlogic/qed/qed_roce.c         |  87 ++++++++++---
+ drivers/net/ethernet/qlogic/qed/qed_roce.h         |   9 +-
+ drivers/net/ethernet/qlogic/qed/qed_sp.h           |  17 +++
+ drivers/net/ethernet/qlogic/qed/qed_spq.c          |  60 +++++----
+ drivers/net/ethernet/qlogic/qed/qed_sriov.c        |  16 ++-
+ drivers/net/ethernet/qlogic/qed/qed_sriov.h        |  18 ---
+ drivers/net/ethernet/qlogic/qede/Makefile          |   2 +-
+ drivers/net/ethernet/qlogic/qede/qede.h            |   5 +-
+ drivers/net/ethernet/qlogic/qede/qede_main.c       |  21 ++-
+ .../qlogic/qede/{qede_roce.c => qede_rdma.c}       | 144 ++++++++++-----------
+ include/linux/qed/qed_chain.h                      |   7 +
+ include/linux/qed/qed_if.h                         |   3 +-
+ include/linux/qed/{qede_roce.h => qede_rdma.h}     |  42 +++---
+ 22 files changed, 353 insertions(+), 202 deletions(-)
+ rename drivers/net/ethernet/qlogic/qede/{qede_roce.c => qede_rdma.c} (59%)
+ rename include/linux/qed/{qede_roce.h => qede_rdma.h} (65%)
+
 -- 
-2.9.3
+2.9.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
