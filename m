@@ -1,96 +1,93 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] ib_core: Enable and expose force_mr module parameter
-Date: Tue, 20 Jun 2017 10:32:36 +0300
-Message-ID: <20170620073236.GO17846@mtr-leonro.local>
-References: <20170619152351.2866.11046.stgit@klimt.1015granger.net>
+Subject: Re: Unexpected issues with 2 NVME initiators using the same target
+Date: Tue, 20 Jun 2017 10:46:39 +0300
+Message-ID: <20170620074639.GP17846@mtr-leonro.local>
+References: <82dd5b24-5657-ae5e-8a33-646fddd8b75b@grimberg.me>
+ <20170515133122.GG3616@mtr-leonro.local>
+ <9465cd0c-83db-b058-7615-5626ef60dbb0@grimberg.me>
+ <20170515143632.GH3616@mtr-leonro.local>
+ <20170515145952.GA7871@infradead.org>
+ <20170515170506.GK3616@mtr-leonro.local>
+ <779753075.36035391.1495025796237.JavaMail.zimbra@kalray.eu>
+ <20170518133439.GD3616@mtr-leonro.local>
+ <CAANLjFrCLpX3nb3q7LpFPpLJKciU+1Hvmt_hxyTovQJM2-zQmg@mail.gmail.com>
+ <6073e553-e8c2-6d14-ba5d-c2bd5aff15eb@grimberg.me>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="Iys0Un1O+0sigPHU"
+        protocol="application/pgp-signature"; boundary="mejza3ZMMA5Za1mX"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170619152351.2866.11046.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+In-Reply-To: <6073e553-e8c2-6d14-ba5d-c2bd5aff15eb-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: doug.ledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "shahar.salzman" <shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Riches Jr, Robert M" <robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---Iys0Un1O+0sigPHU
+--mejza3ZMMA5Za1mX
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Jun 19, 2017 at 11:26:40AM -0400, Chuck Lever wrote:
-> The fourth parameter of the module_param_named macro is a set of
-> file permissions. Passing 0 there means that module parameter is
-> not created and that adding "options ib_core force_mr=1" to a
-> modprobe.conf file has no effect.
+On Tue, Jun 20, 2017 at 09:39:36AM +0300, Sagi Grimberg wrote:
+> Hi Robert,
 >
-> The default setting of rdma_rw_force_mr continues to be 0, or false.
+> > I ran into this with 4.9.32 when I rebooted the target. I tested
+> > 4.12-rc6 and this particular error seems to have been resolved, but I
+> > now get a new one on the initiator. This one doesn't seem as
+> > impactful.
+> >
+> > [Mon Jun 19 11:17:20 2017] mlx5_0:dump_cqe:275:(pid 0): dump error cqe
+> > [Mon Jun 19 11:17:20 2017] 00000000 00000000 00000000 00000000
+> > [Mon Jun 19 11:17:20 2017] 00000000 00000000 00000000 00000000
+> > [Mon Jun 19 11:17:20 2017] 00000000 00000000 00000000 00000000
+> > [Mon Jun 19 11:17:20 2017] 00000000 93005204 0a0001bd 45c8e0d2
 >
-> Fixes: a060b5629ab0 ("IB/core: generic RDMA READ/WRITE API")
-> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
-> Hi Doug-
+> Max, Leon,
 >
-> This doesn't seem appropriate to go through Bruce's tree for 4.13.
->
-> Last discussion didn't seem to conclude with full consensus.
-> Probably people don't care enough one way or another. But I'd like
-> to see this get fixed if there aren't strong objections. Would you
-> take it for 4.13?
+> Care to parse this syndrome for us? ;)
 
-I care and believe that it should be removed from exposure to users.
-The variable force_mr should be leaved in the code for the debug,
-but module_param should be removed.
+Here the parsed output, it says that it was access to mkey which is
+free.
+
+======== cqe_with_error ========
+wqe_id                           : 0x0
+srqn_usr_index                   : 0x0
+byte_cnt                         : 0x0
+hw_error_syndrome                : 0x93
+hw_syndrome_type                 : 0x0
+vendor_error_syndrome            : 0x52
+syndrome                         : LOCAL_PROTECTION_ERROR (0x4)
+s_wqe_opcode                     : SEND (0xa)
+qpn_dctn_flow_tag                : 0x1bd
+wqe_counter                      : 0x45c8
+signature                        : 0xe0
+opcode                           : REQUESTOR_ERROR (0xd)
+cqe_format                       : NO_INLINE_DATA (0x0)
+owner                            : 0x0
 
 Thanks
 
-
->
->
->  drivers/infiniband/core/rw.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
-> index dbfd854..1cc8f07 100644
-> --- a/drivers/infiniband/core/rw.c
-> +++ b/drivers/infiniband/core/rw.c
-> @@ -23,7 +23,7 @@ enum {
->  };
->
->  static bool rdma_rw_force_mr;
-> -module_param_named(force_mr, rdma_rw_force_mr, bool, 0);
-> +module_param_named(force_mr, rdma_rw_force_mr, bool, 0644);
->  MODULE_PARM_DESC(force_mr, "Force usage of MRs for RDMA READ/WRITE operations");
->
->  /*
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---Iys0Un1O+0sigPHU
+--mejza3ZMMA5Za1mX
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllIz5QACgkQ5GN7iDZy
-WKcXMxAAnH9frGDASJjzm9FAu4/Nvupsm1Ggnnr2aryAor/0DUtF0B8K8r1pYb5y
-7FaN8IW9+DdUotx8ofppvCtzPVE/iRSchdl0P1AelAHyYyZ3tgcEQCkM7Mm+UsGO
-7bO8iIpgc3vZSl4NXQob/yJJezv8ncqtXhcgDO2KAcTBc3kNC+4Eu2a0iTtc+7PW
-AzCFiHDv+GYMsNwokoD0Rnbxuh8GGvGHNyvfg5THe2HzPrTGXgr2TmBucG81VHUi
-aXc4/otK2lYP5XOvzfHU4KXbhE7GWtRwpIhY3bWw4a+rsbW27CTIeH+f9hhiWNJr
-LbnHKfTLnXb23syuLdLLhvyoxu22NiwdBTshrXJpfBf32Q1xUCsCtamleKpY/lRe
-p+gIIH70/6WpMU00sRPoBaTzBHbNpcyvu7KO434Zt3SQWZINXLVwYZr8pXPXrDvW
-gh5Ril/3LGULosn5enPLIQaf0VeZExWZvTgyyCCa/Xo8BkWHP9iU5KKUaPNQkPcK
-x7B9ED6v/bu38ja3xcH7LdepqP6+qr2xrWx1ZeXUfXZ1SzCcTyHCK1GnUv4lHhmA
-c87ofPecAeGtHNzIPAkhmGJ6ijgPMLtjt6eYH3l05DvDm1+Qz1E8l/X1x5DJxCr9
-1IvSFUCGfOSfhsye6fRlojcSMnz/HXBPaGge2L95hDORwIv70Ps=
-=JMBJ
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllI0t8ACgkQ5GN7iDZy
+WKcwDRAApnjW81MaKAQl/4F6GJncMHjACb+rG54EXdGnRlH0NbRxE0Pemot1Surf
+0rvRwYn5gAtDr9GdZB4j73xSg6r4Fdx/S75CFfZgwbAYCNPaqH5pVLWJLalPL4Bw
+JisxshiHTgUh76OLgtiTYdUykFMTLYUTxvwfH3SW12yg9n46edTlltkrQWJGKUrS
+vMeuLi937ZV7M26JDDbBDT0eNNLVa0IHJBeiOjtXQJGt+gevLW+M5a0cANgke6H6
+Sl2g3AdZq4PQQZEKaPMAzKI9XLle9sxa4RHJmwNp0xxlXf5qXhLmW1PsOmengw1y
+jO23uoaaJMzzHtQpKXlDQ2M+BrODBWFWhPY0PWIZf+qNEzXj/CsUk1aCfauR54R3
+GnXei2ypS94XXZxSH5BdpyjnAxJA4lU4UCQ4MolZbfqCiyJcQOLnBVGj/89A0EfR
+IO+12AFzEYhO8T0gATFQEbM+U5X363oA6eOM2APEgCEGaUE3gGATDd4d7NfiqGGB
+/pGR2yisFBySvJse3nkpw5k8OMPTo5sU2y8B7Pzd42sC2fcQCdChnm8wX9zYurkY
+ApVUY2dihzYCc43AyJ0G169MGtAxDwC7g9qhhFyQWxS2TpLXbv7F+/iMTPsh08eF
+SoM5eTgWgqMbAhAX8BH7hJ1KoveYwmCBUYnQc9UfQvL75a0/J0I=
+=UCus
 -----END PGP SIGNATURE-----
 
---Iys0Un1O+0sigPHU--
+--mejza3ZMMA5Za1mX--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
