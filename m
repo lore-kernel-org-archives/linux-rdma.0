@@ -1,7 +1,7 @@
 From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH rdma-core] qedr: Set immediate data sent via EDPM as is.
-Date: Wed, 21 Jun 2017 09:31:34 +0300
-Message-ID: <1498026694-7862-1-git-send-email-Ram.Amrani@cavium.com>
+Subject: [PATCH rdma-core v2] qedr: Set immediate data sent via EDPM as is.
+Date: Wed, 21 Jun 2017 09:32:55 +0300
+Message-ID: <1498026775-7927-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -15,6 +15,8 @@ is sent directly to the transmitting HW and isn't processed by the
 FW that requires specific order.
 
 Fixes: c0965e4fe6fe ("libqedr (qelr) verbs")
+
+Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 ---
  providers/qedr/qelr_verbs.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
