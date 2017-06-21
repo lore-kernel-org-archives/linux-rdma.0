@@ -1,162 +1,55 @@
 From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next 02/13] RDMA/bnxt_re: Free doorbell page index (DPI) during dealloc ucontext
-Date: Wed, 21 Jun 2017 10:18:13 -0700
-Message-ID: <1498065504-27902-3-git-send-email-selvin.xavier@broadcom.com>
+Subject: [PATCH for-next 03/13] RDMA/bnxt_re: Fix WQE Size posted to HW to prevent it from throwing error
+Date: Wed, 21 Jun 2017 10:18:14 -0700
+Message-ID: <1498065504-27902-4-git-send-email-selvin.xavier@broadcom.com>
 References: <1498065504-27902-1-git-send-email-selvin.xavier@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1498065504-27902-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+From: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 
-The driver must free the DPI during the dealloc_ucontext
-instead of freeing it during dealloc_pd. However, the DPI
-allocation scheme remains unchanged.
+Posting WQE size of 2 results in a WQE_FORMAT_ERROR
+thrown by the HW as it requires host to supply WQE Size with room
+for atleast one SGE so that the resulting WQE size be atleast 3.
 
-Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 58 ++++++++++++++++----------------
- drivers/infiniband/hw/bnxt_re/ib_verbs.h |  3 +-
- 2 files changed, 30 insertions(+), 31 deletions(-)
+ drivers/infiniband/hw/bnxt_re/qplib_fp.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index fa388f2..2fa5967 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -597,30 +597,13 @@ int bnxt_re_dealloc_pd(struct ib_pd *ib_pd)
- 	int rc;
- 
- 	bnxt_re_destroy_fence_mr(pd);
--	if (ib_pd->uobject && pd->dpi.dbr) {
--		struct ib_ucontext *ib_uctx = ib_pd->uobject->context;
--		struct bnxt_re_ucontext *ucntx;
- 
--		/* Free DPI only if this is the first PD allocated by the
--		 * application and mark the context dpi as NULL
--		 */
--		ucntx = container_of(ib_uctx, struct bnxt_re_ucontext, ib_uctx);
--
--		rc = bnxt_qplib_dealloc_dpi(&rdev->qplib_res,
--					    &rdev->qplib_res.dpi_tbl,
--					    &pd->dpi);
-+	if (pd->qplib_pd.id) {
-+		rc = bnxt_qplib_dealloc_pd(&rdev->qplib_res,
-+					   &rdev->qplib_res.pd_tbl,
-+					   &pd->qplib_pd);
- 		if (rc)
--			dev_err(rdev_to_dev(rdev), "Failed to deallocate HW DPI");
--			/* Don't fail, continue*/
--		ucntx->dpi = NULL;
--	}
--
--	rc = bnxt_qplib_dealloc_pd(&rdev->qplib_res,
--				   &rdev->qplib_res.pd_tbl,
--				   &pd->qplib_pd);
--	if (rc) {
--		dev_err(rdev_to_dev(rdev), "Failed to deallocate HW PD");
--		return rc;
-+			dev_err(rdev_to_dev(rdev), "Failed to deallocate HW PD");
- 	}
- 
- 	kfree(pd);
-@@ -652,23 +635,22 @@ struct ib_pd *bnxt_re_alloc_pd(struct ib_device *ibdev,
- 	if (udata) {
- 		struct bnxt_re_pd_resp resp;
- 
--		if (!ucntx->dpi) {
-+		if (!ucntx->dpi.dbr) {
- 			/* Allocate DPI in alloc_pd to avoid failing of
- 			 * ibv_devinfo and family of application when DPIs
- 			 * are depleted.
- 			 */
- 			if (bnxt_qplib_alloc_dpi(&rdev->qplib_res.dpi_tbl,
--						 &pd->dpi, ucntx)) {
-+						 &ucntx->dpi, ucntx)) {
- 				rc = -ENOMEM;
- 				goto dbfail;
- 			}
--			ucntx->dpi = &pd->dpi;
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+index f05500bc..8ef39df 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+@@ -1128,6 +1128,11 @@ int bnxt_qplib_post_send(struct bnxt_qplib_qp *qp,
  		}
- 
- 		resp.pdid = pd->qplib_pd.id;
- 		/* Still allow mapping this DBR to the new user PD. */
--		resp.dpi = ucntx->dpi->dpi;
--		resp.dbr = (u64)ucntx->dpi->umdbr;
-+		resp.dpi = ucntx->dpi.dpi;
-+		resp.dbr = (u64)ucntx->dpi.umdbr;
- 
- 		rc = ib_copy_to_udata(udata, &resp, sizeof(resp));
- 		if (rc) {
-@@ -945,7 +927,7 @@ static int bnxt_re_init_user_qp(struct bnxt_re_dev *rdev, struct bnxt_re_pd *pd,
- 		qplib_qp->rq.nmap = umem->nmap;
- 	}
- 
--	qplib_qp->dpi = cntx->dpi;
-+	qplib_qp->dpi = &cntx->dpi;
- 	return 0;
- rqfail:
- 	ib_umem_release(qp->sumem);
-@@ -2388,7 +2370,7 @@ struct ib_cq *bnxt_re_create_cq(struct ib_device *ibdev,
- 		}
- 		cq->qplib_cq.sghead = cq->umem->sg_head.sgl;
- 		cq->qplib_cq.nmap = cq->umem->nmap;
--		cq->qplib_cq.dpi = uctx->dpi;
-+		cq->qplib_cq.dpi = &uctx->dpi;
- 	} else {
- 		cq->max_cql = min_t(u32, entries, MAX_CQL_PER_POLL);
- 		cq->cql = kcalloc(cq->max_cql, sizeof(struct bnxt_qplib_cqe),
-@@ -3373,8 +3355,26 @@ int bnxt_re_dealloc_ucontext(struct ib_ucontext *ib_uctx)
- 	struct bnxt_re_ucontext *uctx = container_of(ib_uctx,
- 						   struct bnxt_re_ucontext,
- 						   ib_uctx);
-+
-+	struct bnxt_re_dev *rdev = uctx->rdev;
-+	int rc = 0;
-+
- 	if (uctx->shpg)
- 		free_page((unsigned long)uctx->shpg);
-+
-+	if (uctx->dpi.dbr) {
-+		/* Free DPI only if this is the first PD allocated by the
-+		 * application and mark the context dpi as NULL
+ 		/* Each SGE entry = 1 WQE size16 */
+ 		wqe_size16 = wqe->num_sge;
++		/* HW requires wqe size has room for atleast one SGE even if
++		 * none was supplied by ULP
 +		 */
-+		rc = bnxt_qplib_dealloc_dpi(&rdev->qplib_res,
-+					    &rdev->qplib_res.dpi_tbl,
-+					    &uctx->dpi);
-+		if (rc)
-+			dev_err(rdev_to_dev(rdev), "Deallocte HW DPI failed!");
-+			/* Don't fail, continue*/
-+		uctx->dpi.dbr = NULL;
-+	}
-+
- 	kfree(uctx);
- 	return 0;
- }
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.h b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-index 6c160f6..a0bb7e3 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-@@ -59,7 +59,6 @@ struct bnxt_re_pd {
- 	struct bnxt_re_dev	*rdev;
- 	struct ib_pd		ib_pd;
- 	struct bnxt_qplib_pd	qplib_pd;
--	struct bnxt_qplib_dpi	dpi;
- 	struct bnxt_re_fence_data fence;
- };
++		if (!wqe->num_sge)
++			wqe_size16++;
+ 	}
  
-@@ -127,7 +126,7 @@ struct bnxt_re_mw {
- struct bnxt_re_ucontext {
- 	struct bnxt_re_dev	*rdev;
- 	struct ib_ucontext	ib_uctx;
--	struct bnxt_qplib_dpi	*dpi;
-+	struct bnxt_qplib_dpi	dpi;
- 	void			*shpg;
- 	spinlock_t		sh_lock;	/* protect shpg */
- };
+ 	/* Specifics */
+@@ -1364,6 +1369,11 @@ int bnxt_qplib_post_recv(struct bnxt_qplib_qp *qp,
+ 	rqe->flags = wqe->flags;
+ 	rqe->wqe_size = wqe->num_sge +
+ 			((offsetof(typeof(*rqe), data) + 15) >> 4);
++	/* HW requires wqe size has room for atleast one SGE even if none
++	 * was supplied by ULP
++	 */
++	if (!wqe->num_sge)
++		rqe->wqe_size++;
+ 
+ 	/* Supply the rqe->wr_id index to the wr_id_tbl for now */
+ 	rqe->wr_id[0] = cpu_to_le32(sw_prod);
 -- 
 2.5.5
 
