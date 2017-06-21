@@ -1,14 +1,14 @@
 From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH rdma-next 04/19] RDMA/netlink: Rename and remove redundant parameter from ibnl_multicast
-Date: Wed, 21 Jun 2017 09:03:08 -0500
-Message-ID: <021c01d2ea97$1c434e60$54c9eb20$@opengridcomputing.com>
-References: <20170621060528.3752-1-leon@kernel.org> <20170621060528.3752-5-leon@kernel.org>
+Subject: RE: [PATCH rdma-next 05/19] RDMA/netlink: Simplify and rename ibnl_chk_listeners
+Date: Wed, 21 Jun 2017 09:04:09 -0500
+Message-ID: <021e01d2ea97$41162fa0$c3428ee0$@opengridcomputing.com>
+References: <20170621060528.3752-1-leon@kernel.org> <20170621060528.3752-6-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
         charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170621060528.3752-5-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170621060528.3752-6-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -17,13 +17,13 @@ List-Id: linux-rdma@vger.kernel.org
 
 > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> The pointer to netlink header was not used in the ibnl_multicast
-> function, so let's remove it and simplify the function
-> signature.
+> Make ibnl_chk_listeners function to be one line by removing
+> unneeded comparison.
+> 
+> Rename that function to be complaint to other functions in RDMA netlink.
 > 
 > Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Looks good.
 
 Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 
