@@ -1,203 +1,180 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next 11/19] RDMA/netlink: Convert LS to doit callback
-Date: Wed, 21 Jun 2017 17:53:54 +0300
-Message-ID: <20170621145354.GF1248@mtr-leonro.local>
-References: <20170621060528.3752-1-leon@kernel.org>
- <20170621060528.3752-12-leon@kernel.org>
- <022a01d2ea99$3eed7150$bcc853f0$@opengridcomputing.com>
+Subject: Re: [PATCH] ib_core: Enable and expose force_mr module parameter
+Date: Wed, 21 Jun 2017 17:56:40 +0300
+Message-ID: <20170621145640.GG1248@mtr-leonro.local>
+References: <20170619152351.2866.11046.stgit@klimt.1015granger.net>
+ <20170620073236.GO17846@mtr-leonro.local>
+ <DE0C511C-A4CB-4D76-8BA7-6BFF81F590B3@oracle.com>
+ <20170620180348.GV17846@mtr-leonro.local>
+ <C27E2410-44B7-451E-8069-DF1444048158@oracle.com>
+ <20170620184046.GW17846@mtr-leonro.local>
+ <B34E95B2-A7D9-4725-B7C2-3DA4DACD29B7@oracle.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="pyE8wggRBhVBcj8z"
+        protocol="application/pgp-signature"; boundary="p7qwJlK53pWzbayA"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <022a01d2ea99$3eed7150$bcc853f0$@opengridcomputing.com>
+In-Reply-To: <B34E95B2-A7D9-4725-B7C2-3DA4DACD29B7-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Chien Tin Tung' <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Stephen Hemminger' <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>, 'Jiri Pirko' <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Ariel Almog' <ariela-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Linux Netdev' <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---pyE8wggRBhVBcj8z
+--p7qwJlK53pWzbayA
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Jun 21, 2017 at 09:18:25AM -0500, Steve Wise wrote:
-> > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >
-> > RDMA_NL_LS protocol is actually is not dump anything,
+On Wed, Jun 21, 2017 at 10:46:44AM -0400, Chuck Lever wrote:
+> [ Removing Doug since all mail to him seems to be bouncing ]
 >
-> nit:  "is not" -> "does not"
+> > On Jun 20, 2017, at 2:40 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> >
+> > On Tue, Jun 20, 2017 at 02:23:21PM -0400, Chuck Lever wrote:
+> >>
+> >>> On Jun 20, 2017, at 2:03 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> >>>
+> >>> On Tue, Jun 20, 2017 at 11:43:56AM -0400, Chuck Lever wrote:
+> >>>> Hi Leon-
+> >>>>
+> >>>>
+> >>>>> On Jun 20, 2017, at 3:32 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> >>>>>
+> >>>>> On Mon, Jun 19, 2017 at 11:26:40AM -0400, Chuck Lever wrote:
+> >>>>>> The fourth parameter of the module_param_named macro is a set of
+> >>>>>> file permissions. Passing 0 there means that module parameter is
+> >>>>>> not created and that adding "options ib_core force_mr=1" to a
+> >>>>>> modprobe.conf file has no effect.
+> >>>>>>
+> >>>>>> The default setting of rdma_rw_force_mr continues to be 0, or false.
+> >>>>>>
+> >>>>>> Fixes: a060b5629ab0 ("IB/core: generic RDMA READ/WRITE API")
+> >>>>>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> >>>>>> ---
+> >>>>>> Hi Doug-
+> >>>>>>
+> >>>>>> This doesn't seem appropriate to go through Bruce's tree for 4.13.
+> >>>>>>
+> >>>>>> Last discussion didn't seem to conclude with full consensus.
+> >>>>>> Probably people don't care enough one way or another. But I'd like
+> >>>>>> to see this get fixed if there aren't strong objections. Would you
+> >>>>>> take it for 4.13?
+> >>>>>
+> >>>>> I care and believe that it should be removed from exposure to users.
+> >>>>> The variable force_mr should be leaved in the code for the debug,
+> >>>>> but module_param should be removed.
+> >>>>
+> >>>> I don't understand the technical grounds of your objection.
+> >>>> Why is
+> >>>>
+> >>>> options mlx4_core internal_err_reset=0
+> >>>>
+> >>>> acceptable, but
+> >>>>
+> >>>> options ib_core force_mr=1
+> >>>>
+> >>>> not?
+> >>>
+> >>> That mlx4 variable was exposed before I started to follow after
+> >>> Mellanox's submissions.
+> >>>
+> >>> The force_mr parameter is for debug of new ULP and/or conversion of
+> >>> existing ULP to RW API. This is not very common situation and it is
+> >>> for the developers and not for the users.
+> >>
+> >> No disagreement on that, but that's still not an argument
+> >> not to expose it. What is the risk, as you see it?
+> >
+> > It will be "marked" as UAPI and we won't be able to change it,
+> > which IMHO bad for the debug. It also invites users to set it
+> > and in perfect world, we should test our HCAs with this flag
+> > on and off, because curious user can set it.
 >
-> > but sets data and it should be handled by doit callback.
-> >
-> > This patch actually converts RDMA_NL_LS to doit callback, while
-> > preserving IWCM and RDMA_CM flows through netlink_dump_start().
-> >
-> > Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> We have loads of legacy debugging interfaces.
 >
+> And yes, ULP developers should be aware of it and test with
+> both settings.
 >
->
-> > ---
-> >  drivers/infiniband/core/addr.c      |  5 ++---
-> >  drivers/infiniband/core/core_priv.h |  9 ++++++---
-> >  drivers/infiniband/core/device.c    |  6 +++---
-> >  drivers/infiniband/core/netlink.c   | 28 ++++++++++------------------
-> >  drivers/infiniband/core/sa_query.c  |  8 ++++----
-> >  5 files changed, 25 insertions(+), 31 deletions(-)
-> >
-> > diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-> > index 2cc23a26ce4f..0b283029bc61 100644
-> > --- a/drivers/infiniband/core/addr.c
-> > +++ b/drivers/infiniband/core/addr.c
-> > @@ -129,10 +129,9 @@ static void ib_nl_process_good_ip_rsep(const struct
-> > nlmsghdr *nlh)
-> >  }
-> >
-> >  int ib_nl_handle_ip_res_resp(struct sk_buff *skb,
-> > -			     struct netlink_callback *cb)
-> > +			     struct nlmsghdr *nlh,
-> > +			     struct netlink_ext_ack *extack)
-> >  {
-> > -	const struct nlmsghdr *nlh = (struct nlmsghdr *)cb->nlh;
-> > -
-> >  	if ((nlh->nlmsg_flags & NLM_F_REQUEST) ||
-> >  	    !(NETLINK_CB(skb).sk))
-> >  		return -EPERM;
-> > diff --git a/drivers/infiniband/core/core_priv.h
-> > b/drivers/infiniband/core/core_priv.h
-> > index 049ccbfca988..0137aa1ec471 100644
-> > --- a/drivers/infiniband/core/core_priv.h
-> > +++ b/drivers/infiniband/core/core_priv.h
-> > @@ -178,11 +178,14 @@ int ib_sa_init(void);
-> >  void ib_sa_cleanup(void);
-> >
-> >  int ib_nl_handle_resolve_resp(struct sk_buff *skb,
-> > -			      struct netlink_callback *cb);
-> > +			      struct nlmsghdr *nlh,
-> > +			      struct netlink_ext_ack *extack);
-> >  int ib_nl_handle_set_timeout(struct sk_buff *skb,
-> > -			     struct netlink_callback *cb);
-> > +			     struct nlmsghdr *nlh,
-> > +			     struct netlink_ext_ack *extack);
-> >  int ib_nl_handle_ip_res_resp(struct sk_buff *skb,
-> > -			     struct netlink_callback *cb);
-> > +			     struct nlmsghdr *nlh,
-> > +			     struct netlink_ext_ack *extack);
-> >
-> >  struct ib_device *__ib_device_get_by_name(const char *name);
-> >  #endif /* _CORE_PRIV_H */
-> > diff --git a/drivers/infiniband/core/device.c
-> b/drivers/infiniband/core/device.c
-> > index 4ec1b24258de..7317f203a315 100644
-> > --- a/drivers/infiniband/core/device.c
-> > +++ b/drivers/infiniband/core/device.c
-> > @@ -1034,15 +1034,15 @@ EXPORT_SYMBOL(ib_get_net_dev_by_params);
-> >
-> >  static const struct rdma_nl_cbs ibnl_ls_cb_table[] = {
-> >  	[RDMA_NL_LS_OP_RESOLVE] = {
-> > -		.dump = ib_nl_handle_resolve_resp,
-> > +		.doit = ib_nl_handle_resolve_resp,
-> >  		.flags = RDMA_NL_ADMIN_PERM,
-> >  	},
-> >  	[RDMA_NL_LS_OP_SET_TIMEOUT] = {
-> > -		.dump = ib_nl_handle_set_timeout,
-> > +		.doit = ib_nl_handle_set_timeout,
-> >  		.flags = RDMA_NL_ADMIN_PERM,
-> >  	},
-> >  	[RDMA_NL_LS_OP_IP_RESOLVE] = {
-> > -		.dump = ib_nl_handle_ip_res_resp,
-> > +		.doit = ib_nl_handle_ip_res_resp,
-> >  		.flags = RDMA_NL_ADMIN_PERM,
-> >  	},
-> >  };
-> > diff --git a/drivers/infiniband/core/netlink.c
-> b/drivers/infiniband/core/netlink.c
-> > index 73c74d1cd2a3..52fce73be9c1 100644
-> > --- a/drivers/infiniband/core/netlink.c
-> > +++ b/drivers/infiniband/core/netlink.c
-> > @@ -154,38 +154,30 @@ static int rdma_nl_rcv_msg(struct sk_buff *skb, struct
-> > nlmsghdr *nlh,
-> >  	int type = nlh->nlmsg_type;
-> >  	unsigned int index = RDMA_NL_GET_CLIENT(type);
-> >  	unsigned int op = RDMA_NL_GET_OP(type);
-> > -	struct netlink_callback cb = {};
-> > -	struct netlink_dump_control c = {};
-> >  	const struct rdma_nl_cbs *cb_table;
-> > -	int ret;
-> >
-> >  	if (!is_nl_valid(index, op))
-> >  		return -EINVAL;
-> >
-> > -	cb_table = rdma_nl_types[type].cb_table;
-> > +	cb_table = rdma_nl_types[index].cb_table;
-> >
-> >  	if ((cb_table[op].flags & RDMA_NL_ADMIN_PERM) &&
-> >  	    !netlink_capable(skb, CAP_NET_ADMIN))
-> >  		return -EPERM;
-> >
-> > -	/*
-> > -	 * For response or local service set_timeout request,
-> > -	 * there is no need to use netlink_dump_start.
-> > -	 */
-> > -	if (!(nlh->nlmsg_flags & NLM_F_REQUEST) ||
-> > -	    (index == RDMA_NL_LS && op == RDMA_NL_LS_OP_SET_TIMEOUT)) {
-> > -		cb.skb = skb;
-> > -		cb.nlh = nlh;
-> > -		cb.dump = cb_table[op].dump;
-> > -		return cb.dump(skb, &cb);
-> > -	} else {
-> > -		c.dump = cb_table[op].dump;
-> > +	/* TODO: Convert IWCM to properly handle doit callbacks */
-> > +	if ((nlh->nlmsg_flags & NLM_F_DUMP) || index == RDMA_NL_RDMA_CM
-> > ||
-> > +	    index == RDMA_NL_IWCM) {
-> > +		struct netlink_dump_control c = {
-> > +			.dump = cb_table[op].dump,
-> > +		};
->
-> Any reason you didn't fix IWCM as part of this series?  Or will you fix it in an
-> upcoming series?  Also, isn't FIXME: the norm for these sorts of "I don't want
-> to fix this now" comments?
+> I'm not convinced any of this is a problem for this particular
+> setting. However, I guess the thing for you to do is propose a
+> patch.
 
-I wanted to stop before it is growing into enormous series. There are
-number of things which I wanted to discuss and fix before moving forward.
-
-1. What should we do with exported RDMA-CM statistics and structures? I
-have a very strong feeling that it is broken and anyway, I'm not going to
-use it, because it doesn't follow netlink's TLV style.
-
-2. How to handle IWCM code which sets manually MSG_DONE and isn't using
-MULTI flag? It has very similar pattern to my "workarounds", when I didn't
-handle properly end of message.
-
-3. Need to remove nl_client from IWCM code.
-
-Thanks
+Thanks,
+I'll do it with great pleasure.
 
 >
 >
+> > Thanks
+> >
+> >>
+> >>
+> >>> Thanks
+> >>>
+> >>>>
+> >>>>
+> >>>>> Thanks
+> >>>>>
+> >>>>>
+> >>>>>>
+> >>>>>>
+> >>>>>> drivers/infiniband/core/rw.c |    2 +-
+> >>>>>> 1 file changed, 1 insertion(+), 1 deletion(-)
+> >>>>>>
+> >>>>>> diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
+> >>>>>> index dbfd854..1cc8f07 100644
+> >>>>>> --- a/drivers/infiniband/core/rw.c
+> >>>>>> +++ b/drivers/infiniband/core/rw.c
+> >>>>>> @@ -23,7 +23,7 @@ enum {
+> >>>>>> };
+> >>>>>>
+> >>>>>> static bool rdma_rw_force_mr;
+> >>>>>> -module_param_named(force_mr, rdma_rw_force_mr, bool, 0);
+> >>>>>> +module_param_named(force_mr, rdma_rw_force_mr, bool, 0644);
+> >>>>>> MODULE_PARM_DESC(force_mr, "Force usage of MRs for RDMA READ/WRITE operations");
+> >>>>>>
+> >>>>>> /*
+> >>>>>>
+> >>>>>> --
+> >>>>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> >>>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> >>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>>>
+> >>>> --
+> >>>> Chuck Lever
+> >>
+> >> --
+> >> Chuck Lever
+> >>
+> >>
+> >>
+>
+> --
+> Chuck Lever
+>
+>
+>
 
---pyE8wggRBhVBcj8z
+--p7qwJlK53pWzbayA
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllKiIIACgkQ5GN7iDZy
-WKfomQ//YnsowHXS5W8TBb8/Q+NRJ0MQWulQZEQJmCH9ax5c0gWdORWohQJ0YMnv
-3PBQ1rV5L97pNmg6UZinCVq2KgChJuyXTL39++cc+QHpGmrGExDVXPLwywTENQtq
-dGfBROCW1WwtG9TzoQP2GeLRtyrPMlP/yLCGOMJ0cR8QXcPk7gg1qSvfMkf7Kdqb
-Ouy6Y6vwtnILm4gpELyTTmXsMQGH3v1T7bHRWUzuGfeXp9BHnqM15CvBcnJ5Dj3H
-jz+PdWy0KtPGWVEVK6oSEBYORD5JJoWEJF4PiZkLhinHd/TKj1Gz9AO64PCAWa2/
-c4AQl89vje70blgiHwBbCiZn2fqoii58b+UVaurx7xsEht+DCMLZ0o8egHMTZBqx
-dEVxMg/C1og0OwG/QDln8IO4Xv+znx5Ws0H9tfP0FCCyZRITZkh2C2/D8oGDnLw4
-sHtxxZljCVYFRUIFmcmEIQQ5OAFPdpOr3DxqSypZy7JBmnKvxk8of+tT42OMqzKm
-Y8MCkI5qrk+VbRqZwY5ej0fVyotABwt1j571r1Wk7VQ1LN07ww+5/Mu06V1R/QT2
-DhbkvHSvmEcj4cCeDEM3Sb6we+SupksIDbCdV9A7/zBK5AqzOjDrv8lrzqRrLD20
-oAundvCfieqvSXl9RSDNC7xsuLUycQzhq8PgT+pmeinCsb+Pg2Q=
-=cPbK
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllKiSgACgkQ5GN7iDZy
+WKcWlg//Yeg6WwfO+saH0F+HmPn7I0jEzBHvoq83T9/I89xNGNutSX07FSVTGSyG
+wleN37QC06+hCkMrBlm0c/3fHecs6/pgx9fp40XQZvGBUVLxgOGjOPhob+JMQOZ7
+0QaoIue5f3QHuoEZz7V9fii4BqMP9Px1bVCPI07VemLRTPfYQMMhpgZf/xw6XLLv
+LvBKWdckSDNRoCtPjGW/CwHwuZu9scwshcKo1EQVNb+lo8/a7FZWhJhjt6vR5lZX
+pvyZ7qv8dor37MktdKidyJMlVFUx+vamZneK7p9dN3K+/bexhmDEIIfVNuV3CQYA
+RWXrI3flkyZtUCHvZiAxJ9RQOdw9V9O1+NkPE+boDnIhED6T8Os9h3Jn8SjmSV67
+L5/1vWokxIAYi8QbHB7FhVRhQaiGASx0FuNlkqiW7TbzOU6l8Mc2X1UecvgfcziJ
+wMLZaiN+AdhCGAllQV9Sv4hz69SH7ZScSv9YIhzfbvg2NAtFT2f6zZ2Gvt3z+KuZ
+19iOtdnrtPJ8JOdy7TXlIOjKPBX/775zWdtzRK7/GIR1n+ZJfdYA82nY7Ef9ZkEM
+9fy81MpRdyRXrv8t3TPx3q/OTOkIokrMwKpD2yjmePi8Jyunriife4T8HO2kCE7U
+tImNAujedOR2QNkD5VRu748plT+ln+XnWkA4LLu4zjG941mobco=
+=f1QC
 -----END PGP SIGNATURE-----
 
---pyE8wggRBhVBcj8z--
+--p7qwJlK53pWzbayA--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
