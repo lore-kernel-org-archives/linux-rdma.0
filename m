@@ -1,108 +1,129 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: Re: Unexpected issues with 2 NVME initiators using the same target
-Date: Tue, 20 Jun 2017 16:58:52 -0600
-Message-ID: <CAANLjFrzsTFZP536L2G2CHy=JmDb3W+ePB_mOLHm2qp2Bb2iaw@mail.gmail.com>
-References: <9465cd0c-83db-b058-7615-5626ef60dbb0@grimberg.me>
- <20170515143632.GH3616@mtr-leonro.local> <20170515145952.GA7871@infradead.org>
- <20170515170506.GK3616@mtr-leonro.local> <779753075.36035391.1495025796237.JavaMail.zimbra@kalray.eu>
- <20170518133439.GD3616@mtr-leonro.local> <CAANLjFrCLpX3nb3q7LpFPpLJKciU+1Hvmt_hxyTovQJM2-zQmg@mail.gmail.com>
- <6073e553-e8c2-6d14-ba5d-c2bd5aff15eb@grimberg.me> <20170620074639.GP17846@mtr-leonro.local>
- <1c706958-992e-b104-6bae-4a6616c0a9f9@grimberg.me> <20170620083309.GQ17846@mtr-leonro.local>
- <bd0b986f-9bed-3dfa-7454-0661559a527b@grimberg.me> <78b2c1db-6ece-0274-c4c9-5ee1f7c88469@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next 01/19] RDMA/netlink: Add flag to consolidate common handing
+Date: Wed, 21 Jun 2017 09:05:10 +0300
+Message-ID: <20170621060528.3752-2-leon@kernel.org>
+References: <20170621060528.3752-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <78b2c1db-6ece-0274-c4c9-5ee1f7c88469-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20170621060528.3752-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "shahar.salzman" <shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Riches Jr, Robert M" <robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>, Jiri Pirko <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ariel Almog <ariela-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 20, 2017 at 4:31 AM, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
->
->
-> On 6/20/2017 12:33 PM, Sagi Grimberg wrote:
->>
->>
->>>>> Here the parsed output, it says that it was access to mkey which is
->>>>> free.
->>
->>
->> Missed that :)
->>
->>>>> ======== cqe_with_error ========
->>>>> wqe_id                           : 0x0
->>>>> srqn_usr_index                   : 0x0
->>>>> byte_cnt                         : 0x0
->>>>> hw_error_syndrome                : 0x93
->>>>> hw_syndrome_type                 : 0x0
->>>>> vendor_error_syndrome            : 0x52
->>>>
->>>>
->>>> Can you share the check that correlates to the vendor+hw syndrome?
->>>
->>>
->>> mkey.free == 1
->>
->>
->> Hmm, the way I understand it is that the HW is trying to access
->> (locally via send) a MR which was already invalidated.
->>
->> Thinking of this further, this can happen in a case where the target
->> already completed the transaction, sent SEND_WITH_INVALIDATE but the
->> original send ack was lost somewhere causing the device to retransmit
->> from the MR (which was already invalidated). This is highly unlikely
->> though.
->>
->> Shouldn't this be protected somehow by the device?
->> Can someone explain why the above cannot happen? Jason? Liran? Anyone?
->>
->> Say host register MR (a) and send (1) from that MR to a target,
->> send (1) ack got lost, and the target issues SEND_WITH_INVALIDATE
->> on MR (a) and the host HCA process it, then host HCA timeout on send (1)
->> so it retries, but ehh, its already invalidated.
->
->
-> This might happen IMO.
-> Robert, can you test this untested patch (this is not the full solution,
-> just something to think about):
->
-> diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c
-> b/drivers/infiniband/ulp/iser/iser_verbs.c
-> index c538a38..e93bd40 100644
-> --- a/drivers/infiniband/ulp/iser/iser_verbs.c
-> +++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-> @@ -1079,7 +1079,7 @@ int iser_post_send(struct ib_conn *ib_conn, struct
-> iser_tx_desc *tx_desc,
->         wr->sg_list = tx_desc->tx_sg;
->         wr->num_sge = tx_desc->num_sge;
->         wr->opcode = IB_WR_SEND;
-> -       wr->send_flags = signal ? IB_SEND_SIGNALED : 0;
-> +       wr->send_flags = IB_SEND_SIGNALED;
->
->         ib_ret = ib_post_send(ib_conn->qp, &tx_desc->wrs[0].send, &bad_wr);
->         if (ib_ret)
->
->
->>
->> Or, we can also have a race where we destroy all our MRs when I/O
->> is still running (but from the code we should be safe here).
->>
->> Robert, when you rebooted the target, I assume iscsi ping
->> timeout expired and the connection teardown started correct?
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-I still get the local protection errors with this patch. I am seeing a
-ping timeout on the initiator when I reboot the target.
-[Tue Jun 20 16:41:21 2017]  connection7:0: detected conn error (1011)
-[Tue Jun 20 16:41:26 2017]  session7: session recovery timed out after 5 secs
+Add ability to provide flags to control RDMA netlink callbacks
+and convert addr.c and sa_query.c to be first users of such
+infrastructure. It allows to move their CAP_NET_ADMIN checks
+into netlink core.
 
-Since I'm gracefully shutting down the targets in this case, shouldn't
-the connection be closed gracefully by the target instead of the
-initiator having to wait for ping to fail?
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/addr.c     |  3 +--
+ drivers/infiniband/core/device.c   | 12 +++++++++---
+ drivers/infiniband/core/netlink.c  |  4 ++++
+ drivers/infiniband/core/sa_query.c |  6 ++----
+ include/rdma/rdma_netlink.h        |  6 ++++++
+ 5 files changed, 22 insertions(+), 9 deletions(-)
 
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+index 02971e239a18..134d8394fca5 100644
+--- a/drivers/infiniband/core/addr.c
++++ b/drivers/infiniband/core/addr.c
+@@ -134,8 +134,7 @@ int ib_nl_handle_ip_res_resp(struct sk_buff *skb,
+ 	const struct nlmsghdr *nlh = (struct nlmsghdr *)cb->nlh;
+ 
+ 	if ((nlh->nlmsg_flags & NLM_F_REQUEST) ||
+-	    !(NETLINK_CB(skb).sk) ||
+-	    !netlink_capable(skb, CAP_NET_ADMIN))
++	    !(NETLINK_CB(skb).sk))
+ 		return -EPERM;
+ 
+ 	if (ib_nl_is_good_ip_resp(nlh))
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 5c70ea49d5ad..2001dabd1444 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -1010,11 +1010,17 @@ EXPORT_SYMBOL(ib_get_net_dev_by_params);
+ 
+ static const struct ibnl_client_cbs ibnl_ls_cb_table[] = {
+ 	[RDMA_NL_LS_OP_RESOLVE] = {
+-		.dump = ib_nl_handle_resolve_resp},
++		.dump = ib_nl_handle_resolve_resp,
++		.flags = RDMA_NL_ADMIN_PERM,
++	},
+ 	[RDMA_NL_LS_OP_SET_TIMEOUT] = {
+-		.dump = ib_nl_handle_set_timeout},
++		.dump = ib_nl_handle_set_timeout,
++		.flags = RDMA_NL_ADMIN_PERM,
++	},
+ 	[RDMA_NL_LS_OP_IP_RESOLVE] = {
+-		.dump = ib_nl_handle_ip_res_resp},
++		.dump = ib_nl_handle_ip_res_resp,
++		.flags = RDMA_NL_ADMIN_PERM,
++	},
+ };
+ 
+ static int __init ib_core_init(void)
+diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+index 4fa6746a62b1..f0d482009c69 100644
+--- a/drivers/infiniband/core/netlink.c
++++ b/drivers/infiniband/core/netlink.c
+@@ -171,6 +171,10 @@ static int rdma_nl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	if (!is_nl_valid(index, op))
+ 		return -EINVAL;
+ 
++	if ((rdma_nl_types[index].cb_table[op].flags & RDMA_NL_ADMIN_PERM) &&
++	    !netlink_capable(skb, CAP_NET_ADMIN))
++		return -EPERM;
++
+ 	/*
+ 	 * For response or local service set_timeout request,
+ 	 * there is no need to use netlink_dump_start.
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index e335b09c022e..6e39a763b220 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -1034,8 +1034,7 @@ int ib_nl_handle_set_timeout(struct sk_buff *skb,
+ 	int ret;
+ 
+ 	if (!(nlh->nlmsg_flags & NLM_F_REQUEST) ||
+-	    !(NETLINK_CB(skb).sk) ||
+-	    !netlink_capable(skb, CAP_NET_ADMIN))
++	    !(NETLINK_CB(skb).sk))
+ 		return -EPERM;
+ 
+ 	ret = nla_parse(tb, LS_NLA_TYPE_MAX - 1, nlmsg_data(nlh),
+@@ -1110,8 +1109,7 @@ int ib_nl_handle_resolve_resp(struct sk_buff *skb,
+ 	int ret;
+ 
+ 	if ((nlh->nlmsg_flags & NLM_F_REQUEST) ||
+-	    !(NETLINK_CB(skb).sk) ||
+-	    !netlink_capable(skb, CAP_NET_ADMIN))
++	    !(NETLINK_CB(skb).sk))
+ 		return -EPERM;
+ 
+ 	spin_lock_irqsave(&ib_nl_request_lock, flags);
+diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
+index 761517105a36..6932b7acd3a6 100644
+--- a/include/rdma/rdma_netlink.h
++++ b/include/rdma/rdma_netlink.h
+@@ -7,6 +7,12 @@
+ 
+ struct ibnl_client_cbs {
+ 	int (*dump)(struct sk_buff *skb, struct netlink_callback *nlcb);
++	u8 flags;
++};
++
++enum rdma_nl_flags {
++	/* Require CAP_NET_ADMIN */
++	RDMA_NL_ADMIN_PERM	= 1 << 0,
+ };
+ 
+ int rdma_nl_init(void);
+-- 
+2.13.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
