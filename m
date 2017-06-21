@@ -1,80 +1,62 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next 17/19] RDMA/netlink: Add nldev port dumpit
- implementation
-Date: Wed, 21 Jun 2017 18:21:23 +0300
-Message-ID: <20170621152123.GI1248@mtr-leonro.local>
-References: <20170621060528.3752-1-leon@kernel.org>
- <20170621060528.3752-18-leon@kernel.org>
- <023a01d2ea9a$9d1fb610$d75f2230$@opengridcomputing.com>
- <20170621144211.GE1248@mtr-leonro.local>
+From: "Steve Wise" <swise@opengridcomputing.com>
+Subject: RE: [PATCH rdma-next 11/19] RDMA/netlink: Convert LS to doit callback
+Date: Wed, 21 Jun 2017 10:25:18 -0500
+Message-ID: <033201d2eaa2$96e55860$c4b00920$@opengridcomputing.com>
+References: <20170621060528.3752-1-leon@kernel.org> <20170621060528.3752-12-leon@kernel.org> <022a01d2ea99$3eed7150$bcc853f0$@opengridcomputing.com> <20170621145354.GF1248@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="WR+jf/RUebEcofwt"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170621144211.GE1248-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Chien Tin Tung' <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Stephen Hemminger' <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>, 'Jiri Pirko' <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Ariel Almog' <ariela-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, 'Linux Netdev' <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170621145354.GF1248@mtr-leonro.local>
+Content-Language: en-us
+Sender: netdev-owner@vger.kernel.org
+To: 'Leon Romanovsky' <leon@kernel.org>
+Cc: 'Doug Ledford' <dledford@redhat.com>, linux-rdma@vger.kernel.org, 'Chien Tin Tung' <chien.tin.tung@intel.com>, 'Stephen Hemminger' <stephen@networkplumber.org>, 'Jiri Pirko' <jiri@mellanox.com>, 'Ariel Almog' <ariela@mellanox.com>, 'Linux Netdev' <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---WR+jf/RUebEcofwt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Jun 21, 2017 at 05:42:11PM +0300, Leon Romanovsky wrote:
-> On Wed, Jun 21, 2017 at 09:28:12AM -0500, Steve Wise wrote:
-> > > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > >
-> > > This patch implements the query interface to get all
-> > > ports data for the specific device.
-> > >
-> > > Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > > -	/*
+> > > -	 * For response or local service set_timeout request,
+> > > -	 * there is no need to use netlink_dump_start.
+> > > -	 */
+> > > -	if (!(nlh->nlmsg_flags & NLM_F_REQUEST) ||
+> > > -	    (index == RDMA_NL_LS && op == RDMA_NL_LS_OP_SET_TIMEOUT)) {
+> > > -		cb.skb = skb;
+> > > -		cb.nlh = nlh;
+> > > -		cb.dump = cb_table[op].dump;
+> > > -		return cb.dump(skb, &cb);
+> > > -	} else {
+> > > -		c.dump = cb_table[op].dump;
+> > > +	/* TODO: Convert IWCM to properly handle doit callbacks */
+> > > +	if ((nlh->nlmsg_flags & NLM_F_DUMP) || index == RDMA_NL_RDMA_CM
+> > > ||
+> > > +	    index == RDMA_NL_IWCM) {
+> > > +		struct netlink_dump_control c = {
+> > > +			.dump = cb_table[op].dump,
+> > > +		};
 > >
-> > The fill_port/dev_info is just filling in names and indexes.  Shouldn't it have
-> > all kinds of goodies about the port/dev?  Will this be enhanced going forward as
-> > needed?
->
-> Yes, exactly.
+> > Any reason you didn't fix IWCM as part of this series?  Or will you fix it
+in an
+> > upcoming series?  Also, isn't FIXME: the norm for these sorts of "I don't
+want
+> > to fix this now" comments?
+> 
+> I wanted to stop before it is growing into enormous series. There are
+> number of things which I wanted to discuss and fix before moving forward.
+> 
+> 1. What should we do with exported RDMA-CM statistics and structures? I
+> have a very strong feeling that it is broken and anyway, I'm not going to
+> use it, because it doesn't follow netlink's TLV style.
+> 
+> 2. How to handle IWCM code which sets manually MSG_DONE and isn't using
+> MULTI flag? It has very similar pattern to my "workarounds", when I didn't
+> handle properly end of message.
+> 
+> 3. Need to remove nl_client from IWCM code.
+> 
 
-You can see, it is happening in patch #19.
+Chien, can you please comment on this? 
 
-Thanks
+Thanks!
 
->
-> >
-> > Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
->
-> Thank you a lot for your review.
->
-> >
-> >
-
-
-
---WR+jf/RUebEcofwt
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllKjvMACgkQ5GN7iDZy
-WKdQvQ//adj87IEnMDUZIU0zn+Rj6Ihv1H9PfcSZQ2EcbByUDncDUBzVdqYsp+UW
-7DDZXWoMx4vdVdIJhTKR3IpQ8vle4B5iuy//BRz+3hCgTl3FAubmowI7igr+piaT
-Yj6EgOE3nijGbiWEO3qEKOz+xz/1wtXaiEG2YTU4oR1Rvc1pe8oZM2DpEZ+ZmqsM
-URszLd5syiiaRUn+It8kS8+vZqebtnBDDVwCaQaqZ+icIZqWmLOUATROZlNTqNkm
-Oe/QAlRr+9Ju3gMGZeM7kqeAlCs1HRNfvvE18tZA8bbLi0RY/jzkKXlJjii4JOaH
-aMgiWH/IYtxdhccyG9+NRs3IMJd5dkJdRB8FpMBgDe2hfE2hwwdr3AjsnhZohPsl
-jYrpxaaM5s1QeUyk6hOQqPQshwmUNIyECDnFjaZWDKSAuKHnD5HRpSu0yQLfjCP1
-r6sUPxT6d6ywO9uSU4v+qowbcZL+cN8p2XNX8DaMwQuUrCS1j4iLK84I5B5JUA5E
-0kB0RiGjNNKpF5c2V+QGhBAkujBPOpeMVdKc7FgAzOnroJM3FNhYz5OEd32IPZJc
-Uf5+oXaMiKHcdxcllwLSswhhh739ep57/KwCSIcxtoEa/2bhCJVDn4ufHXtoJxQc
-qLw7wFaGUkjHuZG1bwh9/f4pjS4mP87IHw1IxW44Vy+u4xREv7Q=
-=urkz
------END PGP SIGNATURE-----
-
---WR+jf/RUebEcofwt--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Steve.
