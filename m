@@ -1,111 +1,164 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 17/19] RDMA/netlink: Add nldev port dumpit implementation
-Date: Thu, 22 Jun 2017 16:24:32 +0300
-Message-ID: <20170622132434.1327-18-leon@kernel.org>
-References: <20170622132434.1327-1-leon@kernel.org>
+Subject: [PATCH rdma-next 2/4] IB/mlx4: Add support for WQ indirection table related verbs
+Date: Thu, 22 Jun 2017 16:44:10 +0300
+Message-ID: <20170622134412.7680-3-leon@kernel.org>
+References: <20170622134412.7680-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170622132434.1327-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170622134412.7680-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jiri Pirko <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ariel Almog <ariela-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This patch implements the query interface to get all
-ports data for the specific device.
+To enable RSS functionality the IB indirection table object (i.e.
+ib_rwq_ind_table) should be used.
+This patch implements the related verbs as of create and destroy an
+indirection table.
+In downstream patches the indirection table will be used as part of RSS
+QP creation.
 
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Signed-off-by: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/nldev.c | 61 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 61 insertions(+)
+ drivers/infiniband/hw/mlx4/main.c    | 12 +++++--
+ drivers/infiniband/hw/mlx4/mlx4_ib.h |  6 ++++
+ drivers/infiniband/hw/mlx4/qp.c      | 69 ++++++++++++++++++++++++++++++++++++
+ include/uapi/rdma/mlx4-abi.h         |  4 +++
+ 4 files changed, 88 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 666940f2b49a..4413eda8c435 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -53,6 +53,18 @@ static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index e084eb88d44b..97b82b0c680c 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -2754,10 +2754,16 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 		ibdev->ib_dev.create_wq		= mlx4_ib_create_wq;
+ 		ibdev->ib_dev.modify_wq		= mlx4_ib_modify_wq;
+ 		ibdev->ib_dev.destroy_wq	= mlx4_ib_destroy_wq;
++		ibdev->ib_dev.create_rwq_ind_table  =
++			mlx4_ib_create_rwq_ind_table;
++		ibdev->ib_dev.destroy_rwq_ind_table =
++			mlx4_ib_destroy_rwq_ind_table;
+ 		ibdev->ib_dev.uverbs_ex_cmd_mask |=
+-			(1ull << IB_USER_VERBS_EX_CMD_CREATE_WQ) |
+-			(1ull << IB_USER_VERBS_EX_CMD_MODIFY_WQ) |
+-			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_WQ);
++			(1ull << IB_USER_VERBS_EX_CMD_CREATE_WQ)	  |
++			(1ull << IB_USER_VERBS_EX_CMD_MODIFY_WQ)	  |
++			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_WQ)	  |
++			(1ull << IB_USER_VERBS_EX_CMD_CREATE_RWQ_IND_TBL) |
++			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_RWQ_IND_TBL);
+ 	}
+
+ 	if (!mlx4_is_slave(ibdev->dev)) {
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index 6d8ef6506f09..352b8bc975d6 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -909,4 +909,10 @@ int mlx4_ib_destroy_wq(struct ib_wq *wq);
+ int mlx4_ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *wq_attr,
+ 		      u32 wq_attr_mask, struct ib_udata *udata);
+
++struct ib_rwq_ind_table
++*mlx4_ib_create_rwq_ind_table(struct ib_device *device,
++			      struct ib_rwq_ind_table_init_attr *init_attr,
++			      struct ib_udata *udata);
++int mlx4_ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *wq_ind_table);
++
+ #endif /* MLX4_IB_H */
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index bca7b5f8b627..9d8d40bd1ac2 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -3853,3 +3853,72 @@ int mlx4_ib_destroy_wq(struct ib_wq *ibwq)
  	return 0;
  }
- 
-+static int fill_port_info(struct sk_buff *msg,
-+			  struct ib_device *device, u32 port)
+
++struct ib_rwq_ind_table
++*mlx4_ib_create_rwq_ind_table(struct ib_device *device,
++			      struct ib_rwq_ind_table_init_attr *init_attr,
++			      struct ib_udata *udata)
 +{
-+	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_DEV_INDEX, device->index))
-+		return -EMSGSIZE;
-+	if (nla_put_string(msg, RDMA_NLDEV_ATTR_DEV_NAME, device->name))
-+		return -EMSGSIZE;
-+	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_PORT_INDEX, port))
-+		return -EMSGSIZE;
-+	return 0;
-+}
-+
- static int nldev_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 			  struct netlink_ext_ack *extack)
- {
-@@ -129,11 +141,60 @@ static int nldev_get_dumpit(struct sk_buff *skb, struct netlink_callback *cb)
- 	return ib_enum_all_devs(_nldev_get_dumpit, skb, cb);
- }
- 
-+static int nldev_port_get_dumpit(struct sk_buff *skb,
-+				 struct netlink_callback *cb)
-+{
-+	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
-+	struct ib_device *device;
-+	int start = cb->args[0];
-+	struct nlmsghdr *nlh;
-+	u32 idx = 0;
-+	u32 ifindex;
++	struct ib_rwq_ind_table *rwq_ind_table;
++	struct mlx4_ib_create_rwq_ind_tbl_resp resp = {};
++	unsigned int ind_tbl_size = 1 << init_attr->log_ind_tbl_size;
++	unsigned int base_wqn;
++	size_t min_resp_len;
++	int i;
 +	int err;
-+	u32 p;
 +
-+	err = nlmsg_parse(cb->nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
-+			  nldev_policy, NULL);
-+	if (err || !tb[RDMA_NLDEV_ATTR_DEV_INDEX])
-+		return -EINVAL;
++	if (udata->inlen > 0 &&
++	    !ib_is_udata_cleared(udata, 0,
++				 udata->inlen))
++		return ERR_PTR(-EOPNOTSUPP);
 +
-+	ifindex = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
-+	device = __ib_device_get_by_index(ifindex);
-+	if (!device)
-+		return -EINVAL;
++	min_resp_len = offsetof(typeof(resp), reserved) + sizeof(resp.reserved);
++	if (udata->outlen && udata->outlen < min_resp_len)
++		return ERR_PTR(-EINVAL);
 +
-+	for (p = rdma_start_port(device); p <= rdma_end_port(device); ++p) {
-+		if (idx < start) {
-+			idx++;
-+			continue;
-+		}
-+
-+		nlh = nlmsg_put(skb, NETLINK_CB(cb->skb).portid,
-+				cb->nlh->nlmsg_seq,
-+				RDMA_NL_GET_TYPE(RDMA_NL_NLDEV,
-+						 RDMA_NLDEV_CMD_PORT_GET),
-+				0, NLM_F_MULTI);
-+
-+		if (fill_port_info(skb, device, p)) {
-+			nlmsg_cancel(skb, nlh);
-+			goto out;
-+		}
-+		idx++;
-+		nlmsg_end(skb, nlh);
++	if (ind_tbl_size >
++	    device->attrs.rss_caps.max_rwq_indirection_table_size) {
++		pr_debug("log_ind_tbl_size = %d is bigger than supported = %d\n",
++			 ind_tbl_size,
++			 device->attrs.rss_caps.max_rwq_indirection_table_size);
++		return ERR_PTR(-EINVAL);
 +	}
 +
-+out:	cb->args[0] = idx;
-+	return skb->len;
++	base_wqn = init_attr->ind_tbl[0]->wq_num;
++
++	if (base_wqn % ind_tbl_size) {
++		pr_debug("WQN=0x%x isn't aligned with indirection table size\n",
++			 base_wqn);
++		return ERR_PTR(-EINVAL);
++	}
++
++	for (i = 1; i < ind_tbl_size; i++) {
++		if (++base_wqn != init_attr->ind_tbl[i]->wq_num) {
++			pr_debug("indirection table's WQNs aren't consecutive\n");
++			return ERR_PTR(-EINVAL);
++		}
++	}
++
++	rwq_ind_table = kzalloc(sizeof(*rwq_ind_table), GFP_KERNEL);
++	if (!rwq_ind_table)
++		return ERR_PTR(-ENOMEM);
++
++	if (udata->outlen) {
++		resp.response_length = offsetof(typeof(resp), response_length) +
++					sizeof(resp.response_length);
++		err = ib_copy_to_udata(udata, &resp, resp.response_length);
++		if (err)
++			goto err;
++	}
++
++	return rwq_ind_table;
++
++err:
++	kfree(rwq_ind_table);
++	return ERR_PTR(err);
 +}
 +
- static const struct rdma_nl_cbs nldev_cb_table[] = {
- 	[RDMA_NLDEV_CMD_GET] = {
- 		.doit = nldev_get_doit,
- 		.dump = nldev_get_dumpit,
- 	},
-+	[RDMA_NLDEV_CMD_PORT_GET] = {
-+		.dump = nldev_port_get_dumpit,
-+	},
++int mlx4_ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *ib_rwq_ind_tbl)
++{
++	kfree(ib_rwq_ind_tbl);
++	return 0;
++}
+diff --git a/include/uapi/rdma/mlx4-abi.h b/include/uapi/rdma/mlx4-abi.h
+index 12b23b80dae5..2371d41156b1 100644
+--- a/include/uapi/rdma/mlx4-abi.h
++++ b/include/uapi/rdma/mlx4-abi.h
+@@ -117,4 +117,8 @@ struct mlx4_ib_modify_wq {
+ 	__u32	reserved;
  };
- 
- void __init nldev_init(void)
--- 
+
++struct mlx4_ib_create_rwq_ind_tbl_resp {
++	__u32	response_length;
++	__u32	reserved;
++};
+ #endif /* MLX4_ABI_USER_H */
+--
 2.13.1
 
 --
