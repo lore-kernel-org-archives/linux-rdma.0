@@ -1,51 +1,97 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 4/4] IB/mlx4: Expose RSS capabilities
-Date: Thu, 22 Jun 2017 16:44:12 +0300
-Message-ID: <20170622134412.7680-5-leon@kernel.org>
-References: <20170622134412.7680-1-leon@kernel.org>
+Subject: [PATCH rdma-next 1/2] IB/rxe: Fix kernel panic from skb destructor
+Date: Thu, 22 Jun 2017 17:09:59 +0300
+Message-ID: <20170622141000.9899-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170622134412.7680-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-As a final step to support RSS feature, expose the RSS capabilities in
-query device verb.
+In the time between rxe_send has finished and skb destructor
+called, the QP's ref count might be 0, leading to a possible
+QP destruction. This will lead to a kernel panic when the destructor
+dereferences the QP.
 
-It includes:
-- Max rwq indirection tables.
-- Max rwq indirection table size.
-- Supported qp types.
+The operation of incrementing QP ref count at rxe_send and decrementing
+from skb destructor will prevent this crash.
 
-Signed-off-by: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+BUG: unable to handle kernel NULL pointer dereference at 000000000000072c
+IP: [<ffffffffa05df765>] rxe_skb_tx_dtor+0x15/0x50 [rdma_rxe]
+PGD 0 [16240.211178]
+Oops: 0002 [#1] SMP
+CPU: 3 PID: 0 Comm: swapper/3 Tainted: G           OE   4.9.0-mlnx #1
+Hardware name: Red Hat KVM, BIOS Bochs 01/01/2011
+task: ffff88042d6b1480 task.stack: ffffc90001904000
+RIP: 0010:[<ffffffffa05df765>]  [<ffffffffa05df765>] rxe_skb_tx_dtor+0x15/0x50 [rdma_rxe]
+RSP: 0018:ffff88043fcc3df0  EFLAGS: 00010246
+RAX: 0000000000000000 RBX: ffff880429684700 RCX: ffff88042d248200
+RDX: 00000000ffffffff RSI: 00000000fffffe01 RDI: ffff880429684700
+RBP: ffff88043fcc3e00 R08: ffff88043fcda240 R09: 00000000ff2d1de6
+R10: 0000000000000000 R11: 00000000f49cf6fe R12: ffff880429684700
+R13: ffffffff81893f96 R14: ffffffff817d66f0 R15: ffff880427f74200
+FS:  0000000000000000(0000) GS:ffff88043fcc0000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000000072c CR3: 000000041d3df000 CR4: 00000000000006e0
+Stack:
+ ffffffff817b29cf ffff880429684700 ffff88043fcc3e18 ffffffff817b42c2
+ ffff880429684700 ffff88043fcc3e40 ffffffff817b4332 ffff880429684700
+ ffff880427f74238 ffff880427f74228 ffff88043fcc3e58 ffffffff81893f96
+Call Trace:
+ <IRQ> [16240.336345]  [<ffffffff817b29cf>] ? skb_release_head_state+0x4f/0xb0
+ [<ffffffff817b42c2>] skb_release_all+0x12/0x30
+ [<ffffffff817b4332>] kfree_skb+0x32/0x90
+ [<ffffffff81893f96>] ndisc_error_report+0x36/0x40
+ [<ffffffff817d4de1>] neigh_invalidate+0x81/0xf0
+ [<ffffffff817d68f7>] neigh_timer_handler+0x207/0x2b0
+ [<ffffffff81109295>] call_timer_fn+0x35/0x120
+ [<ffffffff81109db7>] run_timer_softirq+0x1d7/0x460
+ [<ffffffff8106155e>] ? kvm_sched_clock_read+0x1e/0x30
+ [<ffffffff810366b9>] ? sched_clock+0x9/0x10
+ [<ffffffff810cfed2>] ? sched_clock_cpu+0x72/0xa0
+ [<ffffffff818dd537>] __do_softirq+0xd7/0x289
+ [<ffffffff810a6c95>] irq_exit+0xb5/0xc0
+ [<ffffffff818dd372>] smp_apic_timer_interrupt+0x42/0x50
+ [<ffffffff818dc682>] apic_timer_interrupt+0x82/0x90
+ <EOI> [16240.395776]  [<ffffffff818da156>] ? native_safe_halt+0x6/0x10
+ [<ffffffff818d9e6e>] default_idle+0x1e/0xd0
+ [<ffffffff8103797f>] arch_cpu_idle+0xf/0x20
+ [<ffffffff818da2c5>] default_idle_call+0x35/0x40
+ [<ffffffff810e3eb5>] cpu_startup_entry+0x185/0x210
+ [<ffffffff81050433>] start_secondary+0x103/0x130
+RIP  [<ffffffffa05df765>] rxe_skb_tx_dtor+0x15/0x50 [rdma_rxe]
+
+Fixes: 8700e3e7c485 ("Soft RoCE driver")
+Signed-off-by: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/infiniband/sw/rxe/rxe_net.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 97b82b0c680c..6c11aed181a5 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -556,8 +556,13 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+index c3a140ed4df2..08f3f90d2912 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -441,6 +441,8 @@ static void rxe_skb_tx_dtor(struct sk_buff *skb)
+ 	if (unlikely(qp->need_req_skb &&
+ 		     skb_out < RXE_INFLIGHT_SKBS_PER_QP_LOW))
+ 		rxe_run_task(&qp->req.task, 1);
++
++	rxe_drop_ref(qp);
+ }
 
- 	if ((dev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_RSS) &&
- 	    (mlx4_ib_port_link_layer(ibdev, 1) == IB_LINK_LAYER_ETHERNET ||
--	     mlx4_ib_port_link_layer(ibdev, 2) == IB_LINK_LAYER_ETHERNET))
-+	     mlx4_ib_port_link_layer(ibdev, 2) == IB_LINK_LAYER_ETHERNET)) {
-+		props->rss_caps.max_rwq_indirection_tables = 128;
-+		props->rss_caps.max_rwq_indirection_table_size =
-+			dev->dev->caps.max_rss_tbl_sz;
-+		props->rss_caps.supported_qpts = 1 << IB_QPT_RAW_PACKET;
- 		props->max_wq_type_rq = MLX4_IB_MAX_CTX_WQS;
-+	}
+ int rxe_send(struct rxe_dev *rxe, struct rxe_pkt_info *pkt, struct sk_buff *skb)
+@@ -473,6 +475,7 @@ int rxe_send(struct rxe_dev *rxe, struct rxe_pkt_info *pkt, struct sk_buff *skb)
+ 		return -EAGAIN;
+ 	}
 
- 	if (!mlx4_is_slave(dev->dev))
- 		err = mlx4_get_internal_clock_params(dev->dev, &clock_params);
++	rxe_add_ref(pkt->qp);
+ 	atomic_inc(&pkt->qp->skb_out);
+ 	kfree_skb(skb);
+
 --
 2.13.1
 
