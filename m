@@ -1,7 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH infiniband-diags 1/3] Support 2x link widths
-Date: Thu, 22 Jun 2017 10:36:43 -0400
-Message-ID: <ad5d5b85-55e2-8106-8ced-c04f958ffa5d@dev.mellanox.co.il>
+Subject: [PATCH infiniband-diags 2/3] libibmad: Support the decode of
+ PortInfo:CapabilityMask2
+Date: Thu, 22 Jun 2017 10:37:06 -0400
+Message-ID: <fd593f25-4039-3cc9-25a2-f2ef8faf2b04@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
@@ -13,140 +14,92 @@ Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
-Per MgtWG errata #9306-9309
+IsSetNodeDescriptionSupported and IsPortInfoExtendedSupported
+are part of IBA 1.3
 
-2x is indicated by bit 4 in link width fields in PortInfo
+IsVirtualizationSupported was added by Annex A18: Virtualization
+
+IsSwitchPortStateTableSupported was added by MgtWG erratum #9316
+IsLinkWidth2xSupported was added by MgtWG erratum #9309
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libibmad/src/dump.c | 14 ++++++++++++--
- src/ibdiag_common.c | 20 +++++++++++++++++++-
- src/ibnetdiscover.c |  3 +++
- src/ibportstate.c   |  7 ++++++-
- 4 files changed, 40 insertions(+), 4 deletions(-)
+ libibmad/include/infiniband/mad.h |  2 +-
+ libibmad/src/dump.c               | 21 +++++++++++++++++++++
+ libibmad/src/fields.c             |  2 +-
+ libibmad/src/libibmad.map         |  1 +
+ 4 files changed, 24 insertions(+), 2 deletions(-)
 
+diff --git a/libibmad/include/infiniband/mad.h b/libibmad/include/infiniband/mad.h
+index 9bd6e20..50c5bc5 100644
+--- a/libibmad/include/infiniband/mad.h
++++ b/libibmad/include/infiniband/mad.h
+@@ -1651,7 +1651,7 @@ MAD_EXPORT ib_mad_dump_fn
+     mad_dump_linkspeed, mad_dump_linkspeedsup, mad_dump_linkspeeden,
+     mad_dump_linkspeedext, mad_dump_linkspeedextsup, mad_dump_linkspeedexten,
+     mad_dump_portstate, mad_dump_portstates,
+-    mad_dump_physportstate, mad_dump_portcapmask,
++    mad_dump_physportstate, mad_dump_portcapmask, mad_dump_portcapmask2,
+     mad_dump_mtu, mad_dump_vlcap, mad_dump_opervls,
+     mad_dump_node_type, mad_dump_sltovl, mad_dump_vlarbitration,
+     mad_dump_nodedesc, mad_dump_nodeinfo, mad_dump_portinfo,
 diff --git a/libibmad/src/dump.c b/libibmad/src/dump.c
-index b491bc2..8e1f5d1 100644
+index 8e1f5d1..24878a6 100644
 --- a/libibmad/src/dump.c
 +++ b/libibmad/src/dump.c
-@@ -183,6 +183,9 @@ void mad_dump_linkwidth(char *buf, int bufsz, void *val, int valsz)
- 	case 8:
- 		snprintf(buf, bufsz, "12X");
- 		break;
-+	case 16:
-+		snprintf(buf, bufsz, "2X");
-+		break;
- 	default:
- 		IBWARN("bad width %d", width);
- 		snprintf(buf, bufsz, "undefined (%d)", width);
-@@ -202,10 +205,12 @@ static void dump_linkwidth(char *buf, int bufsz, int width)
- 		n += snprintf(buf + n, bufsz - n, "8X or ");
- 	if (n < bufsz && (width & 0x8))
- 		n += snprintf(buf + n, bufsz - n, "12X or ");
-+	if (n < bufsz && (width & 0x10))
-+		n += snprintf(buf + n, bufsz - n, "2X or ");
- 
- 	if (n >= bufsz)
- 		return;
--	else if (width == 0 || (width >> 4))
-+	else if (width == 0 || (width >> 5))
- 		snprintf(buf + n, bufsz - n, "undefined (%d)", width);
- 	else if (bufsz > 3)
- 		buf[n - 4] = '\0';
-@@ -223,10 +228,15 @@ void mad_dump_linkwidthsup(char *buf, int bufsz, void *val, int valsz)
- 	case 7:
- 	case 11:
- 	case 15:
-+	case 17:
-+	case 19:
-+	case 23:
-+	case 27:
-+	case 31:
- 		break;
- 
- 	default:
--		if (!(width >> 4))
-+		if (!(width >> 5))
- 			snprintf(buf + strlen(buf), bufsz - strlen(buf),
- 				 " (IBA extension)");
- 		break;
-diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
-index 1f91269..cd8f707 100644
---- a/src/ibdiag_common.c
-+++ b/src/ibdiag_common.c
-@@ -737,6 +737,24 @@ int resolve_portid_str(char *ca_name, uint8_t ca_port, ib_portid_t * portid,
- 	return -1;
+@@ -616,6 +616,27 @@ void mad_dump_portcapmask(char *buf, int bufsz, void *val, int valsz)
+ 		*(--s) = 0;
  }
  
-+static unsigned int get_max_width(unsigned int num)
++void mad_dump_portcapmask2(char *buf, int bufsz, void *val, int valsz)
 +{
-+	unsigned r = 0;			/* 1x */
++	int mask = *(int *)val;
++	char *s = buf;
 +
-+	if (num & 8)
-+		r = 3;			/* 12x */
-+	else {
-+		if (num & 4)
-+			r = 2;		/* 8x */
-+		else if (num & 2)
-+			r = 1;		/* 4x */
-+		else if (num & 0x10)
-+			r = 4;		/* 2x */
-+	}
++	s += sprintf(s, "0x%x\n", mask);
++	if (mask & (1 << 0))
++		s += sprintf(s, "\t\t\t\tIsSetNodeDescriptionSupported\n");
++	if (mask & (1 << 1))
++		s += sprintf(s, "\t\t\t\tIsPortInfoExtendedSupported\n");
++	if (mask & (1 << 2))
++		s += sprintf(s, "\t\t\t\tIsVirtualizationSupported\n");
++	if (mask & (1 << 3))
++		s += sprintf(s, "\t\t\t\tIsSwitchPortStateTableSupported\n");
++	if (mask & (1 << 4))
++		s += sprintf(s, "\t\t\t\tIsLinkWidth2xSupported\n");
 +
-+        return (1 << r);
++	if (s != buf)
++		*(--s) = 0;
 +}
 +
- static unsigned int get_max(unsigned int num)
+ void mad_dump_bitfield(char *buf, int bufsz, void *val, int valsz)
  {
- 	unsigned r = 0;		// r will be lg(num)
-@@ -754,7 +772,7 @@ void get_max_msg(char *width_msg, char *speed_msg, int msg_size, ibnd_port_t * p
- 	uint32_t cap_mask, rem_cap_mask, fdr10;
- 	uint8_t *info = NULL;
- 
--	uint32_t max_width = get_max(mad_get_field(port->info, 0,
-+	uint32_t max_width = get_max_width(mad_get_field(port->info, 0,
- 						   IB_PORT_LINK_WIDTH_SUPPORTED_F)
- 				     & mad_get_field(port->remoteport->info, 0,
- 						     IB_PORT_LINK_WIDTH_SUPPORTED_F));
-diff --git a/src/ibnetdiscover.c b/src/ibnetdiscover.c
-index 0ad5e31..68374a2 100644
---- a/src/ibnetdiscover.c
-+++ b/src/ibnetdiscover.c
-@@ -134,6 +134,9 @@ char *dump_linkwidth_compat(uint32_t width)
- 	case 8:
- 		return ("12x");
- 		break;
-+	case 16:
-+		return ("2x");
-+		break;
- 	}
- 	return ("??");
- }
-diff --git a/src/ibportstate.c b/src/ibportstate.c
-index fe8be25..06bd5d2 100644
---- a/src/ibportstate.c
-+++ b/src/ibportstate.c
-@@ -321,6 +321,11 @@ static void validate_width(int width, int peerwidth, int lwa)
- 			IBWARN
- 			    ("Peer ports operating at active width %d rather than 2 (4x)",
- 			     lwa);
-+	} else if ((width & peerwidth & 0x10)) {
-+		if (lwa != 16)
-+			IBWARN
-+			    ("Peer ports operating at active width %d rather than 16 (2x)",
-+			      lwa);
- 	} else if ((width & peerwidth & 0x1)) {
- 		if (lwa != 1)
- 			IBWARN
-@@ -461,7 +466,7 @@ int main(int argc, char **argv)
- 					IBEXIT("invalid fdr10 speed value %ld", val);
- 				break;
- 			case WIDTH:
--				if ((val > 15 && val != 255))
-+				if ((val > 31 && val != 255))
- 					IBEXIT("invalid width value %ld", val);
- 				break;
- 			case VLS:
+ 	snprintf(buf, bufsz, "0x%x", *(uint32_t *) val);
+diff --git a/libibmad/src/fields.c b/libibmad/src/fields.c
+index 8273f97..b8a5302 100644
+--- a/libibmad/src/fields.c
++++ b/libibmad/src/fields.c
+@@ -529,7 +529,7 @@ static const ib_field_t ib_mad_f[] = {
+ 	/*
+ 	 * More PortInfo fields
+ 	 */
+-	{BITSOFFS(480, 16), "CapabilityMask2", mad_dump_hex},
++	{BITSOFFS(480, 16), "CapabilityMask2", mad_dump_portcapmask2},
+ 	{BITSOFFS(496, 4), "LinkSpeedExtActive", mad_dump_linkspeedext},
+ 	{BITSOFFS(500, 4), "LinkSpeedExtSupported", mad_dump_linkspeedextsup},
+ 	{BITSOFFS(507, 5), "LinkSpeedExtEnabled", mad_dump_linkspeedexten},
+diff --git a/libibmad/src/libibmad.map b/libibmad/src/libibmad.map
+index 3240a7b..454e37c 100644
+--- a/libibmad/src/libibmad.map
++++ b/libibmad/src/libibmad.map
+@@ -34,6 +34,7 @@ IBMAD_1.3 {
+ 		mad_dump_perfcounters_rcv_err;
+ 		mad_dump_physportstate;
+ 		mad_dump_portcapmask;
++		mad_dump_portcapmask2;
+ 		mad_dump_portinfo;
+ 		mad_dump_portsamples_control;
+ 		mad_dump_portsamples_result;
 -- 
 2.8.4
 
