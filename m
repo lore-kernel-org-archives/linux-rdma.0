@@ -1,54 +1,52 @@
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB/iser: Handle lack of memory management extentions
- correctly
-Date: Thu, 22 Jun 2017 15:01:10 -0400
-Message-ID: <20170622190110.27788.19910.stgit@phlsvslse11.ph.intel.com>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: Re: "memory management error" with NFS/RDMA on RoCE
+Date: Thu, 22 Jun 2017 14:57:02 -0600
+Message-ID: <CAANLjFopp04JSOrOGivHkA2DcSFu9JER3P0_5MMYEZWfUutj6A@mail.gmail.com>
+References: <7F0FCF80-DB7B-46F1-BB9A-0B070603DE61@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <7F0FCF80-DB7B-46F1-BB9A-0B070603DE61-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-max_fast_reg_page_list_len is only valid when the
-memory management extentions are signaled by the underlying
-driver.
+On Thu, Jun 22, 2017 at 12:28 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> While running xfstests on an NFS/RDMA mount, I see this in
+> the client's /var/log/messages multiple times:
+>
+> Jun 22 14:13:45 manet kernel: mlx5_0:dump_cqe:275:(pid 0): dump error cqe
+> Jun 22 14:13:45 manet kernel: 00000000 00000000 00000000 00000000
+> Jun 22 14:13:45 manet kernel: 00000000 00000000 00000000 00000000
+> Jun 22 14:13:45 manet kernel: 00000000 00000000 00000000 00000000
+> Jun 22 14:13:45 manet kernel: 00000000 08007806 250000cd 024027d3
+> Jun 22 14:13:45 manet kernel: rpcrdma: fastreg: memory management operation error (6/0x78)
+>
+> As far as I can tell the client is able to recover and continue
+> the test. However, this error is not supposed to happen in normal
+> operation.
+>
+> This is with a Mellanox CX4 in RoCEv1 mode, v4.12-rc2.
+>
+>
+> --
+> Chuck Lever
 
-Fix by adjusting iser_calc_scsi_params() to use
-ISCSI_ISER_MAX_SG_TABLESIZE when the extentions are not indicated.
+Surprisingly, I've hit this today on iSER, but using 4.9 using CX4 ROcEv2 IPv6:
 
-Reported-by: Thomas Rosenstein <thomas.rosenstein-+32LHaKS/h5VtLMLtJdGzA@public.gmane.org>
-Fixes: Commit df749cdc45d9 ("IB/iser: Support up to 8MB data transfer in a single command")
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/ulp/iser/iser_verbs.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+[Thu Jun 22 14:37:11 2017] mlx5_0:dump_cqe:262:(pid 0): dump error cqe
+[Thu Jun 22 14:37:11 2017] 00000000 00000000 00000000 00000000
+[Thu Jun 22 14:37:11 2017] 00000000 00000000 00000000 00000000
+[Thu Jun 22 14:37:11 2017] 00000000 00000000 00000000 00000000
+[Thu Jun 22 14:37:11 2017] 00000000 08007806 2500011f ca4f0fd3
+[Thu Jun 22 14:37:11 2017] iser: iser_err_comp: memreg failure: memory
+management operation error (6) vend_err 78
+[Thu Jun 22 14:37:11 2017]  connection4:0: detected conn error (1011)
 
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index c538a38..26a004e 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -708,8 +708,14 @@ static void iser_connect_error(struct rdma_cm_id *cma_id)
- 	unsigned short sg_tablesize, sup_sg_tablesize;
- 
- 	sg_tablesize = DIV_ROUND_UP(max_sectors * 512, SIZE_4K);
--	sup_sg_tablesize = min_t(unsigned, ISCSI_ISER_MAX_SG_TABLESIZE,
--				 device->ib_device->attrs.max_fast_reg_page_list_len);
-+	if (device->ib_device->attrs.device_cap_flags &
-+			IB_DEVICE_MEM_MGT_EXTENSIONS)
-+		sup_sg_tablesize =
-+			min_t(
-+			 uint, ISCSI_ISER_MAX_SG_TABLESIZE,
-+			 device->ib_device->attrs.max_fast_reg_page_list_len);
-+	else
-+		sup_sg_tablesize = ISCSI_ISER_MAX_SG_TABLESIZE;
- 
- 	iser_conn->scsi_sg_tablesize = min(sg_tablesize, sup_sg_tablesize);
- }
-
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
