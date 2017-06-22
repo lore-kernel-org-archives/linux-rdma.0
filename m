@@ -1,120 +1,103 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH for-next 1/2] RDMA/qedr: Notify user application if DPM is
- supported
-Date: Thu, 22 Jun 2017 11:27:43 +0000
-Message-ID: <BN3PR07MB2578A8CADFE59008A967A6E0F8DB0@BN3PR07MB2578.namprd07.prod.outlook.com>
-References: <1497790871-23945-1-git-send-email-Ram.Amrani@cavium.com>
- <1497790871-23945-2-git-send-email-Ram.Amrani@cavium.com>
- <20170619155553.GB10188@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170619155553.GB10188-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH rdma-next V1 00/19] RDMA Netlink Device Client
+Date: Thu, 22 Jun 2017 16:24:15 +0300
+Message-ID: <20170622132434.1327-1-leon@kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org, Chien Tin Tung <chien.tin.tung@intel.com>, Steve Wise <swise@opengridcomputing.com>, Stephen Hemminger <stephen@networkplumber.org>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Jiri Pirko <jiri@mellanox.com>, Ariel Almog <ariela@mellanox.com>, Linux Netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> On Sun, Jun 18, 2017 at 04:01:10PM +0300, Ram Amrani wrote:
-> > Direct Packet Mode support may be disabled, e.g, due to limited BAR
-> > resources. Notifying the user application prevents wasting cycles
-> > on attempting to send these kind of packets.
-> >
-> > Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> >  drivers/infiniband/hw/qedr/main.c  | 1 +
-> >  drivers/infiniband/hw/qedr/qedr.h  | 2 ++
-> >  drivers/infiniband/hw/qedr/verbs.c | 6 ++++++
-> >  include/uapi/rdma/qedr-abi.h       | 1 +
-> >  4 files changed, 10 insertions(+)
-> >
-> > diff --git a/drivers/infiniband/hw/qedr/main.c b/drivers/infiniband/hw/=
-qedr/main.c
-> > index 6a72095..d228718 100644
-> > +++ b/drivers/infiniband/hw/qedr/main.c
-> > @@ -778,6 +778,7 @@ static struct qedr_dev *qedr_add(struct qed_dev *cd=
-ev, struct pci_dev *pdev,
-> >  	if (rc)
-> >  		goto init_err;
-> >
-> > +	dev->user_dpm_enabled =3D dev_info.user_dpm_enabled;
-> >  	dev->num_hwfns =3D dev_info.common.num_hwfns;
-> >  	dev->rdma_ctx =3D dev->ops->rdma_get_rdma_ctx(cdev);
-> >
-> > diff --git a/drivers/infiniband/hw/qedr/qedr.h b/drivers/infiniband/hw/=
-qedr/qedr.h
-> > index aa08c76..42af9b6 100644
-> > +++ b/drivers/infiniband/hw/qedr/qedr.h
-> > @@ -158,6 +158,8 @@ struct qedr_dev {
-> >  	struct qedr_qp		*gsi_qp;
-> >
-> >  	unsigned long enet_state;
-> > +
-> > +	u8 user_dpm_enabled;
-> >  };
-> >
-> >  #define QEDR_MAX_SQ_PBL			(0x8000)
-> > diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw=
-/qedr/verbs.c
-> > index 17685cf..6a0acfa 100644
-> > +++ b/drivers/infiniband/hw/qedr/verbs.c
-> > @@ -335,6 +335,9 @@ static bool qedr_search_mmap(struct qedr_ucontext *=
-uctx, u64 phy_addr,
-> >  	return found;
-> >  }
-> >
-> > +#define QEDR_LIB_UCXT_SUPPORT(field, udata, value)			      \
-> > +	((offsetof(struct qedr_alloc_ucontext_resp, field) < udata->outlen) ?=
- \
-> > +	 (value) : 0)
-> >  struct ib_ucontext *qedr_alloc_ucontext(struct ib_device *ibdev,
-> >  					struct ib_udata *udata)
-> >  {
-> > @@ -368,6 +371,9 @@ struct ib_ucontext *qedr_alloc_ucontext(struct ib_d=
-evice *ibdev,
-> >
-> >  	memset(&uresp, 0, sizeof(uresp));
-> >
-> > +	uresp.dpm_enabled =3D QEDR_LIB_UCXT_SUPPORT(dpm_enabled, udata,
-> > +						  dev->user_dpm_enabled);
-> > +
-> >  	uresp.db_pa =3D ctx->dpi_phys_addr;
-> >  	uresp.db_size =3D ctx->dpi_size;
-> >  	uresp.max_send_wr =3D dev->attr.max_sqe;
-> > diff --git a/include/uapi/rdma/qedr-abi.h b/include/uapi/rdma/qedr-abi.=
-h
-> > index 75c270d..2684004 100644
-> > +++ b/include/uapi/rdma/qedr-abi.h
-> > @@ -49,6 +49,7 @@ struct qedr_alloc_ucontext_resp {
-> >  	__u32 sges_per_recv_wr;
-> >  	__u32 sges_per_srq_wr;
-> >  	__u32 max_cqes;
-> > +	__u8 dpm_enabled;
-> >  };
->=20
->=20
-> Um, how is uapi compatibility achieved here? I don't see any size
-> tests related to qedr_alloc_ucontext_resp:
->=20
-> struct ib_ucontext *qedr_alloc_ucontext(struct ib_device *ibdev,
->                                         struct ib_udata *udata)
-> {
->         struct qedr_alloc_ucontext_resp uresp;
->         rc =3D ib_copy_to_udata(udata, &uresp, sizeof(uresp));
->=20
-> Seems bad.
->=20
-> Same with the other patch.
->=20
-> Jason
+Hi All,
 
-By the way, if it wasn't clear, the aspect part of the compatibility is
-achieved via the QEDR_LIB_UCXT_SUPPORT macro above.
+This is second version of the RDMA netlink patch set.
 
-Ram
+The following patch set is an implementation of NLDEV - RDMA netlink
+device client. It is based on the already sent patch [1] and patch set [2].
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This client is needed to properly integrate coming RDMAtool [3]
+into iproute2 package which is based on netlink.
+
+The following patch set can be logically divided into four parts:
+ * Cleanup of RDMA netlink interface to handle dumpit/doit callbacks.
+ * Implementation of static ib_device index to allow future renaming support for IB devices.
+ * NLDEV initial implementation
+ * Exposing device and capability masks via this interface
+
+The supplementary user space part will follow later on.
+
+Chagelog:
+v0->v1:
+ * Added Steve's Reviewed-by tags for all patches except patch #8, because it was completely rewritten.
+ * Implemented static indexes for ib_device in patch #8 and dropped preview version which
+   translated device name to corresponding ib_device.
+ * Fixed language in commit messages as was pointed by Steve.
+ * Rename TODO to be FIXME in patch #11.
+
+Thanks
+
+[1] "Revert "IB/core: Add flow control to the portmapper netlink calls""
+     https://patchwork.kernel.org/patch/9752865/
+
+[2] [PATCH rdma-next V2 0/5] Refactor RDMA netlink infrastructure
+    https://www.spinics.net/lists/linux-rdma/msg50945.html
+
+[3] [RFC iproute2 0/8] RDMA tool
+    https://www.spinics.net/lists/linux-rdma/msg49575.html
+
+Available in the "topic/rdma-netlink-v1" topic branch of this git repo:
+git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+
+Or for browsing:
+https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/rdma-netlink-v1
+
+CC: Chien Tin Tung <chien.tin.tung@intel.com>
+CC: Steve Wise <swise@opengridcomputing.com>
+CC: Stephen Hemminger <stephen@networkplumber.org>
+CC: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+CC: Jiri Pirko <jiri@mellanox.com>
+CC: Ariel Almog <ariela@mellanox.com>
+CC: Linux RDMA <linux-rdma@vger.kernel.org>
+CC: Linux Netdev <netdev@vger.kernel.org>
+
+
+*** BLURB HERE ***
+
+Leon Romanovsky (19):
+  RDMA/netlink: Add flag to consolidate common handing
+  RDMA/netlink: Simplify the put_msg and put_attr
+  RDMA/netlink: Rename and remove redundant parameter from ibnl_unicast
+  RDMA/netlink: Rename and remove redundant parameter from
+    ibnl_multicast
+  RDMA/netlink: Simplify and rename ibnl_chk_listeners
+  RDMA/netlink: Rename netlink callback struct
+  RDMA/core: Add iterator over ib_devices
+  RDMA/core: Add and expose static device index
+  RDMA/netlink: Add and implement doit netlink callback
+  RDMA/netlink: Reduce indirection access to cb_table
+  RDMA/netlink: Convert LS to doit callback
+  RDMA/netlink: Update copyright
+  RDMA/netlink: Add netlink device definitions to UAPI
+  RDMA/netlink: Add nldev initialization flows
+  RDMA/netlink: Implement nldev device dumpit calback
+  RDMA/netlink: Add nldev device doit implementation
+  RDMA/netlink: Add nldev port dumpit implementation
+  RDMA/netlink: Implement nldev port doit callback
+  RDMA/netlink: Expose device and port capability masks
+
+ drivers/infiniband/core/Makefile    |   4 +-
+ drivers/infiniband/core/addr.c      |  12 +-
+ drivers/infiniband/core/cma.c       |   2 +-
+ drivers/infiniband/core/core_priv.h |  21 ++-
+ drivers/infiniband/core/device.c    |  78 ++++++++++-
+ drivers/infiniband/core/iwcm.c      |   2 +-
+ drivers/infiniband/core/iwpm_msg.c  |   8 +-
+ drivers/infiniband/core/iwpm_util.c |   4 +-
+ drivers/infiniband/core/netlink.c   |  98 ++++++-------
+ drivers/infiniband/core/nldev.c     | 271 ++++++++++++++++++++++++++++++++++++
+ drivers/infiniband/core/sa_query.c  |  18 ++-
+ include/rdma/ib_verbs.h             |   2 +
+ include/rdma/rdma_netlink.h         |  22 +--
+ include/uapi/rdma/rdma_netlink.h    |  44 +++++-
+ 14 files changed, 489 insertions(+), 97 deletions(-)
+ create mode 100644 drivers/infiniband/core/nldev.c
