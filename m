@@ -1,149 +1,35 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH infiniband-diags 3/3] Add support for QP1Dropped counter in
- PortCounters attribute
-Date: Thu, 22 Jun 2017 10:37:15 -0400
-Message-ID: <b97353b0-b295-e163-f25e-8e0e111f1ce6@dev.mellanox.co.il>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH for-next 1/2] RDMA/qedr: Notify user application if DPM
+ is supported
+Date: Thu, 22 Jun 2017 09:58:48 -0600
+Message-ID: <20170622155848.GA5771@obsidianresearch.com>
+References: <1497790871-23945-1-git-send-email-Ram.Amrani@cavium.com>
+ <1497790871-23945-2-git-send-email-Ram.Amrani@cavium.com>
+ <20170619155553.GB10188@obsidianresearch.com>
+ <BN3PR07MB2578A8CADFE59008A967A6E0F8DB0@BN3PR07MB2578.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <BN3PR07MB2578A8CADFE59008A967A6E0F8DB0-EldUQEzkDQfpW3VS/XPqkOFPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Jun 22, 2017 at 11:27:43AM +0000, Amrani, Ram wrote:
+> > > +#define QEDR_LIB_UCXT_SUPPORT(field, udata, value)			      \
+> > > +	((offsetof(struct qedr_alloc_ucontext_resp, field) < udata->outlen) ? \
+> > > +	 (value) : 0)
 
-Add support for missing QP1Dropped counter in PortCounters attribute
-in libibmad and perfquery.c.
+> By the way, if it wasn't clear, the aspect part of the compatibility is
+> achieved via the QEDR_LIB_UCXT_SUPPORT macro above.
 
-Support for this counter is indicated by IsQP1DroppedSupported bit 15
-in PerfMgt ClassPortInfo:CapabilityMask.
+It doesn't make any sense to do that, who cares what the value is in
+the resp structure, you can't copy it, so userspace will never see
+it. Do the copy properly and this macro goes away.
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- libibmad/include/infiniband/mad.h |  5 +++++
- libibmad/src/dump.c               | 15 ++++++++++++++-
- libibmad/src/fields.c             |  5 +++++
- src/perfquery.c                   | 16 +++++++++++-----
- 4 files changed, 35 insertions(+), 6 deletions(-)
-
-diff --git a/libibmad/include/infiniband/mad.h b/libibmad/include/infiniband/mad.h
-index 50c5bc5..7f6b886 100644
---- a/libibmad/include/infiniband/mad.h
-+++ b/libibmad/include/infiniband/mad.h
-@@ -1310,6 +1310,11 @@ enum MAD_FIELDS {
- 	IB_PC_EXT_QP1_DROP_F,
- 	IB_PC_EXT_ERR_LAST_F,
- 
-+	/*
-+	 * Another PortCounters field
-+	 */
-+	IB_PC_QP1_DROP_F,
-+
- 	IB_FIELD_LAST_		/* must be last */
- };
- 
-diff --git a/libibmad/src/dump.c b/libibmad/src/dump.c
-index 24878a6..2244f38 100644
---- a/libibmad/src/dump.c
-+++ b/libibmad/src/dump.c
-@@ -818,7 +818,20 @@ void mad_dump_switchinfo(char *buf, int bufsz, void *val, int valsz)
- 
- void mad_dump_perfcounters(char *buf, int bufsz, void *val, int valsz)
- {
--	_dump_fields(buf, bufsz, val, IB_PC_FIRST_F, IB_PC_LAST_F);
-+	int cnt, cnt2;
-+
-+	cnt = _dump_fields(buf, bufsz, val,
-+			   IB_PC_FIRST_F, IB_PC_VL15_DROPPED_F);
-+	if (cnt < 0)
-+		return;
-+
-+	cnt2 = _dump_fields(buf + cnt, bufsz - cnt, val,
-+			    IB_PC_QP1_DROP_F, IB_PC_QP1_DROP_F + 1);
-+	if (cnt2 < 0)
-+		return;
-+
-+	_dump_fields(buf + cnt + cnt2, bufsz - cnt - cnt2, val,
-+		     IB_PC_VL15_DROPPED_F, IB_PC_LAST_F);
- }
- 
- void mad_dump_perfcounters_ext(char *buf, int bufsz, void *val, int valsz)
-diff --git a/libibmad/src/fields.c b/libibmad/src/fields.c
-index b8a5302..e0333f8 100644
---- a/libibmad/src/fields.c
-+++ b/libibmad/src/fields.c
-@@ -1004,6 +1004,11 @@ static const ib_field_t ib_mad_f[] = {
- 	{1408, 64, "QP1Dropped", mad_dump_uint},
- 	{0, 0},			/* IB_PC_EXT_ERR_LAST_F */
- 
-+	/*
-+	 * Another PortCounters field
-+	 */
-+	{160, 16, "QP1Dropped", mad_dump_uint},
-+
- 	{0, 0}			/* IB_FIELD_LAST_ */
- };
- 
-diff --git a/src/perfquery.c b/src/perfquery.c
-index f5d23f2..6bc4d9c 100644
---- a/src/perfquery.c
-+++ b/src/perfquery.c
-@@ -66,6 +66,7 @@ struct perf_count {
- 	uint32_t rcvconstrainterrors;
- 	uint32_t linkintegrityerrors;
- 	uint32_t excbufoverrunerrors;
-+	uint32_t qp1dropped;
- 	uint32_t vl15dropped;
- 	uint32_t xmtdata;
- 	uint32_t rcvdata;
-@@ -190,6 +191,8 @@ static void aggregate_perfcounters(void)
- 	aggregate_4bit(&perf_count.linkintegrityerrors, val);
- 	mad_decode_field(pc, IB_PC_ERR_EXCESS_OVR_F, &val);
- 	aggregate_4bit(&perf_count.excbufoverrunerrors, val);
-+	mad_decode_field(pc, IB_PC_QP1_DROP_F, &val);
-+	aggregate_16bit(&perf_count.qp1dropped, val);
- 	mad_decode_field(pc, IB_PC_VL15_DROPPED_F, &val);
- 	aggregate_16bit(&perf_count.vl15dropped, val);
- 	mad_decode_field(pc, IB_PC_XMT_BYTES_F, &val);
-@@ -230,6 +233,7 @@ static void output_aggregate_perfcounters(ib_portid_t * portid,
- 			 &perf_count.linkintegrityerrors);
- 	mad_encode_field(pc, IB_PC_ERR_EXCESS_OVR_F,
- 			 &perf_count.excbufoverrunerrors);
-+	mad_encode_field(pc, IB_PC_QP1_DROP_F, &perf_count.qp1dropped);
- 	mad_encode_field(pc, IB_PC_VL15_DROPPED_F, &perf_count.vl15dropped);
- 	mad_encode_field(pc, IB_PC_XMT_BYTES_F, &perf_count.xmtdata);
- 	mad_encode_field(pc, IB_PC_RCV_BYTES_F, &perf_count.rcvdata);
-@@ -398,9 +402,7 @@ static void dump_perfcounters(int extended, int timeout, uint16_t cap_mask,
- 		if (aggregate)
- 			aggregate_perfcounters();
- 		else
--			mad_dump_fields(buf, sizeof buf, pc, sizeof pc,
--							IB_PC_FIRST_F,
--							(cap_mask & IB_PM_PC_XMIT_WAIT_SUP)?IB_PC_LAST_F:(IB_PC_RCV_PKTS_F+1));
-+			mad_dump_perfcounters(buf, sizeof buf, pc, sizeof pc);
- 
- 	} else {
- 		/* 1.2 errata: bit 9 is extended counter support
-@@ -1062,8 +1064,12 @@ int main(int argc, char **argv)
- 		goto done;
- 
- do_reset:
--	if (argc <= 2 && !extended && (cap_mask & IB_PM_PC_XMIT_WAIT_SUP))
--		mask |= (1 << 16);	/* reset portxmitwait */
-+	if (argc <= 2 && !extended) {
-+		if (cap_mask & IB_PM_PC_XMIT_WAIT_SUP)
-+			mask |= (1 << 16);	/* reset portxmitwait */
-+		if (cap_mask & IB_PM_IS_QP1_DROP_SUP)
-+			mask |= (1 << 17);	/* reset qp1dropped */
-+	}
- 
- 	if (extended) {
- 		mask |= 0xfff0000;
--- 
-2.8.4
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
