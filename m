@@ -1,36 +1,43 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH for-next 1/2] RDMA/qedr: Notify user application if DPM
- is supported
-Date: Thu, 22 Jun 2017 09:58:48 -0600
-Message-ID: <20170622155848.GA5771@obsidianresearch.com>
-References: <1497790871-23945-1-git-send-email-Ram.Amrani@cavium.com>
- <1497790871-23945-2-git-send-email-Ram.Amrani@cavium.com>
- <20170619155553.GB10188@obsidianresearch.com>
- <BN3PR07MB2578A8CADFE59008A967A6E0F8DB0@BN3PR07MB2578.namprd07.prod.outlook.com>
+From: Jeff Layton <jlayton-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 19/19] sunrpc: Disable splice for krb5i
+Date: Thu, 22 Jun 2017 13:13:03 -0400
+Message-ID: <1498151583.30388.7.camel@redhat.com>
+References: <20170616151535.14210.34926.stgit@klimt.1015granger.net>
+         <20170616152254.14210.48071.stgit@klimt.1015granger.net>
+         <20170617150705.GA27917@infradead.org>
+         <A573E1EB-48DB-4E4A-B710-34914B0CF016@oracle.com>
+         <20170618073438.GA15358@infradead.org>
+         <14AD4311-5092-441C-8A3B-F7EC7E801358@oracle.com>
+         <20170619153018.GA2667@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <BN3PR07MB2578A8CADFE59008A967A6E0F8DB0-EldUQEzkDQfpW3VS/XPqkOFPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170619153018.GA2667-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 22, 2017 at 11:27:43AM +0000, Amrani, Ram wrote:
-> > > +#define QEDR_LIB_UCXT_SUPPORT(field, udata, value)			      \
-> > > +	((offsetof(struct qedr_alloc_ucontext_resp, field) < udata->outlen) ? \
-> > > +	 (value) : 0)
+On Mon, 2017-06-19 at 08:30 -0700, Christoph Hellwig wrote:
+> On Mon, Jun 19, 2017 at 11:22:41AM -0400, Chuck Lever wrote:
+> > I'm going to submit this again with a comment change and
+> > Jeff's Reviewed-by. Can I add your Reviewed-by as well?
+> 
+> It looks ok as a quick fix for me but at least needs a big comment.
+> I'd also be much happier if we could find and fix the root cause.
 
-> By the way, if it wasn't clear, the aspect part of the compatibility is
-> achieved via the QEDR_LIB_UCXT_SUPPORT macro above.
+Don't we already know the root cause?
 
-It doesn't make any sense to do that, who cares what the value is in
-the resp structure, you can't copy it, so userspace will never see
-it. Do the copy properly and this macro goes away.
+There's nothing that holds the data stable, so we calculate the checksum
+but by the time we get to transmitting the frame it's no longer valid.
+Is there something else that should be preventing this?
 
-Jason
+In any case, I do agree that some comments explaining this would be a
+good thing.
+-- 
+Jeff Layton <jlayton-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
