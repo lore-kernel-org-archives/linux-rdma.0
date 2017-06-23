@@ -1,102 +1,182 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 12/18] svcrdma: Properly compute .len and .buflen for
- received RPC Calls
-Date: Fri, 23 Jun 2017 17:18:41 -0400
-Message-ID: <20170623211841.5162.28643.stgit@klimt.1015granger.net>
+Subject: [PATCH v3 13/18] svcrdma: Remove unused Read completion handlers
+Date: Fri, 23 Jun 2017 17:18:49 -0400
+Message-ID: <20170623211849.5162.88050.stgit@klimt.1015granger.net>
 References: <20170623211150.5162.59075.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170623211150.5162.59075.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When an RPC-over-RDMA request is received, the Receive buffer
-contains a Transport Header possibly followed by an RPC message.
+Clean up:
 
-Even though rq_arg.head[0] (as passed to NFSD) does not contain the
-Transport Header header, currently rq_arg.len includes the size of
-the Transport Header.
+The generic RDMA R/W API conversion of svc_rdma_recvfrom replaced
+the Register, Read, and Invalidate completion handlers. Remove the
+old ones, which are no longer used.
 
-That violates the intent of the xdr_buf API contract. .buflen should
-include everything, but .len should be exactly the length of the RPC
-message in the buffer.
-
-The rq_arg fields are summed together at the end of
-svc_rdma_recvfrom to obtain the correct return value. rq_arg.len
-really ought to contain the correct number of bytes already, but it
-currently doesn't due to the above misbehavior.
-
-Let's instead ensure that .buflen includes the length of the
-transport header, and that .len is always equal to head.iov_len +
-.page_len + tail.iov_len .
+These handlers shared some helper code with svc_rdma_wc_send. Fold
+the wc_common helper back into the one remaining completion handler.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |   14 ++++----------
- net/sunrpc/xprtrdma/svc_rdma_rw.c       |    2 +-
- 2 files changed, 5 insertions(+), 11 deletions(-)
+ include/linux/sunrpc/svc_rdma.h          |    4 -
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |   93 +++---------------------------
+ 2 files changed, 10 insertions(+), 87 deletions(-)
 
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index 5fbcb73..ad4bd62 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -143,7 +143,6 @@ static void rdma_build_arg_xdr(struct svc_rqst *rqstp,
- 		put_page(rqstp->rq_pages[sge_no]);
- 		rqstp->rq_pages[sge_no] = page;
- 		bc -= min_t(u32, bc, ctxt->sge[sge_no].length);
--		rqstp->rq_arg.buflen += ctxt->sge[sge_no].length;
- 		sge_no++;
+diff --git a/include/linux/sunrpc/svc_rdma.h b/include/linux/sunrpc/svc_rdma.h
+index b1ba19b..06d58a3 100644
+--- a/include/linux/sunrpc/svc_rdma.h
++++ b/include/linux/sunrpc/svc_rdma.h
+@@ -77,17 +77,15 @@ enum {
+  */
+ struct svc_rdma_op_ctxt {
+ 	struct list_head list;
+-	struct svc_rdma_op_ctxt *read_hdr;
+ 	struct svc_rdma_fastreg_mr *frmr;
+-	int hdr_count;
+ 	struct xdr_buf arg;
+ 	struct ib_cqe cqe;
+ 	u32 byte_len;
+ 	struct svcxprt_rdma *xprt;
+-	unsigned long flags;
+ 	enum dma_data_direction direction;
+ 	int count;
+ 	unsigned int mapped_sges;
++	int hdr_count;
+ 	struct ib_send_wr send_wr;
+ 	struct ib_sge sge[1 + RPCRDMA_MAX_INLINE_THRESH / PAGE_SIZE];
+ 	struct page *pages[RPCSVC_MAXPAGES];
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index 72d2dcd..c915cba 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -346,36 +346,6 @@ static void svc_rdma_wc_receive(struct ib_cq *cq, struct ib_wc *wc)
+ 	svc_xprt_put(&xprt->sc_xprt);
+ }
+ 
+-static void svc_rdma_send_wc_common(struct svcxprt_rdma *xprt,
+-				    struct ib_wc *wc,
+-				    const char *opname)
+-{
+-	if (wc->status != IB_WC_SUCCESS)
+-		goto err;
+-
+-out:
+-	atomic_inc(&xprt->sc_sq_avail);
+-	wake_up(&xprt->sc_send_wait);
+-	return;
+-
+-err:
+-	set_bit(XPT_CLOSE, &xprt->sc_xprt.xpt_flags);
+-	if (wc->status != IB_WC_WR_FLUSH_ERR)
+-		pr_err("svcrdma: %s: %s (%u/0x%x)\n",
+-		       opname, ib_wc_status_msg(wc->status),
+-		       wc->status, wc->vendor_err);
+-	goto out;
+-}
+-
+-static void svc_rdma_send_wc_common_put(struct ib_cq *cq, struct ib_wc *wc,
+-					const char *opname)
+-{
+-	struct svcxprt_rdma *xprt = cq->cq_context;
+-
+-	svc_rdma_send_wc_common(xprt, wc, opname);
+-	svc_xprt_put(&xprt->sc_xprt);
+-}
+-
+ /**
+  * svc_rdma_wc_send - Invoked by RDMA provider for each polled Send WC
+  * @cq:        completion queue
+@@ -384,73 +354,28 @@ static void svc_rdma_send_wc_common_put(struct ib_cq *cq, struct ib_wc *wc,
+  */
+ void svc_rdma_wc_send(struct ib_cq *cq, struct ib_wc *wc)
+ {
+-	struct ib_cqe *cqe = wc->wr_cqe;
+-	struct svc_rdma_op_ctxt *ctxt;
+-
+-	svc_rdma_send_wc_common_put(cq, wc, "send");
+-
+-	ctxt = container_of(cqe, struct svc_rdma_op_ctxt, cqe);
+-	svc_rdma_unmap_dma(ctxt);
+-	svc_rdma_put_context(ctxt, 1);
+-}
+-
+-/**
+- * svc_rdma_wc_reg - Invoked by RDMA provider for each polled FASTREG WC
+- * @cq:        completion queue
+- * @wc:        completed WR
+- *
+- */
+-void svc_rdma_wc_reg(struct ib_cq *cq, struct ib_wc *wc)
+-{
+-	svc_rdma_send_wc_common_put(cq, wc, "fastreg");
+-}
+-
+-/**
+- * svc_rdma_wc_read - Invoked by RDMA provider for each polled Read WC
+- * @cq:        completion queue
+- * @wc:        completed WR
+- *
+- */
+-void svc_rdma_wc_read(struct ib_cq *cq, struct ib_wc *wc)
+-{
+ 	struct svcxprt_rdma *xprt = cq->cq_context;
+ 	struct ib_cqe *cqe = wc->wr_cqe;
+ 	struct svc_rdma_op_ctxt *ctxt;
+ 
+-	svc_rdma_send_wc_common(xprt, wc, "read");
++	atomic_inc(&xprt->sc_sq_avail);
++	wake_up(&xprt->sc_send_wait);
+ 
+ 	ctxt = container_of(cqe, struct svc_rdma_op_ctxt, cqe);
+ 	svc_rdma_unmap_dma(ctxt);
+-	svc_rdma_put_frmr(xprt, ctxt->frmr);
+-
+-	if (test_bit(RDMACTXT_F_LAST_CTXT, &ctxt->flags)) {
+-		struct svc_rdma_op_ctxt *read_hdr;
+-
+-		read_hdr = ctxt->read_hdr;
+-		spin_lock(&xprt->sc_rq_dto_lock);
+-		list_add_tail(&read_hdr->list,
+-			      &xprt->sc_read_complete_q);
+-		spin_unlock(&xprt->sc_rq_dto_lock);
++	svc_rdma_put_context(ctxt, 1);
+ 
+-		set_bit(XPT_DATA, &xprt->sc_xprt.xpt_flags);
+-		svc_xprt_enqueue(&xprt->sc_xprt);
++	if (unlikely(wc->status != IB_WC_SUCCESS)) {
++		set_bit(XPT_CLOSE, &xprt->sc_xprt.xpt_flags);
++		if (wc->status != IB_WC_WR_FLUSH_ERR)
++			pr_err("svcrdma: Send: %s (%u/0x%x)\n",
++			       ib_wc_status_msg(wc->status),
++			       wc->status, wc->vendor_err);
  	}
- 	rqstp->rq_respages = &rqstp->rq_pages[sge_no];
-@@ -338,6 +337,7 @@ static int svc_rdma_xdr_decode_req(struct xdr_buf *rq_arg)
- 	rq_arg->head[0].iov_base = p;
- 	hdr_len = (unsigned long)p - (unsigned long)rdma_argp;
- 	rq_arg->head[0].iov_len -= hdr_len;
-+	rq_arg->len -= hdr_len;
- 	dprintk("svcrdma: received %s request for XID 0x%08x, hdr_len=%u\n",
- 		proc, be32_to_cpup(rdma_argp), hdr_len);
- 	return hdr_len;
-@@ -564,18 +564,12 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
- 		goto out_readchunk;
  
- complete:
--	ret = rqstp->rq_arg.head[0].iov_len
--		+ rqstp->rq_arg.page_len
--		+ rqstp->rq_arg.tail[0].iov_len;
- 	svc_rdma_put_context(ctxt, 0);
--	dprintk("svcrdma: ret=%d, rq_arg.len=%u, "
--		"rq_arg.head[0].iov_base=%p, rq_arg.head[0].iov_len=%zd\n",
--		ret, rqstp->rq_arg.len,
--		rqstp->rq_arg.head[0].iov_base,
--		rqstp->rq_arg.head[0].iov_len);
-+	dprintk("svcrdma: recvfrom: xprt=%p, rqstp=%p, rq_arg.len=%u\n",
-+		rdma_xprt, rqstp, rqstp->rq_arg.len);
- 	rqstp->rq_prot = IPPROTO_MAX;
- 	svc_xprt_copy_addrs(rqstp, xprt);
--	return ret;
-+	return rqstp->rq_arg.len;
+-	svc_rdma_put_context(ctxt, 0);
+ 	svc_xprt_put(&xprt->sc_xprt);
+ }
  
- out_readchunk:
- 	ret = svc_rdma_recv_read_chunk(rdma_xprt, rqstp, ctxt, p);
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_rw.c b/net/sunrpc/xprtrdma/svc_rdma_rw.c
-index 77d38a4..9d7a151 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_rw.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_rw.c
-@@ -848,7 +848,7 @@ static int svc_rdma_build_pz_read_chunk(struct svc_rqst *rqstp,
- 	head->arg.len += info->ri_chunklen;
- 	head->arg.buflen += info->ri_chunklen;
- 
--	if (head->arg.len <= head->sge[0].length) {
-+	if (head->arg.buflen <= head->sge[0].length) {
- 		/* Transport header and RPC message fit entirely
- 		 * in page where head iovec resides.
- 		 */
+-/**
+- * svc_rdma_wc_inv - Invoked by RDMA provider for each polled LOCAL_INV WC
+- * @cq:        completion queue
+- * @wc:        completed WR
+- *
+- */
+-void svc_rdma_wc_inv(struct ib_cq *cq, struct ib_wc *wc)
+-{
+-	svc_rdma_send_wc_common_put(cq, wc, "localInv");
+-}
+-
+ static struct svcxprt_rdma *rdma_create_xprt(struct svc_serv *serv,
+ 					     int listener)
+ {
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
