@@ -1,7 +1,8 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 07/18] svcrdma: Improve Reply chunk sanity checking
-Date: Fri, 23 Jun 2017 17:18:00 -0400
-Message-ID: <20170623211800.5162.79794.stgit@klimt.1015granger.net>
+Subject: [PATCH v3 08/18] svcrdma: Don't account for Receive queue
+ "starvation"
+Date: Fri, 23 Jun 2017 17:18:08 -0400
+Message-ID: <20170623211808.5162.68255.stgit@klimt.1015granger.net>
 References: <20170623211150.5162.59075.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,52 +14,72 @@ To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Identify malformed transport headers and unsupported chunk
-combinations as early as possible.
+>From what I can tell, calling ->recvfrom when there is no work to do
+is a normal part of operation. This is the only way svc_recv can
+tell when there is no more data ready to receive on the transport.
 
-- Ensure that segment lengths are not crazy.
+Neither the TCP nor the UDP transport implementations have a
+"starve" metric.
 
-- Ensure that the Reply chunk's segment count is not crazy.
-
-With a 1KB inline threshold, the largest number of Write segments
-that can be conveyed is about 60 (for a RDMA_NOMSG Reply message).
+The cost of receive starvation accounting is bumping an atomic, which
+results in extra (IMO unnecessary) bus traffic between CPU sockets,
+while holding a spin lock.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c |   21 ++++++---------------
+ 1 file changed, 6 insertions(+), 15 deletions(-)
 
 diff --git a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-index cf8be18..b480893 100644
+index b480893..1452bd0 100644
 --- a/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
 +++ b/net/sunrpc/xprtrdma/svc_rdma_recvfrom.c
-@@ -217,15 +217,20 @@ static __be32 *xdr_check_write_list(__be32 *p, const __be32 *end)
- 	return p;
- }
+@@ -844,9 +844,9 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
+ 	struct svc_xprt *xprt = rqstp->rq_xprt;
+ 	struct svcxprt_rdma *rdma_xprt =
+ 		container_of(xprt, struct svcxprt_rdma, sc_xprt);
+-	struct svc_rdma_op_ctxt *ctxt = NULL;
++	struct svc_rdma_op_ctxt *ctxt;
+ 	struct rpcrdma_msg *rmsgp;
+-	int ret = 0;
++	int ret;
  
--static __be32 *xdr_check_reply_chunk(__be32 *p, __be32 *end)
-+/* Sanity check the Reply chunk.
-+ *
-+ * Sanity checks:
-+ * - Reply chunk does not overflow buffer.
-+ * - Segment size limited by largest NFS data payload.
-+ *
-+ * Returns pointer to the following RPC header.
-+ */
-+static __be32 *xdr_check_reply_chunk(__be32 *p, const __be32 *end)
- {
--	__be32 *next;
--
- 	if (*p++ != xdr_zero) {
--		next = p + 1 + be32_to_cpup(p) * rpcrdma_segment_maxsz;
--		if (next > end)
-+		p = xdr_check_write_chunk(p, end, MAX_BYTES_SPECIAL_SEG);
-+		if (!p)
- 			return NULL;
--		p = next;
+ 	dprintk("svcrdma: rqstp=%p\n", rqstp);
+ 
+@@ -863,21 +863,13 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
+ 					struct svc_rdma_op_ctxt, list);
+ 		list_del(&ctxt->list);
+ 	} else {
+-		atomic_inc(&rdma_stat_rq_starve);
++		/* No new incoming requests, terminate the loop */
+ 		clear_bit(XPT_DATA, &xprt->xpt_flags);
+-		ctxt = NULL;
++		spin_unlock(&rdma_xprt->sc_rq_dto_lock);
++		return 0;
  	}
- 	return p;
- }
+ 	spin_unlock(&rdma_xprt->sc_rq_dto_lock);
+-	if (!ctxt) {
+-		/* This is the EAGAIN path. The svc_recv routine will
+-		 * return -EAGAIN, the nfsd thread will go to call into
+-		 * svc_recv again and we shouldn't be on the active
+-		 * transport list
+-		 */
+-		if (test_bit(XPT_CLOSE, &xprt->xpt_flags))
+-			goto defer;
+-		goto out;
+-	}
++
+ 	dprintk("svcrdma: processing ctxt=%p on xprt=%p, rqstp=%p\n",
+ 		ctxt, rdma_xprt, rqstp);
+ 	atomic_inc(&rdma_stat_recv);
+@@ -920,7 +912,6 @@ int svc_rdma_recvfrom(struct svc_rqst *rqstp)
+ 		+ rqstp->rq_arg.page_len
+ 		+ rqstp->rq_arg.tail[0].iov_len;
+ 	svc_rdma_put_context(ctxt, 0);
+- out:
+ 	dprintk("svcrdma: ret=%d, rq_arg.len=%u, "
+ 		"rq_arg.head[0].iov_base=%p, rq_arg.head[0].iov_len=%zd\n",
+ 		ret, rqstp->rq_arg.len,
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
