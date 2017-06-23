@@ -1,50 +1,101 @@
-From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 5/8] i40iw: Free QP resources on CQP destroy QP failure
-Date: Fri, 23 Jun 2017 16:03:59 -0500
-Message-ID: <20170623210402.19988-6-henry.orosco@intel.com>
-References: <20170623210402.19988-1-henry.orosco@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170623210402.19988-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3 00/18] Server-side NFS/RDMA changes proposed for v4.13
+Date: Fri, 23 Jun 2017 17:16:59 -0400
+Message-ID: <20170623211150.5162.59075.stgit@klimt.1015granger.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Hi Bruce-
 
-Current flow leaves software QP structures in memory if
-Control Queue Pair (CQP) destroy QP OP fails. To fix this,
-free QP resources on fail of CQP destroy QP OP.
+This series overhauls the "call receive" side of the RPC-over-RDMA
+transport to use the new rdma_rw API. A slight performance increase
+(better throughput and latency) has been seen. Benefits include:
 
-Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+o Fewer ib_post_send calls per RPC Call
+
+o Code duplicated by other ULPs is replaced with core functions
+
+o Position-Zero Read chunks are handled in one function
+
+o More thorough transport header sanity checking
+
+
+IMO these are ready for you to consider for v4.13. Have a pleasant
+weekend.
+
+
+Available in the "nfsd-rdma-for-4.13" topic branch of this git repo:
+
+git://git.linux-nfs.org/projects/cel/cel-2.6.git
+
+
+Or for browsing:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-for-4.13
+
+
+Remaining rdma_rw API changes are here:
+
+http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=log;h=refs/heads/nfsd-rdma-rw-api
+
+
+Changes since v2:
+* Rebased on v4.12-rc6 to pick up an RDMA CM fix
+* Fix op_ctxt leak when client forces a disconnect
+* Updated krb5i RQ_SPLICE_OK fix based on review comments
+* Dropped enable-force-mr patch
+
+
+Changes since v1:
+* Fixed bugzilla.linux-nfs 307
+* Cleaned up struct svc_rdma_chunk_ctxt
+
 ---
- drivers/infiniband/hw/i40iw/i40iw_utils.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-index 56d9869..ded8e48 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-@@ -546,8 +546,12 @@ void i40iw_rem_ref(struct ib_qp *ibqp)
- 	cqp_info->in.u.qp_destroy.scratch = (uintptr_t)cqp_request;
- 	cqp_info->in.u.qp_destroy.remove_hash_idx = true;
- 	status = i40iw_handle_cqp_op(iwdev, cqp_request);
--	if (status)
--		i40iw_pr_err("CQP-OP Destroy QP fail");
-+	if (!status)
-+		return;
-+
-+	i40iw_rem_pdusecount(iwqp->iwpd, iwdev);
-+	i40iw_free_qp_resources(iwdev, iwqp, qp_num);
-+	i40iw_rem_devusecount(iwdev);
- }
- 
- /**
--- 
-2.8.3
+Chuck Lever (18):
+      sunrpc: Disable splice for krb5i
+      svcrdma: Squelch disconnection messages
+      svcrdma: Avoid Send Queue overflow
+      svcrdma: Remove svc_rdma_marshal.c
+      svcrdma: Improve Read chunk sanity checking
+      svcrdma: Improve Write chunk sanity checking
+      svcrdma: Improve Reply chunk sanity checking
+      svcrdma: Don't account for Receive queue "starvation"
+      sunrpc: Allocate one more page per svc_rqst
+      svcrdma: Add recvfrom helpers to svc_rdma_rw.c
+      svcrdma: Use generic RDMA R/W API in RPC Call path
+      svcrdma: Properly compute .len and .buflen for received RPC Calls
+      svcrdma: Remove unused Read completion handlers
+      svcrdma: Remove frmr cache
+      svcrdma: Clean-up svc_rdma_unmap_dma
+      svcrdma: Clean up after converting svc_rdma_recvfrom to rdma_rw API
+      svcrdma: use offset_in_page() macro
+      svcrdma: Remove svc_rdma_chunk_ctxt::cc_dir field
+
+
+ include/linux/sunrpc/svc.h               |    3 
+ include/linux/sunrpc/svc_rdma.h          |   46 --
+ net/sunrpc/auth_gss/svcauth_gss.c        |    8 
+ net/sunrpc/svc.c                         |    2 
+ net/sunrpc/svc_xprt.c                    |    8 
+ net/sunrpc/xprtrdma/Makefile             |    4 
+ net/sunrpc/xprtrdma/svc_rdma_marshal.c   |  168 -------
+ net/sunrpc/xprtrdma/svc_rdma_recvfrom.c  |  734 ++++++++++++------------------
+ net/sunrpc/xprtrdma/svc_rdma_rw.c        |  449 ++++++++++++++++++
+ net/sunrpc/xprtrdma/svc_rdma_sendto.c    |   15 -
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |  250 +---------
+ 11 files changed, 776 insertions(+), 911 deletions(-)
+ delete mode 100644 net/sunrpc/xprtrdma/svc_rdma_marshal.c
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Chuck Lever
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
