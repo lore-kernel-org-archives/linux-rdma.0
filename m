@@ -1,99 +1,50 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 18/18] svcrdma: Remove svc_rdma_chunk_ctxt::cc_dir field
-Date: Fri, 23 Jun 2017 17:19:29 -0400
-Message-ID: <20170623211929.5162.23620.stgit@klimt.1015granger.net>
-References: <20170623211150.5162.59075.stgit@klimt.1015granger.net>
+From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 for-rdma 0/5] Expose Issues for HNS driver
+Date: Sat, 24 Jun 2017 16:39:05 +0800
+Message-ID: <d2a4a1e9-c46e-d635-7448-458c97f70982@huawei.com>
+References: <1497091765-10513-1-git-send-email-oulijun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170623211150.5162.59075.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+In-Reply-To: <1497091765-10513-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up: No need to save the I/O direction. The functions that
-release svc_rdma_chunk_ctxt already know what direction to use.
+Hi, Dledford
+   Do I need to resend this patchset?
 
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/svc_rdma_rw.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+Thanks
+Lijun Ou
+在 2017/6/10 18:49, Lijun Ou 写道:
+> This patch set mainly fixes some issues exposed for hns driver. The issue
+> list as follows:
+>   1. Unload hns driver when test on the board which its ports less than six
+>   2. May happen wild pointer error excepted exit when destroy rc qp
+>   3. Should use rdma_wr() for RDMA operation when post send
+>   4. Delete unnecessary lock operation in hns_roce_mac()
+>   5. Fix checkpatch.pl check warnings.
+>
+> Change from v1:
+> - re-write the changelog
+> - assgin rdma_ah_type type for roce in hns_roce_rsv_lp_qp()
+>   according to 4.12
+>
+> Lijun Ou (5):
+>   IB/hns: Fix the bug of polling cq failed for loopback Qps
+>   IB/hns: Fix the bug with wild pointer when destroy rc qp
+>   IB/hns: Fix the bug with rdma operation
+>   IB/hns: Fix the bug with modifying the MAC address without removing
+>     the driver
+>   IB/hns: Fix for checkpatch.pl comment style warnings
+>
+>  drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 83 ++++++++++++++++++------------
+>  drivers/infiniband/hw/hns/hns_roce_main.c  |  3 --
+>  2 files changed, 51 insertions(+), 35 deletions(-)
+>
 
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_rw.c b/net/sunrpc/xprtrdma/svc_rdma_rw.c
-index 9859736..933f79b 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_rw.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_rw.c
-@@ -116,22 +116,20 @@ struct svc_rdma_chunk_ctxt {
- 	struct svcxprt_rdma	*cc_rdma;
- 	struct list_head	cc_rwctxts;
- 	int			cc_sqecount;
--	enum dma_data_direction cc_dir;
- };
- 
- static void svc_rdma_cc_init(struct svcxprt_rdma *rdma,
--			     struct svc_rdma_chunk_ctxt *cc,
--			     enum dma_data_direction dir)
-+			     struct svc_rdma_chunk_ctxt *cc)
- {
- 	cc->cc_rdma = rdma;
- 	svc_xprt_get(&rdma->sc_xprt);
- 
- 	INIT_LIST_HEAD(&cc->cc_rwctxts);
- 	cc->cc_sqecount = 0;
--	cc->cc_dir = dir;
- }
- 
--static void svc_rdma_cc_release(struct svc_rdma_chunk_ctxt *cc)
-+static void svc_rdma_cc_release(struct svc_rdma_chunk_ctxt *cc,
-+				enum dma_data_direction dir)
- {
- 	struct svcxprt_rdma *rdma = cc->cc_rdma;
- 	struct svc_rdma_rw_ctxt *ctxt;
-@@ -141,7 +139,7 @@ static void svc_rdma_cc_release(struct svc_rdma_chunk_ctxt *cc)
- 
- 		rdma_rw_ctx_destroy(&ctxt->rw_ctx, rdma->sc_qp,
- 				    rdma->sc_port_num, ctxt->rw_sg_table.sgl,
--				    ctxt->rw_nents, cc->cc_dir);
-+				    ctxt->rw_nents, dir);
- 		svc_rdma_put_rw_ctxt(rdma, ctxt);
- 	}
- 	svc_xprt_put(&rdma->sc_xprt);
-@@ -179,14 +177,14 @@ struct svc_rdma_write_info {
- 	info->wi_seg_no = 0;
- 	info->wi_nsegs = be32_to_cpup(++chunk);
- 	info->wi_segs = ++chunk;
--	svc_rdma_cc_init(rdma, &info->wi_cc, DMA_TO_DEVICE);
-+	svc_rdma_cc_init(rdma, &info->wi_cc);
- 	info->wi_cc.cc_cqe.done = svc_rdma_write_done;
- 	return info;
- }
- 
- static void svc_rdma_write_info_free(struct svc_rdma_write_info *info)
- {
--	svc_rdma_cc_release(&info->wi_cc);
-+	svc_rdma_cc_release(&info->wi_cc, DMA_TO_DEVICE);
- 	kfree(info);
- }
- 
-@@ -241,14 +239,14 @@ struct svc_rdma_read_info {
- 	if (!info)
- 		return info;
- 
--	svc_rdma_cc_init(rdma, &info->ri_cc, DMA_FROM_DEVICE);
-+	svc_rdma_cc_init(rdma, &info->ri_cc);
- 	info->ri_cc.cc_cqe.done = svc_rdma_wc_read_done;
- 	return info;
- }
- 
- static void svc_rdma_read_info_free(struct svc_rdma_read_info *info)
- {
--	svc_rdma_cc_release(&info->ri_cc);
-+	svc_rdma_cc_release(&info->ri_cc, DMA_FROM_DEVICE);
- 	kfree(info);
- }
- 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
