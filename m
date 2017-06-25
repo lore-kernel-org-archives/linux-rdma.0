@@ -1,45 +1,33 @@
-From: Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Proposal for the 2nd RDMA microconference (LPC 2017)
-Date: Sun, 25 Jun 2017 11:43:35 +0300
-Message-ID: <786f10f7-6253-c95b-49e2-a89010a43781@redhat.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next] net: add netlink_ext_ack support to
+ rtnl_link_ops
+Date: Sun, 25 Jun 2017 11:50:12 -0400 (EDT)
+Message-ID: <20170625.115012.1229577774043704298.davem@davemloft.net>
+References: <01256ebba091f2108ebeff43e61305bb533067d4.1498303258.git.mschiffer@universe-factory.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <01256ebba091f2108ebeff43e61305bb533067d4.1498303258.git.mschiffer@universe-factory.net>
+Sender: netdev-owner@vger.kernel.org
+To: mschiffer@universe-factory.net
+Cc: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net, dmitry.tarnyagin@lockless.no, wg@grandegger.com, mkl@pengutronix.de, pablo@netfilter.org, laforge@gnumonks.org, paulus@samba.org, jiri@resnulli.us, dsa@cumulusnetworks.com, shm@cumulusnetworks.com, stephen@networkplumber.org, arvid.brodin@alten.se, alex.aring@gmail.com, stefan@osg.samsung.com, kuznet@ms2.inr.ac.ru, jmorris@namei.org, yoshfuji@linux-ipv6.org, kaber@trash.net, steffen.klassert@secunet.com, herbert@gondor.apana.org.au, johannes@sipsolutions.net, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-can@vger.kernel.org, osmocom-net-gprs@lists.osmocom.org, linux-ppp@vger.kernel.org, linux-wpan@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Leon,
+From: Matthias Schiffer <mschiffer@universe-factory.net>
+Date: Sat, 24 Jun 2017 13:35:17 +0200
 
-Here is our proposal for the coming conference.
+> The following functions are extended with a netlink_ext_ack argument to
+> allow extended error reporting:
+> 
+> * validate
+> * newlink
+> * changelink
+> * slave_validate
+> * slave_changelink
+> 
+> Signed-off-by: Matthias Schiffer <mschiffer@universe-factory.net>
 
-Abstract
---------
-QEMU's limited RDMA support leaves it behind other modern hypervisors. 
-Marcel and/or Yuval will present the implementation of an emulated RDMA 
-device, analyze its performance and usability, and finally talk about 
-future plans for a possible virtio-rdma device.
+Like David Ahern, I think you should split this patch up.
 
-Audience
---------
-The audience is developers interested in device emulation / RDMA.
-They can expect an interesting discussion on what are the difficulties 
-to work with RDMA in Virtual Machines and they will be welcomed to share 
-their ideas.
-
-Benefits to the Ecosystem
--------------------------
-Knowing how to tackle RDMA on virtualization may give developers an 
-easier start on adding RDMA support to QEMU, which in turn will leverage 
-the modern RDMA cards on virtualized environments.
-
-
-Thanks,
-Marcel & Yuval
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks.
