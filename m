@@ -1,61 +1,81 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH iproute2 3/5] rdma: Add device capability parsing
-Date: Mon, 26 Jun 2017 14:36:10 -0600
-Message-ID: <20170626203610.GB17892@obsidianresearch.com>
-References: <20170626182128.24964-1-leon@kernel.org>
- <20170626182128.24964-4-leon@kernel.org>
- <20170626182924.GB16026@obsidianresearch.com>
- <20170626192103.GH1248@mtr-leonro.local>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: IWARP Valgrind Issue
+Date: Mon, 26 Jun 2017 15:45:44 -0500
+Message-ID: <006801d2eebd$2e54ba60$8afe2f20$@opengridcomputing.com>
+References: <CY4PR19MB12215AF6E7225113294CF8DB8BDF0@CY4PR19MB1221.namprd19.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170626192103.GH1248@mtr-leonro.local>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Stephen Hemminger <stephen@networkplumber.org>, Doug Ledford <dledford@redhat.com>, Ariel Almog <ariela@mellanox.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Linux RDMA <linux-rdma@vger.kernel.org>, Linux Netdev <netdev@vger.kernel.org>
+Content-Type: text/plain;
+        charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CY4PR19MB12215AF6E7225113294CF8DB8BDF0-48YGSBrqCmz95OYN2XvIqNvXXbHMiUzJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Dan Coombs' <dcoombs-LmJBtNfl/RVO0n7uQEQMm4CZgX+1HZI1@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: 'Michael Chen' <mchen-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 26, 2017 at 10:21:03PM +0300, Leon Romanovsky wrote:
-> On Mon, Jun 26, 2017 at 12:29:24PM -0600, Jason Gunthorpe wrote:
-> > On Mon, Jun 26, 2017 at 09:21:26PM +0300, Leon Romanovsky wrote:
-> > > From: Leon Romanovsky <leonro@mellanox.com>
-> > >
-> > > Add parsing interface for the device capability flags
-> > >
-> > > $ rdma dev show
-> > > 1: mlx5_0: caps 0x1257e1c26
-> >
-> > This seems very un ip-like. I wouldn't show an undecoded hex value
-> > like that, it isn't really useful.
+Hey Dan:
+
 > 
-> It is first supported field, after new fields will be added, we will
-> have very similar to ip interface.
+> Hello,
 > 
-> 1: mlx5_0: caps 0x1257e1c2 key_1 val_1 key_2 val_2 ....
+> I'm getting a valgrind error when using the cxgb4/iw_cxgb4 drivers for a
+Chelsio
+> IWARP card.
 > 
-> The value are presented as is can be usable as an input for different scripts.
-
-I still wouldn't show an undecoded hex value.. It isn't useful.
-
-> > > $ rdma dev show mlx5_4 caps
-> > > 5: mlx5_4: caps 0x1257e1c26
-> > > Bit	Description
-> > >  01	DEVICE_BAD_PKEY_CNTR
-> > >  02	DEVICE_BAD_QKEY_CNTR
-> >
-> > This table also seems un ip-like, the usual format is a list of words,
-> > I think.
+> System info:
+> Distribution: Ubuntu 16.04.2 LTS
+> Kernel: 4.4.0-79-generic
+> Hardware: Chelsio T420-BT
+> Drivers:
+> Chelsio T4/T5/T6 Offload Network Driver - version 3.2.0.0
+> Chelsio T420-BT rev 2
+> iw_cxgb4:Chelsio T4/T5/T6 RDMA Driver - version 3.2.0.0
 > 
-> It is true for key<->value data, but it is less obvious for bit
-> parsing.
 
-Several of the word decodes are from bit fields..
+This is Chelsio's Unified Wire package, yes?
 
-> Internally, I tried to present them as list and it was ugly like hell
-> without any chance (without extra parsing) to actual see if specific
-> capability is present or no.
+> 
+> Bug:
+> 
+> Running with sudo valgrind --leak-check=full --undef-value-errors=no
+> 
+> 12,720 bytes in 1 blocks are definitely lost in loss record 146 of 150
+> 
+> 
+> Call stack:
+> 
+> ibv_create_cq (verbs.c:328)
+> c4iw_create_cq (verbs.c:245)
+> calloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+> 
+> Code simply opens the device, creates a completion channel and a completion
+> queue with ibv_create_*, then destroys the completion queue and completion
+> channel with ibv_destroy_*.
+> 
 
-lspci seems to have no problem being readable while doing this..
+That looks like a bug in Chelsio's Unified Wire libcxgb4 core (ie not in the
+upstream rdma-core libcxgb4 code).  I See the leak.  Something like this should
+probably fix it.
 
-Jason
+diff -r fbf715bf1eb7 linux_libs/libcxgb4/src/verbs.c
+--- a/linux_libs/libcxgb4/src/verbs.c   Fri Jun 23 13:44:07 2017 -0700
++++ b/linux_libs/libcxgb4/src/verbs.c   Mon Jun 26 13:43:52 2017 -0700
+@@ -304,6 +304,7 @@ int c4iw_destroy_cq(struct ibv_cq *ibcq)
+        dev->cqid2ptr[chp->cq.cqid] = NULL;
+        pthread_spin_unlock(&dev->lock);
+
++       free(chp->cq.swiq_queue);
+        free(chp->cq.sw_queue);
+        free(chp);
+        return 0;
+
+
+Steve.
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
