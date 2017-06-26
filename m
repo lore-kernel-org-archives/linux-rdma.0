@@ -1,7 +1,7 @@
 From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH rdma 1/3] RDMA/qedr: Prevent memory overrun in verbs' user responses
-Date: Mon, 26 Jun 2017 19:05:04 +0300
-Message-ID: <1498493106-28604-2-git-send-email-Ram.Amrani@cavium.com>
+Subject: [PATCH rdma 2/3] RDMA/qedr: notify user application if DPM is supported
+Date: Mon, 26 Jun 2017 19:05:05 +0300
+Message-ID: <1498493106-28604-3-git-send-email-Ram.Amrani@cavium.com>
 References: <1498493106-28604-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,72 +12,67 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Wrap ib_copy_to_udata with a function that ensures that the data
-being copied over to user space isn't longer than the allowed.
+Direct Packet Mode support may be disabled, e.g, due to limited
+resources. Notifying the user application prevents wasting cycles
+on attempting to send these kind of packets.
 
-Fixes: cecbcddf6461 ("qedr: Add support for QP verbs")
-Fixes: a7efd7773e31 ("qedr: Add support for PD,PKEY and CQ verbs")
-Fixes: ac1b36e55a51 ("qedr: Add support for user context verbs")
 Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/qedr/verbs.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/qedr/main.c  | 1 +
+ drivers/infiniband/hw/qedr/qedr.h  | 2 ++
+ drivers/infiniband/hw/qedr/verbs.c | 1 +
+ include/uapi/rdma/qedr-abi.h       | 1 +
+ 4 files changed, 5 insertions(+)
 
+diff --git a/drivers/infiniband/hw/qedr/main.c b/drivers/infiniband/hw/qedr/main.c
+index 6a72095..d228718 100644
+--- a/drivers/infiniband/hw/qedr/main.c
++++ b/drivers/infiniband/hw/qedr/main.c
+@@ -778,6 +778,7 @@ static struct qedr_dev *qedr_add(struct qed_dev *cdev, struct pci_dev *pdev,
+ 	if (rc)
+ 		goto init_err;
+ 
++	dev->user_dpm_enabled = dev_info.user_dpm_enabled;
+ 	dev->num_hwfns = dev_info.common.num_hwfns;
+ 	dev->rdma_ctx = dev->ops->rdma_get_rdma_ctx(cdev);
+ 
+diff --git a/drivers/infiniband/hw/qedr/qedr.h b/drivers/infiniband/hw/qedr/qedr.h
+index aa08c76..42af9b6 100644
+--- a/drivers/infiniband/hw/qedr/qedr.h
++++ b/drivers/infiniband/hw/qedr/qedr.h
+@@ -158,6 +158,8 @@ struct qedr_dev {
+ 	struct qedr_qp		*gsi_qp;
+ 
+ 	unsigned long enet_state;
++
++	u8 user_dpm_enabled;
+ };
+ 
+ #define QEDR_MAX_SQ_PBL			(0x8000)
 diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
-index 17685cf..3ec861c 100644
+index 3ec861c..d655364 100644
 --- a/drivers/infiniband/hw/qedr/verbs.c
 +++ b/drivers/infiniband/hw/qedr/verbs.c
-@@ -53,6 +53,14 @@
+@@ -376,6 +376,7 @@ struct ib_ucontext *qedr_alloc_ucontext(struct ib_device *ibdev,
  
- #define DB_ADDR_SHIFT(addr)		((addr) << DB_PWM_ADDR_OFFSET_SHIFT)
+ 	memset(&uresp, 0, sizeof(uresp));
  
-+static inline int qedr_ib_copy_to_udata(struct ib_udata *udata, void *src,
-+					size_t len)
-+{
-+	size_t min_len = min_t(size_t, len, udata->outlen);
-+
-+	return ib_copy_to_udata(udata, src, min_len);
-+}
-+
- int qedr_query_pkey(struct ib_device *ibdev, u8 port, u16 index, u16 *pkey)
- {
- 	if (index > QEDR_ROCE_PKEY_TABLE_LEN)
-@@ -378,7 +386,7 @@ struct ib_ucontext *qedr_alloc_ucontext(struct ib_device *ibdev,
- 	uresp.sges_per_srq_wr = dev->attr.max_srq_sge;
- 	uresp.max_cqes = QEDR_MAX_CQES;
++	uresp.dpm_enabled = dev->user_dpm_enabled;
+ 	uresp.db_pa = ctx->dpi_phys_addr;
+ 	uresp.db_size = ctx->dpi_size;
+ 	uresp.max_send_wr = dev->attr.max_sqe;
+diff --git a/include/uapi/rdma/qedr-abi.h b/include/uapi/rdma/qedr-abi.h
+index 75c270d..2684004 100644
+--- a/include/uapi/rdma/qedr-abi.h
++++ b/include/uapi/rdma/qedr-abi.h
+@@ -49,6 +49,7 @@ struct qedr_alloc_ucontext_resp {
+ 	__u32 sges_per_recv_wr;
+ 	__u32 sges_per_srq_wr;
+ 	__u32 max_cqes;
++	__u8 dpm_enabled;
+ };
  
--	rc = ib_copy_to_udata(udata, &uresp, sizeof(uresp));
-+	rc = qedr_ib_copy_to_udata(udata, &uresp, sizeof(uresp));
- 	if (rc)
- 		goto err;
- 
-@@ -499,7 +507,7 @@ struct ib_pd *qedr_alloc_pd(struct ib_device *ibdev,
- 
- 		uresp.pd_id = pd_id;
- 
--		rc = ib_copy_to_udata(udata, &uresp, sizeof(uresp));
-+		rc = qedr_ib_copy_to_udata(udata, &uresp, sizeof(uresp));
- 		if (rc) {
- 			DP_ERR(dev, "copy error pd_id=0x%x.\n", pd_id);
- 			dev->ops->rdma_dealloc_pd(dev->rdma_ctx, pd_id);
-@@ -722,7 +730,7 @@ static int qedr_copy_cq_uresp(struct qedr_dev *dev,
- 	uresp.db_offset = DB_ADDR_SHIFT(DQ_PWM_OFFSET_UCM_RDMA_CQ_CONS_32BIT);
- 	uresp.icid = cq->icid;
- 
--	rc = ib_copy_to_udata(udata, &uresp, sizeof(uresp));
-+	rc = qedr_ib_copy_to_udata(udata, &uresp, sizeof(uresp));
- 	if (rc)
- 		DP_ERR(dev, "copy error cqid=0x%x.\n", cq->icid);
- 
-@@ -1228,7 +1236,7 @@ static int qedr_copy_qp_uresp(struct qedr_dev *dev,
- 	uresp.atomic_supported = dev->atomic_cap != IB_ATOMIC_NONE;
- 	uresp.qp_id = qp->qp_id;
- 
--	rc = ib_copy_to_udata(udata, &uresp, sizeof(uresp));
-+	rc = qedr_ib_copy_to_udata(udata, &uresp, sizeof(uresp));
- 	if (rc)
- 		DP_ERR(dev,
- 		       "create qp: failed a copy to user space with qp icid=0x%x.\n",
+ struct qedr_alloc_pd_ureq {
 -- 
 1.8.3.1
 
