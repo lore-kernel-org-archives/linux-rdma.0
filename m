@@ -1,37 +1,44 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH] net/mlx4: fix spelling mistake: "coalesing" -> "coalescing"
-Date: Mon, 26 Jun 2017 13:53:46 +0100
-Message-ID: <20170626125346.22143-1-colin.king@canonical.com>
+From: David Ahern <dsahern@gmail.com>
+Subject: Re: [PATCH net-next v2 4/5] net: add netlink_ext_ack argument to
+ rtnl_link_ops.slave_changelink
+Date: Mon, 26 Jun 2017 07:33:50 -0600
+Message-ID: <27b8d607-7442-0a42-1389-9548840445dc@gmail.com>
+References: <cover.1498425679.git.mschiffer@universe-factory.net>
+ <498ff06f59d5ce13b2ad3e1c1902c3d348ca3c00.1498425679.git.mschiffer@universe-factory.net>
+ <b097a69e-4449-b124-c39e-4dbdbae7c218@gmail.com>
+ <dd3f596b-4519-398c-a2ec-afdaf5f2f058@gmail.com>
+ <15d2138d-5026-a35b-8a3c-2a88d05df688@universe-factory.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tariq Toukan <tariqt@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ppp-owner@vger.kernel.org>
+In-Reply-To: <15d2138d-5026-a35b-8a3c-2a88d05df688@universe-factory.net>
+Sender: linux-ppp-owner@vger.kernel.org
+To: Matthias Schiffer <mschiffer@universe-factory.net>, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net, wg@grandegger.com, mkl@pengutronix.de, pablo@netfilter.org, laforge@gnumonks.org, paulus@samba.org, jiri@resnulli.us, dsa@cumulusnetworks.com, shm@cumulusnetworks.com, davem@davemloft.net, stephen@networkplumber.org, arvid.brodin@alten.se, alex.aring@gmail.com, stefan@osg.samsung.com, kuznet@ms2.inr.ac.ru, jmorris@namei.org, yoshfuji@linux-ipv6.org, kaber@trash.net, steffen.klassert@secunet.com, herbert@gondor.apana.org.au, johannes@sipsolutions.net
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-can@vger.kernel.org, linux-ppp@vger.kernel.org, linux-wpan@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+On 6/26/17 2:43 AM, Matthias Schiffer wrote:
+> On 06/26/2017 06:08 AM, David Ahern wrote:
+>> On 6/25/17 10:04 PM, David Ahern wrote:
+>>> On 6/25/17 3:56 PM, Matthias Schiffer wrote:
+>>>> Add support for extended error reporting.
+>>>>
+>>>> Signed-off-by: Matthias Schiffer <mschiffer@universe-factory.net>
+>>>> ---
+>>>
+>>>
+>>> Acked-by: David Ahern <dsahern@gmail.com>
+>>>
+>>
+>> Actually, you are missing the chagne to br_port_slave_changelink.
+>>
+> 
+> I'm confused. I am changing br_port_slave_changelink? All my patches are
+> compile-tested.
+> 
 
-Trivial fix to spelling mistake in en_dbg debug message
+You are changing the signature of slave_changelink, no?
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/net/ethernet/mellanox/mlx4/en_netdev.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
-index 18252a79a074..9da76e3be2fc 100644
---- a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
-@@ -1352,7 +1352,7 @@ static void mlx4_en_set_default_moderation(struct mlx4_en_priv *priv)
- 	priv->rx_usecs = MLX4_EN_RX_COAL_TIME;
- 	priv->tx_frames = MLX4_EN_TX_COAL_PKTS;
- 	priv->tx_usecs = MLX4_EN_TX_COAL_TIME;
--	en_dbg(INTR, priv, "Default coalesing params for mtu:%d - rx_frames:%d rx_usecs:%d\n",
-+	en_dbg(INTR, priv, "Default coalescing params for mtu:%d - rx_frames:%d rx_usecs:%d\n",
- 	       priv->dev->mtu, priv->rx_frames, priv->rx_usecs);
- 
- 	/* Setup cq moderation params */
--- 
-2.11.0
+net/bridge/br_netlink.c:
+        .slave_changelink       = br_port_slave_changelink,
