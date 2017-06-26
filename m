@@ -1,187 +1,31 @@
 From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH rdma 1/1] IB/core: Fix input len in multiple user verbs
-Date: Mon, 26 Jun 2017 18:53:49 +0300
-Message-ID: <1498492429-28051-2-git-send-email-Ram.Amrani@cavium.com>
-References: <1498492429-28051-1-git-send-email-Ram.Amrani@cavium.com>
+Subject: [PATCH rdma 0/3] RDMA/qedr: User-to-kernel space patches
+Date: Mon, 26 Jun 2017 19:05:03 +0300
+Message-ID: <1498493106-28604-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1498492429-28051-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Most user verbs pass user data to the kernel with the inclusion of the
-ib_uverbs_cmd_hdr structure. This is problematic because the vendor has
-no ideas if the verb was called by a legacy verb or an extended verb.
-Also, the incosistency between the verbs is confusing.
+The first patch is a fix that prevents memory overrun.
+Thanks Jason.
 
-Fixes: 565197dd8fb1 ("IB/core: Extend ib_uverbs_create_cq")
-Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/core/uverbs_cmd.c | 70 ++++++++++++++++++++----------------
- 1 file changed, 40 insertions(+), 30 deletions(-)
+The other two add new parameters that are passed to rdma-core.
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 70b7fb1..c418a0a 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -91,9 +91,10 @@ ssize_t ib_uverbs_get_context(struct ib_uverbs_file *file,
- 		goto err;
- 	}
- 
--	INIT_UDATA(&udata, buf + sizeof cmd,
--		   (unsigned long) cmd.response + sizeof resp,
--		   in_len - sizeof cmd, out_len - sizeof resp);
-+	INIT_UDATA(&udata, buf + sizeof(cmd),
-+		   (unsigned long) cmd.response + sizeof(resp),
-+		   in_len - sizeof(cmd) - sizeof(struct ib_uverbs_cmd_hdr),
-+		   out_len - sizeof(resp));
- 
- 	ret = ib_rdmacg_try_charge(&cg_obj, ib_dev, RDMACG_RESOURCE_HCA_HANDLE);
- 	if (ret)
-@@ -313,9 +314,10 @@ ssize_t ib_uverbs_alloc_pd(struct ib_uverbs_file *file,
- 	if (copy_from_user(&cmd, buf, sizeof cmd))
- 		return -EFAULT;
- 
--	INIT_UDATA(&udata, buf + sizeof cmd,
--		   (unsigned long) cmd.response + sizeof resp,
--		   in_len - sizeof cmd, out_len - sizeof resp);
-+	INIT_UDATA(&udata, buf + sizeof(cmd),
-+		   (unsigned long) cmd.response + sizeof(resp),
-+                   in_len - sizeof(cmd) - sizeof(struct ib_uverbs_cmd_hdr),
-+                   out_len - sizeof(resp));
- 
- 	uobj  = uobj_alloc(uobj_get_type(pd), file->ucontext);
- 	if (IS_ERR(uobj))
-@@ -482,9 +484,10 @@ ssize_t ib_uverbs_open_xrcd(struct ib_uverbs_file *file,
- 	if (copy_from_user(&cmd, buf, sizeof cmd))
- 		return -EFAULT;
- 
--	INIT_UDATA(&udata, buf + sizeof cmd,
--		   (unsigned long) cmd.response + sizeof resp,
--		   in_len - sizeof cmd, out_len - sizeof  resp);
-+	INIT_UDATA(&udata, buf + sizeof(cmd),
-+		   (unsigned long) cmd.response + sizeof(resp),
-+                   in_len - sizeof(cmd) - sizeof(struct ib_uverbs_cmd_hdr),
-+                   out_len - sizeof(resp));
- 
- 	mutex_lock(&file->device->xrcd_tree_mutex);
- 
-@@ -646,9 +649,10 @@ ssize_t ib_uverbs_reg_mr(struct ib_uverbs_file *file,
- 	if (copy_from_user(&cmd, buf, sizeof cmd))
- 		return -EFAULT;
- 
--	INIT_UDATA(&udata, buf + sizeof cmd,
--		   (unsigned long) cmd.response + sizeof resp,
--		   in_len - sizeof cmd, out_len - sizeof resp);
-+	INIT_UDATA(&udata, buf + sizeof(cmd),
-+		   (unsigned long) cmd.response + sizeof(resp),
-+                   in_len - sizeof(cmd) - sizeof(struct ib_uverbs_cmd_hdr),
-+                   out_len - sizeof(resp));
- 
- 	if ((cmd.start & ~PAGE_MASK) != (cmd.hca_va & ~PAGE_MASK))
- 		return -EINVAL;
-@@ -740,7 +744,8 @@ ssize_t ib_uverbs_rereg_mr(struct ib_uverbs_file *file,
- 
- 	INIT_UDATA(&udata, buf + sizeof(cmd),
- 		   (unsigned long) cmd.response + sizeof(resp),
--		   in_len - sizeof(cmd), out_len - sizeof(resp));
-+                   in_len - sizeof(cmd) - sizeof(struct ib_uverbs_cmd_hdr),
-+                   out_len - sizeof(resp));
- 
- 	if (cmd.flags & ~IB_MR_REREG_SUPPORTED || !cmd.flags)
- 		return -EINVAL;
-@@ -1080,7 +1085,8 @@ ssize_t ib_uverbs_create_cq(struct ib_uverbs_file *file,
- 
- 	INIT_UDATA(&uhw, buf + sizeof(cmd),
- 		   (unsigned long)cmd.response + sizeof(resp),
--		   in_len - sizeof(cmd), out_len - sizeof(resp));
-+		   in_len - sizeof(cmd) - sizeof(struct ib_uverbs_cmd_hdr),
-+		   out_len - sizeof(resp));
- 
- 	memset(&cmd_ex, 0, sizeof(cmd_ex));
- 	cmd_ex.user_handle = cmd.user_handle;
-@@ -1161,9 +1167,10 @@ ssize_t ib_uverbs_resize_cq(struct ib_uverbs_file *file,
- 	if (copy_from_user(&cmd, buf, sizeof cmd))
- 		return -EFAULT;
- 
--	INIT_UDATA(&udata, buf + sizeof cmd,
--		   (unsigned long) cmd.response + sizeof resp,
--		   in_len - sizeof cmd, out_len - sizeof resp);
-+	INIT_UDATA(&udata, buf + sizeof(cmd),
-+		   (unsigned long) cmd.response + sizeof(resp),
-+		   in_len - sizeof(cmd) - sizeof(struct ib_uverbs_cmd_hdr),
-+		   out_len - sizeof(resp));
- 
- 	cq = uobj_get_obj_read(cq, cmd.cq_handle, file->ucontext);
- 	if (!cq)
-@@ -1719,9 +1726,10 @@ ssize_t ib_uverbs_open_qp(struct ib_uverbs_file *file,
- 	if (copy_from_user(&cmd, buf, sizeof cmd))
- 		return -EFAULT;
- 
--	INIT_UDATA(&udata, buf + sizeof cmd,
--		   (unsigned long) cmd.response + sizeof resp,
--		   in_len - sizeof cmd, out_len - sizeof resp);
-+	INIT_UDATA(&udata, buf + sizeof(cmd),
-+		   (unsigned long) cmd.response + sizeof(resp),
-+		   in_len - sizeof(cmd) - sizeof(struct ib_uverbs_cmd_hdr),
-+		   out_len - sizeof(resp));
- 
- 	obj  = (struct ib_uqp_object *)uobj_alloc(uobj_get_type(qp),
- 						  file->ucontext);
-@@ -2038,7 +2046,8 @@ ssize_t ib_uverbs_modify_qp(struct ib_uverbs_file *file,
- 		return -EOPNOTSUPP;
- 
- 	INIT_UDATA(&udata, buf + sizeof(cmd.base), NULL,
--		   in_len - sizeof(cmd.base), out_len);
-+		   in_len - sizeof(cmd.base) - sizeof(struct ib_uverbs_cmd_hdr),
-+		   out_len);
- 
- 	ret = modify_qp(file, &cmd, &udata);
- 	if (ret)
-@@ -2543,7 +2552,8 @@ ssize_t ib_uverbs_create_ah(struct ib_uverbs_file *file,
- 
- 	INIT_UDATA(&udata, buf + sizeof(cmd),
- 		   (unsigned long)cmd.response + sizeof(resp),
--		   in_len - sizeof(cmd), out_len - sizeof(resp));
-+		   in_len - sizeof(cmd) - sizeof(struct ib_uverbs_cmd_hdr),
-+		   out_len - sizeof(resp));
- 
- 	uobj  = uobj_alloc(uobj_get_type(ah), file->ucontext);
- 	if (IS_ERR(uobj))
-@@ -3609,10 +3619,10 @@ ssize_t ib_uverbs_create_srq(struct ib_uverbs_file *file,
- 	xcmd.max_sge	 = cmd.max_sge;
- 	xcmd.srq_limit	 = cmd.srq_limit;
- 
--	INIT_UDATA(&udata, buf + sizeof cmd,
--		   (unsigned long) cmd.response + sizeof resp,
--		   in_len - sizeof cmd - sizeof(struct ib_uverbs_cmd_hdr),
--		   out_len - sizeof resp);
-+	INIT_UDATA(&udata, buf + sizeof(cmd),
-+		   (unsigned long) cmd.response + sizeof(resp),
-+		   in_len - sizeof(cmd) - sizeof(struct ib_uverbs_cmd_hdr),
-+		   out_len - sizeof(resp));
- 
- 	ret = __uverbs_create_xsrq(file, ib_dev, &xcmd, &udata);
- 	if (ret)
-@@ -3636,10 +3646,10 @@ ssize_t ib_uverbs_create_xsrq(struct ib_uverbs_file *file,
- 	if (copy_from_user(&cmd, buf, sizeof cmd))
- 		return -EFAULT;
- 
--	INIT_UDATA(&udata, buf + sizeof cmd,
--		   (unsigned long) cmd.response + sizeof resp,
--		   in_len - sizeof cmd - sizeof(struct ib_uverbs_cmd_hdr),
--		   out_len - sizeof resp);
-+	INIT_UDATA(&udata, buf + sizeof(cmd),
-+		   (unsigned long) cmd.response + sizeof(resp),
-+		   in_len - sizeof(cmd) - sizeof(struct ib_uverbs_cmd_hdr),
-+		   out_len - sizeof(resp));
- 
- 	ret = __uverbs_create_xsrq(file, ib_dev, &cmd, &udata);
- 	if (ret)
+Ram Amrani (3):
+  RDMA/qedr: Prevent memory overrun in verbs' user responses
+  RDMA/qedr: notify user application if DPM is supported
+  RDMA/qedr: notify user application of supported WIDs
+
+ drivers/infiniband/hw/qedr/main.c  |  1 +
+ drivers/infiniband/hw/qedr/qedr.h  |  2 ++
+ drivers/infiniband/hw/qedr/verbs.c | 19 +++++++++++++++----
+ include/uapi/rdma/qedr-abi.h       |  3 +++
+ 4 files changed, 21 insertions(+), 4 deletions(-)
+
 -- 
 1.8.3.1
 
