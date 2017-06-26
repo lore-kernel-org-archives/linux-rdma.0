@@ -1,152 +1,110 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next V2 1/5] RDMA/netlink: Remove netlink clients
- infrastructure
-Date: Mon, 26 Jun 2017 22:11:54 +0300
-Message-ID: <20170626191154.GG1248@mtr-leonro.local>
-References: <20170613085927.2908-1-leon@kernel.org>
- <20170613085927.2908-2-leon@kernel.org>
- <20170626175505.GA2904@ctung-MOBL3.amr.corp.intel.com>
- <20170626181324.GE1248@mtr-leonro.local>
- <20170626183329.GA11716@ctung-MOBL3.amr.corp.intel.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 2/2] IB/core: Add generic function to extract IB speed
+ from netdev
+Date: Mon, 26 Jun 2017 22:12:55 +0300
+Message-ID: <20170626191252.GA14355@raspberrypi>
+References: <20170611054450.7221-1-yuval.shaia@oracle.com>
+ <20170611054450.7221-3-yuval.shaia@oracle.com>
+ <CA+sbYW07k=UoFvJVLvjfTcuUosoJJk34mSZJAfXRaUJuHwS3cA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="qCuyVVLLFvr0p6ls"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170626183329.GA11716-TZeIlv3TuzOfrEmaQUPKxl95YUYmaKo1UNDiOz3kqAs@public.gmane.org>
+In-Reply-To: <CA+sbYW07k=UoFvJVLvjfTcuUosoJJk34mSZJAfXRaUJuHwS3cA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagi-TmH2Wj2nsNJBDLzU/O5InQ@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
---qCuyVVLLFvr0p6ls
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, Jun 26, 2017 at 01:33:29PM -0500, Chien Tin Tung wrote:
-> On Mon, Jun 26, 2017 at 09:13:24PM +0300, Leon Romanovsky wrote:
-> > On Mon, Jun 26, 2017 at 12:55:05PM -0500, Chien Tin Tung wrote:
-> > > On Tue, Jun 13, 2017 at 03:59:23AM -0500, Leon Romanovsky wrote:
-> > > > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > > >
-> > > > RDMA netlink has complicated infrastructure to add and remove netli=
-nk
-> > > > clients to NETLINK_RDMA family. This complicates the code and not in
-> > > > use because not many clients are available (3 clients) and most of =
-them
-> > > > (2 clients) are statically compiled together with netlink.c.
-> > > >
-> > > > The following patch refactors RDMA netlink and opens door for the f=
-uture
-> > > > patches which will be able to get rid of a lot of dead iwcm* code.
-> > > >
-> > > > Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > > > Reviewed-by: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > > ---
-> > > >  drivers/infiniband/core/cma.c     |   6 +-
-> > > >  drivers/infiniband/core/device.c  |  41 +++------
-> > > >  drivers/infiniband/core/iwcm.c    |  10 +--
-> > > >  drivers/infiniband/core/netlink.c | 185 ++++++++++++++++++--------=
-------------
-> > > >  include/rdma/rdma_netlink.h       |  17 ++--
-> > > >  5 files changed, 110 insertions(+), 149 deletions(-)
-> > >
-> > > > diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlin=
-k.h
-> > > > index 585266144329..6735dcf5d2a3 100644
-> > > > --- a/include/rdma/rdma_netlink.h
-> > > > +++ b/include/rdma/rdma_netlink.h
-> > > > @@ -10,27 +10,22 @@ struct ibnl_client_cbs {
-> > > >         struct module *module;
-> > > >  };
-> > > >
-> > > > -int ibnl_init(void);
-> > > > -void ibnl_cleanup(void);
-> > > > +int rdma_nl_init(void);
-> > > > +void rdma_nl_exit(void);
-> > >
-> > > This hunk is in direct conflict with 233c1955 which you removed
-> > > ibnl_init and ibnl_cleanup.  Are you putting back the init and
-> > > exit or do you want to leave them out?
+On Wed, Jun 14, 2017 at 08:45:12PM +0530, Selvin Xavier wrote:
+> On Sun, Jun 11, 2017 at 11:14 AM, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> > diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> > index 7ba9e69..d0e0f90 100644
+> > --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> > +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+> > @@ -181,50 +181,6 @@ int bnxt_re_modify_device(struct ib_device *ibdev,
+> >         return 0;
+> >  }
 > >
-> > We have different git hashes and I don't know about which commit you are
-> > referring.
->
-> There is only one true upstream, go look at Linus' git.
->
-> >
-> > This commit simply renames exit/init functions in general header file.
-> > The init/exit is still needed, because it is called from device.c.
-> >
-> > The git log doesn't show me anything suspicious too.
-> > =E2=9E=9C  linux-rdma git:(topic/rdma-netlink-v1) git log -p include/rd=
-ma/rdma_netlink.h
->
-> Your git and branch is out of sync.  This is the relevant part of the pat=
-ch.
->
-> commit 233c1955835bd8649003be9bb3d8e79788b08be1
-> Author: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Date:   Sun May 14 15:49:57 2017 +0300
->
->     RDMA/netlink: Reduce exposure of RDMA netlink functions
->
->     RDMA netlink is part of ib_core, hence ibnl_chk_listeners(),
->     ibnl_init() and ibnl_cleanup() don't need to be published
->     in public header file.
->
->     Let's remove EXPORT_SYMBOL from ibnl_chk_listeners() and move all the=
-se
->     functions to private header file.
->
->     CC: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->     Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->     Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->     Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->
-> diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
-> index 5852661..348c102 100644
-> --- a/include/rdma/rdma_netlink.h
-> +++ b/include/rdma/rdma_netlink.h
-> @@ -10,9 +10,6 @@ struct ibnl_client_cbs {
->         struct module *module;
->  };
->
-> -int ibnl_init(void);
-> -void ibnl_cleanup(void);
-> -
+> > -static void __to_ib_speed_width(struct net_device *netdev, u8 *speed, u8 *width)
+> > -{
+> > -       struct ethtool_link_ksettings lksettings;
+> > -       u32 espeed;
+> > -
+> > -       if (netdev->ethtool_ops && netdev->ethtool_ops->get_link_ksettings) {
+> > -               memset(&lksettings, 0, sizeof(lksettings));
+> > -               rtnl_lock();
+> > -               netdev->ethtool_ops->get_link_ksettings(netdev, &lksettings);
+> > -               rtnl_unlock();
+> > -               espeed = lksettings.base.speed;
+> > -       } else {
+> > -               espeed = SPEED_UNKNOWN;
+> > -       }
+> > -       switch (espeed) {
+> > -       case SPEED_1000:
+> > -               *speed = IB_SPEED_SDR;
+> > -               *width = IB_WIDTH_1X;
+> > -               break;
+> > -       case SPEED_10000:
+> > -               *speed = IB_SPEED_QDR;
+> > -               *width = IB_WIDTH_1X;
+> > -               break;
+> > -       case SPEED_20000:
+> > -               *speed = IB_SPEED_DDR;
+> > -               *width = IB_WIDTH_4X;
+> > -               break;
+> > -       case SPEED_25000:
+> > -               *speed = IB_SPEED_EDR;
+> > -               *width = IB_WIDTH_1X;
+> > -               break;
+> > -       case SPEED_40000:
+> > -               *speed = IB_SPEED_QDR;
+> > -               *width = IB_WIDTH_4X;
+> > -               break;
+> > -       case SPEED_50000:
+> > -               break;
+> > -       default:
+> > -               *speed = IB_SPEED_SDR;
+> > -               *width = IB_WIDTH_1X;
+> > -               break;
+> > -       }
+> > -}
+> > -
+> >  /* Port */
+> >  int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
+> >                        struct ib_port_attr *port_attr)
+> > @@ -266,8 +222,9 @@ int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
+> >          * IB stack to avoid race in the NETDEV_UNREG path
+> >          */
+> >         if (test_bit(BNXT_RE_FLAG_IBDEV_REGISTERED, &rdev->flags))
+> > -               __to_ib_speed_width(rdev->netdev, &port_attr->active_speed,
+> > -                                   &port_attr->active_width);
+> > +               if (!ib_get_eth_speed(ibdev, port_num, &port_attr->active_speed,
+> > +                                     &port_attr->active_width))
+> > +                       return -EINVAL;
+> >         return 0;
+> >  }
+> 
+> The bnxt_re changes looks good to me.
+> 
+> But this change conflicts with one of the patches i submitted as a
+> part of the bug fix series.
+> 
+> https://patchwork.kernel.org/patch/9786057/
+> 
+> Depending on the order in which Doug pulls these patches, one of us
+> might have to
+> re-spin the patch.
 
-Thanks,
+Doug, you want me to rebase v4 of the patch on top of the above?
 
-It is rebase error, those functions needs to be in core_priv.h. I'll resend.
-
->
->
-> Chien
-
---qCuyVVLLFvr0p6ls
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllRXHkACgkQ5GN7iDZy
-WKfhUQ/9FQ7sBTjT1rsWcDT4mawym/iDwlVVB7oMlzcGuaEdD5Ip0SpSCTc0OqBg
-s+NBnXdWg/pSlWNWkTscVWq9eP8N/naG1um8fWPIGPG/8pRLv0Tat4DRPtZMJQds
-O38SOAa7g+EhkQJc9zw5N+Dcthp4h0supOB2CqWPCUXW/EdSlao056v1swWEFfbT
-0xUU0/pVHbHCHKVBwa5Cgz/OGVDA0Ko3uNjD/9lPTHVYQz9qKi1k2N40MQpGC27m
-BdnQ/NCKZfjMU8ogRD/yV8SE2btbkc6bh76VPtiwCTTXbDfRfqfm628pA9ioIBHY
-LP12r50xQfAUtqP1f2qED0/45xMaBtuYkTRCmC9jxnWkuoSQ46EPBNg+isiPBy/w
-XV5ZA6VB3nbnE7ovzEdPT+AyqY6ASe47SxlV5a/5sBa+GO2QnRKxbo7wOKttcYVH
-mQ07F56V3FTJmOIflqv56u/oFqDKcmeGfVj5ClYugWWRrpt7GmOvAfXZ4Q3aE0tJ
-XzDIGM0DV0c7iFFxwRu1ACwYnVJiMZxV1udnF20p1i6Sg8r4maKik2iq46OUJDxj
-MzXBOJ8sdpracCKjPziRll7YBYeLTC9jl4BRsrQDJZdM3ldF2jHHd873FYuT/5fS
-p+VFHzE/qqmm5Nb1fBZ9mw3CLYquUXN1+eq3fgzYLldyW3AD+io=
-=TwXq
------END PGP SIGNATURE-----
-
---qCuyVVLLFvr0p6ls--
+> 
+> Thanks,
+> Selvin Xavier
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
