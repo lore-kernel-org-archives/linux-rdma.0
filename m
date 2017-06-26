@@ -1,29 +1,79 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH v6 for-4.13 0/7] Automatic affinity settings for nvme
-        over rdma
-Date: Mon, 26 Jun 2017 12:01:13 +0200
-Message-ID: <20170626100113.GA14446@lst.de>
-References: <1497796677-15794-1-git-send-email-sagi@grimberg.me> <20170619122806.GA29061@lst.de>
+From: <p.mueller-spz-hgw-Mmb7MZpHnFY@public.gmane.org>
+Subject: (unknown)
+Date: Mon, 26 Jun 2017 10:22:47 -0000
+Message-ID: <149847256728.12492.1371828318340499001@telenet.ru>
+Reply-To: <p.mueller-spz-hgw-Mmb7MZpHnFY@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: application/zip; name="47850763814001_linux-rdma.zip"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170619122806.GA29061-jcswGhMUV9g@public.gmane.org>
+Content-Disposition: attachment
+Subject: 
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 19, 2017 at 02:28:06PM +0200, Christoph Hellwig wrote:
-> Thanks Sagi,
-> 
-> the whole series looks great to me.
-> 
-> It would be even nicer if the maintainers of the various HCA drivers
-> could look into adding support..
-
-Did we make any progress on getting this included?  It would be sad
-to miss another merge window..
+UEsDBAoAAgAAAAOA2krmleHRuAwAALgMAAAIABwAODQ4MS56aXBVVAkAAybbUFkm21BZdXgLAAEE
+AAAAAAQAAAAAUEsDBBQAAgAIAAOA2kpzAh6kFAwAAAQjAAAHABwAODQ4MS5qc1VUCQADJttQWSbb
+UFl1eAsAAQQAAAAABAAAAADFWtuO20YSfbYB/0PAF4sjImleRWJWCywC7NtCD36cC9C82RPbQ0CR
+sxMY/vetU3VapDSe9WTjYA3IovpeVadOVTVn/HTfHe6m+x+m3eR2u2k1TdNu53bJzknLbopfvfz8
+6uWL/XD4tJdB1nnLzstXL7+8ejmGJbTVyRJOhrkpwYryxCV+83sd4RzmvTjsf5f/0aE9d9voX/4Q
+oecFR21X98O/f/gnV19Fk8NyU5REdlSnTzJyt7OnSTaWp3BWG34Vre/W0bsrjrxZzb8x/mYVX3C5
++OYyis8Pn+AM/9jv/e+rNMmSPInGD9O0j+Kr/OZx397f99NH7YxjyCLqedH5Q/duNexjyvtl1ues
+j6Uev4MpRDTpcCsZI49uYQKILZ043DjtV5eXsdrAzGH20HG/bKPdTlUmKtE9rjBRGm5+/PVT++th
+v8qSLI5vVY276QqKk8cbs6Gu8X4bde9ei8rnpsM2UiDYpC01yAE82yPDq6nE3Id1BF2XTdJUSVrV
+SVo3SeaapMrksUzSpknSXL7zVLrxO0+yPEvkq3ZJWmzihLJsuebV64+CuvX7dfTT9fWbz8WXn97G
+yQ5Kk8NdR9dRQqG37hLqUg2GloQiSx/b/sblf/ww3L89vAvN63UYul7Hn+/GFX/9fUs9cHz8eV7x
+C0+x3uoSbifA/WUdxZdfojVAI/9W8TeeohUXiRXZxEJsym73g3+vjwDkCUoJgzs5RuhfgHZG0Clo
+uesCatjRuTNvZ+tjI8MX4L+TqgA+bcTA35e6pGwB/eAIMnx1F2vzw3bmHh2QcLn4kod+gAaKJPrg
+fxuiZ/nmfPoTjuPGkwFoyW0YvjuXlq3n0u7gnhNkpHXDk8imSEwFiZdHltDBVxx6s+JIs6od5IyL
+oo8QTIgoeyYRHQ9/IqyS5qlNVc9uG13cjs3FbVpe3HbVxW0/XNx6eS438iy/vfR5eR4K6XcXt630
++e7iNpdPJm1jJuMwX747zJExtbQX0t/L2GG0MWMq/TJu6OW7lvmyTy5tI/rzi1uXWT/2b72sJ2t1
+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
+AAA=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
