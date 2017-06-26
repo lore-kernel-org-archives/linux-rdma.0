@@ -1,59 +1,100 @@
-From: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next V2 1/5] RDMA/netlink: Remove netlink clients
- infrastructure
-Date: Mon, 26 Jun 2017 12:55:05 -0500
-Message-ID: <20170626175505.GA2904@ctung-MOBL3.amr.corp.intel.com>
-References: <20170613085927.2908-1-leon@kernel.org>
- <20170613085927.2908-2-leon@kernel.org>
+From: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: [RFC 00/19] qed*: Add iWARP support for QL4xxxx
+Date: Mon, 26 Jun 2017 21:06:50 +0300
+Message-ID: <1498500429-22557-1-git-send-email-Michal.Kalderon@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170613085927.2908-2-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: michal.kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, yuval.mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, ariel.elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 13, 2017 at 03:59:23AM -0500, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> RDMA netlink has complicated infrastructure to add and remove netlink
-> clients to NETLINK_RDMA family. This complicates the code and not in
-> use because not many clients are available (3 clients) and most of them
-> (2 clients) are statically compiled together with netlink.c.
-> 
-> The following patch refactors RDMA netlink and opens door for the future
-> patches which will be able to get rid of a lot of dead iwcm* code.
-> 
-> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/core/cma.c     |   6 +-
->  drivers/infiniband/core/device.c  |  41 +++------
->  drivers/infiniband/core/iwcm.c    |  10 +--
->  drivers/infiniband/core/netlink.c | 185 ++++++++++++++++++--------------------
->  include/rdma/rdma_netlink.h       |  17 ++--
->  5 files changed, 110 insertions(+), 149 deletions(-)
+This RFC adds iWARP support to our QL4xxxx networking adapters.
+The code changes span across qed and qedr drivers.
 
-> diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
-> index 585266144329..6735dcf5d2a3 100644
-> --- a/include/rdma/rdma_netlink.h
-> +++ b/include/rdma/rdma_netlink.h
-> @@ -10,27 +10,22 @@ struct ibnl_client_cbs {
->         struct module *module;
->  };
-> 
-> -int ibnl_init(void);
-> -void ibnl_cleanup(void);
-> +int rdma_nl_init(void);
-> +void rdma_nl_exit(void);
+It is submitted as a single (long) RFC for purpose of reviewing,
+but will eventually be split into two separate patch series,
+one targeted for qed (net-next) and containing minimal qedr changes
+and the other for qedr (rdma-next).
 
-This hunk is in direct conflict with 233c1955 which you removed
-ibnl_init and ibnl_cleanup.  Are you putting back the init and
-exit or do you want to leave them out?
+This series was tested and built against net-next.
 
-Chien
+qedr is used for both RoCE and iWARP. The distinction is made (for now)
+at the pci function level. Code prefixed with rdma is shared, roce/iwarp
+is specific.
+
+The following was tested for iWARP under OFED: iser, nvmf, NFSoRDMA,
+concurrent support of roce and iwarp on different pci functions.
+
+MAINTAINERS file is not updated in this RFC as there is a pending patch
+for qedr driver update https://patchwork.kernel.org/patch/9752761.
+
+Your review and comments are highly appreciated.
+
+Michal Kalderon (19):
+  qed: Introduce iWARP personality
+  qed: Implement iWARP initialization, teardown and qp operations
+  qed: Rename some ll2 related defines
+  qed: Add iWARP support in ll2 connections
+  qed: iWARP CM - setup a ll2 connection for handling SYN packets
+  qed: iWARP CM add listener functions and initial SYN processing
+  qed: iWARP CM add passive side connect
+  qed: iWARP CM add active side connect
+  qed: iWARP implement disconnect flows
+  qed: iWARP CM add error handling
+  qed: Add iWARP protocol support in context allocation
+  qed: Add iWARP support for physical queue allocation
+  RDMA/qedr: Rename the qedr_cm file as a preparation for iWARP support
+  RDMA/qedr: Add support for registering an iWARP device
+  RDMA/qedr: Add iWARP support in existing verbs.
+  RDMA/qedr: Add support for read with invalidate, supported in iWARP
+  RDMA/qedr: Add iWARP connection management qp related callbacks
+  RDMA/qedr: Add iWARP connection management functions
+  qed*: Add iWARP enablement support
+
+ drivers/infiniband/hw/qedr/Makefile                |    2 +-
+ drivers/infiniband/hw/qedr/main.c                  |  107 +-
+ drivers/infiniband/hw/qedr/qedr.h                  |   32 +-
+ drivers/infiniband/hw/qedr/qedr_hsi_rdma.h         |    6 +-
+ drivers/infiniband/hw/qedr/qedr_iw_cm.c            |  746 ++++++
+ drivers/infiniband/hw/qedr/qedr_iw_cm.h            |   49 +
+ .../hw/qedr/{qedr_cm.c => qedr_roce_cm.c}          |    2 +-
+ .../hw/qedr/{qedr_cm.h => qedr_roce_cm.h}          |    0
+ drivers/infiniband/hw/qedr/verbs.c                 |  270 ++-
+ drivers/infiniband/hw/qedr/verbs.h                 |    2 +
+ drivers/net/ethernet/qlogic/qed/Makefile           |    2 +-
+ drivers/net/ethernet/qlogic/qed/qed.h              |   30 +-
+ drivers/net/ethernet/qlogic/qed/qed_cxt.c          |   27 +-
+ drivers/net/ethernet/qlogic/qed/qed_dev.c          |   36 +-
+ drivers/net/ethernet/qlogic/qed/qed_hsi.h          |    1 +
+ drivers/net/ethernet/qlogic/qed/qed_iwarp.c        | 2409 ++++++++++++++++++++
+ drivers/net/ethernet/qlogic/qed/qed_iwarp.h        |  189 ++
+ drivers/net/ethernet/qlogic/qed/qed_l2.c           |   16 +-
+ drivers/net/ethernet/qlogic/qed/qed_ll2.c          |   42 +-
+ drivers/net/ethernet/qlogic/qed/qed_main.c         |   17 +-
+ drivers/net/ethernet/qlogic/qed/qed_mcp.c          |   10 +-
+ drivers/net/ethernet/qlogic/qed/qed_rdma.c         |  144 +-
+ drivers/net/ethernet/qlogic/qed/qed_rdma.h         |    5 +
+ drivers/net/ethernet/qlogic/qed/qed_roce.c         |   20 +
+ drivers/net/ethernet/qlogic/qed/qed_sp.h           |    7 +-
+ drivers/net/ethernet/qlogic/qed/qed_sp_commands.c  |    2 +
+ include/linux/qed/common_hsi.h                     |    4 +-
+ include/linux/qed/iwarp_common.h                   |   53 +
+ include/linux/qed/qed_ll2_if.h                     |    3 +-
+ include/linux/qed/qed_rdma_if.h                    |  114 +
+ 30 files changed, 4166 insertions(+), 181 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qedr/qedr_iw_cm.c
+ create mode 100644 drivers/infiniband/hw/qedr/qedr_iw_cm.h
+ rename drivers/infiniband/hw/qedr/{qedr_cm.c => qedr_roce_cm.c} (99%)
+ rename drivers/infiniband/hw/qedr/{qedr_cm.h => qedr_roce_cm.h} (100%)
+ create mode 100644 drivers/net/ethernet/qlogic/qed/qed_iwarp.c
+ create mode 100644 drivers/net/ethernet/qlogic/qed/qed_iwarp.h
+ create mode 100644 include/linux/qed/iwarp_common.h
+
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
