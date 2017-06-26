@@ -1,79 +1,64 @@
-From: <p.mueller-spz-hgw-Mmb7MZpHnFY@public.gmane.org>
-Subject: (unknown)
-Date: Mon, 26 Jun 2017 10:22:47 -0000
-Message-ID: <149847256728.12492.1371828318340499001@telenet.ru>
-Reply-To: <p.mueller-spz-hgw-Mmb7MZpHnFY@public.gmane.org>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB: Move PCI dependency from root KConfig to HW's
+ KConfigs
+Date: Mon, 26 Jun 2017 13:38:52 +0300
+Message-ID: <20170626103850.GA6506@yuvallap>
+References: <20170626085313.6052-1-yuval.shaia@oracle.com>
+ <20170626100231.GC1248@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: application/zip; name="47850763814001_linux-rdma.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: attachment
-Subject: 
+Content-Disposition: inline
+In-Reply-To: <20170626100231.GC1248-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, rajesh.borundia-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-UEsDBAoAAgAAAAOA2krmleHRuAwAALgMAAAIABwAODQ4MS56aXBVVAkAAybbUFkm21BZdXgLAAEE
-AAAAAAQAAAAAUEsDBBQAAgAIAAOA2kpzAh6kFAwAAAQjAAAHABwAODQ4MS5qc1VUCQADJttQWSbb
-UFl1eAsAAQQAAAAABAAAAADFWtuO20YSfbYB/0PAF4sjImleRWJWCywC7NtCD36cC9C82RPbQ0CR
-sxMY/vetU3VapDSe9WTjYA3IovpeVadOVTVn/HTfHe6m+x+m3eR2u2k1TdNu53bJzknLbopfvfz8
-6uWL/XD4tJdB1nnLzstXL7+8ejmGJbTVyRJOhrkpwYryxCV+83sd4RzmvTjsf5f/0aE9d9voX/4Q
-oecFR21X98O/f/gnV19Fk8NyU5REdlSnTzJyt7OnSTaWp3BWG34Vre/W0bsrjrxZzb8x/mYVX3C5
-+OYyis8Pn+AM/9jv/e+rNMmSPInGD9O0j+Kr/OZx397f99NH7YxjyCLqedH5Q/duNexjyvtl1ues
-j6Uev4MpRDTpcCsZI49uYQKILZ043DjtV5eXsdrAzGH20HG/bKPdTlUmKtE9rjBRGm5+/PVT++th
-v8qSLI5vVY276QqKk8cbs6Gu8X4bde9ei8rnpsM2UiDYpC01yAE82yPDq6nE3Id1BF2XTdJUSVrV
-SVo3SeaapMrksUzSpknSXL7zVLrxO0+yPEvkq3ZJWmzihLJsuebV64+CuvX7dfTT9fWbz8WXn97G
-yQ5Kk8NdR9dRQqG37hLqUg2GloQiSx/b/sblf/ww3L89vAvN63UYul7Hn+/GFX/9fUs9cHz8eV7x
-C0+x3uoSbifA/WUdxZdfojVAI/9W8TeeohUXiRXZxEJsym73g3+vjwDkCUoJgzs5RuhfgHZG0Clo
-uesCatjRuTNvZ+tjI8MX4L+TqgA+bcTA35e6pGwB/eAIMnx1F2vzw3bmHh2QcLn4kod+gAaKJPrg
-fxuiZ/nmfPoTjuPGkwFoyW0YvjuXlq3n0u7gnhNkpHXDk8imSEwFiZdHltDBVxx6s+JIs6od5IyL
-oo8QTIgoeyYRHQ9/IqyS5qlNVc9uG13cjs3FbVpe3HbVxW0/XNx6eS438iy/vfR5eR4K6XcXt630
-+e7iNpdPJm1jJuMwX747zJExtbQX0t/L2GG0MWMq/TJu6OW7lvmyTy5tI/rzi1uXWT/2b72sJ2t1
-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
-AAA=
+On Mon, Jun 26, 2017 at 01:02:31PM +0300, Leon Romanovsky wrote:
+> On Mon, Jun 26, 2017 at 11:53:13AM +0300, Yuval Shaia wrote:
+> > No reason to have dependency on PCI for the entire infiniband stack so
+> > move it to KConfig of only the drivers that actually using PCI.
+> >
+> > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > ---
+> >  drivers/infiniband/Kconfig           | 1 -
+> >  drivers/infiniband/hw/cxgb3/Kconfig  | 1 +
+> >  drivers/infiniband/hw/cxgb4/Kconfig  | 1 +
+> >  drivers/infiniband/hw/hfi1/Kconfig   | 1 +
+> >  drivers/infiniband/hw/i40iw/Kconfig  | 1 +
+> >  drivers/infiniband/hw/qedr/Kconfig   | 1 +
+> >  drivers/infiniband/hw/qib/Kconfig    | 1 +
+> >  drivers/infiniband/sw/rdmavt/Kconfig | 1 +
+> 
+> Why do you need PCI for rdmavt?
+
+Saw calls such as get_pci_dev so just suspect, but you are right, i don't
+see why SW device needs PCI.
+
+> 
+> >  drivers/infiniband/ulp/ipoib/Kconfig | 1 +
+> >  9 files changed, 8 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
+> > index 234fe01..568088a 100644
+> > --- a/drivers/infiniband/Kconfig
+> > +++ b/drivers/infiniband/Kconfig
+> > @@ -1,6 +1,5 @@
+> >  menuconfig INFINIBAND
+> >  	tristate "InfiniBand support"
+> > -	depends on PCI || BROKEN
+> 
+> By the way, do you know why are we dependent on BROKEN?
+
+No, assume that it is like if PCI is not defined the "break" configuration
+or something like that.
+Will be happy if you can shad some light on that.
+
+> 
+> Thanks
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
