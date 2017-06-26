@@ -1,49 +1,48 @@
-From: Tariq Toukan <tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] net/mlx4: fix spelling mistake: "coalesing" ->
- "coalescing"
-Date: Mon, 26 Jun 2017 17:41:06 +0300
-Message-ID: <65224576-2bed-7f14-6aa5-0561094b62ee@mellanox.com>
-References: <20170626125346.22143-1-colin.king@canonical.com>
+From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Open source files without copyright holder
+Date: Mon, 26 Jun 2017 16:44:00 +0200
+Message-ID: <1498488240.3543.4.camel@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170626125346.22143-1-colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Tariq Toukan <tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: debian-legal-0aAXYlwwYIJuHlm7Suoebg@public.gmane.org, List Linux RDMA Mailing <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+[ Note the cross-posting... ]
 
+Hi debian-legal,
 
-On 26/06/2017 3:53 PM, Colin King wrote:
-> From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-> 
-> Trivial fix to spelling mistake in en_dbg debug message
-> 
-> Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-> ---
->   drivers/net/ethernet/mellanox/mlx4/en_netdev.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
-> index 18252a79a074..9da76e3be2fc 100644
-> --- a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
-> +++ b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
-> @@ -1352,7 +1352,7 @@ static void mlx4_en_set_default_moderation(struct mlx4_en_priv *priv)
->   	priv->rx_usecs = MLX4_EN_RX_COAL_TIME;
->   	priv->tx_frames = MLX4_EN_TX_COAL_PKTS;
->   	priv->tx_usecs = MLX4_EN_TX_COAL_TIME;
-> -	en_dbg(INTR, priv, "Default coalesing params for mtu:%d - rx_frames:%d rx_usecs:%d\n",
-> +	en_dbg(INTR, priv, "Default coalescing params for mtu:%d - rx_frames:%d rx_usecs:%d\n",
->   	       priv->dev->mtu, priv->rx_frames, priv->rx_usecs);
->   
->   	/* Setup cq moderation params */
-> 
-Acked-by: Tariq Toukan <tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+The COPYING.md file of rdma-core [1] says: "Refer to individual files
+for information on the copyright holders." but some files (e.g.
+ibacm/man/ibacm.1) do not specify a copyright holder. The copyright
+holder grants the user additional rights by putting the code under a
+open source license. Is it okay to benefit from these rights without
+knowing the copyright holder? How could someone verify that the
+copyright claim is correct?
 
-Thanks Colin.
+If not, please ensure that every file has specified a copyright holder
+(or having a default copyright holder).
+
+[1] https://github.com/linux-rdma/rdma-core/blob/master/COPYING.md
+
+-- 
+Benjamin Drung
+System Developer
+Debian & Ubuntu Developer
+
+ProfitBricks GmbH
+Greifswalder Str. 207
+D - 10405 Berlin
+
+Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
+Web: https://www.profitbricks.com
+
+Sitz der Gesellschaft: Berlin.
+Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
+Geschäftsführer: Achim Weiss.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
