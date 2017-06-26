@@ -1,110 +1,94 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 2/2] IB/core: Add generic function to extract IB speed
- from netdev
-Date: Mon, 26 Jun 2017 22:12:55 +0300
-Message-ID: <20170626191252.GA14355@raspberrypi>
-References: <20170611054450.7221-1-yuval.shaia@oracle.com>
- <20170611054450.7221-3-yuval.shaia@oracle.com>
- <CA+sbYW07k=UoFvJVLvjfTcuUosoJJk34mSZJAfXRaUJuHwS3cA@mail.gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH iproute2 3/5] rdma: Add device capability parsing
+Date: Mon, 26 Jun 2017 22:21:03 +0300
+Message-ID: <20170626192103.GH1248@mtr-leonro.local>
+References: <20170626182128.24964-1-leon@kernel.org>
+ <20170626182128.24964-4-leon@kernel.org>
+ <20170626182924.GB16026@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="RbAp84Sx/Z5HOs1D"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CA+sbYW07k=UoFvJVLvjfTcuUosoJJk34mSZJAfXRaUJuHwS3cA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20170626182924.GB16026-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagi-TmH2Wj2nsNJBDLzU/O5InQ@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ariel Almog <ariela-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 14, 2017 at 08:45:12PM +0530, Selvin Xavier wrote:
-> On Sun, Jun 11, 2017 at 11:14 AM, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> > diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> > index 7ba9e69..d0e0f90 100644
-> > --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> > +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> > @@ -181,50 +181,6 @@ int bnxt_re_modify_device(struct ib_device *ibdev,
-> >         return 0;
-> >  }
+
+--RbAp84Sx/Z5HOs1D
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Mon, Jun 26, 2017 at 12:29:24PM -0600, Jason Gunthorpe wrote:
+> On Mon, Jun 26, 2017 at 09:21:26PM +0300, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > >
-> > -static void __to_ib_speed_width(struct net_device *netdev, u8 *speed, u8 *width)
-> > -{
-> > -       struct ethtool_link_ksettings lksettings;
-> > -       u32 espeed;
-> > -
-> > -       if (netdev->ethtool_ops && netdev->ethtool_ops->get_link_ksettings) {
-> > -               memset(&lksettings, 0, sizeof(lksettings));
-> > -               rtnl_lock();
-> > -               netdev->ethtool_ops->get_link_ksettings(netdev, &lksettings);
-> > -               rtnl_unlock();
-> > -               espeed = lksettings.base.speed;
-> > -       } else {
-> > -               espeed = SPEED_UNKNOWN;
-> > -       }
-> > -       switch (espeed) {
-> > -       case SPEED_1000:
-> > -               *speed = IB_SPEED_SDR;
-> > -               *width = IB_WIDTH_1X;
-> > -               break;
-> > -       case SPEED_10000:
-> > -               *speed = IB_SPEED_QDR;
-> > -               *width = IB_WIDTH_1X;
-> > -               break;
-> > -       case SPEED_20000:
-> > -               *speed = IB_SPEED_DDR;
-> > -               *width = IB_WIDTH_4X;
-> > -               break;
-> > -       case SPEED_25000:
-> > -               *speed = IB_SPEED_EDR;
-> > -               *width = IB_WIDTH_1X;
-> > -               break;
-> > -       case SPEED_40000:
-> > -               *speed = IB_SPEED_QDR;
-> > -               *width = IB_WIDTH_4X;
-> > -               break;
-> > -       case SPEED_50000:
-> > -               break;
-> > -       default:
-> > -               *speed = IB_SPEED_SDR;
-> > -               *width = IB_WIDTH_1X;
-> > -               break;
-> > -       }
-> > -}
-> > -
-> >  /* Port */
-> >  int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
-> >                        struct ib_port_attr *port_attr)
-> > @@ -266,8 +222,9 @@ int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
-> >          * IB stack to avoid race in the NETDEV_UNREG path
-> >          */
-> >         if (test_bit(BNXT_RE_FLAG_IBDEV_REGISTERED, &rdev->flags))
-> > -               __to_ib_speed_width(rdev->netdev, &port_attr->active_speed,
-> > -                                   &port_attr->active_width);
-> > +               if (!ib_get_eth_speed(ibdev, port_num, &port_attr->active_speed,
-> > +                                     &port_attr->active_width))
-> > +                       return -EINVAL;
-> >         return 0;
-> >  }
-> 
-> The bnxt_re changes looks good to me.
-> 
-> But this change conflicts with one of the patches i submitted as a
-> part of the bug fix series.
-> 
-> https://patchwork.kernel.org/patch/9786057/
-> 
-> Depending on the order in which Doug pulls these patches, one of us
-> might have to
-> re-spin the patch.
+> > Add parsing interface for the device capability flags
+> >
+> > $ rdma dev show
+> > 1: mlx5_0: caps 0x1257e1c26
+>
+> This seems very un ip-like. I wouldn't show an undecoded hex value
+> like that, it isn't really useful.
 
-Doug, you want me to rebase v4 of the patch on top of the above?
+It is first supported field, after new fields will be added, we will
+have very similar to ip interface.
 
-> 
-> Thanks,
-> Selvin Xavier
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1: mlx5_0: caps 0x1257e1c2 key_1 val_1 key_2 val_2 ....
+
+The value are presented as is can be usable as an input for different scripts.
+
+>
+> > $ rdma dev show mlx5_4 caps
+> > 5: mlx5_4: caps 0x1257e1c26
+> > Bit	Description
+> >  01	DEVICE_BAD_PKEY_CNTR
+> >  02	DEVICE_BAD_QKEY_CNTR
+>
+> This table also seems un ip-like, the usual format is a list of words,
+> I think.
+
+It is true for key<->value data, but it is less obvious for bit parsing.
+Internally, I tried to present them as list and it was ugly like hell
+without any chance (without extra parsing) to actual see if specific
+capability is present or no.
+
+The question is: is such presentation usable and does it make sense?
+
+>
+> > $ rdma dev show mlx5_4 cap_flags
+> > Unknown parameter 'caps_flags'.
+>
+> ?
+
+An example of "wrong" parameter. There is no such caps_flags.
+
+>
+> Jason
+
+--RbAp84Sx/Z5HOs1D
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllRXp8ACgkQ5GN7iDZy
+WKciuBAAtiL/WbMAgcdzNMS1TLr+RuIA8Nimb5vCLZcG61fwqi212pPQv94avDB9
+ocLfFgccGoxJulAqExVktYC9JLhF+0BhOuZzh2g6OGeA7QEZcS2XK3+x0m/egm12
++NSf8YJzWxESFOGzYbupBIA/NVLRePbJgHsgdmCqZiV3fYfxWqNzycgdhPia9dtM
+snNAMSrAw0yxAdmuAf7QQXAtLgXz509ukWe6UoQEdWB5LE6EDJggF45bYPfSQoAO
+Vf4+ZYu6Qxv0K9p1jWb6ST6lrKC0gNA/qDIuToXG8HuEfIQl1WU6MM+SjBvou9vV
+BI9gFwSZQCZCW+S/yUMVVHxZq/9uvvXr6ymr8IX4KPq4Nhf/xb0ZFTL0G45Ca9XU
+Jr/MfF1en+67WnyVr1mk5QEyxHn/8VqGIgis7uuT2R0IyjYNXyO2t5FK0eVYa4FA
+1ZFsqqHj3F6ghpFbzR0xR2CcVfkOW8F1VV0Lgo2SVE0dQJ33TK1bB4KtP+leeK7L
+cOynciuOifU3x4SBe2CXeDDOOXAJZNWme50RPqp/QU3AxOa4QLwWFeC7xXGfm7ZV
+6NPe2IyzCxo4tA1Hy5e2ltAc+09VZgvFE0pE1RAap8XvdG9uXwRp12Ajv0Lc4not
+zqPsBzBwofV3AfmCjdHYt1leaDYNe1Y10R4QMxSD9yFXrHof3+o=
+=6wnq
+-----END PGP SIGNATURE-----
+
+--RbAp84Sx/Z5HOs1D--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
