@@ -1,169 +1,73 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next V2 1/5] RDMA/netlink: Remove netlink clients
- infrastructure
-Date: Tue, 27 Jun 2017 08:02:40 +0300
-Message-ID: <20170627050240.GK1248@mtr-leonro.local>
-References: <20170613085927.2908-1-leon@kernel.org>
- <20170613085927.2908-2-leon@kernel.org>
- <20170626175505.GA2904@ctung-MOBL3.amr.corp.intel.com>
- <20170626181324.GE1248@mtr-leonro.local>
- <20170626183329.GA11716@ctung-MOBL3.amr.corp.intel.com>
- <20170626191154.GG1248@mtr-leonro.local>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [RFC 15/19] RDMA/qedr: Add iWARP support in existing verbs.
+Date: Tue, 27 Jun 2017 08:27:03 +0300
+Message-ID: <20170627052703.GL1248@mtr-leonro.local>
+References: <1498500429-22557-1-git-send-email-Michal.Kalderon@cavium.com>
+ <1498500429-22557-16-git-send-email-Michal.Kalderon@cavium.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="7e8BFhNxqpjiNKz7"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="rxd0khGtqYUbFQFd"
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170626191154.GG1248-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <1498500429-22557-16-git-send-email-Michal.Kalderon@cavium.com>
+Sender: netdev-owner@vger.kernel.org
+To: Michal Kalderon <Michal.Kalderon@cavium.com>
+Cc: ram.amrani@cavium.com, yuval.mintz@cavium.com, ariel.elior@cavium.com, davem@davemloft.net, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dledford@redhat.com
 List-Id: linux-rdma@vger.kernel.org
 
 
---7e8BFhNxqpjiNKz7
-Content-Type: text/plain; charset=utf-8
+--rxd0khGtqYUbFQFd
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jun 26, 2017 at 10:11:54PM +0300, Leon Romanovsky wrote:
-> On Mon, Jun 26, 2017 at 01:33:29PM -0500, Chien Tin Tung wrote:
-> > On Mon, Jun 26, 2017 at 09:13:24PM +0300, Leon Romanovsky wrote:
-> > > On Mon, Jun 26, 2017 at 12:55:05PM -0500, Chien Tin Tung wrote:
-> > > > On Tue, Jun 13, 2017 at 03:59:23AM -0500, Leon Romanovsky wrote:
-> > > > > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > > > >
-> > > > > RDMA netlink has complicated infrastructure to add and remove net=
-link
-> > > > > clients to NETLINK_RDMA family. This complicates the code and not=
- in
-> > > > > use because not many clients are available (3 clients) and most o=
-f them
-> > > > > (2 clients) are statically compiled together with netlink.c.
-> > > > >
-> > > > > The following patch refactors RDMA netlink and opens door for the=
- future
-> > > > > patches which will be able to get rid of a lot of dead iwcm* code.
-> > > > >
-> > > > > Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > > > > Reviewed-by: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > > > ---
-> > > > >  drivers/infiniband/core/cma.c     |   6 +-
-> > > > >  drivers/infiniband/core/device.c  |  41 +++------
-> > > > >  drivers/infiniband/core/iwcm.c    |  10 +--
-> > > > >  drivers/infiniband/core/netlink.c | 185 ++++++++++++++++++------=
---------------
-> > > > >  include/rdma/rdma_netlink.h       |  17 ++--
-> > > > >  5 files changed, 110 insertions(+), 149 deletions(-)
-> > > >
-> > > > > diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netl=
-ink.h
-> > > > > index 585266144329..6735dcf5d2a3 100644
-> > > > > --- a/include/rdma/rdma_netlink.h
-> > > > > +++ b/include/rdma/rdma_netlink.h
-> > > > > @@ -10,27 +10,22 @@ struct ibnl_client_cbs {
-> > > > >         struct module *module;
-> > > > >  };
-> > > > >
-> > > > > -int ibnl_init(void);
-> > > > > -void ibnl_cleanup(void);
-> > > > > +int rdma_nl_init(void);
-> > > > > +void rdma_nl_exit(void);
-> > > >
-> > > > This hunk is in direct conflict with 233c1955 which you removed
-> > > > ibnl_init and ibnl_cleanup.  Are you putting back the init and
-> > > > exit or do you want to leave them out?
-> > >
-> > > We have different git hashes and I don't know about which commit you =
-are
-> > > referring.
-> >
-> > There is only one true upstream, go look at Linus' git.
-> >
-> > >
-> > > This commit simply renames exit/init functions in general header file.
-> > > The init/exit is still needed, because it is called from device.c.
-> > >
-> > > The git log doesn't show me anything suspicious too.
-> > > =E2=9E=9C  linux-rdma git:(topic/rdma-netlink-v1) git log -p include/=
-rdma/rdma_netlink.h
-> >
-> > Your git and branch is out of sync.  This is the relevant part of the p=
-atch.
-> >
-> > commit 233c1955835bd8649003be9bb3d8e79788b08be1
-> > Author: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Date:   Sun May 14 15:49:57 2017 +0300
-> >
-> >     RDMA/netlink: Reduce exposure of RDMA netlink functions
-> >
-> >     RDMA netlink is part of ib_core, hence ibnl_chk_listeners(),
-> >     ibnl_init() and ibnl_cleanup() don't need to be published
-> >     in public header file.
-> >
-> >     Let's remove EXPORT_SYMBOL from ibnl_chk_listeners() and move all t=
-hese
-> >     functions to private header file.
-> >
-> >     CC: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> >     Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >     Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> >     Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> >
-> > diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
-> > index 5852661..348c102 100644
-> > --- a/include/rdma/rdma_netlink.h
-> > +++ b/include/rdma/rdma_netlink.h
-> > @@ -10,9 +10,6 @@ struct ibnl_client_cbs {
-> >         struct module *module;
-> >  };
-> >
-> > -int ibnl_init(void);
-> > -void ibnl_cleanup(void);
-> > -
+On Mon, Jun 26, 2017 at 09:07:05PM +0300, Michal Kalderon wrote:
+> Make slight modifications to common RoCE/iWARP code.
+> Add additional doorbell for iWARP post_send.
+> iWARP QP pbl is allocated in qed and not in qedr.
 >
-> Thanks,
+> Signed-off-by: Michal Kalderon <Michal.Kalderon@cavium.com>
+> Signed-off-by: Ram Amrani <Ram.Amrani@cavium.com>
+> Signed-off-by: Ariel Elior <Ariel.Elior@cavium.com>
 >
-> It is rebase error, those functions needs to be in core_priv.h. I'll rese=
-nd.
-
-I found the reason, this patch set is based on -rc2, rebasing on top of -rc=
-4 solved the issue.
-
-To be on the safe side, I created new topic/rdma-netlink-v2 which is rebased
-version of topic/rdma-netlink-v1.
-
-Thanks for pointing it.
-
+> ---
+>  drivers/infiniband/hw/qedr/qedr.h  |   3 +
+>  drivers/infiniband/hw/qedr/verbs.c | 171 +++++++++++++++++++++++++++++--------
+>  2 files changed, 139 insertions(+), 35 deletions(-)
 >
-> >
-> >
-> > Chien
+> diff --git a/drivers/infiniband/hw/qedr/qedr.h b/drivers/infiniband/hw/qedr/qedr.h
+> index c52fde0..0c0a39a 100644
+> --- a/drivers/infiniband/hw/qedr/qedr.h
+> +++ b/drivers/infiniband/hw/qedr/qedr.h
+> @@ -319,6 +319,9 @@ struct qedr_qp_hwq_info {
+>  	/* DB */
+>  	void __iomem *db;
+>  	union db_prod32 db_data;
+> +
+> +	void __iomem *iwarp_db2;
+> +	union db_prod32 iwarp_db2_data;
 
+Why do you need two doorbells?
 
+>  };
 
---7e8BFhNxqpjiNKz7
+--rxd0khGtqYUbFQFd
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllR5u8ACgkQ5GN7iDZy
-WKdf+A//ZiiB+boM7cl6cnq8f4TcvuHWfzC1Jf9qUKWnhVenoq/FmEFcvDqHqBK3
-rGmXUparAxVH56hofg8dFuEmULsRbcm7TGPH/BQn8cYfRomY9mf+CmA/NpTIgF6K
-xdrJZ4Lv6EfhDgEVUHCyaPktcgxchNRtrPa3Kya5LGyyOVC7QgqibGTXi7W2KNK8
-ybJijP40+J6A42rVnCQj4/DkV3VYF8ykiI1l4gUMDhwoPO9jsKy8sTpJY49XaSyD
-C9QHGivyAWCTdPeAi7DSYl73+GfCzzz4LeF1ymTNnZLLCP3U5Y1bAj0edecT42WH
-RNhBzG7kp9eETf77wDXINqCEj+dyLJM4zztLwAFh+3A592xxWGv/T3/naHzUgGJB
-cznxS0RnwDDMy6oQZ2l2f3djDdS/GVM7lsqt/s+MDSdDibrMNjmTsGV2t4tNefp9
-A3QuHrFuxQqHhKRffqGo6st0NuxsfYNx4xPA/R99XgH23K224eEmt2eFglmYU6lw
-kNV7tg/atj7wE+Vgj9fqjx7X2mzhsDlDOHuxaXD3t4nZ8JNv0f+GWF4zN+4yVHPW
-1trJIQodG7XR582NNeu38CkAjszZ1Ljw37xn+dYrg/gQFb/C6XVkEMuth3Iyb7ld
-zTvmivrgi7Eat5rEcGsB8gbzZh9gqsLfN/rQqAbKGzHJHVMygY8=
-=Y36X
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllR7KcACgkQ5GN7iDZy
+WKd5FA/+Ix/3PmSx3LAbLGdXQPauJ0j3hCTJqpyWQlL9tLltgu9FELQtenRzCGTi
+CmbLi8OKnEheaTp/njjfWxJ7tQBX2aLgIklfQExiSsoh/Mma2Fd2f90gjAqne+B6
+IDUIzIQwpuQ4SBP9gZPG78EsRGR7gwLwtqaK7F/mf/Gv6WDisWWzpR1NwCUdqzG9
+r47xWwsaUPMmwo6wU9E9NF7mET8yjmx/xBq4w7EA5+gZNTiUZvkCV7/zn0isAYtw
+sMDm8GIfukDhNH8gBVy99C+HnOmJNCXpJCBuovtAVvTOrEZqhHpG7LcY2DBx0gOI
+XtVC955oLNJrSIT8yLEf0cnHo/G5+mDjHDp8MOpg+4ABN+ftZyCnxro3h01Rvp+7
+bFp1NNN5KLfNAwpnCbxiSPibOwLquetM+Fqwjb91J8GlkBvDZ9BqmM8rNdX8BYJb
+bnOZuDpP/e1vq35RuULj//QNiz6xZ16WlCPA0ZI6moIOImU4FpnmEuMIdLmGENyX
+DwTZrXdh0NoQhZgSP0vuohAbkSbJ1e4hysuHP5/AXX+cA6Ob7SK7wlFLbNLHv6+4
+afi7qesoD0T9JawT5xyZzWeFRo7c3XCnEABGTwdsaxFvTw6K5dtV6JA0/O2AMVUW
+IDqoAYYKU2usU7B770o70FCS1bnZj/5oG+n4FG2VLE1MkGSCNqE=
+=zj3g
 -----END PGP SIGNATURE-----
 
---7e8BFhNxqpjiNKz7--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--rxd0khGtqYUbFQFd--
