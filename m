@@ -1,31 +1,23 @@
-From: Julian Smith <sinara_group-KN7UnAbNpbg@public.gmane.org>
-Subject: Product Inquiry
-Date: Mon, 26 Jun 2017 17:52:20 -0400 (EDT)
-Message-ID: <20170626215220.A2A762CDE6@mail.dealer.com>
-Reply-To: sinara-group-5URONGGNgjI@public.gmane.org
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next v2 0/5] net: add netlink_ext_ack support to
+ rtnl_link_ops
+Date: Mon, 26 Jun 2017 23:13:48 -0400 (EDT)
+Message-ID: <20170626.231348.1980572987092832224.davem@davemloft.net>
+References: <cover.1498425679.git.mschiffer@universe-factory.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-can-owner@vger.kernel.org>
+In-Reply-To: <cover.1498425679.git.mschiffer@universe-factory.net>
+Sender: linux-can-owner@vger.kernel.org
+To: mschiffer@universe-factory.net
+Cc: dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, j.vosburgh@gmail.com, vfalico@gmail.com, andy@greyhouse.net, wg@grandegger.com, mkl@pengutronix.de, pablo@netfilter.org, laforge@gnumonks.org, paulus@samba.org, jiri@resnulli.us, dsa@cumulusnetworks.com, shm@cumulusnetworks.com, stephen@networkplumber.org, arvid.brodin@alten.se, alex.aring@gmail.com, stefan@osg.samsung.com, kuznet@ms2.inr.ac.ru, jmorris@namei.org, yoshfuji@linux-ipv6.org, kaber@trash.net, steffen.klassert@secunet.com, herbert@gondor.apana.org.au, johannes@sipsolutions.net, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-can@vger.kernel.org, linux-ppp@vger.kernel.org, linux-wpan@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello, 
+From: Matthias Schiffer <mschiffer@universe-factory.net>
+Date: Sun, 25 Jun 2017 23:55:58 +0200
 
-My name is Ms Julian Smith and i am from Sinara Group Co.
-We are glad to know about your company from the web and we are interested in
-your products.Please send us your Latest catalog and price list for our
-trial order. 
+> Same changes as http://patchwork.ozlabs.org/patch/780351/ , split into
+> separate patches for each rtnl_link_ops field as requested.
 
-Julian Smith, 
-Purchasing Manager
-Sinara Group Co.
-7 Krasnogo Znameni Ave.
-Vladivostok,690106,Ukraine
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Series applied, thank you.
