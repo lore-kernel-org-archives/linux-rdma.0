@@ -1,42 +1,60 @@
-From: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Subject: [PATCH] net/mlx5: fix spelling mistake: "alloated" -> "allocated"
-Date: Tue, 27 Jun 2017 08:40:59 +0100
-Message-ID: <20170627074059.11774-1-colin.king@canonical.com>
+From: "Kalderon, Michal" <Michal.Kalderon@cavium.com>
+Subject: RE: [RFC 01/19] qed: Introduce iWARP personality
+Date: Tue, 27 Jun 2017 08:17:10 +0000
+Message-ID: <DM2PR0701MB13928FCD579EB9B45F665CB488DC0@DM2PR0701MB1392.namprd07.prod.outlook.com>
+References: <1498500429-22557-1-git-send-email-Michal.Kalderon@cavium.com>
+ <1498500429-22557-2-git-send-email-Michal.Kalderon@cavium.com>
+ <20170627053635.GM1248@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170627053635.GM1248@mtr-leonro.local>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: "Amrani, Ram" <Ram.Amrani@cavium.com>, "Mintz, Yuval" <Yuval.Mintz@cavium.com>, "Elior, Ariel" <Ariel.Elior@cavium.com>, "davem@davemloft.net" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+From: Leon Romanovsky [mailto:leon@kernel.org]
+Sent: Tuesday, June 27, 2017 8:37 AM
+>=20
+> On Mon, Jun 26, 2017 at 09:06:51PM +0300, Michal Kalderon wrote:
+> > iWARP personality introduced the need for differentiating in several
+> > places in the code whether we are RoCE, iWARP or either. This leads to
+> > introducing new macros for querying the personality.
+> >
+> > Signed-off-by: Michal Kalderon <Michal.Kalderon@cavium.com>
+> > Signed-off-by: Yuval Mintz <Yuval.Mintz@cavium.com>
+> > Signed-off-by: Ariel Elior <Ariel.Elior@cavium.com>
+> >
+> > ---
+> >  drivers/net/ethernet/qlogic/qed/qed.h      | 26 ++++++++++++++++++++++=
++--
+> -
+> >  drivers/net/ethernet/qlogic/qed/qed_cxt.c  |  8 ++++----
+> > drivers/net/ethernet/qlogic/qed/qed_dev.c  | 12 +++++-------
+> >  drivers/net/ethernet/qlogic/qed/qed_l2.c   |  3 +--
+> >  drivers/net/ethernet/qlogic/qed/qed_ll2.c  |  2 +-
+> > drivers/net/ethernet/qlogic/qed/qed_main.c | 17 ++++++++---------
+> >  include/linux/qed/common_hsi.h             |  2 +-
+> >  7 files changed, 43 insertions(+), 27 deletions(-)
+>=20
+> I see that these changes are in Ethernet part of your driver, but for RDM=
+A part,
+> there are already available inline functions:
+> rdma_protocol_iwarp, rdma_protocol_roce.
+>=20
+> Please avoid introducing new IS_IWARP/IS_ROCE macros and the decision
+> should be taken on port level and not on device, despite the fact that pr=
+obably
+> your ib_device has only one port.
+>=20
+> Thanks
 
-Trivial fix to spelling mistake in mlx5_ib_dbg message
-
-Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
----
- drivers/infiniband/hw/mlx5/main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 9f7e18612322..db67a61085f7 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1151,7 +1151,7 @@ static int calc_total_bfregs(struct mlx5_ib_dev *dev, bool lib_uar_4k,
- 	if (req->num_low_latency_bfregs > req->total_num_bfregs - 1)
- 		return -EINVAL;
- 
--	mlx5_ib_dbg(dev, "uar_4k: fw support %s, lib support %s, user requested %d bfregs, alloated %d, using %d sys pages\n",
-+	mlx5_ib_dbg(dev, "uar_4k: fw support %s, lib support %s, user requested %d bfregs, allocated %d, using %d sys pages\n",
- 		    MLX5_CAP_GEN(dev->mdev, uar_4k) ? "yes" : "no",
- 		    lib_uar_4k ? "yes" : "no", ref_bfregs,
- 		    req->total_num_bfregs, *num_sys_pages);
--- 
-2.11.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We still need to differentiate between iWARP/RoCE before rdma_protocol_iwar=
+p/rdma_protocol_roce will be valid
+(allocating resources, registering ib device, initializing ib_device, and c=
+apabilities.
+For the rest of the places, after the port capabilities are valid, we'll us=
+e the inline functions.
