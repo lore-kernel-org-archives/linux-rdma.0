@@ -1,37 +1,37 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 00/10] IB/hfi1,qib: patches for next 06/09/2017
-Date: Tue, 27 Jun 2017 17:01:13 -0400
-Message-ID: <1498597273.2527.3.camel@redhat.com>
+Subject: Re: [PATCH for-next 07/10] IB/qib: Replace deprecated pci functions
+ with new API
+Date: Tue, 27 Jun 2017 17:02:39 -0400
+Message-ID: <1498597359.2527.4.camel@redhat.com>
 References: <20170609225424.26710.70167.stgit@scvm10.sc.intel.com>
+         <20170609230004.26710.93484.stgit@scvm10.sc.intel.com>
+         <20170612095751.GA2396@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170609225424.26710.70167.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <20170612095751.GA2396-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jan Sokolowski <jan.sokolowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ashutosh Dixit <ashutosh.dixit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bartlomiej Dudek <bartlomiej.dudek-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-06-09 at 15:59 -0700, Dennis Dalessandro wrote:
-> Hi Doug,
+On Mon, 2017-06-12 at 02:57 -0700, Christoph Hellwig wrote:
+> On Fri, Jun 09, 2017 at 04:00:06PM -0700, Dennis Dalessandro wrote:
+> > From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > 
+> > pci_enable_msix_range() and pci_disable_msix() have been
+> > deprecated.
+> > Updating to the new pci_alloc_irq_vectors() interface.
 > 
-> Here is the next set of patches for 4.13. Some bug fixes including a
-> panic
-> fix. There is also some cleanup of tracing and error messages. Some
-> needed
-> consolidation of some of the verbs/psm code is included as well.
+> This should go a lot further to remove all the dealing with
+> low-level pci bits and storing the absolute vector number.
 > 
-> We also replace our usage of the deprecated PCI functions in favor of
-> the
-> new API.
-> 
-> Patches can can also be found in my GitHub repo at:
-> https://github.com/ddalessa/kernel/tree/for-4.13
+> Untested idea below.
 
-Hi Denny,
-
-Series applied.
+Not that I disagree with cleanups, but on the basis of each patch being
+a separate change unto itself, I took the PCI interrupt API cleanups
+and the further cleanups you suggest should be a distinct patch anyway.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
