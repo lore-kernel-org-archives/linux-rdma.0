@@ -1,78 +1,71 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH iproute2 3/5] rdma: Add device capability parsing
-Date: Tue, 27 Jun 2017 20:46:15 +0300
-Message-ID: <20170627174615.GV1248@mtr-leonro.local>
-References: <20170626182128.24964-1-leon@kernel.org>
- <20170626182128.24964-4-leon@kernel.org>
- <20170626182924.GB16026@obsidianresearch.com>
- <20170626192103.GH1248@mtr-leonro.local>
- <20170626203610.GB17892@obsidianresearch.com>
- <20170627040604.GI1248@mtr-leonro.local>
- <20170627092129.GR1248@mtr-leonro.local>
- <20170627164150.GA4288@obsidianresearch.com>
- <20170627173301.GS1248@mtr-leonro.local>
- <20170627173735.GA5162@obsidianresearch.com>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: Unexpected issues with 2 NVME initiators using the same target
+Date: Tue, 27 Jun 2017 18:08:57 +0000
+Message-ID: <1498586933.14963.1.camel@wdc.com>
+References: <20170620074639.GP17846@mtr-leonro.local>
+         <1c706958-992e-b104-6bae-4a6616c0a9f9@grimberg.me>
+         <20170620083309.GQ17846@mtr-leonro.local>
+         <bd0b986f-9bed-3dfa-7454-0661559a527b@grimberg.me>
+         <614481c7-22dd-d93b-e97e-52f868727ec3@grimberg.me>
+         <59FF0C04-2BFB-4F66-81BA-A598A9A087FC@oracle.com>
+         <20170620173532.GA827@obsidianresearch.com>
+         <D3DC49A2-FFC9-4F62-8876-3E6AD5167DE5@oracle.com>
+         <20170620192742.GB827@obsidianresearch.com>
+         <C14B071E-F1B2-466A-82CF-4E20BFAD9DC1@oracle.com>
+         <20170620211958.GA5574@obsidianresearch.com>
+         <4f0812f1-0067-4e63-e383-b913ee1f319d@grimberg.me>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="KI6XeYrntNhU1GwB"
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170627173735.GA5162-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <4f0812f1-0067-4e63-e383-b913ee1f319d-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Language: en-US
+Content-ID: <DA90CF87A0232C45B8125C3F44E5D5AF-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ariel Almog <ariela-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org" <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: "mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org" <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, "hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org" <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, 2017-06-27 at 10:37 +0300, Sagi Grimberg wrote:
+> Jason,
+>=20
+> > > The issue about the HCA not being able to access the inline
+> > > buffer during a retransmit is also not an issue for RPC-
+> > > over-RDMA because these buffers are always registered with
+> > > the local rdma lkey.
+> >=20
+> > Exactly.
+>=20
+> Lost track of the thread...
+>=20
+>=20
+> Indeed you raised this issue lots of times before, and I failed to see
+> why its important or why its error prone, but now I do...
+>=20
+> My apologies for not listening :(
+>=20
+> We should fix _all_ initiators for it, nvme-rdma, iser, srp
+> and xprtrdma (and probably some more ULPs out there)...
+>=20
+> It also means that we cannot really suppress any send completions as
+> that would result in an unpredictable latency (which is not acceptable).
+>=20
+> I wish we could somehow tell the HCA that it can ignore access fail to a
+> specific address when retransmitting.. but maybe its too much to ask...
 
---KI6XeYrntNhU1GwB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hello Sagi,
 
-On Tue, Jun 27, 2017 at 11:37:35AM -0600, Jason Gunthorpe wrote:
-> On Tue, Jun 27, 2017 at 08:33:01PM +0300, Leon Romanovsky wrote:
->
-> > My initial plan was to put all parsers under their respective names, in
-> > the similar way as I did for caps: $ rdma dev show mlx5_4 caps
->
-> I think you should have a useful summary display similar to 'ip a' and
-> other commands.
->
-> guid(s), subnet prefix or default gid for IB, lid/lmc, link state,
-> speed, mtu, pkeys protocol(s)
+Can you clarify why you think that the SRP initiator needs to be changed?
+The SRP initiator submits the local invalidate work request after the RDMA
+write request. According to table 79 "Work Request Operation Ordering" the
+order of these work requests must be maintained by the HCA. I think if a HC=
+A
+would start with invalidating the MR before the remote HCA has acknowledged
+the written data that that's a firmware bug.
 
-It will, but before I would like to see this tool be a part of
-iproute2, so other people will be able to extend it in addition
-to me.
+The upstream SRP initiator does not use inline data.
 
-Are you fine with the proposed code?
-
->
-> A show gid table command makes sense for rocee where it can show the
-> gid and the IP binding for it, rocee mode, etc..
->
-> Jason
-
---KI6XeYrntNhU1GwB
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllSmeYACgkQ5GN7iDZy
-WKfgSQ//RPxqGNDNipavmn5gMFYI/nbPee7mR9JdqFVw+CRO2votvVrYChh3oAl0
-c3LvUcQGqvG25O0PJVYPynMl+8qW3UT0dc3G1V/fJIavssY40knrdelU9n1QLkmF
-zV00H5vDwQRWRXeUdwZxJ58yKO2sMfF48qst04qEVHyfL0gWy1anNGKheIAT7x3y
-RYXnW8RBD5eRTA7AhB4QQOYabaKfq/QYN9CJgBRgYxJxX8B6X7HkZuwdBrfyOcPp
-e+eIH7YfE+L71XbSF6pOoegemCVyYagWGehMBBRLwnNgHkzMCnOML6BlMxOZQ7gP
-QlO5qgJOoX9i828G/Ek6xsR/EZ4dj8Z2zp7SI++qKgOwHvoSe0WSH6hURSZYKMcR
-DjeIdquxLGClzYBF0DPlw/GlgHBP9quoEV7klG5nc3LxBqvmu7Ezjy8IkZGA8IG0
-6zG+eJa7JPlGxvf2Rkq2xylElDo4mu/ljt/Daa5KJ1IH0omYWe1nnOtQjLsmZ2t8
-RKh9Z4tEJaTORb6Gc37eD1o7t1eRQGiQluMKEssvcsZAq8jeZ2WqBJEayfeayS4Q
-DglWIzjVcdAv4OJMf2fAp8gNvTeCgyjzOmvBLpjg7ZelEw38dFN1gqCkTibEctWU
-AQNVnNdME5Fdbd3QSIzX/6pex/DPqIcCdi6RjWneroMKG+il59Q=
-=tf41
------END PGP SIGNATURE-----
-
---KI6XeYrntNhU1GwB--
+Bart.=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
