@@ -1,7 +1,7 @@
-From: Sagi Grimberg <sagi@grimberg.me>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Subject: Re: Unexpected issues with 2 NVME initiators using the same target
-Date: Tue, 27 Jun 2017 10:16:34 +0300
-Message-ID: <16585005-1e1c-0090-6cf7-bc647e892541@grimberg.me>
+Date: Tue, 27 Jun 2017 10:22:52 +0300
+Message-ID: <aa948bd3-5aa5-18da-566d-7e23b051f68e@grimberg.me>
 References: <9465cd0c-83db-b058-7615-5626ef60dbb0@grimberg.me>
  <20170515143632.GH3616@mtr-leonro.local>
  <20170515145952.GA7871@infradead.org>
@@ -14,43 +14,72 @@ References: <9465cd0c-83db-b058-7615-5626ef60dbb0@grimberg.me>
  <1c706958-992e-b104-6bae-4a6616c0a9f9@grimberg.me>
  <20170620083309.GQ17846@mtr-leonro.local>
  <bd0b986f-9bed-3dfa-7454-0661559a527b@grimberg.me>
- <78b2c1db-6ece-0274-c4c9-5ee1f7c88469@mellanox.com>
- <CAANLjFrzsTFZP536L2G2CHy=JmDb3W+ePB_mOLHm2qp2Bb2iaw@mail.gmail.com>
+ <614481c7-22dd-d93b-e97e-52f868727ec3@grimberg.me>
+ <CAANLjFrpHzapvqgBajUu7QpgNNPvNjThMZrsXGcKt58E+6siMA@mail.gmail.com>
+ <3f3830eb-68c5-f862-58c7-7021e6462f6f@grimberg.me>
+ <CAANLjFo_1E5nPkXMmG0VxtXpQ2m6=WNd0OtvG4rd-__1TD0-VQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <CAANLjFrzsTFZP536L2G2CHy=JmDb3W+ePB_mOLHm2qp2Bb2iaw@mail.gmail.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAANLjFo_1E5nPkXMmG0VxtXpQ2m6=WNd0OtvG4rd-__1TD0-VQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-US
-Sender: target-devel-owner@vger.kernel.org
-To: Robert LeBlanc <robert@leblancnet.us>, Max Gurtovoy <maxg@mellanox.com>
-Cc: Leon Romanovsky <leon@kernel.org>, Marta Rybczynska <mrybczyn@kalray.eu>, Christoph Hellwig <hch@infradead.org>, "Gruher, Joseph R" <joseph.r.gruher@intel.com>, "shahar.salzman" <shahar.salzman@gmail.com>, Laurence Oberman <loberman@redhat.com>, "Riches Jr, Robert M" <robert.m.riches.jr@intel.com>, linux-rdma <linux-rdma@vger.kernel.org>, linux-nvme@lists.infradead.org, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Liran Liss <liranl@mellanox.com>, target-devel <target-devel@vger.kernel.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "shahar.salzman" <shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Riches Jr, Robert M" <robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-> I still get the local protection errors with this patch. I am seeing a
-> ping timeout on the initiator when I reboot the target.
-> [Tue Jun 20 16:41:21 2017]  connection7:0: detected conn error (1011)
-> [Tue Jun 20 16:41:26 2017]  session7: session recovery timed out after 5 secs
+>> I don't understand, is this new with the patch applied?
 > 
+> I applied your patch to 4.12-rc6 on the initiator, but my targets are
+> still 4.9.33 since it looked like the patch only affected the
+> initiator. I did not see this before your patch, but I also didn't try
+> rebooting the targets multiple times before because of the previous
+> messages.
 
-Not a big surprise as its not really addressing the issue...
+That sounds like a separate issue. Should we move forward with the
+suggested patch?
 
-> Since I'm gracefully shutting down the targets in this case, shouldn't
-> the connection be closed gracefully by the target instead of the
-> initiator having to wait for ping to fail?
+>>> After this and a reboot of the target, the initiator would drop the
+>>> connection after 1.5-2 minutes then faster and faster until it was
+>>> every 5 seconds. It is almost like it set up the connection then lose
+>>> the first ping, or the ping wasn't set-up right. I tried rebooting the
+>>> target multiple times.
+>>
+>>
+>> So the initiator could not recover even after the target as available
+>> again?
+> 
+> The initiator recovered the connection when the target came back, but
+> the connection was not stable. I/O would happen on the connection,
+> then it would get shaky and then finally disconnect. Then it would
+> reconnect, pass more I/O, then get shaky and go down again. With the 5
+> second disconnects, it would pass traffic for 5 seconds, then as soon
+> as I saw the ping timeout, the I/O would stop until it reconnected. At
+> that point it seems that the lack of pings would kill the I/O unlike
+> earlier where there was a stall in I/O and then the connection would
+> be torn down. I can try to see if I can get it to happen again.
 
-Not really, even in orderly shutdown, the device driver (mlx5 in
-this case) shutdown sequence is triggered before ib_isert and
-fires DEVICE_REMOVAL events to all its upper layer users (ib_isert
-being one of them), which forces resource teardown (no disconnect).
+So looks like the target is not responding to NOOP_OUTs (or traffic
+at all for that matter).
 
-We could resgister a shutdown handler in ib_isert, but its not really
-its responsibility as a transport driver..
+The messages:
+[Tue Jun 20 10:11:20 2017] iSCSI Login timeout on Network Portal [::]:3260
 
-It would be nice if we had targetcli daemon'ised as a service
-and register a shutdown notification, orderly remove and save the
-existing configuration before the kernel even sees it. But its
-a different scope really...
+Are indicating that something is stuck in the login thread, not sure
+where though. Did you see a watchdog popping on a hang?
 
-CC'ing target-devel
+And massage:
+[Tue Jun 20 10:11:58 2017] isert: isert_print_wc: login send failure:
+transport retry counter exceeded (12) vend_err 81
+
+Is an indication that the rdma fabric is in some error state.
+
+On which reboot attempt all this happened? the first one?
+
+Again, CCing target-devel.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
