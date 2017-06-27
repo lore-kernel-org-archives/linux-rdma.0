@@ -1,60 +1,123 @@
-From: "Vishwanathapura, Niranjana" <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-rc 2/5] IB/ipoib: Limit call to free rdma_netdev for
- capable devices
-Date: Tue, 27 Jun 2017 12:08:38 -0700
-Message-ID: <20170627190838.GA55990@knc-06.sc.intel.com>
-References: <20170614065909.23650-1-leon@kernel.org>
- <20170614065909.23650-3-leon@kernel.org>
- <20170627173407.GA55945@knc-06.sc.intel.com>
- <20170627174156.GA5340@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: "memory management error" with NFS/RDMA on RoCE
+Date: Tue, 27 Jun 2017 15:30:06 -0400
+Message-ID: <1EAA98B1-5907-4483-B6F6-D65939587F38@oracle.com>
+References: <7F0FCF80-DB7B-46F1-BB9A-0B070603DE61@oracle.com> <797a43c4-f30d-9deb-a332-c62cbd01be7b@grimberg.me> <2FEEE227-9BCF-4454-A056-3997C1E54686@oracle.com> <20170627173620.GT1248@mtr-leonro.local>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170627174156.GA5340-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20170627173620.GT1248-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 27, 2017 at 11:41:56AM -0600, Jason Gunthorpe wrote:
->On Tue, Jun 27, 2017 at 10:34:07AM -0700, Vishwanathapura, Niranjana wrote:
->> >diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
->> >index 0ddd9709e1df..91fae34bdd4f 100644
->> >+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
->> >@@ -2301,7 +2301,10 @@ static void ipoib_remove_one(struct ib_device *device, void *client_data)
->> >		flush_workqueue(priv->wq);
->> >
->> >		unregister_netdev(priv->dev);
->> >-		free_netdev(priv->dev);
->> >+		if (device->free_rdma_netdev)
->> >+			device->free_rdma_netdev(priv->dev);
->> >+		else
->> >+			free_netdev(priv->dev);
->>
->> This is causing an crash in hfi1 driver.
->> If the call to alloc_rdma_netdev() has returned -EOPNOTSUPP, we shouldn't be
->> calling free_rdma_netdev() here (as device driver doesn't own that netdev).
->> I will send out a patch to hfi1 driver to guard check for the type in its
->> free_rdma_netdev() call to handle such issues.
->
->I think instead you should move free_rdma_netdev from struct ib_device
->to struct rdma_netdev to prevent this mistake in general.
->
 
-Thanks, that is another option. With that, we will be freeing the rdma_netdev 
-from a function pointer call that belongs to that rdma_netdev. Is that ok?  
-(Though I think it should work fine).
+> On Jun 27, 2017, at 1:36 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> 
+> On Tue, Jun 27, 2017 at 10:56:29AM -0400, Chuck Lever wrote:
+>> Hi Sagi-
+>> 
+>>> On Jun 27, 2017, at 5:28 AM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
+>>> 
+>>> 
+>>>> While running xfstests on an NFS/RDMA mount, I see this in
+>>>> the client's /var/log/messages multiple times:
+>>>> Jun 22 14:13:45 manet kernel: mlx5_0:dump_cqe:275:(pid 0): dump error cqe
+>>>> Jun 22 14:13:45 manet kernel: 00000000 00000000 00000000 00000000
+>>>> Jun 22 14:13:45 manet kernel: 00000000 00000000 00000000 00000000
+>>>> Jun 22 14:13:45 manet kernel: 00000000 00000000 00000000 00000000
+>>>> Jun 22 14:13:45 manet kernel: 00000000 08007806 250000cd 024027d3
+>>>> Jun 22 14:13:45 manet kernel: rpcrdma: fastreg: memory management operation error (6/0x78)
+>>>> As far as I can tell the client is able to recover and continue
+>>>> the test. However, this error is not supposed to happen in normal
+>>>> operation.
+>>>> This is with a Mellanox CX4 in RoCEv1 mode, v4.12-rc2.
+>>> 
+>>> Is this a regression?
+>> 
+>> I can't answer that question with authority, because I just
+>> started trying out NFS/RDMA on RoCE with mlx5. But Robert has
+>> reported very similar symptoms with iSER on v4.9. It appears
+>> to have been around for a while, if these are the same.
+>> 
+>> 
+>>> What kernel version are you running?
+>> 
+>> v4.12-rc2.
+>> 
+>> 
+>>> FW revision?
+>> 
+>> 12.18.2000
+>> 
+>> 
+>>> Is the below commit applied?
+>> 
+>> This commit does not appear to be applied to my kernel.
+>> 
+>> 
+>>> commit 6e8484c5cf07c7ee632587e98c1a12d319dacb7c
+>>> Author: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>> Date:   Sun May 28 10:53:11 2017 +0300
+>>> 
+>>>   RDMA/mlx5: set UMR wqe fence according to HCA cap
+>>> 
+>>>   Cache the needed umr_fence and set the wqe ctrl segmennt
+>>>   accordingly.
+>>> 
+>>>   Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>>   Acked-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>>>   Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+>>>   Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>>> 
+>>> This is the only thing that changed in that area
+>>> lately...
+>>> 
+>>> Can you try without it?
+>> 
+>> I haven't tried with it. I can pull it and see if it helps.
+>> 
+>> I have tried:
+>> 
+>> - with and without IOMMU enabled
+>> - with RoCE v1 and v2
+>> - with instrumentation:
+>> 
+>> This can happen to any MR at any time after any number of
+>> uses. It does not appear to be "sticky" (ie, xprtrdma
+>> recovery from a memory management error clears the problem
+>> successfully by releasing the MR and allocating a new one).
+>> 
+>> So it feels like a f/w or driver problem to me, at this
+>> point.
+> 
+> Jack and me discussed your issue tomorrow morning and we have strong
+> feeling that it is FW.
 
-Also, I think this needs updating ib_verbs.h, hfi1, ipoib and mlx5 (under 
-drivers/net) together. I can make the change, if this is the direction we are 
-taking.
+A little more, not sure this is helpful:
 
-Another option is to add a new type RDMA_NETDEV_IPOIB_DEF and use only within 
-ipoib driver to differentiate default case.
+The flushed FastReg WRs are all for IB_ACCESS_REMOTE_READ.
 
-Thanks,
-Niranjana
+
+> Thanks
+> 
+>> 
+>> --
+>> Chuck Lever
+>> 
+>> 
+>> 
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+Chuck Lever
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
