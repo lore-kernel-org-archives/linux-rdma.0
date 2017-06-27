@@ -1,48 +1,60 @@
-From: "Kalderon, Michal" <Michal.Kalderon@cavium.com>
-Subject: RE: [RFC 02/19] qed: Implement iWARP initialization, teardown and qp
- operations
-Date: Tue, 27 Jun 2017 08:33:34 +0000
-Message-ID: <DM2PR0701MB13925426BCEFE46D7935C53F88DC0@DM2PR0701MB1392.namprd07.prod.outlook.com>
-References: <1498500429-22557-1-git-send-email-Michal.Kalderon@cavium.com>
- <1498500429-22557-3-git-send-email-Michal.Kalderon@cavium.com>
- <20170627054541.GN1248@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170627054541.GN1248@mtr-leonro.local>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: "Amrani, Ram" <Ram.Amrani@cavium.com>, "Mintz, Yuval" <Yuval.Mintz@cavium.com>, "Elior, Ariel" <Ariel.Elior@cavium.com>, "davem@davemloft.net" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: [PATCH resend] rxe: fix broken receive queue draining
+Date: Tue, 27 Jun 2017 12:19:38 +0300
+Message-ID: <1498555178-12106-1-git-send-email-sagi@grimberg.me>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Vijay Immanuel <vijayi-R1PCaG5FPJG/3pe1ocb+swC/G2K4zDHf@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky [mailto:leon@kernel.org]
-Sent: Tuesday, June 27, 2017 8:46 AM
->=20
-> On Mon, Jun 26, 2017 at 09:06:52PM +0300, Michal Kalderon wrote:
-> > This patch adds iWARP support for flows that have common code between
-> > RoCE and iWARP, such as initialization, teardown and qp setup verbs:
-> > create, destroy, modify, query.
-> > It introduces the iWARP specific files qed_iwarp.[ch] and
-> > iwarp_common.h
-> >
-> > Signed-off-by: Michal Kalderon <Michal.Kalderon@cavium.com>
-> > Signed-off-by: Yuval Mintz <Yuval.Mintz@cavium.com>
-> > Signed-off-by: Ariel Elior <Ariel.Elior@cavium.com>
-> >
-> > ---
->=20
-> <...>
->=20
-> > +#define QED_IWARP_PARAM_P2P		(1)
->=20
-> <...>
->=20
-> > +
-> > +	iwarp_info->peer2peer =3D QED_IWARP_PARAM_P2P;
->=20
-> Can you shed a light what is it?
-> Thanks
-It's a mode in MPA rev2,  It's currently hard coded, and we plan on making =
-this configurable in the future, we're looking into using the rdmatool,
+From: Vijay Immanuel <vijayi-R1PCaG5FPJG/3pe1ocb+swC/G2K4zDHf@public.gmane.org>
+
+If we modified the qp to ERROR state, and
+drained the recieve queue, post_recv must
+trigger the responder task to complete
+the drain work request.
+
+Cc: Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Vijay Immanuel <vijayi-R1PCaG5FPJG/3pe1ocb+swC/G2K4zDHf@public.gmane.org>
+Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+---
+ drivers/infiniband/sw/rxe/rxe_resp.c  | 3 +++
+ drivers/infiniband/sw/rxe/rxe_verbs.c | 3 +++
+ 2 files changed, 6 insertions(+)
+
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index 23039768f541..f66b48c114ac 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -1217,6 +1217,9 @@ void rxe_drain_req_pkts(struct rxe_qp *qp, bool notify)
+ 		kfree_skb(skb);
+ 	}
+ 
++	if (notify)
++		return;
++
+ 	while (!qp->srq && qp->rq.queue && queue_head(qp->rq.queue))
+ 		advance_consumer(qp->rq.queue);
+ }
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index 83d709e74dfb..94af4d67988b 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -919,6 +919,9 @@ static int rxe_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+ 
+ 	spin_unlock_irqrestore(&rq->producer_lock, flags);
+ 
++	if (qp->resp.state == QP_STATE_ERROR)
++		rxe_run_task(&qp->resp.task, 1);
++
+ err1:
+ 	return err;
+ }
+-- 
+2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
