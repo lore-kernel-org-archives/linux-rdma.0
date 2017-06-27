@@ -1,48 +1,41 @@
-From: Tariq Toukan <tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] net/mlx5: fix spelling mistake: "alloated" -> "allocated"
-Date: Tue, 27 Jun 2017 14:39:45 +0300
-Message-ID: <69e20861-df9b-fd47-4e75-6ee978f572f7@mellanox.com>
-References: <20170627074059.11774-1-colin.king@canonical.com>
+From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH rdma v1 0/1] IB/core: Fix input len in multiple user verbs
+Date: Tue, 27 Jun 2017 17:04:41 +0300
+Message-ID: <1498572282-22370-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170627074059.11774-1-colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+This patch follows [1] that fixed three verbs and extends that fix to
+the other verbs as well.
+
+This fix is required for qedr to support existing and future libraries.
+
+I was able to test the fix only partially due to its scope hence careful
+review is required, and testing, of course.
+
+v0->v1:
+ * Updated vendor verbs to match the core changes.
 
 
-On 27/06/2017 10:40 AM, Colin King wrote:
-> From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-> 
-> Trivial fix to spelling mistake in mlx5_ib_dbg message
-> 
-> Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-> ---
->   drivers/infiniband/hw/mlx5/main.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+[1] https://www.spinics.net/lists/linux-rdma/msg33405.html 
 
-This is IB, while in patch subject you wrote 'net'.
+Ram Amrani (1):
+  IB/core: Fix input len in multiple user verbs
 
-> index 9f7e18612322..db67a61085f7 100644
-> --- a/drivers/infiniband/hw/mlx5/main.c
-> +++ b/drivers/infiniband/hw/mlx5/main.c
-> @@ -1151,7 +1151,7 @@ static int calc_total_bfregs(struct mlx5_ib_dev *dev, bool lib_uar_4k,
->   	if (req->num_low_latency_bfregs > req->total_num_bfregs - 1)
->   		return -EINVAL;
->   
-> -	mlx5_ib_dbg(dev, "uar_4k: fw support %s, lib support %s, user requested %d bfregs, alloated %d, using %d sys pages\n",
-> +	mlx5_ib_dbg(dev, "uar_4k: fw support %s, lib support %s, user requested %d bfregs, allocated %d, using %d sys pages\n",
->   		    MLX5_CAP_GEN(dev->mdev, uar_4k) ? "yes" : "no",
->   		    lib_uar_4k ? "yes" : "no", ref_bfregs,
->   		    req->total_num_bfregs, *num_sys_pages);
-> 
+ drivers/infiniband/core/uverbs_cmd.c         | 70 ++++++++++++++++------------
+ drivers/infiniband/hw/mlx5/cq.c              |  6 +--
+ drivers/infiniband/hw/mlx5/main.c            | 11 ++---
+ drivers/infiniband/hw/mthca/mthca_provider.c |  2 +-
+ 4 files changed, 46 insertions(+), 43 deletions(-)
+
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
