@@ -1,250 +1,107 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: Deadlock on device removal event for NVMeF target
-Date: Tue, 27 Jun 2017 09:37:51 +0300
-Message-ID: <56030fcd-b8a0-fc0e-18e5-985ebf16a82e@grimberg.me>
-References: <20170626225920.GA11700@ssaleem-MOBL4.amr.corp.intel.com>
+From: Sagi Grimberg <sagi@grimberg.me>
+Subject: Re: [PATCH] ib_isert: prevent NULL pointer dereference in
+ isert_login_recv_done()
+Date: Tue, 27 Jun 2017 10:03:48 +0300
+Message-ID: <980ca339-6a9d-31cb-7ffa-5de22d25e084@grimberg.me>
+References: <CAANLjFoaZ8ueEQet3Yu6LygmxXBbQ0cHUEYsb2xEON0o3N9=+w@mail.gmail.com>
+ <CAANLjFp6Y8wvLvmWrk1ECjm-OoyEppxD1svNYKpg+HDEZevJig@mail.gmail.com>
+ <CAANLjFoQcmfkjq9N1fehTC9Zi6aOC7ArOEPXz-he3EnOvWeEDw@mail.gmail.com>
+ <20170622223757.GC28955@Dell>
+ <1498435084.26123.66.camel@haakon3.risingtidesystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170626225920.GA11700-GOXS9JX10wfOxmVO0tvppfooFf0ArEBIu+b9c/7xato@public.gmane.org>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1498435084.26123.66.camel@haakon3.risingtidesystems.com>
 Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, hch-jcswGhMUV9g@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Sender: target-devel-owner@vger.kernel.org
+To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Andrea Righi <righi.andrea@gmail.com>
+Cc: Robert LeBlanc <robert@leblancnet.us>, Sean Jenkins <sean@betterservers.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma <linux-rdma@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
 List-Id: linux-rdma@vger.kernel.org
 
-> Hi Sagi/Christoph,
+> Hi Andrea & Robert,
 
-Hi Shiraz,
+Hi Andrea, Robert, Nic and Co
 
-Please CC linux-nvme for nvme-rdma related stuff.
+>>>>> We have hit this four times today. Any ideas?
+>>>>>
+>>>>> [  169.382113] BUG: unable to handle kernel NULL pointer dereference at           (null)
+>>>>> [  169.382152] IP: [<ffffffffa051e968>] isert_login_recv_done+0x28/0x170 [ib_isert]
+>>
+>> So, we spent more time to track down this bug.
+>>
+>> It seems that at login time an error is happening, not sure exactly what
+>> kind of error, but isert_connect_error() is called and isert_conn->cm_id
+>> is set to NULL.
+>>
+>> Later, isert_login_recv_done() is trying to access
+>> isert_conn->cm_id->device and we get the NULL pointer dereference.
+>>
+>> Following there's the patch that we have applied to track down this
+>> problem.
+>>
+>> And this is what we see in dmesg with this patch applied:
+>>
+>>   [  658.633188] isert: isert_connect_error: conn ffff887f2209c000 error
+>>   [  658.633226] isert: isert_login_recv_done: login with broken rdma_cm_id
+>>
+>> As we can see isert_connect_error() is called before isert_login_recv_done
+>> and at that point isert_conn->cm_id is NULL.
+>>
+>> Obviously simply checking if the pointer is NULL, returning and ignoring
+>> the error in isert_login_recv_done() is not the best fix ever and I'm
+>> not sure if I'm breaking something else doing so (even if with this
+>> patch the kernel doesn't crash and I've not seen any problem so far).
+>>
+>> Maybe a better way is to tear down the whole connection when this
+>> particular case is happening? Suggestions?
 
-> I am seeing a deadlock for a device removal event on NVMeF target.
-> 
-> The sequence of events leading to the deadlock are as follows,
-> 
-> 1. i40iw posts IW_CM_EVENT_CLOSE events for all QPs causing the corresponding
-> NVMet RDMA Queues to disconnect and schedule release of any pending work on WQ
-> 2. i40iw triggers device removal
-> 	ib_unregister_device
-> 	[..]
-> 	cma_remove_id_dev (takes a handler lock before calling the event handler)
-> 	nvmet_rdma_cm_handler
-> 	nvmet_rdma_device_removal (queue->state = NVMET_RDMA_Q_DISCONNECTING due to 1.)
-> 	flush_scheduled_work (blocks till all scheduled work is drained from WQ)
-> 	nvmet_rdma_release_queue_work (queue->state = NVMET_RDMA_Q_DISCONNECTING)
-> 	rdma_destroy_id (waits on the same handler lock as cma_remove_id_dev causing the deadlock)
->       
-> So this problem can occur when there is a device removal event while the queue is in
-> disconnect state with the some oustanding work that hasnt been drained from the WQ at the
-> time flush_scheduled_work is called.
+That is an accurate analysis of what is going on, good job!
 
-This indeed looks like a bug (thanks for reporting!). We indeed don't
-have sufficient information on where the queue release procedure is by
-only looking at the queue state, we can't tell if rdma_destroy_id was
-invoked and we can deadlock with rdma_destroy_id.
+> So I assume isert_cma_handler() -> isert_connect_error() getting called
+> to clear isert_conn->cm_id before connection established, and
+> subsequently isert_conn->login_req_buf->rx_cqe.done() ->
+> isert_login_recv_done() still getting invoked after connection failure
+> is new RDMA API behavior..
 
-> This patch fixed the problem but I am not sure if it is the correct fix.
-> 
-> diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
-> index 9e45cde..d0fb307 100644
-> --- a/drivers/nvme/target/rdma.c
-> +++ b/drivers/nvme/target/rdma.c
-> @@ -1349,6 +1349,12 @@ static int nvmet_rdma_device_removal(struct rdma_cm_id *cm_id,
->                  spin_lock_irqsave(&queue->state_lock, flags);
->                  if (queue->state != NVMET_RDMA_Q_DISCONNECTING)
->                          queue->state = NVMET_RDMA_IN_DEVICE_REMOVAL;
-> +               else {
-> +                       /*queue is disconnecting; so cm_id and queues will be destroyed*/
-> +                       spin_unlock_irqrestore(&queue->state_lock, flags);
-> +                       return 0;
-> +               }
-> +
->                  spin_unlock_irqrestore(&queue->state_lock, flags);
->                  nvmet_rdma_queue_disconnect(queue);
->                  flush_scheduled_work();
-> 
+That is correct, but its not really a new behavior, and absolutely
+not introduced by the new RDMA API. We will _always_ see the
+completion of _all_ recv wrs posted on the qp (given that we assigned
+a ->done handler), this is a FLUSH error completion, we just don't
+get to verify that because we deref NULL before.
 
-The problem with your patch, is that it introduces a race in the
-opposite direction. The queue state does not indicate that the queue
-release work has _started_, it only indicates that it was queued.
-The DEVICE_REMOVAL event expects that by the end of the callout _all_
-associated resources have been freed and the device can safely continue
-with its teardown flow.
+The issue here, as you indicated was the assumption that dereferencing
+the connection cm_id is always safe, which is not true since:
 
-How about the (untested) alternative below:
---
-[PATCH] nvmet-rdma: register ib_client to not deadlock in device
-  removal
+commit 4a579da2586bd3b79b025947ea24ede2bbfede62
+Author: Sagi Grimberg <sagig@mellanox.com>
+Date:   Sun Mar 29 15:52:04 2015 +0300
 
-We can deadlock in case we got to a device removal
-event on a queue which is already in the process of
-destroying the cm_id is this is blocking until all
-events on this cm_id will drain. On the other hand
-we cannot guarantee that rdma_destroy_id was invoked
-as we only have indication that the queue disconnect
-flow has been queued (the queue state is updated before
-the realease work has been queued).
+     iser-target: Fix possible deadlock in RDMA_CM connection error
 
-So, we leave all the queue removal to a separate ib_client
-to avoid this deadlock as ib_client device removal is in
-a different context than the cm_id itself.
+     Before we reach to connection established we may get an
+     error event. In this case the core won't teardown this
+     connection (never established it), so we take care of freeing
+     it ourselves.
 
-Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
----
-  drivers/nvme/target/rdma.c | 100 
-++++++++++++++++++++++++++++++---------------
-  1 file changed, 67 insertions(+), 33 deletions(-)
+     Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
+     Cc: <stable@vger.kernel.org> # v3.10+
+     Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
 
-diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
-index 32aa10b521c8..56a4cba690b5 100644
---- a/drivers/nvme/target/rdma.c
-+++ b/drivers/nvme/target/rdma.c
-@@ -1307,53 +1307,44 @@ static void nvmet_rdma_queue_connect_fail(struct 
-rdma_cm_id *cm_id,
+As I see it, we have a direct reference to the isert_device from
+isert_conn which is the one-liner fix that we actually need (like
+we do in isert_rdma_read_done, isert_rdma_write_done),  guess we
+also need it in isert_login_send_done, isert_send_done (although
+it can't really happen, but better safe and consistent than sorry).
 
-  /**
-   * nvme_rdma_device_removal() - Handle RDMA device removal
-+ * @cm_id:     rdma_cm id, used for nvmet port
-   * @queue:      nvmet rdma queue (cm id qp_context)
-- * @addr:      nvmet address (cm_id context)
-   *
-   * DEVICE_REMOVAL event notifies us that the RDMA device is about
-- * to unplug so we should take care of destroying our RDMA resources.
-- * This event will be generated for each allocated cm_id.
-+ * to unplug. Note that this event can be generated on a normal
-+ * queue cm_id and/or a device bound listener cm_id (where in this
-+ * case queue will be null).
-   *
-- * Note that this event can be generated on a normal queue cm_id
-- * and/or a device bound listener cm_id (where in this case
-- * queue will be null).
-- *
-- * we claim ownership on destroying the cm_id. For queues we move
-- * the queue state to NVMET_RDMA_IN_DEVICE_REMOVAL and for port
-+ * We registered an ib_client to handle device removal for queues,
-+ * so we only need to handle the listening port cm_ids. In this case
-   * we nullify the priv to prevent double cm_id destruction and destroying
-   * the cm_id implicitely by returning a non-zero rc to the callout.
-   */
-  static int nvmet_rdma_device_removal(struct rdma_cm_id *cm_id,
-                 struct nvmet_rdma_queue *queue)
-  {
--       unsigned long flags;
--
--       if (!queue) {
--               struct nvmet_port *port = cm_id->context;
-+       struct nvmet_port *port;
+> @@ -1452,7 +1452,7 @@
+>   isert_login_recv_done(struct ib_cq *cq, struct ib_wc *wc)
+>   {
+>   	struct isert_conn *isert_conn = wc->qp->qp_context;
+> -	struct ib_device *ib_dev = isert_conn->cm_id->device;
+> +	struct ib_device *ib_dev = isert_conn->device->ib_device;
+>   
+>   	if (unlikely(wc->status != IB_WC_SUCCESS)) {
+>   		isert_print_wc(wc, "login recv");
 
-+       if (queue) {
-                 /*
--                * This is a listener cm_id. Make sure that
--                * future remove_port won't invoke a double
--                * cm_id destroy. use atomic xchg to make sure
--                * we don't compete with remove_port.
--                */
--               if (xchg(&port->priv, NULL) != cm_id)
--                       return 0;
--       } else {
--               /*
--                * This is a queue cm_id. Make sure that
--                * release queue will not destroy the cm_id
--                * and schedule all ctrl queues removal (only
--                * if the queue is not disconnecting already).
-+                * This is a queue cm_id. we have registered
-+                * an ib_client to handle queues removal
-+                * so don't interfear and just return.
-                  */
--               spin_lock_irqsave(&queue->state_lock, flags);
--               if (queue->state != NVMET_RDMA_Q_DISCONNECTING)
--                       queue->state = NVMET_RDMA_IN_DEVICE_REMOVAL;
--               spin_unlock_irqrestore(&queue->state_lock, flags);
--               nvmet_rdma_queue_disconnect(queue);
--               flush_scheduled_work();
-+               return 0;
-         }
-
-+       port = cm_id->context;
-+
-+       /*
-+        * This is a listener cm_id. Make sure that
-+        * future remove_port won't invoke a double
-+        * cm_id destroy. use atomic xchg to make sure
-+        * we don't compete with remove_port.
-+        */
-+       if (xchg(&port->priv, NULL) != cm_id)
-+               return 0;
-+
-         /*
-          * We need to return 1 so that the core will destroy
-          * it's own ID.  What a great API design..
-@@ -1519,9 +1510,51 @@ static struct nvmet_fabrics_ops nvmet_rdma_ops = {
-         .delete_ctrl            = nvmet_rdma_delete_ctrl,
-  };
-
-+static void nvmet_rdma_add_one(struct ib_device *ib_device)
-+{
-+}
-+
-+static void nvmet_rdma_remove_one(struct ib_device *ib_device, void 
-*client_data)
-+{
-+       struct nvmet_rdma_queue *queue;
-+
-+       /* Device is being removed, delete all queues using this device */
-+       mutex_lock(&nvmet_rdma_queue_mutex);
-+       list_for_each_entry(queue, &nvmet_rdma_queue_list, queue_list) {
-+               if (queue->dev->device != ib_device)
-+                       continue;
-+
-+               pr_info("Removing queue %d\n", queue->idx);
-+               __nvmet_rdma_queue_disconnect(queue);
-+       }
-+       mutex_unlock(&nvmet_rdma_queue_mutex);
-+
-+       flush_scheduled_work();
-+}
-+
-+static struct ib_client nvmet_rdma_ib_client = {
-+       .name   = "nvmet_rdma",
-+       .add = nvmet_rdma_add_one,
-+       .remove = nvmet_rdma_remove_one
-+};
-+
-  static int __init nvmet_rdma_init(void)
-  {
--       return nvmet_register_transport(&nvmet_rdma_ops);
-+       int ret;
-+
-+       ret = ib_register_client(&nvmet_rdma_ib_client);
-+       if (ret)
-+               return ret;
-+
-+       ret = nvmet_register_transport(&nvmet_rdma_ops);
-+       if (ret)
-+               goto err_ib_client;
-+
-+       return 0;
-+
-+err_ib_client:
-+       ib_unregister_client(&nvmet_rdma_ib_client);
-+       return ret;
-  }
-
-  static void __exit nvmet_rdma_exit(void)
-@@ -1544,6 +1577,7 @@ static void __exit nvmet_rdma_exit(void)
-         mutex_unlock(&nvmet_rdma_queue_mutex);
-
-         flush_scheduled_work();
-+       ib_unregister_client(&nvmet_rdma_ib_client);
-         ida_destroy(&nvmet_rdma_queue_ida);
-  }
-
---
-
-Unfortunately, the patch failed to produce a clear diff :/ sorry...
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+That's the one...
