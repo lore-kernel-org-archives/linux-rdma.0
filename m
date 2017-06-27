@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V3 3/5] RDMA/netlink: Avoid double pass for RDMA netlink messages
-Date: Tue, 27 Jun 2017 08:00:26 +0300
-Message-ID: <20170627050028.17902-4-leon@kernel.org>
+Subject: [PATCH rdma-next V3 5/5] RDMA/iwcm: Remove extra EXPORT_SYMBOLS
+Date: Tue, 27 Jun 2017 08:00:28 +0300
+Message-ID: <20170627050028.17902-6-leon@kernel.org>
 References: <20170627050028.17902-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170627050028.17902-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,132 +12,157 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The standard netlink_rcv_skb function skips messages without
-NLM_F_REQUEST flag in it, while SA netlink client issues them.
-
-In commit bc10ed7d3d19 ("IB/core: Add rdma netlink helper functions")
-the local function was introduced to allow such messages.
-
-This led to double pass for every incoming message.
-
-In this patch, we unify that local implementation and netlink_rcv_skb
-functions, so there will be no need for double pass anymore.
-
-As a outcome, this combined function gained more strict check
-for NLM_F_REQUEST flag and it is now allowed for SA pathquery
-client only.
+The iwcm exports functions which are not used outside of ib_core.
+This patch simply removes these EXPORT_SYMBOLS.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/netlink.c | 62 +++++++++++++++++++++++++++------------
- 1 file changed, 44 insertions(+), 18 deletions(-)
+ drivers/infiniband/core/iwpm_msg.c  | 12 ------------
+ drivers/infiniband/core/iwpm_util.c |  5 -----
+ 2 files changed, 17 deletions(-)
 
-diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-index 6cb534a595ea..86337d5e7551 100644
---- a/drivers/infiniband/core/netlink.c
-+++ b/drivers/infiniband/core/netlink.c
-@@ -159,8 +159,8 @@ int ibnl_put_attr(struct sk_buff *skb, struct nlmsghdr *nlh,
- }
- EXPORT_SYMBOL(ibnl_put_attr);
-
--static int ibnl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
--			struct netlink_ext_ack *extack)
-+static int rdma_nl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
-+			   struct netlink_ext_ack *extack)
+diff --git a/drivers/infiniband/core/iwpm_msg.c b/drivers/infiniband/core/iwpm_msg.c
+index a0e7c16d8bd8..1fab707b1f68 100644
+--- a/drivers/infiniband/core/iwpm_msg.c
++++ b/drivers/infiniband/core/iwpm_msg.c
+@@ -42,7 +42,6 @@ int iwpm_valid_pid(void)
  {
- 	int type = nlh->nlmsg_type;
- 	unsigned int index = RDMA_NL_GET_CLIENT(type);
-@@ -187,40 +187,66 @@ static int ibnl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
- 	return netlink_dump_start(nls, skb, nlh, &c);
+ 	return iwpm_user_pid > 0;
  }
+-EXPORT_SYMBOL(iwpm_valid_pid);
 
--static void ibnl_rcv_reply_skb(struct sk_buff *skb)
-+/*
-+ * This function is similar to netlink_rcv_skb with one exception:
-+ * It calls to the callback for the netlink messages without NLM_F_REQUEST
-+ * flag. These messages are intended for RDMA_NL_LS consumer, so it is allowed
-+ * for that consumer only.
-+ */
-+static int rdma_nl_rcv_skb(struct sk_buff *skb, int (*cb)(struct sk_buff *,
-+						   struct nlmsghdr *,
-+						   struct netlink_ext_ack *))
- {
-+	struct netlink_ext_ack extack = {};
- 	struct nlmsghdr *nlh;
--	int msglen;
-+	int err;
+ /*
+  * iwpm_register_pid - Send a netlink query to user space
+@@ -122,7 +121,6 @@ int iwpm_register_pid(struct iwpm_dev_data *pm_msg, u8 nl_client)
+ 		iwpm_free_nlmsg_request(&nlmsg_request->kref);
+ 	return ret;
+ }
+-EXPORT_SYMBOL(iwpm_register_pid);
 
--	/*
--	 * Process responses until there is no more message or the first
--	 * request. Generally speaking, it is not recommended to mix responses
--	 * with requests.
--	 */
- 	while (skb->len >= nlmsg_total_size(0)) {
-+		int msglen;
-+
- 		nlh = nlmsg_hdr(skb);
-+		err = 0;
+ /*
+  * iwpm_add_mapping - Send a netlink add mapping message
+@@ -191,7 +189,6 @@ int iwpm_add_mapping(struct iwpm_sa_data *pm_msg, u8 nl_client)
+ 		iwpm_free_nlmsg_request(&nlmsg_request->kref);
+ 	return ret;
+ }
+-EXPORT_SYMBOL(iwpm_add_mapping);
 
- 		if (nlh->nlmsg_len < NLMSG_HDRLEN || skb->len < nlh->nlmsg_len)
--			return;
-+			return 0;
+ /*
+  * iwpm_add_and_query_mapping - Send a netlink add and query
+@@ -267,7 +264,6 @@ int iwpm_add_and_query_mapping(struct iwpm_sa_data *pm_msg, u8 nl_client)
+ 		iwpm_free_nlmsg_request(&nlmsg_request->kref);
+ 	return ret;
+ }
+-EXPORT_SYMBOL(iwpm_add_and_query_mapping);
 
--		/* Handle response only */
--		if (nlh->nlmsg_flags & NLM_F_REQUEST)
--			return;
-+		/*
-+		 * Generally speaking, the only requests are handled
-+		 * by the kernel, but RDMA_NL_LS is different, because it
-+		 * runs backward netlink scheme. Kernel initiates messages
-+		 * and waits for reply with data to keep pathrecord cache
-+		 * in sync.
-+		 */
-+		if (!(nlh->nlmsg_flags & NLM_F_REQUEST) &&
-+		    (RDMA_NL_GET_CLIENT(nlh->nlmsg_type) != RDMA_NL_LS))
-+			goto ack;
-+
-+		/* Skip control messages */
-+		if (nlh->nlmsg_type < NLMSG_MIN_TYPE)
-+			goto ack;
-+
-+		err = cb(skb, nlh, &extack);
-+		if (err == -EINTR)
-+			goto skip;
+ /*
+  * iwpm_remove_mapping - Send a netlink remove mapping message
+@@ -328,7 +324,6 @@ int iwpm_remove_mapping(struct sockaddr_storage *local_addr, u8 nl_client)
+ 		dev_kfree_skb_any(skb);
+ 	return ret;
+ }
+-EXPORT_SYMBOL(iwpm_remove_mapping);
 
--		ibnl_rcv_msg(skb, nlh, NULL);
-+ack:
-+		if (nlh->nlmsg_flags & NLM_F_ACK || err)
-+			netlink_ack(skb, nlh, err, &extack);
+ /* netlink attribute policy for the received response to register pid request */
+ static const struct nla_policy resp_reg_policy[IWPM_NLA_RREG_PID_MAX] = {
+@@ -397,7 +392,6 @@ int iwpm_register_pid_cb(struct sk_buff *skb, struct netlink_callback *cb)
+ 	up(&nlmsg_request->sem);
+ 	return 0;
+ }
+-EXPORT_SYMBOL(iwpm_register_pid_cb);
 
-+skip:
- 		msglen = NLMSG_ALIGN(nlh->nlmsg_len);
- 		if (msglen > skb->len)
- 			msglen = skb->len;
- 		skb_pull(skb, msglen);
+ /* netlink attribute policy for the received response to add mapping request */
+ static const struct nla_policy resp_add_policy[IWPM_NLA_RMANAGE_MAPPING_MAX] = {
+@@ -466,7 +460,6 @@ int iwpm_add_mapping_cb(struct sk_buff *skb, struct netlink_callback *cb)
+ 	up(&nlmsg_request->sem);
+ 	return 0;
+ }
+-EXPORT_SYMBOL(iwpm_add_mapping_cb);
+
+ /* netlink attribute policy for the response to add and query mapping request
+  * and response with remote address info */
+@@ -558,7 +551,6 @@ int iwpm_add_and_query_mapping_cb(struct sk_buff *skb,
+ 	up(&nlmsg_request->sem);
+ 	return 0;
+ }
+-EXPORT_SYMBOL(iwpm_add_and_query_mapping_cb);
+
+ /*
+  * iwpm_remote_info_cb - Process a port mapper message, containing
+@@ -627,7 +619,6 @@ int iwpm_remote_info_cb(struct sk_buff *skb, struct netlink_callback *cb)
+ 			"remote_info: Mapped remote sockaddr:");
+ 	return ret;
+ }
+-EXPORT_SYMBOL(iwpm_remote_info_cb);
+
+ /* netlink attribute policy for the received request for mapping info */
+ static const struct nla_policy resp_mapinfo_policy[IWPM_NLA_MAPINFO_REQ_MAX] = {
+@@ -677,7 +668,6 @@ int iwpm_mapping_info_cb(struct sk_buff *skb, struct netlink_callback *cb)
+ 	ret = iwpm_send_mapinfo(nl_client, iwpm_user_pid);
+ 	return ret;
+ }
+-EXPORT_SYMBOL(iwpm_mapping_info_cb);
+
+ /* netlink attribute policy for the received mapping info ack */
+ static const struct nla_policy ack_mapinfo_policy[IWPM_NLA_MAPINFO_NUM_MAX] = {
+@@ -707,7 +697,6 @@ int iwpm_ack_mapping_info_cb(struct sk_buff *skb, struct netlink_callback *cb)
+ 	atomic_set(&echo_nlmsg_seq, cb->nlh->nlmsg_seq);
+ 	return 0;
+ }
+-EXPORT_SYMBOL(iwpm_ack_mapping_info_cb);
+
+ /* netlink attribute policy for the received port mapper error message */
+ static const struct nla_policy map_error_policy[IWPM_NLA_ERR_MAX] = {
+@@ -751,4 +740,3 @@ int iwpm_mapping_error_cb(struct sk_buff *skb, struct netlink_callback *cb)
+ 	up(&nlmsg_request->sem);
+ 	return 0;
+ }
+-EXPORT_SYMBOL(iwpm_mapping_error_cb);
+diff --git a/drivers/infiniband/core/iwpm_util.c b/drivers/infiniband/core/iwpm_util.c
+index 32ca2aaa4e3b..c46442ac71a2 100644
+--- a/drivers/infiniband/core/iwpm_util.c
++++ b/drivers/infiniband/core/iwpm_util.c
+@@ -81,7 +81,6 @@ int iwpm_init(u8 nl_client)
  	}
-+
-+	return 0;
+ 	return ret;
  }
+-EXPORT_SYMBOL(iwpm_init);
 
--static void ibnl_rcv(struct sk_buff *skb)
-+static void rdma_nl_rcv(struct sk_buff *skb)
- {
- 	mutex_lock(&rdma_nl_mutex);
--	ibnl_rcv_reply_skb(skb);
--	netlink_rcv_skb(skb, &ibnl_rcv_msg);
-+	rdma_nl_rcv_skb(skb, &rdma_nl_rcv_msg);
- 	mutex_unlock(&rdma_nl_mutex);
+ static void free_hash_bucket(void);
+ static void free_reminfo_bucket(void);
+@@ -107,7 +106,6 @@ int iwpm_exit(u8 nl_client)
+ 	iwpm_set_registration(nl_client, IWPM_REG_UNDEF);
+ 	return 0;
  }
+-EXPORT_SYMBOL(iwpm_exit);
 
-@@ -241,7 +267,7 @@ EXPORT_SYMBOL(ibnl_multicast);
- int __init rdma_nl_init(void)
+ static struct hlist_head *get_mapinfo_hash_bucket(struct sockaddr_storage *,
+ 					       struct sockaddr_storage *);
+@@ -146,7 +144,6 @@ int iwpm_create_mapinfo(struct sockaddr_storage *local_sockaddr,
+ 	spin_unlock_irqrestore(&iwpm_mapinfo_lock, flags);
+ 	return ret;
+ }
+-EXPORT_SYMBOL(iwpm_create_mapinfo);
+
+ int iwpm_remove_mapinfo(struct sockaddr_storage *local_sockaddr,
+ 			struct sockaddr_storage *mapped_local_addr)
+@@ -182,7 +179,6 @@ int iwpm_remove_mapinfo(struct sockaddr_storage *local_sockaddr,
+ 	spin_unlock_irqrestore(&iwpm_mapinfo_lock, flags);
+ 	return ret;
+ }
+-EXPORT_SYMBOL(iwpm_remove_mapinfo);
+
+ static void free_hash_bucket(void)
  {
- 	struct netlink_kernel_cfg cfg = {
--		.input	= ibnl_rcv,
-+		.input	= rdma_nl_rcv,
- 	};
+@@ -295,7 +291,6 @@ int iwpm_get_remote_info(struct sockaddr_storage *mapped_loc_addr,
+ 	spin_unlock_irqrestore(&iwpm_reminfo_lock, flags);
+ 	return ret;
+ }
+-EXPORT_SYMBOL(iwpm_get_remote_info);
 
- 	nls = netlink_kernel_create(&init_net, NETLINK_RDMA, &cfg);
+ struct iwpm_nlmsg_request *iwpm_get_nlmsg_request(__u32 nlmsg_seq,
+ 					u8 nl_client, gfp_t gfp)
 --
 2.13.1
 
