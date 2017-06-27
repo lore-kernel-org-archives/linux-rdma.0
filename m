@@ -1,79 +1,43 @@
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Deadlock on device removal event for NVMeF target
-Date: Tue, 27 Jun 2017 14:31:57 -0500
-Message-ID: <20170627193157.GA29768@ssaleem-MOBL4.amr.corp.intel.com>
-References: <20170626225920.GA11700@ssaleem-MOBL4.amr.corp.intel.com>
- <56030fcd-b8a0-fc0e-18e5-985ebf16a82e@grimberg.me>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next 0/6] IB/hfi1,qib: Cleanups and updates for-next
+Date: Tue, 27 Jun 2017 16:59:26 -0400
+Message-ID: <1498597166.2527.0.camel@redhat.com>
+References: <20170512161106.1290.45891.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <56030fcd-b8a0-fc0e-18e5-985ebf16a82e-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <20170512161106.1290.45891.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Brian Welty <brian.welty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Venkata Sandeep Dhanalakota <venkata.s.dhanalakota-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 27, 2017 at 12:37:51AM -0600, Sagi Grimberg wrote:
-> > Hi Sagi/Christoph,
+On Fri, 2017-05-12 at 09:19 -0700, Dennis Dalessandro wrote:
+> Hi Doug,
 > 
-> Hi Shiraz,
+> Here are some patches for-next. There are some clean ups to remove
+> unused code
+> and useless initializations. We also continue cleaning up the code by
+> packing
+> more fields into the hfi1_packet to keep them in a single place and
+> adding
+> some enhancements to the input/output header tracing.
 > 
-> Please CC linux-nvme for nvme-rdma related stuff.
-OK.
+> These apply on top of the two patches I just sent for RC.
+> 
+> Patches can can also be found in my GitHub repo at:
+> https://github.com/ddalessa/kernel/tree/for-4.13
 
-> > I am seeing a deadlock for a device removal event on NVMeF target.
-> > 
-> > The sequence of events leading to the deadlock are as follows,
-> > 
-> > 1. i40iw posts IW_CM_EVENT_CLOSE events for all QPs causing the corresponding
-> > NVMet RDMA Queues to disconnect and schedule release of any pending work on WQ
-> > 2. i40iw triggers device removal
-> > 	ib_unregister_device
-> > 	[..]
-> > 	cma_remove_id_dev (takes a handler lock before calling the event handler)
-> > 	nvmet_rdma_cm_handler
-> > 	nvmet_rdma_device_removal (queue->state = NVMET_RDMA_Q_DISCONNECTING due to 1.)
-> > 	flush_scheduled_work (blocks till all scheduled work is drained from WQ)
-> > 	nvmet_rdma_release_queue_work (queue->state = NVMET_RDMA_Q_DISCONNECTING)
-> > 	rdma_destroy_id (waits on the same handler lock as cma_remove_id_dev causing the deadlock)
-> >       
-> > So this problem can occur when there is a device removal event while the queue is in
-> > disconnect state with the some oustanding work that hasnt been drained from the WQ at the
-> > time flush_scheduled_work is called.
-> 
-> This indeed looks like a bug (thanks for reporting!). We indeed don't
-> have sufficient information on where the queue release procedure is by
-> only looking at the queue state, we can't tell if rdma_destroy_id was
-> invoked and we can deadlock with rdma_destroy_id.
-> 
+Hi Denny,
 
- 
-> How about the (untested) alternative below:
-> --
-> [PATCH] nvmet-rdma: register ib_client to not deadlock in device
->   removal
-> 
-> We can deadlock in case we got to a device removal
-> event on a queue which is already in the process of
-> destroying the cm_id is this is blocking until all
-> events on this cm_id will drain. On the other hand
-> we cannot guarantee that rdma_destroy_id was invoked
-> as we only have indication that the queue disconnect
-> flow has been queued (the queue state is updated before
-> the realease work has been queued).
-> 
-> So, we leave all the queue removal to a separate ib_client
-> to avoid this deadlock as ib_client device removal is in
-> a different context than the cm_id itself.
-> 
-> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-> ---
+Series applied.
 
-Yes. This patch fixes the problem I am seeing.
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
-Shiraz
- 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
