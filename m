@@ -1,57 +1,38 @@
-From: Sagi Grimberg <sagi@grimberg.me>
-Subject: Re: SQ overflow seen running isert traffic with high block sizes
-Date: Wed, 28 Jun 2017 13:39:35 +0300
-Message-ID: <210f538f-8c98-f480-64fc-f2124ed6d01b@grimberg.me>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: SQ overflow seen running isert traffic with high block sizes
+Date: Wed, 28 Jun 2017 11:29:19 +0000
+Message-ID: <BN3PR07MB25783736A155DEC2FD4B7A8DF8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
 References: <BN3PR07MB25784033E7FCD062FA0A7855F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
+ <20170628103505.GA27517@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <BN3PR07MB25784033E7FCD062FA0A7855F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170628103505.GA27517-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 Content-Language: en-US
-Sender: target-devel-owner@vger.kernel.org
-To: "Amrani, Ram" <Ram.Amrani@cavium.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Cc: "Elior, Ariel" <Ariel.Elior@cavium.com>, target-devel <target-devel@vger.kernel.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Ram, CC'ing target-devel for iser-target related posts.
+> Here is some more discussion regarding SQ overflow.
+> https://www.spinics.net/lists/linux-rdma/msg47635.html
+>=20
+> Current SQ overflow handling is post error handling to keep the IO runnin=
+g and
+> We still see SQ post failures filling the dmesg.
+> We are still working on fixing SQ overflow.
+>=20
+> Thanks,
+> Bharat.
 
-> We are hitting SQ overflow on iSER target side with high block sizes over RoCE
-> (see dmesg output below).
-> 
-> We are using Q-Logic/Cavium NIC with a capability of 4 sges.
+That's good to know.
+Let us know when you have something working, we can help test it too.
 
-That's somewhat expected if the device has low max_sge. It was decided
-that queue_full mechanism is not something that iser-target should
-handle but rather the iscsi-target core on top.
+Thanks,
+Ram
 
-You probably should not get into aborts though... Does the I/O complete?
-or does it fail?
-
-Is this upstream? is [1] applied?
-
-I could come up with some queue-full handling in isert that will be more
-lightweight, but I'd let Nic make a judgment call before I do anything.
-
-[1]:
-commit a4467018c2a7228f4ef58051f0511bd037bff264
-Author: Nicholas Bellinger <nab@linux-iscsi.org>
-Date:   Sun Oct 30 17:30:08 2016 -0700
-
-     iscsi-target: Propigate queue_data_in + queue_status errors
-
-     This patch changes iscsi-target to propagate iscsit_transport
-     ->iscsit_queue_data_in() and ->iscsit_queue_status() callback
-     errors, back up into target-core.
-
-     This allows target-core to retry failed iscsit_transport
-     callbacks using internal queue-full logic.
-
-     Reported-by: Potnuri Bharat Teja <bharat@chelsio.com>
-     Reviewed-by: Potnuri Bharat Teja <bharat@chelsio.com>
-     Tested-by: Potnuri Bharat Teja <bharat@chelsio.com>
-     Cc: Potnuri Bharat Teja <bharat@chelsio.com>
-     Reported-by: Steve Wise <swise@opengridcomputing.com>
-     Cc: Steve Wise <swise@opengridcomputing.com>
-     Cc: Sagi Grimberg <sagi@grimberg.me>
-     Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
