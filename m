@@ -1,35 +1,51 @@
-From: "Amrani, Ram" <Ram.Amrani@cavium.com>
-Subject: RE: SQ overflow seen running isert traffic with high block sizes
-Date: Wed, 28 Jun 2017 11:32:49 +0000
-Message-ID: <BN3PR07MB25786338EADC77A369A6D493F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
-References: <BN3PR07MB25784033E7FCD062FA0A7855F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
- <210f538f-8c98-f480-64fc-f2124ed6d01b@grimberg.me>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH rdma-next] RDMA: Remove useless MODULE_VERSION
+Date: Wed, 28 Jun 2017 12:11:22 +0000
+Message-ID: <BN3PR07MB2578E61CC646F07E35186F66F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
+References: <20170626055822.18946-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <target-devel-owner@vger.kernel.org>
-In-Reply-To: <210f538f-8c98-f480-64fc-f2124ed6d01b@grimberg.me>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170626055822.18946-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Content-Language: en-US
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagi@grimberg.me>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Cc: "Elior, Ariel" <Ariel.Elior@cavium.com>, target-devel <target-devel@vger.kernel.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiA+IFdlIGFyZSBoaXR0aW5nIFNRIG92ZXJmbG93IG9uIGlTRVIgdGFyZ2V0IHNpZGUgd2l0aCBo
-aWdoIGJsb2NrIHNpemVzIG92ZXIgUm9DRQ0KPiA+IChzZWUgZG1lc2cgb3V0cHV0IGJlbG93KS4N
-Cj4gPg0KPiA+IFdlIGFyZSB1c2luZyBRLUxvZ2ljL0Nhdml1bSBOSUMgd2l0aCBhIGNhcGFiaWxp
-dHkgb2YgNCBzZ2VzLg0KPiANCj4gVGhhdCdzIHNvbWV3aGF0IGV4cGVjdGVkIGlmIHRoZSBkZXZp
-Y2UgaGFzIGxvdyBtYXhfc2dlLiBJdCB3YXMgZGVjaWRlZA0KPiB0aGF0IHF1ZXVlX2Z1bGwgbWVj
-aGFuaXNtIGlzIG5vdCBzb21ldGhpbmcgdGhhdCBpc2VyLXRhcmdldCBzaG91bGQNCj4gaGFuZGxl
-IGJ1dCByYXRoZXIgdGhlIGlzY3NpLXRhcmdldCBjb3JlIG9uIHRvcC4NCj4gDQo+IFlvdSBwcm9i
-YWJseSBzaG91bGQgbm90IGdldCBpbnRvIGFib3J0cyB0aG91Z2guLi4gRG9lcyB0aGUgSS9PIGNv
-bXBsZXRlPw0KPiBvciBkb2VzIGl0IGZhaWw/DQoNClRoZSBJT3MgY29tcGxldGUNCg0KPiANCj4g
-SXMgdGhpcyB1cHN0cmVhbT8gaXMgWzFdIGFwcGxpZWQ/DQo+IA0KPiBJIGNvdWxkIGNvbWUgdXAg
-d2l0aCBzb21lIHF1ZXVlLWZ1bGwgaGFuZGxpbmcgaW4gaXNlcnQgdGhhdCB3aWxsIGJlIG1vcmUN
-Cj4gbGlnaHR3ZWlnaHQsIGJ1dCBJJ2QgbGV0IE5pYyBtYWtlIGEganVkZ21lbnQgY2FsbCBiZWZv
-cmUgSSBkbyBhbnl0aGluZy4NCj4gDQo+IFsxXToNCj4gY29tbWl0IGE0NDY3MDE4YzJhNzIyOGY0
-ZWY1ODA1MWYwNTExYmQwMzdiZmYyNjQNCj4gQXV0aG9yOiBOaWNob2xhcyBCZWxsaW5nZXIgPG5h
-YkBsaW51eC1pc2NzaS5vcmc+DQo+IERhdGU6ICAgU3VuIE9jdCAzMCAxNzozMDowOCAyMDE2IC0w
-NzAwDQo+IA0KPiAgICAgIGlzY3NpLXRhcmdldDogUHJvcGlnYXRlIHF1ZXVlX2RhdGFfaW4gKyBx
-dWV1ZV9zdGF0dXMgZXJyb3JzDQo+IA0KDQpZZXMsIHRoZSBwYXRjaCBpcyBhcHBsaWVkLg0KDQpU
-aGFua3MsDQpSYW0NCg0K
+For qedr changes:
+
+Acked-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+
+=20
+> diff --git a/drivers/infiniband/hw/qedr/main.c b/drivers/infiniband/hw/qe=
+dr/main.c
+> index 6a72095d6c7a..6c5639caab20 100644
+> --- a/drivers/infiniband/hw/qedr/main.c
+> +++ b/drivers/infiniband/hw/qedr/main.c
+> @@ -47,7 +47,6 @@
+>  MODULE_DESCRIPTION("QLogic 40G/100G ROCE Driver");
+>  MODULE_AUTHOR("QLogic Corporation");
+>  MODULE_LICENSE("Dual BSD/GPL");
+> -MODULE_VERSION(QEDR_MODULE_VERSION);
+>=20
+>  #define QEDR_WQ_MULTIPLIER_DFT	(3)
+>=20
+> diff --git a/drivers/infiniband/hw/qedr/qedr.h b/drivers/infiniband/hw/qe=
+dr/qedr.h
+> index aa08c76a4245..0e95ffd6c14a 100644
+> --- a/drivers/infiniband/hw/qedr/qedr.h
+> +++ b/drivers/infiniband/hw/qedr/qedr.h
+> @@ -41,7 +41,6 @@
+>  #include <linux/qed/roce_common.h>
+>  #include "qedr_hsi_rdma.h"
+>=20
+> -#define QEDR_MODULE_VERSION	"8.10.10.0"
+>  #define QEDR_NODE_DESC "QLogic 579xx RoCE HCA"
+>  #define DP_NAME(dev) ((dev)->ibdev.name)
+>=20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
