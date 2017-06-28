@@ -1,74 +1,61 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 3/4] RDMA/netink: Export lids and sm_lids
-Date: Wed, 28 Jun 2017 16:34:44 +0300
-Message-ID: <20170628133445.16550-4-leon@kernel.org>
-References: <20170628133445.16550-1-leon@kernel.org>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [bug report] RDMA/bnxt_re: HW workarounds for handling specific
+ conditions
+Date: Wed, 28 Jun 2017 16:37:40 +0300
+Message-ID: <20170628133740.bvqfbaleqjsjq5b4@mwanda>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170628133445.16550-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hello Eddie Wai,
 
-According to the IB specification, the LID and SM_LID
-are 16-bit wide, but to support OmniPath users, export
-it as 32-bit value from the beginning.
+The patch 9152e0b722b2: "RDMA/bnxt_re: HW workarounds for handling
+specific conditions" from Jun 14, 2017, leads to the following static
+checker warning:
 
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/nldev.c  | 7 ++++++-
- include/uapi/rdma/rdma_netlink.h | 8 ++++++++
- 2 files changed, 14 insertions(+), 1 deletion(-)
+	drivers/infiniband/hw/bnxt_re/qplib_fp.c:1737 bnxt_qplib_cq_process_req()
+	warn: missing error code here? 'do_wa9060()' failed. 'rc' = '0'
 
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 755b8167280b..6b290dada589 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -45,6 +45,8 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 	[RDMA_NLDEV_ATTR_GUID]		= { .type = NLA_U64 },
- 	[RDMA_NLDEV_ATTR_SYS_IMAGE_GUID] = { .type = NLA_U64 },
- 	[RDMA_NLDEV_ATTR_SUBNET_PREFIX]	= { .type = NLA_U64 },
-+	[RDMA_NLDEV_ATTR_LID]		= { .type = NLA_U32 },
-+	[RDMA_NLDEV_ATTR_SM_LID]	= { .type = NLA_U32 },
- };
+drivers/infiniband/hw/bnxt_re/qplib_fp.c
+  1729                          sq->condition = false;
+  1730                          sq->single = false;
+  1731                  } else {
+  1732                          if (swq->flags & SQ_SEND_FLAGS_SIGNAL_COMP) {
+  1733                                  /* Before we complete, do WA 9060 */
+  1734                                  if (do_wa9060(qp, cq, cq_cons, sw_sq_cons,
+  1735                                                cqe_sq_cons)) {
+  1736                                          *lib_qp = qp;
+  1737                                          goto out;
 
- static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
-@@ -99,7 +101,10 @@ static int fill_port_info(struct sk_buff *msg,
- 	if (nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_SUBNET_PREFIX,
- 			      attr.subnet_prefix, 0))
- 		return -EMSGSIZE;
--
-+	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_LID, attr.lid))
-+		return -EMSGSIZE;
-+	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_SM_LID, attr.sm_lid))
-+		return -EMSGSIZE;
- 	return 0;
- }
+It's not immediately clear to an outside reviewer if we're intentionally
+returning success on this path...
 
-diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index 5fec88038e6e..22e4870f2e31 100644
---- a/include/uapi/rdma/rdma_netlink.h
-+++ b/include/uapi/rdma/rdma_netlink.h
-@@ -284,6 +284,14 @@ enum rdma_nldev_attr {
- 	 */
- 	RDMA_NLDEV_ATTR_SUBNET_PREFIX,		/* u64 */
+  1738                                  }
+  1739                                  cqe->status = CQ_REQ_STATUS_OK;
+  1740                                  cqe++;
+  1741                                  (*budget)--;
+  1742                          }
+  1743                  }
+  1744  skip:
+  1745                  sq->hwq.cons++;
+  1746                  if (sq->single)
+  1747                          break;
+  1748          }
+  1749  out:
+  1750          *pcqe = cqe;
+  1751          if (HWQ_CMP(sq->hwq.cons, &sq->hwq) != cqe_sq_cons) {
+  1752                  /* Out of budget */
+  1753                  rc = -EAGAIN;
+  1754                  goto done;
+  1755          }
 
-+	/*
-+	 * Local Identifier (LID),
-+	 * According to IB specification, It is 16-bit address assigned
-+	 * by the Subnet Manager. Extended to be 32-bit for OmniPath users.
-+	 */
-+	RDMA_NLDEV_ATTR_LID,			/* u32 */
-+	RDMA_NLDEV_ATTR_SM_LID,			/* u32 */
-+
- 	RDMA_NLDEV_ATTR_MAX
- };
- #endif /* _UAPI_RDMA_NETLINK_H */
---
-2.13.1
-
+regards,
+dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
