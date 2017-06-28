@@ -1,8 +1,10 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 0/4] Another round of exported properties for RDMAtool
-Date: Wed, 28 Jun 2017 16:34:41 +0300
-Message-ID: <20170628133445.16550-1-leon@kernel.org>
+Subject: [PATCH rdma-next 2/4] RDMA/netlink: Advertise IB subnet prefix
+Date: Wed, 28 Jun 2017 16:34:43 +0300
+Message-ID: <20170628133445.16550-3-leon@kernel.org>
+References: <20170628133445.16550-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170628133445.16550-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,26 +12,54 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-hi Doug,
+Add IB subnet prefix to the port properties exported
+by RDMA netlink.
 
-This patch set is based on previously sent RDMA netlink work.
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/nldev.c  | 4 ++++
+ include/uapi/rdma/rdma_netlink.h | 5 +++++
+ 2 files changed, 9 insertions(+)
 
-!!! Important to note, that LIDs and SM_LIDS are exported as u32,
-to support OmniPath natively.
-
-Thanks
-
-Leon Romanovsky (4):
-  RDMA/netlink: Export guid and sys_image_guid
-  RDMA/netlink: Advertise IB subnet prefix
-  RDMA/netink: Export lids and sm_lids
-  RDMA/netlink: Export LID mask counter (LMC)
-
- drivers/infiniband/core/nldev.c  | 21 ++++++++++++++++++++-
- include/uapi/rdma/rdma_netlink.h | 31 +++++++++++++++++++++++++++++++
- 2 files changed, 51 insertions(+), 1 deletion(-)
-
---
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+index 56500810c2c0..755b8167280b 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -44,6 +44,7 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
+ 					    .len = IB_FW_VERSION_NAME_MAX - 1},
+ 	[RDMA_NLDEV_ATTR_GUID]		= { .type = NLA_U64 },
+ 	[RDMA_NLDEV_ATTR_SYS_IMAGE_GUID] = { .type = NLA_U64 },
++	[RDMA_NLDEV_ATTR_SUBNET_PREFIX]	= { .type = NLA_U64 },
+ };
+ 
+ static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
+@@ -95,6 +96,9 @@ static int fill_port_info(struct sk_buff *msg,
+ 	if (nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_CAP_FLAGS,
+ 			      (u64)attr.port_cap_flags, 0))
+ 		return -EMSGSIZE;
++	if (nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_SUBNET_PREFIX,
++			      attr.subnet_prefix, 0))
++		return -EMSGSIZE;
+ 
+ 	return 0;
+ }
+diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
+index f46af029ace2..5fec88038e6e 100644
+--- a/include/uapi/rdma/rdma_netlink.h
++++ b/include/uapi/rdma/rdma_netlink.h
+@@ -279,6 +279,11 @@ enum rdma_nldev_attr {
+ 	 */
+ 	RDMA_NLDEV_ATTR_SYS_IMAGE_GUID,		/* u64 */
+ 
++	/*
++	 * Subnet prefix (in host byte order)
++	 */
++	RDMA_NLDEV_ATTR_SUBNET_PREFIX,		/* u64 */
++
+ 	RDMA_NLDEV_ATTR_MAX
+ };
+ #endif /* _UAPI_RDMA_NETLINK_H */
+-- 
 2.13.1
 
 --
