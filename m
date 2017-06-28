@@ -1,30 +1,37 @@
-From: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [PATCH 1/3] RDMA/device: Fix device removal notification when
- ib_clients set .add callout to NULL
-Date: Wed, 28 Jun 2017 14:40:20 +0200
-Message-ID: <20170628124020.GP4185@linux-x5ow.site>
-References: <1498644338-19719-1-git-send-email-sagi@grimberg.me>
- <1498644338-19719-2-git-send-email-sagi@grimberg.me>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH rdma-next 0/4] Another round of exported properties for RDMAtool
+Date: Wed, 28 Jun 2017 16:34:41 +0300
+Message-ID: <20170628133445.16550-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1498644338-19719-2-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Reviewed-by: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
--- 
-Johannes Thumshirn                                          Storage
-jthumshirn-l3A5Bk7waGM@public.gmane.org                                +49 911 74053 689
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
-GF: Felix Imendörffer, Jane Smithard, Graham Norton
-HRB 21284 (AG Nürnberg)
-Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+hi Doug,
+
+This patch set is based on previously sent RDMA netlink work.
+
+!!! Important to note, that LIDs and SM_LIDS are exported as u32,
+to support OmniPath natively.
+
+Thanks
+
+Leon Romanovsky (4):
+  RDMA/netlink: Export guid and sys_image_guid
+  RDMA/netlink: Advertise IB subnet prefix
+  RDMA/netink: Export lids and sm_lids
+  RDMA/netlink: Export LID mask counter (LMC)
+
+ drivers/infiniband/core/nldev.c  | 21 ++++++++++++++++++++-
+ include/uapi/rdma/rdma_netlink.h | 31 +++++++++++++++++++++++++++++++
+ 2 files changed, 51 insertions(+), 1 deletion(-)
+
+--
+2.13.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
