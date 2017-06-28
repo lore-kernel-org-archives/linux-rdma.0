@@ -1,90 +1,46 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH iproute2 3/5] rdma: Add device capability parsing
-Date: Wed, 28 Jun 2017 22:11:09 +0300
-Message-ID: <20170628191109.GN1248@mtr-leonro.local>
-References: <20170626192103.GH1248@mtr-leonro.local>
- <20170626203610.GB17892@obsidianresearch.com>
- <20170627040604.GI1248@mtr-leonro.local>
- <20170627092129.GR1248@mtr-leonro.local>
- <20170627164150.GA4288@obsidianresearch.com>
- <20170627173301.GS1248@mtr-leonro.local>
- <20170627173735.GA5162@obsidianresearch.com>
- <20170627174615.GV1248@mtr-leonro.local>
- <20170627151859.524d1079@xeon-e3>
- <20170628161112.GB28839@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="NILByKcPRZiJ7ENr"
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170628161112.GB28839@obsidianresearch.com>
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Stephen Hemminger <stephen@networkplumber.org>, Doug Ledford <dledford@redhat.com>, Ariel Almog <ariela@mellanox.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Linux RDMA <linux-rdma@vger.kernel.org>, Linux Netdev <netdev@vger.kernel.org>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: [PATCH] [net-next] net/mlx5e: select CONFIG_MLXFW
+Date: Wed, 28 Jun 2017 22:10:13 +0200
+Message-ID: <20170628201032.3178691-1-arnd@arndb.de>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christopher Covington <cov-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Nicolas Pitre <nicolas.pitre-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+With the introduction of mlx5 firmware flash support, we get a link
+error with CONFIG_MLXFW=m and CONFIG_MLX5_CORE=y:
 
---NILByKcPRZiJ7ENr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+drivers/net/ethernet/mellanox/mlx5/core/fw.o: In function `mlx5_firmware_flash':
+fw.c:(.text+0x9d4): undefined reference to `mlxfw_firmware_flash'
 
-On Wed, Jun 28, 2017 at 10:11:12AM -0600, Jason Gunthorpe wrote:
-> On Tue, Jun 27, 2017 at 03:18:59PM -0700, Stephen Hemminger wrote:
-> > On Tue, 27 Jun 2017 20:46:15 +0300
-> > Leon Romanovsky <leon@kernel.org> wrote:
-> >
-> > > On Tue, Jun 27, 2017 at 11:37:35AM -0600, Jason Gunthorpe wrote:
-> > > > On Tue, Jun 27, 2017 at 08:33:01PM +0300, Leon Romanovsky wrote:
-> > > >
-> > > > > My initial plan was to put all parsers under their respective names, in
-> > > > > the similar way as I did for caps: $ rdma dev show mlx5_4 caps
-> > > >
-> > > > I think you should have a useful summary display similar to 'ip a' and
-> > > > other commands.
-> > > >
-> > > > guid(s), subnet prefix or default gid for IB, lid/lmc, link state,
-> > > > speed, mtu, pkeys protocol(s)
-> > >
-> > > It will, but before I would like to see this tool be a part of
-> > > iproute2, so other people will be able to extend it in addition
-> > > to me.
-> > >
-> > > Are you fine with the proposed code?
-> > >
-> >
-> > Output formats need to be nailed down. The output of iproute2 commands is almost
-> > like an ABI. Users build scripts to parse it (whether that is a great idea or not
-> > is debateable, it mostly shows the weakness in programatic API's). Therefore fully
-> > changing output formats in later revisions is likely to get users upset.
->
-> It would be nice to see an example of what the completed command
-> should output to make judgements on the format.. Going bit by bit
-> doesn't really give a full picture, IHO.
+We could have a more elaborate method to force MLX5 to be a loadable
+module in this case, but the easiest fix seems to be to always enable
+MLXFW as well, like we do for CONFIG_MLXSW_SPECTRUM, which is the other
+user of mlxfw_firmware_flash.
 
-Bit by bit expansion allow easily control of what is needed. Mostly,
-those full examples have nothing close to real use case.
+Fixes: 3ffaabecd1a1 ("net/mlx5e: Support the flash device ethtool callback")
+Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
->
-> Jason
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/Kconfig b/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
+index cf1ef48bfd8d..09edee060b03 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
++++ b/drivers/net/ethernet/mellanox/mlx5/core/Kconfig
+@@ -6,6 +6,7 @@ config MLX5_CORE
+ 	tristate "Mellanox Technologies ConnectX-4 and Connect-IB core driver"
+ 	depends on MAY_USE_DEVLINK
+ 	depends on PCI
++	select MLXFW
+ 	default n
+ 	---help---
+ 	  Core driver for low level functionality of the ConnectX-4 and
+-- 
+2.9.0
 
---NILByKcPRZiJ7ENr
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllT/00ACgkQ5GN7iDZy
-WKeANRAAzjACk0f57EANRv/McGfxg3ynKVC41bk/YWAPjH3Be3+cfoXM+VCju71R
-SsDXyHu7R1fMob/gYoxFuzTdSF3ERJwzupnQWZJh99Sg2m1JoL6mqqTq0CFUgNkL
-0pQSbHFBi1HCc3sKqtBKxtBJIdK0F8dMtgubtv8iMRSzY57WKRXcZ109zPgLL2zB
-1oBZs+KZE56/SloqMhMp0YCR48JMOIz3Ztz2H8f9wcLy6ZWIlYoAf/tkizRkCEb+
-yuIYjLfE96jyOdXRwgiwpbEmBHa2J4wd2vaPEQyf7Yr4XuNRU2uCtV895dz5qNqc
-RvedFyaCkygdMku4BBFBNpxnTqMZLkV9AmTUXiVuOkZkdtFVtrLTBnudyUzEofaz
-de49uOWUaxg5EgyOgnmU/4iUR3uZuEjLCJc1gy2zE3kU/JAE+1A5M2gNFnz40NJt
-3wMeMhZeps7y6XfOFpjdCzZpixQsO6KFOBSTST8I6H428/Qb4P3kvmYOUc8wNMDf
-6eeEBYcjJu0acFP58xHs1rsVg1JdfjK+6m+hp4GRCvAMLCCKP0lnd7/g53e20SqI
-9SCslBH67VDNeVKt7WYw11IEmyD/bboOs2j5XT8QfngVgzTOoLyGo2HeWPtzdEMi
-Ykstx8MgjpmrZWlpydSml7foRdLLa57r3oxiTAYaznaLJ00YxRI=
-=GkpH
------END PGP SIGNATURE-----
-
---NILByKcPRZiJ7ENr--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
