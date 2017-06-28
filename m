@@ -1,58 +1,31 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH iproute2 3/5] rdma: Add device capability parsing
-Date: Wed, 28 Jun 2017 10:11:12 -0600
-Message-ID: <20170628161112.GB28839@obsidianresearch.com>
-References: <20170626182924.GB16026@obsidianresearch.com>
- <20170626192103.GH1248@mtr-leonro.local>
- <20170626203610.GB17892@obsidianresearch.com>
- <20170627040604.GI1248@mtr-leonro.local>
- <20170627092129.GR1248@mtr-leonro.local>
- <20170627164150.GA4288@obsidianresearch.com>
- <20170627173301.GS1248@mtr-leonro.local>
- <20170627173735.GA5162@obsidianresearch.com>
- <20170627174615.GV1248@mtr-leonro.local>
- <20170627151859.524d1079@xeon-e3>
+Subject: Re: [PATCH rdma-next 2/4] RDMA/netlink: Advertise IB subnet prefix
+Date: Wed, 28 Jun 2017 10:12:36 -0600
+Message-ID: <20170628161236.GC28839@obsidianresearch.com>
+References: <20170628133445.16550-1-leon@kernel.org>
+ <20170628133445.16550-3-leon@kernel.org>
+ <20170628160251.GB14375@obsidianresearch.com>
+ <20170628161020.GI1248@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170627151859.524d1079@xeon-e3>
+In-Reply-To: <20170628161020.GI1248-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ariel Almog <ariela-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 27, 2017 at 03:18:59PM -0700, Stephen Hemminger wrote:
-> On Tue, 27 Jun 2017 20:46:15 +0300
-> Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+On Wed, Jun 28, 2017 at 07:10:20PM +0300, Leon Romanovsky wrote:
+> > Since the GUID is in host order I recommend making the subnet_prefix
+> > in host order too.
+> >
+> > At the very least, the comments beside anything not in host order
+> > should be 'be64' not u64
 > 
-> > On Tue, Jun 27, 2017 at 11:37:35AM -0600, Jason Gunthorpe wrote:
-> > > On Tue, Jun 27, 2017 at 08:33:01PM +0300, Leon Romanovsky wrote:
-> > >  
-> > > > My initial plan was to put all parsers under their respective names, in
-> > > > the similar way as I did for caps: $ rdma dev show mlx5_4 caps  
-> > >
-> > > I think you should have a useful summary display similar to 'ip a' and
-> > > other commands.
-> > >
-> > > guid(s), subnet prefix or default gid for IB, lid/lmc, link state,
-> > > speed, mtu, pkeys protocol(s)  
-> > 
-> > It will, but before I would like to see this tool be a part of
-> > iproute2, so other people will be able to extend it in addition
-> > to me.
-> > 
-> > Are you fine with the proposed code?
-> > 
-> 
-> Output formats need to be nailed down. The output of iproute2 commands is almost
-> like an ABI. Users build scripts to parse it (whether that is a great idea or not
-> is debateable, it mostly shows the weakness in programatic API's). Therefore fully
-> changing output formats in later revisions is likely to get users upset.
+> Those comments represent netlink types. It doesn't have be64.
 
-It would be nice to see an example of what the completed command
-should output to make judgements on the format.. Going bit by bit
-doesn't really give a full picture, IHO.
+Then don't send b64 down netlink as a netlink u64 type?
 
 Jason
 --
