@@ -1,78 +1,37 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next 3/4] RDMA/netink: Export lids and sm_lids
-Date: Wed, 28 Jun 2017 19:24:54 +0300
-Message-ID: <20170628162454.GM1248@mtr-leonro.local>
-References: <20170628133445.16550-1-leon@kernel.org>
- <20170628133445.16550-4-leon@kernel.org>
- <20170628160513.GC14375@obsidianresearch.com>
- <20170628161616.GK1248@mtr-leonro.local>
- <20170628161903.GA28996@obsidianresearch.com>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] IB/iser: Handle lack of memory management extentions
+ correctly
+Date: Wed, 28 Jun 2017 17:46:49 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC34327953@fmsmsx120.amr.corp.intel.com>
+References: <20170622190110.27788.19910.stgit@phlsvslse11.ph.intel.com>
+ <55a85363-da66-f6d6-f5cc-08b20f148f36@grimberg.me>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="z5HJNHpVrs9F5Roc"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170628161903.GA28996-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <55a85363-da66-f6d6-f5cc-08b20f148f36-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Thomas Rosenstein <thomas.rosenstein-+32LHaKS/h5VtLMLtJdGzA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---z5HJNHpVrs9F5Roc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Jun 28, 2017 at 10:19:03AM -0600, Jason Gunthorpe wrote:
-> On Wed, Jun 28, 2017 at 07:16:16PM +0300, Leon Romanovsky wrote:
-> > On Wed, Jun 28, 2017 at 10:05:13AM -0600, Jason Gunthorpe wrote:
-> > > On Wed, Jun 28, 2017 at 04:34:44PM +0300, Leon Romanovsky wrote:
-> > > > +	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_LID, attr.lid))
-> > > > +		return -EMSGSIZE;
-> > > > +	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_SM_LID, attr.sm_lid))
-> > > > +		return -EMSGSIZE;
-> > >
-> > > Is this careful to only stuff attributes if they actuall exists? Eg
-> > > these should not be present for iwarp/roce/etc
-> > >
-> > > Same comment for all attributes. Only present if they are valid.
-> >
-> > It will be zero if it is not exist, but you are right it is better to
-> > avoid to fill unneeded fields.
->
-> Not existing is the netlink way. Same comment for everything
-> attributes. Many of the guids do not apply to iwarp, IIRC..
-
-I got it, this is why I prefer to have basic RDMAtool with minimal
-prints (device name + caps) be accepted and only after that start work
-on every field in serial manner.
-
-Thanks
-
->
-> Jason
-
---z5HJNHpVrs9F5Roc
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllT2FYACgkQ5GN7iDZy
-WKdYVhAAn2GxgIzZJpuuxQA1221Ko7ngQ5YjZxsHzmi89faLCotnrcPD51KqEB0c
-n9Yo1a+ulkXggdvojyeMb9K71+rqZbMbKGQGwTWt7z/0/epZe+VzMRsWiWTbz20Y
-Ik/xHhq4jiAJSjLXWOKLxOm2BdsJ/usIS9Zxsil7hVL2gfa9Sevt0byjxTh675dD
-1+9lkM1/bVXksXl2Hi43ZR94dm6kYD4rWhDiYe3Kd9SGLsvtbOKWujm281Kb4zN2
-M8mmS/pRVZJcxOZTGnijIQhh5GwT53N0jO+YAW98WOIqIR6D3H2ozhZwp7+2YhzW
-H6Pt9qQTiI+TtcNJT9aCtX98KorB2zZayNOhLw67cfjvOS+lp9ryXfqU2pe6JptQ
-V7I/FhBJ8iwvxa10iw/j8eCQ9z6WsAOGYTRKFXIb2x0aeP7karw6DQb3uiSU3/zb
-FMpI+RfeRTt3vYnYkeZq7FJk1CFQvuPsoigv1K9Eappl8XYaHP4FgF8hpWXTVUTY
-RTH8PAzi//d3KIbqMaflxiQuoO8YMqfw7zYVb3QUTlQAc8mw3rj6FHCPnpS2vMGP
-qjEYEvvBfzUqipQ/PGFfHc/N/Sci6NoNYRu4kgz/1QZyBWhnfL2x7JWvddZFTDcY
-Frqu9MSMUIU7eXLNa0BPmMpyZn8AwviAUpgQH8yVEiZdyzD6d2g=
-=IKQQ
------END PGP SIGNATURE-----
-
---z5HJNHpVrs9F5Roc--
+PiBIaSBNaWtlLCBmb3IgdGhlIHBhdGNoIGl0c2VsZiwgaXQgYWRkcmVzc2VzIGEgYnVnIHNvLA0K
+PiANCj4gQWNrZWQtYnk6IFNhZ2kgR3JpbWJlcmcgPHNhZ2lAZ3JpbWJlcmcubWU+DQo+IA0KPiBC
+dXQsDQo+IA0KPiBBcyBmb3Igbm90IGhhdmluZyBhbnkgbWF4IHBhZ2VzIGZvciBGTVIgaXQncyBy
+ZWFsbHkgYW5ub3lpbmcuDQo+IA0KPiBXaGF0IGRvIHlvdSB0aGluayBhYm91dCBleHBvc2luZyBt
+YXhfZmFzdF9yZWdfcGFnZV9saXN0X2xlbiB0bw0KPiBsaW1pdCBhbHNvIGZvciBGTVJzPyBXZSBj
+YW4gYWxzbyByZW5hbWUgaXQgdG8gbWF4X3JlZ19wYWdlX2xpc3RfbGVuDQo+IHRvIGdldCByaWQg
+b2YgdGhlIEZSV1IgYXNzb2NpYXRpb24uDQo+IA0KPiBUaG91Z2h0cz8NCg0KSSBoYXZlIG5vIGlz
+c3VlIHdpdGggeW91ciBwcm9wb3NhbCwgYnV0IEkgd291bGQgcmF0aGVyIGdldCB0aGlzIGZpeGVk
+IGFuZCBhZGp1c3QgdGhlIEFQSSB3aXRoIGFuIGFkZGl0aW9uYWwgZml4LiAgIEkgc3VzcGVjdCB3
+ZSBwcm9iYWJseSB3YW50IHRvIG1hcmsgdGhpcyBmaXggc3RhYmxlLg0KDQpJIGRpZCBhdWRpdCB0
+aGUga2VybmVsIFVMUHMgZm9yIEZNUiB2cy4gRlJNUiB1c2FnZSBhbmQgdGhlIG9ubHkgb25lIHRo
+YXQgbG9va2VkIGF0IG1heF9mYXN0X3JlZ19wYWdlX2xpc3RfbGVuIHVuY29uZGl0aW9uYWxseSB3
+YXMgaXNlci4NCg0KVGhvbWFzLCBjYW4geW91IHZlcmlmeSB0aGlzIHBhdGNoIGFuZCByZXBseSB3
+aXRoIGEgVGVzdGVkLWJ5Og0KDQpNZWFud2hpbGUsIEkgd2lsbCBhdWRpdCBrZXJuZWwgcHJvdmlk
+ZXJzIGZvciB3aGljaCBvbmVzIGJlc2lkZXMgcWliIGRvIG5vdCBzdXBwb3J0IHRoZSBleHRlbnNp
+b25zIGFuZCBGTVIuDQoNCk1pa2UNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
