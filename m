@@ -1,96 +1,57 @@
-From: Andrea Righi <righi.andrea@gmail.com>
-Subject: Re: [PATCH] ib_isert: prevent NULL pointer dereference in
- isert_login_recv_done() (was: Re: NULL pointer dereference in
- isert_login_recv_done in 4.9.32)
-Date: Wed, 28 Jun 2017 19:53:54 +0200
-Message-ID: <20170628175354.GB1769@Dell>
-References: <CAANLjFoaZ8ueEQet3Yu6LygmxXBbQ0cHUEYsb2xEON0o3N9=+w@mail.gmail.com>
- <CAANLjFp6Y8wvLvmWrk1ECjm-OoyEppxD1svNYKpg+HDEZevJig@mail.gmail.com>
- <CAANLjFoQcmfkjq9N1fehTC9Zi6aOC7ArOEPXz-he3EnOvWeEDw@mail.gmail.com>
- <20170622223757.GC28955@Dell>
- <1498435084.26123.66.camel@haakon3.risingtidesystems.com>
+From: "Thomas Rosenstein" <thomas.rosenstein-+32LHaKS/h5VtLMLtJdGzA@public.gmane.org>
+Subject: Re: [PATCH] IB/iser: Handle lack of memory management extentions
+ correctly
+Date: Wed, 28 Jun 2017 20:03:13 +0200
+Message-ID: <3AAAAD6A-8C14-4B33-AB7A-2AFB49239DFB@creamfinance.com>
+References: <20170622190110.27788.19910.stgit@phlsvslse11.ph.intel.com>
+ <55a85363-da66-f6d6-f5cc-08b20f148f36@grimberg.me>
+ <32E1700B9017364D9B60AED9960492BC34327953@fmsmsx120.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1498435084.26123.66.camel@haakon3.risingtidesystems.com>
-Sender: target-devel-owner@vger.kernel.org
-To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Cc: Robert LeBlanc <robert@leblancnet.us>, Sean Jenkins <sean@betterservers.com>, Sagi Grimberg <sagi@grimberg.me>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma <linux-rdma@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
+Content-Type: text/plain; format=flowed; markup=markdown
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC34327953-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jun 25, 2017 at 04:58:04PM -0700, Nicholas A. Bellinger wrote:
-...
-> So I assume isert_cma_handler() -> isert_connect_error() getting called
-> to clear isert_conn->cm_id before connection established, and
-> subsequently isert_conn->login_req_buf->rx_cqe.done() ->
-> isert_login_recv_done() still getting invoked after connection failure
-> is new RDMA API behavior..
-> 
-> That said, following Sagi's original patch that added the clearing of
-> isert_conn->cm_id to isert_connect_error(), it probably makes sense to
-> use isert_conn->device->ib_device, and avoid dereferencing
-> isert_conn->cm_id before connection is established.
-> 
-> Here's a quick (untested) patch to do this for recv/send done callbacks,
-> and avoid using isert_conn->cm_id during isert_rdma_accept().
-> 
-> Sagi + Co, WDYT..?
+Hi Mike,
 
-Just tested this patch, I wasn't able to reproduce the NULL pointer
-dereference or any other bugs, so this fix seems safe enough to me.
+will take a look at it tomorrow, on which kernel version is the patch 
+based?
 
-Tested-by: Andrea Righi <righi.andrea@gmail.com>
+Thomas
 
-> 
-> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-> index fcbed35..f7f97f3 100644
-> --- a/drivers/infiniband/ulp/isert/ib_isert.c
-> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
-> @@ -52,7 +52,7 @@
->  static int
->  isert_login_post_recv(struct isert_conn *isert_conn);
->  static int
-> -isert_rdma_accept(struct isert_conn *isert_conn);
-> +isert_rdma_accept(struct isert_conn *isert_conn, struct rdma_cm_id *cm_id);
->  struct rdma_cm_id *isert_setup_id(struct isert_np *isert_np);
->  
->  static void isert_release_work(struct work_struct *work);
-> @@ -543,7 +543,7 @@
->  	if (ret)
->  		goto out_conn_dev;
->  
-> -	ret = isert_rdma_accept(isert_conn);
-> +	ret = isert_rdma_accept(isert_conn, cma_id);
->  	if (ret)
->  		goto out_conn_dev;
->  
-> @@ -1452,7 +1452,7 @@
->  isert_login_recv_done(struct ib_cq *cq, struct ib_wc *wc)
->  {
->  	struct isert_conn *isert_conn = wc->qp->qp_context;
-> -	struct ib_device *ib_dev = isert_conn->cm_id->device;
-> +	struct ib_device *ib_dev = isert_conn->device->ib_device;
->  
->  	if (unlikely(wc->status != IB_WC_SUCCESS)) {
->  		isert_print_wc(wc, "login recv");
-> @@ -1769,7 +1769,7 @@
->  isert_login_send_done(struct ib_cq *cq, struct ib_wc *wc)
->  {
->  	struct isert_conn *isert_conn = wc->qp->qp_context;
-> -	struct ib_device *ib_dev = isert_conn->cm_id->device;
-> +	struct ib_device *ib_dev = isert_conn->device->ib_device;
->  	struct iser_tx_desc *tx_desc = cqe_to_tx_desc(wc->wr_cqe);
->  
->  	if (unlikely(wc->status != IB_WC_SUCCESS)) {
-> @@ -2369,9 +2369,8 @@ struct rdma_cm_id *
->  }
->  
->  static int
-> -isert_rdma_accept(struct isert_conn *isert_conn)
-> +isert_rdma_accept(struct isert_conn *isert_conn, struct rdma_cm_id *cm_id)
->  {
-> -	struct rdma_cm_id *cm_id = isert_conn->cm_id;
->  	struct rdma_conn_param cp;
->  	int ret;
->  	struct iser_cm_hdr rsp_hdr;
+On 28 Jun 2017, at 19:46, Marciniszyn, Mike wrote:
+
+>> Hi Mike, for the patch itself, it addresses a bug so,
+>>
+>> Acked-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+>>
+>> But,
+>>
+>> As for not having any max pages for FMR it's really annoying.
+>>
+>> What do you think about exposing max_fast_reg_page_list_len to
+>> limit also for FMRs? We can also rename it to max_reg_page_list_len
+>> to get rid of the FRWR association.
+>>
+>> Thoughts?
+>
+> I have no issue with your proposal, but I would rather get this fixed 
+> and adjust the API with an additional fix.   I suspect we probably 
+> want to mark this fix stable.
+>
+> I did audit the kernel ULPs for FMR vs. FRMR usage and the only one 
+> that looked at max_fast_reg_page_list_len unconditionally was iser.
+>
+> Thomas, can you verify this patch and reply with a Tested-by:
+>
+> Meanwhile, I will audit kernel providers for which ones besides qib do 
+> not support the extensions and FMR.
+>
+> Mike
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
