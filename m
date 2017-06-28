@@ -1,8 +1,12 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Subject: Re: Unexpected issues with 2 NVME initiators using the same target
-Date: Wed, 28 Jun 2017 10:03:11 +0300
-Message-ID: <6e52204f-427f-10d4-28f6-362027f8e811@grimberg.me>
-References: <614481c7-22dd-d93b-e97e-52f868727ec3@grimberg.me>
+Date: Wed, 28 Jun 2017 10:08:49 +0300
+Message-ID: <f1f1a68c-90db-e6bf-e35e-55c4b469c339@grimberg.me>
+References: <20170620074639.GP17846@mtr-leonro.local>
+ <1c706958-992e-b104-6bae-4a6616c0a9f9@grimberg.me>
+ <20170620083309.GQ17846@mtr-leonro.local>
+ <bd0b986f-9bed-3dfa-7454-0661559a527b@grimberg.me>
+ <614481c7-22dd-d93b-e97e-52f868727ec3@grimberg.me>
  <59FF0C04-2BFB-4F66-81BA-A598A9A087FC@oracle.com>
  <20170620173532.GA827@obsidianresearch.com>
  <D3DC49A2-FFC9-4F62-8876-3E6AD5167DE5@oracle.com>
@@ -12,26 +16,41 @@ References: <614481c7-22dd-d93b-e97e-52f868727ec3@grimberg.me>
  <4f0812f1-0067-4e63-e383-b913ee1f319d@grimberg.me>
  <28F6F58E-B6F4-4114-8DFF-B72353CE814B@oracle.com>
  <52ad3547-efcf-f428-6b39-117efda3379f@grimberg.me>
- <20170627162800.GA22592@obsidianresearch.com>
+ <9990B5CB-E0FF-481E-9F34-21EACF0E796E@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170627162800.GA22592-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <9990B5CB-E0FF-481E-9F34-21EACF0E796E-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "shahar.salzman" <shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Riches Jr, Robert M" <robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "shahar.salzman" <shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Riches Jr, Robert M" <robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-> send completion mitigation is still possible, if it is OK for the
-> backing pages to remain, but I think a more sophisticated strategy is
-> needed - eg maybe push some kind of NOP through the send q after a
-> timer or only complete when the last available work is stuffed or
-> something.
+> Thinking out loud:
+> 
+> IIRC the message head and tail reside in the persistently registered
+> and DMA mapped buffers with few exceptions.
+> 
+> However, when page cache pages are involved, xprtrdma will do a DMA
+> unmap as you say.
+> 
+> So:
+> - we don't have a problem transmitting a garbled request thanks to
+>    exactly-once receive semantics
+> - we don't have a problem with the timing of registration and
+>    invalidation on the initiator because the PD's DMA lkey is used
+> - we do have a problem with DMA unmap
+> 
+> Using only persistently registered and DMA mapped Send buffers
+> should avoid the need to signal all Sends. However, when page
+> cache pages are involved, then the Send needs to be signaled,
+> and the pages unmapped only after Send completion, to be completely
+> safe.
 
-I'm not smart enough to come up with something like that.
+How do you know when that happens?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
