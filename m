@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: [PATCH 2/3] nvme-rdma: remove redundant empty device add callout
-Date: Wed, 28 Jun 2017 13:05:37 +0300
-Message-ID: <1498644338-19719-3-git-send-email-sagi@grimberg.me>
+Subject: [PATCH 3/3] nvmet-rdma: remove redundant empty device add callout
+Date: Wed, 28 Jun 2017 13:05:38 +0300
+Message-ID: <1498644338-19719-4-git-send-email-sagi@grimberg.me>
 References: <1498644338-19719-1-git-send-email-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1498644338-19719-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
@@ -14,30 +14,30 @@ Now that its not needed, we can simply not assign it.
 
 Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 ---
- drivers/nvme/host/rdma.c | 5 -----
+ drivers/nvme/target/rdma.c | 5 -----
  1 file changed, 5 deletions(-)
 
-diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
-index 6d4119dfbdaa..934183f80fff 100644
---- a/drivers/nvme/host/rdma.c
-+++ b/drivers/nvme/host/rdma.c
-@@ -1956,10 +1956,6 @@ static struct nvmf_transport_ops nvme_rdma_transport = {
- 	.create_ctrl	= nvme_rdma_create_ctrl,
+diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
+index 56a4cba690b5..76d2bb793afe 100644
+--- a/drivers/nvme/target/rdma.c
++++ b/drivers/nvme/target/rdma.c
+@@ -1510,10 +1510,6 @@ static struct nvmet_fabrics_ops nvmet_rdma_ops = {
+ 	.delete_ctrl		= nvmet_rdma_delete_ctrl,
  };
  
--static void nvme_rdma_add_one(struct ib_device *ib_device)
+-static void nvmet_rdma_add_one(struct ib_device *ib_device)
 -{
 -}
 -
- static void nvme_rdma_remove_one(struct ib_device *ib_device, void *client_data)
+ static void nvmet_rdma_remove_one(struct ib_device *ib_device, void *client_data)
  {
- 	struct nvme_rdma_ctrl *ctrl;
-@@ -1981,7 +1977,6 @@ static void nvme_rdma_remove_one(struct ib_device *ib_device, void *client_data)
+ 	struct nvmet_rdma_queue *queue;
+@@ -1534,7 +1530,6 @@ static void nvmet_rdma_remove_one(struct ib_device *ib_device, void *client_data
  
- static struct ib_client nvme_rdma_ib_client = {
- 	.name   = "nvme_rdma",
--	.add = nvme_rdma_add_one,
- 	.remove = nvme_rdma_remove_one
+ static struct ib_client nvmet_rdma_ib_client = {
+ 	.name   = "nvmet_rdma",
+-	.add = nvmet_rdma_add_one,
+ 	.remove = nvmet_rdma_remove_one
  };
  
 -- 
