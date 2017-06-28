@@ -1,70 +1,83 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] ib_core: Enable and expose force_mr module parameter
-Date: Wed, 28 Jun 2017 10:49:00 -0400
-Message-ID: <373E6A00-8505-468C-A974-DCDAC15A3B7B@oracle.com>
-References: <20170619152351.2866.11046.stgit@klimt.1015granger.net> <20170620073236.GO17846@mtr-leonro.local> <DE0C511C-A4CB-4D76-8BA7-6BFF81F590B3@oracle.com> <20170620180348.GV17846@mtr-leonro.local> <C27E2410-44B7-451E-8069-DF1444048158@oracle.com> <20170620184046.GW17846@mtr-leonro.local> <B34E95B2-A7D9-4725-B7C2-3DA4DACD29B7@oracle.com> <16d52534-5564-8137-a8b3-6c66df6bb508@grimberg.me> <20170628095640.GB1248@mtr-leonro.local>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] RDMA/core: Add wait/retry version of ibnl_unicast
+Date: Wed, 28 Jun 2017 18:36:39 +0300
+Message-ID: <20170628153639.GF1248@mtr-leonro.local>
+References: <1498658565-3408-1-git-send-email-mustafa.ismail@intel.com>
+ <20170628141211.GA16312@ctung-MOBL3.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="sAD49wDt4u2G8n56"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170628095640.GB1248-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170628141211.GA16312-TZeIlv3TuzOfrEmaQUPKxl95YUYmaKo1UNDiOz3kqAs@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-> On Jun 28, 2017, at 5:56 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> 
-> On Tue, Jun 27, 2017 at 12:24:20PM +0300, Sagi Grimberg wrote:
->> 
->>>> It will be "marked" as UAPI and we won't be able to change it,
->>>> which IMHO bad for the debug. It also invites users to set it
->>>> and in perfect world, we should test our HCAs with this flag
->>>> on and off, because curious user can set it.
->>> 
->>> We have loads of legacy debugging interfaces.
->>> 
->>> And yes, ULP developers should be aware of it and test with
->>> both settings.
->>> 
->>> I'm not convinced any of this is a problem for this particular
->>> setting. However, I guess the thing for you to do is propose a
->>> patch.
->> 
->> Are you guys seriously still on this? Its simply a trivial
->> debug flag, whats all the fuss really about?
-> 
-> I hope that we are done.
-> https://patchwork.kernel.org/patch/9808615/
+--sAD49wDt4u2G8n56
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Somehow this got by me.
+On Wed, Jun 28, 2017 at 09:12:11AM -0500, Chien Tin Tung wrote:
+> On Wed, Jun 28, 2017 at 09:02:45AM -0500, Mustafa Ismail wrote:
+> > Add a wait/retry version of ibnl_unicast, ibnl_unicast_wait,
+> > and modify ibnl_unicast to not wait/retry.  This eliminates
+> > the undesirable wait for future users of ibnl_unicast.
+> >
+> > Change Portmapper calls originating from kernel to user-space
+> > to use ibnl_unicast_wait and take advantage of the wait/retry
+> > logic in netlink_unicast.
+> >
+> > Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Signed-off-by: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > ---
+> >  drivers/infiniband/core/iwpm_msg.c |  6 +++---
+> >  drivers/infiniband/core/netlink.c  | 12 +++++++++++-
+> >  include/rdma/rdma_netlink.h        | 10 ++++++++++
+> >  3 files changed, 24 insertions(+), 4 deletions(-)
+>
+> Please apply this patch instead of Leon's patch to revert
+> "IB/core: Add flow control to the portmapper netlink calls".
+>
+> Leon, we can work out names and parameters if this works for you.
 
-The patch description says "exposed to regular users." The
-force_mr option is not exposed to regular users. Module
-parameters are visible only to system administrators.
+Chien,
 
-Also, just looking at the patch, it's not obvious why "The
-force_mr module parameter wasn't exposed ... from the
-beginning". IMO an explanation of what has prevented
-exposure is needed. Commit a060b5629ab0 got the fourth
-parameter of module_param_named wrong. Maybe a Fixes:
-tag is needed too.
+The names are less my worries with this patch. First of all, it misleads
+by using wait/retry naming, because it blocks and not waits. The second,
+I disagree with solution in kernel for user space application which can't
+handle the netlink errors. Can you please explain why the kernel fix is
+unavoidable and the bug in the user space application is not needed to
+be fixed?
 
-But frankly there is no visible change from this patch.
-Before the patch, force_mr is not visible, and after the
-patch it is not visible. Why then is this change necessary?
-It would be helpful to cite a policy about why removal is
-preferred over fixing the incorrect parameter.
+Thanks
 
-Therefore IMO the patch description is not adequate.
+>
+> Chien
 
+--sAD49wDt4u2G8n56
+Content-Type: application/pgp-signature; name="signature.asc"
 
---
-Chuck Lever
+-----BEGIN PGP SIGNATURE-----
 
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllTzQcACgkQ5GN7iDZy
+WKePpg//U1UxWvHKkFa4e1JrlMbijRtmDeQIS+vomHWfKP1o9HHGzn76LChydo+y
+Z8kBuyYFMeczbY3Vsyx84Ijqe6GCS3YWhRrRbvw2QEon7Ey/fiQop0pwhHxA9n37
+qgd/lbfRyQfPFFSIqooNX+z+9kTmeNnmexYfyAjGoHGapeTJeNsurjxaiYXQi2i1
+bxvd3GflOda6P2OQh37AGECykAvThyGQ8ldoN2fyV6w2ismAK98h0nBV1n05G7nJ
+6DqHxiS7tCmroIBwFBlc0Hi81dUr76lxFIl4gIIxD4kdW0nx8EqRFmOYDSVlI7Fq
+vl45sU9Om2lmtNMN/6dsDNVQ4F46Pxhb4z9lJHpiZHGvVwDR9ZPAnYXbEY25M4oP
+sZ4yV3wgrcvIW3MZfaAemadtdj9C3OMk38kR/yv/RVJChGUfieAqWwPeH16drPE+
+UsdezmgP1GgCAC/LIijslm/Gqw4hKINpTAKaO3fK3sQM+fc86+2C+ylIlYR73Kv8
+MRQJa9SPiNiGurjqqkIvfABruzGAR5FAeEL75ey1reJel+/pO4ZE8ZhAPeRxqTQX
+wW7QW37bQNLNP4n+FBXaFN/eeGcdYEqPqe/zmagSM3dnwBoJl8xcq/1tdaAIm7c7
+hII8P3LuDhNYlON66nR9gET5W7sZnVJPb2XTxe9F+VsiHSTUtAw=
+=Lddl
+-----END PGP SIGNATURE-----
 
-
+--sAD49wDt4u2G8n56--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
