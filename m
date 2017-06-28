@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next 4/4] RDMA/netlink: Export LID mask counter (LMC)
-Date: Wed, 28 Jun 2017 16:34:45 +0300
-Message-ID: <20170628133445.16550-5-leon@kernel.org>
+Subject: [PATCH rdma-next 3/4] RDMA/netink: Export lids and sm_lids
+Date: Wed, 28 Jun 2017 16:34:44 +0300
+Message-ID: <20170628133445.16550-4-leon@kernel.org>
 References: <20170628133445.16550-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170628133445.16550-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,50 +12,61 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
+According to the IB specification, the LID and SM_LID
+are 16-bit wide, but to support OmniPath users, export
+it as 32-bit value from the beginning.
+
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/nldev.c  | 3 +++
- include/uapi/rdma/rdma_netlink.h | 5 +++++
- 2 files changed, 8 insertions(+)
+ drivers/infiniband/core/nldev.c  | 7 ++++++-
+ include/uapi/rdma/rdma_netlink.h | 8 ++++++++
+ 2 files changed, 14 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 6b290dada589..8f037a2be508 100644
+index 755b8167280b..6b290dada589 100644
 --- a/drivers/infiniband/core/nldev.c
 +++ b/drivers/infiniband/core/nldev.c
-@@ -47,6 +47,7 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
+@@ -45,6 +45,8 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
+ 	[RDMA_NLDEV_ATTR_GUID]		= { .type = NLA_U64 },
+ 	[RDMA_NLDEV_ATTR_SYS_IMAGE_GUID] = { .type = NLA_U64 },
  	[RDMA_NLDEV_ATTR_SUBNET_PREFIX]	= { .type = NLA_U64 },
- 	[RDMA_NLDEV_ATTR_LID]		= { .type = NLA_U32 },
- 	[RDMA_NLDEV_ATTR_SM_LID]	= { .type = NLA_U32 },
-+	[RDMA_NLDEV_ATTR_LMC]		= { .type = NLA_U8 },
++	[RDMA_NLDEV_ATTR_LID]		= { .type = NLA_U32 },
++	[RDMA_NLDEV_ATTR_SM_LID]	= { .type = NLA_U32 },
  };
- 
+
  static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
-@@ -105,6 +106,8 @@ static int fill_port_info(struct sk_buff *msg,
+@@ -99,7 +101,10 @@ static int fill_port_info(struct sk_buff *msg,
+ 	if (nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_SUBNET_PREFIX,
+ 			      attr.subnet_prefix, 0))
  		return -EMSGSIZE;
- 	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_SM_LID, attr.sm_lid))
- 		return -EMSGSIZE;
-+	if (nla_put_u8(msg, RDMA_NLDEV_ATTR_LMC, attr.lmc))
+-
++	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_LID, attr.lid))
++		return -EMSGSIZE;
++	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_SM_LID, attr.sm_lid))
 +		return -EMSGSIZE;
  	return 0;
  }
- 
+
 diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index 22e4870f2e31..9e9357e63b65 100644
+index 5fec88038e6e..22e4870f2e31 100644
 --- a/include/uapi/rdma/rdma_netlink.h
 +++ b/include/uapi/rdma/rdma_netlink.h
-@@ -292,6 +292,11 @@ enum rdma_nldev_attr {
- 	RDMA_NLDEV_ATTR_LID,			/* u32 */
- 	RDMA_NLDEV_ATTR_SM_LID,			/* u32 */
- 
+@@ -284,6 +284,14 @@ enum rdma_nldev_attr {
+ 	 */
+ 	RDMA_NLDEV_ATTR_SUBNET_PREFIX,		/* u64 */
+
 +	/*
-+	 * LID mask count (LMC)
++	 * Local Identifier (LID),
++	 * According to IB specification, It is 16-bit address assigned
++	 * by the Subnet Manager. Extended to be 32-bit for OmniPath users.
 +	 */
-+	RDMA_NLDEV_ATTR_LMC,			/* u8 */
++	RDMA_NLDEV_ATTR_LID,			/* u32 */
++	RDMA_NLDEV_ATTR_SM_LID,			/* u32 */
 +
  	RDMA_NLDEV_ATTR_MAX
  };
  #endif /* _UAPI_RDMA_NETLINK_H */
--- 
+--
 2.13.1
 
 --
