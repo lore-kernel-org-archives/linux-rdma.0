@@ -1,64 +1,111 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] ib_core: Enable and expose force_mr module parameter
-Date: Wed, 28 Jun 2017 16:45:28 +0300
-Message-ID: <20170628134528.GE1248@mtr-leonro.local>
-References: <20170619152351.2866.11046.stgit@klimt.1015granger.net>
- <20170620073236.GO17846@mtr-leonro.local>
- <DE0C511C-A4CB-4D76-8BA7-6BFF81F590B3@oracle.com>
- <20170620180348.GV17846@mtr-leonro.local>
- <C27E2410-44B7-451E-8069-DF1444048158@oracle.com>
- <20170620184046.GW17846@mtr-leonro.local>
- <B34E95B2-A7D9-4725-B7C2-3DA4DACD29B7@oracle.com>
- <16d52534-5564-8137-a8b3-6c66df6bb508@grimberg.me>
- <20170628095640.GB1248@mtr-leonro.local>
- <64eae30c-9490-b801-550d-d871473f0d29@grimberg.me>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="abHgUoWNUdkkRBEn"
+From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] RDMA/core: Add wait/retry version of ibnl_unicast
+Date: Wed, 28 Jun 2017 09:02:45 -0500
+Message-ID: <1498658565-3408-1-git-send-email-mustafa.ismail@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <64eae30c-9490-b801-550d-d871473f0d29-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Add a wait/retry version of ibnl_unicast, ibnl_unicast_wait,
+and modify ibnl_unicast to not wait/retry.  This eliminates
+the undesirable wait for future users of ibnl_unicast.
 
---abHgUoWNUdkkRBEn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Change Portmapper calls originating from kernel to user-space
+to use ibnl_unicast_wait and take advantage of the wait/retry
+logic in netlink_unicast.
 
-On Wed, Jun 28, 2017 at 01:15:39PM +0300, Sagi Grimberg wrote:
-> > I hope that we are done.
-> > https://patchwork.kernel.org/patch/9808615/
->
-> You have a bogus empty line change there.
+Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/core/iwpm_msg.c |  6 +++---
+ drivers/infiniband/core/netlink.c  | 12 +++++++++++-
+ include/rdma/rdma_netlink.h        | 10 ++++++++++
+ 3 files changed, 24 insertions(+), 4 deletions(-)
 
-If I remember correctly, It was needed to silence checkpatch.
+diff --git a/drivers/infiniband/core/iwpm_msg.c b/drivers/infiniband/core/iwpm_msg.c
+index a0e7c16..add99b9 100644
+--- a/drivers/infiniband/core/iwpm_msg.c
++++ b/drivers/infiniband/core/iwpm_msg.c
+@@ -174,7 +174,7 @@ int iwpm_add_mapping(struct iwpm_sa_data *pm_msg, u8 nl_client)
+ 		goto add_mapping_error;
+ 	nlmsg_request->req_buffer = pm_msg;
+ 
+-	ret = ibnl_unicast(skb, nlh, iwpm_user_pid);
++	ret = ibnl_unicast_wait(skb, nlh, iwpm_user_pid);
+ 	if (ret) {
+ 		skb = NULL; /* skb is freed in the netlink send-op handling */
+ 		iwpm_user_pid = IWPM_PID_UNDEFINED;
+@@ -251,7 +251,7 @@ int iwpm_add_and_query_mapping(struct iwpm_sa_data *pm_msg, u8 nl_client)
+ 		goto query_mapping_error;
+ 	nlmsg_request->req_buffer = pm_msg;
+ 
+-	ret = ibnl_unicast(skb, nlh, iwpm_user_pid);
++	ret = ibnl_unicast_wait(skb, nlh, iwpm_user_pid);
+ 	if (ret) {
+ 		skb = NULL; /* skb is freed in the netlink send-op handling */
+ 		err_str = "Unable to send a nlmsg";
+@@ -312,7 +312,7 @@ int iwpm_remove_mapping(struct sockaddr_storage *local_addr, u8 nl_client)
+ 	if (ret)
+ 		goto remove_mapping_error;
+ 
+-	ret = ibnl_unicast(skb, nlh, iwpm_user_pid);
++	ret = ibnl_unicast_wait(skb, nlh, iwpm_user_pid);
+ 	if (ret) {
+ 		skb = NULL; /* skb is freed in the netlink send-op handling */
+ 		iwpm_user_pid = IWPM_PID_UNDEFINED;
+diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+index 94931c4..0fc50e1 100644
+--- a/drivers/infiniband/core/netlink.c
++++ b/drivers/infiniband/core/netlink.c
+@@ -232,11 +232,21 @@ int ibnl_unicast(struct sk_buff *skb, struct nlmsghdr *nlh,
+ {
+ 	int err;
+ 
+-	err = netlink_unicast(nls, skb, pid, 0);
++	err = netlink_unicast(nls, skb, pid, MSG_DONTWAIT);
+ 	return (err < 0) ? err : 0;
+ }
+ EXPORT_SYMBOL(ibnl_unicast);
+ 
++int ibnl_unicast_wait(struct sk_buff *skb, struct nlmsghdr *nlh,
++		      __u32 pid)
++{
++	int err;
++
++	err = netlink_unicast(nls, skb, pid, 0);
++	return (err < 0) ? err : 0;
++}
++EXPORT_SYMBOL(ibnl_unicast_wait);
++
+ int ibnl_multicast(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			unsigned int group, gfp_t flags)
+ {
+diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
+index 348c102..5b14667 100644
+--- a/include/rdma/rdma_netlink.h
++++ b/include/rdma/rdma_netlink.h
+@@ -64,6 +64,16 @@ int ibnl_unicast(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			__u32 pid);
+ 
+ /**
++ * Send, with wait/1 retry, the supplied skb to a specific userspace PID.
++ * @skb: The netlink skb
++ * @nlh: Header of the netlink message to send
++ * @pid: Userspace netlink process ID
++ * Returns 0 on success or a negative error code.
++ */
++int ibnl_unicast_wait(struct sk_buff *skb, struct nlmsghdr *nlh,
++		      __u32 pid);
++
++/**
+  * Send the supplied skb to a netlink group.
+  * @skb: The netlink skb
+  * @nlh: Header of the netlink message to send
+-- 
+2.7.4
 
-Thanks
-
---abHgUoWNUdkkRBEn
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllTsvgACgkQ5GN7iDZy
-WKeOlA/8CqqM5K6YBfS9Kcezqp1PwZMJZcDqCxcR6L5H8HMznYcV9UE5LWRgkfST
-SeWZ9XUFFJIHO+R2CcTwr1kvA+equsL9r1FNtCvm+SF7pwZ0tFhes+63bQfKUhDU
-LLforvNJwVLz6F/QzE3nQlIeLlR/flagYlIUII0S9DWvL1mKPGZlLdN5pN111ltE
-TIZf6HBBJjh960wb7jljJHzx6JQojman0nvpnnoucxiRTKWuDo5ijyRlsM/s1hgj
-Vnm0wbLdFTNQDP8AvedXrokQBb0RV+v0TWWz/XoQlTEyVPsMUqSlc7INtavc6pjm
-RtX/qAGBP6m9ap/ccojrMWT7gkQJThTeXDCbqSHCaQlymetr1WI7u9XmkStkqdW3
-ilmqDrktmeNgJg7AUZABpAHHOYE5PtT+9Wvofp40e7leak6wqTLYaGO0fnimM2us
-B2kr7VQJS/UFQYRy7JMMCx/Rz+lW3SyRN8SyHCfihWf/gXHqMf8an/vaHVkGxq8f
-Rw9+sC3UDnftYD/kaWmvQDjeqfb3liKRLkZ6myiDL1iiJUjxNF86W0hq29bIRNvb
-n3St0fOh7ogHtS9uxC6rQhO10mmgD1V3SBUSrMTahEvo5sZz6iF9SGLBxQTMwGUf
-TcsJlR4lmBdEG/V04xu8Rt3YdELzzWPi8EfNQ8f2KjRQs6sRsok=
-=TIgr
------END PGP SIGNATURE-----
-
---abHgUoWNUdkkRBEn--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
