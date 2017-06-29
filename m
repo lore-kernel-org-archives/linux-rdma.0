@@ -1,65 +1,69 @@
-From: "Thomas Rosenstein" <thomas.rosenstein-+32LHaKS/h5VtLMLtJdGzA@public.gmane.org>
-Subject: Re: [PATCH] IB/iser: Handle lack of memory management extentions
- correctly
-Date: Thu, 29 Jun 2017 15:24:34 +0200
-Message-ID: <AAEC4341-2953-4D9A-A329-E6F345744354@creamfinance.com>
-References: <20170622190110.27788.19910.stgit@phlsvslse11.ph.intel.com>
+From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
+Subject: Re: Deadlock on device removal event for NVMeF target
+Date: Thu, 29 Jun 2017 07:30:17 -0600
+Message-ID: <CAANLjFr++5daZ6Vn8TYxcM0oMyU4PuMztcM5KKM6mOy7HEs7KA@mail.gmail.com>
+References: <20170626225920.GA11700@ssaleem-MOBL4.amr.corp.intel.com>
+ <56030fcd-b8a0-fc0e-18e5-985ebf16a82e@grimberg.me> <20170627193157.GA29768@ssaleem-MOBL4.amr.corp.intel.com>
+ <61858a46-ebf1-a5bd-5213-65dadaadb84d@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170622190110.27788.19910.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+In-Reply-To: <61858a46-ebf1-a5bd-5213-65dadaadb84d-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Tested-by: Thomas Rosenstein <thomas.rosenstein-+32LHaKS/h5VtLMLtJdGzA@public.gmane.org>
+Could something like this be causing the D state problem I was seeing
+in iSER almost a year ago? I tried writing a patch for iSER based on
+this, but it didn't help. Either the bug is not being triggered in
+device removal, or I didn't line up the statuses correctly. But it
+seems that things are getting stuck in the work queue and some sort of
+deadlock is happening so I was hopeful that something similar may be
+in iSER.
 
-On 22 Jun 2017, at 21:01, Mike Marciniszyn wrote:
+Thanks,
+Robert
+----------------
+Robert LeBlanc
+PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
 
-> max_fast_reg_page_list_len is only valid when the
-> memory management extentions are signaled by the underlying
-> driver.
+
+On Wed, Jun 28, 2017 at 12:50 AM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
 >
-> Fix by adjusting iser_calc_scsi_params() to use
-> ISCSI_ISER_MAX_SG_TABLESIZE when the extentions are not indicated.
+>>> How about the (untested) alternative below:
+>>> --
+>>> [PATCH] nvmet-rdma: register ib_client to not deadlock in device
+>>>    removal
+>>>
+>>> We can deadlock in case we got to a device removal
+>>> event on a queue which is already in the process of
+>>> destroying the cm_id is this is blocking until all
+>>> events on this cm_id will drain. On the other hand
+>>> we cannot guarantee that rdma_destroy_id was invoked
+>>> as we only have indication that the queue disconnect
+>>> flow has been queued (the queue state is updated before
+>>> the realease work has been queued).
+>>>
+>>> So, we leave all the queue removal to a separate ib_client
+>>> to avoid this deadlock as ib_client device removal is in
+>>> a different context than the cm_id itself.
+>>>
+>>> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+>>> ---
+>>
+>>
+>> Yes. This patch fixes the problem I am seeing.
 >
-> Reported-by: Thomas Rosenstein <thomas.rosenstein-+32LHaKS/h5VtLMLtJdGzA@public.gmane.org>
-> Fixes: Commit df749cdc45d9 ("IB/iser: Support up to 8MB data transfer 
-> in a single command")
-> Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/ulp/iser/iser_verbs.c |   10 ++++++++--
->  1 file changed, 8 insertions(+), 2 deletions(-)
 >
-> diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c 
-> b/drivers/infiniband/ulp/iser/iser_verbs.c
-> index c538a38..26a004e 100644
-> --- a/drivers/infiniband/ulp/iser/iser_verbs.c
-> +++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-> @@ -708,8 +708,14 @@ static void iser_connect_error(struct rdma_cm_id 
-> *cma_id)
->  	unsigned short sg_tablesize, sup_sg_tablesize;
+> Awsome,
 >
->  	sg_tablesize = DIV_ROUND_UP(max_sectors * 512, SIZE_4K);
-> -	sup_sg_tablesize = min_t(unsigned, ISCSI_ISER_MAX_SG_TABLESIZE,
-> -				 device->ib_device->attrs.max_fast_reg_page_list_len);
-> +	if (device->ib_device->attrs.device_cap_flags &
-> +			IB_DEVICE_MEM_MGT_EXTENSIONS)
-> +		sup_sg_tablesize =
-> +			min_t(
-> +			 uint, ISCSI_ISER_MAX_SG_TABLESIZE,
-> +			 device->ib_device->attrs.max_fast_reg_page_list_len);
-> +	else
-> +		sup_sg_tablesize = ISCSI_ISER_MAX_SG_TABLESIZE;
+> Adding your Tested-by tag.
 >
->  	iser_conn->scsi_sg_tablesize = min(sg_tablesize, sup_sg_tablesize);
->  }
+> Thanks!
 >
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" 
-> in
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
