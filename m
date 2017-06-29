@@ -1,8 +1,8 @@
-From: Andrea Righi <righi.andrea@gmail.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Subject: Re: [PATCH] ib_isert: prevent NULL pointer dereference in
  isert_login_recv_done()
-Date: Thu, 29 Jun 2017 10:20:57 +0200
-Message-ID: <20170629082057.GA2037@Dell>
+Date: Thu, 29 Jun 2017 11:28:40 +0300
+Message-ID: <7f1b1f07-0670-10ee-620d-0ab3b1a6c2bf@grimberg.me>
 References: <CAANLjFoaZ8ueEQet3Yu6LygmxXBbQ0cHUEYsb2xEON0o3N9=+w@mail.gmail.com>
  <CAANLjFp6Y8wvLvmWrk1ECjm-OoyEppxD1svNYKpg+HDEZevJig@mail.gmail.com>
  <CAANLjFoQcmfkjq9N1fehTC9Zi6aOC7ArOEPXz-he3EnOvWeEDw@mail.gmail.com>
@@ -10,39 +10,39 @@ References: <CAANLjFoaZ8ueEQet3Yu6LygmxXBbQ0cHUEYsb2xEON0o3N9=+w@mail.gmail.com>
  <1498435084.26123.66.camel@haakon3.risingtidesystems.com>
  <20170628175354.GB1769@Dell>
  <ac404f71-3f34-af4c-b7b2-2b19ae768f47@grimberg.me>
+ <20170629082057.GA2037@Dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <target-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <ac404f71-3f34-af4c-b7b2-2b19ae768f47@grimberg.me>
-Sender: target-devel-owner@vger.kernel.org
-To: Sagi Grimberg <sagi@grimberg.me>
-Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Robert LeBlanc <robert@leblancnet.us>, Sean Jenkins <sean@betterservers.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma <linux-rdma@vger.kernel.org>, target-devel <target-devel@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170629082057.GA2037@Dell>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andrea Righi <righi.andrea-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, Sean Jenkins <sean-v0B6Y9onFlloq1w47eu9iAC/G2K4zDHf@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 29, 2017 at 08:36:51AM +0300, Sagi Grimberg wrote:
-> 
-> >Just tested this patch, I wasn't able to reproduce the NULL pointer
-> >dereference or any other bugs, so this fix seems safe enough to me.
-> >
-> >Tested-by: Andrea Righi <righi.andrea@gmail.com>
-> 
-> Can you test just the one liner fix below?
-> 
-> >>@@ -1452,7 +1452,7 @@
-> >>  isert_login_recv_done(struct ib_cq *cq, struct ib_wc *wc)
-> >>  {
-> >>  	struct isert_conn *isert_conn = wc->qp->qp_context;
-> >>-	struct ib_device *ib_dev = isert_conn->cm_id->device;
-> >>+	struct ib_device *ib_dev = isert_conn->device->ib_device;
-> >>  	if (unlikely(wc->status != IB_WC_SUCCESS)) {
-> >>  		isert_print_wc(wc, "login recv");
 
-I'll test also this one-liner fix as soon as I can.
+>> Can you test just the one liner fix below?
+>>
+>>>> @@ -1452,7 +1452,7 @@
+>>>>   isert_login_recv_done(struct ib_cq *cq, struct ib_wc *wc)
+>>>>   {
+>>>>   	struct isert_conn *isert_conn = wc->qp->qp_context;
+>>>> -	struct ib_device *ib_dev = isert_conn->cm_id->device;
+>>>> +	struct ib_device *ib_dev = isert_conn->device->ib_device;
+>>>>   	if (unlikely(wc->status != IB_WC_SUCCESS)) {
+>>>>   		isert_print_wc(wc, "login recv");
+> 
+> I'll test also this one-liner fix as soon as I can.
+> 
+> But I can say that I'm pretty sure it will work as well, because all the
+> previous NULL pointer dereferences that we've got in the past happened
+> all 100% in isert_login_recv_done(). The other cases are probably a safe
+> precaution, but they can't really happen.
 
-But I can say that I'm pretty sure it will work as well, because all the
-previous NULL pointer dereferences that we've got in the past happened
-all 100% in isert_login_recv_done(). The other cases are probably a safe
-precaution, but they can't really happen.
-
--Andrea
+Agree, I'd prefer to start with a surgical fix before moving forward.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
