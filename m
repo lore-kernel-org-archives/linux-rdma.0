@@ -1,190 +1,54 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core] mlx4: Cleanup resources upon device fatal
-Date: Thu, 29 Jun 2017 17:41:57 +0300
-Message-ID: <1498747317-2170-1-git-send-email-yishaih@mellanox.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Unexpected issues with 2 NVME initiators using the same target
+Date: Thu, 29 Jun 2017 10:55:57 -0400
+Message-ID: <9D8C7BC8-7E18-405A-9017-9DB23A6B5C15@oracle.com>
+References: <20170620074639.GP17846@mtr-leonro.local> <1c706958-992e-b104-6bae-4a6616c0a9f9@grimberg.me> <20170620083309.GQ17846@mtr-leonro.local> <bd0b986f-9bed-3dfa-7454-0661559a527b@grimberg.me> <614481c7-22dd-d93b-e97e-52f868727ec3@grimberg.me> <59FF0C04-2BFB-4F66-81BA-A598A9A087FC@oracle.com> <20170620173532.GA827@obsidianresearch.com> <D3DC49A2-FFC9-4F62-8876-3E6AD5167DE5@oracle.com> <20170620192742.GB827@obsidianresearch.com> <C14B071E-F1B2-466A-82CF-4E20BFAD9DC1@oracle.com> <20170620211958.GA5574@obsidianresearch.com> <4f0812f1-0067-4e63-e383-b913ee1f319d@grimberg.me> <28F6F58E-B6F4-4114-8DFF-B72353CE814B@oracle.com> <52ad3547-efcf-f428-6b39-117efda3379f@grimberg.me> <9990B5CB-E0FF-481E-9F34-21EACF0E796E@oracle.com> <f1f1a68c-90db-e6bf-e35e-55c4b469c339@grimberg.me> <7D1C540B-FEA0-
+ 4101-8B58-87BCB7DB5492@oracle.com> <66b1b8be-e506-50b8-c01f-fa0e3cea98a4@grimberg.me>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <66b1b8be-e506-50b8-c01f-fa0e3cea98a4-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "shahar.salzman" <shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Riches Jr, Robert M" <robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Cleanup driver resources upon device fatal on closing commands. (e.g.
-destroy qp/srq/cq etc.)
 
-Currently when a device fatal error occurred the uverbs layer returns
-from kernel EIO to indicate that the kernel driver low level
-resources were already cleaned up.
+> On Jun 29, 2017, at 1:35 AM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
+> 
+> 
+>>> How do you know when that happens?
+>> The RPC Call send path sets up the Send SGE array. If it includes
+>> page cache pages, it can set IB_SEND_SIGNALED.
+>> The SGE array and the ib_cqe for the send are in the same data
+>> structure, so the Send completion handler can find the SGE array
+>> and figure out what needs to be unmapped.
+>> The only problem is if a POSIX signal fires. In that case the
+>> data structure can be released before the Send completion fires,
+>> and we get touch-after-free in the completion handler.
+>> I'm thinking that it just isn't going to be practical to handle
+>> unmapping this way, and I should just revert back to using RDMA
+>> Read instead of adding page cache pages to the Send SGE.
+> 
+> Or wait for the send completion before completing the I/O?
 
-However, closing commands as of destroy_qp/cq/srq might leak the user
-space driver memory that had to be freed upon success.
+In the normal case, that works.
 
-The verbs layer (cmd.c) can't generally return a success in that case as
-it had to deal with an application flow that still handles the reported
-events in some other thread but the 'events_reported' data doesn't
-exist as part of the command response.
+If a POSIX signal occurs (^C, RPC timeout), the RPC exits immediately
+and recovers all resources. The Send can still be running at that
+point, and it can't be stopped (without transitioning the QP to
+error state, I guess).
 
-In case the application takes control over the events before cleaning
-its resources (e.g. by using one thread, ack events before destroying its resources)
-the driver memory can be safely cleaned up.
+The alternative is reference-counting the data structure that has
+the ib_cqe and the SGE array. That adds one or more atomic_t
+operations per I/O that I'd like to avoid.
 
-Let applications that use mlx4 to set some environment variable to
-indicate that so that won't be a memory leak upon driver device fatal.
 
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
+--
+Chuck Lever
 
-Pull request was sent:
-https://github.com/linux-rdma/rdma-core/pull/158
 
- providers/mlx4/mlx4.c  | 12 ++++++++++++
- providers/mlx4/mlx4.h  |  6 ++++++
- providers/mlx4/srq.c   |  2 +-
- providers/mlx4/verbs.c | 19 ++++++++++---------
- 4 files changed, 29 insertions(+), 10 deletions(-)
-
-diff --git a/providers/mlx4/mlx4.c b/providers/mlx4/mlx4.c
-index b798b37..9ba80d4 100644
---- a/providers/mlx4/mlx4.c
-+++ b/providers/mlx4/mlx4.c
-@@ -43,6 +43,8 @@
- #include "mlx4.h"
- #include "mlx4-abi.h"
- 
-+int mlx4_cleanup_upon_device_fatal = 0;
-+
- #ifndef PCI_VENDOR_ID_MELLANOX
- #define PCI_VENDOR_ID_MELLANOX			0x15b3
- #endif
-@@ -118,6 +120,15 @@ static struct ibv_context_ops mlx4_ctx_ops = {
- 	.detach_mcast  = ibv_cmd_detach_mcast
- };
- 
-+static void mlx4_read_env(void)
-+{
-+	char *env_value;
-+
-+	env_value = getenv("MLX4_DEVICE_FATAL_CLEANUP");
-+	if (env_value)
-+		mlx4_cleanup_upon_device_fatal = (strcmp(env_value, "0")) ? 1 : 0;
-+}
-+
- static int mlx4_map_internal_clock(struct mlx4_device *mdev,
- 				   struct ibv_context *ibv_ctx)
- {
-@@ -159,6 +170,7 @@ static int mlx4_init_context(struct verbs_device *v_device,
- 	context = to_mctx(ibv_ctx);
- 	ibv_ctx->cmd_fd = cmd_fd;
- 
-+	mlx4_read_env();
- 	if (dev->abi_version <= MLX4_UVERBS_NO_DEV_CAPS_ABI_VERSION) {
- 		if (ibv_cmd_get_context(ibv_ctx, &cmd, sizeof cmd,
- 					&resp_v3.ibv_resp, sizeof resp_v3))
-diff --git a/providers/mlx4/mlx4.h b/providers/mlx4/mlx4.h
-index b4f6e86..4637c10 100644
---- a/providers/mlx4/mlx4.h
-+++ b/providers/mlx4/mlx4.h
-@@ -350,6 +350,12 @@ static inline void mlx4_update_cons_index(struct mlx4_cq *cq)
- 	*cq->set_ci_db = htobe32(cq->cons_index & 0xffffff);
- }
- 
-+extern int mlx4_cleanup_upon_device_fatal;
-+static inline int cleanup_on_fatal(int ret)
-+{
-+	return (ret == EIO && mlx4_cleanup_upon_device_fatal);
-+}
-+
- int mlx4_alloc_buf(struct mlx4_buf *buf, size_t size, int page_size);
- void mlx4_free_buf(struct mlx4_buf *buf);
- 
-diff --git a/providers/mlx4/srq.c b/providers/mlx4/srq.c
-index f30cc2e..adcf0fa 100644
---- a/providers/mlx4/srq.c
-+++ b/providers/mlx4/srq.c
-@@ -308,7 +308,7 @@ int mlx4_destroy_xrc_srq(struct ibv_srq *srq)
- 	pthread_spin_unlock(&mcq->lock);
- 
- 	ret = ibv_cmd_destroy_srq(srq);
--	if (ret) {
-+	if (ret && !cleanup_on_fatal(ret)) {
- 		pthread_spin_lock(&mcq->lock);
- 		mlx4_store_xsrq(&mctx->xsrq_table, msrq->verbs_srq.srq_num, msrq);
- 		pthread_spin_unlock(&mcq->lock);
-diff --git a/providers/mlx4/verbs.c b/providers/mlx4/verbs.c
-index 80efd9a..5770430 100644
---- a/providers/mlx4/verbs.c
-+++ b/providers/mlx4/verbs.c
-@@ -218,7 +218,7 @@ int mlx4_free_pd(struct ibv_pd *pd)
- 	int ret;
- 
- 	ret = ibv_cmd_dealloc_pd(pd);
--	if (ret)
-+	if (ret && !cleanup_on_fatal(ret))
- 		return ret;
- 
- 	free(to_mpd(pd));
-@@ -255,10 +255,11 @@ int mlx4_close_xrcd(struct ibv_xrcd *ib_xrcd)
- 	int ret;
- 
- 	ret = ibv_cmd_close_xrcd(xrcd);
--	if (!ret)
--		free(xrcd);
-+	if (ret && !cleanup_on_fatal(ret))
-+		return ret;
- 
--	return ret;
-+	free(xrcd);
-+	return 0;
- }
- 
- struct ibv_mr *mlx4_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
-@@ -307,7 +308,7 @@ int mlx4_dereg_mr(struct ibv_mr *mr)
- 	int ret;
- 
- 	ret = ibv_cmd_dereg_mr(mr);
--	if (ret)
-+	if (ret && !cleanup_on_fatal(ret))
- 		return ret;
- 
- 	free(mr);
-@@ -342,7 +343,7 @@ int mlx4_dealloc_mw(struct ibv_mw *mw)
- 	struct ibv_dealloc_mw cmd;
- 
- 	ret = ibv_cmd_dealloc_mw(mw, &cmd, sizeof(cmd));
--	if (ret)
-+	if (ret && !cleanup_on_fatal(ret))
- 		return ret;
- 
- 	free(mw);
-@@ -629,7 +630,7 @@ int mlx4_destroy_cq(struct ibv_cq *cq)
- 	int ret;
- 
- 	ret = ibv_cmd_destroy_cq(cq);
--	if (ret)
-+	if (ret && !cleanup_on_fatal(ret))
- 		return ret;
- 
- 	mlx4_free_db(to_mctx(cq->context), MLX4_DB_TYPE_CQ, to_mcq(cq)->set_ci_db);
-@@ -733,7 +734,7 @@ int mlx4_destroy_srq(struct ibv_srq *srq)
- 		return mlx4_destroy_xrc_srq(srq);
- 
- 	ret = ibv_cmd_destroy_srq(srq);
--	if (ret)
-+	if (ret && !cleanup_on_fatal(ret))
- 		return ret;
- 
- 	mlx4_free_db(to_mctx(srq->context), MLX4_DB_TYPE_RQ, to_msrq(srq)->db);
-@@ -1090,7 +1091,7 @@ int mlx4_destroy_qp(struct ibv_qp *ibqp)
- 
- 	pthread_mutex_lock(&to_mctx(ibqp->context)->qp_table_mutex);
- 	ret = ibv_cmd_destroy_qp(ibqp);
--	if (ret) {
-+	if (ret && !cleanup_on_fatal(ret)) {
- 		pthread_mutex_unlock(&to_mctx(ibqp->context)->qp_table_mutex);
- 		return ret;
- 	}
--- 
-1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
