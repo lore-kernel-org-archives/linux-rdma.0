@@ -1,71 +1,70 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: Re: Deadlock on device removal event for NVMeF target
-Date: Thu, 29 Jun 2017 07:30:17 -0600
-Message-ID: <CAANLjFr++5daZ6Vn8TYxcM0oMyU4PuMztcM5KKM6mOy7HEs7KA@mail.gmail.com>
-References: <20170626225920.GA11700@ssaleem-MOBL4.amr.corp.intel.com>
- <56030fcd-b8a0-fc0e-18e5-985ebf16a82e@grimberg.me> <20170627193157.GA29768@ssaleem-MOBL4.amr.corp.intel.com>
- <61858a46-ebf1-a5bd-5213-65dadaadb84d@grimberg.me>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH rdma-core 1/5] utils: Add timespec compare utility
+Date: Thu, 29 Jun 2017 17:00:12 +0300
+Message-ID: <1498744816-23354-2-git-send-email-yishaih@mellanox.com>
+References: <1498744816-23354-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <61858a46-ebf1-a5bd-5213-65dadaadb84d-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <1498744816-23354-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Could something like this be causing the D state problem I was seeing
-in iSER almost a year ago? I tried writing a patch for iSER based on
-this, but it didn't help. Either the bug is not being triggered in
-device removal, or I didn't line up the statuses correctly. But it
-seems that things are getting stuck in the work queue and some sort of
-deadlock is happening so I was hopeful that something similar may be
-in iSER.
+From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Thanks,
-Robert
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+Move ts_cmp from srp_daemon.h to util.h, to be used from
+another place in a downstream patch.
 
+Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ srp_daemon/srp_daemon.h | 7 +------
+ util/util.h             | 6 ++++++
+ 2 files changed, 7 insertions(+), 6 deletions(-)
 
-On Wed, Jun 28, 2017 at 12:50 AM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
->
->>> How about the (untested) alternative below:
->>> --
->>> [PATCH] nvmet-rdma: register ib_client to not deadlock in device
->>>    removal
->>>
->>> We can deadlock in case we got to a device removal
->>> event on a queue which is already in the process of
->>> destroying the cm_id is this is blocking until all
->>> events on this cm_id will drain. On the other hand
->>> we cannot guarantee that rdma_destroy_id was invoked
->>> as we only have indication that the queue disconnect
->>> flow has been queued (the queue state is updated before
->>> the realease work has been queued).
->>>
->>> So, we leave all the queue removal to a separate ib_client
->>> to avoid this deadlock as ib_client device removal is in
->>> a different context than the cm_id itself.
->>>
->>> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
->>> ---
->>
->>
->> Yes. This patch fixes the problem I am seeing.
->
->
-> Awsome,
->
-> Adding your Tested-by tag.
->
-> Thanks!
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/srp_daemon/srp_daemon.h b/srp_daemon/srp_daemon.h
+index 026db41..5d268ed 100644
+--- a/srp_daemon/srp_daemon.h
++++ b/srp_daemon/srp_daemon.h
+@@ -39,6 +39,7 @@
+ #include <stdint.h>
+ #include <signal.h>
+ #include <endian.h>
++#include <util/util.h>
+ #include <infiniband/verbs.h>
+ #include <infiniband/umad.h>
+ #include <linux/types.h>	/* __be16, __be32 and __be64 */
+@@ -47,12 +48,6 @@
+ #include "config.h"
+ #include "srp_ib_types.h"
+ 
+-/* a CMP b. See also the BSD macro timercmp(). */
+-#define ts_cmp(a, b, CMP)			\
+-	(((a)->tv_sec == (b)->tv_sec) ?		\
+-	 ((a)->tv_nsec CMP (b)->tv_nsec) :	\
+-	 ((a)->tv_sec CMP (b)->tv_sec))
+-
+ #define SRP_CATAS_ERR SIGUSR1
+ 
+ enum {
+diff --git a/util/util.h b/util/util.h
+index ed4ffe8..c3e5955 100644
+--- a/util/util.h
++++ b/util/util.h
+@@ -10,4 +10,10 @@
+ 		(rc < len && rc >= 0);                                         \
+ 	})
+ 
++/* a CMP b. See also the BSD macro timercmp(). */
++#define ts_cmp(a, b, CMP)			\
++	(((a)->tv_sec == (b)->tv_sec) ?		\
++	 ((a)->tv_nsec CMP (b)->tv_nsec) :	\
++	 ((a)->tv_sec CMP (b)->tv_sec))
++
+ #endif
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
