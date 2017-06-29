@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 5/5] providers: Add support for uninit_device for all providers
-Date: Thu, 29 Jun 2017 17:00:16 +0300
-Message-ID: <1498744816-23354-6-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 4/5] verbs: Avoid ibv_device memory leak
+Date: Thu, 29 Jun 2017 17:00:15 +0300
+Message-ID: <1498744816-23354-5-git-send-email-yishaih@mellanox.com>
 References: <1498744816-23354-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1498744816-23354-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,350 +12,176 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When libibvers calls to verbs_init_func of the provider,
-then the provider allocates the verbs_device.
+Now, ibv_device list is refreshed each time that
+ibv_get_device_list is called, therefore we need to free devices
+from previous scan which aren't bound anymore, otherwise it could lead
+to memory leak of ibv_device structures. We can free the memory of
+ibv_device only if it isn't used anymore by the user.
 
-Add to all providers a function to free this memory once it's
-called.
+How we identify if device is still used
+========================================
+We add a reference count to the verbs device struct.
+This reference count is increased when:
+  a. Set to one for having the device in the list until it should be
+     deleted.
+  b. User call to ibv_get_device_list.
+  c. User call to ibv_open_device.
+
+The reference count is decreased when:
+  a. User call to ibv_free_device_list.
+  b. User call to ibv_close_device.
+  c. Device is no longer exists in the sysfs.
+
+Device will be freed when the refcount is decreased to zero.
+
+For free the ibv_device struct, we add uninit_device callback function
+to verbs_device_ops.
 
 Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/cxgb3/iwch.c             | 10 +++++++++-
- providers/cxgb4/dev.c              | 10 +++++++++-
- providers/hfi1verbs/hfiverbs.c     | 10 +++++++++-
- providers/hns/hns_roce_u.c         | 10 +++++++++-
- providers/i40iw/i40iw_umain.c      | 10 +++++++++-
- providers/ipathverbs/ipathverbs.c  | 10 +++++++++-
- providers/mlx4/mlx4.c              |  8 ++++++++
- providers/mlx5/mlx5.c              |  8 ++++++++
- providers/mthca/mthca.c            | 10 +++++++++-
- providers/nes/nes_umain.c          |  9 ++++++++-
- providers/ocrdma/ocrdma_main.c     | 10 +++++++++-
- providers/qedr/qelr_main.c         | 10 +++++++++-
- providers/rxe/rxe.c                |  8 ++++++++
- providers/vmw_pvrdma/pvrdma_main.c | 10 +++++++++-
- 14 files changed, 122 insertions(+), 11 deletions(-)
+ libibverbs/device.c  |  9 +++++++++
+ libibverbs/driver.h  |  3 +++
+ libibverbs/ibverbs.h |  2 ++
+ libibverbs/init.c    | 24 +++++++++++++++++++++++-
+ 4 files changed, 37 insertions(+), 1 deletion(-)
 
-diff --git a/providers/cxgb3/iwch.c b/providers/cxgb3/iwch.c
-index be3905c..26cc7bb 100644
---- a/providers/cxgb3/iwch.c
-+++ b/providers/cxgb3/iwch.c
-@@ -166,9 +166,17 @@ static void iwch_free_context(struct ibv_context *ibctx)
- 	free(context);
+diff --git a/libibverbs/device.c b/libibverbs/device.c
+index b8c1fc1..b05e6a1 100644
+--- a/libibverbs/device.c
++++ b/libibverbs/device.c
+@@ -101,6 +101,7 @@ struct ibv_device **__ibv_get_device_list(int *num)
+ 
+ 	list_for_each(&device_list, device, entry) {
+ 		l[i] = &device->device;
++		ibverbs_device_hold(l[i]);
+ 		i++;
+ 	}
+ 	if (num)
+@@ -113,6 +114,10 @@ default_symver(__ibv_get_device_list, ibv_get_device_list);
+ 
+ void __ibv_free_device_list(struct ibv_device **list)
+ {
++	int i;
++
++	for (i = 0; list[i]; i++)
++		ibverbs_device_put(list[i]);
+ 	free(list);
  }
+ default_symver(__ibv_free_device_list, ibv_free_device_list);
+@@ -262,6 +267,8 @@ struct ibv_context *__ibv_open_device(struct ibv_device *device)
+ 	context->cmd_fd = cmd_fd;
+ 	pthread_mutex_init(&context->mutex, NULL);
  
-+static void iwch_uninit_device(struct verbs_device *verbs_device)
-+{
-+	struct iwch_device *dev = to_iwch_dev(&verbs_device->device);
++	ibverbs_device_hold(device);
 +
-+	free(dev);
-+}
-+
- static struct verbs_device_ops iwch_dev_ops = {
- 	.alloc_context = iwch_alloc_context,
--	.free_context = iwch_free_context
-+	.free_context = iwch_free_context,
-+	.uninit_device = iwch_uninit_device
- };
+ 	return context;
  
- static struct verbs_device *cxgb3_driver_init(const char *uverbs_sys_path,
-diff --git a/providers/cxgb4/dev.c b/providers/cxgb4/dev.c
-index 1474378..30182cb 100644
---- a/providers/cxgb4/dev.c
-+++ b/providers/cxgb4/dev.c
-@@ -220,9 +220,17 @@ static void c4iw_free_context(struct ibv_context *ibctx)
- 	free(context);
+ verbs_err:
+@@ -280,6 +287,7 @@ int __ibv_close_device(struct ibv_context *context)
+ 	int cq_fd    = -1;
+ 	struct verbs_context *context_ex;
+ 	struct verbs_device *verbs_device = verbs_get_device(context->device);
++	struct ibv_device *device = context->device;
+ 
+ 	context_ex = verbs_get_ctx(context);
+ 	if (context_ex) {
+@@ -294,6 +302,7 @@ int __ibv_close_device(struct ibv_context *context)
+ 	close(cmd_fd);
+ 	if (abi_ver <= 2)
+ 		close(cq_fd);
++	ibverbs_device_put(device);
+ 
+ 	return 0;
  }
+diff --git a/libibverbs/driver.h b/libibverbs/driver.h
+index 2ed846e..298bd35 100644
+--- a/libibverbs/driver.h
++++ b/libibverbs/driver.h
+@@ -35,6 +35,7 @@
+ #ifndef INFINIBAND_DRIVER_H
+ #define INFINIBAND_DRIVER_H
  
-+static void c4iw_uninit_device(struct verbs_device *verbs_device)
-+{
-+	struct c4iw_dev *dev = to_c4iw_dev(&verbs_device->device);
-+
-+	free(dev);
-+}
-+
- static struct verbs_device_ops c4iw_dev_ops = {
- 	.alloc_context = c4iw_alloc_context,
--	.free_context = c4iw_free_context
-+	.free_context = c4iw_free_context,
-+	.uninit_device = c4iw_uninit_device
++#include <stdatomic.h>
+ #include <infiniband/verbs.h>
+ #include <infiniband/kern-abi.h>
+ #include <ccan/list.h>
+@@ -112,6 +113,7 @@ struct verbs_device_ops {
+ 			    struct ibv_context *ctx, int cmd_fd);
+ 	void (*uninit_context)(struct verbs_device *device,
+ 			       struct ibv_context *ctx);
++	void (*uninit_device)(struct verbs_device *device);
  };
  
- #ifdef STALL_DETECTION
-diff --git a/providers/hfi1verbs/hfiverbs.c b/providers/hfi1verbs/hfiverbs.c
-index b27df3d..b5d0099 100644
---- a/providers/hfi1verbs/hfiverbs.c
-+++ b/providers/hfi1verbs/hfiverbs.c
-@@ -173,9 +173,17 @@ static void hfi1_free_context(struct ibv_context *ibctx)
- 	free(context);
+ /* Must change the PRIVATE IBVERBS_PRIVATE_ symbol if this is changed */
+@@ -120,6 +122,7 @@ struct verbs_device {
+ 	const struct verbs_device_ops *ops;
+ 	size_t	sz;
+ 	size_t	size_of_context;
++	atomic_int refcount;
+ 	struct list_node entry;
+ 	struct ibv_sysfs_dev *sysfs;
+ };
+diff --git a/libibverbs/ibverbs.h b/libibverbs/ibverbs.h
+index 3e2fe8f..05fd2c8 100644
+--- a/libibverbs/ibverbs.h
++++ b/libibverbs/ibverbs.h
+@@ -61,6 +61,8 @@ extern int abi_ver;
+ 
+ int ibverbs_get_device_list(struct list_head *list);
+ int ibverbs_init(void);
++void ibverbs_device_put(struct ibv_device *dev);
++void ibverbs_device_hold(struct ibv_device *dev);
+ 
+ struct verbs_ex_private {
+ 	struct ibv_cq_ex *(*create_cq_ex)(struct ibv_context *context,
+diff --git a/libibverbs/init.c b/libibverbs/init.c
+index 5ad95ca..b3046b3 100644
+--- a/libibverbs/init.c
++++ b/libibverbs/init.c
+@@ -382,6 +382,7 @@ static struct verbs_device *try_driver(struct ibv_driver *driver,
+ 	if (!vdev)
+ 		return NULL;
+ 
++	atomic_init(&vdev->refcount, 1);
+ 	dev = &vdev->device;
+ 	assert(dev->_ops._dummy1 == NULL);
+ 	assert(dev->_ops._dummy2 == NULL);
+@@ -512,8 +513,11 @@ int ibverbs_get_device_list(struct list_head *list)
+ 				break;
+ 			}
+ 		}
+-		if (!sysfs_dev)
++
++		if (!sysfs_dev) {
+ 			list_del(&vdev->entry);
++			ibverbs_device_put(&vdev->device);
++		}
+ 	}
+ 
+ 	for (sysfs_dev = tmp_sysfs_dev_list; sysfs_dev; sysfs_dev =
+@@ -610,3 +614,21 @@ int ibverbs_init(void)
+ 
+ 	return 0;
  }
- 
-+static void hf11_uninit_device(struct verbs_device *verbs_device)
-+{
-+	struct hfi1_device *dev = to_idev(&verbs_device->device);
 +
-+	free(dev);
++void ibverbs_device_hold(struct ibv_device *dev)
++{
++	struct verbs_device *verbs_device = verbs_get_device(dev);
++
++	atomic_fetch_add(&verbs_device->refcount, 1);
 +}
 +
- static struct verbs_device_ops hfi1_dev_ops = {
- 	.alloc_context	= hfi1_alloc_context,
--	.free_context	= hfi1_free_context
-+	.free_context	= hfi1_free_context,
-+	.uninit_device  = hf11_uninit_device
- };
- 
- static struct verbs_device *hfi1_driver_init(const char *uverbs_sys_path,
-diff --git a/providers/hns/hns_roce_u.c b/providers/hns/hns_roce_u.c
-index a080ca6..7dae5fd 100644
---- a/providers/hns/hns_roce_u.c
-+++ b/providers/hns/hns_roce_u.c
-@@ -173,9 +173,17 @@ static void hns_roce_free_context(struct ibv_context *ibctx)
- 	context = NULL;
- }
- 
-+static void hns_uninit_device(struct verbs_device *verbs_device)
++void ibverbs_device_put(struct ibv_device *dev)
 +{
-+	struct hns_roce_device *dev = to_hr_dev(&verbs_device->device);
++	struct verbs_device *verbs_device = verbs_get_device(dev);
 +
-+	free(dev);
++	if (atomic_fetch_sub(&verbs_device->refcount, 1) == 1) {
++		free(verbs_device->sysfs);
++		if (verbs_device->ops->uninit_device)
++			verbs_device->ops->uninit_device(verbs_device);
++	}
 +}
-+
- static struct verbs_device_ops hns_roce_dev_ops = {
- 	.alloc_context = hns_roce_alloc_context,
--	.free_context	= hns_roce_free_context
-+	.free_context	= hns_roce_free_context,
-+	.uninit_device = hns_uninit_device
- };
- 
- static struct verbs_device *hns_roce_driver_init(const char *uverbs_sys_path,
-diff --git a/providers/i40iw/i40iw_umain.c b/providers/i40iw/i40iw_umain.c
-index 5946b7c..3b7aebb 100644
---- a/providers/i40iw/i40iw_umain.c
-+++ b/providers/i40iw/i40iw_umain.c
-@@ -208,9 +208,17 @@ static void i40iw_ufree_context(struct ibv_context *ibctx)
- 	free(iwvctx);
- }
- 
-+static void i40iw_uninit_device(struct verbs_device *verbs_device)
-+{
-+	struct i40iw_udevice *dev = to_i40iw_udev(&verbs_device->device);
-+
-+	free(dev);
-+}
-+
- static struct verbs_device_ops i40iw_udev_ops = {
- 	.alloc_context	= i40iw_ualloc_context,
--	.free_context	= i40iw_ufree_context
-+	.free_context	= i40iw_ufree_context,
-+	.uninit_device  = i40iw_uninit_device
- };
- 
- /**
-diff --git a/providers/ipathverbs/ipathverbs.c b/providers/ipathverbs/ipathverbs.c
-index 0cb6abf..96bc4d7 100644
---- a/providers/ipathverbs/ipathverbs.c
-+++ b/providers/ipathverbs/ipathverbs.c
-@@ -172,9 +172,17 @@ static void ipath_free_context(struct ibv_context *ibctx)
- 	free(context);
- }
- 
-+static void ipath_uninit_device(struct verbs_device *verbs_device)
-+{
-+	struct ipath_device *dev = to_idev(&verbs_device->device);
-+
-+	free(dev);
-+}
-+
- static struct verbs_device_ops ipath_dev_ops = {
- 	.alloc_context	= ipath_alloc_context,
--	.free_context	= ipath_free_context
-+	.free_context	= ipath_free_context,
-+	.uninit_device  = ipath_uninit_device
- };
- 
- static struct verbs_device *ipath_driver_init(const char *uverbs_sys_path,
-diff --git a/providers/mlx4/mlx4.c b/providers/mlx4/mlx4.c
-index b798b37..d711df3 100644
---- a/providers/mlx4/mlx4.c
-+++ b/providers/mlx4/mlx4.c
-@@ -262,9 +262,17 @@ static void mlx4_uninit_context(struct verbs_device *v_device,
- 		       to_mdev(&v_device->device)->page_size);
- }
- 
-+static void mlx4_uninit_device(struct verbs_device *verbs_device)
-+{
-+	struct mlx4_device *dev = to_mdev(&verbs_device->device);
-+
-+	free(dev);
-+}
-+
- static struct verbs_device_ops mlx4_dev_ops = {
- 	.init_context = mlx4_init_context,
- 	.uninit_context = mlx4_uninit_context,
-+	.uninit_device = mlx4_uninit_device
- };
- 
- static struct verbs_device *mlx4_driver_init(const char *uverbs_sys_path, int abi_version)
-diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
-index 99ca1ae..ede91cb 100644
---- a/providers/mlx5/mlx5.c
-+++ b/providers/mlx5/mlx5.c
-@@ -965,9 +965,17 @@ static void mlx5_cleanup_context(struct verbs_device *device,
- 	close_debug_file(context);
- }
- 
-+static void mlx5_uninit_device(struct verbs_device *verbs_device)
-+{
-+	struct mlx5_device *dev = to_mdev(&verbs_device->device);
-+
-+	free(dev);
-+}
-+
- static struct verbs_device_ops mlx5_dev_ops = {
- 	.init_context = mlx5_init_context,
- 	.uninit_context = mlx5_cleanup_context,
-+	.uninit_device = mlx5_uninit_device
- };
- 
- static struct verbs_device *mlx5_driver_init(const char *uverbs_sys_path,
-diff --git a/providers/mthca/mthca.c b/providers/mthca/mthca.c
-index 96e7944..62c912a 100644
---- a/providers/mthca/mthca.c
-+++ b/providers/mthca/mthca.c
-@@ -209,9 +209,17 @@ static void mthca_free_context(struct ibv_context *ibctx)
- 	free(context);
- }
- 
-+static void mthca_uninit_device(struct verbs_device *verbs_device)
-+{
-+	struct mthca_device *dev = to_mdev(&verbs_device->device);
-+
-+	free(dev);
-+}
-+
- static struct verbs_device_ops mthca_dev_ops = {
- 	.alloc_context = mthca_alloc_context,
--	.free_context  = mthca_free_context
-+	.free_context  = mthca_free_context,
-+	.uninit_device = mthca_uninit_device
- };
- 
- static struct verbs_device *mthca_driver_init(const char *uverbs_sys_path,
-diff --git a/providers/nes/nes_umain.c b/providers/nes/nes_umain.c
-index 20ddc8d..c9ce700 100644
---- a/providers/nes/nes_umain.c
-+++ b/providers/nes/nes_umain.c
-@@ -184,10 +184,17 @@ static void nes_ufree_context(struct ibv_context *ibctx)
- 	free(nesvctx);
- }
- 
-+static void nes_uninit_device(struct verbs_device *verbs_device)
-+{
-+	struct nes_udevice *dev = to_nes_udev(&verbs_device->device);
-+
-+	free(dev);
-+}
- 
- static struct verbs_device_ops nes_udev_ops = {
- 	.alloc_context = nes_ualloc_context,
--	.free_context = nes_ufree_context
-+	.free_context = nes_ufree_context,
-+	.uninit_device = nes_uninit_device
- };
- 
- 
-diff --git a/providers/ocrdma/ocrdma_main.c b/providers/ocrdma/ocrdma_main.c
-index 2f22e8f..5916306 100644
---- a/providers/ocrdma/ocrdma_main.c
-+++ b/providers/ocrdma/ocrdma_main.c
-@@ -103,9 +103,17 @@ static struct ibv_context_ops ocrdma_ctx_ops = {
- 	.detach_mcast = ocrdma_detach_mcast
- };
- 
-+static void ocrdma_uninit_device(struct verbs_device *verbs_device)
-+{
-+	struct ocrdma_device *dev = get_ocrdma_dev(&verbs_device->device);
-+
-+	free(dev);
-+}
-+
- static struct verbs_device_ops ocrdma_dev_ops = {
- 	.alloc_context = ocrdma_alloc_context,
--	.free_context = ocrdma_free_context
-+	.free_context = ocrdma_free_context,
-+	.uninit_device = ocrdma_uninit_device
- };
- 
- /*
-diff --git a/providers/qedr/qelr_main.c b/providers/qedr/qelr_main.c
-index 9f3feda..4d4390b 100644
---- a/providers/qedr/qelr_main.c
-+++ b/providers/qedr/qelr_main.c
-@@ -108,9 +108,17 @@ static struct ibv_context_ops qelr_ctx_ops = {
- 	.async_event = qelr_async_event,
- };
- 
-+static void qelr_uninit_device(struct verbs_device *verbs_device)
-+{
-+	struct qelr_device *dev = get_qelr_dev(&verbs_device->device);
-+
-+	free(dev);
-+}
-+
- static struct verbs_device_ops qelr_dev_ops = {
- 	.alloc_context = qelr_alloc_context,
--	.free_context = qelr_free_context
-+	.free_context = qelr_free_context,
-+	.uninit_device = qelr_uninit_device
- };
- 
- static void qelr_open_debug_file(struct qelr_devctx *ctx)
-diff --git a/providers/rxe/rxe.c b/providers/rxe/rxe.c
-index 775caf0..21820f9 100644
---- a/providers/rxe/rxe.c
-+++ b/providers/rxe/rxe.c
-@@ -886,9 +886,17 @@ static void rxe_free_context(struct ibv_context *ibctx)
- 	free(context);
- }
- 
-+static void rxe_uninit_device(struct verbs_device *verbs_device)
-+{
-+	struct rxe_device *dev = to_rdev(&verbs_device->device);
-+
-+	free(dev);
-+}
-+
- static struct verbs_device_ops rxe_dev_ops = {
- 	.alloc_context = rxe_alloc_context,
- 	.free_context = rxe_free_context,
-+	.uninit_device = rxe_uninit_device
- };
- 
- static struct verbs_device *rxe_driver_init(const char *uverbs_sys_path,
-diff --git a/providers/vmw_pvrdma/pvrdma_main.c b/providers/vmw_pvrdma/pvrdma_main.c
-index 047f492..d388663 100644
---- a/providers/vmw_pvrdma/pvrdma_main.c
-+++ b/providers/vmw_pvrdma/pvrdma_main.c
-@@ -162,9 +162,17 @@ static void pvrdma_free_context(struct ibv_context *ibctx)
- 	free(context);
- }
- 
-+static void pvrdma_uninit_device(struct verbs_device *verbs_device)
-+{
-+	struct pvrdma_device *dev = to_vdev(&verbs_device->device);
-+
-+	free(dev);
-+}
-+
- static struct verbs_device_ops pvrdma_dev_ops = {
- 	.alloc_context = pvrdma_alloc_context,
--	.free_context  = pvrdma_free_context
-+	.free_context  = pvrdma_free_context,
-+	.uninit_device = pvrdma_uninit_device
- };
- 
- static struct pvrdma_device *pvrdma_driver_init_shared(
 -- 
 1.8.3.1
 
