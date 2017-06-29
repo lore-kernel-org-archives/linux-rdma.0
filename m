@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 7/7] mlx4: Export mlx4 direct verbs interface
-Date: Thu, 29 Jun 2017 14:47:08 +0300
-Message-ID: <1498736828-17875-8-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 5/7] mlx4: Convert to use predefined get CQE opcodes
+Date: Thu, 29 Jun 2017 14:47:06 +0300
+Message-ID: <1498736828-17875-6-git-send-email-yishaih@mellanox.com>
 References: <1498736828-17875-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1498736828-17875-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,125 +12,97 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Install direct verbs header file into /usr/include/infiniband/
-folder and allow possible users to explicitly include it
-into their applications.
-In addition, make the required packaging changes needed for both
-RedHat and Debian users to link with libmlx4 directly.
-
 Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- debian/ibverbs-providers.install | 1 +
- debian/ibverbs-providers.symbols | 4 ++++
- debian/libibverbs-dev.install    | 4 ++++
- providers/mlx4/CMakeLists.txt    | 7 ++++++-
- providers/mlx4/libmlx4.map       | 7 +++++++
- redhat/rdma-core.spec            | 3 +++
- 6 files changed, 25 insertions(+), 1 deletion(-)
- create mode 100644 providers/mlx4/libmlx4.map
+ providers/mlx4/cq.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/debian/ibverbs-providers.install b/debian/ibverbs-providers.install
-index 1d234ba..1d693fe 100644
---- a/debian/ibverbs-providers.install
-+++ b/debian/ibverbs-providers.install
-@@ -3,6 +3,7 @@ etc/modprobe.d/truescale.conf
- usr/bin/rxe_cfg
- usr/lib/*/libibverbs/lib*-rdmav2.so
- usr/lib/*/libmlx5.so.*
-+usr/lib/*/libmlx4.so.*
- usr/lib/truescale-serdes.cmds
- usr/share/doc/rdma-core/rxe.md usr/share/doc/ibverbs-providers/
- usr/share/man/man7/rxe.7
-diff --git a/debian/ibverbs-providers.symbols b/debian/ibverbs-providers.symbols
-index ea63da8..d64e3ef 100644
---- a/debian/ibverbs-providers.symbols
-+++ b/debian/ibverbs-providers.symbols
-@@ -4,3 +4,7 @@ libmlx5.so.1 ibverbs-providers #MINVER#
-  mlx5dv_init_obj@MLX5_1.0 13
-  mlx5dv_query_device@MLX5_1.0 13
-  mlx5dv_create_cq@MLX5_1.1 14
-+
-+libmlx4.so.1 ibverbs-providers #MINVER#
-+ MLX4_1.0@MLX4_1.0 15
-+ mlx4dv_init_obj@MLX4_1.0 15
-diff --git a/debian/libibverbs-dev.install b/debian/libibverbs-dev.install
-index ed7a276..3773d00 100644
---- a/debian/libibverbs-dev.install
-+++ b/debian/libibverbs-dev.install
-@@ -1,14 +1,18 @@
- usr/include/infiniband/arch.h
- usr/include/infiniband/kern-abi.h
- usr/include/infiniband/mlx5dv.h
-+usr/include/infiniband/mlx4dv.h
- usr/include/infiniband/opcode.h
- usr/include/infiniband/sa-kern-abi.h
- usr/include/infiniband/sa.h
- usr/include/infiniband/verbs.h
- usr/lib/*/libibverbs*.so
- usr/lib/*/libmlx5.so
-+usr/lib/*/libmlx4.so
- usr/share/man/man3/ibv_*
- usr/share/man/man3/mbps_to_ibv_rate.3
- usr/share/man/man3/mlx5dv_*.3
-+usr/share/man/man3/mlx4dv_*.3
- usr/share/man/man3/mult_to_ibv_rate.3
- usr/share/man/man7/mlx5dv.7
-+usr/share/man/man7/mlx4dv.7
-diff --git a/providers/mlx4/CMakeLists.txt b/providers/mlx4/CMakeLists.txt
-index d64d817..f6739d2 100644
---- a/providers/mlx4/CMakeLists.txt
-+++ b/providers/mlx4/CMakeLists.txt
-@@ -1,4 +1,5 @@
--rdma_provider(mlx4
-+rdma_shared_provider(mlx4 libmlx4.map
-+  1 1.0.${PACKAGE_VERSION}
-   buf.c
-   cq.c
-   dbrec.c
-@@ -7,3 +8,7 @@ rdma_provider(mlx4
-   srq.c
-   verbs.c
- )
-+
-+publish_headers(infiniband
-+  mlx4dv.h
-+)
-diff --git a/providers/mlx4/libmlx4.map b/providers/mlx4/libmlx4.map
-new file mode 100644
-index 0000000..0e53f83
---- /dev/null
-+++ b/providers/mlx4/libmlx4.map
-@@ -0,0 +1,7 @@
-+/* Export symbols should be added below according to
-+   Documentation/versioning.md document. */
-+MLX4_1.0 {
-+	global:
-+		mlx4dv_init_obj;
-+	local: *;
-+};
-diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
-index 1f5cd14..5cebc25 100644
---- a/redhat/rdma-core.spec
-+++ b/redhat/rdma-core.spec
-@@ -355,7 +355,9 @@ rm -rf %{buildroot}/%{_initrddir}/
- %{_mandir}/man3/*_to_ibv_rate.*
- %{_mandir}/man7/rdma_cm.*
- %{_mandir}/man3/mlx5dv*
-+%{_mandir}/man3/mlx4dv*
- %{_mandir}/man7/mlx5dv*
-+%{_mandir}/man7/mlx4dv*
+diff --git a/providers/mlx4/cq.c b/providers/mlx4/cq.c
+index 068e0d2..50adebb 100644
+--- a/providers/mlx4/cq.c
++++ b/providers/mlx4/cq.c
+@@ -115,7 +115,7 @@ static enum ibv_wc_status mlx4_handle_error_cqe(struct mlx4_err_cqe *cqe)
+ static inline void handle_good_req(struct ibv_wc *wc, struct mlx4_cqe *cqe)
+ {
+ 	wc->wc_flags = 0;
+-	switch (cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) {
++	switch (mlx4dv_get_cqe_opcode(cqe)) {
+ 	case MLX4_OPCODE_RDMA_WRITE_IMM:
+ 		wc->wc_flags |= IBV_WC_WITH_IMM;
+ 		SWITCH_FALLTHROUGH;
+@@ -215,7 +215,7 @@ static inline int mlx4_parse_cqe(struct mlx4_cq *cq,
+ 		wc->qp_num = qpn;
  
- %files -n libibverbs
- %dir %{_sysconfdir}/libibverbs.d
-@@ -363,6 +365,7 @@ rm -rf %{buildroot}/%{_initrddir}/
- %{_libdir}/libibverbs*.so.*
- %{_libdir}/libibverbs/*.so
- %{_libdir}/libmlx5.so*
-+%{_libdir}/libmlx4.so*
- %config(noreplace) %{_sysconfdir}/libibverbs.d/*.driver
- %doc %{_docdir}/%{name}-%{version}/libibverbs.md
- %doc %{_docdir}/%{name}-%{version}/rxe.md
+ 	is_send  = cqe->owner_sr_opcode & MLX4_CQE_IS_SEND_MASK;
+-	is_error = (cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) ==
++	is_error = (mlx4dv_get_cqe_opcode(cqe)) ==
+ 		MLX4_CQE_OPCODE_ERROR;
+ 
+ 	if ((qpn & MLX4_XRC_QPN_BIT) && !is_send) {
+@@ -278,7 +278,7 @@ static inline int mlx4_parse_cqe(struct mlx4_cq *cq,
+ 	} else {
+ 		wc->byte_len = be32toh(cqe->byte_cnt);
+ 
+-		switch (cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) {
++		switch (mlx4dv_get_cqe_opcode(cqe)) {
+ 		case MLX4_RECV_OPCODE_RDMA_WRITE_IMM:
+ 			wc->opcode   = IBV_WC_RECV_RDMA_WITH_IMM;
+ 			wc->wc_flags = IBV_WC_WITH_IMM;
+@@ -460,7 +460,7 @@ static enum ibv_wc_opcode mlx4_cq_read_wc_opcode(struct ibv_cq_ex *ibcq)
+ 	struct mlx4_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
+ 
+ 	if (cq->cqe->owner_sr_opcode & MLX4_CQE_IS_SEND_MASK) {
+-		switch (cq->cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) {
++		switch (mlx4dv_get_cqe_opcode(cq->cqe)) {
+ 		case MLX4_OPCODE_RDMA_WRITE_IMM:
+ 		case MLX4_OPCODE_RDMA_WRITE:
+ 			return IBV_WC_RDMA_WRITE;
+@@ -480,7 +480,7 @@ static enum ibv_wc_opcode mlx4_cq_read_wc_opcode(struct ibv_cq_ex *ibcq)
+ 			return IBV_WC_BIND_MW;
+ 		}
+ 	} else {
+-		switch (cq->cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) {
++		switch (mlx4dv_get_cqe_opcode(cq->cqe)) {
+ 		case MLX4_RECV_OPCODE_RDMA_WRITE_IMM:
+ 			return IBV_WC_RECV_RDMA_WITH_IMM;
+ 		case MLX4_RECV_OPCODE_SEND_INVAL:
+@@ -507,7 +507,7 @@ static int mlx4_cq_read_wc_flags(struct ibv_cq_ex *ibcq)
+ 	int wc_flags = 0;
+ 
+ 	if (is_send) {
+-		switch (cq->cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) {
++		switch (mlx4dv_get_cqe_opcode(cq->cqe)) {
+ 		case MLX4_OPCODE_RDMA_WRITE_IMM:
+ 		case MLX4_OPCODE_SEND_IMM:
+ 			wc_flags |= IBV_WC_WITH_IMM;
+@@ -520,7 +520,7 @@ static int mlx4_cq_read_wc_flags(struct ibv_cq_ex *ibcq)
+ 				htobe32(MLX4_CQE_STATUS_IPV4_CSUM_OK)) <<
+ 				IBV_WC_IP_CSUM_OK_SHIFT;
+ 
+-		switch (cq->cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) {
++		switch (mlx4dv_get_cqe_opcode(cq->cqe)) {
+ 		case MLX4_RECV_OPCODE_RDMA_WRITE_IMM:
+ 		case MLX4_RECV_OPCODE_SEND_IMM:
+ 			wc_flags |= IBV_WC_WITH_IMM;
+@@ -554,7 +554,7 @@ static uint32_t mlx4_cq_read_wc_imm_data(struct ibv_cq_ex *ibcq)
+ {
+ 	struct mlx4_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
+ 
+-	switch (cq->cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) {
++	switch (mlx4dv_get_cqe_opcode(cq->cqe)) {
+ 	case MLX4_RECV_OPCODE_SEND_INVAL:
+ 		return be32toh(cq->cqe->immed_rss_invalid);
+ 	default:
+@@ -756,7 +756,7 @@ void mlx4_cq_resize_copy_cqes(struct mlx4_cq *cq, void *buf, int old_cqe)
+ 	cqe = get_cqe(cq, (i & old_cqe));
+ 	cqe += cqe_inc;
+ 
+-	while ((cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) != MLX4_CQE_OPCODE_RESIZE) {
++	while ((mlx4dv_get_cqe_opcode(cqe)) != MLX4_CQE_OPCODE_RESIZE) {
+ 		cqe->owner_sr_opcode = (cqe->owner_sr_opcode & ~MLX4_CQE_OWNER_MASK) |
+ 			(((i + 1) & (cq->ibv_cq.cqe + 1)) ? MLX4_CQE_OWNER_MASK : 0);
+ 		memcpy(buf + ((i + 1) & cq->ibv_cq.cqe) * cq->cqe_size,
 -- 
 1.8.3.1
 
