@@ -1,89 +1,177 @@
-From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V2 12/13] RDMA/bnxt_re: Report MISSED_EVENTS in req_notify_cq
-Date: Thu, 29 Jun 2017 12:28:18 -0700
-Message-ID: <1498764499-24157-13-git-send-email-selvin.xavier@broadcom.com>
-References: <1498764499-24157-1-git-send-email-selvin.xavier@broadcom.com>
+From: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] RDMA/core: Add wait/retry version of ibnl_unicast
+Date: Thu, 29 Jun 2017 14:31:46 -0500
+Message-ID: <20170629193146.GA24592@ctung-MOBL3.amr.corp.intel.com>
+References: <1498658565-3408-1-git-send-email-mustafa.ismail@intel.com>
+ <20170628141211.GA16312@ctung-MOBL3.amr.corp.intel.com>
+ <20170628153639.GF1248@mtr-leonro.local>
+ <20170628203003.GA23300@ctung-MOBL3.amr.corp.intel.com>
+ <20170629050436.GO1248@mtr-leonro.local>
+ <20170629150249.GA21856@ctung-MOBL3.amr.corp.intel.com>
+ <20170629163719.GC12009@mtr-leonro.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1498764499-24157-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170629163719.GC12009-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-While invoking the req_notify_cq hook, ULPs can request
-whether the CQs have any CQEs pending. If CQEs are pending,
-drivers can indicate  it by returning 1 for req_notify_cq.
-The stack will poll CQ again till CQ is empty.
+On Thu, Jun 29, 2017 at 07:37:19PM +0300, Leon Romanovsky wrote:
+> On Thu, Jun 29, 2017 at 10:02:49AM -0500, Chien Tin Tung wrote:
+> > On Thu, Jun 29, 2017 at 08:04:36AM +0300, Leon Romanovsky wrote:
+> > > On Wed, Jun 28, 2017 at 03:30:03PM -0500, Chien Tin Tung wrote:
+> > > > On Wed, Jun 28, 2017 at 06:36:39PM +0300, Leon Romanovsky wrote:
+> > > > > On Wed, Jun 28, 2017 at 09:12:11AM -0500, Chien Tin Tung wrote:
+> > > > > > On Wed, Jun 28, 2017 at 09:02:45AM -0500, Mustafa Ismail wrote:
+> > > > > > > Add a wait/retry version of ibnl_unicast, ibnl_unicast_wait,
+> > > > > > > and modify ibnl_unicast to not wait/retry.  This eliminates
+> > > > > > > the undesirable wait for future users of ibnl_unicast.
+> > > > > > >
+> > > > > > > Change Portmapper calls originating from kernel to user-space
+> > > > > > > to use ibnl_unicast_wait and take advantage of the wait/retry
+> > > > > > > logic in netlink_unicast.
+> > > > > > >
+> > > > > > > Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > > > > > Signed-off-by: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > > > > > ---
+> > > > > > >  drivers/infiniband/core/iwpm_msg.c |  6 +++---
+> > > > > > >  drivers/infiniband/core/netlink.c  | 12 +++++++++++-
+> > > > > > >  include/rdma/rdma_netlink.h        | 10 ++++++++++
+> > > > > > >  3 files changed, 24 insertions(+), 4 deletions(-)
+> > > > > >
+> > > > > > Please apply this patch instead of Leon's patch to revert
+> > > > > > "IB/core: Add flow control to the portmapper netlink calls".
+> > > > > >
+> > > > > > Leon, we can work out names and parameters if this works for you.
+> > > > >
+> > > > > Chien,
+> > > > >
+> > > > > The names are less my worries with this patch. First of all, it misleads
+> > > > > by using wait/retry naming, because it blocks and not waits.
+> > > >
+> > > > Nope.  It does a single shot retry and waits in a waitqueue.
+> > > > Go look at netlink_unicast and in turn netlink_attachskb.  If you still
+> > > > disagree, please flag specific code where it blocks.
+> > >
+> > > I agree, it wouldn't block in your scenario. However will it work in more hostile
+> > > environments?
+> >
+> > The reason behind the original patch was to make it more tolerable to "hostile"
+> > environments by giving it one more try allocate buffer to send the message.
+> > So yes, it does work in more hostile environment.
+> 
+> Are you really calling extra load as a "hostile environment"?
 
-This patch peeks the CQ for any valid entries and return accordingly.
+I'm not playing 20 questions (https://en.wikipedia.org/wiki/Twenty_Questions).
+If you have something in mind say so.  If you are referring to your malicious
+user attack scenario see my response below.
 
-Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/bnxt_re/ib_verbs.c |  5 +++++
- drivers/infiniband/hw/bnxt_re/qplib_fp.c | 19 +++++++++++++++++++
- drivers/infiniband/hw/bnxt_re/qplib_fp.h |  1 +
- 3 files changed, 25 insertions(+)
+> > > For example, malicious user can open RDMA netlink socket directly (socket(...)),
+> > > set sndtimeo to be MAX_SCHEDULE_TIMEOUT - 1 (LONG_MAX - 1)
+> >
+> > How do you open the _kernel_ RDMA netlink socket directly from user-space and
+> > set the timeout value?
+> 
+> Exactly as libnl, libmnl and rdma-core do. The netlink socket is
+> accessible from the user space without root access. It is the whole
+> purpose of it.
 
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index 27893f7..2cfcd38 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -3034,6 +3034,11 @@ int bnxt_re_req_notify_cq(struct ib_cq *ib_cq,
- 	else if (ib_cqn_flags & IB_CQ_SOLICITED)
- 		type = DBR_DBR_TYPE_CQ_ARMSE;
- 
-+	/* Poll to see if there are missed events */
-+	if ((ib_cqn_flags & IB_CQ_REPORT_MISSED_EVENTS) &&
-+	    !(bnxt_qplib_is_cq_empty(&cq->qplib_cq)))
-+		return 1;
-+
- 	bnxt_qplib_req_notify_cq(&cq->qplib_cq, type);
- 
- 	return 0;
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-index bd95539..31e15f3 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
-@@ -2164,6 +2164,25 @@ static int bnxt_qplib_cq_process_res_ud(struct bnxt_qplib_cq *cq,
- 	return rc;
- }
- 
-+bool bnxt_qplib_is_cq_empty(struct bnxt_qplib_cq *cq)
-+{
-+	struct cq_base *hw_cqe, **hw_cqe_ptr;
-+	unsigned long flags;
-+	u32 sw_cons, raw_cons;
-+	bool rc = true;
-+
-+	spin_lock_irqsave(&cq->hwq.lock, flags);
-+	raw_cons = cq->hwq.cons;
-+	sw_cons = HWQ_CMP(raw_cons, &cq->hwq);
-+	hw_cqe_ptr = (struct cq_base **)cq->hwq.pbl_ptr;
-+	hw_cqe = &hw_cqe_ptr[CQE_PG(sw_cons)][CQE_IDX(sw_cons)];
-+
-+	 /* Check for Valid bit. If the CQE is valid, return false */
-+	rc = !CQE_CMP_VALID(hw_cqe, raw_cons, cq->hwq.max_elements);
-+	spin_unlock_irqrestore(&cq->hwq.lock, flags);
-+	return rc;
-+}
-+
- static int bnxt_qplib_cq_process_res_raweth_qp1(struct bnxt_qplib_cq *cq,
- 						struct cq_res_raweth_qp1 *hwcqe,
- 						struct bnxt_qplib_cqe **pcqe,
-diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.h b/drivers/infiniband/hw/bnxt_re/qplib_fp.h
-index 2495b33..23a26d5 100644
---- a/drivers/infiniband/hw/bnxt_re/qplib_fp.h
-+++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.h
-@@ -463,6 +463,7 @@ int bnxt_qplib_create_cq(struct bnxt_qplib_res *res, struct bnxt_qplib_cq *cq);
- int bnxt_qplib_destroy_cq(struct bnxt_qplib_res *res, struct bnxt_qplib_cq *cq);
- int bnxt_qplib_poll_cq(struct bnxt_qplib_cq *cq, struct bnxt_qplib_cqe *cqe,
- 		       int num, struct bnxt_qplib_qp **qp);
-+bool bnxt_qplib_is_cq_empty(struct bnxt_qplib_cq *cq);
- void bnxt_qplib_req_notify_cq(struct bnxt_qplib_cq *cq, u32 arm_type);
- void bnxt_qplib_free_nq(struct bnxt_qplib_nq *nq);
- int bnxt_qplib_alloc_nq(struct pci_dev *pdev, struct bnxt_qplib_nq *nq);
--- 
-2.5.5
+Wow, you just uncovered a big security hole.  Isn't this beyond a simple timeout
+value?  Wouldn't the ability to set the socket to _blocking_ blow your top?
+
+> > > and send custom
+> > > netlink messages right to your new _wait function. If I understand correctly
+> > > from the code, it will add them to waitqueue and won't release skb till
+> > > the end of processing.
+> >
+> > The only caller of ibnl_unicast_wait is portmapper kernel client.  The call is
+> > initiated from kernel not in response to user message so you did not understand
+> > the code correctly.
+> 
+> Maybe and maybe you didn't read your code at all.
+
+I'm gonna give you a pass on this one.
+
+> Calls to _unicast are triggered from kernel for LS only, in you case as
+> an example the request to get RDMA_NL_IWPM_MAPINFO will trigger ibnl_unicast_wait.
+
+
+LS?  I don't have your acronym database in my head...
+
+With Mustafa's patch, this is the flow with RDMA_NL_IWPM_MAPINFO
+from user-space into the kernel:
+
+iwpm_mapping_info_cb()
+	iwpm_send_mapinfo()
+		send_mapinfo_num()
+		send_nlmsg_done()
+
+Both send_mapinfo_num and sen_nlmsg_done call ibnl_unicast()
+not ibnl_unicast_wait().
+
+I know it is late where you are.  So let's talk about the spirit of the patch.
+Anything that is in response to user-space should use ibnl_unicast.  If you
+find something that's using ibnl_unicast_wait, then the patch is wrong
+and will be corrected.  Now, is there actually one?  Please include call
+flow if you find one.
+
+> > > Will it cause to mark whole netlink socket as NETLINK_S_CONGESTED?
+> >
+> > No.  It has nothing to do with the new function or relevant to this discussion.
+> 
+> Again, read the source, the netlink socket overrun will set that flag.
+
+Sorry, this is still beyond me.  What's the connection to wait/retry?
+How is using wait/retry impacting setting of this flag?
+Are you back to your malicious user attack scenario?  See response below.
+
+> > > Will other users will be able to progress with their messages or they
+> > > will need to wait till those _wait calls finish?
+> >
+> > Short answer is yes.  With this patch other users of ibnl_unicast would not
+> > get the retry/wait.  If you choose to use the wait version, obviousely you will
+> > have retry/wait.  For the work you are doing, you should stick with ibnl_unicast
+> > and there's no impact to your code.  This is the reason for the two functions as
+> > proposed originally.
+> 
+> Again, read the code and my proposed scenario. User without root
+> permissions can open netlink socket (I'm doing it in rdmatool) and can
+> send any message he wants. He can and will overflow the calls with
+> ibnl_unicast_wait, so no other user will have resources available.
+
+So, in the spirit of the patch, this cannot happen.  End of story.
+Ignoring rest of your email.
+
+> > > > > The second, I disagree with solution in kernel for user space application which can't
+> > > > > handle the netlink errors.
+> > > >
+> > > > There is no guarantee delivery nor blocking on send.  Like I mentioned above,
+> > > > it is a 1 shot retry with a set wait time.  The code obviousely handles error
+> > > > condition as it can happen.
+> > >
+> > > So, can you please refresh our memory and explain again what exactly
+> > > this patch is fixing if user-space handles errors correctly?
+> >
+> > You assertion of user-space flaw is incorrect.  It is based on incorrect
+> > conclusion of deadlock and blocking.
+> >
+> > There is no deadlock and no blocking, period.
+> 
+> That question doesn't assume anything. I'm still asking what exactly are
+> you fixing?
+> >
+> >
+> > So what's the issue with taking this patch instead of the revert?
+> 
+> It doesn't fix anything broken in kernel.
+> 
+> >
+> > Chien
+> >
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
