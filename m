@@ -1,76 +1,210 @@
 From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V2 00/13] RDMA/bnxt_re: Misc fixes for bnxt_re
-Date: Thu, 29 Jun 2017 12:28:06 -0700
-Message-ID: <1498764499-24157-1-git-send-email-selvin.xavier@broadcom.com>
+Subject: [PATCH for-next V2 01/13] RDMA/bnxt_re: Fix race between netdev register and unregister events
+Date: Thu, 29 Jun 2017 12:28:07 -0700
+Message-ID: <1498764499-24157-2-git-send-email-selvin.xavier@broadcom.com>
+References: <1498764499-24157-1-git-send-email-selvin.xavier@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1498764499-24157-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch series includes the bug fixes for bnxt_re.
+From: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 
-Patches 1 - 8 in this series are the backlog from the previously
-submitted series -
-https://www.spinics.net/lists/linux-rdma/msg50984.htm (6 out of the
-the 14 patches from the above series got merged into 4.12-rc).
-Theise patches are already reviewed by the community.
+Upon receipt of the NETDEV_REGISTER event from the netdev notifier
+chain, the IB stack registration is spawned off to a workqueue
+since that also requires an rtnl lock.
+There could be 2 kinds of races between the NETDEV_REGISTER and the
+NETDEV_UNREGISTER event handling.
+a)The NETDEV_UNREGISTER event is received in rapid succession after
+the NETDEV_REGISTER event even before the work queue got a chance
+to run
+b)The NETDEV_UNREGISTER event is received while the workqueue that
+handles registration with the IB stack is still in progress.
+Handle both the races with a bit flag that is set as part of the
+NETDEV_REGISTER event just before the work item is queued and cleared
+in the workqueue after the registration with the IB stack is complete.
+Use a barrier to ensure the bit is cleared only after the IB stack
+registration code is completed.
 
-Patches 9-13 are new patches posted for review.
+Removes the link speed query from the query_port as it causes
+deadlock while trying to acquire rtnl_lock. Now querying the
+speed from the nedev event itself.
 
-Doug,
-Please review this and consider applying all 13 patches in the 4.13
-merge cycle.
+Also, added a code to wait for resources(like CQ) to be freed by the
+ULPs, during driver unload
 
-Thanks,
-Selvin Xavier
+Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/hw/bnxt_re/bnxt_re.h  | 13 +++++++----
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 21 +++--------------
+ drivers/infiniband/hw/bnxt_re/main.c     | 39 ++++++++++++++++++++++++++++++++
+ 3 files changed, 50 insertions(+), 23 deletions(-)
 
-v1 -> v2: 
-	Reworked on the locking for handling QPs in flushed state.
-	Removes the flush_lock and uses the cq->hwq.lock for handling
-	the flush state
-
-Devesh Sharma (3):
-  RDMA/bnxt_re: Free doorbell page index (DPI) during dealloc ucontext
-  RDMA/bnxt_re: Enable atomics only if host bios supports
-  RDMA/bnxt_re: Fix return value of poll routine
-
-Eddie Wai (1):
-  RDMA/bnxt_re: Fixed the max_rd_atomic support for initiator and
-    destination QP
-
-Kalesh AP (1):
-  RDMA/bnxt_re: Add vlan tag for untagged RoCE traffic when PFC is
-    configured
-
-Selvin Xavier (5):
-  RDMA/bnxt_re: Do not free the ctx_tbl entry if delete GID fails
-  RDMA/bnxt_re: Report supported value to IB stack in query_device
-  RDMA/bnxt_re: Allow posting when QPs are in error
-  RDMA/bnxt_re: Report MISSED_EVENTS in req_notify_cq
-  RDMA/bnxt_re: Fix the value reported for local ack delay
-
-Somnath Kotur (3):
-  RDMA/bnxt_re: Fix race between netdev register and unregister events
-  RDMA/bnxt_re: Fix WQE Size posted to HW to prevent it from throwing
-    error
-  RDMA/bnxt_re: Specify RDMA component when allocating stats context
-
- drivers/infiniband/hw/bnxt_re/bnxt_re.h    |  22 +-
- drivers/infiniband/hw/bnxt_re/ib_verbs.c   | 158 +++++----
- drivers/infiniband/hw/bnxt_re/ib_verbs.h   |   3 +-
- drivers/infiniband/hw/bnxt_re/main.c       |  96 +++++-
- drivers/infiniband/hw/bnxt_re/qplib_fp.c   | 494 ++++++++++++++++++++++++-----
- drivers/infiniband/hw/bnxt_re/qplib_fp.h   |  26 +-
- drivers/infiniband/hw/bnxt_re/qplib_rcfw.c |  26 +-
- drivers/infiniband/hw/bnxt_re/qplib_rcfw.h |  10 +-
- drivers/infiniband/hw/bnxt_re/qplib_res.c  |  10 +
- drivers/infiniband/hw/bnxt_re/qplib_res.h  |   2 +
- drivers/infiniband/hw/bnxt_re/qplib_sp.c   |  93 +++++-
- drivers/infiniband/hw/bnxt_re/qplib_sp.h   |   5 +
- drivers/infiniband/hw/bnxt_re/roce_hsi.h   |   4 +-
- 13 files changed, 766 insertions(+), 183 deletions(-)
-
+diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+index 0877283..12950ec 100644
+--- a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
++++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+@@ -84,11 +84,13 @@ struct bnxt_re_dev {
+ 	struct ib_device		ibdev;
+ 	struct list_head		list;
+ 	unsigned long			flags;
+-#define BNXT_RE_FLAG_NETDEV_REGISTERED	0
+-#define BNXT_RE_FLAG_IBDEV_REGISTERED	1
+-#define BNXT_RE_FLAG_GOT_MSIX		2
+-#define BNXT_RE_FLAG_RCFW_CHANNEL_EN	8
+-#define BNXT_RE_FLAG_QOS_WORK_REG	16
++#define BNXT_RE_FLAG_NETDEV_REGISTERED         0
++#define BNXT_RE_FLAG_IBDEV_REGISTERED          1
++#define BNXT_RE_FLAG_GOT_MSIX                  2
++#define BNXT_RE_FLAG_RCFW_CHANNEL_EN           4
++#define BNXT_RE_FLAG_QOS_WORK_REG              5
++#define BNXT_RE_FLAG_NETDEV_REG_IN_PROG        6
++
+ 	struct net_device		*netdev;
+ 	unsigned int			version, major, minor;
+ 	struct bnxt_en_dev		*en_dev;
+@@ -131,6 +133,7 @@ struct bnxt_re_dev {
+ 	struct bnxt_re_qp		*qp1_sqp;
+ 	struct bnxt_re_ah		*sqp_ah;
+ 	struct bnxt_re_sqp_entries sqp_tbl[1024];
++	u32 espeed;
+ };
+ 
+ #define to_bnxt_re_dev(ptr, member)	\
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index c7bd683..fa388f2 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -223,20 +223,8 @@ int bnxt_re_modify_device(struct ib_device *ibdev,
+ 	return 0;
+ }
+ 
+-static void __to_ib_speed_width(struct net_device *netdev, u8 *speed, u8 *width)
++static void __to_ib_speed_width(u32 espeed, u8 *speed, u8 *width)
+ {
+-	struct ethtool_link_ksettings lksettings;
+-	u32 espeed;
+-
+-	if (netdev->ethtool_ops && netdev->ethtool_ops->get_link_ksettings) {
+-		memset(&lksettings, 0, sizeof(lksettings));
+-		rtnl_lock();
+-		netdev->ethtool_ops->get_link_ksettings(netdev, &lksettings);
+-		rtnl_unlock();
+-		espeed = lksettings.base.speed;
+-	} else {
+-		espeed = SPEED_UNKNOWN;
+-	}
+ 	switch (espeed) {
+ 	case SPEED_1000:
+ 		*speed = IB_SPEED_SDR;
+@@ -303,12 +291,9 @@ int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
+ 	port_attr->sm_sl = 0;
+ 	port_attr->subnet_timeout = 0;
+ 	port_attr->init_type_reply = 0;
+-	/* call the underlying netdev's ethtool hooks to query speed settings
+-	 * for which we acquire rtnl_lock _only_ if it's registered with
+-	 * IB stack to avoid race in the NETDEV_UNREG path
+-	 */
++
+ 	if (test_bit(BNXT_RE_FLAG_IBDEV_REGISTERED, &rdev->flags))
+-		__to_ib_speed_width(rdev->netdev, &port_attr->active_speed,
++		__to_ib_speed_width(rdev->espeed, &port_attr->active_speed,
+ 				    &port_attr->active_width);
+ 	return 0;
+ }
+diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+index 1fce5e7..91b5208 100644
+--- a/drivers/infiniband/hw/bnxt_re/main.c
++++ b/drivers/infiniband/hw/bnxt_re/main.c
+@@ -48,6 +48,8 @@
+ #include <net/ipv6.h>
+ #include <net/addrconf.h>
+ #include <linux/if_ether.h>
++#include <linux/atomic.h>
++#include <asm/barrier.h>
+ 
+ #include <rdma/ib_verbs.h>
+ #include <rdma/ib_user_verbs.h>
+@@ -922,6 +924,10 @@ static void bnxt_re_ib_unreg(struct bnxt_re_dev *rdev, bool lock_wait)
+ 	if (test_and_clear_bit(BNXT_RE_FLAG_QOS_WORK_REG, &rdev->flags))
+ 		cancel_delayed_work(&rdev->worker);
+ 
++	/* Wait for ULPs to release references */
++	while (atomic_read(&rdev->cq_count))
++		usleep_range(500, 1000);
++
+ 	bnxt_re_cleanup_res(rdev);
+ 	bnxt_re_free_res(rdev, lock_wait);
+ 
+@@ -1148,6 +1154,22 @@ static void bnxt_re_remove_one(struct bnxt_re_dev *rdev)
+ 	pci_dev_put(rdev->en_dev->pdev);
+ }
+ 
++static void bnxt_re_get_link_speed(struct bnxt_re_dev *rdev)
++{
++	struct ethtool_link_ksettings lksettings;
++	struct net_device *netdev = rdev->netdev;
++
++	if (netdev->ethtool_ops && netdev->ethtool_ops->get_link_ksettings) {
++		memset(&lksettings, 0, sizeof(lksettings));
++		if (rtnl_trylock()) {
++			netdev->ethtool_ops->get_link_ksettings(netdev,
++								&lksettings);
++			rdev->espeed = lksettings.base.speed;
++			rtnl_unlock();
++		}
++	}
++}
++
+ /* Handle all deferred netevents tasks */
+ static void bnxt_re_task(struct work_struct *work)
+ {
+@@ -1165,6 +1187,10 @@ static void bnxt_re_task(struct work_struct *work)
+ 	switch (re_work->event) {
+ 	case NETDEV_REGISTER:
+ 		rc = bnxt_re_ib_reg(rdev);
++		/* Use memory barrier to sync the rdev->flags */
++		smp_mb();
++		clear_bit(BNXT_RE_FLAG_NETDEV_REG_IN_PROG,
++			  &rdev->flags);
+ 		if (rc)
+ 			dev_err(rdev_to_dev(rdev),
+ 				"Failed to register with IB: %#x", rc);
+@@ -1182,6 +1208,7 @@ static void bnxt_re_task(struct work_struct *work)
+ 		else if (netif_carrier_ok(rdev->netdev))
+ 			bnxt_re_dispatch_event(&rdev->ibdev, NULL, 1,
+ 					       IB_EVENT_PORT_ACTIVE);
++		bnxt_re_get_link_speed(rdev);
+ 		break;
+ 	default:
+ 		break;
+@@ -1240,10 +1267,22 @@ static int bnxt_re_netdev_event(struct notifier_block *notifier,
+ 			break;
+ 		}
+ 		bnxt_re_init_one(rdev);
++		/*
++		 *  Query the link speed at the time of registration.
++		 *  Already in rtnl_lock context
++		 */
++		bnxt_re_get_link_speed(rdev);
++
++		set_bit(BNXT_RE_FLAG_NETDEV_REG_IN_PROG, &rdev->flags);
+ 		sch_work = true;
+ 		break;
+ 
+ 	case NETDEV_UNREGISTER:
++		/* netdev notifier will call NETDEV_UNREGISTER again later since
++		 * we are still holding the reference to the netdev
++		 */
++		if (test_bit(BNXT_RE_FLAG_NETDEV_REG_IN_PROG, &rdev->flags))
++			goto exit;
+ 		bnxt_re_ib_unreg(rdev, false);
+ 		bnxt_re_remove_one(rdev);
+ 		bnxt_re_dev_unreg(rdev);
 -- 
 2.5.5
 
