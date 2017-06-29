@@ -1,38 +1,42 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH] IB/iser: Handle lack of memory management extentions
- correctly
-Date: Thu, 29 Jun 2017 08:41:47 +0300
-Message-ID: <c9b4c804-09d3-c02e-da21-32468e913c81@grimberg.me>
-References: <20170622190110.27788.19910.stgit@phlsvslse11.ph.intel.com>
- <55a85363-da66-f6d6-f5cc-08b20f148f36@grimberg.me>
- <32E1700B9017364D9B60AED9960492BC34327953@fmsmsx120.amr.corp.intel.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] [net-next] net/mlx5e: select CONFIG_MLXFW
+Date: Thu, 29 Jun 2017 09:48:57 +0200
+Message-ID: <CAK8P3a1R3jP-qes5ZbbM4xETGvrCzdNahXENPqmXyh9+Xy-ipw@mail.gmail.com>
+References: <20170628201032.3178691-1-arnd@arndb.de> <CAJ3xEMj3GdWbUGm8DrMhoc282FoGE9f7XxZB8tauz1J_gdK-_A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC34327953-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Thomas Rosenstein <thomas.rosenstein-+32LHaKS/h5VtLMLtJdGzA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJ3xEMj3GdWbUGm8DrMhoc282FoGE9f7XxZB8tauz1J_gdK-_A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Or Gerlitz <gerlitz.or@gmail.com>
+Cc: Jakub Kicinski <jakub.kicinski@netronome.com>, Saeed Mahameed <saeedm@mellanox.com>, "David S. Miller" <davem@davemloft.net>, Or Gerlitz <ogerlitz@mellanox.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, Linux Netdev List <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Jun 29, 2017 at 5:47 AM, Or Gerlitz <gerlitz.or@gmail.com> wrote:
+> On Wed, Jun 28, 2017 at 11:10 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+>> With the introduction of mlx5 firmware flash support, we get a link
+>> error with CONFIG_MLXFW=m and CONFIG_MLX5_CORE=y:
+>>
+>> drivers/net/ethernet/mellanox/mlx5/core/fw.o: In function `mlx5_firmware_flash':
+>> fw.c:(.text+0x9d4): undefined reference to `mlxfw_firmware_flash'
+>
+> Thanks Arnd, I got a report on that from Jakub but you were before me here..
+>
+>> We could have a more elaborate method to force MLX5 to be a loadable
+>> module in this case, but the easiest fix seems to be to always enable
+>> MLXFW as well, like we do for CONFIG_MLXSW_SPECTRUM, which is the other
+>> user of mlxfw_firmware_flash.
+>
+> We would not want to force mlx5 users to build mlxfw.
+>
+> So lets either use the more elaborate method or maybe instead of using
+> IS_ENABLED in mlxfw.h use IS_REACHABLE (this was suggested by Jakub)
 
-> I have no issue with your proposal, but I would rather get this fixed and adjust the API with an additional fix.   I suspect we probably want to mark this fix stable.
+Sure, that works. I generally try to avoid IS_REACHABLE(), as I find it more
+confusing than adding a dependency like
 
-I agree, we should get it in and fix the API incrementally.
+           depends on MLXFW || MLXFW=n
 
-> I did audit the kernel ULPs for FMR vs. FRMR usage and the only one that looked at max_fast_reg_page_list_len unconditionally was iser.
+(and yes, I was the one who introduced IS_REACHABLE() ;-) ).
 
-Correct, but it doesn't mean that others get it right.
-
-nfs uses a hard coded value without even knowing what the device is
-capable of, and srp calculates it from max_mr_size which is a user-space
-mr capability and has nothing to do with fmrs.
-
-So no one got it right, which is not surprising as we don't have a cap
-for it.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+      Arnd
