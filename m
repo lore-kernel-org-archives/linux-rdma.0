@@ -1,95 +1,77 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 3/7] mlx4: Convert datagram segment to use mlx4_av struct
-Date: Thu, 29 Jun 2017 14:47:04 +0300
-Message-ID: <1498736828-17875-4-git-send-email-yishaih@mellanox.com>
-References: <1498736828-17875-1-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 0/7] Add mlx4 direct verbs
+Date: Thu, 29 Jun 2017 14:47:01 +0300
+Message-ID: <1498736828-17875-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1498736828-17875-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This patchset from Maor adds direct access to mlx4 devices, it follows same
+solution from both API and packaging perspectives as was already accepted for
+mlx5.
 
-The datagram segment struct contains array which
-represents the address vector, convert the array
-to mlx4_av.
+The libibverbs API is an abstract API. It is agnostic to any underlying
+provider specific implementation. While this abstraction has the advantage of
+user applications portability it has a performance penalty. For some
+applications optimizing performance is more important than portability.
 
-mlx4dv will use this struct in downstream patches.
+The mlx4 direct verbs API introduced in this patchset is intended for such
+applications. It exposes mlx4 specific low level data path
+(send/receive/completion) operations, allowing the application to bypass the
+libibverbs data path API.
 
-Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- providers/mlx4/mlx4.h   | 13 -------------
- providers/mlx4/mlx4dv.h | 15 ++++++++++++++-
- providers/mlx4/qp.c     |  2 +-
- 3 files changed, 15 insertions(+), 15 deletions(-)
+The proposed interface consists from one hardware specific header with relevant
+inline functions and conversion logic from ibverbs structures to mlx4 related
+structures.
 
-diff --git a/providers/mlx4/mlx4.h b/providers/mlx4/mlx4.h
-index 8f0d6f2..bdb7f16 100644
---- a/providers/mlx4/mlx4.h
-+++ b/providers/mlx4/mlx4.h
-@@ -214,19 +214,6 @@ struct mlx4_qp {
- 	uint32_t			qp_cap_cache;
- };
- 
--struct mlx4_av {
--	uint32_t			port_pd;
--	uint8_t				reserved1;
--	uint8_t				g_slid;
--	uint16_t			dlid;
--	uint8_t				reserved2;
--	uint8_t				gid_index;
--	uint8_t				stat_rate;
--	uint8_t				hop_limit;
--	uint32_t			sl_tclass_flowlabel;
--	uint8_t				dgid[16];
--};
--
- struct mlx4_ah {
- 	struct ibv_ah			ibv_ah;
- 	struct mlx4_av			av;
-diff --git a/providers/mlx4/mlx4dv.h b/providers/mlx4/mlx4dv.h
-index e677fe1..7679ece 100644
---- a/providers/mlx4/mlx4dv.h
-+++ b/providers/mlx4/mlx4dv.h
-@@ -325,8 +325,21 @@ struct mlx4_wqe_ctrl_seg {
- 	uint32_t		imm;
- };
- 
-+struct mlx4_av {
-+	uint32_t			port_pd;
-+	uint8_t				reserved1;
-+	uint8_t				g_slid;
-+	uint16_t			dlid;
-+	uint8_t				reserved2;
-+	uint8_t				gid_index;
-+	uint8_t				stat_rate;
-+	uint8_t				hop_limit;
-+	uint32_t			sl_tclass_flowlabel;
-+	uint8_t				dgid[16];
-+};
-+
- struct mlx4_wqe_datagram_seg {
--	uint32_t		av[8];
-+	struct mlx4_av		av;
- 	uint32_t		dqpn;
- 	uint32_t		qkey;
- 	uint16_t		vlan;
-diff --git a/providers/mlx4/qp.c b/providers/mlx4/qp.c
-index b7e3669..1be100b 100644
---- a/providers/mlx4/qp.c
-+++ b/providers/mlx4/qp.c
-@@ -175,7 +175,7 @@ static void set_atomic_seg(struct mlx4_wqe_atomic_seg *aseg, struct ibv_send_wr
- static void set_datagram_seg(struct mlx4_wqe_datagram_seg *dseg,
- 			     struct ibv_send_wr *wr)
- {
--	memcpy(dseg->av, &to_mah(wr->wr.ud.ah)->av, sizeof (struct mlx4_av));
-+	memcpy(&dseg->av, &to_mah(wr->wr.ud.ah)->av, sizeof (struct mlx4_av));
- 	dseg->dqpn = htobe32(wr->wr.ud.remote_qpn);
- 	dseg->qkey = htobe32(wr->wr.ud.remote_qkey);
- 	dseg->vlan = htobe16(to_mah(wr->wr.ud.ah)->vlan);
+New header is going to be installed in below path location:
+/usr/inlcude/infiniband/mlx4dv.h
+
+The direct include of mlx4dv.h together with linkage to mlx4 library will
+allow usage of this new interface.
+
+Pull request was sent:
+https://github.com/linux-rdma/rdma-core/pull/155
+
+Yishai
+
+Maor Gottlieb (7):
+  mlx4: Add mlx4 direct verbs
+  mlx4: Add CQE fields
+  mlx4: Convert datagram segment to use mlx4_av struct
+  mlx4: Add WQE segments implementation
+  mlx4: Convert to use predefined get CQE opcodes
+  mlx4: Add direct verbs man pages
+  mlx4: Export mlx4 direct verbs interface
+
+ CMakeLists.txt                       |   1 +
+ debian/ibverbs-providers.install     |   1 +
+ debian/ibverbs-providers.symbols     |   4 +
+ debian/libibverbs-dev.install        |   4 +
+ providers/mlx4/CMakeLists.txt        |   7 +-
+ providers/mlx4/cq.c                  |  65 +----
+ providers/mlx4/libmlx4.map           |   7 +
+ providers/mlx4/man/CMakeLists.txt    |   4 +
+ providers/mlx4/man/mlx4dv.7          |  39 +++
+ providers/mlx4/man/mlx4dv_init_obj.3 | 117 +++++++++
+ providers/mlx4/mlx4.c                |  76 ++++++
+ providers/mlx4/mlx4.h                |  73 +-----
+ providers/mlx4/mlx4dv.h              | 465 +++++++++++++++++++++++++++++++++++
+ providers/mlx4/qp.c                  |   3 +-
+ providers/mlx4/srq.c                 |   1 -
+ providers/mlx4/verbs.c               |   1 -
+ providers/mlx4/wqe.h                 | 149 -----------
+ redhat/rdma-core.spec                |   3 +
+ 18 files changed, 743 insertions(+), 277 deletions(-)
+ create mode 100644 providers/mlx4/libmlx4.map
+ create mode 100644 providers/mlx4/man/CMakeLists.txt
+ create mode 100644 providers/mlx4/man/mlx4dv.7
+ create mode 100644 providers/mlx4/man/mlx4dv_init_obj.3
+ create mode 100644 providers/mlx4/mlx4dv.h
+ delete mode 100644 providers/mlx4/wqe.h
+
 -- 
 1.8.3.1
 
