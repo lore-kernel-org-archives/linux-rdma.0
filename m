@@ -1,54 +1,42 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: Unexpected issues with 2 NVME initiators using the same target
-Date: Thu, 29 Jun 2017 08:35:21 +0300
-Message-ID: <66b1b8be-e506-50b8-c01f-fa0e3cea98a4@grimberg.me>
-References: <20170620074639.GP17846@mtr-leonro.local>
- <1c706958-992e-b104-6bae-4a6616c0a9f9@grimberg.me>
- <20170620083309.GQ17846@mtr-leonro.local>
- <bd0b986f-9bed-3dfa-7454-0661559a527b@grimberg.me>
- <614481c7-22dd-d93b-e97e-52f868727ec3@grimberg.me>
- <59FF0C04-2BFB-4F66-81BA-A598A9A087FC@oracle.com>
- <20170620173532.GA827@obsidianresearch.com>
- <D3DC49A2-FFC9-4F62-8876-3E6AD5167DE5@oracle.com>
- <20170620192742.GB827@obsidianresearch.com>
- <C14B071E-F1B2-466A-82CF-4E20BFAD9DC1@oracle.com>
- <20170620211958.GA5574@obsidianresearch.com>
- <4f0812f1-0067-4e63-e383-b913ee1f319d@grimberg.me>
- <28F6F58E-B6F4-4114-8DFF-B72353CE814B@oracle.com>
- <52ad3547-efcf-f428-6b39-117efda3379f@grimberg.me>
- <9990B5CB-E0FF-481E-9F34-21EACF0E796E@oracle.com>
- <f1f1a68c-90db-e6bf-e35e-55c4b469c339@grimberg.me>
- <7D1C540B-FEA0-4101-8B58-87BCB7DB5492@oracle.com>
+Subject: Re: [PATCH] ib_isert: prevent NULL pointer dereference in
+ isert_login_recv_done()
+Date: Thu, 29 Jun 2017 08:36:51 +0300
+Message-ID: <ac404f71-3f34-af4c-b7b2-2b19ae768f47@grimberg.me>
+References: <CAANLjFoaZ8ueEQet3Yu6LygmxXBbQ0cHUEYsb2xEON0o3N9=+w@mail.gmail.com>
+ <CAANLjFp6Y8wvLvmWrk1ECjm-OoyEppxD1svNYKpg+HDEZevJig@mail.gmail.com>
+ <CAANLjFoQcmfkjq9N1fehTC9Zi6aOC7ArOEPXz-he3EnOvWeEDw@mail.gmail.com>
+ <20170622223757.GC28955@Dell>
+ <1498435084.26123.66.camel@haakon3.risingtidesystems.com>
+ <20170628175354.GB1769@Dell>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <7D1C540B-FEA0-4101-8B58-87BCB7DB5492-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170628175354.GB1769@Dell>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "shahar.salzman" <shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Riches Jr, Robert M" <robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+To: Andrea Righi <righi.andrea-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Cc: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, Sean Jenkins <sean-v0B6Y9onFlloq1w47eu9iAC/G2K4zDHf@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
->> How do you know when that happens?
+> Just tested this patch, I wasn't able to reproduce the NULL pointer
+> dereference or any other bugs, so this fix seems safe enough to me.
 > 
-> The RPC Call send path sets up the Send SGE array. If it includes
-> page cache pages, it can set IB_SEND_SIGNALED.
-> 
-> The SGE array and the ib_cqe for the send are in the same data
-> structure, so the Send completion handler can find the SGE array
-> and figure out what needs to be unmapped.
-> 
-> The only problem is if a POSIX signal fires. In that case the
-> data structure can be released before the Send completion fires,
-> and we get touch-after-free in the completion handler.
-> 
-> I'm thinking that it just isn't going to be practical to handle
-> unmapping this way, and I should just revert back to using RDMA
-> Read instead of adding page cache pages to the Send SGE.
+> Tested-by: Andrea Righi <righi.andrea-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Or wait for the send completion before completing the I/O?
+Can you test just the one liner fix below?
+
+>> @@ -1452,7 +1452,7 @@
+>>   isert_login_recv_done(struct ib_cq *cq, struct ib_wc *wc)
+>>   {
+>>   	struct isert_conn *isert_conn = wc->qp->qp_context;
+>> -	struct ib_device *ib_dev = isert_conn->cm_id->device;
+>> +	struct ib_device *ib_dev = isert_conn->device->ib_device;
+>>   
+>>   	if (unlikely(wc->status != IB_WC_SUCCESS)) {
+>>   		isert_print_wc(wc, "login recv");
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
