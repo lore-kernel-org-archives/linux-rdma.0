@@ -1,179 +1,95 @@
-From: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] RDMA/core: Add wait/retry version of ibnl_unicast
-Date: Thu, 29 Jun 2017 14:31:46 -0500
-Message-ID: <20170629193146.GA24592@ctung-MOBL3.amr.corp.intel.com>
-References: <1498658565-3408-1-git-send-email-mustafa.ismail@intel.com>
- <20170628141211.GA16312@ctung-MOBL3.amr.corp.intel.com>
- <20170628153639.GF1248@mtr-leonro.local>
- <20170628203003.GA23300@ctung-MOBL3.amr.corp.intel.com>
- <20170629050436.GO1248@mtr-leonro.local>
- <20170629150249.GA21856@ctung-MOBL3.amr.corp.intel.com>
- <20170629163719.GC12009@mtr-leonro.local>
+From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH v3 09/18] sunrpc: Allocate one more page per svc_rqst
+Date: Thu, 29 Jun 2017 16:20:04 -0400
+Message-ID: <20170629202004.GC4178@fieldses.org>
+References: <20170623211150.5162.59075.stgit@klimt.1015granger.net>
+ <20170623211816.5162.54447.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170629163719.GC12009-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+In-Reply-To: <20170623211816.5162.54447.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 29, 2017 at 07:37:19PM +0300, Leon Romanovsky wrote:
-> On Thu, Jun 29, 2017 at 10:02:49AM -0500, Chien Tin Tung wrote:
-> > On Thu, Jun 29, 2017 at 08:04:36AM +0300, Leon Romanovsky wrote:
-> > > On Wed, Jun 28, 2017 at 03:30:03PM -0500, Chien Tin Tung wrote:
-> > > > On Wed, Jun 28, 2017 at 06:36:39PM +0300, Leon Romanovsky wrote:
-> > > > > On Wed, Jun 28, 2017 at 09:12:11AM -0500, Chien Tin Tung wrote:
-> > > > > > On Wed, Jun 28, 2017 at 09:02:45AM -0500, Mustafa Ismail wrote:
-> > > > > > > Add a wait/retry version of ibnl_unicast, ibnl_unicast_wait,
-> > > > > > > and modify ibnl_unicast to not wait/retry.  This eliminates
-> > > > > > > the undesirable wait for future users of ibnl_unicast.
-> > > > > > >
-> > > > > > > Change Portmapper calls originating from kernel to user-space
-> > > > > > > to use ibnl_unicast_wait and take advantage of the wait/retry
-> > > > > > > logic in netlink_unicast.
-> > > > > > >
-> > > > > > > Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > > > > > Signed-off-by: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > > > > > ---
-> > > > > > >  drivers/infiniband/core/iwpm_msg.c |  6 +++---
-> > > > > > >  drivers/infiniband/core/netlink.c  | 12 +++++++++++-
-> > > > > > >  include/rdma/rdma_netlink.h        | 10 ++++++++++
-> > > > > > >  3 files changed, 24 insertions(+), 4 deletions(-)
-> > > > > >
-> > > > > > Please apply this patch instead of Leon's patch to revert
-> > > > > > "IB/core: Add flow control to the portmapper netlink calls".
-> > > > > >
-> > > > > > Leon, we can work out names and parameters if this works for you.
-> > > > >
-> > > > > Chien,
-> > > > >
-> > > > > The names are less my worries with this patch. First of all, it misleads
-> > > > > by using wait/retry naming, because it blocks and not waits.
-> > > >
-> > > > Nope.  It does a single shot retry and waits in a waitqueue.
-> > > > Go look at netlink_unicast and in turn netlink_attachskb.  If you still
-> > > > disagree, please flag specific code where it blocks.
-> > >
-> > > I agree, it wouldn't block in your scenario. However will it work in more hostile
-> > > environments?
-> >
-> > The reason behind the original patch was to make it more tolerable to "hostile"
-> > environments by giving it one more try allocate buffer to send the message.
-> > So yes, it does work in more hostile environment.
+I'm confused by this one:
+
+On Fri, Jun 23, 2017 at 05:18:16PM -0400, Chuck Lever wrote:
+> svcrdma needs 259 pages for 1MB NFSv4.0 READ requests:
 > 
-> Are you really calling extra load as a "hostile environment"?
-
-I'm not playing 20 questions (https://en.wikipedia.org/wiki/Twenty_Questions).
-If you have something in mind say so.  If you are referring to your malicious
-user attack scenario see my response below.
-
-> > > For example, malicious user can open RDMA netlink socket directly (socket(...)),
-> > > set sndtimeo to be MAX_SCHEDULE_TIMEOUT - 1 (LONG_MAX - 1)
-> >
-> > How do you open the _kernel_ RDMA netlink socket directly from user-space and
-> > set the timeout value?
+>  - 1 page for the transport header and head iovec
+>  - 256 pages for the data payload
+>  - 1 page for the trailing GETATTR request (since NFSD XDR decoding
+>    does not look for a tail iovec, the GETATTR is stuck at the end
+>    of the rqstp->rq_arg.pages list)
+>  - 1 page for building the reply xdr_buf
 > 
-> Exactly as libnl, libmnl and rdma-core do. The netlink socket is
-> accessible from the user space without root access. It is the whole
-> purpose of it.
-
-Wow, you just uncovered a big security hole.  Isn't this beyond a simple timeout
-value?  Wouldn't the ability to set the socket to _blocking_ blow your top?
-
-> > > and send custom
-> > > netlink messages right to your new _wait function. If I understand correctly
-> > > from the code, it will add them to waitqueue and won't release skb till
-> > > the end of processing.
-> >
-> > The only caller of ibnl_unicast_wait is portmapper kernel client.  The call is
-> > initiated from kernel not in response to user message so you did not understand
-> > the code correctly.
+> Note that RPCSVC_MAXPAGES is defined as:
 > 
-> Maybe and maybe you didn't read your code at all.
-
-I'm gonna give you a pass on this one.
-
-> Calls to _unicast are triggered from kernel for LS only, in you case as
-> an example the request to get RDMA_NL_IWPM_MAPINFO will trigger ibnl_unicast_wait.
-
-
-LS?  I don't have your acronym database in my head...
-
-With Mustafa's patch, this is the flow with RDMA_NL_IWPM_MAPINFO
-from user-space into the kernel:
-
-iwpm_mapping_info_cb()
-	iwpm_send_mapinfo()
-		send_mapinfo_num()
-		send_nlmsg_done()
-
-Both send_mapinfo_num and sen_nlmsg_done call ibnl_unicast()
-not ibnl_unicast_wait().
-
-I know it is late where you are.  So let's talk about the spirit of the patch.
-Anything that is in response to user-space should use ibnl_unicast.  If you
-find something that's using ibnl_unicast_wait, then the patch is wrong
-and will be corrected.  Now, is there actually one?  Please include call
-flow if you find one.
-
-> > > Will it cause to mark whole netlink socket as NETLINK_S_CONGESTED?
-> >
-> > No.  It has nothing to do with the new function or relevant to this discussion.
+> 	((RPCSVC_MAXPAYLOAD+PAGE_SIZE-1)/PAGE_SIZE + 2 + 1)
 > 
-> Again, read the source, the netlink socket overrun will set that flag.
-
-Sorry, this is still beyond me.  What's the connection to wait/retry?
-How is using wait/retry impacting setting of this flag?
-Are you back to your malicious user attack scenario?  See response below.
-
-> > > Will other users will be able to progress with their messages or they
-> > > will need to wait till those _wait calls finish?
-> >
-> > Short answer is yes.  With this patch other users of ibnl_unicast would not
-> > get the retry/wait.  If you choose to use the wait version, obviousely you will
-> > have retry/wait.  For the work you are doing, you should stick with ibnl_unicast
-> > and there's no impact to your code.  This is the reason for the two functions as
-> > proposed originally.
+> I don't understand why the "+PAGE_SIZE-1" is in there, because
+> division will always round the result down to
 > 
-> Again, read the code and my proposed scenario. User without root
-> permissions can open netlink socket (I'm doing it in rdmatool) and can
-> send any message he wants. He can and will overflow the calls with
-> ibnl_unicast_wait, so no other user will have resources available.
+> 	(RPCSVC_MAXPAYLOAD / PAGE_SIZE + 2 + 1)
 
-So, in the spirit of the patch, this cannot happen.  End of story.
-Ignoring rest of your email.
+I think you're assuming that RPCSVC_MAXPAYLOAD is a multiple of
+PAGE_SIZE.  Maybe that's true in all cases (I haven't checked), but it
+seems harmless to handle the case where it's not.
 
-> > > > > The second, I disagree with solution in kernel for user space application which can't
-> > > > > handle the netlink errors.
-> > > >
-> > > > There is no guarantee delivery nor blocking on send.  Like I mentioned above,
-> > > > it is a 1 shot retry with a set wait time.  The code obviousely handles error
-> > > > condition as it can happen.
-> > >
-> > > So, can you please refresh our memory and explain again what exactly
-> > > this patch is fixing if user-space handles errors correctly?
-> >
-> > You assertion of user-space flaw is incorrect.  It is based on incorrect
-> > conclusion of deadlock and blocking.
-> >
-> > There is no deadlock and no blocking, period.
+> Let's remove the "-1" to get 260 pages maximum.
+
+Why?  (I'm not necessarily opposed, I just missed the explanation.)
+
+--b.
+
+> Then svc_alloc_args() needs to ask for pages according to this
+> same formula, otherwise it will never allocate enough.
 > 
-> That question doesn't assume anything. I'm still asking what exactly are
-> you fixing?
-> >
-> >
-> > So what's the issue with taking this patch instead of the revert?
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  include/linux/sunrpc/svc.h |    3 +--
+>  net/sunrpc/svc_xprt.c      |    8 +++++---
+>  2 files changed, 6 insertions(+), 5 deletions(-)
 > 
-> It doesn't fix anything broken in kernel.
-> 
-> >
-> > Chien
-> >
-
-
+> diff --git a/include/linux/sunrpc/svc.h b/include/linux/sunrpc/svc.h
+> index 11cef5a..35c274f 100644
+> --- a/include/linux/sunrpc/svc.h
+> +++ b/include/linux/sunrpc/svc.h
+> @@ -176,8 +176,7 @@ static inline void svc_get(struct svc_serv *serv)
+>   * We using ->sendfile to return read data, we might need one extra page
+>   * if the request is not page-aligned.  So add another '1'.
+>   */
+> -#define RPCSVC_MAXPAGES		((RPCSVC_MAXPAYLOAD+PAGE_SIZE-1)/PAGE_SIZE \
+> -				+ 2 + 1)
+> +#define RPCSVC_MAXPAGES	((RPCSVC_MAXPAYLOAD + PAGE_SIZE) / PAGE_SIZE + 2 + 1)
+>  
+>  static inline u32 svc_getnl(struct kvec *iov)
+>  {
+> diff --git a/net/sunrpc/svc_xprt.c b/net/sunrpc/svc_xprt.c
+> index 7bfe1fb..9bd484d 100644
+> --- a/net/sunrpc/svc_xprt.c
+> +++ b/net/sunrpc/svc_xprt.c
+> @@ -659,11 +659,13 @@ static int svc_alloc_arg(struct svc_rqst *rqstp)
+>  	int i;
+>  
+>  	/* now allocate needed pages.  If we get a failure, sleep briefly */
+> -	pages = (serv->sv_max_mesg + PAGE_SIZE) / PAGE_SIZE;
+> -	WARN_ON_ONCE(pages >= RPCSVC_MAXPAGES);
+> -	if (pages >= RPCSVC_MAXPAGES)
+> +	pages = (serv->sv_max_mesg + (2 * PAGE_SIZE)) >> PAGE_SHIFT;
+> +	if (pages >= RPCSVC_MAXPAGES) {
+> +		pr_warn_once("svc: warning: pages=%u >= RPCSVC_MAXPAGES=%lu\n",
+> +			     pages, RPCSVC_MAXPAGES);
+>  		/* use as many pages as possible */
+>  		pages = RPCSVC_MAXPAGES - 1;
+> +	}
+>  	for (i = 0; i < pages ; i++)
+>  		while (rqstp->rq_pages[i] == NULL) {
+>  			struct page *p = alloc_page(GFP_KERNEL);
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
