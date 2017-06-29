@@ -1,7 +1,7 @@
 From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-next V2 13/13] RDMA/bnxt_re: Fix the value reported for local ack delay
-Date: Thu, 29 Jun 2017 12:28:19 -0700
-Message-ID: <1498764499-24157-14-git-send-email-selvin.xavier@broadcom.com>
+Subject: [PATCH for-next V2 12/13] RDMA/bnxt_re: Report MISSED_EVENTS in req_notify_cq
+Date: Thu, 29 Jun 2017 12:28:18 -0700
+Message-ID: <1498764499-24157-13-git-send-email-selvin.xavier@broadcom.com>
 References: <1498764499-24157-1-git-send-email-selvin.xavier@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1498764499-24157-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
@@ -10,46 +10,78 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Local ack delay exposed by the driver is 0 which means infinite QP
-timeout. Reporting the default value to 16 (approx 260ms)
+While invoking the req_notify_cq hook, ULPs can request
+whether the CQs have any CQEs pending. If CQEs are pending,
+drivers can indicate  it by returning 1 for req_notify_cq.
+The stack will poll CQ again till CQ is empty.
+
+This patch peeks the CQ for any valid entries and return accordingly.
 
 Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/bnxt_re/bnxt_re.h  | 7 +++++++
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 2 +-
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c |  5 +++++
+ drivers/infiniband/hw/bnxt_re/qplib_fp.c | 19 +++++++++++++++++++
+ drivers/infiniband/hw/bnxt_re/qplib_fp.h |  1 +
+ 3 files changed, 25 insertions(+)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-index 30bff05..c1c9e62 100644
---- a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-+++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
-@@ -62,6 +62,13 @@
- 
- #define BNXT_RE_RQ_WQE_THRESHOLD	32
- 
-+/*
-+ * Setting the default ack delay value to 16, which means
-+ * the default timeout is approx. 260ms(4 usec * 2 ^(timeout))
-+ */
-+
-+#define BNXT_RE_DEFAULT_ACK_DELAY	16
-+
- struct bnxt_re_work {
- 	struct work_struct	work;
- 	unsigned long		event;
 diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index 2cfcd38..1eff59d 100644
+index 27893f7..2cfcd38 100644
 --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
 +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -201,7 +201,7 @@ int bnxt_re_query_device(struct ib_device *ibdev,
- 	ib_attr->max_fast_reg_page_list_len = MAX_PBL_LVL_1_PGS;
+@@ -3034,6 +3034,11 @@ int bnxt_re_req_notify_cq(struct ib_cq *ib_cq,
+ 	else if (ib_cqn_flags & IB_CQ_SOLICITED)
+ 		type = DBR_DBR_TYPE_CQ_ARMSE;
  
- 	ib_attr->max_pkeys = 1;
--	ib_attr->local_ca_ack_delay = 0;
-+	ib_attr->local_ca_ack_delay = BNXT_RE_DEFAULT_ACK_DELAY;
++	/* Poll to see if there are missed events */
++	if ((ib_cqn_flags & IB_CQ_REPORT_MISSED_EVENTS) &&
++	    !(bnxt_qplib_is_cq_empty(&cq->qplib_cq)))
++		return 1;
++
+ 	bnxt_qplib_req_notify_cq(&cq->qplib_cq, type);
+ 
  	return 0;
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+index bd95539..31e15f3 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+@@ -2164,6 +2164,25 @@ static int bnxt_qplib_cq_process_res_ud(struct bnxt_qplib_cq *cq,
+ 	return rc;
  }
  
++bool bnxt_qplib_is_cq_empty(struct bnxt_qplib_cq *cq)
++{
++	struct cq_base *hw_cqe, **hw_cqe_ptr;
++	unsigned long flags;
++	u32 sw_cons, raw_cons;
++	bool rc = true;
++
++	spin_lock_irqsave(&cq->hwq.lock, flags);
++	raw_cons = cq->hwq.cons;
++	sw_cons = HWQ_CMP(raw_cons, &cq->hwq);
++	hw_cqe_ptr = (struct cq_base **)cq->hwq.pbl_ptr;
++	hw_cqe = &hw_cqe_ptr[CQE_PG(sw_cons)][CQE_IDX(sw_cons)];
++
++	 /* Check for Valid bit. If the CQE is valid, return false */
++	rc = !CQE_CMP_VALID(hw_cqe, raw_cons, cq->hwq.max_elements);
++	spin_unlock_irqrestore(&cq->hwq.lock, flags);
++	return rc;
++}
++
+ static int bnxt_qplib_cq_process_res_raweth_qp1(struct bnxt_qplib_cq *cq,
+ 						struct cq_res_raweth_qp1 *hwcqe,
+ 						struct bnxt_qplib_cqe **pcqe,
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.h b/drivers/infiniband/hw/bnxt_re/qplib_fp.h
+index 2495b33..23a26d5 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_fp.h
++++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.h
+@@ -463,6 +463,7 @@ int bnxt_qplib_create_cq(struct bnxt_qplib_res *res, struct bnxt_qplib_cq *cq);
+ int bnxt_qplib_destroy_cq(struct bnxt_qplib_res *res, struct bnxt_qplib_cq *cq);
+ int bnxt_qplib_poll_cq(struct bnxt_qplib_cq *cq, struct bnxt_qplib_cqe *cqe,
+ 		       int num, struct bnxt_qplib_qp **qp);
++bool bnxt_qplib_is_cq_empty(struct bnxt_qplib_cq *cq);
+ void bnxt_qplib_req_notify_cq(struct bnxt_qplib_cq *cq, u32 arm_type);
+ void bnxt_qplib_free_nq(struct bnxt_qplib_nq *nq);
+ int bnxt_qplib_alloc_nq(struct pci_dev *pdev, struct bnxt_qplib_nq *nq);
 -- 
 2.5.5
 
