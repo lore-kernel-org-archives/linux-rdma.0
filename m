@@ -1,71 +1,26 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: Re: Deadlock on device removal event for NVMeF target
-Date: Thu, 29 Jun 2017 10:18:26 -0600
-Message-ID: <CAANLjFo27CUOdh=wBEf1rsfjzE2HnBGUntBGKVRBmRxY95=YgA@mail.gmail.com>
-References: <20170626225920.GA11700@ssaleem-MOBL4.amr.corp.intel.com>
- <56030fcd-b8a0-fc0e-18e5-985ebf16a82e@grimberg.me> <20170627193157.GA29768@ssaleem-MOBL4.amr.corp.intel.com>
- <61858a46-ebf1-a5bd-5213-65dadaadb84d@grimberg.me> <CAANLjFr++5daZ6Vn8TYxcM0oMyU4PuMztcM5KKM6mOy7HEs7KA@mail.gmail.com>
- <3e559faf-9ea4-081e-c9cd-cb1c36b4673f@grimberg.me>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH][V2] net/mlx4: fix spelling mistake: "enforcment" ->
+ "enforcement"
+Date: Thu, 29 Jun 2017 12:25:16 -0400 (EDT)
+Message-ID: <20170629.122516.1630332331364064623.davem@davemloft.net>
+References: <20170627103649.16619-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <3e559faf-9ea4-081e-c9cd-cb1c36b4673f-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170627103649.16619-1-colin.king@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: colin.king@canonical.com
+Cc: tariqt@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Sagi,
+From: Colin King <colin.king@canonical.com>
+Date: Tue, 27 Jun 2017 11:36:49 +0100
 
-Thanks for the update.
+> From: Colin Ian King <colin.king@canonical.com>
+> 
+> Trivial fix to spelling mistake in mlx4_dbg debug message
+> 
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 
-On Thu, Jun 29, 2017 at 8:32 AM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
-> Hey Robert,
->
->> Could something like this be causing the D state problem I was seeing
->> in iSER almost a year ago?
->
->
-> No, that is a bug in the mlx5 device as far as I'm concerned (although I
-> couldn't prove it). I've tried to track it down but without access to
-> the FW tools I can't understand what is going on. I've seen this same
-> phenomenon with nvmet-rdma before as well.
-
-Do you know who I could contact about it? I can reproduce the problem
-pretty easy with two hosts back to back, so it should be easy for
-someone with mlx5 Eth devices to replicate.
-
-> It looks like when we perform QP draining in the presence of rdma
-> operations it may not complete, meaning that the zero-length rdma write
-> never generates a completion. Maybe it has something to do with the qp
-> moving to error state when some rdma operations have not completed.
->
->> I tried writing a patch for iSER based on
->> this, but it didn't help. Either the bug is not being triggered in
->> device removal,
->
->
-> It's 100% not related to device removal.
->
->> or I didn't line up the statuses correctly. But it
->> seems that things are getting stuck in the work queue and some sort of
->> deadlock is happening so I was hopeful that something similar may be
->> in iSER.
->
->
-> The hang is the ULP code waiting for QP drain.
-
-Yeah, the patches I wrote did nothing to help the problem. The only
-thing that kind of worked, was forcing the queue to drop (maybe I was
-just ignoring the old queue, I can't remember exactly), but it was
-leaving some stale iSCSI session info around. Now that I've read more
-of the iSCSI code, I wonder if I should revisit that. I think Bart
-said that the sledgehammer approach I took should not be necessary.
-
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied to net-next.
