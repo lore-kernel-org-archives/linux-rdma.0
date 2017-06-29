@@ -1,42 +1,37 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH] ib_isert: prevent NULL pointer dereference in
- isert_login_recv_done()
-Date: Thu, 29 Jun 2017 08:36:51 +0300
-Message-ID: <ac404f71-3f34-af4c-b7b2-2b19ae768f47@grimberg.me>
-References: <CAANLjFoaZ8ueEQet3Yu6LygmxXBbQ0cHUEYsb2xEON0o3N9=+w@mail.gmail.com>
- <CAANLjFp6Y8wvLvmWrk1ECjm-OoyEppxD1svNYKpg+HDEZevJig@mail.gmail.com>
- <CAANLjFoQcmfkjq9N1fehTC9Zi6aOC7ArOEPXz-he3EnOvWeEDw@mail.gmail.com>
- <20170622223757.GC28955@Dell>
- <1498435084.26123.66.camel@haakon3.risingtidesystems.com>
- <20170628175354.GB1769@Dell>
+Subject: Re: [PATCH] IB/iser: Handle lack of memory management extentions
+ correctly
+Date: Thu, 29 Jun 2017 08:41:47 +0300
+Message-ID: <c9b4c804-09d3-c02e-da21-32468e913c81@grimberg.me>
+References: <20170622190110.27788.19910.stgit@phlsvslse11.ph.intel.com>
+ <55a85363-da66-f6d6-f5cc-08b20f148f36@grimberg.me>
+ <32E1700B9017364D9B60AED9960492BC34327953@fmsmsx120.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170628175354.GB1769@Dell>
+In-Reply-To: <32E1700B9017364D9B60AED9960492BC34327953-RjuIdWtd+YbTXloPLtfHfbfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andrea Righi <righi.andrea-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, Sean Jenkins <sean-v0B6Y9onFlloq1w47eu9iAC/G2K4zDHf@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Thomas Rosenstein <thomas.rosenstein-+32LHaKS/h5VtLMLtJdGzA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-> Just tested this patch, I wasn't able to reproduce the NULL pointer
-> dereference or any other bugs, so this fix seems safe enough to me.
-> 
-> Tested-by: Andrea Righi <righi.andrea-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> I have no issue with your proposal, but I would rather get this fixed and adjust the API with an additional fix.   I suspect we probably want to mark this fix stable.
 
-Can you test just the one liner fix below?
+I agree, we should get it in and fix the API incrementally.
 
->> @@ -1452,7 +1452,7 @@
->>   isert_login_recv_done(struct ib_cq *cq, struct ib_wc *wc)
->>   {
->>   	struct isert_conn *isert_conn = wc->qp->qp_context;
->> -	struct ib_device *ib_dev = isert_conn->cm_id->device;
->> +	struct ib_device *ib_dev = isert_conn->device->ib_device;
->>   
->>   	if (unlikely(wc->status != IB_WC_SUCCESS)) {
->>   		isert_print_wc(wc, "login recv");
+> I did audit the kernel ULPs for FMR vs. FRMR usage and the only one that looked at max_fast_reg_page_list_len unconditionally was iser.
+
+Correct, but it doesn't mean that others get it right.
+
+nfs uses a hard coded value without even knowing what the device is
+capable of, and srp calculates it from max_mr_size which is a user-space
+mr capability and has nothing to do with fmrs.
+
+So no one got it right, which is not surprising as we don't have a cap
+for it.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
