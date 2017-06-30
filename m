@@ -1,178 +1,57 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 09/18] sunrpc: Allocate one more page per svc_rqst
-Date: Thu, 29 Jun 2017 20:23:04 -0400
-Message-ID: <C17CF389-2673-4478-B662-D6F890E3D047@oracle.com>
-References: <20170623211150.5162.59075.stgit@klimt.1015granger.net> <20170623211816.5162.54447.stgit@klimt.1015granger.net> <20170629202004.GC4178@fieldses.org> <EB8E2100-6176-424A-B687-FE84758889E0@oracle.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <EB8E2100-6176-424A-B687-FE84758889E0-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Subject: Re: [PATCH] ib_isert: prevent NULL pointer dereference in
+ isert_login_recv_done()
+Date: Thu, 29 Jun 2017 22:53:05 -0700
+Message-ID: <1498801985.24896.4.camel@haakon3.risingtidesystems.com>
+References: <CAANLjFoaZ8ueEQet3Yu6LygmxXBbQ0cHUEYsb2xEON0o3N9=+w@mail.gmail.com>
+         <CAANLjFp6Y8wvLvmWrk1ECjm-OoyEppxD1svNYKpg+HDEZevJig@mail.gmail.com>
+         <CAANLjFoQcmfkjq9N1fehTC9Zi6aOC7ArOEPXz-he3EnOvWeEDw@mail.gmail.com>
+         <20170622223757.GC28955@Dell>
+         <1498435084.26123.66.camel@haakon3.risingtidesystems.com>
+         <20170628175354.GB1769@Dell>
+         <ac404f71-3f34-af4c-b7b2-2b19ae768f47@grimberg.me>
+         <20170629082057.GA2037@Dell>
+         <7f1b1f07-0670-10ee-620d-0ab3b1a6c2bf@grimberg.me>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <7f1b1f07-0670-10ee-620d-0ab3b1a6c2bf-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Andrea Righi <righi.andrea-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, Sean Jenkins <sean-v0B6Y9onFlloq1w47eu9iAC/G2K4zDHf@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, 2017-06-29 at 11:28 +0300, Sagi Grimberg wrote:
+> >> Can you test just the one liner fix below?
+> >>
+> >>>> @@ -1452,7 +1452,7 @@
+> >>>>   isert_login_recv_done(struct ib_cq *cq, struct ib_wc *wc)
+> >>>>   {
+> >>>>   	struct isert_conn *isert_conn = wc->qp->qp_context;
+> >>>> -	struct ib_device *ib_dev = isert_conn->cm_id->device;
+> >>>> +	struct ib_device *ib_dev = isert_conn->device->ib_device;
+> >>>>   	if (unlikely(wc->status != IB_WC_SUCCESS)) {
+> >>>>   		isert_print_wc(wc, "login recv");
+> > 
+> > I'll test also this one-liner fix as soon as I can.
+> > 
+> > But I can say that I'm pretty sure it will work as well, because all the
+> > previous NULL pointer dereferences that we've got in the past happened
+> > all 100% in isert_login_recv_done(). The other cases are probably a safe
+> > precaution, but they can't really happen.
+> 
+> Agree, I'd prefer to start with a surgical fix before moving forward.
 
-> On Jun 29, 2017, at 4:44 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> 
-> Thanks for the review!
-> 
->> On Jun 29, 2017, at 4:20 PM, J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org> wrote:
->> 
->> I'm confused by this one:
->> 
->> On Fri, Jun 23, 2017 at 05:18:16PM -0400, Chuck Lever wrote:
->>> svcrdma needs 259 pages for 1MB NFSv4.0 READ requests:
->>> 
->>> - 1 page for the transport header and head iovec
->>> - 256 pages for the data payload
->>> - 1 page for the trailing GETATTR request (since NFSD XDR decoding
->>>  does not look for a tail iovec, the GETATTR is stuck at the end
->>>  of the rqstp->rq_arg.pages list)
->>> - 1 page for building the reply xdr_buf
->>> 
->>> Note that RPCSVC_MAXPAGES is defined as:
->>> 
->>> 	((RPCSVC_MAXPAYLOAD+PAGE_SIZE-1)/PAGE_SIZE + 2 + 1)
->>> 
->>> I don't understand why the "+PAGE_SIZE-1" is in there, because
->>> division will always round the result down to
->>> 
->>> 	(RPCSVC_MAXPAYLOAD / PAGE_SIZE + 2 + 1)
->> 
->> I think you're assuming that RPCSVC_MAXPAYLOAD is a multiple of
->> PAGE_SIZE.  Maybe that's true in all cases (I haven't checked), but it
->> seems harmless to handle the case where it's not.
-> 
-> include/linux/sunrpc/svc.h says:
-> 
-> 126  * Maximum payload size supported by a kernel RPC server.
-> 127  * This is use to determine the max number of pages nfsd is
-> 128  * willing to return in a single READ operation.
-> 129  *
-> 130  * These happen to all be powers of 2, which is not strictly
-> 131  * necessary but helps enforce the real limitation, which is
-> 132  * that they should be multiples of PAGE_SIZE.
-> 
-> Note that the same calculation in svc_alloc_args() assumes
-> that serv->sv_max_mesg is a multiple of PAGE_SIZE:
-> 
-> 	pages = (serv->sv_max_mesg + PAGE_SIZE) / PAGE_SIZE;
-> 
-> It's confusing that the value of RPCSVC_MAXPAGES is not computed
-> the same way as "pages" is.
-> 
-> 
->>> Let's remove the "-1" to get 260 pages maximum.
->> 
->> Why?  (I'm not necessarily opposed, I just missed the explanation.)
-> 
-> The top of the patch description explains why I need 259 pages.
-> 
-> MAX_PAGES has to be 260 in order for this check in svc_alloc_args()
-> 
-> 	if (pages >= RPCSVC_MAXPAGES) {
-> 		/* use as many pages as possible */
-> 		pages = RPCSVC_MAXPAGES - 1;
-> 
-> to allow 260 elements of the array to be filled in.
+Sounds fine.  The single line fix above in isert_login_recv_done() has
+been queued up in target-pending/for-next with Andrea's Tested-by and
+your Reviewed-by:
 
-OK, I see why I was confused about this. I expected a variable
-called "pages" to be the count of pages. But it actually contains
-the maximum index of the rq_pages array, which is one less than
-the number of array elements. However...
+https://git.kernel.org/pub/scm/linux/kernel/git/nab/target-pending.git/commit/?h=for-next&id=702c0f17403765cc5aa1c18f6ea6eb549c1bac9b
 
-It looks like the rq_pages array already has 259 elements, but
-the last element always contains NULL.
-
- 682         rqstp->rq_page_end = &rqstp->rq_pages[i];
- 683         rqstp->rq_pages[i++] = NULL; /* this might be seen in nfs_read_actor */
-
-So we actually have just 258 pages in this 259-entry array. That's
-one short of the 259 pages needed by svcrdma, and one less than
-the value of RPCSVC_MAXPAGES.
-
-(Note that "i++" isn't necessary, as "i" is not accessed again in
-this function.).
-
-I'm sure there's a better way to fix this. For instance, since
-the last element of rq_pages is always NULL, perhaps the structure
-definition could be
-
-	struct page *rq_pages[RPCSVC_MAXPAGES + 1];
-
-And the logic in svc_alloc_arg() could be adjusted accordingly
-to fill in at most RPCSVC_MAXPAGES pages.
-
-
->> --b.
->> 
->>> Then svc_alloc_args() needs to ask for pages according to this
->>> same formula, otherwise it will never allocate enough.
->>> 
->>> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>> ---
->>> include/linux/sunrpc/svc.h |    3 +--
->>> net/sunrpc/svc_xprt.c      |    8 +++++---
->>> 2 files changed, 6 insertions(+), 5 deletions(-)
->>> 
->>> diff --git a/include/linux/sunrpc/svc.h b/include/linux/sunrpc/svc.h
->>> index 11cef5a..35c274f 100644
->>> --- a/include/linux/sunrpc/svc.h
->>> +++ b/include/linux/sunrpc/svc.h
->>> @@ -176,8 +176,7 @@ static inline void svc_get(struct svc_serv *serv)
->>> * We using ->sendfile to return read data, we might need one extra page
->>> * if the request is not page-aligned.  So add another '1'.
->>> */
->>> -#define RPCSVC_MAXPAGES		((RPCSVC_MAXPAYLOAD+PAGE_SIZE-1)/PAGE_SIZE \
->>> -				+ 2 + 1)
->>> +#define RPCSVC_MAXPAGES	((RPCSVC_MAXPAYLOAD + PAGE_SIZE) / PAGE_SIZE + 2 + 1)
->>> 
->>> static inline u32 svc_getnl(struct kvec *iov)
->>> {
->>> diff --git a/net/sunrpc/svc_xprt.c b/net/sunrpc/svc_xprt.c
->>> index 7bfe1fb..9bd484d 100644
->>> --- a/net/sunrpc/svc_xprt.c
->>> +++ b/net/sunrpc/svc_xprt.c
->>> @@ -659,11 +659,13 @@ static int svc_alloc_arg(struct svc_rqst *rqstp)
->>> 	int i;
->>> 
->>> 	/* now allocate needed pages.  If we get a failure, sleep briefly */
->>> -	pages = (serv->sv_max_mesg + PAGE_SIZE) / PAGE_SIZE;
->>> -	WARN_ON_ONCE(pages >= RPCSVC_MAXPAGES);
->>> -	if (pages >= RPCSVC_MAXPAGES)
->>> +	pages = (serv->sv_max_mesg + (2 * PAGE_SIZE)) >> PAGE_SHIFT;
->>> +	if (pages >= RPCSVC_MAXPAGES) {
->>> +		pr_warn_once("svc: warning: pages=%u >= RPCSVC_MAXPAGES=%lu\n",
->>> +			     pages, RPCSVC_MAXPAGES);
->>> 		/* use as many pages as possible */
->>> 		pages = RPCSVC_MAXPAGES - 1;
->>> +	}
->>> 	for (i = 0; i < pages ; i++)
->>> 		while (rqstp->rq_pages[i] == NULL) {
->>> 			struct page *p = alloc_page(GFP_KERNEL);
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> --
-> Chuck Lever
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please let me know if there are any other issues wrt the surgical fix.
 
 --
-Chuck Lever
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
