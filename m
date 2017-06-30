@@ -1,47 +1,58 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH] [net-next] net/mlx5: include wq.o in non-ethernet build
- for FPGA
-Date: Fri, 30 Jun 2017 21:25:13 +0200
-Message-ID: <CAK8P3a1N4=JVJ3vZxBWJRTe-iJz25tmWjigPZ+4=-Aod0dq13Q@mail.gmail.com>
-References: <20170630154412.3575760-1-arnd@arndb.de> <AM4PR0501MB19409232F4E056237F2FAFFFDBD30@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH for-next 0/3] IB/IPoIB/core/drivers: patches for rc/next
+Date: Fri, 30 Jun 2017 13:14:28 -0700
+Message-ID: <20170630201236.5213.72919.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AM4PR0501MB19409232F4E056237F2FAFFFDBD30-dp/nxUn679gfNUYDR5dMTsDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Hadar Hen Zion <hadarh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mohamad Haj Yahia <mohamad-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Aviv Heller <avivh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bartlomiej Dudek <bartlomiej.dudek-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jun 30, 2017 at 8:58 PM, Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+Hi Doug,
 
->> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/Makefile
->> b/drivers/net/ethernet/mellanox/mlx5/core/Makefile
->> index ca367445f864..50fe9e3c5dc2 100644
->> --- a/drivers/net/ethernet/mellanox/mlx5/core/Makefile
->> +++ b/drivers/net/ethernet/mellanox/mlx5/core/Makefile
->> @@ -9,7 +9,7 @@ mlx5_core-y :=        main.o cmd.o debugfs.o fw.o eq.o uar.o
->> pagealloc.o \
->>  mlx5_core-$(CONFIG_MLX5_ACCEL) += accel/ipsec.o
->>
->>  mlx5_core-$(CONFIG_MLX5_FPGA) += fpga/cmd.o fpga/core.o fpga/conn.o
->> fpga/sdk.o \
->> -             fpga/ipsec.o
->> +             fpga/ipsec.o wq.o
->
-> I believe we would prefer to move wq.o to mlx5_core-y.
-> Otherwise you might build it twice.
+Here are three more patches. The first two we are fine with going into -next,
+however the third is the patch Niranjana mentioned yesterday that would
+be good to get into the last RC if the train hasn't left the station yet.
 
-That's not a problem, Kbuild is smart enough to drop duplicate object files
-that get built into the same module.
+These have not been through zero-day but have been submitted. Niranjana's patch
+is pretty straight forward and I don't foresee obscure build issues. So given
+the time crunch for the slightest chance at 4.12 I'm taking a calculated risk
+and sending. The patch applies ontop of our 4.12 patches cleanly. Builds and
+tests in our environment.
 
-If you think it's less confusing to readers of this file if it gets
-put into core,
-that's fine though, the only downside would be adding a little bit of
-code bloat for users that want neither the ethernet nor the fpga code
-(if that is a realistic use case).
+Patches can can also be found in my GitHub repo at:
+https://github.com/ddalessa/kernel/tree/for-4.13
 
-        Arnd
+---
+
+Bartlomiej Dudek (1):
+      IB/hfi1: Check return values from PCI config API calls
+
+Mike Marciniszyn (1):
+      IB/iser: Handle lack of memory management extensions correctly
+
+Niranjana Vishwanathapura (1):
+      IB/core,opa_vnic,hfi1,mlx5: Properly free rdma_netdev
+
+
+ drivers/infiniband/hw/hfi1/chip.c                 |   22 ++
+ drivers/infiniband/hw/hfi1/hfi.h                  |    2 
+ drivers/infiniband/hw/hfi1/pcie.c                 |  238 +++++++++++++++++----
+ drivers/infiniband/hw/hfi1/verbs.c                |    1 
+ drivers/infiniband/hw/hfi1/vnic.h                 |    1 
+ drivers/infiniband/hw/hfi1/vnic_main.c            |   19 +-
+ drivers/infiniband/hw/mlx5/main.c                 |   24 +-
+ drivers/infiniband/ulp/ipoib/ipoib_main.c         |    8 -
+ drivers/infiniband/ulp/iser/iser_verbs.c          |   10 +
+ drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c |    8 -
+ include/rdma/ib_verbs.h                           |    6 -
+ 11 files changed, 260 insertions(+), 79 deletions(-)
+
+--
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
