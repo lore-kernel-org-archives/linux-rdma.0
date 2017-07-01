@@ -1,57 +1,98 @@
-From: "WESMINISTER BANK PLC UK" <fahriakfirat-3MoG2dT5xXvPYim14kamPw@public.gmane.org>
-Subject: REF:- INSTRUCTION TO CREDIT YOUR ACCOUNT WITH THE SUM OF (US$10Million)TURBO
-Date: Sat, 01 Jul 2017 07:35:06 -0700
-Message-ID: <20170701143505.57752B490649@ns3.lambasnc.com>
-Reply-To: natwstbnkaccontdepatmentlondon505-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/core: Fix static analysis warning in
+ ib_policy_change_task
+Date: Sat, 1 Jul 2017 15:41:20 -0400
+Message-ID: <5fd731d6-a5ae-9894-be72-8a5d41603206@redhat.com>
+References: <1498835756-7610-1-git-send-email-danielj@mellanox.com>
+ <CAHC9VhQC4VO2W6TCOWxKdfsra=fG12ZYXaJdKQJVXtLz92XtoA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="3rLUJN3oIBdptVq0e4pKg6tl7rrrn0twl"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Description: Mail message body
+In-Reply-To: <CAHC9VhQC4VO2W6TCOWxKdfsra=fG12ZYXaJdKQJVXtLz92XtoA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Recipients <fahriakfirat-3MoG2dT5xXvPYim14kamPw@public.gmane.org>
+To: Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>, Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-WESMINISTER BANK PLC,
-10 Southwark Street ,
-London Bridge , London - UK
-SE1 1TT
-RC: 121878
-Our Ref: NTB/WESTMIN/INTER-15
-Your Ref: Affidavit: AFX 076GD7B24
-Tell=+447035969549
-Fax+448435643403
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--3rLUJN3oIBdptVq0e4pKg6tl7rrrn0twl
+Content-Type: multipart/mixed; boundary="e6HxkGdJUUw8w7GbEPiXeSpA5claJthx4";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>, Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
+ linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Message-ID: <5fd731d6-a5ae-9894-be72-8a5d41603206-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/core: Fix static analysis warning in
+ ib_policy_change_task
+References: <1498835756-7610-1-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+ <CAHC9VhQC4VO2W6TCOWxKdfsra=fG12ZYXaJdKQJVXtLz92XtoA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAHC9VhQC4VO2W6TCOWxKdfsra=fG12ZYXaJdKQJVXtLz92XtoA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 
-REF:- INSTRUCTION TO CREDIT YOUR ACCOUNT WITH THE SUM OF (US$10Million)
+--e6HxkGdJUUw8w7GbEPiXeSpA5claJthx4
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
 
-This is the second time we are notifying you about this said fund. After due vetting and evaluation of your file that
-Was
-sent to us by the Nigerian Government in conjunction with the Ministry
-of Finance and Central Bank of the Federal Republic of Nigeria.
+On 7/1/2017 9:42 AM, Paul Moore wrote:
+> On Fri, Jun 30, 2017 at 11:15 AM, Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wr=
+ote:
+>> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>
+>> ib_get_cached_subnet_prefix can technically fail, but the only way it
+>> could is not possible based on the loop conditions. Check the return
+>> value before using the variable sp to resolve a static analysis warnin=
+g.
+>>
+>> Fixes: 8f408ab64be6 ("selinux lsm IB/core: Implement LSM notification
+>> system")
+>> Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> ---
+>>  drivers/infiniband/core/device.c | 3 ++-
+>>  1 file changed, 2 insertions(+), 1 deletion(-)
+>=20
+> Similar question as with the other fix: SELinux tree or IB/RDMA tree?
+>=20
 
-This bank has an instruction to see to the immediate release of the sum of (US$10Million) of your claim that
-has been holding since is transferred into your bank Account from their Domiciliary Account with this bank.
+The SELinux tree will be fine with me.
 
-We were meant to understand from our findings that you have been going through hard ways by
-Paying a lot of charges to see to the release of your fund (US$10Million),
-Which has been the handwork of some miscreant elements from that Country.
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
+D
 
-We advice that you stop further communication with any correspondence from any bank, or anywhere
-Concerning your funds as you will receive your fund from this bank if you follow our instruction.
 
-Do not go through anybody again but through this Bank if you really want your fund.
-Finally, you are advice to re-confirm these to us,
-Your Full Name,
-Contact address,
-Occupation
-Telephone and Fax Number for easy communication.
-We need your second email gmail or hotmail for security and private reasons.
+--e6HxkGdJUUw8w7GbEPiXeSpA5claJthx4--
 
-Yours sincerely,
-Mr Anthony M. Smith
-Head Of Account Department,
-WesMinister Bank, London United Kingdom.
-Here is my private! Email address (michaelsmith-SgvXgqTD8kc@public.gmane.org)
+--3rLUJN3oIBdptVq0e4pKg6tl7rrrn0twl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJZV/rmAAoJELgmozMOVy/dAioP/Au7nHalUokmVh9G449zRfUo
+9qpNvuAqhldr3iwN8Lvl1X8ptdR1SipF7rKBeREbPd/3vGrWkdGdFP77zptCN3YJ
+nKck93KMhfs97zl/9LmsTjjrc1ne5S3uJczntscQAbtqVf11+7OKxLaFAsPJ+BtM
+WzIO9v7AKy2kYH2lHHxLhslynYq/9XgwXGbnAGD/Mla2rm5cuytF0EpVkY2tkEHU
+73N6KjfzTSr1z/7DME7MHpCTiPtJ7twidblgOk7l9AYyfDh5ktECOj1fzHgA4x8B
+MJutfyr6gk77FYOgftR7JL75KKd0uE0LHWn+Arb/UZsclyhFX41sYbO8Kh6+TBgc
+/OZj/A961slT7PBi/S4jShsJVpwLcAaSO6EpurbqPB9hBerGJHSughkRdz9wG6dz
+qi5DdVxCw4Iz56oELhdB28KwVrs2oyzRPuSI1X5XjTRVyuJQEEsCJNPU8kfwetLv
+/rEqgnjHdx5927dKk+I72P5OGIN0k9wT28TF80K4sClVn5HHoAgjqaBrpQetx/rd
+T9kuhaOwGd4rEhk/zWpbng84XlP2VoC/ek5TzRmjKd3xIkGlCTMqSr3n+sEHB1J3
+PQY+PVRoMRFpJYGP+CosPdYFpYkdLmTwhiI9N2h1mOZRtXVNyC39fpwM7Q/vGiYX
+KE/G3ArrZiFrNTA26O3g
+=p+/x
+-----END PGP SIGNATURE-----
+
+--3rLUJN3oIBdptVq0e4pKg6tl7rrrn0twl--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
