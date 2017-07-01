@@ -1,37 +1,57 @@
-From: Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>
-Subject: Re: [PATCH] IB/core: Fix static analysis warning in ib_policy_change_task
-Date: Sat, 1 Jul 2017 09:42:26 -0400
-Message-ID: <CAHC9VhQC4VO2W6TCOWxKdfsra=fG12ZYXaJdKQJVXtLz92XtoA@mail.gmail.com>
-References: <1498835756-7610-1-git-send-email-danielj@mellanox.com>
+From: "WESMINISTER BANK PLC UK" <fahriakfirat-3MoG2dT5xXvPYim14kamPw@public.gmane.org>
+Subject: REF:- INSTRUCTION TO CREDIT YOUR ACCOUNT WITH THE SUM OF (US$10Million)TURBO
+Date: Sat, 01 Jul 2017 07:35:06 -0700
+Message-ID: <20170701143505.57752B490649@ns3.lambasnc.com>
+Reply-To: natwstbnkaccontdepatmentlondon505-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1498835756-7610-1-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Description: Mail message body
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Recipients <fahriakfirat-3MoG2dT5xXvPYim14kamPw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jun 30, 2017 at 11:15 AM, Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->
-> ib_get_cached_subnet_prefix can technically fail, but the only way it
-> could is not possible based on the loop conditions. Check the return
-> value before using the variable sp to resolve a static analysis warning.
->
-> Fixes: 8f408ab64be6 ("selinux lsm IB/core: Implement LSM notification
-> system")
-> Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/core/device.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+WESMINISTER BANK PLC,
+10 Southwark Street ,
+London Bridge , London - UK
+SE1 1TT
+RC: 121878
+Our Ref: NTB/WESTMIN/INTER-15
+Your Ref: Affidavit: AFX 076GD7B24
+Tell=+447035969549
+Fax+448435643403
 
-Similar question as with the other fix: SELinux tree or IB/RDMA tree?
+REF:- INSTRUCTION TO CREDIT YOUR ACCOUNT WITH THE SUM OF (US$10Million)
 
--- 
-paul moore
-www.paul-moore.com
+This is the second time we are notifying you about this said fund. After due vetting and evaluation of your file that
+Was
+sent to us by the Nigerian Government in conjunction with the Ministry
+of Finance and Central Bank of the Federal Republic of Nigeria.
+
+This bank has an instruction to see to the immediate release of the sum of (US$10Million) of your claim that
+has been holding since is transferred into your bank Account from their Domiciliary Account with this bank.
+
+We were meant to understand from our findings that you have been going through hard ways by
+Paying a lot of charges to see to the release of your fund (US$10Million),
+Which has been the handwork of some miscreant elements from that Country.
+
+We advice that you stop further communication with any correspondence from any bank, or anywhere
+Concerning your funds as you will receive your fund from this bank if you follow our instruction.
+
+Do not go through anybody again but through this Bank if you really want your fund.
+Finally, you are advice to re-confirm these to us,
+Your Full Name,
+Contact address,
+Occupation
+Telephone and Fax Number for easy communication.
+We need your second email gmail or hotmail for security and private reasons.
+
+Yours sincerely,
+Mr Anthony M. Smith
+Head Of Account Department,
+WesMinister Bank, London United Kingdom.
+Here is my private! Email address (michaelsmith-SgvXgqTD8kc@public.gmane.org)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
