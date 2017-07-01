@@ -1,73 +1,36 @@
-From: <p.mueller-spz-hgw-Mmb7MZpHnFY@public.gmane.org>
-Subject: (unknown)
-Date: Sat, 01 Jul 2017 11:36:46 -0000
-Message-ID: <149890900617.12492.16288443793183296278@udm.net>
-Reply-To: <p.mueller-spz-hgw-Mmb7MZpHnFY@public.gmane.org>
+From: Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>
+Subject: Re: [PATCH] IB/core: Fix uninitialized variable use in check_qp_port_pkey_settings
+Date: Sat, 1 Jul 2017 09:40:02 -0400
+Message-ID: <CAHC9VhSqk1cS+8wpphZgmZt40iMZKLVmUPmnWcjpgf3vqj9zmw@mail.gmail.com>
+References: <1498833335-937-1-git-send-email-danielj@mellanox.com>
 Mime-Version: 1.0
-Content-Type: application/zip; name="7041_linux-rdma.zip"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Subject: 
-Content-Disposition: attachment
+In-Reply-To: <1498833335-937-1-git-send-email-danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, yevgenyp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-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
+On Fri, Jun 30, 2017 at 10:35 AM, Dan Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> From: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+> Check the return value from get_pkey_and_subnet_prefix to prevent using
+> uninitialized variables.
+>
+> Fixes: d291f1a65232 ("IB/core: Enforce PKey security on QPs")
+> Signed-off-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reported-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/infiniband/core/security.c | 20 ++++++++++++--------
+>  1 file changed, 12 insertions(+), 8 deletions(-)
+
+Since the original patch went in via the SELinux tree, would the
+IB/RDMA folks prefer this to go in via the SELinux tree as well?
+
+-- 
+paul moore
+www.paul-moore.com
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
