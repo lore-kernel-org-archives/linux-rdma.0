@@ -1,80 +1,67 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1] RDMA/rw: Remove force_mr module parameter
-Date: Sun,  2 Jul 2017 09:24:25 +0300
-Message-ID: <20170702062425.6780-1-leon@kernel.org>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+From: Michal Kalderon <Michal.Kalderon@cavium.com>
+Subject: [PATCH net-next 00/12] qed: Add iWARP support for QL4xxxx
+Date: Sun, 2 Jul 2017 10:29:20 +0300
+Message-ID: <1498980572-29519-1-git-send-email-Michal.Kalderon@cavium.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: michal.kalderon@cavium.com, ram.amrani@cavium.com, yuval.mintz@cavium.com, ariel.elior@cavium.com, davem@davemloft.net, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dledford@redhat.com
+Cc: Michal Kalderon <Michal.Kalderon@cavium.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This patch series adds iWARP support to our QL4xxxx networking adapters.
+The code changes span across qed and qedr drivers, but this series contains
+changes to qed only. Once the series is accepted, the qedr series will
+be submitted to the rdma tree.
+There is one additional qed patch which enables the iWARP, this patch is
+delayed until the qedr series will be accepted. 
 
-The force_mr module parameter was introduced in the commit
-a060b5629ab0 ("IB/core: generic RDMA READ/WRITE API").
+The patches were previously sent as an RFC, and these are the first 12
+patches in the RFC series:
+https://www.spinics.net/lists/linux-rdma/msg51416.html
 
->From the beginning, the fourth parameter of the module_param_named
-macro was set to 0. Passing 0 there means that module parameter is not
-created and that adding "options ib_core force_mr=1" to a modprobe.conf
-file has no effect.
+This series was tested and built against net-next.
 
-Since the force_mr parameter is intended for debug and unlikely will be used
-by anyone except developers and exposure of module parameter can limit
-ourselves in debug ability. The preferable way will be to remove this
-module parameter entirely and don't fix the file permission parameter
-(the fourth parameter).
+MAINTAINERS file is not updated in this PATCH as there is a pending patch
+for qedr driver update https://patchwork.kernel.org/patch/9752761.
 
-Fixes: a060b5629ab0 ("IB/core: generic RDMA READ/WRITE API")
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-Chuck,
+Michal Kalderon (12):
+  qed: Introduce iWARP personality
+  qed: Implement iWARP initialization, teardown and qp operations
+  qed: Rename some ll2 related defines
+  qed: Add iWARP support in ll2 connections
+  qed: iWARP CM - setup a ll2 connection for handling SYN packets
+  qed: iWARP CM add listener functions and initial SYN processing
+  qed: iWARP CM add passive side connect
+  qed: iWARP CM add active side connect
+  qed: iWARP implement disconnect flows
+  qed: iWARP CM add error handling
+  qed: Add iWARP protocol support in context allocation
+  qed: Add iWARP support for physical queue allocation
 
-I added your SOB to this commit, because this commit message was highly influenced
-by yours initial patch.
+ drivers/net/ethernet/qlogic/qed/Makefile    |    2 +-
+ drivers/net/ethernet/qlogic/qed/qed.h       |   30 +-
+ drivers/net/ethernet/qlogic/qed/qed_cxt.c   |   21 +-
+ drivers/net/ethernet/qlogic/qed/qed_dev.c   |   36 +-
+ drivers/net/ethernet/qlogic/qed/qed_hsi.h   |    1 +
+ drivers/net/ethernet/qlogic/qed/qed_iwarp.c | 2409 +++++++++++++++++++++++++++
+ drivers/net/ethernet/qlogic/qed/qed_iwarp.h |  189 +++
+ drivers/net/ethernet/qlogic/qed/qed_l2.c    |   16 +-
+ drivers/net/ethernet/qlogic/qed/qed_ll2.c   |   42 +-
+ drivers/net/ethernet/qlogic/qed/qed_main.c  |   17 +-
+ drivers/net/ethernet/qlogic/qed/qed_rdma.c  |  139 +-
+ drivers/net/ethernet/qlogic/qed/qed_rdma.h  |    5 +
+ drivers/net/ethernet/qlogic/qed/qed_roce.c  |   20 +
+ drivers/net/ethernet/qlogic/qed/qed_sp.h    |    7 +-
+ include/linux/qed/common_hsi.h              |    4 +-
+ include/linux/qed/iwarp_common.h            |   53 +
+ include/linux/qed/qed_ll2_if.h              |    3 +-
+ include/linux/qed/qed_rdma_if.h             |  114 ++
+ 18 files changed, 3008 insertions(+), 100 deletions(-)
+ create mode 100644 drivers/net/ethernet/qlogic/qed/qed_iwarp.c
+ create mode 100644 drivers/net/ethernet/qlogic/qed/qed_iwarp.h
+ create mode 100644 include/linux/qed/iwarp_common.h
 
-Please let me know if it is fine with you.
-
-Thanks
-
-Changelog:
-v0->v1:
-1. Rewrote commit message and comment in the code
-2. Removed extra blank line
----
- drivers/infiniband/core/rw.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
-index dbfd854c32c9..447099574ede 100644
---- a/drivers/infiniband/core/rw.c
-+++ b/drivers/infiniband/core/rw.c
-@@ -22,9 +22,10 @@ enum {
- 	RDMA_RW_SIG_MR,
- };
-
-+/*
-+ * Debug option to force MR registration logic.
-+ */
- static bool rdma_rw_force_mr;
--module_param_named(force_mr, rdma_rw_force_mr, bool, 0);
--MODULE_PARM_DESC(force_mr, "Force usage of MRs for RDMA READ/WRITE operations");
-
- /*
-  * Check if the device might use memory registration.  This is currently only
-@@ -503,7 +504,7 @@ struct ib_send_wr *rdma_rw_ctx_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
- 		rdma_rw_update_lkey(&ctx->sig->data, true);
- 		if (ctx->sig->prot.mr)
- 			rdma_rw_update_lkey(&ctx->sig->prot, true);
--
-+
- 		ctx->sig->sig_mr->need_inval = true;
- 		ib_update_fast_reg_key(ctx->sig->sig_mr,
- 			ib_inc_rkey(ctx->sig->sig_mr->lkey));
---
-2.13.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+1.8.3.1
