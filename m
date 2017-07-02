@@ -1,43 +1,38 @@
-From: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH net-next 12/12] qed: Add iWARP support for physical queue allocation
-Date: Sun, 2 Jul 2017 10:29:32 +0300
-Message-ID: <1498980572-29519-13-git-send-email-Michal.Kalderon@cavium.com>
-References: <1498980572-29519-1-git-send-email-Michal.Kalderon@cavium.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: [PATCH v2 0/3] Allow ib_clients to nullify .add but still get .remove events reliably
+Date: Sun,  2 Jul 2017 11:20:49 +0300
+Message-ID: <1498983652-18250-1-git-send-email-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1498980572-29519-1-git-send-email-Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: michal.kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, yuval.mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, ariel.elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Yuval Mintz <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-iWARP has different physical queue requirements than RoCE
+Some ULPs are just interested in device removal notification with no specific
+association because they work over RDMA_CM so no need for detecting appearance
+of the devices. That wasn't the because the corresponding ib_client_data
+was never added to the device clients list when the ib_client registers,
+Patch 1 fixes it. Patches 2-3 just removes the empty .add callout nvme(t)-rdma set.
 
-Signed-off-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Yuval Mintz <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
----
- drivers/net/ethernet/qlogic/qed/qed_dev.c | 4 ++++
- 1 file changed, 4 insertions(+)
+Changes from v1:
+- reword patch 1 change log title
+- collected review tags
 
-diff --git a/drivers/net/ethernet/qlogic/qed/qed_dev.c b/drivers/net/ethernet/qlogic/qed/qed_dev.c
-index 4060a6a..6c87bed 100644
---- a/drivers/net/ethernet/qlogic/qed/qed_dev.c
-+++ b/drivers/net/ethernet/qlogic/qed/qed_dev.c
-@@ -216,6 +216,10 @@ static u32 qed_get_pq_flags(struct qed_hwfn *p_hwfn)
- 	case QED_PCI_ETH_ROCE:
- 		flags |= PQ_FLAGS_MCOS | PQ_FLAGS_OFLD | PQ_FLAGS_LLT;
- 		break;
-+	case QED_PCI_ETH_IWARP:
-+		flags |= PQ_FLAGS_MCOS | PQ_FLAGS_ACK | PQ_FLAGS_OOO |
-+		    PQ_FLAGS_OFLD;
-+		break;
- 	default:
- 		DP_ERR(p_hwfn,
- 		       "unknown personality %d\n", p_hwfn->hw_info.personality);
+Note that this will create a conflict with jens's for-4.13 which we added
+ib_client registration to nvmet-rdma.
+
+Sagi Grimberg (3):
+  RDMA/core: make ib_device.add method optional
+  nvme-rdma: remove redundant empty device add callout
+  nvmet-rdma: remove redundant empty device add callout
+
+ drivers/infiniband/core/device.c | 4 ++--
+ drivers/nvme/host/rdma.c         | 5 -----
+ drivers/nvme/target/rdma.c       | 5 -----
+ 3 files changed, 2 insertions(+), 12 deletions(-)
+
 -- 
-1.8.3.1
+2.7.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
