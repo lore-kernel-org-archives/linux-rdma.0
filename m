@@ -1,59 +1,52 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: Large ib_srp configuration cannot allocate FRM pool space and
- fails map SCSI host
-Date: Sun, 2 Jul 2017 11:31:48 +0300
-Message-ID: <976d654b-2834-6dd9-b8d3-3a628b2a7a77@grimberg.me>
-References: <4ccb9679-db6e-25e7-39ba-eab9186d35a5@redhat.com>
- <5bc4c6ef-fcb4-95bc-ef34-486ebe60aadc@redhat.com>
+From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
+Subject: Re: [PATCH][-next] net/mlx5: fix spelling mistake: "Allodating" -> "Allocating"
+Date: Sun, 2 Jul 2017 11:35:44 +0300
+Message-ID: <CALzJLG--=BLto0QszB71LdWqUuj-SxGGbbGLSQ=ckiCRUkCQ-g@mail.gmail.com>
+References: <20170630105922.10397-1-colin.king@canonical.com> <20170701.144003.1643313481741710568.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5bc4c6ef-fcb4-95bc-ef34-486ebe60aadc-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170701.144003.1643313481741710568.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: colin.king@canonical.com, Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Ilan Tayari <ilant@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
->> Hello
+On Sun, Jul 2, 2017 at 12:40 AM, David Miller <davem@davemloft.net> wrote:
+> From: Colin King <colin.king@canonical.com>
+> Date: Fri, 30 Jun 2017 11:59:22 +0100
+>
+>> From: Colin Ian King <colin.king@canonical.com>
 >>
->> This issue is apparent on RHEL and upstream 4.12-rc5 (that is what was 
->> tested)
+>> Trivial fix to spelling mistake in mlx5_core_dbg debug message
 >>
->> Customer has a large configuration so I cannot reproduce this so 
->> asking if anybody else is aware of this.
->>
->> We fail in FMR and we then keep incrementing the SCSI host#'s
->>
->> Jun 20 14:01:42 xxxxxx kernel: fmr_pool: fmr_create failed for FMR 3809
->> Jun 20 14:01:42 xxxxxx kernel: fmr_pool: fmr_create failed for FMR 2005
->> Jun 20 14:01:42 xxxxxx kernel: scsi host7: ib_srp: FMR pool allocation 
->> failed (-12)
->> Jun 20 14:01:42 xxxxxx kernel: scsi host8: ib_srp: FMR pool allocation 
->> failed (-12)
->>
->> This repeats over and over.
->>
->> * 7 pairs of enclosures / each with two controllers
->> * Each with an expansion tray
->> * Each side on the controller is going to its own IB switch
->> * Each node is connected to both switches each running its own subnet 
->> manager
->>
->> Prior versions of RHEL i.e. 7.2 that don't have the newer code that 
->> also exists upstream are working.
->> Both RHEL7.3 and upstream are affected.
->>
->> The configuration in place is:
->>
->> for srp.conf
->> a max_sect=65535,max_cmd_per_lun=254,queue_size=254
->>
->> for ib_srp
->> options ib_srp cmd_sg_entries=255 indirect_sg_entries=2048 prefer_fr=N
+>> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+>
+> Applied, thanks Colin.
+>
+> Mellanox folks, I don't like how these lib/ objects are built.
+>
+> I absolutely depend upon being able to try and build individual
+> object files, by name, in order to quickly smoke-test patches.
+> Like this:
+>
+> [davem@kkuri net-next]$ make drivers/net/ethernet/mellanox/mlx5/core/lib/gid.o
+>
+> But I can't for these files:
+>
+> scripts/Makefile.build:44: drivers/net/ethernet/mellanox/mlx5/core/lib/Makefile: No such file or directory
+> make[1]: *** No rule to make target 'drivers/net/ethernet/mellanox/mlx5/core/lib/Makefile'.  Stop.
+> Makefile:1663: recipe for target 'drivers/net/ethernet/mellanox/mlx5/core/lib/gid.o' failed
+>
+> Please fix this so that I can build all object files by name in this driver
+> again.
 
-How many fmrs did you end up allocating? what device is this?
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Dave,
+We are going to provide a fix ASAP.
+
+>
+> Thanks.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
