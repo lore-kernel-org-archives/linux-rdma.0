@@ -1,102 +1,47 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: [PATCH rfc 3/3] nvmet-rdma: assign cq completion vector based on the port allowed cpus
-Date: Sun,  2 Jul 2017 18:01:34 +0300
-Message-ID: <1499007694-7231-4-git-send-email-sagi@grimberg.me>
-References: <1499007694-7231-1-git-send-email-sagi@grimberg.me>
+Subject: [PATCH rfc 0/3] Expose cpu mapping hints to a nvme target port
+Date: Sun,  2 Jul 2017 18:01:31 +0300
+Message-ID: <1499007694-7231-1-git-send-email-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1499007694-7231-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, James Smart <james.smart-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-We first take a cpu assignment from the port configured cpulist
-(spread uniformly accross them) with rdma core API.
+I've heard feedback from folks on several occasions that we can
+improve in a multi-socket target array configuration.
 
-If the device does not expose a vector affinity mask,  or we
-couldn't find a match, we fallback to the old behavior as we
-don't have sufficient information to do the "correct" vector
-assignment.
+Today, rdma transport simply spread IO threads accross all system cpus
+without any specific configuration in mind (same for fc). It isn't really
+possible to exclude a nvmet port IO threads affinity to a specific
+numa socket which can be useful to reduce the inter-socket DMA traffic.
 
-Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
----
- drivers/nvme/target/rdma.c | 40 ++++++++++++++++++++++++++++------------
- 1 file changed, 28 insertions(+), 12 deletions(-)
+This can make sense if the user wants to expose a set of backend devices
+via a nvme target port (HBA port) which are connected to the same
+numa-socket in order to optimize NUMA locality and minimize the inter-socket
+DMA traffic.
 
-diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
-index 56a4cba690b5..a1725d3e174a 100644
---- a/drivers/nvme/target/rdma.c
-+++ b/drivers/nvme/target/rdma.c
-@@ -889,27 +889,43 @@ nvmet_rdma_find_get_device(struct rdma_cm_id *cm_id)
- 	return NULL;
- }
- 
--static int nvmet_rdma_create_queue_ib(struct nvmet_rdma_queue *queue)
-+static int nvmet_rdma_assign_vector(struct nvmet_rdma_queue *queue)
- {
--	struct ib_qp_init_attr qp_attr;
--	struct nvmet_rdma_device *ndev = queue->dev;
--	int comp_vector, nr_cqe, ret, i;
-+	struct ib_device *dev = queue->dev->device;
-+	struct nvmet_port *port = queue->port;
-+	int vec, cpu;
- 
- 	/*
--	 * Spread the io queues across completion vectors,
--	 * but still keep all admin queues on vector 0.
-+	 * Spread the io queues across port cpus,
-+	 * but still keep all admin queues on cpu 0.
- 	 */
--	comp_vector = !queue->host_qid ? 0 :
--		queue->idx % ndev->device->num_comp_vectors;
-+	cpu = !queue->host_qid ? 0 : port->cpus[queue->idx % port->nr_cpus];
-+
-+	if (ib_find_cpu_vector(dev, cpu, &vec))
-+		return vec;
-+
-+	pr_debug("device %s could not provide vector to match cpu %d\n",
-+			dev->name, cpu);
-+	/*
-+	 * No corresponding vector affinity found, fallback to
-+	 * the old behavior where we spread vectors all over...
-+	 */
-+	return !queue->host_qid ? 0 : queue->idx % dev->num_comp_vectors;
-+}
-+
-+static int nvmet_rdma_create_queue_ib(struct nvmet_rdma_queue *queue)
-+{
-+	struct ib_qp_init_attr qp_attr;
-+	struct nvmet_rdma_device *ndev = queue->dev;
-+	int nr_cqe, ret, i;
- 
- 	/*
- 	 * Reserve CQ slots for RECV + RDMA_READ/RDMA_WRITE + RDMA_SEND.
- 	 */
- 	nr_cqe = queue->recv_queue_size + 2 * queue->send_queue_size;
- 
--	queue->cq = ib_alloc_cq(ndev->device, queue,
--			nr_cqe + 1, comp_vector,
--			IB_POLL_WORKQUEUE);
-+	queue->cq = ib_alloc_cq(ndev->device, queue, nr_cqe + 1,
-+			nvmet_rdma_assign_vector(queue), IB_POLL_WORKQUEUE);
- 	if (IS_ERR(queue->cq)) {
- 		ret = PTR_ERR(queue->cq);
- 		pr_err("failed to create CQ cqe= %d ret= %d\n",
-@@ -1080,6 +1096,7 @@ nvmet_rdma_alloc_queue(struct nvmet_rdma_device *ndev,
- 	INIT_WORK(&queue->release_work, nvmet_rdma_release_queue_work);
- 	queue->dev = ndev;
- 	queue->cm_id = cm_id;
-+	queue->port = cm_id->context;
- 
- 	spin_lock_init(&queue->state_lock);
- 	queue->state = NVMET_RDMA_Q_CONNECTING;
-@@ -1198,7 +1215,6 @@ static int nvmet_rdma_queue_connect(struct rdma_cm_id *cm_id,
- 		ret = -ENOMEM;
- 		goto put_device;
- 	}
--	queue->port = cm_id->context;
- 
- 	if (queue->host_qid == 0) {
- 		/* Let inflight controller teardown complete */
+This RFC exposes a cpu mapping to a specific nvmet port. The user can choose
+to provide a affinity hint a to nvme target port that will contain IO threads
+to specific cpu cores and the transport will _try_ to enforce it (if it knows
+how to). We default to the online cpumap.
+
+Note, this is based on the nvme and rdma msix affinity mapping patches pending
+to 4.13.
+
+Feedback is welcome!
+
+Sagi Grimberg (3):
+  nvmet: allow assignment of a cpulist for each nvmet port
+  RDMA/core: expose cpu affinity based completion vector lookup
+  nvmet-rdma: assign cq completion vector based on the port allowed cpus
+
+ drivers/infiniband/core/verbs.c | 41 ++++++++++++++++++++++
+ drivers/nvme/target/configfs.c  | 75 +++++++++++++++++++++++++++++++++++++++++
+ drivers/nvme/target/nvmet.h     |  4 +++
+ drivers/nvme/target/rdma.c      | 40 +++++++++++++++-------
+ include/rdma/ib_verbs.h         |  3 ++
+ 5 files changed, 151 insertions(+), 12 deletions(-)
+
 -- 
 2.7.4
 
