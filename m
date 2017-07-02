@@ -1,51 +1,63 @@
 From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
-Subject: Re: [PATCH][-next] net/mlx5: fix spelling mistake: "Allodating" -> "Allocating"
-Date: Sun, 2 Jul 2017 11:35:44 +0300
-Message-ID: <CALzJLG--=BLto0QszB71LdWqUuj-SxGGbbGLSQ=ckiCRUkCQ-g@mail.gmail.com>
-References: <20170630105922.10397-1-colin.king@canonical.com> <20170701.144003.1643313481741710568.davem@davemloft.net>
+Subject: Re: [PATCH] [net-next] net/mlx5: include wq.o in non-ethernet build
+ for FPGA
+Date: Sun, 2 Jul 2017 11:45:22 +0300
+Message-ID: <CALzJLG8TR8qmBygiL7Eg-1tWvOEgDvtECxKaXt4=j4YdCN72xA@mail.gmail.com>
+References: <20170630154412.3575760-1-arnd@arndb.de> <AM4PR0501MB19409232F4E056237F2FAFFFDBD30@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+ <CAK8P3a1N4=JVJ3vZxBWJRTe-iJz25tmWjigPZ+4=-Aod0dq13Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170701.144003.1643313481741710568.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: colin.king@canonical.com, Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Ilan Tayari <ilant@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAK8P3a1N4=JVJ3vZxBWJRTe-iJz25tmWjigPZ+4=-Aod0dq13Q@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Ilan Tayari <ilant@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, "David S. Miller" <davem@davemloft.net>, Boris Pismenny <borisp@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Hadar Hen Zion <hadarh@mellanox.com>, Kamal Heib <kamalh@mellanox.com>, Maor Gottlieb <maorg@mellanox.com>, Mohamad Haj Yahia <mohamad@mellanox.com>, Aviv Heller <avivh@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jul 2, 2017 at 12:40 AM, David Miller <davem@davemloft.net> wrote:
-> From: Colin King <colin.king@canonical.com>
-> Date: Fri, 30 Jun 2017 11:59:22 +0100
+On Fri, Jun 30, 2017 at 10:25 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Fri, Jun 30, 2017 at 8:58 PM, Ilan Tayari <ilant@mellanox.com> wrote:
 >
->> From: Colin Ian King <colin.king@canonical.com>
+>>> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/Makefile
+>>> b/drivers/net/ethernet/mellanox/mlx5/core/Makefile
+>>> index ca367445f864..50fe9e3c5dc2 100644
+>>> --- a/drivers/net/ethernet/mellanox/mlx5/core/Makefile
+>>> +++ b/drivers/net/ethernet/mellanox/mlx5/core/Makefile
+>>> @@ -9,7 +9,7 @@ mlx5_core-y :=        main.o cmd.o debugfs.o fw.o eq.o uar.o
+>>> pagealloc.o \
+>>>  mlx5_core-$(CONFIG_MLX5_ACCEL) += accel/ipsec.o
+>>>
+>>>  mlx5_core-$(CONFIG_MLX5_FPGA) += fpga/cmd.o fpga/core.o fpga/conn.o
+>>> fpga/sdk.o \
+>>> -             fpga/ipsec.o
+>>> +             fpga/ipsec.o wq.o
 >>
->> Trivial fix to spelling mistake in mlx5_core_dbg debug message
->>
->> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+>> I believe we would prefer to move wq.o to mlx5_core-y.
+>> Otherwise you might build it twice.
 >
-> Applied, thanks Colin.
+> That's not a problem, Kbuild is smart enough to drop duplicate object files
+> that get built into the same module.
 >
-> Mellanox folks, I don't like how these lib/ objects are built.
->
-> I absolutely depend upon being able to try and build individual
-> object files, by name, in order to quickly smoke-test patches.
-> Like this:
->
-> [davem@kkuri net-next]$ make drivers/net/ethernet/mellanox/mlx5/core/lib/gid.o
->
-> But I can't for these files:
->
-> scripts/Makefile.build:44: drivers/net/ethernet/mellanox/mlx5/core/lib/Makefile: No such file or directory
-> make[1]: *** No rule to make target 'drivers/net/ethernet/mellanox/mlx5/core/lib/Makefile'.  Stop.
-> Makefile:1663: recipe for target 'drivers/net/ethernet/mellanox/mlx5/core/lib/gid.o' failed
->
-> Please fix this so that I can build all object files by name in this driver
-> again.
+> If you think it's less confusing to readers of this file if it gets
+> put into core,
+> that's fine though, the only downside would be adding a little bit of
+> code bloat for users that want neither the ethernet nor the fpga code
+> (if that is a realistic use case).
 
-Hi Dave,
-We are going to provide a fix ASAP.
+Hi Arnd,
+
+Thanks for the patch, your solution is good enough, but let's avoid
+confusing developers with such duplications.
+since the Makefile might get messy if we will keep using this method.
+
+I suggest to move wq.o to core or make MLX5_FPGA depend on MLX5_CORE_EN.
+I will discuss this with Ilan and we will provide the fix ASAP.
+
+Thanks,
+Saeed.
+
 
 >
-> Thanks.
+>         Arnd
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo@vger.kernel.org
