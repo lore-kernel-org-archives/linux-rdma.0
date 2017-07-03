@@ -1,42 +1,25 @@
-From: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Subject: [PATCH] IB/qib: fix spelling mistake: "failng" -> "failing"
-Date: Mon,  3 Jul 2017 10:23:47 +0100
-Message-ID: <20170703092347.10928-1-colin.king@canonical.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 1/1] mlx4_en: make mlx4_log_num_mgm_entry_size static
+Date: Mon, 03 Jul 2017 02:41:43 -0700 (PDT)
+Message-ID: <20170703.024143.1454476871860447390.davem@davemloft.net>
+References: <1499060119-7063-1-git-send-email-yanjun.zhu@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1499060119-7063-1-git-send-email-yanjun.zhu@oracle.com>
+Sender: netdev-owner@vger.kernel.org
+To: yanjun.zhu@oracle.com
+Cc: tariqt@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, yuval.shaia@oracle.com, leon@kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+From: Zhu Yanjun <yanjun.zhu@oracle.com>
+Date: Mon,  3 Jul 2017 01:35:19 -0400
 
-Trivial fix to spelling mistake in qib_dev_err error message
+> The variable mlx4_log_num_mgm_entry_size is only called in main.c.
+> 
+> CC: Joe Jin <joe.jin@oracle.com>
+> CC: Junxiao Bi <junxiao.bi@oracle.com>
+> Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
 
-Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib_init.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
-index 6c16ba1107ba..cce4ab468b29 100644
---- a/drivers/infiniband/hw/qib/qib_init.c
-+++ b/drivers/infiniband/hw/qib/qib_init.c
-@@ -399,7 +399,7 @@ static int loadtime_init(struct qib_devdata *dd)
- 	if (((dd->revision >> QLOGIC_IB_R_SOFTWARE_SHIFT) &
- 	     QLOGIC_IB_R_SOFTWARE_MASK) != QIB_CHIP_SWVERSION) {
- 		qib_dev_err(dd,
--			"Driver only handles version %d, chip swversion is %d (%llx), failng\n",
-+			"Driver only handles version %d, chip swversion is %d (%llx), failing\n",
- 			QIB_CHIP_SWVERSION,
- 			(int)(dd->revision >>
- 				QLOGIC_IB_R_SOFTWARE_SHIFT) &
--- 
-2.11.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied, thank you.
