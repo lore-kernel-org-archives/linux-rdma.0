@@ -1,106 +1,57 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next V2 04/27] RDMA/netlink: Rename and remove redundant parameter from ibnl_multicast
-Date: Mon,  3 Jul 2017 09:28:07 +0300
-Message-ID: <20170703062830.30361-5-leon@kernel.org>
-References: <20170703062830.30361-1-leon@kernel.org>
+Subject: Re: [PATCH 1/1] mlx4_en: make mlx4_log_num_mgm_entry_size static
+Date: Mon, 3 Jul 2017 09:52:35 +0300
+Message-ID: <20170703065235.GF8041@mtr-leonro.local>
+References: <1499060119-7063-1-git-send-email-yanjun.zhu@oracle.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="Zi0sgQQBxRFxMTsj"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170703062830.30361-1-leon@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1499060119-7063-1-git-send-email-yanjun.zhu@oracle.com>
 Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>
-Cc: linux-rdma@vger.kernel.org, Stephen Hemminger <stephen@networkplumber.org>, Ariel Almog <ariela@mellanox.com>, Linux Netdev <netdev@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>
+To: Zhu Yanjun <yanjun.zhu@oracle.com>
+Cc: tariqt@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, yuval.shaia@oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
 
-The pointer to netlink header was not used in the ibnl_multicast
-function, so let's remove it and simplify the function
-signature.
+--Zi0sgQQBxRFxMTsj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-Reviewed-by: Steve Wise <swise@opengridcomputing.com>
----
- drivers/infiniband/core/addr.c     | 2 +-
- drivers/infiniband/core/iwpm_msg.c | 2 +-
- drivers/infiniband/core/netlink.c  | 5 ++---
- drivers/infiniband/core/sa_query.c | 2 +-
- include/rdma/rdma_netlink.h        | 4 +---
- 5 files changed, 6 insertions(+), 9 deletions(-)
+On Mon, Jul 03, 2017 at 01:35:19AM -0400, Zhu Yanjun wrote:
+> The variable mlx4_log_num_mgm_entry_size is only called in main.c.
+>
+> CC: Joe Jin <joe.jin@oracle.com>
+> CC: Junxiao Bi <junxiao.bi@oracle.com>
+> Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+> ---
+>  drivers/net/ethernet/mellanox/mlx4/main.c | 2 +-
+>  drivers/net/ethernet/mellanox/mlx4/mlx4.h | 1 -
+>  2 files changed, 1 insertion(+), 2 deletions(-)
+>
 
-diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-index 134d8394fca5..ebd0242bab3d 100644
---- a/drivers/infiniband/core/addr.c
-+++ b/drivers/infiniband/core/addr.c
-@@ -185,7 +185,7 @@ static int ib_nl_ip_send_msg(struct rdma_dev_addr *dev_addr,
- 
- 	/* Repair the nlmsg header length */
- 	nlmsg_end(skb, nlh);
--	ibnl_multicast(skb, nlh, RDMA_NL_GROUP_LS, GFP_KERNEL);
-+	rdma_nl_multicast(skb, RDMA_NL_GROUP_LS, GFP_KERNEL);
- 
- 	/* Make the request retry, so when we get the response from userspace
- 	 * we will have something.
-diff --git a/drivers/infiniband/core/iwpm_msg.c b/drivers/infiniband/core/iwpm_msg.c
-index 8f84557d04e3..561f312ea35a 100644
---- a/drivers/infiniband/core/iwpm_msg.c
-+++ b/drivers/infiniband/core/iwpm_msg.c
-@@ -103,7 +103,7 @@ int iwpm_register_pid(struct iwpm_dev_data *pm_msg, u8 nl_client)
- 	pr_debug("%s: Multicasting a nlmsg (dev = %s ifname = %s iwpm = %s)\n",
- 		__func__, pm_msg->dev_name, pm_msg->if_name, iwpm_ulib_name);
- 
--	ret = ibnl_multicast(skb, nlh, RDMA_NL_GROUP_IWPM, GFP_KERNEL);
-+	ret = rdma_nl_multicast(skb, RDMA_NL_GROUP_IWPM, GFP_KERNEL);
- 	if (ret) {
- 		skb = NULL; /* skb is freed in the netlink send-op handling */
- 		iwpm_user_pid = IWPM_PID_UNAVAILABLE;
-diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-index 95e2453753ff..83e62ecddde1 100644
---- a/drivers/infiniband/core/netlink.c
-+++ b/drivers/infiniband/core/netlink.c
-@@ -247,12 +247,11 @@ int rdma_nl_unicast(struct sk_buff *skb, u32 pid)
- }
- EXPORT_SYMBOL(rdma_nl_unicast);
- 
--int ibnl_multicast(struct sk_buff *skb, struct nlmsghdr *nlh,
--			unsigned int group, gfp_t flags)
-+int rdma_nl_multicast(struct sk_buff *skb, unsigned int group, gfp_t flags)
- {
- 	return nlmsg_multicast(nls, skb, 0, group, flags);
- }
--EXPORT_SYMBOL(ibnl_multicast);
-+EXPORT_SYMBOL(rdma_nl_multicast);
- 
- int __init rdma_nl_init(void)
- {
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index 0b455e7529cb..00d824795285 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -862,7 +862,7 @@ static int ib_nl_send_msg(struct ib_sa_query *query, gfp_t gfp_mask)
- 	/* Repair the nlmsg header length */
- 	nlmsg_end(skb, nlh);
- 
--	ret = ibnl_multicast(skb, nlh, RDMA_NL_GROUP_LS, gfp_mask);
-+	ret = rdma_nl_multicast(skb, RDMA_NL_GROUP_LS, gfp_mask);
- 	if (!ret)
- 		ret = len;
- 	else
-diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
-index cada662baf16..f10607ce1cf0 100644
---- a/include/rdma/rdma_netlink.h
-+++ b/include/rdma/rdma_netlink.h
-@@ -64,12 +64,10 @@ int rdma_nl_unicast(struct sk_buff *skb, u32 pid);
- /**
-  * Send the supplied skb to a netlink group.
-  * @skb: The netlink skb
-- * @nlh: Header of the netlink message to send
-  * @group: Netlink group ID
-  * @flags: allocation flags
-  * Returns 0 on success or a negative error code.
-  */
--int ibnl_multicast(struct sk_buff *skb, struct nlmsghdr *nlh,
--			unsigned int group, gfp_t flags);
-+int rdma_nl_multicast(struct sk_buff *skb, unsigned int group, gfp_t flags);
- 
- #endif /* _RDMA_NETLINK_H */
--- 
-2.13.2
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+
+--Zi0sgQQBxRFxMTsj
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllZ6bMACgkQ5GN7iDZy
+WKdcwBAAoB9CN9KrkcvS6HIJodsA/+yl6hRTK7H1GxbDMpZgmgsF6rrRP6XGkx5k
+Slm0upiwlJ/ve9gnTB0O4NuZRrwdD0s0ucljkcwgklYJD5ZC+6q+qI7Vl4OelkRD
+QGe+ViNHhELmd56EIJ9YejfN+Y34lV3gm3Ivl+GhGfBrMHoyqOILA5rt7fze9oiS
+ZIINRbIIsXr6EDlUTl5geLMYWkMEAEN/XeVREEDAX/o704RpCDpyCcoKiKRKp38S
+GuWwbKOxKQAkbvjeSOAvhiyHs/PhQ3FSlE26mbsjFuX4DpQh8l2s2Y0COQDbn1j8
+CEF9Ypked6xcZczZgUx1QuwuETAHEShm8S90cXKA/o2GbZh31BOh1qj8KAEwy04K
+tRG5Mz/ZWymAirsW78gN6rvK5l4IgrH8ylfy67yjGuxMW/8X93cMBqhZ9hgtMgnR
+5Y/9PFbz82OmN9I95J1hhsASniO0tGt33DQrERGNg9KyNDcZh/PvaGO+QOfbu8Zt
+9gDE6t/9Blon92S9KTFZMkQig8a4on9sXfeV2+kox/13WXYzenpztEYGrIWfXHWu
+vhsoszvLvkkq8BCTA/8leieijMUYLDB+AxvGnup01pasSkgouqLpz1hV73oVirjl
+PE8EdSs9Eqh2vEY3LDjV4Cvq4Nm+bbHDsZjGgqBbSZXVJlwQUAo=
+=Rzpx
+-----END PGP SIGNATURE-----
+
+--Zi0sgQQBxRFxMTsj--
