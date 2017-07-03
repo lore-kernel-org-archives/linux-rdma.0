@@ -1,25 +1,41 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH net-next 00/12] qed: Add iWARP support for QL4xxxx
-Date: Mon, 03 Jul 2017 01:59:12 -0700 (PDT)
-Message-ID: <20170703.015912.1508299432366405008.davem@davemloft.net>
-References: <1498980572-29519-1-git-send-email-Michal.Kalderon@cavium.com>
-        <20170703.014708.552467938183415134.davem@davemloft.net>
+From: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Subject: [PATCH] IB/qib: fix spelling mistake: "failng" -> "failing"
+Date: Mon,  3 Jul 2017 10:23:47 +0100
+Message-ID: <20170703092347.10928-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-7
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170703.014708.552467938183415134.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
-Cc: ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, yuval.mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, ariel.elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+To: Mike Marciniszyn <infinipath-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-DQpZb3UgcmVhbGx5IGhhdmUgdG8gY29tcGlsZSB0ZXN0IHlvdXIgd29yayBhbmQgZG8gc29tZXRo
-aW5nIHdpdGgNCnRoZSB3YXJuaW5nczoNCg0KZHJpdmVycy9uZXQvZXRoZXJuZXQvcWxvZ2ljL3Fl
-ZC9xZWRfaXdhcnAuYzoxNzIxOjU6IHdhcm5pbmc6IKFsbDJfc3luX2hhbmRsZaIgbWF5IGJlIHVz
-ZWQgdW5pbml0aWFsaXplZCBpbiB0aGlzIGZ1bmN0DQoNClRoaXMgb25lIGlzIGNvbXBsZXRlbHkg
-bGVnaXRpbWF0ZSwgeW91IGNhbiBnb3RvICJlcnIiIGFuZCB1c2UNCnRoZSBsbDJfc3luX2hhbmRs
-ZSB3aXRob3V0IGl0IGJlaW5nIGluaXRpYWxpemVkLg0K
+From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+
+Trivial fix to spelling mistake in qib_dev_err error message
+
+Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_init.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
+index 6c16ba1107ba..cce4ab468b29 100644
+--- a/drivers/infiniband/hw/qib/qib_init.c
++++ b/drivers/infiniband/hw/qib/qib_init.c
+@@ -399,7 +399,7 @@ static int loadtime_init(struct qib_devdata *dd)
+ 	if (((dd->revision >> QLOGIC_IB_R_SOFTWARE_SHIFT) &
+ 	     QLOGIC_IB_R_SOFTWARE_MASK) != QIB_CHIP_SWVERSION) {
+ 		qib_dev_err(dd,
+-			"Driver only handles version %d, chip swversion is %d (%llx), failng\n",
++			"Driver only handles version %d, chip swversion is %d (%llx), failing\n",
+ 			QIB_CHIP_SWVERSION,
+ 			(int)(dd->revision >>
+ 				QLOGIC_IB_R_SOFTWARE_SHIFT) &
+-- 
+2.11.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
