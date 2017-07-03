@@ -1,45 +1,101 @@
-From: Michal Kalderon <Michal.Kalderon@cavium.com>
-Subject: [PATCH net-next] qed: initialize ll2_syn_handle at start of function
-Date: Mon, 3 Jul 2017 21:55:25 +0300
-Message-ID: <1499108125-27076-1-git-send-email-Michal.Kalderon@cavium.com>
+From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Large ib_srp configuration cannot allocate FRM pool space and
+ fails map SCSI host
+Date: Mon, 3 Jul 2017 15:00:34 -0400
+Message-ID: <a2107e84-0cd9-476d-7ebc-c2012a03b1f2@redhat.com>
+References: <4ccb9679-db6e-25e7-39ba-eab9186d35a5@redhat.com>
+ <5bc4c6ef-fcb4-95bc-ef34-486ebe60aadc@redhat.com>
+ <976d654b-2834-6dd9-b8d3-3a628b2a7a77@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: michal.kalderon@cavium.com, ram.amrani@cavium.com, yuval.mintz@cavium.com, ariel.elior@cavium.com, davem@davemloft.net, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dledford@redhat.com
-Cc: Michal Kalderon <Michal.Kalderon@cavium.com>, Ariel Elior <Ariel.Elior@cavium.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <976d654b-2834-6dd9-b8d3-3a628b2a7a77-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Fix compilation warning
-qed_iwarp.c:1721:5: warning: ll2_syn_handle may be used
-uninitialized in this function
 
-Signed-off-by: Michal Kalderon <Michal.Kalderon@cavium.com>
-Signed-off-by: Ariel Elior <Ariel.Elior@cavium.com>
----
- drivers/net/ethernet/qlogic/qed/qed_iwarp.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/qlogic/qed/qed_iwarp.c b/drivers/net/ethernet/qlogic/qed/qed_iwarp.c
-index 5cd20da..b251eba 100644
---- a/drivers/net/ethernet/qlogic/qed/qed_iwarp.c
-+++ b/drivers/net/ethernet/qlogic/qed/qed_iwarp.c
-@@ -1724,7 +1724,7 @@ int qed_iwarp_reject(void *rdma_cxt, struct qed_iwarp_reject_in *iparams)
- 	int rc;
- 
- 	memset(&cm_info, 0, sizeof(cm_info));
--
-+	ll2_syn_handle = p_hwfn->p_rdma_info->iwarp.ll2_syn_handle;
- 	if (GET_FIELD(data->parse_flags,
- 		      PARSING_AND_ERR_FLAGS_L4CHKSMWASCALCULATED) &&
- 	    GET_FIELD(data->parse_flags, PARSING_AND_ERR_FLAGS_L4CHKSMERROR)) {
-@@ -1740,7 +1740,6 @@ int qed_iwarp_reject(void *rdma_cxt, struct qed_iwarp_reject_in *iparams)
- 		goto err;
- 
- 	/* Check if there is a listener for this 4-tuple+vlan */
--	ll2_syn_handle = p_hwfn->p_rdma_info->iwarp.ll2_syn_handle;
- 	listener = qed_iwarp_get_listener(p_hwfn, &cm_info);
- 	if (!listener) {
- 		DP_VERBOSE(p_hwfn,
--- 
-1.8.3.1
+On 07/02/2017 04:31 AM, Sagi Grimberg wrote:
+>>> Hello
+>>>
+>>> This issue is apparent on RHEL and upstream 4.12-rc5 (that is what 
+>>> was tested)
+>>>
+>>> Customer has a large configuration so I cannot reproduce this so 
+>>> asking if anybody else is aware of this.
+>>>
+>>> We fail in FMR and we then keep incrementing the SCSI host#'s
+>>>
+>>> Jun 20 14:01:42 xxxxxx kernel: fmr_pool: fmr_create failed for FMR 3809
+>>> Jun 20 14:01:42 xxxxxx kernel: fmr_pool: fmr_create failed for FMR 2005
+>>> Jun 20 14:01:42 xxxxxx kernel: scsi host7: ib_srp: FMR pool 
+>>> allocation failed (-12)
+>>> Jun 20 14:01:42 xxxxxx kernel: scsi host8: ib_srp: FMR pool 
+>>> allocation failed (-12)
+>>>
+>>> This repeats over and over.
+>>>
+>>> * 7 pairs of enclosures / each with two controllers
+>>> * Each with an expansion tray
+>>> * Each side on the controller is going to its own IB switch
+>>> * Each node is connected to both switches each running its own subnet 
+>>> manager
+>>>
+>>> Prior versions of RHEL i.e. 7.2 that don't have the newer code that 
+>>> also exists upstream are working.
+>>> Both RHEL7.3 and upstream are affected.
+>>>
+>>> The configuration in place is:
+>>>
+>>> for srp.conf
+>>> a max_sect=65535,max_cmd_per_lun=254,queue_size=254
+>>>
+>>> for ib_srp
+>>> options ib_srp cmd_sg_entries=255 indirect_sg_entries=2048 prefer_fr=N
+> 
+> How many fmrs did you end up allocating? what device is this?
+
+Hello Sagi
+
+I had them change srp.conf from:
+a max_sect=65535,max_cmd_per_lun=254,queue_size=254
+
+to:
+a max_sect=4096,max_cmd_per_lun=64,queue_size=128
+
+Now we can probe all rports and no longer see the disconnects and 
+reconnects and FR allocation failures.
+
+I guess the changes made to the FMR code upstream which we of course 
+pulled into RHEL 7.3 will exceed allocations with the large rport count 
+this customer has.
+
+My test-bed is back to back with two mlx5 ports on the server and two on 
+the client so I have been running with
+a max_sect=65535,max_cmd_per_lun=254,queue_size=254
+For a long time now.
+
+So is this a tuning issue here as I am sure Red Hat, Bart and Mellanox 
+have never tested this above with a 14 port remote array configuration.
+
+Quite honestly,
+a max_sect=4096,max_cmd_per_lun=64,queue_size=128
+is very reasonable.
+
+I think I will have them increase max_sect=16384 and we should still 
+have enough space for allocations.
+
+If you need more specifics like the actual FMR count as its currently 
+configured let me know.
+Simply let me have a list of sysfs variables you want captured.
+
+Regards
+Laurence
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
