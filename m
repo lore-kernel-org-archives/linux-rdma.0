@@ -1,55 +1,54 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 4/4] IB/mlx4: Expose RSS capabilities
-Date: Tue,  4 Jul 2017 16:24:27 +0300
-Message-ID: <20170704132427.25937-5-leon@kernel.org>
-References: <20170704132427.25937-1-leon@kernel.org>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170704132427.25937-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/36] v2 net subsystem misc refcounter conversions
+Date: Tue, 04 Jul 2017 23:00:40 +0100 (WEST)
+Message-ID: <20170704.230040.195111189904913382.davem@davemloft.net>
+References: <1499172811-16271-1-git-send-email-elena.reshetova@intel.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1499172811-16271-1-git-send-email-elena.reshetova@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: elena.reshetova@intel.com
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-decnet-user@lists.sourceforge.net, jmorris@namei.org, kaber@trash.net, yoshfuji@linux-ipv6.org, kuznet@ms2.inr.ac.ru, 3chas3@gmail.com, ralf@linux-mips.org, stephen@networkplumber.org, jchapman@katalix.com, jhs@mojatatu.com, bridge@lists.linux-foundation.org, linux-hams@vger.kernel.org, linux-x25@vger.kernel.org, peterz@infradead.org, keescook@chromium.org, linux-rdma@vger.kernel.org, linux-sctp@vger.kernel.org, vyasevich@gmail.com, nhorman@tuxdriver.com, linux-nfs@vger.kernel.org, zyan@redhat.com, sage@redhat.com, bfields@fieldses.org, jlayton@poochiereds.net, steffen.klassert@secunet.com, herbert@gondor.apana.org.au, santosh.shilimkar@oracle.com, jreuter@yaina.de
 List-Id: linux-rdma@vger.kernel.org
 
-From: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Elena Reshetova <elena.reshetova@intel.com>
+Date: Tue,  4 Jul 2017 15:52:55 +0300
 
-As a final step to support RSS feature, expose the RSS capabilities in
-query device verb.
+> Changes in v2:
+>  * rebase on top of net-next
+>  * currently by default refcount_t = atomic_t (*) and uses all 
+>    atomic standard operations unless CONFIG_REFCOUNT_FULL is enabled.
+>    This is a compromise for the systems that are critical on
+>    performance (such as net) and cannot accept even slight delay
+>    on the refcounter operations.
+> 
+> This series, for various misc network components, replaces atomic_t reference
+> counters with the new refcount_t type and API (see include/linux/refcount.h).
+> By doing this we prevent intentional or accidental
+> underflows or overflows that can led to use-after-free vulnerabilities.
+> These are the last networking-related conversions with the exception of
+> network drivers (to be send separately).
+> 
+> Please excuse the long patch set, but seems like breaking it up
+> won't save that much on CC list and most of the changes are
+> trivial.
+> 
+> The patches are fully independent and can be cherry-picked separately.
+> In order to try with refcount functionality enabled in run-time,
+> CONFIG_REFCOUNT_FULL must be enabled.
+> 
+> NOTE: automatic kernel builder for some reason doesn't like all my
+> network branches and regularly times out the builds on these branches.
+> Suggestion for "waiting a day for a good coverage" doesn't work, as
+> we have seen with generic network conversions. So please wait for the
+> full report from kernel test rebot before merging further up.
+> This has been compile-tested in 116 configs, but 71 timed out (including
+> all s390-related configs again). I am trying to see if they can fix
+> build coverage for me in meanwhile.
+> 
+> * The respective change is currently merged into -next as
+>   "locking/refcount: Create unchecked atomic_t implementation".
 
-It includes:
-- Max rwq indirection tables.
-- Max rwq indirection table size.
-- Supported qp types.
-
-Signed-off-by: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/main.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 0e1cb209b9cb..ce1abf269f99 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -556,8 +556,13 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
- 
- 	if ((dev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_RSS) &&
- 	    (mlx4_ib_port_link_layer(ibdev, 1) == IB_LINK_LAYER_ETHERNET ||
--	     mlx4_ib_port_link_layer(ibdev, 2) == IB_LINK_LAYER_ETHERNET))
-+	     mlx4_ib_port_link_layer(ibdev, 2) == IB_LINK_LAYER_ETHERNET)) {
-+		props->rss_caps.max_rwq_indirection_tables = props->max_qp;
-+		props->rss_caps.max_rwq_indirection_table_size =
-+			dev->dev->caps.max_rss_tbl_sz;
-+		props->rss_caps.supported_qpts = 1 << IB_QPT_RAW_PACKET;
- 		props->max_wq_type_rq = props->max_qp;
-+	}
- 
- 	if (!mlx4_is_slave(dev->dev))
- 		err = mlx4_get_internal_clock_params(dev->dev, &clock_params);
--- 
-2.13.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Series applied, that's enough for this cycle, please.
