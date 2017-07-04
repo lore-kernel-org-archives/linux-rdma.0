@@ -1,109 +1,96 @@
-From: Elena Reshetova <elena.reshetova@intel.com>
-Subject: [PATCH 22/36] net,
-	rds: convert rds_mr.r_refcount from atomic_t to refcount_t
-Date: Tue,  4 Jul 2017 15:53:17 +0300
-Message-ID: <1499172811-16271-23-git-send-email-elena.reshetova@intel.com>
-References: <1499172811-16271-1-git-send-email-elena.reshetova@intel.com>
-Return-path: <bridge-bounces@lists.linux-foundation.org>
-In-Reply-To: <1499172811-16271-1-git-send-email-elena.reshetova@intel.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
-List-Post: <mailto:bridge@lists.linux-foundation.org>
-List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
-Sender: bridge-bounces@lists.linux-foundation.org
-Errors-To: bridge-bounces@lists.linux-foundation.org
-To: netdev@vger.kernel.org
-Cc: peterz@infradead.org, jchapman@katalix.com, bfields@fieldses.org, linux-sctp@vger.kernel.org, jlayton@poochiereds.net, Elena Reshetova <elena.reshetova@intel.com>, steffen.klassert@secunet.com, zyan@redhat.com, herbert@gondor.apana.org.au, linux-x25@vger.kernel.org, linux-rdma@vger.kernel.org, bridge@lists.linux-foundation.org, jmorris@namei.org, 3chas3@gmail.com, kuznet@ms2.inr.ac.ru, jreuter@yaina.de, keescook@chromium.org, santosh.shilimkar@oracle.com, jhs@mojatatu.com, Hans Liljestrand <ishkamiel@gmail.com>, linux-hams@vger.kernel.org, David Windsor <dwindsor@gmail.com>, linux-nfs@vger.kernel.org, sage@redhat.com, nhorman@tuxdriver.com, yoshfuji@linux-ipv6.org, vyasevich@gmail.com, linux-decnet-user@lists.sourceforge.net, linux-kernel@vger.kernel.org, ralf@linux-mips.org, kaber@trash.net, davem@davemloft.net
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next 0/4] ConnectX-3 RSS Implementation
+Date: Tue, 4 Jul 2017 16:24:06 +0300
+Message-ID: <20170704132406.GJ1528@mtr-leonro.local>
+References: <20170622134412.7680-1-leon@kernel.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="s5/bjXLgkIwAv6Hi"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170622134412.7680-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-refcount_t type and corresponding API should be
-used instead of atomic_t when the variable is used as
-a reference counter. This allows to avoid accidental
-refcounter overflows that might lead to use-after-free
-situations.
 
-Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Signed-off-by: David Windsor <dwindsor@gmail.com>
----
- net/rds/rdma.c | 10 +++++-----
- net/rds/rds.h  |  4 ++--
- 2 files changed, 7 insertions(+), 7 deletions(-)
+--s5/bjXLgkIwAv6Hi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/net/rds/rdma.c b/net/rds/rdma.c
-index f06fac4..8886f15 100644
---- a/net/rds/rdma.c
-+++ b/net/rds/rdma.c
-@@ -84,7 +84,7 @@ static struct rds_mr *rds_mr_tree_walk(struct rb_root *root, u64 key,
- 	if (insert) {
- 		rb_link_node(&insert->r_rb_node, parent, p);
- 		rb_insert_color(&insert->r_rb_node, root);
--		atomic_inc(&insert->r_refcount);
-+		refcount_inc(&insert->r_refcount);
- 	}
- 	return NULL;
- }
-@@ -99,7 +99,7 @@ static void rds_destroy_mr(struct rds_mr *mr)
- 	unsigned long flags;
- 
- 	rdsdebug("RDS: destroy mr key is %x refcnt %u\n",
--			mr->r_key, atomic_read(&mr->r_refcount));
-+			mr->r_key, refcount_read(&mr->r_refcount));
- 
- 	if (test_and_set_bit(RDS_MR_DEAD, &mr->r_state))
- 		return;
-@@ -223,7 +223,7 @@ static int __rds_rdma_map(struct rds_sock *rs, struct rds_get_mr_args *args,
- 		goto out;
- 	}
- 
--	atomic_set(&mr->r_refcount, 1);
-+	refcount_set(&mr->r_refcount, 1);
- 	RB_CLEAR_NODE(&mr->r_rb_node);
- 	mr->r_trans = rs->rs_transport;
- 	mr->r_sock = rs;
-@@ -307,7 +307,7 @@ static int __rds_rdma_map(struct rds_sock *rs, struct rds_get_mr_args *args,
- 
- 	rdsdebug("RDS: get_mr key is %x\n", mr->r_key);
- 	if (mr_ret) {
--		atomic_inc(&mr->r_refcount);
-+		refcount_inc(&mr->r_refcount);
- 		*mr_ret = mr;
- 	}
- 
-@@ -756,7 +756,7 @@ int rds_cmsg_rdma_dest(struct rds_sock *rs, struct rds_message *rm,
- 	if (!mr)
- 		err = -EINVAL;	/* invalid r_key */
- 	else
--		atomic_inc(&mr->r_refcount);
-+		refcount_inc(&mr->r_refcount);
- 	spin_unlock_irqrestore(&rs->rs_rdma_lock, flags);
- 
- 	if (mr) {
-diff --git a/net/rds/rds.h b/net/rds/rds.h
-index 35ceaa2..ea72d6e 100644
---- a/net/rds/rds.h
-+++ b/net/rds/rds.h
-@@ -277,7 +277,7 @@ struct rds_incoming {
- 
- struct rds_mr {
- 	struct rb_node		r_rb_node;
--	atomic_t		r_refcount;
-+	refcount_t		r_refcount;
- 	u32			r_key;
- 
- 	/* A copy of the creation flags */
-@@ -857,7 +857,7 @@ int rds_cmsg_atomic(struct rds_sock *rs, struct rds_message *rm,
- void __rds_put_mr_final(struct rds_mr *mr);
- static inline void rds_mr_put(struct rds_mr *mr)
- {
--	if (atomic_dec_and_test(&mr->r_refcount))
-+	if (refcount_dec_and_test(&mr->r_refcount))
- 		__rds_put_mr_final(mr);
- }
- 
--- 
-2.7.4
+On Thu, Jun 22, 2017 at 04:44:08PM +0300, Leon Romanovsky wrote:
+> Hi Doug,
+>
+> This patch set adds to ConnectX-3 devices the ability to use RSS
+> feature, which was initially implemented in mlx5-based devices [1].
+>
+> The backport of RSS feature to ConnectX-3 hardware was a challenge
+> task due to differences in architectures between mlx4 and mlx5 based
+> devices.
+>
+> It caused to a limited number of usage limitations, mentioned in the relevant
+> commit messages where it applies.
+>
+> This series supports all RSS related verbs.
+>
+> Thanks.
+>
+> [1] https://www.spinics.net/lists/linux-rdma/msg36526.html
+>
+> ---
+> We based this series on our previous mlx4 submissions to reduce merge conflicts.
+> For your convenience, I prepared the branch with the following merge sequence:
+> "topic/no-io" -> "topic/mlx4-resource-utilization" -> "topic/mlx4-receive-inline"
+>
+> Available in the "topic/mlx4-rss" topic branch of this git repo:
+> git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+>
+> Or for browsing:
+> https://git.kernel.org/cgit/linux/kernel/git/leon/linux-rdma.git/log/?h=topic/mlx4-rss
+>
+> Thanks
+>
+> Guy Levi (4):
+>   IB/mlx4: Add support for WQ related verbs
+>   IB/mlx4: Add support for WQ indirection table related verbs
+>   IB/mlx4: Add support for RSS QP
+>   IB/mlx4: Expose RSS capabilities
+>
+>  drivers/infiniband/hw/mlx4/main.c    |  51 ++
+>  drivers/infiniband/hw/mlx4/mlx4_ib.h |  32 +-
+>  drivers/infiniband/hw/mlx4/qp.c      | 907 ++++++++++++++++++++++++++++++++---
+>  include/uapi/rdma/mlx4-abi.h         |  49 ++
+>  4 files changed, 975 insertions(+), 64 deletions(-)
+>
+> --
+
+Please drop this series in favor of v1.
+
+Thanks
+
+--s5/bjXLgkIwAv6Hi
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllblvYACgkQ5GN7iDZy
+WKfZExAAqB2VAR3Frdi3kGKqx36C8v1ZXOEJNi9mOSnH2rqPA6+p3QWU1l2duDTw
+ocCGowH3h2cXjkZTGi3a/UP1Gm145h8m0wrIPU54ofdXaeFC8KOvK53oUy4PU2Mp
+zxP6e6D0UvBpKqGR/Ix3iPyRwXIizHVcGFfto/yT8BJRu9ICE5cdg+c4CwduiMbn
+waddRRtIsdt3ATRXQs9I2O9YzCmrXC/Qj4G3tZwPGXjG3NOZ16xPp1jsJdGBrvcc
+lIiDdPEdT76tlWipXlwmkBfmKgHkVa7cj6vfvihoQmHijxYh3MISkP87I3mWTm8Q
+tJ9zxN2R/SGXpmpSeQvvIQhdnkgB1tnWZjWE5wSanckrX9jz6XIqm9uDgMUBqvEf
+AHu1W0td2t5rAIxILbEobIZyoOZg3AyyfrFwaTORx5ymxkQKedTt3H8eWEuySm37
+FyfHHLV4q1vpeUh57KfLMObWbXv26hw94rNkz8ZRj6/pn0VkI9lvg1ItwVIgSxK1
+myc757MTO1vEnImAj6Doat3/VUNxZBapBvgm/QNGJ4P7bl4KoRJnUcbIa/u1VObY
+VY+o7oZn0f2iX3SFS3JSy8c20kx+/yGQZ/mb2Va4qHfjwr2CIb73chrNcQB5vNhw
+y8VCqoDmt7dZJ719spyT2N0BGGq6QS8/AT6DKLZBiqvsJnhRvIg=
+=xTIE
+-----END PGP SIGNATURE-----
+
+--s5/bjXLgkIwAv6Hi--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
