@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-next V1 2/4] IB/mlx4: Add support for WQ indirection table related verbs
-Date: Tue,  4 Jul 2017 16:24:25 +0300
-Message-ID: <20170704132427.25937-3-leon@kernel.org>
+Subject: [PATCH rdma-next V1 3/4] IB/mlx4: Add support for RSS QP
+Date: Tue,  4 Jul 2017 16:24:26 +0300
+Message-ID: <20170704132427.25937-4-leon@kernel.org>
 References: <20170704132427.25937-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170704132427.25937-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,152 +12,695 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-To enable RSS functionality the IB indirection table object (i.e.
-ib_rwq_ind_table) should be used.
-This patch implements the related verbs as of create and destroy an
-indirection table.
+Add support to work with a RSS QP by using an indirection table object
+upon QP creation. Other related QP verbs (e.g. modify/destroy/query) were
+updated as well for that QP mode.
 
-In downstream patches the indirection table will be used as part of RSS
-QP creation.
+Notes:
+- The RX hash properties are supplied as driver private data.
+- The RSS QP port is used on the associated WQs in its indirection
+  table. Applying different ports during WQ life time is not allowed.
+- The expected RSS QP flow is: create, modify(RST->INIT),
+  modify(RST->RTR), destroy.
 
 Signed-off-by: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c    | 12 +++++--
- drivers/infiniband/hw/mlx4/mlx4_ib.h |  6 ++++
- drivers/infiniband/hw/mlx4/qp.c      | 69 ++++++++++++++++++++++++++++++++++++
- include/uapi/rdma/mlx4-abi.h         |  4 +++
- 4 files changed, 88 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mlx4/mlx4_ib.h |   8 +
+ drivers/infiniband/hw/mlx4/qp.c      | 453 +++++++++++++++++++++++++++++++++--
+ include/uapi/rdma/mlx4-abi.h         |  33 +++
+ 3 files changed, 472 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index ddcc6afe41f5..0e1cb209b9cb 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -2738,10 +2738,16 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 		ibdev->ib_dev.create_wq		= mlx4_ib_create_wq;
- 		ibdev->ib_dev.modify_wq		= mlx4_ib_modify_wq;
- 		ibdev->ib_dev.destroy_wq	= mlx4_ib_destroy_wq;
-+		ibdev->ib_dev.create_rwq_ind_table  =
-+			mlx4_ib_create_rwq_ind_table;
-+		ibdev->ib_dev.destroy_rwq_ind_table =
-+			mlx4_ib_destroy_rwq_ind_table;
- 		ibdev->ib_dev.uverbs_ex_cmd_mask |=
--			(1ull << IB_USER_VERBS_EX_CMD_CREATE_WQ) |
--			(1ull << IB_USER_VERBS_EX_CMD_MODIFY_WQ) |
--			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_WQ);
-+			(1ull << IB_USER_VERBS_EX_CMD_CREATE_WQ)	  |
-+			(1ull << IB_USER_VERBS_EX_CMD_MODIFY_WQ)	  |
-+			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_WQ)	  |
-+			(1ull << IB_USER_VERBS_EX_CMD_CREATE_RWQ_IND_TBL) |
-+			(1ull << IB_USER_VERBS_EX_CMD_DESTROY_RWQ_IND_TBL);
- 	}
- 
- 	if (!mlx4_is_slave(ibdev->dev)) {
 diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index ba4e78c064d2..85525bc400a0 100644
+index 85525bc400a0..1fa19820355a 100644
 --- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
 +++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -916,4 +916,10 @@ int mlx4_ib_destroy_wq(struct ib_wq *wq);
- int mlx4_ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *wq_attr,
- 		      u32 wq_attr_mask, struct ib_udata *udata);
+@@ -46,6 +46,7 @@
  
-+struct ib_rwq_ind_table
-+*mlx4_ib_create_rwq_ind_table(struct ib_device *device,
-+			      struct ib_rwq_ind_table_init_attr *init_attr,
-+			      struct ib_udata *udata);
-+int mlx4_ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *wq_ind_table);
+ #include <linux/mlx4/device.h>
+ #include <linux/mlx4/doorbell.h>
++#include <linux/mlx4/qp.h>
+ 
+ #define MLX4_IB_DRV_NAME	"mlx4_ib"
+ 
+@@ -299,6 +300,12 @@ struct mlx4_wqn_range {
+ 	struct list_head	list;
+ };
+ 
++struct mlx4_ib_rss {
++	unsigned int		base_qpn_tbl_sz;
++	u8			flags;
++	u8			rss_key[MLX4_EN_RSS_KEY_SIZE];
++};
 +
- #endif /* MLX4_IB_H */
+ struct mlx4_ib_qp {
+ 	union {
+ 		struct ib_qp	ibqp;
+@@ -345,6 +352,7 @@ struct mlx4_ib_qp {
+ 	struct mlx4_wqn_range	*wqn_range;
+ 	/* Number of RSS QP parents that uses this WQ */
+ 	u32			rss_usecnt;
++	struct mlx4_ib_rss	*rss_ctx;
+ };
+ 
+ struct mlx4_ib_srq {
 diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 2d4b7ffd3684..519919d15474 100644
+index 519919d15474..e42acfb20588 100644
 --- a/drivers/infiniband/hw/mlx4/qp.c
 +++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -3944,3 +3944,72 @@ int mlx4_ib_destroy_wq(struct ib_wq *ibwq)
- 	return 0;
+@@ -53,6 +53,7 @@ static void mlx4_ib_lock_cqs(struct mlx4_ib_cq *send_cq,
+ 			     struct mlx4_ib_cq *recv_cq);
+ static void mlx4_ib_unlock_cqs(struct mlx4_ib_cq *send_cq,
+ 			       struct mlx4_ib_cq *recv_cq);
++static int _mlx4_ib_modify_wq(struct ib_wq *ibwq, enum ib_wq_state new_state);
+ 
+ enum {
+ 	MLX4_IB_ACK_REQ_FREQ	= 8,
+@@ -650,6 +651,212 @@ static void mlx4_ib_free_qp_counter(struct mlx4_ib_dev *dev,
+ 	qp->counter_index = NULL;
  }
  
-+struct ib_rwq_ind_table
-+*mlx4_ib_create_rwq_ind_table(struct ib_device *device,
-+			      struct ib_rwq_ind_table_init_attr *init_attr,
-+			      struct ib_udata *udata)
++static int set_qp_rss(struct mlx4_ib_dev *dev, struct mlx4_ib_rss *rss_ctx,
++		      struct ib_qp_init_attr *init_attr,
++		      struct mlx4_ib_create_qp_rss *ucmd)
 +{
-+	struct ib_rwq_ind_table *rwq_ind_table;
-+	struct mlx4_ib_create_rwq_ind_tbl_resp resp = {};
-+	unsigned int ind_tbl_size = 1 << init_attr->log_ind_tbl_size;
-+	unsigned int base_wqn;
-+	size_t min_resp_len;
++	rss_ctx->base_qpn_tbl_sz = init_attr->rwq_ind_tbl->ind_tbl[0]->wq_num |
++		(init_attr->rwq_ind_tbl->log_ind_tbl_size << 24);
++
++	if ((ucmd->rx_hash_function == MLX4_IB_RX_HASH_FUNC_TOEPLITZ) &&
++	    (dev->dev->caps.flags2 & MLX4_DEV_CAP_FLAG2_RSS_TOP)) {
++		memcpy(rss_ctx->rss_key, ucmd->rx_hash_key,
++		       MLX4_EN_RSS_KEY_SIZE);
++	} else {
++		pr_debug("RX Hash function is not supported\n");
++		return (-EOPNOTSUPP);
++	}
++
++	if ((ucmd->rx_hash_fields_mask & MLX4_IB_RX_HASH_SRC_IPV4) &&
++	    (ucmd->rx_hash_fields_mask & MLX4_IB_RX_HASH_DST_IPV4)) {
++		rss_ctx->flags = MLX4_RSS_IPV4;
++	} else if ((ucmd->rx_hash_fields_mask & MLX4_IB_RX_HASH_SRC_IPV4) ||
++		   (ucmd->rx_hash_fields_mask & MLX4_IB_RX_HASH_DST_IPV4)) {
++		pr_debug("RX Hash fields_mask is not supported - both IPv4 SRC and DST must be set\n");
++		return (-EOPNOTSUPP);
++	}
++
++	if ((ucmd->rx_hash_fields_mask & MLX4_IB_RX_HASH_SRC_IPV6) &&
++	    (ucmd->rx_hash_fields_mask & MLX4_IB_RX_HASH_DST_IPV6)) {
++		rss_ctx->flags |= MLX4_RSS_IPV6;
++	} else if ((ucmd->rx_hash_fields_mask & MLX4_IB_RX_HASH_SRC_IPV6) ||
++		   (ucmd->rx_hash_fields_mask & MLX4_IB_RX_HASH_DST_IPV6)) {
++		pr_debug("RX Hash fields_mask is not supported - both IPv6 SRC and DST must be set\n");
++		return (-EOPNOTSUPP);
++	}
++
++	if ((ucmd->rx_hash_fields_mask & MLX4_IB_RX_HASH_SRC_PORT_UDP) &&
++	    (ucmd->rx_hash_fields_mask & MLX4_IB_RX_HASH_DST_PORT_UDP)) {
++		if (!(dev->dev->caps.flags & MLX4_DEV_CAP_FLAG_UDP_RSS)) {
++			pr_debug("RX Hash fields_mask for UDP is not supported\n");
++			return (-EOPNOTSUPP);
++		}
++
++		if (rss_ctx->flags & MLX4_RSS_IPV4) {
++			rss_ctx->flags |= MLX4_RSS_UDP_IPV4;
++		} else if (rss_ctx->flags & MLX4_RSS_IPV6) {
++			rss_ctx->flags |= MLX4_RSS_UDP_IPV6;
++		} else {
++			pr_debug("RX Hash fields_mask is not supported - UDP must be set with IPv4 or IPv6\n");
++			return (-EOPNOTSUPP);
++		}
++	} else if ((ucmd->rx_hash_fields_mask & MLX4_IB_RX_HASH_SRC_PORT_UDP) ||
++		   (ucmd->rx_hash_fields_mask & MLX4_IB_RX_HASH_DST_PORT_UDP)) {
++		pr_debug("RX Hash fields_mask is not supported - both UDP SRC and DST must be set\n");
++		return (-EOPNOTSUPP);
++	}
++
++	if ((ucmd->rx_hash_fields_mask & MLX4_IB_RX_HASH_SRC_PORT_TCP) &&
++	    (ucmd->rx_hash_fields_mask & MLX4_IB_RX_HASH_DST_PORT_TCP)) {
++		if (rss_ctx->flags & MLX4_RSS_IPV4) {
++			rss_ctx->flags |= MLX4_RSS_TCP_IPV4;
++		} else if (rss_ctx->flags & MLX4_RSS_IPV6) {
++			rss_ctx->flags |= MLX4_RSS_TCP_IPV6;
++		} else {
++			pr_debug("RX Hash fields_mask is not supported - TCP must be set with IPv4 or IPv6\n");
++			return (-EOPNOTSUPP);
++		}
++
++	} else if ((ucmd->rx_hash_fields_mask & MLX4_IB_RX_HASH_SRC_PORT_TCP) ||
++		   (ucmd->rx_hash_fields_mask & MLX4_IB_RX_HASH_DST_PORT_TCP)) {
++		pr_debug("RX Hash fields_mask is not supported - both TCP SRC and DST must be set\n");
++		return (-EOPNOTSUPP);
++	}
++
++	return 0;
++}
++
++static int create_qp_rss(struct mlx4_ib_dev *dev, struct ib_pd *ibpd,
++			 struct ib_qp_init_attr *init_attr,
++			 struct mlx4_ib_create_qp_rss *ucmd,
++			 struct mlx4_ib_qp *qp)
++{
++	int qpn;
++	int err;
++
++	qp->mqp.usage = MLX4_RES_USAGE_USER_VERBS;
++
++	err = mlx4_qp_reserve_range(dev->dev, 1, 1, &qpn, 0, qp->mqp.usage);
++	if (err)
++		return err;
++
++	err = mlx4_qp_alloc(dev->dev, qpn, &qp->mqp);
++	if (err)
++		goto err_qpn;
++
++	mutex_init(&qp->mutex);
++
++	INIT_LIST_HEAD(&qp->gid_list);
++	INIT_LIST_HEAD(&qp->steering_rules);
++
++	qp->mlx4_ib_qp_type = MLX4_IB_QPT_RAW_ETHERTYPE;
++	qp->state = IB_QPS_RESET;
++
++	/* Set dummy send resources to be compatible with HV and PRM */
++	qp->sq_no_prefetch = 1;
++	qp->sq.wqe_cnt = 1;
++	qp->sq.wqe_shift = MLX4_IB_MIN_SQ_STRIDE;
++	qp->buf_size = qp->sq.wqe_cnt << MLX4_IB_MIN_SQ_STRIDE;
++	qp->mtt = (to_mqp(
++		   (struct ib_qp *)init_attr->rwq_ind_tbl->ind_tbl[0]))->mtt;
++
++	qp->rss_ctx = kzalloc(sizeof(*qp->rss_ctx), GFP_KERNEL);
++	if (!qp->rss_ctx) {
++		err = -ENOMEM;
++		goto err_qp_alloc;
++	}
++
++	err = set_qp_rss(dev, qp->rss_ctx, init_attr, ucmd);
++	if (err)
++		goto err;
++
++	return 0;
++
++err:
++	kfree(qp->rss_ctx);
++
++err_qp_alloc:
++	mlx4_qp_remove(dev->dev, &qp->mqp);
++	mlx4_qp_free(dev->dev, &qp->mqp);
++
++err_qpn:
++	mlx4_qp_release_range(dev->dev, qpn, 1);
++	return err;
++}
++
++static struct ib_qp *_mlx4_ib_create_qp_rss(struct ib_pd *pd,
++					    struct ib_qp_init_attr *init_attr,
++					    struct ib_udata *udata)
++{
++	struct mlx4_ib_qp *qp;
++	struct mlx4_ib_create_qp_rss ucmd = {};
++	size_t required_cmd_sz;
++	int err;
++
++	if (!udata) {
++		pr_debug("RSS QP with NULL udata\n");
++		return ERR_PTR(-EINVAL);
++	}
++
++	if (udata->outlen)
++		return ERR_PTR(-EOPNOTSUPP);
++
++	required_cmd_sz = offsetof(typeof(ucmd), reserved1) +
++					sizeof(ucmd.reserved1);
++	if (udata->inlen < required_cmd_sz) {
++		pr_debug("invalid inlen\n");
++		return ERR_PTR(-EINVAL);
++	}
++
++	if (ib_copy_from_udata(&ucmd, udata, min(sizeof(ucmd), udata->inlen))) {
++		pr_debug("copy failed\n");
++		return ERR_PTR(-EFAULT);
++	}
++
++	if (ucmd.comp_mask || ucmd.reserved1)
++		return ERR_PTR(-EOPNOTSUPP);
++
++	if (udata->inlen > sizeof(ucmd) &&
++	    !ib_is_udata_cleared(udata, sizeof(ucmd),
++				 udata->inlen - sizeof(ucmd))) {
++		pr_debug("inlen is not supported\n");
++		return ERR_PTR(-EOPNOTSUPP);
++	}
++
++	if (init_attr->qp_type != IB_QPT_RAW_PACKET) {
++		pr_debug("RSS QP with unsupported QP type %d\n",
++			 init_attr->qp_type);
++		return ERR_PTR(-EOPNOTSUPP);
++	}
++
++	if (init_attr->create_flags) {
++		pr_debug("RSS QP doesn't support create flags\n");
++		return ERR_PTR(-EOPNOTSUPP);
++	}
++
++	if (init_attr->send_cq || init_attr->cap.max_send_wr) {
++		pr_debug("RSS QP with unsupported send attributes\n");
++		return ERR_PTR(-EOPNOTSUPP);
++	}
++
++	qp = kzalloc(sizeof(*qp), GFP_KERNEL);
++	if (!qp)
++		return ERR_PTR(-ENOMEM);
++
++	qp->pri.vid = 0xFFFF;
++	qp->alt.vid = 0xFFFF;
++
++	err = create_qp_rss(to_mdev(pd->device), pd, init_attr, &ucmd, qp);
++	if (err) {
++		kfree(qp);
++		return ERR_PTR(err);
++	}
++
++	qp->ibqp.qp_num = qp->mqp.qpn;
++
++	return &qp->ibqp;
++}
++
+ /*
+  * This function allocates a WQN from a range which is consecutive and aligned
+  * to its size. In case the range is full, then it creates a new range and
+@@ -1186,6 +1393,36 @@ static void get_cqs(struct mlx4_ib_qp *qp, enum mlx4_ib_source_type src,
+ 	}
+ }
+ 
++static void destroy_qp_rss(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp)
++{
++	if (qp->state != IB_QPS_RESET) {
++		int i;
++
++		for (i = 0; i < (1 << qp->ibqp.rwq_ind_tbl->log_ind_tbl_size);
++		     i++) {
++			struct ib_wq *ibwq = qp->ibqp.rwq_ind_tbl->ind_tbl[i];
++			struct mlx4_ib_qp *wq =	to_mqp((struct ib_qp *)ibwq);
++
++			mutex_lock(&wq->mutex);
++
++			wq->rss_usecnt--;
++
++			mutex_unlock(&wq->mutex);
++		}
++
++		if (mlx4_qp_modify(dev->dev, NULL, to_mlx4_state(qp->state),
++				   MLX4_QP_STATE_RST, NULL, 0, 0, &qp->mqp))
++			pr_warn("modify QP %06x to RESET failed.\n",
++				qp->mqp.qpn);
++	}
++
++	mlx4_qp_remove(dev->dev, &qp->mqp);
++	mlx4_qp_free(dev->dev, &qp->mqp);
++	mlx4_qp_release_range(dev->dev, qp->mqp.qpn, 1);
++	del_gid_entries(qp);
++	kfree(qp->rss_ctx);
++}
++
+ static void destroy_qp_common(struct mlx4_ib_dev *dev, struct mlx4_ib_qp *qp,
+ 			      enum mlx4_ib_source_type src, int is_user)
+ {
+@@ -1303,6 +1540,9 @@ static struct ib_qp *_mlx4_ib_create_qp(struct ib_pd *pd,
+ 	int sup_u_create_flags = MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK;
+ 	u16 xrcdn = 0;
+ 
++	if (init_attr->rwq_ind_tbl)
++		return _mlx4_ib_create_qp_rss(pd, init_attr, udata);
++
+ 	/*
+ 	 * We only support LSO, vendor flag1, and multicast loopback blocking,
+ 	 * and only for kernel UD QPs.
+@@ -1444,7 +1684,6 @@ static int _mlx4_ib_destroy_qp(struct ib_qp *qp)
+ {
+ 	struct mlx4_ib_dev *dev = to_mdev(qp->device);
+ 	struct mlx4_ib_qp *mqp = to_mqp(qp);
+-	struct mlx4_ib_pd *pd;
+ 
+ 	if (is_qp0(dev, mqp))
+ 		mlx4_CLOSE_PORT(dev->dev, mqp->port);
+@@ -1459,8 +1698,14 @@ static int _mlx4_ib_destroy_qp(struct ib_qp *qp)
+ 	if (mqp->counter_index)
+ 		mlx4_ib_free_qp_counter(dev, mqp);
+ 
+-	pd = get_pd(mqp);
+-	destroy_qp_common(dev, mqp, MLX4_IB_QP_SRC, !!pd->ibpd.uobject);
++	if (qp->rwq_ind_tbl) {
++		destroy_qp_rss(dev, mqp);
++	} else {
++		struct mlx4_ib_pd *pd;
++
++		pd = get_pd(mqp);
++		destroy_qp_common(dev, mqp, MLX4_IB_QP_SRC, !!pd->ibpd.uobject);
++	}
+ 
+ 	if (is_sqp(dev, mqp))
+ 		kfree(to_msqp(mqp));
+@@ -1783,12 +2028,116 @@ static u8 gid_type_to_qpc(enum ib_gid_type gid_type)
+ 	}
+ }
+ 
++/*
++ * Go over all RSS QP's childes (WQs) and apply their HW state according to
++ * their logic state if the RSS QP is the first RSS QP associated for the WQ.
++ */
++static int bringup_rss_rwqs(struct ib_rwq_ind_table *ind_tbl, u8 port_num)
++{
 +	int i;
 +	int err;
 +
-+	if (udata->inlen > 0 &&
-+	    !ib_is_udata_cleared(udata, 0,
-+				 udata->inlen))
-+		return ERR_PTR(-EOPNOTSUPP);
++	for (i = 0; i < (1 << ind_tbl->log_ind_tbl_size); i++) {
++		struct ib_wq *ibwq = ind_tbl->ind_tbl[i];
++		struct mlx4_ib_qp *wq = to_mqp((struct ib_qp *)ibwq);
 +
-+	min_resp_len = offsetof(typeof(resp), reserved) + sizeof(resp.reserved);
-+	if (udata->outlen && udata->outlen < min_resp_len)
-+		return ERR_PTR(-EINVAL);
++		mutex_lock(&wq->mutex);
 +
-+	if (ind_tbl_size >
-+	    device->attrs.rss_caps.max_rwq_indirection_table_size) {
-+		pr_debug("log_ind_tbl_size = %d is bigger than supported = %d\n",
-+			 ind_tbl_size,
-+			 device->attrs.rss_caps.max_rwq_indirection_table_size);
-+		return ERR_PTR(-EINVAL);
++		/* Mlx4_ib restrictions:
++		 * WQ's is associated to a port according to the RSS QP it is
++		 * associates to.
++		 * In case the WQ is associated to a different port by another
++		 * RSS QP, return a failure.
++		 */
++		if ((wq->rss_usecnt > 0) && (wq->port != port_num)) {
++			err = -EINVAL;
++			mutex_unlock(&wq->mutex);
++			break;
++		}
++		wq->port = port_num;
++		if ((wq->rss_usecnt == 0) && (ibwq->state == IB_WQS_RDY)) {
++			err = _mlx4_ib_modify_wq(ibwq, IB_WQS_RDY);
++			if (err) {
++				mutex_unlock(&wq->mutex);
++				break;
++			}
++		}
++		wq->rss_usecnt++;
++
++		mutex_unlock(&wq->mutex);
 +	}
 +
-+	base_wqn = init_attr->ind_tbl[0]->wq_num;
++	if (i && err) {
++		int j;
 +
-+	if (base_wqn % ind_tbl_size) {
-+		pr_debug("WQN=0x%x isn't aligned with indirection table size\n",
-+			 base_wqn);
-+		return ERR_PTR(-EINVAL);
-+	}
++		for (j = (i - 1); j >= 0; j--) {
++			struct ib_wq *ibwq = ind_tbl->ind_tbl[j];
++			struct mlx4_ib_qp *wq = to_mqp((struct ib_qp *)ibwq);
 +
-+	for (i = 1; i < ind_tbl_size; i++) {
-+		if (++base_wqn != init_attr->ind_tbl[i]->wq_num) {
-+			pr_debug("indirection table's WQNs aren't consecutive\n");
-+			return ERR_PTR(-EINVAL);
++			mutex_lock(&wq->mutex);
++
++			if ((wq->rss_usecnt == 1) &&
++			    (ibwq->state == IB_WQS_RDY))
++				if (_mlx4_ib_modify_wq(ibwq, IB_WQS_RESET))
++					pr_warn("failed to reverse WQN=0x%06x\n",
++						ibwq->wq_num);
++			wq->rss_usecnt--;
++
++			mutex_unlock(&wq->mutex);
 +		}
 +	}
 +
-+	rwq_ind_table = kzalloc(sizeof(*rwq_ind_table), GFP_KERNEL);
-+	if (!rwq_ind_table)
-+		return ERR_PTR(-ENOMEM);
++	return err;
++}
 +
-+	if (udata->outlen) {
-+		resp.response_length = offsetof(typeof(resp), response_length) +
-+					sizeof(resp.response_length);
-+		err = ib_copy_to_udata(udata, &resp, resp.response_length);
-+		if (err)
-+			goto err;
++static void bring_down_rss_rwqs(struct ib_rwq_ind_table *ind_tbl)
++{
++	int i;
++
++	for (i = 0; i < (1 << ind_tbl->log_ind_tbl_size); i++) {
++		struct ib_wq *ibwq = ind_tbl->ind_tbl[i];
++		struct mlx4_ib_qp *wq = to_mqp((struct ib_qp *)ibwq);
++
++		mutex_lock(&wq->mutex);
++
++		if ((wq->rss_usecnt == 1) && (ibwq->state == IB_WQS_RDY))
++			if (_mlx4_ib_modify_wq(ibwq, IB_WQS_RESET))
++				pr_warn("failed to reverse WQN=%x\n",
++					ibwq->wq_num);
++		wq->rss_usecnt--;
++
++		mutex_unlock(&wq->mutex);
++	}
++}
++
++static void fill_qp_rss_context(struct mlx4_qp_context *context,
++				struct mlx4_ib_qp *qp)
++{
++	struct mlx4_rss_context *rss_context;
++
++	rss_context = (void *)context + offsetof(struct mlx4_qp_context,
++			pri_path) + MLX4_RSS_OFFSET_IN_QPC_PRI_PATH;
++
++	rss_context->base_qpn = cpu_to_be32(qp->rss_ctx->base_qpn_tbl_sz);
++	rss_context->default_qpn =
++		cpu_to_be32(qp->rss_ctx->base_qpn_tbl_sz & 0xffffff);
++	if (qp->rss_ctx->flags & (MLX4_RSS_UDP_IPV4 | MLX4_RSS_UDP_IPV6))
++		rss_context->base_qpn_udp = rss_context->default_qpn;
++	rss_context->flags = qp->rss_ctx->flags;
++	/* Currently support just toeplitz */
++	rss_context->hash_fn = MLX4_RSS_HASH_TOP;
++
++	memcpy(rss_context->rss_key, qp->rss_ctx->rss_key,
++	       MLX4_EN_RSS_KEY_SIZE);
++}
++
+ static int __mlx4_ib_modify_qp(void *src, enum mlx4_ib_source_type src_type,
+ 			       const struct ib_qp_attr *attr, int attr_mask,
+ 			       enum ib_qp_state cur_state, enum ib_qp_state new_state)
+ {
+ 	struct ib_uobject *ibuobject;
+ 	struct ib_srq  *ibsrq;
++	struct ib_rwq_ind_table *rwq_ind_tbl;
+ 	enum ib_qp_type qp_type;
+ 	struct mlx4_ib_dev *dev;
+ 	struct mlx4_ib_qp *qp;
+@@ -1804,23 +2153,25 @@ static int __mlx4_ib_modify_qp(void *src, enum mlx4_ib_source_type src_type,
+ 	if (src_type == MLX4_IB_RWQ_SRC) {
+ 		struct ib_wq *ibwq;
+ 
+-		ibwq	   = (struct ib_wq *)src;
+-		ibuobject  = ibwq->uobject;
+-		ibsrq	   = NULL;
+-		qp_type    = IB_QPT_RAW_PACKET;
+-		qp	   = to_mqp((struct ib_qp *)ibwq);
+-		dev	   = to_mdev(ibwq->device);
+-		pd	   = to_mpd(ibwq->pd);
++		ibwq	    = (struct ib_wq *)src;
++		ibuobject   = ibwq->uobject;
++		ibsrq	    = NULL;
++		rwq_ind_tbl = NULL;
++		qp_type     = IB_QPT_RAW_PACKET;
++		qp	    = to_mqp((struct ib_qp *)ibwq);
++		dev	    = to_mdev(ibwq->device);
++		pd	    = to_mpd(ibwq->pd);
+ 	} else {
+ 		struct ib_qp *ibqp;
+ 
+-		ibqp	   = (struct ib_qp *)src;
+-		ibuobject  = ibqp->uobject;
+-		ibsrq	   = ibqp->srq;
+-		qp_type    = ibqp->qp_type;
+-		qp	   = to_mqp(ibqp);
+-		dev	   = to_mdev(ibqp->device);
+-		pd	   = get_pd(qp);
++		ibqp	    = (struct ib_qp *)src;
++		ibuobject   = ibqp->uobject;
++		ibsrq	    = ibqp->srq;
++		rwq_ind_tbl = ibqp->rwq_ind_tbl;
++		qp_type     = ibqp->qp_type;
++		qp	    = to_mqp(ibqp);
++		dev	    = to_mdev(ibqp->device);
++		pd	    = get_pd(qp);
+ 	}
+ 
+ 	/* APM is not supported under RoCE */
+@@ -1836,6 +2187,11 @@ static int __mlx4_ib_modify_qp(void *src, enum mlx4_ib_source_type src_type,
+ 	context->flags = cpu_to_be32((to_mlx4_state(new_state) << 28) |
+ 				     (to_mlx4_st(dev, qp->mlx4_ib_qp_type) << 16));
+ 
++	if (rwq_ind_tbl) {
++		fill_qp_rss_context(context, qp);
++		context->flags |= cpu_to_be32(1 << MLX4_RSS_QPC_FLAG_OFFSET);
 +	}
 +
-+	return rwq_ind_table;
+ 	if (!(attr_mask & IB_QP_PATH_MIG_STATE))
+ 		context->flags |= cpu_to_be32(MLX4_QP_PM_MIGRATED << 11);
+ 	else {
+@@ -1876,9 +2232,11 @@ static int __mlx4_ib_modify_qp(void *src, enum mlx4_ib_source_type src_type,
+ 			ilog2(dev->dev->caps.max_msg_sz);
+ 	}
+ 
+-	if (qp->rq.wqe_cnt)
+-		context->rq_size_stride = ilog2(qp->rq.wqe_cnt) << 3;
+-	context->rq_size_stride |= qp->rq.wqe_shift - 4;
++	if (!rwq_ind_tbl) { /* PRM RSS receive side should be left zeros */
++		if (qp->rq.wqe_cnt)
++			context->rq_size_stride = ilog2(qp->rq.wqe_cnt) << 3;
++		context->rq_size_stride |= qp->rq.wqe_shift - 4;
++	}
+ 
+ 	if (qp->sq.wqe_cnt)
+ 		context->sq_size_stride = ilog2(qp->sq.wqe_cnt) << 3;
+@@ -2031,8 +2389,14 @@ static int __mlx4_ib_modify_qp(void *src, enum mlx4_ib_source_type src_type,
+ 		optpar |= MLX4_QP_OPTPAR_ALT_ADDR_PATH;
+ 	}
+ 
+-	get_cqs(qp, src_type, &send_cq, &recv_cq);
+-	context->pd       = cpu_to_be32(pd->pdn);
++	context->pd = cpu_to_be32(pd->pdn);
 +
-+err:
-+	kfree(rwq_ind_table);
-+	return ERR_PTR(err);
-+}
++	if (!rwq_ind_tbl) {
++		get_cqs(qp, src_type, &send_cq, &recv_cq);
++	} else { /* Set dummy CQs to be compatible with HV and PRM */
++		send_cq = to_mcq(rwq_ind_tbl->ind_tbl[0]->cq);
++		recv_cq = send_cq;
++	}
+ 	context->cqn_send = cpu_to_be32(send_cq->mcq.cqn);
+ 	context->cqn_recv = cpu_to_be32(recv_cq->mcq.cqn);
+ 	context->params1  = cpu_to_be32(MLX4_IB_ACK_REQ_FREQ << 28);
+@@ -2358,6 +2722,11 @@ static int __mlx4_ib_modify_qp(void *src, enum mlx4_ib_source_type src_type,
+ 	return err;
+ }
+ 
++enum {
++	MLX4_IB_MODIFY_QP_RSS_SUP_ATTR_MSK = (IB_QP_STATE	|
++					      IB_QP_PORT),
++};
 +
-+int mlx4_ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *ib_rwq_ind_tbl)
-+{
-+	kfree(ib_rwq_ind_tbl);
-+	return 0;
-+}
+ static int _mlx4_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 			      int attr_mask, struct ib_udata *udata)
+ {
+@@ -2388,6 +2757,27 @@ static int _mlx4_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		goto out;
+ 	}
+ 
++	if (ibqp->rwq_ind_tbl) {
++		if (!(((cur_state == IB_QPS_RESET) &&
++		       (new_state == IB_QPS_INIT)) ||
++		      ((cur_state == IB_QPS_INIT)  &&
++		       (new_state == IB_QPS_RTR)))) {
++			pr_debug("qpn 0x%x: RSS QP unsupported transition %d to %d\n",
++				 ibqp->qp_num, cur_state, new_state);
++
++			err = -EOPNOTSUPP;
++			goto out;
++		}
++
++		if (attr_mask & ~MLX4_IB_MODIFY_QP_RSS_SUP_ATTR_MSK) {
++			pr_debug("qpn 0x%x: RSS QP unsupported attribute mask 0x%x for transition %d to %d\n",
++				 ibqp->qp_num, attr_mask, cur_state, new_state);
++
++			err = -EOPNOTSUPP;
++			goto out;
++		}
++	}
++
+ 	if (mlx4_is_bonded(dev->dev) && (attr_mask & IB_QP_PORT)) {
+ 		if ((cur_state == IB_QPS_RESET) && (new_state == IB_QPS_INIT)) {
+ 			if ((ibqp->qp_type == IB_QPT_RC) ||
+@@ -2452,9 +2842,18 @@ static int _mlx4_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		goto out;
+ 	}
+ 
++	if (ibqp->rwq_ind_tbl && (new_state == IB_QPS_INIT)) {
++		err = bringup_rss_rwqs(ibqp->rwq_ind_tbl, attr->port_num);
++		if (err)
++			goto out;
++	}
++
+ 	err = __mlx4_ib_modify_qp(ibqp, MLX4_IB_QP_SRC, attr, attr_mask,
+ 				  cur_state, new_state);
+ 
++	if (ibqp->rwq_ind_tbl && err)
++		bring_down_rss_rwqs(ibqp->rwq_ind_tbl);
++
+ 	if (mlx4_is_bonded(dev->dev) && (attr_mask & IB_QP_PORT))
+ 		attr->port_num = 1;
+ 
+@@ -3643,6 +4042,9 @@ int mlx4_ib_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *qp_attr, int qp_attr
+ 	int mlx4_state;
+ 	int err = 0;
+ 
++	if (ibqp->rwq_ind_tbl)
++		return -EOPNOTSUPP;
++
+ 	mutex_lock(&qp->mutex);
+ 
+ 	if (qp->state == IB_QPS_RESET) {
+@@ -3917,6 +4319,11 @@ int mlx4_ib_modify_wq(struct ib_wq *ibwq, struct ib_wq_attr *wq_attr,
+ 	if ((new_state == IB_WQS_ERR) && (cur_state == IB_WQS_RESET))
+ 		return -EINVAL;
+ 
++	/* Need to protect against the parent RSS which also may modify WQ
++	 * state.
++	 */
++	mutex_lock(&qp->mutex);
++
+ 	/* Can update HW state only if a RSS QP has already associated to this
+ 	 * WQ, so we can apply its port on the WQ.
+ 	 */
+@@ -3926,6 +4333,8 @@ int mlx4_ib_modify_wq(struct ib_wq *ibwq, struct ib_wq_attr *wq_attr,
+ 	if (!err)
+ 		ibwq->state = new_state;
+ 
++	mutex_unlock(&qp->mutex);
++
+ 	return err;
+ }
+ 
 diff --git a/include/uapi/rdma/mlx4-abi.h b/include/uapi/rdma/mlx4-abi.h
-index c9702a5f0bda..5591d955ba00 100644
+index 5591d955ba00..d915cab37ec3 100644
 --- a/include/uapi/rdma/mlx4-abi.h
 +++ b/include/uapi/rdma/mlx4-abi.h
-@@ -119,4 +119,8 @@ struct mlx4_ib_modify_wq {
+@@ -95,6 +95,16 @@ struct mlx4_ib_create_srq_resp {
  	__u32	reserved;
  };
  
-+struct mlx4_ib_create_rwq_ind_tbl_resp {
-+	__u32	response_length;
-+	__u32	reserved;
++struct mlx4_ib_create_qp_rss {
++	__u64   rx_hash_fields_mask;
++	__u8    rx_hash_function;
++	__u8    rx_key_len;
++	__u8    reserved[6];
++	__u8    rx_hash_key[40];
++	__u32   comp_mask;
++	__u32   reserved1;
 +};
++
+ struct mlx4_ib_create_qp {
+ 	__u64	buf_addr;
+ 	__u64	db_addr;
+@@ -123,4 +133,27 @@ struct mlx4_ib_create_rwq_ind_tbl_resp {
+ 	__u32	response_length;
+ 	__u32	reserved;
+ };
++
++/* RX Hash function flags */
++enum mlx4_ib_rx_hash_function_flags {
++	MLX4_IB_RX_HASH_FUNC_TOEPLITZ	= 1 << 0,
++};
++
++/*
++ * RX Hash flags, these flags allows to set which incoming packet's field should
++ * participates in RX Hash. Each flag represent certain packet's field,
++ * when the flag is set the field that is represented by the flag will
++ * participate in RX Hash calculation.
++ */
++enum mlx4_ib_rx_hash_fields {
++	MLX4_IB_RX_HASH_SRC_IPV4	= 1 << 0,
++	MLX4_IB_RX_HASH_DST_IPV4	= 1 << 1,
++	MLX4_IB_RX_HASH_SRC_IPV6	= 1 << 2,
++	MLX4_IB_RX_HASH_DST_IPV6	= 1 << 3,
++	MLX4_IB_RX_HASH_SRC_PORT_TCP	= 1 << 4,
++	MLX4_IB_RX_HASH_DST_PORT_TCP	= 1 << 5,
++	MLX4_IB_RX_HASH_SRC_PORT_UDP	= 1 << 6,
++	MLX4_IB_RX_HASH_DST_PORT_UDP	= 1 << 7
++};
++
  #endif /* MLX4_ABI_USER_H */
 -- 
 2.13.2
