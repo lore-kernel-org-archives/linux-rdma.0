@@ -1,58 +1,60 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core 0/2] libqedr: sparse
-Date: Tue, 4 Jul 2017 14:04:52 +0300
-Message-ID: <20170704110452.GI1528@mtr-leonro.local>
-References: <1499164554-28552-1-git-send-email-Ram.Amrani@cavium.com>
+From: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RDMA/qedr Add iWARP support for QL4xxxx
+Date: Tue, 4 Jul 2017 12:27:20 +0000
+Message-ID: <DM2PR0701MB1392BDAD991B797D7BDCA19188D70@DM2PR0701MB1392.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="phCU5ROyZO6kBE05"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1499164554-28552-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Doug,=20
 
---phCU5ROyZO6kBE05
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I want to submit our patch series that adds iWARP support to our QL4xxxx ne=
+tworking adapters.
 
-On Tue, Jul 04, 2017 at 01:35:52PM +0300, Ram Amrani wrote:
-> Ram Amrani (2):
->   libqedr: fix sparse warnings
->   libqedr: enable sparse
->
->  CMakeLists.txt              |   2 +-
->  providers/qedr/qelr.h       |   6 +-
->  providers/qedr/qelr_verbs.c | 174 +++++++++++++++++++++++++-------------------
->  3 files changed, 103 insertions(+), 79 deletions(-)
->
+The first 6 patches of this series were previously sent as an RFC (patches =
+13-18):
+https://www.spinics.net/lists/linux-rdma/msg51416.html
+The qed part of the RFC has already been applied to net-next:
+https://www.spinics.net/lists/netdev/msg443224.html
 
-Thanks, applied.
+This series requires merging net-next to obtain all qed/qede changes which =
+were made for supporting iWARP.
+It is not applicable without. This series was tested and built against:
+git://github.com/dledford/linux.git, branch: k.o/for-4.13 after merging net=
+-next into the branch
 
---phCU5ROyZO6kBE05
-Content-Type: application/pgp-signature; name="signature.asc"
+In addition, we have several pending patches that have not been accepted ye=
+t.
 
------BEGIN PGP SIGNATURE-----
+https://patchwork.kernel.org/patch/9752761/
+https://patchwork.kernel.org/patch/9810023/
+https://patchwork.kernel.org/patch/9810025/
+https://patchwork.kernel.org/patch/9810027/
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllbdlQACgkQ5GN7iDZy
-WKeEXw//bSEqLENbEA7/INaB5UrgQdLgqIDhkpk+tl4T+srh986RIkyG8LpQuSKm
-UTVg9gBKlVr2PDwg7/MJogh0Bj615VGL/DlXozf+Pqx/fayyv2yFpI4YQRnZXjOR
-Q8MgmwsuBFdgSeWIgjfnDDj+4KveLKXvesmytOKmtJTbz/rZ39DHxenn6Qddbrdr
-65/jUfsks/K1wJRdIWE4su4jTnO/nXLKU1UYkYiREJndMjJaV4IO83J1al7OLnS2
-GFI9ICMj3Hts20FelBKQ2zALpvVI/xPbZ6hPevUc5ytBjtpxk3Rqt3iVuPaML5Y5
-Zb3BFXSNgTvfSkDItSr9zXg/Bvpa5Ueyh67iJrRQ3r3eYGda5SenezhzNsQz7z0p
-44g2C8HylXnuVgA5f3phidX34WFfDhFkMq1ti00pdaI8O0el9AnrKeYKno+xqJCV
-GF0/kTvrKNbQOrFVXCYOZwC+tBgUY2DuAwe2ySwNqrnVoAsqfCyn8hzbLgFTT+2L
-a1/UCIPtZAHA3Rp/A5bMUYIVUFlLy9x+oF87pj8CytBiaPgiEavgdNusl3kLU7AJ
-+k7/V/FilxMqN6Fxuas3BBs31h2oZ/k4wJ5JnOK9eorevzahQumcP4BWW0/x/vBV
-RpeBdK3bRaknkjJy2hPIsR6XuL5a7dyn/hikAs3suCYg8DwD68Q=
-=bMBN
------END PGP SIGNATURE-----
+We would like to prioritize iWARP submission. Could you please advise on ho=
+w you would like us to submit the series:=20
+On top of the outstanding patches?=20
+Submit a new series that includes these patches and replaces the previous o=
+nes?=20
+Would you like to merge net-next before we provide the series?=20
 
---phCU5ROyZO6kBE05--
+Once this series is accepted we have one more patch for qed (net) that does=
+ the iWARP enablement,
+which is the last in the series, can this be added to the series and submit=
+ted via the rdma tree?=20
+
+Thanks,
+Michal
+
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
