@@ -1,161 +1,292 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: "memory management error" with NFS/RDMA on RoCE
-Date: Wed, 5 Jul 2017 18:29:27 +0300
-Message-ID: <20170705152927.GM1528@mtr-leonro.local>
-References: <7F0FCF80-DB7B-46F1-BB9A-0B070603DE61@oracle.com>
- <797a43c4-f30d-9deb-a332-c62cbd01be7b@grimberg.me>
- <2FEEE227-9BCF-4454-A056-3997C1E54686@oracle.com>
- <20170627173620.GT1248@mtr-leonro.local>
- <06510488-DB16-4781-8E5A-FDFFDDD00B4F@oracle.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="uAgJxtfIS94j9H4T"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH for-rc v1] IB/core, opa_vnic, hfi1, mlx5: Properly free rdma_netdev
+Date: Wed,  5 Jul 2017 17:17:52 -0400
+Message-ID: <8e959601996dc645f4ed7004482a1667c27deb39.1499289360.git.dledford@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <06510488-DB16-4781-8E5A-FDFFDDD00B4F-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
---uAgJxtfIS94j9H4T
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+IPOIB is calling free_rdma_netdev even though alloc_rdma_netdev has
+returned -EOPNOTSUPP.
+Move free_rdma_netdev from ib_device structure to rdma_netdev structure
+thus ensuring proper cleanup function is called for the rdma net device.
 
-On Wed, Jul 05, 2017 at 10:40:41AM -0400, Chuck Lever wrote:
->
-> > On Jun 27, 2017, at 1:36 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> >
-> > On Tue, Jun 27, 2017 at 10:56:29AM -0400, Chuck Lever wrote:
-> >> Hi Sagi-
-> >>
-> >>> On Jun 27, 2017, at 5:28 AM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
-> >>>
-> >>>
-> >>>> While running xfstests on an NFS/RDMA mount, I see this in
-> >>>> the client's /var/log/messages multiple times:
-> >>>> Jun 22 14:13:45 manet kernel: mlx5_0:dump_cqe:275:(pid 0): dump error cqe
-> >>>> Jun 22 14:13:45 manet kernel: 00000000 00000000 00000000 00000000
-> >>>> Jun 22 14:13:45 manet kernel: 00000000 00000000 00000000 00000000
-> >>>> Jun 22 14:13:45 manet kernel: 00000000 00000000 00000000 00000000
-> >>>> Jun 22 14:13:45 manet kernel: 00000000 08007806 250000cd 024027d3
-> >>>> Jun 22 14:13:45 manet kernel: rpcrdma: fastreg: memory management operation error (6/0x78)
-> >>>> As far as I can tell the client is able to recover and continue
-> >>>> the test. However, this error is not supposed to happen in normal
-> >>>> operation.
-> >>>> This is with a Mellanox CX4 in RoCEv1 mode, v4.12-rc2.
-> >>>
-> >>> Is this a regression?
-> >>
-> >> I can't answer that question with authority, because I just
-> >> started trying out NFS/RDMA on RoCE with mlx5. But Robert has
-> >> reported very similar symptoms with iSER on v4.9. It appears
-> >> to have been around for a while, if these are the same.
-> >>
-> >>
-> >>> What kernel version are you running?
-> >>
-> >> v4.12-rc2.
-> >>
-> >>
-> >>> FW revision?
-> >>
-> >> 12.18.2000
-> >>
-> >>
-> >>> Is the below commit applied?
-> >>
-> >> This commit does not appear to be applied to my kernel.
-> >>
-> >>
-> >>> commit 6e8484c5cf07c7ee632587e98c1a12d319dacb7c
-> >>> Author: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >>> Date:   Sun May 28 10:53:11 2017 +0300
-> >>>
-> >>>   RDMA/mlx5: set UMR wqe fence according to HCA cap
-> >>>
-> >>>   Cache the needed umr_fence and set the wqe ctrl segmennt
-> >>>   accordingly.
-> >>>
-> >>>   Signed-off-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >>>   Acked-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> >>>   Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-> >>>   Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> >>>
-> >>> This is the only thing that changed in that area
-> >>> lately...
-> >>>
-> >>> Can you try without it?
-> >>
-> >> I haven't tried with it. I can pull it and see if it helps.
-> >>
-> >> I have tried:
-> >>
-> >> - with and without IOMMU enabled
-> >> - with RoCE v1 and v2
-> >> - with instrumentation:
-> >>
-> >> This can happen to any MR at any time after any number of
-> >> uses. It does not appear to be "sticky" (ie, xprtrdma
-> >> recovery from a memory management error clears the problem
-> >> successfully by releasing the MR and allocating a new one).
-> >>
-> >> So it feels like a f/w or driver problem to me, at this
-> >> point.
-> >
-> > Jack and me discussed your issue tomorrow morning and we have strong
-> > feeling that it is FW.
->
-> Hi Leon-
->
-> Who is going to drive this issue to resolution? Do you need me
-> to do something?
+Fix the following trace:
 
-I don't think so, Jack was supposed to do it.
+ib0: Failed to modify QP to ERROR state
+BUG: unable to handle kernel paging request at 0000000000001d20
+IP: hfi1_vnic_free_rn+0x26/0xb0 [hfi1]
+Call Trace:
+ ipoib_remove_one+0xbe/0x160 [ib_ipoib]
+ ib_unregister_device+0xd0/0x170 [ib_core]
+ rvt_unregister_device+0x29/0x90 [rdmavt]
+ hfi1_unregister_ib_device+0x1a/0x100 [hfi1]
+ remove_one+0x4b/0x220 [hfi1]
+ pci_device_remove+0x39/0xc0
+ device_release_driver_internal+0x141/0x200
+ driver_detach+0x3f/0x80
+ bus_remove_driver+0x55/0xd0
+ driver_unregister+0x2c/0x50
+ pci_unregister_driver+0x2a/0xa0
+ hfi1_mod_cleanup+0x10/0xf65 [hfi1]
+ SyS_delete_module+0x171/0x250
+ do_syscall_64+0x67/0x150
+ entry_SYSCALL64_slow_path+0x25/0x25
 
->
->
-> > Thanks
-> >
-> >>
-> >> --
-> >> Chuck Lever
-> >>
-> >>
-> >>
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> >> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> --
-> Chuck Lever
->
->
->
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
 
---uAgJxtfIS94j9H4T
-Content-Type: application/pgp-signature; name="signature.asc"
+v1 - I fixed this up to resolve Leon's comment.  Leon, please make sure you
+     are happy with the change to the mlx5 code.
 
------BEGIN PGP SIGNATURE-----
+ drivers/infiniband/hw/hfi1/verbs.c                |  1 -
+ drivers/infiniband/hw/hfi1/vnic.h                 |  1 -
+ drivers/infiniband/hw/hfi1/vnic_main.c            | 19 ++++++++--------
+ drivers/infiniband/hw/mlx5/main.c                 | 27 ++++++++++++++---------
+ drivers/infiniband/ulp/ipoib/ipoib_main.c         |  8 +++----
+ drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c |  8 +++----
+ include/rdma/ib_verbs.h                           |  6 +++--
+ 7 files changed, 39 insertions(+), 31 deletions(-)
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlldBdcACgkQ5GN7iDZy
-WKeF1BAAz8SP4utTlkbzYt9tW8cnC6M0K5yVcsAJdbMadIlhzXXwiwg4YiD703lN
-eGw6DSMDdo973IXv7QVuwAnlm+pGkWTUDTD9wfxDV4GlNA31IuOnFnSwurj0GP4q
-tUL0iqGofSuKYoeTOcF/xhATk7V5jyFc9tftn1bLInIUQFZqEUNHnpxgbNOGZlUZ
-X7CyNSDY7+mBn9kn29oFnKYFuIaJCait0aGP61QUmCB6YW6dIsL5PN+umL+WokN1
-U0ww+34deTTsOB+C47s+V/k8oOOwNk7b1wlBajtFk9T0Ie3X23zlcs3UGPzjAs8t
-JsFKo0cVMhJKEDcEympJS87+0EkWPVyvR+tU2DZfElNfv3HEIA86Z6LP96G3J6go
-ShtAh5ye6O8RsGf6N4Zm1HWbFKc0VeFIR/RkTKZKq3MKcWXTOSFJmylkak5mBq7P
-J6DVK4hK+1btEpgNS/G7FqogGLz44YuJTLFEr+5gKHZgogxYDgSzcvj9BTlUhjyQ
-YX/dzcWsgTx5SGTpVrKgv/5cqbylJX2s1YazY0wXsGVSkBJvt6lZAe+4sg7Eqshe
-v0QZHZ0RjEZFNY2T6RKUsqoWAA/Ku/It/NfdPYxaDsb9VuTp21kO9+3mADreRXud
-sUgE5moHLVld6LmCcuNYDBMoC3er7b8jxSCEpF17Q4R4nhRW+oo=
-=hTwT
------END PGP SIGNATURE-----
+diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
+index 90e7b77d68e8..2d19f9bb434d 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.c
++++ b/drivers/infiniband/hw/hfi1/verbs.c
+@@ -1779,7 +1779,6 @@ int hfi1_register_ib_device(struct hfi1_devdata *dd)
+ 	ibdev->alloc_hw_stats = alloc_hw_stats;
+ 	ibdev->get_hw_stats = get_hw_stats;
+ 	ibdev->alloc_rdma_netdev = hfi1_vnic_alloc_rn;
+-	ibdev->free_rdma_netdev = hfi1_vnic_free_rn;
+ 
+ 	/* keep process mad in the driver */
+ 	ibdev->process_mad = hfi1_process_mad;
+diff --git a/drivers/infiniband/hw/hfi1/vnic.h b/drivers/infiniband/hw/hfi1/vnic.h
+index e2c455299b53..4a621cde4abb 100644
+--- a/drivers/infiniband/hw/hfi1/vnic.h
++++ b/drivers/infiniband/hw/hfi1/vnic.h
+@@ -176,7 +176,6 @@ struct net_device *hfi1_vnic_alloc_rn(struct ib_device *device,
+ 				      const char *name,
+ 				      unsigned char name_assign_type,
+ 				      void (*setup)(struct net_device *));
+-void hfi1_vnic_free_rn(struct net_device *netdev);
+ int hfi1_vnic_send_dma(struct hfi1_devdata *dd, u8 q_idx,
+ 		       struct hfi1_vnic_vport_info *vinfo,
+ 		       struct sk_buff *skb, u64 pbc, u8 plen);
+diff --git a/drivers/infiniband/hw/hfi1/vnic_main.c b/drivers/infiniband/hw/hfi1/vnic_main.c
+index b601c2929f8f..339f0cdd56d6 100644
+--- a/drivers/infiniband/hw/hfi1/vnic_main.c
++++ b/drivers/infiniband/hw/hfi1/vnic_main.c
+@@ -833,6 +833,15 @@ static const struct net_device_ops hfi1_netdev_ops = {
+ 	.ndo_get_stats64 = hfi1_vnic_get_stats64,
+ };
+ 
++static void hfi1_vnic_free_rn(struct net_device *netdev)
++{
++	struct hfi1_vnic_vport_info *vinfo = opa_vnic_dev_priv(netdev);
++
++	hfi1_vnic_deinit(vinfo);
++	mutex_destroy(&vinfo->lock);
++	free_netdev(netdev);
++}
++
+ struct net_device *hfi1_vnic_alloc_rn(struct ib_device *device,
+ 				      u8 port_num,
+ 				      enum rdma_netdev_t type,
+@@ -864,6 +873,7 @@ struct net_device *hfi1_vnic_alloc_rn(struct ib_device *device,
+ 	vinfo->num_tx_q = dd->chip_sdma_engines;
+ 	vinfo->num_rx_q = HFI1_NUM_VNIC_CTXT;
+ 	vinfo->netdev = netdev;
++	rn->free_rdma_netdev = hfi1_vnic_free_rn;
+ 	rn->set_id = hfi1_vnic_set_vesw_id;
+ 
+ 	netdev->features = NETIF_F_HIGHDMA | NETIF_F_SG;
+@@ -892,12 +902,3 @@ struct net_device *hfi1_vnic_alloc_rn(struct ib_device *device,
+ 	free_netdev(netdev);
+ 	return ERR_PTR(rc);
+ }
+-
+-void hfi1_vnic_free_rn(struct net_device *netdev)
+-{
+-	struct hfi1_vnic_vport_info *vinfo = opa_vnic_dev_priv(netdev);
+-
+-	hfi1_vnic_deinit(vinfo);
+-	mutex_destroy(&vinfo->lock);
+-	free_netdev(netdev);
+-}
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 9ecc089d4529..afa5f6e88e1d 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -3542,6 +3542,11 @@ static int mlx5_ib_get_hw_stats(struct ib_device *ibdev,
+ 	return num_counters;
+ }
+ 
++static void mlx5_ib_free_rdma_netdev(struct net_device *netdev)
++{
++	return mlx5_rdma_netdev_free(netdev);
++}
++
+ static struct net_device*
+ mlx5_ib_alloc_rdma_netdev(struct ib_device *hca,
+ 			  u8 port_num,
+@@ -3550,16 +3555,19 @@ mlx5_ib_alloc_rdma_netdev(struct ib_device *hca,
+ 			  unsigned char name_assign_type,
+ 			  void (*setup)(struct net_device *))
+ {
++	struct net_device *netdev;
++	struct rdma_netdev *rn;
++
+ 	if (type != RDMA_NETDEV_IPOIB)
+ 		return ERR_PTR(-EOPNOTSUPP);
+ 
+-	return mlx5_rdma_netdev_alloc(to_mdev(hca)->mdev, hca,
+-				      name, setup);
+-}
+-
+-static void mlx5_ib_free_rdma_netdev(struct net_device *netdev)
+-{
+-	return mlx5_rdma_netdev_free(netdev);
++	netdev = mlx5_rdma_netdev_alloc(to_mdev(hca)->mdev, hca,
++					name, setup);
++	if (likely(!IS_ERR_OR_NULL(netdev))) {
++		rn = netdev_priv(netdev);
++		rn->free_rdma_netdev = mlx5_ib_free_rdma_netdev;
++	}
++	return netdev;
+ }
+ 
+ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+@@ -3692,10 +3700,9 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 	dev->ib_dev.check_mr_status	= mlx5_ib_check_mr_status;
+ 	dev->ib_dev.get_port_immutable  = mlx5_port_immutable;
+ 	dev->ib_dev.get_dev_fw_str      = get_dev_fw_str;
+-	if (MLX5_CAP_GEN(mdev, ipoib_enhanced_offloads)) {
++	if (MLX5_CAP_GEN(mdev, ipoib_enhanced_offloads))
+ 		dev->ib_dev.alloc_rdma_netdev	= mlx5_ib_alloc_rdma_netdev;
+-		dev->ib_dev.free_rdma_netdev	= mlx5_ib_free_rdma_netdev;
+-	}
++
+ 	if (mlx5_core_is_pf(mdev)) {
+ 		dev->ib_dev.get_vf_config	= mlx5_ib_get_vf_config;
+ 		dev->ib_dev.set_vf_link_state	= mlx5_ib_set_vf_link_state;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 1015a63de6ae..9ec0dbea3b6b 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1893,6 +1893,7 @@ static struct net_device
+ 	rn->send = ipoib_send;
+ 	rn->attach_mcast = ipoib_mcast_attach;
+ 	rn->detach_mcast = ipoib_mcast_detach;
++	rn->free_rdma_netdev = free_netdev;
+ 	rn->hca = hca;
+ 
+ 	dev->netdev_ops = &ipoib_netdev_default_pf;
+@@ -2288,6 +2289,8 @@ static void ipoib_remove_one(struct ib_device *device, void *client_data)
+ 		return;
+ 
+ 	list_for_each_entry_safe(priv, tmp, dev_list, list) {
++		struct rdma_netdev *rn = netdev_priv(priv->dev);
++
+ 		ib_unregister_event_handler(&priv->event_handler);
+ 		flush_workqueue(ipoib_workqueue);
+ 
+@@ -2304,10 +2307,7 @@ static void ipoib_remove_one(struct ib_device *device, void *client_data)
+ 		flush_workqueue(priv->wq);
+ 
+ 		unregister_netdev(priv->dev);
+-		if (device->free_rdma_netdev)
+-			device->free_rdma_netdev(priv->dev);
+-		else
+-			free_netdev(priv->dev);
++		rn->free_rdma_netdev(priv->dev);
+ 
+ 		list_for_each_entry_safe(cpriv, tcpriv, &priv->child_intfs, list)
+ 			kfree(cpriv);
+diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c b/drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c
+index 78d9007bc2f6..1a89c6033358 100644
+--- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c
++++ b/drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c
+@@ -323,13 +323,13 @@ struct opa_vnic_adapter *opa_vnic_add_netdev(struct ib_device *ibdev,
+ 	else if (IS_ERR(netdev))
+ 		return ERR_CAST(netdev);
+ 
++	rn = netdev_priv(netdev);
+ 	adapter = kzalloc(sizeof(*adapter), GFP_KERNEL);
+ 	if (!adapter) {
+ 		rc = -ENOMEM;
+ 		goto adapter_err;
+ 	}
+ 
+-	rn = netdev_priv(netdev);
+ 	rn->clnt_priv = adapter;
+ 	rn->hca = ibdev;
+ 	rn->port_num = port_num;
+@@ -366,7 +366,7 @@ struct opa_vnic_adapter *opa_vnic_add_netdev(struct ib_device *ibdev,
+ 	mutex_destroy(&adapter->mactbl_lock);
+ 	kfree(adapter);
+ adapter_err:
+-	ibdev->free_rdma_netdev(netdev);
++	rn->free_rdma_netdev(netdev);
+ 
+ 	return ERR_PTR(rc);
+ }
+@@ -375,7 +375,7 @@ struct opa_vnic_adapter *opa_vnic_add_netdev(struct ib_device *ibdev,
+ void opa_vnic_rem_netdev(struct opa_vnic_adapter *adapter)
+ {
+ 	struct net_device *netdev = adapter->netdev;
+-	struct ib_device *ibdev = adapter->ibdev;
++	struct rdma_netdev *rn = netdev_priv(netdev);
+ 
+ 	v_info("removing\n");
+ 	unregister_netdev(netdev);
+@@ -383,5 +383,5 @@ void opa_vnic_rem_netdev(struct opa_vnic_adapter *adapter)
+ 	mutex_destroy(&adapter->lock);
+ 	mutex_destroy(&adapter->mactbl_lock);
+ 	kfree(adapter);
+-	ibdev->free_rdma_netdev(netdev);
++	rn->free_rdma_netdev(netdev);
+ }
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index ba8314ec5768..71313d5ca1c8 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1927,6 +1927,9 @@ struct rdma_netdev {
+ 	struct ib_device  *hca;
+ 	u8                 port_num;
+ 
++	/* cleanup function must be specified */
++	void (*free_rdma_netdev)(struct net_device *netdev);
++
+ 	/* control functions */
+ 	void (*set_id)(struct net_device *netdev, int id);
+ 	/* send packet */
+@@ -2194,7 +2197,7 @@ struct ib_device {
+ 							   struct ib_udata *udata);
+ 	int                        (*destroy_rwq_ind_table)(struct ib_rwq_ind_table *wq_ind_table);
+ 	/**
+-	 * rdma netdev operations
++	 * rdma netdev operation
+ 	 *
+ 	 * Driver implementing alloc_rdma_netdev must return -EOPNOTSUPP if it
+ 	 * doesn't support the specified rdma netdev type.
+@@ -2206,7 +2209,6 @@ struct ib_device {
+ 					const char *name,
+ 					unsigned char name_assign_type,
+ 					void (*setup)(struct net_device *));
+-	void (*free_rdma_netdev)(struct net_device *netdev);
+ 
+ 	struct module               *owner;
+ 	struct device                dev;
+-- 
+2.13.0
 
---uAgJxtfIS94j9H4T--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
