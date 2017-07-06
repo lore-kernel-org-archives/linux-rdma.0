@@ -1,52 +1,65 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH rdma v1 0/1] IB/core: Fix input len in multiple user verbs
-Date: Thu, 6 Jul 2017 12:24:34 +0000
-Message-ID: <BN3PR07MB25782522FB09A41FA47742A8F8D50@BN3PR07MB2578.namprd07.prod.outlook.com>
-References: <1498572282-22370-1-git-send-email-Ram.Amrani@cavium.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-rc v1] IB/core, opa_vnic, hfi1, mlx5: Properly free
+ rdma_netdev
+Date: Thu, 06 Jul 2017 09:40:04 -0400
+Message-ID: <1499348404.2783.32.camel@redhat.com>
+References: <8e959601996dc645f4ed7004482a1667c27deb39.1499289360.git.dledford@redhat.com>
+         <20170706042347.GP1528@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1498572282-22370-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20170706042347.GP1528-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> This patch follows [1] that fixed three verbs and extends that fix to
-> the other verbs as well.
->=20
-> This fix is required for qedr to support existing and future libraries.
->=20
-> I was able to test the fix only partially due to its scope hence careful
-> review is required, and testing, of course.
->=20
-> v0->v1:
->  * Updated vendor verbs to match the core changes.
->=20
->=20
-> [1] https://www.spinics.net/lists/linux-rdma/msg33405.html
->=20
-> Ram Amrani (1):
->   IB/core: Fix input len in multiple user verbs
->=20
->  drivers/infiniband/core/uverbs_cmd.c         | 70 ++++++++++++++++------=
-------
->  drivers/infiniband/hw/mlx5/cq.c              |  6 +--
->  drivers/infiniband/hw/mlx5/main.c            | 11 ++---
->  drivers/infiniband/hw/mthca/mthca_provider.c |  2 +-
->  4 files changed, 46 insertions(+), 43 deletions(-)
->=20
-> --
-> 1.8.3.1
+On 7/6/2017 12:23 AM, Leon Romanovsky wrote:
+> On Wed, Jul 05, 2017 at 05:17:52PM -0400, Doug Ledford wrote:
+> > From: Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuE@public.gmane.org
+> > m>
+> > 
+> > -static void mlx5_ib_free_rdma_netdev(struct net_device *netdev)
+> > -{
+> > -	return mlx5_rdma_netdev_free(netdev);
+> > +	netdev = mlx5_rdma_netdev_alloc(to_mdev(hca)->mdev, hca,
+> > +					name, setup);
+> > +	if (likely(!IS_ERR_OR_NULL(netdev))) {
+> > +		rn = netdev_priv(netdev);
+> > +		rn->free_rdma_netdev = mlx5_ib_free_rdma_netdev;
+> > +	}
+> > +	return netdev;
+> >  }
+> 
+> 
+> Thanks Doug, it looks good enough for the fix.
+> 
+> In general, the "likely" is not needed here (we are not in data path)
 
-Hi Doug,
-Are you OK with applying the patch or do you expect ACKs for mlx5 and mthca=
-?
+It doesn't hurt though...
 
-Thanks,
-Ram
+> and our preference is to avoid "if(!error) { do something }"
+> constructions
+> in favor of "if(error) { return ...}" (fail as early as you can).
+
+Normally I would agree with you on that point.  But when you aren't
+returning an error code but instead are returning the same thing you
+return in the non error case, and when there are so few things to be
+done in the non error case, I think this sort of construct becomes more
+appealing (mainly because it will more closely match the assembler that
+GCC puts out when compiling this code and I think that has value for
+those times when you need to debug the object code, but that's just my
+personal opinion).
+
+> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+
+
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
