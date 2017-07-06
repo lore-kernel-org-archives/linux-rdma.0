@@ -1,99 +1,66 @@
-From: Romain Perier <romain.perier@collabora.com>
-Subject: [PATCH v10 09/15] scsi: csiostor: Replace PCI pool old API
-Date: Thu,  6 Jul 2017 10:13:04 +0200
-Message-ID: <20170706081310.30964-10-romain.perier@collabora.com>
-References: <20170706081310.30964-1-romain.perier@collabora.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170706081310.30964-1-romain.perier@collabora.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, jeffrey.t.kirsher@intel.com, "David S. Miller" <davem@davemloft.net>, stas.yakovlev@gmail.com, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Felipe Balbi <balbi@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-usb@vger.kernel.org, linux-scsi@vger.kernel.org, linux-kernel@vger.kernel.org, Romain Perier <romain.perier@collabora.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 1/3] RDMA/core: make ib_device.add method optional
+Date: Thu, 6 Jul 2017 11:33:01 +0300
+Message-ID: <20170706083301.GS1528@mtr-leonro.local>
+References: <1498983652-18250-1-git-send-email-sagi@grimberg.me>
+ <1498983652-18250-2-git-send-email-sagi@grimberg.me>
+ <14303999-2479-653c-719f-ac5a5b03fb33@grimberg.me>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="vJI8q/aziP9idhqk"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <14303999-2479-653c-719f-ac5a5b03fb33-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The PCI pool API is deprecated. This commit replaces the PCI pool old
-API by the appropriate function with the DMA pool API. It also updates
-the name of some variables and the content of comments, accordingly.
 
-Signed-off-by: Romain Perier <romain.perier@collabora.com>
-Reviewed-by: Peter Senna Tschudin <peter.senna@collabora.com>
----
- drivers/scsi/csiostor/csio_hw.h   |  2 +-
- drivers/scsi/csiostor/csio_init.c | 11 ++++++-----
- drivers/scsi/csiostor/csio_scsi.c |  6 +++---
- 3 files changed, 10 insertions(+), 9 deletions(-)
+--vJI8q/aziP9idhqk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/drivers/scsi/csiostor/csio_hw.h b/drivers/scsi/csiostor/csio_hw.h
-index 9acb89538e29..667046419b19 100644
---- a/drivers/scsi/csiostor/csio_hw.h
-+++ b/drivers/scsi/csiostor/csio_hw.h
-@@ -465,7 +465,7 @@ struct csio_hw {
- 	struct csio_pport	pport[CSIO_MAX_PPORTS];	/* Ports (XGMACs) */
- 	struct csio_hw_params	params;			/* Hw parameters */
- 
--	struct pci_pool		*scsi_pci_pool;		/* PCI pool for SCSI */
-+	struct dma_pool		*scsi_dma_pool;		/* DMA pool for SCSI */
- 	mempool_t		*mb_mempool;		/* Mailbox memory pool*/
- 	mempool_t		*rnode_mempool;		/* rnode memory pool */
- 
-diff --git a/drivers/scsi/csiostor/csio_init.c b/drivers/scsi/csiostor/csio_init.c
-index ea0c31086cc6..d5fb016b5fc2 100644
---- a/drivers/scsi/csiostor/csio_init.c
-+++ b/drivers/scsi/csiostor/csio_init.c
-@@ -485,9 +485,10 @@ csio_resource_alloc(struct csio_hw *hw)
- 	if (!hw->rnode_mempool)
- 		goto err_free_mb_mempool;
- 
--	hw->scsi_pci_pool = pci_pool_create("csio_scsi_pci_pool", hw->pdev,
--					    CSIO_SCSI_RSP_LEN, 8, 0);
--	if (!hw->scsi_pci_pool)
-+	hw->scsi_dma_pool = dma_pool_create("csio_scsi_dma_pool",
-+					    &hw->pdev->dev, CSIO_SCSI_RSP_LEN,
-+					    8, 0);
-+	if (!hw->scsi_dma_pool)
- 		goto err_free_rn_pool;
- 
- 	return 0;
-@@ -505,8 +506,8 @@ csio_resource_alloc(struct csio_hw *hw)
- static void
- csio_resource_free(struct csio_hw *hw)
- {
--	pci_pool_destroy(hw->scsi_pci_pool);
--	hw->scsi_pci_pool = NULL;
-+	dma_pool_destroy(hw->scsi_dma_pool);
-+	hw->scsi_dma_pool = NULL;
- 	mempool_destroy(hw->rnode_mempool);
- 	hw->rnode_mempool = NULL;
- 	mempool_destroy(hw->mb_mempool);
-diff --git a/drivers/scsi/csiostor/csio_scsi.c b/drivers/scsi/csiostor/csio_scsi.c
-index a1ff75f1384f..dab0d3f9bee1 100644
---- a/drivers/scsi/csiostor/csio_scsi.c
-+++ b/drivers/scsi/csiostor/csio_scsi.c
-@@ -2445,7 +2445,7 @@ csio_scsim_init(struct csio_scsim *scm, struct csio_hw *hw)
- 
- 		/* Allocate Dma buffers for Response Payload */
- 		dma_buf = &ioreq->dma_buf;
--		dma_buf->vaddr = pci_pool_alloc(hw->scsi_pci_pool, GFP_KERNEL,
-+		dma_buf->vaddr = dma_pool_alloc(hw->scsi_dma_pool, GFP_KERNEL,
- 						&dma_buf->paddr);
- 		if (!dma_buf->vaddr) {
- 			csio_err(hw,
-@@ -2485,7 +2485,7 @@ csio_scsim_init(struct csio_scsim *scm, struct csio_hw *hw)
- 		ioreq = (struct csio_ioreq *)tmp;
- 
- 		dma_buf = &ioreq->dma_buf;
--		pci_pool_free(hw->scsi_pci_pool, dma_buf->vaddr,
-+		dma_pool_free(hw->scsi_dma_pool, dma_buf->vaddr,
- 			      dma_buf->paddr);
- 
- 		kfree(ioreq);
-@@ -2516,7 +2516,7 @@ csio_scsim_exit(struct csio_scsim *scm)
- 		ioreq = (struct csio_ioreq *)tmp;
- 
- 		dma_buf = &ioreq->dma_buf;
--		pci_pool_free(scm->hw->scsi_pci_pool, dma_buf->vaddr,
-+		dma_pool_free(scm->hw->scsi_dma_pool, dma_buf->vaddr,
- 			      dma_buf->paddr);
- 
- 		kfree(ioreq);
--- 
-2.11.0
+On Thu, Jul 06, 2017 at 10:51:36AM +0300, Sagi Grimberg wrote:
+> > ib_clients can indeed fill .add to NULL, but then they will not see
+> > any device removal notifications. The reason is that that
+> > ib_register_client and ib_register_device checked existence of .add
+> > before adding the creating a corresponding client_data and adding
+> > it to the list. Simple condition reverse fixes the issue.
+> >
+> > Reviewed-by: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
+> > Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+> > Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+>
+> Any RDMA folks?
+
+It looks right and two gentlemen above already reviewed it.
+
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+--vJI8q/aziP9idhqk
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlld9b0ACgkQ5GN7iDZy
+WKfvKA//STiWSf4vl0iC2BnDV2DqPnjwKDu8mL/Ef1Ihj9ZVBUfzdbe+figXwjG9
+5Waq98c356MHa+/gj68qtgUbZf4qu78O01+ZDZpe/t7LvEGFKQ0HEJ0jaFeAgIF+
+H49LTeOMUURQbiD7aik8LbwXkL+MdLZSkpLBmA+xhznz1WNFRP11UqzXkk+a6ICa
+fu13gTCsVAtZ8JFshKCbbmu0J0tmKGvySOnJxVWVrgdn+W9jhaqNIQIkfhBgUHbq
+jZdMg0L6xqhwnyN48DPJ/f1OzNDsNzfcGXEF3hZmL4gulZC0dh9UgmxOSeWwJdzE
+4s8OAtF8IW+LWP48HCvH+4br30SWTg4zK0tglSkP9arbeEEHnGh5FUNNuhxfzx4P
+a3yDyk/s4heM1gI7Bo71b5wIzKQD8keyhyKwgRuhSErAjfhVVB63r7nsPt04C7eS
+cJ64JyT45uA//aUVo9Sy7U06r2HVGAhLw8+Pm6D6AVH4cupGFU0+bSwLJBc+OJa0
+p3X6kbwheBlISBcFGwPJOizrKQcbGjek5RenIpmAnA7tbIPZFpGcIGOcZkqE/t10
+OYV4Nv5VGVUwMiqubcZ5vB0a2mZNSf/Zo/A7SQp0N0xetPaEW0mrO4ckiSpf/uL1
+jzQ0Nh3mUFn2dPTuVv+xrBdzEYzTmZ/NkWoTTpuF5I1+m9gSOHQ=
+=I3oT
+-----END PGP SIGNATURE-----
+
+--vJI8q/aziP9idhqk--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
