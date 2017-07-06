@@ -1,34 +1,108 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PULL REQUEST] Please pull rdma.git
-Date: Thu, 06 Jul 2017 10:20:46 -0400
-Message-ID: <1499350846.2783.39.camel@redhat.com>
-References: <1499349377.2783.34.camel@redhat.com>
+From: Suman Debnath <suman.14san-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: rdma-core make install is failing
+Date: Thu, 6 Jul 2017 20:58:04 +0530
+Message-ID: <CAGxzWdAvjAgeiRsR0UvArC0L+n_PbiuNJfoDvkWzV0Y3hypSeg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1499349377.2783.34.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Torvalds, Linus" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-07-06 at 09:56 -0400, Doug Ledford wrote:
-> Hi Linus,
-> 
-> This is my final pull request for the -rc cycle.  It includes two
-> bugs
+Greetings Team:
 
-Oops, I didn't see you had skipped -rc8 this cycle, my bad.  Can we get
-a kernel-announce-u79uwXL29TY76Z2rM5mHXA@public.gmane.org that we can subscribe to for
-announcements without having to follow the entire kernel-u79uwXL29TaqPxH82wqD4g@public.gmane.org
-g list?
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
+I was trying to install rdma-core, on CentOS 7.2(Kernel 4.9.28)
+
+I'm not sure what I'm doing wrong but make install is searching for
+"/root/software/rdma-core-master/build/lib/libbnxt_re-rdmav2.so".
+
+After running build.sh I ran make install and get this error, I also
+checked the build.sh didn=E2=80=99t create this library
+(libbnxt_re-rdmav2.so):
+
+
+
+>> snippet <<
+
+
+
+-- Up-to-date: /usr/local/include/infiniband/cm.h
+
+-- Up-to-date: /usr/local/include/infiniband/cm_abi.h
+
+-- Up-to-date: /usr/local/lib64/libibcm.so.1.0.15
+
+-- Up-to-date: /usr/local/lib64/libibcm.so.1
+
+-- Up-to-date: /usr/local/lib64/libibcm.so
+
+-- Up-to-date: /root/software/rdma-core-master/build/etc/libibverbs.d/bnxt_=
+re.driver
+
+CMake Error at providers/bnxt_re/cmake_install.cmake:62 (FILE):
+
+  file INSTALL cannot find
+
+  "/root/software/rdma-core-master/build/lib/libbnxt_re-rdmav2.so".
+
+Call Stack (most recent call first):
+
+  cmake_install.cmake:47 (INCLUDE)
+
+
+
+
+
+make: *** [install] Error 1
+
+
+
+
+
+>> snippet <<
+
+
+
+[root@target1 build]# ls lib/lib*
+
+lib/libcxgb3-rdmav2.so      lib/libibacmp.so       lib/libibumad.so.3
+      lib/libipathverbs-rdmav2.so  lib/libmlx5-rdmav2.so
+lib/libnes-rdmav2.so     lib/librdmacm.so.1.0.15
+
+lib/libcxgb4-rdmav2.so      lib/libibcm.so
+lib/libibumad.so.3.0.15   lib/libmlx4-rdmav2.so        lib/libmlx5.so
+        lib/libocrdma-rdmav2.so  lib/librspreload.so
+
+lib/libhfi1verbs-rdmav2.so  lib/libibcm.so.1       lib/libibverbs.so
+      lib/libmlx4.so               lib/libmlx5.so.1
+lib/libqedr-rdmav2.so    lib/librxe-rdmav2.so
+
+lib/libhns-rdmav2.so        lib/libibcm.so.1.0.15  lib/libibverbs.so.1
+      lib/libmlx4.so.1             lib/libmlx5.so.1.1.15
+lib/librdmacm.so         lib/libvmw_pvrdma-rdmav2.so
+
+lib/libi40iw-rdmav2.so      lib/libibumad.so
+lib/libibverbs.so.1.1.15  lib/libmlx4.so.1.0.15
+lib/libmthca-rdmav2.so  lib/librdmacm.so.1
+
+[root@target1 build]#
+
+[root@target1 build]#
+
+
+
+Am I missing something?
+
+
+
+Thank you.
+
+Regards,
+
+Suman++
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
