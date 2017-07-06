@@ -1,43 +1,53 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [bug report] IB/mlx5: Respect mlx5_core reserved GIDs
-Date: Thu, 6 Jul 2017 15:16:17 +0300
-Message-ID: <20170706121617.bpomxvwrljfjwl25@mwanda>
-References: <20170706093923.4azhres5ymy4vefp@mwanda>
- <20170706103811.GY1528@mtr-leonro.local>
- <20170706111057.vdhnx7agww7j3pcv@mwanda>
- <AM4PR0501MB194030AAB6D5D15585C416AADBD50@AM4PR0501MB1940.eurprd05.prod.outlook.com>
- <20170706114733.GZ1528@mtr-leonro.local>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH rdma v1 0/1] IB/core: Fix input len in multiple user verbs
+Date: Thu, 6 Jul 2017 12:24:34 +0000
+Message-ID: <BN3PR07MB25782522FB09A41FA47742A8F8D50@BN3PR07MB2578.namprd07.prod.outlook.com>
+References: <1498572282-22370-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170706114733.GZ1528-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <1498572282-22370-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 06, 2017 at 02:47:33PM +0300, Leon Romanovsky wrote:
-> 
-> It works by chance, assuming that "->raw" will be always first member is
-> not a good strategy, so I agree with Dan. It is NULL dereferencing.
-> 
+> This patch follows [1] that fixed three verbs and extends that fix to
+> the other verbs as well.
+>=20
+> This fix is required for qedr to support existing and future libraries.
+>=20
+> I was able to test the fix only partially due to its scope hence careful
+> review is required, and testing, of course.
+>=20
+> v0->v1:
+>  * Updated vendor verbs to match the core changes.
+>=20
+>=20
+> [1] https://www.spinics.net/lists/linux-rdma/msg33405.html
+>=20
+> Ram Amrani (1):
+>   IB/core: Fix input len in multiple user verbs
+>=20
+>  drivers/infiniband/core/uverbs_cmd.c         | 70 ++++++++++++++++------=
+------
+>  drivers/infiniband/hw/mlx5/cq.c              |  6 +--
+>  drivers/infiniband/hw/mlx5/main.c            | 11 ++---
+>  drivers/infiniband/hw/mthca/mthca_provider.c |  2 +-
+>  4 files changed, 46 insertions(+), 43 deletions(-)
+>=20
+> --
+> 1.8.3.1
 
-How these false positives normally look is like this:
+Hi Doug,
+Are you OK with applying the patch or do you expect ACKs for mlx5 and mthca=
+?
 
-	struct whatever *p = foo->bar;
+Thanks,
+Ram
 
-	if (!foo)
-		return -EINVAL;
-
-It looks like a dereference but isn't.  And in this case it doesn't
-matter if it's the first member or not.
-
-Anyway, just from a correctness point of view it's better to not print
-false positives.
-
-regards,
-dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
