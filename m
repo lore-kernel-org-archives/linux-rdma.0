@@ -1,59 +1,30 @@
-From: Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [bug report] IB/mlx5: Respect mlx5_core reserved GIDs
-Date: Thu, 6 Jul 2017 11:24:13 +0000
-Message-ID: <AM4PR0501MB194030AAB6D5D15585C416AADBD50@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [bug report] IB/mlx5: Respect mlx5_core reserved GIDs
+Date: Thu, 6 Jul 2017 14:44:59 +0300
+Message-ID: <20170706114459.tvbzopzpn634r7gv@mwanda>
 References: <20170706093923.4azhres5ymy4vefp@mwanda>
  <20170706103811.GY1528@mtr-leonro.local>
  <20170706111057.vdhnx7agww7j3pcv@mwanda>
+ <AM4PR0501MB194030AAB6D5D15585C416AADBD50@AM4PR0501MB1940.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170706111057.vdhnx7agww7j3pcv@mwanda>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <AM4PR0501MB194030AAB6D5D15585C416AADBD50-dp/nxUn679gfNUYDR5dMTsDSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBEYW4gQ2FycGVudGVyIFttYWls
-dG86ZGFuLmNhcnBlbnRlckBvcmFjbGUuY29tXQ0KPiBTZW50OiBUaHVyc2RheSwgSnVseSAwNiwg
-MjAxNyAyOjExIFBNDQo+IFRvOiBMZW9uIFJvbWFub3Zza3kgPGxlb25Aa2VybmVsLm9yZz4NCj4g
-Q2M6IElsYW4gVGF5YXJpIDxpbGFudEBtZWxsYW5veC5jb20+OyBsaW51eC1yZG1hQHZnZXIua2Vy
-bmVsLm9yZw0KPiBTdWJqZWN0OiBSZTogW2J1ZyByZXBvcnRdIElCL21seDU6IFJlc3BlY3QgbWx4
-NV9jb3JlIHJlc2VydmVkIEdJRHMNCj4gDQo+IE9uIFRodSwgSnVsIDA2LCAyMDE3IGF0IDAxOjM4
-OjExUE0gKzAzMDAsIExlb24gUm9tYW5vdnNreSB3cm90ZToNCj4gPiBPbiBUaHUsIEp1bCAwNiwg
-MjAxNyBhdCAxMjozOToyNFBNICswMzAwLCBEYW4gQ2FycGVudGVyIHdyb3RlOg0KPiA+ID4gSGVs
-bG8gSWxhbiBUYXlhcmksDQo+ID4gPg0KPiA+ID4gVGhpcyBpcyBhIHNlbWktYXV0b21hdGljIGVt
-YWlsIGFib3V0IG5ldyBzdGF0aWMgY2hlY2tlciB3YXJuaW5ncy4NCj4gPiA+DQo+ID4gPiBUaGUg
-cGF0Y2ggMDk1YjA5MjdmMGNlOiAiSUIvbWx4NTogUmVzcGVjdCBtbHg1X2NvcmUgcmVzZXJ2ZWQg
-R0lEcyINCj4gPiA+IGZyb20gTWF5IDE0LCAyMDE3LCBsZWFkcyB0byB0aGUgZm9sbG93aW5nIFNt
-YXRjaCBjb21wbGFpbnQ6DQo+ID4gPg0KPiA+ID4gZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDUv
-bWFpbi5jOjMyNyBzZXRfcm9jZV9hZGRyKCkNCj4gPiA+IAkgZXJyb3I6IHdlIHByZXZpb3VzbHkg
-YXNzdW1lZCAnZ2lkJyBjb3VsZCBiZSBudWxsIChzZWUgbGluZSAzMDApDQo+ID4gPg0KPiA+ID4g
-ZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDUvbWFpbi5jDQo+ID4gPiAgICAyOTkNCj4gPiA+ICAg
-IDMwMAkJaWYgKGdpZCkgew0KPiA+ID4gICAgICAgICAgICAgICAgICAgICBeXl4NCj4gPiA+IEJl
-Zm9yZSB3ZSB1c2VkIHRvIHJldHVybiBlYXJseSBpZiBnaWQgd2FzIE5VTEwuDQo+ID4NCj4gPiBU
-aGFua3MgRGFuLA0KPiA+IEl0IGlzIGJ1Zy4NCj4gPiBtbHg1X2liX2RlbF9naWQgY2FsbHMgdGhp
-cyBmdW5jdGlvbiB3aXRoIGdpZCA9PSBOVUxMLg0KPiA+DQo+ID4gIDM2MyBzdGF0aWMgaW50IG1s
-eDVfaWJfZGVsX2dpZChzdHJ1Y3QgaWJfZGV2aWNlICpkZXZpY2UsIHU4IHBvcnRfbnVtLA0KPiA+
-ICAzNjQgICAgICAgICAgICAgICAgICAgICAgICAgICAgdW5zaWduZWQgaW50IGluZGV4LCBfX2Fs
-d2F5c191bnVzZWQgdm9pZA0KPiAqKmNvbnRleHQpDQo+ID4gIDM2NSB7DQo+ID4gIDM2NiAgICAg
-ICAgIHJldHVybiBzZXRfcm9jZV9hZGRyKGRldmljZSwgcG9ydF9udW0sIGluZGV4LCBOVUxMLCBO
-VUxMKTsNCj4gPiAgMzY3IH0NCj4gPg0KPiANCj4gSG0uLi4gIFlvdSdyZSByaWdodC4gIEJ0dywg
-dGhhdCBjb2RlIGFsc28gZ2VuZXJhdGVzIGEgc3RhdGljIGNoZWNrZXINCj4gd2FybmluZywgYnV0
-IEkganVzdCBoYWRuJ3QgZ290IGFyb3VuZCB0byByZXBvcnRpbmcgaXQgeWV0Lg0KPiANCj4gCWRy
-aXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L21haW4uYzozNDIgbWx4NV9pYl9kZWxfZ2lkKCkNCj4g
-CWVycm9yOiBOVUxMIGRlcmVmZXJlbmNlIGluc2lkZSBmdW5jdGlvbi4NCg0KVGhpcyBpcyBub3Qg
-YSByZWFsIE5VTEwgcG9pbnRlciBkZXJlZmVyZW5jZSwgYmVjYXVzZSBzZXRfcm9jZV9hZGRyKCkg
-cGFzc2VzDQpwYXJhbWV0ZXIgNCB0byBtbHg1X2NvcmVfcm9jZV9naWRfc2V0KCkgYXMgYSBwb2lu
-dGVyLiBTbyB0aGUgLT4gb3BlcmF0b3INCmlzIG5vdCBhIGRlcmVmZXJlbmNlLCBpdCdzIHBvaW50
-ZXIgYXJpdGhtZXRpY3MuDQoNCkl0IG1pZ2h0IGhhdmUgYmVlbiBhIGxvZ2ljIGVycm9yLCBleGNl
-cHQgdGhhdCBnaWQtPnJhdyBpcyB0aGUgZmlyc3QgbWVtYmVyLA0Kc28gZ2lkLT5yYXcgPT0gZ2lk
-IGFsd2F5cy4NCg0KU28gdGhlIGxvZ2ljIGluIG1seDVfY29yZV9yb2NlX2dpZF9zZXQoKSBhbHNv
-IHdvcmtzIGFzIGludGVuZGVkLg0KDQpOZXZlcnRoZWxlc3MsIHRoaXMgaXMgc2VtYW50aWNhbGx5
-IHdyb25nLCBzbyBJJ2xsIHB1c2ggYSBmaXguDQoNCj4gDQo+IHJlZ2FyZHMsDQo+IGRhbiBjYXJw
-ZW50ZXINCg0K
+Ah...  You're right, of course.  I've been meaning to fix those false
+positives for a while.
+
+The only problem is that how would I still catch the bug if ->raw wasn't
+the first member...  I need to think about that some more...
+
+regards,
+dan carpenter
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
