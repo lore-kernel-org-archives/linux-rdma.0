@@ -1,79 +1,56 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Unexpected issues with 2 NVME initiators using the same target
-Date: Mon, 10 Jul 2017 23:57:32 -0400
-Message-ID: <718A099D-3597-4262-9A33-0BA7EFE5461F@oracle.com>
-References: <66b1b8be-e506-50b8-c01f-fa0e3cea98a4@grimberg.me> <9D8C7BC8-7E18-405A-9017-9DB23A6B5C15@oracle.com> <11aa1a24-9f0b-dbb8-18eb-ad357c7727b2@grimberg.me> <9E30754F-464A-4B62-ADE7-F6B2F6D95763@oracle.com> <20170709164755.GB3058@obsidianresearch.com> <A7C8C159-E916-4060-9FD1-8726D816B3C0@oracle.com> <20170710212430.GA21721@obsidianresearch.com> <C142385D-3A54-44C9-BA3D-0AABBC5E9E7B@oracle.com> <20170710213251.GA21908@obsidianresearch.com> <A342254B-1ECB-4644-8D68-328A52940C52@oracle.com> <20170710220905.GA22589@obsidianresearch.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] IB/mlx4: Fix CM REQ retries in paravirt mode
+Date: Fri, 7 Jul 2017 12:45:34 +0300
+Message-ID: <20170707094534.GH1528@mtr-leonro.local>
+References: <20170620120750.32268-1-Haakon.Bugge@oracle.com>
+ <20170626124048.00002ef5@dev.mellanox.co.il>
+ <6CBA4C82-C68D-4A7E-B27F-87E3522707FA@oracle.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="zvmqw4jX2vbPsMQB"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170710220905.GA22589-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <6CBA4C82-C68D-4A7E-B27F-87E3522707FA-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>, Marta Rybczynska <mrybczyn-FNhOzJFKnXGHXe+LvDLADg@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "Gruher, Joseph R" <joseph.r.gruher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "shahar.salzman" <shahar.salzman-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Riches Jr, Robert M" <robert.m.riches.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
+To: =?iso-8859-1?Q?H=E5kon?= Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: jackm <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-> On Jul 10, 2017, at 6:09 PM, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> 
-> On Mon, Jul 10, 2017 at 06:04:18PM -0400, Chuck Lever wrote:
-> 
->>> The server sounds fine, how does the client work?
->> 
->> The client does not initiate RDMA Read or Write today.
-> 
-> Right, but it provides an rkey that the server uses for READ or WRITE.
-> 
-> The invalidate of that rkey at the client must follow the same rules
-> as inline send.
+--zvmqw4jX2vbPsMQB
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Ah, I see.
+On Fri, Jul 07, 2017 at 11:03:50AM +0200, H=E5kon Bugge wrote:
+> Do I need any additional r-b for this to get in?
+>
 
-The RPC reply handler calls frwr_op_unmap_sync to invalidate
-any MRs associated with the RPC.
+Jack's r-b is enough.
 
-frwr_op_unmap_sync has to sort the rkeys that are remotely
-invalidated, and those that have not been.
+Thanks,
 
-The first step is to ensure all the rkeys for an RPC are
-invalid. The rkey that was remotely invalidated is skipped
-here, and a chain of LocalInv WRs is posted to invalidate
-any remaining rkeys. The last WR in the chain is signaled.
+--zvmqw4jX2vbPsMQB
+Content-Type: application/pgp-signature; name="signature.asc"
 
-If one or more LocalInv WRs are posted, this function waits
-for LocalInv completion.
+-----BEGIN PGP SIGNATURE-----
 
-The last step is always DMA unmapping. Note that we can't
-get a completion for a remotely invalidated rkey, and we
-have to wait for LocalInv to complete anyway. So the DMA
-unmapping is always handled here instead of in a
-completion handler.
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllfWD0ACgkQ5GN7iDZy
+WKc+mA/5AUKqeNN3AU8dW8oFuwRVDPxB2pL21WUuO+nWPzXul7uOgCNL6l/n/oJZ
+h0IghaEvXi5ur2i0pDi+6y8K3yiORmeIwVryWPYEsLdrAwNjFRaNQu/3u/3WQzfZ
+S1k+yJxPp/4qFNcg4g2Pegh8JQqJ/7g35KyiOUrEZgf9u+HH/nbqfY7okbjChRvl
+sItr8k6aTQf0sjJsZsHtapl/OGcrFoOp4gArrkGzKCVUAH87J1Xhu4bCcbmK+FyZ
+08GFXTtDUA4bfw1eSeHlSoZQ6+icvyD0v2NzsSizNGEkf/3LgX/rN02Qw9xdGMa4
+SgvOBpFemsJbJTBnNGH5z/6HYbwNyr+Vjn6A/r1K042Gk9Iu1QnSUec0fFMtT/C5
+nWeJC68L1jME02TFmTbwVTyvDk7jVwinyyuL9SU3M+TpWzJi+xslw8cLh4cqWnJ9
+nz3dxgeKqAzIyhqOBjZRg0F1A65qIplsF7GvnSMp4kXP9tmyLzubU0Xu99RWhhtc
+gqm3nZOZeuvCP0FXIBQjkylSWY4FP85SHb47iVqLpGPaI1VNLhECH0ium13cL/8K
+j8X9hWa5wsn6MdNTsLO7W0pzATv3Rncl0KGc508+PiumRW8uMExrhU2N56tnvgfB
+xC3butMik9ZPhy/iPo/USeo4gnM+cILIeOuLsYyKCMJgGuUk8Go=
+=3Z9n
+-----END PGP SIGNATURE-----
 
-When frwr_op_unmap_sync returns to the RPC reply handler,
-the handler calls xprt_complete_rqst, and the RPC is
-terminated. This guarantees that the MRs are invalid before
-control is returned to the RPC consumer.
-
-
-In the ^C case, frwr_op_unmap_safe is invoked during RPC
-termination. The MRs are passed to the background recovery
-task, which invokes frwr_op_recover_mr.
-
-frwr_op_recover_mr destroys the fr_mr and DMA unmaps the
-memory. (It's also used when registration or invalidation
-flushes, which is why it uses a hammer).
-
-So here, we're a little fast/loose: the ordering of
-invalidation and unmapping is correct, but the MRs can be
-invalidated after the RPC completes. Since RPC termination
-can't wait, this is the best I can do for now.
-
-
---
-Chuck Lever
-
-
-
+--zvmqw4jX2vbPsMQB--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
