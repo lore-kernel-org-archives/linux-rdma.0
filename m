@@ -1,54 +1,71 @@
-From: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/cma: Fix reference count leak when no ipv4 addresses are set
-Date: Thu, 6 Jul 2017 23:22:11 +0300
-Message-ID: <1499372531-25392-1-git-send-email-Michal.Kalderon@cavium.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: =?iso-8859-1?Q?H=E5kon_Bugge?= <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/mlx4: Fix CM REQ retries in paravirt mode
+Date: Fri, 7 Jul 2017 11:03:50 +0200
+Message-ID: <6CBA4C82-C68D-4A7E-B27F-87E3522707FA@oracle.com>
+References: <20170620120750.32268-1-Haakon.Bugge@oracle.com> <20170626124048.00002ef5@dev.mellanox.co.il>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170626124048.00002ef5-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: michal.kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, ariel.elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: jackm <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Once in_dev_get is called to receive in_device pointer, the
-in_device reference counter is increased, but if there are
-no ipv4 addresses configured on the net-device the ifa_list
-will be null, resulting in a flow that doesn't call in_dev_put
-to decrease the ref_cnt.
-This was exposed when running RoCE over ipv6 without any ipv4
-addresses configured
+Do I need any additional r-b for this to get in?
 
-Fixes: commit 8e3867310c90 ("IB/cma: Fix a race condition in iboe_addr_get_sgid()")
 
-Signed-off-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Thxs, Håkon
 
----
- include/rdma/ib_addr.h | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
-index 4b34c51..b73a14e 100644
---- a/include/rdma/ib_addr.h
-+++ b/include/rdma/ib_addr.h
-@@ -205,11 +205,13 @@ static inline void iboe_addr_get_sgid(struct rdma_dev_addr *dev_addr,
- 	dev = dev_get_by_index(&init_net, dev_addr->bound_dev_if);
- 	if (dev) {
- 		ip4 = in_dev_get(dev);
--		if (ip4 && ip4->ifa_list && ip4->ifa_list->ifa_address) {
-+		if (ip4 && ip4->ifa_list && ip4->ifa_list->ifa_address)
- 			ipv6_addr_set_v4mapped(ip4->ifa_list->ifa_address,
- 					       (struct in6_addr *)gid);
-+
-+		if (ip4)
- 			in_dev_put(ip4);
--		}
-+
- 		dev_put(dev);
- 	}
- }
--- 
-1.8.3.1
+> On 26 Jun 2017, at 11:40, jackm <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> 
+> Nice catch, Haakon!
+> 
+> -Jack
+> 
+> On Tue, 20 Jun 2017 14:07:50 +0200
+> Håkon Bugge <Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> 
+>> CM REQs cannot be successfully retried, because a new pv_cm_id is
+>> created for each request, without checking if one already exists.
+>> 
+>> By checking if an id exists before creating one, the bug is fixed.
+>> 
+>> This bug can be provoked by running an RDMA CM user-land application,
+>> but inserting a five seconds delay before the rdma_accept() call on
+>> the passive side. This delay is larger than the default CMA timeout,
+>> and triggers a retry from the active side. The retried REQ will use
+>> another pv_cm_id (the cm_id on the wire). This confuses the CM
+>> protocol and two REJs are sent from the passive side.
+>> 
+>> Here is an excerpt from ibdump running without the patch:
+>> 
+>> 3.285092       LID: 4 -> LID: 4       SDP 290 CM: ConnectRequest(SDP
+>> Hello) 7.382711       LID: 4 -> LID: 4       SDP 290 CM:
+>> ConnectRequest(SDP Hello) 7.382861       LID: 4 -> LID: 4
+>> InfiniBand 290 CM: ConnectReject 7.387644       LID: 4 -> LID:
+>> 4       InfiniBand 290 CM: ConnectReject
+>> 
+>> and here is the same with bug fix applied:
+>> 
+>> 3.251010       LID: 4 -> LID: 4       SDP 290 CM: ConnectRequest(SDP
+>> Hello) 7.349387       LID: 4 -> LID: 4       SDP 290 CM:
+>> ConnectRequest(SDP Hello) 8.258443       LID: 4 -> LID: 4       SDP
+>> 290 CM: ConnectReply(SDP Hello) 8.259890       LID: 4 -> LID: 4
+>> InfiniBand 290 CM: ReadyToUse
+>> 
+>> Suggested-by: Venkat Venkatsubra <venkat.x.venkatsubra-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> Signed-off-by: Håkon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> Reported-by: Wei Lin Guay <wei.lin.guay-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> Tested-by: Wei Lin Guay <wei.lin.guay-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>> Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> 
+> Acked-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
