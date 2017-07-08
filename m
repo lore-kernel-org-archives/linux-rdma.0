@@ -1,66 +1,75 @@
-From: CGI-Mailer <cgi-mailer-dF9T667mVpsurp1ckKj+ZQ@public.gmane.org>
-Subject: Courier was unable to deliver the parcel, ID03711865
-Date: Sat, 8 Jul 2017 11:25:01 +0200
-Message-ID: <0a1ROV-1d4VK52lVs-00RYEs@infong419.kundenserver.de>
-Content-Type: multipart/mixed;
-        boundary="bound1_b590dadb7a774aad23ad8a536f59cfd6"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH] RDMA/uverbs: Check port number supplied by user verbs
+ cmds
+Date: Sat, 8 Jul 2017 17:04:39 +0300
+Message-ID: <20170708140439.GI1528@mtr-leonro.local>
+References: <23a56bbd03a2b5b585e2de35b1fc6f8bac53aa9a.1499441641.git.dledford@redhat.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="js+/jT5SQQin5+Fm"
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <23a56bbd03a2b5b585e2de35b1fc6f8bac53aa9a.1499441641.git.dledford@redhat.com>
+Sender: stable-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org, stable@vger.kernel.org, security@kernel.org, Yevgeny Kliteynik <kliteyn@mellanox.com>, Tziporet Koren <tziporet@mellanox.com>, Alex Polak <alexpo@mellanox.com>, Boris Pismenny <borisp@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
---bound1_b590dadb7a774aad23ad8a536f59cfd6
+
+--js+/jT5SQQin5+Fm
 Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Dear Customer,
+On Fri, Jul 07, 2017 at 11:36:59AM -0400, Doug Ledford wrote:
+> Upstream commit id in the rdma.git tree: 5ecce4c9b17b
+>
+> The ib_uverbs_create_ah() ind ib_uverbs_modify_qp() calls receive
+> the port number from user input as part of its attributes and assumes
+> it is valid. Down on the stack, that parameter is used to access kernel
+> data structures.  If the value is invalid, the kernel accesses memory
+> it should not.  To prevent this, verify the port number before using it.
+>
+> BUG: KASAN: use-after-free in ib_uverbs_create_ah+0x6d5/0x7b0
+> Read of size 4 at addr ffff880018d67ab8 by task syz-executor/313
+>
+> BUG: KASAN: slab-out-of-bounds in modify_qp.isra.4+0x19d0/0x1ef0
+> Read of size 4 at addr ffff88006c40ec58 by task syz-executor/819
+>
+> Fixes: 67cdb40ca444 ("[IB] uverbs: Implement more commands")
+> Cc: <stable@vger.kernel.org> # v4.2-v4.9
+> Cc: <security@kernel.org>
+> Cc: Yevgeny Kliteynik <kliteyn@mellanox.com>
+> Cc: Tziporet Koren <tziporet@mellanox.com>
+> Cc: Alex Polak <alexpo@mellanox.com>
+> Signed-off-by: Boris Pismenny <borisp@mellanox.com>
+> Signed-off-by: Leon Romanovsky <leon@kernel.org>
+> Signed-off-by: Doug Ledford <dledford@redhat.com>
+> ---
+>
+> Modified from upstream commit: helper function rdma_is_port_valid does not
+> exist in these kernel versions, so use manual comparisons instead.
+>
 
-This is to confirm that your item has been shipped at July 04.
+Thanks for taking care of it.
 
-Review the document that is attached to this e-mail!
+--js+/jT5SQQin5+Fm
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Yours truly,
- ,
-UPS Station Agent.
+-----BEGIN PGP SIGNATURE-----
 
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllg5ncACgkQ5GN7iDZy
+WKfjBhAAocCtuvWPzzkeyz7B5lWy6Es7uvoigUUuBFy8RhAzIw5BTc9YdugaGBPg
+wri2UvY7qOjXHQV2yYyYCDVLCwhUtyEhehuYU2X+B2mkTekqpZoLRV6mDW2n6KPW
+pDQA+jLs7mf7owg3B/Qg7oAZRxW4b+qKANBRtdwlZOyL4o1Ya1qTwWR107jp+Mt1
+I79+jzuGunY3kXa+JHZ29IZ+AcO80+8RnSU9ifuARX4mptlA7v3gtTyjm/F92+K6
+mXE36lpTLBcyQlWtWfyhdoM+QICkMzNwf1tZxah81gYeSuvYOhK/3bHunfdOxCqv
+zCg9ZxLJPwQatIrRIEqyIeyZuc8ePi3E1rJCyDncEVmBsEPj9StOqU1KBFlh3Jn/
+UJmpj2ynEhlXD8N49rrZIXpi//9trs6ifcXI5j4lo/hRL5N1b6QPPbGTqsD5b1FS
+7RFAyL/eBlqDecf1HGlP/W0oOIixo3AzYvVdpTUj9z2AnJQUA0ukcgRvfNTt9ezg
+qQmeAXhYa5KMuaumbcU6ClKJNOsDM7GrPQyB4LMNcHrnoGm/6GY8L20LAxbuEf75
+sotLgwVJTyUzl8AfAmBBu4JwoYEc6ghgwyhsogoa7YZUW2J/JtukeWs4kilanXsk
+aDRRD5DmZWkDYVZRINxXfZ5i+2FfsafXiBsnMdaT7kTHxXX5MrE=
+=gqS4
+-----END PGP SIGNATURE-----
 
---bound1_b590dadb7a774aad23ad8a536f59cfd6
-Content-Type: application/zip; name="UPS-Delivery-Details-03711865.zip"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename=UPS-Delivery-Details-03711865.zip
-
-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
-anNQSwUGAAAAAAIAAgC7AAAAEQUAAAAA
-
-
---bound1_b590dadb7a774aad23ad8a536f59cfd6--
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--js+/jT5SQQin5+Fm--
