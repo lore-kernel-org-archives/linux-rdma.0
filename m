@@ -1,42 +1,57 @@
-From: Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: Re: [PATCH] RDMA/bnxt_re: checking for NULL instead of IS_ERR()
-Date: Mon, 10 Jul 2017 15:04:13 +0530
-Message-ID: <CA+sbYW10-MzZz=4kaq27xucVYVWKhvFd-aNVBEMnAgwVdJvAPQ@mail.gmail.com>
-References: <20170710072247.6eczlwcxu5mt5jry@mwanda>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20170710072247.6eczlwcxu5mt5jry@mwanda>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Eddie Wai <eddie.wai@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: [PATCH] net/mlx5: IPSec, fix 64-bit division correctly
+Date: Mon, 10 Jul 2017 11:37:51 +0200
+Message-ID: <20170710093842.2921914-1-arnd@arndb.de>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yossi Kuperman <yossiku-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Acked-by: Selvin Xavier <selvin.xavier@broadcom.com>
+The new IPSec offload code introduced a build error:
 
-Thanks
+drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_rxtx.o: In function `mlx5e_ipsec_build_inverse_table':
+ipsec_rxtx.c:(.text+0x556): undefined reference
 
-On Mon, Jul 10, 2017 at 12:52 PM, Dan Carpenter
-<dan.carpenter@oracle.com> wrote:
-> bnxt_re_alloc_mw() doesn't return NULL, it returns error pointers.
->
-> Fixes: 9152e0b722b2 ("RDMA/bnxt_re: HW workarounds for handling specific conditions")
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->
-> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> index c7bd68311d0c..e794b0fa4ae6 100644
-> --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> @@ -588,10 +588,10 @@ static int bnxt_re_create_fence_mr(struct bnxt_re_pd *pd)
->
->         /* Create a fence MW only for kernel consumers */
->         mw = bnxt_re_alloc_mw(&pd->ib_pd, IB_MW_TYPE_1, NULL);
-> -       if (!mw) {
-> +       if (IS_ERR(mw)) {
->                 dev_err(rdev_to_dev(rdev),
->                         "Failed to create fence-MW for PD: %p\n", pd);
-> -               rc = -EINVAL;
-> +               rc = PTR_ERR(mw);
->                 goto fail;
->         }
->         fence->mw = mw;
+Another patch was added on top to fix the build error, but
+that introduced a new bug, as we now use the remainder of
+the division rather than the result.
+
+This makes it use the correct helper function instead.
+
+Fixes: 5dfd87b67cd9 ("net/mlx5: IPSec, Fix 64-bit division on 32-bit builds")
+Fixes: 2ac9cfe78223 ("net/mlx5e: IPSec, Add Innova IPSec offload TX data path")
+Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_rxtx.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_rxtx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_rxtx.c
+index 7d06c673851a..4614ddfa91eb 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_rxtx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_rxtx.c
+@@ -363,7 +363,6 @@ void mlx5e_ipsec_build_inverse_table(void)
+ {
+ 	u16 mss_inv;
+ 	u32 mss;
+-	u64 n;
+ 
+ 	/* Calculate 1/x inverse table for use in GSO data path.
+ 	 * Using this table, we provide the IPSec accelerator with the value of
+@@ -373,8 +372,7 @@ void mlx5e_ipsec_build_inverse_table(void)
+ 	 */
+ 	mlx5e_ipsec_inverse_table[1] = htons(0xFFFF);
+ 	for (mss = 2; mss < MAX_LSO_MSS; mss++) {
+-		n = 1ULL << 32;
+-		mss_inv = do_div(n, mss) >> 16;
++		mss_inv = div_u64(1ULL << 32, mss) >> 16;
+ 		mlx5e_ipsec_inverse_table[mss] = htons(mss_inv);
+ 	}
+ }
+-- 
+2.9.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
