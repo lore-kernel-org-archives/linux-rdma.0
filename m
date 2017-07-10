@@ -1,75 +1,51 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: [PATCH v7 for-4.13 0/7] Automatic affinity settings for nvme-rdma
-Date: Mon, 10 Jul 2017 10:17:27 +0300
-Message-ID: <1499671054-23899-1-git-send-email-sagi@grimberg.me>
+Subject: [PATCH v7 for-4.13 5/7] mlx5: support ->get_vector_affinity
+Date: Mon, 10 Jul 2017 10:17:32 +0300
+Message-ID: <1499671054-23899-6-git-send-email-sagi@grimberg.me>
+References: <1499671054-23899-1-git-send-email-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1499671054-23899-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Doug, please consider this patch set for 4.13.
-Saeed, care to get this into your testing environment?
+Simply refer to the generic affinity mask helper.
 
-This patch set is aiming to automatically find the optimal
-queue <-> irq multi-queue assignments in storage ULPs (demonstrated
-on nvme-rdma) based on the underlying rdma device irq affinity
-settings.
+Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Acked-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/main.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-Changes from v6:
-- rebased on top of doug's for-4.13-mlx-shared 
-
-Changes from v5:
-- updated change log for patch #2
-- removed nit indentation changes
-
-Changes from v4:
-- removed mlx5e assumptions on device home node irq affinity mappings
-- rebased to 4.12-rc5
-
-Changes from v3:
-- Renamed mlx5_disable_msix -> mlx5_free_pci_vectors for symmetry reasons
-
-Changes from v2:
-- rebased to 4.12
-- added review tags
-
-Changes from v1:
-- Removed mlx5e_get_cpu as Christoph suggested
-- Fixed up nvme-rdma queue comp_vector selection to get a better match
-- Added a comment on why we limit on @dev->num_comp_vectors
-- rebased to Jens's for-4.12/block
-- Collected review tags
-
-Sagi Grimberg (7):
-  mlx5: convert to generic pci_alloc_irq_vectors
-  mlx5e: don't assume anything on the irq affinity mappings of the
-    device
-  mlx5: move affinity hints assignments to generic code
-  RDMA/core: expose affinity mappings per completion vector
-  mlx5: support ->get_vector_affinity
-  block: Add rdma affinity based queue mapping helper
-  nvme-rdma: use intelligent affinity based queue mappings
-
- block/Kconfig                                      |   5 +
- block/Makefile                                     |   1 +
- block/blk-mq-rdma.c                                |  54 +++++++++++
- drivers/infiniband/hw/mlx5/main.c                  |   9 ++
- drivers/net/ethernet/mellanox/mlx5/core/en.h       |   1 -
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c  |  56 +++++------
- drivers/net/ethernet/mellanox/mlx5/core/eq.c       |   9 +-
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.c  |   2 +-
- drivers/net/ethernet/mellanox/mlx5/core/health.c   |   2 +-
- drivers/net/ethernet/mellanox/mlx5/core/main.c     | 106 ++++-----------------
- .../net/ethernet/mellanox/mlx5/core/mlx5_core.h    |   1 -
- drivers/nvme/host/rdma.c                           |  29 ++++--
- include/linux/blk-mq-rdma.h                        |  10 ++
- include/linux/mlx5/driver.h                        |   8 +-
- include/rdma/ib_verbs.h                            |  25 ++++-
- 15 files changed, 175 insertions(+), 143 deletions(-)
- create mode 100644 block/blk-mq-rdma.c
- create mode 100644 include/linux/blk-mq-rdma.h
-
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 2a55372b7da2..8a02e39f5a32 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -3561,6 +3561,14 @@ static void mlx5_ib_free_rdma_netdev(struct net_device *netdev)
+ 	return mlx5_rdma_netdev_free(netdev);
+ }
+ 
++const struct cpumask *mlx5_ib_get_vector_affinity(struct ib_device *ibdev,
++		int comp_vector)
++{
++	struct mlx5_ib_dev *dev = to_mdev(ibdev);
++
++	return mlx5_get_vector_affinity(dev->mdev, comp_vector);
++}
++
+ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ {
+ 	struct mlx5_ib_dev *dev;
+@@ -3691,6 +3699,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 	dev->ib_dev.check_mr_status	= mlx5_ib_check_mr_status;
+ 	dev->ib_dev.get_port_immutable  = mlx5_port_immutable;
+ 	dev->ib_dev.get_dev_fw_str      = get_dev_fw_str;
++	dev->ib_dev.get_vector_affinity	= mlx5_ib_get_vector_affinity;
+ 	if (MLX5_CAP_GEN(mdev, ipoib_enhanced_offloads)) {
+ 		dev->ib_dev.alloc_rdma_netdev	= mlx5_ib_alloc_rdma_netdev;
+ 		dev->ib_dev.free_rdma_netdev	= mlx5_ib_free_rdma_netdev;
 -- 
 2.7.4
 
