@@ -1,51 +1,107 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: rdma-core make install is failing
-Date: Mon, 10 Jul 2017 11:42:03 -0600
-Message-ID: <20170710174203.GB16595@obsidianresearch.com>
-References: <CAGxzWdAvjAgeiRsR0UvArC0L+n_PbiuNJfoDvkWzV0Y3hypSeg@mail.gmail.com>
- <CANjDDBj4tSozHvEjqR1=QyydpH2iG7yBHU=FUyGj+oVn7Yvz+w@mail.gmail.com>
- <20170709164203.GA3058@obsidianresearch.com>
- <20170710052711.GK1528@mtr-leonro.local>
+From: Jiri Pirko <jiri@resnulli.us>
+Subject: Re: [PATCH iproute2 V3 3/4] rdma: Add link object
+Date: Mon, 10 Jul 2017 20:28:28 +0200
+Message-ID: <20170710182828.GF1853@nanopsycho>
+References: <20170704075541.12544-1-leon@kernel.org>
+ <20170704075541.12544-4-leon@kernel.org>
+ <20170710081307.GE1853@nanopsycho>
+ <20170710162223.GO1528@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170710052711.GK1528-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Suman Debnath <suman.14san-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170710162223.GO1528@mtr-leonro.local>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Stephen Hemminger <stephen@networkplumber.org>, Doug Ledford <dledford@redhat.com>, Ariel Almog <ariela@mellanox.com>, Linux RDMA <linux-rdma@vger.kernel.org>, Linux Netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jul 10, 2017 at 08:27:11AM +0300, Leon Romanovsky wrote:
-> On Sun, Jul 09, 2017 at 10:42:03AM -0600, Jason Gunthorpe wrote:
-> > There is nothing special about bnxt_re - it should build in all cases,
-> > unless your source tree is older than the patch. Are you sure your
-> > build step is not failing for some reason?
-> >
-> > > Adding Jason, Seemingly a bug in the make-install path.
-> >
-> > Looks to me like a build problem, install assumes a successfull build,
-> > if it expects bnxt_re then it should have been built.
-> >
-> > The other option is your build output tree got confused when you
-> > switched between a tree before/after bnxt_re introduction, but even that is
-> > supposed to work automatically.
-> 
-> Jason,
-> 
-> They are building with build.sh script with -DIN_PLACE=1.
-> 
-> It is documentation issue on the rationale of building _in_place_ and why
-> installation is not needed for the developers and how RPM/DEB files
-> of rdma-core are generated.
+Mon, Jul 10, 2017 at 06:22:23PM CEST, leon@kernel.org wrote:
+>On Mon, Jul 10, 2017 at 10:13:07AM +0200, Jiri Pirko wrote:
+>> Tue, Jul 04, 2017 at 09:55:40AM CEST, leon@kernel.org wrote:
+>> >From: Leon Romanovsky <leonro@mellanox.com>
+>> >
+>> >Link (port) object represent struct ib_port to the user space.
+>> >
+>> >Link properties:
+>> > * Port capabilities
+>> > * IB subnet prefix
+>> > * LID, SM_LID and LMC
+>> > * Port state
+>> > * Physical state
+>> >
+>> >Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+>> >---
+>> > rdma/Makefile |   2 +-
+>> > rdma/link.c   | 280 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>> > rdma/rdma.c   |   3 +-
+>> > rdma/utils.c  |   5 ++
+>> > 4 files changed, 288 insertions(+), 2 deletions(-)
+>> > create mode 100644 rdma/link.c
+>> >
+>> >diff --git a/rdma/Makefile b/rdma/Makefile
+>> >index 123d7ac5..1a9e4b1a 100644
+>> >--- a/rdma/Makefile
+>> >+++ b/rdma/Makefile
+>> >@@ -2,7 +2,7 @@ include ../Config
+>> >
+>> > ifeq ($(HAVE_MNL),y)
+>> >
+>> >-RDMA_OBJ = rdma.o utils.o dev.o
+>> >+RDMA_OBJ = rdma.o utils.o dev.o link.o
+>> >
+>> > TARGETS=rdma
+>> > CFLAGS += $(shell $(PKG_CONFIG) libmnl --cflags)
+>> >diff --git a/rdma/link.c b/rdma/link.c
+>> >new file mode 100644
+>> >index 00000000..f92b4cef
+>> >--- /dev/null
+>> >+++ b/rdma/link.c
+>> >@@ -0,0 +1,280 @@
+>> >+/*
+>> >+ * link.c	RDMA tool
+>> >+ *
+>> >+ *              This program is free software; you can redistribute it and/or
+>> >+ *              modify it under the terms of the GNU General Public License
+>> >+ *              as published by the Free Software Foundation; either version
+>> >+ *              2 of the License, or (at your option) any later version.
+>> >+ *
+>> >+ * Authors:     Leon Romanovsky <leonro@mellanox.com>
+>> >+ */
+>> >+
+>> >+#include "rdma.h"
+>> >+
+>> >+static int link_help(struct rdma *rd)
+>> >+{
+>> >+	pr_out("Usage: %s link show [DEV/PORT_INDEX]\n", rd->filename);
+>> >+	return 0;
+>> >+}
+>> >+
+>> >+static void link_print_caps(struct nlattr **tb)
+>> >+{
+>> >+	uint64_t caps;
+>> >+	uint32_t idx;
+>> >+
+>> >+	/*
+>> >+	 * FIXME: move to indexes when kernel will start exporting them.
+>>
+>> Not exported yet?
+>
+>Not yet, I want to minimize the UAPI export from kernel before user-space
+>part is accepted.
 
-Let me see if I can make 'make install' fail with a more sensible
-error in this case.
+I don't get it. If you need it in userspace, you should expose it. Why
+to wait? What am I missing?
 
-As you said, 'make install' with '-DIN_PLACE' is not allowed or sane.
+[...]
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+>> >+		rd->port_idx = port ? :1;
+>>
+>> "port ? : 1"
+>
+>Yeah, legal C, the same as (port) ? port : 1
+>ihttps://en.wikipedia.org/wiki/%3F:#C
+
+
+I was referring to the missing " ". I'm a nitpicker :)
