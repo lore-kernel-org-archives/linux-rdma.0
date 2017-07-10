@@ -1,211 +1,51 @@
-From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH rdma-core] libqedr: fix bugs introduced in "sparse fixes"
-Date: Mon, 10 Jul 2017 12:48:32 +0300
-Message-ID: <1499680112-7347-1-git-send-email-Ram.Amrani@cavium.com>
+From: Ilan Tayari <ilant@mellanox.com>
+Subject: RE: [PATCH] net/mlx5: IPSec, fix 64-bit division correctly
+Date: Mon, 10 Jul 2017 09:57:47 +0000
+Message-ID: <AM4PR0501MB19405DA4B7430E02897CF0B9DBA90@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+References: <20170710093842.2921914-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
-Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170710093842.2921914-1-arnd@arndb.de>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Saeed Mahameed <saeedm@mellanox.com>
+Cc: Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Yossi Kuperman <yossiku@mellanox.com>, Yevgeny Kliteynik <kliteyn@mellanox.com>, Boris Pismenny <borisp@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Fix byte swapping function (pointer must advance).
-Fix WQE size to be multiples of 16 bytes, not 8 bytes.
-Pass a pointer to wqe_size to allow it to be updated.
-Update the immediate value before the wqe is copied.
-
-Fixes: 259ddded0e16 ("libqedr: fix sparse warnings")
-
-Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
----
- providers/qedr/qelr.h       |  1 +
- providers/qedr/qelr_verbs.c | 59 ++++++++++++++++++++++++---------------------
- 2 files changed, 32 insertions(+), 28 deletions(-)
-
-diff --git a/providers/qedr/qelr.h b/providers/qedr/qelr.h
-index b093509..05b1640 100644
---- a/providers/qedr/qelr.h
-+++ b/providers/qedr/qelr.h
-@@ -285,6 +285,7 @@ static inline struct qelr_cq *get_qelr_cq(struct ibv_cq *ibcq)
- 	(((value) >> (name ## _SHIFT)) & name ## _MASK)
- 
- #define ROCE_WQE_ELEM_SIZE	sizeof(struct rdma_sq_sge)
-+#define RDMA_WQE_BYTES		(16)
- 
- #define QELR_RESP_IMM (RDMA_CQE_RESPONDER_IMM_FLG_MASK <<	\
- 			RDMA_CQE_RESPONDER_IMM_FLG_SHIFT)
-diff --git a/providers/qedr/qelr_verbs.c b/providers/qedr/qelr_verbs.c
-index fc4afdb..fb52f9d 100644
---- a/providers/qedr/qelr_verbs.c
-+++ b/providers/qedr/qelr_verbs.c
-@@ -1035,7 +1035,7 @@ static void qelr_prepare_sq_sges(struct qelr_qp *qp,
- static uint32_t qelr_prepare_sq_rdma_data(struct qelr_qp *qp,
- 					  struct qelr_dpm *dpm,
- 					  int data_size,
--					  uint8_t wqe_size,
-+					  uint8_t *p_wqe_size,
- 					  struct rdma_sq_rdma_wqe_1st *rwqe,
- 					  struct rdma_sq_rdma_wqe_2nd *rwqe2,
- 					  struct ibv_send_wr *wr,
-@@ -1044,7 +1044,10 @@ static uint32_t qelr_prepare_sq_rdma_data(struct qelr_qp *qp,
- 	memset(rwqe2, 0, sizeof(*rwqe2));
- 	rwqe2->r_key = htole32(wr->wr.rdma.rkey);
- 	TYPEPTR_ADDR_SET(rwqe2, remote_va, wr->wr.rdma.remote_addr);
--	rwqe->wqe_size = wqe_size;
-+	rwqe->length = htole32(data_size);
-+
-+	if (is_imm)
-+		rwqe->imm_data = htole32(be32toh(wr->imm_data));
- 
- 	if (wr->send_flags & IBV_SEND_INLINE &&
- 	    (wr->opcode == IBV_WR_RDMA_WRITE_WITH_IMM ||
-@@ -1053,48 +1056,45 @@ static uint32_t qelr_prepare_sq_rdma_data(struct qelr_qp *qp,
- 
- 		SET_FIELD2(flags, RDMA_SQ_RDMA_WQE_1ST_INLINE_FLG, 1);
- 		qelr_prepare_sq_inline_data(qp, dpm, data_size,
--					    &rwqe->wqe_size, wr,
-+					    p_wqe_size, wr,
- 					    &rwqe->flags, flags);
-+		rwqe->wqe_size = *p_wqe_size;
- 	} else {
--		qelr_prepare_sq_sges(qp, dpm, &rwqe->wqe_size, wr);
-+		qelr_prepare_sq_sges(qp, dpm, p_wqe_size, wr);
-+		rwqe->wqe_size = *p_wqe_size;
- 	}
- 
--	rwqe->length = htole32(data_size);
--
--	if (is_imm)
--		rwqe->imm_data = htole32(be32toh(wr->imm_data));
--
- 	return data_size;
- }
- 
- static uint32_t qelr_prepare_sq_send_data(struct qelr_qp *qp,
- 					  struct qelr_dpm *dpm,
- 					  int data_size,
--					  uint8_t wqe_size,
-+					  uint8_t *p_wqe_size,
- 					  struct rdma_sq_send_wqe_1st *swqe,
- 					  struct rdma_sq_send_wqe_2st *swqe2,
- 					  struct ibv_send_wr *wr,
- 					  bool is_imm)
- {
- 	memset(swqe2, 0, sizeof(*swqe2));
--	swqe->wqe_size = wqe_size;
-+	swqe->length = htole32(data_size);
-+
-+	if (is_imm)
-+		swqe->inv_key_or_imm_data = htole32(be32toh(wr->imm_data));
- 
- 	if (wr->send_flags & IBV_SEND_INLINE) {
- 		uint8_t flags = 0;
- 
- 		SET_FIELD2(flags, RDMA_SQ_SEND_WQE_INLINE_FLG, 1);
- 		qelr_prepare_sq_inline_data(qp, dpm, data_size,
--					    &swqe->wqe_size, wr,
-+					    p_wqe_size, wr,
- 					    &swqe->flags, flags);
-+		swqe->wqe_size = *p_wqe_size;
- 	} else {
--		qelr_prepare_sq_sges(qp, dpm, &swqe->wqe_size, wr);
-+		qelr_prepare_sq_sges(qp, dpm, p_wqe_size, wr);
-+		swqe->wqe_size = *p_wqe_size;
- 	}
- 
--	swqe->length = htole32(data_size);
--
--	if (is_imm)
--		swqe->inv_key_or_imm_data = htole32(be32toh(wr->imm_data));
--
- 	return data_size;
- }
- 
-@@ -1261,14 +1261,14 @@ static int __qelr_post_send(struct qelr_devctx *cxt, struct qelr_qp *qp,
- 		wqe->req_type = RDMA_SQ_REQ_TYPE_SEND_WITH_IMM;
- 		swqe = (struct rdma_sq_send_wqe_1st *)wqe;
- 
--		wqe_size = sizeof(struct rdma_sq_send_wqe) / sizeof(uint64_t);
-+		wqe_size = sizeof(struct rdma_sq_send_wqe) / RDMA_WQE_BYTES;
- 		swqe2 = (struct rdma_sq_send_wqe_2st *)qelr_chain_produce(&qp->sq.chain);
- 
- 		if (dpm.is_edpm)
- 			qelr_edpm_set_inv_imm(qp, &dpm, wr->imm_data);
- 
- 		wqe_length = qelr_prepare_sq_send_data(qp, &dpm, data_size,
--						       wqe_size, swqe, swqe2,
-+						       &wqe_size, swqe, swqe2,
- 						       wr, 1 /* Imm */);
- 
- 		if (dpm.is_edpm)
-@@ -1285,10 +1285,10 @@ static int __qelr_post_send(struct qelr_devctx *cxt, struct qelr_qp *qp,
- 		wqe->req_type = RDMA_SQ_REQ_TYPE_SEND;
- 		swqe = (struct rdma_sq_send_wqe_1st *)wqe;
- 
--		wqe_size = sizeof(struct rdma_sq_send_wqe) / sizeof(uint64_t);
-+		wqe_size = sizeof(struct rdma_sq_send_wqe) / RDMA_WQE_BYTES;
- 		swqe2 = (struct rdma_sq_send_wqe_2st *)qelr_chain_produce(&qp->sq.chain);
- 		wqe_length = qelr_prepare_sq_send_data(qp, &dpm, data_size,
--						       wqe_size, swqe, swqe2,
-+						       &wqe_size, swqe, swqe2,
- 						       wr, 0);
- 
- 		if (dpm.is_edpm)
-@@ -1305,7 +1305,7 @@ static int __qelr_post_send(struct qelr_devctx *cxt, struct qelr_qp *qp,
- 		wqe->req_type = RDMA_SQ_REQ_TYPE_RDMA_WR_WITH_IMM;
- 		rwqe = (struct rdma_sq_rdma_wqe_1st *)wqe;
- 
--		wqe_size = sizeof(struct rdma_sq_rdma_wqe) / sizeof(uint64_t);
-+		wqe_size = sizeof(struct rdma_sq_rdma_wqe) / RDMA_WQE_BYTES;
- 		rwqe2 = (struct rdma_sq_rdma_wqe_2nd *)qelr_chain_produce(&qp->sq.chain);
- 		if (dpm.is_edpm) {
- 			qelr_edpm_set_rdma_ext(qp, &dpm, wr->wr.rdma.remote_addr,
-@@ -1313,7 +1313,8 @@ static int __qelr_post_send(struct qelr_devctx *cxt, struct qelr_qp *qp,
- 			qelr_edpm_set_inv_imm(qp, &dpm, wr->imm_data);
- 		}
- 
--		wqe_length = qelr_prepare_sq_rdma_data(qp, &dpm, data_size, wqe_size, rwqe, rwqe2, wr, 1 /* Imm */);
-+		wqe_length = qelr_prepare_sq_rdma_data(qp, &dpm, data_size, &wqe_size,
-+						       rwqe, rwqe2, wr, 1 /* Imm */);
- 		if (dpm.is_edpm)
- 			qelr_edpm_set_msg_data(qp, &dpm,
- 					       QELR_IB_OPCODE_RDMA_WRITE_ONLY_WITH_IMMEDIATE,
-@@ -1328,14 +1329,15 @@ static int __qelr_post_send(struct qelr_devctx *cxt, struct qelr_qp *qp,
- 		wqe->req_type = RDMA_SQ_REQ_TYPE_RDMA_WR;
- 		rwqe = (struct rdma_sq_rdma_wqe_1st *)wqe;
- 
--		wqe_size = sizeof(struct rdma_sq_rdma_wqe) / sizeof(uint64_t);
-+		wqe_size = sizeof(struct rdma_sq_rdma_wqe) / RDMA_WQE_BYTES;
- 		rwqe2 = (struct rdma_sq_rdma_wqe_2nd *)qelr_chain_produce(&qp->sq.chain);
- 		if (dpm.is_edpm)
- 			qelr_edpm_set_rdma_ext(qp, &dpm,
- 					       wr->wr.rdma.remote_addr,
- 					       wr->wr.rdma.rkey);
- 
--		wqe_length = qelr_prepare_sq_rdma_data(qp, &dpm, data_size, wqe_size, rwqe, rwqe2, wr, 0);
-+		wqe_length = qelr_prepare_sq_rdma_data(qp, &dpm, data_size, &wqe_size,
-+						       rwqe, rwqe2, wr, 0);
- 		if (dpm.is_edpm)
- 			qelr_edpm_set_msg_data(qp, &dpm,
- 					       QELR_IB_OPCODE_RDMA_WRITE_ONLY,
-@@ -1351,9 +1353,10 @@ static int __qelr_post_send(struct qelr_devctx *cxt, struct qelr_qp *qp,
- 		wqe->req_type = RDMA_SQ_REQ_TYPE_RDMA_RD;
- 		rwqe = (struct rdma_sq_rdma_wqe_1st *)wqe;
- 
--		wqe_size = sizeof(struct rdma_sq_rdma_wqe) / sizeof(uint64_t);
-+		wqe_size = sizeof(struct rdma_sq_rdma_wqe) / RDMA_WQE_BYTES;
- 		rwqe2 = (struct rdma_sq_rdma_wqe_2nd *)qelr_chain_produce(&qp->sq.chain);
--		wqe_length = qelr_prepare_sq_rdma_data(qp, &dpm, data_size, wqe_size, rwqe, rwqe2, wr, 0);
-+		wqe_length = qelr_prepare_sq_rdma_data(qp, &dpm, data_size, &wqe_size,
-+						       rwqe, rwqe2, wr, 0);
- 		qp->wqe_wr_id[qp->sq.prod].wqe_size = wqe_size;
- 		qp->prev_wqe_size = wqe_size;
- 		qp->wqe_wr_id[qp->sq.prod].bytes_len = wqe_length;
--- 
-2.1.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBBcm5kIEJlcmdtYW5uIFttYWls
+dG86YXJuZEBhcm5kYi5kZV0NCj4gU3ViamVjdDogW1BBVENIXSBuZXQvbWx4NTogSVBTZWMsIGZp
+eCA2NC1iaXQgZGl2aXNpb24gY29ycmVjdGx5DQo+IA0KPiBUaGUgbmV3IElQU2VjIG9mZmxvYWQg
+Y29kZSBpbnRyb2R1Y2VkIGEgYnVpbGQgZXJyb3I6DQo+IA0KPiBkcml2ZXJzL25ldC9ldGhlcm5l
+dC9tZWxsYW5veC9tbHg1L2NvcmUvZW5fYWNjZWwvaXBzZWNfcnh0eC5vOiBJbiBmdW5jdGlvbg0K
+PiBgbWx4NWVfaXBzZWNfYnVpbGRfaW52ZXJzZV90YWJsZSc6DQo+IGlwc2VjX3J4dHguYzooLnRl
+eHQrMHg1NTYpOiB1bmRlZmluZWQgcmVmZXJlbmNlDQo+IA0KPiBBbm90aGVyIHBhdGNoIHdhcyBh
+ZGRlZCBvbiB0b3AgdG8gZml4IHRoZSBidWlsZCBlcnJvciwgYnV0DQo+IHRoYXQgaW50cm9kdWNl
+ZCBhIG5ldyBidWcsIGFzIHdlIG5vdyB1c2UgdGhlIHJlbWFpbmRlciBvZg0KPiB0aGUgZGl2aXNp
+b24gcmF0aGVyIHRoYW4gdGhlIHJlc3VsdC4NCj4gDQo+IFRoaXMgbWFrZXMgaXQgdXNlIHRoZSBj
+b3JyZWN0IGhlbHBlciBmdW5jdGlvbiBpbnN0ZWFkLg0KPiANCj4gRml4ZXM6IDVkZmQ4N2I2N2Nk
+OSAoIm5ldC9tbHg1OiBJUFNlYywgRml4IDY0LWJpdCBkaXZpc2lvbiBvbiAzMi1iaXQNCj4gYnVp
+bGRzIikNCj4gRml4ZXM6IDJhYzljZmU3ODIyMyAoIm5ldC9tbHg1ZTogSVBTZWMsIEFkZCBJbm5v
+dmEgSVBTZWMgb2ZmbG9hZCBUWCBkYXRhDQo+IHBhdGgiKQ0KPiBTaWduZWQtb2ZmLWJ5OiBBcm5k
+IEJlcmdtYW5uIDxhcm5kQGFybmRiLmRlPg0KPiAtLS0NCj4gIGRyaXZlcnMvbmV0L2V0aGVybmV0
+L21lbGxhbm94L21seDUvY29yZS9lbl9hY2NlbC9pcHNlY19yeHR4LmMgfCA0ICstLS0NCj4gIDEg
+ZmlsZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKSwgMyBkZWxldGlvbnMoLSkNCj4gDQo+IGRpZmYg
+LS1naXQgYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZW5fYWNjZWwv
+aXBzZWNfcnh0eC5jDQo+IGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3Jl
+L2VuX2FjY2VsL2lwc2VjX3J4dHguYw0KPiBpbmRleCA3ZDA2YzY3Mzg1MWEuLjQ2MTRkZGZhOTFl
+YiAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3Jl
+L2VuX2FjY2VsL2lwc2VjX3J4dHguYw0KPiArKysgYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxs
+YW5veC9tbHg1L2NvcmUvZW5fYWNjZWwvaXBzZWNfcnh0eC5jDQo+IEBAIC0zNjMsNyArMzYzLDYg
+QEAgdm9pZCBtbHg1ZV9pcHNlY19idWlsZF9pbnZlcnNlX3RhYmxlKHZvaWQpDQo+ICB7DQo+ICAJ
+dTE2IG1zc19pbnY7DQo+ICAJdTMyIG1zczsNCj4gLQl1NjQgbjsNCj4gDQo+ICAJLyogQ2FsY3Vs
+YXRlIDEveCBpbnZlcnNlIHRhYmxlIGZvciB1c2UgaW4gR1NPIGRhdGEgcGF0aC4NCj4gIAkgKiBV
+c2luZyB0aGlzIHRhYmxlLCB3ZSBwcm92aWRlIHRoZSBJUFNlYyBhY2NlbGVyYXRvciB3aXRoIHRo
+ZSB2YWx1ZQ0KPiBvZg0KPiBAQCAtMzczLDggKzM3Miw3IEBAIHZvaWQgbWx4NWVfaXBzZWNfYnVp
+bGRfaW52ZXJzZV90YWJsZSh2b2lkKQ0KPiAgCSAqLw0KPiAgCW1seDVlX2lwc2VjX2ludmVyc2Vf
+dGFibGVbMV0gPSBodG9ucygweEZGRkYpOw0KPiAgCWZvciAobXNzID0gMjsgbXNzIDwgTUFYX0xT
+T19NU1M7IG1zcysrKSB7DQo+IC0JCW4gPSAxVUxMIDw8IDMyOw0KPiAtCQltc3NfaW52ID0gZG9f
+ZGl2KG4sIG1zcykgPj4gMTY7DQo+ICsJCW1zc19pbnYgPSBkaXZfdTY0KDFVTEwgPDwgMzIsIG1z
+cykgPj4gMTY7DQoNClRoYW5rcyBBcm5kLCANCg0KOm8NCkknbSBzdXJwcmlzZWQuLi4gbGV0IG1l
+IGNoZWNrIHRoaXMuLi4NCg0KPiAgCQltbHg1ZV9pcHNlY19pbnZlcnNlX3RhYmxlW21zc10gPSBo
+dG9ucyhtc3NfaW52KTsNCj4gIAl9DQo+ICB9DQo+IC0tDQo+IDIuOS4wDQoNCg==
