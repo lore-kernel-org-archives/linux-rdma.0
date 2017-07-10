@@ -1,39 +1,40 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] RDMA/bnxt_re: checking for NULL instead of IS_ERR()
-Date: Mon, 10 Jul 2017 10:22:47 +0300
-Message-ID: <20170710072247.6eczlwcxu5mt5jry@mwanda>
+From: Jiri Pirko <jiri@resnulli.us>
+Subject: Re: [PATCH iproute2 V3 0/4] RDMAtool
+Date: Mon, 10 Jul 2017 09:43:25 +0200
+Message-ID: <20170710074325.GA1853@nanopsycho>
+References: <20170704075541.12544-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Eddie Wai <eddie.wai-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20170704075541.12544-1-leon@kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Stephen Hemminger <stephen@networkplumber.org>, Doug Ledford <dledford@redhat.com>, Ariel Almog <ariela@mellanox.com>, Linux RDMA <linux-rdma@vger.kernel.org>, Linux Netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-bnxt_re_alloc_mw() doesn't return NULL, it returns error pointers.
+Tue, Jul 04, 2017 at 09:55:37AM CEST, leon@kernel.org wrote:
+>Hi,
+>
+>This is third version of series implementing the RDAMtool -  the tool
 
-Fixes: 9152e0b722b2 ("RDMA/bnxt_re: HW workarounds for handling specific conditions")
-Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+s/RDAMtool/RDMAtool/
 
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index c7bd68311d0c..e794b0fa4ae6 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -588,10 +588,10 @@ static int bnxt_re_create_fence_mr(struct bnxt_re_pd *pd)
- 
- 	/* Create a fence MW only for kernel consumers */
- 	mw = bnxt_re_alloc_mw(&pd->ib_pd, IB_MW_TYPE_1, NULL);
--	if (!mw) {
-+	if (IS_ERR(mw)) {
- 		dev_err(rdev_to_dev(rdev),
- 			"Failed to create fence-MW for PD: %p\n", pd);
--		rc = -EINVAL;
-+		rc = PTR_ERR(mw);
- 		goto fail;
- 	}
- 	fence->mw = mw;
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+>to configure RDMA devices. The initial proposal was sent as RFC [1] and
+>was based on sysfs entries as POC.
+>
+>The current series was rewritten completely to work with RDMA netlinks as
+>a source of user<->kernel communications. In order to achieve that, the
+>RDMA netlinks were extensively refactored and modernized [2, 3, 4 and 5].
+>
+>The following is an example of various runs on my machine with 5 devices
+>(4 in IB mode and one in Ethernet mode)
+>
+>### Without parameters
+>$ rdma
+>Usage: rdma [ OPTIONS ] OBJECT { COMMAND | help }
+>where  OBJECT := { dev | link | help }
+>       OPTIONS := { -V[ersion] | -d[etails]}
+
+Do you plan to add "mon" any time soon?
