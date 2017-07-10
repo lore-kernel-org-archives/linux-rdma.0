@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: [PATCH v7 for-4.13 5/7] mlx5: support ->get_vector_affinity
-Date: Mon, 10 Jul 2017 10:17:32 +0300
-Message-ID: <1499671054-23899-6-git-send-email-sagi@grimberg.me>
+Subject: [PATCH v7 for-4.13 2/7] mlx5e: don't assume anything on the irq affinity mappings of the device
+Date: Mon, 10 Jul 2017 10:17:29 +0300
+Message-ID: <1499671054-23899-3-git-send-email-sagi@grimberg.me>
 References: <1499671054-23899-1-git-send-email-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1499671054-23899-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
@@ -10,42 +10,39 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-
 Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Simply refer to the generic affinity mask helper.
+mlx5e currently assumes that irq affinity is really spread first
+irq vectors across device home node cpus, with the new generic affinity
+mappings this is no longer the case, hence mlxe should not rely on
+this anymore.
 
-Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Acked-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 2a55372b7da2..8a02e39f5a32 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -3561,6 +3561,14 @@ static void mlx5_ib_free_rdma_netdev(struct net_device *netdev)
- 	return mlx5_rdma_netdev_free(netdev);
- }
- 
-+const struct cpumask *mlx5_ib_get_vector_affinity(struct ib_device *ibdev,
-+		int comp_vector)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(ibdev);
-+
-+	return mlx5_get_vector_affinity(dev->mdev, comp_vector);
-+}
-+
- static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index 7aaf21405c22..274edf1290ca 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -3736,18 +3736,8 @@ void mlx5e_build_default_indir_rqt(struct mlx5_core_dev *mdev,
+ 				   u32 *indirection_rqt, int len,
+ 				   int num_channels)
  {
- 	struct mlx5_ib_dev *dev;
-@@ -3691,6 +3699,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 	dev->ib_dev.check_mr_status	= mlx5_ib_check_mr_status;
- 	dev->ib_dev.get_port_immutable  = mlx5_port_immutable;
- 	dev->ib_dev.get_dev_fw_str      = get_dev_fw_str;
-+	dev->ib_dev.get_vector_affinity	= mlx5_ib_get_vector_affinity;
- 	if (MLX5_CAP_GEN(mdev, ipoib_enhanced_offloads)) {
- 		dev->ib_dev.alloc_rdma_netdev	= mlx5_ib_alloc_rdma_netdev;
- 		dev->ib_dev.free_rdma_netdev	= mlx5_ib_free_rdma_netdev;
+-	int node = mdev->priv.numa_node;
+-	int node_num_of_cores;
+ 	int i;
+ 
+-	if (node == -1)
+-		node = first_online_node;
+-
+-	node_num_of_cores = cpumask_weight(cpumask_of_node(node));
+-
+-	if (node_num_of_cores)
+-		num_channels = min_t(int, num_channels, node_num_of_cores);
+-
+ 	for (i = 0; i < len; i++)
+ 		indirection_rqt[i] = i % num_channels;
+ }
 -- 
 2.7.4
 
