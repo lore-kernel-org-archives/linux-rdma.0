@@ -1,47 +1,38 @@
-From: Jiri Pirko <jiri@resnulli.us>
-Subject: Re: [PATCH iproute2 V3 0/4] RDMAtool
-Date: Mon, 10 Jul 2017 20:29:31 +0200
-Message-ID: <20170710182931.GG1853@nanopsycho>
-References: <20170704075541.12544-1-leon@kernel.org>
- <20170710080230.GD1853@nanopsycho>
- <20170710160144.GN1528@mtr-leonro.local>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH] net/mlx5: IPSec, fix 64-bit division correctly
+Date: Mon, 10 Jul 2017 19:34:39 +0100 (WEST)
+Message-ID: <20170710.193439.1383814646174599742.davem@davemloft.net>
+References: <20170710093842.2921914-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170710160144.GN1528@mtr-leonro.local>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Stephen Hemminger <stephen@networkplumber.org>, Doug Ledford <dledford@redhat.com>, Ariel Almog <ariela@mellanox.com>, Linux RDMA <linux-rdma@vger.kernel.org>, Linux Netdev <netdev@vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170710093842.2921914-1-arnd-r2nGTMty4D4@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: arnd-r2nGTMty4D4@public.gmane.org
+Cc: saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yossiku-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, kliteyn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Mon, Jul 10, 2017 at 06:01:44PM CEST, leon@kernel.org wrote:
->On Mon, Jul 10, 2017 at 10:02:30AM +0200, Jiri Pirko wrote:
->> Tue, Jul 04, 2017 at 09:55:37AM CEST, leon@kernel.org wrote:
->> >Hi,
->> >
->> >This is third version of series implementing the RDAMtool -  the tool
->> >to configure RDMA devices. The initial proposal was sent as RFC [1] and
->> >was based on sysfs entries as POC.
->> >
->> >The current series was rewritten completely to work with RDMA netlinks as
->> >a source of user<->kernel communications. In order to achieve that, the
->> >RDMA netlinks were extensively refactored and modernized [2, 3, 4 and 5].
->> >
->> >The following is an example of various runs on my machine with 5 devices
->> >(4 in IB mode and one in Ethernet mode)
->> >
->> >### Without parameters
->> >$ rdma
->> >Usage: rdma [ OPTIONS ] OBJECT { COMMAND | help }
->> >where  OBJECT := { dev | link | help }
->> >       OPTIONS := { -V[ersion] | -d[etails]}
->>
->> What about json output? You will need it sooner than later. It will
->> prevent you from a lot of headaches if you implement it right away.
->> Lesson learned...
->
->I'm planning to do it in the coming kernel cycle.
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Date: Mon, 10 Jul 2017 11:37:51 +0200
 
-Yeah, just consider pushing it in this initial patchset. Makes sense and
-saves you troubles. Up to you.
+> The new IPSec offload code introduced a build error:
+> 
+> drivers/net/ethernet/mellanox/mlx5/core/en_accel/ipsec_rxtx.o: In function `mlx5e_ipsec_build_inverse_table':
+> ipsec_rxtx.c:(.text+0x556): undefined reference
+> 
+> Another patch was added on top to fix the build error, but
+> that introduced a new bug, as we now use the remainder of
+> the division rather than the result.
+> 
+> This makes it use the correct helper function instead.
+> 
+> Fixes: 5dfd87b67cd9 ("net/mlx5: IPSec, Fix 64-bit division on 32-bit builds")
+> Fixes: 2ac9cfe78223 ("net/mlx5e: IPSec, Add Innova IPSec offload TX data path")
+> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+
+Applied, thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
