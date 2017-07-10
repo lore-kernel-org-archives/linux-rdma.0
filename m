@@ -1,108 +1,59 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 rdma-core 2/5] verbs: Split ibverbs_init functionality
-Date: Mon, 10 Jul 2017 18:05:34 +0300
-Message-ID: <1499699137-29037-3-git-send-email-yishaih@mellanox.com>
-References: <1499699137-29037-1-git-send-email-yishaih@mellanox.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rfc] RDMA: unite max_mr_page_list_len for FRWR and FMRs
+Date: Mon, 10 Jul 2017 11:14:16 -0400
+Message-ID: <630132AB-A94E-4906-8695-7DBAFC5F998C@oracle.com>
+References: <1499691002-5224-1-git-send-email-sagi@grimberg.me> <3F7C141B-7CD5-44FB-A16E-E4D3D531CF23@oracle.com> <1dbe09f5-9292-8ff0-9193-793032182f61@grimberg.me>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1499699137-29037-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1dbe09f5-9292-8ff0-9193-793032182f61-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-ibverbs_init is called only in the first time that
-ibv_get_device_list is called by the user.
+> On Jul 10, 2017, at 10:26 AM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
+> 
+> 
+>> I thought the FMR page list limit was always 64. I seem to
+>> vaguely recall testing this way back when I split out the
+>> xprtrdma code for handling different registration modes,
+>> and above 64, FMR fell over (at least with CX2 and CX3).
+> 
+> Not sure about CX2, but iser runs fmrs with 128 entries perfectly fine
+> on CX3. IIRC CX2 does not support FRWRs,
 
-This function does two main things:
-1) Initialization actions like fork init, memory check, etc.
-2) Scan the sysfs device list and build the cached ibv_device list.
+CX2 does indeed support both FMR and FRWR.
 
-This patch refactors the ibverbs_init and moves out the built
-device list code into new function - ibverbs_get_device_list.
 
-Motivation: In downstream patch, we refresh the ibv_device list
-according to the updated snapshot of the sysfs devices, so we want
-that the initialization action will continue to be singleton, but
-rescan the sysfs in each call to ibv_get_device_list.
+> CX4 and up does not support FMRs (which I'd love to kill altogether
+> anyways).
 
-Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- libibverbs/init.c | 45 ++++++++++++++++++++++++++-------------------
- 1 file changed, 26 insertions(+), 19 deletions(-)
+"Killing in-kernel FMR" might be a good topic for the LPC RDMA
+micro-conference.
 
-diff --git a/libibverbs/init.c b/libibverbs/init.c
-index fdabe82..6e453ea 100644
---- a/libibverbs/init.c
-+++ b/libibverbs/init.c
-@@ -486,9 +486,8 @@ static void add_device(struct ibv_device *dev,
- 	(*dev_list)[(*num_devices)++] = dev;
- }
- 
--int ibverbs_init(struct ibv_device ***list)
-+int ibverbs_get_device_list(struct ibv_device ***list)
- {
--	const char *sysfs_path;
- 	struct ibv_sysfs_dev *sysfs_dev, *next_dev;
- 	struct ibv_device *device;
- 	int num_devices = 0;
-@@ -499,23 +498,6 @@ int ibverbs_init(struct ibv_device ***list)
- 
- 	*list = NULL;
- 
--	if (getenv("RDMAV_FORK_SAFE") || getenv("IBV_FORK_SAFE"))
--		if (ibv_fork_init())
--			fprintf(stderr, PFX "Warning: fork()-safety requested "
--				"but init failed\n");
--
--	sysfs_path = ibv_get_sysfs_path();
--	if (!sysfs_path)
--		return -ENOSYS;
--
--	ret = check_abi_version(sysfs_path);
--	if (ret)
--		return -ret;
--
--	check_memlock_limit();
--
--	read_config();
--
- 	ret = find_sysfs_devs();
- 	if (ret)
- 		return -ret;
-@@ -582,3 +564,28 @@ out:
- 
- 	return num_devices;
- }
-+
-+int ibverbs_init(struct ibv_device ***list)
-+{
-+	const char *sysfs_path;
-+	int ret;
-+
-+	if (getenv("RDMAV_FORK_SAFE") || getenv("IBV_FORK_SAFE"))
-+		if (ibv_fork_init())
-+			fprintf(stderr, PFX "Warning: fork()-safety requested "
-+				"but init failed\n");
-+
-+	sysfs_path = ibv_get_sysfs_path();
-+	if (!sysfs_path)
-+		return -ENOSYS;
-+
-+	ret = check_abi_version(sysfs_path);
-+	if (ret)
-+		return -ret;
-+
-+	check_memlock_limit();
-+
-+	read_config();
-+
-+	return ibverbs_get_device_list(list);
-+}
--- 
-1.8.3.1
+
+> The motivation is to not guess empirically what is the max page_list
+> for FMRs which is supposed to be on its way out anyhow.
+
+1. I concur that it would be good to have some API for advertising
+the limit for FMR. If it's higher than 64 for some devices, that
+will be good for performance.
+
+2. But I'm not sure it's always the same as the device's FRWR
+maximum page list depth. If it is always or often smaller, then
+that unfairly limits FRWR.
+
+3. I'm not at all objecting, but if FMR is to go away, why make
+this change now?
+
+
+--
+Chuck Lever
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
