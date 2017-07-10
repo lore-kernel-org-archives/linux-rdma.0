@@ -1,87 +1,254 @@
-From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx4: Fix CM REQ retries in paravirt mode
-Date: Mon, 10 Jul 2017 14:30:18 +0800
-Message-ID: <84f89de6-0efc-ada9-2745-7af65682f02e@huawei.com>
-References: <20170620120750.32268-1-Haakon.Bugge@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: [PATCH v7 for-4.13 1/7] mlx5: convert to generic pci_alloc_irq_vectors
+Date: Mon, 10 Jul 2017 10:17:28 +0300
+Message-ID: <1499671054-23899-2-git-send-email-sagi@grimberg.me>
+References: <1499671054-23899-1-git-send-email-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170620120750.32268-1-Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1499671054-23899-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?UTF-8?Q?H=c3=a5kon_Bugge?= <Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi, Haakon.Bugge
-     I am interested in your question. Will it be happened when use
-rdma cm to establish connection on other hardware environment?
-for example, arm64 board.
-    Moreover,  Would you provide the detail test method for the bug?
-I don't understand  slightly what  is the RDMA CM user-land application
+Now that we have a generic code to allocate an array
+of irq vectors and even correctly spread their affinity,
+correctly handle cpu hotplug events and more, were much
+better off using it.
 
-Thanks
-Lijun Ou
-在 2017/6/20 20:07, Håkon Bugge 写道:
-> CM REQs cannot be successfully retried, because a new pv_cm_id is
-> created for each request, without checking if one already exists.
->
-> By checking if an id exists before creating one, the bug is fixed.
->
-> This bug can be provoked by running an RDMA CM user-land application,
-> but inserting a five seconds delay before the rdma_accept() call on
-> the passive side. This delay is larger than the default CMA timeout,
-> and triggers a retry from the active side. The retried REQ will use
-> another pv_cm_id (the cm_id on the wire). This confuses the CM
-> protocol and two REJs are sent from the passive side.
->
-> Here is an excerpt from ibdump running without the patch:
->
-> 3.285092       LID: 4 -> LID: 4       SDP 290 CM: ConnectRequest(SDP Hello)
-> 7.382711       LID: 4 -> LID: 4       SDP 290 CM: ConnectRequest(SDP Hello)
-> 7.382861       LID: 4 -> LID: 4       InfiniBand 290 CM: ConnectReject
-> 7.387644       LID: 4 -> LID: 4       InfiniBand 290 CM: ConnectReject
->
-> and here is the same with bug fix applied:
->
-> 3.251010       LID: 4 -> LID: 4       SDP 290 CM: ConnectRequest(SDP Hello)
-> 7.349387       LID: 4 -> LID: 4       SDP 290 CM: ConnectRequest(SDP Hello)
-> 8.258443       LID: 4 -> LID: 4       SDP 290 CM: ConnectReply(SDP Hello)
-> 8.259890       LID: 4 -> LID: 4       InfiniBand 290 CM: ReadyToUse
->
-> Suggested-by: Venkat Venkatsubra <venkat.x.venkatsubra-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Håkon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Reported-by: Wei Lin Guay <wei.lin.guay-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Tested-by: Wei Lin Guay <wei.lin.guay-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/hw/mlx4/cm.c | 4 ++++
->  1 file changed, 4 insertions(+)
->
-> diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
-> index 1e6c526..fedaf82 100644
-> --- a/drivers/infiniband/hw/mlx4/cm.c
-> +++ b/drivers/infiniband/hw/mlx4/cm.c
-> @@ -323,6 +323,9 @@ int mlx4_ib_multiplex_cm_handler(struct ib_device *ibdev, int port, int slave_id
->  			mad->mad_hdr.attr_id == CM_REP_ATTR_ID ||
->  			mad->mad_hdr.attr_id == CM_SIDR_REQ_ATTR_ID) {
->  		sl_cm_id = get_local_comm_id(mad);
-> +		id = id_map_get(ibdev, &pv_cm_id, slave_id, sl_cm_id);
-> +		if (id)
-> +			goto cont;
->  		id = id_map_alloc(ibdev, slave_id, sl_cm_id);
->  		if (IS_ERR(id)) {
->  			mlx4_ib_warn(ibdev, "%s: id{slave: %d, sl_cm_id: 0x%x} Failed to id_map_alloc\n",
-> @@ -343,6 +346,7 @@ int mlx4_ib_multiplex_cm_handler(struct ib_device *ibdev, int port, int slave_id
->  		return -EINVAL;
->  	}
->  
-> +cont:
->  	set_local_comm_id(mad, id->pv_cm_id);
->  
->  	if (mad->mad_hdr.attr_id == CM_DREQ_ATTR_ID)
+Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Acked-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c  |  2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c       |  9 ++---
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.c  |  2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/health.c   |  2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/main.c     | 39 +++++++++-------------
+ .../net/ethernet/mellanox/mlx5/core/mlx5_core.h    |  1 -
+ include/linux/mlx5/driver.h                        |  1 -
+ 7 files changed, 20 insertions(+), 36 deletions(-)
 
-
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index 5afec0f4a658..7aaf21405c22 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -384,7 +384,7 @@ static void mlx5e_enable_async_events(struct mlx5e_priv *priv)
+ static void mlx5e_disable_async_events(struct mlx5e_priv *priv)
+ {
+ 	clear_bit(MLX5E_STATE_ASYNC_EVENTS_ENABLED, &priv->state);
+-	synchronize_irq(mlx5_get_msix_vec(priv->mdev, MLX5_EQ_VEC_ASYNC));
++	synchronize_irq(pci_irq_vector(priv->mdev->pdev, MLX5_EQ_VEC_ASYNC));
+ }
+ 
+ static inline int mlx5e_get_wqe_mtt_sz(void)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+index 0ed8e90ba54f..ee4517e93261 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+@@ -583,7 +583,7 @@ int mlx5_create_map_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq, u8 vecidx,
+ 		 name, pci_name(dev->pdev));
+ 
+ 	eq->eqn = MLX5_GET(create_eq_out, out, eq_number);
+-	eq->irqn = priv->msix_arr[vecidx].vector;
++	eq->irqn = pci_irq_vector(dev->pdev, vecidx);
+ 	eq->dev = dev;
+ 	eq->doorbell = priv->uar->map + MLX5_EQ_DOORBEL_OFFSET;
+ 	err = request_irq(eq->irqn, handler, 0,
+@@ -618,7 +618,7 @@ int mlx5_create_map_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq, u8 vecidx,
+ 	return 0;
+ 
+ err_irq:
+-	free_irq(priv->msix_arr[vecidx].vector, eq);
++	free_irq(eq->irqn, eq);
+ 
+ err_eq:
+ 	mlx5_cmd_destroy_eq(dev, eq->eqn);
+@@ -659,11 +659,6 @@ int mlx5_destroy_unmap_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq)
+ }
+ EXPORT_SYMBOL_GPL(mlx5_destroy_unmap_eq);
+ 
+-u32 mlx5_get_msix_vec(struct mlx5_core_dev *dev, int vecidx)
+-{
+-	return dev->priv.msix_arr[MLX5_EQ_VEC_ASYNC].vector;
+-}
+-
+ int mlx5_eq_init(struct mlx5_core_dev *dev)
+ {
+ 	int err;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+index 37927156f258..1df67b46893b 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+@@ -1586,7 +1586,7 @@ static void esw_disable_vport(struct mlx5_eswitch *esw, int vport_num)
+ 	/* Mark this vport as disabled to discard new events */
+ 	vport->enabled = false;
+ 
+-	synchronize_irq(mlx5_get_msix_vec(esw->dev, MLX5_EQ_VEC_ASYNC));
++	synchronize_irq(pci_irq_vector(esw->dev->pdev, MLX5_EQ_VEC_ASYNC));
+ 	/* Wait for current already scheduled events to complete */
+ 	flush_workqueue(esw->work_queue);
+ 	/* Disable events from this vport */
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/health.c b/drivers/net/ethernet/mellanox/mlx5/core/health.c
+index c6679b21884e..a7997f419498 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/health.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/health.c
+@@ -80,7 +80,7 @@ static void trigger_cmd_completions(struct mlx5_core_dev *dev)
+ 	u64 vector;
+ 
+ 	/* wait for pending handlers to complete */
+-	synchronize_irq(dev->priv.msix_arr[MLX5_EQ_VEC_CMD].vector);
++	synchronize_irq(pci_irq_vector(dev->pdev, MLX5_EQ_VEC_CMD));
+ 	spin_lock_irqsave(&dev->cmd.alloc_lock, flags);
+ 	vector = ~dev->cmd.bitmask & ((1ul << (1 << dev->cmd.log_sz)) - 1);
+ 	if (!vector)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index dc890944c4ea..be6ae9881fa7 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -309,13 +309,12 @@ static void release_bar(struct pci_dev *pdev)
+ 	pci_release_regions(pdev);
+ }
+ 
+-static int mlx5_enable_msix(struct mlx5_core_dev *dev)
++static int mlx5_alloc_irq_vectors(struct mlx5_core_dev *dev)
+ {
+ 	struct mlx5_priv *priv = &dev->priv;
+ 	struct mlx5_eq_table *table = &priv->eq_table;
+ 	int num_eqs = 1 << MLX5_CAP_GEN(dev, log_max_eq);
+ 	int nvec;
+-	int i;
+ 
+ 	nvec = MLX5_CAP_GEN(dev, num_ports) * num_online_cpus() +
+ 	       MLX5_EQ_VEC_COMP_BASE;
+@@ -323,17 +322,13 @@ static int mlx5_enable_msix(struct mlx5_core_dev *dev)
+ 	if (nvec <= MLX5_EQ_VEC_COMP_BASE)
+ 		return -ENOMEM;
+ 
+-	priv->msix_arr = kcalloc(nvec, sizeof(*priv->msix_arr), GFP_KERNEL);
+-
+ 	priv->irq_info = kcalloc(nvec, sizeof(*priv->irq_info), GFP_KERNEL);
+-	if (!priv->msix_arr || !priv->irq_info)
++	if (!priv->irq_info)
+ 		goto err_free_msix;
+ 
+-	for (i = 0; i < nvec; i++)
+-		priv->msix_arr[i].entry = i;
+-
+-	nvec = pci_enable_msix_range(dev->pdev, priv->msix_arr,
+-				     MLX5_EQ_VEC_COMP_BASE + 1, nvec);
++	nvec = pci_alloc_irq_vectors(dev->pdev,
++			MLX5_EQ_VEC_COMP_BASE + 1, nvec,
++			PCI_IRQ_MSIX);
+ 	if (nvec < 0)
+ 		return nvec;
+ 
+@@ -343,17 +338,15 @@ static int mlx5_enable_msix(struct mlx5_core_dev *dev)
+ 
+ err_free_msix:
+ 	kfree(priv->irq_info);
+-	kfree(priv->msix_arr);
+ 	return -ENOMEM;
+ }
+ 
+-static void mlx5_disable_msix(struct mlx5_core_dev *dev)
++static void mlx5_free_irq_vectors(struct mlx5_core_dev *dev)
+ {
+ 	struct mlx5_priv *priv = &dev->priv;
+ 
+-	pci_disable_msix(dev->pdev);
++	pci_free_irq_vectors(dev->pdev);
+ 	kfree(priv->irq_info);
+-	kfree(priv->msix_arr);
+ }
+ 
+ struct mlx5_reg_host_endianess {
+@@ -613,8 +606,7 @@ u64 mlx5_read_internal_timer(struct mlx5_core_dev *dev)
+ static int mlx5_irq_set_affinity_hint(struct mlx5_core_dev *mdev, int i)
+ {
+ 	struct mlx5_priv *priv  = &mdev->priv;
+-	struct msix_entry *msix = priv->msix_arr;
+-	int irq                 = msix[i + MLX5_EQ_VEC_COMP_BASE].vector;
++	int irq = pci_irq_vector(mdev->pdev, MLX5_EQ_VEC_COMP_BASE + i);
+ 
+ 	if (!zalloc_cpumask_var(&priv->irq_info[i].mask, GFP_KERNEL)) {
+ 		mlx5_core_warn(mdev, "zalloc_cpumask_var failed");
+@@ -634,8 +626,7 @@ static int mlx5_irq_set_affinity_hint(struct mlx5_core_dev *mdev, int i)
+ static void mlx5_irq_clear_affinity_hint(struct mlx5_core_dev *mdev, int i)
+ {
+ 	struct mlx5_priv *priv  = &mdev->priv;
+-	struct msix_entry *msix = priv->msix_arr;
+-	int irq                 = msix[i + MLX5_EQ_VEC_COMP_BASE].vector;
++	int irq = pci_irq_vector(mdev->pdev, MLX5_EQ_VEC_COMP_BASE + i);
+ 
+ 	irq_set_affinity_hint(irq, NULL);
+ 	free_cpumask_var(priv->irq_info[i].mask);
+@@ -758,8 +749,8 @@ static int alloc_comp_eqs(struct mlx5_core_dev *dev)
+ 		}
+ 
+ #ifdef CONFIG_RFS_ACCEL
+-		irq_cpu_rmap_add(dev->rmap,
+-				 dev->priv.msix_arr[i + MLX5_EQ_VEC_COMP_BASE].vector);
++		irq_cpu_rmap_add(dev->rmap, pci_irq_vector(dev->pdev,
++				 MLX5_EQ_VEC_COMP_BASE + i));
+ #endif
+ 		snprintf(name, MLX5_MAX_IRQ_NAME, "mlx5_comp%d", i);
+ 		err = mlx5_create_map_eq(dev, eq,
+@@ -1096,9 +1087,9 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
+ 		goto err_stop_poll;
+ 	}
+ 
+-	err = mlx5_enable_msix(dev);
++	err = mlx5_alloc_irq_vectors(dev);
+ 	if (err) {
+-		dev_err(&pdev->dev, "enable msix failed\n");
++		dev_err(&pdev->dev, "alloc irq vectors failed\n");
+ 		goto err_cleanup_once;
+ 	}
+ 
+@@ -1196,7 +1187,7 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
+ 	mlx5_put_uars_page(dev, priv->uar);
+ 
+ err_disable_msix:
+-	mlx5_disable_msix(dev);
++	mlx5_free_irq_vectors(dev);
+ 
+ err_cleanup_once:
+ 	if (boot)
+@@ -1258,7 +1249,7 @@ static int mlx5_unload_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
+ 	mlx5_stop_eqs(dev);
+ 	mlx5_fpga_device_cleanup(dev);
+ 	mlx5_put_uars_page(dev, priv->uar);
+-	mlx5_disable_msix(dev);
++	mlx5_free_irq_vectors(dev);
+ 	if (cleanup)
+ 		mlx5_cleanup_once(dev);
+ 	mlx5_stop_health_poll(dev);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
+index cf69b42278df..e9b8654f33e4 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
+@@ -108,7 +108,6 @@ int mlx5_destroy_scheduling_element_cmd(struct mlx5_core_dev *dev, u8 hierarchy,
+ 					u32 element_id);
+ int mlx5_wait_for_vf_pages(struct mlx5_core_dev *dev);
+ u64 mlx5_read_internal_timer(struct mlx5_core_dev *dev);
+-u32 mlx5_get_msix_vec(struct mlx5_core_dev *dev, int vecidx);
+ struct mlx5_eq *mlx5_eqn2eq(struct mlx5_core_dev *dev, int eqn);
+ void mlx5_cq_tasklet_cb(unsigned long data);
+ 
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 6ea2f5734e37..b71411dc9493 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -592,7 +592,6 @@ struct mlx5_port_module_event_stats {
+ struct mlx5_priv {
+ 	char			name[MLX5_MAX_NAME_LEN];
+ 	struct mlx5_eq_table	eq_table;
+-	struct msix_entry	*msix_arr;
+ 	struct mlx5_irq_info	*irq_info;
+ 
+ 	/* pages stuff */
+-- 
+2.7.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
