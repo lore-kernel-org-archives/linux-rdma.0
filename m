@@ -1,7 +1,7 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: [PATCH v7 for-4.13 1/7] mlx5: convert to generic pci_alloc_irq_vectors
-Date: Mon, 10 Jul 2017 10:17:28 +0300
-Message-ID: <1499671054-23899-2-git-send-email-sagi@grimberg.me>
+Subject: [PATCH v7 for-4.13 7/7] nvme-rdma: use intelligent affinity based queue mappings
+Date: Mon, 10 Jul 2017 10:17:34 +0300
+Message-ID: <1499671054-23899-8-git-send-email-sagi@grimberg.me>
 References: <1499671054-23899-1-git-send-email-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1499671054-23899-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
@@ -10,243 +10,89 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-
 Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Now that we have a generic code to allocate an array
-of irq vectors and even correctly spread their affinity,
-correctly handle cpu hotplug events and more, were much
-better off using it.
+Use the generic block layer affinity mapping helper. Also,
+limit nr_hw_queues to the rdma device number of irq vectors
+as we don't really need more.
 
 Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Acked-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c  |  2 +-
- drivers/net/ethernet/mellanox/mlx5/core/eq.c       |  9 ++---
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.c  |  2 +-
- drivers/net/ethernet/mellanox/mlx5/core/health.c   |  2 +-
- drivers/net/ethernet/mellanox/mlx5/core/main.c     | 39 +++++++++-------------
- .../net/ethernet/mellanox/mlx5/core/mlx5_core.h    |  1 -
- include/linux/mlx5/driver.h                        |  1 -
- 7 files changed, 20 insertions(+), 36 deletions(-)
+ drivers/nvme/host/rdma.c | 29 ++++++++++++++++++++++-------
+ 1 file changed, 22 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 5afec0f4a658..7aaf21405c22 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -384,7 +384,7 @@ static void mlx5e_enable_async_events(struct mlx5e_priv *priv)
- static void mlx5e_disable_async_events(struct mlx5e_priv *priv)
- {
- 	clear_bit(MLX5E_STATE_ASYNC_EVENTS_ENABLED, &priv->state);
--	synchronize_irq(mlx5_get_msix_vec(priv->mdev, MLX5_EQ_VEC_ASYNC));
-+	synchronize_irq(pci_irq_vector(priv->mdev->pdev, MLX5_EQ_VEC_ASYNC));
- }
+diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
+index 24397d306d53..7ebd3cdade92 100644
+--- a/drivers/nvme/host/rdma.c
++++ b/drivers/nvme/host/rdma.c
+@@ -19,6 +19,7 @@
+ #include <linux/string.h>
+ #include <linux/atomic.h>
+ #include <linux/blk-mq.h>
++#include <linux/blk-mq-rdma.h>
+ #include <linux/types.h>
+ #include <linux/list.h>
+ #include <linux/mutex.h>
+@@ -496,14 +497,10 @@ static int nvme_rdma_create_queue_ib(struct nvme_rdma_queue *queue,
+ 	queue->device = dev;
  
- static inline int mlx5e_get_wqe_mtt_sz(void)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-index 0ed8e90ba54f..ee4517e93261 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-@@ -583,7 +583,7 @@ int mlx5_create_map_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq, u8 vecidx,
- 		 name, pci_name(dev->pdev));
- 
- 	eq->eqn = MLX5_GET(create_eq_out, out, eq_number);
--	eq->irqn = priv->msix_arr[vecidx].vector;
-+	eq->irqn = pci_irq_vector(dev->pdev, vecidx);
- 	eq->dev = dev;
- 	eq->doorbell = priv->uar->map + MLX5_EQ_DOORBEL_OFFSET;
- 	err = request_irq(eq->irqn, handler, 0,
-@@ -618,7 +618,7 @@ int mlx5_create_map_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq, u8 vecidx,
- 	return 0;
- 
- err_irq:
--	free_irq(priv->msix_arr[vecidx].vector, eq);
-+	free_irq(eq->irqn, eq);
- 
- err_eq:
- 	mlx5_cmd_destroy_eq(dev, eq->eqn);
-@@ -659,11 +659,6 @@ int mlx5_destroy_unmap_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq)
- }
- EXPORT_SYMBOL_GPL(mlx5_destroy_unmap_eq);
- 
--u32 mlx5_get_msix_vec(struct mlx5_core_dev *dev, int vecidx)
--{
--	return dev->priv.msix_arr[MLX5_EQ_VEC_ASYNC].vector;
--}
+ 	/*
+-	 * The admin queue is barely used once the controller is live, so don't
+-	 * bother to spread it out.
++	 * Spread I/O queues completion vectors according their queue index.
++	 * Admin queues can always go on completion vector 0.
+ 	 */
+-	if (idx == 0)
+-		comp_vector = 0;
+-	else
+-		comp_vector = idx % ibdev->num_comp_vectors;
 -
- int mlx5_eq_init(struct mlx5_core_dev *dev)
++	comp_vector = idx == 0 ? idx : idx - 1;
+ 
+ 	/* +1 for ib_stop_cq */
+ 	queue->ib_cq = ib_alloc_cq(dev->dev, queue,
+@@ -645,10 +642,20 @@ static int nvme_rdma_connect_io_queues(struct nvme_rdma_ctrl *ctrl)
+ static int nvme_rdma_init_io_queues(struct nvme_rdma_ctrl *ctrl)
  {
- 	int err;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-index 37927156f258..1df67b46893b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -1586,7 +1586,7 @@ static void esw_disable_vport(struct mlx5_eswitch *esw, int vport_num)
- 	/* Mark this vport as disabled to discard new events */
- 	vport->enabled = false;
+ 	struct nvmf_ctrl_options *opts = ctrl->ctrl.opts;
++	struct ib_device *ibdev = ctrl->device->dev;
+ 	unsigned int nr_io_queues;
+ 	int i, ret;
  
--	synchronize_irq(mlx5_get_msix_vec(esw->dev, MLX5_EQ_VEC_ASYNC));
-+	synchronize_irq(pci_irq_vector(esw->dev->pdev, MLX5_EQ_VEC_ASYNC));
- 	/* Wait for current already scheduled events to complete */
- 	flush_workqueue(esw->work_queue);
- 	/* Disable events from this vport */
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/health.c b/drivers/net/ethernet/mellanox/mlx5/core/health.c
-index c6679b21884e..a7997f419498 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/health.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/health.c
-@@ -80,7 +80,7 @@ static void trigger_cmd_completions(struct mlx5_core_dev *dev)
- 	u64 vector;
- 
- 	/* wait for pending handlers to complete */
--	synchronize_irq(dev->priv.msix_arr[MLX5_EQ_VEC_CMD].vector);
-+	synchronize_irq(pci_irq_vector(dev->pdev, MLX5_EQ_VEC_CMD));
- 	spin_lock_irqsave(&dev->cmd.alloc_lock, flags);
- 	vector = ~dev->cmd.bitmask & ((1ul << (1 << dev->cmd.log_sz)) - 1);
- 	if (!vector)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index dc890944c4ea..be6ae9881fa7 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -309,13 +309,12 @@ static void release_bar(struct pci_dev *pdev)
- 	pci_release_regions(pdev);
+ 	nr_io_queues = min(opts->nr_io_queues, num_online_cpus());
++
++	/*
++	 * we map queues according to the device irq vectors for
++	 * optimal locality so we don't need more queues than
++	 * completion vectors.
++	 */
++	nr_io_queues = min_t(unsigned int, nr_io_queues,
++				ibdev->num_comp_vectors);
++
+ 	ret = nvme_set_queue_count(&ctrl->ctrl, &nr_io_queues);
+ 	if (ret)
+ 		return ret;
+@@ -1546,6 +1553,13 @@ static void nvme_rdma_complete_rq(struct request *rq)
+ 	nvme_complete_rq(rq);
  }
  
--static int mlx5_enable_msix(struct mlx5_core_dev *dev)
-+static int mlx5_alloc_irq_vectors(struct mlx5_core_dev *dev)
- {
- 	struct mlx5_priv *priv = &dev->priv;
- 	struct mlx5_eq_table *table = &priv->eq_table;
- 	int num_eqs = 1 << MLX5_CAP_GEN(dev, log_max_eq);
- 	int nvec;
--	int i;
++static int nvme_rdma_map_queues(struct blk_mq_tag_set *set)
++{
++	struct nvme_rdma_ctrl *ctrl = set->driver_data;
++
++	return blk_mq_rdma_map_queues(set, ctrl->device->dev, 0);
++}
++
+ static const struct blk_mq_ops nvme_rdma_mq_ops = {
+ 	.queue_rq	= nvme_rdma_queue_rq,
+ 	.complete	= nvme_rdma_complete_rq,
+@@ -1555,6 +1569,7 @@ static const struct blk_mq_ops nvme_rdma_mq_ops = {
+ 	.init_hctx	= nvme_rdma_init_hctx,
+ 	.poll		= nvme_rdma_poll,
+ 	.timeout	= nvme_rdma_timeout,
++	.map_queues	= nvme_rdma_map_queues,
+ };
  
- 	nvec = MLX5_CAP_GEN(dev, num_ports) * num_online_cpus() +
- 	       MLX5_EQ_VEC_COMP_BASE;
-@@ -323,17 +322,13 @@ static int mlx5_enable_msix(struct mlx5_core_dev *dev)
- 	if (nvec <= MLX5_EQ_VEC_COMP_BASE)
- 		return -ENOMEM;
- 
--	priv->msix_arr = kcalloc(nvec, sizeof(*priv->msix_arr), GFP_KERNEL);
--
- 	priv->irq_info = kcalloc(nvec, sizeof(*priv->irq_info), GFP_KERNEL);
--	if (!priv->msix_arr || !priv->irq_info)
-+	if (!priv->irq_info)
- 		goto err_free_msix;
- 
--	for (i = 0; i < nvec; i++)
--		priv->msix_arr[i].entry = i;
--
--	nvec = pci_enable_msix_range(dev->pdev, priv->msix_arr,
--				     MLX5_EQ_VEC_COMP_BASE + 1, nvec);
-+	nvec = pci_alloc_irq_vectors(dev->pdev,
-+			MLX5_EQ_VEC_COMP_BASE + 1, nvec,
-+			PCI_IRQ_MSIX);
- 	if (nvec < 0)
- 		return nvec;
- 
-@@ -343,17 +338,15 @@ static int mlx5_enable_msix(struct mlx5_core_dev *dev)
- 
- err_free_msix:
- 	kfree(priv->irq_info);
--	kfree(priv->msix_arr);
- 	return -ENOMEM;
- }
- 
--static void mlx5_disable_msix(struct mlx5_core_dev *dev)
-+static void mlx5_free_irq_vectors(struct mlx5_core_dev *dev)
- {
- 	struct mlx5_priv *priv = &dev->priv;
- 
--	pci_disable_msix(dev->pdev);
-+	pci_free_irq_vectors(dev->pdev);
- 	kfree(priv->irq_info);
--	kfree(priv->msix_arr);
- }
- 
- struct mlx5_reg_host_endianess {
-@@ -613,8 +606,7 @@ u64 mlx5_read_internal_timer(struct mlx5_core_dev *dev)
- static int mlx5_irq_set_affinity_hint(struct mlx5_core_dev *mdev, int i)
- {
- 	struct mlx5_priv *priv  = &mdev->priv;
--	struct msix_entry *msix = priv->msix_arr;
--	int irq                 = msix[i + MLX5_EQ_VEC_COMP_BASE].vector;
-+	int irq = pci_irq_vector(mdev->pdev, MLX5_EQ_VEC_COMP_BASE + i);
- 
- 	if (!zalloc_cpumask_var(&priv->irq_info[i].mask, GFP_KERNEL)) {
- 		mlx5_core_warn(mdev, "zalloc_cpumask_var failed");
-@@ -634,8 +626,7 @@ static int mlx5_irq_set_affinity_hint(struct mlx5_core_dev *mdev, int i)
- static void mlx5_irq_clear_affinity_hint(struct mlx5_core_dev *mdev, int i)
- {
- 	struct mlx5_priv *priv  = &mdev->priv;
--	struct msix_entry *msix = priv->msix_arr;
--	int irq                 = msix[i + MLX5_EQ_VEC_COMP_BASE].vector;
-+	int irq = pci_irq_vector(mdev->pdev, MLX5_EQ_VEC_COMP_BASE + i);
- 
- 	irq_set_affinity_hint(irq, NULL);
- 	free_cpumask_var(priv->irq_info[i].mask);
-@@ -758,8 +749,8 @@ static int alloc_comp_eqs(struct mlx5_core_dev *dev)
- 		}
- 
- #ifdef CONFIG_RFS_ACCEL
--		irq_cpu_rmap_add(dev->rmap,
--				 dev->priv.msix_arr[i + MLX5_EQ_VEC_COMP_BASE].vector);
-+		irq_cpu_rmap_add(dev->rmap, pci_irq_vector(dev->pdev,
-+				 MLX5_EQ_VEC_COMP_BASE + i));
- #endif
- 		snprintf(name, MLX5_MAX_IRQ_NAME, "mlx5_comp%d", i);
- 		err = mlx5_create_map_eq(dev, eq,
-@@ -1096,9 +1087,9 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
- 		goto err_stop_poll;
- 	}
- 
--	err = mlx5_enable_msix(dev);
-+	err = mlx5_alloc_irq_vectors(dev);
- 	if (err) {
--		dev_err(&pdev->dev, "enable msix failed\n");
-+		dev_err(&pdev->dev, "alloc irq vectors failed\n");
- 		goto err_cleanup_once;
- 	}
- 
-@@ -1196,7 +1187,7 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
- 	mlx5_put_uars_page(dev, priv->uar);
- 
- err_disable_msix:
--	mlx5_disable_msix(dev);
-+	mlx5_free_irq_vectors(dev);
- 
- err_cleanup_once:
- 	if (boot)
-@@ -1258,7 +1249,7 @@ static int mlx5_unload_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
- 	mlx5_stop_eqs(dev);
- 	mlx5_fpga_device_cleanup(dev);
- 	mlx5_put_uars_page(dev, priv->uar);
--	mlx5_disable_msix(dev);
-+	mlx5_free_irq_vectors(dev);
- 	if (cleanup)
- 		mlx5_cleanup_once(dev);
- 	mlx5_stop_health_poll(dev);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-index cf69b42278df..e9b8654f33e4 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-@@ -108,7 +108,6 @@ int mlx5_destroy_scheduling_element_cmd(struct mlx5_core_dev *dev, u8 hierarchy,
- 					u32 element_id);
- int mlx5_wait_for_vf_pages(struct mlx5_core_dev *dev);
- u64 mlx5_read_internal_timer(struct mlx5_core_dev *dev);
--u32 mlx5_get_msix_vec(struct mlx5_core_dev *dev, int vecidx);
- struct mlx5_eq *mlx5_eqn2eq(struct mlx5_core_dev *dev, int eqn);
- void mlx5_cq_tasklet_cb(unsigned long data);
- 
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 6ea2f5734e37..b71411dc9493 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -592,7 +592,6 @@ struct mlx5_port_module_event_stats {
- struct mlx5_priv {
- 	char			name[MLX5_MAX_NAME_LEN];
- 	struct mlx5_eq_table	eq_table;
--	struct msix_entry	*msix_arr;
- 	struct mlx5_irq_info	*irq_info;
- 
- 	/* pages stuff */
+ static const struct blk_mq_ops nvme_rdma_admin_mq_ops = {
 -- 
 2.7.4
 
