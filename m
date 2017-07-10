@@ -1,98 +1,75 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: [PATCH v7 for-4.13 7/7] nvme-rdma: use intelligent affinity based queue mappings
-Date: Mon, 10 Jul 2017 10:17:34 +0300
-Message-ID: <1499671054-23899-8-git-send-email-sagi@grimberg.me>
-References: <1499671054-23899-1-git-send-email-sagi@grimberg.me>
+Subject: [PATCH v7 for-4.13 0/7] Automatic affinity settings for nvme-rdma
+Date: Mon, 10 Jul 2017 10:17:27 +0300
+Message-ID: <1499671054-23899-1-git-send-email-sagi@grimberg.me>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1499671054-23899-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Use the generic block layer affinity mapping helper. Also,
-limit nr_hw_queues to the rdma device number of irq vectors
-as we don't really need more.
+Doug, please consider this patch set for 4.13.
+Saeed, care to get this into your testing environment?
 
-Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
----
- drivers/nvme/host/rdma.c | 29 ++++++++++++++++++++++-------
- 1 file changed, 22 insertions(+), 7 deletions(-)
+This patch set is aiming to automatically find the optimal
+queue <-> irq multi-queue assignments in storage ULPs (demonstrated
+on nvme-rdma) based on the underlying rdma device irq affinity
+settings.
 
-diff --git a/drivers/nvme/host/rdma.c b/drivers/nvme/host/rdma.c
-index 24397d306d53..7ebd3cdade92 100644
---- a/drivers/nvme/host/rdma.c
-+++ b/drivers/nvme/host/rdma.c
-@@ -19,6 +19,7 @@
- #include <linux/string.h>
- #include <linux/atomic.h>
- #include <linux/blk-mq.h>
-+#include <linux/blk-mq-rdma.h>
- #include <linux/types.h>
- #include <linux/list.h>
- #include <linux/mutex.h>
-@@ -496,14 +497,10 @@ static int nvme_rdma_create_queue_ib(struct nvme_rdma_queue *queue,
- 	queue->device = dev;
- 
- 	/*
--	 * The admin queue is barely used once the controller is live, so don't
--	 * bother to spread it out.
-+	 * Spread I/O queues completion vectors according their queue index.
-+	 * Admin queues can always go on completion vector 0.
- 	 */
--	if (idx == 0)
--		comp_vector = 0;
--	else
--		comp_vector = idx % ibdev->num_comp_vectors;
--
-+	comp_vector = idx == 0 ? idx : idx - 1;
- 
- 	/* +1 for ib_stop_cq */
- 	queue->ib_cq = ib_alloc_cq(dev->dev, queue,
-@@ -645,10 +642,20 @@ static int nvme_rdma_connect_io_queues(struct nvme_rdma_ctrl *ctrl)
- static int nvme_rdma_init_io_queues(struct nvme_rdma_ctrl *ctrl)
- {
- 	struct nvmf_ctrl_options *opts = ctrl->ctrl.opts;
-+	struct ib_device *ibdev = ctrl->device->dev;
- 	unsigned int nr_io_queues;
- 	int i, ret;
- 
- 	nr_io_queues = min(opts->nr_io_queues, num_online_cpus());
-+
-+	/*
-+	 * we map queues according to the device irq vectors for
-+	 * optimal locality so we don't need more queues than
-+	 * completion vectors.
-+	 */
-+	nr_io_queues = min_t(unsigned int, nr_io_queues,
-+				ibdev->num_comp_vectors);
-+
- 	ret = nvme_set_queue_count(&ctrl->ctrl, &nr_io_queues);
- 	if (ret)
- 		return ret;
-@@ -1546,6 +1553,13 @@ static void nvme_rdma_complete_rq(struct request *rq)
- 	nvme_complete_rq(rq);
- }
- 
-+static int nvme_rdma_map_queues(struct blk_mq_tag_set *set)
-+{
-+	struct nvme_rdma_ctrl *ctrl = set->driver_data;
-+
-+	return blk_mq_rdma_map_queues(set, ctrl->device->dev, 0);
-+}
-+
- static const struct blk_mq_ops nvme_rdma_mq_ops = {
- 	.queue_rq	= nvme_rdma_queue_rq,
- 	.complete	= nvme_rdma_complete_rq,
-@@ -1555,6 +1569,7 @@ static const struct blk_mq_ops nvme_rdma_mq_ops = {
- 	.init_hctx	= nvme_rdma_init_hctx,
- 	.poll		= nvme_rdma_poll,
- 	.timeout	= nvme_rdma_timeout,
-+	.map_queues	= nvme_rdma_map_queues,
- };
- 
- static const struct blk_mq_ops nvme_rdma_admin_mq_ops = {
+Changes from v6:
+- rebased on top of doug's for-4.13-mlx-shared 
+
+Changes from v5:
+- updated change log for patch #2
+- removed nit indentation changes
+
+Changes from v4:
+- removed mlx5e assumptions on device home node irq affinity mappings
+- rebased to 4.12-rc5
+
+Changes from v3:
+- Renamed mlx5_disable_msix -> mlx5_free_pci_vectors for symmetry reasons
+
+Changes from v2:
+- rebased to 4.12
+- added review tags
+
+Changes from v1:
+- Removed mlx5e_get_cpu as Christoph suggested
+- Fixed up nvme-rdma queue comp_vector selection to get a better match
+- Added a comment on why we limit on @dev->num_comp_vectors
+- rebased to Jens's for-4.12/block
+- Collected review tags
+
+Sagi Grimberg (7):
+  mlx5: convert to generic pci_alloc_irq_vectors
+  mlx5e: don't assume anything on the irq affinity mappings of the
+    device
+  mlx5: move affinity hints assignments to generic code
+  RDMA/core: expose affinity mappings per completion vector
+  mlx5: support ->get_vector_affinity
+  block: Add rdma affinity based queue mapping helper
+  nvme-rdma: use intelligent affinity based queue mappings
+
+ block/Kconfig                                      |   5 +
+ block/Makefile                                     |   1 +
+ block/blk-mq-rdma.c                                |  54 +++++++++++
+ drivers/infiniband/hw/mlx5/main.c                  |   9 ++
+ drivers/net/ethernet/mellanox/mlx5/core/en.h       |   1 -
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c  |  56 +++++------
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c       |   9 +-
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.c  |   2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/health.c   |   2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/main.c     | 106 ++++-----------------
+ .../net/ethernet/mellanox/mlx5/core/mlx5_core.h    |   1 -
+ drivers/nvme/host/rdma.c                           |  29 ++++--
+ include/linux/blk-mq-rdma.h                        |  10 ++
+ include/linux/mlx5/driver.h                        |   8 +-
+ include/rdma/ib_verbs.h                            |  25 ++++-
+ 15 files changed, 175 insertions(+), 143 deletions(-)
+ create mode 100644 block/blk-mq-rdma.c
+ create mode 100644 include/linux/blk-mq-rdma.h
+
 -- 
 2.7.4
 
