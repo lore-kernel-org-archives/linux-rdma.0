@@ -1,57 +1,132 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx4: Fix CM REQ retries in paravirt mode
-Date: Fri, 7 Jul 2017 12:45:34 +0300
-Message-ID: <20170707094534.GH1528@mtr-leonro.local>
-References: <20170620120750.32268-1-Haakon.Bugge@oracle.com>
- <20170626124048.00002ef5@dev.mellanox.co.il>
- <6CBA4C82-C68D-4A7E-B27F-87E3522707FA@oracle.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH iproute2 V3 3/4] rdma: Add link object
+Date: Tue, 11 Jul 2017 09:33:26 +0300
+Message-ID: <20170711063326.GR1528@mtr-leonro.local>
+References: <20170704075541.12544-1-leon@kernel.org>
+ <20170704075541.12544-4-leon@kernel.org>
+ <20170710081307.GE1853@nanopsycho>
+ <20170710162223.GO1528@mtr-leonro.local>
+ <20170710182828.GF1853@nanopsycho>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="zvmqw4jX2vbPsMQB"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="6ys2uLYBf50XP5fk"
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <6CBA4C82-C68D-4A7E-B27F-87E3522707FA-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?iso-8859-1?Q?H=E5kon?= Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: jackm <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20170710182828.GF1853@nanopsycho>
+Sender: netdev-owner@vger.kernel.org
+To: Jiri Pirko <jiri@resnulli.us>
+Cc: Stephen Hemminger <stephen@networkplumber.org>, Doug Ledford <dledford@redhat.com>, Ariel Almog <ariela@mellanox.com>, Linux RDMA <linux-rdma@vger.kernel.org>, Linux Netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---zvmqw4jX2vbPsMQB
-Content-Type: text/plain; charset=iso-8859-1
+--6ys2uLYBf50XP5fk
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jul 07, 2017 at 11:03:50AM +0200, H=E5kon Bugge wrote:
-> Do I need any additional r-b for this to get in?
+On Mon, Jul 10, 2017 at 08:28:28PM +0200, Jiri Pirko wrote:
+> Mon, Jul 10, 2017 at 06:22:23PM CEST, leon@kernel.org wrote:
+> >On Mon, Jul 10, 2017 at 10:13:07AM +0200, Jiri Pirko wrote:
+> >> Tue, Jul 04, 2017 at 09:55:40AM CEST, leon@kernel.org wrote:
+> >> >From: Leon Romanovsky <leonro@mellanox.com>
+> >> >
+> >> >Link (port) object represent struct ib_port to the user space.
+> >> >
+> >> >Link properties:
+> >> > * Port capabilities
+> >> > * IB subnet prefix
+> >> > * LID, SM_LID and LMC
+> >> > * Port state
+> >> > * Physical state
+> >> >
+> >> >Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> >> >---
+> >> > rdma/Makefile |   2 +-
+> >> > rdma/link.c   | 280 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+> >> > rdma/rdma.c   |   3 +-
+> >> > rdma/utils.c  |   5 ++
+> >> > 4 files changed, 288 insertions(+), 2 deletions(-)
+> >> > create mode 100644 rdma/link.c
+> >> >
+> >> >diff --git a/rdma/Makefile b/rdma/Makefile
+> >> >index 123d7ac5..1a9e4b1a 100644
+> >> >--- a/rdma/Makefile
+> >> >+++ b/rdma/Makefile
+> >> >@@ -2,7 +2,7 @@ include ../Config
+> >> >
+> >> > ifeq ($(HAVE_MNL),y)
+> >> >
+> >> >-RDMA_OBJ = rdma.o utils.o dev.o
+> >> >+RDMA_OBJ = rdma.o utils.o dev.o link.o
+> >> >
+> >> > TARGETS=rdma
+> >> > CFLAGS += $(shell $(PKG_CONFIG) libmnl --cflags)
+> >> >diff --git a/rdma/link.c b/rdma/link.c
+> >> >new file mode 100644
+> >> >index 00000000..f92b4cef
+> >> >--- /dev/null
+> >> >+++ b/rdma/link.c
+> >> >@@ -0,0 +1,280 @@
+> >> >+/*
+> >> >+ * link.c	RDMA tool
+> >> >+ *
+> >> >+ *              This program is free software; you can redistribute it and/or
+> >> >+ *              modify it under the terms of the GNU General Public License
+> >> >+ *              as published by the Free Software Foundation; either version
+> >> >+ *              2 of the License, or (at your option) any later version.
+> >> >+ *
+> >> >+ * Authors:     Leon Romanovsky <leonro@mellanox.com>
+> >> >+ */
+> >> >+
+> >> >+#include "rdma.h"
+> >> >+
+> >> >+static int link_help(struct rdma *rd)
+> >> >+{
+> >> >+	pr_out("Usage: %s link show [DEV/PORT_INDEX]\n", rd->filename);
+> >> >+	return 0;
+> >> >+}
+> >> >+
+> >> >+static void link_print_caps(struct nlattr **tb)
+> >> >+{
+> >> >+	uint64_t caps;
+> >> >+	uint32_t idx;
+> >> >+
+> >> >+	/*
+> >> >+	 * FIXME: move to indexes when kernel will start exporting them.
+> >>
+> >> Not exported yet?
+> >
+> >Not yet, I want to minimize the UAPI export from kernel before user-space
+> >part is accepted.
 >
+> I don't get it. If you need it in userspace, you should expose it. Why
+> to wait? What am I missing?
 
-Jack's r-b is enough.
+Mainly my attempt to avoid constant rebasing for four series at the
+same time. One for rdmatool, one for RDMA netlink, one for RDMA UAPI changes
+and one for rdma-core [1] which should reuse those exported structures too.
 
-Thanks,
+[1] http://github.com/linux-rdma/rdma-core
 
---zvmqw4jX2vbPsMQB
+Thanks
+
+--6ys2uLYBf50XP5fk
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllfWD0ACgkQ5GN7iDZy
-WKc+mA/5AUKqeNN3AU8dW8oFuwRVDPxB2pL21WUuO+nWPzXul7uOgCNL6l/n/oJZ
-h0IghaEvXi5ur2i0pDi+6y8K3yiORmeIwVryWPYEsLdrAwNjFRaNQu/3u/3WQzfZ
-S1k+yJxPp/4qFNcg4g2Pegh8JQqJ/7g35KyiOUrEZgf9u+HH/nbqfY7okbjChRvl
-sItr8k6aTQf0sjJsZsHtapl/OGcrFoOp4gArrkGzKCVUAH87J1Xhu4bCcbmK+FyZ
-08GFXTtDUA4bfw1eSeHlSoZQ6+icvyD0v2NzsSizNGEkf/3LgX/rN02Qw9xdGMa4
-SgvOBpFemsJbJTBnNGH5z/6HYbwNyr+Vjn6A/r1K042Gk9Iu1QnSUec0fFMtT/C5
-nWeJC68L1jME02TFmTbwVTyvDk7jVwinyyuL9SU3M+TpWzJi+xslw8cLh4cqWnJ9
-nz3dxgeKqAzIyhqOBjZRg0F1A65qIplsF7GvnSMp4kXP9tmyLzubU0Xu99RWhhtc
-gqm3nZOZeuvCP0FXIBQjkylSWY4FP85SHb47iVqLpGPaI1VNLhECH0ium13cL/8K
-j8X9hWa5wsn6MdNTsLO7W0pzATv3Rncl0KGc508+PiumRW8uMExrhU2N56tnvgfB
-xC3butMik9ZPhy/iPo/USeo4gnM+cILIeOuLsYyKCMJgGuUk8Go=
-=3Z9n
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllkcTYACgkQ5GN7iDZy
+WKffmA/9GdK6DKj75mAZL8vqsCPOhI04MelF3bCeW09mz9hewsS5xlokg/YIN4K/
+gx84on9S72mSlxYDHRvAIGZBSH1ALQQdj0e1/YX5LY7sveyNvkUWRujMW3AHI/y2
+SFTJLfEQJT4w0DvFoNh/F/SuhqZMn/LsQDz4IBb5VbadecwwOxK8YTO7ATyRcFK+
+eFzalwxmds9rPfAMKEuRgETXjfzbMx2iZrjZBsWJ1f3pEeRu9Vleih9FCviTAGOZ
+s2n0haS7VOYSQqBtHoGDLhuC4DaX+aMTn3RxXWoJqZKQeLX/fTqrjUo5M7dbLPo5
+aWgs64KRv+de6m83QiryVRqrn8ZjyRqJXiEjisOuBj4fmNs1D/7MJNzZSLW/56Ne
+V6n+QxQtwpb+lkZ+g4AGLsUrNQa2f8h2ZRl6MRsTMwZ6+QSRpmgcRlIbHdaL33St
+nIpdTN/ERgbVfhqKYFOeiJMGy4uZ7VRrLZact2gs029QQ7s+kuHCSDvr1p1w0dFb
+o+Ua2Zh9ceCKS3dbHpjKB0XtNoJ+NEPJRRsqwNZlWnsBJO1Ic6XQ3qjuIF7KyYr2
+5csshfquaoCzkoLga/InOHqCwO+3NeXMQFJ+OfLuryncg4f3xzWw8DZIX3UoRt7c
+h73Ati1ed4CSmCSF4tebjGUUyI9BrvURnYWnZEuE6U0HHFUPLcw=
+=mbYd
 -----END PGP SIGNATURE-----
 
---zvmqw4jX2vbPsMQB--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--6ys2uLYBf50XP5fk--
