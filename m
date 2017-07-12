@@ -1,26 +1,51 @@
-From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: This merge window...
-Date: Wed, 12 Jul 2017 17:14:32 +0300
-Message-ID: <CAJ3xEMh0FNr=zxYNTsDt+BjUdWYgPcDH7ta-dHHhjre0XqrwXQ@mail.gmail.com>
-References: <824b3771-78a6-7c80-50d9-a34383169185@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: [PATCH 2/2] iwpmd: Support Debian/Ubuntu in sysvinit service
+Date: Wed, 12 Jul 2017 17:42:55 +0200
+Message-ID: <20170712154255.21296-2-benjamin.drung@profitbricks.com>
+References: <20170712154255.21296-1-benjamin.drung@profitbricks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <824b3771-78a6-7c80-50d9-a34383169185-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170712154255.21296-1-benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 11, 2017 at 10:28 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> As some of you no doubt noticed, when Linus decided to make the last rc
-> cycle of 4.12 -rc7 and open the merge window last week (on a holiday
-> week for people in the USA no less), it caught me off guard.  I didn't
-> have my for-next branch ready to go (it's mostly there, but not all
-> there), so at Linus' request I'm holding the merge until 4.14.
+The sysvinit script for iwpmd supports only RedHat and SUSE by checking
+the running distribution. Add support for Debian/Ubuntu by using
+/lib/lsb/init-functions as default (on all non RedHat systems).
 
-I didn't see an email from Linus on that request, can you please
-elaborate a little further?
+The binary pidofproc does not exits on Debian/Ubuntu, but
+/lib/lsb/init-functions defines a pidofproc function instead (which
+calls /sbin/pidofproc on openSUSE).
+
+Signed-off-by: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+---
+ iwpmd/iwpmd_init | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/iwpmd/iwpmd_init b/iwpmd/iwpmd_init
+index 88e63c10..0d2559e9 100755
+--- a/iwpmd/iwpmd_init
++++ b/iwpmd/iwpmd_init
+@@ -29,12 +29,13 @@ if [ -f "/etc/redhat-release" ]; then
+ 	STATUSD=status
+ 	GETPID=/sbin/pidof
+ 
+-elif [ -f "/etc/SuSE-release" ]; then
++else
++	# Debian / openSUSE / Ubuntu
+ 	. /lib/lsb/init-functions
+ 	STARTD=start_daemon
+ 	STOPD=killproc
+ 	STATUSD=/sbin/checkproc
+-	GETPID=/sbin/pidofproc
++	GETPID=pidofproc
+ fi
+ 
+ check() {
+-- 
+2.11.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
