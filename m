@@ -1,95 +1,39 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/1] mlx4_en: remove unnecessary returned value check
-Date: Wed, 12 Jul 2017 12:46:18 +0300
-Message-ID: <20170712094618.GC1528@mtr-leonro.local>
-References: <1499841873-10275-1-git-send-email-yanjun.zhu@oracle.com>
- <20170712083647.GB2866@yuvallap>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH v7 for-4.13 4/7] RDMA/core: expose affinity mappings per
+ completion vector
+Date: Wed, 12 Jul 2017 13:35:17 +0300
+Message-ID: <34afc85f-cc81-37f7-b48d-1d18b0b61f95@grimberg.me>
+References: <1499671054-23899-1-git-send-email-sagi@grimberg.me>
+ <1499671054-23899-5-git-send-email-sagi@grimberg.me>
+ <1499810819.2586.43.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="XPfPv5HFi+O4rHSw"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170712083647.GB2866@yuvallap>
+In-Reply-To: <1499810819.2586.43.camel-Sjgp3cTcYWE@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---XPfPv5HFi+O4rHSw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+>>   struct ib_client {
+>> @@ -3612,7 +3614,6 @@ static inline void rdma_ah_set_interface_id(struct rdma_ah_attr *attr,
+>>   
+>>   	grh->dgid.global.interface_id = if_id;
+>>   }
+>> -
+>>   static inline void rdma_ah_set_grh(struct rdma_ah_attr *attr,
+>>   				   union ib_gid *dgid, u32 flow_label,
+>>   				   u8 sgid_index, u8 hop_limit,
+> 
+> Hello Sagi,
+> 
+> A nit: is it on purpose that this patch removes a blank line between the
+> definitions of rdma_ah_set_interface_id() and rdma_ah_set_grh()?
 
-On Wed, Jul 12, 2017 at 11:36:48AM +0300, Yuval Shaia wrote:
-> On Wed, Jul 12, 2017 at 02:44:33AM -0400, Zhu Yanjun wrote:
-> > The function __mlx4_zone_remove_one_entry always returns zero. So
-> > it is not necessary to check it.
-> >
-> > Cc: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > Cc: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > ---
-> >  drivers/net/ethernet/mellanox/mlx4/alloc.c | 7 +++----
-> >  1 file changed, 3 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/drivers/net/ethernet/mellanox/mlx4/alloc.c b/drivers/net/ethernet/mellanox/mlx4/alloc.c
-> > index 249a458..bfb185d 100644
-> > --- a/drivers/net/ethernet/mellanox/mlx4/alloc.c
-> > +++ b/drivers/net/ethernet/mellanox/mlx4/alloc.c
-> > @@ -283,7 +283,7 @@ int mlx4_zone_add_one(struct mlx4_zone_allocator *zone_alloc,
-> >  }
-> >
-> >  /* Should be called under a lock */
-> > -static int __mlx4_zone_remove_one_entry(struct mlx4_zone_entry *entry)
-> > +static void __mlx4_zone_remove_one_entry(struct mlx4_zone_entry *entry)
-> >  {
-> >  	struct mlx4_zone_allocator *zone_alloc = entry->allocator;
-> >
-> > @@ -315,8 +315,6 @@ static int __mlx4_zone_remove_one_entry(struct mlx4_zone_entry *entry)
-> >  		}
-> >  		zone_alloc->mask = mask;
-> >  	}
-> > -
-> > -	return 0;
-> >  }
-> >
-> >  void mlx4_zone_allocator_destroy(struct mlx4_zone_allocator *zone_alloc)
-> > @@ -468,7 +466,8 @@ int mlx4_zone_remove_one(struct mlx4_zone_allocator *zones, u32 uid)
-> >  		goto out;
-> >  	}
-> >
-> > -	res = __mlx4_zone_remove_one_entry(zone);
-> > +	__mlx4_zone_remove_one_entry(zone);
-> > +	res = 0;
->
-> Will look better if initialization will move to variable declaration.
->
-
-Yes, please.
-
-Thanks
-
---XPfPv5HFi+O4rHSw
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlll7+oACgkQ5GN7iDZy
-WKdx/A//fqipJUBVk+pREJMGJd1LqH9pr6mkXXpi/MZEMUWB75eVqsvo2bfXixvI
-YVh8oExpwMQFo0I5s5jK9tzCvuJYSEqedwRD0tTnRubUOl/WT3BcEi1aajMLHtEz
-71wqlXMITymC4HhgJswGTOxF/X3he9Z6wKcXImTbcIl/67zR208EYLL4BAyhMukX
-6mMJ54nMtumeEkUXSCWtXYcv+xST1HUUDW/NRH9fJo5OSrfSGl3XcMQfP7NeBNVP
-6yfCbXMNW6tFNHQGLA50ZePvGOCHKFdYoJYfMU9gUlJVBRDRoG16oZnTkq3Dr0p1
-mad7M88XX0N/8Xoe4+ffIL2/ixUi35IbFTYq/agOo3hsGuxhky4FjctE57Fxuq4M
-JcIwzx1lcUQUDCPhljGbrfJR98OLwZIangzGuDP6jBSoFrKB/4u98hQ1aPubz3ap
-cqMV9rvppZk6HlyG5VxWODf8t13/6gCB5WtmmTEUcVhG5s2mgcaKNW+ia0xMN0Zf
-FlyPOw7Awyd/eL28MtJ6Y7YTyhTZhMirqehEIgyluCY/DPBbclj82MQNdNiyj9fj
-Efpgo+AedwJWrwb4WpA7FxXgmqsyMupKhjepCEdk6i2e25TutftQf3pTYp5vK8HG
-5QarAeVGpKQgKcApaC33UvK7sVLbS25GUBWvf1g8CjCf622mW8w=
-=7ayR
------END PGP SIGNATURE-----
-
---XPfPv5HFi+O4rHSw--
+No, I can remove it.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
