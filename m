@@ -1,38 +1,67 @@
-From: Christopher Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Difference between normal and fast memory registration
-Date: Wed, 12 Jul 2017 15:22:13 -0500 (CDT)
-Message-ID: <alpine.DEB.2.20.1707121520050.17315@nuc-kabylake>
-References: <CAPO=kN1Qcb8SSvyxGgGPLgYOTGoGnV32RLNJU=f+b9_1aMYdcA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: [PATCH rdma-core 4/8] mlx5: Avoid sparse complaints about !!
+Date: Wed, 12 Jul 2017 15:17:38 -0600
+Message-ID: <1499894262-10761-5-git-send-email-jgunthorpe@obsidianresearch.com>
+References: <1499894262-10761-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAPO=kN1Qcb8SSvyxGgGPLgYOTGoGnV32RLNJU=f+b9_1aMYdcA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1499894262-10761-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arka Sharma <arka.sw1988-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 10 Jul 2017, Arka Sharma wrote:
+Sparse says:
+ warning: dubious: !x & y
 
-> So my question is in case of fast registration when exactly physical
-> addresses are written in registers of RNIC card. If it is done in
-> initialization as I am thinking by reading this statement, in that
-> case the physical location of data buffer to be registered may be
-> different with the address that has been programmed to the RNIC. I
-> have read in RDMA verbs specification that in case of fast
-> registration we need to create a work request and post to SQ. Why this
-> kind of approach is needed in case of fast registration.
->
-> Some clarification of this will be highly appreciated.
+Unclear why sparse thinks this is bad, but casting to C99 bool is the
+same as !! and much easier to read.
 
-A scan of the paper suggests to me that the authors simply register large
-memory regions and then provide slices of that for the application. It is
-a "registration cache". The memory is registered in large chunks by the
-caching layer and then later small pieces of it are used by the
-application. That is faster because the whole area is already registered
-and one does not need to register the smaller area.
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+---
+ providers/mlx5/cq.c | 21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-Nothing changes regarding registration of memory.
+diff --git a/providers/mlx5/cq.c b/providers/mlx5/cq.c
+index 500116133c1f9e..9a8d958a9ced68 100644
+--- a/providers/mlx5/cq.c
++++ b/providers/mlx5/cq.c
+@@ -206,11 +206,12 @@ static inline int handle_responder(struct ibv_wc *wc, struct mlx5_cqe64 *cqe,
+ 		if (likely(cur_rsc->type == MLX5_RSC_TYPE_QP)) {
+ 			wq = &qp->rq;
+ 			if (qp->qp_cap_cache & MLX5_RX_CSUM_VALID)
+-				wc->wc_flags |= (!!(cqe->hds_ip_ext & MLX5_CQE_L4_OK) &
+-						 !!(cqe->hds_ip_ext & MLX5_CQE_L3_OK) &
+-						(get_cqe_l3_hdr_type(cqe) ==
+-						MLX5_CQE_L3_HDR_TYPE_IPV4)) <<
+-						IBV_WC_IP_CSUM_OK_SHIFT;
++				wc->wc_flags |=
++				    ((bool)(cqe->hds_ip_ext & MLX5_CQE_L4_OK) &
++				     (bool)(cqe->hds_ip_ext & MLX5_CQE_L3_OK) &
++				     (get_cqe_l3_hdr_type(cqe) ==
++				      MLX5_CQE_L3_HDR_TYPE_IPV4))
++				    << IBV_WC_IP_CSUM_OK_SHIFT;
+ 		} else {
+ 			wq = &(rsc_to_mrwq(cur_rsc)->rq);
+ 		}
+@@ -1105,11 +1106,11 @@ static inline int mlx5_cq_read_wc_flags(struct ibv_cq_ex *ibcq)
+ 	int wc_flags = 0;
+ 
+ 	if (cq->flags & MLX5_CQ_FLAGS_RX_CSUM_VALID)
+-		wc_flags = (!!(cq->cqe64->hds_ip_ext & MLX5_CQE_L4_OK) &
+-				 !!(cq->cqe64->hds_ip_ext & MLX5_CQE_L3_OK) &
+-				 (get_cqe_l3_hdr_type(cq->cqe64) ==
+-				  MLX5_CQE_L3_HDR_TYPE_IPV4)) <<
+-				IBV_WC_IP_CSUM_OK_SHIFT;
++		wc_flags = ((bool)(cq->cqe64->hds_ip_ext & MLX5_CQE_L4_OK) &
++			    (bool)(cq->cqe64->hds_ip_ext & MLX5_CQE_L3_OK) &
++			    (get_cqe_l3_hdr_type(cq->cqe64) ==
++			     MLX5_CQE_L3_HDR_TYPE_IPV4))
++			   << IBV_WC_IP_CSUM_OK_SHIFT;
+ 
+ 	switch (mlx5dv_get_cqe_opcode(cq->cqe64)) {
+ 	case MLX5_CQE_RESP_WR_IMM:
+-- 
+2.7.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
