@@ -1,45 +1,55 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 7/8] vmw_pvrdma: Update kernel header
-Date: Wed, 12 Jul 2017 15:17:41 -0600
-Message-ID: <1499894262-10761-8-git-send-email-jgunthorpe@obsidianresearch.com>
-References: <1499894262-10761-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 0/8] Sparse updates for Mellanox and vmw_pvrdma providers
+Date: Wed, 12 Jul 2017 15:17:34 -0600
+Message-ID: <1499894262-10761-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1499894262-10761-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-For sparse to be clean we need the updated endian annotations.
+This makes 4 more providers sparse clean
 
->From kernel commit cc47dd684ee0 ("IB/vmw_pvrdma: Spare annotate imm_data")
+There are two more small changes to the user facing API, around the
+invalidate_rkey/imm_data duality, these matches the changes already
+made..
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- buildlib/fixup-include/rdma-vmw_pvrdma-abi.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Jason Gunthorpe (8):
+  verbs: Annoate ibv_wc helpers with endian
+  verbs: Annoate ibv_send_wr with endian
+  mlx4: Add sparse annotations
+  mlx5: Avoid sparse complaints about !!
+  mlx5: Add sparse annotations
+  mthca: Add sparse annotations
+  vmw_pvrdma: Update kernel header
+  vmw_pvrdma: Add sparse annotations
 
-diff --git a/buildlib/fixup-include/rdma-vmw_pvrdma-abi.h b/buildlib/fixup-include/rdma-vmw_pvrdma-abi.h
-index 5016abc9ee9712..c8c1d2d6df4d52 100644
---- a/buildlib/fixup-include/rdma-vmw_pvrdma-abi.h
-+++ b/buildlib/fixup-include/rdma-vmw_pvrdma-abi.h
-@@ -222,7 +222,7 @@ struct pvrdma_sq_wqe_hdr {
- 	__u32 opcode;		/* operation type */
- 	__u32 send_flags;	/* wr flags */
- 	union {
--		__u32 imm_data;
-+		__be32 imm_data;
- 		__u32 invalidate_rkey;
- 	} ex;
- 	__u32 reserved;
-@@ -273,7 +273,7 @@ struct pvrdma_cqe {
- 	__u32 opcode;
- 	__u32 status;
- 	__u32 byte_len;
--	__u32 imm_data;
-+	__be32 imm_data;
- 	__u32 src_qp;
- 	__u32 wc_flags;
- 	__u32 vendor_err;
+ CMakeLists.txt                               | 12 ++--
+ buildlib/fixup-include/rdma-vmw_pvrdma-abi.h |  4 +-
+ libibverbs/man/ibv_create_cq_ex.3            |  5 +-
+ libibverbs/man/ibv_post_send.3               |  7 ++-
+ libibverbs/verbs.h                           | 22 +++++++-
+ providers/mlx4/cq.c                          |  8 ++-
+ providers/mlx4/dbrec.c                       |  6 +-
+ providers/mlx4/mlx4.h                        | 16 +++---
+ providers/mlx4/mlx4dv.h                      | 84 ++++++++++++++--------------
+ providers/mlx4/qp.c                          |  4 +-
+ providers/mlx4/verbs.c                       | 11 +---
+ providers/mlx5/cq.c                          | 31 +++++-----
+ providers/mlx5/dbrec.c                       |  6 +-
+ providers/mlx5/mlx5.h                        | 14 ++---
+ providers/mlx5/mlx5dv.h                      | 68 +++++++++++-----------
+ providers/mlx5/qp.c                          | 10 ++--
+ providers/mlx5/verbs.c                       |  4 +-
+ providers/mlx5/wqe.h                         | 34 +++++------
+ providers/mthca/cq.c                         | 32 +++++------
+ providers/mthca/memfree.c                    |  4 +-
+ providers/mthca/mthca.h                      | 24 ++++----
+ providers/mthca/qp.c                         |  4 +-
+ providers/mthca/wqe.h                        | 60 ++++++++++----------
+ providers/vmw_pvrdma/pvrdma.h                |  6 +-
+ providers/vmw_pvrdma/verbs.c                 |  7 +--
+ 25 files changed, 250 insertions(+), 233 deletions(-)
+
 -- 
 2.7.4
 
