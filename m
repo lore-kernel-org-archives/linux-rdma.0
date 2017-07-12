@@ -1,70 +1,58 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH] RDMA/uverbs: Check port number supplied by user verbs
- cmds
-Date: Tue, 11 Jul 2017 22:02:09 -0600
-Message-ID: <20170712040209.GA26073@obsidianresearch.com>
-References: <23a56bbd03a2b5b585e2de35b1fc6f8bac53aa9a.1499441641.git.dledford@redhat.com>
- <5C5647B5F4794941BAAC07CF28785CBC33E4CB61@fmsmsx101.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5C5647B5F4794941BAAC07CF28785CBC33E4CB61@fmsmsx101.amr.corp.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: "Ismail, Mustafa" <mustafa.ismail@intel.com>
-Cc: Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "security@kernel.org" <security@kernel.org>, Yevgeny Kliteynik <kliteyn@mellanox.com>, Tziporet Koren <tziporet@mellanox.com>, Alex Polak <alexpo@mellanox.com>, Boris Pismenny <borisp@mellanox.com>, Leon Romanovsky <leon@kernel.org>
+From: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 1/1] mlx4_en: remove unnecessary returned value check
+Date: Wed, 12 Jul 2017 02:44:33 -0400
+Message-ID: <1499841873-10275-1-git-send-email-yanjun.zhu@oracle.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 11, 2017 at 11:21:07PM +0000, Ismail, Mustafa wrote:
-> > Subject: [PATCH] RDMA/uverbs: Check port number supplied by user verbs
-> > cmds
-> > 
-> > Upstream commit id in the rdma.git tree: 5ecce4c9b17b
-> > 
-> > The ib_uverbs_create_ah() ind ib_uverbs_modify_qp() calls receive the port
-> > number from user input as part of its attributes and assumes it is valid.
-> > Down on the stack, that parameter is used to access kernel data structures.
-> > If the value is invalid, the kernel accesses memory it should not.  To prevent
-> > this, verify the port number before using it.
-> > 
-> > BUG: KASAN: use-after-free in ib_uverbs_create_ah+0x6d5/0x7b0 Read of
-> > size 4 at addr ffff880018d67ab8 by task syz-executor/313
-> > 
-> > BUG: KASAN: slab-out-of-bounds in modify_qp.isra.4+0x19d0/0x1ef0 Read
-> > of size 4 at addr ffff88006c40ec58 by task syz-executor/819
-> > 
-> > Fixes: 67cdb40ca444 ("[IB] uverbs: Implement more commands")
-> > Cc: <stable@vger.kernel.org> # v4.2-v4.9
-> > Cc: <security@kernel.org>
-> > Cc: Yevgeny Kliteynik <kliteyn@mellanox.com>
-> > Cc: Tziporet Koren <tziporet@mellanox.com>
-> > Cc: Alex Polak <alexpo@mellanox.com>
-> > Signed-off-by: Boris Pismenny <borisp@mellanox.com>
-> > Signed-off-by: Leon Romanovsky <leon@kernel.org>
-> > Signed-off-by: Doug Ledford <dledford@redhat.com>
-> > 
-> > Modified from upstream commit: helper function rdma_is_port_valid does
-> > not exist in these kernel versions, so use manual comparisons instead.
-> > 
-> >  drivers/infiniband/core/uverbs_cmd.c | 8 ++++++++
-> >  1 file changed, 8 insertions(+)
-> > 
-> > diff --git a/drivers/infiniband/core/uverbs_cmd.c
-> > b/drivers/infiniband/core/uverbs_cmd.c
-> > index cb3f515a2285..01e3a37b0aef 100644
-> > +++ b/drivers/infiniband/core/uverbs_cmd.c
-> > @@ -2342,6 +2342,10 @@ ssize_t ib_uverbs_modify_qp(struct
-> > ib_uverbs_file *file,
-> >  	if (copy_from_user(&cmd, buf, sizeof cmd))
-> >  		return -EFAULT;
-> > 
-> > +	if (cmd.port_num < rdma_start_port(ib_dev) ||
-> > +	    cmd.port_num > rdma_end_port(ib_dev))
-> > +		return -EINVAL;
-> > +
-> With this check for valid port number, ucma_modify_qp_sqd() and ucma_modify_qp_err () in rdma-core may fail since qp_attr.port_num is not initialized.
+The function __mlx4_zone_remove_one_entry always returns zero. So
+it is not necessary to check it.
 
-Indeed. port_num should be totally ignored if not present in
-attr_mask, and should not trigger EINVAL.
+Cc: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/net/ethernet/mellanox/mlx4/alloc.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-Jason
+diff --git a/drivers/net/ethernet/mellanox/mlx4/alloc.c b/drivers/net/ethernet/mellanox/mlx4/alloc.c
+index 249a458..bfb185d 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/alloc.c
++++ b/drivers/net/ethernet/mellanox/mlx4/alloc.c
+@@ -283,7 +283,7 @@ int mlx4_zone_add_one(struct mlx4_zone_allocator *zone_alloc,
+ }
+ 
+ /* Should be called under a lock */
+-static int __mlx4_zone_remove_one_entry(struct mlx4_zone_entry *entry)
++static void __mlx4_zone_remove_one_entry(struct mlx4_zone_entry *entry)
+ {
+ 	struct mlx4_zone_allocator *zone_alloc = entry->allocator;
+ 
+@@ -315,8 +315,6 @@ static int __mlx4_zone_remove_one_entry(struct mlx4_zone_entry *entry)
+ 		}
+ 		zone_alloc->mask = mask;
+ 	}
+-
+-	return 0;
+ }
+ 
+ void mlx4_zone_allocator_destroy(struct mlx4_zone_allocator *zone_alloc)
+@@ -468,7 +466,8 @@ int mlx4_zone_remove_one(struct mlx4_zone_allocator *zones, u32 uid)
+ 		goto out;
+ 	}
+ 
+-	res = __mlx4_zone_remove_one_entry(zone);
++	__mlx4_zone_remove_one_entry(zone);
++	res = 0;
+ 
+ out:
+ 	spin_unlock(&zones->lock);
+-- 
+2.7.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
