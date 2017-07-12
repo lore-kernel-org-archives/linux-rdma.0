@@ -1,16 +1,16 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH v7 for-4.13 4/7] RDMA/core: expose affinity mappings per
- completion vector
-Date: Wed, 12 Jul 2017 13:35:17 +0300
-Message-ID: <34afc85f-cc81-37f7-b48d-1d18b0b61f95@grimberg.me>
+Subject: Re: [PATCH v7 for-4.13 6/7] block: Add rdma affinity based queue
+ mapping helper
+Date: Wed, 12 Jul 2017 13:36:19 +0300
+Message-ID: <70eeee7c-f227-4471-5eb9-492f77f7e8cf@grimberg.me>
 References: <1499671054-23899-1-git-send-email-sagi@grimberg.me>
- <1499671054-23899-5-git-send-email-sagi@grimberg.me>
- <1499810819.2586.43.camel@wdc.com>
+ <1499671054-23899-7-git-send-email-sagi@grimberg.me>
+ <1499811219.2586.45.camel@wdc.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1499810819.2586.43.camel-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <1499811219.2586.45.camel-Sjgp3cTcYWE@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -18,22 +18,29 @@ Cc: "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "linu
 List-Id: linux-rdma@vger.kernel.org
 
 
->>   struct ib_client {
->> @@ -3612,7 +3614,6 @@ static inline void rdma_ah_set_interface_id(struct rdma_ah_attr *attr,
->>   
->>   	grh->dgid.global.interface_id = if_id;
->>   }
->> -
->>   static inline void rdma_ah_set_grh(struct rdma_ah_attr *attr,
->>   				   union ib_gid *dgid, u32 flow_label,
->>   				   u8 sgid_index, u8 hop_limit,
+>> +int blk_mq_rdma_map_queues(struct blk_mq_tag_set *set,
+>> +		struct ib_device *dev, int first_vec)
+>> +{
+>> +	const struct cpumask *mask;
+>> +	unsigned int queue, cpu;
+>> +
+>> +	if (set->nr_hw_queues > dev->num_comp_vectors)
+>> +		goto fallback;
 > 
-> Hello Sagi,
-> 
-> A nit: is it on purpose that this patch removes a blank line between the
-> definitions of rdma_ah_set_interface_id() and rdma_ah_set_grh()?
+> Should this perhaps have been "if (first_vec + set->nr_hw_queues >
+> dev->num_comp_vectors)"? Additionally, since the return value of
+> ib_get_vector_affinity() is tested inside the loop, can this test be left out?
 
-No, I can remove it.
+I guess it can...
+
+>> +	return 0;
+>> +fallback:
+>> +	return blk_mq_map_queues(set);
+> 
+> If you have to repost this patch, please insert a blank line above the
+> "fallback" label.
+
+Will do, thanks!
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
