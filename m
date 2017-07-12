@@ -1,46 +1,26 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH v7 for-4.13 6/7] block: Add rdma affinity based queue
- mapping helper
-Date: Wed, 12 Jul 2017 13:36:19 +0300
-Message-ID: <70eeee7c-f227-4471-5eb9-492f77f7e8cf@grimberg.me>
-References: <1499671054-23899-1-git-send-email-sagi@grimberg.me>
- <1499671054-23899-7-git-send-email-sagi@grimberg.me>
- <1499811219.2586.45.camel@wdc.com>
+From: Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: This merge window...
+Date: Wed, 12 Jul 2017 17:14:32 +0300
+Message-ID: <CAJ3xEMh0FNr=zxYNTsDt+BjUdWYgPcDH7ta-dHHhjre0XqrwXQ@mail.gmail.com>
+References: <824b3771-78a6-7c80-50d9-a34383169185@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1499811219.2586.45.camel-Sjgp3cTcYWE@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <824b3771-78a6-7c80-50d9-a34383169185-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Jul 11, 2017 at 10:28 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+> As some of you no doubt noticed, when Linus decided to make the last rc
+> cycle of 4.12 -rc7 and open the merge window last week (on a holiday
+> week for people in the USA no less), it caught me off guard.  I didn't
+> have my for-next branch ready to go (it's mostly there, but not all
+> there), so at Linus' request I'm holding the merge until 4.14.
 
->> +int blk_mq_rdma_map_queues(struct blk_mq_tag_set *set,
->> +		struct ib_device *dev, int first_vec)
->> +{
->> +	const struct cpumask *mask;
->> +	unsigned int queue, cpu;
->> +
->> +	if (set->nr_hw_queues > dev->num_comp_vectors)
->> +		goto fallback;
-> 
-> Should this perhaps have been "if (first_vec + set->nr_hw_queues >
-> dev->num_comp_vectors)"? Additionally, since the return value of
-> ib_get_vector_affinity() is tested inside the loop, can this test be left out?
-
-I guess it can...
-
->> +	return 0;
->> +fallback:
->> +	return blk_mq_map_queues(set);
-> 
-> If you have to repost this patch, please insert a blank line above the
-> "fallback" label.
-
-Will do, thanks!
+I didn't see an email from Linus on that request, can you please
+elaborate a little further?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
