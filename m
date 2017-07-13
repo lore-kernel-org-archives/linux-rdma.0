@@ -1,40 +1,56 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH] Add rdma service for kernel boot support
-Date: Thu, 13 Jul 2017 17:48:22 +0000
-Message-ID: <1499968101.2740.10.camel@wdc.com>
-References: <20170713172057.25411-1-benjamin.drung@profitbricks.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core] bnxt_re: Fix -Wimplicit-fallthrough warnings
+ in GCC 7.1
+Date: Thu, 13 Jul 2017 11:51:22 -0600
+Message-ID: <20170713175122.GD11069@obsidianresearch.com>
+References: <20170713133935.1206-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170713172057.25411-1-benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <0D6C70E788409148B7EA8D22490CCA7E-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170713133935.1206-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Devesh Sharma <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-07-13 at 19:20 +0200, Benjamin Drung wrote:
-> Currently upstream does not provide a rdma or openibd service. Only the
-> RedHat package ships a rdma service and rdma modules configuration
-> files. The ibacm and srp_daemon services depend on the openibd service.
->=20
-> Make RedHat's rdma service available to all distros by cherry-picking
-> the basic files for the rdma service to run and trim them down to the
-> minimum. Do not pick workarounds or other quirk that might not needed
-> any more. Then replace the openibd service dependency by the rdma
-> service.
+On Thu, Jul 13, 2017 at 04:39:35PM +0300, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> [59/189] Building C object providers/bnxt_re/CMakeFiles/bnxt_re-rdmav2.dir/verbs.c.o
+> ../providers/bnxt_re/verbs.c: In function ‘bnxt_re_post_send’:
+> ../providers/bnxt_re/verbs.c:1222:18: warning: this statement may fall through [-Wimplicit-fallthrough=]
+>     hdr->key_immd = htole32(be32toh(wr->imm_data));
+>                   ^
+> ../providers/bnxt_re/verbs.c:1223:3: note: here
+>    case IBV_WR_SEND:
+>    ^~~~
+> ../providers/bnxt_re/verbs.c:1232:18: warning: this statement may fall through [-Wimplicit-fallthrough=]
+>     hdr->key_immd = htole32(be32toh(wr->imm_data));
+>                   ^
+> ../providers/bnxt_re/verbs.c:1233:3: note: here
+>    case IBV_WR_RDMA_WRITE:
 
-Hello Benjamin,
 
-Shouldn't the rdma / openibd service be split into multiple services -
-one for IPoIB, one for the SRP initiator driver, one for the SRP target
-driver, one for the iSER initiator driver, one for the iSER target driver,
-one for RDS and one for NFSoRDMA? I think that would allow us to get rid
-of the rdma.conf configuration file and also that this would allow systemd
-to load those services concurrently that do not depend on each other.
+Can you follow the same approach as I used in
 
-Bart.=
+commit 47cd2efcd4cd416ead0a1a48153aa27a2e178ce5
+Author: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Date:   Tue Jan 31 14:55:50 2017 -0700
+
+    Annotate correct switch fall throughs with SWITCH_FALLTHROUGH
+
+Or convert those cases to this approach?
+
+>  			 * LE platform be32toh will do the job.
+>  			 */
+>  			hdr->key_immd = htole32(be32toh(wr->imm_data));
+> +			/* FALLTHROUGH */
+
+Use the SWITCH_FALLTHROUGH; macro
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
