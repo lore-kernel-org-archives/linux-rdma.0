@@ -1,101 +1,70 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 4/8] mlx5: Avoid sparse complaints about !!
-Date: Thu, 13 Jul 2017 12:37:37 -0600
-Message-ID: <20170713183737.GF11069@obsidianresearch.com>
-References: <1499894262-10761-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1499894262-10761-5-git-send-email-jgunthorpe@obsidianresearch.com>
- <20170713075116.GA11233@infradead.org>
- <20170713172035.GB11069@obsidianresearch.com>
- <1499968325.2740.12.camel@wdc.com>
+From: "Ismail, Mustafa" <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 4.4 29/57] RDMA/uverbs: Check port number supplied by
+ user verbs cmds
+Date: Thu, 13 Jul 2017 18:44:38 +0000
+Message-ID: <5C5647B5F4794941BAAC07CF28785CBC33E4EC25@fmsmsx101.amr.corp.intel.com>
+References: <20170713153957.515045341@linuxfoundation.org>
+ <20170713153959.566717957@linuxfoundation.org>
+ <5C5647B5F4794941BAAC07CF28785CBC33E4E81F@fmsmsx101.amr.corp.intel.com>
+ <20170713162540.GB22870@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1499968325.2740.12.camel-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <20170713162540.GB22870-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Polak <alexpo-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 13, 2017 at 05:52:06PM +0000, Bart Van Assche wrote:
-> On Thu, 2017-07-13 at 11:20 -0600, Jason Gunthorpe wrote:
-> > On Thu, Jul 13, 2017 at 12:51:16AM -0700, Christoph Hellwig wrote:
-> > > >  			if (qp->qp_cap_cache & MLX5_RX_CSUM_VALID)
-> > > > -				wc->wc_flags |= (!!(cqe->hds_ip_ext & MLX5_CQE_L4_OK) &
-> > > > -						 !!(cqe->hds_ip_ext & MLX5_CQE_L3_OK) &
-> > > > -						(get_cqe_l3_hdr_type(cqe) ==
-> > > > -						MLX5_CQE_L3_HDR_TYPE_IPV4)) <<
-> > > > -						IBV_WC_IP_CSUM_OK_SHIFT;
-> > > > +				wc->wc_flags |=
-> > > > +				    ((bool)(cqe->hds_ip_ext & MLX5_CQE_L4_OK) &
-> > > > +				     (bool)(cqe->hds_ip_ext & MLX5_CQE_L3_OK) &
-> > > > +				     (get_cqe_l3_hdr_type(cqe) ==
-> > > > +				      MLX5_CQE_L3_HDR_TYPE_IPV4))
-> > > > +				    << IBV_WC_IP_CSUM_OK_SHIFT;
-> > > 
-> > > Meh.  This code is complete crap.  Please factor it out into a little
-> > > helper that mere humans can read first.  And then replace the odd ^ used
-> > > as && with proper if constructs and all should make much more sense.
-> > 
-> > As far as I could make out, this ugly thing is designed like this for
-> > performance.
+> -----Original Message-----
+> From: Greg Kroah-Hartman [mailto:gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org]
+> Sent: Thursday, July 13, 2017 11:26 AM
+> To: Ismail, Mustafa <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>;
+> Tziporet Koren <tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Alex Polak
+> <alexpo-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Leon
+> Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>; Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Subject: Re: [PATCH 4.4 29/57] RDMA/uverbs: Check port number supplied
+> by user verbs cmds
 > 
-> Hello Jason,
+> On Thu, Jul 13, 2017 at 03:54:28PM +0000, Ismail, Mustafa wrote:
+> > > Subject: [PATCH 4.4 29/57] RDMA/uverbs: Check port number supplied
+> > > by user verbs cmds
+> > >
+> > > 4.4-stable review patch.  If anyone has any objections, please let me
+> know.
+> >
+> > Yes, this breaks modify qp.
+> > See https://patchwork.kernel.org/patch/9830663/
 > 
-> How about using an expression like the below to avoid that branches get inserted
-> for testing the MLX5_CQE_L4_OK and MLX5_CQE_L3_OK flags?
+> I don't understand this response at all, sorry.
 > 
-> (cqe->hds_ip_ext & (MLX5_CQE_L4_OK | MLX5_CQE_L3_OK)) == MLX5_CQE_L4_OK | MLX5_CQE_L3_OK
-
-Yes, thanks, that seems a reasonable middle ground:
-
-diff --git a/providers/mlx5/cq.c b/providers/mlx5/cq.c
-index b845127de937d0..0a6274e6878d3c 100644
---- a/providers/mlx5/cq.c
-+++ b/providers/mlx5/cq.c
-@@ -182,6 +182,15 @@ static inline int handle_responder_lazy(struct mlx5_cq *cq, struct mlx5_cqe64 *c
- 	return err;
- }
- 
-+/* Returns IBV_WC_IP_CSUM_OK or 0 */
-+static inline int get_csum_ok(struct mlx5_cqe64 *cqe)
-+{
-+	return (((cqe->hds_ip_ext & (MLX5_CQE_L4_OK | MLX5_CQE_L3_OK)) ==
-+		 (MLX5_CQE_L4_OK | MLX5_CQE_L3_OK)) &
-+		(get_cqe_l3_hdr_type(cqe) == MLX5_CQE_L3_HDR_TYPE_IPV4))
-+	       << IBV_WC_IP_CSUM_OK_SHIFT;
-+}
+> What should I do about this?  Is this patch alone a problem?  Is there some
+> other patch I should apply that is in Linus's tree?  Where is the problem,
+> only in this old release?
+> 
+Applying this patch will break RDMA functionality with respect to modify_qp.
+Specifically this part:
++	if (cmd.port_num < rdma_start_port(ib_dev) ||
++	    cmd.port_num > rdma_end_port(ib_dev))
++		return -EINVAL;
 +
- static inline int handle_responder(struct ibv_wc *wc, struct mlx5_cqe64 *cqe,
- 				   struct mlx5_resource *cur_rsc, struct mlx5_srq *srq)
- {
-@@ -206,12 +215,7 @@ static inline int handle_responder(struct ibv_wc *wc, struct mlx5_cqe64 *cqe,
- 		if (likely(cur_rsc->type == MLX5_RSC_TYPE_QP)) {
- 			wq = &qp->rq;
- 			if (qp->qp_cap_cache & MLX5_RX_CSUM_VALID)
--				wc->wc_flags |=
--				    ((bool)(cqe->hds_ip_ext & MLX5_CQE_L4_OK) &
--				     (bool)(cqe->hds_ip_ext & MLX5_CQE_L3_OK) &
--				     (get_cqe_l3_hdr_type(cqe) ==
--				      MLX5_CQE_L3_HDR_TYPE_IPV4))
--				    << IBV_WC_IP_CSUM_OK_SHIFT;
-+				wc->wc_flags |= get_csum_ok(cqe);
- 		} else {
- 			wq = &(rsc_to_mrwq(cur_rsc)->rq);
- 		}
-@@ -1106,11 +1110,7 @@ static inline int mlx5_cq_read_wc_flags(struct ibv_cq_ex *ibcq)
- 	int wc_flags = 0;
- 
- 	if (cq->flags & MLX5_CQ_FLAGS_RX_CSUM_VALID)
--		wc_flags = ((bool)(cq->cqe64->hds_ip_ext & MLX5_CQE_L4_OK) &
--			    (bool)(cq->cqe64->hds_ip_ext & MLX5_CQE_L3_OK) &
--			    (get_cqe_l3_hdr_type(cq->cqe64) ==
--			     MLX5_CQE_L3_HDR_TYPE_IPV4))
--			   << IBV_WC_IP_CSUM_OK_SHIFT;
-+		wc_flags = get_csum_ok(cq->cqe64);
- 
- 	switch (mlx5dv_get_cqe_opcode(cq->cqe64)) {
- 	case MLX5_CQE_RESP_WR_IMM:
+The cmd.port_num is only valid if (cmd->base.attr_mask & IB_QP_PORT).
+So the above can be fixed with:
+	if ((cmd->base.attr_mask & IB_QP_PORT) && 
+	    (cmd.port_num < rdma_start_port(ib_dev) ||
+	    cmd.port_num > rdma_end_port(ib_dev)))
+		return -EINVAL;
+
+A version of this patch is in Linus's tree and it has the same problem:
+commit 5ecce4c9b17bed4dc9cb58bfb10447307569b77b    "RDMA/uverbs: Check port number supplied by user verbs cmds"
+
+We will be submitting a patch to fix this shortly.
+
+Mustafa
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
