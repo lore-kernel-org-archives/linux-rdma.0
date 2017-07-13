@@ -1,34 +1,38 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [PATCH 1/2] RDMA/ocrdma: Fix an error code in ocrdma_alloc_pd()
-Date: Thu, 13 Jul 2017 10:46:14 +0300
-Message-ID: <20170713074614.obgl5mxxygcluyog@mwanda>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 2/2] RDMA/ocrdma: Fix error codes in ocrdma_create_srq()
+Date: Thu, 13 Jul 2017 10:46:49 +0300
+Message-ID: <20170713074649.tmcxi3a3qpilyomq@mwanda>
+References: <20170713074614.obgl5mxxygcluyog@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Selvin Xavier <selvin.xavier@broadcom.com>, Naresh Gottumukkala <bgottumukkala@emulex.com>
-Cc: Devesh Sharma <devesh.sharma@broadcom.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Leon Romanovsky <leon@kernel.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>, Niranjana Vishwanathapura <niranjana.vishwanathapura@intel.com>, Artemy Kovalyov <artemyko@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Dan Carpenter <dan.carpenter@oracle.com>, ssh10 <mayhs11saini@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+In-Reply-To: <20170713074614.obgl5mxxygcluyog@mwanda>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Parav Pandit <parav.pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+Cc: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, ssh10 <mayhs11saini-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-We should preserve the original "status" error code instead of resetting
-it to zero.  Returning ERR_PTR(0) is the same as NULL and results in a
-NULL dereference in the callers.  I added a printk() on error instead.
+If either of these allocations fail then we return ERR_PTR(0).  That's
+equivalent to NULL and results in a NULL pointer dereference in the
+caller.
 
-Fixes: 45e86b33ec8b ("RDMA/ocrdma: Cache recv DB until QP moved to RTR")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Fixes: fe2caefcdf58 ("RDMA/ocrdma: Add driver for Emulex OneConnect IBoE RDMA adapter")
+Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
 diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-index 2f30bda8457a..cc317e858040 100644
+index cc317e858040..27d5e8d9f08d 100644
 --- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
 +++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
-@@ -744,7 +744,8 @@ struct ib_pd *ocrdma_alloc_pd(struct ib_device *ibdev,
- 	if (is_uctx_pd) {
- 		ocrdma_release_ucontext_pd(uctx);
- 	} else {
--		status = _ocrdma_dealloc_pd(dev, pd);
-+		if (_ocrdma_dealloc_pd(dev, pd))
-+			pr_err("%s: _ocrdma_dealloc_pd() failed\n", __func__);
- 	}
- exit:
- 	return ERR_PTR(status);
+@@ -1902,6 +1902,7 @@ struct ib_srq *ocrdma_create_srq(struct ib_pd *ibpd,
+ 		goto err;
+ 
+ 	if (udata == NULL) {
++		status = -ENOMEM;
+ 		srq->rqe_wr_id_tbl = kzalloc(sizeof(u64) * srq->rq.max_cnt,
+ 			    GFP_KERNEL);
+ 		if (srq->rqe_wr_id_tbl == NULL)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
