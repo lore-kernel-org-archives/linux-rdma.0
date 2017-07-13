@@ -1,147 +1,135 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/8] verbs: Annoate ibv_wc helpers with endian
-Date: Thu, 13 Jul 2017 09:50:57 +0300
-Message-ID: <20170713065057.GH1528@mtr-leonro.local>
+Subject: Re: [PATCH rdma-core 3/8] mlx4: Add sparse annotations
+Date: Thu, 13 Jul 2017 10:23:43 +0300
+Message-ID: <20170713072343.GI1528@mtr-leonro.local>
 References: <1499894262-10761-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1499894262-10761-2-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1499894262-10761-4-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="NP12RPW2Q08TId7w"
+        protocol="application/pgp-signature"; boundary="3F6LqILQjGsImgZu"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1499894262-10761-2-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1499894262-10761-4-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---NP12RPW2Q08TId7w
-Content-Type: text/plain; charset=utf-8
+--3F6LqILQjGsImgZu
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, Jul 12, 2017 at 03:17:35PM -0600, Jason Gunthorpe wrote:
-> This follows the scheme of used in the wc by introducing a
-> ibv_wc_read_invalidated_rkey to access the host endian
-> invalidated_rkey value with proper annotations.
->
-> This is just an inline wrapper to allow sparse to work sensibly,
-> not really a good reason to add another driver entry point.
->
-> Fixes: 32186550 ("verbs: Add be annotations to public headers")
+On Wed, Jul 12, 2017 at 03:17:37PM -0600, Jason Gunthorpe wrote:
 > Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 > ---
->  libibverbs/man/ibv_create_cq_ex.3 |  5 ++++-
->  libibverbs/verbs.h                | 13 +++++++++++--
->  2 files changed, 15 insertions(+), 3 deletions(-)
+>  CMakeLists.txt          |  4 +--
+>  providers/mlx4/cq.c     |  8 +++--
+>  providers/mlx4/dbrec.c  |  6 ++--
+>  providers/mlx4/mlx4.h   | 16 +++++-----
+>  providers/mlx4/mlx4dv.h | 84 ++++++++++++++++++++++++-------------------------
+>  providers/mlx4/qp.c     |  4 +--
+>  providers/mlx4/verbs.c  | 11 ++-----
+>  7 files changed, 64 insertions(+), 69 deletions(-)
 >
-> diff --git a/libibverbs/man/ibv_create_cq_ex.3 b/libibverbs/man/ibv_creat=
-e_cq_ex.3
-> index 7dfbef28d2413b..e943e0e266c582 100644
-> --- a/libibverbs/man/ibv_create_cq_ex.3
-> +++ b/libibverbs/man/ibv_create_cq_ex.3
-> @@ -104,9 +104,12 @@ Below members and functions are used in order to pol=
-l the current completion. Th
->  .BI "uint32_t ibv_wc_read_byte_len(struct ibv_cq_ex " "*cq"); \c
->   Get the vendor error from the current completion.
->
-> -.BI "uint32_t ibv_wc_read_imm_data(struct ibv_cq_ex " "*cq"); \c
-> +.BI "__be32 ibv_wc_read_imm_data(struct ibv_cq_ex " "*cq"); \c
->   Get the immediate data field from the current completion.
->
-> +.BI "uint32_t ibv_wc_read_invalidated_rkey(struct ibv_cq_ex " "*cq"); \c
-> + Get the rkey invalided by the SEND_INVAL from the current completion.
-> +
->  .BI "uint32_t ibv_wc_read_qp_num(struct ibv_cq_ex " "*cq"); \c
->   Get the QP number field from the current completion.
->
-> diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-> index 4f0765e0476db8..997ef248b26b62 100644
-> --- a/libibverbs/verbs.h
-> +++ b/libibverbs/verbs.h
-> @@ -1093,7 +1093,7 @@ struct ibv_cq_ex {
->  	enum ibv_wc_opcode (*read_opcode)(struct ibv_cq_ex *current);
->  	uint32_t (*read_vendor_err)(struct ibv_cq_ex *current);
->  	uint32_t (*read_byte_len)(struct ibv_cq_ex *current);
-> -	uint32_t (*read_imm_data)(struct ibv_cq_ex *current);
-> +	__be32 (*read_imm_data)(struct ibv_cq_ex *current);
-
-The functions which use this function call are still uint32_t:
-=E2=9E=9C  rdma-core git:(master) =E2=9C=97 grep mlx4_cq_read_wc_imm_data *=
- -rI
-providers/mlx4/cq.c:static uint32_t mlx4_cq_read_wc_imm_data(struct ibv_cq_=
-ex *ibcq)
-providers/mlx4/cq.c:		cq->ibv_cq.read_imm_data =3D mlx4_cq_read_wc_imm_data;
-=E2=9E=9C  rdma-core git:(master) =E2=9C=97 grep mlx5_cq_read_wc_imm_data *=
- -rI
-providers/mlx5/cq.c:static inline uint32_t mlx5_cq_read_wc_imm_data(struct =
-ibv_cq_ex *ibcq)
-providers/mlx5/cq.c:		cq->ibv_cq.read_imm_data =3D mlx5_cq_read_wc_imm_data;
-
->  	uint32_t (*read_qp_num)(struct ibv_cq_ex *current);
->  	uint32_t (*read_src_qp)(struct ibv_cq_ex *current);
->  	int (*read_wc_flags)(struct ibv_cq_ex *current);
-> @@ -1141,11 +1141,20 @@ static inline uint32_t ibv_wc_read_byte_len(struc=
-t ibv_cq_ex *cq)
->  	return cq->read_byte_len(cq);
+> diff --git a/CMakeLists.txt b/CMakeLists.txt
+> index 16196205035f61..1f319390f2e05c 100644
+> --- a/CMakeLists.txt
+> +++ b/CMakeLists.txt
+> @@ -414,8 +414,8 @@ add_subdirectory(providers/cxgb3) # NO SPARSE
+>  add_subdirectory(providers/cxgb4) # NO SPARSE
+>  add_subdirectory(providers/hns) # NO SPARSE
+>  add_subdirectory(providers/i40iw) # NO SPARSE
+> -add_subdirectory(providers/mlx4) # NO SPARSE
+> -add_subdirectory(providers/mlx4/man) # NO SPARSE
+> +add_subdirectory(providers/mlx4)
+> +add_subdirectory(providers/mlx4/man)
+>  add_subdirectory(providers/mlx5) # NO SPARSE
+>  add_subdirectory(providers/mlx5/man) # NO SPARSE
+>  add_subdirectory(providers/mthca) # NO SPARSE
+> diff --git a/providers/mlx4/cq.c b/providers/mlx4/cq.c
+> index 50adebb82237f2..afc0e3b8c8eeb1 100644
+> --- a/providers/mlx4/cq.c
+> +++ b/providers/mlx4/cq.c
+> @@ -287,7 +287,7 @@ static inline int mlx4_parse_cqe(struct mlx4_cq *cq,
+>  		case MLX4_RECV_OPCODE_SEND_INVAL:
+>  			wc->opcode   = IBV_WC_RECV;
+>  			wc->wc_flags |= IBV_WC_WITH_INV;
+> -			wc->imm_data = be32toh(cqe->immed_rss_invalid);
+> +			wc->invalidated_rkey = be32toh(cqe->immed_rss_invalid);
+>  			break;
+>  		case MLX4_RECV_OPCODE_SEND:
+>  			wc->opcode   = IBV_WC_RECV;
+> @@ -550,13 +550,15 @@ static uint32_t mlx4_cq_read_wc_vendor_err(struct ibv_cq_ex *ibcq)
+>  	return ecqe->vendor_err;
 >  }
 >
-> -static inline uint32_t ibv_wc_read_imm_data(struct ibv_cq_ex *cq)
-> +static inline __be32 ibv_wc_read_imm_data(struct ibv_cq_ex *cq)
-
-Doesn't this change break user applications?
-
+> -static uint32_t mlx4_cq_read_wc_imm_data(struct ibv_cq_ex *ibcq)
+> +static __be32 mlx4_cq_read_wc_imm_data(struct ibv_cq_ex *ibcq)
 >  {
->  	return cq->read_imm_data(cq);
+>  	struct mlx4_cq *cq = to_mcq(ibv_cq_ex_to_cq(ibcq));
+>
+>  	switch (mlx4dv_get_cqe_opcode(cq->cqe)) {
+>  	case MLX4_RECV_OPCODE_SEND_INVAL:
+> -		return be32toh(cq->cqe->immed_rss_invalid);
+> +		/* This is returning invalidate_rkey which is in host order, see
+> +		 * ibv_wc_read_invalidated_rkey */
+> +		return (__force __be32)be32toh(cq->cqe->immed_rss_invalid);
+
+Jason,
+It is insane construction, convert to host-> force to be32 -> use as uint32_t.
+
+>  	default:
+>  		return cq->cqe->immed_rss_invalid;
+>  	}
+> diff --git a/providers/mlx4/dbrec.c b/providers/mlx4/dbrec.c
+> index 3e875738fa61d8..84b01770dcb2c5 100644
+> --- a/providers/mlx4/dbrec.c
+> +++ b/providers/mlx4/dbrec.c
+> @@ -84,7 +84,7 @@ static struct mlx4_db_page *__add_page(struct mlx4_context *context,
+>  	return page;
 >  }
 >
-> +static inline uint32_t ibv_wc_read_invalidated_rkey(struct ibv_cq_ex *cq)
-> +{
-> +#ifdef __CHECKER__
-> +	return (__attribute__((force)) uint32_t)cq->read_imm_data(cq);
-> +#else
-> +	return cq->read_imm_data(cq);
-> +#endif
-> +}
-
-I don't think that those __CHECKER__ ifdefs should be part of the code.
-They are part of infrastructure to support development of library, but
-are not required for the user of that library.
-
-> +
->  static inline uint32_t ibv_wc_read_qp_num(struct ibv_cq_ex *cq)
+> -uint32_t *mlx4_alloc_db(struct mlx4_context *context, enum mlx4_db_type type)
+> +__be32 *mlx4_alloc_db(struct mlx4_context *context, enum mlx4_db_type type)
 >  {
->  	return cq->read_qp_num(cq);
-> --
-> 2.7.4
+>  	struct mlx4_db_page *page;
+>  	uint32_t *db = NULL;
+> @@ -113,10 +113,10 @@ found:
+>  out:
+>  	pthread_mutex_unlock(&context->db_list_mutex);
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -	return db;
+> +	return (__force __be32 *)db;
+>  }
 
---NP12RPW2Q08TId7w
+I see that librdmacm/rsocket.c full of these __force annotations.
+I would be very happy to see it fixed rather suppressed, but don't know
+if it is realistic goal or not.
+
+Thanks
+
+--3F6LqILQjGsImgZu
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllnGFEACgkQ5GN7iDZy
-WKeADw/8DbK7WArqzIUMBfYRKG8ApXZ9yUOEPULlOUvRHOKqV8sduSLRHUuBoHsd
-TnB0PX1+67Ztutrr1IvwvZylrSJLXypqPmHUZBpKyO9Tq9eCk1Mpu2ypyLr9dmls
-D4XFGV+43VhRe1cVUIlX138OUZDWdJijB95uGdFyi0SwC/qLJhe/PQUiJwLM9hvf
-7NXWMpB2BjvVCqIyJZ7fnN/7imOdhobkbXPMDZKj3/SftwhksvLm1aCoJqrtLJR+
-YAszChK3HMTXiaNPlpoKjbRt8kKwmwiESTBtSCmvctw4miqknNbyrzsvUfDL2pRN
-pdObMLb1hEJfwmKmj4k306w1KHVJxHq42SZUWEHjPgR9LgM1daCaynOIZHiEJazR
-Me2s1G9/DrB4ry1MXakJEJ1edVzf8F3utlhwMo9MsBQ0VJk3YgDRICATV41g7C/R
-B6VryYCcn7SheOGs6M6IkHQ1etYM2RVxrxW6JDxWPcmmb50dXn1mrINRC4lId1If
-AjWN8ARmaGSB5yb2LS5mcEQxEYBxQmcuGPPk3SccJZ9wQ468yWfPEDRhIx/mrjF3
-h33K8I7gy710YlvY9UP2rqT40oRyoVcv5+YPOGqOYsKiHPRn+qaufUAcP+89vdEQ
-EAS5X6TwevIqCal5ek7DzX//k1BvBIdWV1uBnSuNefWFScjBFl8=
-=jdXf
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllnH/8ACgkQ5GN7iDZy
+WKdi4A//bte/zxxh4ldfVwTxXgYTqO4NrZAV5PI3yQ1X59ovefa03XCyrP61mLEc
+P+FYk3Nw0i0Ci26TCaW6CRIlv7BGMSP3vUaweQuXAnWvuERk5zutfpTs+DXI/t72
+BeLsTXVQbnS77cn8s9HjAEEU1Tu3u3pjYCaAEjyoLeqmW0gH6VbxFV5eH4d4/YiL
+tIVAsTv62lq1H9a2pePAAD1ix24hPF8Lkc9G3N1Uwi4CKnfPkFW34d1PGWyF6RBQ
+zIIe7FRSyEHi0lAl0jzqP1CbR8ZGPfh+XGfAN+cjQ+n8XKJYFPrRYh3k6hDYz2Vp
+dNP/lQ7NTOlyvwl6ebYswQRgoE0RB9SKFh5/HQKWjBASAK4WKPSQyLwYHsfAGI+H
+07gb/Hc+TJZ6uL9EbWT5pidu1TJSSUNoG4WhfWQY09RFvLsTZjkYxkO7BYcnR8fm
+1I9b8lHlnkmyBQyJ3bx+PjPwYEkBod6xuXsF9fmnehBpmttlS2mjvOHBFiZ5K4UN
+Lwyml+gfjHHxO0wTyycib9zKH7nMxx72PlGSyKsi2+HWSkB0VXbqBPRZo9NtGN3G
+OeUQNSZW2HMxcL3wbKGnDbfw23nBOYtiH1AiPXdR7oYynuMYk2unrE/BSwptZesz
+O56yZLh7eFuHKVJ77X4m7AeEQsunQG6UulxTvELecu3ujg8EPJw=
+=NAFx
 -----END PGP SIGNATURE-----
 
---NP12RPW2Q08TId7w--
+--3F6LqILQjGsImgZu--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
