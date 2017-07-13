@@ -1,63 +1,60 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v8 0/7] Automatic affinity settings for nvme-rdma
-Date: Thu, 13 Jul 2017 11:57:00 +0300
-Message-ID: <20170713085700.GL1528@mtr-leonro.local>
-References: <1499933384-17407-1-git-send-email-sagi@grimberg.me>
- <20170713082041.GK1528@mtr-leonro.local>
- <d3e93dfa-79c0-22c5-eacd-a8699b924de8@grimberg.me>
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: [PATCH] IB/IPoIB: Fix error code in ipoib_add_port()
+Date: Thu, 13 Jul 2017 13:25:58 +0300
+Message-ID: <20170713102558.GM1528@mtr-leonro.local>
+References: <20170713074548.i6cgpjhmmcnvtd5c@mwanda>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="s3kX86/NvBhlc9Gj"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="8cfH1LqeFbt1HBOp"
+Return-path: <kernel-janitors-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <d3e93dfa-79c0-22c5-eacd-a8699b924de8-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20170713074548.i6cgpjhmmcnvtd5c@mwanda>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Erez Shitrit <erezsh@mellanox.com>, Alex Vesker <valex@mellanox.com>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>, Feras Daoud <ferasda@mellanox.com>, Zhu Yanjun <yanjun.zhu@oracle.com>, Shamir Rabinovitch <shamir.rabinovitch@oracle.com>, Paolo Abeni <pabeni@redhat.com>, David Ahern <dsa@cumulusnetworks.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---s3kX86/NvBhlc9Gj
+--8cfH1LqeFbt1HBOp
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Jul 13, 2017 at 11:28:22AM +0300, Sagi Grimberg wrote:
+On Thu, Jul 13, 2017 at 10:45:48AM +0300, Dan Carpenter wrote:
+> We accidentally don't see the error code on some of these error paths.
+> It means we return ERR_PTR(0) which is NULL and it results in a NULL
+> dereference in the caller.
 >
-> > > Doug, please consider this patch set for inclusion.
-> >
-> > On which branch did you base your code?
+> This bug dates to pre-git days.
 >
-> Linus 4.12 + block tree updates.
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+>
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> index 6e86eeee370e..ddd8114b6713 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> @@ -2212,6 +2212,7 @@ static struct net_device *ipoib_add_port(const char *format,
 
-Thanks
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---s3kX86/NvBhlc9Gj
+--8cfH1LqeFbt1HBOp
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllnNdwACgkQ5GN7iDZy
-WKeA9hAAv5OVpBS2qEDQmgIDpYTNnar5WwmGQKVcfm9iBXJmrNglpWsrIMK5hsYQ
-BB8zBiB6ls/4vVFtng3q2Jxcht40mQ//BvnS7eh8qDlDWgLEyJIrNtc0u6ViYU93
-ePx29R0DEGmj2rKLAp60zl5vwhZAlX2HcM0NmBrR1Yu4Rc61aqyE1ydFAiTRmw9D
-2ZQiJAvRPxnC1EhUjYIVJ+bjDoVzhL4pcHLbBowVn3uaZjtzbnUx8Pqa8NuJeBj1
-eKDviFRwn46B1TL5/ODes/CqeCU+Sz/7VjwTzHoqrn1Tg4YKV/mDA7NVDGXwecQ7
-E3an+RcjoC9WngvV0cU0QTCNUY/ZCnunVRBu+mcv3EGqGeirFrhyoierz5cNOsOK
-4ewiYTBd8o4dbQlFcrM5cnuRy+bk+RlN31Jy4QQwe6VP/RywJS0ausAVtfpy6OzB
-LLjBfyJEDZLQHE3W1ywOgwQFTXDOyGmosvvDZ8LG4Fji68py7BLJUUT3uqh7x1JI
-5sCjYbtLXkIH8UWUmp0bVmdnYJo1spT5+rkJlsxfVsoh+3XhohkveX/6mPeZ2+3m
-pEsVofp4c0l/pIs6HQpufmnZRwxND2Om1ArnWu6oztARV2zX7DNdFfV78qWMqj9B
-YpvqcQ8NFiC8PKHLRJnbMk122JnDDQ0ZIJFhNhJ1Bz7L143U+4Y=
-=WaIi
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllnSrYACgkQ5GN7iDZy
+WKfnqBAAmbzmAG6zL0ekkEM+1LLmofR23E4sCUNOcYj2h0k4KGFfUcy2b1Pc22b5
+xZzQvXP2P8rvq1UnsgS636QMzCJWz3yISqnigICnbOtkKjgNONYffX39BVP4rRzO
+Ja7zHcCfI0hkC8dxvtAJ34qSjgwN1x6L4+7XX7H6JlAPjKyD2sg4qj6a7eYhsA9B
+g9pYF7pqiODk/GCf1JeovH0XmH078wsQvOP/rrTR2721DHDwCS7LGkrh7604Xbg5
+9OAohyrcU3nw9wwHozGRKUB4RA+bGyrMve2I2KUQFYcW3LihSfG1lC6p22pdFJ5o
+ruBIyK2kGSI1IfIEhphzMgcb5TsudsU1yQXzdnK2pEaCjYx0ysbqGEFgj2MAu1EQ
+XWoKqlSH0i1BHPzDj0K8LwLxSRVXxpY4r+4mQ8BnnFkj0MTO7xSsex+CiaQFpksh
+46MLANlai4Ge6yXXAb8vGVlXL3DiqwvV6p6ESkSGUDtKxbIoAuWGzpbddaLYZDgd
+7hgDf4ENlbHIxgdywhU0koGBSyuJwh0EpVGpaHAjbaimNmSiDdVcz/nomn1cdNN5
+Qy7NNu442OTBJfcc6q+8Y5eKMokLT6B+UhQDL6Jm1JgcmhY2+Pk9zHGg2Meijw71
+uGJmMzFzGICcvnfzmymh5D8KPCqoKjHIC/glGbG/9MHXuWrbKlA=
+=OKqz
 -----END PGP SIGNATURE-----
 
---s3kX86/NvBhlc9Gj--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--8cfH1LqeFbt1HBOp--
