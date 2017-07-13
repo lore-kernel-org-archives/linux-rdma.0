@@ -1,40 +1,23 @@
-From: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH v1 rdma-next] bnxt_re: Fix -Wimplicit-fallthrough warnings
- in GCC 7.1
-Date: Thu, 13 Jul 2017 08:52:39 -0700
-Message-ID: <9a724b44-3284-d551-93a3-14f30d4cc9d5@wdc.com>
-References: <20170713154722.10294-1-leon@kernel.org>
+From: "Ismail, Mustafa" <mustafa.ismail@intel.com>
+Subject: RE: [PATCH 4.4 29/57] RDMA/uverbs: Check port number supplied by
+ user verbs cmds
+Date: Thu, 13 Jul 2017 15:54:28 +0000
+Message-ID: <5C5647B5F4794941BAAC07CF28785CBC33E4E81F@fmsmsx101.amr.corp.intel.com>
+References: <20170713153957.515045341@linuxfoundation.org>
+ <20170713153959.566717957@linuxfoundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170713154722.10294-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170713153959.566717957@linuxfoundation.org>
 Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Devesh Sharma <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Cc: "stable@vger.kernel.org" <stable@vger.kernel.org>, Yevgeny Kliteynik <kliteyn@mellanox.com>, Tziporet Koren <tziporet@mellanox.com>, Alex Polak <alexpo@mellanox.com>, Boris Pismenny <borisp@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/13/17 08:47, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> 
-> [59/189] Building C object providers/bnxt_re/CMakeFiles/bnxt_re-rdmav2.dir/verbs.c.o
-> ../providers/bnxt_re/verbs.c: In function ‘bnxt_re_post_send’:
-> ../providers/bnxt_re/verbs.c:1222:18: warning: this statement may fall through [-Wimplicit-fallthrough=]
->     hdr->key_immd = htole32(be32toh(wr->imm_data));
->                   ^
-> ../providers/bnxt_re/verbs.c:1223:3: note: here
->    case IBV_WR_SEND:
->    ^~~~
-> ../providers/bnxt_re/verbs.c:1232:18: warning: this statement may fall through [-Wimplicit-fallthrough=]
->     hdr->key_immd = htole32(be32toh(wr->imm_data));
->                   ^
-> ../providers/bnxt_re/verbs.c:1233:3: note: here
->    case IBV_WR_RDMA_WRITE:
-
-Reviewed-by: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+PiBTdWJqZWN0OiBbUEFUQ0ggNC40IDI5LzU3XSBSRE1BL3V2ZXJiczogQ2hlY2sgcG9ydCBudW1i
+ZXIgc3VwcGxpZWQgYnkNCj4gdXNlciB2ZXJicyBjbWRzDQo+IA0KPiA0LjQtc3RhYmxlIHJldmll
+dyBwYXRjaC4gIElmIGFueW9uZSBoYXMgYW55IG9iamVjdGlvbnMsIHBsZWFzZSBsZXQgbWUga25v
+dy4NCg0KWWVzLCB0aGlzIGJyZWFrcyBtb2RpZnkgcXAuDQpTZWUgaHR0cHM6Ly9wYXRjaHdvcmsu
+a2VybmVsLm9yZy9wYXRjaC85ODMwNjYzLw0KDQpNdXN0YWZhDQo=
