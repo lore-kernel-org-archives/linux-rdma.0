@@ -1,115 +1,81 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] Add rdma service for kernel boot support
-Date: Thu, 13 Jul 2017 12:20:18 -0600
-Message-ID: <20170713182018.GE11069@obsidianresearch.com>
-References: <20170713172057.25411-1-benjamin.drung@profitbricks.com>
- <1499968101.2740.10.camel@wdc.com>
+From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Subject: Re: SQ overflow seen running isert traffic with high block sizes
+Date: Thu, 13 Jul 2017 11:29:39 -0700
+Message-ID: <1499970579.7987.8.camel@haakon3.daterainc.com>
+References: <BN3PR07MB25784033E7FCD062FA0A7855F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
+         <210f538f-8c98-f480-64fc-f2124ed6d01b@grimberg.me>
+         <BN3PR07MB25786338EADC77A369A6D493F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1499968101.2740.10.camel-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <BN3PR07MB25786338EADC77A369A6D493F8DD0-EldUQEzkDQfpW3VS/XPqkOFPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, target-devel <target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 13, 2017 at 05:48:22PM +0000, Bart Van Assche wrote:
-> On Thu, 2017-07-13 at 19:20 +0200, Benjamin Drung wrote:
-> > Currently upstream does not provide a rdma or openibd service. Only the
-> > RedHat package ships a rdma service and rdma modules configuration
-> > files. The ibacm and srp_daemon services depend on the openibd service.
+Hi Ram & Co,
+
+(Adding Potnuri CC')
+
+On Wed, 2017-06-28 at 11:32 +0000, Amrani, Ram wrote:
+> > > We are hitting SQ overflow on iSER target side with high block sizes over RoCE
+> > > (see dmesg output below).
+> > >
+> > > We are using Q-Logic/Cavium NIC with a capability of 4 sges.
 > > 
-> > Make RedHat's rdma service available to all distros by cherry-picking
-> > the basic files for the rdma service to run and trim them down to the
-> > minimum. Do not pick workarounds or other quirk that might not needed
-> > any more. Then replace the openibd service dependency by the rdma
-> > service.
+> > That's somewhat expected if the device has low max_sge. It was decided
+> > that queue_full mechanism is not something that iser-target should
+> > handle but rather the iscsi-target core on top.
+> > 
+> > You probably should not get into aborts though... Does the I/O complete?
+> > or does it fail?
 > 
-> Hello Benjamin,
+> The IOs complete
 > 
-> Shouldn't the rdma / openibd service be split into multiple services -
-> one for IPoIB, one for the SRP initiator driver, one for the SRP target
-> driver, one for the iSER initiator driver, one for the iSER target driver,
-> one for RDS and one for NFSoRDMA? I think that would allow us to get rid
-> of the rdma.conf configuration file and also that this would allow systemd
-> to load those services concurrently that do not depend on each other.
+> > 
+> > Is this upstream? is [1] applied?
+> > 
+> > I could come up with some queue-full handling in isert that will be more
+> > lightweight, but I'd let Nic make a judgment call before I do anything.
+> > 
+> > [1]:
+> > commit a4467018c2a7228f4ef58051f0511bd037bff264
+> > Author: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+> > Date:   Sun Oct 30 17:30:08 2016 -0700
+> > 
+> >      iscsi-target: Propigate queue_data_in + queue_status errors
+> > 
+> 
+> Yes, the patch is applied.
+> 
 
-I broadly agree.
+Just to confirm, the following four patches where required to get
+Potnuri up and running on iser-target + iw_cxgb4 with a similarly small
+number of hw SGEs:
 
-For instance, Bart's work has already completely fixed srp to load
-properly and race free. The missing piece is to have it also autoload
-the required srp kernel module.
+7a56dc8 iser-target: avoid posting a recv buffer twice
+555a65f iser-target: Fix queue-full response handling
+a446701 iscsi-target: Propigate queue_data_in + queue_status errors
+fa7e25c target: Fix unknown fabric callback queue-full errors
 
-Benjamin, I have a different, simpler suggestion for some of the other
-bits, let me post an RFC
+So Did you test with Q-Logic/Cavium with RoCE using these four patches,
+or just with commit a4467018..?
 
-Here is an untested attempt to move module loading into srp_daemon -
-what do you think Bart?
+Note these have not been CC'ed to stable yet, as I was reluctant since
+they didn't have much mileage on them at the time..
 
-Jason
+Now however, they should be OK to consider for stable, especially if
+they get you unblocked as well.
 
->From 28c1e19719ed850bc8f328d187c536c97eef7fd7 Mon Sep 17 00:00:00 2001
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Date: Thu, 13 Jul 2017 12:10:07 -0600
-Subject: [PATCH] srp: Autoload the SRP kernel module if required
 
-Doing this before starting the daemon ensures the daemon will work.
-Since the daemon is using sysfs files there is no easy way to have the
-kernel auto load it.
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- srp_daemon/srp_daemon.service.in       |  2 +-
- srp_daemon/srp_daemon_port@.service.in |  1 +
- srp_daemon/srp_kernel_module.service   | 12 ++++++++++++
- 3 files changed, 14 insertions(+), 1 deletion(-)
- create mode 100644 srp_daemon/srp_kernel_module.service
 
-diff --git a/srp_daemon/srp_daemon.service.in b/srp_daemon/srp_daemon.service.in
-index 33dddd5cb46fef..cca1fce9c99283 100644
---- a/srp_daemon/srp_daemon.service.in
-+++ b/srp_daemon/srp_daemon.service.in
-@@ -1,6 +1,6 @@
- [Unit]
- Description=Daemon that discovers and logs in to SRP target systems
--Documentation=man:srp_daemon file:/etc/rdma/rdma.conf file:/etc/srp_daemon.conf
-+Documentation=man:srp_daemon file:/etc/srp_daemon.conf
- DefaultDependencies=false
- Conflicts=emergency.target emergency.service
- Before=remote-fs-pre.target
-diff --git a/srp_daemon/srp_daemon_port@.service.in b/srp_daemon/srp_daemon_port@.service.in
-index 0ec966f912aec8..3c9c824fd243aa 100644
---- a/srp_daemon/srp_daemon_port@.service.in
-+++ b/srp_daemon/srp_daemon_port@.service.in
-@@ -3,6 +3,7 @@ Description=SRP daemon that monitors port %i
- Documentation=man:srp_daemon file:/etc/rdma/rdma.conf file:/etc/srp_daemon.conf
- DefaultDependencies=false
- Conflicts=emergency.target emergency.service
-+Requires=srp_kernel_module.service
- After=srp_daemon.service dev-infiniband-umad-%i.device network.target
- BindsTo=srp_daemon.service dev-infiniband-umad-%i.device
- Before=remote-fs-pre.target
-diff --git a/srp_daemon/srp_kernel_module.service b/srp_daemon/srp_kernel_module.service
-new file mode 100644
-index 00000000000000..b779031578dae1
---- /dev/null
-+++ b/srp_daemon/srp_kernel_module.service
-@@ -0,0 +1,12 @@
-+[Unit]
-+Description=Load the SRP daemon kernel module
-+Documentation=man:srp_daemon
-+After=systemd-modules-load.service
-+ConditionCapability=CAP_SYS_MODULE
-+ConditionPathIsDirectory=!/sys/class/infiniband_srp/
-+
-+[Service]
-+Type=oneshot
-+RemainAfterExit=yes
-+ExecPre=bash -c 'mkdir -p /run/modules-load.d && echo ib_srp > /run/modules-load.d/rdma_core_srp_modules.conf'
-+ExecStart=/lib/systemd/systemd-modules-load
--- 
-2.7.4
+
+
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
