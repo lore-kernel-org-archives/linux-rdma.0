@@ -1,36 +1,35 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [PATCH] IB/i40iw: Fix error code in i40iw_create_cq()
-Date: Thu, 13 Jul 2017 10:47:22 +0300
-Message-ID: <20170713074722.ki7o5k5vvdjbzpff@mwanda>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] cxgb4: Fix error codes in c4iw_create_cq()
+Date: Thu, 13 Jul 2017 10:47:40 +0300
+Message-ID: <20170713074740.4i2weowvndudqwh6@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-janitors-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Faisal Latif <faisal.latif@intel.com>
-Cc: Shiraz Saleem <shiraz.saleem@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-We accidentally forgot to set the error code if ib_copy_from_udata()
-fails.  It means we return ERR_PTR(0) which is NULL and results in a
-NULL dereference in the callers.
+If one of these kmalloc() calls fails then we return ERR_PTR(0) which is
+NULL.  It results in a NULL dereference in the callers.
 
-Fixes: d37498417947 ("i40iw: add files for iwarp interface")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Fixes: cfdda9d76436 ("RDMA/cxgb4: Add driver for Chelsio T4 RNIC")
+Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-index 4dbe61ec7a77..91f1631ff32d 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-@@ -1161,8 +1161,10 @@ static struct ib_cq *i40iw_create_cq(struct ib_device *ibdev,
- 		memset(&req, 0, sizeof(req));
- 		iwcq->user_mode = true;
- 		ucontext = to_ucontext(context);
--		if (ib_copy_from_udata(&req, udata, sizeof(struct i40iw_create_cq_req)))
-+		if (ib_copy_from_udata(&req, udata, sizeof(struct i40iw_create_cq_req))) {
-+			err_code = -EFAULT;
- 			goto cq_free_resources;
-+		}
+diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxgb4/cq.c
+index e16fcaf6b5a3..be07da1997e6 100644
+--- a/drivers/infiniband/hw/cxgb4/cq.c
++++ b/drivers/infiniband/hw/cxgb4/cq.c
+@@ -963,6 +963,7 @@ struct ib_cq *c4iw_create_cq(struct ib_device *ibdev,
+ 		goto err3;
  
- 		spin_lock_irqsave(&ucontext->cq_reg_mem_list_lock, flags);
- 		iwpbl = i40iw_get_pbl((unsigned long)req.user_cq_buffer,
+ 	if (ucontext) {
++		ret = -ENOMEM;
+ 		mm = kmalloc(sizeof *mm, GFP_KERNEL);
+ 		if (!mm)
+ 			goto err4;
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
