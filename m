@@ -1,57 +1,40 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/8] verbs: Annoate ibv_wc helpers with endian
-Date: Thu, 13 Jul 2017 11:48:31 -0600
-Message-ID: <20170713174831.GC11069@obsidianresearch.com>
-References: <1499894262-10761-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1499894262-10761-2-git-send-email-jgunthorpe@obsidianresearch.com>
- <20170713065057.GH1528@mtr-leonro.local>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [PATCH] Add rdma service for kernel boot support
+Date: Thu, 13 Jul 2017 17:48:22 +0000
+Message-ID: <1499968101.2740.10.camel@wdc.com>
+References: <20170713172057.25411-1-benjamin.drung@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170713065057.GH1528-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20170713172057.25411-1-benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Content-Language: en-US
+Content-ID: <0D6C70E788409148B7EA8D22490CCA7E-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 13, 2017 at 09:50:57AM +0300, Leon Romanovsky wrote:
- 
-> The functions which use this function call are still uint32_t:
-> ➜  rdma-core git:(master) ✗ grep mlx4_cq_read_wc_imm_data * -rI
-> providers/mlx4/cq.c:static uint32_t mlx4_cq_read_wc_imm_data(struct ibv_cq_ex *ibcq)
-> providers/mlx4/cq.c:		cq->ibv_cq.read_imm_data = mlx4_cq_read_wc_imm_data;
-> ➜  rdma-core git:(master) ✗ grep mlx5_cq_read_wc_imm_data * -rI
-> providers/mlx5/cq.c:static inline uint32_t mlx5_cq_read_wc_imm_data(struct ibv_cq_ex *ibcq)
-> providers/mlx5/cq.c:		cq->ibv_cq.read_imm_data = mlx5_cq_read_wc_imm_data;
+On Thu, 2017-07-13 at 19:20 +0200, Benjamin Drung wrote:
+> Currently upstream does not provide a rdma or openibd service. Only the
+> RedHat package ships a rdma service and rdma modules configuration
+> files. The ibacm and srp_daemon services depend on the openibd service.
+>=20
+> Make RedHat's rdma service available to all distros by cherry-picking
+> the basic files for the rdma service to run and trim them down to the
+> minimum. Do not pick workarounds or other quirk that might not needed
+> any more. Then replace the openibd service dependency by the rdma
+> service.
 
-Yes, at this point in the series that is fine, they are converted with
-each driver's patch. Without sparse be32 and utin32_t are identical.
+Hello Benjamin,
 
-> > -static inline uint32_t ibv_wc_read_imm_data(struct ibv_cq_ex *cq)
-> > +static inline __be32 ibv_wc_read_imm_data(struct ibv_cq_ex *cq)
-> 
-> Doesn't this change break user applications?
+Shouldn't the rdma / openibd service be split into multiple services -
+one for IPoIB, one for the SRP initiator driver, one for the SRP target
+driver, one for the iSER initiator driver, one for the iSER target driver,
+one for RDS and one for NFSoRDMA? I think that would allow us to get rid
+of the rdma.conf configuration file and also that this would allow systemd
+to load those services concurrently that do not depend on each other.
 
-No, they are identical types.
-
-> > +static inline uint32_t ibv_wc_read_invalidated_rkey(struct ibv_cq_ex *cq)
-> > +{
-> > +#ifdef __CHECKER__
-> > +	return (__attribute__((force)) uint32_t)cq->read_imm_data(cq);
-> > +#else
-> > +	return cq->read_imm_data(cq);
-> > +#endif
-> > +}
-> 
-> I don't think that those __CHECKER__ ifdefs should be part of the code.
-> They are part of infrastructure to support development of library, but
-> are not required for the user of that library.
-
-I do not see a viable alternative.
-
-Jason
+Bart.=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
