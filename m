@@ -1,87 +1,62 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: Difference between normal and fast memory registration
-Date: Thu, 13 Jul 2017 10:53:51 +0300
-Message-ID: <ae8c11ae-67af-1620-f069-6295ddc32ad3@grimberg.me>
-References: <CAPO=kN1Qcb8SSvyxGgGPLgYOTGoGnV32RLNJU=f+b9_1aMYdcA@mail.gmail.com>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH rdma-core 3/8] mlx4: Add sparse annotations
+Date: Thu, 13 Jul 2017 01:07:52 -0700
+Message-ID: <20170713080752.GA25727@infradead.org>
+References: <1499894262-10761-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1499894262-10761-4-git-send-email-jgunthorpe@obsidianresearch.com>
+ <20170713072343.GI1528@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAPO=kN1Qcb8SSvyxGgGPLgYOTGoGnV32RLNJU=f+b9_1aMYdcA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20170713072343.GI1528-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arka Sharma <arka.sw1988-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Hi All,
-
-Hi Arka,
-
-> Sorry for asking this question as this might sound very fundamental. I
-> am very much new in rdma and Linux. I am trying to figure out how fast
-> memory registration improves the cost of registration compared to
-> normal registration ?. As per my understanding when we do memory
-> registration then following steps occur.
-> 1. The pages are pinned in physical memory
-> 2. The physical addresses are transferred to the RNIC via bus specific
-> mechanism to which RNIC is connected, in my case it is PCIe.
-> Once a memory is registered we can acquire Lkey and Rkey. This is the
-> case with normal registration. As mentioned in the paper named
-> An Efficient Design for Fast Memory Registration in RDMA
+> >  	case MLX4_RECV_OPCODE_SEND_INVAL:
+> > -		return be32toh(cq->cqe->immed_rss_invalid);
+> > +		/* This is returning invalidate_rkey which is in host order, see
+> > +		 * ibv_wc_read_invalidated_rkey */
+> > +		return (__force __be32)be32toh(cq->cqe->immed_rss_invalid);
 > 
->   "With FMR, user pre-allocates a table in kernel memory to record
-> physical address of memory region, and pre writes I/O registers of
-> RDMA card to register memory information, and only fills the table for
-> physical address of memory region during the real memory registration
-> operations."
+> Jason,
+> It is insane construction, convert to host-> force to be32 -> use as uint32_t.
+
+Yes, this doesn't make sense to me - we are swapping it but pretending
+it's native?  There's certainly something very odd going on here.
+
+It seems like the ->read_imm_data needs to be split and/or have a
+prototype change.  The sad part is that it is an exported ABI, although
+one that is almost undocumented.
+
+> >  }
+> >
+> > -uint32_t *mlx4_alloc_db(struct mlx4_context *context, enum mlx4_db_type type)
+> > +__be32 *mlx4_alloc_db(struct mlx4_context *context, enum mlx4_db_type type)
+> >  {
+> >  	struct mlx4_db_page *page;
+> >  	uint32_t *db = NULL;
+> > @@ -113,10 +113,10 @@ found:
+> >  out:
+> >  	pthread_mutex_unlock(&context->db_list_mutex);
+> >
+> > -	return db;
+> > +	return (__force __be32 *)db;
+> >  }
 > 
-> So my question is in case of fast registration when exactly physical
-> addresses are written in registers of RNIC card. If it is done in
-> initialization as I am thinking by reading this statement, in that
-> case the physical location of data buffer to be registered may be
-> different with the address that has been programmed to the RNIC. I
-> have read in RDMA verbs specification that in case of fast
-> registration we need to create a work request and post to SQ. Why this
-> kind of approach is needed in case of fast registration.
-> 
-> Some clarification of this will be highly appreciated.
+> I see that librdmacm/rsocket.c full of these __force annotations.
+> I would be very happy to see it fixed rather suppressed, but don't know
+> if it is realistic goal or not.
 
-I'll try to clarify,
+The db local variable in mlx4_alloc_db should be easily changed to a
+__be32 pointer - it is derived from a void pointer using pointer
+arithmetics.
 
-In general memory registration operation is expensive and as a guideline
-should not be executed in a performance critical path. Applications
-usually pre-register all their networking associated memory buffers in
-advanced and simply work with the registered memory regions.
-
-However, pre-registration is not always feasible. middlewares that work
-on top of RDMA often do not "own" the memory buffers as they originate
-in the upper layer application, so the middleware has no choice but to
-register memory in the hot path. There are multiple ways to do that
-efficiently, one is described in the paper you mentioned. Another
-possible way for user-space middlewares to handle this is to use
-"on-demand paging" in case the RNIC supports it.
-
-Kernel-space drivers are often such middlewares as well, for these
-drivers, a fast memory registration work-request based interface exist
-(one of two interfaces). It a fundamental concept and is heavily used in
-all our storage drivers in the kernel.
-
-One important nuance that is important for fast-memory registration, is
-that in case the delivery of the rkey to a remote node is (using a SEND
-operation) is executed on the same queue-pair, it is *NOT* required to
-wait for its completion before the SEND operation (which can and should
-be pipelined). That is because the RDMA send-queue semantics guarantees
-us ordering of send queue processing.
-
-The way fast registration works is that at setup time, a pool of "free"
-memory regions is allocated by the driver, these memory regions do not
-have any memory buffers associated with them. Then when an I/O is
-served, one MR is grabbed from the pool, and a corresponding work
-request is constructed for the corresponding memory buffers and posted
-on the session queue-pair. The cost is merely the price of dma mapping,
-construction of a page vector and the actual post operation.
-
-Hope this helps...
+In general a __foce for endian annotations is a GIANT WARNING sign.
+Don't ever add one without a long discussion first, and even then only
+in a well documented helper and not randomly all over code.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
