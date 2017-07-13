@@ -1,84 +1,147 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 8/8] vmw_pvrdma: Add sparse annotations
-Date: Wed, 12 Jul 2017 15:17:42 -0600
-Message-ID: <1499894262-10761-9-git-send-email-jgunthorpe@obsidianresearch.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core 1/8] verbs: Annoate ibv_wc helpers with endian
+Date: Thu, 13 Jul 2017 09:50:57 +0300
+Message-ID: <20170713065057.GH1528@mtr-leonro.local>
 References: <1499894262-10761-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1499894262-10761-2-git-send-email-jgunthorpe@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="NP12RPW2Q08TId7w"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1499894262-10761-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1499894262-10761-2-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- CMakeLists.txt                | 2 +-
- providers/vmw_pvrdma/pvrdma.h | 6 +++---
- providers/vmw_pvrdma/verbs.c  | 7 +------
- 3 files changed, 5 insertions(+), 10 deletions(-)
 
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index c2d6618ebd4601..1e9b1a363b7436 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -422,7 +422,7 @@ add_subdirectory(providers/mthca)
- add_subdirectory(providers/nes) # NO SPARSE
- add_subdirectory(providers/ocrdma)
- add_subdirectory(providers/qedr)
--add_subdirectory(providers/vmw_pvrdma) # NO SPARSE
-+add_subdirectory(providers/vmw_pvrdma)
- endif()
- 
- add_subdirectory(providers/hfi1verbs)
-diff --git a/providers/vmw_pvrdma/pvrdma.h b/providers/vmw_pvrdma/pvrdma.h
-index d4acefcedde154..7840e11ee7266c 100644
---- a/providers/vmw_pvrdma/pvrdma.h
-+++ b/providers/vmw_pvrdma/pvrdma.h
-@@ -152,7 +152,7 @@ struct pvrdma_qp {
- 	struct pvrdma_buf		sbuf;
- 	int				max_inline_data;
- 	int				buf_size;
--	uint32_t			sq_signal_bits;
-+	__be32				sq_signal_bits;
- 	int				sq_spare_wqes;
- 	struct pvrdma_wq		sq;
- 	struct pvrdma_wq		rq;
-@@ -210,12 +210,12 @@ static inline struct pvrdma_ah *to_vah(struct ibv_ah *ibah)
- 
- static inline void pvrdma_write_uar_qp(void *uar, unsigned value)
- {
--	*(uint32_t *)(uar + PVRDMA_UAR_QP_OFFSET) = htole32(value);
-+	*(__le32 *)(uar + PVRDMA_UAR_QP_OFFSET) = htole32(value);
- }
- 
- static inline void pvrdma_write_uar_cq(void *uar, unsigned value)
- {
--	*(uint32_t *)(uar + PVRDMA_UAR_CQ_OFFSET) = htole32(value);
-+	*(__le32 *)(uar + PVRDMA_UAR_CQ_OFFSET) = htole32(value);
- }
- 
- static inline int ibv_send_flags_to_pvrdma(int flags)
-diff --git a/providers/vmw_pvrdma/verbs.c b/providers/vmw_pvrdma/verbs.c
-index 0a07748da513aa..1bb1634863a6e9 100644
---- a/providers/vmw_pvrdma/verbs.c
-+++ b/providers/vmw_pvrdma/verbs.c
-@@ -154,12 +154,7 @@ static int is_multicast_gid(const union ibv_gid *gid)
- 
- static int is_link_local_gid(const union ibv_gid *gid)
- {
--	uint32_t *hi = (uint32_t *)(gid->raw);
--	uint32_t *lo = (uint32_t *)(gid->raw + 4);
--	if (hi[0] == htobe32(0xfe800000) && lo[0] == 0)
--		return 1;
--
--	return 0;
-+	return gid->global.subnet_prefix == htobe64(0xfe80000000000000ULL);
- }
- 
- static int is_ipv6_addr_v4mapped(const struct in6_addr *a)
--- 
-2.7.4
+--NP12RPW2Q08TId7w
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Wed, Jul 12, 2017 at 03:17:35PM -0600, Jason Gunthorpe wrote:
+> This follows the scheme of used in the wc by introducing a
+> ibv_wc_read_invalidated_rkey to access the host endian
+> invalidated_rkey value with proper annotations.
+>
+> This is just an inline wrapper to allow sparse to work sensibly,
+> not really a good reason to add another driver entry point.
+>
+> Fixes: 32186550 ("verbs: Add be annotations to public headers")
+> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> ---
+>  libibverbs/man/ibv_create_cq_ex.3 |  5 ++++-
+>  libibverbs/verbs.h                | 13 +++++++++++--
+>  2 files changed, 15 insertions(+), 3 deletions(-)
+>
+> diff --git a/libibverbs/man/ibv_create_cq_ex.3 b/libibverbs/man/ibv_creat=
+e_cq_ex.3
+> index 7dfbef28d2413b..e943e0e266c582 100644
+> --- a/libibverbs/man/ibv_create_cq_ex.3
+> +++ b/libibverbs/man/ibv_create_cq_ex.3
+> @@ -104,9 +104,12 @@ Below members and functions are used in order to pol=
+l the current completion. Th
+>  .BI "uint32_t ibv_wc_read_byte_len(struct ibv_cq_ex " "*cq"); \c
+>   Get the vendor error from the current completion.
+>
+> -.BI "uint32_t ibv_wc_read_imm_data(struct ibv_cq_ex " "*cq"); \c
+> +.BI "__be32 ibv_wc_read_imm_data(struct ibv_cq_ex " "*cq"); \c
+>   Get the immediate data field from the current completion.
+>
+> +.BI "uint32_t ibv_wc_read_invalidated_rkey(struct ibv_cq_ex " "*cq"); \c
+> + Get the rkey invalided by the SEND_INVAL from the current completion.
+> +
+>  .BI "uint32_t ibv_wc_read_qp_num(struct ibv_cq_ex " "*cq"); \c
+>   Get the QP number field from the current completion.
+>
+> diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
+> index 4f0765e0476db8..997ef248b26b62 100644
+> --- a/libibverbs/verbs.h
+> +++ b/libibverbs/verbs.h
+> @@ -1093,7 +1093,7 @@ struct ibv_cq_ex {
+>  	enum ibv_wc_opcode (*read_opcode)(struct ibv_cq_ex *current);
+>  	uint32_t (*read_vendor_err)(struct ibv_cq_ex *current);
+>  	uint32_t (*read_byte_len)(struct ibv_cq_ex *current);
+> -	uint32_t (*read_imm_data)(struct ibv_cq_ex *current);
+> +	__be32 (*read_imm_data)(struct ibv_cq_ex *current);
+
+The functions which use this function call are still uint32_t:
+=E2=9E=9C  rdma-core git:(master) =E2=9C=97 grep mlx4_cq_read_wc_imm_data *=
+ -rI
+providers/mlx4/cq.c:static uint32_t mlx4_cq_read_wc_imm_data(struct ibv_cq_=
+ex *ibcq)
+providers/mlx4/cq.c:		cq->ibv_cq.read_imm_data =3D mlx4_cq_read_wc_imm_data;
+=E2=9E=9C  rdma-core git:(master) =E2=9C=97 grep mlx5_cq_read_wc_imm_data *=
+ -rI
+providers/mlx5/cq.c:static inline uint32_t mlx5_cq_read_wc_imm_data(struct =
+ibv_cq_ex *ibcq)
+providers/mlx5/cq.c:		cq->ibv_cq.read_imm_data =3D mlx5_cq_read_wc_imm_data;
+
+>  	uint32_t (*read_qp_num)(struct ibv_cq_ex *current);
+>  	uint32_t (*read_src_qp)(struct ibv_cq_ex *current);
+>  	int (*read_wc_flags)(struct ibv_cq_ex *current);
+> @@ -1141,11 +1141,20 @@ static inline uint32_t ibv_wc_read_byte_len(struc=
+t ibv_cq_ex *cq)
+>  	return cq->read_byte_len(cq);
+>  }
+>
+> -static inline uint32_t ibv_wc_read_imm_data(struct ibv_cq_ex *cq)
+> +static inline __be32 ibv_wc_read_imm_data(struct ibv_cq_ex *cq)
+
+Doesn't this change break user applications?
+
+>  {
+>  	return cq->read_imm_data(cq);
+>  }
+>
+> +static inline uint32_t ibv_wc_read_invalidated_rkey(struct ibv_cq_ex *cq)
+> +{
+> +#ifdef __CHECKER__
+> +	return (__attribute__((force)) uint32_t)cq->read_imm_data(cq);
+> +#else
+> +	return cq->read_imm_data(cq);
+> +#endif
+> +}
+
+I don't think that those __CHECKER__ ifdefs should be part of the code.
+They are part of infrastructure to support development of library, but
+are not required for the user of that library.
+
+> +
+>  static inline uint32_t ibv_wc_read_qp_num(struct ibv_cq_ex *cq)
+>  {
+>  	return cq->read_qp_num(cq);
+> --
+> 2.7.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--NP12RPW2Q08TId7w
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllnGFEACgkQ5GN7iDZy
+WKeADw/8DbK7WArqzIUMBfYRKG8ApXZ9yUOEPULlOUvRHOKqV8sduSLRHUuBoHsd
+TnB0PX1+67Ztutrr1IvwvZylrSJLXypqPmHUZBpKyO9Tq9eCk1Mpu2ypyLr9dmls
+D4XFGV+43VhRe1cVUIlX138OUZDWdJijB95uGdFyi0SwC/qLJhe/PQUiJwLM9hvf
+7NXWMpB2BjvVCqIyJZ7fnN/7imOdhobkbXPMDZKj3/SftwhksvLm1aCoJqrtLJR+
+YAszChK3HMTXiaNPlpoKjbRt8kKwmwiESTBtSCmvctw4miqknNbyrzsvUfDL2pRN
+pdObMLb1hEJfwmKmj4k306w1KHVJxHq42SZUWEHjPgR9LgM1daCaynOIZHiEJazR
+Me2s1G9/DrB4ry1MXakJEJ1edVzf8F3utlhwMo9MsBQ0VJk3YgDRICATV41g7C/R
+B6VryYCcn7SheOGs6M6IkHQ1etYM2RVxrxW6JDxWPcmmb50dXn1mrINRC4lId1If
+AjWN8ARmaGSB5yb2LS5mcEQxEYBxQmcuGPPk3SccJZ9wQ468yWfPEDRhIx/mrjF3
+h33K8I7gy710YlvY9UP2rqT40oRyoVcv5+YPOGqOYsKiHPRn+qaufUAcP+89vdEQ
+EAS5X6TwevIqCal5ek7DzX//k1BvBIdWV1uBnSuNefWFScjBFl8=
+=jdXf
+-----END PGP SIGNATURE-----
+
+--NP12RPW2Q08TId7w--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
