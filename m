@@ -1,51 +1,57 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rfc 3/3] nvmet-rdma: assign cq completion vector based on the port allowed cpus
-Date: Thu, 13 Jul 2017 13:31:07 -0400
-Message-ID: <D917872E-347A-48A5-8295-2563B6256E6C@oracle.com>
-References: <1499007694-7231-1-git-send-email-sagi@grimberg.me> <1499007694-7231-4-git-send-email-sagi@grimberg.me> <20170713155003.GB2577@lst.de> <C2439AB7-BC2E-4B71-87CA-3F8313282828@oracle.com> <20170713172437.GA5236@lst.de>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core 1/8] verbs: Annoate ibv_wc helpers with endian
+Date: Thu, 13 Jul 2017 11:48:31 -0600
+Message-ID: <20170713174831.GC11069@obsidianresearch.com>
+References: <1499894262-10761-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1499894262-10761-2-git-send-email-jgunthorpe@obsidianresearch.com>
+ <20170713065057.GH1528@mtr-leonro.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170713172437.GA5236-jcswGhMUV9g@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170713065057.GH1528-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, James Smart <james.smart-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Jul 13, 2017 at 09:50:57AM +0300, Leon Romanovsky wrote:
+ 
+> The functions which use this function call are still uint32_t:
+> ➜  rdma-core git:(master) ✗ grep mlx4_cq_read_wc_imm_data * -rI
+> providers/mlx4/cq.c:static uint32_t mlx4_cq_read_wc_imm_data(struct ibv_cq_ex *ibcq)
+> providers/mlx4/cq.c:		cq->ibv_cq.read_imm_data = mlx4_cq_read_wc_imm_data;
+> ➜  rdma-core git:(master) ✗ grep mlx5_cq_read_wc_imm_data * -rI
+> providers/mlx5/cq.c:static inline uint32_t mlx5_cq_read_wc_imm_data(struct ibv_cq_ex *ibcq)
+> providers/mlx5/cq.c:		cq->ibv_cq.read_imm_data = mlx5_cq_read_wc_imm_data;
 
-> On Jul 13, 2017, at 1:24 PM, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org> wrote:
+Yes, at this point in the series that is fine, they are converted with
+each driver's patch. Without sparse be32 and utin32_t are identical.
+
+> > -static inline uint32_t ibv_wc_read_imm_data(struct ibv_cq_ex *cq)
+> > +static inline __be32 ibv_wc_read_imm_data(struct ibv_cq_ex *cq)
 > 
-> On Thu, Jul 13, 2017 at 01:19:00PM -0400, Chuck Lever wrote:
->> 
->>> On Jul 13, 2017, at 11:50 AM, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org> wrote:
->>> 
->>> We really shouldn't be doing any of this in NVMe I think.  We'll need
->>> to go back to the cq pool API first.  The last version I had was here:
->>> 
->>> 	http://git.infradead.org/users/hch/rdma.git/shortlog/refs/heads/rdma-cq
->>> 
->>> and then do the affinity in common code.
->> 
->> This seems to address the problem I mentioned to you with properly
->> estimating send CQ size when using the rdma_rw API. If these are
->> going to be merged soon, I can drop the new API I proposed here:
->> 
->> http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=commit;h=2156cb956101da854f64918066710ff4e7affc5b
+> Doesn't this change break user applications?
+
+No, they are identical types.
+
+> > +static inline uint32_t ibv_wc_read_invalidated_rkey(struct ibv_cq_ex *cq)
+> > +{
+> > +#ifdef __CHECKER__
+> > +	return (__attribute__((force)) uint32_t)cq->read_imm_data(cq);
+> > +#else
+> > +	return cq->read_imm_data(cq);
+> > +#endif
+> > +}
 > 
-> I'd need to find time to get back to it, and I have a few big
-> chunks on my todo list.  Any chance you (or someone else interested)
-> could take the series over?
+> I don't think that those __CHECKER__ ifdefs should be part of the code.
+> They are part of infrastructure to support development of library, but
+> are not required for the user of that library.
 
-Seems like it's right in Sagi's ballpark, and might be a pre-req
-for his affinity work. If he's not interested, I can take it.
+I do not see a viable alternative.
 
-
---
-Chuck Lever
-
-
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
