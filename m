@@ -1,70 +1,96 @@
-From: "Ismail, Mustafa" <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 4.4 29/57] RDMA/uverbs: Check port number supplied by
- user verbs cmds
-Date: Thu, 13 Jul 2017 18:44:38 +0000
-Message-ID: <5C5647B5F4794941BAAC07CF28785CBC33E4EC25@fmsmsx101.amr.corp.intel.com>
-References: <20170713153957.515045341@linuxfoundation.org>
- <20170713153959.566717957@linuxfoundation.org>
- <5C5647B5F4794941BAAC07CF28785CBC33E4E81F@fmsmsx101.amr.corp.intel.com>
- <20170713162540.GB22870@kroah.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core] bnxt_re: Fix -Wimplicit-fallthrough warnings
+ in GCC 7.1
+Date: Thu, 13 Jul 2017 22:08:29 +0300
+Message-ID: <20170713190829.GQ1528@mtr-leonro.local>
+References: <20170713133935.1206-1-leon@kernel.org>
+ <20170713175122.GD11069@obsidianresearch.com>
+ <1499968451.2740.14.camel@wdc.com>
+ <20170713181536.GA4771@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="diC/HfBc3E/jkYPW"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170713162540.GB22870-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20170713181536.GA4771-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Polak <alexpo-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org" <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> -----Original Message-----
-> From: Greg Kroah-Hartman [mailto:gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org]
-> Sent: Thursday, July 13, 2017 11:26 AM
-> To: Ismail, Mustafa <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>;
-> Tziporet Koren <tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Alex Polak
-> <alexpo-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Leon
-> Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>; Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Subject: Re: [PATCH 4.4 29/57] RDMA/uverbs: Check port number supplied
-> by user verbs cmds
-> 
-> On Thu, Jul 13, 2017 at 03:54:28PM +0000, Ismail, Mustafa wrote:
-> > > Subject: [PATCH 4.4 29/57] RDMA/uverbs: Check port number supplied
-> > > by user verbs cmds
+
+--diC/HfBc3E/jkYPW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Thu, Jul 13, 2017 at 12:15:36PM -0600, Jason Gunthorpe wrote:
+> On Thu, Jul 13, 2017 at 05:54:12PM +0000, Bart Van Assche wrote:
+> > On Thu, 2017-07-13 at 11:51 -0600, Jason Gunthorpe wrote:
+> > > Can you follow the same approach as I used in
 > > >
-> > > 4.4-stable review patch.  If anyone has any objections, please let me
-> know.
+> > > commit 47cd2efcd4cd416ead0a1a48153aa27a2e178ce5
+> > > Author: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> > > Date:   Tue Jan 31 14:55:50 2017 -0700
+> > >
+> > >     Annotate correct switch fall throughs with SWITCH_FALLTHROUGH
+> > >
+> > > Or convert those cases to this approach?
+> > >
+> > > >  			 * LE platform be32toh will do the job.
+> > > >  			 */
+> > > >  			hdr->key_immd = htole32(be32toh(wr->imm_data));
+> > > > +			/* FALLTHROUGH */
+> > >
+> > > Use the SWITCH_FALLTHROUGH; macro
 > >
-> > Yes, this breaks modify qp.
-> > See https://patchwork.kernel.org/patch/9830663/
-> 
-> I don't understand this response at all, sorry.
-> 
-> What should I do about this?  Is this patch alone a problem?  Is there some
-> other patch I should apply that is in Linus's tree?  Where is the problem,
-> only in this old release?
-> 
-Applying this patch will break RDMA functionality with respect to modify_qp.
-Specifically this part:
-+	if (cmd.port_num < rdma_start_port(ib_dev) ||
-+	    cmd.port_num > rdma_end_port(ib_dev))
-+		return -EINVAL;
-+
-The cmd.port_num is only valid if (cmd->base.attr_mask & IB_QP_PORT).
-So the above can be fixed with:
-	if ((cmd->base.attr_mask & IB_QP_PORT) && 
-	    (cmd.port_num < rdma_start_port(ib_dev) ||
-	    cmd.port_num > rdma_end_port(ib_dev)))
-		return -EINVAL;
+> > Hello Jason,
+> >
+> > Both Coverity and gcc 7 understand fall-through comments. Do we
+> > really need a macro to annotate fall-through in switch statements?
+>
+> Probably not, but I added it a while ago already based on some other
+> documentation..
+>
+> The advantage of the macro is that all compilers verify it is spelled
+> correctly, while it is easy to make a mistake with comments..
+>
+> In any case, let us do it consistently throughtout..
 
-A version of this patch is in Linus's tree and it has the same problem:
-commit 5ecce4c9b17bed4dc9cb58bfb10447307569b77b    "RDMA/uverbs: Check port number supplied by user verbs cmds"
+No problem, it is less than 1 minute change.
 
-We will be submitting a patch to fix this shortly.
+The thing which bothers me, why didn't we see this warning in Travis CI?
+We need to treat all compilation warnings as errors.
 
-Mustafa
+Thanks
+
+>
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--diC/HfBc3E/jkYPW
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllnxSwACgkQ5GN7iDZy
+WKeZ0xAAnIkbQR+wyUT6sLsgt0d1sKhjJvECc59Q1fjvBwTAfeeBDGDiMSEUe+ZV
+Z4G9bgMLwxn81XtXWQY+nqbDCA4cC8olPsRMyOY6PQpCJ9cfH/u452MruchTgm0i
+zVbw54O1cljQ4IW2pUcfMRLuxEe13VEwF+I+QzKbo+CxF+JjwnxRxR+CaCMkCRh9
+G4BR9QVvxf8cA5UDclgFMiDPCFxP9ug1HJURErADFG3WiwLqH17JphcUkiyHLOZ6
+Nj8xMzGZhFw/go+dzmV18+nwoa7UF20LtGJzq0f/+4zjKihtPcJXE5w8lkhctDd4
+fCxQ4exBQVAaLhiQlwFyyPXURHa704hCaGT3MljW02s6nWHIkxueiE8omk9mqmsK
+gtwWlgnxzyQkfjfGGeP5eNutFzFirlDVE+cUwFqUSqgB6jmdxi/4C7AThg1zSWkG
+Lk6z5eEEsKVaFylb/XIfFt12VX/UR0JTZzVJnSnM/KmQfk3wosdjAKrTlANiNRLo
+aE5BbEqOxtWslu4J2qOcnXenSuJrr1myCEjk79NmNlx1B3whC5yXYkimM3BPp3C+
+Qu520dkr3asjsmWuTefngGE1sY0cFLU1yPhOK80KlTc6EbqvbxoI1s645PlYZSvb
+dpFJ86fScjQ1K+ByD958buhHleQHoisTU6KY8wuXm8cO2cglaLU=
+=B2/L
+-----END PGP SIGNATURE-----
+
+--diC/HfBc3E/jkYPW--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
