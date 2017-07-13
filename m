@@ -1,34 +1,32 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core] bnxt_re: Fix -Wimplicit-fallthrough warnings
- in GCC 7.1
-Date: Thu, 13 Jul 2017 13:24:13 -0600
-Message-ID: <20170713192413.GA6236@obsidianresearch.com>
-References: <20170713133935.1206-1-leon@kernel.org>
- <20170713175122.GD11069@obsidianresearch.com>
- <1499968451.2740.14.camel@wdc.com>
- <20170713181536.GA4771@obsidianresearch.com>
- <20170713190829.GQ1528@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 0/2] Fix modify_qp failure
+Date: Thu, 13 Jul 2017 14:37:36 -0500
+Message-ID: <1499974658-6180-1-git-send-email-mustafa.ismail@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170713190829.GQ1528-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org" <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 13, 2017 at 10:08:29PM +0300, Leon Romanovsky wrote:
+Commit 5ecce4c9b17b("Check port number supplied by user verbs cmds") causes
+modify_qp to fail because port_num is only valid when the mask is set.
 
-> The thing which bothers me, why didn't we see this warning in Travis CI?
-> We need to treat all compilation warnings as errors.
+Additionally, for iWARP, the port_num is not initialized which also causes
+modify_qp to fail.
 
-Travis does not have gcc 7 right now, the 6.x compiler does not
-produce the warning by default.
+This series fixes both issues.
 
-I haven't looked lately if we can switch travis to 7 or not.
+Mustafa Ismail (2):
+  RDMA/uverbs: Fix the check for port number
+  RDMA/core: Initialize port_num in qp_attr
 
-Jason
+ drivers/infiniband/core/cma.c        | 2 ++
+ drivers/infiniband/core/uverbs_cmd.c | 3 ++-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
+
+-- 
+2.7.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
