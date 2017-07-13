@@ -1,60 +1,62 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-core] bnxt_re: Fix -Wimplicit-fallthrough warnings in GCC 7.1
-Date: Thu, 13 Jul 2017 16:39:35 +0300
-Message-ID: <20170713133935.1206-1-leon@kernel.org>
+Subject: Re: Building rdma-core with -Wcast-qual
+Date: Thu, 13 Jul 2017 16:41:44 +0300
+Message-ID: <20170713134143.GN1528@mtr-leonro.local>
+References: <ed258438-d585-d0ee-6c56-0178c589406b@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="l3SabBw+jKRRDtnq"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <ed258438-d585-d0ee-6c56-0178c589406b-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Devesh Sharma <Devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-[59/189] Building C object providers/bnxt_re/CMakeFiles/bnxt_re-rdmav2.dir/verbs.c.o
-../providers/bnxt_re/verbs.c: In function ‘bnxt_re_post_send’:
-../providers/bnxt_re/verbs.c:1222:18: warning: this statement may fall through [-Wimplicit-fallthrough=]
-    hdr->key_immd = htole32(be32toh(wr->imm_data));
-                  ^
-../providers/bnxt_re/verbs.c:1223:3: note: here
-   case IBV_WR_SEND:
-   ^~~~
-../providers/bnxt_re/verbs.c:1232:18: warning: this statement may fall through [-Wimplicit-fallthrough=]
-    hdr->key_immd = htole32(be32toh(wr->imm_data));
-                  ^
-../providers/bnxt_re/verbs.c:1233:3: note: here
-   case IBV_WR_RDMA_WRITE:
+--l3SabBw+jKRRDtnq
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- providers/bnxt_re/verbs.c | 2 ++
- 1 file changed, 2 insertions(+)
+On Thu, Jul 13, 2017 at 03:45:16PM +0300, Sagi Grimberg wrote:
+> Hi all,
+>
+> When I compile rdma-core with -Wcast-qual I get all sorts of warnings
+> on non following const on casts.
+>
+> Does/should anyone care?
 
-diff --git a/providers/bnxt_re/verbs.c b/providers/bnxt_re/verbs.c
-index 1fe79671..da0fe733 100644
---- a/providers/bnxt_re/verbs.c
-+++ b/providers/bnxt_re/verbs.c
-@@ -1220,6 +1220,7 @@ int bnxt_re_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
- 			 * LE platform be32toh will do the job.
- 			 */
- 			hdr->key_immd = htole32(be32toh(wr->imm_data));
-+			/* FALLTHROUGH */
- 		case IBV_WR_SEND:
- 			if (qp->qptyp == IBV_QPT_UD)
- 				bytes = bnxt_re_build_ud_sqe(qp, sqe, wr,
-@@ -1230,6 +1231,7 @@ int bnxt_re_post_send(struct ibv_qp *ibvqp, struct ibv_send_wr *wr,
- 			break;
- 		case IBV_WR_RDMA_WRITE_WITH_IMM:
- 			hdr->key_immd = htole32(be32toh(wr->imm_data));
-+			/* FALLTHROUGH */
- 		case IBV_WR_RDMA_WRITE:
- 			bytes = bnxt_re_build_rdma_sqe(qp, sqe, wr, is_inline);
- 			break;
--- 
-2.13.2
+Yes, at least, everyone listed in MAINTAINERS file should care.
 
+Thanks
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--l3SabBw+jKRRDtnq
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllneJcACgkQ5GN7iDZy
+WKfd2RAAilkeaEYu3ibi5j7OXPUaJqNYu9pfzCXiJDeKBHFu0UFLHszrrREjxu5I
+EvLnhDgo6tprQeubLU9XeYthPxFsa8/04O7brcXu3FW2DFF2697oUabFDfjpusyd
+1H2nwze6ad9hO6WRTu9mVAhqaXoMMwFaV/Grr/gzKbHY9c2545Vg2C337M5ma6SQ
+v6U3LghRCPA/oygOXQu0FU9yZC/VKCB5NpKcPICQ5D/NJBmV5Er7jZNhQFDYCC4d
+8lyrZYFBsse8D6Nk8EkMyHKNmQu8L4s6Og/rUEByJjtw05cuwlM/eJYTZm1RKPco
+YbcjL5b09w/SWtaPzzuPWTR568Xdg8pEIYrAmx6pTnY/qnE79W5zKz7bf7ZEa/qX
+xxFza2aCvjS6/H9Yd2M1qExIHiuH0rHgqVjMPxVNhReJzNZgtnk88j8tMOYoIACA
+0eOEkqpJKlwpyYNJjYt8zQoK1TBKqYq7eOmavcvxdu7tQrjlZC0O8ZCxZ3/eo5Ps
+7xFJDi7WqXDgO+4ACvj8W1jDuH3uzb53SoIVC2IY4CRiNdog0yYL3AoRWMF2MwOI
+uF2HzEBxo9jAVvV+wxy08JizFKO7IigpTcJK8nxSGBkTC1bzwYsO8k0kPpdOu6FJ
+3By+gvfZTtjIUjrgwSzvREP9+dw4qo/3Tu3AddTUz8lJ2VLz5mM=
+=Uz+T
+-----END PGP SIGNATURE-----
+
+--l3SabBw+jKRRDtnq--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
