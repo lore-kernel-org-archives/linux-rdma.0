@@ -1,23 +1,40 @@
-From: "Ismail, Mustafa" <mustafa.ismail@intel.com>
-Subject: RE: [PATCH 4.4 29/57] RDMA/uverbs: Check port number supplied by
+From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: Re: [PATCH 4.4 29/57] RDMA/uverbs: Check port number supplied by
  user verbs cmds
-Date: Thu, 13 Jul 2017 15:54:28 +0000
-Message-ID: <5C5647B5F4794941BAAC07CF28785CBC33E4E81F@fmsmsx101.amr.corp.intel.com>
+Date: Thu, 13 Jul 2017 18:25:40 +0200
+Message-ID: <20170713162540.GB22870@kroah.com>
 References: <20170713153957.515045341@linuxfoundation.org>
  <20170713153959.566717957@linuxfoundation.org>
+ <5C5647B5F4794941BAAC07CF28785CBC33E4E81F@fmsmsx101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170713153959.566717957@linuxfoundation.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Cc: "stable@vger.kernel.org" <stable@vger.kernel.org>, Yevgeny Kliteynik <kliteyn@mellanox.com>, Tziporet Koren <tziporet@mellanox.com>, Alex Polak <alexpo@mellanox.com>, Boris Pismenny <borisp@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5C5647B5F4794941BAAC07CF28785CBC33E4E81F-96pTJSsuoYSkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Ismail, Mustafa" <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Polak <alexpo-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBTdWJqZWN0OiBbUEFUQ0ggNC40IDI5LzU3XSBSRE1BL3V2ZXJiczogQ2hlY2sgcG9ydCBudW1i
-ZXIgc3VwcGxpZWQgYnkNCj4gdXNlciB2ZXJicyBjbWRzDQo+IA0KPiA0LjQtc3RhYmxlIHJldmll
-dyBwYXRjaC4gIElmIGFueW9uZSBoYXMgYW55IG9iamVjdGlvbnMsIHBsZWFzZSBsZXQgbWUga25v
-dy4NCg0KWWVzLCB0aGlzIGJyZWFrcyBtb2RpZnkgcXAuDQpTZWUgaHR0cHM6Ly9wYXRjaHdvcmsu
-a2VybmVsLm9yZy9wYXRjaC85ODMwNjYzLw0KDQpNdXN0YWZhDQo=
+On Thu, Jul 13, 2017 at 03:54:28PM +0000, Ismail, Mustafa wrote:
+> > Subject: [PATCH 4.4 29/57] RDMA/uverbs: Check port number supplied by
+> > user verbs cmds
+> > 
+> > 4.4-stable review patch.  If anyone has any objections, please let me know.
+> 
+> Yes, this breaks modify qp.
+> See https://patchwork.kernel.org/patch/9830663/
+
+I don't understand this response at all, sorry.
+
+What should I do about this?  Is this patch alone a problem?  Is there
+some other patch I should apply that is in Linus's tree?  Where is the
+problem, only in this old release?
+
+totally confused,
+
+greg k-h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
