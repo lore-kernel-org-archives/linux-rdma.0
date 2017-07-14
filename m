@@ -1,42 +1,61 @@
-From: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Subject: [PATCH][-next] RDMA/bnxt_re: fix spelling mistake: "Deallocte" -> "Deallocate"
-Date: Fri, 14 Jul 2017 08:30:10 +0100
-Message-ID: <20170714073010.25945-1-colin.king@canonical.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 11/14] IB/uverbs: fix gcc-7 type warning
+Date: Fri, 14 Jul 2017 11:31:04 +0200
+Message-ID: <20170714093129.1366900-2-arnd@arndb.de>
+References: <20170714092540.1217397-1-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Sriharsha Basavapatna <sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20170714092540.1217397-1-arnd@arndb.de>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: linux-kernel@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Leon Romanovsky <leon@kernel.org>, Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>, Matan Barak <matanb@mellanox.com>, dri-devel@lists.freedesktop.org, linux-ide@vger.kernel.org, Tejun Heo <tj@kernel.org>, akpm@linux-foundation.org, Linus Torvalds <torvalds@linux-foundation.org>, Guenter Roeck <linux@roeck-us.net>, linux-media@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-
-Trivial fix to spelling mistake in dev_err error message
-
-Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
----
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index e1211c822894..dbf9ac8b1eb1 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -3432,7 +3432,7 @@ int bnxt_re_dealloc_ucontext(struct ib_ucontext *ib_uctx)
- 					    &rdev->qplib_res.dpi_tbl,
- 					    &uctx->dpi);
- 		if (rc)
--			dev_err(rdev_to_dev(rdev), "Deallocte HW DPI failed!");
-+			dev_err(rdev_to_dev(rdev), "Deallocate HW DPI failed!");
- 			/* Don't fail, continue*/
- 		uctx->dpi.dbr = NULL;
- 	}
--- 
-2.11.0
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+V2hlbiB1c2luZyBjY2FjaGUsIHdlIGdldCBhIGhhcm1sZXNzIHdhcm5pbmcgYWJvdXQgdGhlIGZh
+Y3QgdGhhdAp3ZSB1c2UgdGhlIHJlc3VsdCBvZiBhIG11bHRpcGxpY2F0aW9uIGFzIGEgY29uZGl0
+aW9uOgoKZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdXZlcmJzX21haW4uYzogSW4gZnVuY3Rpb24g
+J2liX3V2ZXJic193cml0ZSc6CmRyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3V2ZXJic19tYWluLmM6
+Nzg3OjQwOiBlcnJvcjogJyonIGluIGJvb2xlYW4gY29udGV4dCwgc3VnZ2VzdCAnJiYnIGluc3Rl
+YWQgWy1XZXJyb3I9aW50LWluLWJvb2wtY29udGV4dF0KZHJpdmVycy9pbmZpbmliYW5kL2NvcmUv
+dXZlcmJzX21haW4uYzo3ODc6MTE3OiBlcnJvcjogJyonIGluIGJvb2xlYW4gY29udGV4dCwgc3Vn
+Z2VzdCAnJiYnIGluc3RlYWQgWy1XZXJyb3I9aW50LWluLWJvb2wtY29udGV4dF0KZHJpdmVycy9p
+bmZpbmliYW5kL2NvcmUvdXZlcmJzX21haW4uYzo3OTA6NTA6IGVycm9yOiAnKicgaW4gYm9vbGVh
+biBjb250ZXh0LCBzdWdnZXN0ICcmJicgaW5zdGVhZCBbLVdlcnJvcj1pbnQtaW4tYm9vbC1jb250
+ZXh0XQpkcml2ZXJzL2luZmluaWJhbmQvY29yZS91dmVyYnNfbWFpbi5jOjc5MDoxNTE6IGVycm9y
+OiAnKicgaW4gYm9vbGVhbiBjb250ZXh0LCBzdWdnZXN0ICcmJicgaW5zdGVhZCBbLVdlcnJvcj1p
+bnQtaW4tYm9vbC1jb250ZXh0XQoKVGhpcyBjaGFuZ2VzIHRoZSBtYWNybyB0byBleHBsaWNpdGx5
+IGNoZWNrIHRoZSBudW1iZXIgZm9yIGEgcG9zaXRpdmUKbGVuZ3RoLCB3aGljaCBhdm9pZHMgdGhl
+IHdhcm5pbmcuCgpGaXhlczogYTk2ZTRlMmZmZTQzICgiSUIvdXZlcmJzOiBOZXcgbWFjcm8gdG8g
+c2V0IHBvaW50ZXJzIHRvIE5VTEwgaWYgbGVuZ3RoIGlzIDAgaW4gSU5JVF9VREFUQSgpIikKU2ln
+bmVkLW9mZi1ieTogQXJuZCBCZXJnbWFubiA8YXJuZEBhcm5kYi5kZT4KLS0tCiBkcml2ZXJzL2lu
+ZmluaWJhbmQvY29yZS91dmVyYnMuaCB8IDE0ICsrKysrKysrLS0tLS0tCiAxIGZpbGUgY2hhbmdl
+ZCwgOCBpbnNlcnRpb25zKCspLCA2IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMv
+aW5maW5pYmFuZC9jb3JlL3V2ZXJicy5oIGIvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdXZlcmJz
+LmgKaW5kZXggNjRkNDk0YTY0ZGFmLi4zNjRkN2RlMDU3MjEgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMv
+aW5maW5pYmFuZC9jb3JlL3V2ZXJicy5oCisrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3V2
+ZXJicy5oCkBAIC01NSwxMiArNTUsMTQgQEAKIAkJKHVkYXRhKS0+b3V0bGVuID0gKG9sZW4pOwkJ
+CQlcCiAJfSB3aGlsZSAoMCkKIAotI2RlZmluZSBJTklUX1VEQVRBX0JVRl9PUl9OVUxMKHVkYXRh
+LCBpYnVmLCBvYnVmLCBpbGVuLCBvbGVuKQkJCVwKLQlkbyB7CQkJCQkJCQkJXAotCQkodWRhdGEp
+LT5pbmJ1ZiAgPSAoaWxlbikgPyAoY29uc3Qgdm9pZCBfX3VzZXIgKikgKGlidWYpIDogTlVMTDsJ
+XAotCQkodWRhdGEpLT5vdXRidWYgPSAob2xlbikgPyAodm9pZCBfX3VzZXIgKikgKG9idWYpIDog
+TlVMTDsJXAotCQkodWRhdGEpLT5pbmxlbiAgPSAoaWxlbik7CQkJCQlcCi0JCSh1ZGF0YSktPm91
+dGxlbiA9IChvbGVuKTsJCQkJCVwKKyNkZWZpbmUgSU5JVF9VREFUQV9CVUZfT1JfTlVMTCh1ZGF0
+YSwgaWJ1Ziwgb2J1ZiwgaWxlbiwgb2xlbikJCVwKKwlkbyB7CQkJCQkJCQlcCisJCSh1ZGF0YSkt
+PmluYnVmICA9IChpbGVuKSA+IDAgPwkJCQlcCisJCQkJICAoY29uc3Qgdm9pZCBfX3VzZXIgKikg
+KGlidWYpIDogTlVMTDsJXAorCQkodWRhdGEpLT5vdXRidWYgPSAob2xlbikgPiAwID8JCQkJXAor
+CQkJCSAgKHZvaWQgX191c2VyICopIChvYnVmKSA6IE5VTEw7CVwKKwkJKHVkYXRhKS0+aW5sZW4g
+ID0gKGlsZW4pOwkJCQlcCisJCSh1ZGF0YSktPm91dGxlbiA9IChvbGVuKTsJCQkJXAogCX0gd2hp
+bGUgKDApCiAKIC8qCi0tIAoyLjkuMAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJl
+ZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGlu
+Zm8vZHJpLWRldmVsCg==
