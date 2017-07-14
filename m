@@ -1,44 +1,29 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: [PATCH] mlx4: Add copyright holder to man pages
-Date: Fri, 14 Jul 2017 16:34:25 +0200
-Message-ID: <20170714143425.2002-1-benjamin.drung@profitbricks.com>
+From: Christopher Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: This merge window...
+Date: Fri, 14 Jul 2017 09:28:08 -0500 (CDT)
+Message-ID: <alpine.DEB.2.20.1707140926080.27726@nuc-kabylake>
+References: <824b3771-78a6-7c80-50d9-a34383169185@redhat.com> <CAJ3xEMh-YcUgydmc96UumX3cfgr7P+0rRenOvBe_6m_bo+K3mg@mail.gmail.com> <1499875106.2924.26.camel@redhat.com> <20170712160432.GA24552@infradead.org> <20170712171044.GE1528@mtr-leonro.local>
+ <e3a1c07f-8a52-351e-312c-6e374ec7d136@grimberg.me>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <e3a1c07f-8a52-351e-312c-6e374ec7d136-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Maor Gottlieb added the mlx4dv.7 and mlx4dv_init_obj.3 man pages, but
-did not state the copyright owner of these files.
+On Thu, 13 Jul 2017, Sagi Grimberg wrote:
 
-Signed-off-by: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
----
- providers/mlx4/man/mlx4dv.7          | 1 +
- providers/mlx4/man/mlx4dv_init_obj.3 | 1 +
- 2 files changed, 2 insertions(+)
+> Join on the awesomeness.
 
-diff --git a/providers/mlx4/man/mlx4dv.7 b/providers/mlx4/man/mlx4dv.7
-index 92ced995..e3e4cdce 100644
---- a/providers/mlx4/man/mlx4dv.7
-+++ b/providers/mlx4/man/mlx4dv.7
-@@ -1,4 +1,5 @@
- .\" -*- nroff -*-
-+.\" Copyright (c) 2017 Mellanox Technologies, Inc.
- .\" Licensed under the OpenIB.org (MIT) - See COPYING.md
- .\"
- .TH MLX4DV 7 2017-04-19 1.0.0
-diff --git a/providers/mlx4/man/mlx4dv_init_obj.3 b/providers/mlx4/man/mlx4dv_init_obj.3
-index 0d0a4a5d..7d10b933 100644
---- a/providers/mlx4/man/mlx4dv_init_obj.3
-+++ b/providers/mlx4/man/mlx4dv_init_obj.3
-@@ -1,4 +1,5 @@
- .\" -*- nroff -*-
-+.\" Copyright (c) 2017 Mellanox Technologies, Inc.
- .\" Licensed under the OpenIB.org (MIT) - See COPYING.md
- .\"
- .TH MLX4DV_INIT_OBJ 3 2017-02-02 1.0.0
--- 
-2.11.0
+It would even be more awesome if we had multiple people that can work the
+release process so that we do not have a single person bottleneck.
+
+Doug: Would you please do some more detailed planning and delegate things
+as possible? A couple of developers should be able to review the current
+state of things and help to move things forward if there is a bottleneck
+currently or coming up.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
