@@ -1,31 +1,37 @@
-From: Christopher Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: This merge window...
-Date: Fri, 14 Jul 2017 09:28:08 -0500 (CDT)
-Message-ID: <alpine.DEB.2.20.1707140926080.27726@nuc-kabylake>
-References: <824b3771-78a6-7c80-50d9-a34383169185@redhat.com> <CAJ3xEMh-YcUgydmc96UumX3cfgr7P+0rRenOvBe_6m_bo+K3mg@mail.gmail.com> <1499875106.2924.26.camel@redhat.com> <20170712160432.GA24552@infradead.org> <20170712171044.GE1528@mtr-leonro.local>
- <e3a1c07f-8a52-351e-312c-6e374ec7d136@grimberg.me>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <e3a1c07f-8a52-351e-312c-6e374ec7d136-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <gerlitz.or-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Mustafa Ismail <mustafa.ismail@intel.com>
+Subject: [PATCH v2 2/2] RDMA/core: Initialize port_num in qp_attr
+Date: Fri, 14 Jul 2017 09:41:31 -0500
+Message-ID: <1500043291-19768-3-git-send-email-mustafa.ismail@intel.com>
+References: <1500043291-19768-1-git-send-email-mustafa.ismail@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1500043291-19768-1-git-send-email-mustafa.ismail@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org, dledford@redhat.com
+Cc: swise@opengridcomputing.com, linux-kernel@vger.kernel.org, stable@vger.kernel.org, e1000-rdma@lists.sourceforge.net, shiraz.saleem@intel.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 13 Jul 2017, Sagi Grimberg wrote:
+Initialize the port_num for iWARP in rdma_init_qp_attr.
 
-> Join on the awesomeness.
+Fixes: 5ecce4c9b17b("Check port number supplied by user verbs cmds")
+Cc: <stable@vger.kernel.org> # v2.6.14+
+Reviewed-by: Steve Wise <swise@opengridcomputing.com>
+Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
+---
+ drivers/infiniband/core/cma.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-It would even be more awesome if we had multiple people that can work the
-release process so that we do not have a single person bottleneck.
-
-Doug: Would you please do some more detailed planning and delegate things
-as possible? A couple of developers should be able to review the current
-state of things and help to move things forward if there is a bottleneck
-currently or coming up.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 31bb82d..d65a093 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -1044,6 +1044,8 @@ int rdma_init_qp_attr(struct rdma_cm_id *id, struct ib_qp_attr *qp_attr,
+ 		} else
+ 			ret = iw_cm_init_qp_attr(id_priv->cm_id.iw, qp_attr,
+ 						 qp_attr_mask);
++		qp_attr->port_num = id_priv->id.port_num;
++		*qp_attr_mask |= IB_QP_PORT;
+ 	} else
+ 		ret = -ENOSYS;
+ 
+-- 
+2.7.4
