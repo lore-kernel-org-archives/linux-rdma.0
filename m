@@ -1,115 +1,64 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: rdma-core soon in Debian
-Date: Fri, 14 Jul 2017 18:16:47 +0300
-Message-ID: <20170714151647.GC1528@mtr-leonro.local>
-References: <1500041591.3563.31.camel@profitbricks.com>
+Subject: Re: [PATCH] mlx4: Add copyright holder to man pages
+Date: Fri, 14 Jul 2017 18:21:23 +0300
+Message-ID: <20170714152123.GD1528@mtr-leonro.local>
+References: <20170714143425.2002-1-benjamin.drung@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="uXeYlJRvy4f2YhXS"
+        protocol="application/pgp-signature"; boundary="oIisG1jBVfqXCnPK"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1500041591.3563.31.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <20170714143425.2002-1-benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---uXeYlJRvy4f2YhXS
-Content-Type: text/plain; charset=iso-8859-1
+--oIisG1jBVfqXCnPK
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jul 14, 2017 at 04:13:11PM +0200, Benjamin Drung wrote:
-> Hi everyone,
+On Fri, Jul 14, 2017 at 04:34:25PM +0200, Benjamin Drung wrote:
+> Maor Gottlieb added the mlx4dv.7 and mlx4dv_init_obj.3 man pages, but
+> did not state the copyright owner of these files.
 >
-> a few weeks passed since my last status update regarding rdma-core in
-> Debian. We made good progress in getting it ready. Only three items are
-> left:
->
-> 1) I sent three patches for the ibacm and iwpmd service to the mailing
-> list. They need to be reviewed and accepted:
->
-> $ git log --oneline master..bdrung
-> c3654500 ibacm: Add systemd service file
-> 562d5a00 iwpmd: Support Debian/Ubuntu in sysvinit service
-> 9744e8d2 ibacm: Fix service start_daemon call on Debian
+> Signed-off-by: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+> ---
+>  providers/mlx4/man/mlx4dv.7          | 1 +
+>  providers/mlx4/man/mlx4dv_init_obj.3 | 1 +
+>  2 files changed, 2 insertions(+)
 
-It will be merged on Sunday, depends on lack of objections.
+Do we really need copyright owner for man pages?
 
->
-> 2) Common infrastructure for auto loading rdma modules: See the "Add
-> rdma service for kernel boot support" thread on this mailing list.
-> Jason Gunthorpe made a very good proposal were I made some comments on
-> it.
->
-> 3) Get rid of openibd and rdma service dependencies:
->
-> $ git grep openibd
-> ibacm/CMakeLists.txt:set(rdmascript "openibd")
-> srp_daemon/CMakeLists.txt:set(RDMA_SERVICE "openibd" CACHE STRING
-> "init.d file service name to order srpd after")
-> $ git grep rdma.service -- ibacm/
-> ibacm/ibacm.service.in:Requires=3Drdma.service
-> ibacm/ibacm.service.in:After=3Drdma.service opensm.service
->
-> openibd is not part of rdma-core and rdma.service will go away with the
->  changes in point 2.
->
->
-> I expect to see progress on these points in the coming days / next
-> week. When all changes are in master, will we create a new release?
-> Otherwise I will have to base my upload on v14 and cherry-pick all
-> relevant changes.
+P.S. Can you please add rdma-core to your subject?
+Something like [PATCH rdma-core]
 
-Usually, we are releasing rdma-core, a week or two after Linus's -rc1
-release. Let's see how the progress will be and decide then.
+I need it to do not miss them in patchworks while I'm applying patches.
 
 Thanks
 
->
-> --
-> Benjamin Drung
-> System Developer
-> Debian & Ubuntu Developer
->
-> ProfitBricks GmbH
-> Greifswalder Str. 207
-> D - 10405 Berlin
->
-> Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-> Web:=A0https://www.profitbricks.com
->
-> Sitz der Gesellschaft: Berlin.
-> Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-> Gesch=E4ftsf=FChrer: Achim Weiss.
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---uXeYlJRvy4f2YhXS
+--oIisG1jBVfqXCnPK
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllo4F8ACgkQ5GN7iDZy
-WKeRVA//UYgDo0vujjpBW0PaegXcv9StAkk163xw4VI19ILgC+Wcf0TXUGmhJNqY
-srvLIGSuPXVFsEw4Jr65gplQ5h+Kvg6RYtzthswTBE0K26zynr/ZIr7sj8HUA0TE
-RADyTO8Sdu0nH9rs9SyYssrKoM/nOlaDRx4ecLHwiK5MsSlj40gbOA1zQxG8+Mrq
-AHnTuilZq/KuwPyheASg2J4Az+FUtkqveQna3qwHRXkC3+5ZoacxobeTM+1QDS+s
-W5sWLnS/azMy4kQDccsQyAR/3IkW5nf00D3BliiLCa8Ss2ZHgJFiGK8zKhdeknc7
-awcd2XvJQFcGnVmpN2c68zhtiHGIzMxNrunlKuDP1Z7nz3C0OEaRDiIIx/HBA/3C
-N0u1KKXS/TYEEdafueSA0tWNhV8yTEeAzJx8YNHGMOljnko6DCEQcd12vUyDlsHZ
-xfkVE4s4EYNUXu8TX5Gric3wqkrvgxVA00tB/YBcP+AaQSBNir4mLgv4pTWFYqF/
-POEHuImusWr7uG/ykPN+OuJmwQH7hnlXBPnZzkc6sr2YE0S+cx0ApcnrHy5VSwQt
-X0kZ27n5Plr5GS4mhrDsB7eLws2J4b6se0M+udtUrr6Rp054eIjRJ0aBnnYzZorf
-fS6OJKQ18a1Tv0Nrq3aboIzPVSdp5Eo+wvB0ehX9zTDyAhvgtqo=
-=09cb
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllo4XMACgkQ5GN7iDZy
+WKcO5A/+N8JnEVllSapBtOc890j0QQ4skLD991wlJwiXzLUDNfcqAAeW2VpM0ThG
+2KQty0eE4CHuUuyTHFgcUfQ1qfXqsAT8xb1cmSTKuy7C6pUl6PDSsOql1KC6l0/a
+LIG1vk9pc+KR+qDM1sr4p0YCHRSCAtBvyE+l/SQeCA5g+kJ9DMl5ArrmaJxCg2kS
+zdFagdLQd8kvavSrMyXpoUW8NwsCyiUeTEwYM8jAGPoULS6+xLqq00a63h220k+r
+qVKGko5btVQm+3Tj/sMhGXHqZv4XPV1F2+tBsHrel34c10/b9h8/52iz4WSbnyBL
+ztbqUGsRjb7WR4Gr75qBuHYoP0uYbdDknnvr4l/yDrRcDZosEWLq9crYPLTMdaQ7
+4pCXd01zRYQcgZHyhFdXpD07Y2RbNYRf7v3MK5yRe8lPoXZXgTKbDobY3txn7k0n
+K/+KycxWW30w/c6EBqeZwxaDDIsjkOaf3p9uHeMOqC3KI09nxx3JFgSIbYMutfll
+pscGljpVABjWAGpPI/JuNVmlrT9+zF2RuKEflH5xqvF9LPJcQITtQ93wRQzcL25Y
+m7eV2YqLqxjwodIZdIcT2snynnFGO+Lf37nlD5aclaHWrFDfrh9R2DcdRvq8N+9w
+mLrNND6VjMG4iqAedWAQXWwLz8+wRs//OMUkm1FOeb/pftMZq8Y=
+=miie
 -----END PGP SIGNATURE-----
 
---uXeYlJRvy4f2YhXS--
+--oIisG1jBVfqXCnPK--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
