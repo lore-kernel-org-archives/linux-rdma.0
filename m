@@ -1,86 +1,138 @@
 From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Subject: Re: [PATCH] Add rdma service for kernel boot support
-Date: Fri, 14 Jul 2017 12:08:41 +0200
-Message-ID: <1500026921.3563.27.camel@profitbricks.com>
+Date: Fri, 14 Jul 2017 12:18:11 +0200
+Message-ID: <1500027491.3563.29.camel@profitbricks.com>
 References: <20170713172057.25411-1-benjamin.drung@profitbricks.com>
          <1499968101.2740.10.camel@wdc.com>
          <20170713182018.GE11069@obsidianresearch.com>
          <1499970786.2740.17.camel@wdc.com>
          <20170713221520.GA10088@obsidianresearch.com>
+         <1500026921.3563.27.camel@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170713221520.GA10088-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1500026921.3563.27.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Jason,
-
-Am Donnerstag, den 13.07.2017, 16:15 -0600 schrieb Jason Gunthorpe:
-> On Thu, Jul 13, 2017 at 06:33:07PM +0000, Bart Van Assche wrote:
-> > On Thu, 2017-07-13 at 12:20 -0600, Jason Gunthorpe wrote:
-> > > Here is an untested attempt to move module loading into
-> > > srp_daemon -
-> > > what do you think Bart?
+Am Freitag, den 14.07.2017, 12:08 +0200 schrieb Benjamin Drung:
+> Hi Jason,
+> 
+> Am Donnerstag, den 13.07.2017, 16:15 -0600 schrieb Jason Gunthorpe:
+> > On Thu, Jul 13, 2017 at 06:33:07PM +0000, Bart Van Assche wrote:
+> > > On Thu, 2017-07-13 at 12:20 -0600, Jason Gunthorpe wrote:
+> > > > Here is an untested attempt to move module loading into
+> > > > srp_daemon -
+> > > > what do you think Bart?
+> > > 
+> > > Hello Jason,
+> > > 
+> > > Thanks for the patch. To me this looks like a nice simplification
+> > > compared
+> > > to the current approach. Do you want me to test this patch?
 > > 
-> > Hello Jason,
+> > I did some more steps..
 > > 
-> > Thanks for the patch. To me this looks like a nice simplification
-> > compared
-> > to the current approach. Do you want me to test this patch?
+> > Benjamin/Bart let me know what you think, I'll send the patches to
+> > the
+> > list if you like the idea.
+> > 
+> > https://github.com/jgunthorpe/rdma-plumbing/tree/systemd
+> > 
+> > This replaces Benjamins rdma.conf based approach.
+> > 
+> > The basic approach is to directly use systemd to load the modules
+> > and
+> > determine what modules to load by using udev and explicit Requires
+> > in
+> > the units.
 > 
-> I did some more steps..
+> I like your approach very much. It's cleaner and simpler. So let's
+> ditch my approach and use yours.
 > 
-> Benjamin/Bart let me know what you think, I'll send the patches to
-> the
-> list if you like the idea.
+> I tested your branch on a Debian 8 (jessie) system with a mlx4 card
+> and
+> found several points to fix/improve/discuss:
 > 
-> https://github.com/jgunthorpe/rdma-plumbing/tree/systemd
+> 1. The rdma-load-modules@ service needs to set
+> DefaultDependencies=no.
+> Otherwise it will end up in a dependency loop:
 > 
-> This replaces Benjamins rdma.conf based approach.
+> Found ordering cycle on rdma-load-modules-A9MMwDI1uB1TDjBF/Jpztg@public.gmane.org/start
+> Found dependency on basic.target/start
+> Found dependency on paths.target/start
+> Found dependency on acpid.path/start
+> Found dependency on sysinit.target/start
+> Found dependency on rdma-load-modules-A9MMwDI1uB1TDjBF/Jpztg@public.gmane.org/start
+> Breaking ordering cycle by deleting job paths.target/start
+> Found ordering cycle on rdma-load-modules-A9MMwDI1uB1TDjBF/Jpztg@public.gmane.org/start
+> Found dependency on paths.target/start
+> Found dependency on acpid.path/start
+> Found dependency on sysinit.target/start
+> Found dependency on rdma-load-modules-A9MMwDI1uB1TDjBF/Jpztg@public.gmane.org/start
+> Starting Load RDMA modules from /etc/rdma/modules/mlx4.conf...
 > 
-> The basic approach is to directly use systemd to load the modules and
-> determine what modules to load by using udev and explicit Requires in
-> the units.
+> 2. You can just specify "etc/rdma/modules" in debian/rdma-
+> core.install
+> instead of listing each .conf file individually.
+> 
+> 3. Default conf files for opa.conf and roce.conf are missing.
+> 
+> 4. Should rdma-load-modules@ *not* fail if the corresponding .conf is
+> missing?
+> 
+> 5. How to handle build-in modules correctly? Our kernel has the i40e
+> module built in (CONFIG_I40E=y) and rdma-load-modules-QqjR1VyAyFhTDjBF/Jpztg@public.gmane.org
+> will
+> be started, but the system does not have a i40e card and thus I don't
+> want to have the module started. 
 
-I like your approach very much. It's cleaner and simpler. So let's
-ditch my approach and use yours.
+Forgot one point:
 
-I tested your branch on a Debian 8 (jessie) system with a mlx4 card and
-found several points to fix/improve/discuss:
+6. The ipoib module (loaded by rdma-load-modules@infiniband) needs to
+loaded before the networking.service is running. The networking.service
+brings up the network devices on Debian. It runs "ifup -a" which reads
+/etc/network/interfaces which we use to configure our ipoib devices.
+Here is the networking.service definition:
 
-1. The rdma-load-modules@ service needs to set DefaultDependencies=no.
-Otherwise it will end up in a dependency loop:
+bdrung@server:~$ systemctl cat networking.service
+# /run/systemd/generator.late/networking.service
+# Automatically generated by systemd-sysv-generator
 
-Found ordering cycle on rdma-load-modules-A9MMwDI1uB1TDjBF/Jpztg@public.gmane.org/start
-Found dependency on basic.target/start
-Found dependency on paths.target/start
-Found dependency on acpid.path/start
-Found dependency on sysinit.target/start
-Found dependency on rdma-load-modules-A9MMwDI1uB1TDjBF/Jpztg@public.gmane.org/start
-Breaking ordering cycle by deleting job paths.target/start
-Found ordering cycle on rdma-load-modules-A9MMwDI1uB1TDjBF/Jpztg@public.gmane.org/start
-Found dependency on paths.target/start
-Found dependency on acpid.path/start
-Found dependency on sysinit.target/start
-Found dependency on rdma-load-modules-A9MMwDI1uB1TDjBF/Jpztg@public.gmane.org/start
-Starting Load RDMA modules from /etc/rdma/modules/mlx4.conf...
+[Unit]
+SourcePath=/etc/init.d/networking
+Description=LSB: Raise network interfaces.
+DefaultDependencies=no
+Before=sysinit.target shutdown.target
+After=mountkernfs.service local-fs.target urandom.service
+Conflicts=shutdown.target
 
-2. You can just specify "etc/rdma/modules" in debian/rdma-core.install
-instead of listing each .conf file individually.
+[Service]
+Type=forking
+Restart=no
+TimeoutSec=0
+IgnoreSIGPIPE=no
+KillMode=process
+GuessMainPID=no
+RemainAfterExit=yes
+SysVStartPriority=13
+ExecStart=/etc/init.d/networking start
+ExecStop=/etc/init.d/networking stop
+ExecReload=/etc/init.d/networking reload
 
-3. Default conf files for opa.conf and roce.conf are missing.
+# /run/systemd/generator/networking.service.d/50-insserv.conf-$network.conf
+# Automatically generated by systemd-insserv-generator
 
-4. Should rdma-load-modules@ *not* fail if the corresponding .conf is
-missing?
+[Unit]
+Wants=network.target
+Before=network.target
 
-5. How to handle build-in modules correctly? Our kernel has the i40e
-module built in (CONFIG_I40E=y) and rdma-load-modules-QqjR1VyAyFhTDjBF/Jpztg@public.gmane.org will
-be started, but the system does not have a i40e card and thus I don't
-want to have the module started. 
+# /lib/systemd/system/networking.service.d/network-pre.conf
+[Unit]
+After=network-pre.target systemd-sysctl.service systemd-modules-load.service
 
 -- 
 Benjamin Drung
