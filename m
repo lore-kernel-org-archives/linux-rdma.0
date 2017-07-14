@@ -1,60 +1,68 @@
-From: Govindarajulu Varadarajan <gvaradar-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/2] usnic: add rtnl lock around __ethtool_get_link_ksettings()
-Date: Thu, 13 Jul 2017 15:46:24 -0700
-Message-ID: <20170713224625.6022-1-gvaradar@cisco.com>
+From: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCHv2 1/1] mlx4_en: remove unnecessary returned value check
+Date: Thu, 13 Jul 2017 23:01:27 -0400
+Message-ID: <1500001287-31317-1-git-send-email-yanjun.zhu@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, Govindarajulu Varadarajan <gvaradar-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-__ethtool_get_link_ksettings requires rtnl lock. If not it throws the
-following warnning.
+The function __mlx4_zone_remove_one_entry always returns zero. So
+it is not necessary to check it.
 
-[ 1855.996191] RTNL: assertion failed at net/core/ethtool.c (564)
-[ 1855.997084] CPU: 12 PID: 1866 Comm: kworker/12:0 Not tainted 4.12.0+ #47
-[ 1855.997982] Hardware name: Cisco Systems Inc UCSC-C240-M4S2/UCSC-C240-M4S2, BIOS C240M4.2.0.12.503.0307172239 03/07/2017
-[ 1855.998949] Workqueue: infiniband ib_cache_task [ib_core]
-[ 1855.999920] Call Trace:
-[ 1856.000872]  dump_stack+0x63/0x8b
-[ 1856.001576] enic 0000:11:00.0 a0: Link DOWN
-[ 1856.002769]  __ethtool_get_link_ksettings+0xfe/0x110
-[ 1856.003733]  ? netlink_broadcast_filtered+0x14b/0x3a0
-[ 1856.004703]  usnic_ib_query_port+0x46/0x1c0 [usnic_verbs]
-[ 1856.005680]  ib_query_port+0x9e/0x120 [ib_core]
-[ 1856.006654]  ib_cache_update+0xcf/0x430 [ib_core]
-[ 1856.007621]  ? ib_cache_update+0xcf/0x430 [ib_core]
-[ 1856.008601]  ? netdev_run_todo+0x51/0x2f0
-[ 1856.009581]  ? linkwatch_do_dev+0x38/0x50
-[ 1856.010588]  ib_cache_task+0x1e/0x30 [ib_core]
-[ 1856.011564]  process_one_work+0x1bc/0x3e0
-[ 1856.012528]  worker_thread+0x4a/0x3a0
-[ 1856.013486]  kthread+0x125/0x140
-[ 1856.014437]  ? process_one_work+0x3e0/0x3e0
-[ 1856.015378]  ? kthread_create_on_node+0x40/0x40
-[ 1856.016318]  ret_from_fork+0x25/0x30
-
-Signed-off-by: Govindarajulu Varadarajan <gvaradar-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/usnic/usnic_ib_verbs.c | 2 ++
- 1 file changed, 2 insertions(+)
+Change from v1 to v2:
+ Initialization is moved to variable declaration.
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-index 4996984885c2..03002bac93e7 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-@@ -331,7 +331,9 @@ int usnic_ib_query_port(struct ib_device *ibdev, u8 port,
- 	usnic_dbg("\n");
+ drivers/net/ethernet/mellanox/mlx4/alloc.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx4/alloc.c b/drivers/net/ethernet/mellanox/mlx4/alloc.c
+index 249a458..710d6c6 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/alloc.c
++++ b/drivers/net/ethernet/mellanox/mlx4/alloc.c
+@@ -283,7 +283,7 @@ int mlx4_zone_add_one(struct mlx4_zone_allocator *zone_alloc,
+ }
  
- 	mutex_lock(&us_ibdev->usdev_lock);
-+	rtnl_lock();
- 	__ethtool_get_link_ksettings(us_ibdev->netdev, &cmd);
-+	rtnl_unlock();
- 	/* props being zeroed by the caller, avoid zeroing it here */
+ /* Should be called under a lock */
+-static int __mlx4_zone_remove_one_entry(struct mlx4_zone_entry *entry)
++static void __mlx4_zone_remove_one_entry(struct mlx4_zone_entry *entry)
+ {
+ 	struct mlx4_zone_allocator *zone_alloc = entry->allocator;
  
- 	props->lid = 0;
+@@ -315,8 +315,6 @@ static int __mlx4_zone_remove_one_entry(struct mlx4_zone_entry *entry)
+ 		}
+ 		zone_alloc->mask = mask;
+ 	}
+-
+-	return 0;
+ }
+ 
+ void mlx4_zone_allocator_destroy(struct mlx4_zone_allocator *zone_alloc)
+@@ -457,7 +455,7 @@ struct mlx4_bitmap *mlx4_zone_get_bitmap(struct mlx4_zone_allocator *zones, u32
+ int mlx4_zone_remove_one(struct mlx4_zone_allocator *zones, u32 uid)
+ {
+ 	struct mlx4_zone_entry *zone;
+-	int res;
++	int res = 0;
+ 
+ 	spin_lock(&zones->lock);
+ 
+@@ -468,7 +466,7 @@ int mlx4_zone_remove_one(struct mlx4_zone_allocator *zones, u32 uid)
+ 		goto out;
+ 	}
+ 
+-	res = __mlx4_zone_remove_one_entry(zone);
++	__mlx4_zone_remove_one_entry(zone);
+ 
+ out:
+ 	spin_unlock(&zones->lock);
 -- 
-2.13.2
+2.7.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
