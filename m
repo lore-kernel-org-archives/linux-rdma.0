@@ -1,58 +1,46 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [bug report] i40iw: add connection management code
-Date: Fri, 14 Jul 2017 14:35:14 +0300
-Message-ID: <20170714113514.rfkbbktuvb5hfmkt@mwanda>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 22/22] IB/mlx4: fix sprintf format warning
+Date: Fri, 14 Jul 2017 14:07:14 +0200
+Message-ID: <20170714120720.906842-23-arnd@arndb.de>
+References: <20170714120720.906842-1-arnd@arndb.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170714120720.906842-1-arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, Yishai Hadas <yishaih@mellanox.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Guenter Roeck <linux@roeck-us.net>, akpm@linux-foundation.org, netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, "James E . J . Bottomley" <jejb@linux.vnet.ibm.com>, "Martin K . Petersen" <martin.petersen@oracle.com>, linux-scsi@vger.kernel.org, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Leon Romanovsky <leon@kernel.org>, Adit Ranadive <aditr@vmware.com>, Or Gerlitz <ogerlitz@mellanox.com>, Steve Wise <swise@opengridcomputing.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Faisal Latif,
+gcc-7 points out that a negative port_num value would overflow
+the string buffer:
 
-This is a semi-automatic email about new static checker warnings.
+drivers/infiniband/hw/mlx4/sysfs.c: In function 'mlx4_ib_device_register_sysfs':
+drivers/infiniband/hw/mlx4/sysfs.c:251:16: error: 'sprintf' may write a terminating nul past the end of the destination [-Werror=format-overflow=]
+drivers/infiniband/hw/mlx4/sysfs.c:251:2: note: 'sprintf' output between 2 and 11 bytes into a destination of size 10
+drivers/infiniband/hw/mlx4/sysfs.c:303:17: error: 'sprintf' may write a terminating nul past the end of the destination [-Werror=format-overflow=]
+drivers/infiniband/hw/mlx4/sysfs.c:303:3: note: 'sprintf' output between 2 and 11 bytes into a destination of size 10
 
-The patch f27b4746f378: "i40iw: add connection management code" from
-Jan 20, 2016, leads to the following Smatch complaint:
+While we should be able to assume that port_num is positive here,
+making the buffer one byte longer has no downsides and avoids the
+warning.
 
-    drivers/infiniband/hw/i40iw/i40iw_cm.c:3691 i40iw_accept()
-    error: we previously assumed 'cm_node->listener' could be null (see line 3689)
+Fixes: c1e7e466120b ("IB/mlx4: Add iov directory in sysfs under the ib device")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/infiniband/hw/mlx4/sysfs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-    drivers/infiniband/hw/i40iw/i40iw_cm.c:4061 i40iw_cm_event_connected()
-    error: we previously assumed 'cm_node->listener' could be null (see line 4059)
-
-
-drivers/infiniband/hw/i40iw/i40iw_cm.c
-  3688		if (cm_node->accept_pend) {
-  3689			if (!cm_node->listener)
-                             ^^^^^^^^^^^^^^^^^
-Check
-
-  3690				i40iw_pr_err("cm_node->listener NULL for passive node\n");
-  3691			atomic_dec(&cm_node->listener->pend_accepts_cnt);
-                                    ^^^^^^^^^^^^^^^^^
-Unchecked dereference
-
-  3692			cm_node->accept_pend = 0;
-  3693		}
-
-	[ snip ]
-
-  4058		if (cm_node->accept_pend) {
-  4059			if (!cm_node->listener)
-                             ^^^^^^^^^^^^^^^^^
-  4060				i40iw_pr_err("listener is null for passive node\n");
-  4061			atomic_dec(&cm_node->listener->pend_accepts_cnt);
-                                    ^^^^^^^^^^^^^^^^^
-  4062			cm_node->accept_pend = 0;
-  4063		}
-
-regards,
-dan carpenter
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/mlx4/sysfs.c b/drivers/infiniband/hw/mlx4/sysfs.c
+index 0ba5ba7540c8..e219093d2764 100644
+--- a/drivers/infiniband/hw/mlx4/sysfs.c
++++ b/drivers/infiniband/hw/mlx4/sysfs.c
+@@ -221,7 +221,7 @@ void del_sysfs_port_mcg_attr(struct mlx4_ib_dev *device, int port_num,
+ static int add_port_entries(struct mlx4_ib_dev *device, int port_num)
+ {
+ 	int i;
+-	char buff[10];
++	char buff[11];
+ 	struct mlx4_ib_iov_port *port = NULL;
+ 	int ret = 0 ;
+ 	struct ib_port_attr attr;
+-- 
+2.9.0
