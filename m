@@ -1,94 +1,85 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH] mlx4: Add copyright holder to man pages
-Date: Fri, 14 Jul 2017 17:48:49 +0200
-Message-ID: <1500047329.3563.38.camel@profitbricks.com>
-References: <20170714143425.2002-1-benjamin.drung@profitbricks.com>
-         <20170714152123.GD1528@mtr-leonro.local>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] Add rdma service for kernel boot support
+Date: Fri, 14 Jul 2017 09:55:44 -0600
+Message-ID: <20170714155544.GA25760@obsidianresearch.com>
+References: <20170713172057.25411-1-benjamin.drung@profitbricks.com>
+ <1499968101.2740.10.camel@wdc.com>
+ <20170713182018.GE11069@obsidianresearch.com>
+ <1499970786.2740.17.camel@wdc.com>
+ <20170713221520.GA10088@obsidianresearch.com>
+ <1500026921.3563.27.camel@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-E7Iip0pz2hgT1sZMA9k+"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170714152123.GD1528-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1500026921.3563.27.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, Jul 14, 2017 at 12:08:41PM +0200, Benjamin Drung wrote:
+> I tested your branch on a Debian 8 (jessie) system with a mlx4 card and
+> found several points to fix/improve/discuss:
 
---=-E7Iip0pz2hgT1sZMA9k+
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Thanks!
 
-Am Freitag, den 14.07.2017, 18:21 +0300 schrieb Leon Romanovsky:
-> On Fri, Jul 14, 2017 at 04:34:25PM +0200, Benjamin Drung wrote:
-> > Maor Gottlieb added the mlx4dv.7 and mlx4dv_init_obj.3 man pages,
-> > but
-> > did not state the copyright owner of these files.
-> >=20
-> > Signed-off-by: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-> > ---
-> > =C2=A0providers/mlx4/man/mlx4dv.7=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0| 1 +
-> > =C2=A0providers/mlx4/man/mlx4dv_init_obj.3 | 1 +
-> > =C2=A02 files changed, 2 insertions(+)
->=20
-> Do we really need copyright owner for man pages?
+> 1. The rdma-load-modules@ service needs to set DefaultDependencies=no.
+> Otherwise it will end up in a dependency loop:
 
-Yes. If the file contains a license statement, it should also contain
-the copyright line. This answer the question: Who grants the specified
-rights? Is the copyright already expired?
+Makes sense
+> 2. You can just specify "etc/rdma/modules" in debian/rdma-core.install
+> instead of listing each .conf file individually.
 
-> P.S. Can you please add rdma-core to your subject?
-> Something like [PATCH rdma-core]
+The srp_daemon.conf is in the srp package, so I don't think I can do
+that?
 
-Yes. Done:
-$ git config format.subjectprefix "PATCH rdma-core"
+> 3. Default conf files for opa.conf and roce.conf are missing.
 
-We might want to adjust the documentation to recommend these settings:
+Right.. Not sure if we should split them like this or not, depends if
+we can detect the card type at runtime.
 
-$ git config sendmail.to linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-$ git config format.subjectprefix "PATCH rdma-core"
+> 4. Should rdma-load-modules@ *not* fail if the corresponding .conf is
+> missing?
 
---=20
-Benjamin Drung
-System Developer
-Debian & Ubuntu Developer
+Does it fail now? Failing seems like the right thing to do for a
+missing conf file.
 
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
+> 5. How to handle build-in modules correctly? Our kernel has the i40e
+> module built in (CONFIG_I40E=y) and rdma-load-modules-QqjR1VyAyFhTDjBF/Jpztg@public.gmane.org will
+> be started, but the system does not have a i40e card and thus I don't
+> want to have the module started. 
 
-Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-Web:=C2=A0https://www.profitbricks.com
+Fixing this would require more fancy udev wonkery - I copied RH's
+tested approach which triggers on driver presence, not on driver
+binding.
 
-Sitz der Gesellschaft: Berlin.
-Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-Gesch=C3=A4ftsf=C3=BChrer: Achim Weiss.
+My udev is not great, but something like this:
 
---=-E7Iip0pz2hgT1sZMA9k+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+DRIVER=="mlx4_core", ACTION=="add", TAG+="systemd", ENV{SYSTEMD_WANTS}="rdma-load-modules@mlx4"
 
------BEGIN PGP SIGNATURE-----
+Might work better? I think that triggers on driver bind? Could you try
+to switch your mlx and i40e drivers in that way?
 
-iQIcBAABCAAGBQJZaOfhAAoJEN2M1aXejH56mroQAIuMPtRSqRm6LfieNxvDfFAH
-PelIbUcS9jxkatLwomAQNhxX55luqUBQYhcwoI6SwiCyae8aQx47yYASinjB1TGB
-twRGNmHN8fzwVOk5CSE8nvFJQhj9jX2pNcZrpolOPcFedOsGo2YbH6U4bUm1be6o
-tV7XF6enRBUUVEnWbo+pog7VEx+1VvtsdXg8QX0FNaScJcxn/eTcliNnTKhgTsT/
-gH1uVdK55kgqUV4AIMMadYhrF+kx8hUX4QIoYmDnCWzDcX7m7LTRt95lOmNXG4Qn
-d8EzOfZvc0aGDrfVZigba2K7TcQcL4aAAglIhyeOsgzdxpYG3GDzahBzo5xSNZeR
-asykZrFUQmJqRzvnxzpsuGhA7BnH10vFmQy1lo/dfK+z+yherbtN9SH/JxnAzoR1
-5fcX+qH6o3ckbqzJX2ymKpDhChjwWv5/PoJQoKFQTnbSj+S7m74QyTdgMySWDbju
-riEqUxkkOEVinvPzX+Qw7ppuktlNEQQDKl3PNVbPC32Kma+yYzn+hjzwKS+NUddu
-VeyPH0ymaKU8LDxbRq1uaJPLT3/1eBP7Z+ElvqcPxqrt8ryKNcO3LZG5zuDeYsbm
-L3WeHuHFQGibBRWopEGEWJqOnXuGMk9KlvqDZ870XbHuUGC6iuUeGe6bRNE9orGM
-GQYDlAj+jqcGKMnGPuWL
-=2Bep
------END PGP SIGNATURE-----
+> 6. The ipoib module (loaded by rdma-load-modules@infiniband) needs to
+> loaded before the networking.service is running. The networking.service
+> brings up the network devices on Debian. It runs "ifup -a" which reads
 
---=-E7Iip0pz2hgT1sZMA9k+--
+Hum. That LSB networking.service sure is an ugly hack, it doesn't
+support hotplug so it has this:
 
+  After=network-pre.target systemd-sysctl.service systemd-modules-load.service
+
+To 'try' and run after some amount of hot plugging is done. IMHO this
+is done wrong, it should start after sysinit.target but before
+network-online.target or something... 
+
+The only solution to this kind of problem is to add more ordering,
+Debian should include a patch to rdma-load-modules@ to put it before
+their unique networking.service..
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
