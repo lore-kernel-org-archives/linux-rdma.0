@@ -1,155 +1,57 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH] Add rdma service for kernel boot support
-Date: Fri, 14 Jul 2017 12:18:11 +0200
-Message-ID: <1500027491.3563.29.camel@profitbricks.com>
-References: <20170713172057.25411-1-benjamin.drung@profitbricks.com>
-         <1499968101.2740.10.camel@wdc.com>
-         <20170713182018.GE11069@obsidianresearch.com>
-         <1499970786.2740.17.camel@wdc.com>
-         <20170713221520.GA10088@obsidianresearch.com>
-         <1500026921.3563.27.camel@profitbricks.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [bug report] i40iw: add connection management code
+Date: Fri, 14 Jul 2017 14:35:14 +0300
+Message-ID: <20170714113514.rfkbbktuvb5hfmkt@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1500026921.3563.27.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Am Freitag, den 14.07.2017, 12:08 +0200 schrieb Benjamin Drung:
-> Hi Jason,
-> 
-> Am Donnerstag, den 13.07.2017, 16:15 -0600 schrieb Jason Gunthorpe:
-> > On Thu, Jul 13, 2017 at 06:33:07PM +0000, Bart Van Assche wrote:
-> > > On Thu, 2017-07-13 at 12:20 -0600, Jason Gunthorpe wrote:
-> > > > Here is an untested attempt to move module loading into
-> > > > srp_daemon -
-> > > > what do you think Bart?
-> > > 
-> > > Hello Jason,
-> > > 
-> > > Thanks for the patch. To me this looks like a nice simplification
-> > > compared
-> > > to the current approach. Do you want me to test this patch?
-> > 
-> > I did some more steps..
-> > 
-> > Benjamin/Bart let me know what you think, I'll send the patches to
-> > the
-> > list if you like the idea.
-> > 
-> > https://github.com/jgunthorpe/rdma-plumbing/tree/systemd
-> > 
-> > This replaces Benjamins rdma.conf based approach.
-> > 
-> > The basic approach is to directly use systemd to load the modules
-> > and
-> > determine what modules to load by using udev and explicit Requires
-> > in
-> > the units.
-> 
-> I like your approach very much. It's cleaner and simpler. So let's
-> ditch my approach and use yours.
-> 
-> I tested your branch on a Debian 8 (jessie) system with a mlx4 card
-> and
-> found several points to fix/improve/discuss:
-> 
-> 1. The rdma-load-modules@ service needs to set
-> DefaultDependencies=no.
-> Otherwise it will end up in a dependency loop:
-> 
-> Found ordering cycle on rdma-load-modules-A9MMwDI1uB1TDjBF/Jpztg@public.gmane.org/start
-> Found dependency on basic.target/start
-> Found dependency on paths.target/start
-> Found dependency on acpid.path/start
-> Found dependency on sysinit.target/start
-> Found dependency on rdma-load-modules-A9MMwDI1uB1TDjBF/Jpztg@public.gmane.org/start
-> Breaking ordering cycle by deleting job paths.target/start
-> Found ordering cycle on rdma-load-modules-A9MMwDI1uB1TDjBF/Jpztg@public.gmane.org/start
-> Found dependency on paths.target/start
-> Found dependency on acpid.path/start
-> Found dependency on sysinit.target/start
-> Found dependency on rdma-load-modules-A9MMwDI1uB1TDjBF/Jpztg@public.gmane.org/start
-> Starting Load RDMA modules from /etc/rdma/modules/mlx4.conf...
-> 
-> 2. You can just specify "etc/rdma/modules" in debian/rdma-
-> core.install
-> instead of listing each .conf file individually.
-> 
-> 3. Default conf files for opa.conf and roce.conf are missing.
-> 
-> 4. Should rdma-load-modules@ *not* fail if the corresponding .conf is
-> missing?
-> 
-> 5. How to handle build-in modules correctly? Our kernel has the i40e
-> module built in (CONFIG_I40E=y) and rdma-load-modules-QqjR1VyAyFhTDjBF/Jpztg@public.gmane.org
-> will
-> be started, but the system does not have a i40e card and thus I don't
-> want to have the module started. 
+Hello Faisal Latif,
 
-Forgot one point:
+This is a semi-automatic email about new static checker warnings.
 
-6. The ipoib module (loaded by rdma-load-modules@infiniband) needs to
-loaded before the networking.service is running. The networking.service
-brings up the network devices on Debian. It runs "ifup -a" which reads
-/etc/network/interfaces which we use to configure our ipoib devices.
-Here is the networking.service definition:
+The patch f27b4746f378: "i40iw: add connection management code" from
+Jan 20, 2016, leads to the following Smatch complaint:
 
-bdrung@server:~$ systemctl cat networking.service
-# /run/systemd/generator.late/networking.service
-# Automatically generated by systemd-sysv-generator
+    drivers/infiniband/hw/i40iw/i40iw_cm.c:3691 i40iw_accept()
+    error: we previously assumed 'cm_node->listener' could be null (see line 3689)
 
-[Unit]
-SourcePath=/etc/init.d/networking
-Description=LSB: Raise network interfaces.
-DefaultDependencies=no
-Before=sysinit.target shutdown.target
-After=mountkernfs.service local-fs.target urandom.service
-Conflicts=shutdown.target
+    drivers/infiniband/hw/i40iw/i40iw_cm.c:4061 i40iw_cm_event_connected()
+    error: we previously assumed 'cm_node->listener' could be null (see line 4059)
 
-[Service]
-Type=forking
-Restart=no
-TimeoutSec=0
-IgnoreSIGPIPE=no
-KillMode=process
-GuessMainPID=no
-RemainAfterExit=yes
-SysVStartPriority=13
-ExecStart=/etc/init.d/networking start
-ExecStop=/etc/init.d/networking stop
-ExecReload=/etc/init.d/networking reload
 
-# /run/systemd/generator/networking.service.d/50-insserv.conf-$network.conf
-# Automatically generated by systemd-insserv-generator
+drivers/infiniband/hw/i40iw/i40iw_cm.c
+  3688		if (cm_node->accept_pend) {
+  3689			if (!cm_node->listener)
+                             ^^^^^^^^^^^^^^^^^
+Check
 
-[Unit]
-Wants=network.target
-Before=network.target
+  3690				i40iw_pr_err("cm_node->listener NULL for passive node\n");
+  3691			atomic_dec(&cm_node->listener->pend_accepts_cnt);
+                                    ^^^^^^^^^^^^^^^^^
+Unchecked dereference
 
-# /lib/systemd/system/networking.service.d/network-pre.conf
-[Unit]
-After=network-pre.target systemd-sysctl.service systemd-modules-load.service
+  3692			cm_node->accept_pend = 0;
+  3693		}
 
--- 
-Benjamin Drung
-System Developer
-Debian & Ubuntu Developer
+	[ snip ]
 
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
+  4058		if (cm_node->accept_pend) {
+  4059			if (!cm_node->listener)
+                             ^^^^^^^^^^^^^^^^^
+  4060				i40iw_pr_err("listener is null for passive node\n");
+  4061			atomic_dec(&cm_node->listener->pend_accepts_cnt);
+                                    ^^^^^^^^^^^^^^^^^
+  4062			cm_node->accept_pend = 0;
+  4063		}
 
-Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-Web: https://www.profitbricks.com
-
-Sitz der Gesellschaft: Berlin.
-Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-Geschäftsführer: Achim Weiss.
-
+regards,
+dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
