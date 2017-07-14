@@ -1,28 +1,32 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: Re: [PATCH] IB/hfi1: fix spelling mistake in variable name continious
-Date: Thu, 13 Jul 2017 23:27:41 -0400
-Message-ID: <01cd7633-481f-dba0-4c7e-996de547ae04@intel.com>
-References: <20170713221338.14493-1-colin.king@canonical.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 2/2] RDMA/core: Initialize port_num in qp_attr
+Date: Fri, 14 Jul 2017 08:47:51 +0200
+Message-ID: <20170714064751.GA16816@kroah.com>
+References: <1499974658-6180-1-git-send-email-mustafa.ismail@intel.com>
+ <1499974658-6180-3-git-send-email-mustafa.ismail@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170713221338.14493-1-colin.king@canonical.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1499974658-6180-3-git-send-email-mustafa.ismail@intel.com>
+Sender: stable-owner@vger.kernel.org
+To: Mustafa Ismail <mustafa.ismail@intel.com>
+Cc: linux-rdma@vger.kernel.org, dledford@redhat.com, swise@opengridcomputing.com, linux-kernel@vger.kernel.org, stable@vger.kernel.org, shiraz.saleem@intel.com
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/13/2017 6:13 PM, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
+On Thu, Jul 13, 2017 at 02:37:38PM -0500, Mustafa Ismail wrote:
+> Initialize the port_num for iWARP in rdma_init_qp_attr.
 > 
-> Trivial fix to spelling mistake, rename variable 'continious'
-> to the correct spelling 'continuous'
-> 
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
 > ---
+>  drivers/infiniband/core/cma.c | 2 ++
+>  1 file changed, 2 insertions(+)
 
-Thanks!
+<formletter>
 
-Acked-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+This is not the correct way to submit patches for inclusion in the
+stable kernel tree.  Please read:
+    https://www.kernel.org/doc/html/latest/process/stable-kernel-rules.html
+for how to do this properly.
+
+</formletter>
