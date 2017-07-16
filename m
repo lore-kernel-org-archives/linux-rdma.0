@@ -1,43 +1,47 @@
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Subject: [PATCH 2/3] infiniband: nes: constify pci_device_id.
-Date: Sun, 16 Jul 2017 12:00:45 +0530
-Message-ID: <1500186646-28815-3-git-send-email-arvind.yadav.cs@gmail.com>
-References: <1500186646-28815-1-git-send-email-arvind.yadav.cs@gmail.com>
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: [PATCH] i40iw: Simplify code
+Date: Sun, 16 Jul 2017 13:09:23 +0200
+Message-ID: <20170716110923.14907-1-christophe.jaillet@wanadoo.fr>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1500186646-28815-1-git-send-email-arvind.yadav.cs@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, aditr@vmware.com, pv-drivers@vmware.com, sean.hefty@intel.com, dledford@redhat.com, hal.rosenstock@gmail.com
+To: faisal.latif@intel.com, shiraz.saleem@intel.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 List-Id: linux-rdma@vger.kernel.org
 
-pci_device_id are not supposed to change at runtime. All functions
-working with pci_device_id provided by <linux/pci.h> work with
-const pci_device_id. So mark the non-const structs as const.
+Axe a few lines of code and re-use existing error handling path to avoid
+code duplication.
 
-File size before:
-   text	   data	    bss	    dec	    hex	filename
-  10429	    780	     33	  11242	   2bea	drivers/infiniband/hw/nes/nes.o
-
-File size After adding 'const':
-   text	   data	    bss	    dec	    hex	filename
-  10541	    668	     33	  11242	   2bea	drivers/infiniband/hw/nes/nes.o
-
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 ---
- drivers/infiniband/hw/nes/nes.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/i40iw/i40iw_pble.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/nes/nes.c b/drivers/infiniband/hw/nes/nes.c
-index a30aa65..a47595c 100644
---- a/drivers/infiniband/hw/nes/nes.c
-+++ b/drivers/infiniband/hw/nes/nes.c
-@@ -102,7 +102,7 @@ static unsigned int ee_flsh_adapter;
- static unsigned int sysfs_nonidx_addr;
- static unsigned int sysfs_idx_addr;
- 
--static struct pci_device_id nes_pci_table[] = {
-+static const struct pci_device_id nes_pci_table[] = {
- 	{ PCI_VDEVICE(NETEFFECT, PCI_DEVICE_ID_NETEFFECT_NE020), },
- 	{ PCI_VDEVICE(NETEFFECT, PCI_DEVICE_ID_NETEFFECT_NE020_KR), },
- 	{0}
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_pble.c b/drivers/infiniband/hw/i40iw/i40iw_pble.c
+index c87ba1617087..540aab5e502d 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_pble.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_pble.c
+@@ -269,10 +269,8 @@ static enum i40iw_status_code add_bp_pages(struct i40iw_sc_dev *dev,
+ 	status = i40iw_add_sd_table_entry(dev->hw, hmc_info,
+ 					  info->idx.sd_idx, I40IW_SD_TYPE_PAGED,
+ 					  I40IW_HMC_DIRECT_BP_SIZE);
+-	if (status) {
+-		i40iw_free_vmalloc_mem(dev->hw, chunk);
+-		return status;
+-	}
++	if (status)
++		goto error;
+ 	if (!dev->is_pf) {
+ 		status = i40iw_vchnl_vf_add_hmc_objs(dev, I40IW_HMC_IW_PBLE,
+ 						     fpm_to_idx(pble_rsrc,
+@@ -280,8 +278,7 @@ static enum i40iw_status_code add_bp_pages(struct i40iw_sc_dev *dev,
+ 						     (info->pages << PBLE_512_SHIFT));
+ 		if (status) {
+ 			i40iw_pr_err("allocate PBLEs in the PF.  Error %i\n", status);
+-			i40iw_free_vmalloc_mem(dev->hw, chunk);
+-			return status;
++			goto error;
+ 		}
+ 	}
+ 	addr = chunk->vaddr;
 -- 
-2.7.4
+2.11.0
