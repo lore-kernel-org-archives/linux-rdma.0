@@ -1,115 +1,84 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH rdma-next V2 25/27] RDMA/netlink: Export LID mask counter
- (LMC)
-Date: Mon, 17 Jul 2017 21:32:58 +0300
-Message-ID: <20170717183258.GI3259@mtr-leonro.local>
-References: <20170703062830.30361-1-leon@kernel.org>
- <20170703062830.30361-26-leon@kernel.org>
- <04e53968-c2e9-17b0-c51e-80a038e23711@intel.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="uQr8t48UFsdbeI+V"
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <04e53968-c2e9-17b0-c51e-80a038e23711@intel.com>
-Sender: netdev-owner@vger.kernel.org
-To: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Stephen Hemminger <stephen@networkplumber.org>, Ariel Almog <ariela@mellanox.com>, Linux Netdev <netdev@vger.kernel.org>
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] IB/core: Protect sysfs entry on ib_unregister_device
+Date: Mon, 17 Jul 2017 14:03:50 -0500
+Message-ID: <20170717190350.17360-1-shiraz.saleem@intel.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+ib_unregister_device is not protecting removal of sysfs entries.
+A call to ib_register_device in that window can result in
+duplicate sysfs entry warning. Move mutex_unlock to after
+ib_device_unregister_sysfs to protect against sysfs entry creation.
 
---uQr8t48UFsdbeI+V
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This issue is exposed during driver load/unload stress test.
 
-On Mon, Jul 17, 2017 at 11:14:28AM -0400, Dennis Dalessandro wrote:
-> On 7/3/2017 2:28 AM, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro@mellanox.com>
-> >
-> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> > ---
-> >   drivers/infiniband/core/nldev.c  | 3 +++
-> >   include/uapi/rdma/rdma_netlink.h | 5 +++++
-> >   2 files changed, 8 insertions(+)
-> >
-> > diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/=
-nldev.c
-> > index ce733bf33ed9..f968a40ef5d3 100644
-> > --- a/drivers/infiniband/core/nldev.c
-> > +++ b/drivers/infiniband/core/nldev.c
-> > @@ -47,6 +47,7 @@ static const struct nla_policy nldev_policy[RDMA_NLDE=
-V_ATTR_MAX] =3D {
-> >   	[RDMA_NLDEV_ATTR_SUBNET_PREFIX]	=3D { .type =3D NLA_U64 },
-> >   	[RDMA_NLDEV_ATTR_LID]		=3D { .type =3D NLA_U32 },
-> >   	[RDMA_NLDEV_ATTR_SM_LID]	=3D { .type =3D NLA_U32 },
-> > +	[RDMA_NLDEV_ATTR_LMC]		=3D { .type =3D NLA_U8 },
-> >   };
-> >   static int fill_dev_info(struct sk_buff *msg, struct ib_device *devic=
-e)
-> > @@ -109,6 +110,8 @@ static int fill_port_info(struct sk_buff *msg,
-> >   			return -EMSGSIZE;
-> >   		if (nla_put_u32(msg, RDMA_NLDEV_ATTR_SM_LID, attr.sm_lid))
-> >   			return -EMSGSIZE;
-> > +		if (nla_put_u8(msg, RDMA_NLDEV_ATTR_LMC, attr.lmc))
-> > +			return -EMSGSIZE;
-> >   	}
-> >   	return 0;
-> >   }
-> > diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_=
-netlink.h
-> > index 82e0d64346e1..d4b862e8ed15 100644
-> > --- a/include/uapi/rdma/rdma_netlink.h
-> > +++ b/include/uapi/rdma/rdma_netlink.h
-> > @@ -292,6 +292,11 @@ enum rdma_nldev_attr {
-> >   	RDMA_NLDEV_ATTR_LID,			/* u32 */
-> >   	RDMA_NLDEV_ATTR_SM_LID,			/* u32 */
-> > +	/*
-> > +	 * LID mask count (LMC)
-> > +	 */
-> > +	RDMA_NLDEV_ATTR_LMC,			/* u8 */
-> > +
-> >   	RDMA_NLDEV_ATTR_MAX
-> >   };
-> >   #endif /* _UAPI_RDMA_NETLINK_H */
-> >
->
-> LMC =3D "Counter" or "Control"? I always thought it was the latter.
+WARNING: CPU: 5 PID: 4445 at fs/sysfs/dir.c:31 sysfs_warn_dup+0x5f/0x70
+sysfs: cannot create duplicate filename '/class/infiniband/i40iw0'
+Hardware name: Gigabyte Technology Co., Ltd. To be filled by O.E.M./Q87M-D2H
+BIOS F7 01/17/2014
+Workqueue: i40e i40e_service_task [i40e]
+Call Trace:
+dump_stack+0x67/0x98
+__warn+0xcc/0xf0
+warn_slowpath_fmt+0x4a/0x50
+? kernfs_path_from_node+0x4b/0x60
+sysfs_warn_dup+0x5f/0x70
+sysfs_do_create_link_sd.isra.2+0xb7/0xc0
+sysfs_create_link+0x20/0x40
+device_add+0x28c/0x600
+ib_device_register_sysfs+0x58/0x170 [ib_core]
+ib_register_device+0x325/0x570 [ib_core]
+? i40iw_register_rdma_device+0x1f4/0x400 [i40iw]
+? kmem_cache_alloc_trace+0x143/0x330
+? __raw_spin_lock_init+0x2d/0x50
+i40iw_register_rdma_device+0x2dc/0x400 [i40iw]
+i40iw_open+0x10a6/0x1950 [i40iw]
+? i40iw_open+0xeab/0x1950 [i40iw]
+? i40iw_make_cm_node+0x9c0/0x9c0 [i40iw]
+i40e_client_subtask+0xa4/0x110 [i40e]
+i40e_service_task+0xc2d/0x1320 [i40e]
+process_one_work+0x203/0x710
+? process_one_work+0x16f/0x710
+worker_thread+0x126/0x4a0
+? trace_hardirqs_on+0xd/0x10
+kthread+0x112/0x150
+? process_one_work+0x710/0x710
+? kthread_create_on_node+0x40/0x40
+ret_from_fork+0x2e/0x40
+---[ end trace fd11b69e21ea7653 ]---
+Couldn't register device i40iw0 with driver model
 
-You are right, it is control.
-=46rom spec:
-LID Mask Control - A per-port value assigned by the Subnet Manager. The val=
-ue of the LMC
-specifies the number of Path Bits in the Local Identifier.
+Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sindhu Devale <sindhu.devale-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/core/device.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-I don't know why I called it "counter".
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index a5dfab6..221468f 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -537,10 +537,11 @@ void ib_unregister_device(struct ib_device *device)
+ 	}
+ 	up_read(&lists_rwsem);
+ 
+-	mutex_unlock(&device_mutex);
+-
+ 	ib_device_unregister_rdmacg(device);
+ 	ib_device_unregister_sysfs(device);
++
++	mutex_unlock(&device_mutex);
++
+ 	ib_cache_cleanup_one(device);
+ 
+ 	ib_security_destroy_port_pkey_list(device);
+-- 
+2.1.3
 
-It is wrong comment and not something else, so I'll wait till Doug's branch=
-es will be ready and send fix after that.
-
-Thanks
-
->
-> -Denny
-
---uQr8t48UFsdbeI+V
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlltAtkACgkQ5GN7iDZy
-WKd9SQ//W/J0OEN1ywDHjI+Ep7DenfP/GZHK9tPmdrNaXnZmc/isPezFhdHADbK8
-9Y3FYySNsycL8fhnVt9Hmyi0qdVJHFWQcdArMrzFCm3XF+zAOOp4Ne+wsWvdcj0d
-4cCZkmZ6Z/B2CK2zFWbMexssXxAJDMaUJXzDkFlIc94r8OW+kJZhXQtR2gUV2TaK
-XaHVY0vP7tS+64J1Ui8jdoBMGQ3ng1BSKIYihHwkBnFMTCrhj0XEsf4grsDJDyKZ
-YDNtMYzutWIwJaRgS3jOxqq6A2VwE6F42zfhw36FynInzINISnuJTvzIRdDUI+n4
-qsCv6yxmcJ0VE2NZzDM2ROgbK7vcNwrvFBnUkvlZHq9jMMEXhMwph7eM78NsRbxF
-IYZxzK/oVOlm1G8qUYWRbfzAUZgbzNJin282HT3KK9cBRZSMWR325IZlFIN4gWDh
-ZD7PPgSEkR1uFDS7B30VZhiDhd1XXaKPRujuQSuOLVMK6LseNdTG7iiarEGQzU0C
-jyhT5PB/n4OZHMrCRIqH9h+PaI7avI1mKnmUR1n1/wp8zdWuT599/ynt4qjsFTHP
-rXggZP/qCyU854NPLiOP4r1pjLTxj4I2DH6tQ+RIT2tSUZDi/Rnng755rw+rOWVl
-TUO3RdnD6C0OQPRjWgPjPyiNono6mx+HixW92ZRWC587Jc4VQVI=
-=nK4U
------END PGP SIGNATURE-----
-
---uQr8t48UFsdbeI+V--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
