@@ -1,54 +1,115 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 4.4 29/57] RDMA/uverbs: Check port number supplied by
- user verbs cmds
-Date: Mon, 17 Jul 2017 17:30:45 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC34341BF7@fmsmsx120.amr.corp.intel.com>
-References: <20170713153957.515045341@linuxfoundation.org>
- <20170713153959.566717957@linuxfoundation.org>
- <5C5647B5F4794941BAAC07CF28785CBC33E4E81F@fmsmsx101.amr.corp.intel.com>
- <20170713162540.GB22870@kroah.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH rdma-next V2 25/27] RDMA/netlink: Export LID mask counter
+ (LMC)
+Date: Mon, 17 Jul 2017 21:32:58 +0300
+Message-ID: <20170717183258.GI3259@mtr-leonro.local>
+References: <20170703062830.30361-1-leon@kernel.org>
+ <20170703062830.30361-26-leon@kernel.org>
+ <04e53968-c2e9-17b0-c51e-80a038e23711@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170713162540.GB22870-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "Ismail, Mustafa" <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Polak <alexpo-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="uQr8t48UFsdbeI+V"
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <04e53968-c2e9-17b0-c51e-80a038e23711@intel.com>
+Sender: netdev-owner@vger.kernel.org
+To: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Stephen Hemminger <stephen@networkplumber.org>, Ariel Almog <ariela@mellanox.com>, Linux Netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Subject: Re: [PATCH 4.4 29/57] RDMA/uverbs: Check port number supplied
-> by user verbs cmds
-> 
-> On Thu, Jul 13, 2017 at 03:54:28PM +0000, Ismail, Mustafa wrote:
-> > > Subject: [PATCH 4.4 29/57] RDMA/uverbs: Check port number supplied
-> by
-> > > user verbs cmds
-> > >
-> > > 4.4-stable review patch.  If anyone has any objections, please let me
-> know.
+
+--uQr8t48UFsdbeI+V
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, Jul 17, 2017 at 11:14:28AM -0400, Dennis Dalessandro wrote:
+> On 7/3/2017 2:28 AM, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro@mellanox.com>
 > >
-> > Yes, this breaks modify qp.
-> > See https://patchwork.kernel.org/patch/9830663/
-> 
-> I don't understand this response at all, sorry.
-> 
-> What should I do about this?  Is this patch alone a problem?  Is there
-> some other patch I should apply that is in Linus's tree?  Where is the
-> problem, only in this old release?
-> 
-> totally confused,
-> 
+> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> > ---
+> >   drivers/infiniband/core/nldev.c  | 3 +++
+> >   include/uapi/rdma/rdma_netlink.h | 5 +++++
+> >   2 files changed, 8 insertions(+)
+> >
+> > diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/=
+nldev.c
+> > index ce733bf33ed9..f968a40ef5d3 100644
+> > --- a/drivers/infiniband/core/nldev.c
+> > +++ b/drivers/infiniband/core/nldev.c
+> > @@ -47,6 +47,7 @@ static const struct nla_policy nldev_policy[RDMA_NLDE=
+V_ATTR_MAX] =3D {
+> >   	[RDMA_NLDEV_ATTR_SUBNET_PREFIX]	=3D { .type =3D NLA_U64 },
+> >   	[RDMA_NLDEV_ATTR_LID]		=3D { .type =3D NLA_U32 },
+> >   	[RDMA_NLDEV_ATTR_SM_LID]	=3D { .type =3D NLA_U32 },
+> > +	[RDMA_NLDEV_ATTR_LMC]		=3D { .type =3D NLA_U8 },
+> >   };
+> >   static int fill_dev_info(struct sk_buff *msg, struct ib_device *devic=
+e)
+> > @@ -109,6 +110,8 @@ static int fill_port_info(struct sk_buff *msg,
+> >   			return -EMSGSIZE;
+> >   		if (nla_put_u32(msg, RDMA_NLDEV_ATTR_SM_LID, attr.sm_lid))
+> >   			return -EMSGSIZE;
+> > +		if (nla_put_u8(msg, RDMA_NLDEV_ATTR_LMC, attr.lmc))
+> > +			return -EMSGSIZE;
+> >   	}
+> >   	return 0;
+> >   }
+> > diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_=
+netlink.h
+> > index 82e0d64346e1..d4b862e8ed15 100644
+> > --- a/include/uapi/rdma/rdma_netlink.h
+> > +++ b/include/uapi/rdma/rdma_netlink.h
+> > @@ -292,6 +292,11 @@ enum rdma_nldev_attr {
+> >   	RDMA_NLDEV_ATTR_LID,			/* u32 */
+> >   	RDMA_NLDEV_ATTR_SM_LID,			/* u32 */
+> > +	/*
+> > +	 * LID mask count (LMC)
+> > +	 */
+> > +	RDMA_NLDEV_ATTR_LMC,			/* u8 */
+> > +
+> >   	RDMA_NLDEV_ATTR_MAX
+> >   };
+> >   #endif /* _UAPI_RDMA_NETLINK_H */
+> >
+>
+> LMC =3D "Counter" or "Control"? I always thought it was the latter.
 
-This patch utterly breaks qib and hfi1 on at least 4.10.11 stable kernel.
+You are right, it is control.
+=46rom spec:
+LID Mask Control - A per-port value assigned by the Subnet Manager. The val=
+ue of the LMC
+specifies the number of Path Bits in the Local Identifier.
 
-I suspect and will soon verify that v4.13-rc1 is broke as well.
+I don't know why I called it "counter".
 
-Mike
+It is wrong comment and not something else, so I'll wait till Doug's branch=
+es will be ready and send fix after that.
 
+Thanks
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> -Denny
+
+--uQr8t48UFsdbeI+V
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlltAtkACgkQ5GN7iDZy
+WKd9SQ//W/J0OEN1ywDHjI+Ep7DenfP/GZHK9tPmdrNaXnZmc/isPezFhdHADbK8
+9Y3FYySNsycL8fhnVt9Hmyi0qdVJHFWQcdArMrzFCm3XF+zAOOp4Ne+wsWvdcj0d
+4cCZkmZ6Z/B2CK2zFWbMexssXxAJDMaUJXzDkFlIc94r8OW+kJZhXQtR2gUV2TaK
+XaHVY0vP7tS+64J1Ui8jdoBMGQ3ng1BSKIYihHwkBnFMTCrhj0XEsf4grsDJDyKZ
+YDNtMYzutWIwJaRgS3jOxqq6A2VwE6F42zfhw36FynInzINISnuJTvzIRdDUI+n4
+qsCv6yxmcJ0VE2NZzDM2ROgbK7vcNwrvFBnUkvlZHq9jMMEXhMwph7eM78NsRbxF
+IYZxzK/oVOlm1G8qUYWRbfzAUZgbzNJin282HT3KK9cBRZSMWR325IZlFIN4gWDh
+ZD7PPgSEkR1uFDS7B30VZhiDhd1XXaKPRujuQSuOLVMK6LseNdTG7iiarEGQzU0C
+jyhT5PB/n4OZHMrCRIqH9h+PaI7avI1mKnmUR1n1/wp8zdWuT599/ynt4qjsFTHP
+rXggZP/qCyU854NPLiOP4r1pjLTxj4I2DH6tQ+RIT2tSUZDi/Rnng755rw+rOWVl
+TUO3RdnD6C0OQPRjWgPjPyiNono6mx+HixW92ZRWC587Jc4VQVI=
+=nK4U
+-----END PGP SIGNATURE-----
+
+--uQr8t48UFsdbeI+V--
