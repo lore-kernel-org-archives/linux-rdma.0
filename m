@@ -1,69 +1,80 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: Re: [PATCH rdma-next V2 25/27] RDMA/netlink: Export LID mask counter
- (LMC)
-Date: Mon, 17 Jul 2017 11:14:28 -0400
-Message-ID: <04e53968-c2e9-17b0-c51e-80a038e23711@intel.com>
-References: <20170703062830.30361-1-leon@kernel.org>
- <20170703062830.30361-26-leon@kernel.org>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next V3 1/5] RDMA/netlink: Remove netlink clients
+ infrastructure
+Date: Mon, 17 Jul 2017 11:16:52 -0400
+Message-ID: <df55a95f-03f7-9dd1-dcd3-7dc06910977b@intel.com>
+References: <20170627050028.17902-1-leon@kernel.org>
+ <20170627050028.17902-2-leon@kernel.org>
+ <7285b9b9-360f-5157-1148-1554db2f4a2c@intel.com>
+ <20170717145422.GH3259@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170703062830.30361-26-leon@kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170717145422.GH3259-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>
-Cc: linux-rdma@vger.kernel.org, Stephen Hemminger <stephen@networkplumber.org>, Ariel Almog <ariela@mellanox.com>, Linux Netdev <netdev@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/3/2017 2:28 AM, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@mellanox.com>
+On 7/17/2017 10:54 AM, Leon Romanovsky wrote:
+> On Mon, Jul 17, 2017 at 10:02:07AM -0400, Dennis Dalessandro wrote:
+>> On 6/27/2017 1:00 AM, Leon Romanovsky wrote:
+>>> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>>
+>>> RDMA netlink has complicated infrastructure to add and remove netlink
+>>> clients to NETLINK_RDMA family. This complicates the code and not in
+>>> use because not many clients are available (3 clients) and most of them
+>>> (2 clients) are statically compiled together with netlink.c.
+>>
+>> So here you say there are three clients.
+>>
+>>> -	struct ibnl_client *cur;
+>>> -	struct ibnl_client *nl_client;
+>>> +	static const unsigned int max_num_ops[RDMA_NL_NUM_CLIENTS - 1] = {
+>>> +				  RDMA_NL_RDMA_CM_NUM_OPS,
+>>> +				  RDMA_NL_IWPM_NUM_OPS,
+>>> +				  0,
+>>> +				  RDMA_NL_LS_NUM_OPS,
+>>> +				  0 };
+>>>
+>>> -	nl_client = kmalloc(sizeof *nl_client, GFP_KERNEL);
+>>> -	if (!nl_client)
+>>> -		return -ENOMEM;
+>>> +	/*
+>>> +	 * This BUILD_BUG_ON is intended to catch addition of new
+>>> +	 * RDMA netlink protocol without updating the array above.
+>>> +	 */
+>>> +	BUILD_BUG_ON(RDMA_NL_NUM_CLIENTS != 6);
+>>
+>> Yet we are checking for 6? Can you elaborate here.
 > 
-> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> ---
->   drivers/infiniband/core/nldev.c  | 3 +++
->   include/uapi/rdma/rdma_netlink.h | 5 +++++
->   2 files changed, 8 insertions(+)
+> This check is needed to ensure that the array is properly initialized.
 > 
-> diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-> index ce733bf33ed9..f968a40ef5d3 100644
-> --- a/drivers/infiniband/core/nldev.c
-> +++ b/drivers/infiniband/core/nldev.c
-> @@ -47,6 +47,7 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
->   	[RDMA_NLDEV_ATTR_SUBNET_PREFIX]	= { .type = NLA_U64 },
->   	[RDMA_NLDEV_ATTR_LID]		= { .type = NLA_U32 },
->   	[RDMA_NLDEV_ATTR_SM_LID]	= { .type = NLA_U32 },
-> +	[RDMA_NLDEV_ATTR_LMC]		= { .type = NLA_U8 },
->   };
->   
->   static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
-> @@ -109,6 +110,8 @@ static int fill_port_info(struct sk_buff *msg,
->   			return -EMSGSIZE;
->   		if (nla_put_u32(msg, RDMA_NLDEV_ATTR_SM_LID, attr.sm_lid))
->   			return -EMSGSIZE;
-> +		if (nla_put_u8(msg, RDMA_NLDEV_ATTR_LMC, attr.lmc))
-> +			return -EMSGSIZE;
->   	}
->   	return 0;
->   }
-> diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-> index 82e0d64346e1..d4b862e8ed15 100644
-> --- a/include/uapi/rdma/rdma_netlink.h
-> +++ b/include/uapi/rdma/rdma_netlink.h
-> @@ -292,6 +292,11 @@ enum rdma_nldev_attr {
->   	RDMA_NLDEV_ATTR_LID,			/* u32 */
->   	RDMA_NLDEV_ATTR_SM_LID,			/* u32 */
->   
-> +	/*
-> +	 * LID mask count (LMC)
-> +	 */
-> +	RDMA_NLDEV_ATTR_LMC,			/* u8 */
-> +
->   	RDMA_NLDEV_ATTR_MAX
->   };
->   #endif /* _UAPI_RDMA_NETLINK_H */
+> The clients were exposed in include/uapi/rdma/rdma_netlink.h, in the
+> following enum:
+> 
+>    6 enum {
+>    7         RDMA_NL_RDMA_CM = 1,
+>    8         RDMA_NL_IWCM,
+>    9         RDMA_NL_RSVD,
+>   10         RDMA_NL_LS,     /* RDMA Local Services */
+>   11         RDMA_NL_I40IW,
+>   12         RDMA_NL_NUM_CLIENTS
+>   13 };
+> 
+> First of all it starts from 1, second we have RDMA_NL_RSVD and
+> RDMA_NL_NUM_CLIENTS which exposed, but are not real clients, because
+> nothing is handled them
+> 
+> It leads for RDMA_NL_NUM_CLIENTS == 6 and this is why I'm checking for 6.
 > 
 
-LMC = "Counter" or "Control"? I always thought it was the latter.
+Makes sense now.
 
 -Denny
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
