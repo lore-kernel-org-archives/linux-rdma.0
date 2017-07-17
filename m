@@ -1,27 +1,75 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
-Subject: RE: [PATCH 4.4 29/57] RDMA/uverbs: Check port number supplied by
- user verbs cmds
-Date: Mon, 17 Jul 2017 19:24:18 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC34341D03@fmsmsx120.amr.corp.intel.com>
-References: <20170713153957.515045341@linuxfoundation.org>
- <20170713153959.566717957@linuxfoundation.org>
- <5C5647B5F4794941BAAC07CF28785CBC33E4E81F@fmsmsx101.amr.corp.intel.com>
- <20170713162540.GB22870@kroah.com>
- <32E1700B9017364D9B60AED9960492BC34341BF7@fmsmsx120.amr.corp.intel.com>
- <20170717192215.GA2535@kroah.com>
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [bug report] i40iw: add connection management code
+Date: Mon, 17 Jul 2017 14:27:55 -0500
+Message-ID: <20170717192755.GA16652@ssaleem-MOBL4.amr.corp.intel.com>
+References: <20170714113514.rfkbbktuvb5hfmkt@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20170717192215.GA2535@kroah.com>
-Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Ismail, Mustafa" <mustafa.ismail@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, Yevgeny Kliteynik <kliteyn@mellanox.com>, Tziporet Koren <tziporet@mellanox.com>, Alex Polak <alexpo@mellanox.com>, Boris Pismenny <borisp@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170714113514.rfkbbktuvb5hfmkt@mwanda>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> it should be broken, see the patches submitted already to fix it :)
+On Fri, Jul 14, 2017 at 02:35:14PM +0300, Dan Carpenter wrote:
+> Hello Faisal Latif,
+> 
+> This is a semi-automatic email about new static checker warnings.
+> 
+> The patch f27b4746f378: "i40iw: add connection management code" from
+> Jan 20, 2016, leads to the following Smatch complaint:
+> 
+>     drivers/infiniband/hw/i40iw/i40iw_cm.c:3691 i40iw_accept()
+>     error: we previously assumed 'cm_node->listener' could be null (see line 3689)
+> 
+>     drivers/infiniband/hw/i40iw/i40iw_cm.c:4061 i40iw_cm_event_connected()
+>     error: we previously assumed 'cm_node->listener' could be null (see line 4059)
+>
+Dan - Thank you for reporting.
 
-I saw that and responded with Tested-by:
+The NULL check at 3689 is incorrect as we will always have
+a listener at this point in i40iw_accept. 
 
-Mike
+The code 4058-4063 also needs to be removed as we are in active node
+context and cm_node->accept_pend is always 0.
+
+We ll send a patch to fix this soon.
+
+> 
+> drivers/infiniband/hw/i40iw/i40iw_cm.c
+>   3688		if (cm_node->accept_pend) {
+>   3689			if (!cm_node->listener)
+>                              ^^^^^^^^^^^^^^^^^
+> Check
+> 
+>   3690				i40iw_pr_err("cm_node->listener NULL for passive node\n");
+>   3691			atomic_dec(&cm_node->listener->pend_accepts_cnt);
+>                                     ^^^^^^^^^^^^^^^^^
+> Unchecked dereference
+> 
+>   3692			cm_node->accept_pend = 0;
+>   3693		}
+> 
+> 	[ snip ]
+> 
+>   4058		if (cm_node->accept_pend) {
+>   4059			if (!cm_node->listener)
+>                              ^^^^^^^^^^^^^^^^^
+>   4060				i40iw_pr_err("listener is null for passive node\n");
+>   4061			atomic_dec(&cm_node->listener->pend_accepts_cnt);
+>                                     ^^^^^^^^^^^^^^^^^
+>   4062			cm_node->accept_pend = 0;
+>   4063		}
+> 
+> regards,
+> dan carpenter
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
