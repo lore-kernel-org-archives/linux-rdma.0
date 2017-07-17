@@ -1,46 +1,35 @@
-From: Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [bug report] IB/mlx5: Respect mlx5_core reserved GIDs
-Date: Mon, 17 Jul 2017 09:19:15 +0000
-Message-ID: <AM4PR0501MB1940DE8D8CC533FB7312AFE9DBA00@AM4PR0501MB1940.eurprd05.prod.outlook.com>
-References: <20170706093923.4azhres5ymy4vefp@mwanda>
- <20170706103811.GY1528@mtr-leonro.local>
- <20170706111057.vdhnx7agww7j3pcv@mwanda>
- <AM4PR0501MB194030AAB6D5D15585C416AADBD50@AM4PR0501MB1940.eurprd05.prod.outlook.com>
- <20170706114733.GZ1528@mtr-leonro.local>
- <20170706121617.bpomxvwrljfjwl25@mwanda>
+From: "Amrani, Ram" <Ram.Amrani@cavium.com>
+Subject: RE: SQ overflow seen running isert traffic with high block sizes
+Date: Mon, 17 Jul 2017 09:26:04 +0000
+Message-ID: <BN3PR07MB2578E6561CC669922A322245F8A00@BN3PR07MB2578.namprd07.prod.outlook.com>
+References: <BN3PR07MB25784033E7FCD062FA0A7855F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
+         <210f538f-8c98-f480-64fc-f2124ed6d01b@grimberg.me>
+         <BN3PR07MB25786338EADC77A369A6D493F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
+ <1499970579.7987.8.camel@haakon3.daterainc.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170706121617.bpomxvwrljfjwl25@mwanda>
+Return-path: <target-devel-owner@vger.kernel.org>
+In-Reply-To: <1499970579.7987.8.camel@haakon3.daterainc.com>
 Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: target-devel-owner@vger.kernel.org
+To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Cc: Sagi Grimberg <sagi@grimberg.me>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Elior, Ariel" <Ariel.Elior@cavium.com>, target-devel <target-devel@vger.kernel.org>, Potnuri Bharat Teja <bharat@chelsio.com>
 List-Id: linux-rdma@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBEYW4gQ2FycGVudGVyIFttYWls
-dG86ZGFuLmNhcnBlbnRlckBvcmFjbGUuY29tXQ0KPiBTdWJqZWN0OiBSZTogW2J1ZyByZXBvcnRd
-IElCL21seDU6IFJlc3BlY3QgbWx4NV9jb3JlIHJlc2VydmVkIEdJRHMNCj4gDQo+IE9uIFRodSwg
-SnVsIDA2LCAyMDE3IGF0IDAyOjQ3OjMzUE0gKzAzMDAsIExlb24gUm9tYW5vdnNreSB3cm90ZToN
-Cj4gPg0KPiA+IEl0IHdvcmtzIGJ5IGNoYW5jZSwgYXNzdW1pbmcgdGhhdCAiLT5yYXciIHdpbGwg
-YmUgYWx3YXlzIGZpcnN0IG1lbWJlciBpcw0KPiA+IG5vdCBhIGdvb2Qgc3RyYXRlZ3ksIHNvIEkg
-YWdyZWUgd2l0aCBEYW4uIEl0IGlzIE5VTEwgZGVyZWZlcmVuY2luZy4NCj4gPg0KPiANCj4gSG93
-IHRoZXNlIGZhbHNlIHBvc2l0aXZlcyBub3JtYWxseSBsb29rIGlzIGxpa2UgdGhpczoNCj4gDQo+
-IAlzdHJ1Y3Qgd2hhdGV2ZXIgKnAgPSBmb28tPmJhcjsNCj4gDQo+IAlpZiAoIWZvbykNCj4gCQly
-ZXR1cm4gLUVJTlZBTDsNCj4gDQo+IEl0IGxvb2tzIGxpa2UgYSBkZXJlZmVyZW5jZSBidXQgaXNu
-J3QuICBBbmQgaW4gdGhpcyBjYXNlIGl0IGRvZXNuJ3QNCj4gbWF0dGVyIGlmIGl0J3MgdGhlIGZp
-cnN0IG1lbWJlciBvciBub3QuDQo+IA0KPiBBbnl3YXksIGp1c3QgZnJvbSBhIGNvcnJlY3RuZXNz
-IHBvaW50IG9mIHZpZXcgaXQncyBiZXR0ZXIgdG8gbm90IHByaW50DQo+IGZhbHNlIHBvc2l0aXZl
-cy4NCj4gDQoNCkRhbiwNCg0KQWZ0ZXIgdGFraW5nIGFub3RoZXIgbG9vaywgSSBhbSBub3cgc3Vy
-ZSB0aGlzIGlzIGEgZmFsc2UgcG9zaXRpdmUsIGFuZA0KdGhlIGV4aXN0aW5nIGNvZGUgaXMgT0sg
-YW5kIHNob3VsZCBub3QgY2hhbmdlLg0KDQpEbyBub3RlIHRoYXQgdGhpcyBpcyBhIHBvaW50ZXIg
-dG8gYSB1bmlvbiwgbm90IHRvIGEgc3RydWN0IQ0KU28gdGhlIC0+IG9wZXJhdG9yIHBlcmZvcm1z
-IGEgY2FzdCwgbm90IGEgZGVyZWZlcmVuY2UuDQoNCkFsc28sIGl0IGRvZXNuJ3QgbWF0dGVyIGlm
-IGl0J3MgYSBmaXJzdCBtZW1iZXIgb3Igbm90IGFzIGFsbA0KbWVtYmVycyBvZiBhIHVuaW9uIGFy
-ZSBhdCB0aGUgc2FtZSBwb2ludGVyLg0KDQpEbyB5b3UgdGhpbmsgc21hdGNoIHN0YXRpYyBjaGVj
-a2VyIG5lZWRzIGEgZml4Pw0KDQpJbGFuLg0K
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGkgTmljaG9sYXMsDQoNCj4gSnVzdCB0byBjb25maXJtLCB0aGUgZm9sbG93aW5nIGZvdXIgcGF0
+Y2hlcyB3aGVyZSByZXF1aXJlZCB0byBnZXQNCj4gUG90bnVyaSB1cCBhbmQgcnVubmluZyBvbiBp
+c2VyLXRhcmdldCArIGl3X2N4Z2I0IHdpdGggYSBzaW1pbGFybHkgc21hbGwNCj4gbnVtYmVyIG9m
+IGh3IFNHRXM6DQo+IA0KPiA3YTU2ZGM4IGlzZXItdGFyZ2V0OiBhdm9pZCBwb3N0aW5nIGEgcmVj
+diBidWZmZXIgdHdpY2UNCj4gNTU1YTY1ZiBpc2VyLXRhcmdldDogRml4IHF1ZXVlLWZ1bGwgcmVz
+cG9uc2UgaGFuZGxpbmcNCj4gYTQ0NjcwMSBpc2NzaS10YXJnZXQ6IFByb3BpZ2F0ZSBxdWV1ZV9k
+YXRhX2luICsgcXVldWVfc3RhdHVzIGVycm9ycw0KPiBmYTdlMjVjIHRhcmdldDogRml4IHVua25v
+d24gZmFicmljIGNhbGxiYWNrIHF1ZXVlLWZ1bGwgZXJyb3JzDQo+IA0KPiBTbyBEaWQgeW91IHRl
+c3Qgd2l0aCBRLUxvZ2ljL0Nhdml1bSB3aXRoIFJvQ0UgdXNpbmcgdGhlc2UgZm91ciBwYXRjaGVz
+LA0KPiBvciBqdXN0IHdpdGggY29tbWl0IGE0NDY3MDE4Li4/DQo+IA0KPiBOb3RlIHRoZXNlIGhh
+dmUgbm90IGJlZW4gQ0MnZWQgdG8gc3RhYmxlIHlldCwgYXMgSSB3YXMgcmVsdWN0YW50IHNpbmNl
+DQo+IHRoZXkgZGlkbid0IGhhdmUgbXVjaCBtaWxlYWdlIG9uIHRoZW0gYXQgdGhlIHRpbWUuLg0K
+PiANCj4gTm93IGhvd2V2ZXIsIHRoZXkgc2hvdWxkIGJlIE9LIHRvIGNvbnNpZGVyIGZvciBzdGFi
+bGUsIGVzcGVjaWFsbHkgaWYNCj4gdGhleSBnZXQgeW91IHVuYmxvY2tlZCBhcyB3ZWxsLg0KDQpU
+aGUgaXNzdWUgaXMgc3RpbGwgc2VlbiB3aXRoIHRoZXNlIGZvdXIgcGF0Y2hlcy4NCg0KVGhhbmtz
+LA0KUmFtDQoNCg==
