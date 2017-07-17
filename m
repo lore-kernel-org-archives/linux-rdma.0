@@ -1,31 +1,40 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next V3 2/5] RDMA/netlink: Remove redundant owner
- option for netlink callbacks
-Date: Mon, 17 Jul 2017 10:04:12 -0400
-Message-ID: <5708b912-209c-ab06-dfdd-901aa806d362@intel.com>
-References: <20170627050028.17902-1-leon@kernel.org>
- <20170627050028.17902-3-leon@kernel.org>
+Subject: Re: [PATCH rdma-next V2 20/27] RDMA: Simplify get firmware interface
+Date: Mon, 17 Jul 2017 10:48:22 -0400
+Message-ID: <4c9322da-8370-305e-0e6d-f79f931c7f8d@intel.com>
+References: <20170703062830.30361-1-leon@kernel.org>
+ <20170703062830.30361-21-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170627050028.17902-3-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170703062830.30361-21-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>, Ariel Almog <ariela-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/27/2017 1:00 AM, Leon Romanovsky wrote:
+On 7/3/2017 2:28 AM, Leon Romanovsky wrote:
 > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> Owner field is not needed to be set because netlink is part of ib_core
-> which will be unloaded last after all other modules are unloaded.
+> There is a need to forward FW version to user space
+> application through RDMA netlink. In order to make it safe, there
+> is need to declare nla_policy and limit the size of FW string.
+> 
+> The new define IB_FW_VERSION_NAME_MAX will limit the size of
+> FW version string. That define was chosen to be equal to
+> ETHTOOL_FWVERS_LEN, because many drivers anyway are limited
+> by that value indirectly.
+> 
+> The introduction of this define allows us to remove the string size
+> from get_fw_str function signature.
+> 
+> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Perhaps move the similar parts from first patch here or just squash this 
-with the first?
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
--Denny
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
