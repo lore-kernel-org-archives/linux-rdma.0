@@ -1,79 +1,53 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next V3 1/5] RDMA/netlink: Remove netlink clients
- infrastructure
-Date: Mon, 17 Jul 2017 11:16:52 -0400
-Message-ID: <df55a95f-03f7-9dd1-dcd3-7dc06910977b@intel.com>
-References: <20170627050028.17902-1-leon@kernel.org>
- <20170627050028.17902-2-leon@kernel.org>
- <7285b9b9-360f-5157-1148-1554db2f4a2c@intel.com>
- <20170717145422.GH3259@mtr-leonro.local>
+From: "Marciniszyn, Mike" <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 4.4 29/57] RDMA/uverbs: Check port number supplied by
+ user verbs cmds
+Date: Mon, 17 Jul 2017 17:30:45 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC34341BF7@fmsmsx120.amr.corp.intel.com>
+References: <20170713153957.515045341@linuxfoundation.org>
+ <20170713153959.566717957@linuxfoundation.org>
+ <5C5647B5F4794941BAAC07CF28785CBC33E4E81F@fmsmsx101.amr.corp.intel.com>
+ <20170713162540.GB22870@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170717145422.GH3259-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20170713162540.GB22870-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "Ismail, Mustafa" <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Polak <alexpo-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Boris Pismenny <borisp-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/17/2017 10:54 AM, Leon Romanovsky wrote:
-> On Mon, Jul 17, 2017 at 10:02:07AM -0400, Dennis Dalessandro wrote:
->> On 6/27/2017 1:00 AM, Leon Romanovsky wrote:
->>> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->>>
->>> RDMA netlink has complicated infrastructure to add and remove netlink
->>> clients to NETLINK_RDMA family. This complicates the code and not in
->>> use because not many clients are available (3 clients) and most of them
->>> (2 clients) are statically compiled together with netlink.c.
->>
->> So here you say there are three clients.
->>
->>> -	struct ibnl_client *cur;
->>> -	struct ibnl_client *nl_client;
->>> +	static const unsigned int max_num_ops[RDMA_NL_NUM_CLIENTS - 1] = {
->>> +				  RDMA_NL_RDMA_CM_NUM_OPS,
->>> +				  RDMA_NL_IWPM_NUM_OPS,
->>> +				  0,
->>> +				  RDMA_NL_LS_NUM_OPS,
->>> +				  0 };
->>>
->>> -	nl_client = kmalloc(sizeof *nl_client, GFP_KERNEL);
->>> -	if (!nl_client)
->>> -		return -ENOMEM;
->>> +	/*
->>> +	 * This BUILD_BUG_ON is intended to catch addition of new
->>> +	 * RDMA netlink protocol without updating the array above.
->>> +	 */
->>> +	BUILD_BUG_ON(RDMA_NL_NUM_CLIENTS != 6);
->>
->> Yet we are checking for 6? Can you elaborate here.
+> Subject: Re: [PATCH 4.4 29/57] RDMA/uverbs: Check port number supplied
+> by user verbs cmds
 > 
-> This check is needed to ensure that the array is properly initialized.
+> On Thu, Jul 13, 2017 at 03:54:28PM +0000, Ismail, Mustafa wrote:
+> > > Subject: [PATCH 4.4 29/57] RDMA/uverbs: Check port number supplied
+> by
+> > > user verbs cmds
+> > >
+> > > 4.4-stable review patch.  If anyone has any objections, please let me
+> know.
+> >
+> > Yes, this breaks modify qp.
+> > See https://patchwork.kernel.org/patch/9830663/
 > 
-> The clients were exposed in include/uapi/rdma/rdma_netlink.h, in the
-> following enum:
+> I don't understand this response at all, sorry.
 > 
->    6 enum {
->    7         RDMA_NL_RDMA_CM = 1,
->    8         RDMA_NL_IWCM,
->    9         RDMA_NL_RSVD,
->   10         RDMA_NL_LS,     /* RDMA Local Services */
->   11         RDMA_NL_I40IW,
->   12         RDMA_NL_NUM_CLIENTS
->   13 };
+> What should I do about this?  Is this patch alone a problem?  Is there
+> some other patch I should apply that is in Linus's tree?  Where is the
+> problem, only in this old release?
 > 
-> First of all it starts from 1, second we have RDMA_NL_RSVD and
-> RDMA_NL_NUM_CLIENTS which exposed, but are not real clients, because
-> nothing is handled them
-> 
-> It leads for RDMA_NL_NUM_CLIENTS == 6 and this is why I'm checking for 6.
+> totally confused,
 > 
 
-Makes sense now.
+This patch utterly breaks qib and hfi1 on at least 4.10.11 stable kernel.
 
--Denny
+I suspect and will soon verify that v4.13-rc1 is broke as well.
+
+Mike
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
