@@ -1,73 +1,45 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 1/2] IB/usnic: Implement get_netdev hook
-Date: Sun, 16 Jul 2017 22:31:24 +0300
-Message-ID: <20170716193125.7560-2-yuval.shaia@oracle.com>
-References: <20170716193125.7560-1-yuval.shaia@oracle.com>
+From: Ilan Tayari <ilant-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [bug report] IB/mlx5: Respect mlx5_core reserved GIDs
+Date: Mon, 17 Jul 2017 09:19:15 +0000
+Message-ID: <AM4PR0501MB1940DE8D8CC533FB7312AFE9DBA00@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+References: <20170706093923.4azhres5ymy4vefp@mwanda>
+ <20170706103811.GY1528@mtr-leonro.local>
+ <20170706111057.vdhnx7agww7j3pcv@mwanda>
+ <AM4PR0501MB194030AAB6D5D15585C416AADBD50@AM4PR0501MB1940.eurprd05.prod.outlook.com>
+ <20170706114733.GZ1528@mtr-leonro.local>
+ <20170706121617.bpomxvwrljfjwl25@mwanda>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170716193125.7560-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170706121617.bpomxvwrljfjwl25@mwanda>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-usnic's get_netdev hook for struct ib_device is missing - add it.
-
-Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/usnic/usnic_ib_main.c  |  1 +
- drivers/infiniband/hw/usnic/usnic_ib_verbs.c | 10 ++++++++++
- drivers/infiniband/hw/usnic/usnic_ib_verbs.h |  1 +
- 3 files changed, 12 insertions(+)
-
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-index c0c1e8b027b1..80577b9d2796 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-@@ -409,6 +409,7 @@ static void *usnic_ib_device_add(struct pci_dev *dev)
- 	us_ibdev->ib_dev.query_port = usnic_ib_query_port;
- 	us_ibdev->ib_dev.query_pkey = usnic_ib_query_pkey;
- 	us_ibdev->ib_dev.query_gid = usnic_ib_query_gid;
-+	us_ibdev->ib_dev.get_netdev = usnic_get_netdev;
- 	us_ibdev->ib_dev.get_link_layer = usnic_ib_port_link_layer;
- 	us_ibdev->ib_dev.alloc_pd = usnic_ib_alloc_pd;
- 	us_ibdev->ib_dev.dealloc_pd = usnic_ib_dealloc_pd;
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-index 4996984885c2..f9dc1e80c3b7 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-@@ -424,6 +424,16 @@ int usnic_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
- 	return 0;
- }
- 
-+struct net_device *usnic_get_netdev(struct ib_device *device, u8 port_num)
-+{
-+	struct usnic_ib_dev *us_ibdev = to_usdev(device);
-+
-+	if (us_ibdev->netdev)
-+		dev_hold(us_ibdev->netdev);
-+
-+	return us_ibdev->netdev;
-+}
-+
- int usnic_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
- 				u16 *pkey)
- {
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.h b/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
-index 172e43b6fa95..1fda94425116 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
-@@ -48,6 +48,7 @@ int usnic_ib_query_qp(struct ib_qp *qp, struct ib_qp_attr *qp_attr,
- 				struct ib_qp_init_attr *qp_init_attr);
- int usnic_ib_query_gid(struct ib_device *ibdev, u8 port, int index,
- 				union ib_gid *gid);
-+struct net_device *usnic_get_netdev(struct ib_device *device, u8 port_num);
- int usnic_ib_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
- 				u16 *pkey);
- struct ib_pd *usnic_ib_alloc_pd(struct ib_device *ibdev,
--- 
-2.13.3
-
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBEYW4gQ2FycGVudGVyIFttYWls
+dG86ZGFuLmNhcnBlbnRlckBvcmFjbGUuY29tXQ0KPiBTdWJqZWN0OiBSZTogW2J1ZyByZXBvcnRd
+IElCL21seDU6IFJlc3BlY3QgbWx4NV9jb3JlIHJlc2VydmVkIEdJRHMNCj4gDQo+IE9uIFRodSwg
+SnVsIDA2LCAyMDE3IGF0IDAyOjQ3OjMzUE0gKzAzMDAsIExlb24gUm9tYW5vdnNreSB3cm90ZToN
+Cj4gPg0KPiA+IEl0IHdvcmtzIGJ5IGNoYW5jZSwgYXNzdW1pbmcgdGhhdCAiLT5yYXciIHdpbGwg
+YmUgYWx3YXlzIGZpcnN0IG1lbWJlciBpcw0KPiA+IG5vdCBhIGdvb2Qgc3RyYXRlZ3ksIHNvIEkg
+YWdyZWUgd2l0aCBEYW4uIEl0IGlzIE5VTEwgZGVyZWZlcmVuY2luZy4NCj4gPg0KPiANCj4gSG93
+IHRoZXNlIGZhbHNlIHBvc2l0aXZlcyBub3JtYWxseSBsb29rIGlzIGxpa2UgdGhpczoNCj4gDQo+
+IAlzdHJ1Y3Qgd2hhdGV2ZXIgKnAgPSBmb28tPmJhcjsNCj4gDQo+IAlpZiAoIWZvbykNCj4gCQly
+ZXR1cm4gLUVJTlZBTDsNCj4gDQo+IEl0IGxvb2tzIGxpa2UgYSBkZXJlZmVyZW5jZSBidXQgaXNu
+J3QuICBBbmQgaW4gdGhpcyBjYXNlIGl0IGRvZXNuJ3QNCj4gbWF0dGVyIGlmIGl0J3MgdGhlIGZp
+cnN0IG1lbWJlciBvciBub3QuDQo+IA0KPiBBbnl3YXksIGp1c3QgZnJvbSBhIGNvcnJlY3RuZXNz
+IHBvaW50IG9mIHZpZXcgaXQncyBiZXR0ZXIgdG8gbm90IHByaW50DQo+IGZhbHNlIHBvc2l0aXZl
+cy4NCj4gDQoNCkRhbiwNCg0KQWZ0ZXIgdGFraW5nIGFub3RoZXIgbG9vaywgSSBhbSBub3cgc3Vy
+ZSB0aGlzIGlzIGEgZmFsc2UgcG9zaXRpdmUsIGFuZA0KdGhlIGV4aXN0aW5nIGNvZGUgaXMgT0sg
+YW5kIHNob3VsZCBub3QgY2hhbmdlLg0KDQpEbyBub3RlIHRoYXQgdGhpcyBpcyBhIHBvaW50ZXIg
+dG8gYSB1bmlvbiwgbm90IHRvIGEgc3RydWN0IQ0KU28gdGhlIC0+IG9wZXJhdG9yIHBlcmZvcm1z
+IGEgY2FzdCwgbm90IGEgZGVyZWZlcmVuY2UuDQoNCkFsc28sIGl0IGRvZXNuJ3QgbWF0dGVyIGlm
+IGl0J3MgYSBmaXJzdCBtZW1iZXIgb3Igbm90IGFzIGFsbA0KbWVtYmVycyBvZiBhIHVuaW9uIGFy
+ZSBhdCB0aGUgc2FtZSBwb2ludGVyLg0KDQpEbyB5b3UgdGhpbmsgc21hdGNoIHN0YXRpYyBjaGVj
+a2VyIG5lZWRzIGEgZml4Pw0KDQpJbGFuLg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
