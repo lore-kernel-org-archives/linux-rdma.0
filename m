@@ -1,45 +1,81 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/rxe: Convert pr_info to pr_warn
-Date: Tue, 18 Jul 2017 23:35:39 +0300
-Message-ID: <20170718203539.6777-1-yuval.shaia@oracle.com>
+From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Issues with starting srp_daemon userspace for a 4.13 kernel
+Date: Tue, 18 Jul 2017 16:59:55 -0400
+Message-ID: <8357b19a-26f4-4c27-1b61-b122d4d1a9fd@redhat.com>
+References: <b74ff7c3-734b-71ae-6b67-9a8ccf255bf6@redhat.com>
+ <20170718194846.GA6048@obsidianresearch.com>
+ <ef6d29a5-9632-bd9b-1113-1de6671031cc@redhat.com>
+ <1500408333.2664.6.camel@wdc.com>
+ <5ca055dc-199f-ee29-fc99-126db132df10@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5ca055dc-199f-ee29-fc99-126db132df10-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-These messages are warning so let's print them accordingly.
 
-Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/sw/rxe/rxe_av.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_av.c b/drivers/infiniband/sw/rxe/rxe_av.c
-index 5bddf469361b..272db3792c50 100644
---- a/drivers/infiniband/sw/rxe/rxe_av.c
-+++ b/drivers/infiniband/sw/rxe/rxe_av.c
-@@ -39,7 +39,7 @@ int rxe_av_chk_attr(struct rxe_dev *rxe, struct rdma_ah_attr *attr)
- 	struct rxe_port *port;
- 
- 	if (rdma_ah_get_port_num(attr) != 1) {
--		pr_info("invalid port_num = %d\n", rdma_ah_get_port_num(attr));
-+		pr_warn("invalid port_num = %d\n", rdma_ah_get_port_num(attr));
- 		return -EINVAL;
- 	}
- 
-@@ -49,7 +49,7 @@ int rxe_av_chk_attr(struct rxe_dev *rxe, struct rdma_ah_attr *attr)
- 		u8 sgid_index = rdma_ah_read_grh(attr)->sgid_index;
- 
- 		if (sgid_index > port->attr.gid_tbl_len) {
--			pr_info("invalid sgid index = %d\n", sgid_index);
-+			pr_warn("invalid sgid index = %d\n", sgid_index);
- 			return -EINVAL;
- 		}
- 	}
--- 
-2.13.3
+On 07/18/2017 04:27 PM, Laurence Oberman wrote:
+> 
+> 
+> On 07/18/2017 04:05 PM, Bart Van Assche wrote:
+>> On Tue, 2017-07-18 at 16:01 -0400, Laurence Oberman wrote:
+>>> Yep, That patch seems to be in 4.12 and in 4.13 RC1.
+>>> 4.12 is working.
+>>> I am going to add some debug now as I really dont feel like a bisect
+>>> build unless I first try figure out the differences.
+>>
+>> Hello Laurence,
+>>
+>> Is SELinux enabled on your test setup? If so, can you repeat your test
+>> after having disabled it?
+>>
+>> Bart.
+>>
+> 
+> Hi Bart
+> Thanks for replying.
+> 
+> Its disabled (at least now it is.) although it should have also been 
+> disabled when I tested.
+> 
+> I will re-run the test in case.
+> 
+> [root@dhcp40-139 ~]# getenforce
+> Disabled
+> 
+> Just waiting on a kernel build as I decided to start the bisect as it is 
+> not that many kernels between v12.x and v13 RC1.
+> 
+> I will say there are lots of code changes in V4.13 showing stuff about 
+> the RTS in the QP states (Mostly in ROCE though)
+> 
+> Thanks
+> Laurence
 
+Hi Bart
+
+[root@dhcp40-139 ~]# getenforce
+Disabled
+
+[root@dhcp40-139 ~]# uname -a
+Linux dhcp40-139.desklab.eng.bos.redhat.com 4.13.0-rc1 #1 SMP Tue Jul 18 
+09:15:03 EDT 2017 x86_64 x86_64 x86_64 GNU/Linux
+
+[root@dhcp40-139 ~]# run_srp_daemon  -f /etc/ddn/srp_daemon.conf -R 30 
+-T 10 -t 7000 -ance -i mlx5_0 -p 1
+srp_daemon[14691]: failed to modify QP state to RTR
+srp_daemon[14691]: failed to modify QP state from RESET to RTS
+
+OK, will do the bisect now
+
+Thanks
+Laurence
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
