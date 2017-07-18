@@ -1,65 +1,55 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core] verbs: Avoid load drivers more than one time
-Date: Tue, 18 Jul 2017 19:24:09 +0300
-Message-ID: <1500395049-23618-1-git-send-email-yishaih@mellanox.com>
+From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Issues with starting srp_daemon userspace for a 4.13 kernel
+Date: Tue, 18 Jul 2017 14:07:08 -0400
+Message-ID: <b74ff7c3-734b-71ae-6b67-9a8ccf255bf6@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hello
 
-Drivers name list is built only once as part of read_config() and freed
-upon load_drivers().
+What changed in 4.13 so SRP will no longer start because QP cannot 
+modify state.
 
-As such, calling load_drivers() more than one time has no sense and
-might bring an oops in case there is some kernel driver without a
-matching user driver upon the second call.
+Same test bed as always (based on RHEL 7.3)
 
-Fixes: c632072027a8 ('verbs: Refresh cahced ibv_device list')
-Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
+Linux dhcp40-139.desklab.eng.bos.redhat.com 4.12.0
 
-Pull request was sent:
-https://github.com/linux-rdma/rdma-core/pull/169
+Works and srp_daemon activates using:
 
- libibverbs/init.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+run_srp_daemon  -f /etc/ddn/srp_daemon.conf -R 30 -T 10 -t 7000 -ance -i 
+mlx5_0 -p 1 1>/root/srp1.log 2>&1 &
+run_srp_daemon  -f /etc/ddn/srp_daemon.conf -R 30 -T 10 -t 7000 -ance -i 
+mlx5_1 -p 1 1>/root/srp2.log 2>&1 &
 
-diff --git a/libibverbs/init.c b/libibverbs/init.c
-index b3046b3..1c41b36 100644
---- a/libibverbs/init.c
-+++ b/libibverbs/init.c
-@@ -495,6 +495,7 @@ int ibverbs_get_device_list(struct list_head *list)
- {
- 	struct ibv_sysfs_dev *tmp_sysfs_dev_list = NULL, *sysfs_dev, *next_dev;
- 	struct verbs_device *vdev, *tmp;
-+	static int drivers_loaded;
- 	int num_devices = 0;
- 	int statically_linked = 0;
- 	int no_driver = 0;
-@@ -533,7 +534,7 @@ int ibverbs_get_device_list(struct list_head *list)
- 			no_driver = 1;
- 	}
- 
--	if (!no_driver)
-+	if (!no_driver || drivers_loaded)
- 		goto out;
- 
- 	/*
-@@ -557,6 +558,7 @@ int ibverbs_get_device_list(struct list_head *list)
- 	}
- 
- 	load_drivers();
-+	drivers_loaded = 1;
- 
- 	for (sysfs_dev = tmp_sysfs_dev_list; sysfs_dev; sysfs_dev =
- 	     sysfs_dev->next) {
--- 
-1.8.3.1
+[  158.020366] scsi host2: SRP.T10:7CFE900300726E4E
+[  158.574651] scsi host1: SRP.T10:7CFE900300726E4E
 
+Now Testing 4.13, same back-end target that IS running 4.13
+
+Client now booted into 4.13
+
+Linux dhcp40-139.desklab.eng.bos.redhat.com 4.13.0-rc1+
+
+[root@dhcp40-139 ~]# run_srp_daemon  -f /etc/ddn/srp_daemon.conf -R 30 
+-T 10 -t 7000 -ance -i mlx5_0 -p 1
+srp_daemon[4573]: failed to modify QP state to RTR
+srp_daemon[4573]: failed to modify QP state from RESET to RTS
+[root@dhcp40-139 ~]# run_srp_daemon  -f /etc/ddn/srp_daemon.conf -R 30 
+-T 10 -t 7000 -ance -i mlx5_1 -p 1
+srp_daemon[4616]: failed to modify QP state to RTR
+srp_daemon[4616]: failed to modify QP state from RESET to RTS
+
+Before I start a bisect wanted to ask if I needed a new userspace tools 
+for changes in 4.13 maybe
+
+Thanks
+Laurence
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
