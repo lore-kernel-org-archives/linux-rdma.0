@@ -1,55 +1,55 @@
-From: Laurence Oberman <loberman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Issues with starting srp_daemon userspace for a 4.13 kernel
-Date: Tue, 18 Jul 2017 14:07:08 -0400
-Message-ID: <b74ff7c3-734b-71ae-6b67-9a8ccf255bf6@redhat.com>
+From: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Subject: Re: [PULL REQUEST] Please pull rdma.git
+Date: Tue, 18 Jul 2017 11:24:01 -0700
+Message-ID: <CA+55aFyMw63bV+KOOiP9MbXF=BU8mHYEzBYsNH=xrVWxO=rzKg@mail.gmail.com>
+References: <1500393061.23761.1.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1500393061.23761.1.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello
+On Tue, Jul 18, 2017 at 8:51 AM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+>
+> This is the first round of fixes for the -rc cycle.
 
-What changed in 4.13 so SRP will no longer start because QP cannot 
-modify state.
+Pulled. However, I want to complain (again!) about bad merge commits.
 
-Same test bed as always (based on RHEL 7.3)
+You're not the only one doing this, so this is not rdma-specific, but
+I complain when I notice.
 
-Linux dhcp40-139.desklab.eng.bos.redhat.com 4.12.0
+There's a merge commit in there that has no explanation. This is the
+totality of the commit message:
 
-Works and srp_daemon activates using:
+    Merge tag 'v4.13-rc1' into k.o/for-4.13-rc
 
-run_srp_daemon  -f /etc/ddn/srp_daemon.conf -R 30 -T 10 -t 7000 -ance -i 
-mlx5_0 -p 1 1>/root/srp1.log 2>&1 &
-run_srp_daemon  -f /etc/ddn/srp_daemon.conf -R 30 -T 10 -t 7000 -ance -i 
-mlx5_1 -p 1 1>/root/srp2.log 2>&1 &
+    Linux v4.13-rc1
 
-[  158.020366] scsi host2: SRP.T10:7CFE900300726E4E
-[  158.574651] scsi host1: SRP.T10:7CFE900300726E4E
+and I want to point out that there is *nothing* there that explains
+why that merge exists.
 
-Now Testing 4.13, same back-end target that IS running 4.13
+Dammit, if you cannot explain why a merge exists, you should not do
+that merge! It's that simple.
 
-Client now booted into 4.13
+There is absolutely no excuse for commits without explanations, and
+that is *doubly* true of merge commits that don't even have any sane
+patch associated with them.
 
-Linux dhcp40-139.desklab.eng.bos.redhat.com 4.13.0-rc1+
+A normal commit that does an obvious one-liner fix? It really may not
+need more than a trivial commit message saying "Fix typo in xyz". The
+rest of the commit explains it well enough.
 
-[root@dhcp40-139 ~]# run_srp_daemon  -f /etc/ddn/srp_daemon.conf -R 30 
--T 10 -t 7000 -ance -i mlx5_0 -p 1
-srp_daemon[4573]: failed to modify QP state to RTR
-srp_daemon[4573]: failed to modify QP state from RESET to RTS
-[root@dhcp40-139 ~]# run_srp_daemon  -f /etc/ddn/srp_daemon.conf -R 30 
--T 10 -t 7000 -ance -i mlx5_1 -p 1
-srp_daemon[4616]: failed to modify QP state to RTR
-srp_daemon[4616]: failed to modify QP state from RESET to RTS
+A merge? There *has* to be an explanation for why the merge exists.
+What problem did that merge fix? Why was it done in the first palce?
 
-Before I start a bisect wanted to ask if I needed a new userspace tools 
-for changes in 4.13 maybe
+And if the only reason for that merge is "sync with upstream", then
+no, that is not a sufficient reason. It has to have an actual real
+reason, and it needs to be stated.
 
-Thanks
-Laurence
+                     Linus
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
