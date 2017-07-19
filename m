@@ -1,208 +1,58 @@
-From: "Dr. David Alan Gilbert" <dgilbert-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [Qemu-devel] host side todo list for virtio rdma
-Date: Wed, 19 Jul 2017 11:55:50 +0100
-Message-ID: <20170719105549.GB3500@work-vm>
-References: <20170719004721-mutt-send-email-mst@kernel.org>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/rxe: Convert pr_info to pr_warn
+Date: Wed, 19 Jul 2017 14:04:42 +0300
+Message-ID: <20170719110441.GA26265@yuvallap>
+References: <20170718203539.6777-1-yuval.shaia@oracle.com>
+ <20170719060908.GN3259@mtr-leonro.local>
+ <CAG9sBKNXfndf8Lxa97Z8Cc=Ntg+=NoZ9-35CbY0X=0f2aXRx8w@mail.gmail.com>
+ <20170719075119.GO3259@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170719004721-mutt-send-email-mst-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170719075119.GO3259-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: virtio-sDuHXQ4OtrM4h7I2RyI4rWD2FQJk+8+b@public.gmane.org, virtio-dev-sDuHXQ4OtrM4h7I2RyI4rWD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, Marcel Apfelbaum <marcel.a-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-* Michael S. Tsirkin (mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org) wrote:
-> Here are some thoughts on bits that are still missing to get a working
-> virtio-rdma, with some suggestions. These are very preliminary but I
-> feel I kept these in my head (and discussed offline) for too long. All
-> of the below is just my personal humble opinion.
+On Wed, Jul 19, 2017 at 10:51:19AM +0300, Leon Romanovsky wrote:
+> On Wed, Jul 19, 2017 at 10:11:50AM +0300, Moni Shoua wrote:
+> > > How this code can be executed? IB/core ensures that port_num is in range.
+> > > You can remove this check.
+> > >
+> > In this case ah_attr can come from the application and a validity
+> > check is necessary.
 > 
-> Feature Requirements:
-> 
-> The basic requirement is to be able to do RDMA to/from
-> VM memory, with support for VM migration and/or memory
-> overcommit and/or autonuma and/or THP.
-> Why are migration/overcommit/autonuma required?
-> Without these, you can do RDMA with device passthrough,
-> with likely better performance.
+> It is a bug if it comes directly without rdma_is_port_valid() check in the
+> IB/core. Currently modify_qp and create_ah are checking it and ensuring that
+> user won't provide illegal port number.
 
-Is this solution usable on a system without host-RDMA hardware?
-i.e. just to run RDMA between two VMs on the same host
-without using something like SoftROCE on the host?
+Not sure i see the whole picture but something does not fit, will
+appreciate a guidance here.
 
-> Feature Non-requirements:
-> 
-> It's not a requirement to support RDMA without VM exits,
-> e.g. like with device passthrough. While avoiding exits improves
-> performance, it would be handy to more than RDMA,
-> so there seems no reason to require it from RDMA when we
-> do not have it for e.g. network.
-> 
-> Assumptions:
-> 
-> It's OK to assume specific hardware capabilities at least initially.
-> 
-> High level architecture:
-> 
-> Follows the same lines as most other virtio devices:
-> 
-> +-----------------------------------
-> + 
-> + guest kernel
-> +             ^
-> +-------------|----------------------
-> +             v
-> + host kernel (kvm, vhost)
-> + 
-> +             ^
-> +-------------|----------------------
-> +             v
-> + 
-> + host userspace (QEMU, vhost-user)
-> + 
-> +-----------------------------------
-> 
-> Each request is forwarded by host kernel to QEMU,
-> that executes it using the ibverbs library.
+1. Application calls ibv_modify_qp which in turn fills out a cmd object and
+"calls" ib_uverbs.ib_uverbs_modify_qp.
+2. ib_uverbs_modify_qp copy the cmd from userspace and calls modify_qp.
+3. modify_qp, among some other stuff, verifies port validity (which prove
+your point) and calls driver's modify_qp hook (in our case rxe_modify_qp).
 
-Should that be 'forwarded by guest kernel' ?
-Is there a guest-userspace here as well - most of the
-RDMA NICs seem to have a userspace component.
+Is the above correct?
 
-> Most of this should be implementable host-side using existing
-> software. However, several issues remain and would need
-> infrastructure changes, as outlined below.
-> 
-> Host-side todo list for virtio-rdma support:
-> 
-> - Memory registration for guest userspace.
-> 
->   Register memory region verb accepts a single virtual address,
->   which supplies both the on-wire key for access and the
->   range of memory to access. Guest kernel turns this into a
->   list of pages (e.g. by get_user_pages); when forwarded to host this
->   turns into a s/g list of virtual addresses in QEMU address space.
-> 
->   Suggestion: add a new verb, along the lines of ibv_register_physical,
->   which splits these two parameters, accepting the on-wire VA key
->   and separately a list of userspace virtual address/size pairs.
-> 
-> - Memory registration for guest kernels.
-> 
->   Another ability used by some in-kernel users is registering all of memory.
->   Ranges not actually present are never accessed - this is OK as
->   kernel users are trusted. Memory hotplug changes which ranges
->   are present.
-> 
->   Suggestion: add some throw-away memory and map all
->   non-present ranges there. Add ibv_reregister_physical_mr or similar
->   API to update mappings on guest memory hotplug/unplug.
-> 
-> - Memory overcommit/autonuma/THP.
-> 
->   This includes techniques such as swap,KSM,COW, page migration.
->   All these rely on ability to move pages around without
->   breaking hardware access.
-> 
->   Suggestion: for hardware that supports it,
->   enabling on-demand paging for all registered memory seems
->   to address the issue more or less transparently to guests.
->   This isn't supported by all hardware but might be
->   at least a reasonable first step.
-> 
-> - Migration: memory tracking.
-> 
->   Migration requires detecting hardware access to pages
->   either on write (pre-copy) or any access (post-copy).
->   Post copy just requires ODP support to work with
->   userfaultfd properly.
+What i do not understand is the check that is done in step #2 since
+port_num is not set when moving from state INIT to state RTR.
+RXE on the other hands validate port_num only when needed (mask &
+IB_QP_AV).
 
-Can you explain what ODP support is?
+Looks like the check in step #2 is wrong.
+What am i missing here?
 
->   Pre-copy would require a write-tracking API along
->   the lines of one exposed by KVM or vhost.
->   Each tracked page would be write-protected (causing faults on
->   hardware access) on hardware write fault is generated
->   and recorded, page is made writeable.
+Yuval
 
-Can you write-protect like that from the RDMA hardware?
-I'd be surprised if the hardware was happy with that.
+> 
+> Thanks
 
-> - Migration: moving QP numbers.
-> 
->   QP numbers are exposed on the wire and so must move together
->   with the VM.
-> 
->   Suggestion: allow specifying QP number when creating a QP.
->   To avoid conflicts between multiple users, initial version can limit
->   library to a single user per device. Multiple VMs can simply
->   attach to distinct VFs.
-> 
-> - Migration: moving QP state.
-> 
->   When migrating the VM, a QP has to be torn down
->   on source and created on destination.
->   We have to migrate e.g. the current PSN - but what
->   should happen when a new packet arrives on source
->   after QP has been torn down?
-> 
->   Suggestion 1: move QP to a special state "suspended" and ignore
->   packets, or cause source to retransmit with e.g. an out of
->   resources error. Retransmit counter might need to be
->   adjusted compared to what guest requested to account
->   for the extra need to retransmit.
->   Is there a good existing QP state that does this?
-> 
->   Suggestion 2: forward packets to destination somehow.
->   Might overload the fabric as we are crossing e.g.
->   pci bus multiple times.
-> 
-> - Migration: network update
-> 
->   ROCE v1 and infiniband seem to tie connections to
->   hardware specific GIDs which can not be moved by software.
-> 
->   Suggestion: limit migration to RoCE v2 initially.
-> 
-> - Migration: packet loss recovery.
-> 
->   As a RoCE address moves across the network, network has
->   to be updated which takes time, meanwhile packet loss seems
->   to be hard to avoid.
-> 
->   Suggestion: limit initial support to hardware that is
->   able to recover from occasional packet drops, with
->   some slowdown.
-> 
-> - Migration: suspend/resume API?
->   It might be easier to pack up state of all resources
->   such as all QP numbers and state of all QPs etc
->   in a single memory buffer, migrate then unpack on destination.
-> 
->   Removes need for 2 separate APIs for suspended state and
->   for specifying QPN on creation.
-> 
->   This creates a format for serialization that will have to
->   be maintained in a compatible way - it is not clear that
->   the maintainance overhead is worth the potential
->   simplification, if any.
-> 
-> 
-> That's it - I hope this helps, feel free to discuss, preferably copying
-> virtio-dev (subscription required for now, people are looking into
-> fixing this, sorry about that).
 
-Dave
-
-> Thanks!
-> 
-> -- 
-> MST
-> 
---
-Dr. David Alan Gilbert / dgilbert-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org / Manchester, UK
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
