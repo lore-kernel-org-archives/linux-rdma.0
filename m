@@ -1,58 +1,62 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/rxe: Convert pr_info to pr_warn
-Date: Wed, 19 Jul 2017 14:04:42 +0300
-Message-ID: <20170719110441.GA26265@yuvallap>
-References: <20170718203539.6777-1-yuval.shaia@oracle.com>
- <20170719060908.GN3259@mtr-leonro.local>
- <CAG9sBKNXfndf8Lxa97Z8Cc=Ntg+=NoZ9-35CbY0X=0f2aXRx8w@mail.gmail.com>
- <20170719075119.GO3259@mtr-leonro.local>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [bug report] IB/hns: Fix the bug of polling cq failed for loopback
+ Qps
+Date: Wed, 19 Jul 2017 14:48:29 +0300
+Message-ID: <20170719114829.sctq34wns6h6zvxz@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170719075119.GO3259-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 19, 2017 at 10:51:19AM +0300, Leon Romanovsky wrote:
-> On Wed, Jul 19, 2017 at 10:11:50AM +0300, Moni Shoua wrote:
-> > > How this code can be executed? IB/core ensures that port_num is in range.
-> > > You can remove this check.
-> > >
-> > In this case ah_attr can come from the application and a validity
-> > check is necessary.
-> 
-> It is a bug if it comes directly without rdma_is_port_valid() check in the
-> IB/core. Currently modify_qp and create_ah are checking it and ensuring that
-> user won't provide illegal port number.
+Hello oulijun,
 
-Not sure i see the whole picture but something does not fit, will
-appreciate a guidance here.
+This is a semi-automatic email about new static checker warnings.
 
-1. Application calls ibv_modify_qp which in turn fills out a cmd object and
-"calls" ib_uverbs.ib_uverbs_modify_qp.
-2. ib_uverbs_modify_qp copy the cmd from userspace and calls modify_qp.
-3. modify_qp, among some other stuff, verifies port validity (which prove
-your point) and calls driver's modify_qp hook (in our case rxe_modify_qp).
+The patch 5802883d4b7c: "IB/hns: Fix the bug of polling cq failed for
+loopback Qps" from Jun 10, 2017, leads to the following Smatch
+complaint:
 
-Is the above correct?
+    drivers/infiniband/hw/hns/hns_roce_hw_v1.c:1009 hns_roce_v1_mr_free_work_fn()
+    error: we previously assumed 'hr_qp' could be null (see line 991)
 
-What i do not understand is the check that is done in step #2 since
-port_num is not set when moving from state INIT to state RTR.
-RXE on the other hands validate port_num only when needed (mask &
-IB_QP_AV).
+drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+   989          for (i = 0; i < HNS_ROCE_V1_RESV_QP; i++) {
+   990			hr_qp = free_mr->mr_free_qp[i];
+   991			if (!hr_qp)
+                             ^^^^^
+New check for NULL.  Assume it happens on the last iteration through the
+loop.
 
-Looks like the check in step #2 is wrong.
-What am i missing here?
+   992				continue;
+   993			ne++;
+   994	
+   995			ret = hns_roce_v1_send_lp_wqe(hr_qp);
+   996			if (ret) {
+   997				dev_err(dev,
+   998				     "Send wqe (qp:0x%lx) for mr free failed(%d)!\n",
+   999				     hr_qp->qpn, ret);
+  1000				goto free_work;
+  1001			}
+  1002		}
+  1003	
+  1004		do {
+  1005			ret = hns_roce_v1_poll_cq(&mr_free_cq->ib_cq, ne, wc);
+  1006			if (ret < 0) {
+  1007				dev_err(dev,
+  1008				   "(qp:0x%lx) starts, Poll cqe failed(%d) for mr 0x%x free! Remain %d cqe\n",
+  1009				   hr_qp->qpn, ret, hr_mr->key, ne);
+                                   ^^^^^^^^^^
+Unchecked dereference.
 
-Yuval
+  1010				goto free_work;
+  1011			}
 
-> 
-> Thanks
-
-
+regards,
+dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
