@@ -1,46 +1,33 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/8] verbs: Annoate ibv_wc helpers with endian
-Date: Wed, 19 Jul 2017 10:53:51 -0600
-Message-ID: <20170719165351.GA25714@obsidianresearch.com>
-References: <1499894262-10761-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1499894262-10761-2-git-send-email-jgunthorpe@obsidianresearch.com>
- <20170713065057.GH1528@mtr-leonro.local>
+From: "Regmi, Manish" <manish.regmi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [ANNOUNCE] qperf 0.4.10 release is now available
+Date: Wed, 19 Jul 2017 17:11:45 +0000
+Message-ID: <5BAAD20DB8D2A74A9EA41C7291245171012FF8FB@ORSMSX102.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170713065057.GH1528-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 13, 2017 at 09:50:57AM +0300, Leon Romanovsky wrote:
 
-> > +static inline uint32_t ibv_wc_read_invalidated_rkey(struct ibv_cq_ex *cq)
-> > +{
-> > +#ifdef __CHECKER__
-> > +	return (__attribute__((force)) uint32_t)cq->read_imm_data(cq);
-> > +#else
-> > +	return cq->read_imm_data(cq);
-> > +#endif
-> > +}
-> 
-> I don't think that those __CHECKER__ ifdefs should be part of the code.
-> They are part of infrastructure to support development of library, but
-> are not required for the user of that library.
+The qperf 0.4.10 release is now available in github.
 
-I don't see a way to get rid of it here and keep the ABI the same.
+https://github.com/linux-rdma/qperf/releases
 
-__CHECKER__ is safe to use because we already rely on it being defined
-sensibly when we include linux/types.h and use __be32 in the public
-header.
+Changes from qperf  v0.4.9:
 
-If we try and drop it post-install or something then we are really
-just blocking downstream projects from also using sparse, I don't see
-the point in doing that...
+Manish Regmi:
+	Bump the version to 0.4.10 for the new release
 
-Jason
+Dean Luick:
+	qperf: Add IBV_QP_CAP to ibv_query_qp call
+
+Ram Amrani:
+	Destroy server's QP in CM mode.	
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
