@@ -1,104 +1,96 @@
-From: Robert LeBlanc <robert-4JaGZRWAfWbajFs6igw21g@public.gmane.org>
-Subject: Re: [PULL REQUEST] Please pull rdma.git
-Date: Tue, 18 Jul 2017 21:42:23 -0600
-Message-ID: <CAANLjFr9DxfoR_H5rp1ag_fC5AqxDJ5ZEj52wF-W2eGjof6iqg@mail.gmail.com>
-References: <1500393061.23761.1.camel@redhat.com> <CA+55aFyMw63bV+KOOiP9MbXF=BU8mHYEzBYsNH=xrVWxO=rzKg@mail.gmail.com>
- <1500404869.23761.9.camel@redhat.com> <CA+55aFxYrrWO0NFJLzMiSQxPKMcoLUD=xA0e-g01riFfX5-Vug@mail.gmail.com>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH rdma-next 0/3] Support out of order data placement
+Date: Wed, 19 Jul 2017 05:33:52 +0000
+Message-ID: <VI1PR0502MB3008D488FEE8A7104A7B0A7CD1A60@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+References: <20170612064918.12510-1-leon@kernel.org>
+ <VI1PR0502MB3008478FC7C70D1F398FE2B2D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170612162917.GA11993@obsidianresearch.com>
+ <VI1PR0502MB3008EA451DA9ECEBECE27362D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170612164343.GA12435@obsidianresearch.com>
+ <VI1PR0502MB300831A1560531E67B29589DD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170612165536.GB12435@obsidianresearch.com>
+ <6747e257-67b0-a364-be21-04f73ef82ffe@talpey.com>
+ <VI1PR0502MB30080B672B80836FF0A328DCD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <475e1873-e842-ecb9-d260-34777da57e51@talpey.com>
+ <VI1PR0502MB3008B7FE60CAB3BD49907A1BD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <d3a436a0-9ace-b11a-2e4c-387fc575877e@talpey.com>
+ <VI1PR0502MB3008E04612EED6BC83F37115D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <fbdcf05b-ccd8-bd9c-c9c8-86f373303250@talpey.com>
+ <VI1PR0502MB30089271EB542493AA58060CD1C20@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <fb11f261-b80b-f71a-8076-204706267798@talpey.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CA+55aFxYrrWO0NFJLzMiSQxPKMcoLUD=xA0e-g01riFfX5-Vug-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <fb11f261-b80b-f71a-8076-204706267798-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 18, 2017 at 1:26 PM, Linus Torvalds
-<torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org> wrote:
-> On Tue, Jul 18, 2017 at 12:07 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
->>
->> Fair enough.  My branch still had two unpulled commits and was based on
->> v4.12-rc3.  But, you had already taken the SELinux/RDMA patches through
->> the SELinux tree during this merge window, and two of the fix  patches
->> in my pull request would have produced conflicts for you if I didn't
->> merge up to a common ancestor that had the SELinux/RDMA patches prior
->> to applying those patches to my tree (these two in particular):
->
-> Please don't worry about conflicts, unless they are something really
-> really fundamentally hard to merge. And even then, for rdma, I
-> probably want to see them, just to see what the hell went wrong *this
-> time*.
->
->>> And if the only reason for that merge is "sync with upstream", then
->>> no, that is not a sufficient reason. It has to have an actual real
->>> reason, and it needs to be stated.
->>
->> Does this apply to the for-next area as well?
->
-> Largely, yes. Because the further away "for-next" gets from what you
-> then eventually send me, if your for-next branch has odd useless
-> merges, then either what you send me will have them too, or what you
-> send me will be something entirely different and rebased.
->
-> Basically, "automated merges" is wrong and bad. The ACPI people used
-> to do them, and at some point their pull requests had more merge
-> commits than they had actual changes.
->
-> Merges should be generally *minimized*. They make it much harder to
-> see what is actually your new independent work, and what is work that
-> is on top of random other things.
->
-> Regular automated merges is exactly the wrong thing to do, because it
-> basically guarantees that you don't have a nice stand-alone
-> development series (everything you do will be punctuated by those
-> merges), _and_ that the merge commits are bad and have no good reason
-> for them.
->
-> Finally, the merges have a fundamental problem that is from past
-> problems with rdma - in particular the history of mixing stuff up and
-> having teams within one single company not even being able to talk or
-> synchronize with each other.
->
-> If you need merges for conflict resolution, it indicates to me that
-> rdma *still* has that issue where people fight over the direction and
-> the drivers between different teams.
->
-> So while merges in general are something that should be avoided, when
-> it comes to rdma in _particular_ I don't like seeing them, because I
-> get the feeling that they are papering over the nasty development
-> problems you guys have had, and are done as a way to handle the
-> conflicts that were due to bad hygiene.
->
-> So the *one* kind of merge that is good is the "development of this
-> topic branch is finished and done, let's merge it up". But that is
-> never about time, that's about "I'm done with this series, it's good
-> to go into my main branch". That's a "forward merge", where you really
-> merge the new and finished development tree into the base.
->
-> The back-merges, when you merge some unrelated development, is
-> generally a bad sign. It inevitably happens for various reasons, but
-> it should be seen as the exception, not the rule, and it should
-> *always* have an explanation.
->
->                       Linus
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-I'm trying to understand why merges are being done instead of rebases.
-Since we don't want to include other people's work, it seems that it
-is cleaner to do a rebase. This is more for my education with using
-Git with such a large project rather than me suggesting something
-useful. (I dropped Linus from this part of the thread so as not to
-bother him with an off-topic conversation).
-
-Thanks,
-Robert
-
-----------------
-Robert LeBlanc
-PGP Fingerprint 79A2 9CA4 6CC4 45DD A904  C70E E654 3BB2 FA62 B9F1
+SGkgVG9tLCBKYXNvbiwNCg0KU29ycnkgZm9yIHRoZSBsYXRlIHJlc3BvbnNlLg0KUGxlYXNlIGZp
+bmQgdGhlIHJlc3BvbnNlIGlubGluZSBiZWxvdy4NCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
+LS0tLQ0KPiBGcm9tOiBUb20gVGFscGV5IFttYWlsdG86dG9tQHRhbHBleS5jb21dDQo+IFNlbnQ6
+IE1vbmRheSwgSnVuZSAxMiwgMjAxNyA4OjMwIFBNDQo+IFRvOiBQYXJhdiBQYW5kaXQgPHBhcmF2
+QG1lbGxhbm94LmNvbT47IEphc29uIEd1bnRob3JwZQ0KPiA8amd1bnRob3JwZUBvYnNpZGlhbnJl
+c2VhcmNoLmNvbT4NCj4gQ2M6IEJhcnQgVmFuIEFzc2NoZSA8QmFydC5WYW5Bc3NjaGVAc2FuZGlz
+ay5jb20+OyBsZW9uQGtlcm5lbC5vcmc7DQo+IGRsZWRmb3JkQHJlZGhhdC5jb207IGxpbnV4LXJk
+bWFAdmdlci5rZXJuZWwub3JnOyBJZGFuIEJ1cnN0ZWluDQo+IDxpZGFuYkBtZWxsYW5veC5jb20+
+DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggcmRtYS1uZXh0IDAvM10gU3VwcG9ydCBvdXQgb2Ygb3Jk
+ZXIgZGF0YSBwbGFjZW1lbnQNCj4gDQo+ID4NCj4gPiBJbiBJQiBzcGVjLCBpbi1vcmRlciBkZWxp
+dmVyeSBpcyBkZWZhdWx0Lg0KPiANCj4gSSBkb24ndCBhZ3JlZS4gUmVxdWVzdHMgYXJlIHNlbnQg
+aW4tb3JkZXIsIGFuZCB0aGUgcmVzcG9uZGVyIHByb2Nlc3NlcyB0aGVtIGluLQ0KPiBvcmRlciwg
+YnV0IHRoZSBieXRlcyB0aGVuc2VsdmVzIGFyZSBub3QgZ3VhcmFudGVlZCB0byBhcHBlYXIgaW4t
+b3JkZXIuDQo+IEFkZGl0aW9uYWxseSwgaWYgcmV0cmllcyBvY2N1ciwgdGhpcyBpcyBtb3N0IGRl
+ZmluaXRlbHkgbm90IHRoZSBjYXNlLg0KPiANCj4gU2VjdGlvbiA5LjUgVHJhbnNhY3Rpb24gT3Jk
+ZXJpbmcsIEkgYmVsaWV2ZSwgY292ZXJzIHRoZXNlIHJlcXVpcmVtZW50cy4gQ2FuIHlvdQ0KPiB0
+ZWxsIG1lIHdoZXJlIEkgbWlzdW5kZXJzdGFuZCB0aGVtPw0KPiBJbiBmYWN0LCBjOS0yOCBleHBs
+aWNpdGx5IHdhcm5zOg0KPiANCj4gICAg4oCiIEFuIGFwcGxpY2F0aW9uIHNoYWxsIG5vdCBkZXBl
+bmQgdXBvbiB0aGUgb3JkZXIgb2YgZGF0YSB3cml0ZXMgdG8NCj4gICAgbWVtb3J5IHdpdGhpbiBh
+IG1lc3NhZ2UuIEZvciBleGFtcGxlLCBpZiBhbiBhcHBsaWNhdGlvbiBzZXRzIHVwDQo+ICAgIGRh
+dGEgYnVmZmVycyB0aGF0IG92ZXJsYXAsIGZvciBzZXBhcmF0ZSBkYXRhIHNlZ21lbnRzIHdpdGhp
+biBhDQo+ICAgIG1lc3NhZ2UsIGl0IGlzIG5vdCBndWFyYW50ZWVkIHRoYXQgdGhlIGxhc3Qgc2Vu
+dCBkYXRhIHdpbGwgYWx3YXlzDQo+ICAgIG92ZXJ3cml0ZSB0aGUgZWFybGllci4NCj4gDQpUaGUg
+SUIgc3BlYyBpbmRlZWQgZG9lcyBub3QgaW1wbHkgYW55IG9yZGVyaW5nIGluIHRoZSBwbGFjZW1l
+bnQgb2YgZGF0YSBpbnRvIG1lbW9yeSB3aXRoaW4gYSBzaW5nbGUgbWVzc2FnZS4NCg0KSXQgZG9l
+cyBndWFyYW50ZWUgdGhhdCB3cml0ZXMgZG9uJ3QgYnlwYXNzIHdyaXRlcyBhbmQgcmVhZHMgZG9u
+J3QgYnlwYXNzIHJlYWRzIChUYWJsZSA3OSksIGFuZCB0cmFuc3BvcnQgb3BlcmF0aW9ucyBhcmUg
+ZXhlY3V0ZWQgaW4gdGhlaXIgKm1lc3NhZ2UqIG9yZGVyIChDOS0yOCk6DQoiQSByZXNwb25kZXIg
+c2hhbGwgZXhlY3V0ZSBTRU5EIHJlcXVlc3RzLCBSRE1BIFdSSVRFIHJlcXVlc3RzDQphbmQgQVRP
+TUlDIE9wZXJhdGlvbiByZXF1ZXN0cyBpbiB0aGUgbWVzc2FnZSBvcmRlciBpbiB3aGljaA0KdGhl
+eSBhcmUgcmVjZWl2ZWQuIg0KDQpUaHVzLCBvcmRlcmluZyBiZXR3ZWVuIG1lc3NhZ2VzIGlzIGd1
+YXJhbnRlZWQgLSBjaGFuZ2VzIHRvIHJlbW90ZSBtZW1vcnkgb2YgYW4gUkRNQS1XIHdpbGwgYmUg
+b2JzZXJ2ZWQgc3RyaWN0bHkgYWZ0ZXIgYW55IGNoYW5nZXMgZG9uZSBieSBhIHByZXZpb3VzIFJE
+TUEtVzsgY2hhbmdlcyB0byBsb2NhbCBtZW1vcnkgb2YgYW4gUkRNQS1SIHJlc3BvbnNlIHdpbGwg
+YmUgb2JzZXJ2ZWQgc3RyaWN0bHkgYWZ0ZXIgYW55IGNoYW5nZXMgZG9uZSBieSBhIHByZXZpb3Vz
+IFJETUEtUiByZXNwb25zZS4NCg0KVGhlIHByb3Bvc2VkIGZlYXR1cmUgaW4gdGhpcyBwYXRjaCBz
+ZXQgaXMgdG8gcmVsYXggdGhlIG1lbW9yeSBwbGFjZW1lbnQgb3JkZXJpbmcgKmFjcm9zcyogbWVz
+c2FnZXMgYW5kIG5vdCB3aXRoaW4gYSBzaW5nbGUgbWVzc2FnZSAod2hpY2ggaXMgbm90IG1hbmRh
+dGVkIGJ5IHRoZSBzcGVjIGFzIHUgbm90ZWQpLCBzdWNoIHRoYXQgbXVsdGlwbGUgY29uc2VjdXRp
+dmUgUkRNQS1XcyBtYXkgYmUgY29tbWl0dGVkIHRvIG1lbW9yeSBpbiBhbnkgb3JkZXIsIGFuZCBz
+aW1pbGFybHkgZm9yIFJETUEtUiByZXNwb25zZXMuDQpUaGlzIGNoYW5nZXMgYXBwbGljYXRpb24g
+c2VtYW50aWNzIHdoZW5ldmVyIG11bHRpcGxlLWluZmxpZ2h0IFJETUEgb3BlcmF0aW9ucyB3cml0
+ZSB0byBvdmVybGFwcGluZyBsb2NhdGlvbnMsIG9yIHdoZW4gb25lIG9wZXJhdGlvbiBpbmRpY2F0
+ZXMgdGhlIGNvbXBsZXRpb24gb2YgdGhlIG90aGVyLg0KQSBzaW1wbGUgZXhhbXBsZSB0byBjbGFy
+aWZ5OiBhIHJlcXVlc3RvciBwb3N0ZWQgdGhlIGZvbGxvd2luZyB3b3JrIGVsZW1lbnRzIGluIHRo
+ZSB3cml0dGVuIG9yZGVyOg0KMS4gUkRNQS1XKFZBPTB4MTAwMCwgdmFsdWU9MHgxKQ0KMi4gUkRN
+QS1XKFZBPTB4MTAwMCwgdmFsdWU9MHgyKQ0KMy4gU2VuZCgpDQpPbiByZXNwb25kZXIgc2lkZSwg
+Zm9sbG93aW5nIHRoZSBTZW5kKCkgb3BlcmF0aW9uIGNvbXBsZXRpb24sIGFuZCBhY2NvcmRpbmcg
+dG8gc3BlYyAoQzktMjgpLCByZWFkaW5nIGZyb20gVkE9MHgxMDAwIHdpbGwgcHJvZHVjZSB0aGUg
+dmFsdWUgMi4gV2l0aCB0aGUgcHJvcG9zZWQgZmVhdHVyZSBlbmFibGVkLCB0aGUgcmVhZCB2YWx1
+ZSBpcyBub3QgZGV0ZXJtaW5pc3RpYyBhbmQgZGVwZW5kZW50IG9uIHRoZSBvcmRlciBpbiB3aGlj
+aCB0aGUgUkRNQS1XIG9wZXJhdGlvbnMgd2VyZSByZWNlaXZlZC4NCg0KVGhlIHByb3Bvc2VkIFFQ
+IGZsYWcgYWxsb3dzIGFwcGxpY2F0aW9ucyB0byBrbm93aW5nbHkgaW5kaWNhdGUgdGhpcyByZWxh
+eGVkIGRhdGEgcGxhY2VtZW50LCB0aGVyZWJ5IGVuYWJsaW5nIHRoZSBIQ0EgdG8gcGxhY2UgT09P
+IFJETUEgbWVzc2FnZXMgaW50byBtZW1vcnkgd2l0aG91dCBidWZmZXJpbmcgdGhlbS4NCg0KPiBJ
+IGhhdmUgb25lIG90aGVyIHF1ZXN0aW9uIG9uIHRoZSBEb2N1bWVudGF0aW9uIG91dC1vZi1vcmRl
+ci50eHQuDQo+IEl0IHN0YXRlcyB0aGUgZmVuY2UgYml0IGNhbiBiZSB1c2VkIHRvIGZvcmNlIG9y
+ZGVyaW5nIG9uIGEgbm9uLXN0cmljdCBjb25uZWN0aW9uLg0KPiBCdXQgZmVuY2UgZG9lc24ndCBh
+cHBseSB0byBSRE1BIFdyaXRlPw0KPiBJdCBvbmx5IGFwcGxpZXMgdG8gb3BlcmF0aW9ucyB3aGlj
+aCBwcm9kdWNlIGEgcmVwbHksIHN1Y2ggYXMgUkRNQSBSZWFkIG9yDQo+IEF0b21pYy4gSGF2ZSB5
+b3UgY2hhbmdlZCB0aGUgc2VtYW50aWM/DQo+IA0KUkRNQS1SIGZvbGxvd2VkIGJ5IFJETUEtUiBz
+ZW1hbnRpYyBpcyBjaGFuZ2VkIHdoZW4gcHJvcG9zZWQgUVAgZmxhZyBpcyBzZXQuDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
