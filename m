@@ -1,96 +1,87 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH rdma-next 0/3] Support out of order data placement
-Date: Wed, 19 Jul 2017 05:33:52 +0000
-Message-ID: <VI1PR0502MB3008D488FEE8A7104A7B0A7CD1A60@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <20170612064918.12510-1-leon@kernel.org>
- <VI1PR0502MB3008478FC7C70D1F398FE2B2D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <20170612162917.GA11993@obsidianresearch.com>
- <VI1PR0502MB3008EA451DA9ECEBECE27362D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <20170612164343.GA12435@obsidianresearch.com>
- <VI1PR0502MB300831A1560531E67B29589DD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <20170612165536.GB12435@obsidianresearch.com>
- <6747e257-67b0-a364-be21-04f73ef82ffe@talpey.com>
- <VI1PR0502MB30080B672B80836FF0A328DCD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <475e1873-e842-ecb9-d260-34777da57e51@talpey.com>
- <VI1PR0502MB3008B7FE60CAB3BD49907A1BD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <d3a436a0-9ace-b11a-2e4c-387fc575877e@talpey.com>
- <VI1PR0502MB3008E04612EED6BC83F37115D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <fbdcf05b-ccd8-bd9c-c9c8-86f373303250@talpey.com>
- <VI1PR0502MB30089271EB542493AA58060CD1C20@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <fb11f261-b80b-f71a-8076-204706267798@talpey.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] IB/rxe: Convert pr_info to pr_warn
+Date: Wed, 19 Jul 2017 09:09:08 +0300
+Message-ID: <20170719060908.GN3259@mtr-leonro.local>
+References: <20170718203539.6777-1-yuval.shaia@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="4eRLI4hEmsdu6Npr"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <fb11f261-b80b-f71a-8076-204706267798-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20170718203539.6777-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgVG9tLCBKYXNvbiwNCg0KU29ycnkgZm9yIHRoZSBsYXRlIHJlc3BvbnNlLg0KUGxlYXNlIGZp
-bmQgdGhlIHJlc3BvbnNlIGlubGluZSBiZWxvdy4NCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
-LS0tLQ0KPiBGcm9tOiBUb20gVGFscGV5IFttYWlsdG86dG9tQHRhbHBleS5jb21dDQo+IFNlbnQ6
-IE1vbmRheSwgSnVuZSAxMiwgMjAxNyA4OjMwIFBNDQo+IFRvOiBQYXJhdiBQYW5kaXQgPHBhcmF2
-QG1lbGxhbm94LmNvbT47IEphc29uIEd1bnRob3JwZQ0KPiA8amd1bnRob3JwZUBvYnNpZGlhbnJl
-c2VhcmNoLmNvbT4NCj4gQ2M6IEJhcnQgVmFuIEFzc2NoZSA8QmFydC5WYW5Bc3NjaGVAc2FuZGlz
-ay5jb20+OyBsZW9uQGtlcm5lbC5vcmc7DQo+IGRsZWRmb3JkQHJlZGhhdC5jb207IGxpbnV4LXJk
-bWFAdmdlci5rZXJuZWwub3JnOyBJZGFuIEJ1cnN0ZWluDQo+IDxpZGFuYkBtZWxsYW5veC5jb20+
-DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggcmRtYS1uZXh0IDAvM10gU3VwcG9ydCBvdXQgb2Ygb3Jk
-ZXIgZGF0YSBwbGFjZW1lbnQNCj4gDQo+ID4NCj4gPiBJbiBJQiBzcGVjLCBpbi1vcmRlciBkZWxp
-dmVyeSBpcyBkZWZhdWx0Lg0KPiANCj4gSSBkb24ndCBhZ3JlZS4gUmVxdWVzdHMgYXJlIHNlbnQg
-aW4tb3JkZXIsIGFuZCB0aGUgcmVzcG9uZGVyIHByb2Nlc3NlcyB0aGVtIGluLQ0KPiBvcmRlciwg
-YnV0IHRoZSBieXRlcyB0aGVuc2VsdmVzIGFyZSBub3QgZ3VhcmFudGVlZCB0byBhcHBlYXIgaW4t
-b3JkZXIuDQo+IEFkZGl0aW9uYWxseSwgaWYgcmV0cmllcyBvY2N1ciwgdGhpcyBpcyBtb3N0IGRl
-ZmluaXRlbHkgbm90IHRoZSBjYXNlLg0KPiANCj4gU2VjdGlvbiA5LjUgVHJhbnNhY3Rpb24gT3Jk
-ZXJpbmcsIEkgYmVsaWV2ZSwgY292ZXJzIHRoZXNlIHJlcXVpcmVtZW50cy4gQ2FuIHlvdQ0KPiB0
-ZWxsIG1lIHdoZXJlIEkgbWlzdW5kZXJzdGFuZCB0aGVtPw0KPiBJbiBmYWN0LCBjOS0yOCBleHBs
-aWNpdGx5IHdhcm5zOg0KPiANCj4gICAg4oCiIEFuIGFwcGxpY2F0aW9uIHNoYWxsIG5vdCBkZXBl
-bmQgdXBvbiB0aGUgb3JkZXIgb2YgZGF0YSB3cml0ZXMgdG8NCj4gICAgbWVtb3J5IHdpdGhpbiBh
-IG1lc3NhZ2UuIEZvciBleGFtcGxlLCBpZiBhbiBhcHBsaWNhdGlvbiBzZXRzIHVwDQo+ICAgIGRh
-dGEgYnVmZmVycyB0aGF0IG92ZXJsYXAsIGZvciBzZXBhcmF0ZSBkYXRhIHNlZ21lbnRzIHdpdGhp
-biBhDQo+ICAgIG1lc3NhZ2UsIGl0IGlzIG5vdCBndWFyYW50ZWVkIHRoYXQgdGhlIGxhc3Qgc2Vu
-dCBkYXRhIHdpbGwgYWx3YXlzDQo+ICAgIG92ZXJ3cml0ZSB0aGUgZWFybGllci4NCj4gDQpUaGUg
-SUIgc3BlYyBpbmRlZWQgZG9lcyBub3QgaW1wbHkgYW55IG9yZGVyaW5nIGluIHRoZSBwbGFjZW1l
-bnQgb2YgZGF0YSBpbnRvIG1lbW9yeSB3aXRoaW4gYSBzaW5nbGUgbWVzc2FnZS4NCg0KSXQgZG9l
-cyBndWFyYW50ZWUgdGhhdCB3cml0ZXMgZG9uJ3QgYnlwYXNzIHdyaXRlcyBhbmQgcmVhZHMgZG9u
-J3QgYnlwYXNzIHJlYWRzIChUYWJsZSA3OSksIGFuZCB0cmFuc3BvcnQgb3BlcmF0aW9ucyBhcmUg
-ZXhlY3V0ZWQgaW4gdGhlaXIgKm1lc3NhZ2UqIG9yZGVyIChDOS0yOCk6DQoiQSByZXNwb25kZXIg
-c2hhbGwgZXhlY3V0ZSBTRU5EIHJlcXVlc3RzLCBSRE1BIFdSSVRFIHJlcXVlc3RzDQphbmQgQVRP
-TUlDIE9wZXJhdGlvbiByZXF1ZXN0cyBpbiB0aGUgbWVzc2FnZSBvcmRlciBpbiB3aGljaA0KdGhl
-eSBhcmUgcmVjZWl2ZWQuIg0KDQpUaHVzLCBvcmRlcmluZyBiZXR3ZWVuIG1lc3NhZ2VzIGlzIGd1
-YXJhbnRlZWQgLSBjaGFuZ2VzIHRvIHJlbW90ZSBtZW1vcnkgb2YgYW4gUkRNQS1XIHdpbGwgYmUg
-b2JzZXJ2ZWQgc3RyaWN0bHkgYWZ0ZXIgYW55IGNoYW5nZXMgZG9uZSBieSBhIHByZXZpb3VzIFJE
-TUEtVzsgY2hhbmdlcyB0byBsb2NhbCBtZW1vcnkgb2YgYW4gUkRNQS1SIHJlc3BvbnNlIHdpbGwg
-YmUgb2JzZXJ2ZWQgc3RyaWN0bHkgYWZ0ZXIgYW55IGNoYW5nZXMgZG9uZSBieSBhIHByZXZpb3Vz
-IFJETUEtUiByZXNwb25zZS4NCg0KVGhlIHByb3Bvc2VkIGZlYXR1cmUgaW4gdGhpcyBwYXRjaCBz
-ZXQgaXMgdG8gcmVsYXggdGhlIG1lbW9yeSBwbGFjZW1lbnQgb3JkZXJpbmcgKmFjcm9zcyogbWVz
-c2FnZXMgYW5kIG5vdCB3aXRoaW4gYSBzaW5nbGUgbWVzc2FnZSAod2hpY2ggaXMgbm90IG1hbmRh
-dGVkIGJ5IHRoZSBzcGVjIGFzIHUgbm90ZWQpLCBzdWNoIHRoYXQgbXVsdGlwbGUgY29uc2VjdXRp
-dmUgUkRNQS1XcyBtYXkgYmUgY29tbWl0dGVkIHRvIG1lbW9yeSBpbiBhbnkgb3JkZXIsIGFuZCBz
-aW1pbGFybHkgZm9yIFJETUEtUiByZXNwb25zZXMuDQpUaGlzIGNoYW5nZXMgYXBwbGljYXRpb24g
-c2VtYW50aWNzIHdoZW5ldmVyIG11bHRpcGxlLWluZmxpZ2h0IFJETUEgb3BlcmF0aW9ucyB3cml0
-ZSB0byBvdmVybGFwcGluZyBsb2NhdGlvbnMsIG9yIHdoZW4gb25lIG9wZXJhdGlvbiBpbmRpY2F0
-ZXMgdGhlIGNvbXBsZXRpb24gb2YgdGhlIG90aGVyLg0KQSBzaW1wbGUgZXhhbXBsZSB0byBjbGFy
-aWZ5OiBhIHJlcXVlc3RvciBwb3N0ZWQgdGhlIGZvbGxvd2luZyB3b3JrIGVsZW1lbnRzIGluIHRo
-ZSB3cml0dGVuIG9yZGVyOg0KMS4gUkRNQS1XKFZBPTB4MTAwMCwgdmFsdWU9MHgxKQ0KMi4gUkRN
-QS1XKFZBPTB4MTAwMCwgdmFsdWU9MHgyKQ0KMy4gU2VuZCgpDQpPbiByZXNwb25kZXIgc2lkZSwg
-Zm9sbG93aW5nIHRoZSBTZW5kKCkgb3BlcmF0aW9uIGNvbXBsZXRpb24sIGFuZCBhY2NvcmRpbmcg
-dG8gc3BlYyAoQzktMjgpLCByZWFkaW5nIGZyb20gVkE9MHgxMDAwIHdpbGwgcHJvZHVjZSB0aGUg
-dmFsdWUgMi4gV2l0aCB0aGUgcHJvcG9zZWQgZmVhdHVyZSBlbmFibGVkLCB0aGUgcmVhZCB2YWx1
-ZSBpcyBub3QgZGV0ZXJtaW5pc3RpYyBhbmQgZGVwZW5kZW50IG9uIHRoZSBvcmRlciBpbiB3aGlj
-aCB0aGUgUkRNQS1XIG9wZXJhdGlvbnMgd2VyZSByZWNlaXZlZC4NCg0KVGhlIHByb3Bvc2VkIFFQ
-IGZsYWcgYWxsb3dzIGFwcGxpY2F0aW9ucyB0byBrbm93aW5nbHkgaW5kaWNhdGUgdGhpcyByZWxh
-eGVkIGRhdGEgcGxhY2VtZW50LCB0aGVyZWJ5IGVuYWJsaW5nIHRoZSBIQ0EgdG8gcGxhY2UgT09P
-IFJETUEgbWVzc2FnZXMgaW50byBtZW1vcnkgd2l0aG91dCBidWZmZXJpbmcgdGhlbS4NCg0KPiBJ
-IGhhdmUgb25lIG90aGVyIHF1ZXN0aW9uIG9uIHRoZSBEb2N1bWVudGF0aW9uIG91dC1vZi1vcmRl
-ci50eHQuDQo+IEl0IHN0YXRlcyB0aGUgZmVuY2UgYml0IGNhbiBiZSB1c2VkIHRvIGZvcmNlIG9y
-ZGVyaW5nIG9uIGEgbm9uLXN0cmljdCBjb25uZWN0aW9uLg0KPiBCdXQgZmVuY2UgZG9lc24ndCBh
-cHBseSB0byBSRE1BIFdyaXRlPw0KPiBJdCBvbmx5IGFwcGxpZXMgdG8gb3BlcmF0aW9ucyB3aGlj
-aCBwcm9kdWNlIGEgcmVwbHksIHN1Y2ggYXMgUkRNQSBSZWFkIG9yDQo+IEF0b21pYy4gSGF2ZSB5
-b3UgY2hhbmdlZCB0aGUgc2VtYW50aWM/DQo+IA0KUkRNQS1SIGZvbGxvd2VkIGJ5IFJETUEtUiBz
-ZW1hbnRpYyBpcyBjaGFuZ2VkIHdoZW4gcHJvcG9zZWQgUVAgZmxhZyBpcyBzZXQuDQo=
+
+--4eRLI4hEmsdu6Npr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Jul 18, 2017 at 11:35:39PM +0300, Yuval Shaia wrote:
+> These messages are warning so let's print them accordingly.
+>
+> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/infiniband/sw/rxe/rxe_av.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/infiniband/sw/rxe/rxe_av.c b/drivers/infiniband/sw/rxe/rxe_av.c
+> index 5bddf469361b..272db3792c50 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_av.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_av.c
+> @@ -39,7 +39,7 @@ int rxe_av_chk_attr(struct rxe_dev *rxe, struct rdma_ah_attr *attr)
+>  	struct rxe_port *port;
+>
+>  	if (rdma_ah_get_port_num(attr) != 1) {
+> -		pr_info("invalid port_num = %d\n", rdma_ah_get_port_num(attr));
+> +		pr_warn("invalid port_num = %d\n", rdma_ah_get_port_num(attr));
+>  		return -EINVAL;
+>  	}
+
+How this code can be executed? IB/core ensures that port_num is in range.
+You can remove this check.
+
+>
+> @@ -49,7 +49,7 @@ int rxe_av_chk_attr(struct rxe_dev *rxe, struct rdma_ah_attr *attr)
+>  		u8 sgid_index = rdma_ah_read_grh(attr)->sgid_index;
+>
+>  		if (sgid_index > port->attr.gid_tbl_len) {
+> -			pr_info("invalid sgid index = %d\n", sgid_index);
+> +			pr_warn("invalid sgid index = %d\n", sgid_index);
+>  			return -EINVAL;
+>  		}
+>  	}
+> --
+> 2.13.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--4eRLI4hEmsdu6Npr
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllu94QACgkQ5GN7iDZy
+WKfyCg/8CyOGW6Ph3SElAxhUBCte+5vsFZf8EcqcQxGj6wyA0OXGmNJfA/egXUX/
+GVP9DR0n88dK+cDjH2mmuIQPX8UXgKQPFO9aesY+hv3rdPOl+jaZfjSIFqDeFh3b
+eEnjuqOk+dQQYc42hRSCbSjxBqV3uVlw4zhVFQGok0459aC/GnNyPBUR757fGEQT
+hdGPkFmqN1YSul32+C9MiGZtYshL5ZyhajLjgR4392pDKBxGNV/WoEjQhmerV+Lg
+OuaoazPzWYfo0MlxqH+hpNM0GNYWtQJ8cqrop7u+MdB9P3ghnQ9r+EeHISnA2YtR
+s/b3W19Q/GNE7jdK3Q3A+46LL+7/zMDt1OpujP4Q6IbDC6GkpKEfmzJaYI17lvkL
+UdN0/9CWmIwci+et7pTAISaHN/AxTtuwrar30VhuiFDH7cFYYbx9bjGXvHjE4CX6
+/LvF07NOgUWeGqfD9HI/jw87uhPMfpU+4QKhPJeoFtPEzWHnWiKZmMv1PxHA+vsT
+dfc4J2PLc2V2/w0Dc5Aj2YXZMRAY348QJFm0ovHeDY/+mPSZVGxF87u9QKcrGHtY
+XGswwgDvD/4MAt4onAYyd7nq/ksdjj8ejRpOcGpKv7RNeMURIvp27zWvgXgJmoK8
+nM80Lko2kSXIFjzYX+p63pSlU4hvhtQ54DQP4XPQx3cNbaE3aQQ=
+=Dh9r
+-----END PGP SIGNATURE-----
+
+--4eRLI4hEmsdu6Npr--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
