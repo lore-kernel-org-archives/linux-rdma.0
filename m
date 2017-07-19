@@ -1,47 +1,83 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/3] Support out of order data placement
-Date: Wed, 19 Jul 2017 11:12:11 -0600
-Message-ID: <20170719171211.GB25714@obsidianresearch.com>
-References: <6747e257-67b0-a364-be21-04f73ef82ffe@talpey.com>
- <VI1PR0502MB30080B672B80836FF0A328DCD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <475e1873-e842-ecb9-d260-34777da57e51@talpey.com>
- <VI1PR0502MB3008B7FE60CAB3BD49907A1BD1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <d3a436a0-9ace-b11a-2e4c-387fc575877e@talpey.com>
- <VI1PR0502MB3008E04612EED6BC83F37115D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <fbdcf05b-ccd8-bd9c-c9c8-86f373303250@talpey.com>
- <VI1PR0502MB30089271EB542493AA58060CD1C20@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <fb11f261-b80b-f71a-8076-204706267798@talpey.com>
- <VI1PR0502MB3008D488FEE8A7104A7B0A7CD1A60@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core 1/8] verbs: Annoate ibv_wc helpers with endian
+Date: Wed, 19 Jul 2017 20:17:39 +0300
+Message-ID: <20170719171739.GR3259@mtr-leonro.local>
+References: <1499894262-10761-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1499894262-10761-2-git-send-email-jgunthorpe@obsidianresearch.com>
+ <20170713065057.GH1528@mtr-leonro.local>
+ <20170719165351.GA25714@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="l0l+eSofNeLXHSnY"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <VI1PR0502MB3008D488FEE8A7104A7B0A7CD1A60-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <20170719165351.GA25714-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 19, 2017 at 05:33:52AM +0000, Parav Pandit wrote:
- 
-> It does guarantee that writes don't bypass writes and reads don't bypass reads (Table 79), and transport operations are executed in their *message* order (C9-28):
-> "A responder shall execute SEND requests, RDMA WRITE requests
-> and ATOMIC Operation requests in the message order in which
-> they are received."
 
-At a minimum, you need to include a version of table 79 in your
-documentation that reflects the modified WR ordering rules for this
-mode, and I'm not sure we should continue to call this thing a 'RC QP'
-at all to avoid so much confusion.
+--l0l+eSofNeLXHSnY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Particularly since this new thing is not really wire interoperable
-with the existing RC QP I don't think it should be the same thing in
-the API.
+On Wed, Jul 19, 2017 at 10:53:51AM -0600, Jason Gunthorpe wrote:
+> On Thu, Jul 13, 2017 at 09:50:57AM +0300, Leon Romanovsky wrote:
+>
+> > > +static inline uint32_t ibv_wc_read_invalidated_rkey(struct ibv_cq_ex *cq)
+> > > +{
+> > > +#ifdef __CHECKER__
+> > > +	return (__attribute__((force)) uint32_t)cq->read_imm_data(cq);
+> > > +#else
+> > > +	return cq->read_imm_data(cq);
+> > > +#endif
+> > > +}
+> >
+> > I don't think that those __CHECKER__ ifdefs should be part of the code.
+> > They are part of infrastructure to support development of library, but
+> > are not required for the user of that library.
+>
+> I don't see a way to get rid of it here and keep the ABI the same.
+>
+> __CHECKER__ is safe to use because we already rely on it being defined
+> sensibly when we include linux/types.h and use __be32 in the public
+> header.
+>
+> If we try and drop it post-install or something then we are really
+> just blocking downstream projects from also using sparse, I don't see
+> the point in doing that...
 
-I recommend you rework this patch series to introduce a relaxed RC QP
-type instead of using a flag..
+I'm curious, how many of them know and care about sparse :)
 
-Jason
+>
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--l0l+eSofNeLXHSnY
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAllvlDMACgkQ5GN7iDZy
+WKfL4hAAtNd0On3thWuT0OBD/EmD8WAsZBWmlHgm9+cg5h7Kk/SkS3jlLjJQ0zkn
+9tfK70jH0f+7kaSmPeDJE2N6zvKm2vXi7u3pjgrkMPf8MSSYjq+ghhgd2WnZJQ0j
+oPOxH3ZyItNruiYnj+WyTq7qwwVVn9g3F4JE5mX2v80dWTbL2plQ7BtlqFleh7uZ
+la3llCOoRNeatGBqr26mDr1/O+nPvd7n5+PA/uqRdS0PHxtxhPcMJU1SdCtwpTMf
+qcQdZNIVt38OoSlhv12KvND7R9DfANodHFyTZ+3sgBIm7LwQs46eCRGwnZbPCt99
+poxCRoEprxRRfduRzcYH9nKTCoMFlAo+naEu4Nw7OfUhUZXOnI1kiqZd0F7sj26L
+RjJ4H+hoj74r4b1hfSUD4L14hq/sIjvWMng9aQH3g1HNUUoyMigJNo0HtvodrcBE
+zJ+Cy0VIXroTaqE+47OBwneIHxRSfRC4eJq8QSJDuI+8IddkdyGUXd4JDrwrdD1s
+G0N2nl3sVTwUjRbRv0UcFUws6DLI2IMwBsU4OHUF3+P9IrMQ5b+mpF3z1/KZA2nf
+ZStKe8FK4fLOHngn7F3Ouo/cHR7+YWQsrofzjGjK4ya5w2AgdPVp4C3DAgccc5Lk
+LQwUhxMUpUGcIbg76dk1a/xuFT6SVskXtbpp/GfbMkQIDzL+moM=
+=BBkS
+-----END PGP SIGNATURE-----
+
+--l0l+eSofNeLXHSnY--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
