@@ -1,53 +1,177 @@
-From: "Kalderon, Michal" <Michal.Kalderon@cavium.com>
-Subject: Re: [PATCH v2 2/2] RDMA/core: Initialize port_num in qp_attr
-Date: Wed, 19 Jul 2017 15:09:03 +0000
-Message-ID: <DM2PR0701MB1392FAF086CEA7AA8F204A5688A60@DM2PR0701MB1392.namprd07.prod.outlook.com>
-References: <1500043291-19768-1-git-send-email-mustafa.ismail@intel.com>
- <1500043291-19768-3-git-send-email-mustafa.ismail@intel.com>
- <32E1700B9017364D9B60AED9960492BC34341CD3@fmsmsx120.amr.corp.intel.com>
- <DM2PR0701MB13920AC9BBE7471A921FBF0A88A60@DM2PR0701MB1392.namprd07.prod.outlook.com>,<5C5647B5F4794941BAAC07CF28785CBC33E5F3B1@fmsmsx101.amr.corp.intel.com>
+From: "Latif, Faisal" <faisal.latif@intel.com>
+Subject: RE: PCI/IB: add support for pci driver attribute groups
+Date: Wed, 19 Jul 2017 15:22:11 +0000
+Message-ID: <1EEBC91386407A4A8D1EBE1DD5AA5212818DE784@FMSMSX114.amr.corp.intel.com>
+References: <20170719130106.GE17776@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <5C5647B5F4794941BAAC07CF28785CBC33E5F3B1@fmsmsx101.amr.corp.intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20170719130106.GE17776@kroah.com>
 Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: "Ismail, Mustafa" <mustafa.ismail@intel.com>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
-Cc: "swise@opengridcomputing.com" <swise@opengridcomputing.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "Saleem, Shiraz" <shiraz.saleem@intel.com>, "Amrani, Ram" <Ram.Amrani@cavium.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>, Doug Ledford <dledford@redhat.com>, "Hefty, Sean" <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ismail, Mustafa <mustafa.ismail@intel.com>
-Sent: Wednesday, July 19, 2017 5:38 PM
+Thanks!
+Faisal
 
-> > > > Fixes: 5ecce4c9b17b("Check port number supplied by user verbs cmds"=
-)
-> > > > Cc: <stable@vger.kernel.org> # v2.6.14+
-> > > > Reviewed-by: Steve Wise <swise@opengridcomputing.com>
-> > > > Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
-> > >
-> > Why is the second patch required if you only validate the port_num if t=
-he
-> > IB_QP_PORT mask is on?
-> > Given the first patch [PATCH v2 1/2] RDMA/uverbs: Fix the check for por=
-t
-> > number, this one seems redundant.
-> Strictly speaking it is not required, but we felt it safer to always retu=
-rn a valid port number
-> as is done in the IB case.
-
-It's not always initialized in the IB case either. More than that if at thi=
-s point you'll
-initialize it for ib as well you'll get a failure on ib_modify_qp_is_ok, si=
-nce when
-transitioning to RTR  / RTS providing IB_QP_PORT is not a valid option.
-We actually hit this issue when running rping over RoCE. (prior to your fix=
- i mean )=20
-I agree that in general there's no real harm, but it seems a bit out of con=
-text, and if we
-make the change common for ib/iwarp we'll have to modify ib_modify_qp_is_ok=
- which=20
-is written close to the spec.=20
-
-thanks,
-Michal
+>-----Original Message-----
+>From: Greg KH [mailto:gregkh@linuxfoundation.org]
+>Sent: Wednesday, July 19, 2017 8:01 AM
+>To: Latif, Faisal <faisal.latif@intel.com>; Doug Ledford
+><dledford@redhat.com>; Hefty, Sean <sean.hefty@intel.com>; Hal Rosenstock
+><hal.rosenstock@gmail.com>; Bjorn Helgaas <bhelgaas@google.com>
+>Cc: linux-rdma@vger.kernel.org; linux-pci@vger.kernel.org; linux-
+>kernel@vger.kernel.org
+>Subject: PCI/IB: add support for pci driver attribute groups
+>
+>From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>
+>Some drivers (specifically the nes IB driver), want to create a lot of sysfs driver
+>attributes.  Instead of open-coding the creation and removal of these files (and
+>getting it wrong btw), it's a better idea to let the driver core handle all of this
+>logic for us.
+>
+>So add a new field to the pci driver structure, **groups, that allows pci drivers
+>to specify an attribute group list it wishes to have created when it is registered
+>with the driver core.
+>
+>Big bonus is now the driver doesn't race with userspace when the sysfs files are
+>created vs. when the kobject is announced, so any script/tool that actually
+>wanted to use these files will not have to poll waiting for them to show up.
+>
+>Cc: Faisal Latif <faisal.latif@intel.com>
+>Cc: Doug Ledford <dledford@redhat.com>
+>Cc: Sean Hefty <sean.hefty@intel.com>
+>Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+>Cc: Bjorn Helgaas <bhelgaas@google.com>
+>Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>
+>---
+> drivers/infiniband/hw/nes/nes.c |   69 +++++++++++++---------------------------
+> drivers/pci/pci-driver.c        |    1
+> include/linux/pci.h             |    1
+> 3 files changed, 26 insertions(+), 45 deletions(-)
+>
+>--- a/drivers/infiniband/hw/nes/nes.c
+>+++ b/drivers/infiniband/hw/nes/nes.c
+>@@ -808,13 +808,6 @@ static void nes_remove(struct pci_dev *p  }
+>
+>
+>-static struct pci_driver nes_pci_driver = {
+>-	.name = DRV_NAME,
+>-	.id_table = nes_pci_table,
+>-	.probe = nes_probe,
+>-	.remove = nes_remove,
+>-};
+>-
+> static ssize_t adapter_show(struct device_driver *ddp, char *buf)  {
+> 	unsigned int  devfn = 0xffffffff;
+>@@ -1156,35 +1149,29 @@ static DRIVER_ATTR_RW(idx_addr);  static
+>DRIVER_ATTR_RW(idx_data);  static DRIVER_ATTR_RW(wqm_quanta);
+>
+>-static int nes_create_driver_sysfs(struct pci_driver *drv) -{
+>-	int error;
+>-	error  = driver_create_file(&drv->driver, &driver_attr_adapter);
+>-	error |= driver_create_file(&drv->driver, &driver_attr_eeprom_cmd);
+>-	error |= driver_create_file(&drv->driver, &driver_attr_eeprom_data);
+>-	error |= driver_create_file(&drv->driver, &driver_attr_flash_cmd);
+>-	error |= driver_create_file(&drv->driver, &driver_attr_flash_data);
+>-	error |= driver_create_file(&drv->driver, &driver_attr_nonidx_addr);
+>-	error |= driver_create_file(&drv->driver, &driver_attr_nonidx_data);
+>-	error |= driver_create_file(&drv->driver, &driver_attr_idx_addr);
+>-	error |= driver_create_file(&drv->driver, &driver_attr_idx_data);
+>-	error |= driver_create_file(&drv->driver, &driver_attr_wqm_quanta);
+>-	return error;
+>-}
+>-
+>-static void nes_remove_driver_sysfs(struct pci_driver *drv) -{
+>-	driver_remove_file(&drv->driver, &driver_attr_adapter);
+>-	driver_remove_file(&drv->driver, &driver_attr_eeprom_cmd);
+>-	driver_remove_file(&drv->driver, &driver_attr_eeprom_data);
+>-	driver_remove_file(&drv->driver, &driver_attr_flash_cmd);
+>-	driver_remove_file(&drv->driver, &driver_attr_flash_data);
+>-	driver_remove_file(&drv->driver, &driver_attr_nonidx_addr);
+>-	driver_remove_file(&drv->driver, &driver_attr_nonidx_data);
+>-	driver_remove_file(&drv->driver, &driver_attr_idx_addr);
+>-	driver_remove_file(&drv->driver, &driver_attr_idx_data);
+>-	driver_remove_file(&drv->driver, &driver_attr_wqm_quanta);
+>-}
+>+static struct attribute *nes_attrs[] = {
+>+	&driver_attr_adapter,
+>+	&driver_attr_eeprom_cmd,
+>+	&driver_attr_eeprom_data,
+>+	&driver_attr_flash_cmd,
+>+	&driver_attr_flash_data,
+>+	&driver_attr_nonidx_addr,
+>+	&driver_attr_nonidx_data,
+>+	&driver_attr_idx_addr,
+>+	&driver_attr_idx_data,
+>+	&driver_attr_wqm_quanta,
+>+	NULL,
+>+};
+>+ATTRIBUTE_GROUPS(nes);
+>+
+>+static struct pci_driver nes_pci_driver = {
+>+	.name = DRV_NAME,
+>+	.id_table = nes_pci_table,
+>+	.probe = nes_probe,
+>+	.remove = nes_remove,
+>+	.groups = nes_groups,
+>+};
+>+
+>
+> /**
+>  * nes_init_module - module initialization entry point @@ -1192,20 +1179,13
+>@@ static void nes_remove_driver_sysfs(stru  static int __init
+>nes_init_module(void)  {
+> 	int retval;
+>-	int retval1;
+>
+> 	retval = nes_cm_start();
+> 	if (retval) {
+> 		printk(KERN_ERR PFX "Unable to start NetEffect iWARP
+>CM.\n");
+> 		return retval;
+> 	}
+>-	retval = pci_register_driver(&nes_pci_driver);
+>-	if (retval >= 0) {
+>-		retval1 = nes_create_driver_sysfs(&nes_pci_driver);
+>-		if (retval1 < 0)
+>-			printk(KERN_ERR PFX "Unable to create NetEffect sys
+>files.\n");
+>-	}
+>-	return retval;
+>+	return pci_register_driver(&nes_pci_driver);
+> }
+>
+>
+>@@ -1215,7 +1195,6 @@ static int __init nes_init_module(void)  static void
+>__exit nes_exit_module(void)  {
+> 	nes_cm_stop();
+>-	nes_remove_driver_sysfs(&nes_pci_driver);
+>
+> 	pci_unregister_driver(&nes_pci_driver);
+> }
+>--- a/drivers/pci/pci-driver.c
+>+++ b/drivers/pci/pci-driver.c
+>@@ -1307,6 +1307,7 @@ int __pci_register_driver(struct pci_dri
+> 	drv->driver.bus = &pci_bus_type;
+> 	drv->driver.owner = owner;
+> 	drv->driver.mod_name = mod_name;
+>+	drv->driver.groups = drv->groups;
+>
+> 	spin_lock_init(&drv->dynids.lock);
+> 	INIT_LIST_HEAD(&drv->dynids.list);
+>--- a/include/linux/pci.h
+>+++ b/include/linux/pci.h
+>@@ -729,6 +729,7 @@ struct pci_driver {
+> 	void (*shutdown) (struct pci_dev *dev);
+> 	int (*sriov_configure) (struct pci_dev *dev, int num_vfs); /* PF pdev */
+> 	const struct pci_error_handlers *err_handler;
+>+	const struct attribute_group **groups;
+> 	struct device_driver	driver;
+> 	struct pci_dynids dynids;
+> };
