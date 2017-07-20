@@ -1,7 +1,7 @@
 From: Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: [RFC net-next 06/10] net/smc: remove Kconfig warning
-Date: Thu, 20 Jul 2017 14:09:42 +0200
-Message-ID: <20170720120946.67234-7-ubraun@linux.vnet.ibm.com>
+Subject: [RFC net-next 09/10] net/smc: cleanup function __smc_buf_create()
+Date: Thu, 20 Jul 2017 14:09:45 +0200
+Message-ID: <20170720120946.67234-10-ubraun@linux.vnet.ibm.com>
 References: <20170720120946.67234-1-ubraun@linux.vnet.ibm.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170720120946.67234-1-ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
@@ -10,30 +10,153 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: hch-jcswGhMUV9g@public.gmane.org, schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, hwippel-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, raspl-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Now separate memory regions are created and registered for separate
-RMBs. The unsafe_global_rkey of the protection domain is no longer
-used. Thus the exposing memory warning can be removed.
+Split function __smc_buf_create() for better readability.
 
 Signed-off-by: Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 ---
- net/smc/Kconfig | 4 ----
- 1 file changed, 4 deletions(-)
+ net/smc/smc_core.c | 111 ++++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 62 insertions(+), 49 deletions(-)
 
-diff --git a/net/smc/Kconfig b/net/smc/Kconfig
-index 33954852f3f8..c717ef0896aa 100644
---- a/net/smc/Kconfig
-+++ b/net/smc/Kconfig
-@@ -8,10 +8,6 @@ config SMC
- 	  The Linux implementation of the SMC-R solution is designed as
- 	  a separate socket family SMC.
+diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+index 744a61f21572..3232ae2d32e3 100644
+--- a/net/smc/smc_core.c
++++ b/net/smc/smc_core.c
+@@ -487,6 +487,64 @@ static inline int smc_rmb_wnd_update_limit(int rmbe_size)
+ 	return min_t(int, rmbe_size / 10, SOCK_MIN_SNDBUF / 2);
+ }
  
--	  Warning: SMC will expose all memory for remote reads and writes
--	  once a connection is established.  Don't enable this option except
--	  for tightly controlled lab environment.
++static struct smc_buf_desc *smc_new_buf_create(struct smc_link_group *lgr,
++					       bool is_rmb, int bufsize)
++{
++	struct smc_buf_desc *buf_desc;
++	struct smc_link *lnk;
++	int rc;
++
++	/* try to alloc a new buffer */
++	buf_desc = kzalloc(sizeof(*buf_desc), GFP_KERNEL);
++	if (!buf_desc)
++		return ERR_PTR(-ENOMEM);
++
++	buf_desc->cpu_addr =
++		(void *)__get_free_pages(GFP_KERNEL | __GFP_NOWARN |
++					 __GFP_NOMEMALLOC |
++					 __GFP_NORETRY | __GFP_ZERO,
++					 get_order(bufsize));
++	if (!buf_desc->cpu_addr) {
++		kfree(buf_desc);
++		return NULL;
++	}
++	buf_desc->order = get_order(bufsize);
++
++	/* build the sg table from the pages */
++	lnk = &lgr->lnk[SMC_SINGLE_LINK];
++	rc = sg_alloc_table(&buf_desc->sgt[SMC_SINGLE_LINK], 1,
++			    GFP_KERNEL);
++	if (rc) {
++		smc_buf_free(buf_desc, lnk, is_rmb);
++		return NULL;
++	}
++	sg_set_buf(buf_desc->sgt[SMC_SINGLE_LINK].sgl,
++		   buf_desc->cpu_addr, bufsize);
++
++	/* map sg table to DMA address */
++	rc = smc_ib_buf_map_sg(lnk->smcibdev, buf_desc,
++			       is_rmb ? DMA_FROM_DEVICE : DMA_TO_DEVICE);
++	/* SMC protocol depends on mapping to one DMA address only */
++	if (rc != 1)  {
++		smc_buf_free(buf_desc, lnk, is_rmb);
++		return NULL;
++	}
++
++	/* create a new memory region for the RMB */
++	if (is_rmb) {
++		rc = smc_ib_get_memory_region(lnk->roce_pd,
++					      IB_ACCESS_REMOTE_WRITE |
++					      IB_ACCESS_LOCAL_WRITE,
++					      buf_desc);
++		if (rc) {
++			smc_buf_free(buf_desc, lnk, is_rmb);
++			return NULL;
++		}
++	}
++
++	return buf_desc;
++}
++
+ static int __smc_buf_create(struct smc_sock *smc, bool is_rmb)
+ {
+ 	struct smc_connection *conn = &smc->conn;
+@@ -494,12 +552,9 @@ struct smc_link_group *lgr = conn->lgr;
+ 	struct smc_buf_desc *buf_desc = NULL;
+ 	struct list_head *buf_list;
+ 	int bufsize, bufsize_short;
+-	struct smc_link *lnk;
+ 	int sk_buf_size;
+ 	rwlock_t *lock;
+-	int rc;
+ 
+-	lnk = &lgr->lnk[SMC_SINGLE_LINK];
+ 	if (is_rmb)
+ 		/* use socket recv buffer size (w/o overhead) as start value */
+ 		sk_buf_size = smc->sk.sk_rcvbuf / 2;
+@@ -528,53 +583,11 @@ struct smc_link_group *lgr = conn->lgr;
+ 			break; /* found reusable slot */
+ 		}
+ 
+-		/* try to allocate the determined number of pages */
+-		buf_desc = kzalloc(sizeof(*buf_desc), GFP_KERNEL);
++		buf_desc = smc_new_buf_create(lgr, is_rmb, bufsize);
++		if (IS_ERR(buf_desc))
++			break;
+ 		if (!buf_desc)
+-			break; /* give up with -ENOMEM */
 -
- 	  Select this option if you want to run SMC socket applications
+-		buf_desc->cpu_addr =
+-			(void *)__get_free_pages(GFP_KERNEL | __GFP_NOWARN |
+-						 __GFP_NOMEMALLOC |
+-						 __GFP_NORETRY | __GFP_ZERO,
+-						 get_order(bufsize));
+-		if (!buf_desc->cpu_addr) {
+-			kfree(buf_desc);
+-			continue;
+-		}
+-
+-		rc = sg_alloc_table(&buf_desc->sgt[SMC_SINGLE_LINK], 1,
+-				    GFP_KERNEL);
+-		if (rc) {
+-			smc_buf_free(buf_desc, lnk, is_rmb);
+-			buf_desc = NULL;
+-			continue;
+-		}
+-		sg_set_buf(buf_desc->sgt[SMC_SINGLE_LINK].sgl,
+-			   buf_desc->cpu_addr, bufsize);
+-
+-		/* map sg table to DMA address */
+-		rc = smc_ib_buf_map_sg(lnk->smcibdev, buf_desc, is_rmb ?
+-				       DMA_FROM_DEVICE : DMA_TO_DEVICE);
+-		/* SMC protocol depends on mapping to one DMA address only */
+-		if (rc != 1)  {
+-			smc_buf_free(buf_desc, lnk, is_rmb);
+-			buf_desc = NULL;
+-		continue; /* if mapping failed, try smaller one */
+-		}
+-
+-		/* create a new memory region for the RMB */
+-		if (is_rmb) {
+-			rc = smc_ib_get_memory_region(lnk->roce_pd,
+-						      IB_ACCESS_REMOTE_WRITE |
+-						      IB_ACCESS_LOCAL_WRITE,
+-						      buf_desc);
+-			if (rc) {
+-				smc_buf_free(buf_desc, lnk, is_rmb);
+-				buf_desc = NULL;
+-				continue;
+-			}
+-		}
++			break;
  
- config SMC_DIAG
+ 		buf_desc->used = 1;
+ 		write_lock_bh(lock);
 -- 
 2.11.2
 
