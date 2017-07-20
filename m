@@ -1,44 +1,48 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [RFC net-next 05/10] net/smc: register RMB-related memory region
-Date: Thu, 20 Jul 2017 15:47:58 +0000
-Message-ID: <VI1PR0502MB3008076F1BFEDFD0619740A7D1A70@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <20170720120946.67234-1-ubraun@linux.vnet.ibm.com>
- <20170720120946.67234-6-ubraun@linux.vnet.ibm.com>
- <8df0459f-b2be-53f1-a7c3-388ca22a128c@grimberg.me>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: CFP: RDMA Microconference - Call for presentations
+Date: Thu, 20 Jul 2017 12:02:34 -0400
+Message-ID: <aa1dc549-ce54-d5b7-00e6-0fe07a5f3736@intel.com>
+References: <20170615050305.GF17846@mtr-leonro.local>
+ <20170720040739.GU3259@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <8df0459f-b2be-53f1-a7c3-388ca22a128c-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <20170720040739.GU3259-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "hwippel-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <hwippel-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "raspl-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <raspl-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, RDMA mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tzahi Oved <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtcmRtYS1vd25l
-ckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLQ0KPiBvd25lckB2Z2VyLmtlcm5l
-bC5vcmddIE9uIEJlaGFsZiBPZiBTYWdpIEdyaW1iZXJnDQo+IFNlbnQ6IFRodXJzZGF5LCBKdWx5
-IDIwLCAyMDE3IDEwOjE4IEFNDQo+IFRvOiBVcnN1bGEgQnJhdW4gPHVicmF1bkBsaW51eC52bmV0
-LmlibS5jb20+OyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZw0KPiBDYzogaGNoQGxzdC5kZTsg
-c2Nod2lkZWZza3lAZGUuaWJtLmNvbTsgaGVpa28uY2Fyc3RlbnNAZGUuaWJtLmNvbTsNCj4gaHdp
-cHBlbEBsaW51eC52bmV0LmlibS5jb207IHJhc3BsQGxpbnV4LnZuZXQuaWJtLmNvbQ0KPiBTdWJq
-ZWN0OiBSZTogW1JGQyBuZXQtbmV4dCAwNS8xMF0gbmV0L3NtYzogcmVnaXN0ZXIgUk1CLXJlbGF0
-ZWQgbWVtb3J5IHJlZ2lvbg0KPiANCj4gPiBBIG1lbW9yeSByZWdpb24gY3JlYXRlZCBmb3IgYSBu
-ZXcgUk1CIG11c3QgYmUgcmVnaXN0ZXJlZCBleHBsaWNpdGx5LA0KPiA+IGJlZm9yZSB0aGUgcGVl
-ciBjYW4gbWFrZSB1c2Ugb2YgaXQgZm9yIHJlbW90ZSBETUEgdHJhbnNmZXIuDQo+IA0KPiBPSywg
-Tm93IEkgdW5kZXJzdGFuZCB0aGUgc2dsIGNvbnN0cnVjdGlvbiBpbiB0aGUgcHJldmlvdXMgcGF0
-Y2guDQo+IA0KPiBXZSBnb3QgcmlkIG9mIHRoZSBzeW5jaHJvbm91cyBtZW1vcnkgcmVnaXN0cmF0
-aW9uIEFQSSBpbiB0aGUga2VybmVsIGluIHRoZQ0KPiBhYnNlbmNlIG9mIHVzZXJzLCBidXQgbm93
-IHdpdGggc21jIHdlIG1pZ2h0IHdhbnQgdG8gcmVzdG9yZSBpdCBiZWNhdXNlIGxvb2tpbmcNCj4g
-YXQgdGhlIHBhdGNoc2V0LCB0aGUgZmFzdCBtZW1vcnkgcmVnaXN0cmF0aW9uIHNjaGVtZSBpcyBv
-YnZpb3VzbHkgbm90IGEgZ29vZCBmaXQuDQo+IA0KPiBGb3IgdGhlIHNpbXBsZSBzbWMgdXNlIGNh
-c2UgdGhlIEFQSSBzaG91bGQgYmUgYXMgc2ltcGxlIGFzOg0KPiANCj4gaWJfcmVnX2NvbnRpZ19t
-cihzdHJ1Y3QgaWJfcGQgKnBkLCB2b2lkICphZGRyLCBzaXplX3QgbGVuZ3RoKTsNCj4gDQo+IERv
-IHlvdSBoYXZlIGEgdXNlLWNhc2UgZm9yIHNjYXR0ZXJlZCBidWZmZXJzIG1lbW9yeSByZWdpc3Ry
-YXRpb24/DQoNCnNlbmRtc2coKSBjYWxsIG1zZ2hkci0+bXNnX2lvdiBhcnJheSBjYW4gcmVwcmVz
-ZW50IG5vbiBwYWdlIGFsaWduZWQgbWVtb3J5IHZlY3RvcnMsIHRoYXQgY2FuIGJlIHRyYW5zbWl0
-dGVkIHdpdGhvdXQgZG9pbmcgYW55IGNvcHkgaW4ga2VybmVsPw0KDQo=
+On 7/20/2017 12:07 AM, Leon Romanovsky wrote:
+> REMINDER !!!!!!!
+> 
+> On Thu, Jun 15, 2017 at 08:03:05AM +0300, Leon Romanovsky wrote:
+>> Hi All,
+>>
+>> We want to point your attention to the following [1] announcement that
+>> RDMA microconference is accepted into LPC 2017.
+>>
+>> This is a call for presentations for the 2nd RDMA microconference which will be
+>> held on September 13-15 in Los Angeles, CA. The event is intended to gather
+>> developers of the RDMA stack and the main intent is to provide room for discussion
+>> between developers with focus on resolving things.
+>>
+>> If you are interested to present, please submit a proposal to
+>> leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org and/or to Linux RDMA mailing list linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> before August 14th, 2017, at 23:59 EST.
+
+> 
+> 
+
+Have exchanged a separate email thread with Leon. I am planning to 
+attend and present for a discussion on how we can add statistics to RDMA 
+Tool. This will focus on device related counters and how an architecture 
+could look that is easy to add more counters and have different counters 
+across devices without requiring a lot of updates to the user space tool.
+
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
