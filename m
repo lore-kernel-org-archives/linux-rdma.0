@@ -1,35 +1,44 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [RFC net-next 05/10] net/smc: register RMB-related memory region
-Date: Thu, 20 Jul 2017 18:17:48 +0300
-Message-ID: <8df0459f-b2be-53f1-a7c3-388ca22a128c@grimberg.me>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [RFC net-next 05/10] net/smc: register RMB-related memory region
+Date: Thu, 20 Jul 2017 15:47:58 +0000
+Message-ID: <VI1PR0502MB3008076F1BFEDFD0619740A7D1A70@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 References: <20170720120946.67234-1-ubraun@linux.vnet.ibm.com>
  <20170720120946.67234-6-ubraun@linux.vnet.ibm.com>
+ <8df0459f-b2be-53f1-a7c3-388ca22a128c@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170720120946.67234-6-ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <8df0459f-b2be-53f1-a7c3-388ca22a128c-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: hch-jcswGhMUV9g@public.gmane.org, schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, hwippel-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, raspl-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "hwippel-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <hwippel-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "raspl-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org" <raspl-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> A memory region created for a new RMB must be registered explicitly,
-> before the peer can make use of it for remote DMA transfer.
-
-OK, Now I understand the sgl construction in the previous patch.
-
-We got rid of the synchronous memory registration API in the kernel
-in the absence of users, but now with smc we might want to restore
-it because looking at the patchset, the fast memory registration
-scheme is obviously not a good fit.
-
-For the simple smc use case the API should be as simple as:
-
-ib_reg_contig_mr(struct ib_pd *pd, void *addr, size_t length);
-
-Do you have a use-case for scattered buffers memory registration?
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtcmRtYS1vd25l
+ckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLQ0KPiBvd25lckB2Z2VyLmtlcm5l
+bC5vcmddIE9uIEJlaGFsZiBPZiBTYWdpIEdyaW1iZXJnDQo+IFNlbnQ6IFRodXJzZGF5LCBKdWx5
+IDIwLCAyMDE3IDEwOjE4IEFNDQo+IFRvOiBVcnN1bGEgQnJhdW4gPHVicmF1bkBsaW51eC52bmV0
+LmlibS5jb20+OyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZw0KPiBDYzogaGNoQGxzdC5kZTsg
+c2Nod2lkZWZza3lAZGUuaWJtLmNvbTsgaGVpa28uY2Fyc3RlbnNAZGUuaWJtLmNvbTsNCj4gaHdp
+cHBlbEBsaW51eC52bmV0LmlibS5jb207IHJhc3BsQGxpbnV4LnZuZXQuaWJtLmNvbQ0KPiBTdWJq
+ZWN0OiBSZTogW1JGQyBuZXQtbmV4dCAwNS8xMF0gbmV0L3NtYzogcmVnaXN0ZXIgUk1CLXJlbGF0
+ZWQgbWVtb3J5IHJlZ2lvbg0KPiANCj4gPiBBIG1lbW9yeSByZWdpb24gY3JlYXRlZCBmb3IgYSBu
+ZXcgUk1CIG11c3QgYmUgcmVnaXN0ZXJlZCBleHBsaWNpdGx5LA0KPiA+IGJlZm9yZSB0aGUgcGVl
+ciBjYW4gbWFrZSB1c2Ugb2YgaXQgZm9yIHJlbW90ZSBETUEgdHJhbnNmZXIuDQo+IA0KPiBPSywg
+Tm93IEkgdW5kZXJzdGFuZCB0aGUgc2dsIGNvbnN0cnVjdGlvbiBpbiB0aGUgcHJldmlvdXMgcGF0
+Y2guDQo+IA0KPiBXZSBnb3QgcmlkIG9mIHRoZSBzeW5jaHJvbm91cyBtZW1vcnkgcmVnaXN0cmF0
+aW9uIEFQSSBpbiB0aGUga2VybmVsIGluIHRoZQ0KPiBhYnNlbmNlIG9mIHVzZXJzLCBidXQgbm93
+IHdpdGggc21jIHdlIG1pZ2h0IHdhbnQgdG8gcmVzdG9yZSBpdCBiZWNhdXNlIGxvb2tpbmcNCj4g
+YXQgdGhlIHBhdGNoc2V0LCB0aGUgZmFzdCBtZW1vcnkgcmVnaXN0cmF0aW9uIHNjaGVtZSBpcyBv
+YnZpb3VzbHkgbm90IGEgZ29vZCBmaXQuDQo+IA0KPiBGb3IgdGhlIHNpbXBsZSBzbWMgdXNlIGNh
+c2UgdGhlIEFQSSBzaG91bGQgYmUgYXMgc2ltcGxlIGFzOg0KPiANCj4gaWJfcmVnX2NvbnRpZ19t
+cihzdHJ1Y3QgaWJfcGQgKnBkLCB2b2lkICphZGRyLCBzaXplX3QgbGVuZ3RoKTsNCj4gDQo+IERv
+IHlvdSBoYXZlIGEgdXNlLWNhc2UgZm9yIHNjYXR0ZXJlZCBidWZmZXJzIG1lbW9yeSByZWdpc3Ry
+YXRpb24/DQoNCnNlbmRtc2coKSBjYWxsIG1zZ2hkci0+bXNnX2lvdiBhcnJheSBjYW4gcmVwcmVz
+ZW50IG5vbiBwYWdlIGFsaWduZWQgbWVtb3J5IHZlY3RvcnMsIHRoYXQgY2FuIGJlIHRyYW5zbWl0
+dGVkIHdpdGhvdXQgZG9pbmcgYW55IGNvcHkgaW4ga2VybmVsPw0KDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
