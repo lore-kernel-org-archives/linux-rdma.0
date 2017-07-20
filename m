@@ -1,55 +1,76 @@
-From: =?utf-8?Q?H=C3=A5kon_Bugge?= <haakon.bugge@oracle.com>
-Subject: Re: [PATCH net] rds: Make sure updates to cp_send_gen can be observed
-Date: Thu, 20 Jul 2017 13:24:11 +0200
-Message-ID: <0EE3287D-4537-4B43-9899-FCC2F50A666F@oracle.com>
-References: <20170720102855.21961-1-Haakon.Bugge@oracle.com> <20170720110254.GB14156@oracle.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170720110254.GB14156@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>, "David S . Miller" <davem@davemloft.net>, netdev@vger.kernel.org, OFED mailing list <linux-rdma@vger.kernel.org>, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
+From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [bug report] IB/hns: Fix the bug of polling cq failed for
+ loopback Qps
+Date: Thu, 20 Jul 2017 19:41:53 +0800
+Message-ID: <777e2bb3-4f35-4415-835d-ca87ce4a34bf@huawei.com>
+References: <20170719114829.sctq34wns6h6zvxz@mwanda>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170719114829.sctq34wns6h6zvxz@mwanda>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, huwei <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Xushaobo (Elliott)" <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Chenxin (Charles)" <charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, weihaifeng <haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, liudongdong <liudongdong3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+在 2017/7/19 19:48, Dan Carpenter 写道:
+> Hello oulijun,
+>
+> This is a semi-automatic email about new static checker warnings.
+>
+> The patch 5802883d4b7c: "IB/hns: Fix the bug of polling cq failed for
+> loopback Qps" from Jun 10, 2017, leads to the following Smatch
+> complaint:
+>
+>     drivers/infiniband/hw/hns/hns_roce_hw_v1.c:1009 hns_roce_v1_mr_free_work_fn()
+>     error: we previously assumed 'hr_qp' could be null (see line 991)
+>
+> drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+>    989          for (i = 0; i < HNS_ROCE_V1_RESV_QP; i++) {
+>    990			hr_qp = free_mr->mr_free_qp[i];
+>    991			if (!hr_qp)
+>                              ^^^^^
+> New check for NULL.  Assume it happens on the last iteration through the
+> loop.
+Hi, Dan
+    Thank you for reporting.
+   It may be a question. I will check it and send a ptch to fix it at soon.
 
-> On 20 Jul 2017, at 13:02, Sowmini Varadhan <sowmini.varadhan@oracle.com> wrote:
-> 
-> On (07/20/17 12:28), H??kon Bugge wrote:
->> cp->cp_send_gen is treated as a normal variable, although it may be
->> used by different threads.
-> 
-> I'm confused by that assertion. If you look at the comments right
-> above the change in your patch, there is a note that 
-> acquire_in_xmit/release_in_xmit are the synchronization/serialization 
-> points.
-> 
-> Can you please clarify?
+Thanks
+Lijun Ou
+>    992				continue;
+>    993			ne++;
+>    994	
+>    995			ret = hns_roce_v1_send_lp_wqe(hr_qp);
+>    996			if (ret) {
+>    997				dev_err(dev,
+>    998				     "Send wqe (qp:0x%lx) for mr free failed(%d)!\n",
+>    999				     hr_qp->qpn, ret);
+>   1000				goto free_work;
+>   1001			}
+>   1002		}
+>   1003	
+>   1004		do {
+>   1005			ret = hns_roce_v1_poll_cq(&mr_free_cq->ib_cq, ne, wc);
+>   1006			if (ret < 0) {
+>   1007				dev_err(dev,
+>   1008				   "(qp:0x%lx) starts, Poll cqe failed(%d) for mr 0x%x free! Remain %d cqe\n",
+>   1009				   hr_qp->qpn, ret, hr_mr->key, ne);
+>                                    ^^^^^^^^^^
+> Unchecked dereference.
+>
+>   1010				goto free_work;
+>   1011			}
+>
+> regards,
+> dan carpenter
+>
+> .
+>
 
-The way the original code works, is that it is allowed for the compiler to keep the value of “cp->cp_send_gen + 1” in a register. The compiler has no requirement to store this value to memory, before leaving the function or calling another one.
 
-Further, said register can be used in the comparison outside the acquire_in_xmit/release_in_xmit, at which point another thread may have changed its value.
-
-
-Thxs, Håkon
-
-> 
->> --- a/net/rds/send.c
->> +++ b/net/rds/send.c
->> @@ -170,8 +170,8 @@ int rds_send_xmit(struct rds_conn_path *cp)
->> 	 * The acquire_in_xmit() check above ensures that only one
->> 	 * caller can increment c_send_gen at any time.
->> 	 */
->> -	cp->cp_send_gen++;
->> -	send_gen = cp->cp_send_gen;
->> +	send_gen = READ_ONCE(cp->cp_send_gen) + 1;
->> +	WRITE_ONCE(cp->cp_send_gen, send_gen);
->> 
-> 
-> --Sowmini
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
