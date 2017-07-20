@@ -1,27 +1,161 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [RFC net-next 00/10] net/smc: get rid of unsafe_global_rkey
-Date: Thu, 20 Jul 2017 18:06:30 +0300
-Message-ID: <399c6d1a-b92d-f3ee-ed07-7a5414f93662@grimberg.me>
+Subject: Re: [RFC net-next 03/10] net/smc: introduce sg-logic for RMBs
+Date: Thu, 20 Jul 2017 18:13:08 +0300
+Message-ID: <9db2ab4f-744a-0b6f-8ac6-39a33bb2b16e@grimberg.me>
 References: <20170720120946.67234-1-ubraun@linux.vnet.ibm.com>
+ <20170720120946.67234-4-ubraun@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170720120946.67234-1-ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <20170720120946.67234-4-ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: hch-jcswGhMUV9g@public.gmane.org, schwidefsky-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, hwippel-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, raspl-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Ursula,
 
-> The smc code uses the unsafe_global_rkey, exposing all memory for
-> remote reads and writes once a connection is established.
-> Here is now a patch series to get rid of unsafe_global_rkey usage.
-> Main idea is to switch to SG-logic and separate memory regions for RMBs.
 
-Very glad to see this set. Thanks for following up on it.
+On 20/07/17 15:09, Ursula Braun wrote:
+> The follow-on patch makes use of ib_map_mr_sg() when introducing
+> separate memory regions for RMBs. This function is based on
+> scatterlists; thus this patch introduces scatterlists for RMBs.
+> 
+> Signed-off-by: Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+> ---
+>   net/smc/smc_clc.c  | 12 ++++++------
+>   net/smc/smc_core.c | 47 +++++++++++++++++++++++++++++++----------------
+>   net/smc/smc_core.h |  6 ++----
+>   net/smc/smc_ib.c   | 31 +++++++++++++++++++++++++++++++
+>   net/smc/smc_ib.h   |  6 ++++++
+>   5 files changed, 76 insertions(+), 26 deletions(-)
+> 
+> diff --git a/net/smc/smc_clc.c b/net/smc/smc_clc.c
+> index 03ec058d18df..15cb76019009 100644
+> --- a/net/smc/smc_clc.c
+> +++ b/net/smc/smc_clc.c
+> @@ -204,13 +204,13 @@ int smc_clc_send_confirm(struct smc_sock *smc)
+>   	memcpy(&cclc.lcl.mac, &link->smcibdev->mac[link->ibport - 1], ETH_ALEN);
+>   	hton24(cclc.qpn, link->roce_qp->qp_num);
+>   	cclc.rmb_rkey =
+> -		htonl(conn->rmb_desc->rkey[SMC_SINGLE_LINK]);
+> +		htonl(link->roce_pd->unsafe_global_rkey);
+>   	cclc.conn_idx = 1; /* for now: 1 RMB = 1 RMBE */
+>   	cclc.rmbe_alert_token = htonl(conn->alert_token_local);
+>   	cclc.qp_mtu = min(link->path_mtu, link->peer_mtu);
+>   	cclc.rmbe_size = conn->rmbe_size_short;
+> -	cclc.rmb_dma_addr =
+> -		cpu_to_be64((u64)conn->rmb_desc->dma_addr[SMC_SINGLE_LINK]);
+> +	cclc.rmb_dma_addr = cpu_to_be64(
+> +		(u64)sg_dma_address(conn->rmb_desc->sgt[SMC_SINGLE_LINK].sgl));
+>   	hton24(cclc.psn, link->psn_initial);
+>   
+>   	memcpy(cclc.trl.eyecatcher, SMC_EYECATCHER, sizeof(SMC_EYECATCHER));
+> @@ -256,13 +256,13 @@ int smc_clc_send_accept(struct smc_sock *new_smc, int srv_first_contact)
+>   	memcpy(&aclc.lcl.mac, link->smcibdev->mac[link->ibport - 1], ETH_ALEN);
+>   	hton24(aclc.qpn, link->roce_qp->qp_num);
+>   	aclc.rmb_rkey =
+> -		htonl(conn->rmb_desc->rkey[SMC_SINGLE_LINK]);
+> +		htonl(link->roce_pd->unsafe_global_rkey);
+>   	aclc.conn_idx = 1;			/* as long as 1 RMB = 1 RMBE */
+>   	aclc.rmbe_alert_token = htonl(conn->alert_token_local);
+>   	aclc.qp_mtu = link->path_mtu;
+>   	aclc.rmbe_size = conn->rmbe_size_short,
+> -	aclc.rmb_dma_addr =
+> -		cpu_to_be64((u64)conn->rmb_desc->dma_addr[SMC_SINGLE_LINK]);
+> +	aclc.rmb_dma_addr = cpu_to_be64(
+> +		(u64)sg_dma_address(conn->rmb_desc->sgt[SMC_SINGLE_LINK].sgl));
+>   	hton24(aclc.psn, link->psn_initial);
+>   	memcpy(aclc.trl.eyecatcher, SMC_EYECATCHER, sizeof(SMC_EYECATCHER));
+>   
+> diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
+> index 6159488cb94b..bfdbda795f67 100644
+> --- a/net/smc/smc_core.c
+> +++ b/net/smc/smc_core.c
+> @@ -266,17 +266,16 @@ static void smc_lgr_free_sndbufs(struct smc_link_group *lgr)
+>   
+>   static void smc_lgr_free_rmbs(struct smc_link_group *lgr)
+>   {
+> -	struct smc_buf_desc *rmb_desc, *bf_desc;
+>   	struct smc_link *lnk = &lgr->lnk[SMC_SINGLE_LINK];
+> +	struct smc_buf_desc *rmb_desc, *bf_desc;
+>   	int i;
+>   
+>   	for (i = 0; i < SMC_RMBE_SIZES; i++) {
+>   		list_for_each_entry_safe(rmb_desc, bf_desc, &lgr->rmbs[i],
+>   					 list) {
+>   			list_del(&rmb_desc->list);
+> -			smc_ib_buf_unmap(lnk->smcibdev,
+> -					 smc_uncompress_bufsize(i),
+> -					 rmb_desc, DMA_FROM_DEVICE);
+> +			smc_ib_buf_unmap_sg(lnk->smcibdev, rmb_desc,
+> +					    DMA_FROM_DEVICE);
+>   			kfree(rmb_desc->cpu_addr);
+>   			kfree(rmb_desc);
+>   		}
+> @@ -580,38 +579,54 @@ int smc_rmb_create(struct smc_sock *smc)
+>   	for (bufsize_short = smc_compress_bufsize(smc->sk.sk_rcvbuf / 2);
+>   	     bufsize_short >= 0; bufsize_short--) {
+>   		bufsize = smc_uncompress_bufsize(bufsize_short);
+> +		if ((1 << get_order(bufsize)) > SG_MAX_SINGLE_ALLOC)
+> +			continue;
+> +
+>   		/* check for reusable rmb_slot in the link group */
+>   		rmb_desc = smc_rmb_get_slot(lgr, bufsize_short);
+>   		if (rmb_desc) {
+>   			memset(rmb_desc->cpu_addr, 0, bufsize);
+>   			break; /* found reusable slot */
+>   		}
+> +
+>   		/* try to alloc a new RMB */
+>   		rmb_desc = kzalloc(sizeof(*rmb_desc), GFP_KERNEL);
+>   		if (!rmb_desc)
+>   			break; /* give up with -ENOMEM */
+> -		rmb_desc->cpu_addr = kzalloc(bufsize,
+> -					     GFP_KERNEL | __GFP_NOWARN |
+> -					     __GFP_NOMEMALLOC |
+> -					     __GFP_NORETRY);
+> +		rmb_desc->cpu_addr =
+> +			(void *)__get_free_pages(GFP_KERNEL | __GFP_NOWARN |
+> +						 __GFP_NOMEMALLOC |
+> +						 __GFP_NORETRY | __GFP_ZERO,
+> +						 get_order(bufsize));
+>   		if (!rmb_desc->cpu_addr) {
+>   			kfree(rmb_desc);
+>   			rmb_desc = NULL;
+> -			/* if RMB allocation has failed,
+> -			 * try a smaller one
+> -			 */
+>   			continue;
+>   		}
+> -		rc = smc_ib_buf_map(lgr->lnk[SMC_SINGLE_LINK].smcibdev,
+> -				    bufsize, rmb_desc, DMA_FROM_DEVICE);
+> +		rmb_desc->order = get_order(bufsize);
+> +
+> +		rc = sg_alloc_table(&rmb_desc->sgt[SMC_SINGLE_LINK], 1,
+> +				    GFP_KERNEL);
+>   		if (rc) {
+> -			kfree(rmb_desc->cpu_addr);
+> +			free_pages((unsigned long)rmb_desc->cpu_addr,
+> +				   rmb_desc->order);
+> +			kfree(rmb_desc);
+> +			rmb_desc = NULL;
+> +			continue;
+> +		}
+> +		sg_set_buf(rmb_desc->sgt[SMC_SINGLE_LINK].sgl,
+> +			   rmb_desc->cpu_addr, bufsize);
+> +
+> +		rc = smc_ib_buf_map_sg(lgr->lnk[SMC_SINGLE_LINK].smcibdev,
+> +				       rmb_desc, DMA_FROM_DEVICE);
+> +		if (rc != 1)  {
+> +			sg_free_table(&rmb_desc->sgt[SMC_SINGLE_LINK]);
+> +			free_pages((unsigned long)rmb_desc->cpu_addr,
+> +				   rmb_desc->order);
+>   			kfree(rmb_desc);
+
+Hmm, this looks backwards. You allocate a contiguous buffer and then
+artificially construct an sg-list for it?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
