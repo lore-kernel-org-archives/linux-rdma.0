@@ -1,66 +1,60 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH] Add rdma service for kernel boot support
-Date: Thu, 20 Jul 2017 11:04:10 +0200
-Message-ID: <1500541450.4226.5.camel@profitbricks.com>
-References: <20170713172057.25411-1-benjamin.drung@profitbricks.com>
-         <1499968101.2740.10.camel@wdc.com>
-         <20170713182018.GE11069@obsidianresearch.com>
-         <1499970786.2740.17.camel@wdc.com>
-         <20170713221520.GA10088@obsidianresearch.com>
-         <1500026921.3563.27.camel@profitbricks.com>
-         <20170714155544.GA25760@obsidianresearch.com>
-         <1500049393.3563.42.camel@profitbricks.com>
-         <20170714164029.GA9942@obsidianresearch.com>
+From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <Haakon.Bugge@oracle.com>
+Subject: [PATCH net] rds: Make sure updates to cp_send_gen can be observed
+Date: Thu, 20 Jul 2017 12:28:55 +0200
+Message-ID: <20170720102855.21961-1-Haakon.Bugge@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170714164029.GA9942-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@oracle.com>, "David S . Miller" <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org, =?UTF-8?q?H=C3=A5kon=20Bugge?= <Haakon.Bugge@oracle.com>, =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Am Freitag, den 14.07.2017, 10:40 -0600 schrieb Jason Gunthorpe:
-> On Fri, Jul 14, 2017 at 06:23:13PM +0200, Benjamin Drung wrote:
-> 
-> > > My udev is not great, but something like this:
-> > > 
-> > > DRIVER=="mlx4_core", ACTION=="add", TAG+="systemd",
-> > > ENV{SYSTEMD_WANTS}="rdma-load-modules@mlx4"
-> > > 
-> > > Might work better? I think that triggers on driver bind? Could
-> > > you
-> > > try to switch your mlx and i40e drivers in that way?
-> > 
-> > I tried it. It works as expected. rdma-load-modules@mlx4 is loaded
-> > and 
-> > rdma-load-modules-QqjR1VyAyFhTDjBF/Jpztg@public.gmane.org is not loaded. Not tested if the
-> > udev
-> > trigger will also work for used built-in modules.
-> 
-> Okay, I will change it to be like that and we can see what people
-> think.
+cp->cp_send_gen is treated as a normal variable, although it may be
+used by different threads.
 
-Any updates?
+This is fixed by using {READ,WRITE}_ONCE when it is incremented and
+READ_ONCE when it is read outside the {acquire,release}_in_xmit
+protection.
 
+Normative reference from the Linux-Kernel Memory Model:
+
+    Loads from and stores to shared (but non-atomic) variables should
+    be protected with the READ_ONCE(), WRITE_ONCE(), and
+    ACCESS_ONCE().
+
+Clause 5.1.2.4/25 in the C standard is also relevant.
+
+Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+Reviewed-by: Knut Omang <knut.omang@oracle.com>
+---
+ net/rds/send.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/net/rds/send.c b/net/rds/send.c
+index 5cc6403..fa0368c 100644
+--- a/net/rds/send.c
++++ b/net/rds/send.c
+@@ -170,8 +170,8 @@ int rds_send_xmit(struct rds_conn_path *cp)
+ 	 * The acquire_in_xmit() check above ensures that only one
+ 	 * caller can increment c_send_gen at any time.
+ 	 */
+-	cp->cp_send_gen++;
+-	send_gen = cp->cp_send_gen;
++	send_gen = READ_ONCE(cp->cp_send_gen) + 1;
++	WRITE_ONCE(cp->cp_send_gen, send_gen);
+ 
+ 	/*
+ 	 * rds_conn_shutdown() sets the conn state and then tests RDS_IN_XMIT,
+@@ -431,7 +431,7 @@ int rds_send_xmit(struct rds_conn_path *cp)
+ 		smp_mb();
+ 		if ((test_bit(0, &conn->c_map_queued) ||
+ 		     !list_empty(&cp->cp_send_queue)) &&
+-		    send_gen == cp->cp_send_gen) {
++			send_gen == READ_ONCE(cp->cp_send_gen)) {
+ 			rds_stats_inc(s_send_lock_queue_raced);
+ 			if (batch_count < send_batch_count)
+ 				goto restart;
 -- 
-Benjamin Drung
-System Developer
-Debian & Ubuntu Developer
-
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
-
-Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-Web: https://www.profitbricks.com
-
-Sitz der Gesellschaft: Berlin.
-Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-Geschäftsführer: Achim Weiss.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.9.3
