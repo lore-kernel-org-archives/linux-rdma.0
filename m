@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH v2 rdma-core 2/8] verbs: Annotate ibv_send_wr with endian
-Date: Thu, 20 Jul 2017 11:00:58 -0600
-Message-ID: <1500570064-11712-3-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH v2 rdma-core 8/8] vmw_pvrdma: Add sparse annotations
+Date: Thu, 20 Jul 2017 11:01:04 -0600
+Message-ID: <1500570064-11712-9-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1500570064-11712-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1500570064-11712-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
@@ -9,54 +9,74 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <notifications-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This follows the scheme of used in the wc by introducing a
-transparent union in ibv_send_wr to indicate the invalidate_rkey
-is in host endian.
-
-Fixes: 32186550 ("verbs: Add be annotations to public headers")
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Tested-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Acked-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 ---
- libibverbs/man/ibv_post_send.3 | 7 ++++++-
- libibverbs/verbs.h             | 8 +++++++-
- 2 files changed, 13 insertions(+), 2 deletions(-)
+ CMakeLists.txt                | 2 +-
+ providers/vmw_pvrdma/pvrdma.h | 6 +++---
+ providers/vmw_pvrdma/verbs.c  | 7 +------
+ 3 files changed, 5 insertions(+), 10 deletions(-)
 
-diff --git a/libibverbs/man/ibv_post_send.3 b/libibverbs/man/ibv_post_send.3
-index ebbbb806882eca..d0ee275329d3ce 100644
---- a/libibverbs/man/ibv_post_send.3
-+++ b/libibverbs/man/ibv_post_send.3
-@@ -35,7 +35,12 @@ struct ibv_sge         *sg_list;                /* Pointer to the s/g array */
- int                     num_sge;                /* Size of the s/g array */
- enum ibv_wr_opcode      opcode;                 /* Operation type */
- int                     send_flags;             /* Flags of the WR properties */
--uint32_t                imm_data;               /* Immediate data (in network byte order) */
-+union {
-+.in +8
-+__be32                  imm_data;               /* Immediate data (in network byte order) */
-+uint32_t                invalidate_rkey;        /* Remote rkey to invalidate */
-+.in -8
-+};
- union {
- .in +8
- struct {
-diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index 997ef248b26b62..922a0116382067 100644
---- a/libibverbs/verbs.h
-+++ b/libibverbs/verbs.h
-@@ -941,7 +941,13 @@ struct ibv_send_wr {
- 	int			num_sge;
- 	enum ibv_wr_opcode	opcode;
- 	int			send_flags;
--	__be32			imm_data;
-+	/* When opcode is *_WITH_IMM: Immediate data in network byte order.
-+	 * When opcode is *_INV: Stores the rkey to invalidate
-+	 */
-+	union {
-+		__be32			imm_data;
-+		uint32_t		invalidate_rkey;
-+	};
- 	union {
- 		struct {
- 			uint64_t	remote_addr;
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index c2d6618ebd4601..1e9b1a363b7436 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -422,7 +422,7 @@ add_subdirectory(providers/mthca)
+ add_subdirectory(providers/nes) # NO SPARSE
+ add_subdirectory(providers/ocrdma)
+ add_subdirectory(providers/qedr)
+-add_subdirectory(providers/vmw_pvrdma) # NO SPARSE
++add_subdirectory(providers/vmw_pvrdma)
+ endif()
+ 
+ add_subdirectory(providers/hfi1verbs)
+diff --git a/providers/vmw_pvrdma/pvrdma.h b/providers/vmw_pvrdma/pvrdma.h
+index d4acefcedde154..7840e11ee7266c 100644
+--- a/providers/vmw_pvrdma/pvrdma.h
++++ b/providers/vmw_pvrdma/pvrdma.h
+@@ -152,7 +152,7 @@ struct pvrdma_qp {
+ 	struct pvrdma_buf		sbuf;
+ 	int				max_inline_data;
+ 	int				buf_size;
+-	uint32_t			sq_signal_bits;
++	__be32				sq_signal_bits;
+ 	int				sq_spare_wqes;
+ 	struct pvrdma_wq		sq;
+ 	struct pvrdma_wq		rq;
+@@ -210,12 +210,12 @@ static inline struct pvrdma_ah *to_vah(struct ibv_ah *ibah)
+ 
+ static inline void pvrdma_write_uar_qp(void *uar, unsigned value)
+ {
+-	*(uint32_t *)(uar + PVRDMA_UAR_QP_OFFSET) = htole32(value);
++	*(__le32 *)(uar + PVRDMA_UAR_QP_OFFSET) = htole32(value);
+ }
+ 
+ static inline void pvrdma_write_uar_cq(void *uar, unsigned value)
+ {
+-	*(uint32_t *)(uar + PVRDMA_UAR_CQ_OFFSET) = htole32(value);
++	*(__le32 *)(uar + PVRDMA_UAR_CQ_OFFSET) = htole32(value);
+ }
+ 
+ static inline int ibv_send_flags_to_pvrdma(int flags)
+diff --git a/providers/vmw_pvrdma/verbs.c b/providers/vmw_pvrdma/verbs.c
+index 0a07748da513aa..1bb1634863a6e9 100644
+--- a/providers/vmw_pvrdma/verbs.c
++++ b/providers/vmw_pvrdma/verbs.c
+@@ -154,12 +154,7 @@ static int is_multicast_gid(const union ibv_gid *gid)
+ 
+ static int is_link_local_gid(const union ibv_gid *gid)
+ {
+-	uint32_t *hi = (uint32_t *)(gid->raw);
+-	uint32_t *lo = (uint32_t *)(gid->raw + 4);
+-	if (hi[0] == htobe32(0xfe800000) && lo[0] == 0)
+-		return 1;
+-
+-	return 0;
++	return gid->global.subnet_prefix == htobe64(0xfe80000000000000ULL);
+ }
+ 
+ static int is_ipv6_addr_v4mapped(const struct in6_addr *a)
 -- 
 2.7.4
 
