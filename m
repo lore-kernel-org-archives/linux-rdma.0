@@ -1,79 +1,52 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] Add rdma service for kernel boot support
-Date: Thu, 20 Jul 2017 20:45:19 -0600
-Message-ID: <20170721024519.GA24581@obsidianresearch.com>
-References: <20170713172057.25411-1-benjamin.drung@profitbricks.com>
- <1499968101.2740.10.camel@wdc.com>
- <20170713182018.GE11069@obsidianresearch.com>
- <1499970786.2740.17.camel@wdc.com>
- <20170713221520.GA10088@obsidianresearch.com>
- <1500026921.3563.27.camel@profitbricks.com>
- <20170714155544.GA25760@obsidianresearch.com>
- <1500049393.3563.42.camel@profitbricks.com>
- <20170714164029.GA9942@obsidianresearch.com>
- <1500541450.4226.5.camel@profitbricks.com>
+From: Ursula Braun <ubraun-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [RFC net-next 05/10] net/smc: register RMB-related memory region
+Date: Fri, 21 Jul 2017 09:47:36 +0200
+Message-ID: <287e9962-0a05-df51-40ec-e4f46fc2cade@linux.vnet.ibm.com>
+References: <20170720120946.67234-1-ubraun@linux.vnet.ibm.com>
+ <20170720120946.67234-6-ubraun@linux.vnet.ibm.com>
+ <8df0459f-b2be-53f1-a7c3-388ca22a128c@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1500541450.4226.5.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <8df0459f-b2be-53f1-a7c3-388ca22a128c-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: hwippel-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, raspl-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 20, 2017 at 11:04:10AM +0200, Benjamin Drung wrote:
-> Am Freitag, den 14.07.2017, 10:40 -0600 schrieb Jason Gunthorpe:
-> > On Fri, Jul 14, 2017 at 06:23:13PM +0200, Benjamin Drung wrote:
-> > 
-> > > > My udev is not great, but something like this:
-> > > > 
-> > > > DRIVER=="mlx4_core", ACTION=="add", TAG+="systemd",
-> > > > ENV{SYSTEMD_WANTS}="rdma-load-modules@mlx4"
-> > > > 
-> > > > Might work better? I think that triggers on driver bind? Could
-> > > > you
-> > > > try to switch your mlx and i40e drivers in that way?
-> > > 
-> > > I tried it. It works as expected.?rdma-load-modules@mlx4 is loaded
-> > > and?
-> > > rdma-load-modules-QqjR1VyAyFhTDjBF/Jpztg@public.gmane.org is not loaded. Not tested if the
-> > > udev
-> > > trigger will also work for used built-in modules.
-> > 
-> > Okay, I will change it to be like that and we can see what people
-> > think.
+
+
+On 07/20/2017 05:17 PM, Sagi Grimberg wrote:
+>> A memory region created for a new RMB must be registered explicitly,
+>> before the peer can make use of it for remote DMA transfer.
 > 
-> Any updates?
+> OK, Now I understand the sgl construction in the previous patch.
+> 
+> We got rid of the synchronous memory registration API in the kernel
+> in the absence of users, but now with smc we might want to restore
+> it because looking at the patchset, the fast memory registration
+> scheme is obviously not a good fit.
+> 
+> For the simple smc use case the API should be as simple as:
+> 
+> ib_reg_contig_mr(struct ib_pd *pd, void *addr, size_t length);
+> 
+> Do you have a use-case for scattered buffers memory registration?
+> 
 
-I've been doing some more testing here and it does not work entirely
-properly yet.
+>From my smc perspective I would like to finally allocate the RMB memory as 
+scattered pages mapped to contiguous DMA-memory. When creating a new connection
+the smc protocol exchanges some information, among them the dma-address to
+enable the peer for RDMA WRITEs. According to the smc protocol just one dma-address
+can be exchanged; thus contiguous DMA-memory describable by one address only is
+required here.
+I have prepared already such an smc patch, and it worked for s390, but on my
+x-system the scattered pages mapped to scattered DMA-memory after calling
+ib_dma_map_sg() and ib_map_mr_sg(). Have I missed something? Is there a way
+to explicitly ask for mapping to contiguous memory? 
 
-The change to 'DRIVER==' causes things to fail, the kernel only
-generates uevents when kobjects are created, and binding a driver to a
-PCI device does not create a kobject. This means these lines:
-
-DRIVER=="mlx4_core", ACTION=="add", TAG+="systemd", ENV{SYSTEMD_WANTS}="rdma-load-modules@mlx4"
-
-Do not work reliably. Depending on the module like before would still
-seem to be the best option.
-
-Also, the ordering before sysinit.target does not work reliably, udev
-loads modules asynchronously and systemd does not block on udev unless
-systemd-udevd-settle is depended on.
-
-I'm not sure how Debian's legacy networking.service manages to work at
-all, perhaps it is broken and it is just unlikely to be hit because of
-how quickly most ethernet drivers get loaded by udev.
-
-As far as I can tell, it needs to depend on systemd-udevd-settle to
-guarentee that all the cold-plug network drivers have been loaded by
-udev before starting..
-
-.. all of these comments would seem to apply equally to the
-rdma.service approach, so I think this is still an improvement.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
