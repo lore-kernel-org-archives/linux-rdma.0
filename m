@@ -1,48 +1,40 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PULL REQUEST] Please pull rdma.git
-Date: Fri, 21 Jul 2017 08:25:47 -0400
-Message-ID: <1500639947.23761.26.camel@redhat.com>
-References: <1500639364.23761.22.camel@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 1/2] IB/rxe: Remove unneeded check
+Date: Fri, 21 Jul 2017 22:13:19 +0300
+Message-ID: <20170721191319.2966-1-yuval.shaia@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1500639364.23761.22.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Torvalds, Linus" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-07-21 at 08:16 -0400, Doug Ledford wrote:
-> Hi Linus,
-> 
-> As per my previous pull request, there were two drivers that each had
-> a
-> rather large number of legitimate fixes still to be sent.  As it
-> turned
-> out, I also missed a reasonably large set of fixes from one person
-> across the stack that are all important fixes.  All in all, the
-> bnxt_re, i40iw, and Dan Carpenter are 3/4 to 2/3rds of this pull
-> request.  There were some other random fixes that I didn't send in
-> the
-> last pull request that I added to this one.  This catches the rdma
-> stack up to the fixes from up to about the beginning of this
-> week.  Any
-> more fixes I'll wait and batch up later in the -rc cycle.  This will
-> give us a good base to start with for basing a for-next branch on
-> -rc2.
->  Thanks.
+Port validation is performed in ib_core, no need to duplicate it here.
 
-I didn't specifically mention it, because it goes without saying, but
-this has passed 0day.  I don't send you anything that hasn't
-specifically passed 0day unless 0day has failed to run the tests and
-sent me an email saying I won't get any more emails.  This has not, as
-you probably imagine, been through linux-next.
+Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/sw/rxe/rxe_av.c | 7 -------
+ 1 file changed, 7 deletions(-)
 
+diff --git a/drivers/infiniband/sw/rxe/rxe_av.c b/drivers/infiniband/sw/rxe/rxe_av.c
+index 5bddf469361b..3f6122e37831 100644
+--- a/drivers/infiniband/sw/rxe/rxe_av.c
++++ b/drivers/infiniband/sw/rxe/rxe_av.c
+@@ -38,13 +38,6 @@ int rxe_av_chk_attr(struct rxe_dev *rxe, struct rdma_ah_attr *attr)
+ {
+ 	struct rxe_port *port;
+ 
+-	if (rdma_ah_get_port_num(attr) != 1) {
+-		pr_info("invalid port_num = %d\n", rdma_ah_get_port_num(attr));
+-		return -EINVAL;
+-	}
+-
+-	port = &rxe->port;
+-
+ 	if (rdma_ah_get_ah_flags(attr) & IB_AH_GRH) {
+ 		u8 sgid_index = rdma_ah_read_grh(attr)->sgid_index;
+ 
 -- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+2.13.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
