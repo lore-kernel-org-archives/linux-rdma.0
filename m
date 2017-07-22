@@ -1,44 +1,47 @@
 From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] cxgb4: Fix error codes in c4iw_create_cq()
-Date: Sat, 22 Jul 2017 13:28:12 -0400
-Message-ID: <ce103089-9f0f-6ef0-23ac-7e1ef2d3b36d@redhat.com>
-References: <20170713074740.4i2weowvndudqwh6@mwanda>
+Subject: Re: [PATCH] IB/cxgb3: Fix error codes in iwch_alloc_mr()
+Date: Sat, 22 Jul 2017 13:28:33 -0400
+Message-ID: <d300777c-6057-b7b7-f10a-0724879204dd@redhat.com>
+References: <20170713074800.dlzwroi4jmuv5xfk@mwanda>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="fU1lB3awUiQs3QccPLV0O6k9VsfEVe0mH"
+ boundary="c64psOxmBcDLURhi7X9IK3IfcEK8KTU6a"
 Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20170713074740.4i2weowvndudqwh6@mwanda>
+In-Reply-To: <20170713074800.dlzwroi4jmuv5xfk@mwanda>
 Sender: kernel-janitors-owner@vger.kernel.org
 To: Dan Carpenter <dan.carpenter@oracle.com>, Steve Wise <swise@chelsio.com>
 Cc: Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---fU1lB3awUiQs3QccPLV0O6k9VsfEVe0mH
-Content-Type: multipart/mixed; boundary="mc3sNJbRKhBa0qT3JOIvsu3VA5C3TL32g";
+--c64psOxmBcDLURhi7X9IK3IfcEK8KTU6a
+Content-Type: multipart/mixed; boundary="2DWOvNiHhOxLMvHMx3lvPeTPEAhr6katW";
  protected-headers="v1"
 From: Doug Ledford <dledford@redhat.com>
 To: Dan Carpenter <dan.carpenter@oracle.com>, Steve Wise <swise@chelsio.com>
 Cc: Sean Hefty <sean.hefty@intel.com>,
  Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org,
  kernel-janitors@vger.kernel.org
-Message-ID: <ce103089-9f0f-6ef0-23ac-7e1ef2d3b36d@redhat.com>
-Subject: Re: [PATCH] cxgb4: Fix error codes in c4iw_create_cq()
-References: <20170713074740.4i2weowvndudqwh6@mwanda>
-In-Reply-To: <20170713074740.4i2weowvndudqwh6@mwanda>
+Message-ID: <d300777c-6057-b7b7-f10a-0724879204dd@redhat.com>
+Subject: Re: [PATCH] IB/cxgb3: Fix error codes in iwch_alloc_mr()
+References: <20170713074800.dlzwroi4jmuv5xfk@mwanda>
+In-Reply-To: <20170713074800.dlzwroi4jmuv5xfk@mwanda>
 
---mc3sNJbRKhBa0qT3JOIvsu3VA5C3TL32g
+--2DWOvNiHhOxLMvHMx3lvPeTPEAhr6katW
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: quoted-printable
 
-On 7/13/2017 3:47 AM, Dan Carpenter wrote:
-> If one of these kmalloc() calls fails then we return ERR_PTR(0) which i=
-s
-> NULL.  It results in a NULL dereference in the callers.
+On 7/13/2017 3:48 AM, Dan Carpenter wrote:
+> We accidentally don't set the error code on some error paths.  It means=
+
+> return ERR_PTR(0) which is NULL and results in a NULL dereference in th=
+e
+> caller.
 >=20
-> Fixes: cfdda9d76436 ("RDMA/cxgb4: Add driver for Chelsio T4 RNIC")
+> Fixes: 13a239330abd ("RDMA/cxgb3: Don't ignore insert_handle() failures=
+")
 > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
 This was accepted into 4.13-rc, thanks.
@@ -50,9 +53,9 @@ Doug Ledford <dledford@redhat.com>
 D
 
 
---mc3sNJbRKhBa0qT3JOIvsu3VA5C3TL32g--
+--2DWOvNiHhOxLMvHMx3lvPeTPEAhr6katW--
 
---fU1lB3awUiQs3QccPLV0O6k9VsfEVe0mH
+--c64psOxmBcDLURhi7X9IK3IfcEK8KTU6a
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -61,19 +64,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJZc4ssAAoJELgmozMOVy/dFRsQAK0tdkcid6YF2Kdg93SGExcL
-JprMmq5SfN2x1YC19mPtkMNMAAq32tO2CReRBoU97kOiv7+iX/jtktkJFurw2ZOp
-Cd0ioi4uBC/6riQhfYLnvKaRsHHwIvVg4qvTtBttvZwew9RLWyVJjRfiRXRTkTBl
-RIHbN+Ow24eFZkXB9IJvIbQhr+b5MbQpRyPy2i32FkE/bzRvW9NfFJy4zMYCTGlz
-EhzMSavanqSA61pM9xqAgrSbisqRy/HoPa+Z8UKvOP4Tq0ChEgbI+hXfpYHWlF8E
-9S6QITwHSVemyA5txVmhGaQv+0IRs8oHSqsOMhTWS4+trxS5YPYYtnS5Ci5yQ2Cl
-AlMKzPS1igskDgfgaaNxBYSfF6GaxahlOxLuIqQJNemGUGyjrYVDWvSnqMlqh5Nu
-Hwn1XVu5rp9Ecql+6ACqbEyuNdCqZY/U/cStbD4BkHF5r1iS0M1p4j+Hpgl5Bv5w
-rvtcrzMtUb4RVf4wPvGAWvkGJHklIxFa8DliQGLQyL1+ch0XYoo4ou9P88/oSrOC
-k2NPJJrLQNJc+Vel8rmBEZQbXw+PVqtxx8BXvKxYaUUwuSuls8YGnSOEdB0XtRyq
-hmuaWOXLEuHaAk8rHNdhKiduZ8Z0QGBeJA0pU+jhPqUU9V1lViQa7Ubs1i2gHjST
-s4A+QABX2eSmChZ7byoQ
-=uHps
+iQIcBAEBCAAGBQJZc4tBAAoJELgmozMOVy/dwJYP/AwMJR4PSGycbv/8xoTTYXaG
+s0IC+s/RhuJjvPHzJwb6mVz9Vf+W5knp11gOzWxBmAINavXQXD0ceeeUkQ6wLtYi
+2RpEihCgsKzoINS4K1gM1W1B8Rz63ReWDoWofWnD77RqpS0y3enBfmOqt/cvWmeP
+zFNQXiUy0a5gr7G2GoQlx/6nb2NVqumtQAr/WOR1aR+fqUcu7Jns5v2f9y//r1rK
+aNFKodd6NiBJQ7dCz38Y5+6RpjqvxG1W2pNdSM5HE1KBitDYprucLG9SzdwnTA4v
+ebbnzDhr5iw5T+LChAhtmhGmpjciykjl3RI2aIikzt644oQzSIwCFJ8IiTh0dKuy
+7/TEjaYncAKvGS/+hWt39VN5UN2Hac2oePow/KFtH5F5lHjbDyaEjNYYNJmrb/WJ
+/+/hanVqIOIQ3GthzdKmcJYJ6Z8s9sHGv+p4ZKfSb3E5QZZD6+A3XRBXWKUt6h/M
+EaCfY3HfZxQR5OafCXv5SFqog9CuSJ8i75ATfPSUpYon2y798IDD1pRYL2VvWxVz
+1qFTf/bersaICx8kPjkqr3zQQ+0qgLxNGJoUjoXdmpg4E1BARFBiUCyd44M3vfC8
+kVawNP84GcyRhlzDtlRPsBIhFDIbcK/xywArH1Stb+GUaD3EQgL42a6H3n34bMkW
+JwfsOhDbVquvuTcdcrbZ
+=0oLu
 -----END PGP SIGNATURE-----
 
---fU1lB3awUiQs3QccPLV0O6k9VsfEVe0mH--
+--c64psOxmBcDLURhi7X9IK3IfcEK8KTU6a--
