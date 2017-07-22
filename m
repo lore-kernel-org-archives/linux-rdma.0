@@ -1,7 +1,7 @@
-From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/3] Support out of order data placement
-Date: Fri, 21 Jul 2017 19:29:20 -0700
-Message-ID: <142c2fed-baa5-1295-1458-be765c94b957@talpey.com>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH rdma-next 0/3] Support out of order data placement
+Date: Sat, 22 Jul 2017 04:50:06 +0000
+Message-ID: <VI1PR0502MB300886ED1B5B1363B55F53F0D1A50@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 References: <20170612064918.12510-1-leon@kernel.org>
  <VI1PR0502MB3008EA451DA9ECEBECE27362D1CD0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
  <20170612164343.GA12435@obsidianresearch.com>
@@ -17,90 +17,129 @@ References: <20170612064918.12510-1-leon@kernel.org>
  <VI1PR0502MB30089271EB542493AA58060CD1C20@VI1PR0502MB3008.eurprd05.prod.outlook.com>
  <fb11f261-b80b-f71a-8076-204706267798@talpey.com>
  <VI1PR0502MB3008D488FEE8A7104A7B0A7CD1A60@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <142c2fed-baa5-1295-1458-be765c94b957@talpey.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR0502MB3008D488FEE8A7104A7B0A7CD1A60-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <142c2fed-baa5-1295-1458-be765c94b957-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/18/2017 10:33 PM, Parav Pandit wrote:
-> Hi Tom, Jason,
-> 
-> Sorry for the late response.
-> Please find the response inline below.
-> 
->> -----Original Message-----
->> From: Tom Talpey [mailto:tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org]
->> Sent: Monday, June 12, 2017 8:30 PM
->> To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>; Jason Gunthorpe
->> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
->> Cc: Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>; leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org;
->> dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Idan Burstein
->> <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> Subject: Re: [PATCH rdma-next 0/3] Support out of order data placement
->>
->>>
->>> In IB spec, in-order delivery is default.
->>
->> I don't agree. Requests are sent in-order, and the responder processes them in-
->> order, but the bytes thenselves are not guaranteed to appear in-order.
->> Additionally, if retries occur, this is most definitely not the case.
->>
->> Section 9.5 Transaction Ordering, I believe, covers these requirements. Can you
->> tell me where I misunderstand them?
->> In fact, c9-28 explicitly warns:
->>
->>     • An application shall not depend upon the order of data writes to
->>     memory within a message. For example, if an application sets up
->>     data buffers that overlap, for separate data segments within a
->>     message, it is not guaranteed that the last sent data will always
->>     overwrite the earlier.
->>
-> The IB spec indeed does not imply any ordering in the placement of data into memory within a single message.
-> 
-> It does guarantee that writes don't bypass writes and reads don't bypass reads (Table 79), and transport operations are executed in their *message* order (C9-28):
-> "A responder shall execute SEND requests, RDMA WRITE requests
-> and ATOMIC Operation requests in the message order in which
-> they are received."
-> 
-> Thus, ordering between messages is guaranteed - changes to remote memory of an RDMA-W will be observed strictly after any changes done by a previous RDMA-W; changes to local memory of an RDMA-R response will be observed strictly after any changes done by a previous RDMA-R response.
-> 
-> The proposed feature in this patch set is to relax the memory placement ordering *across* messages and not within a single message (which is not mandated by the spec as u noted), such that multiple consecutive RDMA-Ws may be committed to memory in any order, and similarly for RDMA-R responses.
-> This changes application semantics whenever multiple-inflight RDMA operations write to overlapping locations, or when one operation indicates the completion of the other.
-> A simple example to clarify: a requestor posted the following work elements in the written order:
-> 1. RDMA-W(VA=0x1000, value=0x1)
-> 2. RDMA-W(VA=0x1000, value=0x2)
-> 3. Send()
-> On responder side, following the Send() operation completion, and according to spec (C9-28), reading from VA=0x1000 will produce the value 2. With the proposed feature enabled, the read value is not deterministic and dependent on the order in which the RDMA-W operations were received.
-> 
-> The proposed QP flag allows applications to knowingly indicate this relaxed data placement, thereby enabling the HCA to place OOO RDMA messages into memory without buffering them.
-
-You didn't answer my question what is the actual benefit of relaxing
-the ordering. Is it performance? And, specifically what applications
-*can't* use it?
-
-To me, it appears that most storage upper layers can already use
-the extension. If it performs better, I expect they will definitely
-want to enable it. In that case I believe it should be the *default*,
-not an opt-in that these upper layers are newly responsible for.
-
->> I have one other question on the Documentation out-of-order.txt.
->> It states the fence bit can be used to force ordering on a non-strict connection.
->> But fence doesn't apply to RDMA Write?
->> It only applies to operations which produce a reply, such as RDMA Read or
->> Atomic. Have you changed the semantic?
->>
-> RDMA-R followed by RDMA-R semantic is changed when proposed QP flag is set.
-
-Can you explain that statement in more detail please? Also, please
-clarify on what operation(s) the fence bit now applies.
-
-Tom.
+SGkgVG9tLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFRvbSBUYWxw
+ZXkgW21haWx0bzp0b21AdGFscGV5LmNvbV0NCj4gU2VudDogRnJpZGF5LCBKdWx5IDIxLCAyMDE3
+IDk6MjkgUE0NCj4gVG86IFBhcmF2IFBhbmRpdCA8cGFyYXZAbWVsbGFub3guY29tPjsgSmFzb24g
+R3VudGhvcnBlDQo+IDxqZ3VudGhvcnBlQG9ic2lkaWFucmVzZWFyY2guY29tPg0KPiBDYzogQmFy
+dCBWYW4gQXNzY2hlIDxCYXJ0LlZhbkFzc2NoZUBzYW5kaXNrLmNvbT47IGxlb25Aa2VybmVsLm9y
+ZzsNCj4gZGxlZGZvcmRAcmVkaGF0LmNvbTsgbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IElk
+YW4gQnVyc3RlaW4NCj4gPGlkYW5iQG1lbGxhbm94LmNvbT4NCj4gU3ViamVjdDogUmU6IFtQQVRD
+SCByZG1hLW5leHQgMC8zXSBTdXBwb3J0IG91dCBvZiBvcmRlciBkYXRhIHBsYWNlbWVudA0KPiAN
+Cj4gT24gNy8xOC8yMDE3IDEwOjMzIFBNLCBQYXJhdiBQYW5kaXQgd3JvdGU6DQo+ID4gSGkgVG9t
+LCBKYXNvbiwNCj4gPg0KPiA+IFNvcnJ5IGZvciB0aGUgbGF0ZSByZXNwb25zZS4NCj4gPiBQbGVh
+c2UgZmluZCB0aGUgcmVzcG9uc2UgaW5saW5lIGJlbG93Lg0KPiA+DQo+ID4+IC0tLS0tT3JpZ2lu
+YWwgTWVzc2FnZS0tLS0tDQo+ID4+IEZyb206IFRvbSBUYWxwZXkgW21haWx0bzp0b21AdGFscGV5
+LmNvbV0NCj4gPj4gU2VudDogTW9uZGF5LCBKdW5lIDEyLCAyMDE3IDg6MzAgUE0NCj4gPj4gVG86
+IFBhcmF2IFBhbmRpdCA8cGFyYXZAbWVsbGFub3guY29tPjsgSmFzb24gR3VudGhvcnBlDQo+ID4+
+IDxqZ3VudGhvcnBlQG9ic2lkaWFucmVzZWFyY2guY29tPg0KPiA+PiBDYzogQmFydCBWYW4gQXNz
+Y2hlIDxCYXJ0LlZhbkFzc2NoZUBzYW5kaXNrLmNvbT47IGxlb25Aa2VybmVsLm9yZzsNCj4gPj4g
+ZGxlZGZvcmRAcmVkaGF0LmNvbTsgbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IElkYW4gQnVy
+c3RlaW4NCj4gPj4gPGlkYW5iQG1lbGxhbm94LmNvbT4NCj4gPj4gU3ViamVjdDogUmU6IFtQQVRD
+SCByZG1hLW5leHQgMC8zXSBTdXBwb3J0IG91dCBvZiBvcmRlciBkYXRhDQo+ID4+IHBsYWNlbWVu
+dA0KPiA+Pg0KPiA+Pj4NCj4gPj4+IEluIElCIHNwZWMsIGluLW9yZGVyIGRlbGl2ZXJ5IGlzIGRl
+ZmF1bHQuDQo+ID4+DQo+ID4+IEkgZG9uJ3QgYWdyZWUuIFJlcXVlc3RzIGFyZSBzZW50IGluLW9y
+ZGVyLCBhbmQgdGhlIHJlc3BvbmRlcg0KPiA+PiBwcm9jZXNzZXMgdGhlbSBpbi0gb3JkZXIsIGJ1
+dCB0aGUgYnl0ZXMgdGhlbnNlbHZlcyBhcmUgbm90IGd1YXJhbnRlZWQgdG8NCj4gYXBwZWFyIGlu
+LW9yZGVyLg0KPiA+PiBBZGRpdGlvbmFsbHksIGlmIHJldHJpZXMgb2NjdXIsIHRoaXMgaXMgbW9z
+dCBkZWZpbml0ZWx5IG5vdCB0aGUgY2FzZS4NCj4gPj4NCj4gPj4gU2VjdGlvbiA5LjUgVHJhbnNh
+Y3Rpb24gT3JkZXJpbmcsIEkgYmVsaWV2ZSwgY292ZXJzIHRoZXNlDQo+ID4+IHJlcXVpcmVtZW50
+cy4gQ2FuIHlvdSB0ZWxsIG1lIHdoZXJlIEkgbWlzdW5kZXJzdGFuZCB0aGVtPw0KPiA+PiBJbiBm
+YWN0LCBjOS0yOCBleHBsaWNpdGx5IHdhcm5zOg0KPiA+Pg0KPiA+PiAgICAg4oCiIEFuIGFwcGxp
+Y2F0aW9uIHNoYWxsIG5vdCBkZXBlbmQgdXBvbiB0aGUgb3JkZXIgb2YgZGF0YSB3cml0ZXMgdG8N
+Cj4gPj4gICAgIG1lbW9yeSB3aXRoaW4gYSBtZXNzYWdlLiBGb3IgZXhhbXBsZSwgaWYgYW4gYXBw
+bGljYXRpb24gc2V0cyB1cA0KPiA+PiAgICAgZGF0YSBidWZmZXJzIHRoYXQgb3ZlcmxhcCwgZm9y
+IHNlcGFyYXRlIGRhdGEgc2VnbWVudHMgd2l0aGluIGENCj4gPj4gICAgIG1lc3NhZ2UsIGl0IGlz
+IG5vdCBndWFyYW50ZWVkIHRoYXQgdGhlIGxhc3Qgc2VudCBkYXRhIHdpbGwgYWx3YXlzDQo+ID4+
+ICAgICBvdmVyd3JpdGUgdGhlIGVhcmxpZXIuDQo+ID4+DQo+ID4gVGhlIElCIHNwZWMgaW5kZWVk
+IGRvZXMgbm90IGltcGx5IGFueSBvcmRlcmluZyBpbiB0aGUgcGxhY2VtZW50IG9mIGRhdGEgaW50
+bw0KPiBtZW1vcnkgd2l0aGluIGEgc2luZ2xlIG1lc3NhZ2UuDQo+ID4NCj4gPiBJdCBkb2VzIGd1
+YXJhbnRlZSB0aGF0IHdyaXRlcyBkb24ndCBieXBhc3Mgd3JpdGVzIGFuZCByZWFkcyBkb24ndCBi
+eXBhc3MgcmVhZHMNCj4gKFRhYmxlIDc2KSwgYW5kIHRyYW5zcG9ydCBvcGVyYXRpb25zIGFyZSBl
+eGVjdXRlZCBpbiB0aGVpciAqbWVzc2FnZSogb3JkZXIgKEM5LQ0KPiAyOCk6DQo+ID4gIkEgcmVz
+cG9uZGVyIHNoYWxsIGV4ZWN1dGUgU0VORCByZXF1ZXN0cywgUkRNQSBXUklURSByZXF1ZXN0cyBh
+bmQNCj4gPiBBVE9NSUMgT3BlcmF0aW9uIHJlcXVlc3RzIGluIHRoZSBtZXNzYWdlIG9yZGVyIGlu
+IHdoaWNoIHRoZXkgYXJlDQo+ID4gcmVjZWl2ZWQuIg0KPiA+DQo+ID4gVGh1cywgb3JkZXJpbmcg
+YmV0d2VlbiBtZXNzYWdlcyBpcyBndWFyYW50ZWVkIC0gY2hhbmdlcyB0byByZW1vdGUgbWVtb3J5
+DQo+IG9mIGFuIFJETUEtVyB3aWxsIGJlIG9ic2VydmVkIHN0cmljdGx5IGFmdGVyIGFueSBjaGFu
+Z2VzIGRvbmUgYnkgYSBwcmV2aW91cw0KPiBSRE1BLVc7IGNoYW5nZXMgdG8gbG9jYWwgbWVtb3J5
+IG9mIGFuIFJETUEtUiByZXNwb25zZSB3aWxsIGJlIG9ic2VydmVkDQo+IHN0cmljdGx5IGFmdGVy
+IGFueSBjaGFuZ2VzIGRvbmUgYnkgYSBwcmV2aW91cyBSRE1BLVIgcmVzcG9uc2UuDQo+ID4NCj4g
+PiBUaGUgcHJvcG9zZWQgZmVhdHVyZSBpbiB0aGlzIHBhdGNoIHNldCBpcyB0byByZWxheCB0aGUg
+bWVtb3J5IHBsYWNlbWVudA0KPiBvcmRlcmluZyAqYWNyb3NzKiBtZXNzYWdlcyBhbmQgbm90IHdp
+dGhpbiBhIHNpbmdsZSBtZXNzYWdlICh3aGljaCBpcyBub3QNCj4gbWFuZGF0ZWQgYnkgdGhlIHNw
+ZWMgYXMgdSBub3RlZCksIHN1Y2ggdGhhdCBtdWx0aXBsZSBjb25zZWN1dGl2ZSBSRE1BLVdzDQo+
+IG1heSBiZSBjb21taXR0ZWQgdG8gbWVtb3J5IGluIGFueSBvcmRlciwgYW5kIHNpbWlsYXJseSBm
+b3IgUkRNQS1SIHJlc3BvbnNlcy4NCj4gPiBUaGlzIGNoYW5nZXMgYXBwbGljYXRpb24gc2VtYW50
+aWNzIHdoZW5ldmVyIG11bHRpcGxlLWluZmxpZ2h0IFJETUENCj4gb3BlcmF0aW9ucyB3cml0ZSB0
+byBvdmVybGFwcGluZyBsb2NhdGlvbnMsIG9yIHdoZW4gb25lIG9wZXJhdGlvbiBpbmRpY2F0ZXMg
+dGhlDQo+IGNvbXBsZXRpb24gb2YgdGhlIG90aGVyLg0KPiA+IEEgc2ltcGxlIGV4YW1wbGUgdG8g
+Y2xhcmlmeTogYSByZXF1ZXN0b3IgcG9zdGVkIHRoZSBmb2xsb3dpbmcgd29yayBlbGVtZW50cyBp
+bg0KPiB0aGUgd3JpdHRlbiBvcmRlcjoNCj4gPiAxLiBSRE1BLVcoVkE9MHgxMDAwLCB2YWx1ZT0w
+eDEpDQo+ID4gMi4gUkRNQS1XKFZBPTB4MTAwMCwgdmFsdWU9MHgyKQ0KPiA+IDMuIFNlbmQoKQ0K
+PiA+IE9uIHJlc3BvbmRlciBzaWRlLCBmb2xsb3dpbmcgdGhlIFNlbmQoKSBvcGVyYXRpb24gY29t
+cGxldGlvbiwgYW5kIGFjY29yZGluZw0KPiB0byBzcGVjIChDOS0yOCksIHJlYWRpbmcgZnJvbSBW
+QT0weDEwMDAgd2lsbCBwcm9kdWNlIHRoZSB2YWx1ZSAyLiBXaXRoIHRoZQ0KPiBwcm9wb3NlZCBm
+ZWF0dXJlIGVuYWJsZWQsIHRoZSByZWFkIHZhbHVlIGlzIG5vdCBkZXRlcm1pbmlzdGljIGFuZCBk
+ZXBlbmRlbnQgb24NCj4gdGhlIG9yZGVyIGluIHdoaWNoIHRoZSBSRE1BLVcgb3BlcmF0aW9ucyB3
+ZXJlIHJlY2VpdmVkLg0KPiA+DQo+ID4gVGhlIHByb3Bvc2VkIFFQIGZsYWcgYWxsb3dzIGFwcGxp
+Y2F0aW9ucyB0byBrbm93aW5nbHkgaW5kaWNhdGUgdGhpcyByZWxheGVkDQo+IGRhdGEgcGxhY2Vt
+ZW50LCB0aGVyZWJ5IGVuYWJsaW5nIHRoZSBIQ0EgdG8gcGxhY2UgT09PIFJETUEgbWVzc2FnZXMg
+aW50bw0KPiBtZW1vcnkgd2l0aG91dCBidWZmZXJpbmcgdGhlbS4NCj4gDQo+IFlvdSBkaWRuJ3Qg
+YW5zd2VyIG15IHF1ZXN0aW9uIHdoYXQgaXMgdGhlIGFjdHVhbCBiZW5lZml0IG9mIHJlbGF4aW5n
+IHRoZQ0KPiBvcmRlcmluZy4gSXMgaXQgcGVyZm9ybWFuY2U/DQoNClllcy4gUGVyZm9ybWFuY2Ug
+aXMgYmV0dGVyLg0KDQo+IEFuZCwgc3BlY2lmaWNhbGx5IHdoYXQgYXBwbGljYXRpb25zICpjYW4n
+dCogdXNlIGl0Pw0KQXBwbGljYXRpb25zIHdoaWNoIHBvbGwgb24gUkRNQS1XIGRhdGEgYXQgcmVz
+cG9uZGVyIHNpZGUgb3IgUkRNQS1SIGRhdGEgb24gUmVhZCByZXF1ZXN0ZXIgc2lkZSwgY2Fubm90
+IHVzZSB0aGlzLg0KQmVjYXVzZSBhcyBleHBsYWluZWQgaW4gYWJvdmUgZXhhbXBsZSAybmQgUkRN
+QS1XIG1lc3NhZ2UgY2FuIGJlIGV4ZWN1dGVkIGZpcnN0IGF0IHJlc3BvbmRlciBzaWRlLg0KV2Ug
+Y2Fubm90IGJyZWFrIHN1Y2ggdXNlciBzcGFjZSBhcHBsaWNhdGlvbnMgZGVwbG95ZWQgaW4gZmll
+bGQgYnkgZW5hYmxpbmcgdGhpcyBieSBkZWZhdWx0IGFuZCB3aXRob3V0IG5lZ290aWF0aW9uIHdp
+dGggcGVlci4NCj4gDQo+IFRvIG1lLCBpdCBhcHBlYXJzIHRoYXQgbW9zdCBzdG9yYWdlIHVwcGVy
+IGxheWVycyBjYW4gYWxyZWFkeSB1c2UgdGhlIGV4dGVuc2lvbi4NCg0KWWVzLiBBcyB0aGV5IGRv
+bid0IHBvbGwgb24gZGF0YSBhbmQgdGhleSBkZXBlbmQgb24gaW5jb21pbmcgUkRNQSBTZW5kIHRo
+ZXkgY2FuIG1ha2UgdXNlIG9mIGl0Lg0KDQo+IElmIGl0IHBlcmZvcm1zIGJldHRlciwgSSBleHBl
+Y3QgdGhleSB3aWxsIGRlZmluaXRlbHkgd2FudCB0byBlbmFibGUgaXQuIEluIHRoYXQgY2FzZSBJ
+DQo+IGJlbGlldmUgaXQgc2hvdWxkIGJlIHRoZSAqZGVmYXVsdCosIG5vdCBhbiBvcHQtaW4gdGhh
+dCB0aGVzZSB1cHBlciBsYXllcnMgYXJlDQo+IG5ld2x5IHJlc3BvbnNpYmxlIGZvci4NCg0KVmVy
+YiBsYXllciBpcyB1bndhcmUgb2YgY2FsbGVyIFVMUHMuIEF0IG1vc3QgaXQga25vd3MgdGhhdCBp
+dHMga2VybmVsIHZzIHVzZXIgVUxQIGVhc2lseSAtIHdoaWNoIGlzIGdvb2QgZW5vdWdoLg0KVmVy
+YiBsYXllciBhbHNvIGRvZXNuJ3Qga25vdyB3aGV0aGVyIHJlbW90ZSBzaWRlIHN1cHBvcnQgaXQg
+b3Igbm90Lg0KT25jZSByZG1hY20gZXh0ZW5zaW9uIGlzIGRvbmUsIGFsbCBrZXJuZWwgVUxQcyB3
+aGljaCB1c2VzIHJkbWFjbSAtIGNhbiBiZSBlbmFibGVkIGJ5IGRlZmF1bHQuDQpUaGlzIHBhdGNo
+c2V0IGVuYWJsZXMgdXNlciBzcGFjZSBhcHBsaWNhdGlvbnMgdG8gdGFrZSBpbW1lZGlhdGUgYmVu
+ZWZpdCBvZiBpdCB3aGljaCBkb2Vzbid0IGRlcGVuZCBvbiByZG1hY20uDQoNCj4gDQo+ID4+IEkg
+aGF2ZSBvbmUgb3RoZXIgcXVlc3Rpb24gb24gdGhlIERvY3VtZW50YXRpb24gb3V0LW9mLW9yZGVy
+LnR4dC4NCj4gPj4gSXQgc3RhdGVzIHRoZSBmZW5jZSBiaXQgY2FuIGJlIHVzZWQgdG8gZm9yY2Ug
+b3JkZXJpbmcgb24gYSBub24tc3RyaWN0DQo+IGNvbm5lY3Rpb24uDQo+ID4+IEJ1dCBmZW5jZSBk
+b2Vzbid0IGFwcGx5IHRvIFJETUEgV3JpdGU/DQo+ID4+IEl0IG9ubHkgYXBwbGllcyB0byBvcGVy
+YXRpb25zIHdoaWNoIHByb2R1Y2UgYSByZXBseSwgc3VjaCBhcyBSRE1BDQo+ID4+IFJlYWQgb3Ig
+QXRvbWljLiBIYXZlIHlvdSBjaGFuZ2VkIHRoZSBzZW1hbnRpYz8NCj4gPj4NCj4gPiBSRE1BLVIg
+Zm9sbG93ZWQgYnkgUkRNQS1SIHNlbWFudGljIGlzIGNoYW5nZWQgd2hlbiBwcm9wb3NlZCBRUCBm
+bGFnIGlzDQo+IHNldC4NCj4gDQo+IENhbiB5b3UgZXhwbGFpbiB0aGF0IHN0YXRlbWVudCBpbiBt
+b3JlIGRldGFpbCBwbGVhc2U/IEFsc28sIHBsZWFzZSBjbGFyaWZ5IG9uDQo+IHdoYXQgb3BlcmF0
+aW9uKHMpIHRoZSBmZW5jZSBiaXQgbm93IGFwcGxpZXMuDQpTdXJlLg0KTGV0J3MgdGFrZSBleGFt
+cGxlLg0KQSByZXF1ZXN0b3IgcG9zdGVkIHRoZSBmb2xsb3dpbmcgd29yayBlbGVtZW50cyBpbiB0
+aGUgd3JpdHRlbiBvcmRlcjoNCjEuIFJETUEtUihWQT0weDEwMDAsIGxlbj0weDQwMCkNCjIuIFJE
+TUEtUihWQT0weDE0MDAsIGxlbj0weDQpDQpDdXJyZW50bHkgYXMgcGVyIFRhYmxlLTc2LCBSRE1B
+LVIgcmVhZCByZXNwb25zZSBkYXRhIG9mIDFzdCBSRE1BLVIgaXMgcGxhY2VkIGZpcnN0Lg0KV2l0
+aCByZWxheGVkIGRhdGEgcGxhY2VtZW50IGF0dHJpYnV0ZSwgNCBieXRlcyBkYXRhIG9mIDJuZCBS
+RE1BLVIgY2FuIGJlIHBsYWNlZCBmaXJzdC4NCklmIHVzZXIgbmVlZHMgYSBvcmRlcmluZyBvZiBj
+dXJyZW50IFRhYmxlLTc2LCBpdCBuZWVkcyB0byBzZXQgZmVuY2Ugb24gMm5kIFJETUEtUi4NClRo
+aXMgd2lsbCBlbnN1cmUgdGhhdCAxc3QgUkRNQS1SIGlzIGV4ZWN1dGVkIGJlZm9yZSAybmQgUkRN
+QS1SLg0KDQpUaGlzIHRyYW5zbGF0ZXMgdG8gSW4gVGFibGUgNzYsIA0KUkRNQS1SIChSb3cpIGFu
+ZCBSRE1BLVIoQ29sdW1uKSBjaGFuZ2VzIGZyb20gJyMnIHRvICdGJy4NCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
