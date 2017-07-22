@@ -1,45 +1,44 @@
 From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] IB/i40iw: Fix error code in i40iw_create_cq()
-Date: Sat, 22 Jul 2017 13:27:36 -0400
-Message-ID: <a94d7fb1-5dea-784b-a55f-d491276efdae@redhat.com>
-References: <20170713074722.ki7o5k5vvdjbzpff@mwanda>
+Subject: Re: [PATCH] cxgb4: Fix error codes in c4iw_create_cq()
+Date: Sat, 22 Jul 2017 13:28:12 -0400
+Message-ID: <ce103089-9f0f-6ef0-23ac-7e1ef2d3b36d@redhat.com>
+References: <20170713074740.4i2weowvndudqwh6@mwanda>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="6labF3xAnNxjH1BHHE5l5uSfILhG1bDXN"
+ boundary="fU1lB3awUiQs3QccPLV0O6k9VsfEVe0mH"
 Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20170713074722.ki7o5k5vvdjbzpff@mwanda>
+In-Reply-To: <20170713074740.4i2weowvndudqwh6@mwanda>
 Sender: kernel-janitors-owner@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>, Faisal Latif <faisal.latif@intel.com>
-Cc: Shiraz Saleem <shiraz.saleem@intel.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>, Steve Wise <swise@chelsio.com>
+Cc: Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---6labF3xAnNxjH1BHHE5l5uSfILhG1bDXN
-Content-Type: multipart/mixed; boundary="GjeQKjo4rVhhcdmfQgHVsgoMScem2oQqV";
+--fU1lB3awUiQs3QccPLV0O6k9VsfEVe0mH
+Content-Type: multipart/mixed; boundary="mc3sNJbRKhBa0qT3JOIvsu3VA5C3TL32g";
  protected-headers="v1"
 From: Doug Ledford <dledford@redhat.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>,
- Faisal Latif <faisal.latif@intel.com>
-Cc: Shiraz Saleem <shiraz.saleem@intel.com>, Sean Hefty
- <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>,
- linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
-Message-ID: <a94d7fb1-5dea-784b-a55f-d491276efdae@redhat.com>
-Subject: Re: [PATCH] IB/i40iw: Fix error code in i40iw_create_cq()
-References: <20170713074722.ki7o5k5vvdjbzpff@mwanda>
-In-Reply-To: <20170713074722.ki7o5k5vvdjbzpff@mwanda>
+To: Dan Carpenter <dan.carpenter@oracle.com>, Steve Wise <swise@chelsio.com>
+Cc: Sean Hefty <sean.hefty@intel.com>,
+ Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org,
+ kernel-janitors@vger.kernel.org
+Message-ID: <ce103089-9f0f-6ef0-23ac-7e1ef2d3b36d@redhat.com>
+Subject: Re: [PATCH] cxgb4: Fix error codes in c4iw_create_cq()
+References: <20170713074740.4i2weowvndudqwh6@mwanda>
+In-Reply-To: <20170713074740.4i2weowvndudqwh6@mwanda>
 
---GjeQKjo4rVhhcdmfQgHVsgoMScem2oQqV
+--mc3sNJbRKhBa0qT3JOIvsu3VA5C3TL32g
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: quoted-printable
 
 On 7/13/2017 3:47 AM, Dan Carpenter wrote:
-> We accidentally forgot to set the error code if ib_copy_from_udata()
-> fails.  It means we return ERR_PTR(0) which is NULL and results in a
-> NULL dereference in the callers.
+> If one of these kmalloc() calls fails then we return ERR_PTR(0) which i=
+s
+> NULL.  It results in a NULL dereference in the callers.
 >=20
-> Fixes: d37498417947 ("i40iw: add files for iwarp interface")
+> Fixes: cfdda9d76436 ("RDMA/cxgb4: Add driver for Chelsio T4 RNIC")
 > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
 This was accepted into 4.13-rc, thanks.
@@ -51,9 +50,9 @@ Doug Ledford <dledford@redhat.com>
 D
 
 
---GjeQKjo4rVhhcdmfQgHVsgoMScem2oQqV--
+--mc3sNJbRKhBa0qT3JOIvsu3VA5C3TL32g--
 
---6labF3xAnNxjH1BHHE5l5uSfILhG1bDXN
+--fU1lB3awUiQs3QccPLV0O6k9VsfEVe0mH
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -62,19 +61,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJZc4sIAAoJELgmozMOVy/dUmoQAKwZSe+0uIjMRCKrd3IG8zet
-mZcpRX6wvwGAK0H3NeLi28THLKhfm5ZvoZmznq1qPxlNL0TSiaVDWRgwrgL3OJRe
-qs5UaCZuW4CjN9XgIjMCi/e2imlXbs1bQQbiJwiOCyxHzjHkLgXUC+AtwdBrj208
-1bLwpPZkzHePfj5CaM35AThgD6yO3oEFUEsQfHTyXgs+vcgavVheztpZJ9Pu5yh9
-i7yCVfAIu9+1JF8B4UfA2gV4GS1zxpveOlh1w0Do7WPtOoUcmnKybOxzqsNupBE9
-sBv6qBLdhkqHfFANNPrGrdlkdN8D/sJiefJ7BWlSagHGvHZVWDKwQQcXImPET73B
-j1X6E8wzNQxvoeP9k0pKPlmJEVcS5P4mhECEfY+kQUxY26XH/Bn4EELFHMvggcU+
-2ZtCaW00Ul5nbfbtPIlKIULU1SBxrDJMaXN4M6Pnu5FVfpF6H2e7oOKmlILdTJVF
-3v7/Lgir8EwvDgS8Al2Pb1GJv9BbmzLMbBQfMDSXZ7TKIIkuHAq1JQqEhKxl3pvi
-MgbCafYy086FLjJ9wi+HzaazzDewYyZUES2nOj8gWcdAvj8yv2e4eYXnSb5P6ISA
-YA7AxhuQaZ60C8p41x0yjTO22YbC4dIxDAyw9wO8SGLQ8NvhOvEZrVpugoHPKLEl
-J1CoBWq3lSkaGhrtBpmY
-=S6ri
+iQIcBAEBCAAGBQJZc4ssAAoJELgmozMOVy/dFRsQAK0tdkcid6YF2Kdg93SGExcL
+JprMmq5SfN2x1YC19mPtkMNMAAq32tO2CReRBoU97kOiv7+iX/jtktkJFurw2ZOp
+Cd0ioi4uBC/6riQhfYLnvKaRsHHwIvVg4qvTtBttvZwew9RLWyVJjRfiRXRTkTBl
+RIHbN+Ow24eFZkXB9IJvIbQhr+b5MbQpRyPy2i32FkE/bzRvW9NfFJy4zMYCTGlz
+EhzMSavanqSA61pM9xqAgrSbisqRy/HoPa+Z8UKvOP4Tq0ChEgbI+hXfpYHWlF8E
+9S6QITwHSVemyA5txVmhGaQv+0IRs8oHSqsOMhTWS4+trxS5YPYYtnS5Ci5yQ2Cl
+AlMKzPS1igskDgfgaaNxBYSfF6GaxahlOxLuIqQJNemGUGyjrYVDWvSnqMlqh5Nu
+Hwn1XVu5rp9Ecql+6ACqbEyuNdCqZY/U/cStbD4BkHF5r1iS0M1p4j+Hpgl5Bv5w
+rvtcrzMtUb4RVf4wPvGAWvkGJHklIxFa8DliQGLQyL1+ch0XYoo4ou9P88/oSrOC
+k2NPJJrLQNJc+Vel8rmBEZQbXw+PVqtxx8BXvKxYaUUwuSuls8YGnSOEdB0XtRyq
+hmuaWOXLEuHaAk8rHNdhKiduZ8Z0QGBeJA0pU+jhPqUU9V1lViQa7Ubs1i2gHjST
+s4A+QABX2eSmChZ7byoQ
+=uHps
 -----END PGP SIGNATURE-----
 
---6labF3xAnNxjH1BHHE5l5uSfILhG1bDXN--
+--fU1lB3awUiQs3QccPLV0O6k9VsfEVe0mH--
