@@ -1,48 +1,72 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] iw_cxgb4: don't use WR keys/addrs for 0 byte reads
-Date: Sat, 22 Jul 2017 13:45:48 -0400
-Message-ID: <28274f11-5702-3df1-8186-9a7a38c052e1@redhat.com>
-References: <1498055143-15035-1-git-send-email-ganeshgr@chelsio.com>
+Subject: Re: [PATCH 11/17] lib/interval_tree: fast overlap detection
+Date: Sat, 22 Jul 2017 13:52:28 -0400
+Message-ID: <a1444ac4-623f-eded-83b3-76d76f2f54ce@redhat.com>
+References: <20170719014603.19029-1-dave@stgolabs.net>
+ <20170719014603.19029-12-dave@stgolabs.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="J6KRJhBjWGrAHaMfTSCBSiiX7tkOAgEoj"
+ boundary="tPpekWmpr7kkH5gkk2Sjf3TieeABPMdiE"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1498055143-15035-1-git-send-email-ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <20170719014603.19029-12-dave-h16yJtLeMjHk1uMJSBkQmQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, indranil-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, venkatesh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Davidlohr Bueso <dave-h16yJtLeMjHk1uMJSBkQmQ@public.gmane.org>, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
+Cc: mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, kirill.shutemov-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, ldufour-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, mhocko-IBi9RG/b67k@public.gmane.org, mgorman-3eNAlZScCAx27rWaFMvyedHuzzzSOjJt@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Wang <jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Davidlohr Bueso <dbueso-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---J6KRJhBjWGrAHaMfTSCBSiiX7tkOAgEoj
-Content-Type: multipart/mixed; boundary="NsbvIUQWVc78rtqbpHdNMPNJsIDaqbNhK";
+--tPpekWmpr7kkH5gkk2Sjf3TieeABPMdiE
+Content-Type: multipart/mixed; boundary="BuxHUqc5o9bBEhBLkCue9JHsfLBsXRnLu";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nirranjan-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, indranil-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org,
- venkatesh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Message-ID: <28274f11-5702-3df1-8186-9a7a38c052e1-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] iw_cxgb4: don't use WR keys/addrs for 0 byte reads
-References: <1498055143-15035-1-git-send-email-ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-In-Reply-To: <1498055143-15035-1-git-send-email-ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: Davidlohr Bueso <dave-h16yJtLeMjHk1uMJSBkQmQ@public.gmane.org>, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
+Cc: mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org,
+ torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, kirill.shutemov-VuQAYsv1563Yd54FQh9/CA@public.gmane.org,
+ hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, ldufour-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, mhocko-IBi9RG/b67k@public.gmane.org,
+ mgorman-3eNAlZScCAx27rWaFMvyedHuzzzSOjJt@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org,
+ "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Wang <jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>,
+ Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ Davidlohr Bueso <dbueso-l3A5Bk7waGM@public.gmane.org>
+Message-ID: <a1444ac4-623f-eded-83b3-76d76f2f54ce-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 11/17] lib/interval_tree: fast overlap detection
+References: <20170719014603.19029-1-dave-h16yJtLeMjHk1uMJSBkQmQ@public.gmane.org>
+ <20170719014603.19029-12-dave-h16yJtLeMjHk1uMJSBkQmQ@public.gmane.org>
+In-Reply-To: <20170719014603.19029-12-dave-h16yJtLeMjHk1uMJSBkQmQ@public.gmane.org>
 
---NsbvIUQWVc78rtqbpHdNMPNJsIDaqbNhK
+--BuxHUqc5o9bBEhBLkCue9JHsfLBsXRnLu
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: quoted-printable
 
-On 6/21/2017 10:25 AM, Ganesh Goudar wrote:
-> Only use the read sge lkey/addr and the remote rkey/addr if the
-> length of the read is not zero. Otherwise the read response might
-> be treated as the RTR read response and not delivered to the
-> application. Or worse Terminator hardware will fail a 0B read
-> if the STAG is 0 even if the read length is 0.
+On 7/18/2017 9:45 PM, Davidlohr Bueso wrote:
+> Allow interval trees to quickly check for overlaps to avoid
+> unnecesary tree lookups in interval_tree_iter_first().
 >=20
-> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> Signed-off-by: Ganesh Goudar <ganeshgr-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+> As of this patch, all interval tree flavors will require
+> using a 'rb_root_cached' such that we can have the leftmost
+> node easily available. While most users will make use of this
+> feature, those with special functions (in addition to the generic
+> insert, delete, search calls) will avoid using the cached
+> option as they can do funky things with insertions -- for example,
+> vma_interval_tree_insert_after().
+>=20
+> Cc: David Airlie <airlied-cv59FeDIM0c@public.gmane.org>
+> Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+> Cc: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Cc: Jason Wang <jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> Cc: Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Acked-by: Christian K=C3=B6nig <christian.koenig-5C7GfCeVMHo@public.gmane.org>
+> Acked-by: Peter Zijlstra (Intel) <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+> Signed-off-by: Davidlohr Bueso <dbueso-l3A5Bk7waGM@public.gmane.org>
 
-This was accepted into 4.13-rc, thanks.
+Ack for the RDMA parts.
+
+Acked-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -51,9 +75,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 D
 
 
---NsbvIUQWVc78rtqbpHdNMPNJsIDaqbNhK--
+--BuxHUqc5o9bBEhBLkCue9JHsfLBsXRnLu--
 
---J6KRJhBjWGrAHaMfTSCBSiiX7tkOAgEoj
+--tPpekWmpr7kkH5gkk2Sjf3TieeABPMdiE
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -62,22 +86,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJZc49NAAoJELgmozMOVy/dnZwQAL3vB56nNASXVVEfjThKGCDx
-MxCSRFABzbk6AzAczm2ad1BsBnuEJZf0xkpulukNPJ9U477YgF4Rs1waSEyf6TTX
-YPRp1IJk58tCVuNoDN/9Rku17rdTGpEaDjb+JIIVqDghRFKRZDFXRyt5e9OqqytS
-uuF78ncliPLwQJGVecQPgKyH4XW5OnKvYHqcMdppVqzWlo0Da/B4RNLgrEljXTmj
-/gjpkia5vln5BD8CZPQrRGdd7L7Jex1HfLI5hcZTUi644ubhKbmVFgPU7lCxt4a4
-M/cvqv99tdvorMc8LV296aJ9Lbs2BM9wJ9r5NO1OH5ht5IAyhndpIMPlEnXO7vbU
-LyKIttzoj0LKfCUuPcthK5zaOknwPoaS9Q/ub5yTjzY2jIw3YF9LMvrZmuDdmX+b
-D8O5zt3BaMZeGjN8ncIKsy57tW09i97cjEDSIEiTR6kgRYMTvB+3qpbcK8UiC4Ua
-eo7cHR+pRrkwPn9q9/SXMM8Tc6nTz/NZb2wfRJ3f6fsoi3lmnyi6sUxWCqiAY0S+
-JQHSLIexC6aH1pqeuNdcOwfH/hGu7IX+BlEym+em1xdg1ov8tslvq4phwpUJTujJ
-JWZ0zFiI3L/8y5yFWvJhJnnODJ27lE+eDv1NA93rgNNBIL0fPyhEKXufB5zRawxx
-ZBxK6E9+aOwgrK4ZLFj7
-=rOag
+iQIcBAEBCAAGBQJZc5DcAAoJELgmozMOVy/d4QcQAIVqBiz4a3fMzDQcal1TUMnD
+Te3eTAxeQ3oEShJ1959ezAJnB1iIzPSBHySsB546dQ8ZJqFgqHOrWqfG9LqqagFP
+9+zZj2e5Igv8ukEEs+U+1MUZ1XWpDRsGgxv9Q8H5piOhjsSU7TyP6h9hb/IdNcFj
+4+1Q4xWG8wexsls14p3iUbgCnGy1df6oOSAtaQXyxVjHTutQ5cYNuEFX03HqvUVz
+lxVNHlQDIUGe1Hz1NvEzdE1+4Hbp/RAQpEKlxg+/tVL+Ywxx7mJao18RDJKI7QOX
+wLWskWuLzKzGspPBd1fQXrHMqdbrhZkq1KrKlEswPIXxmcielYbNOpvncI4SLFm+
+fJkWBjdWOYkBMDyKx+q+PsH/xejsgiouGz2zDP5whTnunTMtBjJX5hfac4azXvF0
+X02pMgqkgvz7Oz4QdjzEWXcpt4XM8JCU+12woC2ByfXFF26FaKd96Jr8SmoptKAU
+Mqv++JEQaWFq+F97wRgt33H113U3EswKxMnqT7AJNew5/dPdgXJZ0HV+4PXFINAr
+ynG3I2uurLHMTkbhUl5iPx801mG92XD6mlDlkm3rrRNo6u3tjdDk7vxQrcHWHK/R
+TGDQ34tStoHQeAVPQ6uUk7AnlwYTrhs9cjyI5Ww/wMdrGmmhkaNXtjIAnCSBhu4D
+asBFOy8pRpCt9azXAJ8i
+=RKEy
 -----END PGP SIGNATURE-----
 
---J6KRJhBjWGrAHaMfTSCBSiiX7tkOAgEoj--
+--tPpekWmpr7kkH5gkk2Sjf3TieeABPMdiE--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
