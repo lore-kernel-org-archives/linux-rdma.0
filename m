@@ -1,72 +1,51 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 11/17] lib/interval_tree: fast overlap detection
-Date: Sat, 22 Jul 2017 13:52:28 -0400
-Message-ID: <a1444ac4-623f-eded-83b3-76d76f2f54ce@redhat.com>
-References: <20170719014603.19029-1-dave@stgolabs.net>
- <20170719014603.19029-12-dave@stgolabs.net>
+Subject: Re: [PATCH rdma 1/3] RDMA/qedr: Prevent memory overrun in verbs' user
+ responses
+Date: Sat, 22 Jul 2017 13:54:16 -0400
+Message-ID: <172676bc-4007-5c24-e44a-9c4ac2a031a7@redhat.com>
+References: <1498493106-28604-1-git-send-email-Ram.Amrani@cavium.com>
+ <1498493106-28604-2-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="tPpekWmpr7kkH5gkk2Sjf3TieeABPMdiE"
+ boundary="VmL4wXfB7SOXKxrW17h7W061oU8v4odfm"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170719014603.19029-12-dave-h16yJtLeMjHk1uMJSBkQmQ@public.gmane.org>
+In-Reply-To: <1498493106-28604-2-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Davidlohr Bueso <dave-h16yJtLeMjHk1uMJSBkQmQ@public.gmane.org>, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
-Cc: mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, kirill.shutemov-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, ldufour-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, mhocko-IBi9RG/b67k@public.gmane.org, mgorman-3eNAlZScCAx27rWaFMvyedHuzzzSOjJt@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Wang <jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Davidlohr Bueso <dbueso-l3A5Bk7waGM@public.gmane.org>
+To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---tPpekWmpr7kkH5gkk2Sjf3TieeABPMdiE
-Content-Type: multipart/mixed; boundary="BuxHUqc5o9bBEhBLkCue9JHsfLBsXRnLu";
+--VmL4wXfB7SOXKxrW17h7W061oU8v4odfm
+Content-Type: multipart/mixed; boundary="e92HJ08eadpw65XXOsU4PnmbqOw7iVPaj";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Davidlohr Bueso <dave-h16yJtLeMjHk1uMJSBkQmQ@public.gmane.org>, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
-Cc: mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org,
- torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, kirill.shutemov-VuQAYsv1563Yd54FQh9/CA@public.gmane.org,
- hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, ldufour-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, mhocko-IBi9RG/b67k@public.gmane.org,
- mgorman-3eNAlZScCAx27rWaFMvyedHuzzzSOjJt@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org,
- "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Wang <jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>,
- Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- Davidlohr Bueso <dbueso-l3A5Bk7waGM@public.gmane.org>
-Message-ID: <a1444ac4-623f-eded-83b3-76d76f2f54ce-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 11/17] lib/interval_tree: fast overlap detection
-References: <20170719014603.19029-1-dave-h16yJtLeMjHk1uMJSBkQmQ@public.gmane.org>
- <20170719014603.19029-12-dave-h16yJtLeMjHk1uMJSBkQmQ@public.gmane.org>
-In-Reply-To: <20170719014603.19029-12-dave-h16yJtLeMjHk1uMJSBkQmQ@public.gmane.org>
+To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
+Message-ID: <172676bc-4007-5c24-e44a-9c4ac2a031a7-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma 1/3] RDMA/qedr: Prevent memory overrun in verbs' user
+ responses
+References: <1498493106-28604-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+ <1498493106-28604-2-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1498493106-28604-2-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 
---BuxHUqc5o9bBEhBLkCue9JHsfLBsXRnLu
+--e92HJ08eadpw65XXOsU4PnmbqOw7iVPaj
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: quoted-printable
 
-On 7/18/2017 9:45 PM, Davidlohr Bueso wrote:
-> Allow interval trees to quickly check for overlaps to avoid
-> unnecesary tree lookups in interval_tree_iter_first().
+On 6/26/2017 12:05 PM, Ram Amrani wrote:
+> Wrap ib_copy_to_udata with a function that ensures that the data
+> being copied over to user space isn't longer than the allowed.
 >=20
-> As of this patch, all interval tree flavors will require
-> using a 'rb_root_cached' such that we can have the leftmost
-> node easily available. While most users will make use of this
-> feature, those with special functions (in addition to the generic
-> insert, delete, search calls) will avoid using the cached
-> option as they can do funky things with insertions -- for example,
-> vma_interval_tree_insert_after().
->=20
-> Cc: David Airlie <airlied-cv59FeDIM0c@public.gmane.org>
-> Cc: dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-> Cc: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Cc: Jason Wang <jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Cc: Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Acked-by: Christian K=C3=B6nig <christian.koenig-5C7GfCeVMHo@public.gmane.org>
-> Acked-by: Peter Zijlstra (Intel) <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-> Signed-off-by: Davidlohr Bueso <dbueso-l3A5Bk7waGM@public.gmane.org>
+> Fixes: cecbcddf6461 ("qedr: Add support for QP verbs")
+> Fixes: a7efd7773e31 ("qedr: Add support for PD,PKEY and CQ verbs")
+> Fixes: ac1b36e55a51 ("qedr: Add support for user context verbs")
+> Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 
-Ack for the RDMA parts.
-
-Acked-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-
+This was accepted into 4.13-rc, thanks.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -75,9 +54,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 D
 
 
---BuxHUqc5o9bBEhBLkCue9JHsfLBsXRnLu--
+--e92HJ08eadpw65XXOsU4PnmbqOw7iVPaj--
 
---tPpekWmpr7kkH5gkk2Sjf3TieeABPMdiE
+--VmL4wXfB7SOXKxrW17h7W061oU8v4odfm
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -86,22 +65,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJZc5DcAAoJELgmozMOVy/d4QcQAIVqBiz4a3fMzDQcal1TUMnD
-Te3eTAxeQ3oEShJ1959ezAJnB1iIzPSBHySsB546dQ8ZJqFgqHOrWqfG9LqqagFP
-9+zZj2e5Igv8ukEEs+U+1MUZ1XWpDRsGgxv9Q8H5piOhjsSU7TyP6h9hb/IdNcFj
-4+1Q4xWG8wexsls14p3iUbgCnGy1df6oOSAtaQXyxVjHTutQ5cYNuEFX03HqvUVz
-lxVNHlQDIUGe1Hz1NvEzdE1+4Hbp/RAQpEKlxg+/tVL+Ywxx7mJao18RDJKI7QOX
-wLWskWuLzKzGspPBd1fQXrHMqdbrhZkq1KrKlEswPIXxmcielYbNOpvncI4SLFm+
-fJkWBjdWOYkBMDyKx+q+PsH/xejsgiouGz2zDP5whTnunTMtBjJX5hfac4azXvF0
-X02pMgqkgvz7Oz4QdjzEWXcpt4XM8JCU+12woC2ByfXFF26FaKd96Jr8SmoptKAU
-Mqv++JEQaWFq+F97wRgt33H113U3EswKxMnqT7AJNew5/dPdgXJZ0HV+4PXFINAr
-ynG3I2uurLHMTkbhUl5iPx801mG92XD6mlDlkm3rrRNo6u3tjdDk7vxQrcHWHK/R
-TGDQ34tStoHQeAVPQ6uUk7AnlwYTrhs9cjyI5Ww/wMdrGmmhkaNXtjIAnCSBhu4D
-asBFOy8pRpCt9azXAJ8i
-=RKEy
+iQIcBAEBCAAGBQJZc5FIAAoJELgmozMOVy/dCCEP/0xaZZmuwEzwVhFaBtTJD+9L
+RUeTCMjF4f28N/GnVFQOW6qwD4QXG2TvZF/aplfF7eSwYKdLNJijZ3qoDkQ6BXYr
+aG+J1t7A6N+GDnA5klRl28+MbCVRDrLwgOWfU+0oDsA+Tkv3FAhrY+nKxOrVEcUK
+aSMOXGh60kXf1jcQW+xQbxznCkNGUm1bmBG9ZWYuizwUbEbsiEz7JjlplUbbRSZo
+Mnn1DNaSy1sRo4+Swwz/wNGlUqTMXm75VxtZcse5nHj5x3/7V7WTfZtkgUFXeoSB
+gCa2TsSqLfbr9qUJQQiLjoU9NXIRYDJX7+n6KWEfheZl61miplmETSC5X2eogPAf
+30cq7Z4Hck53aVUvXY06XyJb8SkgRsV30jFDJvKYw0RG6ONJ4zEnEiVhHxPizVIi
+VMYemtR9GHwJ723qpdJF5bYOPsief0PLIROB1gbsZlswsjUY6GOI5ps0JZf1y8p8
+JjSureoLHnLFPsa+vzrEidNvj7JXnkPOP3AQ1whtJlJ6ndNSFxfv8AdGaFXft/mh
+MIdzvYwrrCDeQO+hJhQHhctHizniJMgt0wua8tpLYUrWlfCPeQW2McQhcP/tD+2x
+HMRtADBs0TpxuOBb3jV51ZdWtMowJA0Vy+oAEIeQPP8MLwJTBSHOyDUCPBcs1lRC
+1S2lYt1h/3PNLESRp2kW
+=gT8S
 -----END PGP SIGNATURE-----
 
---tPpekWmpr7kkH5gkk2Sjf3TieeABPMdiE--
+--VmL4wXfB7SOXKxrW17h7W061oU8v4odfm--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
