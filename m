@@ -1,49 +1,44 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma 1/3] RDMA/qedr: Prevent memory overrun in verbs' user
- responses
-Date: Sat, 22 Jul 2017 13:54:16 -0400
-Message-ID: <172676bc-4007-5c24-e44a-9c4ac2a031a7@redhat.com>
-References: <1498493106-28604-1-git-send-email-Ram.Amrani@cavium.com>
- <1498493106-28604-2-git-send-email-Ram.Amrani@cavium.com>
+Subject: Re: [PATCH resend] RDMA/iser: don't send an rkey if all data is
+ written as immadiate-data
+Date: Sat, 22 Jul 2017 13:55:17 -0400
+Message-ID: <87fb9ccb-026b-d6c1-d204-096f5abd625c@redhat.com>
+References: <1499325696-18310-1-git-send-email-sagi@grimberg.me>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="VmL4wXfB7SOXKxrW17h7W061oU8v4odfm"
+ boundary="FKgDgW353Sq3Au4SHQAVEXhE9aGR3HwxA"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1498493106-28604-2-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1499325696-18310-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---VmL4wXfB7SOXKxrW17h7W061oU8v4odfm
-Content-Type: multipart/mixed; boundary="e92HJ08eadpw65XXOsU4PnmbqOw7iVPaj";
+--FKgDgW353Sq3Au4SHQAVEXhE9aGR3HwxA
+Content-Type: multipart/mixed; boundary="uGQi1Tf06A21P4qi1Kw1LkKGBudnM4x6o";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
-Message-ID: <172676bc-4007-5c24-e44a-9c4ac2a031a7-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma 1/3] RDMA/qedr: Prevent memory overrun in verbs' user
- responses
-References: <1498493106-28604-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
- <1498493106-28604-2-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-In-Reply-To: <1498493106-28604-2-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <87fb9ccb-026b-d6c1-d204-096f5abd625c-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH resend] RDMA/iser: don't send an rkey if all data is
+ written as immadiate-data
+References: <1499325696-18310-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <1499325696-18310-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 
---e92HJ08eadpw65XXOsU4PnmbqOw7iVPaj
+--uGQi1Tf06A21P4qi1Kw1LkKGBudnM4x6o
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: quoted-printable
 
-On 6/26/2017 12:05 PM, Ram Amrani wrote:
-> Wrap ib_copy_to_udata with a function that ensures that the data
-> being copied over to user space isn't longer than the allowed.
+On 7/6/2017 3:21 AM, Sagi Grimberg wrote:
+> We might get some bogus error completions in case the target will
+> remotely invalidate the rkey and the HCA will need to retransmit
+> from this buffer.
 >=20
-> Fixes: cecbcddf6461 ("qedr: Add support for QP verbs")
-> Fixes: a7efd7773e31 ("qedr: Add support for PD,PKEY and CQ verbs")
-> Fixes: ac1b36e55a51 ("qedr: Add support for user context verbs")
-> Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 
 This was accepted into 4.13-rc, thanks.
 
@@ -54,9 +49,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 D
 
 
---e92HJ08eadpw65XXOsU4PnmbqOw7iVPaj--
+--uGQi1Tf06A21P4qi1Kw1LkKGBudnM4x6o--
 
---VmL4wXfB7SOXKxrW17h7W061oU8v4odfm
+--FKgDgW353Sq3Au4SHQAVEXhE9aGR3HwxA
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -65,22 +60,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJZc5FIAAoJELgmozMOVy/dCCEP/0xaZZmuwEzwVhFaBtTJD+9L
-RUeTCMjF4f28N/GnVFQOW6qwD4QXG2TvZF/aplfF7eSwYKdLNJijZ3qoDkQ6BXYr
-aG+J1t7A6N+GDnA5klRl28+MbCVRDrLwgOWfU+0oDsA+Tkv3FAhrY+nKxOrVEcUK
-aSMOXGh60kXf1jcQW+xQbxznCkNGUm1bmBG9ZWYuizwUbEbsiEz7JjlplUbbRSZo
-Mnn1DNaSy1sRo4+Swwz/wNGlUqTMXm75VxtZcse5nHj5x3/7V7WTfZtkgUFXeoSB
-gCa2TsSqLfbr9qUJQQiLjoU9NXIRYDJX7+n6KWEfheZl61miplmETSC5X2eogPAf
-30cq7Z4Hck53aVUvXY06XyJb8SkgRsV30jFDJvKYw0RG6ONJ4zEnEiVhHxPizVIi
-VMYemtR9GHwJ723qpdJF5bYOPsief0PLIROB1gbsZlswsjUY6GOI5ps0JZf1y8p8
-JjSureoLHnLFPsa+vzrEidNvj7JXnkPOP3AQ1whtJlJ6ndNSFxfv8AdGaFXft/mh
-MIdzvYwrrCDeQO+hJhQHhctHizniJMgt0wua8tpLYUrWlfCPeQW2McQhcP/tD+2x
-HMRtADBs0TpxuOBb3jV51ZdWtMowJA0Vy+oAEIeQPP8MLwJTBSHOyDUCPBcs1lRC
-1S2lYt1h/3PNLESRp2kW
-=gT8S
+iQIcBAEBCAAGBQJZc5GFAAoJELgmozMOVy/d5fMP/A55THcORFjC4/KxrHwDtIcF
+oW6m3nB5msoUv1Fb3V3/xC2kh2pUvt4jF09Nj5STTe+3+rNhmWtFwoA+ayRw5+04
+OHb+d99uW0ELiVIcwuGIGxf9vYlAGafNpUvJPl2NBWtQWl06V8XdhlhPjWLtv/Ee
+rlR2982qV7CMfyeslMpqABWrnISRYqwFoL2YLV6GshaTZzHUByWRFUKce3c4r6EK
+XT3MdxnBV0+BCA67Quxi80wOVn7gUhjNVpBCZ/B3UDcacDbQ4+zcXzFcsUExQVop
+AmMx+2F9Xhop+VEj32gUt7xdsgkfj1awk8LDE6vOjUm+89T9jNucVACBHt+uInRy
+9GSu7QrC6StFxsBWTW92kgKec5QLEGTuRfJEM6Oj0hhAogbB0PfdeCqx/9DuiQdG
+IhQPG1gqwfDrN6q3n1NwQHhI+LxL124M82CpfpBawxt2WoT8TtDwgAadHukCBRsa
+DgJzEolljMhPp1bPymT9TJvFDXRsylj1GMwP+uIFghypJejFAfU5Zfr7W86HH2q9
+MoYPcNqiOHOicDwM1AnqKorCVuTIzyNrQMvAirwd6riL6DnF1iFs6ntQ+xfX01dM
+4bF92/i309fwjwI6koS322oHya64Nnt8zYbSCxyyVBF9fVXoD2FN7ag4D0hpgdVA
+582/i0GTgN9M33XYxQ5h
+=DmWR
 -----END PGP SIGNATURE-----
 
---VmL4wXfB7SOXKxrW17h7W061oU8v4odfm--
+--FKgDgW353Sq3Au4SHQAVEXhE9aGR3HwxA--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
