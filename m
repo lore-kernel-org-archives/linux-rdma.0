@@ -1,47 +1,53 @@
 From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] IB/cxgb3: Fix error codes in iwch_alloc_mr()
-Date: Sat, 22 Jul 2017 13:28:33 -0400
-Message-ID: <d300777c-6057-b7b7-f10a-0724879204dd@redhat.com>
-References: <20170713074800.dlzwroi4jmuv5xfk@mwanda>
+Subject: Re: [PATCH 1/2] RDMA/ocrdma: Fix an error code in ocrdma_alloc_pd()
+Date: Sat, 22 Jul 2017 13:29:17 -0400
+Message-ID: <94260605-15c2-d088-d5b6-ded6bca77d43@redhat.com>
+References: <20170713074614.obgl5mxxygcluyog@mwanda>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="c64psOxmBcDLURhi7X9IK3IfcEK8KTU6a"
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20170713074800.dlzwroi4jmuv5xfk@mwanda>
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>, Steve Wise <swise@chelsio.com>
-Cc: Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+ boundary="NKhJCvLIDMBLHTbiOQKQw7tpif11Uo1vt"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170713074614.obgl5mxxygcluyog@mwanda>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>, Selvin Xavier <selvin.xavier@broadcom.com>, Naresh Gottumukkala <bgottumukkala@emulex.com>
+Cc: Devesh Sharma <devesh.sharma@broadcom.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Leon Romanovsky <leon@kernel.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>, Niranjana Vishwanathapura <niranjana.vishwanathapura@intel.com>, Artemy Kovalyov <artemyko@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, ssh10 <mayhs11saini@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---c64psOxmBcDLURhi7X9IK3IfcEK8KTU6a
-Content-Type: multipart/mixed; boundary="2DWOvNiHhOxLMvHMx3lvPeTPEAhr6katW";
+--NKhJCvLIDMBLHTbiOQKQw7tpif11Uo1vt
+Content-Type: multipart/mixed; boundary="hAGaOM73R71me0av14TKrewkgd1L16PVx";
  protected-headers="v1"
 From: Doug Ledford <dledford@redhat.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>, Steve Wise <swise@chelsio.com>
-Cc: Sean Hefty <sean.hefty@intel.com>,
- Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org,
- kernel-janitors@vger.kernel.org
-Message-ID: <d300777c-6057-b7b7-f10a-0724879204dd@redhat.com>
-Subject: Re: [PATCH] IB/cxgb3: Fix error codes in iwch_alloc_mr()
-References: <20170713074800.dlzwroi4jmuv5xfk@mwanda>
-In-Reply-To: <20170713074800.dlzwroi4jmuv5xfk@mwanda>
+To: Dan Carpenter <dan.carpenter@oracle.com>,
+ Selvin Xavier <selvin.xavier@broadcom.com>,
+ Naresh Gottumukkala <bgottumukkala@emulex.com>
+Cc: Devesh Sharma <devesh.sharma@broadcom.com>,
+ Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock
+ <hal.rosenstock@gmail.com>, Leon Romanovsky <leon@kernel.org>,
+ Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>,
+ Niranjana Vishwanathapura <niranjana.vishwanathapura@intel.com>,
+ Artemy Kovalyov <artemyko@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>,
+ ssh10 <mayhs11saini@gmail.com>, linux-rdma@vger.kernel.org,
+ linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Message-ID: <94260605-15c2-d088-d5b6-ded6bca77d43@redhat.com>
+Subject: Re: [PATCH 1/2] RDMA/ocrdma: Fix an error code in ocrdma_alloc_pd()
+References: <20170713074614.obgl5mxxygcluyog@mwanda>
+In-Reply-To: <20170713074614.obgl5mxxygcluyog@mwanda>
 
---2DWOvNiHhOxLMvHMx3lvPeTPEAhr6katW
+--hAGaOM73R71me0av14TKrewkgd1L16PVx
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: quoted-printable
 
-On 7/13/2017 3:48 AM, Dan Carpenter wrote:
-> We accidentally don't set the error code on some error paths.  It means=
-
-> return ERR_PTR(0) which is NULL and results in a NULL dereference in th=
-e
-> caller.
+On 7/13/2017 3:46 AM, Dan Carpenter wrote:
+> We should preserve the original "status" error code instead of resettin=
+g
+> it to zero.  Returning ERR_PTR(0) is the same as NULL and results in a
+> NULL dereference in the callers.  I added a printk() on error instead.
 >=20
-> Fixes: 13a239330abd ("RDMA/cxgb3: Don't ignore insert_handle() failures=
-")
+> Fixes: 45e86b33ec8b ("RDMA/ocrdma: Cache recv DB until QP moved to RTR"=
+)
 > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
 This was accepted into 4.13-rc, thanks.
@@ -53,9 +59,9 @@ Doug Ledford <dledford@redhat.com>
 D
 
 
---2DWOvNiHhOxLMvHMx3lvPeTPEAhr6katW--
+--hAGaOM73R71me0av14TKrewkgd1L16PVx--
 
---c64psOxmBcDLURhi7X9IK3IfcEK8KTU6a
+--NKhJCvLIDMBLHTbiOQKQw7tpif11Uo1vt
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -64,19 +70,19 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJZc4tBAAoJELgmozMOVy/dwJYP/AwMJR4PSGycbv/8xoTTYXaG
-s0IC+s/RhuJjvPHzJwb6mVz9Vf+W5knp11gOzWxBmAINavXQXD0ceeeUkQ6wLtYi
-2RpEihCgsKzoINS4K1gM1W1B8Rz63ReWDoWofWnD77RqpS0y3enBfmOqt/cvWmeP
-zFNQXiUy0a5gr7G2GoQlx/6nb2NVqumtQAr/WOR1aR+fqUcu7Jns5v2f9y//r1rK
-aNFKodd6NiBJQ7dCz38Y5+6RpjqvxG1W2pNdSM5HE1KBitDYprucLG9SzdwnTA4v
-ebbnzDhr5iw5T+LChAhtmhGmpjciykjl3RI2aIikzt644oQzSIwCFJ8IiTh0dKuy
-7/TEjaYncAKvGS/+hWt39VN5UN2Hac2oePow/KFtH5F5lHjbDyaEjNYYNJmrb/WJ
-/+/hanVqIOIQ3GthzdKmcJYJ6Z8s9sHGv+p4ZKfSb3E5QZZD6+A3XRBXWKUt6h/M
-EaCfY3HfZxQR5OafCXv5SFqog9CuSJ8i75ATfPSUpYon2y798IDD1pRYL2VvWxVz
-1qFTf/bersaICx8kPjkqr3zQQ+0qgLxNGJoUjoXdmpg4E1BARFBiUCyd44M3vfC8
-kVawNP84GcyRhlzDtlRPsBIhFDIbcK/xywArH1Stb+GUaD3EQgL42a6H3n34bMkW
-JwfsOhDbVquvuTcdcrbZ
-=0oLu
+iQIcBAEBCAAGBQJZc4ttAAoJELgmozMOVy/djNAQAIHDFOOspzF30K23tTxkPXdp
+FRSGwnyf/562nYS9qkWEfE4yLdfm7y4CrAfYL0z90wuYyFDWZlvsUtF4so2fX1j1
+O6W5DMuHJR3UC1pCRli370jN2hE0eyIfqMdadXuesdGCAjbBC/+hyMXkaanhJ7JV
+DMAPGeEzuHylkr1ihQIxyJRj8rhYVwNAzniNU+Pm+sBHO3FFJwkaYItxPB3Mgp++
+A4aW0OsWdQycO0DlIjXaVpUu7zFZrYaChMaUb4d8xNEnUJTTQGt5T7oZsvutXvHD
+HfLmB9J92/x94dFD1zPXs17oXAnU6BwUDv/cCQ4ebz4KescdLYDnKRaowRYAwFz0
+1I36s+cmU5EDgJJVv+0GOGA5AHoAi8XrF5quL5G16k1vKSGUZ+xZzrSo2xdaIXbu
+OCd1yB7nXXv+l+/LHuGiPE5zG20YKqeLxNHqEAXubqUOSdoVlccV1YfAfeMcJShL
+6fb3tndwUvdZZ7rbXmMN3J3HoCHd/9gBDa/216GCY3eLVWr3yBjliOrOk6wSZrum
+3cZJEJribM47LGvKOxTqJ/u69sjxFN9YrS/2xt2p9jKhdzCxVImeQ/GhUQ7fA/jo
+t2F9XKQN2aA+J7nx4JMS6nrdDiEEFymNB6eAfkh9KxHYq160NLGloRoGsIOQNchM
+0O8K3UKf86G/6D29DLwt
+=u4k0
 -----END PGP SIGNATURE-----
 
---c64psOxmBcDLURhi7X9IK3IfcEK8KTU6a--
+--NKhJCvLIDMBLHTbiOQKQw7tpif11Uo1vt--
