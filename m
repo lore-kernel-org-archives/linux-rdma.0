@@ -1,65 +1,44 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next V2 00/13] RDMA/bnxt_re: Misc fixes for bnxt_re
-Date: Sat, 22 Jul 2017 13:41:26 -0400
-Message-ID: <424c1ab0-e4ff-974a-a5ab-a2cff04553bc@redhat.com>
-References: <1498764499-24157-1-git-send-email-selvin.xavier@broadcom.com>
+Subject: Re: [PATCH for-rdma] IB/core: Fix sparse warnings
+Date: Sat, 22 Jul 2017 13:42:36 -0400
+Message-ID: <ebd643b9-2ded-9ec4-f23a-89630ac2b6ad@redhat.com>
+References: <1496932247-119899-1-git-send-email-matanb@mellanox.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="orc8242waLejFOCikLEiNxI1USptgtpmo"
+ boundary="IbtuRKN7vOkKruKNFVmcUcVRx2gKaJbg6"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1498764499-24157-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1496932247-119899-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---orc8242waLejFOCikLEiNxI1USptgtpmo
-Content-Type: multipart/mixed; boundary="EBmiU259J4gICTVjQc9DXNU0Xbi6iKXpV";
+--IbtuRKN7vOkKruKNFVmcUcVRx2gKaJbg6
+Content-Type: multipart/mixed; boundary="cWGV9uL0qIEx3SV3MusCRs7PjUDOfJxpa";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <424c1ab0-e4ff-974a-a5ab-a2cff04553bc-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next V2 00/13] RDMA/bnxt_re: Misc fixes for bnxt_re
-References: <1498764499-24157-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-In-Reply-To: <1498764499-24157-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+To: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Message-ID: <ebd643b9-2ded-9ec4-f23a-89630ac2b6ad-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-rdma] IB/core: Fix sparse warnings
+References: <1496932247-119899-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1496932247-119899-1-git-send-email-matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
---EBmiU259J4gICTVjQc9DXNU0Xbi6iKXpV
+--cWGV9uL0qIEx3SV3MusCRs7PjUDOfJxpa
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: quoted-printable
 
-On 6/29/2017 3:28 PM, Selvin Xavier wrote:
-> This patch series includes the bug fixes for bnxt_re.
+On 6/8/2017 10:30 AM, Matan Barak wrote:
+> Delete unused variables to prevent sparse warnings.
 >=20
-> Patches 1 - 8 in this series are the backlog from the previously
-> submitted series -
-> https://www.spinics.net/lists/linux-rdma/msg50984.htm (6 out of the
-> the 14 patches from the above series got merged into 4.12-rc).
-> Theise patches are already reviewed by the community.
->=20
-> Patches 9-13 are new patches posted for review.
->=20
-> Doug,
-> Please review this and consider applying all 13 patches in the 4.13
-> merge cycle.
->=20
-> Thanks,
-> Selvin Xavier
+> Fixes: db1b5ddd5336 ("IB/core: Rename uverbs event file structure")
+> Fixes: fd3c7904db6e ("IB/core: Change idr objects to use the new schema=
+")
 
-Hi Selvin,
-
-I dropped patch #1 because it conflicts with other patches already applie=
-d.
-
-Then, because I'm only taking -rc candidate fixes this cycle, I took
-patches 2, 3, 5, 6, 7, 8, 10, 11, 12, and 13.  I left out 4 because it
-is rather large, and because this represents something that is arguably
-a feature implementation and not a strict bug fix that has a workaround
-(just use vlans with egress mappings and the issue is resolved).  I left
-out 9 because of its size and the non-urgent nature of the fix.  Thanks.
+This was accepted into 4.13-rc, thanks.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -68,9 +47,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 D
 
 
---EBmiU259J4gICTVjQc9DXNU0Xbi6iKXpV--
+--cWGV9uL0qIEx3SV3MusCRs7PjUDOfJxpa--
 
---orc8242waLejFOCikLEiNxI1USptgtpmo
+--IbtuRKN7vOkKruKNFVmcUcVRx2gKaJbg6
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -79,22 +58,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJZc45GAAoJELgmozMOVy/dwMkQAKAq2GOJkvSsh1aTsLsCUOG5
-/sVhPqW92A+auq1lJIrmx30Z/GS9qlbBsfmrY6xKs1OTj7Q6bERcdA9mPFKmeSRr
-fHQYgaB1u61kThISKzE74A58p7IZJNYjdAtkQ/X1M9Qh4vlA5yXvk8z8mkc4ccc1
-Q1SIfFUkM+4OKVC0EZ6/cAbrLQmoRAvg6eIYsDzXzOu8yILt1CsuEjTxaNnVlqM0
-aB9JnOb+fgGeP4rscier9/Nlgcbt6+WiR/g6es6z41BnfF5E0HxC7vpJxSD5XvjA
-vVs3NVAXVqVziVhLrqI3ZAAUC+w26Ur5Jyjk7aivAXNg0zN4cThWnrTlijwToQ1l
-XCXpZe0vOWuftdE4alJ8auWg4g493f8zu31sX8aZOSfaa/KAns156ocdwLlRJ4Jr
-eetxxcKtfmSkWcckfyk5LATksVddmqAFC8EQL/3POUmNDjVs4tj89kQeAgjU5Yeg
-1IrWL8u2e8idtmZRalFsII1dAFgso/KvkiAfi0c3Gx5aRswu5jiHpMTPWjjHgEdR
-jzlOMNw4czUjSfhrgw4ryNJvv2UANsUXLCE30srohxWyWX+aNBdVgBbtC3s1s8YO
-mc7hFgRNjV4SvXcVKhn3HJhLIL7jkCJ4s0snIZ2XggxtdVdjoFJyZR10JoshSpud
-rOcAkuGbgYfFzD6Q8Kke
-=UZJ4
+iQIcBAEBCAAGBQJZc46MAAoJELgmozMOVy/d9EIP/jSsqcldzsYYso5dntubXYWp
+EBwwBDzGigjyPYYTQRwws6KI0fwF2cneeKnr/Cc4Kfv6ox9bjYSlKA1WJk2LARaJ
+v50iGxE/kaAq4octNrTlW3jxn+6m4kn6ubyR7y+TgXmL80cLGxxUUts/S6lpwOot
+VbJawohbJg9VZmR28rhEMjNpo1eLIDo+D5tDI2c5eQrFYCO4MYsPj1LJ/E+kiJhH
+6brOeErGdc7TZj1uFbWZhJxPb3XuLE/CYalqgb6Jp1SAF3PWVRweJ5cqGi5iomra
+1+ZKcm36KKbvVDsTcpwlr8q7N880Nqn1kxZDi7y7l6hmzZ+/E5NT2QEh39Ct2phU
+tNsRMZMwFh9Pah3FWTCB8vC49X2T+6YY7CguUPyqR8A2Td57Knr8OIDbBk+Snoig
+lP28pydGFN2bk+BOMU76GiE/vlwL4EUTSKJaYv0MbJZ+p/STYJO+TlX3JMGK2yO4
+K25hHpzgVwsLY0wzf2ShVquVvanWhFqgNhvQ5Gjm141TgrA/3GndvKyFoblWqXjl
+8tl090erIWzFWehsWjYgOF9P3zCnRRj+vPuv5HJlyfSK9qmFEUpdf8an0hIBcXSo
+hgeKEMwcdLE6qDLbGJp3xW/Xv2CYwDvgAJWjf0AMXJq/P7/bKQHulEc5DqjBF9L/
+073I+nTTWU/ZIHpKMyF8
+=iJq6
 -----END PGP SIGNATURE-----
 
---orc8242waLejFOCikLEiNxI1USptgtpmo--
+--IbtuRKN7vOkKruKNFVmcUcVRx2gKaJbg6--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
