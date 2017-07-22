@@ -1,52 +1,46 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next] IB: Convert msleep below 20ms to usleep_range
-Date: Sat, 22 Jul 2017 13:06:56 -0400
-Message-ID: <182b46cb-db3b-911e-f2a8-5b9a07e1d3a4@redhat.com>
-References: <20170523082942.13314-1-leon@kernel.org>
+Subject: Re: [PATCH rdma-next] IB/IPoIB: Forward MTU change to driver below
+Date: Sat, 22 Jul 2017 13:07:46 -0400
+Message-ID: <e34f9381-3c25-8250-de77-87fa5a873088@redhat.com>
+References: <20170523084252.16018-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="W7bt6dK3RArcH5P0qiRv4WmiFs3aBjmAR"
+ boundary="xaT26RM0jEwuv8DSaUNxme1qj0bI7Gg2X"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170523082942.13314-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170523084252.16018-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---W7bt6dK3RArcH5P0qiRv4WmiFs3aBjmAR
-Content-Type: multipart/mixed; boundary="jdotRBXWeI1opuD1qVoKtdrjP5pEwjoK0";
+--xaT26RM0jEwuv8DSaUNxme1qj0bI7Gg2X
+Content-Type: multipart/mixed; boundary="iQhp924uLxhda81p1mTltdiltMWjbtreG";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>,
- Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Message-ID: <182b46cb-db3b-911e-f2a8-5b9a07e1d3a4-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next] IB: Convert msleep below 20ms to usleep_range
-References: <20170523082942.13314-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-In-Reply-To: <20170523082942.13314-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Message-ID: <e34f9381-3c25-8250-de77-87fa5a873088-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next] IB/IPoIB: Forward MTU change to driver below
+References: <20170523084252.16018-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170523084252.16018-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
---jdotRBXWeI1opuD1qVoKtdrjP5pEwjoK0
+--iQhp924uLxhda81p1mTltdiltMWjbtreG
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: quoted-printable
 
-On 5/23/2017 4:29 AM, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 5/23/2017 4:42 AM, Leon Romanovsky wrote:
+> From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >=20
-> The msleep(1) may do not sleep 1 ms as expected
-> and will sleep longer. The simple conversion from
-> msleep to usleep_range between 1ms and 2ms can solve an
-> issue.
+> This patch checks if there is a driver below that
+> needs to be updated on the new MTU and calls it
+> accordingly.
 >=20
-> The full and comprehensive explanation can be found at [1] and [2].
->=20
-> [1] https://lkml.org/lkml/2007/8/3/250
-> [2] Documentation/timers/timers-howto.txt
->=20
-> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
 This has been accepted into 4.13-rc, thanks.
 
@@ -57,9 +51,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 D
 
 
---jdotRBXWeI1opuD1qVoKtdrjP5pEwjoK0--
+--iQhp924uLxhda81p1mTltdiltMWjbtreG--
 
---W7bt6dK3RArcH5P0qiRv4WmiFs3aBjmAR
+--xaT26RM0jEwuv8DSaUNxme1qj0bI7Gg2X
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -68,22 +62,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJZc4YwAAoJELgmozMOVy/dIAkQAMM6JVKzSTivNjmChNkzl4s5
-CuawrBAAiRtuKV1HHWXlmDSQO476GpbhVHxqflU95q/cBXWCNz79NDPG0s39u910
-KF2KS99dCdHi6DM1Kf9f93ufe/iiEXV+7j2pOLzp3tD2/jIpKk0Ljuq+pMuS92e5
-1TZ69Pbv2Jjy8SD+QE57RMnugoYHvsis6yW1OK8Umt4gOzWTSvHIpyhhSw/2QDfA
-C5NcgAHYBFQl2edIoT3TJQx2pZotColKdGri6591s6aQnHJKIBqnIOknvMMknb1H
-7bwsosjUPWIugowlPQyXk7g3ocf6VgDJZzHjJX8R60RpJgQ0Y0lS8NThtTa8QSHY
-q9xiJYy387+if6nbLWElfWsTbCXuAiqClierx3bspV/lG6eJu1N9CxbRIjrZ2C1S
-RRu0oPrEBfZBB+8dovmaWW7cFh5kTqmC6MxDpvO4TGzG+2jESdBRUIJkKkFg2Yr5
-lfLOodMfIFtQrG+FWfAdDPQVR1RNr34Zq2JUtU2L0rWTYQ/I/HBzAGrCZHIzf/ir
-rT+gZEOFSxV/ntvUwK3fDHo0fUnTGfuSW7feexnEi15A1GvCelUFWqsBY7hVbfgL
-kyxrks5U19Q+jYSY7EmAoOJJeaZxeOgspOh3CwWJKsCYA97B1Y9MU4EWAbuWMOlE
-JbH5NBHcwmd7YDgebj09
-=GvKQ
+iQIcBAEBCAAGBQJZc4ZiAAoJELgmozMOVy/dCegQAKCyak/Da/XRZgHgjTE0CfMZ
+RvSF3JOqYiL8wBtjbSJRuD69btCZhLJtuHtlvr11teA2xYy0ABfI8vjdF60GQOl2
+fek5oUTNOK8YjcsPO+OgkVtig1qePnVn9aOeHUcSNcnm1cRutrG1y2483DoxiShT
+GaktyzXE3t/Woi26w153V+JA/JN4meCRCAkwatCxODBPArW8q6zAA5DHPMeozQRL
+/207ZzX6f6urDuub9us/tRAfpf2Lu8xSRhSgRm3c95MEZ7prR6l+/5SzKgZ+b8IB
+EDbsTcs7jjm+JrPDH8yTFJo7cAknlV6V1U4H+UhsUOmtIEC7mRHRJT8mu1vhfhLU
+uDywyLaEYJJ80jnYVCyyXbbltzFLraM6nJUOTa4nX9Ib3ngL9TilYJR3XUVIkOuZ
+un+0awlE9ukNFhsmAACAGlGnHhijMA9/HMgv5+GXD+ialGA6eiMi6x/yOeeWmdr9
+gll3fc/Zaj9H28pNoq2Y4LyhfOkcAY8MrfaozF1aT/rCwELUlagPB8HM2VfQ48X7
+BtluHUWyMQAEKUAEuPOet9AkhjpUAAaVsbX0QpNwq1dB86bnQ9nTJ/46Y6ts6oNH
+QJPpT1kf6XTrol/hKqeOmQgxWe1etxtguA30xyCZV/2z/kRDbsINScL++QF+5MvI
+UnSDEV0zsRfa7aJaeoYW
+=EyJb
 -----END PGP SIGNATURE-----
 
---W7bt6dK3RArcH5P0qiRv4WmiFs3aBjmAR--
+--xaT26RM0jEwuv8DSaUNxme1qj0bI7Gg2X--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
