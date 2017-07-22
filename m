@@ -1,113 +1,123 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/3] Support out of order data placement
-Date: Sat, 22 Jul 2017 15:27:06 -0600
-Message-ID: <20170722212706.GA14714@obsidianresearch.com>
-References: <VI1PR0502MB30089271EB542493AA58060CD1C20@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <fb11f261-b80b-f71a-8076-204706267798@talpey.com>
- <VI1PR0502MB3008D488FEE8A7104A7B0A7CD1A60@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <142c2fed-baa5-1295-1458-be765c94b957@talpey.com>
- <VI1PR0502MB300886ED1B5B1363B55F53F0D1A50@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <e5cee768-586c-516a-6056-ea4a44f89134@talpey.com>
- <VI1PR0502MB30089915EB792CD20CA9D179D1A50@VI1PR0502MB3008.eurprd05.prod.outlook.com>
- <4444a96a-c1e6-ad33-204a-680982e19bfe@talpey.com>
- <20170722160939.GA30007@obsidianresearch.com>
- <VI1PR0502MB3008E483BB36F944C2E212ACD1A50@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+From: Salil Mehta <salil.mehta@huawei.com>
+Subject: [PATCH V4 net-next 0/8] Hisilicon Network Subsystem 3 Ethernet Driver
+Date: Sat, 22 Jul 2017 23:09:34 +0100
+Message-ID: <20170722220942.78852-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <VI1PR0502MB3008E483BB36F944C2E212ACD1A50-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, huangdaode@hisilicon.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Jul 22, 2017 at 05:32:05PM +0000, Parav Pandit wrote:
-> > 
-> > Eg
-> > 
-> >  RDMA-W VA=0 Data=1
-> >  RDMA-R VA=0
-> >  RDMA-W VA=0 Data=2
-> > 
-> > What does the read return? Spec says 1, but it sounds like this relaxed ordering
-> > could return 2.
-> > 
-> Spec says Data=1 on RDMA-R only if Fence is set on read operation in Table-76.
-> Otherwise duplicate read request after executing RDMA-W2 of Data=2 can return Data=2 on read request.
+This patch-set contains the support of the HNS3 (Hisilicon Network Subsystem 3)
+Ethernet driver for hip08 family of SoCs and future upcoming SoCs.
 
-Erm, I should have written it like this
+Hisilicon's new hip08 SoCs have integrated ethernet based on PCI Express and
+hence there was a need of new driver over the previous HNS driver which is 
+already part of the Linux mainline. This new driver is NOT backward
+compatible with HNS.
 
- Initial Condition VA=0 Data = 0
- RDMA-W VA=0 Data=1
- RDMA-R VA=0
+This current driver is meant to control the Physical Function and there would
+soon be a support of a separate driver for Virtual Function once this base PF
+driver has been accepted. Also, this driver is the ongoing development work and
+HNS3 Ethernet driver would be incrementally enhanced with more new features.
 
-Spec says 1 must be returned, but sounds like this relaxed version
-could return 0. So RDMA Write -> RDMA Read degrades to a F
+High Level Architecture:
 
-Similarly,
+        [ Ethtool ]
+	   ^  |
+           |  | 
+      [Ethernet Client]  [ODP/UIO Client] . . . [ RoCE Client ]     
+                         |                            |
+                   [ HNAE Device ]                    |
+                         |                            |
+    ---------------------------------------------     |
+                         |                            |
+     [ HNAE3 Framework (Register/unregister) ]        |
+                         |                            |
+    ---------------------------------------------     |
+                         |                            |
+                   [ HCLGE Layer]                     |
+         ________________|_________________           |
+        |                |                 |          |
+    [ MDIO ]    [ Scheduler/Shaper ]  [ Debugfs* ]    |
+        |                |                 |          |
+        |________________|_________________|          |     
+                         |                            |
+             [ IMP command Interface ]                |
+    ---------------------------------------------     |
+              HIP08  H A R D W A R E                  *
 
- RDMA-W VA=0 Data=1
- RDMA-W VA=0 Data=2
- SEND
 
-Sounds like with the relaxed version the app could see 1 at SEND CQ
-time.
+Current patch-set broadly adds the support of the following PF functionality:
+ 1. Basic Rx and Tx functionality 
+ 2. TSO support
+ 3. Ethtool support
+ 4. * Debugfs support -> this patch for now has been taken off.
+ 5. HNAE framework and hardware compatability layer
+ 6. Scheduler and Shaper support in transmit function
+ 7. MDIO support
 
-So RDMA-W -> RDMA-W degrades to a F
+Change Log:
+V3->V4: Addressed below comments:
+        * Andrew Lunn: Various comments on MDIO, ethtool, ENET driver etc,
+        * Stephen Hemminger: change access and updation to 64 but statistics
+        * Bo You: some spelling mistakes and checkpatch.pl errors.
+V2->V3: Addressed comments
+        * Yuval Mintz: Removal of redundant userprio-to-tc code
+        * Stephen Hemminger: Ethtool & interuupt enable
+        * Andrew Lunn: On C45/C22 PHy support, HNAE, ethtool
+        * Florian Fainelli: C45/C22 and phy_connect/attach
+        * Intel kbuild errors
+V1->V2: Addressed some comments by kbuild, Yuval MIntz, Andrew Lunn &
+        Florian Fainelli in the following patches:
+        * Add support of HNS3 Ethernet Driver for hip08 SoC
+        * Add MDIO support to HNS3 Ethernet driver for hip08 SoC
+        * Add support of debugfs interface to HNS3 driver
 
-> > Whta about
-> > 
-> >  RDMA-W VA=0 Data=1
-> >  SEND WITH INVALIDATE VA=0
-> >  RDMA-W VA=0 Data=2
-> > 
-> > Spec says the second RDMA-W must fail, 
-> Right.
-> 
-> > but it sounds like this relaxed ordering would allow it to happen.
+Salil Mehta (8):
+  net: hns3: Add support of HNS3 Ethernet Driver for hip08 SoC
+  net: hns3: Add support of the HNAE3 framework
+  net: hns3: Add HNS3 IMP(Integrated Mgmt Proc) Cmd Interface Support
+  net: hns3: Add HNS3 Acceleration Engine & Compatibility Layer Support
+  net: hns3: Add support of TX Scheduler & Shaper to HNS3 driver
+  net: hns3: Add MDIO support to HNS3 Ethernet driver for hip08 SoC
+  net: hns3: Add Ethtool support to HNS3 driver
+  net: hns3: Add HNS3 driver to kernel build framework & MAINTAINERS
 
-> No. Table 76 is followed in this case.
-> 1st operation Write.
-> 2nd operation send.
-> There is implicit fence defined by '#' in Table, which is followed.
-> So 2nd RDMA-W continue to fail.
+ MAINTAINERS                                        |    8 +
+ drivers/net/ethernet/hisilicon/Kconfig             |   27 +
+ drivers/net/ethernet/hisilicon/Makefile            |    1 +
+ drivers/net/ethernet/hisilicon/hns3/Makefile       |    7 +
+ drivers/net/ethernet/hisilicon/hns3/hnae3.c        |  319 ++
+ drivers/net/ethernet/hisilicon/hns3/hnae3.h        |  449 +++
+ .../net/ethernet/hisilicon/hns3/hns3pf/Makefile    |   11 +
+ .../net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.c |  347 ++
+ .../net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.h |  742 ++++
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_main.c    | 4240 ++++++++++++++++++++
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_main.h    |  494 +++
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_mdio.c    |  230 ++
+ .../net/ethernet/hisilicon/hns3/hns3pf/hclge_tm.c  | 1018 +++++
+ .../net/ethernet/hisilicon/hns3/hns3pf/hclge_tm.h  |  108 +
+ .../net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c | 2894 +++++++++++++
+ .../net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h |  598 +++
+ .../ethernet/hisilicon/hns3/hns3pf/hns3_ethtool.c  |  543 +++
+ 17 files changed, 12036 insertions(+)
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/Makefile
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hnae3.c
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hnae3.h
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.c
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.h
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mdio.c
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_tm.c
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_tm.h
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_ethtool.c
 
-So, I expect what is happening here is that the SEND RCQ is delayed
-until the sequence numbers catch up, eg guarenteeing that all
-packets prior to the SEND have been seen and committed to memory.
-Which is what table 76 is primarily talking about.
-
-However, SEND WITH INVALIDATE is a special cases that impacts the
-processing of work itself, not just the CPU observation, which is a
-bit outside what table 76 is talking about.
-
-I'd advocate for allowing this to be out of order (but documented as
-such), as impliclty fencing SEND WITH INVALIDATE is not acceptable for
-performance and most workloads using that feature do not care about
-this strict ordering.
-
-The requirement is really that by the time the SEND RCQ is seen that
-the INVALIDATE has taken effect.
-
-Atomic are basically similar, sounds like Atomic Op -> RDMA Read should
-degrade to a F as well. I'd say that is desired as well.
-
-The point is we want a definition for this feature that is broad
-enough to allow future hardware optimization, and not just some some
-narrow defintion that follows what mlx5 happened to implement.
-
-> I completely understand and agree that storage protocols who depend
-> on RDMA-CM would like to have this.  But again, unavailability of
-> this bit in RDMA-CM is not a blocker for user land apps and let them
-> start using it.  Once RDMA-CM has it, storage kernel ULPs can also
-> be enabled.
-
-If there is no path to get this into the RDMA CM then it is just
-another vendor feature and it does not belong in the common API.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+2.11.0
