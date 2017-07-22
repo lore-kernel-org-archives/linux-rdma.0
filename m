@@ -1,67 +1,50 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 for-rdma 0/5] Expose Issues for HNS driver
-Date: Sat, 22 Jul 2017 13:10:49 -0400
-Message-ID: <57355f75-5196-9a0c-9af5-7bd2ebcc1263@redhat.com>
-References: <1497091765-10513-1-git-send-email-oulijun@huawei.com>
+Subject: Re: [PATCH rdma-next] IB/ipoib: Let lower driver handle get_stats64
+ call
+Date: Sat, 22 Jul 2017 13:11:40 -0400
+Message-ID: <0db1b2ff-2ff9-76f1-2949-5d6fdb8b4390@redhat.com>
+References: <20170612074521.15785-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="ihc5M0f95BSUMEdKfGVsBO1an3ufJ5LVI"
+ boundary="66LW4WDEickTr2j7nWF6V03Fr3A14633m"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1497091765-10513-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170612074521.15785-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---ihc5M0f95BSUMEdKfGVsBO1an3ufJ5LVI
-Content-Type: multipart/mixed; boundary="iHA3mxDc8RdXqFu1mnn979a2m2sHeTlWH";
+--66LW4WDEickTr2j7nWF6V03Fr3A14633m
+Content-Type: multipart/mixed; boundary="kQpb4avG9hqAE2dt2ucoLXT9GQtOsmhWF";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
-Message-ID: <57355f75-5196-9a0c-9af5-7bd2ebcc1263-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 for-rdma 0/5] Expose Issues for HNS driver
-References: <1497091765-10513-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-In-Reply-To: <1497091765-10513-1-git-send-email-oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Message-ID: <0db1b2ff-2ff9-76f1-2949-5d6fdb8b4390-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next] IB/ipoib: Let lower driver handle get_stats64
+ call
+References: <20170612074521.15785-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170612074521.15785-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
---iHA3mxDc8RdXqFu1mnn979a2m2sHeTlWH
+--kQpb4avG9hqAE2dt2ucoLXT9GQtOsmhWF
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: quoted-printable
 
-On 6/10/2017 6:49 AM, Lijun Ou wrote:
-> This patch set mainly fixes some issues exposed for hns driver. The iss=
-ue
-> list as follows:
->   1. Unload hns driver when test on the board which its ports less than=
- six
->   2. May happen wild pointer error excepted exit when destroy rc qp
->   3. Should use rdma_wr() for RDMA operation when post send
->   4. Delete unnecessary lock operation in hns_roce_mac()
->   5. Fix checkpatch.pl check warnings.
+On 6/12/2017 3:45 AM, Leon Romanovsky wrote:
+> From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >=20
-> Change from v1:
-> - re-write the changelog
-> - assgin rdma_ah_type type for roce in hns_roce_rsv_lp_qp()
->   according to 4.12
+> The driver checks if the lower level driver supports get_stats, and if
+> so calls it to get the updated statistics, otherwise takes from the
+> current netdevice stats object.
 >=20
-> Lijun Ou (5):
->   IB/hns: Fix the bug of polling cq failed for loopback Qps
->   IB/hns: Fix the bug with wild pointer when destroy rc qp
->   IB/hns: Fix the bug with rdma operation
->   IB/hns: Fix the bug with modifying the MAC address without removing
->     the driver
->   IB/hns: Fix for checkpatch.pl comment style warnings
->=20
->  drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 83 ++++++++++++++++++----=
---------
->  drivers/infiniband/hw/hns/hns_roce_main.c  |  3 --
->  2 files changed, 51 insertions(+), 35 deletions(-)
->=20
+> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-This series has been accepted into 4.13-rc, thanks.
+This has been accepted into 4.13-rc, thanks.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -70,9 +53,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 D
 
 
---iHA3mxDc8RdXqFu1mnn979a2m2sHeTlWH--
+--kQpb4avG9hqAE2dt2ucoLXT9GQtOsmhWF--
 
---ihc5M0f95BSUMEdKfGVsBO1an3ufJ5LVI
+--66LW4WDEickTr2j7nWF6V03Fr3A14633m
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -81,22 +64,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJZc4cZAAoJELgmozMOVy/dRVoP/jTtsOgw7PA/M8dH8I9InFVQ
-PNZ4KKt9SMT4tWKH7Z/cWG8QDkm2MQIjlF62REExETTzLSgjtjV2ldatwBHDw0id
-7xlDOPrRiLKkWz5cjLuGm3BYCv12ZYq+G4TLgQlc1ZCYOa6z3faaz+QTzDPRpsxx
-P42S1Bvs661AunbjF3qr8fffFPRboJfbEMGrQLg2NcRRqHzjlBnAkJu+r8p1VG1r
-gZkjeyjUsshm2YtnmcrPlyA0fjZKYYOKet1DhVQyr61uvsWA3VQW1vlNlAspy+/Q
-nitngw8d+Qvx+KHSZdOTnEcI/0leCZW7gYP2f9u8R/0PEhj1wfzQ22ju9os10WC/
-K9DZ+bqK3vs+ID7smQqXKEedXbjZTBt8vjvkJ9POca8q0H/IBH8fAZMJ6+CW1cwc
-AlIhZPJHubneFNDESmOrgGtKcjFR55gee+eWk4K3FR1zrEmtExRqFueSSRoSTO7m
-LXDuvnTGxws/3/Spa2lz5CbBU/OZZJfIOCNVtclFwWDIj1Y+vjuft1Q5Gchg/8Hg
-kD+X5k88Vkip7MOblvdwaeKhtrr7/7ZIxWWae18E7SfzsWEaN33GTeVDszIf5sGo
-aAEuR1kthi/uWKEQMDsluZAHHyyeguzACroXo7DnwlJcLKBlGTecn8btql1DxVmI
-nDN18qdj1DifTkJJUMWT
-=yEn2
+iQIcBAEBCAAGBQJZc4dMAAoJELgmozMOVy/dpdcP+gJXGZfsNCed3uY3Ja1BZWNs
+tagcyBuSd3IID32B1o/YzLTrOhZ1Y5DGqdGvMXu/yI7Pz1RhMKmX3hgctYMrA1NM
+NjHRCSz2z/9az+xKsVad4bfv9pvTcBeaPE7SEbImsNd5Q+3T8rBaboNbVNwCxhnC
+cm6eA/hVxffBjh01m5C7Z2RvB4+cz7EttJ9lFL6+cKbTQO4aGoAPyq3r4EChKas3
+eZLPHLzL/+c35X/dQAMfm1epe3IHLXRyoOSNiaVhzhq4Re6Q4AGwQ5baNb9ognt6
+cSokgFISXJ1HRIFzIkkoUe0r6Ry/T31Yd7WB+3+nUZK37GU42Jcd5QqCGmxpkW+P
+9D9pG7ROMvAMnxupoKJBSoyAuySI6HasrDry6W3QKDtzFwc++Gl8xMG1rWCNf5sy
+SZ/HrHXMRbYhS1nF9tWTkHIo6LWeDBh96qgIEsWhhZNwKBcHO22xMl66ez6TuEzU
+7Db/HN7Z+QWsC1oWnIqdFE7lJzSK3KBhSAOsHSzvtcenN9DriK4kcLMKIyS41l3g
+RsPYzLi5t7HvhRYgt1ZSIwL6uuI+4YUCwv8b9Zi4x0dUpk7kVTkMWP69mVN60m4a
+X2Z/cPAlzUkzubwrDDPimSbOEhrkXiVKHpycW8xX7bQflkCJVa9jymQroqSeMXgY
+2A7G058swvySlfPH9cjw
+=DJBg
 -----END PGP SIGNATURE-----
 
---ihc5M0f95BSUMEdKfGVsBO1an3ufJ5LVI--
+--66LW4WDEickTr2j7nWF6V03Fr3A14633m--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
