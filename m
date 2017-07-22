@@ -1,52 +1,60 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/cma: Fix reference count leak when no ipv4 addresses
- are set
-Date: Sat, 22 Jul 2017 14:16:13 -0400
-Message-ID: <201c2ea5-3ed7-c61e-8d81-88529773df26@redhat.com>
-References: <1499372531-25392-1-git-send-email-Michal.Kalderon@cavium.com>
+Subject: Re: [PATCH v2 0/2] Fix modify_qp failure
+Date: Sat, 22 Jul 2017 14:17:56 -0400
+Message-ID: <bafa2001-1597-71ea-eb68-f939b806dc63@redhat.com>
+References: <1500043291-19768-1-git-send-email-mustafa.ismail@intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="H651eQwlA6va6Db0Jm1Ng9UK8rPk1esqo"
+ boundary="uJSrBHXQCeJnGhgocAxRRO9cPbK1jsixi"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1499372531-25392-1-git-send-email-Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1500043291-19768-1-git-send-email-mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, ariel.elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
+To: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---H651eQwlA6va6Db0Jm1Ng9UK8rPk1esqo
-Content-Type: multipart/mixed; boundary="DhSBSrf1Sc7gbuTLqGcWdFTHcWwafKlar";
+--uJSrBHXQCeJnGhgocAxRRO9cPbK1jsixi
+Content-Type: multipart/mixed; boundary="iOw96QAoI8keD10ilsE6AVHN2mutdv3Wq";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, ariel.elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
-Message-ID: <201c2ea5-3ed7-c61e-8d81-88529773df26-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/cma: Fix reference count leak when no ipv4 addresses
- are set
-References: <1499372531-25392-1-git-send-email-Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-In-Reply-To: <1499372531-25392-1-git-send-email-Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org,
+ shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Message-ID: <bafa2001-1597-71ea-eb68-f939b806dc63-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 0/2] Fix modify_qp failure
+References: <1500043291-19768-1-git-send-email-mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1500043291-19768-1-git-send-email-mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
---DhSBSrf1Sc7gbuTLqGcWdFTHcWwafKlar
+--iOw96QAoI8keD10ilsE6AVHN2mutdv3Wq
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: quoted-printable
 
-On 7/6/2017 4:22 PM, Michal Kalderon wrote:
-> Once in_dev_get is called to receive in_device pointer, the
-> in_device reference counter is increased, but if there are
-> no ipv4 addresses configured on the net-device the ifa_list
-> will be null, resulting in a flow that doesn't call in_dev_put
-> to decrease the ref_cnt.
-> This was exposed when running RoCE over ipv6 without any ipv4
-> addresses configured
+On 7/14/2017 10:41 AM, Mustafa Ismail wrote:
+> Commit 5ecce4c9b17b("Check port number supplied by user verbs cmds") ca=
+uses
+> modify_qp to fail because port_num is only valid when the mask is set.
 >=20
-> Fixes: commit 8e3867310c90 ("IB/cma: Fix a race condition in iboe_addr_=
-get_sgid()")
+> Additionally, for iWARP, the port_num is not initialized which also
+> causes modify_qp to fail.
 >=20
-> Signed-off-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> This series fixes both issues.
+>=20
+> Changes to V2:
+> * Add reviewed-by
+> * Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+>=20
+> Mustafa Ismail (2):
+>   RDMA/uverbs: Fix the check for port number
+>   RDMA/core: Initialize port_num in qp_attr
+>=20
+>  drivers/infiniband/core/cma.c        | 2 ++
+>  drivers/infiniband/core/uverbs_cmd.c | 3 ++-
+>  2 files changed, 4 insertions(+), 1 deletion(-)
+>=20
 
 This was accepted into 4.13-rc, thanks.
 
@@ -57,9 +65,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 D
 
 
---DhSBSrf1Sc7gbuTLqGcWdFTHcWwafKlar--
+--iOw96QAoI8keD10ilsE6AVHN2mutdv3Wq--
 
---H651eQwlA6va6Db0Jm1Ng9UK8rPk1esqo
+--uJSrBHXQCeJnGhgocAxRRO9cPbK1jsixi
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -68,22 +76,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJZc5ZtAAoJELgmozMOVy/dffYP/2P/ffh+JHc18pNo5hOqmzYe
-1jfNBk7Mq9f+E+R5E4pglhFXpop6Ys7Hz02hsiJVNnNqBF8ZDDOTyN6JR43HEo2W
-gE2BVuB3KRDDCG1oZhqv/j9LJ+uaOi0a+5Dj5AbVBzfDm2J8OReeRJiGIY0uacQc
-V5/y//VrwJzU6MNUnuJk2I0IS+jiZ6d74crZ8uEPaxwaABxSk7/Xgal6imisiXdk
-0bpafHsvyGiSs5WLQ5bT2Iew/qHyO8iatjN9gPSK4oJpCAzg+bYciqKI0oIushki
-eIkHFUzqTO6wNa82881tZz3jX8nbZH/xRFKq01CkCHf8Ro10aWvZxdUJTJ1As6vN
-ntwDT4cIy+3l96Dswc2ebBZXn5epJzvr/rKc8910aZzxXfyMtcx3eHI6y/U1Q/sA
-vhIjrphwKNf1I1Gg6845mh/Z0834qzbTk72rcWS0BODKThjAAXwyLS4tfkMD22ms
-+CwWiUBArffN28XLiPXjItsWmVUmcZhnYiijsXx5zsz5J6PcieOBLfNhvkfSGSvb
-2bp70LA6PsqQ4d9WIBYfZeMzfI0D0z8cuR+BZL8bZEM0koP26uu+LROwsoTCslEq
-kwdMgJtKOuAP1b5T3bnke2kSqn1mfHzK4H38wtM8D3tREmiKDA1GThVbyOtTpJyy
-AjV03uHi8k6k/D2cj0Ce
-=nrUT
+iQIcBAEBCAAGBQJZc5bUAAoJELgmozMOVy/dVYsP/i0zgTr9GT/QVVDEjirxEonS
+41Hv4BsIDmchOOhMz/SGEr3m3Tx+Z02oUWqieDUKp22LaRmzCLIcNDtNMtUxtQZG
+eCqyOanbKblN3kOOKJrIJoQhJQWTLyKCYfbBfwr7wkmgLA+JfuARUdv6YpSEKRCC
+je1sXaI0DEtLoBT4WVZkgrlc/O4VGLcEvtpoZHgH+OAsaEFSx9c6CX1SMj1KEO6y
+uOnEdyYHRJWIaT1dKMv+dhUvj65NYinmN7+v0wznF2MZnvUumN+6bOvdwn8Ng5V3
+hKAqJLUC8zBrBHop3yzm3+yPX0ZJjyTUNVUjPgll32/Ov2X9jTfw/Ri/842Csl8S
+a3fTK+ekZwVHtet7zxaR3EH3H+wZwpHPhC7D1v+m26FZBtb7GMOZfgZnSdIikNbv
+GLH7LBvepDaOXjcPnVzXEvEzWYfGzXHdlhrNL/ezNdtggxHMUn/mFqS4ateJAO5M
+bO66WP5nihM09HFWBSc/SYQubSwn3Vu7TJ4TrJxvq7JNWa76mwKOKEGrPoPXt/OS
+3nmyMt/MgWHT0Utm8TLxUEePjodlTMJaNQ7NXtBUQpMeUQuocH+bqTeZ/NNEd7gh
+V3zcFRNmCOJtcXImM2qSoE3UI8BQDuYCH5/W2WcUtRoziAXu1nBOUyyGKwJIS25e
+eT8Do8dEsXjEL7P/8k8g
+=MJhO
 -----END PGP SIGNATURE-----
 
---H651eQwlA6va6Db0Jm1Ng9UK8rPk1esqo--
+--uJSrBHXQCeJnGhgocAxRRO9cPbK1jsixi--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
