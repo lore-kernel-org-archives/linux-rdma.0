@@ -1,48 +1,62 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next] IB/IPoIB: Forward MTU change to driver below
-Date: Sat, 22 Jul 2017 13:07:46 -0400
-Message-ID: <e34f9381-3c25-8250-de77-87fa5a873088@redhat.com>
-References: <20170523084252.16018-1-leon@kernel.org>
+Subject: Re: [PATCH rdma-next V1 0/4] Add support of NOIO allocations to IPoIB
+Date: Sat, 22 Jul 2017 13:08:30 -0400
+Message-ID: <a46ae5f3-ac2d-f67e-2e89-8391e3db1ea1@redhat.com>
+References: <20170523113816.32657-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="xaT26RM0jEwuv8DSaUNxme1qj0bI7Gg2X"
+ boundary="4PEOco3KTD3rgCus78Ek1dAbVHo4K6agc"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170523084252.16018-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170523113816.32657-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mel Gorman <mgorman-3eNAlZScCAx27rWaFMvyedHuzzzSOjJt@public.gmane.org>, Jiri Kosina <jikos-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---xaT26RM0jEwuv8DSaUNxme1qj0bI7Gg2X
-Content-Type: multipart/mixed; boundary="iQhp924uLxhda81p1mTltdiltMWjbtreG";
+--4PEOco3KTD3rgCus78Ek1dAbVHo4K6agc
+Content-Type: multipart/mixed; boundary="oD9aoGuIFkArLgSLvgJUvt0E1WBr1HaA1";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Message-ID: <e34f9381-3c25-8250-de77-87fa5a873088-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next] IB/IPoIB: Forward MTU change to driver below
-References: <20170523084252.16018-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-In-Reply-To: <20170523084252.16018-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mel Gorman <mgorman-3eNAlZScCAx27rWaFMvyedHuzzzSOjJt@public.gmane.org>,
+ Jiri Kosina <jikos-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
+ Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Message-ID: <a46ae5f3-ac2d-f67e-2e89-8391e3db1ea1-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next V1 0/4] Add support of NOIO allocations to IPoIB
+References: <20170523113816.32657-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170523113816.32657-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
---iQhp924uLxhda81p1mTltdiltMWjbtreG
+--oD9aoGuIFkArLgSLvgJUvt0E1WBr1HaA1
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: quoted-printable
 
-On 5/23/2017 4:42 AM, Leon Romanovsky wrote:
-> From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 5/23/2017 7:38 AM, Leon Romanovsky wrote:
+> Hi Doug,
 >=20
-> This patch checks if there is a driver below that
-> needs to be updated on the new MTU and calls it
-> accordingly.
+> These patches adds native support to NOIO allocations during
+> create QP for IPoIB.
 >=20
-> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> In contrast to the commit 09b93088d750 ("IB: Add a QP creation flag
+> to use GFP_NOIO allocations"), which added specific QP create flag,
+> this series uses standard memalloc_noio_* calls to mark GFP_NOIO
+> for all allocations paths below.
+>=20
+> This change allows to all drivers benefit from this facitlity
+> and not only mlx4 and qib. As a nice outcome, there is a lot
+> simplification in the mlx4 and qib drivers by removing need to
+> carry GFP flags.
+>=20
+> Thanks
+>=20
+> Cc: Mel Gorman <mgorman-3eNAlZScCAx27rWaFMvyedHuzzzSOjJt@public.gmane.org>
+> Cc: Jiri Kosina <jikos-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This has been accepted into 4.13-rc, thanks.
+This series has been accepted into 4.13-rc, thanks.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -51,9 +65,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 D
 
 
---iQhp924uLxhda81p1mTltdiltMWjbtreG--
+--oD9aoGuIFkArLgSLvgJUvt0E1WBr1HaA1--
 
---xaT26RM0jEwuv8DSaUNxme1qj0bI7Gg2X
+--4PEOco3KTD3rgCus78Ek1dAbVHo4K6agc
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -62,22 +76,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJZc4ZiAAoJELgmozMOVy/dCegQAKCyak/Da/XRZgHgjTE0CfMZ
-RvSF3JOqYiL8wBtjbSJRuD69btCZhLJtuHtlvr11teA2xYy0ABfI8vjdF60GQOl2
-fek5oUTNOK8YjcsPO+OgkVtig1qePnVn9aOeHUcSNcnm1cRutrG1y2483DoxiShT
-GaktyzXE3t/Woi26w153V+JA/JN4meCRCAkwatCxODBPArW8q6zAA5DHPMeozQRL
-/207ZzX6f6urDuub9us/tRAfpf2Lu8xSRhSgRm3c95MEZ7prR6l+/5SzKgZ+b8IB
-EDbsTcs7jjm+JrPDH8yTFJo7cAknlV6V1U4H+UhsUOmtIEC7mRHRJT8mu1vhfhLU
-uDywyLaEYJJ80jnYVCyyXbbltzFLraM6nJUOTa4nX9Ib3ngL9TilYJR3XUVIkOuZ
-un+0awlE9ukNFhsmAACAGlGnHhijMA9/HMgv5+GXD+ialGA6eiMi6x/yOeeWmdr9
-gll3fc/Zaj9H28pNoq2Y4LyhfOkcAY8MrfaozF1aT/rCwELUlagPB8HM2VfQ48X7
-BtluHUWyMQAEKUAEuPOet9AkhjpUAAaVsbX0QpNwq1dB86bnQ9nTJ/46Y6ts6oNH
-QJPpT1kf6XTrol/hKqeOmQgxWe1etxtguA30xyCZV/2z/kRDbsINScL++QF+5MvI
-UnSDEV0zsRfa7aJaeoYW
-=EyJb
+iQIcBAEBCAAGBQJZc4aOAAoJELgmozMOVy/dAuQP+wfS8rTO1KefIePq+OmUaAX5
+HCHjd3mF0F+dTQcNU2f492CsjdB+pMThpGqlkNVpQXJQvn3d39gwhFabQs4vmkvj
+FYQIOWon/zLs5Strs4bFlxzJmhE4PzHCECW3r5lej1nuhAmJUcmsTvncostBK7+3
+t8aUa+NeeikgCOB0iEsbvvVvnC74KGz4UiufckHWGEpeDT8kkGXwcm0lctN57fbi
+QPXiTEE3VYotUjtlLNbF6kMAqfLI9wvWgXh8mDGPkfA9/HOmDe1q41QNToZmrog7
+25DIsSv9I3JhQrxnM7mysuq/eU01xayqUoxeYi7joWmW77V4vHLLfUlHrw12HpaB
+EV+4gNYm8yOVDMrg+ofW64Lu4n2pYzShINeFWtJOMR3EZHncOGMnP6uMtdi9akPj
+zQ/bOix+3y0xq4L/AnyXkgCkRlnmRDH+NptwZsILxrow0muKGLFbmC46BFkOunh5
+7jtGPLUNiMriw9rTHKPVhMsDju8CKMnCYRJyfoNi3bHaEIgtr0PQ2ed/E/RRho+0
+H0NlWtGkXOVxJ2t8wTwJ/E8HBY7fhZRL3qs614/b+CvgQXt1CKR3fRItQF/gCwuC
+HJ91f5MLrnhefJzDytwRNDDJbEMDJqyzB2G3hIYQlHVmCw2JKyjpBFJN9PpHjdPa
+ZfEIXNNfVxKmBbeyoebe
+=ho6y
 -----END PGP SIGNATURE-----
 
---xaT26RM0jEwuv8DSaUNxme1qj0bI7Gg2X--
+--4PEOco3KTD3rgCus78Ek1dAbVHo4K6agc--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
