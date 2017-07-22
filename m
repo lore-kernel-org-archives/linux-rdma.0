@@ -1,53 +1,60 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/iser: Handle lack of memory management extentions
- correctly
-Date: Sat, 22 Jul 2017 13:15:57 -0400
-Message-ID: <2dadd0cf-5435-5a5d-b85b-9d46f896b03b@redhat.com>
-References: <20170622190110.27788.19910.stgit@phlsvslse11.ph.intel.com>
+Subject: Re: [PATCH rdma-next] IB/iser: Fix connection teardown race condition
+Date: Sat, 22 Jul 2017 13:17:01 -0400
+Message-ID: <cb84b7c0-7347-74cc-db23-0cff4504cb1a@redhat.com>
+References: <20170521161731.22223-1-leon@kernel.org>
+ <98334f53-a7ff-d465-989f-a5ee7add2291@mellanox.com>
+ <fa976fe5-be25-1c6a-5997-8fa7524e89d8@grimberg.me>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="qUVvIKAF5N84FjF8dmq39U8iFBmS45Ic5"
+ boundary="jrBcaGQnL87xjKPCaDstGLEoLO3qidNgg"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170622190110.27788.19910.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+In-Reply-To: <fa976fe5-be25-1c6a-5997-8fa7524e89d8-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vladimir Neyelov <vladimirn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---qUVvIKAF5N84FjF8dmq39U8iFBmS45Ic5
-Content-Type: multipart/mixed; boundary="NtdL4DaOovUskuxjkgbHrAaKcwpVW50Jc";
+--jrBcaGQnL87xjKPCaDstGLEoLO3qidNgg
+Content-Type: multipart/mixed; boundary="aJVtu2I49XPBM93GepNFuXljnA9VQpEDb";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <2dadd0cf-5435-5a5d-b85b-9d46f896b03b-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/iser: Handle lack of memory management extentions
- correctly
-References: <20170622190110.27788.19910.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
-In-Reply-To: <20170622190110.27788.19910.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
+ Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vladimir Neyelov <vladimirn-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>,
+ stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <cb84b7c0-7347-74cc-db23-0cff4504cb1a-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next] IB/iser: Fix connection teardown race condition
+References: <20170521161731.22223-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+ <98334f53-a7ff-d465-989f-a5ee7add2291-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+ <fa976fe5-be25-1c6a-5997-8fa7524e89d8-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <fa976fe5-be25-1c6a-5997-8fa7524e89d8-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 
---NtdL4DaOovUskuxjkgbHrAaKcwpVW50Jc
-Content-Type: text/plain; charset=utf-8
+--aJVtu2I49XPBM93GepNFuXljnA9VQpEDb
+Content-Type: text/plain; charset=windows-1255
 Content-Language: en-US
 Content-Transfer-Encoding: quoted-printable
 
-On 6/22/2017 3:01 PM, Mike Marciniszyn wrote:
-> max_fast_reg_page_list_len is only valid when the
-> memory management extentions are signaled by the underlying
-> driver.
+On 5/30/2017 7:50 AM, Sagi Grimberg wrote:
 >=20
-> Fix by adjusting iser_calc_scsi_params() to use
-> ISCSI_ISER_MAX_SG_TABLESIZE when the extentions are not indicated.
->=20
-> Reported-by: Thomas Rosenstein <thomas.rosenstein-+32LHaKS/h5VtLMLtJdGzA@public.gmane.org>
-> Fixes: Commit df749cdc45d9 ("IB/iser: Support up to 8MB data transfer i=
-n a single command")
-> Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>> Hi Sagi,
+>>
+>> what do you think on this approach ?
+>> we must somehow defend on the NULL deref in case dd_data in iscsi_conn=
 
-This was accepted in 4.13-rc, thanks.
+>> (the iser_conn) already NULL due to conn_stop call.
+>=20
+> Sounds like we get conn_stop duing lun scanning. Generally speaking I
+> don't like a global lock for this, but given the non trivial iscsi stat=
+e
+> machine
+> we can do with that.
+>=20
+> Reviewed-by: Sagi Grimberg <sagi-egDjqUIXVlxBDLzU/O5InQ@public.gmane.org>
+
+This patch was accepted into 4.13-rc, thanks.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -56,9 +63,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 D
 
 
---NtdL4DaOovUskuxjkgbHrAaKcwpVW50Jc--
+--aJVtu2I49XPBM93GepNFuXljnA9VQpEDb--
 
---qUVvIKAF5N84FjF8dmq39U8iFBmS45Ic5
+--jrBcaGQnL87xjKPCaDstGLEoLO3qidNgg
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -67,22 +74,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJZc4hNAAoJELgmozMOVy/dv7wP/iAMntM7S3iaNxlJr2m+0A31
-MTO92QIbSkzlTiQYAtXo62cHWZIZ9orz+843CZzWUUTOui0TgRWhvv2CIGt86zUf
-bCOmJuuBzQN4ZX50K172kvqwi5Da6rDxg6zqiat7zLL+0uFOYei+4QwD0J/ZVxWG
-F9VMHKooRuFb2HyD6B8GDG3e8jxeSzgwG7M8hzByT0nvLMaw6SKx46Jsl+Eo0GrT
-bwv/Ubarcsdvdc9YdOTv5A0ZeOIsAJXhYzu6eQdy2oPRa8fkwhYc5Euwxf23zJcC
-jtEgyZ+Nu/j7p98RP8wCxFzv6k/TSibTB1DIvMuySGOUTVuR059Fau7UNrtumrZh
-ZvMHMOeVtHQdn08hKRsa1m62wzdXHtqX+Imin0QvpYn4QBK+1v7jamjTnB0hro1d
-I7VYXqpN+B0KJ05e+Vkfen8vDU/XlhaPPzGP0W7AXljIML1d5/0HcxARpOf2xK4t
-DNYF7EU4f1a42petAeqgZEC7eF+6Nn/yZvu4SFzLj2VHi24lbMv58I8c3SllDCWb
-4H4QjjX31BYqfuhoY6+NlAXcBfHB/K+RbHlFJ+G1g8am3xRX9bKLdFjCLExC2rHV
-M0DW9rvE5gSYdUsUTcFZ2WT5Rx2+AuBdT09OQ/fth2rfjbHpMcgl6dVVoIOHF09x
-/5HPUfR7wjqPFnVgb9xy
-=lGNL
+iQIcBAEBCAAGBQJZc4iNAAoJELgmozMOVy/daqsQAIA2g2XJIHPh1dd8y9HdEWOl
+O0iUct2mrh9jUG6gDyZw3m2mh+nX9/G/86OYe+NULvxKm18m6gCMjhFHqFVeLxJo
+SUHM7QIv5scsEMurkRwdBtu5vGsK82UNHLsyvbehrj+vMjhQJGFFCYc5q0hRbMJP
+d47EjrrqcBPys8TY1p0BO2Rr8oFgZLL883Pv+emNT1aOVlymGS3eiEcmEIWKl1tD
+9KLq33ZKBa+fjsnpGsflgfaIrx6Jq51SLShIZCPeeLoOvo10Jx77rJYAqedUulXq
+Ou329E70AKDA+Qf2n2ZWsmu8qcjvojrqtNaSPQ3kWErYtumSbv4k4x/ZGj5do6oQ
+pbaMfxKp2/ikcl1APuzvoC2m9JW2NCCncyWsrpW6fqQMhSxP94PYqeh2zN9+KNQ/
+EXspZCugD6He3PdVwufDWtB5T8W8yhBX9IN5nqY+qJpH/x7rns2OHe0k9OcuMVjg
+VArVC1dsQwtlQ6B5IdsNbStU81xv6icd1WfxiVC4SZPlrsCKVS+bq7srB4lxoY7A
+QTHmyxo2zM80Q+Xt2sNyUsHcURahPNv6bI1kDD8nNl/drQSc3VWqTIT6jV/vFhBV
+8ESkuk2SOBIhosnKB1u2xHhyMvSiXe+J+fHdcpeN0pvVnyz4De6HwhTYCAkMy+V3
+n3/WdTyR54zRAzChSh/n
+=6P5s
 -----END PGP SIGNATURE-----
 
---qUVvIKAF5N84FjF8dmq39U8iFBmS45Ic5--
+--jrBcaGQnL87xjKPCaDstGLEoLO3qidNgg--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
