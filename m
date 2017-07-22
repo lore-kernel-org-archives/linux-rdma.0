@@ -1,72 +1,54 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH resend] rxe: fix broken receive queue draining
-Date: Sat, 22 Jul 2017 14:14:47 -0400
-Message-ID: <a6f87fad-fa16-0a10-5d1e-b2704b83e654@redhat.com>
-References: <1498555178-12106-1-git-send-email-sagi@grimberg.me>
- <1499812957.2586.47.camel@wdc.com> <D594F7C4.1AF34%Andrew.Boyer@emc.com>
+Subject: Re: [PATCH] IB/cma: Fix reference count leak when no ipv4 addresses
+ are set
+Date: Sat, 22 Jul 2017 14:16:13 -0400
+Message-ID: <201c2ea5-3ed7-c61e-8d81-88529773df26@redhat.com>
+References: <1499372531-25392-1-git-send-email-Michal.Kalderon@cavium.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="UkWipBOViN1DuUxbxbMbJkWOGuE7doFC3"
+ boundary="H651eQwlA6va6Db0Jm1Ng9UK8rPk1esqo"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <D594F7C4.1AF34%Andrew.Boyer-mb1K0bWo544@public.gmane.org>
+In-Reply-To: <1499372531-25392-1-git-send-email-Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Boyer, Andrew" <Andrew.Boyer-8PEkshWhKlo@public.gmane.org>, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: "vijayi-R1PCaG5FPJG/3pe1ocb+swC/G2K4zDHf@public.gmane.org" <vijayi-R1PCaG5FPJG/3pe1ocb+swC/G2K4zDHf@public.gmane.org>
+To: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, ariel.elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---UkWipBOViN1DuUxbxbMbJkWOGuE7doFC3
-Content-Type: multipart/mixed; boundary="wJ57wTBk6GPSsIcC9hnK3fi75BxDlNgGm";
+--H651eQwlA6va6Db0Jm1Ng9UK8rPk1esqo
+Content-Type: multipart/mixed; boundary="DhSBSrf1Sc7gbuTLqGcWdFTHcWwafKlar";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: "Boyer, Andrew" <Andrew.Boyer-8PEkshWhKlo@public.gmane.org>,
- Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>,
- "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
- "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: "vijayi-R1PCaG5FPJG/3pe1ocb+swC/G2K4zDHf@public.gmane.org" <vijayi-R1PCaG5FPJG/3pe1ocb+swC/G2K4zDHf@public.gmane.org>
-Message-ID: <a6f87fad-fa16-0a10-5d1e-b2704b83e654-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH resend] rxe: fix broken receive queue draining
-References: <1498555178-12106-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
- <1499812957.2586.47.camel-Sjgp3cTcYWE@public.gmane.org> <D594F7C4.1AF34%Andrew.Boyer-mb1K0bWo544@public.gmane.org>
-In-Reply-To: <D594F7C4.1AF34%Andrew.Boyer-mb1K0bWo544@public.gmane.org>
+To: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: ram.amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, ariel.elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
+Message-ID: <201c2ea5-3ed7-c61e-8d81-88529773df26-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/cma: Fix reference count leak when no ipv4 addresses
+ are set
+References: <1499372531-25392-1-git-send-email-Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1499372531-25392-1-git-send-email-Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 
---wJ57wTBk6GPSsIcC9hnK3fi75BxDlNgGm
-Content-Type: text/plain; charset=windows-1252
+--DhSBSrf1Sc7gbuTLqGcWdFTHcWwafKlar
+Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: quoted-printable
 
-On 7/19/2017 11:56 AM, Boyer, Andrew wrote:
-> To make this work, it also needs to handle the case where a pkt is on t=
-he
-> req_pkts list but the QP is no longer valid.
+On 7/6/2017 4:22 PM, Michal Kalderon wrote:
+> Once in_dev_get is called to receive in_device pointer, the
+> in_device reference counter is increased, but if there are
+> no ipv4 addresses configured on the net-device the ifa_list
+> will be null, resulting in a flow that doesn't call in_dev_put
+> to decrease the ref_cnt.
+> This was exposed when running RoCE over ipv6 without any ipv4
+> addresses configured
 >=20
-> --- a/drivers/infiniband/sw/rxe/rxe_req.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
-> @@ -594,8 +594,10 @@ int rxe_requester(void *arg)
->  	rxe_add_ref(qp);
-> =20
->  next_wqe:
-> -	if (unlikely(!qp->valid))
-> +	if (unlikely(!qp->valid)) {
-> +		rxe_drain_req_pkts(qp, true);
->  		goto exit;
-> +	}
-> =20
->  	if (unlikely(qp->req.state =3D=3D QP_STATE_ERROR)) {
->  		rxe_drain_req_pkts(qp, true);
+> Fixes: commit 8e3867310c90 ("IB/cma: Fix a race condition in iboe_addr_=
+get_sgid()")
 >=20
->=20
-> You could also combine the two checks into one conditional.
->=20
-> For that matter, what is the =8Cnotify=B9 argument supposed to do? I wo=
-uld
-> think =8Cnotify =3D=3D true=B9 would mean advancing the consumer pointe=
-r, not the
-> other way around.
+> Signed-off-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 
-This will have to be done in a follow up patch.  I had already accepted
-the original patch before you made this review comment.
+This was accepted into 4.13-rc, thanks.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -75,9 +57,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 D
 
 
---wJ57wTBk6GPSsIcC9hnK3fi75BxDlNgGm--
+--DhSBSrf1Sc7gbuTLqGcWdFTHcWwafKlar--
 
---UkWipBOViN1DuUxbxbMbJkWOGuE7doFC3
+--H651eQwlA6va6Db0Jm1Ng9UK8rPk1esqo
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -86,22 +68,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJZc5YXAAoJELgmozMOVy/dv9QQAKy5Y9l1tNjkotPA1w6NJ/Xs
-NVSFXp6GyNimbziOhqUiabhulLDhjFCchFKhAVh6DfmWL8QoIv5zjUMnv6L1zle6
-O2IWH7swM9qadl/HQB1hJAbNYV640zhvYIPk9p5buJ50GBHjqsblhh17+83+qnZq
-LzIdN5NlPz5B/MdRG0UkyCun+tfhTLIEbaCBAm1Bx3fLjOoV9AKsAq1Qz7+G4OCi
-68geLgbq4du6xRu91yNzEX0H3pY8GgLIiOSAcX/6P3KIh6jPFJwTlUcer1sRxnnD
-e0WQncymeP8dCatlFu9RblIfAlnds/SxwZ2vHb6x/x5lLvQo/tEs5nVZH0Qk3HDS
-bT53Ur0r+LoNraSRFaFNgsUYFAsSh40QsUiT9xr2Bq8Rt2LeCg87t2TeMJvmMYfE
-QVebtg58zmT+6mhXAy56DMKqHdlpJKnnMdNQ/tMameK0pAEdbO48oADw8Eid/kfL
-vt3UqqPoMW/HvjyZEEOlqvhcveJY3qj960yTIL6BHBoRuHmyviYmC1uNEm+Wf9ql
-eThDMeOpujVrQIGKm6/ysTpmhavEBRjNVPJBMG9ifZhAWx1T5cYw/AMm/b+LICIW
-fgzBC6DlOI2OvtRFj2674yYAx4nRmngY+gnNZwgSjnt8M2OA5fRLePdK5Fb89hjR
-IoJdpohiW+bnbhvp3lxS
-=TVsj
+iQIcBAEBCAAGBQJZc5ZtAAoJELgmozMOVy/dffYP/2P/ffh+JHc18pNo5hOqmzYe
+1jfNBk7Mq9f+E+R5E4pglhFXpop6Ys7Hz02hsiJVNnNqBF8ZDDOTyN6JR43HEo2W
+gE2BVuB3KRDDCG1oZhqv/j9LJ+uaOi0a+5Dj5AbVBzfDm2J8OReeRJiGIY0uacQc
+V5/y//VrwJzU6MNUnuJk2I0IS+jiZ6d74crZ8uEPaxwaABxSk7/Xgal6imisiXdk
+0bpafHsvyGiSs5WLQ5bT2Iew/qHyO8iatjN9gPSK4oJpCAzg+bYciqKI0oIushki
+eIkHFUzqTO6wNa82881tZz3jX8nbZH/xRFKq01CkCHf8Ro10aWvZxdUJTJ1As6vN
+ntwDT4cIy+3l96Dswc2ebBZXn5epJzvr/rKc8910aZzxXfyMtcx3eHI6y/U1Q/sA
+vhIjrphwKNf1I1Gg6845mh/Z0834qzbTk72rcWS0BODKThjAAXwyLS4tfkMD22ms
++CwWiUBArffN28XLiPXjItsWmVUmcZhnYiijsXx5zsz5J6PcieOBLfNhvkfSGSvb
+2bp70LA6PsqQ4d9WIBYfZeMzfI0D0z8cuR+BZL8bZEM0koP26uu+LROwsoTCslEq
+kwdMgJtKOuAP1b5T3bnke2kSqn1mfHzK4H38wtM8D3tREmiKDA1GThVbyOtTpJyy
+AjV03uHi8k6k/D2cj0Ce
+=nrUT
 -----END PGP SIGNATURE-----
 
---UkWipBOViN1DuUxbxbMbJkWOGuE7doFC3--
+--H651eQwlA6va6Db0Jm1Ng9UK8rPk1esqo--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
