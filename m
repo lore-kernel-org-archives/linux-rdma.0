@@ -1,56 +1,53 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 1/2] IB/rxe: Fix kernel panic from skb
- destructor
-Date: Sat, 22 Jul 2017 13:14:26 -0400
-Message-ID: <a99bd03b-ea1d-983f-f76a-4798baa55fd4@redhat.com>
-References: <20170622141000.9899-1-leon@kernel.org>
+Subject: Re: [PATCH] IB/iser: Handle lack of memory management extentions
+ correctly
+Date: Sat, 22 Jul 2017 13:15:57 -0400
+Message-ID: <2dadd0cf-5435-5a5d-b85b-9d46f896b03b@redhat.com>
+References: <20170622190110.27788.19910.stgit@phlsvslse11.ph.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="esLuSpbT3GgWLfXPVCaKOMkDUpXCkS6sP"
+ boundary="qUVvIKAF5N84FjF8dmq39U8iFBmS45Ic5"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170622141000.9899-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170622190110.27788.19910.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---esLuSpbT3GgWLfXPVCaKOMkDUpXCkS6sP
-Content-Type: multipart/mixed; boundary="T2OisbGl1Mu8ItCXdrfHCCejAWNorcjpn";
+--qUVvIKAF5N84FjF8dmq39U8iFBmS45Ic5
+Content-Type: multipart/mixed; boundary="NtdL4DaOovUskuxjkgbHrAaKcwpVW50Jc";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Message-ID: <a99bd03b-ea1d-983f-f76a-4798baa55fd4-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 1/2] IB/rxe: Fix kernel panic from skb
- destructor
-References: <20170622141000.9899-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-In-Reply-To: <20170622141000.9899-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <2dadd0cf-5435-5a5d-b85b-9d46f896b03b-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/iser: Handle lack of memory management extentions
+ correctly
+References: <20170622190110.27788.19910.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
+In-Reply-To: <20170622190110.27788.19910.stgit-K+u1se/DcYrLESAwzcoQNrvm/XP+8Wra@public.gmane.org>
 
---T2OisbGl1Mu8ItCXdrfHCCejAWNorcjpn
+--NtdL4DaOovUskuxjkgbHrAaKcwpVW50Jc
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: quoted-printable
 
-On 6/22/2017 10:09 AM, Leon Romanovsky wrote:
-> From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 6/22/2017 3:01 PM, Mike Marciniszyn wrote:
+> max_fast_reg_page_list_len is only valid when the
+> memory management extentions are signaled by the underlying
+> driver.
 >=20
-> In the time between rxe_send has finished and skb destructor
-> called, the QP's ref count might be 0, leading to a possible
-> QP destruction. This will lead to a kernel panic when the destructor
-> dereferences the QP.
+> Fix by adjusting iser_calc_scsi_params() to use
+> ISCSI_ISER_MAX_SG_TABLESIZE when the extentions are not indicated.
 >=20
-> The operation of incrementing QP ref count at rxe_send and decrementing=
+> Reported-by: Thomas Rosenstein <thomas.rosenstein-+32LHaKS/h5VtLMLtJdGzA@public.gmane.org>
+> Fixes: Commit df749cdc45d9 ("IB/iser: Support up to 8MB data transfer i=
+n a single command")
+> Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-> from skb destructor will prevent this crash.
-
-This series has been applied to 4.13-rc, thanks.
-
-FWIW Leon, if you have a series, even if it's a short 2 patch series, I
-prefer a cover letter.  It doesn't need to be long, and can just be
-something like "I have two bug fixes for rxe in this series", but I
-dislike responding to a patch and saying I applied a series.
+This was accepted in 4.13-rc, thanks.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -59,9 +56,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 D
 
 
---T2OisbGl1Mu8ItCXdrfHCCejAWNorcjpn--
+--NtdL4DaOovUskuxjkgbHrAaKcwpVW50Jc--
 
---esLuSpbT3GgWLfXPVCaKOMkDUpXCkS6sP
+--qUVvIKAF5N84FjF8dmq39U8iFBmS45Ic5
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -70,22 +67,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJZc4fzAAoJELgmozMOVy/dOSoQAIemWzcauDyucnFlEgyATwIM
-WKaQshkJSNYUNL52QjyNVompRPZT8OLptSEBDoAnbyd6+fxlHi1qa0yueasjJ0tr
-/dHIJq9Mg1HKPzcLpStSf4dnyaFb6TBAiylf9vXqpRidg9o/mKaPG3SRX3LQZ0Sv
-rupPwU41bTtyVafG1TarN+jGv9MzlfOH3aM7PdcC6x9xTQqx5cPU9hyLkZoHN4qC
-hmEfZY2ve9xbkuhUTYsULpQ4Bt91JJIMZpqY6dasBMm40Juw4XUWrOZzIEO98Dpu
-kMJvSfOB0JaniVjCEEvqMO/0haX2tjUuSPJqkw36lW6glYaprIesZkFzu+Cf8xOg
-XzNIqvSMMse/qbZlPT62OYunzM8uxAAGeTg0akgLZgnGK0So22Cz2JN7LnkHslR5
-fZlDZLibn4ntpwtpH1W6Be2BNdkd8z1RXZCAk7TuVE3tOr886hwU+usHq8LepYNK
-WYsVZyVRPcrhaEGymSQ4iT76/WRI7IKHWlssFE8it0ZwOQt8484rTJ6yzNjOHJ1b
-auNzlGr25M/uFkQCFi0k8e4BIsvOLJer53HGQT+nd8lOiP4uIh6iKORoSChJJuu/
-jhsMHxWI6ms+9Kjowj6dWDJUBC9UDBLNp23BSI+phAVQw85eOlASgQeK7MjB91Nk
-LIho6KUaDiSw4PVuSnwZ
-=BcEn
+iQIcBAEBCAAGBQJZc4hNAAoJELgmozMOVy/dv7wP/iAMntM7S3iaNxlJr2m+0A31
+MTO92QIbSkzlTiQYAtXo62cHWZIZ9orz+843CZzWUUTOui0TgRWhvv2CIGt86zUf
+bCOmJuuBzQN4ZX50K172kvqwi5Da6rDxg6zqiat7zLL+0uFOYei+4QwD0J/ZVxWG
+F9VMHKooRuFb2HyD6B8GDG3e8jxeSzgwG7M8hzByT0nvLMaw6SKx46Jsl+Eo0GrT
+bwv/Ubarcsdvdc9YdOTv5A0ZeOIsAJXhYzu6eQdy2oPRa8fkwhYc5Euwxf23zJcC
+jtEgyZ+Nu/j7p98RP8wCxFzv6k/TSibTB1DIvMuySGOUTVuR059Fau7UNrtumrZh
+ZvMHMOeVtHQdn08hKRsa1m62wzdXHtqX+Imin0QvpYn4QBK+1v7jamjTnB0hro1d
+I7VYXqpN+B0KJ05e+Vkfen8vDU/XlhaPPzGP0W7AXljIML1d5/0HcxARpOf2xK4t
+DNYF7EU4f1a42petAeqgZEC7eF+6Nn/yZvu4SFzLj2VHi24lbMv58I8c3SllDCWb
+4H4QjjX31BYqfuhoY6+NlAXcBfHB/K+RbHlFJ+G1g8am3xRX9bKLdFjCLExC2rHV
+M0DW9rvE5gSYdUsUTcFZ2WT5Rx2+AuBdT09OQ/fth2rfjbHpMcgl6dVVoIOHF09x
+/5HPUfR7wjqPFnVgb9xy
+=lGNL
 -----END PGP SIGNATURE-----
 
---esLuSpbT3GgWLfXPVCaKOMkDUpXCkS6sP--
+--qUVvIKAF5N84FjF8dmq39U8iFBmS45Ic5--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
