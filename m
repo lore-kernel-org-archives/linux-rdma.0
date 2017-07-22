@@ -1,50 +1,56 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next] IB/ipoib: Let lower driver handle get_stats64
- call
-Date: Sat, 22 Jul 2017 13:11:40 -0400
-Message-ID: <0db1b2ff-2ff9-76f1-2949-5d6fdb8b4390@redhat.com>
-References: <20170612074521.15785-1-leon@kernel.org>
+Subject: Re: [PATCH rdma-next 1/2] IB/rxe: Fix kernel panic from skb
+ destructor
+Date: Sat, 22 Jul 2017 13:14:26 -0400
+Message-ID: <a99bd03b-ea1d-983f-f76a-4798baa55fd4@redhat.com>
+References: <20170622141000.9899-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="66LW4WDEickTr2j7nWF6V03Fr3A14633m"
+ boundary="esLuSpbT3GgWLfXPVCaKOMkDUpXCkS6sP"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170612074521.15785-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170622141000.9899-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---66LW4WDEickTr2j7nWF6V03Fr3A14633m
-Content-Type: multipart/mixed; boundary="kQpb4avG9hqAE2dt2ucoLXT9GQtOsmhWF";
+--esLuSpbT3GgWLfXPVCaKOMkDUpXCkS6sP
+Content-Type: multipart/mixed; boundary="T2OisbGl1Mu8ItCXdrfHCCejAWNorcjpn";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Message-ID: <0db1b2ff-2ff9-76f1-2949-5d6fdb8b4390-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next] IB/ipoib: Let lower driver handle get_stats64
- call
-References: <20170612074521.15785-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-In-Reply-To: <20170612074521.15785-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Message-ID: <a99bd03b-ea1d-983f-f76a-4798baa55fd4-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-next 1/2] IB/rxe: Fix kernel panic from skb
+ destructor
+References: <20170622141000.9899-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170622141000.9899-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
---kQpb4avG9hqAE2dt2ucoLXT9GQtOsmhWF
+--T2OisbGl1Mu8ItCXdrfHCCejAWNorcjpn
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: quoted-printable
 
-On 6/12/2017 3:45 AM, Leon Romanovsky wrote:
-> From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On 6/22/2017 10:09 AM, Leon Romanovsky wrote:
+> From: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 >=20
-> The driver checks if the lower level driver supports get_stats, and if
-> so calls it to get the updated statistics, otherwise takes from the
-> current netdevice stats object.
+> In the time between rxe_send has finished and skb destructor
+> called, the QP's ref count might be 0, leading to a possible
+> QP destruction. This will lead to a kernel panic when the destructor
+> dereferences the QP.
 >=20
-> Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> The operation of incrementing QP ref count at rxe_send and decrementing=
 
-This has been accepted into 4.13-rc, thanks.
+> from skb destructor will prevent this crash.
+
+This series has been applied to 4.13-rc, thanks.
+
+FWIW Leon, if you have a series, even if it's a short 2 patch series, I
+prefer a cover letter.  It doesn't need to be long, and can just be
+something like "I have two bug fixes for rxe in this series", but I
+dislike responding to a patch and saying I applied a series.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -53,9 +59,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 D
 
 
---kQpb4avG9hqAE2dt2ucoLXT9GQtOsmhWF--
+--T2OisbGl1Mu8ItCXdrfHCCejAWNorcjpn--
 
---66LW4WDEickTr2j7nWF6V03Fr3A14633m
+--esLuSpbT3GgWLfXPVCaKOMkDUpXCkS6sP
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -64,22 +70,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJZc4dMAAoJELgmozMOVy/dpdcP+gJXGZfsNCed3uY3Ja1BZWNs
-tagcyBuSd3IID32B1o/YzLTrOhZ1Y5DGqdGvMXu/yI7Pz1RhMKmX3hgctYMrA1NM
-NjHRCSz2z/9az+xKsVad4bfv9pvTcBeaPE7SEbImsNd5Q+3T8rBaboNbVNwCxhnC
-cm6eA/hVxffBjh01m5C7Z2RvB4+cz7EttJ9lFL6+cKbTQO4aGoAPyq3r4EChKas3
-eZLPHLzL/+c35X/dQAMfm1epe3IHLXRyoOSNiaVhzhq4Re6Q4AGwQ5baNb9ognt6
-cSokgFISXJ1HRIFzIkkoUe0r6Ry/T31Yd7WB+3+nUZK37GU42Jcd5QqCGmxpkW+P
-9D9pG7ROMvAMnxupoKJBSoyAuySI6HasrDry6W3QKDtzFwc++Gl8xMG1rWCNf5sy
-SZ/HrHXMRbYhS1nF9tWTkHIo6LWeDBh96qgIEsWhhZNwKBcHO22xMl66ez6TuEzU
-7Db/HN7Z+QWsC1oWnIqdFE7lJzSK3KBhSAOsHSzvtcenN9DriK4kcLMKIyS41l3g
-RsPYzLi5t7HvhRYgt1ZSIwL6uuI+4YUCwv8b9Zi4x0dUpk7kVTkMWP69mVN60m4a
-X2Z/cPAlzUkzubwrDDPimSbOEhrkXiVKHpycW8xX7bQflkCJVa9jymQroqSeMXgY
-2A7G058swvySlfPH9cjw
-=DJBg
+iQIcBAEBCAAGBQJZc4fzAAoJELgmozMOVy/dOSoQAIemWzcauDyucnFlEgyATwIM
+WKaQshkJSNYUNL52QjyNVompRPZT8OLptSEBDoAnbyd6+fxlHi1qa0yueasjJ0tr
+/dHIJq9Mg1HKPzcLpStSf4dnyaFb6TBAiylf9vXqpRidg9o/mKaPG3SRX3LQZ0Sv
+rupPwU41bTtyVafG1TarN+jGv9MzlfOH3aM7PdcC6x9xTQqx5cPU9hyLkZoHN4qC
+hmEfZY2ve9xbkuhUTYsULpQ4Bt91JJIMZpqY6dasBMm40Juw4XUWrOZzIEO98Dpu
+kMJvSfOB0JaniVjCEEvqMO/0haX2tjUuSPJqkw36lW6glYaprIesZkFzu+Cf8xOg
+XzNIqvSMMse/qbZlPT62OYunzM8uxAAGeTg0akgLZgnGK0So22Cz2JN7LnkHslR5
+fZlDZLibn4ntpwtpH1W6Be2BNdkd8z1RXZCAk7TuVE3tOr886hwU+usHq8LepYNK
+WYsVZyVRPcrhaEGymSQ4iT76/WRI7IKHWlssFE8it0ZwOQt8484rTJ6yzNjOHJ1b
+auNzlGr25M/uFkQCFi0k8e4BIsvOLJer53HGQT+nd8lOiP4uIh6iKORoSChJJuu/
+jhsMHxWI6ms+9Kjowj6dWDJUBC9UDBLNp23BSI+phAVQw85eOlASgQeK7MjB91Nk
+LIho6KUaDiSw4PVuSnwZ
+=BcEn
 -----END PGP SIGNATURE-----
 
---66LW4WDEickTr2j7nWF6V03Fr3A14633m--
+--esLuSpbT3GgWLfXPVCaKOMkDUpXCkS6sP--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
