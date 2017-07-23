@@ -1,182 +1,158 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V4 net-next 8/8] net: hns3: Add HNS3 driver to kernel
- build framework & MAINTAINERS
-Date: Sun, 23 Jul 2017 16:12:09 +0300
-Message-ID: <20170723131209.GI3259@mtr-leonro.local>
-References: <20170722220942.78852-1-salil.mehta@huawei.com>
- <20170722220942.78852-9-salil.mehta@huawei.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next 7/9] IB/core: Allow QP state transition from
+ reset to error
+Date: Sun, 23 Jul 2017 09:14:02 -0400
+Message-ID: <10f7f884-8e65-b563-bdd8-7c2735906d14@redhat.com>
+References: <20170530000314.534.72983.stgit@scvm10.sc.intel.com>
+ <20170530002032.534.25061.stgit@scvm10.sc.intel.com>
+ <20170530054609.GG17751@mtr-leonro.local>
+ <20170723073905.GE3259@mtr-leonro.local>
+ <20170723074153.GF3259@mtr-leonro.local> <1500812883.2610.7.camel@redhat.com>
+ <20170723130445.GG3259@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="1fZJyN7nFm/tosmV"
+ protocol="application/pgp-signature";
+ boundary="d34m0dUsRs4k7xrsjCkGqLibL3Nr4JDBI"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170722220942.78852-9-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170723130445.GG3259-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, huangdaode-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org, lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--d34m0dUsRs4k7xrsjCkGqLibL3Nr4JDBI
+Content-Type: multipart/mixed; boundary="Irr2pRfBJFmbq7C3RLLNm9I01ePEDqwfD";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Message-ID: <10f7f884-8e65-b563-bdd8-7c2735906d14-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next 7/9] IB/core: Allow QP state transition from
+ reset to error
+References: <20170530000314.534.72983.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+ <20170530002032.534.25061.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+ <20170530054609.GG17751-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+ <20170723073905.GE3259-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+ <20170723074153.GF3259-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org> <1500812883.2610.7.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20170723130445.GG3259-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20170723130445.GG3259-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 
---1fZJyN7nFm/tosmV
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--Irr2pRfBJFmbq7C3RLLNm9I01ePEDqwfD
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
 
-On Sat, Jul 22, 2017 at 11:09:42PM +0100, Salil Mehta wrote:
-> This patch updates the MAINTAINERS file with HNS3 Ethernet driver
-> maintainers names and other details. This also introduces the new
-> Makefiles required to build the HNS3 Ethernet driver and updates
-> the existing Kconfig file in the hisilicon folder.
->
-> Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> ---
-> Patch V3: Addressed below errors:
->  1. Intel kbuild: https://lkml.org/lkml/2017/6/14/313
->  2. Intel Kbuild: https://lkml.org/lkml/2017/6/14/636
-> Patch V2: No change
-> Patch V1: Initial Submit
-> ---
->  MAINTAINERS                                        |  8 +++++++
->  drivers/net/ethernet/hisilicon/Kconfig             | 27 ++++++++++++++++++++++
->  drivers/net/ethernet/hisilicon/Makefile            |  1 +
->  drivers/net/ethernet/hisilicon/hns3/Makefile       |  7 ++++++
->  .../net/ethernet/hisilicon/hns3/hns3pf/Makefile    | 11 +++++++++
->  5 files changed, 54 insertions(+)
->  create mode 100644 drivers/net/ethernet/hisilicon/hns3/Makefile
->  create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
->
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 297e610c9163..a22d5b86c2b7 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -6197,6 +6197,14 @@ S:	Maintained
->  F:	drivers/net/ethernet/hisilicon/
->  F:	Documentation/devicetree/bindings/net/hisilicon*.txt
->
-> +HISILICON NETWORK SUBSYSTEM 3 DRIVER (HNS3)
-> +M:	Yisen Zhuang <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> +M:	Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> +L:	netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> +W:	http://www.hisilicon.com
-> +S:	Maintained
-> +F:	drivers/net/ethernet/hisilicon/hns3/
-> +
->  HISILICON ROCE DRIVER
->  M:	Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
->  M:	Wei Hu(Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> diff --git a/drivers/net/ethernet/hisilicon/Kconfig b/drivers/net/ethernet/hisilicon/Kconfig
-> index d11287e11371..9f8ea283c531 100644
-> --- a/drivers/net/ethernet/hisilicon/Kconfig
-> +++ b/drivers/net/ethernet/hisilicon/Kconfig
-> @@ -76,4 +76,31 @@ config HNS_ENET
->  	  This selects the general ethernet driver for HNS.  This module make
->  	  use of any HNS AE driver, such as HNS_DSAF
->
-> +config HNS3
-> +	tristate "Hisilicon Network Subsystem Support HNS3 (Framework)"
-> +    depends on PCI
-> +	---help---
-> +	  This selects the framework support for Hisilicon Network Subsystem 3.
-> +	  This layer facilitates clients like ENET, RoCE and user-space ethernet
-> +	  drivers(like ODP)to register with HNAE devices and their associated
-> +	  operations.
-> +
-> +config HNS3_HCLGE
-> +	tristate "Hisilicon HNS3 HCLGE Acceleration Engine & Compatibility Layer Support"
-> +    depends on PCI_MSI
-> +	select HNS3
+On 7/23/2017 9:04 AM, Leon Romanovsky wrote:
+> On Sun, Jul 23, 2017 at 08:28:03AM -0400, Doug Ledford wrote:
+>> On Sun, 2017-07-23 at 10:41 +0300, Leon Romanovsky wrote:
+>>> On Sun, Jul 23, 2017 at 10:39:05AM +0300, Leon Romanovsky wrote:
+>>>> On Tue, May 30, 2017 at 08:46:09AM +0300, Leon Romanovsky wrote:
+>>>>> On Mon, May 29, 2017 at 05:20:53PM -0700, Dennis Dalessandro
+>>>>> wrote:
+>>>>>> From: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>>>>>
+>>>>>> Playing with IP-O-IB interface can trigger a warning message:
+>>>>>> "ib0: Failed to modify QP to ERROR state" to be logged.
+>>>>>> This happens when the QP is in IB_QPS_RESET state and the stack
+>>>>>> is trying to transition it to IB_QPS_ERR state in
+>>>>>> ipoib_ib_dev_stop().
+>>>>>>
+>>>>>> According to the IB spec, Table 91 - "QP State Transition
+>>>>>> Properties"
+>>>>>> it looks like the transition from reset to error is valid:
+>>>>>>
+>>>>>> Transition: Any State to Error
+>>>>>> Required Attributes: None
+>>>>>> Optional Attributes: None allowed
+>>>>>> Actions: Queue processing is stopped. Work Requests pending or
+>>>>>> in
+>>>>>> process are completed in error, when possible.
+>>>>>>
+>>>>>> This patch allows the transition and quiets the message.
+>>>>>>
+>>>>>> Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>>>>> Signed-off-by: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>>>>> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+>>>>>>>
+>>>>>> ---
+>>>>>
+>>>>> Thanks,
+>>>>> Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>>>>
+>>>> Doug,
+>>>>
+>>>> After digging more with Erez's help, it looks like the sentence "it
+>>>> looks like the transition from reset to error is valid:" is not
+>>>> correct.
+>>>>
+>>>> According to the InfiniBandTM Architecture Release 1.3, Figure 126
+>>>> QP/EE Context
+>>>> State Diagram - transition to error from reset is not valid.
+>>>>
+>>>> The quote from the spec:
+>>>> "An error can be forced from any state, except Reset, with the
+>>>> Modify QP/EE Verb."
+>>>>
+>>>> I'll send revert patch along with proper fix.
+>>>
+>>> Ahh, it wasn't pushed to kernel.org, so no need to revert and you can=
 
-IMHO it should be "depends" and not "select".
+>>> simply drop it.
+>>
+>> It *is* on kernel.org, and has already been pulled by Linus:
+>=20
+> Thanks, I updated the trees and got it.
+>=20
+> Also I prepared revert and patch and will send once it will finish our =
+regression runs.
+> https://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git/com=
+mit/?h=3Drdma-rc&id=3Db287b76e89503ef1d403cc5cc8bd74b035d25bfa
+> https://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git/com=
+mit/?h=3Drdma-rc&id=3D5dc78ad1904db597bdb4427f3ead437aae86f54c
+>=20
+> BTW, when will you post for-4.14 branch so we will be able to base our
+> submission queue for the -next?
 
-> +	---help---
-> +	  This selects the HNS3_HCLGE network acceleration engine & its hardware
-> +	  compatibility layer. The engine would be used in Hisilicon hip08 family of
-> +	  SoCs and further upcoming SoCs.
-> +
-> +config HNS3_ENET
-> +	tristate "Hisilicon HNS3 Ethernet Device Support"
-> +    depends on 64BIT && PCI
-> +	select HNS3
+Tomorrow.  I wanted to base it on 4.13-rc2 so it would get all of the
+fixes that went in this week.
 
-Ditto
 
-> +	---help---
-> +	  This selects the Ethernet Driver for Hisilicon Network Subsystem 3 for hip08
-> +	  family of SoCs. This module depends upon HNAE3 driver to access the HNAE3
-> +	  devices and their associated operations.
-> +
->  endif # NET_VENDOR_HISILICON
-> diff --git a/drivers/net/ethernet/hisilicon/Makefile b/drivers/net/ethernet/hisilicon/Makefile
-> index 8661695024dc..3828c435c18f 100644
-> --- a/drivers/net/ethernet/hisilicon/Makefile
-> +++ b/drivers/net/ethernet/hisilicon/Makefile
-> @@ -6,4 +6,5 @@ obj-$(CONFIG_HIX5HD2_GMAC) += hix5hd2_gmac.o
->  obj-$(CONFIG_HIP04_ETH) += hip04_eth.o
->  obj-$(CONFIG_HNS_MDIO) += hns_mdio.o
->  obj-$(CONFIG_HNS) += hns/
-> +obj-$(CONFIG_HNS3) += hns3/
->  obj-$(CONFIG_HISI_FEMAC) += hisi_femac.o
-> diff --git a/drivers/net/ethernet/hisilicon/hns3/Makefile b/drivers/net/ethernet/hisilicon/hns3/Makefile
-> new file mode 100644
-> index 000000000000..5e53735b2d4e
-> --- /dev/null
-> +++ b/drivers/net/ethernet/hisilicon/hns3/Makefile
-> @@ -0,0 +1,7 @@
-> +#
-> +# Makefile for the HISILICON network device drivers.
-> +#
-> +
-> +obj-$(CONFIG_HNS3) += hns3pf/
-> +
-> +obj-$(CONFIG_HNS3) +=hnae3.o
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
+D
 
-There is a missing space after "+="
 
-> diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile b/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
-> new file mode 100644
-> index 000000000000..c0a92b5690a9
-> --- /dev/null
-> +++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
-> @@ -0,0 +1,11 @@
-> +#
-> +# Makefile for the HISILICON network device drivers.
-> +#
-> +
-> +ccflags-y := -Idrivers/net/ethernet/hisilicon/hns3
-> +
-> +obj-$(CONFIG_HNS3_HCLGE) += hclge.o
-> +hclge-objs =hclge_main.o hclge_cmd.o hclge_mdio.o hclge_tm.o
+--Irr2pRfBJFmbq7C3RLLNm9I01ePEDqwfD--
 
-Missing space.
-
-> +
-> +obj-$(CONFIG_HNS3_ENET) += hns3.o
-> +hns3-objs = hns3_enet.o hns3_ethtool.o
-> --
-> 2.11.0
->
->
-
---1fZJyN7nFm/tosmV
+--d34m0dUsRs4k7xrsjCkGqLibL3Nr4JDBI
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAll0oKgACgkQ5GN7iDZy
-WKfxkxAAzH47Z1PwposFaXzW2mJad6BompBsoc6HgLJoqH0XkoLgIoCQjElsN46M
-IAl0aK2zrBTjMk+o/98dadHFIuqAHCJnaoiLeQmybxxdCe/bpicI+lgldrIKYST2
-EFjydk5TJ0at1XMFM05o1T0hRUu7noSDdxASQhSCYI7Oj4yo9bisMERPc1Qlcyh5
-C+6k2jO+8BKQNwQuGdf9cK5ALLpljzvu+xyJklRul6k3S2w451dxh/zSW6Ei98QH
-pCAp4RHeo0cQt0+MqE3KxtQ4R1N27kcYhID42qjYsXx71OE0C7dREnNfuKRheeR9
-hJv4U55ZBBIXMWz+Zbr5q4Ol7y80oXC2e2VvdF81iCoOBJNwfP3Nb9eWU+1fe3q5
-dXgKUL1B7+aeLgP8zdfmXO2mf4qUjEUjaQ6QWlkKn2oN/0yQFVnWPTbPv24wczV2
-Vhi6s723raGXTI5D1ggPU2NFVsvYQuXHYnvhqk6bssCiJhEwuMG0Xg6yCbm4Izfu
-sA5z3opYaa5u9dhs+YzfqXORDoy8+CLqfXeFyS6VTKB8KIc6I6PAeODx49PgrvA4
-sFDK5MEaP60/hAaQKH13goHuFvGZDW2IdCcSPbji4dsTbXQaXqD+NjNMw8dJBd9K
-YPXOuc3XZ5rTOicKa2Y81AiHBzMTS+9lVNCraYothTDpWPBdyIY=
-=4BJv
+iQIcBAEBCAAGBQJZdKEhAAoJELgmozMOVy/d2MQQAIOl2SBm0As8h8YoDPBSSdK7
+SzWBiSuPTAcGP7+AkNODF7KOfwnjRbs3PeXfdst16GnWuSF2LKRCThU49kC/4SoD
+yztpc1agp25PGOSeLPPdM0QotmUFbtXwnbcOKxQQVegVbJR4kc9Jt5LsKvx1bnj1
+0d5OcsXyKAybR+4xpev+pb/RWRZPYhusJGOu1LmEywMOwRInbi3JtEO7UzcycFyL
+5YqSJeauTgSTi5R0Qis5DFNXMvt7uticYlBcRA9DTbqznpQmVaoy/fwcMkXBHMhz
+oxkbL0sYKJla8hTJS7k2Kpk7j2s17/KJfHx+uk4Yay7GSxtk3upYt4y2MMBhchHD
+XsooRlhgbmVxxdGZbX9hDXLyORPk7EwzpqOSuLr5ItvK52fCTU5+iQ5bAwjjLMsb
+Be98J6t8GhgiqkgyWBy5QGkJ7w4H9xfxp1G7FtjXXC38yxIhn5tg94HpI8cgRjzc
+RIKplxPP3X0L+Tm7tfvHX/6q25URu90ADjT7NBVa726cAtf3cIqJe6B9LrBIUJ4a
+mdvgmZfOz7FX5ztkLa6DapFrXXLkCrWmnoKkr8MrOXDjWhgGFVd1ynDQu5SQht35
+li1zMJ+y3a+MpR+VPldlzgvWXtbh20iV/Ncz3dKZHKDO1iuwymxWV3PtoY1wEumg
+rKck5PYfK2iddavp/JFW
+=ulXM
 -----END PGP SIGNATURE-----
 
---1fZJyN7nFm/tosmV--
+--d34m0dUsRs4k7xrsjCkGqLibL3Nr4JDBI--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
