@@ -1,57 +1,71 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 2/2] IB/rxe: Convert pr_info to pr_warn
-Date: Sun, 23 Jul 2017 08:22:56 +0300
-Message-ID: <20170723052256.GA3259@mtr-leonro.local>
-References: <20170721191409.3050-1-yuval.shaia@oracle.com>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: perftest proprietary files
+Date: Sun, 23 Jul 2017 08:27:29 +0300
+Message-ID: <20170723052729.GC3259@mtr-leonro.local>
+References: <2411a5c0-84f8-124e-83ce-1ee587dcf4ce@suse.de>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="E50aLcSU4JxQSj/B"
+        protocol="application/pgp-signature"; boundary="K5roPakIqCb4O6y8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170721191409.3050-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <2411a5c0-84f8-124e-83ce-1ee587dcf4ce-l3A5Bk7waGM@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, zoharb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---E50aLcSU4JxQSj/B
+--K5roPakIqCb4O6y8
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Jul 21, 2017 at 10:14:09PM +0300, Yuval Shaia wrote:
-> This message is warning so let's print it accordingly.
+On Fri, Jul 21, 2017 at 10:29:11AM +0200, Nicolas Morey-Chaisemartin wrote:
+> Hi,
 >
-> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> ---
->  drivers/infiniband/sw/rxe/rxe_av.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> While packaging perftest for SUSE, I discovered that some files have headers
+>  declaring the software as Mellanox proprietary while the COPYING declares LGPL/BSD.
 >
+> The files are:
+> * Makefile.am
+> * Makefile.in
+> * configure.ac
+>
+> Should these headers be dropped ?
+>
+> (I pinged zoharb about this already without much luck. Figured it might be worth a shot here)
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Thank you for letting us know.
+Let's take it offline.
 
---E50aLcSU4JxQSj/B
+>
+> Nicolas
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--K5roPakIqCb4O6y8
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAll0MrAACgkQ5GN7iDZy
-WKcxEw//bachzN04uwgytjGm3ZCnuMWQzZp6hJ6pSuQEKJTP7Wmhiz/cNrOLHqUa
-5JtlG1ZciMBuxJ4zP5wyeKIWNcRLpBgsFFrOzhR6Ycp4PgHOmnPlX8N5VJ40zwb4
-8lNsps1nf1NYXXblMG5awmEW3GtOiE6nfNIpQRiKXUWrWburt71SJfyQUh5gD0Ws
-tcPJmn9uL6behJzeiU5DoRCNvZzO+74e3CW/nMoXGZTCRhjmTlk0xtt7OXp6xTK8
-tHH1u0chxAVsPzDxVK7SwsW+iYIV5CeRIrYh8XKHRxCsvBChCpl/mxB3isnLtWtq
-ocrDdSimhVU4O+8Nis9q32K+/Wop9kPv5wcSpivmc7Em/P9iYDdRNvhM6FKgeJQW
-CJhCIvhyHn9/8sn9vivHDJLoKvKS40sU6xjbm3U8d47ROTTxqegLx1t6CIzJ2TU/
-uS/iXUPPiBmkrcGBJQTbwTKuBo3si37q9DBmYQJFCfr6aE39/eX9ZinOv2rzV4N2
-zPTQVXyAc/TM0WAIvLip63AGuEnln8szPQmRzcmKfJKtfWXZVhpgAFhPxIDeHq+I
-pqHSAnoFDNHb3xJ5gFxaoHJ90ZHrnJeinhW6nnc1moj2GITOgg0Lc+O0+WBKSsrw
-RqfwUh/UYHOw6o5pWri53kOM8Y0PjuwamHeF8WKS3OWhDuM6Alk=
-=6CAp
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAll0M8AACgkQ5GN7iDZy
+WKfSUw/+K/SbLOT30GNPeclE5dEF5bfFwYzqojbPQolYDnhtRIMchzXmbl77nyPp
+uY/6r/p1HKrZqNgVXTDteTjruqOqi5L57L2qmRjCAlN5azx0KIPw9yYfaVrpMx0c
+6RV33zqnxEvS8HCOVog1343/7jNyU9R4bMT0KEZJ8biZeFrRaGAdQF5i9EnMCsNn
+WRSmeGzDHe9/JV5RqM1NGggoOpc+fZV5JQlW0gJRkDRgXmTo8vgEz0NwGqdAFXYS
+QFT6HCplTFcRP7MQNe/qjO2ydu7K/cMP6p8PHKbbpGzwQfpumbrSi7dCUX9DoUrb
+UZla6+CHpXqcH1cG4lg0orJIH7dbs+aVdp4dPeNq92kNIpvg2wJZEi4y9TPLw4qf
+ILGwEPsyMG37iJNDDcONqwHqjthMOgHhWtnlgqZ4cttwbZjW0YNlwdsTYQ4Uznao
+bfiiCkqidgsAqqK48QOQtLllhURpiGh50k143m4+9uNkaqe7fxgjmYg7x9J52b8L
+tEBm5LcLS0Cz74OqgDgSKnmdGUio0iWEGryX21di0zNsovfv2Vaog1LVJwNvRLwP
+YPJvtBZl9XhPKylozxga+5r6SXavj2ez4hYy4buzKGSuREUvH7pOvhHSm5lOH2eg
+Kmz/hZdB+ErNnBeZ01eSP3RpDaudOC8+ulF68HP3HcO0HYZDnF8=
+=cE3r
 -----END PGP SIGNATURE-----
 
---E50aLcSU4JxQSj/B--
+--K5roPakIqCb4O6y8--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
