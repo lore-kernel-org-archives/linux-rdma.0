@@ -1,49 +1,115 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: RE: [PATCH V4 net-next 5/8] net: hns3: Add support of TX Scheduler
- & Shaper to HNS3 driver
-Date: Sun, 23 Jul 2017 09:31:46 +0000
-Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F93B81D3AE@FRAEML521-MBX.china.huawei.com>
-References: <20170722220942.78852-1-salil.mehta@huawei.com>
- <20170722220942.78852-6-salil.mehta@huawei.com>
- <20170723061655.sfwb4ugcprbhkmob@localhost.localdomain>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next 7/9] IB/core: Allow QP state transition from
+ reset to error
+Date: Sun, 23 Jul 2017 08:28:03 -0400
+Message-ID: <1500812883.2610.7.camel@redhat.com>
+References: <20170530000314.534.72983.stgit@scvm10.sc.intel.com>
+         <20170530002032.534.25061.stgit@scvm10.sc.intel.com>
+         <20170530054609.GG17751@mtr-leonro.local>
+         <20170723073905.GE3259@mtr-leonro.local>
+         <20170723074153.GF3259@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170723061655.sfwb4ugcprbhkmob@localhost.localdomain>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Richard Cochran <richardcochran@gmail.com>
-Cc: "davem@davemloft.net" <davem@davemloft.net>, "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>, huangdaode <huangdaode@hisilicon.com>, "lipeng (Y)" <lipeng321@huawei.com>, "mehta.salil.lnk@gmail.com" <mehta.salil.lnk@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170723074153.GF3259-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Richard,
+On Sun, 2017-07-23 at 10:41 +0300, Leon Romanovsky wrote:
+> On Sun, Jul 23, 2017 at 10:39:05AM +0300, Leon Romanovsky wrote:
+> > On Tue, May 30, 2017 at 08:46:09AM +0300, Leon Romanovsky wrote:
+> > > On Mon, May 29, 2017 at 05:20:53PM -0700, Dennis Dalessandro
+> > > wrote:
+> > > > From: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > > 
+> > > > Playing with IP-O-IB interface can trigger a warning message:
+> > > > "ib0: Failed to modify QP to ERROR state" to be logged.
+> > > > This happens when the QP is in IB_QPS_RESET state and the stack
+> > > > is trying to transition it to IB_QPS_ERR state in
+> > > > ipoib_ib_dev_stop().
+> > > > 
+> > > > According to the IB spec, Table 91 - "QP State Transition
+> > > > Properties"
+> > > > it looks like the transition from reset to error is valid:
+> > > > 
+> > > > Transition: Any State to Error
+> > > > Required Attributes: None
+> > > > Optional Attributes: None allowed
+> > > > Actions: Queue processing is stopped. Work Requests pending or
+> > > > in
+> > > > process are completed in error, when possible.
+> > > > 
+> > > > This patch allows the transition and quiets the message.
+> > > > 
+> > > > Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > > Signed-off-by: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > > Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+> > > > >
+> > > > ---
+> > > 
+> > > Thanks,
+> > > Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > 
+> > Doug,
+> > 
+> > After digging more with Erez's help, it looks like the sentence "it
+> > looks like the transition from reset to error is valid:" is not
+> > correct.
+> > 
+> > According to the InfiniBandTM Architecture Release 1.3, Figure 126
+> > QP/EE Context
+> > State Diagram - transition to error from reset is not valid.
+> > 
+> > The quote from the spec:
+> > "An error can be forced from any state, except Reset, with the
+> > Modify QP/EE Verb."
+> > 
+> > I'll send revert patch along with proper fix.
+> 
+> Ahh, it wasn't pushed to kernel.org, so no need to revert and you can
+> simply drop it.
 
-> -----Original Message-----
-> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
-> owner@vger.kernel.org] On Behalf Of Richard Cochran
-> Sent: Sunday, July 23, 2017 7:17 AM
-> To: Salil Mehta
-> Cc: davem@davemloft.net; Zhuangyuzeng (Yisen); huangdaode; lipeng (Y);
-> mehta.salil.lnk@gmail.com; netdev@vger.kernel.org; linux-
-> kernel@vger.kernel.org; linux-rdma@vger.kernel.org; Linuxarm
-> Subject: Re: [PATCH V4 net-next 5/8] net: hns3: Add support of TX
-> Scheduler & Shaper to HNS3 driver
-> 
-> On Sat, Jul 22, 2017 at 11:09:39PM +0100, Salil Mehta wrote:
-> > +int hclge_tm_setup_tc(struct hclge_dev *hdev);
-> 
-> Like I said before, this function DNE.
-Sorry, it was removed, I mistakenly saw the old code.
-Will remove this prototype as well.
+It *is* on kernel.org, and has already been pulled by Linus:
 
-Thanks
-Salil
-> 
-> Thanks,
-> Richard
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+commit ebc9ca43e1d52a85c72fc2d343f353386ed6c188
+Author: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Date:   Mon May 29 17:20:53 2017 -0700
+
+    IB/core: Allow QP state transition from reset to error
+    
+    Playing with IP-O-IB interface can trigger a warning message:
+    "ib0: Failed to modify QP to ERROR state" to be logged.
+    This happens when the QP is in IB_QPS_RESET state and the stack
+    is trying to transition it to IB_QPS_ERR state in
+ipoib_ib_dev_stop().
+    
+    According to the IB spec, Table 91 - "QP State Transition
+Properties"
+    it looks like the transition from reset to error is valid:
+    
+    Transition: Any State to Error
+    Required Attributes: None
+    Optional Attributes: None allowed
+    Actions: Queue processing is stopped. Work Requests pending or in
+    process are completed in error, when possible.
+    
+    This patch allows the transition and quiets the message.
+    
+    Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+    Signed-off-by: Tadeusz Struk <tadeusz.struk-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+    Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+    Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+    Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
