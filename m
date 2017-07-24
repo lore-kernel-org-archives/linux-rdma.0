@@ -1,56 +1,60 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 17/21] srp_deamon: Using v formatters directly for pr_err
-Date: Mon, 24 Jul 2017 14:00:25 -0600
-Message-ID: <1500926429-31822-18-git-send-email-jgunthorpe@obsidianresearch.com>
-References: <1500926429-31822-1-git-send-email-jgunthorpe@obsidianresearch.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1500926429-31822-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <notifications-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: "Rustad, Mark D" <mark.d.rustad@intel.com>
+Subject: Re: [PATCH V4 net-next 7/8] net: hns3: Add Ethtool support to HNS3
+ driver
+Date: Mon, 24 Jul 2017 20:32:07 +0000
+Message-ID: <D7C5EFE3-632C-468D-B8E0-82B448634B31@intel.com>
+References: <20170722220942.78852-1-salil.mehta@huawei.com>
+ <20170722220942.78852-8-salil.mehta@huawei.com>
+ <23ddbe00-8bef-a09b-5783-3a5438086bd6@gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed;
+        boundary="Apple-Mail=_8826735D-3F14-4F03-BD30-C8A3C6E0187D";
+        protocol="application/pgp-signature"; micalg=pgp-sha256
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <23ddbe00-8bef-a09b-5783-3a5438086bd6@gmail.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Florian Fainelli <f.fainelli@gmail.com>
+Cc: Salil Mehta <salil.mehta@huawei.com>, "davem@davemloft.net" <davem@davemloft.net>, "yisen.zhuang@huawei.com" <yisen.zhuang@huawei.com>, "huangdaode@hisilicon.com" <huangdaode@hisilicon.com>, "lipeng321@huawei.com" <lipeng321@huawei.com>, "mehta.salil.lnk@gmail.com" <mehta.salil.lnk@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linuxarm@huawei.com" <linuxarm@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
-No reason to format to a string buffer and then just print that string,
-use vsyslog and vfprintf directly instead.
+--Apple-Mail=_8826735D-3F14-4F03-BD30-C8A3C6E0187D
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset=us-ascii
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- srp_daemon/srp_daemon.c | 11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff --git a/srp_daemon/srp_daemon.c b/srp_daemon/srp_daemon.c
-index f0dfe260945574..a75f3af085cbde 100644
---- a/srp_daemon/srp_daemon.c
-+++ b/srp_daemon/srp_daemon.c
-@@ -295,22 +295,17 @@ void pr_debug(const char *fmt, ...)
- void pr_err(const char *fmt, ...)
- {
- 	va_list args;
--	int pos;
--	char str[1000];
- 
- 	va_start(args, fmt);
--	pos = vsnprintf(str, sizeof(str), fmt, args);
--	va_end(args);
--	if (pos >= sizeof(str))
--		str[sizeof(str) - 1] = '\0';
- 	switch (s_log_dest) {
- 	case log_to_syslog:
--		syslog(LOG_DAEMON | LOG_ERR, "%s", str);
-+		vsyslog(LOG_DAEMON | LOG_ERR, fmt, args);
- 		break;
- 	case log_to_stderr:
--		fprintf(stderr, "%s", str);
-+		vfprintf(stderr, fmt, args);
- 		break;
- 	}
-+	va_end(args);
- }
- 
- static int check_not_equal_str(const char *dir_name, const char *attr,
--- 
-2.7.4
+> On Jul 23, 2017, at 10:05 AM, Florian Fainelli <f.fainelli@gmail.com> =
+wrote:
+>> +
+>> +	strncpy(drvinfo->version, HNAE_DRIVER_VERSION,
+>> +		sizeof(drvinfo->version));
+>> +	drvinfo->version[sizeof(drvinfo->version) - 1] =3D '\0';
+>=20
+> strlcpy() would probably do that for you.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+You need to be careful about strlcpy - it does not completely write the =
+destination buffer as strncpy does, and so can result in a kernel memory =
+leak if the destination is not known to already be cleared.
+
+>> +
+>> +	strncpy(drvinfo->driver, HNAE_DRIVER_NAME, =
+sizeof(drvinfo->driver));
+>> +	drvinfo->driver[sizeof(drvinfo->driver) - 1] =3D '\0';
+>=20
+> Same here
+
+Same here
+
+>> +
+>> +	strncpy(drvinfo->bus_info, priv->dev->bus->name,
+>> +		sizeof(drvinfo->bus_info));> +	=
+drvinfo->bus_info[ETHTOOL_BUSINFO_LEN - 1] =3D '\0';
+>=20
+> And here.
+
+And here too. I haven't looked at this deeply enough to know whether a =
+leak could be created by strlcpy here, but I wanted to raise it as =
+something to be considered before switching to it. Blindly adopting =
+strlcpy is hazardous as are tools that unconditionally recommend it.
+--Apple-Mail=_8826735D-3F14-4F03-BD30-C8A3C6E0187D--
