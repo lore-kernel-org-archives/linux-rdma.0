@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 14/21] Revise the umad SYSTEMD_ALIAS fake path
-Date: Mon, 24 Jul 2017 14:00:22 -0600
-Message-ID: <1500926429-31822-15-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 21/21] Make /etc/modprobe.d/mlx4.conf common
+Date: Mon, 24 Jul 2017 14:00:29 -0600
+Message-ID: <1500926429-31822-22-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1500926429-31822-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1500926429-31822-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
@@ -9,40 +9,53 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <notifications-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The only other users of SYSTEMD_ALIAS I could find uses the
-/sys/subsystem/ prefix, so we should do the same instead of using
-a fake /dev/ prefix.
+Move it out of the redhat directory and into providers/mlx4, this follows
+the existing pattern of truescale.conf.
 
-Fixes: 5a6f287a3cdf ("libibumad: Introduce the /dev/infiniband/umad/${ibdev}:${port}.device alias")
-Fixes: d35e5c4f7169 ("srp_daemon.service: Add support for hot-plugging")
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- libibumad/libibumad.udev-rules         | 2 +-
- srp_daemon/srp_daemon_port@.service.in | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ debian/rdma-core.install                                   | 1 +
+ providers/mlx4/CMakeLists.txt                              | 2 ++
+ redhat/rdma.mlx4.user.modprobe => providers/mlx4/mlx4.conf | 0
+ redhat/rdma-core.spec                                      | 1 -
+ 4 files changed, 3 insertions(+), 1 deletion(-)
+ rename redhat/rdma.mlx4.user.modprobe => providers/mlx4/mlx4.conf (100%)
 
-diff --git a/libibumad/libibumad.udev-rules b/libibumad/libibumad.udev-rules
-index 8b1ab6b5142009..b9f565eceaf3a3 100644
---- a/libibumad/libibumad.udev-rules
-+++ b/libibumad/libibumad.udev-rules
-@@ -1 +1 @@
--ACTION=="add", SUBSYSTEM=="infiniband_mad", TAG+="systemd", ENV{SYSTEMD_ALIAS}="/dev/infiniband/umad/$attr{ibdev}:$attr{port}"
-+ACTION=="add", SUBSYSTEM=="infiniband_mad", TAG+="systemd", ENV{SYSTEMD_ALIAS}="/sys/subsystem/rdma/devices/$attr{ibdev}:$attr{port}/umad"
-diff --git a/srp_daemon/srp_daemon_port@.service.in b/srp_daemon/srp_daemon_port@.service.in
-index 0ec966f912aec8..03b9cb9a70119a 100644
---- a/srp_daemon/srp_daemon_port@.service.in
-+++ b/srp_daemon/srp_daemon_port@.service.in
-@@ -3,8 +3,8 @@ Description=SRP daemon that monitors port %i
- Documentation=man:srp_daemon file:/etc/rdma/rdma.conf file:/etc/srp_daemon.conf
- DefaultDependencies=false
- Conflicts=emergency.target emergency.service
--After=srp_daemon.service dev-infiniband-umad-%i.device network.target
--BindsTo=srp_daemon.service dev-infiniband-umad-%i.device
-+After=srp_daemon.service sys-subsystem-rdma-devices-%i-umad.device network.target
-+BindsTo=srp_daemon.service sys-subsystem-rdma-devices-%i-umad.device
- Before=remote-fs-pre.target
- 
- [Service]
+diff --git a/debian/rdma-core.install b/debian/rdma-core.install
+index 3d8cddab9297a5..c19d766fc0f48e 100644
+--- a/debian/rdma-core.install
++++ b/debian/rdma-core.install
+@@ -1,3 +1,4 @@
++etc/modprobe.d/mlx4.conf
+ etc/modprobe.d/truescale.conf
+ lib/systemd/system/rdma-ndd.service
+ lib/udev/rules.d/60-rdma-ndd.rules
+diff --git a/providers/mlx4/CMakeLists.txt b/providers/mlx4/CMakeLists.txt
+index f6739d2dd0a7a2..2cd668cbbe213e 100644
+--- a/providers/mlx4/CMakeLists.txt
++++ b/providers/mlx4/CMakeLists.txt
+@@ -12,3 +12,5 @@ rdma_shared_provider(mlx4 libmlx4.map
+ publish_headers(infiniband
+   mlx4dv.h
+ )
++
++install(FILES "mlx4.conf" DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/modprobe.d/")
+diff --git a/redhat/rdma.mlx4.user.modprobe b/providers/mlx4/mlx4.conf
+similarity index 100%
+rename from redhat/rdma.mlx4.user.modprobe
+rename to providers/mlx4/mlx4.conf
+diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
+index 40797f268e3d18..2565290e72c04e 100644
+--- a/redhat/rdma-core.spec
++++ b/redhat/rdma-core.spec
+@@ -257,7 +257,6 @@ install -D -m0755 redhat/rdma.ifup-ib %{buildroot}/%{_sysconfdir}/sysconfig/netw
+ install -D -m0755 redhat/rdma.ifdown-ib %{buildroot}/%{_sysconfdir}/sysconfig/network-scripts/ifdown-ib
+ install -D -m0644 redhat/rdma.service %{buildroot}%{_unitdir}/rdma.service
+ install -D -m0644 redhat/rdma.udev-ipoib-naming.rules %{buildroot}%{_sysconfdir}/udev/rules.d/70-persistent-ipoib.rules
+-install -D -m0644 redhat/rdma.mlx4.user.modprobe %{buildroot}%{_sysconfdir}/modprobe.d/mlx4.conf
+ install -D -m0755 redhat/rdma.modules-setup.sh %{buildroot}%{dracutlibdir}/modules.d/05rdma/module-setup.sh
+ install -D -m0644 redhat/rdma.udev-rules %{buildroot}%{_udevrulesdir}/98-rdma.rules
+ install -D -m0644 redhat/rdma.mlx4.sys.modprobe %{buildroot}%{sysmodprobedir}/libmlx4.conf
 -- 
 2.7.4
 
