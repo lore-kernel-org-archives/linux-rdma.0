@@ -1,154 +1,64 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 0/5] Common systemd/udev based boot support
-Date: Mon, 24 Jul 2017 14:44:22 -0600
-Message-ID: <1500929067-1583-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: Kernel oops
+Date: Mon, 24 Jul 2017 15:16:06 -0600
+Message-ID: <20170724211606.GA1705@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <notifications-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is my attempt to migrate the module loading functions from RedHat's
-rdma.service into common code suitable for all distros.
+Matan,
 
-The approach is completly hotplug safe and relies heavily on udev and systemd
-to do the actual decision making and work, there are no shell scripts involved.
+I suspect your reworking series broke hot removal, I get a kernel oops
+when removing modules on 4.13-rc2.
 
-I do not have nearly enough hardware to exhaustively test this, I have checked
-that the basic elements are working, but there is lots of room for little
-errors, particularly in module names and udev matching. It would be great of
-someone could try this on iwarp hardware and confirm all the autoloading works
-as expected.
+I think it is some kind of race with uverbs being removed concurrently
+with user apps closing uverbs. In this case I removed umad first which
+caused systemd to forcibly shutdown srp_daemon, which happened
+concurrently with the rmmod of ib_uverbs.
 
-As should the active roce vendors. I expect that all roce hardware will
-autoload the RDMA modules with this approach.
+[   50.797421] general protection fault: 0000 [#1] SMP
+[   50.798400] Modules linked in: ib_srp scsi_transport_srp scsi_mod rdma_cm ib_umad ib_cm ib_uverbs iw_cm mlx4_core ib_core [last unloaded: mlx4_ib]
+[   50.800946] CPU: 0 PID: 235 Comm: srp_daemon Not tainted 4.13.0-rc2+ #2
+[   50.802178] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS Ubuntu-1.8.2-1ubuntu1 04/01/2014
+[   50.803970] task: ffff88022e504b00 task.stack: ffffc90000178000
+[   50.805163] RIP: 0010:ib_uverbs_release_file+0x29/0x90 [ib_uverbs]
+[   50.806428] RSP: 0018:ffffc9000017bd90 EFLAGS: 00010202
+[   50.807521] RAX: 0000000000000001 RBX: ffff88022dec56c0 RCX: 0000000000000001
+[   50.808898] RDX: 732f74696e752f31 RSI: ffff88022dec56c0 RDI: ffff88022cccc000
+[   50.810349] RBP: ffffc9000017bda0 R08: 000000002dec5801 R09: 0000000180150013
+[   50.811830] R10: ffffc9000017bd80 R11: ffff88022afe5200 R12: ffff88022dec56c0
+[   50.813260] R13: ffff88022dec56e8 R14: ffff88022dec5f70 R15: ffff88022edaa020
+[   50.814830] FS:  00007fb54d287700(0000) GS:ffff880236e00000(0000) knlGS:0000000000000000
+[   50.816401] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[   50.817602] CR2: 00007fb54bc4c8f8 CR3: 000000022dcd9000 CR4: 00000000000406b0
+[   50.818991] Call Trace:
+[   50.819487]  uverbs_close_fd+0x5f/0xa0 [ib_uverbs]
+[   50.820416]  ib_uverbs_comp_event_close+0xa4/0xb0 [ib_uverbs]
+[   50.821539]  __fput+0xd4/0x1d0
+[   50.822202]  ____fput+0x9/0x10
+[   50.822890]  task_work_run+0x79/0xa0
+[   50.823676]  do_exit+0x362/0xa90
+[   50.824309]  ? __do_page_fault+0x203/0x430
+[   50.825140]  do_group_exit+0x42/0xb0
+[   50.825908]  SyS_exit_group+0xf/0x10
+[   50.826630]  entry_SYSCALL_64_fastpath+0x1a/0xa5
+[   50.827591] RIP: 0033:0x7fb54c73bb98
+[   50.828340] RSP: 002b:00007ffec1987788 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+[   50.829900] RAX: ffffffffffffffda RBX: 0000006aa1fe2dc0 RCX: 00007fb54c73bb98
+[   50.831303] RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+[   50.832793] RBP: 00007ffec1987780 R08: 00000000000000e7 R09: ffffffffffffff98
+[   50.834288] R10: 00007fb54a446640 R11: 0000000000000246 R12: 00007fb54be4dc50
+[   50.835802] R13: 00000000ffffffff R14: 00007ffec1987680 R15: 0000000000000006
+[   50.837254] Code: 1f 00 55 48 89 e5 53 48 89 fb 48 83 ec 08 48 8b 47 48 48 8d b8 10 01 00 00 e8 d4 f8 02 e1 48 8b 7b 48 48 8b 57 30 48 85 d2 74 0a <48> 83 ba b0 02 00 00 00 74 42 89 c6 48 81 c7 10 01 00 00 e8 df 
+[   50.841156] RIP: ib_uverbs_release_file+0x29/0x90 [ib_uverbs] RSP: ffffc9000017bd90
+[   50.842723] ---[ end trace 68785d98b53d9203 ]---
 
-Compared to redhat/rdma.kernel-init:
-
- - Config of what ULP modules to load is split into files in
-   /etc/rdma/modules/*.conf, each conf reflects a certain configuration. Eg
-   infiniband.conf is loaded when IB hardware is present, iwarp.conf is loaded
-   for iWarp, etc.
-
-   This allows each techology to load appropriate modules automatically, ie
-   roce hardware will not autoload ipoib out of the box
-
-   Users can configure these files to turn things on/off as appropriate, or just
-   use the usual /etc/modules-load.d/ mechanism. systemd-modules-load is used
-   to  load the modules lists so behavior is identical to the standard loader.
-   eg blacklists work, etc.
-
-   This obsoletes the /etc/rdma/rdma.conf file
-
- - Load of HW support drivers (eg the RDMA component of an ethernet NIC) is
-   done completely inside udev using the udev built in module load, based on
-   the hotplug event of the ethernet nic.
-
-   This means RDMA support modules are only loaded if the rdma-core package is
-   installed and only if the actual base ethernet hardware is present. (rather
-   than triggering on loaded modules)
-
- - More roce hardware is supported now, I filled in entries for all of our
-   new providers (eg qedr).
-
- - srp_daemon and iwpmd support kernel modules autoload automatically as part of
-   the .service file, using systemd dependencies. If those packages are not
-   installed/running then those modules do not load.
-
- - iwpmd now automatically activates if iwarp hardware is present, systemd does
-   not run it automatically.
-
- - None of the obsolete mtrr or pci config meddling is included
-
- - Nothing to do with sriov
-
- - udev has more information now about rdma devices:
-
-$ udevadm info /sys/class/infiniband/mlx4_0
-P: /devices/pci0000:00/0000:00:04.0/infiniband/mlx4_0
-E: DEVPATH=/devices/pci0000:00/0000:00:04.0/infiniband/mlx4_0
-E: ID_BUS=pci
-E: ID_MODEL_FROM_DATABASE=MT27500 Family [ConnectX-3]
-E: ID_MODEL_ID=0x1003
-E: ID_PCI_CLASS_FROM_DATABASE=Network controller
-E: ID_PCI_SUBCLASS_FROM_DATABASE=Network controller
-E: ID_RDMA_INFINIBAND=1
-E: ID_RDMA_ROCE=1
-E: ID_VENDOR_FROM_DATABASE=Mellanox Technologies
-E: ID_VENDOR_ID=0x15b3
-E: NAME=mlx4_0
-E: SUBSYSTEM=infiniband
-E: SYSTEMD_WANTS=rdma-ndd.service rdma-load-modules-XSrBNAzizW1TDjBF/Jpztg@public.gmane.org rdma-load-modules-WW8hglTQ5Ylgot6vXr2xLYq0XWbe/Iga@public.gmane.org rdma-load-modules-eW91h9tu8Y5TDjBF/Jpztg@public.gmane.org
-E: TAGS=:systemd:
-E: USEC_INITIALIZED=7954413272
-
-    A successful test should show appropriate ID_RDMA_* entries.
-
-I did not go ahead and remove now duplicate functionality from the
-redhat/scripts, I think that Jarod should be involved in that. This approach
-is not incompatible with the scripts in redhat/, but modules loads will be
-attempted twice if both systems are present.
-
-https://github.com/jgunthorpe/rdma-plumbing/tree/systemd
-
-Jason Gunthorpe (5):
-  Common infrastructure for auto loading rdma modules
-  srp: Autoload the SRP kernel module if required
-  iwpmd: Autoload iwpmd if required
-  redhat: Remove cxgb3/4.modprobe files
-  Move umad udev rules to rdma-core
-
- CMakeLists.txt                                     |  1 +
- Documentation/udev.md                              | 83 ++++++++++++++++++++++
- debian/control                                     |  2 +-
- debian/iwpmd.install                               |  2 +
- debian/libibumad3.install                          |  1 -
- debian/rdma-core.install                           | 10 +++
- debian/srptools.install                            |  1 +
- iwpmd/CMakeLists.txt                               |  8 +++
- iwpmd/iwpmd.rules                                  |  1 +
- iwpmd/iwpmd.service.in                             |  6 +-
- iwpmd/modules-iwpmd.conf                           |  2 +
- kernel-boot/CMakeLists.txt                         | 28 ++++++++
- kernel-boot/modules/infiniband.conf                | 12 ++++
- kernel-boot/modules/iwarp.conf                     |  1 +
- kernel-boot/modules/opa.conf                       | 10 +++
- kernel-boot/modules/rdma.conf                      | 21 ++++++
- kernel-boot/modules/roce.conf                      |  2 +
- kernel-boot/rdma-description.rules                 | 41 +++++++++++
- kernel-boot/rdma-hw-modules.rules                  | 39 ++++++++++
- kernel-boot/rdma-load-modules@.service.in          | 15 ++++
- kernel-boot/rdma-ulp-modules.rules                 | 11 +++
- .../rdma-umad.rules                                |  0
- libibumad/CMakeLists.txt                           |  5 --
- redhat/rdma-core.spec                              | 20 ++++--
- redhat/rdma.cxgb3.sys.modprobe                     |  1 -
- redhat/rdma.cxgb4.sys.modprobe                     |  1 -
- srp_daemon/CMakeLists.txt                          |  4 ++
- srp_daemon/modules-srp_daemon.conf                 |  2 +
- srp_daemon/srp_daemon.service.in                   |  2 +-
- srp_daemon/srp_daemon_port@.service.in             |  3 +-
- 30 files changed, 315 insertions(+), 20 deletions(-)
- create mode 100644 Documentation/udev.md
- create mode 100644 iwpmd/iwpmd.rules
- create mode 100644 iwpmd/modules-iwpmd.conf
- create mode 100644 kernel-boot/CMakeLists.txt
- create mode 100644 kernel-boot/modules/infiniband.conf
- create mode 100644 kernel-boot/modules/iwarp.conf
- create mode 100644 kernel-boot/modules/opa.conf
- create mode 100644 kernel-boot/modules/rdma.conf
- create mode 100644 kernel-boot/modules/roce.conf
- create mode 100644 kernel-boot/rdma-description.rules
- create mode 100644 kernel-boot/rdma-hw-modules.rules
- create mode 100644 kernel-boot/rdma-load-modules@.service.in
- create mode 100644 kernel-boot/rdma-ulp-modules.rules
- rename libibumad/libibumad.udev-rules => kernel-boot/rdma-umad.rules (100%)
- delete mode 100644 redhat/rdma.cxgb3.sys.modprobe
- delete mode 100644 redhat/rdma.cxgb4.sys.modprobe
- create mode 100644 srp_daemon/modules-srp_daemon.conf
-
--- 
-2.7.4
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
