@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 12/21] debian: Move truescale setup into rdma-core
-Date: Mon, 24 Jul 2017 14:00:20 -0600
-Message-ID: <1500926429-31822-13-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 19/21] iwpmd: Fix install path for iwpmd
+Date: Mon, 24 Jul 2017 14:00:27 -0600
+Message-ID: <1500926429-31822-20-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1500926429-31822-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1500926429-31822-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
@@ -9,59 +9,102 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <notifications-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This matches what RedHat is doing and makes sense, the rdma-core package
-contains the kernel support elements.
-
-Also add a Debian dependency for dmidecode as the truescale.cmd script
-uses it.
+iwpmd is not user runnable, so it should be installed in sbin.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- debian/control                   | 2 +-
- debian/ibverbs-providers.install | 2 --
- debian/rdma-core.install         | 2 ++
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ debian/iwpmd.install                      | 2 +-
+ iwpmd/CMakeLists.txt                      | 8 +++++---
+ iwpmd/{iwpmd.service => iwpmd.service.in} | 2 +-
+ iwpmd/{iwpmd_init => iwpmd_init.in}       | 2 +-
+ redhat/rdma-core.spec                     | 2 +-
+ 5 files changed, 9 insertions(+), 7 deletions(-)
+ rename iwpmd/{iwpmd.service => iwpmd.service.in} (80%)
+ rename iwpmd/{iwpmd_init => iwpmd_init.in} (97%)
+ mode change 100755 => 100644
 
-diff --git a/debian/control b/debian/control
-index 8434bbb23693f8..9d80e38bb07864 100644
---- a/debian/control
-+++ b/debian/control
-@@ -22,7 +22,7 @@ Homepage: https://github.com/linux-rdma/rdma-core
+diff --git a/debian/iwpmd.install b/debian/iwpmd.install
+index bff17f15abf7d9..cd9f7adbdd287d 100644
+--- a/debian/iwpmd.install
++++ b/debian/iwpmd.install
+@@ -1,6 +1,6 @@
+ etc/init.d/iwpmd
+ etc/iwpmd.conf
+ lib/systemd/system/iwpmd.service
+-usr/bin/iwpmd
++usr/sbin/iwpmd
+ usr/share/man/man1/iwpmd.1
+ usr/share/man/man5/iwpmd.conf.5
+diff --git a/iwpmd/CMakeLists.txt b/iwpmd/CMakeLists.txt
+index ee9e5a3dfeb24e..200b14c1786422 100644
+--- a/iwpmd/CMakeLists.txt
++++ b/iwpmd/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-rdma_executable(iwpmd
++rdma_sbin_executable(iwpmd
+   iwarp_pm_common.c
+   iwarp_pm_helper.c
+   iwarp_pm_server.c
+@@ -13,8 +13,10 @@ rdma_man_pages(
+   iwpmd.conf.5.in
+   )
  
- Package: rdma-core
- Architecture: linux-any
--Depends: ${misc:Depends}, ${shlibs:Depends}
-+Depends: dmidecode, ${misc:Depends}, ${shlibs:Depends}
- Breaks: infiniband-diags (<< 2.0.0)
- Replaces: infiniband-diags (<< 2.0.0)
- Description: RDMA core userspace infrastructure and documentation
-diff --git a/debian/ibverbs-providers.install b/debian/ibverbs-providers.install
-index e477cd7873b8bd..93144527be04ef 100644
---- a/debian/ibverbs-providers.install
-+++ b/debian/ibverbs-providers.install
-@@ -1,10 +1,8 @@
- etc/libibverbs.d/
--etc/modprobe.d/truescale.conf
- usr/bin/rxe_cfg
- usr/lib/*/libibverbs/lib*-rdmav2.so
- usr/lib/*/libmlx4.so.*
- usr/lib/*/libmlx5.so.*
--usr/lib/truescale-serdes.cmds
- usr/share/doc/rdma-core/rxe.md usr/share/doc/ibverbs-providers/
- usr/share/man/man7/rxe.7
- usr/share/man/man8/rxe_cfg.8
-diff --git a/debian/rdma-core.install b/debian/rdma-core.install
-index 371aaadc7483d3..871f5ff543f2bf 100644
---- a/debian/rdma-core.install
-+++ b/debian/rdma-core.install
-@@ -1,5 +1,7 @@
-+etc/modprobe.d/truescale.conf
- lib/systemd/system/rdma-ndd.service
- lib/udev/rules.d/rdma-ndd.rules
-+usr/lib/truescale-serdes.cmds
- usr/sbin/rdma-ndd
- usr/share/doc/rdma-core/MAINTAINERS
- usr/share/doc/rdma-core/README.md
+-install(FILES "iwpmd.service" DESTINATION "${CMAKE_INSTALL_SYSTEMD_SERVICEDIR}")
+-install(FILES "iwpmd_init"
++rdma_subst_install(FILES "iwpmd.service.in"
++  RENAME "iwpmd.service"
++  DESTINATION "${CMAKE_INSTALL_SYSTEMD_SERVICEDIR}")
++rdma_subst_install(FILES "iwpmd_init.in"
+   DESTINATION "${CMAKE_INSTALL_INITDDIR}"
+   RENAME "iwpmd"
+   PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ OWNER_EXECUTE GROUP_EXECUTE WORLD_EXECUTE)
+diff --git a/iwpmd/iwpmd.service b/iwpmd/iwpmd.service.in
+similarity index 80%
+rename from iwpmd/iwpmd.service
+rename to iwpmd/iwpmd.service.in
+index 6d093fb2fda5a7..47ca6518ee127c 100644
+--- a/iwpmd/iwpmd.service
++++ b/iwpmd/iwpmd.service.in
+@@ -4,7 +4,7 @@ Documentation=man:iwpmd file:/etc/iwpmd.conf
+ After=network.target
+ 
+ [Service]
+-ExecStart=/usr/bin/iwpmd
++ExecStart=@CMAKE_INSTALL_FULL_SBINDIR@/iwpmd
+ LimitNOFILE=102400
+ KillMode=process
+ 
+diff --git a/iwpmd/iwpmd_init b/iwpmd/iwpmd_init.in
+old mode 100755
+new mode 100644
+similarity index 97%
+rename from iwpmd/iwpmd_init
+rename to iwpmd/iwpmd_init.in
+index 0d2559e9de4a98..f3ae269c795c89
+--- a/iwpmd/iwpmd_init
++++ b/iwpmd/iwpmd_init.in
+@@ -16,7 +16,7 @@
+ # Description: iWarp Port Mapper Daemon for opening sockets to claim TCP ports from userspace
+ ### END INIT INFO
+ 
+-IWPMD_BIN="/usr/bin/iwpmd"
++IWPMD_BIN="@CMAKE_INSTALL_FULL_SBINDIR@/iwpmd"
+ LOCK="/var/lock/subsys/iwpmd"
+ IWPMD_PID=0
+ RETVAL=0
+diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
+index 8961d33e618b1d..fb6d7ffc4f29fa 100644
+--- a/redhat/rdma-core.spec
++++ b/redhat/rdma-core.spec
+@@ -393,7 +393,7 @@ rm -rf %{buildroot}/%{_initrddir}/
+ %doc %{_docdir}/%{name}-%{version}/ibacm.md
+ 
+ %files -n iwpmd
+-%{_bindir}/iwpmd
++%{_sbindir}/iwpmd
+ %{_unitdir}/iwpmd.service
+ %config(noreplace) %{_sysconfdir}/iwpmd.conf
+ %{_mandir}/man1/iwpmd.*
 -- 
 2.7.4
 
