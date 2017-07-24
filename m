@@ -1,53 +1,32 @@
-From: Zhu Yanjun <yanjun.zhu@oracle.com>
-Subject: [PATCH 1/1] mlx4_en: remove unnecessary returned value
-Date: Sun, 23 Jul 2017 23:02:53 -0400
-Message-ID: <1500865373-32411-1-git-send-email-yanjun.zhu@oracle.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: tariqt@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, yuval.shaia@oracle.com, leon@kernel.org
+From: Zohar Ben Aharon <zoharb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: perftest proprietary files
+Date: Mon, 24 Jul 2017 05:41:02 +0000
+Message-ID: <DB6PR05MB3493EB983949B23FAF3BEB09A9BB0@DB6PR05MB3493.eurprd05.prod.outlook.com>
+References: <2411a5c0-84f8-124e-83ce-1ee587dcf4ce@suse.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <2411a5c0-84f8-124e-83ce-1ee587dcf4ce-l3A5Bk7waGM@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The function mlx4_en_arm_cq always returns zero. So change the
-return type of the function mlx4_en_arm_cq to void.
-
-CC: Joe Jin <joe.jin@oracle.com>
-CC: Junxiao Bi <junxiao.bi@oracle.com>
-Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
----
- drivers/net/ethernet/mellanox/mlx4/en_cq.c   | 4 +---
- drivers/net/ethernet/mellanox/mlx4/mlx4_en.h | 2 +-
- 2 files changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx4/en_cq.c b/drivers/net/ethernet/mellanox/mlx4/en_cq.c
-index 85fe17e..87d1f4d 100644
---- a/drivers/net/ethernet/mellanox/mlx4/en_cq.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/en_cq.c
-@@ -208,12 +208,10 @@ int mlx4_en_set_cq_moder(struct mlx4_en_priv *priv, struct mlx4_en_cq *cq)
- 			      cq->moder_cnt, cq->moder_time);
- }
- 
--int mlx4_en_arm_cq(struct mlx4_en_priv *priv, struct mlx4_en_cq *cq)
-+void mlx4_en_arm_cq(struct mlx4_en_priv *priv, struct mlx4_en_cq *cq)
- {
- 	mlx4_cq_arm(&cq->mcq, MLX4_CQ_DB_REQ_NOT, priv->mdev->uar_map,
- 		    &priv->mdev->uar_lock);
--
--	return 0;
- }
- 
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
-index d350b21..fdb3ad0 100644
---- a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
-+++ b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
-@@ -685,7 +685,7 @@ int mlx4_en_activate_cq(struct mlx4_en_priv *priv, struct mlx4_en_cq *cq,
- 			int cq_idx);
- void mlx4_en_deactivate_cq(struct mlx4_en_priv *priv, struct mlx4_en_cq *cq);
- int mlx4_en_set_cq_moder(struct mlx4_en_priv *priv, struct mlx4_en_cq *cq);
--int mlx4_en_arm_cq(struct mlx4_en_priv *priv, struct mlx4_en_cq *cq);
-+void mlx4_en_arm_cq(struct mlx4_en_priv *priv, struct mlx4_en_cq *cq);
- 
- void mlx4_en_tx_irq(struct mlx4_cq *mcq);
- u16 mlx4_en_select_queue(struct net_device *dev, struct sk_buff *skb,
--- 
-2.7.4
+U29ycnkgZm9yIHRoZSBsYXRlIHJlc3BvbnNlLA0KaWxsIHZlcmlmeSB0aGlzIGZpbGVzIHByb3By
+aWV0eSBhbmQgYmFjayB0byB5b3UuDQoNCg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZy
+b206IE5pY29sYXMgTW9yZXktQ2hhaXNlbWFydGluIFttYWlsdG86Tk1vcmV5Q2hhaXNlbWFydGlu
+QHN1c2UuZGVdIA0KU2VudDogRnJpZGF5LCBKdWx5IDIxLCAyMDE3IDExOjI5IEFNDQpUbzogbGlu
+dXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IFpvaGFyIEJlbiBBaGFyb24gPHpvaGFyYkBtZWxsYW5v
+eC5jb20+DQpTdWJqZWN0OiBwZXJmdGVzdCBwcm9wcmlldGFyeSBmaWxlcw0KDQpIaSwNCg0KV2hp
+bGUgcGFja2FnaW5nIHBlcmZ0ZXN0IGZvciBTVVNFLCBJIGRpc2NvdmVyZWQgdGhhdCBzb21lIGZp
+bGVzIGhhdmUgaGVhZGVycyAgZGVjbGFyaW5nIHRoZSBzb2Z0d2FyZSBhcyBNZWxsYW5veCBwcm9w
+cmlldGFyeSB3aGlsZSB0aGUgQ09QWUlORyBkZWNsYXJlcyBMR1BML0JTRC4NCg0KVGhlIGZpbGVz
+IGFyZToNCiogTWFrZWZpbGUuYW0NCiogTWFrZWZpbGUuaW4NCiogY29uZmlndXJlLmFjDQoNClNo
+b3VsZCB0aGVzZSBoZWFkZXJzIGJlIGRyb3BwZWQgPw0KDQooSSBwaW5nZWQgem9oYXJiIGFib3V0
+IHRoaXMgYWxyZWFkeSB3aXRob3V0IG11Y2ggbHVjay4gRmlndXJlZCBpdCBtaWdodCBiZSB3b3J0
+aCBhIHNob3QgaGVyZSkNCg0KTmljb2xhcw0KDQo=
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
