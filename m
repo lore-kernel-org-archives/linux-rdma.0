@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 08/13] IB/hfi1: Send MAD traps until repressed
-Date: Mon, 24 Jul 2017 07:46:12 -0700
-Message-ID: <20170724144612.10034.59582.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 07/13] IB/hfi1: Pass the context pointer rather
+ than the index
+Date: Mon, 24 Jul 2017 07:46:06 -0700
+Message-ID: <20170724144606.10034.50710.stgit@scvm10.sc.intel.com>
 References: <20170724144415.10034.26787.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,607 +11,212 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170724144415.10034.26787.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Michael N. Henry" <michael.n.henry-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-A trap should be sent to the FM until the FM sends a repress message.
-This is in line with the IBTA 13.4.9.
+The hfi1_rcvctrl() function receives an index which it then converts
+to an rcd.  Since most functions have the rcd, use that instead.
 
-Add the ability to resend traps until a repress message is received.
-
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Michael N. Henry <michael.n.henry-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/mad.c   |  373 ++++++++++++++++++++++++++++--------
- drivers/infiniband/hw/hfi1/mad.h   |    3 
- drivers/infiniband/hw/hfi1/verbs.c |    5 
- include/rdma/rdma_vt.h             |   17 ++
- 4 files changed, 310 insertions(+), 88 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c      |   14 ++++++++------
+ drivers/infiniband/hw/hfi1/chip.h      |    3 ++-
+ drivers/infiniband/hw/hfi1/file_ops.c  |   11 +++++------
+ drivers/infiniband/hw/hfi1/init.c      |   14 +++++++-------
+ drivers/infiniband/hw/hfi1/intr.c      |    2 +-
+ drivers/infiniband/hw/hfi1/vnic_main.c |    4 ++--
+ 6 files changed, 25 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
-index a081a98..0a3e2df 100644
---- a/drivers/infiniband/hw/hfi1/mad.c
-+++ b/drivers/infiniband/hw/hfi1/mad.c
-@@ -59,6 +59,16 @@
- #define OPA_LINK_WIDTH_RESET_OLD 0x0fff
- #define OPA_LINK_WIDTH_RESET 0xffff
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index 2f74702..a62ef4a 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -6790,7 +6790,7 @@ static void rxe_freeze(struct hfi1_devdata *dd)
  
-+struct trap_node {
-+	struct list_head list;
-+	struct opa_mad_notice_attr data;
-+	__be64 tid;
-+	int len;
-+	u32 retry;
-+	u8 in_use;
-+	u8 repress;
-+};
-+
- static int smp_length_check(u32 data_size, u32 request_len)
- {
- 	if (unlikely(request_len < data_size))
-@@ -97,28 +107,156 @@ void hfi1_event_pkey_change(struct hfi1_devdata *dd, u8 port)
- 	ib_dispatch_event(&event);
+ 	/* disable all receive contexts */
+ 	for (i = 0; i < dd->num_rcv_contexts; i++)
+-		hfi1_rcvctrl(dd, HFI1_RCVCTRL_CTXT_DIS, i);
++		hfi1_rcvctrl(dd, HFI1_RCVCTRL_CTXT_DIS, dd->rcd[i]);
  }
  
--static void send_trap(struct hfi1_ibport *ibp, void *data, unsigned len)
-+/*
-+ * If the port is down, clean up all pending traps.  We need to be careful
-+ * with the given trap, because it may be queued.
-+ */
-+static void cleanup_traps(struct hfi1_ibport *ibp, struct trap_node *trap)
-+{
-+	struct trap_node *node, *q;
-+	unsigned long flags;
-+	struct list_head trap_list;
-+	int i;
-+
-+	for (i = 0; i < RVT_MAX_TRAP_LISTS; i++) {
-+		spin_lock_irqsave(&ibp->rvp.lock, flags);
-+		list_replace_init(&ibp->rvp.trap_lists[i].list, &trap_list);
-+		ibp->rvp.trap_lists[i].list_len = 0;
-+		spin_unlock_irqrestore(&ibp->rvp.lock, flags);
-+
-+		/*
-+		 * Remove all items from the list, freeing all the non-given
-+		 * traps.
-+		 */
-+		list_for_each_entry_safe(node, q, &trap_list, list) {
-+			list_del(&node->list);
-+			if (node != trap)
-+				kfree(node);
-+		}
-+	}
-+
-+	/*
-+	 * If this wasn't on one of the lists it would not be freed.  If it
-+	 * was on the list, it is now safe to free.
-+	 */
-+	kfree(trap);
-+}
-+
-+static struct trap_node *check_and_add_trap(struct hfi1_ibport *ibp,
-+					    struct trap_node *trap)
-+{
-+	struct trap_node *node;
-+	struct trap_list *trap_list;
-+	unsigned long flags;
-+	unsigned long timeout;
-+	int found = 0;
-+
-+	/*
-+	 * Since the retry (handle timeout) does not remove a trap request
-+	 * from the list, all we have to do is compare the node.
-+	 */
-+	spin_lock_irqsave(&ibp->rvp.lock, flags);
-+	trap_list = &ibp->rvp.trap_lists[trap->data.generic_type & 0x0F];
-+
-+	list_for_each_entry(node, &trap_list->list, list) {
-+		if (node == trap) {
-+			node->retry++;
-+			found = 1;
-+			break;
-+		}
-+	}
-+
-+	/* If it is not on the list, add it, limited to RVT-MAX_TRAP_LEN. */
-+	if (!found) {
-+		if (trap_list->list_len < RVT_MAX_TRAP_LEN) {
-+			trap_list->list_len++;
-+			list_add_tail(&trap->list, &trap_list->list);
-+		} else {
-+			pr_warn_ratelimited("hfi1: Maximim trap limit reached for 0x%0x traps\n",
-+					    trap->data.generic_type);
-+			kfree(trap);
-+		}
-+	}
-+
-+	/*
-+	 * Next check to see if there is a timer pending.  If not, set it up
-+	 * and get the first trap from the list.
-+	 */
-+	node = NULL;
-+	if (!timer_pending(&ibp->rvp.trap_timer)) {
-+		/*
-+		 * o14-2
-+		 * If the time out is set we have to wait until it expires
-+		 * before the trap can be sent.
-+		 * This should be > RVT_TRAP_TIMEOUT
-+		 */
-+		timeout = (RVT_TRAP_TIMEOUT *
-+			   (1UL << ibp->rvp.subnet_timeout)) / 1000;
-+		mod_timer(&ibp->rvp.trap_timer,
-+			  jiffies + usecs_to_jiffies(timeout));
-+		node = list_first_entry(&trap_list->list, struct trap_node,
-+					list);
-+		node->in_use = 1;
-+	}
-+	spin_unlock_irqrestore(&ibp->rvp.lock, flags);
-+
-+	return node;
-+}
-+
-+static void subn_handle_opa_trap_repress(struct hfi1_ibport *ibp,
-+					 struct opa_smp *smp)
-+{
-+	struct trap_list *trap_list;
-+	struct trap_node *trap;
-+	unsigned long flags;
-+	int i;
-+
-+	if (smp->attr_id != IB_SMP_ATTR_NOTICE)
-+		return;
-+
-+	spin_lock_irqsave(&ibp->rvp.lock, flags);
-+	for (i = 0; i < RVT_MAX_TRAP_LISTS; i++) {
-+		trap_list = &ibp->rvp.trap_lists[i];
-+		trap = list_first_entry_or_null(&trap_list->list,
-+						struct trap_node, list);
-+		if (trap && trap->tid == smp->tid) {
-+			if (trap->in_use) {
-+				trap->repress = 1;
-+			} else {
-+				trap_list->list_len--;
-+				list_del(&trap->list);
-+				kfree(trap);
-+			}
-+			break;
-+		}
-+	}
-+	spin_unlock_irqrestore(&ibp->rvp.lock, flags);
-+}
-+
-+static void send_trap(struct hfi1_ibport *ibp, struct trap_node *trap)
+ /*
+@@ -6814,9 +6814,9 @@ static void rxe_kernel_unfreeze(struct hfi1_devdata *dd)
+ 
+ 		rcvmask = HFI1_RCVCTRL_CTXT_ENB;
+ 		/* HFI1_RCVCTRL_TAILUPD_[ENB|DIS] needs to be set explicitly */
+-		rcvmask |= HFI1_CAP_KGET_MASK(dd->rcd[i]->flags, DMA_RTAIL) ?
++		rcvmask |= HFI1_CAP_KGET_MASK(rcd->flags, DMA_RTAIL) ?
+ 			HFI1_RCVCTRL_TAILUPD_ENB : HFI1_RCVCTRL_TAILUPD_DIS;
+-		hfi1_rcvctrl(dd, rcvmask, i);
++		hfi1_rcvctrl(dd, rcvmask, rcd);
+ 	}
+ 
+ 	/* enable port */
+@@ -11722,16 +11722,18 @@ static u32 encoded_size(u32 size)
+ 	return 0x1;	/* if invalid, go with the minimum size */
+ }
+ 
+-void hfi1_rcvctrl(struct hfi1_devdata *dd, unsigned int op, u16 ctxt)
++void hfi1_rcvctrl(struct hfi1_devdata *dd, unsigned int op,
++		  struct hfi1_ctxtdata *rcd)
  {
- 	struct ib_mad_send_buf *send_buf;
- 	struct ib_mad_agent *agent;
- 	struct opa_smp *smp;
--	int ret;
- 	unsigned long flags;
--	unsigned long timeout;
- 	int pkey_idx;
- 	u32 qpn = ppd_from_ibp(ibp)->sm_trap_qp;
+-	struct hfi1_ctxtdata *rcd;
+ 	u64 rcvctrl, reg;
+ 	int did_enable = 0;
++	u16 ctxt;
  
- 	agent = ibp->rvp.send_agent;
--	if (!agent)
-+	if (!agent) {
-+		cleanup_traps(ibp, trap);
- 		return;
-+	}
- 
- 	/* o14-3.2.1 */
--	if (driver_lstate(ppd_from_ibp(ibp)) != IB_PORT_ACTIVE)
-+	if (driver_lstate(ppd_from_ibp(ibp)) != IB_PORT_ACTIVE) {
-+		cleanup_traps(ibp, trap);
- 		return;
-+	}
- 
--	/* o14-2 */
--	if (ibp->rvp.trap_timeout && time_before(jiffies,
--						 ibp->rvp.trap_timeout))
-+	/* Add the trap to the list if necessary and see if we can send it */
-+	trap = check_and_add_trap(ibp, trap);
-+	if (!trap)
+-	rcd = dd->rcd[ctxt];
+ 	if (!rcd)
  		return;
  
- 	pkey_idx = hfi1_lookup_pkey_idx(ibp, LIM_MGMT_P_KEY);
-@@ -139,11 +277,21 @@ static void send_trap(struct hfi1_ibport *ibp, void *data, unsigned len)
- 	smp->mgmt_class = IB_MGMT_CLASS_SUBN_LID_ROUTED;
- 	smp->class_version = OPA_SM_CLASS_VERSION;
- 	smp->method = IB_MGMT_METHOD_TRAP;
--	ibp->rvp.tid++;
--	smp->tid = cpu_to_be64(ibp->rvp.tid);
++	ctxt = rcd->ctxt;
 +
-+	/* Only update the transaction ID for new traps (o13-5). */
-+	if (trap->tid == 0) {
-+		ibp->rvp.tid++;
-+		/* make sure that tid != 0 */
-+		if (ibp->rvp.tid == 0)
-+			ibp->rvp.tid++;
-+		trap->tid = cpu_to_be64(ibp->rvp.tid);
-+	}
-+	smp->tid = trap->tid;
-+
- 	smp->attr_id = IB_SMP_ATTR_NOTICE;
- 	/* o14-1: smp->mkey = 0; */
--	memcpy(smp->route.lid.data, data, len);
-+
-+	memcpy(smp->route.lid.data, &trap->data, trap->len);
+ 	hfi1_cdbg(RCVCTRL, "ctxt %d op 0x%x", ctxt, op);
  
- 	spin_lock_irqsave(&ibp->rvp.lock, flags);
- 	if (!ibp->rvp.sm_ah) {
-@@ -152,31 +300,72 @@ static void send_trap(struct hfi1_ibport *ibp, void *data, unsigned len)
+ 	rcvctrl = read_kctxt_csr(dd, ctxt, RCV_CTXT_CTRL);
+diff --git a/drivers/infiniband/hw/hfi1/chip.h b/drivers/infiniband/hw/hfi1/chip.h
+index 9951052..bef6301 100644
+--- a/drivers/infiniband/hw/hfi1/chip.h
++++ b/drivers/infiniband/hw/hfi1/chip.h
+@@ -1352,7 +1352,8 @@ enum {
+ void hfi1_put_tid(struct hfi1_devdata *dd, u32 index,
+ 		  u32 type, unsigned long pa, u16 order);
+ void hfi1_quiet_serdes(struct hfi1_pportdata *ppd);
+-void hfi1_rcvctrl(struct hfi1_devdata *dd, unsigned int op, u16 ctxt);
++void hfi1_rcvctrl(struct hfi1_devdata *dd, unsigned int op,
++		  struct hfi1_ctxtdata *rcd);
+ u32 hfi1_read_cntrs(struct hfi1_devdata *dd, char **namep, u64 **cntrp);
+ u32 hfi1_read_portcntrs(struct hfi1_pportdata *ppd, char **namep, u64 **cntrp);
+ int hfi1_get_ib_cfg(struct hfi1_pportdata *ppd, int which);
+diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
+index 51e6a6f..7be75e0 100644
+--- a/drivers/infiniband/hw/hfi1/file_ops.c
++++ b/drivers/infiniband/hw/hfi1/file_ops.c
+@@ -389,8 +389,7 @@ static long hfi1_file_ioctl(struct file *fp, unsigned int cmd,
  
- 			ah = hfi1_create_qp0_ah(ibp, ibp->rvp.sm_lid);
- 			if (IS_ERR(ah)) {
--				ret = PTR_ERR(ah);
--			} else {
--				send_buf->ah = ah;
--				ibp->rvp.sm_ah = ibah_to_rvtah(ah);
--				ret = 0;
-+				spin_unlock_irqrestore(&ibp->rvp.lock, flags);
-+				return;
- 			}
-+			send_buf->ah = ah;
-+			ibp->rvp.sm_ah = ibah_to_rvtah(ah);
+ 			sc_disable(sc);
+ 			ret = sc_enable(sc);
+-			hfi1_rcvctrl(dd, HFI1_RCVCTRL_CTXT_ENB,
+-				     uctxt->ctxt);
++			hfi1_rcvctrl(dd, HFI1_RCVCTRL_CTXT_ENB, uctxt);
  		} else {
--			ret = -EINVAL;
-+			spin_unlock_irqrestore(&ibp->rvp.lock, flags);
-+			return;
+ 			ret = sc_restart(sc);
  		}
+@@ -793,7 +792,7 @@ static int hfi1_file_close(struct inode *inode, struct file *fp)
+ 		     HFI1_RCVCTRL_TAILUPD_DIS |
+ 		     HFI1_RCVCTRL_ONE_PKT_EGR_DIS |
+ 		     HFI1_RCVCTRL_NO_RHQ_DROP_DIS |
+-		     HFI1_RCVCTRL_NO_EGR_DROP_DIS, uctxt->ctxt);
++		     HFI1_RCVCTRL_NO_EGR_DROP_DIS, uctxt);
+ 	/* Clear the context's J_KEY */
+ 	hfi1_clear_ctxt_jkey(dd, uctxt);
+ 	/*
+@@ -1198,7 +1197,7 @@ static void user_init(struct hfi1_ctxtdata *uctxt)
+ 		rcvctrl_ops |= HFI1_RCVCTRL_TAILUPD_ENB;
+ 	else
+ 		rcvctrl_ops |= HFI1_RCVCTRL_TAILUPD_DIS;
+-	hfi1_rcvctrl(uctxt->dd, rcvctrl_ops, uctxt->ctxt);
++	hfi1_rcvctrl(uctxt->dd, rcvctrl_ops, uctxt);
+ }
+ 
+ static int get_ctxt_info(struct hfi1_filedata *fd, void __user *ubase,
+@@ -1410,7 +1409,7 @@ static unsigned int poll_next(struct file *fp,
+ 	spin_lock_irq(&dd->uctxt_lock);
+ 	if (hdrqempty(uctxt)) {
+ 		set_bit(HFI1_CTXT_WAITING_RCV, &uctxt->event_flags);
+-		hfi1_rcvctrl(dd, HFI1_RCVCTRL_INTRAVAIL_ENB, uctxt->ctxt);
++		hfi1_rcvctrl(dd, HFI1_RCVCTRL_INTRAVAIL_ENB, uctxt);
+ 		pollflag = 0;
  	} else {
- 		send_buf->ah = &ibp->rvp.sm_ah->ibah;
--		ret = 0;
+ 		pollflag = POLLIN | POLLRDNORM;
+@@ -1495,7 +1494,7 @@ static int manage_rcvq(struct hfi1_ctxtdata *uctxt, u16 subctxt,
+ 	} else {
+ 		rcvctrl_op = HFI1_RCVCTRL_CTXT_DIS;
  	}
-+
-+	/*
-+	 * If the trap was repressed while things were getting set up, don't
-+	 * bother sending it. This could happen for a retry.
-+	 */
-+	if (trap->repress) {
-+		list_del(&trap->list);
-+		spin_unlock_irqrestore(&ibp->rvp.lock, flags);
-+		kfree(trap);
-+		ib_free_send_mad(send_buf);
-+		return;
-+	}
-+
-+	trap->in_use = 0;
- 	spin_unlock_irqrestore(&ibp->rvp.lock, flags);
- 
--	if (!ret)
--		ret = ib_post_send_mad(send_buf, NULL);
--	if (!ret) {
--		/* 4.096 usec. */
--		timeout = (4096 * (1UL << ibp->rvp.subnet_timeout)) / 1000;
--		ibp->rvp.trap_timeout = jiffies + usecs_to_jiffies(timeout);
--	} else {
-+	if (ib_post_send_mad(send_buf, NULL))
- 		ib_free_send_mad(send_buf);
--		ibp->rvp.trap_timeout = 0;
-+}
-+
-+void hfi1_handle_trap_timer(unsigned long data)
-+{
-+	struct hfi1_ibport *ibp = (struct hfi1_ibport *)data;
-+	struct trap_node *trap = NULL;
-+	unsigned long flags;
-+	int i;
-+
-+	/* Find the trap with the highest priority */
-+	spin_lock_irqsave(&ibp->rvp.lock, flags);
-+	for (i = 0; !trap && i < RVT_MAX_TRAP_LISTS; i++) {
-+		trap = list_first_entry_or_null(&ibp->rvp.trap_lists[i].list,
-+						struct trap_node, list);
+-	hfi1_rcvctrl(dd, rcvctrl_op, uctxt->ctxt);
++	hfi1_rcvctrl(dd, rcvctrl_op, uctxt);
+ 	/* always; new head should be equal to new tail; see above */
+ bail:
+ 	return 0;
+diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+index 818a4b8..7f5e4c7 100644
+--- a/drivers/infiniband/hw/hfi1/init.c
++++ b/drivers/infiniband/hw/hfi1/init.c
+@@ -603,8 +603,8 @@ static int init_after_reset(struct hfi1_devdata *dd)
+ 	 */
+ 	for (i = 0; i < dd->num_rcv_contexts; i++)
+ 		hfi1_rcvctrl(dd, HFI1_RCVCTRL_CTXT_DIS |
+-				  HFI1_RCVCTRL_INTRAVAIL_DIS |
+-				  HFI1_RCVCTRL_TAILUPD_DIS, i);
++			     HFI1_RCVCTRL_INTRAVAIL_DIS |
++			     HFI1_RCVCTRL_TAILUPD_DIS, dd->rcd[i]);
+ 	pio_send_control(dd, PSC_GLOBAL_DISABLE);
+ 	for (i = 0; i < dd->num_send_contexts; i++)
+ 		sc_disable(dd->send_contexts[i].sc);
+@@ -634,7 +634,7 @@ static void enable_chip(struct hfi1_devdata *dd)
+ 			rcvmask |= HFI1_RCVCTRL_NO_RHQ_DROP_ENB;
+ 		if (HFI1_CAP_KGET_MASK(dd->rcd[i]->flags, NODROP_EGR_FULL))
+ 			rcvmask |= HFI1_RCVCTRL_NO_EGR_DROP_ENB;
+-		hfi1_rcvctrl(dd, rcvmask, i);
++		hfi1_rcvctrl(dd, rcvmask, dd->rcd[i]);
+ 		sc_enable(dd->rcd[i]->sc);
  	}
-+	spin_unlock_irqrestore(&ibp->rvp.lock, flags);
-+
-+	if (trap)
-+		send_trap(ibp, trap);
-+}
-+
-+static struct trap_node *create_trap_node(u8 type, __be16 trap_num, u32 lid)
-+{
-+	struct trap_node *trap;
-+
-+	trap = kzalloc(sizeof(*trap), GFP_ATOMIC);
-+	if (!trap)
-+		return NULL;
-+
-+	INIT_LIST_HEAD(&trap->list);
-+	trap->data.generic_type = type;
-+	trap->data.prod_type_lsb = IB_NOTICE_PROD_CA;
-+	trap->data.trap_num = trap_num;
-+	trap->data.issuer_lid = cpu_to_be32(lid);
-+
-+	return trap;
  }
+@@ -915,10 +915,10 @@ static void shutdown_device(struct hfi1_devdata *dd)
+ 		ppd = dd->pport + pidx;
+ 		for (i = 0; i < dd->num_rcv_contexts; i++)
+ 			hfi1_rcvctrl(dd, HFI1_RCVCTRL_TAILUPD_DIS |
+-					  HFI1_RCVCTRL_CTXT_DIS |
+-					  HFI1_RCVCTRL_INTRAVAIL_DIS |
+-					  HFI1_RCVCTRL_PKEY_DIS |
+-					  HFI1_RCVCTRL_ONE_PKT_EGR_DIS, i);
++				     HFI1_RCVCTRL_CTXT_DIS |
++				     HFI1_RCVCTRL_INTRAVAIL_DIS |
++				     HFI1_RCVCTRL_PKEY_DIS |
++				     HFI1_RCVCTRL_ONE_PKT_EGR_DIS, dd->rcd[i]);
+ 		/*
+ 		 * Gracefully stop all sends allowing any in progress to
+ 		 * trickle out first.
+diff --git a/drivers/infiniband/hw/hfi1/intr.c b/drivers/infiniband/hw/hfi1/intr.c
+index 04a5082..9469be9 100644
+--- a/drivers/infiniband/hw/hfi1/intr.c
++++ b/drivers/infiniband/hw/hfi1/intr.c
+@@ -196,7 +196,7 @@ void handle_user_interrupt(struct hfi1_ctxtdata *rcd)
  
- /*
-@@ -185,28 +374,29 @@ static void send_trap(struct hfi1_ibport *ibp, void *data, unsigned len)
- void hfi1_bad_pkey(struct hfi1_ibport *ibp, u32 key, u32 sl,
- 		   u32 qp1, u32 qp2, u16 lid1, u16 lid2)
- {
--	struct opa_mad_notice_attr data;
-+	struct trap_node *trap;
- 	u32 lid = ppd_from_ibp(ibp)->lid;
- 	u32 _lid1 = lid1;
- 	u32 _lid2 = lid2;
+ 	if (test_and_clear_bit(HFI1_CTXT_WAITING_RCV, &rcd->event_flags)) {
+ 		wake_up_interruptible(&rcd->wait);
+-		hfi1_rcvctrl(dd, HFI1_RCVCTRL_INTRAVAIL_DIS, rcd->ctxt);
++		hfi1_rcvctrl(dd, HFI1_RCVCTRL_INTRAVAIL_DIS, rcd);
+ 	} else if (test_and_clear_bit(HFI1_CTXT_WAITING_URG,
+ 							&rcd->event_flags)) {
+ 		rcd->urgent++;
+diff --git a/drivers/infiniband/hw/hfi1/vnic_main.c b/drivers/infiniband/hw/hfi1/vnic_main.c
+index 9bd2744..89b0564 100644
+--- a/drivers/infiniband/hw/hfi1/vnic_main.c
++++ b/drivers/infiniband/hw/hfi1/vnic_main.c
+@@ -95,7 +95,7 @@ static int setup_vnic_ctxt(struct hfi1_devdata *dd, struct hfi1_ctxtdata *uctxt)
+ 	if (HFI1_CAP_KGET_MASK(uctxt->flags, DMA_RTAIL))
+ 		rcvctrl_ops |= HFI1_RCVCTRL_TAILUPD_ENB;
  
--	memset(&data, 0, sizeof(data));
- 	ibp->rvp.n_pkt_drops++;
- 	ibp->rvp.pkey_violations++;
+-	hfi1_rcvctrl(uctxt->dd, rcvctrl_ops, uctxt->ctxt);
++	hfi1_rcvctrl(uctxt->dd, rcvctrl_ops, uctxt);
  
-+	trap = create_trap_node(IB_NOTICE_TYPE_SECURITY, OPA_TRAP_BAD_P_KEY,
-+				lid);
-+	if (!trap)
-+		return;
-+
- 	/* Send violation trap */
--	data.generic_type = IB_NOTICE_TYPE_SECURITY;
--	data.prod_type_lsb = IB_NOTICE_PROD_CA;
--	data.trap_num = OPA_TRAP_BAD_P_KEY;
--	data.issuer_lid = cpu_to_be32(lid);
--	data.ntc_257_258.lid1 = cpu_to_be32(_lid1);
--	data.ntc_257_258.lid2 = cpu_to_be32(_lid2);
--	data.ntc_257_258.key = cpu_to_be32(key);
--	data.ntc_257_258.sl = sl << 3;
--	data.ntc_257_258.qp1 = cpu_to_be32(qp1);
--	data.ntc_257_258.qp2 = cpu_to_be32(qp2);
--
--	send_trap(ibp, &data, sizeof(data));
-+	trap->data.ntc_257_258.lid1 = cpu_to_be32(_lid1);
-+	trap->data.ntc_257_258.lid2 = cpu_to_be32(_lid2);
-+	trap->data.ntc_257_258.key = cpu_to_be32(key);
-+	trap->data.ntc_257_258.sl = sl << 3;
-+	trap->data.ntc_257_258.qp1 = cpu_to_be32(qp1);
-+	trap->data.ntc_257_258.qp2 = cpu_to_be32(qp2);
-+
-+	trap->len = sizeof(trap->data);
-+	send_trap(ibp, trap);
- }
- 
- /*
-@@ -215,34 +405,36 @@ void hfi1_bad_pkey(struct hfi1_ibport *ibp, u32 key, u32 sl,
- static void bad_mkey(struct hfi1_ibport *ibp, struct ib_mad_hdr *mad,
- 		     __be64 mkey, __be32 dr_slid, u8 return_path[], u8 hop_cnt)
- {
--	struct opa_mad_notice_attr data;
-+	struct trap_node *trap;
- 	u32 lid = ppd_from_ibp(ibp)->lid;
- 
--	memset(&data, 0, sizeof(data));
-+	trap = create_trap_node(IB_NOTICE_TYPE_SECURITY, OPA_TRAP_BAD_M_KEY,
-+				lid);
-+	if (!trap)
-+		return;
-+
- 	/* Send violation trap */
--	data.generic_type = IB_NOTICE_TYPE_SECURITY;
--	data.prod_type_lsb = IB_NOTICE_PROD_CA;
--	data.trap_num = OPA_TRAP_BAD_M_KEY;
--	data.issuer_lid = cpu_to_be32(lid);
--	data.ntc_256.lid = data.issuer_lid;
--	data.ntc_256.method = mad->method;
--	data.ntc_256.attr_id = mad->attr_id;
--	data.ntc_256.attr_mod = mad->attr_mod;
--	data.ntc_256.mkey = mkey;
-+	trap->data.ntc_256.lid = trap->data.issuer_lid;
-+	trap->data.ntc_256.method = mad->method;
-+	trap->data.ntc_256.attr_id = mad->attr_id;
-+	trap->data.ntc_256.attr_mod = mad->attr_mod;
-+	trap->data.ntc_256.mkey = mkey;
- 	if (mad->mgmt_class == IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE) {
--		data.ntc_256.dr_slid = dr_slid;
--		data.ntc_256.dr_trunc_hop = IB_NOTICE_TRAP_DR_NOTICE;
--		if (hop_cnt > ARRAY_SIZE(data.ntc_256.dr_rtn_path)) {
--			data.ntc_256.dr_trunc_hop |=
-+		trap->data.ntc_256.dr_slid = dr_slid;
-+		trap->data.ntc_256.dr_trunc_hop = IB_NOTICE_TRAP_DR_NOTICE;
-+		if (hop_cnt > ARRAY_SIZE(trap->data.ntc_256.dr_rtn_path)) {
-+			trap->data.ntc_256.dr_trunc_hop |=
- 				IB_NOTICE_TRAP_DR_TRUNC;
--			hop_cnt = ARRAY_SIZE(data.ntc_256.dr_rtn_path);
-+			hop_cnt = ARRAY_SIZE(trap->data.ntc_256.dr_rtn_path);
- 		}
--		data.ntc_256.dr_trunc_hop |= hop_cnt;
--		memcpy(data.ntc_256.dr_rtn_path, return_path,
-+		trap->data.ntc_256.dr_trunc_hop |= hop_cnt;
-+		memcpy(trap->data.ntc_256.dr_rtn_path, return_path,
- 		       hop_cnt);
- 	}
- 
--	send_trap(ibp, &data, sizeof(data));
-+	trap->len = sizeof(trap->data);
-+
-+	send_trap(ibp, trap);
- }
- 
- /*
-@@ -250,23 +442,24 @@ static void bad_mkey(struct hfi1_ibport *ibp, struct ib_mad_hdr *mad,
-  */
- void hfi1_cap_mask_chg(struct rvt_dev_info *rdi, u8 port_num)
- {
--	struct opa_mad_notice_attr data;
-+	struct trap_node *trap;
- 	struct hfi1_ibdev *verbs_dev = dev_from_rdi(rdi);
- 	struct hfi1_devdata *dd = dd_from_dev(verbs_dev);
- 	struct hfi1_ibport *ibp = &dd->pport[port_num - 1].ibport_data;
- 	u32 lid = ppd_from_ibp(ibp)->lid;
- 
--	memset(&data, 0, sizeof(data));
-+	trap = create_trap_node(IB_NOTICE_TYPE_INFO,
-+				OPA_TRAP_CHANGE_CAPABILITY,
-+				lid);
-+	if (!trap)
-+		return;
- 
--	data.generic_type = IB_NOTICE_TYPE_INFO;
--	data.prod_type_lsb = IB_NOTICE_PROD_CA;
--	data.trap_num = OPA_TRAP_CHANGE_CAPABILITY;
--	data.issuer_lid = cpu_to_be32(lid);
--	data.ntc_144.lid = data.issuer_lid;
--	data.ntc_144.new_cap_mask = cpu_to_be32(ibp->rvp.port_cap_flags);
--	data.ntc_144.cap_mask3 = cpu_to_be16(ibp->rvp.port_cap3_flags);
-+	trap->data.ntc_144.lid = trap->data.issuer_lid;
-+	trap->data.ntc_144.new_cap_mask = cpu_to_be32(ibp->rvp.port_cap_flags);
-+	trap->data.ntc_144.cap_mask3 = cpu_to_be16(ibp->rvp.port_cap3_flags);
- 
--	send_trap(ibp, &data, sizeof(data));
-+	trap->len = sizeof(trap->data);
-+	send_trap(ibp, trap);
- }
- 
- /*
-@@ -274,19 +467,19 @@ void hfi1_cap_mask_chg(struct rvt_dev_info *rdi, u8 port_num)
-  */
- void hfi1_sys_guid_chg(struct hfi1_ibport *ibp)
- {
--	struct opa_mad_notice_attr data;
-+	struct trap_node *trap;
- 	u32 lid = ppd_from_ibp(ibp)->lid;
- 
--	memset(&data, 0, sizeof(data));
-+	trap = create_trap_node(IB_NOTICE_TYPE_INFO, OPA_TRAP_CHANGE_SYSGUID,
-+				lid);
-+	if (!trap)
-+		return;
- 
--	data.generic_type = IB_NOTICE_TYPE_INFO;
--	data.prod_type_lsb = IB_NOTICE_PROD_CA;
--	data.trap_num = OPA_TRAP_CHANGE_SYSGUID;
--	data.issuer_lid = cpu_to_be32(lid);
--	data.ntc_145.new_sys_guid = ib_hfi1_sys_image_guid;
--	data.ntc_145.lid = data.issuer_lid;
-+	trap->data.ntc_145.new_sys_guid = ib_hfi1_sys_image_guid;
-+	trap->data.ntc_145.lid = trap->data.issuer_lid;
- 
--	send_trap(ibp, &data, sizeof(data));
-+	trap->len = sizeof(trap->data);
-+	send_trap(ibp, trap);
- }
- 
- /*
-@@ -294,20 +487,21 @@ void hfi1_sys_guid_chg(struct hfi1_ibport *ibp)
-  */
- void hfi1_node_desc_chg(struct hfi1_ibport *ibp)
- {
--	struct opa_mad_notice_attr data;
-+	struct trap_node *trap;
- 	u32 lid = ppd_from_ibp(ibp)->lid;
- 
--	memset(&data, 0, sizeof(data));
-+	trap = create_trap_node(IB_NOTICE_TYPE_INFO,
-+				OPA_TRAP_CHANGE_CAPABILITY,
-+				lid);
-+	if (!trap)
-+		return;
- 
--	data.generic_type = IB_NOTICE_TYPE_INFO;
--	data.prod_type_lsb = IB_NOTICE_PROD_CA;
--	data.trap_num = OPA_TRAP_CHANGE_CAPABILITY;
--	data.issuer_lid = cpu_to_be32(lid);
--	data.ntc_144.lid = data.issuer_lid;
--	data.ntc_144.change_flags =
-+	trap->data.ntc_144.lid = trap->data.issuer_lid;
-+	trap->data.ntc_144.change_flags =
- 		cpu_to_be16(OPA_NOTICE_TRAP_NODE_DESC_CHG);
- 
--	send_trap(ibp, &data, sizeof(data));
-+	trap->len = sizeof(trap->data);
-+	send_trap(ibp, trap);
- }
- 
- static int __subn_get_opa_nodedesc(struct opa_smp *smp, u32 am,
-@@ -4144,6 +4338,11 @@ static int process_subn_opa(struct ib_device *ibdev, int mad_flags,
- 		 */
- 		ret = IB_MAD_RESULT_SUCCESS;
- 		break;
-+	case IB_MGMT_METHOD_TRAP_REPRESS:
-+		subn_handle_opa_trap_repress(ibp, smp);
-+		/* Always successful */
-+		ret = IB_MAD_RESULT_SUCCESS;
-+		break;
- 	default:
- 		smp->status |= IB_SMP_UNSUP_METHOD;
- 		ret = reply((struct ib_mad_hdr *)smp);
-diff --git a/drivers/infiniband/hw/hfi1/mad.h b/drivers/infiniband/hw/hfi1/mad.h
-index a4e2506..4c12450 100644
---- a/drivers/infiniband/hw/hfi1/mad.h
-+++ b/drivers/infiniband/hw/hfi1/mad.h
-@@ -1,5 +1,5 @@
- /*
-- * Copyright(c) 2015, 2016 Intel Corporation.
-+ * Copyright(c) 2015 - 2017 Intel Corporation.
-  *
-  * This file is provided under a dual BSD/GPLv2 license.  When using or
-  * redistributing this file, you may do so under either license.
-@@ -428,5 +428,6 @@ struct sc2vlnt {
- 		    COUNTER_MASK(1, 4))
- 
- void hfi1_event_pkey_change(struct hfi1_devdata *dd, u8 port);
-+void hfi1_handle_trap_timer(unsigned long data);
- 
- #endif				/* _HFI1_MAD_H */
-diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index 3c3a01b..42878cc 100644
---- a/drivers/infiniband/hw/hfi1/verbs.c
-+++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -1535,6 +1535,11 @@ static void init_ibport(struct hfi1_pportdata *ppd)
- 		ibp->sc_to_sl[i] = i;
- 	}
- 
-+	for (i = 0; i < RVT_MAX_TRAP_LISTS ; i++)
-+		INIT_LIST_HEAD(&ibp->rvp.trap_lists[i].list);
-+	setup_timer(&ibp->rvp.trap_timer, hfi1_handle_trap_timer,
-+		    (unsigned long)ibp);
-+
- 	spin_lock_init(&ibp->rvp.lock);
- 	/* Set the prefix to the default value (see ch. 4.1.1) */
- 	ibp->rvp.gid_prefix = IB_DEFAULT_GID_PREFIX;
-diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
-index 22fb15f..fdfac0f 100644
---- a/include/rdma/rdma_vt.h
-+++ b/include/rdma/rdma_vt.h
-@@ -57,11 +57,21 @@
- #include <linux/list.h>
- #include <linux/hash.h>
- #include <rdma/ib_verbs.h>
-+#include <rdma/ib_mad.h>
- #include <rdma/rdmavt_mr.h>
- #include <rdma/rdmavt_qp.h>
- 
- #define RVT_MAX_PKEY_VALUES 16
- 
-+#define RVT_MAX_TRAP_LEN 100 /* Limit pending trap list */
-+#define RVT_MAX_TRAP_LISTS ((IB_NOTICE_TYPE_INFO & 0x0F) + 1)
-+#define RVT_TRAP_TIMEOUT 4096 /* 4.096 usec */
-+
-+struct trap_list {
-+	u32 list_len;
-+	struct list_head list;
-+};
-+
- struct rvt_ibport {
- 	struct rvt_qp __rcu *qp[2];
- 	struct ib_mad_agent *send_agent;	/* agent for SMI (traps) */
-@@ -128,6 +138,13 @@ struct rvt_ibport {
- 	u16 *pkey_table;
- 
- 	struct rvt_ah *sm_ah;
-+
-+	/*
-+	 * Keep a list of traps that have not been repressed.  They will be
-+	 * resent based on trap_timer.
-+	 */
-+	struct trap_list trap_lists[RVT_MAX_TRAP_LISTS];
-+	struct timer_list trap_timer;
- };
- 
- #define RVT_CQN_MAX 16 /* maximum length of cq name */
+ 	uctxt->is_vnic = true;
+ done:
+@@ -186,7 +186,7 @@ static void deallocate_vnic_ctxt(struct hfi1_devdata *dd,
+ 		     HFI1_RCVCTRL_INTRAVAIL_DIS |
+ 		     HFI1_RCVCTRL_ONE_PKT_EGR_DIS |
+ 		     HFI1_RCVCTRL_NO_RHQ_DROP_DIS |
+-		     HFI1_RCVCTRL_NO_EGR_DROP_DIS, uctxt->ctxt);
++		     HFI1_RCVCTRL_NO_EGR_DROP_DIS, uctxt);
+ 	/*
+ 	 * VNIC contexts are allocated from user context pool.
+ 	 * Release them back to user context pool.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
