@@ -1,47 +1,53 @@
-From: Yanjun Zhu <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/IPoIB: Fix error code in ipoib_add_port()
-Date: Mon, 24 Jul 2017 10:53:12 +0800
-Message-ID: <e250def1-f150-090a-3a5d-2eed4e72bd1f@oracle.com>
-References: <20170713074548.i6cgpjhmmcnvtd5c@mwanda>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170713074548.i6cgpjhmmcnvtd5c@mwanda>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Paolo Abeni <pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Ahern <dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Zhu Yanjun <yanjun.zhu@oracle.com>
+Subject: [PATCH 1/1] mlx4_en: remove unnecessary returned value
+Date: Sun, 23 Jul 2017 23:02:53 -0400
+Message-ID: <1500865373-32411-1-git-send-email-yanjun.zhu@oracle.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: tariqt@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, yuval.shaia@oracle.com, leon@kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks!
-Reviewed-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+The function mlx4_en_arm_cq always returns zero. So change the
+return type of the function mlx4_en_arm_cq to void.
 
+CC: Joe Jin <joe.jin@oracle.com>
+CC: Junxiao Bi <junxiao.bi@oracle.com>
+Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+---
+ drivers/net/ethernet/mellanox/mlx4/en_cq.c   | 4 +---
+ drivers/net/ethernet/mellanox/mlx4/mlx4_en.h | 2 +-
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-On 2017/7/13 15:45, Dan Carpenter wrote:
-> We accidentally don't see the error code on some of these error paths.
-> It means we return ERR_PTR(0) which is NULL and it results in a NULL
-> dereference in the caller.
->
-> This bug dates to pre-git days.
->
-> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> index 6e86eeee370e..ddd8114b6713 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> @@ -2212,6 +2212,7 @@ static struct net_device *ipoib_add_port(const char *format,
->   		goto register_failed;
->   	}
->   
-> +	result = -ENOMEM;
->   	if (ipoib_cm_add_mode_attr(priv->dev))
->   		goto sysfs_failed;
->   	if (ipoib_add_pkey_attr(priv->dev))
->
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/net/ethernet/mellanox/mlx4/en_cq.c b/drivers/net/ethernet/mellanox/mlx4/en_cq.c
+index 85fe17e..87d1f4d 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/en_cq.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_cq.c
+@@ -208,12 +208,10 @@ int mlx4_en_set_cq_moder(struct mlx4_en_priv *priv, struct mlx4_en_cq *cq)
+ 			      cq->moder_cnt, cq->moder_time);
+ }
+ 
+-int mlx4_en_arm_cq(struct mlx4_en_priv *priv, struct mlx4_en_cq *cq)
++void mlx4_en_arm_cq(struct mlx4_en_priv *priv, struct mlx4_en_cq *cq)
+ {
+ 	mlx4_cq_arm(&cq->mcq, MLX4_CQ_DB_REQ_NOT, priv->mdev->uar_map,
+ 		    &priv->mdev->uar_lock);
+-
+-	return 0;
+ }
+ 
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
+index d350b21..fdb3ad0 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
++++ b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
+@@ -685,7 +685,7 @@ int mlx4_en_activate_cq(struct mlx4_en_priv *priv, struct mlx4_en_cq *cq,
+ 			int cq_idx);
+ void mlx4_en_deactivate_cq(struct mlx4_en_priv *priv, struct mlx4_en_cq *cq);
+ int mlx4_en_set_cq_moder(struct mlx4_en_priv *priv, struct mlx4_en_cq *cq);
+-int mlx4_en_arm_cq(struct mlx4_en_priv *priv, struct mlx4_en_cq *cq);
++void mlx4_en_arm_cq(struct mlx4_en_priv *priv, struct mlx4_en_cq *cq);
+ 
+ void mlx4_en_tx_irq(struct mlx4_cq *mcq);
+ u16 mlx4_en_select_queue(struct net_device *dev, struct sk_buff *skb,
+-- 
+2.7.4
