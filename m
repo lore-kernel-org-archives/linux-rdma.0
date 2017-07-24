@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 01/13] IB/hfi1: Fix bar0 mapping to use write
- combining
-Date: Mon, 24 Jul 2017 07:45:31 -0700
-Message-ID: <20170724144530.10034.33813.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 06/13] IB/hfi1: Use context pointer rather than
+ context index
+Date: Mon, 24 Jul 2017 07:46:01 -0700
+Message-ID: <20170724144600.10034.88958.stgit@scvm10.sc.intel.com>
 References: <20170724144415.10034.26787.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,419 +11,229 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170724144415.10034.26787.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: Ashutosh Dixit <ashutosh.dixit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-When the debugpat kernel boot flag is turned on the following
-traces are printed:
+The hfi1_<set|clear>_ctxt_<j|p>key functions take a context index and
+look up the context based on that index.
 
-[ 1884.793168] x86/PAT: Overlap at 0x90000000-0x92000000
-[ 1884.803510] x86/PAT: reserve_memtype added [mem 0x91200000-0x9127ffff],
-track uncached-minus, req write-combining, ret uncached-minus
-[ 1884.818167] hfi1 0000:05:00.0: hfi1_0: WC Remapped RcvArray:
-ffffc9000a980000
+Since the context index is being retrieved from the context, this
+doesn't seem optimal.
 
-The ioremap_wc() clearly is not returning a write combining mapping due
-to an overlap where the RcvArray is mapped in a uncached mapping prior
-to creating the proposed write combining mapping.
+Pass the context pointer for use, rather than the context index.
 
-The patch replaces the single base register for uncached CSRs that
-used to overlap the RcvArray with two mappings.   One, kregbase1, from the
-bar0 up to the RcvArray and another, kregbase2, from the end of the
-RcvArray to the pio send buffer space.  A new dd field, base2_start,
-is used to convert the zero-based offset in the CSR routines to the
-correct kregbase1/kregbase2 mapping.  A single direct write of the
-RcvArray CSRs is replaced with hfi1_put_tid() to insure correct access
-using the new disjoint mapping.
-
-Additionally, the kregend field is deleted since it is only ever written.
-
-patdebug now shows the RcvArray as write combining:
-[   35.688990] x86/PAT: reserve_memtype added [mem 0x91200000-0x9127ffff],
-track write-combining, req write-combining, ret write-combining
-
-To insulate from any potential issues with write combining, all
-writeq are now flushed in hfi1_put_tid() and rcv_array_wc_fill().
-
-Reviewed-by: Mitko Haralanov <mitko.haralanov-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Ashutosh Dixit <ashutosh.dixit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c         |   79 +++++++++++++++++++++++------
- drivers/infiniband/hw/hfi1/chip.h         |    4 +
- drivers/infiniband/hw/hfi1/driver.c       |    4 +
- drivers/infiniband/hw/hfi1/exp_rcv.h      |    5 +-
- drivers/infiniband/hw/hfi1/file_ops.c     |    2 -
- drivers/infiniband/hw/hfi1/hfi.h          |   20 ++++---
- drivers/infiniband/hw/hfi1/pcie.c         |   58 +++++++++++++++------
- drivers/infiniband/hw/hfi1/user_exp_rcv.c |    3 -
- 8 files changed, 126 insertions(+), 49 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c     |   90 ++++++++++++++-------------------
+ drivers/infiniband/hw/hfi1/chip.h     |    8 ++-
+ drivers/infiniband/hw/hfi1/file_ops.c |    6 +-
+ 3 files changed, 45 insertions(+), 59 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index efc8481..4fce173 100644
+index 06a79a2..2f74702 100644
 --- a/drivers/infiniband/hw/hfi1/chip.c
 +++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -1297,25 +1297,71 @@ struct cntr_entry {
- 	  CNTR_SYNTH, \
- 	  access_ibp_##cntr)
- 
-+/**
-+ * hfi_addr_from_offset - return addr for readq/writeq
-+ * @dd - the dd device
-+ * @offset - the offset of the CSR within bar0
-+ *
-+ * This routine selects the appropriate base address
-+ * based on the indicated offset.
-+ */
-+static inline void __iomem *hfi1_addr_from_offset(
-+	const struct hfi1_devdata *dd,
-+	u32 offset)
-+{
-+	if (offset >= dd->base2_start)
-+		return dd->kregbase2 + (offset - dd->base2_start);
-+	return dd->kregbase1 + offset;
-+}
-+
-+/**
-+ * read_csr - read CSR at the indicated offset
-+ * @dd - the dd device
-+ * @offset - the offset of the CSR within bar0
-+ *
-+ * Return: the value read or all FF's if there
-+ * is no mapping
-+ */
- u64 read_csr(const struct hfi1_devdata *dd, u32 offset)
- {
--	if (dd->flags & HFI1_PRESENT) {
--		return readq((void __iomem *)dd->kregbase + offset);
--	}
-+	if (dd->flags & HFI1_PRESENT)
-+		return readq(hfi1_addr_from_offset(dd, offset));
- 	return -1;
+@@ -14542,99 +14542,86 @@ static void init_txe(struct hfi1_devdata *dd)
+ 		write_csr(dd, SEND_CM_TIMER_CTRL, HFI1_CREDIT_RETURN_RATE);
  }
  
-+/**
-+ * write_csr - write CSR at the indicated offset
-+ * @dd - the dd device
-+ * @offset - the offset of the CSR within bar0
-+ * @value - value to write
-+ */
- void write_csr(const struct hfi1_devdata *dd, u32 offset, u64 value)
+-int hfi1_set_ctxt_jkey(struct hfi1_devdata *dd, u16 ctxt, u16 jkey)
++int hfi1_set_ctxt_jkey(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd,
++		       u16 jkey)
  {
--	if (dd->flags & HFI1_PRESENT)
--		writeq(value, (void __iomem *)dd->kregbase + offset);
-+	if (dd->flags & HFI1_PRESENT) {
-+		void __iomem *base = hfi1_addr_from_offset(dd, offset);
-+
-+		/* avoid write to RcvArray */
-+		if (WARN_ON(offset >= RCV_ARRAY && offset < dd->base2_start))
-+			return;
-+		writeq(value, base);
-+	}
- }
- 
-+/**
-+ * get_csr_addr - return te iomem address for offset
-+ * @dd - the dd device
-+ * @offset - the offset of the CSR within bar0
-+ *
-+ * Return: The iomem address to use in subsequent
-+ * writeq/readq operations.
-+ */
- void __iomem *get_csr_addr(
--	struct hfi1_devdata *dd,
-+	const struct hfi1_devdata *dd,
- 	u32 offset)
- {
--	return (void __iomem *)dd->kregbase + offset;
-+	if (dd->flags & HFI1_PRESENT)
-+		return hfi1_addr_from_offset(dd, offset);
-+	return NULL;
- }
- 
- static inline u64 read_write_csr(const struct hfi1_devdata *dd, u32 csr,
-@@ -9752,14 +9798,13 @@ void hfi1_put_tid(struct hfi1_devdata *dd, u32 index,
- 		  u32 type, unsigned long pa, u16 order)
- {
+-	struct hfi1_ctxtdata *rcd = dd->rcd[ctxt];
+-	unsigned sctxt;
+-	int ret = 0;
++	u8 hw_ctxt;
  	u64 reg;
--	void __iomem *base = (dd->rcvarray_wc ? dd->rcvarray_wc :
--			      (dd->kregbase + RCV_ARRAY));
  
- 	if (!(dd->flags & HFI1_PRESENT))
- 		goto done;
+-	if (!rcd || !rcd->sc) {
+-		ret = -EINVAL;
+-		goto done;
+-	}
+-	sctxt = rcd->sc->hw_context;
++	if (!rcd || !rcd->sc)
++		return -EINVAL;
++
++	hw_ctxt = rcd->sc->hw_context;
+ 	reg = SEND_CTXT_CHECK_JOB_KEY_MASK_SMASK | /* mask is always 1's */
+ 		((jkey & SEND_CTXT_CHECK_JOB_KEY_VALUE_MASK) <<
+ 		 SEND_CTXT_CHECK_JOB_KEY_VALUE_SHIFT);
+ 	/* JOB_KEY_ALLOW_PERMISSIVE is not allowed by default */
+ 	if (HFI1_CAP_KGET_MASK(rcd->flags, ALLOW_PERM_JKEY))
+ 		reg |= SEND_CTXT_CHECK_JOB_KEY_ALLOW_PERMISSIVE_SMASK;
+-	write_kctxt_csr(dd, sctxt, SEND_CTXT_CHECK_JOB_KEY, reg);
++	write_kctxt_csr(dd, hw_ctxt, SEND_CTXT_CHECK_JOB_KEY, reg);
+ 	/*
+ 	 * Enable send-side J_KEY integrity check, unless this is A0 h/w
+ 	 */
+ 	if (!is_ax(dd)) {
+-		reg = read_kctxt_csr(dd, sctxt, SEND_CTXT_CHECK_ENABLE);
++		reg = read_kctxt_csr(dd, hw_ctxt, SEND_CTXT_CHECK_ENABLE);
+ 		reg |= SEND_CTXT_CHECK_ENABLE_CHECK_JOB_KEY_SMASK;
+-		write_kctxt_csr(dd, sctxt, SEND_CTXT_CHECK_ENABLE, reg);
++		write_kctxt_csr(dd, hw_ctxt, SEND_CTXT_CHECK_ENABLE, reg);
+ 	}
  
--	if (type == PT_INVALID) {
-+	if (type == PT_INVALID || type == PT_INVALID_FLUSH) {
- 		pa = 0;
-+		order = 0;
- 	} else if (type > PT_INVALID) {
- 		dd_dev_err(dd,
- 			   "unexpected receive array type %u for index %u, not handled\n",
-@@ -9773,13 +9818,14 @@ void hfi1_put_tid(struct hfi1_devdata *dd, u32 index,
- 		| (u64)order << RCV_ARRAY_RT_BUF_SIZE_SHIFT
- 		| ((pa >> RT_ADDR_SHIFT) & RCV_ARRAY_RT_ADDR_MASK)
- 					<< RCV_ARRAY_RT_ADDR_SHIFT;
--	trace_hfi1_write_rcvarray(base + (index * 8), reg);
--	writeq(reg, base + (index * 8));
-+	trace_hfi1_write_rcvarray(dd->rcvarray_wc + (index * 8), reg);
-+	writeq(reg, dd->rcvarray_wc + (index * 8));
+ 	/* Enable J_KEY check on receive context. */
+ 	reg = RCV_KEY_CTRL_JOB_KEY_ENABLE_SMASK |
+ 		((jkey & RCV_KEY_CTRL_JOB_KEY_VALUE_MASK) <<
+ 		 RCV_KEY_CTRL_JOB_KEY_VALUE_SHIFT);
+-	write_kctxt_csr(dd, ctxt, RCV_KEY_CTRL, reg);
+-done:
+-	return ret;
++	write_kctxt_csr(dd, rcd->ctxt, RCV_KEY_CTRL, reg);
++
++	return 0;
+ }
  
--	if (type == PT_EAGER)
-+	if (type == PT_EAGER || type == PT_INVALID_FLUSH || (index & 3) == 3)
- 		/*
--		 * Eager entries are written one-by-one so we have to push them
--		 * after we write the entry.
-+		 * Eager entries are written and flushed
-+		 *
-+		 * Expected entries are flushed every 4 writes
- 		 */
- 		flush_wc();
- done:
-@@ -13411,8 +13457,7 @@ static void write_uninitialized_csrs_and_memories(struct hfi1_devdata *dd)
+-int hfi1_clear_ctxt_jkey(struct hfi1_devdata *dd, u16 ctxt)
++int hfi1_clear_ctxt_jkey(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd)
+ {
+-	struct hfi1_ctxtdata *rcd = dd->rcd[ctxt];
+-	unsigned sctxt;
+-	int ret = 0;
++	u8 hw_ctxt;
+ 	u64 reg;
  
- 	/* RcvArray */
- 	for (i = 0; i < dd->chip_rcv_array_count; i++)
--		write_csr(dd, RCV_ARRAY + (8 * i),
--			  RCV_ARRAY_RT_WRITE_ENABLE_SMASK);
-+		hfi1_put_tid(dd, i, PT_INVALID_FLUSH, 0, 0);
+-	if (!rcd || !rcd->sc) {
+-		ret = -EINVAL;
+-		goto done;
+-	}
+-	sctxt = rcd->sc->hw_context;
+-	write_kctxt_csr(dd, sctxt, SEND_CTXT_CHECK_JOB_KEY, 0);
++	if (!rcd || !rcd->sc)
++		return -EINVAL;
++
++	hw_ctxt = rcd->sc->hw_context;
++	write_kctxt_csr(dd, hw_ctxt, SEND_CTXT_CHECK_JOB_KEY, 0);
+ 	/*
+ 	 * Disable send-side J_KEY integrity check, unless this is A0 h/w.
+ 	 * This check would not have been enabled for A0 h/w, see
+ 	 * set_ctxt_jkey().
+ 	 */
+ 	if (!is_ax(dd)) {
+-		reg = read_kctxt_csr(dd, sctxt, SEND_CTXT_CHECK_ENABLE);
++		reg = read_kctxt_csr(dd, hw_ctxt, SEND_CTXT_CHECK_ENABLE);
+ 		reg &= ~SEND_CTXT_CHECK_ENABLE_CHECK_JOB_KEY_SMASK;
+-		write_kctxt_csr(dd, sctxt, SEND_CTXT_CHECK_ENABLE, reg);
++		write_kctxt_csr(dd, hw_ctxt, SEND_CTXT_CHECK_ENABLE, reg);
+ 	}
+ 	/* Turn off the J_KEY on the receive side */
+-	write_kctxt_csr(dd, ctxt, RCV_KEY_CTRL, 0);
+-done:
+-	return ret;
++	write_kctxt_csr(dd, rcd->ctxt, RCV_KEY_CTRL, 0);
++
++	return 0;
+ }
  
- 	/* RcvQPMapTable */
- 	for (i = 0; i < 32; i++)
+-int hfi1_set_ctxt_pkey(struct hfi1_devdata *dd, u16 ctxt, u16 pkey)
++int hfi1_set_ctxt_pkey(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd,
++		       u16 pkey)
+ {
+-	struct hfi1_ctxtdata *rcd;
+-	unsigned sctxt;
+-	int ret = 0;
++	u8 hw_ctxt;
+ 	u64 reg;
+ 
+-	if (ctxt < dd->num_rcv_contexts) {
+-		rcd = dd->rcd[ctxt];
+-	} else {
+-		ret = -EINVAL;
+-		goto done;
+-	}
+-	if (!rcd || !rcd->sc) {
+-		ret = -EINVAL;
+-		goto done;
+-	}
+-	sctxt = rcd->sc->hw_context;
++	if (!rcd || !rcd->sc)
++		return -EINVAL;
++
++	hw_ctxt = rcd->sc->hw_context;
+ 	reg = ((u64)pkey & SEND_CTXT_CHECK_PARTITION_KEY_VALUE_MASK) <<
+ 		SEND_CTXT_CHECK_PARTITION_KEY_VALUE_SHIFT;
+-	write_kctxt_csr(dd, sctxt, SEND_CTXT_CHECK_PARTITION_KEY, reg);
+-	reg = read_kctxt_csr(dd, sctxt, SEND_CTXT_CHECK_ENABLE);
++	write_kctxt_csr(dd, hw_ctxt, SEND_CTXT_CHECK_PARTITION_KEY, reg);
++	reg = read_kctxt_csr(dd, hw_ctxt, SEND_CTXT_CHECK_ENABLE);
+ 	reg |= SEND_CTXT_CHECK_ENABLE_CHECK_PARTITION_KEY_SMASK;
+ 	reg &= ~SEND_CTXT_CHECK_ENABLE_DISALLOW_KDETH_PACKETS_SMASK;
+-	write_kctxt_csr(dd, sctxt, SEND_CTXT_CHECK_ENABLE, reg);
+-done:
+-	return ret;
++	write_kctxt_csr(dd, hw_ctxt, SEND_CTXT_CHECK_ENABLE, reg);
++
++	return 0;
+ }
+ 
+ int hfi1_clear_ctxt_pkey(struct hfi1_devdata *dd, struct hfi1_ctxtdata *ctxt)
+@@ -14645,9 +14632,6 @@ int hfi1_clear_ctxt_pkey(struct hfi1_devdata *dd, struct hfi1_ctxtdata *ctxt)
+ 	if (!ctxt || !ctxt->sc)
+ 		return -EINVAL;
+ 
+-	if (ctxt->ctxt >= dd->num_rcv_contexts)
+-		return -EINVAL;
+-
+ 	hw_ctxt = ctxt->sc->hw_context;
+ 	reg = read_kctxt_csr(dd, hw_ctxt, SEND_CTXT_CHECK_ENABLE);
+ 	reg &= ~SEND_CTXT_CHECK_ENABLE_CHECK_PARTITION_KEY_SMASK;
 diff --git a/drivers/infiniband/hw/hfi1/chip.h b/drivers/infiniband/hw/hfi1/chip.h
-index 3dab315..d3622cb 100644
+index 008c970..9951052 100644
 --- a/drivers/infiniband/hw/hfi1/chip.h
 +++ b/drivers/infiniband/hw/hfi1/chip.h
-@@ -605,11 +605,11 @@ static inline void write_kctxt_csr(struct hfi1_devdata *dd, int ctxt,
- int write_lcb_csr(struct hfi1_devdata *dd, u32 offset, u64 data);
- 
- void __iomem *get_csr_addr(
--	struct hfi1_devdata *dd,
-+	const struct hfi1_devdata *dd,
- 	u32 offset);
- 
- static inline void __iomem *get_kctxt_csr_addr(
--	struct hfi1_devdata *dd,
-+	const struct hfi1_devdata *dd,
- 	int ctxt,
- 	u32 offset0)
- {
-diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
-index e64e9e2..2105f46 100644
---- a/drivers/infiniband/hw/hfi1/driver.c
-+++ b/drivers/infiniband/hw/hfi1/driver.c
-@@ -196,7 +196,7 @@ int hfi1_count_active_units(void)
- 
- 	spin_lock_irqsave(&hfi1_devs_lock, flags);
- 	list_for_each_entry(dd, &hfi1_dev_list, list) {
--		if (!(dd->flags & HFI1_PRESENT) || !dd->kregbase)
-+		if (!(dd->flags & HFI1_PRESENT) || !dd->kregbase1)
- 			continue;
- 		for (pidx = 0; pidx < dd->num_pports; ++pidx) {
- 			ppd = dd->pport + pidx;
-@@ -1283,7 +1283,7 @@ int hfi1_reset_device(int unit)
- 
- 	dd_dev_info(dd, "Reset on unit %u requested\n", unit);
- 
--	if (!dd->kregbase || !(dd->flags & HFI1_PRESENT)) {
-+	if (!dd->kregbase1 || !(dd->flags & HFI1_PRESENT)) {
- 		dd_dev_info(dd,
- 			    "Invalid unit number %u or not initialized or not present\n",
- 			    unit);
-diff --git a/drivers/infiniband/hw/hfi1/exp_rcv.h b/drivers/infiniband/hw/hfi1/exp_rcv.h
-index c7d02bc..0871904 100644
---- a/drivers/infiniband/hw/hfi1/exp_rcv.h
-+++ b/drivers/infiniband/hw/hfi1/exp_rcv.h
-@@ -137,8 +137,11 @@ static inline void rcv_array_wc_fill(struct hfi1_devdata *dd, u32 index)
- 	 * Doing the WC fill writes only makes sense if the device is
- 	 * present and the RcvArray has been mapped as WC memory.
- 	 */
--	if ((dd->flags & HFI1_PRESENT) && dd->rcvarray_wc)
-+	if ((dd->flags & HFI1_PRESENT) && dd->rcvarray_wc) {
- 		writeq(0, dd->rcvarray_wc + (index * 8));
-+		if ((index & 3) == 3)
-+			flush_wc();
-+	}
- }
- 
- static inline void tid_group_add_tail(struct tid_group *grp,
+@@ -1357,9 +1357,11 @@ void hfi1_put_tid(struct hfi1_devdata *dd, u32 index,
+ u32 hfi1_read_portcntrs(struct hfi1_pportdata *ppd, char **namep, u64 **cntrp);
+ int hfi1_get_ib_cfg(struct hfi1_pportdata *ppd, int which);
+ int hfi1_set_ib_cfg(struct hfi1_pportdata *ppd, int which, u32 val);
+-int hfi1_set_ctxt_jkey(struct hfi1_devdata *dd, u16 ctxt, u16 jkey);
+-int hfi1_clear_ctxt_jkey(struct hfi1_devdata *dd, u16 ctxt);
+-int hfi1_set_ctxt_pkey(struct hfi1_devdata *dd, u16 ctxt, u16 pkey);
++int hfi1_set_ctxt_jkey(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd,
++		       u16 jkey);
++int hfi1_clear_ctxt_jkey(struct hfi1_devdata *dd, struct hfi1_ctxtdata *ctxt);
++int hfi1_set_ctxt_pkey(struct hfi1_devdata *dd, struct hfi1_ctxtdata *ctxt,
++		       u16 pkey);
+ int hfi1_clear_ctxt_pkey(struct hfi1_devdata *dd, struct hfi1_ctxtdata *ctxt);
+ void hfi1_read_link_quality(struct hfi1_devdata *dd, u8 *link_quality);
+ void hfi1_init_vnic_rsm(struct hfi1_devdata *dd);
 diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
-index bbf80b1..fbf5284 100644
+index c8f34bc..51e6a6f 100644
 --- a/drivers/infiniband/hw/hfi1/file_ops.c
 +++ b/drivers/infiniband/hw/hfi1/file_ops.c
-@@ -181,7 +181,7 @@ static int hfi1_file_open(struct inode *inode, struct file *fp)
- 					       struct hfi1_devdata,
- 					       user_cdev);
- 
--	if (!((dd->flags & HFI1_PRESENT) && dd->kregbase))
-+	if (!((dd->flags & HFI1_PRESENT) && dd->kregbase1))
- 		return -EINVAL;
- 
- 	if (!atomic_inc_not_zero(&dd->user_refcount))
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 62f843d..2e5137b 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -867,12 +867,15 @@ struct hfi1_devdata {
- 	struct device *diag_device;
- 	struct device *ui_device;
- 
--	/* mem-mapped pointer to base of chip regs */
--	u8 __iomem *kregbase;
--	/* end of mem-mapped chip space excluding sendbuf and user regs */
--	u8 __iomem *kregend;
--	/* physical address of chip for io_remap, etc. */
-+	/* first mapping up to RcvArray */
-+	u8 __iomem *kregbase1;
- 	resource_size_t physaddr;
-+
-+	/* second uncached mapping from RcvArray to pio send buffers */
-+	u8 __iomem *kregbase2;
-+	/* for detecting offset above kregbase2 address */
-+	u32 base2_start;
-+
- 	/* Per VL data. Enough for all VLs but not all elements are set/used. */
- 	struct per_vl_data vld[PER_VL_SEND_CONTEXTS];
- 	/* send context data */
-@@ -1236,9 +1239,10 @@ static inline bool hfi1_vnic_is_rsm_full(struct hfi1_devdata *dd, int spare)
- #define dc8051_ver_patch(a) ((a) & 0x0000ff)
- 
- /* f_put_tid types */
--#define PT_EXPECTED 0
--#define PT_EAGER    1
--#define PT_INVALID  2
-+#define PT_EXPECTED       0
-+#define PT_EAGER          1
-+#define PT_INVALID_FLUSH  2
-+#define PT_INVALID        3
- 
- struct tid_rb_node;
- struct mmu_rb_node;
-diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
-index 676efdf..3ac1a1a 100644
---- a/drivers/infiniband/hw/hfi1/pcie.c
-+++ b/drivers/infiniband/hw/hfi1/pcie.c
-@@ -180,31 +180,47 @@ int hfi1_pcie_ddinit(struct hfi1_devdata *dd, struct pci_dev *pdev)
- 		return -EINVAL;
- 	}
- 
--	dd->kregbase = ioremap_nocache(addr, TXE_PIO_SEND);
--	if (!dd->kregbase)
-+	dd->kregbase1 = ioremap_nocache(addr, RCV_ARRAY);
-+	if (!dd->kregbase1) {
-+		dd_dev_err(dd, "UC mapping of kregbase1 failed\n");
- 		return -ENOMEM;
-+	}
-+	dd_dev_info(dd, "UC base1: %p for %x\n", dd->kregbase1, RCV_ARRAY);
-+	dd->chip_rcv_array_count = readq(dd->kregbase1 + RCV_ARRAY_CNT);
-+	dd_dev_info(dd, "RcvArray count: %u\n", dd->chip_rcv_array_count);
-+	dd->base2_start  = RCV_ARRAY + dd->chip_rcv_array_count * 8;
-+
-+	dd->kregbase2 = ioremap_nocache(
-+		addr + dd->base2_start,
-+		TXE_PIO_SEND - dd->base2_start);
-+	if (!dd->kregbase2) {
-+		dd_dev_err(dd, "UC mapping of kregbase2 failed\n");
-+		goto nomem;
-+	}
-+	dd_dev_info(dd, "UC base2: %p for %x\n", dd->kregbase2,
-+		    TXE_PIO_SEND - dd->base2_start);
- 
- 	dd->piobase = ioremap_wc(addr + TXE_PIO_SEND, TXE_PIO_SIZE);
- 	if (!dd->piobase) {
--		iounmap(dd->kregbase);
--		return -ENOMEM;
-+		dd_dev_err(dd, "WC mapping of send buffers failed\n");
-+		goto nomem;
- 	}
-+	dd_dev_info(dd, "WC piobase: %p\n for %x", dd->piobase, TXE_PIO_SIZE);
- 
--	dd->flags |= HFI1_PRESENT;	/* now register routines work */
--
--	dd->kregend = dd->kregbase + TXE_PIO_SEND;
- 	dd->physaddr = addr;        /* used for io_remap, etc. */
- 
+@@ -795,7 +795,7 @@ static int hfi1_file_close(struct inode *inode, struct file *fp)
+ 		     HFI1_RCVCTRL_NO_RHQ_DROP_DIS |
+ 		     HFI1_RCVCTRL_NO_EGR_DROP_DIS, uctxt->ctxt);
+ 	/* Clear the context's J_KEY */
+-	hfi1_clear_ctxt_jkey(dd, uctxt->ctxt);
++	hfi1_clear_ctxt_jkey(dd, uctxt);
  	/*
--	 * Re-map the chip's RcvArray as write-combining to allow us
-+	 * Map the chip's RcvArray as write-combining to allow us
- 	 * to write an entire cacheline worth of entries in one shot.
--	 * If this re-map fails, just continue - the RcvArray programming
--	 * function will handle both cases.
- 	 */
--	dd->chip_rcv_array_count = read_csr(dd, RCV_ARRAY_CNT);
- 	dd->rcvarray_wc = ioremap_wc(addr + RCV_ARRAY,
- 				     dd->chip_rcv_array_count * 8);
--	dd_dev_info(dd, "WC Remapped RcvArray: %p\n", dd->rcvarray_wc);
-+	if (!dd->rcvarray_wc) {
-+		dd_dev_err(dd, "WC mapping of receive array failed\n");
-+		goto nomem;
-+	}
-+	dd_dev_info(dd, "WC RcvArray: %p for %x\n",
-+		    dd->rcvarray_wc, dd->chip_rcv_array_count * 8);
- 	/*
- 	 * Save BARs and command to rewrite after device reset.
- 	 */
-@@ -253,10 +269,16 @@ int hfi1_pcie_ddinit(struct hfi1_devdata *dd, struct pci_dev *pdev)
- 	if (ret)
- 		goto read_error;
+ 	 * If a send context is allocated, reset context integrity
+ 	 * checks to default and disable the send context.
+@@ -1172,7 +1172,7 @@ static void user_init(struct hfi1_ctxtdata *uctxt)
+ 		clear_rcvhdrtail(uctxt);
  
-+	dd->flags |= HFI1_PRESENT;	/* chip.c CSR routines now work */
- 	return 0;
+ 	/* Setup J_KEY before enabling the context */
+-	hfi1_set_ctxt_jkey(uctxt->dd, uctxt->ctxt, uctxt->jkey);
++	hfi1_set_ctxt_jkey(uctxt->dd, uctxt, uctxt->jkey);
  
- read_error:
- 	dd_dev_err(dd, "Unable to read from PCI config\n");
-+	goto bail_error;
-+nomem:
-+	ret = -ENOMEM;
-+bail_error:
-+	hfi1_pcie_ddcleanup(dd);
+ 	rcvctrl_ops = HFI1_RCVCTRL_CTXT_ENB;
+ 	if (HFI1_CAP_UGET_MASK(uctxt->flags, HDRSUPP))
+@@ -1545,7 +1545,7 @@ static int set_ctxt_pkey(struct hfi1_ctxtdata *uctxt, u16 subctxt, u16 pkey)
+ 		}
+ 
+ 	if (intable)
+-		ret = hfi1_set_ctxt_pkey(dd, uctxt->ctxt, pkey);
++		ret = hfi1_set_ctxt_pkey(dd, uctxt, pkey);
+ done:
  	return ret;
  }
- 
-@@ -267,15 +289,19 @@ int hfi1_pcie_ddinit(struct hfi1_devdata *dd, struct pci_dev *pdev)
-  */
- void hfi1_pcie_ddcleanup(struct hfi1_devdata *dd)
- {
--	u64 __iomem *base = (void __iomem *)dd->kregbase;
--
- 	dd->flags &= ~HFI1_PRESENT;
--	dd->kregbase = NULL;
--	iounmap(base);
-+	if (dd->kregbase1)
-+		iounmap(dd->kregbase1);
-+	dd->kregbase1 = NULL;
-+	if (dd->kregbase2)
-+		iounmap(dd->kregbase2);
-+	dd->kregbase2 = NULL;
- 	if (dd->rcvarray_wc)
- 		iounmap(dd->rcvarray_wc);
-+	dd->rcvarray_wc = NULL;
- 	if (dd->piobase)
- 		iounmap(dd->piobase);
-+	dd->piobase = NULL;
- }
- 
- /* return the PCIe link speed from the given link status */
-diff --git a/drivers/infiniband/hw/hfi1/user_exp_rcv.c b/drivers/infiniband/hw/hfi1/user_exp_rcv.c
-index 6318e6c..3baf719 100644
---- a/drivers/infiniband/hw/hfi1/user_exp_rcv.c
-+++ b/drivers/infiniband/hw/hfi1/user_exp_rcv.c
-@@ -814,12 +814,11 @@ static void clear_tid_node(struct hfi1_filedata *fd, struct tid_rb_node *node)
- 				 node->npages, node->mmu.addr, node->phys,
- 				 node->dma_addr);
- 
--	hfi1_put_tid(dd, node->rcventry, PT_INVALID, 0, 0);
- 	/*
- 	 * Make sure device has seen the write before we unpin the
- 	 * pages.
- 	 */
--	flush_wc();
-+	hfi1_put_tid(dd, node->rcventry, PT_INVALID_FLUSH, 0, 0);
- 
- 	pci_unmap_single(dd->pcidev, node->dma_addr, node->mmu.len,
- 			 PCI_DMA_FROMDEVICE);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
