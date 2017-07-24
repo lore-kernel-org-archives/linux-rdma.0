@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 18/21] srp_daemon: Call systemctl properly from udev
-Date: Mon, 24 Jul 2017 14:00:26 -0600
-Message-ID: <1500926429-31822-19-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 11/21] debian: Remove infiniband-diags Depends from iwpmd
+Date: Mon, 24 Jul 2017 14:00:19 -0600
+Message-ID: <1500926429-31822-12-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1500926429-31822-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1500926429-31822-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
@@ -9,25 +9,28 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <notifications-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Use /bin/ as the call path for systemctl. For some reason Debian
-derived distros do not have /usr/bin/systemctl, only /bin/systemctl.
-Other distros seem to have both paths.
+This was a copy and paste error.
 
-Also invoke PROGRAM using == which matches what the udev test suite does.
-
-Fixes: d35e5c4f7169 ("srp_daemon.service: Add support for hot-plugging")
+Fixes: bba93a9ce37 ("Debian Packaging")
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- srp_daemon/srp_daemon.rules | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ debian/control | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/srp_daemon/srp_daemon.rules b/srp_daemon/srp_daemon.rules
-index 6780d5421de7b4..4cfeabc762da2a 100644
---- a/srp_daemon/srp_daemon.rules
-+++ b/srp_daemon/srp_daemon.rules
-@@ -1 +1 @@
--ACTION=="add", SUBSYSTEM=="infiniband_mad", KERNEL=="*umad*", PROGRAM:="/usr/bin/systemctl show srp_daemon -p ActiveState", RESULT=="ActiveState=active", ENV{SYSTEMD_WANTS}+="srp_daemon_port@$attr{ibdev}:$attr{port}.service"
-+ACTION=="add", SUBSYSTEM=="infiniband_mad", KERNEL=="*umad*", PROGRAM=="/bin/systemctl show srp_daemon -p ActiveState", RESULT=="ActiveState=active", ENV{SYSTEMD_WANTS}+="srp_daemon_port@$attr{ibdev}:$attr{port}.service"
+diff --git a/debian/control b/debian/control
+index 34b275dfeb8c62..8434bbb23693f8 100644
+--- a/debian/control
++++ b/debian/control
+@@ -47,8 +47,7 @@ Description: InfiniBand Communication Manager Assistant (ACM)
+ 
+ Package: iwpmd
+ Architecture: linux-any
+-Depends: infiniband-diags,
+-         lsb-base (>= 3.2-14~),
++Depends: lsb-base (>= 3.2-14~),
+          ${misc:Depends},
+          ${shlibs:Depends}
+ Description: Userspace component for iWarp RDMA services
 -- 
 2.7.4
 
