@@ -1,7 +1,7 @@
 From: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Subject: [PATCH 2/7] IB/rxe: Disable completion upcalls when a CQ is destroyed
-Date: Tue, 25 Jul 2017 09:39:23 -0400
-Message-ID: <1500989968-30889-3-git-send-email-andrew.boyer@dell.com>
+Subject: [PATCH 4/7] IB/rxe: Fix up the responder's find_resources() function
+Date: Tue, 25 Jul 2017 09:39:25 -0400
+Message-ID: <1500989968-30889-5-git-send-email-andrew.boyer@dell.com>
 References: <1500989968-30889-1-git-send-email-andrew.boyer@dell.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1500989968-30889-1-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
@@ -10,100 +10,27 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yonatanc-VPRAkNaXOzVWk0H
 Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>, allen.hubbe-8PEkshWhKlo@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This prevents the stack from accessing userspace objects while they
-are being torn down.
+The resource array is sized by max_dest_rd_atomic, not max_rd_atomic.
 
 Fixes: 8700e3e7c485 ("Soft RoCE driver")
 Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_cq.c    | 19 +++++++++++++++++++
- drivers/infiniband/sw/rxe/rxe_loc.h   |  2 ++
- drivers/infiniband/sw/rxe/rxe_verbs.c |  2 ++
- drivers/infiniband/sw/rxe/rxe_verbs.h |  1 +
- 4 files changed, 24 insertions(+)
+ drivers/infiniband/sw/rxe/rxe_resp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_cq.c b/drivers/infiniband/sw/rxe/rxe_cq.c
-index 49fe42c..c4aabf7 100644
---- a/drivers/infiniband/sw/rxe/rxe_cq.c
-+++ b/drivers/infiniband/sw/rxe/rxe_cq.c
-@@ -69,6 +69,14 @@ int rxe_cq_chk_attr(struct rxe_dev *rxe, struct rxe_cq *cq,
- static void rxe_send_complete(unsigned long data)
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index a958ee9..4240866 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -1055,7 +1055,7 @@ static struct resp_res *find_resource(struct rxe_qp *qp, u32 psn)
  {
- 	struct rxe_cq *cq = (struct rxe_cq *)data;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cq->cq_lock, flags);
-+	if (cq->is_dying) {
-+		spin_unlock_irqrestore(&cq->cq_lock, flags);
-+		return;
-+	}
-+	spin_unlock_irqrestore(&cq->cq_lock, flags);
+ 	int i;
  
- 	cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
- }
-@@ -97,6 +105,8 @@ int rxe_cq_from_init(struct rxe_dev *rxe, struct rxe_cq *cq, int cqe,
- 	if (udata)
- 		cq->is_user = 1;
+-	for (i = 0; i < qp->attr.max_rd_atomic; i++) {
++	for (i = 0; i < qp->attr.max_dest_rd_atomic; i++) {
+ 		struct resp_res *res = &qp->resp.resources[i];
  
-+	cq->is_dying = false;
-+
- 	tasklet_init(&cq->comp_task, rxe_send_complete, (unsigned long)cq);
- 
- 	spin_lock_init(&cq->cq_lock);
-@@ -156,6 +166,15 @@ int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited)
- 	return 0;
- }
- 
-+void rxe_cq_disable(struct rxe_cq *cq)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cq->cq_lock, flags);
-+	cq->is_dying = true;
-+	spin_unlock_irqrestore(&cq->cq_lock, flags);
-+}
-+
- void rxe_cq_cleanup(struct rxe_pool_entry *arg)
- {
- 	struct rxe_cq *cq = container_of(arg, typeof(*cq), pelem);
-diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-index d6299ed..64f8fa1 100644
---- a/drivers/infiniband/sw/rxe/rxe_loc.h
-+++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-@@ -64,6 +64,8 @@ int rxe_cq_from_init(struct rxe_dev *rxe, struct rxe_cq *cq, int cqe,
- 
- int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited);
- 
-+void rxe_cq_disable(struct rxe_cq *cq);
-+
- void rxe_cq_cleanup(struct rxe_pool_entry *arg);
- 
- /* rxe_mcast.c */
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index af90a7d..02a39e8 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -960,6 +960,8 @@ static int rxe_destroy_cq(struct ib_cq *ibcq)
- {
- 	struct rxe_cq *cq = to_rcq(ibcq);
- 
-+	rxe_cq_disable(cq);
-+
- 	rxe_drop_ref(cq);
- 	return 0;
- }
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
-index 5a180fb..b09a9e2 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.h
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
-@@ -89,6 +89,7 @@ struct rxe_cq {
- 	struct rxe_queue	*queue;
- 	spinlock_t		cq_lock;
- 	u8			notify;
-+	bool			is_dying;
- 	int			is_user;
- 	struct tasklet_struct	comp_task;
- };
+ 		if (res->type == 0)
 -- 
 1.8.3.1
 
