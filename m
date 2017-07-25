@@ -1,41 +1,38 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 0/3] Autoloading for RDMA netlink modules
-Date: Tue, 25 Jul 2017 08:34:20 -0600
-Message-ID: <20170725143420.GA434@obsidianresearch.com>
+Subject: Re: [PATCH 3/3] iwpmd: Suppress expected kernel message
+Date: Tue, 25 Jul 2017 09:36:08 -0600
+Message-ID: <20170725153608.GA6715@obsidianresearch.com>
 References: <1500935204-6505-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <20170725063236.GQ3259@mtr-leonro.local>
+ <1500935204-6505-4-git-send-email-jgunthorpe@obsidianresearch.com>
+ <20170725133030.GR3259@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170725063236.GQ3259-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20170725133030.GR3259-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <notifications-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 25, 2017 at 09:32:36AM +0300, Leon Romanovsky wrote:
+On Tue, Jul 25, 2017 at 04:30:30PM +0300, Leon Romanovsky wrote:
+> On Mon, Jul 24, 2017 at 04:26:44PM -0600, Jason Gunthorpe wrote:
+> > RMDA_NL_RSVD was obsoleted a long time ago, but user space still
+> > uses it to support old kernels. Avoid logging:
+> >
+> >  ib_core:ibnl_rcv_msg: Index 3 wasn't found in client list
+> >
+> > Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> >  drivers/infiniband/core/iwcm.c | 7 +++++++
+> >  1 file changed, 7 insertions(+)
+> >
+> 
+> This print should be removed, on my system (Debian), it prints without
+> any relation to iwpmd.
 
-> First, it interferes badly with my RDMA netlink series posted here in
-> previous cycle and I'm expecting to see it in, so I can move forward
-> with RDMAtool implementation.
+Really? What from?
 
-I'm sure we can fix a few conflicts...
-
-> Second, from brief review, it is unclear to me, how do you protect
-> autoload caused by regular user who sends netlink message to ib_core.
-
-You don't, that isn't how kernel auto loading works. Any user can
-attempt to create any kind of socket and the core kernel code will
-load the correct module to support that socket. That is the standard
-way kernel autoloading works, particularly for net families.
-
-> Third, it is ib_core who should autoload modules by default, and not some
-> random daemon in user space.
-
-Kernel autoloading of userspace facing kernel services is always
-triggered by a user process attempting to use the service, so this
-comment makes no sense to me.
+I'm okay with dropping the print too.
 
 Jason
 --
