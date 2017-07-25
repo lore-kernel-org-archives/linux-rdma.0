@@ -1,32 +1,41 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [bug report] IB/hns: Fix the bug of polling cq failed for
- loopback Qps
-Date: Tue, 25 Jul 2017 10:11:18 +0300
-Message-ID: <20170725071118.3erfnxyiqi7ittl3@mwanda>
-References: <20170719114829.sctq34wns6h6zvxz@mwanda>
- <59769D18.4020400@huawei.com>
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH V4 net-next 7/8] net: hns3: Add Ethtool support to HNS3
+ driver
+Date: Tue, 25 Jul 2017 09:35:51 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6DD003FB65@AcuExch.aculab.com>
+References: <20170722220942.78852-1-salil.mehta@huawei.com>
+ <20170722220942.78852-8-salil.mehta@huawei.com>
+ <23ddbe00-8bef-a09b-5783-3a5438086bd6@gmail.com>
+ <D7C5EFE3-632C-468D-B8E0-82B448634B31@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <59769D18.4020400-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <D7C5EFE3-632C-468D-B8E0-82B448634B31@intel.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: "'Rustad, Mark D'" <mark.d.rustad@intel.com>, Florian Fainelli <f.fainelli@gmail.com>
+Cc: Salil Mehta <salil.mehta@huawei.com>, "davem@davemloft.net" <davem@davemloft.net>, "yisen.zhuang@huawei.com" <yisen.zhuang@huawei.com>, "huangdaode@hisilicon.com" <huangdaode@hisilicon.com>, "lipeng321@huawei.com" <lipeng321@huawei.com>, "mehta.salil.lnk@gmail.com" <mehta.salil.lnk@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linuxarm@huawei.com" <linuxarm@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 25, 2017 at 09:21:28AM +0800, Wei Hu (Xavier) wrote:
-> Hi Dan Carpenter
+From: Rustad, Mark D
+> Sent: 24 July 2017 21:32
+> > On Jul 23, 2017, at 10:05 AM, Florian Fainelli <f.fainelli@gmail.com> wrote:
+> >> +
+> >> +	strncpy(drvinfo->version, HNAE_DRIVER_VERSION,
+> >> +		sizeof(drvinfo->version));
+> >> +	drvinfo->version[sizeof(drvinfo->version) - 1] = '\0';
+> >
+> > strlcpy() would probably do that for you.
 > 
->     Thanks for your comments.
->     What is the checker tool? Where can I get it?
+> You need to be careful about strlcpy - it does not completely write the destination buffer as strncpy
+> does, and so can result in a kernel memory leak if the destination is not known to already be cleared.
 
-This is a Smatch check.  https://lwn.net/Articles/629250/
+Not only that, strlcpy() is defined to return the size of the
+source string.
+So if the source buffers isn't '\0' terminated it can fault.
+(Not a problem above.)
 
-regards,
-dan carpenter
+Neither function is the one you were looking for.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	David
