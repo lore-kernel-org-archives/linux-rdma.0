@@ -1,97 +1,52 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH rdma-core 0/5] Common systemd/udev based boot support
-Date: Tue, 25 Jul 2017 13:55:21 -0500
-Message-ID: <011801d30577$91200c00$b3602400$@opengridcomputing.com>
-References: <1500929067-1583-1-git-send-email-jgunthorpe@obsidianresearch.com> <00e601d30562$f5a7dff0$e0f79fd0$@opengridcomputing.com> <20170725164004.GA20959@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 3/3] iwpmd: Suppress expected kernel message
+Date: Tue, 25 Jul 2017 15:21:17 -0600
+Message-ID: <20170725212117.GC10905@obsidianresearch.com>
+References: <1500935204-6505-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1500935204-6505-4-git-send-email-jgunthorpe@obsidianresearch.com>
+ <20170725133030.GR3259@mtr-leonro.local>
+ <20170725153608.GA6715@obsidianresearch.com>
+ <20170725181254.GS3259@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: 
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <20170725181254.GS3259-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Leon Romanovsky' <notifications-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Ram Amrani' <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, 'Ira Weiny' <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Benjamin Drung' <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, 'Jarod Wilson' <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <notifications-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > And you should have a reasonable set of modules loaded. Check the
-> > journal for interesting errors also..
+On Tue, Jul 25, 2017 at 09:12:54PM +0300, Leon Romanovsky wrote:
+> On Tue, Jul 25, 2017 at 09:36:08AM -0600, Jason Gunthorpe wrote:
+> > On Tue, Jul 25, 2017 at 04:30:30PM +0300, Leon Romanovsky wrote:
+> > > On Mon, Jul 24, 2017 at 04:26:44PM -0600, Jason Gunthorpe wrote:
+> > > > RMDA_NL_RSVD was obsoleted a long time ago, but user space still
+> > > > uses it to support old kernels. Avoid logging:
+> > > >
+> > > >  ib_core:ibnl_rcv_msg: Index 3 wasn't found in client list
+> > > >
+> > > > Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> > > >  drivers/infiniband/core/iwcm.c | 7 +++++++
+> > > >  1 file changed, 7 insertions(+)
+> > > >
+> > >
+> > > This print should be removed, on my system (Debian), it prints without
+> > > any relation to iwpmd.
+> >
+> > Really? What from?
+> 
+> Yes, I constantly delayed the debug of it :)
+> Debian 9 + latest rdma-core, see attached log.
+> 
+> ib_core:ibnl_rcv_msg: Index 3 wasn't found in client list
 
-Oh and here's the journal after bringing up the cxgb4 interface.  I think it
-looks good.
+Index 3 should only used by iwpmd, are you sure it isn't running for
+you? Otherwise have a larger problem as it has been removed from the
+kernel on the assumption that only iwpmd touched and it was OK to
+remove it.
 
-
-Jul 25 11:43:21 stevo3.asicdesigners.com kernel: iw_cxgb4:0000:04:00.4: Up
-Jul 25 11:43:21 stevo3.asicdesigners.com kernel: 0000:04:00.4: On-Chip Queues
-not supported on this device.
-Jul 25 11:43:21 stevo3.asicdesigners.com systemd[1]: Started RDMA Node
-Description Daemon.
-Jul 25 11:43:21 stevo3.asicdesigners.com systemd[1]: Starting RDMA Node
-Description Daemon...
-Jul 25 11:43:21 stevo3.asicdesigners.com systemd[1]: Created slice
-system-rdma\x2dload\x2dmodules.slice.
-Jul 25 11:43:21 stevo3.asicdesigners.com systemd[1]: Starting
-system-rdma\x2dload\x2dmodules.slice.
-Jul 25 11:43:21 stevo3.asicdesigners.com systemd[1]: Starting Load RDMA modules
-from /etc/rdma/modules/iwarp.conf...
-Jul 25 11:43:21 stevo3.asicdesigners.com systemd[1]: Starting Load RDMA modules
-from /etc/rdma/modules/rdma.conf...
-Jul 25 11:43:21 stevo3.asicdesigners.com systemd[1]: Starting Load RDMA modules
-from /etc/rdma/modules/iwpmd.conf...
-Jul 25 11:43:21 stevo3.asicdesigners.com systemd[1]: Started Load RDMA modules
-from /etc/rdma/modules/iwarp.conf.
-Jul 25 11:43:21 stevo3.asicdesigners.com kernel: IPv6: ADDRCONF(NETDEV_UP):
-enp4s0f4: link is not ready
-Jul 25 11:43:21 stevo3.asicdesigners.com kernel: cxgb4 0000:04:00.4 enp4s0f4:
-passive DA module inserted
-Jul 25 11:43:21 stevo3.asicdesigners.com kernel: Loading iSCSI transport class
-v2.0-870.
-Jul 25 11:43:21 stevo3.asicdesigners.com avahi-daemon[808]: Joining mDNS
-multicast group on interface enp4s0f4.IPv4 with address 172.16.3.3.
-Jul 25 11:43:21 stevo3.asicdesigners.com systemd-modules-load[2573]: Inserted
-module 'iw_cm'
-Jul 25 11:43:21 stevo3.asicdesigners.com systemd[1]: Started Load RDMA modules
-from /etc/rdma/modules/iwpmd.conf.
-Jul 25 11:43:21 stevo3.asicdesigners.com avahi-daemon[808]: New relevant
-interface enp4s0f4.IPv4 for mDNS.
-Jul 25 11:43:21 stevo3.asicdesigners.com avahi-daemon[808]: Registering new
-address record for 172.16.3.3 on enp4s0f4.IPv4.
-Jul 25 11:43:21 stevo3.asicdesigners.com systemd[1]: Started iWarp Port Mapper.
-Jul 25 11:43:21 stevo3.asicdesigners.com systemd[1]: Starting iWarp Port
-Mapper...
-Jul 25 11:43:21 stevo3.asicdesigners.com iWarpPortMapper[2583]: get_iwpm_param:
-Got param (name = nl_sock_rbuf_size val = 419430400)
-Jul 25 11:43:21 stevo3.asicdesigners.com kernel: ib_core:ibnl_rcv_msg: Index 3
-wasn't found in client list
-Jul 25 11:43:21 stevo3.asicdesigners.com systemd-modules-load[2572]: Inserted
-module 'ib_iser'
-Jul 25 11:43:21 stevo3.asicdesigners.com kernel: iscsi: registered transport
-(iser)
-Jul 25 11:43:21 stevo3.asicdesigners.com systemd-modules-load[2572]: Inserted
-module 'ib_uverbs'
-Jul 25 11:43:21 stevo3.asicdesigners.com systemd-modules-load[2572]: Inserted
-module 'rdma_ucm'
-Jul 25 11:43:21 stevo3.asicdesigners.com systemd-modules-load[2572]: Inserted
-module 'rpcrdma'
-Jul 25 11:43:21 stevo3.asicdesigners.com systemd[1]: Started Load RDMA modules
-from /etc/rdma/modules/rdma.conf.
-Jul 25 11:43:21 stevo3.asicdesigners.com kernel: RPC: Registered rdma transport
-module.
-Jul 25 11:43:21 stevo3.asicdesigners.com kernel: RPC: Registered rdma
-backchannel transport module.
-Jul 25 11:43:22 stevo3.asicdesigners.com kernel: cxgb4 0000:04:00.4 enp4s0f4:
-link up, 10Gbps, full-duplex, Tx/Rx PAUSE
-Jul 25 11:43:22 stevo3.asicdesigners.com kernel: IPv6: ADDRCONF(NETDEV_CHANGE):
-enp4s0f4: link becomes ready
-Jul 25 11:43:22 stevo3.asicdesigners.com NetworkManager[781]: <info>
-(enp4s0f4): link connected
-Jul 25 11:43:23 stevo3.asicdesigners.com avahi-daemon[808]: Registering new
-address record for fe80::207:43ff:fe29:2f20 on enp4s0f4.*.
-Jul 25 11:50:01 stevo3.asicdesigners.com systemd[1]: Started Session 4 of user
-root.
-
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
