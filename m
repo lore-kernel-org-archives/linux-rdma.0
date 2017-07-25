@@ -1,229 +1,54 @@
-From: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [Qemu-devel] host side todo list for virtio rdma
-Date: Tue, 25 Jul 2017 17:05:33 +0300
-Message-ID: <20170725165915-mutt-send-email-mst@kernel.org>
-References: <20170719004721-mutt-send-email-mst@kernel.org>
- <20170719105549.GB3500@work-vm>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] IB/hns: Avoid compile test under non 64bit environments
+Date: Tue, 25 Jul 2017 17:29:06 +0300
+Message-ID: <1500992946-77766-1-git-send-email-matanb@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170719105549.GB3500@work-vm>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Dr. David Alan Gilbert" <dgilbert-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: virtio-sDuHXQ4OtrM4h7I2RyI4rWD2FQJk+8+b@public.gmane.org, virtio-dev-sDuHXQ4OtrM4h7I2RyI4rWD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, Marcel Apfelbaum <marcel.a-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 19, 2017 at 11:55:50AM +0100, Dr. David Alan Gilbert wrote:
-> * Michael S. Tsirkin (mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org) wrote:
-> > Here are some thoughts on bits that are still missing to get a working
-> > virtio-rdma, with some suggestions. These are very preliminary but I
-> > feel I kept these in my head (and discussed offline) for too long. All
-> > of the below is just my personal humble opinion.
-> > 
-> > Feature Requirements:
-> > 
-> > The basic requirement is to be able to do RDMA to/from
-> > VM memory, with support for VM migration and/or memory
-> > overcommit and/or autonuma and/or THP.
-> > Why are migration/overcommit/autonuma required?
-> > Without these, you can do RDMA with device passthrough,
-> > with likely better performance.
-> 
-> Is this solution usable on a system without host-RDMA hardware?
-> i.e. just to run RDMA between two VMs on the same host
-> without using something like SoftROCE on the host?
+The hns driver uses __raw_writeq which is only defined in 64BIT
+environments. Trying to compile the driver in a 32BIT environment
+results in errors. Only COMPILE_TEST when 64BIT is defined.
 
-Hacks could be implemented to enable this. But IMHO this
-is yes another thing that should be a follow-up.
-Just like e.g. KVM, let's focus on capable hardware
-as the 1st step.
+Fixes: 7d1b6a678e0b ("IB/hns: Support compile test for hns RoCE driver")
+Signed-off-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
 
+Hi Lijun and Wei,
 
-> > Feature Non-requirements:
-> > 
-> > It's not a requirement to support RDMA without VM exits,
-> > e.g. like with device passthrough. While avoiding exits improves
-> > performance, it would be handy to more than RDMA,
-> > so there seems no reason to require it from RDMA when we
-> > do not have it for e.g. network.
-> > 
-> > Assumptions:
-> > 
-> > It's OK to assume specific hardware capabilities at least initially.
-> > 
-> > High level architecture:
-> > 
-> > Follows the same lines as most other virtio devices:
-> > 
-> > +-----------------------------------
-> > + 
-> > + guest kernel
-> > +             ^
-> > +-------------|----------------------
-> > +             v
-> > + host kernel (kvm, vhost)
-> > + 
-> > +             ^
-> > +-------------|----------------------
-> > +             v
-> > + 
-> > + host userspace (QEMU, vhost-user)
-> > + 
-> > +-----------------------------------
-> > 
-> > Each request is forwarded by host kernel to QEMU,
-> > that executes it using the ibverbs library.
-> 
-> Should that be 'forwarded by guest kernel' ?
+This is a small fix for the compile test patch I posted. The original
+patch added the support to compile the hns RoCE driver in
+architectures other than ARM64 to ease development. However,
+__raw_writeq is used in your driver and it's only available in 64bit
+environments. Therefore, I've added the required condition in the
+Kconfig. Please note that compiling the code over 64bit architectures
+that declare 64BIT but don't declare ARCH_DMA_ADDR_T_64BIT produces
+compilation warnings. I'm not aware of such architectures though.
 
-No I really mean the host: we get requests from guest, they land in host
-kernel same as any exit.
+Regards,
+Matan
 
-> Is there a guest-userspace here as well - most of the
-> RDMA NICs seem to have a userspace component.
+ drivers/infiniband/hw/hns/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Good point, I think you are right, there is. Bypassing
-guest kernel for data path requests seems like a reasonable
-requirement to add.
+diff --git a/drivers/infiniband/hw/hns/Kconfig b/drivers/infiniband/hw/hns/Kconfig
+index cbe6b51..61c93bb 100644
+--- a/drivers/infiniband/hw/hns/Kconfig
++++ b/drivers/infiniband/hw/hns/Kconfig
+@@ -1,7 +1,7 @@
+ config INFINIBAND_HNS
+ 	tristate "HNS RoCE Driver"
+ 	depends on NET_VENDOR_HISILICON
+-	depends on (ARM64 || COMPILE_TEST) && HNS && HNS_DSAF && HNS_ENET
++	depends on (ARM64 || (COMPILE_TEST && 64BIT)) && HNS && HNS_DSAF && HNS_ENET
+ 	---help---
+ 	  This is a RoCE/RDMA driver for the Hisilicon RoCE engine. The engine
+ 	  is used in Hisilicon Hi1610 and more further ICT SoC.
+-- 
+1.8.3.1
 
-
-> > Most of this should be implementable host-side using existing
-> > software. However, several issues remain and would need
-> > infrastructure changes, as outlined below.
-> > 
-> > Host-side todo list for virtio-rdma support:
-> > 
-> > - Memory registration for guest userspace.
-> > 
-> >   Register memory region verb accepts a single virtual address,
-> >   which supplies both the on-wire key for access and the
-> >   range of memory to access. Guest kernel turns this into a
-> >   list of pages (e.g. by get_user_pages); when forwarded to host this
-> >   turns into a s/g list of virtual addresses in QEMU address space.
-> > 
-> >   Suggestion: add a new verb, along the lines of ibv_register_physical,
-> >   which splits these two parameters, accepting the on-wire VA key
-> >   and separately a list of userspace virtual address/size pairs.
-> > 
-> > - Memory registration for guest kernels.
-> > 
-> >   Another ability used by some in-kernel users is registering all of memory.
-> >   Ranges not actually present are never accessed - this is OK as
-> >   kernel users are trusted. Memory hotplug changes which ranges
-> >   are present.
-> > 
-> >   Suggestion: add some throw-away memory and map all
-> >   non-present ranges there. Add ibv_reregister_physical_mr or similar
-> >   API to update mappings on guest memory hotplug/unplug.
-> > 
-> > - Memory overcommit/autonuma/THP.
-> > 
-> >   This includes techniques such as swap,KSM,COW, page migration.
-> >   All these rely on ability to move pages around without
-> >   breaking hardware access.
-> > 
-> >   Suggestion: for hardware that supports it,
-> >   enabling on-demand paging for all registered memory seems
-> >   to address the issue more or less transparently to guests.
-> >   This isn't supported by all hardware but might be
-> >   at least a reasonable first step.
-> > 
-> > - Migration: memory tracking.
-> > 
-> >   Migration requires detecting hardware access to pages
-> >   either on write (pre-copy) or any access (post-copy).
-> >   Post copy just requires ODP support to work with
-> >   userfaultfd properly.
-> 
-> Can you explain what ODP support is?
-
-On demand paging. grep for odp and ODP in libibverbs sources.
-
-> >   Pre-copy would require a write-tracking API along
-> >   the lines of one exposed by KVM or vhost.
-> >   Each tracked page would be write-protected (causing faults on
-> >   hardware access) on hardware write fault is generated
-> >   and recorded, page is made writeable.
-> 
-> Can you write-protect like that from the RDMA hardware?
-> I'd be surprised if the hardware was happy with that.
-
-With ODP capable hardware I think you should be able to.
-
-> > - Migration: moving QP numbers.
-> > 
-> >   QP numbers are exposed on the wire and so must move together
-> >   with the VM.
-> > 
-> >   Suggestion: allow specifying QP number when creating a QP.
-> >   To avoid conflicts between multiple users, initial version can limit
-> >   library to a single user per device. Multiple VMs can simply
-> >   attach to distinct VFs.
-> > 
-> > - Migration: moving QP state.
-> > 
-> >   When migrating the VM, a QP has to be torn down
-> >   on source and created on destination.
-> >   We have to migrate e.g. the current PSN - but what
-> >   should happen when a new packet arrives on source
-> >   after QP has been torn down?
-> > 
-> >   Suggestion 1: move QP to a special state "suspended" and ignore
-> >   packets, or cause source to retransmit with e.g. an out of
-> >   resources error. Retransmit counter might need to be
-> >   adjusted compared to what guest requested to account
-> >   for the extra need to retransmit.
-> >   Is there a good existing QP state that does this?
-> > 
-> >   Suggestion 2: forward packets to destination somehow.
-> >   Might overload the fabric as we are crossing e.g.
-> >   pci bus multiple times.
-> > 
-> > - Migration: network update
-> > 
-> >   ROCE v1 and infiniband seem to tie connections to
-> >   hardware specific GIDs which can not be moved by software.
-> > 
-> >   Suggestion: limit migration to RoCE v2 initially.
-> > 
-> > - Migration: packet loss recovery.
-> > 
-> >   As a RoCE address moves across the network, network has
-> >   to be updated which takes time, meanwhile packet loss seems
-> >   to be hard to avoid.
-> > 
-> >   Suggestion: limit initial support to hardware that is
-> >   able to recover from occasional packet drops, with
-> >   some slowdown.
-> > 
-> > - Migration: suspend/resume API?
-> >   It might be easier to pack up state of all resources
-> >   such as all QP numbers and state of all QPs etc
-> >   in a single memory buffer, migrate then unpack on destination.
-> > 
-> >   Removes need for 2 separate APIs for suspended state and
-> >   for specifying QPN on creation.
-> > 
-> >   This creates a format for serialization that will have to
-> >   be maintained in a compatible way - it is not clear that
-> >   the maintainance overhead is worth the potential
-> >   simplification, if any.
-> > 
-> > 
-> > That's it - I hope this helps, feel free to discuss, preferably copying
-> > virtio-dev (subscription required for now, people are looking into
-> > fixing this, sorry about that).
-> 
-> Dave
-> 
-> > Thanks!
-> > 
-> > -- 
-> > MST
-> > 
-> --
-> Dr. David Alan Gilbert / dgilbert-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org / Manchester, UK
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
