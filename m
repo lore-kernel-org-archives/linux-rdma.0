@@ -1,99 +1,107 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH rdma-core 0/5] Common systemd/udev based boot support
-Date: Wed, 26 Jul 2017 09:05:03 -0500
-Message-ID: <009901d30618$2d957e30$88c07a90$@opengridcomputing.com>
-References: <1500929067-1583-1-git-send-email-jgunthorpe@obsidianresearch.com> <00e601d30562$f5a7dff0$e0f79fd0$@opengridcomputing.com> <20170725164004.GA20959@obsidianresearch.com> <011601d30576$c3ac38c0$4b04aa40$@opengridcomputing.com> <20170725213354.GE10905@obsidianresearch.com> <016901d30590$3eee9910$bccbcb30$@opengridcomputing.com> <20170725220210.GA15663@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] drivers/rxe: improve rxe loopback
+Date: Wed, 26 Jul 2017 17:52:48 +0300
+Message-ID: <20170726145248.21677-1-marcel@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170725220210.GA15663-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Ram Amrani' <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, 'Ira Weiny' <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Benjamin Drung' <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, 'Jarod Wilson' <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> On Tue, Jul 25, 2017 at 04:52:01PM -0500, Steve Wise wrote:
-> 
-> > > This sort of hotplug that cxbg4 does is quite strange, what happens
-> > > when 'ip link set X down' is done? Does it remove the RDMA device?
-> > > Does 'ip link set down' block until all users go away?
-> >
-> > No.  iw_cxgb4 just triggers on the first 'up', to add the rdma provider
-instance
-> > for that device.  The Low Level Driver (LLD), cxgb4, passes the
-CXGB4_STATE_UP
-> > event to all registered upper level drivers (ULDs) when the first port is
-> > enabled (see cxgb_up).  Any rdma connections that are active when a link
-goes
-> > down still function, as any TCP connection would function if the interface
-was
-> > brought down;  eg: tcp retransmits if there is pending data until it gives
-up
-> > and aborts the connection.  So Netdev link down/up transitions are hidden
-from
-> > the rdma application.
-> 
-> I think you should change this to create the RDMA device when the
-> module is installed and the hardware is present..
->
+Currently a packet is marked for loopback only if the source and
+destination address match. This is not enough when multiple
+gids are present in rxe's gid table and the traffic is
+from one gid to another.
 
-Not gonna happen.  cxgb4 doesn't setup the queues, rss, irq mappings, etc, until
-an interface is brought up.  So iw_cxgb4 cannot initialize and register with the
-rdma core until that happens. 
+Fix it by marking the packet for loopback if the destination
+address appears in rxe's gid table.
+
+Signed-off-by: Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/sw/rxe/rxe_net.c | 47 +++++++++++++++++++++++++++++++++++--
+ 1 file changed, 45 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+index c3a140e..b76a9a3 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -351,6 +351,27 @@ static void prepare_ipv6_hdr(struct dst_entry *dst, struct sk_buff *skb,
+ 	ip6h->payload_len = htons(skb->len - sizeof(*ip6h));
+ }
  
-> > > This is going to make it harder for cxgb users to get a reliably
-> > > bootup at this time, we need more kernel autoloading for things to be
-> > > reliable, and I'm sure iwpmd.service needs some dependency adjusting,
-> > > I just don't know enough about it to do it right. :\
-> >
-> > I don't understand?
-> 
-> At the present moment udev will start running rules at the link up
-> time, which happens sometime around 'network.target'
-> 
-> However, systemd will continue processing unknowing what udev is
-> doing.
-> 
-> So, if you have a RDMA enabled daemon, and you make it start after the
-> RDMA device is plugged we have some races..
-> 
-> - udev is creating /dev/ nodes and telling systemd to start module loading
->   units, and run iwpmd
-> - systemd may have already started loading the RDMA daemon before udev
->   gets to any of this (racy) eg the /dev/ nodes may not exist yet, or
->   the modules may still in process to be loaded
-> - systemd may have started iwpmd, but it is not yet ready and then
->   starts the RDMA daemon (racy differently, this is helped with
->   sd_notify)
-> - The RDMA daemon now needs explicit dependencies on the RDMA device
->   to order properly, something simple like sysinit.target isn't going to work
-> 
-> Basically, it is very hard to start a RDMA daemon and not have it race
-> with something and randomly fail to start properly the more hotpluggy
-> things are.
-> 
-
-I think these races exist today, no?  Or is this patch series introducing the
-races?   The iwpmd does not need the providers registered at the time it starts.
-It will discover new iwarp providers as they initialize. 
-
-> The existing RDMA stuff largely relies on some sequentiality, eg
-> loading the RDMA module is enough to create the RDMA device, and that
-> more reliably happens before sysinit.target, so we can create some
-> predictable ordering in the system.
-> 
-> This is also why I have been so insistent that the only way to make
-> all of this work properly and reliably is to have robust kernel auto
-> loading.
-> 
-
-Can you think of other ways to address your concerns?
-
-Steve.
++static inline bool addr4_same_rxe(struct rxe_dev *rxe, struct in_addr *daddr)
++{
++	struct in_device *in_dev;
++	bool same_rxe = false;
++
++	rcu_read_lock();
++	in_dev = __in_dev_get_rcu(rxe->ndev);
++	if (!in_dev)
++		goto out;
++
++	for_ifa(in_dev)
++		if (!memcmp(&ifa->ifa_address, daddr, sizeof(*daddr))) {
++			same_rxe = true;
++			goto out;
++		}
++	endfor_ifa(in_dev);
++out:
++	rcu_read_unlock();
++	return same_rxe;
++}
++
+ static int prepare4(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
+ 		    struct sk_buff *skb, struct rxe_av *av)
+ {
+@@ -367,7 +388,7 @@ static int prepare4(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
+ 		return -EHOSTUNREACH;
+ 	}
+ 
+-	if (!memcmp(saddr, daddr, sizeof(*daddr)))
++	if (addr4_same_rxe(rxe, daddr))
+ 		pkt->mask |= RXE_LOOPBACK_MASK;
+ 
+ 	prepare_udp_hdr(skb, htons(RXE_ROCE_V2_SPORT),
+@@ -384,6 +405,28 @@ static int prepare4(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
+ 	return 0;
+ }
+ 
++static inline bool addr6_same_rxe(struct rxe_dev *rxe, struct in6_addr *daddr)
++{
++	struct inet6_dev *in6_dev;
++	struct inet6_ifaddr *ifp;
++	bool same_rxe = false;
++
++	in6_dev = in6_dev_get(rxe->ndev);
++	if (!in6_dev)
++		return false;
++
++	read_lock_bh(&in6_dev->lock);
++	list_for_each_entry(ifp, &in6_dev->addr_list, if_list)
++		if (!memcmp(&ifp->addr, daddr, sizeof(*daddr))) {
++			same_rxe = true;
++			goto out;
++		}
++out:
++	read_unlock_bh(&in6_dev->lock);
++	in6_dev_put(in6_dev);
++	return same_rxe;
++}
++
+ static int prepare6(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
+ 		    struct sk_buff *skb, struct rxe_av *av)
+ {
+@@ -398,7 +441,7 @@ static int prepare6(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
+ 		return -EHOSTUNREACH;
+ 	}
+ 
+-	if (!memcmp(saddr, daddr, sizeof(*daddr)))
++	if (addr6_same_rxe(rxe, daddr))
+ 		pkt->mask |= RXE_LOOPBACK_MASK;
+ 
+ 	prepare_udp_hdr(skb, htons(RXE_ROCE_V2_SPORT),
+-- 
+2.9.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
