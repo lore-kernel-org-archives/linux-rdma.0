@@ -1,7 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 6/8] iwpm: Use daemon() instead of open coding a version
-Date: Wed, 26 Jul 2017 13:59:10 -0600
-Message-ID: <1501099152-6344-7-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 4/8] Consistently open syslog in daemons
+Date: Wed, 26 Jul 2017 13:59:08 -0600
+Message-ID: <1501099152-6344-5-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1501099152-6344-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1501099152-6344-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
@@ -10,63 +10,43 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This fixes a bug in the open coded version, stdin/err/out should never
-be left as a closed file descriptor as libraries are hardwired to use
-those FDs in emergencies.
+These days we can use the POSIX 2008 format to automatically
+set the program name. We always want fallback to console if syslog
+is broken, and if we are calling openlog should take effect
+immediately.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- iwpmd/iwarp_pm_server.c | 33 ++++-----------------------------
- 1 file changed, 4 insertions(+), 29 deletions(-)
+ iwpmd/iwarp_pm_server.c | 2 +-
+ rdma-ndd/rdma-ndd.c     | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/iwpmd/iwarp_pm_server.c b/iwpmd/iwarp_pm_server.c
-index a0a877b91b0c60..ec5721020e224c 100644
+index 53f61b2876b9b5..a0a877b91b0c60 100644
 --- a/iwpmd/iwarp_pm_server.c
 +++ b/iwpmd/iwarp_pm_server.c
-@@ -1358,39 +1358,14 @@ iwarp_port_mapper_exit:
-  */ 
- static void daemonize_iwpm_server(void)
+@@ -1400,7 +1400,7 @@ int main(int argc, char *argv[])
+ 	FILE *fp;
+ 	int ret = EXIT_FAILURE;
+ 
+-	openlog("iWarpPortMapper", LOG_CONS | LOG_PID, LOG_DAEMON);
++	openlog(NULL, LOG_NDELAY | LOG_CONS | LOG_PID, LOG_DAEMON);
+ 
+ 	daemonize_iwpm_server();
+ 
+diff --git a/rdma-ndd/rdma-ndd.c b/rdma-ndd/rdma-ndd.c
+index e7be22b12ad6a1..3e99d2dc5332dc 100644
+--- a/rdma-ndd/rdma-ndd.c
++++ b/rdma-ndd/rdma-ndd.c
+@@ -286,7 +286,7 @@ int main(int argc, char *argv[])
  {
--	pid_t pid, sid;
--
--	/* check if already a daemon */
--	if (getppid() == 1) return;
--
--    	pid = fork();
--    	if (pid < 0) {
--		syslog(LOG_WARNING, "daemonize_iwpm_server: Couldn't fork a new process\n");
--        	exit(EXIT_FAILURE);
--    	}
--
--    	/* exit the parent process */
--	if (pid > 0)
--        	exit(EXIT_SUCCESS);
--
-+	if (daemon(0, 0) != 0) {
-+		syslog(LOG_ERR, "Failed to daemonize\n");
-+		exit(EXIT_FAILURE);
-+	}
- 	umask(0); /* change file mode mask */
--	sid = setsid();	/* create a new session, new group, no tty */
--	if (sid < 0) {
--    		syslog(LOG_WARNING, "daemonize_iwpm_server: Couldn't create new session\n");
--        	exit(EXIT_FAILURE);
--    	}
--
--    	if ((chdir("/")) < 0) {
--		syslog(LOG_WARNING, "daemonize_iwpm_server: Couldn't change the current directory\n");
--        	exit(EXIT_FAILURE);
--   	}
+ 	bool foreground = false;
  
- 	syslog(LOG_WARNING, "daemonize_iwpm_server: Starting iWarp Port Mapper V%d process\n",
- 				iwpm_version);
--	/* close standard IO streams */
--	close(STDIN_FILENO);
--	close(STDOUT_FILENO);
--	close(STDERR_FILENO);
- }
+-	openlog("rdma-ndd", LOG_PID, LOG_DAEMON);
++	openlog(NULL, LOG_NDELAY | LOG_CONS | LOG_PID, LOG_DAEMON);
  
- int main(int argc, char *argv[])
+ 	while (1) {
+ 		int opt_idx = 0;
 -- 
 2.7.4
 
