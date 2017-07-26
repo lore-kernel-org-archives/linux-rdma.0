@@ -1,74 +1,55 @@
 From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH rdma-core 0/5] Common systemd/udev based boot support
-Date: Wed, 26 Jul 2017 11:29:15 -0500
-Message-ID: <00e101d3062c$52bcd0f0$f83672d0$@opengridcomputing.com>
-References: <1500929067-1583-1-git-send-email-jgunthorpe@obsidianresearch.com> <00e601d30562$f5a7dff0$e0f79fd0$@opengridcomputing.com> <20170725164004.GA20959@obsidianresearch.com> <011601d30576$c3ac38c0$4b04aa40$@opengridcomputing.com> <20170725213354.GE10905@obsidianresearch.com> <016901d30590$3eee9910$bccbcb30$@opengridcomputing.com> <20170725220210.GA15663@obsidianresearch.com> <009901d30618$2d957e30$88c07a90$@opengridcomputing.com> <20170726162419.GC20499@obsidianresearch.com>
+Subject: RE: ib_uverbs: list corruption destroying a cq
+Date: Wed, 26 Jul 2017 11:34:54 -0500
+Message-ID: <00e301d3062d$1c7a2be0$556e83a0$@opengridcomputing.com>
+References: <00d301d30627$26b58d80$7420a880$@opengridcomputing.com> <CAAKD3BCkZVcMbvyMPVF75Kg0wU4Ld7cByMTWRrydgsyqjCuS9g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+        charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170726162419.GC20499-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <CAAKD3BCkZVcMbvyMPVF75Kg0wU4Ld7cByMTWRrydgsyqjCuS9g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Ram Amrani' <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, 'Ira Weiny' <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Benjamin Drung' <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, 'Jarod Wilson' <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: 'Matan Barak' <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> On Wed, Jul 26, 2017 at 09:05:03AM -0500, Steve Wise wrote:
 > 
-> > > I think you should change this to create the RDMA device when the
-> > > module is installed and the hardware is present..
-> > >
-> >
-> > Not gonna happen.  cxgb4 doesn't setup the queues, rss, irq mappings, etc,
-until
-> > an interface is brought up.  So iw_cxgb4 cannot initialize and register with
-the
-> > rdma core until that happens.
+> Hi Steve,
 > 
-> But it doesn't tear all that stuff down on ifdown?
+> AFAIK, we haven't seen anything like this. A few questions:
+> 1. Does your test use multiple threads from which it executes uverbs commands?
 
-hmm.  I need to relook at this.  I'm very sure the intent was offload
-connections do not get torn down if the link goes down.
+Yes.  This particular test runs 6 processes, each setting up hundreds of connections and divvying up the workload among many threads.  Over 100 threads (the poor host probably has 8 cpus :)).
 
-> 
-> > > Basically, it is very hard to start a RDMA daemon and not have it race
-> > > with something and randomly fail to start properly the more hotpluggy
-> > > things are.
-> >
-> > I think these races exist today, no?  Or is this patch series introducing
-the
-> > races?   The iwpmd does not need the providers registered at the time it
-starts.
-> > It will discover new iwarp providers as they initialize.
-> 
-> There are races today, particularly with systemd, but I suspect they
-> are slightly different.. That doesn't mean we should ignore them :)
-> 
-> In particular the rdma.target approach loaded all the modules, even if
-> there wasn't hardware support, so when the cxgb4 RDMA device is
-> created everything is already to go. We still have races, but they are
-> probably smaller
-> 
-> Now, we don't even plug the modules until the RDMA device appears, so
-> we have broader possibilities for racing..
-> 
-> Overall it makes it hard to fit into the ideal system configuration
-> where RDMA sets up before network-pre.target when a RDMA device
-> doesn't even plug in until after network.target.
-> 
-> > Can you think of other ways to address your concerns?
-> 
-> Maybe we should have udev trigger loading iwarp services on the cxgb4
-> ethernet device? At least the races then become more like what we had
-> before. Are other roce/iwarp devices like this?
-> 
+> 2. Does your test use completion channel?
 
-I'm not sure.  I would be interested to hear what Intel does. +Chien + Mustafa
+Not in this instance; polling only.  Each connection gets its own cq for both the RQ and SQ of its QP.
+
+> 3. Which rdma device are you using?
+
+iw_cxgb4
+
+> 4. Do you know approximately in which kernel version this warning started?
+
+I believe 4.13-rc.  But I'm not certain. 
+
+> 5. Is it reproducible?
+
+They hit it once after ~4 hours so far, and the tests keep running subsequent instances.
+
+> 6. Are you willing to send the actual test?
+>
+
+I don't think that's possible.  
+
+
+I'll keep debugging, but was wondering if anyone has seen this already in 4.13-rc.  
+
+Thanks Matan!
 
 Steve.
-
 
 
 --
