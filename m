@@ -1,7 +1,7 @@
 From: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 1/8] RDMA/qedr: Add additional maintainer to MAINTAINERS file
-Date: Wed, 26 Jul 2017 14:41:50 +0300
-Message-ID: <1501069317-16601-2-git-send-email-Michal.Kalderon@cavium.com>
+Subject: [PATCH for-next 2/8] RDMA/qedr: Rename the qedr_cm file as a preparation for iWARP support
+Date: Wed, 26 Jul 2017 14:41:51 +0300
+Message-ID: <1501069317-16601-3-git-send-email-Michal.Kalderon@cavium.com>
 References: <1501069317-16601-1-git-send-email-Michal.Kalderon@cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,25 +12,63 @@ To: michal.kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL2
 Cc: yuval.mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+The main differences between iWARP and RoCE lay in the communication
+ management functions. These will be placed in separate files.
+
 Signed-off-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 ---
- MAINTAINERS | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/hw/qedr/Makefile                      | 2 +-
+ drivers/infiniband/hw/qedr/{qedr_cm.c => qedr_roce_cm.c} | 2 +-
+ drivers/infiniband/hw/qedr/{qedr_cm.h => qedr_roce_cm.h} | 0
+ drivers/infiniband/hw/qedr/verbs.c                       | 2 +-
+ 4 files changed, 3 insertions(+), 3 deletions(-)
+ rename drivers/infiniband/hw/qedr/{qedr_cm.c => qedr_roce_cm.c} (99%)
+ rename drivers/infiniband/hw/qedr/{qedr_cm.h => qedr_roce_cm.h} (100%)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index f66488d..9d9e284 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -10830,6 +10830,7 @@ F:	drivers/net/ethernet/qlogic/qede/
+diff --git a/drivers/infiniband/hw/qedr/Makefile b/drivers/infiniband/hw/qedr/Makefile
+index ba7067c..331a361 100644
+--- a/drivers/infiniband/hw/qedr/Makefile
++++ b/drivers/infiniband/hw/qedr/Makefile
+@@ -1,3 +1,3 @@
+ obj-$(CONFIG_INFINIBAND_QEDR) := qedr.o
  
- QLOGIC QL4xxx RDMA DRIVER
- M:	Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-+M:	Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
- M:	Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
- L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
- S:	Supported
+-qedr-y := main.o verbs.o qedr_cm.o
++qedr-y := main.o verbs.o qedr_roce_cm.o
+diff --git a/drivers/infiniband/hw/qedr/qedr_cm.c b/drivers/infiniband/hw/qedr/qedr_roce_cm.c
+similarity index 99%
+rename from drivers/infiniband/hw/qedr/qedr_cm.c
+rename to drivers/infiniband/hw/qedr/qedr_roce_cm.c
+index 4689e80..c3c249b 100644
+--- a/drivers/infiniband/hw/qedr/qedr_cm.c
++++ b/drivers/infiniband/hw/qedr/qedr_roce_cm.c
+@@ -48,7 +48,7 @@
+ #include "qedr.h"
+ #include "verbs.h"
+ #include <rdma/qedr-abi.h>
+-#include "qedr_cm.h"
++#include "qedr_roce_cm.h"
+ 
+ void qedr_inc_sw_gsi_cons(struct qedr_qp_hwq_info *info)
+ {
+diff --git a/drivers/infiniband/hw/qedr/qedr_cm.h b/drivers/infiniband/hw/qedr/qedr_roce_cm.h
+similarity index 100%
+rename from drivers/infiniband/hw/qedr/qedr_cm.h
+rename to drivers/infiniband/hw/qedr/qedr_roce_cm.h
+diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
+index 9ee2dce..03a24a6 100644
+--- a/drivers/infiniband/hw/qedr/verbs.c
++++ b/drivers/infiniband/hw/qedr/verbs.c
+@@ -49,7 +49,7 @@
+ #include "qedr.h"
+ #include "verbs.h"
+ #include <rdma/qedr-abi.h>
+-#include "qedr_cm.h"
++#include "qedr_roce_cm.h"
+ 
+ #define DB_ADDR_SHIFT(addr)		((addr) << DB_PWM_ADDR_OFFSET_SHIFT)
+ 
 -- 
 1.8.3.1
 
