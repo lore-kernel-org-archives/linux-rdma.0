@@ -1,71 +1,45 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Latest for-4.14
-Date: Wed, 26 Jul 2017 08:37:49 +0300
-Message-ID: <20170726053749.GV3259@mtr-leonro.local>
+From: jackm <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: NFS/RDMA RoCE with mlx4_en
+Date: Wed, 26 Jul 2017 08:54:04 +0300
+Message-ID: <20170726085404.00005e29@dev.mellanox.co.il>
+References: <5E2BFC42-DDA1-4666-BA45-2E33A47C0ED5@oracle.com>
+        <20170627133306.00003fda@dev.mellanox.co.il>
+        <7FB59BD3-CB33-4710-B049-B53C6C042736@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="jrLL7VzBua603j+s"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <7FB59BD3-CB33-4710-B049-B53C6C042736-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, 27 Jun 2017 12:28:43 -0400
+Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
 
---jrLL7VzBua603j+s
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> In the process of collecting data for you, I noticed that
+> the CX3's maximum Ethernet link speed is 40Gbps, and I
+> had set the switch port speed to 56Gbps. I've set the
+> port speed back to 40Gbps, and now neither the device
+> reset nor the cma_alloc failures are reproducing.
+> 
+> If you'd like to pursue this further, I can switch back to
+> the higher speed and try to reproduce to collect this
+> information.
 
-Reply to: "Re: [PATCH for-next 7/9] IB/core: Allow QP state transition from reset to error"
+Hi Chuck,
 
-On Sun, Jul 23, 2017 at 09:14:02AM -0400, Doug Ledford wrote:
-> On 7/23/2017 9:04 AM, Leon Romanovsky wrote:
+Thank you for giving us hand in understanding the root cause.
+I apologize for the long delay in replying to your kind offer.
 
-<snip>
+Fortunately, using the information you provided, we succeeded to
+reproduce the issue in house, so there is no need for you to do any
+extra work on this.
 
-> > BTW, when will you post for-4.14 branch so we will be able to base our
-> > submission queue for the -next?
->
-> Tomorrow.  I wanted to base it on 4.13-rc2 so it would get all of the
-> fixes that went in this week.
+Thanks again!
 
-Any news on the matter?
-
-Thanks
-
->
->
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->     GPG Key ID: B826A3330E572FDD
->     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
->
-
-
-
-
---jrLL7VzBua603j+s
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAll4Kq0ACgkQ5GN7iDZy
-WKeLOBAAy6Goh6ldAxmwJikgxVjzm8RWhY05DHMcFzZnL4OOIUONcTXR6Ia08D/F
-0jJe/0gFlxCWDMM6waAMkrLnH6jA2r36poFDzbuDhOLiMgdJdbBqCvdTcVSubkez
-F0sKhpbVP8075JLdejAw78L9Gw0P2veNz35sbMb+LmvY1JgBlIFuaMTqcZzb+1QM
-VPzFoqYa35nv5XjBFeuBn0EoYa1O3mzKctGNSQxEodOfKBa2zDO7pjBMt8Sxbvm0
-H5bh04WiElTzLOxTHr74kNnYEngQhP7rYrquDJ9VaYLv1UsKfKPZWUOaSRCnwbWc
-PnQrHtFIBFostEsIy5IwMgwSTmoQEHGnrd79/Wfp8kLh2Tc3aD68lC2nzfAzLOJj
-lKwDgtdAfjNiPZxrGcTnwuQFg9XUr17MZKRjYSRFZMZcJLyBR5rKTHynrkV2XGfC
-widA/w1SizvfEPVxzkSIboX35O9125ZP3+l/meoSaue93yIIfDI55L03XaexPSRS
-qHdZ+BPftLXcwyidTmBZuW0tKWeVgoLOqF5nag/AK3HyXdH1h32BZPCnZ2X/tQED
-l8m7oVTg7JXwAkARfml3hQWmQojgZk/3nS+AIku43vTgv2tWiMcodH92hLiDs8Zt
-lz3PRcK1mE8PNN8wuPAmk0hpVKss/XIGyWr8Fv58gAB+ElojrJQ=
-=NXOF
------END PGP SIGNATURE-----
-
---jrLL7VzBua603j+s--
+-Jack
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
