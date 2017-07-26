@@ -1,78 +1,49 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-rc 03/11] IB/ipoib: Make sure no in-flight joins while leaving that mcast
-Date: Wed, 26 Jul 2017 21:12:24 +0300
-Message-ID: <20170726181232.7363-4-leon@kernel.org>
+Subject: [rdma-rc 05/11] IB/ipoib: Set IPOIB_NEIGH_TBL_FLUSH after flushed completion initialization
+Date: Wed, 26 Jul 2017 21:12:26 +0300
+Message-ID: <20170726181232.7363-6-leon@kernel.org>
 References: <20170726181232.7363-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170726181232.7363-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-While cleaning neighs and there is a send-only mcast neigh, the driver
-should wait to finish its join process before trying to remove it.
+Set IPOIB_NEIGH_TBL_FLUSH bit after initializing the neighbor
+flushed completion, otherwise the garbage collector may signal
+a completion while it is not initialized yet.
 
-Without this patch, we will see messages like: "ipoib_mcast_leave on an
-in-flight join" and unexpected results in the join_complete.
-
-Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Fixes: b63b70d87741 ("IPoIB: Use a private hash table for path lookup in xmit path")
+Signed-off-by: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c | 24 ++++++++----------------
- 1 file changed, 8 insertions(+), 16 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index f80bf0f5d7cf..93e149efc1f5 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -743,6 +743,14 @@ void ipoib_mcast_remove_list(struct list_head *remove_list)
- {
- 	struct ipoib_mcast *mcast, *tmcast;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 8b7ec15a9d6e..f4403c52cd67 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1560,6 +1560,7 @@ static void ipoib_flush_neighs(struct ipoib_dev_priv *priv)
+ 	int i, wait_flushed = 0;
  
-+	/*
-+	 * make sure the in-flight joins have finished before we attempt
-+	 * to leave
-+	 */
-+	list_for_each_entry_safe(mcast, tmcast, remove_list, list)
-+		if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
-+			wait_for_completion(&mcast->done);
-+
- 	list_for_each_entry_safe(mcast, tmcast, remove_list, list) {
- 		ipoib_mcast_leave(mcast->dev, mcast);
- 		ipoib_mcast_free(mcast);
-@@ -852,14 +860,6 @@ void ipoib_mcast_dev_flush(struct net_device *dev)
+ 	init_completion(&priv->ntbl.flushed);
++	set_bit(IPOIB_NEIGH_TBL_FLUSH, &priv->flags);
  
- 	spin_unlock_irqrestore(&priv->lock, flags);
+ 	spin_lock_irqsave(&priv->lock, flags);
  
--	/*
--	 * make sure the in-flight joins have finished before we attempt
--	 * to leave
--	 */
--	list_for_each_entry_safe(mcast, tmcast, &remove_list, list)
--		if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
--			wait_for_completion(&mcast->done);
--
- 	ipoib_mcast_remove_list(&remove_list);
- 	mutex_unlock(&priv->mcast_mutex);
- }
-@@ -979,14 +979,6 @@ void ipoib_mcast_restart_task(struct work_struct *work)
- 	netif_addr_unlock(dev);
- 	local_irq_restore(flags);
+@@ -1604,7 +1605,6 @@ static void ipoib_neigh_hash_uninit(struct net_device *dev)
  
--	/*
--	 * make sure the in-flight joins have finished before we attempt
--	 * to leave
--	 */
--	list_for_each_entry_safe(mcast, tmcast, &remove_list, list)
--		if (test_bit(IPOIB_MCAST_FLAG_BUSY, &mcast->flags))
--			wait_for_completion(&mcast->done);
--
- 	ipoib_mcast_remove_list(&remove_list);
+ 	ipoib_dbg(priv, "ipoib_neigh_hash_uninit\n");
+ 	init_completion(&priv->ntbl.deleted);
+-	set_bit(IPOIB_NEIGH_TBL_FLUSH, &priv->flags);
  
- 	/*
+ 	/* Stop GC if called at init fail need to cancel work */
+ 	stopped = test_and_set_bit(IPOIB_STOP_NEIGH_GC, &priv->flags);
 -- 
 2.13.3
 
