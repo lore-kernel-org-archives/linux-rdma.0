@@ -1,119 +1,46 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] drivers/rxe: improve rxe loopback
-Date: Wed, 26 Jul 2017 22:57:28 +0300
-Message-ID: <20170726195727.GB2339@yuvallap>
-References: <20170726145248.21677-1-marcel@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: [PATCH rdma-core 8/8] rdma-ndd: Tidy getopt_long call
+Date: Wed, 26 Jul 2017 13:59:12 -0600
+Message-ID: <1501099152-6344-9-git-send-email-jgunthorpe@obsidianresearch.com>
+References: <1501099152-6344-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170726145248.21677-1-marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1501099152-6344-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 26, 2017 at 05:52:48PM +0300, Marcel Apfelbaum wrote:
-> Currently a packet is marked for loopback only if the source and
-> destination address match. This is not enough when multiple
-> gids are present in rxe's gid table and the traffic is
-> from one gid to another.
-> 
-> Fix it by marking the packet for loopback if the destination
-> address appears in rxe's gid table.
-> 
-> Signed-off-by: Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+struct option should be const and opt_idx can just be NULL.
 
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+---
+ rdma-ndd/rdma-ndd.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-Tested-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+diff --git a/rdma-ndd/rdma-ndd.c b/rdma-ndd/rdma-ndd.c
+index 3e99d2dc5332dc..180cbb34a8e29b 100644
+--- a/rdma-ndd/rdma-ndd.c
++++ b/rdma-ndd/rdma-ndd.c
+@@ -289,15 +289,14 @@ int main(int argc, char *argv[])
+ 	openlog(NULL, LOG_NDELAY | LOG_CONS | LOG_PID, LOG_DAEMON);
+ 
+ 	while (1) {
+-		int opt_idx = 0;
+-		static struct option long_opts[] = {
++		static const struct option long_opts[] = {
+ 			{ "foreground",   0, NULL, 'f' },
+ 			{ "help",         0, NULL, 'h' },
+ 			{ "debug",        0, NULL, 'd' },
+ 			{ }
+ 		};
+ 
+-		int c = getopt_long(argc, argv, "fh", long_opts, &opt_idx);
++		int c = getopt_long(argc, argv, "fh", long_opts, NULL);
+ 		if (c == -1)
+ 			break;
+ 
+-- 
+2.7.4
 
-> ---
->  drivers/infiniband/sw/rxe/rxe_net.c | 47 +++++++++++++++++++++++++++++++++++--
->  1 file changed, 45 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-> index c3a140e..b76a9a3 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_net.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_net.c
-> @@ -351,6 +351,27 @@ static void prepare_ipv6_hdr(struct dst_entry *dst, struct sk_buff *skb,
->  	ip6h->payload_len = htons(skb->len - sizeof(*ip6h));
->  }
->  
-> +static inline bool addr4_same_rxe(struct rxe_dev *rxe, struct in_addr *daddr)
-> +{
-> +	struct in_device *in_dev;
-> +	bool same_rxe = false;
-> +
-> +	rcu_read_lock();
-> +	in_dev = __in_dev_get_rcu(rxe->ndev);
-> +	if (!in_dev)
-> +		goto out;
-> +
-> +	for_ifa(in_dev)
-> +		if (!memcmp(&ifa->ifa_address, daddr, sizeof(*daddr))) {
-> +			same_rxe = true;
-> +			goto out;
-> +		}
-> +	endfor_ifa(in_dev);
-> +out:
-> +	rcu_read_unlock();
-> +	return same_rxe;
-> +}
-> +
->  static int prepare4(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
->  		    struct sk_buff *skb, struct rxe_av *av)
->  {
-> @@ -367,7 +388,7 @@ static int prepare4(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
->  		return -EHOSTUNREACH;
->  	}
->  
-> -	if (!memcmp(saddr, daddr, sizeof(*daddr)))
-> +	if (addr4_same_rxe(rxe, daddr))
->  		pkt->mask |= RXE_LOOPBACK_MASK;
->  
->  	prepare_udp_hdr(skb, htons(RXE_ROCE_V2_SPORT),
-> @@ -384,6 +405,28 @@ static int prepare4(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
->  	return 0;
->  }
->  
-> +static inline bool addr6_same_rxe(struct rxe_dev *rxe, struct in6_addr *daddr)
-> +{
-> +	struct inet6_dev *in6_dev;
-> +	struct inet6_ifaddr *ifp;
-> +	bool same_rxe = false;
-> +
-> +	in6_dev = in6_dev_get(rxe->ndev);
-> +	if (!in6_dev)
-> +		return false;
-> +
-> +	read_lock_bh(&in6_dev->lock);
-> +	list_for_each_entry(ifp, &in6_dev->addr_list, if_list)
-> +		if (!memcmp(&ifp->addr, daddr, sizeof(*daddr))) {
-> +			same_rxe = true;
-> +			goto out;
-> +		}
-> +out:
-> +	read_unlock_bh(&in6_dev->lock);
-> +	in6_dev_put(in6_dev);
-> +	return same_rxe;
-> +}
-> +
->  static int prepare6(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
->  		    struct sk_buff *skb, struct rxe_av *av)
->  {
-> @@ -398,7 +441,7 @@ static int prepare6(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
->  		return -EHOSTUNREACH;
->  	}
->  
-> -	if (!memcmp(saddr, daddr, sizeof(*daddr)))
-> +	if (addr6_same_rxe(rxe, daddr))
->  		pkt->mask |= RXE_LOOPBACK_MASK;
->  
->  	prepare_udp_hdr(skb, htons(RXE_ROCE_V2_SPORT),
-> -- 
-> 2.9.4
-> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
