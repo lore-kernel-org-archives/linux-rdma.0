@@ -1,45 +1,65 @@
-From: jackm <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: NFS/RDMA RoCE with mlx4_en
-Date: Wed, 26 Jul 2017 08:54:04 +0300
-Message-ID: <20170726085404.00005e29@dev.mellanox.co.il>
-References: <5E2BFC42-DDA1-4666-BA45-2E33A47C0ED5@oracle.com>
-        <20170627133306.00003fda@dev.mellanox.co.il>
-        <7FB59BD3-CB33-4710-B049-B53C6C042736@oracle.com>
+From: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH for-next 0/8] RDMA/qedr: Add iWARP support for QL4xxxx
+Date: Wed, 26 Jul 2017 14:41:49 +0300
+Message-ID: <1501069317-16601-1-git-send-email-Michal.Kalderon@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <7FB59BD3-CB33-4710-B049-B53C6C042736-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: michal.kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: yuval.mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 27 Jun 2017 12:28:43 -0400
-Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+Hi Doug,
 
-> In the process of collecting data for you, I noticed that
-> the CX3's maximum Ethernet link speed is 40Gbps, and I
-> had set the switch port speed to 56Gbps. I've set the
-> port speed back to 40Gbps, and now neither the device
-> reset nor the cma_alloc failures are reproducing.
-> 
-> If you'd like to pursue this further, I can switch back to
-> the higher speed and try to reproduce to collect this
-> information.
+This patch series adds iWARP support to our QL4xxxx networking adapters.
 
-Hi Chuck,
+The first 6 patches of this series were previously sent as an RFC
+(patches 13-18): https://www.spinics.net/lists/linux-rdma/msg51416.html
+The qed part of the RFC has already been accepted as part of 4.13:
+https://www.spinics.net/lists/netdev/msg443224.html
 
-Thank you for giving us hand in understanding the root cause.
-I apologize for the long delay in replying to your kind offer.
+Changes from RFC:
+-----------------
+* Functions rdma_protocol_iwarp/roce, are used instead of IS_IWARP/IS_ROCE
+macros when differentiating flows after device registration.
+Pointed out by Leon
+* Additional patch is added for user space iWARP support.
+* Additional maintainer added for qedr for MAINTAINERS.
 
-Fortunately, using the information you provided, we succeeded to
-reproduce the issue in house, so there is no need for you to do any
-extra work on this.
+This series was tested and built against:
+git://github.com/dledford/linux.git, branch: k.o/for-next
 
-Thanks again!
+Michal Kalderon (8):
+  RDMA/qedr: Add additional maintainer to MAINTAINERS file
+  RDMA/qedr: Rename the qedr_cm file as a preparation for iWARP support
+  RDMA/qedr: Add support for registering an iWARP device
+  RDMA/qedr: Add iWARP support in existing verbs
+  RDMA/qedr: Add support for read with invalidate, supported in iWARP
+  RDMA/qedr: Add iWARP connection management qp related callbacks
+  RDMA/qedr: Add iWARP connection management functions
+  RDMA/qedr: Add support for iWARP in user space
 
--Jack
+ MAINTAINERS                                        |   1 +
+ drivers/infiniband/hw/qedr/Makefile                |   2 +-
+ drivers/infiniband/hw/qedr/main.c                  | 105 ++-
+ drivers/infiniband/hw/qedr/qedr.h                  |  31 +-
+ drivers/infiniband/hw/qedr/qedr_hsi_rdma.h         |   6 +-
+ drivers/infiniband/hw/qedr/qedr_iw_cm.c            | 746 +++++++++++++++++++++
+ drivers/infiniband/hw/qedr/qedr_iw_cm.h            |  49 ++
+ .../hw/qedr/{qedr_cm.c => qedr_roce_cm.c}          |   2 +-
+ .../hw/qedr/{qedr_cm.h => qedr_roce_cm.h}          |   0
+ drivers/infiniband/hw/qedr/verbs.c                 | 350 +++++++---
+ drivers/infiniband/hw/qedr/verbs.h                 |   2 +
+ 11 files changed, 1203 insertions(+), 91 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qedr/qedr_iw_cm.c
+ create mode 100644 drivers/infiniband/hw/qedr/qedr_iw_cm.h
+ rename drivers/infiniband/hw/qedr/{qedr_cm.c => qedr_roce_cm.c} (99%)
+ rename drivers/infiniband/hw/qedr/{qedr_cm.h => qedr_roce_cm.h} (100%)
+
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
