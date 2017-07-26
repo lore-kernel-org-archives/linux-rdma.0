@@ -1,77 +1,45 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: Latest for-4.14
-Date: Wed, 26 Jul 2017 16:03:50 +0300
-Message-ID: <20170726130350.GW3259@mtr-leonro.local>
-References: <20170726053749.GV3259@mtr-leonro.local>
- <b337a2ae-40ff-a207-82fa-fd3c7d2e1083@intel.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-core 1/5] Common infrastructure for auto loading rdma
+ modules
+Date: Wed, 26 Jul 2017 09:48:04 -0400
+Message-ID: <0b3badf8-053f-e1ed-2be8-c5e6d416384b@intel.com>
+References: <1500929067-1583-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1500929067-1583-2-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="PLomxqHhGwMWzngE"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <b337a2ae-40ff-a207-82fa-fd3c7d2e1083-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1500929067-1583-2-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <notifications-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 7/24/2017 4:44 PM, Jason Gunthorpe wrote:
+> diff --git a/kernel-boot/modules/opa.conf b/kernel-boot/modules/opa.conf
+> new file mode 100644
+> index 00000000000000..b9bc9f1f0146af
+> --- /dev/null
+> +++ b/kernel-boot/modules/opa.conf
+> @@ -0,0 +1,10 @@
+> +# These modules are loaded by the system if any OmniPath Architecture device
+> +# is installed
+> +# Infiniband over IP netdevice
+> +ib_ipoib
 
---PLomxqHhGwMWzngE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Do we need to have rdmavt listed here too?
 
-On Wed, Jul 26, 2017 at 08:24:44AM -0400, Dennis Dalessandro wrote:
-> On 7/26/2017 1:37 AM, Leon Romanovsky wrote:
-> > Reply to: "Re: [PATCH for-next 7/9] IB/core: Allow QP state transition from reset to error"
-> >
-> > On Sun, Jul 23, 2017 at 09:14:02AM -0400, Doug Ledford wrote:
-> > > On 7/23/2017 9:04 AM, Leon Romanovsky wrote:
-> >
-> > <snip>
-> >
-> > > > BTW, when will you post for-4.14 branch so we will be able to base our
-> > > > submission queue for the -next?
-> > >
-> > > Tomorrow.  I wanted to base it on 4.13-rc2 so it would get all of the
-> > > fixes that went in this week.
-> >
-> > Any news on the matter?
-> >
->
-> Check Doug's GitHub, I see a 4.13-rc2 based "for-next" branch there.
+> +# Hardware that supports InfiniBand
+> +DRIVERS=="mlx4_core", ENV{ID_RDMA_INFINIBAND}="1"
+> +DRIVERS=="mlx5_core", ENV{ID_RDMA_INFINIBAND}="1"
+> +DRIVERS=="qib", ENV{ID_RDMA_INFINIBAND}="1"
+> +
+> +# Hardware that supports OPA
+> +DRIVERS=="hfi1verbs", ENV{ID_RDMA_IWARP}="1"
 
-Are you referring to this branch?
-https://github.com/torvalds/linux/compare/master...dledford:k.o/for-next
+Why calling this IWARP?
 
-It doesn't have most of mlx5/mlx4/cavium/core/e.t.c features.
-
-Thanks
-
->
-> -Denny
->
-
---PLomxqHhGwMWzngE
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAll4kzYACgkQ5GN7iDZy
-WKe6WA//c4fPlPUynDk58VeEXjRXiwZfhNmW1csJVW2o6WmsWDS00VgZmljefIrS
-DGv8Yxgb02nBWSEv6LlKKL+xy5wyApfv5edGI32/A8l0+Kxjhe2cmwe+IaBr6k55
-Vj1rOWPxfPyUHbLAn4Dv317QXV7rOM/YvGNIYbhSaTQt8nf+HRa5gexTe6IeW0Fk
-Oa4giMlu/mfUs6EhwBocxeK1ywneUIw/RGU34MIOa1Gg3IKwL2uI2S15LSdyULVV
-c1IXhDptM0NGGM5+BujJsTVIOS1+KFtgOqraEXqGufgap//VyuJA3+Lyfr+/YV05
-urlqA1h85FgP3IbHERGr72s8hvIlbrA7Jp1hCg/5VIgMKQqxdK9+sDQ6MQO934gE
-mqdAB6GbvHfoE6yeaujztk9wkqq6RvQNedYYhfN6zRdqOvGU2iG6O2iOngBygmO0
-++L0q3xlJ1+v+lKiqvV98wml0MnaTN0qCaZtR6TLq+HYui4axwWhnc4KdVqPo/9i
-LSxtVQQWrkKlqdI0lxXF6sYl518c6XAapro38dQk83HtDHliCWXoOHXOx4J8Ow+c
-tosoQ92oMjwvc+VVSfCreG6AoOsh1+bvgHv1UvQAhqwf0x2+1Hqbd6aR2h0Tcui8
-Ai+NKgVNaDw+VefN2vxmqgEabt2rgcGpe79ZG194bFJ59vzNs8Y=
-=Vda1
------END PGP SIGNATURE-----
-
---PLomxqHhGwMWzngE--
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
