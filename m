@@ -1,44 +1,72 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-rc 10/11] Revert "IB/core: Allow QP state transition from reset to error"
-Date: Wed, 26 Jul 2017 21:12:31 +0300
-Message-ID: <20170726181232.7363-11-leon@kernel.org>
+Subject: [rdma-rc 11/11] IB/ipoib: Notify on modify QP failure only when relevant
+Date: Wed, 26 Jul 2017 21:12:32 +0300
+Message-ID: <20170726181232.7363-12-leon@kernel.org>
 References: <20170726181232.7363-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170726181232.7363-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The commit ebc9ca43e1d5 ("IB/core: Allow QP state transition from reset to error")
-allowed transition from Reset to Error state for the QPs. This behavior
-doesn't follow the IBTA specification 1.3, which in 10.3.1 QUEUE PAIR AND
-EE CONTEXT STATES section.
+Modify QP can fail and it can be acceptable, like when moving from RST to
+ERR state, all the rest are not acceptable and a message to the log
+should be printed.
 
-The quote from the spec:
-"An error can be forced from any state, except Reset, with
-the Modify QP/EE Verb."
+The current code prints on all failures and many messages like:
+"Failed to modify QP to ERROR state" appear, even when supported by the
+state machine of the QP object.
 
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Erez Shitrit <erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c | 23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index fb98ed67d5bc..7f8fe443df46 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -895,7 +895,6 @@ static const struct {
- } qp_state_table[IB_QPS_ERR + 1][IB_QPS_ERR + 1] = {
- 	[IB_QPS_RESET] = {
- 		[IB_QPS_RESET] = { .valid = 1 },
--		[IB_QPS_ERR] =   { .valid = 1 },
- 		[IB_QPS_INIT]  = {
- 			.valid = 1,
- 			.req_param = {
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index 02eda1f53a67..2e075377242e 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -711,6 +711,27 @@ static int recvs_pending(struct net_device *dev)
+ 	return pending;
+ }
+ 
++static void check_qp_movement_and_print(struct ipoib_dev_priv *priv,
++					struct ib_qp *qp,
++					enum ib_qp_state new_state)
++{
++	struct ib_qp_attr qp_attr;
++	struct ib_qp_init_attr query_init_attr;
++	int ret;
++
++	ret = ib_query_qp(qp, &qp_attr, IB_QP_STATE, &query_init_attr);
++	if (ret) {
++		ipoib_warn(priv, "%s: Failed to query QP\n", __func__);
++		return;
++	}
++	/* print according to the new-state and the previous state.*/
++	if (new_state == IB_QPS_ERR && qp_attr.qp_state == IB_QPS_RESET)
++		ipoib_dbg(priv, "Failed modify QP, IB_QPS_RESET to IB_QPS_ERR, acceptable\n");
++	else
++		ipoib_warn(priv, "Failed to modify QP to state: %d from state: %d\n",
++			   new_state, qp_attr.qp_state);
++}
++
+ int ipoib_ib_dev_stop_default(struct net_device *dev)
+ {
+ 	struct ipoib_dev_priv *priv = ipoib_priv(dev);
+@@ -730,7 +751,7 @@ int ipoib_ib_dev_stop_default(struct net_device *dev)
+ 	 */
+ 	qp_attr.qp_state = IB_QPS_ERR;
+ 	if (ib_modify_qp(priv->qp, &qp_attr, IB_QP_STATE))
+-		ipoib_warn(priv, "Failed to modify QP to ERROR state\n");
++		check_qp_movement_and_print(priv, priv->qp, IB_QPS_ERR);
+ 
+ 	/* Wait for all sends and receives to complete */
+ 	begin = jiffies;
 -- 
 2.13.3
 
