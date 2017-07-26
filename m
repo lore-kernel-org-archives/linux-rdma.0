@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-rc 09/11] IB/ipoib: Remove double pointer assigning
-Date: Wed, 26 Jul 2017 21:12:30 +0300
-Message-ID: <20170726181232.7363-10-leon@kernel.org>
+Subject: [rdma-rc 10/11] Revert "IB/core: Allow QP state transition from reset to error"
+Date: Wed, 26 Jul 2017 21:12:31 +0300
+Message-ID: <20170726181232.7363-11-leon@kernel.org>
 References: <20170726181232.7363-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170726181232.7363-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,31 +12,33 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-There is no need to assign "p" pointer twice.
+The commit ebc9ca43e1d5 ("IB/core: Allow QP state transition from reset to error")
+allowed transition from Reset to Error state for the QPs. This behavior
+doesn't follow the IBTA specification 1.3, which in 10.3.1 QUEUE PAIR AND
+EE CONTEXT STATES section.
 
-This patch fixes the following smatch warning:
-drivers/infiniband/ulp/ipoib/ipoib_cm.c:517 ipoib_cm_rx_handler() warn:
-	missing break? reassigning 'p->id'
+The quote from the spec:
+"An error can be forced from any state, except Reset, with
+the Modify QP/EE Verb."
 
-Fixes: 839fcaba355a ("IPoIB: Connected mode experimental support")
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_cm.c | 1 -
+ drivers/infiniband/core/verbs.c | 1 -
  1 file changed, 1 deletion(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index f87d104837dc..d69410c2ed97 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -511,7 +511,6 @@ static int ipoib_cm_rx_handler(struct ib_cm_id *cm_id,
- 	case IB_CM_REQ_RECEIVED:
- 		return ipoib_cm_req_handler(cm_id, event);
- 	case IB_CM_DREQ_RECEIVED:
--		p = cm_id->context;
- 		ib_send_cm_drep(cm_id, NULL, 0);
- 		/* Fall through */
- 	case IB_CM_REJ_RECEIVED:
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index fb98ed67d5bc..7f8fe443df46 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -895,7 +895,6 @@ static const struct {
+ } qp_state_table[IB_QPS_ERR + 1][IB_QPS_ERR + 1] = {
+ 	[IB_QPS_RESET] = {
+ 		[IB_QPS_RESET] = { .valid = 1 },
+-		[IB_QPS_ERR] =   { .valid = 1 },
+ 		[IB_QPS_INIT]  = {
+ 			.valid = 1,
+ 			.req_param = {
 -- 
 2.13.3
 
