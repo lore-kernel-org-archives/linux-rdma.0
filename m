@@ -1,176 +1,124 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 1/8] srp_daemon: Move the setup of the wakeup_pipe after openlog
-Date: Wed, 26 Jul 2017 13:59:05 -0600
-Message-ID: <1501099152-6344-2-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 7/8] iwpmd: Add --systemd option
+Date: Wed, 26 Jul 2017 13:59:11 -0600
+Message-ID: <1501099152-6344-8-git-send-email-jgunthorpe@obsidianresearch.com>
 References: <1501099152-6344-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1501099152-6344-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Tatyana Nikolova <Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Pipe setup failure triggers logging calls which shouldn't happen until
-logging has been setup. Instead move this setup to after each of the
-two configuration steps.
-
-Bart says that wakeup_pipe[] is not used by ibsrpdm, so this also
-drops the pipe setup and signal change from that code path.
+This avoids daemonizing the server and forking as systemd does
+all of that for us. The notable benefit is to allow stderr to
+be routed to the journal in case there is any sort of internal
+fault (eg a glibc memory failure)
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- srp_daemon/srp_daemon.c | 98 ++++++++++++++++++++++++++++++-------------------
- 1 file changed, 60 insertions(+), 38 deletions(-)
+ iwpmd/iwarp_pm_server.c                   | 29 ++++++++++++++++++++++++++---
+ iwpmd/iwpmd.8.in                          |  4 ++++
+ iwpmd/{iwpmd.service => iwpmd.service.in} |  3 +--
+ 3 files changed, 31 insertions(+), 5 deletions(-)
+ rename iwpmd/{iwpmd.service => iwpmd.service.in} (75%)
 
-diff --git a/srp_daemon/srp_daemon.c b/srp_daemon/srp_daemon.c
-index c0e8d23d58faf5..ec394b686d55ff 100644
---- a/srp_daemon/srp_daemon.c
-+++ b/srp_daemon/srp_daemon.c
-@@ -1955,6 +1955,58 @@ static void ts_sub(const struct timespec *a, const struct timespec *b,
- 	}
- }
+diff --git a/iwpmd/iwarp_pm_server.c b/iwpmd/iwarp_pm_server.c
+index ec5721020e224c..928b8631fe89d3 100644
+--- a/iwpmd/iwarp_pm_server.c
++++ b/iwpmd/iwarp_pm_server.c
+@@ -32,6 +32,7 @@
+  */
  
-+static void cleanup_wakeup_fd(void)
-+{
-+	struct sigaction sa = {};
-+
-+	sigemptyset(&sa.sa_mask);
-+	sa.sa_handler = SIG_DFL;
-+	sigaction(SIGINT, &sa, NULL);
-+	sigaction(SIGTERM, &sa, NULL);
-+	sigaction(SRP_CATAS_ERR, &sa, NULL);
-+
-+	close(wakeup_pipe[1]);
-+	close(wakeup_pipe[0]);
-+	wakeup_pipe[0] = -1;
-+	wakeup_pipe[1] = -1;
-+}
-+
-+static int setup_wakeup_fd(void)
-+{
-+	struct sigaction sa = {};
-+	int ret;
-+	int i;
-+	int flags;
-+
-+	ret = pipe(wakeup_pipe);
-+	if (ret < 0) {
-+		pr_err("could not create pipe\n");
-+		return -1;
-+	}
-+	for (i = 0; i < 2; i++) {
-+		flags = fcntl(wakeup_pipe[i], F_GETFL);
-+		if (flags < 0) {
-+			pr_err("fcntl F_GETFL failed for %d\n", wakeup_pipe[i]);
-+			goto close_pipe;
-+		}
-+		if (fcntl(wakeup_pipe[i], F_SETFL, flags | O_NONBLOCK) < 0) {
-+			pr_err("fcntl F_SETFL failed for %d\n", wakeup_pipe[i]);
-+			goto close_pipe;
-+		}
-+	}
-+
-+	sigemptyset(&sa.sa_mask);
-+	sa.sa_handler = signal_handler;
-+	sigaction(SIGINT, &sa, NULL);
-+	sigaction(SIGTERM, &sa, NULL);
-+	sigaction(SRP_CATAS_ERR, &sa, NULL);
-+	return 0;
-+
-+close_pipe:
-+	cleanup_wakeup_fd();
-+	return -1;
-+}
-+
- static int ibsrpdm(int argc, char *argv[])
+ #include "config.h"
++#include <getopt.h>
+ #include "iwarp_pm.h"
+ 
+ static const char iwpm_ulib_name [] = "iWarpPortMapperUser";
+@@ -1355,14 +1356,13 @@ iwarp_port_mapper_exit:
+ 
+ /**
+  * daemonize_iwpm_server - Make iwarp port mapper a daemon process
+- */ 
++ */
+ static void daemonize_iwpm_server(void)
  {
- 	char* umad_dev = NULL;
-@@ -2032,13 +2084,12 @@ umad_done:
- 
- int main(int argc, char *argv[])
- {
--	int			ret, i, flags;
-+	int			ret;
- 	struct resources       *res;
- 	uint16_t 		lid;
- 	uint16_t 		pkey;
- 	union umad_gid 		gid;
- 	struct target_details  *target;
--	struct sigaction	sa;
- 	int			subscribed;
- 	int			lockfd = -1;
- 	int			received_signal = 0;
-@@ -2059,35 +2110,10 @@ int main(int argc, char *argv[])
- 	BUILD_ASSERT(sizeof(struct srp_dm_iou_info) == 132);
- 	BUILD_ASSERT(sizeof(struct srp_dm_ioc_prof) == 128);
- 
--	ret = pipe(wakeup_pipe);
--	if (ret < 0) {
--		pr_err("could not create pipe\n");
--		goto out;
--	}
--	for (i = 0; i < 2; i++) {
--		flags = fcntl(wakeup_pipe[i], F_GETFL);
--		if (flags < 0) {
--			pr_err("fcntl F_GETFL failed for %d\n", wakeup_pipe[i]);
--			goto close_pipe;
--		}
--		if (fcntl(wakeup_pipe[i], F_SETFL, flags | O_NONBLOCK) < 0) {
--			pr_err("fcntl F_SETFL failed for %d\n", wakeup_pipe[i]);
--			goto close_pipe;
--		}
--
--	}
--
--	memset(&sa, 0, sizeof(sa));
--	sigemptyset(&sa.sa_mask);
--	sa.sa_handler = signal_handler;
--	sigaction(SIGINT, &sa, NULL);
--	sigaction(SIGTERM, &sa, NULL);
--	sigaction(SRP_CATAS_ERR, &sa, NULL);
--
- 	if (strcmp(argv[0] + max_t(int, 0, strlen(argv[0]) - strlen("ibsrpdm")),
- 		   "ibsrpdm") == 0) {
- 		ret = ibsrpdm(argc, argv);
--		goto restore_sig;
-+		goto out;
+ 	if (daemon(0, 0) != 0) {
+ 		syslog(LOG_ERR, "Failed to daemonize\n");
+ 		exit(EXIT_FAILURE);
  	}
+-	umask(0); /* change file mode mask */
  
- 	openlog("srp_daemon", LOG_PID | LOG_PERROR, LOG_DAEMON);
-@@ -2115,6 +2141,10 @@ int main(int argc, char *argv[])
- 		}
- 	}
- 
-+	ret = setup_wakeup_fd();
-+	if (ret)
-+		goto cleanup_wakeup;
+ 	syslog(LOG_WARNING, "daemonize_iwpm_server: Starting iWarp Port Mapper V%d process\n",
+ 				iwpm_version);
+@@ -1374,10 +1374,33 @@ int main(int argc, char *argv[])
+ 	int known_clients;
+ 	FILE *fp;
+ 	int ret = EXIT_FAILURE;
++	bool systemd = false;
 +
- catas_start:
- 	subscribed = 0;
++	while (1) {
++		static const struct option long_opts[] = {
++			{"systemd", 0, NULL, 's'},
++			{}
++		};
++
++		int c = getopt_long(argc, argv, "fs", long_opts, NULL);
++		if (c == -1)
++			break;
++
++		switch (c) {
++		case 's':
++			systemd = true;
++			break;
++		default:
++			break;
++
++		}
++	}
  
-@@ -2279,20 +2309,12 @@ clean_umad:
- close_lockfd:
- 	if (lockfd >= 0)
- 		close(lockfd);
-+cleanup_wakeup:
-+	cleanup_wakeup_fd();
- free_config:
- 	free_config(config);
- close_log:
- 	closelog();
--restore_sig:
--	sa.sa_handler = SIG_DFL;
--	sigaction(SIGINT, &sa, NULL);
--	sigaction(SIGTERM, &sa, NULL);
--	sigaction(SRP_CATAS_ERR, &sa, NULL);
--close_pipe:
--	close(wakeup_pipe[1]);
--	close(wakeup_pipe[0]);
--	wakeup_pipe[0] = -1;
--	wakeup_pipe[1] = -1;
- out:
- 	exit(ret ? 1 : 0);
- }
+ 	openlog(NULL, LOG_NDELAY | LOG_CONS | LOG_PID, LOG_DAEMON);
+ 
+-	daemonize_iwpm_server();
++	if (!systemd)
++		daemonize_iwpm_server();
++	umask(0); /* change file mode mask */
+ 
+ 	fp = fopen(IWPM_CONFIG_FILE, "r");
+ 	if (fp) {
+diff --git a/iwpmd/iwpmd.8.in b/iwpmd/iwpmd.8.in
+index c42f2dd3de2b8a..76efaa46e8a014 100644
+--- a/iwpmd/iwpmd.8.in
++++ b/iwpmd/iwpmd.8.in
+@@ -45,6 +45,10 @@ which then releases the TCP port.
+ The message exchange between iwpmd and the iWARP Connection Manager
+ (between user space and kernel space) is implemented using netlink
+ sockets.
++.SH OPTIONS
++.sp
++\fB\-s, \-\-systemd\fP
++Enable systemd integration.
+ .SH "SIGNALS"
+ SIGUSR1 will force a dump of the current mappings
+ to the system message log.
+diff --git a/iwpmd/iwpmd.service b/iwpmd/iwpmd.service.in
+similarity index 75%
+rename from iwpmd/iwpmd.service
+rename to iwpmd/iwpmd.service.in
+index 6d093fb2fda5a7..25740ebdcf9a82 100644
+--- a/iwpmd/iwpmd.service
++++ b/iwpmd/iwpmd.service.in
+@@ -4,9 +4,8 @@ Documentation=man:iwpmd file:/etc/iwpmd.conf
+ After=network.target
+ 
+ [Service]
+-ExecStart=/usr/bin/iwpmd
++ExecStart=@CMAKE_INSTALL_FULL_SBINDIR@/iwpmd --systemd
+ LimitNOFILE=102400
+-KillMode=process
+ 
+ [Install]
+ WantedBy=multi-user.target
 -- 
 2.7.4
 
