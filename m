@@ -1,49 +1,54 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-rc 05/11] IB/ipoib: Set IPOIB_NEIGH_TBL_FLUSH after flushed completion initialization
-Date: Wed, 26 Jul 2017 21:12:26 +0300
-Message-ID: <20170726181232.7363-6-leon@kernel.org>
+Subject: [rdma-rc 06/11] IB/ipoib: Add multicast packets statistics
+Date: Wed, 26 Jul 2017 21:12:27 +0300
+Message-ID: <20170726181232.7363-7-leon@kernel.org>
 References: <20170726181232.7363-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170726181232.7363-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Set IPOIB_NEIGH_TBL_FLUSH bit after initializing the neighbor
-flushed completion, otherwise the garbage collector may signal
-a completion while it is not initialized yet.
+Update the multicast counter when multicast packets are received and
+provide this information through ethtool support.
 
-Fixes: b63b70d87741 ("IPoIB: Use a private hash table for path lookup in xmit path")
-Signed-off-by: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Alex Vesker <valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/ulp/ipoib/ipoib_ethtool.c | 3 ++-
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c      | 2 ++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 8b7ec15a9d6e..f4403c52cd67 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1560,6 +1560,7 @@ static void ipoib_flush_neighs(struct ipoib_dev_priv *priv)
- 	int i, wait_flushed = 0;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
+index 7871379342f4..184a22f48027 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
+@@ -52,7 +52,8 @@ static const struct ipoib_stats ipoib_gstrings_stats[] = {
+ 	IPOIB_NETDEV_STAT(tx_bytes),
+ 	IPOIB_NETDEV_STAT(tx_errors),
+ 	IPOIB_NETDEV_STAT(rx_dropped),
+-	IPOIB_NETDEV_STAT(tx_dropped)
++	IPOIB_NETDEV_STAT(tx_dropped),
++	IPOIB_NETDEV_STAT(multicast),
+ };
  
- 	init_completion(&priv->ntbl.flushed);
-+	set_bit(IPOIB_NEIGH_TBL_FLUSH, &priv->flags);
+ #define IPOIB_GLOBAL_STATS_LEN	ARRAY_SIZE(ipoib_gstrings_stats)
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index 57a9655e844d..02eda1f53a67 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -256,6 +256,8 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
  
- 	spin_lock_irqsave(&priv->lock, flags);
+ 	++dev->stats.rx_packets;
+ 	dev->stats.rx_bytes += skb->len;
++	if (skb->pkt_type == PACKET_MULTICAST)
++		dev->stats.multicast++;
  
-@@ -1604,7 +1605,6 @@ static void ipoib_neigh_hash_uninit(struct net_device *dev)
- 
- 	ipoib_dbg(priv, "ipoib_neigh_hash_uninit\n");
- 	init_completion(&priv->ntbl.deleted);
--	set_bit(IPOIB_NEIGH_TBL_FLUSH, &priv->flags);
- 
- 	/* Stop GC if called at init fail need to cancel work */
- 	stopped = test_and_set_bit(IPOIB_STOP_NEIGH_GC, &priv->flags);
+ 	skb->dev = dev;
+ 	if ((dev->features & NETIF_F_RXCSUM) &&
 -- 
 2.13.3
 
