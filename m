@@ -1,107 +1,69 @@
-From: Zohar Ben Aharon <zoharb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: perftest proprietary files
-Date: Thu, 27 Jul 2017 14:25:53 +0000
-Message-ID: <DB6PR05MB3493CD259D663959D1D0DFA0A9BE0@DB6PR05MB3493.eurprd05.prod.outlook.com>
-References: <2411a5c0-84f8-124e-83ce-1ee587dcf4ce@suse.de>
-          <DB6PR05MB3493378C569E416783246ED4A9BE0@DB6PR05MB3493.eurprd05.prod.outlook.com>
- <1501165194.4572.32.camel@profitbricks.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [rdma-rc 10/11] Revert "IB/core: Allow QP state transition from
+ reset to error"
+Date: Thu, 27 Jul 2017 10:52:08 -0400
+Message-ID: <49fe625b-cd44-137e-c001-1d85297f4e62@intel.com>
+References: <20170726181232.7363-1-leon@kernel.org>
+ <20170726181232.7363-11-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1501165194.4572.32.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <20170726181232.7363-11-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-VGhhbmtzIEJlbmphbWluIGZvciB5b3UgaW5wdXQsDQoNCkNhbiB5b3Ugc3VibWl0IHRoZSBiZWxs
-b3cgIGZpbGVzICB0byBvdXIgZ2l0aHViIHJlcG9zaXRvcnkgaHR0cHM6Ly9naXRodWIuY29tL2xp
-bnV4LXJkbWEvcGVyZnRlc3QgLg0KDQpJIHdpbGwgcmUtcmV2aWV3IGl0IA0KDQoNClRoYW5rcyAs
-DQoNCg0KWm9oYXIgQmVuIEFoYXJvbg0KUGVyZnJvbWFuY2UgRW5naW5lZXINCk1lbGxhbm94IFRl
-Y2hub2xvZ2llcyBMdGQuDQpQaG9uZTogwqArOTcyICg3NCkgNzIzIDY4MjkNCk1vYmlsZTogKzk3
-MiAoNTIpIDY5MSAxMTE1DQoNCg0KDQoNCg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZy
-b206IEJlbmphbWluIERydW5nIFttYWlsdG86YmVuamFtaW4uZHJ1bmdAcHJvZml0YnJpY2tzLmNv
-bV0gDQpTZW50OiBUaHVyc2RheSwgSnVseSAyNywgMjAxNyA1OjIwIFBNDQpUbzogWm9oYXIgQmVu
-IEFoYXJvbiA8em9oYXJiQG1lbGxhbm94LmNvbT47IE5pY29sYXMgTW9yZXktQ2hhaXNlbWFydGlu
-IDxOTW9yZXlDaGFpc2VtYXJ0aW5Ac3VzZS5kZT47IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3Jn
-DQpTdWJqZWN0OiBSZTogcGVyZnRlc3QgcHJvcHJpZXRhcnkgZmlsZXMNCg0KSGkgTmljb2xhcywN
-Cg0KY2FuIE1lbGxhbm94IGFkanVzdCB0aGUgaGVhZGVyIG9mIHRoZSBmaWxlcz8gQ3VycmVudGx5
-IGl0IHNheXM6DQoNCiMNCiMgQ29weXJpZ2h0IChDKSBNZWxsYW5veCBUZWNobm9sb2dpZXMgTHRk
-LiAyMDAxLTIwMTEuwqDCoEFMTCBSSUdIVFMgUkVTRVJWRUQuDQojIFRoaXMgc29mdHdhcmUgcHJv
-ZHVjdCBpcyBhIHByb3ByaWV0YXJ5IHByb2R1Y3Qgb2YgTWVsbGFub3ggVGVjaG5vbG9naWVzIEx0
-ZC4NCiMgKHRoZSAiQ29tcGFueSIpIGFuZCBhbGwgcmlnaHQsIHRpdGxlLCBhbmQgaW50ZXJlc3Qg
-YW5kIHRvIHRoZSBzb2Z0d2FyZSBwcm9kdWN0LCAjIGluY2x1ZGluZyBhbGwgYXNzb2NpYXRlZCBp
-bnRlbGxlY3R1YWwgcHJvcGVydHkgcmlnaHRzLCBhcmUgYW5kIHNoYWxsICMgcmVtYWluIGV4Y2x1
-c2l2ZWx5IHdpdGggdGhlIENvbXBhbnkuDQojDQojIFRoaXMgc29mdHdhcmUgcHJvZHVjdCBpcyBn
-b3Zlcm5lZCBieSB0aGUgRW5kIFVzZXIgTGljZW5zZSBBZ3JlZW1lbnQgIyBwcm92aWRlZCB3aXRo
-IHRoZSBzb2Z0d2FyZSBwcm9kdWN0Lg0KIyAkQ09QWVJJR0hUJA0KIyAkSEVBREVSJA0KIw0KDQpi
-dXQgc2luY2UgaXQgaXMgZ3BsL2JzZCAoYXMgeW91IHNhaWQpLCB0aGUgaGVhZGVyIHNob3VsZCBy
-ZWFkIHNvbWV0aGluZyBsaWtlOg0KDQojIENvcHlyaWdodCAoQykgTWVsbGFub3ggVGVjaG5vbG9n
-aWVzIEx0ZC4gMjAwMS0yMDExLiAgQWxsIHJpZ2h0cyByZXNlcnZlZC4NCiMNCiMgVGhpcyBzb2Z0
-d2FyZSBpcyBhdmFpbGFibGUgdG8geW91IHVuZGVyIGEgY2hvaWNlIG9mIG9uZSBvZiB0d28gIyBs
-aWNlbnNlcy4gIFlvdSBtYXkgY2hvb3NlIHRvIGJlIGxpY2Vuc2VkIHVuZGVyIHRoZSB0ZXJtcyBv
-ZiB0aGUgR05VICMgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSAoR1BMKSBWZXJzaW9uIDIsIGF2YWls
-YWJsZSBmcm9tIHRoZSBmaWxlICMgQ09QWUlORyBpbiB0aGUgbWFpbiBkaXJlY3Rvcnkgb2YgdGhp
-cyBzb3VyY2UgdHJlZSwgb3IgdGhlICMgT3BlbklCLm9yZyBCU0QgbGljZW5zZSBiZWxvdzoNCiMN
-CiMgICAgIFJlZGlzdHJpYnV0aW9uIGFuZCB1c2UgaW4gc291cmNlIGFuZCBiaW5hcnkNCmZvcm1z
-LCB3aXRoIG9yDQojICAgICB3aXRob3V0IG1vZGlmaWNhdGlvbiwgYXJlIHBlcm1pdHRlZCBwcm92
-aWRlZCB0aGF0DQp0aGUgZm9sbG93aW5nDQojICAgICBjb25kaXRpb25zIGFyZSBtZXQ6DQojDQoj
-ICAgICAgLSBSZWRpc3RyaWJ1dGlvbnMgb2YNCnNvdXJjZSBjb2RlIG11c3QgcmV0YWluIHRoZSBh
-Ym92ZQ0KIyAgICAgICAgY29weXJpZ2h0IG5vdGljZSwgdGhpcyBsaXN0DQpvZiBjb25kaXRpb25z
-IGFuZCB0aGUgZm9sbG93aW5nDQojICAgICAgICBkaXNjbGFpbWVyLg0KIw0KIyAgICAgIC0NClJl
-ZGlzdHJpYnV0aW9ucyBpbiBiaW5hcnkgZm9ybSBtdXN0IHJlcHJvZHVjZSB0aGUgYWJvdmUNCiMg
-ICAgICAgDQpjb3B5cmlnaHQgbm90aWNlLCB0aGlzIGxpc3Qgb2YgY29uZGl0aW9ucyBhbmQgdGhl
-IGZvbGxvd2luZw0KIyAgICAgICANCmRpc2NsYWltZXIgaW4gdGhlIGRvY3VtZW50YXRpb24gYW5k
-L29yIG90aGVyIG1hdGVyaWFscw0KIyAgICAgICAgcHJvdmlkZWQNCndpdGggdGhlIGRpc3RyaWJ1
-dGlvbi4NCiMNCiMgVEhFIFNPRlRXQVJFIElTIFBST1ZJREVEICJBUyBJUyIsIFdJVEhPVVQgV0FS
-UkFOVFkgT0YgQU5ZIEtJTkQsICMgRVhQUkVTUyBPUiBJTVBMSUVELCBJTkNMVURJTkcgQlVUIE5P
-VCBMSU1JVEVEIFRPIFRIRSBXQVJSQU5USUVTIE9GICMgTUVSQ0hBTlRBQklMSVRZLCBGSVRORVNT
-IEZPUiBBIFBBUlRJQ1VMQVIgUFVSUE9TRSBBTkQgIyBOT05JTkZSSU5HRU1FTlQuIElOIE5PIEVW
-RU5UIFNIQUxMIFRIRSBBVVRIT1JTIE9SIENPUFlSSUdIVCBIT0xERVJTICMgQkUgTElBQkxFIEZP
-UiBBTlkgQ0xBSU0sIERBTUFHRVMgT1IgT1RIRVIgTElBQklMSVRZLCBXSEVUSEVSIElOIEFOICMg
-QUNUSU9OIE9GIENPTlRSQUNULCBUT1JUIE9SIE9USEVSV0lTRSwgQVJJU0lORyBGUk9NLCBPVVQg
-T0YgT1IgSU4gIyBDT05ORUNUSU9OIFdJVEggVEhFIFNPRlRXQVJFIE9SIFRIRSBVU0UgT1IgT1RI
-RVIgREVBTElOR1MgSU4gVEhFICMgU09GVFdBUkUuDQoNCkFtIERvbm5lcnN0YWcsIGRlbiAyNy4w
-Ny4yMDE3LCAxMjozNSArMDAwMCBzY2hyaWViIFpvaGFyIEJlbiBBaGFyb246DQo+IEhpIE5pY29s
-YXMsDQo+IA0KPiANCj4gSSd2ZSB2ZXJpZmllZCB5b3VyIGlzc3VlLA0KPiBNZWxsYW5veCBwcm92
-aWRlIHBlcmZ0ZXN0IHRvIGJlIHVuZGVyIGdwbC9ic2QgbGljZW5zZS4NCj4gc2luY2UgTWVsbGFu
-b3ggaXMgdGhlIG1haW50YWluZXIgYW5kIHJlbGVhc2UgcGVyZnRlc3QgYXMgYW4gb3BlbiANCj4g
-c291cmNlIFNXIGl0IHN0aWxsIGNhbiBoYXZlIGNvcHlyaWdodHMgb24gZWFjaCBmaWxlIHRoYXQg
-d2FzIHdyaXR0ZW4gDQo+IG9yIGFwcHJvdmVkIGJ5IGl0cyBkZXZlbG9wZXJzLCBTbyB0aGUgaGVh
-ZGVycyBzaG91bGQgcmVtYWluIGFuZCANCj4gZGVjbGFyZWQgYXMgTWVsbGFub3ggcHJvcHJpZXR5
-Lg0KPiANCj4gSG9wZSBpcyBoZWxwcyB5b3UuDQo+IA0KPiBUaGFua3MsDQo+IA0KPiANCj4gWm9o
-YXIgQmVuIEFoYXJvbg0KPiBQZXJmcm9tYW5jZSBFbmdpbmVlcg0KPiBNZWxsYW5veCBUZWNobm9s
-b2dpZXMgTHRkLg0KPiBQaG9uZTogwqArOTcyICg3NCkgNzIzIDY4MjkNCj4gTW9iaWxlOiArOTcy
-ICg1MikgNjkxIDExMTUNCj4gDQo+IA0KPiANCj4gDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0t
-LS0tDQo+IEZyb206IFpvaGFyIEJlbiBBaGFyb24NCj4gU2VudDogTW9uZGF5LCBKdWx5IDI0LCAy
-MDE3IDg6NDEgQU0NCj4gVG86ICdOaWNvbGFzIE1vcmV5LUNoYWlzZW1hcnRpbicgPE5Nb3JleUNo
-YWlzZW1hcnRpbkBzdXNlLmRlPjsgbGludXgtIA0KPiByZG1hQHZnZXIua2VybmVsLm9yZw0KPiBT
-dWJqZWN0OiBSRTogcGVyZnRlc3QgcHJvcHJpZXRhcnkgZmlsZXMNCj4gDQo+IFNvcnJ5IGZvciB0
-aGUgbGF0ZSByZXNwb25zZSwNCj4gaWxsIHZlcmlmeSB0aGlzIGZpbGVzIHByb3ByaWV0eSBhbmQg
-YmFjayB0byB5b3UuDQo+IA0KPiANCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJv
-bTogTmljb2xhcyBNb3JleS1DaGFpc2VtYXJ0aW4gW21haWx0bzpOTW9yZXlDaGFpc2VtYXJ0aW5A
-c3VzZS5kZV0NCj4gU2VudDogRnJpZGF5LCBKdWx5IDIxLCAyMDE3IDExOjI5IEFNDQo+IFRvOiBs
-aW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgWm9oYXIgQmVuIEFoYXJvbiA8em9oYXJiQG1lbGxh
-bm94LmNvbQ0KPiA+DQo+IFN1YmplY3Q6IHBlcmZ0ZXN0IHByb3ByaWV0YXJ5IGZpbGVzDQo+IA0K
-PiBIaSwNCj4gDQo+IFdoaWxlIHBhY2thZ2luZyBwZXJmdGVzdCBmb3IgU1VTRSwgSSBkaXNjb3Zl
-cmVkIHRoYXQgc29tZSBmaWxlcyBoYXZlIA0KPiBoZWFkZXJzwqDCoGRlY2xhcmluZyB0aGUgc29m
-dHdhcmUgYXMgTWVsbGFub3ggcHJvcHJpZXRhcnkgd2hpbGUgdGhlIA0KPiBDT1BZSU5HIGRlY2xh
-cmVzIExHUEwvQlNELg0KPiANCj4gVGhlIGZpbGVzIGFyZToNCj4gKiBNYWtlZmlsZS5hbQ0KPiAq
-IE1ha2VmaWxlLmluDQo+ICogY29uZmlndXJlLmFjDQo+IA0KPiBTaG91bGQgdGhlc2UgaGVhZGVy
-cyBiZSBkcm9wcGVkID8NCj4gDQo+IChJIHBpbmdlZCB6b2hhcmIgYWJvdXQgdGhpcyBhbHJlYWR5
-IHdpdGhvdXQgbXVjaCBsdWNrLiBGaWd1cmVkIGl0IA0KPiBtaWdodCBiZSB3b3J0aCBhIHNob3Qg
-aGVyZSkNCj4gDQotLQ0KQmVuamFtaW4gRHJ1bmcNClN5c3RlbSBEZXZlbG9wZXINCkRlYmlhbiAm
-IFVidW50dSBEZXZlbG9wZXINCg0KUHJvZml0QnJpY2tzIEdtYkgNCkdyZWlmc3dhbGRlciBTdHIu
-IDIwNw0KRCAtIDEwNDA1IEJlcmxpbg0KDQpFbWFpbDogYmVuamFtaW4uZHJ1bmdAcHJvZml0YnJp
-Y2tzLmNvbQ0KV2ViOsKgaHR0cHM6Ly9lbWVhMDEuc2FmZWxpbmtzLnByb3RlY3Rpb24ub3V0bG9v
-ay5jb20vP3VybD1odHRwcyUzQSUyRiUyRnd3dy5wcm9maXRicmlja3MuY29tJmRhdGE9MDIlN0Mw
-MSU3Q3pvaGFyYiU0MG1lbGxhbm94LmNvbSU3Q2FmYzk5YTIwYjJkOTQ2YmMzNWJmMDhkNGQ0ZmE4
-ZWMzJTdDYTY1Mjk3MWM3ZDJlNGQ5YmE2YTRkMTQ5MjU2ZjQ2MWIlN0MwJTdDMCU3QzYzNjM2NzYx
-OTk4NTEyODcwNyZzZGF0YT1GUnlZZzBwYU92NGt0SnpCZCUyRmtSelRaanZoVnR2ODlKNXRDR2kl
-MkZHcEdwTSUzRCZyZXNlcnZlZD0wDQoNClNpdHogZGVyIEdlc2VsbHNjaGFmdDogQmVybGluLg0K
-UmVnaXN0ZXJnZXJpY2h0OiBBbXRzZ2VyaWNodCBDaGFybG90dGVuYnVyZywgSFJCIDEyNTUwNkIu
-DQpHZXNjaMOkZnRzZsO8aHJlcjogQWNoaW0gV2Vpc3MuDQoNCg==
+On 7/26/2017 2:12 PM, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> The commit ebc9ca43e1d5 ("IB/core: Allow QP state transition from reset to error")
+> allowed transition from Reset to Error state for the QPs. This behavior
+> doesn't follow the IBTA specification 1.3, which in 10.3.1 QUEUE PAIR AND
+> EE CONTEXT STATES section.
+> 
+> The quote from the spec:
+> "An error can be forced from any state, except Reset, with
+> the Modify QP/EE Verb."
+> 
+> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> ---
+>   drivers/infiniband/core/verbs.c | 1 -
+>   1 file changed, 1 deletion(-)
+> 
+> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+> index fb98ed67d5bc..7f8fe443df46 100644
+> --- a/drivers/infiniband/core/verbs.c
+> +++ b/drivers/infiniband/core/verbs.c
+> @@ -895,7 +895,6 @@ static const struct {
+>   } qp_state_table[IB_QPS_ERR + 1][IB_QPS_ERR + 1] = {
+>   	[IB_QPS_RESET] = {
+>   		[IB_QPS_RESET] = { .valid = 1 },
+> -		[IB_QPS_ERR] =   { .valid = 1 },
+>   		[IB_QPS_INIT]  = {
+>   			.valid = 1,
+>   			.req_param = {
+> 
+
+The diagram from that section clearly shows you can't go from reset to 
+error. However table 91 as in our original commit message says it could 
+go to error from any state. Taking a step back and thinking about it, 
+I'm not sure it really makes sense to be able to go from reset to error 
+anyway. There is nothing that can go wrong until the qp is transitioned 
+out of reset really.
+
+Any idea why this patch was never adopted:
+http://www.spinics.net/lists/linux-rdma/msg07627.html
+
+This was during my storage hiatus so I wasn't following things RDMA back 
+then. However this seems like the correct approach to me. Granted that 
+patch would look different as the code has moved around but the same 
+sort of check could go in ipoib_ib_dev_stop_default().
+
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
