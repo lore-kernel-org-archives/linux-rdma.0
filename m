@@ -1,162 +1,107 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: perftest proprietary files
-Date: Thu, 27 Jul 2017 16:19:54 +0200
-Message-ID: <1501165194.4572.32.camel@profitbricks.com>
+From: Zohar Ben Aharon <zoharb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: perftest proprietary files
+Date: Thu, 27 Jul 2017 14:25:53 +0000
+Message-ID: <DB6PR05MB3493CD259D663959D1D0DFA0A9BE0@DB6PR05MB3493.eurprd05.prod.outlook.com>
 References: <2411a5c0-84f8-124e-83ce-1ee587dcf4ce@suse.de>
           <DB6PR05MB3493378C569E416783246ED4A9BE0@DB6PR05MB3493.eurprd05.prod.outlook.com>
+ <1501165194.4572.32.camel@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <DB6PR05MB3493378C569E416783246ED4A9BE0-HESHCvp+V+r4Tc8ENT3My9qRiQSDpxhJvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+In-Reply-To: <1501165194.4572.32.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Zohar Ben Aharon <zoharb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Nicolas,
-
-can Mellanox adjust the header of the files? Currently it says:
-
-#
-# Copyright (C) Mellanox Technologies Ltd. 2001-2011.  ALL RIGHTS RESERVED.
-# This software product is a proprietary product of Mellanox Technologies Ltd.
-# (the "Company") and all right, title, and interest and to the software product,
-# including all associated intellectual property rights, are and shall
-# remain exclusively with the Company.
-#
-# This software product is governed by the End User License Agreement
-# provided with the software product.
-# $COPYRIGHT$
-# $HEADER$
-#
-
-but since it is gpl/bsd (as you said), the header should read something like:
-
-# Copyright (C) Mellanox Technologies Ltd. 2001-2011.  All rights
-reserved.
-#
-# This software is available to you under a choice of one of
-two
-# licenses.  You may choose to be licensed under the terms of the
-GNU
-# General Public License (GPL) Version 2, available from the file
-#
-COPYING in the main directory of this source tree, or the
-# OpenIB.org
-BSD license below:
-#
-#     Redistribution and use in source and binary
-forms, with or
-#     without modification, are permitted provided that
-the following
-#     conditions are met:
-#
-#      - Redistributions of
-source code must retain the above
-#        copyright notice, this list
-of conditions and the following
-#        disclaimer.
-#
-#      -
-Redistributions in binary form must reproduce the above
-#       
-copyright notice, this list of conditions and the following
-#       
-disclaimer in the documentation and/or other materials
-#        provided
-with the distribution.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT
-WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
-AND
-# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS
-# BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN
-# ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
-IN
-# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-#
-SOFTWARE.
-
-Am Donnerstag, den 27.07.2017, 12:35 +0000 schrieb Zohar Ben Aharon:
-> Hi Nicolas,
-> 
-> 
-> I've verified your issue, 
-> Mellanox provide perftest to be under gpl/bsd license.
-> since Mellanox is the maintainer and release perftest as an open
-> source SW it still can have copyrights on each file that was written
-> or approved by its developers,
-> So the headers should remain and declared as Mellanox propriety.
-> 
-> Hope is helps you.
-> 
-> Thanks,
-> 
-> 
-> Zohar Ben Aharon
-> Perfromance Engineer
-> Mellanox Technologies Ltd.
-> Phone:  +972 (74) 723 6829
-> Mobile: +972 (52) 691 1115
-> 
-> 
-> 
-> 
-> -----Original Message-----
-> From: Zohar Ben Aharon 
-> Sent: Monday, July 24, 2017 8:41 AM
-> To: 'Nicolas Morey-Chaisemartin' <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>; linux-
-> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: RE: perftest proprietary files
-> 
-> Sorry for the late response,
-> ill verify this files propriety and back to you.
-> 
-> 
-> -----Original Message-----
-> From: Nicolas Morey-Chaisemartin [mailto:NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org] 
-> Sent: Friday, July 21, 2017 11:29 AM
-> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Zohar Ben Aharon <zoharb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-> >
-> Subject: perftest proprietary files
-> 
-> Hi,
-> 
-> While packaging perftest for SUSE, I discovered that some files have
-> headers  declaring the software as Mellanox proprietary while the
-> COPYING declares LGPL/BSD.
-> 
-> The files are:
-> * Makefile.am
-> * Makefile.in
-> * configure.ac
-> 
-> Should these headers be dropped ?
-> 
-> (I pinged zoharb about this already without much luck. Figured it
-> might be worth a shot here)
-> 
--- 
-Benjamin Drung
-System Developer
-Debian & Ubuntu Developer
-
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
-
-Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-Web: https://www.profitbricks.com
-
-Sitz der Gesellschaft: Berlin.
-Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-Geschäftsführer: Achim Weiss.
-
+VGhhbmtzIEJlbmphbWluIGZvciB5b3UgaW5wdXQsDQoNCkNhbiB5b3Ugc3VibWl0IHRoZSBiZWxs
+b3cgIGZpbGVzICB0byBvdXIgZ2l0aHViIHJlcG9zaXRvcnkgaHR0cHM6Ly9naXRodWIuY29tL2xp
+bnV4LXJkbWEvcGVyZnRlc3QgLg0KDQpJIHdpbGwgcmUtcmV2aWV3IGl0IA0KDQoNClRoYW5rcyAs
+DQoNCg0KWm9oYXIgQmVuIEFoYXJvbg0KUGVyZnJvbWFuY2UgRW5naW5lZXINCk1lbGxhbm94IFRl
+Y2hub2xvZ2llcyBMdGQuDQpQaG9uZTogwqArOTcyICg3NCkgNzIzIDY4MjkNCk1vYmlsZTogKzk3
+MiAoNTIpIDY5MSAxMTE1DQoNCg0KDQoNCg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZy
+b206IEJlbmphbWluIERydW5nIFttYWlsdG86YmVuamFtaW4uZHJ1bmdAcHJvZml0YnJpY2tzLmNv
+bV0gDQpTZW50OiBUaHVyc2RheSwgSnVseSAyNywgMjAxNyA1OjIwIFBNDQpUbzogWm9oYXIgQmVu
+IEFoYXJvbiA8em9oYXJiQG1lbGxhbm94LmNvbT47IE5pY29sYXMgTW9yZXktQ2hhaXNlbWFydGlu
+IDxOTW9yZXlDaGFpc2VtYXJ0aW5Ac3VzZS5kZT47IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3Jn
+DQpTdWJqZWN0OiBSZTogcGVyZnRlc3QgcHJvcHJpZXRhcnkgZmlsZXMNCg0KSGkgTmljb2xhcywN
+Cg0KY2FuIE1lbGxhbm94IGFkanVzdCB0aGUgaGVhZGVyIG9mIHRoZSBmaWxlcz8gQ3VycmVudGx5
+IGl0IHNheXM6DQoNCiMNCiMgQ29weXJpZ2h0IChDKSBNZWxsYW5veCBUZWNobm9sb2dpZXMgTHRk
+LiAyMDAxLTIwMTEuwqDCoEFMTCBSSUdIVFMgUkVTRVJWRUQuDQojIFRoaXMgc29mdHdhcmUgcHJv
+ZHVjdCBpcyBhIHByb3ByaWV0YXJ5IHByb2R1Y3Qgb2YgTWVsbGFub3ggVGVjaG5vbG9naWVzIEx0
+ZC4NCiMgKHRoZSAiQ29tcGFueSIpIGFuZCBhbGwgcmlnaHQsIHRpdGxlLCBhbmQgaW50ZXJlc3Qg
+YW5kIHRvIHRoZSBzb2Z0d2FyZSBwcm9kdWN0LCAjIGluY2x1ZGluZyBhbGwgYXNzb2NpYXRlZCBp
+bnRlbGxlY3R1YWwgcHJvcGVydHkgcmlnaHRzLCBhcmUgYW5kIHNoYWxsICMgcmVtYWluIGV4Y2x1
+c2l2ZWx5IHdpdGggdGhlIENvbXBhbnkuDQojDQojIFRoaXMgc29mdHdhcmUgcHJvZHVjdCBpcyBn
+b3Zlcm5lZCBieSB0aGUgRW5kIFVzZXIgTGljZW5zZSBBZ3JlZW1lbnQgIyBwcm92aWRlZCB3aXRo
+IHRoZSBzb2Z0d2FyZSBwcm9kdWN0Lg0KIyAkQ09QWVJJR0hUJA0KIyAkSEVBREVSJA0KIw0KDQpi
+dXQgc2luY2UgaXQgaXMgZ3BsL2JzZCAoYXMgeW91IHNhaWQpLCB0aGUgaGVhZGVyIHNob3VsZCBy
+ZWFkIHNvbWV0aGluZyBsaWtlOg0KDQojIENvcHlyaWdodCAoQykgTWVsbGFub3ggVGVjaG5vbG9n
+aWVzIEx0ZC4gMjAwMS0yMDExLiAgQWxsIHJpZ2h0cyByZXNlcnZlZC4NCiMNCiMgVGhpcyBzb2Z0
+d2FyZSBpcyBhdmFpbGFibGUgdG8geW91IHVuZGVyIGEgY2hvaWNlIG9mIG9uZSBvZiB0d28gIyBs
+aWNlbnNlcy4gIFlvdSBtYXkgY2hvb3NlIHRvIGJlIGxpY2Vuc2VkIHVuZGVyIHRoZSB0ZXJtcyBv
+ZiB0aGUgR05VICMgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSAoR1BMKSBWZXJzaW9uIDIsIGF2YWls
+YWJsZSBmcm9tIHRoZSBmaWxlICMgQ09QWUlORyBpbiB0aGUgbWFpbiBkaXJlY3Rvcnkgb2YgdGhp
+cyBzb3VyY2UgdHJlZSwgb3IgdGhlICMgT3BlbklCLm9yZyBCU0QgbGljZW5zZSBiZWxvdzoNCiMN
+CiMgICAgIFJlZGlzdHJpYnV0aW9uIGFuZCB1c2UgaW4gc291cmNlIGFuZCBiaW5hcnkNCmZvcm1z
+LCB3aXRoIG9yDQojICAgICB3aXRob3V0IG1vZGlmaWNhdGlvbiwgYXJlIHBlcm1pdHRlZCBwcm92
+aWRlZCB0aGF0DQp0aGUgZm9sbG93aW5nDQojICAgICBjb25kaXRpb25zIGFyZSBtZXQ6DQojDQoj
+ICAgICAgLSBSZWRpc3RyaWJ1dGlvbnMgb2YNCnNvdXJjZSBjb2RlIG11c3QgcmV0YWluIHRoZSBh
+Ym92ZQ0KIyAgICAgICAgY29weXJpZ2h0IG5vdGljZSwgdGhpcyBsaXN0DQpvZiBjb25kaXRpb25z
+IGFuZCB0aGUgZm9sbG93aW5nDQojICAgICAgICBkaXNjbGFpbWVyLg0KIw0KIyAgICAgIC0NClJl
+ZGlzdHJpYnV0aW9ucyBpbiBiaW5hcnkgZm9ybSBtdXN0IHJlcHJvZHVjZSB0aGUgYWJvdmUNCiMg
+ICAgICAgDQpjb3B5cmlnaHQgbm90aWNlLCB0aGlzIGxpc3Qgb2YgY29uZGl0aW9ucyBhbmQgdGhl
+IGZvbGxvd2luZw0KIyAgICAgICANCmRpc2NsYWltZXIgaW4gdGhlIGRvY3VtZW50YXRpb24gYW5k
+L29yIG90aGVyIG1hdGVyaWFscw0KIyAgICAgICAgcHJvdmlkZWQNCndpdGggdGhlIGRpc3RyaWJ1
+dGlvbi4NCiMNCiMgVEhFIFNPRlRXQVJFIElTIFBST1ZJREVEICJBUyBJUyIsIFdJVEhPVVQgV0FS
+UkFOVFkgT0YgQU5ZIEtJTkQsICMgRVhQUkVTUyBPUiBJTVBMSUVELCBJTkNMVURJTkcgQlVUIE5P
+VCBMSU1JVEVEIFRPIFRIRSBXQVJSQU5USUVTIE9GICMgTUVSQ0hBTlRBQklMSVRZLCBGSVRORVNT
+IEZPUiBBIFBBUlRJQ1VMQVIgUFVSUE9TRSBBTkQgIyBOT05JTkZSSU5HRU1FTlQuIElOIE5PIEVW
+RU5UIFNIQUxMIFRIRSBBVVRIT1JTIE9SIENPUFlSSUdIVCBIT0xERVJTICMgQkUgTElBQkxFIEZP
+UiBBTlkgQ0xBSU0sIERBTUFHRVMgT1IgT1RIRVIgTElBQklMSVRZLCBXSEVUSEVSIElOIEFOICMg
+QUNUSU9OIE9GIENPTlRSQUNULCBUT1JUIE9SIE9USEVSV0lTRSwgQVJJU0lORyBGUk9NLCBPVVQg
+T0YgT1IgSU4gIyBDT05ORUNUSU9OIFdJVEggVEhFIFNPRlRXQVJFIE9SIFRIRSBVU0UgT1IgT1RI
+RVIgREVBTElOR1MgSU4gVEhFICMgU09GVFdBUkUuDQoNCkFtIERvbm5lcnN0YWcsIGRlbiAyNy4w
+Ny4yMDE3LCAxMjozNSArMDAwMCBzY2hyaWViIFpvaGFyIEJlbiBBaGFyb246DQo+IEhpIE5pY29s
+YXMsDQo+IA0KPiANCj4gSSd2ZSB2ZXJpZmllZCB5b3VyIGlzc3VlLA0KPiBNZWxsYW5veCBwcm92
+aWRlIHBlcmZ0ZXN0IHRvIGJlIHVuZGVyIGdwbC9ic2QgbGljZW5zZS4NCj4gc2luY2UgTWVsbGFu
+b3ggaXMgdGhlIG1haW50YWluZXIgYW5kIHJlbGVhc2UgcGVyZnRlc3QgYXMgYW4gb3BlbiANCj4g
+c291cmNlIFNXIGl0IHN0aWxsIGNhbiBoYXZlIGNvcHlyaWdodHMgb24gZWFjaCBmaWxlIHRoYXQg
+d2FzIHdyaXR0ZW4gDQo+IG9yIGFwcHJvdmVkIGJ5IGl0cyBkZXZlbG9wZXJzLCBTbyB0aGUgaGVh
+ZGVycyBzaG91bGQgcmVtYWluIGFuZCANCj4gZGVjbGFyZWQgYXMgTWVsbGFub3ggcHJvcHJpZXR5
+Lg0KPiANCj4gSG9wZSBpcyBoZWxwcyB5b3UuDQo+IA0KPiBUaGFua3MsDQo+IA0KPiANCj4gWm9o
+YXIgQmVuIEFoYXJvbg0KPiBQZXJmcm9tYW5jZSBFbmdpbmVlcg0KPiBNZWxsYW5veCBUZWNobm9s
+b2dpZXMgTHRkLg0KPiBQaG9uZTogwqArOTcyICg3NCkgNzIzIDY4MjkNCj4gTW9iaWxlOiArOTcy
+ICg1MikgNjkxIDExMTUNCj4gDQo+IA0KPiANCj4gDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0t
+LS0tDQo+IEZyb206IFpvaGFyIEJlbiBBaGFyb24NCj4gU2VudDogTW9uZGF5LCBKdWx5IDI0LCAy
+MDE3IDg6NDEgQU0NCj4gVG86ICdOaWNvbGFzIE1vcmV5LUNoYWlzZW1hcnRpbicgPE5Nb3JleUNo
+YWlzZW1hcnRpbkBzdXNlLmRlPjsgbGludXgtIA0KPiByZG1hQHZnZXIua2VybmVsLm9yZw0KPiBT
+dWJqZWN0OiBSRTogcGVyZnRlc3QgcHJvcHJpZXRhcnkgZmlsZXMNCj4gDQo+IFNvcnJ5IGZvciB0
+aGUgbGF0ZSByZXNwb25zZSwNCj4gaWxsIHZlcmlmeSB0aGlzIGZpbGVzIHByb3ByaWV0eSBhbmQg
+YmFjayB0byB5b3UuDQo+IA0KPiANCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJv
+bTogTmljb2xhcyBNb3JleS1DaGFpc2VtYXJ0aW4gW21haWx0bzpOTW9yZXlDaGFpc2VtYXJ0aW5A
+c3VzZS5kZV0NCj4gU2VudDogRnJpZGF5LCBKdWx5IDIxLCAyMDE3IDExOjI5IEFNDQo+IFRvOiBs
+aW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgWm9oYXIgQmVuIEFoYXJvbiA8em9oYXJiQG1lbGxh
+bm94LmNvbQ0KPiA+DQo+IFN1YmplY3Q6IHBlcmZ0ZXN0IHByb3ByaWV0YXJ5IGZpbGVzDQo+IA0K
+PiBIaSwNCj4gDQo+IFdoaWxlIHBhY2thZ2luZyBwZXJmdGVzdCBmb3IgU1VTRSwgSSBkaXNjb3Zl
+cmVkIHRoYXQgc29tZSBmaWxlcyBoYXZlIA0KPiBoZWFkZXJzwqDCoGRlY2xhcmluZyB0aGUgc29m
+dHdhcmUgYXMgTWVsbGFub3ggcHJvcHJpZXRhcnkgd2hpbGUgdGhlIA0KPiBDT1BZSU5HIGRlY2xh
+cmVzIExHUEwvQlNELg0KPiANCj4gVGhlIGZpbGVzIGFyZToNCj4gKiBNYWtlZmlsZS5hbQ0KPiAq
+IE1ha2VmaWxlLmluDQo+ICogY29uZmlndXJlLmFjDQo+IA0KPiBTaG91bGQgdGhlc2UgaGVhZGVy
+cyBiZSBkcm9wcGVkID8NCj4gDQo+IChJIHBpbmdlZCB6b2hhcmIgYWJvdXQgdGhpcyBhbHJlYWR5
+IHdpdGhvdXQgbXVjaCBsdWNrLiBGaWd1cmVkIGl0IA0KPiBtaWdodCBiZSB3b3J0aCBhIHNob3Qg
+aGVyZSkNCj4gDQotLQ0KQmVuamFtaW4gRHJ1bmcNClN5c3RlbSBEZXZlbG9wZXINCkRlYmlhbiAm
+IFVidW50dSBEZXZlbG9wZXINCg0KUHJvZml0QnJpY2tzIEdtYkgNCkdyZWlmc3dhbGRlciBTdHIu
+IDIwNw0KRCAtIDEwNDA1IEJlcmxpbg0KDQpFbWFpbDogYmVuamFtaW4uZHJ1bmdAcHJvZml0YnJp
+Y2tzLmNvbQ0KV2ViOsKgaHR0cHM6Ly9lbWVhMDEuc2FmZWxpbmtzLnByb3RlY3Rpb24ub3V0bG9v
+ay5jb20vP3VybD1odHRwcyUzQSUyRiUyRnd3dy5wcm9maXRicmlja3MuY29tJmRhdGE9MDIlN0Mw
+MSU3Q3pvaGFyYiU0MG1lbGxhbm94LmNvbSU3Q2FmYzk5YTIwYjJkOTQ2YmMzNWJmMDhkNGQ0ZmE4
+ZWMzJTdDYTY1Mjk3MWM3ZDJlNGQ5YmE2YTRkMTQ5MjU2ZjQ2MWIlN0MwJTdDMCU3QzYzNjM2NzYx
+OTk4NTEyODcwNyZzZGF0YT1GUnlZZzBwYU92NGt0SnpCZCUyRmtSelRaanZoVnR2ODlKNXRDR2kl
+MkZHcEdwTSUzRCZyZXNlcnZlZD0wDQoNClNpdHogZGVyIEdlc2VsbHNjaGFmdDogQmVybGluLg0K
+UmVnaXN0ZXJnZXJpY2h0OiBBbXRzZ2VyaWNodCBDaGFybG90dGVuYnVyZywgSFJCIDEyNTUwNkIu
+DQpHZXNjaMOkZnRzZsO8aHJlcjogQWNoaW0gV2Vpc3MuDQoNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
