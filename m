@@ -1,184 +1,49 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] drivers/rxe: improve rxe loopback
-Date: Thu, 27 Jul 2017 13:40:19 +0300
-Message-ID: <20170727104019.GC13672@mtr-leonro.local>
-References: <20170726145248.21677-1-marcel@redhat.com>
- <20170727073635.GB13672@mtr-leonro.local>
- <52aeac10-079f-5c3b-5987-14ead00e2646@redhat.com>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 4/7] IB/rxe: Fix up the responder's find_resources() function
+Date: Thu, 27 Jul 2017 13:54:47 +0300
+Message-ID: <CAG9sBKN_jtEzUe4SjLxFLvGcPF4=ChYvNwEqoGy=aXfKZTe78w@mail.gmail.com>
+References: <1500989968-30889-1-git-send-email-andrew.boyer@dell.com> <1500989968-30889-5-git-send-email-andrew.boyer@dell.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="LyciRD1jyfeSSjG0"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <52aeac10-079f-5c3b-5987-14ead00e2646-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1500989968-30889-5-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, allen.hubbe-8PEkshWhKlo@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Jul 25, 2017 at 4:39 PM, Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org> wrote:
+> The resource array is sized by max_dest_rd_atomic, not max_rd_atomic.
+>
+The patch seems correct. However the commit message lacks an explanation why.
+Please improve
 
---LyciRD1jyfeSSjG0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, Jul 27, 2017 at 12:49:17PM +0300, Marcel Apfelbaum wrote:
-> On 27/07/2017 10:36, Leon Romanovsky wrote:
-> > On Wed, Jul 26, 2017 at 05:52:48PM +0300, Marcel Apfelbaum wrote:
-> > > Currently a packet is marked for loopback only if the source and
-> > > destination address match. This is not enough when multiple
-> > > gids are present in rxe's gid table and the traffic is
-> > > from one gid to another.
-> > >
-> > > Fix it by marking the packet for loopback if the destination
-> > > address appears in rxe's gid table.
-> > >
-> > > Signed-off-by: Marcel Apfelbaum <marcel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> > > ---
-> > >   drivers/infiniband/sw/rxe/rxe_net.c | 47 +++++++++++++++++++++++++++++++++++--
-> > >   1 file changed, 45 insertions(+), 2 deletions(-)
-> > >
-> > > diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-> > > index c3a140e..b76a9a3 100644
-> > > --- a/drivers/infiniband/sw/rxe/rxe_net.c
-> > > +++ b/drivers/infiniband/sw/rxe/rxe_net.c
-> > > @@ -351,6 +351,27 @@ static void prepare_ipv6_hdr(struct dst_entry *dst, struct sk_buff *skb,
-> > >   	ip6h->payload_len = htons(skb->len - sizeof(*ip6h));
-> > >   }
-> > >
-> > > +static inline bool addr4_same_rxe(struct rxe_dev *rxe, struct in_addr *daddr)
-> > > +{
+> Fixes: 8700e3e7c485 ("Soft RoCE driver")
+> Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+> ---
+>  drivers/infiniband/sw/rxe/rxe_resp.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> Hi Leon,
-> Thanks for the review.
+> diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+> index a958ee9..4240866 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_resp.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+> @@ -1055,7 +1055,7 @@ static struct resp_res *find_resource(struct rxe_qp *qp, u32 psn)
+>  {
+>         int i;
 >
-> >
-> > In addition to Moni's comment, no "inline" functions in *.c files, please.
-> >
+> -       for (i = 0; i < qp->attr.max_rd_atomic; i++) {
+> +       for (i = 0; i < qp->attr.max_dest_rd_atomic; i++) {
+>                 struct resp_res *res = &qp->resp.resources[i];
 >
-> Sure, I simply followed the function on the same file:
->   static inline int addr_same(struct rxe_dev *rxe, struct rxe_av *av)
-> I even borrowed the name...
+>                 if (res->type == 0)
+> --
+> 1.8.3.1
 >
-> > > +	struct in_device *in_dev;
-> > > +	bool same_rxe = false;
-> > > +
-> > > +	rcu_read_lock();
-> > > +	in_dev = __in_dev_get_rcu(rxe->ndev);
-> > > +	if (!in_dev)
-> > > +		goto out;
-> > > +
-> > > +	for_ifa(in_dev)
-> > > +		if (!memcmp(&ifa->ifa_address, daddr, sizeof(*daddr))) {
-> > > +			same_rxe = true;
-> > > +			goto out;
-> > > +		}
-> > > +	endfor_ifa(in_dev);
-> >
-> > I'm afraid that it will decrease performance drastically. One of the
-> > possible solutions to overcome it, is to check the address of first packet
-> > only, but it will work for RC only.
-> >
->
-> How do you know is "the first" packet?
-> And yes, for UD the performance would decrease, but only
-> if the netdev has multiple IPs, right?
-
-Yes, and first lookup for QP RC will be "first packet". QP RC are created with "static" address.
-
->
-> I'll ask on Moni's response mail for alternatives.
->
-> Thanks,
-> Marcel
->
-> > > +out:
-> > > +	rcu_read_unlock();
-> > > +	return same_rxe;
-> > > +}
-> > > +
-> > >   static int prepare4(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
-> > >   		    struct sk_buff *skb, struct rxe_av *av)
-> > >   {
-> > > @@ -367,7 +388,7 @@ static int prepare4(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
-> > >   		return -EHOSTUNREACH;
-> > >   	}
-> > >
-> > > -	if (!memcmp(saddr, daddr, sizeof(*daddr)))
-> > > +	if (addr4_same_rxe(rxe, daddr))
-> > >   		pkt->mask |= RXE_LOOPBACK_MASK;
-> > >
-> > >   	prepare_udp_hdr(skb, htons(RXE_ROCE_V2_SPORT),
-> > > @@ -384,6 +405,28 @@ static int prepare4(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
-> > >   	return 0;
-> > >   }
-> > >
-> > > +static inline bool addr6_same_rxe(struct rxe_dev *rxe, struct in6_addr *daddr)
-> > > +{
-> >
-> > Ditto
-> >
-> > > +	struct inet6_dev *in6_dev;
-> > > +	struct inet6_ifaddr *ifp;
-> > > +	bool same_rxe = false;
-> > > +
-> > > +	in6_dev = in6_dev_get(rxe->ndev);
-> > > +	if (!in6_dev)
-> > > +		return false;
-> > > +
-> > > +	read_lock_bh(&in6_dev->lock);
-> > > +	list_for_each_entry(ifp, &in6_dev->addr_list, if_list)
-> > > +		if (!memcmp(&ifp->addr, daddr, sizeof(*daddr))) {
-> > > +			same_rxe = true;
-> > > +			goto out;
-> > > +		}
-> > > +out:
-> > > +	read_unlock_bh(&in6_dev->lock);
-> > > +	in6_dev_put(in6_dev);
-> > > +	return same_rxe;
-> > > +}
-> > > +
-> > >   static int prepare6(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
-> > >   		    struct sk_buff *skb, struct rxe_av *av)
-> > >   {
-> > > @@ -398,7 +441,7 @@ static int prepare6(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
-> > >   		return -EHOSTUNREACH;
-> > >   	}
-> > >
-> > > -	if (!memcmp(saddr, daddr, sizeof(*daddr)))
-> > > +	if (addr6_same_rxe(rxe, daddr))
-> > >   		pkt->mask |= RXE_LOOPBACK_MASK;
-> > >
-> > >   	prepare_udp_hdr(skb, htons(RXE_ROCE_V2_SPORT),
-> > > --
-> > > 2.9.4
-> > >
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
---LyciRD1jyfeSSjG0
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAll5wxMACgkQ5GN7iDZy
-WKevRg/+LVe7cR0ezGzyoEdbYnEwT2bDvAdGWQfHgTv3qam0ssFHE8DeJl/M4S7y
-4gH1nMpvkG0yrs+7TKZzFyBIyAI+0w0aX4iGUD/Bih9zUc8+PE76AP9m0lJA59ix
-hgDKezuiamWiU1S8VdtZRAaD1N3c/8S7GA4RXnUqmqPCw+uMzlC7UiclJYI77qDC
-gEHCxc64vM/nWwLDm2Q3pEPfPQmoSknESUAPxPJAzhQtnpCMuktcvdf41WmUkm7m
-CcOId6Lpvx8H/yAgdRv+qfq18gO7GxL74zr7ss5Z9YYnHQOZBNoi40mvq86TE4Qb
-5f6FzcLZasYLIK2qbl87QNln/lWuqfYtFbMZsQGdLmv9xKhFh63CszP7P6BWpqut
-W8CpzXnfZ5zlinkFqDCwQ6yrFkb1/iUdjvFl0al9eEblWZRSavu/VU6kvsugSw8D
-7B0yRuOIJ51fQodBs4LU772Zj/uFz4anAmNZRr9ETesNJbjWGfU5HAESse8IbESi
-ogh/BcscUSmeORd/A2sDzra0+vVLqkcaN4CiLoB+jtDlJctxVzyv4+rB/2cNfpl2
-yvEkBhVdGJl6mjTZfCDBg+XxWEATtotrDUrbG1d2u2x/RZ3Gpo8Ch9A2iiua+EaU
-BMk56xTHerLaPMX11Ed1waHFvgw7mokTmGrNXXur4ZGOC4rlm9M=
-=itQ1
------END PGP SIGNATURE-----
-
---LyciRD1jyfeSSjG0--
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
