@@ -1,43 +1,144 @@
-From: Zohar Ben Aharon <zoharb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: perftest proprietary files
-Date: Thu, 27 Jul 2017 12:35:01 +0000
-Message-ID: <DB6PR05MB3493378C569E416783246ED4A9BE0@DB6PR05MB3493.eurprd05.prod.outlook.com>
-References: <2411a5c0-84f8-124e-83ce-1ee587dcf4ce@suse.de>
+From: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: Kernel oops
+Date: Thu, 27 Jul 2017 15:54:07 +0300
+Message-ID: <CAAKD3BDFrTMMgX0nErD50rp2je=HC9zeaYWHDKf0mqQwc5fM9g@mail.gmail.com>
+References: <20170724211606.GA1705@obsidianresearch.com> <CAAKD3BAdB2aRk3WGdbeDYof6dUfkEwhQf27cG0FWe5DRuQ15NQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <CAAKD3BAdB2aRk3WGdbeDYof6dUfkEwhQf27cG0FWe5DRuQ15NQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgTmljb2xhcywNCg0KDQpJJ3ZlIHZlcmlmaWVkIHlvdXIgaXNzdWUsIA0KTWVsbGFub3ggcHJv
-dmlkZSBwZXJmdGVzdCB0byBiZSB1bmRlciBncGwvYnNkIGxpY2Vuc2UuDQpzaW5jZSBNZWxsYW5v
-eCBpcyB0aGUgbWFpbnRhaW5lciBhbmQgcmVsZWFzZSBwZXJmdGVzdCBhcyBhbiBvcGVuIHNvdXJj
-ZSBTVyBpdCBzdGlsbCBjYW4gaGF2ZSBjb3B5cmlnaHRzIG9uIGVhY2ggZmlsZSB0aGF0IHdhcyB3
-cml0dGVuIG9yIGFwcHJvdmVkIGJ5IGl0cyBkZXZlbG9wZXJzLA0KU28gdGhlIGhlYWRlcnMgc2hv
-dWxkIHJlbWFpbiBhbmQgZGVjbGFyZWQgYXMgTWVsbGFub3ggcHJvcHJpZXR5Lg0KDQpIb3BlIGlz
-IGhlbHBzIHlvdS4NCg0KVGhhbmtzLA0KDQoNClpvaGFyIEJlbiBBaGFyb24NClBlcmZyb21hbmNl
-IEVuZ2luZWVyDQpNZWxsYW5veCBUZWNobm9sb2dpZXMgTHRkLg0KUGhvbmU6IMKgKzk3MiAoNzQp
-IDcyMyA2ODI5DQpNb2JpbGU6ICs5NzIgKDUyKSA2OTEgMTExNQ0KDQoNCg0KDQotLS0tLU9yaWdp
-bmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogWm9oYXIgQmVuIEFoYXJvbiANClNlbnQ6IE1vbmRheSwg
-SnVseSAyNCwgMjAxNyA4OjQxIEFNDQpUbzogJ05pY29sYXMgTW9yZXktQ2hhaXNlbWFydGluJyA8
-Tk1vcmV5Q2hhaXNlbWFydGluQHN1c2UuZGU+OyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZw0K
-U3ViamVjdDogUkU6IHBlcmZ0ZXN0IHByb3ByaWV0YXJ5IGZpbGVzDQoNClNvcnJ5IGZvciB0aGUg
-bGF0ZSByZXNwb25zZSwNCmlsbCB2ZXJpZnkgdGhpcyBmaWxlcyBwcm9wcmlldHkgYW5kIGJhY2sg
-dG8geW91Lg0KDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBOaWNvbGFzIE1v
-cmV5LUNoYWlzZW1hcnRpbiBbbWFpbHRvOk5Nb3JleUNoYWlzZW1hcnRpbkBzdXNlLmRlXSANClNl
-bnQ6IEZyaWRheSwgSnVseSAyMSwgMjAxNyAxMToyOSBBTQ0KVG86IGxpbnV4LXJkbWFAdmdlci5r
-ZXJuZWwub3JnOyBab2hhciBCZW4gQWhhcm9uIDx6b2hhcmJAbWVsbGFub3guY29tPg0KU3ViamVj
-dDogcGVyZnRlc3QgcHJvcHJpZXRhcnkgZmlsZXMNCg0KSGksDQoNCldoaWxlIHBhY2thZ2luZyBw
-ZXJmdGVzdCBmb3IgU1VTRSwgSSBkaXNjb3ZlcmVkIHRoYXQgc29tZSBmaWxlcyBoYXZlIGhlYWRl
-cnMgIGRlY2xhcmluZyB0aGUgc29mdHdhcmUgYXMgTWVsbGFub3ggcHJvcHJpZXRhcnkgd2hpbGUg
-dGhlIENPUFlJTkcgZGVjbGFyZXMgTEdQTC9CU0QuDQoNClRoZSBmaWxlcyBhcmU6DQoqIE1ha2Vm
-aWxlLmFtDQoqIE1ha2VmaWxlLmluDQoqIGNvbmZpZ3VyZS5hYw0KDQpTaG91bGQgdGhlc2UgaGVh
-ZGVycyBiZSBkcm9wcGVkID8NCg0KKEkgcGluZ2VkIHpvaGFyYiBhYm91dCB0aGlzIGFscmVhZHkg
-d2l0aG91dCBtdWNoIGx1Y2suIEZpZ3VyZWQgaXQgbWlnaHQgYmUgd29ydGggYSBzaG90IGhlcmUp
-DQoNCk5pY29sYXMNCg0K
+On Thu, Jul 27, 2017 at 2:46 PM, Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> On Tue, Jul 25, 2017 at 12:16 AM, Jason Gunthorpe
+> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+>> Matan,
+>>
+>> I suspect your reworking series broke hot removal, I get a kernel oops
+>> when removing modules on 4.13-rc2.
+>>
+>> I think it is some kind of race with uverbs being removed concurrently
+>> with user apps closing uverbs. In this case I removed umad first which
+>> caused systemd to forcibly shutdown srp_daemon, which happened
+>> concurrently with the rmmod of ib_uverbs.
+>>
+>
+> Hi,
+>
+> Thanks for informing :)
+> We'll try to debug that, but I expect we'll only get to that by end of
+> next week.
+>
+> Thanks,
+> Matan
+>
+
+Digging a bit, we found a fix that might be related to this issue.
+I would be happy if you could try that and report if it solved this problem.
+We plan to send it soon.
+
+commit 1d4ecbf034193f000fe6686586c40ab4b2a95da1
+Author: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date:   Thu Jul 27 15:49:00 2017 +0200
+
+    IB/uverbs: Fix device cleanup
+
+    Uverbs device should be cleaned up only when there is no
+    potential usage of.
+
+    As part of ib_uverbs_remove_one which might be triggered upon reset flow
+    the device reference count is decreased as expected and leave the final
+    cleanup to the FDs that were opened.
+
+    Current code increases reference count upon opening a new command FD and
+    decreases it upon closing the file. The event FD is opened internally
+    and rely on the command FD by taking on it a reference count.
+
+    In case that the command FD was closed and just later the event FD we
+    may ensure that the device resources as of srcu are still alive as they
+    are still in use.
+
+    Fixing the above by moving the reference count decreasing to the place
+    where the command FD is really freed instead of doing that when it was
+    just closed.
+
+    Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+    Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+diff --git a/drivers/infiniband/core/uverbs_main.c
+b/drivers/infiniband/core/uverbs_main.c
+index a88d223..cb1729a 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -251,6 +251,7 @@ void ib_uverbs_release_file(struct kref *ref)
+        if (atomic_dec_and_test(&file->device->refcount))
+                ib_uverbs_comp_dev(file->device);
+
++       kobject_put(&file->device->kobj);
+        kfree(file);
+ }
+
+@@ -918,7 +919,6 @@ static int ib_uverbs_open(struct inode *inode,
+struct file *filp)
+ static int ib_uverbs_close(struct inode *inode, struct file *filp)
+ {
+        struct ib_uverbs_file *file = filp->private_data;
+-       struct ib_uverbs_device *dev = file->device;
+
+        mutex_lock(&file->cleanup_mutex);
+        if (file->ucontext) {
+@@ -940,7 +940,6 @@ static int ib_uverbs_close(struct inode *inode,
+struct file *filp)
+                         ib_uverbs_release_async_event_file);
+
+        kref_put(&file->ref, ib_uverbs_release_file);
+-       kobject_put(&dev->kobj);
+
+        return 0;
+ }
+
+
+>> [   50.797421] general protection fault: 0000 [#1] SMP
+>> [   50.798400] Modules linked in: ib_srp scsi_transport_srp scsi_mod rdma_cm ib_umad ib_cm ib_uverbs iw_cm mlx4_core ib_core [last unloaded: mlx4_ib]
+>> [   50.800946] CPU: 0 PID: 235 Comm: srp_daemon Not tainted 4.13.0-rc2+ #2
+>> [   50.802178] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS Ubuntu-1.8.2-1ubuntu1 04/01/2014
+>> [   50.803970] task: ffff88022e504b00 task.stack: ffffc90000178000
+>> [   50.805163] RIP: 0010:ib_uverbs_release_file+0x29/0x90 [ib_uverbs]
+>> [   50.806428] RSP: 0018:ffffc9000017bd90 EFLAGS: 00010202
+>> [   50.807521] RAX: 0000000000000001 RBX: ffff88022dec56c0 RCX: 0000000000000001
+>> [   50.808898] RDX: 732f74696e752f31 RSI: ffff88022dec56c0 RDI: ffff88022cccc000
+>> [   50.810349] RBP: ffffc9000017bda0 R08: 000000002dec5801 R09: 0000000180150013
+>> [   50.811830] R10: ffffc9000017bd80 R11: ffff88022afe5200 R12: ffff88022dec56c0
+>> [   50.813260] R13: ffff88022dec56e8 R14: ffff88022dec5f70 R15: ffff88022edaa020
+>> [   50.814830] FS:  00007fb54d287700(0000) GS:ffff880236e00000(0000) knlGS:0000000000000000
+>> [   50.816401] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+>> [   50.817602] CR2: 00007fb54bc4c8f8 CR3: 000000022dcd9000 CR4: 00000000000406b0
+>> [   50.818991] Call Trace:
+>> [   50.819487]  uverbs_close_fd+0x5f/0xa0 [ib_uverbs]
+>> [   50.820416]  ib_uverbs_comp_event_close+0xa4/0xb0 [ib_uverbs]
+>> [   50.821539]  __fput+0xd4/0x1d0
+>> [   50.822202]  ____fput+0x9/0x10
+>> [   50.822890]  task_work_run+0x79/0xa0
+>> [   50.823676]  do_exit+0x362/0xa90
+>> [   50.824309]  ? __do_page_fault+0x203/0x430
+>> [   50.825140]  do_group_exit+0x42/0xb0
+>> [   50.825908]  SyS_exit_group+0xf/0x10
+>> [   50.826630]  entry_SYSCALL_64_fastpath+0x1a/0xa5
+>> [   50.827591] RIP: 0033:0x7fb54c73bb98
+>> [   50.828340] RSP: 002b:00007ffec1987788 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
+>> [   50.829900] RAX: ffffffffffffffda RBX: 0000006aa1fe2dc0 RCX: 00007fb54c73bb98
+>> [   50.831303] RDX: 0000000000000000 RSI: 000000000000003c RDI: 0000000000000000
+>> [   50.832793] RBP: 00007ffec1987780 R08: 00000000000000e7 R09: ffffffffffffff98
+>> [   50.834288] R10: 00007fb54a446640 R11: 0000000000000246 R12: 00007fb54be4dc50
+>> [   50.835802] R13: 00000000ffffffff R14: 00007ffec1987680 R15: 0000000000000006
+>> [   50.837254] Code: 1f 00 55 48 89 e5 53 48 89 fb 48 83 ec 08 48 8b 47 48 48 8d b8 10 01 00 00 e8 d4 f8 02 e1 48 8b 7b 48 48 8b 57 30 48 85 d2 74 0a <48> 83 ba b0 02 00 00 00 74 42 89 c6 48 81 c7 10 01 00 00 e8 df
+>> [   50.841156] RIP: ib_uverbs_release_file+0x29/0x90 [ib_uverbs] RSP: ffffc9000017bd90
+>> [   50.842723] ---[ end trace 68785d98b53d9203 ]---
+>>
+>> Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
