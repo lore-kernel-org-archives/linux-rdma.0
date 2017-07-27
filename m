@@ -1,40 +1,49 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 3/8] srp_daemon: Add a --systemd option
-Date: Thu, 27 Jul 2017 10:48:51 -0600
-Message-ID: <20170727164851.GB13245@obsidianresearch.com>
-References: <1501099152-6344-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1501099152-6344-4-git-send-email-jgunthorpe@obsidianresearch.com>
- <1501164749.4572.30.camel@profitbricks.com>
+From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: perftest proprietary files
+Date: Thu, 27 Jul 2017 18:49:13 +0200
+Message-ID: <1501174153.4572.35.camel@profitbricks.com>
+References: <2411a5c0-84f8-124e-83ce-1ee587dcf4ce@suse.de>
+         <DB6PR05MB3493378C569E416783246ED4A9BE0@DB6PR05MB3493.eurprd05.prod.outlook.com>
+         <1501165194.4572.32.camel@profitbricks.com>
+         <DB6PR05MB3493CD259D663959D1D0DFA0A9BE0@DB6PR05MB3493.eurprd05.prod.outlook.com>
+         <1501169609.4572.34.camel@profitbricks.com>
+         <20170727162825.GA7364@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1501164749.4572.30.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <20170727162825.GA7364-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Zohar Ben Aharon <zoharb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 27, 2017 at 04:12:29PM +0200, Benjamin Drung wrote:
-> Am Mittwoch, den 26.07.2017, 13:59 -0600 schrieb Jason Gunthorpe:
-> > This changes how logging is setup to send log messages only to
-> > syslog,
-> > instead of to stderr and to syslog. If messages are sent to both
-> > places then systemd will create duplicate log entries.
+Am Donnerstag, den 27.07.2017, 10:28 -0600 schrieb Jason Gunthorpe:
+> On Thu, Jul 27, 2017 at 05:33:29PM +0200, Benjamin Drung wrote:
+> > Done:
+> > https://github.com/linux-rdma/perftest/pull/13
 > 
-> The parameter name --systemd is not a good choice. It doesn't tell
-> me what will change ("Enable systemd integration" does not help
-> here) and someone might to want to use the switch without
-> systemd. So something like --no-log-to-stderr or --syslog-only would
-> better describe the behavior.
+> It would be best practice for this commit to be ammended to have
+> Signed-off-by line from someone at mellanox before applying it.
 
-There are more systemd integration features to come, eg sd_notify,
-some journal integration is possible.
+Yes. Definitively!
 
-I don't want to keep adding options along these lines, universally
-having --systemd to turn everything we want to do on makes sense.
+-- 
+Benjamin Drung
+System Developer
+Debian & Ubuntu Developer
 
-Jason
+ProfitBricks GmbH
+Greifswalder Str. 207
+D - 10405 Berlin
+
+Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
+Web: https://www.profitbricks.com
+
+Sitz der Gesellschaft: Berlin.
+Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
+Geschäftsführer: Achim Weiss.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
