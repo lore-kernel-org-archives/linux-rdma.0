@@ -1,74 +1,72 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: RE: [PATCH V4 net-next 6/8] net: hns3: Add MDIO support to HNS3
- Ethernet driver for hip08 SoC
-Date: Thu, 27 Jul 2017 17:56:09 +0000
-Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F93B8283BC@FRAEML521-MBX.china.huawei.com>
+From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH V4 net-next 7/8] net: hns3: Add Ethtool support to HNS3
+ driver
+Date: Thu, 27 Jul 2017 18:01:33 +0000
+Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F93B8283E1@FRAEML521-MBX.china.huawei.com>
 References: <20170722220942.78852-1-salil.mehta@huawei.com>
- <20170722220942.78852-7-salil.mehta@huawei.com>
- <24043b65-27d3-13b9-1a25-8692ea9467af@gmail.com>
+ <20170722220942.78852-8-salil.mehta@huawei.com>
+ <23ddbe00-8bef-a09b-5783-3a5438086bd6@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <24043b65-27d3-13b9-1a25-8692ea9467af@gmail.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <23ddbe00-8bef-a09b-5783-3a5438086bd6-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Florian Fainelli <f.fainelli@gmail.com>, "davem@davemloft.net" <davem@davemloft.net>
-Cc: "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>, huangdaode <huangdaode@hisilicon.com>, "lipeng (Y)" <lipeng321@huawei.com>, "mehta.salil.lnk@gmail.com" <mehta.salil.lnk@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Florian Fainelli <f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: "Zhuangyuzeng (Yisen)" <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, huangdaode <huangdaode-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, "lipeng (Y)" <lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 Hi Florian,
 
 > -----Original Message-----
-> From: Florian Fainelli [mailto:f.fainelli@gmail.com]
-> Sent: Sunday, July 23, 2017 5:54 PM
-> To: Salil Mehta; davem@davemloft.net
+> From: Florian Fainelli [mailto:f.fainelli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
+> Sent: Sunday, July 23, 2017 6:05 PM
+> To: Salil Mehta; davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
 > Cc: Zhuangyuzeng (Yisen); huangdaode; lipeng (Y);
-> mehta.salil.lnk@gmail.com; netdev@vger.kernel.org; linux-
-> kernel@vger.kernel.org; linux-rdma@vger.kernel.org; Linuxarm
-> Subject: Re: [PATCH V4 net-next 6/8] net: hns3: Add MDIO support to
-> HNS3 Ethernet driver for hip08 SoC
+> mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
+> kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm
+> Subject: Re: [PATCH V4 net-next 7/8] net: hns3: Add Ethtool support to
+> HNS3 driver
 > 
 > 
 > 
 > On 07/22/2017 03:09 PM, Salil Mehta wrote:
-> > This patch adds the support of MDIO bus interface for HNS3 driver.
-> > Code provides various interfaces to start and stop the PHY layer
-> > and to read and write the MDIO bus or PHY.
+> > This patch adds the support of the Ethtool interface to
+> > the HNS3 Ethernet driver. Various commands to read the
+> > statistics, configure the offloading, loopback selftest etc.
+> > are supported.
 > >
-> > Signed-off-by: Daode Huang <huangdaode@hisilicon.com>
-> > Signed-off-by: lipeng <lipeng321@huawei.com>
-> > Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
-> > Signed-off-by: Yisen Zhuang <yisen.zhuang@huawei.com>
+> > Signed-off-by: Daode Huang <huangdaode-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
+> > Signed-off-by: lipeng <lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > Signed-off-by: Yisen Zhuang <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 > > ---
-> > Patch V4: Addressed following comments:
-> >  1. Andrew Lunn:
-> >     https://lkml.org/lkml/2017/6/17/208
-> > Patch V3: Addressed Below comments:
-> >  1. Florian Fainelli:
-> >     https://lkml.org/lkml/2017/6/13/963
-> >  2. Andrew Lunn:
-> >     https://lkml.org/lkml/2017/6/13/1039
-> > Patch V2: Addressed below comments:
-> >  1. Florian Fainelli:
-> >     https://lkml.org/lkml/2017/6/10/130
-> >  2. Andrew Lunn:
-> >     https://lkml.org/lkml/2017/6/10/168
+> > Patch V4: addressed below comments
+> >  1. Andrew Lunn
+> >     Removed the support of loop PHY back for now
+> > Patch V3: Address below comments
+> >  1. Stephen Hemminger
+> >     https://lkml.org/lkml/2017/6/13/974
+> >  2. Andrew Lunn
+> >     https://lkml.org/lkml/2017/6/13/1037
+> > Patch V2: No change
 > > Patch V1: Initial Submit
 > > ---
-> >  .../ethernet/hisilicon/hns3/hns3pf/hclge_mdio.c    | 230
+> >  .../ethernet/hisilicon/hns3/hns3pf/hns3_ethtool.c  | 543
 > +++++++++++++++++++++
-> >  1 file changed, 230 insertions(+)
+> >  1 file changed, 543 insertions(+)
 > >  create mode 100644
-> drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mdio.c
+> drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_ethtool.c
 > >
-> > diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mdio.c
-> b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mdio.c
+> > diff --git
+> a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_ethtool.c
+> b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_ethtool.c
 > > new file mode 100644
-> > index 000000000000..6036a97f7de5
+> > index 000000000000..82b0d4d829f8
 > > --- /dev/null
-> > +++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mdio.c
-> > @@ -0,0 +1,230 @@
+> > +++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_ethtool.c
+> > @@ -0,0 +1,543 @@
 > > +/*
 > > + * Copyright (c) 2016~2017 Hisilicon Limited.
 > > + *
@@ -81,288 +79,411 @@ Hi Florian,
 > > + */
 > > +
 > > +#include <linux/etherdevice.h>
-> > +#include <linux/kernel.h>
+> > +#include "hns3_enet.h"
 > > +
-> > +#include "hclge_cmd.h"
-> > +#include "hclge_main.h"
-> > +
-> > +enum hclge_mdio_c22_op_seq {
-> > +	HCLGE_MDIO_C22_WRITE = 1,
-> > +	HCLGE_MDIO_C22_READ = 2
+> > +struct hns3_stats {
+> > +	char stats_string[ETH_GSTRING_LEN];
+> > +	int stats_size;
+> > +	int stats_offset;
 > > +};
 > > +
-> > +#define HCLGE_MDIO_CTRL_START_B		0
-> > +#define HCLGE_MDIO_CTRL_ST_S		1
-> > +#define HCLGE_MDIO_CTRL_ST_M		(0x3 << HCLGE_MDIO_CTRL_ST_S)
-> > +#define HCLGE_MDIO_CTRL_OP_S		3
-> > +#define HCLGE_MDIO_CTRL_OP_M		(0x3 << HCLGE_MDIO_CTRL_OP_S)
-> > +
-> > +#define HCLGE_MDIO_PHYID_S		0
-> > +#define HCLGE_MDIO_PHYID_M		(0x1f << HCLGE_MDIO_PHYID_S)
-> > +
-> > +#define HCLGE_MDIO_PHYREG_S		0
-> > +#define HCLGE_MDIO_PHYREG_M		(0x1f << HCLGE_MDIO_PHYREG_S)
-> > +
-> > +#define HCLGE_MDIO_STA_B		0
-> > +
-> > +struct hclge_mdio_cfg_cmd {
-> > +	u8 ctrl_bit;
-> > +	u8 phyid;
-> > +	u8 phyad;
-> > +	u8 rsvd;
-> > +	__le16 reserve;
-> > +	__le16 data_wr;
-> > +	__le16 data_rd;
-> > +	__le16 sta;
-> > +};
-> > +
-> > +static int hclge_mdio_write(struct mii_bus *bus, int phyid, int
-> regnum,
-> > +			    u16 data)
-> > +{
-> > +	struct hclge_dev *hdev = (struct hclge_dev *)bus->priv;
+> > +/* netdev related stats */
+> > +#define HNS3_NETDEV_STAT(_string, _member)			\
+> > +	{ _string,						\
+> > +	  FIELD_SIZEOF(struct rtnl_link_stats64, _member),	\
+> > +	  offsetof(struct rtnl_link_stats64, _member),		\
+> > +	}
 > 
-> Cast is not needed here since bus->priv is already a void *.
-> 
-> > +	struct hclge_mdio_cfg_cmd *mdio_cmd;
-> > +	enum hclge_cmd_status status;
-> > +	struct hclge_desc desc;
-> > +
-> > +	if (!bus)
-> > +		return -EINVAL;
-> 
-> How can this be possible?
-Agreed, will remove.
+> Can you make this macro use named initializers?
+Can you please explain bit more or point out some
+example. This would be very handy. 
+
+Thanks
 
 > 
 > > +
-> > +	hclge_cmd_setup_basic_desc(&desc, HCLGE_OPC_MDIO_CONFIG, false);
+> > +static const struct hns3_stats hns3_netdev_stats[] = {
+> > +	/* misc. Rx/Tx statistics */
+> > +	HNS3_NETDEV_STAT("rx_packets", rx_packets),
+> > +	HNS3_NETDEV_STAT("tx_packets", tx_packets),
+> > +	HNS3_NETDEV_STAT("rx_bytes", rx_bytes),
+> > +	HNS3_NETDEV_STAT("tx_bytes", tx_bytes),
+> > +	HNS3_NETDEV_STAT("rx_errors", rx_errors),
+> > +	HNS3_NETDEV_STAT("tx_errors", tx_errors),
+> > +	HNS3_NETDEV_STAT("rx_dropped", rx_dropped),
+> > +	HNS3_NETDEV_STAT("tx_dropped", tx_dropped),
+> > +	HNS3_NETDEV_STAT("multicast", multicast),
+> > +	HNS3_NETDEV_STAT("collisions", collisions),
 > > +
-> > +	mdio_cmd = (struct hclge_mdio_cfg_cmd *)desc.data;
-> 
-> Same here, can we not cast this into a struct hclge_mdio_cfg_cmd?
-You mean should we assign directly without casting?
-
-> 
+> > +	/* detailed Rx errors */
+> > +	HNS3_NETDEV_STAT("rx_length_errors", rx_length_errors),
+> > +	HNS3_NETDEV_STAT("rx_over_errors", rx_over_errors),
+> > +	HNS3_NETDEV_STAT("rx_crc_errors", rx_crc_errors),
+> > +	HNS3_NETDEV_STAT("rx_frame_errors", rx_frame_errors),
+> > +	HNS3_NETDEV_STAT("rx_fifo_errors", rx_fifo_errors),
+> > +	HNS3_NETDEV_STAT("rx_missed_errors", rx_missed_errors),
 > > +
-> > +	hnae_set_field(mdio_cmd->phyid, HCLGE_MDIO_PHYID_M,
-> > +		       HCLGE_MDIO_PHYID_S, phyid);
-> > +	hnae_set_field(mdio_cmd->phyad, HCLGE_MDIO_PHYREG_M,
-> > +		       HCLGE_MDIO_PHYREG_S, regnum);
+> > +	/* detailed Tx errors */
+> > +	HNS3_NETDEV_STAT("tx_aborted_errors", tx_aborted_errors),
+> > +	HNS3_NETDEV_STAT("tx_carrier_errors", tx_carrier_errors),
+> > +	HNS3_NETDEV_STAT("tx_fifo_errors", tx_fifo_errors),
+> > +	HNS3_NETDEV_STAT("tx_heartbeat_errors", tx_heartbeat_errors),
+> > +	HNS3_NETDEV_STAT("tx_window_errors", tx_window_errors),
 > > +
-> > +	hnae_set_bit(mdio_cmd->ctrl_bit, HCLGE_MDIO_CTRL_START_B, 1);
-> > +	hnae_set_field(mdio_cmd->ctrl_bit, HCLGE_MDIO_CTRL_ST_M,
-> > +		       HCLGE_MDIO_CTRL_ST_S, 1);
-> > +	hnae_set_field(mdio_cmd->ctrl_bit, HCLGE_MDIO_CTRL_OP_M,
-> > +		       HCLGE_MDIO_CTRL_OP_S, HCLGE_MDIO_C22_WRITE);
+> > +	/* for cslip etc */
+> > +	HNS3_NETDEV_STAT("rx_compressed", rx_compressed),
+> > +	HNS3_NETDEV_STAT("tx_compressed", tx_compressed),
+> > +};
 > > +
-> > +	mdio_cmd->data_wr = cpu_to_le16(data);
+> > +#define HNS3_NETDEV_STATS_COUNT ARRAY_SIZE(hns3_netdev_stats)
 > > +
-> > +	status = hclge_cmd_send(&hdev->hw, &desc, 1);
-> > +	if (status) {
-> > +		dev_err(&hdev->pdev->dev,
-> > +			"mdio write fail when sending cmd, status is %d.\n",
-> > +			status);
-> > +		return -EIO;
+> > +/* tqp related stats */
+> > +#define HNS3_TQP_STAT(_string, _member)				\
+> > +	{ _string,						\
+> > +	  FIELD_SIZEOF(struct ring_stats, _member),		\
+> > +	  offsetof(struct hns3_enet_ring, stats),	\
 > > +	}
 > > +
-> > +	return 0;
-> > +}
-> > +
-> > +static int hclge_mdio_read(struct mii_bus *bus, int phyid, int
-> regnum)
-> > +{
-> > +	struct hclge_dev *hdev = (struct hclge_dev *)bus->priv;
 > 
 > Same here.
-No cast required you mean?
-
-> 
-> > +	struct hclge_mdio_cfg_cmd *mdio_cmd;
-> > +	enum hclge_cmd_status status;
-> > +	struct hclge_desc desc;
-> > +
-> > +	if (!bus)
-> > +		return -EINVAL;
-> 
-> And here.
 Ok.
-
 > 
+> > +static const struct hns3_stats hns3_txq_stats[] = {
+> > +	/* Tx per-queue statistics */
+> > +	HNS3_TQP_STAT("tx_io_err_cnt", io_err_cnt),
+> > +	HNS3_TQP_STAT("tx_sw_err_cnt", sw_err_cnt),
+> > +	HNS3_TQP_STAT("tx_seg_pkt_cnt", seg_pkt_cnt),
+> > +	HNS3_TQP_STAT("tx_pkts", tx_pkts),
+> > +	HNS3_TQP_STAT("tx_bytes", tx_bytes),
+> > +	HNS3_TQP_STAT("tx_err_cnt", tx_err_cnt),
+> > +	HNS3_TQP_STAT("tx_restart_queue", restart_queue),
+> > +	HNS3_TQP_STAT("tx_busy", tx_busy),
+> > +};
 > > +
-> > +	hclge_cmd_setup_basic_desc(&desc, HCLGE_OPC_MDIO_CONFIG, true);
+> > +#define HNS3_TXQ_STATS_COUNT ARRAY_SIZE(hns3_txq_stats)
 > > +
-> > +	mdio_cmd = (struct hclge_mdio_cfg_cmd *)desc.data;
-> 
-> And here.
-Ok.
-
-> 
+> > +static const struct hns3_stats hns3_rxq_stats[] = {
+> > +	/* Rx per-queue statistics */
+> > +	HNS3_TQP_STAT("rx_io_err_cnt", io_err_cnt),
+> > +	HNS3_TQP_STAT("rx_sw_err_cnt", sw_err_cnt),
+> > +	HNS3_TQP_STAT("rx_seg_pkt_cnt", seg_pkt_cnt),
+> > +	HNS3_TQP_STAT("rx_pkts", rx_pkts),
+> > +	HNS3_TQP_STAT("rx_bytes", rx_bytes),
+> > +	HNS3_TQP_STAT("rx_err_cnt", rx_err_cnt),
+> > +	HNS3_TQP_STAT("rx_reuse_pg_cnt", reuse_pg_cnt),
+> > +	HNS3_TQP_STAT("rx_err_pkt_len", err_pkt_len),
+> > +	HNS3_TQP_STAT("rx_non_vld_descs", non_vld_descs),
+> > +	HNS3_TQP_STAT("rx_err_bd_num", err_bd_num),
+> > +	HNS3_TQP_STAT("rx_l2_err", l2_err),
+> > +	HNS3_TQP_STAT("rx_l3l4_csum_err", l3l4_csum_err),
+> > +};
 > > +
-> > +	hnae_set_field(mdio_cmd->phyid, HCLGE_MDIO_PHYID_M,
-> > +		       HCLGE_MDIO_PHYID_S, phyid);
-> > +	hnae_set_field(mdio_cmd->phyad, HCLGE_MDIO_PHYREG_M,
-> > +		       HCLGE_MDIO_PHYREG_S, regnum);
+> > +#define HNS3_RXQ_STATS_COUNT ARRAY_SIZE(hns3_rxq_stats)
 > > +
-> > +	hnae_set_bit(mdio_cmd->ctrl_bit, HCLGE_MDIO_CTRL_START_B, 1);
-> > +	hnae_set_field(mdio_cmd->ctrl_bit, HCLGE_MDIO_CTRL_ST_M,
-> > +		       HCLGE_MDIO_CTRL_ST_S, 1);
-> > +	hnae_set_field(mdio_cmd->ctrl_bit, HCLGE_MDIO_CTRL_OP_M,
-> > +		       HCLGE_MDIO_CTRL_OP_S, HCLGE_MDIO_C22_READ);
+> > +#define HNS3_TQP_STATS_COUNT (HNS3_TXQ_STATS_COUNT +
+> HNS3_RXQ_STATS_COUNT)
 > > +
-> > +	/* Read out phy data */
-> > +	status = hclge_cmd_send(&hdev->hw, &desc, 1);
-> > +	if (status) {
-> > +		dev_err(&hdev->pdev->dev,
-> > +			"mdio read fail when get data, status is %d.\n",
-> > +			status);
-> > +		return status;
-> > +	}
+> > +struct hns3_link_mode_mapping {
+> > +	u32 hns3_link_mode;
+> > +	u32 ethtool_link_mode;
+> > +};
 > > +
-> > +	if (hnae_get_bit(le16_to_cpu(mdio_cmd->sta), HCLGE_MDIO_STA_B)) {
-> > +		dev_err(&hdev->pdev->dev, "mdio read data error\n");
-> > +		return -EIO;
-> > +	}
+> > +static const struct hns3_link_mode_mapping hns3_lm_map[] = {
+> > +	{HNS3_LM_FIBRE_BIT, ETHTOOL_LINK_MODE_FIBRE_BIT},
+> > +	{HNS3_LM_AUTONEG_BIT, ETHTOOL_LINK_MODE_Autoneg_BIT},
+> > +	{HNS3_LM_TP_BIT, ETHTOOL_LINK_MODE_TP_BIT},
+> > +	{HNS3_LM_PAUSE_BIT, ETHTOOL_LINK_MODE_Pause_BIT},
+> > +	{HNS3_LM_BACKPLANE_BIT, ETHTOOL_LINK_MODE_Backplane_BIT},
+> > +	{HNS3_LM_10BASET_HALF_BIT, ETHTOOL_LINK_MODE_10baseT_Half_BIT},
+> > +	{HNS3_LM_10BASET_FULL_BIT, ETHTOOL_LINK_MODE_10baseT_Full_BIT},
+> > +	{HNS3_LM_100BASET_HALF_BIT, ETHTOOL_LINK_MODE_100baseT_Half_BIT},
+> > +	{HNS3_LM_100BASET_FULL_BIT, ETHTOOL_LINK_MODE_100baseT_Full_BIT},
+> > +	{HNS3_LM_1000BASET_FULL_BIT,
+> ETHTOOL_LINK_MODE_1000baseT_Full_BIT},
+> > +};
 > > +
-> > +	return le16_to_cpu(mdio_cmd->data_rd);
+> > +#define HNS3_DRV_TO_ETHTOOL_CAPS(caps, lk_ksettings, name)	\
+> > +{								\
+> > +	int i;							\
+> > +								\
+> > +	for (i = 0; i < ARRAY_SIZE(hns3_lm_map); i++) {		\
+> > +		if ((caps) & hns3_lm_map[i].hns3_link_mode)	\
+> > +			__set_bit(hns3_lm_map[i].ethtool_link_mode,\
+> > +				  (lk_ksettings)->link_modes.name); \
+> > +	}							\
 > > +}
-> > +
-> > +int hclge_mac_mdio_config(struct hclge_dev *hdev)
-> > +{
-> > +	struct hclge_mac *mac = &hdev->hw.mac;
-> > +	struct phy_device *phydev;
-> > +	struct mii_bus *mdio_bus;
-> > +	int ret;
-> > +
-> > +	if (hdev->hw.mac.phy_addr >= PHY_MAX_ADDR)
-> > +		return 0;
 > 
-> Should not this be treated as a hard error instead?
-What if SFP is not plugged in and our hardware treats
-this as 0xff a special condition? I think we are trying
-to detect that condition here.
+> How about making this an inline function such that you would get proper
+> type checking?
+Sure will try doing that.
+
+Thanks
+> 
+> > +
+> > +static int hns3_get_sset_count(struct net_device *netdev, int
+> stringset)
+> > +{
+> > +	struct hns3_nic_priv *priv = netdev_priv(netdev);
+> > +	struct hnae3_handle *h = priv->ae_handle;
+> > +	const struct hnae3_ae_ops *ops = h->ae_algo->ops;
+> > +
+> > +	if (!ops->get_sset_count) {
+> > +		netdev_err(netdev, "could not get string set count\n");
+> > +		return -EOPNOTSUPP;
+> > +	}
+> 
+> Is it really worth the error message? This might be called several
+> times
+> during the driver's lifecycle.
+Fine, will remove.
 
 > 
 > > +
-> > +	mdio_bus = devm_mdiobus_alloc(&hdev->pdev->dev);
-> > +	if (!mdio_bus)
-> > +		return -ENOMEM;
+> > +	switch (stringset) {
+> > +	case ETH_SS_STATS:
+> > +		return (HNS3_NETDEV_STATS_COUNT +
+> > +			(HNS3_TQP_STATS_COUNT * h->kinfo.num_tqps) +
+> > +			ops->get_sset_count(h, stringset));
 > > +
-> > +	mdio_bus->name = "hisilicon MII bus";
-> > +	mdio_bus->read = hclge_mdio_read;
-> > +	mdio_bus->write = hclge_mdio_write;
-> > +	snprintf(mdio_bus->id, MII_BUS_ID_SIZE, "%s-%s", "mii",
-> > +		 dev_name(&hdev->pdev->dev));
-> > +
-> > +	mdio_bus->parent = &hdev->pdev->dev;
-> > +	mdio_bus->priv = hdev;
-> > +	mdio_bus->phy_mask = ~(1 << mac->phy_addr);
-> > +	ret = mdiobus_register(mdio_bus);
-> > +	if (ret) {
-> > +		dev_err(mdio_bus->parent,
-> > +			"Failed to register MDIO bus ret = %#x\n", ret);
-> > +		return ret;
+> > +	case ETH_SS_TEST:
+> > +		return ops->get_sset_count(h, stringset);
 > > +	}
-> > +
-> > +	phydev = mdiobus_get_phy(mdio_bus, mac->phy_addr);
-> > +	if (!phydev || IS_ERR(phydev)) {
-> > +		dev_err(mdio_bus->parent, "Failed to get phy device\n");
-> > +		mdiobus_unregister(mdio_bus);
-> > +		return -EIO;
-> > +	}
-> > +
-> > +	mac->phydev = phydev;
-> > +	mac->mdio_bus = mdio_bus;
 > > +
 > > +	return 0;
 > > +}
 > > +
-> > +static void hclge_mac_adjust_link(struct net_device *netdev)
+> > +static u8 *hns3_get_strings_netdev(u8 *data)
 > > +{
-> > +	struct hclge_mac *hw_mac;
-> > +	struct hclge_dev *hdev;
-> > +	struct hclge_hw *hw;
-> > +	int duplex;
-> > +	int speed;
-> > +
-> > +	if (!netdev)
-> > +		return;
+> > +	int i;
 > 
-> This should not happen, don't let your drivers register unless the
-> net_device object is fully set up.
-Agreed. Will remove.
+> unsigned int i.
+Ok.
 
 > 
 > > +
-> > +	hw_mac = container_of(netdev, struct hclge_mac, netdev);
-> > +	hw = container_of(hw_mac, struct hclge_hw, mac);
-> > +	hdev = hw->back;
-> > +
-> > +	speed = netdev->phydev->speed;
-> > +	duplex = netdev->phydev->duplex;
-> > +
-> > +	/* update antoneg. */
-> > +	hw_mac->autoneg = netdev->phydev->autoneg;
-> > +
-> > +	if ((hw_mac->speed != speed) || (hw_mac->duplex != duplex))
-> > +		(void)hclge_cfg_mac_speed_dup(hdev, speed, !!duplex);
-> > +}
-> > +
-> > +int hclge_mac_start_phy(struct hclge_dev *hdev)
-> > +{
-> > +	struct hclge_mac *mac = &hdev->hw.mac;
-> > +	struct net_device *netdev = &mac->netdev;
-> > +	struct phy_device *phydev = mac->phydev;
-> > +	int ret;
-> > +
-> > +	if (!phydev)
-> > +		return 0;
-> 
-> Same thing here, this should not happen.
-This is again when SFP is not present phydev will be NULL.
-
-> 
-> > +
-> > +	phydev->dev_flags = 0;
-> 
-> This is the default.
-Sure, will remove
-
-> 
-> > +
-> > +	ret = phy_connect_direct(netdev, phydev,
-> > +				 hclge_mac_adjust_link,
-> > +				 PHY_INTERFACE_MODE_SGMII);
-> > +	if (ret) {
-> > +		pr_info("phy_connect_direct err");
-> > +		return ret;
+> > +	for (i = 0; i < HNS3_NETDEV_STATS_COUNT; i++) {
+> > +		memcpy(data, hns3_netdev_stats[i].stats_string,
+> > +		       ETH_GSTRING_LEN);
+> > +		data += ETH_GSTRING_LEN;
 > > +	}
 > > +
-> > +	phy_start(phydev);
-> > +
-> > +	return 0;
+> > +	return data;
 > > +}
 > > +
-> > +void hclge_mac_stop_phy(struct hclge_dev *hdev)
+> > +static u8 *hns3_get_strings_tqps(struct hnae3_handle *handle, u8
+> *data)
 > > +{
-> > +	struct hclge_mac *mac = &hdev->hw.mac;
-> > +	struct net_device *netdev = &mac->netdev;
-> > +	struct phy_device *phydev = netdev->phydev;
-> > +
-> > +	if (!phydev)
-> > +		return;
+> > +	struct hnae3_knic_private_info *kinfo = &handle->kinfo;
+> > +	int i, j;
 > 
-> You should be symmetrical here, if you could phy_connect() +
-> phy_start()
-> then you should call phy_stop() + phy_disconnect().
-Got it. Will fix it.
+> Likewise, unsigned int i, j.
+Ok.
 
-Thanks!
 > 
 > > +
-> > +	phy_disconnect(phydev);
-> > +}
-> >
+> > +	/* get strings for Tx */
+> > +	for (i = 0; i < kinfo->num_tqps; i++) {
+> > +		for (j = 0; j < HNS3_TXQ_STATS_COUNT; j++) {
+> > +			u8 gstr[ETH_GSTRING_LEN];
 > 
+> char gstr[ETH_GSTRING_LEN] and you can move it out of the loop since it
+> is just a temporary buffer for both loops here.
+Fine.
+
+> 
+> > +
+> > +			sprintf(gstr, "rcb_q%d_", i);
+> 
+> snprintf() just to be on the safe side.
+> 
+> > +			strcat(gstr, hns3_txq_stats[j].stats_string);
+> > +
+> > +			memcpy(data, gstr, ETH_GSTRING_LEN);
+> 
+> What ensures that you are NULL terminating this string?
+Yes, point! Will fix this.
+
+Thanks
+> 
+> > +			data += ETH_GSTRING_LEN;
+> > +		}
+> > +	}
+> > +
+> > +	/* get strings for Rx */
+> > +	for (i = 0; i < kinfo->num_tqps; i++) {
+> > +		for (j = 0; j < HNS3_RXQ_STATS_COUNT; j++) {
+> > +			u8 gstr[ETH_GSTRING_LEN];
+> > +
+> > +			sprintf(gstr, "rcb_q%d_", i);
+> > +			strcat(gstr, hns3_rxq_stats[j].stats_string);
+> > +
+> > +			memcpy(data, gstr, ETH_GSTRING_LEN);
+> > +			data += ETH_GSTRING_LEN;
+> > +		}
+> > +	}
+> > +
+> > +	return data;
+> > +}
+> > +
+> > +static void hns3_get_strings(struct net_device *netdev, u32
+> stringset, u8 *data)
+> > +{
+> > +	struct hns3_nic_priv *priv = netdev_priv(netdev);
+> > +	struct hnae3_handle *h = priv->ae_handle;
+> > +	const struct hnae3_ae_ops *ops = h->ae_algo->ops;
+> > +	char *buff = (char *)data;
+> > +
+> > +	if (!ops->get_strings) {
+> > +		netdev_err(netdev, "could not get strings!\n");
+> > +		return;
+> > +	}
+> 
+> Same here, does not sound like something you would want to print more
+> than once?
+Sure. Will remove.
+
+> 
+> > +
+> > +	switch (stringset) {
+> > +	case ETH_SS_STATS:
+> > +		buff = hns3_get_strings_netdev(buff);
+> > +		buff = hns3_get_strings_tqps(h, buff);
+> > +		h->ae_algo->ops->get_strings(h, stringset, (u8 *)buff);
+> > +		break;
+> > +	case ETH_SS_TEST:
+> > +		ops->get_strings(h, stringset, data);
+> > +		break;
+> > +	}
+> > +}
+> > +
+> > +static u64 *hns3_get_stats_netdev(struct net_device *netdev, u64
+> *data)
+> > +{
+> 
+> You should implement the 64-bit version of this.
+This is already taking care of 64bit stats?
+> 
+> > +	const struct rtnl_link_stats64 *net_stats;
+> > +	struct rtnl_link_stats64 temp;
+> > +	u8 *stat;
+> > +	int i;
+> 
+> unsigned int i
+Ok.
+> 
+> > +
+> > +	net_stats = dev_get_stats(netdev, &temp);
+> > +
+> > +	for (i = 0; i < HNS3_NETDEV_STATS_COUNT; i++) {
+> > +		stat = (u8 *)net_stats + hns3_netdev_stats[i].stats_offset;
+> > +		*data++ = *(u64 *)stat;
+> > +	}
+> > +
+> > +	return data;
+> > +}
+> > +
+> > +static u64 *hns3_get_stats_tqps(struct hnae3_handle *handle, u64
+> *data)
+> > +{
+> > +	struct hns3_nic_priv *nic_priv = (struct hns3_nic_priv *)handle-
+> >priv;
+> > +	struct hnae3_knic_private_info *kinfo = &handle->kinfo;
+> > +	struct hns3_enet_ring *ring;
+> > +	u8 *stat;
+> > +	int i;
+> 
+> Same here.
+Ok.
+
+> 
+> > +
+> > +	/* get stats for Tx */
+> > +	for (i = 0; i < kinfo->num_tqps; i++) {
+> > +		ring = nic_priv->ring_data[i].ring;
+> > +		for (i = 0; i < HNS3_TXQ_STATS_COUNT; i++) {
+> > +			stat = (u8 *)ring + hns3_txq_stats[i].stats_offset;
+> > +			*data++ = *(u64 *)stat;
+> > +		}
+> > +	}
+> > +
+> > +	/* get stats for Rx */
+> > +	for (i = 0; i < kinfo->num_tqps; i++) {
+> > +		ring = nic_priv->ring_data[i + kinfo->num_tqps].ring;
+> > +		for (i = 0; i < HNS3_RXQ_STATS_COUNT; i++) {
+> > +			stat = (u8 *)ring + hns3_rxq_stats[i].stats_offset;
+> > +			*data++ = *(u64 *)stat;
+> > +		}
+> > +	}
+> > +
+> > +	return data;
+> > +}
+> > +
+> > +/* hns3_get_stats - get detail statistics.
+> > + * @netdev: net device
+> > + * @stats: statistics info.
+> > + * @data: statistics data.
+> > + */
+> > +void hns3_get_stats(struct net_device *netdev, struct ethtool_stats
+> *stats,
+> > +		    u64 *data)
+> > +{
+> > +	struct hns3_nic_priv *priv = netdev_priv(netdev);
+> > +	struct hnae3_handle *h = priv->ae_handle;
+> > +	u64 *p = data;
+> > +
+> > +	if (!h->ae_algo->ops->get_stats || !h->ae_algo->ops-
+> >update_stats) {
+> > +		netdev_err(netdev, "could not get any statistics\n");
+> > +		return;
+> > +	}
+> > +
+> > +	h->ae_algo->ops->update_stats(h, &netdev->stats);
+> > +
+> > +	/* get netdev related stats */
+> > +	p = hns3_get_stats_netdev(netdev, p);
+> > +
+> > +	/* get per-queue stats */
+> > +	p = hns3_get_stats_tqps(h, p);
+> > +
+> > +	/* get MAC & other misc hardware stats */
+> > +	h->ae_algo->ops->get_stats(h, p);
+> > +}
+> > +
+> > +static void hns3_get_drvinfo(struct net_device *netdev,
+> > +			     struct ethtool_drvinfo *drvinfo)
+> > +{
+> > +	struct hns3_nic_priv *priv = netdev_priv(netdev);
+> > +	struct hnae3_handle *h = priv->ae_handle;
+> > +
+> > +	strncpy(drvinfo->version, HNAE_DRIVER_VERSION,
+> > +		sizeof(drvinfo->version));
+> > +	drvinfo->version[sizeof(drvinfo->version) - 1] = '\0';
+> 
+> strlcpy() would probably do that for you.
+Not changing this for now.
+
+
+> 
+> > +
+> > +	strncpy(drvinfo->driver, HNAE_DRIVER_NAME, sizeof(drvinfo-
+> >driver));
+> > +	drvinfo->driver[sizeof(drvinfo->driver) - 1] = '\0';
+> 
+> Same here
+> 
+> > +
+> > +	strncpy(drvinfo->bus_info, priv->dev->bus->name,
+> > +		sizeof(drvinfo->bus_info));> +	drvinfo-
+> >bus_info[ETHTOOL_BUSINFO_LEN - 1] = '\0';
+> 
+> And here.
+> 
+> The rest looked fine.
+Sure thanks
+
 > --
 > Florian
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
