@@ -1,37 +1,75 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 1/5] Common infrastructure for auto loading
- rdma modules
-Date: Thu, 27 Jul 2017 16:38:17 -0600
-Message-ID: <20170727223817.GA9620@obsidianresearch.com>
-References: <1500929067-1583-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1500929067-1583-2-git-send-email-jgunthorpe@obsidianresearch.com>
- <1501002916.8931.4.camel@wdc.com>
- <20170725173947.GA10905@obsidianresearch.com>
- <20170727221850.GB16986@obsidianresearch.com>
- <1501194538.2516.10.camel@wdc.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Latest for-4.14
+Date: Thu, 27 Jul 2017 19:23:23 -0400
+Message-ID: <1501197803.2593.10.camel@redhat.com>
+References: <20170726053749.GV3259@mtr-leonro.local>
+         <b337a2ae-40ff-a207-82fa-fd3c7d2e1083@intel.com>
+         <20170726130350.GW3259@mtr-leonro.local>
+         <7aad42cd-05be-b7a7-9e85-2c13f5d489d3@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1501194538.2516.10.camel-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <7aad42cd-05be-b7a7-9e85-2c13f5d489d3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org" <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "notifications-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org" <notifications-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org>, "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 27, 2017 at 10:28:59PM +0000, Bart Van Assche wrote:
+On Thu, 2017-07-27 at 14:32 -0400, Doug Ledford wrote:
+> On 7/26/2017 9:03 AM, Leon Romanovsky wrote:
+> > On Wed, Jul 26, 2017 at 08:24:44AM -0400, Dennis Dalessandro wrote:
+> > > On 7/26/2017 1:37 AM, Leon Romanovsky wrote:
+> > > > Reply to: "Re: [PATCH for-next 7/9] IB/core: Allow QP state
+> > > > transition from reset to error"
+> > > > 
+> > > > On Sun, Jul 23, 2017 at 09:14:02AM -0400, Doug Ledford wrote:
+> > > > > On 7/23/2017 9:04 AM, Leon Romanovsky wrote:
+> > > > 
+> > > > <snip>
+> > > > 
+> > > > > > BTW, when will you post for-4.14 branch so we will be able
+> > > > > > to base our
+> > > > > > submission queue for the -next?
+> > > > > 
+> > > > > Tomorrow.  I wanted to base it on 4.13-rc2 so it would get
+> > > > > all of the
+> > > > > fixes that went in this week.
+> > > > 
+> > > > Any news on the matter?
+> > > > 
+> > > 
+> > > Check Doug's GitHub, I see a 4.13-rc2 based "for-next" branch
+> > > there.
+> > 
+> > Are you referring to this branch?
+> > https://github.com/torvalds/linux/compare/master...dledford:k.o/for
+> > -next
+> > 
+> > It doesn't have most of mlx5/mlx4/cavium/core/e.t.c features.
+> 
+> I created a for-next and then I've been making various other branches
+> through the week and sending them to github to be checked by 0day
+> testing.  Once they pass 0day, I merge them into the for-next and
+> push
+> one more time to make sure the combination of everything merged
+> together
+> passes 0day, and once I get confirmation that the build is good, I'll
+> push it to k.o where it will be considered unrebaseable, and so any
+> fixes after that may require incremental patches, reverts, etc.  The
+> slowdown this week has largely been the turnaround time on 0day
+> testing.
+>  That's been taking in excess of 10 hours from a push to test results
+> :-/.  I pushed what I want to push to k.o this morning about 8am, not
+> sure when I'll get my 0day results back.
 
-> The srp_daemon communicates with the IB SA to discover SRP target ports. As
-> you know there is no SA in a RoCE network. I think it is harmless to start
-> srp_daemon against a RoCE port but I don't think this makes sense.
+The current for-next is pushed to k.o.
 
-I agree, it looks like it stops here:
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
- Jul 27 22:14:34 ib9 srp_daemon[258]: SM LID is 0, maybe no opensm is running
-
-and seems harmless. Let us leave it like this for now.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
