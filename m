@@ -1,53 +1,157 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [pull request][rdma-rc 00/11] IPoIB fixes for 4.13
-Date: Thu, 27 Jul 2017 11:06:56 -0400
-Message-ID: <3eb7d0e3-b1ef-533e-56ae-9cc6b65ddfc5@intel.com>
-References: <20170726181232.7363-1-leon@kernel.org>
- <2679977c-6258-ed15-a234-3682b8be65f3@intel.com>
+From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: perftest proprietary files
+Date: Thu, 27 Jul 2017 17:33:14 +0200
+Message-ID: <8bff5295-19f9-059a-e5e6-997b6297b322@suse.de>
+References: <2411a5c0-84f8-124e-83ce-1ee587dcf4ce@suse.de>
+ <DB6PR05MB3493378C569E416783246ED4A9BE0@DB6PR05MB3493.eurprd05.prod.outlook.com>
+ <1501165194.4572.32.camel@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2679977c-6258-ed15-a234-3682b8be65f3-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1501165194.4572.32.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Content-Language: fr-xx-classique+reforme1990
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Zohar Ben Aharon <zoharb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/27/2017 11:05 AM, Dennis Dalessandro wrote:
-> On 7/26/2017 2:12 PM, Leon Romanovsky wrote:
->> The following changes since commit 
->> a62ab66b13a0f9bcb17b7b761f6670941ed5cd62:
->>
->>    RDMA/core: Initialize port_num in qp_attr (2017-07-20 11:24:13 -0400)
->>
->> are available in the git repository at:
->>
->>    git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git 
->> tags/rdma-rc-2017-07-26
->>
->> for you to fetch changes up to 5dc78ad1904db597bdb4427f3ead437aae86f54c:
->>
->>    IB/ipoib: Notify on modify QP failure only when relevant 
->> (2017-07-23 10:52:00 +0300)
->>
->> ----------------------------------------------------------------
->> IPoIB fixes for 4.13
->>
->> The patchset provides various fixes for IPoIB. It is combination of
->> fixes to various issues discovered during verification along with
->> static checkers cleanup patches.
->>
->> Most of the patches are from pre-git era and hence lack of Fixes lines.
-> 
-> I'm not sure that patches 4,6,7,8, and 11 really should go in the RC. I 
-> think those should go to for-next. My opinion anyway.
+Hi,
 
-Ugh, one of those days, hands move faster than brain. That should have 
-said 9 instead of 11.
+This is what I meant.
+I agree Mellanox has all right to keep their copyright in, but in the current form, it kinda prevents redistribution of the compilation files.
 
--Denny
+Adding a GPL (or BSD) with the Mellanox copyright clears up things.
+
+Nicolas
+
+Le 27/07/2017 à 16:19, Benjamin Drung a écrit :
+> Hi Nicolas,
+>
+> can Mellanox adjust the header of the files? Currently it says:
+>
+> #
+> # Copyright (C) Mellanox Technologies Ltd. 2001-2011.  ALL RIGHTS RESERVED.
+> # This software product is a proprietary product of Mellanox Technologies Ltd.
+> # (the "Company") and all right, title, and interest and to the software product,
+> # including all associated intellectual property rights, are and shall
+> # remain exclusively with the Company.
+> #
+> # This software product is governed by the End User License Agreement
+> # provided with the software product.
+> # $COPYRIGHT$
+> # $HEADER$
+> #
+>
+> but since it is gpl/bsd (as you said), the header should read something like:
+>
+> # Copyright (C) Mellanox Technologies Ltd. 2001-2011.  All rights
+> reserved.
+> #
+> # This software is available to you under a choice of one of
+> two
+> # licenses.  You may choose to be licensed under the terms of the
+> GNU
+> # General Public License (GPL) Version 2, available from the file
+> #
+> COPYING in the main directory of this source tree, or the
+> # OpenIB.org
+> BSD license below:
+> #
+> #     Redistribution and use in source and binary
+> forms, with or
+> #     without modification, are permitted provided that
+> the following
+> #     conditions are met:
+> #
+> #      - Redistributions of
+> source code must retain the above
+> #        copyright notice, this list
+> of conditions and the following
+> #        disclaimer.
+> #
+> #      -
+> Redistributions in binary form must reproduce the above
+> #       
+> copyright notice, this list of conditions and the following
+> #       
+> disclaimer in the documentation and/or other materials
+> #        provided
+> with the distribution.
+> #
+> # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT
+> WARRANTY OF ANY KIND,
+> # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+> THE WARRANTIES OF
+> # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+> AND
+> # NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+> HOLDERS
+> # BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+> IN AN
+> # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+> IN
+> # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> #
+> SOFTWARE.
+>
+> Am Donnerstag, den 27.07.2017, 12:35 +0000 schrieb Zohar Ben Aharon:
+>> Hi Nicolas,
+>>
+>>
+>> I've verified your issue, 
+>> Mellanox provide perftest to be under gpl/bsd license.
+>> since Mellanox is the maintainer and release perftest as an open
+>> source SW it still can have copyrights on each file that was written
+>> or approved by its developers,
+>> So the headers should remain and declared as Mellanox propriety.
+>>
+>> Hope is helps you.
+>>
+>> Thanks,
+>>
+>>
+>> Zohar Ben Aharon
+>> Perfromance Engineer
+>> Mellanox Technologies Ltd.
+>> Phone:  +972 (74) 723 6829
+>> Mobile: +972 (52) 691 1115
+>>
+>>
+>>
+>>
+>> -----Original Message-----
+>> From: Zohar Ben Aharon 
+>> Sent: Monday, July 24, 2017 8:41 AM
+>> To: 'Nicolas Morey-Chaisemartin' <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>; linux-
+>> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Subject: RE: perftest proprietary files
+>>
+>> Sorry for the late response,
+>> ill verify this files propriety and back to you.
+>>
+>>
+>> -----Original Message-----
+>> From: Nicolas Morey-Chaisemartin [mailto:NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org] 
+>> Sent: Friday, July 21, 2017 11:29 AM
+>> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Zohar Ben Aharon <zoharb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+>> Subject: perftest proprietary files
+>>
+>> Hi,
+>>
+>> While packaging perftest for SUSE, I discovered that some files have
+>> headers  declaring the software as Mellanox proprietary while the
+>> COPYING declares LGPL/BSD.
+>>
+>> The files are:
+>> * Makefile.am
+>> * Makefile.in
+>> * configure.ac
+>>
+>> Should these headers be dropped ?
+>>
+>> (I pinged zoharb about this already without much luck. Figured it
+>> might be worth a shot here)
+>>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
