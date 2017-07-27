@@ -1,28 +1,43 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 6/7] IB/rxe: Fix up one more receive queue drain path that
- might prevent cleanup
-Date: Thu, 27 Jul 2017 15:13:33 +0300
-Message-ID: <CAG9sBKM8rZRqpPLe5QzvpNEMe-ep+ji=+LXzO=HYXJ31OZ41hA@mail.gmail.com>
-References: <1500989968-30889-1-git-send-email-andrew.boyer@dell.com> <1500989968-30889-7-git-send-email-andrew.boyer@dell.com>
+From: Zohar Ben Aharon <zoharb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: perftest proprietary files
+Date: Thu, 27 Jul 2017 12:35:01 +0000
+Message-ID: <DB6PR05MB3493378C569E416783246ED4A9BE0@DB6PR05MB3493.eurprd05.prod.outlook.com>
+References: <2411a5c0-84f8-124e-83ce-1ee587dcf4ce@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1500989968-30889-7-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, allen.hubbe-8PEkshWhKlo@public.gmane.org
+To: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 25, 2017 at 4:39 PM, Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org> wrote:
-> Fixes: 1217197142d1 ("rxe: fix broken receive queue draining")
-> Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-> ---
->  drivers/infiniband/sw/rxe/rxe_req.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
->
-please improve documentation for this patch
-Make sure that the commit message has a body, not just subject (which
-you can make shorter and more general)
+SGkgTmljb2xhcywNCg0KDQpJJ3ZlIHZlcmlmaWVkIHlvdXIgaXNzdWUsIA0KTWVsbGFub3ggcHJv
+dmlkZSBwZXJmdGVzdCB0byBiZSB1bmRlciBncGwvYnNkIGxpY2Vuc2UuDQpzaW5jZSBNZWxsYW5v
+eCBpcyB0aGUgbWFpbnRhaW5lciBhbmQgcmVsZWFzZSBwZXJmdGVzdCBhcyBhbiBvcGVuIHNvdXJj
+ZSBTVyBpdCBzdGlsbCBjYW4gaGF2ZSBjb3B5cmlnaHRzIG9uIGVhY2ggZmlsZSB0aGF0IHdhcyB3
+cml0dGVuIG9yIGFwcHJvdmVkIGJ5IGl0cyBkZXZlbG9wZXJzLA0KU28gdGhlIGhlYWRlcnMgc2hv
+dWxkIHJlbWFpbiBhbmQgZGVjbGFyZWQgYXMgTWVsbGFub3ggcHJvcHJpZXR5Lg0KDQpIb3BlIGlz
+IGhlbHBzIHlvdS4NCg0KVGhhbmtzLA0KDQoNClpvaGFyIEJlbiBBaGFyb24NClBlcmZyb21hbmNl
+IEVuZ2luZWVyDQpNZWxsYW5veCBUZWNobm9sb2dpZXMgTHRkLg0KUGhvbmU6IMKgKzk3MiAoNzQp
+IDcyMyA2ODI5DQpNb2JpbGU6ICs5NzIgKDUyKSA2OTEgMTExNQ0KDQoNCg0KDQotLS0tLU9yaWdp
+bmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogWm9oYXIgQmVuIEFoYXJvbiANClNlbnQ6IE1vbmRheSwg
+SnVseSAyNCwgMjAxNyA4OjQxIEFNDQpUbzogJ05pY29sYXMgTW9yZXktQ2hhaXNlbWFydGluJyA8
+Tk1vcmV5Q2hhaXNlbWFydGluQHN1c2UuZGU+OyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZw0K
+U3ViamVjdDogUkU6IHBlcmZ0ZXN0IHByb3ByaWV0YXJ5IGZpbGVzDQoNClNvcnJ5IGZvciB0aGUg
+bGF0ZSByZXNwb25zZSwNCmlsbCB2ZXJpZnkgdGhpcyBmaWxlcyBwcm9wcmlldHkgYW5kIGJhY2sg
+dG8geW91Lg0KDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBOaWNvbGFzIE1v
+cmV5LUNoYWlzZW1hcnRpbiBbbWFpbHRvOk5Nb3JleUNoYWlzZW1hcnRpbkBzdXNlLmRlXSANClNl
+bnQ6IEZyaWRheSwgSnVseSAyMSwgMjAxNyAxMToyOSBBTQ0KVG86IGxpbnV4LXJkbWFAdmdlci5r
+ZXJuZWwub3JnOyBab2hhciBCZW4gQWhhcm9uIDx6b2hhcmJAbWVsbGFub3guY29tPg0KU3ViamVj
+dDogcGVyZnRlc3QgcHJvcHJpZXRhcnkgZmlsZXMNCg0KSGksDQoNCldoaWxlIHBhY2thZ2luZyBw
+ZXJmdGVzdCBmb3IgU1VTRSwgSSBkaXNjb3ZlcmVkIHRoYXQgc29tZSBmaWxlcyBoYXZlIGhlYWRl
+cnMgIGRlY2xhcmluZyB0aGUgc29mdHdhcmUgYXMgTWVsbGFub3ggcHJvcHJpZXRhcnkgd2hpbGUg
+dGhlIENPUFlJTkcgZGVjbGFyZXMgTEdQTC9CU0QuDQoNClRoZSBmaWxlcyBhcmU6DQoqIE1ha2Vm
+aWxlLmFtDQoqIE1ha2VmaWxlLmluDQoqIGNvbmZpZ3VyZS5hYw0KDQpTaG91bGQgdGhlc2UgaGVh
+ZGVycyBiZSBkcm9wcGVkID8NCg0KKEkgcGluZ2VkIHpvaGFyYiBhYm91dCB0aGlzIGFscmVhZHkg
+d2l0aG91dCBtdWNoIGx1Y2suIEZpZ3VyZWQgaXQgbWlnaHQgYmUgd29ydGggYSBzaG90IGhlcmUp
+DQoNCk5pY29sYXMNCg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
