@@ -1,154 +1,70 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] drivers/rxe: improve rxe loopback
-Date: Thu, 27 Jul 2017 10:36:35 +0300
-Message-ID: <20170727073635.GB13672@mtr-leonro.local>
-References: <20170726145248.21677-1-marcel@redhat.com>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH rdma-core 0/5] Common systemd/udev based boot support
+Date: Thu, 27 Jul 2017 07:47:03 +0000
+Message-ID: <BN3PR07MB257807A6AE85B9B5575AAD7AF8BE0@BN3PR07MB2578.namprd07.prod.outlook.com>
+References: <1500929067-1583-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="VS++wcV0S1rZb1Fb"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170726145248.21677-1-marcel@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Marcel Apfelbaum <marcel@redhat.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, monis@mellanox.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, yuval.shaia@oracle.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1500929067-1583-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <notifications-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Jason,
 
---VS++wcV0S1rZb1Fb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> I do not have nearly enough hardware to exhaustively test this, I have ch=
+ecked
+> that the basic elements are working, but there is lots of room for little
+> errors, particularly in module names and udev matching. It would be great=
+ of
+> someone could try this on iwarp hardware and confirm all the autoloading =
+works
+> as expected.
+>=20
+> As should the active roce vendors. I expect that all roce hardware will
+> autoload the RDMA modules with this approach.
 
-On Wed, Jul 26, 2017 at 05:52:48PM +0300, Marcel Apfelbaum wrote:
-> Currently a packet is marked for loopback only if the source and
-> destination address match. This is not enough when multiple
-> gids are present in rxe's gid table and the traffic is
-> from one gid to another.
->
-> Fix it by marking the packet for loopback if the destination
-> address appears in rxe's gid table.
->
-> Signed-off-by: Marcel Apfelbaum <marcel@redhat.com>
-> ---
->  drivers/infiniband/sw/rxe/rxe_net.c | 47 +++++++++++++++++++++++++++++++++++--
->  1 file changed, 45 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-> index c3a140e..b76a9a3 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_net.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_net.c
-> @@ -351,6 +351,27 @@ static void prepare_ipv6_hdr(struct dst_entry *dst, struct sk_buff *skb,
->  	ip6h->payload_len = htons(skb->len - sizeof(*ip6h));
->  }
->
-> +static inline bool addr4_same_rxe(struct rxe_dev *rxe, struct in_addr *daddr)
-> +{
+It works for qedr.
 
-In addition to Moni's comment, no "inline" functions in *.c files, please.
+I have followed Steve's steps and built the rpms on Red Hat 7.3 from your r=
+epo/systemd.
+I've removed all the previous libraries and 98-rdma.rules and then installe=
+d the newly built rpms=20
+After that I rebooted and qedr was loaded.
+I didn't have to configure the interfaces as Steve did (ifconfig <device> u=
+p).
 
-> +	struct in_device *in_dev;
-> +	bool same_rxe = false;
+I've notice that 98-rdma.rules got recreated, but the new file doesn't cont=
+ain any qed entry.
+Why is it recreated? If it is in use, why isn't qed listed?
+
+> +# Hardware that supports iWarp
+> +DRIVERS=3D=3D"cxgb3", ENV{ID_RDMA_IWARP}=3D"1"
+> +DRIVERS=3D=3D"cxgb4", ENV{ID_RDMA_IWARP}=3D"1"
 > +
-> +	rcu_read_lock();
-> +	in_dev = __in_dev_get_rcu(rxe->ndev);
-> +	if (!in_dev)
-> +		goto out;
-> +
-> +	for_ifa(in_dev)
-> +		if (!memcmp(&ifa->ifa_address, daddr, sizeof(*daddr))) {
-> +			same_rxe = true;
-> +			goto out;
-> +		}
-> +	endfor_ifa(in_dev);
+> +# Hardware that supports RoCE
+> +DRIVERS=3D=3D"be2net", ENV{ID_RDMA_ROCE}=3D"1"
+> +DRIVERS=3D=3D"bnxt_en", ENV{ID_RDMA_ROCE}=3D"1"
+> +DRIVERS=3D=3D"hns", ENV{ID_RDMA_ROCE}=3D"1"
+> +DRIVERS=3D=3D"i40e", ENV{ID_RDMA_ROCE}=3D"1"
+> +DRIVERS=3D=3D"mlx4_core", ENV{ID_RDMA_ROCE}=3D"1"
+> +DRIVERS=3D=3D"mlx5_core", ENV{ID_RDMA_ROCE}=3D"1"
+> +DRIVERS=3D=3D"qede", ENV{ID_RDMA_ROCE}=3D"1"
 
-I'm afraid that it will decrease performance drastically. One of the
-possible solutions to overcome it, is to check the address of first packet
-only, but it will work for RC only.
+We've recently sent iWARP patches this means qede will be used by either Ro=
+CE or iWARP.
+In any case the RDMA driver is the same - qedr.
 
-> +out:
-> +	rcu_read_unlock();
-> +	return same_rxe;
-> +}
-> +
->  static int prepare4(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
->  		    struct sk_buff *skb, struct rxe_av *av)
->  {
-> @@ -367,7 +388,7 @@ static int prepare4(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
->  		return -EHOSTUNREACH;
->  	}
->
-> -	if (!memcmp(saddr, daddr, sizeof(*daddr)))
-> +	if (addr4_same_rxe(rxe, daddr))
->  		pkt->mask |= RXE_LOOPBACK_MASK;
->
->  	prepare_udp_hdr(skb, htons(RXE_ROCE_V2_SPORT),
-> @@ -384,6 +405,28 @@ static int prepare4(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
->  	return 0;
->  }
->
-> +static inline bool addr6_same_rxe(struct rxe_dev *rxe, struct in6_addr *daddr)
-> +{
+Can you explain what effect does this ENV property has on actual operation?
+How do you think it should look in the light of the upcoming patch?
 
-Ditto
+Thanks for coding this,
+Ram
 
-> +	struct inet6_dev *in6_dev;
-> +	struct inet6_ifaddr *ifp;
-> +	bool same_rxe = false;
-> +
-> +	in6_dev = in6_dev_get(rxe->ndev);
-> +	if (!in6_dev)
-> +		return false;
-> +
-> +	read_lock_bh(&in6_dev->lock);
-> +	list_for_each_entry(ifp, &in6_dev->addr_list, if_list)
-> +		if (!memcmp(&ifp->addr, daddr, sizeof(*daddr))) {
-> +			same_rxe = true;
-> +			goto out;
-> +		}
-> +out:
-> +	read_unlock_bh(&in6_dev->lock);
-> +	in6_dev_put(in6_dev);
-> +	return same_rxe;
-> +}
-> +
->  static int prepare6(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
->  		    struct sk_buff *skb, struct rxe_av *av)
->  {
-> @@ -398,7 +441,7 @@ static int prepare6(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
->  		return -EHOSTUNREACH;
->  	}
->
-> -	if (!memcmp(saddr, daddr, sizeof(*daddr)))
-> +	if (addr6_same_rxe(rxe, daddr))
->  		pkt->mask |= RXE_LOOPBACK_MASK;
->
->  	prepare_udp_hdr(skb, htons(RXE_ROCE_V2_SPORT),
-> --
-> 2.9.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---VS++wcV0S1rZb1Fb
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAll5mAMACgkQ5GN7iDZy
-WKfXNw//W2r3eHM69b8uP8g5yCPvlwjtuNlplSpkJl8Cu1MZq7kJhVtj9+klrhUN
-iaP0Idi9krNLJNqcLTHzfG2BFi6VeXTxuEMXOtq5tKBFYAbTh9masvigdgn/xjl5
-/9unxymytFM8b/PKvRm/PV4aGaUaTQD3HHHeauEaqNek1chIncysLhMeKIjb4bDR
-S2ihdYwL3hXTX4FsfN+6byoDk39dZL7E+HKoJn2D8WX58g6q/FhY89uH4pJkxfjw
-xU07WpHf1dMOJ9QVJksKcXx2BM8cyVAWh/oF5h5tetuG3nvW1dL9xCzJwKH7AbSB
-gn9CKWhb40mea8ofpEe+TTHMgoz2gsZYd0VzhSI8NzE+F/KnsH4cQLVm28coU8+v
-DliV1OHeZL5s+WyGfZrZwGONG4yOEovRnTMoP2zA/CwHQSym1nIqrkb8KvHPRvZd
-gfT51quOO0VKVOR6MOV9wsrGjr0UwiQsV+wl6usNNjae2clDvw9qxe982fXXZqLE
-V7KdfJvkfqboWhkrvv6QJcvRo7bFvclXtVnforlbnscqHfXkOfM4PQ1dOqDS6MF2
-Ltj1fDvDg1bVPmmlK60YIzZSwDKwBr9mTD/txL9UWjmAHyh8hxyieQUly29SSBme
-mqWcnzcjXiuH/4jrzZwYC3FbP+taKpgRJxfaesT7bz9jzR9VqwQ=
-=hSxO
------END PGP SIGNATURE-----
-
---VS++wcV0S1rZb1Fb--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
