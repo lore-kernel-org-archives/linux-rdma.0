@@ -1,35 +1,50 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next] IB/mlx5: Restore IB guid/policy for virtual
- functions
-Date: Fri, 28 Jul 2017 14:16:59 -0400
-Message-ID: <1501265819.2593.36.camel@redhat.com>
-References: <20170530071824.8933-1-leon@kernel.org>
+Subject: Re: [PATCH rdma-next 0/3] Add support for multicast in RoCEv2
+Date: Fri, 28 Jul 2017 14:21:33 -0400
+Message-ID: <1501266093.2593.39.camel@redhat.com>
+References: <20170612081404.17553-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170530071824.8933-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170612081404.17553-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-05-30 at 10:18 +0300, Leon Romanovsky wrote:
-> From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Mon, 2017-06-12 at 11:14 +0300, Leon Romanovsky wrote:
+> This series from Noa enables multicast traffic over RoCE v2.
 > 
-> When a user sets port_guid, node_guid or policy of an IB virtual
-> function, save this information in "struct mlx5_vf_context".
+> To allow this, several changes were required.
 > 
-> This information will be restored later when pci_resume is called.
-> To make sure this works, one can use aer-inject to generate PCI
-> errors on mlx5 devices and verify if relevant fields are restored
-> after PCI resume.
+> First of all, there is a need to validate MLID when link layer is
+> Infiniband. This check is mandatory according to Infiniband spec
+> but the MLID should be ignored for RoCE according to RoCEv2 Annex
+> (Annex 17, A17.5.6).
 > 
-> Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Second, there is need to cange the mapping of IPv4 multicast
+> addresses to MGIDs to be according to RoCEv2 Annex (A17.4.1.1 L3
+> Addresses): GID = ::ffff:<IPv4 Address>
+> 
+> And third, multicast addresses need to be mapped to multicast MAC
+> instead of searching for it in the GID table.
+> 
+> Thanks
+> 
+> Noa Osherovich (3):
+>   IB/core: Fix the validations of a multicast LID in attach or detach
+>     operations
+>   IB/core: Set RoCEv2 MGID according to spec
+>   IB/core: Add support for RoCEv2 multicast
+> 
+>  drivers/infiniband/core/cma.c   | 13 +++++----
+>  drivers/infiniband/core/verbs.c | 62
+> +++++++++++++++++++++++++++++++++++++----
+>  include/rdma/ib_addr.h          |  8 +++++-
+>  3 files changed, 70 insertions(+), 13 deletions(-)
 
-Thanks, applied.
+Thanks, series applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
