@@ -1,62 +1,55 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH rdma-core 3/8] srp_daemon: Add a --systemd option
-Date: Fri, 28 Jul 2017 12:35:07 +0200
-Message-ID: <1501238107.4572.39.camel@profitbricks.com>
-References: <1501099152-6344-1-git-send-email-jgunthorpe@obsidianresearch.com>
-         <1501099152-6344-4-git-send-email-jgunthorpe@obsidianresearch.com>
-         <1501164749.4572.30.camel@profitbricks.com>
-         <20170727164851.GB13245@obsidianresearch.com>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: next-20170728 build: 1 failures 2 warnings (next-20170728)
+Date: Fri, 28 Jul 2017 11:41:49 +0100
+Message-ID: <20170728104149.jqt7tuvytouuebdn@sirena.org.uk>
+References: <E1db2Vq-0000IU-Ew@optimist>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="glxe6cs4ptnf2axg"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170727164851.GB13245-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <E1db2Vq-0000IU-Ew@optimist>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: kernel-build-reports-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linaro-kernel-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Am Donnerstag, den 27.07.2017, 10:48 -0600 schrieb Jason Gunthorpe:
-> On Thu, Jul 27, 2017 at 04:12:29PM +0200, Benjamin Drung wrote:
-> > Am Mittwoch, den 26.07.2017, 13:59 -0600 schrieb Jason Gunthorpe:
-> > > This changes how logging is setup to send log messages only to
-> > > syslog,
-> > > instead of to stderr and to syslog. If messages are sent to both
-> > > places then systemd will create duplicate log entries.
-> > 
-> > The parameter name --systemd is not a good choice. It doesn't tell
-> > me what will change ("Enable systemd integration" does not help
-> > here) and someone might to want to use the switch without
-> > systemd. So something like --no-log-to-stderr or --syslog-only
-> > would
-> > better describe the behavior.
-> 
-> There are more systemd integration features to come, eg sd_notify,
-> some journal integration is possible.
-> 
-> I don't want to keep adding options along these lines, universally
-> having --systemd to turn everything we want to do on makes sense.
 
-A more flexible approach: Add individual parameters and let the
---systemd parameter just be an alias for these. So the man page would
-say: "--systemd is equivalent to --foo --bar --baz"
+--glxe6cs4ptnf2axg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
--- 
-Benjamin Drung
-System Developer
-Debian & Ubuntu Developer
+On Fri, Jul 28, 2017 at 11:28:54AM +0100, Build bot for Mark Brown wrote:
 
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
+Today's -next fails to build an arm64 allmodconfig due to:
 
-Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-Web: https://www.profitbricks.com
+> 	arm64-allmodconfig
+> ../drivers/infiniband/hw/hns/hns_roce_eq.c:477:8: error: unknown type name 'irqreturn_t'
+> ../drivers/infiniband/hw/hns/hns_roce_eq.c:485:9: error: implicit declaration of function 'IRQ_RETVAL' [-Werror=implicit-function-declaration]
+> ../drivers/infiniband/hw/hns/hns_roce_eq.c:711:9: error: implicit declaration of function 'request_irq' [-Werror=implicit-function-declaration]
+> ../drivers/infiniband/hw/hns/hns_roce_eq.c:726:3: error: implicit declaration of function 'free_irq' [-Werror=implicit-function-declaration]
+> ../drivers/staging/fsl-dpaa2/ethernet/../../fsl-mc/include/dpaa2-io.h:86:1: error: unknown type name 'irqreturn_t'
 
-Sitz der Gesellschaft: Berlin.
-Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-Geschäftsführer: Achim Weiss.
+since the file uses the interrupt API but doesn't explicitly include the
+header for it, I'm just about to send a patch.  Presumably something
+else was implicitly including it but that header changed.
 
+--glxe6cs4ptnf2axg
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCAAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAll7FOwACgkQJNaLcl1U
+h9CBFwf9GFpuLlPNFsGAdpndUvMwLXjbYJBY22KRR2PwYkPAc0pv/OAxo/Vx78pZ
+ekmG0Glwyy4CKxFY4huaI0mfK/6iV1Ehfh7MP+zIk8VPztllHTR1gp/5OQrY3fBC
+S+men8lysPaJPA+KO0QQK19Po75fAGppK969ZS2Kd8LIeQY1cLkRalmXhgJPCR5D
+7oPk7dqHtlZUbi0s+IWxmUvTcKPkx56druvvmG2TrWEeOwTUQRZcQSg3DvB4Lt1P
+4AhQyrAAnqmGF7OP8rnJxHAOnJANuIV+xI+x6PaRNLUyhYr1NKsc+GPhOFkImlC4
+fe2wZ7BGQXTV4LCpVnHTj/2NrN+VBg==
+=B0jm
+-----END PGP SIGNATURE-----
+
+--glxe6cs4ptnf2axg--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
