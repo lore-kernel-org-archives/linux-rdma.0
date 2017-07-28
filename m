@@ -1,135 +1,129 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: Latest for-4.14
-Date: Fri, 28 Jul 2017 22:29:30 +0300
-Message-ID: <20170728192930.GH13672@mtr-leonro.local>
+Date: Fri, 28 Jul 2017 15:42:52 -0400
+Message-ID: <347f8b97-6b81-94a7-d71b-7023d2ed3dac@redhat.com>
 References: <20170726053749.GV3259@mtr-leonro.local>
  <b337a2ae-40ff-a207-82fa-fd3c7d2e1083@intel.com>
  <20170726130350.GW3259@mtr-leonro.local>
  <a1abee42-58d2-aba6-bc56-9bf1830a4539@redhat.com>
  <20170728043233.GE13672@mtr-leonro.local>
  <1501260896.2593.18.camel@redhat.com>
+ <20170728192930.GH13672@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="V4b9U9vrdWczvw78"
+ protocol="application/pgp-signature";
+ boundary="bAS7hTH3L9EqqCVEtm8m0fUPCXTwsgGkk"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1501260896.2593.18.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170728192930.GH13672-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--bAS7hTH3L9EqqCVEtm8m0fUPCXTwsgGkk
+Content-Type: multipart/mixed; boundary="kUaQ3wslItLwnXGC5jCLUcul4lgpuNWex";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
+ linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Message-ID: <347f8b97-6b81-94a7-d71b-7023d2ed3dac-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Latest for-4.14
+References: <20170726053749.GV3259-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+ <b337a2ae-40ff-a207-82fa-fd3c7d2e1083-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+ <20170726130350.GW3259-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+ <a1abee42-58d2-aba6-bc56-9bf1830a4539-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20170728043233.GE13672-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+ <1501260896.2593.18.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20170728192930.GH13672-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20170728192930.GH13672-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 
---V4b9U9vrdWczvw78
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--kUaQ3wslItLwnXGC5jCLUcul4lgpuNWex
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jul 28, 2017 at 12:54:56PM -0400, Doug Ledford wrote:
-> On Fri, 2017-07-28 at 07:32 +0300, Leon Romanovsky wrote:
-> > On Thu, Jul 27, 2017 at 02:34:57PM -0400, Doug Ledford wrote:
-> > > On 7/26/2017 9:03 AM, Leon Romanovsky wrote:
-> > > > On Wed, Jul 26, 2017 at 08:24:44AM -0400, Dennis Dalessandro
-> > > > wrote:
-> > > > > On 7/26/2017 1:37 AM, Leon Romanovsky wrote:
-> > > > > > Reply to: "Re: [PATCH for-next 7/9] IB/core: Allow QP state
-> > > > > > transition from reset to error"
-> > > > > >
-> > > > > > On Sun, Jul 23, 2017 at 09:14:02AM -0400, Doug Ledford wrote:
-> > > > > > > On 7/23/2017 9:04 AM, Leon Romanovsky wrote:
-> > > > > >
-> > > > > > <snip>
-> > > > > >
-> > > > > > > > BTW, when will you post for-4.14 branch so we will be
-> > > > > > > > able to base our
-> > > > > > > > submission queue for the -next?
-> > > > > > >
-> > > > > > > Tomorrow.  I wanted to base it on 4.13-rc2 so it would get
-> > > > > > > all of the
-> > > > > > > fixes that went in this week.
-> > > > > >
-> > > > > > Any news on the matter?
-> > > > > >
-> > > > >
-> > > > > Check Doug's GitHub, I see a 4.13-rc2 based "for-next" branch
-> > > > > there.
-> > > >
-> > > > Are you referring to this branch?
-> > > > https://github.com/torvalds/linux/compare/master...dledford:k.o/f
-> > > > or-next
-> > > >
-> > > > It doesn't have most of mlx5/mlx4/cavium/core/e.t.c features.
-> > >
-> > > Oh, and I never said I would be *done* processing the for-next area
-> > > all
-> > > in one go.  You said you wanted regular progress and updates, and
-> > > the
-> > > branch I have represents that.  But regular progress does not mean
-> > > take
-> > > everything all at once.  As I process more patchsets, more will be
-> > > added.
-> > >
-> >
-> > Regular sharing of information is also part of regular progress.
->
-> Yes it is.  And there is a specific order to when maintainers share
-> information: when the code lands at k.o (or wherever that maintainer's
-> official repo is located), the maintainer notifies the author that the
-> code has been accepted (except Linus, who tends to take pull requests
-> without response unless there is something wrong with it).  That's the
-> standard process.  I'm following it.  I didn't get my successful 0day
-> result on the merged up branch until this morning, at which point I
-> pushed my branch to k.o, so today is "email everyone and update
-> patchworks" day.  You had access to my github repo where you could have
-> clearly seen what I was working on, but I guess you were just too busy
-> tapping your finger and waiting on an email to check it.  That's your
-> problem, not mine.  I don't know of any maintainers that email people
-> about their code while it's still being processed and before it has
-> officially landed in their repo (unless there are review issues or
-> build failures that kick it back out), so I don't know why you would
-> expect different from me, but it's not gonna happen.
+On 7/28/2017 3:29 PM, Leon Romanovsky wrote:
+> On Fri, Jul 28, 2017 at 12:54:56PM -0400, Doug Ledford wrote:
+>> On Fri, 2017-07-28 at 07:32 +0300, Leon Romanovsky wrote:
 
-I didn't expect anything different from you. What I expected from you is
-to take a look on one patchset, decide go/no go, add to your branch, push
-to github and 0-build (it very good in queuing jobs), announce and so on
-till all patches are tested and it can be forwarded to k.o.
+>> officially landed in their repo (unless there are review issues or
+>> build failures that kick it back out), so I don't know why you would
+>> expect different from me, but it's not gonna happen.
+>=20
+> I didn't expect anything different from you. What I expected from you i=
+s
+> to take a look on one patchset, decide go/no go, add to your branch, pu=
+sh
+> to github and 0-build (it very good in queuing jobs),
 
-Sorry, if I expected too much.
+Right now 0day is taking 10-13hours to give me results.  If people are
+queueing up test runs for every single patch (or small patch series),
+then no wonder it's taking so long.  That's horribly inefficient.  There
+is enough stuff for me to look at that I'm batching it up, applying
+multiple series to a specific branch, and then doing the build testing
+at the end for the whole group.  If I know I'm looking at 10 small patch
+series in a given day, then I doubt you will ever get me to send them
+all separately to 0day as that sort of behavior is likely precisely why
+it's taking 10+ hours to get results right now.  If people *didn't* do
+that, then the results might get in much sooner.
 
->
-> > As I said more than once, I'm fine with sequential work, I'm fine
-> > with
-> > the fact that not all my code is accepted, I'm fine with scheduled
-> > delays, but I'm not fine with silence.
->
->
->
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->     GPG KeyID: B826A3330E572FDD
->     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
->
+> announce and so on
+> till all patches are tested and it can be forwarded to k.o.
+>=20
+> Sorry, if I expected too much.
+>=20
+>>
+>>> As I said more than once, I'm fine with sequential work, I'm fine
+>>> with
+>>> the fact that not all my code is accepted, I'm fine with scheduled
+>>> delays, but I'm not fine with silence.
+>>
+>>
+>>
+>> --
+>> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>>     GPG KeyID: B826A3330E572FDD
+>>     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 =
+2FDD
+>>
 
---V4b9U9vrdWczvw78
+
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
+D
+
+
+--kUaQ3wslItLwnXGC5jCLUcul4lgpuNWex--
+
+--bAS7hTH3L9EqqCVEtm8m0fUPCXTwsgGkk
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAll7kJoACgkQ5GN7iDZy
-WKeIpg/7BcDCJQnHNP3+oO1c8b3w1cZGP5gCLxM+d5m1lIHYXruyVPR/mUeIh0s/
-TMxqsIaHbkdZMsl19vZEatUMqpT8diphgSa9CWI0ub4982/XPJTLsTji6Woc3ZP4
-t8uE76c7c5088wjVQsWzJFYKzVPaZhBlyRPt3usAL4h7ajKMbSju3DWnC3Ewkorp
-THEjPdxapcWCvxKor29ed7OTksK3a+VVPDcu6aL3Vpz+F5sfsay5IHVURUM3xhcf
-Dqjf1PkX7WVn+TsTT9L7pFIwhoy5ukEo99xAO9mFlWQVs3oaKjo2Omb3IFCGrUDU
-scjw4PGUsTXHsPK/t/v+EsCWFEzpb1zqLvu7kg4wuBCESsdg2SxdWwoD6xRGWASN
-PtdRWsVh5bPPmhBAFhisWWlPe5qihQkhTiPiUlfJ98XdC/S25tIo7lbbHCJAOR+U
-dGTuEL6M4iuvf9V4gQdFFM10hHKGxk9oXpH4ibRNGXijjWucWrdlJwJ8W2sy6NAN
-cOf1UNVtJ1UqZ9hegq0RhbLJPK1Fz+4ZaMmWkj3EUaJbXUz/dhsDvqmP+wESh4iZ
-hW4srj3k2nuwVHFSCNkQtOwDnGI3PxCdE7NeQljmPWMXvVc5ApJ0lw72ukyTLurX
-owRI9dLWEgFXxHvz+rxHFeCAawPdnAh1hyF01hbCfkSb2t/59VI=
-=cMUV
+iQIcBAEBCAAGBQJZe5PDAAoJELgmozMOVy/dOkwP/3aofh9x2z475k75NA9KFlWs
+0qGmI6QGbds4IiBm3hGZUHy9JuU8gd/PDFYb5OLCIplWUUd12R3RcrsTInK0Kp8a
+ozZPtg/oQCaAMA2yNqL/ncsbVp92FVTKt+eIioHYSFrBNGnHTAbD8AUpwmUOeM9D
+hAwAwu1/M5SyG73lcQcqzuyusliP7uWnBCXlijGm4UzqVaSZuQE/d+m71F3uHFc8
+SOA7vuBEEvfHlm3W19HfLNeLf2Ka9bFwf9g8Uim+Y3d4vzTGBPDzviSkSu/Wyt6n
+bSM6lbzV0Ccs1UDtuDsqdyBsD+yn4fXM4LCFVZN1IF5tLnsL84aZP2+/fa8kP4G7
+qP9ZMYyKJxMarAHq8G1vUlTLdnm41X0InwpDh8rXMSsZKQNz7egKl6k9bXssn14Y
+alZ/XRcg8rIjLMIl/YNa1pNuoFVX7Axzvx/MLh3vQ7s4ggLQlcsmxixtKSmqbyrL
+9et9LFxTI7U4ca7CjOBeWxPZBef2AZEYMWdo+mV6FTVYJo8QEXM7ObGvW+PDa+EV
+zpt3ZxZX+niqcrrDRgCVpXiSHglqrJXviyVTOpB6/tGhDNVEru2fGrFSzj1498uq
+Jj9/t6u3lFFEJW5E5vxzqskgyc72uloYKxqAqWZtI2l2gT9nHfUybYQ1HKXIVg6S
+13srTTf+PsY97Dsb/cvv
+=VADS
 -----END PGP SIGNATURE-----
 
---V4b9U9vrdWczvw78--
+--bAS7hTH3L9EqqCVEtm8m0fUPCXTwsgGkk--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
