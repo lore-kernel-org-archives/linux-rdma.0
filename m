@@ -1,52 +1,75 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v2 rdma-core 1/6] Common infrastructure for auto loading
- rdma modules
-Date: Fri, 28 Jul 2017 17:01:46 -0600
-Message-ID: <20170728230146.GA16183@obsidianresearch.com>
-References: <1501194685-9447-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1501194685-9447-2-git-send-email-jgunthorpe@obsidianresearch.com>
- <20170728214855.GA13840@ctung-MOBL3.amr.corp.intel.com>
+From: Andrew Lunn <andrew@lunn.ch>
+Subject: Re: [PATCH V5 net-next 6/8] net: hns3: Add MDIO support to HNS3
+ Ethernet driver for hip08 SoC
+Date: Sat, 29 Jul 2017 01:24:28 +0200
+Message-ID: <20170728232428.GA16080@lunn.ch>
+References: <20170728222652.118448-1-salil.mehta@huawei.com>
+ <20170728222652.118448-7-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170728214855.GA13840-TZeIlv3TuzOfrEmaQUPKxl95YUYmaKo1UNDiOz3kqAs@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170728222652.118448-7-salil.mehta@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Salil Mehta <salil.mehta@huawei.com>
+Cc: davem@davemloft.net, yisen.zhuang@huawei.com, huangdaode@hisilicon.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jul 28, 2017 at 04:48:55PM -0500, Chien Tin Tung wrote:
+> +static void hclge_mac_adjust_link(struct net_device *netdev)
+> +{
+> +	struct hnae3_handle *h = *((void **)netdev_priv(netdev));
+> +	struct hclge_vport *vport = hclge_get_vport(h);
+> +	struct hclge_dev *hdev = vport->back;
+> +	int duplex, speed;
+> +	int ret;
+> +
+> +	speed = netdev->phydev->speed;
+> +	duplex = netdev->phydev->duplex;
+> +
+> +	ret = hclge_cfg_mac_speed_dup(hdev, speed, duplex);
+> +	if (ret)
+> +		dev_err(&hdev->pdev->dev, "adjust link fail.\n");
 
-> Sorry Jason, I can't test this till next week.  On inspection I found a couple of issues
-> below.
+Here and hclge_mac_start_phy() you have a netdev, so you should be
+using netdev_err()
 
-Sure, thanks!
+> +}
+> +
+> +int hclge_mac_start_phy(struct hclge_dev *hdev)
+> +{
+> +	struct net_device *netdev = hdev->vport[0].nic.netdev;
+> +	struct phy_device *phydev = hdev->hw.mac.phydev;
+> +	int ret;
+> +
+> +	if (!phydev)
+> +		return 0;
+> +
+> +	ret = phy_connect_direct(netdev, phydev,
+> +				 hclge_mac_adjust_link,
+> +				 PHY_INTERFACE_MODE_SGMII);
+> +	if (ret) {
+> +		pr_info("phy_connect_direct err");
+> +		return ret;
 
-> > +# Hardware that supports InfiniBand
-> > +DRIVERS=="mlx4_core", ENV{ID_RDMA_INFINIBAND}="1"
-> > +DRIVERS=="mlx5_core", ENV{ID_RDMA_INFINIBAND}="1"
-> > +DRIVERS=="qib", ENV{ID_RDMA_INFINIBAND}="1"
-> > +
-> > +# Hardware that supports OPA
-> > +DRIVERS=="hfi1verbs", ENV{ID_RDMA_OPA}="1"
-> > +
-> > +# Hardware that supports iWarp
-> > +DRIVERS=="cxgb3", ENV{ID_RDMA_IWARP}="1"
-> > +DRIVERS=="cxgb4", ENV{ID_RDMA_IWARP}="1"
-> 
-> Need to add nes and i40e here under iWARP.
+netdev_err(). checkpatch probably gave you a warning about this?
 
-Okay, yes.. nes was missed because I was not able to guess the
-ethernet driver name, I will add it and move i40e
+> +	}
+> +
+> +	phy_start(phydev);
+> +
+> +	return 0;
+> +}
+> +
+> +void hclge_mac_stop_phy(struct hclge_dev *hdev)
+> +{
+> +	struct net_device *netdev = hdev->vport[0].nic.netdev;
+> +	struct phy_device *phydev = netdev->phydev;
+> +
+> +	phy_stop(phydev);
+> +	phy_disconnect(phydev);
+> +}
 
-> This is enough to autoload iwpmd for nes and i40e/i40iw, correct?
+In hclge_mac_start_phy() you check for !phydev. Here you
+unconditionally use phydev. Seems inconsistent.
 
-Yes, ID_RDMA_IWARP in the udev database does that and whatever else in
-future we need.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Andrew
