@@ -1,48 +1,67 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next 0/3] Add support for multicast in RoCEv2
-Date: Fri, 28 Jul 2017 14:21:33 -0400
-Message-ID: <1501266093.2593.39.camel@redhat.com>
-References: <20170612081404.17553-1-leon@kernel.org>
+Subject: Re: [PATCH rdma-next V2 0/6] Enable flow steering on IPoIB UD QP
+Date: Fri, 28 Jul 2017 14:24:49 -0400
+Message-ID: <1501266289.2593.40.camel@redhat.com>
+References: <20170608131511.21040-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170612081404.17553-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170608131511.21040-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-06-12 at 11:14 +0300, Leon Romanovsky wrote:
-> This series from Noa enables multicast traffic over RoCE v2.
+On Thu, 2017-06-08 at 16:15 +0300, Leon Romanovsky wrote:
+> Hi,
 > 
-> To allow this, several changes were required.
+> This is v2 of patch set from Yishai,
 > 
-> First of all, there is a need to validate MLID when link layer is
-> Infiniband. This check is mandatory according to Infiniband spec
-> but the MLID should be ignored for RoCE according to RoCEv2 Annex
-> (Annex 17, A17.5.6).
+> Changelog:
+>  v1->v2:
+>    * Use 'source_qpn' as part of QP creation without mandating
+> association
+>      of an overlay with underlay QP.
+>  v0->v1:
+>    * Improved commit message
 > 
-> Second, there is need to cange the mapping of IPv4 multicast
-> addresses to MGIDs to be according to RoCEv2 Annex (A17.4.1.1 L3
-> Addresses): GID = ::ffff:<IPv4 Address>
+> ----
+> From Yishai:
 > 
-> And third, multicast addresses need to be mapped to multicast MAC
-> instead of searching for it in the GID table.
+> Enable accelerating IPoIB traffic from user applications
+> 
+> This series comes to allow user space applications to accelerate send
+> and receive traffic which is typically handled by IPoIB ULP. On the
+> receive flow, the user space application will use flow steering rules
+> to
+> direct the ingress IPoIB UD QP traffic to its own user space UD QP.
+> On
+> the send flow, the user space application will send from its own UD
+> QP
+> with UD AH, while the packet on the wire will have the source QPN of
+> the
+> IPoIB UD QP, which is the network interface advertised L2 hardware
+> address.
+> 
+> This will be achieved by extending QP creation of IB UD QP to get
+> the source QP number of the matching IPoIB UD QP.
+> 
+> In order to create such a UD QP needs to provide the source QPN of
+> the
+> IPoIB network interface.
+> 
+> The QPN should be achieved by using some networking tool as of
+> ifconfig,
+> ip link show on the associated interface. For example, when IPoIB is
+> used, the QPN is the value of 3 bytes from the hardware address
+> starting
+> after the first byte as defined by rfc4391 [1]
+> 
+> Current mlx5 driver implements this API for the IPoIB ULP.
 > 
 > Thanks
 > 
-> Noa Osherovich (3):
->   IB/core: Fix the validations of a multicast LID in attach or detach
->     operations
->   IB/core: Set RoCEv2 MGID according to spec
->   IB/core: Add support for RoCEv2 multicast
-> 
->  drivers/infiniband/core/cma.c   | 13 +++++----
->  drivers/infiniband/core/verbs.c | 62
-> +++++++++++++++++++++++++++++++++++++----
->  include/rdma/ib_addr.h          |  8 +++++-
->  3 files changed, 70 insertions(+), 13 deletions(-)
 
 Thanks, series applied.
 
