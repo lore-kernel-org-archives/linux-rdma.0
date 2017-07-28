@@ -1,896 +1,99 @@
-From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH V4 net-next 2/8] net: hns3: Add support of the HNAE3
- framework
-Date: Thu, 27 Jul 2017 23:44:32 +0000
-Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F93B828A12@FRAEML521-MBX.china.huawei.com>
-References: <20170722220942.78852-1-salil.mehta@huawei.com>
- <20170722220942.78852-3-salil.mehta@huawei.com>
- <20170723131530.GJ3259@mtr-leonro.local>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: Latest for-4.14
+Date: Fri, 28 Jul 2017 07:32:33 +0300
+Message-ID: <20170728043233.GE13672@mtr-leonro.local>
+References: <20170726053749.GV3259@mtr-leonro.local>
+ <b337a2ae-40ff-a207-82fa-fd3c7d2e1083@intel.com>
+ <20170726130350.GW3259@mtr-leonro.local>
+ <a1abee42-58d2-aba6-bc56-9bf1830a4539@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="jy6Sn24JjFx/iggw"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170723131530.GJ3259-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <a1abee42-58d2-aba6-bc56-9bf1830a4539-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "Zhuangyuzeng (Yisen)" <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, huangdaode <huangdaode-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, "lipeng (Y)" <lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Leon
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
-> Sent: Sunday, July 23, 2017 2:16 PM
-> To: Salil Mehta
-> Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org; Zhuangyuzeng (Yisen); huangdaode; lipeng (Y);
-> mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
-> kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm
-> Subject: Re: [PATCH V4 net-next 2/8] net: hns3: Add support of the
-> HNAE3 framework
-> 
-> On Sat, Jul 22, 2017 at 11:09:36PM +0100, Salil Mehta wrote:
-> > This patch adds the support of the HNAE3 (Hisilicon Network
-> > Acceleration Engine 3) framework support to the HNS3 driver.
-> >
-> > Framework facilitates clients like ENET(HNS3 Ethernet Driver), RoCE
-> > and user-space Ethernet drivers (like ODP etc.) to register with
-> HNAE3
-> > devices and their associated operations.
-> >
-> > Signed-off-by: Daode Huang <huangdaode-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>
-> > Signed-off-by: lipeng <lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> > Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> > Signed-off-by: Yisen Zhuang <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> > ---
-> > Patch V4: Addressed following comments
-> >   1. Andrew Lunn:
-> >      https://lkml.org/lkml/2017/6/17/233
-> >      https://lkml.org/lkml/2017/6/18/105
-> >   2. Bo Yu:
-> >      https://lkml.org/lkml/2017/6/18/112
-> >   3. Stephen Hamminger:
-> >      https://lkml.org/lkml/2017/6/19/778
-> > Patch V3: Addressed below comments
-> >   1. Andrew Lunn:
-> >      https://lkml.org/lkml/2017/6/13/1025
-> > Patch V2: No change
-> > Patch V1: Initial Submit
-> > ---
-> >  drivers/net/ethernet/hisilicon/hns3/hnae3.c | 319
-> ++++++++++++++++++++
-> >  drivers/net/ethernet/hisilicon/hns3/hnae3.h | 449
-> ++++++++++++++++++++++++++++
-> >  2 files changed, 768 insertions(+)
-> >  create mode 100644 drivers/net/ethernet/hisilicon/hns3/hnae3.c
-> >  create mode 100644 drivers/net/ethernet/hisilicon/hns3/hnae3.h
-> >
-> > diff --git a/drivers/net/ethernet/hisilicon/hns3/hnae3.c
-> b/drivers/net/ethernet/hisilicon/hns3/hnae3.c
-> > new file mode 100644
-> > index 000000000000..7a11aaff0a23
-> > --- /dev/null
-> > +++ b/drivers/net/ethernet/hisilicon/hns3/hnae3.c
-> > @@ -0,0 +1,319 @@
-> > +/*
-> > + * Copyright (c) 2016-2017 Hisilicon Limited.
-> > + *
-> > + * This program is free software; you can redistribute it and/or
-> modify
-> > + * it under the terms of the GNU General Public License as published
-> by
-> > + * the Free Software Foundation; either version 2 of the License, or
-> > + * (at your option) any later version.
-> > + */
-> > +
-> > +#include <linux/slab.h>
-> > +#include <linux/list.h>
-> > +#include <linux/spinlock.h>
-> > +
-> > +#include "hnae3.h"
-> > +
-> > +static LIST_HEAD(hnae3_ae_algo_list);
-> > +static LIST_HEAD(hnae3_client_list);
-> > +static LIST_HEAD(hnae3_ae_dev_list);
-> > +
-> > +/* we are keeping things simple and using single lock for all the
-> > + * list. This is a non-critical code so other updations, if happen
-> > + * in parallel, can wait.
-> > + */
-> > +static DEFINE_MUTEX(hnae3_common_lock);
-> > +
-> > +static bool hnae3_client_match(enum hnae3_client_type client_type,
-> > +			       enum hnae3_dev_type dev_type)
-> > +{
-> > +	if (dev_type == HNAE3_DEV_KNIC) {
-> > +		switch (client_type) {
-> > +		case HNAE3_CLIENT_KNIC:
-> > +		case HNAE3_CLIENT_ROCE:
-> > +			return true;
-> > +		default:
-> > +			return false;
-> > +		}
-> > +	} else if (dev_type == HNAE3_DEV_UNIC) {
-> > +		switch (client_type) {
-> > +		case HNAE3_CLIENT_UNIC:
-> > +			return true;
-> > +		default:
-> > +			return false;
-> > +		}
-> > +	} else {
-> > +		return false;
-> > +	}
-> > +}
-> > +
-> > +static int hnae3_match_n_instantiate(struct hnae3_client *client,
-> > +				     struct hnae3_ae_dev *ae_dev,
-> > +				     bool is_reg, bool *matched)
-> > +{
-> > +	int ret;
-> > +
-> > +	*matched = false;
-> > +
-> > +	/* check if this client matches the type of ae_dev */
-> > +	if (!(hnae3_client_match(client->type, ae_dev->dev_type) &&
-> > +	      hnae_get_bit(ae_dev->flag, HNAE3_DEV_INITED_B))) {
-> > +		return 0;
-> > +	}
-> > +	/* there is a match of client and dev */
-> > +	*matched = true;
-> > +
-> > +	if (!(ae_dev->ops && ae_dev->ops->init_client_instance &&
-> > +	      ae_dev->ops->uninit_client_instance)) {
-> > +		dev_err(&ae_dev->pdev->dev,
-> > +			"ae_dev or client init/uninit ops are null\n");
-> > +		return -EOPNOTSUPP;
-> > +	}
-> > +
-> > +	/* now, (un-)instantiate client by calling lower layer */
-> > +	if (is_reg) {
-> > +		ret = ae_dev->ops->init_client_instance(client, ae_dev);
-> > +		if (ret)
-> > +			dev_err(&ae_dev->pdev->dev,
-> > +				"fail to instantiate client\n");
-> > +		return ret;
-> > +	}
-> > +
-> > +	ae_dev->ops->uninit_client_instance(client, ae_dev);
-> > +	return 0;
-> > +}
-> > +
-> > +int hnae3_register_client(struct hnae3_client *client)
-> > +{
-> > +	struct hnae3_client *client_tmp;
-> > +	struct hnae3_ae_dev *ae_dev;
-> > +	bool matched;
-> > +	int ret = 0;
-> > +
-> > +	mutex_lock(&hnae3_common_lock);
-> > +	/* one system should only have one client for every type */
-> > +	list_for_each_entry(client_tmp, &hnae3_client_list, node) {
-> > +		if (client_tmp->type == client->type)
-> > +			goto exit;
-> > +	}
-> > +
-> > +	list_add_tail(&client->node, &hnae3_client_list);
-> > +
-> > +	/* initialize the client on every matched port */
-> > +	list_for_each_entry(ae_dev, &hnae3_ae_dev_list, node) {
-> > +		/* if the client could not be initialized on current port,
-> for
-> > +		 * any error reasons, move on to next available port
-> > +		 */
-> > +		ret = hnae3_match_n_instantiate(client, ae_dev, true,
-> &matched);
-> > +		if (ret)
-> > +			dev_err(&ae_dev->pdev->dev,
-> > +				"match and instantiation failed for port\n");
-> > +	}
-> > +
-> > +exit:
-> > +	mutex_unlock(&hnae3_common_lock);
-> > +
-> > +	return ret;
-> > +}
-> > +EXPORT_SYMBOL(hnae3_register_client);
-> > +
-> > +void hnae3_unregister_client(struct hnae3_client *client)
-> > +{
-> > +	struct hnae3_ae_dev *ae_dev;
-> > +	bool matched;
-> > +
-> > +	mutex_lock(&hnae3_common_lock);
-> > +	/* un-initialize the client on every matched port */
-> > +	list_for_each_entry(ae_dev, &hnae3_ae_dev_list, node) {
-> > +		hnae3_match_n_instantiate(client, ae_dev, false, &matched);
-> > +	}
-> > +
-> > +	list_del(&client->node);
-> > +	mutex_unlock(&hnae3_common_lock);
-> > +}
-> > +EXPORT_SYMBOL(hnae3_unregister_client);
-> > +
-> > +/* hnae_ae_register - register a AE engine to hnae framework
-> > + * @hdev: the hnae ae engine device
-> > + * @owner:  the module who provides this dev
-> > + * NOTE: the duplicated name will not be checked
-> > + */
-> > +int hnae3_register_ae_algo(struct hnae3_ae_algo *ae_algo)
-> > +{
-> > +	const struct pci_device_id *id;
-> > +	struct hnae3_ae_dev *ae_dev;
-> > +	struct hnae3_client *client;
-> > +	bool matched;
-> > +	int ret = 0;
-> > +
-> > +	mutex_lock(&hnae3_common_lock);
-> > +
-> > +	list_add_tail(&ae_algo->node, &hnae3_ae_algo_list);
-> > +
-> > +	/* Check if this algo/ops matches the list of ae_devs */
-> > +	list_for_each_entry(ae_dev, &hnae3_ae_dev_list, node) {
-> > +		id = pci_match_id(ae_algo->pdev_id_table, ae_dev->pdev);
-> > +		if (!id)
-> > +			continue;
-> > +
-> > +		/* ae_dev init should set flag */
-> > +		ae_dev->ops = ae_algo->ops;
-> > +		ret = ae_algo->ops->init_ae_dev(ae_dev);
-> > +		if (ret) {
-> > +			dev_err(&ae_dev->pdev->dev, "init ae_dev error.\n");
-> > +			continue;
-> > +		}
-> > +
-> > +		hnae_set_bit(ae_dev->flag, HNAE3_DEV_INITED_B, 1);
-> > +
-> > +		/* check the client list for the match with this ae_dev
-> type and
-> > +		 * initialize the figure out client instance
-> > +		 */
-> > +		list_for_each_entry(client, &hnae3_client_list, node) {
-> > +			ret = hnae3_match_n_instantiate(client, ae_dev, true,
-> > +							&matched);
-> > +			if (ret)
-> > +				dev_err(&ae_dev->pdev->dev,
-> > +					"match and instantiation failed\n");
-> > +			if (matched)
-> > +				break;
-> > +		}
-> > +	}
-> > +
-> > +	mutex_unlock(&hnae3_common_lock);
-> > +
-> > +	return ret;
-> > +}
-> > +EXPORT_SYMBOL(hnae3_register_ae_algo);
-> > +
-> > +/* hnae_ae_unregister - unregisters a HNAE AE engine
-> > + * @cdev: the device to unregister
-> > + */
-> > +void hnae3_unregister_ae_algo(struct hnae3_ae_algo *ae_algo)
-> > +{
-> > +	const struct pci_device_id *id;
-> > +	struct hnae3_ae_dev *ae_dev;
-> > +	struct hnae3_client *client;
-> > +	bool matched;
-> > +
-> > +	mutex_lock(&hnae3_common_lock);
-> > +	/* Check if there are matched ae_dev */
-> > +	list_for_each_entry(ae_dev, &hnae3_ae_dev_list, node) {
-> > +		id = pci_match_id(ae_algo->pdev_id_table, ae_dev->pdev);
-> > +		if (!id)
-> > +			continue;
-> > +
-> > +		/* check the client list for the match with this ae_dev
-> type and
-> > +		 * un-initialize the figure out client instance
-> > +		 */
-> > +		list_for_each_entry(client, &hnae3_client_list, node) {
-> > +			hnae3_match_n_instantiate(client, ae_dev, false,
-> > +						  &matched);
-> > +			if (matched)
-> > +				break;
-> > +		}
-> > +
-> > +		ae_algo->ops->uninit_ae_dev(ae_dev);
-> > +		hnae_set_bit(ae_dev->flag, HNAE3_DEV_INITED_B, 0);
-> > +	}
-> > +
-> > +	list_del(&ae_algo->node);
-> > +	mutex_unlock(&hnae3_common_lock);
-> > +}
-> > +EXPORT_SYMBOL(hnae3_unregister_ae_algo);
-> > +
-> > +/* hnae_ae_register - register a AE engine to hnae framework
-> > + * @hdev: the hnae ae engine device
-> > + * @owner:  the module who provides this dev
-> > + * NOTE: the duplicated name will not be checked
-> > + */
-> > +int hnae3_register_ae_dev(struct hnae3_ae_dev *ae_dev)
-> > +{
-> > +	const struct pci_device_id *id;
-> > +	struct hnae3_ae_algo *ae_algo;
-> > +	struct hnae3_client *client;
-> > +	bool matched;
-> > +	int ret = 0;
-> > +
-> > +	mutex_lock(&hnae3_common_lock);
-> > +	list_add_tail(&ae_dev->node, &hnae3_ae_dev_list);
-> > +
-> > +	/* Check if there are matched ae_algo */
-> > +	list_for_each_entry(ae_algo, &hnae3_ae_algo_list, node) {
-> > +		id = pci_match_id(ae_algo->pdev_id_table, ae_dev->pdev);
-> > +		if (!id)
-> > +			continue;
-> > +
-> > +		ae_dev->ops = ae_algo->ops;
-> > +
-> > +		if (!ae_dev->ops) {
-> > +			dev_err(&ae_dev->pdev->dev, "ae_dev ops are null\n");
-> > +			goto out_err;
-> > +		}
-> > +
-> > +		/* ae_dev init should set flag */
-> > +		ret = ae_dev->ops->init_ae_dev(ae_dev);
-> > +		if (ret) {
-> > +			dev_err(&ae_dev->pdev->dev, "init ae_dev error\n");
-> > +			goto out_err;
-> > +		}
-> > +
-> > +		hnae_set_bit(ae_dev->flag, HNAE3_DEV_INITED_B, 1);
-> > +		break;
-> > +	}
-> > +
-> > +	/* check the client list for the match with this ae_dev type and
-> > +	 * initialize the figure out client instance
-> > +	 */
-> > +	list_for_each_entry(client, &hnae3_client_list, node) {
-> > +		ret = hnae3_match_n_instantiate(client, ae_dev, true,
-> > +						&matched);
-> > +		if (ret)
-> > +			dev_err(&ae_dev->pdev->dev,
-> > +				"match and instantiation failed\n");
-> > +		if (matched)
-> > +			break;
-> > +	}
-> > +
-> > +out_err:
-> > +	mutex_unlock(&hnae3_common_lock);
-> > +
-> > +	return ret;
-> > +}
-> > +EXPORT_SYMBOL(hnae3_register_ae_dev);
-> > +
-> > +/* hnae_ae_unregister - unregisters a HNAE AE engine
-> > + * @cdev: the device to unregister
-> > + */
-> > +void hnae3_unregister_ae_dev(struct hnae3_ae_dev *ae_dev)
-> > +{
-> > +	const struct pci_device_id *id;
-> > +	struct hnae3_ae_algo *ae_algo;
-> > +	struct hnae3_client *client;
-> > +	bool matched;
-> > +
-> > +	mutex_lock(&hnae3_common_lock);
-> > +	/* Check if there are matched ae_algo */
-> > +	list_for_each_entry(ae_algo, &hnae3_ae_algo_list, node) {
-> > +		id = pci_match_id(ae_algo->pdev_id_table, ae_dev->pdev);
-> > +		if (!id)
-> > +			continue;
-> > +
-> > +		list_for_each_entry(client, &hnae3_client_list, node) {
-> > +			hnae3_match_n_instantiate(client, ae_dev, false,
-> > +						  &matched);
-> > +			if (matched)
-> > +				break;
-> > +		}
-> > +
-> > +		ae_algo->ops->uninit_ae_dev(ae_dev);
-> > +		hnae_set_bit(ae_dev->flag, HNAE3_DEV_INITED_B, 0);
-> > +	}
-> > +
-> > +	list_del(&ae_dev->node);
-> > +	mutex_unlock(&hnae3_common_lock);
-> > +}
-> > +EXPORT_SYMBOL(hnae3_unregister_ae_dev);
-> > +
-> > +MODULE_AUTHOR("Huawei Tech. Co., Ltd.");
-> > +MODULE_LICENSE("GPL");
-> > +MODULE_DESCRIPTION("HNAE3(Hisilicon Network Acceleration Engine)
-> Framework");
-> > diff --git a/drivers/net/ethernet/hisilicon/hns3/hnae3.h
-> b/drivers/net/ethernet/hisilicon/hns3/hnae3.h
-> > new file mode 100644
-> > index 000000000000..88655c121769
-> > --- /dev/null
-> > +++ b/drivers/net/ethernet/hisilicon/hns3/hnae3.h
-> > @@ -0,0 +1,449 @@
-> > +/*
-> > + * Copyright (c) 2016-2017 Hisilicon Limited.
-> > + *
-> > + * This program is free software; you can redistribute it and/or
-> modify
-> > + * it under the terms of the GNU General Public License as published
-> by
-> > + * the Free Software Foundation; either version 2 of the License, or
-> > + * (at your option) any later version.
-> > + */
-> > +
-> > +#ifndef __HNAE_H
-> > +#define __HNAE_H
-> > +
-> > +/* Names used in this framework:
-> > + *      ae handle (handle):
-> > + *        a set of queues provided by AE
-> > + *      ring buffer queue (rbq):
-> > + *        the channel between upper layer and the AE, can do tx and
-> rx
-> > + *      ring:
-> > + *        a tx or rx channel within a rbq
-> > + *      ring description (desc):
-> > + *        an element in the ring with packet information
-> > + *      buffer:
-> > + *        a memory region referred by desc with the full packet
-> payload
-> > + *
-> > + * "num" means a static number set as a parameter, "count" mean a
-> dynamic
-> > + *   number set while running
-> > + * "cb" means control block
-> > + */
-> > +
-> > +#include <linux/acpi.h>
-> > +#include <linux/delay.h>
-> > +#include <linux/device.h>
-> > +#include <linux/module.h>
-> > +#include <linux/netdevice.h>
-> > +#include <linux/pci.h>
-> > +#include <linux/types.h>
-> > +
-> > +#define HNAE_DRIVER_VERSION "1.0"
-> 
-> Please no driver versions.
-We need this in ethtool. Most of the driver are using it.
+--jy6Sn24JjFx/iggw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> 
-> > +#define HNAE_DRIVER_NAME "hns3"
-> > +#define HNAE_COPYRIGHT "Copyright(c) 2017 Huawei Corporation."
-> > +#define HNAE_DRIVER_STRING "Hisilicon Network Subsystem Driver"
-> > +#define HNAE_DEFAULT_DEVICE_DESCR "Hisilicon Network Subsystem"
-> 
-> You are not subsystem yet.
-Hisilicon Network System is the network related hardware within
-Hip08 SoC of Hisilicon. This does not means HNS is Linux network
-subsystem.
+On Thu, Jul 27, 2017 at 02:34:57PM -0400, Doug Ledford wrote:
+> On 7/26/2017 9:03 AM, Leon Romanovsky wrote:
+> > On Wed, Jul 26, 2017 at 08:24:44AM -0400, Dennis Dalessandro wrote:
+> >> On 7/26/2017 1:37 AM, Leon Romanovsky wrote:
+> >>> Reply to: "Re: [PATCH for-next 7/9] IB/core: Allow QP state transition from reset to error"
+> >>>
+> >>> On Sun, Jul 23, 2017 at 09:14:02AM -0400, Doug Ledford wrote:
+> >>>> On 7/23/2017 9:04 AM, Leon Romanovsky wrote:
+> >>>
+> >>> <snip>
+> >>>
+> >>>>> BTW, when will you post for-4.14 branch so we will be able to base our
+> >>>>> submission queue for the -next?
+> >>>>
+> >>>> Tomorrow.  I wanted to base it on 4.13-rc2 so it would get all of the
+> >>>> fixes that went in this week.
+> >>>
+> >>> Any news on the matter?
+> >>>
+> >>
+> >> Check Doug's GitHub, I see a 4.13-rc2 based "for-next" branch there.
+> >
+> > Are you referring to this branch?
+> > https://github.com/torvalds/linux/compare/master...dledford:k.o/for-next
+> >
+> > It doesn't have most of mlx5/mlx4/cavium/core/e.t.c features.
+>
+> Oh, and I never said I would be *done* processing the for-next area all
+> in one go.  You said you wanted regular progress and updates, and the
+> branch I have represents that.  But regular progress does not mean take
+> everything all at once.  As I process more patchsets, more will be added.
+>
 
-> 
-> > +
-> > +/* Device IDs */
-> > +#define HISILICON				0x19E5
-> > +#define HNAE3_DEV_ID_GE				0xA220
-> > +#define HNAE3_DEV_ID_25GE			0xA221
-> > +#define HNAE3_DEV_ID_25GE_RDMA			0xA222
-> > +#define HNAE3_DEV_ID_25GE_RDMA_MACSEC		0xA223
-> > +#define HNAE3_DEV_ID_50GE_RDMA			0xA224
-> > +#define HNAE3_DEV_ID_50GE_RDMA_MACSEC		0xA225
-> > +#define HNAE3_DEV_ID_100G_RDMA_MACSEC		0xA226
-> > +#define HNAE3_DEV_ID_100G_VF			0xA22E
-> > +#define HNAE3_DEV_ID_100G_RDMA_DCB_PFC_VF	0xA22F
-> > +
-> > +#define HNAE3_CLASS_NAME_SIZE 16
-> > +
-> > +#define HNAE3_DEV_INITED_B			0x0
-> > +#define HNAE_DEV_SUPPORT_ROCE_B			0x1
-> > +
-> > +#define ring_ptr_move_fw(ring, p) \
-> > +	((ring)->p = ((ring)->p + 1) % (ring)->desc_num)
-> > +#define ring_ptr_move_bw(ring, p) \
-> > +	((ring)->p = ((ring)->p - 1 + (ring)->desc_num) % (ring)-
-> >desc_num)
-> > +
-> > +enum hns_desc_type {
-> > +	DESC_TYPE_SKB,
-> > +	DESC_TYPE_PAGE,
-> > +};
-> > +
-> > +struct hnae3_handle;
-> > +
-> > +struct hnae3_queue {
-> > +	void __iomem *io_base;
-> > +	struct hnae3_ae_algo *ae_algo;
-> > +	struct hnae3_handle *handle;
-> > +	int tqp_index;	/* index in a handle */
-> > +	u32 buf_size;	/* size for hnae_desc->addr, preset by AE */
-> > +	u16 desc_num;	/* total number of desc */
-> > +};
-> > +
-> > +/*hnae3 loop mode*/
-> > +enum hnae3_loop {
-> > +	HNAE3_MAC_INTER_LOOP_MAC,
-> > +	HNAE3_MAC_INTER_LOOP_SERDES,
-> > +	HNAE3_MAC_INTER_LOOP_PHY,
-> > +	HNAE3_MAC_LOOP_NONE,
-> > +};
-> > +
-> > +enum hnae3_client_type {
-> > +	HNAE3_CLIENT_KNIC,
-> > +	HNAE3_CLIENT_UNIC,
-> > +	HNAE3_CLIENT_ROCE,
-> > +};
-> > +
-> > +enum hnae3_dev_type {
-> > +	HNAE3_DEV_KNIC,
-> > +	HNAE3_DEV_UNIC,
-> > +};
-> > +
-> > +/* mac media type */
-> > +enum hnae3_media_type {
-> > +	HNAE3_MEDIA_TYPE_UNKNOWN,
-> > +	HNAE3_MEDIA_TYPE_FIBER,
-> > +	HNAE3_MEDIA_TYPE_COPPER,
-> > +	HNAE3_MEDIA_TYPE_BACKPLANE,
-> > +};
-> > +
-> > +struct hnae3_vector_info {
-> > +	u8 __iomem *io_addr;
-> > +	int vector;
-> > +};
-> > +
-> > +#define HNAE3_RING_TYPE_B 0
-> > +#define HNAE3_RING_TYPE_TX 0
-> > +#define HNAE3_RING_TYPE_RX 1
-> > +
-> > +struct hnae3_ring_chain_node {
-> > +	struct hnae3_ring_chain_node *next;
-> > +	u32 tqp_index;
-> > +	u32 flag;
-> > +};
-> > +
-> > +#define HNAE3_IS_TX_RING(node) \
-> > +	(((node)->flag & (1 << HNAE3_RING_TYPE_B)) == HNAE3_RING_TYPE_TX)
-> > +
-> > +struct hnae3_client_ops {
-> > +	int (*init_instance)(struct hnae3_handle *handle);
-> > +	void (*uninit_instance)(struct hnae3_handle *handle, bool reset);
-> > +	void (*link_status_change)(struct hnae3_handle *handle, bool
-> state);
-> > +};
-> > +
-> > +#define HNAE3_CLIENT_NAME_LENGTH 16
-> > +struct hnae3_client {
-> > +	char name[HNAE3_CLIENT_NAME_LENGTH];
-> > +	u16 version;
-> > +	unsigned long state;
-> > +	enum hnae3_client_type type;
-> > +	const struct hnae3_client_ops *ops;
-> > +	struct list_head node;
-> > +};
-> > +
-> > +struct hnae3_ae_dev {
-> > +	struct pci_dev *pdev;
-> > +	const struct hnae3_ae_ops *ops;
-> > +	struct list_head node;
-> > +	u32 flag;
-> > +	enum hnae3_dev_type dev_type;
-> > +	void *priv;
-> > +};
-> > +
-> > +/* This struct defines the operation on the handle.
-> > + *
-> > + * init_ae_dev(): (mandatory)
-> > + *   Get PF configure from pci_dev and initialize PF hardware
-> > + * uninit_ae_dev()
-> > + *   Disable PF device and release PF resource
-> > + * register_client
-> > + *   Register client to ae_dev
-> > + * unregister_client()
-> > + *   Unregister client from ae_dev
-> > + * start()
-> > + *   Enable the hardware
-> > + * stop()
-> > + *   Disable the hardware
-> > + * get_status()
-> > + *   Get the carrier state of the back channel of the handle, 1 for
-> ok, 0 for
-> > + *   non-ok
-> > + * get_ksettings_an_result()
-> > + *   Get negotiation status,speed and duplex
-> > + * update_speed_duplex_h()
-> > + *   Update hardware speed and duplex
-> > + * get_media_type()
-> > + *   Get media type of MAC
-> > + * adjust_link()
-> > + *   Adjust link status
-> > + * set_loopback()
-> > + *   Set loopback
-> > + * set_promisc_mode
-> > + *   Set promisc mode
-> > + * set_mtu()
-> > + *   set mtu
-> > + * get_pauseparam()
-> > + *   get tx and rx of pause frame use
-> > + * set_pauseparam()
-> > + *   set tx and rx of pause frame use
-> > + * set_autoneg()
-> > + *   set auto autonegotiation of pause frame use
-> > + * get_autoneg()
-> > + *   get auto autonegotiation of pause frame use
-> > + * get_coalesce_usecs()
-> > + *   get usecs to delay a TX interrupt after a packet is sent
-> > + * get_rx_max_coalesced_frames()
-> > + *   get Maximum number of packets to be sent before a TX interrupt.
-> > + * set_coalesce_usecs()
-> > + *   set usecs to delay a TX interrupt after a packet is sent
-> > + * set_coalesce_frames()
-> > + *   set Maximum number of packets to be sent before a TX interrupt.
-> > + * get_mac_addr()
-> > + *   get mac address
-> > + * set_mac_addr()
-> > + *   set mac address
-> > + * add_uc_addr
-> > + *   Add unicast addr to mac table
-> > + * rm_uc_addr
-> > + *   Remove unicast addr from mac table
-> > + * set_mc_addr()
-> > + *   Set multicast address
-> > + * add_mc_addr
-> > + *   Add multicast address to mac table
-> > + * rm_mc_addr
-> > + *   Remove multicast address from mac table
-> > + * update_stats()
-> > + *   Update Old network device statistics
-> > + * get_ethtool_stats()
-> > + *   Get ethtool network device statistics
-> > + * get_strings()
-> > + *   Get a set of strings that describe the requested objects
-> > + * get_sset_count()
-> > + *   Get number of strings that @get_strings will write
-> > + * update_led_status()
-> > + *   Update the led status
-> > + * set_led_id()
-> > + *   Set led id
-> > + * get_regs()
-> > + *   Get regs dump
-> > + * get_regs_len()
-> > + *   Get the len of the regs dump
-> > + * get_rss_key_size()
-> > + *   Get rss key size
-> > + * get_rss_indir_size()
-> > + *   Get rss indirection table size
-> > + * get_rss()
-> > + *   Get rss table
-> > + * set_rss()
-> > + *   Set rss table
-> > + * get_tc_size()
-> > + *   Get tc size of handle
-> > + * get_vector()
-> > + *   Get vector number and vector information
-> > + * map_ring_to_vector()
-> > + *   Map rings to vector
-> > + * unmap_ring_from_vector()
-> > + *   Unmap rings from vector
-> > + * add_tunnel_udp()
-> > + *   Add tunnel information to hardware
-> > + * del_tunnel_udp()
-> > + *   Delete tunnel information from hardware
-> > + * reset_queue()
-> > + *   Reset queue
-> > + * get_fw_version()
-> > + *   Get firmware version
-> > + * get_mdix_mode()
-> > + *   Get media typr of phy
-> > + * set_vlan_filter()
-> > + *   Set vlan filter config of Ports
-> > + * set_vf_vlan_filter()
-> > + *   Set vlan filter config of vf
-> > + */
-> > +struct hnae3_ae_ops {
-> > +	int (*init_ae_dev)(struct hnae3_ae_dev *ae_dev);
-> > +	void (*uninit_ae_dev)(struct hnae3_ae_dev *ae_dev);
-> > +
-> > +	int (*init_client_instance)(struct hnae3_client *client,
-> > +				    struct hnae3_ae_dev *ae_dev);
-> > +	void (*uninit_client_instance)(struct hnae3_client *client,
-> > +				       struct hnae3_ae_dev *ae_dev);
-> > +	int (*start)(struct hnae3_handle *handle);
-> > +	void (*stop)(struct hnae3_handle *handle);
-> > +	int (*get_status)(struct hnae3_handle *handle);
-> > +	void (*get_ksettings_an_result)(struct hnae3_handle *handle,
-> > +					u8 *auto_neg, u32 *speed, u8 *duplex);
-> > +
-> > +	int (*update_speed_duplex_h)(struct hnae3_handle *handle);
-> > +	int (*cfg_mac_speed_dup_h)(struct hnae3_handle *handle, int
-> speed,
-> > +				   u8 duplex);
-> > +
-> > +	void (*get_media_type)(struct hnae3_handle *handle, u8
-> *media_type);
-> > +	void (*adjust_link)(struct hnae3_handle *handle, int speed, int
-> duplex);
-> > +	int (*set_loopback)(struct hnae3_handle *handle,
-> > +			    enum hnae3_loop loop_mode, bool en);
-> > +
-> > +	void (*set_promisc_mode)(struct hnae3_handle *handle, u32 en);
-> > +	int (*set_mtu)(struct hnae3_handle *handle, int new_mtu);
-> > +
-> > +	void (*get_pauseparam)(struct hnae3_handle *handle,
-> > +			       u32 *auto_neg, u32 *rx_en, u32 *tx_en);
-> > +	int (*set_pauseparam)(struct hnae3_handle *handle,
-> > +			      u32 auto_neg, u32 rx_en, u32 tx_en);
-> > +
-> > +	int (*set_autoneg)(struct hnae3_handle *handle, bool enable);
-> > +	int (*get_autoneg)(struct hnae3_handle *handle);
-> > +
-> > +	void (*get_coalesce_usecs)(struct hnae3_handle *handle,
-> > +				   u32 *tx_usecs, u32 *rx_usecs);
-> > +	void (*get_rx_max_coalesced_frames)(struct hnae3_handle *handle,
-> > +					    u32 *tx_frames, u32 *rx_frames);
-> > +	int (*set_coalesce_usecs)(struct hnae3_handle *handle, u32
-> timeout);
-> > +	int (*set_coalesce_frames)(struct hnae3_handle *handle,
-> > +				   u32 coalesce_frames);
-> > +	void (*get_coalesce_range)(struct hnae3_handle *handle,
-> > +				   u32 *tx_frames_low, u32 *rx_frames_low,
-> > +				   u32 *tx_frames_high, u32 *rx_frames_high,
-> > +				   u32 *tx_usecs_low, u32 *rx_usecs_low,
-> > +				   u32 *tx_usecs_high, u32 *rx_usecs_high);
-> > +
-> > +	void (*get_mac_addr)(struct hnae3_handle *handle, u8 *p);
-> > +	int (*set_mac_addr)(struct hnae3_handle *handle, void *p);
-> > +	int (*add_uc_addr)(struct hnae3_handle *handle,
-> > +			   const unsigned char *addr);
-> > +	int (*rm_uc_addr)(struct hnae3_handle *handle,
-> > +			  const unsigned char *addr);
-> > +	int (*set_mc_addr)(struct hnae3_handle *handle, void *addr);
-> > +	int (*add_mc_addr)(struct hnae3_handle *handle,
-> > +			   const unsigned char *addr);
-> > +	int (*rm_mc_addr)(struct hnae3_handle *handle,
-> > +			  const unsigned char *addr);
-> > +
-> > +	void (*set_tso_stats)(struct hnae3_handle *handle, int enable);
-> > +	void (*update_stats)(struct hnae3_handle *handle,
-> > +			     struct net_device_stats *net_stats);
-> > +	void (*get_stats)(struct hnae3_handle *handle, u64 *data);
-> > +
-> > +	void (*get_strings)(struct hnae3_handle *handle,
-> > +			    u32 stringset, u8 *data);
-> > +	int (*get_sset_count)(struct hnae3_handle *handle, int
-> stringset);
-> > +
-> > +	void (*get_regs)(struct hnae3_handle *handle, void *data);
-> > +	int (*get_regs_len)(struct hnae3_handle *handle);
-> > +
-> > +	u32 (*get_rss_key_size)(struct hnae3_handle *handle);
-> > +	u32 (*get_rss_indir_size)(struct hnae3_handle *handle);
-> > +	int (*get_rss)(struct hnae3_handle *handle, u32 *indir, u8 *key,
-> > +		       u8 *hfunc);
-> > +	int (*set_rss)(struct hnae3_handle *handle, const u32 *indir,
-> > +		       const u8 *key, const u8 hfunc);
-> > +
-> > +	int (*get_tc_size)(struct hnae3_handle *handle);
-> > +
-> > +	int (*get_vector)(struct hnae3_handle *handle, u16 vector_num,
-> > +			  struct hnae3_vector_info *vector_info);
-> > +	int (*map_ring_to_vector)(struct hnae3_handle *handle,
-> > +				  int vector_num,
-> > +				  struct hnae3_ring_chain_node *vr_chain);
-> > +	int (*unmap_ring_from_vector)(struct hnae3_handle *handle,
-> > +				      int vector_num,
-> > +				      struct hnae3_ring_chain_node *vr_chain);
-> > +
-> > +	int (*add_tunnel_udp)(struct hnae3_handle *handle, u16 port_num);
-> > +	int (*del_tunnel_udp)(struct hnae3_handle *handle, u16 port_num);
-> > +
-> > +	void (*reset_queue)(struct hnae3_handle *handle, u16 queue_id);
-> > +	u32 (*get_fw_version)(struct hnae3_handle *handle);
-> > +	void (*get_mdix_mode)(struct hnae3_handle *handle,
-> > +			      u8 *tp_mdix_ctrl, u8 *tp_mdix);
-> > +
-> > +	int (*set_vlan_filter)(struct hnae3_handle *handle, __be16 proto,
-> > +			       u16 vlan_id, bool is_kill);
-> > +	int (*set_vf_vlan_filter)(struct hnae3_handle *handle, int vfid,
-> > +				  u16 vlan, u8 qos, __be16 proto);
-> > +};
-> > +
-> > +struct hnae3_ae_algo {
-> > +	const struct hnae3_ae_ops *ops;
-> > +	struct list_head node;
-> > +	char name[HNAE3_CLASS_NAME_SIZE];
-> > +	const struct pci_device_id *pdev_id_table;
-> > +};
-> > +
-> > +#define HNAE3_INT_NAME_LEN        (IFNAMSIZ + 16)
-> > +#define HNAE3_ITR_COUNTDOWN_START 100
-> > +
-> > +struct hnae3_tc_info {
-> > +	u16	tqp_offset;	/* TQP offset from base TQP */
-> > +	u16	tqp_count;	/* Total TQPs */
-> > +	u8	up;		/* user priority */
-> > +	u8	tc;		/* TC index */
-> > +	bool	enable;		/* If this TC is enable or not */
-> > +};
-> > +
-> > +#define HNAE3_MAX_TC		8
-> > +struct hnae3_knic_private_info {
-> > +	struct net_device *netdev; /* Set by KNIC client when init
-> instance */
-> > +	u16 rss_size;		   /* Allocated RSS queues */
-> > +	u16 rx_buf_len;
-> > +	u16 num_desc;
-> > +
-> > +	u8 num_tc;		   /* Total number of enabled TCs */
-> > +	struct hnae3_tc_info tc_info[HNAE3_MAX_TC]; /* Idx of array is HW
-> TC */
-> > +
-> > +	u16 num_tqps;		  /* total number of TQPs in this handle
-> */
-> > +	struct hnae3_queue **tqp;  /* array base of all TQPs in this
-> instance */
-> > +};
-> > +
-> > +struct hnae3_roce_private_info {
-> > +	void __iomem *roce_io_base;
-> > +	struct net_device *netdev;
-> > +	int base_vector;
-> > +	int num_vectors;
-> > +};
-> > +
-> > +struct hnae3_unic_private_info {
-> > +	u16 rx_buf_len;
-> > +	u16 num_desc;
-> > +	u16 num_tqps;	/* total number of tqps in this handle */
-> > +	struct hnae3_queue **tqp;  /* array base of all TQPs of this
-> instance */
-> > +};
-> > +
-> > +#define HNAE3_SUPPORT_MAC_LOOPBACK    1
-> > +#define HNAE3_SUPPORT_PHY_LOOPBACK    2
-> > +#define HNAE3_SUPPORT_SERDES_LOOPBACK 4
-> > +
-> > +struct hnae3_handle {
-> > +	struct hnae3_client *client;
-> > +	struct pci_dev *pdev;
-> > +	void *priv;
-> > +	struct hnae3_ae_algo *ae_algo;  /* the class who provides this
-> handle */
-> > +	u64 flags; /* Indicate the capabilities for this handle*/
-> > +
-> > +	union {
-> > +		struct hnae3_knic_private_info kinfo;
-> > +		struct hnae3_unic_private_info uinfo;
-> > +		struct hnae3_roce_private_info rinfo;
-> > +	};
-> > +
-> > +	u32 numa_node_mask;	/* for multi-chip support */
-> > +};
-> > +
-> > +#define hnae_set_field(origin, mask, shift, val) \
-> > +	do { \
-> > +		(origin) &= (~(mask)); \
-> > +		(origin) |= ((val) << (shift)) & (mask); \
-> > +	} while (0)
-> > +#define hnae_get_field(origin, mask, shift) (((origin) & (mask)) >>
-> (shift))
-> > +
-> > +#define hnae_set_bit(origin, shift, val) \
-> > +	hnae_set_field((origin), (0x1 << (shift)), (shift), (val))
-> > +#define hnae_get_bit(origin, shift) \
-> > +	hnae_get_field((origin), (0x1 << (shift)), (shift))
-> > +
-> > +int hnae3_register_ae_dev(struct hnae3_ae_dev *ae_dev);
-> > +void hnae3_unregister_ae_dev(struct hnae3_ae_dev *ae_dev);
-> > +
-> > +void hnae3_unregister_ae_algo(struct hnae3_ae_algo *ae_algo);
-> > +int hnae3_register_ae_algo(struct hnae3_ae_algo *ae_algo);
-> > +
-> > +void hnae3_unregister_client(struct hnae3_client *client);
-> > +int hnae3_register_client(struct hnae3_client *client);
-> > +#endif
-> > --
-> > 2.11.0
-> >
-> >
+Regular sharing of information is also part of regular progress.
+
+As I said more than once, I'm fine with sequential work, I'm fine with
+the fact that not all my code is accepted, I'm fine with scheduled
+delays, but I'm not fine with silence.
+
+Thanks
+
+>
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>     GPG Key ID: B826A3330E572FDD
+>     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+>
+
+
+
+
+--jy6Sn24JjFx/iggw
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAll6vmEACgkQ5GN7iDZy
+WKfLdhAAvKCmPFap3l1JFtPcemOwnfBa5Nbs1yZFs+4K5RzMsjUi5CX9f2zk2Jyw
+Rmx62mpBTY/PRvMWdevqwMm0uD1BdabCIEDZId18fIdHZX9gxPrnGAN9Qzu5MD3f
+OKht5jCY1iY8/kAB8eh8O/lrlO7/guDtNlMObZxKi9YUvqZhGEP2sKuZKkgmBV2f
+QbFg/yuj7iDCMkmNgu6oaDKkF/xeb8PUvwQKVOKXEMgEoPN73iMCUCVHBxV61XNH
+AXzXwMPIVVpdeLjI5GnrVfinodpLSdvhIHrtiKCU0TM3lxmwbSBcwEbpwfdkr0fu
+xgL0zabVEs8LMckTQoJc1Wyq74MF0AtONFl1nhC89wAuPzwmLVD5h/M1BPPAGmJv
+CtnBv0TMyH78T5ulqTXR8lguVfZOS/qo3Upukca7c6M3ZheLE1RxdZQo+f36hJiC
+7nSOhxIWG+lALqSfJ2FcbleM3lu3Ya4WXmH09LhqoyiH2h6nA1HPvJJf1v/2tHAY
+Xy/vb7xQRIcTzmnkNyMtu4UCEE24s6b05N0Nbh/TI77Ab5uKAd2tLqjweeMkJsnP
+rIk5fuvWHDiNyX6W1YWC89spWIHRNnFcBuPEreN7rwp/Os6Kj644E4Y2m39U6U5l
+Wa58/TiaCppTy7qpumbcNM2aOBHwKDJWsQkjIdpgxyp+WZJa/hU=
+=4PLB
+-----END PGP SIGNATURE-----
+
+--jy6Sn24JjFx/iggw--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
