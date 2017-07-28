@@ -1,129 +1,72 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Latest for-4.14
-Date: Fri, 28 Jul 2017 15:42:52 -0400
-Message-ID: <347f8b97-6b81-94a7-d71b-7023d2ed3dac@redhat.com>
-References: <20170726053749.GV3259@mtr-leonro.local>
- <b337a2ae-40ff-a207-82fa-fd3c7d2e1083@intel.com>
- <20170726130350.GW3259@mtr-leonro.local>
- <a1abee42-58d2-aba6-bc56-9bf1830a4539@redhat.com>
- <20170728043233.GE13672@mtr-leonro.local>
- <1501260896.2593.18.camel@redhat.com>
- <20170728192930.GH13672@mtr-leonro.local>
+From: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 rdma-core 1/6] Common infrastructure for auto loading
+ rdma modules
+Date: Fri, 28 Jul 2017 16:48:55 -0500
+Message-ID: <20170728214855.GA13840@ctung-MOBL3.amr.corp.intel.com>
+References: <1501194685-9447-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1501194685-9447-2-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="bAS7hTH3L9EqqCVEtm8m0fUPCXTwsgGkk"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170728192930.GH13672-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1501194685-9447-2-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---bAS7hTH3L9EqqCVEtm8m0fUPCXTwsgGkk
-Content-Type: multipart/mixed; boundary="kUaQ3wslItLwnXGC5jCLUcul4lgpuNWex";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>,
- linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Message-ID: <347f8b97-6b81-94a7-d71b-7023d2ed3dac-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Latest for-4.14
-References: <20170726053749.GV3259-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
- <b337a2ae-40ff-a207-82fa-fd3c7d2e1083-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
- <20170726130350.GW3259-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
- <a1abee42-58d2-aba6-bc56-9bf1830a4539-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <20170728043233.GE13672-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
- <1501260896.2593.18.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <20170728192930.GH13672-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-In-Reply-To: <20170728192930.GH13672-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+On Thu, Jul 27, 2017 at 04:31:20PM -0600, Jason Gunthorpe wrote:
 
---kUaQ3wslItLwnXGC5jCLUcul4lgpuNWex
-Content-Type: text/plain; charset=windows-1252
-Content-Language: en-US
-Content-Transfer-Encoding: quoted-printable
+[...]
 
-On 7/28/2017 3:29 PM, Leon Romanovsky wrote:
-> On Fri, Jul 28, 2017 at 12:54:56PM -0400, Doug Ledford wrote:
->> On Fri, 2017-07-28 at 07:32 +0300, Leon Romanovsky wrote:
+Sorry Jason, I can't test this till next week.  On inspection I found a couple of issues
+below.
 
->> officially landed in their repo (unless there are review issues or
->> build failures that kick it back out), so I don't know why you would
->> expect different from me, but it's not gonna happen.
->=20
-> I didn't expect anything different from you. What I expected from you i=
-s
-> to take a look on one patchset, decide go/no go, add to your branch, pu=
-sh
-> to github and 0-build (it very good in queuing jobs),
+> diff --git a/kernel-boot/rdma-description.rules b/kernel-boot/rdma-description.rules
+> new file mode 100644
+> index 00000000000000..4d7c5808401ac7
+> --- /dev/null
+> +++ b/kernel-boot/rdma-description.rules
+> @@ -0,0 +1,42 @@
+> +# This is a version of net-description.rules for /sys/class/infiniband devices
+> +
+> +ACTION=="remove", GOTO="rdma_description_end"
+> +SUBSYSTEM!="infiniband", GOTO="rdma_description_end"
+> +
+> +# NOTE: DRIVERS searches up the sysfs path to find the driver that is bound to
+> +# the PCI/etc device that the RDMA device is linked to. This is not the kernel
+> +# driver that is supplying the RDMA device (eg as seen in ID_NET_DRIVER)
+> +
+> +# FIXME: with kernel support we could actually detect the protocols the RDMA
+> +# driver itself supports, this is a work around for lack of that support.
+> +# In future we could do this with a udev IMPORT{program} helper program
+> +# that extracted the ID information from the RDMA netlink.
+> +
+> +# Hardware that supports InfiniBand
+> +DRIVERS=="mlx4_core", ENV{ID_RDMA_INFINIBAND}="1"
+> +DRIVERS=="mlx5_core", ENV{ID_RDMA_INFINIBAND}="1"
+> +DRIVERS=="qib", ENV{ID_RDMA_INFINIBAND}="1"
+> +
+> +# Hardware that supports OPA
+> +DRIVERS=="hfi1verbs", ENV{ID_RDMA_OPA}="1"
+> +
+> +# Hardware that supports iWarp
+> +DRIVERS=="cxgb3", ENV{ID_RDMA_IWARP}="1"
+> +DRIVERS=="cxgb4", ENV{ID_RDMA_IWARP}="1"
 
-Right now 0day is taking 10-13hours to give me results.  If people are
-queueing up test runs for every single patch (or small patch series),
-then no wonder it's taking so long.  That's horribly inefficient.  There
-is enough stuff for me to look at that I'm batching it up, applying
-multiple series to a specific branch, and then doing the build testing
-at the end for the whole group.  If I know I'm looking at 10 small patch
-series in a given day, then I doubt you will ever get me to send them
-all separately to 0day as that sort of behavior is likely precisely why
-it's taking 10+ hours to get results right now.  If people *didn't* do
-that, then the results might get in much sooner.
+Need to add nes and i40e here under iWARP.
+This is enough to autoload iwpmd for nes and i40e/i40iw, correct?
 
-> announce and so on
-> till all patches are tested and it can be forwarded to k.o.
->=20
-> Sorry, if I expected too much.
->=20
->>
->>> As I said more than once, I'm fine with sequential work, I'm fine
->>> with
->>> the fact that not all my code is accepted, I'm fine with scheduled
->>> delays, but I'm not fine with silence.
->>
->>
->>
->> --
->> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->>     GPG KeyID: B826A3330E572FDD
->>     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 =
-2FDD
->>
+> +
+> +# Hardware that supports RoCE
+> +DRIVERS=="be2net", ENV{ID_RDMA_ROCE}="1"
+> +DRIVERS=="bnxt_en", ENV{ID_RDMA_ROCE}="1"
+> +DRIVERS=="hns", ENV{ID_RDMA_ROCE}="1"
+> +DRIVERS=="i40e", ENV{ID_RDMA_ROCE}="1"
 
+i40e does not support RoCE, see above.
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
-D
-
-
---kUaQ3wslItLwnXGC5jCLUcul4lgpuNWex--
-
---bAS7hTH3L9EqqCVEtm8m0fUPCXTwsgGkk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJZe5PDAAoJELgmozMOVy/dOkwP/3aofh9x2z475k75NA9KFlWs
-0qGmI6QGbds4IiBm3hGZUHy9JuU8gd/PDFYb5OLCIplWUUd12R3RcrsTInK0Kp8a
-ozZPtg/oQCaAMA2yNqL/ncsbVp92FVTKt+eIioHYSFrBNGnHTAbD8AUpwmUOeM9D
-hAwAwu1/M5SyG73lcQcqzuyusliP7uWnBCXlijGm4UzqVaSZuQE/d+m71F3uHFc8
-SOA7vuBEEvfHlm3W19HfLNeLf2Ka9bFwf9g8Uim+Y3d4vzTGBPDzviSkSu/Wyt6n
-bSM6lbzV0Ccs1UDtuDsqdyBsD+yn4fXM4LCFVZN1IF5tLnsL84aZP2+/fa8kP4G7
-qP9ZMYyKJxMarAHq8G1vUlTLdnm41X0InwpDh8rXMSsZKQNz7egKl6k9bXssn14Y
-alZ/XRcg8rIjLMIl/YNa1pNuoFVX7Axzvx/MLh3vQ7s4ggLQlcsmxixtKSmqbyrL
-9et9LFxTI7U4ca7CjOBeWxPZBef2AZEYMWdo+mV6FTVYJo8QEXM7ObGvW+PDa+EV
-zpt3ZxZX+niqcrrDRgCVpXiSHglqrJXviyVTOpB6/tGhDNVEru2fGrFSzj1498uq
-Jj9/t6u3lFFEJW5E5vxzqskgyc72uloYKxqAqWZtI2l2gT9nHfUybYQ1HKXIVg6S
-13srTTf+PsY97Dsb/cvv
-=VADS
------END PGP SIGNATURE-----
-
---bAS7hTH3L9EqqCVEtm8m0fUPCXTwsgGkk--
+Chien
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
