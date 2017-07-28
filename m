@@ -1,49 +1,41 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 3/8] srp_daemon: Add a --systemd option
-Date: Fri, 28 Jul 2017 09:56:58 -0600
-Message-ID: <20170728155658.GB9646@obsidianresearch.com>
-References: <1501099152-6344-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1501099152-6344-4-git-send-email-jgunthorpe@obsidianresearch.com>
- <1501164749.4572.30.camel@profitbricks.com>
- <20170727164851.GB13245@obsidianresearch.com>
- <1501238107.4572.39.camel@profitbricks.com>
+Subject: Re: [PATCH rdma-core 0/5] Common systemd/udev based boot support
+Date: Fri, 28 Jul 2017 09:58:42 -0600
+Message-ID: <20170728155842.GC9646@obsidianresearch.com>
+References: <1500929067-1583-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <00e601d30562$f5a7dff0$e0f79fd0$@opengridcomputing.com>
+ <20170725164004.GA20959@obsidianresearch.com>
+ <011601d30576$c3ac38c0$4b04aa40$@opengridcomputing.com>
+ <20170725213354.GE10905@obsidianresearch.com>
+ <016901d30590$3eee9910$bccbcb30$@opengridcomputing.com>
+ <20170725220210.GA15663@obsidianresearch.com>
+ <009901d30618$2d957e30$88c07a90$@opengridcomputing.com>
+ <20170726162419.GC20499@obsidianresearch.com>
+ <000d01d307a8$9cc0d660$d6428320$@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1501238107.4572.39.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <000d01d307a8$9cc0d660$d6428320$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Ram Amrani' <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, 'Ira Weiny' <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Benjamin Drung' <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, 'Jarod Wilson' <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jul 28, 2017 at 12:35:07PM +0200, Benjamin Drung wrote:
-> Am Donnerstag, den 27.07.2017, 10:48 -0600 schrieb Jason Gunthorpe:
-> > On Thu, Jul 27, 2017 at 04:12:29PM +0200, Benjamin Drung wrote:
-> > > Am Mittwoch, den 26.07.2017, 13:59 -0600 schrieb Jason Gunthorpe:
-> > > > This changes how logging is setup to send log messages only to
-> > > > syslog,
-> > > > instead of to stderr and to syslog. If messages are sent to both
-> > > > places then systemd will create duplicate log entries.
-> > > 
-> > > The parameter name --systemd is not a good choice. It doesn't tell
-> > > me what will change ("Enable systemd integration" does not help
-> > > here) and someone might to want to use the switch without
-> > > systemd. So something like --no-log-to-stderr or --syslog-only
-> > > would
-> > > better describe the behavior.
-> > 
-> > There are more systemd integration features to come, eg sd_notify,
-> > some journal integration is possible.
-> > 
-> > I don't want to keep adding options along these lines, universally
-> > having --systemd to turn everything we want to do on makes sense.
-> 
-> A more flexible approach: Add individual parameters and let the
-> say: "--systemd is equivalent to --foo --bar --baz"
+On Fri, Jul 28, 2017 at 08:51:28AM -0500, Steve Wise wrote:
 
-Why would someone want to turn on something like sd_notify
-individually? Or journal metadata logging? It seems purposeless..
+> Bringing down the NIC interfaces doesn't totally stop the adapter nor destroy
+> the queues needed for RDMA.  It does bring the links down on the ethernet
+> interfaces though. So it behaves like I thought.   I tested this by running an
+> rping, and while it was pushing rdma traffic, I did 'ifconfig ethX 0.0.0.0 down'
+> on the interface in use.  The data flow stopped (and the iWARP/TCP stack started
+> retransmitting).  I then brought the link back up, and after a few seconds the
+> rping traffic continued on. 
+
+So, why defer creating queues until the first ifup?
+
+I can understand a nic driver that frees all memory when down (that is
+fairly common), but this arrangement seems really strange..
 
 Jason
 --
