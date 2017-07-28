@@ -1,32 +1,62 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Subject: Re: [Qemu-devel] host side todo list for virtio rdma
-Date: Sat, 29 Jul 2017 02:48:33 +0300
-Message-ID: <20170729024712-mutt-send-email-mst@kernel.org>
-References: <20170719004721-mutt-send-email-mst@kernel.org>
- <20170719105549.GB3500@work-vm>
- <20170725165915-mutt-send-email-mst@kernel.org>
- <20170728180255.GF2560@work-vm>
+From: Andrew Lunn <andrew@lunn.ch>
+Subject: Re: [PATCH V5 net-next 7/8] net: hns3: Add Ethtool support to HNS3
+ driver
+Date: Sat, 29 Jul 2017 01:49:22 +0200
+Message-ID: <20170728234922.GC16080@lunn.ch>
+References: <20170728222652.118448-1-salil.mehta@huawei.com>
+ <20170728222652.118448-8-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <virtio-dev-return-2427-gcvd-virtio-dev=m.gmane.org@lists.oasis-open.org>
-Sender: <virtio-dev@lists.oasis-open.org>
-List-Post: <mailto:virtio-dev@lists.oasis-open.org>
-List-Help: <mailto:virtio-dev-help@lists.oasis-open.org>
-List-Unsubscribe: <mailto:virtio-dev-unsubscribe@lists.oasis-open.org>
-List-Subscribe: <mailto:virtio-dev-subscribe@lists.oasis-open.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170728180255.GF2560@work-vm>
-To: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: virtio@lists.oasis-open.org, virtio-dev@lists.oasis-open.org, linux-rdma@vger.kernel.org, qemu-devel@nongnu.org, Marcel Apfelbaum <marcel.a@redhat.com>
+In-Reply-To: <20170728222652.118448-8-salil.mehta@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Salil Mehta <salil.mehta@huawei.com>
+Cc: davem@davemloft.net, yisen.zhuang@huawei.com, huangdaode@hisilicon.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jul 28, 2017 at 07:02:55PM +0100, Dr. David Alan Gilbert wrote:
-> OK, does it seem silly for a message to go all the way to the host
-> kernel to then have to go back down to QEMU to be turned back into verbs
-> to go back upto the host kernel?
+On Fri, Jul 28, 2017 at 11:26:51PM +0100, Salil Mehta wrote:
+> +static const struct hns3_link_mode_mapping hns3_lm_map[] = {
+> +	{HNS3_LM_FIBRE_BIT, ETHTOOL_LINK_MODE_FIBRE_BIT, FLG},
+> +	{HNS3_LM_AUTONEG_BIT, ETHTOOL_LINK_MODE_Autoneg_BIT, FLG},
+> +	{HNS3_LM_TP_BIT, ETHTOOL_LINK_MODE_TP_BIT, FLG},
+> +	{HNS3_LM_PAUSE_BIT, ETHTOOL_LINK_MODE_Pause_BIT, FLG},
+> +	{HNS3_LM_BACKPLANE_BIT, ETHTOOL_LINK_MODE_Backplane_BIT, FLG},
+> +	{HNS3_LM_10BASET_HALF_BIT, ETHTOOL_LINK_MODE_10baseT_Half_BIT, FLG},
+> +	{HNS3_LM_10BASET_FULL_BIT, ETHTOOL_LINK_MODE_10baseT_Full_BIT, FLG},
+> +	{HNS3_LM_100BASET_HALF_BIT, ETHTOOL_LINK_MODE_100baseT_Half_BIT, FLG},
+> +	{HNS3_LM_100BASET_FULL_BIT, ETHTOOL_LINK_MODE_100baseT_Full_BIT, FLG},
+> +	{HNS3_LM_1000BASET_FULL_BIT, ETHTOOL_LINK_MODE_1000baseT_Full_BIT, FLG},
+> +};
 
-This is how most IO works except vhost.  If it's not a data path
-there's no need to write code to avoid some context switches IMHO.
+It seems like all entries have link_mode_ksettings set to FLG. Which
+probably indicates it is pointless.
 
--- 
-MST
+> +
+> +static inline void hns3_driv_to_eth_caps(u32 caps,
+> +					 struct ethtool_link_ksettings *cmd)
+
+Please don't use inline anywhere except in header file stub
+functions. Let the compiler decide.
+
+> +static int hns3_get_link_ksettings(struct net_device *netdev,
+> +				   struct ethtool_link_ksettings *cmd)
+> +{
+> +	struct hns3_nic_priv *priv = netdev_priv(netdev);
+> +	struct hnae3_handle *h = priv->ae_handle;
+> +	u32 supported_caps;
+> +	u32 advertised_caps;
+> +	u8 media_type;
+> +	u8 link_stat;
+> +	u8 auto_neg;
+> +	u8 duplex;
+> +	u32 speed;
+> +
+> +	if (!h->ae_algo || !h->ae_algo->ops)
+> +		return -ESRCH;
+
+#define	ESRCH	 3	/* No such process */
+
+No such process ????
+
+   Andrew
