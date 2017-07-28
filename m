@@ -1,46 +1,50 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: [net-next PATCH] IB/hns: include linux/interrupt.h
-Date: Fri, 28 Jul 2017 15:35:22 +0200
-Message-ID: <20170728133539.516824-1-arnd@arndb.de>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH rdma-core 0/5] Common systemd/udev based boot support
+Date: Fri, 28 Jul 2017 08:51:28 -0500
+Message-ID: <000d01d307a8$9cc0d660$d6428320$@opengridcomputing.com>
+References: <1500929067-1583-1-git-send-email-jgunthorpe@obsidianresearch.com> <00e601d30562$f5a7dff0$e0f79fd0$@opengridcomputing.com> <20170725164004.GA20959@obsidianresearch.com> <011601d30576$c3ac38c0$4b04aa40$@opengridcomputing.com> <20170725213354.GE10905@obsidianresearch.com> <016901d30590$3eee9910$bccbcb30$@opengridcomputing.com> <20170725220210.GA15663@obsidianresearch.com> <009901d30618$2d957e30$88c07a90$@opengridcomputing.com> <20170726162419.GC20499@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: 
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "David S . Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Florian Westphal <fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Salil <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Ram Amrani' <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, 'Ira Weiny' <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Benjamin Drung' <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, 'Jarod Wilson' <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I ran into this build error on linux-next:
+> > On Wed, Jul 26, 2017 at 09:05:03AM -0500, Steve Wise wrote:
+> >
+> > > > I think you should change this to create the RDMA device when the
+> > > > module is installed and the hardware is present..
+> > > >
+> > >
+> > > Not gonna happen.  cxgb4 doesn't setup the queues, rss, irq mappings, etc,
+until
+> > > an interface is brought up.  So iw_cxgb4 cannot initialize and register
+with the
+> > > rdma core until that happens.
+> >
+> > But it doesn't tear all that stuff down on ifdown?
+> 
+> hmm.  I need to relook at this.  I'm very sure the intent was offload
+connections do
+> not get torn down if the link goes down.
+> 
 
-drivers/infiniband/hw/hns/hns_roce_eq.c:477:8: error: unknown type name 'irqreturn_t'
- static irqreturn_t hns_roce_msi_x_interrupt(int irq, void *eq_ptr)
-        ^~~~~~~~~~~
-drivers/infiniband/hw/hns/hns_roce_eq.c: In function 'hns_roce_msi_x_interrupt':
-drivers/infiniband/hw/hns/hns_roce_eq.c:485:9: error: implicit declaration of function 'IRQ_RETVAL'; did you mean 'BPF_RVAL'? [-Werror=implicit-function-declaration]
-  return IRQ_RETVAL(int_work);
+Hey Jason,
 
-I have bisected this to a seemingly unrelated change that happened
-to remove some indirect header inclusions. Simply including the
-required header explicitly fixes the build failure.
+Bringing down the NIC interfaces doesn't totally stop the adapter nor destroy
+the queues needed for RDMA.  It does bring the links down on the ethernet
+interfaces though. So it behaves like I thought.   I tested this by running an
+rping, and while it was pushing rdma traffic, I did 'ifconfig ethX 0.0.0.0 down'
+on the interface in use.  The data flow stopped (and the iWARP/TCP stack started
+retransmitting).  I then brought the link back up, and after a few seconds the
+rping traffic continued on. 
 
-Fixes: 09c7570480f7 ("xfrm: remove flow cache")
-Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
----
- drivers/infiniband/hw/hns/hns_roce_eq.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_eq.c b/drivers/infiniband/hw/hns/hns_roce_eq.c
-index 50f864935a0e..b39d14b62355 100644
---- a/drivers/infiniband/hw/hns/hns_roce_eq.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_eq.c
-@@ -31,6 +31,7 @@
-  */
- 
- #include <linux/platform_device.h>
-+#include <linux/interrupt.h>
- #include "hns_roce_common.h"
- #include "hns_roce_device.h"
- #include "hns_roce_eq.h"
--- 
-2.9.0
+Steve
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
