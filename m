@@ -1,37 +1,43 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next V1 0/4] ConnectX-3 RSS Implementation
-Date: Fri, 28 Jul 2017 14:30:01 -0400
-Message-ID: <1501266601.2593.46.camel@redhat.com>
-References: <20170704132427.25937-1-leon@kernel.org>
+Subject: Re: [PATCH rdma-next 0/5] Dropples RQ
+Date: Fri, 28 Jul 2017 14:18:51 -0400
+Message-ID: <1501265931.2593.38.camel@redhat.com>
+References: <20170530072914.9709-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170704132427.25937-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170530072914.9709-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-07-04 at 16:24 +0300, Leon Romanovsky wrote:
+On Tue, 2017-05-30 at 10:29 +0300, Leon Romanovsky wrote:
 > Hi Doug,
 > 
-> This patch set adds to ConnectX-3 devices the ability to use RSS
-> feature, which was initially implemented in mlx5-based devices [1].
+> From Maor:
+> ---
+> This series adding support to avoid RAW ethernet packet drops.
 > 
-> The backport of RSS feature to ConnectX-3 hardware was a challenge
-> task due to differences in architectures between mlx4 and mlx5 based
-> devices.
+> When packets received and there are no receive WQEs, then
+> the packets are dropped. In certain scenarios it may be preferred
+> to configure the device to avoid such packet drops, assuming
+> the posting of WQEs will resume shortly.
 > 
-> It caused to a limited number of usage limitations, mentioned in the
-> relevant
-> commit messages where it applies.
+> Under such configuration, when a packet is received for a
+> WQ with no receive WQEs, the packet processing is delayed
+> until receive WQEs are posted.
 > 
-> This series supports all RSS related verbs.
+> If receive WQEs are still not posted after a device configured
+> time, the packet is dropped.
 > 
-> Thanks.
+> To enable this delay drop feature on a WQ, the user should
+> set the IB_WQ_FLAGS_DELAY_DROP flag on creation.
 
-Thanks, series applied.
+The series changes core code API, but only on the raw ethernet QP type,
+which is essentially a Mellanox only thing, so I have no issues with
+the API change as it is.  Series applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
