@@ -1,50 +1,38 @@
 From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH rdma-core 0/5] Common systemd/udev based boot support
-Date: Fri, 28 Jul 2017 08:51:28 -0500
-Message-ID: <000d01d307a8$9cc0d660$d6428320$@opengridcomputing.com>
-References: <1500929067-1583-1-git-send-email-jgunthorpe@obsidianresearch.com> <00e601d30562$f5a7dff0$e0f79fd0$@opengridcomputing.com> <20170725164004.GA20959@obsidianresearch.com> <011601d30576$c3ac38c0$4b04aa40$@opengridcomputing.com> <20170725213354.GE10905@obsidianresearch.com> <016901d30590$3eee9910$bccbcb30$@opengridcomputing.com> <20170725220210.GA15663@obsidianresearch.com> <009901d30618$2d957e30$88c07a90$@opengridcomputing.com> <20170726162419.GC20499@obsidianresearch.com>
+Subject: RE: [PATCH v2 rdma-core 0/6] Common udev/systemd based module auto loading
+Date: Fri, 28 Jul 2017 08:54:42 -0500
+Message-ID: <001e01d307a9$10387800$30a96800$@opengridcomputing.com>
+References: <1501194685-9447-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
         charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: 
+In-Reply-To: <1501194685-9447-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Ram Amrani' <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, 'Ira Weiny' <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Benjamin Drung' <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, 'Jarod Wilson' <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Ram Amrani' <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, 'Ira Weiny' <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Benjamin Drung' <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, 'Jarod Wilson' <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > On Wed, Jul 26, 2017 at 09:05:03AM -0500, Steve Wise wrote:
-> >
-> > > > I think you should change this to create the RDMA device when the
-> > > > module is installed and the hardware is present..
-> > > >
-> > >
-> > > Not gonna happen.  cxgb4 doesn't setup the queues, rss, irq mappings, etc,
-until
-> > > an interface is brought up.  So iw_cxgb4 cannot initialize and register
-with the
-> > > rdma core until that happens.
-> >
-> > But it doesn't tear all that stuff down on ifdown?
 > 
-> hmm.  I need to relook at this.  I'm very sure the intent was offload
-connections do
-> not get torn down if the link goes down.
+> Here is the next revision of the systemd module autoloading approach.
+> 
+> All the comments have been collected and a few other things addressed.
 > 
 
-Hey Jason,
+It would be great to have a change list from the previous version.
 
-Bringing down the NIC interfaces doesn't totally stop the adapter nor destroy
-the queues needed for RDMA.  It does bring the links down on the ethernet
-interfaces though. So it behaves like I thought.   I tested this by running an
-rping, and while it was pushing rdma traffic, I did 'ifconfig ethX 0.0.0.0 down'
-on the interface in use.  The data flow stopped (and the iWARP/TCP stack started
-retransmitting).  I then brought the link back up, and after a few seconds the
-rping traffic continued on. 
+> Notably, at least on debian, when rdma-core is installed for the first time it
+> activates the new udev rules and moduels autoload immediately, no reboot
+> required. Not sure about RH's policies, so leaving this to them to copy if
+> desired.
+> 
+> There have been positive test results now for rxe, mlx4 (IB), qedr and cxgb4
+> on Debian derived.
 
-Steve
+My cxgb4 testing was on the RHEL7.3 distro.
+
+Steve.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
