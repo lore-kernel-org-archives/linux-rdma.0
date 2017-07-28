@@ -1,35 +1,39 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] RDMA/bnxt_re: Delete unsupported modify_port function
-Date: Fri, 28 Jul 2017 13:51:32 -0400
-Message-ID: <1501264292.2593.22.camel@redhat.com>
-References: <20170601062434.22566-1-leon@kernel.org>
-         <CA+sbYW3p-g1KgGDzc8XtVsQXb4ymqmK8QmPcdKiNsMdmp3e27g@mail.gmail.com>
+Subject: Re: [PATCH v4] IB/{core, usnic}: Add generic function to extract IB
+ speed from netdev
+Date: Fri, 28 Jul 2017 13:55:19 -0400
+Message-ID: <1501264519.2593.27.camel@redhat.com>
+References: <20170614201334.4654-1-yuval.shaia@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CA+sbYW3p-g1KgGDzc8XtVsQXb4ymqmK8QmPcdKiNsMdmp3e27g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20170614201334.4654-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, sriharsha.basavapatna-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org, yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-06-05 at 20:57 +0530, Selvin Xavier wrote:
-> On Thu, Jun 1, 2017 at 11:54 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> wrote:
-> > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > 
-> > There is no need to return always zero for function which is not
-> > supported. The IB stack treats uninitialized ib_device->functions
-> > as
-> > not implemented.
-> > 
-> > Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Wed, 2017-06-14 at 23:13 +0300, Yuval Shaia wrote:
+> Please review this change which adds generic function to extract
+> speed from
+> netdev and return IB speed to caller.
 > 
+> [PATCH v4 1/2] IB/usnic: Implement get_netdev hook
+> Preliminary and needed anyway patch which adds get_netdev
+> implementation to
+> usnic driver.
 > 
-> Acked-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> [PATCH v4 2/2] IB/core: Add generic function to extract IB speed from
+> The actual patch that adds the $subject functionality.
+> 
+> Yuval
 
-Thanks, applied.
+Thanks, v4 series applied.
+
+Also, please update your address for Sagi in your personal addressbook
+in your mail client.  The one you used on this submission is wrong (I
+checked the MAINTAINERS file to make sure it was right there and it
+is).
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
