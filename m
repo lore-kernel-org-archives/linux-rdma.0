@@ -1,73 +1,128 @@
-From: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 rdma-core 1/6] Common infrastructure for auto loading
- rdma modules
-Date: Fri, 28 Jul 2017 16:48:55 -0500
-Message-ID: <20170728214855.GA13840@ctung-MOBL3.amr.corp.intel.com>
-References: <1501194685-9447-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1501194685-9447-2-git-send-email-jgunthorpe@obsidianresearch.com>
+From: Salil Mehta <salil.mehta@huawei.com>
+Subject: [PATCH V5 net-next 0/8] Hisilicon Network Subsystem 3 Ethernet Driver
+Date: Fri, 28 Jul 2017 23:26:44 +0100
+Message-ID: <20170728222652.118448-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1501194685-9447-2-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, huangdaode@hisilicon.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 27, 2017 at 04:31:20PM -0600, Jason Gunthorpe wrote:
+This patch-set contains the support of the HNS3 (Hisilicon Network Subsystem 3)
+Ethernet driver for hip08 family of SoCs and future upcoming SoCs.
 
-[...]
+Hisilicon's new hip08 SoCs have integrated ethernet based on PCI Express and
+hence there was a need of new driver over the previous HNS driver which is 
+already part of the Linux mainline. This new driver is NOT backward
+compatible with HNS.
 
-Sorry Jason, I can't test this till next week.  On inspection I found a couple of issues
-below.
+This current driver is meant to control the Physical Function and there would
+soon be a support of a separate driver for Virtual Function once this base PF
+driver has been accepted. Also, this driver is the ongoing development work and
+HNS3 Ethernet driver would be incrementally enhanced with more new features.
 
-> diff --git a/kernel-boot/rdma-description.rules b/kernel-boot/rdma-description.rules
-> new file mode 100644
-> index 00000000000000..4d7c5808401ac7
-> --- /dev/null
-> +++ b/kernel-boot/rdma-description.rules
-> @@ -0,0 +1,42 @@
-> +# This is a version of net-description.rules for /sys/class/infiniband devices
-> +
-> +ACTION=="remove", GOTO="rdma_description_end"
-> +SUBSYSTEM!="infiniband", GOTO="rdma_description_end"
-> +
-> +# NOTE: DRIVERS searches up the sysfs path to find the driver that is bound to
-> +# the PCI/etc device that the RDMA device is linked to. This is not the kernel
-> +# driver that is supplying the RDMA device (eg as seen in ID_NET_DRIVER)
-> +
-> +# FIXME: with kernel support we could actually detect the protocols the RDMA
-> +# driver itself supports, this is a work around for lack of that support.
-> +# In future we could do this with a udev IMPORT{program} helper program
-> +# that extracted the ID information from the RDMA netlink.
-> +
-> +# Hardware that supports InfiniBand
-> +DRIVERS=="mlx4_core", ENV{ID_RDMA_INFINIBAND}="1"
-> +DRIVERS=="mlx5_core", ENV{ID_RDMA_INFINIBAND}="1"
-> +DRIVERS=="qib", ENV{ID_RDMA_INFINIBAND}="1"
-> +
-> +# Hardware that supports OPA
-> +DRIVERS=="hfi1verbs", ENV{ID_RDMA_OPA}="1"
-> +
-> +# Hardware that supports iWarp
-> +DRIVERS=="cxgb3", ENV{ID_RDMA_IWARP}="1"
-> +DRIVERS=="cxgb4", ENV{ID_RDMA_IWARP}="1"
+High Level Architecture:
 
-Need to add nes and i40e here under iWARP.
-This is enough to autoload iwpmd for nes and i40e/i40iw, correct?
+        [ Ethtool ]
+	   ^  |
+           |  | 
+     [Ethernet Client]  [ODP/UIO Client] . . . [ RoCE Client ]     
+                         |                            |
+                   [ HNAE Device ]                    |
+                         |                            |
+    ---------------------------------------------     |
+                         |                            |
+     [ HNAE3 Framework (Register/unregister) ]        |
+                         |                            |
+    ---------------------------------------------     |
+                         |                            |
+                   [ HCLGE Layer]                     |
+         ________________|_________________           |
+        |                |                 |          |
+    [ MDIO ]    [ Scheduler/Shaper ]  [ Debugfs* ]    |
+        |                |                 |          |
+        |________________|_________________|          |     
+                         |                            |
+             [ IMP command Interface ]                |
+    ---------------------------------------------     |
+              HIP08  H A R D W A R E                  *
 
-> +
-> +# Hardware that supports RoCE
-> +DRIVERS=="be2net", ENV{ID_RDMA_ROCE}="1"
-> +DRIVERS=="bnxt_en", ENV{ID_RDMA_ROCE}="1"
-> +DRIVERS=="hns", ENV{ID_RDMA_ROCE}="1"
-> +DRIVERS=="i40e", ENV{ID_RDMA_ROCE}="1"
 
-i40e does not support RoCE, see above.
+Current patch-set broadly adds the support of the following PF functionality:
+ 1. Basic Rx and Tx functionality 
+ 2. TSO support
+ 3. Ethtool support
+ 4. * Debugfs support -> this patch for now has been taken off.
+ 5. HNAE framework and hardware compatability layer
+ 6. Scheduler and Shaper support in transmit function
+ 7. MDIO support
 
-Chien
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Change Log:
+V4->V5: Addressed below concerns:
+        * Florian Fanelli: Miscellaneous comments on ethtool & enet layer
+        * Stephen Hamminger: comment of Netdev stats in ethool layer
+        * Leon Romanvosky: Comments on Driver Version String, naming & Kconfig
+        * Rochard Cochran: Redundant function prototype 
+V3->V4: Addressed below comments:
+        * Andrew Lunn: Various comments on MDIO, ethtool, ENET driver etc,
+        * Stephen Hemminger: change access and updation to 64 but statistics
+        * Bo You: some spelling mistakes and checkpatch.pl errors.
+V2->V3: Addressed comments
+        * Yuval Mintz: Removal of redundant userprio-to-tc code
+        * Stephen Hemminger: Ethtool & interuupt enable
+        * Andrew Lunn: On C45/C22 PHy support, HNAE, ethtool
+        * Florian Fainelli: C45/C22 and phy_connect/attach
+        * Intel kbuild errors
+V1->V2: Addressed some comments by kbuild, Yuval MIntz, Andrew Lunn &
+        Florian Fainelli in the following patches:
+        * Add support of HNS3 Ethernet Driver for hip08 SoC
+        * Add MDIO support to HNS3 Ethernet driver for hip08 SoC
+        * Add support of debugfs interface to HNS3 driver
+
+Salil Mehta (8):
+  net: hns3: Add support of HNS3 Ethernet Driver for hip08 SoC
+  net: hns3: Add support of the HNAE3 framework
+  net: hns3: Add HNS3 IMP(Integrated Mgmt Proc) Cmd Interface Support
+  net: hns3: Add HNS3 Acceleration Engine & Compatibility Layer Support
+  net: hns3: Add support of TX Scheduler & Shaper to HNS3 driver
+  net: hns3: Add MDIO support to HNS3 Ethernet driver for hip08 SoC
+  net: hns3: Add Ethtool support to HNS3 driver
+  net: hns3: Add HNS3 driver to kernel build framework & MAINTAINERS
+
+ MAINTAINERS                                        |    8 +
+ drivers/net/ethernet/hisilicon/Kconfig             |   27 +
+ drivers/net/ethernet/hisilicon/Makefile            |    1 +
+ drivers/net/ethernet/hisilicon/hns3/Makefile       |    7 +
+ drivers/net/ethernet/hisilicon/hns3/hnae3.c        |  319 ++
+ drivers/net/ethernet/hisilicon/hns3/hnae3.h        |  444 ++
+ .../net/ethernet/hisilicon/hns3/hns3pf/Makefile    |   11 +
+ .../net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.c |  365 ++
+ .../net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.h |  741 ++++
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_main.c    | 4266 ++++++++++++++++++++
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_main.h    |  530 +++
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_mdio.c    |  209 +
+ .../net/ethernet/hisilicon/hns3/hns3pf/hclge_tm.c  | 1015 +++++
+ .../net/ethernet/hisilicon/hns3/hns3pf/hclge_tm.h  |  106 +
+ .../net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c | 2838 +++++++++++++
+ .../net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h |  595 +++
+ .../ethernet/hisilicon/hns3/hns3pf/hns3_ethtool.c  |  487 +++
+ 17 files changed, 11969 insertions(+)
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/Makefile
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hnae3.c
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hnae3.h
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.c
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.h
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mdio.c
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_tm.c
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_tm.h
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_ethtool.c
+
+-- 
+2.7.4
