@@ -1,40 +1,37 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] net/mlx5: fix spelling mistake: "alloated" ->
- "allocated"
-Date: Fri, 28 Jul 2017 14:03:18 -0400
-Message-ID: <1501264998.2593.31.camel@redhat.com>
-References: <20170627074059.11774-1-colin.king@canonical.com>
-         <69e20861-df9b-fd47-4e75-6ee978f572f7@mellanox.com>
+Subject: Re: [PATCH rdma 0/3] RDMA/qedr: User-to-kernel space patches
+Date: Fri, 28 Jul 2017 14:06:10 -0400
+Message-ID: <1501265170.2593.32.camel@redhat.com>
+References: <1498493106-28604-1-git-send-email-Ram.Amrani@cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <69e20861-df9b-fd47-4e75-6ee978f572f7-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1498493106-28604-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tariq Toukan <tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-06-27 at 14:39 +0300, Tariq Toukan wrote:
+On Mon, 2017-06-26 at 19:05 +0300, Ram Amrani wrote:
+> The first patch is a fix that prevents memory overrun.
+> Thanks Jason.
 > 
-> On 27/06/2017 10:40 AM, Colin King wrote:
-> > From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-> > 
-> > Trivial fix to spelling mistake in mlx5_ib_dbg message
-> > 
-> > Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-> > ---
-> >   drivers/infiniband/hw/mlx5/main.c | 2 +-
-> >   1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/infiniband/hw/mlx5/main.c
-> > b/drivers/infiniband/hw/mlx5/main.c
+> The other two add new parameters that are passed to rdma-core.
 > 
-> This is IB, while in patch subject you wrote 'net'
+> Ram Amrani (3):
+>   RDMA/qedr: Prevent memory overrun in verbs' user responses
+>   RDMA/qedr: notify user application if DPM is supported
+>   RDMA/qedr: notify user application of supported WIDs
+> 
+>  drivers/infiniband/hw/qedr/main.c  |  1 +
+>  drivers/infiniband/hw/qedr/qedr.h  |  2 ++
+>  drivers/infiniband/hw/qedr/verbs.c | 19 +++++++++++++++----
+>  include/uapi/rdma/qedr-abi.h       |  3 +++
+>  4 files changed, 21 insertions(+), 4 deletions(-)
 
-You are correct, but I took it anyway.  I had intended to fix up the
-subject, but I failed to get it before I pushed it to k.o, so it will
-stay as it is.
+The first patch was a fix and made it into -rc.  The other two were not
+really fixes, but have been applied to -next.  Thanks.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
