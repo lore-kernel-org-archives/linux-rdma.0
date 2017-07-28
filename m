@@ -1,37 +1,52 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next] IB/mlx5: Clean mr_cache debugfs in case of
- failure
-Date: Fri, 28 Jul 2017 13:39:37 -0400
-Message-ID: <1501263577.2593.20.camel@redhat.com>
-References: <20170530064448.4282-1-leon@kernel.org>
+Subject: Re: [PATCH rdma-next] IB/cma: Set default gid type to RoCEv2
+Date: Fri, 28 Jul 2017 13:50:41 -0400
+Message-ID: <1501264241.2593.21.camel@redhat.com>
+References: <20170530064734.4731-1-leon@kernel.org>
+         <20170607090750.GC1127@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170530064448.4282-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170607090750.GC1127-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-05-30 at 09:44 +0300, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Wed, 2017-06-07 at 12:07 +0300, Leon Romanovsky wrote:
+> On Tue, May 30, 2017 at 09:47:34AM +0300, Leon Romanovsky wrote:
+> > From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > 
+> > RoCEv2 is the preferred RDMA protocol for Ethernet link layer
+> > because
+> > of its advantages over RoCEv1. For better user experience make it
+> > the
+> > default choice for RDMA_CM connections if device/port support it.
+> > 
+> > Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > ---
+> >  drivers/infiniband/core/cma.c | 9 +++++++--
+> >  1 file changed, 7 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/infiniband/core/cma.c
+> > b/drivers/infiniband/core/cma.c
+> > index 91b7a2fe5a55..5ce3c9e1657e 100644
+> > --- a/drivers/infiniband/core/cma.c
+> > +++ b/drivers/infiniband/core/cma.c
+> > @@ -72,6 +72,7 @@ MODULE_LICENSE("Dual BSD/GPL");
+> >  #define CMA_MAX_CM_RETRIES 15
+> >  #define CMA_CM_MRA_SETTING (IB_CM_MRA_FLAG_DELAY | 24)
+> >  #define CMA_IBOE_PACKET_LIFETIME 18
+> > +#define CMA_PREFERRED_ROCE_GID_TYPE IB_GID_TYPE_ROCE_UDP_ENCAP
 > 
-> The failure in creation of debugfs entries for mr_cache left entries,
-> which were already created.
-> 
-> It caused to mismatch and misguiding for the end users. The solution
-> is to clean mr_cache debugfs root, so no leftovers will be in the
-> system. In addition, let's document why the error is not needed to be
-> forwarded to user in case of failure.
-> 
-> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> It should be (1 << IB_GID_TYPE_ROCE_UDP_ENCAP) and not as was written
+> above. We will send a fix for that.
 
-This was actually submitted to Linus and already accepted in the 4.13-
-rc cycle, but I missed replying to the message in my linux-rdma folder.
- Sorry about that.
+I didn't see a followup that fixed this, so I took this patch and then
+created a fix patch myself.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
