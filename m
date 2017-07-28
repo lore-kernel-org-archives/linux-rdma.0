@@ -1,41 +1,32 @@
-From: Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>
-Subject: Re: [PATCH V5 net-next 6/8] net: hns3: Add MDIO support to HNS3
- Ethernet driver for hip08 SoC
-Date: Sat, 29 Jul 2017 01:28:59 +0200
-Message-ID: <20170728232859.GB16080@lunn.ch>
-References: <20170728222652.118448-1-salil.mehta@huawei.com>
- <20170728222652.118448-7-salil.mehta@huawei.com>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Subject: Re: [Qemu-devel] host side todo list for virtio rdma
+Date: Sat, 29 Jul 2017 02:48:33 +0300
+Message-ID: <20170729024712-mutt-send-email-mst@kernel.org>
+References: <20170719004721-mutt-send-email-mst@kernel.org>
+ <20170719105549.GB3500@work-vm>
+ <20170725165915-mutt-send-email-mst@kernel.org>
+ <20170728180255.GF2560@work-vm>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <virtio-dev-return-2427-gcvd-virtio-dev=m.gmane.org@lists.oasis-open.org>
+Sender: <virtio-dev@lists.oasis-open.org>
+List-Post: <mailto:virtio-dev@lists.oasis-open.org>
+List-Help: <mailto:virtio-dev-help@lists.oasis-open.org>
+List-Unsubscribe: <mailto:virtio-dev-unsubscribe@lists.oasis-open.org>
+List-Subscribe: <mailto:virtio-dev-subscribe@lists.oasis-open.org>
 Content-Disposition: inline
-In-Reply-To: <20170728222652.118448-7-salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, huangdaode-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org, lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
+In-Reply-To: <20170728180255.GF2560@work-vm>
+To: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: virtio@lists.oasis-open.org, virtio-dev@lists.oasis-open.org, linux-rdma@vger.kernel.org, qemu-devel@nongnu.org, Marcel Apfelbaum <marcel.a@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-> +int hclge_mac_mdio_config(struct hclge_dev *hdev)
-> +{
-..
+On Fri, Jul 28, 2017 at 07:02:55PM +0100, Dr. David Alan Gilbert wrote:
+> OK, does it seem silly for a message to go all the way to the host
+> kernel to then have to go back down to QEMU to be turned back into verbs
+> to go back upto the host kernel?
 
-> +}
-> +
-> +int hclge_mac_start_phy(struct hclge_dev *hdev)
-> +{
+This is how most IO works except vhost.  If it's not a data path
+there's no need to write code to avoid some context switches IMHO.
 
-> +}
-> +
-> +void hclge_mac_stop_phy(struct hclge_dev *hdev)
-> +{
-> +}
-> -- 
-
-These are not static functions. So i would expect them to be in a
-header file somewhere....
-
-       Andrew
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+MST
