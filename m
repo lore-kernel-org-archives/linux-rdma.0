@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 6/8] IB/hfi1: Create workqueue for link events
-Date: Sat, 29 Jul 2017 08:43:49 -0700
-Message-ID: <20170729154348.21487.66943.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 7/8] IB/hfi1: Prevent link down request double
+ queuing
+Date: Sat, 29 Jul 2017 08:43:55 -0700
+Message-ID: <20170729154354.21487.40796.stgit@scvm10.sc.intel.com>
 References: <20170729154124.21487.53119.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,222 +16,57 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Currently, link down interrupts queue link entries
-on a workqueue intended for sending events only.
-Create a workqueue for queuing link events.
+When link interrupts occur, multiple link down requests
+could be queued up when only one is needed. This could get
+the hfi1 out of sync with its link partner during LNI.
+
+Only allow one link down request to be queued at any one time.
 
 Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c   |   20 ++++++++++----------
- drivers/infiniband/hw/hfi1/driver.c |    2 +-
- drivers/infiniband/hw/hfi1/hfi.h    |    1 +
- drivers/infiniband/hw/hfi1/init.c   |   26 ++++++++++++++++++++++++++
- drivers/infiniband/hw/hfi1/pio.c    |    2 +-
- drivers/infiniband/hw/hfi1/sdma.c   |    2 +-
- 6 files changed, 40 insertions(+), 13 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c |    4 +++-
+ drivers/infiniband/hw/hfi1/hfi.h  |    1 +
+ 2 files changed, 4 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index bd594e7..8443d41 100644
+index 8443d41..a3af46c 100644
 --- a/drivers/infiniband/hw/hfi1/chip.c
 +++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -5545,7 +5545,7 @@ static void update_rcverr_timer(unsigned long opaque)
- 		set_link_down_reason(
- 		ppd, OPA_LINKDOWN_REASON_EXCESSIVE_BUFFER_OVERRUN, 0,
- 		OPA_LINKDOWN_REASON_EXCESSIVE_BUFFER_OVERRUN);
--		queue_work(ppd->hfi1_wq, &ppd->link_bounce_work);
-+		queue_work(ppd->link_wq, &ppd->link_bounce_work);
- 	}
- 	dd->rcv_ovfl_cnt = (u32)cur_ovfl_cnt;
+@@ -7045,6 +7045,7 @@ void handle_link_down(struct work_struct *work)
+ 	/* Go offline first, then deal with reading/writing through 8051 */
+ 	was_up = !!(ppd->host_link_state & HLS_UP);
+ 	set_link_state(ppd, HLS_DN_OFFLINE);
++	xchg(&ppd->is_link_down_queued, 0);
  
-@@ -6100,7 +6100,7 @@ static void handle_qsfp_int(struct hfi1_devdata *dd, u32 src_ctx, u64 reg)
- 				 * will not happen. We have to do it here
- 				 * before turning the DC off.
- 				 */
--				queue_work(ppd->hfi1_wq, &ppd->link_down_work);
-+				queue_work(ppd->link_wq, &ppd->link_down_work);
- 			}
- 		} else {
- 			dd_dev_info(dd, "%s: QSFP module inserted\n",
-@@ -6135,7 +6135,7 @@ static void handle_qsfp_int(struct hfi1_devdata *dd, u32 src_ctx, u64 reg)
- 
- 	/* Schedule the QSFP work only if there is a cable attached. */
- 	if (qsfp_mod_present(ppd))
--		queue_work(ppd->hfi1_wq, &ppd->qsfp_info.qsfp_work);
-+		queue_work(ppd->link_wq, &ppd->qsfp_info.qsfp_work);
- }
- 
- static int request_host_lcb_access(struct hfi1_devdata *dd)
-@@ -7738,12 +7738,12 @@ static void handle_8051_interrupt(struct hfi1_devdata *dd, u32 unused, u64 reg)
- 			host_msg &= ~(u64)HOST_REQ_DONE;
- 		}
- 		if (host_msg & BC_SMA_MSG) {
--			queue_work(ppd->hfi1_wq, &ppd->sma_message_work);
-+			queue_work(ppd->link_wq, &ppd->sma_message_work);
- 			host_msg &= ~(u64)BC_SMA_MSG;
- 		}
- 		if (host_msg & LINKUP_ACHIEVED) {
- 			dd_dev_info(dd, "8051: Link up\n");
--			queue_work(ppd->hfi1_wq, &ppd->link_up_work);
-+			queue_work(ppd->link_wq, &ppd->link_up_work);
- 			host_msg &= ~(u64)LINKUP_ACHIEVED;
- 		}
- 		if (host_msg & EXT_DEVICE_CFG_REQ) {
-@@ -7751,7 +7751,7 @@ static void handle_8051_interrupt(struct hfi1_devdata *dd, u32 unused, u64 reg)
- 			host_msg &= ~(u64)EXT_DEVICE_CFG_REQ;
- 		}
- 		if (host_msg & VERIFY_CAP_FRAME) {
--			queue_work(ppd->hfi1_wq, &ppd->link_vc_work);
-+			queue_work(ppd->link_wq, &ppd->link_vc_work);
- 			host_msg &= ~(u64)VERIFY_CAP_FRAME;
- 		}
- 		if (host_msg & LINK_GOING_DOWN) {
-@@ -7766,7 +7766,7 @@ static void handle_8051_interrupt(struct hfi1_devdata *dd, u32 unused, u64 reg)
- 			host_msg &= ~(u64)LINK_GOING_DOWN;
- 		}
- 		if (host_msg & LINK_WIDTH_DOWNGRADED) {
--			queue_work(ppd->hfi1_wq, &ppd->link_downgrade_work);
-+			queue_work(ppd->link_wq, &ppd->link_downgrade_work);
- 			host_msg &= ~(u64)LINK_WIDTH_DOWNGRADED;
- 		}
- 		if (host_msg) {
-@@ -7809,7 +7809,7 @@ static void handle_8051_interrupt(struct hfi1_devdata *dd, u32 unused, u64 reg)
+ 	if (was_up) {
+ 		lcl_reason = 0;
+@@ -7805,10 +7806,11 @@ static void handle_8051_interrupt(struct hfi1_devdata *dd, u32 unused, u64 reg)
+ 		 */
+ 		if ((ppd->host_link_state &
+ 		    (HLS_GOING_OFFLINE | HLS_LINK_COOLDOWN)) ||
+-		    ppd->link_enabled == 0) {
++		    ppd->link_enabled == 0 || ppd->is_link_down_queued) {
  			dd_dev_info(dd, "%s: not queuing link down\n",
  				    __func__);
  		} else {
--			queue_work(ppd->hfi1_wq, &ppd->link_down_work);
-+			queue_work(ppd->link_wq, &ppd->link_down_work);
++			xchg(&ppd->is_link_down_queued, 1);
+ 			queue_work(ppd->link_wq, &ppd->link_down_work);
  		}
  	}
- }
-@@ -8017,7 +8017,7 @@ static void handle_dcc_err(struct hfi1_devdata *dd, u32 unused, u64 reg)
- 		dd_dev_info_ratelimited(dd, "%s: PortErrorAction bounce\n",
- 					__func__);
- 		set_link_down_reason(ppd, lcl_reason, 0, lcl_reason);
--		queue_work(ppd->hfi1_wq, &ppd->link_bounce_work);
-+		queue_work(ppd->link_wq, &ppd->link_bounce_work);
- 	}
- }
- 
-@@ -9685,7 +9685,7 @@ static void try_start_link(struct hfi1_pportdata *ppd)
- 			    "QSFP not responding, waiting and retrying %d\n",
- 			    (int)ppd->qsfp_retry_count);
- 		ppd->qsfp_retry_count++;
--		queue_delayed_work(ppd->hfi1_wq, &ppd->start_link_work,
-+		queue_delayed_work(ppd->link_wq, &ppd->start_link_work,
- 				   msecs_to_jiffies(QSFP_RETRY_WAIT));
- 		return;
- 	}
-diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
-index 01235d4..0b7ca0e 100644
---- a/drivers/infiniband/hw/hfi1/driver.c
-+++ b/drivers/infiniband/hw/hfi1/driver.c
-@@ -914,7 +914,7 @@ static inline int set_armed_to_active(struct hfi1_ctxtdata *rcd,
- 			return 0;
- 		}
- 
--		queue_work(rcd->ppd->hfi1_wq, lsaw);
-+		queue_work(rcd->ppd->link_wq, lsaw);
- 		return 1;
- 	}
- 	return 0;
 diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 2d32c5c..ee6c389 100644
+index ee6c389..fb5f839 100644
 --- a/drivers/infiniband/hw/hfi1/hfi.h
 +++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -576,6 +576,7 @@ struct hfi1_pportdata {
- 	/* SendDMA related entries */
+@@ -644,6 +644,7 @@ struct hfi1_pportdata {
+ 	/* placeholders for IB MAD packet settings */
+ 	u8 overrun_threshold;
+ 	u8 phy_error_threshold;
++	unsigned int is_link_down_queued;
  
- 	struct workqueue_struct *hfi1_wq;
-+	struct workqueue_struct *link_wq;
- 
- 	/* move out of interrupt context */
- 	struct work_struct link_vc_work;
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index 7f5e4c7..be027c9 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -660,6 +660,20 @@ static int create_workqueues(struct hfi1_devdata *dd)
- 			if (!ppd->hfi1_wq)
- 				goto wq_error;
- 		}
-+		if (!ppd->link_wq) {
-+			/*
-+			 * Make the link workqueue single-threaded to enforce
-+			 * serialization.
-+			 */
-+			ppd->link_wq =
-+				alloc_workqueue(
-+				    "hfi_link_%d_%d",
-+				    WQ_SYSFS | WQ_MEM_RECLAIM | WQ_UNBOUND,
-+				    1, /* max_active */
-+				    dd->unit, pidx);
-+			if (!ppd->link_wq)
-+				goto wq_error;
-+		}
- 	}
- 	return 0;
- wq_error:
-@@ -670,6 +684,10 @@ static int create_workqueues(struct hfi1_devdata *dd)
- 			destroy_workqueue(ppd->hfi1_wq);
- 			ppd->hfi1_wq = NULL;
- 		}
-+		if (ppd->link_wq) {
-+			destroy_workqueue(ppd->link_wq);
-+			ppd->link_wq = NULL;
-+		}
- 	}
- 	return -ENOMEM;
- }
-@@ -954,6 +972,10 @@ static void shutdown_device(struct hfi1_devdata *dd)
- 			destroy_workqueue(ppd->hfi1_wq);
- 			ppd->hfi1_wq = NULL;
- 		}
-+		if (ppd->link_wq) {
-+			destroy_workqueue(ppd->link_wq);
-+			ppd->link_wq = NULL;
-+		}
- 	}
- 	sdma_exit(dd);
- }
-@@ -1575,6 +1597,10 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 				destroy_workqueue(ppd->hfi1_wq);
- 				ppd->hfi1_wq = NULL;
- 			}
-+			if (ppd->link_wq) {
-+				destroy_workqueue(ppd->link_wq);
-+				ppd->link_wq = NULL;
-+			}
- 		}
- 		if (!j)
- 			hfi1_device_remove(dd);
-diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi1/pio.c
-index adb6a4d..7108a4b 100644
---- a/drivers/infiniband/hw/hfi1/pio.c
-+++ b/drivers/infiniband/hw/hfi1/pio.c
-@@ -1012,7 +1012,7 @@ static void sc_wait_for_packet_egress(struct send_context *sc, int pause)
- 				   "%s: context %u(%u) timeout waiting for packets to egress, remaining count %u, bouncing link\n",
- 				   __func__, sc->sw_index,
- 				   sc->hw_context, (u32)reg);
--			queue_work(dd->pport->hfi1_wq,
-+			queue_work(dd->pport->link_wq,
- 				   &dd->pport->link_bounce_work);
- 			break;
- 		}
-diff --git a/drivers/infiniband/hw/hfi1/sdma.c b/drivers/infiniband/hw/hfi1/sdma.c
-index 71b4258..6781bcd 100644
---- a/drivers/infiniband/hw/hfi1/sdma.c
-+++ b/drivers/infiniband/hw/hfi1/sdma.c
-@@ -325,7 +325,7 @@ static void sdma_wait_for_packet_egress(struct sdma_engine *sde,
- 			/* timed out - bounce the link */
- 			dd_dev_err(dd, "%s: engine %u timeout waiting for packets to egress, remaining count %u, bouncing link\n",
- 				   __func__, sde->this_idx, (u32)reg);
--			queue_work(dd->pport->hfi1_wq,
-+			queue_work(dd->pport->link_wq,
- 				   &dd->pport->link_bounce_work);
- 			break;
- 		}
+ 	/* Used to override LED behavior for things like maintenance beaconing*/
+ 	/*
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
