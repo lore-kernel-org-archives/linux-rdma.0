@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 5/8] IB/{rdmavt, hfi1,
- qib}: Fix panic with post receive and SGE compression
-Date: Sat, 29 Jul 2017 08:43:43 -0700
-Message-ID: <20170729154342.21487.2577.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 8/8] IB/hfi1: Always perform offline transition
+Date: Sat, 29 Jul 2017 08:44:01 -0700
+Message-ID: <20170729154400.21487.84086.stgit@scvm10.sc.intel.com>
 References: <20170729154124.21487.53119.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,206 +10,177 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170729154124.21487.53119.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The server side of qperf panics as follows:
+Always initiate an offline transition request
+when a link down occurs. The firmware will
+use this request to confirm that the driver
+has seen the link down message. A host version
+is set to indicate this driver behavior to the
+firmware.
 
-[242446.336860] IP: report_bug+0x64/0x10
-[242446.341031] PGD 1c0c067
-[242446.341032] P4D 1c0c067
-[242446.343951] PUD 1c0d063
-[242446.346870] PMD 8587ea067
-[242446.349788] PTE 800000083e14016
-[242446.352901]
-[242446.358352] Oops: 0003 [#1] SM
-[242446.437919] CPU: 1 PID: 7442 Comm: irq/92-hfi1_0 k Not tainted 4.12.0-mam-asm #1
-[242446.446365] Hardware name: Intel Corporation S2600WT2/S2600WT2, BIOS SE5C610.86B.01.01.0018.C4.072020161249 07/20/201
-[242446.458397] task: ffff8808392d2b80 task.stack: ffffc9000664000
-[242446.465097] RIP: 0010:report_bug+0x64/0x10
-[242446.469859] RSP: 0018:ffffc900066439c0 EFLAGS: 0001000
-[242446.475784] RAX: ffffffffa06647e4 RBX: ffffffffa06461e1 RCX: 000000000000000
-[242446.483840] RDX: 0000000000000907 RSI: ffffffffa0675040 RDI: ffffffffffff740
-[242446.491897] RBP: ffffc900066439e0 R08: 0000000000000001 R09: 000000000000025
-[242446.499953] R10: ffffffff81a253df R11: 0000000000000133 R12: ffffc90006643b3
-[242446.508010] R13: ffffffffa065bbf0 R14: 00000000000001e5 R15: 000000000000000
-[242446.516067] FS:  0000000000000000(0000) GS:ffff88085f640000(0000) knlGS:000000000000000
-[242446.525191] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003
-[242446.531698] CR2: ffffffffa06647ee CR3: 0000000001c09000 CR4: 00000000001406e
-[242446.539756] Call Trace
-[242446.542582]  fixup_bug+0x2c/0x5
-[242446.546277]  do_trap+0x12b/0x18
-[242446.549972]  do_error_trap+0x89/0x11
-[242446.554171]  ? hfi1_copy_sge+0x271/0x2b0 [hfi1
-[242446.559324]  ? ttwu_do_wakeup+0x1e/0x14
-[242446.563795]  ? ttwu_do_activate+0x77/0x8
-[242446.568363]  do_invalid_op+0x20/0x3
-[242446.572448]  invalid_op+0x1e/0x3
-[242446.576247] RIP: 0010:hfi1_copy_sge+0x271/0x2b0 [hfi1
-[242446.582075] RSP: 0018:ffffc90006643be8 EFLAGS: 0001004
-[242446.587999] RAX: 0000000000000000 RBX: ffff88083e0fa240 RCX: 000000000000000
-[242446.596058] RDX: 0000000000000000 RSI: ffff880842508000 RDI: ffff88083e0fa24
-[242446.604116] RBP: ffffc90006643c28 R08: 0000000000000000 R09: 000000000000000
-[242446.612172] R10: ffffc90009473640 R11: 0000000000000133 R12: 000000000000000
-[242446.620228] R13: 0000000000000000 R14: 0000000000002000 R15: ffff88084250800
-[242446.628293]  ? hfi1_copy_sge+0x1a1/0x2b0 [hfi1
-[242446.633449]  hfi1_rc_rcv+0x3da/0x1270 [hfi1
-[242446.638312]  ? sc_buffer_alloc+0x113/0x150 [hfi1
-[242446.643662]  hfi1_ib_rcv+0x1c9/0x2e0 [hfi1
-[242446.648428]  process_receive_ib+0x19a/0x270 [hfi1
-[242446.653866]  ? process_rcv_qp_work+0xd2/0x160 [hfi1
-[242446.659505]  handle_receive_interrupt_nodma_rtail+0x184/0x2e0 [hfi1
-[242446.666693]  ? irq_finalize_oneshot+0x100/0x10
-[242446.671846]  receive_context_thread+0x1b/0x140 [hfi1
-[242446.677576]  irq_thread_fn+0x1e/0x4
-[242446.681659]  irq_thread+0x13c/0x1b
-[242446.685646]  ? irq_forced_thread_fn+0x60/0x6
-[242446.690604]  kthread+0x112/0x15
-[242446.694298]  ? irq_thread_check_affinity+0xe0/0xe
-[242446.699738]  ? kthread_park+0x60/0x6
-[242446.703919]  ? do_syscall_64+0x67/0x15
-[242446.708292]  ret_from_fork+0x25/0x3
-[242446.712374] Code: 63 78 04 44 0f b7 70 08 41 89 d0 4c 8d 2c 38 41 83 e0 01 f6 c2 02 74 17 66 45 85 c0 74 11 f6 c2 04 b9 01 00 00 00 75 bb 83 ca 04 <66> 89 50 0a 66 45 85 c0 74 52 0f b6 48 0b 41 0f b7 f6 4d 89 e0
-[242446.733527] RIP: report_bug+0x64/0x100 RSP: ffffc900066439c
-[242446.739935] CR2: ffffffffa06647e
-[242446.743763] ---[ end trace 0e90a20d0aa494f7 ]--
-
-The root cause is that the qib/hfi1 post receive call to rvt_lkey_ok()
-doesn't interpret the new return value from rvt_lkey_ok() properly
-leading to an mr reference count underrun.
-
-Additionally, remove an unused argument in rvt_sge_adjacent()
-aw well as an unneeded incr local in rvt_post_one_wr().
-
-Fixes: Commit 14fe13fcd3af ("IB/rdmavt: Compress adjacent SGEs in rvt_lkey_ok()")
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/ruc.c    |    6 ++++--
- drivers/infiniband/hw/qib/qib_ruc.c |    6 ++++--
- drivers/infiniband/sw/rdmavt/mr.c   |    8 +++-----
- drivers/infiniband/sw/rdmavt/qp.c   |   16 +++++++---------
- 4 files changed, 18 insertions(+), 18 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c     |   66 +++++++++++++++++----------------
+ drivers/infiniband/hw/hfi1/chip.h     |    5 +++
+ drivers/infiniband/hw/hfi1/firmware.c |    8 ++++
+ 3 files changed, 46 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
-index f13ddb2..4afa00f 100644
---- a/drivers/infiniband/hw/hfi1/ruc.c
-+++ b/drivers/infiniband/hw/hfi1/ruc.c
-@@ -74,8 +74,10 @@ static int init_sge(struct rvt_qp *qp, struct rvt_rwqe *wqe)
- 		if (wqe->sg_list[i].length == 0)
- 			continue;
- 		/* Check LKEY */
--		if (!rvt_lkey_ok(rkt, pd, j ? &ss->sg_list[j - 1] : &ss->sge,
--				 NULL, &wqe->sg_list[i], IB_ACCESS_LOCAL_WRITE))
-+		ret = rvt_lkey_ok(rkt, pd, j ? &ss->sg_list[j - 1] : &ss->sge,
-+				  NULL, &wqe->sg_list[i],
-+				  IB_ACCESS_LOCAL_WRITE);
-+		if (unlikely(ret <= 0))
- 			goto bad_lkey;
- 		qp->r_len += wqe->sg_list[i].length;
- 		j++;
-diff --git a/drivers/infiniband/hw/qib/qib_ruc.c b/drivers/infiniband/hw/qib/qib_ruc.c
-index 2852845..e6a42a8 100644
---- a/drivers/infiniband/hw/qib/qib_ruc.c
-+++ b/drivers/infiniband/hw/qib/qib_ruc.c
-@@ -58,8 +58,10 @@ static int qib_init_sge(struct rvt_qp *qp, struct rvt_rwqe *wqe)
- 		if (wqe->sg_list[i].length == 0)
- 			continue;
- 		/* Check LKEY */
--		if (!rvt_lkey_ok(rkt, pd, j ? &ss->sg_list[j - 1] : &ss->sge,
--				 NULL, &wqe->sg_list[i], IB_ACCESS_LOCAL_WRITE))
-+		ret = rvt_lkey_ok(rkt, pd, j ? &ss->sg_list[j - 1] : &ss->sge,
-+				  NULL, &wqe->sg_list[i],
-+				  IB_ACCESS_LOCAL_WRITE);
-+		if (unlikely(ret <= 0))
- 			goto bad_lkey;
- 		qp->r_len += wqe->sg_list[i].length;
- 		j++;
-diff --git a/drivers/infiniband/sw/rdmavt/mr.c b/drivers/infiniband/sw/rdmavt/mr.c
-index ea95672..1b3801f 100644
---- a/drivers/infiniband/sw/rdmavt/mr.c
-+++ b/drivers/infiniband/sw/rdmavt/mr.c
-@@ -779,7 +779,6 @@ int rvt_dealloc_fmr(struct ib_fmr *ibfmr)
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index a3af46c..101fbbb 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -8832,6 +8832,20 @@ static void read_remote_device_id(struct hfi1_devdata *dd, u16 *device_id,
+ 			& REMOTE_DEVICE_REV_MASK;
+ }
  
- /**
-  * rvt_sge_adjacent - is isge compressible
-- * @isge: outgoing internal SGE
-  * @last_sge: last outgoing SGE written
-  * @sge: SGE to check
-  *
-@@ -787,8 +786,7 @@ int rvt_dealloc_fmr(struct ib_fmr *ibfmr)
-  *
-  * Return: true if isge is adjacent to last sge
-  */
--static inline bool rvt_sge_adjacent(struct rvt_sge *isge,
--				    struct rvt_sge *last_sge,
-+static inline bool rvt_sge_adjacent(struct rvt_sge *last_sge,
- 				    struct ib_sge *sge)
++int write_host_interface_version(struct hfi1_devdata *dd, u8 version)
++{
++	u32 frame;
++	u32 mask;
++
++	mask = (HOST_INTERFACE_VERSION_MASK << HOST_INTERFACE_VERSION_SHIFT);
++	read_8051_config(dd, RESERVED_REGISTERS, GENERAL_CONFIG, &frame);
++	/* Clear, then set field */
++	frame &= ~mask;
++	frame |= ((u32)version << HOST_INTERFACE_VERSION_SHIFT);
++	return load_8051_config(dd, RESERVED_REGISTERS, GENERAL_CONFIG,
++				frame);
++}
++
+ void read_misc_status(struct hfi1_devdata *dd, u8 *ver_major, u8 *ver_minor,
+ 		      u8 *ver_patch)
  {
- 	if (last_sge && sge->lkey == last_sge->mr->lkey &&
-@@ -840,7 +838,7 @@ int rvt_lkey_ok(struct rvt_lkey_table *rkt, struct rvt_pd *pd,
+@@ -10262,49 +10276,35 @@ static void force_logical_link_state_down(struct hfi1_pportdata *ppd)
+ static int goto_offline(struct hfi1_pportdata *ppd, u8 rem_reason)
+ {
+ 	struct hfi1_devdata *dd = ppd->dd;
+-	u32 pstate, previous_state;
++	u32 previous_state;
+ 	int ret;
+-	int do_transition;
+-	int do_wait;
  
- 		if (pd->user)
- 			return -EINVAL;
--		if (rvt_sge_adjacent(isge, last_sge, sge))
-+		if (rvt_sge_adjacent(last_sge, sge))
- 			return 0;
- 		rcu_read_lock();
- 		mr = rcu_dereference(dev->dma_mr);
-@@ -857,7 +855,7 @@ int rvt_lkey_ok(struct rvt_lkey_table *rkt, struct rvt_pd *pd,
- 		isge->n = 0;
- 		goto ok;
- 	}
--	if (rvt_sge_adjacent(isge, last_sge, sge))
-+	if (rvt_sge_adjacent(last_sge, sge))
- 		return 0;
- 	rcu_read_lock();
- 	mr = rcu_dereference(rkt->table[sge->lkey >> rkt->shift]);
-diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
-index 740611e..1878a97 100644
---- a/drivers/infiniband/sw/rdmavt/qp.c
-+++ b/drivers/infiniband/sw/rdmavt/qp.c
-@@ -1613,7 +1613,7 @@ static int rvt_post_one_wr(struct rvt_qp *qp,
- 	struct rvt_pd *pd;
- 	struct rvt_dev_info *rdi = ib_to_rvt(qp->ibqp.device);
- 	u8 log_pmtu;
--	int ret, incr;
-+	int ret;
- 	size_t cplen;
- 	bool reserved_op;
- 	int local_ops_delayed = 0;
-@@ -1695,14 +1695,14 @@ static int rvt_post_one_wr(struct rvt_qp *qp,
+ 	update_lcb_cache(dd);
  
- 			if (length == 0)
- 				continue;
--			incr = rvt_lkey_ok(rkt, pd, &wqe->sg_list[j], last_sge,
--					   &wr->sg_list[i], acc);
--			if (unlikely(incr < 0))
--				goto bail_lkey_error;
-+			ret = rvt_lkey_ok(rkt, pd, &wqe->sg_list[j], last_sge,
-+					  &wr->sg_list[i], acc);
-+			if (unlikely(ret < 0))
-+				goto bail_inval_free;
- 			wqe->length += length;
--			if (incr)
-+			if (ret)
- 				last_sge = &wqe->sg_list[j];
--			j += incr;
-+			j += ret;
- 		}
- 		wqe->wr.num_sge = j;
+ 	previous_state = ppd->host_link_state;
+ 	ppd->host_link_state = HLS_GOING_OFFLINE;
+-	pstate = read_physical_state(dd);
+-	if (pstate == PLS_OFFLINE) {
+-		do_transition = 0;	/* in right state */
+-		do_wait = 0;		/* ...no need to wait */
+-	} else if ((pstate & 0xf0) == PLS_OFFLINE) {
+-		do_transition = 0;	/* in an offline transient state */
+-		do_wait = 1;		/* ...wait for it to settle */
+-	} else {
+-		do_transition = 1;	/* need to move to offline */
+-		do_wait = 1;		/* ...will need to wait */
+-	}
+ 
+-	if (do_transition) {
+-		ret = set_physical_link_state(dd,
+-					      (rem_reason << 8) | PLS_OFFLINE);
++	/* start offline transition */
++	ret = set_physical_link_state(dd, (rem_reason << 8) | PLS_OFFLINE);
+ 
+-		if (ret != HCMD_SUCCESS) {
+-			dd_dev_err(dd,
+-				   "Failed to transition to Offline link state, return %d\n",
+-				   ret);
+-			return -EINVAL;
+-		}
+-		if (ppd->offline_disabled_reason ==
+-				HFI1_ODR_MASK(OPA_LINKDOWN_REASON_NONE))
+-			ppd->offline_disabled_reason =
+-			HFI1_ODR_MASK(OPA_LINKDOWN_REASON_TRANSIENT);
++	if (ret != HCMD_SUCCESS) {
++		dd_dev_err(dd,
++			   "Failed to transition to Offline link state, return %d\n",
++			   ret);
++		return -EINVAL;
  	}
-@@ -1755,8 +1755,6 @@ static int rvt_post_one_wr(struct rvt_qp *qp,
++	if (ppd->offline_disabled_reason ==
++			HFI1_ODR_MASK(OPA_LINKDOWN_REASON_NONE))
++		ppd->offline_disabled_reason =
++		HFI1_ODR_MASK(OPA_LINKDOWN_REASON_TRANSIENT);
+ 
+-	if (do_wait) {
+-		/* it can take a while for the link to go down */
+-		ret = wait_physical_linkstate(ppd, PLS_OFFLINE, 10000);
+-		if (ret < 0)
+-			return ret;
+-	}
++	/*
++	 * Wait for offline transition. It can take a while for
++	 * the link to go down.
++	 */
++	ret = wait_physical_linkstate(ppd, PLS_OFFLINE, 10000);
++	if (ret < 0)
++		return ret;
+ 
+ 	/*
+ 	 * Now in charge of LCB - must be after the physical state is
+diff --git a/drivers/infiniband/hw/hfi1/chip.h b/drivers/infiniband/hw/hfi1/chip.h
+index bef6301..6a0c691 100644
+--- a/drivers/infiniband/hw/hfi1/chip.h
++++ b/drivers/infiniband/hw/hfi1/chip.h
+@@ -384,6 +384,7 @@
+ #define VERIFY_CAP_LOCAL_FABRIC	     0x08
+ #define VERIFY_CAP_LOCAL_LINK_WIDTH  0x09
+ #define LOCAL_DEVICE_ID		     0x0a
++#define RESERVED_REGISTERS	     0x0b
+ #define LOCAL_LNI_INFO		     0x0c
+ #define REMOTE_LNI_INFO              0x0d
+ #define MISC_STATUS		     0x0e
+@@ -506,6 +507,9 @@
+ #define DOWN_REMOTE_REASON_SHIFT 16
+ #define DOWN_REMOTE_REASON_MASK  0xff
+ 
++#define HOST_INTERFACE_VERSION_SHIFT 16
++#define HOST_INTERFACE_VERSION_MASK  0xff
++
+ /* verify capability PHY power management bits */
+ #define PWRM_BER_CONTROL	0x1
+ #define PWRM_BANDWIDTH_CONTROL	0x2
+@@ -704,6 +708,7 @@ bool check_chip_resource(struct hfi1_devdata *dd, u32 resource,
+ /* chip.c */
+ void read_misc_status(struct hfi1_devdata *dd, u8 *ver_major, u8 *ver_minor,
+ 		      u8 *ver_patch);
++int write_host_interface_version(struct hfi1_devdata *dd, u8 version);
+ void read_guid(struct hfi1_devdata *dd);
+ int wait_fm_ready(struct hfi1_devdata *dd, u32 mstimeout);
+ void set_link_down_reason(struct hfi1_pportdata *ppd, u8 lcl_reason,
+diff --git a/drivers/infiniband/hw/hfi1/firmware.c b/drivers/infiniband/hw/hfi1/firmware.c
+index 83efd6b..885714b 100644
+--- a/drivers/infiniband/hw/hfi1/firmware.c
++++ b/drivers/infiniband/hw/hfi1/firmware.c
+@@ -69,6 +69,7 @@
+ #define ALT_FW_FABRIC_NAME "hfi1_fabric_d.fw"
+ #define ALT_FW_SBUS_NAME "hfi1_sbus_d.fw"
+ #define ALT_FW_PCIE_NAME "hfi1_pcie_d.fw"
++#define HOST_INTERFACE_VERSION 1
+ 
+ static uint fw_8051_load = 1;
+ static uint fw_fabric_serdes_load = 1;
+@@ -1087,6 +1088,13 @@ static int load_8051_firmware(struct hfi1_devdata *dd,
+ 	dd_dev_info(dd, "8051 firmware version %d.%d.%d\n",
+ 		    (int)ver_major, (int)ver_minor, (int)ver_patch);
+ 	dd->dc8051_ver = dc8051_ver(ver_major, ver_minor, ver_patch);
++	ret = write_host_interface_version(dd, HOST_INTERFACE_VERSION);
++	if (ret != HCMD_SUCCESS) {
++		dd_dev_err(dd,
++			   "Failed to set host interface version, return 0x%x\n",
++			   ret);
++		return -EIO;
++	}
  
  	return 0;
- 
--bail_lkey_error:
--	ret = incr;
- bail_inval_free:
- 	/* release mr holds */
- 	while (j) {
+ }
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
