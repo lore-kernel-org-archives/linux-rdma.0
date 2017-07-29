@@ -1,73 +1,71 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 7/8] IB/hfi1: Prevent link down request double
- queuing
-Date: Sat, 29 Jul 2017 08:43:55 -0700
-Message-ID: <20170729154354.21487.40796.stgit@scvm10.sc.intel.com>
-References: <20170729154124.21487.53119.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 0/8] IB/hfi1, rdmavt,
+ qib: patches for next 07/29/2017
+Date: Sat, 29 Jul 2017 08:43:14 -0700
+Message-ID: <20170729154124.21487.53119.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170729154124.21487.53119.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jan Sokolowski <jan.sokolowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Hi Doug,
 
-When link interrupts occur, multiple link down requests
-could be queued up when only one is needed. This could get
-the hfi1 out of sync with its link partner during LNI.
+Here is the next set of patches our our drivers for 4.14.  There are a couple
+patches for link bugs and a bug fix from Mike for SGE compression. This fixes an
+issue in a previous commit that we sent for 4.14, since it's already in your
+tree on kernel.org I have included a fixes line. There are three other minor
+fixes as well.
 
-Only allow one link down request to be queued at any one time.
+Patches can can also be found in my GitHub repo at:
+https://github.com/ddalessa/kernel/tree/for-4.14
 
-Reviewed-by: Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c |    4 +++-
- drivers/infiniband/hw/hfi1/hfi.h  |    1 +
- 2 files changed, 4 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 8443d41..a3af46c 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -7045,6 +7045,7 @@ void handle_link_down(struct work_struct *work)
- 	/* Go offline first, then deal with reading/writing through 8051 */
- 	was_up = !!(ppd->host_link_state & HLS_UP);
- 	set_link_state(ppd, HLS_DN_OFFLINE);
-+	xchg(&ppd->is_link_down_queued, 0);
- 
- 	if (was_up) {
- 		lcl_reason = 0;
-@@ -7805,10 +7806,11 @@ static void handle_8051_interrupt(struct hfi1_devdata *dd, u32 unused, u64 reg)
- 		 */
- 		if ((ppd->host_link_state &
- 		    (HLS_GOING_OFFLINE | HLS_LINK_COOLDOWN)) ||
--		    ppd->link_enabled == 0) {
-+		    ppd->link_enabled == 0 || ppd->is_link_down_queued) {
- 			dd_dev_info(dd, "%s: not queuing link down\n",
- 				    __func__);
- 		} else {
-+			xchg(&ppd->is_link_down_queued, 1);
- 			queue_work(ppd->link_wq, &ppd->link_down_work);
- 		}
- 	}
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index ee6c389..fb5f839 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -644,6 +644,7 @@ struct hfi1_pportdata {
- 	/* placeholders for IB MAD packet settings */
- 	u8 overrun_threshold;
- 	u8 phy_error_threshold;
-+	unsigned int is_link_down_queued;
- 
- 	/* Used to override LED behavior for things like maintenance beaconing*/
- 	/*
+Alex Estrin (1):
+      IB/hfi1: Harden state transition to Armed and Active
 
+Jan Sokolowski (2):
+      IB/hfi1: Do not enable disabled port on cable insert
+      IB/hfi1: Disambiguate corruption and uninitialized error cases
+
+Michael J. Ruhl (1):
+      IB/hfi1: Only set fd pointer when base context is completely initialized
+
+Mike Marciniszyn (1):
+      IB/{rdmavt, hfi1, qib}: Fix panic with post receive and SGE compression
+
+Sebastian Sanchez (3):
+      IB/hfi1: Create workqueue for link events
+      IB/hfi1: Prevent link down request double queuing
+      IB/hfi1: Always perform offline transition
+
+
+ drivers/infiniband/hw/hfi1/chip.c         |  112 +++++++++++++++--------------
+ drivers/infiniband/hw/hfi1/chip.h         |    5 +
+ drivers/infiniband/hw/hfi1/driver.c       |    2 -
+ drivers/infiniband/hw/hfi1/file_ops.c     |   55 ++++++++------
+ drivers/infiniband/hw/hfi1/firmware.c     |    8 ++
+ drivers/infiniband/hw/hfi1/hfi.h          |    2 +
+ drivers/infiniband/hw/hfi1/init.c         |   26 +++++++
+ drivers/infiniband/hw/hfi1/pio.c          |    2 -
+ drivers/infiniband/hw/hfi1/platform.c     |   14 ++--
+ drivers/infiniband/hw/hfi1/ruc.c          |    6 +-
+ drivers/infiniband/hw/hfi1/sdma.c         |    2 -
+ drivers/infiniband/hw/hfi1/user_exp_rcv.c |    4 +
+ drivers/infiniband/hw/hfi1/user_exp_rcv.h |    3 +
+ drivers/infiniband/hw/hfi1/user_sdma.c    |    4 +
+ drivers/infiniband/hw/hfi1/user_sdma.h    |    3 +
+ drivers/infiniband/hw/qib/qib_ruc.c       |    6 +-
+ drivers/infiniband/sw/rdmavt/mr.c         |    8 +-
+ drivers/infiniband/sw/rdmavt/qp.c         |   16 ++--
+ 18 files changed, 166 insertions(+), 112 deletions(-)
+
+--
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
