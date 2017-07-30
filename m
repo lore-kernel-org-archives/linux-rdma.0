@@ -1,86 +1,95 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [pull request][rdma-rc 00/11] IPoIB fixes for 4.13
-Date: Sun, 30 Jul 2017 08:23:30 +0300
-Message-ID: <20170730052330.GK13672@mtr-leonro.local>
-References: <20170726181232.7363-1-leon@kernel.org>
- <2679977c-6258-ed15-a234-3682b8be65f3@intel.com>
- <3eb7d0e3-b1ef-533e-56ae-9cc6b65ddfc5@intel.com>
+Subject: Re: [PATCH rdma-next] IB/cma: Set default gid type to RoCEv2
+Date: Sun, 30 Jul 2017 09:12:00 +0300
+Message-ID: <20170730061200.GL13672@mtr-leonro.local>
+References: <20170530064734.4731-1-leon@kernel.org>
+ <20170607090750.GC1127@mtr-leonro.local>
+ <1501264241.2593.21.camel@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="h22Fi9ANawrtbNPX"
+        protocol="application/pgp-signature"; boundary="cN519qCC4CN1mUcX"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <3eb7d0e3-b1ef-533e-56ae-9cc6b65ddfc5-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1501264241.2593.21.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---h22Fi9ANawrtbNPX
+--cN519qCC4CN1mUcX
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Jul 27, 2017 at 11:06:56AM -0400, Dennis Dalessandro wrote:
-> On 7/27/2017 11:05 AM, Dennis Dalessandro wrote:
-> > On 7/26/2017 2:12 PM, Leon Romanovsky wrote:
-> > > The following changes since commit
-> > > a62ab66b13a0f9bcb17b7b761f6670941ed5cd62:
+On Fri, Jul 28, 2017 at 01:50:41PM -0400, Doug Ledford wrote:
+> On Wed, 2017-06-07 at 12:07 +0300, Leon Romanovsky wrote:
+> > On Tue, May 30, 2017 at 09:47:34AM +0300, Leon Romanovsky wrote:
+> > > From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > > >
-> > >    RDMA/core: Initialize port_num in qp_attr (2017-07-20 11:24:13 -0400)
+> > > RoCEv2 is the preferred RDMA protocol for Ethernet link layer
+> > > because
+> > > of its advantages over RoCEv1. For better user experience make it
+> > > the
+> > > default choice for RDMA_CM connections if device/port support it.
 > > >
-> > > are available in the git repository at:
+> > > Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > > Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > > ---
+> > >  drivers/infiniband/core/cma.c | 9 +++++++--
+> > >  1 file changed, 7 insertions(+), 2 deletions(-)
 > > >
-> > >    git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
-> > > tags/rdma-rc-2017-07-26
-> > >
-> > > for you to fetch changes up to 5dc78ad1904db597bdb4427f3ead437aae86f54c:
-> > >
-> > >    IB/ipoib: Notify on modify QP failure only when relevant
-> > > (2017-07-23 10:52:00 +0300)
-> > >
-> > > ----------------------------------------------------------------
-> > > IPoIB fixes for 4.13
-> > >
-> > > The patchset provides various fixes for IPoIB. It is combination of
-> > > fixes to various issues discovered during verification along with
-> > > static checkers cleanup patches.
-> > >
-> > > Most of the patches are from pre-git era and hence lack of Fixes lines.
+> > > diff --git a/drivers/infiniband/core/cma.c
+> > > b/drivers/infiniband/core/cma.c
+> > > index 91b7a2fe5a55..5ce3c9e1657e 100644
+> > > --- a/drivers/infiniband/core/cma.c
+> > > +++ b/drivers/infiniband/core/cma.c
+> > > @@ -72,6 +72,7 @@ MODULE_LICENSE("Dual BSD/GPL");
+> > >  #define CMA_MAX_CM_RETRIES 15
+> > >  #define CMA_CM_MRA_SETTING (IB_CM_MRA_FLAG_DELAY | 24)
+> > >  #define CMA_IBOE_PACKET_LIFETIME 18
+> > > +#define CMA_PREFERRED_ROCE_GID_TYPE IB_GID_TYPE_ROCE_UDP_ENCAP
 > >
-> > I'm not sure that patches 4,6,7,8, and 11 really should go in the RC. I
-> > think those should go to for-next. My opinion anyway.
+> > It should be (1 << IB_GID_TYPE_ROCE_UDP_ENCAP) and not as was written
+> > above. We will send a fix for that.
 >
-> Ugh, one of those days, hands move faster than brain. That should have said
-> 9 instead of 11.
+> I didn't see a followup that fixed this, so I took this patch and then
+> created a fix patch myself.
 
-They are one-liners, simple fixes, all in one place and this is why I grouped them together.
+Thanks.
 
 >
-> -Denny
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>     GPG KeyID: B826A3330E572FDD
+>     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---h22Fi9ANawrtbNPX
+--cN519qCC4CN1mUcX
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAll9bVIACgkQ5GN7iDZy
-WKcLIA/+MwI/EAdFEUY344ZicORcd6+//38SbtgIvgs4BsYbD/9Th5kE/q/ygRxj
-piuAh43JJWZV/rTkOg5HPA7H0Lz/jz2yynPr9LfxllYNNdOaAG11nxpvWjWdaAYn
-SuuTtmte5KSccUAsz7Hn54LyALME2pE5CSot1KlmnldY3qVrM7Zmq32vjKNXxYIY
-P/hwf2k8ucbFWoZ5qwf1gFEpTOFHRAPmdxGKfcj60GdB3S9dTMpMwBenSdT3ygSh
-UQrw4Ahck3y9LM7FW9QLmlETtdAGZALWd89lIhLLq1ce8qDz65r2hAeR/nLtxZWP
-sDczwmFK5GpDug5s02dLt3mwdo8w6b6qvVpVx4tNQhkD52SnHsGqyNLL0LuEeVs9
-L9dBhTtXfVmGl2GrUf5tL+pzk+gakSWDswlUhNGWHDIxnwPIZnHaXUp0lCv6uXQt
-bqlGlqIXrRwd4IIaAeQHMwMsrAJT9V2yY4QkAGKYW4wpkTzs+eja9NcZ3Ekz9ez5
-DWlgpycVtfbkt1bnhvWrJEkMv+htP9rD44lGjb5J+hFxnX7ZniO0YZgPOeOv/LpH
-bYaULR2BjLd/53DEjwJnBYVVMmy76bRA7VF1LuJOj99Qk6oMf71SJyHTctPeaqke
-mSGRNYYqCHOdD4Lx221gXA5ieuT/XdKvGDHo0XvTusD1mLx+1po=
-=0nUZ
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAll9eLAACgkQ5GN7iDZy
+WKc1NQ//YT/elpuIjO4++Vlh2nAvmke3HmgoPofnaXqICCrD+Bkm8a4GGw8csnYj
+gC4HwE5Z4LNSjybcjUM40tpYAfrQeVpw7dRmmV4saGkUAy78GwIgYsChduZdIxI2
+atR+Fem4rZCcikgGAfwZ0Pnqdp8F3vgN1pS1ezzWkYFIhF8RWeLmf14kat7OIR2f
+3DsXleMLQe0L2NR94bQ7fjsU8aKGraO1RXf8AzIDAfesylV8sP7SeEEffdKE1Vpy
+3qatv9lnMxDbWulM7zqNOPB0V8wb+iKBgQNd7LnJNym1I2pVSiPjobU28uQmubaU
++GN2+9qrJl6aUD/njL4dVQWh2+JJigCp+Oyv3lXSAF5AdjXi4+BADkw+6u6aMEbL
+Y8rIOWFYXkdVzQ2f5LLNjUfFh6LZTFt1cCXEAiDFMk6ADG3EIbNS9gJUJKCiIFvR
+9NDY118V3+2vPivT3q/DoQDZ+gCtspu/NoSaF+O8We6bFC8t0eVOrejAorPfklks
+HH8UlKTAMm199i/0tI6+ffmqGzxicNQTYEKje03K+AXJcSIz44iX9vXrdBUPU2F8
+35taEATqqbgAlB0/QP2gUQtkMjjry7Jx40oA9RLTQm34gvIgy/L2Vwy9jpgEiNV2
+WDR2wPQ3qx6zsDkeikcGo1sZzj4sxocluh5HtVGTAKTiOcIvMiY=
+=e3vQ
 -----END PGP SIGNATURE-----
 
---h22Fi9ANawrtbNPX--
+--cN519qCC4CN1mUcX--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
