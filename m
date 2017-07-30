@@ -1,110 +1,86 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [rdma-rc 10/11] Revert "IB/core: Allow QP state transition from
- reset to error"
-Date: Sun, 30 Jul 2017 08:17:06 +0300
-Message-ID: <20170730051706.GJ13672@mtr-leonro.local>
+Subject: Re: [pull request][rdma-rc 00/11] IPoIB fixes for 4.13
+Date: Sun, 30 Jul 2017 08:23:30 +0300
+Message-ID: <20170730052330.GK13672@mtr-leonro.local>
 References: <20170726181232.7363-1-leon@kernel.org>
- <20170726181232.7363-11-leon@kernel.org>
- <49fe625b-cd44-137e-c001-1d85297f4e62@intel.com>
- <fcacf34e-d16f-3d66-2877-be5b5993f296@intel.com>
+ <2679977c-6258-ed15-a234-3682b8be65f3@intel.com>
+ <3eb7d0e3-b1ef-533e-56ae-9cc6b65ddfc5@intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="X+8siUETKMkW99st"
+        protocol="application/pgp-signature"; boundary="h22Fi9ANawrtbNPX"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <fcacf34e-d16f-3d66-2877-be5b5993f296-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <3eb7d0e3-b1ef-533e-56ae-9cc6b65ddfc5-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---X+8siUETKMkW99st
+--h22Fi9ANawrtbNPX
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Jul 27, 2017 at 10:57:26AM -0400, Dennis Dalessandro wrote:
-> On 7/27/2017 10:52 AM, Dennis Dalessandro wrote:
+On Thu, Jul 27, 2017 at 11:06:56AM -0400, Dennis Dalessandro wrote:
+> On 7/27/2017 11:05 AM, Dennis Dalessandro wrote:
 > > On 7/26/2017 2:12 PM, Leon Romanovsky wrote:
-> > > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > > The following changes since commit
+> > > a62ab66b13a0f9bcb17b7b761f6670941ed5cd62:
 > > >
-> > > The commit ebc9ca43e1d5 ("IB/core: Allow QP state transition from
-> > > reset to error")
-> > > allowed transition from Reset to Error state for the QPs. This behavior
-> > > doesn't follow the IBTA specification 1.3, which in 10.3.1 QUEUE PAIR AND
-> > > EE CONTEXT STATES section.
+> > >    RDMA/core: Initialize port_num in qp_attr (2017-07-20 11:24:13 -0400)
 > > >
-> > > The quote from the spec:
-> > > "An error can be forced from any state, except Reset, with
-> > > the Modify QP/EE Verb."
+> > > are available in the git repository at:
 > > >
-> > > Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > > ---
-> > >   drivers/infiniband/core/verbs.c | 1 -
-> > >   1 file changed, 1 deletion(-)
+> > >    git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
+> > > tags/rdma-rc-2017-07-26
 > > >
-> > > diff --git a/drivers/infiniband/core/verbs.c
-> > > b/drivers/infiniband/core/verbs.c
-> > > index fb98ed67d5bc..7f8fe443df46 100644
-> > > --- a/drivers/infiniband/core/verbs.c
-> > > +++ b/drivers/infiniband/core/verbs.c
-> > > @@ -895,7 +895,6 @@ static const struct {
-> > >   } qp_state_table[IB_QPS_ERR + 1][IB_QPS_ERR + 1] = {
-> > >       [IB_QPS_RESET] = {
-> > >           [IB_QPS_RESET] = { .valid = 1 },
-> > > -        [IB_QPS_ERR] =   { .valid = 1 },
-> > >           [IB_QPS_INIT]  = {
-> > >               .valid = 1,
-> > >               .req_param = {
+> > > for you to fetch changes up to 5dc78ad1904db597bdb4427f3ead437aae86f54c:
 > > >
+> > >    IB/ipoib: Notify on modify QP failure only when relevant
+> > > (2017-07-23 10:52:00 +0300)
+> > >
+> > > ----------------------------------------------------------------
+> > > IPoIB fixes for 4.13
+> > >
+> > > The patchset provides various fixes for IPoIB. It is combination of
+> > > fixes to various issues discovered during verification along with
+> > > static checkers cleanup patches.
+> > >
+> > > Most of the patches are from pre-git era and hence lack of Fixes lines.
 > >
-> > The diagram from that section clearly shows you can't go from reset to
-> > error. However table 91 as in our original commit message says it could
-> > go to error from any state. Taking a step back and thinking about it,
-> > I'm not sure it really makes sense to be able to go from reset to error
-> > anyway. There is nothing that can go wrong until the qp is transitioned
-> > out of reset really.
-> >
-> > Any idea why this patch was never adopted:
-> > http://www.spinics.net/lists/linux-rdma/msg07627.html
-> >
-> > This was during my storage hiatus so I wasn't following things RDMA back
-> > then. However this seems like the correct approach to me. Granted that
-> > patch would look different as the code has moved around but the same
-> > sort of check could go in ipoib_ib_dev_stop_default().
-> >
-> > -Denny
+> > I'm not sure that patches 4,6,7,8, and 11 really should go in the RC. I
+> > think those should go to for-next. My opinion anyway.
 >
-> Ah guess I should have waited until reading the next patch 11/11!
+> Ugh, one of those days, hands move faster than brain. That should have said
+> 9 instead of 11.
+
+They are one-liners, simple fixes, all in one place and this is why I grouped them together.
+
 >
-> Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> -Denny
+>
 
-Thanks Dennis,
-
-I agree with you, the spec is really misleading.
-
---X+8siUETKMkW99st
+--h22Fi9ANawrtbNPX
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAll9a9IACgkQ5GN7iDZy
-WKdLtA//QRosJawAiV4XgFJtIfvtTjTRYRnoKOm4c5UdXUtRZX3GobYiSx8+MpOk
-+D0abQJIy1Pdqmeoy/2hTLpbGrTkTfGrErc48U/XwEEil28E+TTGT949kKlVcsqo
-/ydndwqSY9WHEtT7aC7kuBAeC73ghN/K1EJpWhKn58q/YKvLno1//fvUsAev97ZS
-jUqX2+KVRIzHOw6GhIAJgiXv8VVX4we4Pls7EM9B9ZhCVrNg5jYx2PYCcKayfRKX
-iPm2Nh+290qLX8QagL9DXfCyByc3boLWFQCrXK/fnZhKbCF/Djnm0erimoVBWHsj
-jB3b/37rag5as4P4NT5f2MxciLggjc4B2qh2ZkPpGFdxG6NyG13GLoGeJVOU+T27
-BwBz+Gbw60lKNhdtGfZBnnxZ9F5VKoj6AqTMASa53n1HfY538dqYqwiji/6ARA3h
-1ywTciw+PRjJst1hTOPGi5Ts0nc8dRTaaRBYRcItOJdN3jvTryg2VywYWCi5GZSG
-J4dnFgkxp7bT/hRpjATuI65QpyVVcGokOq1eA/EUrCmpBu43B3McD9ftYDfro2ut
-n8KWx+VMKt3HpA7f+U5/mAiyLG3to7gOnJncO3RR7N0Iy4lbkM1T3EZULuW7zzuu
-KqyiDaz6bDwi4kzZdTj1zfsJdDNnFeLfnBBPxruo4rPfNNSuQ18=
-=XIDq
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAll9bVIACgkQ5GN7iDZy
+WKcLIA/+MwI/EAdFEUY344ZicORcd6+//38SbtgIvgs4BsYbD/9Th5kE/q/ygRxj
+piuAh43JJWZV/rTkOg5HPA7H0Lz/jz2yynPr9LfxllYNNdOaAG11nxpvWjWdaAYn
+SuuTtmte5KSccUAsz7Hn54LyALME2pE5CSot1KlmnldY3qVrM7Zmq32vjKNXxYIY
+P/hwf2k8ucbFWoZ5qwf1gFEpTOFHRAPmdxGKfcj60GdB3S9dTMpMwBenSdT3ygSh
+UQrw4Ahck3y9LM7FW9QLmlETtdAGZALWd89lIhLLq1ce8qDz65r2hAeR/nLtxZWP
+sDczwmFK5GpDug5s02dLt3mwdo8w6b6qvVpVx4tNQhkD52SnHsGqyNLL0LuEeVs9
+L9dBhTtXfVmGl2GrUf5tL+pzk+gakSWDswlUhNGWHDIxnwPIZnHaXUp0lCv6uXQt
+bqlGlqIXrRwd4IIaAeQHMwMsrAJT9V2yY4QkAGKYW4wpkTzs+eja9NcZ3Ekz9ez5
+DWlgpycVtfbkt1bnhvWrJEkMv+htP9rD44lGjb5J+hFxnX7ZniO0YZgPOeOv/LpH
+bYaULR2BjLd/53DEjwJnBYVVMmy76bRA7VF1LuJOj99Qk6oMf71SJyHTctPeaqke
+mSGRNYYqCHOdD4Lx221gXA5ieuT/XdKvGDHo0XvTusD1mLx+1po=
+=0nUZ
 -----END PGP SIGNATURE-----
 
---X+8siUETKMkW99st--
+--h22Fi9ANawrtbNPX--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
