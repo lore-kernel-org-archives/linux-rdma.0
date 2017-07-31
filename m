@@ -1,70 +1,48 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: RE: [PATCH V5 net-next 7/8] net: hns3: Add Ethtool support to HNS3
- driver
-Date: Mon, 31 Jul 2017 15:05:36 +0000
-Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F93B82D975@FRAEML521-MBX.china.huawei.com>
-References: <20170728222652.118448-1-salil.mehta@huawei.com>
- <20170728222652.118448-8-salil.mehta@huawei.com>
- <20170728234922.GC16080@lunn.ch>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [rdma-rc 08/14] RDMA/mlx4: Avoid potential derefence warning
+Date: Mon, 31 Jul 2017 15:11:30 +0000
+Message-ID: <1501513888.2466.3.camel@wdc.com>
+References: <20170731070924.7193-1-leon@kernel.org>
+         <20170731070924.7193-9-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170731070924.7193-9-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Andrew Lunn <andrew@lunn.ch>
-Cc: "davem@davemloft.net" <davem@davemloft.net>, "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>, huangdaode <huangdaode@hisilicon.com>, "lipeng (Y)" <lipeng321@huawei.com>, "mehta.salil.lnk@gmail.com" <mehta.salil.lnk@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
+Content-ID: <C9F72718C4826F4C86428046695381CB-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Andrew,
+On Mon, 2017-07-31 at 10:09 +0300, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>=20
+> The smatch complains about possible dereference, it is unclear from
+> source how it can occur, since in case of failure to find/allocate
+> group, the acquire_group() will return error.
+>=20
+> Avoid the following error, by changing IS_ERR() to be IS_ERR_OR_NULL().
+>=20
+> drivers/infiniband/hw/mlx4/mcg.c:964 mlx4_ib_mcg_multiplex_handler() erro=
+r:
+> 	potential null dereference 'group'.  (acquire_group returns null)
 
-> -----Original Message-----
-> From: Salil Mehta
-> Sent: Saturday, July 29, 2017 12:57 AM
-> To: 'Andrew Lunn'
-> Cc: davem@davemloft.net; Zhuangyuzeng (Yisen); huangdaode; lipeng (Y);
-> mehta.salil.lnk@gmail.com; netdev@vger.kernel.org; linux-
-> kernel@vger.kernel.org; linux-rdma@vger.kernel.org; Linuxarm
-> Subject: RE: [PATCH V5 net-next 7/8] net: hns3: Add Ethtool support to
-> HNS3 driver
-> 
-> Hi Andrew,
-> 
-> > -----Original Message-----
-> > From: Andrew Lunn [mailto:andrew@lunn.ch]
-> > Sent: Saturday, July 29, 2017 12:49 AM
-> > To: Salil Mehta
-> > Cc: davem@davemloft.net; Zhuangyuzeng (Yisen); huangdaode; lipeng
-> (Y);
-> > mehta.salil.lnk@gmail.com; netdev@vger.kernel.org; linux-
-> > kernel@vger.kernel.org; linux-rdma@vger.kernel.org; Linuxarm
-> > Subject: Re: [PATCH V5 net-next 7/8] net: hns3: Add Ethtool support
-> to
-> > HNS3 driver
-> >
-> > On Fri, Jul 28, 2017 at 11:26:51PM +0100, Salil Mehta wrote:
-> > > +static const struct hns3_link_mode_mapping hns3_lm_map[] = {
-> > > +	{HNS3_LM_FIBRE_BIT, ETHTOOL_LINK_MODE_FIBRE_BIT, FLG},
-> > > +	{HNS3_LM_AUTONEG_BIT, ETHTOOL_LINK_MODE_Autoneg_BIT, FLG},
-> > > +	{HNS3_LM_TP_BIT, ETHTOOL_LINK_MODE_TP_BIT, FLG},
-> > > +	{HNS3_LM_PAUSE_BIT, ETHTOOL_LINK_MODE_Pause_BIT, FLG},
-> > > +	{HNS3_LM_BACKPLANE_BIT, ETHTOOL_LINK_MODE_Backplane_BIT, FLG},
-> > > +	{HNS3_LM_10BASET_HALF_BIT, ETHTOOL_LINK_MODE_10baseT_Half_BIT,
-> > FLG},
-> > > +	{HNS3_LM_10BASET_FULL_BIT, ETHTOOL_LINK_MODE_10baseT_Full_BIT,
-> > FLG},
-> > > +	{HNS3_LM_100BASET_HALF_BIT, ETHTOOL_LINK_MODE_100baseT_Half_BIT,
-> > FLG},
-> > > +	{HNS3_LM_100BASET_FULL_BIT, ETHTOOL_LINK_MODE_100baseT_Full_BIT,
-> > FLG},
-> > > +	{HNS3_LM_1000BASET_FULL_BIT,
-> > ETHTOOL_LINK_MODE_1000baseT_Full_BIT, FLG},
-> > > +};
-> >
-> > It seems like all entries have link_mode_ksettings set to FLG. Which
-> > probably indicates it is pointless.
-> It is to support SUPPORTED and ADVERTISED link modes.
-I can see what you are saying now. Will remove FLG in next patch.
+Hello Leon,
 
-Thanks
-Salil
+I agree with you that it's not clear from the source code how acquire_group=
+()
+could return null. My proposal is to drop this patch and to report this as =
+a
+bug to the smatch author (Dan Carpenter). I don't think it makes sense to
+modify kernel code that is fine because a tool (smatch) reports a false pos=
+itive.
+
+Thanks,
+
+Bart.=
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
