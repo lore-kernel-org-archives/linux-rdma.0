@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-rc 12/14] RDMA/usnic: Fix remove address space warning
-Date: Mon, 31 Jul 2017 10:09:22 +0300
-Message-ID: <20170731070924.7193-13-leon@kernel.org>
+Subject: [rdma-rc 03/14] RDMA/core: Remove unimplemented node_types and node transport
+Date: Mon, 31 Jul 2017 10:09:13 +0300
+Message-ID: <20170731070924.7193-4-leon@kernel.org>
 References: <20170731070924.7193-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170731070924.7193-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,92 +12,93 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Sparse tool complains with the following error:
-drivers/infiniband/hw/usnic/usnic_ib_main.c:445:16: warning: cast removes
-	address space of expression
+There is no need to carry code, which is not implemented in any
+underlying hardware. This patch removes unimplemented node_types and
+their respective node transport layers.
 
-Fix it by doing casting on correct field and convert function helper which
-sets ifaddr to be void, because there are no users who are interested in
-returned value.
-
-Fixes: c7845bcafe4d ("IB/usnic: Add UDP support in u*verbs.c, u*main.c and u*util.h")
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/usnic/usnic_fwd.c     | 12 ++----------
- drivers/infiniband/hw/usnic/usnic_fwd.h     |  2 +-
- drivers/infiniband/hw/usnic/usnic_ib_main.c | 10 ++++++----
- 3 files changed, 9 insertions(+), 15 deletions(-)
+ drivers/infiniband/core/sysfs.c |  3 ---
+ drivers/infiniband/core/verbs.c |  5 -----
+ include/rdma/ib_verbs.h         | 16 ++++++----------
+ 3 files changed, 6 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_fwd.c b/drivers/infiniband/hw/usnic/usnic_fwd.c
-index 3c37dd59c04e..995a26b65156 100644
---- a/drivers/infiniband/hw/usnic/usnic_fwd.c
-+++ b/drivers/infiniband/hw/usnic/usnic_fwd.c
-@@ -110,20 +110,12 @@ void usnic_fwd_set_mac(struct usnic_fwd_dev *ufdev, char mac[ETH_ALEN])
- 	spin_unlock(&ufdev->lock);
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index 7ebe1ef23652..d455d00219a1 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -1146,10 +1146,7 @@ static ssize_t show_node_type(struct device *device,
+ 	switch (dev->node_type) {
+ 	case RDMA_NODE_IB_CA:	  return sprintf(buf, "%d: CA\n", dev->node_type);
+ 	case RDMA_NODE_RNIC:	  return sprintf(buf, "%d: RNIC\n", dev->node_type);
+-	case RDMA_NODE_USNIC:	  return sprintf(buf, "%d: usNIC\n", dev->node_type);
+ 	case RDMA_NODE_USNIC_UDP: return sprintf(buf, "%d: usNIC UDP\n", dev->node_type);
+-	case RDMA_NODE_IB_SWITCH: return sprintf(buf, "%d: switch\n", dev->node_type);
+-	case RDMA_NODE_IB_ROUTER: return sprintf(buf, "%d: router\n", dev->node_type);
+ 	default:		  return sprintf(buf, "%d: <unknown>\n", dev->node_type);
+ 	}
  }
- 
--int usnic_fwd_add_ipaddr(struct usnic_fwd_dev *ufdev, __be32 inaddr)
-+void usnic_fwd_add_ipaddr(struct usnic_fwd_dev *ufdev, __be32 inaddr)
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 7f8fe443df46..1d57c60d8aeb 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -182,13 +182,9 @@ rdma_node_get_transport(enum rdma_node_type node_type)
  {
--	int status;
--
- 	spin_lock(&ufdev->lock);
--	if (ufdev->inaddr == 0) {
-+	if (!ufdev->inaddr)
- 		ufdev->inaddr = inaddr;
--		status = 0;
--	} else {
--		status = -EFAULT;
--	}
- 	spin_unlock(&ufdev->lock);
--
--	return status;
- }
- 
- void usnic_fwd_del_ipaddr(struct usnic_fwd_dev *ufdev)
-diff --git a/drivers/infiniband/hw/usnic/usnic_fwd.h b/drivers/infiniband/hw/usnic/usnic_fwd.h
-index b2ac22be0731..0b2cc4e79707 100644
---- a/drivers/infiniband/hw/usnic/usnic_fwd.h
-+++ b/drivers/infiniband/hw/usnic/usnic_fwd.h
-@@ -75,7 +75,7 @@ struct usnic_fwd_dev *usnic_fwd_dev_alloc(struct pci_dev *pdev);
- void usnic_fwd_dev_free(struct usnic_fwd_dev *ufdev);
- 
- void usnic_fwd_set_mac(struct usnic_fwd_dev *ufdev, char mac[ETH_ALEN]);
--int usnic_fwd_add_ipaddr(struct usnic_fwd_dev *ufdev, __be32 inaddr);
-+void usnic_fwd_add_ipaddr(struct usnic_fwd_dev *ufdev, __be32 inaddr);
- void usnic_fwd_del_ipaddr(struct usnic_fwd_dev *ufdev);
- void usnic_fwd_carrier_up(struct usnic_fwd_dev *ufdev);
- void usnic_fwd_carrier_down(struct usnic_fwd_dev *ufdev);
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-index c0c1e8b027b1..4c13429d5b07 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-@@ -353,7 +353,7 @@ static void *usnic_ib_device_add(struct pci_dev *dev)
- {
- 	struct usnic_ib_dev *us_ibdev;
- 	union ib_gid gid;
--	struct in_ifaddr *in;
-+	struct in_device *ind;
- 	struct net_device *netdev;
- 
- 	usnic_dbg("\n");
-@@ -442,9 +442,11 @@ static void *usnic_ib_device_add(struct pci_dev *dev)
- 	if (netif_carrier_ok(us_ibdev->netdev))
- 		usnic_fwd_carrier_up(us_ibdev->ufdev);
- 
--	in = ((struct in_device *)(netdev->ip_ptr))->ifa_list;
--	if (in != NULL)
--		usnic_fwd_add_ipaddr(us_ibdev->ufdev, in->ifa_address);
-+	ind = in_dev_get(netdev);
-+	if (ind->ifa_list)
-+		usnic_fwd_add_ipaddr(us_ibdev->ufdev,
-+				     ind->ifa_list->ifa_address);
-+	in_dev_put(ind);
- 
- 	usnic_mac_ip_to_gid(us_ibdev->netdev->perm_addr,
- 				us_ibdev->ufdev->inaddr, &gid.raw[0]);
--- 
+ 	switch (node_type) {
+ 	case RDMA_NODE_IB_CA:
+-	case RDMA_NODE_IB_SWITCH:
+-	case RDMA_NODE_IB_ROUTER:
+ 		return RDMA_TRANSPORT_IB;
+ 	case RDMA_NODE_RNIC:
+ 		return RDMA_TRANSPORT_IWARP;
+-	case RDMA_NODE_USNIC:
+-		return RDMA_TRANSPORT_USNIC;
+ 	case RDMA_NODE_USNIC_UDP:
+ 		return RDMA_TRANSPORT_USNIC_UDP;
+ 	default:
+@@ -207,7 +203,6 @@ enum rdma_link_layer rdma_port_get_link_layer(struct ib_device *device, u8 port_
+ 	case RDMA_TRANSPORT_IB:
+ 		return IB_LINK_LAYER_INFINIBAND;
+ 	case RDMA_TRANSPORT_IWARP:
+-	case RDMA_TRANSPORT_USNIC:
+ 	case RDMA_TRANSPORT_USNIC_UDP:
+ 		return IB_LINK_LAYER_ETHERNET;
+ 	default:
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index ca7ed9769d72..39b789276d13 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -93,12 +93,9 @@ struct ib_gid_attr {
+
+ enum rdma_node_type {
+ 	/* IB values map to NodeInfo:NodeType. */
+-	RDMA_NODE_IB_CA 	= 1,
+-	RDMA_NODE_IB_SWITCH,
+-	RDMA_NODE_IB_ROUTER,
+-	RDMA_NODE_RNIC,
+-	RDMA_NODE_USNIC,
+-	RDMA_NODE_USNIC_UDP,
++	RDMA_NODE_IB_CA		= 1,
++	RDMA_NODE_RNIC		= 4,
++	RDMA_NODE_USNIC_UDP	= 6,
+ };
+
+ enum {
+@@ -107,10 +104,9 @@ enum {
+ };
+
+ enum rdma_transport_type {
+-	RDMA_TRANSPORT_IB,
+-	RDMA_TRANSPORT_IWARP,
+-	RDMA_TRANSPORT_USNIC,
+-	RDMA_TRANSPORT_USNIC_UDP
++	RDMA_TRANSPORT_IB		= 0,
++	RDMA_TRANSPORT_IWARP		= 1,
++	RDMA_TRANSPORT_USNIC_UDP	= 3,
+ };
+
+ enum rdma_protocol_type {
+--
 2.13.3
 
 --
