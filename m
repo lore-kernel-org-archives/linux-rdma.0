@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-rc 11/14] RDMA/bnxt_re: Delete unsupported modify_port function
-Date: Mon, 31 Jul 2017 10:09:21 +0300
-Message-ID: <20170731070924.7193-12-leon@kernel.org>
+Subject: [rdma-rc 10/14] RDMA/mlx5: Fix existence check for extended address vector
+Date: Mon, 31 Jul 2017 10:09:20 +0300
+Message-ID: <20170731070924.7193-11-leon@kernel.org>
 References: <20170731070924.7193-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170731070924.7193-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,72 +12,44 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-There is no need to return always zero for function which is not
-supported. The IB stack treats uninitialized ib_device->functions as
-not implemented.
+The extended address vector is the highest bit in be32 variable,
+but it was compared with the lowest. This patch fixes the endianness
+of that check and removes already declared define.
 
+Fixes: 17d2f88f92ce ("IB/mlx5: Add ODP atomics support")
+Reviewed-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 17 -----------------
- drivers/infiniband/hw/bnxt_re/ib_verbs.h |  3 ---
- drivers/infiniband/hw/bnxt_re/main.c     |  1 -
- 3 files changed, 21 deletions(-)
+ drivers/infiniband/hw/mlx5/odp.c | 2 +-
+ include/linux/mlx5/qp.h          | 1 -
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index f0e01b3ac711..5dc6e7ce3ab9 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -313,23 +313,6 @@ int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
- 	return 0;
- }
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+index ae0746754008..3d701c7a4c91 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -939,7 +939,7 @@ static int mlx5_ib_mr_initiator_pfault_handler(
  
--int bnxt_re_modify_port(struct ib_device *ibdev, u8 port_num,
--			int port_modify_mask,
--			struct ib_port_modify *port_modify)
--{
--	switch (port_modify_mask) {
--	case IB_PORT_SHUTDOWN:
--		break;
--	case IB_PORT_INIT_TYPE:
--		break;
--	case IB_PORT_RESET_QKEY_CNTR:
--		break;
--	default:
--		break;
--	}
--	return 0;
--}
--
- int bnxt_re_get_port_immutable(struct ib_device *ibdev, u8 port_num,
- 			       struct ib_port_immutable *immutable)
- {
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.h b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-index a0bb7e33d7ca..1df11ed272ea 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
-@@ -141,9 +141,6 @@ int bnxt_re_modify_device(struct ib_device *ibdev,
- 			  struct ib_device_modify *device_modify);
- int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
- 		       struct ib_port_attr *port_attr);
--int bnxt_re_modify_port(struct ib_device *ibdev, u8 port_num,
--			int port_modify_mask,
--			struct ib_port_modify *port_modify);
- int bnxt_re_get_port_immutable(struct ib_device *ibdev, u8 port_num,
- 			       struct ib_port_immutable *immutable);
- int bnxt_re_query_pkey(struct ib_device *ibdev, u8 port_num,
-diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-index ceae2d92fb08..deec8002dd36 100644
---- a/drivers/infiniband/hw/bnxt_re/main.c
-+++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -474,7 +474,6 @@ static int bnxt_re_register_ib(struct bnxt_re_dev *rdev)
- 	ibdev->modify_device		= bnxt_re_modify_device;
+ 	if (qp->ibqp.qp_type != IB_QPT_RC) {
+ 		av = *wqe;
+-		if (av->dqp_dct & be32_to_cpu(MLX5_WQE_AV_EXT))
++		if (av->dqp_dct & cpu_to_be32(MLX5_EXTENDED_UD_AV))
+ 			*wqe += sizeof(struct mlx5_av);
+ 		else
+ 			*wqe += sizeof(struct mlx5_base_av);
+diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
+index 6f41270d80c0..f378dc0e7eaf 100644
+--- a/include/linux/mlx5/qp.h
++++ b/include/linux/mlx5/qp.h
+@@ -212,7 +212,6 @@ struct mlx5_wqe_ctrl_seg {
+ #define MLX5_WQE_CTRL_OPCODE_MASK 0xff
+ #define MLX5_WQE_CTRL_WQE_INDEX_MASK 0x00ffff00
+ #define MLX5_WQE_CTRL_WQE_INDEX_SHIFT 8
+-#define MLX5_WQE_AV_EXT 0x80000000
  
- 	ibdev->query_port		= bnxt_re_query_port;
--	ibdev->modify_port		= bnxt_re_modify_port;
- 	ibdev->get_port_immutable	= bnxt_re_get_port_immutable;
- 	ibdev->query_pkey		= bnxt_re_query_pkey;
- 	ibdev->query_gid		= bnxt_re_query_gid;
+ enum {
+ 	MLX5_ETH_WQE_L3_INNER_CSUM      = 1 << 4,
 -- 
 2.13.3
 
