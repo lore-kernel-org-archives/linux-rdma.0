@@ -1,95 +1,43 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [pull request][rdma-rc 00/14] RDMA fixes for-4.13
-Date: Mon, 31 Jul 2017 20:15:37 +0300
-Message-ID: <20170731171537.GG13672@mtr-leonro.local>
-References: <20170731070924.7193-1-leon@kernel.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: RDMA miniconf: Persistent device naming
+Date: Mon, 31 Jul 2017 11:24:36 -0600
+Message-ID: <20170731172436.GA19375@obsidianresearch.com>
+References: <20170731113633.GU13672@mtr-leonro.local>
+ <1501513246.2466.1.camel@wdc.com>
+ <20170731164705.GB28204@obsidianresearch.com>
+ <20170731165453.GD13672@mtr-leonro.local>
+ <20170731170018.GA19061@obsidianresearch.com>
+ <20170731170804.GE13672@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="DRp5/Sds4nAqvQzf"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170731070924.7193-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170731170804.GE13672-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Jul 31, 2017 at 08:08:04PM +0300, Leon Romanovsky wrote:
+> On Mon, Jul 31, 2017 at 11:00:18AM -0600, Jason Gunthorpe wrote:
+> > On Mon, Jul 31, 2017 at 07:54:53PM +0300, Leon Romanovsky wrote:
+> > > I want to take RDMA one step more,
+> > > https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames/
+> > >
+> > > I called the topic name "persistent", but the right name is "predictable".
+> >
+> > Once renaming is possible then having udev rework the names isn't a
+> > big step anymore.
+> 
+> You need predictable starting point to perform automatic rename,
+> currently neither index, neither names are not.
 
---DRp5/Sds4nAqvQzf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+udev has all the information needed to produce the naming pattern in
+the link above.
 
-On Mon, Jul 31, 2017 at 10:09:10AM +0300, Leon Romanovsky wrote:
-> The following changes since commit 5dc78ad1904db597bdb4427f3ead437aae86f54c:
->
->   IB/ipoib: Notify on modify QP failure only when relevant (2017-07-23 10:52:00 +0300)
->
-> are available in the git repository at:
->
->   git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/rdma-rc-2017-07-31
->
-> for you to fetch changes up to 38a974d578451dbbde0c40fc2d81fba44027a338:
->
->   IB/uverbs: Fix device cleanup (2017-07-30 10:43:15 +0300)
->
-> ----------------------------------------------------------------
-> RDMA fixes for 4.13
->
-> This is cleanup series to various static checkers errors along with two
-> major kernel panics fixes from from Parav and Yishai.
->
-> ----------------------------------------------------------------
-> Leon Romanovsky (12):
->       RDMA/(core,ulp): Convert register/unregister event handler to be void
->       RDMA/core: Cleanup device capability enum
->       RDMA/core: Remove unimplemented node_types and node transport
->       RDMA/core: Delete BUG() from unreachable flow
->       RDMA/core: Refactor get link layer wrapper
->       RDMA/uverbs: Prevent leak of reserved field
->       RDMA/mlx4: Avoid potential derefence warning
->       RDMA/mlx4: Remove gfp_mask argument from acquire_group call
->       RDMA/mlx5: Fix existence check for extended address vector
->       RDMA/bnxt_re: Delete unsupported modify_port function
->       RDMA/usnic: Fix remove address space warning
->       RDMA/mthca: Make explicit conversion to 64bit value
->
-> Parav Pandit (1):
->       IB/core: Fix race condition in resolving IP to MAC
->
-> Yishai Hadas (1):
->       IB/uverbs: Fix device cleanup
+You'd end up with names like rdmap3s1f1 for instance.
 
-I'll resubmit as a fixes for -rc the following patches:
-RDMA/uverbs: Prevent leak of reserved field
-RDMA/mlx5: Fix existence check for extended address vector
-IB/core: Fix race condition in resolving IP to MAC
-IB/uverbs: Fix device cleanup
-
-And I will move other patches to -next.
-
-Thanks
-
---DRp5/Sds4nAqvQzf
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAll/ZbkACgkQ5GN7iDZy
-WKdAehAAthCAOGcWMafpV3gHgIzsqjN5BEjICBDemrqVdUZ6LpTb7vlRMkWQ5iZv
-zbD4aqL3FNrI0zZbKjN4LwgskZGyLqyXNMXJvuASaM/OG5WN/eeiv5dkRzlYiWz8
-HE8gdfZnRQmQYXvhYYf8LMEcKsavKv5soDvueLIfs5/rjWgk6zSmJcgHBH5giUhR
-Cd0moDmRr/trM0GPRfFMgvPxwWvBrLwOGKzokcK5vAfJJBiFb8D2495jKoXjWdu3
-eM+0I0EwUJ6by6JgJ2XEIHOoTLkOCUN5MaXm1ffBR1xfKW+9xOGIVyb3u+DDR31b
-Iunh17Goyd21baWg1hvO+miuE/dbJe7yz5kuulXtieA2rE+9a3LtwjXPDlPhhDQD
-rSh3mq7xfysf7kLZxyuF5jItMKXN+eVd/79A6Rao+AbOUrcGQM5uiK+XUz6Y0WYd
-vCzUUpu6ZCagQErITe5cf1eG8vs6jWxH3tUoMgOBNPIs+/EoKzf/cmebIRYCmWuh
-ogou5CK1/MkyQN0WjjM2gv97ryXn/Kr9OYt1NLyuoRVrMlRVclTvpWye23tXOPBs
-SpnDKXOnq9ljgaYlqs9c4TFet3KhRYHlqZEsRibeyhaDgu+fZXtui4QbQ+FgF727
-8jpSNZJJL+eOg102KBAIo7n8HLFlm58Ls33+JSB5EU4JtnPPt5A=
-=ZiqG
------END PGP SIGNATURE-----
-
---DRp5/Sds4nAqvQzf--
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
