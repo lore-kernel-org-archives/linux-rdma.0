@@ -1,91 +1,74 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: RDMA miniconf: Persistent device naming
-Date: Mon, 31 Jul 2017 19:00:29 +0300
-Message-ID: <20170731160029.GZ13672@mtr-leonro.local>
-References: <20170731113633.GU13672@mtr-leonro.local>
- <1501513246.2466.1.camel@wdc.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH] infiniband: avoid overflow warning
+Date: Mon, 31 Jul 2017 18:04:17 +0200
+Message-ID: <CAK8P3a1r22C-Uxs93OSbS4_eRNhKUTv8xwc6wwGahE80whCjyA@mail.gmail.com>
+References: <20170731065016.2947796-1-arnd@arndb.de> <CAG9sBKNaFTAuf2gL9QLOCwvH-xAq7SXfaMZxNMFo7d=6cH3TkQ@mail.gmail.com>
+ <CAK8P3a2AP7WSF2HUe_4nxsNFqCit_djKdd3_5ab6P1YgP7bvJQ@mail.gmail.com> <1501515117.2466.9.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="mlvFMpb4NrD3AMcD"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1501513246.2466.1.camel-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <1501515117.2466.9.camel-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org" <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "danielmicay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <danielmicay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---mlvFMpb4NrD3AMcD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Jul 31, 2017 at 03:00:47PM +0000, Bart Van Assche wrote:
-> On Mon, 2017-07-31 at 14:36 +0300, Leon Romanovsky wrote:
-> > I would like to propose the discussion about ability to add
-> > persistent device naming to RDMA subsystem.
-> >
-> > Right now, the devices receive their names by simple addition of new free
-> > index to the name (mlx5_0, mlx5_1 ...). Such naming scheme depends on the
-> > PCI probing and in case of device reset can rename device.
-> >
-> > Such situation doesn't help to provide constant udev rules, reliable
-> > ibverbs hotplug and advanced "set command" of RDMAtool which at some
-> > point of time will require reinit of ib_device.
-> >
-> > In this discussion, I want to present netdev implementation of such
-> > feature, talk about implications on libibverbs and suggest possible
-> > device name convention.
+On Mon, Jul 31, 2017 at 5:32 PM, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org> wrote:
+> On Mon, 2017-07-31 at 09:30 +0200, Arnd Bergmann wrote:
+>> On Mon, Jul 31, 2017 at 9:08 AM, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+>> > On Mon, Jul 31, 2017 at 9:50 AM, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org> wrote:
+>> > > --- a/include/rdma/ib_addr.h
+>> > > +++ b/include/rdma/ib_addr.h
+>> > > @@ -172,7 +172,8 @@ static inline int rdma_ip2gid(struct sockaddr *addr, union ib_gid *gid)
+>> > >                                        (struct in6_addr *)gid);
+>> > >                 break;
+>> > >         case AF_INET6:
+>> > > -               memcpy(gid->raw, &((struct sockaddr_in6 *)addr)->sin6_addr, 16);
+>> > > +               *(struct in6_addr *)&gid->raw =
+>> > > +                       ((struct sockaddr_in6 *)addr)->sin6_addr;
+>> > >                 break;
+>> > >         default:
+>> > >                 return -EINVAL;
+>> >
+>> > what happens if you replace 16 with sizeof(struct in6_addr)?
+>>
+>> Same thing: the problem is that gcc already knows the size of the structure we
+>> pass in here, and it is in fact shorter.
+>>
+>> I also tried changing the struct sockaddr pointer to a sockaddr_storage pointer,
+>> without success. Other approaches that do work are:
+>>
+>> - mark addr_event() as "noinline" to prevent gcc from seeing the true
+>> size of the
+>>   inetaddr_event stack object in rdma_ip2gid(). I considered this a little ugly.
+>>
+>> - change inetaddr_event to put a larger structure on the stack, using
+>>   sockaddr_storage or sockaddr_in6. This would be less efficient.
+>>
+>> - define a union of sockaddr_in and sockaddr_in6, and use that as the argument
+>>   to rdma_ip2gid/rdma_gid2ip, and change all callers to use that union type.
+>>   This is probably the cleanest approach as it gets rid of a lot of questionable
+>>   type casts, but it's a relatively large patch and also slightly less
+>> efficient as we have
+>>   to zero more stack storage in some cases.
 >
-> Hello Leon,
 >
-> Does this mean that there is user space software that depends on these names?
+> So inetaddr_event() assigns AF_INET so .sin_family and gcc warns about code
+> that is only executed if .sin_family == AF_INET6? Since this warning is the
+> result of incorrect interprocedural analysis by gcc, shouldn't this be
+> reported as a bug to the gcc authors?
 
-Yes, during initialization phase libibverbs reads sysfs entry [1] and
-the ibverbs hotplug relies on this information for every
-ibv_get_device_list call.
+I think the interprocedural analysis here is just a little worse than it could
+be, but it's not actually correct.  It's not gcc that prints the warning (if
+it did, then I'd agree it would be a gcc bug) but the warning is triggered
+intentionally by the fortified version of memcpy in include/linux/string.h.
 
-In the RDMA netlink patches, I added notion of device index and the
-RDMAtool operates on it, instead of the device name.
+The problem as I understand it is that gcc cannot guarantee that it
+tracks the value of addr->sa_family at  least as far as the size of the
+stack object, and it has no strict reason to do so, so the inlined
+rdma_ip2gid() will still contain both cases.
 
-> Shouldn't all user space software be independent of the device names assigned
-> by the kernel? For e.g. SCSI disks this was solved a long time ago by making
-> /dev/disk/by-id/${name derived from persistent ID} soft links available. An
-> example:
-
-Yes, it should, and I don't have enough knowledge to say why RDMA is "special"
-in this specific case.
-
->
-> $ ls -l /dev/disk/by-id/scsi-35001b44c698c2947
-> lrwxrwxrwx 1 root root 9 Jul 31 07:53 /dev/disk/by-id/scsi-35001b44c698c2947 -> ../../sda
->
-
-[1] https://github.com/linux-rdma/rdma-core/blob/master/libibverbs/init.c#L138
-
-> Bart.
-
---mlvFMpb4NrD3AMcD
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAll/VBwACgkQ5GN7iDZy
-WKd3vg//V+kEervYVg90Iad5Cr5bXTARaOCHR3UdmAAhgqkiPeamGtQ3UJ5RBXQh
-9plBG45Jd1HJUBEo4dxztt8ZglR1zCu1fDZNEUPEe/CXit9GpSADZkmmaYxURT1A
-eQewWiR8UyPM6lKPnQq8HH3qVKiDmAgBff/xgb2WeBUVrJYptVo++THVHZKqtDXI
-iReAO5FvUi7sgVhEsE64ouAiN6RnD9sfqcRq/t5YPKl2XgfcOo9VJhswMyuzGzWN
-BCXW06we5IKa6mcyzKOJMueDYMSp8uBYPvzB76Ic9MUb2J8K/gRUZrazcGq/2CcI
-begDBnNf/vl0fISfyMTiMVRmZ/OLSM/riLxAuqbTNc2+Ozf/M2e/xHL1lq1SK2Tn
-ft1FgzMDHdDEbU+thsgOEfcJLw7ypVkG6Lj7TySdX14ajvdHcJo9d/Zq9oZkY5zA
-7D+UimMxDDA/4MZcVFUIYpHCCxAlGw6+rjj1+KInHJWm4/6SAU9OsYDPr8mMe0bs
-2p+SNlPdfInO8Bv08XQH88jlAvcT+ECDcwElMnuwl64j0ojdBuktJKxht7/+EYUY
-6BHG0W2h4VrRi7j0idVHuOYjWMw5PfIFaTW3/Jd1fNHD9AJbLN02RY3RztQCMFUD
-8+yBU2VZt7bzwjYkVc/edVPOM9k08FYvIXHdVIb+zQIfmjehiPw=
-=JCir
------END PGP SIGNATURE-----
-
---mlvFMpb4NrD3AMcD--
+      Arnd
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
