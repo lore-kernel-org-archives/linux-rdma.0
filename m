@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-rc 08/14] RDMA/mlx4: Avoid potential derefence warning
-Date: Mon, 31 Jul 2017 10:09:18 +0300
-Message-ID: <20170731070924.7193-9-leon@kernel.org>
+Subject: [rdma-rc 09/14] RDMA/mlx4: Remove gfp_mask argument from acquire_group call
+Date: Mon, 31 Jul 2017 10:09:19 +0300
+Message-ID: <20170731070924.7193-10-leon@kernel.org>
 References: <20170731070924.7193-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170731070924.7193-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,34 +12,55 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The smatch complains about possible dereference, it is unclear from
-source how it can occur, since in case of failure to find/allocate
-group, the acquire_group() will return error.
+All callers of acquire_group() passed the same gfp_mask to it
+and it is safe to remove it.
 
-Avoid the following error, by changing IS_ERR() to be IS_ERR_OR_NULL().
-
-drivers/infiniband/hw/mlx4/mcg.c:964 mlx4_ib_mcg_multiplex_handler() error:
-	potential null dereference 'group'.  (acquire_group returns null)
-
-Fixes: b9c5d6a64358 ("IB/mlx4: Add multicast group (MCG) paravirtualization for SR-IOV")
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/mcg.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx4/mcg.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/mcg.c b/drivers/infiniband/hw/mlx4/mcg.c
-index b73f89700ef9..9c26a6837c62 100644
+index 9c26a6837c62..47fb889f81dc 100644
 --- a/drivers/infiniband/hw/mlx4/mcg.c
 +++ b/drivers/infiniband/hw/mlx4/mcg.c
-@@ -956,7 +956,7 @@ int mlx4_ib_mcg_multiplex_handler(struct ib_device *ibdev, int port,
+@@ -808,8 +808,7 @@ static ssize_t sysfs_show_group(struct device *dev,
+ 		struct device_attribute *attr, char *buf);
+
+ static struct mcast_group *acquire_group(struct mlx4_ib_demux_ctx *ctx,
+-					 union ib_gid *mgid, int create,
+-					 gfp_t gfp_mask)
++					 union ib_gid *mgid, int create)
+ {
+ 	struct mcast_group *group, *cur_group;
+ 	int is_mgid0;
+@@ -825,7 +824,7 @@ static struct mcast_group *acquire_group(struct mlx4_ib_demux_ctx *ctx,
+ 	if (!create)
+ 		return ERR_PTR(-ENOENT);
+
+-	group = kzalloc(sizeof *group, gfp_mask);
++	group = kzalloc(sizeof(*group), GFP_KERNEL);
+ 	if (!group)
+ 		return ERR_PTR(-ENOMEM);
+
+@@ -892,7 +891,7 @@ int mlx4_ib_mcg_demux_handler(struct ib_device *ibdev, int port, int slave,
+ 	case IB_MGMT_METHOD_GET_RESP:
+ 	case IB_SA_METHOD_DELETE_RESP:
  		mutex_lock(&ctx->mcg_table_lock);
- 		group = acquire_group(ctx, &rec->mgid, may_create, GFP_KERNEL);
+-		group = acquire_group(ctx, &rec->mgid, 0, GFP_KERNEL);
++		group = acquire_group(ctx, &rec->mgid, 0);
  		mutex_unlock(&ctx->mcg_table_lock);
--		if (IS_ERR(group)) {
-+		if (IS_ERR_OR_NULL(group)) {
+ 		if (IS_ERR(group)) {
+ 			if (mad->mad_hdr.method == IB_MGMT_METHOD_GET_RESP) {
+@@ -954,7 +953,7 @@ int mlx4_ib_mcg_multiplex_handler(struct ib_device *ibdev, int port,
+ 		req->sa_mad = *sa_mad;
+
+ 		mutex_lock(&ctx->mcg_table_lock);
+-		group = acquire_group(ctx, &rec->mgid, may_create, GFP_KERNEL);
++		group = acquire_group(ctx, &rec->mgid, may_create);
+ 		mutex_unlock(&ctx->mcg_table_lock);
+ 		if (IS_ERR_OR_NULL(group)) {
  			kfree(req);
- 			return PTR_ERR(group);
- 		}
 --
 2.13.3
 
