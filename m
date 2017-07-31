@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-rc 07/14] RDMA/uverbs: Prevent leak of reserved field
-Date: Mon, 31 Jul 2017 10:09:17 +0300
-Message-ID: <20170731070924.7193-8-leon@kernel.org>
+Subject: [rdma-rc 08/14] RDMA/mlx4: Avoid potential derefence warning
+Date: Mon, 31 Jul 2017 10:09:18 +0300
+Message-ID: <20170731070924.7193-9-leon@kernel.org>
 References: <20170731070924.7193-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170731070924.7193-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,31 +12,34 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-initialize to zero the response structure to prevent
-the leakage of "resp.reserved" field.
+The smatch complains about possible dereference, it is unclear from
+source how it can occur, since in case of failure to find/allocate
+group, the acquire_group() will return error.
 
-drivers/infiniband/core/uverbs_cmd.c:1178 ib_uverbs_resize_cq() warn:
-	check that 'resp.reserved' doesn't leak information
+Avoid the following error, by changing IS_ERR() to be IS_ERR_OR_NULL().
 
-Fixes: 33b9b3ee9709 ("IB: Add userspace support for resizing CQs")
+drivers/infiniband/hw/mlx4/mcg.c:964 mlx4_ib_mcg_multiplex_handler() error:
+	potential null dereference 'group'.  (acquire_group returns null)
+
+Fixes: b9c5d6a64358 ("IB/mlx4: Add multicast group (MCG) paravirtualization for SR-IOV")
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 2 +-
+ drivers/infiniband/hw/mlx4/mcg.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 2c98533a0203..c551d2b275fd 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1153,7 +1153,7 @@ ssize_t ib_uverbs_resize_cq(struct ib_uverbs_file *file,
- 			    int out_len)
- {
- 	struct ib_uverbs_resize_cq	cmd;
--	struct ib_uverbs_resize_cq_resp	resp;
-+	struct ib_uverbs_resize_cq_resp	resp = {};
- 	struct ib_udata                 udata;
- 	struct ib_cq			*cq;
- 	int				ret = -EINVAL;
+diff --git a/drivers/infiniband/hw/mlx4/mcg.c b/drivers/infiniband/hw/mlx4/mcg.c
+index b73f89700ef9..9c26a6837c62 100644
+--- a/drivers/infiniband/hw/mlx4/mcg.c
++++ b/drivers/infiniband/hw/mlx4/mcg.c
+@@ -956,7 +956,7 @@ int mlx4_ib_mcg_multiplex_handler(struct ib_device *ibdev, int port,
+ 		mutex_lock(&ctx->mcg_table_lock);
+ 		group = acquire_group(ctx, &rec->mgid, may_create, GFP_KERNEL);
+ 		mutex_unlock(&ctx->mcg_table_lock);
+-		if (IS_ERR(group)) {
++		if (IS_ERR_OR_NULL(group)) {
+ 			kfree(req);
+ 			return PTR_ERR(group);
+ 		}
 --
 2.13.3
 
