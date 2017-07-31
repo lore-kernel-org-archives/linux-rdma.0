@@ -1,84 +1,49 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 0/3] IB/IPoIB/core/drivers: patches for rc/next
-Date: Mon, 31 Jul 2017 15:04:08 -0400
-Message-ID: <1501527848.2725.2.camel@redhat.com>
-References: <20170630201236.5213.72919.stgit@scvm10.sc.intel.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH] infiniband: avoid overflow warning
+Date: Mon, 31 Jul 2017 21:19:22 +0200
+Message-ID: <CAK8P3a04DR6NT5jXJSmcw_cDjuKQ-y6f1SQz0cD9Bp=OaoaAhQ@mail.gmail.com>
+References: <20170731065016.2947796-1-arnd@arndb.de> <CAG9sBKNaFTAuf2gL9QLOCwvH-xAq7SXfaMZxNMFo7d=6cH3TkQ@mail.gmail.com>
+ <CAK8P3a2AP7WSF2HUe_4nxsNFqCit_djKdd3_5ab6P1YgP7bvJQ@mail.gmail.com>
+ <1501515117.2466.9.camel@wdc.com> <CAK8P3a1r22C-Uxs93OSbS4_eRNhKUTv8xwc6wwGahE80whCjyA@mail.gmail.com>
+ <1501517853.2466.12.camel@wdc.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170630201236.5213.72919.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <1501517853.2466.12.camel-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Niranjana Vishwanathapura <niranjana.vishwanathapura-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bartlomiej Dudek <bartlomiej.dudek-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org" <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "danielmicay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <danielmicay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-06-30 at 13:14 -0700, Dennis Dalessandro wrote:
-> Hi Doug,
-> 
-> Here are three more patches. The first two we are fine with going
-> into -next,
-> however the third is the patch Niranjana mentioned yesterday that
-> would
-> be good to get into the last RC if the train hasn't left the station
-> yet.
+On Mon, Jul 31, 2017 at 6:17 PM, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org> wrote:
+> On Mon, 2017-07-31 at 18:04 +0200, Arnd Bergmann wrote:
+>> On Mon, Jul 31, 2017 at 5:32 PM, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org> wrote:
+>> > So inetaddr_event() assigns AF_INET so .sin_family and gcc warns about code
+>> > that is only executed if .sin_family == AF_INET6? Since this warning is the
+>> > result of incorrect interprocedural analysis by gcc, shouldn't this be
+>> > reported as a bug to the gcc authors?
+>>
+>> I think the interprocedural analysis here is just a little worse than it could
+>> be, but it's not actually correct.  It's not gcc that prints the warning (if
+>> it did, then I'd agree it would be a gcc bug) but the warning is triggered
+>> intentionally by the fortified version of memcpy in include/linux/string.h.
+>>
+>> The problem as I understand it is that gcc cannot guarantee that it
+>> tracks the value of addr->sa_family at  least as far as the size of the
+>> stack object, and it has no strict reason to do so, so the inlined
+>> rdma_ip2gid() will still contain both cases.
+>
+> Hello Arnd,
+>
+> Had you already considered to uninline the rdma_ip2gid() function?
 
-Hi Denny,
+Not really, that would prevent the normal optimization from happening,
+so that would be worse than uninlining addr_event() as I tried.
 
-This pull is a bit confusing, but I figured it out.  I had already
-grabbed patch #1 from a previous time that you submitted the same patch
-(I know this because it still has the spelling error in the subject,
-and made it into Linus' tree with that spelling error, whereas the
-subject spelling is corrected in this submission).  So, #1 is done, and
-#3 was done too (I fixed it up to resolve the crash Leon referenced). 
-So, that only leaves #2 undone.  Adding it to -next right now.
+It would of course get rid of the warning, so if you think that's a better
+solution, I won't complain.
 
-> These have not been through zero-day but have been submitted.
-> Niranjana's patch
-> is pretty straight forward and I don't foresee obscure build issues.
-> So given
-> the time crunch for the slightest chance at 4.12 I'm taking a
-> calculated risk
-> and sending. The patch applies ontop of our 4.12 patches cleanly.
-> Builds and
-> tests in our environment.
-> 
-> Patches can can also be found in my GitHub repo at:
-> https://github.com/ddalessa/kernel/tree/for-4.13
-> 
-> ---
-> 
-> Bartlomiej Dudek (1):
->       IB/hfi1: Check return values from PCI config API calls
-> 
-> Mike Marciniszyn (1):
->       IB/iser: Handle lack of memory management extensions correctly
-> 
-> Niranjana Vishwanathapura (1):
->       IB/core,opa_vnic,hfi1,mlx5: Properly free rdma_netdev
-> 
-> 
->  drivers/infiniband/hw/hfi1/chip.c                 |   22 ++
->  drivers/infiniband/hw/hfi1/hfi.h                  |    2 
->  drivers/infiniband/hw/hfi1/pcie.c                 |  238
-> +++++++++++++++++----
->  drivers/infiniband/hw/hfi1/verbs.c                |    1 
->  drivers/infiniband/hw/hfi1/vnic.h                 |    1 
->  drivers/infiniband/hw/hfi1/vnic_main.c            |   19 +-
->  drivers/infiniband/hw/mlx5/main.c                 |   24 +-
->  drivers/infiniband/ulp/ipoib/ipoib_main.c         |    8 -
->  drivers/infiniband/ulp/iser/iser_verbs.c          |   10 +
->  drivers/infiniband/ulp/opa_vnic/opa_vnic_netdev.c |    8 -
->  include/rdma/ib_verbs.h                           |    6 -
->  11 files changed, 260 insertions(+), 79 deletions(-)
-> 
-> --
-> -Denny
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
+       Arnd
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
