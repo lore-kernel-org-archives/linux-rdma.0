@@ -1,95 +1,54 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 3/6] ibacm: Use daemon() instead of open coding
-Date: Mon, 31 Jul 2017 14:25:42 -0600
-Message-ID: <1501532745-28378-4-git-send-email-jgunthorpe@obsidianresearch.com>
-References: <1501532745-28378-1-git-send-email-jgunthorpe@obsidianresearch.com>
+Subject: [PATCH rdma-core 0/6] Systemd integration for ibacm
+Date: Mon, 31 Jul 2017 14:25:39 -0600
+Message-ID: <1501532745-28378-1-git-send-email-jgunthorpe@obsidianresearch.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1501532745-28378-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The version in glibc does the same things.
+This series makes ibacm socket activable and fine tunes the systemd
+integration by running with stderr directed to the logger.
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- ibacm/src/acm.c | 35 ++++++++---------------------------
- 1 file changed, 8 insertions(+), 27 deletions(-)
+socket activation will help solve some of our boot time ordering issues by
+allowing services that use rdma cm to startup without having to be concerned
+with the ordering relative to ibacm.
 
-diff --git a/ibacm/src/acm.c b/ibacm/src/acm.c
-index 648ee400f795fb..e5cfdcb8726a8f 100644
---- a/ibacm/src/acm.c
-+++ b/ibacm/src/acm.c
-@@ -28,6 +28,8 @@
-  * SOFTWARE.
-  */
- 
-+#define _GNU_SOURCE
-+
- #include <config.h>
- 
- #include <stdio.h>
-@@ -2933,29 +2935,6 @@ static int acm_open_lock_file(void)
- 	return 0;
- }
- 
--static void daemonize(void)
--{
--	pid_t pid, sid;
--
--	pid = fork();
--	if (pid)
--		exit(pid < 0);
--
--	sid = setsid();
--	if (sid < 0)
--		exit(1);
--
--	if (chdir("/"))
--		exit(1);
--
--	if(!freopen("/dev/null", "r", stdin))
--		exit(1);
--	if(!freopen("/dev/null", "w", stdout))
--		exit(1);
--	if(!freopen("/dev/null", "w", stderr))
--		exit(1);
--}
--
- static void show_usage(char *program)
- {
- 	printf("usage: %s\n", program);
-@@ -2969,7 +2948,7 @@ static void show_usage(char *program)
- 
- int main(int argc, char **argv)
- {
--	int i, op, daemon = 1;
-+	int i, op, as_daemon = 1;
- 
- 	while ((op = getopt(argc, argv, "DPA:O:")) != -1) {
- 		switch (op) {
-@@ -2977,7 +2956,7 @@ int main(int argc, char **argv)
- 			/* option no longer required */
- 			break;
- 		case 'P':
--			daemon = 0;
-+			as_daemon = 0;
- 			break;
- 		case 'A':
- 			addr_file = optarg;
-@@ -2991,8 +2970,10 @@ int main(int argc, char **argv)
- 		}
- 	}
- 
--	if (daemon)
--		daemonize();
-+	if (as_daemon) {
-+		if (daemon(0, 0))
-+			return EXIT_FAILURE;
-+	}
- 
- 	acm_set_options();
- 	if (acm_open_lock_file())
+This also makes ibacm more reliable when upgrading as systemd ensures there is
+never a time when the listening socket does not exist.
+
+Unlike other socket activation's this does not make ibacm demand start on
+first use, this is because the kernel uses ibacm for RDMA local services.
+
+https://github.com/linux-rdma/rdma-core/pull/176
+
+Jason Gunthorpe (6):
+  Detect if libsystemd is present
+  ibacm: Avoid using @prefix@
+  ibacm: Use daemon() instead of open coding
+  ibacm: Do not fork under systemd
+  ibacm: Adjust systemd service Description
+  ibacm: Support systemd socket activation
+
+ CMakeLists.txt                             |  7 +++
+ buildlib/FindSystemd.cmake                 | 30 +++++++++++
+ buildlib/cbuild                            | 18 ++++---
+ buildlib/fixup-include/systemd-sd-daemon.h | 11 ++++
+ debian/control                             |  1 +
+ debian/ibacm.install                       |  1 +
+ ibacm/CMakeLists.txt                       |  7 ++-
+ ibacm/ibacm.init.in                        |  6 +--
+ ibacm/ibacm.service.in                     |  7 +--
+ ibacm/ibacm.socket                         | 10 ++++
+ ibacm/man/ibacm.1                          |  4 ++
+ ibacm/src/acm.c                            | 87 +++++++++++++++++++-----------
+ rdma-core.spec                             |  3 ++
+ redhat/rdma-core.spec                      |  2 +
+ 14 files changed, 150 insertions(+), 44 deletions(-)
+ create mode 100644 buildlib/FindSystemd.cmake
+ create mode 100644 buildlib/fixup-include/systemd-sd-daemon.h
+ create mode 100644 ibacm/ibacm.socket
+
 -- 
 2.7.4
 
