@@ -1,90 +1,78 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 0/8] IB/hfi1, rdmavt, qib: patches for next
- 07/29/2017
-Date: Mon, 31 Jul 2017 15:27:14 -0400
-Message-ID: <1501529234.2725.6.camel@redhat.com>
-References: <20170729154124.21487.53119.stgit@scvm10.sc.intel.com>
+From: Daniel Micay <danielmicay@gmail.com>
+Subject: Re: [PATCH] infiniband: avoid overflow warning
+Date: Mon, 31 Jul 2017 15:35:37 -0400
+Message-ID: <1501529737.1180.1.camel@gmail.com>
+References: <20170731065016.2947796-1-arnd@arndb.de>
+         <CAG9sBKNaFTAuf2gL9QLOCwvH-xAq7SXfaMZxNMFo7d=6cH3TkQ@mail.gmail.com>
+         <CAK8P3a2AP7WSF2HUe_4nxsNFqCit_djKdd3_5ab6P1YgP7bvJQ@mail.gmail.com>
+         <1501515117.2466.9.camel@wdc.com>
+         <CAK8P3a1r22C-Uxs93OSbS4_eRNhKUTv8xwc6wwGahE80whCjyA@mail.gmail.com>
+         <1501517853.2466.12.camel@wdc.com>
+         <CAK8P3a04DR6NT5jXJSmcw_cDjuKQ-y6f1SQz0cD9Bp=OaoaAhQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170729154124.21487.53119.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jan Sokolowski <jan.sokolowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dean Luick <dean.luick-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAK8P3a04DR6NT5jXJSmcw_cDjuKQ-y6f1SQz0cD9Bp=OaoaAhQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Bart Van Assche <Bart.VanAssche@wdc.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "keescook@chromium.org" <keescook@chromium.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "parav@mellanox.com" <parav@mellanox.com>, "monis@mellanox.com" <monis@mellanox.com>, "Michal.Kalderon@cavium.com" <Michal.Kalderon@cavium.com>, "sean.hefty@intel.com" <sean.hefty@intel.com>, "Ariel.Elior@cavium.com" <Ariel.Elior@cavium.com>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, "davem@davemloft.net" <davem@davemloft.net>, "dledford@redhat.com" <dledford@redhat.com>, "noaos@mellanox.com" <noaos@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, 2017-07-29 at 08:43 -0700, Dennis Dalessandro wrote:
-> Hi Doug,
+On Mon, 2017-07-31 at 21:19 +0200, Arnd Bergmann wrote:
+> On Mon, Jul 31, 2017 at 6:17 PM, Bart Van Assche <Bart.VanAssche@wdc.c
+> om> wrote:
+> > On Mon, 2017-07-31 at 18:04 +0200, Arnd Bergmann wrote:
+> > > On Mon, Jul 31, 2017 at 5:32 PM, Bart Van Assche <Bart.VanAssche@w
+> > > dc.com> wrote:
+> > > > So inetaddr_event() assigns AF_INET so .sin_family and gcc warns
+> > > > about code
+> > > > that is only executed if .sin_family == AF_INET6? Since this
+> > > > warning is the
+> > > > result of incorrect interprocedural analysis by gcc, shouldn't
+> > > > this be
+> > > > reported as a bug to the gcc authors?
+> > > 
+> > > I think the interprocedural analysis here is just a little worse
+> > > than it could
+> > > be, but it's not actually correct.  It's not gcc that prints the
+> > > warning (if
+> > > it did, then I'd agree it would be a gcc bug) but the warning is
+> > > triggered
+> > > intentionally by the fortified version of memcpy in
+> > > include/linux/string.h.
+> > > 
+> > > The problem as I understand it is that gcc cannot guarantee that
+> > > it
+> > > tracks the value of addr->sa_family at  least as far as the size
+> > > of the
+> > > stack object, and it has no strict reason to do so, so the inlined
+> > > rdma_ip2gid() will still contain both cases.
+> > 
+> > Hello Arnd,
+> > 
+> > Had you already considered to uninline the rdma_ip2gid() function?
 > 
-> Here is the next set of patches our our drivers for 4.14.  There are
-> a couple
-> patches for link bugs and a bug fix from Mike for SGE compression.
-> This fixes an
-> issue in a previous commit that we sent for 4.14, since it's already
-> in your
-> tree on kernel.org I have included a fixes line. There are three
-> other minor
-> fixes as well.
+> Not really, that would prevent the normal optimization from happening,
+> so that would be worse than uninlining addr_event() as I tried.
 > 
-> Patches can can also be found in my GitHub repo at:
-> https://github.com/ddalessa/kernel/tree/for-4.14
+> It would of course get rid of the warning, so if you think that's a
+> better
+> solution, I won't complain.
 > 
-> ---
-> 
-> Alex Estrin (1):
->       IB/hfi1: Harden state transition to Armed and Active
-> 
-> Jan Sokolowski (2):
->       IB/hfi1: Do not enable disabled port on cable insert
->       IB/hfi1: Disambiguate corruption and uninitialized error cases
-> 
-> Michael J. Ruhl (1):
->       IB/hfi1: Only set fd pointer when base context is completely
-> initialized
-> 
-> Mike Marciniszyn (1):
->       IB/{rdmavt, hfi1, qib}: Fix panic with post receive and SGE
-> compression
-> 
-> Sebastian Sanchez (3):
->       IB/hfi1: Create workqueue for link events
->       IB/hfi1: Prevent link down request double queuing
->       IB/hfi1: Always perform offline transition
-> 
-> 
->  drivers/infiniband/hw/hfi1/chip.c         |  112 +++++++++++++++--
-> ------------
->  drivers/infiniband/hw/hfi1/chip.h         |    5 +
->  drivers/infiniband/hw/hfi1/driver.c       |    2 -
->  drivers/infiniband/hw/hfi1/file_ops.c     |   55 ++++++++------
->  drivers/infiniband/hw/hfi1/firmware.c     |    8 ++
->  drivers/infiniband/hw/hfi1/hfi.h          |    2 +
->  drivers/infiniband/hw/hfi1/init.c         |   26 +++++++
->  drivers/infiniband/hw/hfi1/pio.c          |    2 -
->  drivers/infiniband/hw/hfi1/platform.c     |   14 ++--
->  drivers/infiniband/hw/hfi1/ruc.c          |    6 +-
->  drivers/infiniband/hw/hfi1/sdma.c         |    2 -
->  drivers/infiniband/hw/hfi1/user_exp_rcv.c |    4 +
->  drivers/infiniband/hw/hfi1/user_exp_rcv.h |    3 +
->  drivers/infiniband/hw/hfi1/user_sdma.c    |    4 +
->  drivers/infiniband/hw/hfi1/user_sdma.h    |    3 +
->  drivers/infiniband/hw/qib/qib_ruc.c       |    6 +-
->  drivers/infiniband/sw/rdmavt/mr.c         |    8 +-
->  drivers/infiniband/sw/rdmavt/qp.c         |   16 ++--
->  18 files changed, 166 insertions(+), 112 deletions(-)
-> 
+>        Arnd
 
-Hi Denny,
+You could also use __memcpy but using a struct assignment seems cleaner.
 
-Series applied, thanks.
+The compile-time fortify errors aren't perfect since they rely on GCC
+being able to optimize them out and there can be dead code that has
+intentional overflows, etc. Their purpose is just to move many runtime
+errors (which don't have these false positives) to compile-time since
+it's a lot less painful to deal with a few false positives like this
+than errors slipping through to runtime (although it's less important
+since it's going to be using WARN for the time being).
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If the compile-time errors would removed, all of the real overflows
+would still be detected at runtime. One option would be having something
+like #define __NO_FORTIFY but *only* disabling the compile-time part of
+the checks to work around false positives. *shrug*
