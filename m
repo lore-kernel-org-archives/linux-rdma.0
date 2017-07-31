@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-rc 10/14] RDMA/mlx5: Fix existence check for extended address vector
-Date: Mon, 31 Jul 2017 10:09:20 +0300
-Message-ID: <20170731070924.7193-11-leon@kernel.org>
+Subject: [rdma-rc 12/14] RDMA/usnic: Fix remove address space warning
+Date: Mon, 31 Jul 2017 10:09:22 +0300
+Message-ID: <20170731070924.7193-13-leon@kernel.org>
 References: <20170731070924.7193-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170731070924.7193-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,44 +12,91 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The extended address vector is the highest bit in be32 variable,
-but it was compared with the lowest. This patch fixes the endianness
-of that check and removes already declared define.
+Sparse tool complains with the following error:
+drivers/infiniband/hw/usnic/usnic_ib_main.c:445:16: warning: cast removes
+	address space of expression
 
-Fixes: 17d2f88f92ce ("IB/mlx5: Add ODP atomics support")
-Reviewed-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Fix it by doing casting on correct field and convert function helper which
+sets ifaddr to be void, because there are no users who are interested in
+returned value.
+
+Fixes: c7845bcafe4d ("IB/usnic: Add UDP support in u*verbs.c, u*main.c and u*util.h")
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/odp.c | 2 +-
- include/linux/mlx5/qp.h          | 1 -
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ drivers/infiniband/hw/usnic/usnic_fwd.c     | 12 ++----------
+ drivers/infiniband/hw/usnic/usnic_fwd.h     |  2 +-
+ drivers/infiniband/hw/usnic/usnic_ib_main.c | 10 ++++++----
+ 3 files changed, 9 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index ae0746754008..3d701c7a4c91 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -939,7 +939,7 @@ static int mlx5_ib_mr_initiator_pfault_handler(
+diff --git a/drivers/infiniband/hw/usnic/usnic_fwd.c b/drivers/infiniband/hw/usnic/usnic_fwd.c
+index 3c37dd59c04e..995a26b65156 100644
+--- a/drivers/infiniband/hw/usnic/usnic_fwd.c
++++ b/drivers/infiniband/hw/usnic/usnic_fwd.c
+@@ -110,20 +110,12 @@ void usnic_fwd_set_mac(struct usnic_fwd_dev *ufdev, char mac[ETH_ALEN])
+ 	spin_unlock(&ufdev->lock);
+ }
  
- 	if (qp->ibqp.qp_type != IB_QPT_RC) {
- 		av = *wqe;
--		if (av->dqp_dct & be32_to_cpu(MLX5_WQE_AV_EXT))
-+		if (av->dqp_dct & cpu_to_be32(MLX5_EXTENDED_UD_AV))
- 			*wqe += sizeof(struct mlx5_av);
- 		else
- 			*wqe += sizeof(struct mlx5_base_av);
-diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
-index 6f41270d80c0..f378dc0e7eaf 100644
---- a/include/linux/mlx5/qp.h
-+++ b/include/linux/mlx5/qp.h
-@@ -212,7 +212,6 @@ struct mlx5_wqe_ctrl_seg {
- #define MLX5_WQE_CTRL_OPCODE_MASK 0xff
- #define MLX5_WQE_CTRL_WQE_INDEX_MASK 0x00ffff00
- #define MLX5_WQE_CTRL_WQE_INDEX_SHIFT 8
--#define MLX5_WQE_AV_EXT 0x80000000
+-int usnic_fwd_add_ipaddr(struct usnic_fwd_dev *ufdev, __be32 inaddr)
++void usnic_fwd_add_ipaddr(struct usnic_fwd_dev *ufdev, __be32 inaddr)
+ {
+-	int status;
+-
+ 	spin_lock(&ufdev->lock);
+-	if (ufdev->inaddr == 0) {
++	if (!ufdev->inaddr)
+ 		ufdev->inaddr = inaddr;
+-		status = 0;
+-	} else {
+-		status = -EFAULT;
+-	}
+ 	spin_unlock(&ufdev->lock);
+-
+-	return status;
+ }
  
- enum {
- 	MLX5_ETH_WQE_L3_INNER_CSUM      = 1 << 4,
+ void usnic_fwd_del_ipaddr(struct usnic_fwd_dev *ufdev)
+diff --git a/drivers/infiniband/hw/usnic/usnic_fwd.h b/drivers/infiniband/hw/usnic/usnic_fwd.h
+index b2ac22be0731..0b2cc4e79707 100644
+--- a/drivers/infiniband/hw/usnic/usnic_fwd.h
++++ b/drivers/infiniband/hw/usnic/usnic_fwd.h
+@@ -75,7 +75,7 @@ struct usnic_fwd_dev *usnic_fwd_dev_alloc(struct pci_dev *pdev);
+ void usnic_fwd_dev_free(struct usnic_fwd_dev *ufdev);
+ 
+ void usnic_fwd_set_mac(struct usnic_fwd_dev *ufdev, char mac[ETH_ALEN]);
+-int usnic_fwd_add_ipaddr(struct usnic_fwd_dev *ufdev, __be32 inaddr);
++void usnic_fwd_add_ipaddr(struct usnic_fwd_dev *ufdev, __be32 inaddr);
+ void usnic_fwd_del_ipaddr(struct usnic_fwd_dev *ufdev);
+ void usnic_fwd_carrier_up(struct usnic_fwd_dev *ufdev);
+ void usnic_fwd_carrier_down(struct usnic_fwd_dev *ufdev);
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+index c0c1e8b027b1..4c13429d5b07 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+@@ -353,7 +353,7 @@ static void *usnic_ib_device_add(struct pci_dev *dev)
+ {
+ 	struct usnic_ib_dev *us_ibdev;
+ 	union ib_gid gid;
+-	struct in_ifaddr *in;
++	struct in_device *ind;
+ 	struct net_device *netdev;
+ 
+ 	usnic_dbg("\n");
+@@ -442,9 +442,11 @@ static void *usnic_ib_device_add(struct pci_dev *dev)
+ 	if (netif_carrier_ok(us_ibdev->netdev))
+ 		usnic_fwd_carrier_up(us_ibdev->ufdev);
+ 
+-	in = ((struct in_device *)(netdev->ip_ptr))->ifa_list;
+-	if (in != NULL)
+-		usnic_fwd_add_ipaddr(us_ibdev->ufdev, in->ifa_address);
++	ind = in_dev_get(netdev);
++	if (ind->ifa_list)
++		usnic_fwd_add_ipaddr(us_ibdev->ufdev,
++				     ind->ifa_list->ifa_address);
++	in_dev_put(ind);
+ 
+ 	usnic_mac_ip_to_gid(us_ibdev->netdev->perm_addr,
+ 				us_ibdev->ufdev->inaddr, &gid.raw[0]);
 -- 
 2.13.3
 
