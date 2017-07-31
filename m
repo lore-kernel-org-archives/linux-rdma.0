@@ -1,60 +1,47 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: RDMA miniconf: Persistent device naming
-Date: Mon, 31 Jul 2017 11:43:12 -0600
-Message-ID: <20170731174312.GA20133@obsidianresearch.com>
-References: <20170731113633.GU13672@mtr-leonro.local>
- <1501513246.2466.1.camel@wdc.com>
- <20170731164705.GB28204@obsidianresearch.com>
- <20170731165453.GD13672@mtr-leonro.local>
- <20170731170018.GA19061@obsidianresearch.com>
- <20170731170804.GE13672@mtr-leonro.local>
- <20170731172436.GA19375@obsidianresearch.com>
- <20170731173813.GH13672@mtr-leonro.local>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [net-next PATCH] IB/hns: include linux/interrupt.h
+Date: Mon, 31 Jul 2017 14:44:05 -0400
+Message-ID: <1501526645.2725.0.camel@redhat.com>
+References: <20170728133539.516824-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170731173813.GH13672-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20170728133539.516824-1-arnd-r2nGTMty4D4@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "David S . Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Florian Westphal <fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org>, Salil <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jul 31, 2017 at 08:38:13PM +0300, Leon Romanovsky wrote:
-> On Mon, Jul 31, 2017 at 11:24:36AM -0600, Jason Gunthorpe wrote:
-> > On Mon, Jul 31, 2017 at 08:08:04PM +0300, Leon Romanovsky wrote:
-> > > On Mon, Jul 31, 2017 at 11:00:18AM -0600, Jason Gunthorpe wrote:
-> > > > On Mon, Jul 31, 2017 at 07:54:53PM +0300, Leon Romanovsky wrote:
-> > > > > I want to take RDMA one step more,
-> > > > > https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames/
-> > > > >
-> > > > > I called the topic name "persistent", but the right name is "predictable".
-> > > >
-> > > > Once renaming is possible then having udev rework the names isn't a
-> > > > big step anymore.
-> > >
-> > > You need predictable starting point to perform automatic rename,
-> > > currently neither index, neither names are not.
-> >
-> > udev has all the information needed to produce the naming pattern in
-> > the link above.
-> >
-> > You'd end up with names like rdmap3s1f1 for instance.
+On Fri, 2017-07-28 at 15:35 +0200, Arnd Bergmann wrote:
+> I ran into this build error on linux-next:
 > 
-> I'm not so convinced that udev scripts digging into various outputs
-> (lspci, e.t.c.) are better solution than kernel handles everything
-> exactly as netdev.
+> drivers/infiniband/hw/hns/hns_roce_eq.c:477:8: error: unknown type
+> name 'irqreturn_t'
+>  static irqreturn_t hns_roce_msi_x_interrupt(int irq, void *eq_ptr)
+>         ^~~~~~~~~~~
+> drivers/infiniband/hw/hns/hns_roce_eq.c: In function
+> 'hns_roce_msi_x_interrupt':
+> drivers/infiniband/hw/hns/hns_roce_eq.c:485:9: error: implicit
+> declaration of function 'IRQ_RETVAL'; did you mean 'BPF_RVAL'? [-
+> Werror=implicit-function-declaration]
+>   return IRQ_RETVAL(int_work);
+> 
+> I have bisected this to a seemingly unrelated change that happened
+> to remove some indirect header inclusions. Simply including the
+> required header explicitly fixes the build failure.
+> 
+> Fixes: 09c7570480f7 ("xfrm: remove flow cache")
+> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+> 
 
-I'm confused. You linked to PredictableNetworkInterfaceNames, which is
-entirely implemented by udev.
+Thanks, applied.
 
-The only kernel support for netdev is the ability to rename netdevs,
-everything else is done in userspace, by udev on modern systems.
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
-The sooner we get the same kernel API for RDMA the better, I'd run it
-over rdma netlink I think.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
