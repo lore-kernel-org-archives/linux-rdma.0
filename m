@@ -1,34 +1,42 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [Ofvwg] [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG)
- meeting this week - 08/01/17 at 11:00PDT
-Date: Mon, 31 Jul 2017 16:55:24 -0600
-Message-ID: <20170731225524.GA30733@obsidianresearch.com>
-References: <HE1PR0501MB2812FEE6C6AF9DDC4BED7EB1B1BD0@HE1PR0501MB2812.eurprd05.prod.outlook.com>
- <20170731074709.GA10930@infradead.org>
- <HE1PR0501MB2812B48E77EBBC6420F24A32B1B20@HE1PR0501MB2812.eurprd05.prod.outlook.com>
+Subject: Re: [PATCH rdma-core 6/6] ibacm: Support systemd socket activation
+Date: Mon, 31 Jul 2017 16:56:53 -0600
+Message-ID: <20170731225653.GB30733@obsidianresearch.com>
+References: <1501532745-28378-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1501532745-28378-7-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB16373A@ORSMSX109.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <HE1PR0501MB2812B48E77EBBC6420F24A32B1B20-692Kmc8YnlIVrnpjwTCbp8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB16373A-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "'ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org'" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jul 31, 2017 at 08:29:51PM +0000, Liran Liss wrote:
-> > From: Christoph Hellwig [mailto:hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org]
-> > Please present any kernel API idea on this list before doing phone calls on it.
+On Mon, Jul 31, 2017 at 08:42:40PM +0000, Hefty, Sean wrote:
+> > This lets systemd create the socket (to the admin's specifications)
+> > and starts ibacm when something connects to it.
+> > 
+> > We are using this to improve boot ordering by ensuring that any
+> > rdma_cm clients that would use ibacm block until ibacm is started up
+> > properly.
+> > A user could also use this to demand start ibacm, but that means it
+> > would not plug into kernel RMDA local services for caching.
+> > 
+> > For security, the socket will be created on the lo interface by
+> > default.
+> > The admin can change this back to the old daemon behavior with a
+> > systemd drop in.
 > 
-> Hi Christoph,
-> 
-> At this stage, we just wanted to discuss the concepts and listen to considerations and concerns as a head start.
-> Obviously, the actual API and implementation would be discussed on the list following an initial RFC/patch-set...
-> 
-> Basically, we want to follow the same lines of the user-space API
-> described in [1], with additional kernel user-cases.
+> Calling this change out to increase visibility.
 
-Is there an upstream kernel user of this feature in the works?
+Right, is the remote access use case typical?
+
+Someone should also add some systemd compartmentalization directives
+(see srp_daemon_port.service.in for some ideas) to help harden things
+for an unpriv access daemon.
 
 Jason
 --
