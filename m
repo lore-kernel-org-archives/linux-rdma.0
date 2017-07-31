@@ -1,73 +1,55 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: Kernel oops
-Date: Mon, 31 Jul 2017 08:39:01 +0300
-Message-ID: <20170731053901.GR13672@mtr-leonro.local>
-References: <20170724211606.GA1705@obsidianresearch.com>
- <CAAKD3BAdB2aRk3WGdbeDYof6dUfkEwhQf27cG0FWe5DRuQ15NQ@mail.gmail.com>
- <CAAKD3BDFrTMMgX0nErD50rp2je=HC9zeaYWHDKf0mqQwc5fM9g@mail.gmail.com>
- <20170727204437.GA16986@obsidianresearch.com>
- <20170730102514.GQ13672@mtr-leonro.local>
- <20170731035208.GA30615@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="FRaepaAnLTQkJ4tS"
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: [PATCH] infiniband: avoid overflow warning
+Date: Mon, 31 Jul 2017 08:50:05 +0200
+Message-ID: <20170731065016.2947796-1-arnd@arndb.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170731035208.GA30615-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Daniel Micay <danielmicay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+A sockaddr_in structure on the stack getting passed into rdma_ip2gid
+triggers this warning, since we memcpy into a larger sockaddr_in6
+structure:
 
---FRaepaAnLTQkJ4tS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In function 'memcpy',
+    inlined from 'rdma_ip2gid' at include/rdma/ib_addr.h:175:3,
+    inlined from 'addr_event.isra.4.constprop' at drivers/infiniband/core/roce_gid_mgmt.c:693:2,
+    inlined from 'inetaddr_event' at drivers/infiniband/core/roce_gid_mgmt.c:716:9:
+include/linux/string.h:305:4: error: call to '__read_overflow2' declared with attribute error: detected read beyond size of object passed as 2nd parameter
 
-On Sun, Jul 30, 2017 at 09:52:08PM -0600, Jason Gunthorpe wrote:
-> On Sun, Jul 30, 2017 at 01:25:14PM +0300, Leon Romanovsky wrote:
-> > > Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> > > Tested-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> > >
-> > > Please add a fixes line
-> >
-> > Hi Jason,
-> >
-> > I queued it [1] for submission, once the IPoIB fixes [2] will be
-> > accepted, I'll submit it.
->
-> Isn't fixing random kernel memory corruption triggerable by userspace
-> exactly the sort of thing we should be rushing into Linus's tree?
+The warning seems appropriate here, but the code is also clearly
+correct, so we really just want to shut up this instance of the
+output.
 
-I'm still looking on the easiest way to submit patches and want to see
-that everything is working before "rushing".
+The best way I found so far is to avoid the memcpy() call and instead
+replace it with a struct assignment.
 
-Thanks
+Fixes: 6974f0c4555e ("include/linux/string.h: add the option of fortified string.h functions")
+Cc: Daniel Micay <danielmicay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+---
+ include/rdma/ib_addr.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
->
-> Jason
+diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
+index 7aca12188ef3..ec5008cf5d51 100644
+--- a/include/rdma/ib_addr.h
++++ b/include/rdma/ib_addr.h
+@@ -172,7 +172,8 @@ static inline int rdma_ip2gid(struct sockaddr *addr, union ib_gid *gid)
+ 				       (struct in6_addr *)gid);
+ 		break;
+ 	case AF_INET6:
+-		memcpy(gid->raw, &((struct sockaddr_in6 *)addr)->sin6_addr, 16);
++		*(struct in6_addr *)&gid->raw =
++			((struct sockaddr_in6 *)addr)->sin6_addr;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+-- 
+2.9.0
 
---FRaepaAnLTQkJ4tS
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAll+wnQACgkQ5GN7iDZy
-WKc4oA//asqYoQgmA6GC383AIVMhABEBV8W/z62WFNsL1LeuhXMoYvZpPpE22/pV
-dSYHe2Tjyic0ChEYhiNYMWU+Ix64hqppZV7FDEjSyt9kAlDUj/TtYHa6XlDx6IJn
-1B1cCUE/rk7f6ZbXmlEoPzuAQnMciz2bIOBjXjTtlWcYEpf/QbRFtPa4zQwoi8kH
-V4Lbfw5XPRqXrvQwHjfgzGQAoLpKXIVxAvfisjpL3khUYd6Gu9+9b1EcmPNRBvI1
-9bXw1tDahAEQpVPtDE9bRC3pi5y09UMJNPrOmXXqoOyyKPVJ/jyDn6vcfoOFwiXP
-qNHuDlmCi1Bzj579x81P6bp/glTJdbJEU4B6f6kJwsMP1/lWT6Othyg3RSiprjCP
-PbSXsGZbsTdLeK+9OSIe89tuCrYv5SG44nOFDmsOsOqjDo4KS/JqnS8H/ZK0SlZF
-/l05165D/7teB4pPMfALSNhsfNYKe2lXLBeOYiPWFF8Tr2oFPd5IzasC7IAx2Ndx
-QntWhJqRwgNtVIFRI6rdtHYX1Zgbawvhe9SgN9/eAFaWMSz3p39jvLPpJ4RYaLEN
-WJzrlZ8LRpO6x2qnXIm5DWOarzHfFVRbsD7yRBcQI1yc080YUDLfw1eUsIPRartb
-dFQOPZmSsybE38e0gISaSx0EtJtGdHywOsmkCp1UdW8Y+0FpzJw=
-=K1fE
------END PGP SIGNATURE-----
-
---FRaepaAnLTQkJ4tS--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
