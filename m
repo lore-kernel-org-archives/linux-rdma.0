@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-rc 03/14] RDMA/core: Remove unimplemented node_types and node transport
-Date: Mon, 31 Jul 2017 10:09:13 +0300
-Message-ID: <20170731070924.7193-4-leon@kernel.org>
+Subject: [rdma-rc 13/14] RDMA/mthca: Make explicit conversion to 64bit value
+Date: Mon, 31 Jul 2017 10:09:23 +0300
+Message-ID: <20170731070924.7193-14-leon@kernel.org>
 References: <20170731070924.7193-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170731070924.7193-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,93 +12,36 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-There is no need to carry code, which is not implemented in any
-underlying hardware. This patch removes unimplemented node_types and
-their respective node transport layers.
+The "lg" variable is declared as int so in all places where
+this variable is used as a shift operand, the output will be
+int too.
+
+This produces the following smatch warning:
+drivers/infiniband/hw/mthca/mthca_cmd.c:701 mthca_map_cmd() warn:
+	should '1 << lg' be a 64 bit type?
+
+Simple declaration of "1" to be "1ULL" will fix the issue.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/sysfs.c |  3 ---
- drivers/infiniband/core/verbs.c |  5 -----
- include/rdma/ib_verbs.h         | 16 ++++++----------
- 3 files changed, 6 insertions(+), 18 deletions(-)
+ drivers/infiniband/hw/mthca/mthca_cmd.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 7ebe1ef23652..d455d00219a1 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -1146,10 +1146,7 @@ static ssize_t show_node_type(struct device *device,
- 	switch (dev->node_type) {
- 	case RDMA_NODE_IB_CA:	  return sprintf(buf, "%d: CA\n", dev->node_type);
- 	case RDMA_NODE_RNIC:	  return sprintf(buf, "%d: RNIC\n", dev->node_type);
--	case RDMA_NODE_USNIC:	  return sprintf(buf, "%d: usNIC\n", dev->node_type);
- 	case RDMA_NODE_USNIC_UDP: return sprintf(buf, "%d: usNIC UDP\n", dev->node_type);
--	case RDMA_NODE_IB_SWITCH: return sprintf(buf, "%d: switch\n", dev->node_type);
--	case RDMA_NODE_IB_ROUTER: return sprintf(buf, "%d: router\n", dev->node_type);
- 	default:		  return sprintf(buf, "%d: <unknown>\n", dev->node_type);
- 	}
- }
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 7f8fe443df46..1d57c60d8aeb 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -182,13 +182,9 @@ rdma_node_get_transport(enum rdma_node_type node_type)
- {
- 	switch (node_type) {
- 	case RDMA_NODE_IB_CA:
--	case RDMA_NODE_IB_SWITCH:
--	case RDMA_NODE_IB_ROUTER:
- 		return RDMA_TRANSPORT_IB;
- 	case RDMA_NODE_RNIC:
- 		return RDMA_TRANSPORT_IWARP;
--	case RDMA_NODE_USNIC:
--		return RDMA_TRANSPORT_USNIC;
- 	case RDMA_NODE_USNIC_UDP:
- 		return RDMA_TRANSPORT_USNIC_UDP;
- 	default:
-@@ -207,7 +203,6 @@ enum rdma_link_layer rdma_port_get_link_layer(struct ib_device *device, u8 port_
- 	case RDMA_TRANSPORT_IB:
- 		return IB_LINK_LAYER_INFINIBAND;
- 	case RDMA_TRANSPORT_IWARP:
--	case RDMA_TRANSPORT_USNIC:
- 	case RDMA_TRANSPORT_USNIC_UDP:
- 		return IB_LINK_LAYER_ETHERNET;
- 	default:
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index ca7ed9769d72..39b789276d13 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -93,12 +93,9 @@ struct ib_gid_attr {
-
- enum rdma_node_type {
- 	/* IB values map to NodeInfo:NodeType. */
--	RDMA_NODE_IB_CA 	= 1,
--	RDMA_NODE_IB_SWITCH,
--	RDMA_NODE_IB_ROUTER,
--	RDMA_NODE_RNIC,
--	RDMA_NODE_USNIC,
--	RDMA_NODE_USNIC_UDP,
-+	RDMA_NODE_IB_CA		= 1,
-+	RDMA_NODE_RNIC		= 4,
-+	RDMA_NODE_USNIC_UDP	= 6,
- };
-
- enum {
-@@ -107,10 +104,9 @@ enum {
- };
-
- enum rdma_transport_type {
--	RDMA_TRANSPORT_IB,
--	RDMA_TRANSPORT_IWARP,
--	RDMA_TRANSPORT_USNIC,
--	RDMA_TRANSPORT_USNIC_UDP
-+	RDMA_TRANSPORT_IB		= 0,
-+	RDMA_TRANSPORT_IWARP		= 1,
-+	RDMA_TRANSPORT_USNIC_UDP	= 3,
- };
-
- enum rdma_protocol_type {
---
+diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.c b/drivers/infiniband/hw/mthca/mthca_cmd.c
+index 9d83a53c0c67..1052c35f2e75 100644
+--- a/drivers/infiniband/hw/mthca/mthca_cmd.c
++++ b/drivers/infiniband/hw/mthca/mthca_cmd.c
+@@ -698,7 +698,7 @@ static int mthca_map_cmd(struct mthca_dev *dev, u16 op, struct mthca_icm *icm,
+ 		for (i = 0; i < mthca_icm_size(&iter) >> lg; ++i) {
+ 			if (virt != -1) {
+ 				pages[nent * 2] = cpu_to_be64(virt);
+-				virt += 1 << lg;
++				virt += 1ULL << lg;
+ 			}
+ 
+ 			pages[nent * 2 + 1] =
+-- 
 2.13.3
 
 --
