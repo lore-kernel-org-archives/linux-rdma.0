@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-rc 09/14] RDMA/mlx4: Remove gfp_mask argument from acquire_group call
-Date: Mon, 31 Jul 2017 10:09:19 +0300
-Message-ID: <20170731070924.7193-10-leon@kernel.org>
+Subject: [rdma-rc 11/14] RDMA/bnxt_re: Delete unsupported modify_port function
+Date: Mon, 31 Jul 2017 10:09:21 +0300
+Message-ID: <20170731070924.7193-12-leon@kernel.org>
 References: <20170731070924.7193-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170731070924.7193-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,56 +12,73 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-All callers of acquire_group() passed the same gfp_mask to it
-and it is safe to remove it.
+There is no need to return always zero for function which is not
+supported. The IB stack treats uninitialized ib_device->functions as
+not implemented.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/mcg.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 17 -----------------
+ drivers/infiniband/hw/bnxt_re/ib_verbs.h |  3 ---
+ drivers/infiniband/hw/bnxt_re/main.c     |  1 -
+ 3 files changed, 21 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/mcg.c b/drivers/infiniband/hw/mlx4/mcg.c
-index 9c26a6837c62..47fb889f81dc 100644
---- a/drivers/infiniband/hw/mlx4/mcg.c
-+++ b/drivers/infiniband/hw/mlx4/mcg.c
-@@ -808,8 +808,7 @@ static ssize_t sysfs_show_group(struct device *dev,
- 		struct device_attribute *attr, char *buf);
-
- static struct mcast_group *acquire_group(struct mlx4_ib_demux_ctx *ctx,
--					 union ib_gid *mgid, int create,
--					 gfp_t gfp_mask)
-+					 union ib_gid *mgid, int create)
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index f0e01b3ac711..5dc6e7ce3ab9 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -313,23 +313,6 @@ int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
+ 	return 0;
+ }
+ 
+-int bnxt_re_modify_port(struct ib_device *ibdev, u8 port_num,
+-			int port_modify_mask,
+-			struct ib_port_modify *port_modify)
+-{
+-	switch (port_modify_mask) {
+-	case IB_PORT_SHUTDOWN:
+-		break;
+-	case IB_PORT_INIT_TYPE:
+-		break;
+-	case IB_PORT_RESET_QKEY_CNTR:
+-		break;
+-	default:
+-		break;
+-	}
+-	return 0;
+-}
+-
+ int bnxt_re_get_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 			       struct ib_port_immutable *immutable)
  {
- 	struct mcast_group *group, *cur_group;
- 	int is_mgid0;
-@@ -825,7 +824,7 @@ static struct mcast_group *acquire_group(struct mlx4_ib_demux_ctx *ctx,
- 	if (!create)
- 		return ERR_PTR(-ENOENT);
-
--	group = kzalloc(sizeof *group, gfp_mask);
-+	group = kzalloc(sizeof(*group), GFP_KERNEL);
- 	if (!group)
- 		return ERR_PTR(-ENOMEM);
-
-@@ -892,7 +891,7 @@ int mlx4_ib_mcg_demux_handler(struct ib_device *ibdev, int port, int slave,
- 	case IB_MGMT_METHOD_GET_RESP:
- 	case IB_SA_METHOD_DELETE_RESP:
- 		mutex_lock(&ctx->mcg_table_lock);
--		group = acquire_group(ctx, &rec->mgid, 0, GFP_KERNEL);
-+		group = acquire_group(ctx, &rec->mgid, 0);
- 		mutex_unlock(&ctx->mcg_table_lock);
- 		if (IS_ERR(group)) {
- 			if (mad->mad_hdr.method == IB_MGMT_METHOD_GET_RESP) {
-@@ -954,7 +953,7 @@ int mlx4_ib_mcg_multiplex_handler(struct ib_device *ibdev, int port,
- 		req->sa_mad = *sa_mad;
-
- 		mutex_lock(&ctx->mcg_table_lock);
--		group = acquire_group(ctx, &rec->mgid, may_create, GFP_KERNEL);
-+		group = acquire_group(ctx, &rec->mgid, may_create);
- 		mutex_unlock(&ctx->mcg_table_lock);
- 		if (IS_ERR_OR_NULL(group)) {
- 			kfree(req);
---
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.h b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
+index a0bb7e33d7ca..1df11ed272ea 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.h
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
+@@ -141,9 +141,6 @@ int bnxt_re_modify_device(struct ib_device *ibdev,
+ 			  struct ib_device_modify *device_modify);
+ int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
+ 		       struct ib_port_attr *port_attr);
+-int bnxt_re_modify_port(struct ib_device *ibdev, u8 port_num,
+-			int port_modify_mask,
+-			struct ib_port_modify *port_modify);
+ int bnxt_re_get_port_immutable(struct ib_device *ibdev, u8 port_num,
+ 			       struct ib_port_immutable *immutable);
+ int bnxt_re_query_pkey(struct ib_device *ibdev, u8 port_num,
+diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+index ceae2d92fb08..deec8002dd36 100644
+--- a/drivers/infiniband/hw/bnxt_re/main.c
++++ b/drivers/infiniband/hw/bnxt_re/main.c
+@@ -474,7 +474,6 @@ static int bnxt_re_register_ib(struct bnxt_re_dev *rdev)
+ 	ibdev->modify_device		= bnxt_re_modify_device;
+ 
+ 	ibdev->query_port		= bnxt_re_query_port;
+-	ibdev->modify_port		= bnxt_re_modify_port;
+ 	ibdev->get_port_immutable	= bnxt_re_get_port_immutable;
+ 	ibdev->query_pkey		= bnxt_re_query_pkey;
+ 	ibdev->query_gid		= bnxt_re_query_gid;
+-- 
 2.13.3
 
 --
