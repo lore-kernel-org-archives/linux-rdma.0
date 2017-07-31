@@ -1,47 +1,56 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [net-next PATCH] IB/hns: include linux/interrupt.h
-Date: Mon, 31 Jul 2017 14:44:05 -0400
-Message-ID: <1501526645.2725.0.camel@redhat.com>
-References: <20170728133539.516824-1-arnd@arndb.de>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [rdma-rc 08/14] RDMA/mlx4: Avoid potential derefence warning
+Date: Mon, 31 Jul 2017 22:02:08 +0300
+Message-ID: <20170731190208.evfjlejsp6xce3m2@mwanda>
+References: <20170731070924.7193-1-leon@kernel.org>
+ <20170731070924.7193-9-leon@kernel.org>
+ <20170731162133.GB13672@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170728133539.516824-1-arnd-r2nGTMty4D4@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170731162133.GB13672-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "David S . Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Florian Westphal <fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org>, Salil <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-07-28 at 15:35 +0200, Arnd Bergmann wrote:
-> I ran into this build error on linux-next:
+On Mon, Jul 31, 2017 at 07:21:33PM +0300, Leon Romanovsky wrote:
+> On Mon, Jul 31, 2017 at 10:09:18AM +0300, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> >
+> > The smatch complains about possible dereference, it is unclear from
+> > source how it can occur, since in case of failure to find/allocate
+> > group, the acquire_group() will return error.
+> >
+> > Avoid the following error, by changing IS_ERR() to be IS_ERR_OR_NULL().
+> >
+> > drivers/infiniband/hw/mlx4/mcg.c:964 mlx4_ib_mcg_multiplex_handler() error:
+> > 	potential null dereference 'group'.  (acquire_group returns null)
+> >
+> > Fixes: b9c5d6a64358 ("IB/mlx4: Add multicast group (MCG) paravirtualization for SR-IOV")
+> > Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > ---
+> >  drivers/infiniband/hw/mlx4/mcg.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
 > 
-> drivers/infiniband/hw/hns/hns_roce_eq.c:477:8: error: unknown type
-> name 'irqreturn_t'
->  static irqreturn_t hns_roce_msi_x_interrupt(int irq, void *eq_ptr)
->         ^~~~~~~~~~~
-> drivers/infiniband/hw/hns/hns_roce_eq.c: In function
-> 'hns_roce_msi_x_interrupt':
-> drivers/infiniband/hw/hns/hns_roce_eq.c:485:9: error: implicit
-> declaration of function 'IRQ_RETVAL'; did you mean 'BPF_RVAL'? [-
-> Werror=implicit-function-declaration]
->   return IRQ_RETVAL(int_work);
+> Hi Dan,
 > 
-> I have bisected this to a seemingly unrelated change that happened
-> to remove some indirect header inclusions. Simply including the
-> required header explicitly fixes the build failure.
-> 
-> Fixes: 09c7570480f7 ("xfrm: remove flow cache")
-> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+> Bart [1] and me both believe that smatch tool is incorrectly reported error.
+> Do you think that the tool should be fixed?
 > 
 
-Thanks, applied.
+Yeah.  There are two functions called acquire_group() and one returns
+NULL and one returns error pointers.  It's getting them mixed up.
+It's simple enough to silence the warning.  I'll push that tomorrow.
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+I normally run with the cross function database so I don't see this
+warning on my builds.  The cross function DB doesn't get confused when
+there are two functions with the same name.
 
+regards,
+dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
