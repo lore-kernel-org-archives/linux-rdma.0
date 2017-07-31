@@ -1,31 +1,53 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: RDMA miniconf: Persistent device naming
-Date: Mon, 31 Jul 2017 11:00:18 -0600
-Message-ID: <20170731170018.GA19061@obsidianresearch.com>
-References: <20170731113633.GU13672@mtr-leonro.local>
- <1501513246.2466.1.camel@wdc.com>
- <20170731164705.GB28204@obsidianresearch.com>
- <20170731165453.GD13672@mtr-leonro.local>
+From: Christopher Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting this
+ week - 08/01/17 at 11:00PDT
+Date: Mon, 31 Jul 2017 12:05:32 -0500 (CDT)
+Message-ID: <alpine.DEB.2.20.1707311204200.10326@nuc-kabylake>
+References: <HE1PR0501MB2812FEE6C6AF9DDC4BED7EB1B1BD0@HE1PR0501MB2812.eurprd05.prod.outlook.com> <20170731074709.GA10930@infradead.org> <BN6PR11MB139417F20E7BC672D1B5B404B2B20@BN6PR11MB1394.namprd11.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170731165453.GD13672-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <BN6PR11MB139417F20E7BC672D1B5B404B2B20-1gF2/dm/6VsyQw8Ag4AtH5PPoyLQLiKMvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Paul Grun <grun-WVYJKLFxKCc@public.gmane.org>
+Cc: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "'ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org'" <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jul 31, 2017 at 07:54:53PM +0300, Leon Romanovsky wrote:
-> I want to take RDMA one step more,
-> https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames/
-> 
-> I called the topic name "persistent", but the right name is "predictable".
+In oder to have a fruitful discussion its useful to have some time to
+think about it before talking about it. Otherwise a lot of time may be
+spent on questions while people process the new ideas.
 
-Once renaming is possible then having udev rework the names isn't a
-big step anymore.
+It also allows those on the mailing list that do not have time to dial in
+to participate.
 
-Jason
+On Mon, 31 Jul 2017, Paul Grun wrote:
+
+> Why?
+>
+> Why shouldn't ideas like this be discussed in any relevant forum, particularly one which is dedicated to this very purpose?  Certainly it ultimately needs to be discussed on linux-rdma, but I can see no reason for shutting down discussion beforehand on a relevant forum.
+>
+> -Paul
+>
+> >-----Original Message-----
+> >From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
+> >owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Christoph Hellwig
+> >Sent: Monday, July 31, 2017 12:47 AM
+> >To: Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> >Cc: 'ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org' <ofvwg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>; 'linux-
+> >rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+> >Subject: Re: [ANNOUNCE] Open Fabrics Verbs Working Group (OFVWG) meeting
+> >this week - 08/01/17 at 11:00PDT
+> >
+> >Please present any kernel API idea on this list before doing phone calls on it.
+> >--
+> >To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body of
+> >a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
+> >http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
