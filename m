@@ -1,53 +1,70 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: RDMA miniconf: Persistent device naming
-Date: Mon, 31 Jul 2017 15:00:47 +0000
-Message-ID: <1501513246.2466.1.camel@wdc.com>
-References: <20170731113633.GU13672@mtr-leonro.local>
+From: Salil Mehta <salil.mehta@huawei.com>
+Subject: RE: [PATCH V5 net-next 7/8] net: hns3: Add Ethtool support to HNS3
+ driver
+Date: Mon, 31 Jul 2017 15:05:36 +0000
+Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F93B82D975@FRAEML521-MBX.china.huawei.com>
+References: <20170728222652.118448-1-salil.mehta@huawei.com>
+ <20170728222652.118448-8-salil.mehta@huawei.com>
+ <20170728234922.GC16080@lunn.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170731113633.GU13672-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Language: en-US
-Content-ID: <B1C847B7AFAC064CA5427811C3DF3E3B-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <tzahio-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: netdev-owner@vger.kernel.org
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: "davem@davemloft.net" <davem@davemloft.net>, "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>, huangdaode <huangdaode@hisilicon.com>, "lipeng (Y)" <lipeng321@huawei.com>, "mehta.salil.lnk@gmail.com" <mehta.salil.lnk@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-07-31 at 14:36 +0300, Leon Romanovsky wrote:
-> I would like to propose the discussion about ability to add
-> persistent device naming to RDMA subsystem.
->=20
-> Right now, the devices receive their names by simple addition of new free
-> index to the name (mlx5_0, mlx5_1 ...). Such naming scheme depends on the
-> PCI probing and in case of device reset can rename device.
->=20
-> Such situation doesn't help to provide constant udev rules, reliable
-> ibverbs hotplug and advanced "set command" of RDMAtool which at some
-> point of time will require reinit of ib_device.
->=20
-> In this discussion, I want to present netdev implementation of such
-> feature, talk about implications on libibverbs and suggest possible
-> device name convention.
+Hi Andrew,
 
-Hello Leon,
+> -----Original Message-----
+> From: Salil Mehta
+> Sent: Saturday, July 29, 2017 12:57 AM
+> To: 'Andrew Lunn'
+> Cc: davem@davemloft.net; Zhuangyuzeng (Yisen); huangdaode; lipeng (Y);
+> mehta.salil.lnk@gmail.com; netdev@vger.kernel.org; linux-
+> kernel@vger.kernel.org; linux-rdma@vger.kernel.org; Linuxarm
+> Subject: RE: [PATCH V5 net-next 7/8] net: hns3: Add Ethtool support to
+> HNS3 driver
+> 
+> Hi Andrew,
+> 
+> > -----Original Message-----
+> > From: Andrew Lunn [mailto:andrew@lunn.ch]
+> > Sent: Saturday, July 29, 2017 12:49 AM
+> > To: Salil Mehta
+> > Cc: davem@davemloft.net; Zhuangyuzeng (Yisen); huangdaode; lipeng
+> (Y);
+> > mehta.salil.lnk@gmail.com; netdev@vger.kernel.org; linux-
+> > kernel@vger.kernel.org; linux-rdma@vger.kernel.org; Linuxarm
+> > Subject: Re: [PATCH V5 net-next 7/8] net: hns3: Add Ethtool support
+> to
+> > HNS3 driver
+> >
+> > On Fri, Jul 28, 2017 at 11:26:51PM +0100, Salil Mehta wrote:
+> > > +static const struct hns3_link_mode_mapping hns3_lm_map[] = {
+> > > +	{HNS3_LM_FIBRE_BIT, ETHTOOL_LINK_MODE_FIBRE_BIT, FLG},
+> > > +	{HNS3_LM_AUTONEG_BIT, ETHTOOL_LINK_MODE_Autoneg_BIT, FLG},
+> > > +	{HNS3_LM_TP_BIT, ETHTOOL_LINK_MODE_TP_BIT, FLG},
+> > > +	{HNS3_LM_PAUSE_BIT, ETHTOOL_LINK_MODE_Pause_BIT, FLG},
+> > > +	{HNS3_LM_BACKPLANE_BIT, ETHTOOL_LINK_MODE_Backplane_BIT, FLG},
+> > > +	{HNS3_LM_10BASET_HALF_BIT, ETHTOOL_LINK_MODE_10baseT_Half_BIT,
+> > FLG},
+> > > +	{HNS3_LM_10BASET_FULL_BIT, ETHTOOL_LINK_MODE_10baseT_Full_BIT,
+> > FLG},
+> > > +	{HNS3_LM_100BASET_HALF_BIT, ETHTOOL_LINK_MODE_100baseT_Half_BIT,
+> > FLG},
+> > > +	{HNS3_LM_100BASET_FULL_BIT, ETHTOOL_LINK_MODE_100baseT_Full_BIT,
+> > FLG},
+> > > +	{HNS3_LM_1000BASET_FULL_BIT,
+> > ETHTOOL_LINK_MODE_1000baseT_Full_BIT, FLG},
+> > > +};
+> >
+> > It seems like all entries have link_mode_ksettings set to FLG. Which
+> > probably indicates it is pointless.
+> It is to support SUPPORTED and ADVERTISED link modes.
+I can see what you are saying now. Will remove FLG in next patch.
 
-Does this mean that there is user space software that depends on these name=
-s?
-Shouldn't all user space software be independent of the device names assign=
-ed
-by the kernel? For e.g. SCSI disks this was solved a long time ago by makin=
-g
-/dev/disk/by-id/${name derived from persistent ID} soft links available. An
-example:
-
-$ ls -l /dev/disk/by-id/scsi-35001b44c698c2947
-lrwxrwxrwx 1 root root 9 Jul 31 07:53 /dev/disk/by-id/scsi-35001b44c698c294=
-7 -> ../../sda
-
-Bart.=
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+Salil
