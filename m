@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next 24/33] RDMA/netlink: Implement nldev port doit callback
-Date: Tue,  1 Aug 2017 15:05:27 +0300
-Message-ID: <20170801120536.540-25-leon@kernel.org>
+Subject: [rdma-next 25/33] RDMA/netlink: Expose device and port capability masks
+Date: Tue,  1 Aug 2017 15:05:28 +0300
+Message-ID: <20170801120536.540-26-leon@kernel.org>
 References: <20170801120536.540-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170801120536.540-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,76 +12,76 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Provide ability to get specific to device and port information.
+The port capability mask is exposed to user space via sysfs interface,
+while device capabilities are available for verbs only.
+
+This patch provides those capabilities through netlink interface.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/nldev.c | 44 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+ drivers/infiniband/core/nldev.c  | 19 +++++++++++++++++++
+ include/uapi/rdma/rdma_netlink.h |  5 +++++
+ 2 files changed, 24 insertions(+)
 
 diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 4413eda8c435..533ac72a05b8 100644
+index 533ac72a05b8..21e75928400c 100644
 --- a/drivers/infiniband/core/nldev.c
 +++ b/drivers/infiniband/core/nldev.c
-@@ -141,6 +141,49 @@ static int nldev_get_dumpit(struct sk_buff *skb, struct netlink_callback *cb)
- 	return ib_enum_all_devs(_nldev_get_dumpit, skb, cb);
+@@ -50,18 +50,37 @@ static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
+ 		return -EMSGSIZE;
+ 	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_PORT_INDEX, rdma_end_port(device)))
+ 		return -EMSGSIZE;
++
++	BUILD_BUG_ON(sizeof(device->attrs.device_cap_flags) != sizeof(u64));
++	if (nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_CAP_FLAGS,
++			      device->attrs.device_cap_flags, 0))
++		return -EMSGSIZE;
++
+ 	return 0;
  }
  
-+static int nldev_port_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
-+			       struct netlink_ext_ack *extack)
-+{
-+	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
-+	struct ib_device *device;
-+	struct sk_buff *msg;
-+	u32 index;
-+	u32 port;
-+	int err;
-+
-+	err = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
-+			  nldev_policy, extack);
-+	if (err || !tb[RDMA_NLDEV_ATTR_PORT_INDEX])
-+		return -EINVAL;
-+
-+	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
-+	device = __ib_device_get_by_index(index);
-+	if (!device)
-+		return -EINVAL;
-+
-+	port = nla_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
-+	if (!rdma_is_port_valid(device, port))
-+		return -EINVAL;
-+
-+	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
-+	if (!msg)
-+		return -ENOMEM;
-+
-+	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
-+			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_GET),
-+			0, 0);
-+
-+	err = fill_port_info(msg, device, port);
-+	if (err) {
-+		nlmsg_free(msg);
-+		return err;
-+	}
-+
-+	nlmsg_end(msg, nlh);
-+
-+	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
-+}
-+
- static int nldev_port_get_dumpit(struct sk_buff *skb,
- 				 struct netlink_callback *cb)
+ static int fill_port_info(struct sk_buff *msg,
+ 			  struct ib_device *device, u32 port)
  {
-@@ -193,6 +236,7 @@ static const struct rdma_nl_cbs nldev_cb_table[] = {
- 		.dump = nldev_get_dumpit,
- 	},
- 	[RDMA_NLDEV_CMD_PORT_GET] = {
-+		.doit = nldev_port_get_doit,
- 		.dump = nldev_port_get_dumpit,
- 	},
++	struct ib_port_attr attr;
++	int ret;
++
+ 	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_DEV_INDEX, device->index))
+ 		return -EMSGSIZE;
+ 	if (nla_put_string(msg, RDMA_NLDEV_ATTR_DEV_NAME, device->name))
+ 		return -EMSGSIZE;
+ 	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_PORT_INDEX, port))
+ 		return -EMSGSIZE;
++
++	ret = ib_query_port(device, port, &attr);
++	if (ret)
++		return ret;
++
++	BUILD_BUG_ON(sizeof(attr.port_cap_flags) > sizeof(u64));
++	if (nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_CAP_FLAGS,
++			      (u64)attr.port_cap_flags, 0))
++		return -EMSGSIZE;
++
+ 	return 0;
+ }
+ 
+diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
+index 1d064fedfa9a..8fc5278d07d6 100644
+--- a/include/uapi/rdma/rdma_netlink.h
++++ b/include/uapi/rdma/rdma_netlink.h
+@@ -257,6 +257,11 @@ enum rdma_nldev_attr {
+ 	 */
+ 	RDMA_NLDEV_ATTR_PORT_INDEX,		/* u32 */
+ 
++	/*
++	 * Device and port capabilities
++	 */
++	RDMA_NLDEV_ATTR_CAP_FLAGS,		/* u64 */
++
+ 	RDMA_NLDEV_ATTR_MAX
  };
+ #endif /* _UAPI_RDMA_NETLINK_H */
 -- 
 2.13.3
 
