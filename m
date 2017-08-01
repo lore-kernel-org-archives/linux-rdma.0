@@ -1,96 +1,175 @@
-From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH RFC 3/3] svcrdma: Estimate Send Queue depth properly
-Date: Tue, 01 Aug 2017 17:07:15 -0400
-Message-ID: <20170801210715.15781.58913.stgit@klimt.1015granger.net>
-References: <20170801205334.15781.18761.stgit@klimt.1015granger.net>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: PCI/IB: add support for pci driver attribute groups
+Date: Tue, 1 Aug 2017 16:40:46 -0500
+Message-ID: <20170801214046.GB26498@bhelgaas-glaptop.roam.corp.google.com>
+References: <20170719130106.GE17776@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170801205334.15781.18761.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170719130106.GE17776@kroah.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Faisal Latif <faisal.latif@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-rdma@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-The rdma_rw API adjusts max_send_wr upwards during the
-rdma_create_qp() call. If the ULP actually wants to take advantage
-of these extra resources, it must increase the size of its send
-completion queue (created before rdma_create_qp is called) and
-increase its send queue accounting limit.
+On Wed, Jul 19, 2017 at 03:01:06PM +0200, Greg KH wrote:
+> From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> 
+> Some drivers (specifically the nes IB driver), want to create a lot of
+> sysfs driver attributes.  Instead of open-coding the creation and
+> removal of these files (and getting it wrong btw), it's a better idea to
+> let the driver core handle all of this logic for us.
+> 
+> So add a new field to the pci driver structure, **groups, that allows
+> pci drivers to specify an attribute group list it wishes to have created
+> when it is registered with the driver core.
+> 
+> Big bonus is now the driver doesn't race with userspace when the sysfs
+> files are created vs. when the kobject is announced, so any script/tool
+> that actually wanted to use these files will not have to poll waiting
+> for them to show up.
+> 
+> Cc: Faisal Latif <faisal.latif@intel.com>
+> Cc: Doug Ledford <dledford@redhat.com>
+> Cc: Sean Hefty <sean.hefty@intel.com>
+> Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
+> Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-Use the new rdma_rw_mr_factor API to figure out the correct value
-to use for the Send Queue and Send Completion Queue depths.
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-And, ensure that the chosen Send Queue depth for a newly created
-transport does not overrun the QP WR limit of the underlying device.
+If you want me to take this let me know; otherwise I'll assume Doug will
+merge it.
 
-Lastly, there's no longer a need to carry the Send Queue depth in
-struct svcxprt_rdma, since the value is used only in the
-svc_rdma_accept() path.
-
-Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- net/sunrpc/xprtrdma/svc_rdma_transport.c |   17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
-
-diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-index cdb04f8..5caf8e7 100644
---- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
-+++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
-@@ -51,6 +51,7 @@
- #include <linux/workqueue.h>
- #include <rdma/ib_verbs.h>
- #include <rdma/rdma_cm.h>
-+#include <rdma/rw.h>
- #include <linux/sunrpc/svc_rdma.h>
- #include <linux/export.h>
- #include "xprt_rdma.h"
-@@ -713,7 +714,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 	struct ib_qp_init_attr qp_attr;
- 	struct ib_device *dev;
- 	struct sockaddr *sap;
--	unsigned int i;
-+	unsigned int i, ctxts;
- 	int ret = 0;
- 
- 	listen_rdma = container_of(xprt, struct svcxprt_rdma, sc_xprt);
-@@ -754,7 +755,14 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 		newxprt->sc_max_bc_requests = 2;
- 	}
- 	newxprt->sc_fc_credits = cpu_to_be32(newxprt->sc_max_requests);
--	newxprt->sc_sq_depth = newxprt->sc_rq_depth;
-+	ctxts = rdma_rw_mr_factor(dev, newxprt->sc_port_num, RPCSVC_MAXPAGES);
-+	ctxts *= newxprt->sc_max_requests;
-+	newxprt->sc_sq_depth = newxprt->sc_rq_depth + ctxts;
-+	if (newxprt->sc_sq_depth > dev->attrs.max_qp_wr) {
-+		pr_warn("svcrdma: reducing send depth to %d\n",
-+			dev->attrs.max_qp_wr);
-+		newxprt->sc_sq_depth = dev->attrs.max_qp_wr;
-+	}
- 	atomic_set(&newxprt->sc_sq_avail, newxprt->sc_sq_depth);
- 
- 	if (!svc_rdma_prealloc_ctxts(newxprt))
-@@ -789,8 +797,8 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 	qp_attr.event_handler = qp_event_handler;
- 	qp_attr.qp_context = &newxprt->sc_xprt;
- 	qp_attr.port_num = newxprt->sc_port_num;
--	qp_attr.cap.max_rdma_ctxs = newxprt->sc_max_requests;
--	qp_attr.cap.max_send_wr = newxprt->sc_sq_depth;
-+	qp_attr.cap.max_rdma_ctxs = ctxts;
-+	qp_attr.cap.max_send_wr = newxprt->sc_sq_depth - ctxts;
- 	qp_attr.cap.max_recv_wr = newxprt->sc_rq_depth;
- 	qp_attr.cap.max_send_sge = newxprt->sc_max_sge;
- 	qp_attr.cap.max_recv_sge = newxprt->sc_max_sge;
-@@ -858,6 +866,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
- 	dprintk("    remote address  : %pIS:%u\n", sap, rpc_get_port(sap));
- 	dprintk("    max_sge         : %d\n", newxprt->sc_max_sge);
- 	dprintk("    sq_depth        : %d\n", newxprt->sc_sq_depth);
-+	dprintk("    rdma_rw_ctxs    : %d\n", ctxts);
- 	dprintk("    max_requests    : %d\n", newxprt->sc_max_requests);
- 	dprintk("    ord             : %d\n", newxprt->sc_ord);
- 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  drivers/infiniband/hw/nes/nes.c |   69 +++++++++++++---------------------------
+>  drivers/pci/pci-driver.c        |    1 
+>  include/linux/pci.h             |    1 
+>  3 files changed, 26 insertions(+), 45 deletions(-)
+> 
+> --- a/drivers/infiniband/hw/nes/nes.c
+> +++ b/drivers/infiniband/hw/nes/nes.c
+> @@ -808,13 +808,6 @@ static void nes_remove(struct pci_dev *p
+>  }
+>  
+>  
+> -static struct pci_driver nes_pci_driver = {
+> -	.name = DRV_NAME,
+> -	.id_table = nes_pci_table,
+> -	.probe = nes_probe,
+> -	.remove = nes_remove,
+> -};
+> -
+>  static ssize_t adapter_show(struct device_driver *ddp, char *buf)
+>  {
+>  	unsigned int  devfn = 0xffffffff;
+> @@ -1156,35 +1149,29 @@ static DRIVER_ATTR_RW(idx_addr);
+>  static DRIVER_ATTR_RW(idx_data);
+>  static DRIVER_ATTR_RW(wqm_quanta);
+>  
+> -static int nes_create_driver_sysfs(struct pci_driver *drv)
+> -{
+> -	int error;
+> -	error  = driver_create_file(&drv->driver, &driver_attr_adapter);
+> -	error |= driver_create_file(&drv->driver, &driver_attr_eeprom_cmd);
+> -	error |= driver_create_file(&drv->driver, &driver_attr_eeprom_data);
+> -	error |= driver_create_file(&drv->driver, &driver_attr_flash_cmd);
+> -	error |= driver_create_file(&drv->driver, &driver_attr_flash_data);
+> -	error |= driver_create_file(&drv->driver, &driver_attr_nonidx_addr);
+> -	error |= driver_create_file(&drv->driver, &driver_attr_nonidx_data);
+> -	error |= driver_create_file(&drv->driver, &driver_attr_idx_addr);
+> -	error |= driver_create_file(&drv->driver, &driver_attr_idx_data);
+> -	error |= driver_create_file(&drv->driver, &driver_attr_wqm_quanta);
+> -	return error;
+> -}
+> -
+> -static void nes_remove_driver_sysfs(struct pci_driver *drv)
+> -{
+> -	driver_remove_file(&drv->driver, &driver_attr_adapter);
+> -	driver_remove_file(&drv->driver, &driver_attr_eeprom_cmd);
+> -	driver_remove_file(&drv->driver, &driver_attr_eeprom_data);
+> -	driver_remove_file(&drv->driver, &driver_attr_flash_cmd);
+> -	driver_remove_file(&drv->driver, &driver_attr_flash_data);
+> -	driver_remove_file(&drv->driver, &driver_attr_nonidx_addr);
+> -	driver_remove_file(&drv->driver, &driver_attr_nonidx_data);
+> -	driver_remove_file(&drv->driver, &driver_attr_idx_addr);
+> -	driver_remove_file(&drv->driver, &driver_attr_idx_data);
+> -	driver_remove_file(&drv->driver, &driver_attr_wqm_quanta);
+> -}
+> +static struct attribute *nes_attrs[] = {
+> +	&driver_attr_adapter,
+> +	&driver_attr_eeprom_cmd,
+> +	&driver_attr_eeprom_data,
+> +	&driver_attr_flash_cmd,
+> +	&driver_attr_flash_data,
+> +	&driver_attr_nonidx_addr,
+> +	&driver_attr_nonidx_data,
+> +	&driver_attr_idx_addr,
+> +	&driver_attr_idx_data,
+> +	&driver_attr_wqm_quanta,
+> +	NULL,
+> +};
+> +ATTRIBUTE_GROUPS(nes);
+> +
+> +static struct pci_driver nes_pci_driver = {
+> +	.name = DRV_NAME,
+> +	.id_table = nes_pci_table,
+> +	.probe = nes_probe,
+> +	.remove = nes_remove,
+> +	.groups = nes_groups,
+> +};
+> +
+>  
+>  /**
+>   * nes_init_module - module initialization entry point
+> @@ -1192,20 +1179,13 @@ static void nes_remove_driver_sysfs(stru
+>  static int __init nes_init_module(void)
+>  {
+>  	int retval;
+> -	int retval1;
+>  
+>  	retval = nes_cm_start();
+>  	if (retval) {
+>  		printk(KERN_ERR PFX "Unable to start NetEffect iWARP CM.\n");
+>  		return retval;
+>  	}
+> -	retval = pci_register_driver(&nes_pci_driver);
+> -	if (retval >= 0) {
+> -		retval1 = nes_create_driver_sysfs(&nes_pci_driver);
+> -		if (retval1 < 0)
+> -			printk(KERN_ERR PFX "Unable to create NetEffect sys files.\n");
+> -	}
+> -	return retval;
+> +	return pci_register_driver(&nes_pci_driver);
+>  }
+>  
+>  
+> @@ -1215,7 +1195,6 @@ static int __init nes_init_module(void)
+>  static void __exit nes_exit_module(void)
+>  {
+>  	nes_cm_stop();
+> -	nes_remove_driver_sysfs(&nes_pci_driver);
+>  
+>  	pci_unregister_driver(&nes_pci_driver);
+>  }
+> --- a/drivers/pci/pci-driver.c
+> +++ b/drivers/pci/pci-driver.c
+> @@ -1307,6 +1307,7 @@ int __pci_register_driver(struct pci_dri
+>  	drv->driver.bus = &pci_bus_type;
+>  	drv->driver.owner = owner;
+>  	drv->driver.mod_name = mod_name;
+> +	drv->driver.groups = drv->groups;
+>  
+>  	spin_lock_init(&drv->dynids.lock);
+>  	INIT_LIST_HEAD(&drv->dynids.list);
+> --- a/include/linux/pci.h
+> +++ b/include/linux/pci.h
+> @@ -729,6 +729,7 @@ struct pci_driver {
+>  	void (*shutdown) (struct pci_dev *dev);
+>  	int (*sriov_configure) (struct pci_dev *dev, int num_vfs); /* PF pdev */
+>  	const struct pci_error_handlers *err_handler;
+> +	const struct attribute_group **groups;
+>  	struct device_driver	driver;
+>  	struct pci_dynids dynids;
+>  };
