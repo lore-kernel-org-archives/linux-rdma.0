@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next 05/33] RDMA/iwcm: Remove useless check of nelink client validity
-Date: Tue,  1 Aug 2017 15:05:08 +0300
-Message-ID: <20170801120536.540-6-leon@kernel.org>
+Subject: [rdma-next 07/33] RDMA/netlink: Add flag to consolidate common handing
+Date: Tue,  1 Aug 2017 15:05:10 +0300
+Message-ID: <20170801120536.540-8-leon@kernel.org>
 References: <20170801120536.540-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170801120536.540-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,44 +12,116 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-RDMA netlink implementation guarantees that supplied
-client number is in allowed range.
+Add ability to provide flags to control RDMA netlink callbacks
+and convert addr.c and sa_query.c to be first users of such
+infrastructure. It allows to move their CAP_NET_ADMIN checks
+into netlink core.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/iwpm_util.c | 6 ------
- 1 file changed, 6 deletions(-)
+ drivers/infiniband/core/addr.c     |  3 +--
+ drivers/infiniband/core/device.c   | 12 +++++++++---
+ drivers/infiniband/core/netlink.c  |  4 ++++
+ drivers/infiniband/core/sa_query.c |  6 ++----
+ include/rdma/rdma_netlink.h        |  6 ++++++
+ 5 files changed, 22 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/core/iwpm_util.c b/drivers/infiniband/core/iwpm_util.c
-index f13870e69ccd..32ca2aaa4e3b 100644
---- a/drivers/infiniband/core/iwpm_util.c
-+++ b/drivers/infiniband/core/iwpm_util.c
-@@ -54,8 +54,6 @@ static struct iwpm_admin_data iwpm_admin;
- int iwpm_init(u8 nl_client)
- {
- 	int ret = 0;
--	if (iwpm_valid_client(nl_client))
--		return -EINVAL;
- 	mutex_lock(&iwpm_admin_lock);
- 	if (atomic_read(&iwpm_admin.refcount) == 0) {
- 		iwpm_hash_bucket = kzalloc(IWPM_MAPINFO_HASH_SIZE *
-@@ -383,15 +381,11 @@ int iwpm_get_nlmsg_seq(void)
+diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+index 01236cef7bfb..9f3339861ec5 100644
+--- a/drivers/infiniband/core/addr.c
++++ b/drivers/infiniband/core/addr.c
+@@ -134,8 +134,7 @@ int ib_nl_handle_ip_res_resp(struct sk_buff *skb,
+ 	const struct nlmsghdr *nlh = (struct nlmsghdr *)cb->nlh;
  
- int iwpm_valid_client(u8 nl_client)
- {
--	if (nl_client >= RDMA_NL_NUM_CLIENTS)
--		return 0;
- 	return iwpm_admin.client_list[nl_client];
- }
+ 	if ((nlh->nlmsg_flags & NLM_F_REQUEST) ||
+-	    !(NETLINK_CB(skb).sk) ||
+-	    !netlink_capable(skb, CAP_NET_ADMIN))
++	    !(NETLINK_CB(skb).sk))
+ 		return -EPERM;
  
- void iwpm_set_valid(u8 nl_client, int valid)
- {
--	if (nl_client >= RDMA_NL_NUM_CLIENTS)
--		return;
- 	iwpm_admin.client_list[nl_client] = valid;
- }
+ 	if (ib_nl_is_good_ip_resp(nlh))
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 298258c40d30..1c5276e6e7f6 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -1088,11 +1088,17 @@ EXPORT_SYMBOL(ib_get_net_dev_by_params);
  
+ static const struct ibnl_client_cbs ibnl_ls_cb_table[] = {
+ 	[RDMA_NL_LS_OP_RESOLVE] = {
+-		.dump = ib_nl_handle_resolve_resp},
++		.dump = ib_nl_handle_resolve_resp,
++		.flags = RDMA_NL_ADMIN_PERM,
++	},
+ 	[RDMA_NL_LS_OP_SET_TIMEOUT] = {
+-		.dump = ib_nl_handle_set_timeout},
++		.dump = ib_nl_handle_set_timeout,
++		.flags = RDMA_NL_ADMIN_PERM,
++	},
+ 	[RDMA_NL_LS_OP_IP_RESOLVE] = {
+-		.dump = ib_nl_handle_ip_res_resp},
++		.dump = ib_nl_handle_ip_res_resp,
++		.flags = RDMA_NL_ADMIN_PERM,
++	},
+ };
+ 
+ static int __init ib_core_init(void)
+diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+index 86337d5e7551..a0e25689d3e7 100644
+--- a/drivers/infiniband/core/netlink.c
++++ b/drivers/infiniband/core/netlink.c
+@@ -171,6 +171,10 @@ static int rdma_nl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	if (!is_nl_valid(index, op))
+ 		return -EINVAL;
+ 
++	if ((rdma_nl_types[index].cb_table[op].flags & RDMA_NL_ADMIN_PERM) &&
++	    !netlink_capable(skb, CAP_NET_ADMIN))
++		return -EPERM;
++
+ 	/*
+ 	 * For response or local service set_timeout request,
+ 	 * there is no need to use netlink_dump_start.
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index 70fa4cabe48e..b499f4422f41 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -1033,8 +1033,7 @@ int ib_nl_handle_set_timeout(struct sk_buff *skb,
+ 	int ret;
+ 
+ 	if (!(nlh->nlmsg_flags & NLM_F_REQUEST) ||
+-	    !(NETLINK_CB(skb).sk) ||
+-	    !netlink_capable(skb, CAP_NET_ADMIN))
++	    !(NETLINK_CB(skb).sk))
+ 		return -EPERM;
+ 
+ 	ret = nla_parse(tb, LS_NLA_TYPE_MAX - 1, nlmsg_data(nlh),
+@@ -1109,8 +1108,7 @@ int ib_nl_handle_resolve_resp(struct sk_buff *skb,
+ 	int ret;
+ 
+ 	if ((nlh->nlmsg_flags & NLM_F_REQUEST) ||
+-	    !(NETLINK_CB(skb).sk) ||
+-	    !netlink_capable(skb, CAP_NET_ADMIN))
++	    !(NETLINK_CB(skb).sk))
+ 		return -EPERM;
+ 
+ 	spin_lock_irqsave(&ib_nl_request_lock, flags);
+diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
+index 7690aaabb958..79d8802f3ef7 100644
+--- a/include/rdma/rdma_netlink.h
++++ b/include/rdma/rdma_netlink.h
+@@ -7,6 +7,12 @@
+ 
+ struct ibnl_client_cbs {
+ 	int (*dump)(struct sk_buff *skb, struct netlink_callback *nlcb);
++	u8 flags;
++};
++
++enum rdma_nl_flags {
++	/* Require CAP_NET_ADMIN */
++	RDMA_NL_ADMIN_PERM	= 1 << 0,
+ };
+ 
+ /**
 -- 
 2.13.3
 
