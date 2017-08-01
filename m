@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next 19/33] RDMA/netlink: Add netlink device definitions to UAPI
-Date: Tue,  1 Aug 2017 15:05:22 +0300
-Message-ID: <20170801120536.540-20-leon@kernel.org>
+Subject: [rdma-next 17/33] RDMA/netlink: Convert LS to doit callback
+Date: Tue,  1 Aug 2017 15:05:20 +0300
+Message-ID: <20170801120536.540-18-leon@kernel.org>
 References: <20170801120536.540-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170801120536.540-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,104 +12,165 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Introduce new defines to rdma_netlink.h, so the RDMA configuration tool
-will be able to communicate with RDMA subsystem by using the shared defines.
+RDMA_NL_LS protocol is actually does not dump anything,
+but sets data and it should be handled by doit callback.
 
-The addition of new client (NLDEV) revealed the fact that we exposed by
-mistake the RDMA_NL_I40IW define which is not backed by any RDMA netlink
-by now and it won't be exposed in the future too. So this patch reuses
-the value and deletes the old defines.
-
-The NLDEV operates with objects. The struct ib_device has two straightforward
-objects: device itself and ports of that device.
-
-This brings us to propose the following commands to work on those objects:
- * RDMA_NLDEV_CMD_{GET,SET,NEW,DEL} - works on ib_device itself
- * RDMA_NLDEV_CMD_PORT_{GET,SET,NEW,DEL} - works on ports of specific ib_device
-
-Those commands receive/return the device index (RDMA_NLDEV_ATTR_DEV_INDEX)
-and port index (RDMA_NLDEV_ATTR_PORT_INDEX). For device object accesses,
-the RDMA_NLDEV_ATTR_PORT_INDEX will return the maximum number of ports
-for specific ib_device and for port access the actual port index.
-
-The port index starts from 1 to follow RDMA/core internal semantics and
-the sysfs exposed knobs.
+This patch actually converts RDMA_NL_LS to doit callback, while
+preserving IWCM and RDMA_CM flows through netlink_dump_start().
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/netlink.c |  2 +-
- include/uapi/rdma/rdma_netlink.h  | 39 ++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 39 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/addr.c      |  5 ++---
+ drivers/infiniband/core/core_priv.h |  9 ++++++---
+ drivers/infiniband/core/device.c    |  6 +++---
+ drivers/infiniband/core/netlink.c   | 28 ++++++++++------------------
+ drivers/infiniband/core/sa_query.c  |  8 ++++----
+ 5 files changed, 25 insertions(+), 31 deletions(-)
 
+diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+index 7310ece99cd9..16b3bdffeb96 100644
+--- a/drivers/infiniband/core/addr.c
++++ b/drivers/infiniband/core/addr.c
+@@ -129,10 +129,9 @@ static void ib_nl_process_good_ip_rsep(const struct nlmsghdr *nlh)
+ }
+ 
+ int ib_nl_handle_ip_res_resp(struct sk_buff *skb,
+-			     struct netlink_callback *cb)
++			     struct nlmsghdr *nlh,
++			     struct netlink_ext_ack *extack)
+ {
+-	const struct nlmsghdr *nlh = (struct nlmsghdr *)cb->nlh;
+-
+ 	if ((nlh->nlmsg_flags & NLM_F_REQUEST) ||
+ 	    !(NETLINK_CB(skb).sk))
+ 		return -EPERM;
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index cbdcc81e1df8..57beb1cceda3 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -198,11 +198,14 @@ void rdma_nl_exit(void);
+ int ibnl_chk_listeners(unsigned int group);
+ 
+ int ib_nl_handle_resolve_resp(struct sk_buff *skb,
+-			      struct netlink_callback *cb);
++			      struct nlmsghdr *nlh,
++			      struct netlink_ext_ack *extack);
+ int ib_nl_handle_set_timeout(struct sk_buff *skb,
+-			     struct netlink_callback *cb);
++			     struct nlmsghdr *nlh,
++			     struct netlink_ext_ack *extack);
+ int ib_nl_handle_ip_res_resp(struct sk_buff *skb,
+-			     struct netlink_callback *cb);
++			     struct nlmsghdr *nlh,
++			     struct netlink_ext_ack *extack);
+ 
+ int ib_get_cached_subnet_prefix(struct ib_device *device,
+ 				u8                port_num,
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 41eebd6ca0ff..5a3ff941c86c 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -1148,15 +1148,15 @@ EXPORT_SYMBOL(ib_get_net_dev_by_params);
+ 
+ static const struct rdma_nl_cbs ibnl_ls_cb_table[] = {
+ 	[RDMA_NL_LS_OP_RESOLVE] = {
+-		.dump = ib_nl_handle_resolve_resp,
++		.doit = ib_nl_handle_resolve_resp,
+ 		.flags = RDMA_NL_ADMIN_PERM,
+ 	},
+ 	[RDMA_NL_LS_OP_SET_TIMEOUT] = {
+-		.dump = ib_nl_handle_set_timeout,
++		.doit = ib_nl_handle_set_timeout,
+ 		.flags = RDMA_NL_ADMIN_PERM,
+ 	},
+ 	[RDMA_NL_LS_OP_IP_RESOLVE] = {
+-		.dump = ib_nl_handle_ip_res_resp,
++		.doit = ib_nl_handle_ip_res_resp,
+ 		.flags = RDMA_NL_ADMIN_PERM,
+ 	},
+ };
 diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-index 2ca523c7d14a..a70f3e5483f6 100644
+index 6c3bb2693afa..3efa161bf4a6 100644
 --- a/drivers/infiniband/core/netlink.c
 +++ b/drivers/infiniband/core/netlink.c
-@@ -61,7 +61,7 @@ static bool is_nl_msg_valid(unsigned int type, unsigned int op)
- 				  RDMA_NL_IWPM_NUM_OPS,
- 				  0,
- 				  RDMA_NL_LS_NUM_OPS,
--				  0 };
-+				  RDMA_NLDEV_NUM_OPS };
+@@ -155,38 +155,30 @@ static int rdma_nl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	int type = nlh->nlmsg_type;
+ 	unsigned int index = RDMA_NL_GET_CLIENT(type);
+ 	unsigned int op = RDMA_NL_GET_OP(type);
+-	struct netlink_callback cb = {};
+-	struct netlink_dump_control c = {};
+ 	const struct rdma_nl_cbs *cb_table;
+-	int ret;
  
- 	/*
- 	 * This BUILD_BUG_ON is intended to catch addition of new
-diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index 02fe8390c18f..1d064fedfa9a 100644
---- a/include/uapi/rdma/rdma_netlink.h
-+++ b/include/uapi/rdma/rdma_netlink.h
-@@ -8,7 +8,7 @@ enum {
- 	RDMA_NL_IWCM,
- 	RDMA_NL_RSVD,
- 	RDMA_NL_LS,	/* RDMA Local Services */
--	RDMA_NL_I40IW,
-+	RDMA_NL_NLDEV,	/* RDMA device interface */
- 	RDMA_NL_NUM_CLIENTS
- };
+ 	if (!is_nl_valid(index, op))
+ 		return -EINVAL;
  
-@@ -222,4 +222,41 @@ struct rdma_nla_ls_gid {
- 	__u8		gid[16];
- };
+-	cb_table = rdma_nl_types[type].cb_table;
++	cb_table = rdma_nl_types[index].cb_table;
  
-+enum rdma_nldev_command {
-+	RDMA_NLDEV_CMD_UNSPEC,
+ 	if ((cb_table[op].flags & RDMA_NL_ADMIN_PERM) &&
+ 	    !netlink_capable(skb, CAP_NET_ADMIN))
+ 		return -EPERM;
+ 
+-	/*
+-	 * For response or local service set_timeout request,
+-	 * there is no need to use netlink_dump_start.
+-	 */
+-	if (!(nlh->nlmsg_flags & NLM_F_REQUEST) ||
+-	    (index == RDMA_NL_LS && op == RDMA_NL_LS_OP_SET_TIMEOUT)) {
+-		cb.skb = skb;
+-		cb.nlh = nlh;
+-		cb.dump = cb_table[op].dump;
+-		return cb.dump(skb, &cb);
+-	} else {
+-		c.dump = cb_table[op].dump;
++	/* FIXME: Convert IWCM to properly handle doit callbacks */
++	if ((nlh->nlmsg_flags & NLM_F_DUMP) || index == RDMA_NL_RDMA_CM ||
++	    index == RDMA_NL_IWCM) {
++		struct netlink_dump_control c = {
++			.dump = cb_table[op].dump,
++		};
+ 		return netlink_dump_start(nls, skb, nlh, &c);
+ 	}
 +
-+	RDMA_NLDEV_CMD_GET, /* can dump */
-+	RDMA_NLDEV_CMD_SET,
-+	RDMA_NLDEV_CMD_NEW,
-+	RDMA_NLDEV_CMD_DEL,
-+
-+	RDMA_NLDEV_CMD_PORT_GET, /* can dump */
-+	RDMA_NLDEV_CMD_PORT_SET,
-+	RDMA_NLDEV_CMD_PORT_NEW,
-+	RDMA_NLDEV_CMD_PORT_DEL,
-+
-+	RDMA_NLDEV_NUM_OPS
-+};
-+
-+enum rdma_nldev_attr {
-+	/* don't change the order or add anything between, this is ABI! */
-+	RDMA_NLDEV_ATTR_UNSPEC,
-+
-+	/* Identifier for ib_device */
-+	RDMA_NLDEV_ATTR_DEV_INDEX,		/* u32 */
-+
-+	RDMA_NLDEV_ATTR_DEV_NAME,		/* string */
-+	/*
-+	 * Device index together with port index are identifiers
-+	 * for port/link properties.
-+	 *
-+	 * For RDMA_NLDEV_CMD_GET comamnd, port index will return number
-+	 * of available ports in ib_device, while for port specific operations,
-+	 * it will be real port index as it appears in sysfs. Port index follows
-+	 * sysfs notation and starts from 1 for the first port.
-+	 */
-+	RDMA_NLDEV_ATTR_PORT_INDEX,		/* u32 */
-+
-+	RDMA_NLDEV_ATTR_MAX
-+};
- #endif /* _UAPI_RDMA_NETLINK_H */
+ 	if (cb_table[op].doit)
+-		ret = cb_table[op].doit(skb, nlh, extack);
+-	return ret;
++		return cb_table[op].doit(skb, nlh, extack);
+ 
++	return 0;
+ }
+ 
+ /*
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index 2cc85c2b74b7..da29e2863c84 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -1021,9 +1021,9 @@ static void ib_nl_request_timeout(struct work_struct *work)
+ }
+ 
+ int ib_nl_handle_set_timeout(struct sk_buff *skb,
+-			     struct netlink_callback *cb)
++			     struct nlmsghdr *nlh,
++			     struct netlink_ext_ack *extack)
+ {
+-	const struct nlmsghdr *nlh = (struct nlmsghdr *)cb->nlh;
+ 	int timeout, delta, abs_delta;
+ 	const struct nlattr *attr;
+ 	unsigned long flags;
+@@ -1097,9 +1097,9 @@ static inline int ib_nl_is_good_resolve_resp(const struct nlmsghdr *nlh)
+ }
+ 
+ int ib_nl_handle_resolve_resp(struct sk_buff *skb,
+-			      struct netlink_callback *cb)
++			      struct nlmsghdr *nlh,
++			      struct netlink_ext_ack *extack)
+ {
+-	const struct nlmsghdr *nlh = (struct nlmsghdr *)cb->nlh;
+ 	unsigned long flags;
+ 	struct ib_sa_query *query;
+ 	struct ib_mad_send_buf *send_buf;
 -- 
 2.13.3
 
