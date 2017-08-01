@@ -1,62 +1,67 @@
-From: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [rdma-next 01/33] Revert "IB/core: Add flow control to the
- portmapper netlink calls"
-Date: Tue, 1 Aug 2017 13:20:01 -0500
-Message-ID: <20170801182001.GA284@ctung-MOBL3.amr.corp.intel.com>
-References: <20170801141842.GA1808@ctung-MOBL3.amr.corp.intel.com>
- <alpine.DEB.2.20.1708010921490.16491@nuc-kabylake>
- <20170801151511.GA13376@ctung-MOBL3.amr.corp.intel.com>
- <1501600807.2475.4.camel@wdc.com>
- <20170801162135.GA240@ctung-MOBL3.amr.corp.intel.com>
- <1501606508.2475.12.camel@wdc.com>
- <20170801171454.GA8484@ctung-MOBL3.amr.corp.intel.com>
- <1501608534.2475.14.camel@wdc.com>
- <20170801175236.GA14048@ctung-MOBL3.amr.corp.intel.com>
- <1501610305.2475.16.camel@wdc.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH for-next 2/2] RDMA/bnxt_re: Implement the
+ alloc/get_hw_stats callback
+Date: Tue, 1 Aug 2017 21:26:35 +0300
+Message-ID: <20170801182635.GP13672@mtr-leonro.local>
+References: <1501603579-13844-1-git-send-email-selvin.xavier@broadcom.com>
+ <1501603579-13844-3-git-send-email-selvin.xavier@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="AO7xfgsPaN7qs9GL"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1501610305.2475.16.camel-Sjgp3cTcYWE@public.gmane.org>
+In-Reply-To: <1501603579-13844-3-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org" <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 01, 2017 at 05:58:29PM +0000, Bart Van Assche wrote:
-> On Tue, 2017-08-01 at 12:52 -0500, Chien Tin Tung wrote:
-> > On Tue, Aug 01, 2017 at 05:28:54PM +0000, Bart Van Assche wrote:
-> > > On Tue, 2017-08-01 at 12:14 -0500, Chien Tin Tung wrote:
-> > > > On Tue, Aug 01, 2017 at 04:55:09PM +0000, Bart Van Assche wrote:
-> > > > > Yes, I had read these e-mails but I do not agree with all of what was written
-> > > > > in these e-mails. I'm not sure whether you are aware of the original design
-> > > > > goal of the netlink mechanism? It was designed on purpose to be unreliable
-> > > > > such that sending information from the kernel to user space would never block.
-> > > > 
-> > > > Please show me a feference to Netlink design document/email on mailing list
-> > > > that specifically disallowed this?
-> > > 
-> > > As you probably know kernel developers do not write design documents. But there
-> > > is plenty of evidence on the web that the netlink mechanism was designed to be
-> > > unreliable. A quote from a Linux Journal article from 2005
-> > > (http://www.linuxjournal.com/article/7356): "Netlink is asynchronous because,
-> > > as with any other socket API, it provides a socket queue to smooth the burst
-> > > of messages."
-> > 
-> > So what happens when the queue is full?  you can fail at that point or you
-> > can choose the 1-shot retry with timeout as we have done.  What is _wrong_
-> > with the 1-shot retry?
-> 
-> Why is the one-shot retry necessary? What aspect of the portmapper design makes
-> this one-shot retry necessary? Why is this one-shot retry only necessary for the
-> portmapper and not for any other Netlink client?
 
-You are really asking why the 1-shot retry code is in Netlink.  We didn't code
-it, we are simply using it with ibnl_unicast.  It being used as designed, when
-the queue is full, try it one more time within the timeout parameter.  Other clients
-can use it too, I'm not stopping them.
+--AO7xfgsPaN7qs9GL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Chien
+On Tue, Aug 01, 2017 at 09:06:19AM -0700, Selvin Xavier wrote:
+> From: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+>
+> Expose HW counters using the get_hw_stats callback
+>
+> Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/bnxt_re/Makefile      |   2 +-
+>  drivers/infiniband/hw/bnxt_re/hw_counters.c | 105 ++++++++++++++++++++++++++++
+>  drivers/infiniband/hw/bnxt_re/hw_counters.h |  62 ++++++++++++++++
+>  drivers/infiniband/hw/bnxt_re/main.c        |   4 ++
+>  4 files changed, 172 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/infiniband/hw/bnxt_re/hw_counters.c
+>  create mode 100644 drivers/infiniband/hw/bnxt_re/hw_counters.h
+>
+
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+--AO7xfgsPaN7qs9GL
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmAx9oACgkQ5GN7iDZy
+WKf3KxAAgRWHUWR5sLMLnCIuqJTI/ppNNzerdwQRtfyioL12EDK6NB2EElEWWZyd
+VfidFojzAFknxQ7y2qZTam3u7zIP4o1YUAzPU11Kq50oZwuKjHEEdGk9SnITFkU/
+khn1HXQa5vV/xjzRMhZiPUsYLn8GAklMC+PIrdpC+l7FWCjSNhS7sI4dTFwEla5I
+xRevJqJ8VLQWczOBrlBeUupo3tZf8ludt41K8T99L8xzixoOcCrnBOGTRi3jJaDp
+kEZDOBdN8rLEiJppW4uiJz7AI9zVCYG4tKawonDQdf+Fxa5pJt0K7cFt+jyNY7Y/
+eaLXmyK9tJLia26MdPhOrNEsYRpe/ghMCREGFju58PxI4nXqX3n2nSWt2gt74OSq
+iTILcPLkR/pktkHRxarpm8jKYyuz0tLgfqkSUM9+j4fmmuib7SKRw2+cwi+bCsd2
+Q4GTmGO3EIA5knTFcDrKF6+1NhxMVkz4gZp4FhfnWJVliOdD1+RZ1Z48yYkrmuWO
+c3H7jeoM7jZkkDPhIDLMZEZ78NSUeyGwxJwUJg5jVLVvIqWs4XiOGB0OEuU+eBiu
+uwr2K0ajHfPWsBYBYw/AVfyQBYmqFPfvkcNFiSqfDLFRkl74bU5Ji0TpX5mEtjCs
+tEZbuUj7SBJ2Fcz1oMP5IjByZ1SzJsrbdCK7b80TQSGttebW8Uo=
+=ufUB
+-----END PGP SIGNATURE-----
+
+--AO7xfgsPaN7qs9GL--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
