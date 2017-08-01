@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next 01/33] Revert "IB/core: Add flow control to the portmapper netlink calls"
-Date: Tue,  1 Aug 2017 15:05:04 +0300
-Message-ID: <20170801120536.540-2-leon@kernel.org>
+Subject: [rdma-next 03/33] RDMA/netlink: Remove redundant owner option for netlink callbacks
+Date: Tue,  1 Aug 2017 15:05:06 +0300
+Message-ID: <20170801120536.540-4-leon@kernel.org>
 References: <20170801120536.540-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170801120536.540-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,52 +12,59 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The commit cea05eadded0 ("IB/core: Add flow control to the portmapper netlink calls")
-changed netlink to be blocked for all RDMA clients. This workaround
-worked perfectly for portmapper, but is not correct for the whole
-NETLINK_RDMA family.
-
-The request/response should always be blocking and asynchronous
-notification should always be non-blocking.
-
-It is library and user-space application to chose how to handle recvmgs,
-as an example see nl_recvmsgs() and nl_socket_set_nonblocking() calls of
-libnl library.
-
-Send timeout is not needed too and can be configured with SO_SNDTIMEO socket
-option.
-
-This reverts commit cea05eadded0d4eb59f7be6e1f1560eb6bfde2bf.
+Owner field is not needed to be set because netlink is part of ib_core
+which will be unloaded last after all other modules are unloaded.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/netlink.c | 6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ drivers/infiniband/core/cma.c     | 3 +--
+ drivers/infiniband/core/netlink.c | 2 --
+ include/rdma/rdma_netlink.h       | 1 -
+ 3 files changed, 1 insertion(+), 5 deletions(-)
 
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 2a16a559bdda..0c85f140e616 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -4459,8 +4459,7 @@ static int cma_get_id_stats(struct sk_buff *skb, struct netlink_callback *cb)
+ }
+ 
+ static const struct ibnl_client_cbs cma_cb_table[] = {
+-	[RDMA_NL_RDMA_CM_ID_STATS] = { .dump = cma_get_id_stats,
+-				       .module = THIS_MODULE },
++	[RDMA_NL_RDMA_CM_ID_STATS] = { .dump = cma_get_id_stats},
+ };
+ 
+ static int cma_init_net(struct net *net)
 diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-index 94931c474d41..454d51e432db 100644
+index 31f4d33149bc..6cb534a595ea 100644
 --- a/drivers/infiniband/core/netlink.c
 +++ b/drivers/infiniband/core/netlink.c
-@@ -230,10 +230,7 @@ static void ibnl_rcv(struct sk_buff *skb)
- int ibnl_unicast(struct sk_buff *skb, struct nlmsghdr *nlh,
- 			__u32 pid)
- {
--	int err;
--
--	err = netlink_unicast(nls, skb, pid, 0);
--	return (err < 0) ? err : 0;
-+	return nlmsg_unicast(nls, skb, pid);
- }
- EXPORT_SYMBOL(ibnl_unicast);
- 
-@@ -256,7 +253,6 @@ int __init ibnl_init(void)
- 		return -ENOMEM;
+@@ -180,12 +180,10 @@ static int ibnl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 		cb.skb = skb;
+ 		cb.nlh = nlh;
+ 		cb.dump = rdma_nl_types[index].cb_table[op].dump;
+-		cb.module = rdma_nl_types[index].cb_table[op].module;
+ 		return cb.dump(skb, &cb);
  	}
  
--	nls->sk_sndtimeo = 10 * HZ;
- 	return 0;
+ 	c.dump = rdma_nl_types[index].cb_table[op].dump;
+-	c.module = rdma_nl_types[index].cb_table[op].module;
+ 	return netlink_dump_start(nls, skb, nlh, &c);
  }
  
+diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
+index 162e58f118e7..7690aaabb958 100644
+--- a/include/rdma/rdma_netlink.h
++++ b/include/rdma/rdma_netlink.h
+@@ -7,7 +7,6 @@
+ 
+ struct ibnl_client_cbs {
+ 	int (*dump)(struct sk_buff *skb, struct netlink_callback *nlcb);
+-	struct module *module;
+ };
+ 
+ /**
 -- 
 2.13.3
 
