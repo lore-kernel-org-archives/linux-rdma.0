@@ -1,236 +1,74 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-rc v1 1/4] IB/core: Fix race condition in resolving IP to MAC
-Date: Tue,  1 Aug 2017 09:41:34 +0300
-Message-ID: <20170801064137.8360-2-leon@kernel.org>
+Subject: [rdma-rc v1 3/4] IB/uverbs: Fix device cleanup
+Date: Tue,  1 Aug 2017 09:41:36 +0300
+Message-ID: <20170801064137.8360-4-leon@kernel.org>
 References: <20170801064137.8360-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170801064137.8360-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Currently while resolving IP address to MAC address single delayed work
-is used for resolving multiple such resolve requests. This singled work
-is essentially performs two tasks.
-(a) any retry needed to resolve and
-(b) it executes the callback function for all completed requests
+Uverbs device should be cleaned up only when there is no
+potential usage of.
 
-While work is executing callbacks, any new work scheduled on for this
-workqueue is lost because workqueue has completed looking at all pending
-requests and now looking at callbacks, but work is still under
-execution. Any further retry to look at pending requests in
-process_req() after executing callbacks would lead to similar race
-condition (may be reduce the probably further but doesn't eliminate it).
-Retrying to enqueue work that from queue_req() context is not something
-rest of the kernel modules have followed.
+As part of ib_uverbs_remove_one which might be triggered upon reset flow
+the device reference count is decreased as expected and leave the final
+cleanup to the FDs that were opened.
 
-Therefore fix in this patch utilizes kernel facility to enqueue multiple
-work items to a workqueue. This ensures that no such requests
-gets lost in synchronization. Request list is still maintained so that
-rdma_cancel_addr() can unlink the request and get the completion with
-error sooner. Neighbour update event handling continues to be handled in
-same way as before.
-Additionally process_req() work entry cancels any pending work for a
-request that gets completed while processing those requests.
+Current code increases reference count upon opening a new command FD and
+decreases it upon closing the file. The event FD is opened internally
+and rely on the command FD by taking on it a reference count.
 
-Originally ib_addr was ST workqueue, but it became MT work queue with
-patch of [1]. This patch again makes it similar to ST so that
-neighbour update events handler work item doesn't race with
-other work items.
+In case that the command FD was closed and just later the event FD we
+may ensure that the device resources as of srcu are still alive as they
+are still in use.
 
-In one such below trace, (though on 4.5 based kernel) it can be seen
-that process_req() never executed the callback, which is likely for an
-event that was schedule by queue_req() when previous callback was
-getting executed by workqueue.
+Fixing the above by moving the reference count decreasing to the place
+where the command FD is really freed instead of doing that when it was
+just closed.
 
- [<ffffffff816b0dde>] schedule+0x3e/0x90
- [<ffffffff816b3c45>] schedule_timeout+0x1b5/0x210
- [<ffffffff81618c37>] ? ip_route_output_flow+0x27/0x70
- [<ffffffffa027f9c9>] ? addr_resolve+0x149/0x1b0 [ib_addr]
- [<ffffffff816b228f>] wait_for_completion+0x10f/0x170
- [<ffffffff810b6140>] ? try_to_wake_up+0x210/0x210
- [<ffffffffa027f220>] ? rdma_copy_addr+0xa0/0xa0 [ib_addr]
- [<ffffffffa0280120>] rdma_addr_find_l2_eth_by_grh+0x1d0/0x278 [ib_addr]
- [<ffffffff81321297>] ? sub_alloc+0x77/0x1c0
- [<ffffffffa02943b7>] ib_init_ah_from_wc+0x3a7/0x5a0 [ib_core]
- [<ffffffffa0457aba>] cm_req_handler+0xea/0x580 [ib_cm]
- [<ffffffff81015982>] ? __switch_to+0x212/0x5e0
- [<ffffffffa04582fd>] cm_work_handler+0x6d/0x150 [ib_cm]
- [<ffffffff810a14c1>] process_one_work+0x151/0x4b0
- [<ffffffff810a1940>] worker_thread+0x120/0x480
- [<ffffffff816b074b>] ? __schedule+0x30b/0x890
- [<ffffffff810a1820>] ? process_one_work+0x4b0/0x4b0
- [<ffffffff810a1820>] ? process_one_work+0x4b0/0x4b0
- [<ffffffff810a6b1e>] kthread+0xce/0xf0
- [<ffffffff810a6a50>] ? kthread_freezable_should_stop+0x70/0x70
- [<ffffffff816b53a2>] ret_from_fork+0x42/0x70
- [<ffffffff810a6a50>] ? kthread_freezable_should_stop+0x70/0x70
-INFO: task kworker/u144:1:156520 blocked for more than 120 seconds.
-"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this
-message.
-kworker/u144:1  D ffff883ffe1d7600     0 156520      2 0x00000080
-Workqueue: ib_addr process_req [ib_addr]
- ffff883f446fbbd8 0000000000000046 ffff881f95280000 ffff881ff24de200
- ffff883f66120000 ffff883f446f8008 ffff881f95280000 ffff883f6f9208c4
- ffff883f6f9208c8 00000000ffffffff ffff883f446fbbf8 ffffffff816b0dde
-
-[1] http://lkml.iu.edu/hypermail/linux/kernel/1608.1/05834.html
-
-Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Mark Bloch <markb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+fixes: 036b10635739 ("IB/uverbs: Enable device removal when there are active user space applications")
+Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Tested-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/addr.c | 62 ++++++++++++++++++++++++++++++++----------
- 1 file changed, 48 insertions(+), 14 deletions(-)
+ drivers/infiniband/core/uverbs_main.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-index 01236cef7bfb..437522ca97b4 100644
---- a/drivers/infiniband/core/addr.c
-+++ b/drivers/infiniband/core/addr.c
-@@ -61,6 +61,7 @@ struct addr_req {
- 	void (*callback)(int status, struct sockaddr *src_addr,
- 			 struct rdma_dev_addr *addr, void *context);
- 	unsigned long timeout;
-+	struct delayed_work work;
- 	int status;
- 	u32 seq;
- };
-@@ -295,7 +296,7 @@ int rdma_translate_ip(const struct sockaddr *addr,
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 3d2609608f58..c023e2c81b8f 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -250,6 +250,7 @@ void ib_uverbs_release_file(struct kref *ref)
+ 	if (atomic_dec_and_test(&file->device->refcount))
+ 		ib_uverbs_comp_dev(file->device);
+
++	kobject_put(&file->device->kobj);
+ 	kfree(file);
  }
- EXPORT_SYMBOL(rdma_translate_ip);
 
--static void set_timeout(unsigned long time)
-+static void set_timeout(struct delayed_work *delayed_work, unsigned long time)
+@@ -917,7 +918,6 @@ static int ib_uverbs_open(struct inode *inode, struct file *filp)
+ static int ib_uverbs_close(struct inode *inode, struct file *filp)
  {
- 	unsigned long delay;
+ 	struct ib_uverbs_file *file = filp->private_data;
+-	struct ib_uverbs_device *dev = file->device;
 
-@@ -303,7 +304,7 @@ static void set_timeout(unsigned long time)
- 	if ((long)delay < 0)
- 		delay = 0;
+ 	mutex_lock(&file->cleanup_mutex);
+ 	if (file->ucontext) {
+@@ -939,7 +939,6 @@ static int ib_uverbs_close(struct inode *inode, struct file *filp)
+ 			 ib_uverbs_release_async_event_file);
 
--	mod_delayed_work(addr_wq, &work, delay);
-+	mod_delayed_work(addr_wq, delayed_work, delay);
- }
+ 	kref_put(&file->ref, ib_uverbs_release_file);
+-	kobject_put(&dev->kobj);
 
- static void queue_req(struct addr_req *req)
-@@ -318,8 +319,7 @@ static void queue_req(struct addr_req *req)
-
- 	list_add(&req->list, &temp_req->list);
-
--	if (req_list.next == &req->list)
--		set_timeout(req->timeout);
-+	set_timeout(&req->work, req->timeout);
- 	mutex_unlock(&lock);
- }
-
-@@ -574,6 +574,37 @@ static int addr_resolve(struct sockaddr *src_in,
- 	return ret;
- }
-
-+static void process_one_req(struct work_struct *_work)
-+{
-+	struct addr_req *req;
-+	struct sockaddr *src_in, *dst_in;
-+
-+	mutex_lock(&lock);
-+	req = container_of(_work, struct addr_req, work.work);
-+
-+	if (req->status == -ENODATA) {
-+		src_in = (struct sockaddr *)&req->src_addr;
-+		dst_in = (struct sockaddr *)&req->dst_addr;
-+		req->status = addr_resolve(src_in, dst_in, req->addr,
-+					   true, req->seq);
-+		if (req->status && time_after_eq(jiffies, req->timeout)) {
-+			req->status = -ETIMEDOUT;
-+		} else if (req->status == -ENODATA) {
-+			/* requeue the work for retrying again */
-+			set_timeout(&req->work, req->timeout);
-+			mutex_unlock(&lock);
-+			return;
-+		}
-+	}
-+	list_del(&req->list);
-+	mutex_unlock(&lock);
-+
-+	req->callback(req->status, (struct sockaddr *)&req->src_addr,
-+		req->addr, req->context);
-+	put_client(req->client);
-+	kfree(req);
-+}
-+
- static void process_req(struct work_struct *work)
- {
- 	struct addr_req *req, *temp_req;
-@@ -591,20 +622,23 @@ static void process_req(struct work_struct *work)
- 						   true, req->seq);
- 			if (req->status && time_after_eq(jiffies, req->timeout))
- 				req->status = -ETIMEDOUT;
--			else if (req->status == -ENODATA)
-+			else if (req->status == -ENODATA) {
-+				set_timeout(&req->work, req->timeout);
- 				continue;
-+			}
- 		}
- 		list_move_tail(&req->list, &done_list);
- 	}
-
--	if (!list_empty(&req_list)) {
--		req = list_entry(req_list.next, struct addr_req, list);
--		set_timeout(req->timeout);
--	}
- 	mutex_unlock(&lock);
-
- 	list_for_each_entry_safe(req, temp_req, &done_list, list) {
- 		list_del(&req->list);
-+		/* It is safe to cancel other work items from this work item
-+		 * because at a time there can be only one work item running
-+		 * with this single threaded work queue.
-+		 */
-+		cancel_delayed_work(&req->work);
- 		req->callback(req->status, (struct sockaddr *) &req->src_addr,
- 			req->addr, req->context);
- 		put_client(req->client);
-@@ -647,6 +681,7 @@ int rdma_resolve_ip(struct rdma_addr_client *client,
- 	req->context = context;
- 	req->client = client;
- 	atomic_inc(&client->refcount);
-+	INIT_DELAYED_WORK(&req->work, process_one_req);
- 	req->seq = (u32)atomic_inc_return(&ib_nl_addr_request_seq);
-
- 	req->status = addr_resolve(src_in, dst_in, addr, true, req->seq);
-@@ -701,7 +736,7 @@ void rdma_addr_cancel(struct rdma_dev_addr *addr)
- 			req->status = -ECANCELED;
- 			req->timeout = jiffies;
- 			list_move(&req->list, &req_list);
--			set_timeout(req->timeout);
-+			set_timeout(&req->work, req->timeout);
- 			break;
- 		}
- 	}
-@@ -807,9 +842,8 @@ static int netevent_callback(struct notifier_block *self, unsigned long event,
- 	if (event == NETEVENT_NEIGH_UPDATE) {
- 		struct neighbour *neigh = ctx;
-
--		if (neigh->nud_state & NUD_VALID) {
--			set_timeout(jiffies);
--		}
-+		if (neigh->nud_state & NUD_VALID)
-+			set_timeout(&work, jiffies);
- 	}
  	return 0;
  }
-@@ -820,7 +854,7 @@ static struct notifier_block nb = {
-
- int addr_init(void)
- {
--	addr_wq = alloc_workqueue("ib_addr", WQ_MEM_RECLAIM, 0);
-+	addr_wq = alloc_ordered_workqueue("ib_addr", WQ_MEM_RECLAIM);
- 	if (!addr_wq)
- 		return -ENOMEM;
-
 --
 2.13.3
 
