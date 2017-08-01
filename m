@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next 16/33] RDMA/netlink: Reduce indirection access to cb_table
-Date: Tue,  1 Aug 2017 15:05:19 +0300
-Message-ID: <20170801120536.540-17-leon@kernel.org>
+Subject: [rdma-next 14/33] RDMA/core: Add and expose static device index
+Date: Tue,  1 Aug 2017 15:05:17 +0300
+Message-ID: <20170801120536.540-15-leon@kernel.org>
 References: <20170801120536.540-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170801120536.540-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,55 +12,116 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Introduce intermediate variable to store access to fields
-of cb_table.
+This patch adds static device index in similar fashion to
+already available in netdev world (struct net->ifindex).
+
+In downstream patches, the RDMA nelink will use this idx-to-ib_device
+conversion, so as part of this commit, we are exposing the translation
+function to be visible for IB/core users.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/netlink.c | 13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ drivers/infiniband/core/core_priv.h |  5 +++++
+ drivers/infiniband/core/device.c    | 37 ++++++++++++++++++++++++++++++++++++-
+ include/rdma/ib_verbs.h             |  2 ++
+ 3 files changed, 43 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-index f98f9fe86d0a..6c3bb2693afa 100644
---- a/drivers/infiniband/core/netlink.c
-+++ b/drivers/infiniband/core/netlink.c
-@@ -157,12 +157,15 @@ static int rdma_nl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
- 	unsigned int op = RDMA_NL_GET_OP(type);
- 	struct netlink_callback cb = {};
- 	struct netlink_dump_control c = {};
-+	const struct rdma_nl_cbs *cb_table;
- 	int ret;
- 
- 	if (!is_nl_valid(index, op))
- 		return -EINVAL;
- 
--	if ((rdma_nl_types[index].cb_table[op].flags & RDMA_NL_ADMIN_PERM) &&
-+	cb_table = rdma_nl_types[type].cb_table;
-+
-+	if ((cb_table[op].flags & RDMA_NL_ADMIN_PERM) &&
- 	    !netlink_capable(skb, CAP_NET_ADMIN))
- 		return -EPERM;
- 
-@@ -174,14 +177,14 @@ static int rdma_nl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
- 	    (index == RDMA_NL_LS && op == RDMA_NL_LS_OP_SET_TIMEOUT)) {
- 		cb.skb = skb;
- 		cb.nlh = nlh;
--		cb.dump = rdma_nl_types[index].cb_table[op].dump;
-+		cb.dump = cb_table[op].dump;
- 		return cb.dump(skb, &cb);
- 	} else {
--		c.dump = rdma_nl_types[index].cb_table[op].dump;
-+		c.dump = cb_table[op].dump;
- 		return netlink_dump_start(nls, skb, nlh, &c);
- 	}
--	if (rdma_nl_types[index].cb_table[op].doit)
--		ret = rdma_nl_types[index].cb_table[op].doit(skb, nlh, extack);
-+	if (cb_table[op].doit)
-+		ret = cb_table[op].doit(skb, nlh, extack);
- 	return ret;
- 
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index 0c175590cf92..cbdcc81e1df8 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -309,4 +309,9 @@ static inline int ib_mad_enforce_security(struct ib_mad_agent_private *map,
+ 	return 0;
  }
+ #endif
++
++struct ib_device *__ib_device_get_by_index(u32 ifindex);
++/* RDMA device netlink */
++void nldev_init(void);
++void nldev_exit(void);
+ #endif /* _CORE_PRIV_H */
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 54143476a020..41eebd6ca0ff 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -134,6 +134,17 @@ static int ib_device_check_mandatory(struct ib_device *device)
+ 	return 0;
+ }
+ 
++struct ib_device *__ib_device_get_by_index(u32 index)
++{
++	struct ib_device *device;
++
++	list_for_each_entry(device, &device_list, core_list)
++		if (device->index == index)
++			return device;
++
++	return NULL;
++}
++
+ static struct ib_device *__ib_device_get_by_name(const char *name)
+ {
+ 	struct ib_device *device;
+@@ -145,7 +156,6 @@ static struct ib_device *__ib_device_get_by_name(const char *name)
+ 	return NULL;
+ }
+ 
+-
+ static int alloc_name(char *name)
+ {
+ 	unsigned long *inuse;
+@@ -395,6 +405,30 @@ static int ib_security_change(struct notifier_block *nb, unsigned long event,
+ }
+ 
+ /**
++ *	__dev_new_index	-	allocate an device index
++ *
++ *	Returns a suitable unique value for a new device interface
++ *	number.  It assumes that there are less than 2^32-1 ib devices
++ *	will be present in the system.
++ */
++static u32 __dev_new_index(void)
++{
++	/*
++	 * The device index to allow stable naming.
++	 * Similar to struct net -> ifindex.
++	 */
++	static u32 index;
++
++	for (;;) {
++		if (!(++index))
++			index = 1;
++
++		if (!__ib_device_get_by_index(index))
++			return index;
++	}
++}
++
++/**
+  * ib_register_device - Register an IB device with IB core
+  * @device:Device to register
+  *
+@@ -492,6 +526,7 @@ int ib_register_device(struct ib_device *device,
+ 		if (client->add && !add_client_context(device, client))
+ 			client->add(device);
+ 
++	device->index = __dev_new_index();
+ 	down_write(&lists_rwsem);
+ 	list_add_tail(&device->core_list, &device_list);
+ 	up_write(&lists_rwsem);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 1082b4c81b2c..3391df5fdc9c 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2298,6 +2298,8 @@ struct ib_device {
+ 	struct rdmacg_device         cg_device;
+ #endif
+ 
++	u32                          index;
++
+ 	/**
+ 	 * The following mandatory functions are used only at device
+ 	 * registration.  Keep functions such as these at the end of this
 -- 
 2.13.3
 
