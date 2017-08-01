@@ -1,7 +1,7 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH RFC 2/3] rdma core: Add rdma_rw_mr_payload()
-Date: Tue, 01 Aug 2017 17:07:07 -0400
-Message-ID: <20170801210707.15781.36464.stgit@klimt.1015granger.net>
+Subject: [PATCH RFC 3/3] svcrdma: Estimate Send Queue depth properly
+Date: Tue, 01 Aug 2017 17:07:15 -0400
+Message-ID: <20170801210715.15781.58913.stgit@klimt.1015granger.net>
 References: <20170801205334.15781.18761.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -12,67 +12,83 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The amount of payload per MR depends on device capabilities and
-the memory registration mode in use. The new rdma_rw API hides both,
-making it difficult for ULPs to determine how large their transport
-send queues need to be.
+The rdma_rw API adjusts max_send_wr upwards during the
+rdma_create_qp() call. If the ULP actually wants to take advantage
+of these extra resources, it must increase the size of its send
+completion queue (created before rdma_create_qp is called) and
+increase its send queue accounting limit.
 
-Expose the MR payload information via a new API.
+Use the new rdma_rw_mr_factor API to figure out the correct value
+to use for the Send Queue and Send Completion Queue depths.
+
+And, ensure that the chosen Send Queue depth for a newly created
+transport does not overrun the QP WR limit of the underlying device.
+
+Lastly, there's no longer a need to carry the Send Queue depth in
+struct svcxprt_rdma, since the value is used only in the
+svc_rdma_accept() path.
 
 Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/rw.c |   24 ++++++++++++++++++++++++
- include/rdma/rw.h            |    2 ++
- 2 files changed, 26 insertions(+)
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
-index dbfd854..6ca607e 100644
---- a/drivers/infiniband/core/rw.c
-+++ b/drivers/infiniband/core/rw.c
-@@ -643,6 +643,30 @@ void rdma_rw_ctx_destroy_signature(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
- }
- EXPORT_SYMBOL(rdma_rw_ctx_destroy_signature);
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index cdb04f8..5caf8e7 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -51,6 +51,7 @@
+ #include <linux/workqueue.h>
+ #include <rdma/ib_verbs.h>
+ #include <rdma/rdma_cm.h>
++#include <rdma/rw.h>
+ #include <linux/sunrpc/svc_rdma.h>
+ #include <linux/export.h>
+ #include "xprt_rdma.h"
+@@ -713,7 +714,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 	struct ib_qp_init_attr qp_attr;
+ 	struct ib_device *dev;
+ 	struct sockaddr *sap;
+-	unsigned int i;
++	unsigned int i, ctxts;
+ 	int ret = 0;
  
-+/**
-+ * rdma_rw_mr_factor - return number of MRs required for a payload
-+ * @device:	device handling the connection
-+ * @port_num:	port num to which the connection is bound
-+ * @maxpages:	maximum payload pages per rdma_rw_ctx
-+ *
-+ * Returns the number of MRs the device requires to move @maxpayload
-+ * bytes. The returned value is used during transport creation to
-+ * compute max_rdma_ctxts and the size of the transport's Send and
-+ * Send Completion Queues.
-+ */
-+unsigned int rdma_rw_mr_factor(struct ib_device *device, u8 port_num,
-+			       unsigned int maxpages)
-+{
-+	unsigned int mr_pages;
-+
-+	if (rdma_rw_can_use_mr(device, port_num))
-+		mr_pages = rdma_rw_fr_page_list_len(device);
-+	else
-+		mr_pages = device->attrs.max_sge_rd;
-+	return DIV_ROUND_UP(maxpages, mr_pages);
-+}
-+EXPORT_SYMBOL(rdma_rw_mr_factor);
-+
- void rdma_rw_init_qp(struct ib_device *dev, struct ib_qp_init_attr *attr)
- {
- 	u32 factor;
-diff --git a/include/rdma/rw.h b/include/rdma/rw.h
-index 377d865..a3cbbc7 100644
---- a/include/rdma/rw.h
-+++ b/include/rdma/rw.h
-@@ -81,6 +81,8 @@ struct ib_send_wr *rdma_rw_ctx_wrs(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
- int rdma_rw_ctx_post(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
- 		struct ib_cqe *cqe, struct ib_send_wr *chain_wr);
+ 	listen_rdma = container_of(xprt, struct svcxprt_rdma, sc_xprt);
+@@ -754,7 +755,14 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 		newxprt->sc_max_bc_requests = 2;
+ 	}
+ 	newxprt->sc_fc_credits = cpu_to_be32(newxprt->sc_max_requests);
+-	newxprt->sc_sq_depth = newxprt->sc_rq_depth;
++	ctxts = rdma_rw_mr_factor(dev, newxprt->sc_port_num, RPCSVC_MAXPAGES);
++	ctxts *= newxprt->sc_max_requests;
++	newxprt->sc_sq_depth = newxprt->sc_rq_depth + ctxts;
++	if (newxprt->sc_sq_depth > dev->attrs.max_qp_wr) {
++		pr_warn("svcrdma: reducing send depth to %d\n",
++			dev->attrs.max_qp_wr);
++		newxprt->sc_sq_depth = dev->attrs.max_qp_wr;
++	}
+ 	atomic_set(&newxprt->sc_sq_avail, newxprt->sc_sq_depth);
  
-+unsigned int rdma_rw_mr_factor(struct ib_device *device, u8 port_num,
-+		unsigned int maxpages);
- void rdma_rw_init_qp(struct ib_device *dev, struct ib_qp_init_attr *attr);
- int rdma_rw_init_mrs(struct ib_qp *qp, struct ib_qp_init_attr *attr);
- void rdma_rw_cleanup_mrs(struct ib_qp *qp);
+ 	if (!svc_rdma_prealloc_ctxts(newxprt))
+@@ -789,8 +797,8 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 	qp_attr.event_handler = qp_event_handler;
+ 	qp_attr.qp_context = &newxprt->sc_xprt;
+ 	qp_attr.port_num = newxprt->sc_port_num;
+-	qp_attr.cap.max_rdma_ctxs = newxprt->sc_max_requests;
+-	qp_attr.cap.max_send_wr = newxprt->sc_sq_depth;
++	qp_attr.cap.max_rdma_ctxs = ctxts;
++	qp_attr.cap.max_send_wr = newxprt->sc_sq_depth - ctxts;
+ 	qp_attr.cap.max_recv_wr = newxprt->sc_rq_depth;
+ 	qp_attr.cap.max_send_sge = newxprt->sc_max_sge;
+ 	qp_attr.cap.max_recv_sge = newxprt->sc_max_sge;
+@@ -858,6 +866,7 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 	dprintk("    remote address  : %pIS:%u\n", sap, rpc_get_port(sap));
+ 	dprintk("    max_sge         : %d\n", newxprt->sc_max_sge);
+ 	dprintk("    sq_depth        : %d\n", newxprt->sc_sq_depth);
++	dprintk("    rdma_rw_ctxs    : %d\n", ctxts);
+ 	dprintk("    max_requests    : %d\n", newxprt->sc_max_requests);
+ 	dprintk("    ord             : %d\n", newxprt->sc_ord);
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
