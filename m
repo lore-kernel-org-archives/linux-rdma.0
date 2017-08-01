@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next 29/33] RDMA/netlink: Advertise IB subnet prefix
-Date: Tue,  1 Aug 2017 15:05:32 +0300
-Message-ID: <20170801120536.540-30-leon@kernel.org>
+Subject: [rdma-next 20/33] RDMA/netlink: Add nldev initialization flows
+Date: Tue,  1 Aug 2017 15:05:23 +0300
+Message-ID: <20170801120536.540-21-leon@kernel.org>
 References: <20170801120536.540-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170801120536.540-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,54 +12,102 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add IB subnet prefix to the port properties exported
-by RDMA netlink.
+Add nldev init and exit flows to the RDMA/core.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/nldev.c  | 5 +++++
- include/uapi/rdma/rdma_netlink.h | 5 +++++
- 2 files changed, 10 insertions(+)
+ drivers/infiniband/core/Makefile |  3 ++-
+ drivers/infiniband/core/device.c |  2 ++
+ drivers/infiniband/core/nldev.c  | 45 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 49 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/infiniband/core/nldev.c
 
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index fde0138fff5f..c4884841e2fe 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -44,6 +44,7 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 					    .len = IB_FW_VERSION_NAME_MAX - 1},
- 	[RDMA_NLDEV_ATTR_NODE_GUID]	= { .type = NLA_U64 },
- 	[RDMA_NLDEV_ATTR_SYS_IMAGE_GUID] = { .type = NLA_U64 },
-+	[RDMA_NLDEV_ATTR_SUBNET_PREFIX]	= { .type = NLA_U64 },
- };
- 
- static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
-@@ -97,6 +98,10 @@ static int fill_port_info(struct sk_buff *msg,
- 	if (nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_CAP_FLAGS,
- 			      (u64)attr.port_cap_flags, 0))
- 		return -EMSGSIZE;
-+	if (rdma_protocol_ib(device, port) &&
-+	    nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_SUBNET_PREFIX,
-+			      attr.subnet_prefix, 0))
-+		return -EMSGSIZE;
- 
- 	return 0;
- }
-diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index b34f7745daf0..24712d810dca 100644
---- a/include/uapi/rdma/rdma_netlink.h
-+++ b/include/uapi/rdma/rdma_netlink.h
-@@ -279,6 +279,11 @@ enum rdma_nldev_attr {
- 	 */
- 	RDMA_NLDEV_ATTR_SYS_IMAGE_GUID,		/* u64 */
- 
-+	/*
-+	 * Subnet prefix (in host byte order)
-+	 */
-+	RDMA_NLDEV_ATTR_SUBNET_PREFIX,		/* u64 */
+diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
+index e3cdafff8ece..920609a0872e 100644
+--- a/drivers/infiniband/core/Makefile
++++ b/drivers/infiniband/core/Makefile
+@@ -11,7 +11,8 @@ ib_core-y :=			packer.o ud_header.o verbs.o cq.o rw.o sysfs.o \
+ 				device.o fmr_pool.o cache.o netlink.o \
+ 				roce_gid_mgmt.o mr_pool.o addr.o sa_query.o \
+ 				multicast.o mad.o smi.o agent.o mad_rmpp.o \
+-				security.o
++				security.o nldev.o
 +
- 	RDMA_NLDEV_ATTR_MAX
- };
- #endif /* _UAPI_RDMA_NETLINK_H */
+ ib_core-$(CONFIG_INFINIBAND_USER_MEM) += umem.o
+ ib_core-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += umem_odp.o umem_rbtree.o
+ ib_core-$(CONFIG_CGROUP_RDMA) += cgroup.o
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 5a3ff941c86c..fca126aa001b 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -1212,6 +1212,7 @@ static int __init ib_core_init(void)
+ 		goto err_sa;
+ 	}
+ 
++	nldev_init();
+ 	rdma_nl_register(RDMA_NL_LS, ibnl_ls_cb_table);
+ 	ib_cache_setup();
+ 
+@@ -1237,6 +1238,7 @@ static int __init ib_core_init(void)
+ static void __exit ib_core_cleanup(void)
+ {
+ 	ib_cache_cleanup();
++	nldev_exit();
+ 	rdma_nl_unregister(RDMA_NL_LS);
+ 	unregister_lsm_notifier(&ibdev_lsm_nb);
+ 	ib_sa_cleanup();
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+new file mode 100644
+index 000000000000..1d1e4f214874
+--- /dev/null
++++ b/drivers/infiniband/core/nldev.c
+@@ -0,0 +1,45 @@
++/*
++ * Copyright (c) 2017 Mellanox Technologies. All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ *
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ * 3. Neither the names of the copyright holders nor the names of its
++ *    contributors may be used to endorse or promote products derived from
++ *    this software without specific prior written permission.
++ *
++ * Alternatively, this software may be distributed under the terms of the
++ * GNU General Public License ("GPL") version 2 as published by the Free
++ * Software Foundation.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
++ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++ * POSSIBILITY OF SUCH DAMAGE.
++ */
++
++#include <rdma/rdma_netlink.h>
++
++#include "core_priv.h"
++
++void __init nldev_init(void)
++{
++	rdma_nl_register(RDMA_NL_NLDEV, NULL);
++}
++
++void __exit nldev_exit(void)
++{
++	rdma_nl_unregister(RDMA_NL_NLDEV);
++}
 -- 
 2.13.3
 
