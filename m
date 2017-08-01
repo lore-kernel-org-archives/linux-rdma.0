@@ -1,156 +1,76 @@
-From: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: BUG: NULL pointer dereference at ib_uverbs_comp_handler+0x20
-Date: Tue, 1 Aug 2017 18:00:18 +0530
-Message-ID: <20170801123017.GA19657@chelsio.com>
-References: <216b770e-fc08-68a6-c1bf-be96d52e325e@deltatee.com>
- <CAAKD3BDFcFDVvYYsimAqqWM9w-qv0Nc4U5Y54eGNhOATSkg0tA@mail.gmail.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [ANNOUNCE] rdma-core-15-rc1 has been tagged/released
+Date: Tue, 01 Aug 2017 08:31:49 -0400
+Message-ID: <1501590709.2725.10.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAAKD3BDFcFDVvYYsimAqqWM9w-qv0Nc4U5Y54eGNhOATSkg0tA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matan Barak <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tuesday, August 08/01/17, 2017 at 16:38:08 +0530, Matan Barak wrote:
-> On Fri, Jul 28, 2017 at 8:38 PM, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org> wrote:
-> > Hi,
-> >
-> > My system has been failing with recent kernels (4.12.x and 4.13-rc2)
-> > with a NULL pointer dereference at the stack trace given at the end of
-> > this email. This happens when simply running 'ib_write_bw -R <server>'
-> > with a Chelsio T6 (cxgb4). I've bisected (log attached) to find the
-> > offending commit to be:
-> >
-> > commit 1e7710f3f6563940bb6bbc94aa8eadfd344a86af
-> > Author: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >   IB/core: Change completion channel to use the reworked objects schema
-> >
-> > Reverting this commit (and the dependent commits db1b5ddd53365 and
-> > e0fcc61113c that also fix other bugs with this commit) from v4.12.3
-> > fixes the issue.
-> >
-> > I did the bisect with the userspace libraries in Debian Stretch but I
-> > also had this bug with rdma-core v14. I was pretty sure v4.12 kernels
-> > worked for me in the past but likely only before I upgraded from Jessie
-> > to Stretch.
-> >
-> > Thanks,
-> >
-> > Logan
-> >
-Hi Logan,
-Today I sent out a patch to address the issue. Please try it.
-"[PATCH 1/1] RDMA/uverbs: Initialize cq_context appropriately"
+Here's the information from the tag:
 
-> 
-> Hi Logan,
-> 
-> I've tried to reproduce this in my setup (ConnectX 4, RoCE mode) using
-> 1e7710f3f6563940bb6bbc94aa8eadfd344a86af as the kernel's head.
-> I've used d779dd9a9e8f as rdma-core user-space and the latest perftest bits.
-> I couldn't reproduce this problem.
-> I'll try to review this commit again, but please provide more information.
-> For example, do you see the iwpm_register_pid error when these commits
-> are reverted?
-Hi Matan,
-Issue is seen with applications not creating a completion channel.
-It is not seen with rping or similar applications which do create completion channel.
+tag v15-rc1
+Tagger: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Date:   Tue Aug 1 08:18:05 2017 -0400
 
-Today I sent out a patch to address the issue. Please review it.
-"[PATCH 1/1] RDMA/uverbs: Initialize cq_context appropriately"
+rdma-core-15-rc1
 
-Thanks,
-Bharat.
-> Does this also happen when using the plain rdma-cm examples (ucmatose,
-> rping)? Does it happen in a plain verbs application (ibv_rc_pingpong)?
-> I assume you use iWarp, right? Did you test other modes?
-> Did you reproduce this issue with your ConnectX 4 as well?
-> Could you please reproduce it with KASAN as well?
+Updates from rdma-core version 14:
 
-> 
-> PS, e0fcc61113c isn't a bug fix, it's just a simple refactor.
-> 
-> Regards,
-> Matan
-> 
-> >
-> > PS. As a side rant, this bug was found after a very *frustrating* day of
-> > what was supposed to be the 20 minute task of getting my RDMA cards
-> > plugged in again. I tried with both CX4s and the T6s (and I'm still not
-> > sure if my CX4s work yet). Instead, it turns out there's a whole mess of
-> > bugs in the kernel I had to go up against. I went back and forth between
-> > different versions of the userspace libraries because I was sure 4.11
-> > worked -- but it turned out 4.11.10+, 4.12.x and who knows what other
-> > stable kernels are currently broken by the bug fixed in [1]. And there
-> > was a whole other bug that broke things that was fixed in the 4.12-rc
-> > series that I had to carefully bisect around to find the one reported
-> > above. So frustrating!!
-> >
-> > [1] 5a7a88f1b488e4ee49eb3d5b82612d4d9ffdf2c3
-> >
-> > --
-> >
-> > [   53.320439] iwpm_register_pid: Unable to send a nlmsg (client = 2)
-> > [   54.738579] BUG: unable to handle kernel NULL pointer dereference at
-> > 0000000000000058
-> > [   54.747439] IP: _raw_spin_lock_irqsave+0x10/0x30
-> > [   54.752719] PGD 0
-> > [   54.752721] P4D 0
-> > [   54.755049]
-> > [   54.759109] Oops: 0002 [#1] SMP
-> > [   54.762699] Modules linked in:
-> > [   54.766195] CPU: 0 PID: 5 Comm: kworker/u16:0 Not tainted
-> > 4.13.0-rc2.direct #708
-> > [   54.774536] Hardware name: Supermicro SYS-7047GR-TRF/X9DRG-QF, BIOS
-> > 3.0a 12/05/2013
-> > [   54.783182] Workqueue: iw_cxgb4 process_work
-> > [   54.788036] task: ffff880276a5ee80 task.stack: ffffc900000c4000
-> > [   54.794728] RIP: 0010:_raw_spin_lock_irqsave+0x10/0x30
-> > [   54.800552] RSP: 0018:ffffc900000c7c70 EFLAGS: 00010046
-> > [   54.806473] RAX: 0000000000000000 RBX: 0000000000000002 RCX:
-> > 0000000000000000
-> > [   54.814524] RDX: 0000000000000001 RSI: 0000000000000058 RDI:
-> > 0000000000000058
-> > [   54.822583] RBP: ffff880470484600 R08: 0000000000000001 R09:
-> > 0000000000000001
-> > [   54.830663] R10: 0000000000000040 R11: ffff88047420b400 R12:
-> > 0000000000000282
-> > [   54.838744] R13: ffffc900000c7dc0 R14: 0000000000000001 R15:
-> > ffff880470484600
-> > [   54.846825] FS:  0000000000000000(0000) GS:ffff880277c00000(0000)
-> > knlGS:0000000000000000
-> > [   54.855997] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> > [   54.862522] CR2: 0000000000000058 CR3: 0000000001e0a000 CR4:
-> > 00000000000406f0
-> > [   54.870602] Call Trace:
-> > [   54.873442]  ? ib_uverbs_comp_handler+0x20/0xe0
-> > [   54.878610]  ? flush_qp+0x6e/0x2b0
-> > [   54.882514]  ? c4iw_modify_qp+0x11c2/0x1870
-> > [   54.887295]  ? close_con_rpl+0xe7/0x170
-> > [   54.891686]  ? kfree_skb+0x33/0x90
-> > [   54.895592]  ? skb_dequeue+0x52/0x60
-> > [   54.899690]  ? process_work+0x4a/0x60
-> > [   54.903887]  ? process_one_work+0x1c2/0x3e0
-> > [   54.908664]  ? worker_thread+0x47/0x3d0
-> > [   54.913056]  ? kthread+0xfc/0x130
-> > [   54.916864]  ? create_worker+0x180/0x180
-> > [   54.921353]  ? kthread_create_on_node+0x40/0x40
-> > [   54.926521]  ? ret_from_fork+0x22/0x30
-> > [   54.930811] Code: c0 74 05 e8 b3 1c 73 ff 48 89 d8 5b c3 0f 1f 40 00
-> > 66 2e 0f 1f 84 00 00 00 00 00 66 66 66 66 90 53 9c 5b fa 31 c0 ba 01 00
-> > 00 00 <f0> 0f b1 17 85 c0 75 05 48 89 d8 5b c3 89 c6 e8 9c 09 73 ff 48
-> > [   54.952099] RIP: _raw_spin_lock_irqsave+0x10/0x30 RSP: ffffc900000c7c70
-> > [   54.959598] CR2: 0000000000000058
-> > [   54.963405] ---[ end trace 896cfe0234c949d2 ]---
-> > [  102.633421] random: crng init done
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Add flow steering drop action
+- mmio_flush_write fixes
+- Fixes for uclibc
+- Add common mmio accessor routines and remove per provider mmio
+  routines
+- qedr fixes
+- Lots of fixes for debian packaging
+- Copyright fixes
+- Properly conflict with infiniband-diags
+- Add direct verbs support to mlx4 provider
+- Improvement to Travis CI checking
+- Enforce kernel coding style in rdma-core
+- Add initial verbs hotplug support
+- Sparse annotations
+- Systemd updates for srp_daemon and iwpmd
+- Red Hat packaging fixes
+- Properly make the entire rdma-core support udev hotplug activation
+- Packaging fixes related to the joining of packages and globs that are
+  no longer valid
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAABAgAGBQJZgHNpAAoJELgmozMOVy/djucQAKEN9HSobCNJU7ZXxvN99uLO
+4o3N17jDSzY8EfqGYX1n/1/+SxB0o3qsysNgW7I8FqQZOjz0DjlhEwP3J9HnD0Hb
+wE/tu4mbDRurtgh+qaNcxRLrzED6/lqn1PSvePjKg6T81jfzfvXOx+2LYb4r5oEe
+KIcj/bCE+aGyySm6gDiKVxm8oVRvvQp/NfqqMNVhbGz9Ezi2ZJkfG/FOTo0jFDwX
+xzrAAAv9iTpmm7Hp2vJkHV65zPEoMXuSlu7vRUjaOWeboyIJLwur9OyMu+fkWWvX
+EV3fckwseqBhOvuxmV9ZhEbfgxvt6UIwRSBtvnPbgIukBWWQlVkCT5aehceQWUpY
+guEsxb4LvbIeYTEfrfhCLF/l9BI/QfQ+SZmeWe3LAox2K0fxzOIbUU1Lki/vRsuf
+jvZwIuD6JVRhi2FQNNePms3/wayZcRZxjbMnPE5WbSfRxXDa/28dTaMbp+VoBiex
+On2ykJT5qBTYRPIgPL3wHqdNTsh4gsYHAaCQzDR2z0zESuNXB0bcbFcRkgBSNaAb
+cvN0QrpkNMAsmqSRXsDbcPj/Pb3yUuTf+ZSaXxL6SafnFvb1xH4P7thWC9wGVcw3
+XHkZzu+BEUwMzJkZzNnCu3IXECF8PKk6GttuxhYPvzZ0DK6Ve8qpdzoKgvgZNlZ5
+Wy9pRgI9q7qRe9NoZUKX
+=sqn3
+-----END PGP SIGNATURE-----
+
+This is a little bit late, so it would be best to keep -rc cycles on it
+to a minimum and get the final version pushed out soon.  With the
+"excitement" of this last release cycle/merge window, this slipped my
+mind.  My apologies.
+
+It's available at the normal places:
+
+git://github.com/linux-rdma/rdma-core
+https://github.com/linux-rdma/rdma-core/releases
+
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
