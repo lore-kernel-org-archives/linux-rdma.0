@@ -1,65 +1,69 @@
-From: Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [lpc-contact] RDMA miniconf dates at LPC 2017
-Date: Tue, 1 Aug 2017 15:54:35 -0400
-Message-ID: <646fff23-2724-13cc-5e12-add90e4db828@redhat.com>
-References: <CALq1K=JLv49x5DUqBrsQQSRMPEzbNA8ZiqEhRzuETxgw1nV7Kg@mail.gmail.com>
- <CALq1K=JnT-2P4Kj3YL2xyapiWp-Ve9HD7ySiXQJEiBkDfp9SUA@mail.gmail.com>
- <1501616320.2736.45.camel@HansenPartnership.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [rdma-next 01/33] Revert "IB/core: Add flow control to the
+ portmapper netlink calls"
+Date: Tue, 1 Aug 2017 13:58:40 -0600
+Message-ID: <20170801195840.GC31205@obsidianresearch.com>
+References: <20170801120536.540-1-leon@kernel.org>
+ <20170801120536.540-2-leon@kernel.org>
+ <20170801133832.GA11812@ctung-MOBL3.amr.corp.intel.com>
+ <20170801141023.GM13672@mtr-leonro.local>
+ <20170801141842.GA1808@ctung-MOBL3.amr.corp.intel.com>
+ <alpine.DEB.2.20.1708010921490.16491@nuc-kabylake>
+ <20170801151511.GA13376@ctung-MOBL3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1501616320.2736.45.camel-d9PhHud1JfjCXq6kfMZ53/egYHeGw8Jk@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170801151511.GA13376-TZeIlv3TuzOfrEmaQUPKxl95YUYmaKo1UNDiOz3kqAs@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: James Bottomley <James.Bottomley-d9PhHud1JfjCXq6kfMZ53/egYHeGw8Jk@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, contact-cunTk1MwBs990ICgHLs2ApIRA52/M9t8QH7oEaQurus@public.gmane.org
+To: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Christopher Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/01/2017 03:38 PM, James Bottomley wrote:
-> On Mon, 2017-07-31 at 14:30 +0300, Leon Romanovsky wrote:
->> Resend to contact@lpc....
->>
->> On Mon, Jul 31, 2017 at 2:18 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->> wrote:
->>>
->>> Hi James,
->>>
->>> The LPC 2017 time is approaching and we would like to know on which
->>> day, the RDMA miniconf is going to be scheduled.
->
-> We usually have enormous difficulty putting together the schedule
-> because 4 tracks gives a lot of potential for conflicts and we have to
-> iterate to the least bad solution.  Given that, we don't usually begin
-> until all MCs have been selected (which hasn't happened yet).
->
-> Do you have any specific constraints you'd like us to try and take into account when we attempt this?
->
->>> Can you please share this information with us so the people will be
->>> able to plan their trips accordingly?
->
-> Usually the idea is that people coming to Plumbers stay for all of the
-> three days.  Wednesday is going to be just talks and one track of
-> Microconferences, though.  This year the security summit requested the
-> Containers and TPM MCs on Wednesday, so the only days your MC could be
-> scheduled would be Thursday or Friday.
->
-> James
->
-James,
-Leon is asking due to (at least) my poking, maybe others.
-The above info is what we are looking to get -- didn't know if the MCs would
-be scheduled on Tuesday, or even Saturday.
-The above info allows us to book flights/hotels for Tues->Sat a.m., at least b4
-all the better flights are taken! ;-)
-Thanks!
-- Don
+On Tue, Aug 01, 2017 at 10:15:11AM -0500, Chien Tin Tung wrote:
+> On Tue, Aug 01, 2017 at 09:22:47AM -0500, Christopher Lameter wrote:
+> > On Tue, 1 Aug 2017, Chien Tin Tung wrote:
+> > 
+> > > Why do I need to explain the original patch?  It was accepted many kernels
+> > > ago.  Your questions on the original were based on false assumptions and
+> > > facts which I've proven over and over.  You are right in that I do
+> > > not want to revisit those either.  There is a patch that can solve
+> > > the problem you are facing but yet you insist on the revert.  This is
+> > > very puzzling to me.  You simply refuse to move this forward.  That
+> > > is your choice but revert is a no go for me.
+> > 
+> > Ok this is pretty confusing to someone not involved in the prior
+> > discussions. Could both of your stop attacking each other and start
+> > talking about the technical issues?
+> 
+> There's been multiple threads over this revert.  This one is the
+> latest Leon walked away from: https://patchwork.kernel.org/patch/9814367/
+> 
+> I'm simply asking for proof/evidence/facts to back up Leon's claims.
+> Show me the code/stack trace/whatever and I will be happy to admit wrong
+> publicly on the list and move on.  I do have better things to do than
+> to NACK a revert.
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Well, I think the design of the netlink protocol in iwpmd is pretty
+strange, but audit netlink is the other major user of blocking
+netlink_uncast to achive some reliability, so it should be workable
+here as well.
 
+Presumably the iwpmd kernel side is designed to handle the locking
+right to avoid deadlocks.
+
+I'm not sure why there is so much noise about this - yes, iwpmd is
+really weird, but it is a UAPI, we can't change it and we can't demand
+they change. For better or worse the protocol is based on
+'near-reliable' netlink delivery of messages and we are stuck with
+that.
+
+Leon is also right that every other user of netlink_unicast in rdma
+should be using the non-blocking version.
+
+So, the above patch seems like a sensible approach to me..
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
