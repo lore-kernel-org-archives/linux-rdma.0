@@ -1,67 +1,34 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [rdma-next 01/33] Revert "IB/core: Add flow control to the
- portmapper netlink calls"
-Date: Tue, 1 Aug 2017 13:58:40 -0600
-Message-ID: <20170801195840.GC31205@obsidianresearch.com>
-References: <20170801120536.540-1-leon@kernel.org>
- <20170801120536.540-2-leon@kernel.org>
- <20170801133832.GA11812@ctung-MOBL3.amr.corp.intel.com>
- <20170801141023.GM13672@mtr-leonro.local>
- <20170801141842.GA1808@ctung-MOBL3.amr.corp.intel.com>
- <alpine.DEB.2.20.1708010921490.16491@nuc-kabylake>
- <20170801151511.GA13376@ctung-MOBL3.amr.corp.intel.com>
+Subject: Re: [ANNOUNCE] rdma-core-15-rc1 has been tagged/released
+Date: Tue, 1 Aug 2017 14:08:46 -0600
+Message-ID: <20170801200846.GA3808@obsidianresearch.com>
+References: <1501590709.2725.10.camel@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170801151511.GA13376-TZeIlv3TuzOfrEmaQUPKxl95YUYmaKo1UNDiOz3kqAs@public.gmane.org>
+In-Reply-To: <1501590709.2725.10.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Christopher Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 01, 2017 at 10:15:11AM -0500, Chien Tin Tung wrote:
-> On Tue, Aug 01, 2017 at 09:22:47AM -0500, Christopher Lameter wrote:
-> > On Tue, 1 Aug 2017, Chien Tin Tung wrote:
-> > 
-> > > Why do I need to explain the original patch?  It was accepted many kernels
-> > > ago.  Your questions on the original were based on false assumptions and
-> > > facts which I've proven over and over.  You are right in that I do
-> > > not want to revisit those either.  There is a patch that can solve
-> > > the problem you are facing but yet you insist on the revert.  This is
-> > > very puzzling to me.  You simply refuse to move this forward.  That
-> > > is your choice but revert is a no go for me.
-> > 
-> > Ok this is pretty confusing to someone not involved in the prior
-> > discussions. Could both of your stop attacking each other and start
-> > talking about the technical issues?
-> 
-> There's been multiple threads over this revert.  This one is the
-> latest Leon walked away from: https://patchwork.kernel.org/patch/9814367/
-> 
-> I'm simply asking for proof/evidence/facts to back up Leon's claims.
-> Show me the code/stack trace/whatever and I will be happy to admit wrong
-> publicly on the list and move on.  I do have better things to do than
-> to NACK a revert.
+On Tue, Aug 01, 2017 at 08:31:49AM -0400, Doug Ledford wrote:
 
-Well, I think the design of the netlink protocol in iwpmd is pretty
-strange, but audit netlink is the other major user of blocking
-netlink_uncast to achive some reliability, so it should be workable
-here as well.
+> This is a little bit late, so it would be best to keep -rc cycles on it
+> to a minimum and get the final version pushed out soon.  With the
+> "excitement" of this last release cycle/merge window, this slipped my
+> mind.  My apologies.
 
-Presumably the iwpmd kernel side is designed to handle the locking
-right to avoid deadlocks.
+Benjamin,
 
-I'm not sure why there is so much noise about this - yes, iwpmd is
-really weird, but it is a UAPI, we can't change it and we can't demand
-they change. For better or worse the protocol is based on
-'near-reliable' netlink delivery of messages and we are stuck with
-that.
+What more do you need in this release to start submitting to to the
+debian archive?
 
-Leon is also right that every other user of netlink_unicast in rdma
-should be using the non-blocking version.
+#174 wasn't merged yet, and there is one more minorish patch needed to
+rework the systemd targets.
 
-So, the above patch seems like a sensible approach to me..
+Are you OK with taking those last few things at this point?
 
 Jason
 --
