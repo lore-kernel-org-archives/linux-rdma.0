@@ -1,74 +1,43 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-rc v1 3/4] IB/uverbs: Fix device cleanup
-Date: Tue,  1 Aug 2017 09:41:36 +0300
-Message-ID: <20170801064137.8360-4-leon@kernel.org>
+Subject: [rdma-rc v1 2/4] RDMA/uverbs: Prevent leak of reserved field
+Date: Tue,  1 Aug 2017 09:41:35 +0300
+Message-ID: <20170801064137.8360-3-leon@kernel.org>
 References: <20170801064137.8360-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170801064137.8360-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Uverbs device should be cleaned up only when there is no
-potential usage of.
+initialize to zero the response structure to prevent
+the leakage of "resp.reserved" field.
 
-As part of ib_uverbs_remove_one which might be triggered upon reset flow
-the device reference count is decreased as expected and leave the final
-cleanup to the FDs that were opened.
+drivers/infiniband/core/uverbs_cmd.c:1178 ib_uverbs_resize_cq() warn:
+	check that 'resp.reserved' doesn't leak information
 
-Current code increases reference count upon opening a new command FD and
-decreases it upon closing the file. The event FD is opened internally
-and rely on the command FD by taking on it a reference count.
-
-In case that the command FD was closed and just later the event FD we
-may ensure that the device resources as of srcu are still alive as they
-are still in use.
-
-Fixing the above by moving the reference count decreasing to the place
-where the command FD is really freed instead of doing that when it was
-just closed.
-
-fixes: 036b10635739 ("IB/uverbs: Enable device removal when there are active user space applications")
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Tested-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Fixes: 33b9b3ee9709 ("IB: Add userspace support for resizing CQs")
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_main.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 3d2609608f58..c023e2c81b8f 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -250,6 +250,7 @@ void ib_uverbs_release_file(struct kref *ref)
- 	if (atomic_dec_and_test(&file->device->refcount))
- 		ib_uverbs_comp_dev(file->device);
-
-+	kobject_put(&file->device->kobj);
- 	kfree(file);
- }
-
-@@ -917,7 +918,6 @@ static int ib_uverbs_open(struct inode *inode, struct file *filp)
- static int ib_uverbs_close(struct inode *inode, struct file *filp)
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 2c98533a0203..c551d2b275fd 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1153,7 +1153,7 @@ ssize_t ib_uverbs_resize_cq(struct ib_uverbs_file *file,
+ 			    int out_len)
  {
- 	struct ib_uverbs_file *file = filp->private_data;
--	struct ib_uverbs_device *dev = file->device;
-
- 	mutex_lock(&file->cleanup_mutex);
- 	if (file->ucontext) {
-@@ -939,7 +939,6 @@ static int ib_uverbs_close(struct inode *inode, struct file *filp)
- 			 ib_uverbs_release_async_event_file);
-
- 	kref_put(&file->ref, ib_uverbs_release_file);
--	kobject_put(&dev->kobj);
-
- 	return 0;
- }
+ 	struct ib_uverbs_resize_cq	cmd;
+-	struct ib_uverbs_resize_cq_resp	resp;
++	struct ib_uverbs_resize_cq_resp	resp = {};
+ 	struct ib_udata                 udata;
+ 	struct ib_cq			*cq;
+ 	int				ret = -EINVAL;
 --
 2.13.3
 
