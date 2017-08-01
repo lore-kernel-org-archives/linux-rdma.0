@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next 03/33] RDMA/netlink: Remove redundant owner option for netlink callbacks
-Date: Tue,  1 Aug 2017 15:05:06 +0300
-Message-ID: <20170801120536.540-4-leon@kernel.org>
+Subject: [rdma-next 04/33] RDMA/netlink: Avoid double pass for RDMA netlink messages
+Date: Tue,  1 Aug 2017 15:05:07 +0300
+Message-ID: <20170801120536.540-5-leon@kernel.org>
 References: <20170801120536.540-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170801120536.540-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,59 +12,132 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Owner field is not needed to be set because netlink is part of ib_core
-which will be unloaded last after all other modules are unloaded.
+The standard netlink_rcv_skb function skips messages without
+NLM_F_REQUEST flag in it, while SA netlink client issues them.
+
+In commit bc10ed7d3d19 ("IB/core: Add rdma netlink helper functions")
+the local function was introduced to allow such messages.
+
+This led to double pass for every incoming message.
+
+In this patch, we unify that local implementation and netlink_rcv_skb
+functions, so there will be no need for double pass anymore.
+
+As a outcome, this combined function gained more strict check
+for NLM_F_REQUEST flag and it is now allowed for SA pathquery
+client only.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c     | 3 +--
- drivers/infiniband/core/netlink.c | 2 --
- include/rdma/rdma_netlink.h       | 1 -
- 3 files changed, 1 insertion(+), 5 deletions(-)
+ drivers/infiniband/core/netlink.c | 62 +++++++++++++++++++++++++++------------
+ 1 file changed, 44 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 2a16a559bdda..0c85f140e616 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -4459,8 +4459,7 @@ static int cma_get_id_stats(struct sk_buff *skb, struct netlink_callback *cb)
- }
- 
- static const struct ibnl_client_cbs cma_cb_table[] = {
--	[RDMA_NL_RDMA_CM_ID_STATS] = { .dump = cma_get_id_stats,
--				       .module = THIS_MODULE },
-+	[RDMA_NL_RDMA_CM_ID_STATS] = { .dump = cma_get_id_stats},
- };
- 
- static int cma_init_net(struct net *net)
 diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-index 31f4d33149bc..6cb534a595ea 100644
+index 6cb534a595ea..86337d5e7551 100644
 --- a/drivers/infiniband/core/netlink.c
 +++ b/drivers/infiniband/core/netlink.c
-@@ -180,12 +180,10 @@ static int ibnl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
- 		cb.skb = skb;
- 		cb.nlh = nlh;
- 		cb.dump = rdma_nl_types[index].cb_table[op].dump;
--		cb.module = rdma_nl_types[index].cb_table[op].module;
- 		return cb.dump(skb, &cb);
- 	}
+@@ -159,8 +159,8 @@ int ibnl_put_attr(struct sk_buff *skb, struct nlmsghdr *nlh,
+ }
+ EXPORT_SYMBOL(ibnl_put_attr);
  
- 	c.dump = rdma_nl_types[index].cb_table[op].dump;
--	c.module = rdma_nl_types[index].cb_table[op].module;
+-static int ibnl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+-			struct netlink_ext_ack *extack)
++static int rdma_nl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
++			   struct netlink_ext_ack *extack)
+ {
+ 	int type = nlh->nlmsg_type;
+ 	unsigned int index = RDMA_NL_GET_CLIENT(type);
+@@ -187,40 +187,66 @@ static int ibnl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
  	return netlink_dump_start(nls, skb, nlh, &c);
  }
  
-diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
-index 162e58f118e7..7690aaabb958 100644
---- a/include/rdma/rdma_netlink.h
-+++ b/include/rdma/rdma_netlink.h
-@@ -7,7 +7,6 @@
+-static void ibnl_rcv_reply_skb(struct sk_buff *skb)
++/*
++ * This function is similar to netlink_rcv_skb with one exception:
++ * It calls to the callback for the netlink messages without NLM_F_REQUEST
++ * flag. These messages are intended for RDMA_NL_LS consumer, so it is allowed
++ * for that consumer only.
++ */
++static int rdma_nl_rcv_skb(struct sk_buff *skb, int (*cb)(struct sk_buff *,
++						   struct nlmsghdr *,
++						   struct netlink_ext_ack *))
+ {
++	struct netlink_ext_ack extack = {};
+ 	struct nlmsghdr *nlh;
+-	int msglen;
++	int err;
  
- struct ibnl_client_cbs {
- 	int (*dump)(struct sk_buff *skb, struct netlink_callback *nlcb);
--	struct module *module;
- };
+-	/*
+-	 * Process responses until there is no more message or the first
+-	 * request. Generally speaking, it is not recommended to mix responses
+-	 * with requests.
+-	 */
+ 	while (skb->len >= nlmsg_total_size(0)) {
++		int msglen;
++
+ 		nlh = nlmsg_hdr(skb);
++		err = 0;
  
- /**
+ 		if (nlh->nlmsg_len < NLMSG_HDRLEN || skb->len < nlh->nlmsg_len)
+-			return;
++			return 0;
+ 
+-		/* Handle response only */
+-		if (nlh->nlmsg_flags & NLM_F_REQUEST)
+-			return;
++		/*
++		 * Generally speaking, the only requests are handled
++		 * by the kernel, but RDMA_NL_LS is different, because it
++		 * runs backward netlink scheme. Kernel initiates messages
++		 * and waits for reply with data to keep pathrecord cache
++		 * in sync.
++		 */
++		if (!(nlh->nlmsg_flags & NLM_F_REQUEST) &&
++		    (RDMA_NL_GET_CLIENT(nlh->nlmsg_type) != RDMA_NL_LS))
++			goto ack;
++
++		/* Skip control messages */
++		if (nlh->nlmsg_type < NLMSG_MIN_TYPE)
++			goto ack;
++
++		err = cb(skb, nlh, &extack);
++		if (err == -EINTR)
++			goto skip;
+ 
+-		ibnl_rcv_msg(skb, nlh, NULL);
++ack:
++		if (nlh->nlmsg_flags & NLM_F_ACK || err)
++			netlink_ack(skb, nlh, err, &extack);
+ 
++skip:
+ 		msglen = NLMSG_ALIGN(nlh->nlmsg_len);
+ 		if (msglen > skb->len)
+ 			msglen = skb->len;
+ 		skb_pull(skb, msglen);
+ 	}
++
++	return 0;
+ }
+ 
+-static void ibnl_rcv(struct sk_buff *skb)
++static void rdma_nl_rcv(struct sk_buff *skb)
+ {
+ 	mutex_lock(&rdma_nl_mutex);
+-	ibnl_rcv_reply_skb(skb);
+-	netlink_rcv_skb(skb, &ibnl_rcv_msg);
++	rdma_nl_rcv_skb(skb, &rdma_nl_rcv_msg);
+ 	mutex_unlock(&rdma_nl_mutex);
+ }
+ 
+@@ -241,7 +267,7 @@ EXPORT_SYMBOL(ibnl_multicast);
+ int __init rdma_nl_init(void)
+ {
+ 	struct netlink_kernel_cfg cfg = {
+-		.input	= ibnl_rcv,
++		.input	= rdma_nl_rcv,
+ 	};
+ 
+ 	nls = netlink_kernel_create(&init_net, NETLINK_RDMA, &cfg);
 -- 
 2.13.3
 
