@@ -1,60 +1,97 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx4: Potential uninitialized variable in
- bringup_rss_rwqs()
-Date: Tue, 1 Aug 2017 14:19:37 +0300
-Message-ID: <20170801111937.GK13672@mtr-leonro.local>
-References: <20170801105755.vy4tqnmvtdtrbbo5@mwanda>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="1IYcr18XUmgwOrO2"
+Subject: [pull request][rdma-next 00/33] RDMA netlink refactoring and RDMAtool code
+Date: Tue,  1 Aug 2017 15:05:03 +0300
+Message-ID: <20170801120536.540-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170801105755.vy4tqnmvtdtrbbo5@mwanda>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Latest code drop with fixed LMC name (LID mask control).
 
---1IYcr18XUmgwOrO2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+----------------------------------------------------------------
+The following changes since commit 913cc67159bc85a96d94df301ca39c1b2c540dca:
 
-On Tue, Aug 01, 2017 at 01:57:55PM +0300, Dan Carpenter wrote:
-> My static checker complains "err" can be used uninitialized.  I don't
-> know the subsystem well, but to an outside observer it seems like a
-> potential bug.
->
-> Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->
+  IB/hfi1: Always perform offline transition (2017-07-31 15:18:38 -0400)
 
-Thanks, Dan,
-I made the same patch, but didn't submit it yet.
-https://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git/commit/?h=rdma-next&id=2c714f9f58e2b6a27b941d7395f4f49a4d0e414b
+are available in the git repository at:
 
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+  git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/rdma-next-2017-08-01
 
---1IYcr18XUmgwOrO2
-Content-Type: application/pgp-signature; name="signature.asc"
+for you to fetch changes up to 76bed394b018e89cc0a7d69a2c724655a1506c2c:
 
------BEGIN PGP SIGNATURE-----
+  RDMA/netlink: Export node_type (2017-08-01 14:22:50 +0300)
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmAY8kACgkQ5GN7iDZy
-WKcdHg/7BRknHAHYuNoYGwLy/7y/V7mSQvVGldMcMJhk29HmvFoWc1GQhXmE+uqS
-a6ZycqumAYCN3gbfqRyEN8rwL6iJR+cY6xfPsrCSaU2D7trBTVdFhoHkHQFoscD6
-TZg10Ag8OiovcF06VVD+A43lqaBf8nQAL8dBX44s+7Es9yLfbpKwkbZ1nKl5gICf
-zy1EiRzSyX/JME5qAFi2m5Y//AX62SnOo2v1wbY8NLxm1IJuJF5t2YRXjatV+2u7
-6y0fVFGoNSj4si0INKcInVepqgHLMFBxca4x7eBdjJomA3n3k3SFVpjtvQj5LJal
-ck5ohktX3LpAyx+I8JjvxM/xOZrXTiUh/u9uSVXGniTjESrRveLxZfkx5ME3XQcD
-KTRmQmb/gGoCciSek0vpSBZuwY+yr2G0vRUGl2DNcfCZCcL71FCZc0qG1TDZNt9X
-UPNWFaOBoxSDKeCVzBjRB8WErcskr2vbtViTDahFHiNUU8q0ESainzKngS73WcCH
-froFoIHV5xb0Cxaz5ha1m2rNRTJMSavHdj8ES04/qO1raOtasRmxlegGHx5/Nvxz
-Jl5/jRhMsn6ivSpYm/C6sn9XdfFuZVaiZFHbbYNVpOkqfEZjX9BVeXp3BhppIubn
-hxSJfuTUdN6jUtA+vhdwnguoNYdlugBQIN/r3bngM4x9wtscR2Y=
-=x4ut
------END PGP SIGNATURE-----
+----------------------------------------------------------------
+RDMA netlink refactoring and RDMAtool code
 
---1IYcr18XUmgwOrO2--
+----------------------------------------------------------------
+Leon Romanovsky (33):
+      Revert "IB/core: Add flow control to the portmapper netlink calls"
+      RDMA/netlink: Remove netlink clients infrastructure
+      RDMA/netlink: Remove redundant owner option for netlink callbacks
+      RDMA/netlink: Avoid double pass for RDMA netlink messages
+      RDMA/iwcm: Remove useless check of nelink client validity
+      RDMA/iwcm: Remove extra EXPORT_SYMBOLS
+      RDMA/netlink: Add flag to consolidate common handing
+      RDMA/netlink: Simplify the put_msg and put_attr
+      RDMA/netlink: Rename and remove redundant parameter from ibnl_unicast
+      RDMA/netlink: Rename and remove redundant parameter from ibnl_multicast
+      RDMA/netlink: Simplify and rename ibnl_chk_listeners
+      RDMA/netlink: Rename netlink callback struct
+      RDMA/core: Add iterator over ib_devices
+      RDMA/core: Add and expose static device index
+      RDMA/netlink: Add and implement doit netlink callback
+      RDMA/netlink: Reduce indirection access to cb_table
+      RDMA/netlink: Convert LS to doit callback
+      RDMA/netlink: Update copyright
+      RDMA/netlink: Add netlink device definitions to UAPI
+      RDMA/netlink: Add nldev initialization flows
+      RDMA/netlink: Implement nldev device dumpit calback
+      RDMA/netlink: Add nldev device doit implementation
+      RDMA/netlink: Add nldev port dumpit implementation
+      RDMA/netlink: Implement nldev port doit callback
+      RDMA/netlink: Expose device and port capability masks
+      RDMA: Simplify get firmware interface
+      RDMA/netlink: Export FW version
+      RDMA/netlink: Export node_guid and sys_image_guid
+      RDMA/netlink: Advertise IB subnet prefix
+      RDMA/netink: Export lids and sm_lids
+      RDMA/netlink: Export LID mask control (LMC)
+      RDMA/netlink: Provide port state and physical link state
+      RDMA/netlink: Export node_type
+
+ drivers/infiniband/core/Makefile               |   3 +-
+ drivers/infiniband/core/addr.c                 |  12 +-
+ drivers/infiniband/core/cma.c                  |  11 +-
+ drivers/infiniband/core/core_priv.h            |  26 ++-
+ drivers/infiniband/core/device.c               | 119 +++++++---
+ drivers/infiniband/core/iwcm.c                 |  12 +-
+ drivers/infiniband/core/iwpm_msg.c             |  20 +-
+ drivers/infiniband/core/iwpm_util.c            |  15 +-
+ drivers/infiniband/core/netlink.c              | 310 ++++++++++++------------
+ drivers/infiniband/core/nldev.c                | 312 +++++++++++++++++++++++++
+ drivers/infiniband/core/sa_query.c             |  18 +-
+ drivers/infiniband/core/sysfs.c                |   4 +-
+ drivers/infiniband/hw/cxgb3/iwch_provider.c    |   5 +-
+ drivers/infiniband/hw/cxgb4/provider.c         |   5 +-
+ drivers/infiniband/hw/hfi1/verbs.c             |   5 +-
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c      |   7 +-
+ drivers/infiniband/hw/mlx4/main.c              |   5 +-
+ drivers/infiniband/hw/mlx5/main.c              |   8 +-
+ drivers/infiniband/hw/mthca/mthca_provider.c   |   5 +-
+ drivers/infiniband/hw/nes/nes_verbs.c          |   5 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c     |   5 +-
+ drivers/infiniband/hw/qedr/main.c              |   5 +-
+ drivers/infiniband/hw/usnic/usnic_ib_main.c    |   6 +-
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c |   5 +-
+ drivers/infiniband/ulp/ipoib/ipoib_ethtool.c   |   3 +-
+ include/rdma/ib_verbs.h                        |   8 +-
+ include/rdma/rdma_netlink.h                    |  38 +--
+ include/uapi/rdma/rdma_netlink.h               |  84 ++++++-
+ 28 files changed, 743 insertions(+), 318 deletions(-)
+ create mode 100644 drivers/infiniband/core/nldev.c
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
