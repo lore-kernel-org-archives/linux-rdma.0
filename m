@@ -1,216 +1,199 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [bug report] IB/mlx4: Add support for WQ related verbs
-Date: Wed, 2 Aug 2017 00:41:09 +0300
-Message-ID: <20170801214109.5nck54mf3tyq5knn@mwanda>
+From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH rdma-next 0/3] Support out of order data placement
+Date: Tue, 1 Aug 2017 22:06:14 +0000
+Message-ID: <VI1PR0502MB3008D65E9568764C4A781230D1B30@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+References: <VI1PR0502MB3008D488FEE8A7104A7B0A7CD1A60@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <142c2fed-baa5-1295-1458-be765c94b957@talpey.com>
+ <VI1PR0502MB300886ED1B5B1363B55F53F0D1A50@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <e5cee768-586c-516a-6056-ea4a44f89134@talpey.com>
+ <VI1PR0502MB30089915EB792CD20CA9D179D1A50@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <4444a96a-c1e6-ad33-204a-680982e19bfe@talpey.com>
+ <20170722160939.GA30007@obsidianresearch.com>
+ <VI1PR0502MB3008E483BB36F944C2E212ACD1A50@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170722212706.GA14714@obsidianresearch.com>
+ <VI1PR0502MB300871C35E1CC06EB378D6C8D1B30@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+ <20170801190052.GA31205@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20170801190052.GA31205-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>, Bart Van Assche <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Guy Levi,
 
-This is a semi-automatic email about new static checker warnings.
 
-The patch 400b1ebcfe31: "IB/mlx4: Add support for WQ related verbs"
-from Jul 4, 2017, leads to the following Smatch complaint:
+> -----Original Message-----
+> From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
+> Sent: Tuesday, August 01, 2017 2:01 PM
+> To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>; Bart Van Assche
+> <Bart.VanAssche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>; leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org;
+> linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Idan Burstein <idanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Subject: Re: [PATCH rdma-next 0/3] Support out of order data placement
+>=20
+> On Tue, Aug 01, 2017 at 06:14:08PM +0000, Parav Pandit wrote:
+>=20
+> > >  Initial Condition VA=3D0 Data =3D 0
+> > >  RDMA-W VA=3D0 Data=3D1
+> > >  RDMA-R VA=3D0
+> > >
+> > > Spec says 1 must be returned, but sounds like this relaxed version co=
+uld
+> return 0.
+>=20
+> > No. Table 76 stays as is as described before.
+>=20
+> How is this possible?
+I am not sure what more can I explain you Jason.
+Requester side HCA follows HCA Table-76.
+Incoming read responses are not processed until previous writes are ACKed i=
+mplicitly (in read responses) or explicitly by ACK packets.
+Same as before described in spec. No extra description needed for this patc=
+hset.
 
-    drivers/infiniband/hw/mlx4/qp.c:1203 create_qp_common()
-    error: we previously assumed 'pd->uobject' could be null (see line 1033)
+>=20
+> > >  RDMA-W VA=3D0 Data=3D1
+> > >  RDMA-W VA=3D0 Data=3D2
+> > >  SEND
+> > >
+> > > Sounds like with the relaxed version the app could see 1 at SEND CQ t=
+ime.
+> > >
+> > > So RDMA-W -> RDMA-W degrades to a F
+>=20
+> > No. Table-76 is based on  how requester sees the execution.
+> > So it stays as '#'.
+>=20
+> How is this possible?
+>=20
+Please don't mix requester side ordering with responder side execution.
+C9-28 on responder side is relaxed - as explained few times before.
 
-drivers/infiniband/hw/mlx4/qp.c
-  1032	
-  1033		if (pd->uobject) {
-                    ^^^^^^^^^^^
-New check for NULL.
+> You've clearly stated this feature allows out of order execution across p=
+acket
+> boundaries, there is no way to know at the responder what the missed pack=
+ets
+> where, so ineventiably, both of these cases must be possible. Or you are =
+wrong
+> about the statement on out of order.
+Two examples already explained about out-of-order execution.
+To me it appears that you are confused with requester vs responder side exe=
+cution.
+What more can I explain other than repeating=20
+(a) Table 76 on requester side stays as is and
+(b) C9-28 is relaxed on responder side.
 
-  1034			union {
-  1035				struct mlx4_ib_create_qp qp;
-  1036				struct mlx4_ib_create_wq wq;
-  1037			} ucmd;
-  1038			size_t copy_len;
-  1039	
-  1040			copy_len = (src == MLX4_IB_QP_SRC) ?
-  1041				   sizeof(struct mlx4_ib_create_qp) :
-  1042				   min(sizeof(struct mlx4_ib_create_wq), udata->inlen);
-  1043	
-  1044			if (ib_copy_from_udata(&ucmd, udata, copy_len)) {
-  1045				err = -EFAULT;
-  1046				goto err;
-  1047			}
-  1048	
-  1049			if (src == MLX4_IB_RWQ_SRC) {
-  1050				if (ucmd.wq.comp_mask || ucmd.wq.reserved1 ||
-  1051				    ucmd.wq.reserved[0] || ucmd.wq.reserved[1] ||
-  1052				    ucmd.wq.reserved[2]) {
-  1053					pr_debug("user command isn't supported\n");
-  1054					err = -EOPNOTSUPP;
-  1055					goto err;
-  1056				}
-  1057	
-  1058				if (ucmd.wq.log_range_size >
-  1059				    ilog2(dev->dev->caps.max_rss_tbl_sz)) {
-  1060					pr_debug("WQN range size must be equal or smaller than %d\n",
-  1061						 dev->dev->caps.max_rss_tbl_sz);
-  1062					err = -EOPNOTSUPP;
-  1063					goto err;
-  1064				}
-  1065				range_size = 1 << ucmd.wq.log_range_size;
-  1066			} else {
-  1067				qp->inl_recv_sz = ucmd.qp.inl_recv_sz;
-  1068			}
-  1069	
-  1070			err = set_rq_size(dev, &init_attr->cap, !!pd->uobject,
-                                                                  ^^^^^^^^^^^
-Not necessary check for NULL.
+> > > However, SEND WITH INVALIDATE is a special cases that impacts the
+> > > processing of work itself, not just the CPU observation, which is a
+> > > bit outside what table 76 is talking about.
+>=20
+> > SEND, SEND WITH IMM, SEND WITH INVALIDATE falls in same category as
+> send as first column in Table76.
+>=20
+> Not really, I don't think you understand how this all fits together..
+>=20
 
-  1071					  qp_has_rq(init_attr), qp, qp->inl_recv_sz);
-  1072			if (err)
-  1073				goto err;
-  1074	
-  1075			if (src == MLX4_IB_QP_SRC) {
-  1076				qp->sq_no_prefetch = ucmd.qp.sq_no_prefetch;
-  1077	
-  1078				err = set_user_sq_size(dev, qp,
-  1079						       (struct mlx4_ib_create_qp *)
-  1080						       &ucmd);
-  1081				if (err)
-  1082					goto err;
-  1083			} else {
-  1084				qp->sq_no_prefetch = 1;
-  1085				qp->sq.wqe_cnt = 1;
-  1086				qp->sq.wqe_shift = MLX4_IB_MIN_SQ_STRIDE;
-  1087				/* Allocated buffer expects to have at least that SQ
-  1088				 * size.
-  1089				 */
-  1090				qp->buf_size = (qp->rq.wqe_cnt << qp->rq.wqe_shift) +
-  1091					(qp->sq.wqe_cnt << qp->sq.wqe_shift);
-  1092			}
-  1093	
-  1094			qp->umem = ib_umem_get(pd->uobject->context,
-  1095					(src == MLX4_IB_QP_SRC) ? ucmd.qp.buf_addr :
-  1096					ucmd.wq.buf_addr, qp->buf_size, 0, 0);
-  1097			if (IS_ERR(qp->umem)) {
-  1098				err = PTR_ERR(qp->umem);
-  1099				goto err;
-  1100			}
-  1101	
-  1102			err = mlx4_mtt_init(dev->dev, ib_umem_page_count(qp->umem),
-  1103					    qp->umem->page_shift, &qp->mtt);
-  1104			if (err)
-  1105				goto err_buf;
-  1106	
-  1107			err = mlx4_ib_umem_write_mtt(dev, &qp->mtt, qp->umem);
-  1108			if (err)
-  1109				goto err_mtt;
-  1110	
-  1111			if (qp_has_rq(init_attr)) {
-  1112				err = mlx4_ib_db_map_user(to_mucontext(pd->uobject->context),
-  1113					(src == MLX4_IB_QP_SRC) ? ucmd.qp.db_addr :
-  1114					ucmd.wq.db_addr, &qp->db);
-  1115				if (err)
-  1116					goto err_mtt;
-  1117			}
-  1118			qp->mqp.usage = MLX4_RES_USAGE_USER_VERBS;
-  1119		} else {
-  1120			err = set_rq_size(dev, &init_attr->cap, !!pd->uobject,
-                                                                ^^^^^^^^^^^^^
-Always NULL now.
+> > > I'd advocate for allowing this to be out of order (but documented as
+> > > such), as impliclty fencing SEND WITH INVALIDATE is not acceptable
+> > > for performance and
+>=20
+> > It is as per first column of Table-76.
+>=20
+> Dn't understand you remark, it is clearly ordered..
+>=20
+I was saying, that there is no change on send ordering at requester side.
 
-  1121					  qp_has_rq(init_attr), qp, 0);
-  1122			if (err)
-  1123				goto err;
-  1124	
-  1125			qp->sq_no_prefetch = 0;
-  1126	
-  1127			if (init_attr->create_flags & IB_QP_CREATE_IPOIB_UD_LSO)
-  1128				qp->flags |= MLX4_IB_QP_LSO;
-  1129	
-  1130			if (init_attr->create_flags & IB_QP_CREATE_NETIF_QP) {
-  1131				if (dev->steering_support ==
-  1132				    MLX4_STEERING_MODE_DEVICE_MANAGED)
-  1133					qp->flags |= MLX4_IB_QP_NETIF;
-  1134				else
-  1135					goto err;
-  1136			}
-  1137	
-  1138			memcpy(&backup_cap, &init_attr->cap, sizeof(backup_cap));
-  1139			err = set_kernel_sq_size(dev, &init_attr->cap,
-  1140						 qp_type, qp, true);
-  1141			if (err)
-  1142				goto err;
-  1143	
-  1144			if (qp_has_rq(init_attr)) {
-  1145				err = mlx4_db_alloc(dev->dev, &qp->db, 0);
-  1146				if (err)
-  1147					goto err;
-  1148	
-  1149				*qp->db.db = 0;
-  1150			}
-  1151	
-  1152			if (mlx4_buf_alloc(dev->dev, qp->buf_size, qp->buf_size,
-  1153					   &qp->buf)) {
-  1154				memcpy(&init_attr->cap, &backup_cap,
-  1155				       sizeof(backup_cap));
-  1156				err = set_kernel_sq_size(dev, &init_attr->cap, qp_type,
-  1157							 qp, false);
-  1158				if (err)
-  1159					goto err_db;
-  1160	
-  1161				if (mlx4_buf_alloc(dev->dev, qp->buf_size,
-  1162						   PAGE_SIZE * 2, &qp->buf)) {
-  1163					err = -ENOMEM;
-  1164					goto err_db;
-  1165				}
-  1166			}
-  1167	
-  1168			err = mlx4_mtt_init(dev->dev, qp->buf.npages, qp->buf.page_shift,
-  1169					    &qp->mtt);
-  1170			if (err)
-  1171				goto err_buf;
-  1172	
-  1173			err = mlx4_buf_write_mtt(dev->dev, &qp->mtt, &qp->buf);
-  1174			if (err)
-  1175				goto err_mtt;
-  1176	
-  1177			qp->sq.wrid = kmalloc_array(qp->sq.wqe_cnt, sizeof(u64),
-  1178						GFP_KERNEL | __GFP_NOWARN);
-  1179			if (!qp->sq.wrid)
-  1180				qp->sq.wrid = __vmalloc(qp->sq.wqe_cnt * sizeof(u64),
-  1181							GFP_KERNEL, PAGE_KERNEL);
-  1182			qp->rq.wrid = kmalloc_array(qp->rq.wqe_cnt, sizeof(u64),
-  1183						GFP_KERNEL | __GFP_NOWARN);
-  1184			if (!qp->rq.wrid)
-  1185				qp->rq.wrid = __vmalloc(qp->rq.wqe_cnt * sizeof(u64),
-  1186							GFP_KERNEL, PAGE_KERNEL);
-  1187			if (!qp->sq.wrid || !qp->rq.wrid) {
-  1188				err = -ENOMEM;
-  1189				goto err_wrid;
-  1190			}
-  1191			qp->mqp.usage = MLX4_RES_USAGE_DRIVER;
-  1192		}
-  1193	
-  1194		if (sqpn) {
-  1195			if (qp->mlx4_ib_qp_type & (MLX4_IB_QPT_PROXY_SMI_OWNER |
-  1196			    MLX4_IB_QPT_PROXY_SMI | MLX4_IB_QPT_PROXY_GSI)) {
-  1197				if (alloc_proxy_bufs(pd->device, qp)) {
-  1198					err = -ENOMEM;
-  1199					goto err_wrid;
-  1200				}
-  1201			}
-  1202		} else if (src == MLX4_IB_RWQ_SRC) {
-  1203			err = mlx4_ib_alloc_wqn(to_mucontext(pd->uobject->context), qp,
-                                                             ^^^^^^^^^^^^^^^^^^^^
-Unchecked dereference.
+> > > most workloads using that feature do not care about this strict order=
+ing.
+> > >
+> > nvme fabrics do care.
+> > nvme fabrics target does RDMA-W, RDMA_S_INV sequence on the same
+> memory key that is being used in RDMA-W without waiting for RDMA-W
+> completion for good reason.
+> > I recall SMB doing the same as well.
+> > RDMA-S_INV after RDMA-W cannot break the order.
+>=20
+> They don't care, because RDMA_WRITE, SEND_WITH_INVALIDATE on the same
+> rkey does not try to write to the rkey memory twice, which is the only ca=
+se
+> where adding out of order execution really matters.
+>=20
+It doesn't have to be an overlapping write to same rkey.
+One block IO can translate to multiple RDMA-W from the target side, potenti=
+ally to same rkey.
+One possibility is target code ran out of number of local sges or had fragm=
+ented memory.
+So=20
+RDMA-W1 (key=3DA, VA=3D0x1000, len=3D16K with 4 SGEs)
+RDMA-W2 (key=3DA, VA=3D0x5000, len=3D16K, with 4 SGEs)
+Send(Invalidate_key=3DA)
+You do not want SEND_INVALIDATE to stop DMA of RDMA-W1 at later point.
+So Send CQE cannot reach before previous RDMA-w1 and w2 are completed.
 
-  1204						range_size, &qpn);
-  1205			if (err)
+> They only care that the invalidate guarentees no DMA is possible once it =
+reaches
+> the receiver's CQ.
+>=20
+> > > The requirement is really that by the time the SEND RCQ is seen that
+> > > the INVALIDATE has taken effect.
+> > >
+> > Current Table-76 requirement already relaxes for
+> > RDMA-R-> RDMA_S_INV.
+> > However most users won't do above sequence because users would not like=
+ to
+> fail duplicate read requests.
+> > So let's continue with Table-76 for SEND as 2nd operation as defined
+> > today. (first column stays as is)
+>=20
+> As I said, table 76 does not really capture the full behavior of INVALIDA=
+TE.
+>=20
+It covers only requester side.
+Send with invalidate execution on responder side is described in 9.4.1.1.1
 
-regards,
-dan carpenter
+> The spec requires WRITE,INV,WRITE to fail, but it would be just a fine fo=
+r
+> storage protocols if WRITE,INV,WRITE could succeed, so long as delivering=
+ the
+> INV to the CQ fences the DMA, which can be done in a high performance way=
+.
+> Fencing the WRITE,INV,WRITE can not be done with high performance.
+>=20
+You are proposing a different behavior and attribute which may be done for =
+a HCA that support such thing.
+Please submit a different patch for it whenever its appropriate.
+Current query HCA attribute is bit field for future relaxation. May be what=
+ you described can be done.
+
+> > > Atomic are basically similar, sounds like Atomic Op -> RDMA Read
+> > > should degrade to a F as well. I'd say that is desired as well.
+> >
+> > No. Table-76 stays as is.
+> > Atomic->Atomic is already 'F'.
+> > Atomic->RDMA_R is continues as '#'. (Similar to RDMA_W->RDMA_R).
+>=20
+> Same argument as above, many apps will tolerate out of order for atomics,=
+ thee
+> default for an out of order mode should be to allow it, and let apps requ=
+est in
+> order with fence.
+>
+Following are already 'F'.
+Atomic->Atomic
+Atomic->Write=20
+Read->Atomic
+
+Other out of order atomics such as
+Atomic->Read
+Write->Atomic may be done in future under different attribute.
+
+Jason,
+Once single attribute is not solution to all out-of-order needs.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
