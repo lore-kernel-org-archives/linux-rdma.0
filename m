@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next 08/33] RDMA/netlink: Simplify the put_msg and put_attr
-Date: Tue,  1 Aug 2017 15:05:11 +0300
-Message-ID: <20170801120536.540-9-leon@kernel.org>
+Subject: [rdma-next 13/33] RDMA/core: Add iterator over ib_devices
+Date: Tue,  1 Aug 2017 15:05:16 +0300
+Message-ID: <20170801120536.540-14-leon@kernel.org>
 References: <20170801120536.540-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170801120536.540-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,65 +12,76 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Reuse standard macros to cancel the netlink message
-in case of error.
+The coming nldev needs to iterate over all IB devices in the system
+and in order to not expose the ib_devices list outside the devices.c,
+it is necessary to provide function iterator.
+
+Current version is written explicitly for nldev callback to avoid
+over-engineering at this stage, but it can be easily extended for
+other types.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/netlink.c | 31 +++++++++----------------------
- 1 file changed, 9 insertions(+), 22 deletions(-)
+ drivers/infiniband/core/core_priv.h |  8 ++++++++
+ drivers/infiniband/core/device.c    | 25 +++++++++++++++++++++++++
+ 2 files changed, 33 insertions(+)
 
-diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-index a0e25689d3e7..19476a584de3 100644
---- a/drivers/infiniband/core/netlink.c
-+++ b/drivers/infiniband/core/netlink.c
-@@ -126,36 +126,23 @@ EXPORT_SYMBOL(rdma_nl_unregister);
- void *ibnl_put_msg(struct sk_buff *skb, struct nlmsghdr **nlh, int seq,
- 		   int len, int client, int op, int flags)
- {
--	unsigned char *prev_tail;
--
--	prev_tail = skb_tail_pointer(skb);
--	*nlh = nlmsg_put(skb, 0, seq, RDMA_NL_GET_TYPE(client, op),
--			 len, flags);
--	if (!*nlh)
--		goto out_nlmsg_trim;
--	(*nlh)->nlmsg_len = skb_tail_pointer(skb) - prev_tail;
-+	*nlh = nlmsg_put(skb, 0, seq, RDMA_NL_GET_TYPE(client, op), len, flags);
-+	if (!*nlh) {
-+		nlmsg_cancel(skb, *nlh);
-+		return NULL;
-+	}
- 	return nlmsg_data(*nlh);
--
--out_nlmsg_trim:
--	nlmsg_trim(skb, prev_tail);
--	return NULL;
- }
- EXPORT_SYMBOL(ibnl_put_msg);
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index e759c27113cd..0c175590cf92 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -102,6 +102,14 @@ void ib_enum_all_roce_netdevs(roce_netdev_filter filter,
+ 			      roce_netdev_callback cb,
+ 			      void *cookie);
  
- int ibnl_put_attr(struct sk_buff *skb, struct nlmsghdr *nlh,
- 		  int len, void *data, int type)
- {
--	unsigned char *prev_tail;
--
--	prev_tail = skb_tail_pointer(skb);
--	if (nla_put(skb, type, len, data))
--		goto nla_put_failure;
--	nlh->nlmsg_len += skb_tail_pointer(skb) - prev_tail;
-+	if (nla_put(skb, type, len, data)) {
-+		nlmsg_cancel(skb, nlh);
-+		return -EMSGSIZE;
-+	}
- 	return 0;
--
--nla_put_failure:
--	nlmsg_trim(skb, prev_tail - nlh->nlmsg_len);
--	return -EMSGSIZE;
++typedef int (*nldev_callback)(struct ib_device *device,
++			      struct sk_buff *skb,
++			      struct netlink_callback *cb,
++			      unsigned int idx);
++
++int ib_enum_all_devs(nldev_callback nldev_cb, struct sk_buff *skb,
++		     struct netlink_callback *cb);
++
+ enum ib_cache_gid_default_mode {
+ 	IB_CACHE_GID_DEFAULT_MODE_SET,
+ 	IB_CACHE_GID_DEFAULT_MODE_DELETE
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index a1d5798fa4d7..54143476a020 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -893,6 +893,31 @@ void ib_enum_all_roce_netdevs(roce_netdev_filter filter,
  }
- EXPORT_SYMBOL(ibnl_put_attr);
  
+ /**
++ * ib_enum_all_devs - enumerate all ib_devices
++ * @cb: Callback to call for each found ib_device
++ *
++ * Enumerates all ib_devices and calls callback() on each device.
++ */
++int ib_enum_all_devs(nldev_callback nldev_cb, struct sk_buff *skb,
++		     struct netlink_callback *cb)
++{
++	struct ib_device *dev;
++	unsigned int idx = 0;
++	int ret = 0;
++
++	down_read(&lists_rwsem);
++	list_for_each_entry(dev, &device_list, core_list) {
++		ret = nldev_cb(dev, skb, cb, idx);
++		if (ret)
++			break;
++		idx++;
++	}
++
++	up_read(&lists_rwsem);
++	return ret;
++}
++
++/**
+  * ib_query_pkey - Get P_Key table entry
+  * @device:Device to query
+  * @port_num:Port number to query
 -- 
 2.13.3
 
