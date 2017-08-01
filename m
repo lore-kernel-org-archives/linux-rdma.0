@@ -1,54 +1,66 @@
-From: Logan Gunthorpe <logang@deltatee.com>
-Subject: Re: BUG: NULL pointer dereference at ib_uverbs_comp_handler+0x20
-Date: Tue, 1 Aug 2017 13:39:48 -0600
-Message-ID: <0049cf5e-b2cc-0f55-438d-80e407edbbd8@deltatee.com>
-References: <216b770e-fc08-68a6-c1bf-be96d52e325e@deltatee.com>
- <CAAKD3BDFcFDVvYYsimAqqWM9w-qv0Nc4U5Y54eGNhOATSkg0tA@mail.gmail.com>
- <5866fa2e-d3d9-cdaf-bcb4-806f938aef83@deltatee.com>
- <20170801192907.GB31205@obsidianresearch.com>
+From: Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [lpc-contact] RDMA miniconf dates at LPC 2017
+Date: Tue, 1 Aug 2017 15:54:35 -0400
+Message-ID: <646fff23-2724-13cc-5e12-add90e4db828@redhat.com>
+References: <CALq1K=JLv49x5DUqBrsQQSRMPEzbNA8ZiqEhRzuETxgw1nV7Kg@mail.gmail.com>
+ <CALq1K=JnT-2P4Kj3YL2xyapiWp-Ve9HD7ySiXQJEiBkDfp9SUA@mail.gmail.com>
+ <1501616320.2736.45.camel@HansenPartnership.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170801192907.GB31205@obsidianresearch.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Matan Barak <matanb@dev.mellanox.co.il>, Matan Barak <matanb@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Stephen Bates <sbates@raithlin.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Potnuri Bharat Teja <bharat@chelsio.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1501616320.2736.45.camel-d9PhHud1JfjCXq6kfMZ53/egYHeGw8Jk@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: James Bottomley <James.Bottomley-d9PhHud1JfjCXq6kfMZ53/egYHeGw8Jk@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, contact-cunTk1MwBs990ICgHLs2ApIRA52/M9t8QH7oEaQurus@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 08/01/2017 03:38 PM, James Bottomley wrote:
+> On Mon, 2017-07-31 at 14:30 +0300, Leon Romanovsky wrote:
+>> Resend to contact@lpc....
+>>
+>> On Mon, Jul 31, 2017 at 2:18 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>> wrote:
+>>>
+>>> Hi James,
+>>>
+>>> The LPC 2017 time is approaching and we would like to know on which
+>>> day, the RDMA miniconf is going to be scheduled.
+>
+> We usually have enormous difficulty putting together the schedule
+> because 4 tracks gives a lot of potential for conflicts and we have to
+> iterate to the least bad solution.  Given that, we don't usually begin
+> until all MCs have been selected (which hasn't happened yet).
+>
+> Do you have any specific constraints you'd like us to try and take into account when we attempt this?
+>
+>>> Can you please share this information with us so the people will be
+>>> able to plan their trips accordingly?
+>
+> Usually the idea is that people coming to Plumbers stay for all of the
+> three days.  Wednesday is going to be just talks and one track of
+> Microconferences, though.  This year the security summit requested the
+> Containers and TPM MCs on Wednesday, so the only days your MC could be
+> scheduled would be Thursday or Friday.
+>
+> James
+>
+James,
+Leon is asking due to (at least) my poking, maybe others.
+The above info is what we are looking to get -- didn't know if the MCs would
+be scheduled on Tuesday, or even Saturday.
+The above info allows us to book flights/hotels for Tues->Sat a.m., at least b4
+all the better flights are taken! ;-)
+Thanks!
+- Don
 
-On 01/08/17 01:29 PM, Jason Gunthorpe wrote:
-> On Tue, Aug 01, 2017 at 12:32:57PM -0600, Logan Gunthorpe wrote:
->>  Couldn't create rdma QP - Invalid argument
->> Unable to create QP.
->> Failed to create QP.
-> 
-> Failing to create a QP makes me wonder if you have have this patch?
-> 
->  Subject: [PATCH v2 1/2] RDMA/uverbs: Fix the check for port number
-> 
->  The port number is only valid if IB_QP_PORT is set in the mask.
->  So only check port number if it is valid to prevent modify_qp from
->  failing due to an invalid port number.
-> 
->  Fixes: 5ecce4c9b17b("Check port number supplied by user verbs cmds")
->  Cc: <stable@vger.kernel.org> # v2.6.14+
->  Reviewed-by: Steve Wise <swise@opengridcomputing.com>
->  Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Oh, oops, I forgot about that. I mentioned the fix for that in my
-original email and it seems I wasn't testing apples to apples for my
-testing today. During my testing today, the branch with the reverted
-commits had the fix for that commit while the branch with Bharat's patch
-didn't.
-
-I just did a test with both Bharat's patch and 5a7a88f1b4, and
-everything is working correctly again.
-
-So that's great, we just need these patches to be picked up by the
-stable kernels.
-
-Thanks,
-
-Logan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
