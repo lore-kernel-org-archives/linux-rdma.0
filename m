@@ -1,57 +1,33 @@
-From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [bug report] IB/hns: Fix the bug of polling cq failed for
- loopback Qps
-Date: Tue, 1 Aug 2017 16:48:18 +0800
-Message-ID: <59804052.9080004@huawei.com>
-References: <20170719114829.sctq34wns6h6zvxz@mwanda>
- <59769D18.4020400@huawei.com> <20170725071118.3erfnxyiqi7ittl3@mwanda>
- <597C3939.2060407@huawei.com> <20170731080731.GT13672@mtr-leonro.local>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [PATCH] IB/mlx4: Potential uninitialized variable in
+ bringup_rss_rwqs()
+Date: Tue, 1 Aug 2017 13:57:55 +0300
+Message-ID: <20170801105755.vy4tqnmvtdtrbbo5@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170731080731.GT13672-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Yishai Hadas <yishaih@mellanox.com>, Guy Levi <guyle@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+My static checker complains "err" can be used uninitialized.  I don't
+know the subsystem well, but to an outside observer it seems like a
+potential bug.
 
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-On 2017/7/31 16:07, Leon Romanovsky wrote:
-> On Sat, Jul 29, 2017 at 03:28:57PM +0800, Wei Hu (Xavier) wrote:
->>
->> On 2017/7/25 15:11, Dan Carpenter wrote:
->>> This is a Smatch check.https://lwn.net/Articles/629250/
->>>
->>> regards,
->>> dan carpenter
->> Hi, Dan Carpenter
->>
->> Thanks,
->> I have another question,
->> We use "make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- " to compile kernel
->> with cross compiler.
->> If we want check only some files in some directories, how to use this smatch
->> tool to check them?
-> You can provide relevant directories to the make call, something like that:
-> make CHECK="smatch -p=kernel" C=1 drivers/infiniband/hw/hns/
->
-Thanks very much, Leon
-I got it.
-
-Regards
-Wei Hu
->> Regards
->> Wei Hu
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index e42acfb20588..03896e3af67f 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -2035,7 +2035,7 @@ static u8 gid_type_to_qpc(enum ib_gid_type gid_type)
+ static int bringup_rss_rwqs(struct ib_rwq_ind_table *ind_tbl, u8 port_num)
+ {
+ 	int i;
+-	int err;
++	int err = 0;
+ 
+ 	for (i = 0; i < (1 << ind_tbl->log_ind_tbl_size); i++) {
+ 		struct ib_wq *ibwq = ind_tbl->ind_tbl[i];
