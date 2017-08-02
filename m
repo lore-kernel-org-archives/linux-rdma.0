@@ -1,13 +1,13 @@
-From: Bhumika Goyal <bhumirks-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/2] IB/qib: add const to bin_attribute structures
-Date: Wed,  2 Aug 2017 15:31:29 +0530
-Message-ID: <1501668090-22662-2-git-send-email-bhumirks@gmail.com>
+From: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH 2/2] IB/hfi1: add const to bin_attribute structures
+Date: Wed,  2 Aug 2017 15:31:30 +0530
+Message-ID: <1501668090-22662-3-git-send-email-bhumirks@gmail.com>
 References: <1501668090-22662-1-git-send-email-bhumirks@gmail.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1501668090-22662-1-git-send-email-bhumirks-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: julia.lawall-L2FTfq7BK8M@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Bhumika Goyal <bhumirks-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1501668090-22662-1-git-send-email-bhumirks@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: julia.lawall@lip6.fr, mike.marciniszyn@intel.com, dennis.dalessandro@intel.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
 Add const to bin_attribute structures as they are only passed to the
@@ -45,25 +45,25 @@ static
 +const
 struct bin_attribute s={...};
 
-Signed-off-by: Bhumika Goyal <bhumirks-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 ---
- drivers/infiniband/hw/qib/qib_sysfs.c | 4 ++--
+ drivers/infiniband/hw/hfi1/sysfs.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_sysfs.c b/drivers/infiniband/hw/qib/qib_sysfs.c
-index fe4cf5e..ca2638d 100644
---- a/drivers/infiniband/hw/qib/qib_sysfs.c
-+++ b/drivers/infiniband/hw/qib/qib_sysfs.c
-@@ -247,7 +247,7 @@ static void qib_port_release(struct kobject *kobj)
- 	.release = qib_port_release,
- };
+diff --git a/drivers/infiniband/hw/hfi1/sysfs.c b/drivers/infiniband/hw/hfi1/sysfs.c
+index 2f3bbca..6d2702ef 100644
+--- a/drivers/infiniband/hw/hfi1/sysfs.c
++++ b/drivers/infiniband/hw/hfi1/sysfs.c
+@@ -95,7 +95,7 @@ static void port_release(struct kobject *kobj)
+ 	/* nothing to do since memory is freed by hfi1_free_devdata() */
+ }
  
 -static struct bin_attribute cc_table_bin_attr = {
 +static const struct bin_attribute cc_table_bin_attr = {
  	.attr = {.name = "cc_table_bin", .mode = 0444},
  	.read = read_cc_table_bin,
  	.size = PAGE_SIZE,
-@@ -286,7 +286,7 @@ static ssize_t read_cc_setting_bin(struct file *filp, struct kobject *kobj,
+@@ -137,7 +137,7 @@ static ssize_t read_cc_setting_bin(struct file *filp, struct kobject *kobj,
  	return count;
  }
  
@@ -74,8 +74,3 @@ index fe4cf5e..ca2638d 100644
  	.size = PAGE_SIZE,
 -- 
 1.9.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
