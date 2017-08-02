@@ -1,273 +1,100 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [bug report] IB/mlx4: Add support for WQ related verbs
-Date: Wed, 2 Aug 2017 09:43:14 +0300
-Message-ID: <20170802064314.GY13672@mtr-leonro.local>
-References: <20170801214109.5nck54mf3tyq5knn@mwanda>
+Subject: Re: [PATCH RFC 0/3] Proposal for exposing rdma_rw MR factor
+Date: Wed, 2 Aug 2017 10:20:43 +0300
+Message-ID: <20170802072043.GZ13672@mtr-leonro.local>
+References: <20170801205334.15781.18761.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="p+IlF8Xh9KY56wTg"
+        protocol="application/pgp-signature"; boundary="4jz2RIiWkXBLiaBi"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170801214109.5nck54mf3tyq5knn@mwanda>
+In-Reply-To: <20170801205334.15781.18761.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---p+IlF8Xh9KY56wTg
+--4jz2RIiWkXBLiaBi
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Aug 02, 2017 at 12:41:09AM +0300, Dan Carpenter wrote:
-> Hello Guy Levi,
+On Tue, Aug 01, 2017 at 05:06:51PM -0400, Chuck Lever wrote:
+> Since I converted NFSD to use the new rdma_rw API, I've been
+> struggling with how NFSD determines the size of its send CQ, and how
+> it provisions its send queue limit (ie, when it waits for more send
+> queue entries to become available).
 >
-> This is a semi-automatic email about new static checker warnings.
+> The problem arises because rdma_rw hides the exact number of send
+> WQEs it has provisioned. It determines this number based on the MR
+> registration mode (FRWR for iWARP devices, local DMA rkey for
+> others), but the mode itself is no longer exposed to ULPs.
 >
-> The patch 400b1ebcfe31: "IB/mlx4: Add support for WQ related verbs"
-> from Jul 4, 2017, leads to the following Smatch complaint:
+> Thus when FRWR is in use, rdma_rw adds more WQEs, but NFSD is no
+> longer aware of this, does not provision a larger CQ, and does not
+> raise its send queue accounting limit. That means the extra WQEs are
+> never really used.
 >
->     drivers/infiniband/hw/mlx4/qp.c:1203 create_qp_common()
->     error: we previously assumed 'pd->uobject' could be null (see line 1033)
->
+> At LSF this year, Christoph and Sagi proposed a simple API that
+> expose information about how many CQ entries are needed so that ULPs
+> can provision their CQs more accurately.
 
-Thanks Dan,
+Indeed clean API. Does it make sense to get rid of sc_max_requests and
+use this exported value directly?
 
-As far as I can tell, this is false alarm,
-
-The entry to the following call
-1203                        err = mlx4_ib_alloc_wqn(to_mucontext(pd->uobject->context), qp,
-                                                              ^^^^^^^^^^^^^^^^^^^^
-is limited by
-1202                } else if (src == MLX4_IB_RWQ_SRC) {
-
-The src is set in mlx4_ib_create_wq
-4201         err = create_qp_common(dev, pd, MLX4_IB_RWQ_SRC, &ib_qp_init_attr,
-4202                                udata, 0, &qp);
-
-The mlx4_ib_create_wq has a check of pd->object at the beginning of it:
-4153         if (!(udata && pd->uobject))
-4154                 return ERR_PTR(-EINVAL);
-
-and it will ensure that pd-<object is valid.
-
-
-> drivers/infiniband/hw/mlx4/qp.c
->   1032
->   1033		if (pd->uobject) {
->                     ^^^^^^^^^^^
-> New check for NULL.
 >
->   1034			union {
->   1035				struct mlx4_ib_create_qp qp;
->   1036				struct mlx4_ib_create_wq wq;
->   1037			} ucmd;
->   1038			size_t copy_len;
->   1039
->   1040			copy_len = (src == MLX4_IB_QP_SRC) ?
->   1041				   sizeof(struct mlx4_ib_create_qp) :
->   1042				   min(sizeof(struct mlx4_ib_create_wq), udata->inlen);
->   1043
->   1044			if (ib_copy_from_udata(&ucmd, udata, copy_len)) {
->   1045				err = -EFAULT;
->   1046				goto err;
->   1047			}
->   1048
->   1049			if (src == MLX4_IB_RWQ_SRC) {
->   1050				if (ucmd.wq.comp_mask || ucmd.wq.reserved1 ||
->   1051				    ucmd.wq.reserved[0] || ucmd.wq.reserved[1] ||
->   1052				    ucmd.wq.reserved[2]) {
->   1053					pr_debug("user command isn't supported\n");
->   1054					err = -EOPNOTSUPP;
->   1055					goto err;
->   1056				}
->   1057
->   1058				if (ucmd.wq.log_range_size >
->   1059				    ilog2(dev->dev->caps.max_rss_tbl_sz)) {
->   1060					pr_debug("WQN range size must be equal or smaller than %d\n",
->   1061						 dev->dev->caps.max_rss_tbl_sz);
->   1062					err = -EOPNOTSUPP;
->   1063					goto err;
->   1064				}
->   1065				range_size = 1 << ucmd.wq.log_range_size;
->   1066			} else {
->   1067				qp->inl_recv_sz = ucmd.qp.inl_recv_sz;
->   1068			}
->   1069
->   1070			err = set_rq_size(dev, &init_attr->cap, !!pd->uobject,
->                                                                   ^^^^^^^^^^^
-> Not necessary check for NULL.
+> The first patch here is a pre-requisite for the third. The second
+> patch adds the new API. The third patch changes NFSD to use the new
+> API to provision its CQ and send queue accounting accurately.
 >
->   1071					  qp_has_rq(init_attr), qp, qp->inl_recv_sz);
->   1072			if (err)
->   1073				goto err;
->   1074
->   1075			if (src == MLX4_IB_QP_SRC) {
->   1076				qp->sq_no_prefetch = ucmd.qp.sq_no_prefetch;
->   1077
->   1078				err = set_user_sq_size(dev, qp,
->   1079						       (struct mlx4_ib_create_qp *)
->   1080						       &ucmd);
->   1081				if (err)
->   1082					goto err;
->   1083			} else {
->   1084				qp->sq_no_prefetch = 1;
->   1085				qp->sq.wqe_cnt = 1;
->   1086				qp->sq.wqe_shift = MLX4_IB_MIN_SQ_STRIDE;
->   1087				/* Allocated buffer expects to have at least that SQ
->   1088				 * size.
->   1089				 */
->   1090				qp->buf_size = (qp->rq.wqe_cnt << qp->rq.wqe_shift) +
->   1091					(qp->sq.wqe_cnt << qp->sq.wqe_shift);
->   1092			}
->   1093
->   1094			qp->umem = ib_umem_get(pd->uobject->context,
->   1095					(src == MLX4_IB_QP_SRC) ? ucmd.qp.buf_addr :
->   1096					ucmd.wq.buf_addr, qp->buf_size, 0, 0);
->   1097			if (IS_ERR(qp->umem)) {
->   1098				err = PTR_ERR(qp->umem);
->   1099				goto err;
->   1100			}
->   1101
->   1102			err = mlx4_mtt_init(dev->dev, ib_umem_page_count(qp->umem),
->   1103					    qp->umem->page_shift, &qp->mtt);
->   1104			if (err)
->   1105				goto err_buf;
->   1106
->   1107			err = mlx4_ib_umem_write_mtt(dev, &qp->mtt, qp->umem);
->   1108			if (err)
->   1109				goto err_mtt;
->   1110
->   1111			if (qp_has_rq(init_attr)) {
->   1112				err = mlx4_ib_db_map_user(to_mucontext(pd->uobject->context),
->   1113					(src == MLX4_IB_QP_SRC) ? ucmd.qp.db_addr :
->   1114					ucmd.wq.db_addr, &qp->db);
->   1115				if (err)
->   1116					goto err_mtt;
->   1117			}
->   1118			qp->mqp.usage = MLX4_RES_USAGE_USER_VERBS;
->   1119		} else {
->   1120			err = set_rq_size(dev, &init_attr->cap, !!pd->uobject,
->                                                                 ^^^^^^^^^^^^^
-> Always NULL now.
+> This approach was tested using the (fixed) force_mr core module
+> parameter.
+
+Good, I liked the word "tested" in the sentence :).
+
 >
->   1121					  qp_has_rq(init_attr), qp, 0);
->   1122			if (err)
->   1123				goto err;
->   1124
->   1125			qp->sq_no_prefetch = 0;
->   1126
->   1127			if (init_attr->create_flags & IB_QP_CREATE_IPOIB_UD_LSO)
->   1128				qp->flags |= MLX4_IB_QP_LSO;
->   1129
->   1130			if (init_attr->create_flags & IB_QP_CREATE_NETIF_QP) {
->   1131				if (dev->steering_support ==
->   1132				    MLX4_STEERING_MODE_DEVICE_MANAGED)
->   1133					qp->flags |= MLX4_IB_QP_NETIF;
->   1134				else
->   1135					goto err;
->   1136			}
->   1137
->   1138			memcpy(&backup_cap, &init_attr->cap, sizeof(backup_cap));
->   1139			err = set_kernel_sq_size(dev, &init_attr->cap,
->   1140						 qp_type, qp, true);
->   1141			if (err)
->   1142				goto err;
->   1143
->   1144			if (qp_has_rq(init_attr)) {
->   1145				err = mlx4_db_alloc(dev->dev, &qp->db, 0);
->   1146				if (err)
->   1147					goto err;
->   1148
->   1149				*qp->db.db = 0;
->   1150			}
->   1151
->   1152			if (mlx4_buf_alloc(dev->dev, qp->buf_size, qp->buf_size,
->   1153					   &qp->buf)) {
->   1154				memcpy(&init_attr->cap, &backup_cap,
->   1155				       sizeof(backup_cap));
->   1156				err = set_kernel_sq_size(dev, &init_attr->cap, qp_type,
->   1157							 qp, false);
->   1158				if (err)
->   1159					goto err_db;
->   1160
->   1161				if (mlx4_buf_alloc(dev->dev, qp->buf_size,
->   1162						   PAGE_SIZE * 2, &qp->buf)) {
->   1163					err = -ENOMEM;
->   1164					goto err_db;
->   1165				}
->   1166			}
->   1167
->   1168			err = mlx4_mtt_init(dev->dev, qp->buf.npages, qp->buf.page_shift,
->   1169					    &qp->mtt);
->   1170			if (err)
->   1171				goto err_buf;
->   1172
->   1173			err = mlx4_buf_write_mtt(dev->dev, &qp->mtt, &qp->buf);
->   1174			if (err)
->   1175				goto err_mtt;
->   1176
->   1177			qp->sq.wrid = kmalloc_array(qp->sq.wqe_cnt, sizeof(u64),
->   1178						GFP_KERNEL | __GFP_NOWARN);
->   1179			if (!qp->sq.wrid)
->   1180				qp->sq.wrid = __vmalloc(qp->sq.wqe_cnt * sizeof(u64),
->   1181							GFP_KERNEL, PAGE_KERNEL);
->   1182			qp->rq.wrid = kmalloc_array(qp->rq.wqe_cnt, sizeof(u64),
->   1183						GFP_KERNEL | __GFP_NOWARN);
->   1184			if (!qp->rq.wrid)
->   1185				qp->rq.wrid = __vmalloc(qp->rq.wqe_cnt * sizeof(u64),
->   1186							GFP_KERNEL, PAGE_KERNEL);
->   1187			if (!qp->sq.wrid || !qp->rq.wrid) {
->   1188				err = -ENOMEM;
->   1189				goto err_wrid;
->   1190			}
->   1191			qp->mqp.usage = MLX4_RES_USAGE_DRIVER;
->   1192		}
->   1193
->   1194		if (sqpn) {
->   1195			if (qp->mlx4_ib_qp_type & (MLX4_IB_QPT_PROXY_SMI_OWNER |
->   1196			    MLX4_IB_QPT_PROXY_SMI | MLX4_IB_QPT_PROXY_GSI)) {
->   1197				if (alloc_proxy_bufs(pd->device, qp)) {
->   1198					err = -ENOMEM;
->   1199					goto err_wrid;
->   1200				}
->   1201			}
->   1202		} else if (src == MLX4_IB_RWQ_SRC) {
->   1203			err = mlx4_ib_alloc_wqn(to_mucontext(pd->uobject->context), qp,
->                                                              ^^^^^^^^^^^^^^^^^^^^
-> Unchecked dereference.
 >
->   1204						range_size, &qpn);
->   1205			if (err)
+> ---
 >
-> regards,
-> dan carpenter
+> Chuck Lever (3):
+>       svcrdma: Limit RQ depth
+>       rdma core: Add rdma_rw_mr_payload()
+>       svcrdma: Estimate Send Queue depth properly
+>
+>
+>  drivers/infiniband/core/rw.c             |   24 ++++++++++++++++++++
+>  include/rdma/rw.h                        |    2 ++
+>  net/sunrpc/xprtrdma/svc_rdma_transport.c |   36 +++++++++++++++++++++---------
+>  3 files changed, 51 insertions(+), 11 deletions(-)
+>
+> --
+> Chuck Lever
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---p+IlF8Xh9KY56wTg
+--4jz2RIiWkXBLiaBi
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmBdIIACgkQ5GN7iDZy
-WKd1Mw/+Ofm98MOT4yfFL0kwG5kyMXqsBjWsqDyV+ismF5bbmI97gRw3QT004l6X
-gPE+LPZN0PAcPyEFBKNUpalCw2y+6J8IYEXKYYQv505xHZIpR+TkmsV+zujFxqPj
-R9/tkRbzUu/I/u3sP+FEjdtdc5oLgOWCAEIlmpok0xam670SpM7nwZe8D0E6SScM
-g/tiQBTGDXg85a5jWgmMcKK8zg6N11TiyLOK2NLuciRjrBpisw8mfhd1YpciX2ZU
-b98BBgSX3RdsVK6eBG/1K+uDq/LgbrxzRtyb8MomPzH75x7j/LARX3YetHOVdFje
-Tmi7kYhWEPpn14n295i6rY+/yvlCgjn1/VI9WmkqWoQTFri80paWCDvZFZ78PxyD
-T0g9YFGaDRmKl2ZPTkGFaESggk4AgVjBEkYg6nCbwU1ChHMW5EKEt8oagKW+a6xV
-H12QtkNLLKYFANyQHI6K+FX8xvNwGaz80e2tm5xIqgr29lX7PhvgMuJ4JzMQCSti
-ltQYKj67Lf0c8XI2fJLCmFleH81Rf1gfpHWFEn9G+Fd5X81vH+3Mt3OJyIxECdBy
-YGNXppbYQAhGsdBbUzDCN1dCj7JByAKU0rC4MtQUvexwmm3BklqztGzP36vc/YVi
-O9NwECKrDDExCr0I9lHSWIIua/cWPGnQ0FbhPL3vSrHPz5WixFQ=
-=6iyo
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmBfUsACgkQ5GN7iDZy
+WKetkg/+J0KA/MQLA2e8nmYwOzyHCQr9c6eWc+UnQSvqnM7FdfUW8FA/4v62sPbG
+FwzMJltGAYR9URStA9mAdhlfiDyngYVfKiW0Xvz9aU9hrZ8Lw0nY60xSk1w7TM3c
+fADR4JnrptHcVleHJFDr+2ZGKyfUyE+zh5XJ6/irAiJ3tgD8/MUyVUvJO4wtEuLP
+xPKNtAiTatsaEPTEM1GNWLXiWA/6eRKX4Qia7toXG82h4E5NZLZLpe8cC7beTe7o
+NZ4vOe7klFaisheRYn+lMl2yXUumXeA+u6NFFAolxYBnW3ayJ9Hv2I9pPPAD/CGt
+tDQXuOHTH5KCZR3nfpgXZ4eOZWdD8VWLXHjbZyqDEwZ7iUi3mc+ektZjCkpgnP3L
+JFLsOcAajbP+p8HfM4+1JIks9wS3QvowtSWKiOaMBMNS3D9Y0L/mAeWz1hNNegTL
+UTfbAQiW8r3KLKNG/2vgwQsM7nsdMB838oAaRG7JfeESVsHeWTsGamzDaPSMVw3x
+4YP61PsulxQ5CUjbB3ZsvKFxGPZH3Z8IabWs4/PpOnCV9i1G52iboDWkGexJR6bw
+Bt4py+PvuHZW3S250otzgP3LvMfkDRIJzxGU/0CGs8Q352ufP1B9AhxMgg/sv0yV
+xxWtYpojZWhWskgbGppVxTj8RKuUMAaxNhclTmQqB7jwc8jU7m4=
+=jNom
 -----END PGP SIGNATURE-----
 
---p+IlF8Xh9KY56wTg--
+--4jz2RIiWkXBLiaBi--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
