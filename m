@@ -1,43 +1,134 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [rdma-next 01/33] Revert "IB/core: Add flow control to the
- portmapper netlink calls"
-Date: Wed, 2 Aug 2017 09:58:56 -0600
-Message-ID: <20170802155856.GA21208@obsidianresearch.com>
-References: <20170801120536.540-1-leon@kernel.org>
- <20170801120536.540-2-leon@kernel.org>
- <20170801133832.GA11812@ctung-MOBL3.amr.corp.intel.com>
- <20170801141023.GM13672@mtr-leonro.local>
- <20170801141842.GA1808@ctung-MOBL3.amr.corp.intel.com>
- <alpine.DEB.2.20.1708010921490.16491@nuc-kabylake>
- <20170801151511.GA13376@ctung-MOBL3.amr.corp.intel.com>
- <20170801195840.GC31205@obsidianresearch.com>
- <20170802034438.GV13672@mtr-leonro.local>
+From: Salil Mehta <salil.mehta@huawei.com>
+Subject: [PATCH V6 net-next 0/8] Hisilicon Network Subsystem 3 Ethernet Driver
+Date: Wed, 2 Aug 2017 16:59:44 +0100
+Message-ID: <20170802155952.185564-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170802034438.GV13672-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christopher Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, huangdaode@hisilicon.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Aug 02, 2017 at 06:44:38AM +0300, Leon Romanovsky wrote:
-> On Tue, Aug 01, 2017 at 01:58:40PM -0600, Jason Gunthorpe wrote:
-> >
-> > I'm not sure why there is so much noise about this - yes, iwpmd is
-> > really weird, but it is a UAPI, we can't change it and we can't demand
-> > they change.
-> 
-> If you claim that it is UAPI change, we MUST revert this patch, because
-> reverted patch CHANGED UAPI.
+This patch-set contains the support of the HNS3 (Hisilicon Network Subsystem 3)
+Ethernet driver for hip08 family of SoCs and future upcoming SoCs.
 
-That is not how I read it.. The UAPI was intended to be lossless and
-there was a kernel bug that made it more lossy than expected, that is
-what that original patch was addressing.
+Hisilicon's new hip08 SoCs have integrated ethernet based on PCI Express and
+hence there was a need of new driver over the previous HNS driver which is 
+already part of the Linux mainline. This new driver is NOT backward
+compatible with HNS.
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This current driver is meant to control the Physical Function and there would
+soon be a support of a separate driver for Virtual Function once this base PF
+driver has been accepted. Also, this driver is the ongoing development work and
+HNS3 Ethernet driver would be incrementally enhanced with more new features.
+
+High Level Architecture:
+
+        [ Ethtool ]
+	   ^  |
+           |  | 
+     [Ethernet Client]  [ODP/UIO Client] . . . [ RoCE Client ]     
+                         |                            |
+                   [ HNAE Device ]                    |
+                         |                            |
+    ---------------------------------------------     |
+                         |                            |
+     [ HNAE3 Framework (Register/unregister) ]        |
+                         |                            |
+    ---------------------------------------------     |
+                         |                            |
+                   [ HCLGE Layer]                     |
+         ________________|_________________           |
+        |                |                 |          |
+    [ MDIO ]    [ Scheduler/Shaper ]  [ Debugfs* ]    |
+        |                |                 |          |
+        |________________|_________________|          |     
+                         |                            |
+             [ IMP command Interface ]                |
+    ---------------------------------------------     |
+              HIP08  H A R D W A R E                  *
+
+
+Current patch-set broadly adds the support of the following PF functionality:
+ 1. Basic Rx and Tx functionality 
+ 2. TSO support
+ 3. Ethtool support
+ 4. * Debugfs support -> this patch for now has been taken off.
+ 5. HNAE framework and hardware compatability layer
+ 6. Scheduler and Shaper support in transmit function
+ 7. MDIO support
+
+Change Log:
+V5->V6: Addressed below comments:
+        * Andrew Lunn: Comments on MDIO and ethtool link mode
+        * Leon Romanvosky: Some comments on HNAE layer tidy-up
+        * Internal comments on redundant code removal, fixing error types etc.
+V4->V5: Addressed below concerns:
+        * Florian Fanelli: Miscellaneous comments on ethtool & enet layer
+        * Stephen Hemminger: comment of Netdev stats in ethool layer
+        * Leon Romanvosky: Comments on Driver Version String, naming & Kconfig
+        * Rochard Cochran: Redundant function prototype 
+V3->V4: Addressed below comments:
+        * Andrew Lunn: Various comments on MDIO, ethtool, ENET driver etc,
+        * Stephen Hemminger: change access and updation to 64 but statistics
+        * Bo You: some spelling mistakes and checkpatch.pl errors.
+V2->V3: Addressed comments
+        * Yuval Mintz: Removal of redundant userprio-to-tc code
+        * Stephen Hemminger: Ethtool & interuupt enable
+        * Andrew Lunn: On C45/C22 PHy support, HNAE, ethtool
+        * Florian Fainelli: C45/C22 and phy_connect/attach
+        * Intel kbuild errors
+V1->V2: Addressed some comments by kbuild, Yuval MIntz, Andrew Lunn &
+        Florian Fainelli in the following patches:
+        * Add support of HNS3 Ethernet Driver for hip08 SoC
+        * Add MDIO support to HNS3 Ethernet driver for hip08 SoC
+        * Add support of debugfs interface to HNS3 driver
+
+Salil Mehta (8):
+  net: hns3: Add support of HNS3 Ethernet Driver for hip08 SoC
+  net: hns3: Add support of the HNAE3 framework
+  net: hns3: Add HNS3 IMP(Integrated Mgmt Proc) Cmd Interface Support
+  net: hns3: Add HNS3 Acceleration Engine & Compatibility Layer Support
+  net: hns3: Add support of TX Scheduler & Shaper to HNS3 driver
+  net: hns3: Add MDIO support to HNS3 Ethernet driver for hip08 SoC
+  net: hns3: Add Ethtool support to HNS3 driver
+  net: hns3: Add HNS3 driver to kernel build framework & MAINTAINERS
+
+ MAINTAINERS                                        |    8 +
+ drivers/net/ethernet/hisilicon/Kconfig             |   27 +
+ drivers/net/ethernet/hisilicon/Makefile            |    1 +
+ drivers/net/ethernet/hisilicon/hns3/Makefile       |    7 +
+ drivers/net/ethernet/hisilicon/hns3/hnae3.c        |  300 ++
+ drivers/net/ethernet/hisilicon/hns3/hnae3.h        |  444 ++
+ .../net/ethernet/hisilicon/hns3/hns3pf/Makefile    |   11 +
+ .../net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.c |  356 ++
+ .../net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.h |  740 ++++
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_main.c    | 4267 ++++++++++++++++++++
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_main.h    |  519 +++
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_mdio.c    |  213 +
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_mdio.h    |   17 +
+ .../net/ethernet/hisilicon/hns3/hns3pf/hclge_tm.c  | 1015 +++++
+ .../net/ethernet/hisilicon/hns3/hns3pf/hclge_tm.h  |  106 +
+ .../net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c | 2848 +++++++++++++
+ .../net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h |  592 +++
+ .../ethernet/hisilicon/hns3/hns3pf/hns3_ethtool.c  |  482 +++
+ 18 files changed, 11953 insertions(+)
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/Makefile
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hnae3.c
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hnae3.h
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.c
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.h
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mdio.c
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_mdio.h
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_tm.c
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_tm.h
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h
+ create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_ethtool.c
+
+-- 
+2.7.4
