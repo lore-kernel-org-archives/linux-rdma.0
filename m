@@ -1,254 +1,374 @@
 From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 for-next 2/2] RDMA/bnxt_re: Implement the alloc/get_hw_stats callback
-Date: Wed,  2 Aug 2017 01:46:19 -0700
-Message-ID: <1501663579-24707-3-git-send-email-selvin.xavier@broadcom.com>
+Subject: [PATCH v2 for-next 1/2] RDMA/bnxt_re: Allocate multiple notification queues
+Date: Wed,  2 Aug 2017 01:46:18 -0700
+Message-ID: <1501663579-24707-2-git-send-email-selvin.xavier@broadcom.com>
 References: <1501663579-24707-1-git-send-email-selvin.xavier@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1501663579-24707-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Ray Jui <ray.jui-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Enables multiple Interrupt vectors. Driver is requesting the max
+MSIX vectors based on the number of online  cpus and creates upto
+9 MSIx vectors (1 for control path and 8 for data path).
+A tasklet is created for each of these vectors. NQs are assigned
+to CQs in round robin fashion.
+This patch also adds IRQ affinity hint for the MSIX vector of each NQ.
 
-Expose HW counters using the get_hw_stats callback
-
-Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Ray Jui <ray.jui-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-v1->v2:
-	Fixes the kbuild test warnings for xtensa
+ drivers/infiniband/hw/bnxt_re/bnxt_re.h  |   5 +-
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c |  17 +++--
+ drivers/infiniband/hw/bnxt_re/main.c     | 106 +++++++++++++++++++------------
+ drivers/infiniband/hw/bnxt_re/qplib_fp.c |  21 +++++-
+ drivers/infiniband/hw/bnxt_re/qplib_fp.h |   4 +-
+ 5 files changed, 104 insertions(+), 49 deletions(-)
 
- drivers/infiniband/hw/bnxt_re/Makefile      |   2 +-
- drivers/infiniband/hw/bnxt_re/hw_counters.c | 114 ++++++++++++++++++++++++++++
- drivers/infiniband/hw/bnxt_re/hw_counters.h |  62 +++++++++++++++
- drivers/infiniband/hw/bnxt_re/main.c        |   4 +
- 4 files changed, 181 insertions(+), 1 deletion(-)
- create mode 100644 drivers/infiniband/hw/bnxt_re/hw_counters.c
- create mode 100644 drivers/infiniband/hw/bnxt_re/hw_counters.h
-
-diff --git a/drivers/infiniband/hw/bnxt_re/Makefile b/drivers/infiniband/hw/bnxt_re/Makefile
-index 036f84e..afbaa0e 100644
---- a/drivers/infiniband/hw/bnxt_re/Makefile
-+++ b/drivers/infiniband/hw/bnxt_re/Makefile
-@@ -3,4 +3,4 @@ ccflags-y := -Idrivers/net/ethernet/broadcom/bnxt
- obj-$(CONFIG_INFINIBAND_BNXT_RE) += bnxt_re.o
- bnxt_re-y := main.o ib_verbs.o \
- 	     qplib_res.o qplib_rcfw.o	\
--	     qplib_sp.o qplib_fp.o
-+	     qplib_sp.o qplib_fp.o  hw_counters.o
-diff --git a/drivers/infiniband/hw/bnxt_re/hw_counters.c b/drivers/infiniband/hw/bnxt_re/hw_counters.c
-new file mode 100644
-index 0000000..7b28219
---- /dev/null
-+++ b/drivers/infiniband/hw/bnxt_re/hw_counters.c
-@@ -0,0 +1,114 @@
-+/*
-+ * Broadcom NetXtreme-E RoCE driver.
-+ *
-+ * Copyright (c) 2016 - 2017, Broadcom. All rights reserved.  The term
-+ * Broadcom refers to Broadcom Limited and/or its subsidiaries.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * BSD license below:
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ * 1. Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ * 2. Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS''
-+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS
-+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-+ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * Description: Statistics
-+ *
-+ */
-+
-+#include <linux/interrupt.h>
-+#include <linux/types.h>
-+#include <linux/spinlock.h>
-+#include <linux/sched.h>
-+#include <linux/slab.h>
-+#include <linux/pci.h>
-+#include <linux/prefetch.h>
-+#include <linux/delay.h>
-+
-+#include <rdma/ib_addr.h>
-+
-+#include "bnxt_ulp.h"
-+#include "roce_hsi.h"
-+#include "qplib_res.h"
-+#include "qplib_sp.h"
-+#include "qplib_fp.h"
-+#include "qplib_rcfw.h"
-+#include "bnxt_re.h"
-+#include "hw_counters.h"
-+
-+static const char * const bnxt_re_stat_name[] = {
-+	[BNXT_RE_ACTIVE_QP]           =  "active_qps",
-+	[BNXT_RE_ACTIVE_SRQ]          =  "active_srqs",
-+	[BNXT_RE_ACTIVE_CQ]           =  "active_cqs",
-+	[BNXT_RE_ACTIVE_MR]           =  "active_mrs",
-+	[BNXT_RE_ACTIVE_MW]           =  "active_mws",
-+	[BNXT_RE_RX_PKTS]             =  "rx_pkts",
-+	[BNXT_RE_RX_BYTES]            =  "rx_bytes",
-+	[BNXT_RE_TX_PKTS]             =  "tx_pkts",
-+	[BNXT_RE_TX_BYTES]            =  "tx_bytes",
-+	[BNXT_RE_RECOVERABLE_ERRORS]  =  "recoverable_errors"
-+};
-+
-+int bnxt_re_ib_get_hw_stats(struct ib_device *ibdev,
-+			    struct rdma_hw_stats *stats,
-+			    u8 port, int index)
-+{
-+	struct bnxt_re_dev *rdev = to_bnxt_re_dev(ibdev, ibdev);
-+	struct ctx_hw_stats *bnxt_re_stats = rdev->qplib_ctx.stats.dma;
-+
-+	if (!port || !stats)
-+		return -EINVAL;
-+
-+	stats->value[BNXT_RE_ACTIVE_QP] = atomic_read(&rdev->qp_count);
-+	stats->value[BNXT_RE_ACTIVE_SRQ] = atomic_read(&rdev->srq_count);
-+	stats->value[BNXT_RE_ACTIVE_CQ] = atomic_read(&rdev->cq_count);
-+	stats->value[BNXT_RE_ACTIVE_MR] = atomic_read(&rdev->mr_count);
-+	stats->value[BNXT_RE_ACTIVE_MW] = atomic_read(&rdev->mw_count);
-+	if (bnxt_re_stats) {
-+		stats->value[BNXT_RE_RECOVERABLE_ERRORS] =
-+			le64_to_cpu(bnxt_re_stats->tx_bcast_pkts);
-+		stats->value[BNXT_RE_RX_PKTS] =
-+			le64_to_cpu(bnxt_re_stats->rx_ucast_pkts);
-+		stats->value[BNXT_RE_RX_BYTES] =
-+			le64_to_cpu(bnxt_re_stats->rx_ucast_bytes);
-+		stats->value[BNXT_RE_TX_PKTS] =
-+			le64_to_cpu(bnxt_re_stats->tx_ucast_pkts);
-+		stats->value[BNXT_RE_TX_BYTES] =
-+			le64_to_cpu(bnxt_re_stats->tx_ucast_bytes);
-+	}
-+	return ARRAY_SIZE(bnxt_re_stat_name);
-+}
-+
-+struct rdma_hw_stats *bnxt_re_ib_alloc_hw_stats(struct ib_device *ibdev,
-+						u8 port_num)
-+{
-+	BUILD_BUG_ON(ARRAY_SIZE(bnxt_re_stat_name) != BNXT_RE_NUM_COUNTERS);
-+	/* We support only per port stats */
-+	if (!port_num)
-+		return NULL;
-+
-+	return rdma_alloc_hw_stats_struct(bnxt_re_stat_name,
-+					  ARRAY_SIZE(bnxt_re_stat_name),
-+					  RDMA_HW_STATS_DEFAULT_LIFESPAN);
-+}
-diff --git a/drivers/infiniband/hw/bnxt_re/hw_counters.h b/drivers/infiniband/hw/bnxt_re/hw_counters.h
-new file mode 100644
-index 0000000..be0dc00
---- /dev/null
-+++ b/drivers/infiniband/hw/bnxt_re/hw_counters.h
-@@ -0,0 +1,62 @@
-+/*
-+ * Broadcom NetXtreme-E RoCE driver.
-+ *
-+ * Copyright (c) 2016 - 2017, Broadcom. All rights reserved.  The term
-+ * Broadcom refers to Broadcom Limited and/or its subsidiaries.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * BSD license below:
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ * 1. Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ * 2. Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS''
-+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS
-+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-+ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
-+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * Description: Statistics (header)
-+ *
-+ */
-+
-+#ifndef __BNXT_RE_HW_STATS_H__
-+#define __BNXT_RE_HW_STATS_H__
-+
-+enum bnxt_re_hw_stats {
-+	BNXT_RE_ACTIVE_QP,
-+	BNXT_RE_ACTIVE_SRQ,
-+	BNXT_RE_ACTIVE_CQ,
-+	BNXT_RE_ACTIVE_MR,
-+	BNXT_RE_ACTIVE_MW,
-+	BNXT_RE_RX_PKTS,
-+	BNXT_RE_RX_BYTES,
-+	BNXT_RE_TX_PKTS,
-+	BNXT_RE_TX_BYTES,
-+	BNXT_RE_RECOVERABLE_ERRORS,
-+	BNXT_RE_NUM_COUNTERS
-+};
-+
-+struct rdma_hw_stats *bnxt_re_ib_alloc_hw_stats(struct ib_device *ibdev,
-+						u8 port_num);
-+int bnxt_re_ib_get_hw_stats(struct ib_device *ibdev,
-+			    struct rdma_hw_stats *stats,
-+			    u8 port, int index);
-+#endif /* __BNXT_RE_HW_STATS_H__ */
+diff --git a/drivers/infiniband/hw/bnxt_re/bnxt_re.h b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+index 8552753..b3ad37f 100644
+--- a/drivers/infiniband/hw/bnxt_re/bnxt_re.h
++++ b/drivers/infiniband/hw/bnxt_re/bnxt_re.h
+@@ -85,7 +85,7 @@ struct bnxt_re_sqp_entries {
+ };
+ 
+ #define BNXT_RE_MIN_MSIX		2
+-#define BNXT_RE_MAX_MSIX		16
++#define BNXT_RE_MAX_MSIX		9
+ #define BNXT_RE_AEQ_IDX			0
+ #define BNXT_RE_NQ_IDX			1
+ 
+@@ -116,7 +116,7 @@ struct bnxt_re_dev {
+ 	struct bnxt_qplib_rcfw		rcfw;
+ 
+ 	/* NQ */
+-	struct bnxt_qplib_nq		nq;
++	struct bnxt_qplib_nq		nq[BNXT_RE_MAX_MSIX];
+ 
+ 	/* Device Resources */
+ 	struct bnxt_qplib_dev_attr	dev_attr;
+@@ -140,6 +140,7 @@ struct bnxt_re_dev {
+ 	struct bnxt_re_qp		*qp1_sqp;
+ 	struct bnxt_re_ah		*sqp_ah;
+ 	struct bnxt_re_sqp_entries sqp_tbl[1024];
++	atomic_t nq_alloc_cnt;
+ };
+ 
+ #define to_bnxt_re_dev(ptr, member)	\
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index d78fedc..7faa7de 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -2290,6 +2290,7 @@ int bnxt_re_destroy_cq(struct ib_cq *ib_cq)
+ 	struct bnxt_re_cq *cq = container_of(ib_cq, struct bnxt_re_cq, ib_cq);
+ 	struct bnxt_re_dev *rdev = cq->rdev;
+ 	int rc;
++	struct bnxt_qplib_nq *nq = cq->qplib_cq.nq;
+ 
+ 	rc = bnxt_qplib_destroy_cq(&rdev->qplib_res, &cq->qplib_cq);
+ 	if (rc) {
+@@ -2304,7 +2305,7 @@ int bnxt_re_destroy_cq(struct ib_cq *ib_cq)
+ 		kfree(cq);
+ 	}
+ 	atomic_dec(&rdev->cq_count);
+-	rdev->nq.budget--;
++	nq->budget--;
+ 	return 0;
+ }
+ 
+@@ -2318,6 +2319,8 @@ struct ib_cq *bnxt_re_create_cq(struct ib_device *ibdev,
+ 	struct bnxt_re_cq *cq = NULL;
+ 	int rc, entries;
+ 	int cqe = attr->cqe;
++	struct bnxt_qplib_nq *nq = NULL;
++	unsigned int nq_alloc_cnt;
+ 
+ 	/* Validate CQ fields */
+ 	if (cqe < 1 || cqe > dev_attr->max_cq_wqes) {
+@@ -2369,9 +2372,15 @@ struct ib_cq *bnxt_re_create_cq(struct ib_device *ibdev,
+ 		cq->qplib_cq.sghead = NULL;
+ 		cq->qplib_cq.nmap = 0;
+ 	}
++	/*
++	 * Allocating the NQ in a round robin fashion. nq_alloc_cnt is a
++	 * used for getting the NQ index.
++	 */
++	nq_alloc_cnt = atomic_inc_return(&rdev->nq_alloc_cnt);
++	nq = &rdev->nq[nq_alloc_cnt % (rdev->num_msix - 1)];
+ 	cq->qplib_cq.max_wqe = entries;
+-	cq->qplib_cq.cnq_hw_ring_id = rdev->nq.ring_id;
+-	cq->qplib_cq.nq	= &rdev->nq;
++	cq->qplib_cq.cnq_hw_ring_id = nq->ring_id;
++	cq->qplib_cq.nq	= nq;
+ 
+ 	rc = bnxt_qplib_create_cq(&rdev->qplib_res, &cq->qplib_cq);
+ 	if (rc) {
+@@ -2381,7 +2390,7 @@ struct ib_cq *bnxt_re_create_cq(struct ib_device *ibdev,
+ 
+ 	cq->ib_cq.cqe = entries;
+ 	cq->cq_period = cq->qplib_cq.period;
+-	rdev->nq.budget++;
++	nq->budget++;
+ 
+ 	atomic_inc(&rdev->cq_count);
+ 
 diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-index 5b78d8f..82d1cbc 100644
+index 2f71123..5b78d8f 100644
 --- a/drivers/infiniband/hw/bnxt_re/main.c
 +++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -64,6 +64,8 @@
- #include "ib_verbs.h"
- #include <rdma/bnxt_re-abi.h>
- #include "bnxt.h"
-+#include "hw_counters.h"
+@@ -161,7 +161,7 @@ static int bnxt_re_free_msix(struct bnxt_re_dev *rdev, bool lock_wait)
+ 
+ static int bnxt_re_request_msix(struct bnxt_re_dev *rdev)
+ {
+-	int rc = 0, num_msix_want = BNXT_RE_MIN_MSIX, num_msix_got;
++	int rc = 0, num_msix_want = BNXT_RE_MAX_MSIX, num_msix_got;
+ 	struct bnxt_en_dev *en_dev;
+ 
+ 	if (!rdev)
+@@ -169,6 +169,8 @@ static int bnxt_re_request_msix(struct bnxt_re_dev *rdev)
+ 
+ 	en_dev = rdev->en_dev;
+ 
++	num_msix_want = min_t(u32, BNXT_RE_MAX_MSIX, num_online_cpus());
 +
- static char version[] =
- 		BNXT_RE_DESC " v" ROCE_DRV_MODULE_VERSION "\n";
+ 	rtnl_lock();
+ 	num_msix_got = en_dev->en_ops->bnxt_request_msix(en_dev, BNXT_ROCE_ULP,
+ 							 rdev->msix_entries,
+@@ -651,8 +653,12 @@ static int bnxt_re_cqn_handler(struct bnxt_qplib_nq *nq,
  
-@@ -513,6 +515,8 @@ static int bnxt_re_register_ib(struct bnxt_re_dev *rdev)
- 	ibdev->alloc_ucontext		= bnxt_re_alloc_ucontext;
- 	ibdev->dealloc_ucontext		= bnxt_re_dealloc_ucontext;
- 	ibdev->mmap			= bnxt_re_mmap;
-+	ibdev->get_hw_stats             = bnxt_re_ib_get_hw_stats;
-+	ibdev->alloc_hw_stats           = bnxt_re_ib_alloc_hw_stats;
+ static void bnxt_re_cleanup_res(struct bnxt_re_dev *rdev)
+ {
+-	if (rdev->nq.hwq.max_elements)
+-		bnxt_qplib_disable_nq(&rdev->nq);
++	int i;
++
++	if (rdev->nq[0].hwq.max_elements) {
++		for (i = 1; i < rdev->num_msix; i++)
++			bnxt_qplib_disable_nq(&rdev->nq[i - 1]);
++	}
  
- 	return ib_register_device(ibdev, NULL);
+ 	if (rdev->qplib_res.rcfw)
+ 		bnxt_qplib_cleanup_res(&rdev->qplib_res);
+@@ -660,31 +666,41 @@ static void bnxt_re_cleanup_res(struct bnxt_re_dev *rdev)
+ 
+ static int bnxt_re_init_res(struct bnxt_re_dev *rdev)
+ {
+-	int rc = 0;
++	int rc = 0, i;
+ 
+ 	bnxt_qplib_init_res(&rdev->qplib_res);
+ 
+-	if (rdev->msix_entries[BNXT_RE_NQ_IDX].vector <= 0)
+-		return -EINVAL;
++	for (i = 1; i < rdev->num_msix ; i++) {
++		rc = bnxt_qplib_enable_nq(rdev->en_dev->pdev, &rdev->nq[i - 1],
++					  i - 1, rdev->msix_entries[i].vector,
++					  rdev->msix_entries[i].db_offset,
++					  &bnxt_re_cqn_handler, NULL);
+ 
+-	rc = bnxt_qplib_enable_nq(rdev->en_dev->pdev, &rdev->nq,
+-				  rdev->msix_entries[BNXT_RE_NQ_IDX].vector,
+-				  rdev->msix_entries[BNXT_RE_NQ_IDX].db_offset,
+-				  &bnxt_re_cqn_handler,
+-				  NULL);
++		if (rc) {
++			dev_err(rdev_to_dev(rdev),
++				"Failed to enable NQ with rc = 0x%x", rc);
++			goto fail;
++		}
++	}
++	return 0;
++fail:
++	return rc;
++}
+ 
+-	if (rc)
+-		dev_err(rdev_to_dev(rdev), "Failed to enable NQ: %#x", rc);
++static void bnxt_re_free_nq_res(struct bnxt_re_dev *rdev, bool lock_wait)
++{
++	int i;
+ 
+-	return rc;
++	for (i = 0; i < rdev->num_msix - 1; i++) {
++		bnxt_re_net_ring_free(rdev, rdev->nq[i].ring_id, lock_wait);
++		bnxt_qplib_free_nq(&rdev->nq[i]);
++	}
  }
+ 
+ static void bnxt_re_free_res(struct bnxt_re_dev *rdev, bool lock_wait)
+ {
+-	if (rdev->nq.hwq.max_elements) {
+-		bnxt_re_net_ring_free(rdev, rdev->nq.ring_id, lock_wait);
+-		bnxt_qplib_free_nq(&rdev->nq);
+-	}
++	bnxt_re_free_nq_res(rdev, lock_wait);
++
+ 	if (rdev->qplib_res.dpi_tbl.max) {
+ 		bnxt_qplib_dealloc_dpi(&rdev->qplib_res,
+ 				       &rdev->qplib_res.dpi_tbl,
+@@ -698,7 +714,7 @@ static void bnxt_re_free_res(struct bnxt_re_dev *rdev, bool lock_wait)
+ 
+ static int bnxt_re_alloc_res(struct bnxt_re_dev *rdev)
+ {
+-	int rc = 0;
++	int rc = 0, i;
+ 
+ 	/* Configure and allocate resources for qplib */
+ 	rdev->qplib_res.rcfw = &rdev->rcfw;
+@@ -715,30 +731,42 @@ static int bnxt_re_alloc_res(struct bnxt_re_dev *rdev)
+ 				  &rdev->dpi_privileged,
+ 				  rdev);
+ 	if (rc)
+-		goto fail;
++		goto dealloc_res;
+ 
+-	rdev->nq.hwq.max_elements = BNXT_RE_MAX_CQ_COUNT +
+-				    BNXT_RE_MAX_SRQC_COUNT + 2;
+-	rc = bnxt_qplib_alloc_nq(rdev->en_dev->pdev, &rdev->nq);
+-	if (rc) {
+-		dev_err(rdev_to_dev(rdev),
+-			"Failed to allocate NQ memory: %#x", rc);
+-		goto fail;
+-	}
+-	rc = bnxt_re_net_ring_alloc
+-			(rdev, rdev->nq.hwq.pbl[PBL_LVL_0].pg_map_arr,
+-			 rdev->nq.hwq.pbl[rdev->nq.hwq.level].pg_count,
+-			 HWRM_RING_ALLOC_CMPL, BNXT_QPLIB_NQE_MAX_CNT - 1,
+-			 rdev->msix_entries[BNXT_RE_NQ_IDX].ring_idx,
+-			 &rdev->nq.ring_id);
+-	if (rc) {
+-		dev_err(rdev_to_dev(rdev),
+-			"Failed to allocate NQ ring: %#x", rc);
+-		goto free_nq;
++	for (i = 0; i < rdev->num_msix - 1; i++) {
++		rdev->nq[i].hwq.max_elements = BNXT_RE_MAX_CQ_COUNT +
++			BNXT_RE_MAX_SRQC_COUNT + 2;
++		rc = bnxt_qplib_alloc_nq(rdev->en_dev->pdev, &rdev->nq[i]);
++		if (rc) {
++			dev_err(rdev_to_dev(rdev), "Alloc Failed NQ%d rc:%#x",
++				i, rc);
++			goto dealloc_dpi;
++		}
++		rc = bnxt_re_net_ring_alloc
++			(rdev, rdev->nq[i].hwq.pbl[PBL_LVL_0].pg_map_arr,
++			 rdev->nq[i].hwq.pbl[rdev->nq[i].hwq.level].pg_count,
++			 HWRM_RING_ALLOC_CMPL,
++			 BNXT_QPLIB_NQE_MAX_CNT - 1,
++			 rdev->msix_entries[i + 1].ring_idx,
++			 &rdev->nq[i].ring_id);
++		if (rc) {
++			dev_err(rdev_to_dev(rdev),
++				"Failed to allocate NQ fw id with rc = 0x%x",
++				rc);
++			goto free_nq;
++		}
+ 	}
+ 	return 0;
+ free_nq:
+-	bnxt_qplib_free_nq(&rdev->nq);
++	for (i = 0; i < rdev->num_msix - 1; i++)
++		bnxt_qplib_free_nq(&rdev->nq[i]);
++dealloc_dpi:
++	bnxt_qplib_dealloc_dpi(&rdev->qplib_res,
++			       &rdev->qplib_res.dpi_tbl,
++			       &rdev->dpi_privileged);
++dealloc_res:
++	bnxt_qplib_free_res(&rdev->qplib_res);
++
+ fail:
+ 	rdev->qplib_res.rcfw = NULL;
+ 	return rc;
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+index 31e15f3..e8afc47 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+@@ -365,6 +365,7 @@ void bnxt_qplib_disable_nq(struct bnxt_qplib_nq *nq)
+ 	tasklet_kill(&nq->worker);
+ 
+ 	if (nq->requested) {
++		irq_set_affinity_hint(nq->vector, NULL);
+ 		free_irq(nq->vector, nq);
+ 		nq->requested = false;
+ 	}
+@@ -378,7 +379,7 @@ void bnxt_qplib_disable_nq(struct bnxt_qplib_nq *nq)
+ }
+ 
+ int bnxt_qplib_enable_nq(struct pci_dev *pdev, struct bnxt_qplib_nq *nq,
+-			 int msix_vector, int bar_reg_offset,
++			 int nq_idx, int msix_vector, int bar_reg_offset,
+ 			 int (*cqn_handler)(struct bnxt_qplib_nq *nq,
+ 					    struct bnxt_qplib_cq *),
+ 			 int (*srqn_handler)(struct bnxt_qplib_nq *nq,
+@@ -402,13 +403,25 @@ int bnxt_qplib_enable_nq(struct pci_dev *pdev, struct bnxt_qplib_nq *nq,
+ 		goto fail;
+ 
+ 	nq->requested = false;
+-	rc = request_irq(nq->vector, bnxt_qplib_nq_irq, 0, "bnxt_qplib_nq", nq);
++	memset(nq->name, 0, 32);
++	sprintf(nq->name, "bnxt_qplib_nq-%d", nq_idx);
++	rc = request_irq(nq->vector, bnxt_qplib_nq_irq, 0, nq->name, nq);
+ 	if (rc) {
+ 		dev_err(&nq->pdev->dev,
+ 			"Failed to request IRQ for NQ: %#x", rc);
+ 		bnxt_qplib_disable_nq(nq);
+ 		goto fail;
+ 	}
++
++	cpumask_clear(&nq->mask);
++	cpumask_set_cpu(nq_idx, &nq->mask);
++	rc = irq_set_affinity_hint(nq->vector, &nq->mask);
++	if (rc) {
++		dev_warn(&nq->pdev->dev,
++			 "QPLIB: set affinity failed; vector: %d nq_idx: %d\n",
++			 nq->vector, nq_idx);
++	}
++
+ 	nq->requested = true;
+ 	nq->bar_reg = NQ_CONS_PCI_BAR_REGION;
+ 	nq->bar_reg_off = bar_reg_offset;
+@@ -432,8 +445,10 @@ int bnxt_qplib_enable_nq(struct pci_dev *pdev, struct bnxt_qplib_nq *nq,
+ 
+ void bnxt_qplib_free_nq(struct bnxt_qplib_nq *nq)
+ {
+-	if (nq->hwq.max_elements)
++	if (nq->hwq.max_elements) {
+ 		bnxt_qplib_free_hwq(nq->pdev, &nq->hwq);
++		nq->hwq.max_elements = 0;
++	}
+ }
+ 
+ int bnxt_qplib_alloc_nq(struct pci_dev *pdev, struct bnxt_qplib_nq *nq)
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.h b/drivers/infiniband/hw/bnxt_re/qplib_fp.h
+index 23a26d5..8ead70c 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_fp.h
++++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.h
+@@ -407,6 +407,7 @@ struct bnxt_qplib_nq {
+ 	struct pci_dev			*pdev;
+ 
+ 	int				vector;
++	cpumask_t			mask;
+ 	int				budget;
+ 	bool				requested;
+ 	struct tasklet_struct		worker;
+@@ -425,6 +426,7 @@ struct bnxt_qplib_nq {
+ 						 void *srq,
+ 						 u8 event);
+ 	struct workqueue_struct         *cqn_wq;
++	char                            name[32];
+ };
+ 
+ struct bnxt_qplib_nq_work {
+@@ -435,7 +437,7 @@ struct bnxt_qplib_nq_work {
+ 
+ void bnxt_qplib_disable_nq(struct bnxt_qplib_nq *nq);
+ int bnxt_qplib_enable_nq(struct pci_dev *pdev, struct bnxt_qplib_nq *nq,
+-			 int msix_vector, int bar_reg_offset,
++			 int nq_idx, int msix_vector, int bar_reg_offset,
+ 			 int (*cqn_handler)(struct bnxt_qplib_nq *nq,
+ 					    struct bnxt_qplib_cq *cq),
+ 			 int (*srqn_handler)(struct bnxt_qplib_nq *nq,
 -- 
 2.5.5
 
