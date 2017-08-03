@@ -1,107 +1,213 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [PATCH v2 rdma-core 0/6] Common udev/systemd based module auto
- loading
-Date: Thu, 03 Aug 2017 14:00:59 +0200
-Message-ID: <1501761659.3581.2.camel@profitbricks.com>
-References: <1501194685-9447-1-git-send-email-jgunthorpe@obsidianresearch.com>
-         <1501256525.4572.44.camel@profitbricks.com>
-         <20170728154749.GA9646@obsidianresearch.com>
-         <1501260065.4572.47.camel@profitbricks.com>
-         <20170728165614.GA14302@obsidianresearch.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [rdma-next 01/33] Revert "IB/core: Add flow control to the
+ portmapper netlink calls"
+Date: Thu, 03 Aug 2017 08:22:53 -0400
+Message-ID: <1501762973.117042.7.camel@redhat.com>
+References: <20170801120536.540-1-leon@kernel.org>
+         <20170801120536.540-2-leon@kernel.org>
+         <20170801133832.GA11812@ctung-MOBL3.amr.corp.intel.com>
+         <20170801141023.GM13672@mtr-leonro.local>
+         <1501696661.109555.6.camel@redhat.com>
+         <20170802185405.GE13672@mtr-leonro.local>
+         <1501719575.117042.4.camel@redhat.com>
+         <20170803051032.GF13672@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170728165614.GA14302-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20170803051032.GF13672-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Am Freitag, den 28.07.2017, 10:56 -0600 schrieb Jason Gunthorpe:
-> On Fri, Jul 28, 2017 at 06:41:05PM +0200, Benjamin Drung wrote:
-> > Am Freitag, den 28.07.2017, 09:47 -0600 schrieb Jason Gunthorpe:
-> > > On Fri, Jul 28, 2017 at 05:42:05PM +0200, Benjamin Drung wrote:
+On Thu, 2017-08-03 at 08:10 +0300, Leon Romanovsky wrote:
+> On Wed, Aug 02, 2017 at 08:19:35PM -0400, Doug Ledford wrote:
+> > On Wed, 2017-08-02 at 21:54 +0300, Leon Romanovsky wrote:
 > > > 
-> > > > $ journalctl | grep mlx
-> > > > mlx4_core: Mellanox ConnectX core driver v3.3-1.0.4 (03 Jul
-> > > > 2016)
-> > > > mlx4_core: Initializing 0000:02:00.0
-> > > > mlx4_core: device is working in RoCE mode: Roce V1
-> > > 
-> > > So you are running purely in roce mode?
+> 
+> Are you kidding me? Reply to the series from the maintainer that "it
+> is
+> postponed till both sides are happy" is too much for you?
+
+I was a bit busy the last few weeks fixing a mess of my own.  And I'm
+still extremely busy working on getting our test cluster in Red Hat
+back operational....it's been down now for almost four weeks in total
+(well, planning and downtime has now extended to four weeks, only three
+weeks have been downtime).  I don't delete emails from my linux-rdma
+folder until they've been fully processed and won't be needed any more.
+ Between the problems I created for myself by missing the merge window,
+and the downtime of the Red Hat cluster I've been working on, I have
+1500 emails in that folder.  So, yes, I punted on what looked like a
+squabble and worked on other stuff.
+
 > > 
-> > I want to use mlx4_ib and IPoIB. The output is the same for a
-> > properly
-> > working system, but these system will load mlx4_ib and then more
-> > logs
-> > will appear.
+> > > It is his responsibility to drive to the resolution for the
+> > > important
+> > > core patches.
+> > 
+> > This was really only a core patch of minor importance to begin
+> > with,
+> > and once Chien wrote a patch to give you what you wanted without
+> > breaking the existing user space packages, it really became a
+> > trivial
+> > core patch.  Hardly worthy of pulling the "I demand you make a
+> > maintainer call" card.
 > 
-> This approach relies on this patch in upstream:
+> No, Chien never explained why he needs this fix and what this fix is
+> actually fixing.
+
+I understood his explanation.  He wasn't as clear as he could have
+been, but then again he's ESL just like you (English as Second
+Language, it's the term they use in my wife's job for situations like
+this).  I'd be happy to explain if it will help.
+
+> > 
+> > > This revert was discussed for something like month+, as an
+> > > outcome of
+> > > it, Chien reviewed and sent much more improved version of their
+> > > original
+> > > patch, without socket timeout and with minimal blocking places.
+> > 
+> > That would have been a perfect moment for you to work with Chien to
+> > take his patch as the first of your series instead of sticking to
+> > the
+> > revert.
 > 
-> $ git describe --contains b046ffe54dc13ff8ae918c83bedb71aa7919d63b
-> v3.13-rc1~105^2~189^2
+> I can't work on the solution if other side didn't explain why it is
+> needed.
+
+He's ESL just like you are, with both of you I expect unintentional
+shortcomings in explanations, and when that happens I attempt to
+clarify for the sake of all parties.  He tried, as best he could, to
+give you what you asked for.  I got it, if you need help understanding
+it I'd be glad to help.
+
+> > 
+> > > So please, don't say "school yard",
+> > 
+> > I stand by my statement.  So many school yard arguments make no
+> > real
+> > sense, and given you had every opportunity to resolve this problem
+> > with
+> > a community viable alternative patch, and in so doing would have
+> > actually fulfilled the edict that "we don't break user space"
+> > instead
+> > of violating it as you were doing, the metaphor seems entirely
+> > appropriate.
 > 
-> And it works fine on my 4.13 stock systems with mlx4.
+> And the fact that the reverted patch broke the user space behavior
+> before, didn't bother you?
 
-Yes, that commit is part of our 4.4 kernel.
+Breakage how?  If you mean that the fact that it broke the behavior
+pattern you expected, that breakage doesn't really exist until your
+patches are accepted, so it's not really broke right now, it just isn't
+what you want.
 
-> Are you using an initrd? If you have mlx4_core in the initrd then you
-> must also have mlx4_ib and mlx4_en as well, otherwise the kernel
-> triggered autoload will fail to find the module in the initrd and it
-> will not be retried.
+> > 
+> > >  especially after your silence.
+> > 
+> > I want to address this separate from everything else.
+> > 
+> > With as much hostility and accusations as I saw fly on the original
+> > submission, several things happened:
+> > 
+> > 1) The submission got bumped to the bottom of my queue because
+> > settling
+> > squables is not the sort of thing maintainers want to deal with.
+> > 2) The submission got bumped to the bottom of my queue so you would
+> > have a chance to work things out and come to a mutually agreed
+> > solution.  Such resolution is in the best interest of both the
+> > community and the technical correctness of the fix as, generally,
+> > an
+> > agreed upon fix will have had more community input and refinement
+> > prior
+> > to being accepted.
+> > 3) The submission will get put on hold for a short while regardless
+> > of
+> > points 1 and 2 just so you have a moment to settle down, rethink
+> > things
+> > a little bit, and decide if you really want to pull that "put the
+> > maintainer in this position" trigger.  Have you really examined all
+> > the
+> > possible solutions?  Is there really no superior alternative?  Is
+> > there
+> > really no way to come to agreement with the other community
+> > member(s)
+> > you are disagreeing with?
+> 
+> And did you go to the mailing list and write something like that "the
+> series on hold till solution will be found", like it was with hfi1-
+> vnic
+> and ipoib?
 
-Yes. That was the issue. I am using an initrd (from initramfs-tools).
-The mlx4_core module was included in the initrd, but mlx4_ib was
-missing. I tweaked initramfs-tools to include mlx4_ib and then it was
-autoloaded. Thanks.
+No, and if you recall, there was a decent period of silence on that
+before I told you guys to work it out too.
 
-Remaining problem: The IPoIB InfiniBand partition does not come up
-correctly:
+> The Answer is no, you didn't do it, you silently ignored discussion,
+> understood
+> that the series is stuck and continued down the road.
+> 
+> > 
+> > In the end, there will always be those things that a maintainer
+> > will
+> > simply need to make a call on because there won't be a clear right
+> > or
+> > wrong side and it just becomes a judgment call.  But I don't think
+> > this
+> > one even came close to being that unclear, so again I'm confused by
+> > your insistence on going this route instead of just working things
+> > out
+> > with Chien.
+> 
+> Because, I truly believe that they proposed the nasty hack, which
+> doesn't fix the real problem - inability to deal with losses of
+> netlink
+> messages.
 
-$ ip a
-[...]
-9: ib1.d00b@ib1: <BROADCAST,MULTICAST,UP,LOWER_UP,M-DOWN> mtu 65520
-qdisc mq state UP group default qlen 1024
-[...]
+In so much as the iwpmd needs to be modified to do a resync, I agree
+with you.  But, the fix they made caused the system to be "reliable
+enough" that the problem more or less disappeared.  It is true that,
+given enough load, the problem could resurface, but that hasn't
+happened yet in the real world.
 
-The corresponding config in /etc/network/interfaces:
+However, iwpmd is part of rdma-core now, so *anyone* can fix it to do
+the resyncs as needed (and I don't know, maybe it does, I just did a
+quick grep for ENOBUFS to see if they capture that error and do a
+resync on it, and saw no hits for that with grep).
 
-auto ib0.d00b
-iface ib0.d00b inet6 static
-    address <redacted>
-    netmask 64
-    pre-up echo connected > /sys/class/net/$IFACE/mode
-    dad-attempts 300
+> And I realized it after I started to work on RDMA netlink and read
+> RFC
+> and design documents and assumptions about netlink.
+> 
+> In my opinion, it is one of the small examples why RDMA subsystem is
+> so
+> hated. It is full of "custom" solutions to known problems and many of
+> those "custom" solutions are mix of hacks and band aids.
 
-I tried bring up the device manually:
+I don't believe this solution was as custom as you say it is.  The
+netlink core supports it and we aren't the only consumer.  That makes
+it a bit more generic than you paint it here IMO.
 
-$ sudo ip link set dev ib0.d00b down
-$ sudo ifup ib0.d00b
-$ sudo ifdown ib0.d00b
-$ sudo ifup ib0.d00b
-
-But the result is still the same. It still has the M-DOWN state and
-pinging other host does not work.
-
-I haven't found useful information on the web regarding the M-DOWN
-state.
-
+> There is no need to reply on it.
+> It is my personal opinion and my view of the RDMA subsystem as a
+> newcomer.
+> 
+> I'm OOO till Monday.
+> Happy weekends.
+> 
+> > 
+> > 
+> > --
+> > Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> >     GPG KeyID: B826A3330E572FDD
+> >     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57
+> > 2FDD
+> > 
 -- 
-Benjamin Drung
-System Developer
-Debian & Ubuntu Developer
-
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
-
-Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-Web: https://www.profitbricks.com
-
-Sitz der Gesellschaft: Berlin.
-Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-Geschäftsführer: Achim Weiss.
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
