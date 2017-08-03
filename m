@@ -1,67 +1,72 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [ANNOUNCE] rdma-core-15-rc1 has been tagged/released
-Date: Thu, 03 Aug 2017 15:23:28 +0200
-Message-ID: <1501766608.3581.6.camel@profitbricks.com>
-References: <1501590709.2725.10.camel@redhat.com>
-         <20170801200846.GA3808@obsidianresearch.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: rdma-core build environment enabling out-of-core providers
+Date: Thu, 3 Aug 2017 08:48:50 -0500
+Message-ID: <008401d30c5f$3c9e2560$b5da7020$@opengridcomputing.com>
+References: <007601d30b96$f2408170$d6c18450$@opengridcomputing.com> <20170802160900.GB21208@obsidianresearch.com> <019001d30bc3$cc6648e0$6532daa0$@opengridcomputing.com> <44b511c6-45fa-d5aa-4d4c-e47d2edcf604@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+        charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170801200846.GA3808-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <44b511c6-45fa-d5aa-4d4c-e47d2edcf604-l3A5Bk7waGM@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Nicolas Morey-Chaisemartin' <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Am Dienstag, den 01.08.2017, 14:08 -0600 schrieb Jason Gunthorpe:
-> On Tue, Aug 01, 2017 at 08:31:49AM -0400, Doug Ledford wrote:
+> >>
+> >> You can't really publish those headers sanely, and part of the point
+> >> here was specifically to allow using things like statomic.h properly
+> >> without having to be concerned about how to install the shim into a
+> >> public header.
+> >>
+> >> In my view, the best approach, which I have suggested before, is to
+> >> build the out-of-tree stuff 'in-tree' and discard everything except
+> >> the single provider library you are building for. For instance, a rpm
+> >> spec file that produces as contents a single provider shlib.
+> >>
+> >> This seems like the least amount of work for everyone, and it doesn't
+> >> really matter, I think, that the 'source' for the 'provider' carries
+> >> lots of unbuilt stuff.
+> >>
+> >> Perhaps the best way to accomplish that is to add a sample rpm spec
+> >> file to Documentation/ or something that shows how to do that. If you
+> >> want to take a first stab at it I can give you some help.
+> > Hey Jason, Thanks for this detailed response!  I appreciate it.
+> >
+> > Today I did two experiments:
+> >
+> > 1) I took my out-of-tree provider, and moved it into rdma-core, updated it to
+> > use the rdma-core bldenv and APIs.  This included the rdma-core mmio and
+> > dma/cache services, plus a few other nits like ccan, and the new byte swapping
+> > API, and got it building.  That was pretty straight forward.
+> >
+> > 2) I took the updated out-of-tree provider src from 1), and put it back in the
+> > out-of-tree provider automake/config bldenv, and then tried to pull in whatever
+> > was needed from rdma-core to build it.  This resulted in me pulling certain
+> > files, like you mentioned above.  I just pulled them from the rdma-core/build/
+> > tree for the sake of getting it to build.   Basically I needed ccan/*
+> > infiniband/driver.h, and util/compiler.h/udma_barrier.h.  That got it to build.
+> >
+> >
+> > I haven't tested either of these yet to see if they actually load.  But that's
+> > where I'm at.  #2 has the issues you describe, in that the atomic header is
+> > auto-generated based on the installed distro/platform.  So that leads to using
+> > #1 which is what you recommend.
+> Hi,
 > 
-> > This is a little bit late, so it would be best to keep -rc cycles
-> > on it
-> > to a minimum and get the final version pushed out soon.  With the
-> > "excitement" of this last release cycle/merge window, this slipped
-> > my
-> > mind.  My apologies.
+> I 'm not sure I see the issue here (or at least nothing easily fixed).
+> If the standard spec produces an extra rdma-core-provider-devel with those
+> headers, it's just a matter of rebuilding the out-of-tree provider against the right
+> distro/package.
 > 
-> Benjamin,
-> 
-> What more do you need in this release to start submitting to to the
-> debian archive?
 
-I am waiting for the common udev/systemd based module auto loading
-support (#174) to be merged to master and the release of v15.
+After thinking about this more, I agree:  If rdma-core is built into binary platform and distro-specific rpms, then these header files are definitely available to export as a -devel rpm for that same platform/distro.  
 
-> #174 wasn't merged yet, and there is one more minorish patch needed
-> to
-> rework the systemd targets.
-> 
-> Are you OK with taking those last few things at this point?
+Jason, am I missing something?
 
-Since #174 is a bigger patch set, I prefer to have it merged before the
-release of version 15 (but I can ship it as patches in the packaging if
-you want to get v15 out of the door). Shipping following more minorish
-patches as patches to the packaging is fine for me.
-
-IMO #174 is ready to be merged to master. I still have problems with
-bringing up IPoIB InfiniBand partitions (see other topic), but that can
-be resolved afterwards (if that is really caused by rdma-core).
-
--- 
-Benjamin Drung
-System Developer
-Debian & Ubuntu Developer
-
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
-
-Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-Web: https://www.profitbricks.com
-
-Sitz der Gesellschaft: Berlin.
-Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-Geschäftsführer: Achim Weiss.
+Steve.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
