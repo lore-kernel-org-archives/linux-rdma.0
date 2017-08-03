@@ -1,46 +1,54 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH v6 for-4.13 0/7] Automatic affinity settings for nvme over
- rdma
-Date: Thu, 3 Aug 2017 18:22:29 +0300
-Message-ID: <2eecc5bb-e356-73e5-a2fc-1f1867a779f3@grimberg.me>
-References: <1497796677-15794-1-git-send-email-sagi@grimberg.me>
- <20170619122806.GA29061@lst.de> <20170626100113.GA14446@lst.de>
- <7a91bc31-9a4d-a07c-002d-af06143c4257@grimberg.me>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [ANNOUNCE] rdma-core-15-rc1 has been tagged/released
+Date: Thu, 03 Aug 2017 11:22:37 -0400
+Message-ID: <1501773757.117042.12.camel@redhat.com>
+References: <1501590709.2725.10.camel@redhat.com>
+         <20170801200846.GA3808@obsidianresearch.com>
+         <1501766608.3581.6.camel@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <7a91bc31-9a4d-a07c-002d-af06143c4257-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1501766608.3581.6.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Doug,
+On Thu, 2017-08-03 at 15:23 +0200, Benjamin Drung wrote:
+> Am Dienstag, den 01.08.2017, 14:08 -0600 schrieb Jason Gunthorpe:
+> > On Tue, Aug 01, 2017 at 08:31:49AM -0400, Doug Ledford wrote:
+> > 
+> > > This is a little bit late, so it would be best to keep -rc cycles
+> > > on it
+> > > to a minimum and get the final version pushed out soon.  With the
+> > > "excitement" of this last release cycle/merge window, this
+> > > slipped
+> > > my
+> > > mind.  My apologies.
+> > 
+> > Benjamin,
+> > 
+> > What more do you need in this release to start submitting to to the
+> > debian archive?
+> 
+> I am waiting for the common udev/systemd based module auto loading
+> support (#174) to be merged to master and the release of v15.
 
->>> Thanks Sagi,
->>>
->>> the whole series looks great to me.
->>>
->>> It would be even nicer if the maintainers of the various HCA drivers
->>> could look into adding support..
->>
->> Did we make any progress on getting this included?
-> 
-> AFAICT, its waiting for Doug to pick it up...
-> 
-> Not sure if Saeed is planning to run any tests on this,
-> but its clearly agreed that this is the direction all parties
-> want to take, and we have 6-9 rc's to hash out any issues if
-> exist...
-> 
->> It would be sad to miss another merge window..
-> 
-> I hope we don't...
+Hi Benjamin,
 
-Are you picking this up for 4.14? This already missed two merge
-windows..
+I was planning on merging 174 before final release.  I don't know if
+you saw, but in another thread I mentioned that our internal cluster
+for RDMA testing has been down for a reorg, I actually wanted to get
+this on the cluster and test it before final release as well.  So I
+hope to have v15 out soon, but there are a couple things gating that
+release as far as I'm concerned.
+
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
