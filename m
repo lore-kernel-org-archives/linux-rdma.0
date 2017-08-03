@@ -1,70 +1,50 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [ANNOUNCE] rdma-core-15-rc1 has been tagged/released
-Date: Thu, 03 Aug 2017 17:49:24 +0200
-Message-ID: <1501775364.3581.9.camel@profitbricks.com>
-References: <1501590709.2725.10.camel@redhat.com>
-         <20170801200846.GA3808@obsidianresearch.com>
-         <1501766608.3581.6.camel@profitbricks.com>
-         <1501773757.117042.12.camel@redhat.com>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: rdma-core rpm for SuSE
+Date: Thu, 3 Aug 2017 15:49:13 +0000
+Message-ID: <1501775351.2922.5.camel@wdc.com>
+References: <CO2PR07MB25846E91BD9DA1744AEB20BBF8B10@CO2PR07MB2584.namprd07.prod.outlook.com>
+         <20170803113505.GF4333@linux-x5ow.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1501773757.117042.12.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170803113505.GF4333-qw2SdCWA0PpjqqEj2zc+bA@public.gmane.org>
+Content-Language: en-US
+Content-ID: <100A82DDD3012B4C894E7897826593A5-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "jthumshirn-l3A5Bk7waGM@public.gmane.org" <jthumshirn-l3A5Bk7waGM@public.gmane.org>
+Cc: "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "nmoreychaisemartin-IBi9RG/b67k@public.gmane.org" <nmoreychaisemartin-IBi9RG/b67k@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Am Donnerstag, den 03.08.2017, 11:22 -0400 schrieb Doug Ledford:
-> On Thu, 2017-08-03 at 15:23 +0200, Benjamin Drung wrote:
-> > Am Dienstag, den 01.08.2017, 14:08 -0600 schrieb Jason Gunthorpe:
-> > > On Tue, Aug 01, 2017 at 08:31:49AM -0400, Doug Ledford wrote:
-> > > 
-> > > > This is a little bit late, so it would be best to keep -rc
-> > > > cycles
-> > > > on it
-> > > > to a minimum and get the final version pushed out soon.  With
-> > > > the
-> > > > "excitement" of this last release cycle/merge window, this
-> > > > slipped
-> > > > my
-> > > > mind.  My apologies.
-> > > 
-> > > Benjamin,
-> > > 
-> > > What more do you need in this release to start submitting to to
-> > > the
-> > > debian archive?
-> > 
-> > I am waiting for the common udev/systemd based module auto loading
-> > support (#174) to be merged to master and the release of v15.
-> 
-> I was planning on merging 174 before final release.  I don't know if
-> you saw, but in another thread I mentioned that our internal cluster
-> for RDMA testing has been down for a reorg, I actually wanted to get
-> this on the cluster and test it before final release as well.  So I
-> hope to have v15 out soon, but there are a couple things gating that
-> release as far as I'm concerned.
+On Thu, 2017-08-03 at 13:35 +0200, Johannes Thumshirn wrote:
+> On Thu, Aug 03, 2017 at 11:12:18AM +0000, Amrani, Ram wrote:
+> > Hi Jason,
+> > I see folders with rpm creating scripts for Debian and Red Hat.
+> > How is a SuSE rpm generated?
+>=20
+> Please have a look at:
+> https://build.opensuse.org/package/show/science:HPC/rdma-core
 
-That sounds like a good plan.
+Hello Johannes,
 
--- 
-Benjamin Drung
-System Developer
-Debian & Ubuntu Developer
+Sorry but my opinion is that users should not have to rely on out-of-tree
+patches to build an rdma-core RPM for SuSE systems. BTW, the script that I
+use myself to build a SuSE rdma-core RPM is as follows:
 
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
 
-Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-Web: https://www.profitbricks.com
+#!/bin/bash
 
-Sitz der Gesellschaft: Berlin.
-Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-Geschäftsführer: Achim Weiss.
+rpmtopdir=3D$PWD/rpmbuilddir
+name=3Drdma-core
+version=3D$(sed -n 's/^Version:[[:blank:]]*//p' rdma-core.spec) &&
+    rm -rf "${rpmtopdir}" &&
+    mkdir -p "${rpmtopdir}"/{BUILD,RPMS,SOURCES,SPECS,SRPMS} &&
+    git archive --prefix "rdma-core-${version}/" --output "${rpmtopdir}/SOU=
+RCES/${name}-${version}.tgz" HEAD &&
+    rpmbuild --define=3D"%_topdir ${rpmtopdir}" -ba ${name}.spec
 
+
+Bart.=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
