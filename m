@@ -1,58 +1,62 @@
 From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: rdma-core rpm for SuSE
-Date: Fri, 4 Aug 2017 07:55:51 +0200
-Message-ID: <0db11dd4-56c5-4ac9-e7f4-b9a328ca94e3@suse.de>
-References: <CO2PR07MB25846E91BD9DA1744AEB20BBF8B10@CO2PR07MB2584.namprd07.prod.outlook.com>
- <20170803113505.GF4333@linux-x5ow.site> <1501775351.2922.5.camel@wdc.com>
- <66a7dd28-f752-b8d9-e8c2-00128245ce2c@suse.de>
- <1501780444.2922.10.camel@wdc.com>
- <20170803172957.GA30952@obsidianresearch.com>
+Subject: Re: rdma-core build environment enabling out-of-core providers
+Date: Fri, 4 Aug 2017 08:02:16 +0200
+Message-ID: <7cc0ba31-7a05-4db1-5807-4d971fc3d773@suse.de>
+References: <007601d30b96$f2408170$d6c18450$@opengridcomputing.com>
+ <20170802160900.GB21208@obsidianresearch.com>
+ <019001d30bc3$cc6648e0$6532daa0$@opengridcomputing.com>
+ <44b511c6-45fa-d5aa-4d4c-e47d2edcf604@suse.de>
+ <008401d30c5f$3c9e2560$b5da7020$@opengridcomputing.com>
+ <20170803144733.GA13127@obsidianresearch.com>
+ <890f961c-7aa8-1a73-e98d-f7ce9da333d7@suse.de>
+ <20170803170713.GD13127@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170803172957.GA30952-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20170803170713.GD13127-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: fr-xx-classique+reforme1990
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Cc: "Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "jthumshirn-l3A5Bk7waGM@public.gmane.org" <jthumshirn-l3A5Bk7waGM@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-Le 03/08/2017 à 19:29, Jason Gunthorpe a écrit :
-> On Thu, Aug 03, 2017 at 05:14:11PM +0000, Bart Van Assche wrote:
->> On Thu, 2017-08-03 at 17:59 +0200, Nicolas Morey-Chaisemartin wrote:
->>> We have a different spec file due to SUSE packaging policies, and some
->>> path differences but the default one works. As this is new, I wanted to
->>> make sure it works well before submitting it. With v15 coming out and the
->>> associated systemd/udev changes, I'll have to update the spec and validate
->>> it but once this is done I'll send a patch to this ML and get it upstreamed.
->> Hello Nicolas,
->>
->> Do you plan to submit an entirely new RPM or changes to the rdma-core.spec
->> file in the top-level directory? Personally I strongly prefer the latter. We
->> have already three groups of distro packaging files and that is really annoying
->> to rdma-core contributors because every packaging change has to be tested three
->> times (rdma-core.spec, redhat/rdma-core.spec and debian/*.install). Adding a
->> fourth packaging file would increase the maintenance burden even further.
-> If suse contributes their spec file I think we could delete the top
-> level rdma-core.spec
+Le 03/08/2017 à 19:07, Jason Gunthorpe a écrit :
+> On Thu, Aug 03, 2017 at 05:01:16PM +0200, Nicolas Morey-Chaisemartin wrote:
 >
-> There are enough differences in the suse spec file I suspect it would
-> be more maintainable to have it separate.
->
-> We still have to test the builds against that configuration anyhow, I
-> dont see a big burden there - so long as cbuild can run an appropriate
-> suse build (opensuse is OK for testing?)..
->
-> Jason
-Yes a separate spec makes more sense.
-With the amount differences we have, it would be hellish to maintain a common spec file with redhat and most of the stuff would have to be done twice anyway.
+>> I haven't looked into the build system but isn't this something the
+>> devel rpm could provide ?
+> Conceptually, perhaps, but someone has to figure out how to split out
+> the necessary cmake bits into something reusable, it is no longer
+> entirely trivial :)
+Yes, this is going to take some time.
 
-And yes, the RPM works with both SLE (12SP3), OpenSUSE Leap (>=42.2) and TumbleWeed without any issue.
+> Also don't forget that the internal API inside the header files
+> changes, a provider that has been modified for rdma core 15 will not
+> compile on rdma core 13, just like the kernel..
+I guess there are enough VERSION defines in rdma-core to make the provider portable.
+But yes, supporting multiple versions is a lot more work.
+
+> I just wonder if it is worth the all the proposed work, I expect out
+> of tree providers to be very rare and temporary things.
+
+The lazy (smart?) thing to do here is to wait for an out-of-tree provider to need it (Steve ?) and give them some support to do it.
+If they can't be bothered, it's probably not worth it. If they want it, they'll do most of the work and the feature gets upstreamed.
+
+>
+>> If this is done upstream once and for all, and not by every
+>> out-of-tree provider, it is not fragile anymore.
+> Someone would also have to contribute some kind of test infrastructure
+> to keep it working for upstream.. If it doesn't run in cbuild I don't
+> test it :P
+
+It shouldn't be too hard to automatically extract one of the in-tree provider and try to compile it as an out-of-tree.
+And this way it's always up-to-date for testing.
 
 Nicolas
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
