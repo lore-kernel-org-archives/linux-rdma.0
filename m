@@ -1,62 +1,34 @@
-From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: rdma-core build environment enabling out-of-core providers
-Date: Fri, 4 Aug 2017 08:02:16 +0200
-Message-ID: <7cc0ba31-7a05-4db1-5807-4d971fc3d773@suse.de>
-References: <007601d30b96$f2408170$d6c18450$@opengridcomputing.com>
- <20170802160900.GB21208@obsidianresearch.com>
- <019001d30bc3$cc6648e0$6532daa0$@opengridcomputing.com>
- <44b511c6-45fa-d5aa-4d4c-e47d2edcf604@suse.de>
- <008401d30c5f$3c9e2560$b5da7020$@opengridcomputing.com>
- <20170803144733.GA13127@obsidianresearch.com>
- <890f961c-7aa8-1a73-e98d-f7ce9da333d7@suse.de>
- <20170803170713.GD13127@obsidianresearch.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/hns: checking for IS_ERR() instead of NULL
+Date: Fri, 4 Aug 2017 11:12:08 +0300
+Message-ID: <20170804081208.qkkj3yons7ljccjp@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170803170713.GD13127-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: fr-xx-classique+reforme1990
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+The hns_roce_v1_create_lp_qp() returns NULL on error, not error pointers.
 
+Fixes: bfcc681bd09d ("IB/hns: Fix the bug when free mr")
+Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-Le 03/08/2017 à 19:07, Jason Gunthorpe a écrit :
-> On Thu, Aug 03, 2017 at 05:01:16PM +0200, Nicolas Morey-Chaisemartin wrote:
->
->> I haven't looked into the build system but isn't this something the
->> devel rpm could provide ?
-> Conceptually, perhaps, but someone has to figure out how to split out
-> the necessary cmake bits into something reusable, it is no longer
-> entirely trivial :)
-Yes, this is going to take some time.
-
-> Also don't forget that the internal API inside the header files
-> changes, a provider that has been modified for rdma core 15 will not
-> compile on rdma core 13, just like the kernel..
-I guess there are enough VERSION defines in rdma-core to make the provider portable.
-But yes, supporting multiple versions is a lot more work.
-
-> I just wonder if it is worth the all the proposed work, I expect out
-> of tree providers to be very rare and temporary things.
-
-The lazy (smart?) thing to do here is to wait for an out-of-tree provider to need it (Steve ?) and give them some support to do it.
-If they can't be bothered, it's probably not worth it. If they want it, they'll do most of the work and the feature gets upstreamed.
-
->
->> If this is done upstream once and for all, and not by every
->> out-of-tree provider, it is not fragile anymore.
-> Someone would also have to contribute some kind of test infrastructure
-> to keep it working for upstream.. If it doesn't run in cbuild I don't
-> test it :P
-
-It shouldn't be too hard to automatically extract one of the in-tree provider and try to compile it as an out-of-tree.
-And this way it's always up-to-date for testing.
-
-Nicolas
-
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+index 38f5c77baabf..747efd1ae5a6 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+@@ -733,7 +733,7 @@ static int hns_roce_v1_rsv_lp_qp(struct hns_roce_dev *hr_dev)
+ 			continue;
+ 
+ 		free_mr->mr_free_qp[i] = hns_roce_v1_create_lp_qp(hr_dev, pd);
+-		if (IS_ERR(free_mr->mr_free_qp[i])) {
++		if (!free_mr->mr_free_qp[i]) {
+ 			dev_err(dev, "Create loop qp failed!\n");
+ 			goto create_lp_qp_failed;
+ 		}
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
