@@ -1,85 +1,58 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [pull request][rdma-rc v1 0/4] RDMA fixes for-4.13
-Date: Fri, 04 Aug 2017 14:30:58 -0400
-Message-ID: <1501871458.79618.8.camel@redhat.com>
-References: <20170801064137.8360-1-leon@kernel.org>
+Subject: Re: [PATCH] mm: ratelimit PFNs busy info message
+Date: Fri, 04 Aug 2017 14:55:06 -0400
+Message-ID: <1501872906.79618.10.camel@redhat.com>
+References: <499c0f6cc10d6eb829a67f2a4d75b4228a9b356e.1501695897.git.jtoppins@redhat.com>
+         <20170802141720.228502368b534f517e3107ff@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170801064137.8360-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170802141720.228502368b534f517e3107ff-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Jonathan Toppins <jtoppins-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Michal Hocko <mhocko-IBi9RG/b67k@public.gmane.org>, Vlastimil Babka <vbabka-AlSwsSmVLrQ@public.gmane.org>, Mel Gorman <mgorman-3eNAlZScCAx27rWaFMvyedHuzzzSOjJt@public.gmane.org>, Hillf Danton <hillf.zj-gPhfCIXyaqCqndwCJWfcng@public.gmane.org>, open list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-08-01 at 09:41 +0300, Leon Romanovsky wrote:
-> Changelog:
->  v0 -> v1:
->   * Added Reviewed-by tags
->   * Moved 10 patches to -next
+On Wed, 2017-08-02 at 14:17 -0700, Andrew Morton wrote:
+> On Wed,  2 Aug 2017 13:44:57 -0400 Jonathan Toppins <jtoppins@redhat.
+> com> wrote:
 > 
-> Thanks
-> ----------------------------------------------------------------
+> > The RDMA subsystem can generate several thousand of these messages
+> > per
+> > second eventually leading to a kernel crash. Ratelimit these
+> > messages
+> > to prevent this crash.
 > 
-> The following changes since commit
-> 5dc78ad1904db597bdb4427f3ead437aae86f54c:
-> 
->   IB/ipoib: Notify on modify QP failure only when relevant (2017-07-
-> 23 10:52:00 +0300)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
-> tags/rdma-rc-2017-08-01
-> 
-> for you to fetch changes up to
-> 0626c5a5dec2e601f06a2c03b295fb7d7288e29c:
-> 
->   RDMA/mlx5: Fix existence check for extended address vector (2017-
-> 07-31 20:43:06 +0300)
-> 
-> ----------------------------------------------------------------
-> RDMA fixes for 4.13
-> 
-> This patchset contains four patches:
->  * Two kernel panic fixes from Yishai and Parav.
->  * The bugfix to mlx5 wrong usage of big-endian variable.
->  * Preventing leak of reserved field.
-> 
-> ----------------------------------------------------------------
-> Leon Romanovsky (2):
->       RDMA/uverbs: Prevent leak of reserved field
->       RDMA/mlx5: Fix existence check for extended address vector
-> 
-> Parav Pandit (1):
->       IB/core: Fix race condition in resolving IP to MAC
+> Well...  why are all these EBUSY's occurring?  It sounds inefficient
+> (at
+> least) but if it is expected, normal and unavoidable then perhaps we
+> should just remove that message altogether?
 
-This patch, in particular, was very similar in description to another
-patch I already took for this -rc cycle.  Both of these patches ended
-up using ordered workqueues to resolve the problem.  Finding two
-different workqueues that needed to be made ordered in the same -rc
-cycle makes me wonder if we might not have some other issues lurking in
-the subsystem in regards to workqueues...
+I don't have an answer to that question.  To be honest, I haven't
+looked real hard.  We never had this at all, then it started out of the
+blue, but only on our Dell 730xd machines (and it hits all of them),
+but no other classes or brands of machines.  And we have our 730xd
+machines loaded up with different brands and models of cards (for
+instance one dedicated to mlx4 hardware, one for qib, one for mlx5, an
+ocrdma/cxgb4 combo, etc), so the fact that it hit all of the machines
+meant it wasn't tied to any particular brand/model of RDMA hardware. 
+To me, it always smelled of a hardware oddity specific to maybe the
+CPUs or mainboard chipsets in these machines, so given that I'm not an
+mm expert anyway, I never chased it down.
 
-> 
-> Yishai Hadas (1):
->       IB/uverbs: Fix device cleanup
-> 
->  drivers/infiniband/core/addr.c        | 62
-> +++++++++++++++++++++++++++--------
->  drivers/infiniband/core/uverbs_cmd.c  |  2 +-
->  drivers/infiniband/core/uverbs_main.c |  3 +-
->  drivers/infiniband/hw/mlx5/odp.c      |  2 +-
->  include/linux/mlx5/qp.h               |  1 -
->  5 files changed, 51 insertions(+), 19 deletions(-)
+A few other relevant details: it showed up somewhere around 4.8/4.9 or
+thereabouts.  It never happened before, but the prinkt has been there
+since the 3.18 days, so possibly the test to trigger this message was
+changed, or something else in the allocator changed such that the
+situation started happening on these machines?
 
-I didn't use a pull (mainly because I was going through patchworks and
-saw the patches and took them from there before I saw the cover letter
-here with the pull tag...that and I'm not used to the pull request
-model so hunting through patchworks for the relevant patches is second
-nature and pull requests aren't).  I'll try to keep the pull option in
-mind next time.  In any case, thanks, series applied.
+And, like I said, it is specific to our 730xd machines (but they are
+all identical, so that could mean it's something like their specific
+ram configuration is causing the allocator to hit this on these machine
+but not on other machines in the cluster, I don't want to say it's
+necessarily the model of chipset or CPU, there are other bits of
+identicalness between these machines).
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
