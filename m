@@ -1,40 +1,84 @@
-From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [PATCH rdma-core] util: fix bad argument passed to
- s390_mmio_write
-Date: Fri, 4 Aug 2017 14:05:06 +0200
-Message-ID: <feb115da-d40f-f5b0-ce16-98989d209eca@suse.de>
-References: <7e93dac1-6b15-6ca0-efba-6c05b92afe17@morey-chaisemartin.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCHv2 infiniband-diags] ibcc[config query].c: Make
+ SwitchPortCongestionSetting IBA 1.3 compliant
+Date: Fri, 4 Aug 2017 08:06:48 -0400
+Message-ID: <284e8cb0-ed96-3bb7-75f1-3b852c169b2d@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <7e93dac1-6b15-6ca0-efba-6c05b92afe17-PVCUbA2IIkVH1sytvemUSjhD77mM7E+b@public.gmane.org>
-Content-Language: fr-xx-classique+reforme1990
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sorry about this one. Sent from the wrong address. Please ignore
 
-Le 04/08/2017 à 11:18, Nicolas Morey-Chaisemartin a écrit :
-> Signed-off-by: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-IBi9RG/b67k@public.gmane.org>
-> ---
->  util/mmio.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/util/mmio.h b/util/mmio.h
-> index be22fb76..101af9dd 100644
-> --- a/util/mmio.h
-> +++ b/util/mmio.h
-> @@ -208,7 +208,7 @@ __le64 mmio_read64_le(const void *addr);
->  #ifdef __s390x__
->  static inline void mmio_memcpy_x64(void *dest, const void *src, size_t bytecnt)
->  {
-> -	s390_mmio_write(addr, src, bytecnt);
-> +	s390_mmio_write(dest, src, bytecnt);
->  }
->  #else
->  
+IBA 1.3 supports 48 ports rather than 32 ports as at IBA 1.2.1
+for SwitchPortCongestionSetting attribute.
+
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+Change since v1:
+Updated description to indicate SwitchPortCongestionSetting rather than SwitchCongestionSetting attribute.
+
+ src/ibccconfig.c |  2 +-
+ src/ibccquery.c  | 10 +++++-----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/src/ibccconfig.c b/src/ibccconfig.c
+index 22b16db..64aa804 100644
+--- a/src/ibccconfig.c
++++ b/src/ibccconfig.c
+@@ -412,7 +412,7 @@ static char *switch_port_congestion_setting(ib_portid_t * dest, char **argv, int
+ 			 &cong_parm_marking_rate);
+ 
+ 	if (!cc_config_status_via(payload, rcv, dest, IB_CC_ATTR_SWITCH_PORT_CONGESTION_SETTING,
+-				  portnum / 32, 0, NULL, srcport, cckey))
++				  portnum / 48, 0, NULL, srcport, cckey))
+ 		return "switch port congestion setting config failed";
+ 
+ 	return NULL;
+diff --git a/src/ibccquery.c b/src/ibccquery.c
+index 39e45b7..95e553d 100644
+--- a/src/ibccquery.c
++++ b/src/ibccquery.c
+@@ -224,11 +224,11 @@ static char *switch_port_congestion_setting(ib_portid_t * dest, char **argv, int
+ 
+ 		memset(data, '\0', sizeof data);
+ 		if (!cc_query_status_via(data, dest, IB_CC_ATTR_SWITCH_PORT_CONGESTION_SETTING,
+-					 portnum / 32, 0, NULL, srcport, cckey))
++					 portnum / 48, 0, NULL, srcport, cckey))
+ 			return "switch port congestion setting query failed";
+ 
+ 		mad_dump_cc_switchportcongestionsettingelement(buf, sizeof buf,
+-							       data + ((portnum % 32) * 4),
++							       data + ((portnum % 48) * 4),
+ 							       4);
+ 		printf("%s", buf);
+ 		return NULL;
+@@ -236,7 +236,7 @@ static char *switch_port_congestion_setting(ib_portid_t * dest, char **argv, int
+ 
+ 	/* else get all port info */
+ 
+-	maxblocks = numports / 32 + 1;
++	maxblocks = numports / 48 + 1;
+ 
+ 	for (i = 0; i < maxblocks; i++) {
+ 		memset(data, '\0', sizeof data);
+@@ -244,8 +244,8 @@ static char *switch_port_congestion_setting(ib_portid_t * dest, char **argv, int
+ 					 i, 0, NULL, srcport, cckey))
+ 			return "switch port congestion setting query failed";
+ 
+-		for (j = 0; j < 32 && outputcount <= numports; j++) {
+-			printf("Port:............................%u\n", i * 32 + j);
++		for (j = 0; j < 48 && outputcount <= numports; j++) {
++			printf("Port:............................%u\n", i * 48 + j);
+ 			mad_dump_cc_switchportcongestionsettingelement(buf, sizeof buf,
+ 								       data + j * 4,
+ 								       4);
+-- 
+1.8.2.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
