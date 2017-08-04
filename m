@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 13/27] IB/core: Change wc.slid from 16 to 32 bits
-Date: Fri, 04 Aug 2017 13:53:27 -0700
-Message-ID: <20170804205326.17853.82986.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 14/27] IB/CM: Add OPA Path record support to CM
+Date: Fri, 04 Aug 2017 13:53:33 -0700
+Message-ID: <20170804205332.17853.91442.stgit@scvm10.sc.intel.com>
 References: <20170804204842.17853.14858.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,237 +10,152 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170804204842.17853.14858.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-slid field in struct ib_wc is increased to 32 bits.
-This enables core components to use larger LIDs if needed.
-The user ABI is unchanged and return 16 bit values when queried.
+Add OPA path record support to the Connection Manager.
 
-Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/cm.c            |    4 ++--
- drivers/infiniband/core/user_mad.c      |    2 +-
- drivers/infiniband/core/uverbs_cmd.c    |   10 +++++++---
- drivers/infiniband/hw/hfi1/mad.c        |    2 +-
- drivers/infiniband/hw/mlx4/mad.c        |    6 +++---
- drivers/infiniband/hw/mlx5/mad.c        |    2 +-
- drivers/infiniband/hw/mthca/mthca_cmd.c |    4 ++--
- drivers/infiniband/hw/mthca/mthca_mad.c |    2 +-
- drivers/infiniband/sw/rdmavt/cq.c       |    2 +-
- include/rdma/ib_verbs.h                 |   14 +++++++++++++-
- 10 files changed, 32 insertions(+), 16 deletions(-)
+ drivers/infiniband/core/cm.c |   50 +++++++++++++++++++++++++++++++++++-------
+ include/rdma/opa_addr.h      |   18 +++++++++++++++
+ 2 files changed, 60 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 2b4d613..b39ee16 100644
+index b39ee16..885c429 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -1703,7 +1703,7 @@ static void cm_process_routed_req(struct cm_req_msg *req_msg, struct ib_wc *wc)
+@@ -1175,6 +1175,11 @@ static void cm_format_req(struct cm_req_msg *req_msg,
  {
- 	if (!cm_req_get_primary_subnet_local(req_msg)) {
- 		if (req_msg->primary_local_lid == IB_LID_PERMISSIVE) {
--			req_msg->primary_local_lid = cpu_to_be16(wc->slid);
-+			req_msg->primary_local_lid = ib_slid_be16(wc->slid);
- 			cm_req_set_primary_sl(req_msg, wc->sl);
- 		}
+ 	struct sa_path_rec *pri_path = param->primary_path;
+ 	struct sa_path_rec *alt_path = param->alternate_path;
++	bool pri_ext = false;
++
++	if (pri_path->rec_type == SA_PATH_REC_TYPE_OPA)
++		pri_ext = opa_is_extended_lid(pri_path->opa.dlid,
++					      pri_path->opa.slid);
  
-@@ -1713,7 +1713,7 @@ static void cm_process_routed_req(struct cm_req_msg *req_msg, struct ib_wc *wc)
- 
- 	if (!cm_req_get_alt_subnet_local(req_msg)) {
- 		if (req_msg->alt_local_lid == IB_LID_PERMISSIVE) {
--			req_msg->alt_local_lid = cpu_to_be16(wc->slid);
-+			req_msg->alt_local_lid = ib_slid_be16(wc->slid);
- 			cm_req_set_alt_sl(req_msg, wc->sl);
- 		}
- 
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index 36a6f5c..ff3c67a 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -229,7 +229,7 @@ static void recv_handler(struct ib_mad_agent *agent,
- 	packet->mad.hdr.status	   = 0;
- 	packet->mad.hdr.length	   = hdr_size(file) + mad_recv_wc->mad_len;
- 	packet->mad.hdr.qpn	   = cpu_to_be32(mad_recv_wc->wc->src_qp);
--	packet->mad.hdr.lid	   = cpu_to_be16(mad_recv_wc->wc->slid);
-+	packet->mad.hdr.lid	   = ib_slid_be16(mad_recv_wc->wc->slid);
- 	packet->mad.hdr.sl	   = mad_recv_wc->wc->sl;
- 	packet->mad.hdr.path_bits  = mad_recv_wc->wc->dlid_path_bits;
- 	packet->mad.hdr.pkey_index = mad_recv_wc->wc->pkey_index;
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 38dce45..670176b 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1190,7 +1190,8 @@ ssize_t ib_uverbs_resize_cq(struct ib_uverbs_file *file,
- 	return ret ? ret : in_len;
- }
- 
--static int copy_wc_to_user(void __user *dest, struct ib_wc *wc)
-+static int copy_wc_to_user(struct ib_device *ib_dev, void __user *dest,
-+			   struct ib_wc *wc)
- {
- 	struct ib_uverbs_wc tmp;
- 
-@@ -1204,7 +1205,10 @@ static int copy_wc_to_user(void __user *dest, struct ib_wc *wc)
- 	tmp.src_qp		= wc->src_qp;
- 	tmp.wc_flags		= wc->wc_flags;
- 	tmp.pkey_index		= wc->pkey_index;
--	tmp.slid		= wc->slid;
-+	if (rdma_cap_opa_ah(ib_dev, wc->port_num))
-+		tmp.slid  = OPA_TO_IB_UCAST_LID(wc->slid);
-+	else
-+		tmp.slid  = ib_slid_cpu16(wc->slid);
- 	tmp.sl			= wc->sl;
- 	tmp.dlid_path_bits	= wc->dlid_path_bits;
- 	tmp.port_num		= wc->port_num;
-@@ -1248,7 +1252,7 @@ ssize_t ib_uverbs_poll_cq(struct ib_uverbs_file *file,
- 		if (!ret)
- 			break;
- 
--		ret = copy_wc_to_user(data_ptr, &wc);
-+		ret = copy_wc_to_user(ib_dev, data_ptr, &wc);
- 		if (ret)
- 			goto out_put;
- 
-diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
-index 885d9fd..1d54568 100644
---- a/drivers/infiniband/hw/hfi1/mad.c
-+++ b/drivers/infiniband/hw/hfi1/mad.c
-@@ -4216,7 +4216,7 @@ static int opa_local_smp_check(struct hfi1_ibport *ibp,
- 			       const struct ib_wc *in_wc)
- {
- 	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
--	u16 slid = in_wc->slid;
-+	u16 slid = ib_slid_cpu16(in_wc->slid);
- 	u16 pkey;
- 
- 	if (in_wc->pkey_index >= ARRAY_SIZE(ppd->pkeys))
-diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index 00f0570..04fb44e 100644
---- a/drivers/infiniband/hw/mlx4/mad.c
-+++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -169,7 +169,7 @@ int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int mad_ifc_flags,
- 
- 		op_modifier |= 0x4;
- 
--		in_modifier |= in_wc->slid << 16;
-+		in_modifier |= ib_slid_cpu16(in_wc->slid) << 16;
+ 	cm_format_mad_hdr(&req_msg->hdr, CM_REQ_ATTR_ID,
+ 			  cm_form_tid(cm_id_priv, CM_MSG_SEQUENCE_REQ));
+@@ -1202,18 +1207,24 @@ static void cm_format_req(struct cm_req_msg *req_msg,
+ 		cm_req_set_srq(req_msg, param->srq);
  	}
  
- 	err = mlx4_cmd_box(dev->dev, inmailbox->dma, outmailbox->dma, in_modifier,
-@@ -625,7 +625,7 @@ int mlx4_ib_send_to_slave(struct mlx4_ib_dev *dev, int slave, u8 port,
- 		memcpy((char *)&tun_mad->hdr.slid_mac_47_32, &(wc->smac[4]), 2);
++	req_msg->primary_local_gid = pri_path->sgid;
++	req_msg->primary_remote_gid = pri_path->dgid;
++	if (pri_ext) {
++		req_msg->primary_local_gid.global.interface_id
++			= OPA_MAKE_ID(be32_to_cpu(pri_path->opa.slid));
++		req_msg->primary_remote_gid.global.interface_id
++			= OPA_MAKE_ID(be32_to_cpu(pri_path->opa.dlid));
++	}
+ 	if (pri_path->hop_limit <= 1) {
+-		req_msg->primary_local_lid =
++		req_msg->primary_local_lid = pri_ext ? 0 :
+ 			htons(ntohl(sa_path_get_slid(pri_path)));
+-		req_msg->primary_remote_lid =
++		req_msg->primary_remote_lid = pri_ext ? 0 :
+ 			htons(ntohl(sa_path_get_dlid(pri_path)));
  	} else {
- 		tun_mad->hdr.sl_vid = cpu_to_be16(((u16)(wc->sl)) << 12);
--		tun_mad->hdr.slid_mac_47_32 = cpu_to_be16(wc->slid);
-+		tun_mad->hdr.slid_mac_47_32 = ib_slid_be16(wc->slid);
+ 		/* Work-around until there's a way to obtain remote LID info */
+ 		req_msg->primary_local_lid = IB_LID_PERMISSIVE;
+ 		req_msg->primary_remote_lid = IB_LID_PERMISSIVE;
  	}
+-	req_msg->primary_local_gid = pri_path->sgid;
+-	req_msg->primary_remote_gid = pri_path->dgid;
+ 	cm_req_set_primary_flow_label(req_msg, pri_path->flow_label);
+ 	cm_req_set_primary_packet_rate(req_msg, pri_path->rate);
+ 	req_msg->primary_traffic_class = pri_path->traffic_class;
+@@ -1225,17 +1236,29 @@ static void cm_format_req(struct cm_req_msg *req_msg,
+ 			       pri_path->packet_life_time));
  
- 	ib_dma_sync_single_for_device(&dev->ib_dev,
-@@ -826,7 +826,7 @@ static int ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+ 	if (alt_path) {
++		bool alt_ext = false;
++
++		if (alt_path->rec_type == SA_PATH_REC_TYPE_OPA)
++			alt_ext = opa_is_extended_lid(alt_path->opa.dlid,
++						      alt_path->opa.slid);
++
++		req_msg->alt_local_gid = alt_path->sgid;
++		req_msg->alt_remote_gid = alt_path->dgid;
++		if (alt_ext) {
++			req_msg->alt_local_gid.global.interface_id
++				= OPA_MAKE_ID(be32_to_cpu(alt_path->opa.slid));
++			req_msg->alt_remote_gid.global.interface_id
++				= OPA_MAKE_ID(be32_to_cpu(alt_path->opa.dlid));
++		}
+ 		if (alt_path->hop_limit <= 1) {
+-			req_msg->alt_local_lid =
++			req_msg->alt_local_lid = alt_ext ? 0 :
+ 				htons(ntohl(sa_path_get_slid(alt_path)));
+-			req_msg->alt_remote_lid =
++			req_msg->alt_remote_lid = alt_ext ? 0 :
+ 				htons(ntohl(sa_path_get_dlid(alt_path)));
+ 		} else {
+ 			req_msg->alt_local_lid = IB_LID_PERMISSIVE;
+ 			req_msg->alt_remote_lid = IB_LID_PERMISSIVE;
  		}
- 	}
- 
--	slid = in_wc ? in_wc->slid : be16_to_cpu(IB_LID_PERMISSIVE);
-+	slid = in_wc ? ib_slid_cpu16(in_wc->slid) : be16_to_cpu(IB_LID_PERMISSIVE);
- 
- 	if (in_mad->mad_hdr.method == IB_MGMT_METHOD_TRAP && slid == 0) {
- 		forward_trap(to_mdev(ibdev), port_num, in_mad);
-diff --git a/drivers/infiniband/hw/mlx5/mad.c b/drivers/infiniband/hw/mlx5/mad.c
-index 95db929..cd2264a 100644
---- a/drivers/infiniband/hw/mlx5/mad.c
-+++ b/drivers/infiniband/hw/mlx5/mad.c
-@@ -78,7 +78,7 @@ static int process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
- 	u16 slid;
- 	int err;
- 
--	slid = in_wc ? in_wc->slid : be16_to_cpu(IB_LID_PERMISSIVE);
-+	slid = in_wc ? ib_slid_cpu16(in_wc->slid) : be16_to_cpu(IB_LID_PERMISSIVE);
- 
- 	if (in_mad->mad_hdr.method == IB_MGMT_METHOD_TRAP && slid == 0)
- 		return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_CONSUMED;
-diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.c b/drivers/infiniband/hw/mthca/mthca_cmd.c
-index 9d83a53..e19ae0b 100644
---- a/drivers/infiniband/hw/mthca/mthca_cmd.c
-+++ b/drivers/infiniband/hw/mthca/mthca_cmd.c
-@@ -1921,7 +1921,7 @@ int mthca_MAD_IFC(struct mthca_dev *dev, int ignore_mkey, int ignore_bkey,
- 			(in_wc->wc_flags & IB_WC_GRH ? 0x80 : 0);
- 		MTHCA_PUT(inbox, val,               MAD_IFC_G_PATH_OFFSET);
- 
--		MTHCA_PUT(inbox, in_wc->slid,       MAD_IFC_RLID_OFFSET);
-+		MTHCA_PUT(inbox, ib_slid_cpu16(in_wc->slid), MAD_IFC_RLID_OFFSET);
- 		MTHCA_PUT(inbox, in_wc->pkey_index, MAD_IFC_PKEY_OFFSET);
- 
- 		if (in_grh)
-@@ -1929,7 +1929,7 @@ int mthca_MAD_IFC(struct mthca_dev *dev, int ignore_mkey, int ignore_bkey,
- 
- 		op_modifier |= 0x4;
- 
--		in_modifier |= in_wc->slid << 16;
-+		in_modifier |= ib_slid_cpu16(in_wc->slid) << 16;
- 	}
- 
- 	err = mthca_cmd_box(dev, inmailbox->dma, outmailbox->dma,
-diff --git a/drivers/infiniband/hw/mthca/mthca_mad.c b/drivers/infiniband/hw/mthca/mthca_mad.c
-index 617531f..a9caada 100644
---- a/drivers/infiniband/hw/mthca/mthca_mad.c
-+++ b/drivers/infiniband/hw/mthca/mthca_mad.c
-@@ -205,7 +205,7 @@ int mthca_process_mad(struct ib_device *ibdev,
- 		      u16 *out_mad_pkey_index)
+-		req_msg->alt_local_gid = alt_path->sgid;
+-		req_msg->alt_remote_gid = alt_path->dgid;
+ 		cm_req_set_alt_flow_label(req_msg,
+ 					  alt_path->flow_label);
+ 		cm_req_set_alt_packet_rate(req_msg, alt_path->rate);
+@@ -2843,6 +2866,11 @@ static void cm_format_lap(struct cm_lap_msg *lap_msg,
+ 			  const void *private_data,
+ 			  u8 private_data_len)
  {
- 	int err;
--	u16 slid = in_wc ? in_wc->slid : be16_to_cpu(IB_LID_PERMISSIVE);
-+	u16 slid = in_wc ? ib_slid_cpu16(in_wc->slid) : be16_to_cpu(IB_LID_PERMISSIVE);
- 	u16 prev_lid = 0;
- 	struct ib_port_attr pattr;
- 	const struct ib_mad *in_mad = (const struct ib_mad *)in;
-diff --git a/drivers/infiniband/sw/rdmavt/cq.c b/drivers/infiniband/sw/rdmavt/cq.c
-index 0ae2ff8..0335a3d 100644
---- a/drivers/infiniband/sw/rdmavt/cq.c
-+++ b/drivers/infiniband/sw/rdmavt/cq.c
-@@ -107,7 +107,7 @@ void rvt_cq_enter(struct rvt_cq *cq, struct ib_wc *entry, bool solicited)
- 		wc->uqueue[head].src_qp = entry->src_qp;
- 		wc->uqueue[head].wc_flags = entry->wc_flags;
- 		wc->uqueue[head].pkey_index = entry->pkey_index;
--		wc->uqueue[head].slid = entry->slid;
-+		wc->uqueue[head].slid = ib_slid_cpu16(entry->slid);
- 		wc->uqueue[head].sl = entry->sl;
- 		wc->uqueue[head].dlid_path_bits = entry->dlid_path_bits;
- 		wc->uqueue[head].port_num = entry->port_num;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 5f4f2d3..3cb31e4 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -951,7 +951,7 @@ struct ib_wc {
- 	u32			src_qp;
- 	int			wc_flags;
- 	u16			pkey_index;
--	u16			slid;
-+	u32			slid;
- 	u8			sl;
- 	u8			dlid_path_bits;
- 	u8			port_num;	/* valid only for DR SMPs on switches */
-@@ -3717,4 +3717,16 @@ static inline enum rdma_ah_attr_type rdma_ah_find_type(struct ib_device *dev,
- 	else
- 		return RDMA_AH_ATTR_TYPE_IB;
++	bool alt_ext = false;
++
++	if (alternate_path->rec_type == SA_PATH_REC_TYPE_OPA)
++		alt_ext = opa_is_extended_lid(alternate_path->opa.dlid,
++					      alternate_path->opa.slid);
+ 	cm_format_mad_hdr(&lap_msg->hdr, CM_LAP_ATTR_ID,
+ 			  cm_form_tid(cm_id_priv, CM_MSG_SEQUENCE_LAP));
+ 	lap_msg->local_comm_id = cm_id_priv->id.local_id;
+@@ -2856,6 +2884,12 @@ static void cm_format_lap(struct cm_lap_msg *lap_msg,
+ 		htons(ntohl(sa_path_get_dlid(alternate_path)));
+ 	lap_msg->alt_local_gid = alternate_path->sgid;
+ 	lap_msg->alt_remote_gid = alternate_path->dgid;
++	if (alt_ext) {
++		lap_msg->alt_local_gid.global.interface_id
++			= OPA_MAKE_ID(be32_to_cpu(alternate_path->opa.slid));
++		lap_msg->alt_remote_gid.global.interface_id
++			= OPA_MAKE_ID(be32_to_cpu(alternate_path->opa.dlid));
++	}
+ 	cm_lap_set_flow_label(lap_msg, alternate_path->flow_label);
+ 	cm_lap_set_traffic_class(lap_msg, alternate_path->traffic_class);
+ 	lap_msg->alt_hop_limit = alternate_path->hop_limit;
+diff --git a/include/rdma/opa_addr.h b/include/rdma/opa_addr.h
+index 46d0567..9b5e642 100644
+--- a/include/rdma/opa_addr.h
++++ b/include/rdma/opa_addr.h
+@@ -77,4 +77,22 @@ static inline u32 opa_get_lid_from_gid(union ib_gid *gid)
+ {
+ 	return be64_to_cpu(gid->global.interface_id) & 0xFFFFFFFF;
  }
 +
-+/* Return slid in 16bit CPU encoding */
-+static inline u16 ib_slid_cpu16(u32 slid)
++/**
++ * opa_is_extended_lid: Returns true if dlid or slid are
++ * extended.
++ *
++ * @dlid: The DLID
++ * @slid: The SLID
++ */
++static inline bool opa_is_extended_lid(u32 dlid, u32 slid)
 +{
-+	return (u16)slid;
++	if ((be32_to_cpu(dlid) >=
++	     be16_to_cpu(IB_MULTICAST_LID_BASE)) ||
++	    (be32_to_cpu(slid) >=
++	     be16_to_cpu(IB_MULTICAST_LID_BASE)))
++		return true;
++	else
++		return false;
 +}
-+
-+/* Return slid in 16bit BE encoding */
-+static inline u16 ib_slid_be16(u32 slid)
-+{
-+	return cpu_to_be16((u16)slid);
-+}
- #endif /* IB_VERBS_H */
+ #endif /* OPA_ADDR_H */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
