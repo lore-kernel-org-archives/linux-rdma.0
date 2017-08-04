@@ -1,9 +1,9 @@
-From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+From: Nicolas Morey-Chaisemartin <nicolas-PVCUbA2IIkVH1sytvemUSjhD77mM7E+b@public.gmane.org>
 Subject: [PATCH rdma-core] util: fix bad argument passed to s390_mmio_write
-Date: Fri, 4 Aug 2017 11:20:47 +0200
-Message-ID: <a30f4084-1f1b-44c3-ac03-c627586e0604@suse.de>
+Date: Fri, 4 Aug 2017 11:18:37 +0200
+Message-ID: <7e93dac1-6b15-6ca0-efba-6c05b92afe17@morey-chaisemartin.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Language: fr-xx-classique+reforme1990
