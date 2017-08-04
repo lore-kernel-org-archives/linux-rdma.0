@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 23/27] IB/hfi1: Add 16B trace support
-Date: Fri, 04 Aug 2017 13:54:29 -0700
-Message-ID: <20170804205428.17853.43649.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 24/27] IB/rdmavt, hfi1,
+ qib: Enhance rdmavt and hfi1 to use 32 bit lids
+Date: Fri, 04 Aug 2017 13:54:35 -0700
+Message-ID: <20170804205434.17853.44379.stgit@scvm10.sc.intel.com>
 References: <20170804204842.17853.14858.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,697 +14,325 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Add trace support to 16B bypass packets during send and
-receive.
-
-Sample input header trace:
-<idle>-0     [000] d.h. 271742.509477: input_ibhdr: [0000:05:00.0] (16B)
-len:24 sc:0 dlid:0xf0000b slid:0x10002 age:0 becn:0 fecn:0 l4:10 rc:0
-sc:0 pkey:0x8001 entropy:0x0000 op:0x65,UD_SEND_ONLY_WITH_IMMEDIATE se:0
-m:1 pad:3 tver:0 qpn:0xffffff a:0 psn:0x00000001 hlen:248 deth qkey
-0x01234567 sqpn 0x000004
+Increase lid used in hfi1 driver to 32 bits. qib continues
+to use 16 bit lids.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/hfi.h          |   25 ++
- drivers/infiniband/hw/hfi1/trace.c        |  153 ++++++++++++-
- drivers/infiniband/hw/hfi1/trace_ibhdrs.h |  351 ++++++++++++++++++++---------
- 3 files changed, 406 insertions(+), 123 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c   |   12 +++--
+ drivers/infiniband/hw/hfi1/hfi.h    |    2 -
+ drivers/infiniband/hw/hfi1/mad.c    |   91 ++++++++++++++++++++++++++++++-----
+ drivers/infiniband/hw/hfi1/verbs.c  |   23 ---------
+ drivers/infiniband/hw/hfi1/verbs.h  |    2 -
+ drivers/infiniband/hw/qib/qib_mad.c |    4 +-
+ include/rdma/rdma_vt.h              |    2 -
+ 7 files changed, 93 insertions(+), 43 deletions(-)
 
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index 1023701..24fda52 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -10067,10 +10067,16 @@ static void set_lidlmc(struct hfi1_pportdata *ppd)
+ 	struct hfi1_devdata *dd = ppd->dd;
+ 	u32 mask = ~((1U << ppd->lmc) - 1);
+ 	u64 c1 = read_csr(ppd->dd, DCC_CFG_PORT_CONFIG1);
++	u32 lid;
+ 
++	/*
++	 * Program 0 in CSR if port lid is extended. This prevents
++	 * 9B packets being sent out for large lids.
++	 */
++	lid = (ppd->lid >= be16_to_cpu(IB_MULTICAST_LID_BASE)) ? 0 : ppd->lid;
+ 	c1 &= ~(DCC_CFG_PORT_CONFIG1_TARGET_DLID_SMASK
+ 		| DCC_CFG_PORT_CONFIG1_DLID_MASK_SMASK);
+-	c1 |= ((ppd->lid & DCC_CFG_PORT_CONFIG1_TARGET_DLID_MASK)
++	c1 |= ((lid & DCC_CFG_PORT_CONFIG1_TARGET_DLID_MASK)
+ 			<< DCC_CFG_PORT_CONFIG1_TARGET_DLID_SHIFT) |
+ 	      ((mask & DCC_CFG_PORT_CONFIG1_DLID_MASK_MASK)
+ 			<< DCC_CFG_PORT_CONFIG1_DLID_MASK_SHIFT);
+@@ -10081,7 +10087,7 @@ static void set_lidlmc(struct hfi1_pportdata *ppd)
+ 	 */
+ 	sreg = ((mask & SEND_CTXT_CHECK_SLID_MASK_MASK) <<
+ 			SEND_CTXT_CHECK_SLID_MASK_SHIFT) |
+-	       (((ppd->lid & mask) & SEND_CTXT_CHECK_SLID_VALUE_MASK) <<
++	       (((lid & mask) & SEND_CTXT_CHECK_SLID_VALUE_MASK) <<
+ 			SEND_CTXT_CHECK_SLID_VALUE_SHIFT);
+ 
+ 	for (i = 0; i < dd->chip_send_contexts; i++) {
+@@ -10091,7 +10097,7 @@ static void set_lidlmc(struct hfi1_pportdata *ppd)
+ 	}
+ 
+ 	/* Now we have to do the same thing for the sdma engines */
+-	sdma_update_lmc(dd, mask, ppd->lid);
++	sdma_update_lmc(dd, mask, lid);
+ }
+ 
+ static const char *state_completed_string(u32 completed)
 diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 7e21192..b07f42c 100644
+index b07f42c..52cae11 100644
 --- a/drivers/infiniband/hw/hfi1/hfi.h
 +++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -381,6 +381,11 @@ struct hfi1_packet {
- #define OPA_16B_PKEY_SHIFT	16
- #define OPA_16B_LEN_MASK	0x7FF00000ull
- #define OPA_16B_LEN_SHIFT	20
-+#define OPA_16B_RC_MASK		0xE000000ull
-+#define OPA_16B_RC_SHIFT	25
-+#define OPA_16B_AGE_MASK	0xFF0000ull
-+#define OPA_16B_AGE_SHIFT	16
-+#define OPA_16B_ENTROPY_MASK	0xFFFFull
- 
- /*
-  * OPA 16B L2/L4 Encodings
-@@ -434,6 +439,26 @@ static inline u16 hfi1_16B_get_pkey(struct hfi1_16b_header *hdr)
- 	return (u16)((hdr->lrh[2] & OPA_16B_PKEY_MASK) >> OPA_16B_PKEY_SHIFT);
+@@ -718,7 +718,7 @@ struct hfi1_pportdata {
+ 	u32 ibmaxlen;
+ 	u32 current_egress_rate; /* units [10^6 bits/sec] */
+ 	/* LID programmed for this instance */
+-	u16 lid;
++	u32 lid;
+ 	/* list of pkeys programmed; 0 if not set */
+ 	u16 pkeys[MAX_PKEY_VALUES];
+ 	u16 link_width_supported;
+diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
+index 40f6104..1be1d74 100644
+--- a/drivers/infiniband/hw/hfi1/mad.c
++++ b/drivers/infiniband/hw/hfi1/mad.c
+@@ -234,6 +234,61 @@ static void subn_handle_opa_trap_repress(struct hfi1_ibport *ibp,
+ 	spin_unlock_irqrestore(&ibp->rvp.lock, flags);
  }
  
-+static inline u8 hfi1_16B_get_rc(struct hfi1_16b_header *hdr)
++static void hfi1_update_sm_ah_attr(struct hfi1_ibport *ibp,
++				   struct rdma_ah_attr *attr, u32 dlid)
 +{
-+	return (u8)((hdr->lrh[1] & OPA_16B_RC_MASK) >> OPA_16B_RC_SHIFT);
-+}
++	rdma_ah_set_dlid(attr, dlid);
++	rdma_ah_set_port_num(attr, ppd_from_ibp(ibp)->port);
++	if (dlid >= be16_to_cpu(IB_MULTICAST_LID_BASE)) {
++		struct ib_global_route *grh = rdma_ah_retrieve_grh(attr);
 +
-+static inline u8 hfi1_16B_get_age(struct hfi1_16b_header *hdr)
-+{
-+	return (u8)((hdr->lrh[3] & OPA_16B_AGE_MASK) >> OPA_16B_AGE_SHIFT);
-+}
-+
-+static inline u16 hfi1_16B_get_len(struct hfi1_16b_header *hdr)
-+{
-+	return (u16)((hdr->lrh[0] & OPA_16B_LEN_MASK) >> OPA_16B_LEN_SHIFT);
-+}
-+
-+static inline u16 hfi1_16B_get_entropy(struct hfi1_16b_header *hdr)
-+{
-+	return (u16)(hdr->lrh[3] & OPA_16B_ENTROPY_MASK);
-+}
-+
- /*
-  * BTH
-  */
-diff --git a/drivers/infiniband/hw/hfi1/trace.c b/drivers/infiniband/hw/hfi1/trace.c
-index b80b74d..9938bb9 100644
---- a/drivers/infiniband/hw/hfi1/trace.c
-+++ b/drivers/infiniband/hw/hfi1/trace.c
-@@ -47,7 +47,7 @@
- #define CREATE_TRACE_POINTS
- #include "trace.h"
- 
--u8 hfi1_trace_ib_hdr_len(struct ib_header *hdr)
-+static u8 __get_ib_hdr_len(struct ib_header *hdr)
- {
- 	struct ib_other_headers *ohdr;
- 	u8 opcode;
-@@ -61,9 +61,60 @@ u8 hfi1_trace_ib_hdr_len(struct ib_header *hdr)
- 	       0 : hdr_len_by_opcode[opcode] - (12 + 8);
- }
- 
-+static u8 __get_16b_hdr_len(struct hfi1_16b_header *hdr)
-+{
-+	struct ib_other_headers *ohdr;
-+	u8 opcode;
-+
-+	if (hfi1_16B_get_l4(hdr) == OPA_16B_L4_IB_LOCAL)
-+		ohdr = &hdr->u.oth;
-+	else
-+		ohdr = &hdr->u.l.oth;
-+	opcode = ib_bth_get_opcode(ohdr);
-+	return hdr_len_by_opcode[opcode] == 0 ?
-+	       0 : hdr_len_by_opcode[opcode] - (12 + 8 + 8);
-+}
-+
-+u8 hfi1_trace_packet_hdr_len(struct hfi1_packet *packet)
-+{
-+	if (packet->etype != RHF_RCV_TYPE_BYPASS)
-+		return __get_ib_hdr_len(packet->hdr);
-+	else
-+		return __get_16b_hdr_len(packet->hdr);
-+}
-+
-+u8 hfi1_trace_opa_hdr_len(struct hfi1_opa_header *opa_hdr)
-+{
-+	if (!opa_hdr->hdr_type)
-+		return __get_ib_hdr_len(&opa_hdr->ibh);
-+	else
-+		return __get_16b_hdr_len(&opa_hdr->opah);
-+}
-+
- const char *hfi1_trace_get_packet_str(struct hfi1_packet *packet)
- {
--	return "IB";
-+	if (packet->etype != RHF_RCV_TYPE_BYPASS)
-+		return "IB";
-+
-+	switch (hfi1_16B_get_l2(packet->hdr)) {
-+	case 0:
-+		return "0";
-+	case 1:
-+		return "1";
-+	case 2:
-+		return "16B";
-+	case 3:
-+		return "9B";
++		rdma_ah_set_ah_flags(attr, IB_AH_GRH);
++		grh->sgid_index = 0;
++		grh->hop_limit = 1;
++		grh->dgid.global.subnet_prefix =
++			ibp->rvp.gid_prefix;
++		grh->dgid.global.interface_id = OPA_MAKE_ID(dlid);
 +	}
-+	return "";
 +}
 +
-+const char *hfi1_trace_get_packet_type_str(u8 l4)
++static int hfi1_modify_qp0_ah(struct hfi1_ibport *ibp,
++			      struct rvt_ah *ah, u32 dlid)
 +{
-+	if (l4)
-+		return "16B";
-+	else
-+		return "9B";
- }
- 
- #define IMM_PRN  "imm:%d"
-@@ -89,10 +140,10 @@ u8 hfi1_trace_ib_hdr_len(struct ib_header *hdr)
- 	return "";
- }
- 
--void hfi1_trace_parse_bth(struct ib_other_headers *ohdr,
--			  u8 *ack, u8 *becn, u8 *fecn, u8 *mig,
--			  u8 *se, u8 *pad, u8 *opcode, u8 *tver,
--			  u16 *pkey, u32 *psn, u32 *qpn)
-+void hfi1_trace_parse_9b_bth(struct ib_other_headers *ohdr,
-+			     u8 *ack, u8 *becn, u8 *fecn, u8 *mig,
-+			     u8 *se, u8 *pad, u8 *opcode, u8 *tver,
-+			     u16 *pkey, u32 *psn, u32 *qpn)
- {
- 	*ack = ib_bth_get_ackreq(ohdr);
- 	*becn = ib_bth_get_becn(ohdr);
-@@ -107,8 +158,22 @@ void hfi1_trace_parse_bth(struct ib_other_headers *ohdr,
- 	*qpn = ib_bth_get_qpn(ohdr);
- }
- 
-+void hfi1_trace_parse_16b_bth(struct ib_other_headers *ohdr,
-+			      u8 *ack, u8 *mig, u8 *opcode,
-+			      u8 *pad, u8 *se, u8 *tver,
-+			      u32 *psn, u32 *qpn)
-+{
-+	*ack = ib_bth_get_ackreq(ohdr);
-+	*mig = ib_bth_get_migreq(ohdr);
-+	*opcode = ib_bth_get_opcode(ohdr);
-+	*pad = ib_bth_get_pad(ohdr);
-+	*se = ib_bth_get_se(ohdr);
-+	*tver = ib_bth_get_tver(ohdr);
-+	*psn = ib_bth_get_psn(ohdr);
-+	*qpn = ib_bth_get_qpn(ohdr);
-+}
++	struct rdma_ah_attr attr;
++	struct rvt_qp *qp0;
++	int ret = -EINVAL;
 +
- void hfi1_trace_parse_9b_hdr(struct ib_header *hdr, bool sc5,
--			     struct ib_other_headers **ohdr,
- 			     u8 *lnh, u8 *lver, u8 *sl, u8 *sc,
- 			     u16 *len, u32 *dlid, u32 *slid)
- {
-@@ -119,11 +184,79 @@ void hfi1_trace_parse_9b_hdr(struct ib_header *hdr, bool sc5,
- 	*len = ib_get_len(hdr);
- 	*dlid = ib_get_dlid(hdr);
- 	*slid = ib_get_slid(hdr);
-+}
-+
-+void hfi1_trace_parse_16b_hdr(struct hfi1_16b_header *hdr,
-+			      u8 *age, u8 *becn, u8 *fecn,
-+			      u8 *l4, u8 *rc, u8 *sc,
-+			      u16 *entropy, u16 *len, u16 *pkey,
-+			      u32 *dlid, u32 *slid)
-+{
-+	*age = hfi1_16B_get_age(hdr);
-+	*becn = hfi1_16B_get_becn(hdr);
-+	*fecn = hfi1_16B_get_fecn(hdr);
-+	*l4 = hfi1_16B_get_l4(hdr);
-+	*rc = hfi1_16B_get_rc(hdr);
-+	*sc = hfi1_16B_get_sc(hdr);
-+	*entropy = hfi1_16B_get_entropy(hdr);
-+	*len = hfi1_16B_get_len(hdr);
-+	*pkey = hfi1_16B_get_pkey(hdr);
-+	*dlid = hfi1_16B_get_dlid(hdr);
-+	*slid = hfi1_16B_get_slid(hdr);
-+}
-+
-+#define LRH_PRN "len:%d sc:%d dlid:0x%.4x slid:0x%.4x "
-+#define LRH_9B_PRN "lnh:%d,%s lver:%d sl:%d"
-+#define LRH_16B_PRN "age:%d becn:%d fecn:%d l4:%d " \
-+		    "rc:%d sc:%d pkey:0x%.4x entropy:0x%.4x"
-+const char *hfi1_trace_fmt_lrh(struct trace_seq *p, bool bypass,
-+			       u8 age, u8 becn, u8 fecn, u8 l4,
-+			       u8 lnh, const char *lnh_name, u8 lver,
-+			       u8 rc, u8 sc, u8 sl, u16 entropy,
-+			       u16 len, u16 pkey, u32 dlid, u32 slid)
-+{
-+	const char *ret = trace_seq_buffer_ptr(p);
-+
-+	trace_seq_printf(p, LRH_PRN, len, sc, dlid, slid);
-+
-+	if (bypass)
-+		trace_seq_printf(p, LRH_16B_PRN,
-+				 age, becn, fecn, l4, rc, sc, pkey, entropy);
- 
--	if (*lnh == HFI1_LRH_BTH)
--		*ohdr = &hdr->u.oth;
- 	else
--		*ohdr = &hdr->u.l.oth;
-+		trace_seq_printf(p, LRH_9B_PRN,
-+				 lnh, lnh_name, lver, sl);
-+	trace_seq_putc(p, 0);
-+
++	memset(&attr, 0, sizeof(attr));
++	attr.type = ah->ibah.type;
++	hfi1_update_sm_ah_attr(ibp, &attr, dlid);
++	rcu_read_lock();
++	qp0 = rcu_dereference(ibp->rvp.qp[0]);
++	if (qp0)
++		ret = rdma_modify_ah(&ah->ibah, &attr);
++	rcu_read_unlock();
 +	return ret;
 +}
 +
-+#define BTH_9B_PRN \
-+	"op:0x%.2x,%s se:%d m:%d pad:%d tver:%d pkey:0x%.4x " \
-+	"f:%d b:%d qpn:0x%.6x a:%d psn:0x%.8x"
-+#define BTH_16B_PRN \
-+	"op:0x%.2x,%s se:%d m:%d pad:%d tver:%d " \
-+	"qpn:0x%.6x a:%d psn:0x%.8x"
-+const char *hfi1_trace_fmt_bth(struct trace_seq *p, bool bypass,
-+			       u8 ack, u8 becn, u8 fecn, u8 mig,
-+			       u8 se, u8 pad, u8 opcode, const char *opname,
-+			       u8 tver, u16 pkey, u32 psn, u32 qpn)
++static struct ib_ah *hfi1_create_qp0_ah(struct hfi1_ibport *ibp, u32 dlid)
 +{
-+	const char *ret = trace_seq_buffer_ptr(p);
++	struct rdma_ah_attr attr;
++	struct ib_ah *ah = ERR_PTR(-EINVAL);
++	struct rvt_qp *qp0;
++	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
++	struct hfi1_devdata *dd = dd_from_ppd(ppd);
++	u8 port_num = ppd->port;
 +
-+	if (bypass)
-+		trace_seq_printf(p, BTH_16B_PRN,
-+				 opcode, opname,
-+				 se, mig, pad, tver, qpn, ack, psn);
++	memset(&attr, 0, sizeof(attr));
++	attr.type = rdma_ah_find_type(&dd->verbs_dev.rdi.ibdev, port_num);
++	hfi1_update_sm_ah_attr(ibp, &attr, dlid);
++	rcu_read_lock();
++	qp0 = rcu_dereference(ibp->rvp.qp[0]);
++	if (qp0)
++		ah = rdma_create_ah(qp0->ibqp.pd, &attr);
++	rcu_read_unlock();
++	return ah;
++}
 +
-+	else
-+		trace_seq_printf(p, BTH_9B_PRN,
-+				 opcode, opname,
-+				 se, mig, pad, tver, pkey, fecn, becn,
-+				 qpn, ack, psn);
-+	trace_seq_putc(p, 0);
+ static void send_trap(struct hfi1_ibport *ibp, struct trap_node *trap)
+ {
+ 	struct ib_mad_send_buf *send_buf;
+@@ -1283,8 +1338,8 @@ static int __subn_set_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
+ 	struct hfi1_ibport *ibp;
+ 	u8 clientrereg;
+ 	unsigned long flags;
+-	u32 smlid, opa_lid; /* tmp vars to hold LID values */
+-	u16 lid;
++	u32 smlid;
++	u32 lid;
+ 	u8 ls_old, ls_new, ps_new;
+ 	u8 vls;
+ 	u8 msl;
+@@ -1301,22 +1356,20 @@ static int __subn_set_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
+ 		return reply((struct ib_mad_hdr *)smp);
+ 	}
+ 
+-	opa_lid = be32_to_cpu(pi->lid);
+-	if (opa_lid & 0xFFFF0000) {
+-		pr_warn("OPA_PortInfo lid out of range: %X\n", opa_lid);
++	lid = be32_to_cpu(pi->lid);
++	if (lid & 0xFF000000) {
++		pr_warn("OPA_PortInfo lid out of range: %X\n", lid);
+ 		smp->status |= IB_SMP_INVALID_FIELD;
+ 		goto get_only;
+ 	}
+ 
+-	lid = (u16)(opa_lid & 0x0000FFFF);
+ 
+ 	smlid = be32_to_cpu(pi->sm_lid);
+-	if (smlid & 0xFFFF0000) {
++	if (smlid & 0xFF000000) {
+ 		pr_warn("OPA_PortInfo SM lid out of range: %X\n", smlid);
+ 		smp->status |= IB_SMP_INVALID_FIELD;
+ 		goto get_only;
+ 	}
+-	smlid &= 0x0000FFFF;
+ 
+ 	clientrereg = (pi->clientrereg_subnettimeout &
+ 			OPA_PI_MASK_CLIENT_REREGISTER);
+@@ -1331,12 +1384,16 @@ static int __subn_set_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
+ 	ls_old = driver_lstate(ppd);
+ 
+ 	ibp->rvp.mkey = pi->mkey;
+-	ibp->rvp.gid_prefix = pi->subnet_prefix;
++	if (ibp->rvp.gid_prefix != pi->subnet_prefix) {
++		ibp->rvp.gid_prefix = pi->subnet_prefix;
++		event.event = IB_EVENT_GID_CHANGE;
++		ib_dispatch_event(&event);
++	}
+ 	ibp->rvp.mkey_lease_period = be16_to_cpu(pi->mkey_lease_period);
+ 
+ 	/* Must be a valid unicast LID address. */
+ 	if ((lid == 0 && ls_old > IB_PORT_INIT) ||
+-	    lid >= be16_to_cpu(IB_MULTICAST_LID_BASE)) {
++	     (hfi1_is_16B_mcast(lid))) {
+ 		smp->status |= IB_SMP_INVALID_FIELD;
+ 		pr_warn("SubnSet(OPA_PortInfo) lid invalid 0x%x\n",
+ 			lid);
+@@ -1349,6 +1406,16 @@ static int __subn_set_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
+ 		hfi1_set_lid(ppd, lid, pi->mkeyprotect_lmc & OPA_PI_MASK_LMC);
+ 		event.event = IB_EVENT_LID_CHANGE;
+ 		ib_dispatch_event(&event);
 +
-+	return ret;
++		if (HFI1_PORT_GUID_INDEX + 1 < HFI1_GUIDS_PER_PORT) {
++			/* Manufacture GID from LID to support extended
++			 * addresses
++			 */
++			ppd->guids[HFI1_PORT_GUID_INDEX + 1] =
++				be64_to_cpu(OPA_MAKE_ID(lid));
++			event.event = IB_EVENT_GID_CHANGE;
++			ib_dispatch_event(&event);
++		}
+ 	}
+ 
+ 	msl = pi->smsl & OPA_PI_MASK_SMSL;
+@@ -1359,7 +1426,7 @@ static int __subn_set_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
+ 
+ 	/* Must be a valid unicast LID address. */
+ 	if ((smlid == 0 && ls_old > IB_PORT_INIT) ||
+-	    smlid >= be16_to_cpu(IB_MULTICAST_LID_BASE)) {
++	     (hfi1_is_16B_mcast(smlid))) {
+ 		smp->status |= IB_SMP_INVALID_FIELD;
+ 		pr_warn("SubnSet(OPA_PortInfo) smlid invalid 0x%x\n", smlid);
+ 	} else if (smlid != ibp->rvp.sm_lid || msl != ibp->rvp.sm_sl) {
+@@ -1367,7 +1434,7 @@ static int __subn_set_opa_portinfo(struct opa_smp *smp, u32 am, u8 *data,
+ 		spin_lock_irqsave(&ibp->rvp.lock, flags);
+ 		if (ibp->rvp.sm_ah) {
+ 			if (smlid != ibp->rvp.sm_lid)
+-				rdma_ah_set_dlid(&ibp->rvp.sm_ah->attr, smlid);
++				hfi1_modify_qp0_ah(ibp, ibp->rvp.sm_ah, smlid);
+ 			if (msl != ibp->rvp.sm_sl)
+ 				rdma_ah_set_sl(&ibp->rvp.sm_ah->attr, msl);
+ 		}
+diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
+index 62526f5..6c9fa43 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.c
++++ b/drivers/infiniband/hw/hfi1/verbs.c
+@@ -1394,7 +1394,7 @@ static int query_port(struct rvt_dev_info *rdi, u8 port_num,
+ 	struct hfi1_ibdev *verbs_dev = dev_from_rdi(rdi);
+ 	struct hfi1_devdata *dd = dd_from_dev(verbs_dev);
+ 	struct hfi1_pportdata *ppd = &dd->pport[port_num - 1];
+-	u16 lid = ppd->lid;
++	u32 lid = ppd->lid;
+ 
+ 	/* props being zeroed by the caller, avoid zeroing it here */
+ 	props->lid = lid ? lid : 0;
+@@ -1555,27 +1555,6 @@ static void hfi1_notify_new_ah(struct ib_device *ibdev,
+ 		ah->log_pmtu = ilog2(dd->vld[ah->vl].mtu);
  }
  
- const char *parse_everbs_hdrs(
-diff --git a/drivers/infiniband/hw/hfi1/trace_ibhdrs.h b/drivers/infiniband/hw/hfi1/trace_ibhdrs.h
-index 7324025..6721f84 100644
---- a/drivers/infiniband/hw/hfi1/trace_ibhdrs.h
-+++ b/drivers/infiniband/hw/hfi1/trace_ibhdrs.h
-@@ -95,17 +95,39 @@
- 	ib_opcode_name(UD_SEND_ONLY_WITH_IMMEDIATE),       \
- 	ib_opcode_name(CNP))
- 
-+u8 ibhdr_exhdr_len(struct ib_header *hdr);
- const char *parse_everbs_hdrs(struct trace_seq *p, u8 opcode, void *ehdrs);
--u8 hfi1_trace_ib_hdr_len(struct ib_header *hdr);
-+u8 hfi1_trace_opa_hdr_len(struct hfi1_opa_header *opah);
-+u8 hfi1_trace_packet_hdr_len(struct hfi1_packet *packet);
-+const char *hfi1_trace_get_packet_type_str(u8 l4);
- const char *hfi1_trace_get_packet_str(struct hfi1_packet *packet);
--void hfi1_trace_parse_bth(struct ib_other_headers *ohdr,
--			  u8 *ack, u8 *becn, u8 *fecn, u8 *mig,
--			  u8 *se, u8 *pad, u8 *opcode, u8 *tver,
--			  u16 *pkey, u32 *psn, u32 *qpn);
-+void hfi1_trace_parse_9b_bth(struct ib_other_headers *ohdr,
-+			     u8 *ack, u8 *becn, u8 *fecn, u8 *mig,
-+			     u8 *se, u8 *pad, u8 *opcode, u8 *tver,
-+			     u16 *pkey, u32 *psn, u32 *qpn);
- void hfi1_trace_parse_9b_hdr(struct ib_header *hdr, bool sc5,
--			     struct ib_other_headers **ohdr,
- 			     u8 *lnh, u8 *lver, u8 *sl, u8 *sc,
- 			     u16 *len, u32 *dlid, u32 *slid);
-+void hfi1_trace_parse_16b_bth(struct ib_other_headers *ohdr,
-+			      u8 *ack, u8 *mig, u8 *opcode,
-+			      u8 *pad, u8 *se, u8 *tver,
-+			      u32 *psn, u32 *qpn);
-+void hfi1_trace_parse_16b_hdr(struct hfi1_16b_header *hdr,
-+			      u8 *age, u8 *becn, u8 *fecn,
-+			      u8 *l4, u8 *rc, u8 *sc,
-+			      u16 *entropy, u16 *len, u16 *pkey,
-+			      u32 *dlid, u32 *slid);
-+
-+const char *hfi1_trace_fmt_lrh(struct trace_seq *p, bool bypass,
-+			       u8 age, u8 becn, u8 fecn, u8 l4,
-+			       u8 lnh, const char *lnh_name, u8 lver,
-+			       u8 rc, u8 sc, u8 sl, u16 entropy,
-+			       u16 len, u16 pkey, u32 dlid, u32 slid);
-+
-+const char *hfi1_trace_fmt_bth(struct trace_seq *p, bool bypass,
-+			       u8 ack, u8 becn, u8 fecn, u8 mig,
-+			       u8 se, u8 pad, u8 opcode, const char *opname,
-+			       u8 tver, u16 pkey, u32 psn, u32 qpn);
- 
- #define __parse_ib_ehdrs(op, ehdrs) parse_everbs_hdrs(p, op, ehdrs)
- 
-@@ -114,13 +136,8 @@ void hfi1_trace_parse_9b_hdr(struct ib_header *hdr, bool sc5,
- __print_symbolic(lrh,                    \
- 	lrh_name(LRH_BTH),               \
- 	lrh_name(LRH_GRH))
+-struct ib_ah *hfi1_create_qp0_ah(struct hfi1_ibport *ibp, u16 dlid)
+-{
+-	struct rdma_ah_attr attr;
+-	struct ib_ah *ah = ERR_PTR(-EINVAL);
+-	struct rvt_qp *qp0;
+-	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+-	struct hfi1_devdata *dd = dd_from_ppd(ppd);
+-	u8 port_num = ppd->port;
 -
--#define LRH_PRN "len:%d sc:%d dlid:0x%.4x slid:0x%.4x"
--#define LRH_9B_PRN "lnh:%d,%s lver:%d sl:%d "
--#define BTH_PRN \
--	"op:0x%.2x,%s se:%d m:%d pad:%d tver:%d pkey:0x%.4x " \
--	"f:%d b:%d qpn:0x%.6x a:%d psn:0x%.8x"
--#define EHDR_PRN "hlen:%d %s"
-+#define PKT_ENTRY(pkt)	__string(ptype,  hfi1_trace_get_packet_str(packet))
-+#define PKT_ASSIGN(pkt) __assign_str(ptype, hfi1_trace_get_packet_str(packet))
+-	memset(&attr, 0, sizeof(attr));
+-	attr.type = rdma_ah_find_type(&dd->verbs_dev.rdi.ibdev, port_num);
+-	rdma_ah_set_dlid(&attr, dlid);
+-	rdma_ah_set_port_num(&attr, ppd_from_ibp(ibp)->port);
+-	rcu_read_lock();
+-	qp0 = rcu_dereference(ibp->rvp.qp[0]);
+-	if (qp0)
+-		ah = rdma_create_ah(qp0->ibqp.pd, &attr);
+-	rcu_read_unlock();
+-	return ah;
+-}
+-
+ /**
+  * hfi1_get_npkeys - return the size of the PKEY table for context 0
+  * @dd: the hfi1_ib device
+diff --git a/drivers/infiniband/hw/hfi1/verbs.h b/drivers/infiniband/hw/hfi1/verbs.h
+index 4928ee4..ab1618e 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.h
++++ b/drivers/infiniband/hw/hfi1/verbs.h
+@@ -334,8 +334,6 @@ void hfi1_rc_hdrerr(
  
- DECLARE_EVENT_CLASS(hfi1_input_ibhdr_template,
- 		    TP_PROTO(struct hfi1_devdata *dd,
-@@ -129,75 +146,125 @@ void hfi1_trace_parse_9b_hdr(struct ib_header *hdr, bool sc5,
- 		    TP_ARGS(dd, packet, sc5),
- 		    TP_STRUCT__entry(
- 			DD_DEV_ENTRY(dd)
-+			PKT_ENTRY(packet)
-+			__field(bool, bypass)
-+			__field(u8, ack)
-+			__field(u8, age)
-+			__field(u8, becn)
-+			__field(u8, fecn)
-+			__field(u8, l4)
- 			__field(u8, lnh)
- 			__field(u8, lver)
--			__field(u8, sl)
--			__field(u16, len)
--			__field(u32, dlid)
--			__field(u8, sc)
--			__field(u32, slid)
--			__field(u8, opcode)
--			__field(u8, se)
- 			__field(u8, mig)
-+			__field(u8, opcode)
- 			__field(u8, pad)
-+			__field(u8, rc)
-+			__field(u8, sc)
-+			__field(u8, se)
-+			__field(u8, sl)
- 			__field(u8, tver)
-+			__field(u16, entropy)
-+			__field(u16, len)
- 			__field(u16, pkey)
--			__field(u8, fecn)
--			__field(u8, becn)
--			__field(u32, qpn)
--			__field(u8, ack)
-+			__field(u32, dlid)
- 			__field(u32, psn)
-+			__field(u32, qpn)
-+			__field(u32, slid)
- 			/* extended headers */
- 			__dynamic_array(u8, ehdrs,
--					hfi1_trace_ib_hdr_len(packet->hdr))
-+					hfi1_trace_packet_hdr_len(packet))
- 			),
- 		    TP_fast_assign(
--			   struct ib_other_headers *ohdr;
-+			DD_DEV_ASSIGN(dd);
-+			PKT_ASSIGN(packet);
+ u8 ah_to_sc(struct ib_device *ibdev, struct rdma_ah_attr *ah_attr);
  
--			   DD_DEV_ASSIGN(dd);
-+			if (packet->etype == RHF_RCV_TYPE_BYPASS) {
-+				__entry->bypass = true;
-+				hfi1_trace_parse_16b_hdr(packet->hdr,
-+							 &__entry->age,
-+							 &__entry->becn,
-+							 &__entry->fecn,
-+							 &__entry->l4,
-+							 &__entry->rc,
-+							 &__entry->sc,
-+							 &__entry->entropy,
-+							 &__entry->len,
-+							 &__entry->pkey,
-+							 &__entry->dlid,
-+							 &__entry->slid);
+-struct ib_ah *hfi1_create_qp0_ah(struct hfi1_ibport *ibp, u16 dlid);
+-
+ void hfi1_rc_send_complete(struct rvt_qp *qp, struct hfi1_opa_header *opah);
  
--			   hfi1_trace_parse_9b_hdr(packet->hdr, sc5,
--						   &ohdr,
--						   &__entry->lnh,
--						   &__entry->lver,
--						   &__entry->sl,
--						   &__entry->sc,
--						   &__entry->len,
--						   &__entry->dlid,
--						   &__entry->slid);
-+				  hfi1_trace_parse_16b_bth(packet->ohdr,
-+							   &__entry->ack,
-+							   &__entry->mig,
-+							   &__entry->opcode,
-+							   &__entry->pad,
-+							   &__entry->se,
-+							   &__entry->tver,
-+							   &__entry->psn,
-+							   &__entry->qpn);
-+			} else {
-+				__entry->bypass = false;
-+				hfi1_trace_parse_9b_hdr(packet->hdr, sc5,
-+							&__entry->lnh,
-+							&__entry->lver,
-+							&__entry->sl,
-+							&__entry->sc,
-+							&__entry->len,
-+							&__entry->dlid,
-+							&__entry->slid);
+ void hfi1_ud_rcv(struct hfi1_packet *packet);
+diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+index 6b9b43b..549c719 100644
+--- a/drivers/infiniband/hw/qib/qib_mad.c
++++ b/drivers/infiniband/hw/qib/qib_mad.c
+@@ -105,7 +105,7 @@ static void qib_send_trap(struct qib_ibport *ibp, void *data, unsigned len)
+ 		if (ibp->rvp.sm_lid != be16_to_cpu(IB_LID_PERMISSIVE)) {
+ 			struct ib_ah *ah;
  
--			  hfi1_trace_parse_bth(ohdr, &__entry->ack,
--					       &__entry->becn, &__entry->fecn,
--					       &__entry->mig, &__entry->se,
--					       &__entry->pad, &__entry->opcode,
--					       &__entry->tver, &__entry->pkey,
--					       &__entry->psn, &__entry->qpn);
--			  /* extended headers */
--			  memcpy(__get_dynamic_array(ehdrs), &ohdr->u,
--				 __get_dynamic_array_len(ehdrs));
-+				  hfi1_trace_parse_9b_bth(packet->ohdr,
-+							  &__entry->ack,
-+							  &__entry->becn,
-+							  &__entry->fecn,
-+							  &__entry->mig,
-+							  &__entry->se,
-+							  &__entry->pad,
-+							  &__entry->opcode,
-+							  &__entry->tver,
-+							  &__entry->pkey,
-+							  &__entry->psn,
-+							  &__entry->qpn);
-+				}
-+				/* extended headers */
-+				memcpy(__get_dynamic_array(ehdrs),
-+				       &packet->ohdr->u,
-+				       __get_dynamic_array_len(ehdrs));
- 			 ),
--		    TP_printk("[%s] (IB) " LRH_PRN " " LRH_9B_PRN " "
--			      BTH_PRN " " EHDR_PRN,
-+		    TP_printk("[%s] (%s) %s %s hlen:%d %s",
- 			      __get_str(dev),
--			      __entry->len,
--			      __entry->sc,
--			      __entry->dlid,
--			      __entry->slid,
--			      __entry->lnh, show_lnh(__entry->lnh),
--			      __entry->lver,
--			      __entry->sl,
--			      /* BTH */
--			      __entry->opcode, show_ib_opcode(__entry->opcode),
--			      __entry->se,
--			      __entry->mig,
--			      __entry->pad,
--			      __entry->tver,
--			      __entry->pkey,
--			      __entry->fecn,
--			      __entry->becn,
--			      __entry->qpn,
--			      __entry->ack,
--			      __entry->psn,
-+			      __get_str(ptype),
-+			      hfi1_trace_fmt_lrh(p,
-+						 __entry->bypass,
-+						 __entry->age,
-+						 __entry->becn,
-+						 __entry->fecn,
-+						 __entry->l4,
-+						 __entry->lnh,
-+						 show_lnh(__entry->lnh),
-+						 __entry->lver,
-+						 __entry->rc,
-+						 __entry->sc,
-+						 __entry->sl,
-+						 __entry->entropy,
-+						 __entry->len,
-+						 __entry->pkey,
-+						 __entry->dlid,
-+						 __entry->slid),
-+			      hfi1_trace_fmt_bth(p,
-+						 __entry->bypass,
-+						 __entry->ack,
-+						 __entry->becn,
-+						 __entry->fecn,
-+						 __entry->mig,
-+						 __entry->se,
-+						 __entry->pad,
-+						 __entry->opcode,
-+						 show_ib_opcode(__entry->opcode),
-+						 __entry->tver,
-+						 __entry->pkey,
-+						 __entry->psn,
-+						 __entry->qpn),
- 			      /* extended headers */
- 			      __get_dynamic_array_len(ehdrs),
- 			      __parse_ib_ehdrs(
-@@ -213,78 +280,136 @@ void hfi1_trace_parse_9b_hdr(struct ib_header *hdr, bool sc5,
- 
- DECLARE_EVENT_CLASS(hfi1_output_ibhdr_template,
- 		    TP_PROTO(struct hfi1_devdata *dd,
--			     struct hfi1_opa_header *opah,
--			     bool sc5),
-+			     struct hfi1_opa_header *opah, bool sc5),
- 		    TP_ARGS(dd, opah, sc5),
- 		    TP_STRUCT__entry(
- 			DD_DEV_ENTRY(dd)
-+			__field(bool, bypass)
-+			__field(u8, ack)
-+			__field(u8, age)
-+			__field(u8, becn)
-+			__field(u8, fecn)
-+			__field(u8, l4)
- 			__field(u8, lnh)
- 			__field(u8, lver)
--			__field(u8, sl)
--			__field(u16, len)
--			__field(u32, dlid)
--			__field(u8, sc)
--			__field(u32, slid)
--			__field(u8, opcode)
--			__field(u8, se)
- 			__field(u8, mig)
-+			__field(u8, opcode)
- 			__field(u8, pad)
-+			__field(u8, rc)
-+			__field(u8, sc)
-+			__field(u8, se)
-+			__field(u8, sl)
- 			__field(u8, tver)
-+			__field(u16, entropy)
-+			__field(u16, len)
- 			__field(u16, pkey)
--			__field(u8, fecn)
--			__field(u8, becn)
--			__field(u32, qpn)
--			__field(u8, ack)
-+			__field(u32, dlid)
- 			__field(u32, psn)
-+			__field(u32, qpn)
-+			__field(u32, slid)
- 			/* extended headers */
- 			__dynamic_array(u8, ehdrs,
--					hfi1_trace_ib_hdr_len(&opah->ibh))
-+					hfi1_trace_opa_hdr_len(opah))
- 			),
- 		    TP_fast_assign(
- 			struct ib_other_headers *ohdr;
--			struct ib_header *hdr = &opah->ibh;
- 
- 			DD_DEV_ASSIGN(dd);
- 
--			hfi1_trace_parse_9b_hdr(hdr, sc5,
--						&ohdr, &__entry->lnh,
--						&__entry->lver, &__entry->sl,
--						&__entry->sc, &__entry->len,
--						&__entry->dlid, &__entry->slid);
-+			if (opah->hdr_type)  {
-+				__entry->bypass = true;
-+				hfi1_trace_parse_16b_hdr(&opah->opah,
-+							 &__entry->age,
-+							 &__entry->becn,
-+							 &__entry->fecn,
-+							 &__entry->l4,
-+							 &__entry->rc,
-+							 &__entry->sc,
-+							 &__entry->entropy,
-+							 &__entry->len,
-+							 &__entry->pkey,
-+							 &__entry->dlid,
-+							 &__entry->slid);
- 
--			hfi1_trace_parse_bth(ohdr, &__entry->ack,
--					     &__entry->becn, &__entry->fecn,
--					     &__entry->mig, &__entry->se,
--					     &__entry->pad, &__entry->opcode,
--					     &__entry->tver, &__entry->pkey,
--					     &__entry->psn, &__entry->qpn);
-+				if (entry->l4 == OPA_16B_L4_IB_LOCAL)
-+					ohdr = &opah->opah.u.oth;
-+				else
-+					ohdr = &opah->opah.u.l.oth;
-+				hfi1_trace_parse_16b_bth(ohdr,
-+							 &__entry->ack,
-+							 &__entry->mig,
-+							 &__entry->opcode,
-+							 &__entry->pad,
-+							 &__entry->se,
-+							 &__entry->tver,
-+							 &__entry->psn,
-+							 &__entry->qpn);
-+			} else {
-+				__entry->bypass = false;
-+				hfi1_trace_parse_9b_hdr(&opah->ibh, sc5,
-+							&__entry->lnh,
-+							&__entry->lver,
-+							&__entry->sl,
-+							&__entry->sc,
-+							&__entry->len,
-+							&__entry->dlid,
-+							&__entry->slid);
-+				if (entry->lnh == HFI1_LRH_BTH)
-+					ohdr = &opah->ibh.u.oth;
-+				else
-+					ohdr = &opah->ibh.u.l.oth;
-+				hfi1_trace_parse_9b_bth(ohdr,
-+							&__entry->ack,
-+							&__entry->becn,
-+							&__entry->fecn,
-+							&__entry->mig,
-+							&__entry->se,
-+							&__entry->pad,
-+							&__entry->opcode,
-+							&__entry->tver,
-+							&__entry->pkey,
-+							&__entry->psn,
-+							&__entry->qpn);
-+			}
- 
- 			/* extended headers */
- 			memcpy(__get_dynamic_array(ehdrs),
- 			       &ohdr->u, __get_dynamic_array_len(ehdrs));
- 		    ),
--		    TP_printk("[%s] (IB) " LRH_PRN " " LRH_9B_PRN " "
--			      BTH_PRN " " EHDR_PRN,
-+		    TP_printk("[%s] (%s) %s %s hlen:%d %s",
- 			      __get_str(dev),
--			      __entry->len,
--			      __entry->sc,
--			      __entry->dlid,
--			      __entry->slid,
--			      __entry->lnh, show_lnh(__entry->lnh),
--			      __entry->lver,
--			      __entry->sl,
--			      /* BTH */
--			      __entry->opcode, show_ib_opcode(__entry->opcode),
--			      __entry->se,
--			      __entry->mig,
--			      __entry->pad,
--			      __entry->tver,
--			      __entry->pkey,
--			      __entry->fecn,
--			      __entry->becn,
--			      __entry->qpn,
--			      __entry->ack,
--			      __entry->psn,
-+			      hfi1_trace_get_packet_type_str(__entry->l4),
-+			      hfi1_trace_fmt_lrh(p,
-+						 __entry->bypass,
-+						 __entry->age,
-+						 __entry->becn,
-+						 __entry->fecn,
-+						 __entry->l4,
-+						 __entry->lnh,
-+						 show_lnh(__entry->lnh),
-+						 __entry->lver,
-+						 __entry->rc,
-+						 __entry->sc,
-+						 __entry->sl,
-+						 __entry->entropy,
-+						 __entry->len,
-+						 __entry->pkey,
-+						 __entry->dlid,
-+						 __entry->slid),
-+			      hfi1_trace_fmt_bth(p,
-+						 __entry->bypass,
-+						 __entry->ack,
-+						 __entry->becn,
-+						 __entry->fecn,
-+						 __entry->mig,
-+						 __entry->se,
-+						 __entry->pad,
-+						 __entry->opcode,
-+						 show_ib_opcode(__entry->opcode),
-+						 __entry->tver,
-+						 __entry->pkey,
-+						 __entry->psn,
-+						 __entry->qpn),
- 			      /* extended headers */
- 			      __get_dynamic_array_len(ehdrs),
- 			      __parse_ib_ehdrs(
+-			ah = qib_create_qp0_ah(ibp, ibp->rvp.sm_lid);
++			ah = qib_create_qp0_ah(ibp, (u16)ibp->rvp.sm_lid);
+ 			if (IS_ERR(ah))
+ 				ret = PTR_ERR(ah);
+ 			else {
+@@ -496,7 +496,7 @@ static int subn_get_portinfo(struct ib_smp *smp, struct ib_device *ibdev,
+ 		pip->mkey = ibp->rvp.mkey;
+ 	pip->gid_prefix = ibp->rvp.gid_prefix;
+ 	pip->lid = cpu_to_be16(ppd->lid);
+-	pip->sm_lid = cpu_to_be16(ibp->rvp.sm_lid);
++	pip->sm_lid = cpu_to_be16((u16)ibp->rvp.sm_lid);
+ 	pip->cap_mask = cpu_to_be32(ibp->rvp.port_cap_flags);
+ 	/* pip->diag_code; */
+ 	pip->mkey_lease_period = cpu_to_be16(ibp->rvp.mkey_lease_period);
+diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
+index fdfac0f..1d94f3c 100644
+--- a/include/rdma/rdma_vt.h
++++ b/include/rdma/rdma_vt.h
+@@ -91,7 +91,7 @@ struct rvt_ibport {
+ 	__be16 pma_counter_select[5];
+ 	u16 pma_tag;
+ 	u16 mkey_lease_period;
+-	u16 sm_lid;
++	u32 sm_lid;
+ 	u8 sm_sl;
+ 	u8 mkeyprot;
+ 	u8 subnet_timeout;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
