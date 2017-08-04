@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 03/27] IB/hfi1: Remove lstate from hfi1_pportdata
-Date: Fri, 04 Aug 2017 13:52:26 -0700
-Message-ID: <20170804205225.17853.32638.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 04/27] IB/hfi1: Use host_link_state to read state
+ when DC is shut down
+Date: Fri, 04 Aug 2017 13:52:32 -0700
+Message-ID: <20170804205231.17853.80277.stgit@scvm10.sc.intel.com>
 References: <20170804204842.17853.14858.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,217 +11,42 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170804204842.17853.14858.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bartlomiej Dudek <bartlomiej.dudek-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Byczkowski, Jakub <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Bartlomiej Dudek <bartlomiej.dudek-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Do not track logical state separately from host_link_state. Deduce
-logical state from host_link_state when required. Transitions in
-set_link_state and goto_offline already make sure host_link_state
-reflects hardware's logical state properly.
+When DC is shut down (by e.g.  disconnecting the cable), the
+driver should use host_link_state to get port's current
+physical state. This is due to the fact that physical state
+is read from DC's CSRs and when DC is shut down and state is
+changed, its registers are not impacted.
 
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Bartlomiej Dudek <bartlomiej.dudek-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c |   52 +++++++++++++++++++------------------
- drivers/infiniband/hw/hfi1/chip.h |    3 +-
- drivers/infiniband/hw/hfi1/hfi.h  |   17 ------------
- drivers/infiniband/hw/hfi1/mad.c  |    2 +
- 4 files changed, 28 insertions(+), 46 deletions(-)
+ drivers/infiniband/hw/hfi1/hfi.h |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 101fbbb..8c47653 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -1065,6 +1065,7 @@ static int do_8051_command(struct hfi1_devdata *dd, u32 type, u64 in_data,
- static int read_idle_sma(struct hfi1_devdata *dd, u64 *data);
- static int thermal_init(struct hfi1_devdata *dd);
- 
-+static void update_statusp(struct hfi1_pportdata *ppd, u32 state);
- static int wait_logical_linkstate(struct hfi1_pportdata *ppd, u32 state,
- 				  int msecs);
- static int wait_physical_linkstate(struct hfi1_pportdata *ppd, u32 state,
-@@ -10261,8 +10262,10 @@ static void force_logical_link_state_down(struct hfi1_pportdata *ppd)
- 	write_csr(dd, DC_LCB_CFG_ALLOW_LINK_UP, 0);
- 	write_csr(dd, DC_LCB_CFG_IGNORE_LOST_RCLK, 0);
- 
--	/* call again to adjust ppd->statusp, if needed */
--	get_logical_state(ppd);
-+	/* adjust ppd->statusp, if needed */
-+	update_statusp(ppd, IB_PORT_DOWN);
-+
-+	dd_dev_info(ppd->dd, "logical state forced to LINK_DOWN\n");
- }
- 
- /*
-@@ -10458,11 +10461,11 @@ u32 driver_physical_state(struct hfi1_pportdata *ppd)
- }
- 
- /*
-- * driver_logical_state - convert the driver's notion of a port's
-+ * driver_lstate - convert the driver's notion of a port's
-  * state (an HLS_*) into a logical state (a IB_PORT_*). Return -1
-  * (converted to a u32) to indicate error.
-  */
--u32 driver_logical_state(struct hfi1_pportdata *ppd)
-+u32 driver_lstate(struct hfi1_pportdata *ppd)
- {
- 	if (ppd->host_link_state && (ppd->host_link_state & HLS_DOWN))
- 		return IB_PORT_DOWN;
-@@ -12651,20 +12654,8 @@ u32 chip_to_opa_pstate(struct hfi1_devdata *dd, u32 chip_pstate)
- 	return "unknown";
- }
- 
--/*
-- * Read the hardware link state and set the driver's cached value of it.
-- * Return the (new) current value.
-- */
--u32 get_logical_state(struct hfi1_pportdata *ppd)
-+static void update_statusp(struct hfi1_pportdata *ppd, u32 state)
- {
--	u32 new_state;
--
--	new_state = chip_to_opa_lstate(ppd->dd, read_logical_state(ppd->dd));
--	if (new_state != ppd->lstate) {
--		dd_dev_info(ppd->dd, "logical state changed to %s (0x%x)\n",
--			    opa_lstate_name(new_state), new_state);
--		ppd->lstate = new_state;
--	}
- 	/*
- 	 * Set port status flags in the page mapped into userspace
- 	 * memory. Do it here to ensure a reliable state - this is
-@@ -12674,7 +12665,7 @@ u32 get_logical_state(struct hfi1_pportdata *ppd)
- 	 * function.
- 	 */
- 	if (ppd->statusp) {
--		switch (ppd->lstate) {
-+		switch (state) {
- 		case IB_PORT_DOWN:
- 		case IB_PORT_INIT:
- 			*ppd->statusp &= ~(HFI1_STATUS_IB_CONF |
-@@ -12688,10 +12679,9 @@ u32 get_logical_state(struct hfi1_pportdata *ppd)
- 			break;
- 		}
- 	}
--	return ppd->lstate;
- }
- 
--/**
-+/*
-  * wait_logical_linkstate - wait for an IB link state change to occur
-  * @ppd: port device
-  * @state: the state to wait for
-@@ -12705,18 +12695,29 @@ static int wait_logical_linkstate(struct hfi1_pportdata *ppd, u32 state,
- 				  int msecs)
- {
- 	unsigned long timeout;
-+	u32 new_state;
- 
- 	timeout = jiffies + msecs_to_jiffies(msecs);
- 	while (1) {
--		if (get_logical_state(ppd) == state)
--			return 0;
--		if (time_after(jiffies, timeout))
-+		new_state = chip_to_opa_lstate(ppd->dd,
-+					       read_logical_state(ppd->dd));
-+		if (new_state == state)
- 			break;
-+		if (time_after(jiffies, timeout)) {
-+			dd_dev_err(ppd->dd,
-+				   "timeout waiting for link state 0x%x\n",
-+				   state);
-+			return -ETIMEDOUT;
-+		}
- 		msleep(20);
- 	}
--	dd_dev_err(ppd->dd, "timeout waiting for link state 0x%x\n", state);
- 
--	return -ETIMEDOUT;
-+	update_statusp(ppd, state);
-+	dd_dev_info(ppd->dd,
-+		    "logical state changed to %s (0x%x)\n",
-+		    opa_lstate_name(state),
-+		    state);
-+	return 0;
- }
- 
- /*
-@@ -14855,7 +14856,6 @@ struct hfi1_devdata *hfi1_init_dd(struct pci_dev *pdev,
- 		 * Set the initial values to reasonable default, will be set
- 		 * for real when link is up.
- 		 */
--		ppd->lstate = IB_PORT_DOWN;
- 		ppd->overrun_threshold = 0x4;
- 		ppd->phy_error_threshold = 0xf;
- 		ppd->port_crc_mode_enabled = link_crc_mask;
-diff --git a/drivers/infiniband/hw/hfi1/chip.h b/drivers/infiniband/hw/hfi1/chip.h
-index 6a0c691..f708302 100644
---- a/drivers/infiniband/hw/hfi1/chip.h
-+++ b/drivers/infiniband/hw/hfi1/chip.h
-@@ -748,12 +748,11 @@ void update_usrhead(struct hfi1_ctxtdata *rcd, u32 hd, u32 updegr, u32 egrhd,
- int is_bx(struct hfi1_devdata *dd);
- u32 read_physical_state(struct hfi1_devdata *dd);
- u32 chip_to_opa_pstate(struct hfi1_devdata *dd, u32 chip_pstate);
--u32 get_logical_state(struct hfi1_pportdata *ppd);
- void cache_physical_state(struct hfi1_pportdata *ppd);
- const char *opa_lstate_name(u32 lstate);
- const char *opa_pstate_name(u32 pstate);
- u32 driver_physical_state(struct hfi1_pportdata *ppd);
--u32 driver_logical_state(struct hfi1_pportdata *ppd);
-+u32 driver_lstate(struct hfi1_pportdata *ppd);
- 
- int acquire_lcb_access(struct hfi1_devdata *dd, int sleep_ok);
- int release_lcb_access(struct hfi1_devdata *dd, int sleep_ok);
 diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index fb5f839..e66e8f9 100644
+index e66e8f9..728ed45 100644
 --- a/drivers/infiniband/hw/hfi1/hfi.h
 +++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -591,8 +591,6 @@ struct hfi1_pportdata {
- 	struct mutex hls_lock;
- 	u32 host_link_state;
- 
--	u32 lstate;	/* logical link state */
--
- 	/* these are the "32 bit" regs */
- 
- 	u32 ibmtu; /* The MTU programmed for this unit */
-@@ -1296,21 +1294,6 @@ void hfi1_init_pportdata(struct pci_dev *pdev, struct hfi1_pportdata *ppd,
- 
- int hfi1_reset_device(int);
- 
--/* return the driver's idea of the logical OPA port state */
--static inline u32 driver_lstate(struct hfi1_pportdata *ppd)
--{
--	/*
--	 * The driver does some processing from the time the logical
--	 * link state is at INIT to the time the SM can be notified
--	 * as such. Return IB_PORT_DOWN until the software state
--	 * is ready.
--	 */
--	if (ppd->lstate == IB_PORT_INIT && !(ppd->host_link_state & HLS_UP))
--		return IB_PORT_DOWN;
--	else
--		return ppd->lstate;
--}
--
- /* return the driver's idea of the physical OPA port state */
+@@ -1298,6 +1298,13 @@ void hfi1_init_pportdata(struct pci_dev *pdev, struct hfi1_pportdata *ppd,
  static inline u32 driver_pstate(struct hfi1_pportdata *ppd)
  {
-diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
-index 0a3e2df..885d9fd 100644
---- a/drivers/infiniband/hw/hfi1/mad.c
-+++ b/drivers/infiniband/hw/hfi1/mad.c
-@@ -1117,7 +1117,7 @@ static int port_states_transition_allowed(struct hfi1_pportdata *ppd,
- 					  u32 logical_new, u32 physical_new)
- {
- 	u32 physical_old = driver_physical_state(ppd);
--	u32 logical_old = driver_logical_state(ppd);
-+	u32 logical_old = driver_lstate(ppd);
- 	int ret, logical_allowed, physical_allowed;
- 
- 	ret = logical_transition_allowed(logical_old, logical_new);
+ 	/*
++	 * When DC is shut down and state is changed, its CSRs are not
++	 * impacted, therefore host_link_state should be used to get
++	 * current physical state.
++	 */
++	if (ppd->dd->dc_shutdown)
++		return driver_physical_state(ppd);
++	/*
+ 	 * The driver does some processing from the time the physical
+ 	 * link state is at LINKUP to the time the SM can be notified
+ 	 * as such. Return IB_PORTPHYSSTATE_TRAINING until the software
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
