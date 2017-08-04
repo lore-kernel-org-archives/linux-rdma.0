@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 25/27] IB/hfi1: Add 16B RC/UC support
-Date: Fri, 04 Aug 2017 13:54:41 -0700
-Message-ID: <20170804205440.17853.8550.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 26/27] IB/hfi1: Enhance PIO/SDMA send for 16B
+Date: Fri, 04 Aug 2017 13:54:47 -0700
+Message-ID: <20170804205446.17853.45016.stgit@scvm10.sc.intel.com>
 References: <20170804204842.17853.14858.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,977 +15,421 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Add 16B bypass packet support for RC/UC traffic types.
+PIO/SDMA send logic now uses the hdr_type field to determine
+the type of packet that has been constructed. Based on the hdr_type,
+certain things such as PBC flags, padding count and the LT extra
+trailing bytes are determined.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/hfi.h   |    4 
- drivers/infiniband/hw/hfi1/rc.c    |  390 +++++++++++++++++++++++-------------
- drivers/infiniband/hw/hfi1/ruc.c   |  201 ++++++++++++++-----
- drivers/infiniband/hw/hfi1/uc.c    |   40 +++-
- drivers/infiniband/hw/hfi1/verbs.h |    3 
- 5 files changed, 445 insertions(+), 193 deletions(-)
+ drivers/infiniband/hw/hfi1/hfi.h       |    2 
+ drivers/infiniband/hw/hfi1/user_sdma.c |    7 +
+ drivers/infiniband/hw/hfi1/verbs.c     |  197 +++++++++++++++++++++-----------
+ drivers/infiniband/hw/hfi1/verbs.h     |    1 
+ 4 files changed, 135 insertions(+), 72 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 52cae11..1dfbf16 100644
+index 1dfbf16..dff3d3f 100644
 --- a/drivers/infiniband/hw/hfi1/hfi.h
 +++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -459,6 +459,8 @@ static inline u16 hfi1_16B_get_entropy(struct hfi1_16b_header *hdr)
- 	return (u16)(hdr->lrh[3] & OPA_16B_ENTROPY_MASK);
- }
+@@ -1558,7 +1558,7 @@ typedef void (*hfi1_handle_cnp)(struct hfi1_ibport *ibp, struct rvt_qp *qp,
+ 	[HFI1_PKT_TYPE_16B] = &return_cnp_16B
+ };
+ #define PKEY_CHECK_INVALID -1
+-int egress_pkey_check(struct hfi1_pportdata *ppd, __be16 *lrh, __be32 *bth,
++int egress_pkey_check(struct hfi1_pportdata *ppd, u32 slid, u16 pkey,
+ 		      u8 sc5, int8_t s_pkey_index);
  
-+#define OPA_16B_MAKE_QW(low_dw, high_dw) (((u64)(high_dw) << 32) | (low_dw))
-+
- /*
-  * BTH
-  */
-@@ -1538,7 +1540,7 @@ static inline u32 egress_cycles(u32 len, u32 rate)
- }
- 
- void set_link_ipg(struct hfi1_pportdata *ppd);
--void process_becn(struct hfi1_pportdata *ppd, u8 sl,  u16 rlid, u32 lqpn,
-+void process_becn(struct hfi1_pportdata *ppd, u8 sl, u32 rlid, u32 lqpn,
- 		  u32 rqpn, u8 svc_type);
- void return_cnp(struct hfi1_ibport *ibp, struct rvt_qp *qp, u32 remote_qpn,
- 		u32 pkey, u32 slid, u32 dlid, u8 sc5,
-diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
-index e3dbf6d..99defcc 100644
---- a/drivers/infiniband/hw/hfi1/rc.c
-+++ b/drivers/infiniband/hw/hfi1/rc.c
-@@ -100,8 +100,12 @@ static int make_rc_ack(struct hfi1_ibdev *dev, struct rvt_qp *qp,
- 	if (!(ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK))
- 		goto bail;
- 
--	/* header size in 32-bit words LRH+BTH = (8+12)/4. */
--	hwords = 5;
-+	if (priv->hdr_type == HFI1_PKT_TYPE_9B)
-+		/* header size in 32-bit words LRH+BTH = (8+12)/4. */
-+		hwords = 5;
-+	else
-+		/* header size in 32-bit words 16B LRH+BTH = (16+12)/4. */
-+		hwords = 7;
- 
- 	switch (qp->s_ack_state) {
- 	case OP(RDMA_READ_RESPONSE_LAST):
-@@ -258,8 +262,7 @@ int hfi1_make_rc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
- 	struct ib_other_headers *ohdr;
- 	struct rvt_sge_state *ss;
- 	struct rvt_swqe *wqe;
--	/* header size in 32-bit words LRH+BTH = (8+12)/4. */
--	u32 hwords = 5;
-+	u32 hwords;
- 	u32 len;
- 	u32 bth0 = 0;
- 	u32 bth2;
-@@ -273,9 +276,23 @@ int hfi1_make_rc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
- 	if (IS_ERR(ps->s_txreq))
- 		goto bail_no_tx;
- 
--	ohdr = &ps->s_txreq->phdr.hdr.ibh.u.oth;
--	if (rdma_ah_get_ah_flags(&qp->remote_ah_attr) & IB_AH_GRH)
--		ohdr = &ps->s_txreq->phdr.hdr.ibh.u.l.oth;
-+	ps->s_txreq->phdr.hdr.hdr_type = priv->hdr_type;
-+	if (priv->hdr_type == HFI1_PKT_TYPE_9B) {
-+		/* header size in 32-bit words LRH+BTH = (8+12)/4. */
-+		hwords = 5;
-+		if (rdma_ah_get_ah_flags(&qp->remote_ah_attr) & IB_AH_GRH)
-+			ohdr = &ps->s_txreq->phdr.hdr.ibh.u.l.oth;
-+		else
-+			ohdr = &ps->s_txreq->phdr.hdr.ibh.u.oth;
-+	} else {
-+		/* header size in 32-bit words 16B LRH+BTH = (16+12)/4. */
-+		hwords = 7;
-+		if ((rdma_ah_get_ah_flags(&qp->remote_ah_attr) & IB_AH_GRH) &&
-+		    (hfi1_check_mcast(rdma_ah_get_dlid(&qp->remote_ah_attr))))
-+			ohdr = &ps->s_txreq->phdr.hdr.opah.u.l.oth;
-+		else
-+			ohdr = &ps->s_txreq->phdr.hdr.opah.u.oth;
-+	}
- 
- 	/* Sending responses has higher priority over sending requests. */
- 	if ((qp->s_flags & RVT_S_RESP_PENDING) &&
-@@ -703,6 +720,154 @@ int hfi1_make_rc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
- 	return 0;
- }
- 
-+static inline void hfi1_make_bth_aeth(struct rvt_qp *qp,
-+				      struct ib_other_headers *ohdr,
-+				      u32 bth0, u32 bth1)
-+{
-+	if (qp->r_nak_state)
-+		ohdr->u.aeth = cpu_to_be32((qp->r_msn & IB_MSN_MASK) |
-+					    (qp->r_nak_state <<
-+					     IB_AETH_CREDIT_SHIFT));
-+	else
-+		ohdr->u.aeth = rvt_compute_aeth(qp);
-+
-+	ohdr->bth[0] = cpu_to_be32(bth0);
-+	ohdr->bth[1] = cpu_to_be32(bth1 | qp->remote_qpn);
-+	ohdr->bth[2] = cpu_to_be32(mask_psn(qp->r_ack_psn));
-+}
-+
-+static inline void hfi1_queue_rc_ack(struct rvt_qp *qp, bool is_fecn)
-+{
-+	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&qp->s_lock, flags);
-+	if (!(ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK))
-+		goto unlock;
-+	this_cpu_inc(*ibp->rvp.rc_qacks);
-+	qp->s_flags |= RVT_S_ACK_PENDING | RVT_S_RESP_PENDING;
-+	qp->s_nak_state = qp->r_nak_state;
-+	qp->s_ack_psn = qp->r_ack_psn;
-+	if (is_fecn)
-+		qp->s_flags |= RVT_S_ECN;
-+
-+	/* Schedule the send tasklet. */
-+	hfi1_schedule_send(qp);
-+unlock:
-+	spin_unlock_irqrestore(&qp->s_lock, flags);
-+}
-+
-+static inline void hfi1_make_rc_ack_9B(struct rvt_qp *qp,
-+				       struct hfi1_opa_header *opa_hdr,
-+				       u8 sc5, bool is_fecn,
-+				       u64 *pbc_flags, u32 *hwords,
-+				       u32 *nwords)
-+{
-+	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
-+	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
-+	struct ib_header *hdr = &opa_hdr->ibh;
-+	struct ib_other_headers *ohdr;
-+	u16 lrh0 = HFI1_LRH_BTH;
+ #define PACKET_EGRESS_TIMEOUT 350
+diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
+index 8f02707..aae1f40 100644
+--- a/drivers/infiniband/hw/hfi1/user_sdma.c
++++ b/drivers/infiniband/hw/hfi1/user_sdma.c
+@@ -502,6 +502,8 @@ int hfi1_user_sdma_process_request(struct hfi1_filedata *fd,
+ 	struct sdma_req_info info;
+ 	struct user_sdma_request *req;
+ 	u8 opcode, sc, vl;
 +	u16 pkey;
-+	u32 bth0, bth1;
-+
-+	opa_hdr->hdr_type = HFI1_PKT_TYPE_9B;
-+	ohdr = &hdr->u.oth;
-+	/* header size in 32-bit words LRH+BTH+AETH = (8+12+4)/4 */
-+	*hwords = 6;
-+
-+	if (unlikely(rdma_ah_get_ah_flags(&qp->remote_ah_attr) & IB_AH_GRH)) {
-+		*hwords += hfi1_make_grh(ibp, &hdr->u.l.grh,
-+					 rdma_ah_read_grh(&qp->remote_ah_attr),
-+					 *hwords - 2, SIZE_OF_CRC);
-+		ohdr = &hdr->u.l.oth;
-+		lrh0 = HFI1_LRH_GRH;
-+	}
-+	/* set PBC_DC_INFO bit (aka SC[4]) in pbc_flags */
-+	*pbc_flags |= ((!!(sc5 & 0x10)) << PBC_DC_INFO_SHIFT);
-+
-+	/* read pkey_index w/o lock (its atomic) */
-+	pkey = hfi1_get_pkey(ibp, qp->s_pkey_index);
-+
-+	lrh0 |= (sc5 & IB_SC_MASK) << IB_SC_SHIFT |
-+		(rdma_ah_get_sl(&qp->remote_ah_attr) & IB_SL_MASK) <<
-+			IB_SL_SHIFT;
-+
-+	hfi1_make_ib_hdr(hdr, lrh0, *hwords + SIZE_OF_CRC,
-+			 opa_get_lid(rdma_ah_get_dlid(&qp->remote_ah_attr), 9B),
-+			 ppd->lid | rdma_ah_get_path_bits(&qp->remote_ah_attr));
-+
-+	bth0 = pkey | (OP(ACKNOWLEDGE) << 24);
-+	if (qp->s_mig_state == IB_MIG_MIGRATED)
-+		bth0 |= IB_BTH_MIG_REQ;
-+	bth1 = (!!is_fecn) << IB_BECN_SHIFT;
-+	hfi1_make_bth_aeth(qp, ohdr, bth0, bth1);
-+}
-+
-+static inline void hfi1_make_rc_ack_16B(struct rvt_qp *qp,
-+					struct hfi1_opa_header *opa_hdr,
-+					u8 sc5, bool is_fecn,
-+					u64 *pbc_flags, u32 *hwords,
-+					u32 *nwords)
-+{
-+	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
-+	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
-+	struct hfi1_16b_header *hdr = &opa_hdr->opah;
-+	struct ib_other_headers *ohdr;
-+	u32 bth0, bth1;
-+	u16 len, pkey;
-+	u8 becn = !!is_fecn;
-+	u8 l4 = OPA_16B_L4_IB_LOCAL;
-+	u8 extra_bytes;
-+
-+	opa_hdr->hdr_type = HFI1_PKT_TYPE_16B;
-+	ohdr = &hdr->u.oth;
-+	/* header size in 32-bit words 16B LRH+BTH+AETH = (16+12+4)/4 */
-+	*hwords = 8;
-+	extra_bytes = hfi1_get_16b_padding(*hwords << 2, 0);
-+	*nwords = SIZE_OF_CRC + ((extra_bytes + SIZE_OF_LT) >> 2);
-+
-+	if (unlikely(rdma_ah_get_ah_flags(&qp->remote_ah_attr) & IB_AH_GRH) &&
-+	    hfi1_check_mcast(rdma_ah_get_dlid(&qp->remote_ah_attr))) {
-+		*hwords += hfi1_make_grh(ibp, &hdr->u.l.grh,
-+					 rdma_ah_read_grh(&qp->remote_ah_attr),
-+					 *hwords - 4, *nwords);
-+		ohdr = &hdr->u.l.oth;
-+		l4 = OPA_16B_L4_IB_GLOBAL;
-+	}
-+	*pbc_flags |= PBC_PACKET_BYPASS | PBC_INSERT_BYPASS_ICRC;
-+
-+	/* read pkey_index w/o lock (its atomic) */
-+	pkey = hfi1_get_pkey(ibp, qp->s_pkey_index);
-+
-+	/* Convert dwords to flits */
-+	len = (*hwords + *nwords) >> 1;
-+
-+	hfi1_make_16b_hdr(hdr,
-+			  ppd->lid | rdma_ah_get_path_bits(&qp->remote_ah_attr),
-+			  opa_get_lid(rdma_ah_get_dlid(&qp->remote_ah_attr),
-+				      16B),
-+			  len, pkey, becn, 0, l4, sc5);
-+
-+	bth0 = pkey | (OP(ACKNOWLEDGE) << 24);
-+	bth0 |= extra_bytes << 20;
-+	if (qp->s_mig_state == IB_MIG_MIGRATED)
-+		bth1 = OPA_BTH_MIG_REQ;
-+	hfi1_make_bth_aeth(qp, ohdr, bth0, bth1);
-+}
-+
-+typedef void (*hfi1_make_rc_ack)(struct rvt_qp *qp,
-+				 struct hfi1_opa_header *opa_hdr,
-+				 u8 sc5, bool is_fecn,
-+				 u64 *pbc_flags, u32 *hwords,
-+				 u32 *nwords);
-+
-+/* We support only two types - 9B and 16B for now */
-+static const hfi1_make_rc_ack hfi1_make_rc_ack_tbl[2] = {
-+	[HFI1_PKT_TYPE_9B] = &hfi1_make_rc_ack_9B,
-+	[HFI1_PKT_TYPE_16B] = &hfi1_make_rc_ack_16B
-+};
-+
- /**
-  * hfi1_send_rc_ack - Construct an ACK packet and send it
-  * @qp: a pointer to the QP
-@@ -711,87 +876,48 @@ int hfi1_make_rc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
-  * Note that RDMA reads and atomics are handled in the
-  * send side QP state and send engine.
-  */
--void hfi1_send_rc_ack(struct hfi1_ctxtdata *rcd, struct rvt_qp *qp,
--		      int is_fecn)
-+void hfi1_send_rc_ack(struct hfi1_ctxtdata *rcd,
-+		      struct rvt_qp *qp, bool is_fecn)
- {
- 	struct hfi1_ibport *ibp = rcd_to_iport(rcd);
-+	struct hfi1_qp_priv *priv = qp->priv;
- 	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
-+	u8 sc5 = ibp->sl_to_sc[rdma_ah_get_sl(&qp->remote_ah_attr)];
- 	u64 pbc, pbc_flags = 0;
--	u16 lrh0;
--	u16 sc5;
--	u32 bth0;
--	u32 hwords;
--	u32 vl, plen;
--	struct send_context *sc;
-+	u32 hwords = 0;
-+	u32 nwords = 0;
-+	u32 plen;
- 	struct pio_buf *pbuf;
--	struct hfi1_opa_header opah;
--	struct ib_header *hdr;
--	struct ib_other_headers *ohdr;
--	unsigned long flags;
-+	struct hfi1_opa_header opa_hdr;
- 
- 	/* clear the defer count */
- 	qp->r_adefered = 0;
- 
- 	/* Don't send ACK or NAK if a RDMA read or atomic is pending. */
--	if (qp->s_flags & RVT_S_RESP_PENDING)
--		goto queue_ack;
-+	if (qp->s_flags & RVT_S_RESP_PENDING) {
-+		hfi1_queue_rc_ack(qp, is_fecn);
-+		return;
-+	}
- 
- 	/* Ensure s_rdma_ack_cnt changes are committed */
- 	smp_read_barrier_depends();
--	if (qp->s_rdma_ack_cnt)
--		goto queue_ack;
--
--	/* Construct the header */
--	opah.hdr_type = 0;
--	hdr = &opah.ibh;
--
--	/* header size in 32-bit words LRH+BTH+AETH = (8+12+4)/4 */
--	hwords = 6;
--	if (unlikely(rdma_ah_get_ah_flags(&qp->remote_ah_attr) & IB_AH_GRH)) {
--		hwords += hfi1_make_grh(ibp, &hdr->u.l.grh,
--					rdma_ah_read_grh(&qp->remote_ah_attr),
--					hwords, 0);
--		ohdr = &hdr->u.l.oth;
--		lrh0 = HFI1_LRH_GRH;
--	} else {
--		ohdr = &hdr->u.oth;
--		lrh0 = HFI1_LRH_BTH;
-+	if (qp->s_rdma_ack_cnt) {
-+		hfi1_queue_rc_ack(qp, is_fecn);
-+		return;
- 	}
--	/* read pkey_index w/o lock (its atomic) */
--	bth0 = hfi1_get_pkey(ibp, qp->s_pkey_index) | (OP(ACKNOWLEDGE) << 24);
--	if (qp->s_mig_state == IB_MIG_MIGRATED)
--		bth0 |= IB_BTH_MIG_REQ;
--	if (qp->r_nak_state)
--		ohdr->u.aeth = cpu_to_be32((qp->r_msn & IB_MSN_MASK) |
--					    (qp->r_nak_state <<
--					     IB_AETH_CREDIT_SHIFT));
--	else
--		ohdr->u.aeth = rvt_compute_aeth(qp);
--	sc5 = ibp->sl_to_sc[rdma_ah_get_sl(&qp->remote_ah_attr)];
--	/* set PBC_DC_INFO bit (aka SC[4]) in pbc_flags */
--	pbc_flags |= (ib_is_sc5(sc5) << PBC_DC_INFO_SHIFT);
--	lrh0 |= (sc5 & 0xf) << 12 | (rdma_ah_get_sl(&qp->remote_ah_attr)
--				     & 0xf) << 4;
--	hdr->lrh[0] = cpu_to_be16(lrh0);
--	hdr->lrh[1] = cpu_to_be16(rdma_ah_get_dlid(&qp->remote_ah_attr));
--	hdr->lrh[2] = cpu_to_be16(hwords + SIZE_OF_CRC);
--	hdr->lrh[3] = cpu_to_be16(ppd->lid |
--				  rdma_ah_get_path_bits(&qp->remote_ah_attr));
--	ohdr->bth[0] = cpu_to_be32(bth0);
--	ohdr->bth[1] = cpu_to_be32(qp->remote_qpn);
--	ohdr->bth[1] |= cpu_to_be32((!!is_fecn) << IB_BECN_SHIFT);
--	ohdr->bth[2] = cpu_to_be32(mask_psn(qp->r_ack_psn));
- 
- 	/* Don't try to send ACKs if the link isn't ACTIVE */
- 	if (driver_lstate(ppd) != IB_PORT_ACTIVE)
- 		return;
- 
--	sc = rcd->sc;
--	plen = 2 /* PBC */ + hwords;
--	vl = sc_to_vlt(ppd->dd, sc5);
--	pbc = create_pbc(ppd, pbc_flags, qp->srate_mbps, vl, plen);
-+	/* Make the appropriate header */
-+	hfi1_make_rc_ack_tbl[priv->hdr_type](qp, &opa_hdr, sc5, is_fecn,
-+					     &pbc_flags, &hwords, &nwords);
- 
--	pbuf = sc_buffer_alloc(sc, plen, NULL, NULL);
-+	plen = 2 /* PBC */ + hwords + nwords;
-+	pbc = create_pbc(ppd, pbc_flags, qp->srate_mbps,
-+			 sc_to_vlt(ppd->dd, sc5), plen);
-+	pbuf = sc_buffer_alloc(rcd->sc, plen, NULL, NULL);
- 	if (!pbuf) {
- 		/*
- 		 * We have no room to send at the moment.  Pass
-@@ -799,32 +925,18 @@ void hfi1_send_rc_ack(struct hfi1_ctxtdata *rcd, struct rvt_qp *qp,
- 		 * so that when enough buffer space becomes available,
- 		 * the ACK is sent ahead of other outgoing packets.
- 		 */
--		goto queue_ack;
-+		hfi1_queue_rc_ack(qp, is_fecn);
-+		return;
- 	}
--
- 	trace_ack_output_ibhdr(dd_from_ibdev(qp->ibqp.device),
--			       &opah, ib_is_sc5(sc5));
-+			       &opa_hdr, ib_is_sc5(sc5));
- 
- 	/* write the pbc and data */
--	ppd->dd->pio_inline_send(ppd->dd, pbuf, pbc, hdr, hwords);
--
-+	ppd->dd->pio_inline_send(ppd->dd, pbuf, pbc,
-+				 (priv->hdr_type == HFI1_PKT_TYPE_9B ?
-+				 (void *)&opa_hdr.ibh :
-+				 (void *)&opa_hdr.opah), hwords);
- 	return;
--
--queue_ack:
--	spin_lock_irqsave(&qp->s_lock, flags);
--	if (!(ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK))
--		goto unlock;
--	this_cpu_inc(*ibp->rvp.rc_qacks);
--	qp->s_flags |= RVT_S_ACK_PENDING | RVT_S_RESP_PENDING;
--	qp->s_nak_state = qp->r_nak_state;
--	qp->s_ack_psn = qp->r_ack_psn;
--	if (is_fecn)
--		qp->s_flags |= RVT_S_ECN;
--
--	/* Schedule the send engine. */
--	hfi1_schedule_send(qp);
--unlock:
--	spin_unlock_irqrestore(&qp->s_lock, flags);
- }
- 
- /**
-@@ -992,8 +1104,10 @@ static void reset_sending_psn(struct rvt_qp *qp, u32 psn)
- void hfi1_rc_send_complete(struct rvt_qp *qp, struct hfi1_opa_header *opah)
- {
- 	struct ib_other_headers *ohdr;
--	struct ib_header *hdr = &opah->ibh;
-+	struct hfi1_qp_priv *priv = qp->priv;
- 	struct rvt_swqe *wqe;
-+	struct ib_header *hdr = NULL;
-+	struct hfi1_16b_header *hdr_16b = NULL;
- 	u32 opcode;
- 	u32 psn;
- 
-@@ -1002,10 +1116,22 @@ void hfi1_rc_send_complete(struct rvt_qp *qp, struct hfi1_opa_header *opah)
- 		return;
- 
- 	/* Find out where the BTH is */
--	if (ib_get_lnh(hdr) == HFI1_LRH_BTH)
--		ohdr = &hdr->u.oth;
--	else
--		ohdr = &hdr->u.l.oth;
-+	if (priv->hdr_type == HFI1_PKT_TYPE_9B) {
-+		hdr = &opah->ibh;
-+		if (ib_get_lnh(hdr) == HFI1_LRH_BTH)
-+			ohdr = &hdr->u.oth;
-+		else
-+			ohdr = &hdr->u.l.oth;
-+	} else {
-+		u8 l4;
-+
-+		hdr_16b = &opah->opah;
-+		l4  = hfi1_16B_get_l4(hdr_16b);
-+		if (l4 == OPA_16B_L4_IB_LOCAL)
-+			ohdr = &hdr_16b->u.oth;
-+		else
-+			ohdr = &hdr_16b->u.l.oth;
-+	}
- 
- 	opcode = ib_bth_get_opcode(ohdr);
- 	if (opcode >= OP(RDMA_READ_RESPONSE_FIRST) &&
-@@ -1405,36 +1531,34 @@ static void rdma_seq_err(struct rvt_qp *qp, struct hfi1_ibport *ibp, u32 psn,
- 
- /**
-  * rc_rcv_resp - process an incoming RC response packet
-- * @ibp: the port this packet came in on
-- * @ohdr: the other headers for this packet
-- * @data: the packet data
-- * @tlen: the packet length
-- * @qp: the QP for this packet
-- * @opcode: the opcode for this packet
-- * @psn: the packet sequence number for this packet
-- * @hdrsize: the header length
-- * @pmtu: the path MTU
-+ * @packet: data packet information
-  *
-  * This is called from hfi1_rc_rcv() to process an incoming RC response
-  * packet for the given QP.
-  * Called at interrupt level.
-  */
--static void rc_rcv_resp(struct hfi1_ibport *ibp,
--			struct ib_other_headers *ohdr,
--			void *data, u32 tlen, struct rvt_qp *qp,
--			u32 opcode, u32 psn, u32 hdrsize, u32 pmtu,
--			struct hfi1_ctxtdata *rcd)
-+static void rc_rcv_resp(struct hfi1_packet *packet)
- {
-+	struct hfi1_ctxtdata *rcd = packet->rcd;
-+	void *data = packet->payload;
-+	u32 tlen = packet->tlen;
-+	struct rvt_qp *qp = packet->qp;
-+	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
-+	struct ib_other_headers *ohdr = packet->ohdr;
- 	struct rvt_swqe *wqe;
- 	enum ib_wc_status status;
- 	unsigned long flags;
- 	int diff;
--	u32 pad;
--	u32 aeth;
- 	u64 val;
-+	u32 aeth;
-+	u32 psn = ib_bth_get_psn(packet->ohdr);
-+	u32 pmtu = qp->pmtu;
-+	u16 hdrsize = packet->hlen;
-+	u8 opcode = packet->opcode;
-+	u8 pad = packet->pad;
-+	u8 extra_bytes = pad + packet->extra_byte + (SIZE_OF_CRC << 2);
- 
- 	spin_lock_irqsave(&qp->s_lock, flags);
--
- 	trace_hfi1_ack(qp, psn);
- 
- 	/* Ignore invalid responses. */
-@@ -1500,7 +1624,7 @@ static void rc_rcv_resp(struct hfi1_ibport *ibp,
- 		if (unlikely(wqe->wr.opcode != IB_WR_RDMA_READ))
- 			goto ack_op_err;
- read_middle:
--		if (unlikely(tlen != (hdrsize + pmtu + 4)))
-+		if (unlikely(tlen != (hdrsize + pmtu + extra_bytes)))
- 			goto ack_len_err;
- 		if (unlikely(pmtu >= qp->s_rdma_read_len))
- 			goto ack_len_err;
-@@ -1532,13 +1656,11 @@ static void rc_rcv_resp(struct hfi1_ibport *ibp,
- 		aeth = be32_to_cpu(ohdr->u.aeth);
- 		if (!do_rc_ack(qp, aeth, psn, opcode, 0, rcd))
- 			goto ack_done;
--		/* Get the number of bytes the message was padded by. */
--		pad = ib_bth_get_pad(ohdr);
- 		/*
- 		 * Check that the data size is >= 0 && <= pmtu.
- 		 * Remember to account for ICRC (4).
- 		 */
--		if (unlikely(tlen < (hdrsize + pad + 4)))
-+		if (unlikely(tlen < (hdrsize + extra_bytes)))
- 			goto ack_len_err;
- 		/*
- 		 * If this is a response to a resent RDMA read, we
-@@ -1556,16 +1678,14 @@ static void rc_rcv_resp(struct hfi1_ibport *ibp,
- 			goto ack_seq_err;
- 		if (unlikely(wqe->wr.opcode != IB_WR_RDMA_READ))
- 			goto ack_op_err;
--		/* Get the number of bytes the message was padded by. */
--		pad = ib_bth_get_pad(ohdr);
- 		/*
- 		 * Check that the data size is >= 1 && <= pmtu.
- 		 * Remember to account for ICRC (4).
- 		 */
--		if (unlikely(tlen <= (hdrsize + pad + 4)))
-+		if (unlikely(tlen <= (hdrsize + extra_bytes)))
- 			goto ack_len_err;
- read_last:
--		tlen -= hdrsize + pad + 4;
-+		tlen -= hdrsize + extra_bytes;
- 		if (unlikely(tlen != qp->s_rdma_read_len))
- 			goto ack_len_err;
- 		aeth = be32_to_cpu(ohdr->u.aeth);
-@@ -1850,7 +1970,7 @@ static void log_cca_event(struct hfi1_pportdata *ppd, u8 sl, u32 rlid,
- 	spin_unlock_irqrestore(&ppd->cc_log_lock, flags);
- }
- 
--void process_becn(struct hfi1_pportdata *ppd, u8 sl, u16 rlid, u32 lqpn,
-+void process_becn(struct hfi1_pportdata *ppd, u8 sl, u32 rlid, u32 lqpn,
- 		  u32 rqpn, u8 svc_type)
- {
- 	struct cca_timer *cca_timer;
-@@ -1907,12 +2027,7 @@ void process_becn(struct hfi1_pportdata *ppd, u8 sl, u16 rlid, u32 lqpn,
- 
- /**
-  * hfi1_rc_rcv - process an incoming RC packet
-- * @rcd: the context pointer
-- * @hdr: the header of this packet
-- * @rcv_flags: flags relevant to rcv processing
-- * @data: the packet data
-- * @tlen: the packet length
-- * @qp: the QP for this packet
-+ * @packet: data packet information
-  *
-  * This is called from qp_rcv() to process an incoming RC packet
-  * for the given QP.
-@@ -1926,10 +2041,10 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
- 	struct rvt_qp *qp = packet->qp;
- 	struct hfi1_ibport *ibp = rcd_to_iport(rcd);
- 	struct ib_other_headers *ohdr = packet->ohdr;
--	u32 bth0;
-+	u32 bth0 = be32_to_cpu(ohdr->bth[0]);
- 	u32 opcode = packet->opcode;
- 	u32 hdrsize = packet->hlen;
--	u32 psn;
-+	u32 psn = ib_bth_get_psn(packet->ohdr);
- 	u32 pad = packet->pad;
- 	struct ib_wc wc;
- 	u32 pmtu = qp->pmtu;
-@@ -1940,15 +2055,14 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
- 	bool is_fecn = false;
- 	bool copy_last = false;
- 	u32 rkey;
-+	u8 extra_bytes = pad + packet->extra_byte + (SIZE_OF_CRC << 2);
- 
- 	lockdep_assert_held(&qp->r_lock);
- 
--	bth0 = be32_to_cpu(ohdr->bth[0]);
- 	if (hfi1_ruc_check_hdr(ibp, packet))
- 		return;
- 
- 	is_fecn = process_ecn(qp, packet, false);
--	psn = ib_bth_get_psn(ohdr);
- 
- 	/*
- 	 * Process responses (ACKs) before anything else.  Note that the
-@@ -1958,8 +2072,7 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
- 	 */
- 	if (opcode >= OP(RDMA_READ_RESPONSE_FIRST) &&
- 	    opcode <= OP(ATOMIC_ACKNOWLEDGE)) {
--		rc_rcv_resp(ibp, ohdr, data, tlen, qp, opcode, psn,
--			    hdrsize, pmtu, rcd);
-+		rc_rcv_resp(packet);
- 		if (is_fecn)
- 			goto send_ack;
- 		return;
-@@ -2026,7 +2139,12 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
- 	case OP(RDMA_WRITE_MIDDLE):
- send_middle:
- 		/* Check for invalid length PMTU or posted rwqe len. */
--		if (unlikely(tlen != (hdrsize + pmtu + 4)))
-+		/*
-+		 * There will be no padding for 9B packet but 16B packets
-+		 * will come in with some padding since we always add
-+		 * CRC and LT bytes which will need to be flit aligned
-+		 */
-+		if (unlikely(tlen != (hdrsize + pmtu + extra_bytes)))
- 			goto nack_inv;
- 		qp->r_rcv_len += pmtu;
- 		if (unlikely(qp->r_rcv_len > qp->r_len))
-@@ -2080,10 +2198,10 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
- send_last:
- 		/* Check for invalid length. */
- 		/* LAST len should be >= 1 */
--		if (unlikely(tlen < (hdrsize + pad + 4)))
-+		if (unlikely(tlen < (hdrsize + extra_bytes)))
- 			goto nack_inv;
--		/* Don't count the CRC. */
--		tlen -= (hdrsize + pad + 4);
-+		/* Don't count the CRC(and padding and LT byte for 16B). */
-+		tlen -= (hdrsize + extra_bytes);
- 		wc.byte_len = tlen + qp->r_rcv_len;
- 		if (unlikely(wc.byte_len > qp->r_len))
- 			goto nack_inv;
-diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
-index 6839bfa..b3291f0 100644
---- a/drivers/infiniband/hw/hfi1/ruc.c
-+++ b/drivers/infiniband/hw/hfi1/ruc.c
-@@ -735,73 +735,186 @@ static inline void build_ahg(struct rvt_qp *qp, u32 npsn)
- 	}
- }
- 
--void hfi1_make_ruc_header(struct rvt_qp *qp, struct ib_other_headers *ohdr,
--			  u32 bth0, u32 bth2, int middle,
--			  struct hfi1_pkt_state *ps)
-+static inline void hfi1_make_ruc_bth(struct rvt_qp *qp,
-+				     struct ib_other_headers *ohdr,
-+				     u32 bth0, u32 bth1, u32 bth2)
-+{
-+	bth1 |= qp->remote_qpn;
-+	ohdr->bth[0] = cpu_to_be32(bth0);
-+	ohdr->bth[1] = cpu_to_be32(bth1);
-+	ohdr->bth[2] = cpu_to_be32(bth2);
-+}
-+
-+static inline void hfi1_make_ruc_header_16B(struct rvt_qp *qp,
-+					    struct ib_other_headers *ohdr,
-+					    u32 bth0, u32 bth2, int middle,
-+					    struct hfi1_pkt_state *ps)
-+{
-+	struct hfi1_qp_priv *priv = qp->priv;
-+	struct hfi1_ibport *ibp = ps->ibp;
-+	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
-+	u32 bth1 = 0;
 +	u32 slid;
-+	u16 pkey = hfi1_get_pkey(ibp, qp->s_pkey_index);
-+	u8 l4 = OPA_16B_L4_IB_LOCAL;
-+	u8 extra_bytes = hfi1_get_16b_padding((qp->s_hdrwords << 2),
-+				   ps->s_txreq->s_cur_size);
-+	u32 nwords = SIZE_OF_CRC + ((ps->s_txreq->s_cur_size +
-+				 extra_bytes + SIZE_OF_LT) >> 2);
-+	u8 becn = 0;
-+
-+	if (unlikely(rdma_ah_get_ah_flags(&qp->remote_ah_attr) & IB_AH_GRH) &&
-+	    hfi1_check_mcast(rdma_ah_get_dlid(&qp->remote_ah_attr))) {
-+		struct ib_grh *grh;
-+		struct ib_global_route *grd =
-+			rdma_ah_retrieve_grh(&qp->remote_ah_attr);
-+		int hdrwords;
-+
-+		/*
-+		 * Ensure OPA GIDs are transformed to IB gids
-+		 * before creating the GRH.
-+		 */
-+		if (grd->sgid_index == OPA_GID_INDEX)
-+			grd->sgid_index = 0;
-+		grh = &ps->s_txreq->phdr.hdr.opah.u.l.grh;
-+		l4 = OPA_16B_L4_IB_GLOBAL;
-+		hdrwords = qp->s_hdrwords - 4;
-+		qp->s_hdrwords += hfi1_make_grh(ibp, grh, grd,
-+						hdrwords, nwords);
-+		middle = 0;
-+	}
-+
-+	if (qp->s_mig_state == IB_MIG_MIGRATED)
-+		bth1 |= OPA_BTH_MIG_REQ;
-+	else
-+		middle = 0;
-+
-+	if (middle)
-+		build_ahg(qp, bth2);
-+	else
-+		qp->s_flags &= ~RVT_S_AHG_VALID;
-+
-+	bth0 |= pkey;
-+	bth0 |= extra_bytes << 20;
-+	if (qp->s_flags & RVT_S_ECN) {
-+		qp->s_flags &= ~RVT_S_ECN;
-+		/* we recently received a FECN, so return a BECN */
-+		becn = 1;
-+	}
-+	hfi1_make_ruc_bth(qp, ohdr, bth0, bth1, bth2);
-+
-+	if (!ppd->lid)
-+		slid = be32_to_cpu(OPA_LID_PERMISSIVE);
-+	else
-+		slid = ppd->lid |
-+			(rdma_ah_get_path_bits(&qp->remote_ah_attr) &
-+			((1 << ppd->lmc) - 1));
-+
-+	hfi1_make_16b_hdr(&ps->s_txreq->phdr.hdr.opah,
-+			  slid,
-+			  opa_get_lid(rdma_ah_get_dlid(&qp->remote_ah_attr),
-+				      16B),
-+			  (qp->s_hdrwords + nwords) >> 1,
-+			  pkey, becn, 0, l4, priv->s_sc);
-+}
-+
-+static inline void hfi1_make_ruc_header_9B(struct rvt_qp *qp,
-+					   struct ib_other_headers *ohdr,
-+					   u32 bth0, u32 bth2, int middle,
-+					   struct hfi1_pkt_state *ps)
- {
- 	struct hfi1_qp_priv *priv = qp->priv;
- 	struct hfi1_ibport *ibp = ps->ibp;
--	u16 lrh0;
--	u32 nwords;
--	u32 extra_bytes;
--	u32 bth1;
--
--	/* Construct the header. */
--	extra_bytes = -ps->s_txreq->s_cur_size & 3;
--	nwords = (ps->s_txreq->s_cur_size + extra_bytes) >> 2;
--	lrh0 = HFI1_LRH_BTH;
-+	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
-+	u32 bth1 = 0;
-+	u16 pkey = hfi1_get_pkey(ibp, qp->s_pkey_index);
-+	u16 lrh0 = HFI1_LRH_BTH;
-+	u16 slid;
-+	u8 extra_bytes = -ps->s_txreq->s_cur_size & 3;
-+	u32 nwords = SIZE_OF_CRC + ((ps->s_txreq->s_cur_size +
-+					 extra_bytes) >> 2);
-+
- 	if (unlikely(rdma_ah_get_ah_flags(&qp->remote_ah_attr) & IB_AH_GRH)) {
--		qp->s_hdrwords +=
--			hfi1_make_grh(ibp,
--				      &ps->s_txreq->phdr.hdr.ibh.u.l.grh,
--				      &qp->remote_ah_attr.grh,
--				      qp->s_hdrwords, nwords);
-+		struct ib_grh *grh = &ps->s_txreq->phdr.hdr.ibh.u.l.grh;
-+		int hdrwords = qp->s_hdrwords - 2;
-+
- 		lrh0 = HFI1_LRH_GRH;
-+		qp->s_hdrwords +=
-+			hfi1_make_grh(ibp, grh,
-+				      rdma_ah_read_grh(&qp->remote_ah_attr),
-+				      hdrwords, nwords);
- 		middle = 0;
+ 	int req_queued = 0;
+ 	u16 dlid;
+ 	u32 selector;
+@@ -635,8 +637,9 @@ int hfi1_user_sdma_process_request(struct hfi1_filedata *fd,
  	}
- 	lrh0 |= (priv->s_sc & 0xf) << 12 |
- 		(rdma_ah_get_sl(&qp->remote_ah_attr) & 0xf) << 4;
--	/*
--	 * reset s_ahg/AHG fields
--	 *
--	 * This insures that the ahgentry/ahgcount
--	 * are at a non-AHG default to protect
--	 * build_verbs_tx_desc() from using
--	 * an include ahgidx.
--	 *
--	 * build_ahg() will modify as appropriate
--	 * to use the AHG feature.
--	 */
--	priv->s_ahg->tx_flags = 0;
--	priv->s_ahg->ahgcount = 0;
--	priv->s_ahg->ahgidx = 0;
-+
- 	if (qp->s_mig_state == IB_MIG_MIGRATED)
- 		bth0 |= IB_BTH_MIG_REQ;
- 	else
- 		middle = 0;
-+
- 	if (middle)
- 		build_ahg(qp, bth2);
- 	else
- 		qp->s_flags &= ~RVT_S_AHG_VALID;
--	ps->s_txreq->phdr.hdr.ibh.lrh[0] = cpu_to_be16(lrh0);
--	ps->s_txreq->phdr.hdr.ibh.lrh[1] =
--		cpu_to_be16(rdma_ah_get_dlid(&qp->remote_ah_attr));
--	ps->s_txreq->phdr.hdr.ibh.lrh[2] =
--		cpu_to_be16(qp->s_hdrwords + nwords + SIZE_OF_CRC);
--	ps->s_txreq->phdr.hdr.ibh.lrh[3] =
--		cpu_to_be16(ppd_from_ibp(ibp)->lid |
--		rdma_ah_get_path_bits(&qp->remote_ah_attr));
--	bth0 |= hfi1_get_pkey(ibp, qp->s_pkey_index);
-+
-+	bth0 |= pkey;
- 	bth0 |= extra_bytes << 20;
--	ohdr->bth[0] = cpu_to_be32(bth0);
--	bth1 = qp->remote_qpn;
- 	if (qp->s_flags & RVT_S_ECN) {
- 		qp->s_flags &= ~RVT_S_ECN;
- 		/* we recently received a FECN, so return a BECN */
- 		bth1 |= (IB_BECN_MASK << IB_BECN_SHIFT);
+ 
+ 	/* Checking P_KEY for requests from user-space */
+-	if (egress_pkey_check(dd->pport, req->hdr.lrh, req->hdr.bth, sc,
+-			      PKEY_CHECK_INVALID)) {
++	pkey = (u16)be32_to_cpu(req->hdr.bth[0]);
++	slid = be16_to_cpu(req->hdr.lrh[3]);
++	if (egress_pkey_check(dd->pport, slid, pkey, sc, PKEY_CHECK_INVALID)) {
+ 		ret = -EINVAL;
+ 		goto free_req;
  	}
--	ohdr->bth[1] = cpu_to_be32(bth1);
--	ohdr->bth[2] = cpu_to_be32(bth2);
-+	hfi1_make_ruc_bth(qp, ohdr, bth0, bth1, bth2);
-+
-+	if (!ppd->lid)
-+		slid = be16_to_cpu(IB_LID_PERMISSIVE);
-+	else
-+		slid = ppd->lid |
-+			(rdma_ah_get_path_bits(&qp->remote_ah_attr) &
-+			((1 << ppd->lmc) - 1));
-+	hfi1_make_ib_hdr(&ps->s_txreq->phdr.hdr.ibh,
-+			 lrh0,
-+			 qp->s_hdrwords + nwords,
-+			 opa_get_lid(rdma_ah_get_dlid(&qp->remote_ah_attr), 9B),
-+			 ppd_from_ibp(ibp)->lid |
-+				rdma_ah_get_path_bits(&qp->remote_ah_attr));
-+}
-+
-+typedef void (*hfi1_make_ruc_hdr)(struct rvt_qp *qp,
-+				  struct ib_other_headers *ohdr,
-+				  u32 bth0, u32 bth2, int middle,
-+				  struct hfi1_pkt_state *ps);
-+
-+/* We support only two types - 9B and 16B for now */
-+static const hfi1_make_ruc_hdr hfi1_ruc_header_tbl[2] = {
-+	[HFI1_PKT_TYPE_9B] = &hfi1_make_ruc_header_9B,
-+	[HFI1_PKT_TYPE_16B] = &hfi1_make_ruc_header_16B
-+};
-+
-+void hfi1_make_ruc_header(struct rvt_qp *qp, struct ib_other_headers *ohdr,
-+			  u32 bth0, u32 bth2, int middle,
-+			  struct hfi1_pkt_state *ps)
-+{
-+	struct hfi1_qp_priv *priv = qp->priv;
-+
-+	/*
-+	 * reset s_ahg/AHG fields
-+	 *
-+	 * This insures that the ahgentry/ahgcount
-+	 * are at a non-AHG default to protect
-+	 * build_verbs_tx_desc() from using
-+	 * an include ahgidx.
-+	 *
-+	 * build_ahg() will modify as appropriate
-+	 * to use the AHG feature.
-+	 */
-+	priv->s_ahg->tx_flags = 0;
-+	priv->s_ahg->ahgcount = 0;
-+	priv->s_ahg->ahgidx = 0;
-+
-+	/* Make the appropriate header */
-+	hfi1_ruc_header_tbl[priv->hdr_type](qp, ohdr, bth0, bth2, middle, ps);
+diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
+index 6c9fa43..eee2320 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.c
++++ b/drivers/infiniband/hw/hfi1/verbs.c
+@@ -506,24 +506,6 @@ void hfi1_copy_sge(
+ 	}
  }
  
- /* when sending, force a reschedule every one of these periods */
-diff --git a/drivers/infiniband/hw/hfi1/uc.c b/drivers/infiniband/hw/hfi1/uc.c
-index e0bb766..0b64617 100644
---- a/drivers/infiniband/hw/hfi1/uc.c
-+++ b/drivers/infiniband/hw/hfi1/uc.c
-@@ -65,7 +65,7 @@ int hfi1_make_uc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
- 	struct hfi1_qp_priv *priv = qp->priv;
- 	struct ib_other_headers *ohdr;
- 	struct rvt_swqe *wqe;
--	u32 hwords = 5;
-+	u32 hwords;
- 	u32 bth0 = 0;
- 	u32 len;
- 	u32 pmtu = qp->pmtu;
-@@ -93,9 +93,23 @@ int hfi1_make_uc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
- 		goto done_free_tx;
+-static u8 get_opcode(struct hfi1_opa_header *hdr)
+-{
+-	struct ib_other_headers *ohdr;
+-
+-	if (hdr->hdr_type) {
+-		if (hfi1_16B_get_l4(&hdr->opah) == OPA_16B_L4_IB_LOCAL)
+-			ohdr = &hdr->opah.u.oth;
+-		else
+-			ohdr = &hdr->opah.u.l.oth;
+-	} else {
+-		if (ib_get_lnh(&hdr->ibh) == HFI1_LRH_BTH)
+-			ohdr = &hdr->ibh.u.oth;
+-		else
+-			ohdr = &hdr->ibh.u.l.oth;
+-	}
+-	return ib_bth_get_opcode(ohdr);
+-}
+-
+ /*
+  * Make sure the QP is ready and able to accept the given opcode.
+  */
+@@ -830,12 +812,27 @@ static int build_verbs_tx_desc(
+ 	int ret = 0;
+ 	struct hfi1_sdma_header *phdr = &tx->phdr;
+ 	u16 hdrbytes = tx->hdr_dwords << 2;
++	u32 *hdr;
++	u8 extra_bytes = 0;
++	static char trail_buf[12]; /* CRC = 4, LT = 1, Pad = 0 to 7 bytes */
+ 
++	if (tx->phdr.hdr.hdr_type) {
++		/*
++		 * hdrbytes accounts for PBC. Need to subtract 8 bytes
++		 * before calculating padding.
++		 */
++		extra_bytes = hfi1_get_16b_padding(hdrbytes - 8, length) +
++			      (SIZE_OF_CRC << 2) + SIZE_OF_LT;
++		hdr = (u32 *)&phdr->hdr.opah;
++	} else {
++		hdr = (u32 *)&phdr->hdr.ibh;
++	}
+ 	if (!ahg_info->ahgcount) {
+ 		ret = sdma_txinit_ahg(
+ 			&tx->txreq,
+ 			ahg_info->tx_flags,
+-			hdrbytes + length,
++			hdrbytes + length +
++			extra_bytes,
+ 			ahg_info->ahgidx,
+ 			0,
+ 			NULL,
+@@ -865,8 +862,17 @@ static int build_verbs_tx_desc(
+ 			goto bail_txadd;
+ 	}
+ 	/* add the ulp payload - if any. tx->ss can be NULL for acks */
+-	if (tx->ss)
++	if (tx->ss) {
+ 		ret = build_verbs_ulp_payload(sde, length, tx);
++		if (ret)
++			goto bail_txadd;
++	}
++
++	/* add icrc, lt byte, and padding to flit */
++	if (extra_bytes != 0)
++		ret = sdma_txadd_kvaddr(sde->dd, &tx->txreq,
++					trail_buf, extra_bytes);
++
+ bail_txadd:
+ 	return ret;
+ }
+@@ -878,26 +884,42 @@ int hfi1_verbs_send_dma(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
+ 	struct hfi1_ahg_info *ahg_info = priv->s_ahg;
+ 	u32 hdrwords = qp->s_hdrwords;
+ 	u32 len = ps->s_txreq->s_cur_size;
+-	u32 plen = hdrwords + ((len + 3) >> 2) + 2; /* includes pbc */
++	u32 plen;
+ 	struct hfi1_ibdev *dev = ps->dev;
+ 	struct hfi1_pportdata *ppd = ps->ppd;
+ 	struct verbs_txreq *tx;
+ 	u8 sc5 = priv->s_sc;
+-
+ 	int ret;
++	u32 dwords;
++	bool bypass = false;
++
++	if (ps->s_txreq->phdr.hdr.hdr_type) {
++		u8 extra_bytes = hfi1_get_16b_padding((hdrwords << 2), len);
++
++		dwords = (len + extra_bytes + (SIZE_OF_CRC << 2) +
++			  SIZE_OF_LT) >> 2;
++		bypass = true;
++	} else {
++		dwords = (len + 3) >> 2;
++	}
++	plen = hdrwords + dwords + 2;
+ 
+ 	tx = ps->s_txreq;
+ 	if (!sdma_txreq_built(&tx->txreq)) {
+ 		if (likely(pbc == 0)) {
+ 			u32 vl = sc_to_vlt(dd_from_ibdev(qp->ibqp.device), sc5);
+-			u8 opcode = get_opcode(&tx->phdr.hdr);
+ 
+ 			/* No vl15 here */
+-			/* set PBC_DC_INFO bit (aka SC[4]) in pbc_flags */
+-			pbc |= (ib_is_sc5(sc5) << PBC_DC_INFO_SHIFT);
++			/* set PBC_DC_INFO bit (aka SC[4]) in pbc */
++			if (ps->s_txreq->phdr.hdr.hdr_type)
++				pbc |= PBC_PACKET_BYPASS |
++				       PBC_INSERT_BYPASS_ICRC;
++			else
++				pbc |= (ib_is_sc5(sc5) << PBC_DC_INFO_SHIFT);
+ 
+-			if (unlikely(hfi1_dbg_fault_opcode(qp, opcode, false)))
+-				pbc = hfi1_fault_tx(qp, opcode, pbc);
++			if (unlikely(hfi1_dbg_fault_opcode(qp, ps->opcode,
++							   false)))
++				pbc = hfi1_fault_tx(qp, ps->opcode, pbc);
+ 			pbc = create_pbc(ppd,
+ 					 pbc,
+ 					 qp->srate_mbps,
+@@ -1000,10 +1022,10 @@ int hfi1_verbs_send_pio(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
+ 	u32 hdrwords = qp->s_hdrwords;
+ 	struct rvt_sge_state *ss = ps->s_txreq->ss;
+ 	u32 len = ps->s_txreq->s_cur_size;
+-	u32 dwords = (len + 3) >> 2;
+-	u32 plen = hdrwords + dwords + 2; /* includes pbc */
++	u32 dwords;
++	u32 plen;
+ 	struct hfi1_pportdata *ppd = ps->ppd;
+-	u32 *hdr = (u32 *)&ps->s_txreq->phdr.hdr;
++	u32 *hdr;
+ 	u8 sc5;
+ 	unsigned long flags = 0;
+ 	struct send_context *sc;
+@@ -1011,6 +1033,23 @@ int hfi1_verbs_send_pio(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
+ 	int wc_status = IB_WC_SUCCESS;
+ 	int ret = 0;
+ 	pio_release_cb cb = NULL;
++	u32 lrh0_16b;
++	bool bypass = false;
++	u8 extra_bytes = 0;
++
++	if (ps->s_txreq->phdr.hdr.hdr_type) {
++		u8 pad_size = hfi1_get_16b_padding((hdrwords << 2), len);
++
++		extra_bytes = pad_size + (SIZE_OF_CRC << 2) + SIZE_OF_LT;
++		dwords = (len + extra_bytes) >> 2;
++		hdr = (u32 *)&ps->s_txreq->phdr.hdr.opah;
++		lrh0_16b = ps->s_txreq->phdr.hdr.opah.lrh[0];
++		bypass = true;
++	} else {
++		dwords = (len + 3) >> 2;
++		hdr = (u32 *)&ps->s_txreq->phdr.hdr.ibh;
++	}
++	plen = hdrwords + dwords + 2;
+ 
+ 	/* only RC/UC use complete */
+ 	switch (qp->ibqp.qp_type) {
+@@ -1028,13 +1067,14 @@ int hfi1_verbs_send_pio(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
+ 
+ 	if (likely(pbc == 0)) {
+ 		u8 vl = sc_to_vlt(dd_from_ibdev(qp->ibqp.device), sc5);
+-		struct verbs_txreq *tx = ps->s_txreq;
+-		u8 opcode = get_opcode(&tx->phdr.hdr);
+ 
+-		/* set PBC_DC_INFO bit (aka SC[4]) in pbc_flags */
+-		pbc |= (ib_is_sc5(sc5) << PBC_DC_INFO_SHIFT);
+-		if (unlikely(hfi1_dbg_fault_opcode(qp, opcode, false)))
+-			pbc = hfi1_fault_tx(qp, opcode, pbc);
++		/* set PBC_DC_INFO bit (aka SC[4]) in pbc */
++		if (ps->s_txreq->phdr.hdr.hdr_type)
++			pbc |= PBC_PACKET_BYPASS | PBC_INSERT_BYPASS_ICRC;
++		else
++			pbc |= (ib_is_sc5(sc5) << PBC_DC_INFO_SHIFT);
++		if (unlikely(hfi1_dbg_fault_opcode(qp, ps->opcode, false)))
++			pbc = hfi1_fault_tx(qp, ps->opcode, pbc);
+ 		pbc = create_pbc(ppd, pbc, qp->srate_mbps, vl, plen);
+ 	}
+ 	if (cb)
+@@ -1071,11 +1111,12 @@ int hfi1_verbs_send_pio(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
+ 		}
  	}
  
--	ohdr = &ps->s_txreq->phdr.hdr.ibh.u.oth;
--	if (rdma_ah_get_ah_flags(&qp->remote_ah_attr) & IB_AH_GRH)
--		ohdr = &ps->s_txreq->phdr.hdr.ibh.u.l.oth;
-+	ps->s_txreq->phdr.hdr.hdr_type = priv->hdr_type;
-+	if (priv->hdr_type == HFI1_PKT_TYPE_9B) {
-+		/* header size in 32-bit words LRH+BTH = (8+12)/4. */
-+		hwords = 5;
-+		if (rdma_ah_get_ah_flags(&qp->remote_ah_attr) & IB_AH_GRH)
-+			ohdr = &ps->s_txreq->phdr.hdr.ibh.u.l.oth;
-+		else
-+			ohdr = &ps->s_txreq->phdr.hdr.ibh.u.oth;
-+	} else {
-+		/* header size in 32-bit words 16B LRH+BTH = (16+12)/4. */
-+		hwords = 7;
-+		if ((rdma_ah_get_ah_flags(&qp->remote_ah_attr) & IB_AH_GRH) &&
-+		    (hfi1_check_mcast(rdma_ah_get_dlid(&qp->remote_ah_attr))))
-+			ohdr = &ps->s_txreq->phdr.hdr.opah.u.l.oth;
-+		else
-+			ohdr = &ps->s_txreq->phdr.hdr.opah.u.oth;
-+	}
- 
- 	/* Get the next send request. */
- 	wqe = rvt_get_swqe_ptr(qp, qp->s_cur);
-@@ -309,6 +323,7 @@ void hfi1_uc_rcv(struct hfi1_packet *packet)
- 	u32 pmtu = qp->pmtu;
- 	struct ib_reth *reth;
- 	int ret;
-+	u8 extra_bytes = pad + packet->extra_byte + (SIZE_OF_CRC << 2);
- 
- 	if (hfi1_ruc_check_hdr(ibp, packet))
- 		return;
-@@ -408,7 +423,12 @@ void hfi1_uc_rcv(struct hfi1_packet *packet)
- 		/* FALLTHROUGH */
- 	case OP(SEND_MIDDLE):
- 		/* Check for invalid length PMTU or posted rwqe len. */
--		if (unlikely(tlen != (hdrsize + pmtu + 4)))
+-	if (len == 0) {
++	if (dwords == 0) {
+ 		pio_copy(ppd->dd, pbuf, pbc, hdr, hdrwords);
+ 	} else {
++		seg_pio_copy_start(pbuf, pbc,
++				   hdr, hdrwords * 4);
+ 		if (ss) {
+-			seg_pio_copy_start(pbuf, pbc, hdr, hdrwords * 4);
+ 			while (len) {
+ 				void *addr = ss->sge.vaddr;
+ 				u32 slen = ss->sge.length;
+@@ -1086,8 +1127,20 @@ int hfi1_verbs_send_pio(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
+ 				seg_pio_copy_mid(pbuf, addr, slen);
+ 				len -= slen;
+ 			}
+-			seg_pio_copy_end(pbuf);
+ 		}
 +		/*
-+		 * There will be no padding for 9B packet but 16B packets
-+		 * will come in with some padding since we always add
-+		 * CRC and LT bytes which will need to be flit aligned
++		 * Bypass packet will need to copy additional
++		 * bytes to accommodate for CRC and LT bytes
 +		 */
-+		if (unlikely(tlen != (hdrsize + pmtu + extra_bytes)))
- 			goto rewind;
- 		qp->r_rcv_len += pmtu;
- 		if (unlikely(qp->r_rcv_len > qp->r_len))
-@@ -428,10 +448,10 @@ void hfi1_uc_rcv(struct hfi1_packet *packet)
- send_last:
- 		/* Check for invalid length. */
- 		/* LAST len should be >= 1 */
--		if (unlikely(tlen < (hdrsize + pad + 4)))
-+		if (unlikely(tlen < (hdrsize + extra_bytes)))
- 			goto rewind;
- 		/* Don't count the CRC. */
--		tlen -= (hdrsize + pad + 4);
-+		tlen -= (hdrsize + extra_bytes);
- 		wc.byte_len = tlen + qp->r_rcv_len;
- 		if (unlikely(wc.byte_len > qp->r_len))
- 			goto rewind;
-@@ -524,7 +544,7 @@ void hfi1_uc_rcv(struct hfi1_packet *packet)
- 		if (unlikely(tlen < (hdrsize + pad + 4)))
- 			goto drop;
- 		/* Don't count the CRC. */
--		tlen -= (hdrsize + pad + 4);
-+		tlen -= (hdrsize + extra_bytes);
- 		if (unlikely(tlen + qp->r_rcv_len != qp->r_len))
- 			goto drop;
- 		if (test_and_clear_bit(RVT_R_REWIND_SGE, &qp->r_aflags)) {
-@@ -544,14 +564,12 @@ void hfi1_uc_rcv(struct hfi1_packet *packet)
++		if (extra_bytes) {
++			u8 *empty_buf;
++
++			empty_buf = kcalloc(extra_bytes, sizeof(u8),
++					    GFP_KERNEL);
++			seg_pio_copy_mid(pbuf, empty_buf, extra_bytes);
++			kfree(empty_buf);
++		}
++		seg_pio_copy_end(pbuf);
+ 	}
  
- 	case OP(RDMA_WRITE_LAST):
- rdma_last:
--		/* Get the number of bytes the message was padded by. */
--		pad = ib_bth_get_pad(ohdr);
- 		/* Check for invalid length. */
- 		/* LAST len should be >= 1 */
- 		if (unlikely(tlen < (hdrsize + pad + 4)))
- 			goto drop;
- 		/* Don't count the CRC. */
--		tlen -= (hdrsize + pad + 4);
-+		tlen -= (hdrsize + extra_bytes);
- 		if (unlikely(tlen + qp->r_rcv_len != qp->r_len))
- 			goto drop;
- 		hfi1_copy_sge(&qp->r_sge, data, tlen, true, false);
+ 	trace_pio_output_ibhdr(dd_from_ibdev(qp->ibqp.device),
+@@ -1137,10 +1190,10 @@ static inline int egress_pkey_matches_entry(u16 pkey, u16 ent)
+ 
+ /**
+  * egress_pkey_check - check P_KEY of a packet
+- * @ppd:    Physical IB port data
+- * @lrh: Local route header
+- * @bth: Base transport header
+- * @sc5:    SC for packet
++ * @ppd:  Physical IB port data
++ * @slid: SLID for packet
++ * @bkey: PKEY for header
++ * @sc5:  SC for packet
+  * @s_pkey_index: It will be used for look up optimization for kernel contexts
+  * only. If it is negative value, then it means user contexts is calling this
+  * function.
+@@ -1149,19 +1202,16 @@ static inline int egress_pkey_matches_entry(u16 pkey, u16 ent)
+  *
+  * Return: 0 on success, otherwise, 1
+  */
+-int egress_pkey_check(struct hfi1_pportdata *ppd, __be16 *lrh, __be32 *bth,
++int egress_pkey_check(struct hfi1_pportdata *ppd, u32 slid, u16 pkey,
+ 		      u8 sc5, int8_t s_pkey_index)
+ {
+ 	struct hfi1_devdata *dd;
+ 	int i;
+-	u16 pkey;
+ 	int is_user_ctxt_mechanism = (s_pkey_index < 0);
+ 
+ 	if (!(ppd->part_enforce & HFI1_PART_ENFORCE_OUT))
+ 		return 0;
+ 
+-	pkey = (u16)be32_to_cpu(bth[0]);
+-
+ 	/* If SC15, pkey[0:14] must be 0x7fff */
+ 	if ((sc5 == 0xf) && ((pkey & PKEY_LOW_15_MASK) != PKEY_LOW_15_MASK))
+ 		goto bad;
+@@ -1194,8 +1244,6 @@ int egress_pkey_check(struct hfi1_pportdata *ppd, __be16 *lrh, __be32 *bth,
+ 		dd = ppd->dd;
+ 		if (!(dd->err_info_xmit_constraint.status &
+ 		      OPA_EI_STATUS_SMASK)) {
+-			u16 slid = be16_to_cpu(lrh[3]);
+-
+ 			dd->err_info_xmit_constraint.status |=
+ 				OPA_EI_STATUS_SMASK;
+ 			dd->err_info_xmit_constraint.slid = slid;
+@@ -1212,11 +1260,11 @@ int egress_pkey_check(struct hfi1_pportdata *ppd, __be16 *lrh, __be32 *bth,
+  * and size
+  */
+ static inline send_routine get_send_routine(struct rvt_qp *qp,
+-					    struct verbs_txreq *tx)
++					    struct hfi1_pkt_state *ps)
+ {
+ 	struct hfi1_devdata *dd = dd_from_ibdev(qp->ibqp.device);
+ 	struct hfi1_qp_priv *priv = qp->priv;
+-	struct hfi1_opa_header *h = &tx->phdr.hdr;
++	struct verbs_txreq *tx = ps->s_txreq;
+ 
+ 	if (unlikely(!(dd->flags & HFI1_HAS_SEND_DMA)))
+ 		return dd->process_pio_send;
+@@ -1228,11 +1276,9 @@ static inline send_routine get_send_routine(struct rvt_qp *qp,
+ 		break;
+ 	case IB_QPT_UC:
+ 	case IB_QPT_RC: {
+-		u8 op = get_opcode(h);
+-
+ 		if (piothreshold &&
+ 		    tx->s_cur_size <= min(piothreshold, qp->pmtu) &&
+-		    (BIT(op & OPMASK) & pio_opmask[op >> 5]) &&
++		    (BIT(ps->opcode & OPMASK) & pio_opmask[ps->opcode >> 5]) &&
+ 		    iowait_sdma_pending(&priv->s_iowait) == 0 &&
+ 		    !sdma_txreq_built(&tx->txreq))
+ 			return dd->process_pio_send;
+@@ -1257,25 +1303,38 @@ int hfi1_verbs_send(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 	struct hfi1_devdata *dd = dd_from_ibdev(qp->ibqp.device);
+ 	struct hfi1_qp_priv *priv = qp->priv;
+ 	struct ib_other_headers *ohdr;
+-	struct ib_header *hdr;
+ 	send_routine sr;
+ 	int ret;
+-	u8 lnh;
++	u16 pkey;
++	u32 slid;
+ 
+-	hdr = &ps->s_txreq->phdr.hdr.ibh;
+ 	/* locate the pkey within the headers */
+-	lnh = ib_get_lnh(hdr);
+-	if (lnh == HFI1_LRH_GRH)
+-		ohdr = &hdr->u.l.oth;
+-	else
+-		ohdr = &hdr->u.oth;
+-
+-	sr = get_send_routine(qp, ps->s_txreq);
+-	ret = egress_pkey_check(dd->pport,
+-				hdr->lrh,
+-				ohdr->bth,
+-				priv->s_sc,
+-				qp->s_pkey_index);
++	if (ps->s_txreq->phdr.hdr.hdr_type) {
++		struct hfi1_16b_header *hdr = &ps->s_txreq->phdr.hdr.opah;
++		u8 l4 = hfi1_16B_get_l4(hdr);
++
++		if (l4 == OPA_16B_L4_IB_GLOBAL)
++			ohdr = &hdr->u.l.oth;
++		else
++			ohdr = &hdr->u.oth;
++		slid = hfi1_16B_get_slid(hdr);
++		pkey = hfi1_16B_get_pkey(hdr);
++	} else {
++		struct ib_header *hdr = &ps->s_txreq->phdr.hdr.ibh;
++		u8 lnh = ib_get_lnh(hdr);
++
++		if (lnh == HFI1_LRH_GRH)
++			ohdr = &hdr->u.l.oth;
++		else
++			ohdr = &hdr->u.oth;
++		slid = ib_get_slid(hdr);
++		pkey = ib_bth_get_pkey(ohdr);
++	}
++
++	ps->opcode = ib_bth_get_opcode(ohdr);
++	sr = get_send_routine(qp, ps);
++	ret = egress_pkey_check(dd->pport, slid, pkey,
++				priv->s_sc, qp->s_pkey_index);
+ 	if (unlikely(ret)) {
+ 		/*
+ 		 * The value we are returning here does not get propagated to
 diff --git a/drivers/infiniband/hw/hfi1/verbs.h b/drivers/infiniband/hw/hfi1/verbs.h
-index ab1618e..b164298 100644
+index b164298..56ead87 100644
 --- a/drivers/infiniband/hw/hfi1/verbs.h
 +++ b/drivers/infiniband/hw/hfi1/verbs.h
-@@ -373,7 +373,8 @@ void hfi1_make_ruc_header(struct rvt_qp *qp, struct ib_other_headers *ohdr,
- void hfi1_send_complete(struct rvt_qp *qp, struct rvt_swqe *wqe,
- 			enum ib_wc_status status);
- 
--void hfi1_send_rc_ack(struct hfi1_ctxtdata *, struct rvt_qp *qp, int is_fecn);
-+void hfi1_send_rc_ack(struct hfi1_ctxtdata *rcd, struct rvt_qp *qp,
-+		      bool is_fecn);
- 
- int hfi1_make_rc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps);
- 
+@@ -163,6 +163,7 @@ struct hfi1_pkt_state {
+ 	unsigned long timeout;
+ 	unsigned long timeout_int;
+ 	int cpu;
++	u8 opcode;
+ 	bool in_thread;
+ 	bool pkts_sent;
+ };
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
