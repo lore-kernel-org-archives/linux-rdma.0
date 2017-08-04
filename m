@@ -1,34 +1,37 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/hns: checking for IS_ERR() instead of NULL
-Date: Fri, 4 Aug 2017 11:12:08 +0300
-Message-ID: <20170804081208.qkkj3yons7ljccjp@mwanda>
+From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+Subject: [PATCH rdma-core] util: fix bad argument passed to s390_mmio_write
+Date: Fri, 4 Aug 2017 11:20:47 +0200
+Message-ID: <a30f4084-1f1b-44c3-ac03-c627586e0604@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+Content-Language: fr-xx-classique+reforme1990
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: "Wei Hu(Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The hns_roce_v1_create_lp_qp() returns NULL on error, not error pointers.
+Signed-off-by: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-IBi9RG/b67k@public.gmane.org>
+---
+ util/mmio.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Fixes: bfcc681bd09d ("IB/hns: Fix the bug when free mr")
-Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 38f5c77baabf..747efd1ae5a6 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -733,7 +733,7 @@ static int hns_roce_v1_rsv_lp_qp(struct hns_roce_dev *hr_dev)
- 			continue;
+diff --git a/util/mmio.h b/util/mmio.h
+index be22fb76..101af9dd 100644
+--- a/util/mmio.h
++++ b/util/mmio.h
+@@ -208,7 +208,7 @@ __le64 mmio_read64_le(const void *addr);
+ #ifdef __s390x__
+ static inline void mmio_memcpy_x64(void *dest, const void *src, size_t bytecnt)
+ {
+-	s390_mmio_write(addr, src, bytecnt);
++	s390_mmio_write(dest, src, bytecnt);
+ }
+ #else
  
- 		free_mr->mr_free_qp[i] = hns_roce_v1_create_lp_qp(hr_dev, pd);
--		if (IS_ERR(free_mr->mr_free_qp[i])) {
-+		if (!free_mr->mr_free_qp[i]) {
- 			dev_err(dev, "Create loop qp failed!\n");
- 			goto create_lp_qp_failed;
- 		}
+-- 
+2.14.0.rc1.4.gab083fa77
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
