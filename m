@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 15/27] IB/CM: Create appropriate path records when
+Subject: [PATCH for-next 16/27] IB/CM: Set appropriate slid and dlid when
  handling CM request
-Date: Fri, 04 Aug 2017 13:53:39 -0700
-Message-ID: <20170804205338.17853.19282.stgit@scvm10.sc.intel.com>
+Date: Fri, 04 Aug 2017 13:53:45 -0700
+Message-ID: <20170804205344.17853.75655.stgit@scvm10.sc.intel.com>
 References: <20170804204842.17853.14858.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,103 +16,139 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-When handling an incoming conection request, ib_cm creates
-either an IB or an OPA path record based on the gid field
-in the request.
+If extended LIDs are being used, a connection request contains
+OPA GIDs in them. Extract the lids from the OPA gids and populate
+slid/dlid fields in the path records that are created when handling
+a connection request.
 
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/cm.c |   38 +++++++++++++++++++++++++++++++-------
- 1 files changed, 31 insertions(+), 7 deletions(-)
+ drivers/infiniband/core/cm.c |   67 +++++++++++++++++++++++++++++++++++-------
+ 1 files changed, 56 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 885c429..4d870a0 100644
+index 4d870a0..d5ca101 100644
 --- a/drivers/infiniband/core/cm.c
 +++ b/drivers/infiniband/core/cm.c
-@@ -1428,6 +1428,21 @@ static inline int cm_is_active_peer(__be64 local_ca_guid, __be64 remote_ca_guid,
- 		 (be32_to_cpu(local_qpn) > be32_to_cpu(remote_qpn))));
+@@ -1443,16 +1443,48 @@ static void cm_path_set_rec_type(struct ib_device *ib_device, u8 port_num,
+ 		path->rec_type = SA_PATH_REC_TYPE_IB;
  }
  
-+static bool cm_req_has_alt_path(struct cm_req_msg *req_msg)
++static void cm_format_path_lid_from_req(struct cm_req_msg *req_msg,
++					struct sa_path_rec *primary_path,
++					struct sa_path_rec *alt_path)
 +{
-+	return ((req_msg->alt_local_lid) ||
-+		(ib_is_opa_gid(&req_msg->alt_local_gid)));
-+}
++	u32 lid;
 +
-+static void cm_path_set_rec_type(struct ib_device *ib_device, u8 port_num,
-+				 struct sa_path_rec *path, union ib_gid *gid)
-+{
-+	if (ib_is_opa_gid(gid) && rdma_cap_opa_ah(ib_device, port_num))
-+		path->rec_type = SA_PATH_REC_TYPE_OPA;
-+	else
-+		path->rec_type = SA_PATH_REC_TYPE_IB;
++	if (primary_path->rec_type != SA_PATH_REC_TYPE_OPA) {
++		sa_path_set_dlid(primary_path,
++				 htonl(ntohs(req_msg->primary_local_lid)));
++		sa_path_set_slid(primary_path,
++				 htonl(ntohs(req_msg->primary_remote_lid)));
++	} else {
++		lid = opa_get_lid_from_gid(&req_msg->primary_local_gid);
++		sa_path_set_dlid(primary_path, cpu_to_be32(lid));
++
++		lid = opa_get_lid_from_gid(&req_msg->primary_remote_gid);
++		sa_path_set_slid(primary_path, cpu_to_be32(lid));
++	}
++
++	if (!cm_req_has_alt_path(req_msg))
++		return;
++
++	if (alt_path->rec_type != SA_PATH_REC_TYPE_OPA) {
++		sa_path_set_dlid(alt_path,
++				 htonl(ntohs(req_msg->alt_local_lid)));
++		sa_path_set_slid(alt_path,
++				 htonl(ntohs(req_msg->alt_remote_lid)));
++	} else {
++		lid = opa_get_lid_from_gid(&req_msg->alt_local_gid);
++		sa_path_set_dlid(alt_path, cpu_to_be32(lid));
++
++		lid = opa_get_lid_from_gid(&req_msg->alt_remote_gid);
++		sa_path_set_slid(alt_path, cpu_to_be32(lid));
++	}
 +}
 +
  static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
  				     struct sa_path_rec *primary_path,
  				     struct sa_path_rec *alt_path)
-@@ -1807,9 +1822,12 @@ static int cm_req_handler(struct cm_work *work)
- 					 dev_net(gid_attr.ndev));
- 			dev_put(gid_attr.ndev);
- 		} else {
--			work->path[0].rec_type = SA_PATH_REC_TYPE_IB;
-+			cm_path_set_rec_type(work->port->cm_dev->ib_device,
-+					     work->port->port_num,
-+					     &work->path[0],
-+					     &req_msg->primary_local_gid);
- 		}
--		if (req_msg->alt_local_lid)
-+		if (cm_req_has_alt_path(req_msg))
- 			work->path[1].rec_type = work->path[0].rec_type;
- 		cm_format_paths_from_req(req_msg, &work->path[0],
- 					 &work->path[1]);
-@@ -1834,16 +1852,19 @@ static int cm_req_handler(struct cm_work *work)
- 					 dev_net(gid_attr.ndev));
- 			dev_put(gid_attr.ndev);
- 		} else {
--			work->path[0].rec_type = SA_PATH_REC_TYPE_IB;
-+			cm_path_set_rec_type(work->port->cm_dev->ib_device,
-+					     work->port->port_num,
-+					     &work->path[0],
-+					     &req_msg->primary_local_gid);
- 		}
--		if (req_msg->alt_local_lid)
-+		if (cm_req_has_alt_path(req_msg))
- 			work->path[1].rec_type = work->path[0].rec_type;
- 		ib_send_cm_rej(cm_id, IB_CM_REJ_INVALID_GID,
- 			       &work->path[0].sgid, sizeof work->path[0].sgid,
- 			       NULL, 0);
- 		goto rejected;
- 	}
+ {
+ 	primary_path->dgid = req_msg->primary_local_gid;
+ 	primary_path->sgid = req_msg->primary_remote_gid;
+-	sa_path_set_dlid(primary_path,
+-			 htonl(ntohs(req_msg->primary_local_lid)));
+-	sa_path_set_slid(primary_path,
+-			 htonl(ntohs(req_msg->primary_remote_lid)));
+ 	primary_path->flow_label = cm_req_get_primary_flow_label(req_msg);
+ 	primary_path->hop_limit = req_msg->primary_hop_limit;
+ 	primary_path->traffic_class = req_msg->primary_traffic_class;
+@@ -1469,13 +1501,9 @@ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
+ 	primary_path->packet_life_time -= (primary_path->packet_life_time > 0);
+ 	primary_path->service_id = req_msg->service_id;
+ 
 -	if (req_msg->alt_local_lid) {
 +	if (cm_req_has_alt_path(req_msg)) {
- 		ret = cm_init_av_by_path(&work->path[1], &cm_id_priv->alt_av,
- 					 cm_id_priv);
- 		if (ret) {
-@@ -2962,8 +2983,6 @@ static void cm_format_path_from_lap(struct cm_id_private *cm_id_priv,
+ 		alt_path->dgid = req_msg->alt_local_gid;
+ 		alt_path->sgid = req_msg->alt_remote_gid;
+-		sa_path_set_dlid(alt_path,
+-				 htonl(ntohs(req_msg->alt_local_lid)));
+-		sa_path_set_slid(alt_path,
+-				 htonl(ntohs(req_msg->alt_remote_lid)));
+ 		alt_path->flow_label = cm_req_get_alt_flow_label(req_msg);
+ 		alt_path->hop_limit = req_msg->alt_hop_limit;
+ 		alt_path->traffic_class = req_msg->alt_traffic_class;
+@@ -1492,6 +1520,7 @@ static void cm_format_paths_from_req(struct cm_req_msg *req_msg,
+ 		alt_path->packet_life_time -= (alt_path->packet_life_time > 0);
+ 		alt_path->service_id = req_msg->service_id;
+ 	}
++	cm_format_path_lid_from_req(req_msg, primary_path, alt_path);
+ }
+ 
+ static u16 cm_get_bth_pkey(struct cm_work *work)
+@@ -2979,14 +3008,29 @@ int ib_send_cm_lap(struct ib_cm_id *cm_id,
+ }
+ EXPORT_SYMBOL(ib_send_cm_lap);
+ 
++static void cm_format_path_lid_from_lap(struct cm_lap_msg *lap_msg,
++					struct sa_path_rec *path)
++{
++	u32 lid;
++
++	if (path->rec_type != SA_PATH_REC_TYPE_OPA) {
++		sa_path_set_dlid(path, htonl(ntohs(lap_msg->alt_local_lid)));
++		sa_path_set_slid(path, htonl(ntohs(lap_msg->alt_remote_lid)));
++	} else {
++		lid = opa_get_lid_from_gid(&lap_msg->alt_local_gid);
++		sa_path_set_dlid(path, cpu_to_be32(lid));
++
++		lid = opa_get_lid_from_gid(&lap_msg->alt_remote_gid);
++		sa_path_set_slid(path, cpu_to_be32(lid));
++	}
++}
++
+ static void cm_format_path_from_lap(struct cm_id_private *cm_id_priv,
  				    struct sa_path_rec *path,
  				    struct cm_lap_msg *lap_msg)
  {
--	memset(path, 0, sizeof *path);
--	path->rec_type = SA_PATH_REC_TYPE_IB;
  	path->dgid = lap_msg->alt_local_gid;
  	path->sgid = lap_msg->alt_remote_gid;
- 	sa_path_set_dlid(path, htonl(ntohs(lap_msg->alt_local_lid)));
-@@ -2999,6 +3018,11 @@ static int cm_lap_handler(struct cm_work *work)
- 		return -EINVAL;
+-	sa_path_set_dlid(path, htonl(ntohs(lap_msg->alt_local_lid)));
+-	sa_path_set_slid(path, htonl(ntohs(lap_msg->alt_remote_lid)));
+ 	path->flow_label = cm_lap_get_flow_label(lap_msg);
+ 	path->hop_limit = lap_msg->alt_hop_limit;
+ 	path->traffic_class = cm_lap_get_traffic_class(lap_msg);
+@@ -3000,6 +3044,7 @@ static void cm_format_path_from_lap(struct cm_id_private *cm_id_priv,
+ 	path->packet_life_time_selector = IB_SA_EQ;
+ 	path->packet_life_time = cm_lap_get_local_ack_timeout(lap_msg);
+ 	path->packet_life_time -= (path->packet_life_time > 0);
++	cm_format_path_lid_from_lap(lap_msg, path);
+ }
  
- 	param = &work->cm_event.param.lap_rcvd;
-+	memset(&work->path[0], 0, sizeof(work->path[1]));
-+	cm_path_set_rec_type(work->port->cm_dev->ib_device,
-+			     work->port->port_num,
-+			     &work->path[0],
-+			     &lap_msg->alt_local_gid);
- 	param->alternate_path = &work->path[0];
- 	cm_format_path_from_lap(cm_id_priv, param->alternate_path, lap_msg);
- 	work->cm_event.private_data = &lap_msg->private_data;
+ static int cm_lap_handler(struct cm_work *work)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
