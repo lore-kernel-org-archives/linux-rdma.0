@@ -1,53 +1,41 @@
-From: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>
-Subject: [PATCH v06 30/36] uapi rdma/rdma_user_rxe.h: include in.h and in6.h
-Date: Sun,  6 Aug 2017 18:44:21 +0200
-Message-ID: <20170806164428.2273-31-mikko.rapeli@iki.fi>
-References: <20170806164428.2273-1-mikko.rapeli@iki.fi>
+From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Subject: Re: [rdma-next 01/33] Revert "IB/core: Add flow control to the
+ portmapper netlink calls"
+Date: Sun, 6 Aug 2017 19:00:50 +0000
+Message-ID: <1502046049.7488.1.camel@wdc.com>
+References: <20170801120536.540-1-leon@kernel.org>
+         <20170801120536.540-2-leon@kernel.org>
+         <20170801133832.GA11812@ctung-MOBL3.amr.corp.intel.com>
+         <20170801141023.GM13672@mtr-leonro.local>
+         <1501696661.109555.6.camel@redhat.com>
+         <20170802185405.GE13672@mtr-leonro.local>
+         <1501719575.117042.4.camel@redhat.com>
+         <20170803051032.GF13672@mtr-leonro.local>
+         <1501762973.117042.7.camel@redhat.com>
+         <1501764159.117042.9.camel@redhat.com>
+         <20170806074751.GA3636@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170806164428.2273-1-mikko.rapeli-X3B1VOXEql0@public.gmane.org>
-Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170806074751.GA3636-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
+Content-ID: <F77047F1D6637145886943CDBE479BE6-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Fixes these userspace compilation errors when rdma_user_rxe.h is compiled
-alone:
-
-rdma/rdma_user_rxe.h:59:20: error: field ‘_sockaddr’ has incomplete type
-   struct sockaddr  _sockaddr;
-                    ^~~~~~~~~
-rdma/rdma_user_rxe.h:60:22: error: field ‘_sockaddr_in’ has incomplete type
-   struct sockaddr_in _sockaddr_in;
-                      ^~~~~~~~~~~~
-rdma/rdma_user_rxe.h:61:23: error: field ‘_sockaddr_in6’ has incomplete type
-   struct sockaddr_in6 _sockaddr_in6;
-                       ^~~~~~~~~~~~~
-
-Signed-off-by: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>
-Acked-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Acked-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
----
- include/uapi/rdma/rdma_user_rxe.h | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/include/uapi/rdma/rdma_user_rxe.h b/include/uapi/rdma/rdma_user_rxe.h
-index 1de99cfdaf7d..ce6c929ca331 100644
---- a/include/uapi/rdma/rdma_user_rxe.h
-+++ b/include/uapi/rdma/rdma_user_rxe.h
-@@ -34,6 +34,8 @@
- #define RDMA_USER_RXE_H
- 
- #include <linux/types.h>
-+#include <linux/in.h>
-+#include <linux/in6.h>
- 
- union rxe_gid {
- 	__u8	raw[16];
--- 
-2.13.3
+T24gU3VuLCAyMDE3LTA4LTA2IGF0IDEwOjQ3ICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
+DQo+IENoaWVuIGlzIHN1cHBvcnRlZCBieSBodWdlIGNvcnBvcmF0aW9uIHdpdGggbWFueSBkZXZl
+bG9wZXJzIHdvcmtpbmcgb24gaVdBUlAgc3RhY2sNCj4gYW5kIGl0IHNlZW1zIHZlcnkgbmF0dXJh
+bCB0byBkZW1hbmQgZnJvbSB0aGVtIHRoZSByaWdodCBzb2x1dGlvbi4NCg0KTGV0J3Mgc2VlIHdo
+ZXRoZXIgb3Igbm90IHRoZSBpbnRlcmZhY2UgYmV0d2VlbiBrZXJuZWwgYW5kIGl3cG1kIGdldHMg
+Zml4ZWQNCmJ5IHNvbWVvbmUgd2hvIHJlYWxseSBjYXJlcyBhYm91dCBpV0FSUC4gSWYgdGhpcyBp
+bnRlcmZhY2UgZG9lcyBub3QgZ2V0IGZpeGVkDQptYXliZSB0aGF0IHRlbGxzIHVzIHNvbWV0aGlu
+ZyBhYm91dCB0aGUgZWNvbm9taWMgaW1wb3J0YW5jZSB0b2RheSBvZiBpV0FSUA0KYWRhcHRlcnMg
+Li4uDQoNCkJhcnQuDQo=
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
