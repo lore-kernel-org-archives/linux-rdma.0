@@ -1,149 +1,108 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [pull request][rdma-rc v1 0/4] RDMA fixes for-4.13
-Date: Sun, 6 Aug 2017 11:12:31 +0300
-Message-ID: <20170806081231.GB3636@mtr-leonro.local>
-References: <20170801064137.8360-1-leon@kernel.org>
- <1501871458.79618.8.camel@redhat.com>
+Subject: Re: [PATCH for-next 12/27] IB/core: Change port_attr.sm_lid from 16
+ to 32 bits
+Date: Sun, 6 Aug 2017 11:18:57 +0300
+Message-ID: <20170806081857.GC3636@mtr-leonro.local>
+References: <20170804204842.17853.14858.stgit@scvm10.sc.intel.com>
+ <20170804205320.17853.77236.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="E39vaYmALEf/7YXx"
+        protocol="application/pgp-signature"; boundary="c3bfwLpm8qysLVxt"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1501871458.79618.8.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170804205320.17853.77236.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---E39vaYmALEf/7YXx
-Content-Type: text/plain; charset=utf-8
+--c3bfwLpm8qysLVxt
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Fri, Aug 04, 2017 at 02:30:58PM -0400, Doug Ledford wrote:
-> On Tue, 2017-08-01 at 09:41 +0300, Leon Romanovsky wrote:
-> > Changelog:
-> >  v0 -> v1:
-> >   * Added Reviewed-by tags
-> >   * Moved 10 patches to -next
-> >
-> > Thanks
-> > ----------------------------------------------------------------
-> >
-> > The following changes since commit
-> > 5dc78ad1904db597bdb4427f3ead437aae86f54c:
-> >
-> >   IB/ipoib: Notify on modify QP failure only when relevant (2017-07-
-> > 23 10:52:00 +0300)
-> >
-> > are available in the git repository at:
-> >
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git
-> > tags/rdma-rc-2017-08-01
-> >
-> > for you to fetch changes up to
-> > 0626c5a5dec2e601f06a2c03b295fb7d7288e29c:
-> >
-> >   RDMA/mlx5: Fix existence check for extended address vector (2017-
-> > 07-31 20:43:06 +0300)
-> >
-> > ----------------------------------------------------------------
-> > RDMA fixes for 4.13
-> >
-> > This patchset contains four patches:
-> >  * Two kernel panic fixes from Yishai and Parav.
-> >  * The bugfix to mlx5 wrong usage of big-endian variable.
-> >  * Preventing leak of reserved field.
-> >
-> > ----------------------------------------------------------------
-> > Leon Romanovsky (2):
-> >       RDMA/uverbs: Prevent leak of reserved field
-> >       RDMA/mlx5: Fix existence check for extended address vector
-> >
-> > Parav Pandit (1):
-> >       IB/core: Fix race condition in resolving IP to MAC
+On Fri, Aug 04, 2017 at 01:53:21PM -0700, Dennis Dalessandro wrote:
+> From: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 >
-> This patch, in particular, was very similar in description to another
-> patch I already took for this -rc cycle.  Both of these patches ended
-> up using ordered workqueues to resolve the problem.  Finding two
-> different workqueues that needed to be made ordered in the same -rc
-> cycle makes me wonder if we might not have some other issues lurking in
-> the subsystem in regards to workqueues...
-
-I hope no, we don't have many workqueues (except hfi1).
-
-=E2=9E=9C  linux-rdma git:(topic/rdma-uapi-export) git grep 'alloc_workqueu=
-e(\|create_workqueue('  drivers/infiniband
-drivers/infiniband/core/addr.c: addr_wq =3D alloc_workqueue("ib_addr", WQ_M=
-EM_RECLAIM, 0);
-drivers/infiniband/core/cm.c:   cm.wq =3D create_workqueue("ib_cm");
-drivers/infiniband/core/device.c:       ib_wq =3D alloc_workqueue("infiniba=
-nd", 0, 0);
-drivers/infiniband/core/device.c:       ib_comp_wq =3D alloc_workqueue("ib-=
-comp-wq",
-drivers/infiniband/hw/hfi1/init.c:                              alloc_workq=
-ueue(
-drivers/infiniband/hw/usnic/usnic_uiom.c:       usnic_uiom_wq =3D create_wo=
-rkqueue(drv_name);
-drivers/infiniband/ulp/iser/iscsi_iser.c:       release_wq =3D alloc_workqu=
-eue("release workqueue", 0, 0);
-drivers/infiniband/ulp/isert/ib_isert.c:        isert_comp_wq =3D alloc_wor=
-kqueue("isert_comp_wq",
-drivers/infiniband/ulp/isert/ib_isert.c:        isert_release_wq =3D alloc_=
-workqueue("isert_release_wq", WQ_UNBOUND,
-drivers/infiniband/ulp/srp/ib_srp.c:    srp_remove_wq =3D create_workqueue(=
-"srp_remove");
-
-
-
+> sm_lid field in struct ib_port_attr is increased to 32 bits. This
+> enables core components to use larger LIDs if needed.
+> The user ABI is unchanged and return 16 bit values when queried.
 >
-> >
-> > Yishai Hadas (1):
-> >       IB/uverbs: Fix device cleanup
-> >
-> >  drivers/infiniband/core/addr.c        | 62
-> > +++++++++++++++++++++++++++--------
-> >  drivers/infiniband/core/uverbs_cmd.c  |  2 +-
-> >  drivers/infiniband/core/uverbs_main.c |  3 +-
-> >  drivers/infiniband/hw/mlx5/odp.c      |  2 +-
-> >  include/linux/mlx5/qp.h               |  1 -
-> >  5 files changed, 51 insertions(+), 19 deletions(-)
+> Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/infiniband/core/uverbs_cmd.c |    8 +++++---
+>  include/rdma/ib_verbs.h              |    2 +-
+>  2 files changed, 6 insertions(+), 4 deletions(-)
 >
-> I didn't use a pull (mainly because I was going through patchworks and
-> saw the patches and took them from there before I saw the cover letter
-> here with the pull tag...that and I'm not used to the pull request
-> model so hunting through patchworks for the relevant patches is second
-> nature and pull requests aren't).  I'll try to keep the pull option in
-> mind next time.  In any case, thanks, series applied.
+> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+> index 7ef74b0..38dce45 100644
+> --- a/drivers/infiniband/core/uverbs_cmd.c
+> +++ b/drivers/infiniband/core/uverbs_cmd.c
+> @@ -275,11 +275,13 @@ ssize_t ib_uverbs_query_port(struct ib_uverbs_file *file,
+>  	resp.bad_pkey_cntr   = attr.bad_pkey_cntr;
+>  	resp.qkey_viol_cntr  = attr.qkey_viol_cntr;
+>  	resp.pkey_tbl_len    = attr.pkey_tbl_len;
+> -	resp.sm_lid 	     = attr.sm_lid;
+> -	if (rdma_cap_opa_ah(ib_dev, cmd.port_num))
+> +	if (rdma_cap_opa_ah(ib_dev, cmd.port_num)) {
+>  		resp.lid  = OPA_TO_IB_UCAST_LID(attr.lid);
+> -	else
+> +		resp.sm_lid  = OPA_TO_IB_UCAST_LID(attr.sm_lid);
+> +	} else {
+>  		resp.lid     = (u16)attr.lid;
+> +		resp.sm_lid  = (u16)attr.sm_lid;
+
+I see that lid is already has casting from u32 to u16 and now it is sm_lid.
+Do we have more elegant way to achieve that? And comment for future
+developers can be good too.
+
+> +	}
+>  	resp.lmc 	     = attr.lmc;
+>  	resp.max_vl_num      = attr.max_vl_num;
+>  	resp.sm_sl 	     = attr.sm_sl;
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index 4eccf89..5f4f2d3 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -549,7 +549,7 @@ struct ib_port_attr {
+>  	u32			bad_pkey_cntr;
+>  	u32			qkey_viol_cntr;
+>  	u16			pkey_tbl_len;
+> -	u16			sm_lid;
+> +	u32			sm_lid;
+>  	u32			lid;
+>  	u8			lmc;
+>  	u8			max_vl_num;
 >
 > --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->     GPG KeyID: B826A3330E572FDD
->     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
->
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---E39vaYmALEf/7YXx
+--c3bfwLpm8qysLVxt
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmGz28ACgkQ5GN7iDZy
-WKfuhQ//YIog7p0N1pw4OV/l/HDK9MqfCuAC57FY3z1bgGP8kLZipl/c2X1GJ2zj
-6c0n3RgtqiSuL0zeIDvc0zad9LvvRg0mxB0R0qhJc7wWISgqDcEqEhRKKg3A/0wA
-h6PZPYkhxZshS9oTaMiCWr0fm6A5KWwXGjCTLIFlHpXFKqeGSdaz/QMn/mRBMo6g
-reFQn35T/RLvXgWlhaIzBt+5cR5Tp0b+MqctJs1LDOjZFEZ7vX10dfjLhOCoSG65
-SuvFE/iMsjnIxWLKDjywcd/O9otvist43T/dO81a2b8wOKo9uASriShtGb+3wBb1
-RY2V20lFFsyh58NmoKbvDx5R0ifZLB+fjYfduSIxJT+OP40YtfNGHn742h09FwEi
-8zhlkcyGTXv9CTIL9yuLZf27IayQgJ0SGjntpVv0p/GUIIiIXOaxQvtJGCqcEDUe
-2Cbc+lCxoeNRA44THB082TNxgfZ5YuOcNizmyu3URNUfYyPfq+C320modMuUhF1+
-F5svsJTRTY9k7Cb8wSLmgQPkWWuYt4z0MQ9aumWltic+dMd0jQg+mcIYCeNYfl9k
-GtFGVLQ7+vNvWyv4wH6BcEn1kIi3nATVBT9q15dVRSLlwqVSfRT1/HnrSHgVYD5p
-NZvqqE1kTQlSrwZDgM6PbNcmoi5DcwPWp+iaHpPCcrAcfHXmwCk=
-=FTul
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmG0PEACgkQ5GN7iDZy
+WKcqLxAAvR0ce3EviWVtWWlytw8npsr8TSSC44CnybEE0xVKToH5SmSrwmkqdqw4
+phzI02RmIfDMzoGdC51rVDVY/uhqXtzQR7iGD430M39+7ll/pibfGRY4E/lt3fG5
+FeMwjAdu1veJnKtQU9Mi4JF5jH9ViCtUxW6gWI1CmDbWe3WIHppFYlpOrbx8+m+q
+lunVV9bgZ7pALXws0emltD/QD+GaX8Rke/sGLAbOIUv6fSOSzjl2ya0u4OkJuIoB
+DwCk2JQxQJED2hL5jHoFNuxunKI+l/0wLYZmLz1DTj133b7qBfUE7U01GHxF3XnD
+s6gkK3z6tZD5rWiPopJh9rlf6xrCdz7EQ1vTbGRRUV3HGzyydls++W4XRB2yPpQU
+QzhroW8vVDlvGdki4L6dGWfsU1S7taqKMop9EgKPt9iyJ1CbGk8l+tW5tx05embh
+CdSezLtUU1+jLLrdXApXdWBwal2dPmQluWZOKPyYEDUcug0ZDlZwmkd1S82h3pjh
+IpiGR1ZODb1dubhTzLEZw7nZupNvXCdaWquwVBgYVdTeCYu8pfsPt/f3f/Iaux43
+jwwCcNNtcV3Og+DdkXVl4vwsKr4EfanIxOiIjHvzCK3hwHjo2p5R20pfR9dkuBBC
+DjMBMJSfHEc1616y8TB+ilBg2/pGNftaMIEuNc2aTv9ht0M8IoY=
+=nzXo
 -----END PGP SIGNATURE-----
 
---E39vaYmALEf/7YXx--
+--c3bfwLpm8qysLVxt--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
