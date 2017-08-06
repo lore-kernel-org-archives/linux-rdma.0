@@ -1,116 +1,59 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 12/27] IB/core: Change port_attr.sm_lid from 16
- to 32 bits
-Date: Sun, 6 Aug 2017 11:22:17 +0300
-Message-ID: <20170806082217.GE3636@mtr-leonro.local>
-References: <20170804204842.17853.14858.stgit@scvm10.sc.intel.com>
- <20170804205320.17853.77236.stgit@scvm10.sc.intel.com>
- <20170806081857.GC3636@mtr-leonro.local>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: Re: [PATCH v2 00/17] IB/mlx: Fine-tuning for several function
+ implementations
+Date: Sun, 6 Aug 2017 16:00:09 +0200
+Message-ID: <617e30ff-2705-b053-ee28-ed9385037580@users.sourceforge.net>
+References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>
+ <1492720654.3041.16.camel@redhat.com>
+ <a56f9301-e116-c59c-681a-9108519920e5@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="qFgkTsE6LiHkLPZw"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170806081857.GC3636-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <a56f9301-e116-c59c-681a-9108519920e5@users.sourceforge.net>
+Content-Language: en-GB
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Leon Romanovsky <leonro@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Matan Barak <matanb@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+> Date: Fri, 21 Apr 2017 19:56:54 +0200
+> 
+> Several update suggestions were taken into account
+> from static source code analysis.
+> 
+> Markus Elfring (17):
+>   Use kcalloc() in mlx4_ib_alloc_pv_bufs()
+>   Use kmalloc_array() in six functions
+>   Improve size determinations in six functions
+>   Fix a typo in a comment line
+>   Delete four unnecessary return statements
+>   Delete an unnecessary check before kfree() in free_pv_object()
+>   Move an assignment out of a check in forward_trap()
+>   Enclose 46 expressions for sizeof by parentheses
+>   Split a condition check in six functions
+>   Delete an unnecessary variable in __mlx4_ib_query_gid()
+>   Delete an unnecessary variable initialisation in mlx4_ib_add()
+>   Delete an unnecessary variable assignment in mlx4_ib_add()
+>   Delete an error message for a failed memory allocation in mlx4_ib_add()
+>   Delete unnecessary braces in mlx4_ib_add()
+>   Delete unwanted spaces behind usages of the sizeof operator
+>   Add spaces for better code readability
+>   Less function calls in create_kernel_qp() after error detection
+> ---
+> 
+> v2:
+> Changes were rebased on source files from Linux next-20170421.
+> Some of them were recombined as requested by Doug Ledford.
+> 
+>  drivers/infiniband/hw/mlx4/mad.c  |  72 ++++++++--------
+>  drivers/infiniband/hw/mlx4/main.c | 164 ++++++++++++++++++++----------------
+>  drivers/infiniband/hw/mlx4/qp.c   | 173 +++++++++++++++++++-------------------
+>  drivers/infiniband/hw/mlx5/qp.c   |  66 ++++++++++-----
+>  drivers/infiniband/hw/mlx5/srq.c  |   5 +-
+>  5 files changed, 261 insertions(+), 219 deletions(-)
 
---qFgkTsE6LiHkLPZw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Will the clarification be continued for the shown change possibilities?
 
-On Sun, Aug 06, 2017 at 11:18:57AM +0300, Leon Romanovsky wrote:
-> On Fri, Aug 04, 2017 at 01:53:21PM -0700, Dennis Dalessandro wrote:
-> > From: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> >
-> > sm_lid field in struct ib_port_attr is increased to 32 bits. This
-> > enables core components to use larger LIDs if needed.
-> > The user ABI is unchanged and return 16 bit values when queried.
-> >
-> > Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > ---
-> >  drivers/infiniband/core/uverbs_cmd.c |    8 +++++---
-> >  include/rdma/ib_verbs.h              |    2 +-
-> >  2 files changed, 6 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-> > index 7ef74b0..38dce45 100644
-> > --- a/drivers/infiniband/core/uverbs_cmd.c
-> > +++ b/drivers/infiniband/core/uverbs_cmd.c
-> > @@ -275,11 +275,13 @@ ssize_t ib_uverbs_query_port(struct ib_uverbs_file *file,
-> >  	resp.bad_pkey_cntr   = attr.bad_pkey_cntr;
-> >  	resp.qkey_viol_cntr  = attr.qkey_viol_cntr;
-> >  	resp.pkey_tbl_len    = attr.pkey_tbl_len;
-> > -	resp.sm_lid 	     = attr.sm_lid;
-> > -	if (rdma_cap_opa_ah(ib_dev, cmd.port_num))
-> > +	if (rdma_cap_opa_ah(ib_dev, cmd.port_num)) {
-> >  		resp.lid  = OPA_TO_IB_UCAST_LID(attr.lid);
-> > -	else
-> > +		resp.sm_lid  = OPA_TO_IB_UCAST_LID(attr.sm_lid);
-> > +	} else {
-> >  		resp.lid     = (u16)attr.lid;
-> > +		resp.sm_lid  = (u16)attr.sm_lid;
->
-> I see that lid is already has casting from u32 to u16 and now it is sm_lid.
-> Do we have more elegant way to achieve that? And comment for future
-> developers can be good too.
-
-I see now, you changed lid in patch 11. The same comment there.
-
->
-> > +	}
-> >  	resp.lmc 	     = attr.lmc;
-> >  	resp.max_vl_num      = attr.max_vl_num;
-> >  	resp.sm_sl 	     = attr.sm_sl;
-> > diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> > index 4eccf89..5f4f2d3 100644
-> > --- a/include/rdma/ib_verbs.h
-> > +++ b/include/rdma/ib_verbs.h
-> > @@ -549,7 +549,7 @@ struct ib_port_attr {
-> >  	u32			bad_pkey_cntr;
-> >  	u32			qkey_viol_cntr;
-> >  	u16			pkey_tbl_len;
-> > -	u16			sm_lid;
-> > +	u32			sm_lid;
-> >  	u32			lid;
-> >  	u8			lmc;
-> >  	u8			max_vl_num;
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
---qFgkTsE6LiHkLPZw
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmG0bgACgkQ5GN7iDZy
-WKc5+g//fx4VegBQ9np2HSbGKTcRqMEh8al15rXiI/XQIikDFlyoSPgGGllLXA72
-8CM04INdbkFcDkZb1R2X8UgBGX27zpH6Nw7B1RSAtYva4HievQsIytErrDxFwtXM
-kRCj4l3ymX3UWcy47G5I1kmY3i/ZYF/rF6Pid5hD8pPz2OviY6LuILZsAp3RyklA
-h/6hlDj9E6a6V/AiGXvFwvqKP06/UCcBRSprPoEsX4E1ghzpkldylzFWRCC4SVVf
-DbYpB16Cszn6Y+VT2w9yWobyzmHZdrdf4RNu/P62Kzba+RjthACzaXm9O7foSM0A
-F3qTejeNzOcZBkWAHDTtWoqmKdy4u12kG4aznalNaYCsgRP8uARdQHfX3eSGasWf
-DzIMh668UW1D3+5Wi9B0AeS575E0gxtSwyObO3PXXmZnLIx9VIawqZgNf4FWskQd
-CTHgoITpJhsED44eNZ/QXCevIcGWiZiXUz3fXBqjGpaH0J7NM7URKga/b4mTBHLR
-fif6C4oquqF3U8ioTzLWrITpx1iQQfP20PWpd/vY6kfvGLue7qNAa4IuQpw0TRAz
-VTzpt5n+ZKK4ruxwNs2e49Qio86lAkfLKROb7+9CtpCllHXuVT8//rlJR+RjDici
-1Dbj+3AKJ2+OfAK2mJcB++PBsxkGZJ1D6GeOrgoogv8oma2zgM0=
-=RLMO
------END PGP SIGNATURE-----
-
---qFgkTsE6LiHkLPZw--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Markus
