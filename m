@@ -1,59 +1,53 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: Re: [PATCH v2 00/17] IB/mlx: Fine-tuning for several function
- implementations
-Date: Sun, 6 Aug 2017 16:00:09 +0200
-Message-ID: <617e30ff-2705-b053-ee28-ed9385037580@users.sourceforge.net>
-References: <1935365a-bd7c-461e-6a84-0c5d3a501fff@users.sourceforge.net>
- <1492720654.3041.16.camel@redhat.com>
- <a56f9301-e116-c59c-681a-9108519920e5@users.sourceforge.net>
+From: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>
+Subject: [PATCH v06 30/36] uapi rdma/rdma_user_rxe.h: include in.h and in6.h
+Date: Sun,  6 Aug 2017 18:44:21 +0200
+Message-ID: <20170806164428.2273-31-mikko.rapeli@iki.fi>
+References: <20170806164428.2273-1-mikko.rapeli@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <a56f9301-e116-c59c-681a-9108519920e5@users.sourceforge.net>
-Content-Language: en-GB
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Leon Romanovsky <leonro@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Matan Barak <matanb@mellanox.com>, Sean Hefty <sean.hefty@intel.com>, Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170806164428.2273-1-mikko.rapeli-X3B1VOXEql0@public.gmane.org>
+Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Date: Fri, 21 Apr 2017 19:56:54 +0200
-> 
-> Several update suggestions were taken into account
-> from static source code analysis.
-> 
-> Markus Elfring (17):
->   Use kcalloc() in mlx4_ib_alloc_pv_bufs()
->   Use kmalloc_array() in six functions
->   Improve size determinations in six functions
->   Fix a typo in a comment line
->   Delete four unnecessary return statements
->   Delete an unnecessary check before kfree() in free_pv_object()
->   Move an assignment out of a check in forward_trap()
->   Enclose 46 expressions for sizeof by parentheses
->   Split a condition check in six functions
->   Delete an unnecessary variable in __mlx4_ib_query_gid()
->   Delete an unnecessary variable initialisation in mlx4_ib_add()
->   Delete an unnecessary variable assignment in mlx4_ib_add()
->   Delete an error message for a failed memory allocation in mlx4_ib_add()
->   Delete unnecessary braces in mlx4_ib_add()
->   Delete unwanted spaces behind usages of the sizeof operator
->   Add spaces for better code readability
->   Less function calls in create_kernel_qp() after error detection
-> ---
-> 
-> v2:
-> Changes were rebased on source files from Linux next-20170421.
-> Some of them were recombined as requested by Doug Ledford.
-> 
->  drivers/infiniband/hw/mlx4/mad.c  |  72 ++++++++--------
->  drivers/infiniband/hw/mlx4/main.c | 164 ++++++++++++++++++++----------------
->  drivers/infiniband/hw/mlx4/qp.c   | 173 +++++++++++++++++++-------------------
->  drivers/infiniband/hw/mlx5/qp.c   |  66 ++++++++++-----
->  drivers/infiniband/hw/mlx5/srq.c  |   5 +-
->  5 files changed, 261 insertions(+), 219 deletions(-)
+Fixes these userspace compilation errors when rdma_user_rxe.h is compiled
+alone:
 
-Will the clarification be continued for the shown change possibilities?
+rdma/rdma_user_rxe.h:59:20: error: field ‘_sockaddr’ has incomplete type
+   struct sockaddr  _sockaddr;
+                    ^~~~~~~~~
+rdma/rdma_user_rxe.h:60:22: error: field ‘_sockaddr_in’ has incomplete type
+   struct sockaddr_in _sockaddr_in;
+                      ^~~~~~~~~~~~
+rdma/rdma_user_rxe.h:61:23: error: field ‘_sockaddr_in6’ has incomplete type
+   struct sockaddr_in6 _sockaddr_in6;
+                       ^~~~~~~~~~~~~
 
-Regards,
-Markus
+Signed-off-by: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>
+Acked-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Acked-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+---
+ include/uapi/rdma/rdma_user_rxe.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/include/uapi/rdma/rdma_user_rxe.h b/include/uapi/rdma/rdma_user_rxe.h
+index 1de99cfdaf7d..ce6c929ca331 100644
+--- a/include/uapi/rdma/rdma_user_rxe.h
++++ b/include/uapi/rdma/rdma_user_rxe.h
+@@ -34,6 +34,8 @@
+ #define RDMA_USER_RXE_H
+ 
+ #include <linux/types.h>
++#include <linux/in.h>
++#include <linux/in6.h>
+ 
+ union rxe_gid {
+ 	__u8	raw[16];
+-- 
+2.13.3
