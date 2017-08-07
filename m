@@ -1,41 +1,48 @@
-From: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH v2 1/1] RDMA/uverbs: Intialize cq_context properly
-Date: Tue,  8 Aug 2017 00:32:06 +0530
-Message-ID: <1502132526-18355-1-git-send-email-bharat@chelsio.com>
+From: Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [pull request][for-next 0/8] Mellanox, mlx5 shared 2017-08-07
+Date: Mon, 7 Aug 2017 22:31:18 +0300
+Message-ID: <CALzJLG8rbapMeQaf-fuv+i6ob22qG4xmv=2vYk0KJruhtVu+Rg@mail.gmail.com>
+References: <20170807101808.22924-1-saeedm@mellanox.com> <20170807.112052.332868856082904160.davem@davemloft.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170807.112052.332868856082904160.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Initializing cq_context with ev_queue in create_cq(), leads to NULL pointer
-dereference in ib_uverbs_comp_handler(), if application doesnot use completion
- channel. This patch fixes the cq_context initialization.
+On Mon, Aug 7, 2017 at 9:20 PM, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org> wrote:
+> From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Date: Mon,  7 Aug 2017 13:18:00 +0300
+>
+>> Hi Dave & Doug,
+>>
+>> This series contains some low level updates for mlx5 core driver,
+>> to be shared as base code for net-next and rdma for-next mlx5
+>> 4.14 submissions.
+>>
+>> Please find more information in the tag message below.
+>>
+>> Please pull and let me know if there's any porblem.
+>>
+>> Side note:
+>> This series merges cleanly with current net-next, but it will conflict with Jiri's patch
+>> "mlx5e: push cls_flower and mqprio setup_tc processing into separate functions"
+>> Which is under review.
+>> since this is shared code and must go to both rdma and net-next it has to be
+>> based on 4.13-rc4, so there is not much I can do about this.
+>
+> I resolved the merge conflict as best as I could, please take a look.
+>
 
-Fixes: 1e7710f3f65 ("IB/core: Change completion channel to use the reworked")
-Signed-off-by: Potnuri Bharat Teja <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Tested-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/uverbs_cmd.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks Dave!
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 2c98533a0203..50a6c64f0388 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1015,7 +1015,7 @@ static struct ib_ucq_object *create_cq(struct ib_uverbs_file *file,
- 	cq->uobject       = &obj->uobject;
- 	cq->comp_handler  = ib_uverbs_comp_handler;
- 	cq->event_handler = ib_uverbs_cq_event_handler;
--	cq->cq_context    = &ev_file->ev_queue;
-+	cq->cq_context    = ev_file ? &ev_file->ev_queue : NULL;
- 	atomic_set(&cq->usecnt, 0);
- 
- 	obj->uobject.object = cq;
--- 
-2.5.3
+looks good, I will do some compilation testing later and if i find
+anything i will post a patch.
 
+Thanks a lot,
+-Saeed.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
