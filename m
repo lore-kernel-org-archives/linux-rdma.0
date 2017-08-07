@@ -1,63 +1,146 @@
 From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [pull request][PATCH 0/7] i40iw: Fixes for i40iw
-Date: Mon,  7 Aug 2017 16:31:56 -0500
-Message-ID: <20170807213203.30588-1-henry.orosco@intel.com>
+Subject: [PATCH 4/7] i40iw: Improve CQP timeout logic
+Date: Mon,  7 Aug 2017 16:32:00 -0500
+Message-ID: <20170807213203.30588-5-henry.orosco@intel.com>
+References: <20170807213203.30588-1-henry.orosco@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170807213203.30588-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The following patch series has fixes for the i40iw driver.
+From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
---------------------------------------------------------
+The current timeout logic for Control Queue-Pair (CQP) OPs
+does not take into account whether CQP makes progress but
+rather blindly waits for a large timeout value, 100000 jiffies
+for the completion event. Improve this by setting the timeout
+based on whether the CQP is making progress or not. If the CQP
+is hung, the timeout will happen sooner, in 5000 jiffies. Each
+time the CQP progress is detetcted, the timeout extends by 5000
+jiffies.
 
-Git Repo to pull from:
-        https://github.com/horosco/linux.git
-tag:
-        for-v4.13-rc-08-07-17
+Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Christopher N Bednarz <christopher.n.bednarz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/i40iw/i40iw_ctrl.c  | 11 +++++++++++
+ drivers/infiniband/hw/i40iw/i40iw_p.h     | 14 +++++++++-----
+ drivers/infiniband/hw/i40iw/i40iw_type.h  |  5 +++++
+ drivers/infiniband/hw/i40iw/i40iw_utils.c | 22 ++++++++++++++--------
+ 4 files changed, 39 insertions(+), 13 deletions(-)
 
-Commits of interest:
-
-commit 9a36a7047ca56c0cbb8b320c645e2b75297bf5c1
-Date:   Mon Jul 3 15:45:32 2017 -0500
-i40iw: Fix parsing of query/commit FPM buffers
-
-to
-
-commit fb916eaade1a03dded8e7d502035360144abb291
-Date:   Wed Jul 5 13:33:54 2017 -0500
-i40iw: Fix potential fcn_id_array out of bounds
-
---------------------------------------------------------
-
-Chien Tin Tung (1):
-  i40iw: Fix parsing of query/commit FPM buffers
-
-Christopher N Bednarz (3):
-  i40iw: Ignore first SQ wqe_index if it shows up as a CQE
-  i40iw: Use correct alignment for CQ0 memory
-  i40iw: Fix potential fcn_id_array out of bounds
-
-Mustafa Ismail (2):
-  i40iw: Correct variable names
-  i40iw: Fix typecast of tcp_seq_num
-
-Shiraz Saleem (1):
-  i40iw: Improve CQP timeout logic
-
- drivers/infiniband/hw/i40iw/i40iw_ctrl.c   | 136 ++++++++++++++++++++---------
- drivers/infiniband/hw/i40iw/i40iw_d.h      |   4 +-
- drivers/infiniband/hw/i40iw/i40iw_p.h      |  14 +--
- drivers/infiniband/hw/i40iw/i40iw_puda.c   |   2 +-
- drivers/infiniband/hw/i40iw/i40iw_status.h |   2 +-
- drivers/infiniband/hw/i40iw/i40iw_type.h   |   5 ++
- drivers/infiniband/hw/i40iw/i40iw_uk.c     |  21 ++++-
- drivers/infiniband/hw/i40iw/i40iw_user.h   |   2 +
- drivers/infiniband/hw/i40iw/i40iw_utils.c  |  22 +++--
- drivers/infiniband/hw/i40iw/i40iw_verbs.c  |   1 +
- 10 files changed, 147 insertions(+), 62 deletions(-)
-
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+index 5769080..b55620d 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
+@@ -54,6 +54,17 @@ static inline void i40iw_insert_wqe_hdr(u64 *wqe, u64 header)
+ 	set_64bit_val(wqe, 24, header);
+ }
+ 
++void i40iw_check_cqp_progress(struct i40iw_cqp_timeout *cqp_timeout, struct i40iw_sc_dev *dev)
++{
++	if (cqp_timeout->compl_cqp_cmds != dev->cqp_cmd_stats[OP_COMPLETED_COMMANDS]) {
++		cqp_timeout->compl_cqp_cmds = dev->cqp_cmd_stats[OP_COMPLETED_COMMANDS];
++		cqp_timeout->count = 0;
++	} else {
++		if (dev->cqp_cmd_stats[OP_REQUESTED_COMMANDS] != cqp_timeout->compl_cqp_cmds)
++			cqp_timeout->count++;
++	}
++}
++
+ /**
+  * i40iw_get_cqp_reg_info - get head and tail for cqp using registers
+  * @cqp: struct for cqp hw
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_p.h b/drivers/infiniband/hw/i40iw/i40iw_p.h
+index 28a92fe..e217a12 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_p.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_p.h
+@@ -35,11 +35,13 @@
+ #ifndef I40IW_P_H
+ #define I40IW_P_H
+ 
+-#define PAUSE_TIMER_VALUE  0xFFFF
+-#define REFRESH_THRESHOLD  0x7FFF
+-#define HIGH_THRESHOLD     0x800
+-#define LOW_THRESHOLD      0x200
+-#define ALL_TC2PFC         0xFF
++#define PAUSE_TIMER_VALUE       0xFFFF
++#define REFRESH_THRESHOLD       0x7FFF
++#define HIGH_THRESHOLD          0x800
++#define LOW_THRESHOLD           0x200
++#define ALL_TC2PFC              0xFF
++#define CQP_COMPL_WAIT_TIME     0x3E8
++#define CQP_TIMEOUT_THRESHOLD   5
+ 
+ void i40iw_debug_buf(struct i40iw_sc_dev *dev, enum i40iw_debug_flag mask,
+ 		     char *desc, u64 *buf, u32 size);
+@@ -51,6 +53,8 @@ void i40iw_sc_cqp_post_sq(struct i40iw_sc_cqp *cqp);
+ 
+ u64 *i40iw_sc_cqp_get_next_send_wqe(struct i40iw_sc_cqp *cqp, u64 scratch);
+ 
++void i40iw_check_cqp_progress(struct i40iw_cqp_timeout *cqp_timeout, struct i40iw_sc_dev *dev);
++
+ enum i40iw_status_code i40iw_sc_mr_fast_register(struct i40iw_sc_qp *qp,
+ 						 struct i40iw_fast_reg_stag_info *info,
+ 						 bool post_sq);
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_type.h b/drivers/infiniband/hw/i40iw/i40iw_type.h
+index 959ec81..63118f6 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_type.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_type.h
+@@ -1345,4 +1345,9 @@ struct i40iw_virtchnl_work_info {
+ 	void *worker_vf_dev;
+ };
+ 
++struct i40iw_cqp_timeout {
++	u64 compl_cqp_cmds;
++	u8 count;
++};
++
+ #endif
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
+index e311ec5..62f1f45 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
+@@ -445,23 +445,29 @@ static int i40iw_wait_event(struct i40iw_device *iwdev,
+ {
+ 	struct cqp_commands_info *info = &cqp_request->info;
+ 	struct i40iw_cqp *iwcqp = &iwdev->cqp;
++	struct i40iw_cqp_timeout cqp_timeout;
+ 	bool cqp_error = false;
+ 	int err_code = 0;
+-	int timeout_ret = 0;
++	memset(&cqp_timeout, 0, sizeof(cqp_timeout));
++	cqp_timeout.compl_cqp_cmds = iwdev->sc_dev.cqp_cmd_stats[OP_COMPLETED_COMMANDS];
++	do {
++		if (wait_event_timeout(cqp_request->waitq,
++				       cqp_request->request_done, CQP_COMPL_WAIT_TIME))
++			break;
+ 
+-	timeout_ret = wait_event_timeout(cqp_request->waitq,
+-					 cqp_request->request_done,
+-					 I40IW_EVENT_TIMEOUT);
+-	if (!timeout_ret) {
+-		i40iw_pr_err("error cqp command 0x%x timed out ret = %d\n",
+-			     info->cqp_cmd, timeout_ret);
++		i40iw_check_cqp_progress(&cqp_timeout, &iwdev->sc_dev);
++
++		if (cqp_timeout.count < CQP_TIMEOUT_THRESHOLD)
++			continue;
++
++		i40iw_pr_err("error cqp command 0x%x timed out", info->cqp_cmd);
+ 		err_code = -ETIME;
+ 		if (!iwdev->reset) {
+ 			iwdev->reset = true;
+ 			i40iw_request_reset(iwdev);
+ 		}
+ 		goto done;
+-	}
++	} while (1);
+ 	cqp_error = cqp_request->compl_info.error;
+ 	if (cqp_error) {
+ 		i40iw_pr_err("error cqp command 0x%x completion maj = 0x%x min=0x%x\n",
 -- 
 2.8.3
 
