@@ -1,71 +1,63 @@
 From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/7] i40iw: Correct variable names
-Date: Mon,  7 Aug 2017 16:31:59 -0500
-Message-ID: <20170807213203.30588-4-henry.orosco@intel.com>
-References: <20170807213203.30588-1-henry.orosco@intel.com>
+Subject: [pull request][PATCH 0/7] i40iw: Fixes for i40iw
+Date: Mon,  7 Aug 2017 16:31:56 -0500
+Message-ID: <20170807213203.30588-1-henry.orosco@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170807213203.30588-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+The following patch series has fixes for the i40iw driver.
 
-Fix incorrect naming of status code and struct. Use inline
-instead of immediate.
+--------------------------------------------------------
 
-Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/i40iw/i40iw_status.h | 2 +-
- drivers/infiniband/hw/i40iw/i40iw_uk.c     | 6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+Git Repo to pull from:
+        https://github.com/horosco/linux.git
+tag:
+        for-v4.13-rc-08-07-17
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_status.h b/drivers/infiniband/hw/i40iw/i40iw_status.h
-index 91c4217..f7013f1 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_status.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_status.h
-@@ -62,7 +62,7 @@ enum i40iw_status_code {
- 	I40IW_ERR_INVALID_ALIGNMENT = -23,
- 	I40IW_ERR_FLUSHED_QUEUE = -24,
- 	I40IW_ERR_INVALID_PUSH_PAGE_INDEX = -25,
--	I40IW_ERR_INVALID_IMM_DATA_SIZE = -26,
-+	I40IW_ERR_INVALID_INLINE_DATA_SIZE = -26,
- 	I40IW_ERR_TIMEOUT = -27,
- 	I40IW_ERR_OPCODE_MISMATCH = -28,
- 	I40IW_ERR_CQP_COMPL_ERROR = -29,
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_uk.c b/drivers/infiniband/hw/i40iw/i40iw_uk.c
-index f963340..ecfef1e 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_uk.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_uk.c
-@@ -435,7 +435,7 @@ static enum i40iw_status_code i40iw_inline_rdma_write(struct i40iw_qp_uk *qp,
- 
- 	op_info = &info->op.inline_rdma_write;
- 	if (op_info->len > I40IW_MAX_INLINE_DATA_SIZE)
--		return I40IW_ERR_INVALID_IMM_DATA_SIZE;
-+		return I40IW_ERR_INVALID_INLINE_DATA_SIZE;
- 
- 	ret_code = i40iw_inline_data_size_to_wqesize(op_info->len, &wqe_size);
- 	if (ret_code)
-@@ -511,7 +511,7 @@ static enum i40iw_status_code i40iw_inline_send(struct i40iw_qp_uk *qp,
- 
- 	op_info = &info->op.inline_send;
- 	if (op_info->len > I40IW_MAX_INLINE_DATA_SIZE)
--		return I40IW_ERR_INVALID_IMM_DATA_SIZE;
-+		return I40IW_ERR_INVALID_INLINE_DATA_SIZE;
- 
- 	ret_code = i40iw_inline_data_size_to_wqesize(op_info->len, &wqe_size);
- 	if (ret_code)
-@@ -1200,7 +1200,7 @@ enum i40iw_status_code i40iw_inline_data_size_to_wqesize(u32 data_size,
- 							 u8 *wqe_size)
- {
- 	if (data_size > I40IW_MAX_INLINE_DATA_SIZE)
--		return I40IW_ERR_INVALID_IMM_DATA_SIZE;
-+		return I40IW_ERR_INVALID_INLINE_DATA_SIZE;
- 
- 	if (data_size <= 16)
- 		*wqe_size = I40IW_QP_WQE_MIN_SIZE;
+Commits of interest:
+
+commit 9a36a7047ca56c0cbb8b320c645e2b75297bf5c1
+Date:   Mon Jul 3 15:45:32 2017 -0500
+i40iw: Fix parsing of query/commit FPM buffers
+
+to
+
+commit fb916eaade1a03dded8e7d502035360144abb291
+Date:   Wed Jul 5 13:33:54 2017 -0500
+i40iw: Fix potential fcn_id_array out of bounds
+
+--------------------------------------------------------
+
+Chien Tin Tung (1):
+  i40iw: Fix parsing of query/commit FPM buffers
+
+Christopher N Bednarz (3):
+  i40iw: Ignore first SQ wqe_index if it shows up as a CQE
+  i40iw: Use correct alignment for CQ0 memory
+  i40iw: Fix potential fcn_id_array out of bounds
+
+Mustafa Ismail (2):
+  i40iw: Correct variable names
+  i40iw: Fix typecast of tcp_seq_num
+
+Shiraz Saleem (1):
+  i40iw: Improve CQP timeout logic
+
+ drivers/infiniband/hw/i40iw/i40iw_ctrl.c   | 136 ++++++++++++++++++++---------
+ drivers/infiniband/hw/i40iw/i40iw_d.h      |   4 +-
+ drivers/infiniband/hw/i40iw/i40iw_p.h      |  14 +--
+ drivers/infiniband/hw/i40iw/i40iw_puda.c   |   2 +-
+ drivers/infiniband/hw/i40iw/i40iw_status.h |   2 +-
+ drivers/infiniband/hw/i40iw/i40iw_type.h   |   5 ++
+ drivers/infiniband/hw/i40iw/i40iw_uk.c     |  21 ++++-
+ drivers/infiniband/hw/i40iw/i40iw_user.h   |   2 +
+ drivers/infiniband/hw/i40iw/i40iw_utils.c  |  22 +++--
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c  |   1 +
+ 10 files changed, 147 insertions(+), 62 deletions(-)
+
 -- 
 2.8.3
 
