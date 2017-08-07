@@ -1,61 +1,67 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: Flush warning
-Date: Sun, 6 Aug 2017 18:06:38 -0700
-Message-ID: <9bc142de-b8ba-acb6-5ea1-2ccdbb578655@grimberg.me>
-References: <016301d30c86$e7034ae0$b509e0a0$@opengridcomputing.com>
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: [PATCH] mm: ratelimit PFNs busy info message
+Date: Mon, 7 Aug 2017 08:58:19 +0200
+Message-ID: <20170807065819.GB32434@dhcp22.suse.cz>
+References: <499c0f6cc10d6eb829a67f2a4d75b4228a9b356e.1501695897.git.jtoppins@redhat.com>
+ <20170802141720.228502368b534f517e3107ff@linux-foundation.org>
+ <1501872906.79618.10.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <016301d30c86$e7034ae0$b509e0a0$@opengridcomputing.com>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <1501872906.79618.10.camel@redhat.com>
+Sender: owner-linux-mm@kvack.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Jonathan Toppins <jtoppins@redhat.com>, linux-mm@kvack.org, linux-rdma@vger.kernel.org, Vlastimil Babka <vbabka@suse.cz>, Mel Gorman <mgorman@techsingularity.net>, Hillf Danton <hillf.zj@alibaba-inc.com>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Hey guys,
-
-Hey Steve,
-
-> We're seeing a WARNING happening when running an fio test on a single NVMF
-> attached ramdisk over iw_cxgb4.  While the fio test is running, the NVMF host is
-> also killing the controller via writing to
-> /sys/block/nvme*/device/reset_controller.  Here is the script:
+On Fri 04-08-17 14:55:06, Doug Ledford wrote:
+> On Wed, 2017-08-02 at 14:17 -0700, Andrew Morton wrote:
+> > On Wed,  2 Aug 2017 13:44:57 -0400 Jonathan Toppins <jtoppins@redhat.
+> > com> wrote:
+> > 
+> > > The RDMA subsystem can generate several thousand of these messages
+> > > per
+> > > second eventually leading to a kernel crash. Ratelimit these
+> > > messages
+> > > to prevent this crash.
+> > 
+> > Well...  why are all these EBUSY's occurring?  It sounds inefficient
+> > (at
+> > least) but if it is expected, normal and unavoidable then perhaps we
+> > should just remove that message altogether?
 > 
-> ----
-> [root@trinitycraft ~]# cat fio_issue.sh
-> num=0
-> 
-> fio --rw=randrw --name=random --norandommap --ioengine=libaio --size=400m
-> --group_reporting --exitall --fsync_on_close=1 --invalidate=1 --direct=1
-> --filename=/dev/nvme0n1 --time_based --runtime=30 --iodepth=32 --numjobs=8
-> --unit_base=1 --bs=4k --kb_base=1000 &
-> 
-> sleep 2
-> while [ $num -lt 30 ]
-> do
->          echo 1 >/sys/block/nvme0n1/device/reset_controller
->          [ $? -eq 1 ] && echo "reset_controller operation failed: $num" && exit 1
->          ((num++))
->          sleep 0.5
-> done
-> -----
-> 
-> The WARNING seems to be due to nvmet_rdma_queue_connect() calling
-> flush_scheduled_work() while in the upcall from the RDMA_CM.  It I running on
-> the iw_cm event workqueue, which is created with WQ_MEM_RECLAIM set.  I'm not
-> sure what this WARNING is telling me.  Does the iw_cm workqueue NOT need
-> WQ_MEM_RECLAIM set?  Or is there some other issue with the nvmet/rdma code doing
-> work flushing in the iw_cm workq context?
+> I don't have an answer to that question.  To be honest, I haven't
+> looked real hard.  We never had this at all, then it started out of the
+> blue, but only on our Dell 730xd machines (and it hits all of them),
+> but no other classes or brands of machines.  And we have our 730xd
+> machines loaded up with different brands and models of cards (for
+> instance one dedicated to mlx4 hardware, one for qib, one for mlx5, an
+> ocrdma/cxgb4 combo, etc), so the fact that it hit all of the machines
+> meant it wasn't tied to any particular brand/model of RDMA hardware. 
+> To me, it always smelled of a hardware oddity specific to maybe the
+> CPUs or mainboard chipsets in these machines, so given that I'm not an
+> mm expert anyway, I never chased it down.
 
-This flush is designed to prevent nvmet-rdma from having too much
-inflight resources in case of a high pace of controller teardown and
-establishment (like you trigger in your test).
+It would certainly be good to chase this down. I do not object to
+ratelimiting, it is much better than having a non-bootable system but
+this doesn't solve the underlying problem.
+ 
+> A few other relevant details: it showed up somewhere around 4.8/4.9 or
+> thereabouts.  It never happened before, but the prinkt has been there
+> since the 3.18 days, so possibly the test to trigger this message was
+> changed, or something else in the allocator changed such that the
+> situation started happening on these machines?
 
-queue teardowns are run on system_wq, does iw_cm needs memory
-reclamation protection?
+Is this still the case with the current Linus tree? We have had a fix
+424f6c4818bb ("mm: alloc_contig: re-allow CMA to compact FS pages")
+which made it into 4.10
+-- 
+Michal Hocko
+SUSE Labs
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
