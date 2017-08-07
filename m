@@ -1,67 +1,109 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [PATCH] mm: ratelimit PFNs busy info message
-Date: Mon, 7 Aug 2017 08:58:19 +0200
-Message-ID: <20170807065819.GB32434@dhcp22.suse.cz>
-References: <499c0f6cc10d6eb829a67f2a4d75b4228a9b356e.1501695897.git.jtoppins@redhat.com>
- <20170802141720.228502368b534f517e3107ff@linux-foundation.org>
- <1501872906.79618.10.camel@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <1501872906.79618.10.camel@redhat.com>
-Sender: owner-linux-mm@kvack.org
-To: Doug Ledford <dledford@redhat.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Jonathan Toppins <jtoppins@redhat.com>, linux-mm@kvack.org, linux-rdma@vger.kernel.org, Vlastimil Babka <vbabka@suse.cz>, Mel Gorman <mgorman@techsingularity.net>, Hillf Danton <hillf.zj@alibaba-inc.com>, open list <linux-kernel@vger.kernel.org>
+From: Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [pull request][for-next 0/8] Mellanox, mlx5 shared 2017-08-07
+Date: Mon,  7 Aug 2017 13:18:00 +0300
+Message-ID: <20170807101808.22924-1-saeedm@mellanox.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Saeed Mahameed <saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri 04-08-17 14:55:06, Doug Ledford wrote:
-> On Wed, 2017-08-02 at 14:17 -0700, Andrew Morton wrote:
-> > On Wed,  2 Aug 2017 13:44:57 -0400 Jonathan Toppins <jtoppins@redhat.
-> > com> wrote:
-> > 
-> > > The RDMA subsystem can generate several thousand of these messages
-> > > per
-> > > second eventually leading to a kernel crash. Ratelimit these
-> > > messages
-> > > to prevent this crash.
-> > 
-> > Well...  why are all these EBUSY's occurring?  It sounds inefficient
-> > (at
-> > least) but if it is expected, normal and unavoidable then perhaps we
-> > should just remove that message altogether?
-> 
-> I don't have an answer to that question.  To be honest, I haven't
-> looked real hard.  We never had this at all, then it started out of the
-> blue, but only on our Dell 730xd machines (and it hits all of them),
-> but no other classes or brands of machines.  And we have our 730xd
-> machines loaded up with different brands and models of cards (for
-> instance one dedicated to mlx4 hardware, one for qib, one for mlx5, an
-> ocrdma/cxgb4 combo, etc), so the fact that it hit all of the machines
-> meant it wasn't tied to any particular brand/model of RDMA hardware. 
-> To me, it always smelled of a hardware oddity specific to maybe the
-> CPUs or mainboard chipsets in these machines, so given that I'm not an
-> mm expert anyway, I never chased it down.
+Hi Dave & Doug,
 
-It would certainly be good to chase this down. I do not object to
-ratelimiting, it is much better than having a non-bootable system but
-this doesn't solve the underlying problem.
- 
-> A few other relevant details: it showed up somewhere around 4.8/4.9 or
-> thereabouts.  It never happened before, but the prinkt has been there
-> since the 3.18 days, so possibly the test to trigger this message was
-> changed, or something else in the allocator changed such that the
-> situation started happening on these machines?
+This series contains some low level updates for mlx5 core driver,
+to be shared as base code for net-next and rdma for-next mlx5
+4.14 submissions.
 
-Is this still the case with the current Linus tree? We have had a fix
-424f6c4818bb ("mm: alloc_contig: re-allow CMA to compact FS pages")
-which made it into 4.10
--- 
-Michal Hocko
-SUSE Labs
+Please find more information in the tag message below.
+
+Please pull and let me know if there's any porblem.
+
+Side note:
+This series merges cleanly with current net-next, but it will conflict with Jiri's patch
+"mlx5e: push cls_flower and mqprio setup_tc processing into separate functions"
+Which is under review.
+since this is shared code and must go to both rdma and net-next it has to be
+based on 4.13-rc4, so there is not much I can do about this.
+
+Thanks,
+Saeed.
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+
+The following changes since commit aae4e7a8bc44722fe70d58920a36916b1043195e:
+
+  Linux 4.13-rc4 (2017-08-06 18:44:49 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux.git tags/mlx5-shared-2017-08-07
+
+for you to fetch changes up to a8ffcc741acb3c7f3dcf4c7d001209aa0995a5f1:
+
+  net/mlx5: Increase the maximum flow counters supported (2017-08-07 10:47:07 +0300)
+
+----------------------------------------------------------------
+mlx5-shared-2017-08-07
+
+This series includes some mlx5 updates for both net-next and rdma trees.
+
+>From Saeed,
+Core driver updates to allow selectively building the driver with
+or without some large driver components, such as
+	- E-Switch (Ethernet SRIOV support).
+	- Multi-Physical Function Switch (MPFs) support.
+For that we split E-Switch and MPFs functionalities into separate files.
+
+>From Erez,
+Delay mlx5_core events when mlx5 interfaces, namely mlx5_ib, registration
+is taking place and until it completes.
+
+>From Rabie,
+Increase the maximum supported flow counters.
+
+----------------------------------------------------------------
+Erez Shitrit (1):
+      net/mlx5: Delay events till ib registration ends
+
+Rabie Loulou (2):
+      net/mlx5: Fix counter list hardware structure
+      net/mlx5: Increase the maximum flow counters supported
+
+Saeed Mahameed (5):
+      net/mlx5e: Rearrange netdevice ops structures
+      net/mlx5e: NIC netdev init flow cleanup
+      net/mlx5: Unify vport manager capability check
+      net/mlx5: Separate between E-Switch and MPFS
+      net/mlx5: Add CONFIG_MLX5_ESWITCH Kconfig
+
+ drivers/net/ethernet/mellanox/mlx5/core/Kconfig    |  21 +++
+ drivers/net/ethernet/mellanox/mlx5/core/Makefile   |  11 +-
+ drivers/net/ethernet/mellanox/mlx5/core/dev.c      |  73 +++++++
+ drivers/net/ethernet/mellanox/mlx5/core/en_fs.c    |  17 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c  |  97 ++++------
+ drivers/net/ethernet/mellanox/mlx5/core/en_rep.c   |  13 ++
+ drivers/net/ethernet/mellanox/mlx5/core/en_rep.h   |   9 +
+ drivers/net/ethernet/mellanox/mlx5/core/en_rx.c    |   2 +
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.h    |   7 +
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c       |   8 +-
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.c  | 209 +++++----------------
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.h  |  78 ++------
+ .../ethernet/mellanox/mlx5/core/eswitch_offloads.c |   6 +-
+ drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c   |  12 +-
+ drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.h   |  10 +-
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.h  |   2 +-
+ .../net/ethernet/mellanox/mlx5/core/fs_counters.c  |  13 +-
+ drivers/net/ethernet/mellanox/mlx5/core/lib/mpfs.c | 201 ++++++++++++++++++++
+ drivers/net/ethernet/mellanox/mlx5/core/lib/mpfs.h |  95 ++++++++++
+ drivers/net/ethernet/mellanox/mlx5/core/main.c     |  37 ++--
+ .../net/ethernet/mellanox/mlx5/core/mlx5_core.h    |   4 +
+ drivers/net/ethernet/mellanox/mlx5/core/sriov.c    |  14 +-
+ include/linux/mlx5/driver.h                        |   5 +
+ include/linux/mlx5/mlx5_ifc.h                      |  17 +-
+ 24 files changed, 597 insertions(+), 364 deletions(-)
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/lib/mpfs.c
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/lib/mpfs.h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
