@@ -1,64 +1,44 @@
-From: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] RDMA/uverbs: Fix the check for port number
-Date: Mon, 7 Aug 2017 07:11:52 -0500
-Message-ID: <20170807121151.GA13740@ctung-MOBL3.amr.corp.intel.com>
-References: <1501085686-12916-1-git-send-email-mustafa.ismail@intel.com>
- <20170807110307.GB2462@yuvallap>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: Flush warning
+Date: Mon, 7 Aug 2017 10:28:12 -0500
+Message-ID: <003401d30f91$c7e2a3f0$57a7ebd0$@opengridcomputing.com>
+References: <016301d30c86$e7034ae0$b509e0a0$@opengridcomputing.com> <9bc142de-b8ba-acb6-5ea1-2ccdbb578655@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170807110307.GB2462@yuvallap>
+In-Reply-To: <9bc142de-b8ba-acb6-5ea1-2ccdbb578655-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, "# v4 . 2-v4 . 9" <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, security-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Aug 07, 2017 at 02:03:08PM +0300, Yuval Shaia wrote:
-> On Wed, Jul 26, 2017 at 11:14:46AM -0500, Mustafa Ismail wrote:
-> > The port number is only valid if IB_QP_PORT is set in the mask.
-> > So only check port number if it is valid to prevent modify_qp
-> > from failing due to an invalid port number.
-> > 
-> > Fixes: 5ecce4c9b17b("Check port number supplied by user verbs cmds")
-> > Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org> # v4.2-v4.9
-> > Cc: <security-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> > Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> > Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > 
-> > Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > 
-> > Upstream commit 5a7a88f1b488("Fix the check for port number")
-> > Modified from upstream commit: helper function rdma_is_port_valid does not
-> > exist in these kernel versions.
-> > ---
-> >  drivers/infiniband/core/uverbs_cmd.c | 5 +++--
-> >  1 file changed, 3 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-> > index 01e3a37..d118ffe 100644
-> > --- a/drivers/infiniband/core/uverbs_cmd.c
-> > +++ b/drivers/infiniband/core/uverbs_cmd.c
-> > @@ -2342,8 +2342,9 @@ ssize_t ib_uverbs_modify_qp(struct ib_uverbs_file *file,
-> >  	if (copy_from_user(&cmd, buf, sizeof cmd))
-> >  		return -EFAULT;
-> >  
-> > -	if (cmd.port_num < rdma_start_port(ib_dev) ||
-> > -	    cmd.port_num > rdma_end_port(ib_dev))
-> > +	if ((cmd.attr_mask & IB_QP_PORT) &&
-> > +	    (cmd.port_num < rdma_start_port(ib_dev) ||
-> > +	     cmd.port_num > rdma_end_port(ib_dev)))
+> > The WARNING seems to be due to nvmet_rdma_queue_connect() calling
+> > flush_scheduled_work() while in the upcall from the RDMA_CM.  It I running
+on
+> > the iw_cm event workqueue, which is created with WQ_MEM_RECLAIM set.  I'm
+> not
+> > sure what this WARNING is telling me.  Does the iw_cm workqueue NOT need
+> > WQ_MEM_RECLAIM set?  Or is there some other issue with the nvmet/rdma
+> code doing
+> > work flushing in the iw_cm workq context?
 > 
-> Please use rdma_is_port_valid
+> This flush is designed to prevent nvmet-rdma from having too much
+> inflight resources in case of a high pace of controller teardown and
+> establishment (like you trigger in your test).
+> 
+> queue teardowns are run on system_wq, does iw_cm needs memory
+> reclamation protection?
 
-Yuval,
+I don't know.  I read the workqueue doc on WQ_MEM_RECLAIM, but I don't know who
+to tell if iw_cm needs this or not.  Can you give me an example of a workqueue
+that _does_ need WQ_MEM_RECLAIM?  I _think_ it means your workqueue is required
+to run something that would get triggered by the oom OS code, but I don't know
+if that would include rdma CMs or not...
 
-This patch is meant for Stable v4.2-v4.9 which does not have
-rdma_is_port_valid.  The patch upstream is using rdma_is_port_valid.
-Here is a link to it: https://patchwork.kernel.org/patch/9841243/
 
-Chien
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
