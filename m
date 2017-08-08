@@ -1,44 +1,29 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH] IB/core: fix memory leak on ah on error return path
-Date: Tue,  8 Aug 2017 11:10:54 +0100
-Message-ID: <20170808101054.13800-1-colin.king@canonical.com>
+From: Johannes Thumshirn <jthumshirn@suse.de>
+Subject: Re: [PATCH] IB/core: fix memory leak on ah on error return path
+Date: Tue, 8 Aug 2017 12:20:26 +0200
+Message-ID: <20170808102026.GG3926@linux-x5ow.site>
+References: <20170808101054.13800-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170808101054.13800-1-colin.king@canonical.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lijun Ou <oulijun@huawei.com>, Wei Hu <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Colin King <colin.king@canonical.com>
+Cc: Lijun Ou <oulijun@huawei.com>, Wei Hu <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+Shouldn't the subject start with "IB/hns:" given it's touching
+drivers/infiniband/hw/hns/hns_roce_ah.c?
 
-When dmac is NULL, ah is not being freed on the error return path. Fix
-this by kfree'ing it.
+Byte,
+	Johannes
 
-Detected by CoverityScan, CID#1452636 ("Resource Leak")
-
-Fixes: d8966fcd4c25 ("IB/core: Use rdma_ah_attr accessor functions")
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/infiniband/hw/hns/hns_roce_ah.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_ah.c b/drivers/infiniband/hw/hns/hns_roce_ah.c
-index f78a733a63ec..d545302b8ef8 100644
---- a/drivers/infiniband/hw/hns/hns_roce_ah.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_ah.c
-@@ -64,8 +64,10 @@ struct ib_ah *hns_roce_create_ah(struct ib_pd *ibpd,
- 	} else {
- 		u8 *dmac = rdma_ah_retrieve_dmac(ah_attr);
- 
--		if (!dmac)
-+		if (!dmac) {
-+			kfree(ah);
- 			return ERR_PTR(-EINVAL);
-+		}
- 		memcpy(ah->av.mac, dmac, ETH_ALEN);
- 	}
- 
 -- 
-2.11.0
+Johannes Thumshirn                                          Storage
+jthumshirn@suse.de                                +49 911 74053 689
+SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
+GF: Felix Imendörffer, Jane Smithard, Graham Norton
+HRB 21284 (AG Nürnberg)
+Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
