@@ -1,38 +1,37 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [ANNOUNCE] rdma-core-15-rc1 has been tagged/released
-Date: Tue, 8 Aug 2017 17:05:36 -0600
-Message-ID: <20170808230536.GG29372@obsidianresearch.com>
-References: <1501590709.2725.10.camel@redhat.com>
- <20170801200846.GA3808@obsidianresearch.com>
- <1501766608.3581.6.camel@profitbricks.com>
- <1501773757.117042.12.camel@redhat.com>
- <1501775364.3581.9.camel@profitbricks.com>
- <20170803165902.GB13127@obsidianresearch.com>
- <1501782277.117042.24.camel@redhat.com>
+Subject: Re: [PATCH v06 30/36] uapi rdma/rdma_user_rxe.h: include in.h and
+ in6.h
+Date: Tue, 8 Aug 2017 17:13:06 -0600
+Message-ID: <20170808231306.GH29372@obsidianresearch.com>
+References: <20170806164428.2273-1-mikko.rapeli@iki.fi>
+ <20170806164428.2273-31-mikko.rapeli@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1501782277.117042.24.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170806164428.2273-31-mikko.rapeli-X3B1VOXEql0@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Aug 03, 2017 at 01:44:37PM -0400, Doug Ledford wrote:
-> >  there will be another
-> > two PRs (one is the patch I sent the list, another is enabling
-> > sd_notify) to largely complete the full design.
+On Sun, Aug 06, 2017 at 06:44:21PM +0200, Mikko Rapeli wrote:
+> Fixes these userspace compilation errors when rdma_user_rxe.h is compiled
+> alone:
 > 
-> Ok.
+> rdma/rdma_user_rxe.h:59:20: error: field ???_sockaddr??? has incomplete type
+>    struct sockaddr  _sockaddr;
+>                     ^~~~~~~~~
+> rdma/rdma_user_rxe.h:60:22: error: field ???_sockaddr_in??? has incomplete type
+>    struct sockaddr_in _sockaddr_in;
+>                       ^~~~~~~~~~~~
+> rdma/rdma_user_rxe.h:61:23: error: field ???_sockaddr_in6??? has incomplete type
+>    struct sockaddr_in6 _sockaddr_in6;
+>                        ^~~~~~~~~~~~~
 
-I think everything is merged now, just remember:
-
-> > We will also need to disable redhat/rdma.service for the testing
-> > to be complete.
->
-> Yeppers.
-
+I'm not sure this is a good idea, linux/in.h should not be included in
+userspace users of this file, 'sockaddr_in' needs to come from glibc's
+'netinet/in.h' instead..
 
 Jason
 --
