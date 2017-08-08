@@ -1,36 +1,71 @@
-From: Johannes Thumshirn <jthumshirn@suse.de>
-Subject: Re: [PATCH] IB/core: fix memory leak on ah on error return path
-Date: Tue, 8 Aug 2017 14:59:27 +0200
-Message-ID: <20170808125927.GK3926@linux-x5ow.site>
-References: <20170808101054.13800-1-colin.king@canonical.com>
- <20170808102026.GG3926@linux-x5ow.site>
- <866a49ab-6f7b-4b46-062b-6230e48da725@canonical.com>
+From: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH net] rds: Reintroduce statistics counting
+Date: Tue, 8 Aug 2017 09:20:02 -0400
+Message-ID: <20170808132002.GA9848@shamir-net-srv.us.oracle.com>
+References: <20170808091332.5413-1-Haakon.Bugge@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <866a49ab-6f7b-4b46-062b-6230e48da725@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Colin Ian King <colin.king@canonical.com>
-Cc: Lijun Ou <oulijun@huawei.com>, Wei Hu <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20170808091332.5413-1-Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?iso-8859-1?Q?H=E5kon?= Bugge <Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "David S . Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, wei.lin-guay-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 08, 2017 at 11:28:16AM +0100, Colin Ian King wrote:
-> I was using the same subject start as the patch that introduced the
-> memory leak and touched the same portion of code. I can resend if necessary.
+On Tue, Aug 08, 2017 at 11:13:32AM +0200, Håkon Bugge wrote:
+> In commit 7e3f2952eeb1 ("rds: don't let RDS shutdown a connection
+> while senders are present"), refilling the receive queue was removed
+> from rds_ib_recv(), along with the increment of
+> s_ib_rx_refill_from_thread.
+> 
+> Commit 73ce4317bf98 ("RDS: make sure we post recv buffers")
+> re-introduces filling the receive queue from rds_ib_recv(), but does
+> not add the statistics counter. rds_ib_recv() was later renamed to
+> rds_ib_recv_path().
+> 
+> This commit reintroduces the statistics counting of
+> s_ib_rx_refill_from_thread and s_ib_rx_refill_from_cq.
+> 
+> Signed-off-by: Håkon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Wei Lin Guay <wei.lin.guay-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> ---
+>  net/rds/ib_recv.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
+> index e10624a..9722bf8 100644
+> --- a/net/rds/ib_recv.c
+> +++ b/net/rds/ib_recv.c
+> @@ -1015,8 +1015,10 @@ void rds_ib_recv_cqe_handler(struct rds_ib_connection *ic,
+>  	if (rds_ib_ring_empty(&ic->i_recv_ring))
+>  		rds_ib_stats_inc(s_ib_rx_ring_empty);
+>  
+> -	if (rds_ib_ring_low(&ic->i_recv_ring))
+> +	if (rds_ib_ring_low(&ic->i_recv_ring)) {
+>  		rds_ib_recv_refill(conn, 0, GFP_NOWAIT);
+> +		rds_ib_stats_inc(s_ib_rx_refill_from_cq);
+> +	}
+>  }
+>  
+>  int rds_ib_recv_path(struct rds_conn_path *cp)
+> @@ -1029,6 +1031,7 @@ int rds_ib_recv_path(struct rds_conn_path *cp)
+>  	if (rds_conn_up(conn)) {
+>  		rds_ib_attempt_ack(ic);
+>  		rds_ib_recv_refill(conn, 0, GFP_KERNEL);
+> +		rds_ib_stats_inc(s_ib_rx_refill_from_thread);
+>  	}
+>  
+>  	return ret;
+> -- 
+> 2.9.3
+> 
 
-I think having the hns prefix makes it clearer, as the patch doesn't touch IB
-core code but hns code. The reference to the patch which introduced the leak
-is given byu the fixes line.
+Reviewed-by: Shamir Rabinovitch <shamir.rabinovitch-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-Thanks,
-	Johannes
-
--- 
-Johannes Thumshirn                                          Storage
-jthumshirn@suse.de                                +49 911 74053 689
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
-GF: Felix Imendörffer, Jane Smithard, Graham Norton
-HRB 21284 (AG Nürnberg)
-Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
