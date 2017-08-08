@@ -1,47 +1,87 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/hfi1: fix spelling mistake: "Maximim" -> "Maximum"
-Date: Tue, 8 Aug 2017 14:18:35 -0400
-Message-ID: <a4b6438a-bc4f-53bb-192e-559fa2ccdf24@intel.com>
-References: <20170805131150.32717-1-colin.king@canonical.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH RFC 0/3] Proposal for exposing rdma_rw MR factor
+Date: Tue, 8 Aug 2017 14:28:19 -0400
+Message-ID: <D8576C0A-6588-49D1-A2F9-AD39FB2E5FCE@oracle.com>
+References: <20170801205334.15781.18761.stgit@klimt.1015granger.net> <20170802072043.GZ13672@mtr-leonro.local>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170805131150.32717-1-colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20170802072043.GZ13672-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/5/2017 9:11 AM, Colin King wrote:
-> From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-> 
-> Trivial fix to spelling mistake in pr_warn_ratelimited warning message
-> 
-> Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-> ---
->   drivers/infiniband/hw/hfi1/mad.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
-> index 0a3e2dfdf56e..cb0bb69310e1 100644
-> --- a/drivers/infiniband/hw/hfi1/mad.c
-> +++ b/drivers/infiniband/hw/hfi1/mad.c
-> @@ -172,7 +172,7 @@ static struct trap_node *check_and_add_trap(struct hfi1_ibport *ibp,
->   			trap_list->list_len++;
->   			list_add_tail(&trap->list, &trap_list->list);
->   		} else {
-> -			pr_warn_ratelimited("hfi1: Maximim trap limit reached for 0x%0x traps\n",
-> +			pr_warn_ratelimited("hfi1: Maximum trap limit reached for 0x%0x traps\n",
->   					    trap->data.generic_type);
->   			kfree(trap);
->   		}
-> 
 
-Thanks!
+> On Aug 2, 2017, at 3:20 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> 
+> On Tue, Aug 01, 2017 at 05:06:51PM -0400, Chuck Lever wrote:
+>> Since I converted NFSD to use the new rdma_rw API, I've been
+>> struggling with how NFSD determines the size of its send CQ, and how
+>> it provisions its send queue limit (ie, when it waits for more send
+>> queue entries to become available).
+>> 
+>> The problem arises because rdma_rw hides the exact number of send
+>> WQEs it has provisioned. It determines this number based on the MR
+>> registration mode (FRWR for iWARP devices, local DMA rkey for
+>> others), but the mode itself is no longer exposed to ULPs.
+>> 
+>> Thus when FRWR is in use, rdma_rw adds more WQEs, but NFSD is no
+>> longer aware of this, does not provision a larger CQ, and does not
+>> raise its send queue accounting limit. That means the extra WQEs are
+>> never really used.
+>> 
+>> At LSF this year, Christoph and Sagi proposed a simple API that
+>> expose information about how many CQ entries are needed so that ULPs
+>> can provision their CQs more accurately.
+> 
+> Indeed clean API. Does it make sense to get rid of sc_max_requests and
+> use this exported value directly?
 
-Acked-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+I'm going to consider this clean up for a later patch.
+
+So, how shall I submit this new API for upstream? I propose that
+I submit all three of these via Bruce's tree, with an Acked-by
+from Doug on the "Add rdma_rw_mr_payload()" patch, if Doug
+approves.
+
+
+>> The first patch here is a pre-requisite for the third. The second
+>> patch adds the new API. The third patch changes NFSD to use the new
+>> API to provision its CQ and send queue accounting accurately.
+>> 
+>> This approach was tested using the (fixed) force_mr core module
+>> parameter.
+> 
+> Good, I liked the word "tested" in the sentence :).
+> 
+>> 
+>> 
+>> ---
+>> 
+>> Chuck Lever (3):
+>>      svcrdma: Limit RQ depth
+>>      rdma core: Add rdma_rw_mr_payload()
+>>      svcrdma: Estimate Send Queue depth properly
+>> 
+>> 
+>> drivers/infiniband/core/rw.c             |   24 ++++++++++++++++++++
+>> include/rdma/rw.h                        |    2 ++
+>> net/sunrpc/xprtrdma/svc_rdma_transport.c |   36 +++++++++++++++++++++---------
+>> 3 files changed, 51 insertions(+), 11 deletions(-)
+>> 
+>> --
+>> Chuck Lever
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+Chuck Lever
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
