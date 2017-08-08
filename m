@@ -1,150 +1,37 @@
-From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 4/7] i40iw: Improve CQP timeout logic
-Date: Mon,  7 Aug 2017 16:32:00 -0500
-Message-ID: <20170807213203.30588-5-henry.orosco@intel.com>
-References: <20170807213203.30588-1-henry.orosco@intel.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170807213203.30588-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Michael Ellerman <mpe@ellerman.id.au>
+Subject: Re: [PATCH] mm: ratelimit PFNs busy info message
+Date: Tue, 08 Aug 2017 15:34:02 +1000
+Message-ID: <87k22eoc6t.fsf@concordia.ellerman.id.au>
+References: <499c0f6cc10d6eb829a67f2a4d75b4228a9b356e.1501695897.git.jtoppins@redhat.com> <20170802141720.228502368b534f517e3107ff@linux-foundation.org>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170802141720.228502368b534f517e3107ff@linux-foundation.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, Jonathan Toppins <jtoppins@redhat.com>
+Cc: linux-mm@kvack.org, linux-rdma@vger.kernel.org, dledford@redhat.com, Michal Hocko <mhocko@suse.com>, Vlastimil Babka <vbabka@suse.cz>, Mel Gorman <mgorman@techsingularity.net>, Hillf Danton <hillf.zj@alibaba-inc.com>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Andrew Morton <akpm@linux-foundation.org> writes:
 
-The current timeout logic for Control Queue-Pair (CQP) OPs
-does not take into account whether CQP makes progress but
-rather blindly waits for a large timeout value, 100000 jiffies
-for the completion event. Improve this by setting the timeout
-based on whether the CQP is making progress or not. If the CQP
-is hung, the timeout will happen sooner, in 5000 jiffies. Each
-time the CQP progress is detetcted, the timeout extends by 5000
-jiffies.
+> On Wed,  2 Aug 2017 13:44:57 -0400 Jonathan Toppins <jtoppins@redhat.com> wrote:
+>
+>> The RDMA subsystem can generate several thousand of these messages per
+>> second eventually leading to a kernel crash. Ratelimit these messages
+>> to prevent this crash.
+>
+> Well...  why are all these EBUSY's occurring?  It sounds inefficient (at
+> least) but if it is expected, normal and unavoidable then perhaps we
+> should just remove that message altogether?
 
-Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Christopher N Bednarz <christopher.n.bednarz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/i40iw/i40iw_ctrl.c  | 11 +++++++++++
- drivers/infiniband/hw/i40iw/i40iw_p.h     | 14 +++++++++-----
- drivers/infiniband/hw/i40iw/i40iw_type.h  |  5 +++++
- drivers/infiniband/hw/i40iw/i40iw_utils.c | 22 ++++++++++++++--------
- 4 files changed, 39 insertions(+), 13 deletions(-)
+We see them on powerpc sometimes when CMA is unable to make large
+allocations for the hash table of a KVM guest.
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-index 5769080..b55620d 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-@@ -54,6 +54,17 @@ static inline void i40iw_insert_wqe_hdr(u64 *wqe, u64 header)
- 	set_64bit_val(wqe, 24, header);
- }
- 
-+void i40iw_check_cqp_progress(struct i40iw_cqp_timeout *cqp_timeout, struct i40iw_sc_dev *dev)
-+{
-+	if (cqp_timeout->compl_cqp_cmds != dev->cqp_cmd_stats[OP_COMPLETED_COMMANDS]) {
-+		cqp_timeout->compl_cqp_cmds = dev->cqp_cmd_stats[OP_COMPLETED_COMMANDS];
-+		cqp_timeout->count = 0;
-+	} else {
-+		if (dev->cqp_cmd_stats[OP_REQUESTED_COMMANDS] != cqp_timeout->compl_cqp_cmds)
-+			cqp_timeout->count++;
-+	}
-+}
-+
- /**
-  * i40iw_get_cqp_reg_info - get head and tail for cqp using registers
-  * @cqp: struct for cqp hw
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_p.h b/drivers/infiniband/hw/i40iw/i40iw_p.h
-index 28a92fe..e217a12 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_p.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_p.h
-@@ -35,11 +35,13 @@
- #ifndef I40IW_P_H
- #define I40IW_P_H
- 
--#define PAUSE_TIMER_VALUE  0xFFFF
--#define REFRESH_THRESHOLD  0x7FFF
--#define HIGH_THRESHOLD     0x800
--#define LOW_THRESHOLD      0x200
--#define ALL_TC2PFC         0xFF
-+#define PAUSE_TIMER_VALUE       0xFFFF
-+#define REFRESH_THRESHOLD       0x7FFF
-+#define HIGH_THRESHOLD          0x800
-+#define LOW_THRESHOLD           0x200
-+#define ALL_TC2PFC              0xFF
-+#define CQP_COMPL_WAIT_TIME     0x3E8
-+#define CQP_TIMEOUT_THRESHOLD   5
- 
- void i40iw_debug_buf(struct i40iw_sc_dev *dev, enum i40iw_debug_flag mask,
- 		     char *desc, u64 *buf, u32 size);
-@@ -51,6 +53,8 @@ void i40iw_sc_cqp_post_sq(struct i40iw_sc_cqp *cqp);
- 
- u64 *i40iw_sc_cqp_get_next_send_wqe(struct i40iw_sc_cqp *cqp, u64 scratch);
- 
-+void i40iw_check_cqp_progress(struct i40iw_cqp_timeout *cqp_timeout, struct i40iw_sc_dev *dev);
-+
- enum i40iw_status_code i40iw_sc_mr_fast_register(struct i40iw_sc_qp *qp,
- 						 struct i40iw_fast_reg_stag_info *info,
- 						 bool post_sq);
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_type.h b/drivers/infiniband/hw/i40iw/i40iw_type.h
-index 959ec81..63118f6 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_type.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_type.h
-@@ -1345,4 +1345,9 @@ struct i40iw_virtchnl_work_info {
- 	void *worker_vf_dev;
- };
- 
-+struct i40iw_cqp_timeout {
-+	u64 compl_cqp_cmds;
-+	u8 count;
-+};
-+
- #endif
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-index e311ec5..62f1f45 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-@@ -445,23 +445,29 @@ static int i40iw_wait_event(struct i40iw_device *iwdev,
- {
- 	struct cqp_commands_info *info = &cqp_request->info;
- 	struct i40iw_cqp *iwcqp = &iwdev->cqp;
-+	struct i40iw_cqp_timeout cqp_timeout;
- 	bool cqp_error = false;
- 	int err_code = 0;
--	int timeout_ret = 0;
-+	memset(&cqp_timeout, 0, sizeof(cqp_timeout));
-+	cqp_timeout.compl_cqp_cmds = iwdev->sc_dev.cqp_cmd_stats[OP_COMPLETED_COMMANDS];
-+	do {
-+		if (wait_event_timeout(cqp_request->waitq,
-+				       cqp_request->request_done, CQP_COMPL_WAIT_TIME))
-+			break;
- 
--	timeout_ret = wait_event_timeout(cqp_request->waitq,
--					 cqp_request->request_done,
--					 I40IW_EVENT_TIMEOUT);
--	if (!timeout_ret) {
--		i40iw_pr_err("error cqp command 0x%x timed out ret = %d\n",
--			     info->cqp_cmd, timeout_ret);
-+		i40iw_check_cqp_progress(&cqp_timeout, &iwdev->sc_dev);
-+
-+		if (cqp_timeout.count < CQP_TIMEOUT_THRESHOLD)
-+			continue;
-+
-+		i40iw_pr_err("error cqp command 0x%x timed out", info->cqp_cmd);
- 		err_code = -ETIME;
- 		if (!iwdev->reset) {
- 			iwdev->reset = true;
- 			i40iw_request_reset(iwdev);
- 		}
- 		goto done;
--	}
-+	} while (1);
- 	cqp_error = cqp_request->compl_info.error;
- 	if (cqp_error) {
- 		i40iw_pr_err("error cqp command 0x%x completion maj = 0x%x min=0x%x\n",
--- 
-2.8.3
+At least in that context they're not useful, CMA will try the
+allocation again, and if it really can't allocate then CMA will print
+more useful information itself.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So I'd vote for dropping the message and letting the callers decide what
+to do.
+
+cheers
