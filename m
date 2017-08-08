@@ -1,64 +1,44 @@
-From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH net] rds: Reintroduce statistics counting
-Date: Tue,  8 Aug 2017 11:13:32 +0200
-Message-ID: <20170808091332.5413-1-Haakon.Bugge@oracle.com>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] IB/core: fix memory leak on ah on error return path
+Date: Tue,  8 Aug 2017 11:10:54 +0100
+Message-ID: <20170808101054.13800-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "David S . Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, wei.lin-guay-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lijun Ou <oulijun@huawei.com>, Wei Hu <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-In commit 7e3f2952eeb1 ("rds: don't let RDS shutdown a connection
-while senders are present"), refilling the receive queue was removed
-from rds_ib_recv(), along with the increment of
-s_ib_rx_refill_from_thread.
+From: Colin Ian King <colin.king@canonical.com>
 
-Commit 73ce4317bf98 ("RDS: make sure we post recv buffers")
-re-introduces filling the receive queue from rds_ib_recv(), but does
-not add the statistics counter. rds_ib_recv() was later renamed to
-rds_ib_recv_path().
+When dmac is NULL, ah is not being freed on the error return path. Fix
+this by kfree'ing it.
 
-This commit reintroduces the statistics counting of
-s_ib_rx_refill_from_thread and s_ib_rx_refill_from_cq.
+Detected by CoverityScan, CID#1452636 ("Resource Leak")
 
-Signed-off-by: Håkon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Wei Lin Guay <wei.lin.guay-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Fixes: d8966fcd4c25 ("IB/core: Use rdma_ah_attr accessor functions")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- net/rds/ib_recv.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/hns/hns_roce_ah.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
-index e10624a..9722bf8 100644
---- a/net/rds/ib_recv.c
-+++ b/net/rds/ib_recv.c
-@@ -1015,8 +1015,10 @@ void rds_ib_recv_cqe_handler(struct rds_ib_connection *ic,
- 	if (rds_ib_ring_empty(&ic->i_recv_ring))
- 		rds_ib_stats_inc(s_ib_rx_ring_empty);
+diff --git a/drivers/infiniband/hw/hns/hns_roce_ah.c b/drivers/infiniband/hw/hns/hns_roce_ah.c
+index f78a733a63ec..d545302b8ef8 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_ah.c
++++ b/drivers/infiniband/hw/hns/hns_roce_ah.c
+@@ -64,8 +64,10 @@ struct ib_ah *hns_roce_create_ah(struct ib_pd *ibpd,
+ 	} else {
+ 		u8 *dmac = rdma_ah_retrieve_dmac(ah_attr);
  
--	if (rds_ib_ring_low(&ic->i_recv_ring))
-+	if (rds_ib_ring_low(&ic->i_recv_ring)) {
- 		rds_ib_recv_refill(conn, 0, GFP_NOWAIT);
-+		rds_ib_stats_inc(s_ib_rx_refill_from_cq);
-+	}
- }
- 
- int rds_ib_recv_path(struct rds_conn_path *cp)
-@@ -1029,6 +1031,7 @@ int rds_ib_recv_path(struct rds_conn_path *cp)
- 	if (rds_conn_up(conn)) {
- 		rds_ib_attempt_ack(ic);
- 		rds_ib_recv_refill(conn, 0, GFP_KERNEL);
-+		rds_ib_stats_inc(s_ib_rx_refill_from_thread);
+-		if (!dmac)
++		if (!dmac) {
++			kfree(ah);
+ 			return ERR_PTR(-EINVAL);
++		}
+ 		memcpy(ah->av.mac, dmac, ETH_ALEN);
  	}
  
- 	return ret;
 -- 
-2.9.3
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.11.0
