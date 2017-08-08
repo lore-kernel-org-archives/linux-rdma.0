@@ -1,37 +1,64 @@
-From: Michael Ellerman <mpe@ellerman.id.au>
-Subject: Re: [PATCH] mm: ratelimit PFNs busy info message
-Date: Tue, 08 Aug 2017 15:34:02 +1000
-Message-ID: <87k22eoc6t.fsf@concordia.ellerman.id.au>
-References: <499c0f6cc10d6eb829a67f2a4d75b4228a9b356e.1501695897.git.jtoppins@redhat.com> <20170802141720.228502368b534f517e3107ff@linux-foundation.org>
+From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <Haakon.Bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH net] rds: Reintroduce statistics counting
+Date: Tue,  8 Aug 2017 11:13:32 +0200
+Message-ID: <20170808091332.5413-1-Haakon.Bugge@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170802141720.228502368b534f517e3107ff@linux-foundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>, Jonathan Toppins <jtoppins@redhat.com>
-Cc: linux-mm@kvack.org, linux-rdma@vger.kernel.org, dledford@redhat.com, Michal Hocko <mhocko@suse.com>, Vlastimil Babka <vbabka@suse.cz>, Mel Gorman <mgorman@techsingularity.net>, Hillf Danton <hillf.zj@alibaba-inc.com>, open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "David S . Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, wei.lin-guay-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Andrew Morton <akpm@linux-foundation.org> writes:
+In commit 7e3f2952eeb1 ("rds: don't let RDS shutdown a connection
+while senders are present"), refilling the receive queue was removed
+from rds_ib_recv(), along with the increment of
+s_ib_rx_refill_from_thread.
 
-> On Wed,  2 Aug 2017 13:44:57 -0400 Jonathan Toppins <jtoppins@redhat.com> wrote:
->
->> The RDMA subsystem can generate several thousand of these messages per
->> second eventually leading to a kernel crash. Ratelimit these messages
->> to prevent this crash.
->
-> Well...  why are all these EBUSY's occurring?  It sounds inefficient (at
-> least) but if it is expected, normal and unavoidable then perhaps we
-> should just remove that message altogether?
+Commit 73ce4317bf98 ("RDS: make sure we post recv buffers")
+re-introduces filling the receive queue from rds_ib_recv(), but does
+not add the statistics counter. rds_ib_recv() was later renamed to
+rds_ib_recv_path().
 
-We see them on powerpc sometimes when CMA is unable to make large
-allocations for the hash table of a KVM guest.
+This commit reintroduces the statistics counting of
+s_ib_rx_refill_from_thread and s_ib_rx_refill_from_cq.
 
-At least in that context they're not useful, CMA will try the
-allocation again, and if it really can't allocate then CMA will print
-more useful information itself.
+Signed-off-by: Håkon Bugge <haakon.bugge-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Knut Omang <knut.omang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Wei Lin Guay <wei.lin.guay-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ net/rds/ib_recv.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-So I'd vote for dropping the message and letting the callers decide what
-to do.
+diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
+index e10624a..9722bf8 100644
+--- a/net/rds/ib_recv.c
++++ b/net/rds/ib_recv.c
+@@ -1015,8 +1015,10 @@ void rds_ib_recv_cqe_handler(struct rds_ib_connection *ic,
+ 	if (rds_ib_ring_empty(&ic->i_recv_ring))
+ 		rds_ib_stats_inc(s_ib_rx_ring_empty);
+ 
+-	if (rds_ib_ring_low(&ic->i_recv_ring))
++	if (rds_ib_ring_low(&ic->i_recv_ring)) {
+ 		rds_ib_recv_refill(conn, 0, GFP_NOWAIT);
++		rds_ib_stats_inc(s_ib_rx_refill_from_cq);
++	}
+ }
+ 
+ int rds_ib_recv_path(struct rds_conn_path *cp)
+@@ -1029,6 +1031,7 @@ int rds_ib_recv_path(struct rds_conn_path *cp)
+ 	if (rds_conn_up(conn)) {
+ 		rds_ib_attempt_ack(ic);
+ 		rds_ib_recv_refill(conn, 0, GFP_KERNEL);
++		rds_ib_stats_inc(s_ib_rx_refill_from_thread);
+ 	}
+ 
+ 	return ret;
+-- 
+2.9.3
 
-cheers
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
