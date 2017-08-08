@@ -1,29 +1,27 @@
-From: Johannes Thumshirn <jthumshirn@suse.de>
+From: Colin Ian King <colin.king@canonical.com>
 Subject: Re: [PATCH] IB/core: fix memory leak on ah on error return path
-Date: Tue, 8 Aug 2017 12:20:26 +0200
-Message-ID: <20170808102026.GG3926@linux-x5ow.site>
+Date: Tue, 8 Aug 2017 11:28:16 +0100
+Message-ID: <866a49ab-6f7b-4b46-062b-6230e48da725@canonical.com>
 References: <20170808101054.13800-1-colin.king@canonical.com>
+ <20170808102026.GG3926@linux-x5ow.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170808101054.13800-1-colin.king@canonical.com>
+In-Reply-To: <20170808102026.GG3926@linux-x5ow.site>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
+To: Johannes Thumshirn <jthumshirn@suse.de>
 Cc: Lijun Ou <oulijun@huawei.com>, Wei Hu <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Shouldn't the subject start with "IB/hns:" given it's touching
-drivers/infiniband/hw/hns/hns_roce_ah.c?
+On 08/08/17 11:20, Johannes Thumshirn wrote:
+> Shouldn't the subject start with "IB/hns:" given it's touching
+> drivers/infiniband/hw/hns/hns_roce_ah.c?
 
-Byte,
-	Johannes
+I was using the same subject start as the patch that introduced the
+memory leak and touched the same portion of code. I can resend if necessary.
 
--- 
-Johannes Thumshirn                                          Storage
-jthumshirn@suse.de                                +49 911 74053 689
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
-GF: Felix Imendörffer, Jane Smithard, Graham Norton
-HRB 21284 (AG Nürnberg)
-Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+> 
+> Byte,
+> 	Johannes
+> 
