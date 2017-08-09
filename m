@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v1 19/33] RDMA/netlink: Add netlink device definitions to UAPI
-Date: Wed,  9 Aug 2017 19:03:51 +0300
-Message-ID: <20170809160405.25142-20-leon@kernel.org>
+Subject: [rdma-next v1 20/33] RDMA/netlink: Add nldev initialization flows
+Date: Wed,  9 Aug 2017 19:03:52 +0300
+Message-ID: <20170809160405.25142-21-leon@kernel.org>
 References: <20170809160405.25142-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170809160405.25142-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,104 +12,102 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Introduce new defines to rdma_netlink.h, so the RDMA configuration tool
-will be able to communicate with RDMA subsystem by using the shared defines.
-
-The addition of new client (NLDEV) revealed the fact that we exposed by
-mistake the RDMA_NL_I40IW define which is not backed by any RDMA netlink
-by now and it won't be exposed in the future too. So this patch reuses
-the value and deletes the old defines.
-
-The NLDEV operates with objects. The struct ib_device has two straightforward
-objects: device itself and ports of that device.
-
-This brings us to propose the following commands to work on those objects:
- * RDMA_NLDEV_CMD_{GET,SET,NEW,DEL} - works on ib_device itself
- * RDMA_NLDEV_CMD_PORT_{GET,SET,NEW,DEL} - works on ports of specific ib_device
-
-Those commands receive/return the device index (RDMA_NLDEV_ATTR_DEV_INDEX)
-and port index (RDMA_NLDEV_ATTR_PORT_INDEX). For device object accesses,
-the RDMA_NLDEV_ATTR_PORT_INDEX will return the maximum number of ports
-for specific ib_device and for port access the actual port index.
-
-The port index starts from 1 to follow RDMA/core internal semantics and
-the sysfs exposed knobs.
+Add nldev init and exit flows to the RDMA/core.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/netlink.c |  2 +-
- include/uapi/rdma/rdma_netlink.h  | 39 ++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 39 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/Makefile |  3 ++-
+ drivers/infiniband/core/device.c |  2 ++
+ drivers/infiniband/core/nldev.c  | 45 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 49 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/infiniband/core/nldev.c
 
-diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-index 1c80e7ec1730..911c71706c16 100644
---- a/drivers/infiniband/core/netlink.c
-+++ b/drivers/infiniband/core/netlink.c
-@@ -61,7 +61,7 @@ static bool is_nl_msg_valid(unsigned int type, unsigned int op)
- 				  RDMA_NL_IWPM_NUM_OPS,
- 				  0,
- 				  RDMA_NL_LS_NUM_OPS,
--				  0 };
-+				  RDMA_NLDEV_NUM_OPS };
+diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
+index e3cdafff8ece..920609a0872e 100644
+--- a/drivers/infiniband/core/Makefile
++++ b/drivers/infiniband/core/Makefile
+@@ -11,7 +11,8 @@ ib_core-y :=			packer.o ud_header.o verbs.o cq.o rw.o sysfs.o \
+ 				device.o fmr_pool.o cache.o netlink.o \
+ 				roce_gid_mgmt.o mr_pool.o addr.o sa_query.o \
+ 				multicast.o mad.o smi.o agent.o mad_rmpp.o \
+-				security.o
++				security.o nldev.o
++
+ ib_core-$(CONFIG_INFINIBAND_USER_MEM) += umem.o
+ ib_core-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += umem_odp.o umem_rbtree.o
+ ib_core-$(CONFIG_CGROUP_RDMA) += cgroup.o
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 5a3ff941c86c..fca126aa001b 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -1212,6 +1212,7 @@ static int __init ib_core_init(void)
+ 		goto err_sa;
+ 	}
  
- 	/*
- 	 * This BUILD_BUG_ON is intended to catch addition of new
-diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index 02fe8390c18f..1d064fedfa9a 100644
---- a/include/uapi/rdma/rdma_netlink.h
-+++ b/include/uapi/rdma/rdma_netlink.h
-@@ -8,7 +8,7 @@ enum {
- 	RDMA_NL_IWCM,
- 	RDMA_NL_RSVD,
- 	RDMA_NL_LS,	/* RDMA Local Services */
--	RDMA_NL_I40IW,
-+	RDMA_NL_NLDEV,	/* RDMA device interface */
- 	RDMA_NL_NUM_CLIENTS
- };
++	nldev_init();
+ 	rdma_nl_register(RDMA_NL_LS, ibnl_ls_cb_table);
+ 	ib_cache_setup();
  
-@@ -222,4 +222,41 @@ struct rdma_nla_ls_gid {
- 	__u8		gid[16];
- };
- 
-+enum rdma_nldev_command {
-+	RDMA_NLDEV_CMD_UNSPEC,
+@@ -1237,6 +1238,7 @@ static int __init ib_core_init(void)
+ static void __exit ib_core_cleanup(void)
+ {
+ 	ib_cache_cleanup();
++	nldev_exit();
+ 	rdma_nl_unregister(RDMA_NL_LS);
+ 	unregister_lsm_notifier(&ibdev_lsm_nb);
+ 	ib_sa_cleanup();
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+new file mode 100644
+index 000000000000..1d1e4f214874
+--- /dev/null
++++ b/drivers/infiniband/core/nldev.c
+@@ -0,0 +1,45 @@
++/*
++ * Copyright (c) 2017 Mellanox Technologies. All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ *
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ * 3. Neither the names of the copyright holders nor the names of its
++ *    contributors may be used to endorse or promote products derived from
++ *    this software without specific prior written permission.
++ *
++ * Alternatively, this software may be distributed under the terms of the
++ * GNU General Public License ("GPL") version 2 as published by the Free
++ * Software Foundation.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
++ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
++ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++ * POSSIBILITY OF SUCH DAMAGE.
++ */
 +
-+	RDMA_NLDEV_CMD_GET, /* can dump */
-+	RDMA_NLDEV_CMD_SET,
-+	RDMA_NLDEV_CMD_NEW,
-+	RDMA_NLDEV_CMD_DEL,
++#include <rdma/rdma_netlink.h>
 +
-+	RDMA_NLDEV_CMD_PORT_GET, /* can dump */
-+	RDMA_NLDEV_CMD_PORT_SET,
-+	RDMA_NLDEV_CMD_PORT_NEW,
-+	RDMA_NLDEV_CMD_PORT_DEL,
++#include "core_priv.h"
 +
-+	RDMA_NLDEV_NUM_OPS
-+};
++void __init nldev_init(void)
++{
++	rdma_nl_register(RDMA_NL_NLDEV, NULL);
++}
 +
-+enum rdma_nldev_attr {
-+	/* don't change the order or add anything between, this is ABI! */
-+	RDMA_NLDEV_ATTR_UNSPEC,
-+
-+	/* Identifier for ib_device */
-+	RDMA_NLDEV_ATTR_DEV_INDEX,		/* u32 */
-+
-+	RDMA_NLDEV_ATTR_DEV_NAME,		/* string */
-+	/*
-+	 * Device index together with port index are identifiers
-+	 * for port/link properties.
-+	 *
-+	 * For RDMA_NLDEV_CMD_GET comamnd, port index will return number
-+	 * of available ports in ib_device, while for port specific operations,
-+	 * it will be real port index as it appears in sysfs. Port index follows
-+	 * sysfs notation and starts from 1 for the first port.
-+	 */
-+	RDMA_NLDEV_ATTR_PORT_INDEX,		/* u32 */
-+
-+	RDMA_NLDEV_ATTR_MAX
-+};
- #endif /* _UAPI_RDMA_NETLINK_H */
++void __exit nldev_exit(void)
++{
++	rdma_nl_unregister(RDMA_NL_NLDEV);
++}
 -- 
 2.14.0
 
