@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v1 13/33] RDMA/core: Add iterator over ib_devices
-Date: Wed,  9 Aug 2017 19:03:45 +0300
-Message-ID: <20170809160405.25142-14-leon@kernel.org>
+Subject: [rdma-next v1 15/33] RDMA/netlink: Add and implement doit netlink callback
+Date: Wed,  9 Aug 2017 19:03:47 +0300
+Message-ID: <20170809160405.25142-16-leon@kernel.org>
 References: <20170809160405.25142-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170809160405.25142-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,76 +12,80 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The coming nldev needs to iterate over all IB devices in the system
-and in order to not expose the ib_devices list outside the devices.c,
-it is necessary to provide function iterator.
+The .doit callback is used by netlink core to differentiate
+between get and set operations. Common convention is to use
+that call for command operations like (SET, ADD, e.t.c.) and/or
+access without NLF_M_DUMP flag.
 
-Current version is written explicitly for nldev callback to avoid
-over-engineering at this stage, but it can be easily extended for
-other types.
+This commit adds proper declaration and implementation
+to RDMA netlink.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/core_priv.h |  8 ++++++++
- drivers/infiniband/core/device.c    | 25 +++++++++++++++++++++++++
- 2 files changed, 33 insertions(+)
+ drivers/infiniband/core/netlink.c | 19 ++++++++++++++-----
+ include/rdma/rdma_netlink.h       |  2 ++
+ 2 files changed, 16 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index e759c27113cd..0c175590cf92 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -102,6 +102,14 @@ void ib_enum_all_roce_netdevs(roce_netdev_filter filter,
- 			      roce_netdev_callback cb,
- 			      void *cookie);
+diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+index 2a88f92657fc..a5276bfc5909 100644
+--- a/drivers/infiniband/core/netlink.c
++++ b/drivers/infiniband/core/netlink.c
+@@ -76,9 +76,13 @@ static bool is_nl_msg_valid(unsigned int type, unsigned int op)
  
-+typedef int (*nldev_callback)(struct ib_device *device,
-+			      struct sk_buff *skb,
-+			      struct netlink_callback *cb,
-+			      unsigned int idx);
+ static bool is_nl_valid(unsigned int type, unsigned int op)
+ {
+-	if (!is_nl_msg_valid(type, op) ||
+-	    !rdma_nl_types[type].cb_table ||
+-	    !rdma_nl_types[type].cb_table[op].dump)
++	const struct rdma_nl_cbs *cb_table;
 +
-+int ib_enum_all_devs(nldev_callback nldev_cb, struct sk_buff *skb,
-+		     struct netlink_callback *cb);
++	if (!is_nl_msg_valid(type, op))
++		return false;
 +
- enum ib_cache_gid_default_mode {
- 	IB_CACHE_GID_DEFAULT_MODE_SET,
- 	IB_CACHE_GID_DEFAULT_MODE_DELETE
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index a1d5798fa4d7..54143476a020 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -892,6 +892,31 @@ void ib_enum_all_roce_netdevs(roce_netdev_filter filter,
- 	up_read(&lists_rwsem);
++	cb_table = rdma_nl_types[type].cb_table;
++	if (!cb_table || (!cb_table[op].dump && !cb_table[op].doit))
+ 		return false;
+ 	return true;
+ }
+@@ -153,6 +157,7 @@ static int rdma_nl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	unsigned int op = RDMA_NL_GET_OP(type);
+ 	struct netlink_callback cb = {};
+ 	struct netlink_dump_control c = {};
++	int ret;
+ 
+ 	if (!is_nl_valid(index, op))
+ 		return -EINVAL;
+@@ -171,10 +176,14 @@ static int rdma_nl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 		cb.nlh = nlh;
+ 		cb.dump = rdma_nl_types[index].cb_table[op].dump;
+ 		return cb.dump(skb, &cb);
++	} else {
++		c.dump = rdma_nl_types[index].cb_table[op].dump;
++		return netlink_dump_start(nls, skb, nlh, &c);
+ 	}
++	if (rdma_nl_types[index].cb_table[op].doit)
++		ret = rdma_nl_types[index].cb_table[op].doit(skb, nlh, extack);
++	return ret;
+ 
+-	c.dump = rdma_nl_types[index].cb_table[op].dump;
+-	return netlink_dump_start(nls, skb, nlh, &c);
  }
  
-+/**
-+ * ib_enum_all_devs - enumerate all ib_devices
-+ * @cb: Callback to call for each found ib_device
-+ *
-+ * Enumerates all ib_devices and calls callback() on each device.
-+ */
-+int ib_enum_all_devs(nldev_callback nldev_cb, struct sk_buff *skb,
-+		     struct netlink_callback *cb)
-+{
-+	struct ib_device *dev;
-+	unsigned int idx = 0;
-+	int ret = 0;
-+
-+	down_read(&lists_rwsem);
-+	list_for_each_entry(dev, &device_list, core_list) {
-+		ret = nldev_cb(dev, skb, cb, idx);
-+		if (ret)
-+			break;
-+		idx++;
-+	}
-+
-+	up_read(&lists_rwsem);
-+	return ret;
-+}
-+
- /**
-  * ib_query_pkey - Get P_Key table entry
-  * @device:Device to query
+ /*
+diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
+index 92f8832297ab..e25bf1988846 100644
+--- a/include/rdma/rdma_netlink.h
++++ b/include/rdma/rdma_netlink.h
+@@ -6,6 +6,8 @@
+ #include <uapi/rdma/rdma_netlink.h>
+ 
+ struct rdma_nl_cbs {
++	int (*doit)(struct sk_buff *skb, struct nlmsghdr *nlh,
++		    struct netlink_ext_ack *extack);
+ 	int (*dump)(struct sk_buff *skb, struct netlink_callback *nlcb);
+ 	u8 flags;
+ };
 -- 
 2.14.0
 
