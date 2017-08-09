@@ -1,61 +1,59 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v1 33/33] RDMA/netlink: Export node_type
-Date: Wed,  9 Aug 2017 19:04:05 +0300
-Message-ID: <20170809160405.25142-34-leon@kernel.org>
-References: <20170809160405.25142-1-leon@kernel.org>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: Flush warning
+Date: Wed, 9 Aug 2017 11:21:38 -0500
+Message-ID: <00ff01d3112b$94142350$bc3c69f0$@opengridcomputing.com>
+References: <016301d30c86$e7034ae0$b509e0a0$@opengridcomputing.com> <9bc142de-b8ba-acb6-5ea1-2ccdbb578655@grimberg.me> <003401d30f91$c7e2a3f0$57a7ebd0$@opengridcomputing.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170809160405.25142-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <003401d30f91$c7e2a3f0$57a7ebd0$@opengridcomputing.com>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> > > The WARNING seems to be due to nvmet_rdma_queue_connect() calling
+> > > flush_scheduled_work() while in the upcall from the RDMA_CM.  It I running
+> on
+> > > the iw_cm event workqueue, which is created with WQ_MEM_RECLAIM set.
+> I'm
+> > not
+> > > sure what this WARNING is telling me.  Does the iw_cm workqueue NOT need
+> > > WQ_MEM_RECLAIM set?  Or is there some other issue with the nvmet/rdma
+> > code doing
+> > > work flushing in the iw_cm workq context?
+> >
+> > This flush is designed to prevent nvmet-rdma from having too much
+> > inflight resources in case of a high pace of controller teardown and
+> > establishment (like you trigger in your test).
+> >
+> > queue teardowns are run on system_wq, does iw_cm needs memory
+> > reclamation protection?
+> 
+> I don't know.  I read the workqueue doc on WQ_MEM_RECLAIM, but I don't know
+> how
+> to tell if iw_cm needs this or not.  Can you give me an example of a workqueue
+> that _does_ need WQ_MEM_RECLAIM?  I _think_ it means your workqueue is
+> required
+> to run something that would get triggered by the oom OS code, but I don't know
+> if that would include rdma CMs or not...
 
-Add ability to get node_type for RDAM netlink users.
+Many of the workqueues in infiniband/core use WQ_MEM_RECLAIM: cma, iwcm, mad,
+multicast, sa_query, and ucma. 
 
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/nldev.c  | 3 +++
- include/uapi/rdma/rdma_netlink.h | 2 ++
- 2 files changed, 5 insertions(+)
+Hey Sean, do you have any insight into whether the CMA modules really need
+WQ_MEM_RECLAIM for their workqueues?
 
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 30fe1e9ff5ce..7f04ef89398c 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -50,6 +50,7 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 	[RDMA_NLDEV_ATTR_LMC]		= { .type = NLA_U8 },
- 	[RDMA_NLDEV_ATTR_PORT_STATE]	= { .type = NLA_U8 },
- 	[RDMA_NLDEV_ATTR_PORT_PHYS_STATE] = { .type = NLA_U8 },
-+	[RDMA_NLDEV_ATTR_DEV_NODE_TYPE] = { .type = NLA_U8 },
- };
- 
- static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
-@@ -79,6 +80,8 @@ static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
- 	if (nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_SYS_IMAGE_GUID,
- 			      be64_to_cpu(device->attrs.sys_image_guid), 0))
- 		return -EMSGSIZE;
-+	if (nla_put_u8(msg, RDMA_NLDEV_ATTR_DEV_NODE_TYPE, device->node_type))
-+		return -EMSGSIZE;
- 	return 0;
- }
- 
-diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index ea8e1f01ba0d..8857c5de0fec 100644
---- a/include/uapi/rdma/rdma_netlink.h
-+++ b/include/uapi/rdma/rdma_netlink.h
-@@ -300,6 +300,8 @@ enum rdma_nldev_attr {
- 	RDMA_NLDEV_ATTR_PORT_STATE,		/* u8 */
- 	RDMA_NLDEV_ATTR_PORT_PHYS_STATE,	/* u8 */
- 
-+	RDMA_NLDEV_ATTR_DEV_NODE_TYPE,		/* u8 */
-+
- 	RDMA_NLDEV_ATTR_MAX
- };
- #endif /* _UAPI_RDMA_NETLINK_H */
--- 
-2.14.0
+Does anyone else know?
+
+Thanks!
+
+Steve.
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
