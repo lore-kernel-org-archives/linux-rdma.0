@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v1 10/33] RDMA/netlink: Rename and remove redundant parameter from ibnl_multicast
-Date: Wed,  9 Aug 2017 19:03:42 +0300
-Message-ID: <20170809160405.25142-11-leon@kernel.org>
+Subject: [rdma-next v1 11/33] RDMA/netlink: Simplify and rename ibnl_chk_listeners
+Date: Wed,  9 Aug 2017 19:03:43 +0300
+Message-ID: <20170809160405.25142-12-leon@kernel.org>
 References: <20170809160405.25142-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170809160405.25142-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,95 +12,80 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The pointer to netlink header was not used in the ibnl_multicast
-function, so let's remove it and simplify the function
-signature.
+Make ibnl_chk_listeners function to be one line by removing
+unneeded comparison.
+
+Rename that function to be complaint to other functions in RDMA netlink.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
  drivers/infiniband/core/addr.c     | 2 +-
- drivers/infiniband/core/iwpm_msg.c | 2 +-
- drivers/infiniband/core/netlink.c  | 5 ++---
+ drivers/infiniband/core/netlink.c  | 7 +++----
  drivers/infiniband/core/sa_query.c | 2 +-
- include/rdma/rdma_netlink.h        | 4 +---
- 5 files changed, 6 insertions(+), 9 deletions(-)
+ include/rdma/rdma_netlink.h        | 6 ++++++
+ 4 files changed, 11 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-index 9f3339861ec5..30cf764824ec 100644
+index 30cf764824ec..7310ece99cd9 100644
 --- a/drivers/infiniband/core/addr.c
 +++ b/drivers/infiniband/core/addr.c
-@@ -184,7 +184,7 @@ static int ib_nl_ip_send_msg(struct rdma_dev_addr *dev_addr,
+@@ -325,7 +325,7 @@ static void queue_req(struct addr_req *req)
+ static int ib_nl_fetch_ha(struct dst_entry *dst, struct rdma_dev_addr *dev_addr,
+ 			  const void *daddr, u32 seq, u16 family)
+ {
+-	if (ibnl_chk_listeners(RDMA_NL_GROUP_LS))
++	if (rdma_nl_chk_listeners(RDMA_NL_GROUP_LS))
+ 		return -EADDRNOTAVAIL;
  
- 	/* Repair the nlmsg header length */
- 	nlmsg_end(skb, nlh);
--	ibnl_multicast(skb, nlh, RDMA_NL_GROUP_LS, GFP_KERNEL);
-+	rdma_nl_multicast(skb, RDMA_NL_GROUP_LS, GFP_KERNEL);
- 
- 	/* Make the request retry, so when we get the response from userspace
- 	 * we will have something.
-diff --git a/drivers/infiniband/core/iwpm_msg.c b/drivers/infiniband/core/iwpm_msg.c
-index ca3c160bb9da..30825bb9b8e9 100644
---- a/drivers/infiniband/core/iwpm_msg.c
-+++ b/drivers/infiniband/core/iwpm_msg.c
-@@ -103,7 +103,7 @@ int iwpm_register_pid(struct iwpm_dev_data *pm_msg, u8 nl_client)
- 	pr_debug("%s: Multicasting a nlmsg (dev = %s ifname = %s iwpm = %s)\n",
- 		__func__, pm_msg->dev_name, pm_msg->if_name, iwpm_ulib_name);
- 
--	ret = ibnl_multicast(skb, nlh, RDMA_NL_GROUP_IWPM, GFP_KERNEL);
-+	ret = rdma_nl_multicast(skb, RDMA_NL_GROUP_IWPM, GFP_KERNEL);
- 	if (ret) {
- 		skb = NULL; /* skb is freed in the netlink send-op handling */
- 		iwpm_user_pid = IWPM_PID_UNAVAILABLE;
+ 	/* We fill in what we can, the response will fill the rest */
 diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-index 0e0d0820cbac..83c32713f401 100644
+index 83c32713f401..b027b6ecd2b3 100644
 --- a/drivers/infiniband/core/netlink.c
 +++ b/drivers/infiniband/core/netlink.c
-@@ -259,12 +259,11 @@ int rdma_nl_unicast_wait(struct sk_buff *skb, __u32 pid)
- }
- EXPORT_SYMBOL(rdma_nl_unicast_wait);
+@@ -47,12 +47,11 @@ static struct {
+ 	const struct ibnl_client_cbs   *cb_table;
+ } rdma_nl_types[RDMA_NL_NUM_CLIENTS];
  
--int ibnl_multicast(struct sk_buff *skb, struct nlmsghdr *nlh,
--			unsigned int group, gfp_t flags)
-+int rdma_nl_multicast(struct sk_buff *skb, unsigned int group, gfp_t flags)
+-int ibnl_chk_listeners(unsigned int group)
++int rdma_nl_chk_listeners(unsigned int group)
  {
- 	return nlmsg_multicast(nls, skb, 0, group, flags);
+-	if (netlink_has_listeners(nls, group) == 0)
+-		return -1;
+-	return 0;
++	return (netlink_has_listeners(nls, group)) ? 0 : -1;
  }
--EXPORT_SYMBOL(ibnl_multicast);
-+EXPORT_SYMBOL(rdma_nl_multicast);
++EXPORT_SYMBOL(rdma_nl_chk_listeners);
  
- int __init rdma_nl_init(void)
+ static bool is_nl_msg_valid(unsigned int type, unsigned int op)
  {
 diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index b499f4422f41..977f64d0e983 100644
+index 977f64d0e983..2cc85c2b74b7 100644
 --- a/drivers/infiniband/core/sa_query.c
 +++ b/drivers/infiniband/core/sa_query.c
-@@ -861,7 +861,7 @@ static int ib_nl_send_msg(struct ib_sa_query *query, gfp_t gfp_mask)
- 	/* Repair the nlmsg header length */
- 	nlmsg_end(skb, nlh);
+@@ -1418,7 +1418,7 @@ static int send_mad(struct ib_sa_query *query, int timeout_ms, gfp_t gfp_mask)
  
--	ret = ibnl_multicast(skb, nlh, RDMA_NL_GROUP_LS, gfp_mask);
-+	ret = rdma_nl_multicast(skb, RDMA_NL_GROUP_LS, gfp_mask);
- 	if (!ret)
- 		ret = len;
- 	else
+ 	if ((query->flags & IB_SA_ENABLE_LOCAL_SERVICE) &&
+ 	    (!(query->flags & IB_SA_QUERY_OPA))) {
+-		if (!ibnl_chk_listeners(RDMA_NL_GROUP_LS)) {
++		if (!rdma_nl_chk_listeners(RDMA_NL_GROUP_LS)) {
+ 			if (!ib_nl_make_request(query, gfp_mask))
+ 				return id;
+ 		}
 diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
-index e7b0779385e9..16a94c425938 100644
+index 16a94c425938..348e0bbe0fc9 100644
 --- a/include/rdma/rdma_netlink.h
 +++ b/include/rdma/rdma_netlink.h
-@@ -72,12 +72,10 @@ int rdma_nl_unicast_wait(struct sk_buff *skb, __u32 pid);
- /**
-  * Send the supplied skb to a netlink group.
-  * @skb: The netlink skb
-- * @nlh: Header of the netlink message to send
-  * @group: Netlink group ID
-  * @flags: allocation flags
-  * Returns 0 on success or a negative error code.
+@@ -78,4 +78,10 @@ int rdma_nl_unicast_wait(struct sk_buff *skb, __u32 pid);
   */
--int ibnl_multicast(struct sk_buff *skb, struct nlmsghdr *nlh,
--			unsigned int group, gfp_t flags);
-+int rdma_nl_multicast(struct sk_buff *skb, unsigned int group, gfp_t flags);
+ int rdma_nl_multicast(struct sk_buff *skb, unsigned int group, gfp_t flags);
  
++/**
++ * Check if there are any listeners to the netlink group
++ * @group: the netlink group ID
++ * Returns 0 on success or a negative for no listeners.
++ */
++int rdma_nl_chk_listeners(unsigned int group);
  #endif /* _RDMA_NETLINK_H */
 -- 
 2.14.0
