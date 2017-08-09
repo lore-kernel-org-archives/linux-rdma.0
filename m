@@ -1,102 +1,116 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [pull request][rdma-next v1 00/33] RDMA netlink refactoring and RDMAtool code
-Date: Wed,  9 Aug 2017 19:03:32 +0300
-Message-ID: <20170809160405.25142-1-leon@kernel.org>
+Subject: [rdma-next v1 01/33] RDMA/core: Add wait/retry version of ibnl_unicast
+Date: Wed,  9 Aug 2017 19:03:33 +0300
+Message-ID: <20170809160405.25142-2-leon@kernel.org>
+References: <20170809160405.25142-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170809160405.25142-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Ismail, Mustafa" <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Changes from v0:
- * Dropped revert patch in favor of patch-hack from Intel (Ismail, Mustafa)
-   for iWARP, in order to progress with series. For the record, I think
-   that it is wrong.
+From: "Ismail, Mustafa" <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-----------------------------------------------------------------
-The following changes since commit 913cc67159bc85a96d94df301ca39c1b2c540dca:
+Add a wait/retry version of ibnl_unicast, ibnl_unicast_wait,
+and modify ibnl_unicast to not wait/retry.  This eliminates
+the undesirable wait for future users of ibnl_unicast.
 
-  IB/hfi1: Always perform offline transition (2017-07-31 15:18:38 -0400)
+Change Portmapper calls originating from kernel to user-space
+to use ibnl_unicast_wait and take advantage of the wait/retry
+logic in netlink_unicast.
 
-are available in the git repository at:
+Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+---
+ drivers/infiniband/core/iwpm_msg.c |  6 +++---
+ drivers/infiniband/core/netlink.c  | 12 +++++++++++-
+ include/rdma/rdma_netlink.h        | 10 ++++++++++
+ 3 files changed, 24 insertions(+), 4 deletions(-)
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/rdma-next-2017-08-09
+diff --git a/drivers/infiniband/core/iwpm_msg.c b/drivers/infiniband/core/iwpm_msg.c
+index a0e7c16d8bd8..add99b92afdf 100644
+--- a/drivers/infiniband/core/iwpm_msg.c
++++ b/drivers/infiniband/core/iwpm_msg.c
+@@ -174,7 +174,7 @@ int iwpm_add_mapping(struct iwpm_sa_data *pm_msg, u8 nl_client)
+ 		goto add_mapping_error;
+ 	nlmsg_request->req_buffer = pm_msg;
+ 
+-	ret = ibnl_unicast(skb, nlh, iwpm_user_pid);
++	ret = ibnl_unicast_wait(skb, nlh, iwpm_user_pid);
+ 	if (ret) {
+ 		skb = NULL; /* skb is freed in the netlink send-op handling */
+ 		iwpm_user_pid = IWPM_PID_UNDEFINED;
+@@ -251,7 +251,7 @@ int iwpm_add_and_query_mapping(struct iwpm_sa_data *pm_msg, u8 nl_client)
+ 		goto query_mapping_error;
+ 	nlmsg_request->req_buffer = pm_msg;
+ 
+-	ret = ibnl_unicast(skb, nlh, iwpm_user_pid);
++	ret = ibnl_unicast_wait(skb, nlh, iwpm_user_pid);
+ 	if (ret) {
+ 		skb = NULL; /* skb is freed in the netlink send-op handling */
+ 		err_str = "Unable to send a nlmsg";
+@@ -312,7 +312,7 @@ int iwpm_remove_mapping(struct sockaddr_storage *local_addr, u8 nl_client)
+ 	if (ret)
+ 		goto remove_mapping_error;
+ 
+-	ret = ibnl_unicast(skb, nlh, iwpm_user_pid);
++	ret = ibnl_unicast_wait(skb, nlh, iwpm_user_pid);
+ 	if (ret) {
+ 		skb = NULL; /* skb is freed in the netlink send-op handling */
+ 		iwpm_user_pid = IWPM_PID_UNDEFINED;
+diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+index 94931c474d41..0fc50e15ae22 100644
+--- a/drivers/infiniband/core/netlink.c
++++ b/drivers/infiniband/core/netlink.c
+@@ -232,11 +232,21 @@ int ibnl_unicast(struct sk_buff *skb, struct nlmsghdr *nlh,
+ {
+ 	int err;
+ 
+-	err = netlink_unicast(nls, skb, pid, 0);
++	err = netlink_unicast(nls, skb, pid, MSG_DONTWAIT);
+ 	return (err < 0) ? err : 0;
+ }
+ EXPORT_SYMBOL(ibnl_unicast);
+ 
++int ibnl_unicast_wait(struct sk_buff *skb, struct nlmsghdr *nlh,
++		      __u32 pid)
++{
++	int err;
++
++	err = netlink_unicast(nls, skb, pid, 0);
++	return (err < 0) ? err : 0;
++}
++EXPORT_SYMBOL(ibnl_unicast_wait);
++
+ int ibnl_multicast(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			unsigned int group, gfp_t flags)
+ {
+diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
+index 348c102cb5f6..5b1466770917 100644
+--- a/include/rdma/rdma_netlink.h
++++ b/include/rdma/rdma_netlink.h
+@@ -63,6 +63,16 @@ int ibnl_put_attr(struct sk_buff *skb, struct nlmsghdr *nlh,
+ int ibnl_unicast(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			__u32 pid);
+ 
++/**
++ * Send, with wait/1 retry, the supplied skb to a specific userspace PID.
++ * @skb: The netlink skb
++ * @nlh: Header of the netlink message to send
++ * @pid: Userspace netlink process ID
++ * Returns 0 on success or a negative error code.
++ */
++int ibnl_unicast_wait(struct sk_buff *skb, struct nlmsghdr *nlh,
++		      __u32 pid);
++
+ /**
+  * Send the supplied skb to a netlink group.
+  * @skb: The netlink skb
+-- 
+2.14.0
 
-for you to fetch changes up to 6f1e9b06a3b6143dd13ac2091ca0c6a987511883:
-
-  RDMA/netlink: Export node_type (2017-08-09 16:23:17 +0300)
-
-----------------------------------------------------------------
-RDAM netlink infrastructure changes for RDMAtool
-
-----------------------------------------------------------------
-Ismail, Mustafa (1):
-      RDMA/core: Add wait/retry version of ibnl_unicast
-
-Leon Romanovsky (32):
-      RDMA/netlink: Remove netlink clients infrastructure
-      RDMA/netlink: Remove redundant owner option for netlink callbacks
-      RDMA/netlink: Avoid double pass for RDMA netlink messages
-      RDMA/iwcm: Remove useless check of nelink client validity
-      RDMA/iwcm: Remove extra EXPORT_SYMBOLS
-      RDMA/netlink: Add flag to consolidate common handing
-      RDMA/netlink: Simplify the put_msg and put_attr
-      RDMA/netlink: Rename and remove redundant parameter from ibnl_unicast*
-      RDMA/netlink: Rename and remove redundant parameter from ibnl_multicast
-      RDMA/netlink: Simplify and rename ibnl_chk_listeners
-      RDMA/netlink: Rename netlink callback struct
-      RDMA/core: Add iterator over ib_devices
-      RDMA/core: Add and expose static device index
-      RDMA/netlink: Add and implement doit netlink callback
-      RDMA/netlink: Reduce indirection access to cb_table
-      RDMA/netlink: Convert LS to doit callback
-      RDMA/netlink: Update copyright
-      RDMA/netlink: Add netlink device definitions to UAPI
-      RDMA/netlink: Add nldev initialization flows
-      RDMA/netlink: Implement nldev device dumpit calback
-      RDMA/netlink: Add nldev device doit implementation
-      RDMA/netlink: Add nldev port dumpit implementation
-      RDMA/netlink: Implement nldev port doit callback
-      RDMA/netlink: Expose device and port capability masks
-      RDMA: Simplify get firmware interface
-      RDMA/netlink: Export FW version
-      RDMA/netlink: Export node_guid and sys_image_guid
-      RDMA/netlink: Advertise IB subnet prefix
-      RDMA/netink: Export lids and sm_lids
-      RDMA/netlink: Export LID mask control (LMC)
-      RDMA/netlink: Provide port state and physical link state
-      RDMA/netlink: Export node_type
-
- drivers/infiniband/core/Makefile               |   3 +-
- drivers/infiniband/core/addr.c                 |  12 +-
- drivers/infiniband/core/cma.c                  |  11 +-
- drivers/infiniband/core/core_priv.h            |  26 +-
- drivers/infiniband/core/device.c               | 119 +++++++---
- drivers/infiniband/core/iwcm.c                 |  12 +-
- drivers/infiniband/core/iwpm_msg.c             |  20 +-
- drivers/infiniband/core/iwpm_util.c            |  15 +-
- drivers/infiniband/core/netlink.c              | 313 +++++++++++++------------
- drivers/infiniband/core/nldev.c                | 312 ++++++++++++++++++++++++
- drivers/infiniband/core/sa_query.c             |  18 +-
- drivers/infiniband/core/sysfs.c                |   4 +-
- drivers/infiniband/hw/cxgb3/iwch_provider.c    |   5 +-
- drivers/infiniband/hw/cxgb4/provider.c         |   5 +-
- drivers/infiniband/hw/hfi1/verbs.c             |   5 +-
- drivers/infiniband/hw/i40iw/i40iw_verbs.c      |   7 +-
- drivers/infiniband/hw/mlx4/main.c              |   5 +-
- drivers/infiniband/hw/mlx5/main.c              |   8 +-
- drivers/infiniband/hw/mthca/mthca_provider.c   |   5 +-
- drivers/infiniband/hw/nes/nes_verbs.c          |   5 +-
- drivers/infiniband/hw/ocrdma/ocrdma_main.c     |   5 +-
- drivers/infiniband/hw/qedr/main.c              |   5 +-
- drivers/infiniband/hw/usnic/usnic_ib_main.c    |   6 +-
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c |   5 +-
- drivers/infiniband/ulp/ipoib/ipoib_ethtool.c   |   3 +-
- include/rdma/ib_verbs.h                        |   8 +-
- include/rdma/rdma_netlink.h                    |  46 ++--
- include/uapi/rdma/rdma_netlink.h               |  84 ++++++-
- 28 files changed, 759 insertions(+), 313 deletions(-)
- create mode 100644 drivers/infiniband/core/nldev.c
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
