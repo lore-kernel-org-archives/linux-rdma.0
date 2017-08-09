@@ -1,75 +1,48 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next v3 7/7] IB/core: Change wc.slid from 16 to 32
- bits
-Date: Wed, 9 Aug 2017 13:18:14 -0400
-Message-ID: <bf3cb685-a0ac-9a5a-4bc7-19cde53f8b09@redhat.com>
-References: <1496943469-44017-1-git-send-email-don.hiatt@intel.com>
- <1496943469-44017-8-git-send-email-don.hiatt@intel.com>
- <1502219143.3002.10.camel@redhat.com>
- <772a7324-5d42-3259-7881-483722fc1f2e@intel.com>
+Subject: Re: [rdma-next v1 19/33] RDMA/netlink: Add netlink device definitions
+ to UAPI
+Date: Wed, 9 Aug 2017 13:22:40 -0400
+Message-ID: <97f45654-be97-1f70-907b-13bb70b2c89b@redhat.com>
+References: <20170809160405.25142-1-leon@kernel.org>
+ <20170809160405.25142-20-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="XpewT2ALTMdxiDFhsKJmwDD97uCEIaCOE"
+ boundary="5AqiRnkVSDP849purcfhgmMpMbUQOHbSF"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <772a7324-5d42-3259-7881-483722fc1f2e-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20170809160405.25142-20-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---XpewT2ALTMdxiDFhsKJmwDD97uCEIaCOE
-Content-Type: multipart/mixed; boundary="EQNadoa6aJgORn9pwwQo3pE7KAX33a06s";
+--5AqiRnkVSDP849purcfhgmMpMbUQOHbSF
+Content-Type: multipart/mixed; boundary="vfoJeqqwvXxM0tSFAS8BN9W0fFG7HPQ5k";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Message-ID: <bf3cb685-a0ac-9a5a-4bc7-19cde53f8b09-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next v3 7/7] IB/core: Change wc.slid from 16 to 32
- bits
-References: <1496943469-44017-1-git-send-email-don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
- <1496943469-44017-8-git-send-email-don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
- <1502219143.3002.10.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <772a7324-5d42-3259-7881-483722fc1f2e-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-In-Reply-To: <772a7324-5d42-3259-7881-483722fc1f2e-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Message-ID: <97f45654-be97-1f70-907b-13bb70b2c89b-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [rdma-next v1 19/33] RDMA/netlink: Add netlink device definitions
+ to UAPI
+References: <20170809160405.25142-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+ <20170809160405.25142-20-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170809160405.25142-20-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
---EQNadoa6aJgORn9pwwQo3pE7KAX33a06s
+--vfoJeqqwvXxM0tSFAS8BN9W0fFG7HPQ5k
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: quoted-printable
 
-On 8/9/2017 12:46 PM, Don Hiatt wrote:
-> On 8/8/2017 12:05 PM, Doug Ledford wrote:
->> On Thu, 2017-06-08 at 13:37 -0400, Don Hiatt wrote:
->>> slid field in struct ib_wc is increased to 32 bits.
->>> This enables core components to use larger LIDs if needed.
->>> The user ABI is unchanged and return 16 bit values when queried.
->> Hi Don,
->>
->> My comments here are not really about this particular patch, I just
->> grabbed it from the pile as one to respond to.  But my question is
->> this:
->>
->> Multiple of these patch say the user ABI is unchanged and return 16 bi=
-t
->> values when queried.  What's your plan for a long term solution to
->> this?  Eventually, the user ABI will need to be extended to support
->> 32bit LIDs, yes?  Or do you plan to try and hide this forever?
->>
->> As for the kernel to user space driver API, I waffled a bit about
->> whether we shouldn't go ahead and return the 32bit value to the driver=
+On 8/9/2017 12:03 PM, Leon Romanovsky wrote:
 
->> and let it do the conversion to 16 bit for the user ABI, then decided
->> this method provides a cleaner means of supporting newer kernels with
->> older verbs OPA drivers and so didn't object, but it still leaves the
->> question about the long term plans here.
->>
-> Hi Doug,
->=20
-> Our long term plan is to use the new verbs 2 API for extending
-> the LID size. We do not plan to keep this hidden forever and plan to
-> use the new API once it's available.
+> +	 * Device index together with port index are identifiers
+> +	 * for port/link properties.
+> +	 *
+> +	 * For RDMA_NLDEV_CMD_GET comamnd, port index will return number
+                                  ^ Typo
 
-Good.  That's more or less what I wanted to hear ;-).  Thanks.
 
 
 --=20
@@ -79,9 +52,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 D
 
 
---EQNadoa6aJgORn9pwwQo3pE7KAX33a06s--
+--vfoJeqqwvXxM0tSFAS8BN9W0fFG7HPQ5k--
 
---XpewT2ALTMdxiDFhsKJmwDD97uCEIaCOE
+--5AqiRnkVSDP849purcfhgmMpMbUQOHbSF
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -90,22 +63,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJZi0PXAAoJELgmozMOVy/dHjcQAINIJaG5kRqxSmXJLtOdjatK
-VJpZG5Q3i2S2mRbYmJ+9+q9mURSDoEYKrQNRudwC4MAYS5+cf6wdxsh0bhrzHlC6
-/CNchZr7ZrA8lfONBcZ9FxTrY3k9ShZbtRzyF/rFBaccgYCB5IY+vKZ40kgSCNAh
-j/SU7IK6d0jhRsqUhVOfMUtJqcTcyqEcfENXXh2d5kAnKvQY6ntyOIBIoJGvD5s4
-9LhHSg6sT59JSruegwayPhZh1/l4FS5c+8soOaGc+RtrVFer7epWXDRQw1Hw6Hrm
-LkU2U7uLJhcf+86cCA1CZKw4JteJQFLRdg0CvhJ4VtrRgUhXGuD93GrCZVryUOoc
-NiMSw222ci+dwCcuFfhnjzoNrPfNEx3iWuWuaw1124JNEgjgmq2qDSBe4O/c0bPB
-072f4126JdUXgX4cCl/WQomtFbluuMuNPUvyB4Vz+GYSYwuxgrSdiZFHyIRSrGQu
-Fz8Ae7tM6UNc8Z27/E7Jz0ZBAykvd5yeJPlWE/DNFN/wWawMNN7Hev4BIIHKpqo0
-pY+iVm6dEdsGD+5dDUQTG7DcSF5saTTE/d8oXNnrPYhfcQeR0r273tNggy25xmB5
-7eHBibDwVt5tAd4qqinrCS/M8JXaozqQdlBCuZ0GEAR3bnp4ZJQEeoesgTsBCEvp
-ANgkm1CsGnQj6KXCXueA
-=Mpa8
+iQIcBAEBCAAGBQJZi0TgAAoJELgmozMOVy/dbUIP/i1xS136WntbDBjwNLl+QvzT
+FW4q9oOt7uKKZA8pbHF4zrIh1ungguYItg3IOx6dt6G0jIXZ5hIvd6K5YTl5iaRw
+8whD325cSydRKsrFU7NmeIz/9al2em3ZdbLCDFQ3PfwGknFjYFj2yCkxvTlTkX7R
+k+GnOH2Vm/pnFjHlErfX5CvhRITdQ9ciV8eDr0e2UI/siu4lGw3UqCeGD/4X9lSv
+bhyZO+3+H8bVH7BCfVhLHWOD6D/DIbloCBymbS8tF19q+1GTX1TLMxRPrWSsRTCo
+0h+s+h2z3h7JqSoreBY2aaDsZIkTuVda4AzhEi3lbcqXVFX3zjzIs9jIfEnxBS5O
+3PRS8wRAfAzZf4tB8BSqteE/AzMRaDSwke5PPnKgPYjB3nI4m0pXWgCy34O++Ppe
+mP2bKTF5Ls1xBCIagl+uJX73cEgVGVusyJwk12rRFHAjukLDbP/8dpYwQvH/M9RG
+KdF5vSq1vsjwjgGIAgiA74BfBME8uQgbd9oHYyQNHU+sZNH7gR1rLefKJfUhM3Kk
+oaKLANod1CPsuPVEIRLvn1r9qZbDf6wC3yZtF/05OUSAsq5S0vv04b8uhywesZiN
+d+sVu2eYJFvW+gi5t+fFFtITNoC+wq0xIriiNtJZ0XMewzkW9Pqgy60mXYiF49P5
+d9GHZ8eaBdrTBfegoWdl
+=lH8H
 -----END PGP SIGNATURE-----
 
---XpewT2ALTMdxiDFhsKJmwDD97uCEIaCOE--
+--5AqiRnkVSDP849purcfhgmMpMbUQOHbSF--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
