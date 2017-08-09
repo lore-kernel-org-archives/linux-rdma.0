@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v1 12/33] RDMA/netlink: Rename netlink callback struct
-Date: Wed,  9 Aug 2017 19:03:44 +0300
-Message-ID: <20170809160405.25142-13-leon@kernel.org>
+Subject: [rdma-next v1 13/33] RDMA/core: Add iterator over ib_devices
+Date: Wed,  9 Aug 2017 19:03:45 +0300
+Message-ID: <20170809160405.25142-14-leon@kernel.org>
 References: <20170809160405.25142-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170809160405.25142-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,103 +12,76 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The RDMA netlink client infrastructure was removed and made
-obsolete the old name (ibnl_client_cbs). This patch renames
-to the more appropriate name (rdma_nl_cbs).
+The coming nldev needs to iterate over all IB devices in the system
+and in order to not expose the ib_devices list outside the devices.c,
+it is necessary to provide function iterator.
+
+Current version is written explicitly for nldev callback to avoid
+over-engineering at this stage, but it can be easily extended for
+other types.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c     | 2 +-
- drivers/infiniband/core/device.c  | 2 +-
- drivers/infiniband/core/iwcm.c    | 2 +-
- drivers/infiniband/core/netlink.c | 4 ++--
- include/rdma/rdma_netlink.h       | 4 ++--
- 5 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/infiniband/core/core_priv.h |  8 ++++++++
+ drivers/infiniband/core/device.c    | 25 +++++++++++++++++++++++++
+ 2 files changed, 33 insertions(+)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 0c85f140e616..d8edd8b11561 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -4458,7 +4458,7 @@ static int cma_get_id_stats(struct sk_buff *skb, struct netlink_callback *cb)
- 	return skb->len;
- }
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index e759c27113cd..0c175590cf92 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -102,6 +102,14 @@ void ib_enum_all_roce_netdevs(roce_netdev_filter filter,
+ 			      roce_netdev_callback cb,
+ 			      void *cookie);
  
--static const struct ibnl_client_cbs cma_cb_table[] = {
-+static const struct rdma_nl_cbs cma_cb_table[] = {
- 	[RDMA_NL_RDMA_CM_ID_STATS] = { .dump = cma_get_id_stats},
- };
- 
++typedef int (*nldev_callback)(struct ib_device *device,
++			      struct sk_buff *skb,
++			      struct netlink_callback *cb,
++			      unsigned int idx);
++
++int ib_enum_all_devs(nldev_callback nldev_cb, struct sk_buff *skb,
++		     struct netlink_callback *cb);
++
+ enum ib_cache_gid_default_mode {
+ 	IB_CACHE_GID_DEFAULT_MODE_SET,
+ 	IB_CACHE_GID_DEFAULT_MODE_DELETE
 diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 1c5276e6e7f6..a1d5798fa4d7 100644
+index a1d5798fa4d7..54143476a020 100644
 --- a/drivers/infiniband/core/device.c
 +++ b/drivers/infiniband/core/device.c
-@@ -1086,7 +1086,7 @@ struct net_device *ib_get_net_dev_by_params(struct ib_device *dev,
- }
- EXPORT_SYMBOL(ib_get_net_dev_by_params);
- 
--static const struct ibnl_client_cbs ibnl_ls_cb_table[] = {
-+static const struct rdma_nl_cbs ibnl_ls_cb_table[] = {
- 	[RDMA_NL_LS_OP_RESOLVE] = {
- 		.dump = ib_nl_handle_resolve_resp,
- 		.flags = RDMA_NL_ADMIN_PERM,
-diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core/iwcm.c
-index 8599271d8be6..452a3115e3e6 100644
---- a/drivers/infiniband/core/iwcm.c
-+++ b/drivers/infiniband/core/iwcm.c
-@@ -80,7 +80,7 @@ const char *__attribute_const__ iwcm_reject_msg(int reason)
- }
- EXPORT_SYMBOL(iwcm_reject_msg);
- 
--static struct ibnl_client_cbs iwcm_nl_cb_table[] = {
-+static struct rdma_nl_cbs iwcm_nl_cb_table[] = {
- 	[RDMA_NL_IWPM_REG_PID] = {.dump = iwpm_register_pid_cb},
- 	[RDMA_NL_IWPM_ADD_MAPPING] = {.dump = iwpm_add_mapping_cb},
- 	[RDMA_NL_IWPM_QUERY_MAPPING] = {.dump = iwpm_add_and_query_mapping_cb},
-diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-index b027b6ecd2b3..2a88f92657fc 100644
---- a/drivers/infiniband/core/netlink.c
-+++ b/drivers/infiniband/core/netlink.c
-@@ -44,7 +44,7 @@
- static DEFINE_MUTEX(rdma_nl_mutex);
- static struct sock *nls;
- static struct {
--	const struct ibnl_client_cbs   *cb_table;
-+	const struct rdma_nl_cbs   *cb_table;
- } rdma_nl_types[RDMA_NL_NUM_CLIENTS];
- 
- int rdma_nl_chk_listeners(unsigned int group)
-@@ -84,7 +84,7 @@ static bool is_nl_valid(unsigned int type, unsigned int op)
+@@ -892,6 +892,31 @@ void ib_enum_all_roce_netdevs(roce_netdev_filter filter,
+ 	up_read(&lists_rwsem);
  }
  
- void rdma_nl_register(unsigned int index,
--		      const struct ibnl_client_cbs cb_table[])
-+		      const struct rdma_nl_cbs cb_table[])
- {
- 	mutex_lock(&rdma_nl_mutex);
- 	if (!is_nl_msg_valid(index, 0)) {
-diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
-index 348e0bbe0fc9..92f8832297ab 100644
---- a/include/rdma/rdma_netlink.h
-+++ b/include/rdma/rdma_netlink.h
-@@ -5,7 +5,7 @@
- #include <linux/netlink.h>
- #include <uapi/rdma/rdma_netlink.h>
- 
--struct ibnl_client_cbs {
-+struct rdma_nl_cbs {
- 	int (*dump)(struct sk_buff *skb, struct netlink_callback *nlcb);
- 	u8 flags;
- };
-@@ -21,7 +21,7 @@ enum rdma_nl_flags {
-  * @cb_table: A table for op->callback
-  */
- void rdma_nl_register(unsigned int index,
--		      const struct ibnl_client_cbs cb_table[]);
-+		      const struct rdma_nl_cbs cb_table[]);
- 
++/**
++ * ib_enum_all_devs - enumerate all ib_devices
++ * @cb: Callback to call for each found ib_device
++ *
++ * Enumerates all ib_devices and calls callback() on each device.
++ */
++int ib_enum_all_devs(nldev_callback nldev_cb, struct sk_buff *skb,
++		     struct netlink_callback *cb)
++{
++	struct ib_device *dev;
++	unsigned int idx = 0;
++	int ret = 0;
++
++	down_read(&lists_rwsem);
++	list_for_each_entry(dev, &device_list, core_list) {
++		ret = nldev_cb(dev, skb, cb, idx);
++		if (ret)
++			break;
++		idx++;
++	}
++
++	up_read(&lists_rwsem);
++	return ret;
++}
++
  /**
-  * Remove a client from IB netlink.
+  * ib_query_pkey - Get P_Key table entry
+  * @device:Device to query
 -- 
 2.14.0
 
