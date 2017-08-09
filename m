@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v1 28/33] RDMA/netlink: Export node_guid and sys_image_guid
-Date: Wed,  9 Aug 2017 19:04:00 +0300
-Message-ID: <20170809160405.25142-29-leon@kernel.org>
+Subject: [rdma-next v1 25/33] RDMA/netlink: Expose device and port capability masks
+Date: Wed,  9 Aug 2017 19:03:57 +0300
+Message-ID: <20170809160405.25142-26-leon@kernel.org>
 References: <20170809160405.25142-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170809160405.25142-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,61 +12,72 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add Node GUID and system image GUID to the device properties
-exported by RDMA netlink, to be used by RDMAtool.
+The port capability mask is exposed to user space via sysfs interface,
+while device capabilities are available for verbs only.
+
+This patch provides those capabilities through netlink interface.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/nldev.c  |  8 ++++++++
- include/uapi/rdma/rdma_netlink.h | 13 +++++++++++++
- 2 files changed, 21 insertions(+)
+ drivers/infiniband/core/nldev.c  | 19 +++++++++++++++++++
+ include/uapi/rdma/rdma_netlink.h |  5 +++++
+ 2 files changed, 24 insertions(+)
 
 diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 40d5f0eb16f5..fde0138fff5f 100644
+index 533ac72a05b8..21e75928400c 100644
 --- a/drivers/infiniband/core/nldev.c
 +++ b/drivers/infiniband/core/nldev.c
-@@ -42,6 +42,8 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 	[RDMA_NLDEV_ATTR_PORT_INDEX]	= { .type = NLA_U32 },
- 	[RDMA_NLDEV_ATTR_FW_VERSION]	= { .type = NLA_NUL_STRING,
- 					    .len = IB_FW_VERSION_NAME_MAX - 1},
-+	[RDMA_NLDEV_ATTR_NODE_GUID]	= { .type = NLA_U64 },
-+	[RDMA_NLDEV_ATTR_SYS_IMAGE_GUID] = { .type = NLA_U64 },
- };
- 
- static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
-@@ -65,6 +67,12 @@ static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
- 	if (strlen(fw) && nla_put_string(msg, RDMA_NLDEV_ATTR_FW_VERSION, fw))
+@@ -50,18 +50,37 @@ static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
  		return -EMSGSIZE;
+ 	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_PORT_INDEX, rdma_end_port(device)))
+ 		return -EMSGSIZE;
++
++	BUILD_BUG_ON(sizeof(device->attrs.device_cap_flags) != sizeof(u64));
++	if (nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_CAP_FLAGS,
++			      device->attrs.device_cap_flags, 0))
++		return -EMSGSIZE;
++
+ 	return 0;
+ }
  
-+	if (nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_NODE_GUID,
-+			      be64_to_cpu(device->node_guid), 0))
+ static int fill_port_info(struct sk_buff *msg,
+ 			  struct ib_device *device, u32 port)
+ {
++	struct ib_port_attr attr;
++	int ret;
++
+ 	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_DEV_INDEX, device->index))
+ 		return -EMSGSIZE;
+ 	if (nla_put_string(msg, RDMA_NLDEV_ATTR_DEV_NAME, device->name))
+ 		return -EMSGSIZE;
+ 	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_PORT_INDEX, port))
+ 		return -EMSGSIZE;
++
++	ret = ib_query_port(device, port, &attr);
++	if (ret)
++		return ret;
++
++	BUILD_BUG_ON(sizeof(attr.port_cap_flags) > sizeof(u64));
++	if (nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_CAP_FLAGS,
++			      (u64)attr.port_cap_flags, 0))
 +		return -EMSGSIZE;
-+	if (nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_SYS_IMAGE_GUID,
-+			      be64_to_cpu(device->attrs.sys_image_guid), 0))
-+		return -EMSGSIZE;
++
  	return 0;
  }
  
 diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index fec735f73eee..b34f7745daf0 100644
+index 1d064fedfa9a..8fc5278d07d6 100644
 --- a/include/uapi/rdma/rdma_netlink.h
 +++ b/include/uapi/rdma/rdma_netlink.h
-@@ -266,6 +266,19 @@ enum rdma_nldev_attr {
- 	 * FW version
+@@ -257,6 +257,11 @@ enum rdma_nldev_attr {
  	 */
- 	RDMA_NLDEV_ATTR_FW_VERSION,		/* string */
-+
+ 	RDMA_NLDEV_ATTR_PORT_INDEX,		/* u32 */
+ 
 +	/*
-+	 * Node GUID (in host byte order) associated with the RDMA device.
++	 * Device and port capabilities
 +	 */
-+	RDMA_NLDEV_ATTR_NODE_GUID,			/* u64 */
-+
-+	/*
-+	 * System image GUID (in host byte order) associated with
-+	 * this RDMA device and other devices which are part of a
-+	 * single system.
-+	 */
-+	RDMA_NLDEV_ATTR_SYS_IMAGE_GUID,		/* u64 */
++	RDMA_NLDEV_ATTR_CAP_FLAGS,		/* u64 */
 +
  	RDMA_NLDEV_ATTR_MAX
  };
