@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v1 22/33] RDMA/netlink: Add nldev device doit implementation
-Date: Wed,  9 Aug 2017 19:03:54 +0300
-Message-ID: <20170809160405.25142-23-leon@kernel.org>
+Subject: [rdma-next v1 24/33] RDMA/netlink: Implement nldev port doit callback
+Date: Wed,  9 Aug 2017 19:03:56 +0300
+Message-ID: <20170809160405.25142-25-leon@kernel.org>
 References: <20170809160405.25142-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170809160405.25142-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,40 +12,44 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Provide ability to query specific device.
+Provide ability to get specific to device and port information.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/nldev.c | 40 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+ drivers/infiniband/core/nldev.c | 44 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
 
 diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 4b8b0f5d5344..666940f2b49a 100644
+index 4413eda8c435..533ac72a05b8 100644
 --- a/drivers/infiniband/core/nldev.c
 +++ b/drivers/infiniband/core/nldev.c
-@@ -53,6 +53,45 @@ static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
- 	return 0;
+@@ -141,6 +141,49 @@ static int nldev_get_dumpit(struct sk_buff *skb, struct netlink_callback *cb)
+ 	return ib_enum_all_devs(_nldev_get_dumpit, skb, cb);
  }
  
-+static int nldev_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
-+			  struct netlink_ext_ack *extack)
++static int nldev_port_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
++			       struct netlink_ext_ack *extack)
 +{
 +	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
 +	struct ib_device *device;
 +	struct sk_buff *msg;
 +	u32 index;
++	u32 port;
 +	int err;
 +
 +	err = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
 +			  nldev_policy, extack);
-+	if (err || !tb[RDMA_NLDEV_ATTR_DEV_INDEX])
++	if (err || !tb[RDMA_NLDEV_ATTR_PORT_INDEX])
 +		return -EINVAL;
 +
 +	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
-+
 +	device = __ib_device_get_by_index(index);
 +	if (!device)
++		return -EINVAL;
++
++	port = nla_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
++	if (!rdma_is_port_valid(device, port))
 +		return -EINVAL;
 +
 +	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
@@ -56,7 +60,7 @@ index 4b8b0f5d5344..666940f2b49a 100644
 +			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_GET),
 +			0, 0);
 +
-+	err = fill_dev_info(msg, device);
++	err = fill_port_info(msg, device, port);
 +	if (err) {
 +		nlmsg_free(msg);
 +		return err;
@@ -67,15 +71,15 @@ index 4b8b0f5d5344..666940f2b49a 100644
 +	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
 +}
 +
- static int _nldev_get_dumpit(struct ib_device *device,
- 			     struct sk_buff *skb,
- 			     struct netlink_callback *cb,
-@@ -92,6 +131,7 @@ static int nldev_get_dumpit(struct sk_buff *skb, struct netlink_callback *cb)
- 
- static const struct rdma_nl_cbs nldev_cb_table[] = {
- 	[RDMA_NLDEV_CMD_GET] = {
-+		.doit = nldev_get_doit,
+ static int nldev_port_get_dumpit(struct sk_buff *skb,
+ 				 struct netlink_callback *cb)
+ {
+@@ -193,6 +236,7 @@ static const struct rdma_nl_cbs nldev_cb_table[] = {
  		.dump = nldev_get_dumpit,
+ 	},
+ 	[RDMA_NLDEV_CMD_PORT_GET] = {
++		.doit = nldev_port_get_doit,
+ 		.dump = nldev_port_get_dumpit,
  	},
  };
 -- 
