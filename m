@@ -1,71 +1,155 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [rdma-next v1 05/33] RDMA/iwcm: Remove useless check of nelink
- client validity
-Date: Wed, 9 Aug 2017 19:54:44 +0300
-Message-ID: <20170809165444.GL1423@mtr-leonro.local>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [rdma-next v1 08/33] RDMA/netlink: Simplify the put_msg and
+ put_attr
+Date: Wed, 9 Aug 2017 13:00:21 -0400
+Message-ID: <03e0ce22-ad9d-eb7d-be75-b87bc9aa1005@redhat.com>
 References: <20170809160405.25142-1-leon@kernel.org>
- <20170809160405.25142-6-leon@kernel.org>
- <29fb15c5-060b-0daa-6f25-4796a2962897@redhat.com>
+ <20170809160405.25142-9-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="ZY5CS28jBCfb727c"
+ protocol="application/pgp-signature";
+ boundary="aET3tDHqAvxUvDidO1aaBcHhQqntO0cN6"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <29fb15c5-060b-0daa-6f25-4796a2962897-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170809160405.25142-9-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--aET3tDHqAvxUvDidO1aaBcHhQqntO0cN6
+Content-Type: multipart/mixed; boundary="1e0euEtcF9licou6Wqp04N6Mr5E4kOvGf";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Message-ID: <03e0ce22-ad9d-eb7d-be75-b87bc9aa1005-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [rdma-next v1 08/33] RDMA/netlink: Simplify the put_msg and
+ put_attr
+References: <20170809160405.25142-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+ <20170809160405.25142-9-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170809160405.25142-9-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
---ZY5CS28jBCfb727c
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--1e0euEtcF9licou6Wqp04N6Mr5E4kOvGf
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Aug 09, 2017 at 12:51:03PM -0400, Doug Ledford wrote:
-> On 8/9/2017 12:03 PM, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->
-> Spelling error in subject: nelink->netlink
->
+On 8/9/2017 12:03 PM, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>=20
+> Reuse standard macros to cancel the netlink message
+> in case of error.
+>=20
+> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> ---
+>  drivers/infiniband/core/netlink.c | 31 +++++++++----------------------=
 
-I'll collect all the feedback and will resend my tomorrow morning.
+>  1 file changed, 9 insertions(+), 22 deletions(-)
+>=20
+> diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/cor=
+e/netlink.c
+> index c5ee62a24960..fc8b45d4140a 100644
+> --- a/drivers/infiniband/core/netlink.c
+> +++ b/drivers/infiniband/core/netlink.c
+> @@ -126,36 +126,23 @@ EXPORT_SYMBOL(rdma_nl_unregister);
+>  void *ibnl_put_msg(struct sk_buff *skb, struct nlmsghdr **nlh, int seq=
+,
+>  		   int len, int client, int op, int flags)
+>  {
+> -	unsigned char *prev_tail;
+> -
+> -	prev_tail =3D skb_tail_pointer(skb);
+> -	*nlh =3D nlmsg_put(skb, 0, seq, RDMA_NL_GET_TYPE(client, op),
+> -			 len, flags);
+> -	if (!*nlh)
+> -		goto out_nlmsg_trim;
+> -	(*nlh)->nlmsg_len =3D skb_tail_pointer(skb) - prev_tail;
+> +	*nlh =3D nlmsg_put(skb, 0, seq, RDMA_NL_GET_TYPE(client, op), len, fl=
+ags);
+> +	if (!*nlh) {
+> +		nlmsg_cancel(skb, *nlh);
+                                  ^^^^ This looks funny.  It's
+technically correct, but it looks like an error because you are using a
+value that we just checked for an error, saw an error, and then use it
+anwyay.  I would prefer that be NULL instead just like you write return
+NULL just below.
 
-Thanks
+> +		return NULL;
+> +	}
+>  	return nlmsg_data(*nlh);
+> -
+> -out_nlmsg_trim:
+> -	nlmsg_trim(skb, prev_tail);
 
->
->
->
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->     GPG Key ID: B826A3330E572FDD
->     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
->
+In the new code, on error, you cancel the message outright, while the
+old code here does a nlmsg_trim().  Isn't this a functional change in
+addition to just switching to using the standard helpers?  Same question
+for below...
+
+> -	return NULL;
+>  }
+>  EXPORT_SYMBOL(ibnl_put_msg);
+> =20
+>  int ibnl_put_attr(struct sk_buff *skb, struct nlmsghdr *nlh,
+>  		  int len, void *data, int type)
+>  {
+> -	unsigned char *prev_tail;
+> -
+> -	prev_tail =3D skb_tail_pointer(skb);
+> -	if (nla_put(skb, type, len, data))
+> -		goto nla_put_failure;
+> -	nlh->nlmsg_len +=3D skb_tail_pointer(skb) - prev_tail;
+> +	if (nla_put(skb, type, len, data)) {
+> +		nlmsg_cancel(skb, nlh);
+> +		return -EMSGSIZE;
+> +	}
+>  	return 0;
+> -
+> -nla_put_failure:
+> -	nlmsg_trim(skb, prev_tail - nlh->nlmsg_len);
+> -	return -EMSGSIZE;
+>  }
+>  EXPORT_SYMBOL(ibnl_put_attr);
+> =20
+>=20
 
 
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
+D
 
 
---ZY5CS28jBCfb727c
+--1e0euEtcF9licou6Wqp04N6Mr5E4kOvGf--
+
+--aET3tDHqAvxUvDidO1aaBcHhQqntO0cN6
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmLPlQACgkQ5GN7iDZy
-WKf2nQ//UFJ6AebB4fhk0gNud/fWjnM83knvm+GzsM7M0c0y+4boDJLuiYNugOWR
-0NiS9+833GaTlgDwpm6yrxDdXyYD48yyUhxIlhC30LU+Ui4s9Zla1yIqQWBRzdaC
-NTl7DydWyHSF8joAiizDpaTgrbCzfH/W1Qyzt4c55fmK9QoKzjK+xK2QjGTXSw3N
-6yE+8wwCEYSaMt3q3/PB+2LvgPN1+8Dvg2+rsAZRV6ZOHO5RwGkuepO4chgD6hpt
-g1PTVPrGIU81zMPHyUscNooyvYF11CMJ4gGCSGFfz+sIgynYoPQTCWZ2XiuxruTQ
-JfQ9iG6mkjW04mXevBUjTr6fp15Q1B280hPmvlPxbFb/El7IiiSD0mOnqEEfF68m
-Z9BZ8P4N/GzpTEw/RV8e/PAKP6NY5y2RXaUjJ/AqAs/eJZQT99YHxtNvYiJisdN5
-j92LQeDqAiuxAO0GE2eZTNFsa9OEWEvvrCz0hYGQR0YDg1E9qA0FF+tvGQ/kNOFU
-7X+2+aLd3hB2QWIO6qNiVhFR0K/2aAEY3VYuluVnA8xYzAaxXKYecM5nLDgjsIDA
-LKEehP40vmGzMMWbyT1xR5w57M0ZUyGw1A67HgzpExu2oe6CgjK/yFFhe/dciQdz
-6obcvqr2Y8u14QQz8NI29HMcKjhpmTNv3j3BVbavsoL3ibhpcAk=
-=ZaZz
+iQIcBAEBCAAGBQJZiz+lAAoJELgmozMOVy/dcrcP/iTCrUvSjGXyV5hpP2CY2e3/
+BQtdXFmKchkaYqfh/54piQleuHBrYVfhVL16ytV7zi8t4ajCUhJrnFI5yatPN+E2
+8kLMCnW0Fmi27uti8QRGsjO96dKGNe1d52Sy+ve4iffs+8hP2jobkEDgHhq1NogY
+qOAXPVStMwMgH7lK9/8gE1ZoJA1GZ6FBoBCi/SLkebGb48iOiJ6egzLbRVi/ABQ5
+YQSsXsjGpFvfPPDzxMlQFHbgMty2KpS3k5iln1GMydd9+Fij8dJ1saZIMQeO//0M
+SjPYR+db47Prus5NedbM9UK5pGiiZYTdWfdFQEo45g9DKk8Ga1CavuQUFmQVaiUe
+yaR2zckvpSjqm9iZw1HTQFZpKJ11xLmX7cvHDkS1l5My5oks05Za5ehjy9pwBSVi
+iUMInVcTiSLZkUT1jfXWX4zXqTGHYE3Kxh3RWJy+Ic3dB9YZZgSOavEVwlIHO1q7
+AW2A6zedUrlWPx9GYIhq8wbF7hGJVl3R39oJZ0QNfxkn4e6VbItVR7wi1VNMKmHK
+tf9vf/eGXeezpMqHb81arxJO8UjzQ/piimg92ymBNSWde1tn9DJoqyZKcytw4LAJ
+N+b2aw+3etYddqugcsNcurVGJKW2NfA1rwvKNQuoufC2/QJMlL0p+zttsl+xrOMI
+Takp7J4yMf7IZNwgrfx3
+=c0uC
 -----END PGP SIGNATURE-----
 
---ZY5CS28jBCfb727c--
+--aET3tDHqAvxUvDidO1aaBcHhQqntO0cN6--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
