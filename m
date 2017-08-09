@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v1 26/33] RDMA: Simplify get firmware interface
-Date: Wed,  9 Aug 2017 19:03:58 +0300
-Message-ID: <20170809160405.25142-27-leon@kernel.org>
+Subject: [rdma-next v1 17/33] RDMA/netlink: Convert LS to doit callback
+Date: Wed,  9 Aug 2017 19:03:49 +0300
+Message-ID: <20170809160405.25142-18-leon@kernel.org>
 References: <20170809160405.25142-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170809160405.25142-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,365 +12,165 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-There is a need to forward FW version to user space
-application through RDMA netlink. In order to make it safe, there
-is need to declare nla_policy and limit the size of FW string.
+RDMA_NL_LS protocol is actually does not dump anything,
+but sets data and it should be handled by doit callback.
 
-The new define IB_FW_VERSION_NAME_MAX will limit the size of
-FW version string. That define was chosen to be equal to
-ETHTOOL_FWVERS_LEN, because many drivers anyway are limited
-by that value indirectly.
-
-The introduction of this define allows us to remove the string size
-from get_fw_str function signature.
+This patch actually converts RDMA_NL_LS to doit callback, while
+preserving IWCM and RDMA_CM flows through netlink_dump_start().
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/device.c               | 4 ++--
- drivers/infiniband/core/sysfs.c                | 4 ++--
- drivers/infiniband/hw/cxgb3/iwch_provider.c    | 5 ++---
- drivers/infiniband/hw/cxgb4/provider.c         | 5 ++---
- drivers/infiniband/hw/hfi1/verbs.c             | 5 ++---
- drivers/infiniband/hw/i40iw/i40iw_verbs.c      | 7 +++----
- drivers/infiniband/hw/mlx4/main.c              | 5 ++---
- drivers/infiniband/hw/mlx5/main.c              | 8 ++++----
- drivers/infiniband/hw/mthca/mthca_provider.c   | 5 ++---
- drivers/infiniband/hw/nes/nes_verbs.c          | 5 ++---
- drivers/infiniband/hw/ocrdma/ocrdma_main.c     | 5 ++---
- drivers/infiniband/hw/qedr/main.c              | 5 ++---
- drivers/infiniband/hw/usnic/usnic_ib_main.c    | 6 ++----
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c | 5 ++---
- drivers/infiniband/ulp/ipoib/ipoib_ethtool.c   | 3 +--
- include/rdma/ib_verbs.h                        | 6 ++++--
- 16 files changed, 36 insertions(+), 47 deletions(-)
+ drivers/infiniband/core/addr.c      |  5 ++---
+ drivers/infiniband/core/core_priv.h |  9 ++++++---
+ drivers/infiniband/core/device.c    |  6 +++---
+ drivers/infiniband/core/netlink.c   | 28 ++++++++++------------------
+ drivers/infiniband/core/sa_query.c  |  8 ++++----
+ 5 files changed, 25 insertions(+), 31 deletions(-)
 
+diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+index 7310ece99cd9..16b3bdffeb96 100644
+--- a/drivers/infiniband/core/addr.c
++++ b/drivers/infiniband/core/addr.c
+@@ -129,10 +129,9 @@ static void ib_nl_process_good_ip_rsep(const struct nlmsghdr *nlh)
+ }
+ 
+ int ib_nl_handle_ip_res_resp(struct sk_buff *skb,
+-			     struct netlink_callback *cb)
++			     struct nlmsghdr *nlh,
++			     struct netlink_ext_ack *extack)
+ {
+-	const struct nlmsghdr *nlh = (struct nlmsghdr *)cb->nlh;
+-
+ 	if ((nlh->nlmsg_flags & NLM_F_REQUEST) ||
+ 	    !(NETLINK_CB(skb).sk))
+ 		return -EPERM;
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index cbdcc81e1df8..57beb1cceda3 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -198,11 +198,14 @@ void rdma_nl_exit(void);
+ int ibnl_chk_listeners(unsigned int group);
+ 
+ int ib_nl_handle_resolve_resp(struct sk_buff *skb,
+-			      struct netlink_callback *cb);
++			      struct nlmsghdr *nlh,
++			      struct netlink_ext_ack *extack);
+ int ib_nl_handle_set_timeout(struct sk_buff *skb,
+-			     struct netlink_callback *cb);
++			     struct nlmsghdr *nlh,
++			     struct netlink_ext_ack *extack);
+ int ib_nl_handle_ip_res_resp(struct sk_buff *skb,
+-			     struct netlink_callback *cb);
++			     struct nlmsghdr *nlh,
++			     struct netlink_ext_ack *extack);
+ 
+ int ib_get_cached_subnet_prefix(struct ib_device *device,
+ 				u8                port_num,
 diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index fca126aa001b..75220569b00e 100644
+index 41eebd6ca0ff..5a3ff941c86c 100644
 --- a/drivers/infiniband/core/device.c
 +++ b/drivers/infiniband/core/device.c
-@@ -336,10 +336,10 @@ static int read_port_immutable(struct ib_device *device)
- 	return 0;
- }
+@@ -1148,15 +1148,15 @@ EXPORT_SYMBOL(ib_get_net_dev_by_params);
  
--void ib_get_device_fw_str(struct ib_device *dev, char *str, size_t str_len)
-+void ib_get_device_fw_str(struct ib_device *dev, char *str)
- {
- 	if (dev->get_dev_fw_str)
--		dev->get_dev_fw_str(dev, str, str_len);
-+		dev->get_dev_fw_str(dev, str);
- 	else
- 		str[0] = '\0';
- }
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 7ebe1ef23652..abc5ab581f82 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -1210,8 +1210,8 @@ static ssize_t show_fw_ver(struct device *device, struct device_attribute *attr,
- {
- 	struct ib_device *dev = container_of(device, struct ib_device, dev);
- 
--	ib_get_device_fw_str(dev, buf, PAGE_SIZE);
--	strlcat(buf, "\n", PAGE_SIZE);
-+	ib_get_device_fw_str(dev, buf);
-+	strlcat(buf, "\n", IB_FW_VERSION_NAME_MAX);
- 	return strlen(buf);
- }
- 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index 0cd0c1fa27d4..099e76f3758a 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -1336,8 +1336,7 @@ static int iwch_port_immutable(struct ib_device *ibdev, u8 port_num,
- 	return 0;
- }
- 
--static void get_dev_fw_ver_str(struct ib_device *ibdev, char *str,
--			       size_t str_len)
-+static void get_dev_fw_ver_str(struct ib_device *ibdev, char *str)
- {
- 	struct iwch_dev *iwch_dev = to_iwch_dev(ibdev);
- 	struct ethtool_drvinfo info;
-@@ -1345,7 +1344,7 @@ static void get_dev_fw_ver_str(struct ib_device *ibdev, char *str,
- 
- 	pr_debug("%s dev 0x%p\n", __func__, iwch_dev);
- 	lldev->ethtool_ops->get_drvinfo(lldev, &info);
--	snprintf(str, str_len, "%s", info.fw_version);
-+	snprintf(str, IB_FW_VERSION_NAME_MAX, "%s", info.fw_version);
- }
- 
- int iwch_register_device(struct iwch_dev *dev)
-diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
-index 0771e9a4d061..346e8334279a 100644
---- a/drivers/infiniband/hw/cxgb4/provider.c
-+++ b/drivers/infiniband/hw/cxgb4/provider.c
-@@ -517,14 +517,13 @@ static int c4iw_port_immutable(struct ib_device *ibdev, u8 port_num,
- 	return 0;
- }
- 
--static void get_dev_fw_str(struct ib_device *dev, char *str,
--			   size_t str_len)
-+static void get_dev_fw_str(struct ib_device *dev, char *str)
- {
- 	struct c4iw_dev *c4iw_dev = container_of(dev, struct c4iw_dev,
- 						 ibdev);
- 	pr_debug("%s dev 0x%p\n", __func__, dev);
- 
--	snprintf(str, str_len, "%u.%u.%u.%u",
-+	snprintf(str, IB_FW_VERSION_NAME_MAX, "%u.%u.%u.%u",
- 		 FW_HDR_FW_VER_MAJOR_G(c4iw_dev->rdev.lldi.fw_vers),
- 		 FW_HDR_FW_VER_MINOR_G(c4iw_dev->rdev.lldi.fw_vers),
- 		 FW_HDR_FW_VER_MICRO_G(c4iw_dev->rdev.lldi.fw_vers),
-diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index dc51bf247006..c88c03c11555 100644
---- a/drivers/infiniband/hw/hfi1/verbs.c
-+++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -1561,14 +1561,13 @@ static void init_ibport(struct hfi1_pportdata *ppd)
- 	RCU_INIT_POINTER(ibp->rvp.qp[1], NULL);
- }
- 
--static void hfi1_get_dev_fw_str(struct ib_device *ibdev, char *str,
--				size_t str_len)
-+static void hfi1_get_dev_fw_str(struct ib_device *ibdev, char *str)
- {
- 	struct rvt_dev_info *rdi = ib_to_rvt(ibdev);
- 	struct hfi1_ibdev *dev = dev_from_rdi(rdi);
- 	u32 ver = dd_from_dev(dev)->dc8051_ver;
- 
--	snprintf(str, str_len, "%u.%u.%u", dc8051_ver_maj(ver),
-+	snprintf(str, IB_FW_VERSION_NAME_MAX, "%u.%u.%u", dc8051_ver_maj(ver),
- 		 dc8051_ver_min(ver), dc8051_ver_patch(ver));
- }
- 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-index 02d871db7ca5..1aa411034a27 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
-@@ -2584,13 +2584,12 @@ static const char * const i40iw_hw_stat_names[] = {
- 		"iwRdmaInv"
+ static const struct rdma_nl_cbs ibnl_ls_cb_table[] = {
+ 	[RDMA_NL_LS_OP_RESOLVE] = {
+-		.dump = ib_nl_handle_resolve_resp,
++		.doit = ib_nl_handle_resolve_resp,
+ 		.flags = RDMA_NL_ADMIN_PERM,
+ 	},
+ 	[RDMA_NL_LS_OP_SET_TIMEOUT] = {
+-		.dump = ib_nl_handle_set_timeout,
++		.doit = ib_nl_handle_set_timeout,
+ 		.flags = RDMA_NL_ADMIN_PERM,
+ 	},
+ 	[RDMA_NL_LS_OP_IP_RESOLVE] = {
+-		.dump = ib_nl_handle_ip_res_resp,
++		.doit = ib_nl_handle_ip_res_resp,
+ 		.flags = RDMA_NL_ADMIN_PERM,
+ 	},
  };
+diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+index 61216e410492..71bbf351e91c 100644
+--- a/drivers/infiniband/core/netlink.c
++++ b/drivers/infiniband/core/netlink.c
+@@ -155,38 +155,30 @@ static int rdma_nl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	int type = nlh->nlmsg_type;
+ 	unsigned int index = RDMA_NL_GET_CLIENT(type);
+ 	unsigned int op = RDMA_NL_GET_OP(type);
+-	struct netlink_callback cb = {};
+-	struct netlink_dump_control c = {};
+ 	const struct rdma_nl_cbs *cb_table;
+-	int ret;
  
--static void i40iw_get_dev_fw_str(struct ib_device *dev, char *str,
--				 size_t str_len)
-+static void i40iw_get_dev_fw_str(struct ib_device *dev, char *str)
- {
- 	u32 firmware_version = I40IW_FW_VERSION;
+ 	if (!is_nl_valid(index, op))
+ 		return -EINVAL;
  
--	snprintf(str, str_len, "%u.%u", firmware_version,
--		       (firmware_version & 0x000000ff));
-+	snprintf(str, IB_FW_VERSION_NAME_MAX, "%u.%u", firmware_version,
-+		 (firmware_version & 0x000000ff));
- }
+-	cb_table = rdma_nl_types[type].cb_table;
++	cb_table = rdma_nl_types[index].cb_table;
  
- /**
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 1f25a37eb056..c636842c5be0 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -2587,12 +2587,11 @@ static int mlx4_port_immutable(struct ib_device *ibdev, u8 port_num,
- 	return 0;
- }
+ 	if ((cb_table[op].flags & RDMA_NL_ADMIN_PERM) &&
+ 	    !netlink_capable(skb, CAP_NET_ADMIN))
+ 		return -EPERM;
  
--static void get_fw_ver_str(struct ib_device *device, char *str,
--			   size_t str_len)
-+static void get_fw_ver_str(struct ib_device *device, char *str)
- {
- 	struct mlx4_ib_dev *dev =
- 		container_of(device, struct mlx4_ib_dev, ib_dev);
--	snprintf(str, str_len, "%d.%d.%d",
-+	snprintf(str, IB_FW_VERSION_NAME_MAX, "%d.%d.%d",
- 		 (int) (dev->dev->caps.fw_ver >> 32),
- 		 (int) (dev->dev->caps.fw_ver >> 16) & 0xffff,
- 		 (int) dev->dev->caps.fw_ver & 0xffff);
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 9279631d8da0..0a5a4e3fa66d 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -3285,13 +3285,13 @@ static int mlx5_port_immutable(struct ib_device *ibdev, u8 port_num,
- 	return 0;
- }
- 
--static void get_dev_fw_str(struct ib_device *ibdev, char *str,
--			   size_t str_len)
-+static void get_dev_fw_str(struct ib_device *ibdev, char *str)
- {
- 	struct mlx5_ib_dev *dev =
- 		container_of(ibdev, struct mlx5_ib_dev, ib_dev);
--	snprintf(str, str_len, "%d.%d.%04d", fw_rev_maj(dev->mdev),
--		       fw_rev_min(dev->mdev), fw_rev_sub(dev->mdev));
-+	snprintf(str, IB_FW_VERSION_NAME_MAX, "%d.%d.%04d",
-+		 fw_rev_maj(dev->mdev), fw_rev_min(dev->mdev),
-+		 fw_rev_sub(dev->mdev));
- }
- 
- static int mlx5_eth_lag_init(struct mlx5_ib_dev *dev)
-diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
-index c197cd9b193f..eae9bffd45d4 100644
---- a/drivers/infiniband/hw/mthca/mthca_provider.c
-+++ b/drivers/infiniband/hw/mthca/mthca_provider.c
-@@ -1178,12 +1178,11 @@ static int mthca_port_immutable(struct ib_device *ibdev, u8 port_num,
- 	return 0;
- }
- 
--static void get_dev_fw_str(struct ib_device *device, char *str,
--			   size_t str_len)
-+static void get_dev_fw_str(struct ib_device *device, char *str)
- {
- 	struct mthca_dev *dev =
- 		container_of(device, struct mthca_dev, ib_dev);
--	snprintf(str, str_len, "%d.%d.%d",
-+	snprintf(str, IB_FW_VERSION_NAME_MAX, "%d.%d.%d",
- 		 (int) (dev->fw_ver >> 32),
- 		 (int) (dev->fw_ver >> 16) & 0xffff,
- 		 (int) dev->fw_ver & 0xffff);
-diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-index 25dcd7573df9..c2943e39d2f9 100644
---- a/drivers/infiniband/hw/nes/nes_verbs.c
-+++ b/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -3672,15 +3672,14 @@ static int nes_port_immutable(struct ib_device *ibdev, u8 port_num,
- 	return 0;
- }
- 
--static void get_dev_fw_str(struct ib_device *dev, char *str,
--			   size_t str_len)
-+static void get_dev_fw_str(struct ib_device *dev, char *str)
- {
- 	struct nes_ib_device *nesibdev =
- 			container_of(dev, struct nes_ib_device, ibdev);
- 	struct nes_vnic *nesvnic = nesibdev->nesvnic;
- 
- 	nes_debug(NES_DBG_INIT, "\n");
--	snprintf(str, str_len, "%u.%u",
-+	snprintf(str, IB_FW_VERSION_NAME_MAX, "%u.%u",
- 		 (nesvnic->nesdev->nesadapter->firmware_version >> 16),
- 		 (nesvnic->nesdev->nesadapter->firmware_version & 0x000000ff));
- }
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_main.c b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-index 757c65816295..fbfbd9e96147 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_main.c
-@@ -107,12 +107,11 @@ static int ocrdma_port_immutable(struct ib_device *ibdev, u8 port_num,
- 	return 0;
- }
- 
--static void get_dev_fw_str(struct ib_device *device, char *str,
--			   size_t str_len)
-+static void get_dev_fw_str(struct ib_device *device, char *str)
- {
- 	struct ocrdma_dev *dev = get_ocrdma_dev(device);
- 
--	snprintf(str, str_len, "%s", &dev->attr.fw_ver[0]);
-+	snprintf(str, IB_FW_VERSION_NAME_MAX, "%s", &dev->attr.fw_ver[0]);
- }
- 
- static int ocrdma_register_device(struct ocrdma_dev *dev)
-diff --git a/drivers/infiniband/hw/qedr/main.c b/drivers/infiniband/hw/qedr/main.c
-index 199b6edbef92..97d033f51dc9 100644
---- a/drivers/infiniband/hw/qedr/main.c
-+++ b/drivers/infiniband/hw/qedr/main.c
-@@ -68,13 +68,12 @@ static enum rdma_link_layer qedr_link_layer(struct ib_device *device,
- 	return IB_LINK_LAYER_ETHERNET;
- }
- 
--static void qedr_get_dev_fw_str(struct ib_device *ibdev, char *str,
--				size_t str_len)
-+static void qedr_get_dev_fw_str(struct ib_device *ibdev, char *str)
- {
- 	struct qedr_dev *qedr = get_qedr_dev(ibdev);
- 	u32 fw_ver = (u32)qedr->attr.fw_ver;
- 
--	snprintf(str, str_len, "%d. %d. %d. %d",
-+	snprintf(str, IB_FW_VERSION_NAME_MAX, "%d. %d. %d. %d",
- 		 (fw_ver >> 24) & 0xFF, (fw_ver >> 16) & 0xFF,
- 		 (fw_ver >> 8) & 0xFF, fw_ver & 0xFF);
- }
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-index e69c8e476a2b..e86700f994cb 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-@@ -333,9 +333,7 @@ static int usnic_port_immutable(struct ib_device *ibdev, u8 port_num,
- 	return 0;
- }
- 
--static void usnic_get_dev_fw_str(struct ib_device *device,
--				 char *str,
--				 size_t str_len)
-+static void usnic_get_dev_fw_str(struct ib_device *device, char *str)
- {
- 	struct usnic_ib_dev *us_ibdev =
- 		container_of(device, struct usnic_ib_dev, ib_dev);
-@@ -345,7 +343,7 @@ static void usnic_get_dev_fw_str(struct ib_device *device,
- 	us_ibdev->netdev->ethtool_ops->get_drvinfo(us_ibdev->netdev, &info);
- 	mutex_unlock(&us_ibdev->usdev_lock);
- 
--	snprintf(str, str_len, "%s", info.fw_version);
-+	snprintf(str, IB_FW_VERSION_NAME_MAX, "%s", info.fw_version);
- }
- 
- /* Start of PF discovery section */
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-index e76565280afa..7f29e4db28a1 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-@@ -102,12 +102,11 @@ static struct device_attribute *pvrdma_class_attributes[] = {
- 	&dev_attr_board_id
- };
- 
--static void pvrdma_get_fw_ver_str(struct ib_device *device, char *str,
--				  size_t str_len)
-+static void pvrdma_get_fw_ver_str(struct ib_device *device, char *str)
- {
- 	struct pvrdma_dev *dev =
- 		container_of(device, struct pvrdma_dev, ib_dev);
--	snprintf(str, str_len, "%d.%d.%d\n",
-+	snprintf(str, IB_FW_VERSION_NAME_MAX, "%d.%d.%d\n",
- 		 (int) (dev->dsr->caps.fw_ver >> 32),
- 		 (int) (dev->dsr->caps.fw_ver >> 16) & 0xffff,
- 		 (int) dev->dsr->caps.fw_ver & 0xffff);
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-index 7871379342f4..98e30b41e436 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-@@ -62,8 +62,7 @@ static void ipoib_get_drvinfo(struct net_device *netdev,
- {
- 	struct ipoib_dev_priv *priv = ipoib_priv(netdev);
- 
--	ib_get_device_fw_str(priv->ca, drvinfo->fw_version,
--			     sizeof(drvinfo->fw_version));
-+	ib_get_device_fw_str(priv->ca, drvinfo->fw_version);
- 
- 	strlcpy(drvinfo->bus_info, dev_name(priv->ca->dev.parent),
- 		sizeof(drvinfo->bus_info));
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 3391df5fdc9c..e0e87a1f66fb 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -64,6 +64,8 @@
- #include <linux/cgroup_rdma.h>
- #include <uapi/rdma/ib_user_verbs.h>
- 
-+#define IB_FW_VERSION_NAME_MAX	ETHTOOL_FWVERS_LEN
+-	/*
+-	 * For response or local service set_timeout request,
+-	 * there is no need to use netlink_dump_start.
+-	 */
+-	if (!(nlh->nlmsg_flags & NLM_F_REQUEST) ||
+-	    (index == RDMA_NL_LS && op == RDMA_NL_LS_OP_SET_TIMEOUT)) {
+-		cb.skb = skb;
+-		cb.nlh = nlh;
+-		cb.dump = cb_table[op].dump;
+-		return cb.dump(skb, &cb);
+-	} else {
+-		c.dump = cb_table[op].dump;
++	/* FIXME: Convert IWCM to properly handle doit callbacks */
++	if ((nlh->nlmsg_flags & NLM_F_DUMP) || index == RDMA_NL_RDMA_CM ||
++	    index == RDMA_NL_IWCM) {
++		struct netlink_dump_control c = {
++			.dump = cb_table[op].dump,
++		};
+ 		return netlink_dump_start(nls, skb, nlh, &c);
+ 	}
 +
- extern struct workqueue_struct *ib_wq;
- extern struct workqueue_struct *ib_comp_wq;
+ 	if (cb_table[op].doit)
+-		ret = cb_table[op].doit(skb, nlh, extack);
+-	return ret;
++		return cb_table[op].doit(skb, nlh, extack);
  
-@@ -2307,7 +2309,7 @@ struct ib_device {
- 	 * in fast paths.
- 	 */
- 	int (*get_port_immutable)(struct ib_device *, u8, struct ib_port_immutable *);
--	void (*get_dev_fw_str)(struct ib_device *, char *str, size_t str_len);
-+	void (*get_dev_fw_str)(struct ib_device *, char *str);
- };
++	return 0;
+ }
  
- struct ib_client {
-@@ -2343,7 +2345,7 @@ struct ib_client {
- struct ib_device *ib_alloc_device(size_t size);
- void ib_dealloc_device(struct ib_device *device);
+ /*
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index 2cc85c2b74b7..da29e2863c84 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -1021,9 +1021,9 @@ static void ib_nl_request_timeout(struct work_struct *work)
+ }
  
--void ib_get_device_fw_str(struct ib_device *device, char *str, size_t str_len);
-+void ib_get_device_fw_str(struct ib_device *device, char *str);
+ int ib_nl_handle_set_timeout(struct sk_buff *skb,
+-			     struct netlink_callback *cb)
++			     struct nlmsghdr *nlh,
++			     struct netlink_ext_ack *extack)
+ {
+-	const struct nlmsghdr *nlh = (struct nlmsghdr *)cb->nlh;
+ 	int timeout, delta, abs_delta;
+ 	const struct nlattr *attr;
+ 	unsigned long flags;
+@@ -1097,9 +1097,9 @@ static inline int ib_nl_is_good_resolve_resp(const struct nlmsghdr *nlh)
+ }
  
- int ib_register_device(struct ib_device *device,
- 		       int (*port_callback)(struct ib_device *,
+ int ib_nl_handle_resolve_resp(struct sk_buff *skb,
+-			      struct netlink_callback *cb)
++			      struct nlmsghdr *nlh,
++			      struct netlink_ext_ack *extack)
+ {
+-	const struct nlmsghdr *nlh = (struct nlmsghdr *)cb->nlh;
+ 	unsigned long flags;
+ 	struct ib_sa_query *query;
+ 	struct ib_mad_send_buf *send_buf;
 -- 
 2.14.0
 
