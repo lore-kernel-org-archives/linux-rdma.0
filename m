@@ -1,80 +1,71 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [rdma-next v1 07/33] RDMA/netlink: Add flag to consolidate common
- handing
-Date: Wed, 9 Aug 2017 12:53:12 -0400
-Message-ID: <0a434ba5-e05d-b0c4-ba04-78acbd0cb7c1@redhat.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [rdma-next v1 05/33] RDMA/iwcm: Remove useless check of nelink
+ client validity
+Date: Wed, 9 Aug 2017 19:54:44 +0300
+Message-ID: <20170809165444.GL1423@mtr-leonro.local>
 References: <20170809160405.25142-1-leon@kernel.org>
- <20170809160405.25142-8-leon@kernel.org>
+ <20170809160405.25142-6-leon@kernel.org>
+ <29fb15c5-060b-0daa-6f25-4796a2962897@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="pnFlL2efgfKqrEjMJeTrrlqP6jlHVsA4p"
+        protocol="application/pgp-signature"; boundary="ZY5CS28jBCfb727c"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170809160405.25142-8-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <29fb15c5-060b-0daa-6f25-4796a2962897-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---pnFlL2efgfKqrEjMJeTrrlqP6jlHVsA4p
-Content-Type: multipart/mixed; boundary="r2xNCAAddkndwPuHjl5U31u52EC41q7h1";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Message-ID: <0a434ba5-e05d-b0c4-ba04-78acbd0cb7c1-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [rdma-next v1 07/33] RDMA/netlink: Add flag to consolidate common
- handing
-References: <20170809160405.25142-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
- <20170809160405.25142-8-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-In-Reply-To: <20170809160405.25142-8-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
---r2xNCAAddkndwPuHjl5U31u52EC41q7h1
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: quoted-printable
+--ZY5CS28jBCfb727c
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On 8/9/2017 12:03 PM, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Wed, Aug 09, 2017 at 12:51:03PM -0400, Doug Ledford wrote:
+> On 8/9/2017 12:03 PM, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+> Spelling error in subject: nelink->netlink
+>
 
-Spelling error in subject: handing -> handling
+I'll collect all the feedback and will resend my tomorrow morning.
 
+Thanks
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
-D
+>
+>
+>
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>     GPG Key ID: B826A3330E572FDD
+>     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+>
 
 
---r2xNCAAddkndwPuHjl5U31u52EC41q7h1--
 
---pnFlL2efgfKqrEjMJeTrrlqP6jlHVsA4p
+
+--ZY5CS28jBCfb727c
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJZiz34AAoJELgmozMOVy/d2IAQAK3K7jZCPbJ91EYBhVHM4G2u
-uu7ys7P8e6UKim/iB1UGi/gNWS2DwA8o2Hn6jxhIgRzuOERHTQaIyYsrUQ1YGmgG
-BixB3O38wjdva0QfWbdOtmuJ0hRZraVDc3FJS4XI5d9l6cMDqSr8LwiBsdR85V9M
-Fy0kGeGx6wy8FheArAa6KzWO7oBK5dTqV3ATPycsyLFaSLOhjd74w3ZWtQfKZ5w4
-lacR/zGST5YPcrSjFhAcrn7lxdaWS0u5xE8GhDkjG4t+LcEjWtgBqOsibPTjJcHW
-DPJ9wcIByB1y6rTAgA8M5p+GL3wfBDtdH0k0baX2mDhL1vySwR5TStntiEXEyBC2
-aWJ0zmJ4sJEOaPHsdcW2idi8Ow3zRKwlyWEN9e7tL7aXxDPF2CevVZ5MJhyXIla8
-RvrQxZWXU8MzVmhlwDvvzeona0skk5qQZJ/tl7PlKLL5a47y4nvRaNzr4DIn5zFw
-HilSsdIUwRMfhMc4VxI6PT80T5XsqI8fTKZFvqlFVE544d5x96XvHCyDGXI7KifD
-2kA1H+UVTsxGnMJUzgUntxGmlKuT4w6uQEt8rzQ3eiWjSNl+NBgiuLCBLgMmBkmV
-s4kpw8XJFmNbzVCrrkq8sBZKR7MOHhCs32V2q0MOYjELE3MpaqQOqRAShfQq8tSU
-rDHcDNYhTVoDgp/iJB9x
-=M5e8
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmLPlQACgkQ5GN7iDZy
+WKf2nQ//UFJ6AebB4fhk0gNud/fWjnM83knvm+GzsM7M0c0y+4boDJLuiYNugOWR
+0NiS9+833GaTlgDwpm6yrxDdXyYD48yyUhxIlhC30LU+Ui4s9Zla1yIqQWBRzdaC
+NTl7DydWyHSF8joAiizDpaTgrbCzfH/W1Qyzt4c55fmK9QoKzjK+xK2QjGTXSw3N
+6yE+8wwCEYSaMt3q3/PB+2LvgPN1+8Dvg2+rsAZRV6ZOHO5RwGkuepO4chgD6hpt
+g1PTVPrGIU81zMPHyUscNooyvYF11CMJ4gGCSGFfz+sIgynYoPQTCWZ2XiuxruTQ
+JfQ9iG6mkjW04mXevBUjTr6fp15Q1B280hPmvlPxbFb/El7IiiSD0mOnqEEfF68m
+Z9BZ8P4N/GzpTEw/RV8e/PAKP6NY5y2RXaUjJ/AqAs/eJZQT99YHxtNvYiJisdN5
+j92LQeDqAiuxAO0GE2eZTNFsa9OEWEvvrCz0hYGQR0YDg1E9qA0FF+tvGQ/kNOFU
+7X+2+aLd3hB2QWIO6qNiVhFR0K/2aAEY3VYuluVnA8xYzAaxXKYecM5nLDgjsIDA
+LKEehP40vmGzMMWbyT1xR5w57M0ZUyGw1A67HgzpExu2oe6CgjK/yFFhe/dciQdz
+6obcvqr2Y8u14QQz8NI29HMcKjhpmTNv3j3BVbavsoL3ibhpcAk=
+=ZaZz
 -----END PGP SIGNATURE-----
 
---pnFlL2efgfKqrEjMJeTrrlqP6jlHVsA4p--
+--ZY5CS28jBCfb727c--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
