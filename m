@@ -1,49 +1,86 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH v06 30/36] uapi rdma/rdma_user_rxe.h: include in.h and
- in6.h
-Date: Wed, 9 Aug 2017 09:52:41 -0600
-Message-ID: <20170809155241.GB15586@obsidianresearch.com>
-References: <20170806164428.2273-1-mikko.rapeli@iki.fi>
- <20170806164428.2273-31-mikko.rapeli@iki.fi>
- <20170808231306.GH29372@obsidianresearch.com>
- <CAG9sBKP=NuSJzhg8rMBTsTuZkfzPDjxYgAGjiCnEMe=9xXB0xA@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core 3/3] cbuild: use rpmspec for macro replacement
+Date: Wed, 9 Aug 2017 09:55:32 -0600
+Message-ID: <20170809155532.GC15586@obsidianresearch.com>
+References: <27366048-d80f-3711-c6cd-93c87809650e@suse.de>
+ <8ad0438f-b4a5-aec9-1e44-a9c9dc1ca17b@suse.de>
+ <20170808230459.GF29372@obsidianresearch.com>
+ <b3993b0c-0b9d-a917-cbf8-22f68c1d2a97@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAG9sBKP=NuSJzhg8rMBTsTuZkfzPDjxYgAGjiCnEMe=9xXB0xA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Moni Shoua <monis@mellanox.com>
-Cc: Mikko Rapeli <mikko.rapeli@iki.fi>, Linux Kernel Mailinglist <linux-kernel@vger.kernel.org>, linux-api@vger.kernel.org, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma <linux-rdma@vger.kernel.org>, Doug Ledford <dledford@redhat.com>
+In-Reply-To: <b3993b0c-0b9d-a917-cbf8-22f68c1d2a97-l3A5Bk7waGM@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Aug 09, 2017 at 04:48:08PM +0300, Moni Shoua wrote:
-> >
-> > I'm not sure this is a good idea, linux/in.h should not be included in
-> > userspace users of this file, 'sockaddr_in' needs to come from glibc's
-> > 'netinet/in.h' instead..
+On Wed, Aug 09, 2017 at 11:56:47AM +0200, Nicolas Morey-Chaisemartin wrote:
 
-> Is it wrong to include include/uapi/linux/in.h from userspace?
+> >>  def run_rpm_build(args,spec_file,env):
+> >>      version = get_version();
+> >> -    with open(spec_file,"r") as F:
+> >> +
+> >> +    # Pre-process file with rpm spec to avoid manually replacing macros
+> >> +    f = open(spec_file + ".processed", "w");
+> >> +    subprocess.check_call(["rpmspec", "-P", spec_file], stdout=f);
 
-Generally speaking userspace should always use the glibc version of
-the headers and not headers from under linux/
+> > This isn't going to work on any host system that does not have
+> > rpmspec, including my Debian systems..
 
-Even if it is OK to include both today, that may not be true as glibc
-or the kernel changes, and we end up with broken builds.
+> Are you building RPM outside of docker on your Debian ?
 
-For instance look at this commit for a real problem caused by mixing
-net/if.h and linux/if.h:
+No..
 
-commit dc386fcf4a6d5dc0cc0052437c1cb161b7781592
-Author: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Date:   Fri Oct 14 12:04:42 2016 -0600
+The issue is the above subprocess.check_call is run on the host, while
+the call I added below inside go.py is run inside the container.
 
-    verbs: Use cmake to detect if net/if.h vs netling/route/link.h is broken
-    
-    If not then just use the header directly, otherwise use the work around.
-    
-    The issue is that old libnl libraries include linux/if.h and the
-    declarations there conflict with net/if.h. New libraries do not
-    do this.
-    
-    Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+The host may not have rpmspec, while we guarentee that the container
+does.
+
+> I ran the pkg suite for all targets and they all work.
+
+Your host has rpmspec :)
+
+> >  def run_rpm_build(args,spec_file,env):
+> > -    version = get_version();
+> >      with open(spec_file,"r") as F:
+> >          for ln in F:
+> > -            if ln.startswith("Version:"):
+> > -                ver = ln.strip().partition(' ')[2];
+> > -                assert(ver == get_version());
+> > -
+> You are losing this last check which seems important. It make sure the ti tag is in sync with the RPM
+
+If you think it is important it can be left in..
+
+> >              if ln.startswith("Source:"):
+> >                  tarfn = ln.strip().partition(' ')[2];
+> > -    tarfn = tarfn.replace("%{version}",version);
+> >  
+> >      image_id = get_image_id(args,env.image_name());
+> >      with private_tmp(args) as tmpdir:
+> > @@ -426,7 +420,8 @@ def run_rpm_build(args,spec_file,env):
+> >          os.mkdir(os.path.join(tmpdir,"tmp"));
+> >  
+> >          subprocess.check_call(["git","archive",
+> > -                               "--prefix","%s/"%(os.path.splitext(tarfn)[0]),
+> > +                               # This must match the prefix generated buildlib/github-release
+> > +                               "--prefix","%s-%s/"%(project,get_version()),
+> >                                 "--output",os.path.join(tmpdir,"SOURCES",tarfn),
+> You have an issue here because tarfn is not set yet.
+
+No, it was still set above, see the first hunk.
+
+> I'm confused on why moving the call to rpmspec further down would solve your Debian issue ?
+
+Further down the code is run in the container where rpmspec is
+guarenteed to exist. Everything in cbuild is run on the host except
+for the snippet in go.py
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
