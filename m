@@ -1,226 +1,71 @@
 From: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 1/6] i40iw: Fix parsing of query/commit FPM buffers
-Date: Tue,  8 Aug 2017 20:38:43 -0500
-Message-ID: <20170809013848.29080-2-henry.orosco@intel.com>
+Subject: [PATCH v2 2/6] i40iw: Correct variable names
+Date: Tue,  8 Aug 2017 20:38:44 -0500
+Message-ID: <20170809013848.29080-3-henry.orosco@intel.com>
 References: <20170809013848.29080-1-henry.orosco@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170809013848.29080-1-henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Parsing of commit/query Host Memory Cache Function Private Memory
-is not skipping over reserved fields and incorrectly assigning
-those values into object's base/cnt/max_cnt fields. Skip over
-reserved fields and set correct values. Also correct memory
-alignment requirement for commit/query FPM buffers.
+Fix incorrect naming of status code and struct. Use inline
+instead of immediate.
 
-Signed-off-by: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Shiraz Saleem <shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Christopher N Bednarz <christopher.n.bednarz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mustafa Ismail <mustafa.ismail-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_ctrl.c | 121 +++++++++++++++++++++----------
- drivers/infiniband/hw/i40iw/i40iw_d.h    |   4 +-
- 2 files changed, 83 insertions(+), 42 deletions(-)
+ drivers/infiniband/hw/i40iw/i40iw_status.h | 2 +-
+ drivers/infiniband/hw/i40iw/i40iw_uk.c     | 6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-index 9ec1ae9..ef4a73c 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-@@ -130,20 +130,32 @@ static enum i40iw_status_code i40iw_sc_parse_fpm_commit_buf(
- 	u64 base = 0;
- 	u32 i, j;
- 	u32 k = 0;
--	u32 low;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_status.h b/drivers/infiniband/hw/i40iw/i40iw_status.h
+index 91c4217..f7013f1 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_status.h
++++ b/drivers/infiniband/hw/i40iw/i40iw_status.h
+@@ -62,7 +62,7 @@ enum i40iw_status_code {
+ 	I40IW_ERR_INVALID_ALIGNMENT = -23,
+ 	I40IW_ERR_FLUSHED_QUEUE = -24,
+ 	I40IW_ERR_INVALID_PUSH_PAGE_INDEX = -25,
+-	I40IW_ERR_INVALID_IMM_DATA_SIZE = -26,
++	I40IW_ERR_INVALID_INLINE_DATA_SIZE = -26,
+ 	I40IW_ERR_TIMEOUT = -27,
+ 	I40IW_ERR_OPCODE_MISMATCH = -28,
+ 	I40IW_ERR_CQP_COMPL_ERROR = -29,
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_uk.c b/drivers/infiniband/hw/i40iw/i40iw_uk.c
+index b0d3a0e..70a6b41 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_uk.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_uk.c
+@@ -435,7 +435,7 @@ static enum i40iw_status_code i40iw_inline_rdma_write(struct i40iw_qp_uk *qp,
  
- 	/* copy base values in obj_info */
--	for (i = I40IW_HMC_IW_QP, j = 0;
--			i <= I40IW_HMC_IW_PBLE; i++, j += 8) {
-+	for (i = I40IW_HMC_IW_QP, j = 0; i <= I40IW_HMC_IW_PBLE; i++, j += 8) {
-+		if ((i == I40IW_HMC_IW_SRQ) ||
-+			(i == I40IW_HMC_IW_FSIMC) ||
-+			(i == I40IW_HMC_IW_FSIAV)) {
-+			info[i].base = 0;
-+			info[i].cnt = 0;
-+			continue;
-+		}
- 		get_64bit_val(buf, j, &temp);
- 		info[i].base = RS_64_1(temp, 32) * 512;
- 		if (info[i].base > base) {
- 			base = info[i].base;
- 			k = i;
- 		}
--		low = (u32)(temp);
--		if (low)
--			info[i].cnt = low;
-+		if (i == I40IW_HMC_IW_APBVT_ENTRY) {
-+			info[i].cnt = 1;
-+			continue;
-+		}
-+		if (i == I40IW_HMC_IW_QP)
-+			info[i].cnt = (u32)RS_64(temp, I40IW_QUERY_FPM_MAX_QPS);
-+		else if (i == I40IW_HMC_IW_CQ)
-+			info[i].cnt = (u32)RS_64(temp, I40IW_QUERY_FPM_MAX_CQS);
-+		else
-+			info[i].cnt = (u32)(temp);
- 	}
- 	size = info[k].cnt * info[k].size + info[k].base;
- 	if (size & 0x1FFFFF)
-@@ -155,6 +167,31 @@ static enum i40iw_status_code i40iw_sc_parse_fpm_commit_buf(
- }
+ 	op_info = &info->op.inline_rdma_write;
+ 	if (op_info->len > I40IW_MAX_INLINE_DATA_SIZE)
+-		return I40IW_ERR_INVALID_IMM_DATA_SIZE;
++		return I40IW_ERR_INVALID_INLINE_DATA_SIZE;
  
- /**
-+ * i40iw_sc_decode_fpm_query() - Decode a 64 bit value into max count and size
-+ * @buf: ptr to fpm query buffer
-+ * @buf_idx: index into buf
-+ * @info: ptr to i40iw_hmc_obj_info struct
-+ * @rsrc_idx: resource index into info
-+ *
-+ * Decode a 64 bit value from fpm query buffer into max count and size
-+ */
-+static u64 i40iw_sc_decode_fpm_query(u64 *buf,
-+					    u32 buf_idx,
-+					    struct i40iw_hmc_obj_info *obj_info,
-+					    u32 rsrc_idx)
-+{
-+	u64 temp;
-+	u32 size;
-+
-+	get_64bit_val(buf, buf_idx, &temp);
-+	obj_info[rsrc_idx].max_cnt = (u32)temp;
-+	size = (u32)RS_64_1(temp, 32);
-+	obj_info[rsrc_idx].size = LS_64_1(1, size);
-+
-+	return temp;
-+}
-+
-+/**
-  * i40iw_sc_parse_fpm_query_buf() - parses fpm query buffer
-  * @buf: ptr to fpm query buffer
-  * @info: ptr to i40iw_hmc_obj_info struct
-@@ -168,9 +205,9 @@ static enum i40iw_status_code i40iw_sc_parse_fpm_query_buf(
- 				struct i40iw_hmc_info *hmc_info,
- 				struct i40iw_hmc_fpm_misc *hmc_fpm_misc)
+ 	ret_code = i40iw_inline_data_size_to_wqesize(op_info->len, &wqe_size);
+ 	if (ret_code)
+@@ -511,7 +511,7 @@ static enum i40iw_status_code i40iw_inline_send(struct i40iw_qp_uk *qp,
+ 
+ 	op_info = &info->op.inline_send;
+ 	if (op_info->len > I40IW_MAX_INLINE_DATA_SIZE)
+-		return I40IW_ERR_INVALID_IMM_DATA_SIZE;
++		return I40IW_ERR_INVALID_INLINE_DATA_SIZE;
+ 
+ 	ret_code = i40iw_inline_data_size_to_wqesize(op_info->len, &wqe_size);
+ 	if (ret_code)
+@@ -1187,7 +1187,7 @@ enum i40iw_status_code i40iw_inline_data_size_to_wqesize(u32 data_size,
+ 							 u8 *wqe_size)
  {
--	u64 temp;
- 	struct i40iw_hmc_obj_info *obj_info;
--	u32 i, j, size;
-+	u64 temp;
-+	u32 size;
- 	u16 max_pe_sds;
+ 	if (data_size > I40IW_MAX_INLINE_DATA_SIZE)
+-		return I40IW_ERR_INVALID_IMM_DATA_SIZE;
++		return I40IW_ERR_INVALID_INLINE_DATA_SIZE;
  
- 	obj_info = hmc_info->hmc_obj;
-@@ -185,41 +222,52 @@ static enum i40iw_status_code i40iw_sc_parse_fpm_query_buf(
- 	hmc_fpm_misc->max_sds = max_pe_sds;
- 	hmc_info->sd_table.sd_cnt = max_pe_sds + hmc_info->first_sd_index;
- 
--	for (i = I40IW_HMC_IW_QP, j = 8;
--	     i <= I40IW_HMC_IW_ARP; i++, j += 8) {
--		get_64bit_val(buf, j, &temp);
--		if (i == I40IW_HMC_IW_QP)
--			obj_info[i].max_cnt = (u32)RS_64(temp, I40IW_QUERY_FPM_MAX_QPS);
--		else if (i == I40IW_HMC_IW_CQ)
--			obj_info[i].max_cnt = (u32)RS_64(temp, I40IW_QUERY_FPM_MAX_CQS);
--		else
--			obj_info[i].max_cnt = (u32)temp;
-+	get_64bit_val(buf, 8, &temp);
-+	obj_info[I40IW_HMC_IW_QP].max_cnt = (u32)RS_64(temp, I40IW_QUERY_FPM_MAX_QPS);
-+	size = (u32)RS_64_1(temp, 32);
-+	obj_info[I40IW_HMC_IW_QP].size = LS_64_1(1, size);
- 
--		size = (u32)RS_64_1(temp, 32);
--		obj_info[i].size = ((u64)1 << size);
--	}
--	for (i = I40IW_HMC_IW_MR, j = 48;
--			i <= I40IW_HMC_IW_PBLE; i++, j += 8) {
--		get_64bit_val(buf, j, &temp);
--		obj_info[i].max_cnt = (u32)temp;
--		size = (u32)RS_64_1(temp, 32);
--		obj_info[i].size = LS_64_1(1, size);
--	}
-+	get_64bit_val(buf, 16, &temp);
-+	obj_info[I40IW_HMC_IW_CQ].max_cnt = (u32)RS_64(temp, I40IW_QUERY_FPM_MAX_CQS);
-+	size = (u32)RS_64_1(temp, 32);
-+	obj_info[I40IW_HMC_IW_CQ].size = LS_64_1(1, size);
-+
-+	i40iw_sc_decode_fpm_query(buf, 32, obj_info, I40IW_HMC_IW_HTE);
-+	i40iw_sc_decode_fpm_query(buf, 40, obj_info, I40IW_HMC_IW_ARP);
-+
-+	obj_info[I40IW_HMC_IW_APBVT_ENTRY].size = 8192;
-+	obj_info[I40IW_HMC_IW_APBVT_ENTRY].max_cnt = 1;
-+
-+	i40iw_sc_decode_fpm_query(buf, 48, obj_info, I40IW_HMC_IW_MR);
-+	i40iw_sc_decode_fpm_query(buf, 56, obj_info, I40IW_HMC_IW_XF);
- 
--	get_64bit_val(buf, 120, &temp);
--	hmc_fpm_misc->max_ceqs = (u8)RS_64(temp, I40IW_QUERY_FPM_MAX_CEQS);
--	get_64bit_val(buf, 120, &temp);
--	hmc_fpm_misc->ht_multiplier = RS_64(temp, I40IW_QUERY_FPM_HTMULTIPLIER);
--	get_64bit_val(buf, 120, &temp);
--	hmc_fpm_misc->timer_bucket = RS_64(temp, I40IW_QUERY_FPM_TIMERBUCKET);
- 	get_64bit_val(buf, 64, &temp);
-+	obj_info[I40IW_HMC_IW_XFFL].max_cnt = (u32)temp;
-+	obj_info[I40IW_HMC_IW_XFFL].size = 4;
- 	hmc_fpm_misc->xf_block_size = RS_64(temp, I40IW_QUERY_FPM_XFBLOCKSIZE);
- 	if (!hmc_fpm_misc->xf_block_size)
- 		return I40IW_ERR_INVALID_SIZE;
-+
-+	i40iw_sc_decode_fpm_query(buf, 72, obj_info, I40IW_HMC_IW_Q1);
-+
- 	get_64bit_val(buf, 80, &temp);
-+	obj_info[I40IW_HMC_IW_Q1FL].max_cnt = (u32)temp;
-+	obj_info[I40IW_HMC_IW_Q1FL].size = 4;
- 	hmc_fpm_misc->q1_block_size = RS_64(temp, I40IW_QUERY_FPM_Q1BLOCKSIZE);
- 	if (!hmc_fpm_misc->q1_block_size)
- 		return I40IW_ERR_INVALID_SIZE;
-+
-+	i40iw_sc_decode_fpm_query(buf, 88, obj_info, I40IW_HMC_IW_TIMER);
-+
-+	get_64bit_val(buf, 112, &temp);
-+	obj_info[I40IW_HMC_IW_PBLE].max_cnt = (u32)temp;
-+	obj_info[I40IW_HMC_IW_PBLE].size = 8;
-+
-+	get_64bit_val(buf, 120, &temp);
-+	hmc_fpm_misc->max_ceqs = (u8)RS_64(temp, I40IW_QUERY_FPM_MAX_CEQS);
-+	hmc_fpm_misc->ht_multiplier = RS_64(temp, I40IW_QUERY_FPM_HTMULTIPLIER);
-+	hmc_fpm_misc->timer_bucket = RS_64(temp, I40IW_QUERY_FPM_TIMERBUCKET);
-+
- 	return 0;
- }
- 
-@@ -3392,13 +3440,6 @@ enum i40iw_status_code i40iw_sc_init_iw_hmc(struct i40iw_sc_dev *dev, u8 hmc_fn_
- 		hmc_info->sd_table.sd_entry = virt_mem.va;
- 	}
- 
--	/* fill size of objects which are fixed */
--	hmc_info->hmc_obj[I40IW_HMC_IW_XFFL].size = 4;
--	hmc_info->hmc_obj[I40IW_HMC_IW_Q1FL].size = 4;
--	hmc_info->hmc_obj[I40IW_HMC_IW_PBLE].size = 8;
--	hmc_info->hmc_obj[I40IW_HMC_IW_APBVT_ENTRY].size = 8192;
--	hmc_info->hmc_obj[I40IW_HMC_IW_APBVT_ENTRY].max_cnt = 1;
--
- 	return ret_code;
- }
- 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_d.h b/drivers/infiniband/hw/i40iw/i40iw_d.h
-index a39ac12..2ebaadb 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_d.h
-+++ b/drivers/infiniband/hw/i40iw/i40iw_d.h
-@@ -1507,8 +1507,8 @@ enum {
- 	I40IW_CQ0_ALIGNMENT_MASK =		(256 - 1),
- 	I40IW_HOST_CTX_ALIGNMENT_MASK =		(4 - 1),
- 	I40IW_SHADOWAREA_MASK =			(128 - 1),
--	I40IW_FPM_QUERY_BUF_ALIGNMENT_MASK =	0,
--	I40IW_FPM_COMMIT_BUF_ALIGNMENT_MASK =	0
-+	I40IW_FPM_QUERY_BUF_ALIGNMENT_MASK =	(4 - 1),
-+	I40IW_FPM_COMMIT_BUF_ALIGNMENT_MASK =	(4 - 1)
- };
- 
- enum i40iw_alignment {
+ 	if (data_size <= 16)
+ 		*wqe_size = I40IW_QP_WQE_MIN_SIZE;
 -- 
 2.8.3
 
