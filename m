@@ -1,66 +1,118 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [v2 01/12] IB/ocrdma: Use kcalloc() in
- ocrdma_mbx_alloc_pd_range()
-Date: Wed, 9 Aug 2017 09:43:01 +0300
-Message-ID: <20170809064301.GA1423@mtr-leonro.local>
-References: <fc421509-4069-da8a-b308-60b49ea91ada@users.sourceforge.net>
- <1492720999.3041.18.camel@redhat.com>
- <86425035-7da8-d2b1-8544-d4f7540d50c6@users.sourceforge.net>
- <21442d70-e77b-8338-30f7-9c41d048a665@users.sourceforge.net>
- <CANjDDBgOa=8d5747AdTAZdwueGYrZNVZBe6zSPKOC1qzyDiheg@mail.gmail.com>
- <1493139733.3041.75.camel@redhat.com>
- <9cdbdfa6-7118-c830-7587-aa27929f7028@users.sourceforge.net>
+Subject: Re: [PATCH for-next 12/27] IB/core: Change port_attr.sm_lid from 16
+ to 32 bits
+Date: Wed, 9 Aug 2017 09:56:35 +0300
+Message-ID: <20170809065635.GB1423@mtr-leonro.local>
+References: <20170804204842.17853.14858.stgit@scvm10.sc.intel.com>
+ <20170804205320.17853.77236.stgit@scvm10.sc.intel.com>
+ <20170806081857.GC3636@mtr-leonro.local>
+ <20170806082217.GE3636@mtr-leonro.local>
+ <20170808144146.GF28851@mtr-leonro.local>
+ <2807E5FD2F6FDA4886F6618EAC48510E67CFAF96@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="NzB8fVQJ5HfG6fxh"
+        protocol="application/pgp-signature"; boundary="i0/AhcQY5QxfSsSZ"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <9cdbdfa6-7118-c830-7587-aa27929f7028-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E67CFAF96-8k97q/ur5Z2krb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: SF Markus Elfring <elfring-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Selvin Xavier <selvin.xavier-1wcpHE2jlwO1Z/+hSey0Gg@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Dalessandro, Dennis" <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hiatt, Don" <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---NzB8fVQJ5HfG6fxh
+--i0/AhcQY5QxfSsSZ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Aug 08, 2017 at 07:26:45PM +0200, SF Markus Elfring wrote:
-> Hello,
+On Tue, Aug 08, 2017 at 04:35:47PM +0000, Weiny, Ira wrote:
+> >
+> > On Sun, Aug 06, 2017 at 11:22:17AM +0300, Leon Romanovsky wrote:
+> > > On Sun, Aug 06, 2017 at 11:18:57AM +0300, Leon Romanovsky wrote:
+> > > > On Fri, Aug 04, 2017 at 01:53:21PM -0700, Dennis Dalessandro wrote:
+> > > > > From: Dasaratharaman Chandramouli
+> > > > > <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > > >
+> > > > > sm_lid field in struct ib_port_attr is increased to 32 bits. This
+> > > > > enables core components to use larger LIDs if needed.
+> > > > > The user ABI is unchanged and return 16 bit values when queried.
+> > > > >
+> > > > > Signed-off-by: Dasaratharaman Chandramouli
+> > > > > <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > > > Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > > > Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > > > Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > > > ---
+> > > > >  drivers/infiniband/core/uverbs_cmd.c |    8 +++++---
+> > > > >  include/rdma/ib_verbs.h              |    2 +-
+> > > > >  2 files changed, 6 insertions(+), 4 deletions(-)
+> > > > >
+> > > > > diff --git a/drivers/infiniband/core/uverbs_cmd.c
+> > > > > b/drivers/infiniband/core/uverbs_cmd.c
+> > > > > index 7ef74b0..38dce45 100644
+> > > > > --- a/drivers/infiniband/core/uverbs_cmd.c
+> > > > > +++ b/drivers/infiniband/core/uverbs_cmd.c
+> > > > > @@ -275,11 +275,13 @@ ssize_t ib_uverbs_query_port(struct
+> > ib_uverbs_file *file,
+> > > > >  	resp.bad_pkey_cntr   = attr.bad_pkey_cntr;
+> > > > >  	resp.qkey_viol_cntr  = attr.qkey_viol_cntr;
+> > > > >  	resp.pkey_tbl_len    = attr.pkey_tbl_len;
+> > > > > -	resp.sm_lid 	     = attr.sm_lid;
+> > > > > -	if (rdma_cap_opa_ah(ib_dev, cmd.port_num))
+> > > > > +	if (rdma_cap_opa_ah(ib_dev, cmd.port_num)) {
+> > > > >  		resp.lid  = OPA_TO_IB_UCAST_LID(attr.lid);
+> > > > > -	else
+> > > > > +		resp.sm_lid  = OPA_TO_IB_UCAST_LID(attr.sm_lid);
+> > > > > +	} else {
+> > > > >  		resp.lid     = (u16)attr.lid;
+> > > > > +		resp.sm_lid  = (u16)attr.sm_lid;
+> > > >
+> > > > I see that lid is already has casting from u32 to u16 and now it is sm_lid.
+> > > > Do we have more elegant way to achieve that? And comment for future
+> > > > developers can be good too.
+> > >
+> > > I see now, you changed lid in patch 11. The same comment there.
+> >
+> > To be clear on that point: NAK on *current* implementation.
+> >
+> > At least, it should be done in separate function, with comment explains why
+> > are you doing and why it is safe to cast from higher value to lower value and
+> > proper checks that you are not loosing information when you are casting.
+> >
 >
-> How will the clarification be continued for the shown change possibilities?
+> A comment is reasonable.  However, I'm not sure a separate function is needed.  With the current interface there is no way to pass all the information through.
+>
+> Software which requires the use of these values will need to know to get them from other sources (OPA MAD queries for the SM LID for example.)
 
-Every sub-maintainer will decide on his own what and how to proceed with
-these patches.
-
-Thanks
+The function, check and warning are intended to catch possible buggy
+flows and user errors. It is a bit optimistic way of thinking that all
+software uses SMs.
 
 >
-> Regards,
-> Markus
+> Ira
+>
 
---NzB8fVQJ5HfG6fxh
+--i0/AhcQY5QxfSsSZ
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmKrvUACgkQ5GN7iDZy
-WKdGkg/+MsSEUcC6qL709mHiyBYXDZ3cCLVvWnRkVHeGbP25eUebS29aH2x1b+/L
-O/r2KHhGd4kceiyY1MXNiRjD2LzGCJZ+FPHUr52eku6adcAP9g0vt8y/ug8S723a
-fYX2/TEAbhQSo6x7GWfweKF9GPYyNC5a0AwfY6NkBrPZ2MjgaVaDW9z8MjemHxMD
-kgOYJUlmZ5U8qNhDTjHzL0LC4NsLiz+9QSgE5Ap3SQ5Byb3PLjceTsu27jruKILs
-3lrjNkEruQxKorKogJwglE/OkrbmCWbbBnYoUpAvwpreeLSgF3Aehrmjgh3rqIzz
-Vm5unRY/yBIuqPrL5y1Qyk2869BbydY9y1eH0mck4CDVLgmYy3eZ4XO7tIeGGHqB
-dwwaZtJKcnA2cKYlfKACGXHBIwtxOQNaIgdsBCzYWvFzSyj3LfSRJmrzJTiuUaop
-M8iyaIi77okArIcpiOrEHFGCVSR0Y/iMVOtG1378MV0CUwxtgfZ1hcpWCPOqiIng
-10ps4T7x0iQJglV9L5np4tFlrSmxSTmEMIiQ/GXIlf4z5l+hQEcplPT+u5WXSJpD
-0kzMtrY5Vz069pseuOeXSs82GR5T+ek7Vx4Hvv03oC6aJdxCcXuO1hFbDLvyaTnU
-VtLRiMYsSkXbqhqNQyzUM3h+7FllFESC38AM4PBjXILq5tKqaNc=
-=4guo
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmKsiIACgkQ5GN7iDZy
+WKdNsg//cnWktXPYOfbsDBfJlIdXuwUnHF1Tk5orD2BEC7UJM+drxukjlKvgrv61
+IX/542eYO69gcSxapUuoHZjbHmw6nDfP/g6PcmDsY8DGp7cGxUsCXwlTU7IxEVJ+
+djcC184hCeIiNCQg53qO9TnClbNL3s0YEKS37JwTRa7uZpo5XoVhjQuOm4l9wv1U
+NJ6ShGQ2K/Ma2qCDX7D4LPSgAHbyy4Ck+nSCEwgmO8xUq8AoeLSse2SDSP3AKd/c
+/0qlzJCVxQi0sIslmShHvUEKdATPzbKP8FGwJEGMVivdhcc+o3D3hs02WZfCoFTn
+r47fIJU3MeRUeu+buaXe1QkpP2HhwtFjxAFQ97ZDlhzLTRWImFWcSfUnzWfwFUYF
+MiKP9j4MZ5Q+N8sw1HDXiuD+geDJmcp0vmI3epDDsjKpQHp+xSoxsrf4zkCGPf2M
+NLBXcC8YWiBl28FlwBC8iU92IwYUWMio9BsV2fQf6+5+/LgpyXaYjfl79hfyMY1J
+Il0DVquc33kncOnmrHkHwLYRvcNH5DAbH1LurwzslvsLgp9tgOk51TMSQY8+5JLp
+zmb60Vu8sHEM3TUV5ik6Ddg+EfMFCf4CSLF7PD6pPDXj2o45K5ysg36Qv6FRc2WG
+WST7zfuK7QtoDLTWCc1P6G8KlqRgSJIYpqq+eEXTEu3dL7WbPjk=
+=8CRI
 -----END PGP SIGNATURE-----
 
---NzB8fVQJ5HfG6fxh--
+--i0/AhcQY5QxfSsSZ--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
