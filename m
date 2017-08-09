@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v1 08/33] RDMA/netlink: Simplify the put_msg and put_attr
-Date: Wed,  9 Aug 2017 19:03:40 +0300
-Message-ID: <20170809160405.25142-9-leon@kernel.org>
+Subject: [rdma-next v1 18/33] RDMA/netlink: Update copyright
+Date: Wed,  9 Aug 2017 19:03:50 +0300
+Message-ID: <20170809160405.25142-19-leon@kernel.org>
 References: <20170809160405.25142-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170809160405.25142-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,65 +12,24 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Reuse standard macros to cancel the netlink message
-in case of error.
+Add Mellanox to the copyright header.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/netlink.c | 31 +++++++++----------------------
- 1 file changed, 9 insertions(+), 22 deletions(-)
+ drivers/infiniband/core/netlink.c | 1 +
+ 1 file changed, 1 insertion(+)
 
 diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-index c5ee62a24960..fc8b45d4140a 100644
+index 71bbf351e91c..1c80e7ec1730 100644
 --- a/drivers/infiniband/core/netlink.c
 +++ b/drivers/infiniband/core/netlink.c
-@@ -126,36 +126,23 @@ EXPORT_SYMBOL(rdma_nl_unregister);
- void *ibnl_put_msg(struct sk_buff *skb, struct nlmsghdr **nlh, int seq,
- 		   int len, int client, int op, int flags)
- {
--	unsigned char *prev_tail;
--
--	prev_tail = skb_tail_pointer(skb);
--	*nlh = nlmsg_put(skb, 0, seq, RDMA_NL_GET_TYPE(client, op),
--			 len, flags);
--	if (!*nlh)
--		goto out_nlmsg_trim;
--	(*nlh)->nlmsg_len = skb_tail_pointer(skb) - prev_tail;
-+	*nlh = nlmsg_put(skb, 0, seq, RDMA_NL_GET_TYPE(client, op), len, flags);
-+	if (!*nlh) {
-+		nlmsg_cancel(skb, *nlh);
-+		return NULL;
-+	}
- 	return nlmsg_data(*nlh);
--
--out_nlmsg_trim:
--	nlmsg_trim(skb, prev_tail);
--	return NULL;
- }
- EXPORT_SYMBOL(ibnl_put_msg);
- 
- int ibnl_put_attr(struct sk_buff *skb, struct nlmsghdr *nlh,
- 		  int len, void *data, int type)
- {
--	unsigned char *prev_tail;
--
--	prev_tail = skb_tail_pointer(skb);
--	if (nla_put(skb, type, len, data))
--		goto nla_put_failure;
--	nlh->nlmsg_len += skb_tail_pointer(skb) - prev_tail;
-+	if (nla_put(skb, type, len, data)) {
-+		nlmsg_cancel(skb, nlh);
-+		return -EMSGSIZE;
-+	}
- 	return 0;
--
--nla_put_failure:
--	nlmsg_trim(skb, prev_tail - nlh->nlmsg_len);
--	return -EMSGSIZE;
- }
- EXPORT_SYMBOL(ibnl_put_attr);
- 
+@@ -1,4 +1,5 @@
+ /*
++ * Copyright (c) 2017 Mellanox Technologies Inc.  All rights reserved.
+  * Copyright (c) 2010 Voltaire Inc.  All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
 -- 
 2.14.0
 
