@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v1 32/33] RDMA/netlink: Provide port state and physical link state
-Date: Wed,  9 Aug 2017 19:04:04 +0300
-Message-ID: <20170809160405.25142-33-leon@kernel.org>
+Subject: [rdma-next v1 27/33] RDMA/netlink: Export FW version
+Date: Wed,  9 Aug 2017 19:03:59 +0300
+Message-ID: <20170809160405.25142-28-leon@kernel.org>
 References: <20170809160405.25142-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170809160405.25142-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,49 +12,58 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add port state and physical link state to the users of RDMA netlink.
+Add FW version to the device properties exported
+by RDMA netlink, to be used by RDMAtool.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/nldev.c  | 6 ++++++
- include/uapi/rdma/rdma_netlink.h | 3 +++
- 2 files changed, 9 insertions(+)
+ drivers/infiniband/core/nldev.c  | 9 +++++++++
+ include/uapi/rdma/rdma_netlink.h | 4 ++++
+ 2 files changed, 13 insertions(+)
 
 diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index f968a40ef5d3..30fe1e9ff5ce 100644
+index 21e75928400c..40d5f0eb16f5 100644
 --- a/drivers/infiniband/core/nldev.c
 +++ b/drivers/infiniband/core/nldev.c
-@@ -48,6 +48,8 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 	[RDMA_NLDEV_ATTR_LID]		= { .type = NLA_U32 },
- 	[RDMA_NLDEV_ATTR_SM_LID]	= { .type = NLA_U32 },
- 	[RDMA_NLDEV_ATTR_LMC]		= { .type = NLA_U8 },
-+	[RDMA_NLDEV_ATTR_PORT_STATE]	= { .type = NLA_U8 },
-+	[RDMA_NLDEV_ATTR_PORT_PHYS_STATE] = { .type = NLA_U8 },
+@@ -40,10 +40,14 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
+ 	[RDMA_NLDEV_ATTR_DEV_NAME]	= { .type = NLA_NUL_STRING,
+ 					    .len = IB_DEVICE_NAME_MAX - 1},
+ 	[RDMA_NLDEV_ATTR_PORT_INDEX]	= { .type = NLA_U32 },
++	[RDMA_NLDEV_ATTR_FW_VERSION]	= { .type = NLA_NUL_STRING,
++					    .len = IB_FW_VERSION_NAME_MAX - 1},
  };
  
  static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
-@@ -113,6 +115,10 @@ static int fill_port_info(struct sk_buff *msg,
- 		if (nla_put_u8(msg, RDMA_NLDEV_ATTR_LMC, attr.lmc))
- 			return -EMSGSIZE;
- 	}
-+	if (nla_put_u8(msg, RDMA_NLDEV_ATTR_PORT_STATE, attr.state))
+ {
++	char fw[IB_FW_VERSION_NAME_MAX];
++
+ 	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_DEV_INDEX, device->index))
+ 		return -EMSGSIZE;
+ 	if (nla_put_string(msg, RDMA_NLDEV_ATTR_DEV_NAME, device->name))
+@@ -56,6 +60,11 @@ static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
+ 			      device->attrs.device_cap_flags, 0))
+ 		return -EMSGSIZE;
+ 
++	ib_get_device_fw_str(device, fw);
++	/* Device without FW has strlen(fw) */
++	if (strlen(fw) && nla_put_string(msg, RDMA_NLDEV_ATTR_FW_VERSION, fw))
 +		return -EMSGSIZE;
-+	if (nla_put_u8(msg, RDMA_NLDEV_ATTR_PORT_PHYS_STATE, attr.phys_state))
-+		return -EMSGSIZE;
++
  	return 0;
  }
  
 diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index b85a08a7255f..ea8e1f01ba0d 100644
+index 8fc5278d07d6..fec735f73eee 100644
 --- a/include/uapi/rdma/rdma_netlink.h
 +++ b/include/uapi/rdma/rdma_netlink.h
-@@ -297,6 +297,9 @@ enum rdma_nldev_attr {
+@@ -262,6 +262,10 @@ enum rdma_nldev_attr {
  	 */
- 	RDMA_NLDEV_ATTR_LMC,			/* u8 */
+ 	RDMA_NLDEV_ATTR_CAP_FLAGS,		/* u64 */
  
-+	RDMA_NLDEV_ATTR_PORT_STATE,		/* u8 */
-+	RDMA_NLDEV_ATTR_PORT_PHYS_STATE,	/* u8 */
-+
++	/*
++	 * FW version
++	 */
++	RDMA_NLDEV_ATTR_FW_VERSION,		/* string */
  	RDMA_NLDEV_ATTR_MAX
  };
  #endif /* _UAPI_RDMA_NETLINK_H */
