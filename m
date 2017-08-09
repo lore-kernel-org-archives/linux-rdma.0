@@ -1,63 +1,22 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [bug report] net/mlx5: Separate between E-Switch and MPFS
-Date: Wed, 9 Aug 2017 16:18:59 +0300
-Message-ID: <20170809131859.6bsjlch2exjfq5p5@mwanda>
+From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v06 30/36] uapi rdma/rdma_user_rxe.h: include in.h and in6.h
+Date: Wed, 9 Aug 2017 16:48:08 +0300
+Message-ID: <CAG9sBKP=NuSJzhg8rMBTsTuZkfzPDjxYgAGjiCnEMe=9xXB0xA@mail.gmail.com>
+References: <20170806164428.2273-1-mikko.rapeli@iki.fi> <20170806164428.2273-31-mikko.rapeli@iki.fi>
+ <20170808231306.GH29372@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170808231306.GH29372-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>, Linux Kernel Mailinglist <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Saeed Mahameed,
-
-The patch eeb66cdb6826: "net/mlx5: Separate between E-Switch and
-MPFS" from Jun 4, 2017, leads to the following static checker warning:
-
-	drivers/net/ethernet/mellanox/mlx5/core/en_fs.c:390 mlx5e_execute_l2_action()
-	error: dereferencing freed memory 'hn'
-
-drivers/net/ethernet/mellanox/mlx5/core/en_fs.c
-   364  static void mlx5e_execute_l2_action(struct mlx5e_priv *priv,
-   365                                      struct mlx5e_l2_hash_node *hn)
-   366  {
-   367          u8 action = hn->action;
-   368          int l2_err = 0;
-   369  
-   370          switch (action) {
-   371          case MLX5E_ACTION_ADD:
-   372                  mlx5e_add_l2_flow_rule(priv, &hn->ai, MLX5E_FULLMATCH);
-   373                  if (!is_multicast_ether_addr(hn->ai.addr)) {
-   374                          l2_err = mlx5_mpfs_add_mac(priv->mdev, hn->ai.addr);
-   375                          hn->mpfs = !l2_err;
-   376                  }
-   377                  hn->action = MLX5E_ACTION_NONE;
-   378                  break;
-   379  
-   380          case MLX5E_ACTION_DEL:
-   381                  if (!is_multicast_ether_addr(hn->ai.addr) && hn->mpfs)
-   382                          l2_err = mlx5_mpfs_del_mac(priv->mdev, hn->ai.addr);
-   383                  mlx5e_del_l2_flow_rule(priv, &hn->ai);
-   384                  mlx5e_del_l2_from_hash(hn);
-                        ^^^^^^^^^^^^^^^^^^^^^^^^^^
-Freed.
-
-   385                  break;
-   386          }
-   387  
-   388          if (l2_err)
-   389                  netdev_warn(priv->netdev, "MPFS, failed to %s mac %pM, err(%d)\n",
-   390                              action == MLX5E_ACTION_ADD ? "add" : "del", hn->ai.addr, l2_err);
-                                                                                ^^^^^^^^^^^
-Patch adds new dereference after free.
-
-   391  }
-
-regards,
-dan carpenter
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> I'm not sure this is a good idea, linux/in.h should not be included in
+> userspace users of this file, 'sockaddr_in' needs to come from glibc's
+> 'netinet/in.h' instead..
+>
+> Jason
+Is it wrong to include include/uapi/linux/in.h from userspace?
