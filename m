@@ -1,108 +1,68 @@
-From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-next 12/27] IB/core: Change port_attr.sm_lid from 16
- to 32 bits
-Date: Thu, 10 Aug 2017 11:18:21 -0700
-Message-ID: <25379f85-ebeb-9f5b-6e73-514d009db311@intel.com>
-References: <20170804204842.17853.14858.stgit@scvm10.sc.intel.com>
- <20170804205320.17853.77236.stgit@scvm10.sc.intel.com>
- <20170806081857.GC3636@mtr-leonro.local>
- <20170806082217.GE3636@mtr-leonro.local>
- <20170808144146.GF28851@mtr-leonro.local>
- <2807E5FD2F6FDA4886F6618EAC48510E67CFAF96@CRSMSX101.amr.corp.intel.com>
- <018c6e70-78d5-51ec-993f-35be575a6da1@intel.com>
- <20170809065730.GC1423@mtr-leonro.local>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v1 for-rc] RDMA/vmw_pvrdma: Report CQ missed events
+Date: Thu, 10 Aug 2017 12:05:02 -0700
+Message-ID: <1502391902-5674-1-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170809065730.GC1423-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+Cc: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 
+There is a chance of a race between arming the CQ and receiving
+completions. By reporting CQ missed events any ULPs should poll
+again to get the completions.
 
-On 8/8/2017 11:57 PM, Leon Romanovsky wrote:
-> On Tue, Aug 08, 2017 at 09:49:17AM -0700, Don Hiatt wrote:
->>
->> On 8/8/2017 9:35 AM, Weiny, Ira wrote:
->>>> On Sun, Aug 06, 2017 at 11:22:17AM +0300, Leon Romanovsky wrote:
->>>>> On Sun, Aug 06, 2017 at 11:18:57AM +0300, Leon Romanovsky wrote:
->>>>>> On Fri, Aug 04, 2017 at 01:53:21PM -0700, Dennis Dalessandro wrote:
->>>>>>> From: Dasaratharaman Chandramouli
->>>>>>> <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>>>>>>
->>>>>>> sm_lid field in struct ib_port_attr is increased to 32 bits. This
->>>>>>> enables core components to use larger LIDs if needed.
->>>>>>> The user ABI is unchanged and return 16 bit values when queried.
->>>>>>>
->>>>>>> Signed-off-by: Dasaratharaman Chandramouli
->>>>>>> <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>>>>>> Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>>>>>> Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>>>>>> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->>>>>>> ---
->>>>>>>    drivers/infiniband/core/uverbs_cmd.c |    8 +++++---
->>>>>>>    include/rdma/ib_verbs.h              |    2 +-
->>>>>>>    2 files changed, 6 insertions(+), 4 deletions(-)
->>>>>>>
->>>>>>> diff --git a/drivers/infiniband/core/uverbs_cmd.c
->>>>>>> b/drivers/infiniband/core/uverbs_cmd.c
->>>>>>> index 7ef74b0..38dce45 100644
->>>>>>> --- a/drivers/infiniband/core/uverbs_cmd.c
->>>>>>> +++ b/drivers/infiniband/core/uverbs_cmd.c
->>>>>>> @@ -275,11 +275,13 @@ ssize_t ib_uverbs_query_port(struct
->>>> ib_uverbs_file *file,
->>>>>>>    	resp.bad_pkey_cntr   = attr.bad_pkey_cntr;
->>>>>>>    	resp.qkey_viol_cntr  = attr.qkey_viol_cntr;
->>>>>>>    	resp.pkey_tbl_len    = attr.pkey_tbl_len;
->>>>>>> -	resp.sm_lid 	     = attr.sm_lid;
->>>>>>> -	if (rdma_cap_opa_ah(ib_dev, cmd.port_num))
->>>>>>> +	if (rdma_cap_opa_ah(ib_dev, cmd.port_num)) {
->>>>>>>    		resp.lid  = OPA_TO_IB_UCAST_LID(attr.lid);
->>>>>>> -	else
->>>>>>> +		resp.sm_lid  = OPA_TO_IB_UCAST_LID(attr.sm_lid);
->>>>>>> +	} else {
->>>>>>>    		resp.lid     = (u16)attr.lid;
->>>>>>> +		resp.sm_lid  = (u16)attr.sm_lid;
->>>>>> I see that lid is already has casting from u32 to u16 and now it is sm_lid.
->>>>>> Do we have more elegant way to achieve that? And comment for future
->>>>>> developers can be good too.
->>>>> I see now, you changed lid in patch 11. The same comment there.
->>>> To be clear on that point: NAK on *current* implementation.
->>>>
->>>> At least, it should be done in separate function, with comment explains why
->>>> are you doing and why it is safe to cast from higher value to lower value and
->>>> proper checks that you are not loosing information when you are casting.
->>>>
->>> A comment is reasonable.  However, I'm not sure a separate function is needed.  With the current interface there is no way to pass all the information through.
->>>
->>> Software which requires the use of these values will need to know to get them from other sources (OPA MAD queries for the SM LID for example.)
->>>
->>> Ira
->>>
->> Hi Leon,
->>
->> I had already created a function to do the cast in the 'IB/core: Change
->> wc.slid from 16 to 32 bits' patch
->> but I did not apply it here. Sorry about that.  My plan is to rename the
->> functions to ib_lid_{spu16,be16}
->> and introduce them in this patch with a comment in the git log that these
->> functions exist. I will also add
->> a comment stating why we aren't losing any information.
-> These functions should be introduced before "casting patches".
->
-> Thanks
+Fixes: 29c8d9eba550 ("IB: Add vmw_pvrdma driver")
+Acked-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+---
+v0 -> v1:
+ - Check for invalid ring index.
+---
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
-Hi Leon,
-
-I re-submitted these patches as v4.
-
-Thank you.
-
-don
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
+index 69bda61..90aa326 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
+@@ -65,13 +65,28 @@ int pvrdma_req_notify_cq(struct ib_cq *ibcq,
+ 	struct pvrdma_dev *dev = to_vdev(ibcq->device);
+ 	struct pvrdma_cq *cq = to_vcq(ibcq);
+ 	u32 val = cq->cq_handle;
++	unsigned long flags;
++	int has_data = 0;
+ 
+ 	val |= (notify_flags & IB_CQ_SOLICITED_MASK) == IB_CQ_SOLICITED ?
+ 		PVRDMA_UAR_CQ_ARM_SOL : PVRDMA_UAR_CQ_ARM;
+ 
++	spin_lock_irqsave(&cq->cq_lock, flags);
++
+ 	pvrdma_write_uar_cq(dev, val);
+ 
+-	return 0;
++	if (notify_flags & IB_CQ_REPORT_MISSED_EVENTS) {
++		unsigned int head;
++
++		has_data = pvrdma_idx_ring_has_data(&cq->ring_state->rx,
++						    cq->ibcq.cqe, &head);
++		if (unlikely(has_data == PVRDMA_INVALID_IDX))
++			dev_err(&dev->pdev->dev, "CQ ring state invalid\n");
++	}
++
++	spin_unlock_irqrestore(&cq->cq_lock, flags);
++
++	return has_data;
+ }
+ 
+ /**
+-- 
+2.7.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
