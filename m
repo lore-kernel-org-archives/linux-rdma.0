@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v2 25/33] RDMA/netlink: Expose device and port capability masks
-Date: Thu, 10 Aug 2017 14:08:19 +0300
-Message-ID: <20170810110827.9952-26-leon@kernel.org>
+Subject: [rdma-next v2 27/33] RDMA/netlink: Export FW version
+Date: Thu, 10 Aug 2017 14:08:21 +0300
+Message-ID: <20170810110827.9952-28-leon@kernel.org>
 References: <20170810110827.9952-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170810110827.9952-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,73 +12,58 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The port capability mask is exposed to user space via sysfs interface,
-while device capabilities are available for verbs only.
-
-This patch provides those capabilities through netlink interface.
+Add FW version to the device properties exported
+by RDMA netlink, to be used by RDMAtool.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/nldev.c  | 19 +++++++++++++++++++
- include/uapi/rdma/rdma_netlink.h |  5 +++++
- 2 files changed, 24 insertions(+)
+ drivers/infiniband/core/nldev.c  | 9 +++++++++
+ include/uapi/rdma/rdma_netlink.h | 4 ++++
+ 2 files changed, 13 insertions(+)
 
 diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index db9d9ffc1415..94c1e49074f5 100644
+index 94c1e49074f5..cdc970ca5a1b 100644
 --- a/drivers/infiniband/core/nldev.c
 +++ b/drivers/infiniband/core/nldev.c
-@@ -50,18 +50,37 @@ static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
- 		return -EMSGSIZE;
- 	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_PORT_INDEX, rdma_end_port(device)))
- 		return -EMSGSIZE;
-+
-+	BUILD_BUG_ON(sizeof(device->attrs.device_cap_flags) != sizeof(u64));
-+	if (nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_CAP_FLAGS,
-+			      device->attrs.device_cap_flags, 0))
-+		return -EMSGSIZE;
-+
- 	return 0;
- }
+@@ -40,10 +40,14 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
+ 	[RDMA_NLDEV_ATTR_DEV_NAME]	= { .type = NLA_NUL_STRING,
+ 					    .len = IB_DEVICE_NAME_MAX - 1},
+ 	[RDMA_NLDEV_ATTR_PORT_INDEX]	= { .type = NLA_U32 },
++	[RDMA_NLDEV_ATTR_FW_VERSION]	= { .type = NLA_NUL_STRING,
++					    .len = IB_FW_VERSION_NAME_MAX - 1},
+ };
  
- static int fill_port_info(struct sk_buff *msg,
- 			  struct ib_device *device, u32 port)
+ static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
  {
-+	struct ib_port_attr attr;
-+	int ret;
++	char fw[IB_FW_VERSION_NAME_MAX];
 +
  	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_DEV_INDEX, device->index))
  		return -EMSGSIZE;
  	if (nla_put_string(msg, RDMA_NLDEV_ATTR_DEV_NAME, device->name))
+@@ -56,6 +60,11 @@ static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
+ 			      device->attrs.device_cap_flags, 0))
  		return -EMSGSIZE;
- 	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_PORT_INDEX, port))
- 		return -EMSGSIZE;
-+
-+	ret = ib_query_port(device, port, &attr);
-+	if (ret)
-+		return ret;
-+
-+	BUILD_BUG_ON(sizeof(attr.port_cap_flags) > sizeof(u64));
-+	if (nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_CAP_FLAGS,
-+			      (u64)attr.port_cap_flags, 0))
+ 
++	ib_get_device_fw_str(device, fw);
++	/* Device without FW has strlen(fw) */
++	if (strlen(fw) && nla_put_string(msg, RDMA_NLDEV_ATTR_FW_VERSION, fw))
 +		return -EMSGSIZE;
 +
  	return 0;
  }
  
 diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index a44229fa5eca..90de11db6580 100644
+index 90de11db6580..5159858730b0 100644
 --- a/include/uapi/rdma/rdma_netlink.h
 +++ b/include/uapi/rdma/rdma_netlink.h
-@@ -257,6 +257,11 @@ enum rdma_nldev_attr {
+@@ -262,6 +262,10 @@ enum rdma_nldev_attr {
  	 */
- 	RDMA_NLDEV_ATTR_PORT_INDEX,		/* u32 */
+ 	RDMA_NLDEV_ATTR_CAP_FLAGS,		/* u64 */
  
 +	/*
-+	 * Device and port capabilities
++	 * FW version
 +	 */
-+	RDMA_NLDEV_ATTR_CAP_FLAGS,		/* u64 */
-+
++	RDMA_NLDEV_ATTR_FW_VERSION,		/* string */
  	RDMA_NLDEV_ATTR_MAX
  };
  #endif /* _UAPI_RDMA_NETLINK_H */
