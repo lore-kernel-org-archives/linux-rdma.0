@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v2 11/33] RDMA/netlink: Simplify and rename ibnl_chk_listeners
-Date: Thu, 10 Aug 2017 14:08:05 +0300
-Message-ID: <20170810110827.9952-12-leon@kernel.org>
+Subject: [rdma-next v2 15/33] RDMA/netlink: Add and implement doit netlink callback
+Date: Thu, 10 Aug 2017 14:08:09 +0300
+Message-ID: <20170810110827.9952-16-leon@kernel.org>
 References: <20170810110827.9952-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170810110827.9952-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,81 +12,80 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Make ibnl_chk_listeners function to be one line by removing
-unneeded comparison.
+The .doit callback is used by netlink core to differentiate
+between get and set operations. Common convention is to use
+that call for command operations like (SET, ADD, e.t.c.) and/or
+access without NLF_M_DUMP flag.
 
-Rename that function to be complaint to other functions in RDMA netlink.
+This commit adds proper declaration and implementation
+to RDMA netlink.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/addr.c     | 2 +-
- drivers/infiniband/core/netlink.c  | 7 +++----
- drivers/infiniband/core/sa_query.c | 2 +-
- include/rdma/rdma_netlink.h        | 6 ++++++
- 4 files changed, 11 insertions(+), 6 deletions(-)
+ drivers/infiniband/core/netlink.c | 19 ++++++++++++++-----
+ include/rdma/rdma_netlink.h       |  2 ++
+ 2 files changed, 16 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-index 30cf764824ec..7310ece99cd9 100644
---- a/drivers/infiniband/core/addr.c
-+++ b/drivers/infiniband/core/addr.c
-@@ -325,7 +325,7 @@ static void queue_req(struct addr_req *req)
- static int ib_nl_fetch_ha(struct dst_entry *dst, struct rdma_dev_addr *dev_addr,
- 			  const void *daddr, u32 seq, u16 family)
- {
--	if (ibnl_chk_listeners(RDMA_NL_GROUP_LS))
-+	if (rdma_nl_chk_listeners(RDMA_NL_GROUP_LS))
- 		return -EADDRNOTAVAIL;
- 
- 	/* We fill in what we can, the response will fill the rest */
 diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-index 5c627d1fbaa9..514959ccaf2d 100644
+index a7082adae16b..484d6a8a2811 100644
 --- a/drivers/infiniband/core/netlink.c
 +++ b/drivers/infiniband/core/netlink.c
-@@ -47,12 +47,11 @@ static struct {
- 	const struct ibnl_client_cbs   *cb_table;
- } rdma_nl_types[RDMA_NL_NUM_CLIENTS];
+@@ -76,9 +76,13 @@ static bool is_nl_msg_valid(unsigned int type, unsigned int op)
  
--int ibnl_chk_listeners(unsigned int group)
-+int rdma_nl_chk_listeners(unsigned int group)
+ static bool is_nl_valid(unsigned int type, unsigned int op)
  {
--	if (netlink_has_listeners(nls, group) == 0)
--		return -1;
--	return 0;
-+	return (netlink_has_listeners(nls, group)) ? 0 : -1;
+-	if (!is_nl_msg_valid(type, op) ||
+-	    !rdma_nl_types[type].cb_table ||
+-	    !rdma_nl_types[type].cb_table[op].dump)
++	const struct rdma_nl_cbs *cb_table;
++
++	if (!is_nl_msg_valid(type, op))
++		return false;
++
++	cb_table = rdma_nl_types[type].cb_table;
++	if (!cb_table || (!cb_table[op].dump && !cb_table[op].doit))
+ 		return false;
+ 	return true;
  }
-+EXPORT_SYMBOL(rdma_nl_chk_listeners);
+@@ -151,6 +155,7 @@ static int rdma_nl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	unsigned int op = RDMA_NL_GET_OP(type);
+ 	struct netlink_callback cb = {};
+ 	struct netlink_dump_control c = {};
++	int ret;
  
- static bool is_nl_msg_valid(unsigned int type, unsigned int op)
- {
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index 977f64d0e983..2cc85c2b74b7 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -1418,7 +1418,7 @@ static int send_mad(struct ib_sa_query *query, int timeout_ms, gfp_t gfp_mask)
+ 	if (!is_nl_valid(index, op))
+ 		return -EINVAL;
+@@ -169,10 +174,14 @@ static int rdma_nl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 		cb.nlh = nlh;
+ 		cb.dump = rdma_nl_types[index].cb_table[op].dump;
+ 		return cb.dump(skb, &cb);
++	} else {
++		c.dump = rdma_nl_types[index].cb_table[op].dump;
++		return netlink_dump_start(nls, skb, nlh, &c);
+ 	}
++	if (rdma_nl_types[index].cb_table[op].doit)
++		ret = rdma_nl_types[index].cb_table[op].doit(skb, nlh, extack);
++	return ret;
  
- 	if ((query->flags & IB_SA_ENABLE_LOCAL_SERVICE) &&
- 	    (!(query->flags & IB_SA_QUERY_OPA))) {
--		if (!ibnl_chk_listeners(RDMA_NL_GROUP_LS)) {
-+		if (!rdma_nl_chk_listeners(RDMA_NL_GROUP_LS)) {
- 			if (!ib_nl_make_request(query, gfp_mask))
- 				return id;
- 		}
+-	c.dump = rdma_nl_types[index].cb_table[op].dump;
+-	return netlink_dump_start(nls, skb, nlh, &c);
+ }
+ 
+ /*
 diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
-index 16a94c425938..348e0bbe0fc9 100644
+index 92f8832297ab..e25bf1988846 100644
 --- a/include/rdma/rdma_netlink.h
 +++ b/include/rdma/rdma_netlink.h
-@@ -78,4 +78,10 @@ int rdma_nl_unicast_wait(struct sk_buff *skb, __u32 pid);
-  */
- int rdma_nl_multicast(struct sk_buff *skb, unsigned int group, gfp_t flags);
+@@ -6,6 +6,8 @@
+ #include <uapi/rdma/rdma_netlink.h>
  
-+/**
-+ * Check if there are any listeners to the netlink group
-+ * @group: the netlink group ID
-+ * Returns 0 on success or a negative for no listeners.
-+ */
-+int rdma_nl_chk_listeners(unsigned int group);
- #endif /* _RDMA_NETLINK_H */
+ struct rdma_nl_cbs {
++	int (*doit)(struct sk_buff *skb, struct nlmsghdr *nlh,
++		    struct netlink_ext_ack *extack);
+ 	int (*dump)(struct sk_buff *skb, struct netlink_callback *nlcb);
+ 	u8 flags;
+ };
 -- 
 2.14.0
 
