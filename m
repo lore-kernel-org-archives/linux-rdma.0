@@ -1,58 +1,79 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: Re: [PATCH for-next 00/27] IB/hfi1, rdmavt, core, etc: patches for
- next 08/04/2017
-Date: Thu, 10 Aug 2017 13:05:22 -0400
-Message-ID: <f73b2f88-bc1b-92ed-1632-d2f3b1583d60@intel.com>
-References: <20170804204842.17853.14858.stgit@scvm10.sc.intel.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-rc] RDMA/vmw_pvrdma: Report CQ missed events
+Date: Thu, 10 Aug 2017 17:20:53 +0000
+Message-ID: <CY4PR05MB3510E71AF280B2473639A0CCC5880@CY4PR05MB3510.namprd05.prod.outlook.com>
+References: <1502351175-1762-1-git-send-email-aditr@vmware.com>
+ <20170810111557.GT1423@mtr-leonro.local>,<20170810112536.GB3500@yuvallap>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20170804204842.17853.14858.stgit@scvm10.sc.intel.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170810112536.GB3500@yuvallap>
 Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: dledford@redhat.com
-Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, Bartlomiej Dudek <bartlomiej.dudek@intel.com>, Jakub Byczkowski <jakub.byczkowski@intel.com>, linux-rdma@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Don Hiatt <don.hiatt@intel.com>, Sebastian Sanchez <sebastian.sanchez@intel.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/4/2017 4:52 PM, Dennis Dalessandro wrote:
+> On Thu, Aug 10, 2017 at 02:15:57PM +0300, Leon Romanovsky wrote:
+> > On Thu, Aug 10, 2017 at 12:46:15AM -0700, Adit Ranadive wrote:
+> > > From: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > >
+> > > There is a chance of a race between arming the CQ and receiving
+> > > completions. By reporting CQ missed events any ULPs should poll
+> > > again to get the completions.
+> > >
+> > > Fixes: 29c8d9eba550 ("IB: Add vmw_pvrdma driver")
+> > > Acked-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > ---
+> > >=A0 drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c | 15 +++++++++++++++
+> > >=A0 1 file changed, 15 insertions(+)
+> > >
+> > > diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c b/drivers/i=
+nfiniband/hw/vmw_pvrdma/pvrdma_cq.c
+> > > index 69bda61..f4ab5fa 100644
+> > > --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
+> > > +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
+> > > @@ -65,12 +65,27 @@ int pvrdma_req_notify_cq(struct ib_cq *ibcq,
+> > >=A0=A0=A0=A0=A0 struct pvrdma_dev *dev =3D to_vdev(ibcq->device);
+> > >=A0=A0=A0=A0=A0 struct pvrdma_cq *cq =3D to_vcq(ibcq);
+> > >=A0=A0=A0=A0=A0 u32 val =3D cq->cq_handle;
+> > > +=A0=A0 unsigned long flags;
+> > >
+> > >=A0=A0=A0=A0=A0 val |=3D (notify_flags & IB_CQ_SOLICITED_MASK) =3D=3D =
+IB_CQ_SOLICITED ?
+> > >=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 PVRDMA_UAR_CQ_ARM_SOL : PVRDMA=
+_UAR_CQ_ARM;
+> > >
+> > > +=A0=A0 spin_lock_irqsave(&cq->cq_lock, flags);
+> > > +
+> > >=A0=A0=A0=A0=A0 pvrdma_write_uar_cq(dev, val);
+> > >
+> > > +=A0=A0 if (notify_flags & IB_CQ_REPORT_MISSED_EVENTS) {
+> > > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 unsigned int head;
+> > > +
+> > > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 if (pvrdma_idx_ring_has_data(&cq->rin=
+g_state->rx,
+> > > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 cq->ibcq.cqe, &head)) {
+> >
+> > The pvrdma_idx_ring_has_data function can return PVRDMA_INVALID_IDX (-1=
+).
+>
+> I believe that the case of PVRDMA_INVALID_IDX is only due to some bug. I =
+do
+> not think it is an expected behaviour, it means that ring is corrupted, a=
+m
+> i right Adit?
 
-> Dasaratharaman Chandramouli (10):
->        IB/core: Convert ah_attr from OPA to IB when copying to user
->        IB/srpt: Increase lid and sm_lid to 32 bits
->        IB/IPoIB: Increase local_lid to 32 bits
->        IB/mad: Change slid in RMPP recv from 16 to 32 bits
->        IB/core: Change port_attr.lid size from 16 to 32 bits
->        IB/core: Change port_attr.sm_lid from 16 to 32 bits
->        IB/CM: Create appropriate path records when handling CM request
->        IB/CM: Set appropriate slid and dlid when handling CM request
->        IB/rdmavt,hfi1,qib: Enhance rdmavt and hfi1 to use 32 bit lids
->        IB/hfi1: Enable RDMA_CAP_OPA_AH in hfi driver to support extended LIDs
+Thanks Leon, Yuval. While hitting the INVALID_IDX is really rare (we haven'=
+t hit it ever in our internal testing), we should check this for consistenc=
+y purposes. Look for a v1.
 
-Leon had some comments with these patches and Don is going to submit an 
-updated version of these 10. These were submitted previously back in 
-early June and sat on the list without comment. Hearing no feedback I 
-rebased them and sent with my other patches so we could get the driver 
-patches out.
-
-In hindsight we probably should have just submitted another revision to 
-these 10 and sent the following 11 and the other 6 as a separate series. 
-If that makes things easier we can still do that. Let me know the 
-easiest way for you to consume these.
-
-> Don Hiatt (11):
->        IB/core: Change wc.slid from 16 to 32 bits
->        IB/CM: Add OPA Path record support to CM
->        IB/rdmavt,hfi1,qib: Modify check_ah() to account for extended LIDs
->        IB/hfi1: Add support to receive 16B bypass packets
->        IB/hfi1: Add support to send 16B bypass packets
->        IB/hfi1: Add support to process 16B header errors
->        IB/hfi1: Determine 9B/16B L2 header type based on Address handle
->        IB/hfi1: Add 16B UD support
->        IB/hfi1: Add 16B trace support
->        IB/hfi1: Add 16B RC/UC support
->        IB/hfi1: Enhance PIO/SDMA send for 16B
-
-These will still apply, as will the other 6 patches in this series.
-
--Denny
+- Adit=
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
