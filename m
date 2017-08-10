@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v2 24/33] RDMA/netlink: Implement nldev port doit callback
-Date: Thu, 10 Aug 2017 14:08:18 +0300
-Message-ID: <20170810110827.9952-25-leon@kernel.org>
+Subject: [rdma-next v2 30/33] RDMA/netink: Export lids and sm_lids
+Date: Thu, 10 Aug 2017 14:08:24 +0300
+Message-ID: <20170810110827.9952-31-leon@kernel.org>
 References: <20170810110827.9952-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170810110827.9952-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,76 +12,62 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Provide ability to get specific to device and port information.
+According to the IB specification, the LID and SM_LID
+are 16-bit wide, but to support OmniPath users, export
+it as 32-bit value from the beginning.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/nldev.c | 44 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+ drivers/infiniband/core/nldev.c  | 9 ++++++++-
+ include/uapi/rdma/rdma_netlink.h | 8 ++++++++
+ 2 files changed, 16 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 1318e246196a..db9d9ffc1415 100644
+index 7af71d5e52c8..16f1d28bea69 100644
 --- a/drivers/infiniband/core/nldev.c
 +++ b/drivers/infiniband/core/nldev.c
-@@ -141,6 +141,49 @@ static int nldev_get_dumpit(struct sk_buff *skb, struct netlink_callback *cb)
- 	return ib_enum_all_devs(_nldev_get_dumpit, skb, cb);
+@@ -45,6 +45,8 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
+ 	[RDMA_NLDEV_ATTR_NODE_GUID]	= { .type = NLA_U64 },
+ 	[RDMA_NLDEV_ATTR_SYS_IMAGE_GUID] = { .type = NLA_U64 },
+ 	[RDMA_NLDEV_ATTR_SUBNET_PREFIX]	= { .type = NLA_U64 },
++	[RDMA_NLDEV_ATTR_LID]		= { .type = NLA_U32 },
++	[RDMA_NLDEV_ATTR_SM_LID]	= { .type = NLA_U32 },
+ };
+ 
+ static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
+@@ -102,7 +104,12 @@ static int fill_port_info(struct sk_buff *msg,
+ 	    nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_SUBNET_PREFIX,
+ 			      attr.subnet_prefix, 0))
+ 		return -EMSGSIZE;
+-
++	if (rdma_protocol_ib(device, port)) {
++		if (nla_put_u32(msg, RDMA_NLDEV_ATTR_LID, attr.lid))
++			return -EMSGSIZE;
++		if (nla_put_u32(msg, RDMA_NLDEV_ATTR_SM_LID, attr.sm_lid))
++			return -EMSGSIZE;
++	}
+ 	return 0;
  }
  
-+static int nldev_port_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
-+			       struct netlink_ext_ack *extack)
-+{
-+	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
-+	struct ib_device *device;
-+	struct sk_buff *msg;
-+	u32 index;
-+	u32 port;
-+	int err;
+diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
+index 481003182a35..7d5caaf54126 100644
+--- a/include/uapi/rdma/rdma_netlink.h
++++ b/include/uapi/rdma/rdma_netlink.h
+@@ -284,6 +284,14 @@ enum rdma_nldev_attr {
+ 	 */
+ 	RDMA_NLDEV_ATTR_SUBNET_PREFIX,		/* u64 */
+ 
++	/*
++	 * Local Identifier (LID),
++	 * According to IB specification, It is 16-bit address assigned
++	 * by the Subnet Manager. Extended to be 32-bit for OmniPath users.
++	 */
++	RDMA_NLDEV_ATTR_LID,			/* u32 */
++	RDMA_NLDEV_ATTR_SM_LID,			/* u32 */
 +
-+	err = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
-+			  nldev_policy, extack);
-+	if (err || !tb[RDMA_NLDEV_ATTR_PORT_INDEX])
-+		return -EINVAL;
-+
-+	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
-+	device = __ib_device_get_by_index(index);
-+	if (!device)
-+		return -EINVAL;
-+
-+	port = nla_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
-+	if (!rdma_is_port_valid(device, port))
-+		return -EINVAL;
-+
-+	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
-+	if (!msg)
-+		return -ENOMEM;
-+
-+	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
-+			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_GET),
-+			0, 0);
-+
-+	err = fill_port_info(msg, device, port);
-+	if (err) {
-+		nlmsg_free(msg);
-+		return err;
-+	}
-+
-+	nlmsg_end(msg, nlh);
-+
-+	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
-+}
-+
- static int nldev_port_get_dumpit(struct sk_buff *skb,
- 				 struct netlink_callback *cb)
- {
-@@ -203,6 +246,7 @@ static const struct rdma_nl_cbs nldev_cb_table[] = {
- 		.dump = nldev_get_dumpit,
- 	},
- 	[RDMA_NLDEV_CMD_PORT_GET] = {
-+		.doit = nldev_port_get_doit,
- 		.dump = nldev_port_get_dumpit,
- 	},
+ 	RDMA_NLDEV_ATTR_MAX
  };
+ #endif /* _UAPI_RDMA_NETLINK_H */
 -- 
 2.14.0
 
