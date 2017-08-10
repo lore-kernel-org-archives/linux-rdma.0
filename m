@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v2 05/33] RDMA/iwcm: Remove useless check of netlink client validity
-Date: Thu, 10 Aug 2017 14:07:59 +0300
-Message-ID: <20170810110827.9952-6-leon@kernel.org>
+Subject: [rdma-next v2 03/33] RDMA/netlink: Remove redundant owner option for netlink callbacks
+Date: Thu, 10 Aug 2017 14:07:57 +0300
+Message-ID: <20170810110827.9952-4-leon@kernel.org>
 References: <20170810110827.9952-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170810110827.9952-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,44 +12,59 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-RDMA netlink implementation guarantees that supplied
-client number is in allowed range.
+Owner field is not needed to be set because netlink is part of ib_core
+which will be unloaded last after all other modules are unloaded.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/iwpm_util.c | 6 ------
- 1 file changed, 6 deletions(-)
+ drivers/infiniband/core/cma.c     | 3 +--
+ drivers/infiniband/core/netlink.c | 2 --
+ include/rdma/rdma_netlink.h       | 1 -
+ 3 files changed, 1 insertion(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/core/iwpm_util.c b/drivers/infiniband/core/iwpm_util.c
-index f13870e69ccd..32ca2aaa4e3b 100644
---- a/drivers/infiniband/core/iwpm_util.c
-+++ b/drivers/infiniband/core/iwpm_util.c
-@@ -54,8 +54,6 @@ static struct iwpm_admin_data iwpm_admin;
- int iwpm_init(u8 nl_client)
- {
- 	int ret = 0;
--	if (iwpm_valid_client(nl_client))
--		return -EINVAL;
- 	mutex_lock(&iwpm_admin_lock);
- 	if (atomic_read(&iwpm_admin.refcount) == 0) {
- 		iwpm_hash_bucket = kzalloc(IWPM_MAPINFO_HASH_SIZE *
-@@ -383,15 +381,11 @@ int iwpm_get_nlmsg_seq(void)
- 
- int iwpm_valid_client(u8 nl_client)
- {
--	if (nl_client >= RDMA_NL_NUM_CLIENTS)
--		return 0;
- 	return iwpm_admin.client_list[nl_client];
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 2a16a559bdda..0c85f140e616 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -4459,8 +4459,7 @@ static int cma_get_id_stats(struct sk_buff *skb, struct netlink_callback *cb)
  }
  
- void iwpm_set_valid(u8 nl_client, int valid)
- {
--	if (nl_client >= RDMA_NL_NUM_CLIENTS)
--		return;
- 	iwpm_admin.client_list[nl_client] = valid;
+ static const struct ibnl_client_cbs cma_cb_table[] = {
+-	[RDMA_NL_RDMA_CM_ID_STATS] = { .dump = cma_get_id_stats,
+-				       .module = THIS_MODULE },
++	[RDMA_NL_RDMA_CM_ID_STATS] = { .dump = cma_get_id_stats},
+ };
+ 
+ static int cma_init_net(struct net *net)
+diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+index 06f7ba31fbdd..cd9b7e7b7d2c 100644
+--- a/drivers/infiniband/core/netlink.c
++++ b/drivers/infiniband/core/netlink.c
+@@ -180,12 +180,10 @@ static int ibnl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 		cb.skb = skb;
+ 		cb.nlh = nlh;
+ 		cb.dump = rdma_nl_types[index].cb_table[op].dump;
+-		cb.module = rdma_nl_types[index].cb_table[op].module;
+ 		return cb.dump(skb, &cb);
+ 	}
+ 
+ 	c.dump = rdma_nl_types[index].cb_table[op].dump;
+-	c.module = rdma_nl_types[index].cb_table[op].module;
+ 	return netlink_dump_start(nls, skb, nlh, &c);
  }
  
+diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
+index aadf0ab963b2..c124d8e43fc8 100644
+--- a/include/rdma/rdma_netlink.h
++++ b/include/rdma/rdma_netlink.h
+@@ -7,7 +7,6 @@
+ 
+ struct ibnl_client_cbs {
+ 	int (*dump)(struct sk_buff *skb, struct netlink_callback *nlcb);
+-	struct module *module;
+ };
+ 
+ /**
 -- 
 2.14.0
 
