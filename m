@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v2 22/33] RDMA/netlink: Add nldev device doit implementation
-Date: Thu, 10 Aug 2017 14:08:16 +0300
-Message-ID: <20170810110827.9952-23-leon@kernel.org>
+Subject: [rdma-next v2 29/33] RDMA/netlink: Advertise IB subnet prefix
+Date: Thu, 10 Aug 2017 14:08:23 +0300
+Message-ID: <20170810110827.9952-30-leon@kernel.org>
 References: <20170810110827.9952-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170810110827.9952-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,72 +12,54 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Provide ability to query specific device.
+Add IB subnet prefix to the port properties exported
+by RDMA netlink.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/nldev.c | 40 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+ drivers/infiniband/core/nldev.c  | 5 +++++
+ include/uapi/rdma/rdma_netlink.h | 5 +++++
+ 2 files changed, 10 insertions(+)
 
 diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 4b8b0f5d5344..666940f2b49a 100644
+index f932c2c3fad0..7af71d5e52c8 100644
 --- a/drivers/infiniband/core/nldev.c
 +++ b/drivers/infiniband/core/nldev.c
-@@ -53,6 +53,45 @@ static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
+@@ -44,6 +44,7 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
+ 					    .len = IB_FW_VERSION_NAME_MAX - 1},
+ 	[RDMA_NLDEV_ATTR_NODE_GUID]	= { .type = NLA_U64 },
+ 	[RDMA_NLDEV_ATTR_SYS_IMAGE_GUID] = { .type = NLA_U64 },
++	[RDMA_NLDEV_ATTR_SUBNET_PREFIX]	= { .type = NLA_U64 },
+ };
+ 
+ static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
+@@ -97,6 +98,10 @@ static int fill_port_info(struct sk_buff *msg,
+ 	if (nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_CAP_FLAGS,
+ 			      (u64)attr.port_cap_flags, 0))
+ 		return -EMSGSIZE;
++	if (rdma_protocol_ib(device, port) &&
++	    nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_SUBNET_PREFIX,
++			      attr.subnet_prefix, 0))
++		return -EMSGSIZE;
+ 
  	return 0;
  }
+diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
+index fe3a7429e7a1..481003182a35 100644
+--- a/include/uapi/rdma/rdma_netlink.h
++++ b/include/uapi/rdma/rdma_netlink.h
+@@ -279,6 +279,11 @@ enum rdma_nldev_attr {
+ 	 */
+ 	RDMA_NLDEV_ATTR_SYS_IMAGE_GUID,		/* u64 */
  
-+static int nldev_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
-+			  struct netlink_ext_ack *extack)
-+{
-+	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
-+	struct ib_device *device;
-+	struct sk_buff *msg;
-+	u32 index;
-+	int err;
++	/*
++	 * Subnet prefix (in host byte order)
++	 */
++	RDMA_NLDEV_ATTR_SUBNET_PREFIX,		/* u64 */
 +
-+	err = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
-+			  nldev_policy, extack);
-+	if (err || !tb[RDMA_NLDEV_ATTR_DEV_INDEX])
-+		return -EINVAL;
-+
-+	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
-+
-+	device = __ib_device_get_by_index(index);
-+	if (!device)
-+		return -EINVAL;
-+
-+	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
-+	if (!msg)
-+		return -ENOMEM;
-+
-+	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
-+			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_GET),
-+			0, 0);
-+
-+	err = fill_dev_info(msg, device);
-+	if (err) {
-+		nlmsg_free(msg);
-+		return err;
-+	}
-+
-+	nlmsg_end(msg, nlh);
-+
-+	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
-+}
-+
- static int _nldev_get_dumpit(struct ib_device *device,
- 			     struct sk_buff *skb,
- 			     struct netlink_callback *cb,
-@@ -92,6 +131,7 @@ static int nldev_get_dumpit(struct sk_buff *skb, struct netlink_callback *cb)
- 
- static const struct rdma_nl_cbs nldev_cb_table[] = {
- 	[RDMA_NLDEV_CMD_GET] = {
-+		.doit = nldev_get_doit,
- 		.dump = nldev_get_dumpit,
- 	},
+ 	RDMA_NLDEV_ATTR_MAX
  };
+ #endif /* _UAPI_RDMA_NETLINK_H */
 -- 
 2.14.0
 
