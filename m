@@ -1,55 +1,58 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v06 30/36] uapi rdma/rdma_user_rxe.h: include in.h and
- in6.h
-Date: Thu, 10 Aug 2017 10:19:12 -0600
-Message-ID: <20170810161912.GA2491@obsidianresearch.com>
-References: <20170806164428.2273-1-mikko.rapeli@iki.fi>
- <20170806164428.2273-31-mikko.rapeli@iki.fi>
- <20170808231306.GH29372@obsidianresearch.com>
- <CAG9sBKP=NuSJzhg8rMBTsTuZkfzPDjxYgAGjiCnEMe=9xXB0xA@mail.gmail.com>
- <20170809155241.GB15586@obsidianresearch.com>
- <20170810024747.GA30198@altlinux.org>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: Re: [PATCH for-next 00/27] IB/hfi1, rdmavt, core, etc: patches for
+ next 08/04/2017
+Date: Thu, 10 Aug 2017 13:05:22 -0400
+Message-ID: <f73b2f88-bc1b-92ed-1632-d2f3b1583d60@intel.com>
+References: <20170804204842.17853.14858.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170810024747.GA30198-u2l5PoMzF/Vg9hUCZPvPmw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Dmitry V. Levin" <ldv-u2l5PoMzF/Vg9hUCZPvPmw@public.gmane.org>
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>, Linux Kernel Mailinglist <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20170804204842.17853.14858.stgit@scvm10.sc.intel.com>
+Content-Language: en-US
+Sender: stable-owner@vger.kernel.org
+To: dledford@redhat.com
+Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, Bartlomiej Dudek <bartlomiej.dudek@intel.com>, Jakub Byczkowski <jakub.byczkowski@intel.com>, linux-rdma@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Don Hiatt <don.hiatt@intel.com>, Sebastian Sanchez <sebastian.sanchez@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Aug 10, 2017 at 05:47:48AM +0300, Dmitry V. Levin wrote:
-> On Wed, Aug 09, 2017 at 09:52:41AM -0600, Jason Gunthorpe wrote:
-> > On Wed, Aug 09, 2017 at 04:48:08PM +0300, Moni Shoua wrote:
-> > > >
-> > > > I'm not sure this is a good idea, linux/in.h should not be included in
-> > > > userspace users of this file, 'sockaddr_in' needs to come from glibc's
-> > > > 'netinet/in.h' instead..
-> > 
-> > > Is it wrong to include include/uapi/linux/in.h from userspace?
-> > 
-> > Generally speaking userspace should always use the glibc version of
-> > the headers and not headers from under linux/
-> 
-> Sorry?  Isn't the main idea of UAPI in providing the Linux interface for
-> userspace, unlike glibc headers that provide other more or less standard
-> interfaces like GNU, POSIX, etc?
+On 8/4/2017 4:52 PM, Dennis Dalessandro wrote:
 
-The issue is when glibc and linux provide the same standards based API
-(eg in.h) - then the uapi version of in.h is really only for
-consumption by glibc and other very special cases.
+> Dasaratharaman Chandramouli (10):
+>        IB/core: Convert ah_attr from OPA to IB when copying to user
+>        IB/srpt: Increase lid and sm_lid to 32 bits
+>        IB/IPoIB: Increase local_lid to 32 bits
+>        IB/mad: Change slid in RMPP recv from 16 to 32 bits
+>        IB/core: Change port_attr.lid size from 16 to 32 bits
+>        IB/core: Change port_attr.sm_lid from 16 to 32 bits
+>        IB/CM: Create appropriate path records when handling CM request
+>        IB/CM: Set appropriate slid and dlid when handling CM request
+>        IB/rdmavt,hfi1,qib: Enhance rdmavt and hfi1 to use 32 bit lids
+>        IB/hfi1: Enable RDMA_CAP_OPA_AH in hfi driver to support extended LIDs
 
-Forcing apps that need to access the rdma uapi that is not implemented
-in glibc to deal with that mess is what is problematic. The uapi
-system has a number of issues like this :|
+Leon had some comments with these patches and Don is going to submit an 
+updated version of these 10. These were submitted previously back in 
+early June and sat on the list without comment. Hearing no feedback I 
+rebased them and sent with my other patches so we could get the driver 
+patches out.
 
-If you make it so I cannot include rdma_user_rxe.h and netinet/in.h,
-(for instance) in the same file then you broke user space use of the
-header and things are worse off..
+In hindsight we probably should have just submitted another revision to 
+these 10 and sent the following 11 and the other 6 as a separate series. 
+If that makes things easier we can still do that. Let me know the 
+easiest way for you to consume these.
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Don Hiatt (11):
+>        IB/core: Change wc.slid from 16 to 32 bits
+>        IB/CM: Add OPA Path record support to CM
+>        IB/rdmavt,hfi1,qib: Modify check_ah() to account for extended LIDs
+>        IB/hfi1: Add support to receive 16B bypass packets
+>        IB/hfi1: Add support to send 16B bypass packets
+>        IB/hfi1: Add support to process 16B header errors
+>        IB/hfi1: Determine 9B/16B L2 header type based on Address handle
+>        IB/hfi1: Add 16B UD support
+>        IB/hfi1: Add 16B trace support
+>        IB/hfi1: Add 16B RC/UC support
+>        IB/hfi1: Enhance PIO/SDMA send for 16B
+
+These will still apply, as will the other 6 patches in this series.
+
+-Denny
