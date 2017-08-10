@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v2 04/33] RDMA/netlink: Avoid double pass for RDMA netlink messages
-Date: Thu, 10 Aug 2017 14:07:58 +0300
-Message-ID: <20170810110827.9952-5-leon@kernel.org>
+Subject: [rdma-next v2 13/33] RDMA/core: Add iterator over ib_devices
+Date: Thu, 10 Aug 2017 14:08:07 +0300
+Message-ID: <20170810110827.9952-14-leon@kernel.org>
 References: <20170810110827.9952-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170810110827.9952-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,132 +12,76 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The standard netlink_rcv_skb function skips messages without
-NLM_F_REQUEST flag in it, while SA netlink client issues them.
+The coming nldev needs to iterate over all IB devices in the system
+and in order to not expose the ib_devices list outside the devices.c,
+it is necessary to provide function iterator.
 
-In commit bc10ed7d3d19 ("IB/core: Add rdma netlink helper functions")
-the local function was introduced to allow such messages.
-
-This led to double pass for every incoming message.
-
-In this patch, we unify that local implementation and netlink_rcv_skb
-functions, so there will be no need for double pass anymore.
-
-As a outcome, this combined function gained more strict check
-for NLM_F_REQUEST flag and it is now allowed for SA pathquery
-client only.
+Current version is written explicitly for nldev callback to avoid
+over-engineering at this stage, but it can be easily extended for
+other types.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/netlink.c | 62 +++++++++++++++++++++++++++------------
- 1 file changed, 44 insertions(+), 18 deletions(-)
+ drivers/infiniband/core/core_priv.h |  8 ++++++++
+ drivers/infiniband/core/device.c    | 25 +++++++++++++++++++++++++
+ 2 files changed, 33 insertions(+)
 
-diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-index cd9b7e7b7d2c..826fbd612c7d 100644
---- a/drivers/infiniband/core/netlink.c
-+++ b/drivers/infiniband/core/netlink.c
-@@ -159,8 +159,8 @@ int ibnl_put_attr(struct sk_buff *skb, struct nlmsghdr *nlh,
- }
- EXPORT_SYMBOL(ibnl_put_attr);
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index e759c27113cd..0c175590cf92 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -102,6 +102,14 @@ void ib_enum_all_roce_netdevs(roce_netdev_filter filter,
+ 			      roce_netdev_callback cb,
+ 			      void *cookie);
  
--static int ibnl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
--			struct netlink_ext_ack *extack)
-+static int rdma_nl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
-+			   struct netlink_ext_ack *extack)
- {
- 	int type = nlh->nlmsg_type;
- 	unsigned int index = RDMA_NL_GET_CLIENT(type);
-@@ -187,40 +187,66 @@ static int ibnl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
- 	return netlink_dump_start(nls, skb, nlh, &c);
++typedef int (*nldev_callback)(struct ib_device *device,
++			      struct sk_buff *skb,
++			      struct netlink_callback *cb,
++			      unsigned int idx);
++
++int ib_enum_all_devs(nldev_callback nldev_cb, struct sk_buff *skb,
++		     struct netlink_callback *cb);
++
+ enum ib_cache_gid_default_mode {
+ 	IB_CACHE_GID_DEFAULT_MODE_SET,
+ 	IB_CACHE_GID_DEFAULT_MODE_DELETE
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 33a39518848c..8828f26250a8 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -892,6 +892,31 @@ void ib_enum_all_roce_netdevs(roce_netdev_filter filter,
+ 	up_read(&lists_rwsem);
  }
  
--static void ibnl_rcv_reply_skb(struct sk_buff *skb)
-+/*
-+ * This function is similar to netlink_rcv_skb with one exception:
-+ * It calls to the callback for the netlink messages without NLM_F_REQUEST
-+ * flag. These messages are intended for RDMA_NL_LS consumer, so it is allowed
-+ * for that consumer only.
++/**
++ * ib_enum_all_devs - enumerate all ib_devices
++ * @cb: Callback to call for each found ib_device
++ *
++ * Enumerates all ib_devices and calls callback() on each device.
 + */
-+static int rdma_nl_rcv_skb(struct sk_buff *skb, int (*cb)(struct sk_buff *,
-+						   struct nlmsghdr *,
-+						   struct netlink_ext_ack *))
- {
-+	struct netlink_ext_ack extack = {};
- 	struct nlmsghdr *nlh;
--	int msglen;
-+	int err;
- 
--	/*
--	 * Process responses until there is no more message or the first
--	 * request. Generally speaking, it is not recommended to mix responses
--	 * with requests.
--	 */
- 	while (skb->len >= nlmsg_total_size(0)) {
-+		int msglen;
++int ib_enum_all_devs(nldev_callback nldev_cb, struct sk_buff *skb,
++		     struct netlink_callback *cb)
++{
++	struct ib_device *dev;
++	unsigned int idx = 0;
++	int ret = 0;
 +
- 		nlh = nlmsg_hdr(skb);
-+		err = 0;
- 
- 		if (nlh->nlmsg_len < NLMSG_HDRLEN || skb->len < nlh->nlmsg_len)
--			return;
-+			return 0;
- 
--		/* Handle response only */
--		if (nlh->nlmsg_flags & NLM_F_REQUEST)
--			return;
-+		/*
-+		 * Generally speaking, the only requests are handled
-+		 * by the kernel, but RDMA_NL_LS is different, because it
-+		 * runs backward netlink scheme. Kernel initiates messages
-+		 * and waits for reply with data to keep pathrecord cache
-+		 * in sync.
-+		 */
-+		if (!(nlh->nlmsg_flags & NLM_F_REQUEST) &&
-+		    (RDMA_NL_GET_CLIENT(nlh->nlmsg_type) != RDMA_NL_LS))
-+			goto ack;
++	down_read(&lists_rwsem);
++	list_for_each_entry(dev, &device_list, core_list) {
++		ret = nldev_cb(dev, skb, cb, idx);
++		if (ret)
++			break;
++		idx++;
++	}
 +
-+		/* Skip control messages */
-+		if (nlh->nlmsg_type < NLMSG_MIN_TYPE)
-+			goto ack;
- 
--		ibnl_rcv_msg(skb, nlh, NULL);
-+		err = cb(skb, nlh, &extack);
-+		if (err == -EINTR)
-+			goto skip;
- 
-+ack:
-+		if (nlh->nlmsg_flags & NLM_F_ACK || err)
-+			netlink_ack(skb, nlh, err, &extack);
++	up_read(&lists_rwsem);
++	return ret;
++}
 +
-+skip:
- 		msglen = NLMSG_ALIGN(nlh->nlmsg_len);
- 		if (msglen > skb->len)
- 			msglen = skb->len;
- 		skb_pull(skb, msglen);
- 	}
-+
-+	return 0;
- }
- 
--static void ibnl_rcv(struct sk_buff *skb)
-+static void rdma_nl_rcv(struct sk_buff *skb)
- {
- 	mutex_lock(&rdma_nl_mutex);
--	ibnl_rcv_reply_skb(skb);
--	netlink_rcv_skb(skb, &ibnl_rcv_msg);
-+	rdma_nl_rcv_skb(skb, &rdma_nl_rcv_msg);
- 	mutex_unlock(&rdma_nl_mutex);
- }
- 
-@@ -254,7 +280,7 @@ EXPORT_SYMBOL(ibnl_multicast);
- int __init rdma_nl_init(void)
- {
- 	struct netlink_kernel_cfg cfg = {
--		.input	= ibnl_rcv,
-+		.input	= rdma_nl_rcv,
- 	};
- 
- 	nls = netlink_kernel_create(&init_net, NETLINK_RDMA, &cfg);
+ /**
+  * ib_query_pkey - Get P_Key table entry
+  * @device:Device to query
 -- 
 2.14.0
 
