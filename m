@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v2 19/33] RDMA/netlink: Add netlink device definitions to UAPI
-Date: Thu, 10 Aug 2017 14:08:13 +0300
-Message-ID: <20170810110827.9952-20-leon@kernel.org>
+Subject: [rdma-next v2 21/33] RDMA/netlink: Implement nldev device dumpit calback
+Date: Thu, 10 Aug 2017 14:08:15 +0300
+Message-ID: <20170810110827.9952-22-leon@kernel.org>
 References: <20170810110827.9952-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170810110827.9952-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,104 +12,96 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Introduce new defines to rdma_netlink.h, so the RDMA configuration tool
-will be able to communicate with RDMA subsystem by using the shared defines.
-
-The addition of new client (NLDEV) revealed the fact that we exposed by
-mistake the RDMA_NL_I40IW define which is not backed by any RDMA netlink
-by now and it won't be exposed in the future too. So this patch reuses
-the value and deletes the old defines.
-
-The NLDEV operates with objects. The struct ib_device has two straightforward
-objects: device itself and ports of that device.
-
-This brings us to propose the following commands to work on those objects:
- * RDMA_NLDEV_CMD_{GET,SET,NEW,DEL} - works on ib_device itself
- * RDMA_NLDEV_CMD_PORT_{GET,SET,NEW,DEL} - works on ports of specific ib_device
-
-Those commands receive/return the device index (RDMA_NLDEV_ATTR_DEV_INDEX)
-and port index (RDMA_NLDEV_ATTR_PORT_INDEX). For device object accesses,
-the RDMA_NLDEV_ATTR_PORT_INDEX will return the maximum number of ports
-for specific ib_device and for port access the actual port index.
-
-The port index starts from 1 to follow RDMA/core internal semantics and
-the sysfs exposed knobs.
+This patch adds the ability to return all available devices
+together with their properties.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/netlink.c |  2 +-
- include/uapi/rdma/rdma_netlink.h  | 39 ++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 39 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/nldev.c | 64 ++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 63 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-index cd692bd73793..27352a352770 100644
---- a/drivers/infiniband/core/netlink.c
-+++ b/drivers/infiniband/core/netlink.c
-@@ -61,7 +61,7 @@ static bool is_nl_msg_valid(unsigned int type, unsigned int op)
- 				  RDMA_NL_IWPM_NUM_OPS,
- 				  0,
- 				  RDMA_NL_LS_NUM_OPS,
--				  0 };
-+				  RDMA_NLDEV_NUM_OPS };
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+index 1d1e4f214874..4b8b0f5d5344 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -30,13 +30,75 @@
+  * POSSIBILITY OF SUCH DAMAGE.
+  */
  
- 	/*
- 	 * This BUILD_BUG_ON is intended to catch addition of new
-diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index 02fe8390c18f..a44229fa5eca 100644
---- a/include/uapi/rdma/rdma_netlink.h
-+++ b/include/uapi/rdma/rdma_netlink.h
-@@ -8,7 +8,7 @@ enum {
- 	RDMA_NL_IWCM,
- 	RDMA_NL_RSVD,
- 	RDMA_NL_LS,	/* RDMA Local Services */
--	RDMA_NL_I40IW,
-+	RDMA_NL_NLDEV,	/* RDMA device interface */
- 	RDMA_NL_NUM_CLIENTS
- };
++#include <net/netlink.h>
+ #include <rdma/rdma_netlink.h>
  
-@@ -222,4 +222,41 @@ struct rdma_nla_ls_gid {
- 	__u8		gid[16];
- };
+ #include "core_priv.h"
  
-+enum rdma_nldev_command {
-+	RDMA_NLDEV_CMD_UNSPEC,
-+
-+	RDMA_NLDEV_CMD_GET, /* can dump */
-+	RDMA_NLDEV_CMD_SET,
-+	RDMA_NLDEV_CMD_NEW,
-+	RDMA_NLDEV_CMD_DEL,
-+
-+	RDMA_NLDEV_CMD_PORT_GET, /* can dump */
-+	RDMA_NLDEV_CMD_PORT_SET,
-+	RDMA_NLDEV_CMD_PORT_NEW,
-+	RDMA_NLDEV_CMD_PORT_DEL,
-+
-+	RDMA_NLDEV_NUM_OPS
++static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
++	[RDMA_NLDEV_ATTR_DEV_INDEX]     = { .type = NLA_U32 },
++	[RDMA_NLDEV_ATTR_DEV_NAME]	= { .type = NLA_NUL_STRING,
++					    .len = IB_DEVICE_NAME_MAX - 1},
++	[RDMA_NLDEV_ATTR_PORT_INDEX]	= { .type = NLA_U32 },
 +};
 +
-+enum rdma_nldev_attr {
-+	/* don't change the order or add anything between, this is ABI! */
-+	RDMA_NLDEV_ATTR_UNSPEC,
++static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
++{
++	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_DEV_INDEX, device->index))
++		return -EMSGSIZE;
++	if (nla_put_string(msg, RDMA_NLDEV_ATTR_DEV_NAME, device->name))
++		return -EMSGSIZE;
++	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_PORT_INDEX, rdma_end_port(device)))
++		return -EMSGSIZE;
++	return 0;
++}
 +
-+	/* Identifier for ib_device */
-+	RDMA_NLDEV_ATTR_DEV_INDEX,		/* u32 */
++static int _nldev_get_dumpit(struct ib_device *device,
++			     struct sk_buff *skb,
++			     struct netlink_callback *cb,
++			     unsigned int idx)
++{
++	int start = cb->args[0];
++	struct nlmsghdr *nlh;
 +
-+	RDMA_NLDEV_ATTR_DEV_NAME,		/* string */
++	if (idx < start)
++		return 0;
++
++	nlh = nlmsg_put(skb, NETLINK_CB(cb->skb).portid, cb->nlh->nlmsg_seq,
++			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_GET),
++			0, NLM_F_MULTI);
++
++	if (fill_dev_info(skb, device)) {
++		nlmsg_cancel(skb, nlh);
++		goto out;
++	}
++
++	nlmsg_end(skb, nlh);
++
++	idx++;
++
++out:	cb->args[0] = idx;
++	return skb->len;
++}
++
++static int nldev_get_dumpit(struct sk_buff *skb, struct netlink_callback *cb)
++{
 +	/*
-+	 * Device index together with port index are identifiers
-+	 * for port/link properties.
-+	 *
-+	 * For RDMA_NLDEV_CMD_GET commamnd, port index will return number
-+	 * of available ports in ib_device, while for port specific operations,
-+	 * it will be real port index as it appears in sysfs. Port index follows
-+	 * sysfs notation and starts from 1 for the first port.
++	 * There is no need to take lock, because
++	 * we are relying on ib_core's lists_rwsem
 +	 */
-+	RDMA_NLDEV_ATTR_PORT_INDEX,		/* u32 */
++	return ib_enum_all_devs(_nldev_get_dumpit, skb, cb);
++}
 +
-+	RDMA_NLDEV_ATTR_MAX
++static const struct rdma_nl_cbs nldev_cb_table[] = {
++	[RDMA_NLDEV_CMD_GET] = {
++		.dump = nldev_get_dumpit,
++	},
 +};
- #endif /* _UAPI_RDMA_NETLINK_H */
++
+ void __init nldev_init(void)
+ {
+-	rdma_nl_register(RDMA_NL_NLDEV, NULL);
++	rdma_nl_register(RDMA_NL_NLDEV, nldev_cb_table);
+ }
+ 
+ void __exit nldev_exit(void)
 -- 
 2.14.0
 
