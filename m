@@ -1,7 +1,7 @@
 From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-next v4 4/8] IB/mad: Change slid in RMPP recv from 16 to 32 bits
-Date: Thu, 10 Aug 2017 14:04:24 -0400
-Message-ID: <1502388268-20687-5-git-send-email-don.hiatt@intel.com>
+Subject: [PATCH rdma-next v4 2/8] IB/srpt: Increase lid and sm_lid to 32 bits
+Date: Thu, 10 Aug 2017 14:04:22 -0400
+Message-ID: <1502388268-20687-3-git-send-email-don.hiatt@intel.com>
 References: <1502388268-20687-1-git-send-email-don.hiatt@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1502388268-20687-1-git-send-email-don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
@@ -11,29 +11,31 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-MAD RMPP contains slid field which is 16 bits in
-length, increase it to 32 bits.
+srpt contains lid and sm_lid fields which are 16 bits in
+length, increase them to 32 bits.
 
 Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/mad_rmpp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/mad_rmpp.c b/drivers/infiniband/core/mad_rmpp.c
-index 0d3cca0..e5cf09c 100644
---- a/drivers/infiniband/core/mad_rmpp.c
-+++ b/drivers/infiniband/core/mad_rmpp.c
-@@ -64,7 +64,7 @@ struct mad_rmpp_recv {
- 
- 	__be64 tid;
- 	u32 src_qp;
--	u16 slid;
-+	u32 slid;
- 	u8 mgmt_class;
- 	u8 class_version;
- 	u8 method;
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
+index cc118385..1b817e5 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.h
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
+@@ -328,8 +328,8 @@ struct srpt_port {
+ 	u8			port_guid[24];
+ 	u8			port_gid[64];
+ 	u8			port;
+-	u16			sm_lid;
+-	u16			lid;
++	u32			sm_lid;
++	u32			lid;
+ 	union ib_gid		gid;
+ 	struct work_struct	work;
+ 	struct se_portal_group	port_guid_tpg;
 -- 
 1.8.3.1
 
