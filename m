@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v2 31/33] RDMA/netlink: Export LID mask control (LMC)
-Date: Thu, 10 Aug 2017 14:08:25 +0300
-Message-ID: <20170810110827.9952-32-leon@kernel.org>
+Subject: [rdma-next v2 32/33] RDMA/netlink: Provide port state and physical link state
+Date: Thu, 10 Aug 2017 14:08:26 +0300
+Message-ID: <20170810110827.9952-33-leon@kernel.org>
 References: <20170810110827.9952-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170810110827.9952-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,45 +12,48 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
+Add port state and physical link state to the users of RDMA netlink.
+
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/nldev.c  | 3 +++
- include/uapi/rdma/rdma_netlink.h | 5 +++++
- 2 files changed, 8 insertions(+)
+ drivers/infiniband/core/nldev.c  | 6 ++++++
+ include/uapi/rdma/rdma_netlink.h | 3 +++
+ 2 files changed, 9 insertions(+)
 
 diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 16f1d28bea69..11546f87c5dc 100644
+index 11546f87c5dc..32ccb2b88933 100644
 --- a/drivers/infiniband/core/nldev.c
 +++ b/drivers/infiniband/core/nldev.c
-@@ -47,6 +47,7 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 	[RDMA_NLDEV_ATTR_SUBNET_PREFIX]	= { .type = NLA_U64 },
+@@ -48,6 +48,8 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
  	[RDMA_NLDEV_ATTR_LID]		= { .type = NLA_U32 },
  	[RDMA_NLDEV_ATTR_SM_LID]	= { .type = NLA_U32 },
-+	[RDMA_NLDEV_ATTR_LMC]		= { .type = NLA_U8 },
+ 	[RDMA_NLDEV_ATTR_LMC]		= { .type = NLA_U8 },
++	[RDMA_NLDEV_ATTR_PORT_STATE]	= { .type = NLA_U8 },
++	[RDMA_NLDEV_ATTR_PORT_PHYS_STATE] = { .type = NLA_U8 },
  };
  
  static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
-@@ -109,6 +110,8 @@ static int fill_port_info(struct sk_buff *msg,
+@@ -113,6 +115,10 @@ static int fill_port_info(struct sk_buff *msg,
+ 		if (nla_put_u8(msg, RDMA_NLDEV_ATTR_LMC, attr.lmc))
  			return -EMSGSIZE;
- 		if (nla_put_u32(msg, RDMA_NLDEV_ATTR_SM_LID, attr.sm_lid))
- 			return -EMSGSIZE;
-+		if (nla_put_u8(msg, RDMA_NLDEV_ATTR_LMC, attr.lmc))
-+			return -EMSGSIZE;
  	}
++	if (nla_put_u8(msg, RDMA_NLDEV_ATTR_PORT_STATE, attr.state))
++		return -EMSGSIZE;
++	if (nla_put_u8(msg, RDMA_NLDEV_ATTR_PORT_PHYS_STATE, attr.phys_state))
++		return -EMSGSIZE;
  	return 0;
  }
+ 
 diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index 7d5caaf54126..035706e6b016 100644
+index 035706e6b016..c488c3cf361b 100644
 --- a/include/uapi/rdma/rdma_netlink.h
 +++ b/include/uapi/rdma/rdma_netlink.h
-@@ -292,6 +292,11 @@ enum rdma_nldev_attr {
- 	RDMA_NLDEV_ATTR_LID,			/* u32 */
- 	RDMA_NLDEV_ATTR_SM_LID,			/* u32 */
+@@ -297,6 +297,9 @@ enum rdma_nldev_attr {
+ 	 */
+ 	RDMA_NLDEV_ATTR_LMC,			/* u8 */
  
-+	/*
-+	 * LID mask control (LMC)
-+	 */
-+	RDMA_NLDEV_ATTR_LMC,			/* u8 */
++	RDMA_NLDEV_ATTR_PORT_STATE,		/* u8 */
++	RDMA_NLDEV_ATTR_PORT_PHYS_STATE,	/* u8 */
 +
  	RDMA_NLDEV_ATTR_MAX
  };
