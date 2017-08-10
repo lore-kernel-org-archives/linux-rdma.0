@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v2 06/33] RDMA/iwcm: Remove extra EXPORT_SYMBOLS
-Date: Thu, 10 Aug 2017 14:08:00 +0300
-Message-ID: <20170810110827.9952-7-leon@kernel.org>
+Subject: [rdma-next v2 07/33] RDMA/netlink: Add flag to consolidate common handling
+Date: Thu, 10 Aug 2017 14:08:01 +0300
+Message-ID: <20170810110827.9952-8-leon@kernel.org>
 References: <20170810110827.9952-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170810110827.9952-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,157 +12,116 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The iwcm exports functions which are not used outside of ib_core.
-This patch simply removes these EXPORT_SYMBOLS.
+Add ability to provide flags to control RDMA netlink callbacks
+and convert addr.c and sa_query.c to be first users of such
+infrastructure. It allows to move their CAP_NET_ADMIN checks
+into netlink core.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/iwpm_msg.c  | 12 ------------
- drivers/infiniband/core/iwpm_util.c |  5 -----
- 2 files changed, 17 deletions(-)
+ drivers/infiniband/core/addr.c     |  3 +--
+ drivers/infiniband/core/device.c   | 12 +++++++++---
+ drivers/infiniband/core/netlink.c  |  4 ++++
+ drivers/infiniband/core/sa_query.c |  6 ++----
+ include/rdma/rdma_netlink.h        |  6 ++++++
+ 5 files changed, 22 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/core/iwpm_msg.c b/drivers/infiniband/core/iwpm_msg.c
-index add99b92afdf..45de263305f5 100644
---- a/drivers/infiniband/core/iwpm_msg.c
-+++ b/drivers/infiniband/core/iwpm_msg.c
-@@ -42,7 +42,6 @@ int iwpm_valid_pid(void)
- {
- 	return iwpm_user_pid > 0;
- }
--EXPORT_SYMBOL(iwpm_valid_pid);
+diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+index 01236cef7bfb..9f3339861ec5 100644
+--- a/drivers/infiniband/core/addr.c
++++ b/drivers/infiniband/core/addr.c
+@@ -134,8 +134,7 @@ int ib_nl_handle_ip_res_resp(struct sk_buff *skb,
+ 	const struct nlmsghdr *nlh = (struct nlmsghdr *)cb->nlh;
  
- /*
-  * iwpm_register_pid - Send a netlink query to user space
-@@ -122,7 +121,6 @@ int iwpm_register_pid(struct iwpm_dev_data *pm_msg, u8 nl_client)
- 		iwpm_free_nlmsg_request(&nlmsg_request->kref);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_register_pid);
+ 	if ((nlh->nlmsg_flags & NLM_F_REQUEST) ||
+-	    !(NETLINK_CB(skb).sk) ||
+-	    !netlink_capable(skb, CAP_NET_ADMIN))
++	    !(NETLINK_CB(skb).sk))
+ 		return -EPERM;
  
- /*
-  * iwpm_add_mapping - Send a netlink add mapping message
-@@ -191,7 +189,6 @@ int iwpm_add_mapping(struct iwpm_sa_data *pm_msg, u8 nl_client)
- 		iwpm_free_nlmsg_request(&nlmsg_request->kref);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_add_mapping);
+ 	if (ib_nl_is_good_ip_resp(nlh))
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index d0994cd30eae..7ae29cc49a5e 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -1088,11 +1088,17 @@ EXPORT_SYMBOL(ib_get_net_dev_by_params);
  
- /*
-  * iwpm_add_and_query_mapping - Send a netlink add and query
-@@ -267,7 +264,6 @@ int iwpm_add_and_query_mapping(struct iwpm_sa_data *pm_msg, u8 nl_client)
- 		iwpm_free_nlmsg_request(&nlmsg_request->kref);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_add_and_query_mapping);
+ static const struct ibnl_client_cbs ibnl_ls_cb_table[] = {
+ 	[RDMA_NL_LS_OP_RESOLVE] = {
+-		.dump = ib_nl_handle_resolve_resp},
++		.dump = ib_nl_handle_resolve_resp,
++		.flags = RDMA_NL_ADMIN_PERM,
++	},
+ 	[RDMA_NL_LS_OP_SET_TIMEOUT] = {
+-		.dump = ib_nl_handle_set_timeout},
++		.dump = ib_nl_handle_set_timeout,
++		.flags = RDMA_NL_ADMIN_PERM,
++	},
+ 	[RDMA_NL_LS_OP_IP_RESOLVE] = {
+-		.dump = ib_nl_handle_ip_res_resp},
++		.dump = ib_nl_handle_ip_res_resp,
++		.flags = RDMA_NL_ADMIN_PERM,
++	},
+ };
  
- /*
-  * iwpm_remove_mapping - Send a netlink remove mapping message
-@@ -328,7 +324,6 @@ int iwpm_remove_mapping(struct sockaddr_storage *local_addr, u8 nl_client)
- 		dev_kfree_skb_any(skb);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_remove_mapping);
+ static int __init ib_core_init(void)
+diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+index 826fbd612c7d..c5ee62a24960 100644
+--- a/drivers/infiniband/core/netlink.c
++++ b/drivers/infiniband/core/netlink.c
+@@ -171,6 +171,10 @@ static int rdma_nl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	if (!is_nl_valid(index, op))
+ 		return -EINVAL;
  
- /* netlink attribute policy for the received response to register pid request */
- static const struct nla_policy resp_reg_policy[IWPM_NLA_RREG_PID_MAX] = {
-@@ -397,7 +392,6 @@ int iwpm_register_pid_cb(struct sk_buff *skb, struct netlink_callback *cb)
- 	up(&nlmsg_request->sem);
- 	return 0;
- }
--EXPORT_SYMBOL(iwpm_register_pid_cb);
++	if ((rdma_nl_types[index].cb_table[op].flags & RDMA_NL_ADMIN_PERM) &&
++	    !netlink_capable(skb, CAP_NET_ADMIN))
++		return -EPERM;
++
+ 	/*
+ 	 * For response or local service set_timeout request,
+ 	 * there is no need to use netlink_dump_start.
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index 70fa4cabe48e..b499f4422f41 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -1033,8 +1033,7 @@ int ib_nl_handle_set_timeout(struct sk_buff *skb,
+ 	int ret;
  
- /* netlink attribute policy for the received response to add mapping request */
- static const struct nla_policy resp_add_policy[IWPM_NLA_RMANAGE_MAPPING_MAX] = {
-@@ -466,7 +460,6 @@ int iwpm_add_mapping_cb(struct sk_buff *skb, struct netlink_callback *cb)
- 	up(&nlmsg_request->sem);
- 	return 0;
- }
--EXPORT_SYMBOL(iwpm_add_mapping_cb);
+ 	if (!(nlh->nlmsg_flags & NLM_F_REQUEST) ||
+-	    !(NETLINK_CB(skb).sk) ||
+-	    !netlink_capable(skb, CAP_NET_ADMIN))
++	    !(NETLINK_CB(skb).sk))
+ 		return -EPERM;
  
- /* netlink attribute policy for the response to add and query mapping request
-  * and response with remote address info */
-@@ -558,7 +551,6 @@ int iwpm_add_and_query_mapping_cb(struct sk_buff *skb,
- 	up(&nlmsg_request->sem);
- 	return 0;
- }
--EXPORT_SYMBOL(iwpm_add_and_query_mapping_cb);
+ 	ret = nla_parse(tb, LS_NLA_TYPE_MAX - 1, nlmsg_data(nlh),
+@@ -1109,8 +1108,7 @@ int ib_nl_handle_resolve_resp(struct sk_buff *skb,
+ 	int ret;
  
- /*
-  * iwpm_remote_info_cb - Process a port mapper message, containing
-@@ -627,7 +619,6 @@ int iwpm_remote_info_cb(struct sk_buff *skb, struct netlink_callback *cb)
- 			"remote_info: Mapped remote sockaddr:");
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_remote_info_cb);
+ 	if ((nlh->nlmsg_flags & NLM_F_REQUEST) ||
+-	    !(NETLINK_CB(skb).sk) ||
+-	    !netlink_capable(skb, CAP_NET_ADMIN))
++	    !(NETLINK_CB(skb).sk))
+ 		return -EPERM;
  
- /* netlink attribute policy for the received request for mapping info */
- static const struct nla_policy resp_mapinfo_policy[IWPM_NLA_MAPINFO_REQ_MAX] = {
-@@ -677,7 +668,6 @@ int iwpm_mapping_info_cb(struct sk_buff *skb, struct netlink_callback *cb)
- 	ret = iwpm_send_mapinfo(nl_client, iwpm_user_pid);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_mapping_info_cb);
+ 	spin_lock_irqsave(&ib_nl_request_lock, flags);
+diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
+index c124d8e43fc8..6ea36ec45401 100644
+--- a/include/rdma/rdma_netlink.h
++++ b/include/rdma/rdma_netlink.h
+@@ -7,6 +7,12 @@
  
- /* netlink attribute policy for the received mapping info ack */
- static const struct nla_policy ack_mapinfo_policy[IWPM_NLA_MAPINFO_NUM_MAX] = {
-@@ -707,7 +697,6 @@ int iwpm_ack_mapping_info_cb(struct sk_buff *skb, struct netlink_callback *cb)
- 	atomic_set(&echo_nlmsg_seq, cb->nlh->nlmsg_seq);
- 	return 0;
- }
--EXPORT_SYMBOL(iwpm_ack_mapping_info_cb);
+ struct ibnl_client_cbs {
+ 	int (*dump)(struct sk_buff *skb, struct netlink_callback *nlcb);
++	u8 flags;
++};
++
++enum rdma_nl_flags {
++	/* Require CAP_NET_ADMIN */
++	RDMA_NL_ADMIN_PERM	= 1 << 0,
+ };
  
- /* netlink attribute policy for the received port mapper error message */
- static const struct nla_policy map_error_policy[IWPM_NLA_ERR_MAX] = {
-@@ -751,4 +740,3 @@ int iwpm_mapping_error_cb(struct sk_buff *skb, struct netlink_callback *cb)
- 	up(&nlmsg_request->sem);
- 	return 0;
- }
--EXPORT_SYMBOL(iwpm_mapping_error_cb);
-diff --git a/drivers/infiniband/core/iwpm_util.c b/drivers/infiniband/core/iwpm_util.c
-index 32ca2aaa4e3b..c46442ac71a2 100644
---- a/drivers/infiniband/core/iwpm_util.c
-+++ b/drivers/infiniband/core/iwpm_util.c
-@@ -81,7 +81,6 @@ int iwpm_init(u8 nl_client)
- 	}
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_init);
- 
- static void free_hash_bucket(void);
- static void free_reminfo_bucket(void);
-@@ -107,7 +106,6 @@ int iwpm_exit(u8 nl_client)
- 	iwpm_set_registration(nl_client, IWPM_REG_UNDEF);
- 	return 0;
- }
--EXPORT_SYMBOL(iwpm_exit);
- 
- static struct hlist_head *get_mapinfo_hash_bucket(struct sockaddr_storage *,
- 					       struct sockaddr_storage *);
-@@ -146,7 +144,6 @@ int iwpm_create_mapinfo(struct sockaddr_storage *local_sockaddr,
- 	spin_unlock_irqrestore(&iwpm_mapinfo_lock, flags);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_create_mapinfo);
- 
- int iwpm_remove_mapinfo(struct sockaddr_storage *local_sockaddr,
- 			struct sockaddr_storage *mapped_local_addr)
-@@ -182,7 +179,6 @@ int iwpm_remove_mapinfo(struct sockaddr_storage *local_sockaddr,
- 	spin_unlock_irqrestore(&iwpm_mapinfo_lock, flags);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_remove_mapinfo);
- 
- static void free_hash_bucket(void)
- {
-@@ -295,7 +291,6 @@ int iwpm_get_remote_info(struct sockaddr_storage *mapped_loc_addr,
- 	spin_unlock_irqrestore(&iwpm_reminfo_lock, flags);
- 	return ret;
- }
--EXPORT_SYMBOL(iwpm_get_remote_info);
- 
- struct iwpm_nlmsg_request *iwpm_get_nlmsg_request(__u32 nlmsg_seq,
- 					u8 nl_client, gfp_t gfp)
+ /**
 -- 
 2.14.0
 
