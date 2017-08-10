@@ -1,76 +1,67 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] verbs: Change the provider library file name suffix
-Date: Thu, 10 Aug 2017 14:36:15 -0600
-Message-ID: <20170810203615.GB24546@obsidianresearch.com>
-References: <20170809215400.GA6921@obsidianresearch.com>
- <20170810064736.GQ1423@mtr-leonro.local>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 for-rc] RDMA/vmw_pvrdma: Report CQ missed events
+Date: Thu, 10 Aug 2017 20:55:42 +0000
+Message-ID: <306A2D1C-3070-4BFA-B532-D5020F5D185A@vmware.com>
+References: <1502391902-5674-1-git-send-email-aditr@vmware.com>
+ <20170810200256.GA4913@yuvallap>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170810064736.GQ1423-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20170810200256.GA4913@yuvallap>
+Content-Language: en-US
+Content-ID: <789A058C1E08D34C9C7B1FB8D92780B2-HX+pjaQZbrqcE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "Jorgen S. Hansen" <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Aug 10, 2017 at 09:47:36AM +0300, Leon Romanovsky wrote:
-> What do you think if we update it automatically?
-
-Okay, but this is more robust, I updated the PR
-
->From 1819eb861a0617ca02c1619b1c7569ec21158f64 Mon Sep 17 00:00:00 2001
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Date: Thu, 10 Aug 2017 11:10:54 -0600
-Subject: [PATCH] verbs: Use cmake substitution on libibverbs.map
-
-This lets us have one less copy of the value in
-IBVERBS_PABI_VERSION.
-
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- libibverbs/CMakeLists.txt                        | 5 ++++-
- libibverbs/{libibverbs.map => libibverbs.map.in} | 4 ++--
- 2 files changed, 6 insertions(+), 3 deletions(-)
- rename libibverbs/{libibverbs.map => libibverbs.map.in} (96%)
-
-diff --git a/libibverbs/CMakeLists.txt b/libibverbs/CMakeLists.txt
-index 7a52eddc810911..863c395df99d2b 100644
---- a/libibverbs/CMakeLists.txt
-+++ b/libibverbs/CMakeLists.txt
-@@ -18,7 +18,10 @@ else()
-   set(NEIGH "")
- endif()
- 
--rdma_library(ibverbs libibverbs.map
-+configure_file("libibverbs.map.in"
-+  "${CMAKE_CURRENT_BINARY_DIR}/libibverbs.map" @ONLY)
-+
-+rdma_library(ibverbs "${CMAKE_CURRENT_BINARY_DIR}/libibverbs.map"
-   # See Documentation/versioning.md
-   1 1.1.${PACKAGE_VERSION}
-   cmd.c
-diff --git a/libibverbs/libibverbs.map b/libibverbs/libibverbs.map.in
-similarity index 96%
-rename from libibverbs/libibverbs.map
-rename to libibverbs/libibverbs.map.in
-index 56020d06a844b2..a1124421bf364d 100644
---- a/libibverbs/libibverbs.map
-+++ b/libibverbs/libibverbs.map.in
-@@ -85,8 +85,8 @@ IBVERBS_1.1 {
- /* NOTE: The next stanza for public symbols should be IBVERBS_1.4 due to release 12 */
- 
- /* If any symbols in this stanza change ABI then the entire staza gets a new symbol
--   version. Also see the private_symver() macro */
--IBVERBS_PRIVATE_15 {
-+   version. See the top level CMakeLists.txt for this setting. */
-+IBVERBS_PRIVATE_@IBVERBS_PABI_VERSION@ {
- 	global:
- 		/* These historical symbols are now private to libibverbs */
- 		ibv_cmd_alloc_mw;
--- 
-2.7.4
-
+T24gOC8xMC8xNywgMTowMiBQTSwgIll1dmFsIFNoYWlhIiA8eXV2YWwuc2hhaWFAb3JhY2xlLmNv
+bT4gd3JvdGU6DQo+IE9uIFRodSwgQXVnIDEwLCAyMDE3IGF0IDEyOjA1OjAyUE0gLTA3MDAsIEFk
+aXQgUmFuYWRpdmUgd3JvdGU6DQo+ID4gRnJvbTogQnJ5YW4gVGFuIDxicnlhbnRhbkB2bXdhcmUu
+Y29tPg0KPiA+IA0KPiA+IFRoZXJlIGlzIGEgY2hhbmNlIG9mIGEgcmFjZSBiZXR3ZWVuIGFybWlu
+ZyB0aGUgQ1EgYW5kIHJlY2VpdmluZw0KPiA+IGNvbXBsZXRpb25zLiBCeSByZXBvcnRpbmcgQ1Eg
+bWlzc2VkIGV2ZW50cyBhbnkgVUxQcyBzaG91bGQgcG9sbA0KPiA+IGFnYWluIHRvIGdldCB0aGUg
+Y29tcGxldGlvbnMuDQo+ID4gDQo+ID4gRml4ZXM6IDI5YzhkOWViYTU1MCAoIklCOiBBZGQgdm13
+X3B2cmRtYSBkcml2ZXIiKQ0KPiA+IEFja2VkLWJ5OiBBZGl0eWEgU2Fyd2FkZSA8YXNhcndhZGVA
+dm13YXJlLmNvbT4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBCcnlhbiBUYW4gPGJyeWFudGFuQHZtd2Fy
+ZS5jb20+DQo+ID4gU2lnbmVkLW9mZi1ieTogQWRpdCBSYW5hZGl2ZSA8YWRpdHJAdm13YXJlLmNv
+bT4NCj4gPiAtLS0NCj4gPiB2MCAtPiB2MToNCj4gPiAgLSBDaGVjayBmb3IgaW52YWxpZCByaW5n
+IGluZGV4Lg0KPiA+IC0tLQ0KPiA+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvdm13X3B2cmRtYS9w
+dnJkbWFfY3EuYyB8IDE3ICsrKysrKysrKysrKysrKystDQo+ID4gIDEgZmlsZSBjaGFuZ2VkLCAx
+NiBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pDQo+ID4gDQo+ID4gZGlmZiAtLWdpdCBhL2Ry
+aXZlcnMvaW5maW5pYmFuZC9ody92bXdfcHZyZG1hL3B2cmRtYV9jcS5jIGIvZHJpdmVycy9pbmZp
+bmliYW5kL2h3L3Ztd19wdnJkbWEvcHZyZG1hX2NxLmMNCj4gPiBpbmRleCA2OWJkYTYxLi45MGFh
+MzI2IDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody92bXdfcHZyZG1hL3B2
+cmRtYV9jcS5jDQo+ID4gKysrIGIvZHJpdmVycy9pbmZpbmliYW5kL2h3L3Ztd19wdnJkbWEvcHZy
+ZG1hX2NxLmMNCj4gPiBAQCAtNjUsMTMgKzY1LDI4IEBAIGludCBwdnJkbWFfcmVxX25vdGlmeV9j
+cShzdHJ1Y3QgaWJfY3EgKmliY3EsDQo+ID4gIAlzdHJ1Y3QgcHZyZG1hX2RldiAqZGV2ID0gdG9f
+dmRldihpYmNxLT5kZXZpY2UpOw0KPiA+ICAJc3RydWN0IHB2cmRtYV9jcSAqY3EgPSB0b192Y3Eo
+aWJjcSk7DQo+ID4gIAl1MzIgdmFsID0gY3EtPmNxX2hhbmRsZTsNCj4gPiArCXVuc2lnbmVkIGxv
+bmcgZmxhZ3M7DQo+ID4gKwlpbnQgaGFzX2RhdGEgPSAwOw0KPiA+ICANCj4gPiAgCXZhbCB8PSAo
+bm90aWZ5X2ZsYWdzICYgSUJfQ1FfU09MSUNJVEVEX01BU0spID09IElCX0NRX1NPTElDSVRFRCA/
+DQo+ID4gIAkJUFZSRE1BX1VBUl9DUV9BUk1fU09MIDogUFZSRE1BX1VBUl9DUV9BUk07DQo+ID4g
+IA0KPiA+ICsJc3Bpbl9sb2NrX2lycXNhdmUoJmNxLT5jcV9sb2NrLCBmbGFncyk7DQo+ID4gKw0K
+PiA+ICAJcHZyZG1hX3dyaXRlX3Vhcl9jcShkZXYsIHZhbCk7DQo+ID4gIA0KPiA+IC0JcmV0dXJu
+IDA7DQo+ID4gKwlpZiAobm90aWZ5X2ZsYWdzICYgSUJfQ1FfUkVQT1JUX01JU1NFRF9FVkVOVFMp
+IHsNCj4gPiArCQl1bnNpZ25lZCBpbnQgaGVhZDsNCj4gPiArDQo+ID4gKwkJaGFzX2RhdGEgPSBw
+dnJkbWFfaWR4X3JpbmdfaGFzX2RhdGEoJmNxLT5yaW5nX3N0YXRlLT5yeCwNCj4gPiArCQkJCQkJ
+ICAgIGNxLT5pYmNxLmNxZSwgJmhlYWQpOw0KPiA+ICsJCWlmICh1bmxpa2VseShoYXNfZGF0YSA9
+PSBQVlJETUFfSU5WQUxJRF9JRFgpKQ0KPiA+ICsJCQlkZXZfZXJyKCZkZXYtPnBkZXYtPmRldiwg
+IkNRIHJpbmcgc3RhdGUgaW52YWxpZFxuIik7DQo+IA0KPiBJIHNlZSB0aGUgcG9pbnQgb2YgY2hl
+Y2tpbmcgdGhlIHJldHVybiB2YWx1ZSBidXQgcGVyIG15IHVuZGVyc3RhbmRpbmcsIGFuZA0KPiBj
+b3JyZWN0IG1lIGlmIGknbSB3cm9uZywgdGhpcyByYXJlIGNhc2UgcG9pbnRzIHRvIGEgY29ycnVw
+dGVkIHJpbmcgd2hpY2gNCj4gY2FuIGhhcHBlbiAqb25seSogaW4gY2FzZSBvZiBhIGJ1ZyBzbyBp
+dCBpcyBub3QgImVycm9yIiBieSBuYXR1cmUuDQo+IElmIHRoaXMgaXMgY29ycmVjdCB0aGVuIGkg
+ZG9uJ3Qgc2VlIHRoZSBwb2ludCBvZiBoYXZpbmcgdGhpcyAicXVlc3Rpb24iIG9uDQo+IGV2ZXJ5
+IGNhbGwgdG8gaWJfbm90aWZ5X2NxLg0KPiANCj4gRG8geW91IGFncmVlIHRvIG1vdmUgdGhpcyBj
+aGVjayB0byBwdnJkbWFfaWR4X3JpbmdfaGFzX2RhdGEgYW5kIGV2ZW4gbWFrZQ0KPiB0aGUgZnVu
+Y3Rpb24gdXNlIEJVR19PTj8NCg0KSSdsbCBjb25jZWRlIHRoYXQgd2hpbGUgaXQgcG9pbnRzIHRv
+IGEgY29ycnVwdGVkIHJpbmcgKHRocm91Z2ggYSBkZXZpY2UgYnVnLCANCm1lbW9yeSBjb3JydXB0
+aW9uKSBidXQgd2Ugd2FudCB0byByZXBvcnQgaXQgYXMgYSBkZXZpY2UgZXJyb3IgdG8gbWFpbnRh
+aW4NCmNvbnNpc3RlbmN5IGluIG91ciBkcml2ZXIgYW5kIGdpdmUgVUxQcyBhIGNoYW5jZSB0byBj
+bGVhbiB1cC4gQWxzbywgdGhlIGNvbXBpbGVyDQpvcHRpbWl6YXRpb24gc2hvdWxkIGhlbHAgaGVy
+ZS4NCg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
