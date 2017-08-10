@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v2 28/33] RDMA/netlink: Export node_guid and sys_image_guid
-Date: Thu, 10 Aug 2017 14:08:22 +0300
-Message-ID: <20170810110827.9952-29-leon@kernel.org>
+Subject: [rdma-next v2 22/33] RDMA/netlink: Add nldev device doit implementation
+Date: Thu, 10 Aug 2017 14:08:16 +0300
+Message-ID: <20170810110827.9952-23-leon@kernel.org>
 References: <20170810110827.9952-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170810110827.9952-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,65 +12,72 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add Node GUID and system image GUID to the device properties
-exported by RDMA netlink, to be used by RDMAtool.
+Provide ability to query specific device.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/core/nldev.c  |  8 ++++++++
- include/uapi/rdma/rdma_netlink.h | 13 +++++++++++++
- 2 files changed, 21 insertions(+)
+ drivers/infiniband/core/nldev.c | 40 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
 
 diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index cdc970ca5a1b..f932c2c3fad0 100644
+index 4b8b0f5d5344..666940f2b49a 100644
 --- a/drivers/infiniband/core/nldev.c
 +++ b/drivers/infiniband/core/nldev.c
-@@ -42,6 +42,8 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 	[RDMA_NLDEV_ATTR_PORT_INDEX]	= { .type = NLA_U32 },
- 	[RDMA_NLDEV_ATTR_FW_VERSION]	= { .type = NLA_NUL_STRING,
- 					    .len = IB_FW_VERSION_NAME_MAX - 1},
-+	[RDMA_NLDEV_ATTR_NODE_GUID]	= { .type = NLA_U64 },
-+	[RDMA_NLDEV_ATTR_SYS_IMAGE_GUID] = { .type = NLA_U64 },
- };
- 
- static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
-@@ -65,6 +67,12 @@ static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
- 	if (strlen(fw) && nla_put_string(msg, RDMA_NLDEV_ATTR_FW_VERSION, fw))
- 		return -EMSGSIZE;
- 
-+	if (nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_NODE_GUID,
-+			      be64_to_cpu(device->node_guid), 0))
-+		return -EMSGSIZE;
-+	if (nla_put_u64_64bit(msg, RDMA_NLDEV_ATTR_SYS_IMAGE_GUID,
-+			      be64_to_cpu(device->attrs.sys_image_guid), 0))
-+		return -EMSGSIZE;
+@@ -53,6 +53,45 @@ static int fill_dev_info(struct sk_buff *msg, struct ib_device *device)
  	return 0;
  }
  
-diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index 5159858730b0..fe3a7429e7a1 100644
---- a/include/uapi/rdma/rdma_netlink.h
-+++ b/include/uapi/rdma/rdma_netlink.h
-@@ -266,6 +266,19 @@ enum rdma_nldev_attr {
- 	 * FW version
- 	 */
- 	RDMA_NLDEV_ATTR_FW_VERSION,		/* string */
++static int nldev_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
++			  struct netlink_ext_ack *extack)
++{
++	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
++	struct ib_device *device;
++	struct sk_buff *msg;
++	u32 index;
++	int err;
 +
-+	/*
-+	 * Node GUID (in host byte order) associated with the RDMA device.
-+	 */
-+	RDMA_NLDEV_ATTR_NODE_GUID,			/* u64 */
++	err = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
++			  nldev_policy, extack);
++	if (err || !tb[RDMA_NLDEV_ATTR_DEV_INDEX])
++		return -EINVAL;
 +
-+	/*
-+	 * System image GUID (in host byte order) associated with
-+	 * this RDMA device and other devices which are part of a
-+	 * single system.
-+	 */
-+	RDMA_NLDEV_ATTR_SYS_IMAGE_GUID,		/* u64 */
++	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
 +
- 	RDMA_NLDEV_ATTR_MAX
++	device = __ib_device_get_by_index(index);
++	if (!device)
++		return -EINVAL;
++
++	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
++	if (!msg)
++		return -ENOMEM;
++
++	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
++			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV, RDMA_NLDEV_CMD_GET),
++			0, 0);
++
++	err = fill_dev_info(msg, device);
++	if (err) {
++		nlmsg_free(msg);
++		return err;
++	}
++
++	nlmsg_end(msg, nlh);
++
++	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
++}
++
+ static int _nldev_get_dumpit(struct ib_device *device,
+ 			     struct sk_buff *skb,
+ 			     struct netlink_callback *cb,
+@@ -92,6 +131,7 @@ static int nldev_get_dumpit(struct sk_buff *skb, struct netlink_callback *cb)
+ 
+ static const struct rdma_nl_cbs nldev_cb_table[] = {
+ 	[RDMA_NLDEV_CMD_GET] = {
++		.doit = nldev_get_doit,
+ 		.dump = nldev_get_dumpit,
+ 	},
  };
- #endif /* _UAPI_RDMA_NETLINK_H */
 -- 
 2.14.0
 
