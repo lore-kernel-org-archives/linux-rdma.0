@@ -1,63 +1,82 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-rc] RDMA/vmw_pvrdma: Report CQ missed events
-Date: Thu, 10 Aug 2017 00:46:15 -0700
-Message-ID: <1502351175-1762-1-git-send-email-aditr@vmware.com>
+From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: [PATCH v2 rdma-core 0/6] Common udev/systemd based module auto
+ loading
+Date: Thu, 10 Aug 2017 09:55:38 +0200
+Message-ID: <1502351738.1259.6.camel@profitbricks.com>
+References: <1501256525.4572.44.camel@profitbricks.com>
+         <20170728154749.GA9646@obsidianresearch.com>
+         <1501260065.4572.47.camel@profitbricks.com>
+         <20170728165614.GA14302@obsidianresearch.com>
+         <1501761659.3581.2.camel@profitbricks.com>
+         <20170803175242.GA31628@obsidianresearch.com>
+         <1501863751.3581.19.camel@profitbricks.com>
+         <20170808223851.GE29372@obsidianresearch.com>
+         <1502300630.1259.4.camel@profitbricks.com>
+         <20170809195430.GB7013@obsidianresearch.com>
+         <20170809200040.GA7167@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170809200040.GA7167-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
-Cc: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jarod Wilson <jarod-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Am Mittwoch, den 09.08.2017, 14:00 -0600 schrieb Jason Gunthorpe:
+> On Wed, Aug 09, 2017 at 01:54:30PM -0600, Jason Gunthorpe wrote:
+> > On Wed, Aug 09, 2017 at 07:43:50PM +0200, Benjamin Drung wrote:
+> > > Am Dienstag, den 08.08.2017, 16:38 -0600 schrieb Jason Gunthorpe:
+> > > > On Fri, Aug 04, 2017 at 06:22:31PM +0200, Benjamin Drung wrote:
+> > > > 
+> > > > > By default, nothing from the infiniband directory is
+> > > > > included. The
+> > > > > question is: What is the right thing to do? Should everything
+> > > > > from
+> > > > > kernel/drivers/infiniband/hw be included in the initrd by
+> > > > > default?
+> > > > 
+> > > > No, only modules that can be request_module'd from the initrd
+> > > > should
+> > > > be included in the initrd.
+> > > > 
+> > > > AFAIK only the two mellanox drivers do request module, so only
+> > > > those
+> > > > two or three modules (mlx4_ib, mlx4_en, mlx5_ib?) should be
+> > > > included.
+> > > > 
+> > > > That sounds like something that should be fixed in the initd
+> > > > package?
+> > > > Or should rdma-core be dropping some kind of hook in a .d
+> > > > directory?
+> > > 
+> > > Yes. I opened a bug report against initramfs-tools with a patch
+> > > attached: https://bugs.debian.org/871595
+> > 
+> > Looks fine to me, thanks
+> 
+> Actually, does it somehow get mlx4_en too?
 
-There is a chance of a race between arming the CQ and receiving
-completions. By reporting CQ missed events any ULPs should poll
-again to get the completions.
+Yes. mlx4_en.ko is in kernel/drivers/net/ethernet/mellanox/mlx4/ and
+the whole kernel/drivers/net is included in the initrd (with some
+specific excludes).
 
-Fixes: 29c8d9eba550 ("IB: Add vmw_pvrdma driver")
-Acked-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
-
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
-index 69bda61..f4ab5fa 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
-@@ -65,12 +65,27 @@ int pvrdma_req_notify_cq(struct ib_cq *ibcq,
- 	struct pvrdma_dev *dev = to_vdev(ibcq->device);
- 	struct pvrdma_cq *cq = to_vcq(ibcq);
- 	u32 val = cq->cq_handle;
-+	unsigned long flags;
- 
- 	val |= (notify_flags & IB_CQ_SOLICITED_MASK) == IB_CQ_SOLICITED ?
- 		PVRDMA_UAR_CQ_ARM_SOL : PVRDMA_UAR_CQ_ARM;
- 
-+	spin_lock_irqsave(&cq->cq_lock, flags);
-+
- 	pvrdma_write_uar_cq(dev, val);
- 
-+	if (notify_flags & IB_CQ_REPORT_MISSED_EVENTS) {
-+		unsigned int head;
-+
-+		if (pvrdma_idx_ring_has_data(&cq->ring_state->rx,
-+					     cq->ibcq.cqe, &head)) {
-+			spin_unlock_irqrestore(&cq->cq_lock, flags);
-+			return 1;
-+		}
-+	}
-+
-+	spin_unlock_irqrestore(&cq->cq_lock, flags);
-+
- 	return 0;
- }
- 
 -- 
-2.7.4
+Benjamin Drung
+System Developer
+Debian & Ubuntu Developer
+
+ProfitBricks GmbH
+Greifswalder Str. 207
+D - 10405 Berlin
+
+Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
+Web: https://www.profitbricks.com
+
+Sitz der Gesellschaft: Berlin.
+Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
+Geschäftsführer: Achim Weiss.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
