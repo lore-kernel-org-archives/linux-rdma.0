@@ -1,78 +1,181 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-rc] RDMA/vmw_pvrdma: Report CQ missed events
-Date: Thu, 10 Aug 2017 17:20:53 +0000
-Message-ID: <CY4PR05MB3510E71AF280B2473639A0CCC5880@CY4PR05MB3510.namprd05.prod.outlook.com>
-References: <1502351175-1762-1-git-send-email-aditr@vmware.com>
- <20170810111557.GT1423@mtr-leonro.local>,<20170810112536.GB3500@yuvallap>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH rdma-next v4 1/8] IB/core: Convert ah_attr from OPA to IB when copying to user
+Date: Thu, 10 Aug 2017 14:04:21 -0400
+Message-ID: <1502388268-20687-2-git-send-email-don.hiatt@intel.com>
+References: <1502388268-20687-1-git-send-email-don.hiatt@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170810112536.GB3500@yuvallap>
-Content-Language: en-US
+In-Reply-To: <1502388268-20687-1-git-send-email-don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> On Thu, Aug 10, 2017 at 02:15:57PM +0300, Leon Romanovsky wrote:
-> > On Thu, Aug 10, 2017 at 12:46:15AM -0700, Adit Ranadive wrote:
-> > > From: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > >
-> > > There is a chance of a race between arming the CQ and receiving
-> > > completions. By reporting CQ missed events any ULPs should poll
-> > > again to get the completions.
-> > >
-> > > Fixes: 29c8d9eba550 ("IB: Add vmw_pvrdma driver")
-> > > Acked-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > > Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > > Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > > ---
-> > >=A0 drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c | 15 +++++++++++++++
-> > >=A0 1 file changed, 15 insertions(+)
-> > >
-> > > diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c b/drivers/i=
-nfiniband/hw/vmw_pvrdma/pvrdma_cq.c
-> > > index 69bda61..f4ab5fa 100644
-> > > --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
-> > > +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
-> > > @@ -65,12 +65,27 @@ int pvrdma_req_notify_cq(struct ib_cq *ibcq,
-> > >=A0=A0=A0=A0=A0 struct pvrdma_dev *dev =3D to_vdev(ibcq->device);
-> > >=A0=A0=A0=A0=A0 struct pvrdma_cq *cq =3D to_vcq(ibcq);
-> > >=A0=A0=A0=A0=A0 u32 val =3D cq->cq_handle;
-> > > +=A0=A0 unsigned long flags;
-> > >
-> > >=A0=A0=A0=A0=A0 val |=3D (notify_flags & IB_CQ_SOLICITED_MASK) =3D=3D =
-IB_CQ_SOLICITED ?
-> > >=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 PVRDMA_UAR_CQ_ARM_SOL : PVRDMA=
-_UAR_CQ_ARM;
-> > >
-> > > +=A0=A0 spin_lock_irqsave(&cq->cq_lock, flags);
-> > > +
-> > >=A0=A0=A0=A0=A0 pvrdma_write_uar_cq(dev, val);
-> > >
-> > > +=A0=A0 if (notify_flags & IB_CQ_REPORT_MISSED_EVENTS) {
-> > > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 unsigned int head;
-> > > +
-> > > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 if (pvrdma_idx_ring_has_data(&cq->rin=
-g_state->rx,
-> > > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 cq->ibcq.cqe, &head)) {
-> >
-> > The pvrdma_idx_ring_has_data function can return PVRDMA_INVALID_IDX (-1=
-).
->
-> I believe that the case of PVRDMA_INVALID_IDX is only due to some bug. I =
-do
-> not think it is an expected behaviour, it means that ring is corrupted, a=
-m
-> i right Adit?
+From: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Thanks Leon, Yuval. While hitting the INVALID_IDX is really rare (we haven'=
-t hit it ever in our internal testing), we should check this for consistenc=
-y purposes. Look for a v1.
+OPA address handle atttibutes that have 32 bit LIDs would have to
+be converted to IB address handle attribute with the LID field
+programmed in the GID before copying to user space.
 
-- Adit=
+Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/core/ucm.c             |  2 +-
+ drivers/infiniband/core/ucma.c            | 10 ++++---
+ drivers/infiniband/core/uverbs_marshall.c | 48 +++++++++++++++++++++++++++----
+ include/rdma/ib_marshall.h                |  6 ++--
+ 4 files changed, 54 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
+index 112099c..f2a7f62 100644
+--- a/drivers/infiniband/core/ucm.c
++++ b/drivers/infiniband/core/ucm.c
+@@ -618,7 +618,7 @@ static ssize_t ib_ucm_init_qp_attr(struct ib_ucm_file *file,
+ 	if (result)
+ 		goto out;
+ 
+-	ib_copy_qp_attr_to_user(&resp, &qp_attr);
++	ib_copy_qp_attr_to_user(ctx->cm_id->device, &resp, &qp_attr);
+ 
+ 	if (copy_to_user((void __user *)(unsigned long)cmd.response,
+ 			 &resp, sizeof(resp)))
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index 276f0ef..eb85b54 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -248,14 +248,15 @@ static void ucma_copy_conn_event(struct rdma_ucm_conn_param *dst,
+ 	dst->qp_num = src->qp_num;
+ }
+ 
+-static void ucma_copy_ud_event(struct rdma_ucm_ud_param *dst,
++static void ucma_copy_ud_event(struct ib_device *device,
++			       struct rdma_ucm_ud_param *dst,
+ 			       struct rdma_ud_param *src)
+ {
+ 	if (src->private_data_len)
+ 		memcpy(dst->private_data, src->private_data,
+ 		       src->private_data_len);
+ 	dst->private_data_len = src->private_data_len;
+-	ib_copy_ah_attr_to_user(&dst->ah_attr, &src->ah_attr);
++	ib_copy_ah_attr_to_user(device, &dst->ah_attr, &src->ah_attr);
+ 	dst->qp_num = src->qp_num;
+ 	dst->qkey = src->qkey;
+ }
+@@ -335,7 +336,8 @@ static int ucma_event_handler(struct rdma_cm_id *cm_id,
+ 	uevent->resp.event = event->event;
+ 	uevent->resp.status = event->status;
+ 	if (cm_id->qp_type == IB_QPT_UD)
+-		ucma_copy_ud_event(&uevent->resp.param.ud, &event->param.ud);
++		ucma_copy_ud_event(cm_id->device, &uevent->resp.param.ud,
++				   &event->param.ud);
+ 	else
+ 		ucma_copy_conn_event(&uevent->resp.param.conn,
+ 				     &event->param.conn);
+@@ -1157,7 +1159,7 @@ static ssize_t ucma_init_qp_attr(struct ucma_file *file,
+ 	if (ret)
+ 		goto out;
+ 
+-	ib_copy_qp_attr_to_user(&resp, &qp_attr);
++	ib_copy_qp_attr_to_user(ctx->cm_id->device, &resp, &qp_attr);
+ 	if (copy_to_user((void __user *)(unsigned long)cmd.response,
+ 			 &resp, sizeof(resp)))
+ 		ret = -EFAULT;
+diff --git a/drivers/infiniband/core/uverbs_marshall.c b/drivers/infiniband/core/uverbs_marshall.c
+index 94fd989..bd0acf3 100644
+--- a/drivers/infiniband/core/uverbs_marshall.c
++++ b/drivers/infiniband/core/uverbs_marshall.c
+@@ -33,10 +33,47 @@
+ #include <linux/export.h>
+ #include <rdma/ib_marshall.h>
+ 
+-void ib_copy_ah_attr_to_user(struct ib_uverbs_ah_attr *dst,
+-			     struct rdma_ah_attr *src)
++#define OPA_DEFAULT_GID_PREFIX cpu_to_be64(0xfe80000000000000ULL)
++static int rdma_ah_conv_opa_to_ib(struct ib_device *dev,
++				  struct rdma_ah_attr *ib,
++				  struct rdma_ah_attr *opa)
+ {
++	struct ib_port_attr port_attr;
++	int ret = 0;
++
++	/* Do structure copy and the over-write fields */
++	*ib = *opa;
++
++	ib->type = RDMA_AH_ATTR_TYPE_IB;
++	rdma_ah_set_grh(ib, NULL, 0, 0, 1, 0);
++
++	if (ib_query_port(dev, opa->port_num, &port_attr)) {
++		/* Set to default subnet to indicate error */
++		rdma_ah_set_subnet_prefix(ib, OPA_DEFAULT_GID_PREFIX);
++		ret = -EINVAL;
++	} else {
++		rdma_ah_set_subnet_prefix(ib,
++					  cpu_to_be64(port_attr.subnet_prefix));
++	}
++	rdma_ah_set_interface_id(ib, OPA_MAKE_ID(rdma_ah_get_dlid(opa)));
++	return ret;
++}
++
++void ib_copy_ah_attr_to_user(struct ib_device *device,
++			     struct ib_uverbs_ah_attr *dst,
++			     struct rdma_ah_attr *ah_attr)
++{
++	struct rdma_ah_attr *src = ah_attr;
++	struct rdma_ah_attr conv_ah;
++
+ 	memset(&dst->grh.reserved, 0, sizeof(dst->grh.reserved));
++
++	if ((ah_attr->type == RDMA_AH_ATTR_TYPE_OPA) &&
++	    (rdma_ah_get_dlid(ah_attr) >=
++	     be16_to_cpu(IB_MULTICAST_LID_BASE)) &&
++	    (!rdma_ah_conv_opa_to_ib(device, &conv_ah, ah_attr)))
++		src = &conv_ah;
++
+ 	dst->dlid		   = rdma_ah_get_dlid(src);
+ 	dst->sl			   = rdma_ah_get_sl(src);
+ 	dst->src_path_bits	   = rdma_ah_get_path_bits(src);
+@@ -57,7 +94,8 @@ void ib_copy_ah_attr_to_user(struct ib_uverbs_ah_attr *dst,
+ }
+ EXPORT_SYMBOL(ib_copy_ah_attr_to_user);
+ 
+-void ib_copy_qp_attr_to_user(struct ib_uverbs_qp_attr *dst,
++void ib_copy_qp_attr_to_user(struct ib_device *device,
++			     struct ib_uverbs_qp_attr *dst,
+ 			     struct ib_qp_attr *src)
+ {
+ 	dst->qp_state	        = src->qp_state;
+@@ -76,8 +114,8 @@ void ib_copy_qp_attr_to_user(struct ib_uverbs_qp_attr *dst,
+ 	dst->max_recv_sge	= src->cap.max_recv_sge;
+ 	dst->max_inline_data	= src->cap.max_inline_data;
+ 
+-	ib_copy_ah_attr_to_user(&dst->ah_attr, &src->ah_attr);
+-	ib_copy_ah_attr_to_user(&dst->alt_ah_attr, &src->alt_ah_attr);
++	ib_copy_ah_attr_to_user(device, &dst->ah_attr, &src->ah_attr);
++	ib_copy_ah_attr_to_user(device, &dst->alt_ah_attr, &src->alt_ah_attr);
+ 
+ 	dst->pkey_index		= src->pkey_index;
+ 	dst->alt_pkey_index	= src->alt_pkey_index;
+diff --git a/include/rdma/ib_marshall.h b/include/rdma/ib_marshall.h
+index 68cef3b..8ebf84a 100644
+--- a/include/rdma/ib_marshall.h
++++ b/include/rdma/ib_marshall.h
+@@ -38,10 +38,12 @@
+ #include <rdma/ib_user_verbs.h>
+ #include <rdma/ib_user_sa.h>
+ 
+-void ib_copy_qp_attr_to_user(struct ib_uverbs_qp_attr *dst,
++void ib_copy_qp_attr_to_user(struct ib_device *device,
++			     struct ib_uverbs_qp_attr *dst,
+ 			     struct ib_qp_attr *src);
+ 
+-void ib_copy_ah_attr_to_user(struct ib_uverbs_ah_attr *dst,
++void ib_copy_ah_attr_to_user(struct ib_device *device,
++			     struct ib_uverbs_ah_attr *dst,
+ 			     struct rdma_ah_attr *src);
+ 
+ void ib_copy_path_rec_to_user(struct ib_user_path_rec *dst,
+-- 
+1.8.3.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
