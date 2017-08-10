@@ -1,140 +1,108 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [rdma-next v1 13/33] RDMA/core: Add iterator over ib_devices
-Date: Thu, 10 Aug 2017 13:26:20 +0300
-Message-ID: <20170810102620.GS1423@mtr-leonro.local>
-References: <20170809160405.25142-1-leon@kernel.org>
- <20170809160405.25142-14-leon@kernel.org>
- <9ae5be78-67ef-5803-9737-f913dc874861@redhat.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="dT+85zccSFkyJC53"
+Subject: [pull request][rdma-next v2 00/33] RDMA netlink refactoring and RDMAtool code
+Date: Thu, 10 Aug 2017 14:07:54 +0300
+Message-ID: <20170810110827.9952-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <9ae5be78-67ef-5803-9737-f913dc874861-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---dT+85zccSFkyJC53
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Aug 09, 2017 at 01:09:00PM -0400, Doug Ledford wrote:
-> On 8/9/2017 12:03 PM, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >
-> > The coming nldev needs to iterate over all IB devices in the system
-> > and in order to not expose the ib_devices list outside the devices.c,
-> > it is necessary to provide function iterator.
-> >
-> > Current version is written explicitly for nldev callback to avoid
-> > over-engineering at this stage, but it can be easily extended for
-> > other types.
-> >
-> > Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> > ---
-> >  drivers/infiniband/core/core_priv.h |  8 ++++++++
-> >  drivers/infiniband/core/device.c    | 25 +++++++++++++++++++++++++
-> >  2 files changed, 33 insertions(+)
-> >
-> > diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-> > index e759c27113cd..0c175590cf92 100644
-> > --- a/drivers/infiniband/core/core_priv.h
-> > +++ b/drivers/infiniband/core/core_priv.h
-> > @@ -102,6 +102,14 @@ void ib_enum_all_roce_netdevs(roce_netdev_filter filter,
-> >  			      roce_netdev_callback cb,
-> >  			      void *cookie);
-> >
-> > +typedef int (*nldev_callback)(struct ib_device *device,
-> > +			      struct sk_buff *skb,
-> > +			      struct netlink_callback *cb,
-> > +			      unsigned int idx);
-> > +
-> > +int ib_enum_all_devs(nldev_callback nldev_cb, struct sk_buff *skb,
-> > +		     struct netlink_callback *cb);
-> > +
-> >  enum ib_cache_gid_default_mode {
-> >  	IB_CACHE_GID_DEFAULT_MODE_SET,
-> >  	IB_CACHE_GID_DEFAULT_MODE_DELETE
-> > diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-> > index a1d5798fa4d7..54143476a020 100644
-> > --- a/drivers/infiniband/core/device.c
-> > +++ b/drivers/infiniband/core/device.c
-> > @@ -892,6 +892,31 @@ void ib_enum_all_roce_netdevs(roce_netdev_filter filter,
-> >  	up_read(&lists_rwsem);
-> >  }
-> >
-> > +/**
-> > + * ib_enum_all_devs - enumerate all ib_devices
-> > + * @cb: Callback to call for each found ib_device
-> > + *
-> > + * Enumerates all ib_devices and calls callback() on each device.
-> > + */
-> > +int ib_enum_all_devs(nldev_callback nldev_cb, struct sk_buff *skb,
-> > +		     struct netlink_callback *cb)
-> > +{
-> > +	struct ib_device *dev;
-> > +	unsigned int idx = 0;
-> > +	int ret = 0;
-> > +
-> > +	down_read(&lists_rwsem);
-> > +	list_for_each_entry(dev, &device_list, core_list) {
-> > +		ret = nldev_cb(dev, skb, cb, idx);
->
-> This clearly enumerates more than just ib devs, should the signature not
-> be rdma_enum_all_devs?
-
-It enumerates "struct ib_device"s, so I prefer to leave it as is for now.
-
->
-> > +		if (ret)
-> > +			break;
-> > +		idx++;
-> > +	}
-> > +
-> > +	up_read(&lists_rwsem);
-> > +	return ret;
-> > +}
-> > +
-> >  /**
-> >   * ib_query_pkey - Get P_Key table entry
-> >   * @device:Device to query
-> >
->
->
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->     GPG Key ID: B826A3330E572FDD
->     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
->
+Changeslog:
+v1->v2:
+ * Added comments, code spelling fixes and reworded commit messages per
+   Doug's suggestions.
+v0->v1:
+ * Dropped revert patch in favor of patch-hack from Intel (Ismail, Mustafa)
+   for iWARP, in order to progress with series. For the record, I think
+   that it is wrong.
 
 
+----------------------------------------------------------------
 
+The following changes since commit 913cc67159bc85a96d94df301ca39c1b2c540dca:
 
---dT+85zccSFkyJC53
-Content-Type: application/pgp-signature; name="signature.asc"
+  IB/hfi1: Always perform offline transition (2017-07-31 15:18:38 -0400)
 
------BEGIN PGP SIGNATURE-----
+are available in the git repository at:
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmMNMwACgkQ5GN7iDZy
-WKdUvhAAkMyT9KJG17aKKYyonTpPLYg+2AjInodvIE1TH0UyB2sYG/QDJwlRI5fA
-DffwUvy/+Lz594oFH72DkbR5chYVDybnKxh7BurGd57Y12/x9TCjOH+XOSAPPbD5
-66PJWqjzGKcWzCVIjZyDdxI3qA0i1LlQS8pqqz27kfXOxICfOe9/sV+ikFvyx5kZ
-oc6B/+le/NXU5vVHlLFdyMkBMI2yFCfbzQ7PVXrllzG0b86IzoadL7DB9s85eM8E
-Y9MUT3A0zP8d8X7J4O+QtXCGdiJrvA43ncL4z8raT4UnwkFa7iUW27kFf2Vmd5oR
-+R72k4WbQi/NurDQU7TQ7Jho/UMFS4MKU626p1a4vDv55BxYCE2qVQFnHn+/P5nk
-4RuFEljqZ9HhV+6QcLmiTtsGsrXaifjqzL/uR8iyqOh72+KypXQKVnp9ijpn9B3G
-fnjKhAS3UGOoswRMIdcZrEURlw7XsbOf5qW3f+94LWqYllD6d2zus/6czt1SCQQc
-CYHk47aK7DQVtEvbYtpRQeeUm9QglSftDSj5NOQGNn9wj9PToJfuORqE9092X2ij
-q/kB6fW498mRki5Ob0NE2BsYov9b//yx/utei+OLRu2RSbqTuWTffzmsIUpDgiY7
-xKAxCMMfw9+0VgbaCawo6lYvNKSwAmJ6J2uXUo87b4XBDkeU1JU=
-=9IhQ
------END PGP SIGNATURE-----
+  git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/rdma-next-2017-08-10
 
---dT+85zccSFkyJC53--
+for you to fetch changes up to 1bb77b8c1d57149ed0aa6825255ead80ae584034:
+
+  RDMA/netlink: Export node_type (2017-08-10 13:28:14 +0300)
+
+----------------------------------------------------------------
+RDMA netlink infrastructure v2
+
+----------------------------------------------------------------
+Ismail, Mustafa (1):
+      RDMA/core: Add wait/retry version of ibnl_unicast
+
+Leon Romanovsky (32):
+      RDMA/netlink: Remove netlink clients infrastructure
+      RDMA/netlink: Remove redundant owner option for netlink callbacks
+      RDMA/netlink: Avoid double pass for RDMA netlink messages
+      RDMA/iwcm: Remove useless check of netlink client validity
+      RDMA/iwcm: Remove extra EXPORT_SYMBOLS
+      RDMA/netlink: Add flag to consolidate common handling
+      RDMA/netlink: Simplify the put_msg and put_attr
+      RDMA/netlink: Rename and remove redundant parameter from ibnl_unicast*
+      RDMA/netlink: Rename and remove redundant parameter from ibnl_multicast
+      RDMA/netlink: Simplify and rename ibnl_chk_listeners
+      RDMA/netlink: Rename netlink callback struct
+      RDMA/core: Add iterator over ib_devices
+      RDMA/core: Add and expose static device index
+      RDMA/netlink: Add and implement doit netlink callback
+      RDMA/netlink: Reduce indirection access to cb_table
+      RDMA/netlink: Convert LS to doit callback
+      RDMA/netlink: Update copyright
+      RDMA/netlink: Add netlink device definitions to UAPI
+      RDMA/netlink: Add nldev initialization flows
+      RDMA/netlink: Implement nldev device dumpit calback
+      RDMA/netlink: Add nldev device doit implementation
+      RDMA/netlink: Add nldev port dumpit implementation
+      RDMA/netlink: Implement nldev port doit callback
+      RDMA/netlink: Expose device and port capability masks
+      RDMA: Simplify get firmware interface
+      RDMA/netlink: Export FW version
+      RDMA/netlink: Export node_guid and sys_image_guid
+      RDMA/netlink: Advertise IB subnet prefix
+      RDMA/netink: Export lids and sm_lids
+      RDMA/netlink: Export LID mask control (LMC)
+      RDMA/netlink: Provide port state and physical link state
+      RDMA/netlink: Export node_type
+
+ drivers/infiniband/core/Makefile               |   3 +-
+ drivers/infiniband/core/addr.c                 |  12 +-
+ drivers/infiniband/core/cma.c                  |  11 +-
+ drivers/infiniband/core/core_priv.h            |  26 +-
+ drivers/infiniband/core/device.c               | 119 ++++++---
+ drivers/infiniband/core/iwcm.c                 |  12 +-
+ drivers/infiniband/core/iwpm_msg.c             |  20 +-
+ drivers/infiniband/core/iwpm_util.c            |  15 +-
+ drivers/infiniband/core/netlink.c              | 309 +++++++++++++-----------
+ drivers/infiniband/core/nldev.c                | 322 +++++++++++++++++++++++++
+ drivers/infiniband/core/sa_query.c             |  18 +-
+ drivers/infiniband/core/sysfs.c                |   4 +-
+ drivers/infiniband/hw/cxgb3/iwch_provider.c    |   5 +-
+ drivers/infiniband/hw/cxgb4/provider.c         |   5 +-
+ drivers/infiniband/hw/hfi1/verbs.c             |   5 +-
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c      |   7 +-
+ drivers/infiniband/hw/mlx4/main.c              |   5 +-
+ drivers/infiniband/hw/mlx5/main.c              |   8 +-
+ drivers/infiniband/hw/mthca/mthca_provider.c   |   5 +-
+ drivers/infiniband/hw/nes/nes_verbs.c          |   5 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_main.c     |   5 +-
+ drivers/infiniband/hw/qedr/main.c              |   5 +-
+ drivers/infiniband/hw/usnic/usnic_ib_main.c    |   6 +-
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c |   5 +-
+ drivers/infiniband/ulp/ipoib/ipoib_ethtool.c   |   3 +-
+ include/rdma/ib_verbs.h                        |   8 +-
+ include/rdma/rdma_netlink.h                    |  46 ++--
+ include/uapi/rdma/rdma_netlink.h               |  84 ++++++-
+ 28 files changed, 766 insertions(+), 312 deletions(-)
+ create mode 100644 drivers/infiniband/core/nldev.c
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
