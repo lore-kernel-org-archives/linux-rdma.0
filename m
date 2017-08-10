@@ -1,87 +1,39 @@
 From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH rdma-next v4 0/8] Add OPA extended LID support
-Date: Thu, 10 Aug 2017 14:04:20 -0400
-Message-ID: <1502388268-20687-1-git-send-email-don.hiatt@intel.com>
+Subject: [PATCH rdma-next v4 3/8] IB/IPoIB: Increase local_lid to 32 bits
+Date: Thu, 10 Aug 2017 14:04:23 -0400
+Message-ID: <1502388268-20687-4-git-send-email-don.hiatt@intel.com>
+References: <1502388268-20687-1-git-send-email-don.hiatt@intel.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1502388268-20687-1-git-send-email-don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-This patch series primarily increases sizes of variables that hold
-lid values from 16 to 32 bits. Additionally, it adds a check in
-the IB mad stack to verify a properly formatted MAD when OPA
-extended LIDs are used.
+IPoIB contains local_lid field which is 16 bits in
+length, increase it to 32 bits.
 
-Changes from v3:
----------------
-* Add 'IB/core: Add functions to convert 32 bit lids to 16 bits' and
-  use them in place of casts.
+Signed-off-by: Dasaratharaman Chandramouli <dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Changes from v2:
----------------
-* Remove 'IB/mad: Ensure DR MADs are correctly specified when using
-  OPA devices' as this will be handled in a lower layer.
-
-Changes from v1:
----------------
-* Remove extraneous slid set. 
-* Replace slid casts with helper function.
-* Return default subnet prefix on rdma_ah_conv_opa_to_ib() failure.
-
-The patches are origanized as follows:
-
-* Patch 1 converts an OPA ah_attr to an IB ah_attr when
-  copying from kernel to user. Since OPA ah_attr is only defined
-  in the kernel, the function takes care of adding OPA GIDs
-  that contain the extended LID before copying to user.
-* Patch 2 increases the lid and sm_lid variables in srpt
-  to 32 bits.
-* Patch 3 increases the local_lid variable in IPoIB to 32
-  bits.
-* Patch 4 increases the slid variable in MAD RMPP to 32 bits.
-* Patch 5 Adds functions to convert 32 bit lids to 16 bits.
-* Patch 6 increases the lid field in struct ib_port_attr from
-  16 to 32 bits.
-* Patch 7 increases the sm_lid field in struct ib_port_attr
-  from 16 to 32 bits.
-* Patch 8 increases the slid field in struct ib_wc from 16
-  to 32 bits.
-
-Dasaratharaman Chandramouli (6):
-  IB/core: Convert ah_attr from OPA to IB when copying to user
-  IB/srpt: Increase lid and sm_lid to 32 bits
-  IB/IPoIB: Increase local_lid to 32 bits
-  IB/mad: Change slid in RMPP recv from 16 to 32 bits
-  IB/core: Change port_attr.lid size from 16 to 32 bits
-  IB/core: Change port_attr.sm_lid from 16 to 32 bits
-
-Don Hiatt (2):
-  IB/core: Add functions to convert 32 bit lids to 16 bits
-  IB/core: Change wc.slid from 16 to 32 bits
-
- drivers/infiniband/core/cm.c              |  4 ++--
- drivers/infiniband/core/core_priv.h       |  1 +
- drivers/infiniband/core/mad_rmpp.c        |  2 +-
- drivers/infiniband/core/ucm.c             |  2 +-
- drivers/infiniband/core/ucma.c            | 10 +++++----
- drivers/infiniband/core/user_mad.c        |  2 +-
- drivers/infiniband/core/uverbs_cmd.c      | 26 +++++++++++++++++-----
- drivers/infiniband/core/uverbs_marshall.c | 48 ++++++++++++++++++++++++++++++++++++-----
- drivers/infiniband/hw/hfi1/mad.c          |  2 +-
- drivers/infiniband/hw/mlx4/alias_GUID.c   |  2 +-
- drivers/infiniband/hw/mlx4/mad.c          |  8 +++----
- drivers/infiniband/hw/mlx5/mad.c          |  2 +-
- drivers/infiniband/hw/mthca/mthca_cmd.c   |  4 ++--
- drivers/infiniband/hw/mthca/mthca_mad.c   |  4 ++--
- drivers/infiniband/sw/rdmavt/cq.c         |  2 +-
- drivers/infiniband/ulp/ipoib/ipoib.h      |  2 +-
- drivers/infiniband/ulp/srpt/ib_srpt.h     |  4 ++--
- include/rdma/ib_marshall.h                |  6 ++++--
- include/rdma/ib_verbs.h                   | 18 +++++++++++++---
- include/rdma/opa_addr.h                   |  3 ++-
- 20 files changed, 112 insertions(+), 40 deletions(-)
-
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index ff50a7b..9e73810 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -366,7 +366,7 @@ struct ipoib_dev_priv {
+ 	u32		  qkey;
+ 
+ 	union ib_gid local_gid;
+-	u16	     local_lid;
++	u32	     local_lid;
+ 
+ 	unsigned int admin_mtu;
+ 	unsigned int mcast_mtu;
 -- 
 1.8.3.1
 
