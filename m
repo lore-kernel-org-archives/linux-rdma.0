@@ -1,59 +1,54 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next 06/22] RDMA/core: Cleanup device capability enum
-Date: Fri, 11 Aug 2017 13:49:47 +0300
-Message-ID: <20170811105003.7661-7-leon@kernel.org>
+Subject: [rdma-next 14/22] IB/mlx4: Fix some spelling mistakes
+Date: Fri, 11 Aug 2017 13:49:55 +0300
+Message-ID: <20170811105003.7661-15-leon@kernel.org>
 References: <20170811105003.7661-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170811105003.7661-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Cleanup patch prior exporting the ib_device_cap_flags
-to the user space. In this patch, we are aligning the
-indentation, removing IB_DEVICE_INIT_TYPE and IB_DEVICE_RESERVED
-fields, because it is not used in the kernel.
+Fix spelling mistakes in remarks
+    "retrun"->"return"
+    "cancell"->"cancel"
 
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- include/rdma/ib_verbs.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mlx4/alias_GUID.c | 2 +-
+ drivers/infiniband/hw/mlx4/cq.c         | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 77d25c20e779..6cd2b91b8fc8 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -170,7 +170,7 @@ enum ib_device_cap_flags {
- 	IB_DEVICE_UD_AV_PORT_ENFORCE		= (1 << 6),
- 	IB_DEVICE_CURR_QP_STATE_MOD		= (1 << 7),
- 	IB_DEVICE_SHUTDOWN_PORT			= (1 << 8),
--	IB_DEVICE_INIT_TYPE			= (1 << 9),
-+	/* Not in use, former INIT_TYPE		= (1 << 9),*/
- 	IB_DEVICE_PORT_ACTIVE_EVENT		= (1 << 10),
- 	IB_DEVICE_SYS_IMAGE_GUID		= (1 << 11),
- 	IB_DEVICE_RC_RNR_NAK_GEN		= (1 << 12),
-@@ -185,7 +185,7 @@ enum ib_device_cap_flags {
- 	 * which will always contain a usable lkey.
+diff --git a/drivers/infiniband/hw/mlx4/alias_GUID.c b/drivers/infiniband/hw/mlx4/alias_GUID.c
+index ea24230ea0d4..6c8d285e31a3 100644
+--- a/drivers/infiniband/hw/mlx4/alias_GUID.c
++++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
+@@ -781,7 +781,7 @@ void mlx4_ib_init_alias_guid_work(struct mlx4_ib_dev *dev, int port)
+ 	spin_lock_irqsave(&dev->sriov.going_down_lock, flags);
+ 	spin_lock_irqsave(&dev->sriov.alias_guid.ag_work_lock, flags1);
+ 	if (!dev->sriov.is_going_down) {
+-		/* If there is pending one should cancell then run, otherwise
++		/* If there is pending one should cancel then run, otherwise
+ 		  * won't run till previous one is ended as same work
+ 		  * struct is used.
+ 		  */
+diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
+index 95382faa7ad1..cab796341697 100644
+--- a/drivers/infiniband/hw/mlx4/cq.c
++++ b/drivers/infiniband/hw/mlx4/cq.c
+@@ -637,7 +637,7 @@ static void mlx4_ib_poll_sw_comp(struct mlx4_ib_cq *cq, int num_entries,
+ 	struct mlx4_ib_qp *qp;
+ 
+ 	*npolled = 0;
+-	/* Find uncompleted WQEs belonging to that cq and retrun
++	/* Find uncompleted WQEs belonging to that cq and return
+ 	 * simulated FLUSH_ERR completions
  	 */
- 	IB_DEVICE_LOCAL_DMA_LKEY		= (1 << 15),
--	IB_DEVICE_RESERVED /* old SEND_W_INV */	= (1 << 16),
-+	/* Reserved, old SEND_W_INV		= (1 << 16),*/
- 	IB_DEVICE_MEM_WINDOW			= (1 << 17),
- 	/*
- 	 * Devices should set IB_DEVICE_UD_IP_SUM if they support
-@@ -220,7 +220,7 @@ enum ib_device_cap_flags {
- 	 * of I/O operations with single completion queue managed
- 	 * by hardware.
- 	 */
--	IB_DEVICE_CROSS_CHANNEL		= (1 << 27),
-+	IB_DEVICE_CROSS_CHANNEL			= (1 << 27),
- 	IB_DEVICE_MANAGED_FLOW_STEERING		= (1 << 29),
- 	IB_DEVICE_SIGNATURE_HANDOVER		= (1 << 30),
- 	IB_DEVICE_ON_DEMAND_PAGING		= (1ULL << 31),
+ 	list_for_each_entry(qp, &cq->send_qp_list, cq_send_list) {
 -- 
 2.14.0
 
