@@ -1,34 +1,36 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [pull request][rdma-next v2 00/33] RDMA netlink refactoring and
- RDMAtool code
-Date: Fri, 11 Aug 2017 11:37:54 -0400
-Message-ID: <1502465874.3080.38.camel@redhat.com>
-References: <20170810110827.9952-1-leon@kernel.org>
+Subject: Re: [PATCH rdma-next v4 0/8] Add OPA extended LID support
+Date: Fri, 11 Aug 2017 11:39:46 -0400
+Message-ID: <1502465986.3080.40.camel@redhat.com>
+References: <1502388268-20687-1-git-send-email-don.hiatt@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170810110827.9952-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1502388268-20687-1-git-send-email-don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-08-10 at 14:07 +0300, Leon Romanovsky wrote:
-> Changeslog:
-> v1->v2:
->  * Added comments, code spelling fixes and reworded commit messages
-> per
->    Doug's suggestions.
-> v0->v1:
->  * Dropped revert patch in favor of patch-hack from Intel (Ismail,
-> Mustafa)
->    for iWARP, in order to progress with series. For the record, I
-> think
->    that it is wrong.
+On Thu, 2017-08-10 at 14:04 -0400, Don Hiatt wrote:
+> This patch series primarily increases sizes of variables that hold
+> lid values from 16 to 32 bits. Additionally, it adds a check in
+> the IB mad stack to verify a properly formatted MAD when OPA
+> extended LIDs are used.
 > 
+> Changes from v3:
+> ---------------
+> * Add 'IB/core: Add functions to convert 32 bit lids to 16 bits' and
+>   use them in place of casts.
 
-Thanks, series applied.
+Hi Don,
+
+I've already taken v3 (was going to email it out today, but I pulled it
+into a branch 2 days ago and it passed 0day overnight, I was just
+waiting to merge three different branches together and then send out
+the notifications for them all once done, and v3 of this was one of the
+three).  Please prepare an incremental patch to get me up to v4 and
+submit that to the list.  Thanks.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
