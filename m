@@ -1,35 +1,122 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma-next v3 0/3] Enhance IB CM to support OPA extended
- LIDs
-Date: Fri, 11 Aug 2017 11:56:38 -0400
-Message-ID: <1502466998.3080.44.camel@redhat.com>
-References: <1496943484-44065-1-git-send-email-don.hiatt@intel.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [rdma-next 07/22] RDMA/core: Remove unimplemented node_types and
+ node transport
+Date: Fri, 11 Aug 2017 12:46:26 -0400
+Message-ID: <36aea320-a018-040d-c44a-3a23d54771cd@dev.mellanox.co.il>
+References: <20170811105003.7661-1-leon@kernel.org>
+ <20170811105003.7661-8-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1496943484-44065-1-git-send-email-don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20170811105003.7661-8-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-06-08 at 13:38 -0400, Don Hiatt wrote:
-> This patch series adds enhancements to support extended LIDs in the
-> IB CM protocol. The core idea is to trasmit extended LIDs as OPA GIDs
-> on the wire in the primary_local_gid, primary_remote_gid,
-> alternate_local_gid and alternate_remote_gid fields of a CM request.
-> On the receiving side, the extended LID is retrieved from these
-> gids when processing the connection request.
+On 8/11/2017 6:49 AM, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> There is no need to carry code, which is not implemented in any
+> underlying hardware. This patch removes unimplemented node_types and
+> their respective node transport layers.
 
-Hi Don,
+We have supported IB switches and routers since day 1 of OpenIB and
+linux-rdma. Although not the original intent, there are still no in-tree
+consumers, but there are several out of tree ones. Every time this issue
+has come up in the past, it has been decided to continue to support
+them. Effectively, IB routers and switches are grandfathered.
 
-Thanks, series applied.
+Rather than doing this, perhaps a better approach would be to supply
+some skeleton drivers for IB switch and router.
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+-- Hal
 
+> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/infiniband/core/sysfs.c |  3 ---
+>  drivers/infiniband/core/verbs.c |  5 -----
+>  include/rdma/ib_verbs.h         | 16 ++++++----------
+>  3 files changed, 6 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+> index abc5ab581f82..c43280f8d5b3 100644
+> --- a/drivers/infiniband/core/sysfs.c
+> +++ b/drivers/infiniband/core/sysfs.c
+> @@ -1146,10 +1146,7 @@ static ssize_t show_node_type(struct device *device,
+>  	switch (dev->node_type) {
+>  	case RDMA_NODE_IB_CA:	  return sprintf(buf, "%d: CA\n", dev->node_type);
+>  	case RDMA_NODE_RNIC:	  return sprintf(buf, "%d: RNIC\n", dev->node_type);
+> -	case RDMA_NODE_USNIC:	  return sprintf(buf, "%d: usNIC\n", dev->node_type);
+>  	case RDMA_NODE_SNIC_UDP: return sprintf(buf, "%d: usNIC UDP\n", dev->node_type);
+> -	case RDMA_NODE_IB_SWITCH: return sprintf(buf, "%d: switch\n", dev->node_type);
+> -	case RDMA_NODE_IB_ROUTER: return sprintf(buf, "%d: router\n", dev->node_type);
+>  	default:		  return sprintf(buf, "%d: <unknown>\n", dev->node_type);
+>  	}
+>  }
+> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+> index 3d1de62de839..21fef6b6d4f3 100644
+> --- a/drivers/infiniband/core/verbs.c
+> +++ b/drivers/infiniband/core/verbs.c
+> @@ -182,13 +182,9 @@ rdma_node_get_transport(enum rdma_node_type node_type)
+>  {
+>  	switch (node_type) {
+>  	case RDMA_NODE_IB_CA:
+> -	case RDMA_NODE_IB_SWITCH:
+> -	case RDMA_NODE_IB_ROUTER:
+>  		return RDMA_TRANSPORT_IB;
+>  	case RDMA_NODE_RNIC:
+>  		return RDMA_TRANSPORT_IWARP;
+> -	case RDMA_NODE_USNIC:
+> -		return RDMA_TRANSPORT_USNIC;
+>  	case RDMA_NODE_USNIC_UDP:
+>  		return RDMA_TRANSPORT_USNIC_UDP;
+>  	default:
+> @@ -207,7 +203,6 @@ enum rdma_link_layer rdma_port_get_link_layer(struct ib_device *device, u8 port_
+>  	case RDMA_TRANSPORT_IB:
+>  		return IB_LINK_LAYER_INFINIBAND;
+>  	case RDMA_TRANSPORT_IWARP:
+> -	case RDMA_TRANSPORT_USNIC:
+>  	case RDMA_TRANSPORT_USNIC_UDP:
+>  		return IB_LINK_LAYER_ETHERNET;
+>  	default:
+> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+> index 6cd2b91b8fc8..7aabec3a8a19 100644
+> --- a/include/rdma/ib_verbs.h
+> +++ b/include/rdma/ib_verbs.h
+> @@ -95,12 +95,9 @@ struct ib_gid_attr {
+>  
+>  enum rdma_node_type {
+>  	/* IB values map to NodeInfo:NodeType. */
+> -	RDMA_NODE_IB_CA 	= 1,
+> -	RDMA_NODE_IB_SWITCH,
+> -	RDMA_NODE_IB_ROUTER,
+> -	RDMA_NODE_RNIC,
+> -	RDMA_NODE_USNIC,
+> -	RDMA_NODE_USNIC_UDP,
+> +	RDMA_NODE_IB_CA		= 1,
+> +	RDMA_NODE_RNIC		= 4,
+> +	RDMA_NODE_USNIC_UDP	= 6,
+>  };
+>  
+>  enum {
+> @@ -109,10 +106,9 @@ enum {
+>  };
+>  
+>  enum rdma_transport_type {
+> -	RDMA_TRANSPORT_IB,
+> -	RDMA_TRANSPORT_IWARP,
+> -	RDMA_TRANSPORT_USNIC,
+> -	RDMA_TRANSPORT_USNIC_UDP
+> +	RDMA_TRANSPORT_IB		= 0,
+> +	RDMA_TRANSPORT_IWARP		= 1,
+> +	RDMA_TRANSPORT_USNIC_UDP	= 3,
+>  };
+>  
+>  enum rdma_protocol_type {
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
