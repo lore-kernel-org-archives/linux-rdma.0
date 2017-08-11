@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next 13/22] RDMA/hns: Remove empty functions
-Date: Fri, 11 Aug 2017 13:49:54 +0300
-Message-ID: <20170811105003.7661-14-leon@kernel.org>
+Subject: [rdma-next 06/22] RDMA/core: Cleanup device capability enum
+Date: Fri, 11 Aug 2017 13:49:47 +0300
+Message-ID: <20170811105003.7661-7-leon@kernel.org>
 References: <20170811105003.7661-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170811105003.7661-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,56 +12,48 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The functions which are not implemented can be simply ignored
-instead of defining empty function. This patch removes such functions
-from hns driver.
+Cleanup patch prior exporting the ib_device_cap_flags
+to the user space. In this patch, we are aligning the
+indentation, removing IB_DEVICE_INIT_TYPE and IB_DEVICE_RESERVED
+fields, because it is not used in the kernel.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_main.c | 14 --------------
- 1 file changed, 14 deletions(-)
+ include/rdma/ib_verbs.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index d9777b662eba..250e2059ef07 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -285,12 +285,6 @@ static enum rdma_link_layer hns_roce_get_link_layer(struct ib_device *device,
- 	return IB_LINK_LAYER_ETHERNET;
- }
- 
--static int hns_roce_query_gid(struct ib_device *ib_dev, u8 port_num, int index,
--			      union ib_gid *gid)
--{
--	return 0;
--}
--
- static int hns_roce_query_pkey(struct ib_device *ib_dev, u8 port, u16 index,
- 			       u16 *pkey)
- {
-@@ -316,12 +310,6 @@ static int hns_roce_modify_device(struct ib_device *ib_dev, int mask,
- 	return 0;
- }
- 
--static int hns_roce_modify_port(struct ib_device *ib_dev, u8 port_num, int mask,
--				struct ib_port_modify *props)
--{
--	return 0;
--}
--
- static struct ib_ucontext *hns_roce_alloc_ucontext(struct ib_device *ib_dev,
- 						   struct ib_udata *udata)
- {
-@@ -462,10 +450,8 @@ static int hns_roce_register_device(struct hns_roce_dev *hr_dev)
- 	ib_dev->modify_device		= hns_roce_modify_device;
- 	ib_dev->query_device		= hns_roce_query_device;
- 	ib_dev->query_port		= hns_roce_query_port;
--	ib_dev->modify_port		= hns_roce_modify_port;
- 	ib_dev->get_link_layer		= hns_roce_get_link_layer;
- 	ib_dev->get_netdev		= hns_roce_get_netdev;
--	ib_dev->query_gid		= hns_roce_query_gid;
- 	ib_dev->add_gid			= hns_roce_add_gid;
- 	ib_dev->del_gid			= hns_roce_del_gid;
- 	ib_dev->query_pkey		= hns_roce_query_pkey;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 77d25c20e779..6cd2b91b8fc8 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -170,7 +170,7 @@ enum ib_device_cap_flags {
+ 	IB_DEVICE_UD_AV_PORT_ENFORCE		= (1 << 6),
+ 	IB_DEVICE_CURR_QP_STATE_MOD		= (1 << 7),
+ 	IB_DEVICE_SHUTDOWN_PORT			= (1 << 8),
+-	IB_DEVICE_INIT_TYPE			= (1 << 9),
++	/* Not in use, former INIT_TYPE		= (1 << 9),*/
+ 	IB_DEVICE_PORT_ACTIVE_EVENT		= (1 << 10),
+ 	IB_DEVICE_SYS_IMAGE_GUID		= (1 << 11),
+ 	IB_DEVICE_RC_RNR_NAK_GEN		= (1 << 12),
+@@ -185,7 +185,7 @@ enum ib_device_cap_flags {
+ 	 * which will always contain a usable lkey.
+ 	 */
+ 	IB_DEVICE_LOCAL_DMA_LKEY		= (1 << 15),
+-	IB_DEVICE_RESERVED /* old SEND_W_INV */	= (1 << 16),
++	/* Reserved, old SEND_W_INV		= (1 << 16),*/
+ 	IB_DEVICE_MEM_WINDOW			= (1 << 17),
+ 	/*
+ 	 * Devices should set IB_DEVICE_UD_IP_SUM if they support
+@@ -220,7 +220,7 @@ enum ib_device_cap_flags {
+ 	 * of I/O operations with single completion queue managed
+ 	 * by hardware.
+ 	 */
+-	IB_DEVICE_CROSS_CHANNEL		= (1 << 27),
++	IB_DEVICE_CROSS_CHANNEL			= (1 << 27),
+ 	IB_DEVICE_MANAGED_FLOW_STEERING		= (1 << 29),
+ 	IB_DEVICE_SIGNATURE_HANDOVER		= (1 << 30),
+ 	IB_DEVICE_ON_DEMAND_PAGING		= (1ULL << 31),
 -- 
 2.14.0
 
