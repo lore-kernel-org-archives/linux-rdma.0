@@ -1,42 +1,67 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next 04/22] RDMA/mlx4: Fix create qp command alignment
-Date: Fri, 11 Aug 2017 13:49:45 +0300
-Message-ID: <20170811105003.7661-5-leon@kernel.org>
+Subject: [rdma-next 10/22] RDMA/mlx4: Remove gfp_mask argument from acquire_group call
+Date: Fri, 11 Aug 2017 13:49:51 +0300
+Message-ID: <20170811105003.7661-11-leon@kernel.org>
 References: <20170811105003.7661-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170811105003.7661-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Avoid extra padding by replacing the order of inl_recv_sz and reserved,
-otherwise 'mlx4_ib_create_qp' structure might be larger than legacy user
-input leading to copy of some garbage data from the user space buffer.
+All callers of acquire_group() passed the same gfp_mask to it
+and it is safe to remove it.
 
-Fixes: ea30b966f7dd ('IB/mlx4: Add inline-receive support')
-Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- include/uapi/rdma/mlx4-abi.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx4/mcg.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/include/uapi/rdma/mlx4-abi.h b/include/uapi/rdma/mlx4-abi.h
-index d915cab37ec3..21cce1a4c4dd 100644
---- a/include/uapi/rdma/mlx4-abi.h
-+++ b/include/uapi/rdma/mlx4-abi.h
-@@ -111,8 +111,8 @@ struct mlx4_ib_create_qp {
- 	__u8	log_sq_bb_count;
- 	__u8	log_sq_stride;
- 	__u8	sq_no_prefetch;
--	__u32	inl_recv_sz;
- 	__u8	reserved;
-+	__u32	inl_recv_sz;
- };
+diff --git a/drivers/infiniband/hw/mlx4/mcg.c b/drivers/infiniband/hw/mlx4/mcg.c
+index b73f89700ef9..70eb9f917303 100644
+--- a/drivers/infiniband/hw/mlx4/mcg.c
++++ b/drivers/infiniband/hw/mlx4/mcg.c
+@@ -808,8 +808,7 @@ static ssize_t sysfs_show_group(struct device *dev,
+ 		struct device_attribute *attr, char *buf);
  
- struct mlx4_ib_create_wq {
+ static struct mcast_group *acquire_group(struct mlx4_ib_demux_ctx *ctx,
+-					 union ib_gid *mgid, int create,
+-					 gfp_t gfp_mask)
++					 union ib_gid *mgid, int create)
+ {
+ 	struct mcast_group *group, *cur_group;
+ 	int is_mgid0;
+@@ -825,7 +824,7 @@ static struct mcast_group *acquire_group(struct mlx4_ib_demux_ctx *ctx,
+ 	if (!create)
+ 		return ERR_PTR(-ENOENT);
+ 
+-	group = kzalloc(sizeof *group, gfp_mask);
++	group = kzalloc(sizeof(*group), GFP_KERNEL);
+ 	if (!group)
+ 		return ERR_PTR(-ENOMEM);
+ 
+@@ -892,7 +891,7 @@ int mlx4_ib_mcg_demux_handler(struct ib_device *ibdev, int port, int slave,
+ 	case IB_MGMT_METHOD_GET_RESP:
+ 	case IB_SA_METHOD_DELETE_RESP:
+ 		mutex_lock(&ctx->mcg_table_lock);
+-		group = acquire_group(ctx, &rec->mgid, 0, GFP_KERNEL);
++		group = acquire_group(ctx, &rec->mgid, 0);
+ 		mutex_unlock(&ctx->mcg_table_lock);
+ 		if (IS_ERR(group)) {
+ 			if (mad->mad_hdr.method == IB_MGMT_METHOD_GET_RESP) {
+@@ -954,7 +953,7 @@ int mlx4_ib_mcg_multiplex_handler(struct ib_device *ibdev, int port,
+ 		req->sa_mad = *sa_mad;
+ 
+ 		mutex_lock(&ctx->mcg_table_lock);
+-		group = acquire_group(ctx, &rec->mgid, may_create, GFP_KERNEL);
++		group = acquire_group(ctx, &rec->mgid, may_create);
+ 		mutex_unlock(&ctx->mcg_table_lock);
+ 		if (IS_ERR(group)) {
+ 			kfree(req);
 -- 
 2.14.0
 
