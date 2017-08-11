@@ -1,47 +1,49 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v8 0/7] Automatic affinity settings for nvme-rdma
-Date: Fri, 11 Aug 2017 11:42:07 -0400
-Message-ID: <1502466127.3080.41.camel@redhat.com>
-References: <1499933384-17407-1-git-send-email-sagi@grimberg.me>
-         <20170713082041.GK1528@mtr-leonro.local>
-         <d3e93dfa-79c0-22c5-eacd-a8699b924de8@grimberg.me>
-         <20170713085700.GL1528@mtr-leonro.local>
-         <1502219676.3002.11.camel@redhat.com>
+From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next v4 0/8] Add OPA extended LID support
+Date: Fri, 11 Aug 2017 08:48:09 -0700
+Message-ID: <7127900c-a999-bf6f-8c7e-7b96985dd57e@intel.com>
+References: <1502388268-20687-1-git-send-email-don.hiatt@intel.com>
+ <1502465986.3080.40.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1502219676.3002.11.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1502465986.3080.40.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Saeed Mahameed <saeedm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-08-08 at 15:14 -0400, Doug Ledford wrote:
-> On Thu, 2017-07-13 at 11:57 +0300, Leon Romanovsky wrote:
-> > On Thu, Jul 13, 2017 at 11:28:22AM +0300, Sagi Grimberg wrote:
-> > > 
-> > > > > Doug, please consider this patch set for inclusion.
-> > > > 
-> > > > On which branch did you base your code?
-> > > 
-> > > Linus 4.12 + block tree updates.
-> > 
-> > Thanks
-> 
-> Hi Sagi,
-> 
-> I've pulled this into a branch and pushed it to my github for 0day
-> testing.  There were a number of conflicts, so please double check
-> that
-> my branch is resolved out the way you want.  Thanks.
 
-This is now in the official for-next area, thanks.
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+On 8/11/2017 8:39 AM, Doug Ledford wrote:
+> On Thu, 2017-08-10 at 14:04 -0400, Don Hiatt wrote:
+>> This patch series primarily increases sizes of variables that hold
+>> lid values from 16 to 32 bits. Additionally, it adds a check in
+>> the IB mad stack to verify a properly formatted MAD when OPA
+>> extended LIDs are used.
+>>
+>> Changes from v3:
+>> ---------------
+>> * Add 'IB/core: Add functions to convert 32 bit lids to 16 bits' and
+>>    use them in place of casts.
+> Hi Don,
+>
+> I've already taken v3 (was going to email it out today, but I pulled it
+> into a branch 2 days ago and it passed 0day overnight, I was just
+> waiting to merge three different branches together and then send out
+> the notifications for them all once done, and v3 of this was one of the
+> three).  Please prepare an incremental patch to get me up to v4 and
+> submit that to the list.  Thanks.
+>
+Hi Doug,
+
+Leon had a minor suggestion to put a comment on the helper functions so I'll
+make a v5 and submit an incremental patch of v2-->v5.
+
+Thanks.
+
+don
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
