@@ -1,39 +1,46 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next 16/22] IB/mlx5: Add necessary delay drop assignment
-Date: Fri, 11 Aug 2017 13:49:57 +0300
-Message-ID: <20170811105003.7661-17-leon@kernel.org>
+Subject: [rdma-next 12/22] RDMA/mthca: Make explicit conversion to 64bit value
+Date: Fri, 11 Aug 2017 13:49:53 +0300
+Message-ID: <20170811105003.7661-13-leon@kernel.org>
 References: <20170811105003.7661-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170811105003.7661-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Assign the statistics and configuration structure pointer on success.
+The "lg" variable is declared as int so in all places where
+this variable is used as a shift operand, the output will be
+int too.
 
-Fixes: fe248c3a5837 ('IB/mlx5: Add delay drop configuration and statistics')
-Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+This produces the following smatch warning:
+drivers/infiniband/hw/mthca/mthca_cmd.c:701 mthca_map_cmd() warn:
+	should '1 << lg' be a 64 bit type?
+
+Simple declaration of "1" to be "1ULL" will fix the issue.
+
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/infiniband/hw/mthca/mthca_cmd.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 0a5a4e3fa66d..51530162d314 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -3792,6 +3792,8 @@ static int delay_drop_debugfs_init(struct mlx5_ib_dev *dev)
- 	if (!dbg->timeout_debugfs)
- 		goto out_debugfs;
+diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.c b/drivers/infiniband/hw/mthca/mthca_cmd.c
+index 9d83a53c0c67..1052c35f2e75 100644
+--- a/drivers/infiniband/hw/mthca/mthca_cmd.c
++++ b/drivers/infiniband/hw/mthca/mthca_cmd.c
+@@ -698,7 +698,7 @@ static int mthca_map_cmd(struct mthca_dev *dev, u16 op, struct mthca_icm *icm,
+ 		for (i = 0; i < mthca_icm_size(&iter) >> lg; ++i) {
+ 			if (virt != -1) {
+ 				pages[nent * 2] = cpu_to_be64(virt);
+-				virt += 1 << lg;
++				virt += 1ULL << lg;
+ 			}
  
-+	dev->delay_drop.dbg = dbg;
-+
- 	return 0;
- 
- out_debugfs:
+ 			pages[nent * 2 + 1] =
 -- 
 2.14.0
 
