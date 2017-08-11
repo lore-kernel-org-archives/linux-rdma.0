@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next 07/22] RDMA/core: Remove unimplemented node_types and node transport
-Date: Fri, 11 Aug 2017 13:49:48 +0300
-Message-ID: <20170811105003.7661-8-leon@kernel.org>
+Subject: [rdma-next 08/22] RDMA/core: Delete BUG() from unreachable flow
+Date: Fri, 11 Aug 2017 13:49:49 +0300
+Message-ID: <20170811105003.7661-9-leon@kernel.org>
 References: <20170811105003.7661-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170811105003.7661-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,92 +12,43 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-There is no need to carry code, which is not implemented in any
-underlying hardware. This patch removes unimplemented node_types and
-their respective node transport layers.
+Remove call to BUG() in case wrong node_type was provided.
+This flow is unreachable, because node_types are supplied
+from specific enum.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/sysfs.c |  3 ---
- drivers/infiniband/core/verbs.c |  5 -----
- include/rdma/ib_verbs.h         | 16 ++++++----------
- 3 files changed, 6 insertions(+), 18 deletions(-)
+ drivers/infiniband/core/verbs.c | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index abc5ab581f82..c43280f8d5b3 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -1146,10 +1146,7 @@ static ssize_t show_node_type(struct device *device,
- 	switch (dev->node_type) {
- 	case RDMA_NODE_IB_CA:	  return sprintf(buf, "%d: CA\n", dev->node_type);
- 	case RDMA_NODE_RNIC:	  return sprintf(buf, "%d: RNIC\n", dev->node_type);
--	case RDMA_NODE_USNIC:	  return sprintf(buf, "%d: usNIC\n", dev->node_type);
- 	case RDMA_NODE_USNIC_UDP: return sprintf(buf, "%d: usNIC UDP\n", dev->node_type);
--	case RDMA_NODE_IB_SWITCH: return sprintf(buf, "%d: switch\n", dev->node_type);
--	case RDMA_NODE_IB_ROUTER: return sprintf(buf, "%d: router\n", dev->node_type);
- 	default:		  return sprintf(buf, "%d: <unknown>\n", dev->node_type);
- 	}
- }
 diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 3d1de62de839..21fef6b6d4f3 100644
+index 21fef6b6d4f3..0d359a482b13 100644
 --- a/drivers/infiniband/core/verbs.c
 +++ b/drivers/infiniband/core/verbs.c
-@@ -182,13 +182,9 @@ rdma_node_get_transport(enum rdma_node_type node_type)
+@@ -180,17 +180,13 @@ EXPORT_SYMBOL(ib_rate_to_mbps);
+ __attribute_const__ enum rdma_transport_type
+ rdma_node_get_transport(enum rdma_node_type node_type)
  {
- 	switch (node_type) {
- 	case RDMA_NODE_IB_CA:
--	case RDMA_NODE_IB_SWITCH:
--	case RDMA_NODE_IB_ROUTER:
+-	switch (node_type) {
+-	case RDMA_NODE_IB_CA:
++	if (node_type == RDMA_NODE_IB_CA)
  		return RDMA_TRANSPORT_IB;
- 	case RDMA_NODE_RNIC:
+-	case RDMA_NODE_RNIC:
++
++	if (node_type == RDMA_NODE_RNIC)
  		return RDMA_TRANSPORT_IWARP;
--	case RDMA_NODE_USNIC:
--		return RDMA_TRANSPORT_USNIC;
- 	case RDMA_NODE_USNIC_UDP:
- 		return RDMA_TRANSPORT_USNIC_UDP;
- 	default:
-@@ -207,7 +203,6 @@ enum rdma_link_layer rdma_port_get_link_layer(struct ib_device *device, u8 port_
- 	case RDMA_TRANSPORT_IB:
- 		return IB_LINK_LAYER_INFINIBAND;
- 	case RDMA_TRANSPORT_IWARP:
--	case RDMA_TRANSPORT_USNIC:
- 	case RDMA_TRANSPORT_USNIC_UDP:
- 		return IB_LINK_LAYER_ETHERNET;
- 	default:
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 6cd2b91b8fc8..7aabec3a8a19 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -95,12 +95,9 @@ struct ib_gid_attr {
+-	case RDMA_NODE_USNIC_UDP:
+-		return RDMA_TRANSPORT_USNIC_UDP;
+-	default:
+-		BUG();
+-		return 0;
+-	}
++
++	return RDMA_TRANSPORT_USNIC_UDP;
+ }
+ EXPORT_SYMBOL(rdma_node_get_transport);
  
- enum rdma_node_type {
- 	/* IB values map to NodeInfo:NodeType. */
--	RDMA_NODE_IB_CA 	= 1,
--	RDMA_NODE_IB_SWITCH,
--	RDMA_NODE_IB_ROUTER,
--	RDMA_NODE_RNIC,
--	RDMA_NODE_USNIC,
--	RDMA_NODE_USNIC_UDP,
-+	RDMA_NODE_IB_CA		= 1,
-+	RDMA_NODE_RNIC		= 4,
-+	RDMA_NODE_USNIC_UDP	= 6,
- };
- 
- enum {
-@@ -109,10 +106,9 @@ enum {
- };
- 
- enum rdma_transport_type {
--	RDMA_TRANSPORT_IB,
--	RDMA_TRANSPORT_IWARP,
--	RDMA_TRANSPORT_USNIC,
--	RDMA_TRANSPORT_USNIC_UDP
-+	RDMA_TRANSPORT_IB		= 0,
-+	RDMA_TRANSPORT_IWARP		= 1,
-+	RDMA_TRANSPORT_USNIC_UDP	= 3,
- };
- 
- enum rdma_protocol_type {
 -- 
 2.14.0
 
