@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next 10/22] RDMA/mlx4: Remove gfp_mask argument from acquire_group call
-Date: Fri, 11 Aug 2017 13:49:51 +0300
-Message-ID: <20170811105003.7661-11-leon@kernel.org>
+Subject: [rdma-next 11/22] RDMA/usnic: Fix remove address space warning
+Date: Fri, 11 Aug 2017 13:49:52 +0300
+Message-ID: <20170811105003.7661-12-leon@kernel.org>
 References: <20170811105003.7661-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170811105003.7661-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,56 +12,90 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-All callers of acquire_group() passed the same gfp_mask to it
-and it is safe to remove it.
+Sparse tool complains with the following error:
+drivers/infiniband/hw/usnic/usnic_ib_main.c:445:16: warning: cast removes
+	address space of expression
 
+Fix it by doing casting on correct field and convert function helper which
+sets ifaddr to be void, because there are no users who are interested in
+returned value.
+
+Fixes: c7845bcafe4d ("IB/usnic: Add UDP support in u*verbs.c, u*main.c and u*util.h")
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/mcg.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/usnic/usnic_fwd.c     | 12 ++----------
+ drivers/infiniband/hw/usnic/usnic_fwd.h     |  2 +-
+ drivers/infiniband/hw/usnic/usnic_ib_main.c | 10 ++++++----
+ 3 files changed, 9 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/mcg.c b/drivers/infiniband/hw/mlx4/mcg.c
-index b73f89700ef9..70eb9f917303 100644
---- a/drivers/infiniband/hw/mlx4/mcg.c
-+++ b/drivers/infiniband/hw/mlx4/mcg.c
-@@ -808,8 +808,7 @@ static ssize_t sysfs_show_group(struct device *dev,
- 		struct device_attribute *attr, char *buf);
+diff --git a/drivers/infiniband/hw/usnic/usnic_fwd.c b/drivers/infiniband/hw/usnic/usnic_fwd.c
+index 3c37dd59c04e..995a26b65156 100644
+--- a/drivers/infiniband/hw/usnic/usnic_fwd.c
++++ b/drivers/infiniband/hw/usnic/usnic_fwd.c
+@@ -110,20 +110,12 @@ void usnic_fwd_set_mac(struct usnic_fwd_dev *ufdev, char mac[ETH_ALEN])
+ 	spin_unlock(&ufdev->lock);
+ }
  
- static struct mcast_group *acquire_group(struct mlx4_ib_demux_ctx *ctx,
--					 union ib_gid *mgid, int create,
--					 gfp_t gfp_mask)
-+					 union ib_gid *mgid, int create)
+-int usnic_fwd_add_ipaddr(struct usnic_fwd_dev *ufdev, __be32 inaddr)
++void usnic_fwd_add_ipaddr(struct usnic_fwd_dev *ufdev, __be32 inaddr)
  {
- 	struct mcast_group *group, *cur_group;
- 	int is_mgid0;
-@@ -825,7 +824,7 @@ static struct mcast_group *acquire_group(struct mlx4_ib_demux_ctx *ctx,
- 	if (!create)
- 		return ERR_PTR(-ENOENT);
+-	int status;
+-
+ 	spin_lock(&ufdev->lock);
+-	if (ufdev->inaddr == 0) {
++	if (!ufdev->inaddr)
+ 		ufdev->inaddr = inaddr;
+-		status = 0;
+-	} else {
+-		status = -EFAULT;
+-	}
+ 	spin_unlock(&ufdev->lock);
+-
+-	return status;
+ }
  
--	group = kzalloc(sizeof *group, gfp_mask);
-+	group = kzalloc(sizeof(*group), GFP_KERNEL);
- 	if (!group)
- 		return ERR_PTR(-ENOMEM);
+ void usnic_fwd_del_ipaddr(struct usnic_fwd_dev *ufdev)
+diff --git a/drivers/infiniband/hw/usnic/usnic_fwd.h b/drivers/infiniband/hw/usnic/usnic_fwd.h
+index b2ac22be0731..0b2cc4e79707 100644
+--- a/drivers/infiniband/hw/usnic/usnic_fwd.h
++++ b/drivers/infiniband/hw/usnic/usnic_fwd.h
+@@ -75,7 +75,7 @@ struct usnic_fwd_dev *usnic_fwd_dev_alloc(struct pci_dev *pdev);
+ void usnic_fwd_dev_free(struct usnic_fwd_dev *ufdev);
  
-@@ -892,7 +891,7 @@ int mlx4_ib_mcg_demux_handler(struct ib_device *ibdev, int port, int slave,
- 	case IB_MGMT_METHOD_GET_RESP:
- 	case IB_SA_METHOD_DELETE_RESP:
- 		mutex_lock(&ctx->mcg_table_lock);
--		group = acquire_group(ctx, &rec->mgid, 0, GFP_KERNEL);
-+		group = acquire_group(ctx, &rec->mgid, 0);
- 		mutex_unlock(&ctx->mcg_table_lock);
- 		if (IS_ERR(group)) {
- 			if (mad->mad_hdr.method == IB_MGMT_METHOD_GET_RESP) {
-@@ -954,7 +953,7 @@ int mlx4_ib_mcg_multiplex_handler(struct ib_device *ibdev, int port,
- 		req->sa_mad = *sa_mad;
+ void usnic_fwd_set_mac(struct usnic_fwd_dev *ufdev, char mac[ETH_ALEN]);
+-int usnic_fwd_add_ipaddr(struct usnic_fwd_dev *ufdev, __be32 inaddr);
++void usnic_fwd_add_ipaddr(struct usnic_fwd_dev *ufdev, __be32 inaddr);
+ void usnic_fwd_del_ipaddr(struct usnic_fwd_dev *ufdev);
+ void usnic_fwd_carrier_up(struct usnic_fwd_dev *ufdev);
+ void usnic_fwd_carrier_down(struct usnic_fwd_dev *ufdev);
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+index e86700f994cb..f45e99a938e0 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
+@@ -351,7 +351,7 @@ static void *usnic_ib_device_add(struct pci_dev *dev)
+ {
+ 	struct usnic_ib_dev *us_ibdev;
+ 	union ib_gid gid;
+-	struct in_ifaddr *in;
++	struct in_device *ind;
+ 	struct net_device *netdev;
  
- 		mutex_lock(&ctx->mcg_table_lock);
--		group = acquire_group(ctx, &rec->mgid, may_create, GFP_KERNEL);
-+		group = acquire_group(ctx, &rec->mgid, may_create);
- 		mutex_unlock(&ctx->mcg_table_lock);
- 		if (IS_ERR(group)) {
- 			kfree(req);
+ 	usnic_dbg("\n");
+@@ -441,9 +441,11 @@ static void *usnic_ib_device_add(struct pci_dev *dev)
+ 	if (netif_carrier_ok(us_ibdev->netdev))
+ 		usnic_fwd_carrier_up(us_ibdev->ufdev);
+ 
+-	in = ((struct in_device *)(netdev->ip_ptr))->ifa_list;
+-	if (in != NULL)
+-		usnic_fwd_add_ipaddr(us_ibdev->ufdev, in->ifa_address);
++	ind = in_dev_get(netdev);
++	if (ind->ifa_list)
++		usnic_fwd_add_ipaddr(us_ibdev->ufdev,
++				     ind->ifa_list->ifa_address);
++	in_dev_put(ind);
+ 
+ 	usnic_mac_ip_to_gid(us_ibdev->netdev->perm_addr,
+ 				us_ibdev->ufdev->inaddr, &gid.raw[0]);
 -- 
 2.14.0
 
