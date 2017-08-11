@@ -1,43 +1,53 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 for-rc] RDMA/vmw_pvrdma: Report CQ missed events
-Date: Fri, 11 Aug 2017 00:33:27 +0300
-Message-ID: <20170810213326.GA2343@yuvallap>
-References: <1502391902-5674-1-git-send-email-aditr@vmware.com>
- <20170810200256.GA4913@yuvallap>
- <306A2D1C-3070-4BFA-B532-D5020F5D185A@vmware.com>
- <20170810210103.GA9201@yuvallap>
- <B2047B7A-49AA-4899-86F9-E80039033662@vmware.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH for-next] IB/cma: Fix gid type setting for RoCE
+Date: Fri, 11 Aug 2017 02:09:45 -0700
+Message-ID: <1502442585-22391-1-git-send-email-selvin.xavier@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <B2047B7A-49AA-4899-86F9-E80039033662-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "Jorgen S. Hansen" <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Aug 10, 2017 at 09:26:06PM +0000, Adit Ranadive wrote:
-> On 8/10/17, 2:01 PM, "Yuval Shaia" <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> > Great, i understand that.
-> > So, at least can you consider moving this dev_err into
-> > pvrdma_idx_ring_has_data so callers do not need to handle errors?
-> 
-> Thanks for the suggestion. It's something we will have to discuss internally,
-> though I'm not sure if BUG_ON is the right way to go. That just seems a really
+RoCE gid_type should be 0 or 1 based on RoCE v1 or
+RoCE V2. Since bit mask is used now, cma_dev->default_gid_type
+is set to 2 (1 << IB_GID_TYPE_ROCE_UDP_ENCAP).
+Use the bit mask to check the prefered gid_type and
+assign the gid_type value to IB_GID_TYPE_ROCE(0) or
+IB_GID_TYPE_ROCE_UDP_ENCAP(1).
 
-No, i agree, BUG_ON is a mistake as ring corruption can be caused by HW, my
-suggestion is just to place the check and error print inside the function
-pvrdma_idx_ring_has_data so callers will not need to handle such errors.
+Fixes: 3c7f67d1880d (IB/cma: Fix default RoCE type setting)
+Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/cma.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Anyways, with or without taking the suggestion - fix lgtm.
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index ca4135c..eb420da 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -72,7 +72,8 @@ MODULE_LICENSE("Dual BSD/GPL");
+ #define CMA_MAX_CM_RETRIES 15
+ #define CMA_CM_MRA_SETTING (IB_CM_MRA_FLAG_DELAY | 24)
+ #define CMA_IBOE_PACKET_LIFETIME 18
+-#define CMA_PREFERRED_ROCE_GID_TYPE (1 << IB_GID_TYPE_ROCE_UDP_ENCAP)
++#define CMA_PREFERRED_ROCE_GID_TYPE_MASK (1 << IB_GID_TYPE_ROCE_UDP_ENCAP)
++#define CMA_PREFERRED_ROCE_GID_TYPE __ffs(CMA_PREFERRED_ROCE_GID_TYPE_MASK)
+ 
+ static const char * const cma_events[] = {
+ 	[RDMA_CM_EVENT_ADDR_RESOLVED]	 = "address resolved",
+@@ -4282,7 +4283,7 @@ static void cma_add_one(struct ib_device *device)
+ 	for (i = rdma_start_port(device); i <= rdma_end_port(device); i++) {
+ 		supported_gids = roce_gid_type_mask_support(device, i);
+ 		WARN_ON(!supported_gids);
+-		if (supported_gids & CMA_PREFERRED_ROCE_GID_TYPE)
++		if (supported_gids & CMA_PREFERRED_ROCE_GID_TYPE_MASK)
+ 			cma_dev->default_gid_type[i - rdma_start_port(device)] =
+ 				CMA_PREFERRED_ROCE_GID_TYPE;
+ 		else
+-- 
+2.5.5
 
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-
-> big hammer to me.
-> As it stands the patch should be added since it does fix a potential race
-> condition.
-> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
