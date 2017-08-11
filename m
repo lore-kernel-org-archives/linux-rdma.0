@@ -1,54 +1,42 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next 09/22] RDMA/core: Refactor get link layer wrapper
-Date: Fri, 11 Aug 2017 13:49:50 +0300
-Message-ID: <20170811105003.7661-10-leon@kernel.org>
+Subject: [rdma-next 04/22] RDMA/mlx4: Fix create qp command alignment
+Date: Fri, 11 Aug 2017 13:49:45 +0300
+Message-ID: <20170811105003.7661-5-leon@kernel.org>
 References: <20170811105003.7661-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170811105003.7661-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The return values from rdma_node_get_transport() are strict
-and IB_LINK_LAYER_UNSPECIFIED is unreachable in this flow.
+Avoid extra padding by replacing the order of inl_recv_sz and reserved,
+otherwise 'mlx4_ib_create_qp' structure might be larger than legacy user
+input leading to copy of some garbage data from the user space buffer.
 
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Fixes: ea30b966f7dd ('IB/mlx4: Add inline-receive support')
+Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c | 13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ include/uapi/rdma/mlx4-abi.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 0d359a482b13..e3aa9c60bcc5 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -192,18 +192,15 @@ EXPORT_SYMBOL(rdma_node_get_transport);
+diff --git a/include/uapi/rdma/mlx4-abi.h b/include/uapi/rdma/mlx4-abi.h
+index d915cab37ec3..21cce1a4c4dd 100644
+--- a/include/uapi/rdma/mlx4-abi.h
++++ b/include/uapi/rdma/mlx4-abi.h
+@@ -111,8 +111,8 @@ struct mlx4_ib_create_qp {
+ 	__u8	log_sq_bb_count;
+ 	__u8	log_sq_stride;
+ 	__u8	sq_no_prefetch;
+-	__u32	inl_recv_sz;
+ 	__u8	reserved;
++	__u32	inl_recv_sz;
+ };
  
- enum rdma_link_layer rdma_port_get_link_layer(struct ib_device *device, u8 port_num)
- {
-+	enum rdma_transport_type lt;
- 	if (device->get_link_layer)
- 		return device->get_link_layer(device, port_num);
- 
--	switch (rdma_node_get_transport(device->node_type)) {
--	case RDMA_TRANSPORT_IB:
-+	lt = rdma_node_get_transport(device->node_type);
-+	if (lt == RDMA_TRANSPORT_IB)
- 		return IB_LINK_LAYER_INFINIBAND;
--	case RDMA_TRANSPORT_IWARP:
--	case RDMA_TRANSPORT_USNIC_UDP:
--		return IB_LINK_LAYER_ETHERNET;
--	default:
--		return IB_LINK_LAYER_UNSPECIFIED;
--	}
-+
-+	return IB_LINK_LAYER_ETHERNET;
- }
- EXPORT_SYMBOL(rdma_port_get_link_layer);
- 
+ struct mlx4_ib_create_wq {
 -- 
 2.14.0
 
