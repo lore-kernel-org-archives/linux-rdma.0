@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 3/8] IB/hfi1: Add flag for platform config scratch
- register read
-Date: Sun, 13 Aug 2017 08:08:34 -0700
-Message-ID: <20170813150833.23208.84771.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 2/8] IB/hfi1: Document phys port state bits not
+ used in IB
+Date: Sun, 13 Aug 2017 08:08:28 -0700
+Message-ID: <20170813150827.23208.83131.stgit@scvm10.sc.intel.com>
 References: <20170813150659.23208.66243.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,89 +11,69 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170813150659.23208.66243.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Brent Rothermel <brent.r.rothermel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Todd Rimmer <todd.rimmer-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+A couple bits are used by OPA for link physical state that are not present
+as part of InfiniBand. Add a short blurb what those states mean and removed
+an unused state.
 
-Add flag in pport data structure to determine when platform config was
-read from scratch registers. Change conditions in parse_platform_config
-and get_platform_config_field to use the new flag.
-
-Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Reviewed-by: Todd Rimmer <todd.rimmer-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Brent Rothermel <brent.r.rothermel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/firmware.c |    6 ++++--
- drivers/infiniband/hw/hfi1/hfi.h      |    3 +++
- drivers/infiniband/hw/hfi1/platform.c |    2 ++
- 3 files changed, 9 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hfi1/opa_compat.h |   21 +++++++++++++++++++--
+ 1 files changed, 19 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/firmware.c b/drivers/infiniband/hw/hfi1/firmware.c
-index 885714b..fb095e6 100644
---- a/drivers/infiniband/hw/hfi1/firmware.c
-+++ b/drivers/infiniband/hw/hfi1/firmware.c
-@@ -1789,6 +1789,7 @@ static int check_meta_version(struct hfi1_devdata *dd, u32 *system_table)
- int parse_platform_config(struct hfi1_devdata *dd)
- {
- 	struct platform_config_cache *pcfgcache = &dd->pcfg_cache;
-+	struct hfi1_pportdata *ppd = dd->pport;
- 	u32 *ptr = NULL;
- 	u32 header1 = 0, header2 = 0, magic_num = 0, crc = 0, file_length = 0;
- 	u32 record_idx = 0, table_type = 0, table_length_dwords = 0;
-@@ -1800,7 +1801,7 @@ int parse_platform_config(struct hfi1_devdata *dd)
- 	 * scratch register bitmap, thus there is no platform config to parse.
- 	 * Skip parsing in these situations.
- 	 */
--	if (is_integrated(dd) && !platform_config_load)
-+	if (ppd->config_from_scratch)
- 		return 0;
- 
- 	if (!dd->platform_config.data) {
-@@ -2089,13 +2090,14 @@ int get_platform_config_field(struct hfi1_devdata *dd,
- 	int ret = 0, wlen = 0, seek = 0;
- 	u32 field_len_bits = 0, field_start_bits = 0, *src_ptr = NULL;
- 	struct platform_config_cache *pcfgcache = &dd->pcfg_cache;
-+	struct hfi1_pportdata *ppd = dd->pport;
- 
- 	if (data)
- 		memset(data, 0, len);
- 	else
- 		return -EINVAL;
- 
--	if (is_integrated(dd) && !platform_config_load) {
-+	if (ppd->config_from_scratch) {
- 		/*
- 		 * Use saved configuration from ppd for integrated platforms
- 		 */
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index dff3d3f..181feca 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -677,6 +677,9 @@ struct hfi1_pportdata {
- 	u8  default_atten;
- 	u8  max_power_class;
- 
-+	/* did we read platform config from scratch registers? */
-+	bool config_from_scratch;
+diff --git a/drivers/infiniband/hw/hfi1/opa_compat.h b/drivers/infiniband/hw/hfi1/opa_compat.h
+index 6ef3c1c..774215b 100644
+--- a/drivers/infiniband/hw/hfi1/opa_compat.h
++++ b/drivers/infiniband/hw/hfi1/opa_compat.h
+@@ -84,7 +84,8 @@ static inline u8 port_states_to_phys_state(struct opa_port_states *ps)
+ /*
+  * OPA port physical states
+  * IB Volume 1, Table 146 PortInfo/IB Volume 2 Section 5.4.2(1) PortPhysState
+- * values.
++ * values are the same in OmniPath Architecture. OPA leverages some of the same
++ * concepts as InfiniBand, but has a few other states as well.
+  *
+  * When writing, only values 0-3 are valid, other values are ignored.
+  * When reading, 0 is reserved.
+@@ -92,6 +93,8 @@ static inline u8 port_states_to_phys_state(struct opa_port_states *ps)
+  * Returned by the ibphys_portstate() routine.
+  */
+ enum opa_port_phys_state {
++	/* Values 0-7 have the same meaning in OPA as in InfiniBand. */
 +
- 	/* GUIDs for this interface, in host order, guids[0] is a port guid */
- 	u64 guids[HFI1_GUIDS_PER_PORT];
- 
-diff --git a/drivers/infiniband/hw/hfi1/platform.c b/drivers/infiniband/hw/hfi1/platform.c
-index 5c38a24..ab221b0 100644
---- a/drivers/infiniband/hw/hfi1/platform.c
-+++ b/drivers/infiniband/hw/hfi1/platform.c
-@@ -138,6 +138,8 @@ static void save_platform_config_fields(struct hfi1_devdata *dd)
- 
- 	ppd->max_power_class = (temp_scratch & QSFP_MAX_POWER_SMASK) >>
- 				QSFP_MAX_POWER_SHIFT;
+ 	IB_PORTPHYSSTATE_NOP = 0,
+ 	/* 1 is reserved */
+ 	IB_PORTPHYSSTATE_POLLING = 2,
+@@ -101,9 +104,23 @@ enum opa_port_phys_state {
+ 	IB_PORTPHYSSTATE_LINK_ERROR_RECOVERY = 6,
+ 	IB_PORTPHYSSTATE_PHY_TEST = 7,
+ 	/* 8 is reserved */
 +
-+	ppd->config_from_scratch = true;
- }
- 
- void get_platform_config(struct hfi1_devdata *dd)
++	/*
++	 * Offline: Port is quiet (transmitters disabled) due to lack of
++	 * physical media, unsupported media, or transition between link up
++	 * and next link up attempt
++	 */
+ 	OPA_PORTPHYSSTATE_OFFLINE = 9,
+-	OPA_PORTPHYSSTATE_GANGED = 10,
++
++	/* 10 is reserved */
++
++	/*
++	 * Phy_Test: Specific test patterns are transmitted, and receiver BER
++	 * can be monitored. This facilitates signal integrity testing for the
++	 * physical layer of the port.
++	 */
+ 	OPA_PORTPHYSSTATE_TEST = 11,
++
+ 	OPA_PORTPHYSSTATE_MAX = 11,
+ 	/* values 12-15 are reserved/ignored */
+ };
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
