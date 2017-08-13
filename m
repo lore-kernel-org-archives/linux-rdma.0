@@ -1,62 +1,49 @@
 From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [rdma-next 08/22] RDMA/core: Delete BUG() from unreachable flow
-Date: Sun, 13 Aug 2017 13:21:17 +0300
-Message-ID: <20170813102115.GH3924@yuvallap>
-References: <20170811105003.7661-1-leon@kernel.org>
- <20170811105003.7661-9-leon@kernel.org>
+Subject: Re: [rdma-next v1 20/22] IB/mlx4: Check that reserved fields in
+ mlx4_ib_create_qp_rss are zero
+Date: Sun, 13 Aug 2017 13:24:22 +0300
+Message-ID: <20170813102420.GA5245@yuvallap>
+References: <20170813101816.3120-1-leon@kernel.org>
+ <20170813101816.3120-21-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170811105003.7661-9-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170813101816.3120-21-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Aug 11, 2017 at 01:49:49PM +0300, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Sun, Aug 13, 2017 at 01:18:14PM +0300, Leon Romanovsky wrote:
+> From: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> Remove call to BUG() in case wrong node_type was provided.
-> This flow is unreachable, because node_types are supplied
-> from specific enum.
+> According to mlx4 convention, need to fail the command due to a non-zero
+> value in the user data which is expected to be zero.
 > 
-> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Fixes: 3078f5f1bd8b ("IB/mlx4: Add support for RSS QP")
+> Signed-off-by: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 > ---
->  drivers/infiniband/core/verbs.c | 14 +++++---------
->  1 file changed, 5 insertions(+), 9 deletions(-)
+>  drivers/infiniband/hw/mlx4/qp.c | 3 +++
+>  1 file changed, 3 insertions(+)
 > 
-> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-> index 21fef6b6d4f3..0d359a482b13 100644
-> --- a/drivers/infiniband/core/verbs.c
-> +++ b/drivers/infiniband/core/verbs.c
-> @@ -180,17 +180,13 @@ EXPORT_SYMBOL(ib_rate_to_mbps);
->  __attribute_const__ enum rdma_transport_type
->  rdma_node_get_transport(enum rdma_node_type node_type)
->  {
-> -	switch (node_type) {
-> -	case RDMA_NODE_IB_CA:
-> +	if (node_type == RDMA_NODE_IB_CA)
->  		return RDMA_TRANSPORT_IB;
-> -	case RDMA_NODE_RNIC:
+> diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+> index 44d2d0a2d5e0..2874d8790570 100644
+> --- a/drivers/infiniband/hw/mlx4/qp.c
+> +++ b/drivers/infiniband/hw/mlx4/qp.c
+> @@ -813,6 +813,9 @@ static struct ib_qp *_mlx4_ib_create_qp_rss(struct ib_pd *pd,
+>  		return ERR_PTR(-EFAULT);
+>  	}
+>  
+> +	if (memchr_inv(ucmd.reserved, 0, sizeof(ucmd.reserved)))
+> +		return ERR_PTR(-EOPNOTSUPP);
 > +
-> +	if (node_type == RDMA_NODE_RNIC)
->  		return RDMA_TRANSPORT_IWARP;
+>  	if (ucmd.comp_mask || ucmd.reserved1)
+>  		return ERR_PTR(-EOPNOTSUPP);
 
-Looking at for-next, there is case for RDMA_NODE_USNIC.
-Which branch this patch is based on?
+Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-> -	case RDMA_NODE_USNIC_UDP:
-> -		return RDMA_TRANSPORT_USNIC_UDP;
-> -	default:
-> -		BUG();
-> -		return 0;
-> -	}
-> +
-> +	return RDMA_TRANSPORT_USNIC_UDP;
->  }
->  EXPORT_SYMBOL(rdma_node_get_transport);
 >  
 > -- 
 > 2.14.0
