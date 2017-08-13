@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 1/8] IB/hfi1: Check xchg returned value for queuing
- link down entry
-Date: Sun, 13 Aug 2017 08:08:22 -0700
-Message-ID: <20170813150820.23208.12643.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 3/8] IB/hfi1: Add flag for platform config scratch
+ register read
+Date: Sun, 13 Aug 2017 08:08:34 -0700
+Message-ID: <20170813150833.23208.84771.stgit@scvm10.sc.intel.com>
 References: <20170813150659.23208.66243.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,55 +11,89 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170813150659.23208.66243.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Check xchg returned value for queuing link down entry
-to guarantee proper atomic value reads.
+Add flag in pport data structure to determine when platform config was
+read from scratch registers. Change conditions in parse_platform_config
+and get_platform_config_field to use the new flag.
 
-Fixes: 626c077c025f ("IB/hfi1: Prevent link down request double queuing")
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Sebastian Sanchez <sebastian.sanchez-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Easwar Hariharan <easwar.hariharan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jakub Byczkowski <jakub.byczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c |   18 ++++++++++++------
- 1 files changed, 12 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/hfi1/firmware.c |    6 ++++--
+ drivers/infiniband/hw/hfi1/hfi.h      |    3 +++
+ drivers/infiniband/hw/hfi1/platform.c |    2 ++
+ 3 files changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 24fda52..a6c6534 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -7810,16 +7810,22 @@ static void handle_8051_interrupt(struct hfi1_devdata *dd, u32 unused, u64 reg)
- 	if (queue_link_down) {
+diff --git a/drivers/infiniband/hw/hfi1/firmware.c b/drivers/infiniband/hw/hfi1/firmware.c
+index 885714b..fb095e6 100644
+--- a/drivers/infiniband/hw/hfi1/firmware.c
++++ b/drivers/infiniband/hw/hfi1/firmware.c
+@@ -1789,6 +1789,7 @@ static int check_meta_version(struct hfi1_devdata *dd, u32 *system_table)
+ int parse_platform_config(struct hfi1_devdata *dd)
+ {
+ 	struct platform_config_cache *pcfgcache = &dd->pcfg_cache;
++	struct hfi1_pportdata *ppd = dd->pport;
+ 	u32 *ptr = NULL;
+ 	u32 header1 = 0, header2 = 0, magic_num = 0, crc = 0, file_length = 0;
+ 	u32 record_idx = 0, table_type = 0, table_length_dwords = 0;
+@@ -1800,7 +1801,7 @@ int parse_platform_config(struct hfi1_devdata *dd)
+ 	 * scratch register bitmap, thus there is no platform config to parse.
+ 	 * Skip parsing in these situations.
+ 	 */
+-	if (is_integrated(dd) && !platform_config_load)
++	if (ppd->config_from_scratch)
+ 		return 0;
+ 
+ 	if (!dd->platform_config.data) {
+@@ -2089,13 +2090,14 @@ int get_platform_config_field(struct hfi1_devdata *dd,
+ 	int ret = 0, wlen = 0, seek = 0;
+ 	u32 field_len_bits = 0, field_start_bits = 0, *src_ptr = NULL;
+ 	struct platform_config_cache *pcfgcache = &dd->pcfg_cache;
++	struct hfi1_pportdata *ppd = dd->pport;
+ 
+ 	if (data)
+ 		memset(data, 0, len);
+ 	else
+ 		return -EINVAL;
+ 
+-	if (is_integrated(dd) && !platform_config_load) {
++	if (ppd->config_from_scratch) {
  		/*
- 		 * if the link is already going down or disabled, do not
--		 * queue another
-+		 * queue another. If there's a link down entry already
-+		 * queued, don't queue another one.
+ 		 * Use saved configuration from ppd for integrated platforms
  		 */
- 		if ((ppd->host_link_state &
- 		    (HLS_GOING_OFFLINE | HLS_LINK_COOLDOWN)) ||
--		    ppd->link_enabled == 0 || ppd->is_link_down_queued) {
--			dd_dev_info(dd, "%s: not queuing link down\n",
--				    __func__);
-+		    ppd->link_enabled == 0) {
-+			dd_dev_info(dd, "%s: not queuing link down. host_link_state %x, link_enabled %x\n",
-+				    __func__, ppd->host_link_state,
-+				    ppd->link_enabled);
- 		} else {
--			xchg(&ppd->is_link_down_queued, 1);
--			queue_work(ppd->link_wq, &ppd->link_down_work);
-+			if (xchg(&ppd->is_link_down_queued, 1) == 1)
-+				dd_dev_info(dd,
-+					    "%s: link down request already queued\n",
-+					    __func__);
-+			else
-+				queue_work(ppd->link_wq, &ppd->link_down_work);
- 		}
- 	}
+diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+index dff3d3f..181feca 100644
+--- a/drivers/infiniband/hw/hfi1/hfi.h
++++ b/drivers/infiniband/hw/hfi1/hfi.h
+@@ -677,6 +677,9 @@ struct hfi1_pportdata {
+ 	u8  default_atten;
+ 	u8  max_power_class;
+ 
++	/* did we read platform config from scratch registers? */
++	bool config_from_scratch;
++
+ 	/* GUIDs for this interface, in host order, guids[0] is a port guid */
+ 	u64 guids[HFI1_GUIDS_PER_PORT];
+ 
+diff --git a/drivers/infiniband/hw/hfi1/platform.c b/drivers/infiniband/hw/hfi1/platform.c
+index 5c38a24..ab221b0 100644
+--- a/drivers/infiniband/hw/hfi1/platform.c
++++ b/drivers/infiniband/hw/hfi1/platform.c
+@@ -138,6 +138,8 @@ static void save_platform_config_fields(struct hfi1_devdata *dd)
+ 
+ 	ppd->max_power_class = (temp_scratch & QSFP_MAX_POWER_SMASK) >>
+ 				QSFP_MAX_POWER_SHIFT;
++
++	ppd->config_from_scratch = true;
  }
+ 
+ void get_platform_config(struct hfi1_devdata *dd)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
