@@ -1,53 +1,54 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v1 01/22] IB/cma: Fix erroneous validation of supported default GID type
-Date: Sun, 13 Aug 2017 13:17:55 +0300
-Message-ID: <20170813101816.3120-2-leon@kernel.org>
+Subject: [rdma-next v1 14/22] IB/mlx4: Fix some spelling mistakes
+Date: Sun, 13 Aug 2017 13:18:08 +0300
+Message-ID: <20170813101816.3120-15-leon@kernel.org>
 References: <20170813101816.3120-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170813101816.3120-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-When rdma_cm is initializing a cma_device it checks if this device
-supports the preferred default GID type. This check was done in a wrong way
-and therefore sometimes rdma_cm is coming up with default GID type that is
-not supported by the device.
+Fix spelling mistakes in remarks
+    "retrun"->"return"
+    "cancell"->"cancel"
 
-Fix that by checking for supported GID type properly.
-
-Fixes: 3c7f67d1880d ("IB/cma: Fix default RoCE type setting")
-Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx4/alias_GUID.c | 2 +-
+ drivers/infiniband/hw/mlx4/cq.c         | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index d8edd8b11561..f5f88b427328 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -72,7 +72,7 @@ MODULE_LICENSE("Dual BSD/GPL");
- #define CMA_MAX_CM_RETRIES 15
- #define CMA_CM_MRA_SETTING (IB_CM_MRA_FLAG_DELAY | 24)
- #define CMA_IBOE_PACKET_LIFETIME 18
--#define CMA_PREFERRED_ROCE_GID_TYPE (1 << IB_GID_TYPE_ROCE_UDP_ENCAP)
-+#define CMA_PREFERRED_ROCE_GID_TYPE IB_GID_TYPE_ROCE_UDP_ENCAP
+diff --git a/drivers/infiniband/hw/mlx4/alias_GUID.c b/drivers/infiniband/hw/mlx4/alias_GUID.c
+index 5a897b0106a9..9ed41f56e141 100644
+--- a/drivers/infiniband/hw/mlx4/alias_GUID.c
++++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
+@@ -781,7 +781,7 @@ void mlx4_ib_init_alias_guid_work(struct mlx4_ib_dev *dev, int port)
+ 	spin_lock_irqsave(&dev->sriov.going_down_lock, flags);
+ 	spin_lock_irqsave(&dev->sriov.alias_guid.ag_work_lock, flags1);
+ 	if (!dev->sriov.is_going_down) {
+-		/* If there is pending one should cancell then run, otherwise
++		/* If there is pending one should cancel then run, otherwise
+ 		  * won't run till previous one is ended as same work
+ 		  * struct is used.
+ 		  */
+diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
+index 95382faa7ad1..cab796341697 100644
+--- a/drivers/infiniband/hw/mlx4/cq.c
++++ b/drivers/infiniband/hw/mlx4/cq.c
+@@ -637,7 +637,7 @@ static void mlx4_ib_poll_sw_comp(struct mlx4_ib_cq *cq, int num_entries,
+ 	struct mlx4_ib_qp *qp;
  
- static const char * const cma_events[] = {
- 	[RDMA_CM_EVENT_ADDR_RESOLVED]	 = "address resolved",
-@@ -4282,7 +4282,7 @@ static void cma_add_one(struct ib_device *device)
- 	for (i = rdma_start_port(device); i <= rdma_end_port(device); i++) {
- 		supported_gids = roce_gid_type_mask_support(device, i);
- 		WARN_ON(!supported_gids);
--		if (supported_gids & CMA_PREFERRED_ROCE_GID_TYPE)
-+		if (supported_gids & (1 << CMA_PREFERRED_ROCE_GID_TYPE))
- 			cma_dev->default_gid_type[i - rdma_start_port(device)] =
- 				CMA_PREFERRED_ROCE_GID_TYPE;
- 		else
+ 	*npolled = 0;
+-	/* Find uncompleted WQEs belonging to that cq and retrun
++	/* Find uncompleted WQEs belonging to that cq and return
+ 	 * simulated FLUSH_ERR completions
+ 	 */
+ 	list_for_each_entry(qp, &cq->send_qp_list, cq_send_list) {
 -- 
 2.14.0
 
