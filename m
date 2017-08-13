@@ -1,73 +1,108 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core 3/3] cbuild: use rpmspec for macro replacement
-Date: Sun, 13 Aug 2017 09:37:06 +0300
-Message-ID: <20170813063706.GQ24282@mtr-leonro.local>
-References: <27366048-d80f-3711-c6cd-93c87809650e@suse.de>
- <8ad0438f-b4a5-aec9-1e44-a9c9dc1ca17b@suse.de>
- <20170808230459.GF29372@obsidianresearch.com>
- <b3993b0c-0b9d-a917-cbf8-22f68c1d2a97@suse.de>
- <20170809155532.GC15586@obsidianresearch.com>
- <f42a6eaa-79f9-1063-b58a-08da363d09e7@suse.de>
- <20170809201932.GA7363@obsidianresearch.com>
- <5c4de783-ce62-2b8d-78aa-ee2f181fe719@suse.de>
- <20170809211536.GA10191@obsidianresearch.com>
+Subject: Re: Flush warning
+Date: Sun, 13 Aug 2017 09:46:51 +0300
+Message-ID: <20170813064651.GR24282@mtr-leonro.local>
+References: <016301d30c86$e7034ae0$b509e0a0$@opengridcomputing.com>
+ <9bc142de-b8ba-acb6-5ea1-2ccdbb578655@grimberg.me>
+ <003401d30f91$c7e2a3f0$57a7ebd0$@opengridcomputing.com>
+ <00ff01d3112b$94142350$bc3c69f0$@opengridcomputing.com>
+ <20170809162749.GA4069@obsidianresearch.com>
+ <011601d3112d$fa305b70$ee911250$@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="BHMq0+oGliEfCAkH"
+        protocol="application/pgp-signature"; boundary="5FetH82qe0Z6y/zI"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170809211536.GA10191-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <011601d3112d$fa305b70$ee911250$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---BHMq0+oGliEfCAkH
+--5FetH82qe0Z6y/zI
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Aug 09, 2017 at 03:15:36PM -0600, Jason Gunthorpe wrote:
-> On Wed, Aug 09, 2017 at 11:08:34PM +0200, Nicolas Morey-Chaisemartin wrote:
+On Wed, Aug 09, 2017 at 11:38:49AM -0500, Steve Wise wrote:
+> > On Wed, Aug 09, 2017 at 11:21:38AM -0500, Steve Wise wrote:
+> >
+> > > > I don't know.  I read the workqueue doc on WQ_MEM_RECLAIM, but I don't
+> > know
+> > > > how
+> > > > to tell if iw_cm needs this or not.  Can you give me an example of a
+> workqueue
+> > > > that _does_ need WQ_MEM_RECLAIM?  I _think_ it means your workqueue is
+> > > > required
+> > > > to run something that would get triggered by the oom OS code, but I don't
+> know
+> > > > if that would include rdma CMs or not...
+> > >
+> > > Many of the workqueues in infiniband/core use WQ_MEM_RECLAIM: cma, iwcm,
+> > mad,
+> > > multicast, sa_query, and ucma.
+> > >
+> > > Hey Sean, do you have any insight into whether the CMA modules really need
+> > > WQ_MEM_RECLAIM for their workqueues?
+> > >
+> > > Does anyone else know?
+> >
+> > Consider that the ib_core can be used to back storage. Ie consider a
+> > situation where iSER/NFS/SRP needs to reconnect to respond to kernel
+> > paging/reclaim.
+> >
+> > On the surface it seems reasonable to me that these are on a reclaim
+> > path?
+> >
+> > Jason
 >
-> > > And drop a symlink to fix it up.
+> hmm.  That seems reasonable.  Then I would think the nvme_rdma would also need
+> to be using a reclaim workqueue.
 >
-> > Yes this should work. It feels a little bit dirty to have a tarball
-> > name with unreplaced macro but it's a temporay state so I can live
-> > with this :)
->
-> It is a bit strange, but this trivially delegates parsing the .tar.xx
-> to git archive which understands all the formats..
->
-> Here is the patches, should I send them?
->
-> https://github.com/jgunthorpe/rdma-plumbing/tree/cbuild
+> Sagi, Do you think I should add a private workqueue with WQ_MEM_RECLAIM to
+> nvme_rdma vs using the system_wq?  nvme/target probably needs one also...
 
-????
+The workqueue which frees the memory and doesn't allocate memory during execution
+is supposed to be marked as WQ_MEM_RECLAIM. This flag will cause to priority increase
+for such workqueue during low memory conditions.
+
+I don't remember it for sure, but I think that shrinker will call to
+such workqueue in these conditions. In normal conditions, it won't
+change a lot.
 
 Thanks
 
---BHMq0+oGliEfCAkH
+>
+> Steve.
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--5FetH82qe0Z6y/zI
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmP85IACgkQ5GN7iDZy
-WKd4lw//eo0KgLl4xBoatX4ZVS2eEk/4bLyMNn55fYbmQDKm8uZbKzIVJr5ITFL9
-02hGEQD4+VhAnXK9BtT5mU2rOkaszE/8QPDBNqhhQaJ2iwse9yOxcDV/d+nQI95K
-MyG2S+ygJHfpD92M3oOt43Y+E/WdoEasQu4wjWnxYcQOXcNUbNkBt/+VmCWlLXM8
-tLnUzfPTtR2gkCRJ5QohM4OT59GEHt9CKjRqGJGm1nPCJzBr9AMzbIdkpclsRZJw
-jURQIzJbwqImrNyKCYrLNWqWxAQLc8rfELc6c2hRVuFe2uWPTIQ+KnlVLf9Ijqsn
-a8oevHVsOSE/9/2tlBRdWoJYX3VWF9Ukedf+Sp4RJfueLpOoJ2noxi61MyBRgr8h
-W5oR9TNPf8WZTwLmP9sN7cCcyN6ZPAiehfmyRk3sc6KtAP8ZGICz9AhhuWESmS+U
-JxtSYrBcr2fYYMEsJnsd0NA/Bw3mKb2YfYPySd1J7iGeugihVGPoVV30XQE3Lgz7
-PcF/l55VdqadxJ/0ugTy6/I6hOZT9h/cFcRWQc+V7E7WxEa9oXyfaWyLaM8sN+Ga
-k2KuiU/0xrvfnPszz0TAwZFpd5ff0ppoC5bDVoKkPEUaM9+3t6gYrKeNuNqOPyYJ
-/sHMJIBGVQQ4P8GXBT3v7vVSKUfh0gSACxygx7xHNj2QoGuyC2E=
-=sqd+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmP9dsACgkQ5GN7iDZy
+WKcoxxAAzMWxrw4CoIUvF/7w3joFU4j+mzO/E0X6A9ZjVdMudfo1ookTm40zg2IP
+Iq9rjtr56erpsi/8wjN5Th8OPAcASHhZ621jFKjODfUGwFXFlNPvW7LAruxPA4w6
+BNl5TMmjdCdZlAwJAwF7/Co3t/rAkZgmsu5+2W2QWxji6akBLlymMXQP8sN+YxRz
+mH8QEgqPvihXUWqxetlRKghlUpIbP87hBAAZRHxF7xe46tMDVQowPhGU8TfuTojv
+UI2JrH9C6rdJ9TijR95Ct4uiZTiyvWBeQJyN9zN7jcv+HflPoMsHsGXDEExKfgdx
+mhMjnZFJ6GmOO2In9JK/eQx1PGObRCxLT+HIiDntRRT1R3lvLNIX+86lsLgKLkXU
+2q0HT9HBpsmZ/7kPBnJYx+ddKr/oHByqananoiGrgDMQZP//Db31+vKrLjBzmpql
+KdxTIpmDB2L4gyojQaMj6CIhUOy1ipLE8aL12HIIgqn6a1q0IRmmcCJ1uLXE6R2j
+kGRMAKB/jZF+m6yrCKHBDJ+/j4DFxqYpSJvBF2m/VlGPZuogH2ZcqGAQtHwUzpoJ
+YdhWgWsGAWNwds4XGRKPmJrYTfyXiKGMdY0CHf9zXK1bact3ruf9x82ZC+u2nYNw
+odD9ksHo21QieAdB2Dpc/mIvC+/kIrTW29SoFJE8u2W287qVyDo=
+=eF5E
 -----END PGP SIGNATURE-----
 
---BHMq0+oGliEfCAkH--
+--5FetH82qe0Z6y/zI--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
