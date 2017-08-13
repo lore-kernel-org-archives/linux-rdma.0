@@ -1,90 +1,73 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] IB/core: fix duplicated code for different branches
-Date: Sun, 13 Aug 2017 09:31:56 +0300
-Message-ID: <20170813063156.GP24282@mtr-leonro.local>
-References: <20170813005235.GA30629@embeddedgus>
+Subject: Re: [PATCH rdma-core 3/3] cbuild: use rpmspec for macro replacement
+Date: Sun, 13 Aug 2017 09:37:06 +0300
+Message-ID: <20170813063706.GQ24282@mtr-leonro.local>
+References: <27366048-d80f-3711-c6cd-93c87809650e@suse.de>
+ <8ad0438f-b4a5-aec9-1e44-a9c9dc1ca17b@suse.de>
+ <20170808230459.GF29372@obsidianresearch.com>
+ <b3993b0c-0b9d-a917-cbf8-22f68c1d2a97@suse.de>
+ <20170809155532.GC15586@obsidianresearch.com>
+ <f42a6eaa-79f9-1063-b58a-08da363d09e7@suse.de>
+ <20170809201932.GA7363@obsidianresearch.com>
+ <5c4de783-ce62-2b8d-78aa-ee2f181fe719@suse.de>
+ <20170809211536.GA10191@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="S6vg04ofUPzW4qJg"
+        protocol="application/pgp-signature"; boundary="BHMq0+oGliEfCAkH"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170813005235.GA30629@embeddedgus>
+In-Reply-To: <20170809211536.GA10191-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gustavo A. R. Silva" <gustavo-L1vi/lXTdts+Va1GwOuvDg@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---S6vg04ofUPzW4qJg
+--BHMq0+oGliEfCAkH
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Sat, Aug 12, 2017 at 07:52:35PM -0500, Gustavo A. R. Silva wrote:
-> Refactor code to avoid identical code for different branches.
+On Wed, Aug 09, 2017 at 03:15:36PM -0600, Jason Gunthorpe wrote:
+> On Wed, Aug 09, 2017 at 11:08:34PM +0200, Nicolas Morey-Chaisemartin wrote:
 >
-> This issue was detected with the help of Coccinelle.
+> > > And drop a symlink to fix it up.
 >
-> Signed-off-by: Gustavo A. R. Silva <gustavo-L1vi/lXTdts+Va1GwOuvDg@public.gmane.org>
-> ---
->  drivers/infiniband/core/cm.c | 4 ----
->  1 file changed, 4 deletions(-)
-
-I see that you used the same commit message and title for many patches,
-it will be better to have description on what exactly you are removing
-and why there is no bug in that code.
-
-
+> > Yes this should work. It feels a little bit dirty to have a tarball
+> > name with unreplaced macro but it's a temporay state so I can live
+> > with this :)
 >
-> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-> index 2b4d613..b46262f 100644
-> --- a/drivers/infiniband/core/cm.c
-> +++ b/drivers/infiniband/core/cm.c
-> @@ -590,8 +590,6 @@ static struct cm_id_private * cm_insert_listen(struct cm_id_private *cm_id_priv)
->  			link = &(*link)->rb_right;
->  		else if (be64_lt(service_id, cur_cm_id_priv->id.service_id))
->  			link = &(*link)->rb_left;
-> -		else if (be64_gt(service_id, cur_cm_id_priv->id.service_id))
-> -			link = &(*link)->rb_right;
->  		else
->  			link = &(*link)->rb_right;
->  	}
-> @@ -619,8 +617,6 @@ static struct cm_id_private * cm_find_listen(struct ib_device *device,
->  			node = node->rb_right;
->  		else if (be64_lt(service_id, cm_id_priv->id.service_id))
->  			node = node->rb_left;
-> -		else if (be64_gt(service_id, cm_id_priv->id.service_id))
-> -			node = node->rb_right;
-
-You should remove be64_gt() too.
-
->  		else
->  			node = node->rb_right;
->  	}
-> --
-> 2.5.0
+> It is a bit strange, but this trivially delegates parsing the .tar.xx
+> to git archive which understands all the formats..
 >
+> Here is the patches, should I send them?
+>
+> https://github.com/jgunthorpe/rdma-plumbing/tree/cbuild
 
---S6vg04ofUPzW4qJg
+????
+
+Thanks
+
+--BHMq0+oGliEfCAkH
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmP8lwACgkQ5GN7iDZy
-WKcXjg/+K6AZTPqdtaYGwpV1zFW4Q09YOZNntpa857PJUTP8ohl+xskQB+GO3h88
-81n5A9lFUphHV7CDg4geeBlIQ36DtTp79ZUxOl23FD6+Mtdhi8HVM3oKRpL+rS6f
-aEyau0d12fmGsu74EMq1EGI73cm3abht4l1T86jAvvJjG4nEly8NE6VDzf/xlhfx
-kqROMXEQryNTrE/Ze7jZGxpvmUJH7ZZ2Oa4T2CoKGqwvpEZ2f6AigkTodi86y0zP
-v7JvlPh45kk6GHkDrnzhen0wp1Hz9O0WVHLsOuSLCcvGNqyXTG682t6+ceTl+HVS
-Vyr4cjIKH1Ntg7QHqeIL40p6qTomsYodlH6iae/3CsUB8GlW4g8wd2DgJb7szaV5
-wS60MkLPAjW/Ddac1MwI6YsnHrIvtFTJzXyDfU5G7ucZJT21PfFp+3GEv66C7hMY
-MN0LkR5rxWWmkmrBMbuMaF+l9BYGWjNsZTomkPz2wdNfbk3kV2t9cLBfRSM27jXq
-ODjqMEnuy30mp/sWgbli/SxQ2y0ua8+80Yo37SwB2Jih1Fxm234NRDuu20kyI1lv
-NUwdGLVIuWz0kGwF0qHWOApnJpUxP7k56Mtbgn3DSygENDc6alZcycdmD0iCv5ZD
-DGoRALS7XrxLdvPmVrFwzN5sgGfclbFJVbaT5kznHu0g7Jvu6Y4=
-=JjiP
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmP85IACgkQ5GN7iDZy
+WKd4lw//eo0KgLl4xBoatX4ZVS2eEk/4bLyMNn55fYbmQDKm8uZbKzIVJr5ITFL9
+02hGEQD4+VhAnXK9BtT5mU2rOkaszE/8QPDBNqhhQaJ2iwse9yOxcDV/d+nQI95K
+MyG2S+ygJHfpD92M3oOt43Y+E/WdoEasQu4wjWnxYcQOXcNUbNkBt/+VmCWlLXM8
+tLnUzfPTtR2gkCRJ5QohM4OT59GEHt9CKjRqGJGm1nPCJzBr9AMzbIdkpclsRZJw
+jURQIzJbwqImrNyKCYrLNWqWxAQLc8rfELc6c2hRVuFe2uWPTIQ+KnlVLf9Ijqsn
+a8oevHVsOSE/9/2tlBRdWoJYX3VWF9Ukedf+Sp4RJfueLpOoJ2noxi61MyBRgr8h
+W5oR9TNPf8WZTwLmP9sN7cCcyN6ZPAiehfmyRk3sc6KtAP8ZGICz9AhhuWESmS+U
+JxtSYrBcr2fYYMEsJnsd0NA/Bw3mKb2YfYPySd1J7iGeugihVGPoVV30XQE3Lgz7
+PcF/l55VdqadxJ/0ugTy6/I6hOZT9h/cFcRWQc+V7E7WxEa9oXyfaWyLaM8sN+Ga
+k2KuiU/0xrvfnPszz0TAwZFpd5ff0ppoC5bDVoKkPEUaM9+3t6gYrKeNuNqOPyYJ
+/sHMJIBGVQQ4P8GXBT3v7vVSKUfh0gSACxygx7xHNj2QoGuyC2E=
+=sqd+
 -----END PGP SIGNATURE-----
 
---S6vg04ofUPzW4qJg--
+--BHMq0+oGliEfCAkH--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
