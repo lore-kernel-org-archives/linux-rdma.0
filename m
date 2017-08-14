@@ -1,74 +1,145 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: Flush warning
-Date: Mon, 14 Aug 2017 08:13:04 -0400
-Message-ID: <3d9cca62-4612-53dc-776c-3aeb2df58365@dev.mellanox.co.il>
-References: <016301d30c86$e7034ae0$b509e0a0$@opengridcomputing.com>
- <9bc142de-b8ba-acb6-5ea1-2ccdbb578655@grimberg.me>
- <003401d30f91$c7e2a3f0$57a7ebd0$@opengridcomputing.com>
- <00ff01d3112b$94142350$bc3c69f0$@opengridcomputing.com>
- <20170809162749.GA4069@obsidianresearch.com>
- <011601d3112d$fa305b70$ee911250$@opengridcomputing.com>
- <20170813064651.GR24282@mtr-leonro.local>
- <90ada4f5-d6a1-2b93-5164-c593955c20cf@grimberg.me>
- <20170813103359.GW24282@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [pull request][rdma-next 00/11] Hardware tag matching support
+Date: Mon, 14 Aug 2017 16:53:41 +0300
+Message-ID: <20170814135352.5324-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170813103359.GW24282-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Sean Hefty' <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/13/2017 6:33 AM, Leon Romanovsky wrote:
-> On Sun, Aug 13, 2017 at 02:14:58AM -0700, Sagi Grimberg wrote:
->>
->>>>>> Does anyone else know?
->>>>>
->>>>> Consider that the ib_core can be used to back storage. Ie consider a
->>>>> situation where iSER/NFS/SRP needs to reconnect to respond to kernel
->>>>> paging/reclaim.
->>>>>
->>>>> On the surface it seems reasonable to me that these are on a reclaim
->>>>> path?
->>
->> I'm pretty sure that ULP connect will trigger memory allocations, which
->> will fail under memory pressure... Maybe I'm missing something.
->>
->>>> hmm.  That seems reasonable.  Then I would think the nvme_rdma would also need
->>>> to be using a reclaim workqueue.
->>>>
->>>> Sagi, Do you think I should add a private workqueue with WQ_MEM_RECLAIM to
->>>> nvme_rdma vs using the system_wq?  nvme/target probably needs one also...
->>
->> I'm not sure, being unable to flush system workqueue from CM context is
->> somewhat limiting... We could use a private workqueue for nvmet
->> teardowns but I'm not sure we want to do that.
->>
->>> The workqueue which frees the memory and doesn't allocate memory during execution
->>> is supposed to be marked as WQ_MEM_RECLAIM. This flag will cause to priority increase
->>> for such workqueue during low memory conditions.
->>
->> Which to my understanding means that CM workqueue should not use it as
->> on each CM connect, by definition the ULP allocates memory (qp, cq etc).
-> 
-> From my understanding too.
-> That workqueue was introduced in 2005, in a977049dacde
-> ("[PATCH] IB: Add the kernel CM implementation"), it is not clear if it
-> was intentionally.
-> 
-> Hal,
-> do you remember the rationale there?
+This patch series adds to Mellanox ConnectX HCA driver support of
+tag matching. It introduces new hardware object eXtended shared Receive
+Queue (XRQ), which follows SRQ semantics with addition of extended
+receive buffers topologies and offloads.
 
-Sean is best to respond to this.
+This series adds tag matching topology and rendezvouz offload.
 
--- Hal
+Main changes between RFC and current version:
+ * Followed after RFC posted on the ML and OFVWG discussions
+ * Implements agreed verbs interface
+ * Rebased on top of latest version
+ * Adding feature description under Documentaion/infiniband
+ * In struct ib_srq_init_attr moved CQ outside XRC inner struct.
+ * Added max size of the information passed after the RNDV header
+ * Added hca_sq_owner HW flag for RNDV QPs
 
-> 
-> Thanks
-> 
+Thanks
+
+----------------------------------------------------------------
+
+Doug,
+
+Please note that I merged our shared pull request from the mailing
+list before sending this series. Please let me know if something needs
+to be redone.
+
+Thanks
+
+----------------------------------------------------------------
+The following changes since commit c8252e205138a6649a2274ad658b6fd6cce7b334:
+
+  Merge tag 'mlx5-shared-2017-08-07' of git://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux into HEAD (2017-08-13 15:48:40 +0300)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/rdma-next-2017-08-14
+
+for you to fetch changes up to 617a0639046f2e1d0cc32782ce60fe25aac3f7e1:
+
+  Documentation: Hardware tag matching (2017-08-13 15:49:08 +0300)
+
+----------------------------------------------------------------
+TAG matching support
+
+Message Passing Interface (MPI) is a communication protocol that is
+widely used for exchange of messages among processes in high-performance
+computing (HPC) systems. Messages sent from a sending process to a
+destination process are marked with an identifying label, referred to as
+a tag. Destination processes post buffers in local memory that are
+similarly marked with tags. When a message is received by the receiver
+(i.e., the host computer on which the destination process is running),
+the message is stored in a buffer whose tag matches the message tag. The
+process of finding a buffer with a matching tag for the received packet
+is called tag matching.
+
+There are two protocols that are generally used to send messages over
+MPI: The "Eager Protocol" is best suited to small messages that are
+simply sent to the destination process and received in an appropriate
+matching buffer. The "Rendezvous Protocol" is better suited to large
+messages. In Rendezvous, when the sender process has a large message to
+send, it first sends a small message to the destination process
+announcing its intention to send the large message. This small message
+is referred to as an RTS (ready to send) message. The RTS includes the
+message tag and buffer address in the sender. The destination process
+matches the RTS to a posted receive buffer, or posts such a buffer if
+one does not already exist. Once a matching receive buffer has been
+posted at the destination process side, the receiver initiates a remote
+direct memory access (RDMA) read request to read the data from the
+buffer address listed by the sender in the RTS message.
+
+MPI tag matching, when performed in software by a host processor, can
+consume substantial host resources, thus detracting from the performance
+of the actual software applications that are using MPI for
+communications. One possible solution is to offload the entire tag
+matching process to a peripheral hardware device, such as a network
+interface controller (NIC). In this case, the software application using
+MPI will post a set of buffers in a memory of the host processor and
+will pass the entire list of tags associated with the buffers to the
+NIC. In large-scale networks, however, the NIC may be required to
+simultaneously support many communicating processes and contexts
+(referred to in MPI parlance as "ranks" and "communicators,"
+respectively). NIC access to and matching of the large lists of tags
+involved in such a scenario can itself become a bottleneck. The NIC must
+also be able to handle "unexpected" traffic, for which buffers and tags
+have not yet been posted, which may also degrade performance.
+
+When the NIC receives a message over the network from one of the peer
+processes, and the message contains a label in accordance with the
+protocol, the NIC compares the label to the labels in the part of the
+list that was pushed to the NIC. Upon finding a match to the label, the
+NIC writes data conveyed in the message to the buffer in the memory that
+is associated with this label and submits a notification to the software
+process. The notification serves two purposes: both to indicate to the
+software process that the label has been consumed, so that the process
+will update the list of the labels posted to the NIC; and to inform the
+software process that the data are available in the buffer. In some
+cases (such as when the NIC retrieves the data from the remote node by
+RDMA), the NIC may submit two notifications, in the form of completion
+reports, of which the first informs the software process of the
+consumption of the label and the second announces availability of the
+data.
+
+----------------------------------------------------------------
+Artemy Kovalyov (11):
+      net/mlx5: Update HW layout definitions
+      IB/core: Add XRQ capabilities
+      IB/core: Separate CQ handle in SRQ context
+      IB/core: Add new SRQ type IB_SRQT_TM
+      IB/uverbs: Add XRQ creation parameter to UAPI
+      IB/uverbs: Add new SRQ type IB_SRQT_TM
+      IB/uverbs: Expose XRQ capabilities
+      IB/mlx5: Fill XRQ capabilities
+      net/mlx5: Add XRQ support
+      IB/mlx5: Support IB_SRQT_TM
+      Documentation: Hardware tag matching
+
+ Documentation/infiniband/tag_matching.txt     |  64 +++++++++++
+ drivers/infiniband/core/uverbs_cmd.c          |  43 ++++++--
+ drivers/infiniband/core/verbs.c               |  16 +--
+ drivers/infiniband/hw/mlx4/srq.c              |   4 +-
+ drivers/infiniband/hw/mlx5/main.c             |  20 +++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |   5 +
+ drivers/infiniband/hw/mlx5/qp.c               |   9 +-
+ drivers/infiniband/hw/mlx5/srq.c              |  29 +++--
+ drivers/net/ethernet/mellanox/mlx5/core/srq.c | 150 ++++++++++++++++++++++++--
+ include/linux/mlx5/driver.h                   |   1 +
+ include/linux/mlx5/mlx5_ifc.h                 |   9 +-
+ include/linux/mlx5/srq.h                      |   5 +
+ include/rdma/ib_verbs.h                       |  58 +++++++---
+ include/uapi/rdma/ib_user_verbs.h             |  17 ++-
+ 14 files changed, 371 insertions(+), 59 deletions(-)
+ create mode 100644 Documentation/infiniband/tag_matching.txt
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
