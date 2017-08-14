@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next 04/11] IB/core: Add new SRQ type IB_SRQT_TM
-Date: Mon, 14 Aug 2017 16:53:45 +0300
-Message-ID: <20170814135352.5324-5-leon@kernel.org>
+Subject: [rdma-next 06/11] IB/uverbs: Add new SRQ type IB_SRQT_TM
+Date: Mon, 14 Aug 2017 16:53:47 +0300
+Message-ID: <20170814135352.5324-7-leon@kernel.org>
 References: <20170814135352.5324-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170814135352.5324-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,12 +12,12 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This patch adds new SRQ type - IB_SRQT_TM. The new SRQ type supports tag
-matching and rendezvous offloads for MPI applications.
+Add new SRQ type capable of new tag matching feature.
 
 When SRQ receives a message it will search through the matching list
 for the corresponding posted receive buffer. The process of searching
 the matching list is called tag matching.
+
 In case the tag matching results in a match, the received message will
 be placed in the address specified by the receive buffer. In case no
 match was found the message will be placed in a generic buffer until the
@@ -28,41 +28,40 @@ Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 Reviewed-by: Yossi Itigin <yosefe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- include/rdma/ib_verbs.h | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index f0e9d30bb0b9..80ede01d2237 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -986,12 +986,14 @@ enum ib_cq_notify_flags {
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index afa4c1b7891a..e3ac272a0fa9 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1430,7 +1430,7 @@ static int create_qp(struct ib_uverbs_file *file,
+ 			if (cmd->is_srq) {
+ 				srq = uobj_get_obj_read(srq, cmd->srq_handle,
+ 							file->ucontext);
+-				if (!srq || srq->srq_type != IB_SRQT_BASIC) {
++				if (!srq || srq->srq_type == IB_SRQT_XRC) {
+ 					ret = -EINVAL;
+ 					goto err_put;
+ 				}
+@@ -3463,6 +3463,9 @@ static int __uverbs_create_xsrq(struct ib_uverbs_file *file,
+ 	if (IS_ERR(obj))
+ 		return PTR_ERR(obj);
  
- enum ib_srq_type {
- 	IB_SRQT_BASIC,
--	IB_SRQT_XRC
-+	IB_SRQT_XRC,
-+	IB_SRQT_TM,
- };
- 
- static inline bool ib_srq_has_cq(enum ib_srq_type srq_type)
- {
--	return srq_type == IB_SRQT_XRC;
-+	return srq_type == IB_SRQT_XRC ||
-+	       srq_type == IB_SRQT_TM;
- }
- 
- enum ib_srq_attr_mask {
-@@ -1017,6 +1019,10 @@ struct ib_srq_init_attr {
- 			struct {
- 				struct ib_xrcd *xrcd;
- 			} xrc;
++	if (cmd->srq_type == IB_SRQT_TM)
++		attr.ext.tag_matching.max_num_tags = cmd->max_num_tags;
 +
-+			struct {
-+				u32		max_num_tags;
-+			} tag_matching;
- 		};
- 	} ext;
- };
+ 	if (cmd->srq_type == IB_SRQT_XRC) {
+ 		xrcd_uobj = uobj_get_read(uobj_get_type(xrcd), cmd->xrcd_handle,
+ 					  file->ucontext);
+@@ -3597,6 +3600,7 @@ ssize_t ib_uverbs_create_srq(struct ib_uverbs_file *file,
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+ 		return -EFAULT;
+ 
++	memset(&xcmd, 0, sizeof(xcmd));
+ 	xcmd.response	 = cmd.response;
+ 	xcmd.user_handle = cmd.user_handle;
+ 	xcmd.srq_type	 = IB_SRQT_BASIC;
 -- 
 2.14.0
 
