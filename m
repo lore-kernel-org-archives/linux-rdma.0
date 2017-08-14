@@ -1,337 +1,74 @@
-From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next v3-v6] Add OPA extended LID support
-Date: Mon, 14 Aug 2017 13:12:34 -0700
-Message-ID: <cd6cd877-659d-8218-abf8-a23905af4f42@intel.com>
-References: <1502734663-44224-1-git-send-email-don.hiatt@intel.com>
- <50ff7793-413a-09a6-1805-ca0bce0452a2@intel.com>
+From: Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Subject: RE: [[PATCH v1] 18/37] [CIFS] SMBD: Implement API for upper layer to
+ send data
+Date: Mon, 14 Aug 2017 20:44:18 +0000
+Message-ID: <CY4PR21MB01827F735F570CCAECD5AD8BA08C0@CY4PR21MB0182.namprd21.prod.outlook.com>
+References: <1501704648-20159-1-git-send-email-longli@exchange.microsoft.com>
+ <1501704648-20159-19-git-send-email-longli@exchange.microsoft.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <50ff7793-413a-09a6-1805-ca0bce0452a2-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1501704648-20159-19-git-send-email-longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, "linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org" <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/14/2017 11:36 AM, Don Hiatt wrote:
->
->
-> On 8/14/2017 11:17 AM, Don Hiatt wrote:
->> This patch series primarily increases sizes of variables that hold
->> lid values from 16 to 32 bits. Additionally, it adds a check in
->> the IB mad stack to verify a properly formatted MAD when OPA
->> extended LIDs are used.
->>
->> Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->> ---
->>
->> This is an incremental patch to move from v3 of the 'Add OPA
->> extended LID support' to v6 of the series.
->> Changes from v5:
->> ---------------
->> * Fixed typo in WARN_ON_ONCE usage in helper functions.
->> * Actually return be16 in ib_lid_be16() helper function.
->
-> Sorry, this was meant to go to my email as a test, not to the list. My 
-> tests are still running so please
-> hold off on this until I confirm.
->
-All test completed fine. I think we're good to go.
+> -----Original Message-----
+> From: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-cifs-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Long Li
+> Sent: Wednesday, August 2, 2017 4:10 PM
+> To: Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>; linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; samba-
+> technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+> Subject: [[PATCH v1] 18/37] [CIFS] SMBD: Implement API for upper layer to
+> send data
+>=20
+> +/*
+> + * Write data to transport
+> + * Each rqst is transported as a SMBDirect payload
+> + * rqst: the data to write
+> + * return value: 0 if successfully write, otherwise error code
+> + */
+> +int cifs_rdma_write(struct cifs_rdma_info *info, struct smb_rqst *rqst)
+> +{
 
-Leon, if I missed anything else please let me know.
+!!!
+This is a VERY confusing name. It is not sending an RDMA Write, which will
+confuse any RDMA-enlightened reader. It's performing an RDMA Send, so
+that name is perhaps one possibility.=20
 
-Thanks,
+> +       if (info->transport_status !=3D CIFS_RDMA_CONNECTED) {
+> +               log_cifs_write("disconnected returning -EIO\n");
+> +               return -EIO;
+> +       }
 
-don
+Isn't this optimizing the error case? There's no guarantee it's still conne=
+cted by
+the time the following request construction occurs. Why not just proceed wi=
+thout
+the check?=20
 
->> Changes from v4:
->> ---------------
->> * Add comment for function usage and a warning to catch bad flows.
->> * Rename ib_slid_{be,cpu}16 to ib_lid_{be,cpu}16.
->>
->> Changes from v3:
->> ---------------
->> * Add 'IB/core: Add functions to convert 32 bit lids to 16 bits' and
->>    use them in place of casts.
->>
->>   drivers/infiniband/core/cm.c            |  4 ++--
->>   drivers/infiniband/core/user_mad.c      |  2 +-
->>   drivers/infiniband/core/uverbs_cmd.c    | 11 ++++++-----
->>   drivers/infiniband/hw/hfi1/mad.c        |  2 +-
->>   drivers/infiniband/hw/mlx4/alias_GUID.c |  2 +-
->>   drivers/infiniband/hw/mlx4/mad.c        |  8 ++++----
->>   drivers/infiniband/hw/mlx5/mad.c        |  2 +-
->>   drivers/infiniband/hw/mthca/mthca_cmd.c |  4 ++--
->>   drivers/infiniband/hw/mthca/mthca_mad.c |  4 ++--
->>   drivers/infiniband/sw/rdmavt/cq.c       |  2 +-
->>   include/rdma/ib_verbs.h                 | 26 
->> ++++++++++++++++++++------
->>   11 files changed, 41 insertions(+), 26 deletions(-)
->>
->> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
->> index d5ca101..8bb7aea 100644
->> --- a/drivers/infiniband/core/cm.c
->> +++ b/drivers/infiniband/core/cm.c
->> @@ -1770,7 +1770,7 @@ static void cm_process_routed_req(struct 
->> cm_req_msg *req_msg, struct ib_wc *wc)
->>   {
->>       if (!cm_req_get_primary_subnet_local(req_msg)) {
->>           if (req_msg->primary_local_lid == IB_LID_PERMISSIVE) {
->> -            req_msg->primary_local_lid = ib_slid_be16(wc->slid);
->> +            req_msg->primary_local_lid = ib_lid_be16(wc->slid);
->>               cm_req_set_primary_sl(req_msg, wc->sl);
->>           }
->>   @@ -1780,7 +1780,7 @@ static void cm_process_routed_req(struct 
->> cm_req_msg *req_msg, struct ib_wc *wc)
->>         if (!cm_req_get_alt_subnet_local(req_msg)) {
->>           if (req_msg->alt_local_lid == IB_LID_PERMISSIVE) {
->> -            req_msg->alt_local_lid = ib_slid_be16(wc->slid);
->> +            req_msg->alt_local_lid = ib_lid_be16(wc->slid);
->>               cm_req_set_alt_sl(req_msg, wc->sl);
->>           }
->>   diff --git a/drivers/infiniband/core/user_mad.c 
->> b/drivers/infiniband/core/user_mad.c
->> index ff3c67a..c1696e6 100644
->> --- a/drivers/infiniband/core/user_mad.c
->> +++ b/drivers/infiniband/core/user_mad.c
->> @@ -229,7 +229,7 @@ static void recv_handler(struct ib_mad_agent *agent,
->>       packet->mad.hdr.status       = 0;
->>       packet->mad.hdr.length       = hdr_size(file) + 
->> mad_recv_wc->mad_len;
->>       packet->mad.hdr.qpn       = cpu_to_be32(mad_recv_wc->wc->src_qp);
->> -    packet->mad.hdr.lid       = ib_slid_be16(mad_recv_wc->wc->slid);
->> +    packet->mad.hdr.lid       = ib_lid_be16(mad_recv_wc->wc->slid);
->>       packet->mad.hdr.sl       = mad_recv_wc->wc->sl;
->>       packet->mad.hdr.path_bits  = mad_recv_wc->wc->dlid_path_bits;
->>       packet->mad.hdr.pkey_index = mad_recv_wc->wc->pkey_index;
->> diff --git a/drivers/infiniband/core/uverbs_cmd.c 
->> b/drivers/infiniband/core/uverbs_cmd.c
->> index eb0da37..0eed250 100644
->> --- a/drivers/infiniband/core/uverbs_cmd.c
->> +++ b/drivers/infiniband/core/uverbs_cmd.c
->> @@ -275,12 +275,13 @@ ssize_t ib_uverbs_query_port(struct 
->> ib_uverbs_file *file,
->>       resp.bad_pkey_cntr   = attr.bad_pkey_cntr;
->>       resp.qkey_viol_cntr  = attr.qkey_viol_cntr;
->>       resp.pkey_tbl_len    = attr.pkey_tbl_len;
->> +
->>       if (rdma_cap_opa_ah(ib_dev, cmd.port_num)) {
->> -        resp.lid  = OPA_TO_IB_UCAST_LID(attr.lid);
->> +        resp.lid     = OPA_TO_IB_UCAST_LID(attr.lid);
->>           resp.sm_lid  = OPA_TO_IB_UCAST_LID(attr.sm_lid);
->>       } else {
->> -        resp.lid     = (u16)attr.lid;
->> -        resp.sm_lid  = (u16)attr.sm_lid;
->> +        resp.lid     = ib_lid_cpu16(attr.lid);
->> +        resp.sm_lid  = ib_lid_cpu16(attr.sm_lid);
->>       }
->>       resp.lmc          = attr.lmc;
->>       resp.max_vl_num      = attr.max_vl_num;
->> @@ -1206,9 +1207,9 @@ static int copy_wc_to_user(struct ib_device 
->> *ib_dev, void __user *dest,
->>       tmp.wc_flags        = wc->wc_flags;
->>       tmp.pkey_index        = wc->pkey_index;
->>       if (rdma_cap_opa_ah(ib_dev, wc->port_num))
->> -        tmp.slid  = OPA_TO_IB_UCAST_LID(wc->slid);
->> +        tmp.slid    = OPA_TO_IB_UCAST_LID(wc->slid);
->>       else
->> -        tmp.slid  = ib_slid_cpu16(wc->slid);
->> +        tmp.slid    = ib_lid_cpu16(wc->slid);
->>       tmp.sl            = wc->sl;
->>       tmp.dlid_path_bits    = wc->dlid_path_bits;
->>       tmp.port_num        = wc->port_num;
->> diff --git a/drivers/infiniband/hw/hfi1/mad.c 
->> b/drivers/infiniband/hw/hfi1/mad.c
->> index 00ebc26..8d1aa34 100644
->> --- a/drivers/infiniband/hw/hfi1/mad.c
->> +++ b/drivers/infiniband/hw/hfi1/mad.c
->> @@ -3958,7 +3958,7 @@ static int opa_local_smp_check(struct 
->> hfi1_ibport *ibp,
->>                      const struct ib_wc *in_wc)
->>   {
->>       struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
->> -    u16 slid = ib_slid_cpu16(in_wc->slid);
->> +    u16 slid = ib_lid_cpu16(in_wc->slid);
->>       u16 pkey;
->>         if (in_wc->pkey_index >= ARRAY_SIZE(ppd->pkeys))
->> diff --git a/drivers/infiniband/hw/mlx4/alias_GUID.c 
->> b/drivers/infiniband/hw/mlx4/alias_GUID.c
->> index 5a897b0..0e4f60c 100644
->> --- a/drivers/infiniband/hw/mlx4/alias_GUID.c
->> +++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
->> @@ -528,7 +528,7 @@ static int set_guid_rec(struct ib_device *ibdev,
->>         memset(&guid_info_rec, 0, sizeof (struct ib_sa_guidinfo_rec));
->>   -    guid_info_rec.lid = cpu_to_be16((u16)attr.lid);
->> +    guid_info_rec.lid = ib_lid_be16(attr.lid);
->>       guid_info_rec.block_num = index;
->>         memcpy(guid_info_rec.guid_info_list, rec_det->all_recs,
->> diff --git a/drivers/infiniband/hw/mlx4/mad.c 
->> b/drivers/infiniband/hw/mlx4/mad.c
->> index 04fb44e..0793a21 100644
->> --- a/drivers/infiniband/hw/mlx4/mad.c
->> +++ b/drivers/infiniband/hw/mlx4/mad.c
->> @@ -169,7 +169,7 @@ int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int 
->> mad_ifc_flags,
->>             op_modifier |= 0x4;
->>   -        in_modifier |= ib_slid_cpu16(in_wc->slid) << 16;
->> +        in_modifier |= ib_lid_cpu16(in_wc->slid) << 16;
->>       }
->>         err = mlx4_cmd_box(dev->dev, inmailbox->dma, outmailbox->dma, 
->> in_modifier,
->> @@ -625,7 +625,7 @@ int mlx4_ib_send_to_slave(struct mlx4_ib_dev 
->> *dev, int slave, u8 port,
->>           memcpy((char *)&tun_mad->hdr.slid_mac_47_32, 
->> &(wc->smac[4]), 2);
->>       } else {
->>           tun_mad->hdr.sl_vid = cpu_to_be16(((u16)(wc->sl)) << 12);
->> -        tun_mad->hdr.slid_mac_47_32 = ib_slid_be16(wc->slid);
->> +        tun_mad->hdr.slid_mac_47_32 = ib_lid_be16(wc->slid);
->>       }
->>         ib_dma_sync_single_for_device(&dev->ib_dev,
->> @@ -826,7 +826,7 @@ static int ib_process_mad(struct ib_device 
->> *ibdev, int mad_flags, u8 port_num,
->>           }
->>       }
->>   -    slid = in_wc ? ib_slid_cpu16(in_wc->slid) : 
->> be16_to_cpu(IB_LID_PERMISSIVE);
->> +    slid = in_wc ? ib_lid_cpu16(in_wc->slid) : 
->> be16_to_cpu(IB_LID_PERMISSIVE);
->>         if (in_mad->mad_hdr.method == IB_MGMT_METHOD_TRAP && slid == 
->> 0) {
->>           forward_trap(to_mdev(ibdev), port_num, in_mad);
->> @@ -860,7 +860,7 @@ static int ib_process_mad(struct ib_device 
->> *ibdev, int mad_flags, u8 port_num,
->>           in_mad->mad_hdr.method == IB_MGMT_METHOD_SET &&
->>           in_mad->mad_hdr.attr_id == IB_SMP_ATTR_PORT_INFO &&
->>           !ib_query_port(ibdev, port_num, &pattr))
->> -        prev_lid = (u16)pattr.lid;
->> +        prev_lid = ib_lid_cpu16(pattr.lid);
->>         err = mlx4_MAD_IFC(to_mdev(ibdev),
->>                  (mad_flags & IB_MAD_IGNORE_MKEY ? 
->> MLX4_MAD_IFC_IGNORE_MKEY : 0) |
->> diff --git a/drivers/infiniband/hw/mlx5/mad.c 
->> b/drivers/infiniband/hw/mlx5/mad.c
->> index cd2264a..18cfe5b 100644
->> --- a/drivers/infiniband/hw/mlx5/mad.c
->> +++ b/drivers/infiniband/hw/mlx5/mad.c
->> @@ -78,7 +78,7 @@ static int process_mad(struct ib_device *ibdev, int 
->> mad_flags, u8 port_num,
->>       u16 slid;
->>       int err;
->>   -    slid = in_wc ? ib_slid_cpu16(in_wc->slid) : 
->> be16_to_cpu(IB_LID_PERMISSIVE);
->> +    slid = in_wc ? ib_lid_cpu16(in_wc->slid) : 
->> be16_to_cpu(IB_LID_PERMISSIVE);
->>         if (in_mad->mad_hdr.method == IB_MGMT_METHOD_TRAP && slid == 0)
->>           return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_CONSUMED;
->> diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.c 
->> b/drivers/infiniband/hw/mthca/mthca_cmd.c
->> index e19ae0b..d0f062f 100644
->> --- a/drivers/infiniband/hw/mthca/mthca_cmd.c
->> +++ b/drivers/infiniband/hw/mthca/mthca_cmd.c
->> @@ -1921,7 +1921,7 @@ int mthca_MAD_IFC(struct mthca_dev *dev, int 
->> ignore_mkey, int ignore_bkey,
->>               (in_wc->wc_flags & IB_WC_GRH ? 0x80 : 0);
->>           MTHCA_PUT(inbox, val, MAD_IFC_G_PATH_OFFSET);
->>   -        MTHCA_PUT(inbox, ib_slid_cpu16(in_wc->slid), 
->> MAD_IFC_RLID_OFFSET);
->> +        MTHCA_PUT(inbox, ib_lid_cpu16(in_wc->slid), 
->> MAD_IFC_RLID_OFFSET);
->>           MTHCA_PUT(inbox, in_wc->pkey_index, MAD_IFC_PKEY_OFFSET);
->>             if (in_grh)
->> @@ -1929,7 +1929,7 @@ int mthca_MAD_IFC(struct mthca_dev *dev, int 
->> ignore_mkey, int ignore_bkey,
->>             op_modifier |= 0x4;
->>   -        in_modifier |= ib_slid_cpu16(in_wc->slid) << 16;
->> +        in_modifier |= ib_lid_cpu16(in_wc->slid) << 16;
->>       }
->>         err = mthca_cmd_box(dev, inmailbox->dma, outmailbox->dma,
->> diff --git a/drivers/infiniband/hw/mthca/mthca_mad.c 
->> b/drivers/infiniband/hw/mthca/mthca_mad.c
->> index a9caada..093f775 100644
->> --- a/drivers/infiniband/hw/mthca/mthca_mad.c
->> +++ b/drivers/infiniband/hw/mthca/mthca_mad.c
->> @@ -205,7 +205,7 @@ int mthca_process_mad(struct ib_device *ibdev,
->>                 u16 *out_mad_pkey_index)
->>   {
->>       int err;
->> -    u16 slid = in_wc ? ib_slid_cpu16(in_wc->slid) : 
->> be16_to_cpu(IB_LID_PERMISSIVE);
->> +    u16 slid = in_wc ? ib_lid_cpu16(in_wc->slid) : 
->> be16_to_cpu(IB_LID_PERMISSIVE);
->>       u16 prev_lid = 0;
->>       struct ib_port_attr pattr;
->>       const struct ib_mad *in_mad = (const struct ib_mad *)in;
->> @@ -256,7 +256,7 @@ int mthca_process_mad(struct ib_device *ibdev,
->>           in_mad->mad_hdr.method == IB_MGMT_METHOD_SET &&
->>           in_mad->mad_hdr.attr_id == IB_SMP_ATTR_PORT_INFO &&
->>           !ib_query_port(ibdev, port_num, &pattr))
->> -        prev_lid = (u16)pattr.lid;
->> +        prev_lid = ib_lid_cpu16(pattr.lid);
->>         err = mthca_MAD_IFC(to_mdev(ibdev),
->>                   mad_flags & IB_MAD_IGNORE_MKEY,
->> diff --git a/drivers/infiniband/sw/rdmavt/cq.c 
->> b/drivers/infiniband/sw/rdmavt/cq.c
->> index 0335a3d..97d71e4 100644
->> --- a/drivers/infiniband/sw/rdmavt/cq.c
->> +++ b/drivers/infiniband/sw/rdmavt/cq.c
->> @@ -107,7 +107,7 @@ void rvt_cq_enter(struct rvt_cq *cq, struct ib_wc 
->> *entry, bool solicited)
->>           wc->uqueue[head].src_qp = entry->src_qp;
->>           wc->uqueue[head].wc_flags = entry->wc_flags;
->>           wc->uqueue[head].pkey_index = entry->pkey_index;
->> -        wc->uqueue[head].slid = ib_slid_cpu16(entry->slid);
->> +        wc->uqueue[head].slid = ib_lid_cpu16(entry->slid);
->>           wc->uqueue[head].sl = entry->sl;
->>           wc->uqueue[head].dlid_path_bits = entry->dlid_path_bits;
->>           wc->uqueue[head].port_num = entry->port_num;
->> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
->> index 7eaf7d2..a766b8d 100644
->> --- a/include/rdma/ib_verbs.h
->> +++ b/include/rdma/ib_verbs.h
->> @@ -3707,15 +3707,29 @@ static inline enum rdma_ah_attr_type 
->> rdma_ah_find_type(struct ib_device *dev,
->>           return RDMA_AH_ATTR_TYPE_IB;
->>   }
->>   -/* Return slid in 16bit CPU encoding */
->> -static inline u16 ib_slid_cpu16(u32 slid)
->> +/**
->> + * ib_lid_cpu16 - Return lid in 16bit CPU encoding.
->> + *     In the current implementation the only way to get
->> + *     get the 32bit lid is from other sources for OPA.
->> + *     For IB, lids will always be 16bits so cast the
->> + *     value accordingly.
->> + *
->> + * @lid: A 32bit LID
->> + */
->> +static inline u16 ib_lid_cpu16(u32 lid)
->>   {
->> -    return (u16)slid;
->> +    WARN_ON_ONCE(lid & 0xFFFF0000);
->> +    return (u16)lid;
->>   }
->>   -/* Return slid in 16bit BE encoding */
->> -static inline u16 ib_slid_be16(u32 slid)
->> +/**
->> + * ib_lid_be16 - Return lid in 16bit BE encoding.
->> + *
->> + * @lid: A 32bit LID
->> + */
->> +static inline __be16 ib_lid_be16(u32 lid)
->>   {
->> -    return cpu_to_be16((u16)slid);
->> +    WARN_ON_ONCE(lid & 0xFFFF0000);
->> +    return cpu_to_be16((u16)lid);
->>   }
->>   #endif /* IB_VERBS_H */
->
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +       /* Strip the first 4 bytes MS-SMB2 section 2.1
+> +        * they are used only for TCP transport */
+> +       iov[0].iov_base =3D (char*)rqst->rq_iov[0].iov_base + 4;
+> +       iov[0].iov_len =3D rqst->rq_iov[0].iov_len - 4;
+> +       buflen +=3D iov[0].iov_len;
 
+Ok, that layering choice in the cifs.ko client code needs to be corrected. =
+After all,
+it will need to be RDMA-aware to build the SMB3 read/write channel structur=
+es.
+And, the code in cifs_post_send_data() is allocating and building a structu=
+re that
+could have been accounted for much earlier, avoiding the extra overhead.
+
+That change could happen later, the hack is mostly ok for now. But somethin=
+g
+needs to be said in a comment.
+=20
+Tom.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
