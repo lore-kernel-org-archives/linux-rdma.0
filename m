@@ -1,51 +1,92 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: Flush warning
-Date: Mon, 14 Aug 2017 12:21:40 -0500
-Message-ID: <00be01d31521$cb237900$616a6b00$@opengridcomputing.com>
-References: <016301d30c86$e7034ae0$b509e0a0$@opengridcomputing.com> <9bc142de-b8ba-acb6-5ea1-2ccdbb578655@grimberg.me> <003401d30f91$c7e2a3f0$57a7ebd0$@opengridcomputing.com> <00ff01d3112b$94142350$bc3c69f0$@opengridcomputing.com> <20170809162749.GA4069@obsidianresearch.com> <011601d3112d$fa305b70$ee911250$@opengridcomputing.com> <20170813064651.GR24282@mtr-leonro.local> <90ada4f5-d6a1-2b93-5164-c593955c20cf@grimberg.me> <20170813103359.GW24282@mtr-leonro.local> <3d9cca62-4612-53dc-776c-3aeb2df58365@dev.mellanox.co.il> <1828884A29C6694DAF28B7E6B8A82373AB17595A@ORSMSX109.amr.corp.intel.com>
+From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Subject: RE: [[PATCH v1] 02/37] [CIFS] SMBD: Add structure for SMBD transport
+Date: Mon, 14 Aug 2017 18:10:46 +0000
+Message-ID: <CY4PR21MB0182650DE0EBC07D43F2E2F8CE8C0@CY4PR21MB0182.namprd21.prod.outlook.com>
+References: <1501704648-20159-1-git-send-email-longli@exchange.microsoft.com>
+ <1501704648-20159-3-git-send-email-longli@exchange.microsoft.com>
+ <9632c208-d6a5-2c47-b583-274d046d97bd@samba.org>
+ <MWHPR21MB019089DF6B0B68C5C2F4FE56CE8E0@MWHPR21MB0190.namprd21.prod.outlook.com>
+ <61ab1564-d699-e8f2-631e-67a6c28b678b@samba.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373AB17595A-P5GAC/sN6hkd3b2yrw5b5LfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'Hal Rosenstock' <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <61ab1564-d699-e8f2-631e-67a6c28b678b-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
+Content-Language: en-US
+Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Stefan Metzmacher <metze-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, "linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org" <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > >>> The workqueue which frees the memory and doesn't allocate memory
-> > >>> during execution is supposed to be marked as WQ_MEM_RECLAIM. This
-> > >>> flag will cause to priority increase for such workqueue during low
-> > memory conditions.
-> > >>
-> > >> Which to my understanding means that CM workqueue should not use it
-> > >> as on each CM connect, by definition the ULP allocates memory (qp,
-> > cq etc).
-> > >
-> > > From my understanding too.
-> > > That workqueue was introduced in 2005, in a977049dacde ("[PATCH] IB:
-> > > Add the kernel CM implementation"), it is not clear if it was
-> > > intentionally.
-> > >
-> > > Hal,
-> > > do you remember the rationale there?
-> >
-> > Sean is best to respond to this.
-> 
-> I believe the work queue was to avoid potential deadlocks that could arise
-from
-> using the MAD work queue.  The original submission did not mark the work queue
-> with WQ_MEM_RECLAIM.  I do not know when that change was added.
-
-By the way, the queue I'm actually having the problem with is in the iwcm, not
-the ibcm.  I think we should remove WQ_MEM_RECLAIM from all the CM queues
-because I agree now that ulps potentially can/will allocate memory in the
-contect of these workqueues...
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogU3RlZmFuIE1ldHptYWNo
+ZXIgW21haWx0bzptZXR6ZUBzYW1iYS5vcmddDQo+IFNlbnQ6IE1vbmRheSwgQXVndXN0IDE0LCAy
+MDE3IDY6NDEgQU0NCj4gVG86IExvbmcgTGkgPGxvbmdsaUBtaWNyb3NvZnQuY29tPjsgU3RldmUg
+RnJlbmNoIDxzZnJlbmNoQHNhbWJhLm9yZz47DQo+IGxpbnV4LWNpZnNAdmdlci5rZXJuZWwub3Jn
+OyBzYW1iYS10ZWNobmljYWxAbGlzdHMuc2FtYmEub3JnOyBsaW51eC0NCj4ga2VybmVsQHZnZXIu
+a2VybmVsLm9yZzsgbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IENocmlzdG9waCBIZWxsd2ln
+DQo+IDxoY2hAaW5mcmFkZWFkLm9yZz4NCj4gU3ViamVjdDogUmU6IFtbUEFUQ0ggdjFdIDAyLzM3
+XSBbQ0lGU10gU01CRDogQWRkIHN0cnVjdHVyZSBmb3IgU01CRA0KPiB0cmFuc3BvcnQNCj4gDQo+
+IEhpIExvbmcsDQo+IA0KPiA+PiBJdCBzZWVtcyB0aGF0IHRoZSBuZXcgdHJhbnNwb3J0IGlzIHRp
+ZWQgdG8gaXQncyBjYWxsZXIgcmVnYXJkaW5nDQo+ID4+IHN0cnVjdHVyZXMgYW5kIG5hbWluZyBj
+b252ZW50aW9ucy4NCj4gPj4NCj4gPj4gSSB0aGluayBpdCB3b3VsZCBiZSBiZXR0ZXIgdG8gc3Ry
+aWN0bHkgc2VwYXJhdGUgdGhlbSwgYXMgSSdkIGxpa2UgdG8NCj4gPj4gdXNlIHRoZSBTTUJEaXJl
+Y3QgdHJhbnNwb3J0IGFsc28gZnJvbSB0aGUgdXNlcnNwYWNlIGZvciB0aGUgY2xpZW50DQo+ID4+
+IHNpZGUgZS5nLiBpbiBTYW1iYSdzICdbbGliXXNtYmNsaWVudCcsIGJ1dCBhbHNvIGluIFNhbWJh
+J3Mgc2VydmVyIHNpZGUgY29kZQ0KPiAnc21iZCcuDQo+ID4NCj4gPiBUaGFuayB5b3UgZm9yIHJl
+dmlld2luZyB0aGUgcGF0Y2ggc2V0Lg0KPiA+DQo+ID4gSSB0aGluayBpdCBpcyBwb3NzaWJsZSB0
+byBzZXBhcmF0ZSB0aGUgY29tbW9uIGNvZGUgdGhhdCBpbXBsZW1lbnRzIHRoZQ0KPiBTTUJEaXJl
+Y3QgdHJhbnNwb3J0LiBUaGVyZSBhcmUgc29tZSBjaGFsbGVuZ2VzIHRvIHJldXNlIHRoZSBzYW1l
+IGNvZGUgZm9yDQo+IGJvdGgga2VybmVsIGFuZCB1c2VyIHNwYWNlcy4NCj4gPiAxLiBLZXJuZWwg
+bW9kZSBSRE1BIHZlcmJzIGFyZSBzaW1pbGFyIGJ1dCBkaWZmZXJlbnQgdG8gdXNlci1tb2RlIG9u
+ZXMuDQo+ID4gMi4gU29tZSBSRE1BIGZlYXR1cmVzIChlLmcgRmFzdCBSZWdpc3RyYXRpb24gV29y
+ayBSZXF1ZXN0KSBhcmUgbm90DQo+IGF2YWlsYWJsZSBpbiB1c2VyLW1vZGUuDQo+ID4gMy4gTG9j
+a2luZyBhbmQgc3luY2hyb25pemF0aW9uIG1lY2hhbmlzbSBpcyBkaWZmZXJlbnQgNC4gTWVtb3J5
+DQo+ID4gbWFuYWdlbWVudCBpcyBkaWZmZXJlbnQuDQo+ID4gNS4gUHJvY2VzcyBjcmVhdGlvbi9z
+Y2hlZHVsaW5nIGFuZCBkYXRhIHNoYXJpbmcgYmV0d2VlbiBwcm9jZXNzZXMgYXJlDQo+IGRpZmZl
+cmVudCwgYW5kIHRoZXJlIGlzIG5vIHVzZXItbW9kZSBjb2RlIHJ1bm5pbmcgaW4gaW50ZXJydXB0
+L3NvZnRpcnEuDQo+ID4NCj4gPiBUaG9zZSBuZWVkcyB0byBiZSBhYnN0cmFjdGVkIHRocm91Z2gg
+YSBsYXllciwgdGhlIHJlc3Qgb2YgdGhlIGNvZGUgY2FuIGJlDQo+IHNoYXJlZC4gSSBjYW4gd29y
+ayBvbiB0aGlzIGFmdGVyIHBhdGNoIHNldCBpcyByZXZpZXdlZC4NCj4gDQo+IEkgZ3Vlc3MgdGhp
+cyBpcyBhIG1pc3VuZGVyc3RhbmRpbmcuLi4NCj4gDQo+IEkgZG9uJ3Qgd2FudCB0byB1c2UgdGhh
+dCBjb2RlIGFuZCBydW4gaXQgaW4gdXNlcnNwYWNlLCBJIGhhdmUgYSB1c2Vyc3BhY2UNCj4gcHJv
+dG90eXBlIG1vcmUgb3IgbGVzcyB3b3JraW5nIGhlcmUsIHNlZQ0KPiBodHRwczovL2dpdC5zYW1i
+YS5vcmcvP3A9bWV0emUvc2FtYmEvd2lwLmdpdDthPXNob3J0bG9nO2g9cmVmcy9oZWFkcy9tDQo+
+IGFzdGVyMy1yZG1hDQo+IGFuZA0KPiBodHRwczovL2dpdC5zYW1iYS5vcmcvP3A9bWV0emUvc2Ft
+YmEvd2lwLmdpdDthPWJsb2I7Zj1saWJjbGkvc21iL3NtYl9kaXINCj4gZWN0LmM7aD05Y2MwZDg2
+MWNjZmNiYjRkZjllZjZhZDg1YTdmZTNkMjYyZTU0OWMwO2hiPTg1ZDQ2ZGU2ZmRiYmEwNDENCj4g
+ZDNlODAwNGFmNDY4NjVhNzJkMmI4NDA1DQo+IA0KPiBJIGdvYWwgaXMgdGhhdCB3ZSdsbCBoYXZl
+IGFuIGFwaSB0aGF0IGFsbG93cyB1c2Vyc3BhY2UgY29kZSB0byB1c2UgdGhlIGtlcm5lbA0KPiBj
+b2RlIFNNQkRpcmVjdCBjb2RlLiBUaGlzIHVzZXJzcGFjZSBjb2RlIHdvdWxkIGdldCBhIGZpbGUg
+ZGVzY3JpcHRvciBmcm9tDQo+IHRoZSBrZXJuZWwgYW5kIHdvdWxkIGJlIGFibGUgdG8gdXNlIGl0
+IHNpbWlsYXIgdG8gYSB0Y3Agc29ja2V0Lg0KPiBJZiB0aGUga2VybmVsIHdvdWxkIHNpbXVsYXRl
+IHRoZSA0IGJ5dGUgbGVuZ3RoIGhlYWRlciwgaXQncyB0cml2aWFsIHRvIGdldCB0byBhDQo+IHN0
+YWdlIHdlcmUgc21iY2xpZW50IGFuZCBzbWJkIGFyZSBhYmxlIHRvIHN1cHBvcnQgU01CRGlyZWN0
+IHdpdGhvdXQgbXVjaA0KPiBjaGFuZ2VzLg0KPiBXZSBvbmx5IG5lZWQgdG8gcmVwbGFjZSBjb25u
+ZWN0KCksIGxpc3RlbigpLCBhY2NlcHQoKSBhbmQgYSBmZXcgbW9yZSBieQ0KPiBTTUJEaXJlY3Qg
+dmVyc2lvbnMuDQoNClRoaXMgaXMgcG9zc2libGUuICBTTUJEaXJlY3QgY29kZSBjYW4gaGFuZGxl
+IHRoZSBmaXJzdCA0IGJ5dGVzIGZvciB1cHBlciBsYXllci4NCj4gDQo+IEZvciB0aGUgcmVhbCBk
+YXRhIHRyYW5zZmVyIHdlIG1pZ2h0IGJlIGFibGUgdG8gdXNlIG1lbWZkX2NyZWF0ZSgpIG9yDQo+
+IHNvbWV0aGluZyBzaW1pbGFyIHRvIHNoYXJlIHRoZSBidWZmZXJzIGJldHdlZW4gdXNlcnNwYWNl
+IGFuZCBrZXJuZWwuDQoNCllvdSdsbCBuZWVkIHRvIHBvc3QgUkRNQSByZWFkL3dyaXRlIHRocm91
+Z2ggdGhlIHNhbWUgUVAgY3JlYXRlZCBieSBTTUJEaXJlY3QgaW4gdGhlIGtlcm5lbC4gSSB0aGlu
+ayB0aGlzIG5lZWRzIHNvbWUgbW9yZSB3b3JrIGJ1dCBpdCdzIGRvYWJsZS4NCg0KPiANCj4gSSBn
+dWVzcyB0aGlzIGlzIGEgbG9uZyB3YXksIGJ1dCBoYXZpbmcgdGhlIGJhc2ljIFNNQkRpcmVjdCBj
+b2RlIGluIGRlcGVuZGVudGx5DQo+IGluIHRoZSBrZXJuZWwgd291bGQgaGVscCBhIGxvdC4NCj4g
+DQo+ID4+IFdvdWxkIGl0IGJlIHBvc3NpYmxlIHRvIGlzb2xhdGUgdGhpcyBpbiBzbWJfZGlyZWN0
+LmMgYW5kIHNtYl9kaXJlY3QuaA0KPiA+PiB3aGlsZSB1c2luZw0KPiA+PiBzbWJfZGlyZWN0Xyog
+cHJlZml4ZXMgZm9yIHN0cnVjdHVyZXMgYW5kIGZ1bmN0aW9ucz8gQWxzbyBhdm9pZGluZyB0aGUN
+Cj4gPj4gdXNhZ2Ugb2Ygb3RoZXIgaGVhZGVycyBmcm9tIGZzL2NpZnMvKi5oLCBleHBlY3QgZm9y
+IHNvbWV0aGluZyBnZW5lcmljIGxpa2UNCj4gbnRlcnIuaC4NCj4gPg0KPiA+IFN1cmUgSSB3aWxs
+IG1ha2UgbmFtaW5nIGNoYW5nZXMgYW5kIGNsZWFuIHVwIHRoZSBoZWFkZXIgZmlsZXMuDQo+IA0K
+PiBUaGFua3MhDQo+IA0KPiA+PiBJIGd1ZXNzICdzdHJ1Y3QgY2lmc19yZG1hX2luZm8nIHdvdWxk
+IHRoZW4gYmUgJ3N0cnVjdA0KPiBzbWJfZGlyZWN0X2Nvbm5lY3Rpb24nLg0KPiA+PiBBbmQgaXQg
+d29uJ3QgaGF2ZSBhIHJlZmVyZW5jZSB0byBzdHJ1Y3QgVENQX1NlcnZlcl9JbmZvLg0KPiA+DQo+
+ID4gSSB3aWxsIGxvb2sgZm9yIHdheXMgdG8gcmVtb3ZlIHJlZmVyZW5jZSB0byBzdHJ1Y3QgVENQ
+X1NlcnZlcl9JbmZvIC4gVGhlDQo+IHJlYXNvbiB3aHkgaXQgaGFzIGEgcmVmZXJlbmNlIHRvIFRD
+UF9TZXJ2ZXJfSW5mbyBpcyB0aGF0OiBUQ1BfU2VydmVyX0luZm8NCj4gcmVwcmVzZW50cyBhIHRy
+YW5zcG9ydCBjb25uZWN0aW9uLCBhbHRob3VnaCBpdCBhbHNvIGhhcyBtYW55IG90aGVyIFRDUA0K
+PiByZWxhdGVkIGNvZGUuIFNNQkQgbmVlZHMgdG8gZ2V0IHRvIHRoaXMgY29ubmVjdGlvbiBUQ1Bf
+U2VydmVyX0luZm8gYW5kIHNldA0KPiB0aGUgdHJhbnNwb3J0IHN0YXR1cyBvbiBzaHV0ZG93biAo
+YW5kIG1heWJlIG90aGVyIHNpdHVhdGlvbnMpLg0KPiA+DQo+IA0KPiBXb3VsZG4ndCBpdCBiZSBi
+ZXR0ZXIgdG8gcHJvdmlkZSBhIHdheSB0byBhc2sgZm9yIHRoZSBjb25uZWN0aW9uIHN0YXRlIGFu
+ZCBsZXQNCj4gdGhlIGNhbGxlciBhc2sgZm9yIHRoZSBzdGF0ZSBpbnN0ZWFkIG9mIGNoYW5naW5n
+IHRoZSBjYWxsZXJzIHN0cnVjdHVyZT8NCj4gDQo+IG1ldHplDQoNCg==
