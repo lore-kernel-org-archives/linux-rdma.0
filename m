@@ -1,131 +1,41 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH v2 2/2] rdma: Autoload netlink client modules
-Date: Mon, 14 Aug 2017 14:57:39 -0600
-Message-ID: <1502744259-16966-3-git-send-email-jgunthorpe@obsidianresearch.com>
-References: <1502744259-16966-1-git-send-email-jgunthorpe@obsidianresearch.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1502744259-16966-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Tom Talpey <ttalpey@microsoft.com>
+Subject: RE: [[PATCH v1] 22/37] [CIFS] SMBD: Implement API for upper layer to
+ receive data to page
+Date: Mon, 14 Aug 2017 20:59:50 +0000
+Message-ID: <CY4PR21MB01829AB77CFC2120457DDB67A08C0@CY4PR21MB0182.namprd21.prod.outlook.com>
+References: <1501704648-20159-1-git-send-email-longli@exchange.microsoft.com>
+ <1501704648-20159-23-git-send-email-longli@exchange.microsoft.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1501704648-20159-23-git-send-email-longli@exchange.microsoft.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Long Li <longli@microsoft.com>, Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If a message comes in and we do not have the client in the table, then
-try to load the module supplying that client using MODULE_ALIAS to find
-it.
+> -----Original Message-----
+> From: linux-cifs-owner@vger.kernel.org [mailto:linux-cifs-
+> owner@vger.kernel.org] On Behalf Of Long Li
+> Sent: Wednesday, August 2, 2017 4:11 PM
+> To: Steve French <sfrench@samba.org>; linux-cifs@vger.kernel.org; samba-
+> technical@lists.samba.org; linux-kernel@vger.kernel.org
+> Cc: Long Li <longli@microsoft.com>
+> Subject: [[PATCH v1] 22/37] [CIFS] SMBD: Implement API for upper layer to
+> receive data to page
+>=20
+>  /*
+> + * Read a page from receive reassembly queue
+> + * page: the page to read data into
+> + * to_read: the length of data to read
+> + * return value: actual data read
+> + */
+> +int cifs_rdma_read_page(struct cifs_rdma_info *info,
+> +               struct page *page, unsigned int to_read)
+> +{
 
-This duplicates the scheme seen in other netlink muxes (eg nfnetlink).
+Same comment as for cifs_rdma_write() - this name is confusing as it
+does not perform an RDMA Read. Needs to be changed.
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- drivers/infiniband/core/cma.c     |  2 ++
- drivers/infiniband/core/device.c  |  2 ++
- drivers/infiniband/core/iwcm.c    |  2 ++
- drivers/infiniband/core/netlink.c |  9 +++++++++
- drivers/infiniband/core/nldev.c   |  3 +++
- include/rdma/rdma_netlink.h       | 12 ++++++++++++
- 6 files changed, 30 insertions(+)
-
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index d8edd8b11561ae..b76de2e2b20950 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -4537,5 +4537,7 @@ static void __exit cma_cleanup(void)
- 	destroy_workqueue(cma_wq);
- }
- 
-+MODULE_ALIAS_RDMA_NETLINK(RDMA_NL_RDMA_CM, 1);
-+
- module_init(cma_init);
- module_exit(cma_cleanup);
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index fbc92c649be85d..5f9d4ae5eda8eb 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -1251,5 +1251,7 @@ static void __exit ib_core_cleanup(void)
- 	destroy_workqueue(ib_wq);
- }
- 
-+MODULE_ALIAS_RDMA_NETLINK(RDMA_NL_LS, 4);
-+
- module_init(ib_core_init);
- module_exit(ib_core_cleanup);
-diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core/iwcm.c
-index 452a3115e3e6ba..af6015a7a8f361 100644
---- a/drivers/infiniband/core/iwcm.c
-+++ b/drivers/infiniband/core/iwcm.c
-@@ -1200,5 +1200,7 @@ static void __exit iw_cm_cleanup(void)
- 	iwpm_exit(RDMA_NL_IWCM);
- }
- 
-+MODULE_ALIAS_RDMA_NETLINK(RDMA_NL_IWCM, 2);
-+
- module_init(iw_cm_init);
- module_exit(iw_cm_cleanup);
-diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-index f782697cf4d819..e685148dd3e6c2 100644
---- a/drivers/infiniband/core/netlink.c
-+++ b/drivers/infiniband/core/netlink.c
-@@ -84,6 +84,15 @@ static bool is_nl_valid(unsigned int type, unsigned int op)
- 		return false;
- 
- 	cb_table = rdma_nl_types[type].cb_table;
-+#ifdef CONFIG_MODULES
-+	if (!cb_table) {
-+		mutex_unlock(&rdma_nl_mutex);
-+		request_module("rdma-netlink-subsys-%d", type);
-+		mutex_lock(&rdma_nl_mutex);
-+		cb_table = rdma_nl_types[type].cb_table;
-+	}
-+#endif
-+
- 	if (!cb_table || (!cb_table[op].dump && !cb_table[op].doit))
- 		return false;
- 	return true;
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 474022274e09cd..3ba24c428c3bda 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -30,6 +30,7 @@
-  * POSSIBILITY OF SUCH DAMAGE.
-  */
- 
-+#include <linux/module.h>
- #include <net/netlink.h>
- #include <rdma/rdma_netlink.h>
- 
-@@ -320,3 +321,5 @@ void __exit nldev_exit(void)
- {
- 	rdma_nl_unregister(RDMA_NL_NLDEV);
- }
-+
-+MODULE_ALIAS_RDMA_NETLINK(RDMA_NL_NLDEV, 5);
-diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
-index e25bf1988846df..2d878596b1e07a 100644
---- a/include/rdma/rdma_netlink.h
-+++ b/include/rdma/rdma_netlink.h
-@@ -17,6 +17,18 @@ enum rdma_nl_flags {
- 	RDMA_NL_ADMIN_PERM	= 1 << 0,
- };
- 
-+/* Define this module as providing netlink services for NETLINK_RDMA, with
-+ * index _index.  Since the client indexes were setup in a uapi header as an
-+ * enum and we do no want to change that, the user must supply the expanded
-+ * constant as well and the compiler checks they are the same.
-+ */
-+#define MODULE_ALIAS_RDMA_NETLINK(_index, _val)                                \
-+	static inline void __chk_##_index(void)                                \
-+	{                                                                      \
-+		BUILD_BUG_ON(_index != _val);                                  \
-+	}                                                                      \
-+	MODULE_ALIAS("rdma-netlink-subsys-" __stringify(_val))
-+
- /**
-  * Register client in RDMA netlink.
-  * @index: Index of the added client
--- 
-2.7.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tom.
