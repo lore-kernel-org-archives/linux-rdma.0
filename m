@@ -1,93 +1,78 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [Announce] Upcoming Time Off
-Date: Mon, 14 Aug 2017 11:06:41 -0400
-Message-ID: <cc358422-24ea-045a-ac72-ec8e0a258076@redhat.com>
+Subject: Re: [rdma:k.o/for-next 5/34]
+ drivers/infiniband/hw/hns/hns_roce_device.h:625:2: error: implicit
+ declaration of function '__raw_writeq'
+Date: Mon, 14 Aug 2017 11:18:38 -0400
+Message-ID: <1502723918.83939.2.camel@redhat.com>
+References: <201708131058.lKYk3TId%fengguang.wu@intel.com>
+         <5fd6a0f7-cbe4-8bd9-5310-fa2d64ec6829@redhat.com>
+         <4871c56c-ce7a-204a-0d54-5ea5aae604fd@mellanox.com>
+         <20170814145656.GJ24282@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="eoOS0Dlp9j5FOOBXq4G00DPMatnwGV42M"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170814145656.GJ24282-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: kbuild test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, kbuild-all-JC7UmRfGjtg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---eoOS0Dlp9j5FOOBXq4G00DPMatnwGV42M
-Content-Type: multipart/mixed; boundary="t6Q157pJiATWBlXHHjpxI2AGt3FJRegeh";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Message-ID: <cc358422-24ea-045a-ac72-ec8e0a258076-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [Announce] Upcoming Time Off
+On Mon, 2017-08-14 at 17:56 +0300, Leon Romanovsky wrote:
+> On Mon, Aug 14, 2017 at 05:47:59PM +0300, Matan Barak wrote:
+> > On 14/08/2017 17:40, Doug Ledford wrote:
+> > > On 8/12/2017 10:09 PM, kbuild test robot wrote:
+> > > > tree:   https://git.kernel.org/pub/scm/linux/kernel/git/dledfor
+> > > > d/rdma.git k.o/for-next
+> > > > head:   d0d62c34fb746eaf68df5b3d6f4877c7d1e6320c
+> > > > commit: e89bf462b6bece63a60723af88c76dce9dbe6b85 [5/34] IB/hns:
+> > > > Support compile test for hns RoCE driver
+> > > > config: xtensa-allyesconfig (attached as .config)
+> > > > compiler: xtensa-linux-gcc (GCC) 4.9.0
+> > > > reproduce:
+> > > 
+> > > Hi Matan,
+> > > 
+> > > I know you have a fix patch for this on list.  I'll grab it this
+> > > week
+> > > for sure, so you can ignore this.
+> > > 
+> > > 
+> > 
+> > Hi Doug,
+> > 
+> > Thanks :-)
+> > Just to make things easier, this is the link to that patch:
+> > https://www.spinics.net/lists/linux-rdma/msg52386.html
+> > 
+> > In addition, there are a few more patches worth taking to the
+> > current RCs
+> > that fix kernel crashes:
+> > 
+> > https://www.spinics.net/lists/linux-rdma/msg52485.html
+> > https://www.spinics.net/lists/linux-rdma/msg52722.html
+> > 
+> > We have another one coming ("IB/uverbs: Fix NULL pointer
+> > dereference during
+> > device removal"). I guess Leon will post it soon.
+> 
+> I queued it today [1] and planned to submit it EOW.
+> 
+> Doug,
+> Do you want me to send it earlier?
+> 
+> [1] https://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.g
+> it/commit/?h=rdma-rc&id=c102f66c43cfc568065df6441890621fb6f03002
 
---t6Q157pJiATWBlXHHjpxI2AGt3FJRegeh
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: quoted-printable
+Pull it out.  I've already grabbed it off of patchworks and pushed it
+out.  I wanted to make sure it hit today's rdma tree in Stephen's for-
+next no matter what.
 
-I need to make everyone aware of some upcoming PTO I have scheduled as
-it will impact the timing of this merge window's for-next branch inclusio=
-ns.
-
-My family and I are moving into a new home at the end of this month.  As
-my wife is a public school teacher, she can't really take time off for
-moving, but I can, so I have.  I'm scheduled to start my PTO on August
-30th, so that means there are only 12 working days left between now and
-when I start my PTO.
-
-As is typical for me, I will likely check my email as I can even while
-on PTO.  However, what's not typical, is that I will be moving my entire
-home network and switching Internet providers.  That little wrinkle
-means I may be entirely offline for longer than I would like.  I will
-prepare for the worst by having my for-next branch ready to go and and
-pull requests submitted to Linus prior to shutting down my network (the
-merge window might already be open by the time I shut down, or it might
-not, but regardless, I'll have my pull request in either way).
-
-Fortunately, the merge window and the first -rc will be happening while
-I'm down for the most part.
-
-I am not scheduled to return back to work until Sept. 18th.  We might be
-as far in as -rc2 by then.  I'll notify Linus of this ahead of time, and
-I'll prioritize processing of backlogged -rc items once I return.
-
-Thanks for your understanding as I do all the stuff that needs to be
-done when we move into the house.
-
---=20
+-- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
-D
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
-
---t6Q157pJiATWBlXHHjpxI2AGt3FJRegeh--
-
---eoOS0Dlp9j5FOOBXq4G00DPMatnwGV42M
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIbBAEBCAAGBQJZkbyBAAoJELgmozMOVy/dO4kP+LQOQYGSeKQqmXfdjlSIYuUV
-nbcduLZVT8yTJTmX17hGAftKR5urs09LwZbxAh1SWGYi1JOwZQXJfXYo0IE1NYCa
-naAwEZl3BgmfG/zDshgX1zf6Bc9ScgUrQ69zvaiiNM5yCqRFu6nIgUznRVhBFmy6
-Z0JwTKUP6i3mOBCzV/CX+uSwmfa20s2ste/MWJrlx1lXHk3/lVsAFznOGg6W65as
-J/+YvFGApW/JjtVsf39qJwz4aIVbN1QRCObmt//Jh1XWWLjYcEdrfJxbMc6OsAni
-a+pTo7X4ZIx0cv6vEMedH101zUBRfh8+A0wevhkHBqTUeX+X4Zc4UxR5Yo4Ju6eN
-WVbZ6OjxRMnmO/Ii9KV5XqKFYbN+A23yzc5SW73VXCPbkQTWJVALMRgN+JZ20mJf
-2ql4FEpHjZe0vk1CBwPN8IYxeQW9C/J7pJ0ZWkR4f+0bnnUcfssQPZ1u8zDwqD5/
-rbzacqjifbHCYI3sqfzgaAhluuF5G1ecZ7hxJlKM3M9uz7XqyHXVYGAn4jnUIms6
-1fVJOanlKEbd48R6YlqOCfSosJxAIg1WZ/YJ35Xj05TLzkIZJfaigOMYEpDIKgno
-RZHjNMd5V1mtSf76fAaM59LB3EGYcbnrF0eMByHa5yef9MohWkjTsJC2pb/H/1hX
-N6CJ0WGMUrb1+Q1XO/0=
-=OC2o
------END PGP SIGNATURE-----
-
---eoOS0Dlp9j5FOOBXq4G00DPMatnwGV42M--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
