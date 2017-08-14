@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next 02/11] IB/core: Add XRQ capabilities
-Date: Mon, 14 Aug 2017 16:53:43 +0300
-Message-ID: <20170814135352.5324-3-leon@kernel.org>
+Subject: [rdma-next 04/11] IB/core: Add new SRQ type IB_SRQT_TM
+Date: Mon, 14 Aug 2017 16:53:45 +0300
+Message-ID: <20170814135352.5324-5-leon@kernel.org>
 References: <20170814135352.5324-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170814135352.5324-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,59 +12,57 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This patch adds following TM XRQ capabilities:
+This patch adds new SRQ type - IB_SRQT_TM. The new SRQ type supports tag
+matching and rendezvous offloads for MPI applications.
 
-* max_rndv_hdr_size - Max size of rendezvous request message
-* max_num_tags - Max number of entries in tag matching list
-* max_ops - Max number of outstanding list operations
-* max_sge - Max number of SGE in tag matching entry
-* flags - the following flags are currently defined:
-    - IB_TM_CAP_RC - Support tag matching on RC transport
+When SRQ receives a message it will search through the matching list
+for the corresponding posted receive buffer. The process of searching
+the matching list is called tag matching.
+In case the tag matching results in a match, the received message will
+be placed in the address specified by the receive buffer. In case no
+match was found the message will be placed in a generic buffer until the
+corresponding receive buffer will be posted. These messages are called
+unexpected and their set is called an unexpected list.
 
 Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yossi Itigin <yosefe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- include/rdma/ib_verbs.h | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ include/rdma/ib_verbs.h | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 6aec3971628b..f539a6fe298c 100644
+index f0e9d30bb0b9..80ede01d2237 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -276,6 +276,24 @@ struct ib_rss_caps {
- 	u32 max_rwq_indirection_table_size;
+@@ -986,12 +986,14 @@ enum ib_cq_notify_flags {
+ 
+ enum ib_srq_type {
+ 	IB_SRQT_BASIC,
+-	IB_SRQT_XRC
++	IB_SRQT_XRC,
++	IB_SRQT_TM,
  };
  
-+enum ib_tm_cap_flags {
-+	/*  Support tag matching on RC transport */
-+	IB_TM_CAP_RC		    = 1 << 0,
-+};
-+
-+struct ib_xrq_caps {
-+	/* Max size of RNDV header */
-+	u32 max_rndv_hdr_size;
-+	/* Max number of entries in tag matching list */
-+	u32 max_num_tags;
-+	/* From enum ib_tm_cap_flags */
-+	u32 flags;
-+	/* Max number of outstanding list operations */
-+	u32 max_ops;
-+	/* Max number of SGE in tag matching entry */
-+	u32 max_sge;
-+};
-+
- enum ib_cq_creation_flags {
- 	IB_CQ_FLAGS_TIMESTAMP_COMPLETION   = 1 << 0,
- 	IB_CQ_FLAGS_IGNORE_OVERRUN	   = 1 << 1,
-@@ -336,6 +354,7 @@ struct ib_device_attr {
- 	struct ib_rss_caps	rss_caps;
- 	u32			max_wq_type_rq;
- 	u32			raw_packet_caps; /* Use ib_raw_packet_caps enum */
-+	struct ib_xrq_caps	xrq_caps;
- };
+ static inline bool ib_srq_has_cq(enum ib_srq_type srq_type)
+ {
+-	return srq_type == IB_SRQT_XRC;
++	return srq_type == IB_SRQT_XRC ||
++	       srq_type == IB_SRQT_TM;
+ }
  
- enum ib_mtu {
+ enum ib_srq_attr_mask {
+@@ -1017,6 +1019,10 @@ struct ib_srq_init_attr {
+ 			struct {
+ 				struct ib_xrcd *xrcd;
+ 			} xrc;
++
++			struct {
++				u32		max_num_tags;
++			} tag_matching;
+ 		};
+ 	} ext;
+ };
 -- 
 2.14.0
 
