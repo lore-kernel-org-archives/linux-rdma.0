@@ -1,175 +1,65 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 8/8] IB/hfi1: Add kernel receive context info to
- debugfs
-Date: Sun, 13 Aug 2017 08:09:04 -0700
-Message-ID: <20170813150903.23208.22136.stgit@scvm10.sc.intel.com>
-References: <20170813150659.23208.66243.stgit@scvm10.sc.intel.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 0/3] Autoloading for RDMA netlink modules
+Date: Mon, 14 Aug 2017 07:50:37 +0300
+Message-ID: <20170814045037.GZ24282@mtr-leonro.local>
+References: <1500935204-6505-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <20170725063236.GQ3259@mtr-leonro.local>
+ <20170725143420.GA434@obsidianresearch.com>
+ <20170725181951.GT3259@mtr-leonro.local>
+ <20170725212248.GD10905@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="5tINJiUS2/Dn5Rhr"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170813150659.23208.66243.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170725212248.GD10905-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <notifications-9UaJU3cA/F/QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/hfi1/debugfs.c |   47 +++++++++++++++++++++++++++
- drivers/infiniband/hw/hfi1/driver.c  |   59 ++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/hfi1/hfi.h     |    1 +
- 3 files changed, 107 insertions(+), 0 deletions(-)
+--5tINJiUS2/Dn5Rhr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/drivers/infiniband/hw/hfi1/debugfs.c b/drivers/infiniband/hw/hfi1/debugfs.c
-index 550119c..c6a472f 100644
---- a/drivers/infiniband/hw/hfi1/debugfs.c
-+++ b/drivers/infiniband/hw/hfi1/debugfs.c
-@@ -368,6 +368,52 @@ static int _sdes_seq_show(struct seq_file *s, void *v)
- DEBUGFS_SEQ_FILE_OPEN(sdes)
- DEBUGFS_FILE_OPS(sdes);
- 
-+static void *_rcds_seq_start(struct seq_file *s, loff_t *pos)
-+{
-+	struct hfi1_ibdev *ibd;
-+	struct hfi1_devdata *dd;
-+
-+	ibd = (struct hfi1_ibdev *)s->private;
-+	dd = dd_from_dev(ibd);
-+	if (!dd->rcd || *pos >= dd->n_krcv_queues)
-+		return NULL;
-+	return pos;
-+}
-+
-+static void *_rcds_seq_next(struct seq_file *s, void *v, loff_t *pos)
-+{
-+	struct hfi1_ibdev *ibd = (struct hfi1_ibdev *)s->private;
-+	struct hfi1_devdata *dd = dd_from_dev(ibd);
-+
-+	++*pos;
-+	if (!dd->rcd || *pos >= dd->n_krcv_queues)
-+		return NULL;
-+	return pos;
-+}
-+
-+static void _rcds_seq_stop(struct seq_file *s, void *v)
-+{
-+}
-+
-+static int _rcds_seq_show(struct seq_file *s, void *v)
-+{
-+	struct hfi1_ibdev *ibd = (struct hfi1_ibdev *)s->private;
-+	struct hfi1_devdata *dd = dd_from_dev(ibd);
-+	struct hfi1_ctxtdata *rcd;
-+	loff_t *spos = v;
-+	loff_t i = *spos;
-+
-+	rcd = hfi1_rcd_get_by_index(dd, i);
-+	if (rcd)
-+		seqfile_dump_rcd(s, rcd);
-+	hfi1_rcd_put(rcd);
-+	return 0;
-+}
-+
-+DEBUGFS_SEQ_FILE_OPS(rcds);
-+DEBUGFS_SEQ_FILE_OPEN(rcds)
-+DEBUGFS_FILE_OPS(rcds);
-+
- /* read the per-device counters */
- static ssize_t dev_counters_read(struct file *file, char __user *buf,
- 				 size_t count, loff_t *ppos)
-@@ -1321,6 +1367,7 @@ void hfi1_dbg_ibdev_init(struct hfi1_ibdev *ibd)
- 	DEBUGFS_SEQ_FILE_CREATE(ctx_stats, ibd->hfi1_ibdev_dbg, ibd);
- 	DEBUGFS_SEQ_FILE_CREATE(qp_stats, ibd->hfi1_ibdev_dbg, ibd);
- 	DEBUGFS_SEQ_FILE_CREATE(sdes, ibd->hfi1_ibdev_dbg, ibd);
-+	DEBUGFS_SEQ_FILE_CREATE(rcds, ibd->hfi1_ibdev_dbg, ibd);
- 	DEBUGFS_SEQ_FILE_CREATE(sdma_cpu_list, ibd->hfi1_ibdev_dbg, ibd);
- 	/* dev counter files */
- 	for (i = 0; i < ARRAY_SIZE(cntr_ops); i++)
-diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
-index fc7085d..7372cc0 100644
---- a/drivers/infiniband/hw/hfi1/driver.c
-+++ b/drivers/infiniband/hw/hfi1/driver.c
-@@ -1689,3 +1689,62 @@ int process_receive_invalid(struct hfi1_packet *packet)
- 		   rhf_rcv_type(packet->rhf));
- 	return RHF_RCV_CONTINUE;
- }
-+
-+void seqfile_dump_rcd(struct seq_file *s, struct hfi1_ctxtdata *rcd)
-+{
-+	struct hfi1_packet packet;
-+	struct ps_mdata mdata;
-+
-+	seq_printf(s, "Rcd %u: RcvHdr cnt %u entsize %u %s head %llu tail %llu\n",
-+		   rcd->ctxt, rcd->rcvhdrq_cnt, rcd->rcvhdrqentsize,
-+		   HFI1_CAP_KGET_MASK(rcd->flags, DMA_RTAIL) ?
-+		   "dma_rtail" : "nodma_rtail",
-+		   read_uctxt_csr(rcd->dd, rcd->ctxt, RCV_HDR_HEAD) &
-+		   RCV_HDR_HEAD_HEAD_MASK,
-+		   read_uctxt_csr(rcd->dd, rcd->ctxt, RCV_HDR_TAIL));
-+
-+	init_packet(rcd, &packet);
-+	init_ps_mdata(&mdata, &packet);
-+
-+	while (1) {
-+		struct hfi1_devdata *dd = rcd->dd;
-+		__le32 *rhf_addr = (__le32 *)rcd->rcvhdrq + mdata.ps_head +
-+					 dd->rhf_offset;
-+		struct ib_header *hdr;
-+		u64 rhf = rhf_to_cpu(rhf_addr);
-+		u32 etype = rhf_rcv_type(rhf), qpn;
-+		u8 opcode;
-+		u32 psn;
-+		u8 lnh;
-+
-+		if (ps_done(&mdata, rhf, rcd))
-+			break;
-+
-+		if (ps_skip(&mdata, rhf, rcd))
-+			goto next;
-+
-+		if (etype > RHF_RCV_TYPE_IB)
-+			goto next;
-+
-+		packet.hdr = hfi1_get_msgheader(dd, rhf_addr);
-+		hdr = packet.hdr;
-+
-+		lnh = be16_to_cpu(hdr->lrh[0]) & 3;
-+
-+		if (lnh == HFI1_LRH_BTH)
-+			packet.ohdr = &hdr->u.oth;
-+		else if (lnh == HFI1_LRH_GRH)
-+			packet.ohdr = &hdr->u.l.oth;
-+		else
-+			goto next; /* just in case */
-+
-+		opcode = (be32_to_cpu(packet.ohdr->bth[0]) >> 24);
-+		qpn = be32_to_cpu(packet.ohdr->bth[1]) & RVT_QPN_MASK;
-+		psn = mask_psn(be32_to_cpu(packet.ohdr->bth[2]));
-+
-+		seq_printf(s, "\tEnt %u: opcode 0x%x, qpn 0x%x, psn 0x%x\n",
-+			   mdata.ps_head, opcode, qpn, psn);
-+next:
-+		update_ps_mdata(&mdata, rcd);
-+	}
-+}
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index b15749e..eadb735 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -1987,6 +1987,7 @@ static inline void flush_wc(void)
- int kdeth_process_expected(struct hfi1_packet *packet);
- int kdeth_process_eager(struct hfi1_packet *packet);
- int process_receive_invalid(struct hfi1_packet *packet);
-+void seqfile_dump_rcd(struct seq_file *s, struct hfi1_ctxtdata *rcd);
- 
- /* global module parameter variables */
- extern unsigned int hfi1_max_mtu;
+On Tue, Jul 25, 2017 at 03:22:48PM -0600, Jason Gunthorpe wrote:
+> On Tue, Jul 25, 2017 at 09:19:51PM +0300, Leon Romanovsky wrote:
+>
+> > Let's wait till Doug creates for-next with RDMA netlink patches, because
+> > I assume that 2 out of 3 patches will be completely different.
+>
+> Send me a note when Doug has a tree and I will respin things.
+>
 
+Jason,
+
+The tree has the right base now.
+Looking forward to see these patches on the list.
+
+Thanks,
+
+--5tINJiUS2/Dn5Rhr
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmRLB0ACgkQ5GN7iDZy
+WKfCuBAAm96M06m4Vc1QNqVnALgdQe/YIwDnHOiik5SGhnFp+vhgkWQU8hmBglxp
+Z/jnwNsLJpTVMrPzppnZbo35jMiBqNSm/OEbhPSj/p3hLfBXnLCw0acR7139gcRw
+G6Gnu51YjPNgqSlIm14vbXfy6prkQRc6/VDqo1RlvR3fZqxCtDDXcInF80IkcP3n
+XGKPmux/NHPfoscNJCjUUyDvrIUnTVgeup2Am1KO0O7QNmTW5OOybKXudoTpIiVG
+H6pLiNtxQWrlb2GK1uT4bN6ht8goB/ATdk8xBJKbgOCHf3C6kUyp6CJ8qyavXtAp
+j3ZnjeXHf3bSfq5VFeteEtFrbICRUOPxh5LpfjFF6tw0mJ5GJh87T+y3YX/hh9UB
+RkS0FryHQjy/adiJKVSb+G+hAaHE1oH7aVZHm8WEb7MbzojlqJyftbZ+RATbQm3H
+Rq7isb9v2a45owUNteuzh1JiqrtQB05EWQZ7tQcPZTLjRnCRFhy938Qy3r2Sr5u6
+GcpZmnk6F7+tLvt+QPP0o/Wflkruf9qbInFAChX83wUtqarOyXx/cCXvJGJbibjq
+U9zLEPqwkGg4QHSfSTl7wXhVyKiDPgNfJfgKgPyl20XPX/GV36pkKgRnAQWL/hWv
+rnAsPEpEeFiRJyh93QFOfBibC/3XFK5/AKgOg/HPPiH5TWFSbOY=
+=4RoZ
+-----END PGP SIGNATURE-----
+
+--5tINJiUS2/Dn5Rhr--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
