@@ -1,310 +1,174 @@
-From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next v3-v6] Add OPA extended LID support
-Date: Mon, 14 Aug 2017 11:36:47 -0700
-Message-ID: <50ff7793-413a-09a6-1805-ca0bce0452a2@intel.com>
-References: <1502734663-44224-1-git-send-email-don.hiatt@intel.com>
+From: Tom Talpey <ttalpey@microsoft.com>
+Subject: RE: [[PATCH v1] 05/37] [CIFS] SMBD: Implement API for upper layer to
+ create SMBD transport and establish RDMA connection
+Date: Mon, 14 Aug 2017 19:54:38 +0000
+Message-ID: <CY4PR21MB018254FE747A2FCEB0650090A08C0@CY4PR21MB0182.namprd21.prod.outlook.com>
+References: <1501704648-20159-1-git-send-email-longli@exchange.microsoft.com>
+ <1501704648-20159-6-git-send-email-longli@exchange.microsoft.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1502734663-44224-1-git-send-email-don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1501704648-20159-6-git-send-email-longli@exchange.microsoft.com>
 Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Long Li <longli@microsoft.com>, Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 8/14/2017 11:17 AM, Don Hiatt wrote:
-> This patch series primarily increases sizes of variables that hold
-> lid values from 16 to 32 bits. Additionally, it adds a check in
-> the IB mad stack to verify a properly formatted MAD when OPA
-> extended LIDs are used.
->
-> Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->
-> This is an incremental patch to move from v3 of the 'Add OPA
-> extended LID support' to v6 of the series.
-> Changes from v5:
-> ---------------
-> * Fixed typo in WARN_ON_ONCE usage in helper functions.
-> * Actually return be16 in ib_lid_be16() helper function.
-
-Sorry, this was meant to go to my email as a test, not to the list. My 
-tests are still running so please
-hold off on this until I confirm.
-
-> Changes from v4:
-> ---------------
-> * Add comment for function usage and a warning to catch bad flows.
-> * Rename ib_slid_{be,cpu}16 to ib_lid_{be,cpu}16.
->
-> Changes from v3:
-> ---------------
-> * Add 'IB/core: Add functions to convert 32 bit lids to 16 bits' and
->    use them in place of casts.
->
->   drivers/infiniband/core/cm.c            |  4 ++--
->   drivers/infiniband/core/user_mad.c      |  2 +-
->   drivers/infiniband/core/uverbs_cmd.c    | 11 ++++++-----
->   drivers/infiniband/hw/hfi1/mad.c        |  2 +-
->   drivers/infiniband/hw/mlx4/alias_GUID.c |  2 +-
->   drivers/infiniband/hw/mlx4/mad.c        |  8 ++++----
->   drivers/infiniband/hw/mlx5/mad.c        |  2 +-
->   drivers/infiniband/hw/mthca/mthca_cmd.c |  4 ++--
->   drivers/infiniband/hw/mthca/mthca_mad.c |  4 ++--
->   drivers/infiniband/sw/rdmavt/cq.c       |  2 +-
->   include/rdma/ib_verbs.h                 | 26 ++++++++++++++++++++------
->   11 files changed, 41 insertions(+), 26 deletions(-)
->
-> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-> index d5ca101..8bb7aea 100644
-> --- a/drivers/infiniband/core/cm.c
-> +++ b/drivers/infiniband/core/cm.c
-> @@ -1770,7 +1770,7 @@ static void cm_process_routed_req(struct cm_req_msg *req_msg, struct ib_wc *wc)
->   {
->   	if (!cm_req_get_primary_subnet_local(req_msg)) {
->   		if (req_msg->primary_local_lid == IB_LID_PERMISSIVE) {
-> -			req_msg->primary_local_lid = ib_slid_be16(wc->slid);
-> +			req_msg->primary_local_lid = ib_lid_be16(wc->slid);
->   			cm_req_set_primary_sl(req_msg, wc->sl);
->   		}
->   
-> @@ -1780,7 +1780,7 @@ static void cm_process_routed_req(struct cm_req_msg *req_msg, struct ib_wc *wc)
->   
->   	if (!cm_req_get_alt_subnet_local(req_msg)) {
->   		if (req_msg->alt_local_lid == IB_LID_PERMISSIVE) {
-> -			req_msg->alt_local_lid = ib_slid_be16(wc->slid);
-> +			req_msg->alt_local_lid = ib_lid_be16(wc->slid);
->   			cm_req_set_alt_sl(req_msg, wc->sl);
->   		}
->   
-> diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-> index ff3c67a..c1696e6 100644
-> --- a/drivers/infiniband/core/user_mad.c
-> +++ b/drivers/infiniband/core/user_mad.c
-> @@ -229,7 +229,7 @@ static void recv_handler(struct ib_mad_agent *agent,
->   	packet->mad.hdr.status	   = 0;
->   	packet->mad.hdr.length	   = hdr_size(file) + mad_recv_wc->mad_len;
->   	packet->mad.hdr.qpn	   = cpu_to_be32(mad_recv_wc->wc->src_qp);
-> -	packet->mad.hdr.lid	   = ib_slid_be16(mad_recv_wc->wc->slid);
-> +	packet->mad.hdr.lid	   = ib_lid_be16(mad_recv_wc->wc->slid);
->   	packet->mad.hdr.sl	   = mad_recv_wc->wc->sl;
->   	packet->mad.hdr.path_bits  = mad_recv_wc->wc->dlid_path_bits;
->   	packet->mad.hdr.pkey_index = mad_recv_wc->wc->pkey_index;
-> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-> index eb0da37..0eed250 100644
-> --- a/drivers/infiniband/core/uverbs_cmd.c
-> +++ b/drivers/infiniband/core/uverbs_cmd.c
-> @@ -275,12 +275,13 @@ ssize_t ib_uverbs_query_port(struct ib_uverbs_file *file,
->   	resp.bad_pkey_cntr   = attr.bad_pkey_cntr;
->   	resp.qkey_viol_cntr  = attr.qkey_viol_cntr;
->   	resp.pkey_tbl_len    = attr.pkey_tbl_len;
+> -----Original Message-----
+> From: linux-cifs-owner@vger.kernel.org [mailto:linux-cifs-
+> owner@vger.kernel.org] On Behalf Of Long Li
+> Sent: Wednesday, August 2, 2017 4:10 PM
+> To: Steve French <sfrench@samba.org>; linux-cifs@vger.kernel.org; samba-
+> technical@lists.samba.org; linux-kernel@vger.kernel.org
+> Cc: Long Li <longli@microsoft.com>
+> Subject: [[PATCH v1] 05/37] [CIFS] SMBD: Implement API for upper layer to
+> create SMBD transport and establish RDMA connection
+>=20
+> From: Long Li <longli@microsoft.com>
+>=20
+> Implement the code for connecting to SMBD server. The client and server a=
+re
+> connected using RC Queue Pair over RDMA API, which suppports Infiniband,
+> RoCE and iWARP. Upper layer code can call cifs_create_rdma_session to
+> establish a SMBD RDMA connection.
+>=20
+> +/* Upcall from RDMA CM */
+> +static int cifs_rdma_conn_upcall(
+> +               struct rdma_cm_id *id, struct rdma_cm_event *event)
+> +{
+> +       struct cifs_rdma_info *info =3D id->context;
 > +
->   	if (rdma_cap_opa_ah(ib_dev, cmd.port_num)) {
-> -		resp.lid  = OPA_TO_IB_UCAST_LID(attr.lid);
-> +		resp.lid     = OPA_TO_IB_UCAST_LID(attr.lid);
->   		resp.sm_lid  = OPA_TO_IB_UCAST_LID(attr.sm_lid);
->   	} else {
-> -		resp.lid     = (u16)attr.lid;
-> -		resp.sm_lid  = (u16)attr.sm_lid;
-> +		resp.lid     = ib_lid_cpu16(attr.lid);
-> +		resp.sm_lid  = ib_lid_cpu16(attr.sm_lid);
->   	}
->   	resp.lmc 	     = attr.lmc;
->   	resp.max_vl_num      = attr.max_vl_num;
-> @@ -1206,9 +1207,9 @@ static int copy_wc_to_user(struct ib_device *ib_dev, void __user *dest,
->   	tmp.wc_flags		= wc->wc_flags;
->   	tmp.pkey_index		= wc->pkey_index;
->   	if (rdma_cap_opa_ah(ib_dev, wc->port_num))
-> -		tmp.slid  = OPA_TO_IB_UCAST_LID(wc->slid);
-> +		tmp.slid	= OPA_TO_IB_UCAST_LID(wc->slid);
->   	else
-> -		tmp.slid  = ib_slid_cpu16(wc->slid);
-> +		tmp.slid	= ib_lid_cpu16(wc->slid);
->   	tmp.sl			= wc->sl;
->   	tmp.dlid_path_bits	= wc->dlid_path_bits;
->   	tmp.port_num		= wc->port_num;
-> diff --git a/drivers/infiniband/hw/hfi1/mad.c b/drivers/infiniband/hw/hfi1/mad.c
-> index 00ebc26..8d1aa34 100644
-> --- a/drivers/infiniband/hw/hfi1/mad.c
-> +++ b/drivers/infiniband/hw/hfi1/mad.c
-> @@ -3958,7 +3958,7 @@ static int opa_local_smp_check(struct hfi1_ibport *ibp,
->   			       const struct ib_wc *in_wc)
->   {
->   	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
-> -	u16 slid = ib_slid_cpu16(in_wc->slid);
-> +	u16 slid = ib_lid_cpu16(in_wc->slid);
->   	u16 pkey;
->   
->   	if (in_wc->pkey_index >= ARRAY_SIZE(ppd->pkeys))
-> diff --git a/drivers/infiniband/hw/mlx4/alias_GUID.c b/drivers/infiniband/hw/mlx4/alias_GUID.c
-> index 5a897b0..0e4f60c 100644
-> --- a/drivers/infiniband/hw/mlx4/alias_GUID.c
-> +++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
-> @@ -528,7 +528,7 @@ static int set_guid_rec(struct ib_device *ibdev,
->   
->   	memset(&guid_info_rec, 0, sizeof (struct ib_sa_guidinfo_rec));
->   
-> -	guid_info_rec.lid = cpu_to_be16((u16)attr.lid);
-> +	guid_info_rec.lid = ib_lid_be16(attr.lid);
->   	guid_info_rec.block_num = index;
->   
->   	memcpy(guid_info_rec.guid_info_list, rec_det->all_recs,
-> diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-> index 04fb44e..0793a21 100644
-> --- a/drivers/infiniband/hw/mlx4/mad.c
-> +++ b/drivers/infiniband/hw/mlx4/mad.c
-> @@ -169,7 +169,7 @@ int mlx4_MAD_IFC(struct mlx4_ib_dev *dev, int mad_ifc_flags,
->   
->   		op_modifier |= 0x4;
->   
-> -		in_modifier |= ib_slid_cpu16(in_wc->slid) << 16;
-> +		in_modifier |= ib_lid_cpu16(in_wc->slid) << 16;
->   	}
->   
->   	err = mlx4_cmd_box(dev->dev, inmailbox->dma, outmailbox->dma, in_modifier,
-> @@ -625,7 +625,7 @@ int mlx4_ib_send_to_slave(struct mlx4_ib_dev *dev, int slave, u8 port,
->   		memcpy((char *)&tun_mad->hdr.slid_mac_47_32, &(wc->smac[4]), 2);
->   	} else {
->   		tun_mad->hdr.sl_vid = cpu_to_be16(((u16)(wc->sl)) << 12);
-> -		tun_mad->hdr.slid_mac_47_32 = ib_slid_be16(wc->slid);
-> +		tun_mad->hdr.slid_mac_47_32 = ib_lid_be16(wc->slid);
->   	}
->   
->   	ib_dma_sync_single_for_device(&dev->ib_dev,
-> @@ -826,7 +826,7 @@ static int ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
->   		}
->   	}
->   
-> -	slid = in_wc ? ib_slid_cpu16(in_wc->slid) : be16_to_cpu(IB_LID_PERMISSIVE);
-> +	slid = in_wc ? ib_lid_cpu16(in_wc->slid) : be16_to_cpu(IB_LID_PERMISSIVE);
->   
->   	if (in_mad->mad_hdr.method == IB_MGMT_METHOD_TRAP && slid == 0) {
->   		forward_trap(to_mdev(ibdev), port_num, in_mad);
-> @@ -860,7 +860,7 @@ static int ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
->   	    in_mad->mad_hdr.method == IB_MGMT_METHOD_SET &&
->   	    in_mad->mad_hdr.attr_id == IB_SMP_ATTR_PORT_INFO &&
->   	    !ib_query_port(ibdev, port_num, &pattr))
-> -		prev_lid = (u16)pattr.lid;
-> +		prev_lid = ib_lid_cpu16(pattr.lid);
->   
->   	err = mlx4_MAD_IFC(to_mdev(ibdev),
->   			   (mad_flags & IB_MAD_IGNORE_MKEY ? MLX4_MAD_IFC_IGNORE_MKEY : 0) |
-> diff --git a/drivers/infiniband/hw/mlx5/mad.c b/drivers/infiniband/hw/mlx5/mad.c
-> index cd2264a..18cfe5b 100644
-> --- a/drivers/infiniband/hw/mlx5/mad.c
-> +++ b/drivers/infiniband/hw/mlx5/mad.c
-> @@ -78,7 +78,7 @@ static int process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
->   	u16 slid;
->   	int err;
->   
-> -	slid = in_wc ? ib_slid_cpu16(in_wc->slid) : be16_to_cpu(IB_LID_PERMISSIVE);
-> +	slid = in_wc ? ib_lid_cpu16(in_wc->slid) : be16_to_cpu(IB_LID_PERMISSIVE);
->   
->   	if (in_mad->mad_hdr.method == IB_MGMT_METHOD_TRAP && slid == 0)
->   		return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_CONSUMED;
-> diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.c b/drivers/infiniband/hw/mthca/mthca_cmd.c
-> index e19ae0b..d0f062f 100644
-> --- a/drivers/infiniband/hw/mthca/mthca_cmd.c
-> +++ b/drivers/infiniband/hw/mthca/mthca_cmd.c
-> @@ -1921,7 +1921,7 @@ int mthca_MAD_IFC(struct mthca_dev *dev, int ignore_mkey, int ignore_bkey,
->   			(in_wc->wc_flags & IB_WC_GRH ? 0x80 : 0);
->   		MTHCA_PUT(inbox, val,               MAD_IFC_G_PATH_OFFSET);
->   
-> -		MTHCA_PUT(inbox, ib_slid_cpu16(in_wc->slid), MAD_IFC_RLID_OFFSET);
-> +		MTHCA_PUT(inbox, ib_lid_cpu16(in_wc->slid), MAD_IFC_RLID_OFFSET);
->   		MTHCA_PUT(inbox, in_wc->pkey_index, MAD_IFC_PKEY_OFFSET);
->   
->   		if (in_grh)
-> @@ -1929,7 +1929,7 @@ int mthca_MAD_IFC(struct mthca_dev *dev, int ignore_mkey, int ignore_bkey,
->   
->   		op_modifier |= 0x4;
->   
-> -		in_modifier |= ib_slid_cpu16(in_wc->slid) << 16;
-> +		in_modifier |= ib_lid_cpu16(in_wc->slid) << 16;
->   	}
->   
->   	err = mthca_cmd_box(dev, inmailbox->dma, outmailbox->dma,
-> diff --git a/drivers/infiniband/hw/mthca/mthca_mad.c b/drivers/infiniband/hw/mthca/mthca_mad.c
-> index a9caada..093f775 100644
-> --- a/drivers/infiniband/hw/mthca/mthca_mad.c
-> +++ b/drivers/infiniband/hw/mthca/mthca_mad.c
-> @@ -205,7 +205,7 @@ int mthca_process_mad(struct ib_device *ibdev,
->   		      u16 *out_mad_pkey_index)
->   {
->   	int err;
-> -	u16 slid = in_wc ? ib_slid_cpu16(in_wc->slid) : be16_to_cpu(IB_LID_PERMISSIVE);
-> +	u16 slid = in_wc ? ib_lid_cpu16(in_wc->slid) : be16_to_cpu(IB_LID_PERMISSIVE);
->   	u16 prev_lid = 0;
->   	struct ib_port_attr pattr;
->   	const struct ib_mad *in_mad = (const struct ib_mad *)in;
-> @@ -256,7 +256,7 @@ int mthca_process_mad(struct ib_device *ibdev,
->   	    in_mad->mad_hdr.method == IB_MGMT_METHOD_SET &&
->   	    in_mad->mad_hdr.attr_id == IB_SMP_ATTR_PORT_INFO &&
->   	    !ib_query_port(ibdev, port_num, &pattr))
-> -		prev_lid = (u16)pattr.lid;
-> +		prev_lid = ib_lid_cpu16(pattr.lid);
->   
->   	err = mthca_MAD_IFC(to_mdev(ibdev),
->   			    mad_flags & IB_MAD_IGNORE_MKEY,
-> diff --git a/drivers/infiniband/sw/rdmavt/cq.c b/drivers/infiniband/sw/rdmavt/cq.c
-> index 0335a3d..97d71e4 100644
-> --- a/drivers/infiniband/sw/rdmavt/cq.c
-> +++ b/drivers/infiniband/sw/rdmavt/cq.c
-> @@ -107,7 +107,7 @@ void rvt_cq_enter(struct rvt_cq *cq, struct ib_wc *entry, bool solicited)
->   		wc->uqueue[head].src_qp = entry->src_qp;
->   		wc->uqueue[head].wc_flags = entry->wc_flags;
->   		wc->uqueue[head].pkey_index = entry->pkey_index;
-> -		wc->uqueue[head].slid = ib_slid_cpu16(entry->slid);
-> +		wc->uqueue[head].slid = ib_lid_cpu16(entry->slid);
->   		wc->uqueue[head].sl = entry->sl;
->   		wc->uqueue[head].dlid_path_bits = entry->dlid_path_bits;
->   		wc->uqueue[head].port_num = entry->port_num;
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index 7eaf7d2..a766b8d 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -3707,15 +3707,29 @@ static inline enum rdma_ah_attr_type rdma_ah_find_type(struct ib_device *dev,
->   		return RDMA_AH_ATTR_TYPE_IB;
->   }
->   
-> -/* Return slid in 16bit CPU encoding */
-> -static inline u16 ib_slid_cpu16(u32 slid)
-> +/**
-> + * ib_lid_cpu16 - Return lid in 16bit CPU encoding.
-> + *     In the current implementation the only way to get
-> + *     get the 32bit lid is from other sources for OPA.
-> + *     For IB, lids will always be 16bits so cast the
-> + *     value accordingly.
-> + *
-> + * @lid: A 32bit LID
-> + */
-> +static inline u16 ib_lid_cpu16(u32 lid)
->   {
-> -	return (u16)slid;
-> +	WARN_ON_ONCE(lid & 0xFFFF0000);
-> +	return (u16)lid;
->   }
->   
-> -/* Return slid in 16bit BE encoding */
-> -static inline u16 ib_slid_be16(u32 slid)
-> +/**
-> + * ib_lid_be16 - Return lid in 16bit BE encoding.
-> + *
-> + * @lid: A 32bit LID
-> + */
-> +static inline __be16 ib_lid_be16(u32 lid)
->   {
-> -	return cpu_to_be16((u16)slid);
-> +	WARN_ON_ONCE(lid & 0xFFFF0000);
-> +	return cpu_to_be16((u16)lid);
->   }
->   #endif /* IB_VERBS_H */
+> +       log_rdma_event("event=3D%d status=3D%d\n", event->event, event->s=
+tatus);
+> +
+> +       switch (event->event) {
+> +       case RDMA_CM_EVENT_ADDR_RESOLVED:
+> +       case RDMA_CM_EVENT_ROUTE_RESOLVED:
+> +               info->ri_rc =3D 0;
+> +               complete(&info->ri_done);
+> +               break;
+> +
+> +       case RDMA_CM_EVENT_ADDR_ERROR:
+> +               info->ri_rc =3D -EHOSTUNREACH;
+> +               complete(&info->ri_done);
+> +               break;
+> +
+> +       case RDMA_CM_EVENT_ROUTE_ERROR:
+> +               info->ri_rc =3D -ENETUNREACH;
+> +               complete(&info->ri_done);
+> +               break;
+> +
+> +       case RDMA_CM_EVENT_ESTABLISHED:
+> +       case RDMA_CM_EVENT_CONNECT_ERROR:
+> +       case RDMA_CM_EVENT_UNREACHABLE:
+> +       case RDMA_CM_EVENT_REJECTED:
+> +       case RDMA_CM_EVENT_DEVICE_REMOVAL:
+> +               log_rdma_event("connected event=3D%d\n", event->event);
+> +               info->connect_state =3D event->event;
+> +               break;
+> +
+> +       case RDMA_CM_EVENT_DISCONNECTED:
+> +               break;
+> +
+> +       default:
+> +               break;
+> +       }
+> +
+> +       return 0;
+> +}
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This code looks a lot like the connection stuff in the NFS/RDMA RPC transpo=
+rt.
+Does your code have the same needs? If so, you might consider moving this t=
+o
+a common RDMA handler.
+
+> +/* Upcall from RDMA QP */
+> +static void
+> +cifs_rdma_qp_async_error_upcall(struct ib_event *event, void *context)
+> +{
+> +       struct cifs_rdma_info *info =3D context;
+> +       log_rdma_event("%s on device %s info %p\n",
+> +               ib_event_msg(event->event), event->device->name, info);
+> +
+> +       switch (event->event)
+> +       {
+> +       case IB_EVENT_CQ_ERR:
+> +       case IB_EVENT_QP_FATAL:
+> +       case IB_EVENT_QP_REQ_ERR:
+> +       case IB_EVENT_QP_ACCESS_ERR:
+> +
+> +       default:
+> +               break;
+> +       }
+> +}
+
+Ditto. But, what's up with the empty switch(event->event) processing?
+
+> +static struct rdma_cm_id* cifs_rdma_create_id(
+> +               struct cifs_rdma_info *info, struct sockaddr *dstaddr)
+> +{
+...
+> +       log_rdma_event("connecting to IP %pI4 port %d\n",
+> +               &addr_in->sin_addr, ntohs(addr_in->sin_port));
+>... and then...
+> +       if (dstaddr->sa_family =3D=3D AF_INET6)
+> +               sport =3D &((struct sockaddr_in6 *)dstaddr)->sin6_port;
+> +       else
+> +               sport =3D &((struct sockaddr_in *)dstaddr)->sin_port;
+> +
+> +       *sport =3D htons(445);
+...and
+> +out:
+> +       // try port number 5445 if port 445 doesn't work
+> +       if (*sport =3D=3D htons(445)) {
+> +               *sport =3D htons(5445);
+> +               goto try_again;
+> +       }
+
+Suggest rearranging the log_rdma_event() call to reflect reality.
+
+The IANA-assigned port for SMB Direct is 5445, and port 445 will be
+listening on TCP. Should you really be probing that port before 5445?
+I suggest not doing so unconditionally.
+
+> +struct cifs_rdma_info* cifs_create_rdma_session(
+> +       struct TCP_Server_Info *server, struct sockaddr *dstaddr)
+> +{
+> ...
+> +       int max_pending =3D receive_credit_max + send_credit_target;
+>...
+> +       if (max_pending > info->id->device->attrs.max_cqe ||
+> +           max_pending > info->id->device->attrs.max_qp_wr) {
+> +               log_rdma_event("consider lowering receive_credit_max and =
+"
+> +                       "send_credit_target. Possible CQE overrun, device=
+ "
+> +                       "reporting max_cpe %d max_qp_wr %d\n",
+> +                       info->id->device->attrs.max_cqe,
+> +                       info->id->device->attrs.max_qp_wr);
+> +               goto out2;
+> +       }
+
+I don't understand this. Why are you directing both Receive and Send comple=
+tions
+to the same CQ, won't that make it very hard to manage completions and thei=
+r
+interrupts? Also, what device(s) have you seen trigger this log? CQ's are g=
+enerally
+allowed to be quite large.
+
+> +       conn_param.responder_resources =3D 32;
+> +       if (info->id->device->attrs.max_qp_rd_atom < 32)
+> +               conn_param.responder_resources =3D
+> +                       info->id->device->attrs.max_qp_rd_atom;
+> +       conn_param.retry_count =3D 6;
+> +       conn_param.rnr_retry_count =3D 6;
+> +       conn_param.flow_control =3D 0;
+
+These choices warrant explanation. 32 responder resources is on the large s=
+ide for
+most datacenter networks. And because of SMB Direct's credits, why is RNR_r=
+etry not
+simply zero?
