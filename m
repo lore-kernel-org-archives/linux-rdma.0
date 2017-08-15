@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next 2/8] RDMA/core: Export device capabilities flags
-Date: Tue, 15 Aug 2017 12:14:25 +0300
-Message-ID: <20170815091431.12822-3-leon@kernel.org>
+Subject: [rdma-next 8/8] RDMA: Use defines instead of hard coded value for phys_state
+Date: Tue, 15 Aug 2017 12:14:31 +0300
+Message-ID: <20170815091431.12822-9-leon@kernel.org>
 References: <20170815091431.12822-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170815091431.12822-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,251 +12,202 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Provide to the user space application the ability
-to understand device capabilities.
+There are new defines to express the physical state of the link, so
+let's reuse them instead hard-coded values.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/rdma/ib_verbs.h           |  68 ++++++++++++------------
- include/uapi/rdma/ib_user_verbs.h |   1 +
- include/uapi/rdma/rdma.h          | 106 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 140 insertions(+), 35 deletions(-)
- create mode 100644 include/uapi/rdma/rdma.h
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c     |  4 ++--
+ drivers/infiniband/hw/hfi1/opa_compat.h      | 30 +++++++++++++++++-----------
+ drivers/infiniband/hw/hns/hns_roce_main.c    |  4 +++-
+ drivers/infiniband/hw/mlx4/main.c            |  4 +++-
+ drivers/infiniband/hw/mlx5/main.c            |  4 ++--
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  |  4 ++--
+ drivers/infiniband/hw/qedr/verbs.c           |  4 ++--
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c |  6 +++---
+ drivers/infiniband/sw/rxe/rxe_param.h        |  2 +-
+ 9 files changed, 36 insertions(+), 26 deletions(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 80ede01d2237..bfedcda04ef7 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -157,22 +157,21 @@ enum rdma_link_layer {
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index d78fedc654d0..9bc28c756210 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -234,10 +234,10 @@ int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
+ 
+ 	if (netif_running(rdev->netdev) && netif_carrier_ok(rdev->netdev)) {
+ 		port_attr->state = IB_PORT_ACTIVE;
+-		port_attr->phys_state = 5;
++		port_attr->phys_state = RDMA_LINK_PHYS_STATE_LINK_UP;
+ 	} else {
+ 		port_attr->state = IB_PORT_DOWN;
+-		port_attr->phys_state = 3;
++		port_attr->phys_state = RDMA_LINK_PHYS_STATE_DISABLED;
+ 	}
+ 	port_attr->max_mtu = IB_MTU_4096;
+ 	port_attr->active_mtu = iboe_get_mtu(rdev->netdev->mtu);
+diff --git a/drivers/infiniband/hw/hfi1/opa_compat.h b/drivers/infiniband/hw/hfi1/opa_compat.h
+index 6ef3c1cbdcd7..011ea5c89e25 100644
+--- a/drivers/infiniband/hw/hfi1/opa_compat.h
++++ b/drivers/infiniband/hw/hfi1/opa_compat.h
+@@ -92,20 +92,26 @@ static inline u8 port_states_to_phys_state(struct opa_port_states *ps)
+  * Returned by the ibphys_portstate() routine.
+  */
+ enum opa_port_phys_state {
+-	IB_PORTPHYSSTATE_NOP = 0,
++	IB_PORTPHYSSTATE_NOP = RDMA_LINK_PHYS_STATE_NOP,
++
+ 	/* 1 is reserved */
+-	IB_PORTPHYSSTATE_POLLING = 2,
+-	IB_PORTPHYSSTATE_DISABLED = 3,
+-	IB_PORTPHYSSTATE_TRAINING = 4,
+-	IB_PORTPHYSSTATE_LINKUP = 5,
+-	IB_PORTPHYSSTATE_LINK_ERROR_RECOVERY = 6,
+-	IB_PORTPHYSSTATE_PHY_TEST = 7,
++
++	IB_PORTPHYSSTATE_POLLING = RDMA_LINK_PHYS_STATE_POLLING,
++	IB_PORTPHYSSTATE_DISABLED = RDMA_LINK_PHYS_STATE_DISABLED,
++	IB_PORTPHYSSTATE_TRAINING = RDMA_LINK_PHYS_STATE_PORT_CONFIGURATION_TRAINING,
++	IB_PORTPHYSSTATE_LINKUP = RDMA_LINK_PHYS_STATE_LINK_UP,
++	IB_PORTPHYSSTATE_LINK_ERROR_RECOVERY = RDMA_LINK_PHYS_STATE_LINK_ERROR_RECOVER,
++	IB_PORTPHYSSTATE_PHY_TEST = RDMA_LINK_PHYS_STATE_LINK_PHY_TEST,
++
+ 	/* 8 is reserved */
+-	OPA_PORTPHYSSTATE_OFFLINE = 9,
+-	OPA_PORTPHYSSTATE_GANGED = 10,
+-	OPA_PORTPHYSSTATE_TEST = 11,
+-	OPA_PORTPHYSSTATE_MAX = 11,
++
++	OPA_PORTPHYSSTATE_OFFLINE = RDMA_LINK_PHYS_STATE_OFFLINE,
++
++	/* 10 is reserved */
++
++	OPA_PORTPHYSSTATE_TEST = RDMA_LINK_PHYS_STATE_TEST,
++	OPA_PORTPHYSSTATE_MAX = OPA_PORTPHYSSTATE_TEST,
++
+ 	/* values 12-15 are reserved/ignored */
+ };
+-
+ #endif /* _LINUX_H */
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index d9777b662eba..48e88357d1c4 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -272,7 +272,9 @@ static int hns_roce_query_port(struct ib_device *ib_dev, u8 port_num,
+ 	props->active_mtu = mtu ? min(props->max_mtu, mtu) : IB_MTU_256;
+ 	props->state = (netif_running(net_dev) && netif_carrier_ok(net_dev)) ?
+ 			IB_PORT_ACTIVE : IB_PORT_DOWN;
+-	props->phys_state = (props->state == IB_PORT_ACTIVE) ? 5 : 3;
++	props->phys_state = (props->state == IB_PORT_ACTIVE) ?
++			    RDMA_LINK_PHYS_STATE_LINK_UP :
++			    RDMA_LINK_PHYS_STATE_DISABLED;
+ 
+ 	spin_unlock_irqrestore(&hr_dev->iboe.lock, flags);
+ 
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index c636842c5be0..d1598ef15406 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -694,7 +694,9 @@ static int ib_link_query_port(struct ib_device *ibdev, u8 port,
+ 
+ static u8 state_to_phys_state(enum ib_port_state state)
+ {
+-	return state == IB_PORT_ACTIVE ? 5 : 3;
++	return state == IB_PORT_ACTIVE ?
++		RDMA_LINK_PHYS_STATE_LINK_UP :
++		RDMA_LINK_PHYS_STATE_DISABLED;
+ }
+ 
+ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 894aec4a7c9d..8b3f19060a67 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -282,7 +282,7 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
+ 	props->max_msg_sz       = 1 << MLX5_CAP_GEN(dev->mdev, log_max_msg);
+ 	props->pkey_tbl_len     = 1;
+ 	props->state            = IB_PORT_DOWN;
+-	props->phys_state       = 3;
++	props->phys_state       = RDMA_LINK_PHYS_STATE_DISABLED;
+ 
+ 	mlx5_query_nic_vport_qkey_viol_cntr(dev->mdev, &qkey_viol_cntr);
+ 	props->qkey_viol_cntr = qkey_viol_cntr;
+@@ -304,7 +304,7 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
+ 
+ 	if (netif_running(ndev) && netif_carrier_ok(ndev)) {
+ 		props->state      = IB_PORT_ACTIVE;
+-		props->phys_state = 5;
++		props->phys_state = RDMA_LINK_PHYS_STATE_LINK_UP;
+ 	}
+ 
+ 	ndev_ib_mtu = iboe_get_mtu(ndev->mtu);
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index 27d5e8d9f08d..32e7a04b027f 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -220,10 +220,10 @@ int ocrdma_query_port(struct ib_device *ibdev,
+ 	netdev = dev->nic_info.netdev;
+ 	if (netif_running(netdev) && netif_oper_up(netdev)) {
+ 		port_state = IB_PORT_ACTIVE;
+-		props->phys_state = 5;
++		props->phys_state = RDMA_LINK_PHYS_STATE_LINK_UP;
+ 	} else {
+ 		port_state = IB_PORT_DOWN;
+-		props->phys_state = 3;
++		props->phys_state = RDMA_LINK_PHYS_STATE_DISABLED;
+ 	}
+ 	props->max_mtu = IB_MTU_4096;
+ 	props->active_mtu = iboe_get_mtu(netdev->mtu);
+diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
+index 9ee2dce3e5bb..724921aad51b 100644
+--- a/drivers/infiniband/hw/qedr/verbs.c
++++ b/drivers/infiniband/hw/qedr/verbs.c
+@@ -251,10 +251,10 @@ int qedr_query_port(struct ib_device *ibdev, u8 port, struct ib_port_attr *attr)
+ 	/* *attr being zeroed by the caller, avoid zeroing it here */
+ 	if (rdma_port->port_state == QED_RDMA_PORT_UP) {
+ 		attr->state = IB_PORT_ACTIVE;
+-		attr->phys_state = 5;
++		attr->phys_state = RDMA_LINK_PHYS_STATE_LINK_UP;
+ 	} else {
+ 		attr->state = IB_PORT_DOWN;
+-		attr->phys_state = 3;
++		attr->phys_state = RDMA_LINK_PHYS_STATE_DISABLED;
+ 	}
+ 	attr->max_mtu = IB_MTU_4096;
+ 	attr->active_mtu = iboe_get_mtu(dev->ndev->mtu);
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+index e5f57dd49980..8889b549a6bc 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+@@ -324,13 +324,13 @@ int usnic_ib_query_port(struct ib_device *ibdev, u8 port,
+ 
+ 	if (!us_ibdev->ufdev->link_up) {
+ 		props->state = IB_PORT_DOWN;
+-		props->phys_state = 3;
++		props->phys_state = RDMA_LINK_PHYS_STATE_DISABLED;
+ 	} else if (!us_ibdev->ufdev->inaddr) {
+ 		props->state = IB_PORT_INIT;
+-		props->phys_state = 4;
++		props->phys_state = RDMA_LINK_PHYS_STATE_PORT_CONFIGURATION_TRAINING;
+ 	} else {
+ 		props->state = IB_PORT_ACTIVE;
+-		props->phys_state = 5;
++		props->phys_state = RDMA_LINK_PHYS_STATE_LINK_UP;
+ 	}
+ 
+ 	props->port_cap_flags = 0;
+diff --git a/drivers/infiniband/sw/rxe/rxe_param.h b/drivers/infiniband/sw/rxe/rxe_param.h
+index 1b596fbbe251..475767262102 100644
+--- a/drivers/infiniband/sw/rxe/rxe_param.h
++++ b/drivers/infiniband/sw/rxe/rxe_param.h
+@@ -157,7 +157,7 @@ enum rxe_port_param {
+ 	RXE_PORT_ACTIVE_WIDTH		= IB_WIDTH_1X,
+ 	RXE_PORT_ACTIVE_SPEED		= 1,
+ 	RXE_PORT_PKEY_TBL_LEN		= 64,
+-	RXE_PORT_PHYS_STATE		= 2,
++	RXE_PORT_PHYS_STATE		= RDMA_LINK_PHYS_STATE_POLLING,
+ 	RXE_PORT_SUBNET_PREFIX		= 0xfe80000000000000ULL,
  };
  
- enum ib_device_cap_flags {
--	IB_DEVICE_RESIZE_MAX_WR			= (1 << 0),
--	IB_DEVICE_BAD_PKEY_CNTR			= (1 << 1),
--	IB_DEVICE_BAD_QKEY_CNTR			= (1 << 2),
--	IB_DEVICE_RAW_MULTI			= (1 << 3),
--	IB_DEVICE_AUTO_PATH_MIG			= (1 << 4),
--	IB_DEVICE_CHANGE_PHY_PORT		= (1 << 5),
--	IB_DEVICE_UD_AV_PORT_ENFORCE		= (1 << 6),
--	IB_DEVICE_CURR_QP_STATE_MOD		= (1 << 7),
--	IB_DEVICE_SHUTDOWN_PORT			= (1 << 8),
-+	IB_DEVICE_RESIZE_MAX_WR			= RDMA_DEV_RESIZE_MAX_WR,
-+	IB_DEVICE_BAD_PKEY_CNTR			= RDMA_DEV_BAD_PKEY_CNTR,
-+	IB_DEVICE_BAD_QKEY_CNTR			= RDMA_DEV_BAD_QKEY_CNTR,
-+	IB_DEVICE_RAW_MULTI			= RDMA_DEV_RAW_MULTI,
-+	IB_DEVICE_AUTO_PATH_MIG			= RDMA_DEV_AUTO_PATH_MIG,
-+	IB_DEVICE_CHANGE_PHY_PORT		= RDMA_DEV_CHANGE_PHY_PORT,
-+	IB_DEVICE_UD_AV_PORT_ENFORCE		= RDMA_DEV_UD_AV_PORT_ENFORCE,
-+	IB_DEVICE_CURR_QP_STATE_MOD		= RDMA_DEV_CURR_QP_STATE_MOD,
-+	IB_DEVICE_SHUTDOWN_PORT			= RDMA_DEV_SHUTDOWN_PORT,
- 	/* Not in use, former INIT_TYPE		= (1 << 9),*/
--	IB_DEVICE_PORT_ACTIVE_EVENT		= (1 << 10),
--	IB_DEVICE_SYS_IMAGE_GUID		= (1 << 11),
--	IB_DEVICE_RC_RNR_NAK_GEN		= (1 << 12),
--	IB_DEVICE_SRQ_RESIZE			= (1 << 13),
--	IB_DEVICE_N_NOTIFY_CQ			= (1 << 14),
--
-+	IB_DEVICE_PORT_ACTIVE_EVENT		= RDMA_DEV_PORT_ACTIVE_EVENT,
-+	IB_DEVICE_SYS_IMAGE_GUID		= RDMA_DEV_SYS_IMAGE_GUID,
-+	IB_DEVICE_RC_RNR_NAK_GEN		= RDMA_DEV_RC_RNR_NAK_GEN,
-+	IB_DEVICE_SRQ_RESIZE			= RDMA_DEV_SRQ_RESIZE,
-+	IB_DEVICE_N_NOTIFY_CQ			= RDMA_DEV_N_NOTIFY_CQ,
- 	/*
- 	 * This device supports a per-device lkey or stag that can be
- 	 * used without performing a memory registration for the local
-@@ -180,9 +179,9 @@ enum ib_device_cap_flags {
- 	 * instead of use the local_dma_lkey flag in the ib_pd structure,
- 	 * which will always contain a usable lkey.
- 	 */
--	IB_DEVICE_LOCAL_DMA_LKEY		= (1 << 15),
-+	IB_DEVICE_LOCAL_DMA_LKEY		= RDMA_DEV_LOCAL_DMA_LKEY,
- 	/* Reserved, old SEND_W_INV		= (1 << 16),*/
--	IB_DEVICE_MEM_WINDOW			= (1 << 17),
-+	IB_DEVICE_MEM_WINDOW			= RDMA_DEV_MEM_WINDOW,
- 	/*
- 	 * Devices should set IB_DEVICE_UD_IP_SUM if they support
- 	 * insertion of UDP and TCP checksum on outgoing UD IPoIB
-@@ -190,10 +189,9 @@ enum ib_device_cap_flags {
- 	 * incoming messages.  Setting this flag implies that the
- 	 * IPoIB driver may set NETIF_F_IP_CSUM for datagram mode.
- 	 */
--	IB_DEVICE_UD_IP_CSUM			= (1 << 18),
--	IB_DEVICE_UD_TSO			= (1 << 19),
--	IB_DEVICE_XRC				= (1 << 20),
--
-+	IB_DEVICE_UD_IP_CSUM			= RDMA_DEV_UD_IP_CSUM,
-+	IB_DEVICE_UD_TSO			= RDMA_DEV_UD_TSO,
-+	IB_DEVICE_XRC				= RDMA_DEV_XRC,
- 	/*
- 	 * This device supports the IB "base memory management extension",
- 	 * which includes support for fast registrations (IB_WR_REG_MR,
-@@ -203,28 +201,28 @@ enum ib_device_cap_flags {
- 	 * IB_WR_RDMA_READ_WITH_INV verb for RDMA READs that invalidate the
- 	 * stag.
- 	 */
--	IB_DEVICE_MEM_MGT_EXTENSIONS		= (1 << 21),
--	IB_DEVICE_BLOCK_MULTICAST_LOOPBACK	= (1 << 22),
--	IB_DEVICE_MEM_WINDOW_TYPE_2A		= (1 << 23),
--	IB_DEVICE_MEM_WINDOW_TYPE_2B		= (1 << 24),
--	IB_DEVICE_RC_IP_CSUM			= (1 << 25),
-+	IB_DEVICE_MEM_MGT_EXTENSIONS		= RDMA_DEV_MEM_MGT_EXTENSIONS,
-+	IB_DEVICE_BLOCK_MULTICAST_LOOPBACK	= RDMA_DEV_BLOCK_MULTICAST_LOOPBACK,
-+	IB_DEVICE_MEM_WINDOW_TYPE_2A		= RDMA_DEV_MEM_WINDOW_TYPE_2A,
-+	IB_DEVICE_MEM_WINDOW_TYPE_2B		= RDMA_DEV_MEM_WINDOW_TYPE_2B,
-+	IB_DEVICE_RC_IP_CSUM			= RDMA_DEV_RC_IP_CSUM,
- 	/* Deprecated. Please use IB_RAW_PACKET_CAP_IP_CSUM. */
--	IB_DEVICE_RAW_IP_CSUM			= (1 << 26),
-+	IB_DEVICE_RAW_IP_CSUM			= RDMA_DEV_RAW_IP_CSUM,
- 	/*
- 	 * Devices should set IB_DEVICE_CROSS_CHANNEL if they
- 	 * support execution of WQEs that involve synchronization
- 	 * of I/O operations with single completion queue managed
- 	 * by hardware.
- 	 */
--	IB_DEVICE_CROSS_CHANNEL			= (1 << 27),
--	IB_DEVICE_MANAGED_FLOW_STEERING		= (1 << 29),
--	IB_DEVICE_SIGNATURE_HANDOVER		= (1 << 30),
--	IB_DEVICE_ON_DEMAND_PAGING		= (1ULL << 31),
--	IB_DEVICE_SG_GAPS_REG			= (1ULL << 32),
--	IB_DEVICE_VIRTUAL_FUNCTION		= (1ULL << 33),
-+	IB_DEVICE_CROSS_CHANNEL			= RDMA_DEV_CROSS_CHANNEL,
-+	IB_DEVICE_MANAGED_FLOW_STEERING		= RDMA_DEV_MANAGED_FLOW_STEERING,
-+	IB_DEVICE_SIGNATURE_HANDOVER		= RDMA_DEV_SIGNATURE_HANDOVER,
-+	IB_DEVICE_ON_DEMAND_PAGING		= RDMA_DEV_ON_DEMAND_PAGING,
-+	IB_DEVICE_SG_GAPS_REG			= RDMA_DEV_SG_GAPS_REG,
-+	IB_DEVICE_VIRTUAL_FUNCTION		= RDMA_DEV_VIRTUAL_FUNCTION,
- 	/* Deprecated. Please use IB_RAW_PACKET_CAP_SCATTER_FCS. */
--	IB_DEVICE_RAW_SCATTER_FCS		= (1ULL << 34),
--	IB_DEVICE_RDMA_NETDEV_OPA_VNIC		= (1ULL << 35),
-+	IB_DEVICE_RAW_SCATTER_FCS		= RDMA_DEV_RAW_SCATTER_FCS,
-+	IB_DEVICE_RDMA_NETDEV_OPA_VNIC		= RDMA_DEV_RDMA_NETDEV_OPA_VNIC,
- };
- 
- enum ib_signature_prot_cap {
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index 9a0b6479fe0c..803106ffa93c 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -37,6 +37,7 @@
- #define IB_USER_VERBS_H
- 
- #include <linux/types.h>
-+#include <rdma/rdma.h>
- 
- /*
-  * Increment this value if any changes that break userspace ABI
-diff --git a/include/uapi/rdma/rdma.h b/include/uapi/rdma/rdma.h
-new file mode 100644
-index 000000000000..dcdf61474118
---- /dev/null
-+++ b/include/uapi/rdma/rdma.h
-@@ -0,0 +1,106 @@
-+/*
-+ * Copyright (c) 2017 Mellanox Technologies.  All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
-+
-+#ifndef _RDMA_H
-+#define _RDMA_H
-+
-+enum rdma_dev_cap {
-+	RDMA_DEV_RESIZE_MAX_WR			= (1 << 0),
-+	RDMA_DEV_BAD_PKEY_CNTR			= (1 << 1),
-+	RDMA_DEV_BAD_QKEY_CNTR			= (1 << 2),
-+	RDMA_DEV_RAW_MULTI			= (1 << 3),
-+	RDMA_DEV_AUTO_PATH_MIG			= (1 << 4),
-+	RDMA_DEV_CHANGE_PHY_PORT		= (1 << 5),
-+	RDMA_DEV_UD_AV_PORT_ENFORCE		= (1 << 6),
-+	RDMA_DEV_CURR_QP_STATE_MOD		= (1 << 7),
-+	RDMA_DEV_SHUTDOWN_PORT			= (1 << 8),
-+	/* Not in use, former INIT_TYPE		= (1 << 9),*/
-+	RDMA_DEV_PORT_ACTIVE_EVENT		= (1 << 10),
-+	RDMA_DEV_SYS_IMAGE_GUID			= (1 << 11),
-+	RDMA_DEV_RC_RNR_NAK_GEN			= (1 << 12),
-+	RDMA_DEV_SRQ_RESIZE			= (1 << 13),
-+	RDMA_DEV_N_NOTIFY_CQ			= (1 << 14),
-+
-+	/*
-+	 * This device supports a per-device lkey or stag that can be
-+	 * used without performing a memory registration for the local
-+	 * memory.  Note that ULPs should never check this flag, but
-+	 * instead of use the local_dma_lkey flag in the ib_pd structure,
-+	 * which will always contain a usable lkey.
-+	 */
-+	RDMA_DEV_LOCAL_DMA_LKEY			= (1 << 15),
-+	/* Reserved, old SEND_W_INV		= (1 << 16),*/
-+	RDMA_DEV_MEM_WINDOW			= (1 << 17),
-+	/*
-+	 * Devices should set RDMA_DEV_UD_IP_SUM if they support
-+	 * insertion of UDP and TCP checksum on outgoing UD IPoIB
-+	 * messages and can verify the validity of checksum for
-+	 * incoming messages.  Setting this flag implies that the
-+	 * IPoIB driver may set NETIF_F_IP_CSUM for datagram mode.
-+	 */
-+	RDMA_DEV_UD_IP_CSUM			= (1 << 18),
-+	RDMA_DEV_UD_TSO				= (1 << 19),
-+	RDMA_DEV_XRC				= (1 << 20),
-+
-+	/*
-+	 * This device supports the IB "base memory management extension",
-+	 * which includes support for fast registrations (IB_WR_REG_MR,
-+	 * IB_WR_LOCAL_INV and IB_WR_SEND_WITH_INV verbs).  This flag should
-+	 * also be set by any iWarp device which must support FRs to comply
-+	 * to the iWarp verbs spec.  iWarp devices also support the
-+	 * IB_WR_RDMA_READ_WITH_INV verb for RDMA READs that invalidate the
-+	 * stag.
-+	 */
-+	RDMA_DEV_MEM_MGT_EXTENSIONS		= (1 << 21),
-+	RDMA_DEV_BLOCK_MULTICAST_LOOPBACK	= (1 << 22),
-+	RDMA_DEV_MEM_WINDOW_TYPE_2A		= (1 << 23),
-+	RDMA_DEV_MEM_WINDOW_TYPE_2B		= (1 << 24),
-+	RDMA_DEV_RC_IP_CSUM			= (1 << 25),
-+	/* Deprecated. Please use IB_RAW_PACKET_CAP_IP_CSUM. */
-+	RDMA_DEV_RAW_IP_CSUM			= (1 << 26),
-+	/*
-+	 * Devices should set RDMA_DEV_CROSS_CHANNEL if they
-+	 * support execution of WQEs that involve synchronization
-+	 * of I/O operations with single completion queue managed
-+	 * by hardware.
-+	 */
-+	RDMA_DEV_CROSS_CHANNEL			= (1 << 27),
-+	RDMA_DEV_MANAGED_FLOW_STEERING		= (1 << 29),
-+	RDMA_DEV_SIGNATURE_HANDOVER		= (1 << 30),
-+	RDMA_DEV_ON_DEMAND_PAGING		= (1ULL << 31),
-+	RDMA_DEV_SG_GAPS_REG			= (1ULL << 32),
-+	RDMA_DEV_VIRTUAL_FUNCTION		= (1ULL << 33),
-+	/* Deprecated. Please use IB_RAW_PACKET_CAP_SCATTER_FCS. */
-+	RDMA_DEV_RAW_SCATTER_FCS		= (1ULL << 34),
-+	RDMA_DEV_RDMA_NETDEV_OPA_VNIC		= (1ULL << 35),
-+};
-+#endif /* _RDMA_H */
 -- 
 2.14.0
 
