@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v1 06/11] IB/uverbs: Add new SRQ type IB_SRQT_TM
-Date: Tue, 15 Aug 2017 11:59:07 +0300
-Message-ID: <20170815085912.10181-7-leon@kernel.org>
+Subject: [rdma-next v1 07/11] IB/uverbs: Expose XRQ capabilities
+Date: Tue, 15 Aug 2017 11:59:08 +0300
+Message-ID: <20170815085912.10181-8-leon@kernel.org>
 References: <20170815085912.10181-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170815085912.10181-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,56 +12,70 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add new SRQ type capable of new tag matching feature.
-
-When SRQ receives a message it will search through the matching list
-for the corresponding posted receive buffer. The process of searching
-the matching list is called tag matching.
-
-In case the tag matching results in a match, the received message will
-be placed in the address specified by the receive buffer. In case no
-match was found the message will be placed in a generic buffer until the
-corresponding receive buffer will be posted. These messages are called
-unexpected and their set is called an unexpected list.
+Make XRQ capabilities available via ibv_query_device() verb.
 
 Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yossi Itigin <yosefe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/uverbs_cmd.c | 10 ++++++++++
+ include/uapi/rdma/ib_user_verbs.h    | 15 +++++++++++++++
+ 2 files changed, 25 insertions(+)
 
 diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index afa4c1b7891a..e3ac272a0fa9 100644
+index e3ac272a0fa9..1996f096c4f8 100644
 --- a/drivers/infiniband/core/uverbs_cmd.c
 +++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1430,7 +1430,7 @@ static int create_qp(struct ib_uverbs_file *file,
- 			if (cmd->is_srq) {
- 				srq = uobj_get_obj_read(srq, cmd->srq_handle,
- 							file->ucontext);
--				if (!srq || srq->srq_type != IB_SRQT_BASIC) {
-+				if (!srq || srq->srq_type == IB_SRQT_XRC) {
- 					ret = -EINVAL;
- 					goto err_put;
- 				}
-@@ -3463,6 +3463,9 @@ static int __uverbs_create_xsrq(struct ib_uverbs_file *file,
- 	if (IS_ERR(obj))
- 		return PTR_ERR(obj);
+@@ -3850,6 +3850,16 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
  
-+	if (cmd->srq_type == IB_SRQT_TM)
-+		attr.ext.tag_matching.max_num_tags = cmd->max_num_tags;
+ 	resp.raw_packet_caps = attr.raw_packet_caps;
+ 	resp.response_length += sizeof(resp.raw_packet_caps);
 +
- 	if (cmd->srq_type == IB_SRQT_XRC) {
- 		xrcd_uobj = uobj_get_read(uobj_get_type(xrcd), cmd->xrcd_handle,
- 					  file->ucontext);
-@@ -3597,6 +3600,7 @@ ssize_t ib_uverbs_create_srq(struct ib_uverbs_file *file,
- 	if (copy_from_user(&cmd, buf, sizeof cmd))
- 		return -EFAULT;
++	if (ucore->outlen < resp.response_length + sizeof(resp.xrq_caps))
++		goto end;
++
++	resp.xrq_caps.max_rndv_hdr_size = attr.xrq_caps.max_rndv_hdr_size;
++	resp.xrq_caps.max_num_tags      = attr.xrq_caps.max_num_tags;
++	resp.xrq_caps.max_ops		= attr.xrq_caps.max_ops;
++	resp.xrq_caps.max_sge		= attr.xrq_caps.max_sge;
++	resp.xrq_caps.flags		= attr.xrq_caps.flags;
++	resp.response_length += sizeof(resp.xrq_caps);
+ end:
+ 	err = ib_copy_to_udata(ucore, &resp, resp.response_length);
+ 	return err;
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index d5434bbf40c8..9a0b6479fe0c 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -236,6 +236,20 @@ struct ib_uverbs_rss_caps {
+ 	__u32 reserved;
+ };
  
-+	memset(&xcmd, 0, sizeof(xcmd));
- 	xcmd.response	 = cmd.response;
- 	xcmd.user_handle = cmd.user_handle;
- 	xcmd.srq_type	 = IB_SRQT_BASIC;
++struct ib_uverbs_tm_caps {
++	/* Max size of rendezvous request message */
++	__u32 max_rndv_hdr_size;
++	/* Max number of entries in tag matching list */
++	__u32 max_num_tags;
++	/* TM flags */
++	__u32 flags;
++	/* Max number of outstanding list operations */
++	__u32 max_ops;
++	/* Max number of SGE in tag matching entry */
++	__u32 max_sge;
++	__u32 reserved;
++};
++
+ struct ib_uverbs_ex_query_device_resp {
+ 	struct ib_uverbs_query_device_resp base;
+ 	__u32 comp_mask;
+@@ -247,6 +261,7 @@ struct ib_uverbs_ex_query_device_resp {
+ 	struct ib_uverbs_rss_caps rss_caps;
+ 	__u32  max_wq_type_rq;
+ 	__u32 raw_packet_caps;
++	struct ib_uverbs_tm_caps xrq_caps;
+ };
+ 
+ struct ib_uverbs_query_port {
 -- 
 2.14.0
 
