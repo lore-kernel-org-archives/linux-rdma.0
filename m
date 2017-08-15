@@ -1,64 +1,113 @@
-From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH v2 0/2] Don't allocate ib/iw cm workqueues with
- WQ_MEM_RECLAIM
-Date: Tue, 15 Aug 2017 20:56:48 +0000
-Message-ID: <VI1PR0502MB3008A36C6EFD5C22ECD8DFADD18D0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <1502824838-21745-1-git-send-email-sagi@grimberg.me>
- <VI1PR0502MB300859CC289623BEA5D2DF9AD18D0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+From: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH rdma-next v3-v6] Add OPA extended LID support
+Date: Tue, 15 Aug 2017 15:13:35 -0700
+Message-ID: <82b0f16b-86e5-0b24-c638-d8a606047f87@intel.com>
+References: <1502734663-44224-1-git-send-email-don.hiatt@intel.com>
+ <50ff7793-413a-09a6-1805-ca0bce0452a2@intel.com>
+ <cd6cd877-659d-8218-abf8-a23905af4f42@intel.com>
+ <8d3d0a5a-df5e-b023-ec7c-f83e47a22f00@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR0502MB300859CC289623BEA5D2DF9AD18D0-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <8d3d0a5a-df5e-b023-ec7c-f83e47a22f00-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Never mind. I read the other thread.
 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Parav Pandit
-> Sent: Tuesday, August 15, 2017 3:53 PM
-> To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>; Doug Ledford
-> <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> Subject: RE: [PATCH v2 0/2] Don't allocate ib/iw cm workqueues with
-> WQ_MEM_RECLAIM
->=20
-> Hi Sagi,
->=20
-> > -----Original Message-----
-> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Sagi Grimberg
-> > Sent: Tuesday, August 15, 2017 2:21 PM
-> > To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> > Subject: [PATCH v2 0/2] Don't allocate ib/iw cm workqueues with
-> > WQ_MEM_RECLAIM
+
+On 8/15/2017 1:40 PM, Don Hiatt wrote:
+>
+>
+> On 8/14/2017 1:12 PM, Don Hiatt wrote:
+>> On 8/14/2017 11:36 AM, Don Hiatt wrote:
+>>>
+>>>
+>>> On 8/14/2017 11:17 AM, Don Hiatt wrote:
+>>>> This patch series primarily increases sizes of variables that hold
+>>>> lid values from 16 to 32 bits. Additionally, it adds a check in
+>>>> the IB mad stack to verify a properly formatted MAD when OPA
+>>>> extended LIDs are used.
+>>>>
+>>>> Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>>> Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>>> ---
+>>>>
+>>>> This is an incremental patch to move from v3 of the 'Add OPA
+>>>> extended LID support' to v6 of the series.
+>>>> Changes from v5:
+>>>> ---------------
+>>>> * Fixed typo in WARN_ON_ONCE usage in helper functions.
+>>>> * Actually return be16 in ib_lid_be16() helper function.
+>>>
+>>> Sorry, this was meant to go to my email as a test, not to the list. 
+>>> My tests are still running so please
+>>> hold off on this until I confirm.
+>>>
+>> All test completed fine. I think we're good to go.
+>>
+>> Leon, if I missed anything else please let me know.
+>>
+>> Thanks,
+>>
+>> don
+>>
+> I did not get this email respond but saw it on the mailing list so 
+> pasted it in to respond)
+>
+> >Yeah, you should fix the function below too.
+> >The whole extended LID series did enormous mess with all these 
+> lid/slid/dlid.
 > >
-> > It's not correct due to the fact that such workqueues cannot allocate
-> > memory in their work execution by definition, which is definitly not
-> > the case for cm
-> Are you saying a work executed on a WQ which is created with
-> WQ_MEM_RECLAIM, cannot allocate memory?
-> Did I misread 'such workqueues cannot allocate memory'?
->=20
-> > workqueues.
+> > 88 static inline bool opa_is_extended_lid(u32 dlid, u32 slid)
+> > 89 {
+> > 90         if ((be32_to_cpu(dlid) >=
+> > 91              be16_to_cpu(IB_MULTICAST_LID_BASE)) ||
+> > 92             (be32_to_cpu(slid) >=
+> > 93              be16_to_cpu(IB_MULTICAST_LID_BASE)))
+> > 94                 return true;
+> > 95         else
+> > 96                 return false;
+> > 97 }
 > >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in =
-the body
-> of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at
-> https://emea01.safelinks.protection.outlook.com/?url=3Dhttp%3A%2F%2Fvger.=
-ke
-> rnel.org%2Fmajordomo-
-> info.html&data=3D02%7C01%7Cparav%40mellanox.com%7C93927b0ff2eb41195a
-> 2208d4e41fa791%7Ca652971c7d2e4d9ba6a4d149256f461b%7C0%7C0%7C636
-> 384272020352896&sdata=3D%2FgoMTFzzT1h9rc2WE04mHfU9RRiO415k3eylvl6M
-> OfI%3D&reserved=3D0
+> >It will help a lot, if you break this patch to small steps:
+> >1. Fix existing annotation errors.
+> >2. Change (rename) the ib_lid/ib_slid functions.
+> >3. Add WARN_ON.
+> >
+> >Right now, we have potential breakage of compatibility between
+> >big-endian vs. little-endian systems.
+> >
+> >Please run smatch and sparse checkers before LID patches and after to
+> >know what else you should fix.
+> >
+> > Thanks
+>
+> This patch series sat on the mailing list for over two months since 
+> the your last
+> request. It then got merged in and an incremental patch was asked for.
+>
+> I've been trying to address your concerns but since this patch is 
+> going in as an
+> incremental  patch I do not see how breaking it up as requested is 
+> required.
+>
+> If Doug would like to pull the entire series then I'll break the 
+> patchfor es up.
+>
+> As of now, with this patch the endian-ness issues have been resolved, 
+> or are you
+> saying they are not?
+>
+>
+I ran sparse/smatch and the endian issues are fixed. The only smatch 
+warnings in this
+patch are for OPA record types. Once this incremental patch is accepted 
+I'll follow
+up to specifically address the OPA record type warnings.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
