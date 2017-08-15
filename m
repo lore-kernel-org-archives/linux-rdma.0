@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v1 04/11] IB/core: Add new SRQ type IB_SRQT_TM
-Date: Tue, 15 Aug 2017 11:59:05 +0300
-Message-ID: <20170815085912.10181-5-leon@kernel.org>
+Subject: [rdma-next v1 05/11] IB/uverbs: Add XRQ creation parameter to UAPI
+Date: Tue, 15 Aug 2017 11:59:06 +0300
+Message-ID: <20170815085912.10181-6-leon@kernel.org>
 References: <20170815085912.10181-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170815085912.10181-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,57 +12,30 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This patch adds new SRQ type - IB_SRQT_TM. The new SRQ type supports tag
-matching and rendezvous offloads for MPI applications.
-
-When SRQ receives a message it will search through the matching list
-for the corresponding posted receive buffer. The process of searching
-the matching list is called tag matching.
-In case the tag matching results in a match, the received message will
-be placed in the address specified by the receive buffer. In case no
-match was found the message will be placed in a generic buffer until the
-corresponding receive buffer will be posted. These messages are called
-unexpected and their set is called an unexpected list.
+Add tm_list_size parameter to struct ib_uverbs_create_xsrq.
+If SRQ type is tag-matching this field defines maximum size
+of tag matching list. Otherwise, it is expected to be zero.
 
 Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yossi Itigin <yosefe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- include/rdma/ib_verbs.h | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ include/uapi/rdma/ib_user_verbs.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index f0e9d30bb0b9..80ede01d2237 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -986,12 +986,14 @@ enum ib_cq_notify_flags {
- 
- enum ib_srq_type {
- 	IB_SRQT_BASIC,
--	IB_SRQT_XRC
-+	IB_SRQT_XRC,
-+	IB_SRQT_TM,
- };
- 
- static inline bool ib_srq_has_cq(enum ib_srq_type srq_type)
- {
--	return srq_type == IB_SRQT_XRC;
-+	return srq_type == IB_SRQT_XRC ||
-+	       srq_type == IB_SRQT_TM;
- }
- 
- enum ib_srq_attr_mask {
-@@ -1017,6 +1019,10 @@ struct ib_srq_init_attr {
- 			struct {
- 				struct ib_xrcd *xrcd;
- 			} xrc;
-+
-+			struct {
-+				u32		max_num_tags;
-+			} tag_matching;
- 		};
- 	} ext;
- };
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index 63656d2e8705..d5434bbf40c8 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -1024,7 +1024,7 @@ struct ib_uverbs_create_xsrq {
+ 	__u32 max_wr;
+ 	__u32 max_sge;
+ 	__u32 srq_limit;
+-	__u32 reserved;
++	__u32 max_num_tags;
+ 	__u32 xrcd_handle;
+ 	__u32 cq_handle;
+ 	__u64 driver_data[0];
 -- 
 2.14.0
 
