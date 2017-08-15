@@ -1,174 +1,199 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 2/2] rdma: Autoload netlink client modules
-Date: Tue, 15 Aug 2017 12:56:51 +0300
-Message-ID: <20170815095651.GQ24282@mtr-leonro.local>
-References: <1502744259-16966-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1502744259-16966-3-git-send-email-jgunthorpe@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="0rEjiS+nMGFQ7Kkj"
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v4 iproute2 0/7] RDMAtool
+Date: Tue, 15 Aug 2017 16:00:13 +0300
+Message-ID: <20170815130020.29509-1-leonro@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1502744259-16966-3-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jiri Pirko <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ariel Almog <ariela-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi,
 
---0rEjiS+nMGFQ7Kkj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This is fourth revision of series implementing the RDAMtool -  the tool
+to configure RDMA devices. The initial proposal was sent as RFC [1] and
+was based on sysfs entries as POC.
 
-On Mon, Aug 14, 2017 at 02:57:39PM -0600, Jason Gunthorpe wrote:
-> If a message comes in and we do not have the client in the table, then
-> try to load the module supplying that client using MODULE_ALIAS to find
-> it.
->
-> This duplicates the scheme seen in other netlink muxes (eg nfnetlink).
->
-> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> ---
->  drivers/infiniband/core/cma.c     |  2 ++
->  drivers/infiniband/core/device.c  |  2 ++
->  drivers/infiniband/core/iwcm.c    |  2 ++
->  drivers/infiniband/core/netlink.c |  9 +++++++++
->  drivers/infiniband/core/nldev.c   |  3 +++
->  include/rdma/rdma_netlink.h       | 12 ++++++++++++
->  6 files changed, 30 insertions(+)
->
-> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-> index d8edd8b11561ae..b76de2e2b20950 100644
-> --- a/drivers/infiniband/core/cma.c
-> +++ b/drivers/infiniband/core/cma.c
-> @@ -4537,5 +4537,7 @@ static void __exit cma_cleanup(void)
->  	destroy_workqueue(cma_wq);
->  }
->
-> +MODULE_ALIAS_RDMA_NETLINK(RDMA_NL_RDMA_CM, 1);
-> +
->  module_init(cma_init);
->  module_exit(cma_cleanup);
-> diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-> index fbc92c649be85d..5f9d4ae5eda8eb 100644
-> --- a/drivers/infiniband/core/device.c
-> +++ b/drivers/infiniband/core/device.c
-> @@ -1251,5 +1251,7 @@ static void __exit ib_core_cleanup(void)
->  	destroy_workqueue(ib_wq);
->  }
->
-> +MODULE_ALIAS_RDMA_NETLINK(RDMA_NL_LS, 4);
-> +
->  module_init(ib_core_init);
->  module_exit(ib_core_cleanup);
-> diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core/iwcm.c
-> index 452a3115e3e6ba..af6015a7a8f361 100644
-> --- a/drivers/infiniband/core/iwcm.c
-> +++ b/drivers/infiniband/core/iwcm.c
-> @@ -1200,5 +1200,7 @@ static void __exit iw_cm_cleanup(void)
->  	iwpm_exit(RDMA_NL_IWCM);
->  }
->
-> +MODULE_ALIAS_RDMA_NETLINK(RDMA_NL_IWCM, 2);
-> +
->  module_init(iw_cm_init);
->  module_exit(iw_cm_cleanup);
-> diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
-> index f782697cf4d819..e685148dd3e6c2 100644
-> --- a/drivers/infiniband/core/netlink.c
-> +++ b/drivers/infiniband/core/netlink.c
-> @@ -84,6 +84,15 @@ static bool is_nl_valid(unsigned int type, unsigned int op)
->  		return false;
->
->  	cb_table = rdma_nl_types[type].cb_table;
-> +#ifdef CONFIG_MODULES
-> +	if (!cb_table) {
-> +		mutex_unlock(&rdma_nl_mutex);
-> +		request_module("rdma-netlink-subsys-%d", type);
-> +		mutex_lock(&rdma_nl_mutex);
-> +		cb_table = rdma_nl_types[type].cb_table;
-> +	}
-> +#endif
-> +
->  	if (!cb_table || (!cb_table[op].dump && !cb_table[op].doit))
->  		return false;
->  	return true;
-> diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-> index 474022274e09cd..3ba24c428c3bda 100644
-> --- a/drivers/infiniband/core/nldev.c
-> +++ b/drivers/infiniband/core/nldev.c
-> @@ -30,6 +30,7 @@
->   * POSSIBILITY OF SUCH DAMAGE.
->   */
->
-> +#include <linux/module.h>
->  #include <net/netlink.h>
->  #include <rdma/rdma_netlink.h>
->
-> @@ -320,3 +321,5 @@ void __exit nldev_exit(void)
->  {
->  	rdma_nl_unregister(RDMA_NL_NLDEV);
->  }
-> +
-> +MODULE_ALIAS_RDMA_NETLINK(RDMA_NL_NLDEV, 5);
-> diff --git a/include/rdma/rdma_netlink.h b/include/rdma/rdma_netlink.h
-> index e25bf1988846df..2d878596b1e07a 100644
-> --- a/include/rdma/rdma_netlink.h
-> +++ b/include/rdma/rdma_netlink.h
-> @@ -17,6 +17,18 @@ enum rdma_nl_flags {
->  	RDMA_NL_ADMIN_PERM	= 1 << 0,
->  };
->
-> +/* Define this module as providing netlink services for NETLINK_RDMA, with
-> + * index _index.  Since the client indexes were setup in a uapi header as an
-> + * enum and we do no want to change that, the user must supply the expanded
-> + * constant as well and the compiler checks they are the same.
-> + */
-> +#define MODULE_ALIAS_RDMA_NETLINK(_index, _val)                                \
-> +	static inline void __chk_##_index(void)                                \
-> +	{                                                                      \
-> +		BUILD_BUG_ON(_index != _val);                                  \
-> +	}                                                                      \
-> +	MODULE_ALIAS("rdma-netlink-subsys-" __stringify(_val))
-> +
+The current series was rewritten completely to work with RDMA netlinks as
+a source of user<->kernel communications. In order to achieve that, the
+RDMA netlinks were extensively refactored and modernized [2, 3, 4 and 5].
 
-Can it be something like that (untested)?
-#define MODULE_ALIAS_RDMA_NETLINK(_index)                                \
-	{ \
-		char str[32];\
-		strncpy(str, 32, "rdma-netlink-subsys-%d", __index);\
-		MODULE_ALIAS(str)\
-	}
+The Doug's for-next tag includes most of the needed patches for this
+tool and I posted to the ML the last batch [6] which exports various
+device and port properties.
 
+The following is an example of various runs on my machine with 5 devices
+(4 in IB mode and one in Ethernet mode).
 
->  /**
->   * Register client in RDMA netlink.
->   * @index: Index of the added client
-> --
-> 2.7.4
->
+### Without parameters
+$ rdma
+Usage: rdma [ OPTIONS ] OBJECT { COMMAND | help }
+where  OBJECT := { dev | link | help }
+       OPTIONS := { -V[ersion] | -d[etails] | -j[son] | -p[retty]}
 
---0rEjiS+nMGFQ7Kkj
-Content-Type: application/pgp-signature; name="signature.asc"
+### With unspecified device name
+$ rdma dev
+1: mlx5_0: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:3457 sys_image_guid 5254:00c0:fe12:3457
+2: mlx5_1: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:3458 sys_image_guid 5254:00c0:fe12:3458
+3: mlx5_2: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:3459 sys_image_guid 5254:00c0:fe12:3459
+4: mlx5_3: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:345a sys_image_guid 5254:00c0:fe12:345a
+5: mlx5_4: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:345b sys_image_guid 5254:00c0:fe12:345b
 
------BEGIN PGP SIGNATURE-----
+### Detailed mode
+$ rdma -d dev
+1: mlx5_0: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:3457 sys_image_guid 5254:00c0:fe12:3457
+    caps: <BAD_PKEY_CNTR, BAD_QKEY_CNTR, CHANGE_PHY_POR, PORT_ACTIVE_EVENT, SYS_IMAGE_GUID, RC_RNR_NAK_GEN, MEM_WINDOW, UD_IP_CSUM, UD_TSO, XRC, MEM_MGT_EXTENSIONS, BLOCK_MULTICAST_LOOPBACK, MEM_WINDOW_TYPE_2B, RAW_IP_CSUM, MANAGED_FLOW_STEERING, RESIZE_MAX_WR>
+2: mlx5_1: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:3458 sys_image_guid 5254:00c0:fe12:3458
+    caps: <BAD_PKEY_CNTR, BAD_QKEY_CNTR, CHANGE_PHY_POR, PORT_ACTIVE_EVENT, SYS_IMAGE_GUID, RC_RNR_NAK_GEN, MEM_WINDOW, UD_IP_CSUM, UD_TSO, XRC, MEM_MGT_EXTENSIONS, BLOCK_MULTICAST_LOOPBACK, MEM_WINDOW_TYPE_2B, RAW_IP_CSUM, MANAGED_FLOW_STEERING, RESIZE_MAX_WR>
+3: mlx5_2: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:3459 sys_image_guid 5254:00c0:fe12:3459
+    caps: <BAD_PKEY_CNTR, BAD_QKEY_CNTR, CHANGE_PHY_POR, PORT_ACTIVE_EVENT, SYS_IMAGE_GUID, RC_RNR_NAK_GEN, MEM_WINDOW, UD_IP_CSUM, UD_TSO, XRC, MEM_MGT_EXTENSIONS, BLOCK_MULTICAST_LOOPBACK, MEM_WINDOW_TYPE_2B, RAW_IP_CSUM, MANAGED_FLOW_STEERING, RESIZE_MAX_WR>
+4: mlx5_3: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:345a sys_image_guid 5254:00c0:fe12:345a
+    caps: <BAD_PKEY_CNTR, BAD_QKEY_CNTR, CHANGE_PHY_POR, PORT_ACTIVE_EVENT, SYS_IMAGE_GUID, RC_RNR_NAK_GEN, MEM_WINDOW, UD_IP_CSUM, UD_TSO, XRC, MEM_MGT_EXTENSIONS, BLOCK_MULTICAST_LOOPBACK, MEM_WINDOW_TYPE_2B, RAW_IP_CSUM, MANAGED_FLOW_STEERING, RESIZE_MAX_WR>
+5: mlx5_4: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:345b sys_image_guid 5254:00c0:fe12:345b
+    caps: <BAD_PKEY_CNTR, BAD_QKEY_CNTR, CHANGE_PHY_POR, PORT_ACTIVE_EVENT, SYS_IMAGE_GUID, RC_RNR_NAK_GEN, MEM_WINDOW, UD_IP_CSUM, UD_TSO, XRC, MEM_MGT_EXTENSIONS, BLOCK_MULTICAST_LOOPBACK, MEM_WINDOW_TYPE_2B, RAW_IP_CSUM, MANAGED_FLOW_STEERING, RESIZE_MAX_WR>
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmSxWMACgkQ5GN7iDZy
-WKevrQ//Xo/68LHzrjlTVNOa5Vr3W1TOn6iiuBq4mkjLePZHds3Xb2BDuk7r8ZLx
-9gVJjc65IHgvPHgzm+zHs9JHGjzb634RJ5utitH92GDcK/hg3zQAR+14ftDy4oTq
-vonAljDZ0pLaTkG0miogFX6ns/dSsGw9VRE2kH4kYwFuJQA2B7Rw6F/tNMiWcL71
-9yhuqPt/LZ/3CgWhRYxO0flYGM78HtfBLYoZpS4Pis8fxaCWmLnVHHqELqz++h/N
-WtmdUEu7ityl6o3zd15+NP6YnPvgkPXuKhlkj/tTZGxObDvnmDlkDlv7cJJXE0mW
-BRKTmuONJydZvPLjNU8LmfKEBjMnxCvNZ9ayBcIJGmZtyzCBl4r3eRe0X81UimlQ
-u/xmXpFpeJZOhGLz2qfjBKHSD/MYGG1dzuRxmYofJ1gJG9BdGtiXj/lZ3ZA1vbl9
-Bsp4YfVP5KUyCIaPLeNVWPc1rRQMEtqO7GfHRJ2aoVUweUGHr8BlmbSoB7f1F48G
-V1j6HfpMy5HMyc+KYrxlrxCAfJ0fVVeGZfsSWdBv2gCK+55U4Mzz/kmgc11/dT2R
-nLsLpxIdXukLA0wkdPiVvdAF2Bh24q40Qy/Mep+vbDY43NSZqcWPkEAPBMz15N5z
-SR8ZVNI1IRtv3CeiRQHbXbLvZ9sbRbDuHbS5jqX6mg6wHfZDEbY=
-=LLPp
------END PGP SIGNATURE-----
+### Specific device
+$ rdma dev show mlx5_4
+5: mlx5_4: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:345b sys_image_guid 5254:00c0:fe12:345b
 
---0rEjiS+nMGFQ7Kkj--
+### Specific device in detailed mode
+$ rdma dev show mlx5_4 -d
+5: mlx5_4: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:345b sys_image_guid 5254:00c0:fe12:345b
+    caps: <BAD_PKEY_CNTR, BAD_QKEY_CNTR, CHANGE_PHY_POR, PORT_ACTIVE_EVENT, SYS_IMAGE_GUID, RC_RNR_NAK_GEN, MEM_WINDOW, UD_IP_CSUM, UD_TSO, XRC, MEM_MGT_EXTENSIONS, BLOCK_MULTICAST_LOOPBACK, MEM_WINDOW_TYPE_2B, RAW_IP_CSUM, MANAGED_FLOW_STEERING, RESIZE_MAX_WR>
+
+### Unknown command (caps)
+$ rdma dev show mlx5_4 caps
+Unknown parameter 'caps'.
+
+### Link properties without device name
+$ rdma link
+1/1: mlx5_0/1: subnet_prefix fe80:0000:0000:0000 lid 13399 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
+2/1: mlx5_1/1: subnet_prefix fe80:0000:0000:0000 lid 13400 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
+3/1: mlx5_2/1: subnet_prefix fe80:0000:0000:0000 lid 13401 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
+4/1: mlx5_3/1: state DOWN physical_state DISABLED
+5/1: mlx5_4/1: subnet_prefix fe80:0000:0000:0000 lid 13403 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
+
+### Link properties in detailed mode
+$ rdma link -d
+1/1: mlx5_0/1: subnet_prefix fe80:0000:0000:0000 lid 13399 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
+    caps: <AUTO_MIGR>
+2/1: mlx5_1/1: subnet_prefix fe80:0000:0000:0000 lid 13400 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
+    caps: <AUTO_MIGR>
+3/1: mlx5_2/1: subnet_prefix fe80:0000:0000:0000 lid 13401 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
+    caps: <AUTO_MIGR>
+4/1: mlx5_3/1: state DOWN physical_state DISABLED
+    caps: <CM, IP_BASED_GIDS>
+5/1: mlx5_4/1: subnet_prefix fe80:0000:0000:0000 lid 13403 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
+    caps: <AUTO_MIGR>
+
+### All links for specific device
+$ rdma link show mlx5_3
+1/1: mlx5_0/1: subnet_prefix fe80:0000:0000:0000 lid 13399 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
+
+### Detailed link properties for specific device
+$ rdma link -d show mlx5_3
+1/1: mlx5_0/1: subnet_prefix fe80:0000:0000:0000 lid 13399 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
+    caps: <AUTO_MIGR>
+
+### Specific port for specific device
+$ rdma link show mlx5_4/1
+1/1: mlx5_0/1: subnet_prefix fe80:0000:0000:0000 lid 13399 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
+
+### Unknown parameter
+$ rdma link show mlx5_4/1 caps
+Unknown parameter 'caps'.
+
+Thanks
+
+Changelog:
+v2->v4:
+ * Rebased on latest net-next branch
+ * Added JSON output -j (json) and -p (pretty output)
+ * Exported and reused kernel UAPIs and defines instead of hard coded
+   version.
+v2->v3:
+ * Removed MAX()
+ * Reduced scope of rd_argv_match
+ * Removed return from rdma_free_devmap
+ * Added extra break at rdma_send_msg
+v1->v2:
+ * Squashed multiple (and similar) patches to be one patch for dev object
+   and one patch for link object.
+ * Removed port_map struct
+ * Removed global netlink dump during initialization, it removed the need to store
+   the intermediate variables and reuse ability of netlink to signal if variable
+   exists or doesn't.
+ * Added "-d" --details option and put all CAPs under it.
+
+v0->v1:
+ * Moved hunk with changes in man/Makefile from first patch to the last patch
+ * Removed the "unknown command" from the examples in commit messages
+ * Removed special "caps" parsing command and put it to be part of general "show" command
+ * Changed parsed capability format to be similar to iproute2 suite
+ * Added FW version as an output of show command.
+ * Added forgotten CAP_FLAGS to the nla_policy list
+RFC->v0:
+ * Removed everything that is not implemented yet.
+ * Abandoned sysfs interfaces in favor of netlink.
+
+Available in the "topic/rdmatool-netlink-v4" topic branch of this git repo:
+git://git.kernel.org/pub/scm/linux/kernel/git/leon/iproute2.git
+
+Or for browsing:
+https://git.kernel.org/cgit/linux/kernel/git/leon/iproute2.git/log/?h=topic/rdmatool-netlink-v4
+
+Thanks
+
+[1] https://www.spinics.net/lists/linux-rdma/msg49575.html
+[2] https://patchwork.kernel.org/patch/9752865/
+[3] https://www.spinics.net/lists/linux-rdma/msg50827.html
+[4] https://www.spinics.net/lists/linux-rdma/msg51210.html
+[5] https://patchwork.kernel.org/patch/9811729/ and https://patchwork.kernel.org/patch/9811731/]
+[6] http://marc.info/?l=linux-rdma&m=150278847820844&w=2
+
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Jiri Pirko <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Ariel Almog <ariela-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Linux Netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+
+Leon Romanovsky (7):
+  rdma: Add basic infrastructure for RDMA tool
+  rdma: Add dev object
+  rdma: Add link object
+  rdma: Add initial manual for the tool
+  rdma: Add json and pretty outputs
+  rdma: Implement json output for dev object
+  rdma: Add json output to link object
+
+ Makefile             |   2 +-
+ man/man8/rdma-dev.8  |  55 +++++++++
+ man/man8/rdma-link.8 |  55 +++++++++
+ man/man8/rdma.8      | 102 ++++++++++++++++
+ rdma/.gitignore      |   1 +
+ rdma/Makefile        |  22 ++++
+ rdma/dev.c           | 281 ++++++++++++++++++++++++++++++++++++++++++
+ rdma/link.c          | 340 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ rdma/rdma.c          | 143 ++++++++++++++++++++++
+ rdma/rdma.h          |  90 ++++++++++++++
+ rdma/utils.c         | 266 ++++++++++++++++++++++++++++++++++++++++
+ 11 files changed, 1356 insertions(+), 1 deletion(-)
+ create mode 100644 man/man8/rdma-dev.8
+ create mode 100644 man/man8/rdma-link.8
+ create mode 100644 man/man8/rdma.8
+ create mode 100644 rdma/.gitignore
+ create mode 100644 rdma/Makefile
+ create mode 100644 rdma/dev.c
+ create mode 100644 rdma/link.c
+ create mode 100644 rdma/rdma.c
+ create mode 100644 rdma/rdma.h
+ create mode 100644 rdma/utils.c
+
+--
+2.14.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
