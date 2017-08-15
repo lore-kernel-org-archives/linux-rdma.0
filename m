@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v1 10/11] IB/mlx5: Support IB_SRQT_TM
-Date: Tue, 15 Aug 2017 11:59:11 +0300
-Message-ID: <20170815085912.10181-11-leon@kernel.org>
+Subject: [rdma-next v1 09/11] net/mlx5: Add XRQ support
+Date: Tue, 15 Aug 2017 11:59:10 +0300
+Message-ID: <20170815085912.10181-10-leon@kernel.org>
 References: <20170815085912.10181-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170815085912.10181-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,89 +12,261 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Pass to mlx5_core flag to enable rendezvous offload, list_size and CQ
-when SRQ created with IB_SRQT_TM.
+Add support to new XRQ(eXtended shared Receive Queue)
+hardware object. It supports SRQ semantics with addition
+of extended receive buffers topologies and offloads.
+
+Currently supports tag matching topology and rendezvouz offload.
 
 Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yossi Itigin <yosefe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/qp.c  |  9 +++++++--
- drivers/infiniband/hw/mlx5/srq.c | 18 +++++++++++++++---
- 2 files changed, 22 insertions(+), 5 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/srq.c | 150 ++++++++++++++++++++++++--
+ include/linux/mlx5/driver.h                   |   1 +
+ include/linux/mlx5/srq.h                      |   5 +
+ 3 files changed, 146 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 5c7ce9bd466e..ebbfd721661d 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1718,10 +1718,15 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/srq.c b/drivers/net/ethernet/mellanox/mlx5/core/srq.c
+index f774de6f5fcb..7673da04efa4 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/srq.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/srq.c
+@@ -435,16 +435,128 @@ static int query_rmp_cmd(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
+ 	return err;
+ }
  
- 	MLX5_SET(qpc, qpc, rq_type, get_rx_type(qp, init_attr));
- 
--	if (qp->sq.wqe_cnt)
-+	if (qp->sq.wqe_cnt) {
- 		MLX5_SET(qpc, qpc, log_sq_size, ilog2(qp->sq.wqe_cnt));
--	else
-+	} else {
- 		MLX5_SET(qpc, qpc, no_sq, 1);
-+		if (init_attr->srq &&
-+		    init_attr->srq->srq_type == IB_SRQT_TM)
-+			MLX5_SET(qpc, qpc, offload_type,
-+				 MLX5_QPC_OFFLOAD_TYPE_RNDV);
-+	}
- 
- 	/* Set default resources */
- 	switch (init_attr->qp_type) {
-diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx5/srq.c
-index 022b4c642047..d9af04100362 100644
---- a/drivers/infiniband/hw/mlx5/srq.c
-+++ b/drivers/infiniband/hw/mlx5/srq.c
-@@ -101,7 +101,7 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
- 				 udata->inlen - sizeof(ucmd)))
- 		return -EINVAL;
- 
--	if (in->type == IB_SRQT_XRC) {
-+	if (in->type != IB_SRQT_BASIC) {
- 		err = get_srq_user_index(to_mucontext(pd->uobject->context),
- 					 &ucmd, udata->inlen, &uidx);
- 		if (err)
-@@ -145,7 +145,7 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
- 	in->log_page_size = page_shift - MLX5_ADAPTER_PAGE_SHIFT;
- 	in->page_offset = offset;
- 	if (MLX5_CAP_GEN(dev->mdev, cqe_version) == MLX5_CQE_VERSION_V1 &&
--	    in->type == IB_SRQT_XRC)
-+	    in->type != IB_SRQT_BASIC)
- 		in->user_index = uidx;
- 
- 	return 0;
-@@ -205,7 +205,7 @@ static int create_srq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_srq *srq,
- 
- 	in->log_page_size = srq->buf.page_shift - MLX5_ADAPTER_PAGE_SHIFT;
- 	if (MLX5_CAP_GEN(dev->mdev, cqe_version) == MLX5_CQE_VERSION_V1 &&
--	    in->type == IB_SRQT_XRC)
-+	    in->type != IB_SRQT_BASIC)
- 		in->user_index = MLX5_IB_DEFAULT_UIDX;
- 
- 	return 0;
-@@ -298,6 +298,18 @@ struct ib_srq *mlx5_ib_create_srq(struct ib_pd *pd,
- 	else
- 		in.xrcd = to_mxrcd(dev->devr.x0)->xrcdn;
- 
-+	if (init_attr->srq_type == IB_SRQT_TM) {
-+		in.tm_log_list_size =
-+			ilog2(init_attr->ext.tag_matching.max_num_tags) + 1;
-+		if (in.tm_log_list_size >
-+		    MLX5_CAP_GEN(dev->mdev, log_tag_matching_list_sz)) {
-+			mlx5_ib_dbg(dev, "TM SRQ max_num_tags exceeding limit\n");
-+			err = -EINVAL;
-+			goto err_usr_kern_srq;
-+		}
-+		in.flags |= MLX5_SRQ_FLAG_RNDV;
-+	}
++static int create_xrq_cmd(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
++			  struct mlx5_srq_attr *in)
++{
++	u32 create_out[MLX5_ST_SZ_DW(create_xrq_out)] = {0};
++	void *create_in;
++	void *xrqc;
++	void *wq;
++	int pas_size;
++	int inlen;
++	int err;
 +
- 	if (ib_srq_has_cq(init_attr->srq_type))
- 		in.cqn = to_mcq(init_attr->ext.cq)->mcq.cqn;
- 	else
++	pas_size = get_pas_size(in);
++	inlen = MLX5_ST_SZ_BYTES(create_xrq_in) + pas_size;
++	create_in = kvzalloc(inlen, GFP_KERNEL);
++	if (!create_in)
++		return -ENOMEM;
++
++	xrqc = MLX5_ADDR_OF(create_xrq_in, create_in, xrq_context);
++	wq = MLX5_ADDR_OF(xrqc, xrqc, wq);
++
++	set_wq(wq, in);
++	memcpy(MLX5_ADDR_OF(xrqc, xrqc, wq.pas), in->pas, pas_size);
++
++	if (in->type == IB_SRQT_TM) {
++		MLX5_SET(xrqc, xrqc, topology, MLX5_XRQC_TOPOLOGY_TAG_MATCHING);
++		if (in->flags & MLX5_SRQ_FLAG_RNDV)
++			MLX5_SET(xrqc, xrqc, offload, MLX5_XRQC_OFFLOAD_RNDV);
++		MLX5_SET(xrqc, xrqc,
++			 tag_matching_topology_context.log_matching_list_sz,
++			 in->tm_log_list_size);
++	}
++	MLX5_SET(xrqc, xrqc, user_index, in->user_index);
++	MLX5_SET(xrqc, xrqc, cqn, in->cqn);
++	MLX5_SET(create_xrq_in, create_in, opcode, MLX5_CMD_OP_CREATE_XRQ);
++	err = mlx5_cmd_exec(dev, create_in, inlen, create_out,
++			    sizeof(create_out));
++	kvfree(create_in);
++	if (!err)
++		srq->srqn = MLX5_GET(create_xrq_out, create_out, xrqn);
++
++	return err;
++}
++
++static int destroy_xrq_cmd(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq)
++{
++	u32 in[MLX5_ST_SZ_DW(destroy_xrq_in)] = {0};
++	u32 out[MLX5_ST_SZ_DW(destroy_xrq_out)] = {0};
++
++	MLX5_SET(destroy_xrq_in, in, opcode, MLX5_CMD_OP_DESTROY_XRQ);
++	MLX5_SET(destroy_xrq_in, in, xrqn,   srq->srqn);
++
++	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
++}
++
++static int arm_xrq_cmd(struct mlx5_core_dev *dev,
++		       struct mlx5_core_srq *srq,
++		       u16 lwm)
++{
++	u32 out[MLX5_ST_SZ_DW(arm_rq_out)] = {0};
++	u32 in[MLX5_ST_SZ_DW(arm_rq_in)] = {0};
++
++	MLX5_SET(arm_rq_in, in, opcode,     MLX5_CMD_OP_ARM_RQ);
++	MLX5_SET(arm_rq_in, in, op_mod,     MLX5_ARM_RQ_IN_OP_MOD_XRQ);
++	MLX5_SET(arm_rq_in, in, srq_number, srq->srqn);
++	MLX5_SET(arm_rq_in, in, lwm,	    lwm);
++
++	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
++}
++
++static int query_xrq_cmd(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
++			 struct mlx5_srq_attr *out)
++{
++	u32 in[MLX5_ST_SZ_DW(query_xrq_in)] = {0};
++	u32 *xrq_out;
++	int outlen = MLX5_ST_SZ_BYTES(query_xrq_out);
++	void *xrqc;
++	int err;
++
++	xrq_out = kvzalloc(outlen, GFP_KERNEL);
++	if (!xrq_out)
++		return -ENOMEM;
++
++	MLX5_SET(query_xrq_in, in, opcode, MLX5_CMD_OP_QUERY_XRQ);
++	MLX5_SET(query_xrq_in, in, xrqn, srq->srqn);
++
++	err = mlx5_cmd_exec(dev, in, sizeof(in), xrq_out, outlen);
++	if (err)
++		goto out;
++
++	xrqc = MLX5_ADDR_OF(query_xrq_out, xrq_out, xrq_context);
++	get_wq(MLX5_ADDR_OF(xrqc, xrqc, wq), out);
++	if (MLX5_GET(xrqc, xrqc, state) != MLX5_XRQC_STATE_GOOD)
++		out->flags |= MLX5_SRQ_FLAG_ERR;
++	out->tm_next_tag =
++		MLX5_GET(xrqc, xrqc,
++			 tag_matching_topology_context.append_next_index);
++	out->tm_hw_phase_cnt =
++		MLX5_GET(xrqc, xrqc,
++			 tag_matching_topology_context.hw_phase_cnt);
++	out->tm_sw_phase_cnt =
++		MLX5_GET(xrqc, xrqc,
++			 tag_matching_topology_context.sw_phase_cnt);
++
++out:
++	kvfree(xrq_out);
++	return err;
++}
++
+ static int create_srq_split(struct mlx5_core_dev *dev,
+ 			    struct mlx5_core_srq *srq,
+ 			    struct mlx5_srq_attr *in)
+ {
+ 	if (!dev->issi)
+ 		return create_srq_cmd(dev, srq, in);
+-	else if (srq->common.res == MLX5_RES_XSRQ)
++	switch (srq->common.res) {
++	case MLX5_RES_XSRQ:
+ 		return create_xrc_srq_cmd(dev, srq, in);
+-	else
++	case MLX5_RES_XRQ:
++		return create_xrq_cmd(dev, srq, in);
++	default:
+ 		return create_rmp_cmd(dev, srq, in);
++	}
+ }
+ 
+ static int destroy_srq_split(struct mlx5_core_dev *dev,
+@@ -452,10 +564,14 @@ static int destroy_srq_split(struct mlx5_core_dev *dev,
+ {
+ 	if (!dev->issi)
+ 		return destroy_srq_cmd(dev, srq);
+-	else if (srq->common.res == MLX5_RES_XSRQ)
++	switch (srq->common.res) {
++	case MLX5_RES_XSRQ:
+ 		return destroy_xrc_srq_cmd(dev, srq);
+-	else
++	case MLX5_RES_XRQ:
++		return destroy_xrq_cmd(dev, srq);
++	default:
+ 		return destroy_rmp_cmd(dev, srq);
++	}
+ }
+ 
+ int mlx5_core_create_srq(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
+@@ -464,10 +580,16 @@ int mlx5_core_create_srq(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
+ 	int err;
+ 	struct mlx5_srq_table *table = &dev->priv.srq_table;
+ 
+-	if (in->type == IB_SRQT_XRC)
++	switch (in->type) {
++	case IB_SRQT_XRC:
+ 		srq->common.res = MLX5_RES_XSRQ;
+-	else
++		break;
++	case IB_SRQT_TM:
++		srq->common.res = MLX5_RES_XRQ;
++		break;
++	default:
+ 		srq->common.res = MLX5_RES_SRQ;
++	}
+ 
+ 	err = create_srq_split(dev, srq, in);
+ 	if (err)
+@@ -528,10 +650,14 @@ int mlx5_core_query_srq(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
+ {
+ 	if (!dev->issi)
+ 		return query_srq_cmd(dev, srq, out);
+-	else if (srq->common.res == MLX5_RES_XSRQ)
++	switch (srq->common.res) {
++	case MLX5_RES_XSRQ:
+ 		return query_xrc_srq_cmd(dev, srq, out);
+-	else
++	case MLX5_RES_XRQ:
++		return query_xrq_cmd(dev, srq, out);
++	default:
+ 		return query_rmp_cmd(dev, srq, out);
++	}
+ }
+ EXPORT_SYMBOL(mlx5_core_query_srq);
+ 
+@@ -540,10 +666,14 @@ int mlx5_core_arm_srq(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
+ {
+ 	if (!dev->issi)
+ 		return arm_srq_cmd(dev, srq, lwm, is_srq);
+-	else if (srq->common.res == MLX5_RES_XSRQ)
++	switch (srq->common.res) {
++	case MLX5_RES_XSRQ:
+ 		return arm_xrc_srq_cmd(dev, srq, lwm);
+-	else
++	case MLX5_RES_XRQ:
++		return arm_xrq_cmd(dev, srq, lwm);
++	default:
+ 		return arm_rmp_cmd(dev, srq, lwm);
++	}
+ }
+ EXPORT_SYMBOL(mlx5_core_arm_srq);
+ 
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index ea89e32a0d5f..f17e51a4ef94 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -418,6 +418,7 @@ enum mlx5_res_type {
+ 	MLX5_RES_SQ	= MLX5_EVENT_QUEUE_TYPE_SQ,
+ 	MLX5_RES_SRQ	= 3,
+ 	MLX5_RES_XSRQ	= 4,
++	MLX5_RES_XRQ	= 5,
+ };
+ 
+ struct mlx5_core_rsc_common {
+diff --git a/include/linux/mlx5/srq.h b/include/linux/mlx5/srq.h
+index 1cde0fd53f90..24ff23e27c8a 100644
+--- a/include/linux/mlx5/srq.h
++++ b/include/linux/mlx5/srq.h
+@@ -38,6 +38,7 @@
+ enum {
+ 	MLX5_SRQ_FLAG_ERR    = (1 << 0),
+ 	MLX5_SRQ_FLAG_WQ_SIG = (1 << 1),
++	MLX5_SRQ_FLAG_RNDV   = (1 << 2),
+ };
+ 
+ struct mlx5_srq_attr {
+@@ -56,6 +57,10 @@ struct mlx5_srq_attr {
+ 	u32 user_index;
+ 	u64 db_record;
+ 	__be64 *pas;
++	u32 tm_log_list_size;
++	u32 tm_next_tag;
++	u32 tm_hw_phase_cnt;
++	u32 tm_sw_phase_cnt;
+ };
+ 
+ struct mlx5_core_dev;
 -- 
 2.14.0
 
