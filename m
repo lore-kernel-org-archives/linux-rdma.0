@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v2 06/23] RDMA/core: Cleanup device capability enum
-Date: Tue, 15 Aug 2017 11:54:35 +0300
-Message-ID: <20170815085452.3546-7-leon@kernel.org>
+Subject: [rdma-next v2 03/23] RDMA/mlx4: Don't use uninitialized variable
+Date: Tue, 15 Aug 2017 11:54:32 +0300
+Message-ID: <20170815085452.3546-4-leon@kernel.org>
 References: <20170815085452.3546-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170815085452.3546-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,48 +12,28 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Cleanup patch prior exporting the ib_device_cap_flags
-to the user space. In this patch, we are aligning the
-indentation, removing IB_DEVICE_INIT_TYPE and IB_DEVICE_RESERVED
-fields, because it is not used in the kernel.
+Avoid usage of uninitialized variable.
 
+Fixes: 3078f5f1bd8b ("IB/mlx4: Add support for RSS QP")
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- include/rdma/ib_verbs.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mlx4/qp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 3c9c514bcd7d..4ce188128aa9 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -170,7 +170,7 @@ enum ib_device_cap_flags {
- 	IB_DEVICE_UD_AV_PORT_ENFORCE		= (1 << 6),
- 	IB_DEVICE_CURR_QP_STATE_MOD		= (1 << 7),
- 	IB_DEVICE_SHUTDOWN_PORT			= (1 << 8),
--	IB_DEVICE_INIT_TYPE			= (1 << 9),
-+	/* Not in use, former INIT_TYPE		= (1 << 9),*/
- 	IB_DEVICE_PORT_ACTIVE_EVENT		= (1 << 10),
- 	IB_DEVICE_SYS_IMAGE_GUID		= (1 << 11),
- 	IB_DEVICE_RC_RNR_NAK_GEN		= (1 << 12),
-@@ -185,7 +185,7 @@ enum ib_device_cap_flags {
- 	 * which will always contain a usable lkey.
- 	 */
- 	IB_DEVICE_LOCAL_DMA_LKEY		= (1 << 15),
--	IB_DEVICE_RESERVED /* old SEND_W_INV */	= (1 << 16),
-+	/* Reserved, old SEND_W_INV		= (1 << 16),*/
- 	IB_DEVICE_MEM_WINDOW			= (1 << 17),
- 	/*
- 	 * Devices should set IB_DEVICE_UD_IP_SUM if they support
-@@ -220,7 +220,7 @@ enum ib_device_cap_flags {
- 	 * of I/O operations with single completion queue managed
- 	 * by hardware.
- 	 */
--	IB_DEVICE_CROSS_CHANNEL		= (1 << 27),
-+	IB_DEVICE_CROSS_CHANNEL			= (1 << 27),
- 	IB_DEVICE_MANAGED_FLOW_STEERING		= (1 << 29),
- 	IB_DEVICE_SIGNATURE_HANDOVER		= (1 << 30),
- 	IB_DEVICE_ON_DEMAND_PAGING		= (1ULL << 31),
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index e42acfb20588..793d77f29d3e 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -2034,8 +2034,8 @@ static u8 gid_type_to_qpc(enum ib_gid_type gid_type)
+  */
+ static int bringup_rss_rwqs(struct ib_rwq_ind_table *ind_tbl, u8 port_num)
+ {
++	int err = 0;
+ 	int i;
+-	int err;
+ 
+ 	for (i = 0; i < (1 << ind_tbl->log_ind_tbl_size); i++) {
+ 		struct ib_wq *ibwq = ind_tbl->ind_tbl[i];
 -- 
 2.14.0
 
