@@ -1,77 +1,77 @@
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 1/2] mlx4: remove unnecessary pci_set_drvdata()
-Date: Tue, 15 Aug 2017 21:00:38 +0300
-Message-ID: <20170815180038.GY24282@mtr-leonro.local>
-References: <1502778786-14738-1-git-send-email-yanjun.zhu@oracle.com>
- <20170815071336.GL24282@mtr-leonro.local>
- <20170815172149.GC15171@obsidianresearch.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 1/2] cm: Don't allocate ib_cm workqueue with
+ WQ_MEM_RECLAIM
+Date: Tue, 15 Aug 2017 21:06:53 +0300
+Message-ID: <20170815180653.GZ24282@mtr-leonro.local>
+References: <1502813574-6040-1-git-send-email-sagi@grimberg.me>
+ <1502813574-6040-2-git-send-email-sagi@grimberg.me>
+ <009901d315ec$263eee80$72bccb80$@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="mYOwxzDtEZWltKxP"
+        protocol="application/pgp-signature"; boundary="np3HfElajyDBpWGr"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170815172149.GC15171-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <009901d315ec$263eee80$72bccb80$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: 'Sagi Grimberg' <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---mYOwxzDtEZWltKxP
+--np3HfElajyDBpWGr
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Aug 15, 2017 at 11:21:49AM -0600, Jason Gunthorpe wrote:
-> On Tue, Aug 15, 2017 at 10:13:36AM +0300, Leon Romanovsky wrote:
-> > On Tue, Aug 15, 2017 at 02:33:05AM -0400, Zhu Yanjun wrote:
-> > > The driver core clears the driver data to NULL after device_release
-> > > or on probe failure. Thus, it is not necessary to manually clear the
-> > > device driver data to NULL.
-> > >
+On Tue, Aug 15, 2017 at 12:30:12PM -0500, Steve Wise wrote:
+> > create_workqueue always creates the worqeueu with WQ_MEM_RECLAIM
+>
+> Typo "worqeueu" -> "workqueue"
+>
+> > and silences a flush dependancy warn for WQ_LEGACY. Instead, we
+> > want to keep the warn in case the allocator tries to flush the
+> > cm workqueue because its very likely that cm work execution will
+> > yield memory allocations (for example cm connection requests) .
+
+And extra space before the last dot.
+
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+
 > >
-> > It makes sense and I'm pretty sure that you are right, but I'm failing
-> > to find the function in device core which sets it to NULL. Can you help
-> > me and present the actual call stack to that code place?
+> > Reported-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> > Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 >
-> http://elixir.free-electrons.com/linux/v4.13-rc1/source/drivers/base/dd.c#L840
+> The change looks good.
 >
-> The call to the remove callback is on line 833.
+> Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 >
-> This is done after dropping devres, so you could allocate the drv data
-> inside a devm object and everything would unwind correctly.
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Thanks for the pointer. Will it be called in case of failure during
-initialization too?
-
->
-> In this case, the kfree is explicit, so I would advocate for still putting
-> the null near the kfree to minimize the time where a free'd pointer is
-> present - eg incase a devm callback or some other bug accidently
-> touches it.
->
-> Jason
-
---mYOwxzDtEZWltKxP
+--np3HfElajyDBpWGr
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmTNsYACgkQ5GN7iDZy
-WKdnrxAAsurt23xKx0/YT1u5e2CnHrX+8Ys/XaW1MRYB2WG1fvop65hD43FKERLy
-dk9A+KDBDXciCfdI/xYNpiF/0m2PHc/zUSNoZNg1wTrCDl4qkpS1p0l6XPW6o8cv
-f7P18cYek1L4v0cnZzfOjT4ABFi/ULM1zzj+rgdhKU054fXNRHvIVugfErvLGTUH
-UiWkuZCr39MpW5i3BjtB9XUulCCS+2YYxBtdR+9lZ9PI4lQpiaOBEIV15vKw9QmZ
-HW75fGwmV+i0IfAph/RaxRUFIF4yJ7WisSAgvKmuC2yHzvA0q6EnKhIc04EsrkZx
-JG+PZAs/4dnU99kpS7TXvwfhkz/HmG8Pk6OnxuCsxy03PvvM6QNh4r5rYPKMX+hf
-5wwQxNs8Yks3RC1ctTQODyAAoXniGhBe2/hoE+M0dMeCbt32DTTKpT0x9LFp/od6
-EGnYJ3wz2JXSTIBxbJR446BJQA91XHwpZ8/pnRyScovCn5p6KwRYOsQtBeDeCEB2
-JQauh4vQwiWU8j2Z/6UkHmSH3L4BXWWOOSpaE5agAOmPO7zwYGj15KHWglhi8dLe
-jWr5uyWZqWtjcyJW9QQCpaUKRjZlH7SsRMCexPkqbE592v1cpr3j+nDP+KkYrKZq
-cGXxrtFn8slFM5JGhwCfqETkRO4BkfwJ65OFjaaaZKtSlp0e6zo=
-=SAXr
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmTOD0ACgkQ5GN7iDZy
+WKfQvg//aOSJTjiusvP8q8o/K0AbKFcfOZV9E/If00FLVkezJkrL47Evn67Ghirx
+HRpNOtMRaDNblPMJ4a5kHzcudKzlQ4RliKBRoSkU60blBxa/HS1xyluQI4mcda5Q
+9+gjM4/l30SlEwKGzMB58x20J+8MdCTGbLID+emYKvaoE601DwcbF3axAWN0yu+A
+nHp/Hxais3g3q4JrjXOF3iH73rg3RTYQKKtiYFCZTYdOv0h/3uAZ5xTqdb9x1DqF
+1XCPbmJyYKx83yjIsKWBkF0LgI699DKXd0uOLuXXvTE3Om5lYUmascjAhEEfgsXn
+oVPZxUCK0QHEy4ukN6N1lYVM0m1cRIm/x2m8zeJsW4imG2odRBbISWN7Oi0uLsQA
+M+UqxUvKCyONm0nPkRWr2F1EJkiAPJyWBLJC5TBZkRoIFCeqcSyXB36R+4Uf2M7r
+zFt8PYnWyGVJlgOsqR1qTADgy9V1xs15IgUGee8QQmZAfQI74AYVpEZbK0HxXKbH
+68fo4HQ1wlVv+vS+Ikki2Uy2pKdyLKoz/gOqZ51tIIln/uEw6xBnfo1LyUAaqKeb
+1g4mIYwZMRnP5aYagH+nH8IyvEerkZnVCZ3nC8E605hGJ+GfoErUdNb8FpxxGwK4
++5pkT7aIDiaLCu4OA83yAGY4Edd6BnPy6FoYRxOvs2QlMyTrocU=
+=cGp3
 -----END PGP SIGNATURE-----
 
---mYOwxzDtEZWltKxP--
+--np3HfElajyDBpWGr--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
