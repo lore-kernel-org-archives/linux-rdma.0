@@ -1,103 +1,115 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next v3-v6] Add OPA extended LID support
-Date: Tue, 15 Aug 2017 10:50:37 +0300
-Message-ID: <20170815075037.GN24282@mtr-leonro.local>
-References: <1502734663-44224-1-git-send-email-don.hiatt@intel.com>
- <50ff7793-413a-09a6-1805-ca0bce0452a2@intel.com>
- <cd6cd877-659d-8218-abf8-a23905af4f42@intel.com>
+Subject: Re: [rdma:k.o/for-next 5/34]
+ drivers/infiniband/hw/hns/hns_roce_device.h:625:2: error: implicit
+ declaration of function '__raw_writeq'
+Date: Tue, 15 Aug 2017 10:52:16 +0300
+Message-ID: <20170815075216.GO24282@mtr-leonro.local>
+References: <201708131058.lKYk3TId%fengguang.wu@intel.com>
+ <5fd6a0f7-cbe4-8bd9-5310-fa2d64ec6829@redhat.com>
+ <4871c56c-ce7a-204a-0d54-5ea5aae604fd@mellanox.com>
+ <20170814145656.GJ24282@mtr-leonro.local>
+ <1502723918.83939.2.camel@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="jSXJDi5r/aeatSyx"
+        protocol="application/pgp-signature"; boundary="k8ylJtLa18RSEDYA"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <cd6cd877-659d-8218-abf8-a23905af4f42-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1502723918.83939.2.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, kbuild test robot <fengguang.wu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, kbuild-all-JC7UmRfGjtg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---jSXJDi5r/aeatSyx
+--k8ylJtLa18RSEDYA
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Aug 14, 2017 at 01:12:34PM -0700, Don Hiatt wrote:
-> On 8/14/2017 11:36 AM, Don Hiatt wrote:
-> >
-> >
-> > On 8/14/2017 11:17 AM, Don Hiatt wrote:
-> > > This patch series primarily increases sizes of variables that hold
-> > > lid values from 16 to 32 bits. Additionally, it adds a check in
-> > > the IB mad stack to verify a properly formatted MAD when OPA
-> > > extended LIDs are used.
+On Mon, Aug 14, 2017 at 11:18:38AM -0400, Doug Ledford wrote:
+> On Mon, 2017-08-14 at 17:56 +0300, Leon Romanovsky wrote:
+> > On Mon, Aug 14, 2017 at 05:47:59PM +0300, Matan Barak wrote:
+> > > On 14/08/2017 17:40, Doug Ledford wrote:
+> > > > On 8/12/2017 10:09 PM, kbuild test robot wrote:
+> > > > > tree:   https://git.kernel.org/pub/scm/linux/kernel/git/dledfor
+> > > > > d/rdma.git k.o/for-next
+> > > > > head:   d0d62c34fb746eaf68df5b3d6f4877c7d1e6320c
+> > > > > commit: e89bf462b6bece63a60723af88c76dce9dbe6b85 [5/34] IB/hns:
+> > > > > Support compile test for hns RoCE driver
+> > > > > config: xtensa-allyesconfig (attached as .config)
+> > > > > compiler: xtensa-linux-gcc (GCC) 4.9.0
+> > > > > reproduce:
+> > > >
+> > > > Hi Matan,
+> > > >
+> > > > I know you have a fix patch for this on list.  I'll grab it this
+> > > > week
+> > > > for sure, so you can ignore this.
+> > > >
+> > > >
 > > >
-> > > Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > ---
+> > > Hi Doug,
 > > >
-> > > This is an incremental patch to move from v3 of the 'Add OPA
-> > > extended LID support' to v6 of the series.
-> > > Changes from v5:
-> > > ---------------
-> > > * Fixed typo in WARN_ON_ONCE usage in helper functions.
-> > > * Actually return be16 in ib_lid_be16() helper function.
+> > > Thanks :-)
+> > > Just to make things easier, this is the link to that patch:
+> > > https://www.spinics.net/lists/linux-rdma/msg52386.html
+> > >
+> > > In addition, there are a few more patches worth taking to the
+> > > current RCs
+> > > that fix kernel crashes:
+> > >
+> > > https://www.spinics.net/lists/linux-rdma/msg52485.html
+> > > https://www.spinics.net/lists/linux-rdma/msg52722.html
+> > >
+> > > We have another one coming ("IB/uverbs: Fix NULL pointer
+> > > dereference during
+> > > device removal"). I guess Leon will post it soon.
 > >
-> > Sorry, this was meant to go to my email as a test, not to the list. My
-> > tests are still running so please
-> > hold off on this until I confirm.
+> > I queued it today [1] and planned to submit it EOW.
 > >
-> All test completed fine. I think we're good to go.
+> > Doug,
+> > Do you want me to send it earlier?
+> >
+> > [1] https://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.g
+> > it/commit/?h=rdma-rc&id=c102f66c43cfc568065df6441890621fb6f03002
 >
-> Leon, if I missed anything else please let me know.
+> Pull it out.  I've already grabbed it off of patchworks and pushed it
+> out.  I wanted to make sure it hit today's rdma tree in Stephen's for-
+> next no matter what.
 
-Yeah, you should fix the function below too.
-The whole extended LID series did enormous mess with all these lid/slid/dlid.
+Doug,
 
- 88 static inline bool opa_is_extended_lid(u32 dlid, u32 slid)
- 89 {
- 90         if ((be32_to_cpu(dlid) >=
- 91              be16_to_cpu(IB_MULTICAST_LID_BASE)) ||
- 92             (be32_to_cpu(slid) >=
- 93              be16_to_cpu(IB_MULTICAST_LID_BASE)))
- 94                 return true;
- 95         else
- 96                 return false;
- 97 }
-
-It will help a lot, if you break this patch to small steps:
-1. Fix existing annotation errors.
-2. Change (rename) the ib_lid/ib_slid functions.
-3. Add WARN_ON.
-
-Right now, we have potential breakage of compatibility between
-big-endian vs. little-endian systems.
-
-Please run smatch and sparse checkers before LID patches and after to
-know what else you should fix.
+You are referring to a different patch, I didn't post this one yet.
 
 Thanks
 
---jSXJDi5r/aeatSyx
+>
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>     GPG KeyID: B826A3330E572FDD
+>     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+>
+
+--k8ylJtLa18RSEDYA
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmSp8wACgkQ5GN7iDZy
-WKc9QhAAtExUoANPKrTtAiX6xhsoHZLKnURH6JS+1dNhmxI9vo9jShbA7Et93u3c
-Mq/3wEVJA/7IWLam715dlPDyE+xoFtEg1xny0GXhjuhWCGHUL0AyW6LaFM2c4qdQ
-X2slovOIYRhq/KguKNgtLkUOqc2JNPN7B7z9AeSGOjPp67mKu8DyCrsjcnfoEd6/
-SDbuK9qBRN0EArm6kkogIHNg62qPpA0WTwiIpMGS4Q2XkZXXLP99d1lmzBm5d3pW
-cTGVi9mVzbNPKhr/AsKC/i/FP2TwHvOLLDSFYJ3XvXQZx/m8zmxcl3ZAErFXGbND
-5HMzz9Q4L/PKM4GDlHHWOIP/sXNxvxuYHrtwSI2wZ3yTbSWXXh2AalGnaXPi0J6Y
-Ubk4ljWF5zf0iPLMWlKCaKMFPF2P9TT+HsFH4kA2wGEa9Bp68RnAJ4p6ZnJKqS2L
-6FuoNHwcUvDKn7ubF4L6n2q9pXzRVEQp/HSVONdsb7FyMuj5aEQyBFGD9emTtJ2g
-Y/sSzeCe6Cl/9gwZs9+7ZHXBQ3dDh73E36pNMij6/nN/MZe8RH7BKtjd06zjYSjZ
-CucL9P8qrdA6MMdKEyZt07sPBlyFXS8DgeHYNsuRbcSZ813c5gEw5b3mPsh3ff0w
-cEUsE8GMGDuXt8mf0NFPXuubtNGB59DkhRjjwyRBu0CU9mEvVeQ=
-=6o3O
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmSqC8ACgkQ5GN7iDZy
+WKcxew//Sl11czSkRomLvi3slzrjWK0j+H5VTFl78dSbpBlrKjaGRRXbz484Ef+Y
+SFVyzoH1kNqH7cHe/WwpJ3liq5KzjXkEnI8lg4fb+M/J8Awez9Z6EpxVFiupTb3H
+b9EDPFbeHSViCY40KC7s9HB5ZPkrTV1q1UK/ki+wtHZG7g/3+G+SrsVmep8HjS25
+Tc5lrd19MTQf+QzkKt0eEgIaxCCxhJ5hkIdSOFdc/K0v8Bk2ofYdgaPjFns3pSTn
+PfSQHykuLgV2CaGAYmXwTsd9KCQzK9khVg63WWcDrcg/5TJo9sWivllIvk6nG+dw
+dawcez6rgQqeYWkZVzMVQsm5qhr1hkTRSYmk04Rjal5tW7uxolzLcQbHT3flFmhm
+e423nTgaxxcNkFWUlRMDZXTAV0fpJBcvfsCLLTHkaYF7UDYDMhnMqg7RqKm096OJ
+FlDDcYTlwNIlzqa+re7i3M63Kf1dXKMXoD1fgVwzhhpKQFIYC6JBd8kzflLr0z4j
+lQ1ikhbTwkVQC8YDbadat3mHf48pLsrihUPih3jb9Q0dksBhqvKM6Ni65OWNv0C1
+yZJBhz/DlM7JoJ1VW++DJYUd6Ri7jmDaG60t3iUDdlm1a4c0wGOKOrAv37rZmgSf
+BTQay1+UKXC8yF8yqz8qww6dPkyDrUZb87Dms8OeD1cJIHbKtLc=
+=wzOw
 -----END PGP SIGNATURE-----
 
---jSXJDi5r/aeatSyx--
+--k8ylJtLa18RSEDYA--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
