@@ -1,42 +1,104 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v2 04/23] RDMA/mlx4: Fix create qp command alignment
-Date: Tue, 15 Aug 2017 11:54:33 +0300
-Message-ID: <20170815085452.3546-5-leon@kernel.org>
+Subject: [rdma-next v2 07/23] RDMA/core: Remove unimplemented node_types and node transport
+Date: Tue, 15 Aug 2017 11:54:36 +0300
+Message-ID: <20170815085452.3546-8-leon@kernel.org>
 References: <20170815085452.3546-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170815085452.3546-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Avoid extra padding by replacing the order of inl_recv_sz and reserved,
-otherwise 'mlx4_ib_create_qp' structure might be larger than legacy user
-input leading to copy of some garbage data from the user space buffer.
+There is no need to carry code, which is not implemented in any
+underlying hardware. This patch removes unimplemented node_types and
+their respective node transport layers.
 
-Fixes: ea30b966f7dd ('IB/mlx4: Add inline-receive support')
-Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- include/uapi/rdma/mlx4-abi.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/core/sysfs.c |  3 ---
+ drivers/infiniband/core/verbs.c |  5 -----
+ include/rdma/ib_verbs.h         | 16 ++++++----------
+ 3 files changed, 6 insertions(+), 18 deletions(-)
 
-diff --git a/include/uapi/rdma/mlx4-abi.h b/include/uapi/rdma/mlx4-abi.h
-index d915cab37ec3..21cce1a4c4dd 100644
---- a/include/uapi/rdma/mlx4-abi.h
-+++ b/include/uapi/rdma/mlx4-abi.h
-@@ -111,8 +111,8 @@ struct mlx4_ib_create_qp {
- 	__u8	log_sq_bb_count;
- 	__u8	log_sq_stride;
- 	__u8	sq_no_prefetch;
--	__u32	inl_recv_sz;
- 	__u8	reserved;
-+	__u32	inl_recv_sz;
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index abc5ab581f82..c43280f8d5b3 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -1146,10 +1146,7 @@ static ssize_t show_node_type(struct device *device,
+ 	switch (dev->node_type) {
+ 	case RDMA_NODE_IB_CA:	  return sprintf(buf, "%d: CA\n", dev->node_type);
+ 	case RDMA_NODE_RNIC:	  return sprintf(buf, "%d: RNIC\n", dev->node_type);
+-	case RDMA_NODE_USNIC:	  return sprintf(buf, "%d: usNIC\n", dev->node_type);
+ 	case RDMA_NODE_USNIC_UDP: return sprintf(buf, "%d: usNIC UDP\n", dev->node_type);
+-	case RDMA_NODE_IB_SWITCH: return sprintf(buf, "%d: switch\n", dev->node_type);
+-	case RDMA_NODE_IB_ROUTER: return sprintf(buf, "%d: router\n", dev->node_type);
+ 	default:		  return sprintf(buf, "%d: <unknown>\n", dev->node_type);
+ 	}
+ }
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 3d1de62de839..21fef6b6d4f3 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -182,13 +182,9 @@ rdma_node_get_transport(enum rdma_node_type node_type)
+ {
+ 	switch (node_type) {
+ 	case RDMA_NODE_IB_CA:
+-	case RDMA_NODE_IB_SWITCH:
+-	case RDMA_NODE_IB_ROUTER:
+ 		return RDMA_TRANSPORT_IB;
+ 	case RDMA_NODE_RNIC:
+ 		return RDMA_TRANSPORT_IWARP;
+-	case RDMA_NODE_USNIC:
+-		return RDMA_TRANSPORT_USNIC;
+ 	case RDMA_NODE_USNIC_UDP:
+ 		return RDMA_TRANSPORT_USNIC_UDP;
+ 	default:
+@@ -207,7 +203,6 @@ enum rdma_link_layer rdma_port_get_link_layer(struct ib_device *device, u8 port_
+ 	case RDMA_TRANSPORT_IB:
+ 		return IB_LINK_LAYER_INFINIBAND;
+ 	case RDMA_TRANSPORT_IWARP:
+-	case RDMA_TRANSPORT_USNIC:
+ 	case RDMA_TRANSPORT_USNIC_UDP:
+ 		return IB_LINK_LAYER_ETHERNET;
+ 	default:
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 4ce188128aa9..6aec3971628b 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -95,12 +95,9 @@ struct ib_gid_attr {
+ 
+ enum rdma_node_type {
+ 	/* IB values map to NodeInfo:NodeType. */
+-	RDMA_NODE_IB_CA 	= 1,
+-	RDMA_NODE_IB_SWITCH,
+-	RDMA_NODE_IB_ROUTER,
+-	RDMA_NODE_RNIC,
+-	RDMA_NODE_USNIC,
+-	RDMA_NODE_USNIC_UDP,
++	RDMA_NODE_IB_CA		= 1,
++	RDMA_NODE_RNIC		= 4,
++	RDMA_NODE_USNIC_UDP	= 6,
  };
  
- struct mlx4_ib_create_wq {
+ enum {
+@@ -109,10 +106,9 @@ enum {
+ };
+ 
+ enum rdma_transport_type {
+-	RDMA_TRANSPORT_IB,
+-	RDMA_TRANSPORT_IWARP,
+-	RDMA_TRANSPORT_USNIC,
+-	RDMA_TRANSPORT_USNIC_UDP
++	RDMA_TRANSPORT_IB		= 0,
++	RDMA_TRANSPORT_IWARP		= 1,
++	RDMA_TRANSPORT_USNIC_UDP	= 3,
+ };
+ 
+ enum rdma_protocol_type {
 -- 
 2.14.0
 
