@@ -1,31 +1,45 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH 1/2] mlx4: remove unnecessary pci_set_drvdata()
-Date: Tue, 15 Aug 2017 16:46:59 -0700 (PDT)
-Message-ID: <20170815.164659.1981910657718083693.davem@davemloft.net>
-References: <1502778786-14738-1-git-send-email-yanjun.zhu@oracle.com>
+From: Stephen Hemminger <stephen@networkplumber.org>
+Subject: Re: [PATCH v4 iproute2 1/7] rdma: Add basic infrastructure for RDMA
+ tool
+Date: Tue, 15 Aug 2017 16:54:16 -0700
+Message-ID: <20170815165416.24e9838a@xeon-e3>
+References: <20170815130020.29509-1-leonro@mellanox.com>
+        <20170815130020.29509-2-leonro@mellanox.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1502778786-14738-1-git-send-email-yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
-Cc: saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170815130020.29509-2-leonro@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leonro@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Jiri Pirko <jiri@mellanox.com>, Ariel Almog <ariela@mellanox.com>, Linux Netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Date: Tue, 15 Aug 2017 02:33:05 -0400
+On Tue, 15 Aug 2017 16:00:14 +0300
+Leon Romanovsky <leonro@mellanox.com> wrote:
 
-> The driver core clears the driver data to NULL after device_release
-> or on probe failure. Thus, it is not necessary to manually clear the
-> device driver data to NULL.
+> RDMA devices are cross-functional devices from one side,
+> but very tailored for the specific markets from another.
 > 
-> Cc: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Cc: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Such diversity caused to spread of RDMA related configuration
+> across various tools, e.g. devlink, ip, ethtool, ib specific and
+> vendor specific solutions.
+> 
+> This patch adds ability to fill device and port information
+> by reading RDMA netlink.
+> 
+> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 
-Applied.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Won't build for me.
+
+$ make distclean
+
+$ make
+
+In file included from rdma.c:12:0:
+rdma.h:23:23: fatal error: rdma/rdma.h: No such file or directory
+ #include <rdma/rdma.h>
+                       ^
+
+I think your Makefile expects something different.
+Or more Config fallout
