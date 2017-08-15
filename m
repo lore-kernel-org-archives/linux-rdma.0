@@ -1,54 +1,104 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH 1/2] mlx4: remove unnecessary pci_set_drvdata()
-Date: Tue, 15 Aug 2017 10:13:36 +0300
-Message-ID: <20170815071336.GL24282@mtr-leonro.local>
-References: <1502778786-14738-1-git-send-email-yanjun.zhu@oracle.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next v3-v6] Add OPA extended LID support
+Date: Tue, 15 Aug 2017 10:50:37 +0300
+Message-ID: <20170815075037.GN24282@mtr-leonro.local>
+References: <1502734663-44224-1-git-send-email-don.hiatt@intel.com>
+ <50ff7793-413a-09a6-1805-ca0bce0452a2@intel.com>
+ <cd6cd877-659d-8218-abf8-a23905af4f42@intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="vkJ987n7uXEPtlXE"
-Return-path: <netdev-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="jSXJDi5r/aeatSyx"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1502778786-14738-1-git-send-email-yanjun.zhu@oracle.com>
-Sender: netdev-owner@vger.kernel.org
-To: Zhu Yanjun <yanjun.zhu@oracle.com>
-Cc: saeedm@mellanox.com, matanb@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, yuval.shaia@oracle.com
+In-Reply-To: <cd6cd877-659d-8218-abf8-a23905af4f42-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---vkJ987n7uXEPtlXE
+--jSXJDi5r/aeatSyx
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Aug 15, 2017 at 02:33:05AM -0400, Zhu Yanjun wrote:
-> The driver core clears the driver data to NULL after device_release
-> or on probe failure. Thus, it is not necessary to manually clear the
-> device driver data to NULL.
+On Mon, Aug 14, 2017 at 01:12:34PM -0700, Don Hiatt wrote:
+> On 8/14/2017 11:36 AM, Don Hiatt wrote:
+> >
+> >
+> > On 8/14/2017 11:17 AM, Don Hiatt wrote:
+> > > This patch series primarily increases sizes of variables that hold
+> > > lid values from 16 to 32 bits. Additionally, it adds a check in
+> > > the IB mad stack to verify a properly formatted MAD when OPA
+> > > extended LIDs are used.
+> > >
+> > > Signed-off-by: Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > ---
+> > >
+> > > This is an incremental patch to move from v3 of the 'Add OPA
+> > > extended LID support' to v6 of the series.
+> > > Changes from v5:
+> > > ---------------
+> > > * Fixed typo in WARN_ON_ONCE usage in helper functions.
+> > > * Actually return be16 in ib_lid_be16() helper function.
+> >
+> > Sorry, this was meant to go to my email as a test, not to the list. My
+> > tests are still running so please
+> > hold off on this until I confirm.
+> >
+> All test completed fine. I think we're good to go.
 >
+> Leon, if I missed anything else please let me know.
 
-It makes sense and I'm pretty sure that you are right, but I'm failing
-to find the function in device core which sets it to NULL. Can you help
-me and present the actual call stack to that code place?
+Yeah, you should fix the function below too.
+The whole extended LID series did enormous mess with all these lid/slid/dlid.
 
-Thanks,
+ 88 static inline bool opa_is_extended_lid(u32 dlid, u32 slid)
+ 89 {
+ 90         if ((be32_to_cpu(dlid) >=
+ 91              be16_to_cpu(IB_MULTICAST_LID_BASE)) ||
+ 92             (be32_to_cpu(slid) >=
+ 93              be16_to_cpu(IB_MULTICAST_LID_BASE)))
+ 94                 return true;
+ 95         else
+ 96                 return false;
+ 97 }
 
---vkJ987n7uXEPtlXE
+It will help a lot, if you break this patch to small steps:
+1. Fix existing annotation errors.
+2. Change (rename) the ib_lid/ib_slid functions.
+3. Add WARN_ON.
+
+Right now, we have potential breakage of compatibility between
+big-endian vs. little-endian systems.
+
+Please run smatch and sparse checkers before LID patches and after to
+know what else you should fix.
+
+Thanks
+
+--jSXJDi5r/aeatSyx
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmSnx8ACgkQ5GN7iDZy
-WKfmXA/+P3uZidyL/R9taLe6jflgXY4Wdo2QOQL7fgq7C7jfUMo7p5138WiH92nb
-r+TGdqL1u2W8XmSk67py17T7GPAj/ZzMfeLypFLvWoAfROdzD9OE/UZBMCfqvmQ3
-8wYPNQf0FAjRfSRZRH4oaDwZzAF2BJiuJTT4pFLfuuFX34i4kSPVXtSBadhesOzW
-cB+6qZsFmW17YHPW9Sg+GQvRQ/FXEL2i4ZmkzpwOcnYa9GujtQP7MjHCqjrTVrvl
-McdmrRFPN0WPJcGAM/iTcSysTUj9dux+jZhZLbH0U9RuSX1awh6RYqjEQc5oKtJA
-eSin6YmrvmtHUaktAlRyEzKWxOoFaak6L9nMfn2Iqb1RwtRz7jDxhlsuH/wdrF1S
-a0YZDWPXteU541s/Z1HsJ9af8f1mcY/rHypirCbYdSnFJ/NLI8TTwY2UBZhctEfP
-Lns1yaEo+wq7fc8GorPwoXF80bkNAkxfkeVJhGobgaOCnoR2e7hYhKxRXLWYBLiA
-TSZb73dIK4OdMT7DNpCUl4S46JQs3Vixs/TFyVMaAA7oozhSbN/CMnaH/GSS71Dx
-aoIz55srr74jpl3f72XtQl2Na9+v14xULOXIV2OcxUI9abWMZb5xgwLrsau9ZZTF
-r2C1JLjv5BIy2LnMApaXf9FTtIZHoi+nr3m2R6Br7P5w1w4/g2Y=
-=l4vv
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmSp8wACgkQ5GN7iDZy
+WKc9QhAAtExUoANPKrTtAiX6xhsoHZLKnURH6JS+1dNhmxI9vo9jShbA7Et93u3c
+Mq/3wEVJA/7IWLam715dlPDyE+xoFtEg1xny0GXhjuhWCGHUL0AyW6LaFM2c4qdQ
+X2slovOIYRhq/KguKNgtLkUOqc2JNPN7B7z9AeSGOjPp67mKu8DyCrsjcnfoEd6/
+SDbuK9qBRN0EArm6kkogIHNg62qPpA0WTwiIpMGS4Q2XkZXXLP99d1lmzBm5d3pW
+cTGVi9mVzbNPKhr/AsKC/i/FP2TwHvOLLDSFYJ3XvXQZx/m8zmxcl3ZAErFXGbND
+5HMzz9Q4L/PKM4GDlHHWOIP/sXNxvxuYHrtwSI2wZ3yTbSWXXh2AalGnaXPi0J6Y
+Ubk4ljWF5zf0iPLMWlKCaKMFPF2P9TT+HsFH4kA2wGEa9Bp68RnAJ4p6ZnJKqS2L
+6FuoNHwcUvDKn7ubF4L6n2q9pXzRVEQp/HSVONdsb7FyMuj5aEQyBFGD9emTtJ2g
+Y/sSzeCe6Cl/9gwZs9+7ZHXBQ3dDh73E36pNMij6/nN/MZe8RH7BKtjd06zjYSjZ
+CucL9P8qrdA6MMdKEyZt07sPBlyFXS8DgeHYNsuRbcSZ813c5gEw5b3mPsh3ff0w
+cEUsE8GMGDuXt8mf0NFPXuubtNGB59DkhRjjwyRBu0CU9mEvVeQ=
+=6o3O
 -----END PGP SIGNATURE-----
 
---vkJ987n7uXEPtlXE--
+--jSXJDi5r/aeatSyx--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
