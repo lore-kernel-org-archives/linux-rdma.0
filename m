@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v2 07/23] RDMA/core: Remove unimplemented node_types and node transport
-Date: Tue, 15 Aug 2017 11:54:36 +0300
-Message-ID: <20170815085452.3546-8-leon@kernel.org>
+Subject: [rdma-next v2 06/23] RDMA/core: Cleanup device capability enum
+Date: Tue, 15 Aug 2017 11:54:35 +0300
+Message-ID: <20170815085452.3546-7-leon@kernel.org>
 References: <20170815085452.3546-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170815085452.3546-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,93 +12,48 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-There is no need to carry code, which is not implemented in any
-underlying hardware. This patch removes unimplemented node_types and
-their respective node transport layers.
+Cleanup patch prior exporting the ib_device_cap_flags
+to the user space. In this patch, we are aligning the
+indentation, removing IB_DEVICE_INIT_TYPE and IB_DEVICE_RESERVED
+fields, because it is not used in the kernel.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/sysfs.c |  3 ---
- drivers/infiniband/core/verbs.c |  5 -----
- include/rdma/ib_verbs.h         | 16 ++++++----------
- 3 files changed, 6 insertions(+), 18 deletions(-)
+ include/rdma/ib_verbs.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index abc5ab581f82..c43280f8d5b3 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -1146,10 +1146,7 @@ static ssize_t show_node_type(struct device *device,
- 	switch (dev->node_type) {
- 	case RDMA_NODE_IB_CA:	  return sprintf(buf, "%d: CA\n", dev->node_type);
- 	case RDMA_NODE_RNIC:	  return sprintf(buf, "%d: RNIC\n", dev->node_type);
--	case RDMA_NODE_USNIC:	  return sprintf(buf, "%d: usNIC\n", dev->node_type);
- 	case RDMA_NODE_USNIC_UDP: return sprintf(buf, "%d: usNIC UDP\n", dev->node_type);
--	case RDMA_NODE_IB_SWITCH: return sprintf(buf, "%d: switch\n", dev->node_type);
--	case RDMA_NODE_IB_ROUTER: return sprintf(buf, "%d: router\n", dev->node_type);
- 	default:		  return sprintf(buf, "%d: <unknown>\n", dev->node_type);
- 	}
- }
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 3d1de62de839..21fef6b6d4f3 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -182,13 +182,9 @@ rdma_node_get_transport(enum rdma_node_type node_type)
- {
- 	switch (node_type) {
- 	case RDMA_NODE_IB_CA:
--	case RDMA_NODE_IB_SWITCH:
--	case RDMA_NODE_IB_ROUTER:
- 		return RDMA_TRANSPORT_IB;
- 	case RDMA_NODE_RNIC:
- 		return RDMA_TRANSPORT_IWARP;
--	case RDMA_NODE_USNIC:
--		return RDMA_TRANSPORT_USNIC;
- 	case RDMA_NODE_USNIC_UDP:
- 		return RDMA_TRANSPORT_USNIC_UDP;
- 	default:
-@@ -207,7 +203,6 @@ enum rdma_link_layer rdma_port_get_link_layer(struct ib_device *device, u8 port_
- 	case RDMA_TRANSPORT_IB:
- 		return IB_LINK_LAYER_INFINIBAND;
- 	case RDMA_TRANSPORT_IWARP:
--	case RDMA_TRANSPORT_USNIC:
- 	case RDMA_TRANSPORT_USNIC_UDP:
- 		return IB_LINK_LAYER_ETHERNET;
- 	default:
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 4ce188128aa9..6aec3971628b 100644
+index 3c9c514bcd7d..4ce188128aa9 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -95,12 +95,9 @@ struct ib_gid_attr {
- 
- enum rdma_node_type {
- 	/* IB values map to NodeInfo:NodeType. */
--	RDMA_NODE_IB_CA 	= 1,
--	RDMA_NODE_IB_SWITCH,
--	RDMA_NODE_IB_ROUTER,
--	RDMA_NODE_RNIC,
--	RDMA_NODE_USNIC,
--	RDMA_NODE_USNIC_UDP,
-+	RDMA_NODE_IB_CA		= 1,
-+	RDMA_NODE_RNIC		= 4,
-+	RDMA_NODE_USNIC_UDP	= 6,
- };
- 
- enum {
-@@ -109,10 +106,9 @@ enum {
- };
- 
- enum rdma_transport_type {
--	RDMA_TRANSPORT_IB,
--	RDMA_TRANSPORT_IWARP,
--	RDMA_TRANSPORT_USNIC,
--	RDMA_TRANSPORT_USNIC_UDP
-+	RDMA_TRANSPORT_IB		= 0,
-+	RDMA_TRANSPORT_IWARP		= 1,
-+	RDMA_TRANSPORT_USNIC_UDP	= 3,
- };
- 
- enum rdma_protocol_type {
+@@ -170,7 +170,7 @@ enum ib_device_cap_flags {
+ 	IB_DEVICE_UD_AV_PORT_ENFORCE		= (1 << 6),
+ 	IB_DEVICE_CURR_QP_STATE_MOD		= (1 << 7),
+ 	IB_DEVICE_SHUTDOWN_PORT			= (1 << 8),
+-	IB_DEVICE_INIT_TYPE			= (1 << 9),
++	/* Not in use, former INIT_TYPE		= (1 << 9),*/
+ 	IB_DEVICE_PORT_ACTIVE_EVENT		= (1 << 10),
+ 	IB_DEVICE_SYS_IMAGE_GUID		= (1 << 11),
+ 	IB_DEVICE_RC_RNR_NAK_GEN		= (1 << 12),
+@@ -185,7 +185,7 @@ enum ib_device_cap_flags {
+ 	 * which will always contain a usable lkey.
+ 	 */
+ 	IB_DEVICE_LOCAL_DMA_LKEY		= (1 << 15),
+-	IB_DEVICE_RESERVED /* old SEND_W_INV */	= (1 << 16),
++	/* Reserved, old SEND_W_INV		= (1 << 16),*/
+ 	IB_DEVICE_MEM_WINDOW			= (1 << 17),
+ 	/*
+ 	 * Devices should set IB_DEVICE_UD_IP_SUM if they support
+@@ -220,7 +220,7 @@ enum ib_device_cap_flags {
+ 	 * of I/O operations with single completion queue managed
+ 	 * by hardware.
+ 	 */
+-	IB_DEVICE_CROSS_CHANNEL		= (1 << 27),
++	IB_DEVICE_CROSS_CHANNEL			= (1 << 27),
+ 	IB_DEVICE_MANAGED_FLOW_STEERING		= (1 << 29),
+ 	IB_DEVICE_SIGNATURE_HANDOVER		= (1 << 30),
+ 	IB_DEVICE_ON_DEMAND_PAGING		= (1ULL << 31),
 -- 
 2.14.0
 
