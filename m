@@ -1,7 +1,7 @@
 From: Stephen Hemminger <stephen@networkplumber.org>
-Subject: [PATCH net-next 3/4] skge: add paren around sizeof arg
-Date: Tue, 15 Aug 2017 10:29:18 -0700
-Message-ID: <20170815172919.26153-4-sthemmin@microsoft.com>
+Subject: [PATCH net-next 2/4] virtio: put paren around sizeof
+Date: Tue, 15 Aug 2017 10:29:17 -0700
+Message-ID: <20170815172919.26153-3-sthemmin@microsoft.com>
 References: <20170815172919.26153-1-sthemmin@microsoft.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20170815172919.26153-1-sthemmin@microsoft.com>
@@ -10,23 +10,25 @@ To: mlindner@marvell.com, stephen@networkplumber.org, mst@redhat.com, jasowang@r
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, virtualization@lists.linux-foundation.org, Stephen Hemminger <sthemmin@microsoft.com>
 List-Id: linux-rdma@vger.kernel.org
 
+Kernel coding style is to put paren around operand of sizeof.
+
 Signed-off-by: Stephen Hemminger <stephen@networkplumber.org>
 ---
- drivers/net/ethernet/marvell/skge.c | 2 +-
+ drivers/net/virtio_net.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/marvell/skge.c b/drivers/net/ethernet/marvell/skge.c
-index 5d7d94de4e00..8a835e82256a 100644
---- a/drivers/net/ethernet/marvell/skge.c
-+++ b/drivers/net/ethernet/marvell/skge.c
-@@ -3516,7 +3516,7 @@ static const char *skge_board_name(const struct skge_hw *hw)
- 		if (skge_chips[i].id == hw->chip_id)
- 			return skge_chips[i].name;
+diff --git a/drivers/net/virtio_net.c b/drivers/net/virtio_net.c
+index a3f3c66b4530..4302f313d9a7 100644
+--- a/drivers/net/virtio_net.c
++++ b/drivers/net/virtio_net.c
+@@ -319,7 +319,7 @@ static struct sk_buff *page_to_skb(struct virtnet_info *vi,
  
--	snprintf(buf, sizeof buf, "chipid 0x%x", hw->chip_id);
-+	snprintf(buf, sizeof(buf), "chipid 0x%x", hw->chip_id);
- 	return buf;
- }
+ 	hdr_len = vi->hdr_len;
+ 	if (vi->mergeable_rx_bufs)
+-		hdr_padded_len = sizeof *hdr;
++		hdr_padded_len = sizeof(*hdr);
+ 	else
+ 		hdr_padded_len = sizeof(struct padded_vnet_hdr);
  
 -- 
 2.11.0
