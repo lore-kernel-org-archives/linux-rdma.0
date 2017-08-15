@@ -1,42 +1,59 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: [PATCH 1/2] cm: Don't allocate ib_cm workqueue with WQ_MEM_RECLAIM
-Date: Tue, 15 Aug 2017 19:12:53 +0300
-Message-ID: <1502813574-6040-2-git-send-email-sagi@grimberg.me>
-References: <1502813574-6040-1-git-send-email-sagi@grimberg.me>
+From: David Laight <David.Laight-ZS65k/vG3HxXrIkS9f7CXA@public.gmane.org>
+Subject: RE: [PATCH v4 iproute2 2/7] rdma: Add dev object
+Date: Tue, 15 Aug 2017 16:23:11 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6DD005604E@AcuExch.aculab.com>
+References: <20170815130020.29509-1-leonro@mellanox.com>
+        <20170815130020.29509-3-leonro@mellanox.com>
+ <20170815091205.2c39ea91@xeon-e3>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1502813574-6040-1-git-send-email-sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+In-Reply-To: <20170815091205.2c39ea91@xeon-e3>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: 'Stephen Hemminger' <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jiri Pirko <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ariel Almog <ariela-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Linux Netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-create_workqueue always creates the worqeueu with WQ_MEM_RECLAIM
-and silences a flush dependancy warn for WQ_LEGACY. Instead, we
-want to keep the warn in case the allocator tries to flush the
-cm workqueue because its very likely that cm work execution will
-yield memory allocations (for example cm connection requests) .
+From: Stephen Hemminger
+> Sent: 15 August 2017 17:12
+> On Tue, 15 Aug 2017 16:00:15 +0300
+> Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> 
+> > +
+> > +static const char *dev_caps_to_str(uint32_t idx)
+> > +{
+> > +	uint64_t cap = 1 << idx;
+> > +
+> > +	switch (cap) {
+> > +	case RDMA_DEV_RESIZE_MAX_WR: return "RESIZE_MAX_WR";
+> > +	case RDMA_DEV_BAD_PKEY_CNTR: return "BAD_PKEY_CNTR";
+...
+> > +	case RDMA_DEV_RAW_SCATTER_FCS: return "RAW_SCATTER_FCS";
+> > +	case RDMA_DEV_RDMA_NETDEV_OPA_VNIC: return "RDMA_NETDEV_OPA_VNIC";
+> > +	default: return "UNKNOWN";
+> > +	}
+> 
+> Could this be a table in future versions?
 
-Reported-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Signed-off-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
----
- drivers/infiniband/core/cm.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Potentially you could define the constants using some pre-processor
+'magic' that would create the table for you.
+Something like (but not compiled):
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 2b4d613a3474..838e3507eadc 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -4201,7 +4201,7 @@ static int __init ib_cm_init(void)
- 		goto error1;
- 	}
- 
--	cm.wq = create_workqueue("ib_cm");
-+	cm.wq = alloc_workqueue("ib_cm", 0, 1);
- 	if (!cm.wq) {
- 		ret = -ENOMEM;
- 		goto error2;
--- 
-2.7.4
+#define RDMA_DEV_FLAGS(x) \
+	x(RESIZE_MAX_WR, 0) \
+	x(BAD_PKEY_CNTR, 1) \
+(continue for all the bits)
+
+#define RDMA_DEV_ENUM(name, bit_no) RDMA_DEV_##name = BIT(bit_no),
+enum {RDMA_DEV_FLAGS(RDMA_DEV_ENUM)};
+#undef RDMA_DEV_ENUM
+
+#define RDMA_DEV_NAMES(name, bit_no) [bit_no] = #name,
+static const char rdma_dev_names[] = {RDMA_DEV_FLAGS(RDMA_DEV_NAMES)};
+
+	David
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
