@@ -1,40 +1,38 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v2 19/23] IB/mlx4: Check that reserved fields in mlx4_ib_create_qp_rss are zero
-Date: Tue, 15 Aug 2017 11:54:48 +0300
-Message-ID: <20170815085452.3546-20-leon@kernel.org>
+Subject: [rdma-next v2 23/23] RDMA/mlx5: Limit scope of get vector affinity local function
+Date: Tue, 15 Aug 2017 11:54:52 +0300
+Message-ID: <20170815085452.3546-24-leon@kernel.org>
 References: <20170815085452.3546-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170815085452.3546-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+The mlx5_ib_get_vector_affinity() call is local to main.c file and there
+is no need to be declared globally visible.
 
-According to mlx4 convention, need to fail the command due to a non-zero
-value in the user data which is expected to be zero.
-
-Fixes: 3078f5f1bd8b ("IB/mlx4: Add support for RSS QP")
-Signed-off-by: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Fixes: 40b24403f33e ("mlx5: support ->get_vector_affinity")
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/qp.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/infiniband/hw/mlx5/main.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 44d2d0a2d5e0..2874d8790570 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -813,6 +813,9 @@ static struct ib_qp *_mlx4_ib_create_qp_rss(struct ib_pd *pd,
- 		return ERR_PTR(-EFAULT);
- 	}
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 986404827848..47cf622c6d24 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -3818,8 +3818,8 @@ static void init_delay_drop(struct mlx5_ib_dev *dev)
+ 		mlx5_ib_warn(dev, "Failed to init delay drop debugfs\n");
+ }
  
-+	if (memchr_inv(ucmd.reserved, 0, sizeof(ucmd.reserved)))
-+		return ERR_PTR(-EOPNOTSUPP);
-+
- 	if (ucmd.comp_mask || ucmd.reserved1)
- 		return ERR_PTR(-EOPNOTSUPP);
+-const struct cpumask *mlx5_ib_get_vector_affinity(struct ib_device *ibdev,
+-		int comp_vector)
++static const struct cpumask *
++mlx5_ib_get_vector_affinity(struct ib_device *ibdev, int comp_vector)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
  
 -- 
 2.14.0
