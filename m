@@ -1,73 +1,40 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: RE: [PATCH v4 iproute2 2/7] rdma: Add dev object
-Date: Tue, 15 Aug 2017 17:00:54 +0000
-Message-ID: <063D6719AE5E284EB5DD2968C1650D6DD005613D@AcuExch.aculab.com>
-References: <20170815130020.29509-1-leonro@mellanox.com>
- <20170815130020.29509-3-leonro@mellanox.com>
- <20170815091205.2c39ea91@xeon-e3>
- <063D6719AE5E284EB5DD2968C1650D6DD005604E@AcuExch.aculab.com>
- <20170815164720.GV24282@mtr-leonro.local>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH 1/2] mlx4: remove unnecessary pci_set_drvdata()
+Date: Tue, 15 Aug 2017 11:21:49 -0600
+Message-ID: <20170815172149.GC15171@obsidianresearch.com>
+References: <1502778786-14738-1-git-send-email-yanjun.zhu@oracle.com>
+ <20170815071336.GL24282@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170815164720.GV24282@mtr-leonro.local>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20170815071336.GL24282@mtr-leonro.local>
 Sender: netdev-owner@vger.kernel.org
-To: 'Leon Romanovsky' <leonro@mellanox.com>
-Cc: 'Stephen Hemminger' <stephen@networkplumber.org>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Jiri Pirko <jiri@mellanox.com>, Ariel Almog <ariela@mellanox.com>, Linux Netdev <netdev@vger.kernel.org>
+To: Leon Romanovsky <leonro@mellanox.com>
+Cc: Zhu Yanjun <yanjun.zhu@oracle.com>, saeedm@mellanox.com, matanb@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, yuval.shaia@oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky
-> Sent: 15 August 2017 17:47
-> On Tue, Aug 15, 2017 at 04:23:11PM +0000, David Laight wrote:
-> > From: Stephen Hemminger
-> > > Sent: 15 August 2017 17:12
-> > > On Tue, 15 Aug 2017 16:00:15 +0300
-> > > Leon Romanovsky <leonro@mellanox.com> wrote:
-> > >
-> > > > +
-> > > > +static const char *dev_caps_to_str(uint32_t idx)
-> > > > +{
-> > > > +	uint64_t cap = 1 << idx;
-> > > > +
-> > > > +	switch (cap) {
-> > > > +	case RDMA_DEV_RESIZE_MAX_WR: return "RESIZE_MAX_WR";
-> > > > +	case RDMA_DEV_BAD_PKEY_CNTR: return "BAD_PKEY_CNTR";
-> > ...
-> > > > +	case RDMA_DEV_RAW_SCATTER_FCS: return "RAW_SCATTER_FCS";
-> > > > +	case RDMA_DEV_RDMA_NETDEV_OPA_VNIC: return "RDMA_NETDEV_OPA_VNIC";
-> > > > +	default: return "UNKNOWN";
-> > > > +	}
-> > >
-> > > Could this be a table in future versions?
-> >
-> > Potentially you could define the constants using some pre-processor
-> > 'magic' that would create the table for you.
-> > Something like (but not compiled):
-> >
-> > #define RDMA_DEV_FLAGS(x) \
-> > 	x(RESIZE_MAX_WR, 0) \
-> > 	x(BAD_PKEY_CNTR, 1) \
-> > (continue for all the bits)
-> >
-> > #define RDMA_DEV_ENUM(name, bit_no) RDMA_DEV_##name = BIT(bit_no),
-> > enum {RDMA_DEV_FLAGS(RDMA_DEV_ENUM)};
-> > #undef RDMA_DEV_ENUM
-> >
-> > #define RDMA_DEV_NAMES(name, bit_no) [bit_no] = #name,
-> > static const char rdma_dev_names[] = {RDMA_DEV_FLAGS(RDMA_DEV_NAMES)};
-I missed the #undef
+On Tue, Aug 15, 2017 at 10:13:36AM +0300, Leon Romanovsky wrote:
+> On Tue, Aug 15, 2017 at 02:33:05AM -0400, Zhu Yanjun wrote:
+> > The driver core clears the driver data to NULL after device_release
+> > or on probe failure. Thus, it is not necessary to manually clear the
+> > device driver data to NULL.
 > >
 > 
-> David,
-> 
-> How should I handle "uknown" fields without names?
+> It makes sense and I'm pretty sure that you are right, but I'm failing
+> to find the function in device core which sets it to NULL. Can you help
+> me and present the actual call stack to that code place?
 
-The function that accesses rdma_dev_names[] checks ARRAY_SIZE()
-and for a NULL pointer.
+http://elixir.free-electrons.com/linux/v4.13-rc1/source/drivers/base/dd.c#L840
 
-WRT the other comment, the spare pointers consume far less space than
-the code for your switch statement.
+The call to the remove callback is on line 833.
 
-	David
+This is done after dropping devres, so you could allocate the drv data
+inside a devm object and everything would unwind correctly.
+
+In this case, the kfree is explicit, so I would advocate for still putting
+the null near the kfree to minimize the time where a free'd pointer is
+present - eg incase a devm callback or some other bug accidently
+touches it.
+
+Jason
