@@ -1,75 +1,156 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH net-next 4/4] mlx4: sizeof style usage
-Date: Tue, 15 Aug 2017 21:13:24 +0300
-Message-ID: <20170815181324.GA24282@mtr-leonro.local>
-References: <20170815172919.26153-1-sthemmin@microsoft.com>
- <20170815172919.26153-5-sthemmin@microsoft.com>
+From: Suri Shelvapille <suri-lFb5ksp6isWhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Subject: RE: [rdma-next v2 07/23] RDMA/core: Remove unimplemented node_types
+ and node transport
+Date: Tue, 15 Aug 2017 18:25:54 +0000
+Message-ID: <SN1PR0301MB2127376FC9B3D170C878A47BDE8D0@SN1PR0301MB2127.namprd03.prod.outlook.com>
+References: <20170815085452.3546-1-leon@kernel.org>
+ <20170815085452.3546-8-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="6AFz5yWxU/FsGPwt"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170815172919.26153-5-sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+In-Reply-To: <20170815085452.3546-8-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
-Cc: mlindner-eYqpPyKDWXRBDgjK7y7TUQ@public.gmane.org, mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Leon:
 
---6AFz5yWxU/FsGPwt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Aug 15, 2017 at 10:29:19AM -0700, Stephen Hemminger wrote:
-> The kernel coding style is to treat sizeof as a function
-> (ie. with parenthesis) not as an operator.
->
-> Also use kcalloc and kmalloc_array
->
-> Signed-off-by: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
-> ---
->  drivers/net/ethernet/mellanox/mlx4/alloc.c         |  2 +-
->  drivers/net/ethernet/mellanox/mlx4/cmd.c           |  4 ++--
->  drivers/net/ethernet/mellanox/mlx4/en_resources.c  |  2 +-
->  drivers/net/ethernet/mellanox/mlx4/en_rx.c         |  2 +-
->  drivers/net/ethernet/mellanox/mlx4/en_tx.c         |  2 +-
->  drivers/net/ethernet/mellanox/mlx4/eq.c            | 20 +++++++++---------
->  drivers/net/ethernet/mellanox/mlx4/fw.c            |  2 +-
->  drivers/net/ethernet/mellanox/mlx4/icm.c           |  2 +-
->  drivers/net/ethernet/mellanox/mlx4/icm.h           |  4 ++--
->  drivers/net/ethernet/mellanox/mlx4/intf.c          |  2 +-
->  drivers/net/ethernet/mellanox/mlx4/main.c          | 12 +++++------
->  drivers/net/ethernet/mellanox/mlx4/mcg.c           | 12 +++++------
->  drivers/net/ethernet/mellanox/mlx4/mr.c            | 10 ++++-----
->  drivers/net/ethernet/mellanox/mlx4/qp.c            | 12 +++++------
->  .../net/ethernet/mellanox/mlx4/resource_tracker.c  | 24 +++++++++++-----------
->  15 files changed, 56 insertions(+), 56 deletions(-)
->
+We do have IB_SWITCH and IB_ROUTER functionality and we do use the SWITCH c=
+apability provided by the "core" in our product. The "core" has a wrapper f=
+unction which Identifies the device as a switch to direct smp packets. I am=
+ glad that has not been removed. And I hope it won't be removed as it would=
+ be a burden to us. Although we prefer to have the IB_SWITCH/IB_ROUTER defi=
+nitions in the core as well, it is not a big deal to move these definitions=
+ inside our driver.
 
 Thanks,
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Suri
 
---6AFz5yWxU/FsGPwt
-Content-Type: application/pgp-signature; name="signature.asc"
+-----Original Message-----
+From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TZUIDd8j+nm9g@public.gmane.org=
+.org] On Behalf Of Leon Romanovsky
+Sent: Tuesday, August 15, 2017 4:55 AM
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>; Leon Rom=
+anovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [rdma-next v2 07/23] RDMA/core: Remove unimplemented node_types an=
+d node transport
 
------BEGIN PGP SIGNATURE-----
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmTOcQACgkQ5GN7iDZy
-WKcUkxAAz34nMe12aEOReWgbjD5GC6MemcYdOgD3OhleoL0z119szmT/SkmH1h0b
-gsImVbDMXD2ejKmGRRDf8GeuKPhK5NfXuEHrkH4o7mNIvvyO6gkPlIoX0VVCzqEK
-/obxjH8szbtITVVwoHJMvusJUM7uHD0/ueoUJONbFoDsXG8zlVUnIouMA+rPJl0Q
-pSLTR02Aw5kKqntEN+uGRWjwOIUDpoDrLi+0HPY6LqLeWGUqiO6qA+fBIF4Pa4SZ
-Ms2okJkomotNGpJ2Uda4NU2P3mWWp2KVQTqcwjHTY1f9bBnx+gOAvUZiJRglFk0N
-vFmjQqqCwz0kv1mYFt6uh9ayLhFmtbq124bYfOA1jEoeMhDwaPQ6kv6uYgwpjalE
-y1WqkZVrN8JSDAQfE6n6LDPIQ5IBP6P0f4gD0UXMxWkX/i91Noe7eYe2gYLqo71Z
-CtRiMQ+Ubtwk4oWPlv59XYdB6Y1fOfNUePcEMAKbZ68MWenlFxKFErgV/Z7MFvy5
-Yv8uadwjwmZ3CJ2rLCSMmp3wWZ0TsDhHkSGs5TEF8HCQgl2qKOgHUFNyTQ//Ur8I
-Y5dpdMJ5VxlxF/07RUMSOXORPxDYVlMreTuL72ywes5oqRd6yOvfqj0QiR2rd5a7
-VxfGbNNoC7pyegRzZ7Q7aLExICCHO3VelrVsN7zXUBX0X3PGGvU=
-=SFz8
------END PGP SIGNATURE-----
+There is no need to carry code, which is not implemented in any underlying =
+hardware. This patch removes unimplemented node_types and their respective =
+node transport layers.
 
---6AFz5yWxU/FsGPwt--
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/core/sysfs.c |  3 ---  drivers/infiniband/core/verbs.c =
+|  5 -----
+ include/rdma/ib_verbs.h         | 16 ++++++----------
+ 3 files changed, 6 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysf=
+s.c index abc5ab581f82..c43280f8d5b3 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -1146,10 +1146,7 @@ static ssize_t show_node_type(struct device *device,
+ switch (dev->node_type) {
+ case RDMA_NODE_IB_CA:  return sprintf(buf, "%d: CA\n", dev->node_type);
+ case RDMA_NODE_RNIC:  return sprintf(buf, "%d: RNIC\n", dev->node_type);
+-case RDMA_NODE_USNIC:  return sprintf(buf, "%d: usNIC\n", dev->node_type);
+ case RDMA_NODE_USNIC_UDP: return sprintf(buf, "%d: usNIC UDP\n", dev->node=
+_type);
+-case RDMA_NODE_IB_SWITCH: return sprintf(buf, "%d: switch\n", dev->node_ty=
+pe);
+-case RDMA_NODE_IB_ROUTER: return sprintf(buf, "%d: router\n", dev->node_ty=
+pe);
+ default:  return sprintf(buf, "%d: <unknown>\n", dev->node_type);
+ }
+ }
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verb=
+s.c index 3d1de62de839..21fef6b6d4f3 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -182,13 +182,9 @@ rdma_node_get_transport(enum rdma_node_type node_type)=
+  {
+ switch (node_type) {
+ case RDMA_NODE_IB_CA:
+-case RDMA_NODE_IB_SWITCH:
+-case RDMA_NODE_IB_ROUTER:
+ return RDMA_TRANSPORT_IB;
+ case RDMA_NODE_RNIC:
+ return RDMA_TRANSPORT_IWARP;
+-case RDMA_NODE_USNIC:
+-return RDMA_TRANSPORT_USNIC;
+ case RDMA_NODE_USNIC_UDP:
+ return RDMA_TRANSPORT_USNIC_UDP;
+ default:
+@@ -207,7 +203,6 @@ enum rdma_link_layer rdma_port_get_link_layer(struct ib=
+_device *device, u8 port_
+ case RDMA_TRANSPORT_IB:
+ return IB_LINK_LAYER_INFINIBAND;
+ case RDMA_TRANSPORT_IWARP:
+-case RDMA_TRANSPORT_USNIC:
+ case RDMA_TRANSPORT_USNIC_UDP:
+ return IB_LINK_LAYER_ETHERNET;
+ default:
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h index 4ce188=
+128aa9..6aec3971628b 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -95,12 +95,9 @@ struct ib_gid_attr {
+
+ enum rdma_node_type {
+ /* IB values map to NodeInfo:NodeType. */
+-RDMA_NODE_IB_CA =3D 1,
+-RDMA_NODE_IB_SWITCH,
+-RDMA_NODE_IB_ROUTER,
+-RDMA_NODE_RNIC,
+-RDMA_NODE_USNIC,
+-RDMA_NODE_USNIC_UDP,
++RDMA_NODE_IB_CA=3D 1,
++RDMA_NODE_RNIC=3D 4,
++RDMA_NODE_USNIC_UDP=3D 6,
+ };
+
+ enum {
+@@ -109,10 +106,9 @@ enum {
+ };
+
+ enum rdma_transport_type {
+-RDMA_TRANSPORT_IB,
+-RDMA_TRANSPORT_IWARP,
+-RDMA_TRANSPORT_USNIC,
+-RDMA_TRANSPORT_USNIC_UDP
++RDMA_TRANSPORT_IB=3D 0,
++RDMA_TRANSPORT_IWARP=3D 1,
++RDMA_TRANSPORT_USNIC_UDP=3D 3,
+ };
+
+ enum rdma_protocol_type {
+--
+2.14.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in th=
+e body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at  ht=
+tp://vger.kernel.org/majordomo-info.html
+
+This correspondence, and any attachments or files transmitted with this cor=
+respondence, contains information which may be confidential and privileged =
+and is intended solely for the use of the addressee. Unless you are the add=
+ressee or are authorized to receive messages for the addressee, you may not=
+ use, copy, disseminate, or disclose this correspondence or any information=
+ contained in this correspondence to any third party. If you have received =
+this correspondence in error, please notify the sender immediately and dele=
+te this correspondence and any attachments or files transmitted with this c=
+orrespondence from your system, and destroy any and all copies thereof, ele=
+ctronic or otherwise. Your cooperation and understanding are greatly apprec=
+iated.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
