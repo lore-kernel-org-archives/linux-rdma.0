@@ -1,47 +1,73 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v2 2/2] rdma: Autoload netlink client modules
-Date: Tue, 15 Aug 2017 10:57:37 -0600
-Message-ID: <20170815165737.GB15171@obsidianresearch.com>
-References: <1502744259-16966-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1502744259-16966-3-git-send-email-jgunthorpe@obsidianresearch.com>
- <20170815095651.GQ24282@mtr-leonro.local>
- <20170815153523.GA14623@obsidianresearch.com>
- <20170815155843.GT24282@mtr-leonro.local>
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH v4 iproute2 2/7] rdma: Add dev object
+Date: Tue, 15 Aug 2017 17:00:54 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6DD005613D@AcuExch.aculab.com>
+References: <20170815130020.29509-1-leonro@mellanox.com>
+ <20170815130020.29509-3-leonro@mellanox.com>
+ <20170815091205.2c39ea91@xeon-e3>
+ <063D6719AE5E284EB5DD2968C1650D6DD005604E@AcuExch.aculab.com>
+ <20170815164720.GV24282@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170815155843.GT24282-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170815164720.GV24282@mtr-leonro.local>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: 'Leon Romanovsky' <leonro@mellanox.com>
+Cc: 'Stephen Hemminger' <stephen@networkplumber.org>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Jiri Pirko <jiri@mellanox.com>, Ariel Almog <ariela@mellanox.com>, Linux Netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 15, 2017 at 06:58:43PM +0300, Leon Romanovsky wrote:
-> On Tue, Aug 15, 2017 at 09:35:23AM -0600, Jason Gunthorpe wrote:
-> > On Tue, Aug 15, 2017 at 12:56:51PM +0300, Leon Romanovsky wrote:
+From: Leon Romanovsky
+> Sent: 15 August 2017 17:47
+> On Tue, Aug 15, 2017 at 04:23:11PM +0000, David Laight wrote:
+> > From: Stephen Hemminger
+> > > Sent: 15 August 2017 17:12
+> > > On Tue, 15 Aug 2017 16:00:15 +0300
+> > > Leon Romanovsky <leonro@mellanox.com> wrote:
+> > >
+> > > > +
+> > > > +static const char *dev_caps_to_str(uint32_t idx)
+> > > > +{
+> > > > +	uint64_t cap = 1 << idx;
+> > > > +
+> > > > +	switch (cap) {
+> > > > +	case RDMA_DEV_RESIZE_MAX_WR: return "RESIZE_MAX_WR";
+> > > > +	case RDMA_DEV_BAD_PKEY_CNTR: return "BAD_PKEY_CNTR";
+> > ...
+> > > > +	case RDMA_DEV_RAW_SCATTER_FCS: return "RAW_SCATTER_FCS";
+> > > > +	case RDMA_DEV_RDMA_NETDEV_OPA_VNIC: return "RDMA_NETDEV_OPA_VNIC";
+> > > > +	default: return "UNKNOWN";
+> > > > +	}
+> > >
+> > > Could this be a table in future versions?
 > >
-> > > Can it be something like that (untested)?
-> > > #define MODULE_ALIAS_RDMA_NETLINK(_index)
+> > Potentially you could define the constants using some pre-processor
+> > 'magic' that would create the table for you.
+> > Something like (but not compiled):
 > >
-> > No, MODULE_ALIAS does something like
+> > #define RDMA_DEV_FLAGS(x) \
+> > 	x(RESIZE_MAX_WR, 0) \
+> > 	x(BAD_PKEY_CNTR, 1) \
+> > (continue for all the bits)
 > >
-> > static const char __UNIQUE_ID(name)[]
-> >   __used __attribute__((section(".modinfo"), unused, aligned(1))) = __stringify(tag) "=" info;
+> > #define RDMA_DEV_ENUM(name, bit_no) RDMA_DEV_##name = BIT(bit_no),
+> > enum {RDMA_DEV_FLAGS(RDMA_DEV_ENUM)};
+> > #undef RDMA_DEV_ENUM
 > >
-> > So it must accept a string produced by the pre-processor, not by code.
+> > #define RDMA_DEV_NAMES(name, bit_no) [bit_no] = #name,
+> > static const char rdma_dev_names[] = {RDMA_DEV_FLAGS(RDMA_DEV_NAMES)};
+I missed the #undef
+> >
 > 
-> But the netlink indexes were defined as anonymous enum, can we safely
-> convert them to be defines?
+> David,
+> 
+> How should I handle "uknown" fields without names?
 
-Technically no, we shouldn't, the difference could break things.. But
-due to the limited use of the header we probably could change to
-defines.
+The function that accesses rdma_dev_names[] checks ARRAY_SIZE()
+and for a NULL pointer.
 
-Either way doesn't really matter..
+WRT the other comment, the spare pointers consume far less space than
+the code for your switch statement.
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	David
