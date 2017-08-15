@@ -1,104 +1,37 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v1 11/11] Documentation: Hardware tag matching
-Date: Tue, 15 Aug 2017 11:59:12 +0300
-Message-ID: <20170815085912.10181-12-leon@kernel.org>
-References: <20170815085912.10181-1-leon@kernel.org>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: Flush warning
+Date: Tue, 15 Aug 2017 12:09:32 +0300
+Message-ID: <64134765-9a10-d014-3ac4-b0f747d6c670@grimberg.me>
+References: <016301d30c86$e7034ae0$b509e0a0$@opengridcomputing.com>
+ <9bc142de-b8ba-acb6-5ea1-2ccdbb578655@grimberg.me>
+ <003401d30f91$c7e2a3f0$57a7ebd0$@opengridcomputing.com>
+ <00ff01d3112b$94142350$bc3c69f0$@opengridcomputing.com>
+ <20170809162749.GA4069@obsidianresearch.com>
+ <011601d3112d$fa305b70$ee911250$@opengridcomputing.com>
+ <20170813064651.GR24282@mtr-leonro.local>
+ <90ada4f5-d6a1-2b93-5164-c593955c20cf@grimberg.me>
+ <20170813103359.GW24282@mtr-leonro.local>
+ <3d9cca62-4612-53dc-776c-3aeb2df58365@dev.mellanox.co.il>
+ <1828884A29C6694DAF28B7E6B8A82373AB17595A@ORSMSX109.amr.corp.intel.com>
+ <00be01d31521$cb237900$616a6b00$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170815085912.10181-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <00be01d31521$cb237900$616a6b00$@opengridcomputing.com>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Hal Rosenstock' <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Leon Romanovsky' <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, 'Hal Rosenstock' <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, 'Christoph Hellwig' <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add document providing definitions of terms and core explanations
-for tag matching (TM) protocols, eager and rendezvous,
-TM application header, tag list manipulations and matching process.
+> By the way, the queue I'm actually having the problem with is in the iwcm, not
+> the ibcm.  I think we should remove WQ_MEM_RECLAIM from all the CM queues
+> because I agree now that ulps potentially can/will allocate memory in the
+> contect of these workqueues...
 
-Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- Documentation/infiniband/tag_matching.txt | 64 +++++++++++++++++++++++++++++++
- 1 file changed, 64 insertions(+)
- create mode 100644 Documentation/infiniband/tag_matching.txt
-
-diff --git a/Documentation/infiniband/tag_matching.txt b/Documentation/infiniband/tag_matching.txt
-new file mode 100644
-index 000000000000..d2a3bf819226
---- /dev/null
-+++ b/Documentation/infiniband/tag_matching.txt
-@@ -0,0 +1,64 @@
-+Tag matching logic
-+
-+The MPI standard defines a set of rules, known as tag-matching, for matching
-+source send operations to destination receives.  The following parameters must
-+match the following source and destination parameters:
-+*	Communicator
-+*	User tag - wild card may be specified by the receiver
-+*	Source rank – wild car may be specified by the receiver
-+*	Destination rank – wild
-+The ordering rules require that when more than one pair of send and receive
-+message envelopes may match, the pair that includes the earliest posted-send
-+and the earliest posted-receive is the pair that must be used to satisfy the
-+matching operation. However, this doesn’t imply that tags are consumed in
-+the order they are created, e.g., a later generated tag may be consumed, if
-+earlier tags can’t be used to satisfy the matching rules.
-+
-+When a message is sent from the sender to the receiver, the communication
-+library may attempt to process the operation either after or before the
-+corresponding matching receive is posted.  If a matching receive is posted,
-+this is an expected message, otherwise it is called an unexpected message.
-+Implementations frequently use different matching schemes for these two
-+different matching instances.
-+
-+To keep MPI library memory footprint down, MPI implementations typically use
-+two different protocols for this purpose:
-+
-+1.	The Eager protocol- the complete message is sent when the send is
-+processed by the sender. A completion send is received in the send_cq
-+notifying that the buffer can be reused.
-+
-+2.	The Rendezvous Protocol - the sender sends the tag-matching header,
-+and perhaps a portion of data when first notifying the receiver. When the
-+corresponding buffer is posted, the responder will use the information from
-+the header to initiate an RDMA READ operation directly to the matching buffer.
-+A fin message needs to be received in order for the buffer to be reused.
-+
-+Tag matching implementation
-+
-+There are two types of matching objects used, the posted receive list and the
-+unexpected message list. The application posts receive buffers through calls
-+to the MPI receive routines in the posted receive list and posts send messages
-+using the MPI send routines. The head of the posted receive list may be
-+maintained by the hardware, with the software expected to shadow this list.
-+
-+When send is initiated and arrives at the receive side, if there is no
-+pre-posted receive for this arriving message, it is passed to the software and
-+placed in the unexpected message list. Otherwise the match is processed,
-+including rendezvous processing, if appropriate, delivering the data to the
-+specified receive buffer. This allows overlapping receive-side MPI tag
-+matching with computation.
-+
-+When a receive-message is posted, the communication library will first check
-+the software unexpected message list for a matching receive. If a match is
-+found, data is delivered to the user buffer, using a software controlled
-+protocol. The UCX implementation uses either an eager or rendezvous protocol,
-+depending on data size. If no match is found, the entire pre-posted receive
-+list is maintained by the hardware, and there is space to add one more
-+pre-posted receive to this list, this receive is passed to the hardware.
-+Software is expected to shadow this list, to help with processing MPI cancel
-+operations. In addition, because hardware and software are not expected to be
-+tightly synchronized with respect to the tag-matching operation, this shadow
-+list is used to detect the case that a pre-posted receive is passed to the
-+hardware, as the matching unexpected message is being passed from the hardware
-+to the software.
--- 
-2.14.0
-
+Agreed, want to take it Steve or should I?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
