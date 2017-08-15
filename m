@@ -1,40 +1,53 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCH 1/2] mlx4: remove unnecessary pci_set_drvdata()
-Date: Tue, 15 Aug 2017 11:21:49 -0600
-Message-ID: <20170815172149.GC15171@obsidianresearch.com>
-References: <1502778786-14738-1-git-send-email-yanjun.zhu@oracle.com>
- <20170815071336.GL24282@mtr-leonro.local>
+From: Stephen Hemminger <stephen@networkplumber.org>
+Subject: [PATCH net-next 0/4] various sizeof cleanups
+Date: Tue, 15 Aug 2017 10:29:15 -0700
+Message-ID: <20170815172919.26153-1-sthemmin@microsoft.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170815071336.GL24282@mtr-leonro.local>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leonro@mellanox.com>
-Cc: Zhu Yanjun <yanjun.zhu@oracle.com>, saeedm@mellanox.com, matanb@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, yuval.shaia@oracle.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <virtualization-bounces@lists.linux-foundation.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/virtualization>,
+	<mailto:virtualization-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/virtualization/>
+List-Post: <mailto:virtualization@lists.linux-foundation.org>
+List-Help: <mailto:virtualization-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/virtualization>,
+	<mailto:virtualization-request@lists.linux-foundation.org?subject=subscribe>
+Sender: virtualization-bounces@lists.linux-foundation.org
+Errors-To: virtualization-bounces@lists.linux-foundation.org
+To: mlindner@marvell.com, stephen@networkplumber.org, mst@redhat.com, jasowang@redhat.com
+Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Stephen Hemminger <sthemmin@microsoft.com>, virtualization@lists.linux-foundation.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 15, 2017 at 10:13:36AM +0300, Leon Romanovsky wrote:
-> On Tue, Aug 15, 2017 at 02:33:05AM -0400, Zhu Yanjun wrote:
-> > The driver core clears the driver data to NULL after device_release
-> > or on probe failure. Thus, it is not necessary to manually clear the
-> > device driver data to NULL.
-> >
-> 
-> It makes sense and I'm pretty sure that you are right, but I'm failing
-> to find the function in device core which sets it to NULL. Can you help
-> me and present the actual call stack to that code place?
+Noticed some places that were using sizeof as an operator.
+This is legal C but is not the convention used in the kernel.
 
-http://elixir.free-electrons.com/linux/v4.13-rc1/source/drivers/base/dd.c#L840
+Stephen Hemminger (4):
+  tun/tap: use paren's with sizeof
+  virtio: put paren around sizeof
+  skge: add paren around sizeof arg
+  mlx4: sizeof style usage
 
-The call to the remove callback is on line 833.
+ drivers/net/ethernet/marvell/skge.c                |  2 +-
+ drivers/net/ethernet/mellanox/mlx4/alloc.c         |  2 +-
+ drivers/net/ethernet/mellanox/mlx4/cmd.c           |  4 ++--
+ drivers/net/ethernet/mellanox/mlx4/en_resources.c  |  2 +-
+ drivers/net/ethernet/mellanox/mlx4/en_rx.c         |  2 +-
+ drivers/net/ethernet/mellanox/mlx4/en_tx.c         |  2 +-
+ drivers/net/ethernet/mellanox/mlx4/eq.c            | 20 +++++++++---------
+ drivers/net/ethernet/mellanox/mlx4/fw.c            |  2 +-
+ drivers/net/ethernet/mellanox/mlx4/icm.c           |  2 +-
+ drivers/net/ethernet/mellanox/mlx4/icm.h           |  4 ++--
+ drivers/net/ethernet/mellanox/mlx4/intf.c          |  2 +-
+ drivers/net/ethernet/mellanox/mlx4/main.c          | 12 +++++------
+ drivers/net/ethernet/mellanox/mlx4/mcg.c           | 12 +++++------
+ drivers/net/ethernet/mellanox/mlx4/mr.c            | 10 ++++-----
+ drivers/net/ethernet/mellanox/mlx4/qp.c            | 12 +++++------
+ .../net/ethernet/mellanox/mlx4/resource_tracker.c  | 24 +++++++++++-----------
+ drivers/net/tap.c                                  |  2 +-
+ drivers/net/tun.c                                  |  2 +-
+ drivers/net/virtio_net.c                           |  2 +-
+ 19 files changed, 60 insertions(+), 60 deletions(-)
 
-This is done after dropping devres, so you could allocate the drv data
-inside a devm object and everything would unwind correctly.
-
-In this case, the kfree is explicit, so I would advocate for still putting
-the null near the kfree to minimize the time where a free'd pointer is
-present - eg incase a devm callback or some other bug accidently
-touches it.
-
-Jason
+-- 
+2.11.0
