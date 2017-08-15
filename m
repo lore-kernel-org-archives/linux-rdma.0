@@ -1,47 +1,54 @@
-From: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 1/2] mlx4: remove unnecessary pci_set_drvdata()
-Date: Tue, 15 Aug 2017 02:33:05 -0400
-Message-ID: <1502778786-14738-1-git-send-email-yanjun.zhu@oracle.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: [PATCH 1/2] mlx4: remove unnecessary pci_set_drvdata()
+Date: Tue, 15 Aug 2017 10:13:36 +0300
+Message-ID: <20170815071336.GL24282@mtr-leonro.local>
+References: <1502778786-14738-1-git-send-email-yanjun.zhu@oracle.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="vkJ987n7uXEPtlXE"
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1502778786-14738-1-git-send-email-yanjun.zhu@oracle.com>
+Sender: netdev-owner@vger.kernel.org
+To: Zhu Yanjun <yanjun.zhu@oracle.com>
+Cc: saeedm@mellanox.com, matanb@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, yuval.shaia@oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-The driver core clears the driver data to NULL after device_release
-or on probe failure. Thus, it is not necessary to manually clear the
-device driver data to NULL.
 
-Cc: Joe Jin <joe.jin-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Junxiao Bi <junxiao.bi-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Zhu Yanjun <yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- drivers/net/ethernet/mellanox/mlx4/main.c | 2 --
- 1 file changed, 2 deletions(-)
+--vkJ987n7uXEPtlXE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index 09b9bc1..df9b0ef 100644
---- a/drivers/net/ethernet/mellanox/mlx4/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -3782,7 +3782,6 @@ static int __mlx4_init_one(struct pci_dev *pdev, int pci_dev_data,
- 
- err_disable_pdev:
- 	mlx4_pci_disable_device(&priv->dev);
--	pci_set_drvdata(pdev, NULL);
- 	return err;
- }
- 
-@@ -3997,7 +3996,6 @@ static void mlx4_remove_one(struct pci_dev *pdev)
- 	devlink_unregister(devlink);
- 	kfree(dev->persist);
- 	devlink_free(devlink);
--	pci_set_drvdata(pdev, NULL);
- }
- 
- static int restore_current_port_types(struct mlx4_dev *dev,
--- 
-2.7.4
+On Tue, Aug 15, 2017 at 02:33:05AM -0400, Zhu Yanjun wrote:
+> The driver core clears the driver data to NULL after device_release
+> or on probe failure. Thus, it is not necessary to manually clear the
+> device driver data to NULL.
+>
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It makes sense and I'm pretty sure that you are right, but I'm failing
+to find the function in device core which sets it to NULL. Can you help
+me and present the actual call stack to that code place?
+
+Thanks,
+
+--vkJ987n7uXEPtlXE
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmSnx8ACgkQ5GN7iDZy
+WKfmXA/+P3uZidyL/R9taLe6jflgXY4Wdo2QOQL7fgq7C7jfUMo7p5138WiH92nb
+r+TGdqL1u2W8XmSk67py17T7GPAj/ZzMfeLypFLvWoAfROdzD9OE/UZBMCfqvmQ3
+8wYPNQf0FAjRfSRZRH4oaDwZzAF2BJiuJTT4pFLfuuFX34i4kSPVXtSBadhesOzW
+cB+6qZsFmW17YHPW9Sg+GQvRQ/FXEL2i4ZmkzpwOcnYa9GujtQP7MjHCqjrTVrvl
+McdmrRFPN0WPJcGAM/iTcSysTUj9dux+jZhZLbH0U9RuSX1awh6RYqjEQc5oKtJA
+eSin6YmrvmtHUaktAlRyEzKWxOoFaak6L9nMfn2Iqb1RwtRz7jDxhlsuH/wdrF1S
+a0YZDWPXteU541s/Z1HsJ9af8f1mcY/rHypirCbYdSnFJ/NLI8TTwY2UBZhctEfP
+Lns1yaEo+wq7fc8GorPwoXF80bkNAkxfkeVJhGobgaOCnoR2e7hYhKxRXLWYBLiA
+TSZb73dIK4OdMT7DNpCUl4S46JQs3Vixs/TFyVMaAA7oozhSbN/CMnaH/GSS71Dx
+aoIz55srr74jpl3f72XtQl2Na9+v14xULOXIV2OcxUI9abWMZb5xgwLrsau9ZZTF
+r2C1JLjv5BIy2LnMApaXf9FTtIZHoi+nr3m2R6Br7P5w1w4/g2Y=
+=l4vv
+-----END PGP SIGNATURE-----
+
+--vkJ987n7uXEPtlXE--
