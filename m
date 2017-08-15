@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next 6/8] RDMA/core: Add physical link state information to the UAPI
-Date: Tue, 15 Aug 2017 12:14:29 +0300
-Message-ID: <20170815091431.12822-7-leon@kernel.org>
+Subject: [rdma-next 2/8] RDMA/core: Export device capabilities flags
+Date: Tue, 15 Aug 2017 12:14:25 +0300
+Message-ID: <20170815091431.12822-3-leon@kernel.org>
 References: <20170815091431.12822-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170815091431.12822-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,100 +12,251 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add physical link state information to the UAPI and convert hardcoded
-values to use the exported enum.
+Provide to the user space application the ability
+to understand device capabilities.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/sysfs.c | 24 ++++++++++++++++--------
- include/uapi/rdma/rdma.h        | 40 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 56 insertions(+), 8 deletions(-)
+ include/rdma/ib_verbs.h           |  68 ++++++++++++------------
+ include/uapi/rdma/ib_user_verbs.h |   1 +
+ include/uapi/rdma/rdma.h          | 106 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 140 insertions(+), 35 deletions(-)
+ create mode 100644 include/uapi/rdma/rdma.h
 
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index c43280f8d5b3..913919c6822b 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -284,14 +284,22 @@ static ssize_t phys_state_show(struct ib_port *p, struct port_attribute *unused,
- 		return ret;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 80ede01d2237..bfedcda04ef7 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -157,22 +157,21 @@ enum rdma_link_layer {
+ };
  
- 	switch (attr.phys_state) {
--	case 1:  return sprintf(buf, "1: Sleep\n");
--	case 2:  return sprintf(buf, "2: Polling\n");
--	case 3:  return sprintf(buf, "3: Disabled\n");
--	case 4:  return sprintf(buf, "4: PortConfigurationTraining\n");
--	case 5:  return sprintf(buf, "5: LinkUp\n");
--	case 6:  return sprintf(buf, "6: LinkErrorRecovery\n");
--	case 7:  return sprintf(buf, "7: Phy Test\n");
--	default: return sprintf(buf, "%d: <unknown>\n", attr.phys_state);
-+	case RDMA_LINK_PHYS_STATE_SLEEP:
-+		return sprintf(buf, "1: Sleep\n");
-+	case RDMA_LINK_PHYS_STATE_POLLING:
-+		return sprintf(buf, "2: Polling\n");
-+	case RDMA_LINK_PHYS_STATE_DISABLED:
-+		return sprintf(buf, "3: Disabled\n");
-+	case RDMA_LINK_PHYS_STATE_PORT_CONFIGURATION_TRAINING:
-+		return sprintf(buf, "4: PortConfigurationTraining\n");
-+	case RDMA_LINK_PHYS_STATE_LINK_UP:
-+		return sprintf(buf, "5: LinkUp\n");
-+	case RDMA_LINK_PHYS_STATE_LINK_ERROR_RECOVER:
-+		return sprintf(buf, "6: LinkErrorRecovery\n");
-+	case RDMA_LINK_PHYS_STATE_LINK_PHY_TEST:
-+		return sprintf(buf, "7: Phy Test\n");
-+	default:
-+		return sprintf(buf, "%d: <unknown>\n", attr.phys_state);
- 	}
- }
+ enum ib_device_cap_flags {
+-	IB_DEVICE_RESIZE_MAX_WR			= (1 << 0),
+-	IB_DEVICE_BAD_PKEY_CNTR			= (1 << 1),
+-	IB_DEVICE_BAD_QKEY_CNTR			= (1 << 2),
+-	IB_DEVICE_RAW_MULTI			= (1 << 3),
+-	IB_DEVICE_AUTO_PATH_MIG			= (1 << 4),
+-	IB_DEVICE_CHANGE_PHY_PORT		= (1 << 5),
+-	IB_DEVICE_UD_AV_PORT_ENFORCE		= (1 << 6),
+-	IB_DEVICE_CURR_QP_STATE_MOD		= (1 << 7),
+-	IB_DEVICE_SHUTDOWN_PORT			= (1 << 8),
++	IB_DEVICE_RESIZE_MAX_WR			= RDMA_DEV_RESIZE_MAX_WR,
++	IB_DEVICE_BAD_PKEY_CNTR			= RDMA_DEV_BAD_PKEY_CNTR,
++	IB_DEVICE_BAD_QKEY_CNTR			= RDMA_DEV_BAD_QKEY_CNTR,
++	IB_DEVICE_RAW_MULTI			= RDMA_DEV_RAW_MULTI,
++	IB_DEVICE_AUTO_PATH_MIG			= RDMA_DEV_AUTO_PATH_MIG,
++	IB_DEVICE_CHANGE_PHY_PORT		= RDMA_DEV_CHANGE_PHY_PORT,
++	IB_DEVICE_UD_AV_PORT_ENFORCE		= RDMA_DEV_UD_AV_PORT_ENFORCE,
++	IB_DEVICE_CURR_QP_STATE_MOD		= RDMA_DEV_CURR_QP_STATE_MOD,
++	IB_DEVICE_SHUTDOWN_PORT			= RDMA_DEV_SHUTDOWN_PORT,
+ 	/* Not in use, former INIT_TYPE		= (1 << 9),*/
+-	IB_DEVICE_PORT_ACTIVE_EVENT		= (1 << 10),
+-	IB_DEVICE_SYS_IMAGE_GUID		= (1 << 11),
+-	IB_DEVICE_RC_RNR_NAK_GEN		= (1 << 12),
+-	IB_DEVICE_SRQ_RESIZE			= (1 << 13),
+-	IB_DEVICE_N_NOTIFY_CQ			= (1 << 14),
+-
++	IB_DEVICE_PORT_ACTIVE_EVENT		= RDMA_DEV_PORT_ACTIVE_EVENT,
++	IB_DEVICE_SYS_IMAGE_GUID		= RDMA_DEV_SYS_IMAGE_GUID,
++	IB_DEVICE_RC_RNR_NAK_GEN		= RDMA_DEV_RC_RNR_NAK_GEN,
++	IB_DEVICE_SRQ_RESIZE			= RDMA_DEV_SRQ_RESIZE,
++	IB_DEVICE_N_NOTIFY_CQ			= RDMA_DEV_N_NOTIFY_CQ,
+ 	/*
+ 	 * This device supports a per-device lkey or stag that can be
+ 	 * used without performing a memory registration for the local
+@@ -180,9 +179,9 @@ enum ib_device_cap_flags {
+ 	 * instead of use the local_dma_lkey flag in the ib_pd structure,
+ 	 * which will always contain a usable lkey.
+ 	 */
+-	IB_DEVICE_LOCAL_DMA_LKEY		= (1 << 15),
++	IB_DEVICE_LOCAL_DMA_LKEY		= RDMA_DEV_LOCAL_DMA_LKEY,
+ 	/* Reserved, old SEND_W_INV		= (1 << 16),*/
+-	IB_DEVICE_MEM_WINDOW			= (1 << 17),
++	IB_DEVICE_MEM_WINDOW			= RDMA_DEV_MEM_WINDOW,
+ 	/*
+ 	 * Devices should set IB_DEVICE_UD_IP_SUM if they support
+ 	 * insertion of UDP and TCP checksum on outgoing UD IPoIB
+@@ -190,10 +189,9 @@ enum ib_device_cap_flags {
+ 	 * incoming messages.  Setting this flag implies that the
+ 	 * IPoIB driver may set NETIF_F_IP_CSUM for datagram mode.
+ 	 */
+-	IB_DEVICE_UD_IP_CSUM			= (1 << 18),
+-	IB_DEVICE_UD_TSO			= (1 << 19),
+-	IB_DEVICE_XRC				= (1 << 20),
+-
++	IB_DEVICE_UD_IP_CSUM			= RDMA_DEV_UD_IP_CSUM,
++	IB_DEVICE_UD_TSO			= RDMA_DEV_UD_TSO,
++	IB_DEVICE_XRC				= RDMA_DEV_XRC,
+ 	/*
+ 	 * This device supports the IB "base memory management extension",
+ 	 * which includes support for fast registrations (IB_WR_REG_MR,
+@@ -203,28 +201,28 @@ enum ib_device_cap_flags {
+ 	 * IB_WR_RDMA_READ_WITH_INV verb for RDMA READs that invalidate the
+ 	 * stag.
+ 	 */
+-	IB_DEVICE_MEM_MGT_EXTENSIONS		= (1 << 21),
+-	IB_DEVICE_BLOCK_MULTICAST_LOOPBACK	= (1 << 22),
+-	IB_DEVICE_MEM_WINDOW_TYPE_2A		= (1 << 23),
+-	IB_DEVICE_MEM_WINDOW_TYPE_2B		= (1 << 24),
+-	IB_DEVICE_RC_IP_CSUM			= (1 << 25),
++	IB_DEVICE_MEM_MGT_EXTENSIONS		= RDMA_DEV_MEM_MGT_EXTENSIONS,
++	IB_DEVICE_BLOCK_MULTICAST_LOOPBACK	= RDMA_DEV_BLOCK_MULTICAST_LOOPBACK,
++	IB_DEVICE_MEM_WINDOW_TYPE_2A		= RDMA_DEV_MEM_WINDOW_TYPE_2A,
++	IB_DEVICE_MEM_WINDOW_TYPE_2B		= RDMA_DEV_MEM_WINDOW_TYPE_2B,
++	IB_DEVICE_RC_IP_CSUM			= RDMA_DEV_RC_IP_CSUM,
+ 	/* Deprecated. Please use IB_RAW_PACKET_CAP_IP_CSUM. */
+-	IB_DEVICE_RAW_IP_CSUM			= (1 << 26),
++	IB_DEVICE_RAW_IP_CSUM			= RDMA_DEV_RAW_IP_CSUM,
+ 	/*
+ 	 * Devices should set IB_DEVICE_CROSS_CHANNEL if they
+ 	 * support execution of WQEs that involve synchronization
+ 	 * of I/O operations with single completion queue managed
+ 	 * by hardware.
+ 	 */
+-	IB_DEVICE_CROSS_CHANNEL			= (1 << 27),
+-	IB_DEVICE_MANAGED_FLOW_STEERING		= (1 << 29),
+-	IB_DEVICE_SIGNATURE_HANDOVER		= (1 << 30),
+-	IB_DEVICE_ON_DEMAND_PAGING		= (1ULL << 31),
+-	IB_DEVICE_SG_GAPS_REG			= (1ULL << 32),
+-	IB_DEVICE_VIRTUAL_FUNCTION		= (1ULL << 33),
++	IB_DEVICE_CROSS_CHANNEL			= RDMA_DEV_CROSS_CHANNEL,
++	IB_DEVICE_MANAGED_FLOW_STEERING		= RDMA_DEV_MANAGED_FLOW_STEERING,
++	IB_DEVICE_SIGNATURE_HANDOVER		= RDMA_DEV_SIGNATURE_HANDOVER,
++	IB_DEVICE_ON_DEMAND_PAGING		= RDMA_DEV_ON_DEMAND_PAGING,
++	IB_DEVICE_SG_GAPS_REG			= RDMA_DEV_SG_GAPS_REG,
++	IB_DEVICE_VIRTUAL_FUNCTION		= RDMA_DEV_VIRTUAL_FUNCTION,
+ 	/* Deprecated. Please use IB_RAW_PACKET_CAP_SCATTER_FCS. */
+-	IB_DEVICE_RAW_SCATTER_FCS		= (1ULL << 34),
+-	IB_DEVICE_RDMA_NETDEV_OPA_VNIC		= (1ULL << 35),
++	IB_DEVICE_RAW_SCATTER_FCS		= RDMA_DEV_RAW_SCATTER_FCS,
++	IB_DEVICE_RDMA_NETDEV_OPA_VNIC		= RDMA_DEV_RDMA_NETDEV_OPA_VNIC,
+ };
  
+ enum ib_signature_prot_cap {
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index 9a0b6479fe0c..803106ffa93c 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -37,6 +37,7 @@
+ #define IB_USER_VERBS_H
+ 
+ #include <linux/types.h>
++#include <rdma/rdma.h>
+ 
+ /*
+  * Increment this value if any changes that break userspace ABI
 diff --git a/include/uapi/rdma/rdma.h b/include/uapi/rdma/rdma.h
-index 5f4019e2c5d4..42af3fe57b5a 100644
---- a/include/uapi/rdma/rdma.h
+new file mode 100644
+index 000000000000..dcdf61474118
+--- /dev/null
 +++ b/include/uapi/rdma/rdma.h
-@@ -152,5 +152,45 @@ enum rdma_link_state {
- 	RDMA_LINK_STATE_ACTIVE,
- 	RDMA_LINK_STATE_ACTIVE_DEFER,
- };
-+
+@@ -0,0 +1,106 @@
 +/*
-+ * When writing this field, only values 0, 1, 2, and 3
-+ * are valid. Other values are ignored. See InfiniBand Architecture
-+ * Specification Volume 2, Link/Phy Interface chapter.
++ * Copyright (c) 2017 Mellanox Technologies.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
 + */
-+enum rdma_link_phys_state {
-+	/*
-+	 * 0 - 7 are according to the IB specification
-+	 * 8 - 15 -  Reserved and ignored in IB, but partially
-+	 *	     in use by OmniPath
-+	 */
-+	RDMA_LINK_PHYS_STATE_NOP,
-+	RDMA_LINK_PHYS_STATE_SLEEP,
-+	RDMA_LINK_PHYS_STATE_POLLING,
-+	RDMA_LINK_PHYS_STATE_DISABLED,
-+	RDMA_LINK_PHYS_STATE_PORT_CONFIGURATION_TRAINING,
-+	RDMA_LINK_PHYS_STATE_LINK_UP,
-+	RDMA_LINK_PHYS_STATE_LINK_ERROR_RECOVER,
-+	RDMA_LINK_PHYS_STATE_LINK_PHY_TEST,
 +
-+	/* 8 is reserved in OPA */
++#ifndef _RDMA_H
++#define _RDMA_H
 +
-+	/*
-+	 * Offline: Port is quiet (transmitters disabled) due to lack of
-+	 * physical media, unsupported media, or transition between link up
-+	 * and next link up attempt
-+	 */
-+	RDMA_LINK_PHYS_STATE_OFFLINE = 9,
-+
-+	/* 10 is reserved in OPA */
++enum rdma_dev_cap {
++	RDMA_DEV_RESIZE_MAX_WR			= (1 << 0),
++	RDMA_DEV_BAD_PKEY_CNTR			= (1 << 1),
++	RDMA_DEV_BAD_QKEY_CNTR			= (1 << 2),
++	RDMA_DEV_RAW_MULTI			= (1 << 3),
++	RDMA_DEV_AUTO_PATH_MIG			= (1 << 4),
++	RDMA_DEV_CHANGE_PHY_PORT		= (1 << 5),
++	RDMA_DEV_UD_AV_PORT_ENFORCE		= (1 << 6),
++	RDMA_DEV_CURR_QP_STATE_MOD		= (1 << 7),
++	RDMA_DEV_SHUTDOWN_PORT			= (1 << 8),
++	/* Not in use, former INIT_TYPE		= (1 << 9),*/
++	RDMA_DEV_PORT_ACTIVE_EVENT		= (1 << 10),
++	RDMA_DEV_SYS_IMAGE_GUID			= (1 << 11),
++	RDMA_DEV_RC_RNR_NAK_GEN			= (1 << 12),
++	RDMA_DEV_SRQ_RESIZE			= (1 << 13),
++	RDMA_DEV_N_NOTIFY_CQ			= (1 << 14),
 +
 +	/*
-+	 * Phy_Test: Specific test patterns are transmitted, and receiver BER
-+	 * can be monitored. This facilitates signal integrity testing for the
-+	 * physical layer of the port.
++	 * This device supports a per-device lkey or stag that can be
++	 * used without performing a memory registration for the local
++	 * memory.  Note that ULPs should never check this flag, but
++	 * instead of use the local_dma_lkey flag in the ib_pd structure,
++	 * which will always contain a usable lkey.
 +	 */
-+	RDMA_LINK_PHYS_STATE_TEST = 11,
++	RDMA_DEV_LOCAL_DMA_LKEY			= (1 << 15),
++	/* Reserved, old SEND_W_INV		= (1 << 16),*/
++	RDMA_DEV_MEM_WINDOW			= (1 << 17),
++	/*
++	 * Devices should set RDMA_DEV_UD_IP_SUM if they support
++	 * insertion of UDP and TCP checksum on outgoing UD IPoIB
++	 * messages and can verify the validity of checksum for
++	 * incoming messages.  Setting this flag implies that the
++	 * IPoIB driver may set NETIF_F_IP_CSUM for datagram mode.
++	 */
++	RDMA_DEV_UD_IP_CSUM			= (1 << 18),
++	RDMA_DEV_UD_TSO				= (1 << 19),
++	RDMA_DEV_XRC				= (1 << 20),
 +
-+	/* values 12-15 are reserved/ignored */
- };
- #endif /* _RDMA_H */
++	/*
++	 * This device supports the IB "base memory management extension",
++	 * which includes support for fast registrations (IB_WR_REG_MR,
++	 * IB_WR_LOCAL_INV and IB_WR_SEND_WITH_INV verbs).  This flag should
++	 * also be set by any iWarp device which must support FRs to comply
++	 * to the iWarp verbs spec.  iWarp devices also support the
++	 * IB_WR_RDMA_READ_WITH_INV verb for RDMA READs that invalidate the
++	 * stag.
++	 */
++	RDMA_DEV_MEM_MGT_EXTENSIONS		= (1 << 21),
++	RDMA_DEV_BLOCK_MULTICAST_LOOPBACK	= (1 << 22),
++	RDMA_DEV_MEM_WINDOW_TYPE_2A		= (1 << 23),
++	RDMA_DEV_MEM_WINDOW_TYPE_2B		= (1 << 24),
++	RDMA_DEV_RC_IP_CSUM			= (1 << 25),
++	/* Deprecated. Please use IB_RAW_PACKET_CAP_IP_CSUM. */
++	RDMA_DEV_RAW_IP_CSUM			= (1 << 26),
++	/*
++	 * Devices should set RDMA_DEV_CROSS_CHANNEL if they
++	 * support execution of WQEs that involve synchronization
++	 * of I/O operations with single completion queue managed
++	 * by hardware.
++	 */
++	RDMA_DEV_CROSS_CHANNEL			= (1 << 27),
++	RDMA_DEV_MANAGED_FLOW_STEERING		= (1 << 29),
++	RDMA_DEV_SIGNATURE_HANDOVER		= (1 << 30),
++	RDMA_DEV_ON_DEMAND_PAGING		= (1ULL << 31),
++	RDMA_DEV_SG_GAPS_REG			= (1ULL << 32),
++	RDMA_DEV_VIRTUAL_FUNCTION		= (1ULL << 33),
++	/* Deprecated. Please use IB_RAW_PACKET_CAP_SCATTER_FCS. */
++	RDMA_DEV_RAW_SCATTER_FCS		= (1ULL << 34),
++	RDMA_DEV_RDMA_NETDEV_OPA_VNIC		= (1ULL << 35),
++};
++#endif /* _RDMA_H */
 -- 
 2.14.0
 
