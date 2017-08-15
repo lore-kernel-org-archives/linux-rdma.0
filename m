@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v2 03/23] RDMA/mlx4: Don't use uninitialized variable
-Date: Tue, 15 Aug 2017 11:54:32 +0300
-Message-ID: <20170815085452.3546-4-leon@kernel.org>
+Subject: [rdma-next v2 08/23] RDMA/core: Delete BUG() from unreachable flow
+Date: Tue, 15 Aug 2017 11:54:37 +0300
+Message-ID: <20170815085452.3546-9-leon@kernel.org>
 References: <20170815085452.3546-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170815085452.3546-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,28 +12,43 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Avoid usage of uninitialized variable.
+Remove call to BUG() in case wrong node_type was provided.
+This flow is unreachable, because node_types are supplied
+from specific enum.
 
-Fixes: 3078f5f1bd8b ("IB/mlx4: Add support for RSS QP")
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/qp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/core/verbs.c | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index e42acfb20588..793d77f29d3e 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -2034,8 +2034,8 @@ static u8 gid_type_to_qpc(enum ib_gid_type gid_type)
-  */
- static int bringup_rss_rwqs(struct ib_rwq_ind_table *ind_tbl, u8 port_num)
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 21fef6b6d4f3..0d359a482b13 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -180,17 +180,13 @@ EXPORT_SYMBOL(ib_rate_to_mbps);
+ __attribute_const__ enum rdma_transport_type
+ rdma_node_get_transport(enum rdma_node_type node_type)
  {
-+	int err = 0;
- 	int i;
--	int err;
+-	switch (node_type) {
+-	case RDMA_NODE_IB_CA:
++	if (node_type == RDMA_NODE_IB_CA)
+ 		return RDMA_TRANSPORT_IB;
+-	case RDMA_NODE_RNIC:
++
++	if (node_type == RDMA_NODE_RNIC)
+ 		return RDMA_TRANSPORT_IWARP;
+-	case RDMA_NODE_USNIC_UDP:
+-		return RDMA_TRANSPORT_USNIC_UDP;
+-	default:
+-		BUG();
+-		return 0;
+-	}
++
++	return RDMA_TRANSPORT_USNIC_UDP;
+ }
+ EXPORT_SYMBOL(rdma_node_get_transport);
  
- 	for (i = 0; i < (1 << ind_tbl->log_ind_tbl_size); i++) {
- 		struct ib_wq *ibwq = ind_tbl->ind_tbl[i];
 -- 
 2.14.0
 
