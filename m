@@ -1,34 +1,31 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH v2 2/2] rdma: Autoload netlink client modules
-Date: Wed, 16 Aug 2017 09:36:20 -0600
-Message-ID: <20170816153620.GA22584@obsidianresearch.com>
-References: <1502744259-16966-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1502744259-16966-3-git-send-email-jgunthorpe@obsidianresearch.com>
- <20170815095651.GQ24282@mtr-leonro.local>
- <20170815153523.GA14623@obsidianresearch.com>
- <20170815155843.GT24282@mtr-leonro.local>
- <20170815165737.GB15171@obsidianresearch.com>
- <20170815174058.GW24282@mtr-leonro.local>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] iw_cxgb4: fix misuse of integer variable
+Date: Wed, 16 Aug 2017 11:44:51 -0400
+Message-ID: <1502898291.33760.13.camel@redhat.com>
+References: <20170725140248.D4532E0C82@smtp.ogc.us>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170815174058.GW24282-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20170725140248.D4532E0C82-/5N3P9jjx0xzbRFIqnYvSA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 15, 2017 at 08:40:58PM +0300, Leon Romanovsky wrote:
+On Tue, 2017-07-25 at 06:51 -0700, Steve Wise wrote:
+> Fixes: ee30f7d507c0 ("iw_cxgb4: Max fastreg depth depends on DSGL
+> support")
+> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> 
 
-> Can this be a solution?
-> http://elixir.free-electrons.com/linux/latest/source/include/uapi/linux/in.h#L27
+Thanks, applied (sorry I missed it before, it should have been in my
+last pull request).
 
-No, that is going the other way - continuing to provide compat
-#defines while using an enum underlying, the preprocessor still cannot
-see the value to build the string.
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
