@@ -1,145 +1,63 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH][V2] net/mlx4: fix spelling mistake: "availible" -> "available"
-Date: Wed, 16 Aug 2017 14:42:50 +0100
-Message-ID: <20170816134250.6689-1-colin.king@canonical.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 1/2] IB/mlx5: use kvmalloc_array for mlx5_ib_wq
+Date: Wed, 16 Aug 2017 16:57:57 +0300
+Message-ID: <20170816135757.GO24282@mtr-leonro.local>
+References: <20170816133123.20497-1-dongyang.li@anu.edu.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tariq Toukan <tariqt@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="eMGrAD5L3cjpiKtl"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170816133123.20497-1-dongyang.li-FCV4sgi5zeUQrrorzV6ljw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Li Dongyang <dongyang.li-FCV4sgi5zeUQrrorzV6ljw@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
 
-Trivial fix to spelling mistakes in the mlx4 driver.
+--eMGrAD5L3cjpiKtl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/net/ethernet/mellanox/mlx4/cmd.c    | 16 ++++++++--------
- drivers/net/ethernet/mellanox/mlx4/fw_qos.c |  6 +++---
- drivers/net/ethernet/mellanox/mlx4/fw_qos.h | 10 +++++-----
- 3 files changed, 16 insertions(+), 16 deletions(-)
+On Wed, Aug 16, 2017 at 11:31:22PM +1000, Li Dongyang wrote:
+> We observed multiple times on our Lustre OSS servers that when
+> the system memory is fragmented, kmalloc() in create_kernel_qp()
+> could fail order 4/5 allocations while we still have many free pages.
+>
+> Switch to kvmalloc_array() to allow the operation to contine.
+>
+> Signed-off-by: Li Dongyang <dongyang.li-FCV4sgi5zeUQrrorzV6ljw@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/mlx5/qp.c  | 35 ++++++++++++++++++++---------------
+>  drivers/infiniband/hw/mlx5/srq.c |  4 ++--
+>  2 files changed, 22 insertions(+), 17 deletions(-)
+>
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
-index 674773b28b2e..c6674bdd7da0 100644
---- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
-@@ -1958,19 +1958,19 @@ static void mlx4_allocate_port_vpps(struct mlx4_dev *dev, int port)
- 	int i;
- 	int err;
- 	int num_vfs;
--	u16 availible_vpp;
-+	u16 available_vpp;
- 	u8 vpp_param[MLX4_NUM_UP];
- 	struct mlx4_qos_manager *port_qos;
- 	struct mlx4_priv *priv = mlx4_priv(dev);
- 
--	err = mlx4_ALLOCATE_VPP_get(dev, port, &availible_vpp, vpp_param);
-+	err = mlx4_ALLOCATE_VPP_get(dev, port, &available_vpp, vpp_param);
- 	if (err) {
--		mlx4_info(dev, "Failed query availible VPPs\n");
-+		mlx4_info(dev, "Failed query available VPPs\n");
- 		return;
- 	}
- 
- 	port_qos = &priv->mfunc.master.qos_ctl[port];
--	num_vfs = (availible_vpp /
-+	num_vfs = (available_vpp /
- 		   bitmap_weight(port_qos->priority_bm, MLX4_NUM_UP));
- 
- 	for (i = 0; i < MLX4_NUM_UP; i++) {
-@@ -1985,14 +1985,14 @@ static void mlx4_allocate_port_vpps(struct mlx4_dev *dev, int port)
- 	}
- 
- 	/* Query actual allocated VPP, just to make sure */
--	err = mlx4_ALLOCATE_VPP_get(dev, port, &availible_vpp, vpp_param);
-+	err = mlx4_ALLOCATE_VPP_get(dev, port, &available_vpp, vpp_param);
- 	if (err) {
--		mlx4_info(dev, "Failed query availible VPPs\n");
-+		mlx4_info(dev, "Failed query available VPPs\n");
- 		return;
- 	}
- 
- 	port_qos->num_of_qos_vfs = num_vfs;
--	mlx4_dbg(dev, "Port %d Availible VPPs %d\n", port, availible_vpp);
-+	mlx4_dbg(dev, "Port %d Available VPPs %d\n", port, available_vpp);
- 
- 	for (i = 0; i < MLX4_NUM_UP; i++)
- 		mlx4_dbg(dev, "Port %d UP %d Allocated %d VPPs\n", port, i,
-@@ -2891,7 +2891,7 @@ static int mlx4_set_vport_qos(struct mlx4_priv *priv, int slave, int port,
- 	memset(vpp_qos, 0, sizeof(struct mlx4_vport_qos_param) * MLX4_NUM_UP);
- 
- 	if (slave > port_qos->num_of_qos_vfs) {
--		mlx4_info(dev, "No availible VPP resources for this VF\n");
-+		mlx4_info(dev, "No available VPP resources for this VF\n");
- 		return -EINVAL;
- 	}
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/fw_qos.c b/drivers/net/ethernet/mellanox/mlx4/fw_qos.c
-index 8f2fde0487c4..3a09d7122d3b 100644
---- a/drivers/net/ethernet/mellanox/mlx4/fw_qos.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/fw_qos.c
-@@ -65,7 +65,7 @@ struct mlx4_set_port_scheduler_context {
- 
- /* Granular Qos (per VF) section */
- struct mlx4_alloc_vpp_param {
--	__be32 availible_vpp;
-+	__be32 available_vpp;
- 	__be32 vpp_p_up[MLX4_NUM_UP];
- };
- 
-@@ -157,7 +157,7 @@ int mlx4_SET_PORT_SCHEDULER(struct mlx4_dev *dev, u8 port, u8 *tc_tx_bw,
- EXPORT_SYMBOL(mlx4_SET_PORT_SCHEDULER);
- 
- int mlx4_ALLOCATE_VPP_get(struct mlx4_dev *dev, u8 port,
--			  u16 *availible_vpp, u8 *vpp_p_up)
-+			  u16 *available_vpp, u8 *vpp_p_up)
- {
- 	int i;
- 	int err;
-@@ -179,7 +179,7 @@ int mlx4_ALLOCATE_VPP_get(struct mlx4_dev *dev, u8 port,
- 		goto out;
- 
- 	/* Total number of supported VPPs */
--	*availible_vpp = (u16)be32_to_cpu(out_param->availible_vpp);
-+	*available_vpp = (u16)be32_to_cpu(out_param->available_vpp);
- 
- 	for (i = 0; i < MLX4_NUM_UP; i++)
- 		vpp_p_up[i] = (u8)be32_to_cpu(out_param->vpp_p_up[i]);
-diff --git a/drivers/net/ethernet/mellanox/mlx4/fw_qos.h b/drivers/net/ethernet/mellanox/mlx4/fw_qos.h
-index ac1f331878e6..582997577a04 100644
---- a/drivers/net/ethernet/mellanox/mlx4/fw_qos.h
-+++ b/drivers/net/ethernet/mellanox/mlx4/fw_qos.h
-@@ -84,23 +84,23 @@ int mlx4_SET_PORT_PRIO2TC(struct mlx4_dev *dev, u8 port, u8 *prio2tc);
- int mlx4_SET_PORT_SCHEDULER(struct mlx4_dev *dev, u8 port, u8 *tc_tx_bw,
- 			    u8 *pg, u16 *ratelimit);
- /**
-- * mlx4_ALLOCATE_VPP_get - Query port VPP availible resources and allocation.
-- * Before distribution of VPPs to priorities, only availible_vpp is returned.
-+ * mlx4_ALLOCATE_VPP_get - Query port VPP available resources and allocation.
-+ * Before distribution of VPPs to priorities, only available_vpp is returned.
-  * After initialization it returns the distribution of VPPs among priorities.
-  *
-  * @dev: mlx4_dev.
-  * @port: Physical port number.
-- * @availible_vpp: Pointer to variable where number of availible VPPs is stored
-+ * @available_vpp: Pointer to variable where number of available VPPs is stored
-  * @vpp_p_up: Distribution of VPPs to priorities is stored in this array
-  *
-  * Returns 0 on success or a negative mlx4_core errno code.
-  **/
- int mlx4_ALLOCATE_VPP_get(struct mlx4_dev *dev, u8 port,
--			  u16 *availible_vpp, u8 *vpp_p_up);
-+			  u16 *available_vpp, u8 *vpp_p_up);
- /**
-  * mlx4_ALLOCATE_VPP_set - Distribution of VPPs among differnt priorities.
-  * The total number of VPPs assigned to all for a port must not exceed
-- * the value reported by availible_vpp in mlx4_ALLOCATE_VPP_get.
-+ * the value reported by available_vpp in mlx4_ALLOCATE_VPP_get.
-  * VPP allocation is allowed only after the port type has been set,
-  * and while no QPs are open for this port.
-  *
--- 
-2.11.0
+Thanks,
+Acked-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+--eMGrAD5L3cjpiKtl
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmUT2UACgkQ5GN7iDZy
+WKdiKRAAhAKe8ML1XEmmsrEJQTKR08F4IBAVtXmuqMPqktQcTCZbwn6zJhbzT5Pp
+bZSQVBMY9FgvvS9sRjo4njVSOR/jCkCK7hH/2xawqGqGKtkPQse6E+4I2VfD0pPO
+8v1uhs/DvAjVTyvNFd18eZIV597B5blrQorQCJcxt92eJwRXKoIBAzQ4d+23sbHg
+Ck21dlDO8F+5KnGViWtZOBmobs+gPes3SkN4J8LqTCcaCib2F7KpUhy85+te+95x
+UlAwbQCfy/5yQaZYeO3LLX1B7V+DyTu0KOqOkcEFiDiE8f8Pq0KlQOZP96QtD1rZ
+KoQ2SMXPs7gNdwvP0jRuBfjjhC0+pkHFX6BVIf5kWQPn9QLIYD9TXlj0kkbDWqw4
+Ps+7KfV8zj6Vfg0cPVg1I67X/RI924/91p6Jfurf891GqkID2TVum7PXcagWNR/N
+Q7gxSp8uUJf+pGncEv+13L82JnPxNZFHhDsBW/UxtTl9ZLsBwidPGmfGtyU6MEHM
+KMiqATjsk/ydhKqRnwkrgxwe7AZPNJnJBjFM2MJjSKMu0g9UnE3ppPW2KojzqBAo
+hN5ho+RPGRTMzZh9kWkSB5sx2vo7vE7jhfnAlfKeBVHTpFBQsciUs89tt95oDTSG
+j/QM7Ik5PF5wyXL2vCSCeBvKoUVfqd3E6YlNCoZMc47ERnX+6Yo=
+=QlSC
+-----END PGP SIGNATURE-----
+
+--eMGrAD5L3cjpiKtl--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
