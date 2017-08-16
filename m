@@ -1,49 +1,34 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/core: fix memory leak on ah on error return path
-Date: Wed, 16 Aug 2017 11:32:37 -0400
-Message-ID: <1502897557.33760.12.camel@redhat.com>
-References: <20170808101054.13800-1-colin.king@canonical.com>
-         <20170808102026.GG3926@linux-x5ow.site>
-         <866a49ab-6f7b-4b46-062b-6230e48da725@canonical.com>
-         <20170808125927.GK3926@linux-x5ow.site>
-         <VI1PR0502MB30082DCBDA1C4B0F071D3DABD18A0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH v2 2/2] rdma: Autoload netlink client modules
+Date: Wed, 16 Aug 2017 09:36:20 -0600
+Message-ID: <20170816153620.GA22584@obsidianresearch.com>
+References: <1502744259-16966-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1502744259-16966-3-git-send-email-jgunthorpe@obsidianresearch.com>
+ <20170815095651.GQ24282@mtr-leonro.local>
+ <20170815153523.GA14623@obsidianresearch.com>
+ <20170815155843.GT24282@mtr-leonro.local>
+ <20170815165737.GB15171@obsidianresearch.com>
+ <20170815174058.GW24282@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <VI1PR0502MB30082DCBDA1C4B0F071D3DABD18A0-o1MPJYiShExKsLr+rGaxW8DSnupUy6xnnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170815174058.GW24282-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>, Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Cc: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-08-08 at 19:48 +0000, Parav Pandit wrote:
-> Hi,
-> 
-> I need to top post because comments are unrelated to past discussion.
-> 
-> rdma_ah_retrieve_dmac() can never fail for RoCE as its returning
-> pointer from structure ah_attr.
-> Provider driver doesn't need to check for null pointer as ib/core
-> would never call provider if it's not RoCE provider.
-> So this memory leak only exist in theory.
-> 
-> When its null, driver should WARN_ON/BUG_ON in extreme case, but
-> that's not necessary either.
-> 
-> I have patch is progress under internal review that does nice small
-> cleanup in many provider drivers that eliminates the check
-> completely.
-> Waiting for Moni to finish the review.
+On Tue, Aug 15, 2017 at 08:40:58PM +0300, Leon Romanovsky wrote:
 
-This sounds like a nice patch to push into for-next, but in the
-meantime I took the V2 of this patch as it silences a checker warning.
+> Can this be a solution?
+> http://elixir.free-electrons.com/linux/latest/source/include/uapi/linux/in.h#L27
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+No, that is going the other way - continuing to provide compat
+#defines while using an enum underlying, the preprocessor still cannot
+see the value to build the string.
 
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
