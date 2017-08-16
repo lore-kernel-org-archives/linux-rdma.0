@@ -1,63 +1,134 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH] IB/mlx5: make function mlx5_ib_get_vector_affinity
-Date: Wed, 16 Aug 2017 13:03:34 +0300
-Message-ID: <20170816100334.GL24282@mtr-leonro.local>
-References: <20170816092940.11158-1-colin.king@canonical.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="yV94raM4eJLN8srE"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170816092940.11158-1-colin.king@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
-Cc: Matan Barak <matanb@mellanox.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Li Dongyang <dongyang.li-FCV4sgi5zeUQrrorzV6ljw@public.gmane.org>
+Subject: [PATCH] IB/mlx5: fall back to vmalloc for mlx5_ib_wq
+Date: Wed, 16 Aug 2017 21:06:32 +1000
+Message-ID: <20170816110632.9779-1-dongyang.li@anu.edu.au>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+We observed multiple times on our Lustre OSS servers that when
+the system memory is fragmented, kmalloc() in create_kernel_qp()
+could fail order 4/5 allocations while we still have many free pages.
 
---yV94raM4eJLN8srE
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Fall back to vmalloc to allow the operation to contine, also switch
+to kmalloc_array() from kmalloc().
 
-On Wed, Aug 16, 2017 at 10:29:40AM +0100, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
->
-> The function mlx5_ib_get_vector_affinity is local to the source
-> and does not need to be in global scope, so make it static.
->
-> Cleans up sparse warning:
-> symbol 'mlx5_ib_get_vector_affinity' was not declared. Should it be static?
->
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-> ---
->  drivers/infiniband/hw/mlx5/main.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+Signed-off-by: Li Dongyang <dongyang.li-FCV4sgi5zeUQrrorzV6ljw@public.gmane.org>
+---
+ drivers/infiniband/hw/mlx5/qp.c  | 54 +++++++++++++++++++++++++++++-----------
+ drivers/infiniband/hw/mlx5/srq.c |  8 ++++--
+ 2 files changed, 45 insertions(+), 17 deletions(-)
 
-Hi Colin,
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 0889ff367c86..e662fa5af5bb 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -959,11 +959,35 @@ static int create_kernel_qp(struct mlx5_ib_dev *dev,
+ 		goto err_free;
+ 	}
+ 
+-	qp->sq.wrid = kmalloc(qp->sq.wqe_cnt * sizeof(*qp->sq.wrid), GFP_KERNEL);
+-	qp->sq.wr_data = kmalloc(qp->sq.wqe_cnt * sizeof(*qp->sq.wr_data), GFP_KERNEL);
+-	qp->rq.wrid = kmalloc(qp->rq.wqe_cnt * sizeof(*qp->rq.wrid), GFP_KERNEL);
+-	qp->sq.w_list = kmalloc(qp->sq.wqe_cnt * sizeof(*qp->sq.w_list), GFP_KERNEL);
+-	qp->sq.wqe_head = kmalloc(qp->sq.wqe_cnt * sizeof(*qp->sq.wqe_head), GFP_KERNEL);
++	qp->sq.wrid = kmalloc_array(qp->sq.wqe_cnt, sizeof(*qp->sq.wrid),
++				    GFP_KERNEL | __GFP_NOWARN);
++	if (!qp->sq.wrid)
++		qp->sq.wrid = __vmalloc(qp->sq.wqe_cnt * sizeof(*qp->sq.wrid),
++					GFP_KERNEL, PAGE_KERNEL);
++	qp->sq.wr_data = kmalloc_array(qp->sq.wqe_cnt, sizeof(*qp->sq.wr_data),
++				       GFP_KERNEL | __GFP_NOWARN);
++	if (!qp->sq.wr_data)
++		qp->sq.wr_data = __vmalloc(qp->sq.wqe_cnt *
++					   sizeof(*qp->sq.wr_data),
++					   GFP_KERNEL, PAGE_KERNEL);
++	qp->rq.wrid = kmalloc_array(qp->rq.wqe_cnt, sizeof(*qp->rq.wrid),
++				    GFP_KERNEL | __GFP_NOWARN);
++	if (!qp->rq.wrid)
++		qp->rq.wrid = __vmalloc(qp->rq.wqe_cnt * sizeof(*qp->rq.wrid),
++					GFP_KERNEL, PAGE_KERNEL);
++	qp->sq.w_list = kmalloc_array(qp->sq.wqe_cnt, sizeof(*qp->sq.w_list),
++				      GFP_KERNEL | __GFP_NOWARN);
++	if (!qp->sq.w_list)
++		qp->sq.w_list = __vmalloc(qp->sq.wqe_cnt *
++					  sizeof(*qp->sq.w_list),
++					  GFP_KERNEL, PAGE_KERNEL);
++	qp->sq.wqe_head = kmalloc_array(qp->sq.wqe_cnt,
++					sizeof(*qp->sq.wqe_head),
++					GFP_KERNEL | __GFP_NOWARN);
++	if (!qp->sq.wqe_head)
++		qp->sq.wqe_head = __vmalloc(qp->sq.wqe_cnt *
++					    sizeof(*qp->sq.wqe_head),
++					    GFP_KERNEL, PAGE_KERNEL);
+ 
+ 	if (!qp->sq.wrid || !qp->sq.wr_data || !qp->rq.wrid ||
+ 	    !qp->sq.w_list || !qp->sq.wqe_head) {
+@@ -975,11 +999,11 @@ static int create_kernel_qp(struct mlx5_ib_dev *dev,
+ 	return 0;
+ 
+ err_wrid:
+-	kfree(qp->sq.wqe_head);
+-	kfree(qp->sq.w_list);
+-	kfree(qp->sq.wrid);
+-	kfree(qp->sq.wr_data);
+-	kfree(qp->rq.wrid);
++	kvfree(qp->sq.wqe_head);
++	kvfree(qp->sq.w_list);
++	kvfree(qp->sq.wrid);
++	kvfree(qp->sq.wr_data);
++	kvfree(qp->rq.wrid);
+ 	mlx5_db_free(dev->mdev, &qp->db);
+ 
+ err_free:
+@@ -992,11 +1016,11 @@ static int create_kernel_qp(struct mlx5_ib_dev *dev,
+ 
+ static void destroy_qp_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
+ {
+-	kfree(qp->sq.wqe_head);
+-	kfree(qp->sq.w_list);
+-	kfree(qp->sq.wrid);
+-	kfree(qp->sq.wr_data);
+-	kfree(qp->rq.wrid);
++	kvfree(qp->sq.wqe_head);
++	kvfree(qp->sq.w_list);
++	kvfree(qp->sq.wrid);
++	kvfree(qp->sq.wr_data);
++	kvfree(qp->rq.wrid);
+ 	mlx5_db_free(dev->mdev, &qp->db);
+ 	mlx5_buf_free(dev->mdev, &qp->buf);
+ }
+diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx5/srq.c
+index 43707b101f47..08a91f3ea240 100644
+--- a/drivers/infiniband/hw/mlx5/srq.c
++++ b/drivers/infiniband/hw/mlx5/srq.c
+@@ -196,7 +196,11 @@ static int create_srq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_srq *srq,
+ 	}
+ 	mlx5_fill_page_array(&srq->buf, in->pas);
+ 
+-	srq->wrid = kmalloc(srq->msrq.max * sizeof(u64), GFP_KERNEL);
++	srq->wrid = kmalloc_array(srq->msrq.max, sizeof(u64),
++				  GFP_KERNEL | __GFP_NOWARN);
++	if (!srq->wrid)
++		srq->wrid = __vmalloc(srq->msrq.max * sizeof(u64),
++				      GFP_KERNEL, PAGE_KERNEL);
+ 	if (!srq->wrid) {
+ 		err = -ENOMEM;
+ 		goto err_in;
+@@ -230,7 +234,7 @@ static void destroy_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq)
+ 
+ static void destroy_srq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_srq *srq)
+ {
+-	kfree(srq->wrid);
++	kvfree(srq->wrid);
+ 	mlx5_buf_free(dev->mdev, &srq->buf);
+ 	mlx5_db_free(dev->mdev, &srq->db);
+ }
+-- 
+2.14.1
 
-It was already posted to the mailing list:
-https://patchwork.kernel.org/patch/9901353/
-
-Thanks
-
---yV94raM4eJLN8srE
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmUGHUACgkQ5GN7iDZy
-WKfK+hAAnPZ0sxCEW4qOZdNbAUcCaoGf9uAP8pI33FqDY6EnqbXnC0UID9WryHe6
-H8vxBEwZNlDb8Gtvb4lVownthY61vpVu9o4xV7OJf/3Ey5MyD5x12S6x12BWkxRc
-KvM3ZwKrbxqjBVTGdP9MJgC+0bjFd2HJE2e0h+kxUpeO+GqdYztm5Da92OIJY+KU
-EMNMNF9PUV5eLPzKO9yTc9wutMwMI2crlKPKQPiXlO/jgPXZE4qOdpJdAK6Qn0Hm
-o2vJhleFOZ/q943AgFdP9JVzzUQnQ/MVBK5QLrSjiQojG4DUUuYKXLD74Vn/jv2w
-UnbZ91yHlhh3e3lG4jdAfsh2lqxPGIYA6euoQP3filrwLbXA5CFuaZp8NsTYr4fh
-swb7d79d0deEmP9/mczEqLcjOriR8o7zWo9Kumdv22jjis87r5joKTPFqTY1mijr
-DeyAyCANJhphhjR/Xevb2KkhA3plIvuvojNDmfqPntp3jrojHCy73pYo+im1blyO
-01GhAvJrwAvZUPz2JPzdvP9RGhQzPEUCltcKAaVKi53eEiVPnMrKHQK7Y9YioWM+
-L03cvMffyJZfplqVyVEFTXwV79LQtKHrcmf2l3oCtRpj755kLCz6pnSoNo0CYXRS
-KrjQeHdMZ5pbORnU7v1iOKggPEHLZ5us7/h2w9YYrT6Y/zzA7LA=
-=xU+e
------END PGP SIGNATURE-----
-
---yV94raM4eJLN8srE--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
