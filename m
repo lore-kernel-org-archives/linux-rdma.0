@@ -1,58 +1,181 @@
-From: Dongyang Li <dongyang.li-FCV4sgi5zeUQrrorzV6ljw@public.gmane.org>
-Subject: Re: [PATCH] IB/mlx5: fall back to vmalloc for mlx5_ib_wq
-Date: Wed, 16 Aug 2017 12:50:20 +0000
-Message-ID: <1502887814.25084.1.camel@anu.edu.au>
-References: <20170816110632.9779-1-dongyang.li@anu.edu.au>
-         <20170816121205.GN24282@mtr-leonro.local>
+From: "Boyer, Andrew" <Andrew.Boyer@dell.com>
+Subject: Re: [PATCH] net/mlx4: fix spelling mistake: "availible" ->
+ "available"
+Date: Wed, 16 Aug 2017 13:27:09 +0000
+Message-ID: <D5B9C03F.1D2C0%Andrew.Boyer@emc.com>
+References: <20170816090511.10463-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170816121205.GN24282-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170816090511.10463-1-colin.king@canonical.com>
 Content-Language: en-US
-Content-ID: <67668D052CAC1C439DA9B2978EEC9E20-ZkTFankGvyWcE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-ID: <BB1C4C8206975049BB4773B61D7D2E05@mail.corp.emc.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Colin King <colin.king@canonical.com>, Tariq Toukan <tariqt@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Cc: "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SSdtIHNvIG91dCBvZiB0b3VjaCB3aXRoIHRoZSBuZXcgaW50ZXJmYWNlcyBpbiB0aGUga2VybmVs
-Lg0KV2lsbCBwb3N0IHVwZGF0ZWQgcGF0Y2guDQoNClRoYW5rcw0KRG9uZ3lhbmcNCk9uIFdlZCwg
-MjAxNy0wOC0xNiBhdCAxNToxMiArMDMwMCwgTGVvbiBSb21hbm92c2t5IHdyb3RlOg0KPiBPbiBX
-ZWQsIEF1ZyAxNiwgMjAxNyBhdCAwOTowNjozMlBNICsxMDAwLCBMaSBEb25neWFuZyB3cm90ZToN
-Cj4gPiBXZSBvYnNlcnZlZCBtdWx0aXBsZSB0aW1lcyBvbiBvdXIgTHVzdHJlIE9TUyBzZXJ2ZXJz
-IHRoYXQgd2hlbg0KPiA+IHRoZSBzeXN0ZW0gbWVtb3J5IGlzIGZyYWdtZW50ZWQsIGttYWxsb2Mo
-KSBpbiBjcmVhdGVfa2VybmVsX3FwKCkNCj4gPiBjb3VsZCBmYWlsIG9yZGVyIDQvNSBhbGxvY2F0
-aW9ucyB3aGlsZSB3ZSBzdGlsbCBoYXZlIG1hbnkgZnJlZQ0KPiA+IHBhZ2VzLg0KPiA+IA0KPiA+
-IEZhbGwgYmFjayB0byB2bWFsbG9jIHRvIGFsbG93IHRoZSBvcGVyYXRpb24gdG8gY29udGluZSwg
-YWxzbyBzd2l0Y2gNCj4gPiB0byBrbWFsbG9jX2FycmF5KCkgZnJvbSBrbWFsbG9jKCkuDQo+ID4g
-DQo+ID4gU2lnbmVkLW9mZi1ieTogTGkgRG9uZ3lhbmcgPGRvbmd5YW5nLmxpQGFudS5lZHUuYXU+
-DQo+ID4gLS0tDQo+ID4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L3FwLmMgIHwgNTQNCj4g
-PiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tDQo+ID4gIGRyaXZlcnMv
-aW5maW5pYmFuZC9ody9tbHg1L3NycS5jIHwgIDggKysrKy0tDQo+ID4gIDIgZmlsZXMgY2hhbmdl
-ZCwgNDUgaW5zZXJ0aW9ucygrKSwgMTcgZGVsZXRpb25zKC0pDQo+ID4gDQo+ID4gZGlmZiAtLWdp
-dCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L3FwLmMNCj4gPiBiL2RyaXZlcnMvaW5maW5p
-YmFuZC9ody9tbHg1L3FwLmMNCj4gPiBpbmRleCAwODg5ZmYzNjdjODYuLmU2NjJmYTVhZjViYiAx
-MDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NS9xcC5jDQo+ID4gKysr
-IGIvZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDUvcXAuYw0KPiA+IEBAIC05NTksMTEgKzk1OSwz
-NSBAQCBzdGF0aWMgaW50IGNyZWF0ZV9rZXJuZWxfcXAoc3RydWN0DQo+ID4gbWx4NV9pYl9kZXYg
-KmRldiwNCj4gPiAgCQlnb3RvIGVycl9mcmVlOw0KPiA+ICAJfQ0KPiA+IA0KPiA+IC0JcXAtPnNx
-LndyaWQgPSBrbWFsbG9jKHFwLT5zcS53cWVfY250ICogc2l6ZW9mKCpxcC0NCj4gPiA+c3Eud3Jp
-ZCksIEdGUF9LRVJORUwpOw0KPiA+IC0JcXAtPnNxLndyX2RhdGEgPSBrbWFsbG9jKHFwLT5zcS53
-cWVfY250ICogc2l6ZW9mKCpxcC0NCj4gPiA+c3Eud3JfZGF0YSksIEdGUF9LRVJORUwpOw0KPiA+
-IC0JcXAtPnJxLndyaWQgPSBrbWFsbG9jKHFwLT5ycS53cWVfY250ICogc2l6ZW9mKCpxcC0NCj4g
-PiA+cnEud3JpZCksIEdGUF9LRVJORUwpOw0KPiA+IC0JcXAtPnNxLndfbGlzdCA9IGttYWxsb2Mo
-cXAtPnNxLndxZV9jbnQgKiBzaXplb2YoKnFwLQ0KPiA+ID5zcS53X2xpc3QpLCBHRlBfS0VSTkVM
-KTsNCj4gPiAtCXFwLT5zcS53cWVfaGVhZCA9IGttYWxsb2MocXAtPnNxLndxZV9jbnQgKiBzaXpl
-b2YoKnFwLQ0KPiA+ID5zcS53cWVfaGVhZCksIEdGUF9LRVJORUwpOw0KPiA+ICsJcXAtPnNxLndy
-aWQgPSBrbWFsbG9jX2FycmF5KHFwLT5zcS53cWVfY250LCBzaXplb2YoKnFwLQ0KPiA+ID5zcS53
-cmlkKSwNCj4gPiArCQkJCSAgICBHRlBfS0VSTkVMIHwgX19HRlBfTk9XQVJOKTsNCj4gPiArCWlm
-ICghcXAtPnNxLndyaWQpDQo+ID4gKwkJcXAtPnNxLndyaWQgPSBfX3ZtYWxsb2MocXAtPnNxLndx
-ZV9jbnQgKg0KPiA+IHNpemVvZigqcXAtPnNxLndyaWQpLA0KPiA+ICsJCQkJCUdGUF9LRVJORUws
-IFBBR0VfS0VSTkVMKTsNCj4gDQo+IFBsZWFzZSBkb24ndCBvcGVuIGNvZGUsIHRoZSBrdm1hbGxv
-YyBhbmQga3ZtYWxsb2NfYXJyYXkgZnVuY3Rpb25zLg0KPiANCj4gVGhhbmtzIGZvciBkb2luZyBp
-dC4=
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+On 8/16/17, 5:05 AM, "linux-rdma-owner@vger.kernel.org on behalf of Colin
+King" <linux-rdma-owner@vger.kernel.org on behalf of
+colin.king@canonical.com> wrote:
+
+>From: Colin Ian King <colin.king@canonical.com>
+>
+>Trivial fix to spelling mistakes in the mlx4 driver
+>
+>Signed-off-by: Colin Ian King <colin.king@canonical.com>
+>---
+> drivers/net/ethernet/mellanox/mlx4/cmd.c    | 16 ++++++++--------
+> drivers/net/ethernet/mellanox/mlx4/fw_qos.c |  6 +++---
+> drivers/net/ethernet/mellanox/mlx4/fw_qos.h | 10 +++++-----
+> 3 files changed, 16 insertions(+), 16 deletions(-)
+>
+>diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c
+>b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+>index 674773b28b2e..6309389b09a7 100644
+>--- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
+>+++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+>@@ -1958,19 +1958,19 @@ static void mlx4_allocate_port_vpps(struct
+>mlx4_dev *dev, int port)
+> 	int i;
+> 	int err;
+> 	int num_vfs;
+>-	u16 availible_vpp;
+>+	u16 available_vpp;
+> 	u8 vpp_param[MLX4_NUM_UP];
+> 	struct mlx4_qos_manager *port_qos;
+> 	struct mlx4_priv *priv =3D mlx4_priv(dev);
+>=20
+>-	err =3D mlx4_ALLOCATE_VPP_get(dev, port, &availible_vpp, vpp_param);
+>+	err =3D mlx4_ALLOCATE_VPP_get(dev, port, &available_vpp, vpp_param);
+> 	if (err) {
+>-		mlx4_info(dev, "Failed query availible VPPs\n");
+>+		mlx4_info(dev, "Failed query available VPPs\n");
+> 		return;
+> 	}
+>=20
+> 	port_qos =3D &priv->mfunc.master.qos_ctl[port];
+>-	num_vfs =3D (availible_vpp /
+>+	num_vfs =3D (available_vpp /
+> 		   bitmap_weight(port_qos->priority_bm, MLX4_NUM_UP));
+>=20
+> 	for (i =3D 0; i < MLX4_NUM_UP; i++) {
+>@@ -1985,14 +1985,14 @@ static void mlx4_allocate_port_vpps(struct
+>mlx4_dev *dev, int port)
+> 	}
+>=20
+> 	/* Query actual allocated VPP, just to make sure */
+>-	err =3D mlx4_ALLOCATE_VPP_get(dev, port, &availible_vpp, vpp_param);
+>+	err =3D mlx4_ALLOCATE_VPP_get(dev, port, &available_vpp, vpp_param);
+> 	if (err) {
+>-		mlx4_info(dev, "Failed query availible VPPs\n");
+>+		mlx4_info(dev, "Failed query available VPPs\n");
+> 		return;
+> 	}
+>=20
+> 	port_qos->num_of_qos_vfs =3D num_vfs;
+>-	mlx4_dbg(dev, "Port %d Availible VPPs %d\n", port, availible_vpp);
+>+	mlx4_dbg(dev, "Port %d Availible VPPs %d\n", port, available_vpp);
+
+One more here, in the text.          ^^^
+
+>=20
+> 	for (i =3D 0; i < MLX4_NUM_UP; i++)
+> 		mlx4_dbg(dev, "Port %d UP %d Allocated %d VPPs\n", port, i,
+>@@ -2891,7 +2891,7 @@ static int mlx4_set_vport_qos(struct mlx4_priv
+>*priv, int slave, int port,
+> 	memset(vpp_qos, 0, sizeof(struct mlx4_vport_qos_param) * MLX4_NUM_UP);
+>=20
+> 	if (slave > port_qos->num_of_qos_vfs) {
+>-		mlx4_info(dev, "No availible VPP resources for this VF\n");
+>+		mlx4_info(dev, "No available VPP resources for this VF\n");
+> 		return -EINVAL;
+> 	}
+>=20
+>diff --git a/drivers/net/ethernet/mellanox/mlx4/fw_qos.c
+>b/drivers/net/ethernet/mellanox/mlx4/fw_qos.c
+>index 8f2fde0487c4..3a09d7122d3b 100644
+>--- a/drivers/net/ethernet/mellanox/mlx4/fw_qos.c
+>+++ b/drivers/net/ethernet/mellanox/mlx4/fw_qos.c
+>@@ -65,7 +65,7 @@ struct mlx4_set_port_scheduler_context {
+>=20
+> /* Granular Qos (per VF) section */
+> struct mlx4_alloc_vpp_param {
+>-	__be32 availible_vpp;
+>+	__be32 available_vpp;
+> 	__be32 vpp_p_up[MLX4_NUM_UP];
+> };
+>=20
+>@@ -157,7 +157,7 @@ int mlx4_SET_PORT_SCHEDULER(struct mlx4_dev *dev, u8
+>port, u8 *tc_tx_bw,
+> EXPORT_SYMBOL(mlx4_SET_PORT_SCHEDULER);
+>=20
+> int mlx4_ALLOCATE_VPP_get(struct mlx4_dev *dev, u8 port,
+>-			  u16 *availible_vpp, u8 *vpp_p_up)
+>+			  u16 *available_vpp, u8 *vpp_p_up)
+> {
+> 	int i;
+> 	int err;
+>@@ -179,7 +179,7 @@ int mlx4_ALLOCATE_VPP_get(struct mlx4_dev *dev, u8
+>port,
+> 		goto out;
+>=20
+> 	/* Total number of supported VPPs */
+>-	*availible_vpp =3D (u16)be32_to_cpu(out_param->availible_vpp);
+>+	*available_vpp =3D (u16)be32_to_cpu(out_param->available_vpp);
+>=20
+> 	for (i =3D 0; i < MLX4_NUM_UP; i++)
+> 		vpp_p_up[i] =3D (u8)be32_to_cpu(out_param->vpp_p_up[i]);
+>diff --git a/drivers/net/ethernet/mellanox/mlx4/fw_qos.h
+>b/drivers/net/ethernet/mellanox/mlx4/fw_qos.h
+>index ac1f331878e6..582997577a04 100644
+>--- a/drivers/net/ethernet/mellanox/mlx4/fw_qos.h
+>+++ b/drivers/net/ethernet/mellanox/mlx4/fw_qos.h
+>@@ -84,23 +84,23 @@ int mlx4_SET_PORT_PRIO2TC(struct mlx4_dev *dev, u8
+>port, u8 *prio2tc);
+> int mlx4_SET_PORT_SCHEDULER(struct mlx4_dev *dev, u8 port, u8 *tc_tx_bw,
+> 			    u8 *pg, u16 *ratelimit);
+> /**
+>- * mlx4_ALLOCATE_VPP_get - Query port VPP availible resources and
+>allocation.
+>- * Before distribution of VPPs to priorities, only availible_vpp is
+>returned.
+>+ * mlx4_ALLOCATE_VPP_get - Query port VPP available resources and
+>allocation.
+>+ * Before distribution of VPPs to priorities, only available_vpp is
+>returned.
+>  * After initialization it returns the distribution of VPPs among
+>priorities.
+>  *
+>  * @dev: mlx4_dev.
+>  * @port: Physical port number.
+>- * @availible_vpp: Pointer to variable where number of availible VPPs is
+>stored
+>+ * @available_vpp: Pointer to variable where number of available VPPs is
+>stored
+>  * @vpp_p_up: Distribution of VPPs to priorities is stored in this array
+>  *
+>  * Returns 0 on success or a negative mlx4_core errno code.
+>  **/
+> int mlx4_ALLOCATE_VPP_get(struct mlx4_dev *dev, u8 port,
+>-			  u16 *availible_vpp, u8 *vpp_p_up);
+>+			  u16 *available_vpp, u8 *vpp_p_up);
+> /**
+>  * mlx4_ALLOCATE_VPP_set - Distribution of VPPs among differnt
+>priorities.
+>  * The total number of VPPs assigned to all for a port must not exceed
+>- * the value reported by availible_vpp in mlx4_ALLOCATE_VPP_get.
+>+ * the value reported by available_vpp in mlx4_ALLOCATE_VPP_get.
+>  * VPP allocation is allowed only after the port type has been set,
+>  * and while no QPs are open for this port.
+>  *
+>--=20
+>2.11.0
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
