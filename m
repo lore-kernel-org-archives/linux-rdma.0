@@ -1,88 +1,59 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH v4 iproute2 1/7] rdma: Add basic infrastructure for RDMA
- tool
-Date: Wed, 16 Aug 2017 08:32:49 +0300
-Message-ID: <20170816053249.GC24282@mtr-leonro.local>
-References: <20170815130020.29509-1-leonro@mellanox.com>
- <20170815130020.29509-2-leonro@mellanox.com>
- <20170815165416.24e9838a@xeon-e3>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [rdma-next v2 07/23] RDMA/core: Remove unimplemented node_types
+ and node transport
+Date: Wed, 16 Aug 2017 08:37:44 +0300
+Message-ID: <20170816053744.GD24282@mtr-leonro.local>
+References: <20170815085452.3546-1-leon@kernel.org>
+ <20170815085452.3546-8-leon@kernel.org>
+ <SN1PR0301MB2127376FC9B3D170C878A47BDE8D0@SN1PR0301MB2127.namprd03.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="RvYRPxT9kmUw5evD"
-Return-path: <netdev-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="CxSUI8jTRJ26tNoZ"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170815165416.24e9838a@xeon-e3>
-Sender: netdev-owner@vger.kernel.org
-To: Stephen Hemminger <stephen@networkplumber.org>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Jiri Pirko <jiri@mellanox.com>, Ariel Almog <ariela@mellanox.com>, Linux Netdev <netdev@vger.kernel.org>
+In-Reply-To: <SN1PR0301MB2127376FC9B3D170C878A47BDE8D0-VLIetriUNob/KlJXleiaIJwN6zqB+hSMnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Suri Shelvapille <suri-lFb5ksp6isWhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---RvYRPxT9kmUw5evD
+--CxSUI8jTRJ26tNoZ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Aug 15, 2017 at 04:54:16PM -0700, Stephen Hemminger wrote:
-> On Tue, 15 Aug 2017 16:00:14 +0300
-> Leon Romanovsky <leonro@mellanox.com> wrote:
+On Tue, Aug 15, 2017 at 06:25:54PM +0000, Suri Shelvapille wrote:
+> Leon:
 >
-> > RDMA devices are cross-functional devices from one side,
-> > but very tailored for the specific markets from another.
-> >
-> > Such diversity caused to spread of RDMA related configuration
-> > across various tools, e.g. devlink, ip, ethtool, ib specific and
-> > vendor specific solutions.
-> >
-> > This patch adds ability to fill device and port information
-> > by reading RDMA netlink.
-> >
-> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> We do have IB_SWITCH and IB_ROUTER functionality and we do use the SWITCH capability provided by the "core" in our product. The "core" has a wrapper function which Identifies the device as a switch to direct smp packets. I am glad that has not been removed. And I hope it won't be removed as it would be a burden to us. Although we prefer to have the IB_SWITCH/IB_ROUTER definitions in the core as well, it is not a big deal to move these definitions inside our driver.
 >
-> Won't build for me.
->
-> $ make distclean
->
-> $ make
->
-> In file included from rdma.c:12:0:
-> rdma.h:23:23: fatal error: rdma/rdma.h: No such file or directory
->  #include <rdma/rdma.h>
->                        ^
->
-> I think your Makefile expects something different.
-> Or more Config fallout
 
-Your kernel tree should have this [1] pull request to be merged, because
-I'm adding new header file to UAPI [2].
+Can you please point me to IN-KERNEL hardware/driver where these values are being set? Because I didn't find any.
 
- create mode 100644 include/uapi/rdma/rdma.h
+Thanks
 
-[1] http://marc.info/?l=linux-rdma&m=150278847820844&w=2
-[2] http://marc.info/?l=linux-rdma&m=150278850520856&w=2
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---RvYRPxT9kmUw5evD
+--CxSUI8jTRJ26tNoZ
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmT2QEACgkQ5GN7iDZy
-WKfoNQ//XmgEqnpuK04QYk76O2nlkL8EjlT5awo6vWb6XC9aj4ysjXwxxguQVB1G
-gXrOS6dmpDP7zggKDlPg5aMce6pje1J01T/suuDfqq+6R3wmF7dJOFhyeA6LPT2r
-IIKiRIvPbJFf7GUZrkbNHK8D96I4kWC9qh0UhCmfmcJdShuZiBVMm5QyxqNkpOdw
-NV8O6Nik5AWBL7+NANA7Q0Ik8LAmACH+p89/yM9GnzrUeymxrmX75Edr88xdUeGS
-+9hOUluWsNJnUabXqe3B/8QAo7ch/HgwOGSCpdXZhFTyrfiOgLsmqikqy7KLEtje
-qEalHElvBy/cD6sD6U9xOaGiQpB0Rp+jSlBVwT0JPFfmtWUF7wlv04SqlYdaRTw4
-nxJn9uR+LRoy75NpOxQa9JC++PZEGh+OXLCgqo/PoA9qCf868L5Db8HbxtNSxWEt
-0aTqFz83M07kTx+1SS1vj40ZW9bpHdfdzkO1M4urCTVlrXjV8oC929lVOtibrD8H
-sZYzGCBYzT1ACtmkG/nSdtEsUfl0l4K5RX4NWw7gLXunU+SYMICqHeMXAcP07zDz
-iFPS1YPPtwb0GOdseAdxtYnH+6ZeSxZJYgFz6bIpgjDvO1NR38tc8QNfVBsb9Qfq
-PNSik9+c2ToqXDTVLb4kXP3tnuXSgA+7sWFC14fJezW2kd4wzng=
-=6x5H
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmT2igACgkQ5GN7iDZy
+WKfxmxAAwRRLwhgXjNLeqO0rwh4pj9ieyeoj3c1bB3DhireLSRXOvHwED4mUtVhu
+atAhST6h9dAetv0A0kRk2MLNiTQ9g7w7rvlnbGB39eO3t/GGHX9GZRA7QR+yoZCW
+ez5O00PdKS3ZMCz/vkeVOwPSXJuDM5LN1v9dAxyy2RO3A7avRQRKThiepJKwXRNh
++Y4imCufEcFCVV/azayglrD+FWsusxRZfK8Ol23I42Ie/Ji8DcSq9tzoq8KCZT4t
+lA3KHnK3WXckOqaSHzYK+5gUU978/ygIIL4dzPiKuSU9ROh+80lN05Jrgmvn6dIl
+NdWc11x3X7cHk8FkJc+SrDBiywufsU8ER6UR0X5hw3a8Ft56bQcSBH5UMluIPDLk
+Dho3hC0HQWBKeP+8l8V51mrLdYIFtGrJ+Gju0bdL/R/2j2xtgC759aAoeRxNbYUH
+hALixcly1ybHpnGr2wqL4QPOkhcroCT8soKRJOs7tFteZ75UzZoOYsyn0IpHp56f
++iD0MbLOSbwMViYVsoj1myTVI+vKb0DwlytfqDoIuLJerfX9Rfd01VJ2uxqYH9ck
+/i3bf5mXRMIXbdeyFllGG6V+9mD1jWLBGliEJImnKGmACJMnTprMNSH9vmMekPRI
+KoOq4902sdtl0ABctMOuWAqaRyvyKbUjm3DNbOt95gZlVmgWA7E=
+=EBsp
 -----END PGP SIGNATURE-----
 
---RvYRPxT9kmUw5evD--
+--CxSUI8jTRJ26tNoZ--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
