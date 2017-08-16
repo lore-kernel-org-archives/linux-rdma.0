@@ -1,69 +1,87 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 2/2] rdma: Autoload netlink client modules
-Date: Wed, 16 Aug 2017 18:59:39 +0300
-Message-ID: <20170816155939.GS24282@mtr-leonro.local>
-References: <1502744259-16966-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1502744259-16966-3-git-send-email-jgunthorpe@obsidianresearch.com>
- <20170815095651.GQ24282@mtr-leonro.local>
- <20170815153523.GA14623@obsidianresearch.com>
- <20170815155843.GT24282@mtr-leonro.local>
- <20170815165737.GB15171@obsidianresearch.com>
- <20170815174058.GW24282@mtr-leonro.local>
- <20170816153620.GA22584@obsidianresearch.com>
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [rdma-next v2 07/23] RDMA/core: Remove unimplemented node_types
+ and node transport
+Date: Wed, 16 Aug 2017 21:35:08 +0530
+Message-ID: <CANjDDBifbT65XB9RZaRwAn0vDTnUHdT=LcdNpm-KJvLyTBU5BQ@mail.gmail.com>
+References: <20170815085452.3546-1-leon@kernel.org> <20170815085452.3546-8-leon@kernel.org>
+ <SN1PR0301MB2127376FC9B3D170C878A47BDE8D0@SN1PR0301MB2127.namprd03.prod.outlook.com>
+ <20170816053744.GD24282@mtr-leonro.local> <SN1PR0301MB21274177B67EE02B96F14424DE820@SN1PR0301MB2127.namprd03.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="ATpkSYPIqF1Y+gtT"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170816153620.GA22584-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <SN1PR0301MB21274177B67EE02B96F14424DE820-VLIetriUNob/KlJXleiaIJwN6zqB+hSMnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Suri Shelvapille <suri-lFb5ksp6isWhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Leon,
 
---ATpkSYPIqF1Y+gtT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+We probably should be okay to retain SWITCH and ROUTER devices, lets
+say if someone wants to port entire linux kernel IB stack on a
+IB-switch or Router. Probably portability was the motivation to add
+these since the birth of kernel IB stack.
 
-On Wed, Aug 16, 2017 at 09:36:20AM -0600, Jason Gunthorpe wrote:
-> On Tue, Aug 15, 2017 at 08:40:58PM +0300, Leon Romanovsky wrote:
+
+
+On Wed, Aug 16, 2017 at 8:00 PM, Suri Shelvapille
+<suri-lFb5ksp6isWhEniVeURVKkEOCMrvLtNR@public.gmane.org> wrote:
+> Leon:
+> Our Drivers are not in Kernel (being a small company we don't have resour=
+ces to make it in-kernel). When I and Hal worked on adding the switch capab=
+ility into the kernel, we thought it would be useful for the community (as =
+there was interest in a few others besides us). Philosophically, since SWIT=
+CH and ROUTER definitions are part of the IB spec, don't you think having t=
+hese definitions makes the kernel close to spec and hence useful? I know th=
+ese definitions can be easily added into our drivers.
+> Just treat this as a request, if it is not an onus to the community, plea=
+se keep the SWITCH and ROUTER (only) definitions. If you have strong reason=
+s I have no objections to your patches.
 >
-> > Can this be a solution?
-> > http://elixir.free-electrons.com/linux/latest/source/include/uapi/linux/in.h#L27
+> Thanks,
+> Suri
 >
-> No, that is going the other way - continuing to provide compat
-> #defines while using an enum underlying, the preprocessor still cannot
-> see the value to build the string.
-
-ok, I see.
-
-Anyway, if we find better solution, we will update it.
-Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-Thanks
-
---ATpkSYPIqF1Y+gtT
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmUa+sACgkQ5GN7iDZy
-WKfzWw/+NtDuXhoffzIjaKguJH/Lo7ktJbMHO9m64qEFbBk3feI6tYzBokQr4QRV
-mz6HfuesLsppijG1Zuj98HigauA4MENTHX51KogLYo7+MA+oUq+rMDTVuoKfVcuT
-8B8/RVrJMk8tL5DBSnsyGEjTp4U2LkF0RZ6yKeeRbO5s4uVUAmKRl7lpPMqmpFfO
-1Wlo7RPAerQiZbvDj1H4sP/rbQYwww9i3DsZ8PLsKrU/ohZ4NB6kVdxe3QUGpdfB
-qB9azA8iwAfUGlzbHyKsSsJjFEA9jiEKYUaPjB5/AqAXdfPAsfZusvXokOhvhco7
-xwfkaTCPpEy/vRJ87qQzjbP7/El/cIOKtLtENRgMvMeKZhLrtadDUEj46jaHagVO
-L9NQ3HqlC0tdPFj/x4G3Icgv8OLzzER5E1Ahbe7ElmAXpn+66ronCrd0je2o52yD
-NbJ6ZZMpDXfOFn6SyYYO51vqDMMi+HJG22QuQt7MlGcSSH3DN5wJCCawGYpzL0mT
-gBbLpzXh0OiD7297tSuyMTfsAnYLRjk0sAMS+CTlV+yjnkAUQfTg+WAgx7s6svyP
-Agpnt18/vJxhDi8jGHYXpeHHO9E5roh9BPaBhLRI+TdDi49W09PHFYtn4YzTY0fA
-zTdvxImG49tu2kKR/qXw5o/ZanBBRu2m3AMtZTl8HI6QS0baVkY=
-=o0K7
------END PGP SIGNATURE-----
-
---ATpkSYPIqF1Y+gtT--
+> -----Original Message-----
+> From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
+> Sent: Wednesday, August 16, 2017 1:38 AM
+> To: Suri Shelvapille <suri-lFb5ksp6isWhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+> Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: [rdma-next v2 07/23] RDMA/core: Remove unimplemented node_ty=
+pes and node transport
+>
+> On Tue, Aug 15, 2017 at 06:25:54PM +0000, Suri Shelvapille wrote:
+>> Leon:
+>>
+>> We do have IB_SWITCH and IB_ROUTER functionality and we do use the SWITC=
+H capability provided by the "core" in our product. The "core" has a wrappe=
+r function which Identifies the device as a switch to direct smp packets. I=
+ am glad that has not been removed. And I hope it won't be removed as it wo=
+uld be a burden to us. Although we prefer to have the IB_SWITCH/IB_ROUTER d=
+efinitions in the core as well, it is not a big deal to move these definiti=
+ons inside our driver.
+>>
+>
+> Can you please point me to IN-KERNEL hardware/driver where these values a=
+re being set? Because I didn't find any.
+>
+> Thanks
+>
+> This correspondence, and any attachments or files transmitted with this c=
+orrespondence, contains information which may be confidential and privilege=
+d and is intended solely for the use of the addressee. Unless you are the a=
+ddressee or are authorized to receive messages for the addressee, you may n=
+ot use, copy, disseminate, or disclose this correspondence or any informati=
+on contained in this correspondence to any third party. If you have receive=
+d this correspondence in error, please notify the sender immediately and de=
+lete this correspondence and any attachments or files transmitted with this=
+ correspondence from your system, and destroy any and all copies thereof, e=
+lectronic or otherwise. Your cooperation and understanding are greatly appr=
+eciated.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
