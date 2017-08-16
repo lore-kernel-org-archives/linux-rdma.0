@@ -1,82 +1,57 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: Dongyang Li <dongyang.li-FCV4sgi5zeUQrrorzV6ljw@public.gmane.org>
 Subject: Re: [PATCH] IB/mlx5: fall back to vmalloc for mlx5_ib_wq
-Date: Wed, 16 Aug 2017 15:12:05 +0300
-Message-ID: <20170816121205.GN24282@mtr-leonro.local>
+Date: Wed, 16 Aug 2017 12:50:20 +0000
+Message-ID: <1502887814.25084.1.camel@anu.edu.au>
 References: <20170816110632.9779-1-dongyang.li@anu.edu.au>
+         <20170816121205.GN24282@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="vHrcnSuaBi45WmF/"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170816110632.9779-1-dongyang.li-FCV4sgi5zeUQrrorzV6ljw@public.gmane.org>
+In-Reply-To: <20170816121205.GN24282-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Language: en-US
+Content-ID: <67668D052CAC1C439DA9B2978EEC9E20-ZkTFankGvyWcE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Li Dongyang <dongyang.li-FCV4sgi5zeUQrrorzV6ljw@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---vHrcnSuaBi45WmF/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Aug 16, 2017 at 09:06:32PM +1000, Li Dongyang wrote:
-> We observed multiple times on our Lustre OSS servers that when
-> the system memory is fragmented, kmalloc() in create_kernel_qp()
-> could fail order 4/5 allocations while we still have many free pages.
->
-> Fall back to vmalloc to allow the operation to contine, also switch
-> to kmalloc_array() from kmalloc().
->
-> Signed-off-by: Li Dongyang <dongyang.li-FCV4sgi5zeUQrrorzV6ljw@public.gmane.org>
-> ---
->  drivers/infiniband/hw/mlx5/qp.c  | 54 +++++++++++++++++++++++++++++-----------
->  drivers/infiniband/hw/mlx5/srq.c |  8 ++++--
->  2 files changed, 45 insertions(+), 17 deletions(-)
->
-> diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-> index 0889ff367c86..e662fa5af5bb 100644
-> --- a/drivers/infiniband/hw/mlx5/qp.c
-> +++ b/drivers/infiniband/hw/mlx5/qp.c
-> @@ -959,11 +959,35 @@ static int create_kernel_qp(struct mlx5_ib_dev *dev,
->  		goto err_free;
->  	}
->
-> -	qp->sq.wrid = kmalloc(qp->sq.wqe_cnt * sizeof(*qp->sq.wrid), GFP_KERNEL);
-> -	qp->sq.wr_data = kmalloc(qp->sq.wqe_cnt * sizeof(*qp->sq.wr_data), GFP_KERNEL);
-> -	qp->rq.wrid = kmalloc(qp->rq.wqe_cnt * sizeof(*qp->rq.wrid), GFP_KERNEL);
-> -	qp->sq.w_list = kmalloc(qp->sq.wqe_cnt * sizeof(*qp->sq.w_list), GFP_KERNEL);
-> -	qp->sq.wqe_head = kmalloc(qp->sq.wqe_cnt * sizeof(*qp->sq.wqe_head), GFP_KERNEL);
-> +	qp->sq.wrid = kmalloc_array(qp->sq.wqe_cnt, sizeof(*qp->sq.wrid),
-> +				    GFP_KERNEL | __GFP_NOWARN);
-> +	if (!qp->sq.wrid)
-> +		qp->sq.wrid = __vmalloc(qp->sq.wqe_cnt * sizeof(*qp->sq.wrid),
-> +					GFP_KERNEL, PAGE_KERNEL);
-
-Please don't open code, the kvmalloc and kvmalloc_array functions.
-
-Thanks for doing it.
-
---vHrcnSuaBi45WmF/
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmUNpUACgkQ5GN7iDZy
-WKe5hQ//S/KcBtMeSk9N1XBh6t4WKUUAv25vupk/45CBk767a/yHteM765cI4Aim
-smhpuRbtvTmd2orhf8HN5LIiB2TJHsxF/IgLMHaXccwvCZDoH3/UfkQHGvOPDiYm
-a4iExI+nNZhDbU69RdNduNRCs0XjvE9TZztEgqBY9LGlzKGOXuvdttChnVqn7ecP
-w6a6u0XnoYba8kf/zp8pNqL7uACsOGByM+xXyEffQ15Yk6ZGNbJBbc8XjFUTSBvB
-DobgXYdg1t6d01Q6xS7/4SuPQk1a2bMsNuzEvcgxipICS8rH5uHgQe2/pQfuCVa+
-zRLaBzos/HHcdtOfJHnekfq+/aWW1kOgWz/V+5iaBkZK8FroSf67jo1LvRUOGAl8
-EtUzoe1xaA6pq6bi0LUPcmiSBAHld4l3PX7vQTI1q+RIU7Q1gVXCsZjkauBNzTAA
-aBi+g2fIT/z7yiZPNDMYCg2zgNPNtl91SIs3cRd5S6VdwdVSF2Ml3/wwJYbU9Gzu
-yfxczhbq6Y0FWExOGldupsTNwheiLqtWm+16EzOPxvtheRPkNjnHhs437ggpaeBm
-MQZdA7rB9fOwMrxJY26XlkutHBt0v+MpP4Otd/aa2ms4j7Tc+S70SdrE4xL8IUNs
-rq9i8RwDVx6dl9HjiFlv5GAo4S8AL/XR4LPF+CbkzajV3t4KHWI=
-=xHgH
------END PGP SIGNATURE-----
-
---vHrcnSuaBi45WmF/--
+SSdtIHNvIG91dCBvZiB0b3VjaCB3aXRoIHRoZSBuZXcgaW50ZXJmYWNlcyBpbiB0aGUga2VybmVs
+Lg0KV2lsbCBwb3N0IHVwZGF0ZWQgcGF0Y2guDQoNClRoYW5rcw0KRG9uZ3lhbmcNCk9uIFdlZCwg
+MjAxNy0wOC0xNiBhdCAxNToxMiArMDMwMCwgTGVvbiBSb21hbm92c2t5IHdyb3RlOg0KPiBPbiBX
+ZWQsIEF1ZyAxNiwgMjAxNyBhdCAwOTowNjozMlBNICsxMDAwLCBMaSBEb25neWFuZyB3cm90ZToN
+Cj4gPiBXZSBvYnNlcnZlZCBtdWx0aXBsZSB0aW1lcyBvbiBvdXIgTHVzdHJlIE9TUyBzZXJ2ZXJz
+IHRoYXQgd2hlbg0KPiA+IHRoZSBzeXN0ZW0gbWVtb3J5IGlzIGZyYWdtZW50ZWQsIGttYWxsb2Mo
+KSBpbiBjcmVhdGVfa2VybmVsX3FwKCkNCj4gPiBjb3VsZCBmYWlsIG9yZGVyIDQvNSBhbGxvY2F0
+aW9ucyB3aGlsZSB3ZSBzdGlsbCBoYXZlIG1hbnkgZnJlZQ0KPiA+IHBhZ2VzLg0KPiA+IA0KPiA+
+IEZhbGwgYmFjayB0byB2bWFsbG9jIHRvIGFsbG93IHRoZSBvcGVyYXRpb24gdG8gY29udGluZSwg
+YWxzbyBzd2l0Y2gNCj4gPiB0byBrbWFsbG9jX2FycmF5KCkgZnJvbSBrbWFsbG9jKCkuDQo+ID4g
+DQo+ID4gU2lnbmVkLW9mZi1ieTogTGkgRG9uZ3lhbmcgPGRvbmd5YW5nLmxpQGFudS5lZHUuYXU+
+DQo+ID4gLS0tDQo+ID4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L3FwLmMgIHwgNTQNCj4g
+PiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tDQo+ID4gIGRyaXZlcnMv
+aW5maW5pYmFuZC9ody9tbHg1L3NycS5jIHwgIDggKysrKy0tDQo+ID4gIDIgZmlsZXMgY2hhbmdl
+ZCwgNDUgaW5zZXJ0aW9ucygrKSwgMTcgZGVsZXRpb25zKC0pDQo+ID4gDQo+ID4gZGlmZiAtLWdp
+dCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L3FwLmMNCj4gPiBiL2RyaXZlcnMvaW5maW5p
+YmFuZC9ody9tbHg1L3FwLmMNCj4gPiBpbmRleCAwODg5ZmYzNjdjODYuLmU2NjJmYTVhZjViYiAx
+MDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NS9xcC5jDQo+ID4gKysr
+IGIvZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDUvcXAuYw0KPiA+IEBAIC05NTksMTEgKzk1OSwz
+NSBAQCBzdGF0aWMgaW50IGNyZWF0ZV9rZXJuZWxfcXAoc3RydWN0DQo+ID4gbWx4NV9pYl9kZXYg
+KmRldiwNCj4gPiAgCQlnb3RvIGVycl9mcmVlOw0KPiA+ICAJfQ0KPiA+IA0KPiA+IC0JcXAtPnNx
+LndyaWQgPSBrbWFsbG9jKHFwLT5zcS53cWVfY250ICogc2l6ZW9mKCpxcC0NCj4gPiA+c3Eud3Jp
+ZCksIEdGUF9LRVJORUwpOw0KPiA+IC0JcXAtPnNxLndyX2RhdGEgPSBrbWFsbG9jKHFwLT5zcS53
+cWVfY250ICogc2l6ZW9mKCpxcC0NCj4gPiA+c3Eud3JfZGF0YSksIEdGUF9LRVJORUwpOw0KPiA+
+IC0JcXAtPnJxLndyaWQgPSBrbWFsbG9jKHFwLT5ycS53cWVfY250ICogc2l6ZW9mKCpxcC0NCj4g
+PiA+cnEud3JpZCksIEdGUF9LRVJORUwpOw0KPiA+IC0JcXAtPnNxLndfbGlzdCA9IGttYWxsb2Mo
+cXAtPnNxLndxZV9jbnQgKiBzaXplb2YoKnFwLQ0KPiA+ID5zcS53X2xpc3QpLCBHRlBfS0VSTkVM
+KTsNCj4gPiAtCXFwLT5zcS53cWVfaGVhZCA9IGttYWxsb2MocXAtPnNxLndxZV9jbnQgKiBzaXpl
+b2YoKnFwLQ0KPiA+ID5zcS53cWVfaGVhZCksIEdGUF9LRVJORUwpOw0KPiA+ICsJcXAtPnNxLndy
+aWQgPSBrbWFsbG9jX2FycmF5KHFwLT5zcS53cWVfY250LCBzaXplb2YoKnFwLQ0KPiA+ID5zcS53
+cmlkKSwNCj4gPiArCQkJCSAgICBHRlBfS0VSTkVMIHwgX19HRlBfTk9XQVJOKTsNCj4gPiArCWlm
+ICghcXAtPnNxLndyaWQpDQo+ID4gKwkJcXAtPnNxLndyaWQgPSBfX3ZtYWxsb2MocXAtPnNxLndx
+ZV9jbnQgKg0KPiA+IHNpemVvZigqcXAtPnNxLndyaWQpLA0KPiA+ICsJCQkJCUdGUF9LRVJORUws
+IFBBR0VfS0VSTkVMKTsNCj4gDQo+IFBsZWFzZSBkb24ndCBvcGVuIGNvZGUsIHRoZSBrdm1hbGxv
+YyBhbmQga3ZtYWxsb2NfYXJyYXkgZnVuY3Rpb25zLg0KPiANCj4gVGhhbmtzIGZvciBkb2luZyBp
+dC4=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
