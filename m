@@ -1,93 +1,145 @@
-From: Li Dongyang <dongyang.li-FCV4sgi5zeUQrrorzV6ljw@public.gmane.org>
-Subject: [PATCH v2 2/2] IB/mlx4: use kvmalloc_array to allocate wrid
-Date: Wed, 16 Aug 2017 23:31:23 +1000
-Message-ID: <20170816133123.20497-2-dongyang.li@anu.edu.au>
-References: <20170816133123.20497-1-dongyang.li@anu.edu.au>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170816133123.20497-1-dongyang.li-FCV4sgi5zeUQrrorzV6ljw@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH][V2] net/mlx4: fix spelling mistake: "availible" -> "available"
+Date: Wed, 16 Aug 2017 14:42:50 +0100
+Message-ID: <20170816134250.6689-1-colin.king@canonical.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tariq Toukan <tariqt@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-We could use kvmalloc_array instead of the
-kmalloc and __vmalloc combination.
-After this we don't need to include linux/vmalloc.h
+From: Colin Ian King <colin.king@canonical.com>
 
-Signed-off-by: Li Dongyang <dongyang.li-FCV4sgi5zeUQrrorzV6ljw@public.gmane.org>
+Trivial fix to spelling mistakes in the mlx4 driver.
+
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- drivers/infiniband/hw/mlx4/qp.c  | 15 ++++-----------
- drivers/infiniband/hw/mlx4/srq.c | 13 ++++---------
- 2 files changed, 8 insertions(+), 20 deletions(-)
+ drivers/net/ethernet/mellanox/mlx4/cmd.c    | 16 ++++++++--------
+ drivers/net/ethernet/mellanox/mlx4/fw_qos.c |  6 +++---
+ drivers/net/ethernet/mellanox/mlx4/fw_qos.h | 10 +++++-----
+ 3 files changed, 16 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 75c0e6c5dd56..76ae772cfbf9 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -36,7 +36,6 @@
- #include <net/ip.h>
- #include <linux/slab.h>
- #include <linux/netdevice.h>
--#include <linux/vmalloc.h>
+diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+index 674773b28b2e..c6674bdd7da0 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+@@ -1958,19 +1958,19 @@ static void mlx4_allocate_port_vpps(struct mlx4_dev *dev, int port)
+ 	int i;
+ 	int err;
+ 	int num_vfs;
+-	u16 availible_vpp;
++	u16 available_vpp;
+ 	u8 vpp_param[MLX4_NUM_UP];
+ 	struct mlx4_qos_manager *port_qos;
+ 	struct mlx4_priv *priv = mlx4_priv(dev);
  
- #include <rdma/ib_cache.h>
- #include <rdma/ib_pack.h>
-@@ -812,16 +811,10 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
- 		if (err)
- 			goto err_mtt;
- 
--		qp->sq.wrid = kmalloc_array(qp->sq.wqe_cnt, sizeof(u64),
--					GFP_KERNEL | __GFP_NOWARN);
--		if (!qp->sq.wrid)
--			qp->sq.wrid = __vmalloc(qp->sq.wqe_cnt * sizeof(u64),
--						GFP_KERNEL, PAGE_KERNEL);
--		qp->rq.wrid = kmalloc_array(qp->rq.wqe_cnt, sizeof(u64),
--					GFP_KERNEL | __GFP_NOWARN);
--		if (!qp->rq.wrid)
--			qp->rq.wrid = __vmalloc(qp->rq.wqe_cnt * sizeof(u64),
--						GFP_KERNEL, PAGE_KERNEL);
-+		qp->sq.wrid = kvmalloc_array(qp->sq.wqe_cnt,
-+					     sizeof(u64), GFP_KERNEL);
-+		qp->rq.wrid = kvmalloc_array(qp->rq.wqe_cnt,
-+					     sizeof(u64), GFP_KERNEL);
- 		if (!qp->sq.wrid || !qp->rq.wrid) {
- 			err = -ENOMEM;
- 			goto err_wrid;
-diff --git a/drivers/infiniband/hw/mlx4/srq.c b/drivers/infiniband/hw/mlx4/srq.c
-index 0facaf5f6d23..dd7a2fce9df4 100644
---- a/drivers/infiniband/hw/mlx4/srq.c
-+++ b/drivers/infiniband/hw/mlx4/srq.c
-@@ -34,7 +34,6 @@
- #include <linux/mlx4/qp.h>
- #include <linux/mlx4/srq.h>
- #include <linux/slab.h>
--#include <linux/vmalloc.h>
- 
- #include "mlx4_ib.h"
- #include <rdma/mlx4-abi.h>
-@@ -171,15 +170,11 @@ struct ib_srq *mlx4_ib_create_srq(struct ib_pd *pd,
- 		if (err)
- 			goto err_mtt;
- 
--		srq->wrid = kmalloc_array(srq->msrq.max, sizeof(u64),
--					GFP_KERNEL | __GFP_NOWARN);
-+		srq->wrid = kvmalloc_array(srq->msrq.max,
-+					   sizeof(u64), GFP_KERNEL);
- 		if (!srq->wrid) {
--			srq->wrid = __vmalloc(srq->msrq.max * sizeof(u64),
--					      GFP_KERNEL, PAGE_KERNEL);
--			if (!srq->wrid) {
--				err = -ENOMEM;
--				goto err_mtt;
--			}
-+			err = -ENOMEM;
-+			goto err_mtt;
- 		}
+-	err = mlx4_ALLOCATE_VPP_get(dev, port, &availible_vpp, vpp_param);
++	err = mlx4_ALLOCATE_VPP_get(dev, port, &available_vpp, vpp_param);
+ 	if (err) {
+-		mlx4_info(dev, "Failed query availible VPPs\n");
++		mlx4_info(dev, "Failed query available VPPs\n");
+ 		return;
  	}
  
+ 	port_qos = &priv->mfunc.master.qos_ctl[port];
+-	num_vfs = (availible_vpp /
++	num_vfs = (available_vpp /
+ 		   bitmap_weight(port_qos->priority_bm, MLX4_NUM_UP));
+ 
+ 	for (i = 0; i < MLX4_NUM_UP; i++) {
+@@ -1985,14 +1985,14 @@ static void mlx4_allocate_port_vpps(struct mlx4_dev *dev, int port)
+ 	}
+ 
+ 	/* Query actual allocated VPP, just to make sure */
+-	err = mlx4_ALLOCATE_VPP_get(dev, port, &availible_vpp, vpp_param);
++	err = mlx4_ALLOCATE_VPP_get(dev, port, &available_vpp, vpp_param);
+ 	if (err) {
+-		mlx4_info(dev, "Failed query availible VPPs\n");
++		mlx4_info(dev, "Failed query available VPPs\n");
+ 		return;
+ 	}
+ 
+ 	port_qos->num_of_qos_vfs = num_vfs;
+-	mlx4_dbg(dev, "Port %d Availible VPPs %d\n", port, availible_vpp);
++	mlx4_dbg(dev, "Port %d Available VPPs %d\n", port, available_vpp);
+ 
+ 	for (i = 0; i < MLX4_NUM_UP; i++)
+ 		mlx4_dbg(dev, "Port %d UP %d Allocated %d VPPs\n", port, i,
+@@ -2891,7 +2891,7 @@ static int mlx4_set_vport_qos(struct mlx4_priv *priv, int slave, int port,
+ 	memset(vpp_qos, 0, sizeof(struct mlx4_vport_qos_param) * MLX4_NUM_UP);
+ 
+ 	if (slave > port_qos->num_of_qos_vfs) {
+-		mlx4_info(dev, "No availible VPP resources for this VF\n");
++		mlx4_info(dev, "No available VPP resources for this VF\n");
+ 		return -EINVAL;
+ 	}
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx4/fw_qos.c b/drivers/net/ethernet/mellanox/mlx4/fw_qos.c
+index 8f2fde0487c4..3a09d7122d3b 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/fw_qos.c
++++ b/drivers/net/ethernet/mellanox/mlx4/fw_qos.c
+@@ -65,7 +65,7 @@ struct mlx4_set_port_scheduler_context {
+ 
+ /* Granular Qos (per VF) section */
+ struct mlx4_alloc_vpp_param {
+-	__be32 availible_vpp;
++	__be32 available_vpp;
+ 	__be32 vpp_p_up[MLX4_NUM_UP];
+ };
+ 
+@@ -157,7 +157,7 @@ int mlx4_SET_PORT_SCHEDULER(struct mlx4_dev *dev, u8 port, u8 *tc_tx_bw,
+ EXPORT_SYMBOL(mlx4_SET_PORT_SCHEDULER);
+ 
+ int mlx4_ALLOCATE_VPP_get(struct mlx4_dev *dev, u8 port,
+-			  u16 *availible_vpp, u8 *vpp_p_up)
++			  u16 *available_vpp, u8 *vpp_p_up)
+ {
+ 	int i;
+ 	int err;
+@@ -179,7 +179,7 @@ int mlx4_ALLOCATE_VPP_get(struct mlx4_dev *dev, u8 port,
+ 		goto out;
+ 
+ 	/* Total number of supported VPPs */
+-	*availible_vpp = (u16)be32_to_cpu(out_param->availible_vpp);
++	*available_vpp = (u16)be32_to_cpu(out_param->available_vpp);
+ 
+ 	for (i = 0; i < MLX4_NUM_UP; i++)
+ 		vpp_p_up[i] = (u8)be32_to_cpu(out_param->vpp_p_up[i]);
+diff --git a/drivers/net/ethernet/mellanox/mlx4/fw_qos.h b/drivers/net/ethernet/mellanox/mlx4/fw_qos.h
+index ac1f331878e6..582997577a04 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/fw_qos.h
++++ b/drivers/net/ethernet/mellanox/mlx4/fw_qos.h
+@@ -84,23 +84,23 @@ int mlx4_SET_PORT_PRIO2TC(struct mlx4_dev *dev, u8 port, u8 *prio2tc);
+ int mlx4_SET_PORT_SCHEDULER(struct mlx4_dev *dev, u8 port, u8 *tc_tx_bw,
+ 			    u8 *pg, u16 *ratelimit);
+ /**
+- * mlx4_ALLOCATE_VPP_get - Query port VPP availible resources and allocation.
+- * Before distribution of VPPs to priorities, only availible_vpp is returned.
++ * mlx4_ALLOCATE_VPP_get - Query port VPP available resources and allocation.
++ * Before distribution of VPPs to priorities, only available_vpp is returned.
+  * After initialization it returns the distribution of VPPs among priorities.
+  *
+  * @dev: mlx4_dev.
+  * @port: Physical port number.
+- * @availible_vpp: Pointer to variable where number of availible VPPs is stored
++ * @available_vpp: Pointer to variable where number of available VPPs is stored
+  * @vpp_p_up: Distribution of VPPs to priorities is stored in this array
+  *
+  * Returns 0 on success or a negative mlx4_core errno code.
+  **/
+ int mlx4_ALLOCATE_VPP_get(struct mlx4_dev *dev, u8 port,
+-			  u16 *availible_vpp, u8 *vpp_p_up);
++			  u16 *available_vpp, u8 *vpp_p_up);
+ /**
+  * mlx4_ALLOCATE_VPP_set - Distribution of VPPs among differnt priorities.
+  * The total number of VPPs assigned to all for a port must not exceed
+- * the value reported by availible_vpp in mlx4_ALLOCATE_VPP_get.
++ * the value reported by available_vpp in mlx4_ALLOCATE_VPP_get.
+  * VPP allocation is allowed only after the port type has been set,
+  * and while no QPs are open for this port.
+  *
 -- 
-2.14.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.11.0
