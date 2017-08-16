@@ -1,74 +1,69 @@
-From: Suri Shelvapille <suri-lFb5ksp6isWhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Subject: RE: [rdma-next v2 07/23] RDMA/core: Remove unimplemented node_types
- and node transport
-Date: Wed, 16 Aug 2017 14:30:05 +0000
-Message-ID: <SN1PR0301MB21274177B67EE02B96F14424DE820@SN1PR0301MB2127.namprd03.prod.outlook.com>
-References: <20170815085452.3546-1-leon@kernel.org>
- <20170815085452.3546-8-leon@kernel.org>
- <SN1PR0301MB2127376FC9B3D170C878A47BDE8D0@SN1PR0301MB2127.namprd03.prod.outlook.com>
- <20170816053744.GD24282@mtr-leonro.local>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v1 for-rc] RDMA/vmw_pvrdma: Report CQ missed events
+Date: Wed, 16 Aug 2017 10:59:52 -0400
+Message-ID: <1502895592.33760.8.camel@redhat.com>
+References: <1502391902-5674-1-git-send-email-aditr@vmware.com>
+         <20170810200256.GA4913@yuvallap>
+         <306A2D1C-3070-4BFA-B532-D5020F5D185A@vmware.com>
+         <20170810210103.GA9201@yuvallap>
+         <B2047B7A-49AA-4899-86F9-E80039033662@vmware.com>
+         <20170810213326.GA2343@yuvallap>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170816053744.GD24282-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20170810213326.GA2343@yuvallap>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "Jorgen S. Hansen" <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Leon:
-Our Drivers are not in Kernel (being a small company we don't have resource=
-s to make it in-kernel). When I and Hal worked on adding the switch capabil=
-ity into the kernel, we thought it would be useful for the community (as th=
-ere was interest in a few others besides us). Philosophically, since SWITCH=
- and ROUTER definitions are part of the IB spec, don't you think having the=
-se definitions makes the kernel close to spec and hence useful? I know thes=
-e definitions can be easily added into our drivers.
-Just treat this as a request, if it is not an onus to the community, please=
- keep the SWITCH and ROUTER (only) definitions. If you have strong reasons =
-I have no objections to your patches.
+On Fri, 2017-08-11 at 00:33 +0300, Yuval Shaia wrote:
+> On Thu, Aug 10, 2017 at 09:26:06PM +0000, Adit Ranadive wrote:
+> > On 8/10/17, 2:01 PM, "Yuval Shaia" <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> > > Great, i understand that.
+> > > So, at least can you consider moving this dev_err into
+> > > pvrdma_idx_ring_has_data so callers do not need to handle errors?
+> > 
+> > Thanks for the suggestion. It's something we will have to discuss
+> > internally,
+> > though I'm not sure if BUG_ON is the right way to go. That just
+> > seems a really
+> 
+> No, i agree, BUG_ON is a mistake as ring corruption can be caused by
+> HW, 
 
-Thanks,
-Suri
+BUG_ON is generally a mistake regardless.  Even if it was an issue in
+the driver, another option would be to forcibly remove the ib_device
+and shut it all down.  That would prevent a driver bug from taking the
+machine down, and therefore is preferable to a BUG_ON.  If I see a
+BUG_ON, I'm immediately going to be asking why that particular
+condition is so bad that you think someone's Oracle server should die
+entirely versus limping along with some disabled device or something
+(because I know that's exactly what Linus will ask when he sees it).
 
------Original Message-----
-From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
-Sent: Wednesday, August 16, 2017 1:38 AM
-To: Suri Shelvapille <suri-lFb5ksp6isWhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Re: [rdma-next v2 07/23] RDMA/core: Remove unimplemented node_type=
-s and node transport
+> my
+> suggestion is just to place the check and error print inside the
+> function
+> pvrdma_idx_ring_has_data so callers will not need to handle such
+> errors.
+> 
+> Anyways, with or without taking the suggestion - fix lgtm.
+> 
+> Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-On Tue, Aug 15, 2017 at 06:25:54PM +0000, Suri Shelvapille wrote:
-> Leon:
->
-> We do have IB_SWITCH and IB_ROUTER functionality and we do use the SWITCH=
- capability provided by the "core" in our product. The "core" has a wrapper=
- function which Identifies the device as a switch to direct smp packets. I =
-am glad that has not been removed. And I hope it won't be removed as it wou=
-ld be a burden to us. Although we prefer to have the IB_SWITCH/IB_ROUTER de=
-finitions in the core as well, it is not a big deal to move these definitio=
-ns inside our driver.
->
+Pulled in for -rc.  Thanks.
 
-Can you please point me to IN-KERNEL hardware/driver where these values are=
- being set? Because I didn't find any.
+> > big hammer to me.
+> > As it stands the patch should be added since it does fix a
+> > potential race
+> > condition.
+> > 
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
-Thanks
-
-This correspondence, and any attachments or files transmitted with this cor=
-respondence, contains information which may be confidential and privileged =
-and is intended solely for the use of the addressee. Unless you are the add=
-ressee or are authorized to receive messages for the addressee, you may not=
- use, copy, disseminate, or disclose this correspondence or any information=
- contained in this correspondence to any third party. If you have received =
-this correspondence in error, please notify the sender immediately and dele=
-te this correspondence and any attachments or files transmitted with this c=
-orrespondence from your system, and destroy any and all copies thereof, ele=
-ctronic or otherwise. Your cooperation and understanding are greatly apprec=
-iated.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
