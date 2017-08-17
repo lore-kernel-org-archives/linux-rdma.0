@@ -1,8 +1,11 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v1 REPOST 09/10] IB/mlx5: Support IB_SRQT_TM
-Date: Thu, 17 Aug 2017 15:52:11 +0300
-Message-ID: <20170817125212.3173-10-leon@kernel.org>
+Subject: [rdma-next v1 REPOST 10/10] Documentation: Hardware tag matching
+Date: Thu, 17 Aug 2017 15:52:12 +0300
+Message-ID: <20170817125212.3173-11-leon@kernel.org>
 References: <20170817125212.3173-1-leon@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170817125212.3173-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
@@ -12,89 +15,87 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Pass to mlx5_core flag to enable rendezvous offload, list_size and CQ
-when SRQ created with IB_SRQT_TM.
+Add document providing definitions of terms and core explanations
+for tag matching (TM) protocols, eager and rendezvous,
+TM application header, tag list manipulations and matching process.
 
 Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yossi Itigin <yosefe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/qp.c  |  9 +++++++--
- drivers/infiniband/hw/mlx5/srq.c | 18 +++++++++++++++---
- 2 files changed, 22 insertions(+), 5 deletions(-)
+ Documentation/infiniband/tag_matching.txt | 64 +++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
+ create mode 100644 Documentation/infiniband/tag_matching.txt
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 5c7ce9bd466e..ebbfd721661d 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1718,10 +1718,15 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
-
- 	MLX5_SET(qpc, qpc, rq_type, get_rx_type(qp, init_attr));
-
--	if (qp->sq.wqe_cnt)
-+	if (qp->sq.wqe_cnt) {
- 		MLX5_SET(qpc, qpc, log_sq_size, ilog2(qp->sq.wqe_cnt));
--	else
-+	} else {
- 		MLX5_SET(qpc, qpc, no_sq, 1);
-+		if (init_attr->srq &&
-+		    init_attr->srq->srq_type == IB_SRQT_TM)
-+			MLX5_SET(qpc, qpc, offload_type,
-+				 MLX5_QPC_OFFLOAD_TYPE_RNDV);
-+	}
-
- 	/* Set default resources */
- 	switch (init_attr->qp_type) {
-diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx5/srq.c
-index 022b4c642047..d9af04100362 100644
---- a/drivers/infiniband/hw/mlx5/srq.c
-+++ b/drivers/infiniband/hw/mlx5/srq.c
-@@ -101,7 +101,7 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
- 				 udata->inlen - sizeof(ucmd)))
- 		return -EINVAL;
-
--	if (in->type == IB_SRQT_XRC) {
-+	if (in->type != IB_SRQT_BASIC) {
- 		err = get_srq_user_index(to_mucontext(pd->uobject->context),
- 					 &ucmd, udata->inlen, &uidx);
- 		if (err)
-@@ -145,7 +145,7 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
- 	in->log_page_size = page_shift - MLX5_ADAPTER_PAGE_SHIFT;
- 	in->page_offset = offset;
- 	if (MLX5_CAP_GEN(dev->mdev, cqe_version) == MLX5_CQE_VERSION_V1 &&
--	    in->type == IB_SRQT_XRC)
-+	    in->type != IB_SRQT_BASIC)
- 		in->user_index = uidx;
-
- 	return 0;
-@@ -205,7 +205,7 @@ static int create_srq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_srq *srq,
-
- 	in->log_page_size = srq->buf.page_shift - MLX5_ADAPTER_PAGE_SHIFT;
- 	if (MLX5_CAP_GEN(dev->mdev, cqe_version) == MLX5_CQE_VERSION_V1 &&
--	    in->type == IB_SRQT_XRC)
-+	    in->type != IB_SRQT_BASIC)
- 		in->user_index = MLX5_IB_DEFAULT_UIDX;
-
- 	return 0;
-@@ -298,6 +298,18 @@ struct ib_srq *mlx5_ib_create_srq(struct ib_pd *pd,
- 	else
- 		in.xrcd = to_mxrcd(dev->devr.x0)->xrcdn;
-
-+	if (init_attr->srq_type == IB_SRQT_TM) {
-+		in.tm_log_list_size =
-+			ilog2(init_attr->ext.tag_matching.max_num_tags) + 1;
-+		if (in.tm_log_list_size >
-+		    MLX5_CAP_GEN(dev->mdev, log_tag_matching_list_sz)) {
-+			mlx5_ib_dbg(dev, "TM SRQ max_num_tags exceeding limit\n");
-+			err = -EINVAL;
-+			goto err_usr_kern_srq;
-+		}
-+		in.flags |= MLX5_SRQ_FLAG_RNDV;
-+	}
+diff --git a/Documentation/infiniband/tag_matching.txt b/Documentation/infiniband/tag_matching.txt
+new file mode 100644
+index 000000000000..d2a3bf819226
+--- /dev/null
++++ b/Documentation/infiniband/tag_matching.txt
+@@ -0,0 +1,64 @@
++Tag matching logic
 +
- 	if (ib_srq_has_cq(init_attr->srq_type))
- 		in.cqn = to_mcq(init_attr->ext.cq)->mcq.cqn;
- 	else
++The MPI standard defines a set of rules, known as tag-matching, for matching
++source send operations to destination receives.  The following parameters must
++match the following source and destination parameters:
++*	Communicator
++*	User tag - wild card may be specified by the receiver
++*	Source rank – wild car may be specified by the receiver
++*	Destination rank – wild
++The ordering rules require that when more than one pair of send and receive
++message envelopes may match, the pair that includes the earliest posted-send
++and the earliest posted-receive is the pair that must be used to satisfy the
++matching operation. However, this doesn’t imply that tags are consumed in
++the order they are created, e.g., a later generated tag may be consumed, if
++earlier tags can’t be used to satisfy the matching rules.
++
++When a message is sent from the sender to the receiver, the communication
++library may attempt to process the operation either after or before the
++corresponding matching receive is posted.  If a matching receive is posted,
++this is an expected message, otherwise it is called an unexpected message.
++Implementations frequently use different matching schemes for these two
++different matching instances.
++
++To keep MPI library memory footprint down, MPI implementations typically use
++two different protocols for this purpose:
++
++1.	The Eager protocol- the complete message is sent when the send is
++processed by the sender. A completion send is received in the send_cq
++notifying that the buffer can be reused.
++
++2.	The Rendezvous Protocol - the sender sends the tag-matching header,
++and perhaps a portion of data when first notifying the receiver. When the
++corresponding buffer is posted, the responder will use the information from
++the header to initiate an RDMA READ operation directly to the matching buffer.
++A fin message needs to be received in order for the buffer to be reused.
++
++Tag matching implementation
++
++There are two types of matching objects used, the posted receive list and the
++unexpected message list. The application posts receive buffers through calls
++to the MPI receive routines in the posted receive list and posts send messages
++using the MPI send routines. The head of the posted receive list may be
++maintained by the hardware, with the software expected to shadow this list.
++
++When send is initiated and arrives at the receive side, if there is no
++pre-posted receive for this arriving message, it is passed to the software and
++placed in the unexpected message list. Otherwise the match is processed,
++including rendezvous processing, if appropriate, delivering the data to the
++specified receive buffer. This allows overlapping receive-side MPI tag
++matching with computation.
++
++When a receive-message is posted, the communication library will first check
++the software unexpected message list for a matching receive. If a match is
++found, data is delivered to the user buffer, using a software controlled
++protocol. The UCX implementation uses either an eager or rendezvous protocol,
++depending on data size. If no match is found, the entire pre-posted receive
++list is maintained by the hardware, and there is space to add one more
++pre-posted receive to this list, this receive is passed to the hardware.
++Software is expected to shadow this list, to help with processing MPI cancel
++operations. In addition, because hardware and software are not expected to be
++tightly synchronized with respect to the tag-matching operation, this shadow
++list is used to detect the case that a pre-posted receive is passed to the
++hardware, as the matching unexpected message is being passed from the hardware
++to the software.
 --
 2.14.1
 
