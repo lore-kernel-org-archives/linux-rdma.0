@@ -1,39 +1,51 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v3 22/24] RDMA/mlx5: Limit scope of get vector affinity local function
-Date: Thu, 17 Aug 2017 15:50:53 +0300
-Message-ID: <20170817125055.31424-23-leon@kernel.org>
+Subject: [rdma-next v3 24/24] RDMA/nes: Remove zeroed parameter from port query callback
+Date: Thu, 17 Aug 2017 15:50:55 +0300
+Message-ID: <20170817125055.31424-25-leon@kernel.org>
 References: <20170817125055.31424-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170817125055.31424-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The mlx5_ib_get_vector_affinity() call is local to main.c file and there
-is no need to be declared globally visible.
+From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Fixes: 40b24403f33e ("mlx5: support ->get_vector_affinity")
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+There is no need to explicitly zero parameters, because
+the structure requested to be filled already initialized to zeros.
+
+Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/nes/nes_verbs.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 986404827848..47cf622c6d24 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -3818,8 +3818,8 @@ static void init_delay_drop(struct mlx5_ib_dev *dev)
- 		mlx5_ib_warn(dev, "Failed to init delay drop debugfs\n");
- }
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index c2943e39d2f9..f0dc5f4aa177 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -481,21 +481,16 @@ static int nes_query_port(struct ib_device *ibdev, u8 port, struct ib_port_attr
+ 	props->active_mtu = ib_mtu_int_to_enum(netdev->mtu);
  
--const struct cpumask *mlx5_ib_get_vector_affinity(struct ib_device *ibdev,
--		int comp_vector)
-+static const struct cpumask *
-+mlx5_ib_get_vector_affinity(struct ib_device *ibdev, int comp_vector)
- {
- 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
- 
+ 	props->lid = 1;
+-	props->lmc = 0;
+-	props->sm_lid = 0;
+-	props->sm_sl = 0;
+ 	if (netif_queue_stopped(netdev))
+ 		props->state = IB_PORT_DOWN;
+ 	else if (nesvnic->linkup)
+ 		props->state = IB_PORT_ACTIVE;
+ 	else
+ 		props->state = IB_PORT_DOWN;
+-	props->phys_state = 0;
+ 	props->port_cap_flags = IB_PORT_CM_SUP | IB_PORT_REINIT_SUP |
+ 			IB_PORT_VENDOR_CLASS_SUP | IB_PORT_BOOT_MGMT_SUP;
+ 	props->gid_tbl_len = 1;
+ 	props->pkey_tbl_len = 1;
+-	props->qkey_viol_cntr = 0;
+ 	props->active_width = IB_WIDTH_4X;
+ 	props->active_speed = IB_SPEED_SDR;
+ 	props->max_msg_sz = 0x80000000;
 -- 
 2.14.1
 
