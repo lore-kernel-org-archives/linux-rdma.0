@@ -1,67 +1,74 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next 5/8] IB/mlx5: Fix integer overflow when page_shift == 31
-Date: Thu, 17 Aug 2017 15:52:32 +0300
-Message-ID: <20170817125235.5107-6-leon@kernel.org>
-References: <20170817125235.5107-1-leon@kernel.org>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170817125235.5107-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ilya Lesokhin <ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Joerg Roedel <joro@8bytes.org>
+Subject: [PATCH 12/13] IB/usnic: Use sychronized interface of the IOMMU-API
+Date: Thu, 17 Aug 2017 14:56:35 +0200
+Message-ID: <1502974596-23835-13-git-send-email-joro@8bytes.org>
+References: <1502974596-23835-1-git-send-email-joro@8bytes.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1502974596-23835-1-git-send-email-joro@8bytes.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: iommu@lists.linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Joerg Roedel <jroedel@suse.de>, Christian Benvenuti <benve@cisco.com>, Dave Goodell <dgoodell@cisco.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ilya Lesokhin <ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Joerg Roedel <jroedel@suse.de>
 
-Fix a bug where MR registration fails when mlx5_ib_cont_pages
-indicates that the MR can be mapped using 2GB pages (page_shift == 31).
+The map and unmap functions of the IOMMU-API changed their
+semantics: They do no longer guarantee that the hardware
+TLBs are synchronized with the page-table updates they made.
 
-Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
-Signed-off-by: Ilya Lesokhin <ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To make conversion easier, new synchronized functions have
+been introduced which give these guarantees again until the
+code is converted to use the new TLB-flush interface of the
+IOMMU-API, which allows certain optimizations.
+
+But for now, just convert this code to use the synchronized
+functions so that it will behave as before.
+
+Cc: Christian Benvenuti <benve@cisco.com>
+Cc: Dave Goodell <dgoodell@cisco.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: linux-rdma@vger.kernel.org
+Signed-off-by: Joerg Roedel <jroedel@suse.de>
 ---
- drivers/infiniband/hw/mlx5/mr.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/usnic/usnic_uiom.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 8cf53eb13148..0e2789d9bb4d 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -808,13 +808,14 @@ struct ib_mr *mlx5_ib_get_dma_mr(struct ib_pd *pd, int acc)
- 	return ERR_PTR(err);
- }
- 
--static int get_octo_len(u64 addr, u64 len, int page_size)
-+static int get_octo_len(u64 addr, u64 len, int page_shift)
- {
-+	u64 page_size = 1ULL << page_shift;
- 	u64 offset;
- 	int npages;
- 
- 	offset = addr & (page_size - 1);
--	npages = ALIGN(len + offset, page_size) >> ilog2(page_size);
-+	npages = ALIGN(len + offset, page_size) >> page_shift;
- 	return (npages + 1) / 2;
- }
- 
-@@ -1147,12 +1148,12 @@ static struct mlx5_ib_mr *reg_create(struct ib_mr *ibmr, struct ib_pd *pd,
- 	MLX5_SET(mkc, mkc, pd, to_mpd(pd)->pdn);
- 	MLX5_SET(mkc, mkc, bsf_octword_size, 0);
- 	MLX5_SET(mkc, mkc, translations_octword_size,
--		 get_octo_len(virt_addr, length, 1 << page_shift));
-+		 get_octo_len(virt_addr, length, page_shift));
- 	MLX5_SET(mkc, mkc, log_page_size, page_shift);
- 	MLX5_SET(mkc, mkc, qpn, 0xffffff);
- 	if (populate) {
- 		MLX5_SET(create_mkey_in, in, translations_octword_actual_size,
--			 get_octo_len(virt_addr, length, 1 << page_shift));
-+			 get_octo_len(virt_addr, length, page_shift));
- 	}
- 
- 	err = mlx5_core_create_mkey(dev->mdev, &mr->mmkey, in, inlen);
+diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
+index c49db7c..e53dc38 100644
+--- a/drivers/infiniband/hw/usnic/usnic_uiom.c
++++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
+@@ -205,7 +205,7 @@ static void usnic_uiom_unmap_sorted_intervals(struct list_head *intervals,
+ 		while (size > 0) {
+ 			/* Workaround for RH 970401 */
+ 			usnic_dbg("va 0x%lx size 0x%lx", va, PAGE_SIZE);
+-			iommu_unmap(pd->domain, va, PAGE_SIZE);
++			iommu_unmap_sync(pd->domain, va, PAGE_SIZE);
+ 			va += PAGE_SIZE;
+ 			size -= PAGE_SIZE;
+ 		}
+@@ -282,8 +282,8 @@ static int usnic_uiom_map_sorted_intervals(struct list_head *intervals,
+ 				size = pa_end - pa_start + PAGE_SIZE;
+ 				usnic_dbg("va 0x%lx pa %pa size 0x%zx flags 0x%x",
+ 					va_start, &pa_start, size, flags);
+-				err = iommu_map(pd->domain, va_start, pa_start,
+-							size, flags);
++				err = iommu_map_sync(pd->domain, va_start,
++						     pa_start, size, flags);
+ 				if (err) {
+ 					usnic_err("Failed to map va 0x%lx pa %pa size 0x%zx with err %d\n",
+ 						va_start, &pa_start, size, err);
+@@ -299,8 +299,8 @@ static int usnic_uiom_map_sorted_intervals(struct list_head *intervals,
+ 				size = pa - pa_start + PAGE_SIZE;
+ 				usnic_dbg("va 0x%lx pa %pa size 0x%zx flags 0x%x\n",
+ 					va_start, &pa_start, size, flags);
+-				err = iommu_map(pd->domain, va_start, pa_start,
+-						size, flags);
++				err = iommu_map_sync(pd->domain, va_start,
++						     pa_start, size, flags);
+ 				if (err) {
+ 					usnic_err("Failed to map va 0x%lx pa %pa size 0x%zx with err %d\n",
+ 						va_start, &pa_start, size, err);
 -- 
-2.14.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2.7.4
