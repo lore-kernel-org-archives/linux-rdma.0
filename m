@@ -1,41 +1,54 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v3 18/24] IB/mlx4: Check that reserved fields in mlx4_ib_create_qp_rss are zero
-Date: Thu, 17 Aug 2017 15:50:49 +0300
-Message-ID: <20170817125055.31424-19-leon@kernel.org>
+Subject: [rdma-next v3 12/24] IB/mlx4: Fix some spelling mistakes
+Date: Thu, 17 Aug 2017 15:50:43 +0300
+Message-ID: <20170817125055.31424-13-leon@kernel.org>
 References: <20170817125055.31424-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170817125055.31424-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-According to mlx4 convention, need to fail the command due to a non-zero
-value in the user data which is expected to be zero.
+Fix spelling mistakes in remarks
+    "retrun"->"return"
+    "cancell"->"cancel"
 
-Fixes: 3078f5f1bd8b ("IB/mlx4: Add support for RSS QP")
-Signed-off-by: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Talat Batheesh <talatb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/qp.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/infiniband/hw/mlx4/alias_GUID.c | 2 +-
+ drivers/infiniband/hw/mlx4/cq.c         | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 44d2d0a2d5e0..2874d8790570 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -813,6 +813,9 @@ static struct ib_qp *_mlx4_ib_create_qp_rss(struct ib_pd *pd,
- 		return ERR_PTR(-EFAULT);
- 	}
+diff --git a/drivers/infiniband/hw/mlx4/alias_GUID.c b/drivers/infiniband/hw/mlx4/alias_GUID.c
+index 5a897b0106a9..9ed41f56e141 100644
+--- a/drivers/infiniband/hw/mlx4/alias_GUID.c
++++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
+@@ -781,7 +781,7 @@ void mlx4_ib_init_alias_guid_work(struct mlx4_ib_dev *dev, int port)
+ 	spin_lock_irqsave(&dev->sriov.going_down_lock, flags);
+ 	spin_lock_irqsave(&dev->sriov.alias_guid.ag_work_lock, flags1);
+ 	if (!dev->sriov.is_going_down) {
+-		/* If there is pending one should cancell then run, otherwise
++		/* If there is pending one should cancel then run, otherwise
+ 		  * won't run till previous one is ended as same work
+ 		  * struct is used.
+ 		  */
+diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
+index 95382faa7ad1..cab796341697 100644
+--- a/drivers/infiniband/hw/mlx4/cq.c
++++ b/drivers/infiniband/hw/mlx4/cq.c
+@@ -637,7 +637,7 @@ static void mlx4_ib_poll_sw_comp(struct mlx4_ib_cq *cq, int num_entries,
+ 	struct mlx4_ib_qp *qp;
  
-+	if (memchr_inv(ucmd.reserved, 0, sizeof(ucmd.reserved)))
-+		return ERR_PTR(-EOPNOTSUPP);
-+
- 	if (ucmd.comp_mask || ucmd.reserved1)
- 		return ERR_PTR(-EOPNOTSUPP);
- 
+ 	*npolled = 0;
+-	/* Find uncompleted WQEs belonging to that cq and retrun
++	/* Find uncompleted WQEs belonging to that cq and return
+ 	 * simulated FLUSH_ERR completions
+ 	 */
+ 	list_for_each_entry(qp, &cq->send_qp_list, cq_send_list) {
 -- 
 2.14.1
 
