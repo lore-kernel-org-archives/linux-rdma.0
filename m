@@ -1,52 +1,40 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v3 23/24] RDMA/mlx4: Properly annotate link layer variable
-Date: Thu, 17 Aug 2017 15:50:54 +0300
-Message-ID: <20170817125055.31424-24-leon@kernel.org>
+Subject: [rdma-next v3 21/24] IB/rxe: Make rxe_counter_name static
+Date: Thu, 17 Aug 2017 15:50:52 +0300
+Message-ID: <20170817125055.31424-22-leon@kernel.org>
 References: <20170817125055.31424-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170817125055.31424-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-The rdma_port_get_link_layer() returns enum rdma_link_layer as
-a return value, hence it is better to store the return value in
-specially annotated variable and not in int.
+rxe_counter_name is used in rxe_hw_counters.c only. Make it static.
 
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Fixes: 0b1e5b99a48b ('IB/rxe: Add port protocol stats')
+Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/qp.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_hw_counters.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 2874d8790570..8c6ccc392d87 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -2732,19 +2732,17 @@ enum {
- static int _mlx4_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 			      int attr_mask, struct ib_udata *udata)
- {
-+	enum rdma_link_layer ll = IB_LINK_LAYER_UNSPECIFIED;
- 	struct mlx4_ib_dev *dev = to_mdev(ibqp->device);
- 	struct mlx4_ib_qp *qp = to_mqp(ibqp);
- 	enum ib_qp_state cur_state, new_state;
- 	int err = -EINVAL;
--	int ll;
- 	mutex_lock(&qp->mutex);
+diff --git a/drivers/infiniband/sw/rxe/rxe_hw_counters.c b/drivers/infiniband/sw/rxe/rxe_hw_counters.c
+index 7ef90aad7dfd..6aeb7a165e46 100644
+--- a/drivers/infiniband/sw/rxe/rxe_hw_counters.c
++++ b/drivers/infiniband/sw/rxe/rxe_hw_counters.c
+@@ -33,7 +33,7 @@
+ #include "rxe.h"
+ #include "rxe_hw_counters.h"
  
- 	cur_state = attr_mask & IB_QP_CUR_STATE ? attr->cur_qp_state : qp->state;
- 	new_state = attr_mask & IB_QP_STATE ? attr->qp_state : cur_state;
- 
--	if (cur_state == new_state && cur_state == IB_QPS_RESET) {
--		ll = IB_LINK_LAYER_UNSPECIFIED;
--	} else {
-+	if (cur_state != new_state || cur_state != IB_QPS_RESET) {
- 		int port = attr_mask & IB_QP_PORT ? attr->port_num : qp->port;
- 		ll = rdma_port_get_link_layer(&dev->ib_dev, port);
- 	}
+-const char * const rxe_counter_name[] = {
++static const char * const rxe_counter_name[] = {
+ 	[RXE_CNT_SENT_PKTS]           =  "sent_pkts",
+ 	[RXE_CNT_RCVD_PKTS]           =  "rcvd_pkts",
+ 	[RXE_CNT_DUP_REQ]             =  "duplicate_request",
 -- 
 2.14.1
 
