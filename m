@@ -1,53 +1,214 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next 4/8] IB/mlx5: Fix memory leak in clean_mr error path
-Date: Thu, 17 Aug 2017 15:52:31 +0300
-Message-ID: <20170817125235.5107-5-leon@kernel.org>
+Subject: [rdma-next 3/8] IB/mlx5: Decouple MR allocation and population flows
+Date: Thu, 17 Aug 2017 15:52:30 +0300
+Message-ID: <20170817125235.5107-4-leon@kernel.org>
 References: <20170817125235.5107-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170817125235.5107-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ilya Lesokhin <ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Ilya Lesokhin <ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-In clean_mr error path the 'mr' should be freed.
+mlx5 compatible devices have two ways of populating the MTT
+table of an MKEY: using a FW command and using a UMR WQE.
 
-Fixes: e126ba97dba9 ('mlx5: Add driver for Mellanox Connect-IB adapters')
-Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+A UMR is much faster, so it should be used whenever possible.
+Unfortunately the code today uses UMR only if the MKEY was allocated
+from the MR cache.
+
+Fix the code to use UMR even for MKEYs that were allocated using
+a FW command.
+
+Signed-off-by: Ilya Lesokhin <ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/mr.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/mlx5/mr.c | 75 ++++++++++++++++++++++++-----------------
+ 1 file changed, 45 insertions(+), 30 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index aa6f71570b77..8cf53eb13148 100644
+index bc87016021e3..aa6f71570b77 100644
 --- a/drivers/infiniband/hw/mlx5/mr.c
 +++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -1490,19 +1490,19 @@ static int clean_mr(struct mlx5_ib_mr *mr)
- 	mlx5_free_priv_descs(mr);
- 
- 	if (!allocated_from_cache) {
-+		u32 key = mr->mmkey.key;
-+
- 		err = destroy_mkey(dev, mr);
-+		kfree(mr);
- 		if (err) {
- 			mlx5_ib_warn(dev, "failed to destroy mkey 0x%x (%d)\n",
--				     mr->mmkey.key, err);
-+				     key, err);
- 			return err;
- 		}
- 	} else {
- 		mlx5_mr_cache_free(dev, mr);
- 	}
- 
--	if (!allocated_from_cache)
--		kfree(mr);
--
- 	return 0;
+@@ -898,7 +898,8 @@ static int mlx5_ib_post_send_wait(struct mlx5_ib_dev *dev,
+ 	return err;
  }
  
+-static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
++static struct mlx5_ib_mr *alloc_mr_from_cache(
++				  struct ib_pd *pd, struct ib_umem *umem,
+ 				  u64 virt_addr, u64 len, int npages,
+ 				  int page_shift, int order, int access_flags)
+ {
+@@ -930,16 +931,6 @@ static struct mlx5_ib_mr *reg_umr(struct ib_pd *pd, struct ib_umem *umem,
+ 	mr->mmkey.size = len;
+ 	mr->mmkey.pd = to_mpd(pd)->pdn;
+ 
+-	err = mlx5_ib_update_xlt(mr, 0, npages, page_shift,
+-				 MLX5_IB_UPD_XLT_ENABLE);
+-
+-	if (err) {
+-		mlx5_mr_cache_free(dev, mr);
+-		return ERR_PTR(err);
+-	}
+-
+-	mr->live = 1;
+-
+ 	return mr;
+ }
+ 
+@@ -1105,7 +1096,8 @@ int mlx5_ib_update_xlt(struct mlx5_ib_mr *mr, u64 idx, int npages,
+ static struct mlx5_ib_mr *reg_create(struct ib_mr *ibmr, struct ib_pd *pd,
+ 				     u64 virt_addr, u64 length,
+ 				     struct ib_umem *umem, int npages,
+-				     int page_shift, int access_flags)
++				     int page_shift, int access_flags,
++				     bool populate)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
+ 	struct mlx5_ib_mr *mr;
+@@ -1120,15 +1112,19 @@ static struct mlx5_ib_mr *reg_create(struct ib_mr *ibmr, struct ib_pd *pd,
+ 	if (!mr)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	inlen = MLX5_ST_SZ_BYTES(create_mkey_in) +
+-		sizeof(*pas) * ((npages + 1) / 2) * 2;
++	mr->ibmr.pd = pd;
++	mr->access_flags = access_flags;
++
++	inlen = MLX5_ST_SZ_BYTES(create_mkey_in);
++	if (populate)
++		inlen += sizeof(*pas) * roundup(npages, 2);
+ 	in = kvzalloc(inlen, GFP_KERNEL);
+ 	if (!in) {
+ 		err = -ENOMEM;
+ 		goto err_1;
+ 	}
+ 	pas = (__be64 *)MLX5_ADDR_OF(create_mkey_in, in, klm_pas_mtt);
+-	if (!(access_flags & IB_ACCESS_ON_DEMAND))
++	if (populate && !(access_flags & IB_ACCESS_ON_DEMAND))
+ 		mlx5_ib_populate_pas(dev, umem, page_shift, pas,
+ 				     pg_cap ? MLX5_IB_MTT_PRESENT : 0);
+ 
+@@ -1137,6 +1133,7 @@ static struct mlx5_ib_mr *reg_create(struct ib_mr *ibmr, struct ib_pd *pd,
+ 	MLX5_SET(create_mkey_in, in, pg_access, !!(pg_cap));
+ 
+ 	mkc = MLX5_ADDR_OF(create_mkey_in, in, memory_key_mkey_entry);
++	MLX5_SET(mkc, mkc, free, !populate);
+ 	MLX5_SET(mkc, mkc, access_mode, MLX5_MKC_ACCESS_MODE_MTT);
+ 	MLX5_SET(mkc, mkc, a, !!(access_flags & IB_ACCESS_REMOTE_ATOMIC));
+ 	MLX5_SET(mkc, mkc, rw, !!(access_flags & IB_ACCESS_REMOTE_WRITE));
+@@ -1153,8 +1150,10 @@ static struct mlx5_ib_mr *reg_create(struct ib_mr *ibmr, struct ib_pd *pd,
+ 		 get_octo_len(virt_addr, length, 1 << page_shift));
+ 	MLX5_SET(mkc, mkc, log_page_size, page_shift);
+ 	MLX5_SET(mkc, mkc, qpn, 0xffffff);
+-	MLX5_SET(create_mkey_in, in, translations_octword_actual_size,
+-		 get_octo_len(virt_addr, length, 1 << page_shift));
++	if (populate) {
++		MLX5_SET(create_mkey_in, in, translations_octword_actual_size,
++			 get_octo_len(virt_addr, length, 1 << page_shift));
++	}
+ 
+ 	err = mlx5_core_create_mkey(dev->mdev, &mr->mmkey, in, inlen);
+ 	if (err) {
+@@ -1163,9 +1162,7 @@ static struct mlx5_ib_mr *reg_create(struct ib_mr *ibmr, struct ib_pd *pd,
+ 	}
+ 	mr->mmkey.type = MLX5_MKEY_MR;
+ 	mr->desc_size = sizeof(struct mlx5_mtt);
+-	mr->umem = umem;
+ 	mr->dev = dev;
+-	mr->live = 1;
+ 	kvfree(in);
+ 
+ 	mlx5_ib_dbg(dev, "mkey = 0x%x\n", mr->mmkey.key);
+@@ -1205,6 +1202,7 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	int ncont;
+ 	int order;
+ 	int err;
++	bool use_umr = true;
+ 
+ 	mlx5_ib_dbg(dev, "start 0x%llx, virt_addr 0x%llx, length 0x%llx, access_flags 0x%x\n",
+ 		    start, virt_addr, length, access_flags);
+@@ -1223,27 +1221,29 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	err = mr_umem_get(pd, start, length, access_flags, &umem, &npages,
+ 			   &page_shift, &ncont, &order);
+ 
+-        if (err < 0)
++	if (err < 0)
+ 		return ERR_PTR(err);
+ 
+ 	if (order <= mr_cache_max_order(dev)) {
+-		mr = reg_umr(pd, umem, virt_addr, length, ncont, page_shift,
+-			     order, access_flags);
++		mr = alloc_mr_from_cache(pd, umem, virt_addr, length, ncont,
++					 page_shift, order, access_flags);
+ 		if (PTR_ERR(mr) == -EAGAIN) {
+ 			mlx5_ib_dbg(dev, "cache empty for order %d", order);
+ 			mr = NULL;
+ 		}
+-	} else if (access_flags & IB_ACCESS_ON_DEMAND &&
+-		   !MLX5_CAP_GEN(dev->mdev, umr_extended_translation_offset)) {
+-		err = -EINVAL;
+-		pr_err("Got MR registration for ODP MR > 512MB, not supported for Connect-IB");
+-		goto error;
++	} else if (!MLX5_CAP_GEN(dev->mdev, umr_extended_translation_offset)) {
++		if (access_flags & IB_ACCESS_ON_DEMAND) {
++			err = -EINVAL;
++			pr_err("Got MR registration for ODP MR > 512MB, not supported for Connect-IB");
++			goto error;
++		}
++		use_umr = false;
+ 	}
+ 
+ 	if (!mr) {
+ 		mutex_lock(&dev->slow_path_mutex);
+ 		mr = reg_create(NULL, pd, virt_addr, length, umem, ncont,
+-				page_shift, access_flags);
++				page_shift, access_flags, !use_umr);
+ 		mutex_unlock(&dev->slow_path_mutex);
+ 	}
+ 
+@@ -1261,8 +1261,22 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 	update_odp_mr(mr);
+ #endif
+ 
+-	return &mr->ibmr;
++	if (use_umr) {
++		int update_xlt_flags = MLX5_IB_UPD_XLT_ENABLE;
++
++		if (access_flags & IB_ACCESS_ON_DEMAND)
++			update_xlt_flags |= MLX5_IB_UPD_XLT_ZAP;
+ 
++		err = mlx5_ib_update_xlt(mr, 0, ncont, page_shift,
++					 update_xlt_flags);
++		if (err) {
++			mlx5_ib_dereg_mr(&mr->ibmr);
++			return ERR_PTR(err);
++		}
++	}
++
++	mr->live = 1;
++	return &mr->ibmr;
+ error:
+ 	ib_umem_release(umem);
+ 	return ERR_PTR(err);
+@@ -1363,12 +1377,13 @@ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
+ 			return err;
+ 
+ 		mr = reg_create(ib_mr, pd, addr, len, mr->umem, ncont,
+-				page_shift, access_flags);
++				page_shift, access_flags, true);
+ 
+ 		if (IS_ERR(mr))
+ 			return PTR_ERR(mr);
+ 
+ 		mr->allocated_from_cache = 0;
++		mr->live = 1;
+ 	} else {
+ 		/*
+ 		 * Send a UMR WQE
 -- 
 2.14.1
 
