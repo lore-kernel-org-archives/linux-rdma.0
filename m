@@ -1,36 +1,38 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH v2 1/1] RDMA/uverbs: Intialize cq_context properly
-Date: Thu, 17 Aug 2017 17:12:40 -0500
-Message-ID: <000301d317a5$f11c6910$d3553b30$@opengridcomputing.com>
-References: <1502132526-18355-1-git-send-email-bharat@chelsio.com> <20170812124810.GA21000@chelsio.com> <009d01d316a0$be80b200$3b821600$@opengridcomputing.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core] mlx5: Hexify device IDs
+Date: Thu, 17 Aug 2017 18:16:15 -0400
+Message-ID: <1503008175.2598.2.camel@redhat.com>
+References: <1497373988-26357-1-git-send-email-ogerlitz@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <009d01d316a0$be80b200$3b821600$@opengridcomputing.com>
-Content-Language: en-us
+In-Reply-To: <1497373988-26357-1-git-send-email-ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Potnuri Bharat Teja' <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> >
-> > Hi Doug,
-> > Please pull this change for next rc if you feel the change appropriate.
-> > Thanks,
-> > Bharat.
+On Tue, 2017-06-13 at 20:13 +0300, Or Gerlitz wrote:
+> To make things less eye damaging and align with the mlx4 provided
+> and both kernel drivers -- lets have the device IDs in hex, as seen
+> e.g by lspci:
 > 
-> I think this commit needs to be pushed to stable as well.  I see the commit it
-> fixes in linux-4.12.y.  Doug can you please add the stable tag when you merge
-> this?
+> 81:00.0 Ethernet controller [0200]: Mellanox Technologies MT27710
+> Family [ConnectX-4 Lx] [15b3:1015]
+> 82:00.0 Ethernet controller [0200]: Mellanox Technologies MT28800
+> Family [ConnectX-5 Ex] [15b3:1019]
+> 82:00.2 Ethernet controller [0200]: Mellanox Technologies MT27800
+> Family [ConnectX-5 Virtual Function] [15b3:1018]
 > 
+> Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Hey Doug, another ping to make sure this is destined for 4.13-rc and stable. 
+Thanks, applied.
 
-Thanks!
-
-Steve.
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
