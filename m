@@ -1,74 +1,49 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 for-next] RDMA: Fix return value check for
- ib_get_eth_speed()
-Date: Thu, 17 Aug 2017 20:03:56 +0300
-Message-ID: <20170817170355.GA20559@yuvallap>
-References: <1502981887-31953-1-git-send-email-selvin.xavier@broadcom.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core] mlx5: Return pointer to CQ doorbell
+Date: Thu, 17 Aug 2017 11:33:20 -0600
+Message-ID: <20170817173320.GB22792@obsidianresearch.com>
+References: <1502976998-20906-1-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1502981887-31953-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1502976998-20906-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Aug 17, 2017 at 07:58:07AM -0700, Selvin Xavier wrote:
-> ib_get_eth_speed() return 0 on success. Fixing the condition checking
-> and prevent reporting failure for query_port verb.
+On Thu, Aug 17, 2017 at 04:36:38PM +0300, Yishai Hadas wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> Fixes: d41861942fc5 ("Add generic function to extract IB speed from netdev")
-
-oops
-
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-
-> Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-> ---
-> v1 -> v2:
-> 	Fixing the commit log. Also, fixes the same issue in usnic driver also
->  drivers/infiniband/hw/bnxt_re/ib_verbs.c     | 4 ++--
->  drivers/infiniband/hw/usnic/usnic_ib_verbs.c | 4 ++--
->  2 files changed, 4 insertions(+), 4 deletions(-)
+> The returned UAR pointer is actually void ** and points to whole
+> UAR database.
 > 
-> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> index d78fedc..3fa20e0 100644
-> --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> @@ -264,8 +264,8 @@ int bnxt_re_query_port(struct ib_device *ibdev, u8 port_num,
->  	 * IB stack to avoid race in the NETDEV_UNREG path
->  	 */
->  	if (test_bit(BNXT_RE_FLAG_IBDEV_REGISTERED, &rdev->flags))
-> -		if (!ib_get_eth_speed(ibdev, port_num, &port_attr->active_speed,
-> -				      &port_attr->active_width))
-> +		if (ib_get_eth_speed(ibdev, port_num, &port_attr->active_speed,
-> +				     &port_attr->active_width))
->  			return -EINVAL;
->  	return 0;
->  }
-> diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-> index e5f57dd..97dd79e 100644
-> --- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-> +++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-> @@ -309,8 +309,8 @@ int usnic_ib_query_port(struct ib_device *ibdev, u8 port,
->  	usnic_dbg("\n");
->  
->  	mutex_lock(&us_ibdev->usdev_lock);
-> -	if (!ib_get_eth_speed(ibdev, port, &props->active_speed,
-> -			      &props->active_width)) {
-> +	if (ib_get_eth_speed(ibdev, port, &props->active_speed,
-> +			     &props->active_width)) {
->  		mutex_unlock(&us_ibdev->usdev_lock);
->  		return -EINVAL;
->  	}
-> -- 
-> 2.5.5
+> Because user is not supposed to access it and expected to use
+> the CQ doorbell, we will return uar[0] (CQ doorbell) directly
+> and eliminate the following logic in the applications:
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> uint64_t cq_db_reg = (uint64_t *)(((uint64_t)(uint64_t *)rxq->cq_uar) +
+>                      MLX5_CQ_DOORBELL;
+
+NAK, at least, as is..
+
+This changes the ABI and mlx5dv is a public interface now, so you have
+to do it properly.
+
+Looking at it, my advice is to rev the symbol version of
+mlx5dv_init_obj and consider providing a compat symbol.
+
+Also, you need to change the name of the 'uar' field:
+
+> -	cq_out->uar	  = mctx->uar;
+> +	cq_out->uar	  = mctx->uar[0];
+
+To something else, to make it clear, which of the two ABIs the
+application code is coded to - for a change like this, you *MUST*
+force old apps to have a compile failure.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
