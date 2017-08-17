@@ -1,52 +1,71 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v3 24/24] RDMA/nes: Remove zeroed parameter from port query callback
-Date: Thu, 17 Aug 2017 15:50:55 +0300
-Message-ID: <20170817125055.31424-25-leon@kernel.org>
-References: <20170817125055.31424-1-leon@kernel.org>
+Subject: [rdma-next v1 REPOST 01/10] IB/core: Add XRQ capabilities
+Date: Thu, 17 Aug 2017 15:52:03 +0300
+Message-ID: <20170817125212.3173-2-leon@kernel.org>
+References: <20170817125212.3173-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170817125055.31424-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170817125212.3173-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-There is no need to explicitly zero parameters, because
-the structure requested to be filled already initialized to zeros.
+This patch adds following TM XRQ capabilities:
 
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+* max_rndv_hdr_size - Max size of rendezvous request message
+* max_num_tags - Max number of entries in tag matching list
+* max_ops - Max number of outstanding list operations
+* max_sge - Max number of SGE in tag matching entry
+* flags - the following flags are currently defined:
+    - IB_TM_CAP_RC - Support tag matching on RC transport
+
+Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yossi Itigin <yosefe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/nes/nes_verbs.c | 5 -----
- 1 file changed, 5 deletions(-)
+ include/rdma/ib_verbs.h | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-index c2943e39d2f9..f0dc5f4aa177 100644
---- a/drivers/infiniband/hw/nes/nes_verbs.c
-+++ b/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -481,21 +481,16 @@ static int nes_query_port(struct ib_device *ibdev, u8 port, struct ib_port_attr
- 	props->active_mtu = ib_mtu_int_to_enum(netdev->mtu);
- 
- 	props->lid = 1;
--	props->lmc = 0;
--	props->sm_lid = 0;
--	props->sm_sl = 0;
- 	if (netif_queue_stopped(netdev))
- 		props->state = IB_PORT_DOWN;
- 	else if (nesvnic->linkup)
- 		props->state = IB_PORT_ACTIVE;
- 	else
- 		props->state = IB_PORT_DOWN;
--	props->phys_state = 0;
- 	props->port_cap_flags = IB_PORT_CM_SUP | IB_PORT_REINIT_SUP |
- 			IB_PORT_VENDOR_CLASS_SUP | IB_PORT_BOOT_MGMT_SUP;
- 	props->gid_tbl_len = 1;
- 	props->pkey_tbl_len = 1;
--	props->qkey_viol_cntr = 0;
- 	props->active_width = IB_WIDTH_4X;
- 	props->active_speed = IB_SPEED_SDR;
- 	props->max_msg_sz = 0x80000000;
--- 
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 4ce188128aa9..afb863212419 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -280,6 +280,24 @@ struct ib_rss_caps {
+ 	u32 max_rwq_indirection_table_size;
+ };
+
++enum ib_tm_cap_flags {
++	/*  Support tag matching on RC transport */
++	IB_TM_CAP_RC		    = 1 << 0,
++};
++
++struct ib_xrq_caps {
++	/* Max size of RNDV header */
++	u32 max_rndv_hdr_size;
++	/* Max number of entries in tag matching list */
++	u32 max_num_tags;
++	/* From enum ib_tm_cap_flags */
++	u32 flags;
++	/* Max number of outstanding list operations */
++	u32 max_ops;
++	/* Max number of SGE in tag matching entry */
++	u32 max_sge;
++};
++
+ enum ib_cq_creation_flags {
+ 	IB_CQ_FLAGS_TIMESTAMP_COMPLETION   = 1 << 0,
+ 	IB_CQ_FLAGS_IGNORE_OVERRUN	   = 1 << 1,
+@@ -340,6 +358,7 @@ struct ib_device_attr {
+ 	struct ib_rss_caps	rss_caps;
+ 	u32			max_wq_type_rq;
+ 	u32			raw_packet_caps; /* Use ib_raw_packet_caps enum */
++	struct ib_xrq_caps	xrq_caps;
+ };
+
+ enum ib_mtu {
+--
 2.14.1
 
 --
