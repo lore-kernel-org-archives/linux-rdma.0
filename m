@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v1 REPOST 06/10] IB/uverbs: Expose XRQ capabilities
-Date: Thu, 17 Aug 2017 15:52:08 +0300
-Message-ID: <20170817125212.3173-7-leon@kernel.org>
+Subject: [rdma-next v1 REPOST 07/10] IB/mlx5: Fill XRQ capabilities
+Date: Thu, 17 Aug 2017 15:52:09 +0300
+Message-ID: <20170817125212.3173-8-leon@kernel.org>
 References: <20170817125212.3173-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170817125212.3173-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,70 +12,53 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Make XRQ capabilities available via ibv_query_device() verb.
+Provide driver specific values for XRQ capabilities.
 
 Signed-off-by: Artemy Kovalyov <artemyko-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yossi Itigin <yosefe-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 10 ++++++++++
- include/uapi/rdma/ib_user_verbs.h    | 15 +++++++++++++++
- 2 files changed, 25 insertions(+)
+ drivers/infiniband/hw/mlx5/main.c    | 10 ++++++++++
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  5 +++++
+ 2 files changed, 15 insertions(+)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index e3ac272a0fa9..1996f096c4f8 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -3850,6 +3850,16 @@ int ib_uverbs_ex_query_device(struct ib_uverbs_file *file,
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index e9ea759f35dd..894aec4a7c9d 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -777,6 +777,16 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 			1 << MLX5_CAP_GEN(dev->mdev, log_max_rq);
+ 	}
 
- 	resp.raw_packet_caps = attr.raw_packet_caps;
- 	resp.response_length += sizeof(resp.raw_packet_caps);
++	if (MLX5_CAP_GEN(mdev, tag_matching)) {
++		props->xrq_caps.max_rndv_hdr_size = MLX5_TM_MAX_RNDV_MSG_SIZE;
++		props->xrq_caps.max_num_tags =
++			(1 << MLX5_CAP_GEN(mdev, log_tag_matching_list_sz)) - 1;
++		props->xrq_caps.flags = IB_TM_CAP_RC;
++		props->xrq_caps.max_ops =
++			1 << MLX5_CAP_GEN(mdev, log_max_qp_sz);
++		props->xrq_caps.max_sge = MLX5_TM_MAX_SGE;
++	}
 +
-+	if (ucore->outlen < resp.response_length + sizeof(resp.xrq_caps))
-+		goto end;
-+
-+	resp.xrq_caps.max_rndv_hdr_size = attr.xrq_caps.max_rndv_hdr_size;
-+	resp.xrq_caps.max_num_tags      = attr.xrq_caps.max_num_tags;
-+	resp.xrq_caps.max_ops		= attr.xrq_caps.max_ops;
-+	resp.xrq_caps.max_sge		= attr.xrq_caps.max_sge;
-+	resp.xrq_caps.flags		= attr.xrq_caps.flags;
-+	resp.response_length += sizeof(resp.xrq_caps);
- end:
- 	err = ib_copy_to_udata(ucore, &resp, resp.response_length);
- 	return err;
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index d5434bbf40c8..9a0b6479fe0c 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -236,6 +236,20 @@ struct ib_uverbs_rss_caps {
- 	__u32 reserved;
+ 	if (field_avail(typeof(resp), cqe_comp_caps, uhw->outlen)) {
+ 		resp.cqe_comp_caps.max_num =
+ 			MLX5_CAP_GEN(dev->mdev, cqe_compression) ?
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 7ac991070020..76a731f39d2b 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -107,6 +107,11 @@ enum {
+ 	MLX5_CQE_VERSION_V1,
  };
 
-+struct ib_uverbs_tm_caps {
-+	/* Max size of rendezvous request message */
-+	__u32 max_rndv_hdr_size;
-+	/* Max number of entries in tag matching list */
-+	__u32 max_num_tags;
-+	/* TM flags */
-+	__u32 flags;
-+	/* Max number of outstanding list operations */
-+	__u32 max_ops;
-+	/* Max number of SGE in tag matching entry */
-+	__u32 max_sge;
-+	__u32 reserved;
++enum {
++	MLX5_TM_MAX_RNDV_MSG_SIZE	= 64,
++	MLX5_TM_MAX_SGE			= 1,
 +};
 +
- struct ib_uverbs_ex_query_device_resp {
- 	struct ib_uverbs_query_device_resp base;
- 	__u32 comp_mask;
-@@ -247,6 +261,7 @@ struct ib_uverbs_ex_query_device_resp {
- 	struct ib_uverbs_rss_caps rss_caps;
- 	__u32  max_wq_type_rq;
- 	__u32 raw_packet_caps;
-+	struct ib_uverbs_tm_caps xrq_caps;
- };
-
- struct ib_uverbs_query_port {
+ struct mlx5_ib_vma_private_data {
+ 	struct list_head list;
+ 	struct vm_area_struct *vma;
 --
 2.14.1
 
