@@ -1,118 +1,190 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next 1/8] IB/mlx5: Expose software parsing for Raw Ethernet QP
-Date: Thu, 17 Aug 2017 15:52:28 +0300
-Message-ID: <20170817125235.5107-2-leon@kernel.org>
+Subject: [rdma-next 2/8] IB/mlx5: Enable UMR for MRs created with reg_create
+Date: Thu, 17 Aug 2017 15:52:29 +0300
+Message-ID: <20170817125235.5107-3-leon@kernel.org>
 References: <20170817125235.5107-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170817125235.5107-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ilya Lesokhin <ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Ilya Lesokhin <ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Software parsing (SWP) is a feature that can be used to instruct the
-device to stop using its internal parser and to parse packets on the
-transmit path according to offsets set for each packets.
+This patch is the first step in decoupling UMR usage and
+allocation from the MR cache. The only functional change
+in this patch is to enables UMR for MRs created with
+reg_create.
 
-Through this feature, the device allows the handling of checksum and
-LSO by the hardware according to the location of IP and TCP/UDP
-headers.
+This change fixes a bug where ODP memory regions that
+were not allocated from the MR cache did not have UMR
+enabled.
 
-Enable SW parsing on Raw Ethernet send queue by default if firmware
-supports it and report these capabilities to user space.
-
-Signed-off-by: Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Ilya Lesokhin <ilyal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 21 +++++++++++++++++++++
- drivers/infiniband/hw/mlx5/qp.c   |  3 +++
- include/uapi/rdma/mlx5-abi.h      | 17 +++++++++++++++++
- 3 files changed, 41 insertions(+)
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 +-
+ drivers/infiniband/hw/mlx5/mr.c      | 33 ++++++++++++++-------------------
+ include/linux/mlx5/driver.h          |  2 +-
+ 3 files changed, 16 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 894aec4a7c9d..544b0ae5d8dc 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -821,6 +821,27 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
- 	if (field_avail(typeof(resp), reserved, uhw->outlen))
- 		resp.response_length += sizeof(resp.reserved);
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 76a731f39d2b..189e80cd6b2f 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -508,7 +508,7 @@ struct mlx5_ib_mr {
+ 	struct mlx5_shared_mr_info	*smr_info;
+ 	struct list_head	list;
+ 	int			order;
+-	int			umred;
++	bool			allocated_from_cache;
+ 	int			npages;
+ 	struct mlx5_ib_dev     *dev;
+ 	u32 out[MLX5_ST_SZ_DW(create_mkey_out)];
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index a0eb2f96179a..bc87016021e3 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -48,8 +48,7 @@ enum {
+ #define MLX5_UMR_ALIGN 2048
  
-+	if (field_avail(typeof(resp), sw_parsing_caps,
-+			uhw->outlen)) {
-+		resp.response_length += sizeof(resp.sw_parsing_caps);
-+		if (MLX5_CAP_ETH(mdev, swp)) {
-+			resp.sw_parsing_caps.sw_parsing_offloads |=
-+				MLX5_IB_SW_PARSING;
-+
-+			if (MLX5_CAP_ETH(mdev, swp_csum))
-+				resp.sw_parsing_caps.sw_parsing_offloads |=
-+					MLX5_IB_SW_PARSING_CSUM;
-+
-+			if (MLX5_CAP_ETH(mdev, swp_lso))
-+				resp.sw_parsing_caps.sw_parsing_offloads |=
-+					MLX5_IB_SW_PARSING_LSO;
-+
-+			if (resp.sw_parsing_caps.sw_parsing_offloads)
-+				resp.sw_parsing_caps.supported_qpts =
-+					BIT(IB_QPT_RAW_PACKET);
-+		}
-+	}
-+
- 	if (uhw->outlen) {
- 		err = ib_copy_to_udata(uhw, &resp, resp.response_length);
+ static int clean_mr(struct mlx5_ib_mr *mr);
+-static int max_umr_order(struct mlx5_ib_dev *dev);
+-static int use_umr(struct mlx5_ib_dev *dev, int order);
++static int mr_cache_max_order(struct mlx5_ib_dev *dev);
+ static int unreg_umr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr);
  
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index ebbfd721661d..e58cc42a77a2 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1083,6 +1083,9 @@ static int create_raw_packet_qp_sq(struct mlx5_ib_dev *dev,
- 	MLX5_SET(sqc, sqc, cqn, MLX5_GET(qpc, qpc, cqn_snd));
- 	MLX5_SET(sqc, sqc, tis_lst_sz, 1);
- 	MLX5_SET(sqc, sqc, tis_num_0, sq->tisn);
-+	if (MLX5_CAP_GEN(dev->mdev, eth_net_offloads) &&
-+	    MLX5_CAP_ETH(dev->mdev, swp))
-+		MLX5_SET(sqc, sqc, allow_swp, 1);
+ static int destroy_mkey(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr)
+@@ -184,7 +183,7 @@ static int add_keys(struct mlx5_ib_dev *dev, int c, int num)
+ 			break;
+ 		}
+ 		mr->order = ent->order;
+-		mr->umred = 1;
++		mr->allocated_from_cache = 1;
+ 		mr->dev = dev;
  
- 	wq = MLX5_ADDR_OF(sqc, sqc, wq);
- 	MLX5_SET(wq, wq, wq_type, MLX5_WQ_TYPE_CYCLIC);
-diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
-index 0b3d30837a9f..64d398e662cd 100644
---- a/include/uapi/rdma/mlx5-abi.h
-+++ b/include/uapi/rdma/mlx5-abi.h
-@@ -168,6 +168,22 @@ struct mlx5_packet_pacing_caps {
- 	__u32 reserved;
+ 		MLX5_SET(mkc, mkc, free, 1);
+@@ -497,7 +496,7 @@ static struct mlx5_ib_mr *alloc_cached_mr(struct mlx5_ib_dev *dev, int order)
+ 	int i;
+ 
+ 	c = order2idx(dev, order);
+-	last_umr_cache_entry = order2idx(dev, max_umr_order(dev));
++	last_umr_cache_entry = order2idx(dev, mr_cache_max_order(dev));
+ 	if (c < 0 || c > last_umr_cache_entry) {
+ 		mlx5_ib_warn(dev, "order %d, cache index %d\n", order, c);
+ 		return NULL;
+@@ -677,12 +676,12 @@ int mlx5_mr_cache_init(struct mlx5_ib_dev *dev)
+ 		INIT_DELAYED_WORK(&ent->dwork, delayed_cache_work_func);
+ 		queue_work(cache->wq, &ent->work);
+ 
+-		if (i > MAX_UMR_CACHE_ENTRY) {
++		if (i > MR_CACHE_LAST_STD_ENTRY) {
+ 			mlx5_odp_init_mr_cache_entry(ent);
+ 			continue;
+ 		}
+ 
+-		if (!use_umr(dev, ent->order))
++		if (ent->order > mr_cache_max_order(dev))
+ 			continue;
+ 
+ 		ent->page = PAGE_SHIFT;
+@@ -819,18 +818,13 @@ static int get_octo_len(u64 addr, u64 len, int page_size)
+ 	return (npages + 1) / 2;
+ }
+ 
+-static int max_umr_order(struct mlx5_ib_dev *dev)
++static int mr_cache_max_order(struct mlx5_ib_dev *dev)
+ {
+ 	if (MLX5_CAP_GEN(dev->mdev, umr_extended_translation_offset))
+-		return MAX_UMR_CACHE_ENTRY + 2;
++		return MR_CACHE_LAST_STD_ENTRY + 2;
+ 	return MLX5_MAX_UMR_SHIFT;
+ }
+ 
+-static int use_umr(struct mlx5_ib_dev *dev, int order)
+-{
+-	return order <= max_umr_order(dev);
+-}
+-
+ static int mr_umem_get(struct ib_pd *pd, u64 start, u64 length,
+ 		       int access_flags, struct ib_umem **umem,
+ 		       int *npages, int *page_shift, int *ncont,
+@@ -1149,6 +1143,7 @@ static struct mlx5_ib_mr *reg_create(struct ib_mr *ibmr, struct ib_pd *pd,
+ 	MLX5_SET(mkc, mkc, rr, !!(access_flags & IB_ACCESS_REMOTE_READ));
+ 	MLX5_SET(mkc, mkc, lw, !!(access_flags & IB_ACCESS_LOCAL_WRITE));
+ 	MLX5_SET(mkc, mkc, lr, 1);
++	MLX5_SET(mkc, mkc, umr_en, 1);
+ 
+ 	MLX5_SET64(mkc, mkc, start_addr, virt_addr);
+ 	MLX5_SET64(mkc, mkc, len, length);
+@@ -1231,7 +1226,7 @@ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+         if (err < 0)
+ 		return ERR_PTR(err);
+ 
+-	if (use_umr(dev, order)) {
++	if (order <= mr_cache_max_order(dev)) {
+ 		mr = reg_umr(pd, umem, virt_addr, length, ncont, page_shift,
+ 			     order, access_flags);
+ 		if (PTR_ERR(mr) == -EAGAIN) {
+@@ -1355,7 +1350,7 @@ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
+ 		/*
+ 		 * UMR can't be used - MKey needs to be replaced.
+ 		 */
+-		if (mr->umred) {
++		if (mr->allocated_from_cache) {
+ 			err = unreg_umr(dev, mr);
+ 			if (err)
+ 				mlx5_ib_warn(dev, "Failed to unregister MR\n");
+@@ -1373,7 +1368,7 @@ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
+ 		if (IS_ERR(mr))
+ 			return PTR_ERR(mr);
+ 
+-		mr->umred = 0;
++		mr->allocated_from_cache = 0;
+ 	} else {
+ 		/*
+ 		 * Send a UMR WQE
+@@ -1461,7 +1456,7 @@ mlx5_free_priv_descs(struct mlx5_ib_mr *mr)
+ static int clean_mr(struct mlx5_ib_mr *mr)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(mr->ibmr.device);
+-	int umred = mr->umred;
++	int allocated_from_cache = mr->allocated_from_cache;
+ 	int err;
+ 
+ 	if (mr->sig) {
+@@ -1479,7 +1474,7 @@ static int clean_mr(struct mlx5_ib_mr *mr)
+ 
+ 	mlx5_free_priv_descs(mr);
+ 
+-	if (!umred) {
++	if (!allocated_from_cache) {
+ 		err = destroy_mkey(dev, mr);
+ 		if (err) {
+ 			mlx5_ib_warn(dev, "failed to destroy mkey 0x%x (%d)\n",
+@@ -1490,7 +1485,7 @@ static int clean_mr(struct mlx5_ib_mr *mr)
+ 		mlx5_mr_cache_free(dev, mr);
+ 	}
+ 
+-	if (!umred)
++	if (!allocated_from_cache)
+ 		kfree(mr);
+ 
+ 	return 0;
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index f17e51a4ef94..1640de3200b8 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -1099,7 +1099,7 @@ enum {
  };
  
-+enum mlx5_ib_sw_parsing_offloads {
-+	MLX5_IB_SW_PARSING = 1 << 0,
-+	MLX5_IB_SW_PARSING_CSUM = 1 << 1,
-+	MLX5_IB_SW_PARSING_LSO = 1 << 2,
-+};
-+
-+struct mlx5_ib_sw_parsing_caps {
-+	__u32 sw_parsing_offloads; /* enum mlx5_ib_sw_parsing_offloads */
-+
-+	/* Corresponding bit will be set if qp type from
-+	 * 'enum ib_qp_type' is supported, e.g.
-+	 * supported_qpts |= 1 << IB_QPT_RAW_PACKET
-+	 */
-+	__u32 supported_qpts;
-+};
-+
- struct mlx5_ib_query_device_resp {
- 	__u32	comp_mask;
- 	__u32	response_length;
-@@ -177,6 +193,7 @@ struct mlx5_ib_query_device_resp {
- 	struct	mlx5_packet_pacing_caps packet_pacing_caps;
- 	__u32	mlx5_ib_support_multi_pkt_send_wqes;
- 	__u32	reserved;
-+	struct mlx5_ib_sw_parsing_caps sw_parsing_caps;
- };
- 
- struct mlx5_ib_create_cq {
+ enum {
+-	MAX_UMR_CACHE_ENTRY = 20,
++	MR_CACHE_LAST_STD_ENTRY = 20,
+ 	MLX5_IMR_MTT_CACHE_ENTRY,
+ 	MLX5_IMR_KSM_CACHE_ENTRY,
+ 	MAX_MR_CACHE_ENTRIES
 -- 
 2.14.1
 
