@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v3 17/24] IB/mlx4: Remove redundant attribute in mlx4_ib_create_qp_rss struct
-Date: Thu, 17 Aug 2017 15:50:48 +0300
-Message-ID: <20170817125055.31424-18-leon@kernel.org>
+Subject: [rdma-next v3 16/24] IB/mlx4: Fix struct mlx4_ib_create_wq alignment
+Date: Thu, 17 Aug 2017 15:50:47 +0300
+Message-ID: <20170817125055.31424-17-leon@kernel.org>
 References: <20170817125055.31424-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170817125055.31424-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,29 +12,55 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-rss_key_len is not in use and need to be removed.
+The mlx4 ABI defines to have structures with alignment of 64B.
 
-Fixes: 3078f5f1bd8b ("IB/mlx4: Add support for RSS QP")
+Fixes: 400b1ebcfe31 ("IB/mlx4: Add support for WQ related verbs")
 Signed-off-by: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- include/uapi/rdma/mlx4-abi.h | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx4/qp.c | 9 ++++-----
+ include/uapi/rdma/mlx4-abi.h    | 1 -
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 603a0bf49576..44d2d0a2d5e0 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -1047,9 +1047,8 @@ static int create_qp_common(struct mlx4_ib_dev *dev, struct ib_pd *pd,
+ 		}
+ 
+ 		if (src == MLX4_IB_RWQ_SRC) {
+-			if (ucmd.wq.comp_mask || ucmd.wq.reserved1 ||
+-			    ucmd.wq.reserved[0] || ucmd.wq.reserved[1] ||
+-			    ucmd.wq.reserved[2]) {
++			if (ucmd.wq.comp_mask || ucmd.wq.reserved[0] ||
++			    ucmd.wq.reserved[1] || ucmd.wq.reserved[2]) {
+ 				pr_debug("user command isn't supported\n");
+ 				err = -EOPNOTSUPP;
+ 				goto err;
+@@ -4153,8 +4152,8 @@ struct ib_wq *mlx4_ib_create_wq(struct ib_pd *pd,
+ 	if (!(udata && pd->uobject))
+ 		return ERR_PTR(-EINVAL);
+ 
+-	required_cmd_sz = offsetof(typeof(ucmd), reserved) +
+-			  sizeof(ucmd.reserved);
++	required_cmd_sz = offsetof(typeof(ucmd), comp_mask) +
++			  sizeof(ucmd.comp_mask);
+ 	if (udata->inlen < required_cmd_sz) {
+ 		pr_debug("invalid inlen\n");
+ 		return ERR_PTR(-EINVAL);
 diff --git a/include/uapi/rdma/mlx4-abi.h b/include/uapi/rdma/mlx4-abi.h
-index 0e10102861b5..c55f60e05f86 100644
+index 21cce1a4c4dd..0e10102861b5 100644
 --- a/include/uapi/rdma/mlx4-abi.h
 +++ b/include/uapi/rdma/mlx4-abi.h
-@@ -98,8 +98,7 @@ struct mlx4_ib_create_srq_resp {
- struct mlx4_ib_create_qp_rss {
- 	__u64   rx_hash_fields_mask;
- 	__u8    rx_hash_function;
--	__u8    rx_key_len;
--	__u8    reserved[6];
-+	__u8    reserved[7];
- 	__u8    rx_hash_key[40];
+@@ -121,7 +121,6 @@ struct mlx4_ib_create_wq {
+ 	__u8	log_range_size;
+ 	__u8	reserved[3];
  	__u32   comp_mask;
- 	__u32   reserved1;
+-	__u32   reserved1;
+ };
+ 
+ struct mlx4_ib_modify_wq {
 -- 
 2.14.1
 
