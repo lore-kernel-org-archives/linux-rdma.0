@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v3 07/24] RDMA/core: Delete BUG() from unreachable flow
-Date: Thu, 17 Aug 2017 15:50:38 +0300
-Message-ID: <20170817125055.31424-8-leon@kernel.org>
+Subject: [rdma-next v3 08/24] RDMA/core: Refactor get link layer wrapper
+Date: Thu, 17 Aug 2017 15:50:39 +0300
+Message-ID: <20170817125055.31424-9-leon@kernel.org>
 References: <20170817125055.31424-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170817125055.31424-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,48 +12,43 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Remove call to BUG() in case wrong node_type was provided.
-This flow is unreachable, because node_types are supplied
-from specific enum.
+The return values from rdma_node_get_transport() are strict
+and IB_LINK_LAYER_UNSPECIFIED is unreachable in this flow.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c | 20 +++++++-------------
- 1 file changed, 7 insertions(+), 13 deletions(-)
+ drivers/infiniband/core/verbs.c | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 3d1de62de839..aee23deba074 100644
+index aee23deba074..7dd13962fc4c 100644
 --- a/drivers/infiniband/core/verbs.c
 +++ b/drivers/infiniband/core/verbs.c
-@@ -180,21 +180,15 @@ EXPORT_SYMBOL(ib_rate_to_mbps);
- __attribute_const__ enum rdma_transport_type
- rdma_node_get_transport(enum rdma_node_type node_type)
+@@ -194,19 +194,15 @@ EXPORT_SYMBOL(rdma_node_get_transport);
+ 
+ enum rdma_link_layer rdma_port_get_link_layer(struct ib_device *device, u8 port_num)
  {
--	switch (node_type) {
--	case RDMA_NODE_IB_CA:
--	case RDMA_NODE_IB_SWITCH:
--	case RDMA_NODE_IB_ROUTER:
--		return RDMA_TRANSPORT_IB;
--	case RDMA_NODE_RNIC:
--		return RDMA_TRANSPORT_IWARP;
--	case RDMA_NODE_USNIC:
-+
-+	if (node_type == RDMA_NODE_USNIC)
- 		return RDMA_TRANSPORT_USNIC;
--	case RDMA_NODE_USNIC_UDP:
-+	if (node_type == RDMA_NODE_USNIC_UDP)
- 		return RDMA_TRANSPORT_USNIC_UDP;
++	enum rdma_transport_type lt;
+ 	if (device->get_link_layer)
+ 		return device->get_link_layer(device, port_num);
+ 
+-	switch (rdma_node_get_transport(device->node_type)) {
+-	case RDMA_TRANSPORT_IB:
++	lt = rdma_node_get_transport(device->node_type);
++	if (lt == RDMA_TRANSPORT_IB)
+ 		return IB_LINK_LAYER_INFINIBAND;
+-	case RDMA_TRANSPORT_IWARP:
+-	case RDMA_TRANSPORT_USNIC:
+-	case RDMA_TRANSPORT_USNIC_UDP:
+-		return IB_LINK_LAYER_ETHERNET;
 -	default:
--		BUG();
--		return 0;
+-		return IB_LINK_LAYER_UNSPECIFIED;
 -	}
-+	if (node_type == RDMA_NODE_RNIC)
-+		return RDMA_TRANSPORT_IWARP;
 +
-+	return RDMA_TRANSPORT_IB;
++	return IB_LINK_LAYER_ETHERNET;
  }
- EXPORT_SYMBOL(rdma_node_get_transport);
+ EXPORT_SYMBOL(rdma_port_get_link_layer);
  
 -- 
 2.14.1
