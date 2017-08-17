@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v3 09/24] RDMA/mlx4: Remove gfp_mask argument from acquire_group call
-Date: Thu, 17 Aug 2017 15:50:40 +0300
-Message-ID: <20170817125055.31424-10-leon@kernel.org>
+Subject: [rdma-next v3 11/24] RDMA/mthca: Make explicit conversion to 64bit value
+Date: Thu, 17 Aug 2017 15:50:42 +0300
+Message-ID: <20170817125055.31424-12-leon@kernel.org>
 References: <20170817125055.31424-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170817125055.31424-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
@@ -12,56 +12,35 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-All callers of acquire_group() passed the same gfp_mask to it
-and it is safe to remove it.
+The "lg" variable is declared as int so in all places where
+this variable is used as a shift operand, the output will be
+int too.
+
+This produces the following smatch warning:
+drivers/infiniband/hw/mthca/mthca_cmd.c:701 mthca_map_cmd() warn:
+	should '1 << lg' be a 64 bit type?
+
+Simple declaration of "1" to be "1ULL" will fix the issue.
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Bart Van Assche <bart.vanassche-Sjgp3cTcYWE@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/mcg.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/mthca/mthca_cmd.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/mcg.c b/drivers/infiniband/hw/mlx4/mcg.c
-index b73f89700ef9..70eb9f917303 100644
---- a/drivers/infiniband/hw/mlx4/mcg.c
-+++ b/drivers/infiniband/hw/mlx4/mcg.c
-@@ -808,8 +808,7 @@ static ssize_t sysfs_show_group(struct device *dev,
- 		struct device_attribute *attr, char *buf);
+diff --git a/drivers/infiniband/hw/mthca/mthca_cmd.c b/drivers/infiniband/hw/mthca/mthca_cmd.c
+index e19ae0b9b439..89529d204178 100644
+--- a/drivers/infiniband/hw/mthca/mthca_cmd.c
++++ b/drivers/infiniband/hw/mthca/mthca_cmd.c
+@@ -698,7 +698,7 @@ static int mthca_map_cmd(struct mthca_dev *dev, u16 op, struct mthca_icm *icm,
+ 		for (i = 0; i < mthca_icm_size(&iter) >> lg; ++i) {
+ 			if (virt != -1) {
+ 				pages[nent * 2] = cpu_to_be64(virt);
+-				virt += 1 << lg;
++				virt += 1ULL << lg;
+ 			}
  
- static struct mcast_group *acquire_group(struct mlx4_ib_demux_ctx *ctx,
--					 union ib_gid *mgid, int create,
--					 gfp_t gfp_mask)
-+					 union ib_gid *mgid, int create)
- {
- 	struct mcast_group *group, *cur_group;
- 	int is_mgid0;
-@@ -825,7 +824,7 @@ static struct mcast_group *acquire_group(struct mlx4_ib_demux_ctx *ctx,
- 	if (!create)
- 		return ERR_PTR(-ENOENT);
- 
--	group = kzalloc(sizeof *group, gfp_mask);
-+	group = kzalloc(sizeof(*group), GFP_KERNEL);
- 	if (!group)
- 		return ERR_PTR(-ENOMEM);
- 
-@@ -892,7 +891,7 @@ int mlx4_ib_mcg_demux_handler(struct ib_device *ibdev, int port, int slave,
- 	case IB_MGMT_METHOD_GET_RESP:
- 	case IB_SA_METHOD_DELETE_RESP:
- 		mutex_lock(&ctx->mcg_table_lock);
--		group = acquire_group(ctx, &rec->mgid, 0, GFP_KERNEL);
-+		group = acquire_group(ctx, &rec->mgid, 0);
- 		mutex_unlock(&ctx->mcg_table_lock);
- 		if (IS_ERR(group)) {
- 			if (mad->mad_hdr.method == IB_MGMT_METHOD_GET_RESP) {
-@@ -954,7 +953,7 @@ int mlx4_ib_mcg_multiplex_handler(struct ib_device *ibdev, int port,
- 		req->sa_mad = *sa_mad;
- 
- 		mutex_lock(&ctx->mcg_table_lock);
--		group = acquire_group(ctx, &rec->mgid, may_create, GFP_KERNEL);
-+		group = acquire_group(ctx, &rec->mgid, may_create);
- 		mutex_unlock(&ctx->mcg_table_lock);
- 		if (IS_ERR(group)) {
- 			kfree(req);
+ 			pages[nent * 2 + 1] =
 -- 
 2.14.1
 
