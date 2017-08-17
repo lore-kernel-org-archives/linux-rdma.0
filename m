@@ -1,362 +1,86 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: [PATCH REPOST v5 iproute2 4/8] rdma: Add link object
-Date: Thu, 17 Aug 2017 09:56:10 +0300
-Message-ID: <20170817065614.1393-5-leonro@mellanox.com>
-References: <20170817065614.1393-1-leonro@mellanox.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20170817065614.1393-1-leonro@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Stephen Hemminger <stephen@networkplumber.org>
-Cc: linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Jiri Pirko <jiri@mellanox.com>, Ariel Almog <ariela@mellanox.com>, David Laight <David.Laight@ACULAB.COM>, Linux Netdev <netdev@vger.kernel.org>
+From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: Re: [ANNOUNCE] rdma-core-15-rc1 has been tagged/released
+Date: Thu, 17 Aug 2017 11:11:03 +0200
+Message-ID: <1502961063.3554.3.camel@profitbricks.com>
+References: <1501590709.2725.10.camel@redhat.com>
+         <20170802054512.GW13672@mtr-leonro.local>
+         <1501761459.117042.5.camel@redhat.com>
+         <20170816080523.GG24282@mtr-leonro.local>
+         <1502902372.33760.17.camel@redhat.com>
+         <20170816175144.GX24282@mtr-leonro.local>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-Nnj2gUtZ4lYDzypsh0W3"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170816175144.GX24282-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Link (port) object represent struct ib_port to the user space.
 
-Link properties:
- * Port capabilities
- * IB subnet prefix
- * LID, SM_LID and LMC
- * Port state
- * Physical state
+--=-Nnj2gUtZ4lYDzypsh0W3
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- rdma/Makefile |   2 +-
- rdma/link.c   | 277 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- rdma/rdma.c   |   3 +-
- rdma/utils.c  |   5 ++
- 4 files changed, 285 insertions(+), 2 deletions(-)
- create mode 100644 rdma/link.c
+Am Mittwoch, den 16.08.2017, 20:51 +0300 schrieb Leon Romanovsky:
+> On Wed, Aug 16, 2017 at 12:52:52PM -0400, Doug Ledford wrote:
+> > And I know this particular thread is in reference to the rdma-core
+> > package, I haven't forgotten it, I just haven't had a chance to
+> > test it
+> > yet :-/.
+> >=20
+>=20
+> Thanks for the update, I asked it in context of rdma-core, because
+> Yishai stopped submissions of all our user space patches till the
+> official release and it included my one-liner fix to ibv_xsrq_pinpong
+> :)
 
-diff --git a/rdma/Makefile b/rdma/Makefile
-index 123d7ac5..1a9e4b1a 100644
---- a/rdma/Makefile
-+++ b/rdma/Makefile
-@@ -2,7 +2,7 @@ include ../Config
+As Debian maintainer, I am waiting for the rdma-core release to finally
+upload that version to Debian unstable. There is no required
+improvement from my side any more.
 
- ifeq ($(HAVE_MNL),y)
+--=20
+Benjamin Drung
+System Developer
+Debian & Ubuntu Developer
 
--RDMA_OBJ = rdma.o utils.o dev.o
-+RDMA_OBJ = rdma.o utils.o dev.o link.o
+ProfitBricks GmbH
+Greifswalder Str. 207
+D - 10405 Berlin
 
- TARGETS=rdma
- CFLAGS += $(shell $(PKG_CONFIG) libmnl --cflags)
-diff --git a/rdma/link.c b/rdma/link.c
-new file mode 100644
-index 00000000..b0e5bee0
---- /dev/null
-+++ b/rdma/link.c
-@@ -0,0 +1,277 @@
-+/*
-+ * link.c	RDMA tool
-+ *
-+ *              This program is free software; you can redistribute it and/or
-+ *              modify it under the terms of the GNU General Public License
-+ *              as published by the Free Software Foundation; either version
-+ *              2 of the License, or (at your option) any later version.
-+ *
-+ * Authors:     Leon Romanovsky <leonro@mellanox.com>
-+ */
-+
-+#include "rdma.h"
-+
-+static int link_help(struct rd *rd)
-+{
-+	pr_out("Usage: %s link show [DEV/PORT_INDEX]\n", rd->filename);
-+	return 0;
-+}
-+
-+static const char *caps_to_str(uint32_t idx)
-+{
-+#define RDMA_PORT_FLAGS(x) \
-+	x(SM, 1) \
-+	x(NOTICE, 2) \
-+	x(TRAP, 3) \
-+	x(OPT_IPD, 4) \
-+	x(AUTO_MIGR, 5) \
-+	x(SL_MAP, 6) \
-+	x(MKEY_NVRAM, 7) \
-+	x(PKEY_NVRAM, 8) \
-+	x(LED_INFO, 9) \
-+	x(SM_DISABLED, 10) \
-+	x(SYS_IMAGE_GUIG, 11) \
-+	x(PKEY_SW_EXT_PORT_TRAP, 12) \
-+	x(EXTENDED_SPEEDS, 14) \
-+	x(CM, 16) \
-+	x(SNMP_TUNNEL, 17) \
-+	x(REINIT, 18) \
-+	x(DEVICE_MGMT, 19) \
-+	x(VENDOR_CLASS, 20) \
-+	x(DR_NOTICE, 21) \
-+	x(CAP_MASK_NOTICE, 22) \
-+	x(BOOT_MGMT, 23) \
-+	x(LINK_LATENCY, 24) \
-+	x(CLIENT_REG, 23) \
-+	x(IP_BASED_GIDS, 26)
-+
-+	enum { RDMA_PORT_FLAGS(RDMA_BITMAP_ENUM) };
-+
-+	static const char * const
-+		rdma_port_names[] = { RDMA_PORT_FLAGS(RDMA_BITMAP_NAMES) };
-+	#undef RDMA_PORT_FLAGS
-+
-+	if (idx < ARRAY_SIZE(rdma_port_names) && rdma_port_names[idx])
-+		return rdma_port_names[idx];
-+	return "UNKNOWN";
-+}
-+
-+static void link_print_caps(struct nlattr **tb)
-+{
-+	uint64_t caps;
-+	uint32_t idx;
-+
-+	if (!tb[RDMA_NLDEV_ATTR_CAP_FLAGS])
-+		return;
-+
-+	caps = mnl_attr_get_u64(tb[RDMA_NLDEV_ATTR_CAP_FLAGS]);
-+
-+	pr_out("\n    caps: <");
-+	for (idx = 0; caps; idx++) {
-+		if (caps & 0x1) {
-+			pr_out("%s", caps_to_str(idx));
-+			if (caps >> 0x1)
-+				pr_out(", ");
-+		}
-+		caps >>= 0x1;
-+	}
-+
-+	pr_out(">");
-+}
-+
-+static void link_print_subnet_prefix(struct nlattr **tb)
-+{
-+	uint64_t subnet_prefix;
-+
-+	if (!tb[RDMA_NLDEV_ATTR_SUBNET_PREFIX])
-+		return;
-+
-+	subnet_prefix = mnl_attr_get_u64(tb[RDMA_NLDEV_ATTR_SUBNET_PREFIX]);
-+	rd_print_u64("subnet_prefix", subnet_prefix);
-+}
-+
-+static void link_print_lid(struct nlattr **tb)
-+{
-+	if (!tb[RDMA_NLDEV_ATTR_LID])
-+		return;
-+
-+	pr_out("lid %u ",
-+	       mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_LID]));
-+}
-+
-+static void link_print_sm_lid(struct nlattr **tb)
-+{
-+	if (!tb[RDMA_NLDEV_ATTR_SM_LID])
-+		return;
-+
-+	pr_out("sm_lid %u ",
-+	       mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_SM_LID]));
-+}
-+
-+static void link_print_lmc(struct nlattr **tb)
-+{
-+	if (!tb[RDMA_NLDEV_ATTR_LMC])
-+		return;
-+
-+	pr_out("lmc %u ", mnl_attr_get_u8(tb[RDMA_NLDEV_ATTR_LMC]));
-+}
-+
-+static const char *link_state_to_str(uint8_t link_state)
-+{
-+	static const char * const link_state_str[] = { "NOP", "DOWN",
-+						       "INIT", "ARMED",
-+						       "ACTIVE",
-+						       "ACTIVE_DEFER" };
-+	if (link_state < ARRAY_SIZE(link_state_str))
-+		return link_state_str[link_state];
-+	return "UNKNOWN";
-+}
-+
-+static void link_print_state(struct nlattr **tb)
-+{
-+	uint8_t state;
-+
-+	if (!tb[RDMA_NLDEV_ATTR_PORT_STATE])
-+		return;
-+
-+	state = mnl_attr_get_u8(tb[RDMA_NLDEV_ATTR_PORT_STATE]);
-+	pr_out("state %s ", link_state_to_str(state));
-+}
-+
-+static const char *phys_state_to_str(uint8_t phys_state)
-+{
-+	static const char * const phys_state_str[] = { "NOP", "SLEEP",
-+						       "POLLING", "DISABLED",
-+						       "ARMED", "LINK_UP",
-+						       "LINK_ERROR_RECOVER",
-+						       "PHY_TEST", "UNKNOWN",
-+						       "OPA_OFFLINE",
-+						       "UNKNOWN", "OPA_TEST" };
-+	if (phys_state < ARRAY_SIZE(phys_state_str))
-+		return phys_state_str[phys_state];
-+	return "UNKNOWN";
-+};
-+
-+static void link_print_phys_state(struct nlattr **tb)
-+{
-+	uint8_t phys_state;
-+
-+	if (!tb[RDMA_NLDEV_ATTR_PORT_PHYS_STATE])
-+		return;
-+
-+	phys_state = mnl_attr_get_u8(tb[RDMA_NLDEV_ATTR_PORT_PHYS_STATE]);
-+	pr_out("physical_state %s ", phys_state_to_str(phys_state));
-+}
-+
-+static int link_parse_cb(const struct nlmsghdr *nlh, void *data)
-+{
-+	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
-+	struct rd *rd = data;
-+
-+	mnl_attr_parse(nlh, 0, rd_attr_cb, tb);
-+	if (!tb[RDMA_NLDEV_ATTR_DEV_INDEX] || !tb[RDMA_NLDEV_ATTR_DEV_NAME])
-+		return MNL_CB_ERROR;
-+
-+	if (!tb[RDMA_NLDEV_ATTR_PORT_INDEX]) {
-+		pr_err("This tool doesn't support switches yet\n");
-+		return MNL_CB_ERROR;
-+	}
-+
-+	pr_out("%u/%u: %s/%u: ",
-+	       mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]),
-+	       mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]),
-+	       mnl_attr_get_str(tb[RDMA_NLDEV_ATTR_DEV_NAME]),
-+	       mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]));
-+	link_print_subnet_prefix(tb);
-+	link_print_lid(tb);
-+	link_print_sm_lid(tb);
-+	link_print_lmc(tb);
-+	link_print_state(tb);
-+	link_print_phys_state(tb);
-+	if (rd->show_details)
-+		link_print_caps(tb);
-+
-+	pr_out("\n");
-+	return MNL_CB_OK;
-+}
-+
-+static int link_no_args(struct rd *rd)
-+{
-+	uint32_t seq;
-+	int ret;
-+
-+	rd_prepare_msg(rd, RDMA_NLDEV_CMD_PORT_GET, &seq,
-+		       (NLM_F_REQUEST | NLM_F_ACK));
-+	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
-+	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_PORT_INDEX, rd->port_idx);
-+	ret = rd_send_msg(rd);
-+	if (ret)
-+		return ret;
-+
-+	return rd_recv_msg(rd, link_parse_cb, rd, seq);
-+}
-+
-+static int link_one_show(struct rd *rd)
-+{
-+	const struct rd_cmd cmds[] = {
-+		{ NULL,		link_no_args},
-+		{ 0 }
-+	};
-+
-+	return rd_exec_cmd(rd, cmds, "parameter");
-+}
-+
-+static int link_show(struct rd *rd)
-+{
-+	struct dev_map *dev_map;
-+	uint32_t port;
-+	int ret;
-+
-+	if (rd_no_arg(rd)) {
-+		list_for_each_entry(dev_map, &rd->dev_map_list, list) {
-+			rd->dev_idx = dev_map->idx;
-+			for (port = 1; port < dev_map->num_ports + 1; port++) {
-+				rd->port_idx = port;
-+				ret = link_one_show(rd);
-+				if (ret)
-+					return ret;
-+			}
-+		}
-+
-+	} else {
-+		dev_map = dev_map_lookup(rd, true);
-+		port = get_port_from_argv(rd);
-+		if (!dev_map || port > dev_map->num_ports) {
-+			pr_err("Wrong device name\n");
-+			return -ENOENT;
-+		}
-+		rd_arg_inc(rd);
-+		rd->dev_idx = dev_map->idx;
-+		rd->port_idx = port ? : 1;
-+		for (; rd->port_idx < dev_map->num_ports + 1; rd->port_idx++) {
-+			ret = link_one_show(rd);
-+			if (ret)
-+				return ret;
-+			if (port)
-+				/*
-+				 * We got request to show link for devname
-+				 * with port index.
-+				 */
-+				break;
-+		}
-+	}
-+	return 0;
-+}
-+
-+int cmd_link(struct rd *rd)
-+{
-+	const struct rd_cmd cmds[] = {
-+		{ NULL,		link_show },
-+		{ "show",	link_show },
-+		{ "list",	link_show },
-+		{ "help",	link_help },
-+		{ 0 }
-+	};
-+
-+	return rd_exec_cmd(rd, cmds, "link command");
-+}
-diff --git a/rdma/rdma.c b/rdma/rdma.c
-index 9c2bdc8f..74c09e8b 100644
---- a/rdma/rdma.c
-+++ b/rdma/rdma.c
-@@ -15,7 +15,7 @@
- static void help(char *name)
- {
- 	pr_out("Usage: %s [ OPTIONS ] OBJECT { COMMAND | help }\n"
--	       "where  OBJECT := { dev | help }\n"
-+	       "where  OBJECT := { dev | link | help }\n"
- 	       "       OPTIONS := { -V[ersion] | -d[etails]}\n", name);
- }
+Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
+Web:=C2=A0https://www.profitbricks.com
 
-@@ -31,6 +31,7 @@ static int rd_cmd(struct rd *rd)
- 		{ NULL,		cmd_help },
- 		{ "help",	cmd_help },
- 		{ "dev",	cmd_dev },
-+		{ "link",	cmd_link },
- 		{ 0 }
- 	};
+Sitz der Gesellschaft: Berlin.
+Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
+Gesch=C3=A4ftsf=C3=BChrer: Achim Weiss.
 
-diff --git a/rdma/utils.c b/rdma/utils.c
-index 0e32eefe..91d05271 100644
---- a/rdma/utils.c
-+++ b/rdma/utils.c
-@@ -107,6 +107,11 @@ static const enum mnl_attr_data_type nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 	[RDMA_NLDEV_ATTR_FW_VERSION] = MNL_TYPE_NUL_STRING,
- 	[RDMA_NLDEV_ATTR_NODE_GUID] = MNL_TYPE_U64,
- 	[RDMA_NLDEV_ATTR_SYS_IMAGE_GUID] = MNL_TYPE_U64,
-+	[RDMA_NLDEV_ATTR_LID] = MNL_TYPE_U32,
-+	[RDMA_NLDEV_ATTR_SM_LID] = MNL_TYPE_U32,
-+	[RDMA_NLDEV_ATTR_LMC] = MNL_TYPE_U8,
-+	[RDMA_NLDEV_ATTR_PORT_STATE] = MNL_TYPE_U8,
-+	[RDMA_NLDEV_ATTR_PORT_PHYS_STATE] = MNL_TYPE_U8,
- 	[RDMA_NLDEV_ATTR_DEV_NODE_TYPE] = MNL_TYPE_U8,
- };
+--=-Nnj2gUtZ4lYDzypsh0W3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAABCAAGBQJZlV2nAAoJEN2M1aXejH569K0P/Az+auWJwGjsmXy533d+/D8o
+l2B4jIak7fN5Gh+7IDCM5S8U3MK45jWFeJ37P6ys+l0QegY7shbqRBG9NeqLApkS
+IScTiTk8MNlIxp4ulLAR8U8WUiwEx8fq+h7qSZw/mpP/SVDPIO9CAbO+Wxhh05Uw
+jOi9juAXYNRlQAza6VxhFH79JyUeo2dUpldw3jJ6UBwcQumPL7mEAK2XVRN+w2jq
+2V6f3crCx2RTf3G7g0L7f0OU6hgrRKuZ8i50iuuHNwjyDKqcMk/x7MZ9CSUQq0iF
+m9x3vEFVH3YfQKhoZgDKnZ4H2bK0Bp08GfaOzFIM5ryk0vcjXh4ecOq5UVLfp+zH
+5aMn2znART9oqtlXAxp1FIa65rRL7oSLqmixWKB46WANasO+dpADGfHV9/zOFKwl
+nZlhHyW4k103xWP7UyZHNn6cl8m8I2+r4iaqVXAKd6xrglGC9LosyH5VSvrpOGaT
+dZsefXYAjKYNd/WeK5dN1CEVWfu8XrETwqtYZT4jCXO497VGfdbdK238ti4OISad
+aBs0tKftasElkRsgnLcc1eoMTc8Ht84vZx3fir2COkHAGKjF7GpjYI5GqJxNZyky
+r/xFPaLa5v+3+1l/r+LQGEs2xEmq2MjZA1h5yygTLZZUQ6BZoMsUTav7GtHV7VEx
+xtnYLtX+WevzCMuUbQyg
+=qJ27
+-----END PGP SIGNATURE-----
+
+--=-Nnj2gUtZ4lYDzypsh0W3--
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
