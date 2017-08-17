@@ -1,40 +1,39 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [rdma-next v3 21/24] IB/rxe: Make rxe_counter_name static
-Date: Thu, 17 Aug 2017 15:50:52 +0300
-Message-ID: <20170817125055.31424-22-leon@kernel.org>
+Subject: [rdma-next v3 22/24] RDMA/mlx5: Limit scope of get vector affinity local function
+Date: Thu, 17 Aug 2017 15:50:53 +0300
+Message-ID: <20170817125055.31424-23-leon@kernel.org>
 References: <20170817125055.31424-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170817125055.31424-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+The mlx5_ib_get_vector_affinity() call is local to main.c file and there
+is no need to be declared globally visible.
 
-rxe_counter_name is used in rxe_hw_counters.c only. Make it static.
-
-Fixes: 0b1e5b99a48b ('IB/rxe: Add port protocol stats')
-Signed-off-by: Kamal Heib <kamalh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yonatan Cohen <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Fixes: 40b24403f33e ("mlx5: support ->get_vector_affinity")
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_hw_counters.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/main.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_hw_counters.c b/drivers/infiniband/sw/rxe/rxe_hw_counters.c
-index 7ef90aad7dfd..6aeb7a165e46 100644
---- a/drivers/infiniband/sw/rxe/rxe_hw_counters.c
-+++ b/drivers/infiniband/sw/rxe/rxe_hw_counters.c
-@@ -33,7 +33,7 @@
- #include "rxe.h"
- #include "rxe_hw_counters.h"
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 986404827848..47cf622c6d24 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -3818,8 +3818,8 @@ static void init_delay_drop(struct mlx5_ib_dev *dev)
+ 		mlx5_ib_warn(dev, "Failed to init delay drop debugfs\n");
+ }
  
--const char * const rxe_counter_name[] = {
-+static const char * const rxe_counter_name[] = {
- 	[RXE_CNT_SENT_PKTS]           =  "sent_pkts",
- 	[RXE_CNT_RCVD_PKTS]           =  "rcvd_pkts",
- 	[RXE_CNT_DUP_REQ]             =  "duplicate_request",
+-const struct cpumask *mlx5_ib_get_vector_affinity(struct ib_device *ibdev,
+-		int comp_vector)
++static const struct cpumask *
++mlx5_ib_get_vector_affinity(struct ib_device *ibdev, int comp_vector)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
+ 
 -- 
 2.14.1
 
