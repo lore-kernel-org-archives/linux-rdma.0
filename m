@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v5 iproute2 6/8] rdma: Implement json output for dev object
-Date: Thu, 17 Aug 2017 09:37:36 +0300
-Message-ID: <20170817063738.31554-7-leonro@mellanox.com>
+Subject: [PATCH v5 iproute2 7/8] rdma: Add json output to link object
+Date: Thu, 17 Aug 2017 09:37:37 +0300
+Message-ID: <20170817063738.31554-8-leonro@mellanox.com>
 References: <20170817063738.31554-1-leonro@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170817063738.31554-1-leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,57 +10,57 @@ To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Stephen Hem
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The example output for machine with two devices
+An example for the JSON output for two devices system.
 
-root@mtr-leonro:~# rdma dev -j -p
+root@mtr-leonro:~# rdma link -d -p -j
 [{
-	"ifindex": 1,
-	"ifname": "mlx5_0",
-	"node_type": "ca",
-	"fw": "2.8.9999",
-	"node_guid": "5254:00c0:fe12:3457",
-	"sys_image_guid": 5254:00c0:fe12:3457",
-	"caps": [ "BAD_PKEY_CNTR", "BAD_QKEY_CNTR", "CHANGE_PHY_POR",
-		  "PORT_ACTIVE_EVENT", "SYS_IMAGE_GUID", "RC_RNR_NAK_GEN",
-		  "MEM_WINDOW", "UD_IP_CSUM", "UD_TSO", "XRC",
-		  "MEM_MGT_EXTENSIONS", "BLOCK_MULTICAST_LOOPBACK",
-		  "MEM_WINDOW_TYPE_2B", "RAW_IP_CSUM",
-		  "MANAGED_FLOW_STEERING", "RESIZE_MAX_WR" ]
-	},{
-	"ifindex": 2,
-	"ifname": mlx5_1,
-	"node_type": "ca",
-	"fw": "2.8.9999",
-	"node_guid": "5254:00c0:fe12:3458",
-	"sys_image_guid": "5254:00c0:fe12:3458",
-	"caps": [ "BAD_PKEY_CNTR", "BAD_QKEY_CNTR", "CHANGE_PHY_POR",
-		  "PORT_ACTIVE_EVENT", "SYS_IMAGE_GUID", "RC_RNR_NAK_GEN",
-		  "MEM_WINDOW", "UD_IP_CSUM", "UD_TSO", "XRC",
-		  "MEM_MGT_EXTENSIONS", "BLOCK_MULTICAST_LOOPBACK",
-		  "MEM_WINDOW_TYPE_2B", "RAW_IP_CSUM",
-		  "MANAGED_FLOW_STEERING", "RESIZE_MAX_WR" ]
-	}
+        "ifindex": 1,
+        "port": 1,
+        "ifname": "mlx5_0/1",
+        "subnet_prefix": "fe80:0000:0000:0000",
+        "lid": 13399,
+        "sm_lid": 49151,
+        "lmc": 0,
+        "state": "ACTIVE",
+        "physical_state": "LINK_UP",
+        "caps": ["AUTO_MIG"
+        ]
+    },{
+        "ifindex": 2,
+        "port": 1,
+        "ifname": "mlx5_1/1",
+        "subnet_prefix": "fe80:0000:0000:0000",
+        "lid": 13400,
+        "sm_lid": 49151,
+        "lmc": 0,
+        "state": "ACTIVE",
+        "physical_state": "LINK_UP",
+        "caps": ["AUTO_MIG"
+        ]
+    }
 ]
 
 Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- rdma/dev.c | 110 +++++++++++++++++++++++++++++++++++++++++++++----------------
- 1 file changed, 82 insertions(+), 28 deletions(-)
+ rdma/link.c  | 144 +++++++++++++++++++++++++++++++++++++++++++----------------
+ rdma/rdma.h  |   1 -
+ rdma/utils.c |   8 ----
+ 3 files changed, 105 insertions(+), 48 deletions(-)
 
-diff --git a/rdma/dev.c b/rdma/dev.c
-index f6b55bae..9fadf3ac 100644
---- a/rdma/dev.c
-+++ b/rdma/dev.c
-@@ -66,7 +66,7 @@ static const char *dev_caps_to_str(uint32_t idx)
+diff --git a/rdma/link.c b/rdma/link.c
+index b0e5bee0..eae96cd8 100644
+--- a/rdma/link.c
++++ b/rdma/link.c
+@@ -56,7 +56,7 @@ static const char *caps_to_str(uint32_t idx)
  	return "UNKNOWN";
  }
  
--static void dev_print_caps(struct nlattr **tb)
-+static void dev_print_caps(struct rd *rd, struct nlattr **tb)
+-static void link_print_caps(struct nlattr **tb)
++static void link_print_caps(struct rd *rd, struct nlattr **tb)
  {
  	uint64_t caps;
  	uint32_t idx;
-@@ -76,48 +76,78 @@ static void dev_print_caps(struct nlattr **tb)
+@@ -66,54 +66,89 @@ static void link_print_caps(struct nlattr **tb)
  
  	caps = mnl_attr_get_u64(tb[RDMA_NLDEV_ATTR_CAP_FLAGS]);
  
@@ -73,13 +73,13 @@ index f6b55bae..9fadf3ac 100644
 +	}
  	for (idx = 0; caps; idx++) {
  		if (caps & 0x1) {
--			pr_out("%s", dev_caps_to_str(idx));
+-			pr_out("%s", caps_to_str(idx));
 -			if (caps >> 0x1)
 -				pr_out(", ");
 +			if (rd->json_output) {
-+				jsonw_string(rd->jw, dev_caps_to_str(idx));
++				jsonw_string(rd->jw, caps_to_str(idx));
 +			} else {
-+				pr_out("%s", dev_caps_to_str(idx));
++				pr_out("%s", caps_to_str(idx));
 +				if (caps >> 0x1)
 +					pr_out(", ");
 +			}
@@ -94,119 +94,166 @@ index f6b55bae..9fadf3ac 100644
 +		pr_out(">");
  }
  
--static void dev_print_fw(struct nlattr **tb)
-+static void dev_print_fw(struct rd *rd, struct nlattr **tb)
+-static void link_print_subnet_prefix(struct nlattr **tb)
++static void link_print_subnet_prefix(struct rd *rd, struct nlattr **tb)
  {
-+	const char *str;
- 	if (!tb[RDMA_NLDEV_ATTR_FW_VERSION])
- 		return;
- 
--	pr_out("fw %s ",
--	       mnl_attr_get_str(tb[RDMA_NLDEV_ATTR_FW_VERSION]));
-+	str = mnl_attr_get_str(tb[RDMA_NLDEV_ATTR_FW_VERSION]);
-+	if (rd->json_output)
-+		jsonw_string_field(rd->jw, "fw", str);
-+	else
-+		pr_out("fw %s ", str);
- }
- 
--static void dev_print_node_guid(struct nlattr **tb)
-+static void dev_print_node_guid(struct rd *rd, struct nlattr **tb)
- {
- 	uint64_t node_guid;
+ 	uint64_t subnet_prefix;
 +	uint16_t vp[4];
 +	char str[32];
  
- 	if (!tb[RDMA_NLDEV_ATTR_NODE_GUID])
+ 	if (!tb[RDMA_NLDEV_ATTR_SUBNET_PREFIX])
  		return;
  
- 	node_guid = mnl_attr_get_u64(tb[RDMA_NLDEV_ATTR_NODE_GUID]);
--	rd_print_u64("node_guid", node_guid);
-+	memcpy(vp, &node_guid, sizeof(uint64_t));
+ 	subnet_prefix = mnl_attr_get_u64(tb[RDMA_NLDEV_ATTR_SUBNET_PREFIX]);
+-	rd_print_u64("subnet_prefix", subnet_prefix);
++	memcpy(vp, &subnet_prefix, sizeof(uint64_t));
 +	snprintf(str, 32, "%04x:%04x:%04x:%04x", vp[3], vp[2], vp[1], vp[0]);
 +	if (rd->json_output)
-+		jsonw_string_field(rd->jw, "node_guid", str);
++		jsonw_string_field(rd->jw, "subnet_prefix", str);
 +	else
-+		pr_out("node_guid %s ", str);
++		pr_out("subnet_prefix %s ", str);
  }
  
--static void dev_print_sys_image_guid(struct nlattr **tb)
-+static void dev_print_sys_image_guid(struct rd *rd, struct nlattr **tb)
+-static void link_print_lid(struct nlattr **tb)
++static void link_print_lid(struct rd *rd, struct nlattr **tb)
  {
- 	uint64_t sys_image_guid;
-+	uint16_t vp[4];
-+	char str[32];
- 
- 	if (!tb[RDMA_NLDEV_ATTR_SYS_IMAGE_GUID])
++	uint32_t lid;
++
+ 	if (!tb[RDMA_NLDEV_ATTR_LID])
  		return;
  
- 	sys_image_guid = mnl_attr_get_u64(tb[RDMA_NLDEV_ATTR_SYS_IMAGE_GUID]);
--	rd_print_u64("sys_image_guid", sys_image_guid);
-+	memcpy(vp, &sys_image_guid, sizeof(uint64_t));
-+	snprintf(str, 32, "%04x:%04x:%04x:%04x", vp[3], vp[2], vp[1], vp[0]);
+-	pr_out("lid %u ",
+-	       mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_LID]));
++	lid = mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_LID]);
 +	if (rd->json_output)
-+		jsonw_string_field(rd->jw, "sys_image_guid", str);
++		jsonw_uint_field(rd->jw, "lid", lid);
 +	else
-+		pr_out("sys_image_guid %s ", str);
++		pr_out("lid %u ", lid);
  }
  
- static const char *node_type_to_str(uint8_t node_type)
-@@ -131,37 +161,51 @@ static const char *node_type_to_str(uint8_t node_type)
- 	return "unknown";
- }
- 
--static void dev_print_node_type(struct nlattr **tb)
-+static void dev_print_node_type(struct rd *rd, struct nlattr **tb)
+-static void link_print_sm_lid(struct nlattr **tb)
++static void link_print_sm_lid(struct rd *rd, struct nlattr **tb)
  {
-+	const char *node_str;
- 	uint8_t node_type;
- 
- 	if (!tb[RDMA_NLDEV_ATTR_DEV_NODE_TYPE])
++	uint32_t sm_lid;
++
+ 	if (!tb[RDMA_NLDEV_ATTR_SM_LID])
  		return;
  
- 	node_type = mnl_attr_get_u8(tb[RDMA_NLDEV_ATTR_DEV_NODE_TYPE]);
--	pr_out("node_type %s ", node_type_to_str(node_type));
-+	node_str = node_type_to_str(node_type);
+-	pr_out("sm_lid %u ",
+-	       mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_SM_LID]));
++	sm_lid = mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_SM_LID]);
 +	if (rd->json_output)
-+		jsonw_string_field(rd->jw, "node_type", node_str);
++		jsonw_uint_field(rd->jw, "sm_lid", sm_lid);
 +	else
-+		pr_out("node_type %s ", node_str);
++		pr_out("sm_lid %u ", sm_lid);
  }
  
- static int dev_parse_cb(const struct nlmsghdr *nlh, void *data)
+-static void link_print_lmc(struct nlattr **tb)
++static void link_print_lmc(struct rd *rd, struct nlattr **tb)
+ {
++	uint8_t lmc;
++
+ 	if (!tb[RDMA_NLDEV_ATTR_LMC])
+ 		return;
+ 
+-	pr_out("lmc %u ", mnl_attr_get_u8(tb[RDMA_NLDEV_ATTR_LMC]));
++	lmc = mnl_attr_get_u8(tb[RDMA_NLDEV_ATTR_LMC]);
++	if (rd->json_output)
++		jsonw_uint_field(rd->jw, "lmc", lmc);
++	else
++		pr_out("lmc %u ", lmc);
+ }
+ 
+ static const char *link_state_to_str(uint8_t link_state)
+@@ -127,7 +162,7 @@ static const char *link_state_to_str(uint8_t link_state)
+ 	return "UNKNOWN";
+ }
+ 
+-static void link_print_state(struct nlattr **tb)
++static void link_print_state(struct rd *rd, struct nlattr **tb)
+ {
+ 	uint8_t state;
+ 
+@@ -135,7 +170,10 @@ static void link_print_state(struct nlattr **tb)
+ 		return;
+ 
+ 	state = mnl_attr_get_u8(tb[RDMA_NLDEV_ATTR_PORT_STATE]);
+-	pr_out("state %s ", link_state_to_str(state));
++	if (rd->json_output)
++		jsonw_string_field(rd->jw, "state", link_state_to_str(state));
++	else
++		pr_out("state %s ", link_state_to_str(state));
+ }
+ 
+ static const char *phys_state_to_str(uint8_t phys_state)
+@@ -152,7 +190,7 @@ static const char *phys_state_to_str(uint8_t phys_state)
+ 	return "UNKNOWN";
+ };
+ 
+-static void link_print_phys_state(struct nlattr **tb)
++static void link_print_phys_state(struct rd *rd, struct nlattr **tb)
+ {
+ 	uint8_t phys_state;
+ 
+@@ -160,13 +198,19 @@ static void link_print_phys_state(struct nlattr **tb)
+ 		return;
+ 
+ 	phys_state = mnl_attr_get_u8(tb[RDMA_NLDEV_ATTR_PORT_PHYS_STATE]);
+-	pr_out("physical_state %s ", phys_state_to_str(phys_state));
++	if (rd->json_output)
++		jsonw_string_field(rd->jw, "physical_state",
++				   phys_state_to_str(phys_state));
++	else
++		pr_out("physical_state %s ", phys_state_to_str(phys_state));
+ }
+ 
+ static int link_parse_cb(const struct nlmsghdr *nlh, void *data)
  {
  	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
  	struct rd *rd = data;
-+	const char *name;
-+	uint32_t idx;
++	uint32_t port, idx;
++	char name[32];
  
  	mnl_attr_parse(nlh, 0, rd_attr_cb, tb);
  	if (!tb[RDMA_NLDEV_ATTR_DEV_INDEX] || !tb[RDMA_NLDEV_ATTR_DEV_NAME])
+@@ -177,21 +221,31 @@ static int link_parse_cb(const struct nlmsghdr *nlh, void *data)
  		return MNL_CB_ERROR;
+ 	}
  
--	pr_out("%u: %s: ",
+-	pr_out("%u/%u: %s/%u: ",
 -	       mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]),
--	       mnl_attr_get_str(tb[RDMA_NLDEV_ATTR_DEV_NAME]));
--	dev_print_node_type(tb);
--	dev_print_fw(tb);
--	dev_print_node_guid(tb);
--	dev_print_sys_image_guid(tb);
-+	idx =  mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
-+	name = mnl_attr_get_str(tb[RDMA_NLDEV_ATTR_DEV_NAME]);
+-	       mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]),
+-	       mnl_attr_get_str(tb[RDMA_NLDEV_ATTR_DEV_NAME]),
+-	       mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]));
+-	link_print_subnet_prefix(tb);
+-	link_print_lid(tb);
+-	link_print_sm_lid(tb);
+-	link_print_lmc(tb);
+-	link_print_state(tb);
+-	link_print_phys_state(tb);
++	idx = mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
++	port = mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
++	snprintf(name, 32, "%s/%u",
++		 mnl_attr_get_str(tb[RDMA_NLDEV_ATTR_DEV_NAME]), port);
++
 +	if (rd->json_output) {
 +		jsonw_uint_field(rd->jw, "ifindex", idx);
++		jsonw_uint_field(rd->jw, "port", port);
 +		jsonw_string_field(rd->jw, "ifname", name);
++
 +	} else {
-+		pr_out("%u: %s: ", idx, name);
++		pr_out("%u/%u: %s: ", idx, port, name);
 +	}
 +
-+	dev_print_node_type(rd, tb);
-+	dev_print_fw(rd, tb);
-+	dev_print_node_guid(rd, tb);
-+	dev_print_sys_image_guid(rd, tb);
++	link_print_subnet_prefix(rd, tb);
++	link_print_lid(rd, tb);
++	link_print_sm_lid(rd, tb);
++	link_print_lmc(rd, tb);
++	link_print_state(rd, tb);
++	link_print_phys_state(rd, tb);
  	if (rd->show_details)
--		dev_print_caps(tb);
-+		dev_print_caps(rd, tb);
+-		link_print_caps(tb);
++		link_print_caps(rd, tb);
  
 -	pr_out("\n");
 +	if (!rd->json_output)
@@ -214,38 +261,44 @@ index f6b55bae..9fadf3ac 100644
  	return MNL_CB_OK;
  }
  
-@@ -177,7 +221,12 @@ static int dev_no_args(struct rd *rd)
+@@ -208,7 +262,12 @@ static int link_no_args(struct rd *rd)
  	if (ret)
  		return ret;
  
--	return rd_recv_msg(rd, dev_parse_cb, rd, seq);
+-	return rd_recv_msg(rd, link_parse_cb, rd, seq);
 +	if (rd->json_output)
 +		jsonw_start_object(rd->jw);
-+	ret = rd_recv_msg(rd, dev_parse_cb, rd, seq);
++	ret = rd_recv_msg(rd, link_parse_cb, rd, seq);
 +	if (rd->json_output)
 +		jsonw_end_object(rd->jw);
 +	return ret;
  }
  
- static int dev_one_show(struct rd *rd)
-@@ -195,24 +244,29 @@ static int dev_show(struct rd *rd)
+ static int link_one_show(struct rd *rd)
+@@ -225,8 +284,10 @@ static int link_show(struct rd *rd)
+ {
  	struct dev_map *dev_map;
- 	int ret = 0;
+ 	uint32_t port;
+-	int ret;
++	int ret = 0;
  
 +	if (rd->json_output)
 +		jsonw_start_array(rd->jw);
  	if (rd_no_arg(rd)) {
  		list_for_each_entry(dev_map, &rd->dev_map_list, list) {
  			rd->dev_idx = dev_map->idx;
- 			ret = dev_one_show(rd);
- 			if (ret)
--				return ret;
-+				goto out;
+@@ -234,7 +295,7 @@ static int link_show(struct rd *rd)
+ 				rd->port_idx = port;
+ 				ret = link_one_show(rd);
+ 				if (ret)
+-					return ret;
++					goto out;
+ 			}
  		}
--
- 	} else {
- 		dev_map = dev_map_lookup(rd, false);
- 		if (!dev_map) {
+ 
+@@ -243,7 +304,8 @@ static int link_show(struct rd *rd)
+ 		port = get_port_from_argv(rd);
+ 		if (!dev_map || port > dev_map->num_ports) {
  			pr_err("Wrong device name\n");
 -			return -ENOENT;
 +			ret = -ENOENT;
@@ -253,14 +306,59 @@ index f6b55bae..9fadf3ac 100644
  		}
  		rd_arg_inc(rd);
  		rd->dev_idx = dev_map->idx;
- 		ret = dev_one_show(rd);
+@@ -251,7 +313,7 @@ static int link_show(struct rd *rd)
+ 		for (; rd->port_idx < dev_map->num_ports + 1; rd->port_idx++) {
+ 			ret = link_one_show(rd);
+ 			if (ret)
+-				return ret;
++				goto out;
+ 			if (port)
+ 				/*
+ 				 * We got request to show link for devname
+@@ -260,7 +322,11 @@ static int link_show(struct rd *rd)
+ 				break;
+ 		}
  	}
+-	return 0;
++
 +out:
 +	if (rd->json_output)
 +		jsonw_end_array(rd->jw);
- 	return ret;
++	return ret;
  }
  
+ int cmd_link(struct rd *rd)
+diff --git a/rdma/rdma.h b/rdma/rdma.h
+index 5904f177..d62a0ac8 100644
+--- a/rdma/rdma.h
++++ b/rdma/rdma.h
+@@ -68,7 +68,6 @@ void rd_arg_inc(struct rd *rd);
+ char *rd_argv(struct rd *rd);
+ uint32_t get_port_from_argv(struct rd *rd);
+ 
+-void rd_print_u64(char *name, uint64_t val);
+ /*
+  * Commands interface
+  */
+diff --git a/rdma/utils.c b/rdma/utils.c
+index 91d05271..eb4377cf 100644
+--- a/rdma/utils.c
++++ b/rdma/utils.c
+@@ -59,14 +59,6 @@ uint32_t get_port_from_argv(struct rd *rd)
+ 	return slash ? atoi(slash + 1) : 0;
+ }
+ 
+-void rd_print_u64(char *name, uint64_t val)
+-{
+-	uint16_t vp[4];
+-
+-	memcpy(vp, &val, sizeof(uint64_t));
+-	pr_out("%s %04x:%04x:%04x:%04x ", name, vp[3], vp[2], vp[1], vp[0]);
+-}
+-
+ static struct dev_map *dev_map_alloc(const char *dev_name)
+ {
+ 	struct dev_map *dev_map;
 -- 
 2.14.1
 
