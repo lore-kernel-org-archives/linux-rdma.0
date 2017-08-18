@@ -1,76 +1,78 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH RFC 0/3] Proposal for exposing rdma_rw MR factor
-Date: Fri, 18 Aug 2017 12:52:03 -0400
-Message-ID: <1503075123.2598.27.camel@redhat.com>
-References: <20170801205334.15781.18761.stgit@klimt.1015granger.net>
-         <20170802072043.GZ13672@mtr-leonro.local>
-         <D8576C0A-6588-49D1-A2F9-AD39FB2E5FCE@oracle.com>
-         <6EAEEE15-819E-4CE2-8C67-997A244919FB@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 18 Aug 2017 12:53:44 -0400
+Message-ID: <C7764F8D-2BA5-4ACF-9743-0364E9D9B6C3@oracle.com>
+References: <20170801205334.15781.18761.stgit@klimt.1015granger.net> <20170802072043.GZ13672@mtr-leonro.local> <D8576C0A-6588-49D1-A2F9-AD39FB2E5FCE@oracle.com> <6EAEEE15-819E-4CE2-8C67-997A244919FB@oracle.com> <1503075123.2598.27.camel@redhat.com>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <6EAEEE15-819E-4CE2-8C67-997A244919FB-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1503075123.2598.27.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-08-16 at 11:50 -0400, Chuck Lever wrote:
-> > On Aug 8, 2017, at 2:28 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-> > wrote:
-> > 
-> > 
-> > > On Aug 2, 2017, at 3:20 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > > wrote:
-> > > 
-> > > On Tue, Aug 01, 2017 at 05:06:51PM -0400, Chuck Lever wrote:
-> > > > Since I converted NFSD to use the new rdma_rw API, I've been
-> > > > struggling with how NFSD determines the size of its send CQ,
-> > > > and how
-> > > > it provisions its send queue limit (ie, when it waits for more
-> > > > send
-> > > > queue entries to become available).
-> > > > 
-> > > > The problem arises because rdma_rw hides the exact number of
-> > > > send
-> > > > WQEs it has provisioned. It determines this number based on the
-> > > > MR
-> > > > registration mode (FRWR for iWARP devices, local DMA rkey for
-> > > > others), but the mode itself is no longer exposed to ULPs.
-> > > > 
-> > > > Thus when FRWR is in use, rdma_rw adds more WQEs, but NFSD is
-> > > > no
-> > > > longer aware of this, does not provision a larger CQ, and does
-> > > > not
-> > > > raise its send queue accounting limit. That means the extra
-> > > > WQEs are
-> > > > never really used.
-> > > > 
-> > > > At LSF this year, Christoph and Sagi proposed a simple API that
-> > > > expose information about how many CQ entries are needed so that
-> > > > ULPs
-> > > > can provision their CQs more accurately.
-> > > 
-> > > Indeed clean API. Does it make sense to get rid of
-> > > sc_max_requests and
-> > > use this exported value directly?
-> > 
-> > I'm going to consider this clean up for a later patch.
-> > 
-> > So, how shall I submit this new API for upstream? I propose that
-> > I submit all three of these via Bruce's tree, with an Acked-by
-> > from Doug on the "Add rdma_rw_mr_payload()" patch, if Doug
-> > approves.
+
+> On Aug 18, 2017, at 12:52 PM, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
 > 
-> Doug?
+> On Wed, 2017-08-16 at 11:50 -0400, Chuck Lever wrote:
+>>> On Aug 8, 2017, at 2:28 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+>>> wrote:
+>>> 
+>>> 
+>>>> On Aug 2, 2017, at 3:20 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>>>> wrote:
+>>>> 
+>>>> On Tue, Aug 01, 2017 at 05:06:51PM -0400, Chuck Lever wrote:
+>>>>> Since I converted NFSD to use the new rdma_rw API, I've been
+>>>>> struggling with how NFSD determines the size of its send CQ,
+>>>>> and how
+>>>>> it provisions its send queue limit (ie, when it waits for more
+>>>>> send
+>>>>> queue entries to become available).
+>>>>> 
+>>>>> The problem arises because rdma_rw hides the exact number of
+>>>>> send
+>>>>> WQEs it has provisioned. It determines this number based on the
+>>>>> MR
+>>>>> registration mode (FRWR for iWARP devices, local DMA rkey for
+>>>>> others), but the mode itself is no longer exposed to ULPs.
+>>>>> 
+>>>>> Thus when FRWR is in use, rdma_rw adds more WQEs, but NFSD is
+>>>>> no
+>>>>> longer aware of this, does not provision a larger CQ, and does
+>>>>> not
+>>>>> raise its send queue accounting limit. That means the extra
+>>>>> WQEs are
+>>>>> never really used.
+>>>>> 
+>>>>> At LSF this year, Christoph and Sagi proposed a simple API that
+>>>>> expose information about how many CQ entries are needed so that
+>>>>> ULPs
+>>>>> can provision their CQs more accurately.
+>>>> 
+>>>> Indeed clean API. Does it make sense to get rid of
+>>>> sc_max_requests and
+>>>> use this exported value directly?
+>>> 
+>>> I'm going to consider this clean up for a later patch.
+>>> 
+>>> So, how shall I submit this new API for upstream? I propose that
+>>> I submit all three of these via Bruce's tree, with an Acked-by
+>>> from Doug on the "Add rdma_rw_mr_payload()" patch, if Doug
+>>> approves.
+>> 
+>> Doug?
+> 
+> Your proposal is acceptable.  Ack given for 2nd patch to rdma core.
 
-Your proposal is acceptable.  Ack given for 2nd patch to rdma core.
+Thanks!
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--
+Chuck Lever
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
