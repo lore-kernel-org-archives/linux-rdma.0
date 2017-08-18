@@ -1,40 +1,31 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 0/3] constify infiniband pci_device_id.
-Date: Fri, 18 Aug 2017 12:03:12 -0400
-Message-ID: <1503072192.2598.16.camel@redhat.com>
-References: <1500186646-28815-1-git-send-email-arvind.yadav.cs@gmail.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH] i40iw: Simplify code
+Date: Fri, 18 Aug 2017 12:03:42 -0400
+Message-ID: <1503072222.2598.17.camel@redhat.com>
+References: <20170716110923.14907-1-christophe.jaillet@wanadoo.fr>
+         <20170717193151.GB16652@ssaleem-MOBL4.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1500186646-28815-1-git-send-email-arvind.yadav.cs-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arvind Yadav <arvind.yadav.cs-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170717193151.GB16652@ssaleem-MOBL4.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Shiraz Saleem <shiraz.saleem@intel.com>, Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Cc: faisal.latif@intel.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 2017-07-16 at 12:00 +0530, Arvind Yadav wrote:
-> pci_device_id are not supposed to change at runtime. All functions
-> working with pci_device_id provided by <linux/pci.h> work with
-> const pci_device_id. So mark the non-const structs as const.
+On Mon, 2017-07-17 at 14:31 -0500, Shiraz Saleem wrote:
+> On Sun, Jul 16, 2017 at 01:09:23PM +0200, Christophe JAILLET wrote:
+> > Axe a few lines of code and re-use existing error handling path to
+> > avoid
+> > code duplication.
+> > 
 > 
-> Arvind Yadav (3):
->   [PATCH 1/3] infiniband: mthca: constify pci_device_id.
->   [PATCH 2/3] infiniband: nes: constify pci_device_id.
->   [PATCH 3/3] infiniband: pvrdma: constify pci_device_id.
-> 
->  drivers/infiniband/hw/mthca/mthca_main.c       | 2 +-
->  drivers/infiniband/hw/nes/nes.c                | 2 +-
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c | 2 +-
->  3 files changed, 3 insertions(+), 3 deletions(-)
+> Acked-by: Shiraz Saleem <shiraz.saleem@intel.com>
 
-Thanks, series applied.
+Thanks, applied.
 
 -- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Doug Ledford <dledford@redhat.com>
     GPG KeyID: B826A3330E572FDD
     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
