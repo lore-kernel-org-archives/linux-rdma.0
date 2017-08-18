@@ -1,190 +1,87 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: RE: [PATCH net-next] net: hns3: Add support to change MTU in
- hardware & netdev
-Date: Fri, 18 Aug 2017 14:55:13 +0000
-Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F93B86F75F@FRAEML521-MBX.china.huawei.com>
-References: <20170818113558.71928-1-salil.mehta@huawei.com>
- <20170818133128.GA523@lunn.ch>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma v1 1/1] IB/core: Fix input len in multiple user
+ verbs
+Date: Fri, 18 Aug 2017 11:00:04 -0400
+Message-ID: <1503068404.2598.9.camel@redhat.com>
+References: <1498572282-22370-1-git-send-email-Ram.Amrani@cavium.com>
+         <1498572282-22370-2-git-send-email-Ram.Amrani@cavium.com>
+         <20170628095422.GA1248@mtr-leonro.local>
+         <BN3PR07MB25788193EFA21CEB5C430201F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
+         <20170628101124.GD1248@mtr-leonro.local>
+         <CY1PR0701MB1337A8E7B1E40CC4C1EC230A90DD0@CY1PR0701MB1337.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170818133128.GA523@lunn.ch>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Lunn <andrew@lunn.ch>
-Cc: "davem@davemloft.net" <davem@davemloft.net>, "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>, "lipeng (Y)" <lipeng321@huawei.com>, "dan.carpenter@oracle.com" <dan.carpenter@oracle.com>, "mehta.salil.lnk@gmail.com" <mehta.salil.lnk@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CY1PR0701MB1337A8E7B1E40CC4C1EC230A90DD0-UpKza+2NMNLi6bjPjkn3FE5OhdzP3rhOnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Andrew
-
-> -----Original Message-----
-> From: Andrew Lunn [mailto:andrew@lunn.ch]
-> Sent: Friday, August 18, 2017 2:31 PM
-> To: Salil Mehta
-> Cc: davem@davemloft.net; Zhuangyuzeng (Yisen); lipeng (Y);
-> dan.carpenter@oracle.com; mehta.salil.lnk@gmail.com;
-> netdev@vger.kernel.org; linux-kernel@vger.kernel.org; linux-
-> rdma@vger.kernel.org; Linuxarm
-> Subject: Re: [PATCH net-next] net: hns3: Add support to change MTU in
-> hardware & netdev
+On Wed, 2017-06-28 at 10:23 +0000, Elior, Ariel wrote:
+> > From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
+> > Sent: Wednesday, June 28, 2017 1:11 PM
+> > To: Amrani, Ram <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> > Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Elior, Ariel
+> > <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+> > Subject: Re: [PATCH rdma v1 1/1] IB/core: Fix input len in multiple
+> > user verbs
+> > 
+> > On Wed, Jun 28, 2017 at 10:02:45AM +0000, Amrani, Ram wrote:
+> > > > > Most user verbs pass user data to the kernel with the
+> > > > > inclusion of the
+> > > > > ib_uverbs_cmd_hdr structure. This is problematic because the
+> > > > > vendor has
+> > > > > no ideas if the verb was called by a legacy verb or an
+> > > > > extended verb.
+> > > > 
+> > > > Why vendor should know about it? It has midlayer (ib/core)
+> > > > between him
+> > > > and user to handle it.
+> > > > 
+> > > 
+> > > Knowing the inlen can be used to determine if the library is
+> > > newer than
+> > > the kernel and what features it supports or not.
+> > 
+> > It is not interesting case, because we are not breaking UAPI, only
+> > extending. It ensures that kernel will fill as much as possible and
+> > will
+> > always have success in it. After that it is library responsibility
+> > to
+> > understand if everything was filled.
+> > 
+> > Thanks
 > 
-> On Fri, Aug 18, 2017 at 12:35:58PM +0100, Salil Mehta wrote:
-> > This patch adds the following support to the HNS3 driver:
-> > 1. Support to change the Maximum Transmission Unit of a
-> >    netdevice and of a port in hardware .
-> > 2. Initializes the supported MTU range for the netdevice.
-> >
-> > Signed-off-by: lipeng <lipeng321@huawei.com>
-> > Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
-> > ---
-> >  .../net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c | 46
-> ++++++++++++++++++++++
-> >  .../net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h |  1 +
-> >  2 files changed, 47 insertions(+)
-> >
-> > diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
-> b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
-> > index e731f87..8e3711e 100644
-> > --- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
-> > +++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
-> > @@ -1278,11 +1278,53 @@ static int hns3_ndo_set_vf_vlan(struct
-> net_device *netdev, int vf, u16 vlan,
-> >  	return ret;
-> >  }
-> >
-> > +static int hns3_nic_change_mtu(struct net_device *netdev, int
-> new_mtu)
-> > +{
-> > +	struct hns3_nic_priv *priv = netdev_priv(netdev);
-> > +	struct hnae3_handle *h = priv->ae_handle;
-> > +	bool if_running = netif_running(netdev);
-> > +	int ret;
-> > +
-> > +	/* no change in MTU */
-> > +	if (new_mtu == netdev->mtu)
-> > +		return 0;
-> 
-> Hi Salil
-> 
-> It is worth reading the core code:
-> 
-> http://elixir.free-
-> electrons.com/linux/latest/source/net/core/dev.c#L6713
-Right. Looks like it is already being done since 4.10-rc1 because of
-the patches Floated by Jarod Wilson <jarod@redhat.com>.
-Link: https://lkml.org/lkml/2016/10/13/270
+> In our case, kernel driver needs to know whether library supports a
+> certain
+> feature (doorbell overflow recovery). It doesn't care if it was an
+> extended
+> verb or not, but it cares whether the lib is sufficiently new to have
+> provided
+> the required information. If the library is sufficiently new
+> (supports) then
+> kernel will register the library's doorbell address with the overflow
+> recovery
+> mechanism, and perform recovery if required, otherwise it would not
+> (as the
+> library is not supplying the necessary information for recovery to
+> take place).
+> This is not something the library needs to know, but the kernel
+> driver. Having
+> correct input len is required for successfully avoiding breaking the
+> UAPI.
 
-Will remove this duplicate check!
+Leon, does this explanation resolve your objections?  Also, have you
+checked the mlx5/mthca portions of this patch?
 
-Thanks
-Salil 
->  +
-> > +	if (!h->ae_algo->ops->set_mtu)
-> > +		return -ENOTSUPP;
-> > +
-> > +	/* if this was called with netdev up then bring netdevice down */
-> > +	if (if_running) {
-> > +		(void)hns3_nic_net_stop(netdev);
-> > +		msleep(100);
-> > +	}
-> > +
-> > +	ret = h->ae_algo->ops->set_mtu(h, new_mtu);
-> > +	if (ret) {
-> > +		netdev_err(netdev, "failed to change MTU in hardware %d\n",
-> > +			   ret);
-> > +		return ret;
-> > +	}
-> > +
-> > +	/* assign newly changed mtu to netdevice as well */
-> > +	netdev->mtu = new_mtu;
-> 
-> http://elixir.free-
-> electrons.com/linux/latest/source/net/core/dev.c#L6698
-Again, it is being done by core now since 4.10-rc1.
-Link: https://lkml.org/lkml/2016/10/13/270
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
-Will remove this duplicate code!
-
-Thanks
-Salil
-> 
-> > +
-> > +	/* if the netdev was running earlier, bring it up again */
-> > +	if (if_running) {
-> > +		if (hns3_nic_net_open(netdev)) {
-> > +			netdev_err(netdev, "MTU, couldnt up netdev again\n");
-> > +			ret = -EINVAL;
-> > +		}
-> > +	}
-> > +
-> > +	return ret;
-> > +}
-> > +
-> >  static const struct net_device_ops hns3_nic_netdev_ops = {
-> >  	.ndo_open		= hns3_nic_net_open,
-> >  	.ndo_stop		= hns3_nic_net_stop,
-> >  	.ndo_start_xmit		= hns3_nic_net_xmit,
-> >  	.ndo_set_mac_address	= hns3_nic_net_set_mac_address,
-> > +	.ndo_change_mtu		= hns3_nic_change_mtu,
-> >  	.ndo_set_features	= hns3_nic_set_features,
-> >  	.ndo_get_stats64	= hns3_nic_get_stats64,
-> >  	.ndo_setup_tc		= hns3_nic_setup_tc,
-> > @@ -2752,6 +2794,10 @@ static int hns3_client_init(struct
-> hnae3_handle *handle)
-> >  		goto out_reg_netdev_fail;
-> >  	}
-> >
-> > +	/* MTU range: 68 - 9706 */
-> > +	netdev->min_mtu = ETH_MIN_MTU;
-> 
-> http://elixir.free-
-> electrons.com/linux/latest/source/net/ethernet/eth.c#L361
-Supported range of Min and Max MTU should be at the discretion
-of the driver. Therefore, initialization looks fine to me.
-
-I could not clearly understand the problem being highlighted
-over here. Could you further clarify?
-
-Thanks
-Salil
-> 
-> > +	netdev->max_mtu = HNS3_MAX_MTU - (ETH_HLEN + ETH_FCS_LEN +
-> VLAN_HLEN);
-> > +
-> >  	return ret;
-> >
-> >  out_reg_netdev_fail:
-> > diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h
-> b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h
-> > index a6e8f15..7e87461 100644
-> > --- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h
-> > +++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h
-> > @@ -76,6 +76,7 @@ enum hns3_nic_state {
-> >  #define HNS3_RING_NAME_LEN			16
-> >  #define HNS3_BUFFER_SIZE_2048			2048
-> >  #define HNS3_RING_MAX_PENDING			32768
-> > +#define HNS3_MAX_MTU				9728
-> 
-> It seems odd that it does not already exists somewhere. The core does
-> not enforce the MTU.  You could be passed a frame which is bigger. So
-> you should check before trying to pass something to the hardware which
-> the hardware cannot handle.
-There is a check already in place for this as well since 4.10-rc1.
-But perhaps this time there is no change required as it is being taken
-care by the core. Thanks to sharp eyes of Jarod.
-Link: https://lkml.org/lkml/2016/10/13/270
-
-[...]
-if (dev->max_mtu > 0 && new_mtu > dev->max_mtu) {
-	net_err_ratelimited("%s: Invalid MTU %d requested, hw max %d\n",
-			    dev->name, new_mtu, dev->max_mtu);
-[...]
-
-I think I missed this patch entirely so those rest above checks &
-assignments were repeated. 
-
-Thanks
-Salil
-> 
->     Andrew
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
