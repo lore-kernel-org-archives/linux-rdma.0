@@ -1,59 +1,30 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 for-next 0/2] RDMA/bnxt_Re: Patches for for-next
-Date: Fri, 18 Aug 2017 15:09:17 -0400
-Message-ID: <1503083357.2598.46.camel@redhat.com>
-References: <1501663579-24707-1-git-send-email-selvin.xavier@broadcom.com>
+From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: RE: [PATCH 1/1] RDMA/uverbs: Initialize cq_context appropriately
+Date: Fri, 18 Aug 2017 15:51:36 -0500
+Message-ID: <008701d31863$c83d3600$58b7a200$@opengridcomputing.com>
+References: <1501565315-3183-1-git-send-email-bharat@chelsio.com>         <CAAKD3BCdeG=FkUNQjqGxEYw5Sx-TtmeRSAA8K7M43G62Qw_gbw@mail.gmail.com> <1503079603.2598.33.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+        charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1501663579-24707-1-git-send-email-selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1503079603.2598.33.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Matan Barak' <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Potnuri Bharat Teja' <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Cc: 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-08-02 at 01:46 -0700, Selvin Xavier wrote:
-> Hi Doug,
 > 
-> This patch series include two feature additions for bnxt_re.
-> Patch 1 adds support for multiple interrupt vectors in data path
-> and patch 2 adds the support for exporting some of the hw statistics.
+> I agree, I like your solution better.  Patch fixed up and applied.
 > 
-> Please consider them for the for-next branch.
-> 
-> Thanks,
-> Selvin Xavier
-> 
-> v1->v2:
-> 	Fix kbuild test warnings for xtensa architecture
-> 
-> Selvin Xavier (1):
->   RDMA/bnxt_re: Allocate multiple notification queues
-> 
-> Somnath Kotur (1):
->   RDMA/bnxt_re: Implement the alloc/get_hw_stats callback
-> 
->  drivers/infiniband/hw/bnxt_re/Makefile      |   2 +-
->  drivers/infiniband/hw/bnxt_re/bnxt_re.h     |   5 +-
->  drivers/infiniband/hw/bnxt_re/hw_counters.c | 114
-> ++++++++++++++++++++++++++++
->  drivers/infiniband/hw/bnxt_re/hw_counters.h |  62 +++++++++++++++
->  drivers/infiniband/hw/bnxt_re/ib_verbs.c    |  17 ++++-
->  drivers/infiniband/hw/bnxt_re/main.c        | 110 +++++++++++++++++-
-> ---------
->  drivers/infiniband/hw/bnxt_re/qplib_fp.c    |  21 ++++-
->  drivers/infiniband/hw/bnxt_re/qplib_fp.h    |   4 +-
->  8 files changed, 285 insertions(+), 50 deletions(-)
->  create mode 100644 drivers/infiniband/hw/bnxt_re/hw_counters.c
->  create mode 100644 drivers/infiniband/hw/bnxt_re/hw_counters.h
 
-Thanks, series applied.
+Hey Doug, I see this in your -next branch, but it needs to hit 4.13-rc and stable, as it is a fatal regression that breaks user mode rdma applications.
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+Thanks,
+
+Steve.
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
