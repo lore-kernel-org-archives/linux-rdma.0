@@ -1,98 +1,72 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH RFC 2/3] rdma core: Add rdma_rw_mr_payload()
-Date: Fri, 18 Aug 2017 12:51:29 -0400
-Message-ID: <1503075089.2598.26.camel@redhat.com>
+Subject: Re: [PATCH RFC 0/3] Proposal for exposing rdma_rw MR factor
+Date: Fri, 18 Aug 2017 12:52:03 -0400
+Message-ID: <1503075123.2598.27.camel@redhat.com>
 References: <20170801205334.15781.18761.stgit@klimt.1015granger.net>
-         <20170801210707.15781.36464.stgit@klimt.1015granger.net>
+         <20170802072043.GZ13672@mtr-leonro.local>
+         <D8576C0A-6588-49D1-A2F9-AD39FB2E5FCE@oracle.com>
+         <6EAEEE15-819E-4CE2-8C67-997A244919FB@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170801210707.15781.36464.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+In-Reply-To: <6EAEEE15-819E-4CE2-8C67-997A244919FB-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-08-01 at 17:07 -0400, Chuck Lever wrote:
-> The amount of payload per MR depends on device capabilities and
-> the memory registration mode in use. The new rdma_rw API hides both,
-> making it difficult for ULPs to determine how large their transport
-> send queues need to be.
+On Wed, 2017-08-16 at 11:50 -0400, Chuck Lever wrote:
+> > On Aug 8, 2017, at 2:28 PM, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> > wrote:
+> > 
+> > 
+> > > On Aug 2, 2017, at 3:20 AM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > > wrote:
+> > > 
+> > > On Tue, Aug 01, 2017 at 05:06:51PM -0400, Chuck Lever wrote:
+> > > > Since I converted NFSD to use the new rdma_rw API, I've been
+> > > > struggling with how NFSD determines the size of its send CQ,
+> > > > and how
+> > > > it provisions its send queue limit (ie, when it waits for more
+> > > > send
+> > > > queue entries to become available).
+> > > > 
+> > > > The problem arises because rdma_rw hides the exact number of
+> > > > send
+> > > > WQEs it has provisioned. It determines this number based on the
+> > > > MR
+> > > > registration mode (FRWR for iWARP devices, local DMA rkey for
+> > > > others), but the mode itself is no longer exposed to ULPs.
+> > > > 
+> > > > Thus when FRWR is in use, rdma_rw adds more WQEs, but NFSD is
+> > > > no
+> > > > longer aware of this, does not provision a larger CQ, and does
+> > > > not
+> > > > raise its send queue accounting limit. That means the extra
+> > > > WQEs are
+> > > > never really used.
+> > > > 
+> > > > At LSF this year, Christoph and Sagi proposed a simple API that
+> > > > expose information about how many CQ entries are needed so that
+> > > > ULPs
+> > > > can provision their CQs more accurately.
+> > > 
+> > > Indeed clean API. Does it make sense to get rid of
+> > > sc_max_requests and
+> > > use this exported value directly?
+> > 
+> > I'm going to consider this clean up for a later patch.
+> > 
+> > So, how shall I submit this new API for upstream? I propose that
+> > I submit all three of these via Bruce's tree, with an Acked-by
+> > from Doug on the "Add rdma_rw_mr_payload()" patch, if Doug
+> > approves.
 > 
-> Expose the MR payload information via a new API.
-> 
-> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Doug?
 
-Acked-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Your proposal is acceptable.  Ack given for 2nd patch to rdma core.
 
-> ---
->  drivers/infiniband/core/rw.c |   24 ++++++++++++++++++++++++
->  include/rdma/rw.h            |    2 ++
->  2 files changed, 26 insertions(+)
-> 
-> diff --git a/drivers/infiniband/core/rw.c
-> b/drivers/infiniband/core/rw.c
-> index dbfd854..6ca607e 100644
-> --- a/drivers/infiniband/core/rw.c
-> +++ b/drivers/infiniband/core/rw.c
-> @@ -643,6 +643,30 @@ void rdma_rw_ctx_destroy_signature(struct
-> rdma_rw_ctx *ctx, struct ib_qp *qp,
->  }
->  EXPORT_SYMBOL(rdma_rw_ctx_destroy_signature);
->  
-> +/**
-> + * rdma_rw_mr_factor - return number of MRs required for a payload
-> + * @device:	device handling the connection
-> + * @port_num:	port num to which the connection is bound
-> + * @maxpages:	maximum payload pages per rdma_rw_ctx
-> + *
-> + * Returns the number of MRs the device requires to move @maxpayload
-> + * bytes. The returned value is used during transport creation to
-> + * compute max_rdma_ctxts and the size of the transport's Send and
-> + * Send Completion Queues.
-> + */
-> +unsigned int rdma_rw_mr_factor(struct ib_device *device, u8
-> port_num,
-> +			       unsigned int maxpages)
-> +{
-> +	unsigned int mr_pages;
-> +
-> +	if (rdma_rw_can_use_mr(device, port_num))
-> +		mr_pages = rdma_rw_fr_page_list_len(device);
-> +	else
-> +		mr_pages = device->attrs.max_sge_rd;
-> +	return DIV_ROUND_UP(maxpages, mr_pages);
-> +}
-> +EXPORT_SYMBOL(rdma_rw_mr_factor);
-> +
->  void rdma_rw_init_qp(struct ib_device *dev, struct ib_qp_init_attr
-> *attr)
->  {
->  	u32 factor;
-> diff --git a/include/rdma/rw.h b/include/rdma/rw.h
-> index 377d865..a3cbbc7 100644
-> --- a/include/rdma/rw.h
-> +++ b/include/rdma/rw.h
-> @@ -81,6 +81,8 @@ struct ib_send_wr *rdma_rw_ctx_wrs(struct
-> rdma_rw_ctx *ctx, struct ib_qp *qp,
->  int rdma_rw_ctx_post(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8
-> port_num,
->  		struct ib_cqe *cqe, struct ib_send_wr *chain_wr);
->  
-> +unsigned int rdma_rw_mr_factor(struct ib_device *device, u8
-> port_num,
-> +		unsigned int maxpages);
->  void rdma_rw_init_qp(struct ib_device *dev, struct ib_qp_init_attr
-> *attr);
->  int rdma_rw_init_mrs(struct ib_qp *qp, struct ib_qp_init_attr
-> *attr);
->  void rdma_rw_cleanup_mrs(struct ib_qp *qp);
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" 
-> in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG KeyID: B826A3330E572FDD
