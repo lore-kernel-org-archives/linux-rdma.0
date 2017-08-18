@@ -1,31 +1,44 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH 1/1] RDMA/uverbs: Initialize cq_context appropriately
-Date: Fri, 18 Aug 2017 15:51:36 -0500
-Message-ID: <008701d31863$c83d3600$58b7a200$@opengridcomputing.com>
-References: <1501565315-3183-1-git-send-email-bharat@chelsio.com>         <CAAKD3BCdeG=FkUNQjqGxEYw5Sx-TtmeRSAA8K7M43G62Qw_gbw@mail.gmail.com> <1503079603.2598.33.camel@redhat.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/pvrdma: Remove unused function
+Date: Fri, 18 Aug 2017 22:23:56 +0000
+Message-ID: <8B62F628-1170-4A4F-A4E0-5FDD3CBFA9FA@vmware.com>
+References: <20170810211211.11135-1-yuval.shaia@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1503079603.2598.33.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <20170810211211.11135-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Content-ID: <25DE16D2BF33DF45AB5A303ACBBA26B4-HX+pjaQZbrqcE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Matan Barak' <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Potnuri Bharat Teja' <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> I agree, I like your solution better.  Patch fixed up and applied.
-> 
-
-Hey Doug, I see this in your -next branch, but it needs to hit 4.13-rc and stable, as it is a fatal regression that breaks user mode rdma applications.
-
-Thanks,
-
-Steve.
-
-
+T24gOC8xMC8xNywgMjoxMiBQTSwgIll1dmFsIFNoYWlhIiA8eXV2YWwuc2hhaWFAb3JhY2xlLmNv
+bT4gd3JvdGU6DQo+IFRoZSBmdW5jdGlvbiBwdnJkbWFfaWR4X3JpbmdfaXNfdmFsaWRfaWR4IGlz
+IG5vdCBpbiB1c2VkIHNvIGxldCdzIHJlbW92ZQ0KPiBpdC4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6
+IFl1dmFsIFNoYWlhIDx5dXZhbC5zaGFpYUBvcmFjbGUuY29tPg0KPiAtLS0NCj4gIGRyaXZlcnMv
+aW5maW5pYmFuZC9ody92bXdfcHZyZG1hL3B2cmRtYV9yaW5nLmggfCAxNyAtLS0tLS0tLS0tLS0t
+LS0tLQ0KPiAgMSBmaWxlIGNoYW5nZWQsIDE3IGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdp
+dCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody92bXdfcHZyZG1hL3B2cmRtYV9yaW5nLmggYi9kcml2
+ZXJzL2luZmluaWJhbmQvaHcvdm13X3B2cmRtYS9wdnJkbWFfcmluZy5oDQo+IGluZGV4IGVkOTAy
+MmE5MWExZC4uOGI1NThhZTIzNGM4IDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQv
+aHcvdm13X3B2cmRtYS9wdnJkbWFfcmluZy5oDQo+ICsrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9o
+dy92bXdfcHZyZG1hL3B2cmRtYV9yaW5nLmgNCj4gQEAgLTExMSwyMSArMTExLDQgQEAgc3RhdGlj
+IGlubGluZSBfX3MzMiBwdnJkbWFfaWR4X3JpbmdfaGFzX2RhdGEoY29uc3Qgc3RydWN0IHB2cmRt
+YV9yaW5nICpyLA0KPiAgCXJldHVybiBQVlJETUFfSU5WQUxJRF9JRFg7DQo+ICB9DQo+ICANCj4g
+LXN0YXRpYyBpbmxpbmUgYm9vbCBwdnJkbWFfaWR4X3JpbmdfaXNfdmFsaWRfaWR4KGNvbnN0IHN0
+cnVjdCBwdnJkbWFfcmluZyAqciwNCj4gLQkJCQkJCV9fdTMyIG1heF9lbGVtcywgX191MzIgKmlk
+eCkNCj4gLXsNCj4gLQljb25zdCBfX3UzMiB0YWlsID0gYXRvbWljX3JlYWQoJnItPnByb2RfdGFp
+bCk7DQo+IC0JY29uc3QgX191MzIgaGVhZCA9IGF0b21pY19yZWFkKCZyLT5jb25zX2hlYWQpOw0K
+PiAtDQo+IC0JaWYgKHB2cmRtYV9pZHhfdmFsaWQodGFpbCwgbWF4X2VsZW1zKSAmJg0KPiAtCSAg
+ICBwdnJkbWFfaWR4X3ZhbGlkKGhlYWQsIG1heF9lbGVtcykgJiYNCj4gLQkgICAgcHZyZG1hX2lk
+eF92YWxpZCgqaWR4LCBtYXhfZWxlbXMpKSB7DQo+IC0JCWlmICh0YWlsID4gaGVhZCAmJiAoKmlk
+eCA8IHRhaWwgJiYgKmlkeCA+PSBoZWFkKSkNCj4gLQkJCXJldHVybiB0cnVlOw0KPiAtCQllbHNl
+IGlmIChoZWFkID4gdGFpbCAmJiAoKmlkeCA+PSBoZWFkIHx8ICppZHggPCB0YWlsKSkNCj4gLQkJ
+CXJldHVybiB0cnVlOw0KPiAtCX0NCj4gLQlyZXR1cm4gZmFsc2U7DQo+IC19DQo+IC0NCj4gICNl
+bmRpZiAvKiBfX1BWUkRNQV9SSU5HX0hfXyAqLw0KDQpUaGFua3MuDQoNCkFja2VkLWJ5OiBBZGl0
+IFJhbmFkaXZlIDxhZGl0ckB2bXdhcmUuY29tPg0KDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
