@@ -1,77 +1,47 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 0/8] RDMA/qedr: Add iWARP support for QL4xxxx
-Date: Fri, 18 Aug 2017 12:32:50 -0400
-Message-ID: <1503073970.2598.24.camel@redhat.com>
-References: <1501069317-16601-1-git-send-email-Michal.Kalderon@cavium.com>
+Subject: Re: [PATCH] infiniband: avoid overflow warning
+Date: Fri, 18 Aug 2017 12:40:05 -0400
+Message-ID: <1503074405.2598.25.camel@redhat.com>
+References: <20170731065016.2947796-1-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1501069317-16601-1-git-send-email-Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170731065016.2947796-1-arnd-r2nGTMty4D4@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: yuval.mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Daniel Micay <danielmicay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Bart Van Assche <bart.vanassche-XdAiOPVOjttBDgjK7y7TUQ@public.gmane.org>, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Noa Osherovich <noaos-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-07-26 at 14:41 +0300, Michal Kalderon wrote:
-> Hi Doug,
+On Mon, 2017-07-31 at 08:50 +0200, Arnd Bergmann wrote:
+> A sockaddr_in structure on the stack getting passed into rdma_ip2gid
+> triggers this warning, since we memcpy into a larger sockaddr_in6
+> structure:
 > 
-> This patch series adds iWARP support to our QL4xxxx networking
-> adapters.
+> In function 'memcpy',
+>     inlined from 'rdma_ip2gid' at include/rdma/ib_addr.h:175:3,
+>     inlined from 'addr_event.isra.4.constprop' at
+> drivers/infiniband/core/roce_gid_mgmt.c:693:2,
+>     inlined from 'inetaddr_event' at
+> drivers/infiniband/core/roce_gid_mgmt.c:716:9:
+> include/linux/string.h:305:4: error: call to '__read_overflow2'
+> declared with attribute error: detected read beyond size of object
+> passed as 2nd parameter
 > 
-> The first 6 patches of this series were previously sent as an RFC
-> (patches 13-18): https://www.spinics.net/lists/linux-rdma/msg51416.ht
-> ml
-> The qed part of the RFC has already been accepted as part of 4.13:
-> https://www.spinics.net/lists/netdev/msg443224.html
+> The warning seems appropriate here, but the code is also clearly
+> correct, so we really just want to shut up this instance of the
+> output.
 > 
-> Changes from RFC:
-> -----------------
-> * Functions rdma_protocol_iwarp/roce, are used instead of
-> IS_IWARP/IS_ROCE
-> macros when differentiating flows after device registration.
-> Pointed out by Leon
-> * Additional patch is added for user space iWARP support.
-> * Additional maintainer added for qedr for MAINTAINERS.
+> The best way I found so far is to avoid the memcpy() call and instead
+> replace it with a struct assignment.
 > 
-> This series was tested and built against:
-> git://github.com/dledford/linux.git, branch: k.o/for-next
-> 
-> Michal Kalderon (8):
->   RDMA/qedr: Add additional maintainer to MAINTAINERS file
->   RDMA/qedr: Rename the qedr_cm file as a preparation for iWARP
-> support
->   RDMA/qedr: Add support for registering an iWARP device
->   RDMA/qedr: Add iWARP support in existing verbs
->   RDMA/qedr: Add support for read with invalidate, supported in iWARP
->   RDMA/qedr: Add iWARP connection management qp related callbacks
->   RDMA/qedr: Add iWARP connection management functions
->   RDMA/qedr: Add support for iWARP in user space
-> 
->  MAINTAINERS                                        |   1 +
->  drivers/infiniband/hw/qedr/Makefile                |   2 +-
->  drivers/infiniband/hw/qedr/main.c                  | 105 ++-
->  drivers/infiniband/hw/qedr/qedr.h                  |  31 +-
->  drivers/infiniband/hw/qedr/qedr_hsi_rdma.h         |   6 +-
->  drivers/infiniband/hw/qedr/qedr_iw_cm.c            | 746
-> +++++++++++++++++++++
->  drivers/infiniband/hw/qedr/qedr_iw_cm.h            |  49 ++
->  .../hw/qedr/{qedr_cm.c => qedr_roce_cm.c}          |   2 +-
->  .../hw/qedr/{qedr_cm.h => qedr_roce_cm.h}          |   0
->  drivers/infiniband/hw/qedr/verbs.c                 | 350 +++++++---
->  drivers/infiniband/hw/qedr/verbs.h                 |   2 +
->  11 files changed, 1203 insertions(+), 91 deletions(-)
->  create mode 100644 drivers/infiniband/hw/qedr/qedr_iw_cm.c
->  create mode 100644 drivers/infiniband/hw/qedr/qedr_iw_cm.h
->  rename drivers/infiniband/hw/qedr/{qedr_cm.c => qedr_roce_cm.c}
-> (99%)
->  rename drivers/infiniband/hw/qedr/{qedr_cm.h => qedr_roce_cm.h}
-> (100%)
+> Fixes: 6974f0c4555e ("include/linux/string.h: add the option of
+> fortified string.h functions")
+> Cc: Daniel Micay <danielmicay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Cc: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
+> Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
 
-I've pulled this into a branch and pushed that branch to github.  It's
-the qedr branch.  There was some fuzz in taking the patches just due to
-code float since you posted this.  Please review my branch and make
-sure the final result is to your satisfaction.
+Thanks, applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
