@@ -1,30 +1,84 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] i40iw: fix spelling mistake: "allloc_buf" -> "alloc_buf"
-Date: Fri, 18 Aug 2017 12:11:22 -0400
-Message-ID: <1503072682.2598.22.camel@redhat.com>
-References: <20170721221933.32347-1-colin.king@canonical.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next 0/8] RDMA/qedr: Add iWARP support for QL4xxxx
+Date: Fri, 18 Aug 2017 12:32:50 -0400
+Message-ID: <1503073970.2598.24.camel@redhat.com>
+References: <1501069317-16601-1-git-send-email-Michal.Kalderon@cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20170721221933.32347-1-colin.king@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>, Faisal Latif <faisal.latif@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1501069317-16601-1-git-send-email-Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: yuval.mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-07-21 at 23:19 +0100, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
+On Wed, 2017-07-26 at 14:41 +0300, Michal Kalderon wrote:
+> Hi Doug,
 > 
-> Trivial fix to spelling mistake in i40iw_debug  message and
-> also split up a couple of lines that are too long and cause
-> checkpatch warnings
+> This patch series adds iWARP support to our QL4xxxx networking
+> adapters.
 > 
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> The first 6 patches of this series were previously sent as an RFC
+> (patches 13-18): https://www.spinics.net/lists/linux-rdma/msg51416.ht
+> ml
+> The qed part of the RFC has already been accepted as part of 4.13:
+> https://www.spinics.net/lists/netdev/msg443224.html
+> 
+> Changes from RFC:
+> -----------------
+> * Functions rdma_protocol_iwarp/roce, are used instead of
+> IS_IWARP/IS_ROCE
+> macros when differentiating flows after device registration.
+> Pointed out by Leon
+> * Additional patch is added for user space iWARP support.
+> * Additional maintainer added for qedr for MAINTAINERS.
+> 
+> This series was tested and built against:
+> git://github.com/dledford/linux.git, branch: k.o/for-next
+> 
+> Michal Kalderon (8):
+>   RDMA/qedr: Add additional maintainer to MAINTAINERS file
+>   RDMA/qedr: Rename the qedr_cm file as a preparation for iWARP
+> support
+>   RDMA/qedr: Add support for registering an iWARP device
+>   RDMA/qedr: Add iWARP support in existing verbs
+>   RDMA/qedr: Add support for read with invalidate, supported in iWARP
+>   RDMA/qedr: Add iWARP connection management qp related callbacks
+>   RDMA/qedr: Add iWARP connection management functions
+>   RDMA/qedr: Add support for iWARP in user space
+> 
+>  MAINTAINERS                                        |   1 +
+>  drivers/infiniband/hw/qedr/Makefile                |   2 +-
+>  drivers/infiniband/hw/qedr/main.c                  | 105 ++-
+>  drivers/infiniband/hw/qedr/qedr.h                  |  31 +-
+>  drivers/infiniband/hw/qedr/qedr_hsi_rdma.h         |   6 +-
+>  drivers/infiniband/hw/qedr/qedr_iw_cm.c            | 746
+> +++++++++++++++++++++
+>  drivers/infiniband/hw/qedr/qedr_iw_cm.h            |  49 ++
+>  .../hw/qedr/{qedr_cm.c => qedr_roce_cm.c}          |   2 +-
+>  .../hw/qedr/{qedr_cm.h => qedr_roce_cm.h}          |   0
+>  drivers/infiniband/hw/qedr/verbs.c                 | 350 +++++++---
+>  drivers/infiniband/hw/qedr/verbs.h                 |   2 +
+>  11 files changed, 1203 insertions(+), 91 deletions(-)
+>  create mode 100644 drivers/infiniband/hw/qedr/qedr_iw_cm.c
+>  create mode 100644 drivers/infiniband/hw/qedr/qedr_iw_cm.h
+>  rename drivers/infiniband/hw/qedr/{qedr_cm.c => qedr_roce_cm.c}
+> (99%)
+>  rename drivers/infiniband/hw/qedr/{qedr_cm.h => qedr_roce_cm.h}
+> (100%)
 
-Thanks, applied.
+I've pulled this into a branch and pushed that branch to github.  It's
+the qedr branch.  There was some fuzz in taking the patches just due to
+code float since you posted this.  Please review my branch and make
+sure the final result is to your satisfaction.
 
 -- 
-Doug Ledford <dledford@redhat.com>
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG KeyID: B826A3330E572FDD
     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
