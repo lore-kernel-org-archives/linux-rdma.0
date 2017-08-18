@@ -1,43 +1,59 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH] mlx5: ensure 0 is returned when vport is zero
-Date: Fri, 18 Aug 2017 14:49:25 +0100
-Message-ID: <20170818134925.16604-1-colin.king@canonical.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 0/3] Allow ib_clients to nullify .add but still get
+ .remove events reliably
+Date: Fri, 18 Aug 2017 10:46:58 -0400
+Message-ID: <1503067618.2598.7.camel@redhat.com>
+References: <1498983652-18250-1-git-send-email-sagi@grimberg.me>
+         <8927ea7d-c6ba-4f32-4ede-0897e83bcda2@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <8927ea7d-c6ba-4f32-4ede-0897e83bcda2-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+On Sun, 2017-07-02 at 12:14 +0300, Max Gurtovoy wrote:
+> 
+> On 7/2/2017 11:20 AM, Sagi Grimberg wrote:
+> > Some ULPs are just interested in device removal notification with
+> > no specific
+> > association because they work over RDMA_CM so no need for detecting
+> > appearance
+> > of the devices. That wasn't the because the corresponding
+> > ib_client_data
+> > was never added to the device clients list when the ib_client
+> > registers,
+> > Patch 1 fixes it. Patches 2-3 just removes the empty .add callout
+> > nvme(t)-rdma set.
+> > 
+> > Changes from v1:
+> > - reword patch 1 change log title
+> > - collected review tags
+> > 
+> > Note that this will create a conflict with jens's for-4.13 which we
+> > added
+> > ib_client registration to nvmet-rdma.
+> > 
+> > Sagi Grimberg (3):
+> >   RDMA/core: make ib_device.add method optional
+> >   nvme-rdma: remove redundant empty device add callout
+> >   nvmet-rdma: remove redundant empty device add callout
+> 
+> All these patches looks fine to me,
+> 
+> Reviewed-by: Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Currently, if vport is zero then then an uninialized return status
-in err is returned.  Since the only return status at the end of the
-function esw_add_uc_addr is zero for the current set of return paths
-we may as well just return 0 rather than err to fix this issue.
+Thanks, series applied.
 
-Detected by CoverityScan, CID#1452698 ("Uninitialized scalar variable")
-
-Fixes: eeb66cdb6826 ("net/mlx5: Separate between E-Switch and MPFS")
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-index 6d9fb6ac6e9b..c77f4c0c7769 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -401,7 +401,7 @@ static int esw_add_uc_addr(struct mlx5_eswitch *esw, struct vport_addr *vaddr)
- 	esw_debug(esw->dev, "\tADDED UC MAC: vport[%d] %pM fr(%p)\n",
- 		  vport, mac, vaddr->flow_rule);
- 
--	return err;
-+	return 0;
- }
- 
- static int esw_del_uc_addr(struct mlx5_eswitch *esw, struct vport_addr *vaddr)
 -- 
-2.11.0
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
