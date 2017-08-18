@@ -1,44 +1,34 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/pvrdma: Remove unused function
-Date: Fri, 18 Aug 2017 22:23:56 +0000
-Message-ID: <8B62F628-1170-4A4F-A4E0-5FDD3CBFA9FA@vmware.com>
-References: <20170810211211.11135-1-yuval.shaia@oracle.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH] mlx5: ensure 0 is returned when vport is zero
+Date: Fri, 18 Aug 2017 16:29:22 -0700 (PDT)
+Message-ID: <20170818.162922.1769160270805446057.davem@davemloft.net>
+References: <20170818134925.16604-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170810211211.11135-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <25DE16D2BF33DF45AB5A303ACBBA26B4-HX+pjaQZbrqcE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <20170818134925.16604-1-colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org
+Cc: saeedm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gOC8xMC8xNywgMjoxMiBQTSwgIll1dmFsIFNoYWlhIiA8eXV2YWwuc2hhaWFAb3JhY2xlLmNv
-bT4gd3JvdGU6DQo+IFRoZSBmdW5jdGlvbiBwdnJkbWFfaWR4X3JpbmdfaXNfdmFsaWRfaWR4IGlz
-IG5vdCBpbiB1c2VkIHNvIGxldCdzIHJlbW92ZQ0KPiBpdC4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6
-IFl1dmFsIFNoYWlhIDx5dXZhbC5zaGFpYUBvcmFjbGUuY29tPg0KPiAtLS0NCj4gIGRyaXZlcnMv
-aW5maW5pYmFuZC9ody92bXdfcHZyZG1hL3B2cmRtYV9yaW5nLmggfCAxNyAtLS0tLS0tLS0tLS0t
-LS0tLQ0KPiAgMSBmaWxlIGNoYW5nZWQsIDE3IGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdp
-dCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody92bXdfcHZyZG1hL3B2cmRtYV9yaW5nLmggYi9kcml2
-ZXJzL2luZmluaWJhbmQvaHcvdm13X3B2cmRtYS9wdnJkbWFfcmluZy5oDQo+IGluZGV4IGVkOTAy
-MmE5MWExZC4uOGI1NThhZTIzNGM4IDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQv
-aHcvdm13X3B2cmRtYS9wdnJkbWFfcmluZy5oDQo+ICsrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9o
-dy92bXdfcHZyZG1hL3B2cmRtYV9yaW5nLmgNCj4gQEAgLTExMSwyMSArMTExLDQgQEAgc3RhdGlj
-IGlubGluZSBfX3MzMiBwdnJkbWFfaWR4X3JpbmdfaGFzX2RhdGEoY29uc3Qgc3RydWN0IHB2cmRt
-YV9yaW5nICpyLA0KPiAgCXJldHVybiBQVlJETUFfSU5WQUxJRF9JRFg7DQo+ICB9DQo+ICANCj4g
-LXN0YXRpYyBpbmxpbmUgYm9vbCBwdnJkbWFfaWR4X3JpbmdfaXNfdmFsaWRfaWR4KGNvbnN0IHN0
-cnVjdCBwdnJkbWFfcmluZyAqciwNCj4gLQkJCQkJCV9fdTMyIG1heF9lbGVtcywgX191MzIgKmlk
-eCkNCj4gLXsNCj4gLQljb25zdCBfX3UzMiB0YWlsID0gYXRvbWljX3JlYWQoJnItPnByb2RfdGFp
-bCk7DQo+IC0JY29uc3QgX191MzIgaGVhZCA9IGF0b21pY19yZWFkKCZyLT5jb25zX2hlYWQpOw0K
-PiAtDQo+IC0JaWYgKHB2cmRtYV9pZHhfdmFsaWQodGFpbCwgbWF4X2VsZW1zKSAmJg0KPiAtCSAg
-ICBwdnJkbWFfaWR4X3ZhbGlkKGhlYWQsIG1heF9lbGVtcykgJiYNCj4gLQkgICAgcHZyZG1hX2lk
-eF92YWxpZCgqaWR4LCBtYXhfZWxlbXMpKSB7DQo+IC0JCWlmICh0YWlsID4gaGVhZCAmJiAoKmlk
-eCA8IHRhaWwgJiYgKmlkeCA+PSBoZWFkKSkNCj4gLQkJCXJldHVybiB0cnVlOw0KPiAtCQllbHNl
-IGlmIChoZWFkID4gdGFpbCAmJiAoKmlkeCA+PSBoZWFkIHx8ICppZHggPCB0YWlsKSkNCj4gLQkJ
-CXJldHVybiB0cnVlOw0KPiAtCX0NCj4gLQlyZXR1cm4gZmFsc2U7DQo+IC19DQo+IC0NCj4gICNl
-bmRpZiAvKiBfX1BWUkRNQV9SSU5HX0hfXyAqLw0KDQpUaGFua3MuDQoNCkFja2VkLWJ5OiBBZGl0
-IFJhbmFkaXZlIDxhZGl0ckB2bXdhcmUuY29tPg0KDQo=
+From: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Date: Fri, 18 Aug 2017 14:49:25 +0100
+
+> From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+> 
+> Currently, if vport is zero then then an uninialized return status
+> in err is returned.  Since the only return status at the end of the
+> function esw_add_uc_addr is zero for the current set of return paths
+> we may as well just return 0 rather than err to fix this issue.
+> 
+> Detected by CoverityScan, CID#1452698 ("Uninitialized scalar variable")
+> 
+> Fixes: eeb66cdb6826 ("net/mlx5: Separate between E-Switch and MPFS")
+> Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+
+Applied to net-next, thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
