@@ -1,58 +1,21 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: RE: [PATCH net-next] net: hns3: Add support to change MTU in
- hardware & netdev
-Date: Fri, 18 Aug 2017 17:01:43 +0000
-Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F93B86FDE2@FRAEML521-MBX.china.huawei.com>
-References: <20170818113558.71928-1-salil.mehta@huawei.com>
- <20170818133128.GA523@lunn.ch>
- <F4CC6FACFEB3C54C9141D49AD221F7F93B86F75F@FRAEML521-MBX.china.huawei.com>
- <20170818150358.GA3258@lunn.ch>
- <F4CC6FACFEB3C54C9141D49AD221F7F93B86F9E7@FRAEML521-MBX.china.huawei.com>
- <20170818160157.GB3258@lunn.ch>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next 0/3] Misc. Bug fixes for HNS3 Ethernet Driver
+Date: Fri, 18 Aug 2017 10:32:18 -0700 (PDT)
+Message-ID: <20170818.103218.2140502496822291281.davem@davemloft.net>
+References: <20170818113139.153200-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Language: en-US
+In-Reply-To: <20170818113139.153200-1-salil.mehta@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Lunn <andrew@lunn.ch>
-Cc: "davem@davemloft.net" <davem@davemloft.net>, "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>, "lipeng (Y)" <lipeng321@huawei.com>, "mehta.salil.lnk@gmail.com" <mehta.salil.lnk@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
+To: salil.mehta@huawei.com
+Cc: yisen.zhuang@huawei.com, lipeng321@huawei.com, dan.carpenter@oracle.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Andrew,
+From: Salil Mehta <salil.mehta@huawei.com>
+Date: Fri, 18 Aug 2017 12:31:36 +0100
 
-> > -----Original Message-----
-> > From: Andrew Lunn [mailto:andrew@lunn.ch]
-> > Sent: Friday, August 18, 2017 5:02 PM
-> > To: Salil Mehta
-> > Cc: davem@davemloft.net; Zhuangyuzeng (Yisen); lipeng (Y);
-> > mehta.salil.lnk@gmail.com; netdev@vger.kernel.org; linux-
-> > kernel@vger.kernel.org; linux-rdma@vger.kernel.org; Linuxarm
-> > Subject: Re: [PATCH net-next] net: hns3: Add support to change MTU in
-> > hardware & netdev
-> >
-> > > for example,
-> > > file: drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-> > > static int init_one(struct pci_dev *pdev, const struct
-> pci_device_id
-> > *ent)
-> > >
-> > >  		netdev->priv_flags |= IFF_UNICAST_FLT;
-> > >
-> > > +		/* MTU range: 81 - 9600 */
-> > > +		netdev->min_mtu = 81;
-> > > +		netdev->max_mtu = MAX_MTU;
-> >
-> > In this cause, the driver is not using the default values. So it sets
-> > them.
-> >
-> > Anyway, try it. After your alloc_etherdev_mqs(), print the value of
-> > min_mtu. It should already be set to MIN_ETH_MTU.
-> I understand your point. In this case, I would like to keep the
-> range being set by the driver just to be more explicit.
-> So for now keep this initialization in the driver?
-Removed the min_mtu initialization from the driver code and added a
-comment over it to be explicit. Please have a look at the V2 patch.
+> This patch-set fixes various bugs reported by community.
 
-Thanks
-Salil
+Series applied.
