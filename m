@@ -1,38 +1,69 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH rdma-next v3-v6] Add OPA extended LID support
-Date: Fri, 18 Aug 2017 12:09:32 -0400
-Message-ID: <ab9a52c8-dd26-0567-de03-b74899c67a63@intel.com>
-References: <1502734663-44224-1-git-send-email-don.hiatt@intel.com>
- <50ff7793-413a-09a6-1805-ca0bce0452a2@intel.com>
- <cd6cd877-659d-8218-abf8-a23905af4f42@intel.com>
- <8d3d0a5a-df5e-b023-ec7c-f83e47a22f00@intel.com>
- <20170816060759.GE24282@mtr-leonro.local>
+From: Salil Mehta <salil.mehta@huawei.com>
+Subject: RE: [PATCH net-next] net: hns3: Add support to change MTU in
+ hardware & netdev
+Date: Fri, 18 Aug 2017 16:10:07 +0000
+Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F93B86FB7E@FRAEML521-MBX.china.huawei.com>
+References: <20170818113558.71928-1-salil.mehta@huawei.com>
+ <20170818133128.GA523@lunn.ch>
+ <F4CC6FACFEB3C54C9141D49AD221F7F93B86F75F@FRAEML521-MBX.china.huawei.com>
+ <20170818150358.GA3258@lunn.ch>
+ <F4CC6FACFEB3C54C9141D49AD221F7F93B86F9E7@FRAEML521-MBX.china.huawei.com>
+ <20170818160157.GB3258@lunn.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170816060759.GE24282-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170818160157.GB3258@lunn.ch>
 Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Don Hiatt <don.hiatt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: "davem@davemloft.net" <davem@davemloft.net>, "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>, "lipeng (Y)" <lipeng321@huawei.com>, "mehta.salil.lnk@gmail.com" <mehta.salil.lnk@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/16/2017 2:07 AM, Leon Romanovsky wrote:
-> So the bottom-line, please don't expect from us to do your homework and
-> filter the warnings.
+Hi Andrew
 
-No one expects that.
+> -----Original Message-----
+> From: Andrew Lunn [mailto:andrew@lunn.ch]
+> Sent: Friday, August 18, 2017 5:02 PM
+> To: Salil Mehta
+> Cc: davem@davemloft.net; Zhuangyuzeng (Yisen); lipeng (Y);
+> mehta.salil.lnk@gmail.com; netdev@vger.kernel.org; linux-
+> kernel@vger.kernel.org; linux-rdma@vger.kernel.org; Linuxarm
+> Subject: Re: [PATCH net-next] net: hns3: Add support to change MTU in
+> hardware & netdev
+> 
+> > for example,
+> > file: drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+> > static int init_one(struct pci_dev *pdev, const struct pci_device_id
+> *ent)
+> >
+> >  		netdev->priv_flags |= IFF_UNICAST_FLT;
+> >
+> > +		/* MTU range: 81 - 9600 */
+> > +		netdev->min_mtu = 81;
+> > +		netdev->max_mtu = MAX_MTU;
+> 
+> In this cause, the driver is not using the default values. So it sets
+> them.
+> 
+> Anyway, try it. After your alloc_etherdev_mqs(), print the value of
+> min_mtu. It should already be set to MIN_ETH_MTU.
+I understand your point. In this case, I would like to keep the
+range being set by the driver just to be more explicit. 
+So for now keep this initialization in the driver?
 
-> Before the LIDs patches, the RDMA tree had less than 100 smatch warnings,
-> after the LIDs patches, we have more than 200 such warnings.
+Thanks
+Salil
+> 
+> > I see. IMHO HNS3 is currently limited by maximum buffer per
+> descriptor
+> > which is 64k. I am sure such frames would get dropped in the hardware
+> > itself and which I guess should be more preferable than dropping in
+> > driver since it saves you some precious cpu cycles?
+> 
+> If you hardware handles this, then you don't need to do anything.
+Fine. Thanks!
 
-I will update our internal process and ensure that the static checkers 
-get run on any code that is touched, not just what we normally test.
-
--Denny
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Salil
+> 
+>    Andrew
