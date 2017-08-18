@@ -1,121 +1,47 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma v1 1/1] IB/core: Fix input len in multiple user verbs
-Date: Fri, 18 Aug 2017 18:58:08 +0300
-Message-ID: <20170818155808.GN23648@mtr-leonro.local>
-References: <1498572282-22370-1-git-send-email-Ram.Amrani@cavium.com>
- <1498572282-22370-2-git-send-email-Ram.Amrani@cavium.com>
- <20170628095422.GA1248@mtr-leonro.local>
- <BN3PR07MB25788193EFA21CEB5C430201F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
- <20170628101124.GD1248@mtr-leonro.local>
- <CY1PR0701MB1337A8E7B1E40CC4C1EC230A90DD0@CY1PR0701MB1337.namprd07.prod.outlook.com>
- <1503068404.2598.9.camel@redhat.com>
+From: Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>
+Subject: Re: [PATCH net-next] net: hns3: Add support to change MTU in
+ hardware & netdev
+Date: Fri, 18 Aug 2017 18:01:57 +0200
+Message-ID: <20170818160157.GB3258@lunn.ch>
+References: <20170818113558.71928-1-salil.mehta@huawei.com>
+ <20170818133128.GA523@lunn.ch>
+ <F4CC6FACFEB3C54C9141D49AD221F7F93B86F75F@FRAEML521-MBX.china.huawei.com>
+ <20170818150358.GA3258@lunn.ch>
+ <F4CC6FACFEB3C54C9141D49AD221F7F93B86F9E7@FRAEML521-MBX.china.huawei.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="Ms5iOKSBOB9YS8zC"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1503068404.2598.9.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <F4CC6FACFEB3C54C9141D49AD221F7F93B86F9E7-WFPaWmAhWqtUuCJht5byYAK1hpo4iccwjNknBlVQO8k@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "Zhuangyuzeng (Yisen)" <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "lipeng (Y)" <lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+> for example,
+> file: drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+> static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
+>  
+>  		netdev->priv_flags |= IFF_UNICAST_FLT;
+>  
+> +		/* MTU range: 81 - 9600 */
+> +		netdev->min_mtu = 81; 
+> +		netdev->max_mtu = MAX_MTU;
 
---Ms5iOKSBOB9YS8zC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In this cause, the driver is not using the default values. So it sets
+them.
 
-On Fri, Aug 18, 2017 at 11:00:04AM -0400, Doug Ledford wrote:
-> On Wed, 2017-06-28 at 10:23 +0000, Elior, Ariel wrote:
-> > > From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
-> > > Sent: Wednesday, June 28, 2017 1:11 PM
-> > > To: Amrani, Ram <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> > > Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Elior, Ariel
-> > > <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> > > Subject: Re: [PATCH rdma v1 1/1] IB/core: Fix input len in multiple
-> > > user verbs
-> > >
-> > > On Wed, Jun 28, 2017 at 10:02:45AM +0000, Amrani, Ram wrote:
-> > > > > > Most user verbs pass user data to the kernel with the
-> > > > > > inclusion of the
-> > > > > > ib_uverbs_cmd_hdr structure. This is problematic because the
-> > > > > > vendor has
-> > > > > > no ideas if the verb was called by a legacy verb or an
-> > > > > > extended verb.
-> > > > >
-> > > > > Why vendor should know about it? It has midlayer (ib/core)
-> > > > > between him
-> > > > > and user to handle it.
-> > > > >
-> > > >
-> > > > Knowing the inlen can be used to determine if the library is
-> > > > newer than
-> > > > the kernel and what features it supports or not.
-> > >
-> > > It is not interesting case, because we are not breaking UAPI, only
-> > > extending. It ensures that kernel will fill as much as possible and
-> > > will
-> > > always have success in it. After that it is library responsibility
-> > > to
-> > > understand if everything was filled.
-> > >
-> > > Thanks
-> >
-> > In our case, kernel driver needs to know whether library supports a
-> > certain
-> > feature (doorbell overflow recovery). It doesn't care if it was an
-> > extended
-> > verb or not, but it cares whether the lib is sufficiently new to have
-> > provided
-> > the required information. If the library is sufficiently new
-> > (supports) then
-> > kernel will register the library's doorbell address with the overflow
-> > recovery
-> > mechanism, and perform recovery if required, otherwise it would not
-> > (as the
-> > library is not supplying the necessary information for recovery to
-> > take place).
-> > This is not something the library needs to know, but the kernel
-> > driver. Having
-> > correct input len is required for successfully avoiding breaking the
-> > UAPI.
->
-> Leon, does this explanation resolve your objections?  Also, have you
-> checked the mlx5/mthca portions of this patch?
+Anyway, try it. After your alloc_etherdev_mqs(), print the value of
+min_mtu. It should already be set to MIN_ETH_MTU.
 
-Yes, let's me recheck/rerun the patch and post results.
-If for any reasons you don't hear from me till Wednesday, take it.
+> I see. IMHO HNS3 is currently limited by maximum buffer per descriptor
+> which is 64k. I am sure such frames would get dropped in the hardware
+> itself and which I guess should be more preferable than dropping in
+> driver since it saves you some precious cpu cycles?
 
-Thanks
+If you hardware handles this, then you don't need to do anything.
 
->
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->     GPG KeyID: B826A3330E572FDD
->     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
->
-
---Ms5iOKSBOB9YS8zC
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmXDpAACgkQ5GN7iDZy
-WKe4Sw//TYSc5+t1YMLqeEAbjTRvQuZ1p+m89/YE8O/FgWJ4zXAHB0aM8Or01gow
-wYEop/5DR+9Y6idxn+i3geQjFVrSfjbDv1/wOxrJ03iSb9ZZCod+abNpQt9DsbAu
-UZbG5lwhW+vXDTW1hSR9QMI9ncBLrNMft4YFZd4lT6WgvatWiesHLdeCc5yzariR
-0eVrlbVsETqiojbpTYGmGHxRzJMfhx+3faS6GBGv0f3AE5Gon2X9IYtmLWJxBSXP
-/mbgE/p6K5+tpn4Dh2ABxDqViIGHvs/E74uhmN+pRuUkJrI/jDT5LmDYeTqshxn+
-qvsBFddyaWOaPy0huN3Qehtp3mq2Q/DVEbGX90ALbkrPJjC8w8n31zWXd9XCYZIG
-3ju2ig0+H0H604So0z+xC2fJMFiTRb90Gs7rNCrGxKb4reEnQritAG/o1BuXnOJu
-J7jBLpgpb/NJXX1XiK2Nc2rQplead1s/5CvgJxGwe8isN+kjs9B2M5hQAZOVi8oM
-muSBDNLjtsil7OqdWgVrO5vHmnnwHInH3GFSV4KQfVKIfdek+jRBGCmdUeSQu/+v
-Z22LlRv7DH6grhObT5neq2LTh5Zi5swbqsOGIi6BKjvvdDpCYT7WcgyVlgWiXN5J
-f2dLV1vXnMzbVy0Ho5Ejd9FjqIlaEdD59UPzSp5hfe2ym36Jgfg=
-=W6yX
------END PGP SIGNATURE-----
-
---Ms5iOKSBOB9YS8zC--
+   Andrew
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
