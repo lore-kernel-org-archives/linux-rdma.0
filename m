@@ -1,38 +1,37 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 0/3] RDMA/vmw_pvrdma: Add RoCEv2 support
-Date: Fri, 18 Aug 2017 09:44:46 -0700
-Message-ID: <cover.1503073950.git.aditr@vmware.com>
+Subject: [PATCH for-next 3/3] RDMA/vmw_pvrdma: Add new port_cap flag
+Date: Fri, 18 Aug 2017 09:44:49 -0700
+Message-ID: <a7af1415fad6c6de00486002cdb6b95efec4e891.1503073950.git.aditr@vmware.com>
+References: <cover.1503073950.git.aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <cover.1503073950.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug,
+Set the IP_BASED_GIDS port cap flag for vmw_pvrdma.
 
-These are a set of patches to add RoCEv2 support for the VMware PVRDMA
-driver as well as exposing some device caps. Please add these to your
-4.14 queue.
-
-Thanks,
-Adit
+Acked-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 ---
-Adit Ranadive (2):
-  RDMA/vmw_pvrdma: Update device query parameters
-  RDMA/vmw_pvrdma: Add new port_cap flag
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Bryan Tan (1):
-  RDMA/vmw_pvrdma: Add RoCEv2 support
-
- drivers/infiniband/hw/vmw_pvrdma/pvrdma.h         |  3 +++
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h | 12 +++++++--
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c    | 30 +++++++++++++----------
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c    | 14 +++++++++++
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c   | 10 ++++++++
- 5 files changed, 54 insertions(+), 15 deletions(-)
-
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
+index 0b19d1a..1a367b7 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
+@@ -152,6 +152,7 @@ int pvrdma_query_port(struct ib_device *ibdev, u8 port,
+ 	props->gid_tbl_len = resp->attrs.gid_tbl_len;
+ 	props->port_cap_flags =
+ 		pvrdma_port_cap_flags_to_ib(resp->attrs.port_cap_flags);
++	props->port_cap_flags |= IB_PORT_CM_SUP | IB_PORT_IP_BASED_GIDS;
+ 	props->max_msg_sz = resp->attrs.max_msg_sz;
+ 	props->bad_pkey_cntr = resp->attrs.bad_pkey_cntr;
+ 	props->qkey_viol_cntr = resp->attrs.qkey_viol_cntr;
 -- 
 2.7.4
 
