@@ -1,106 +1,82 @@
-From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH net-next] net: hns3: Add support to change MTU in
- hardware & netdev
-Date: Fri, 18 Aug 2017 15:34:59 +0000
-Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F93B86F9E7@FRAEML521-MBX.china.huawei.com>
-References: <20170818113558.71928-1-salil.mehta@huawei.com>
- <20170818133128.GA523@lunn.ch>
- <F4CC6FACFEB3C54C9141D49AD221F7F93B86F75F@FRAEML521-MBX.china.huawei.com>
- <20170818150358.GA3258@lunn.ch>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [rdma-next v1 13/22] RDMA/hns: Remove empty functions
+Date: Fri, 18 Aug 2017 18:40:45 +0300
+Message-ID: <20170818154045.GL23648@mtr-leonro.local>
+References: <20170813101816.3120-1-leon@kernel.org>
+ <20170813101816.3120-14-leon@kernel.org>
+ <CA+sbYW2ZJj2SdchU8M4dZz-KOGSxw2EPX-9oGJhMf3LSzMtA2A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="QxN5xOWGsmh5a4wb"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170818150358.GA3258-g2DYL2Zd6BY@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <CA+sbYW2ZJj2SdchU8M4dZz-KOGSxw2EPX-9oGJhMf3LSzMtA2A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>
-Cc: "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "Zhuangyuzeng (Yisen)" <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "lipeng (Y)" <lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Andrew
 
-> -----Original Message-----
-> From: Andrew Lunn [mailto:andrew-g2DYL2Zd6BY@public.gmane.org]
-> Sent: Friday, August 18, 2017 4:04 PM
-> To: Salil Mehta
-> Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org; Zhuangyuzeng (Yisen); lipeng (Y);
-> dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org; mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org;
-> netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
-> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm
-> Subject: Re: [PATCH net-next] net: hns3: Add support to change MTU in
-> hardware & netdev
-> 
-> > > > +	/* MTU range: 68 - 9706 */
-> > > > +	netdev->min_mtu = ETH_MIN_MTU;
-> > >
-> > > http://elixir.free-
-> > > electrons.com/linux/latest/source/net/ethernet/eth.c#L361
-> > Supported range of Min and Max MTU should be at the discretion
-> > of the driver. Therefore, initialization looks fine to me.
-> >
-> > I could not clearly understand the problem being highlighted
-> > over here. Could you further clarify?
-> 
-> This is already setting min_mtu to ETH_MIN_MTU. There is no need for
-> you to set it.
-I grep'ed entire code and could see min and max MTUs being set by the
-Respective Ethernet driver code. I also verified by the original patch
-floated by the Jarod where he did that Change across all the drivers
-https://patchwork.kernel.org/patch/9387361/
+--QxN5xOWGsmh5a4wb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-for example,
-file: drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-static int init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 
- 		netdev->priv_flags |= IFF_UNICAST_FLT;
- 
-+		/* MTU range: 81 - 9600 */
-+		netdev->min_mtu = 81; 
-+		netdev->max_mtu = MAX_MTU;
+On Fri, Aug 18, 2017 at 03:16:12PM +0530, Selvin Xavier wrote:
+>  Removing the "modify_port" hook is causing some issues with ib_cm module.
+> While adding a mad agent for the new device, ib_cm invokes
+> ib_modify_port  which fails
+> with return value -ENOSYS. So the mad agent gets unregistered. This
+> break the connection
+> establishment. It is broken for bnxt_re also.
+>
+> The following patch helps. But it is like a workaround to solve the problem.
+>
+> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+> index d5ca101..59911dd 100644
+> --- a/drivers/infiniband/core/cm.c
+> +++ b/drivers/infiniband/core/cm.c
+> @@ -4189,7 +4189,7 @@ static void cm_add_one(struct ib_device *ib_device)
+>                         goto error2;
+>
+>                 ret = ib_modify_port(ib_device, i, 0, &port_modify);
+> -               if (ret)
+> +               if (ret && ret != -ENOSYS)
+>                         goto error3;
+>
+>                 count++;
+>
+> Or should we have the modify_port hook with some basic checks?
 
-Many such changes are present in the above mentioned patch.
-Hope I am not missing anything there?
+I think that your proposal is right thing to do. The driver should
+properly return the status of its callbacks (-ENOSYS) and it is
+responsibility of the caller to decide what to do in such case.
+
+The dummy function (return 0) hides the fact that modify_port do
+nothing and it can be wrong for some callers.
 
 Thanks
-Salil
-> 
-> > > >  #define HNS3_RING_MAX_PENDING			32768
-> > > > +#define HNS3_MAX_MTU				9728
-> > >
-> > > It seems odd that it does not already exists somewhere. The core
-> does
-> > > not enforce the MTU.  You could be passed a frame which is bigger.
-> So
-> > > you should check before trying to pass something to the hardware
-> which
-> > > the hardware cannot handle.
-> > There is a check already in place for this as well since 4.10-rc1.
-> 
-> Yes, the core will check when changing the MTU.
-> 
-> But when passing frames to be transmitted, it does not check the frame
-> fits the MTU.  DSA actually makes use of this, when passing frames to
-> an Ethernet switch attached to the interface. We need to add an extra
-> header to the frame, which makes the frame bigger than the MTU. Most
-> Ethernet drivers are happy with this, they send the frame. Other
-> reject it, and we have had to make driver changes. And some just
-> explode :-(
-I see. IMHO HNS3 is currently limited by maximum buffer per descriptor
-which is 64k. I am sure such frames would get dropped in the hardware
-itself and which I guess should be more preferable than dropping in
-driver since it saves you some precious cpu cycles?
 
-So I am not able to appreciate the presence of such a MTU check in
-the live data-path. Maybe I am missing something here?
+--QxN5xOWGsmh5a4wb
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Thanks
-Salil
-> 
-> If 9728 is a hard limit for your device, you should check when passed
-> a frame to make sure it is actually <= 9728 bytes in length.
-> 
->      Andrew
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmXCnwACgkQ5GN7iDZy
+WKdP7xAAp2m+spaPiABsTpLyg8f1Xv2KS7Ui89Crh7SBmNchP3Dw4dkw48fi8vXe
+W76GUQB/euyQRUiX+J5xqb/EuE7QsXRsnTaRvBM57acfy49BHmdezOGRcb9+uM/r
+d9Wh9+3/KMi7TzTia3TR2r/2YMAFse/SkC/LEh37B5FNnE/KqirOpjOb42Q9jP7s
+on8bt+aJtVdZDZW+aTun/J1ihJPrgeUt60g9RC25VuF++ITWfFxJ8zF3q/CPH4q+
+AcYTEMp71KvMpu/12t+KlN+7liJlZagwp+lG3lCDrrQ4mS2BxC4vZvvdO3gyrM5+
++sEXSzbQn1LudmOZvJU9kIIKPqkWLyQ4IyqRJoFfmv5xvYKTh9LvptV332TCXjD7
+ums4XOiZ14OabkHJdVFgmaXOT0Cf+FB3ilYoq1iqPUo4outqHbt2IaMkHvhm1ZQF
+S51eW3RZz0Zw94SwDtIP+u2leW0/XqiHVGwR/xeod48raBkO6+Drzw2OcNGp0jTE
+5VyVjdhgPLDoC1qUOXooTkffgJLqkgW8iIIGO8NT9L0WoseapBI698OFtl4EJeVq
+i2+CV2ASzYe4E2bKQ0GsVSz82Na6QWtVlFmR/YeXRD3hB9kUOVoPAKK/yLLSvVU5
+/Kxaq0ICOLjknuP3APw3sQsqxyBxZPqc7fAyyhTYmHieP3bCm0c=
+=cuI9
+-----END PGP SIGNATURE-----
+
+--QxN5xOWGsmh5a4wb--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
