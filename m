@@ -1,80 +1,58 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH rdma v1 1/1] IB/core: Fix input len in multiple user
+Subject: Re: [PATCH rdma v1 0/1] IB/core: Fix input len in multiple user
  verbs
-Date: Fri, 18 Aug 2017 11:00:04 -0400
-Message-ID: <1503068404.2598.9.camel@redhat.com>
+Date: Fri, 18 Aug 2017 11:01:01 -0400
+Message-ID: <1503068461.2598.10.camel@redhat.com>
 References: <1498572282-22370-1-git-send-email-Ram.Amrani@cavium.com>
-         <1498572282-22370-2-git-send-email-Ram.Amrani@cavium.com>
-         <20170628095422.GA1248@mtr-leonro.local>
-         <BN3PR07MB25788193EFA21CEB5C430201F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
-         <20170628101124.GD1248@mtr-leonro.local>
-         <CY1PR0701MB1337A8E7B1E40CC4C1EC230A90DD0@CY1PR0701MB1337.namprd07.prod.outlook.com>
+         <BN3PR07MB25782522FB09A41FA47742A8F8D50@BN3PR07MB2578.namprd07.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CY1PR0701MB1337A8E7B1E40CC4C1EC230A90DD0-UpKza+2NMNLi6bjPjkn3FE5OhdzP3rhOnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <BN3PR07MB25782522FB09A41FA47742A8F8D50-EldUQEzkDQfpW3VS/XPqkOFPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-06-28 at 10:23 +0000, Elior, Ariel wrote:
-> > From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
-> > Sent: Wednesday, June 28, 2017 1:11 PM
-> > To: Amrani, Ram <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> > Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Elior, Ariel
-> > <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> > Subject: Re: [PATCH rdma v1 1/1] IB/core: Fix input len in multiple
-> > user verbs
-> > 
-> > On Wed, Jun 28, 2017 at 10:02:45AM +0000, Amrani, Ram wrote:
-> > > > > Most user verbs pass user data to the kernel with the
-> > > > > inclusion of the
-> > > > > ib_uverbs_cmd_hdr structure. This is problematic because the
-> > > > > vendor has
-> > > > > no ideas if the verb was called by a legacy verb or an
-> > > > > extended verb.
-> > > > 
-> > > > Why vendor should know about it? It has midlayer (ib/core)
-> > > > between him
-> > > > and user to handle it.
-> > > > 
-> > > 
-> > > Knowing the inlen can be used to determine if the library is
-> > > newer than
-> > > the kernel and what features it supports or not.
-> > 
-> > It is not interesting case, because we are not breaking UAPI, only
-> > extending. It ensures that kernel will fill as much as possible and
-> > will
-> > always have success in it. After that it is library responsibility
+On Thu, 2017-07-06 at 12:24 +0000, Amrani, Ram wrote:
+> > This patch follows [1] that fixed three verbs and extends that fix
 > > to
-> > understand if everything was filled.
+> > the other verbs as well.
 > > 
-> > Thanks
+> > This fix is required for qedr to support existing and future
+> > libraries.
+> > 
+> > I was able to test the fix only partially due to its scope hence
+> > careful
+> > review is required, and testing, of course.
+> > 
+> > v0->v1:
+> >  * Updated vendor verbs to match the core changes.
+> > 
+> > 
+> > [1] https://www.spinics.net/lists/linux-rdma/msg33405.html
+> > 
+> > Ram Amrani (1):
+> >   IB/core: Fix input len in multiple user verbs
+> > 
+> >  drivers/infiniband/core/uverbs_cmd.c         | 70
+> > ++++++++++++++++------------
+> >  drivers/infiniband/hw/mlx5/cq.c              |  6 +--
+> >  drivers/infiniband/hw/mlx5/main.c            | 11 ++---
+> >  drivers/infiniband/hw/mthca/mthca_provider.c |  2 +-
+> >  4 files changed, 46 insertions(+), 43 deletions(-)
+> > 
+> > --
+> > 1.8.3.1
 > 
-> In our case, kernel driver needs to know whether library supports a
-> certain
-> feature (doorbell overflow recovery). It doesn't care if it was an
-> extended
-> verb or not, but it cares whether the lib is sufficiently new to have
-> provided
-> the required information. If the library is sufficiently new
-> (supports) then
-> kernel will register the library's doorbell address with the overflow
-> recovery
-> mechanism, and perform recovery if required, otherwise it would not
-> (as the
-> library is not supplying the necessary information for recovery to
-> take place).
-> This is not something the library needs to know, but the kernel
-> driver. Having
-> correct input len is required for successfully avoiding breaking the
-> UAPI.
+> Hi Doug,
+> Are you OK with applying the patch or do you expect ACKs for mlx5 and
+> mthca?
 
-Leon, does this explanation resolve your objections?  Also, have you
-checked the mlx5/mthca portions of this patch?
+I do want to make sure that Leon has looked over the mlx5 and mthca
+sections, yes.  I could run regression tests, but I'd rather him say
+that the changes are OK as opposed to relying on test results.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
