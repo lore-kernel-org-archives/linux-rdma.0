@@ -1,39 +1,102 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 3/3] RDMA/vmw_pvrdma: Add new port_cap flag
-Date: Fri, 18 Aug 2017 09:44:49 -0700
-Message-ID: <a7af1415fad6c6de00486002cdb6b95efec4e891.1503073950.git.aditr@vmware.com>
-References: <cover.1503073950.git.aditr@vmware.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH RFC 2/3] rdma core: Add rdma_rw_mr_payload()
+Date: Fri, 18 Aug 2017 12:51:29 -0400
+Message-ID: <1503075089.2598.26.camel@redhat.com>
+References: <20170801205334.15781.18761.stgit@klimt.1015granger.net>
+         <20170801210707.15781.36464.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1503073950.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170801210707.15781.36464.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Set the IP_BASED_GIDS port cap flag for vmw_pvrdma.
+On Tue, 2017-08-01 at 17:07 -0400, Chuck Lever wrote:
+> The amount of payload per MR depends on device capabilities and
+> the memory registration mode in use. The new rdma_rw API hides both,
+> making it difficult for ULPs to determine how large their transport
+> send queues need to be.
+> 
+> Expose the MR payload information via a new API.
+> 
+> Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-Acked-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c | 1 +
- 1 file changed, 1 insertion(+)
+Acked-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-index 0b19d1a..1a367b7 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-@@ -152,6 +152,7 @@ int pvrdma_query_port(struct ib_device *ibdev, u8 port,
- 	props->gid_tbl_len = resp->attrs.gid_tbl_len;
- 	props->port_cap_flags =
- 		pvrdma_port_cap_flags_to_ib(resp->attrs.port_cap_flags);
-+	props->port_cap_flags |= IB_PORT_CM_SUP | IB_PORT_IP_BASED_GIDS;
- 	props->max_msg_sz = resp->attrs.max_msg_sz;
- 	props->bad_pkey_cntr = resp->attrs.bad_pkey_cntr;
- 	props->qkey_viol_cntr = resp->attrs.qkey_viol_cntr;
+> ---
+>  drivers/infiniband/core/rw.c |   24 ++++++++++++++++++++++++
+>  include/rdma/rw.h            |    2 ++
+>  2 files changed, 26 insertions(+)
+> 
+> diff --git a/drivers/infiniband/core/rw.c
+> b/drivers/infiniband/core/rw.c
+> index dbfd854..6ca607e 100644
+> --- a/drivers/infiniband/core/rw.c
+> +++ b/drivers/infiniband/core/rw.c
+> @@ -643,6 +643,30 @@ void rdma_rw_ctx_destroy_signature(struct
+> rdma_rw_ctx *ctx, struct ib_qp *qp,
+>  }
+>  EXPORT_SYMBOL(rdma_rw_ctx_destroy_signature);
+>  
+> +/**
+> + * rdma_rw_mr_factor - return number of MRs required for a payload
+> + * @device:	device handling the connection
+> + * @port_num:	port num to which the connection is bound
+> + * @maxpages:	maximum payload pages per rdma_rw_ctx
+> + *
+> + * Returns the number of MRs the device requires to move @maxpayload
+> + * bytes. The returned value is used during transport creation to
+> + * compute max_rdma_ctxts and the size of the transport's Send and
+> + * Send Completion Queues.
+> + */
+> +unsigned int rdma_rw_mr_factor(struct ib_device *device, u8
+> port_num,
+> +			       unsigned int maxpages)
+> +{
+> +	unsigned int mr_pages;
+> +
+> +	if (rdma_rw_can_use_mr(device, port_num))
+> +		mr_pages = rdma_rw_fr_page_list_len(device);
+> +	else
+> +		mr_pages = device->attrs.max_sge_rd;
+> +	return DIV_ROUND_UP(maxpages, mr_pages);
+> +}
+> +EXPORT_SYMBOL(rdma_rw_mr_factor);
+> +
+>  void rdma_rw_init_qp(struct ib_device *dev, struct ib_qp_init_attr
+> *attr)
+>  {
+>  	u32 factor;
+> diff --git a/include/rdma/rw.h b/include/rdma/rw.h
+> index 377d865..a3cbbc7 100644
+> --- a/include/rdma/rw.h
+> +++ b/include/rdma/rw.h
+> @@ -81,6 +81,8 @@ struct ib_send_wr *rdma_rw_ctx_wrs(struct
+> rdma_rw_ctx *ctx, struct ib_qp *qp,
+>  int rdma_rw_ctx_post(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8
+> port_num,
+>  		struct ib_cqe *cqe, struct ib_send_wr *chain_wr);
+>  
+> +unsigned int rdma_rw_mr_factor(struct ib_device *device, u8
+> port_num,
+> +		unsigned int maxpages);
+>  void rdma_rw_init_qp(struct ib_device *dev, struct ib_qp_init_attr
+> *attr);
+>  int rdma_rw_init_mrs(struct ib_qp *qp, struct ib_qp_init_attr
+> *attr);
+>  void rdma_rw_cleanup_mrs(struct ib_qp *qp);
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" 
+> in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 -- 
-2.7.4
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
