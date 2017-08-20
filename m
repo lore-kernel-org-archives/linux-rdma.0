@@ -1,191 +1,48 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH V2 net-next] net: hns3: Add support to change MTU in HNS3
- hardware
-Date: Sun, 20 Aug 2017 19:08:09 +0300
-Message-ID: <20170820160809.GC1724@mtr-leonro.local>
-References: <20170818165759.20152-1-salil.mehta@huawei.com>
- <20170820070524.GE18138@mtr-leonro.local>
- <F4CC6FACFEB3C54C9141D49AD221F7F93B8721BE@FRAEML521-MBX.china.huawei.com>
+From: Stephen Hemminger <sthemmin@microsoft.com>
+Subject: RE: [PATCH net-next 4/4] mlx4: sizeof style usage
+Date: Sun, 20 Aug 2017 18:00:27 +0000
+Message-ID: <DM2PR21MB0074E2B2C697B1300B77EFEACC860@DM2PR21MB0074.namprd21.prod.outlook.com>
+References: <20170815172919.26153-1-sthemmin@microsoft.com>
+ <20170815172919.26153-5-sthemmin@microsoft.com>
+ <d38cac6d-77a7-e411-73b0-78adad9cbd5f@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="KDt/GgjP6HVcx58l"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <F4CC6FACFEB3C54C9141D49AD221F7F93B8721BE@FRAEML521-MBX.china.huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Salil Mehta <salil.mehta@huawei.com>
-Cc: "davem@davemloft.net" <davem@davemloft.net>, "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>, "lipeng (Y)" <lipeng321@huawei.com>, "mehta.salil.lnk@gmail.com" <mehta.salil.lnk@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <d38cac6d-77a7-e411-73b0-78adad9cbd5f@mellanox.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Tariq Toukan <tariqt@mellanox.com>, Stephen Hemminger <stephen@networkplumber.org>, "mlindner@marvell.com" <mlindner@marvell.com>, "mst@redhat.com" <mst@redhat.com>, "jasowang@redhat.com" <jasowang@redhat.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "virtualization@lists.linux-foundation.org" <virtualization@lists.linux-foundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---KDt/GgjP6HVcx58l
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Sun, Aug 20, 2017 at 02:35:58PM +0000, Salil Mehta wrote:
-> Hi Leon
->
-> > -----Original Message-----
-> > From: Leon Romanovsky [mailto:leon@kernel.org]
-> > Sent: Sunday, August 20, 2017 8:05 AM
-> > To: Salil Mehta
-> > Cc: davem@davemloft.net; Zhuangyuzeng (Yisen); lipeng (Y);
-> > mehta.salil.lnk@gmail.com; netdev@vger.kernel.org; linux-
-> > kernel@vger.kernel.org; linux-rdma@vger.kernel.org; Linuxarm
-> > Subject: Re: [PATCH V2 net-next] net: hns3: Add support to change MTU
-> > in HNS3 hardware
-> >
-> > On Fri, Aug 18, 2017 at 05:57:59PM +0100, Salil Mehta wrote:
-> > > This patch adds the following support to the HNS3 driver:
-> > > 1. Support to change the Maximum Transmission Unit of a
-> > >    of a port in the HNS NIC hardware .
-> >
-> > Extra space before dot.
-> Sure.
->
-> >
-> > > 2. Initializes the supported MTU range for the netdevice.
-> > >
-> > > Signed-off-by: lipeng <lipeng321@huawei.com>
-> >
-> > Does "lipeng" have name and surname?
-> Yes, Lipeng's first name is 'Peng' and Surname is 'Li'
-> But it is usually spelled as 'Lipeng' in one go when referring.
-> This is quite usual convention with full names originating from
-> China. Surnames comes first, followed by the first name and they
-> both are inseparable while they are written as well. Therefore,
-> his sign-off's appear like above.
-
-Thank you for the explanation.
-
->
-> Thanks
-> Salil
-> >
-> > > Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
-> > > ---
-> > > PATCH V2: Addresses comments given by Andrew Lunn
-> > >           1. https://lkml.org/lkml/2017/8/18/282
-> > > PATCH V1: Initial Submit
-> > > ---
-> > >  .../net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c | 38
-> > ++++++++++++++++++++++
-> > >  .../net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h |  1 +
-> > >  2 files changed, 39 insertions(+)
-> > >
-> > > diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
-> > b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
-> > > index e731f87..d905ea1 100644
-> > > --- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
-> > > +++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
-> > > @@ -1278,11 +1278,46 @@ static int hns3_ndo_set_vf_vlan(struct
-> > net_device *netdev, int vf, u16 vlan,
-> > >  	return ret;
-> > >  }
-> > >
-> > > +static int hns3_nic_change_mtu(struct net_device *netdev, int
-> > new_mtu)
-> > > +{
-> > > +	struct hns3_nic_priv *priv = netdev_priv(netdev);
-> > > +	struct hnae3_handle *h = priv->ae_handle;
-> > > +	bool if_running = netif_running(netdev);
-> > > +	int ret;
-> > > +
-> > > +	if (!h->ae_algo->ops->set_mtu)
-> > > +		return -ENOTSUPP;
-> > > +
-> > > +	/* if this was called with netdev up then bring netdevice down */
-> > > +	if (if_running) {
-> > > +		(void)hns3_nic_net_stop(netdev);
-> > > +		msleep(100);
-> > > +	}
-> > > +
-> > > +	ret = h->ae_algo->ops->set_mtu(h, new_mtu);
-> > > +	if (ret) {
-> > > +		netdev_err(netdev, "failed to change MTU in hardware %d\n",
-> > > +			   ret);
-> > > +		return ret;
-> > > +	}
-> > > +
-> > > +	/* if the netdev was running earlier, bring it up again */
-> > > +	if (if_running) {
-> > > +		if (hns3_nic_net_open(netdev)) {
-> > > +			netdev_err(netdev, "MTU, couldnt up netdev again\n");
-> >
-> > "couldnt" -> "couldn't"
-> >
-> > and you don't actually need this print.
-> > If the function hns3_nic_net_open fails, you will print this error
-> > there.
-> Right. Will remove this print.
->
-> Thanks
-> Salil
-> >
-> > > +			ret = -EINVAL;
-> > > +		}
-> > > +	}
-> > > +
-> > > +	return ret;
-> > > +}
-> > > +
-> > >  static const struct net_device_ops hns3_nic_netdev_ops = {
-> > >  	.ndo_open		= hns3_nic_net_open,
-> > >  	.ndo_stop		= hns3_nic_net_stop,
-> > >  	.ndo_start_xmit		= hns3_nic_net_xmit,
-> > >  	.ndo_set_mac_address	= hns3_nic_net_set_mac_address,
-> > > +	.ndo_change_mtu		= hns3_nic_change_mtu,
-> > >  	.ndo_set_features	= hns3_nic_set_features,
-> > >  	.ndo_get_stats64	= hns3_nic_get_stats64,
-> > >  	.ndo_setup_tc		= hns3_nic_setup_tc,
-> > > @@ -2752,6 +2787,9 @@ static int hns3_client_init(struct hnae3_handle
-> > *handle)
-> > >  		goto out_reg_netdev_fail;
-> > >  	}
-> > >
-> > > +	/* MTU range: (ETH_MIN_MTU(kernel default) - 9706) */
-> > > +	netdev->max_mtu = HNS3_MAX_MTU - (ETH_HLEN + ETH_FCS_LEN +
-> > VLAN_HLEN);
-> > > +
-> > >  	return ret;
-> > >
-> > >  out_reg_netdev_fail:
-> > > diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h
-> > b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h
-> > > index a6e8f15..7e87461 100644
-> > > --- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h
-> > > +++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h
-> > > @@ -76,6 +76,7 @@ enum hns3_nic_state {
-> > >  #define HNS3_RING_NAME_LEN			16
-> > >  #define HNS3_BUFFER_SIZE_2048			2048
-> > >  #define HNS3_RING_MAX_PENDING			32768
-> > > +#define HNS3_MAX_MTU				9728
-> > >
-> > >  #define HNS3_BD_SIZE_512_TYPE			0
-> > >  #define HNS3_BD_SIZE_1024_TYPE			1
-> > > --
-> > > 2.7.4
-> > >
-> > >
-
---KDt/GgjP6HVcx58l
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmZs+kACgkQ5GN7iDZy
-WKcszhAAw9iXHEDAw9+kCFz+dLluQqp0cQf9X62d3IiZh0TYFqZwFOQbIIUadyTo
-JICbxF/uzSNmwXpg/cWoBbJzspJ1crLd9/RYwuwVwHY4TjyhKgqKM7nsIHAEV09p
-Q64aEHxczmWgV9BV7XMqCL915YcBfwZLxnyd1Pj3kvqMSpba3ckl3cv8DgvcBrcJ
-UJXUALNlnT9PVv+BqqTa+oEhHPzRVurlForR1+4CRhFVbid0rIBbcEyV0Jcun6y5
-7/LxKNmrn1kTBB4PTTnN1ciLzpd1JlhLsB3o7mn90C7R/I8dqhDQxO9rLWbQydcK
-euTIaxQTNdUp+wnVzY1DQxjY4+E9hG5UqarkNsYLqa988c81R0e+2wpiQ7W/YAE+
-cLqqMomklly1bG39N1wUOtDwcp0fnVUWuib2C2b9t8SYYuSKhifmGWKeXk+vqI91
-SjnWDs9SCEM2mTsqXwu9cNz0YJ4g/Nzh0R84hKxxSbo+HJ+FVtiBq5iKZ0iBtEAG
-y1oenC+DZLaTWaZ/j5WOkPvyPy1XS44Xj7X911g7Mhxwjx46jW3m/u4NBD5DRNv0
-EtQgoHnrf+J1NNNq3DZ63I/xzqjiA/UMmKuUkbypT+KeYj2MxhJcZAIkrqGistNj
-GfZZDyM8C2nnSlQU7AsXawKejH6pgUKqzI6peoUuwTJEg/nycbA=
-=Bgqy
------END PGP SIGNATURE-----
-
---KDt/GgjP6HVcx58l--
+WWVzLCBnb29kIGNhdGNoLg0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogVGFy
+aXEgVG91a2FuIFttYWlsdG86dGFyaXF0QG1lbGxhbm94LmNvbV0gDQpTZW50OiBTdW5kYXksIEF1
+Z3VzdCAyMCwgMjAxNyAzOjI3IEFNDQpUbzogU3RlcGhlbiBIZW1taW5nZXIgPHN0ZXBoZW5AbmV0
+d29ya3BsdW1iZXIub3JnPjsgbWxpbmRuZXJAbWFydmVsbC5jb207IG1zdEByZWRoYXQuY29tOyBq
+YXNvd2FuZ0ByZWRoYXQuY29tDQpDYzogbmV0ZGV2QHZnZXIua2VybmVsLm9yZzsgbGludXgtcmRt
+YUB2Z2VyLmtlcm5lbC5vcmc7IHZpcnR1YWxpemF0aW9uQGxpc3RzLmxpbnV4LWZvdW5kYXRpb24u
+b3JnOyBTdGVwaGVuIEhlbW1pbmdlciA8c3RoZW1taW5AbWljcm9zb2Z0LmNvbT4NClN1YmplY3Q6
+IFJlOiBbUEFUQ0ggbmV0LW5leHQgNC80XSBtbHg0OiBzaXplb2Ygc3R5bGUgdXNhZ2UNCg0KW1lv
+dSBkb24ndCBvZnRlbiBnZXQgZW1haWwgZnJvbSBUQVJJUVRATUVMTEFOT1guQ09NLiBMZWFybiB3
+aHkgdGhpcyBpcyBpbXBvcnRhbnQgYXQgaHR0cDovL2FrYS5tcy9MZWFybkFib3V0U2VuZGVySWRl
+bnRpZmljYXRpb24uXQ0KDQpUaGFua3MgU3RlcGhlbi4NClNvcnJ5IGZvciB0aGUgbGF0ZSByZXBs
+eSwgSSB3YXMgb24gdmFjYXRpb24uDQpJIGtub3cgdGhpcyBpcyBhbHJlYWR5IGFjY2VwdGVkLCBi
+dXQgc3RpbGwgSSBoYXZlIG9uZSBjb21tZW50Lg0KDQpPbiAxNS8wOC8yMDE3IDg6MjkgUE0sIFN0
+ZXBoZW4gSGVtbWluZ2VyIHdyb3RlOg0KPiBUaGUga2VybmVsIGNvZGluZyBzdHlsZSBpcyB0byB0
+cmVhdCBzaXplb2YgYXMgYSBmdW5jdGlvbg0KPiAoaWUuIHdpdGggcGFyZW50aGVzaXMpIG5vdCBh
+cyBhbiBvcGVyYXRvci4NCj4NCj4gQWxzbyB1c2Uga2NhbGxvYyBhbmQga21hbGxvY19hcnJheQ0K
+Pg0KPiBTaWduZWQtb2ZmLWJ5OiBTdGVwaGVuIEhlbW1pbmdlciA8c3RlcGhlbkBuZXR3b3JrcGx1
+bWJlci5vcmc+DQo+IC0tLQ0KPiBAQCAtNzI2LDcgKzcyNiw3IEBAIHN0YXRpYyBpbnQgbWx4NF9l
+cV9pbnQoc3RydWN0IG1seDRfZGV2ICpkZXYsIHN0cnVjdCBtbHg0X2VxICplcSkNCj4gICAgICAg
+ICAgICAgICAgICAgICAgIH0NCj4gICAgICAgICAgICAgICAgICAgICAgIG1lbWNweSgmcHJpdi0+
+bWZ1bmMubWFzdGVyLmNvbW1fYXJtX2JpdF92ZWN0b3IsDQo+ICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgZXFlLT5ldmVudC5jb21tX2NoYW5uZWxfYXJtLmJpdF92ZWMsDQo+IC0gICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgc2l6ZW9mIGVxZS0+ZXZlbnQuY29tbV9jaGFubmVsX2FybS5i
+aXRfdmVjKTsNCj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICBzaXplb2YoZXFlKS0+ZXZl
+bnQuY29tbV9jaGFubmVsX2FybS5iaXRfdmVjKTsNCg0KSSB0aGluayB0aGUgYnJhY2tldHMgaGVy
+ZSBhcmUgbWlzcGxhY2VkLg0KU2hvdWxkbid0IHRoZXkgYmUgYXMgZm9sbG93cz8NCg0Kc2l6ZW9m
+KGVxZS0+ZXZlbnQuY29tbV9jaGFubmVsX2FybS5iaXRfdmVjKSk7DQoNCj4gICAgICAgICAgICAg
+ICAgICAgICAgIHF1ZXVlX3dvcmsocHJpdi0+bWZ1bmMubWFzdGVyLmNvbW1fd3EsDQo+ICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICZwcml2LT5tZnVuYy5tYXN0ZXIuY29tbV93b3Jr
+KTsNCj4gICAgICAgICAgICAgICAgICAgICAgIGJyZWFrOw0KDQpUaGFua3MsDQpUYXJpcQ0K
