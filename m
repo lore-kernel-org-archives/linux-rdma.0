@@ -1,87 +1,65 @@
-From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Subject: RE: [[PATCH v1] 18/37] [CIFS] SMBD: Implement API for upper layer to
- send data
-Date: Sat, 19 Aug 2017 23:41:45 +0000
-Message-ID: <MWHPR21MB0190DC9FE518F018FEE011ADCE810@MWHPR21MB0190.namprd21.prod.outlook.com>
-References: <1501704648-20159-1-git-send-email-longli@exchange.microsoft.com>
- <1501704648-20159-19-git-send-email-longli@exchange.microsoft.com>
- <CY4PR21MB01827F735F570CCAECD5AD8BA08C0@CY4PR21MB0182.namprd21.prod.outlook.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH for-next 3/3] RDMA/vmw_pvrdma: Add new port_cap flag
+Date: Sun, 20 Aug 2017 08:56:17 +0300
+Message-ID: <20170820055617.GC18138@mtr-leonro.local>
+References: <cover.1503073950.git.aditr@vmware.com>
+ <a7af1415fad6c6de00486002cdb6b95efec4e891.1503073950.git.aditr@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CY4PR21MB01827F735F570CCAECD5AD8BA08C0-kUhI0YP1syo7ifcEnHlXec1VXTxX1y3OvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Content-Language: en-US
-Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, "linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org" <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="/Uq4LBwYP4y1W6pO"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <a7af1415fad6c6de00486002cdb6b95efec4e891.1503073950.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
+--/Uq4LBwYP4y1W6pO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> -----Original Message-----
-> From: Tom Talpey
-> Sent: Monday, August 14, 2017 1:44 PM
-> To: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>; Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>;
-> linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org; linux-
-> kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: RE: [[PATCH v1] 18/37] [CIFS] SMBD: Implement API for upper laye=
-r
-> to send data
->=20
-> > -----Original Message-----
-> > From: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-cifs-
-> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Long Li
-> > Sent: Wednesday, August 2, 2017 4:10 PM
-> > To: Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>; linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> > samba- technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Cc: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-> > Subject: [[PATCH v1] 18/37] [CIFS] SMBD: Implement API for upper layer
-> > to send data
-> >
-> > +/*
-> > + * Write data to transport
-> > + * Each rqst is transported as a SMBDirect payload
-> > + * rqst: the data to write
-> > + * return value: 0 if successfully write, otherwise error code  */
-> > +int cifs_rdma_write(struct cifs_rdma_info *info, struct smb_rqst
-> > +*rqst) {
->=20
-> !!!
-> This is a VERY confusing name. It is not sending an RDMA Write, which wil=
-l
-> confuse any RDMA-enlightened reader. It's performing an RDMA Send, so
-> that name is perhaps one possibility.
->=20
-> > +       if (info->transport_status !=3D CIFS_RDMA_CONNECTED) {
-> > +               log_cifs_write("disconnected returning -EIO\n");
-> > +               return -EIO;
-> > +       }
->=20
-> Isn't this optimizing the error case? There's no guarantee it's still con=
-nected
-> by the time the following request construction occurs. Why not just proce=
-ed
-> without the check?
->=20
-> > +       /* Strip the first 4 bytes MS-SMB2 section 2.1
-> > +        * they are used only for TCP transport */
-> > +       iov[0].iov_base =3D (char*)rqst->rq_iov[0].iov_base + 4;
-> > +       iov[0].iov_len =3D rqst->rq_iov[0].iov_len - 4;
-> > +       buflen +=3D iov[0].iov_len;
->=20
-> Ok, that layering choice in the cifs.ko client code needs to be corrected=
-. After
-> all, it will need to be RDMA-aware to build the SMB3 read/write channel
-> structures.
-> And, the code in cifs_post_send_data() is allocating and building a struc=
-ture
-> that could have been accounted for much earlier, avoiding the extra
-> overhead.
->=20
-> That change could happen later, the hack is mostly ok for now. But
-> something needs to be said in a comment.
+On Fri, Aug 18, 2017 at 09:44:49AM -0700, Adit Ranadive wrote:
+> Set the IP_BASED_GIDS port cap flag for vmw_pvrdma.
+>
+> Acked-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> ---
 
-Will address those in v2.
 
->=20
-> Tom.
+Adit,
+
+Please reread the Documentation/process/5.Posting.rst and
+the Documentation/process/submitting-patches.rst for the meaning
+of the tags ("12) When to use Acked-by: and Cc:").
+
+I think that you wanted to write Reviewed-by instead.
+
+Thanks,
+
+--/Uq4LBwYP4y1W6pO
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmZJIAACgkQ5GN7iDZy
+WKfFRQ//Svp3F0OSJW9td+gcXB60j5tRfj+TfzPeMGhkOjI54TxRpei1Pm49NUo1
+eVj4KqYvrcoX00iQDWKei8fvYPllM6QgyMmZP2OTDW/IFRVOtrbeWgYKRE3qhljv
+wNlsmQPsJ+Hc8bIIL+Sdtm1SPL2kPiA9n4a8APOsZ8y5szwg0vxtS02IHZ31WnOA
+StSMnc3S0CJopb8w06BXou9eFeZ9PKAxjqHGxlJsS/XrWfMtnO81NvdmW5nqmHa+
+Cb9IHEXXnLFDidKp4ZV0Sd4M3R0Zs11qlnzRdfRP8/3YfTipd/ol791hyzOLr8nx
+AT75mPwfl+JqrUKOKEHHJzb4iU9/JgrYaVaQfHsXw9+HHkmhkoBt6gjjQBwLQ2KJ
+0n3MLNN99tXqWJILqH0vxZFJ0G/hLgBakAEirJS4PvJOhd0xvlXOQ6i+5BIXtlG0
+L09vIklQqVK6AcG0MaJd5OapJSjBq3yGMW8oJDy9sovwkHwcpU0OE38jsCCUvyR4
+oLQd7elhfffuWF5tRyi+AiZ0FzgXi8ry23s1MeXt5HPKOTwmYiNacCqGQM4lOTs0
+N+LE7Je4f6iSPezF7JfaR5a1lguvTt5/cI/McxRSYoKAlH7nQ1Q56JnCoTU4newI
+Ebb/IuJGlYQeSOtlnbpo2xoiyex2bfzRuiseceCxuQS/407LVpw=
+=l4vI
+-----END PGP SIGNATURE-----
+
+--/Uq4LBwYP4y1W6pO--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
