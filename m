@@ -1,205 +1,150 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH for-next 2/3] RDMA/vmw_pvrdma: Update device query
- parameters
-Date: Sun, 20 Aug 2017 09:11:22 +0300
-Message-ID: <20170820061122.GD18138@mtr-leonro.local>
-References: <cover.1503073950.git.aditr@vmware.com>
- <6eb31ebec69c1d28b83cb44e84cdb01ebdec3827.1503073950.git.aditr@vmware.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH V2 net-next] net: hns3: Add support to change MTU in HNS3
+ hardware
+Date: Sun, 20 Aug 2017 10:05:24 +0300
+Message-ID: <20170820070524.GE18138@mtr-leonro.local>
+References: <20170818165759.20152-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="fXStkuK2IQBfcDe+"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="Oiv9uiLrevHtW1RS"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <6eb31ebec69c1d28b83cb44e84cdb01ebdec3827.1503073950.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+In-Reply-To: <20170818165759.20152-1-salil.mehta@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Salil Mehta <salil.mehta@huawei.com>
+Cc: davem@davemloft.net, yisen.zhuang@huawei.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
 
---fXStkuK2IQBfcDe+
+--Oiv9uiLrevHtW1RS
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Aug 18, 2017 at 09:44:48AM -0700, Adit Ranadive wrote:
-> Added support for two device caps - max_sge_rd, max_fast_reg_page_list_len.
-> Simplified some of the RoCEv2 versioning code and added 2 more device cap
-> flags.
+On Fri, Aug 18, 2017 at 05:57:59PM +0100, Salil Mehta wrote:
+> This patch adds the following support to the HNS3 driver:
+> 1. Support to change the Maximum Transmission Unit of a
+>    of a port in the HNS NIC hardware .
+
+Extra space before dot.
+
+> 2. Initializes the supported MTU range for the netdevice.
 >
-> Acked-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Acked-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: lipeng <lipeng321@huawei.com>
+
+Does "lipeng" have name and surname?
+
+> Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
 > ---
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma.h         |  1 +
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h | 19 ++++++++++---------
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c    |  7 +++----
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c   |  9 +++++++++
->  4 files changed, 23 insertions(+), 13 deletions(-)
+> PATCH V2: Addresses comments given by Andrew Lunn
+>           1. https://lkml.org/lkml/2017/8/18/282
+> PATCH V1: Initial Submit
+> ---
+>  .../net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c | 38 ++++++++++++++++++++++
+>  .../net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h |  1 +
+>  2 files changed, 39 insertions(+)
 >
-> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-> index 513a182..ea10155 100644
-> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-> @@ -194,6 +194,7 @@ struct pvrdma_dev {
->  	void *resp_slot;
->  	unsigned long flags;
->  	struct list_head device_link;
-> +	unsigned int dsr_version;
->
->  	/* Locking and interrupt information. */
->  	spinlock_t cmd_lock; /* Command lock. */
-> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
-> index 71df5d1..d947557 100644
-> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
-> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
-> @@ -50,7 +50,15 @@
->
->  #include "pvrdma_verbs.h"
->
-> -#define PVRDMA_VERSION			18
-> +/*
-> + * PVRDMA version macros. Some new features require updates to PVRDMA_VERSION.
-> + * These macros allow us to check for different features if necessary.
-> + */
-> +
-> +#define PVRDMA_ROCEV1_VERSION		17
-> +#define PVRDMA_ROCEV2_VERSION		18
-> +#define PVRDMA_VERSION			PVRDMA_ROCEV2_VERSION
-> +
->  #define PVRDMA_BOARD_ID			1
->  #define PVRDMA_REV_ID			1
->
-> @@ -123,13 +131,6 @@
->  #define PVRDMA_GID_TYPE_FLAG_ROCE_V1	BIT(0)
->  #define PVRDMA_GID_TYPE_FLAG_ROCE_V2	BIT(1)
->
-> -/*
-> - * PVRDMA version macros. Some new features require updates to PVRDMA_VERSION.
-> - * These macros allow us to check for different features if necessary.
-> - */
-> -
-> -#define PVRDMA_VERSION_ROCEV2_SUPPORT	18
-> -
-
-You added it in previous patch of the same series. Please don't send
-patches with code which is going to be removed/rewritten immediately.
-
-
->  enum pvrdma_pci_resource {
->  	PVRDMA_PCI_RESOURCE_MSIX,	/* BAR0: MSI-X, MMIO. */
->  	PVRDMA_PCI_RESOURCE_REG,	/* BAR1: Registers, MMIO. */
-> @@ -232,7 +233,7 @@ struct pvrdma_device_caps {
->  	u8  atomic_ops;				/* PVRDMA_ATOMIC_OP_* bits */
->  	u8  bmme_flags;				/* FRWR Mem Mgmt Extensions */
->  	u8  gid_types;				/* PVRDMA_GID_TYPE_FLAG_ */
-> -	u8  reserved[4];
-> +	u32 max_fast_reg_page_list_len;
->  };
->
->  struct pvrdma_ring_page_info {
-> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-> index 6fd5828..ae536a4 100644
-> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-> @@ -729,7 +729,6 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
->  	int ret;
->  	unsigned long start;
->  	unsigned long len;
-> -	unsigned int version;
->  	dma_addr_t slot_dma = 0;
->
->  	dev_dbg(&pdev->dev, "initializing driver %s\n", pci_name(pdev));
-> @@ -826,9 +825,9 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
->  		goto err_unmap_regs;
->  	}
->
-> -	version = pvrdma_read_reg(dev, PVRDMA_REG_VERSION);
-> +	dev->dsr_version = pvrdma_read_reg(dev, PVRDMA_REG_VERSION);
->  	dev_info(&pdev->dev, "device version %d, driver version %d\n",
-> -		 version, PVRDMA_VERSION);
-> +		 dev->dsr_version, PVRDMA_VERSION);
->
->  	dev->dsr = dma_alloc_coherent(&pdev->dev, sizeof(*dev->dsr),
->  				      &dev->dsrbase, GFP_KERNEL);
-> @@ -908,7 +907,7 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
->  	}
->
->  	/* PVRDMA supports RoCE V1 or V2. */
-> -	if (version >= PVRDMA_VERSION_ROCEV2_SUPPORT &&
-> +	if (dev->dsr_version >= PVRDMA_ROCEV2_VERSION &&
-
-Your whole idea of version is shaky. You need to move to capability bits per
-feature model and not rely on global version. In the near future, your code will
-be full of checks like this.
-
-There is a reason why you don't see many device driver here relies on FW version,
-which is similar to your versioning scheme.
-
-Thanks
-
->  	    !((dev->dsr->caps.gid_types & PVRDMA_GID_TYPE_FLAG_ROCE_V1) ||
->  	      (dev->dsr->caps.gid_types & PVRDMA_GID_TYPE_FLAG_ROCE_V2))) {
->  		dev_err(&pdev->dev, "driver needs RoCE v1 or v2 support\n");
-> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-> index 2851704..0b19d1a 100644
-> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c
-> @@ -83,6 +83,8 @@ int pvrdma_query_device(struct ib_device *ibdev,
->  	props->max_qp_wr = dev->dsr->caps.max_qp_wr;
->  	props->device_cap_flags = dev->dsr->caps.device_cap_flags;
->  	props->max_sge = dev->dsr->caps.max_sge;
-> +	props->max_sge_rd = (dev->dsr_version >= PVRDMA_ROCEV2_VERSION) ?
-> +			     dev->dsr->caps.max_sge_rd : dev->dsr->caps.max_sge;
->  	props->max_cq = dev->dsr->caps.max_cq;
->  	props->max_cqe = dev->dsr->caps.max_cqe;
->  	props->max_mr = dev->dsr->caps.max_mr;
-> @@ -100,9 +102,16 @@ int pvrdma_query_device(struct ib_device *ibdev,
->  	if ((dev->dsr->caps.bmme_flags & PVRDMA_BMME_FLAG_LOCAL_INV) &&
->  	    (dev->dsr->caps.bmme_flags & PVRDMA_BMME_FLAG_REMOTE_INV) &&
->  	    (dev->dsr->caps.bmme_flags & PVRDMA_BMME_FLAG_FAST_REG_WR)) {
-> +		props->max_fast_reg_page_list_len =
-> +		(dev->dsr_version >= PVRDMA_ROCEV2_VERSION) ?
-> +		 dev->dsr->caps.max_fast_reg_page_list_len :
-> +		 PVRDMA_MAX_FAST_REG_PAGES;
->  		props->device_cap_flags |= IB_DEVICE_MEM_MGT_EXTENSIONS;
->  	}
->
-> +	props->device_cap_flags |= IB_DEVICE_PORT_ACTIVE_EVENT |
-> +				   IB_DEVICE_RC_RNR_NAK_GEN;
-> +
->  	return 0;
+> diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
+> index e731f87..d905ea1 100644
+> --- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
+> +++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
+> @@ -1278,11 +1278,46 @@ static int hns3_ndo_set_vf_vlan(struct net_device *netdev, int vf, u16 vlan,
+>  	return ret;
 >  }
 >
+> +static int hns3_nic_change_mtu(struct net_device *netdev, int new_mtu)
+> +{
+> +	struct hns3_nic_priv *priv = netdev_priv(netdev);
+> +	struct hnae3_handle *h = priv->ae_handle;
+> +	bool if_running = netif_running(netdev);
+> +	int ret;
+> +
+> +	if (!h->ae_algo->ops->set_mtu)
+> +		return -ENOTSUPP;
+> +
+> +	/* if this was called with netdev up then bring netdevice down */
+> +	if (if_running) {
+> +		(void)hns3_nic_net_stop(netdev);
+> +		msleep(100);
+> +	}
+> +
+> +	ret = h->ae_algo->ops->set_mtu(h, new_mtu);
+> +	if (ret) {
+> +		netdev_err(netdev, "failed to change MTU in hardware %d\n",
+> +			   ret);
+> +		return ret;
+> +	}
+> +
+> +	/* if the netdev was running earlier, bring it up again */
+> +	if (if_running) {
+> +		if (hns3_nic_net_open(netdev)) {
+> +			netdev_err(netdev, "MTU, couldnt up netdev again\n");
+
+"couldnt" -> "couldn't"
+
+and you don't actually need this print.
+If the function hns3_nic_net_open fails, you will print this error there.
+
+> +			ret = -EINVAL;
+> +		}
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+>  static const struct net_device_ops hns3_nic_netdev_ops = {
+>  	.ndo_open		= hns3_nic_net_open,
+>  	.ndo_stop		= hns3_nic_net_stop,
+>  	.ndo_start_xmit		= hns3_nic_net_xmit,
+>  	.ndo_set_mac_address	= hns3_nic_net_set_mac_address,
+> +	.ndo_change_mtu		= hns3_nic_change_mtu,
+>  	.ndo_set_features	= hns3_nic_set_features,
+>  	.ndo_get_stats64	= hns3_nic_get_stats64,
+>  	.ndo_setup_tc		= hns3_nic_setup_tc,
+> @@ -2752,6 +2787,9 @@ static int hns3_client_init(struct hnae3_handle *handle)
+>  		goto out_reg_netdev_fail;
+>  	}
+>
+> +	/* MTU range: (ETH_MIN_MTU(kernel default) - 9706) */
+> +	netdev->max_mtu = HNS3_MAX_MTU - (ETH_HLEN + ETH_FCS_LEN + VLAN_HLEN);
+> +
+>  	return ret;
+>
+>  out_reg_netdev_fail:
+> diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h
+> index a6e8f15..7e87461 100644
+> --- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h
+> +++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h
+> @@ -76,6 +76,7 @@ enum hns3_nic_state {
+>  #define HNS3_RING_NAME_LEN			16
+>  #define HNS3_BUFFER_SIZE_2048			2048
+>  #define HNS3_RING_MAX_PENDING			32768
+> +#define HNS3_MAX_MTU				9728
+>
+>  #define HNS3_BD_SIZE_512_TYPE			0
+>  #define HNS3_BD_SIZE_1024_TYPE			1
 > --
 > 2.7.4
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
---fXStkuK2IQBfcDe+
+--Oiv9uiLrevHtW1RS
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmZKAkACgkQ5GN7iDZy
-WKdxQg/9Eb6QALsCiO/IN+fF2ItpP73jko8UesshSrZEy4NX9Ri4dv0GzxtXhvdL
-jD6RWnATgJiGSmixhQClVWemrzGWr0VKLNmyN4gprXMUaxrrMoONEaT0IfXZlBTD
-h0eNYN/3ad8pN40F1rQSkNKNp25zoSz5qMI9yyHzh1qmacSjfQf8QAZDlRVd0ft0
-8HeF64UNeEhyuzHKQo1PTjC2BiWAmvRHtnhNUo/H0HrWCssm2VIghjY1tuIAgjCm
-RegEzVb39M4/UWPZtS5kFYF4PCTjJpGm+2kSim65wOMef93vAKVta4K4lEmRhTi/
-+Arokmt7ESbj8e3CB4BUwzofBhEly+miDPp86VB/qTi5+O92og56bsOAVDgmv2oh
-NtTQXgxQ52UPL5luWN5hHPuvT9NNrxcJymvgk4PCQoBjzcAufwAxQeXvx0ttIoH+
-mPWC1iuHbVYfljiSPUgYmUTWo7OwYmnkhezGGdDtJQJ0vrrfcgfv3zAXKYgRvZlA
-+1nwYvgu1bEYm5Su4CPlvBgc8EKnDtJmvTfq7wgB4GESuGQcRBxw2WpnDT8dF6Ay
-1xb26mGJjDnVRK9X3Qbzsj2OJtZvMJTCTHE8NfphJZ6LJ573AQ6bmfTV3QezvOp3
-VaALR0kbAspgkU/7mZlMhiMf2isljNTq5Z5O5R1L8ip4GV6coVk=
-=E3HP
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmZNLIACgkQ5GN7iDZy
+WKf+mxAAikUjC4iBFkoxXl4VwXDUlUz7Zd5n8xBSLUUpjsVrJ4tBs4QbQ3k94g4q
+xi2X99o1sXnIfuJpKFQ/2Xy4a2EBTshEYgI7UH6jfk42DF0bNARfStAnr9G8nB9T
+rUAM2Lh3jOkH6GwXpdMqHxKzuAU7EMuTksWWr7BwCENLmb8ieKoRq9OIhxmpWIK0
+x7uJvgjrTYE6/5I19WqtQymujfen9LDvzYdK0DeTsRSEkusszELEJ99nHs8xG3JU
+LKtQMHylNUsxG2LhmHl6TJj8UsIOtj45gAcoxz4PxES+ZTsA/bv3O3BOjeg3E/rn
+iCY7fyo07FYSNy7vqiHYXIhkR0vnKRJOemtDNDXMljRbeHXDFN2Rw9LgesPcMGYr
+O8LiqpublmL49rSQydHk3kKCxEhffGvEyZRJPL0dMLr4wLctf1QDN/nxNKRsDSUw
+LQUyCt4UYnsHw4Gb6Qrm+HZ3BJDvLNRCKgL/d4oGs2jWdB865mUxWEvpJtyGx602
+XWqEOvJjeCj8fb/JDljkNiFGhVUSaFl7L5ZBmljjTkwD+bbgKtbxjX8VuSrGY68S
+EN1S4TILPUia1U+ONcpcFNiBoP07jNJhbOjWGqFtBxtSFLkveAKG3P9NwlnGsDfs
+EitYZE61O4bpgJxqqto+l5eo6NLKfH8EgY8TPD7dW/uRmwGYbAQ=
+=B6sM
 -----END PGP SIGNATURE-----
 
---fXStkuK2IQBfcDe+--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Oiv9uiLrevHtW1RS--
