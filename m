@@ -1,54 +1,115 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: =?UTF-8?B?UmU6IOOAkEFzayBmb3IgdXBzdHJlYW0gYnJhbmNo44CR?=
-Date: Mon, 21 Aug 2017 08:57:26 -0400
-Message-ID: <546382b6-7cdc-9277-c0b8-130d58136a88@redhat.com>
-References: <33078683-cf77-a116-4245-f561a29b114d@huawei.com>
+Subject: Re: [ANNOUNCE] rdma-core-15-rc1 has been tagged/released
+Date: Mon, 21 Aug 2017 09:03:36 -0400
+Message-ID: <52f4d36e-370d-ab0f-affb-dc8441eb7dff@redhat.com>
+References: <1501590709.2725.10.camel@redhat.com>
+ <20170802054512.GW13672@mtr-leonro.local>
+ <1501761459.117042.5.camel@redhat.com>
+ <20170816080523.GG24282@mtr-leonro.local>
+ <1502902372.33760.17.camel@redhat.com>
+ <20170816175144.GX24282@mtr-leonro.local>
+ <1502961063.3554.3.camel@profitbricks.com>
+ <20170817093648.GD23648@mtr-leonro.local>
+ <1502965632.3554.5.camel@profitbricks.com>
+ <20170817130332.GF23648@mtr-leonro.local>
+ <1502976171.3554.6.camel@profitbricks.com>
+ <1503309685.3742.2.camel@profitbricks.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="HlOXuuJS45H7nNXsTnMGHDv05sj1L0NQT"
+ boundary="odPRwsIFE5Jx4GXvInqnoB6614TxFmwfG"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <33078683-cf77-a116-4245-f561a29b114d-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1503309685.3742.2.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: huwei <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Chenxin (Charles)" <charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, weihaifeng <haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, liudongdong <liudongdong3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---HlOXuuJS45H7nNXsTnMGHDv05sj1L0NQT
-Content-Type: multipart/mixed; boundary="d6I0bCXae48Akhv4PxxWmwRmiNELEDOwS";
+--odPRwsIFE5Jx4GXvInqnoB6614TxFmwfG
+Content-Type: multipart/mixed; boundary="NIwDJdQD6TRp2oKi0hw76fQfGVdbHBHJT";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: huwei <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>,
- "Chenxin (Charles)" <charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>,
- weihaifeng <haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, liudongdong <liudongdong3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Message-ID: <546382b6-7cdc-9277-c0b8-130d58136a88-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: =?UTF-8?B?UmU6IOOAkEFzayBmb3IgdXBzdHJlYW0gYnJhbmNo44CR?=
-References: <33078683-cf77-a116-4245-f561a29b114d-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-In-Reply-To: <33078683-cf77-a116-4245-f561a29b114d-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+To: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>,
+ "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Message-ID: <52f4d36e-370d-ab0f-affb-dc8441eb7dff-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [ANNOUNCE] rdma-core-15-rc1 has been tagged/released
+References: <1501590709.2725.10.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20170802054512.GW13672-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+ <1501761459.117042.5.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20170816080523.GG24282-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+ <1502902372.33760.17.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+ <20170816175144.GX24282-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+ <1502961063.3554.3.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+ <20170817093648.GD23648-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+ <1502965632.3554.5.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+ <20170817130332.GF23648-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+ <1502976171.3554.6.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+ <1503309685.3742.2.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+In-Reply-To: <1503309685.3742.2.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 
---d6I0bCXae48Akhv4PxxWmwRmiNELEDOwS
+--NIwDJdQD6TRp2oKi0hw76fQfGVdbHBHJT
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: quoted-printable
 
-On 8/21/2017 2:16 AM, oulijun wrote:
-> Hi,=C2=A0 Doug Ledford
+On 8/21/2017 6:01 AM, Benjamin Drung wrote:
+> Am Donnerstag, den 17.08.2017, 15:22 +0200 schrieb Benjamin Drung:
+>> Am Donnerstag, den 17.08.2017, 16:03 +0300 schrieb Leon Romanovsky:
+>>> On Thu, Aug 17, 2017 at 12:27:12PM +0200, Benjamin Drung wrote:
+>>>> Am Donnerstag, den 17.08.2017, 12:36 +0300 schrieb Leon
+>>>> Romanovsky:
+>>>>> On Thu, Aug 17, 2017 at 11:11:03AM +0200, Benjamin Drung wrote:
+>>>>>> Am Mittwoch, den 16.08.2017, 20:51 +0300 schrieb Leon
+>>>>>> Romanovsky:
+>>>>>>> On Wed, Aug 16, 2017 at 12:52:52PM -0400, Doug Ledford
+>>>>>>> wrote:
+>>>>>>>> And I know this particular thread is in reference to the
+>>>>>>>> rdma-
+>>>>>>>> core
+>>>>>>>> package, I haven't forgotten it, I just haven't had a
+>>>>>>>> chance to
+>>>>>>>> test it
+>>>>>>>> yet :-/.
+>>>>>>>>
+>>>>>>>
+>>>>>>> Thanks for the update, I asked it in context of rdma-core,
+>>>>>>> because
+>>>>>>> Yishai stopped submissions of all our user space patches
+>>>>>>> till
+>>>>>>> the
+>>>>>>> official release and it included my one-liner fix to
+>>>>>>> ibv_xsrq_pinpong
+>>>>>>> :)
+>>>>>>
+>>>>>> As Debian maintainer, I am waiting for the rdma-core release
+>>>>>> to
+>>>>>> finally
+>>>>>> upload that version to Debian unstable. There is no required
+>>>>>> improvement from my side any more.
+>>>>>
+>>>>> This is excellent news, so the rdma-core will be part of Ubuntu
+>>>>> 17.10
+>>>>> too.
+>>>>
+>>>> I just checked https://wiki.ubuntu.com/ArtfulAardvark/ReleaseSche
+>>>> du
+>>>> le
+>>>> and saw that the feature freeze will be in one week. So I have to
+>>>> create a rdma-core snapshot now and upload that to Ubuntu.
+>>>
+>>> Can you wait till Sunday with this "now"?
+>>> We have very simple fix to our mlx5 direct verbs API and it is
+>>> important
+>>> to update it before it spreads.
+>>
+>> Okay.
 >=20
-> =C2=A0=C2=A0 We are preparing the hip08 RoCE driver for upstreaming.=C2=
-=A0 I am found that
->=20
-> you have create a new branch named net-next-base and this branch has
-> included
->=20
-> hns3 patchset.=C2=A0 If we generate patchset of hip08 RoCE driver, can
-> directly based
->=20
-> on this branch?
+> Upload of 15~rc1+git20170821 (git commit b36d8a15) to Ubuntu done. It's=
 
-Yes.
+> in the upload queue now: https://launchpad.net/ubuntu/artful/+queue
+>=20
 
+I've went ahead and pushed an -rc2 if that helps you any.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -57,9 +118,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 D
 
 
---d6I0bCXae48Akhv4PxxWmwRmiNELEDOwS--
+--NIwDJdQD6TRp2oKi0hw76fQfGVdbHBHJT--
 
---HlOXuuJS45H7nNXsTnMGHDv05sj1L0NQT
+--odPRwsIFE5Jx4GXvInqnoB6614TxFmwfG
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -68,22 +129,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJZmti2AAoJELgmozMOVy/dAZwP/3Dt+BuvtwIjdJLTTMIXggHC
-BUDbKiGluoOT9ME5wJmxPFwiHP0boJxoMGuKGyHLPmldg1aIfO3lLx+NjXiZKdQB
-NyhMD+rspqlXLs+PVMnhYdE4yigxjn9dJTpI9HRjmDincNzNqul6Qoz58/g37zho
-fgTg4H8KrMiRNbTS0rrvzGx2IdgfSFs8Rq+LunWmJ3Zez4UUVHkjah6pbldkAvDn
-qucV4YR8/IVzQvtAquk5kOEdj3UGIZY5f7ze5+yY4Unueb60Fzlqs5qe3HJJ0LEQ
-5evpXG8JBvsq6PsvANA2pXD1EmVjU5WA6MtylRBlDSKd5xnyjZotWA/sdpNUIzia
-VBLmTK8H/4W6uEybBK284HK77z12EZUs2AJE/MjW84hgoZj/PFqg1UPjWwFq5tiE
-u8FGU1K8QPR8zzRHiYvphcQdsw3LKdUM9QZsEKTpOW6Qi3n2EghZzvYm172c5N7v
-/Y3JNcTQ+/kojFPeqcubGjrC01URZz40Kd1FkhK8TOXAP19giEFCXP/wr8s3SbgM
-svdhQg2ey1O0k/9LWBJ6g9BmtmlUSS1UGEAK5xfR3HyGSROECBpFLy65/Uvscgir
-AbaTzcSZmoSRZ+3ZEB15iabISRSwssxN2FizQLZppk09Eune1y30mFWgxRh7NFwT
-vwWGkbSfQbmHyq9uCrSn
-=au7G
+iQIcBAEBCAAGBQJZmtooAAoJELgmozMOVy/dBk4P/RiUZ9EWGV1lis7kfD1kbo7I
+nv32EWBewx3QmEwVjNhcrPICP8/uyFbGRrlGzc2tq139d4wChEBrPIuz0Qvm1tX7
+T8RV+sw4tm53Xw67/FaNAmrzS/Y/VbXR9Mbm1HbVlFd6Afili7syB9abKzXo0Xze
+g0ZcIWDYUdFj4pjkX+uNZVk9nS/E0U3jVRs/ZnmkB8LuVmYIjK2UAAuY9p1h4z72
+YMdDIvUrCdfzntTWyL4KdHgmJ/bRku1rRUte1kZzTNoIMuD/2Dr4KiQnlwhZ8+5e
+7uLHVWMfltfihBbAlVP2JzBqvqmTj/rpqLKV208NnTrfeaJEg4N+QHbMtEXw3V2b
+jnw4+hO9zoeRLldszXjmPLtyvJtL6/cei3w8y9uiDgLEHjhkztvLtUkGDEIl9NYk
+GugpCdZmmVO4T4mdLl4+T3LjtL04gXEaXxPgGdUazTortWYDtVLhURyXNAyT3vVX
+YeBeuydXZSbB2alLapGkPHlmhrRFlSbcCFFmGU9S0C4CLeA1TopZC8st6aWJvZvh
+GO1YRhNoEcft7MCoq8qFIXvvKVFCLDNtvHYfBxwzIwiaMD0JPLXIkwaB70k8e2kQ
+o2MPxtmZcLRkj+1Nd9zpe9O0J6L32/eW1SES7coXdoyptYgC2Uc2p37E7pc5yMug
+8HKoMZeqGBMQAkVitYKN
+=5pQQ
 -----END PGP SIGNATURE-----
 
---HlOXuuJS45H7nNXsTnMGHDv05sj1L0NQT--
+--odPRwsIFE5Jx4GXvInqnoB6614TxFmwfG--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
