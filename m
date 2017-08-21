@@ -1,34 +1,41 @@
 From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [PATCH 1/1] RDMA/uverbs: Initialize cq_context appropriately
-Date: Mon, 21 Aug 2017 14:11:39 -0500
-Message-ID: <01cb01d31ab1$51458340$f3d089c0$@opengridcomputing.com>
-References: <1501565315-3183-1-git-send-email-bharat@chelsio.com>         <CAAKD3BCdeG=FkUNQjqGxEYw5Sx-TtmeRSAA8K7M43G62Qw_gbw@mail.gmail.com> <1503079603.2598.33.camel@redhat.com> <008701d31863$c83d3600$58b7a200$@opengridcomputing.com>
+Subject: RE: [Patch v2 00/19] CIFS: Implement SMBDirect
+Date: Mon, 21 Aug 2017 14:15:03 -0500
+Message-ID: <01ff01d31ab1$ca836a60$5f8a3f20$@opengridcomputing.com>
+References: <1503255883-3041-1-git-send-email-longli@exchange.microsoft.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-        charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <008701d31863$c83d3600$58b7a200$@opengridcomputing.com>
+In-Reply-To: <1503255883-3041-1-git-send-email-longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>
 Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Doug Ledford' <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, 'Matan Barak' <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Potnuri Bharat Teja' <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Long Li' <longli-Lp/cVzEoVyZiJJESP9tAQJZ3qXmFLfmx@public.gmane.org>, 'Steve French' <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, 'Tom Talpey' <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, 'Matthew Wilcox' <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Cc: 'Long Li' <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-ping...
+> 
+> From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+> 
+> Starting with SMB2 dialect 3.0, Microsoft introduced SMBDirect transport
+protocol
+> for transferring upper layer (SMB2) payload over RDMA via Infiniband, RoCE or
+> iWARP. The prococol is published in [MS-SMBD] (https://msdn.microsoft.com/en-
+> us/library/hh536346.aspx).
+> 
+> The patch v2 added RDMA read/write via memory registration, and addressed
+> feedbacks on v1.
+> 
 
-> 
-> >
-> > I agree, I like your solution better.  Patch fixed up and applied.
-> >
-> 
-> Hey Doug, I see this in your -next branch, but it needs to hit 4.13-rc and stable, as it
-> is a fatal regression that breaks user mode rdma applications.
-> 
-> Thanks,
-> 
-> Steve.
-> 
+Hey Long,
+
+What testing have you done with this on the various rdma transports?  Does it
+work over IB, RoCE, and iWARP providers?
+
+Thanks,
+
+Steve.
 
 
 --
