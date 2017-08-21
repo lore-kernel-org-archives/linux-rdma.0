@@ -1,98 +1,154 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [rdma-next v1 13/22] RDMA/hns: Remove empty functions
-Date: Mon, 21 Aug 2017 08:16:02 +0300
-Message-ID: <20170821051602.GE1724@mtr-leonro.local>
-References: <20170813101816.3120-1-leon@kernel.org>
- <20170813101816.3120-14-leon@kernel.org>
- <CA+sbYW2ZJj2SdchU8M4dZz-KOGSxw2EPX-9oGJhMf3LSzMtA2A@mail.gmail.com>
- <20170818154045.GL23648@mtr-leonro.local>
- <CA+sbYW3LHT3CHX-UmQ_up3VexxoHdaa_Gs3ukanDnApEwPk4Fg@mail.gmail.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next 2/3] RDMA/vmw_pvrdma: Update device query
+ parameters
+Date: Sun, 20 Aug 2017 23:56:26 -0700
+Message-ID: <32182246-e301-4529-c63a-20e616bb6f2a@vmware.com>
+References: <cover.1503073950.git.aditr@vmware.com>
+ <6eb31ebec69c1d28b83cb44e84cdb01ebdec3827.1503073950.git.aditr@vmware.com>
+ <20170820061122.GD18138@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="ZRyEpB+iJ+qUx0kp"
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CA+sbYW3LHT3CHX-UmQ_up3VexxoHdaa_Gs3ukanDnApEwPk4Fg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20170820061122.GD18138-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
---ZRyEpB+iJ+qUx0kp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Aug 21, 2017 at 10:09:10AM +0530, Selvin Xavier wrote:
-> On Fri, Aug 18, 2017 at 9:10 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->
-> >>
-> >> The following patch helps. But it is like a workaround to solve the problem.
-> >>
-> >> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-> >> index d5ca101..59911dd 100644
-> >> --- a/drivers/infiniband/core/cm.c
-> >> +++ b/drivers/infiniband/core/cm.c
-> >> @@ -4189,7 +4189,7 @@ static void cm_add_one(struct ib_device *ib_device)
-> >>                         goto error2;
-> >>
-> >>                 ret = ib_modify_port(ib_device, i, 0, &port_modify);
-> >> -               if (ret)
-> >> +               if (ret && ret != -ENOSYS)
-> >>                         goto error3;
-> >>
-> >>                 count++;
-> >>
-> >> Or should we have the modify_port hook with some basic checks?
+On Sat Aug 19 2017 23:11:22 GMT-0700 (PDT), Leon Romanovsky wrote:
+> On Fri, Aug 18, 2017 at 09:44:48AM -0700, Adit Ranadive wrote:
+> > Added support for two device caps - max_sge_rd, max_fast_reg_page_list_len.
+> > Simplified some of the RoCEv2 versioning code and added 2 more device cap
+> > flags.
 > >
-> > I think that your proposal is right thing to do. The driver should
-> > properly return the status of its callbacks (-ENOSYS) and it is
-> > responsibility of the caller to decide what to do in such case.
+> > Acked-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > Acked-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > ---
+> >  drivers/infiniband/hw/vmw_pvrdma/pvrdma.h         |  1 +
+> >  drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h | 19 ++++++++++---------
+> >  drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c    |  7 +++----
+> >  drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c   |  9 +++++++++
+> >  4 files changed, 23 insertions(+), 13 deletions(-)
 > >
->
-> > The dummy function (return 0) hides the fact that modify_port do
-> > nothing and it can be wrong for some callers.
+> > diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> > index 513a182..ea10155 100644
+> > --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> > +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> > @@ -194,6 +194,7 @@ struct pvrdma_dev {
+> >  	void *resp_slot;
+> >  	unsigned long flags;
+> >  	struct list_head device_link;
+> > +	unsigned int dsr_version;
 > >
-> I am bit confused. You support the proposal to have a modify_port with
-> some basic check.. right?
+> >  	/* Locking and interrupt information. */
+> >  	spinlock_t cmd_lock; /* Command lock. */
+> > diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
+> > index 71df5d1..d947557 100644
+> > --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
+> > +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
+> > @@ -50,7 +50,15 @@
+> >
+> >  #include "pvrdma_verbs.h"
+> >
+> > -#define PVRDMA_VERSION			18
+> > +/*
+> > + * PVRDMA version macros. Some new features require updates to PVRDMA_VERSION.
+> > + * These macros allow us to check for different features if necessary.
+> > + */
+> > +
+> > +#define PVRDMA_ROCEV1_VERSION		17
+> > +#define PVRDMA_ROCEV2_VERSION		18
+> > +#define PVRDMA_VERSION			PVRDMA_ROCEV2_VERSION
+> > +
+> >  #define PVRDMA_BOARD_ID			1
+> >  #define PVRDMA_REV_ID			1
+> >
+> > @@ -123,13 +131,6 @@
+> >  #define PVRDMA_GID_TYPE_FLAG_ROCE_V1	BIT(0)
+> >  #define PVRDMA_GID_TYPE_FLAG_ROCE_V2	BIT(1)
+> >
+> > -/*
+> > - * PVRDMA version macros. Some new features require updates to PVRDMA_VERSION.
+> > - * These macros allow us to check for different features if necessary.
+> > - */
+> > -
+> > -#define PVRDMA_VERSION_ROCEV2_SUPPORT	18
+> > -
+>  
+>  You added it in previous patch of the same series. Please don't send
+>  patches with code which is going to be removed/rewritten immediately.
 
-Sorry for not being clear,
+The previous patch was posted a while back internally. I had to do some cleanup
+(second patch) before sending it out. I'll send out a v1 with this merged into
+the first patch.
 
-Yes, I fully support your suggestion to improve modify_port function.
+>  
+> >  enum pvrdma_pci_resource {
+> >  	PVRDMA_PCI_RESOURCE_MSIX,	/* BAR0: MSI-X, MMIO. */
+> >  	PVRDMA_PCI_RESOURCE_REG,	/* BAR1: Registers, MMIO. */
+> > @@ -232,7 +233,7 @@ struct pvrdma_device_caps {
+> >  	u8  atomic_ops;				/* PVRDMA_ATOMIC_OP_* bits */
+> >  	u8  bmme_flags;				/* FRWR Mem Mgmt Extensions */
+> >  	u8  gid_types;				/* PVRDMA_GID_TYPE_FLAG_ */
+> > -	u8  reserved[4];
+> > +	u32 max_fast_reg_page_list_len;
+> >  };
+> >
+> >  struct pvrdma_ring_page_info {
+> > diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+> > index 6fd5828..ae536a4 100644
+> > --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+> > +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+> > @@ -729,7 +729,6 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
+> >  	int ret;
+> >  	unsigned long start;
+> >  	unsigned long len;
+> > -	unsigned int version;
+> >  	dma_addr_t slot_dma = 0;
+> >
+> >  	dev_dbg(&pdev->dev, "initializing driver %s\n", pci_name(pdev));
+> > @@ -826,9 +825,9 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
+> >  		goto err_unmap_regs;
+> >  	}
+> >
+> > -	version = pvrdma_read_reg(dev, PVRDMA_REG_VERSION);
+> > +	dev->dsr_version = pvrdma_read_reg(dev, PVRDMA_REG_VERSION);
+> >  	dev_info(&pdev->dev, "device version %d, driver version %d\n",
+> > -		 version, PVRDMA_VERSION);
+> > +		 dev->dsr_version, PVRDMA_VERSION);
+> >
+> >  	dev->dsr = dma_alloc_coherent(&pdev->dev, sizeof(*dev->dsr),
+> >  				      &dev->dsrbase, GFP_KERNEL);
+> > @@ -908,7 +907,7 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
+> >  	}
+> >
+> >  	/* PVRDMA supports RoCE V1 or V2. */
+> > -	if (version >= PVRDMA_VERSION_ROCEV2_SUPPORT &&
+> > +	if (dev->dsr_version >= PVRDMA_ROCEV2_VERSION &&
+>  
+>  Your whole idea of version is shaky. You need to move to capability bits per
+>  feature model and not rely on global version. In the near future, your code will
+>  be full of checks like this.
 
-At least that common modify_port function should check the type of port
-and return success for RoCE (see mlx4_ib_modify_port), but need to check
-that mlx5_ib_modify_port won't break after that.
+Why does the type of check matter? We would have to do a check anyway if there
+were capability bits exposed. In our case the global version is essentially the
+feature model for the device given that it isn't as feature rich as some of the
+other RDMA providers so doing a blanket check on the version seems the simplest
+way to go. I think the check here for the version is redundant anyways and can
+remove that in v1.
 
-Thanks
+>  There is a reason why you don't see many device driver here relies on FW version,
+>  which is similar to your versioning scheme.
 
-> > Thanks
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I agree but in our case we can't update the FW version without exposing any new
+capabilities (due to compatibility reasons) so is essentially tied to the
+feature caps. As a compromise I can add a macro that checks the caps so the
+various version checks are a bit less obnoxious.
 
---ZRyEpB+iJ+qUx0kp
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmabJIACgkQ5GN7iDZy
-WKdgCBAAgAagw1TcrouNSbr2NqlAoLI3UQZjdAmsW5YefQKotkBxB75QY/sC1slf
-FEw6LECE+Pr6qXbKNKUKcqli1/LHynAayg3gHrtNXxyKSxZgHDD8XLEy7f/Cuza7
-Vs2m054UYgxQKO6AEMoPG4zWyL4/+9qpvtrK+ECYC7SWrfviV8vzfUfg5rgPZjBa
-+V/vT+MDM0JIG4bqiBoWwMnswgT+MM2E0QtqjGw5nbsNsgqmgIQq5kEL+1jt0Dcm
-DjBE2g7zuxxWsiwrMFOhKT1umjcTf87gtBbHrbKKgxIYURkybSem3woz9uOwkGFW
-FfJFBaDZQp7YQBlDXZZmpn+5kLCmNoMRuQoXS34C2WOVxizi/4c2w1maAaY+uVF2
-LIwU9d91Z4J1vA+y+aaYbFyAwyelMfagZyOp7fCGnX0Eu6s6mIQzqb7rNLmU84sq
-Krk0eXclCq0HrUIgpJiDuZBbbFhMOplzj3gpgeduh+Ouq3QOLcFT44P4EtyRTCTj
-H+3+lvNY5uJTr1RGH+T0yrKZBvUAuR8DCsj0uJ1JYWn+WLY3gcopLVTqEddufGVr
-IvnTUdNM/Fz/XZeIwjUcp2MtlseWnYvNMrJ5sQHBnyKNpXGW6GE7T4Qu9KdSoEuB
-quw3Fz9g4nRwYL/1Ucu6UDwfe2yVn2Jis2unjuEh9loc8xr9Z2Y=
-=5DeY
------END PGP SIGNATURE-----
-
---ZRyEpB+iJ+qUx0kp--
+Thanks,
+Adit
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
