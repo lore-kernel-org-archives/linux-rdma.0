@@ -1,105 +1,30 @@
-From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH V4 net-next] net: hns3: Add support to change MTU in HNS3 hardware
-Date: Mon, 21 Aug 2017 17:05:24 +0100
-Message-ID: <20170821160524.32760-1-salil.mehta@huawei.com>
+From: Christopher Lameter <cl@linux.com>
+Subject: Re: [RFC] mm,drm/i915: Mark pinned shmemfs pages as unevictable
+Date: Mon, 21 Aug 2017 11:29:17 -0500 (CDT)
+Message-ID: <alpine.DEB.2.20.1708211128190.10613@nuc-kabylake>
+References: <20170606120436.8683-1-chris@chris-wilson.co.uk> <20170606121418.GM1189@dhcp22.suse.cz> <150314853540.7354.10275185301153477504@mail.alporthouse.com> <20170821140641.GN25956@dhcp22.suse.cz> <150332781184.13047.15448500819676507290@mail.alporthouse.com>
+ <20170821155737.dewjjal3cou52ruw@hirez.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: davem@davemloft.net
-Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20170821155737.dewjjal3cou52ruw@hirez.programming.kicks-ass.net>
+Sender: owner-linux-mm@kvack.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>, Michal Hocko <mhocko@suse.com>, intel-gfx@lists.freedesktop.org, linux-mm@kvack.org, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Matthew Auld <matthew.auld@intel.com>, Dave Hansen <dave.hansen@intel.com>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds the following support to the HNS3 driver:
-1. Support to change the Maximum Transmission Unit of a
-   port in the HNS NIC hardware.
-2. Initializes the supported MTU range for the netdevice.
+On Mon, 21 Aug 2017, Peter Zijlstra wrote:
 
-Signed-off-by: lipeng <lipeng321@huawei.com>
-Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
-Reviewed-by: Andrew Lunn <andrew@lunn.ch>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
----
-PATCH V4: Addressed comments given by Leon Romanovsky
-          1. https://lkml.org/lkml/2017/8/21/212
-PATCH V3: Addressed comments given by Leon Romanovsky
-          1. https://lkml.org/lkml/2017/8/20/27
-PATCH V2: Addressed comments given by Andrew Lunn
-          1. https://lkml.org/lkml/2017/8/18/282
-PATCH V1: Initial Submit
----
- .../net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c | 34 ++++++++++++++++++++++
- .../net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h |  1 +
- 2 files changed, 35 insertions(+)
+> > Peter, is that the latest version?
+>
+> Probably, I ran into the Infiniband code and couldn't convince anybody
+> to help me out :/ Its been stale for a few years now I'm afraid.
 
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
-index e731f87..1c3e294 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
-@@ -1278,11 +1278,42 @@ static int hns3_ndo_set_vf_vlan(struct net_device *netdev, int vf, u16 vlan,
- 	return ret;
- }
- 
-+static int hns3_nic_change_mtu(struct net_device *netdev, int new_mtu)
-+{
-+	struct hns3_nic_priv *priv = netdev_priv(netdev);
-+	struct hnae3_handle *h = priv->ae_handle;
-+	bool if_running = netif_running(netdev);
-+	int ret;
-+
-+	if (!h->ae_algo->ops->set_mtu)
-+		return -EOPNOTSUPP;
-+
-+	/* if this was called with netdev up then bring netdevice down */
-+	if (if_running) {
-+		(void)hns3_nic_net_stop(netdev);
-+		msleep(100);
-+	}
-+
-+	ret = h->ae_algo->ops->set_mtu(h, new_mtu);
-+	if (ret) {
-+		netdev_err(netdev, "failed to change MTU in hardware %d\n",
-+			   ret);
-+		return ret;
-+	}
-+
-+	/* if the netdev was running earlier, bring it up again */
-+	if (if_running && hns3_nic_net_open(netdev))
-+		ret = -EINVAL;
-+
-+	return ret;
-+}
-+
- static const struct net_device_ops hns3_nic_netdev_ops = {
- 	.ndo_open		= hns3_nic_net_open,
- 	.ndo_stop		= hns3_nic_net_stop,
- 	.ndo_start_xmit		= hns3_nic_net_xmit,
- 	.ndo_set_mac_address	= hns3_nic_net_set_mac_address,
-+	.ndo_change_mtu		= hns3_nic_change_mtu,
- 	.ndo_set_features	= hns3_nic_set_features,
- 	.ndo_get_stats64	= hns3_nic_get_stats64,
- 	.ndo_setup_tc		= hns3_nic_setup_tc,
-@@ -2752,6 +2783,9 @@ static int hns3_client_init(struct hnae3_handle *handle)
- 		goto out_reg_netdev_fail;
- 	}
- 
-+	/* MTU range: (ETH_MIN_MTU(kernel default) - 9706) */
-+	netdev->max_mtu = HNS3_MAX_MTU - (ETH_HLEN + ETH_FCS_LEN + VLAN_HLEN);
-+
- 	return ret;
- 
- out_reg_netdev_fail:
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h
-index a6e8f15..7e87461 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h
-@@ -76,6 +76,7 @@ enum hns3_nic_state {
- #define HNS3_RING_NAME_LEN			16
- #define HNS3_BUFFER_SIZE_2048			2048
- #define HNS3_RING_MAX_PENDING			32768
-+#define HNS3_MAX_MTU				9728
- 
- #define HNS3_BD_SIZE_512_TYPE			0
- #define HNS3_BD_SIZE_1024_TYPE			1
--- 
-2.7.4
+What help do you need? CCing linux-rdma....
+
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
