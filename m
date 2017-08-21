@@ -1,49 +1,80 @@
-From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [PATCH rdma-core] util: fix bad argument passed to
- s390_mmio_write
-Date: Mon, 21 Aug 2017 16:26:33 +0200
-Message-ID: <75eaeecd-68f0-ac8f-a948-e972ed9d5ec9@suse.de>
-References: <a30f4084-1f1b-44c3-ac03-c627586e0604@suse.de>
- <20170804153528.GB9472@obsidianresearch.com>
+From: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH for-next 0/8] RDMA/qedr: Add iWARP support for QL4xxxx
+Date: Mon, 21 Aug 2017 14:29:13 +0000
+Message-ID: <DM2PR0701MB1392B1F6FB49D027801AFC6788870@DM2PR0701MB1392.namprd07.prod.outlook.com>
+References: <1501069317-16601-1-git-send-email-Michal.Kalderon@cavium.com>
+ <1503073970.2598.24.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170804153528.GB9472-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: fr-xx-classique+reforme1990
+In-Reply-To: <1503073970.2598.24.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
-
-This is an easy enough compilation fix.
-Could we get it in for v15 ?
-
-Nicolas
-
-Le 04/08/2017 à 17:35, Jason Gunthorpe a écrit :
-> Reviewed-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
->
-> On Fri, Aug 04, 2017 at 11:20:47AM +0200, Nicolas Morey-Chaisemartin wrote:
->> Signed-off-by: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-IBi9RG/b67k@public.gmane.org>
->>  util/mmio.h | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/util/mmio.h b/util/mmio.h
->> index be22fb76..101af9dd 100644
->> +++ b/util/mmio.h
->> @@ -208,7 +208,7 @@ __le64 mmio_read64_le(const void *addr);
->>  #ifdef __s390x__
->>  static inline void mmio_memcpy_x64(void *dest, const void *src, size_t bytecnt)
->>  {
->> -	s390_mmio_write(addr, src, bytecnt);
->> +	s390_mmio_write(dest, src, bytecnt);
->>  }
->>  #else
->>  
-
+PiBGcm9tOiBEb3VnIExlZGZvcmQgW21haWx0bzpkbGVkZm9yZEByZWRoYXQuY29tXQ0KPiBTZW50
+OiBGcmlkYXksIEF1Z3VzdCAxOCwgMjAxNyA3OjMzIFBNDQo+IA0KPiBPbiBXZWQsIDIwMTctMDct
+MjYgYXQgMTQ6NDEgKzAzMDAsIE1pY2hhbCBLYWxkZXJvbiB3cm90ZToNCj4gPiBIaSBEb3VnLA0K
+PiA+DQo+ID4gVGhpcyBwYXRjaCBzZXJpZXMgYWRkcyBpV0FSUCBzdXBwb3J0IHRvIG91ciBRTDR4
+eHh4IG5ldHdvcmtpbmcNCj4gPiBhZGFwdGVycy4NCj4gPg0KPiA+IFRoZSBmaXJzdCA2IHBhdGNo
+ZXMgb2YgdGhpcyBzZXJpZXMgd2VyZSBwcmV2aW91c2x5IHNlbnQgYXMgYW4gUkZDDQo+ID4gKHBh
+dGNoZXMgMTMtMTgpOiBodHRwczovL3d3dy5zcGluaWNzLm5ldC9saXN0cy9saW51eC1yZG1hL21z
+ZzUxNDE2Lmh0DQo+ID4gbWwNCj4gPiBUaGUgcWVkIHBhcnQgb2YgdGhlIFJGQyBoYXMgYWxyZWFk
+eSBiZWVuIGFjY2VwdGVkIGFzIHBhcnQgb2YgNC4xMzoNCj4gPiBodHRwczovL3d3dy5zcGluaWNz
+Lm5ldC9saXN0cy9uZXRkZXYvbXNnNDQzMjI0Lmh0bWwNCj4gPg0KPiA+IENoYW5nZXMgZnJvbSBS
+RkM6DQo+ID4gLS0tLS0tLS0tLS0tLS0tLS0NCj4gPiAqIEZ1bmN0aW9ucyByZG1hX3Byb3RvY29s
+X2l3YXJwL3JvY2UsIGFyZSB1c2VkIGluc3RlYWQgb2YNCj4gPiBJU19JV0FSUC9JU19ST0NFIG1h
+Y3JvcyB3aGVuIGRpZmZlcmVudGlhdGluZyBmbG93cyBhZnRlciBkZXZpY2UNCj4gPiByZWdpc3Ry
+YXRpb24uDQo+ID4gUG9pbnRlZCBvdXQgYnkgTGVvbg0KPiA+ICogQWRkaXRpb25hbCBwYXRjaCBp
+cyBhZGRlZCBmb3IgdXNlciBzcGFjZSBpV0FSUCBzdXBwb3J0Lg0KPiA+ICogQWRkaXRpb25hbCBt
+YWludGFpbmVyIGFkZGVkIGZvciBxZWRyIGZvciBNQUlOVEFJTkVSUy4NCj4gPg0KPiA+IFRoaXMg
+c2VyaWVzIHdhcyB0ZXN0ZWQgYW5kIGJ1aWx0IGFnYWluc3Q6DQo+ID4gZ2l0Oi8vZ2l0aHViLmNv
+bS9kbGVkZm9yZC9saW51eC5naXQsIGJyYW5jaDogay5vL2Zvci1uZXh0DQo+ID4NCj4gPiBNaWNo
+YWwgS2FsZGVyb24gKDgpOg0KPiA+ICAgUkRNQS9xZWRyOiBBZGQgYWRkaXRpb25hbCBtYWludGFp
+bmVyIHRvIE1BSU5UQUlORVJTIGZpbGUNCj4gPiAgIFJETUEvcWVkcjogUmVuYW1lIHRoZSBxZWRy
+X2NtIGZpbGUgYXMgYSBwcmVwYXJhdGlvbiBmb3IgaVdBUlANCj4gPiBzdXBwb3J0DQo+ID4gICBS
+RE1BL3FlZHI6IEFkZCBzdXBwb3J0IGZvciByZWdpc3RlcmluZyBhbiBpV0FSUCBkZXZpY2UNCj4g
+PiAgIFJETUEvcWVkcjogQWRkIGlXQVJQIHN1cHBvcnQgaW4gZXhpc3RpbmcgdmVyYnMNCj4gPiAg
+IFJETUEvcWVkcjogQWRkIHN1cHBvcnQgZm9yIHJlYWQgd2l0aCBpbnZhbGlkYXRlLCBzdXBwb3J0
+ZWQgaW4gaVdBUlANCj4gPiAgIFJETUEvcWVkcjogQWRkIGlXQVJQIGNvbm5lY3Rpb24gbWFuYWdl
+bWVudCBxcCByZWxhdGVkIGNhbGxiYWNrcw0KPiA+ICAgUkRNQS9xZWRyOiBBZGQgaVdBUlAgY29u
+bmVjdGlvbiBtYW5hZ2VtZW50IGZ1bmN0aW9ucw0KPiA+ICAgUkRNQS9xZWRyOiBBZGQgc3VwcG9y
+dCBmb3IgaVdBUlAgaW4gdXNlciBzcGFjZQ0KPiA+DQo+ID4gIE1BSU5UQUlORVJTICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAxICsNCj4gPiAgZHJpdmVycy9pbmZp
+bmliYW5kL2h3L3FlZHIvTWFrZWZpbGUgICAgICAgICAgICAgICAgfCAgIDIgKy0NCj4gPiAgZHJp
+dmVycy9pbmZpbmliYW5kL2h3L3FlZHIvbWFpbi5jICAgICAgICAgICAgICAgICAgfCAxMDUgKyst
+DQo+ID4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9xZWRyL3FlZHIuaCAgICAgICAgICAgICAgICAg
+IHwgIDMxICstDQo+ID4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9xZWRyL3FlZHJfaHNpX3JkbWEu
+aCAgICAgICAgIHwgICA2ICstDQo+ID4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9xZWRyL3FlZHJf
+aXdfY20uYyAgICAgICAgICAgIHwgNzQ2DQo+ID4gKysrKysrKysrKysrKysrKysrKysrDQo+ID4g
+IGRyaXZlcnMvaW5maW5pYmFuZC9ody9xZWRyL3FlZHJfaXdfY20uaCAgICAgICAgICAgIHwgIDQ5
+ICsrDQo+ID4gIC4uLi9ody9xZWRyL3txZWRyX2NtLmMgPT4gcWVkcl9yb2NlX2NtLmN9ICAgICAg
+ICAgIHwgICAyICstDQo+ID4gIC4uLi9ody9xZWRyL3txZWRyX2NtLmggPT4gcWVkcl9yb2NlX2Nt
+Lmh9ICAgICAgICAgIHwgICAwDQo+ID4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9xZWRyL3ZlcmJz
+LmMgICAgICAgICAgICAgICAgIHwgMzUwICsrKysrKystLS0NCj4gPiAgZHJpdmVycy9pbmZpbmli
+YW5kL2h3L3FlZHIvdmVyYnMuaCAgICAgICAgICAgICAgICAgfCAgIDIgKw0KPiA+ICAxMSBmaWxl
+cyBjaGFuZ2VkLCAxMjAzIGluc2VydGlvbnMoKyksIDkxIGRlbGV0aW9ucygtKSAgY3JlYXRlIG1v
+ZGUNCj4gPiAxMDA2NDQgZHJpdmVycy9pbmZpbmliYW5kL2h3L3FlZHIvcWVkcl9pd19jbS5jDQo+
+ID4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL2luZmluaWJhbmQvaHcvcWVkci9xZWRyX2l3
+X2NtLmgNCj4gPiAgcmVuYW1lIGRyaXZlcnMvaW5maW5pYmFuZC9ody9xZWRyL3txZWRyX2NtLmMg
+PT4gcWVkcl9yb2NlX2NtLmN9DQo+ID4gKDk5JSkNCj4gPiAgcmVuYW1lIGRyaXZlcnMvaW5maW5p
+YmFuZC9ody9xZWRyL3txZWRyX2NtLmggPT4gcWVkcl9yb2NlX2NtLmh9DQo+ID4gKDEwMCUpDQo+
+IA0KPiBJJ3ZlIHB1bGxlZCB0aGlzIGludG8gYSBicmFuY2ggYW5kIHB1c2hlZCB0aGF0IGJyYW5j
+aCB0byBnaXRodWIuICBJdCdzIHRoZSBxZWRyDQo+IGJyYW5jaC4gIFRoZXJlIHdhcyBzb21lIGZ1
+enogaW4gdGFraW5nIHRoZSBwYXRjaGVzIGp1c3QgZHVlIHRvIGNvZGUgZmxvYXQNCj4gc2luY2Ug
+eW91IHBvc3RlZCB0aGlzLiAgUGxlYXNlIHJldmlldyBteSBicmFuY2ggYW5kIG1ha2Ugc3VyZSB0
+aGUgZmluYWwNCj4gcmVzdWx0IGlzIHRvIHlvdXIgc2F0aXNmYWN0aW9uLg0KDQpUaGFua3MgRG91
+ZyEgSSBsb29rZWQgYXQgay5vL2Zvci1uZXh0LW1lcmdlZCBicmFuY2ggKCBkaWRuJ3Qgc2VlIGEg
+cWVkciBicmFuY2ggKSANClFlZHIgRmlsZXMgaW4gdGhpcyBicmFuY2ggbG9vayBnb29kIGFuZCBh
+cyBleHBlY3RlZC4NCkNvdWxkIHlvdSBwbGVhc2UgY2xhcmlmeSB3aGljaCBrZXJuZWwgdmVyc2lv
+biB0aGUgIGZvci1uZXh0LW1lcmdlZCBicmFuY2ggaXMgaW50ZW5kZWQgZm9yID8gNC4xND8gDQpJ
+IGhhdmUgYWRkaXRpb25hbCBpV0FSUCBwYXRjaGVzIGZvciBuZXQtbmV4dCwgd291bGQgbGlrZSB0
+byBrbm93IHdoaWNoIGtlcm5lbCB2ZXJzaW9uIHRvIGFpbSB0aGVtIGZvciBzbyB0aGF0IHRoZXkN
+CkRvbid0IG1ha2UgaXQgaW4gYmVmb3JlIHRoaXMgcGF0Y2ggc2VyaWVzLiANCg0KVGhhbmtzIQ0K
+TWljaGFsDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
