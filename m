@@ -1,79 +1,80 @@
-From: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [ANNOUNCE] rdma-core-15-rc1 has been tagged/released
-Date: Mon, 21 Aug 2017 19:51:37 +0800
-Message-ID: <fd64f323-510d-89b7-7ffe-36d182a059df@huawei.com>
-References: <1501590709.2725.10.camel@redhat.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: Possible rdma-core header conflict
+Date: Mon, 21 Aug 2017 15:03:10 +0300
+Message-ID: <20170821120310.GL1724@mtr-leonro.local>
+References: <CACTTzNa3EzABie9=h2X-ONBefyaoWE1+RAT-T+uxJVvVij15Rg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="f54savKjS/tSNRaU"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1501590709.2725.10.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CACTTzNa3EzABie9=h2X-ONBefyaoWE1+RAT-T+uxJVvVij15Rg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yigal Korman <yigal-/8YdC2HfS5554TAoqtyWWQ@public.gmane.org>
+Cc: Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-在 2017/8/1 20:31, Doug Ledford 写道:
-> Here's the information from the tag:
->
-> tag v15-rc1
-> Tagger: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> Date:   Tue Aug 1 08:18:05 2017 -0400
->
-> rdma-core-15-rc1
->
-> Updates from rdma-core version 14:
->
-> - Add flow steering drop action
-> - mmio_flush_write fixes
-> - Fixes for uclibc
-> - Add common mmio accessor routines and remove per provider mmio
->   routines
-> - qedr fixes
-> - Lots of fixes for debian packaging
-> - Copyright fixes
-> - Properly conflict with infiniband-diags
-> - Add direct verbs support to mlx4 provider
-> - Improvement to Travis CI checking
-> - Enforce kernel coding style in rdma-core
-> - Add initial verbs hotplug support
-> - Sparse annotations
-> - Systemd updates for srp_daemon and iwpmd
-> - Red Hat packaging fixes
-> - Properly make the entire rdma-core support udev hotplug activation
-> - Packaging fixes related to the joining of packages and globs that are
->   no longer valid
-> -----BEGIN PGP SIGNATURE-----
->
-> iQIcBAABAgAGBQJZgHNpAAoJELgmozMOVy/djucQAKEN9HSobCNJU7ZXxvN99uLO
-> 4o3N17jDSzY8EfqGYX1n/1/+SxB0o3qsysNgW7I8FqQZOjz0DjlhEwP3J9HnD0Hb
-> wE/tu4mbDRurtgh+qaNcxRLrzED6/lqn1PSvePjKg6T81jfzfvXOx+2LYb4r5oEe
-> KIcj/bCE+aGyySm6gDiKVxm8oVRvvQp/NfqqMNVhbGz9Ezi2ZJkfG/FOTo0jFDwX
-> xzrAAAv9iTpmm7Hp2vJkHV65zPEoMXuSlu7vRUjaOWeboyIJLwur9OyMu+fkWWvX
-> EV3fckwseqBhOvuxmV9ZhEbfgxvt6UIwRSBtvnPbgIukBWWQlVkCT5aehceQWUpY
-> guEsxb4LvbIeYTEfrfhCLF/l9BI/QfQ+SZmeWe3LAox2K0fxzOIbUU1Lki/vRsuf
-> jvZwIuD6JVRhi2FQNNePms3/wayZcRZxjbMnPE5WbSfRxXDa/28dTaMbp+VoBiex
-> On2ykJT5qBTYRPIgPL3wHqdNTsh4gsYHAaCQzDR2z0zESuNXB0bcbFcRkgBSNaAb
-> cvN0QrpkNMAsmqSRXsDbcPj/Pb3yUuTf+ZSaXxL6SafnFvb1xH4P7thWC9wGVcw3
-> XHkZzu+BEUwMzJkZzNnCu3IXECF8PKk6GttuxhYPvzZ0DK6Ve8qpdzoKgvgZNlZ5
-> Wy9pRgI9q7qRe9NoZUKX
-> =sqn3
-> -----END PGP SIGNATURE-----
->
-> This is a little bit late, so it would be best to keep -rc cycles on it
-> to a minimum and get the final version pushed out soon.  With the
-> "excitement" of this last release cycle/merge window, this slipped my
-> mind.  My apologies.
->
-> It's available at the normal places:
->
-> git://github.com/linux-rdma/rdma-core
-> https://github.com/linux-rdma/rdma-core/releases
->
-if I need to upstream for user driver, which branch should be based on, rc-15 or others?
 
-Besides,  what's relation the rdma-core-15-rc1 with OFED-x.x?
+--f54savKjS/tSNRaU
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Mon, Aug 21, 2017 at 12:24:14PM +0300, Yigal Korman wrote:
+> Hi,
+> Has anyone noticed that installing rdma-core (or older
+> librdmacm-devel) package and then installing kernel headers manually
+> (make headers_install) removes the librdmacm headers?
+> I actually see it in the make output:
+>
+> make INSTALL_HDR_PATH=3D/usr headers_install
+>   CHK     include/generated/uapi/linux/version.h
+>   REMOVE  rdma_cma_abi.h rdma_verbs.h rdma_cma.h rsocket.h
+>
+> Am I doing something wrong?
+> Sounds like the kernel rdma headers and librdmacm headers shouldn't
+> sit in the same directory...
 
+It looks like this behavior (removal of header files) was from the beginnin=
+g of git era.
+=E2=9E=9C  linux-rdma git:(rdma-next) =E2=9C=97 git co -b tmp v2.6.34.8
+=E2=9E=9C  linux-rdma git:(tmp) =E2=9C=97 cp ~/src/rdma-core/librdmacm/rdma=
+_verbs.h /tmp/h/include/rdma/ && make INSTALL_HDR_PATH=3D/tmp/h headers_ins=
+tall | grep REMOVE
+  REMOVE  rdma_verbs.h
+
+Thanks
+
+>
+>
+> Thanks,
+> Yigal
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--f54savKjS/tSNRaU
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmay/4ACgkQ5GN7iDZy
+WKeH4RAAjk3EvwRZAubV4aeHX+rcyl1Dp5bPqnf2AFqpsJtHHHfxAz7kXBf72GZ1
+OEyeIn18wzIfi1HLHLeB/KOqxmIJ13zRCSC6MX2EBohINa95PgXdQYcXRimMdbI2
+HUBovdIBmicKAus+x19v3wMCWL7b3xp0qZh1LvX+FOLmu2f5GgTUV6ak9m82TvAW
+TRveduMv+ZzgEQFqkUPlEyCa+oOy0bwAlsORe2Vg05bWbqJ5yda6079HONMQWWCv
+muj3OnDc7jr9OYScu7WpMQX3pEbtyCLucdqpBJIgtlRFxQ+ybdPShZJ7EMcKFZHj
+GT43sN76TpaVE6o3GmCmBuBLSHMTPCKpv5kkwZrl57Zt7g+1+RrgVIz6kZ9vpHb4
+ifA28b7AZVANljG6cjglKp8eCOENBDhguBj9dFmDIdHP2Hb6pnMLuC0N1k9fYia0
+HBk/sIWEO7783i4nfgkxgqdCowGT5dMkL1QwrHSfRkEJ8g3FdhCylTM+e4+kDVV8
+MO+7tlucTvDxJOCbo9e+bCi4WZ9t+lg7j2u2PGE2rFLzLqz0DFJjWgBNWI6IMDhh
+fOZ9Efm+c1pg6Q4yH3RlK3suqVX0D6DCjtMpZx0e0qxOES5YFfN5WUVLDMP4LVS7
+NA0sh39K13irujXfpiyIrqC1HGs3DnVmIw552PU1UWgL13/HK+8=
+=PTFK
+-----END PGP SIGNATURE-----
+
+--f54savKjS/tSNRaU--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
