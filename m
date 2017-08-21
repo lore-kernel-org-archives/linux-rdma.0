@@ -1,127 +1,103 @@
-From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: Re: [ANNOUNCE] rdma-core-15-rc1 has been tagged/released
-Date: Mon, 21 Aug 2017 12:01:25 +0200
-Message-ID: <1503309685.3742.2.camel@profitbricks.com>
-References: <1501590709.2725.10.camel@redhat.com>
-         <20170802054512.GW13672@mtr-leonro.local>
-         <1501761459.117042.5.camel@redhat.com>
-         <20170816080523.GG24282@mtr-leonro.local>
-         <1502902372.33760.17.camel@redhat.com>
-         <20170816175144.GX24282@mtr-leonro.local>
-         <1502961063.3554.3.camel@profitbricks.com>
-         <20170817093648.GD23648@mtr-leonro.local>
-         <1502965632.3554.5.camel@profitbricks.com>
-         <20170817130332.GF23648@mtr-leonro.local>
-         <1502976171.3554.6.camel@profitbricks.com>
+From: Salil Mehta <salil.mehta@huawei.com>
+Subject: [PATCH V3 net-next] net: hns3: Add support to change MTU in HNS3 hardware
+Date: Mon, 21 Aug 2017 11:12:23 +0100
+Message-ID: <20170821101223.111852-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-ik6fhLHfKC9zs3eaUqJF"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1502976171.3554.6.camel-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, lipeng321@huawei.com, mehta.salil.lnk@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
+This patch adds the following support to the HNS3 driver:
+1. Support to change the Maximum Transmission Unit of a
+   of a port in the HNS NIC hardware.
+2. Initializes the supported MTU range for the netdevice.
 
---=-ik6fhLHfKC9zs3eaUqJF
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: lipeng <lipeng321@huawei.com>
+Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
+---
+PATCH V3: Addressed some minor comments Leon Romanovsky
+          1. https://lkml.org/lkml/2017/8/20/27
+PATCH V2: Addresses comments given by Andrew Lunn
+          1. https://lkml.org/lkml/2017/8/18/282
+PATCH V1: Initial Submit
+---
+ .../net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c | 36 ++++++++++++++++++++++
+ .../net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h |  1 +
+ 2 files changed, 37 insertions(+)
 
-Am Donnerstag, den 17.08.2017, 15:22 +0200 schrieb Benjamin Drung:
-> Am Donnerstag, den 17.08.2017, 16:03 +0300 schrieb Leon Romanovsky:
-> > On Thu, Aug 17, 2017 at 12:27:12PM +0200, Benjamin Drung wrote:
-> > > Am Donnerstag, den 17.08.2017, 12:36 +0300 schrieb Leon
-> > > Romanovsky:
-> > > > On Thu, Aug 17, 2017 at 11:11:03AM +0200, Benjamin Drung wrote:
-> > > > > Am Mittwoch, den 16.08.2017, 20:51 +0300 schrieb Leon
-> > > > > Romanovsky:
-> > > > > > On Wed, Aug 16, 2017 at 12:52:52PM -0400, Doug Ledford
-> > > > > > wrote:
-> > > > > > > And I know this particular thread is in reference to the
-> > > > > > > rdma-
-> > > > > > > core
-> > > > > > > package, I haven't forgotten it, I just haven't had a
-> > > > > > > chance to
-> > > > > > > test it
-> > > > > > > yet :-/.
-> > > > > > >=20
-> > > > > >=20
-> > > > > > Thanks for the update, I asked it in context of rdma-core,
-> > > > > > because
-> > > > > > Yishai stopped submissions of all our user space patches
-> > > > > > till
-> > > > > > the
-> > > > > > official release and it included my one-liner fix to
-> > > > > > ibv_xsrq_pinpong
-> > > > > > :)
-> > > > >=20
-> > > > > As Debian maintainer, I am waiting for the rdma-core release
-> > > > > to
-> > > > > finally
-> > > > > upload that version to Debian unstable. There is no required
-> > > > > improvement from my side any more.
-> > > >=20
-> > > > This is excellent news, so the rdma-core will be part of Ubuntu
-> > > > 17.10
-> > > > too.
-> > >=20
-> > > I just checked https://wiki.ubuntu.com/ArtfulAardvark/ReleaseSche
-> > > du
-> > > le
-> > > and saw that the feature freeze will be in one week. So I have to
-> > > create a rdma-core snapshot now and upload that to Ubuntu.
-> >=20
-> > Can you wait till Sunday with this "now"?
-> > We have very simple fix to our mlx5 direct verbs API and it is
-> > important
-> > to update it before it spreads.
->=20
-> Okay.
-
-Upload of 15~rc1+git20170821 (git commit b36d8a15) to Ubuntu done. It's
-in the upload queue now: https://launchpad.net/ubuntu/artful/+queue
-
---=20
-Benjamin Drung
-System Developer
-Debian & Ubuntu Developer
-
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
-
-Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-Web:=C2=A0https://www.profitbricks.com
-
-Sitz der Gesellschaft: Berlin.
-Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-Gesch=C3=A4ftsf=C3=BChrer: Achim Weiss.
-
---=-ik6fhLHfKC9zs3eaUqJF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAABCAAGBQJZmq91AAoJEN2M1aXejH564ioP/13BjfVQGrCN6MDllKNscvk9
-7yghI/lkPA0gNm8sYb0rHXYIJuGyX3Y3niSFhMpy0HbaETH7vJX63yrp7D/XSdXM
-clhPJT89yyAYKw6AmQxIEg2FqVlsfFvdlQCu5uZKbehrCGAO9gYHEJbHsm+QpuOR
-5bW6grkfBGogrxf4TCunrR2YzjO5xKGzRL45ToYM4LdoRusW4alr9IqUVVwT53BU
-gbyF9syRY9VMBh/IJB0a3tZCYO/5TRZiU4K0SdhTOLcxUhZbTK1SE8l2vLvUUzee
-AokelyvgVa+EAWCc0RE5kBApB1BOseWo6TgxsQdnNgThp7MXgkjUAVnhnsh6h12c
-GBczIdBomtKzhRex2rfE+zV6tLKujE+DjEmCla6qXMrSXD48bhLDPx+Hif3K40kA
-0GIKBwiDSNJX8Qc4PlxslGpoTjUPkfZVnhF8NS39XNLyySNJVVlyJ+/kUFJ7FO9l
-uwO67xpwlrIp16CSNUtNtwmZ8icCl4K2OkvwyBGHDpkceX909Bf5knEDFI/bcYmI
-LebA5gW0EpZ7/7+jkKJSOdtmUw3bA7psJKMQ8989HoOHfoiOvrKKCjJUMvA2R9tG
-y9nACi8JsEnordIySlTFV2pVG0YAzCRr+CjMkJo6RQairxstfdYBu2KGi+0pL+Q/
-pQapKWtYjlArF1cdH5lE
-=11/I
------END PGP SIGNATURE-----
-
---=-ik6fhLHfKC9zs3eaUqJF--
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
+index e731f87..c087a9f 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
+@@ -1278,11 +1278,44 @@ static int hns3_ndo_set_vf_vlan(struct net_device *netdev, int vf, u16 vlan,
+ 	return ret;
+ }
+ 
++static int hns3_nic_change_mtu(struct net_device *netdev, int new_mtu)
++{
++	struct hns3_nic_priv *priv = netdev_priv(netdev);
++	struct hnae3_handle *h = priv->ae_handle;
++	bool if_running = netif_running(netdev);
++	int ret;
++
++	if (!h->ae_algo->ops->set_mtu)
++		return -ENOTSUPP;
++
++	/* if this was called with netdev up then bring netdevice down */
++	if (if_running) {
++		(void)hns3_nic_net_stop(netdev);
++		msleep(100);
++	}
++
++	ret = h->ae_algo->ops->set_mtu(h, new_mtu);
++	if (ret) {
++		netdev_err(netdev, "failed to change MTU in hardware %d\n",
++			   ret);
++		return ret;
++	}
++
++	/* if the netdev was running earlier, bring it up again */
++	if (if_running) {
++		if (hns3_nic_net_open(netdev))
++			ret = -EINVAL;
++	}
++
++	return ret;
++}
++
+ static const struct net_device_ops hns3_nic_netdev_ops = {
+ 	.ndo_open		= hns3_nic_net_open,
+ 	.ndo_stop		= hns3_nic_net_stop,
+ 	.ndo_start_xmit		= hns3_nic_net_xmit,
+ 	.ndo_set_mac_address	= hns3_nic_net_set_mac_address,
++	.ndo_change_mtu		= hns3_nic_change_mtu,
+ 	.ndo_set_features	= hns3_nic_set_features,
+ 	.ndo_get_stats64	= hns3_nic_get_stats64,
+ 	.ndo_setup_tc		= hns3_nic_setup_tc,
+@@ -2752,6 +2785,9 @@ static int hns3_client_init(struct hnae3_handle *handle)
+ 		goto out_reg_netdev_fail;
+ 	}
+ 
++	/* MTU range: (ETH_MIN_MTU(kernel default) - 9706) */
++	netdev->max_mtu = HNS3_MAX_MTU - (ETH_HLEN + ETH_FCS_LEN + VLAN_HLEN);
++
+ 	return ret;
+ 
+ out_reg_netdev_fail:
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h
+index a6e8f15..7e87461 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h
+@@ -76,6 +76,7 @@ enum hns3_nic_state {
+ #define HNS3_RING_NAME_LEN			16
+ #define HNS3_BUFFER_SIZE_2048			2048
+ #define HNS3_RING_MAX_PENDING			32768
++#define HNS3_MAX_MTU				9728
+ 
+ #define HNS3_BD_SIZE_512_TYPE			0
+ #define HNS3_BD_SIZE_1024_TYPE			1
+-- 
+2.7.4
