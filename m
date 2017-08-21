@@ -1,62 +1,67 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core] util: fix bad argument passed to
- s390_mmio_write
-Date: Mon, 21 Aug 2017 17:55:43 +0300
-Message-ID: <20170821145543.GP1724@mtr-leonro.local>
-References: <a30f4084-1f1b-44c3-ac03-c627586e0604@suse.de>
- <20170804153528.GB9472@obsidianresearch.com>
- <75eaeecd-68f0-ac8f-a948-e972ed9d5ec9@suse.de>
+From: Salil Mehta <salil.mehta@huawei.com>
+Subject: RE: [PATCH V4 net-next] net: hns3: Add support to change MTU in
+ HNS3 hardware
+Date: Mon, 21 Aug 2017 14:58:46 +0000
+Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F93B875735@FRAEML521-MBX.china.huawei.com>
+References: <20170821144003.49436-1-salil.mehta@huawei.com>
+ <20170821144838.GO1724@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="NDuspjMMC1Ui5ypn"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <75eaeecd-68f0-ac8f-a948-e972ed9d5ec9-l3A5Bk7waGM@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20170821144838.GO1724@mtr-leonro.local>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: "davem@davemloft.net" <davem@davemloft.net>, "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>, "lipeng (Y)" <lipeng321@huawei.com>, "mehta.salil.lnk@gmail.com" <mehta.salil.lnk@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Leon,
 
---NDuspjMMC1Ui5ypn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> -----Original Message-----
+> From: Leon Romanovsky [mailto:leon@kernel.org]
+> Sent: Monday, August 21, 2017 3:49 PM
+> To: Salil Mehta
+> Cc: davem@davemloft.net; Zhuangyuzeng (Yisen); lipeng (Y);
+> mehta.salil.lnk@gmail.com; netdev@vger.kernel.org; linux-
+> kernel@vger.kernel.org; linux-rdma@vger.kernel.org; Linuxarm
+> Subject: Re: [PATCH V4 net-next] net: hns3: Add support to change MTU
+> in HNS3 hardware
+> 
+> On Mon, Aug 21, 2017 at 03:40:03PM +0100, Salil Mehta wrote:
+> > This patch adds the following support to the HNS3 driver:
+> > 1. Support to change the Maximum Transmission Unit of a
+> >    port in the HNS NIC hardware.
+> > 2. Initializes the supported MTU range for the netdevice.
+> >
+> > Signed-off-by: lipeng <lipeng321@huawei.com>
+> > Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
+> > ---
+> > PATCH V4: Addressed some minor comments Leon Romanovsky
+> >           1. https://lkml.org/lkml/2017/8/21/212
+> > PATCH V3: Addressed some minor comments Leon Romanovsky
+> >           1. https://lkml.org/lkml/2017/8/20/27
+> > PATCH V2: Addresses comments given by Andrew Lunn
+> >           1. https://lkml.org/lkml/2017/8/18/282
+> > PATCH V1: Initial Submit
+> > ---
+> >  .../net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c | 34
+> ++++++++++++++++++++++
+> >  .../net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.h |  1 +
+> >  2 files changed, 35 insertions(+)
+> >
+> 
+> Wrong error code is not "minor" comment.
+Sorry for the wrong terminology used. Both of the comments
+were definitely useful and I have taken into consideration
+both of them in my recent patch. I think I missed it while
+replying, saw it while and created the patch later.
+Sorry for that again.
 
-On Mon, Aug 21, 2017 at 04:26:33PM +0200, Nicolas Morey-Chaisemartin wrote:
-> Hi,
->
-> This is an easy enough compilation fix.
-> Could we get it in for v15 ?
+I will correct this in my subsequent patch.
 
-Sorry,
-It looks like that I missed it.
-
-It is applied now.
-
-Thanks
-
---NDuspjMMC1Ui5ypn
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlma9G4ACgkQ5GN7iDZy
-WKeyyxAAgikCcJvR6OdLr2UJIR9pSGD5wCn+HhYmPrGrOrb78tAV9BV+hvqLN31p
-1aH1CWThQxuIi3Ap6Qwp5JFrsgoAIuwHJ5kUZFMiGE40SMRbArq1Yjg9K+O8ZUso
-MXTwp3W1OMTLx9s24qxpyinGjeWeT5e8YElQsTVUFAEymPOU9BDy+/We2PDv4fip
-DRRgZ0C+gofs8mJq7T1GHXeLnRzDAslG3WAIU2zZvatsiGg8E5Pn1CdyFPU83WF/
-Kk5vFyEk7oS4aoEUtIRtDbFhjrzQgDPodsH+scowSTuWXJXfn7JHb1jWO06z5s6G
-FHpNPFWjcpc3E40rZBdLgyOCMfQzgeGzXgUcKuLGZR/Nf1d+GJN+NLtO1fVqNpsA
-+LOFkaUpFovofLxxGl4zB0TzBV1MIaP0SzkfYwTv9XP2puUzvASuMWQyfqIRrzi4
-MtMDACHJMAXRkBZRX/UnGYC2m8GXHpk0Ax7zTiy6iXX0OHxM8k5Bgib0skof//uW
-STs7Rr5iWoVrdwcH646L7wuJsMW3N+Hx5mdYmrPKyISL5gA3QgJIGYX9smPTypa9
-bozYlUf/z+X90lfiS1SuPspuHf2IeHLCxubCynT/pVB9bKytj9JZniVDSD9qjIxo
-VG2Y1SYtGynW8fenoprk01OkmtR970K7IBTx3UuUwJ/9egUyezg=
-=qIOQ
------END PGP SIGNATURE-----
-
---NDuspjMMC1Ui5ypn--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best regards
+Salil
+> 
+> Thanks,
+> Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
