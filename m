@@ -1,91 +1,74 @@
-From: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH V3 net-next] net: hns3: Add support to change MTU in
- HNS3 hardware
-Date: Mon, 21 Aug 2017 15:05:00 +0000
-Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F93B875790@FRAEML521-MBX.china.huawei.com>
-References: <20170821101223.111852-1-salil.mehta@huawei.com>
- <20170821142939.GG1703@lunn.ch>
- <F4CC6FACFEB3C54C9141D49AD221F7F93B875655@FRAEML521-MBX.china.huawei.com>
- <20170821144741.GN1724@mtr-leonro.local>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core] mlx5: Return pointer to CQ doorbell
+Date: Mon, 21 Aug 2017 09:22:37 -0600
+Message-ID: <20170821152237.GA3400@obsidianresearch.com>
+References: <1502976998-20906-1-git-send-email-yishaih@mellanox.com>
+ <20170817173320.GB22792@obsidianresearch.com>
+ <20170817173932.GJ23648@mtr-leonro.local>
+ <20170817180349.GD24735@obsidianresearch.com>
+ <99bc8f57-6a58-d309-7142-74cc498f7feb@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170821144741.GN1724-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <99bc8f57-6a58-d309-7142-74cc498f7feb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>, "davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "Zhuangyuzeng (Yisen)" <yisen.zhuang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "lipeng (Y)" <lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Leon,
-
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Leon Romanovsky
-> Sent: Monday, August 21, 2017 3:48 PM
-> To: Salil Mehta
-> Cc: Andrew Lunn; davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org; Zhuangyuzeng (Yisen); lipeng (Y);
-> mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
-> kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm
-> Subject: Re: [PATCH V3 net-next] net: hns3: Add support to change MTU
-> in HNS3 hardware
-> 
-> On Mon, Aug 21, 2017 at 02:32:40PM +0000, Salil Mehta wrote:
-> > Hi Andrew,
+On Mon, Aug 21, 2017 at 12:06:57PM +0300, Yishai Hadas wrote:
+> On 8/17/2017 9:03 PM, Jason Gunthorpe wrote:
+> >On Thu, Aug 17, 2017 at 08:39:32PM +0300, Leon Romanovsky wrote:
+> >>On Thu, Aug 17, 2017 at 11:33:20AM -0600, Jason Gunthorpe wrote:
+> >>>On Thu, Aug 17, 2017 at 04:36:38PM +0300, Yishai Hadas wrote:
+> >>>>From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> >>>>
+> >>>>The returned UAR pointer is actually void ** and points to whole
+> >>>>UAR database.
+> >>>>
+> >>>>Because user is not supposed to access it and expected to use
+> >>>>the CQ doorbell, we will return uar[0] (CQ doorbell) directly
+> >>>>and eliminate the following logic in the applications:
+> >>>>
+> >>>>uint64_t cq_db_reg = (uint64_t *)(((uint64_t)(uint64_t *)rxq->cq_uar) +
+> >>>>                     MLX5_CQ_DOORBELL;
+> >>>
+> >>>NAK, at least, as is..
+> >>>
+> >>>This changes the ABI and mlx5dv is a public interface now, so you have
+> >>>to do it properly.
+> >>>
+> >>>Looking at it, my advice is to rev the symbol version of
+> >>>mlx5dv_init_obj and consider providing a compat symbol.
+> >>>
+> >>>Also, you need to change the name of the 'uar' field:
+> >>>
+> >>>>-	cq_out->uar	  = mctx->uar;
+> >>>>+	cq_out->uar	  = mctx->uar[0];
+> >>>
+> >>>To something else, to make it clear, which of the two ABIs the
+> >>>application code is coded to - for a change like this, you *MUST*
+> >>>force old apps to have a compile failure.
+> >>
+> >>I know exactly who coded on top of this interface. They are the ones who
+> >>asked for this change and they are fully understand the implications,
+> >>inability to work with this interface on "old" libraries.
 > >
-> > > -----Original Message-----
-> > > From: Andrew Lunn [mailto:andrew-g2DYL2Zd6BY@public.gmane.org]
-> > > Sent: Monday, August 21, 2017 3:30 PM
-> > > To: Salil Mehta
-> > > Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org; Zhuangyuzeng (Yisen); lipeng (Y);
-> > > mehta.salil.lnk-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
-> > > kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm
-> > > Subject: Re: [PATCH V3 net-next] net: hns3: Add support to change
-> MTU
-> > > in HNS3 hardware
-> > >
-> > > On Mon, Aug 21, 2017 at 11:12:23AM +0100, Salil Mehta wrote:
-> > > > This patch adds the following support to the HNS3 driver:
-> > > > 1. Support to change the Maximum Transmission Unit of a
-> > > >    of a port in the HNS NIC hardware.
-> > > > 2. Initializes the supported MTU range for the netdevice.
-> > > >
-> > > > Signed-off-by: lipeng <lipeng321-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> > > > Signed-off-by: Salil Mehta <salil.mehta-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-> > >
-> > > Hi Salil
-> > >
-> > > Apart from Leon comments.
-> > >
-> > > Reviewed-by: Andrew Lunn <andrew-g2DYL2Zd6BY@public.gmane.org>
-> > >
-> > >     Andrew
-> >
-> > I will incorporate Leon's comment and float V4 patch today. Thanks!
+> >I don't care who they are - you need to follow sane ABI rules if you
+> >are pushing public shared libraries into distros. This is not negotiable.
 > >
 > 
-> Salil,
-> 
-> I had two comment there and not one. Please don't miss it :)
-Sure, I should admit that I missed one comment while I replied to the
-mail but later realized that, and incorporated it while I floated the
-V4 patch. Having a bad day of misses...phew!
+> There is no ABI/API change but just a bug fix in mlx5 driver.
+> The API talked about void* but by mistake the mlx5 code returned void**,
+> this patch fixes that.
 
-Again, thanks Andrew & Leon for helping me out in reviewing this patch.
+The commit message is garbage then.
 
-Best regards
-Salil
-> 
-> Thanks
-> 
-> > Best regards
-> > Salil
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma"
-> in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Is there existing code out there that uses cq_out->uar and works
+properly today? Yes or No?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
