@@ -1,171 +1,222 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 0/8] RDMA/qedr: Add iWARP support for QL4xxxx
-Date: Mon, 21 Aug 2017 19:23:33 -0400
-Message-ID: <fd72775d-be4b-8504-917d-eb21eecb71c1@redhat.com>
-References: <1501069317-16601-1-git-send-email-Michal.Kalderon@cavium.com>
- <1503073970.2598.24.camel@redhat.com>
- <DM2PR0701MB1392B1F6FB49D027801AFC6788870@DM2PR0701MB1392.namprd07.prod.outlook.com>
+From: Stephen Hemminger <stephen@networkplumber.org>
+Subject: Re: [PATCH v6 iproute2 0/8] RDMAtool
+Date: Mon, 21 Aug 2017 17:11:49 -0700
+Message-ID: <20170821171149.22949fb9@xeon-e3>
+References: <20170820095828.13812-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="XJapde4BfsbNvoCfP9db7WTvbF1ASGDhc"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <DM2PR0701MB1392B1F6FB49D027801AFC6788870-v3byQ3tR4i+0eoJk1DrUDU5OhdzP3rhOnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170820095828.13812-1-leon@kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Jiri Pirko <jiri@mellanox.com>, Ariel Almog <ariela@mellanox.com>, David Laight <David.Laight@ACULAB.COM>, Linux Netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---XJapde4BfsbNvoCfP9db7WTvbF1ASGDhc
-Content-Type: multipart/mixed; boundary="NWbmjilIaH164putbF8CGxOvCAmvlsMnU";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>,
- "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>,
- "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Message-ID: <fd72775d-be4b-8504-917d-eb21eecb71c1-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 0/8] RDMA/qedr: Add iWARP support for QL4xxxx
-References: <1501069317-16601-1-git-send-email-Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
- <1503073970.2598.24.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <DM2PR0701MB1392B1F6FB49D027801AFC6788870-v3byQ3tR4i+0eoJk1DrUDU5OhdzP3rhOnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-In-Reply-To: <DM2PR0701MB1392B1F6FB49D027801AFC6788870-v3byQ3tR4i+0eoJk1DrUDU5OhdzP3rhOnBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+On Sun, 20 Aug 2017 12:58:20 +0300
+Leon Romanovsky <leon@kernel.org> wrote:
 
---NWbmjilIaH164putbF8CGxOvCAmvlsMnU
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: quoted-printable
+> From: Leon Romanovsky <leonro@mellanox.com>
+> 
+> This is fifth revision of series implementing the RDAMtool -  the tool
+> to configure RDMA devices.
+> 
+> It looks like everyone who was interested to read cover letter already did it,
+> so I'll start from the changelog:
+> 
+> Changelog:
+> v5->v6:
+>  * Removed double includes
+>  * Copied rdma_netlink.h from he kernel to include/rdma folder, so the
+>    tool can be built as a standalone.
+> v4->v5:
+>  * Rebased to latest net-next branch
+>  * Moved BIT() macro from devlink to general utils.h file - Patch #1.
+>  * Changed the order of patches - moved man pages to be last patch.
+>  * Rewrote all switch->case->return_string constructions to be static
+>    tables with help of David's macro magic. Thanks a lot.
+>  * Dropped dependency on exported device and port properties. Now tool depends
+>    on RDMA netlink only and all needed code is already in Doug's for-next.
+>  * Added two OPA specific physical link states, because their names is
+>    too broad - TEST and OFFLINE, I named it as OPA_TEST and OPA_OFFLINE.
+> v3->v4:
+>  * Rebased to latest net-next branch
+>  * Added JSON output -j (json) and -p (pretty output)
+>  * Exported and reused kernel UAPIs and defines instead of hard coded
+>    version.
+> v2->v3:
+>  * Removed MAX()
+>  * Reduced scope of rd_argv_match
+>  * Removed return from rdma_free_devmap
+>  * Added extra break at rdma_send_msg
+> v1->v2:
+>  * Squashed multiple (and similar) patches to be one patch for dev object
+>    and one patch for link object.
+>  * Removed port_map struct
+>  * Removed global netlink dump during initialization, it removed the need to store
+>    the intermediate variables and reuse ability of netlink to signal if variable
+>    exists or doesn't.
+>  * Added "-d" --details option and put all CAPs under it.
+> 
+> v0->v1:
+>  * Moved hunk with changes in man/Makefile from first patch to the last patch
+>  * Removed the "unknown command" from the examples in commit messages
+>  * Removed special "caps" parsing command and put it to be part of general "show" command
+>  * Changed parsed capability format to be similar to iproute2 suite
+>  * Added FW version as an output of show command.
+>  * Added forgotten CAP_FLAGS to the nla_policy list
+> RFC->v0:
+>  * Removed everything that is not implemented yet.
+>  * Abandoned sysfs interfaces in favor of netlink.
+> 
+> -----
+> The initial proposal was sent as RFC [1] and was based on sysfs entries as POC.
+> 
+> The current series was rewritten completely to work with RDMA netlinks as
+> a source of user<->kernel communications. In order to achieve that, the
+> RDMA netlinks were extensively refactored and modernized [2, 3, 4 and 5].
+> 
+> The Doug's for-next tag includes most of the needed patches for this tool.
+> 
+> The following is an example of various runs on my machine with 5 devices
+> (4 in IB mode and one in Ethernet mode).
+> 
+> ### Without parameters
+> $ rdma
+> Usage: rdma [ OPTIONS ] OBJECT { COMMAND | help }
+> where  OBJECT := { dev | link | help }
+>        OPTIONS := { -V[ersion] | -d[etails] | -j[son] | -p[retty]}
+> 
+> ### With unspecified device name
+> $ rdma dev
+> 1: mlx5_0: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:3457 sys_image_guid 5254:00c0:fe12:3457
+> 2: mlx5_1: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:3458 sys_image_guid 5254:00c0:fe12:3458
+> 3: mlx5_2: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:3459 sys_image_guid 5254:00c0:fe12:3459
+> 4: mlx5_3: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:345a sys_image_guid 5254:00c0:fe12:345a
+> 5: mlx5_4: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:345b sys_image_guid 5254:00c0:fe12:345b
+> 
+> ### Detailed mode
+> $ rdma -d dev
+> 1: mlx5_0: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:3457 sys_image_guid 5254:00c0:fe12:3457
+>     caps: <BAD_PKEY_CNTR, BAD_QKEY_CNTR, CHANGE_PHY_POR, PORT_ACTIVE_EVENT, SYS_IMAGE_GUID, RC_RNR_NAK_GEN, MEM_WINDOW, UD_IP_CSUM, UD_TSO, XRC, MEM_MGT_EXTENSIONS, BLOCK_MULTICAST_LOOPBACK, MEM_WINDOW_TYPE_2B, RAW_IP_CSUM, MANAGED_FLOW_STEERING, RESIZE_MAX_WR>
+> 2: mlx5_1: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:3458 sys_image_guid 5254:00c0:fe12:3458
+>     caps: <BAD_PKEY_CNTR, BAD_QKEY_CNTR, CHANGE_PHY_POR, PORT_ACTIVE_EVENT, SYS_IMAGE_GUID, RC_RNR_NAK_GEN, MEM_WINDOW, UD_IP_CSUM, UD_TSO, XRC, MEM_MGT_EXTENSIONS, BLOCK_MULTICAST_LOOPBACK, MEM_WINDOW_TYPE_2B, RAW_IP_CSUM, MANAGED_FLOW_STEERING, RESIZE_MAX_WR>
+> 3: mlx5_2: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:3459 sys_image_guid 5254:00c0:fe12:3459
+>     caps: <BAD_PKEY_CNTR, BAD_QKEY_CNTR, CHANGE_PHY_POR, PORT_ACTIVE_EVENT, SYS_IMAGE_GUID, RC_RNR_NAK_GEN, MEM_WINDOW, UD_IP_CSUM, UD_TSO, XRC, MEM_MGT_EXTENSIONS, BLOCK_MULTICAST_LOOPBACK, MEM_WINDOW_TYPE_2B, RAW_IP_CSUM, MANAGED_FLOW_STEERING, RESIZE_MAX_WR>
+> 4: mlx5_3: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:345a sys_image_guid 5254:00c0:fe12:345a
+>     caps: <BAD_PKEY_CNTR, BAD_QKEY_CNTR, CHANGE_PHY_POR, PORT_ACTIVE_EVENT, SYS_IMAGE_GUID, RC_RNR_NAK_GEN, MEM_WINDOW, UD_IP_CSUM, UD_TSO, XRC, MEM_MGT_EXTENSIONS, BLOCK_MULTICAST_LOOPBACK, MEM_WINDOW_TYPE_2B, RAW_IP_CSUM, MANAGED_FLOW_STEERING, RESIZE_MAX_WR>
+> 5: mlx5_4: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:345b sys_image_guid 5254:00c0:fe12:345b
+>     caps: <BAD_PKEY_CNTR, BAD_QKEY_CNTR, CHANGE_PHY_POR, PORT_ACTIVE_EVENT, SYS_IMAGE_GUID, RC_RNR_NAK_GEN, MEM_WINDOW, UD_IP_CSUM, UD_TSO, XRC, MEM_MGT_EXTENSIONS, BLOCK_MULTICAST_LOOPBACK, MEM_WINDOW_TYPE_2B, RAW_IP_CSUM, MANAGED_FLOW_STEERING, RESIZE_MAX_WR>
+> 
+> ### Specific device
+> $ rdma dev show mlx5_4
+> 5: mlx5_4: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:345b sys_image_guid 5254:00c0:fe12:345b
+> 
+> ### Specific device in detailed mode
+> $ rdma dev show mlx5_4 -d
+> 5: mlx5_4: node_type ca fw 2.8.9999 node_guid 5254:00c0:fe12:345b sys_image_guid 5254:00c0:fe12:345b
+>     caps: <BAD_PKEY_CNTR, BAD_QKEY_CNTR, CHANGE_PHY_POR, PORT_ACTIVE_EVENT, SYS_IMAGE_GUID, RC_RNR_NAK_GEN, MEM_WINDOW, UD_IP_CSUM, UD_TSO, XRC, MEM_MGT_EXTENSIONS, BLOCK_MULTICAST_LOOPBACK, MEM_WINDOW_TYPE_2B, RAW_IP_CSUM, MANAGED_FLOW_STEERING, RESIZE_MAX_WR>
+> 
+> ### Unknown command (caps)
+> $ rdma dev show mlx5_4 caps
+> Unknown parameter 'caps'.
+> 
+> ### Link properties without device name
+> $ rdma link
+> 1/1: mlx5_0/1: subnet_prefix fe80:0000:0000:0000 lid 13399 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
+> 2/1: mlx5_1/1: subnet_prefix fe80:0000:0000:0000 lid 13400 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
+> 3/1: mlx5_2/1: subnet_prefix fe80:0000:0000:0000 lid 13401 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
+> 4/1: mlx5_3/1: state DOWN physical_state DISABLED
+> 5/1: mlx5_4/1: subnet_prefix fe80:0000:0000:0000 lid 13403 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
+> 
+> ### Link properties in detailed mode
+> $ rdma link -d
+> 1/1: mlx5_0/1: subnet_prefix fe80:0000:0000:0000 lid 13399 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
+>     caps: <AUTO_MIGR>
+> 2/1: mlx5_1/1: subnet_prefix fe80:0000:0000:0000 lid 13400 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
+>     caps: <AUTO_MIGR>
+> 3/1: mlx5_2/1: subnet_prefix fe80:0000:0000:0000 lid 13401 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
+>     caps: <AUTO_MIGR>
+> 4/1: mlx5_3/1: state DOWN physical_state DISABLED
+>     caps: <CM, IP_BASED_GIDS>
+> 5/1: mlx5_4/1: subnet_prefix fe80:0000:0000:0000 lid 13403 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
+>     caps: <AUTO_MIGR>
+> 
+> ### All links for specific device
+> $ rdma link show mlx5_3
+> 1/1: mlx5_0/1: subnet_prefix fe80:0000:0000:0000 lid 13399 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
+> 
+> ### Detailed link properties for specific device
+> $ rdma link -d show mlx5_3
+> 1/1: mlx5_0/1: subnet_prefix fe80:0000:0000:0000 lid 13399 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
+>     caps: <AUTO_MIGR>
+> 
+> ### Specific port for specific device
+> $ rdma link show mlx5_4/1
+> 1/1: mlx5_0/1: subnet_prefix fe80:0000:0000:0000 lid 13399 sm_lid 49151 lmc 0 state ACTIVE physical_state LINK_UP
+> 
+> ### Unknown parameter
+> $ rdma link show mlx5_4/1 caps
+> Unknown parameter 'caps'.
+> 
+> Available in the "topic/rdmatool-netlink-v6" topic branch of this git repo:
+> git://git.kernel.org/pub/scm/linux/kernel/git/leon/iproute2.git
+> 
+> Or for browsing:
+> https://git.kernel.org/cgit/linux/kernel/git/leon/iproute2.git/log/?h=topic/rdmatool-netlink-v6
+> 
+> Thanks
+> 
+> [1] https://www.spinics.net/lists/linux-rdma/msg49575.html
+> [2] https://patchwork.kernel.org/patch/9752865/
+> [3] https://www.spinics.net/lists/linux-rdma/msg50827.html
+> [4] https://www.spinics.net/lists/linux-rdma/msg51210.html
+> [5] https://patchwork.kernel.org/patch/9811729/ and https://patchwork.kernel.org/patch/9811731/]
+> 
+> Cc: Doug Ledford <dledford@redhat.com>
+> Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
+> Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+> Cc: Jiri Pirko <jiri@mellanox.com>
+> Cc: Ariel Almog <ariela@mellanox.com>
+> Cc: David Laight <David.Laight@ACULAB.COM>
+> Cc: Linux Netdev <netdev@vger.kernel.org>
+> 
+> Leon Romanovsky (8):
+>   utils: Move BIT macro to common header
+>   rdma: Add basic infrastructure for RDMA tool
+>   rdma: Add dev object
+>   rdma: Add link object
+>   rdma: Add json and pretty outputs
+>   rdma: Implement json output for dev object
+>   rdma: Add json output to link object
+>   rdma: Add initial manual for the tool
+> 
+>  Makefile                    |   2 +-
+>  devlink/devlink.c           |   2 +-
+>  include/rdma/rdma_netlink.h | 307 +++++++++++++++++++++++++++++++++++++++
+>  include/utils.h             |   2 +
+>  man/man8/rdma-dev.8         |  55 +++++++
+>  man/man8/rdma-link.8        |  55 +++++++
+>  man/man8/rdma.8             | 102 +++++++++++++
+>  rdma/.gitignore             |   1 +
+>  rdma/Makefile               |  22 +++
+>  rdma/dev.c                  | 284 ++++++++++++++++++++++++++++++++++++
+>  rdma/link.c                 | 343 ++++++++++++++++++++++++++++++++++++++++++++
+>  rdma/rdma.c                 | 143 ++++++++++++++++++
+>  rdma/rdma.h                 |  91 ++++++++++++
+>  rdma/utils.c                | 266 ++++++++++++++++++++++++++++++++++
+>  14 files changed, 1673 insertions(+), 2 deletions(-)
+>  create mode 100644 include/rdma/rdma_netlink.h
+>  create mode 100644 man/man8/rdma-dev.8
+>  create mode 100644 man/man8/rdma-link.8
+>  create mode 100644 man/man8/rdma.8
+>  create mode 100644 rdma/.gitignore
+>  create mode 100644 rdma/Makefile
+>  create mode 100644 rdma/dev.c
+>  create mode 100644 rdma/link.c
+>  create mode 100644 rdma/rdma.c
+>  create mode 100644 rdma/rdma.h
+>  create mode 100644 rdma/utils.c
 
-On 8/21/2017 10:29 AM, Kalderon, Michal wrote:
->> From: Doug Ledford [mailto:dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org]
->> Sent: Friday, August 18, 2017 7:33 PM
->>
->> On Wed, 2017-07-26 at 14:41 +0300, Michal Kalderon wrote:
->>> Hi Doug,
->>>
->>> This patch series adds iWARP support to our QL4xxxx networking
->>> adapters.
->>>
->>> The first 6 patches of this series were previously sent as an RFC
->>> (patches 13-18): https://www.spinics.net/lists/linux-rdma/msg51416.ht=
-
->>> ml
->>> The qed part of the RFC has already been accepted as part of 4.13:
->>> https://www.spinics.net/lists/netdev/msg443224.html
->>>
->>> Changes from RFC:
->>> -----------------
->>> * Functions rdma_protocol_iwarp/roce, are used instead of
->>> IS_IWARP/IS_ROCE macros when differentiating flows after device
->>> registration.
->>> Pointed out by Leon
->>> * Additional patch is added for user space iWARP support.
->>> * Additional maintainer added for qedr for MAINTAINERS.
->>>
->>> This series was tested and built against:
->>> git://github.com/dledford/linux.git, branch: k.o/for-next
->>>
->>> Michal Kalderon (8):
->>>   RDMA/qedr: Add additional maintainer to MAINTAINERS file
->>>   RDMA/qedr: Rename the qedr_cm file as a preparation for iWARP
->>> support
->>>   RDMA/qedr: Add support for registering an iWARP device
->>>   RDMA/qedr: Add iWARP support in existing verbs
->>>   RDMA/qedr: Add support for read with invalidate, supported in iWARP=
-
->>>   RDMA/qedr: Add iWARP connection management qp related callbacks
->>>   RDMA/qedr: Add iWARP connection management functions
->>>   RDMA/qedr: Add support for iWARP in user space
->>>
->>>  MAINTAINERS                                        |   1 +
->>>  drivers/infiniband/hw/qedr/Makefile                |   2 +-
->>>  drivers/infiniband/hw/qedr/main.c                  | 105 ++-
->>>  drivers/infiniband/hw/qedr/qedr.h                  |  31 +-
->>>  drivers/infiniband/hw/qedr/qedr_hsi_rdma.h         |   6 +-
->>>  drivers/infiniband/hw/qedr/qedr_iw_cm.c            | 746
->>> +++++++++++++++++++++
->>>  drivers/infiniband/hw/qedr/qedr_iw_cm.h            |  49 ++
->>>  .../hw/qedr/{qedr_cm.c =3D> qedr_roce_cm.c}          |   2 +-
->>>  .../hw/qedr/{qedr_cm.h =3D> qedr_roce_cm.h}          |   0
->>>  drivers/infiniband/hw/qedr/verbs.c                 | 350 +++++++---
->>>  drivers/infiniband/hw/qedr/verbs.h                 |   2 +
->>>  11 files changed, 1203 insertions(+), 91 deletions(-)  create mode
->>> 100644 drivers/infiniband/hw/qedr/qedr_iw_cm.c
->>>  create mode 100644 drivers/infiniband/hw/qedr/qedr_iw_cm.h
->>>  rename drivers/infiniband/hw/qedr/{qedr_cm.c =3D> qedr_roce_cm.c}
->>> (99%)
->>>  rename drivers/infiniband/hw/qedr/{qedr_cm.h =3D> qedr_roce_cm.h}
->>> (100%)
->>
->> I've pulled this into a branch and pushed that branch to github.  It's=
- the qedr
->> branch.  There was some fuzz in taking the patches just due to code fl=
-oat
->> since you posted this.  Please review my branch and make sure the fina=
-l
->> result is to your satisfaction.
->=20
-> Thanks Doug! I looked at k.o/for-next-merged branch ( didn't see a qedr=
- branch )=20
-> Qedr Files in this branch look good and as expected.
-
-Yeah.  That happens.  I had them in their own qedr branch, but when I
-merged it to net-next-based, it was a straight fast-forward so no merge
-commit was generated.  Then when I deleted the qedr branch, it's as
-though it never existed.
-
-> Could you please clarify which kernel version the  for-next-merged bran=
-ch is intended for ? 4.14?
-
-It is intended for 4.15.  I have it as an early check on the future
-submission.
-
-> I have additional iWARP patches for net-next, would like to know which =
-kernel version to aim them for so that they
-> Don't make it in before this patch series.=20
-
-Understood.  Think of anything based on net-next as a for-next-next
-branch.  When I open for-next in the next submission cycle, I'll
-ultimately create a branch on -rc2 of the next kernel, and merge this
-branch in.
-
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
-D
-
-
---NWbmjilIaH164putbF8CGxOvCAmvlsMnU--
-
---XJapde4BfsbNvoCfP9db7WTvbF1ASGDhc
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJZm2t1AAoJELgmozMOVy/dbDwP/2fw5N8me8GyYkOOr6zPpMQw
-5qXs+9XjcPnMulGo7L9fTBQiy1jV1cWjJQOO081yYPRVusuOkM/ZJipdTQ2da29f
-aSUKBluVVl5QeDMgP/4cuKslGqJOmAJF+ZDwjKp1m/mGcDllODCX0qoijPMplhLh
-oyPL0WIBcTQ3tPWmeskqX+0g8m7lcdVTBTL3HNSzysphGkdhkZ9+XgdNnmgfgWjU
-OupVukJlPQGr3MsDOGvVXz4uLGfHPpzb4jQjK5IvqfAZV+r1r39OYF4S/yCTz4af
-6M0t38ih0xaJ6uoSZWqON+dWHEp8R/xbCG8J+tG19BEP9QF72whDzxDpSnD2Q1qz
-ej6CV13QuleHWiJLR4o7yuz70HrU6HhrQRs0cJAwWloGjc3qGzWpm0x4w8jJmU59
-HbBSTUpqZEndV8QvNbCbY7DK7dhhgUNQ/v7VnC25YZpt/BtJACN0PQrQOGDme/5b
-3nqmVn8nVqUOYer0IPMuPYTMJ6jy0zHBH3qtMcruMsb4BoqVILu3goqRK6jLbCyU
-fNQpAoCbiz5mwp/E5U9sprRrCpNVnAjnJ5as+bSEC35nIQelPLNcnK6wobhO32/L
-yL67zst9JlCbqj2khhoBHPVqr+sdVhkhjulSdlYs+X+ChyF1q0Ht+LEoh98UU1QF
-D36c1FEDmNJcqFF4UiIu
-=3As4
------END PGP SIGNATURE-----
-
---XJapde4BfsbNvoCfP9db7WTvbF1ASGDhc--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied to master branch (for 4.13).
+Thanks for your patience and persistance.
