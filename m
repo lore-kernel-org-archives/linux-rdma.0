@@ -1,51 +1,62 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 16/16] IB/hfi1: Add opcode states to qp_stats
-Date: Mon, 21 Aug 2017 18:27:48 -0700
-Message-ID: <20170822012746.32701.78943.stgit@scvm10.sc.intel.com>
-References: <20170822011657.32701.22207.stgit@scvm10.sc.intel.com>
+From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/hns: Explicitly include linux/interrupt.h
+Date: Tue, 22 Aug 2017 10:21:45 +0800
+Message-ID: <599B9539.5040004@huawei.com>
+References: <20170728105112.7577-1-broonie@kernel.org>
+ <1501529069.2725.5.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170822011657.32701.22207.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <1501529069.2725.5.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Hi, Doug & Mark Brown & Arnd Bergmann
+   Thanks for your patches!
 
-These fields allow for debugging send engine processing.
+   @Doug, Which branch can we found this patch? Thanks
+   Regards
+Wei Hu
 
-Reviewed-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/hfi1/qp.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+On 2017/8/1 3:24, Doug Ledford wrote:
+> On Fri, 2017-07-28 at 11:51 +0100, Mark Brown wrote:
+>> This file uses interrupt APIs but doesn't explicitly include
+>> linux/interrupt.h meaning that changes in other header files could
+>> cause
+>> build breakage as happened in next-20170728 for arm64.  Add an
+>> explicit
+>> include to avoid such problems.
+>>
+>> Signed-off-by: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+>> ---
+>>   drivers/infiniband/hw/hns/hns_roce_eq.c | 1 +
+>>   1 file changed, 1 insertion(+)
+>>
+>> diff --git a/drivers/infiniband/hw/hns/hns_roce_eq.c
+>> b/drivers/infiniband/hw/hns/hns_roce_eq.c
+>> index 50f864935a0e..e1e4c16ca3d5 100644
+>> --- a/drivers/infiniband/hw/hns/hns_roce_eq.c
+>> +++ b/drivers/infiniband/hw/hns/hns_roce_eq.c
+>> @@ -30,6 +30,7 @@
+>>    * SOFTWARE.
+>>    */
+>>   
+>> +#include <linux/interrupt.h>
+>>   #include <linux/platform_device.h>
+>>   #include "hns_roce_common.h"
+>>   #include "hns_roce_device.h"
+> Hi Mark,
+>
+> Your patch is fine, but I grabbed the one from Arnd before I grabbed
+> this one.  That was an accident on my part (yours was sent to the list
+> first and I normally would have grabbed it), my apologies for that.  I
+> knew I had seen a patch come through and I scrolled back until I found
+> it without realizing there were two.
+>
 
-diff --git a/drivers/infiniband/hw/hfi1/qp.c b/drivers/infiniband/hw/hfi1/qp.c
-index ee836c0..b87889d 100644
---- a/drivers/infiniband/hw/hfi1/qp.c
-+++ b/drivers/infiniband/hw/hfi1/qp.c
-@@ -634,7 +634,7 @@ void qp_iter_print(struct seq_file *s, struct qp_iter *iter)
- 	if (qp->s_ack_queue)
- 		e = &qp->s_ack_queue[qp->s_tail_ack_queue];
- 	seq_printf(s,
--		   "N %d %s QP %x R %u %s %u %u %u f=%x %u %u %u %u %u %u SPSN %x %x %x %x %x RPSN %x S(%u %u %u %u %u %u %u) R(%u %u %u) RQP %x LID %x SL %u MTU %u %u %u %u %u SDE %p,%u SC %p,%u SCQ %u %u PID %d E %x %x %x\n",
-+		   "N %d %s QP %x R %u %s %u %u %u f=%x %u %u %u %u %u %u SPSN %x %x %x %x %x RPSN %x S(%u %u %u %u %u %u %u) R(%u %u %u) RQP %x LID %x SL %u MTU %u %u %u %u %u SDE %p,%u SC %p,%u SCQ %u %u PID %d OS %x %x E %x %x %x\n",
- 		   iter->n,
- 		   qp_idle(qp) ? "I" : "B",
- 		   qp->ibqp.qp_num,
-@@ -676,6 +676,8 @@ void qp_iter_print(struct seq_file *s, struct qp_iter *iter)
- 		   ibcq_to_rvtcq(qp->ibqp.send_cq)->queue->head,
- 		   ibcq_to_rvtcq(qp->ibqp.send_cq)->queue->tail,
- 		   qp->pid,
-+		   qp->s_state,
-+		   qp->s_ack_state,
- 		   /* ack queue information */
- 		   e ? e->opcode : 0,
- 		   e ? e->psn : 0,
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
