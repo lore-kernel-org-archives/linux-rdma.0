@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 10/16] IB/hfi1: Fix the bail out code in
- pin_vector_pages() function
-Date: Mon, 21 Aug 2017 18:27:09 -0700
-Message-ID: <20170822012708.32701.86094.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 11/16] IB/hfi1: Remove duplicate definitions of
+ num_user_pages() function
+Date: Mon, 21 Aug 2017 18:27:16 -0700
+Message-ID: <20170822012715.32701.41769.stgit@scvm10.sc.intel.com>
 References: <20170822011657.32701.22207.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,87 +16,105 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-In pin_vector_pages() function, if there is any error while pinning the
-pages or while adding a pinned buffer to the cache, the bail out code
-needs to unpin any pinned pages that are not in the cache and adjust the
-n_locked counter that counts the total pages pinned. The current bail
-out code doesn't seem to be doing it right in two cases:
-
-1. Before pinning required pages for a buffer, the SDMA pinned buffer
-cache is searched to see if the virtual address range that needs to be
-pinned is already pinned. If there isn't a hit in the cache, a new node
-is created for the buffer and is added to the cache after the buffer is
-pinned. If adding the new node to the cache fails, the n_locked count is
-decremented properly but the pinned pages are not freed. This commit
-fixes this issue.
-
-2. If there is a hit in the SDMA cache, but the cached buffer doesn't
-have enough pages to cover the entire address range that needs to be
-pinned, the node for the cached buffer is extracted from the cache,
-remaining pages needed are pinned and added to the node. The node is
-finally added back into the cache. If there is an error pinning the
-extra pages, the bail out code frees all the pages in the node but the
-n_locked count is not being decremented by the no of pages in the node
-that are freed. This commit fixes this issue.
-
-This commit fixes the above two issues by creating a new function that
-frees the pages in a node and decrements the n_locked count by the
-number of pages freed.
+num_user_pages() function has been defined in both user_exp_rcv.c file
+and user_sdma.c file. Move the function definition to a header file so
+there is only one definition in the source repo.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/user_sdma.c |   17 ++++++++++-------
- 1 files changed, 10 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/hfi1/user_exp_rcv.c |    5 -----
+ drivers/infiniband/hw/hfi1/user_exp_rcv.h |    9 +++++++++
+ drivers/infiniband/hw/hfi1/user_sdma.c    |   18 +++---------------
+ 3 files changed, 12 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
-index 6f26253..a3a9925 100644
---- a/drivers/infiniband/hw/hfi1/user_sdma.c
-+++ b/drivers/infiniband/hw/hfi1/user_sdma.c
-@@ -1167,6 +1167,14 @@ static int pin_sdma_pages(struct user_sdma_request *req,
- 	return pinned;
- }
+diff --git a/drivers/infiniband/hw/hfi1/user_exp_rcv.c b/drivers/infiniband/hw/hfi1/user_exp_rcv.c
+index 04be178..026790e 100644
+--- a/drivers/infiniband/hw/hfi1/user_exp_rcv.c
++++ b/drivers/infiniband/hw/hfi1/user_exp_rcv.c
+@@ -67,11 +67,6 @@ struct tid_pageset {
+ 	u16 count;
+ };
  
-+static void unpin_sdma_pages(struct sdma_mmu_node *node)
+-#define num_user_pages(vaddr, len)				       \
+-	(1 + (((((unsigned long)(vaddr) +			       \
+-		 (unsigned long)(len) - 1) & PAGE_MASK) -	       \
+-	       ((unsigned long)vaddr & PAGE_MASK)) >> PAGE_SHIFT))
+-
+ static void unlock_exp_tids(struct hfi1_ctxtdata *uctxt,
+ 			    struct exp_tid_set *set,
+ 			    struct hfi1_filedata *fd);
+diff --git a/drivers/infiniband/hw/hfi1/user_exp_rcv.h b/drivers/infiniband/hw/hfi1/user_exp_rcv.h
+index 8c4eb5d..7461d11 100644
+--- a/drivers/infiniband/hw/hfi1/user_exp_rcv.h
++++ b/drivers/infiniband/hw/hfi1/user_exp_rcv.h
+@@ -60,6 +60,15 @@ struct tid_user_buf {
+ 	unsigned int n_psets;
+ };
+ 
++static inline int num_user_pages(unsigned long addr,
++				 unsigned long len)
 +{
-+	if (node->npages) {
-+		unpin_vector_pages(node->pq->mm, node->pages, 0, node->npages);
-+		atomic_sub(node->npages, &node->pq->n_locked);
-+	}
++	const unsigned long spage = addr & PAGE_MASK;
++	const unsigned long epage = (addr + len - 1) & PAGE_MASK;
++
++	return 1 + ((epage - spage) >> PAGE_SHIFT);
 +}
 +
- static int pin_vector_pages(struct user_sdma_request *req,
- 			    struct user_sdma_iovec *iovec)
- {
-@@ -1218,14 +1226,12 @@ static int pin_vector_pages(struct user_sdma_request *req,
+ int hfi1_user_exp_rcv_init(struct hfi1_filedata *fd,
+ 			   struct hfi1_ctxtdata *uctxt);
+ void hfi1_user_exp_rcv_free(struct hfi1_filedata *fd);
+diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
+index a3a9925..2837407 100644
+--- a/drivers/infiniband/hw/hfi1/user_sdma.c
++++ b/drivers/infiniband/hw/hfi1/user_sdma.c
+@@ -246,7 +246,6 @@ struct user_sdma_txreq {
  
- 	ret = hfi1_mmu_rb_insert(req->pq->handler, &node->rb);
- 	if (ret) {
--		atomic_sub(node->npages, &pq->n_locked);
- 		iovec->node = NULL;
- 		goto bail;
- 	}
- 	return 0;
- bail:
--	if (rb_node)
--		unpin_vector_pages(pq->mm, node->pages, 0, node->npages);
-+	unpin_sdma_pages(node);
- 	kfree(node);
+ static int user_sdma_send_pkts(struct user_sdma_request *req,
+ 			       unsigned maxpkts);
+-static int num_user_pages(const struct iovec *iov);
+ static void user_sdma_txreq_cb(struct sdma_txreq *txreq, int status);
+ static inline void pq_update(struct hfi1_user_sdma_pkt_q *pq);
+ static void user_sdma_free_request(struct user_sdma_request *req, bool unpin);
+@@ -1101,19 +1100,6 @@ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
  	return ret;
  }
-@@ -1671,10 +1677,7 @@ static void sdma_rb_remove(void *arg, struct mmu_rb_node *mnode)
- 	struct sdma_mmu_node *node =
- 		container_of(mnode, struct sdma_mmu_node, rb);
  
--	atomic_sub(node->npages, &node->pq->n_locked);
+-/*
+- * How many pages in this iovec element?
+- */
+-static inline int num_user_pages(const struct iovec *iov)
+-{
+-	const unsigned long addr  = (unsigned long)iov->iov_base;
+-	const unsigned long len   = iov->iov_len;
+-	const unsigned long spage = addr & PAGE_MASK;
+-	const unsigned long epage = (addr + len - 1) & PAGE_MASK;
 -
--	unpin_vector_pages(node->pq->mm, node->pages, 0, node->npages);
+-	return 1 + ((epage - spage) >> PAGE_SHIFT);
+-}
 -
-+	unpin_sdma_pages(node);
- 	kfree(node);
- }
+ static u32 sdma_cache_evict(struct hfi1_user_sdma_pkt_q *pq, u32 npages)
+ {
+ 	struct evict_data evict_data;
+@@ -1182,6 +1168,7 @@ static int pin_vector_pages(struct user_sdma_request *req,
+ 	struct hfi1_user_sdma_pkt_q *pq = req->pq;
+ 	struct sdma_mmu_node *node = NULL;
+ 	struct mmu_rb_node *rb_node;
++	struct iovec *iov;
+ 	bool extracted;
  
+ 	extracted =
+@@ -1210,7 +1197,8 @@ static int pin_vector_pages(struct user_sdma_request *req,
+ 		atomic_set(&node->refcount, 0);
+ 	}
+ 
+-	npages = num_user_pages(&iovec->iov);
++	iov = &iovec->iov;
++	npages = num_user_pages((unsigned long)iov->iov_base, iov->iov_len);
+ 	if (node->npages < npages) {
+ 		pinned = pin_sdma_pages(req, iovec, node, npages);
+ 		if (pinned < 0) {
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
