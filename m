@@ -1,62 +1,43 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core] mlx5: Return pointer to CQ doorbell
-Date: Tue, 22 Aug 2017 10:30:07 -0600
-Message-ID: <20170822163007.GB4922@obsidianresearch.com>
-References: <1502976998-20906-1-git-send-email-yishaih@mellanox.com>
- <20170817173320.GB22792@obsidianresearch.com>
- <20170817173932.GJ23648@mtr-leonro.local>
- <20170817180349.GD24735@obsidianresearch.com>
- <99bc8f57-6a58-d309-7142-74cc498f7feb@dev.mellanox.co.il>
- <20170821152237.GA3400@obsidianresearch.com>
- <912a3e5b-7dbc-061a-53f5-b3cf3bce9d9e@dev.mellanox.co.il>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v12 0/8] Replace PCI pool by DMA pool API
+Date: Tue, 22 Aug 2017 14:00:34 -0400
+Message-ID: <1503424834.78641.0.camel@redhat.com>
+References: <20170822114701.14907-1-romain.perier@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <912a3e5b-7dbc-061a-53f5-b3cf3bce9d9e-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20170822114701.14907-1-romain.perier-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Romain Perier <romain.perier-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, stas.yakovlev-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 22, 2017 at 11:36:42AM +0300, Yishai Hadas wrote:
-> On 8/21/2017 6:22 PM, Jason Gunthorpe wrote:
-> >Is there existing code out there that uses cq_out->uar and works
-> >properly today? Yes or No?
+On Tue, 2017-08-22 at 13:46 +0200, Romain Perier wrote:
+> The current PCI pool API are simple macro functions direct expanded
+> to
+> the appropriate dma pool functions. The prototypes are almost the
+> same
+> and semantically, they are very similar. I propose to use the DMA
+> pool
+> API directly and get rid of the old API.
 > 
-> No, only this fix enables that to work properly.
+> This set of patches, replaces the old API by the dma pool API
+> and remove the defines.
+> 
+> Changes in v12:
+> - Rebased series onto next-20170822
 
-This is still bad reasoning.
+Hi Romain,
 
-rdma-core 14 does not support the 'uar' field, it may as well have
-been marked reserved.
+I've applied the three that are in my purview to my for-next branch
+(mthca, mlx4, and mlx5 patches).  Thanks.
 
-rdma-core 15 supports 'uar'.
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
-This is an ABI change, and need to be handled properly to protect the
-users against mixing incompatible libraries.
-
-The fact that rdma-core 14 intended to support uar but screwed it up
-doesn't really matter from the user perspective. All they care about
-is that an app using using uar needs to be build against >= 15 or it
-silently explodes at runtime.
-
-This sorts of issues are exactly what we are supposed to be using
-symbol versions to protect against, and largely why they exist at
-all. If you do it properly then tools like RPM and the dynanmic linker
-take care of everything for the end user.
-
-You don't get to ignore sane shared library versioning rules just
-because it is your company's library - part of the point of rdma-core
-is to have a much stronger stance on ABI issues (our community has
-done a terrible job over the years) and I do not like this weakening.
-
-Particularly since a patch to do this with proper compatibility
-exists, and there is no reason at all to take a shortcut.
-
-Doug? This needs to be decided before you mark rdma-core 15 final.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
