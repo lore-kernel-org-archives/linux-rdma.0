@@ -1,33 +1,25 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [pull request][PATCH v2 0/6] i40iw: Fixes for i40iw
-Date: Tue, 22 Aug 2017 15:39:35 -0400
-Message-ID: <1503430775.78641.7.camel@redhat.com>
-References: <20170809013848.29080-1-henry.orosco@intel.com>
-         <1502897345.33760.9.camel@redhat.com>
+Subject: Re: [PATCH] IB/pvrdma: Remove unused function
+Date: Tue, 22 Aug 2017 15:43:28 -0400
+Message-ID: <1503431008.78641.8.camel@redhat.com>
+References: <20170810211211.11135-1-yuval.shaia@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1502897345.33760.9.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170810211211.11135-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Henry Orosco <henry.orosco-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, e1000-rdma-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2017-08-16 at 11:29 -0400, Doug Ledford wrote:
-> Hi Henry,
+On Fri, 2017-08-11 at 00:12 +0300, Yuval Shaia wrote:
+> The function pvrdma_idx_ring_is_valid_idx is not in used so let's
+> remove
+> it.
 > 
-> I took everything for -rc *Except* the Improve CQP timeout logic
-> patch.
->  That patch qualifies as new development and not really a bug fix,
-> and
-> since we are at -rc5, new development needs to be in for-next
-> instead.
+> Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-Hi Henry,
-
-I've pulled the CQP timeout patch into for-next.  Thanks.
-
+Thanks, applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
