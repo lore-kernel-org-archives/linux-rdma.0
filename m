@@ -1,23 +1,22 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 1/2] IB/mlx5: use kvmalloc_array for mlx5_ib_wq
-Date: Tue, 22 Aug 2017 16:48:54 -0400
-Message-ID: <1503434934.78641.15.camel@redhat.com>
+Subject: Re: [PATCH v2 2/2] IB/mlx4: use kvmalloc_array to allocate wrid
+Date: Tue, 22 Aug 2017 16:49:41 -0400
+Message-ID: <1503434981.78641.17.camel@redhat.com>
 References: <20170816133123.20497-1-dongyang.li@anu.edu.au>
+         <20170816133123.20497-2-dongyang.li@anu.edu.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170816133123.20497-1-dongyang.li-FCV4sgi5zeUQrrorzV6ljw@public.gmane.org>
+In-Reply-To: <20170816133123.20497-2-dongyang.li-FCV4sgi5zeUQrrorzV6ljw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Li Dongyang <dongyang.li-FCV4sgi5zeUQrrorzV6ljw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 On Wed, 2017-08-16 at 23:31 +1000, Li Dongyang wrote:
-> We observed multiple times on our Lustre OSS servers that when
-> the system memory is fragmented, kmalloc() in create_kernel_qp()
-> could fail order 4/5 allocations while we still have many free pages.
-> 
-> Switch to kvmalloc_array() to allow the operation to contine.
+> We could use kvmalloc_array instead of the
+> kmalloc and __vmalloc combination.
+> After this we don't need to include linux/vmalloc.h
 > 
 > Signed-off-by: Li Dongyang <dongyang.li-FCV4sgi5zeUQrrorzV6ljw@public.gmane.org>
 
