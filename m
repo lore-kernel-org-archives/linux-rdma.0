@@ -1,95 +1,95 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/1] RDMA/uverbs: Initialize cq_context appropriately
-Date: Mon, 21 Aug 2017 20:44:45 -0400
-Message-ID: <422b35ff-ecb9-44bb-be20-302d8d343ed3@redhat.com>
-References: <1501565315-3183-1-git-send-email-bharat@chelsio.com>
- <CAAKD3BCdeG=FkUNQjqGxEYw5Sx-TtmeRSAA8K7M43G62Qw_gbw@mail.gmail.com>
- <1503079603.2598.33.camel@redhat.com>
- <008701d31863$c83d3600$58b7a200$@opengridcomputing.com>
- <01cb01d31ab1$51458340$f3d089c0$@opengridcomputing.com>
+From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH for-next 00/16] IB/hfi1, qib,
+ rdmavt: patches for next 08/21/2017
+Date: Mon, 21 Aug 2017 18:26:07 -0700
+Message-ID: <20170822011657.32701.22207.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="gkR3uGgwxGDivWM5WEWhoqcf6EH6LxJNJ"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <01cb01d31ab1$51458340$f3d089c0$@opengridcomputing.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, 'Matan Barak' <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Potnuri Bharat Teja' <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Grzegorz Morys <grzegorz.morys-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kamenee Arumugam <kamenee.arumugam-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---gkR3uGgwxGDivWM5WEWhoqcf6EH6LxJNJ
-Content-Type: multipart/mixed; boundary="uJV250Tv4c6jqujwsG7Sb7387VbPnIUw3";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>,
- 'Matan Barak' <matanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>,
- 'Potnuri Bharat Teja' <bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Message-ID: <422b35ff-ecb9-44bb-be20-302d8d343ed3-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/1] RDMA/uverbs: Initialize cq_context appropriately
-References: <1501565315-3183-1-git-send-email-bharat-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
- <CAAKD3BCdeG=FkUNQjqGxEYw5Sx-TtmeRSAA8K7M43G62Qw_gbw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
- <1503079603.2598.33.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
- <008701d31863$c83d3600$58b7a200$@opengridcomputing.com>
- <01cb01d31ab1$51458340$f3d089c0$@opengridcomputing.com>
-In-Reply-To: <01cb01d31ab1$51458340$f3d089c0$@opengridcomputing.com>
+Hi Doug,
 
---uJV250Tv4c6jqujwsG7Sb7387VbPnIUw3
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: quoted-printable
+Another week another set of patches. I meant to send on Friday but was waiting
+for 0-day builds to complete. I still haven't gotten any notification, the
+service may be down but I wanted to get these on the list anyway for review.
+If I get any bad result I will reply but there is nothing particularly scary
+in here.
 
-On 8/21/2017 3:11 PM, Steve Wise wrote:
-> ping...
->=20
->>
->>>
->>> I agree, I like your solution better.  Patch fixed up and applied.
->>>
->>
->> Hey Doug, I see this in your -next branch, but it needs to hit 4.13-rc=
- and stable, as it
->> is a fatal regression that breaks user mode rdma applications.
+Content wise this is more clean ups including a patch for rdmavt to use
+the put_swqe/clear_mr_ref helpers that support was added for in qib/hfi1
+previously. 
 
-OK, I'll get it into -rc then.
+We have some minor bug fixes as well. A large portion of the patch set is
+a clean up/refactoring exercise by Harish that I took because it makes the code
+cleaner and easier to read.
+
+Note, one of the fixes from Mike is marked stable. I don't know if it's something
+that you want to take into this late of an RC so it may be best to just go to
+next and flow through the stable process.
+
+Patches can can also be found in my GitHub repo at:
+https://github.com/ddalessa/kernel/tree/for-4.14
+
+---
+
+Grzegorz Morys (1):
+      IB/hfi1: Ratelimit prints from sdma_interrupt
+
+Harish Chegondi (7):
+      IB/hfi1: Clean up hfi1_user_exp_rcv_setup function
+      IB/hfi1: Clean up user_sdma_send_pkts() function
+      IB/hfi1: Clean up pin_vector_pages() function
+      IB/hfi1: Fix the bail out code in pin_vector_pages() function
+      IB/hfi1: Remove duplicate definitions of num_user_pages() function
+      IB/hfi1: Move structure definitions from user_exp_rcv.c to user_exp_rcv.h
+      IB/hfi1: Move structure and MACRO definitions in user_sdma.c to user_sdma.h
+
+Kaike Wan (1):
+      IB/hfi1: Add received request info to qp_stats
+
+Kamenee Arumugam (3):
+      IB/qib: Remove unnecessary memory allocation for boardname
+      IB/qib: Stricter bounds checking for copy and array access
+      IB/hfi1: Fix whitespace alignment issue for MAD
+
+Michael J. Ruhl (1):
+      IB/hfi1: Improve local kmem_cache_alloc performance
+
+Mike Marciniszyn (3):
+      IB/rdmavt: Use rvt_put_swqe() in rvt_clear_mr_ref()
+      IB/{qib,hfi1}: Avoid flow control testing for RDMA write operation
+      IB/hfi1: Add opcode states to qp_stats
 
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
-D
+ drivers/infiniband/hw/hfi1/chip.c         |    4 
+ drivers/infiniband/hw/hfi1/file_ops.c     |    2 
+ drivers/infiniband/hw/hfi1/hfi.h          |    6 
+ drivers/infiniband/hw/hfi1/mad.c          |    2 
+ drivers/infiniband/hw/hfi1/qp.c           |   13 +
+ drivers/infiniband/hw/hfi1/rc.c           |    3 
+ drivers/infiniband/hw/hfi1/user_exp_rcv.c |  255 ++++++++++-------
+ drivers/infiniband/hw/hfi1/user_exp_rcv.h |   34 ++
+ drivers/infiniband/hw/hfi1/user_sdma.c    |  434 +++++++++--------------------
+ drivers/infiniband/hw/hfi1/user_sdma.h    |  166 +++++++++++
+ drivers/infiniband/hw/hfi1/verbs_txreq.c  |   11 -
+ drivers/infiniband/hw/hfi1/vnic_sdma.c    |   13 -
+ drivers/infiniband/hw/qib/qib_iba6120.c   |   20 -
+ drivers/infiniband/hw/qib/qib_iba7220.c   |   22 +
+ drivers/infiniband/hw/qib/qib_iba7322.c   |   40 +--
+ drivers/infiniband/hw/qib/qib_init.c      |    1 
+ drivers/infiniband/hw/qib/qib_mad.c       |    4 
+ drivers/infiniband/hw/qib/qib_rc.c        |    4 
+ drivers/infiniband/hw/qib/qib_ruc.c       |    6 
+ drivers/infiniband/sw/rdmavt/qp.c         |    6 
+ 20 files changed, 556 insertions(+), 490 deletions(-)
 
-
---uJV250Tv4c6jqujwsG7Sb7387VbPnIUw3--
-
---gkR3uGgwxGDivWM5WEWhoqcf6EH6LxJNJ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJZm359AAoJELgmozMOVy/dQhoP/RpOJlujKj8eT1pNYAL7Urfn
-zrYKFC2vHPcpPe+3ZNbNGrtmlhhr1J9EDzw7smzETTvtmywmZLQvWIAMr6GCiauo
-ZalwVQZ1s8mZ1J8qRULMicMtAqLtCtpRPo7pjXe2HY8xXXgoLVHMfzE2YQJXEvB+
-xveFEo6XAKEnQixO6DLdJn0xLsrS5iRIP86FmqJK2ilsngSpivyGDjcSSayxU0jE
-CK1pgVAmrTh014S3SQtVq4oXZunRUScVpeZvZNRwCeLsUegWDSZP42Gs5GHLTZaT
-m/exDwvjnPJ/giak3SGFbB2lypcp8PUuYaUngOexrpQU36KS2rn4zO4J67hDCfpj
-8c1TCHszvPu+PQyLirokwRDLB+zM/FZtGN58GBew+VHbaq6wt7pH/1ofk9Iose3w
-/WsmcWFsma7OmqzMQ/T0cUNmK11mKllMfWlq9uavyWVNq6UoGZzXsBjbr3Sk7id7
-f6D8fozHrfxwTDLdN2Qe+1EyTv/VARpMNJS5ESxbGeGOhXOW76yNg4PEsUArcZvR
-ScNG87YHVCefEOljkv0ryqVC3DPlWSiOpULXi+p215fth7dkN6IzbJSCNiQB+F4i
-vFTamRA7scD+Yu3BMtITKzMT5UInt//suI2EZg86/6eariSCBth+X+TXbl/cnZ2D
-s4BCbK9wBGzYuIr3JsNc
-=6Yuf
------END PGP SIGNATURE-----
-
---gkR3uGgwxGDivWM5WEWhoqcf6EH6LxJNJ--
+--
+-Denny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
