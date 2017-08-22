@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 06/16] IB/hfi1: Improve local kmem_cache_alloc
- performance
-Date: Mon, 21 Aug 2017 18:26:45 -0700
-Message-ID: <20170822012643.32701.7091.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 08/16] IB/hfi1: Clean up user_sdma_send_pkts()
+ function
+Date: Mon, 21 Aug 2017 18:26:57 -0700
+Message-ID: <20170822012656.32701.59168.stgit@scvm10.sc.intel.com>
 References: <20170822011657.32701.22207.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,118 +11,190 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170822011657.32701.22207.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Performance analysis shows that the cache callback function
-sdma_kmem_cache_ctor contributes to 1/2 of the kmem_cache_allocs
-time.
+user_sdma_send_pkts() function is unnecessarily long. Clean it up by
+moving some of its code into separate functions.
 
-Since all of the fields in the allocated data structure are initialized
-in the code path, remove the _ctor function.
-
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/user_sdma.c   |    9 +--------
- drivers/infiniband/hw/hfi1/verbs_txreq.c |   11 ++---------
- drivers/infiniband/hw/hfi1/vnic_sdma.c   |   13 +++----------
- 3 files changed, 6 insertions(+), 27 deletions(-)
+ drivers/infiniband/hw/hfi1/user_sdma.c |  141 +++++++++++++++++++-------------
+ 1 files changed, 82 insertions(+), 59 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
-index aae1f40..9b89df5 100644
+index 9b89df5..d5a2572 100644
 --- a/drivers/infiniband/hw/hfi1/user_sdma.c
 +++ b/drivers/infiniband/hw/hfi1/user_sdma.c
-@@ -331,13 +331,6 @@ static void activate_packet_queue(struct iowait *wait, int reason)
- 	wake_up(&wait->wait_dma);
- };
- 
--static void sdma_kmem_cache_ctor(void *obj)
--{
--	struct user_sdma_txreq *tx = obj;
--
--	memset(tx, 0, sizeof(*tx));
--}
--
- int hfi1_user_sdma_alloc_queues(struct hfi1_ctxtdata *uctxt,
- 				struct hfi1_filedata *fd)
- {
-@@ -391,7 +384,7 @@ int hfi1_user_sdma_alloc_queues(struct hfi1_ctxtdata *uctxt,
- 					    sizeof(struct user_sdma_txreq),
- 					    L1_CACHE_BYTES,
- 					    SLAB_HWCACHE_ALIGN,
--					    sdma_kmem_cache_ctor);
-+					    NULL);
- 	if (!pq->txreq_cache) {
- 		dd_dev_err(dd, "[%u] Failed to allocate TxReq cache\n",
- 			   uctxt->ctxt);
-diff --git a/drivers/infiniband/hw/hfi1/verbs_txreq.c b/drivers/infiniband/hw/hfi1/verbs_txreq.c
-index 5d23172..873e48e 100644
---- a/drivers/infiniband/hw/hfi1/verbs_txreq.c
-+++ b/drivers/infiniband/hw/hfi1/verbs_txreq.c
-@@ -1,5 +1,5 @@
- /*
-- * Copyright(c) 2016 Intel Corporation.
-+ * Copyright(c) 2016 - 2017 Intel Corporation.
-  *
-  * This file is provided under a dual BSD/GPLv2 license.  When using or
-  * redistributing this file, you may do so under either license.
-@@ -119,13 +119,6 @@ struct verbs_txreq *__get_txreq(struct hfi1_ibdev *dev,
- 	return tx;
+@@ -847,6 +847,84 @@ static inline u32 get_lrh_len(struct hfi1_pkt_header hdr, u32 len)
+ 	return ((sizeof(hdr) - sizeof(hdr.pbc)) + 4 + len);
  }
  
--static void verbs_txreq_kmem_cache_ctor(void *obj)
--{
--	struct verbs_txreq *tx = (struct verbs_txreq *)obj;
--
--	memset(tx, 0, sizeof(*tx));
--}
--
- int verbs_txreq_init(struct hfi1_ibdev *dev)
++static int user_sdma_txadd_ahg(struct user_sdma_request *req,
++			       struct user_sdma_txreq *tx,
++			       u32 datalen)
++{
++	int ret;
++	u16 pbclen = le16_to_cpu(req->hdr.pbc[0]);
++	u32 lrhlen = get_lrh_len(req->hdr, pad_len(datalen));
++	struct hfi1_user_sdma_pkt_q *pq = req->pq;
++
++	/*
++	 * Copy the request header into the tx header
++	 * because the HW needs a cacheline-aligned
++	 * address.
++	 * This copy can be optimized out if the hdr
++	 * member of user_sdma_request were also
++	 * cacheline aligned.
++	 */
++	memcpy(&tx->hdr, &req->hdr, sizeof(tx->hdr));
++	if (PBC2LRH(pbclen) != lrhlen) {
++		pbclen = (pbclen & 0xf000) | LRH2PBC(lrhlen);
++		tx->hdr.pbc[0] = cpu_to_le16(pbclen);
++	}
++	ret = check_header_template(req, &tx->hdr, lrhlen, datalen);
++	if (ret)
++		return ret;
++	ret = sdma_txinit_ahg(&tx->txreq, SDMA_TXREQ_F_AHG_COPY,
++			      sizeof(tx->hdr) + datalen, req->ahg_idx,
++			      0, NULL, 0, user_sdma_txreq_cb);
++	if (ret)
++		return ret;
++	ret = sdma_txadd_kvaddr(pq->dd, &tx->txreq, &tx->hdr, sizeof(tx->hdr));
++	if (ret)
++		sdma_txclean(pq->dd, &tx->txreq);
++	return ret;
++}
++
++static int user_sdma_txadd(struct user_sdma_request *req,
++			   struct user_sdma_txreq *tx,
++			   struct user_sdma_iovec *iovec, u32 datalen,
++			   u32 *queued_ptr, u32 *data_sent_ptr,
++			   u64 *iov_offset_ptr)
++{
++	int ret;
++	unsigned int pageidx, len;
++	unsigned long base, offset;
++	u64 iov_offset = *iov_offset_ptr;
++	u32 queued = *queued_ptr, data_sent = *data_sent_ptr;
++	struct hfi1_user_sdma_pkt_q *pq = req->pq;
++
++	base = (unsigned long)iovec->iov.iov_base;
++	offset = offset_in_page(base + iovec->offset + iov_offset);
++	pageidx = (((iovec->offset + iov_offset + base) - (base & PAGE_MASK)) >>
++		   PAGE_SHIFT);
++	len = offset + req->info.fragsize > PAGE_SIZE ?
++		PAGE_SIZE - offset : req->info.fragsize;
++	len = min((datalen - queued), len);
++	ret = sdma_txadd_page(pq->dd, &tx->txreq, iovec->pages[pageidx],
++			      offset, len);
++	if (ret) {
++		SDMA_DBG(req, "SDMA txreq add page failed %d\n", ret);
++		return ret;
++	}
++	iov_offset += len;
++	queued += len;
++	data_sent += len;
++	if (unlikely(queued < datalen && pageidx == iovec->npages &&
++		     req->iov_idx < req->data_iovs - 1)) {
++		iovec->offset += iov_offset;
++		iovec = &req->iovs[++req->iov_idx];
++		iov_offset = 0;
++	}
++
++	*queued_ptr = queued;
++	*data_sent_ptr = data_sent;
++	*iov_offset_ptr = iov_offset;
++	return ret;
++}
++
+ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
  {
- 	char buf[TXREQ_LEN];
-@@ -135,7 +128,7 @@ int verbs_txreq_init(struct hfi1_ibdev *dev)
- 	dev->verbs_txreq_cache = kmem_cache_create(buf,
- 						   sizeof(struct verbs_txreq),
- 						   0, SLAB_HWCACHE_ALIGN,
--						   verbs_txreq_kmem_cache_ctor);
-+						   NULL);
- 	if (!dev->verbs_txreq_cache)
- 		return -ENOMEM;
- 	return 0;
-diff --git a/drivers/infiniband/hw/hfi1/vnic_sdma.c b/drivers/infiniband/hw/hfi1/vnic_sdma.c
-index 7815d74..c3c96c5 100644
---- a/drivers/infiniband/hw/hfi1/vnic_sdma.c
-+++ b/drivers/infiniband/hw/hfi1/vnic_sdma.c
-@@ -303,22 +303,15 @@ void hfi1_vnic_sdma_init(struct hfi1_vnic_vport_info *vinfo)
- 	}
- }
+ 	int ret = 0, count;
+@@ -943,39 +1021,9 @@ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
  
--static void hfi1_vnic_txreq_kmem_cache_ctor(void *obj)
--{
--	struct vnic_txreq *tx = (struct vnic_txreq *)obj;
--
--	memset(tx, 0, sizeof(*tx));
--}
--
- int hfi1_vnic_txreq_init(struct hfi1_devdata *dd)
- {
- 	char buf[HFI1_VNIC_TXREQ_NAME_LEN];
+ 		if (req->ahg_idx >= 0) {
+ 			if (!req->seqnum) {
+-				u16 pbclen = le16_to_cpu(req->hdr.pbc[0]);
+-				u32 lrhlen = get_lrh_len(req->hdr,
+-							 pad_len(datalen));
+-				/*
+-				 * Copy the request header into the tx header
+-				 * because the HW needs a cacheline-aligned
+-				 * address.
+-				 * This copy can be optimized out if the hdr
+-				 * member of user_sdma_request were also
+-				 * cacheline aligned.
+-				 */
+-				memcpy(&tx->hdr, &req->hdr, sizeof(tx->hdr));
+-				if (PBC2LRH(pbclen) != lrhlen) {
+-					pbclen = (pbclen & 0xf000) |
+-						LRH2PBC(lrhlen);
+-					tx->hdr.pbc[0] = cpu_to_le16(pbclen);
+-				}
+-				ret = check_header_template(req, &tx->hdr,
+-							    lrhlen, datalen);
+-				if (ret)
+-					goto free_tx;
+-				ret = sdma_txinit_ahg(&tx->txreq,
+-						      SDMA_TXREQ_F_AHG_COPY,
+-						      sizeof(tx->hdr) + datalen,
+-						      req->ahg_idx, 0, NULL, 0,
+-						      user_sdma_txreq_cb);
++				ret = user_sdma_txadd_ahg(req, tx, datalen);
+ 				if (ret)
+ 					goto free_tx;
+-				ret = sdma_txadd_kvaddr(pq->dd, &tx->txreq,
+-							&tx->hdr,
+-							sizeof(tx->hdr));
+-				if (ret)
+-					goto free_txreq;
+ 			} else {
+ 				int changes;
  
- 	snprintf(buf, sizeof(buf), "hfi1_%u_vnic_txreq_cache", dd->unit);
- 	dd->vnic.txreq_cache = kmem_cache_create(buf,
--					  sizeof(struct vnic_txreq),
--					  0, SLAB_HWCACHE_ALIGN,
--					  hfi1_vnic_txreq_kmem_cache_ctor);
-+						 sizeof(struct vnic_txreq),
-+						 0, SLAB_HWCACHE_ALIGN,
-+						 NULL);
- 	if (!dd->vnic.txreq_cache)
- 		return -ENOMEM;
- 	return 0;
+@@ -1006,35 +1054,10 @@ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
+ 		 */
+ 		while (queued < datalen &&
+ 		       (req->sent + data_sent) < req->data_len) {
+-			unsigned long base, offset;
+-			unsigned pageidx, len;
+-
+-			base = (unsigned long)iovec->iov.iov_base;
+-			offset = offset_in_page(base + iovec->offset +
+-						iov_offset);
+-			pageidx = (((iovec->offset + iov_offset +
+-				     base) - (base & PAGE_MASK)) >> PAGE_SHIFT);
+-			len = offset + req->info.fragsize > PAGE_SIZE ?
+-				PAGE_SIZE - offset : req->info.fragsize;
+-			len = min((datalen - queued), len);
+-			ret = sdma_txadd_page(pq->dd, &tx->txreq,
+-					      iovec->pages[pageidx],
+-					      offset, len);
+-			if (ret) {
+-				SDMA_DBG(req, "SDMA txreq add page failed %d\n",
+-					 ret);
++			ret = user_sdma_txadd(req, tx, iovec, datalen,
++					      &queued, &data_sent, &iov_offset);
++			if (ret)
+ 				goto free_txreq;
+-			}
+-			iov_offset += len;
+-			queued += len;
+-			data_sent += len;
+-			if (unlikely(queued < datalen &&
+-				     pageidx == iovec->npages &&
+-				     req->iov_idx < req->data_iovs - 1)) {
+-				iovec->offset += iov_offset;
+-				iovec = &req->iovs[++req->iov_idx];
+-				iov_offset = 0;
+-			}
+ 		}
+ 		/*
+ 		 * The txreq was submitted successfully so we can update
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
