@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 08/16] IB/hfi1: Clean up user_sdma_send_pkts()
- function
-Date: Mon, 21 Aug 2017 18:26:57 -0700
-Message-ID: <20170822012656.32701.59168.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 09/16] IB/hfi1: Clean up pin_vector_pages() function
+Date: Mon, 21 Aug 2017 18:27:03 -0700
+Message-ID: <20170822012702.32701.90032.stgit@scvm10.sc.intel.com>
 References: <20170822011657.32701.22207.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,185 +15,122 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-user_sdma_send_pkts() function is unnecessarily long. Clean it up by
-moving some of its code into separate functions.
+Clean up pin_vector_pages() function by moving page pinning related code
+to a separate function since it really stands on its own.
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/user_sdma.c |  141 +++++++++++++++++++-------------
- 1 files changed, 82 insertions(+), 59 deletions(-)
+ drivers/infiniband/hw/hfi1/user_sdma.c |   79 ++++++++++++++++++--------------
+ 1 files changed, 45 insertions(+), 34 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
-index 9b89df5..d5a2572 100644
+index d5a2572..6f26253 100644
 --- a/drivers/infiniband/hw/hfi1/user_sdma.c
 +++ b/drivers/infiniband/hw/hfi1/user_sdma.c
-@@ -847,6 +847,84 @@ static inline u32 get_lrh_len(struct hfi1_pkt_header hdr, u32 len)
- 	return ((sizeof(hdr) - sizeof(hdr.pbc)) + 4 + len);
+@@ -1124,11 +1124,53 @@ static u32 sdma_cache_evict(struct hfi1_user_sdma_pkt_q *pq, u32 npages)
+ 	return evict_data.cleared;
  }
  
-+static int user_sdma_txadd_ahg(struct user_sdma_request *req,
-+			       struct user_sdma_txreq *tx,
-+			       u32 datalen)
++static int pin_sdma_pages(struct user_sdma_request *req,
++			  struct user_sdma_iovec *iovec,
++			  struct sdma_mmu_node *node,
++			  int npages)
 +{
-+	int ret;
-+	u16 pbclen = le16_to_cpu(req->hdr.pbc[0]);
-+	u32 lrhlen = get_lrh_len(req->hdr, pad_len(datalen));
++	int pinned, cleared;
++	struct page **pages;
 +	struct hfi1_user_sdma_pkt_q *pq = req->pq;
 +
-+	/*
-+	 * Copy the request header into the tx header
-+	 * because the HW needs a cacheline-aligned
-+	 * address.
-+	 * This copy can be optimized out if the hdr
-+	 * member of user_sdma_request were also
-+	 * cacheline aligned.
-+	 */
-+	memcpy(&tx->hdr, &req->hdr, sizeof(tx->hdr));
-+	if (PBC2LRH(pbclen) != lrhlen) {
-+		pbclen = (pbclen & 0xf000) | LRH2PBC(lrhlen);
-+		tx->hdr.pbc[0] = cpu_to_le16(pbclen);
++	pages = kcalloc(npages, sizeof(*pages), GFP_KERNEL);
++	if (!pages) {
++		SDMA_DBG(req, "Failed page array alloc");
++		return -ENOMEM;
 +	}
-+	ret = check_header_template(req, &tx->hdr, lrhlen, datalen);
-+	if (ret)
-+		return ret;
-+	ret = sdma_txinit_ahg(&tx->txreq, SDMA_TXREQ_F_AHG_COPY,
-+			      sizeof(tx->hdr) + datalen, req->ahg_idx,
-+			      0, NULL, 0, user_sdma_txreq_cb);
-+	if (ret)
-+		return ret;
-+	ret = sdma_txadd_kvaddr(pq->dd, &tx->txreq, &tx->hdr, sizeof(tx->hdr));
-+	if (ret)
-+		sdma_txclean(pq->dd, &tx->txreq);
-+	return ret;
++	memcpy(pages, node->pages, node->npages * sizeof(*pages));
++
++	npages -= node->npages;
++retry:
++	if (!hfi1_can_pin_pages(pq->dd, pq->mm,
++				atomic_read(&pq->n_locked), npages)) {
++		cleared = sdma_cache_evict(pq, npages);
++		if (cleared >= npages)
++			goto retry;
++	}
++	pinned = hfi1_acquire_user_pages(pq->mm,
++					 ((unsigned long)iovec->iov.iov_base +
++					 (node->npages * PAGE_SIZE)), npages, 0,
++					 pages + node->npages);
++	if (pinned < 0) {
++		kfree(pages);
++		return pinned;
++	}
++	if (pinned != npages) {
++		unpin_vector_pages(pq->mm, pages, node->npages, pinned);
++		return -EFAULT;
++	}
++	kfree(node->pages);
++	node->rb.len = iovec->iov.iov_len;
++	node->pages = pages;
++	atomic_add(pinned, &pq->n_locked);
++	return pinned;
 +}
 +
-+static int user_sdma_txadd(struct user_sdma_request *req,
-+			   struct user_sdma_txreq *tx,
-+			   struct user_sdma_iovec *iovec, u32 datalen,
-+			   u32 *queued_ptr, u32 *data_sent_ptr,
-+			   u64 *iov_offset_ptr)
-+{
-+	int ret;
-+	unsigned int pageidx, len;
-+	unsigned long base, offset;
-+	u64 iov_offset = *iov_offset_ptr;
-+	u32 queued = *queued_ptr, data_sent = *data_sent_ptr;
-+	struct hfi1_user_sdma_pkt_q *pq = req->pq;
-+
-+	base = (unsigned long)iovec->iov.iov_base;
-+	offset = offset_in_page(base + iovec->offset + iov_offset);
-+	pageidx = (((iovec->offset + iov_offset + base) - (base & PAGE_MASK)) >>
-+		   PAGE_SHIFT);
-+	len = offset + req->info.fragsize > PAGE_SIZE ?
-+		PAGE_SIZE - offset : req->info.fragsize;
-+	len = min((datalen - queued), len);
-+	ret = sdma_txadd_page(pq->dd, &tx->txreq, iovec->pages[pageidx],
-+			      offset, len);
-+	if (ret) {
-+		SDMA_DBG(req, "SDMA txreq add page failed %d\n", ret);
-+		return ret;
-+	}
-+	iov_offset += len;
-+	queued += len;
-+	data_sent += len;
-+	if (unlikely(queued < datalen && pageidx == iovec->npages &&
-+		     req->iov_idx < req->data_iovs - 1)) {
-+		iovec->offset += iov_offset;
-+		iovec = &req->iovs[++req->iov_idx];
-+		iov_offset = 0;
-+	}
-+
-+	*queued_ptr = queued;
-+	*data_sent_ptr = data_sent;
-+	*iov_offset_ptr = iov_offset;
-+	return ret;
-+}
-+
- static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
+ static int pin_vector_pages(struct user_sdma_request *req,
+ 			    struct user_sdma_iovec *iovec)
  {
- 	int ret = 0, count;
-@@ -943,39 +1021,9 @@ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
+-	int ret = 0, pinned, npages, cleared;
+-	struct page **pages;
++	int ret = 0, pinned, npages;
+ 	struct hfi1_user_sdma_pkt_q *pq = req->pq;
+ 	struct sdma_mmu_node *node = NULL;
+ 	struct mmu_rb_node *rb_node;
+@@ -1162,44 +1204,13 @@ static int pin_vector_pages(struct user_sdma_request *req,
  
- 		if (req->ahg_idx >= 0) {
- 			if (!req->seqnum) {
--				u16 pbclen = le16_to_cpu(req->hdr.pbc[0]);
--				u32 lrhlen = get_lrh_len(req->hdr,
--							 pad_len(datalen));
--				/*
--				 * Copy the request header into the tx header
--				 * because the HW needs a cacheline-aligned
--				 * address.
--				 * This copy can be optimized out if the hdr
--				 * member of user_sdma_request were also
--				 * cacheline aligned.
--				 */
--				memcpy(&tx->hdr, &req->hdr, sizeof(tx->hdr));
--				if (PBC2LRH(pbclen) != lrhlen) {
--					pbclen = (pbclen & 0xf000) |
--						LRH2PBC(lrhlen);
--					tx->hdr.pbc[0] = cpu_to_le16(pbclen);
--				}
--				ret = check_header_template(req, &tx->hdr,
--							    lrhlen, datalen);
--				if (ret)
--					goto free_tx;
--				ret = sdma_txinit_ahg(&tx->txreq,
--						      SDMA_TXREQ_F_AHG_COPY,
--						      sizeof(tx->hdr) + datalen,
--						      req->ahg_idx, 0, NULL, 0,
--						      user_sdma_txreq_cb);
-+				ret = user_sdma_txadd_ahg(req, tx, datalen);
- 				if (ret)
- 					goto free_tx;
--				ret = sdma_txadd_kvaddr(pq->dd, &tx->txreq,
--							&tx->hdr,
--							sizeof(tx->hdr));
--				if (ret)
--					goto free_txreq;
- 			} else {
- 				int changes;
- 
-@@ -1006,35 +1054,10 @@ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
- 		 */
- 		while (queued < datalen &&
- 		       (req->sent + data_sent) < req->data_len) {
--			unsigned long base, offset;
--			unsigned pageidx, len;
+ 	npages = num_user_pages(&iovec->iov);
+ 	if (node->npages < npages) {
+-		pages = kcalloc(npages, sizeof(*pages), GFP_KERNEL);
+-		if (!pages) {
+-			SDMA_DBG(req, "Failed page array alloc");
+-			ret = -ENOMEM;
+-			goto bail;
+-		}
+-		memcpy(pages, node->pages, node->npages * sizeof(*pages));
 -
--			base = (unsigned long)iovec->iov.iov_base;
--			offset = offset_in_page(base + iovec->offset +
--						iov_offset);
--			pageidx = (((iovec->offset + iov_offset +
--				     base) - (base & PAGE_MASK)) >> PAGE_SHIFT);
--			len = offset + req->info.fragsize > PAGE_SIZE ?
--				PAGE_SIZE - offset : req->info.fragsize;
--			len = min((datalen - queued), len);
--			ret = sdma_txadd_page(pq->dd, &tx->txreq,
--					      iovec->pages[pageidx],
--					      offset, len);
--			if (ret) {
--				SDMA_DBG(req, "SDMA txreq add page failed %d\n",
--					 ret);
-+			ret = user_sdma_txadd(req, tx, iovec, datalen,
-+					      &queued, &data_sent, &iov_offset);
-+			if (ret)
- 				goto free_txreq;
--			}
--			iov_offset += len;
--			queued += len;
--			data_sent += len;
--			if (unlikely(queued < datalen &&
--				     pageidx == iovec->npages &&
--				     req->iov_idx < req->data_iovs - 1)) {
--				iovec->offset += iov_offset;
--				iovec = &req->iovs[++req->iov_idx];
--				iov_offset = 0;
--			}
+-		npages -= node->npages;
+-
+-retry:
+-		if (!hfi1_can_pin_pages(pq->dd, pq->mm,
+-					atomic_read(&pq->n_locked), npages)) {
+-			cleared = sdma_cache_evict(pq, npages);
+-			if (cleared >= npages)
+-				goto retry;
+-		}
+-		pinned = hfi1_acquire_user_pages(pq->mm,
+-			((unsigned long)iovec->iov.iov_base +
+-			 (node->npages * PAGE_SIZE)), npages, 0,
+-			pages + node->npages);
++		pinned = pin_sdma_pages(req, iovec, node, npages);
+ 		if (pinned < 0) {
+-			kfree(pages);
+ 			ret = pinned;
+ 			goto bail;
  		}
- 		/*
- 		 * The txreq was submitted successfully so we can update
+-		if (pinned != npages) {
+-			unpin_vector_pages(pq->mm, pages, node->npages,
+-					   pinned);
+-			ret = -EFAULT;
+-			goto bail;
+-		}
+-		kfree(node->pages);
+-		node->rb.len = iovec->iov.iov_len;
+-		node->pages = pages;
+ 		node->npages += pinned;
+ 		npages = node->npages;
+-		atomic_add(pinned, &pq->n_locked);
+ 	}
+ 	iovec->pages = node->pages;
+ 	iovec->npages = npages;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
