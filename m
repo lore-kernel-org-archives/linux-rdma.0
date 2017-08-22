@@ -1,63 +1,61 @@
-From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/hns: Explicitly include linux/interrupt.h
-Date: Tue, 22 Aug 2017 10:21:45 +0800
-Message-ID: <599B9539.5040004@huawei.com>
-References: <20170728105112.7577-1-broonie@kernel.org>
- <1501529069.2725.5.camel@redhat.com>
+From: Yigal Korman <yigal-/8YdC2HfS5554TAoqtyWWQ@public.gmane.org>
+Subject: Re: Possible rdma-core header conflict
+Date: Tue, 22 Aug 2017 09:08:56 +0300
+Message-ID: <CACTTzNar-qBRxkeWHL-gt4C9A6yTbY+GbkTT6tWKvJcnpK=J_g@mail.gmail.com>
+References: <CACTTzNa3EzABie9=h2X-ONBefyaoWE1+RAT-T+uxJVvVij15Rg@mail.gmail.com>
+ <20170821120310.GL1724@mtr-leonro.local> <20170821155729.GC4401@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1501529069.2725.5.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170821155729.GC4401-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, mmarek-IBi9RG/b67k@public.gmane.org, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dhowells-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Linux RDMA Mailing List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi, Doug & Mark Brown & Arnd Bergmann
-   Thanks for your patches!
-
-   @Doug, Which branch can we found this patch? Thanks
-   Regards
-Wei Hu
-
-On 2017/8/1 3:24, Doug Ledford wrote:
-> On Fri, 2017-07-28 at 11:51 +0100, Mark Brown wrote:
->> This file uses interrupt APIs but doesn't explicitly include
->> linux/interrupt.h meaning that changes in other header files could
->> cause
->> build breakage as happened in next-20170728 for arm64.  Add an
->> explicit
->> include to avoid such problems.
+On Mon, Aug 21, 2017 at 6:57 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Mon, Aug 21, 2017 at 03:03:10PM +0300, Leon Romanovsky wrote:
+>> On Mon, Aug 21, 2017 at 12:24:14PM +0300, Yigal Korman wrote:
+>> > Hi,
+>> > Has anyone noticed that installing rdma-core (or older
+>> > librdmacm-devel) package and then installing kernel headers manually
+>> > (make headers_install) removes the librdmacm headers?
+>> > I actually see it in the make output:
+>> >
+>> > make INSTALL_HDR_PATH=3D/usr headers_install
+>> >   CHK     include/generated/uapi/linux/version.h
+>> >   REMOVE  rdma_cma_abi.h rdma_verbs.h rdma_cma.h rsocket.h
+>> >
+>> > Am I doing something wrong?
+>> > Sounds like the kernel rdma headers and librdmacm headers shouldn't
+>> > sit in the same directory...
 >>
->> Signed-off-by: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
->> ---
->>   drivers/infiniband/hw/hns/hns_roce_eq.c | 1 +
->>   1 file changed, 1 insertion(+)
->>
->> diff --git a/drivers/infiniband/hw/hns/hns_roce_eq.c
->> b/drivers/infiniband/hw/hns/hns_roce_eq.c
->> index 50f864935a0e..e1e4c16ca3d5 100644
->> --- a/drivers/infiniband/hw/hns/hns_roce_eq.c
->> +++ b/drivers/infiniband/hw/hns/hns_roce_eq.c
->> @@ -30,6 +30,7 @@
->>    * SOFTWARE.
->>    */
->>   
->> +#include <linux/interrupt.h>
->>   #include <linux/platform_device.h>
->>   #include "hns_roce_common.h"
->>   #include "hns_roce_device.h"
-> Hi Mark,
+>> It looks like this behavior (removal of header files) was from the begin=
+ning of git era.
+>> =E2=9E=9C  linux-rdma git:(rdma-next) =E2=9C=97 git co -b tmp v2.6.34.8
+>> =E2=9E=9C  linux-rdma git:(tmp) =E2=9C=97 cp ~/src/rdma-core/librdmacm/r=
+dma_verbs.h /tmp/h/include/rdma/ && make INSTALL_HDR_PATH=3D/tmp/h headers_=
+install | grep REMOVE
+>>   REMOVE  rdma_verbs.h
 >
-> Your patch is fine, but I grabbed the one from Arnd before I grabbed
-> this one.  That was an accident on my part (yours was sent to the list
-> first and I normally would have grabbed it), my apologies for that.  I
-> knew I had seen a patch come through and I scrolled back until I found
-> it without realizing there were two.
+> The user space files have also been sharing the directory with the
+> kernel files since the start.. Not sure why, but I don't think we can
+> change it now.
 >
+> Maybe someone can patch the kernel to exempt rdma/ from the removal
+> process?
 
+Yeah, that would be a good possible fix for this.
+I had a quick look at the kernel headers install scripts and didn't
+see any mechanism for this, but I might've missed it.
+I'm adding linux-kbuild mailing list here, maybe someone there can help?
 
+Thanks
+
+>
+> Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
