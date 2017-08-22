@@ -1,31 +1,37 @@
-From: Stanislav Yakovlev <stas.yakovlev@gmail.com>
-Subject: Re: [PATCH v12 7/8] wireless: ipw2200: Replace PCI pool old API
-Date: Tue, 22 Aug 2017 18:11:14 -0400
-Message-ID: <CA++WF2MAT3aHd3TYfLgym9ssFKBsti6+t9b1yJ_eXHEmRBWwcQ@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH rdma-core 1/2] rsockets: fix a race-condition in
+ rs_free()
+Date: Tue, 22 Aug 2017 22:50:10 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB17BAB5@ORSMSX109.amr.corp.intel.com>
+References: <29EC6B54-616C-4263-BC75-C37A3286ABD8@lanl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Romain Perier <romain.perier@collabora.com>, Kalle Valo <kvalo@codeaurora.org>
-Cc: Dan Williams <dan.j.williams@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, jeffrey.t.kirsher@intel.com, "David S. Miller" <davem@davemloft.net>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <29EC6B54-616C-4263-BC75-C37A3286ABD8-YOWKrPYUwWM@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jeff Inman <jti-YOWKrPYUwWM@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 22 August 2017 at 07:47, Romain Perier <romain.perier@collabora.com> wrote:
-> The PCI pool API is deprecated. This commit replaces the PCI pool old
-> API by the appropriate function with the DMA pool API.
->
-> Signed-off-by: Romain Perier <romain.perier@collabora.com>
-> Reviewed-by: Peter Senna Tschudin <peter.senna@collabora.com>
-> ---
->  drivers/net/wireless/intel/ipw2x00/ipw2200.c | 13 +++++++------
->  1 file changed, 7 insertions(+), 6 deletions(-)
->
+> If rs_free() releases the fd before calling rs_remove(), a second
+> thread in rsocket() may acquire the same fd and store its own rs in
+> the corresponding index-element.  When the first thread then gets
+> around to calling rs_remove() it ends up removing the rs of the second
+> thread, and storing a NULL there.
+> 
+> Several functions still do not check for NULL after retrieving an rs
+> from the index for an open rsocket.  Thus, the second thread would get
+> a segfault in any of the following functions: rrecv, rrecvfrom, rsend,
+> rsendto, rsendv, riomap, riounmap, riowrite.
+> 
+> Fixes:  cf7aae3 "rsocket: Index map item is cleaned before it is used
+> in iomapping cleanup"
+> 
+> Signed-off-by: Jeff Inman <jti-YOWKrPYUwWM@public.gmane.org>
 
-Acked-by: Stanislav Yakovlev <stas.yakovlev@gmail.com>
-
-Thanks, and sorry for the long review.
-
-Kalle, could you please apply it to the wireless-drivers-next tree?
-
-Thanks,
-Stanislav.
+Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
