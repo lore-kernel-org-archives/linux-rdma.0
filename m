@@ -1,145 +1,33 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma v1 1/1] IB/core: Fix input len in multiple user verbs
-Date: Tue, 22 Aug 2017 15:40:12 +0300
-Message-ID: <20170822124012.GY1724@mtr-leonro.local>
-References: <1498572282-22370-1-git-send-email-Ram.Amrani@cavium.com>
- <1498572282-22370-2-git-send-email-Ram.Amrani@cavium.com>
- <20170628095422.GA1248@mtr-leonro.local>
- <BN3PR07MB25788193EFA21CEB5C430201F8DD0@BN3PR07MB2578.namprd07.prod.outlook.com>
- <20170628101124.GD1248@mtr-leonro.local>
- <CY1PR0701MB1337A8E7B1E40CC4C1EC230A90DD0@CY1PR0701MB1337.namprd07.prod.outlook.com>
- <1503068404.2598.9.camel@redhat.com>
- <20170818155808.GN23648@mtr-leonro.local>
- <1503072465.2598.19.camel@redhat.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [for-next 0/3] Add congestion control capability
+Date: Tue, 22 Aug 2017 09:11:43 -0600
+Message-ID: <20170822151143.GB1201@obsidianresearch.com>
+References: <1503402587-24669-1-git-send-email-devesh.sharma@broadcom.com>
+ <20170822123246.GX1724@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="jfWagoTHmfL/c8Ax"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1503072465.2598.19.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170822123246.GX1724-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
---jfWagoTHmfL/c8Ax
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Fri, Aug 18, 2017 at 12:07:45PM -0400, Doug Ledford wrote:
-> On Fri, 2017-08-18 at 18:58 +0300, Leon Romanovsky wrote:
-> > On Fri, Aug 18, 2017 at 11:00:04AM -0400, Doug Ledford wrote:
-> > > On Wed, 2017-06-28 at 10:23 +0000, Elior, Ariel wrote:
-> > > > > From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
-> > > > > Sent: Wednesday, June 28, 2017 1:11 PM
-> > > > > To: Amrani, Ram <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> > > > > Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Elior,
-> > > > > Ariel
-> > > > > <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-> > > > > Subject: Re: [PATCH rdma v1 1/1] IB/core: Fix input len in
-> > > > > multiple
-> > > > > user verbs
-> > > > >
-> > > > > On Wed, Jun 28, 2017 at 10:02:45AM +0000, Amrani, Ram wrote:
-> > > > > > > > Most user verbs pass user data to the kernel with the
-> > > > > > > > inclusion of the
-> > > > > > > > ib_uverbs_cmd_hdr structure. This is problematic because
-> > > > > > > > the
-> > > > > > > > vendor has
-> > > > > > > > no ideas if the verb was called by a legacy verb or an
-> > > > > > > > extended verb.
-> > > > > > >
-> > > > > > > Why vendor should know about it? It has midlayer (ib/core)
-> > > > > > > between him
-> > > > > > > and user to handle it.
-> > > > > > >
-> > > > > >
-> > > > > > Knowing the inlen can be used to determine if the library is
-> > > > > > newer than
-> > > > > > the kernel and what features it supports or not.
-> > > > >
-> > > > > It is not interesting case, because we are not breaking UAPI,
-> > > > > only
-> > > > > extending. It ensures that kernel will fill as much as possible
-> > > > > and
-> > > > > will
-> > > > > always have success in it. After that it is library
-> > > > > responsibility
-> > > > > to
-> > > > > understand if everything was filled.
-> > > > >
-> > > > > Thanks
-> > > >
-> > > > In our case, kernel driver needs to know whether library supports
-> > > > a
-> > > > certain
-> > > > feature (doorbell overflow recovery). It doesn't care if it was
-> > > > an
-> > > > extended
-> > > > verb or not, but it cares whether the lib is sufficiently new to
-> > > > have
-> > > > provided
-> > > > the required information. If the library is sufficiently new
-> > > > (supports) then
-> > > > kernel will register the library's doorbell address with the
-> > > > overflow
-> > > > recovery
-> > > > mechanism, and perform recovery if required, otherwise it would
-> > > > not
-> > > > (as the
-> > > > library is not supplying the necessary information for recovery
-> > > > to
-> > > > take place).
-> > > > This is not something the library needs to know, but the kernel
-> > > > driver. Having
-> > > > correct input len is required for successfully avoiding breaking
-> > > > the
-> > > > UAPI.
-> > >
-> > > Leon, does this explanation resolve your objections?  Also, have
-> > > you
-> > > checked the mlx5/mthca portions of this patch?
+On Tue, Aug 22, 2017 at 03:32:46PM +0300, Leon Romanovsky wrote:
+> On Tue, Aug 22, 2017 at 07:49:44AM -0400, Devesh Sharma wrote:
+> > This patch series is to support congestion control capability
+> > on Broadcom NetXtreme-E 10/25/40/50 RDMA Ethernet Controllers.
 > >
-> > Yes, let's me recheck/rerun the patch and post results.
-> > If for any reasons you don't hear from me till Wednesday, take it.
+> > The implementation exposes congestion control related parameters
+> > to administrator using configfs.
 > >
-> > Thanks
->
-> Works for me, thanks.
+> 
+> We have RDMAtool and netlink for configurations now, please use it.
 
-The series worked for us and we didn't encounter unknown failures.
+Yes, +1
 
-Thanks
-
->
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->     GPG KeyID: B826A3330E572FDD
->     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
->
-
---jfWagoTHmfL/c8Ax
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmcJiwACgkQ5GN7iDZy
-WKfmXxAA0rk5XybWdc53Z0MCKEDNuLADvBF8pT8gzv4ME9V8ubeFQPWym1XsMgHe
-QVpM5Eq88SXkY5pHeSvgnsUQQJ374wWyUxNAMzXBSpXmXIUxKbD9m+sSZ74rjaXQ
-DSWZeBmcQvMA6oZfWHe3CnjQDRPUjTkPTmx/fVysNwnCdADntxkmmXJUmnMtzzCS
-k1YQ0lw65CtmQelM3i0eYutpNkQbrU/WHlSLCMpDqXKeQ8ed3wFd+T0CV9ZcbMHp
-xS5I99u/H33UNfy216vlSgBXT3WUIyJF2St0ooOAQ3wFrTWi9FfDJRyUwMDRZTdG
-jpP3+c7EPjpWXJp8CPC0/R3t0OH/dCZOAYHSg5jON7y/M2R2CP3xgdGne26Wsxe2
-cnR3vZ2g52GmdirGdrblvmkZxNC3NtOKFhEUPa/TiNKc16emn4GnuFcv8S3fYysN
-fw2oIlsPNYL+qE2aD0VaTUk4/53jat6zDL3NCWglYjX9kuSeY8iv1nsPgqcQmzbk
-4IrydfP4O3Xetj+vWE107E9mM0sq0VIpES+Oqw84FyN7k+cthqG8zHTb5N0ioI9q
-8HBdNIt+Xr/0BFSYBQ13me5+SP1FalJVk45dleJa5pXkQQS/C0ZEw1WIt7ryU2mI
-q9k1RZwlf2chxMUepGgyiDma5HuB13lYvqxUNi8R7ntqkU5kBPc=
-=xBVG
------END PGP SIGNATURE-----
-
---jfWagoTHmfL/c8Ax--
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
