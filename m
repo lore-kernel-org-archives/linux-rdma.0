@@ -1,48 +1,66 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 3/3] IB/mlx5: Always return success for RoCE modify port
-Date: Wed, 23 Aug 2017 08:35:42 +0300
-Message-ID: <20170823053542.17754-4-leon@kernel.org>
+Subject: [PATCH rdma-rc 2/3] IB/mlx5: Fix Raw Packet QP event handler assignment
+Date: Wed, 23 Aug 2017 08:35:41 +0300
+Message-ID: <20170823053542.17754-3-leon@kernel.org>
 References: <20170823053542.17754-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170823053542.17754-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-CM layer calls ib_modify_port() regardless of the link layer.
+In case we have SQ and RQ for Raw Packet QP, the SQ's event handler
+wasn't assigned.
 
-For the Ethernet ports, qkey violation and Port capabilities
-are meaningless. Therefore, always return success for ib_modify_port
-calls on the Ethernet ports.
+Fixing this by assigning event handler for each WQ after creation.
 
-Cc: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+[ 1877.145243] Call Trace:
+[ 1877.148644] <IRQ>
+[ 1877.150580] [<ffffffffa07987c5>] ? mlx5_rsc_event+0x105/0x210 [mlx5_core]
+[ 1877.159581] [<ffffffffa0795bd7>] ? mlx5_cq_event+0x57/0xd0 [mlx5_core]
+[ 1877.167137] [<ffffffffa079208e>] mlx5_eq_int+0x53e/0x6c0 [mlx5_core]
+[ 1877.174526] [<ffffffff8101a679>] ? sched_clock+0x9/0x10
+[ 1877.180753] [<ffffffff810f717e>] handle_irq_event_percpu+0x3e/0x1e0
+[ 1877.188014] [<ffffffff810f735d>] handle_irq_event+0x3d/0x60
+[ 1877.194567] [<ffffffff810f9fe7>] handle_edge_irq+0x77/0x130
+[ 1877.201129] [<ffffffff81014c3f>] handle_irq+0xbf/0x150
+[ 1877.207244] [<ffffffff815ed78a>] ? atomic_notifier_call_chain+0x1a/0x20
+[ 1877.214829] [<ffffffff815f434f>] do_IRQ+0x4f/0xf0
+[ 1877.220498] [<ffffffff815e94ad>] common_interrupt+0x6d/0x6d
+[ 1877.227025] <EOI>
+[ 1877.228967] [<ffffffff814834e2>] ? cpuidle_enter_state+0x52/0xc0
+[ 1877.236990] [<ffffffff81483615>] cpuidle_idle_call+0xc5/0x200
+[ 1877.243676] [<ffffffff8101bc7e>] arch_cpu_idle+0xe/0x30
+[ 1877.249831] [<ffffffff810b4725>] cpu_startup_entry+0xf5/0x290
+[ 1877.256513] [<ffffffff815cfee1>] start_secondary+0x265/0x27b
+[ 1877.263111] Code: Bad RIP value.
+[ 1877.267296] RIP [< (null)>] (null)
+[ 1877.273264] RSP <ffff88046fd63df8>
+[ 1877.277531] CR2: 0000000000000000
+
+Fixes: 19098df2da78 ("IB/mlx5: Refactor mlx5_ib_qp to accommodate other QP types")
 Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/main.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/infiniband/hw/mlx5/qp.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index a7f2e60085c4..f7fcde1ff0aa 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1085,6 +1085,12 @@ static int mlx5_ib_modify_port(struct ib_device *ibdev, u8 port, int mask,
- 	bool is_ib = (mlx5_ib_port_link_layer(ibdev, port) ==
- 		      IB_LINK_LAYER_INFINIBAND);
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 0889ff367c86..f58f8f5f3ebe 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -1238,6 +1238,7 @@ static int create_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 			goto err_destroy_tis;
 
-+	/* CM layer calls ib_modify_port() regardless of the link layer. For
-+	 * Ethernet ports, qkey violation and Port capabilities are meaningless.
-+	 */
-+	if (!is_ib)
-+		return 0;
-+
- 	if (MLX5_CAP_GEN(dev->mdev, ib_virt) && is_ib) {
- 		change_mask = props->clr_port_cap_mask | props->set_port_cap_mask;
- 		value = ~props->clr_port_cap_mask | props->set_port_cap_mask;
+ 		sq->base.container_mibqp = qp;
++		sq->base.mqp.event = mlx5_ib_qp_event;
+ 	}
+
+ 	if (qp->rq.wqe_cnt) {
 --
 2.14.1
 
