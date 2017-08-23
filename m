@@ -1,57 +1,33 @@
 From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH for-4.14] IB: Avoid ib_modify_port() failure for RoCE devices
-Date: Wed, 23 Aug 2017 01:08:07 -0700
-Message-ID: <1503475687-5227-1-git-send-email-selvin.xavier@broadcom.com>
+Subject: Re: [rdma-next v3 01/24] IB/cma: Fix erroneous validation of
+ supported default GID type
+Date: Wed, 23 Aug 2017 14:20:06 +0530
+Message-ID: <CA+sbYW07LhA6hwMJR2ODYU8ujRg1ukrrcqxMtyp=n5-+B8bwbg@mail.gmail.com>
+References: <20170817125055.31424-1-leon@kernel.org> <20170817125055.31424-2-leon@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170817125055.31424-2-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-IB CM calls ib_modify_port() irrespective of link layer. If the
-failure is returned, the mad agent gets unregistered for those
-devices. Recently, modify_port() hook was removed from some of the
-low level drivers as it was always returning success. This breaks
-rdma connection establishment over those devices.
-For ethernet devices, Qkey violation and port capabilities are not
-applicable. So returning success for RoCE when modify_port hook is
-is not implemented.
-
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/core/device.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index fc6be11..2466ffc 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -1005,14 +1005,17 @@ int ib_modify_port(struct ib_device *device,
- 		   u8 port_num, int port_modify_mask,
- 		   struct ib_port_modify *port_modify)
- {
--	if (!device->modify_port)
--		return -ENOSYS;
-+	int rc;
- 
- 	if (!rdma_is_port_valid(device, port_num))
- 		return -EINVAL;
- 
--	return device->modify_port(device, port_num, port_modify_mask,
--				   port_modify);
-+	if (device->modify_port)
-+		rc = device->modify_port(device, port_num, port_modify_mask,
-+					   port_modify);
-+	else
-+		rc = rdma_protocol_roce(device, port_num) ? 0 : -ENOSYS;
-+	return rc;
- }
- EXPORT_SYMBOL(ib_modify_port);
- 
--- 
-2.5.5
-
+On Thu, Aug 17, 2017 at 6:20 PM, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>
+> When rdma_cm is initializing a cma_device it checks if this device
+> supports the preferred default GID type. This check was done in a wrong way
+> and therefore sometimes rdma_cm is coming up with default GID type that is
+> not supported by the device.
+>
+> Fix that by checking for supported GID type properly.
+>
+> Fixes: 3c7f67d1880d ("IB/cma: Fix default RoCE type setting")
+> Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+Reviewed-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
