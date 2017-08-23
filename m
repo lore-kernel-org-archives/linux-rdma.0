@@ -1,141 +1,115 @@
-From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Subject: RE: [Patch v2 13/19] CIFS: SMBD: Use registered memory RDMA read for
- SMB write
-Date: Wed, 23 Aug 2017 18:09:11 +0000
-Message-ID: <MWHPR21MB0190DBBDE3317D973FEF0E43CE850@MWHPR21MB0190.namprd21.prod.outlook.com>
-References: <1503255883-3041-1-git-send-email-longli@exchange.microsoft.com>
- <1503255883-3041-14-git-send-email-longli@exchange.microsoft.com>
- <20170823135200.GP1724@mtr-leonro.local>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH for-next v1 2/2] RDMA/vmw_pvrdma: Update device query
+ parameters and port caps
+Date: Wed, 23 Aug 2017 21:53:26 +0300
+Message-ID: <20170823185326.GX1724@mtr-leonro.local>
+References: <cover.1503468979.git.aditr@vmware.com>
+ <a31ee424df9ad51371ff38e4f8239a390df13947.1503468979.git.aditr@vmware.com>
+ <20170823090920.GN1724@mtr-leonro.local>
+ <34d28cff-79a5-b604-fc1e-8d083f53225d@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170823135200.GP1724-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Content-Language: en-US
-Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, "linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org" <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="n1q7a47AT2c4WQJe"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <34d28cff-79a5-b604-fc1e-8d083f53225d-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
+--n1q7a47AT2c4WQJe
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> -----Original Message-----
-> From: Leon Romanovsky [mailto:leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
-> Sent: Wednesday, August 23, 2017 6:52 AM
-> To: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-> Cc: Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>; linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; samba-
-> technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
-> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>; Tom Talpey
-> <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>; Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>;
-> Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-> Subject: Re: [Patch v2 13/19] CIFS: SMBD: Use registered memory RDMA
-> read for SMB write
->=20
-> On Sun, Aug 20, 2017 at 12:04:37PM -0700, Long Li wrote:
-> > From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+On Wed, Aug 23, 2017 at 11:08:01AM -0700, Adit Ranadive wrote:
+> On Wed, Aug 23, 2017 at 12:09:20AM +0300, Leon Romanovsky wrote:
+> > On Tue, Aug 22, 2017 at 11:19:01PM -0700, Adit Ranadive wrote:
+> > > Added support for two device caps - max_sge_rd, max_fast_reg_page_list_len
+> > > and the IP_BASED_GIDS port cap flag.
+> > >
+> > > Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > ---
+> > >  drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h | 9 ++++++++-
+> > >  drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c   | 9 +++++++++
+> > >  2 files changed, 17 insertions(+), 1 deletion(-)
+> > >
+> > > diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
+> > > index 3a308ff..df0a6b5 100644
+> > > --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
+> > > +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
+> > > @@ -149,6 +149,13 @@
+> > >  	((_dev->dsr->caps.mode == PVRDMA_DEVICE_MODE_ROCE) &&		\
+> > >  	 (PVRDMA_IS_VERSION17(_dev) || PVRDMA_IS_VERSION18(_dev)))
+> > >
+> > > +/*
+> > > + * Get capability values based on device version.
+> > > + */
+> > > +
+> > > +#define PVRDMA_GET_CAP(_dev, _old_val, _val) \
+> > > +	((PVRDMA_IS_VERSION18(_dev)) ? _val : _old_val)
+> > > +
 > >
-> > When sending I/O, if size is larger than rdma_readwrite_threshold we
-> prepare to send SMB WRITE packet for a RDMA read via memory registration.
-> The actual I/O is done out-of-the-band, so modify the relevant fields in =
-the
-> packet accordingly.
-> >
-> > Signed-off-by: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-> > ---
-> >  fs/cifs/smb2pdu.c | 45
-> ++++++++++++++++++++++++++++++++++++++++++++-
-> >  1 file changed, 44 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/fs/cifs/smb2pdu.c b/fs/cifs/smb2pdu.c index
-> > 5cc5f6c..5581afd 100644
-> > --- a/fs/cifs/smb2pdu.c
-> > +++ b/fs/cifs/smb2pdu.c
-> > @@ -48,6 +48,7 @@
-> >  #include "smb2glob.h"
-> >  #include "cifspdu.h"
-> >  #include "cifs_spnego.h"
-> > +#include "smbdirect.h"
-> >
-> >  /*
-> >   *  The following table defines the expected "StructureSize" of SMB2
-> > requests @@ -2716,6 +2717,41 @@ smb2_async_writev(struct
-> cifs_writedata *wdata,
-> >  				offsetof(struct smb2_write_req, Buffer) - 4);
-> >  	req->RemainingBytes =3D 0;
-> >
-> > +	/*
-> > +	 * If we want to do a server RDMA read, fill in and append
-> > +	 * smbd_buffer_descriptor_v1 to the end of write request
-> > +	 */
-> > +	if (server->rdma && wdata->bytes >
-> > +		server->smbd_conn->rdma_readwrite_threshold) {
-> > +
-> > +		struct smbd_buffer_descriptor_v1 *v1;
-> > +		bool need_invalidate =3D server->dialect =3D=3D SMB30_PROT_ID;
-> > +
-> > +		wdata->mr =3D smbd_register_mr(
-> > +				server->smbd_conn, wdata->pages,
-> > +				wdata->nr_pages, wdata->tailsz,
-> > +				false, need_invalidate);
-> > +		if (!wdata->mr) {
-> > +			rc =3D -ENOBUFS;
-> > +			goto async_writev_out;
-> > +		}
-> > +		req->Length =3D 0;
-> > +		req->DataOffset =3D 0;
-> > +		req->RemainingBytes =3D
->=20
-> Wow, we have CamelCase variables in linux kernel. It will help if you sta=
-rt
-> your patchset with small cleanup to convert those variables from CamelCas=
-e
-> to normal names.
+> > The current macro implementation will require you to go and update all
+> > the places once you will move to new version. In simple case, everything
+> > is supported and you will change your check of PVRDMA_IS_VERSION18 to
+> > something PVRDMA_IS_VERSIONXXX and it will work.
+>
+> Thanks for taking a look. That's the intention I wrote the macro with so it
+> should pick up the value based on the current device version. If you are
+> concerned that we will change device caps without changing the PVRDMA
+> version, that's something we avoid for compatibility reasons.
 
-They are used everywhere in the upper layer code for packet definitions, wr=
-itten a long time ago. (most in fs/cifs/smb2pdu.h and fs/cifs/cifspdu.h)
+I have hard time to understand how will you extend this macro once new
+feature is introduced.
 
-I suggest we do another cleanup patch to clean things up.
+Let's for an example conduct the following experiment:
+1. IB/core gets new exciting ROCE_V3
+2. You are adding support to it and increasing the version to be VERSION19.
+3. You now have code for ROCE_V2 and ROCE_V3.
 
->=20
-> Thanks
->=20
-> > +			(wdata->nr_pages-1)*PAGE_SIZE + wdata->tailsz;
-> > +		req->Channel =3D SMB2_CHANNEL_RDMA_V1_INVALIDATE;
-> > +		if (need_invalidate)
-> > +			req->Channel =3D SMB2_CHANNEL_RDMA_V1;
-> > +		req->WriteChannelInfoOffset =3D
-> > +			offsetof(struct smb2_write_req, Buffer) - 4;
-> > +		req->WriteChannelInfoLength =3D
-> > +			sizeof(struct smbd_buffer_descriptor_v1);
-> > +		v1 =3D (struct smbd_buffer_descriptor_v1 *) &req->Buffer[0];
-> > +		v1->offset =3D wdata->mr->mr->iova;
-> > +		v1->token =3D wdata->mr->mr->rkey;
-> > +		v1->length =3D wdata->mr->mr->length;
-> > +	}
-> > +
-> >  	/* 4 for rfc1002 length field and 1 for Buffer */
-> >  	iov[0].iov_len =3D 4;
-> >  	iov[0].iov_base =3D req;
-> > @@ -2729,10 +2765,17 @@ smb2_async_writev(struct cifs_writedata
-> *wdata,
-> >  	rqst.rq_pagesz =3D wdata->pagesz;
-> >  	rqst.rq_tailsz =3D wdata->tailsz;
-> >
-> > +	if (wdata->mr) {
-> > +		iov[1].iov_len +=3D sizeof(struct smbd_buffer_descriptor_v1);
-> > +		rqst.rq_npages =3D 0;
-> > +	}
-> > +
-> >  	cifs_dbg(FYI, "async write at %llu %u bytes\n",
-> >  		 wdata->offset, wdata->bytes);
-> >
-> > -	req->Length =3D cpu_to_le32(wdata->bytes);
-> > +	/* For RDMA read, I/O size is in RemainingBytes not in Length */
-> > +	if (!wdata->mr)
-> > +		req->Length =3D cpu_to_le32(wdata->bytes);
-> >
-> >  	inc_rfc1001_len(&req->hdr, wdata->bytes - 1 /* Buffer */);
-> >
-> > --
-> > 2.7.4
-> >
+So the question is: how will your VRDMA_GET_CAP() look in such case?
+RECE_V2 is supported in VERSION18 and above, while ROCE_V3 is supported
+in VERSION19 only.
+
+And if we add more than one new feature, how will it look?
+
+Thanks
+
+
+>
+> > In more complex case, when one of the features is supported in one version
+> > but isn't supported in another you will need to add "if(specific_feature)" magic
+> > into it.
+>
+> This will not happen based on how our version model currently works.
+
+--n1q7a47AT2c4WQJe
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmdzyYACgkQ5GN7iDZy
+WKcEnRAAzI//q5+JvdDathVIBj3arGS+Nu9shBjW3AXiB/s2a7vDAbEfAZ65gbSU
+HT39oH/AZNi0ol+WlX8Z4UaGN1mY8+oGJQKrRUuZvjC/iWevtZj91v54DvjnXf/g
+50EjJAzzCmMrDRaxI8Gi7/DCKeirX1ZBkkjb7HrSw3Ly5R3wmR44WDRYq13qvwpF
+6PU/0MTXzeNjf6/1aIVJA9Eq24OtQY6C5+tAl9rB2enFOQdZef8Wp7pIb/ZYeY+U
+9mftMxaBgEJ0UkuAS5O7WiLbi5/d1oQAvDEPnqI+c20mu+hhgYZja60i8Lvc3Sci
+48F8S+Gn2KZ1AIpDGpUNAx/I1rfzJpuk3q69GGeuHWf1iQSZub93j9ybgD0q+bF8
+VWlGiAeNLZyZkRum//P6tM6rbdpJDoaKMY0Ob0gC8GdHNfxzdv0MenOn4bAjka6m
+cjSCgmCPn7nBzqsStz4nCnj0z/F8X9xjU8vgvklVhdjo81rBQ3rdUWjGPKpBe6ps
+h9qumxaYwtt8LJSU1NAdlU7TlldzsSbtN20iwAdJGqIaaPYXen5tI9ZrMcV2thDN
+W2W0ztI0yHJ5vYQlTBdRyNix4GZg3IGrY31z+pe2W4PiBDdqJgPUp5H7SV+jGiw6
+hh8ZKxL74a8indJSn25lsjL86Xg4204WBwgOYdE3WSFw/KVR15s=
+=jFYV
+-----END PGP SIGNATURE-----
+
+--n1q7a47AT2c4WQJe--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
