@@ -1,142 +1,98 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: small patches to librdmacm
-Date: Wed, 23 Aug 2017 07:29:27 +0300
-Message-ID: <20170823042927.GH1724@mtr-leonro.local>
-References: <C50D9A8A-457A-4DA6-B727-43B77117ED15@lanl.gov>
+Subject: Re: [rdma-next v2 18/23] IB/mlx4: Remove redundant attribute in
+ mlx4_ib_create_qp_rss struct
+Date: Wed, 23 Aug 2017 07:43:54 +0300
+Message-ID: <20170823044354.GJ1724@mtr-leonro.local>
+References: <20170815085452.3546-1-leon@kernel.org>
+ <20170815085452.3546-19-leon@kernel.org>
+ <1503432590.78641.10.camel@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="y77xulteysKOarq0"
+        protocol="application/pgp-signature"; boundary="BqNvIJgrK1/MQy2W"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <C50D9A8A-457A-4DA6-B727-43B77117ED15-YOWKrPYUwWM@public.gmane.org>
+In-Reply-To: <1503432590.78641.10.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jeff Inman <jti-YOWKrPYUwWM@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---y77xulteysKOarq0
-Content-Type: text/plain; charset=utf-8
+--BqNvIJgrK1/MQy2W
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Aug 22, 2017 at 01:47:18PM -0600, Jeff Inman wrote:
-> Hi folks,
+On Tue, Aug 22, 2017 at 04:09:50PM -0400, Doug Ledford wrote:
+> On Tue, 2017-08-15 at 11:54 +0300, Leon Romanovsky wrote:
+> > From: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> >
+> > rss_key_len is not in use and need to be removed.
+> >
+> > Fixes: 3078f5f1bd8b ("IB/mlx4: Add support for RSS QP")
+> > Signed-off-by: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > ---
+> >  include/uapi/rdma/mlx4-abi.h | 3 +--
+> >  1 file changed, 1 insertion(+), 2 deletions(-)
+> >
+> > diff --git a/include/uapi/rdma/mlx4-abi.h b/include/uapi/rdma/mlx4-
+> > abi.h
+> > index 0e10102861b5..c55f60e05f86 100644
+> > --- a/include/uapi/rdma/mlx4-abi.h
+> > +++ b/include/uapi/rdma/mlx4-abi.h
+> > @@ -98,8 +98,7 @@ struct mlx4_ib_create_srq_resp {
+> >  struct mlx4_ib_create_qp_rss {
+> >  	__u64   rx_hash_fields_mask;
+> >  	__u8    rx_hash_function;
+> > -	__u8    rx_key_len;
+> > -	__u8    reserved[6];
+> > +	__u8    reserved[7];
 >
-> I=E2=80=99m new to this.  Please let me know, if you need a different for=
-mat, etc.
+> I believe Yuval's point, which has not been fixed, was not that you
+> could remove the variable without increasing the reserved size.  That
+> makes sense.  He was referring to the fact that you reference
+> rss_key_len in the commit message, but what you removed was rx_key_len
+> instead.
 
-Yes,
+Ahh, I didn't understand it from his comment back then.
 
-1. Please send them with git send-email command, so they will be
-threaded together.
+How do you want me to proceed here? Do you want me to resend all patches?
+Do you want me to resend this patch only? Do you prefer to fix it by yourself?
 
-2. The commit messages should include description and you already have it
-here, just copy/paste to the commit message itself.
-
-3. Fixes lines should be in the kernel format and not hand-made as it is no=
-w.
-The following git alias in your .gitconfig can create the proper Fixes line=
- for the
-specific hash.
-
-[alias]
-	fixes =3D log --abbrev=3D12 -1 --format=3D'Fixes: %h (\"%s\")'
-
-For example: git fixes ac3a949fb2f in the kernel will produce:
-Fixes: ac3a949fb2ff ("IB/CM: Set appropriate slid and dlid when handling CM=
- request")
-
-4. No extra space between Fixes and your Signed-off-by signature.
-
-5. Don't forget to add Sean's acked-by.
-
-Hope to see it merged.
-
-Thanks
+It looks like we can declare working with pull-requests in RDMA as a failed
+experiment.
 
 >
-> Of the two of these, 0001 is the one I care about.
->
->
-> 0001:  The patch comment explains the details of the fix, but here=E2=80=
-=99s some context:
->
-> Access to entries in the rsocket index 'idm' is effectively serialized by=
- creation/destruction of file-descriptors for /dev/infiniband/rdma_cm.  New=
- fds are created in rsocket -> rdma_create_id, and released in rclose -> rs=
-_free -> rdma_destroy_id.  rs_free() was releasing the index with rs_remove=
-() *after* calling rdma_destroy_id().  But closing the file-descriptor in r=
-dma_destroy_id() yields to the scheduler, making it easy for another thread=
- to get into rsocket() during the break.  This thread can get its own fd (b=
-ecause the first thread=E2=80=99s close has succeed) and store its own rs i=
-nto the index, before the first thread has gotten around to calling rs_remo=
-ve().  After the first thread does call rs_remove(), the second thread will=
- segfault in most rsocket-related functions.
->
-> Note that I=E2=80=99m not assuming an rsocket can be simultaneously opera=
-ted by different threads.  I just have separate threads that open/operate/c=
-lose their own rsockets.  This seems to be working fine, except for this pa=
-tched problem.  Am I mistaken that this is reasonable?
->
->
-> 0002:  Removing the potential for segfaults when a legitimate rs is not f=
-ound in the index.  This should never happen unless there is a bug like the=
- one fixed in 0001 (or someone stupidly makes a call with a closed rsocket =
-=E2=80=A6), so the tests should almost always be wasted.  Made this a separ=
-ate patch, so you could ignore it, if you want.
->
->
-> Thanks,
-> Jeff
->
+> >  	__u8    rx_hash_key[40];
+> >  	__u32   comp_mask;
+> >  	__u32   reserved1;
 > --
-> Jeff Inman
-> High-Performance Computing (HPC-ENV)
-> MS-B295, Los Alamos National Laboratory
-> Los Alamos, NM 87545
->
->
->
->
->
->
->
-> Jeff Inman (2):
->   rsocket: fix a race-condition in rs_free()
->   rsocket: fix segfaults when rs is not found in the index
->
->  librdmacm/rsocket.c |   22 +++++++++++++++++++---
->  1 files changed, 19 insertions(+), 3 deletions(-)
->
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>     GPG KeyID: B826A3330E572FDD
+>     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 >
 
-
-
->
-
-
---y77xulteysKOarq0
+--BqNvIJgrK1/MQy2W
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmdBKYACgkQ5GN7iDZy
-WKew0hAAzbIXIYLDCbphb9NK0x2++QvGU0H2W/FV9I3GGPPAPiYk93HZBb1MrHvH
-fFL68ixRsC3UwZX7x7uLPft4DxhWePckRfbD9xQ06VptmtO+vJbUOH+ldMHnhp3w
-g7YAoTrQou3fhdvsNCcHhZV4Z9nzbNs/jvnx0v1TyErzOR87hOrlJQLK1LRUQylr
-vuN1IZDCxH6c/jQNYVJge4RBtIVvIjsRzMbeY66+k1gBGTuFNz97YnWuq9ectXKL
-zPfIAWfGQWiy2ql1wXbV6coMbjcO5R29/ObuOSBdSpupT3DwJMlkaZKe9gXNkhh9
-LnXGldRU//ctqd4OF9DFhfQ0phx/xjylYtP8fS5V7azDx7XW/MCR8QtcUhmzhOLp
-mU79MXBTn4Eks+SpYSmwAp0nFP1Dc5xzwuBiIpstURlWHwPlt4Cr17nEgejDWGvU
-I+f3xhJXEe2afytwaLolvs1OF3mVrpD4XByPMk/b1YOaVBrJpUY0T13oXFphu14I
-qtQEuNTu8w5EHP+EkdxhrKmWo46o6i0N2BkQ6lxre13BjDWEpCU1M1+LG4+2B/8U
-4b0zYFUFXOQSUp2bf4M6mtMG/Sqj5gt/IdKwEVNsWFdYyZXO/Np6KORfLBbQ+7W1
-oujC+WJBwAlvQKNY229wa3HONHn9qU/p7CHEULuFzkKsWeISOHk=
-=K7jP
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmdCAoACgkQ5GN7iDZy
+WKchihAAn6ygwmkZ/j5Ae322sGmqATSOjzAGc+h1Jhy0H2IflQICy7xv6qX3NmC6
+Vyf5sJoJafSc4l/dD7NL2FYzxaUqWooaVcI9c/YSAWHkCOlQ/HBa3OVQx4RdAJDK
+sHrA5Kt08/4DS3Udsx4DSqadYwSHPUhBPu4HX2Kt3GReqX4WeTelqK7QwXi45qNa
+zLrcHbODgY9OIlbHtHGbyXKe9JV1sZBb8QE+wvj2xi6lDH0qY7GANuPUtmt3qB5p
+Lrq63G2OCYJ4yvbTnVyKgQUX3sgpr0YhC4R4E5QEDDibLJBMaPdAAKCht2LBMJlM
+D2zuZnY51TbQd0CSjwjBlWb2V16uKxbbrR+oM5qHvTyoo6owLcWMoRICH0LzW+Dz
+FAENVhoDmWcqvm4mR4La09bSjQD+LlKdaEZDpMst1ijJ0k9EOFceYbeuwLpb425N
+DNFMdrS6XMCi6hLCKf19eKuGs41Q7FApIJiWGUohfaY+g/NhE3/jdPuNjfpgJHrF
+jOFAwRKWpRYrRtF2Qj3y3ZtUmw8f9fxCHLM08poxuUpCODhjvllJWv2USTnMU/yU
+NAP+6XAYFGsnkBAIbUrVBW9MXsomT8EZGjVThOInCj3xd/Iwh57k/CY/+D2nAgrI
+wR1FMCN+y98XEcuL+ZphayXmPdXp1KVcptfW7YygywGDr1TcNlY=
+=Cs3W
 -----END PGP SIGNATURE-----
 
---y77xulteysKOarq0--
+--BqNvIJgrK1/MQy2W--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
