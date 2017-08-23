@@ -1,63 +1,49 @@
-From: Jeff Inman <jti-YOWKrPYUwWM@public.gmane.org>
-Subject: Re: small patches to librdmacm
-Date: Wed, 23 Aug 2017 09:39:52 -0600
-Message-ID: <35E925F4-5E45-4364-B828-220116568056@lanl.gov>
-References: <C50D9A8A-457A-4DA6-B727-43B77117ED15@lanl.gov> <20170823042927.GH1724@mtr-leonro.local> <20170823153728.GB22775@obsidianresearch.com>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: Re: [for-next 0/3] Add congestion control capability
+Date: Wed, 23 Aug 2017 21:15:24 +0530
+Message-ID: <CANjDDBhGoMRZr5vptGRoKZetjNawomXeuHM5XorCu0XG+RzYAg@mail.gmail.com>
+References: <1503402587-24669-1-git-send-email-devesh.sharma@broadcom.com>
+ <20170822123246.GX1724@mtr-leonro.local> <20170822151143.GB1201@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170823153728.GB22775-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20170822151143.GB1201-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Thank you.  Thanks to the list for your patience.
+Hi Leon and Jason,
 
-Regards,
-Jeff
+Sure we can definitely use this tool now or in the near-future for
+controlling most of the device tuneable parameters etc. I am still
+catching up on the older discussion related to this topic.
+
+In the meanwhile I wanted to ask about the availability of this tool
+in the upcoming standard OS distributions like SLES/RHEL etc. Do we
+have any timeline for the availability, in which version should we
+push/avail this tool?
 
 
-> On Aug 23, 2017, at 9:37 AM, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> 
-> On Wed, Aug 23, 2017 at 07:29:27AM +0300, Leon Romanovsky wrote:
->> On Tue, Aug 22, 2017 at 01:47:18PM -0600, Jeff Inman wrote:
->>> Hi folks,
->>> 
->>> I’m new to this.  Please let me know, if you need a different format, etc.
->> 
->> Yes,
->> 
->> 1. Please send them with git send-email command, so they will be
->> threaded together.
->> 
->> 2. The commit messages should include description and you already have it
->> here, just copy/paste to the commit message itself.
->> 
->> 3. Fixes lines should be in the kernel format and not hand-made as it is now.
->> The following git alias in your .gitconfig can create the proper Fixes line for the
->> specific hash.
->> 
->> [alias]
->> 	fixes = log --abbrev=12 -1 --format='Fixes: %h (\"%s\")'
->> 
->> For example: git fixes ac3a949fb2f in the kernel will produce:
->> Fixes: ac3a949fb2ff ("IB/CM: Set appropriate slid and dlid when handling CM request")
->> 
->> 4. No extra space between Fixes and your Signed-off-by signature.
->> 
->> 5. Don't forget to add Sean's acked-by.
->> 
->> Hope to see it merged.
-> 
-> Since we are so close to a release I made all the required changes and
-> sent a PR:
-> 
-> https://github.com/linux-rdma/rdma-core/pull/187
-> 
+-Regards
+Devesh
+
+On Tue, Aug 22, 2017 at 8:41 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Tue, Aug 22, 2017 at 03:32:46PM +0300, Leon Romanovsky wrote:
+>> On Tue, Aug 22, 2017 at 07:49:44AM -0400, Devesh Sharma wrote:
+>> > This patch series is to support congestion control capability
+>> > on Broadcom NetXtreme-E 10/25/40/50 RDMA Ethernet Controllers.
+>> >
+>> > The implementation exposes congestion control related parameters
+>> > to administrator using configfs.
+>> >
+>>
+>> We have RDMAtool and netlink for configurations now, please use it.
+>
+> Yes, +1
+>
 > Jason
-
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
