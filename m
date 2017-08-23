@@ -1,54 +1,98 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core] mlx5: Return pointer to CQ doorbell
-Date: Wed, 23 Aug 2017 10:52:21 -0600
-Message-ID: <20170823165221.GB23928@obsidianresearch.com>
-References: <20170817173320.GB22792@obsidianresearch.com>
- <20170817173932.GJ23648@mtr-leonro.local>
- <20170817180349.GD24735@obsidianresearch.com>
- <99bc8f57-6a58-d309-7142-74cc498f7feb@dev.mellanox.co.il>
- <20170821152237.GA3400@obsidianresearch.com>
- <912a3e5b-7dbc-061a-53f5-b3cf3bce9d9e@dev.mellanox.co.il>
- <20170822163007.GB4922@obsidianresearch.com>
- <1b7e41dc-4873-7c0a-6cdb-bc499af70af2@dev.mellanox.co.il>
- <20170823160816.GA11188@obsidianresearch.com>
- <20170823164555.GV1724@mtr-leonro.local>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: small patches to librdmacm
+Date: Wed, 23 Aug 2017 19:59:49 +0300
+Message-ID: <20170823165949.GW1724@mtr-leonro.local>
+References: <C50D9A8A-457A-4DA6-B727-43B77117ED15@lanl.gov>
+ <20170823042927.GH1724@mtr-leonro.local>
+ <20170823153728.GB22775@obsidianresearch.com>
+ <20170823163217.GU1724@mtr-leonro.local>
+ <20170823164533.GA23928@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="9/lmB/GmAksD4Nrg"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170823164555.GV1724-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20170823164533.GA23928-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Jeff Inman <jti-YOWKrPYUwWM@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Aug 23, 2017 at 07:45:55PM +0300, Leon Romanovsky wrote:
 
-> > Provide two implementations of mlx5dv_init_obj, one that has the
-> > historical behaviour that has existed until now of returning the
-> > void **uar and a new version that returns the 'void *' version
-> > renamed to arb_db.
-> 
-> arb_db -> arm_db
+--9/lmB/GmAksD4Nrg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Oops, I fixed that, thanks.
+On Wed, Aug 23, 2017 at 10:45:33AM -0600, Jason Gunthorpe wrote:
+> On Wed, Aug 23, 2017 at 07:32:17PM +0300, Leon Romanovsky wrote:
+>
+> > The commit sha1 should be 12 digits and not 7 digits.
+>
+> The github gui truncates to 7 digits when it detects a hash, the
+> commit message has 12.
 
-> Strange, in github it has 7 digits (the same was with rsocket fixes)
-> Fixes: c6e3439 ("mlx5: Return pointer to CQ doorbell")
+Thanks, applied.
 
-Yeah, side effect of github rendering it into a web link, I think.
+BTW, do you know how to configure the gui?
 
-> The overall looks good, but I need to run checks with before
-> applying it.
+>
+> commit 39a612257aacd77ed5bdd506968cf4e54bbe63b3
+> Author: Jeff Inman <jti-YOWKrPYUwWM@public.gmane.org>
+> Date:   Tue Aug 22 15:59:42 2017 -0600
+>
+>     rsockets: Fix segfaults when rs is not found in the index
+>
+>     Check for null each time the rs is accessed and return an error code.
+>
+>     Fixes: 0b6aff48ce31 ("librdmacm: Define streaming over RDMA interface (rsockets)")
+>     Fixes: bb9fcba81acd ("rsocket: Add APIs for direct data placement")
+>     Signed-off-by: Jeff Inman <jti-YOWKrPYUwWM@public.gmane.org>
+>     Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>     Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+>
+> commit 5ac0576d51ddfb9207e5632c71d27d14b3368143
+> Author: Jeff Inman <jti-YOWKrPYUwWM@public.gmane.org>
+> Date:   Tue Aug 22 15:59:18 2017 -0600
+>
+>     rsockets: Fix a race-condition in rs_free()
+>
+>     If rs_free() releases the fd before calling rs_remove(), a second thread in
+>     rsocket() may acquire the same fd and store its own rs in the corresponding
+>     index-element.  When the first thread then gets around to calling
+>     rs_remove() it ends up removing the rs of the second thread, and storing a
+>     NULL there.
+>
+>     Several functions still do not check for NULL after retrieving an rs from
+>     the index for an open rsocket.  Thus, the second thread would get a
+>     segfault in any of the following functions: rrecv, rrecvfrom, rsend,
+>     rsendto, rsendv, riomap, riounmap, riowrite.
+>
+>     Fixes: cf7aae3d0cc4 ("rsocket: Index map item is cleaned before it is used in iomapping cleanup")
+>     Signed-off-by: Jeff Inman <jti-YOWKrPYUwWM@public.gmane.org>
+>     Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>     Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
-Sure, I didn't test it obviously, but the readelf is what I expect:
+--9/lmB/GmAksD4Nrg
+Content-Type: application/pgp-signature; name="signature.asc"
 
-   101: 000000000000e4d0    55 FUNC    GLOBAL DEFAULT   13 mlx5dv_init_obj@MLX5_1.0
-   168: 000000000000e4d0    55 FUNC    LOCAL  DEFAULT   13 __mlx5dv_init_obj_1_0
-   102: 000000000000e300   451 FUNC    GLOBAL DEFAULT   13 mlx5dv_init_obj@@MLX5_1.2
-   169: 000000000000e300   451 FUNC    LOCAL  DEFAULT   13 __mlx5dv_init_obj_1_2
+-----BEGIN PGP SIGNATURE-----
 
-Jason
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmdtIUACgkQ5GN7iDZy
+WKdojg/+PhwumMcoHmKJILU/sh+mDV+ZCtVtB72pw6wNI7gtgnaDk2FXp7RYVAUD
+gB33OsW1f3zdiYY8DHKRZuzUALJlIyju4xZu5vQJO1xJy473hsVGoW+h3tzYRhoO
+WkFEA5oZFwgXTZ/RQZw6DpFTStrY7oCkvCOR8wdHeNhAQaJKi2n25b9Cyho3q1Dj
+cK1EfUbF41rakUmR6VRDFY2L0LbjvPOUuteThQ+sSyM5VRJlWoTeI++0L+EfpsbE
+UUm85OqurA607fvdq+ba3kplk0+OvXjkKBe7G5+zfPWO7FnHcgobYOVLT5j8WlpF
+vbIkEms9ncEbBqA0GmKQYPK1S+ho4naVFj+EBiRi/6xHWXOopL+gWeFtpGIpahJ+
+A/UVV64i3Wq9hV4cDs4vTXNcmoY6s7GGHeFgdjcfgUoiOnAlPcO64NseCLqfGAsW
+1hehNqA2halCsyITMUFjxsd2xDZj1M9CBcaF1Mi9P/s5qkd10N7ChWCwxavSjJBu
+Vdo82t0iSaLA4QXzBNnZ8Zz51o/ansOZFHdOJOqQaU++vUXUCf1YQcH44Fnz+7II
+JXLMXJvJ83VT9R2zxUjYCouFI13LSSXwykqmN6CLIcTK32P10v814YpqNObcTz4g
+ou5hw8ZPr8xtVy2SlpnU5EwVkNuW2n5+b8SpH603PWEuWarF21U=
+=u/fD
+-----END PGP SIGNATURE-----
+
+--9/lmB/GmAksD4Nrg--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
