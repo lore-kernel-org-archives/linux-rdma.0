@@ -1,98 +1,63 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: small patches to librdmacm
-Date: Wed, 23 Aug 2017 19:32:17 +0300
-Message-ID: <20170823163217.GU1724@mtr-leonro.local>
+Date: Wed, 23 Aug 2017 10:45:33 -0600
+Message-ID: <20170823164533.GA23928@obsidianresearch.com>
 References: <C50D9A8A-457A-4DA6-B727-43B77117ED15@lanl.gov>
  <20170823042927.GH1724@mtr-leonro.local>
  <20170823153728.GB22775@obsidianresearch.com>
+ <20170823163217.GU1724@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="wQ8ANTl3uYPVjUZt"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170823153728.GB22775-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20170823163217.GU1724-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: Jeff Inman <jti-YOWKrPYUwWM@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Aug 23, 2017 at 07:32:17PM +0300, Leon Romanovsky wrote:
 
---wQ8ANTl3uYPVjUZt
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> The commit sha1 should be 12 digits and not 7 digits.
 
-On Wed, Aug 23, 2017 at 09:37:28AM -0600, Jason Gunthorpe wrote:
-> On Wed, Aug 23, 2017 at 07:29:27AM +0300, Leon Romanovsky wrote:
-> > On Tue, Aug 22, 2017 at 01:47:18PM -0600, Jeff Inman wrote:
-> > > Hi folks,
-> > >
-> > > I=E2=80=99m new to this.  Please let me know, if you need a different=
- format, etc.
-> >
-> > Yes,
-> >
-> > 1. Please send them with git send-email command, so they will be
-> > threaded together.
-> >
-> > 2. The commit messages should include description and you already have =
-it
-> > here, just copy/paste to the commit message itself.
-> >
-> > 3. Fixes lines should be in the kernel format and not hand-made as it i=
-s now.
-> > The following git alias in your .gitconfig can create the proper Fixes =
-line for the
-> > specific hash.
-> >
-> > [alias]
-> > 	fixes =3D log --abbrev=3D12 -1 --format=3D'Fixes: %h (\"%s\")'
-> >
-> > For example: git fixes ac3a949fb2f in the kernel will produce:
-> > Fixes: ac3a949fb2ff ("IB/CM: Set appropriate slid and dlid when handlin=
-g CM request")
-> >
-> > 4. No extra space between Fixes and your Signed-off-by signature.
-> >
-> > 5. Don't forget to add Sean's acked-by.
-> >
-> > Hope to see it merged.
->
-> Since we are so close to a release I made all the required changes and
-> sent a PR:
->
-> https://github.com/linux-rdma/rdma-core/pull/187
+The github gui truncates to 7 digits when it detects a hash, the
+commit message has 12.
 
-Almost,
-The commit sha1 should be 12 digits and not 7 digits.
-Please fix.
+commit 39a612257aacd77ed5bdd506968cf4e54bbe63b3
+Author: Jeff Inman <jti-YOWKrPYUwWM@public.gmane.org>
+Date:   Tue Aug 22 15:59:42 2017 -0600
 
-Thanks
+    rsockets: Fix segfaults when rs is not found in the index
+    
+    Check for null each time the rs is accessed and return an error code.
+    
+    Fixes: 0b6aff48ce31 ("librdmacm: Define streaming over RDMA interface (rsockets)")
+    Fixes: bb9fcba81acd ("rsocket: Add APIs for direct data placement")
+    Signed-off-by: Jeff Inman <jti-YOWKrPYUwWM@public.gmane.org>
+    Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+    Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
->
-> Jason
+commit 5ac0576d51ddfb9207e5632c71d27d14b3368143
+Author: Jeff Inman <jti-YOWKrPYUwWM@public.gmane.org>
+Date:   Tue Aug 22 15:59:18 2017 -0600
 
---wQ8ANTl3uYPVjUZt
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmdrhEACgkQ5GN7iDZy
-WKeJ3BAAzmYVMg7mvpClAFEWx6jqt1wY6lp0FKsVZdWh+760n7VqvtbJZjxOFnyx
-G4oHBGH2HEOSgvcRCTYBOGgLLPwhtrCAPz/vka2Ue2SK8xE1mXaQsnZ1CB+cy5yq
-ebTdCtrmdxXlTzZljzcvu5T3Z5aC6Bk2R1AjNcFXszg+1zbgfCbvzjKhQT3yoAqd
-pNEd7uHobu232WST2oJUgCZqmeNkYXgO9PrjbFfa9RFjdR68RiCeAIFPfhgkDDrh
-DpnplkibifliTjdj5bpF6lK+X00AkL5fZans4ToOQ3pBtq5UffC4CQ75k6zvO50+
-6vqCnrIFH4YExvBYTFqiQBi2S0QFRz/sJX24KUDI6AqKcz6zlhBVaDSzz/S8gGHV
-ITZUgBg+N4oIm6+56AYZa+hXQrOsTNoKLhBWIgX9uqsGpgsEgH9AwcIRxYTI78d4
-jCmbvyc2eN5bj6ZjPmqmzttBZES5sM7KeUVyCkZC1VBn0yn9ojBBrwe9zD4vxCSI
-LaK4Df9Kn+9F3fsqEBlWXbhMdid0KYTGD0OTLQ40UFh1dhwutLuConmAezl/3XLI
-qCcY3xJACZz5KSr2ZxC3nHTZlZi99RYUgcMQZ6DXvzmLHOeu13smMiP2nhSWoyAE
-/mR2cqXtbadpz0VFJU60mZxjo9+0MF5bwhoJxO11dFhRR/V995w=
-=DdOn
------END PGP SIGNATURE-----
-
---wQ8ANTl3uYPVjUZt--
+    rsockets: Fix a race-condition in rs_free()
+    
+    If rs_free() releases the fd before calling rs_remove(), a second thread in
+    rsocket() may acquire the same fd and store its own rs in the corresponding
+    index-element.  When the first thread then gets around to calling
+    rs_remove() it ends up removing the rs of the second thread, and storing a
+    NULL there.
+    
+    Several functions still do not check for NULL after retrieving an rs from
+    the index for an open rsocket.  Thus, the second thread would get a
+    segfault in any of the following functions: rrecv, rrecvfrom, rsend,
+    rsendto, rsendv, riomap, riounmap, riowrite.
+    
+    Fixes: cf7aae3d0cc4 ("rsocket: Index map item is cleaned before it is used in iomapping cleanup")
+    Signed-off-by: Jeff Inman <jti-YOWKrPYUwWM@public.gmane.org>
+    Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+    Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
