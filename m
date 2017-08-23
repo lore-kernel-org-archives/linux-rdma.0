@@ -1,98 +1,179 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next v1 2/2] RDMA/vmw_pvrdma: Update device query
- parameters and port caps
-Date: Wed, 23 Aug 2017 12:29:21 -0700
-Message-ID: <6cffa7b7-63ee-ccd8-558d-af4538012159@vmware.com>
-References: <cover.1503468979.git.aditr@vmware.com>
- <a31ee424df9ad51371ff38e4f8239a390df13947.1503468979.git.aditr@vmware.com>
- <20170823090920.GN1724@mtr-leonro.local>
- <34d28cff-79a5-b604-fc1e-8d083f53225d@vmware.com>
- <20170823185326.GX1724@mtr-leonro.local>
+From: Steve French <smfrench@gmail.com>
+Subject: Re: [Patch v2 13/19] CIFS: SMBD: Use registered memory RDMA read for
+ SMB write
+Date: Wed, 23 Aug 2017 14:39:46 -0500
+Message-ID: <CAH2r5mub3KMQaEKV0V10ZtxTGweCRn9rmDa64o5hi0b-+ZuMBg@mail.gmail.com>
+References: <1503255883-3041-1-git-send-email-longli@exchange.microsoft.com>
+ <1503255883-3041-14-git-send-email-longli@exchange.microsoft.com>
+ <20170823135200.GP1724@mtr-leonro.local> <MWHPR21MB0190DBBDE3317D973FEF0E43CE850@MWHPR21MB0190.namprd21.prod.outlook.com>
+ <20170823190214.GY1724@mtr-leonro.local> <MWHPR21MB0190DDCDB0B5F8FED3265A60CE850@MWHPR21MB0190.namprd21.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170823185326.GX1724-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <MWHPR21MB0190DDCDB0B5F8FED3265A60CE850@MWHPR21MB0190.namprd21.prod.outlook.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Long Li <longli@microsoft.com>
+Cc: Leon Romanovsky <leon@kernel.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Matthew Wilcox <mawilcox@microsoft.com>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Steve French <sfrench@samba.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Aug 23, 2017 at 11:53:26AM -0700, Leon Romanovsky wrote:
-> On Wed, Aug 23, 2017 at 11:08:01AM -0700, Adit Ranadive wrote:
-> > On Wed, Aug 23, 2017 at 12:09:20AM +0300, Leon Romanovsky wrote:
-> > > On Tue, Aug 22, 2017 at 11:19:01PM -0700, Adit Ranadive wrote:
-> > > > Added support for two device caps - max_sge_rd, max_fast_reg_page_list_len
-> > > > and the IP_BASED_GIDS port cap flag.
-> > > >
-> > > > Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > > > Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > > > Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > > > Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > > > ---
-> > > >  drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h | 9 ++++++++-
-> > > >  drivers/infiniband/hw/vmw_pvrdma/pvrdma_verbs.c   | 9 +++++++++
-> > > >  2 files changed, 17 insertions(+), 1 deletion(-)
-> > > >
-> > > > diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
-> > > > index 3a308ff..df0a6b5 100644
-> > > > --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
-> > > > +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
-> > > > @@ -149,6 +149,13 @@
-> > > >  	((_dev->dsr->caps.mode == PVRDMA_DEVICE_MODE_ROCE) &&		\
-> > > >  	 (PVRDMA_IS_VERSION17(_dev) || PVRDMA_IS_VERSION18(_dev)))
-> > > >
-> > > > +/*
-> > > > + * Get capability values based on device version.
-> > > > + */
-> > > > +
-> > > > +#define PVRDMA_GET_CAP(_dev, _old_val, _val) \
-> > > > +	((PVRDMA_IS_VERSION18(_dev)) ? _val : _old_val)
-> > > > +
-> > >
-> > > The current macro implementation will require you to go and update all
-> > > the places once you will move to new version. In simple case, everything
-> > > is supported and you will change your check of PVRDMA_IS_VERSION18 to
-> > > something PVRDMA_IS_VERSIONXXX and it will work.
-> >
-> > Thanks for taking a look. That's the intention I wrote the macro with so it
-> > should pick up the value based on the current device version. If you are
-> > concerned that we will change device caps without changing the PVRDMA
-> > version, that's something we avoid for compatibility reasons.
-> 
-> I have hard time to understand how will you extend this macro once new
-> feature is introduced.
-> 
-> Let's for an example conduct the following experiment:
-> 1. IB/core gets new exciting ROCE_V3
-> 2. You are adding support to it and increasing the version to be VERSION19.
-> 3. You now have code for ROCE_V2 and ROCE_V3.
-> 
-> So the question is: how will your VRDMA_GET_CAP() look in such case?
-> RECE_V2 is supported in VERSION18 and above, while ROCE_V3 is supported
-> in VERSION19 only.
+Note that Camel Case in cifs.ko source is largely used for protocol
+definitions to match the official protocol documentation.  So we
+expect Camel Case only where it is meant to express the **exact** name
+of a field in the official specification of the wire protocol but
+there may be some legacy code (unrelated to protocol wire format) that
+still uses camel case - and that could be cleaned up with other
+patches outside this series but is lower priority.
 
-The values for the capabilities come from our DSR (device shared region) itself.
-This would have nothing to do with the exact RoCE version but is based
-on the device version itself. So, if we add a VERSION19, we can change the
-macro to something like PVRDMA_IS_VERSION_NEXT_GEN, it will just pick up the
-new values defined in the DSR rather than based on RoCE versions.
-If we have removed support for that capability for VERSION19, that should
-simply be 0.
+On Wed, Aug 23, 2017 at 2:10 PM, Long Li via samba-technical
+<samba-technical@lists.samba.org> wrote:
+>
+>
+>> -----Original Message-----
+>> From: Leon Romanovsky [mailto:leon@kernel.org]
+>> Sent: Wednesday, August 23, 2017 12:02 PM
+>> To: Long Li <longli@microsoft.com>
+>> Cc: Steve French <sfrench@samba.org>; linux-cifs@vger.kernel.org; samba-
+>> technical@lists.samba.org; linux-kernel@vger.kernel.org; linux-
+>> rdma@vger.kernel.org; Christoph Hellwig <hch@infradead.org>; Tom Talpey
+>> <ttalpey@microsoft.com>; Matthew Wilcox <mawilcox@microsoft.com>
+>> Subject: Re: [Patch v2 13/19] CIFS: SMBD: Use registered memory RDMA
+>> read for SMB write
+>>
+>> On Wed, Aug 23, 2017 at 06:09:11PM +0000, Long Li wrote:
+>> >
+>> >
+>> > > -----Original Message-----
+>> > > From: Leon Romanovsky [mailto:leon@kernel.org]
+>> > > Sent: Wednesday, August 23, 2017 6:52 AM
+>> > > To: Long Li <longli@microsoft.com>
+>> > > Cc: Steve French <sfrench@samba.org>; linux-cifs@vger.kernel.org;
+>> > > samba- technical@lists.samba.org; linux-kernel@vger.kernel.org;
+>> > > linux- rdma@vger.kernel.org; Christoph Hellwig <hch@infradead.org>;
+>> > > Tom Talpey <ttalpey@microsoft.com>; Matthew Wilcox
+>> > > <mawilcox@microsoft.com>; Long Li <longli@microsoft.com>
+>> > > Subject: Re: [Patch v2 13/19] CIFS: SMBD: Use registered memory RDMA
+>> > > read for SMB write
+>> > >
+>> > > On Sun, Aug 20, 2017 at 12:04:37PM -0700, Long Li wrote:
+>> > > > From: Long Li <longli@microsoft.com>
+>> > > >
+>> > > > When sending I/O, if size is larger than rdma_readwrite_threshold
+>> > > > we
+>> > > prepare to send SMB WRITE packet for a RDMA read via memory
+>> registration.
+>> > > The actual I/O is done out-of-the-band, so modify the relevant
+>> > > fields in the packet accordingly.
+>> > > >
+>> > > > Signed-off-by: Long Li <longli@microsoft.com>
+>> > > > ---
+>> > > >  fs/cifs/smb2pdu.c | 45
+>> > > ++++++++++++++++++++++++++++++++++++++++++++-
+>> > > >  1 file changed, 44 insertions(+), 1 deletion(-)
+>> > > >
+>> > > > diff --git a/fs/cifs/smb2pdu.c b/fs/cifs/smb2pdu.c index
+>> > > > 5cc5f6c..5581afd 100644
+>> > > > --- a/fs/cifs/smb2pdu.c
+>> > > > +++ b/fs/cifs/smb2pdu.c
+>> > > > @@ -48,6 +48,7 @@
+>> > > >  #include "smb2glob.h"
+>> > > >  #include "cifspdu.h"
+>> > > >  #include "cifs_spnego.h"
+>> > > > +#include "smbdirect.h"
+>> > > >
+>> > > >  /*
+>> > > >   *  The following table defines the expected "StructureSize" of
+>> > > > SMB2 requests @@ -2716,6 +2717,41 @@ smb2_async_writev(struct
+>> > > cifs_writedata *wdata,
+>> > > >                                 offsetof(struct smb2_write_req, Bu=
+ffer) - 4);
+>> > > >         req->RemainingBytes =3D 0;
+>> > > >
+>> > > > +       /*
+>> > > > +        * If we want to do a server RDMA read, fill in and append
+>> > > > +        * smbd_buffer_descriptor_v1 to the end of write request
+>> > > > +        */
+>> > > > +       if (server->rdma && wdata->bytes >
+>> > > > +               server->smbd_conn->rdma_readwrite_threshold) {
+>> > > > +
+>> > > > +               struct smbd_buffer_descriptor_v1 *v1;
+>> > > > +               bool need_invalidate =3D server->dialect =3D=3D SM=
+B30_PROT_ID;
+>> > > > +
+>> > > > +               wdata->mr =3D smbd_register_mr(
+>> > > > +                               server->smbd_conn, wdata->pages,
+>> > > > +                               wdata->nr_pages, wdata->tailsz,
+>> > > > +                               false, need_invalidate);
+>> > > > +               if (!wdata->mr) {
+>> > > > +                       rc =3D -ENOBUFS;
+>> > > > +                       goto async_writev_out;
+>> > > > +               }
+>> > > > +               req->Length =3D 0;
+>> > > > +               req->DataOffset =3D 0;
+>> > > > +               req->RemainingBytes =3D
+>> > >
+>> > > Wow, we have CamelCase variables in linux kernel. It will help if
+>> > > you start your patchset with small cleanup to convert those
+>> > > variables from CamelCase to normal names.
+>> >
+>> > They are used everywhere in the upper layer code for packet
+>> > definitions, written a long time ago. (most in fs/cifs/smb2pdu.h and
+>> > fs/cifs/cifspdu.h)
+>>
+>> "everywhere" is a little bit over estimated in this case.
+>> =E2=9E=9C  linux-rdma git:(master) git grep RemainingBytes
+>> fs/cifs/smb2pdu.c:              req->RemainingBytes =3D
+>> cpu_to_le32(remaining_bytes);
+>> fs/cifs/smb2pdu.c:              req->RemainingBytes =3D 0;
+>> fs/cifs/smb2pdu.c:      req->RemainingBytes =3D 0;
+>> fs/cifs/smb2pdu.c:      req->RemainingBytes =3D 0;
+>> fs/cifs/smb2pdu.h:      __le32 RemainingBytes;
+>> fs/cifs/smb2pdu.h:      __le32 RemainingBytes;
+>>
+>> One simple "sed -i" will replace all them in one shot and it doesn't loo=
+k like
+>> undoable task.
+>
+> I mean cifspdu.h and smb2pdu.h. use CamelCase for all packet definitions.=
+ For example another one in smb2pdu.h:
+> struct smb2_negotiate_rsp {
+>         struct smb2_hdr hdr;
+>         __le16 StructureSize;   /* Must be 65 */
+>         __le16 SecurityMode;
+>         __le16 DialectRevision;
+>         __le16 NegotiateContextCount;   /* Prior to SMB3.1.1 was Reserved=
+ & MBZ */
+>         __u8   ServerGUID[16];
+>         __le32 Capabilities;
+>         __le32 MaxTransactSize;
+>         __le32 MaxReadSize;
+>         __le32 MaxWriteSize;
+>         __le64 SystemTime;      /* MBZ */
+>         __le64 ServerStartTime;
+>         __le16 SecurityBufferOffset;
+>         __le16 SecurityBufferLength;
+>         __le32 NegotiateContextOffset;  /* Pre:SMB3.1.1 was reserved/igno=
+red */
+>         __u8   Buffer[1];       /* variable length GSS security buffer */
+> } __packed;
+>
+> We may want to change them all together to keep naming consistent, that's=
+ a lot of changes.
+>
+>>
+>> >
+>> > I suggest we do another cleanup patch to clean things up.
+>>
+>> Yes, another cleanup patch is needed before your patches. You are adding
+>> your code in 2017 and you are expected to follow present coding standard=
+s
+>> like everyone else in the kernel.
+>>
+>> Thanks
 
-To make this more clear, I can put the RoCE v1/v2 type checks, each in own
-macro. Drop them from the PVRDMA_IS_VERSION checks. Rename the
-PVRDMA_IS_VERSION18 to PVRDMA_IS_NEXTVERSION so we will always pick up the
-cap values correctly for future versions and we are not dependent on the
-RoCE version itself.
-
-> And if we add more than one new feature, how will it look?
-> 
-> Thanks
 
 
+--=20
+Thanks,
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Steve
