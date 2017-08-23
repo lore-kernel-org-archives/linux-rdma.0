@@ -1,98 +1,106 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [rdma-next v2 18/23] IB/mlx4: Remove redundant attribute in
- mlx4_ib_create_qp_rss struct
-Date: Wed, 23 Aug 2017 07:43:54 +0300
-Message-ID: <20170823044354.GJ1724@mtr-leonro.local>
-References: <20170815085452.3546-1-leon@kernel.org>
- <20170815085452.3546-19-leon@kernel.org>
- <1503432590.78641.10.camel@redhat.com>
+Subject: Re: [PATCH for-next 09/16] IB/hfi1: Clean up pin_vector_pages()
+ function
+Date: Wed, 23 Aug 2017 07:49:00 +0300
+Message-ID: <20170823044900.GK1724@mtr-leonro.local>
+References: <20170822011657.32701.22207.stgit@scvm10.sc.intel.com>
+ <20170822012702.32701.90032.stgit@scvm10.sc.intel.com>
+ <20170822154659.GE1724@mtr-leonro.local>
+ <599C7A74.9010301@intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="BqNvIJgrK1/MQy2W"
+        protocol="application/pgp-signature"; boundary="d5ZB48mKYG2jsBgL"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1503432590.78641.10.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <599C7A74.9010301-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---BqNvIJgrK1/MQy2W
+--d5ZB48mKYG2jsBgL
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Aug 22, 2017 at 04:09:50PM -0400, Doug Ledford wrote:
-> On Tue, 2017-08-15 at 11:54 +0300, Leon Romanovsky wrote:
-> > From: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >
-> > rss_key_len is not in use and need to be removed.
-> >
-> > Fixes: 3078f5f1bd8b ("IB/mlx4: Add support for RSS QP")
-> > Signed-off-by: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > ---
-> >  include/uapi/rdma/mlx4-abi.h | 3 +--
-> >  1 file changed, 1 insertion(+), 2 deletions(-)
-> >
-> > diff --git a/include/uapi/rdma/mlx4-abi.h b/include/uapi/rdma/mlx4-
-> > abi.h
-> > index 0e10102861b5..c55f60e05f86 100644
-> > --- a/include/uapi/rdma/mlx4-abi.h
-> > +++ b/include/uapi/rdma/mlx4-abi.h
-> > @@ -98,8 +98,7 @@ struct mlx4_ib_create_srq_resp {
-> >  struct mlx4_ib_create_qp_rss {
-> >  	__u64   rx_hash_fields_mask;
-> >  	__u8    rx_hash_function;
-> > -	__u8    rx_key_len;
-> > -	__u8    reserved[6];
-> > +	__u8    reserved[7];
+On Tue, Aug 22, 2017 at 11:39:48AM -0700, Harish Chegondi wrote:
 >
-> I believe Yuval's point, which has not been fixed, was not that you
-> could remove the variable without increasing the reserved size.  That
-> makes sense.  He was referring to the fact that you reference
-> rss_key_len in the commit message, but what you removed was rx_key_len
-> instead.
-
-Ahh, I didn't understand it from his comment back then.
-
-How do you want me to proceed here? Do you want me to resend all patches?
-Do you want me to resend this patch only? Do you prefer to fix it by yourself?
-
-It looks like we can declare working with pull-requests in RDMA as a failed
-experiment.
-
 >
-> >  	__u8    rx_hash_key[40];
-> >  	__u32   comp_mask;
-> >  	__u32   reserved1;
-> --
-> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->     GPG KeyID: B826A3330E572FDD
->     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+> On 08/22/2017 08:46 AM, Leon Romanovsky wrote:
+> > On Mon, Aug 21, 2017 at 06:27:03PM -0700, Dennis Dalessandro wrote:
+> >> From: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> >>
+> >> Clean up pin_vector_pages() function by moving page pinning related code
+> >> to a separate function since it really stands on its own.
+> >>
+> >> Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> >> Signed-off-by: Harish Chegondi <harish.chegondi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> >> Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> >> ---
+> >>  drivers/infiniband/hw/hfi1/user_sdma.c |   79 ++++++++++++++++++--------------
+> >>  1 files changed, 45 insertions(+), 34 deletions(-)
+> >>
+> >> diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
+> >> index d5a2572..6f26253 100644
+> >> --- a/drivers/infiniband/hw/hfi1/user_sdma.c
+> >> +++ b/drivers/infiniband/hw/hfi1/user_sdma.c
+> >> @@ -1124,11 +1124,53 @@ static u32 sdma_cache_evict(struct hfi1_user_sdma_pkt_q *pq, u32 npages)
+> >>  	return evict_data.cleared;
+> >>  }
+> >>
+> >> +static int pin_sdma_pages(struct user_sdma_request *req,
+> >> +			  struct user_sdma_iovec *iovec,
+> >> +			  struct sdma_mmu_node *node,
+> >> +			  int npages)
+> >> +{
+> >> +	int pinned, cleared;
+> >> +	struct page **pages;
+> >> +	struct hfi1_user_sdma_pkt_q *pq = req->pq;
+> >> +
+> >> +	pages = kcalloc(npages, sizeof(*pages), GFP_KERNEL);
+> >> +	if (!pages) {
+> >> +		SDMA_DBG(req, "Failed page array alloc");
+> >
+> > Please don't add prints after k[c|m|z]alloc failures, despite the fact
+> > that it was before.
+> >
+> > Thanks
+>
+> SDMA_DBG MACRO is a trace for development debugging. It's not a print.
 >
 
---BqNvIJgrK1/MQy2W
+No problem, I'll rephrase it for you.
+
+Please don't add prints, tracepoints, debug output and SDMA_DBG after k[c|m|z]alloc failures,
+despite the fact that it was before.
+
+Tracepoints output will be less worry for you if your kcalloc starts to fail.
+
+Is it clear enough now?
+>
+Thanks,
+
+--d5ZB48mKYG2jsBgL
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmdCAoACgkQ5GN7iDZy
-WKchihAAn6ygwmkZ/j5Ae322sGmqATSOjzAGc+h1Jhy0H2IflQICy7xv6qX3NmC6
-Vyf5sJoJafSc4l/dD7NL2FYzxaUqWooaVcI9c/YSAWHkCOlQ/HBa3OVQx4RdAJDK
-sHrA5Kt08/4DS3Udsx4DSqadYwSHPUhBPu4HX2Kt3GReqX4WeTelqK7QwXi45qNa
-zLrcHbODgY9OIlbHtHGbyXKe9JV1sZBb8QE+wvj2xi6lDH0qY7GANuPUtmt3qB5p
-Lrq63G2OCYJ4yvbTnVyKgQUX3sgpr0YhC4R4E5QEDDibLJBMaPdAAKCht2LBMJlM
-D2zuZnY51TbQd0CSjwjBlWb2V16uKxbbrR+oM5qHvTyoo6owLcWMoRICH0LzW+Dz
-FAENVhoDmWcqvm4mR4La09bSjQD+LlKdaEZDpMst1ijJ0k9EOFceYbeuwLpb425N
-DNFMdrS6XMCi6hLCKf19eKuGs41Q7FApIJiWGUohfaY+g/NhE3/jdPuNjfpgJHrF
-jOFAwRKWpRYrRtF2Qj3y3ZtUmw8f9fxCHLM08poxuUpCODhjvllJWv2USTnMU/yU
-NAP+6XAYFGsnkBAIbUrVBW9MXsomT8EZGjVThOInCj3xd/Iwh57k/CY/+D2nAgrI
-wR1FMCN+y98XEcuL+ZphayXmPdXp1KVcptfW7YygywGDr1TcNlY=
-=Cs3W
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmdCTwACgkQ5GN7iDZy
+WKefehAAvMd7zy3q0ig3274FclHQjm65CZdgAk/htDo3Zkf4150Uek2jLKHL+e+G
+xvnd8fmRvqGWfI/gf6iSkDFhNiRwtv3poThd2jBiVn2BBKK9KSZPWUaj0vsmTIKv
+kPN12MPY6ps9j9ZF0+TzNDU57FTe0sbiKSBn+5n67s5O5uk9jP9sYqzwMkshMzOD
+NG/TttzMgvS0caZsHRVvvGUUj/R56k6U6cCGWhwA2QeIiqQr7K9/6aQfATYfgbT7
+DuzJ6hMKXZXb9aXOyXup0s7RpFg5h2yBLmwgDwpju0eUjqAD1Hrl5dnudDkb0Rpv
+psFDYkcU6zikwmZrVYI2EMD25CJjGUznseVddGuO2kDKt9QJdQe7DqB4fmKgjhS5
+ic/QErYJBGI6kHp4aw72e0U//qnEqQHsDGn7UfMhQ7jV3c4DHFNvAgkio6H2tcF4
+PjNrj0RyzT32yYXl5553OM0IqEUjPskWGsGuZ61fW4fqAk12FR5Jo8IjEflx7ELl
+oGJ2OmxQG+qPj1qYkOIchLP/14BC7hNWLbwsCvIrJiDSsx3rCaUn6GptFpMgIJJl
+Ldvm0WjQ1wU2FYTQOzlCHVvC99FxpDnSQoc3IykeUHWSE49VBFfIKi2zIueF+0ps
+FPG3n7+NMXMx+yPZjB+asxZeikwx3WY3VCfuPysRWsyt/iwyT5A=
+=7t6x
 -----END PGP SIGNATURE-----
 
---BqNvIJgrK1/MQy2W--
+--d5ZB48mKYG2jsBgL--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
