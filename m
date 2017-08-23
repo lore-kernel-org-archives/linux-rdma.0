@@ -1,66 +1,72 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH rdma-rc 2/3] IB/mlx5: Fix Raw Packet QP event handler assignment
-Date: Wed, 23 Aug 2017 08:35:41 +0300
-Message-ID: <20170823053542.17754-3-leon@kernel.org>
-References: <20170823053542.17754-1-leon@kernel.org>
+Subject: [PATCH rdma-next] IB/ipoib: Enable ioctl for to IPoIB rdma netdevs
+Date: Wed, 23 Aug 2017 08:37:21 +0300
+Message-ID: <20170823053721.18510-1-leon@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170823053542.17754-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eitan Rabin <rabin-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+From: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-In case we have SQ and RQ for Raw Packet QP, the SQ's event handler
-wasn't assigned.
+Adds support for ioctl callback in the RDMA netdevs to allow
+supporting functions not handled by the generic interface code.
 
-Fixing this by assigning event handler for each WQ after creation.
-
-[ 1877.145243] Call Trace:
-[ 1877.148644] <IRQ>
-[ 1877.150580] [<ffffffffa07987c5>] ? mlx5_rsc_event+0x105/0x210 [mlx5_core]
-[ 1877.159581] [<ffffffffa0795bd7>] ? mlx5_cq_event+0x57/0xd0 [mlx5_core]
-[ 1877.167137] [<ffffffffa079208e>] mlx5_eq_int+0x53e/0x6c0 [mlx5_core]
-[ 1877.174526] [<ffffffff8101a679>] ? sched_clock+0x9/0x10
-[ 1877.180753] [<ffffffff810f717e>] handle_irq_event_percpu+0x3e/0x1e0
-[ 1877.188014] [<ffffffff810f735d>] handle_irq_event+0x3d/0x60
-[ 1877.194567] [<ffffffff810f9fe7>] handle_edge_irq+0x77/0x130
-[ 1877.201129] [<ffffffff81014c3f>] handle_irq+0xbf/0x150
-[ 1877.207244] [<ffffffff815ed78a>] ? atomic_notifier_call_chain+0x1a/0x20
-[ 1877.214829] [<ffffffff815f434f>] do_IRQ+0x4f/0xf0
-[ 1877.220498] [<ffffffff815e94ad>] common_interrupt+0x6d/0x6d
-[ 1877.227025] <EOI>
-[ 1877.228967] [<ffffffff814834e2>] ? cpuidle_enter_state+0x52/0xc0
-[ 1877.236990] [<ffffffff81483615>] cpuidle_idle_call+0xc5/0x200
-[ 1877.243676] [<ffffffff8101bc7e>] arch_cpu_idle+0xe/0x30
-[ 1877.249831] [<ffffffff810b4725>] cpu_startup_entry+0xf5/0x290
-[ 1877.256513] [<ffffffff815cfee1>] start_secondary+0x265/0x27b
-[ 1877.263111] Code: Bad RIP value.
-[ 1877.267296] RIP [< (null)>] (null)
-[ 1877.273264] RSP <ffff88046fd63df8>
-[ 1877.277531] CR2: 0000000000000000
-
-Fixes: 19098df2da78 ("IB/mlx5: Refactor mlx5_ib_qp to accommodate other QP types")
-Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Eitan Rabin <rabin-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx5/qp.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 0889ff367c86..f58f8f5f3ebe 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1238,6 +1238,7 @@ static int create_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 			goto err_destroy_tis;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 9e8dce6e9fc2..cc3615dd6f1a 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -99,6 +99,8 @@ static struct net_device *ipoib_get_net_dev_by_params(
+ 		const union ib_gid *gid, const struct sockaddr *addr,
+ 		void *client_data);
+ static int ipoib_set_mac(struct net_device *dev, void *addr);
++static int ipoib_ioctl(struct net_device *dev, struct ifreq *ifr,
++		       int cmd);
 
- 		sq->base.container_mibqp = qp;
-+		sq->base.mqp.event = mlx5_ib_qp_event;
- 	}
+ static struct ib_client ipoib_client = {
+ 	.name   = "ipoib",
+@@ -1680,6 +1682,17 @@ static int ipoib_dev_init_default(struct net_device *dev)
+ 	return -ENOMEM;
+ }
 
- 	if (qp->rq.wqe_cnt) {
++static int ipoib_ioctl(struct net_device *dev, struct ifreq *ifr,
++		       int cmd)
++{
++	struct ipoib_dev_priv *priv = ipoib_priv(dev);
++
++	if (!priv->rn_ops->ndo_do_ioctl)
++		return -EOPNOTSUPP;
++
++	return priv->rn_ops->ndo_do_ioctl(dev, ifr, cmd);
++}
++
+ int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
+ {
+ 	struct ipoib_dev_priv *priv = ipoib_priv(dev);
+@@ -1834,6 +1847,7 @@ static const struct net_device_ops ipoib_netdev_ops_pf = {
+ 	.ndo_set_vf_guid	 = ipoib_set_vf_guid,
+ 	.ndo_set_mac_address	 = ipoib_set_mac,
+ 	.ndo_get_stats64	 = ipoib_get_stats,
++	.ndo_do_ioctl		 = ipoib_ioctl,
+ };
+
+ static const struct net_device_ops ipoib_netdev_ops_vf = {
+@@ -1847,6 +1861,7 @@ static const struct net_device_ops ipoib_netdev_ops_vf = {
+ 	.ndo_set_rx_mode	 = ipoib_set_mcast_list,
+ 	.ndo_get_iflink		 = ipoib_get_iflink,
+ 	.ndo_get_stats64	 = ipoib_get_stats,
++	.ndo_do_ioctl		 = ipoib_ioctl,
+ };
+
+ void ipoib_setup_common(struct net_device *dev)
 --
 2.14.1
 
