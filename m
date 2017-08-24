@@ -1,91 +1,59 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [rdma-next v2 18/23] IB/mlx4: Remove redundant attribute in
- mlx4_ib_create_qp_rss struct
-Date: Thu, 24 Aug 2017 15:40:30 -0400
-Message-ID: <1503603630.78641.36.camel@redhat.com>
-References: <20170815085452.3546-1-leon@kernel.org>
-         <20170815085452.3546-19-leon@kernel.org>
-         <1503432590.78641.10.camel@redhat.com>
-         <20170823044354.GJ1724@mtr-leonro.local>
-         <20170824092228.GF1724@mtr-leonro.local>
+Subject: Re: [PATCH rdma-rc 0/3] RDMA fixes for 4.13
+Date: Thu, 24 Aug 2017 15:41:03 -0400
+Message-ID: <1503603663.78641.37.camel@redhat.com>
+References: <20170823053542.17754-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170824092228.GF1724-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
+In-Reply-To: <20170823053542.17754-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-08-24 at 12:22 +0300, Leon Romanovsky wrote:
-> On Wed, Aug 23, 2017 at 07:43:54AM +0300, Leon Romanovsky wrote:
-> > On Tue, Aug 22, 2017 at 04:09:50PM -0400, Doug Ledford wrote:
-> > > On Tue, 2017-08-15 at 11:54 +0300, Leon Romanovsky wrote:
-> > > > From: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > > > 
-> > > > rss_key_len is not in use and need to be removed.
-> > > > 
-> > > > Fixes: 3078f5f1bd8b ("IB/mlx4: Add support for RSS QP")
-> > > > Signed-off-by: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > > > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > > > ---
-> > > >  include/uapi/rdma/mlx4-abi.h | 3 +--
-> > > >  1 file changed, 1 insertion(+), 2 deletions(-)
-> > > > 
-> > > > diff --git a/include/uapi/rdma/mlx4-abi.h
-> > > > b/include/uapi/rdma/mlx4-
-> > > > abi.h
-> > > > index 0e10102861b5..c55f60e05f86 100644
-> > > > --- a/include/uapi/rdma/mlx4-abi.h
-> > > > +++ b/include/uapi/rdma/mlx4-abi.h
-> > > > @@ -98,8 +98,7 @@ struct mlx4_ib_create_srq_resp {
-> > > >  struct mlx4_ib_create_qp_rss {
-> > > >  	__u64   rx_hash_fields_mask;
-> > > >  	__u8    rx_hash_function;
-> > > > -	__u8    rx_key_len;
-> > > > -	__u8    reserved[6];
-> > > > +	__u8    reserved[7];
-> > > 
-> > > I believe Yuval's point, which has not been fixed, was not that
-> > > you
-> > > could remove the variable without increasing the reserved
-> > > size.  That
-> > > makes sense.  He was referring to the fact that you reference
-> > > rss_key_len in the commit message, but what you removed was
-> > > rx_key_len
-> > > instead.
-> > 
-> > Ahh, I didn't understand it from his comment back then.
-> > 
-> > How do you want me to proceed here? Do you want me to resend all
-> > patches?
-> > Do you want me to resend this patch only? Do you prefer to fix it
-> > by yourself?
+On Wed, 2017-08-23 at 08:35 +0300, Leon Romanovsky wrote:
+> Hi Doug,
 > 
+> Those patches were found after you asked me if I have new patches
+> for the rdma-rc and at that time I really didn't have.
 > 
-> Doug?
+> There are three patches in this series, two from Majd and one from
+> Noa.
+> 
+> The patch from Noa was the one which pushed me to send it now.
+> Latest changes to support LID started to use port number to determine
+> port type, and it is not always safe. This allows access to non-
+> allocated
+> memory, despite the fact that the scope of this attack is limited by
+> the size
+> of port (u8), but it is better to fix it now and don't bother
+> ourselves
+> with stable@ e.t.c.
+> 
+> The patches from Majd are fixing one panic and one as a followup to
+> latest discussion with Selvin about common modify_port function.
+> 
+> Thanks
+> ----------------------------------------------------------------
+> Majd Dibbiny (2):
+>       IB/mlx5: Fix Raw Packet QP event handler assignment
+>       IB/mlx5: Always return success for RoCE modify port
+> 
+> Noa Osherovich (1):
+>       IB/core: Avoid accessing non-allocated memory when inferring
+> port type
+> 
+>  drivers/infiniband/core/uverbs_cmd.c | 11 +++++++----
+>  drivers/infiniband/core/verbs.c      |  7 ++++++-
+>  drivers/infiniband/hw/mlx5/main.c    |  6 ++++++
+>  drivers/infiniband/hw/mlx5/qp.c      |  1 +
+>  include/rdma/ib_verbs.h              |  1 +
+>  5 files changed, 21 insertions(+), 5 deletions(-)
 
-I'll fix it up when I pull the patch in.
+Thanks, applied for -rc.
 
-> > 
-> > It looks like we can declare working with pull-requests in RDMA as
-> > a failed
-> > experiment.
-> > 
-> > > 
-> > > >  	__u8    rx_hash_key[40];
-> > > >  	__u32   comp_mask;
-> > > >  	__u32   reserved1;
-> > > 
-> > > --
-> > > Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> > >     GPG KeyID: B826A3330E572FDD
-> > >     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333
-> > > 0E57 2FDD
-> > > 
-> 
-> 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
     GPG KeyID: B826A3330E572FDD
