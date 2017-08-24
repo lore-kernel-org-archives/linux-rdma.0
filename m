@@ -1,62 +1,119 @@
-From: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] IB/core: replace memcpy with ether_addr_copy
-Date: Thu, 24 Aug 2017 10:41:16 -0700
-Message-ID: <1503596476.12569.6.camel@perches.com>
-References: <1503589307-10457-1-git-send-email-himanshujha199640@gmail.com>
-         <1503590792.12569.2.camel@perches.com>
-         <20170824173103.GA13379@himanshu-Vostro-3559>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: =?UTF-8?Q?=E3=80=90Ask?= for upstream
+ =?UTF-8?Q?branch=E3=80=91?=
+Date: Thu, 24 Aug 2017 15:31:11 -0400
+Message-ID: <1503603071.78641.35.camel@redhat.com>
+References: <33078683-cf77-a116-4245-f561a29b114d@huawei.com>
+         <546382b6-7cdc-9277-c0b8-130d58136a88@redhat.com>
+         <599E81AF.5040901@huawei.com>
+         <a6ed9854-46f0-77be-a708-de7b2100a58c@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170824173103.GA13379@himanshu-Vostro-3559>
+In-Reply-To: <a6ed9854-46f0-77be-a708-de7b2100a58c-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Himanshu Jha <himanshujha199640-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: oulijun <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Chenxin (Charles)" <charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, weihaifeng <haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, liudongdong <liudongdong3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-08-24 at 23:01 +0530, Himanshu Jha wrote:
-> On Thu, Aug 24, 2017 at 09:06:32AM -0700, Joe Perches wrote:
-> > On Thu, 2017-08-24 at 21:11 +0530, Himanshu Jha wrote:
-> > > Use ether_addr_copy to copy an ethernet address of size ETH_ALEN
-> > > instead of memcpy.
+On Thu, 2017-08-24 at 16:34 +0800, oulijun wrote:
+> 在 2017/8/24 15:35, Wei Hu (Xavier) 写道:
 > > 
-> > []
-> > diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-> > []
-> > > @@ -798,7 +798,7 @@ int rdma_addr_find_l2_eth_by_grh(const union ib_gid *sgid,
-> > >  	if (ret)
-> > >  		return ret;
-> > >  
-> > > -	memcpy(dmac, dev_addr.dst_dev_addr, ETH_ALEN);
-> > > +	ether_addr_copy(dmac, dev_addr.dst_dev_addr);
-> > >  	dev = dev_get_by_index(&init_net, dev_addr.bound_dev_if);
-> > >  	if (!dev)
-> > >  		return -ENODEV;
-> > > @@ -831,7 +831,7 @@ int rdma_addr_find_smac_by_sgid(union ib_gid *sgid, u8 *smac, u16 *vlan_id)
-> > >  	if (ret)
-> > >  		return ret;
-> > >  
-> > > -	memcpy(smac, dev_addr.src_dev_addr, ETH_ALEN);
-> > > +	ether_addr_copy(smac, dev_addr.src_dev_addr);
-> > >  	return ret;
-> > >  }
-> > >  EXPORT_SYMBOL(rdma_addr_find_smac_by_sgid);
 > > 
-> > Both dmac and smac are function arguments.
-> > What guarantees these to be
-> > aligned properly?
+> > On 2017/8/21 20:57, Doug Ledford wrote:
+> > > On 8/21/2017 2:16 AM, oulijun wrote:
+> > > > Hi,  Doug Ledford
+> > > > 
+> > > >     We are preparing the hip08 RoCE driver for upstreaming.  I
+> > > > am found that
+> > > > 
+> > > > you have create a new branch named net-next-base and this
+> > > > branch has
+> > > > included
+> > > > 
+> > > > hns3 patchset.  If we generate patchset of hip08 RoCE driver,
+> > > > can
+> > > > directly based
+> > > > 
+> > > > on this branch?
+> > > 
+> > > Yes.
+> > > 
+> > 
+> > Hi, Doug
+> > 
+> >    In the repo https://git.kernel.org/pub/scm/linux/kernel/git/dled
+> > ford/rdma.git,
+> >    we found for-next-merged branch looks newer than k.o/net-next-
+> > base, right ?
+> >    please reconfirm which branch we should generate patcheset based
+> > on.
+> >    Thank you very much!
+> > 
+> > 
+> > 1. k.o/for-next-merged branch
+> > 
+> > git log --oneline drivers/infiniband/hw/hns/
+> > 
+> > b0e32e2 Merge branch 'k.o/for-4.13-rc' into k.o/for-next
+> > 5b59a39 IB/hns: fix memory leak on ah on error return path
+> > 3e5f088 IB/hns: Avoid compile test under non 64bit environments
+> > 8ccf098 Revert "RDMA/hns: fix build regression"
+> > 5db465f IB/hns: checking for IS_ERR() instead of NULL
+> > 967de35 IB/hns: include linux/interrupt.h
+> > ecd840f RDMA/hns: fix build regression
+> > d1d7149 IB/hns: fix semicolon.cocci warnings
+> > 87809f8 IB/hns: fix returnvar.cocci warnings
+> > 3756c7f IB/hns: fix boolreturn.cocci warnings
+> > e89bf46 IB/hns: Support compile test for hns RoCE driver
+> > 5f110ac4 IB/hns: Fix for checkpatch.pl comment style warnings
+> > d322f00 IB/hns: Fix the bug with modifying the MAC address without
+> > removing the driver
+> > 9de61d3 IB/hns: Fix the bug with rdma operation
+> > 58c4f0d IB/hns: Fix the bug with wild pointer when destroy rc qp
+> > 
+> > 2. k.o/net-next-base
+> > 
+> > git log --oneline drivers/infiniband/hw/hns/
+> > 
+> > 5db465f IB/hns: checking for IS_ERR() instead of NULL
+> > 5f110ac4 IB/hns: Fix for checkpatch.pl comment style warnings
+> > d322f00 IB/hns: Fix the bug with modifying the MAC address without
+> > removing the driver
+> > 9de61d3 IB/hns: Fix the bug with rdma operation
+> > 58c4f0d IB/hns: Fix the bug with wild pointer when destroy rc qp
+> > 
+> > 
+> >    Regards
+> > Wei Hu
 > > 
 > 
-> Yes, you are correct!
-> The arguments should be a pointer to a six byte Ethernet address.
+> Please use net-next-base. Doug have comfirm. Please refer to his
+> reply for this email.
 
-Just for completeness:
+The net-next-based branch is not intended to go to the next kernel
+merge window, it's destined for the merge window after that.  If you
+don't need anything in net-next-based, then use for-next instead. 
+That's what will actually be going to Linus.
 
-The argument should be a pointer to a 6 byte Ethernet address
-which is also aligned to an even hardware address.
+As for what's newer, the for-next-merged branch is everything merged
+together (for-4.13-rc, for-next, and net-next-based), and I really only
+have it there for one reason: so I can put the for-next tag on it and
+Stephen Rothwell can then pull it into his for-next kernel testing.  I
+put stuff in there (the net-next-based branch) that isn't going into
+the next merge window so that it gets early for-next testing, but that
+doesn't mean it is actually going into for-next.
 
-i.e.: u8 mac_addr[ETH_ALEN] __aligned(2);
+So, like I said, use the for-next branch unless you absolutely depend
+on code in the net-next-based branch, and if you do, it means the
+submission will flow through into the second merge window instead of
+the next merge window.
+
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
