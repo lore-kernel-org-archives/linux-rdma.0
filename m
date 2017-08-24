@@ -1,36 +1,30 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [for-next 0/3] Add congestion control capability
-Date: Thu, 24 Aug 2017 17:25:08 -0400
-Message-ID: <1503609908.78641.62.camel@redhat.com>
-References: <1503402587-24669-1-git-send-email-devesh.sharma@broadcom.com>
-         <20170822123246.GX1724@mtr-leonro.local>
-         <20170822151143.GB1201@obsidianresearch.com>
+Subject: Re: [PATCH rdma-next] IB/ipoib: Enable ioctl for to IPoIB rdma
+ netdevs
+Date: Thu, 24 Aug 2017 17:36:08 -0400
+Message-ID: <1503610568.78641.63.camel@redhat.com>
+References: <20170823053721.18510-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170822151143.GB1201-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20170823053721.18510-1-leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eitan Rabin <rabin-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2017-08-22 at 09:11 -0600, Jason Gunthorpe wrote:
-> On Tue, Aug 22, 2017 at 03:32:46PM +0300, Leon Romanovsky wrote:
-> > On Tue, Aug 22, 2017 at 07:49:44AM -0400, Devesh Sharma wrote:
-> > > This patch series is to support congestion control capability
-> > > on Broadcom NetXtreme-E 10/25/40/50 RDMA Ethernet Controllers.
-> > > 
-> > > The implementation exposes congestion control related parameters
-> > > to administrator using configfs.
-> > > 
-> > 
-> > We have RDMAtool and netlink for configurations now, please use it.
+On Wed, 2017-08-23 at 08:37 +0300, Leon Romanovsky wrote:
+> From: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
-> Yes, +1
+> Adds support for ioctl callback in the RDMA netdevs to allow
+> supporting functions not handled by the generic interface code.
+> 
+> Signed-off-by: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Eitan Rabin <rabin-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-Indeed.  I'm putting this version out to pasture as "Changes
-Requested".
+Thanks, applied.
 
 -- 
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
