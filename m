@@ -1,52 +1,133 @@
-From: Tariq Toukan <tariqt@mellanox.com>
-Subject: Re: [PATCH] net/mlx4_core: make mlx4_profile const
-Date: Thu, 24 Aug 2017 12:04:32 +0300
-Message-ID: <ac5b8b4a-edf3-604b-63c5-5ff645e0c5bc@mellanox.com>
-References: <1503492459-3110-1-git-send-email-bhumirks@gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-next] IB/ipoib: Enable ioctl for to IPoIB rdma
+ netdevs
+Date: Thu, 24 Aug 2017 12:20:35 +0300
+Message-ID: <20170824092035.GE1724@mtr-leonro.local>
+References: <20170823053721.18510-1-leon@kernel.org>
+ <20170824081156.GB2448@yuvallap>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1503492459-3110-1-git-send-email-bhumirks@gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bhumika Goyal <bhumirks@gmail.com>, julia.lawall@lip6.fr, tariqt@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="w2Ze1fp8mKggy7lw"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170824081156.GB2448@yuvallap>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eitan Rabin <rabin-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
+--w2Ze1fp8mKggy7lw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On 23/08/2017 3:47 PM, Bhumika Goyal wrote:
-> Make these const as they are only used in a copy operation.
-> 
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
-> ---
->   drivers/net/ethernet/mellanox/mlx4/main.c | 4 ++--
->   1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-> index 541ce9e..43fb2eb 100644
-> --- a/drivers/net/ethernet/mellanox/mlx4/main.c
-> +++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-> @@ -121,7 +121,7 @@
->   	DRV_NAME ": Mellanox ConnectX core driver v"
->   	DRV_VERSION "\n";
->   
-> -static struct mlx4_profile default_profile = {
-> +static const struct mlx4_profile default_profile = {
->   	.num_qp		= 1 << 18,
->   	.num_srq	= 1 << 16,
->   	.rdmarc_per_qp	= 1 << 4,
-> @@ -131,7 +131,7 @@
->   	.num_mtt	= 1 << 20, /* It is really num mtt segements */
->   };
->   
-> -static struct mlx4_profile low_mem_profile = {
-> +static const struct mlx4_profile low_mem_profile = {
->   	.num_qp		= 1 << 17,
->   	.num_srq	= 1 << 6,
->   	.rdmarc_per_qp	= 1 << 4,
-> 
+On Thu, Aug 24, 2017 at 11:11:57AM +0300, Yuval Shaia wrote:
+> On Wed, Aug 23, 2017 at 08:37:21AM +0300, Leon Romanovsky wrote:
+> > From: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> >
+> > Adds support for ioctl callback in the RDMA netdevs to allow
+> > supporting functions not handled by the generic interface code.
+>
+> Suggesting:
+> s/supporting functions/supporting ioctl functions
 
-Thanks Bhumika.
+I think the "ioctl" word in the line above catches all readers who are
+doing grep in the commit message to find relevant for them, but if you
+still not convinced and think that it needs to be updated, please say it
+and I'll resend.
 
-Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
+>
+> Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+
+Thanks
+
+
+>
+> >
+> > Signed-off-by: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Signed-off-by: Eitan Rabin <rabin-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > ---
+> >  drivers/infiniband/ulp/ipoib/ipoib_main.c | 15 +++++++++++++++
+> >  1 file changed, 15 insertions(+)
+> >
+> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> > index 9e8dce6e9fc2..cc3615dd6f1a 100644
+> > --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> > @@ -99,6 +99,8 @@ static struct net_device *ipoib_get_net_dev_by_params(
+> >  		const union ib_gid *gid, const struct sockaddr *addr,
+> >  		void *client_data);
+> >  static int ipoib_set_mac(struct net_device *dev, void *addr);
+> > +static int ipoib_ioctl(struct net_device *dev, struct ifreq *ifr,
+> > +		       int cmd);
+> >
+> >  static struct ib_client ipoib_client = {
+> >  	.name   = "ipoib",
+> > @@ -1680,6 +1682,17 @@ static int ipoib_dev_init_default(struct net_device *dev)
+> >  	return -ENOMEM;
+> >  }
+> >
+> > +static int ipoib_ioctl(struct net_device *dev, struct ifreq *ifr,
+> > +		       int cmd)
+> > +{
+> > +	struct ipoib_dev_priv *priv = ipoib_priv(dev);
+> > +
+> > +	if (!priv->rn_ops->ndo_do_ioctl)
+> > +		return -EOPNOTSUPP;
+> > +
+> > +	return priv->rn_ops->ndo_do_ioctl(dev, ifr, cmd);
+> > +}
+> > +
+> >  int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
+> >  {
+> >  	struct ipoib_dev_priv *priv = ipoib_priv(dev);
+> > @@ -1834,6 +1847,7 @@ static const struct net_device_ops ipoib_netdev_ops_pf = {
+> >  	.ndo_set_vf_guid	 = ipoib_set_vf_guid,
+> >  	.ndo_set_mac_address	 = ipoib_set_mac,
+> >  	.ndo_get_stats64	 = ipoib_get_stats,
+> > +	.ndo_do_ioctl		 = ipoib_ioctl,
+> >  };
+> >
+> >  static const struct net_device_ops ipoib_netdev_ops_vf = {
+> > @@ -1847,6 +1861,7 @@ static const struct net_device_ops ipoib_netdev_ops_vf = {
+> >  	.ndo_set_rx_mode	 = ipoib_set_mcast_list,
+> >  	.ndo_get_iflink		 = ipoib_get_iflink,
+> >  	.ndo_get_stats64	 = ipoib_get_stats,
+> > +	.ndo_do_ioctl		 = ipoib_ioctl,
+> >  };
+> >
+> >  void ipoib_setup_common(struct net_device *dev)
+> > --
+> > 2.14.1
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--w2Ze1fp8mKggy7lw
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmemmMACgkQ5GN7iDZy
+WKfQmBAAySii3EwuAkIzIVT59llOnm4aWz2cpu5rDxsMRHU1N0dNBuascVIgozvu
+O7TLVmPXzUEBrby9qofPCywuCuIWOTWrjWTkw9srWnuqlDYX5+kbCiaJk1D+fw8z
+7yU7YVN//Jr0mWMoFi+alpuUBa7tAPED9V1IDcoYFmZZRZAG5nTyRVPLMQCy0J9O
+G1PEBXrlzvqKhdSfiaLQeKRdYpbqW9h4SMA26Ciunn2+0tEhDw3PyjlNVIAi1CoU
+pprm+S9061PbBjS7DS0sLFNMMFJS6M64mpD541AoQq8bGWlWACoZnvm4HadgNf7Y
+sAYUws4yxz76i3tLgF8k+VXjJjyiRsTb+8/Xp52FxztJy7JYTaY2u8E7rFujOzus
+UIHveTvlAtMRatdJJCn+I+NRlYgyWZIym4RS9IK6ZNrXGI75tSwkrM3jjkqRmDUf
+XijWcyDRfaUa8lICYvI+3VPqRlPmO/XkiNuLCckamoaf4RQ18onW3gcHaDaN1ajO
+tma4i45FQcq5JhJj25tQKIMJn/9CmA6Nn7Fs1iCV+8WJqyrwtTkh84xlAMgLL8oQ
+EgpSZ/7vgS93eTN4RZoI9ztiI9OTCfqCmHzlUOv+aUAopaphxAa3JgcIRCNSJgKP
+kK6Fq3tmuVE23/FRPcpu/2bZWMR/httdZ7WITuKzmXHkg1zWwr0=
+=IkFP
+-----END PGP SIGNATURE-----
+
+--w2Ze1fp8mKggy7lw--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
