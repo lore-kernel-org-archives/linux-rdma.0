@@ -1,38 +1,104 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: Possible rdma-core header conflict
-Date: Thu, 24 Aug 2017 09:27:13 -0600
-Message-ID: <20170824152713.GB23110@obsidianresearch.com>
-References: <CACTTzNa3EzABie9=h2X-ONBefyaoWE1+RAT-T+uxJVvVij15Rg@mail.gmail.com>
- <20170821120310.GL1724@mtr-leonro.local>
- <20170821155729.GC4401@obsidianresearch.com>
- <CACTTzNar-qBRxkeWHL-gt4C9A6yTbY+GbkTT6tWKvJcnpK=J_g@mail.gmail.com>
- <20170822064704.GR1724@mtr-leonro.local>
- <20170824105007.GH1724@mtr-leonro.local>
- <CACTTzNYiYCg-hYX8WGYpn6Yg4QZ=XqgQcyB-m_9cSd5D+w0juQ@mail.gmail.com>
- <20170824122328.GJ1724@mtr-leonro.local>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-rc 3/3] IB/mlx5: Always return success for RoCE
+ modify port
+Date: Thu, 24 Aug 2017 18:32:03 +0300
+Message-ID: <20170824153203.GL1724@mtr-leonro.local>
+References: <20170823053542.17754-1-leon@kernel.org>
+ <20170823053542.17754-4-leon@kernel.org>
+ <20170824143900.GC5128@yuvallap>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kbuild-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="D1BNluYeAVp5SukR"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170824122328.GJ1724@mtr-leonro.local>
-Sender: linux-kbuild-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Yigal Korman <yigal@plexistor.com>, mmarek@suse.com, linux-kbuild@vger.kernel.org, dhowells@redhat.com, Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
+In-Reply-To: <20170824143900.GC5128@yuvallap>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Aug 24, 2017 at 03:23:28PM +0300, Leon Romanovsky wrote:
 
-> For the development, I use ability of rdma-core to run everything in
-> place and I don't install anything. I compile with build.sh supplied
-> in rdma-core and adjust Makefiles to point to build/lib|include directories
-> without need to install.
+--D1BNluYeAVp5SukR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-For development you can also tell rdma-core to refer to the kernel
-source tree directly and it will immediately use those kernel
-header for RDMA. No need to install things and wreck your distro.
+On Thu, Aug 24, 2017 at 05:39:01PM +0300, Yuval Shaia wrote:
+> On Wed, Aug 23, 2017 at 08:35:42AM +0300, Leon Romanovsky wrote:
+> > From: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> >
+> > CM layer calls ib_modify_port() regardless of the link layer.
+> >
+> > For the Ethernet ports, qkey violation and Port capabilities
+> > are meaningless. Therefore, always return success for ib_modify_port
+> > calls on the Ethernet ports.
+> >
+> > Cc: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+> > Signed-off-by: Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Reviewed-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > ---
+> >  drivers/infiniband/hw/mlx5/main.c | 6 ++++++
+> >  1 file changed, 6 insertions(+)
+> >
+> > diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+> > index a7f2e60085c4..f7fcde1ff0aa 100644
+> > --- a/drivers/infiniband/hw/mlx5/main.c
+> > +++ b/drivers/infiniband/hw/mlx5/main.c
+> > @@ -1085,6 +1085,12 @@ static int mlx5_ib_modify_port(struct ib_device *ibdev, u8 port, int mask,
+> >  	bool is_ib = (mlx5_ib_port_link_layer(ibdev, port) ==
+> >  		      IB_LINK_LAYER_INFINIBAND);
+> >
+> > +	/* CM layer calls ib_modify_port() regardless of the link layer. For
+> > +	 * Ethernet ports, qkey violation and Port capabilities are meaningless.
+> > +	 */
+> > +	if (!is_ib)
+> > +		return 0;
+> > +
+>
+> Alternatively you better stick to the convention used in mlx5_ib_add and do
+> the check there before installing the hook, like it is done for
+> mlx5_ib_get_netdev.
 
-#  -DKERNEL_DIR='.../linux' (default '')
-#      If set use the kernel UAPI headers from this kernel source
-#      tree.
+It is patch preparation to Selvin's common modify_qp change. In his
+change, it is checked outside of this function in global ib_modify_qp
+function.
 
-Jason
+Thanks
+
+>
+> >  	if (MLX5_CAP_GEN(dev->mdev, ib_virt) && is_ib) {
+> >  		change_mask = props->clr_port_cap_mask | props->set_port_cap_mask;
+> >  		value = ~props->clr_port_cap_mask | props->set_port_cap_mask;
+> > --
+> > 2.14.1
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--D1BNluYeAVp5SukR
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlme8XMACgkQ5GN7iDZy
+WKeykBAApso8TR/8IiMfLXVuXTPCS1dUTP4yj1AlUvIT4Yx9rXLVUTD4b6k4A4wt
+ErdzTMQlWAZ1onsp74h343CajhX208aH3UpAH43ooQEPCZU2sDrx9h+rfcZphWRm
+LqeuTRZV3xNv9D2KERZFWiepWhzxr5pmLJlVYmAthQ299QpsOVQS1bRWsagZzaQi
+xTRai/t7N+KugXWY6ebXUINUAj9BxbHrUM5TkN//EVPV7hrhCwhw/a6qBWjALfeS
+b/+O/ybFQv96i7GliuTwCSPoqUCvnxaYDY2ASdSIQrMpzmM50AlvQey8tFGB9MRu
+cfuilaz3WcnXyt4yVftg/KyCuvMgn4Zxrb8iVxOP6Ui+CjalXSraM5rJ7cfh8jx/
+1Vs8yGUL1kcIXANMGtuAdo515V+1GnwBoONpqyrYOKPl8Z5Qf9eVVCmeCjAiwXpT
+fyjcaSNG5ZlNVjyxWrVk8lMR0j3CVM0auMjmYrk0q0t5AlsQHJ5/xcZ5Evk4fFln
+fAcffZeP0jMaTtEi3j0vw2QGkfUSJU7BTYmjJm/VTV95Hqq3kFwBmfbMTkil9eif
+6gynXwEbzcbvFuaZnH4cgaD5mwSG2BTvUiB4Ks3kpuGRD4Fd2NE13cihZPPN4MCC
+wfcA56BMHbBVpSbijjcsslnGsLJMpDG/HZ5PskewkvIvUtSsoG8=
+=Cbyw
+-----END PGP SIGNATURE-----
+
+--D1BNluYeAVp5SukR--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
