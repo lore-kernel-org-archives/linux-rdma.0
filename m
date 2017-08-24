@@ -1,65 +1,47 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [pull request][rdma-next v1 REPOST 00/10] Hardware tag matching
- support
-Date: Thu, 24 Aug 2017 16:10:34 -0400
-Message-ID: <1503605434.78641.41.camel@redhat.com>
-References: <20170817125212.3173-1-leon@kernel.org>
-         <1503604595.78641.39.camel@redhat.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core] mlx5: Return pointer to CQ doorbell
+Date: Thu, 24 Aug 2017 14:30:19 -0600
+Message-ID: <20170824203019.GA9154@obsidianresearch.com>
+References: <20170821152237.GA3400@obsidianresearch.com>
+ <912a3e5b-7dbc-061a-53f5-b3cf3bce9d9e@dev.mellanox.co.il>
+ <20170822163007.GB4922@obsidianresearch.com>
+ <1b7e41dc-4873-7c0a-6cdb-bc499af70af2@dev.mellanox.co.il>
+ <20170823160816.GA11188@obsidianresearch.com>
+ <20170823164555.GV1724@mtr-leonro.local>
+ <20170823165221.GB23928@obsidianresearch.com>
+ <20170824052716.GD1724@mtr-leonro.local>
+ <20170824150045.GA23110@obsidianresearch.com>
+ <20170824155036.GN1724@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1503604595.78641.39.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170824155036.GN1724-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2017-08-24 at 15:56 -0400, Doug Ledford wrote:
-> On Thu, 2017-08-17 at 15:52 +0300, Leon Romanovsky wrote:
-> > This patch series adds to Mellanox ConnectX HCA driver support of
-> > tag matching. It introduces new hardware object eXtended shared
-> > Receive
-> > Queue (XRQ), which follows SRQ semantics with addition of extended
-> > receive buffers topologies and offloads.
-> > 
-> > This series adds tag matching topology and rendezvouz offload.
-> > 
-> > Changelog:
-> > v0->v1:
-> >  * Rebased version, no change
-> > RFC->v0:
-> >  * Followed after RFC posted on the ML and OFVWG discussions
-> >  * Implements agreed verbs interface
-> >  * Rebased on top of latest version
-> >  * Adding feature description under Documentaion/infiniband
-> >  * In struct ib_srq_init_attr moved CQ outside XRC inner struct.
-> >  * Added max size of the information passed after the RNDV header
-> >  * Added hca_sq_owner HW flag for RNDV QPs
-> > 
-> > Thanks
+On Thu, Aug 24, 2017 at 06:50:36PM +0300, Leon Romanovsky wrote:
+
+> > symver support and static linking in verbs has never worked properly,
+> > we need to do more work overall to fix that..
 > 
-> I know in the previous thread on this submission that you thought it
-> didn't need the shared pull request, but I'm seeing this when I try
-> to
-> build after pulling this patch series in:
-> In file included from ./include/linux/mlx5/driver.h:49:0,
->                  from ./include/linux/mlx5/fs.h:36,
->                  from drivers/infiniband/hw/mlx5/qp.c:37:
-> drivers/infiniband/hw/mlx5/qp.c: In function ‘create_qp_common’:
-> drivers/infiniband/hw/mlx5/qp.c:1734:6: error:
-> ‘MLX5_QPC_OFFLOAD_TYPE_RNDV’ undeclared (first use in this function);
-> did you mean ‘MLX5_XRQC_OFFLOAD_RNDV’?
->       MLX5_QPC_OFFLOAD_TYPE_RNDV);
+> Fix yes, but push something that works to be broken is a different story.
 
-Nevermind.  This is an ordering issue.  I took this before your 24
-patch series and I think that is the source of the problem.
+I'm not sure it matters to any users, since mlx5.a was broken until I
+fixed it two months ago.. https://github.com/linux-rdma/rdma-core/pull/142
 
--- 
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+But, I fixed all the issues with symbol versioning here:
 
+https://github.com/linux-rdma/rdma-core/pull/191
+
+I revised the mlx5dv fix to use the new macros so static builds will
+work for it as well.
+
+So we should be good to go to fix this before rdma core 15
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
