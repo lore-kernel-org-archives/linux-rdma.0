@@ -1,107 +1,221 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [rdma-next 8/8] RDMA: Use defines instead of hard coded value
- for phys_state
-Date: Thu, 24 Aug 2017 16:24:53 +0300
-Message-ID: <20170824132453.GK1724@mtr-leonro.local>
-References: <20170815091431.12822-1-leon@kernel.org>
- <20170815091431.12822-9-leon@kernel.org>
- <D5C31047.1DB0A%Andrew.Boyer@emc.com>
- <20170823152915.GQ1724@mtr-leonro.local>
- <D5C444A5.1DC28%Andrew.Boyer@emc.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next v1 1/2] RDMA/vmw_pvrdma: Add RoCEv2 support
+Date: Thu, 24 Aug 2017 16:51:39 +0300
+Message-ID: <20170824135139.GA5128@yuvallap>
+References: <cover.1503468979.git.aditr@vmware.com>
+ <91bf53451b8618acc731f6b8b4235103abae7687.1503468979.git.aditr@vmware.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="NffpD3bBbNaSNdk0"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <D5C444A5.1DC28%Andrew.Boyer-mb1K0bWo544@public.gmane.org>
+In-Reply-To: <91bf53451b8618acc731f6b8b4235103abae7687.1503468979.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Boyer, Andrew" <Andrew.Boyer-8PEkshWhKlo@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Aug 22, 2017 at 11:19:00PM -0700, Adit Ranadive wrote:
+> From: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> 
+> The driver version is bumped for compatibility purposes. Also, send correct
+> GID type during register to device. Added compatibility check macros for
+> the device.
+> 
+> Reviewed-by: Jorgen Hansen <jhansen-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma.h         |  2 ++
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h | 28 +++++++++++++++++-
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c    | 36 ++++++++++-------------
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c    |  7 +++++
+>  4 files changed, 51 insertions(+), 22 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> index 8e2f0a1..663a0c3 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> @@ -194,6 +194,7 @@ struct pvrdma_dev {
+>  	void *resp_slot;
+>  	unsigned long flags;
+>  	struct list_head device_link;
+> +	unsigned int dsr_version;
+>  
+>  	/* Locking and interrupt information. */
+>  	spinlock_t cmd_lock; /* Command lock. */
+> @@ -444,6 +445,7 @@ void pvrdma_ah_attr_to_rdma(struct rdma_ah_attr *dst,
+>  			    const struct pvrdma_ah_attr *src);
+>  void rdma_ah_attr_to_pvrdma(struct pvrdma_ah_attr *dst,
+>  			    const struct rdma_ah_attr *src);
+> +u8 ib_gid_type_to_pvrdma(enum ib_gid_type gid_type);
+>  
+>  int pvrdma_uar_table_init(struct pvrdma_dev *dev);
+>  void pvrdma_uar_table_cleanup(struct pvrdma_dev *dev);
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
+> index 09078cc..3a308ff 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_dev_api.h
+> @@ -50,7 +50,15 @@
+>  
+>  #include "pvrdma_verbs.h"
+>  
+> -#define PVRDMA_VERSION			17
+> +/*
+> + * PVRDMA version macros. Some new features require updates to PVRDMA_VERSION.
+> + * These macros allow us to check for different features if necessary.
+> + */
+> +
+> +#define PVRDMA_ROCEV1_VERSION		17
+> +#define PVRDMA_ROCEV2_VERSION		18
+> +#define PVRDMA_VERSION			PVRDMA_ROCEV2_VERSION
+> +
+>  #define PVRDMA_BOARD_ID			1
+>  #define PVRDMA_REV_ID			1
+>  
+> @@ -123,6 +131,24 @@
+>  #define PVRDMA_GID_TYPE_FLAG_ROCE_V1	BIT(0)
+>  #define PVRDMA_GID_TYPE_FLAG_ROCE_V2	BIT(1)
+>  
+> +/*
+> + * Version checks. This checks whether each version supports specific
+> + * capabilities from the device.
+> + */
+> +
+> +#define PVRDMA_IS_VERSION17(_dev)					\
+> +	(_dev->dsr_version == PVRDMA_ROCEV1_VERSION &&			\
+> +	 _dev->dsr->caps.gid_types == PVRDMA_GID_TYPE_FLAG_ROCE_V1)
+> +
+> +#define PVRDMA_IS_VERSION18(_dev)					\
+> +	(_dev->dsr_version >= PVRDMA_ROCEV2_VERSION &&			\
+> +	 (_dev->dsr->caps.gid_types == PVRDMA_GID_TYPE_FLAG_ROCE_V1 ||  \
+> +	  _dev->dsr->caps.gid_types == PVRDMA_GID_TYPE_FLAG_ROCE_V2))	\
+> +
+> +#define PVRDMA_SUPPORTED(_dev)						\
+> +	((_dev->dsr->caps.mode == PVRDMA_DEVICE_MODE_ROCE) &&		\
+> +	 (PVRDMA_IS_VERSION17(_dev) || PVRDMA_IS_VERSION18(_dev)))
+> +
+>  enum pvrdma_pci_resource {
+>  	PVRDMA_PCI_RESOURCE_MSIX,	/* BAR0: MSI-X, MMIO. */
+>  	PVRDMA_PCI_RESOURCE_REG,	/* BAR1: Registers, MMIO. */
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+> index 5b00156..6ce709a 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+> @@ -128,10 +128,14 @@ static int pvrdma_init_device(struct pvrdma_dev *dev)
+>  static int pvrdma_port_immutable(struct ib_device *ibdev, u8 port_num,
+>  				 struct ib_port_immutable *immutable)
+>  {
+> +	struct pvrdma_dev *dev = to_vdev(ibdev);
+>  	struct ib_port_attr attr;
+>  	int err;
+>  
+> -	immutable->core_cap_flags = RDMA_CORE_PORT_IBA_ROCE;
+> +	if (dev->dsr->caps.gid_types == PVRDMA_GID_TYPE_FLAG_ROCE_V1)
+> +		immutable->core_cap_flags |= RDMA_CORE_PORT_IBA_ROCE;
+> +	else if (dev->dsr->caps.gid_types == PVRDMA_GID_TYPE_FLAG_ROCE_V2)
+> +		immutable->core_cap_flags |= RDMA_CORE_PORT_IBA_ROCE_UDP_ENCAP;
+>  
+>  	err = ib_query_port(ibdev, port_num, &attr);
+>  	if (err)
+> @@ -569,6 +573,7 @@ static void pvrdma_free_slots(struct pvrdma_dev *dev)
+>  
+>  static int pvrdma_add_gid_at_index(struct pvrdma_dev *dev,
+>  				   const union ib_gid *gid,
+> +				   u8 gid_type,
+>  				   int index)
+>  {
+>  	int ret;
+> @@ -586,7 +591,7 @@ static int pvrdma_add_gid_at_index(struct pvrdma_dev *dev,
+>  	cmd_bind->mtu = ib_mtu_enum_to_int(IB_MTU_1024);
+>  	cmd_bind->vlan = 0xfff;
+>  	cmd_bind->index = index;
+> -	cmd_bind->gid_type = PVRDMA_GID_TYPE_FLAG_ROCE_V1;
+> +	cmd_bind->gid_type = gid_type;
+>  
+>  	ret = pvrdma_cmd_post(dev, &req, NULL, 0);
+>  	if (ret < 0) {
+> @@ -607,7 +612,9 @@ static int pvrdma_add_gid(struct ib_device *ibdev,
+>  {
+>  	struct pvrdma_dev *dev = to_vdev(ibdev);
+>  
+> -	return pvrdma_add_gid_at_index(dev, gid, index);
+> +	return pvrdma_add_gid_at_index(dev, gid,
+> +				       ib_gid_type_to_pvrdma(attr->gid_type),
+> +				       index);
+>  }
+>  
+>  static int pvrdma_del_gid_at_index(struct pvrdma_dev *dev, int index)
+> @@ -722,7 +729,6 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
+>  	int ret;
+>  	unsigned long start;
+>  	unsigned long len;
+> -	unsigned int version;
+>  	dma_addr_t slot_dma = 0;
+>  
+>  	dev_dbg(&pdev->dev, "initializing driver %s\n", pci_name(pdev));
+> @@ -819,13 +825,9 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
+>  		goto err_unmap_regs;
+>  	}
+>  
+> -	version = pvrdma_read_reg(dev, PVRDMA_REG_VERSION);
+> +	dev->dsr_version = pvrdma_read_reg(dev, PVRDMA_REG_VERSION);
+>  	dev_info(&pdev->dev, "device version %d, driver version %d\n",
+> -		 version, PVRDMA_VERSION);
+> -	if (version < PVRDMA_VERSION) {
+> -		dev_err(&pdev->dev, "incompatible device version\n");
+> -		goto err_uar_unmap;
+> -	}
+> +		 dev->dsr_version, PVRDMA_VERSION);
+>  
+>  	dev->dsr = dma_alloc_coherent(&pdev->dev, sizeof(*dev->dsr),
+>  				      &dev->dsrbase, GFP_KERNEL);
+> @@ -896,17 +898,9 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
+>  	/* Make sure the write is complete before reading status. */
+>  	mb();
+>  
+> -	/* Currently, the driver only supports RoCE mode. */
+> -	if (dev->dsr->caps.mode != PVRDMA_DEVICE_MODE_ROCE) {
+> -		dev_err(&pdev->dev, "unsupported transport %d\n",
+> -			dev->dsr->caps.mode);
+> -		ret = -EFAULT;
+> -		goto err_free_cq_ring;
+> -	}
+> -
+> -	/* Currently, the driver only supports RoCE V1. */
+> -	if (!(dev->dsr->caps.gid_types & PVRDMA_GID_TYPE_FLAG_ROCE_V1)) {
+> -		dev_err(&pdev->dev, "driver needs RoCE v1 support\n");
+> +	/* The driver supports RoCE V1 and V2. */
+> +	if (!PVRDMA_SUPPORTED(dev)) {
+> +		dev_err(&pdev->dev, "driver needs RoCE v1 or v2 support\n");
+>  		ret = -EFAULT;
+>  		goto err_free_cq_ring;
+>  	}
+> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c
+> index ec6a4ca..fb0c5c0 100644
+> --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c
+> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_misc.c
+> @@ -303,3 +303,10 @@ void rdma_ah_attr_to_pvrdma(struct pvrdma_ah_attr *dst,
+>  	dst->port_num = rdma_ah_get_port_num(src);
+>  	memcpy(&dst->dmac, src->roce.dmac, sizeof(dst->dmac));
+>  }
+> +
+> +u8 ib_gid_type_to_pvrdma(enum ib_gid_type gid_type)
+> +{
+> +	return (gid_type == IB_GID_TYPE_ROCE_UDP_ENCAP) ?
+> +		PVRDMA_GID_TYPE_FLAG_ROCE_V2 :
+> +		PVRDMA_GID_TYPE_FLAG_ROCE_V1;
+> +}
+> -- 
+> 2.7.4
 
---NffpD3bBbNaSNdk0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-On Thu, Aug 24, 2017 at 12:56:29PM +0000, Boyer, Andrew wrote:
-> On 8/23/17, 11:29 AM, "Leon Romanovsky" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
->
-> >On Wed, Aug 23, 2017 at 02:59:52PM +0000, Boyer, Andrew wrote:
-> >>
-> >>
-> >> On 8/15/17, 5:14 AM, "linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org on behalf of Le=
-on
-> >> Romanovsky" <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org on behalf of
-> >> leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> >>
-> >> >From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >> >
-> >> >There are new defines to express the physical state of the link, so
-> >> >let's reuse them instead hard-coded values.
-> >> >
-> >> >Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >> >---
-> >> >diff --git a/drivers/infiniband/sw/rxe/rxe_param.h
-> >> >b/drivers/infiniband/sw/rxe/rxe_param.h
-> >> >index 1b596fbbe251..475767262102 100644
-> >> >--- a/drivers/infiniband/sw/rxe/rxe_param.h
-> >> >+++ b/drivers/infiniband/sw/rxe/rxe_param.h
-> >> >@@ -157,7 +157,7 @@ enum rxe_port_param {
-> >> > 	RXE_PORT_ACTIVE_WIDTH		=3D IB_WIDTH_1X,
-> >> > 	RXE_PORT_ACTIVE_SPEED		=3D 1,
-> >> > 	RXE_PORT_PKEY_TBL_LEN		=3D 64,
-> >> >-	RXE_PORT_PHYS_STATE		=3D 2,
-> >> >+	RXE_PORT_PHYS_STATE		=3D RDMA_LINK_PHYS_STATE_POLLING,
-> >> > 	RXE_PORT_SUBNET_PREFIX		=3D 0xfe80000000000000ULL,
-> >> > };
-> >>
-> >> You can also remove IB_PHYS_STATE_* from rxe.h and the places where
-> >> they=C2=B9re used.
-> >
-> >At the end, I found the way to avoid the whole this series.
-> >This series is dropped.
-> >
-> >Thanks
->
-> Would you object if I added similar / matching defines in ib_verbs.h?
-
-Of course not, it will be good to see most of the cleanups from this
-pull request, so feel free to resend/base your work on it.
-
->
-> The phys_state field allows userspace to distinguish between a link that=
-=E2=80=99s
-> down and a link that=E2=80=99s turned off, but only a few drivers seem to=
- support
-> it.
->
-> -Andrew
->
->
-
---NffpD3bBbNaSNdk0
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlme06UACgkQ5GN7iDZy
-WKc4CA//VMXwoQfX4LP126v8VKR4u8lyI/usj/MzXE+jFWR+5/P065XAjanXABoa
-9I7iY5kYkgnyvVxWjB/w8cJHAf+fvRftmJTnVt6bcHpVhbNxR2x5jO8JXFvQBm8Q
-j9zYgCVPYloJAYuNnjOGD2mPSK6khdTpfkJ3t6cgWKcuJ6KXnjQB1IRpegJvPuC3
-h0yak4HFAZC1IZFTXY/hoynRHRel7yJq8GbWkKJfZ8jdtiBUfthdgfJ4VicEBUfP
-84m066O8eWbyjMSx0MteIFhbqSqBptqpQT8HLi/WXvCyqVamHpIh95WyHDYveXlh
-cF9Q4+IfZsXSqCWgwZSLlOY8BnIjWpc0LKfs0vjQIrpKOU5NEGYyKt5uWwIKPPKE
-OvGxR7fqgpsw+pAlGJ4445lZN+/gXAZtk13toCZVORQJ1G8s8kfV5MGg+tF0h9eR
-/t5MTzeZKTmqRDDq0FHpu8Ig7T9dtrThScQena44Lm+QqkuXNODzYLNbMInECFik
-ozSjNnOqexDgkoNGYhrqsuBT3pBWWEr2xnVydPgDiKFQ/ERc4erjyBwn1823dIIp
-x60rgvkXJ7v9zwU60hstq/FvKLuVQ6giHeU20fZbZzN2/azZdozgQfQCD/tLZGkq
-17cnVAeNA9btfFOxbQhyijQiWymrdW/nUs96CovuRqCY5THO20Q=
-=9bGz
------END PGP SIGNATURE-----
-
---NffpD3bBbNaSNdk0--
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
