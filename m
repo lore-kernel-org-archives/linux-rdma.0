@@ -1,132 +1,106 @@
 From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-next] IB/ipoib: Enable ioctl for to IPoIB rdma
- netdevs
-Date: Thu, 24 Aug 2017 12:20:35 +0300
-Message-ID: <20170824092035.GE1724@mtr-leonro.local>
-References: <20170823053721.18510-1-leon@kernel.org>
- <20170824081156.GB2448@yuvallap>
+Subject: Re: [rdma-next v2 18/23] IB/mlx4: Remove redundant attribute in
+ mlx4_ib_create_qp_rss struct
+Date: Thu, 24 Aug 2017 12:22:28 +0300
+Message-ID: <20170824092228.GF1724@mtr-leonro.local>
+References: <20170815085452.3546-1-leon@kernel.org>
+ <20170815085452.3546-19-leon@kernel.org>
+ <1503432590.78641.10.camel@redhat.com>
+ <20170823044354.GJ1724@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="w2Ze1fp8mKggy7lw"
+        protocol="application/pgp-signature"; boundary="NSyv3PxMn0vTUI/G"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20170824081156.GB2448@yuvallap>
+In-Reply-To: <20170823044354.GJ1724-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eitan Rabin <rabin-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---w2Ze1fp8mKggy7lw
+--NSyv3PxMn0vTUI/G
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Aug 24, 2017 at 11:11:57AM +0300, Yuval Shaia wrote:
-> On Wed, Aug 23, 2017 at 08:37:21AM +0300, Leon Romanovsky wrote:
-> > From: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Wed, Aug 23, 2017 at 07:43:54AM +0300, Leon Romanovsky wrote:
+> On Tue, Aug 22, 2017 at 04:09:50PM -0400, Doug Ledford wrote:
+> > On Tue, 2017-08-15 at 11:54 +0300, Leon Romanovsky wrote:
+> > > From: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > >
+> > > rss_key_len is not in use and need to be removed.
+> > >
+> > > Fixes: 3078f5f1bd8b ("IB/mlx4: Add support for RSS QP")
+> > > Signed-off-by: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > > ---
+> > >  include/uapi/rdma/mlx4-abi.h | 3 +--
+> > >  1 file changed, 1 insertion(+), 2 deletions(-)
+> > >
+> > > diff --git a/include/uapi/rdma/mlx4-abi.h b/include/uapi/rdma/mlx4-
+> > > abi.h
+> > > index 0e10102861b5..c55f60e05f86 100644
+> > > --- a/include/uapi/rdma/mlx4-abi.h
+> > > +++ b/include/uapi/rdma/mlx4-abi.h
+> > > @@ -98,8 +98,7 @@ struct mlx4_ib_create_srq_resp {
+> > >  struct mlx4_ib_create_qp_rss {
+> > >  	__u64   rx_hash_fields_mask;
+> > >  	__u8    rx_hash_function;
+> > > -	__u8    rx_key_len;
+> > > -	__u8    reserved[6];
+> > > +	__u8    reserved[7];
 > >
-> > Adds support for ioctl callback in the RDMA netdevs to allow
-> > supporting functions not handled by the generic interface code.
+> > I believe Yuval's point, which has not been fixed, was not that you
+> > could remove the variable without increasing the reserved size.  That
+> > makes sense.  He was referring to the fact that you reference
+> > rss_key_len in the commit message, but what you removed was rx_key_len
+> > instead.
 >
-> Suggesting:
-> s/supporting functions/supporting ioctl functions
+> Ahh, I didn't understand it from his comment back then.
+>
+> How do you want me to proceed here? Do you want me to resend all patches?
+> Do you want me to resend this patch only? Do you prefer to fix it by yourself?
 
-I think the "ioctl" word in the line above catches all readers who are
-doing grep in the commit message to find relevant for them, but if you
-still not convinced and think that it needs to be updated, please say it
-and I'll resend.
+
+Doug?
 
 >
-> Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-
-Thanks
-
-
+> It looks like we can declare working with pull-requests in RDMA as a failed
+> experiment.
 >
 > >
-> > Signed-off-by: Feras Daoud <ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Signed-off-by: Eitan Rabin <rabin-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> > ---
-> >  drivers/infiniband/ulp/ipoib/ipoib_main.c | 15 +++++++++++++++
-> >  1 file changed, 15 insertions(+)
-> >
-> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > index 9e8dce6e9fc2..cc3615dd6f1a 100644
-> > --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> > @@ -99,6 +99,8 @@ static struct net_device *ipoib_get_net_dev_by_params(
-> >  		const union ib_gid *gid, const struct sockaddr *addr,
-> >  		void *client_data);
-> >  static int ipoib_set_mac(struct net_device *dev, void *addr);
-> > +static int ipoib_ioctl(struct net_device *dev, struct ifreq *ifr,
-> > +		       int cmd);
-> >
-> >  static struct ib_client ipoib_client = {
-> >  	.name   = "ipoib",
-> > @@ -1680,6 +1682,17 @@ static int ipoib_dev_init_default(struct net_device *dev)
-> >  	return -ENOMEM;
-> >  }
-> >
-> > +static int ipoib_ioctl(struct net_device *dev, struct ifreq *ifr,
-> > +		       int cmd)
-> > +{
-> > +	struct ipoib_dev_priv *priv = ipoib_priv(dev);
-> > +
-> > +	if (!priv->rn_ops->ndo_do_ioctl)
-> > +		return -EOPNOTSUPP;
-> > +
-> > +	return priv->rn_ops->ndo_do_ioctl(dev, ifr, cmd);
-> > +}
-> > +
-> >  int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
-> >  {
-> >  	struct ipoib_dev_priv *priv = ipoib_priv(dev);
-> > @@ -1834,6 +1847,7 @@ static const struct net_device_ops ipoib_netdev_ops_pf = {
-> >  	.ndo_set_vf_guid	 = ipoib_set_vf_guid,
-> >  	.ndo_set_mac_address	 = ipoib_set_mac,
-> >  	.ndo_get_stats64	 = ipoib_get_stats,
-> > +	.ndo_do_ioctl		 = ipoib_ioctl,
-> >  };
-> >
-> >  static const struct net_device_ops ipoib_netdev_ops_vf = {
-> > @@ -1847,6 +1861,7 @@ static const struct net_device_ops ipoib_netdev_ops_vf = {
-> >  	.ndo_set_rx_mode	 = ipoib_set_mcast_list,
-> >  	.ndo_get_iflink		 = ipoib_get_iflink,
-> >  	.ndo_get_stats64	 = ipoib_get_stats,
-> > +	.ndo_do_ioctl		 = ipoib_ioctl,
-> >  };
-> >
-> >  void ipoib_setup_common(struct net_device *dev)
+> > >  	__u8    rx_hash_key[40];
+> > >  	__u32   comp_mask;
+> > >  	__u32   reserved1;
 > > --
-> > 2.14.1
+> > Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> >     GPG KeyID: B826A3330E572FDD
+> >     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 > >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---w2Ze1fp8mKggy7lw
+
+
+--NSyv3PxMn0vTUI/G
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmemmMACgkQ5GN7iDZy
-WKfQmBAAySii3EwuAkIzIVT59llOnm4aWz2cpu5rDxsMRHU1N0dNBuascVIgozvu
-O7TLVmPXzUEBrby9qofPCywuCuIWOTWrjWTkw9srWnuqlDYX5+kbCiaJk1D+fw8z
-7yU7YVN//Jr0mWMoFi+alpuUBa7tAPED9V1IDcoYFmZZRZAG5nTyRVPLMQCy0J9O
-G1PEBXrlzvqKhdSfiaLQeKRdYpbqW9h4SMA26Ciunn2+0tEhDw3PyjlNVIAi1CoU
-pprm+S9061PbBjS7DS0sLFNMMFJS6M64mpD541AoQq8bGWlWACoZnvm4HadgNf7Y
-sAYUws4yxz76i3tLgF8k+VXjJjyiRsTb+8/Xp52FxztJy7JYTaY2u8E7rFujOzus
-UIHveTvlAtMRatdJJCn+I+NRlYgyWZIym4RS9IK6ZNrXGI75tSwkrM3jjkqRmDUf
-XijWcyDRfaUa8lICYvI+3VPqRlPmO/XkiNuLCckamoaf4RQ18onW3gcHaDaN1ajO
-tma4i45FQcq5JhJj25tQKIMJn/9CmA6Nn7Fs1iCV+8WJqyrwtTkh84xlAMgLL8oQ
-EgpSZ/7vgS93eTN4RZoI9ztiI9OTCfqCmHzlUOv+aUAopaphxAa3JgcIRCNSJgKP
-kK6Fq3tmuVE23/FRPcpu/2bZWMR/httdZ7WITuKzmXHkg1zWwr0=
-=IkFP
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmemtQACgkQ5GN7iDZy
+WKeH2g/+NSRxetoNbJp9r9asT+e0gKLjPvTk/h5oExlgDzT+xbYosfeIpmMlry/l
+jOMNEriVXZroSaEBq1KAtPZQ3YxghWQ/iAcjrIMVf6SHVe4ffFdUOSYDohRJxwdo
+A78xeLvaZAjYCJO2YtEPWb7nGlIw33yYLaOSzy48Baa3a/mrbtzUlaVDtP0wmXk9
+IIxKgWzDFFGQSwdU6+lm+gjMjnKorZ4RyYHuoYWGcwAP5dJLmEIIaR2JjaOIRe4M
+dtcd7xEGxLKILF4FrCRbr8Q2OOx+eD/nKT9BogijSMIQzpL3uu8q5JvMnpcZlOmr
+zgDxMS8jPbuB/8Qn1cToHxjwASdxlS0F4miVCZiTU9GJSCLkDOM9AHfU2BJNLJ5N
+8Wr0GV0LMxCPxXOpS+m4pKT9NCXRjxVC4b7jQkWs0y4fhHVDUQGuo07VIt+hHuY5
+RZelvoNKRXGqULtpVP29dWMja3iIFbDIEBArqQ4WB6B8RaegLVKLaF4A6M6HX6O+
+7Qz/EbGVbrl3A1ztMCFfc5q+j7wzrEbUf9jNhQfOP6yWwLtcYwvYAzhrgyerSZHi
+WykAg8kaaSqJrQqomarSzNML7deSU0nB+qk+RPAwJ9BdL8tJYDNq0lFvsQ/kgTMH
+7Y1tUX5vqzAtzwStMxzKUmIqvLsKYDmNFvTSohdtSoHbq0wZmU8=
+=8b91
 -----END PGP SIGNATURE-----
 
---w2Ze1fp8mKggy7lw--
+--NSyv3PxMn0vTUI/G--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
