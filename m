@@ -1,7 +1,7 @@
 From: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Subject: [PATCH v1 08/11] IB/rxe: Remove unneeded initialization in prepare6()
-Date: Fri, 25 Aug 2017 15:05:53 -0400
-Message-ID: <1503687956-7110-9-git-send-email-andrew.boyer@dell.com>
+Subject: [PATCH v1 11/11] IB/rxe: Handle NETDEV_CHANGE events
+Date: Fri, 25 Aug 2017 15:05:56 -0400
+Message-ID: <1503687956-7110-12-git-send-email-andrew.boyer@dell.com>
 References: <1500989968-30889-1-git-send-email-andrew.boyer@dell.com>
  <1503687956-7110-1-git-send-email-andrew.boyer@dell.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,25 +11,35 @@ To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J
 Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Fixes: 4ed6ad1eb30e ("IB/rxe: Cache dst in QP instead of getting it...")
+Without this fix, ports configured on top of ixgbe miss link up
+notifications. ibv_query_port() will continue to return IBV_PORT_DOWN even
+though the port is up and working.
+
+Fixes: 8700e3e7c485 ("Soft RoCE driver")
 Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_net.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/sw/rxe/rxe_net.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-index 3fbbadc..3ba76e7 100644
+index 3ba76e7..133c6c4 100644
 --- a/drivers/infiniband/sw/rxe/rxe_net.c
 +++ b/drivers/infiniband/sw/rxe/rxe_net.c
-@@ -393,7 +393,7 @@ static int prepare6(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
- 		    struct sk_buff *skb, struct rxe_av *av)
- {
- 	struct rxe_qp *qp = pkt->qp;
--	struct dst_entry *dst = NULL;
-+	struct dst_entry *dst;
- 	struct in6_addr *saddr = &av->sgid_addr._sockaddr_in6.sin6_addr;
- 	struct in6_addr *daddr = &av->dgid_addr._sockaddr_in6.sin6_addr;
- 
+@@ -651,8 +651,13 @@ static int rxe_notify(struct notifier_block *not_blk,
+ 		pr_info("%s changed mtu to %d\n", ndev->name, ndev->mtu);
+ 		rxe_set_mtu(rxe, ndev->mtu);
+ 		break;
+-	case NETDEV_REBOOT:
+ 	case NETDEV_CHANGE:
++		if (netif_running(ndev) && netif_carrier_ok(ndev))
++			rxe_port_up(rxe, port_num);
++		else
++			rxe_port_down(rxe, port_num);
++		break;
++	case NETDEV_REBOOT:
+ 	case NETDEV_GOING_DOWN:
+ 	case NETDEV_CHANGEADDR:
+ 	case NETDEV_CHANGENAME:
 -- 
 1.8.3.1
 
