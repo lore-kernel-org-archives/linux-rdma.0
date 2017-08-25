@@ -1,7 +1,7 @@
 From: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Subject: [PATCH v1 03/11] IB/rxe: Remove dangling prototype
-Date: Fri, 25 Aug 2017 15:05:48 -0400
-Message-ID: <1503687956-7110-4-git-send-email-andrew.boyer@dell.com>
+Subject: [PATCH v1 06/11] IB/rxe: Add dst_clone() in prepare_ipv6_hdr()
+Date: Fri, 25 Aug 2017 15:05:51 -0400
+Message-ID: <1503687956-7110-7-git-send-email-andrew.boyer@dell.com>
 References: <1500989968-30889-1-git-send-email-andrew.boyer@dell.com>
  <1503687956-7110-1-git-send-email-andrew.boyer@dell.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,26 +11,27 @@ To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J
 Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Fixes: 8700e3e7c485 ("Soft RoCE driver")
-Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Acked-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/sw/rxe/rxe_loc.h | 2 --
- 1 file changed, 2 deletions(-)
+Otherwise the reference count goes negative as IPv6 packets complete.
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-index 64f8fa1..8ef2d3f 100644
---- a/drivers/infiniband/sw/rxe/rxe_loc.h
-+++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-@@ -221,8 +221,6 @@ static inline void rxe_advance_resp_resource(struct rxe_qp *qp)
- void retransmit_timer(unsigned long data);
- void rnr_nak_timer(unsigned long data);
+Fixes: 4ed6ad1eb30e ("IB/rxe: Cache dst in QP instead of getting it...")
+Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+---
+ drivers/infiniband/sw/rxe/rxe_net.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+index a93ae3a..3fbbadc 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -342,7 +342,7 @@ static void prepare_ipv6_hdr(struct dst_entry *dst, struct sk_buff *skb,
+ 	memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
+ 	IPCB(skb)->flags &= ~(IPSKB_XFRM_TUNNEL_SIZE | IPSKB_XFRM_TRANSFORMED
+ 			    | IPSKB_REROUTED);
+-	skb_dst_set(skb, dst);
++	skb_dst_set(skb, dst_clone(dst));
  
--void dump_qp(struct rxe_qp *qp);
--
- /* rxe_srq.c */
- #define IB_SRQ_INIT_MASK (~IB_SRQ_LIMIT)
- 
+ 	__skb_push(skb, sizeof(*ip6h));
+ 	skb_reset_network_header(skb);
 -- 
 1.8.3.1
 
