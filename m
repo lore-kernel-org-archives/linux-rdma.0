@@ -1,8 +1,7 @@
 From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Subject: [PATCHv2 rdma-core 3/5] redhat: fix typo in librdacm package
- description
-Date: Fri, 25 Aug 2017 12:40:09 +0200
-Message-ID: <662abf0c-736c-7b21-5141-7667203c67ce@suse.de>
+Subject: [PATCHv2 rdma-core 5/5] cbuild: use SUSE spec file for SUSE targets
+Date: Fri, 25 Aug 2017 12:40:14 +0200
+Message-ID: <6173036c-1120-3afa-274d-8b41ce821da2@suse.de>
 References: <88926674-d707-6f00-e9a1-e2a823fec323@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
@@ -16,25 +15,31 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-IBi9RG/b67k@public.gmane.org>
 ---
- redhat/rdma-core.spec | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ buildlib/cbuild | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/redhat/rdma-core.spec b/redhat/rdma-core.spec
-index ca11f663..cc0c3ba0 100644
---- a/redhat/rdma-core.spec
-+++ b/redhat/rdma-core.spec
-@@ -183,7 +183,7 @@ Summary: Userspace RDMA Connection Manager
- Requires: %{name}%{?_isa} = %{version}-%{release}
+diff --git a/buildlib/cbuild b/buildlib/cbuild
+index 86a5e42d..4c3ef36b 100755
+--- a/buildlib/cbuild
++++ b/buildlib/cbuild
+@@ -293,6 +293,7 @@ class ZypperEnvironment(Environment):
  
- %description -n librdmacm
--librdmacm provides a userspace RDMA Communication Managment API.
-+librdmacm provides a userspace RDMA Communication Management API.
+ class leap(ZypperEnvironment):
+     docker_parent = "opensuse:42.2";
++    specfile = "suse/rdma-core.spec";
+     pkgs = {
+         'cmake',
+         'gcc',
+@@ -313,6 +314,7 @@ class tumbleweed(ZypperEnvironment):
+     docker_parent = "opensuse:tumbleweed";
+     pkgs = leap.pkgs;
+     name = "tumbleweed";
++    specfile = "suse/rdma-core.spec";
  
- %package -n librdmacm-utils
- Summary: Examples for the librdmacm library
+ # -------------------------------------------------------------------------
+ 
 -- 
 2.14.1.252.gf15771ee3
-
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
