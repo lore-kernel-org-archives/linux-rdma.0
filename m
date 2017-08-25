@@ -1,41 +1,31 @@
-From: Himanshu Jha <himanshujha199640@gmail.com>
-Subject: [PATCH] RDMA/bnxt_re: remove unnecessary call to memset
-Date: Fri, 25 Aug 2017 21:41:02 +0530
-Message-ID: <1503677462-24238-1-git-send-email-himanshujha199640@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: selvin.xavier@broadcom.com
-Cc: devesh.sharma@broadcom.com, somnath.kotur@broadcom.com, dledford@redhat.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Himanshu Jha <himanshujha199640@gmail.com>
+From: Marcel Holtmann <marcel@holtmann.org>
+Subject: Re: [PATCH 3/7] ieee802154: 6lowpan: make header_ops const
+Date: Fri, 25 Aug 2017 18:17:21 +0200
+Message-ID: <34C7927D-4D0A-4EB4-AB3E-7DEB9FA7E8B0@holtmann.org>
+References: <1503670907-23221-1-git-send-email-bhumirks@gmail.com>
+ <1503670907-23221-4-git-send-email-bhumirks@gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 10.3 \(3273\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1503670907-23221-4-git-send-email-bhumirks@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Bhumika Goyal <bhumirks@gmail.com>
+Cc: julia.lawall@lip6.fr, "Gustavo F. Padovan" <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, "David S. Miller" <davem@davemloft.net>, Pablo Neira Ayuso <pablo@netfilter.org>, kadlec@blackhole.kfki.hu, Florian Westphal <fw@strlen.de>, Stephen Hemminger <stephen@networkplumber.org>, Alexander Aring <alex.aring@gmail.com>, Stefan Schmidt <stefan@osg.samsung.com>, Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>, Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>, santosh.shilimkar@oracle.com, trond.myklebust@primarydata.com, anna.schumaker@netapp.com, bfields@fieldses.org, jlayton@poochiereds.net, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, netfilter-devel@vger
 List-Id: linux-rdma@vger.kernel.org
 
-call to memset to assign 0 value immediately after allocating
-memory with kzalloc is unnecesaary as kzalloc allocates the memory
-filled with 0 value.
+Hi Bhumika,
 
-Signed-off-by: Himanshu Jha <himanshujha199640@gmail.com>
----
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 2 --
- 1 file changed, 2 deletions(-)
+> Make this const as it is only stored as a reference in a const field of
+> a net_device structure.
+> 
+> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+> ---
+> net/ieee802154/6lowpan/core.c | 2 +-
+> 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index f0e01b3..fa6fbac 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -969,7 +969,6 @@ static struct bnxt_re_ah *bnxt_re_create_shadow_qp_ah
- 	if (!ah)
- 		return NULL;
- 
--	memset(ah, 0, sizeof(*ah));
- 	ah->rdev = rdev;
- 	ah->qplib_ah.pd = &pd->qplib_pd;
- 
-@@ -1016,7 +1015,6 @@ static struct bnxt_re_qp *bnxt_re_create_shadow_qp
- 	if (!qp)
- 		return NULL;
- 
--	memset(qp, 0, sizeof(*qp));
- 	qp->rdev = rdev;
- 
- 	/* Initialize the shadow QP structure from the QP1 values */
--- 
-2.7.4
+patch has been applied to bluetooth-next tree.
+
+Regards
+
+Marcel
