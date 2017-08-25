@@ -1,31 +1,28 @@
-From: Marcel Holtmann <marcel@holtmann.org>
-Subject: Re: [PATCH 3/7] ieee802154: 6lowpan: make header_ops const
-Date: Fri, 25 Aug 2017 18:17:21 +0200
-Message-ID: <34C7927D-4D0A-4EB4-AB3E-7DEB9FA7E8B0@holtmann.org>
-References: <1503670907-23221-1-git-send-email-bhumirks@gmail.com>
- <1503670907-23221-4-git-send-email-bhumirks@gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 10.3 \(3273\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1503670907-23221-4-git-send-email-bhumirks@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Bhumika Goyal <bhumirks@gmail.com>
-Cc: julia.lawall@lip6.fr, "Gustavo F. Padovan" <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, "David S. Miller" <davem@davemloft.net>, Pablo Neira Ayuso <pablo@netfilter.org>, kadlec@blackhole.kfki.hu, Florian Westphal <fw@strlen.de>, Stephen Hemminger <stephen@networkplumber.org>, Alexander Aring <alex.aring@gmail.com>, Stefan Schmidt <stefan@osg.samsung.com>, Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>, Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>, santosh.shilimkar@oracle.com, trond.myklebust@primarydata.com, anna.schumaker@netapp.com, bfields@fieldses.org, jlayton@poochiereds.net, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, netfilter-devel@vger
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH rdma-next V1 00/13] [PATCH V1 for-next 00/13] IB/core:
+ SG IOCTL based RDMA ABI
+Date: Fri, 25 Aug 2017 17:20:42 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373AB1891E9@ORSMSX109.amr.corp.intel.com>
+References: <1501765627-104860-1-git-send-email-matanb@mellanox.com>
+ <1501773437.117042.10.camel@redhat.com>
+ <1503612368.78641.69.camel@redhat.com>
+ <20170825150812.GA1027@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170825150812.GA1027-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yaron Gepstein <yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Bhumika,
-
-> Make this const as it is only stored as a reference in a const field of
-> a net_device structure.
+> > This has now been on the linux-api mailing list for 21 days with no
+> > objections.  I very well may take this into my for-next branch, so
+> > should anyone want to look at this before hand, now is the time.
+> > Thanks.
 > 
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
-> ---
-> net/ieee802154/6lowpan/core.c | 2 +-
-> 1 file changed, 1 insertion(+), 1 deletion(-)
+> I think you should wait until after plumbers.
 
-patch has been applied to bluetooth-next tree.
-
-Regards
-
-Marcel
+I tried to review the code and gave up.  I still find it overly complex for implementing what is conceptually a function dispatch table.
