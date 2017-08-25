@@ -1,7 +1,7 @@
 From: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Subject: [PATCH v1 06/11] IB/rxe: Add dst_clone() in prepare_ipv6_hdr()
-Date: Fri, 25 Aug 2017 15:05:51 -0400
-Message-ID: <1503687956-7110-7-git-send-email-andrew.boyer@dell.com>
+Subject: [PATCH v1 04/11] IB/rxe: Fix up the responder's find_resources() function
+Date: Fri, 25 Aug 2017 15:05:49 -0400
+Message-ID: <1503687956-7110-5-git-send-email-andrew.boyer@dell.com>
 References: <1500989968-30889-1-git-send-email-andrew.boyer@dell.com>
  <1503687956-7110-1-git-send-email-andrew.boyer@dell.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,27 +11,30 @@ To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J
 Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Otherwise the reference count goes negative as IPv6 packets complete.
+The resource array is sized by max_dest_rd_atomic, not max_rd_atomic.
+Iterating over max_rd_atomic entries of qp->resp.resources[] will cause
+incorrect behavior when the two attributes are different (or even
+crash if max_rd_atomic is larger).
 
-Fixes: 4ed6ad1eb30e ("IB/rxe: Cache dst in QP instead of getting it...")
+Fixes: 8700e3e7c485 ("Soft RoCE driver")
 Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_net.c | 2 +-
+ drivers/infiniband/sw/rxe/rxe_resp.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-index a93ae3a..3fbbadc 100644
---- a/drivers/infiniband/sw/rxe/rxe_net.c
-+++ b/drivers/infiniband/sw/rxe/rxe_net.c
-@@ -342,7 +342,7 @@ static void prepare_ipv6_hdr(struct dst_entry *dst, struct sk_buff *skb,
- 	memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
- 	IPCB(skb)->flags &= ~(IPSKB_XFRM_TUNNEL_SIZE | IPSKB_XFRM_TRANSFORMED
- 			    | IPSKB_REROUTED);
--	skb_dst_set(skb, dst);
-+	skb_dst_set(skb, dst_clone(dst));
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index a958ee9..4240866 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -1055,7 +1055,7 @@ static struct resp_res *find_resource(struct rxe_qp *qp, u32 psn)
+ {
+ 	int i;
  
- 	__skb_push(skb, sizeof(*ip6h));
- 	skb_reset_network_header(skb);
+-	for (i = 0; i < qp->attr.max_rd_atomic; i++) {
++	for (i = 0; i < qp->attr.max_dest_rd_atomic; i++) {
+ 		struct resp_res *res = &qp->resp.resources[i];
+ 
+ 		if (res->type == 0)
 -- 
 1.8.3.1
 
