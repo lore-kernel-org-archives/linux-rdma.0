@@ -1,7 +1,7 @@
 From: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Subject: [PATCH v1 01/11] IB/rxe: Move refcounting earlier in rxe_send()
-Date: Fri, 25 Aug 2017 15:05:46 -0400
-Message-ID: <1503687956-7110-2-git-send-email-andrew.boyer@dell.com>
+Subject: [PATCH v1 05/11] IB/rxe: Fix destination cache for IPv6
+Date: Fri, 25 Aug 2017 15:05:50 -0400
+Message-ID: <1503687956-7110-6-git-send-email-andrew.boyer@dell.com>
 References: <1500989968-30889-1-git-send-email-andrew.boyer@dell.com>
  <1503687956-7110-1-git-send-email-andrew.boyer@dell.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,53 +11,58 @@ To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J
 Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The network stack will call nskb's destructor, rxe_skb_tx_dtor(), if the
-packet gets dropped by ip_local_out()/ip6_local_out(). Thus we need to add
-the QP ref before output to avoid extra dereferences during network
-congestion. This could lead to unwanted destruction of the QP.
+To successfully match an IPv6 path, the path cookie must match. Store it
+in the QP so that the IPv6 path can be reused.
 
-Fix up the skb_out accounting, too.
+Replace open-coded version of dst_check() with the actual call, fixing the
+logic. The open-coded version skips the check call if dst->obsolete is 0
+(DST_OBSOLETE_NONE), proceeding to replace the route. DST_OBSOLETE_NONE
+means that the route may continue to be used, though.
 
-Fixes: fda85ce91240 ("IB/rxe: Fix kernel panic from skb destructor")
+Fixes: 4ed6ad1eb30e ("IB/rxe: Cache dst in QP instead of getting it...")
 Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Acked-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_net.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_net.c   | 7 ++++++-
+ drivers/infiniband/sw/rxe/rxe_verbs.h | 1 +
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-index 08f3f90..0810f38 100644
+index 0810f38..a93ae3a 100644
 --- a/drivers/infiniband/sw/rxe/rxe_net.c
 +++ b/drivers/infiniband/sw/rxe/rxe_net.c
-@@ -460,12 +460,17 @@ int rxe_send(struct rxe_dev *rxe, struct rxe_pkt_info *pkt, struct sk_buff *skb)
- 	nskb->destructor = rxe_skb_tx_dtor;
- 	nskb->sk = pkt->qp->sk->sk;
+@@ -191,7 +191,7 @@ static struct dst_entry *rxe_find_route(struct rxe_dev *rxe,
+ 	if (qp_type(qp) == IB_QPT_RC)
+ 		dst = sk_dst_get(qp->sk->sk);
  
-+	rxe_add_ref(pkt->qp);
-+	atomic_inc(&pkt->qp->skb_out);
-+
- 	if (av->network_type == RDMA_NETWORK_IPV4) {
- 		err = ip_local_out(dev_net(skb_dst(skb)->dev), nskb->sk, nskb);
- 	} else if (av->network_type == RDMA_NETWORK_IPV6) {
- 		err = ip6_local_out(dev_net(skb_dst(skb)->dev), nskb->sk, nskb);
- 	} else {
- 		pr_err("Unknown layer 3 protocol: %d\n", av->network_type);
-+		atomic_dec(&pkt->qp->skb_out);
-+		rxe_drop_ref(pkt->qp);
- 		kfree_skb(nskb);
- 		return -EINVAL;
+-	if (!dst || !(dst->obsolete && dst->ops->check(dst, 0))) {
++	if (!dst || !dst_check(dst, qp->dst_cookie)) {
+ 		if (dst)
+ 			dst_release(dst);
+ 
+@@ -209,6 +209,11 @@ static struct dst_entry *rxe_find_route(struct rxe_dev *rxe,
+ 			saddr6 = &av->sgid_addr._sockaddr_in6.sin6_addr;
+ 			daddr6 = &av->dgid_addr._sockaddr_in6.sin6_addr;
+ 			dst = rxe_find_route6(rxe->ndev, saddr6, daddr6);
++#if IS_ENABLED(CONFIG_IPV6)
++			if (dst)
++				qp->dst_cookie =
++					rt6_get_cookie((struct rt6_info *)dst);
++#endif
+ 		}
  	}
-@@ -475,10 +480,7 @@ int rxe_send(struct rxe_dev *rxe, struct rxe_pkt_info *pkt, struct sk_buff *skb)
- 		return -EAGAIN;
- 	}
  
--	rxe_add_ref(pkt->qp);
--	atomic_inc(&pkt->qp->skb_out);
- 	kfree_skb(skb);
--
- 	return 0;
- }
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
+index b09a9e2..0c2dbe4 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.h
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
+@@ -248,6 +248,7 @@ struct rxe_qp {
+ 	struct rxe_rq		rq;
  
+ 	struct socket		*sk;
++	u32			dst_cookie;
+ 
+ 	struct rxe_av		pri_av;
+ 	struct rxe_av		alt_av;
 -- 
 1.8.3.1
 
