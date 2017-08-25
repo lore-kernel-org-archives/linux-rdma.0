@@ -1,35 +1,54 @@
-From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/usnic: check for allocation failure
-Date: Fri, 25 Aug 2017 11:43:59 +0300
-Message-ID: <20170825083030.rga3kllp55xnr3jf@mwanda>
+From: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+Subject: [PATCHv2 rdma-core 0/5] Packaging: fixes and SUSE support
+Date: Fri, 25 Aug 2017 12:39:20 +0200
+Message-ID: <88926674-d707-6f00-e9a1-e2a823fec323@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+Content-Language: fr-xx-classique+reforme1990
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christian Benvenuti <benve-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Upinder Malhi <umalhi-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Dave Goodell <dgoodell-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-usnic_uiom_get_dev_list() can return ERR_PTR(-ENOMEM) so we should check
-for that.
+This series contains a few fixes for the packaging and add support for RPM packaging on SUSE
 
-Fixes: e3cf00d0a87f ("IB/usnic: Add Cisco VIC low-level hardware driver")
-Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Patch 1-3 are fixes
+#1 adds a CMake variable to select the patch tot systemd-modules-load
+#2 installs udev.md which is referenced in multiple service files
+#3 fixes a typo in redhat spec file
+#4 adds the SUSE spec file
+#5 enable the suse spec file do SUSE build in cbuild
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-index e5f57dd49980..e8523882e33b 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
-@@ -164,6 +164,8 @@ find_free_vf_and_create_qp_grp(struct usnic_ib_dev *us_ibdev,
- 	if (usnic_ib_share_vf) {
- 		/* Try to find resouces on a used vf which is in pd */
- 		dev_list = usnic_uiom_get_dev_list(pd->umem_pd);
-+		if (IS_ERR(dev_list))
-+			return ERR_CAST(dev_list);
- 		for (i = 0; dev_list[i]; i++) {
- 			dev = dev_list[i];
- 			vf = pci_get_drvdata(to_pci_dev(dev));
+Changes since v1:
+- Add packaging fixes
+- Several fixes on the SUSE spec file:
+  * Drop unneeded service file registering
+  * Drop duplicate rdma-ndd udev rule
+
+
+Nicolas Morey-Chaisemartin (5):
+  kernel-boot: Add cmake variable to configure the path to systemd-*
+    binaries
+  Documentation: install udev.md
+  redhat: fix typo in librdacm package description
+  suse: Add spec file for SUSE
+  cbuild: use SUSE spec file for SUSE targets
+
+ CMakeLists.txt                            |   2 +
+ Documentation/CMakeLists.txt              |   1 +
+ MAINTAINERS                               |   5 +
+ buildlib/cbuild                           |   2 +
+ debian/rdma-core.install                  |   1 +
+ kernel-boot/rdma-load-modules@.service.in |   2 +-
+ redhat/rdma-core.spec                     |   3 +-
+ suse/rdma-core.spec                       | 688 ++++++++++++++++++++++++++++++
+ 8 files changed, 702 insertions(+), 2 deletions(-)
+ create mode 100644 suse/rdma-core.spec
+
+-- 
+2.14.1.252.gf15771ee3
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
