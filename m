@@ -1,7 +1,7 @@
 From: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Subject: [PATCH v1 09/11] IB/rxe: Another fix for broken receive queue draining
-Date: Fri, 25 Aug 2017 15:05:54 -0400
-Message-ID: <1503687956-7110-10-git-send-email-andrew.boyer@dell.com>
+Subject: [PATCH v1 08/11] IB/rxe: Remove unneeded initialization in prepare6()
+Date: Fri, 25 Aug 2017 15:05:53 -0400
+Message-ID: <1503687956-7110-9-git-send-email-andrew.boyer@dell.com>
 References: <1500989968-30889-1-git-send-email-andrew.boyer@dell.com>
  <1503687956-7110-1-git-send-email-andrew.boyer@dell.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,31 +11,25 @@ To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J
 Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This fixes another path in rxe_requester() that might overlook stale SKBs,
-preventing cleanup.
-
-Fixes: 1217197142d1 ("rxe: fix broken receive queue draining")
+Fixes: 4ed6ad1eb30e ("IB/rxe: Cache dst in QP instead of getting it...")
 Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_req.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/infiniband/sw/rxe/rxe_net.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-index 7ee465d..24fc0b8 100644
---- a/drivers/infiniband/sw/rxe/rxe_req.c
-+++ b/drivers/infiniband/sw/rxe/rxe_req.c
-@@ -594,8 +594,10 @@ int rxe_requester(void *arg)
- 	rxe_add_ref(qp);
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+index 3fbbadc..3ba76e7 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -393,7 +393,7 @@ static int prepare6(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
+ 		    struct sk_buff *skb, struct rxe_av *av)
+ {
+ 	struct rxe_qp *qp = pkt->qp;
+-	struct dst_entry *dst = NULL;
++	struct dst_entry *dst;
+ 	struct in6_addr *saddr = &av->sgid_addr._sockaddr_in6.sin6_addr;
+ 	struct in6_addr *daddr = &av->dgid_addr._sockaddr_in6.sin6_addr;
  
- next_wqe:
--	if (unlikely(!qp->valid))
-+	if (unlikely(!qp->valid)) {
-+		rxe_drain_req_pkts(qp, true);
- 		goto exit;
-+	}
- 
- 	if (unlikely(qp->req.state == QP_STATE_ERROR)) {
- 		rxe_drain_req_pkts(qp, true);
 -- 
 1.8.3.1
 
