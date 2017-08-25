@@ -1,38 +1,47 @@
-From: Jeff Layton <jlayton@redhat.com>
-Subject: Re: [PATCH 7/7] SUNRPC: make kvec const
-Date: Fri, 25 Aug 2017 10:48:56 -0400
-Message-ID: <1503672536.4722.20.camel@redhat.com>
-References: <1503670907-23221-1-git-send-email-bhumirks@gmail.com>
-         <1503670907-23221-8-git-send-email-bhumirks@gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-next V1 00/13] [PATCH V1 for-next 00/13] IB/core: SG
+ IOCTL based RDMA ABI
+Date: Fri, 25 Aug 2017 09:08:12 -0600
+Message-ID: <20170825150812.GA1027@obsidianresearch.com>
+References: <1501765627-104860-1-git-send-email-matanb@mellanox.com>
+ <1501773437.117042.10.camel@redhat.com>
+ <1503612368.78641.69.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1503670907-23221-8-git-send-email-bhumirks@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bhumika Goyal <bhumirks@gmail.com>, julia.lawall@lip6.fr, marcel@holtmann.org, gustavo@padovan.org, johan.hedberg@gmail.com, davem@davemloft.net, pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de, stephen@networkplumber.org, alex.aring@gmail.com, stefan@osg.samsung.com, kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org, santosh.shilimkar@oracle.com, trond.myklebust@primarydata.com, anna.schumaker@netapp.com, bfields@fieldses.org, linux-bluetooth@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, bridge@lists.linux-foundation.org, linux-wpan@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-nfs@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1503612368.78641.69.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yaron Gepstein <yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2017-08-25 at 19:51 +0530, Bhumika Goyal wrote:
-> Make this const as it is only used during a copy operation.
+On Thu, Aug 24, 2017 at 06:06:08PM -0400, Doug Ledford wrote:
+> On Thu, 2017-08-03 at 11:17 -0400, Doug Ledford wrote:
+> > On Thu, 2017-08-03 at 16:06 +0300, Matan Barak wrote:
+> > > Hi Doug,
+> > > 
+> > > This patch series adds ioctl() interface to the existing write()
+> > > interface and
+> > > provide an easy route to backport this change to legacy supported
+> > > systems.
+> > 
+> > [ snip ]
+> > 
+> > Hi Matan,
+> > 
+> > Thanks for getting this to the linux-api mailing list, I was about to
+> > suggest the same.
 > 
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
-> ---
->  net/sunrpc/xdr.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/net/sunrpc/xdr.c b/net/sunrpc/xdr.c
-> index e34f4ee..a096025 100644
-> --- a/net/sunrpc/xdr.c
-> +++ b/net/sunrpc/xdr.c
-> @@ -998,7 +998,7 @@ void xdr_enter_page(struct xdr_stream *xdr, unsigned int len)
->  }
->  EXPORT_SYMBOL_GPL(xdr_enter_page);
->  
-> -static struct kvec empty_iov = {.iov_base = NULL, .iov_len = 0};
-> +static const struct kvec empty_iov = {.iov_base = NULL, .iov_len = 0};
->  
->  void
->  xdr_buf_from_iov(struct kvec *iov, struct xdr_buf *buf)
+> This has now been on the linux-api mailing list for 21 days with no
+> objections.  I very well may take this into my for-next branch, so
+> should anyone want to look at this before hand, now is the time. 
+> Thanks.
 
-Reviewed-by: Jeff Layton <jlayton@redhat.com>
+I think you should wait until after plumbers.
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
