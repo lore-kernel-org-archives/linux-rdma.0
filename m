@@ -1,192 +1,58 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [pull request][rdma-next v1 REPOST 00/10] Hardware tag matching
- support
-Date: Sun, 27 Aug 2017 09:14:49 +0300
-Message-ID: <20170827061449.GP1724@mtr-leonro.local>
-References: <20170817125212.3173-1-leon@kernel.org>
- <1503604595.78641.39.camel@redhat.com>
- <1503605434.78641.41.camel@redhat.com>
- <1503608030.78641.57.camel@redhat.com>
- <20170827060839.GO1724@mtr-leonro.local>
+From: Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH rdma-next V1 00/13] [PATCH V1 for-next 00/13] IB/core: SG
+ IOCTL based RDMA ABI
+Date: Sun, 27 Aug 2017 11:00:10 +0300
+Message-ID: <e74f6753-24ef-7dca-eefe-6a2b1fc26865@mellanox.com>
+References: <1501765627-104860-1-git-send-email-matanb@mellanox.com>
+ <1501773437.117042.10.camel@redhat.com>
+ <1503612368.78641.69.camel@redhat.com>
+ <20170825150812.GA1027@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A82373AB1891E9@ORSMSX109.amr.corp.intel.com>
+ <alpine.DEB.2.20.1708251325350.7025@nuc-kabylake>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="IAaqE72949kW9Y9K"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170827060839.GO1724-U/DQcQFIOTAAJjI8aNfphQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.20.1708251325350.7025@nuc-kabylake>
+Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christopher Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Tal Alon <talal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "Weiny, Ira" <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yaron Gepstein <yarong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---IAaqE72949kW9Y9K
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Sun, Aug 27, 2017 at 09:08:39AM +0300, Leon Romanovsky wrote:
-> On Thu, Aug 24, 2017 at 04:53:50PM -0400, Doug Ledford wrote:
-> > On Thu, 2017-08-24 at 16:10 -0400, Doug Ledford wrote:
-> > > On Thu, 2017-08-24 at 15:56 -0400, Doug Ledford wrote:
-> > > > On Thu, 2017-08-17 at 15:52 +0300, Leon Romanovsky wrote:
-> > > > > This patch series adds to Mellanox ConnectX HCA driver support of
-> > > > > tag matching. It introduces new hardware object eXtended shared
-> > > > > Receive
-> > > > > Queue (XRQ), which follows SRQ semantics with addition of
-> > > > > extended
-> > > > > receive buffers topologies and offloads.
-> > > > >
-> > > > > This series adds tag matching topology and rendezvouz offload.
-> > > > >
-> > > > > Changelog:
-> > > > > v0->v1:
-> > > > >  * Rebased version, no change
-> > > > > RFC->v0:
-> > > > >  * Followed after RFC posted on the ML and OFVWG discussions
-> > > > >  * Implements agreed verbs interface
-> > > > >  * Rebased on top of latest version
-> > > > >  * Adding feature description under Documentaion/infiniband
-> > > > >  * In struct ib_srq_init_attr moved CQ outside XRC inner struct.
-> > > > >  * Added max size of the information passed after the RNDV header
-> > > > >  * Added hca_sq_owner HW flag for RNDV QPs
-> > > > >
-> > > > > Thanks
-> > > >
-> > > > I know in the previous thread on this submission that you thought
-> > > > it
-> > > > didn't need the shared pull request, but I'm seeing this when I try
-> > > > to
-> > > > build after pulling this patch series in:
-> > > > In file included from ./include/linux/mlx5/driver.h:49:0,
-> > > >                  from ./include/linux/mlx5/fs.h:36,
-> > > >                  from drivers/infiniband/hw/mlx5/qp.c:37:
-> > > > drivers/infiniband/hw/mlx5/qp.c: In function =E2=80=98create_qp_com=
-mon=E2=80=99:
-> > > > drivers/infiniband/hw/mlx5/qp.c:1734:6: error:
-> > > > =E2=80=98MLX5_QPC_OFFLOAD_TYPE_RNDV=E2=80=99 undeclared (first use =
-in this
-> > > > function);
-> > > > did you mean =E2=80=98MLX5_XRQC_OFFLOAD_RNDV=E2=80=99?
-> > > >       MLX5_QPC_OFFLOAD_TYPE_RNDV);
-> > >
-> > > Nevermind.  This is an ordering issue.  I took this before your 24
-> > > patch series and I think that is the source of the problem.
-> >
-> > Nope, that didn't fix it either.  Maybe it needs one of your other
-> > patchsets?  I also tried it on the shared code base an it fails to
-> > build there in the same way.
+On 25/08/2017 21:27, Christopher Lameter wrote:
+> On Fri, 25 Aug 2017, Hefty, Sean wrote:
 >
-> I found the issue, in my "REPOST", I missed one patch, don't know how it
-> happened, but it is clearly my fault. Sorry about that.
+>>> I think you should wait until after plumbers.
+>>
+>> I tried to review the code and gave up.  I still find it overly complex for implementing what is conceptually a function dispatch table.
 >
-> Original pull request - 11 patches:
-> [pull request][rdma-next v1 00/11] Hardware tag matching support
-> https://www.spinics.net/lists/linux-rdma/msg53357.html
+
+Every such an API could be defined as a way to trigger operations 
+(functions) from user-space to kernel....
+It doesn't necessarily mean that when you take all requirements into 
+account it falls into a simple "function dispatch table" (i.e. netlink).
+
+We all know the current uverbs design isn't flexible enough - hfi1 went 
+and implemented its own ABI and didn't use the RDMA subsystem default 
+one.... The goal of all of this is to have a suitable interface between 
+user-space and kernel that fits all the required RDMA consumers and 
+user-space drivers. This is mandatory giving the new fabrics and 
+features added lately to this subsystem.
+
+Anyway, we established the concepts in the RDMA mailing list, linux 
+plumbers, OFVWG and OFA. There were a lot of RFC rounds. V0 of the 
+patches got comments, which are fixed here.
+
+> Welll this fixes a long standing major issue in the ABI. No one else is
+> working on it so its the only way to go. I think this ought to be merged
+> ASAP. If it breaks something then at least everyone is affected and will
+> be fixing this thing up so we can finally move beyond the rpc via file ops
+> issue.
 >
-> Repost of that pull request, which is supposed to be the same - 10 patche=
-s:
-> [pull request][rdma-next v1 REPOST 00/10] Hardware tag matching support
-> http://www.spinics.net/lists/linux-rdma/msg53522.html
 >
-> The =E2=80=98MLX5_QPC_OFFLOAD_TYPE_RNDV=E2=80=99 is declared in first pat=
-ch "net/mlx5:
-> Update HW layout definitions" of this series, and the shared code was
-> prepared on clean v4.13-rc4 tag.
->
-> The failures that you are experiencing is due to miss of first patch:
->  * b7a79bc53ce8 - net/mlx5: Update HW layout definitions (10 days ago)
->
-> See the difference between the mellanox-shared branch and my tag.
->
-> =E2=9E=9C  linux-rdma git:(rdma-next) git l grdma/mellanox-shared
-> 6bb33a5770aa (grdma/mellanox-shared) Documentation: Hardware tag matching
-> 380529f2a59b IB/mlx5: Support IB_SRQT_TM
-> 98d90bfb6e58 net/mlx5: Add XRQ support
-> aa0d027930d6 IB/mlx5: Fill XRQ capabilities
-> 5d7ef472505a IB/uverbs: Expose XRQ capabilities
-> 6061811b8759 IB/uverbs: Add new SRQ type IB_SRQT_TM
-> 2d87bd3ae6f0 IB/uverbs: Add XRQ creation parameter to UAPI
-> 633b67ed6758 IB/core: Add new SRQ type IB_SRQT_TM
-> e190f28d0630 IB/core: Separate CQ handle in SRQ context
-> 8f3d761c09f6 IB/core: Add XRQ capabilities
-> f336076a90bb Merge tag 'mlx5-shared-2017-08-07' of git://git.kernel.org/p=
-ub/scm/linux/kernel/git/mellanox/linux into k.o/mellanox
->
-> =E2=9E=9C  linux-rdma git:(rdma-next) git pl --graph rdma-next-2017-08-17=
--1
-> * 89f4e752bf80 - (tag: rdma-next-2017-08-17-1) Documentation: Hardware ta=
-g matching (10 days ago)
-> * a6eb9232179a - IB/mlx5: Support IB_SRQT_TM (10 days ago)
-> * 7173547b6e90 - net/mlx5: Add XRQ support (10 days ago)
-> * 3d88f302a3fd - IB/mlx5: Fill XRQ capabilities (10 days ago)
-> * 216c76559abb - IB/uverbs: Expose XRQ capabilities (10 days ago)
-> * 9cff356f28d8 - IB/uverbs: Add new SRQ type IB_SRQT_TM (10 days ago)
-> * 50a9896131e6 - IB/uverbs: Add XRQ creation parameter to UAPI (10 days a=
-go)
-> * 25b0c9ac0cf0 - IB/core: Add new SRQ type IB_SRQT_TM (10 days ago)
-> * a4f8b0bc8a67 - IB/core: Separate CQ handle in SRQ context (10 days ago)
-> * 1dee69e16539 - IB/core: Add XRQ capabilities (10 days ago)
-> * b7a79bc53ce8 - net/mlx5: Update HW layout definitions (10 days ago)
-> *   c5fa0c255ce4 - Merge tag 'mlx5-shared-2017-08-07' of git://git.kernel=
-=2Eorg/pub/scm/linux/kernel/git/mellanox/linux into HEAD (10 days ago)
-> |\
-> | * a8ffcc741acb - (tag: mlx5-shared-2017-08-07, ml/topic/mlx5-shared-4.1=
-4) net/mlx5: Increase the maximum flow counters supported (3 weeks ago)
-> | * 61690e09c3b4 - net/mlx5: Fix counter list hardware structure (3 weeks=
- ago)
-> | * 97834eba7c19 - net/mlx5: Delay events till ib registration ends (3 we=
-eks ago)
-> | * e80541ecabd5 - net/mlx5: Add CONFIG_MLX5_ESWITCH Kconfig (3 weeks ago)
-> | * eeb66cdb6826 - net/mlx5: Separate between E-Switch and MPFS (3 weeks =
-ago)
-> | * a9f7705ffd66 - net/mlx5: Unify vport manager capability check (3 week=
-s ago)
-> | * 07c9f1e57839 - net/mlx5e: NIC netdev init flow cleanup (3 weeks ago)
-> | * 706b35834820 - net/mlx5e: Rearrange netdevice ops structures (3 weeks=
- ago)
-> | * aae4e7a8bc44 - (tag: v4.13-rc4, backup/master) Linux 4.13-rc4 (3 week=
-s ago)
 
-The missing patch is here: https://patchwork.kernel.org/patch/9901361/
-
-Thanks
-
->
-> Thanks
->
-> >
-> > --
-> > Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> >     GPG KeyID: B826A3330E572FDD
-> >     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2=
-FDD
-> >
-
-
-
---IAaqE72949kW9Y9K
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmiY1kACgkQ5GN7iDZy
-WKfSMhAAkYPNei1wsCkJS0Qagm2y4jgqSg4eyLGi2U+iMmlQtYUscTOQCSS70ptM
-NJCcmpv/4W1J+3CUqpX70Tchh2kPjgMG7kOkSYBbPFtzvJsyFsaeE8XXD62qqOJJ
-TIwbmx116FF85AhbD9BISuQVgoHNnvZ5OjkmAusVxMSeyLLz6uSanwf4Yf/czzKj
-PbfMtMVzmvsQAiLIC/weymGJttcVIwjLzv+HPNtWWDQVLkxDl0JQZPxlqnbm180l
-SXs0aYmyZAOjkNn9rHdmzPTluS0Gl1HfK4RM0pi8magt7nAtCIUuPHpP6x+KIaDR
-5kDJelDP3YoTbRnlbFzMGx6i6+JqIv69ICqhAXSoqWCj9BfQuRN+jIeBz8H29spx
-IRbr190nAYDeqGbLTrSYsZSxIUTJgvy4OFE6S9xFPlub1XNLWweq+K0pbnwXu5Tu
-ntCIxyqUyb6LryzuTAPjKlREY4YjanEwGrAH4eXaX+T/kpY75qSy0hbkWO/lnv0z
-ui0zyR6BQQc7TN3jMx320vzwkozK2OJtrFUwcf+lqqPMx3etxsZet031c9xEXHy9
-QnjpkJK6sKupfBnu+VanMc3+aCAuTQ1FD/cNZeqwHUcWn9dLCILDx+vGJz49IIUf
-LQqipyaoi4efLgojyj/veREZpbJ8tPklbS2UCgwgJAn3/sYVjCA=
-=5HPE
------END PGP SIGNATURE-----
-
---IAaqE72949kW9Y9K--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I totally agree. Most of the involved people attended at least some of 
+the conferences/meetings. The patches and RFCs exist in the ML for a 
+long time. It shouldn't break anything as currently it's just an 
+experimental interface along what we have now, but it'll allow people to 
+start test this infrastructure, port verbs and write new features.
