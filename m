@@ -1,49 +1,44 @@
 From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v1 04/11] IB/rxe: Fix up the responder's find_resources()
- function
-Date: Sun, 27 Aug 2017 15:14:38 +0300
-Message-ID: <20170827121437.GD10450@yuvallap>
+Subject: Re: [PATCH v1 08/11] IB/rxe: Remove unneeded initialization in
+ prepare6()
+Date: Sun, 27 Aug 2017 15:20:34 +0300
+Message-ID: <20170827122033.GE10450@yuvallap>
 References: <1500989968-30889-1-git-send-email-andrew.boyer@dell.com>
  <1503687956-7110-1-git-send-email-andrew.boyer@dell.com>
- <1503687956-7110-5-git-send-email-andrew.boyer@dell.com>
+ <1503687956-7110-9-git-send-email-andrew.boyer@dell.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1503687956-7110-5-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
+In-Reply-To: <1503687956-7110-9-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 Cc: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Aug 25, 2017 at 03:05:49PM -0400, Andrew Boyer wrote:
-> The resource array is sized by max_dest_rd_atomic, not max_rd_atomic.
-> Iterating over max_rd_atomic entries of qp->resp.resources[] will cause
-> incorrect behavior when the two attributes are different (or even
-> crash if max_rd_atomic is larger).
-> 
-> Fixes: 8700e3e7c485 ("Soft RoCE driver")
+On Fri, Aug 25, 2017 at 03:05:53PM -0400, Andrew Boyer wrote:
+> Fixes: 4ed6ad1eb30e ("IB/rxe: Cache dst in QP instead of getting it...")
 > Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 
 Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
 > ---
->  drivers/infiniband/sw/rxe/rxe_resp.c | 2 +-
+>  drivers/infiniband/sw/rxe/rxe_net.c | 2 +-
 >  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-> index a958ee9..4240866 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_resp.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-> @@ -1055,7 +1055,7 @@ static struct resp_res *find_resource(struct rxe_qp *qp, u32 psn)
+> diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+> index 3fbbadc..3ba76e7 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_net.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_net.c
+> @@ -393,7 +393,7 @@ static int prepare6(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
+>  		    struct sk_buff *skb, struct rxe_av *av)
 >  {
->  	int i;
+>  	struct rxe_qp *qp = pkt->qp;
+> -	struct dst_entry *dst = NULL;
+> +	struct dst_entry *dst;
+>  	struct in6_addr *saddr = &av->sgid_addr._sockaddr_in6.sin6_addr;
+>  	struct in6_addr *daddr = &av->dgid_addr._sockaddr_in6.sin6_addr;
 >  
-> -	for (i = 0; i < qp->attr.max_rd_atomic; i++) {
-> +	for (i = 0; i < qp->attr.max_dest_rd_atomic; i++) {
->  		struct resp_res *res = &qp->resp.resources[i];
->  
->  		if (res->type == 0)
 > -- 
 > 1.8.3.1
 > 
