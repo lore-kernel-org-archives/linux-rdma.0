@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 8/9] IB/qib: Convert qp_stats debugfs interface to
- use new iterator API
-Date: Mon, 28 Aug 2017 11:24:04 -0700
-Message-ID: <20170828182403.29434.72314.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 9/9] IB/rdmavt: Handle dereg of inuse MRs properly
+Date: Mon, 28 Aug 2017 11:24:10 -0700
+Message-ID: <20170828182409.29434.64233.stgit@scvm10.sc.intel.com>
 References: <20170828182121.29434.18989.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,178 +15,340 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Continue porting copy/paste code into rdmavt from qib.
+A destroy of an MR prior to destroying the QP can cause the following
+diagnostic if the QP is referencing the MR being de-registered:
+
+hfi1 0000:05:00.0: hfi1_0: rvt_dereg_mr timeout mr ffff8808562108
+              00 pd ffff880859b20b00
+
+The solution is to when the a non-zero refcount is encountered when
+the MR is destroyed the QPs needs to be iterated looking for QPs in
+the same PD as the MR.  If rvt_qp_mr_clean() detects any such QP
+references the rkey/lkey, the QP needs to be put into an error state
+via a call to rvt_qp_error() which will trigger the clean up of any
+stuck references.
+
+This solution is as specified in IBTA 1.3 Volume 1 11.2.10.5.
+
+[This is reproduced with the 0.4.9 version of qperf and the rc_bw test]
 
 Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_debugfs.c |   18 ++++-------
- drivers/infiniband/hw/qib/qib_qp.c      |   51 ++++---------------------------
- drivers/infiniband/hw/qib/qib_verbs.h   |   10 +-----
- 3 files changed, 16 insertions(+), 63 deletions(-)
+ drivers/infiniband/sw/rdmavt/mr.c |  121 ++++++++++++++++++++++++++++++++-----
+ drivers/infiniband/sw/rdmavt/qp.c |  112 +++++++++++++++++++++++++++++++++-
+ include/rdma/rdmavt_mr.h          |    3 +
+ include/rdma/rdmavt_qp.h          |    1 
+ 4 files changed, 216 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_debugfs.c b/drivers/infiniband/hw/qib/qib_debugfs.c
-index 5bad8e3..5ed1ed9 100644
---- a/drivers/infiniband/hw/qib/qib_debugfs.c
-+++ b/drivers/infiniband/hw/qib/qib_debugfs.c
-@@ -1,6 +1,5 @@
--#ifdef CONFIG_DEBUG_FS
- /*
-- * Copyright (c) 2013 Intel Corporation.  All rights reserved.
-+ * Copyright (c) 2013 - 2017 Intel Corporation.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -191,10 +190,10 @@ static int _ctx_stats_seq_show(struct seq_file *s, void *v)
- static void *_qp_stats_seq_start(struct seq_file *s, loff_t *pos)
- 	__acquires(RCU)
- {
--	struct qib_qp_iter *iter;
-+	struct rvt_qp_iter *iter;
- 	loff_t n = *pos;
- 
--	iter = qib_qp_iter_init(s->private);
-+	iter = rvt_qp_iter_init(s->private, 0, NULL);
- 
- 	/* stop calls rcu_read_unlock */
- 	rcu_read_lock();
-@@ -203,7 +202,7 @@ static int _ctx_stats_seq_show(struct seq_file *s, void *v)
- 		return NULL;
- 
- 	do {
--		if (qib_qp_iter_next(iter)) {
-+		if (rvt_qp_iter_next(iter)) {
- 			kfree(iter);
- 			return NULL;
- 		}
-@@ -216,11 +215,11 @@ static int _ctx_stats_seq_show(struct seq_file *s, void *v)
- 				   loff_t *pos)
- 	__must_hold(RCU)
- {
--	struct qib_qp_iter *iter = iter_ptr;
-+	struct rvt_qp_iter *iter = iter_ptr;
- 
- 	(*pos)++;
- 
--	if (qib_qp_iter_next(iter)) {
-+	if (rvt_qp_iter_next(iter)) {
- 		kfree(iter);
- 		return NULL;
- 	}
-@@ -236,7 +235,7 @@ static void _qp_stats_seq_stop(struct seq_file *s, void *iter_ptr)
- 
- static int _qp_stats_seq_show(struct seq_file *s, void *iter_ptr)
- {
--	struct qib_qp_iter *iter = iter_ptr;
-+	struct rvt_qp_iter *iter = iter_ptr;
- 
- 	if (!iter)
- 		return 0;
-@@ -284,6 +283,3 @@ void qib_dbg_exit(void)
- 	debugfs_remove_recursive(qib_dbg_root);
- 	qib_dbg_root = NULL;
+diff --git a/drivers/infiniband/sw/rdmavt/mr.c b/drivers/infiniband/sw/rdmavt/mr.c
+index 1b3801f..4271351 100644
+--- a/drivers/infiniband/sw/rdmavt/mr.c
++++ b/drivers/infiniband/sw/rdmavt/mr.c
+@@ -441,6 +441,105 @@ struct ib_mr *rvt_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
  }
--
--#endif
--
-diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
-index a343e3b..344e401 100644
---- a/drivers/infiniband/hw/qib/qib_qp.c
-+++ b/drivers/infiniband/hw/qib/qib_qp.c
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (c) 2012, 2013 Intel Corporation.  All rights reserved.
-+ * Copyright (c) 2012 - 2017 Intel Corporation.  All rights reserved.
-  * Copyright (c) 2006 - 2012 QLogic Corporation.  * All rights reserved.
-  * Copyright (c) 2005, 2006 PathScale, Inc. All rights reserved.
-  *
-@@ -415,53 +415,16 @@ int qib_check_send_wqe(struct rvt_qp *qp,
  
- #ifdef CONFIG_DEBUG_FS
- 
--struct qib_qp_iter {
--	struct qib_ibdev *dev;
--	struct rvt_qp *qp;
--	int n;
--};
--
--struct qib_qp_iter *qib_qp_iter_init(struct qib_ibdev *dev)
--{
--	struct qib_qp_iter *iter;
--
--	iter = kzalloc(sizeof(*iter), GFP_KERNEL);
--	if (!iter)
--		return NULL;
--
--	iter->dev = dev;
--
--	return iter;
--}
--
--int qib_qp_iter_next(struct qib_qp_iter *iter)
--{
--	struct qib_ibdev *dev = iter->dev;
--	int n = iter->n;
--	int ret = 1;
--	struct rvt_qp *pqp = iter->qp;
--	struct rvt_qp *qp;
--
--	for (; n < dev->rdi.qp_dev->qp_table_size; n++) {
--		if (pqp)
--			qp = rcu_dereference(pqp->next);
--		else
--			qp = rcu_dereference(dev->rdi.qp_dev->qp_table[n]);
--		pqp = qp;
--		if (qp) {
--			iter->qp = qp;
--			iter->n = n;
--			return 0;
--		}
--	}
--	return ret;
--}
--
- static const char * const qp_type_str[] = {
- 	"SMI", "GSI", "RC", "UC", "UD",
- };
- 
--void qib_qp_iter_print(struct seq_file *s, struct qib_qp_iter *iter)
-+/**
-+ * qib_qp_iter_print - print information to seq_file
-+ * @s - the seq_file
-+ * @iter - the iterator
+ /**
++ * rvt_dereg_clean_qp_cb - callback from iterator
++ * @qp - the qp
++ * @v - the mregion (as u64)
++ *
++ * This routine fields the callback for all QPs and
++ * for QPs in the same PD as the MR will call the
++ * rvt_qp_mr_clean() to potentially cleanup references.
 + */
-+void qib_qp_iter_print(struct seq_file *s, struct rvt_qp_iter *iter)
- {
- 	struct rvt_swqe *wqe;
- 	struct rvt_qp *qp = iter->qp;
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.h b/drivers/infiniband/hw/qib/qib_verbs.h
-index 95e3701..f887737 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.h
-+++ b/drivers/infiniband/hw/qib/qib_verbs.h
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (c) 2012, 2013 Intel Corporation.  All rights reserved.
-+ * Copyright (c) 2012 - 2017 Intel Corporation.  All rights reserved.
-  * Copyright (c) 2006 - 2012 QLogic Corporation. All rights reserved.
-  * Copyright (c) 2005, 2006 PathScale, Inc. All rights reserved.
++static void rvt_dereg_clean_qp_cb(struct rvt_qp *qp, u64 v)
++{
++	struct rvt_mregion *mr = (struct rvt_mregion *)v;
++
++	/* skip PDs that are not ours */
++	if (mr->pd != qp->ibqp.pd)
++		return;
++	rvt_qp_mr_clean(qp, mr->lkey);
++}
++
++/**
++ * rvt_dereg_clean_qps - find QPs for reference cleanup
++ * @mr - the MR that is being deregistered
++ *
++ * This routine iterates RC QPs looking for references
++ * to the lkey noted in mr.
++ */
++static void rvt_dereg_clean_qps(struct rvt_mregion *mr)
++{
++	struct rvt_dev_info *rdi = ib_to_rvt(mr->pd->device);
++
++	rvt_qp_iter(rdi, (u64)mr, rvt_dereg_clean_qp_cb);
++}
++
++/**
++ * rvt_check_refs - check references
++ * @mr - the megion
++ * @t - the caller identification
++ *
++ * This routine checks MRs holding a reference during
++ * when being de-registered.
++ *
++ * If the count is non-zero, the code calls a clean routine then
++ * waits for the timeout for the count to zero.
++ */
++static int rvt_check_refs(struct rvt_mregion *mr, const char *t)
++{
++	unsigned long timeout;
++	struct rvt_dev_info *rdi = ib_to_rvt(mr->pd->device);
++
++	if (percpu_ref_is_zero(&mr->refcount))
++		return 0;
++	/* avoid dma mr */
++	if (mr->lkey)
++		rvt_dereg_clean_qps(mr);
++	timeout = wait_for_completion_timeout(&mr->comp, 5 * HZ);
++	if (!timeout) {
++		rvt_pr_err(rdi,
++			   "%s timeout mr %p pd %p lkey %x refcount %ld\n",
++			   t, mr, mr->pd, mr->lkey,
++			   atomic_long_read(&mr->refcount.count));
++		rvt_get_mr(mr);
++		return -EBUSY;
++	}
++	return 0;
++}
++
++/**
++ * rvt_mr_has_lkey - is MR
++ * @mr - the mregion
++ * @lkey - the lkey
++ */
++bool rvt_mr_has_lkey(struct rvt_mregion *mr, u32 lkey)
++{
++	return mr && lkey == mr->lkey;
++}
++
++/**
++ * rvt_ss_has_lkey - is mr in sge tests
++ * @ss - the sge state
++ * @lkey
++ *
++ * This code tests for an MR in the indicated
++ * sge state.
++ */
++bool rvt_ss_has_lkey(struct rvt_sge_state *ss, u32 lkey)
++{
++	int i;
++	bool rval = false;
++
++	if (!ss->num_sge)
++		return rval;
++	/* first one */
++	rval = rvt_mr_has_lkey(ss->sge.mr, lkey);
++	/* any others */
++	for (i = 0; !rval && i < ss->num_sge - 1; i++)
++		rval = rvt_mr_has_lkey(ss->sg_list[i].mr, lkey);
++	return rval;
++}
++
++/**
+  * rvt_dereg_mr - unregister and free a memory region
+  * @ibmr: the memory region to free
   *
-@@ -282,13 +282,7 @@ int qib_alloc_qpn(struct rvt_dev_info *rdi, struct rvt_qpn_table *qpt,
- void qib_restart_rc(struct rvt_qp *qp, u32 psn, int wait);
- #ifdef CONFIG_DEBUG_FS
+@@ -453,22 +552,14 @@ struct ib_mr *rvt_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ int rvt_dereg_mr(struct ib_mr *ibmr)
+ {
+ 	struct rvt_mr *mr = to_imr(ibmr);
+-	struct rvt_dev_info *rdi = ib_to_rvt(ibmr->pd->device);
+-	int ret = 0;
+-	unsigned long timeout;
++	int ret;
  
--struct qib_qp_iter;
--
--struct qib_qp_iter *qib_qp_iter_init(struct qib_ibdev *dev);
--
--int qib_qp_iter_next(struct qib_qp_iter *iter);
--
--void qib_qp_iter_print(struct seq_file *s, struct qib_qp_iter *iter);
-+void qib_qp_iter_print(struct seq_file *s, struct rvt_qp_iter *iter);
+ 	rvt_free_lkey(&mr->mr);
  
- #endif
+ 	rvt_put_mr(&mr->mr); /* will set completion if last */
+-	timeout = wait_for_completion_timeout(&mr->mr.comp, 5 * HZ);
+-	if (!timeout) {
+-		rvt_pr_err(rdi,
+-			   "rvt_dereg_mr timeout mr %p pd %p\n",
+-			   mr, mr->mr.pd);
+-		rvt_get_mr(&mr->mr);
+-		ret = -EBUSY;
++	ret = rvt_check_refs(&mr->mr, __func__);
++	if (ret)
+ 		goto out;
+-	}
+ 	rvt_deinit_mregion(&mr->mr);
+ 	if (mr->umem)
+ 		ib_umem_release(mr->umem);
+@@ -761,16 +852,12 @@ int rvt_dealloc_fmr(struct ib_fmr *ibfmr)
+ {
+ 	struct rvt_fmr *fmr = to_ifmr(ibfmr);
+ 	int ret = 0;
+-	unsigned long timeout;
  
+ 	rvt_free_lkey(&fmr->mr);
+ 	rvt_put_mr(&fmr->mr); /* will set completion if last */
+-	timeout = wait_for_completion_timeout(&fmr->mr.comp, 5 * HZ);
+-	if (!timeout) {
+-		rvt_get_mr(&fmr->mr);
+-		ret = -EBUSY;
++	ret = rvt_check_refs(&fmr->mr, __func__);
++	if (ret)
+ 		goto out;
+-	}
+ 	rvt_deinit_mregion(&fmr->mr);
+ 	kfree(fmr);
+ out:
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index 9f70fd8..22df09a 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -458,10 +458,7 @@ static void rvt_clear_mr_refs(struct rvt_qp *qp, int clr_sends)
+ 		}
+ 	}
+ 
+-	if (qp->ibqp.qp_type != IB_QPT_RC)
+-		return;
+-
+-	for (n = 0; n < rvt_max_atomic(rdi); n++) {
++	for (n = 0; qp->s_ack_queue && n < rvt_max_atomic(rdi); n++) {
+ 		struct rvt_ack_entry *e = &qp->s_ack_queue[n];
+ 
+ 		if (e->rdma_sge.mr) {
+@@ -472,6 +469,113 @@ static void rvt_clear_mr_refs(struct rvt_qp *qp, int clr_sends)
+ }
+ 
+ /**
++ * rvt_swqe_has_lkey - return true if lkey is used by swqe
++ * @wqe - the send wqe
++ * @lkey - the lkey
++ *
++ * Test the swqe for using lkey
++ */
++static bool rvt_swqe_has_lkey(struct rvt_swqe *wqe, u32 lkey)
++{
++	int i;
++
++	for (i = 0; i < wqe->wr.num_sge; i++) {
++		struct rvt_sge *sge = &wqe->sg_list[i];
++
++		if (rvt_mr_has_lkey(sge->mr, lkey))
++			return true;
++	}
++	return false;
++}
++
++/**
++ * rvt_qp_sends_has_lkey - return true is qp sends use lkey
++ * @qp - the rvt_qp
++ * @lkey - the lkey
++ */
++static bool rvt_qp_sends_has_lkey(struct rvt_qp *qp, u32 lkey)
++{
++	u32 s_last = qp->s_last;
++
++	while (s_last != qp->s_head) {
++		struct rvt_swqe *wqe = rvt_get_swqe_ptr(qp, s_last);
++
++		if (rvt_swqe_has_lkey(wqe, lkey))
++			return true;
++
++		if (++s_last >= qp->s_size)
++			s_last = 0;
++	}
++	if (qp->s_rdma_mr)
++		if (rvt_mr_has_lkey(qp->s_rdma_mr, lkey))
++			return true;
++	return false;
++}
++
++/**
++ * rvt_qp_acks_has_lkey - return true if acks have lkey
++ * @qp - the qp
++ * @lkey - the lkey
++ */
++static bool rvt_qp_acks_has_lkey(struct rvt_qp *qp, u32 lkey)
++{
++	int i;
++	struct rvt_dev_info *rdi = ib_to_rvt(qp->ibqp.device);
++
++	for (i = 0; qp->s_ack_queue && i < rvt_max_atomic(rdi); i++) {
++		struct rvt_ack_entry *e = &qp->s_ack_queue[i];
++
++		if (rvt_mr_has_lkey(e->rdma_sge.mr, lkey))
++			return true;
++	}
++	return false;
++}
++
++/*
++ * rvt_qp_mr_clean - clean up remote ops for lkey
++ * @qp - the qp
++ * @lkey - the lkey that is being de-registered
++ *
++ * This routine checks if the lkey is being used by
++ * the qp.
++ *
++ * If so, the qp is put into an error state to elminate
++ * any references from the qp.
++ */
++void rvt_qp_mr_clean(struct rvt_qp *qp, u32 lkey)
++{
++	bool lastwqe = false;
++
++	if (qp->ibqp.qp_type == IB_QPT_SMI ||
++	    qp->ibqp.qp_type == IB_QPT_GSI)
++		/* avoid special QPs */
++		return;
++	spin_lock_irq(&qp->r_lock);
++	spin_lock(&qp->s_hlock);
++	spin_lock(&qp->s_lock);
++
++	if (qp->state == IB_QPS_ERR || qp->state == IB_QPS_RESET)
++		goto check_lwqe;
++
++	if (rvt_ss_has_lkey(&qp->r_sge, lkey) ||
++	    rvt_qp_sends_has_lkey(qp, lkey) ||
++	    rvt_qp_acks_has_lkey(qp, lkey))
++		lastwqe = rvt_error_qp(qp, IB_WC_LOC_PROT_ERR);
++check_lwqe:
++	spin_unlock(&qp->s_lock);
++	spin_unlock(&qp->s_hlock);
++	spin_unlock_irq(&qp->r_lock);
++	if (lastwqe) {
++		struct ib_event ev;
++
++		ev.device = qp->ibqp.device;
++		ev.element.qp = &qp->ibqp;
++		ev.event = IB_EVENT_QP_LAST_WQE_REACHED;
++		qp->ibqp.event_handler(&ev, qp->ibqp.qp_context);
++	}
++}
++
++/**
+  * rvt_remove_qp - remove qp form table
+  * @rdi: rvt dev struct
+  * @qp: qp to remove
+diff --git a/include/rdma/rdmavt_mr.h b/include/rdma/rdmavt_mr.h
+index f418bd5..72a3856 100644
+--- a/include/rdma/rdmavt_mr.h
++++ b/include/rdma/rdmavt_mr.h
+@@ -191,4 +191,7 @@ static inline void rvt_skip_sge(struct rvt_sge_state *ss, u32 length,
+ 	}
+ }
+ 
++bool rvt_ss_has_lkey(struct rvt_sge_state *ss, u32 lkey);
++bool rvt_mr_has_lkey(struct rvt_mregion *mr, u32 lkey);
++
+ #endif          /* DEF_RDMAVT_INCMRH */
+diff --git a/include/rdma/rdmavt_qp.h b/include/rdma/rdmavt_qp.h
+index dfeb311..0eed3d8 100644
+--- a/include/rdma/rdmavt_qp.h
++++ b/include/rdma/rdmavt_qp.h
+@@ -702,4 +702,5 @@ struct rvt_qp_iter *rvt_qp_iter_init(struct rvt_dev_info *rdi,
+ void rvt_qp_iter(struct rvt_dev_info *rdi,
+ 		 u64 v,
+ 		 void (*cb)(struct rvt_qp *qp, u64 v));
++void rvt_qp_mr_clean(struct rvt_qp *qp, u32 lkey);
+ #endif          /* DEF_RDMAVT_INCQP_H */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
