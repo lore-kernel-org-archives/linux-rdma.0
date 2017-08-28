@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 5/9] IB/rdmavt: Add QP iterator API for QPs
-Date: Mon, 28 Aug 2017 11:23:45 -0700
-Message-ID: <20170828182344.29434.48918.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 6/9] IB/hfi1: Convert hfi1_error_port_qps() to use
+ new QP iterator
+Date: Mon, 28 Aug 2017 11:23:51 -0700
+Message-ID: <20170828182350.29434.19484.stgit@scvm10.sc.intel.com>
 References: <20170828182121.29434.18989.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,229 +11,124 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170828182121.29434.18989.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-There are currently 3 spots in the qib and hfi1 driver that have
-knowledge of the internal QP hash list that should only be in
-scope to rdmavt QP code.
+Change hfi1_error_port_qps() to use the new rvt_qp_iter() in its QP
+scanning.
 
-Add an iterator API for processing all QPs to hide the
-nature of the RCU hashlist.
-
-The API consists of:
-- rvt_qp_iter_init()
-  * For iterating QPs one at a time for seq_file semantics
-- rvt_qp_iter_next()
-  * For iterating QPs one at a time for seq_file semantics
-- rvt_qp_iter()
-  * For iterating all QPs
-
-The first two are used for things like seq_file prints.
-
-The last is for code that just needs to iterate all QPs
-in the system.
-
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/sw/rdmavt/qp.c |  144 +++++++++++++++++++++++++++++++++++++
- include/rdma/rdmavt_qp.h          |   29 +++++++
- 2 files changed, 173 insertions(+), 0 deletions(-)
+ drivers/infiniband/hw/hfi1/qp.c |   79 ++++++++++++++++++++-------------------
+ 1 files changed, 41 insertions(+), 38 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
-index 3a238b0..9f70fd8 100644
---- a/drivers/infiniband/sw/rdmavt/qp.c
-+++ b/drivers/infiniband/sw/rdmavt/qp.c
-@@ -2069,3 +2069,147 @@ enum hrtimer_restart rvt_rc_rnr_retry(struct hrtimer *t)
- 	return HRTIMER_NORESTART;
+diff --git a/drivers/infiniband/hw/hfi1/qp.c b/drivers/infiniband/hw/hfi1/qp.c
+index 6daa396..af71131 100644
+--- a/drivers/infiniband/hw/hfi1/qp.c
++++ b/drivers/infiniband/hw/hfi1/qp.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright(c) 2015, 2016 Intel Corporation.
++ * Copyright(c) 2015 - 2017 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+@@ -870,6 +870,45 @@ void notify_error_qp(struct rvt_qp *qp)
  }
- EXPORT_SYMBOL(rvt_rc_rnr_retry);
-+
-+/**
-+ * rvt_qp_iter_init - initial for QP iteration
-+ * @rdi - rvt devinfo
-+ * @v - u64 value
-+ *
-+ * This returns an iterator suitable for iterating QPs
-+ * in the system.
-+ *
-+ * The @cb is a user defined callback and @v is a 64
-+ * bit value passed to and relevant for processing in the
-+ * @cb.  An example use case would be to alter QP processing
-+ * based on criteria not part of the rvt_qp.
-+ *
-+ * Use cases that require memory allocation to succeed
-+ * must preallocate appropriately.
-+ *
-+ * Return: a pointer to an rvt_qp_iter or NULL
-+ */
-+struct rvt_qp_iter *rvt_qp_iter_init(struct rvt_dev_info *rdi,
-+				     u64 v,
-+				     void (*cb)(struct rvt_qp *qp, u64 v))
-+{
-+	struct rvt_qp_iter *i;
-+
-+	i = kzalloc(sizeof(*i), GFP_KERNEL);
-+	if (!i)
-+		return NULL;
-+
-+	i->rdi = rdi;
-+	/* number of special QPs (SMI/GSI) for device */
-+	i->specials = rdi->ibdev.phys_port_cnt * 2;
-+	i->v = v;
-+	i->cb = cb;
-+
-+	return i;
-+}
-+EXPORT_SYMBOL(rvt_qp_iter_init);
-+
-+/**
-+ * rvt_qp_iter_next - return the next QP in iter
-+ * @iter - the iterator
-+ *
-+ * Fine grained QP iterator suitable for use
-+ * with debugfs seq_file mechanisms.
-+ *
-+ * Updates iter->qp with the current QP when the return
-+ * value is 0.
-+ *
-+ * Return: 0 - iter->qp is valid 1 - no more QPs
-+ */
-+int rvt_qp_iter_next(struct rvt_qp_iter *iter)
-+	__must_hold(RCU)
-+{
-+	int n = iter->n;
-+	int ret = 1;
-+	struct rvt_qp *pqp = iter->qp;
-+	struct rvt_qp *qp;
-+	struct rvt_dev_info *rdi = iter->rdi;
-+
-+	/*
-+	 * The approach is to consider the special qps
-+	 * as additional table entries before the
-+	 * real hash table.  Since the qp code sets
-+	 * the qp->next hash link to NULL, this works just fine.
-+	 *
-+	 * iter->specials is 2 * # ports
-+	 *
-+	 * n = 0..iter->specials is the special qp indices
-+	 *
-+	 * n = iter->specials..rdi->qp_dev->qp_table_size+iter->specials are
-+	 * the potential hash bucket entries
-+	 *
-+	 */
-+	for (; n <  rdi->qp_dev->qp_table_size + iter->specials; n++) {
-+		if (pqp) {
-+			qp = rcu_dereference(pqp->next);
-+		} else {
-+			if (n < iter->specials) {
-+				struct rvt_ibport *rvp;
-+				int pidx;
-+
-+				pidx = n % rdi->ibdev.phys_port_cnt;
-+				rvp = rdi->ports[pidx];
-+				qp = rcu_dereference(rvp->qp[n & 1]);
-+			} else {
-+				qp = rcu_dereference(
-+					rdi->qp_dev->qp_table[
-+						(n - iter->specials)]);
-+			}
-+		}
-+		pqp = qp;
-+		if (qp) {
-+			iter->qp = qp;
-+			iter->n = n;
-+			return 0;
-+		}
-+	}
-+	return ret;
-+}
-+EXPORT_SYMBOL(rvt_qp_iter_next);
-+
-+/**
-+ * rvt_qp_iter - iterate all QPs
-+ * @rdi - rvt devinfo
-+ * @v - a 64 bit value
-+ * @cb - a callback
-+ *
-+ * This provides a way for iterating all QPs.
-+ *
-+ * The @cb is a user defined callback and @v is a 64
-+ * bit value passed to and relevant for processing in the
-+ * cb.  An example use case would be to alter QP processing
-+ * based on criteria not part of the rvt_qp.
-+ *
-+ * The code has an internal iterator to simplify
-+ * non seq_file use cases.
-+ */
-+void rvt_qp_iter(struct rvt_dev_info *rdi,
-+		 u64 v,
-+		 void (*cb)(struct rvt_qp *qp, u64 v))
-+{
-+	int ret;
-+	struct rvt_qp_iter i = {
-+		.rdi = rdi,
-+		.specials = rdi->ibdev.phys_port_cnt * 2,
-+		.v = v,
-+		.cb = cb
-+	};
-+
-+	rcu_read_lock();
-+	do {
-+		ret = rvt_qp_iter_next(&i);
-+		if (!ret) {
-+			rvt_get_qp(i.qp);
-+			rcu_read_unlock();
-+			i.cb(i.qp, i.v);
-+			rcu_read_lock();
-+			rvt_put_qp(i.qp);
-+		}
-+	} while (!ret);
-+	rcu_read_unlock();
-+}
-+EXPORT_SYMBOL(rvt_qp_iter);
-diff --git a/include/rdma/rdmavt_qp.h b/include/rdma/rdmavt_qp.h
-index 8fbafb0..dfeb311 100644
---- a/include/rdma/rdmavt_qp.h
-+++ b/include/rdma/rdmavt_qp.h
-@@ -673,4 +673,33 @@ static inline unsigned long rvt_timeout_to_jiffies(u8 timeout)
- void rvt_stop_rc_timers(struct rvt_qp *qp);
- void rvt_add_retry_timer(struct rvt_qp *qp);
  
-+/**
-+ * struct rvt_qp_iter - the iterator for QPs
-+ * @qp - the current QP
+ /**
++ * hfi1_qp_iter_cb - callback for iterator
++ * @qp - the qp
++ * @v - the sl in low bits of v
 + *
-+ * This structure defines the current iterator
-+ * state for sequenced access to all QPs relative
-+ * to an rvt_dev_info.
++ * This is called from the iterator callback to work
++ * on an individual qp.
 + */
-+struct rvt_qp_iter {
-+	struct rvt_qp *qp;
-+	/* private: backpointer */
-+	struct rvt_dev_info *rdi;
-+	/* private: callback routine */
-+	void (*cb)(struct rvt_qp *qp, u64 v);
-+	/* private: for arg to callback routine */
-+	u64 v;
-+	/* private: number of SMI,GSI QPs for device */
-+	int specials;
-+	/* private: current iterator index */
-+	int n;
-+};
++static void hfi1_qp_iter_cb(struct rvt_qp *qp, u64 v)
++{
++	int lastwqe;
++	struct ib_event ev;
++	struct hfi1_ibport *ibp =
++		to_iport(qp->ibqp.device, qp->port_num);
++	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
++	u8 sl = (u8)v;
 +
-+struct rvt_qp_iter *rvt_qp_iter_init(struct rvt_dev_info *rdi,
-+				     u64 v,
-+				     void (*cb)(struct rvt_qp *qp, u64 v));
-+int rvt_qp_iter_next(struct rvt_qp_iter *iter);
-+void rvt_qp_iter(struct rvt_dev_info *rdi,
-+		 u64 v,
-+		 void (*cb)(struct rvt_qp *qp, u64 v));
- #endif          /* DEF_RDMAVT_INCQP_H */
++	if (qp->port_num != ppd->port ||
++	    (qp->ibqp.qp_type != IB_QPT_UC &&
++	     qp->ibqp.qp_type != IB_QPT_RC) ||
++	    rdma_ah_get_sl(&qp->remote_ah_attr) != sl ||
++	    !(ib_rvt_state_ops[qp->state] & RVT_POST_SEND_OK))
++		return;
++
++	spin_lock_irq(&qp->r_lock);
++	spin_lock(&qp->s_hlock);
++	spin_lock(&qp->s_lock);
++	lastwqe = rvt_error_qp(qp, IB_WC_WR_FLUSH_ERR);
++	spin_unlock(&qp->s_lock);
++	spin_unlock(&qp->s_hlock);
++	spin_unlock_irq(&qp->r_lock);
++	if (lastwqe) {
++		ev.device = qp->ibqp.device;
++		ev.element.qp = &qp->ibqp;
++		ev.event = IB_EVENT_QP_LAST_WQE_REACHED;
++		qp->ibqp.event_handler(&ev, qp->ibqp.qp_context);
++	}
++}
++
++/**
+  * hfi1_error_port_qps - put a port's RC/UC qps into error state
+  * @ibp: the ibport.
+  * @sl: the service level.
+@@ -880,44 +919,8 @@ void notify_error_qp(struct rvt_qp *qp)
+  */
+ void hfi1_error_port_qps(struct hfi1_ibport *ibp, u8 sl)
+ {
+-	struct rvt_qp *qp = NULL;
+ 	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+ 	struct hfi1_ibdev *dev = &ppd->dd->verbs_dev;
+-	int n;
+-	int lastwqe;
+-	struct ib_event ev;
+-
+-	rcu_read_lock();
+-
+-	/* Deal only with RC/UC qps that use the given SL. */
+-	for (n = 0; n < dev->rdi.qp_dev->qp_table_size; n++) {
+-		for (qp = rcu_dereference(dev->rdi.qp_dev->qp_table[n]); qp;
+-			qp = rcu_dereference(qp->next)) {
+-			if (qp->port_num == ppd->port &&
+-			    (qp->ibqp.qp_type == IB_QPT_UC ||
+-			     qp->ibqp.qp_type == IB_QPT_RC) &&
+-			    rdma_ah_get_sl(&qp->remote_ah_attr) == sl &&
+-			    (ib_rvt_state_ops[qp->state] &
+-			     RVT_POST_SEND_OK)) {
+-				spin_lock_irq(&qp->r_lock);
+-				spin_lock(&qp->s_hlock);
+-				spin_lock(&qp->s_lock);
+-				lastwqe = rvt_error_qp(qp,
+-						       IB_WC_WR_FLUSH_ERR);
+-				spin_unlock(&qp->s_lock);
+-				spin_unlock(&qp->s_hlock);
+-				spin_unlock_irq(&qp->r_lock);
+-				if (lastwqe) {
+-					ev.device = qp->ibqp.device;
+-					ev.element.qp = &qp->ibqp;
+-					ev.event =
+-						IB_EVENT_QP_LAST_WQE_REACHED;
+-					qp->ibqp.event_handler(&ev,
+-						qp->ibqp.qp_context);
+-				}
+-			}
+-		}
+-	}
+ 
+-	rcu_read_unlock();
++	rvt_qp_iter(&dev->rdi, sl, hfi1_qp_iter_cb);
+ }
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
