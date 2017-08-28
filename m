@@ -1,25 +1,67 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 4/7] ipv4: make net_protocol const
-Date: Mon, 28 Aug 2017 11:30:21 -0700 (PDT)
-Message-ID: <20170828.113021.1460779644530852597.davem@davemloft.net>
-References: <1503670907-23221-1-git-send-email-bhumirks@gmail.com>
-        <1503670907-23221-5-git-send-email-bhumirks@gmail.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 1/3] svcrdma: Limit RQ depth
+Date: Mon, 28 Aug 2017 15:06:06 -0400
+Message-ID: <20170828190605.13285.56173.stgit@klimt.1015granger.net>
+References: <20170828190229.13285.76410.stgit@klimt.1015granger.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-In-Reply-To: <1503670907-23221-5-git-send-email-bhumirks@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-To: bhumirks@gmail.com
-Cc: julia.lawall@lip6.fr, marcel@holtmann.org, gustavo@padovan.org, johan.hedberg@gmail.com, pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de, stephen@networkplumber.org, alex.aring@gmail.com, stefan@osg.samsung.com, kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org, santosh.shilimkar@oracle.com, trond.myklebust@primarydata.com, anna.schumaker@netapp.com, bfields@fieldses.org, jlayton@poochiereds.net, linux-bluetooth@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, bridge@lists.linux-foundation.org, linux-wpan@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-nfs@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170828190229.13285.76410.stgit-Hs+gFlyCn65vLzlybtyyYzGyq/o6K9yX@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Bhumika Goyal <bhumirks@gmail.com>
-Date: Fri, 25 Aug 2017 19:51:44 +0530
+Ensure that the chosen Receive Queue depth for a newly created
+transport does not overrun the QP WR limit of the underlying device.
 
-> Make these const as they are only passed to a const argument of the
-> function inet_add_protocol.
-> 
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ net/sunrpc/xprtrdma/svc_rdma_transport.c |   19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
-Applied.
+diff --git a/net/sunrpc/xprtrdma/svc_rdma_transport.c b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+index 2aa8473..cdb04f8 100644
+--- a/net/sunrpc/xprtrdma/svc_rdma_transport.c
++++ b/net/sunrpc/xprtrdma/svc_rdma_transport.c
+@@ -167,8 +167,8 @@ static bool svc_rdma_prealloc_ctxts(struct svcxprt_rdma *xprt)
+ {
+ 	unsigned int i;
+ 
+-	/* Each RPC/RDMA credit can consume a number of send
+-	 * and receive WQEs. One ctxt is allocated for each.
++	/* Each RPC/RDMA credit can consume one Receive and
++	 * one Send WQE at the same time.
+ 	 */
+ 	i = xprt->sc_sq_depth + xprt->sc_rq_depth;
+ 
+@@ -742,13 +742,18 @@ static struct svc_xprt *svc_rdma_accept(struct svc_xprt *xprt)
+ 	newxprt->sc_max_sge = min((size_t)dev->attrs.max_sge,
+ 				  (size_t)RPCSVC_MAXPAGES);
+ 	newxprt->sc_max_req_size = svcrdma_max_req_size;
+-	newxprt->sc_max_requests = min_t(u32, dev->attrs.max_qp_wr,
+-					 svcrdma_max_requests);
+-	newxprt->sc_fc_credits = cpu_to_be32(newxprt->sc_max_requests);
+-	newxprt->sc_max_bc_requests = min_t(u32, dev->attrs.max_qp_wr,
+-					    svcrdma_max_bc_requests);
++	newxprt->sc_max_requests = svcrdma_max_requests;
++	newxprt->sc_max_bc_requests = svcrdma_max_bc_requests;
+ 	newxprt->sc_rq_depth = newxprt->sc_max_requests +
+ 			       newxprt->sc_max_bc_requests;
++	if (newxprt->sc_rq_depth > dev->attrs.max_qp_wr) {
++		pr_warn("svcrdma: reducing receive depth to %d\n",
++			dev->attrs.max_qp_wr);
++		newxprt->sc_rq_depth = dev->attrs.max_qp_wr;
++		newxprt->sc_max_requests = newxprt->sc_rq_depth - 2;
++		newxprt->sc_max_bc_requests = 2;
++	}
++	newxprt->sc_fc_credits = cpu_to_be32(newxprt->sc_max_requests);
+ 	newxprt->sc_sq_depth = newxprt->sc_rq_depth;
+ 	atomic_set(&newxprt->sc_sq_avail, newxprt->sc_sq_depth);
+ 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
