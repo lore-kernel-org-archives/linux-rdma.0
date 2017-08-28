@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next 2/9] IB/hif1: Remove static tracing from SDMA hot
- path
-Date: Mon, 28 Aug 2017 11:23:27 -0700
-Message-ID: <20170828182326.29434.78706.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 5/9] IB/rdmavt: Add QP iterator API for QPs
+Date: Mon, 28 Aug 2017 11:23:45 -0700
+Message-ID: <20170828182344.29434.48918.stgit@scvm10.sc.intel.com>
 References: <20170828182121.29434.18989.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,470 +10,229 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170828182121.29434.18989.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-The hfi1_cdbg() macro can be instantiated in the hot path even when it
-is not in use.  This shows up on perf profiles.
+There are currently 3 spots in the qib and hfi1 driver that have
+knowledge of the internal QP hash list that should only be in
+scope to rdmavt QP code.
 
-Rework the macros (for SDMA and MMU), to use the trace interface directly
-to eliminate this performance hit.
+Add an iterator API for processing all QPs to hide the
+nature of the RCU hashlist.
 
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Michael J. Ruhl <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+The API consists of:
+- rvt_qp_iter_init()
+  * For iterating QPs one at a time for seq_file semantics
+- rvt_qp_iter_next()
+  * For iterating QPs one at a time for seq_file semantics
+- rvt_qp_iter()
+  * For iterating all QPs
+
+The first two are used for things like seq_file prints.
+
+The last is for code that just needs to iterate all QPs
+in the system.
+
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/hfi1/file_ops.c  |    3 -
- drivers/infiniband/hw/hfi1/mmu_rb.c    |   13 +--
- drivers/infiniband/hw/hfi1/trace.h     |    3 -
- drivers/infiniband/hw/hfi1/trace_mmu.h |   95 ++++++++++++++++++++++
- drivers/infiniband/hw/hfi1/trace_tx.h  |  136 ++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/hfi1/user_sdma.c |   31 ++++---
- drivers/infiniband/hw/hfi1/user_sdma.h |    3 -
- 7 files changed, 255 insertions(+), 29 deletions(-)
- create mode 100644 drivers/infiniband/hw/hfi1/trace_mmu.h
+ drivers/infiniband/sw/rdmavt/qp.c |  144 +++++++++++++++++++++++++++++++++++++
+ include/rdma/rdmavt_qp.h          |   29 +++++++
+ 2 files changed, 173 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
-index e0fd8fc..05833ee 100644
---- a/drivers/infiniband/hw/hfi1/file_ops.c
-+++ b/drivers/infiniband/hw/hfi1/file_ops.c
-@@ -430,8 +430,7 @@ static ssize_t hfi1_write_iter(struct kiocb *kiocb, struct iov_iter *from)
- 	if (!iter_is_iovec(from) || !dim)
- 		return -EINVAL;
- 
--	hfi1_cdbg(SDMA, "SDMA request from %u:%u (%lu)",
--		  fd->uctxt->ctxt, fd->subctxt, dim);
-+	trace_hfi1_sdma_request(fd->dd, fd->uctxt->ctxt, fd->subctxt, dim);
- 
- 	if (atomic_read(&pq->n_reqs) == pq->n_max_reqs)
- 		return -ENOSPC;
-diff --git a/drivers/infiniband/hw/hfi1/mmu_rb.c b/drivers/infiniband/hw/hfi1/mmu_rb.c
-index d41fd87..13dcef0 100644
---- a/drivers/infiniband/hw/hfi1/mmu_rb.c
-+++ b/drivers/infiniband/hw/hfi1/mmu_rb.c
-@@ -1,5 +1,5 @@
- /*
-- * Copyright(c) 2016 Intel Corporation.
-+ * Copyright(c) 2016 - 2017 Intel Corporation.
-  *
-  * This file is provided under a dual BSD/GPLv2 license.  When using or
-  * redistributing this file, you may do so under either license.
-@@ -172,9 +172,8 @@ int hfi1_mmu_rb_insert(struct mmu_rb_handler *handler,
- 	unsigned long flags;
- 	int ret = 0;
- 
-+	trace_hfi1_mmu_rb_insert(mnode->addr, mnode->len);
- 	spin_lock_irqsave(&handler->lock, flags);
--	hfi1_cdbg(MMU, "Inserting node addr 0x%llx, len %u", mnode->addr,
--		  mnode->len);
- 	node = __mmu_rb_search(handler, mnode->addr, mnode->len);
- 	if (node) {
- 		ret = -EINVAL;
-@@ -200,7 +199,7 @@ int hfi1_mmu_rb_insert(struct mmu_rb_handler *handler,
- {
- 	struct mmu_rb_node *node = NULL;
- 
--	hfi1_cdbg(MMU, "Searching for addr 0x%llx, len %u", addr, len);
-+	trace_hfi1_mmu_rb_search(addr, len);
- 	if (!handler->ops->filter) {
- 		node = __mmu_int_rb_iter_first(&handler->root, addr,
- 					       (addr + len) - 1);
-@@ -281,8 +280,7 @@ void hfi1_mmu_rb_remove(struct mmu_rb_handler *handler,
- 	unsigned long flags;
- 
- 	/* Validity of handler and node pointers has been checked by caller. */
--	hfi1_cdbg(MMU, "Removing node addr 0x%llx, len %u", node->addr,
--		  node->len);
-+	trace_hfi1_mmu_rb_remove(node->addr, node->len);
- 	spin_lock_irqsave(&handler->lock, flags);
- 	__mmu_int_rb_remove(node, &handler->root);
- 	list_del(&node->list); /* remove from LRU list */
-@@ -321,8 +319,7 @@ static void mmu_notifier_mem_invalidate(struct mmu_notifier *mn,
- 	     node; node = ptr) {
- 		/* Guard against node removal. */
- 		ptr = __mmu_int_rb_iter_next(node, start, end - 1);
--		hfi1_cdbg(MMU, "Invalidating node addr 0x%llx, len %u",
--			  node->addr, node->len);
-+		trace_hfi1_mmu_mem_invalidate(node->addr, node->len);
- 		if (handler->ops->invalidate(handler->ops_arg, node)) {
- 			__mmu_int_rb_remove(node, root);
- 			/* move from LRU list to delete list */
-diff --git a/drivers/infiniband/hw/hfi1/trace.h b/drivers/infiniband/hw/hfi1/trace.h
-index 92dc88f..af50c07 100644
---- a/drivers/infiniband/hw/hfi1/trace.h
-+++ b/drivers/infiniband/hw/hfi1/trace.h
-@@ -1,5 +1,5 @@
- /*
-- * Copyright(c) 2015, 2016 Intel Corporation.
-+ * Copyright(c) 2015 - 2017 Intel Corporation.
-  *
-  * This file is provided under a dual BSD/GPLv2 license.  When using or
-  * redistributing this file, you may do so under either license.
-@@ -51,3 +51,4 @@
- #include "trace_rc.h"
- #include "trace_rx.h"
- #include "trace_tx.h"
-+#include "trace_mmu.h"
-diff --git a/drivers/infiniband/hw/hfi1/trace_mmu.h b/drivers/infiniband/hw/hfi1/trace_mmu.h
-new file mode 100644
-index 0000000..3b7abbc
---- /dev/null
-+++ b/drivers/infiniband/hw/hfi1/trace_mmu.h
-@@ -0,0 +1,95 @@
-+/*
-+ * Copyright(c) 2017 Intel Corporation.
-+ *
-+ * This file is provided under a dual BSD/GPLv2 license.  When using or
-+ * redistributing this file, you may do so under either license.
-+ *
-+ * GPL LICENSE SUMMARY
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * BSD LICENSE
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ *
-+ *  - Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions and the following disclaimer.
-+ *  - Redistributions in binary form must reproduce the above copyright
-+ *    notice, this list of conditions and the following disclaimer in
-+ *    the documentation and/or other materials provided with the
-+ *    distribution.
-+ *  - Neither the name of Intel Corporation nor the names of its
-+ *    contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ */
-+#if !defined(__HFI1_TRACE_MMU_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define __HFI1_TRACE_MMU_H
-+
-+#include <linux/tracepoint.h>
-+#include <linux/trace_seq.h>
-+
-+#include "hfi.h"
-+
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM hfi1_mmu
-+
-+DECLARE_EVENT_CLASS(hfi1_mmu_rb_template,
-+		    TP_PROTO(unsigned long addr, unsigned long len),
-+		    TP_ARGS(addr, len),
-+		    TP_STRUCT__entry(__field(unsigned long, addr)
-+				     __field(unsigned long, len)
-+			    ),
-+		    TP_fast_assign(__entry->addr = addr;
-+				   __entry->len = len;
-+			    ),
-+		    TP_printk("MMU node addr 0x%lx, len %lu",
-+			      __entry->addr,
-+			      __entry->len
-+			    )
-+);
-+
-+DEFINE_EVENT(hfi1_mmu_rb_template, hfi1_mmu_rb_insert,
-+	     TP_PROTO(unsigned long addr, unsigned long len),
-+	     TP_ARGS(addr, len));
-+
-+DEFINE_EVENT(hfi1_mmu_rb_template, hfi1_mmu_rb_search,
-+	     TP_PROTO(unsigned long addr, unsigned long len),
-+	     TP_ARGS(addr, len));
-+
-+DEFINE_EVENT(hfi1_mmu_rb_template, hfi1_mmu_rb_remove,
-+	     TP_PROTO(unsigned long addr, unsigned long len),
-+	     TP_ARGS(addr, len));
-+
-+DEFINE_EVENT(hfi1_mmu_rb_template, hfi1_mmu_mem_invalidate,
-+	     TP_PROTO(unsigned long addr, unsigned long len),
-+	     TP_ARGS(addr, len));
-+
-+#endif /* __HFI1_TRACE_RC_H */
-+
-+#undef TRACE_INCLUDE_PATH
-+#undef TRACE_INCLUDE_FILE
-+#define TRACE_INCLUDE_PATH .
-+#define TRACE_INCLUDE_FILE trace_mmu
-+#include <trace/define_trace.h>
-diff --git a/drivers/infiniband/hw/hfi1/trace_tx.h b/drivers/infiniband/hw/hfi1/trace_tx.h
-index c59809a..c57af3b 100644
---- a/drivers/infiniband/hw/hfi1/trace_tx.h
-+++ b/drivers/infiniband/hw/hfi1/trace_tx.h
-@@ -1,5 +1,5 @@
- /*
-- * Copyright(c) 2015, 2016 Intel Corporation.
-+ * Copyright(c) 2015 - 2017 Intel Corporation.
-  *
-  * This file is provided under a dual BSD/GPLv2 license.  When using or
-  * redistributing this file, you may do so under either license.
-@@ -198,6 +198,140 @@
- 		      )
- );
- 
-+TRACE_EVENT(hfi1_sdma_user_free_queues,
-+	    TP_PROTO(struct hfi1_devdata *dd, u16 ctxt, u16 subctxt),
-+	    TP_ARGS(dd, ctxt, subctxt),
-+	    TP_STRUCT__entry(DD_DEV_ENTRY(dd)
-+			     __field(u16, ctxt)
-+			     __field(u16, subctxt)
-+			     ),
-+	    TP_fast_assign(DD_DEV_ASSIGN(dd);
-+			   __entry->ctxt = ctxt;
-+			   __entry->subctxt = subctxt;
-+			   ),
-+	    TP_printk("[%s] SDMA [%u:%u] Freeing user SDMA queues",
-+		      __get_str(dev),
-+		      __entry->ctxt,
-+		      __entry->subctxt
-+		      )
-+);
-+
-+TRACE_EVENT(hfi1_sdma_user_process_request,
-+	    TP_PROTO(struct hfi1_devdata *dd, u16 ctxt, u16 subctxt,
-+		     u16 comp_idx),
-+	    TP_ARGS(dd, ctxt, subctxt, comp_idx),
-+	    TP_STRUCT__entry(DD_DEV_ENTRY(dd)
-+			     __field(u16, ctxt)
-+			     __field(u16, subctxt)
-+			     __field(u16, comp_idx)
-+			     ),
-+	    TP_fast_assign(DD_DEV_ASSIGN(dd);
-+			   __entry->ctxt = ctxt;
-+			   __entry->subctxt = subctxt;
-+			   __entry->comp_idx = comp_idx;
-+			   ),
-+	    TP_printk("[%s] SDMA [%u:%u] Using req/comp entry: %u",
-+		      __get_str(dev),
-+		      __entry->ctxt,
-+		      __entry->subctxt,
-+		      __entry->comp_idx
-+		      )
-+);
-+
-+DECLARE_EVENT_CLASS(
-+	hfi1_sdma_value_template,
-+	TP_PROTO(struct hfi1_devdata *dd, u16 ctxt, u16 subctxt, u16 comp_idx,
-+		 u32 value),
-+	TP_ARGS(dd, ctxt, subctxt, comp_idx, value),
-+	TP_STRUCT__entry(DD_DEV_ENTRY(dd)
-+			 __field(u16, ctxt)
-+			 __field(u16, subctxt)
-+			 __field(u16, comp_idx)
-+			 __field(u32, value)
-+		),
-+	TP_fast_assign(DD_DEV_ASSIGN(dd);
-+		       __entry->ctxt = ctxt;
-+		       __entry->subctxt = subctxt;
-+		       __entry->comp_idx = comp_idx;
-+		       __entry->value = value;
-+		),
-+	TP_printk("[%s] SDMA [%u:%u:%u] value: %u",
-+		  __get_str(dev),
-+		  __entry->ctxt,
-+		  __entry->subctxt,
-+		  __entry->comp_idx,
-+		  __entry->value
-+		)
-+);
-+
-+DEFINE_EVENT(hfi1_sdma_value_template, hfi1_sdma_user_initial_tidoffset,
-+	     TP_PROTO(struct hfi1_devdata *dd, u16 ctxt, u16 subctxt,
-+		      u16 comp_idx, u32 tidoffset),
-+	     TP_ARGS(dd, ctxt, subctxt, comp_idx, tidoffset));
-+
-+DEFINE_EVENT(hfi1_sdma_value_template, hfi1_sdma_user_data_length,
-+	     TP_PROTO(struct hfi1_devdata *dd, u16 ctxt, u16 subctxt,
-+		      u16 comp_idx, u32 data_len),
-+	     TP_ARGS(dd, ctxt, subctxt, comp_idx, data_len));
-+
-+DEFINE_EVENT(hfi1_sdma_value_template, hfi1_sdma_user_compute_length,
-+	     TP_PROTO(struct hfi1_devdata *dd, u16 ctxt, u16 subctxt,
-+		      u16 comp_idx, u32 data_len),
-+	     TP_ARGS(dd, ctxt, subctxt, comp_idx, data_len));
-+
-+TRACE_EVENT(hfi1_sdma_user_tid_info,
-+	    TP_PROTO(struct hfi1_devdata *dd, u16 ctxt, u16 subctxt,
-+		     u16 comp_idx, u32 tidoffset, u32 units, u8 shift),
-+	    TP_ARGS(dd, ctxt, subctxt, comp_idx, tidoffset, units, shift),
-+	    TP_STRUCT__entry(DD_DEV_ENTRY(dd)
-+			     __field(u16, ctxt)
-+			     __field(u16, subctxt)
-+			     __field(u16, comp_idx)
-+			     __field(u32, tidoffset)
-+			     __field(u32, units)
-+			     __field(u8, shift)
-+			     ),
-+	    TP_fast_assign(DD_DEV_ASSIGN(dd);
-+			   __entry->ctxt = ctxt;
-+			   __entry->subctxt = subctxt;
-+			   __entry->comp_idx = comp_idx;
-+			   __entry->tidoffset = tidoffset;
-+			   __entry->units = units;
-+			   __entry->shift = shift;
-+			   ),
-+	    TP_printk("[%s] SDMA [%u:%u:%u] TID offset %ubytes %uunits om %u",
-+		      __get_str(dev),
-+		      __entry->ctxt,
-+		      __entry->subctxt,
-+		      __entry->comp_idx,
-+		      __entry->tidoffset,
-+		      __entry->units,
-+		      __entry->shift
-+		      )
-+);
-+
-+TRACE_EVENT(hfi1_sdma_request,
-+	    TP_PROTO(struct hfi1_devdata *dd, u16 ctxt, u16 subctxt,
-+		     unsigned long dim),
-+	    TP_ARGS(dd, ctxt, subctxt, dim),
-+	    TP_STRUCT__entry(DD_DEV_ENTRY(dd)
-+			     __field(u16, ctxt)
-+			     __field(u16, subctxt)
-+			     __field(unsigned long, dim)
-+			     ),
-+	    TP_fast_assign(DD_DEV_ASSIGN(dd);
-+			   __entry->ctxt = ctxt;
-+			   __entry->subctxt = subctxt;
-+			   __entry->dim = dim;
-+			   ),
-+	    TP_printk("[%s] SDMA from %u:%u (%lu)",
-+		      __get_str(dev),
-+		      __entry->ctxt,
-+		      __entry->subctxt,
-+		      __entry->dim
-+		      )
-+);
-+
- DECLARE_EVENT_CLASS(hfi1_sdma_engine_class,
- 		    TP_PROTO(struct sdma_engine *sde, u64 status),
- 		    TP_ARGS(sde, status),
-diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
-index dacb0fc..c0c0e04 100644
---- a/drivers/infiniband/hw/hfi1/user_sdma.c
-+++ b/drivers/infiniband/hw/hfi1/user_sdma.c
-@@ -266,8 +266,8 @@ int hfi1_user_sdma_free_queues(struct hfi1_filedata *fd,
- {
- 	struct hfi1_user_sdma_pkt_q *pq;
- 
--	hfi1_cdbg(SDMA, "[%u:%u:%u] Freeing user SDMA queues", uctxt->dd->unit,
--		  uctxt->ctxt, fd->subctxt);
-+	trace_hfi1_sdma_user_free_queues(uctxt->dd, uctxt->ctxt, fd->subctxt);
-+
- 	pq = fd->pq;
- 	if (pq) {
- 		if (pq->handler)
-@@ -349,7 +349,6 @@ int hfi1_user_sdma_process_request(struct hfi1_filedata *fd,
- 
- 	trace_hfi1_sdma_user_reqinfo(dd, uctxt->ctxt, fd->subctxt,
- 				     (u16 *)&info);
--
- 	if (info.comp_idx >= hfi1_sdma_comp_ring_size) {
- 		hfi1_cdbg(SDMA,
- 			  "[%u:%u:%u:%u] Invalid comp index",
-@@ -386,8 +385,8 @@ int hfi1_user_sdma_process_request(struct hfi1_filedata *fd,
- 	/*
- 	 * All safety checks have been done and this request has been claimed.
- 	 */
--	hfi1_cdbg(SDMA, "[%u:%u:%u] Using req/comp entry %u\n", dd->unit,
--		  uctxt->ctxt, fd->subctxt, info.comp_idx);
-+	trace_hfi1_sdma_user_process_request(dd, uctxt->ctxt, fd->subctxt,
-+					     info.comp_idx);
- 	req = pq->reqs + info.comp_idx;
- 	req->data_iovs = req_iovcnt(info.ctrl) - 1; /* subtract header vector */
- 	req->data_len  = 0;
-@@ -487,7 +486,8 @@ int hfi1_user_sdma_process_request(struct hfi1_filedata *fd,
- 	req->tidoffset = KDETH_GET(req->hdr.kdeth.ver_tid_offset, OFFSET) *
- 		(KDETH_GET(req->hdr.kdeth.ver_tid_offset, OM) ?
- 		 KDETH_OM_LARGE : KDETH_OM_SMALL);
--	SDMA_DBG(req, "Initial TID offset %u", req->tidoffset);
-+	trace_hfi1_sdma_user_initial_tidoffset(dd, uctxt->ctxt, fd->subctxt,
-+					       info.comp_idx, req->tidoffset);
- 	idx++;
- 
- 	/* Save all the IO vector structures */
-@@ -505,8 +505,8 @@ int hfi1_user_sdma_process_request(struct hfi1_filedata *fd,
- 		}
- 		req->data_len += req->iovs[i].iov.iov_len;
- 	}
--	SDMA_DBG(req, "total data length %u", req->data_len);
--
-+	trace_hfi1_sdma_user_data_length(dd, uctxt->ctxt, fd->subctxt,
-+					 info.comp_idx, req->data_len);
- 	if (pcount > req->info.npkts)
- 		pcount = req->info.npkts;
- 	/*
-@@ -661,7 +661,11 @@ static inline u32 compute_data_length(struct user_sdma_request *req,
- 	} else {
- 		len = min(req->data_len - req->sent, (u32)req->info.fragsize);
- 	}
--	SDMA_DBG(req, "Data Length = %u", len);
-+	trace_hfi1_sdma_user_compute_length(req->pq->dd,
-+					    req->pq->ctxt,
-+					    req->pq->subctxt,
-+					    req->info.comp_idx,
-+					    len);
- 	return len;
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index 3a238b0..9f70fd8 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -2069,3 +2069,147 @@ enum hrtimer_restart rvt_rc_rnr_retry(struct hrtimer *t)
+ 	return HRTIMER_NORESTART;
  }
+ EXPORT_SYMBOL(rvt_rc_rnr_retry);
++
++/**
++ * rvt_qp_iter_init - initial for QP iteration
++ * @rdi - rvt devinfo
++ * @v - u64 value
++ *
++ * This returns an iterator suitable for iterating QPs
++ * in the system.
++ *
++ * The @cb is a user defined callback and @v is a 64
++ * bit value passed to and relevant for processing in the
++ * @cb.  An example use case would be to alter QP processing
++ * based on criteria not part of the rvt_qp.
++ *
++ * Use cases that require memory allocation to succeed
++ * must preallocate appropriately.
++ *
++ * Return: a pointer to an rvt_qp_iter or NULL
++ */
++struct rvt_qp_iter *rvt_qp_iter_init(struct rvt_dev_info *rdi,
++				     u64 v,
++				     void (*cb)(struct rvt_qp *qp, u64 v))
++{
++	struct rvt_qp_iter *i;
++
++	i = kzalloc(sizeof(*i), GFP_KERNEL);
++	if (!i)
++		return NULL;
++
++	i->rdi = rdi;
++	/* number of special QPs (SMI/GSI) for device */
++	i->specials = rdi->ibdev.phys_port_cnt * 2;
++	i->v = v;
++	i->cb = cb;
++
++	return i;
++}
++EXPORT_SYMBOL(rvt_qp_iter_init);
++
++/**
++ * rvt_qp_iter_next - return the next QP in iter
++ * @iter - the iterator
++ *
++ * Fine grained QP iterator suitable for use
++ * with debugfs seq_file mechanisms.
++ *
++ * Updates iter->qp with the current QP when the return
++ * value is 0.
++ *
++ * Return: 0 - iter->qp is valid 1 - no more QPs
++ */
++int rvt_qp_iter_next(struct rvt_qp_iter *iter)
++	__must_hold(RCU)
++{
++	int n = iter->n;
++	int ret = 1;
++	struct rvt_qp *pqp = iter->qp;
++	struct rvt_qp *qp;
++	struct rvt_dev_info *rdi = iter->rdi;
++
++	/*
++	 * The approach is to consider the special qps
++	 * as additional table entries before the
++	 * real hash table.  Since the qp code sets
++	 * the qp->next hash link to NULL, this works just fine.
++	 *
++	 * iter->specials is 2 * # ports
++	 *
++	 * n = 0..iter->specials is the special qp indices
++	 *
++	 * n = iter->specials..rdi->qp_dev->qp_table_size+iter->specials are
++	 * the potential hash bucket entries
++	 *
++	 */
++	for (; n <  rdi->qp_dev->qp_table_size + iter->specials; n++) {
++		if (pqp) {
++			qp = rcu_dereference(pqp->next);
++		} else {
++			if (n < iter->specials) {
++				struct rvt_ibport *rvp;
++				int pidx;
++
++				pidx = n % rdi->ibdev.phys_port_cnt;
++				rvp = rdi->ports[pidx];
++				qp = rcu_dereference(rvp->qp[n & 1]);
++			} else {
++				qp = rcu_dereference(
++					rdi->qp_dev->qp_table[
++						(n - iter->specials)]);
++			}
++		}
++		pqp = qp;
++		if (qp) {
++			iter->qp = qp;
++			iter->n = n;
++			return 0;
++		}
++	}
++	return ret;
++}
++EXPORT_SYMBOL(rvt_qp_iter_next);
++
++/**
++ * rvt_qp_iter - iterate all QPs
++ * @rdi - rvt devinfo
++ * @v - a 64 bit value
++ * @cb - a callback
++ *
++ * This provides a way for iterating all QPs.
++ *
++ * The @cb is a user defined callback and @v is a 64
++ * bit value passed to and relevant for processing in the
++ * cb.  An example use case would be to alter QP processing
++ * based on criteria not part of the rvt_qp.
++ *
++ * The code has an internal iterator to simplify
++ * non seq_file use cases.
++ */
++void rvt_qp_iter(struct rvt_dev_info *rdi,
++		 u64 v,
++		 void (*cb)(struct rvt_qp *qp, u64 v))
++{
++	int ret;
++	struct rvt_qp_iter i = {
++		.rdi = rdi,
++		.specials = rdi->ibdev.phys_port_cnt * 2,
++		.v = v,
++		.cb = cb
++	};
++
++	rcu_read_lock();
++	do {
++		ret = rvt_qp_iter_next(&i);
++		if (!ret) {
++			rvt_get_qp(i.qp);
++			rcu_read_unlock();
++			i.cb(i.qp, i.v);
++			rcu_read_lock();
++			rvt_put_qp(i.qp);
++		}
++	} while (!ret);
++	rcu_read_unlock();
++}
++EXPORT_SYMBOL(rvt_qp_iter);
+diff --git a/include/rdma/rdmavt_qp.h b/include/rdma/rdmavt_qp.h
+index 8fbafb0..dfeb311 100644
+--- a/include/rdma/rdmavt_qp.h
++++ b/include/rdma/rdmavt_qp.h
+@@ -673,4 +673,33 @@ static inline unsigned long rvt_timeout_to_jiffies(u8 timeout)
+ void rvt_stop_rc_timers(struct rvt_qp *qp);
+ void rvt_add_retry_timer(struct rvt_qp *qp);
  
-@@ -1231,9 +1235,10 @@ static int set_txreq_header(struct user_sdma_request *req,
- 		 * Set the KDETH.OFFSET and KDETH.OM based on size of
- 		 * transfer.
- 		 */
--		SDMA_DBG(req, "TID offset %ubytes %uunits om%u",
--			 req->tidoffset, req->tidoffset >> omfactor,
--			 omfactor != KDETH_OM_SMALL_SHIFT);
-+		trace_hfi1_sdma_user_tid_info(
-+			pq->dd, pq->ctxt, pq->subctxt, req->info.comp_idx,
-+			req->tidoffset, req->tidoffset >> omfactor,
-+			omfactor != KDETH_OM_SMALL_SHIFT);
- 		KDETH_SET(hdr->kdeth.ver_tid_offset, OFFSET,
- 			  req->tidoffset >> omfactor);
- 		KDETH_SET(hdr->kdeth.ver_tid_offset, OM,
-@@ -1441,8 +1446,6 @@ static inline void set_comp_state(struct hfi1_user_sdma_pkt_q *pq,
- 				  u16 idx, enum hfi1_sdma_comp_state state,
- 				  int ret)
- {
--	hfi1_cdbg(SDMA, "[%u:%u:%u:%u] Setting completion status %u %d",
--		  pq->dd->unit, pq->ctxt, pq->subctxt, idx, state, ret);
- 	if (state == ERROR)
- 		cq->comps[idx].errcode = -ret;
- 	smp_wmb(); /* make sure errcode is visible first */
-diff --git a/drivers/infiniband/hw/hfi1/user_sdma.h b/drivers/infiniband/hw/hfi1/user_sdma.h
-index 6c10484..9b8bb56 100644
---- a/drivers/infiniband/hw/hfi1/user_sdma.h
-+++ b/drivers/infiniband/hw/hfi1/user_sdma.h
-@@ -110,9 +110,6 @@
- 	hfi1_cdbg(SDMA, "[%u:%u:%u:%u] " fmt, (req)->pq->dd->unit, \
- 		 (req)->pq->ctxt, (req)->pq->subctxt, (req)->info.comp_idx, \
- 		 ##__VA_ARGS__)
--#define SDMA_Q_DBG(pq, fmt, ...)			 \
--	hfi1_cdbg(SDMA, "[%u:%u:%u] " fmt, (pq)->dd->unit, (pq)->ctxt, \
--		 (pq)->subctxt, ##__VA_ARGS__)
- 
- extern uint extended_psn;
- 
++/**
++ * struct rvt_qp_iter - the iterator for QPs
++ * @qp - the current QP
++ *
++ * This structure defines the current iterator
++ * state for sequenced access to all QPs relative
++ * to an rvt_dev_info.
++ */
++struct rvt_qp_iter {
++	struct rvt_qp *qp;
++	/* private: backpointer */
++	struct rvt_dev_info *rdi;
++	/* private: callback routine */
++	void (*cb)(struct rvt_qp *qp, u64 v);
++	/* private: for arg to callback routine */
++	u64 v;
++	/* private: number of SMI,GSI QPs for device */
++	int specials;
++	/* private: current iterator index */
++	int n;
++};
++
++struct rvt_qp_iter *rvt_qp_iter_init(struct rvt_dev_info *rdi,
++				     u64 v,
++				     void (*cb)(struct rvt_qp *qp, u64 v));
++int rvt_qp_iter_next(struct rvt_qp_iter *iter);
++void rvt_qp_iter(struct rvt_dev_info *rdi,
++		 u64 v,
++		 void (*cb)(struct rvt_qp *qp, u64 v));
+ #endif          /* DEF_RDMAVT_INCQP_H */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
