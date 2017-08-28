@@ -1,7 +1,7 @@
 From: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Subject: [PATCH v2 03/11] IB/rxe: Remove dangling prototype
-Date: Mon, 28 Aug 2017 16:11:51 -0400
-Message-ID: <1503951119-25573-4-git-send-email-andrew.boyer@dell.com>
+Subject: [PATCH v2 04/11] IB/rxe: Fix up the responder's find_resources() function
+Date: Mon, 28 Aug 2017 16:11:52 -0400
+Message-ID: <1503951119-25573-5-git-send-email-andrew.boyer@dell.com>
 References: <1503687956-7110-1-git-send-email-andrew.boyer@dell.com>
  <1503951119-25573-1-git-send-email-andrew.boyer@dell.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,27 +11,31 @@ To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J
 Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+The resource array is sized by max_dest_rd_atomic, not max_rd_atomic.
+Iterating over max_rd_atomic entries of qp->resp.resources[] will cause
+incorrect behavior when the two attributes are different (or even
+crash if max_rd_atomic is larger).
+
 Fixes: 8700e3e7c485 ("Soft RoCE driver")
 Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Acked-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_loc.h | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_resp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-index 64f8fa1..8ef2d3f 100644
---- a/drivers/infiniband/sw/rxe/rxe_loc.h
-+++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-@@ -221,8 +221,6 @@ static inline void rxe_advance_resp_resource(struct rxe_qp *qp)
- void retransmit_timer(unsigned long data);
- void rnr_nak_timer(unsigned long data);
+diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
+index a958ee9..4240866 100644
+--- a/drivers/infiniband/sw/rxe/rxe_resp.c
++++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+@@ -1055,7 +1055,7 @@ static struct resp_res *find_resource(struct rxe_qp *qp, u32 psn)
+ {
+ 	int i;
  
--void dump_qp(struct rxe_qp *qp);
--
- /* rxe_srq.c */
- #define IB_SRQ_INIT_MASK (~IB_SRQ_LIMIT)
+-	for (i = 0; i < qp->attr.max_rd_atomic; i++) {
++	for (i = 0; i < qp->attr.max_dest_rd_atomic; i++) {
+ 		struct resp_res *res = &qp->resp.resources[i];
  
+ 		if (res->type == 0)
 -- 
 1.8.3.1
 
