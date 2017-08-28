@@ -1,252 +1,191 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Bug Report: possible circular locking issue
-Date: Mon, 28 Aug 2017 12:38:36 -0400
-Message-ID: <1503938316.78641.98.camel@redhat.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [rdma-next v3 02/24] IB/uverbs: Introduce and use helper
+ functions to copy ah attributes
+Date: Mon, 28 Aug 2017 20:20:26 +0300
+Message-ID: <20170828172026.GE23726@mtr-leonro.local>
+References: <20170817125055.31424-1-leon@kernel.org>
+ <20170817125055.31424-3-leon@kernel.org>
+ <1503607242.78641.48.camel@redhat.com>
+ <20170827111059.GQ1724@mtr-leonro.local>
+ <1503933314.78641.82.camel@redhat.com>
+ <20170828155552.GB23726@mtr-leonro.local>
+ <1503937924.78641.94.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-RkAq3eFIBvTPSj9WUe4k"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="10jrOL3x2xqLmOsH"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1503937924.78641.94.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-RkAq3eFIBvTPSj9WUe4k
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+--10jrOL3x2xqLmOsH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Resend from my work email address:
+On Mon, Aug 28, 2017 at 12:32:04PM -0400, Doug Ledford wrote:
+> On Mon, 2017-08-28 at 18:55 +0300, Leon Romanovsky wrote:
+> > On Mon, Aug 28, 2017 at 11:15:14AM -0400, Doug Ledford wrote:
+> > > On Sun, 2017-08-27 at 14:10 +0300, Leon Romanovsky wrote:
+> > > > On Thu, Aug 24, 2017 at 04:40:42PM -0400, Doug Ledford wrote:
+> > > > > On Thu, 2017-08-17 at 15:50 +0300, Leon Romanovsky wrote:
+> > > > > > From: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > > > > >
+> > > > > > This patch introduces two helper functions to copy ah
+> > > > > > attributes
+> > > > > > from uverbs to internal ib_ah_attr structure and the other
+> > > > > > way
+> > > > > > during modify qp and query qp respectively.
+> > > > > >
+> > > > > > Signed-off-by: Parav Pandit <parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > > > > > Reviewed-by: Daniel Jurgens <danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> > > > > > Signed-off-by: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > > > > > Reviewed-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+> > > > > > >
+> > > > > > ---
+> > > > > >  drivers/infiniband/core/uverbs_cmd.c | 124 ++++++++++++++---
+> > > > > > ----
+> > > > > > ----
+> > > > > > ----------
+> > > > > >  1 file changed, 49 insertions(+), 75 deletions(-)
+> > > > >
+> > > > > I had to fix this patch up considerably...
+> > > > >
+> > > > > > diff --git a/drivers/infiniband/core/uverbs_cmd.c
+> > > > > > b/drivers/infiniband/core/uverbs_cmd.c
+> > > > > > index 670176b670a0..515425a50059 100644
+> > > > > > --- a/drivers/infiniband/core/uverbs_cmd.c
+> > > > > > +++ b/drivers/infiniband/core/uverbs_cmd.c
+> > > > > >
+> > > > > > @@ -1936,6 +1926,28 @@ static int modify_qp_mask(enum
+> > > > > > ib_qp_type
+> > > > > > qp_type, int mask)
+> > > > > >  	}
+> > > > > >  }
+> > > > > >
+> > > > > > +static void copy_ah_attr_from_uverbs(struct ib_device *dev,
+> > >
+> > >                                              ^^^^^^^^^^^^^^^^^^^^
+> > > From your patch...
+> > >
+> > > > > > +				     struct rdma_ah_attr
+> > > > > > *rdma_attr,
+> > > > > > +				     struct
+> > > > > > ib_uverbs_qp_dest
+> > > > > >
+> > > > >
+> > > > > And we had a fix here where we only copy the ah attributes if
+> > > > > the
+> > > > > user
+> > > > > set the flag for it, so what I ended up with looks like this:
+> > > > >
+> > > > >         if (cmd->base.attr_mask & IB_QP_AV)
+> > > > >                 copy_ah_attr_from_uverbs(qp->device, &attr-
+> > > > > > ah_attr,
+> > > > >
+> > > > >                                          &cmd->base.dest);
+> > > > >
+> > > > >         if (cmd->base.attr_mask & IB_QP_ALT_PATH)
+> > > > >                 copy_ah_attr_from_uverbs(qp->device, &attr-
+> > > > > > alt_ah_attr,
+> > > > >
+> > > > >                                          &cmd->base.alt_dest);
+> > > >
+> > > > Doug,
+> > > >
+> > > > It should be "qp" and not "qp->device" in
+> > > > copy_ah_attr_from_uverbs().
+> > > >
+> > > > 1998         if (cmd->base.attr_mask & IB_QP_AV)
+> > > > 1999                 copy_ah_attr_from_uverbs(qp, &attr->ah_attr,
+> > > > &cmd->base.dest);
+> > > > 2000         if (cmd->base.attr_mask & IB_QP_ALT_PATH)
+> > > > 2001                 copy_ah_attr_from_uverbs(qp, &attr-
+> > > > >alt_ah_attr,
+> > > > 2002                                          &cmd-
+> > > > >base.alt_dest);
+> > > > 2003         ret = ib_modify_qp_with_udata(qp, attr,
+> > > > 2004                                       modify_qp_mask(qp-
+> > > > > qp_type,
+> > > >
+> > > > 2005                                                      cmd-
+> > > > > base.attr_mask),
+> > > >
+> > > > 2006                                       udata);
+> > >
+> > > I'm pretty sure you need to re-read your own patch Leon ;-).  The
+> > > helper you added uses struct ib_device, so a pointer to the qp
+> > > would
+> > > not work.  And it wouldn't have even compiled if I had that wrong.
+> >
+> > OK, I reread it and it helped me to find the differences.
+> >
+> > In rdma-rc, there is the patch from Noa "IB/core: Avoid accessing
+> > non-allocated memory when inferring port type", which plays exactly
+> > at
+> > the same place as this one.
+> >
+> > Because, I'm creating my rdma-next for testing, I'm merging -rcX with
+> > -next and my merge conflict resolution was to move
+> > +               attr->ah_attr.type = rdma_ah_find_type(qp->device,
+> > +                                                      cmd-
+> > >base.dest.port_num);
+> > to the copy_ah_attr_from_uverbs and to change function signature to
+> > be
+> > "static void copy_ah_attr_from_uverbs(struct ib_qp *qp,"
+>
+> It turns out this is kind of a moot point.  In uverbs_marshall.c there
+> already exists void ib_copy_ah_attr_to_user().  We should have used
+> that instead of creating new versions of this in this file.  So, since
+> I've already taken this patch and pushed it to k.o, please do a new
+> incremental patch that:
+>
+> 1) Merges the differences between the static versions of this routine
+> and the one in uverbs_marshall.c into the one in uverbs_marshall.c
+> 2) Adds a copy from uverbs in uverbs_marshall.c that is coded in the
+> same style as the one already there
+> 3) Converts uverbs_cmd.c routines to use the helpers in
+> uverbs_marshall.c and removes the duplicate helpers in uverbs_cmd.c.
+>
+> And, if at all possible, I need it quick because I'm making my pull
+> request to Linus for the next merge window tomorrow.
 
+On which branch do you want me to do it?
+The k.o/for-next doesn't have if(..) copy_.. parts.
 
-I ran across this while testing a 4.13-rc7 kernel + the rdma next code.
- I don't have the time to track this down before going on PTO, so I'm
-putting it out here for others to look at.
+Thanks
 
-This machine holds multiple connections in it:
+>
+> --
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>     GPG KeyID: B826A3330E572FDD
+>     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+>
 
-ib0/ib1 -> dual port qib
-roce -> ocrdma
-iwarp -> cxgb4
-
-During bootup I got this:
-
-[   37.244753] iw_cxgb4: 0000:83:00.4: Up
-[   37.250168] iw_cxgb4: 0000:83:00.4: On-Chip Queues not supported on
-this deve
-
-[   37.263207] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D
-[   37.270656] WARNING: possible circular locking dependency detected
-[   37.278101] 4.13.0-rc7+ #130 Not tainted
-[   37.283019] ------------------------------------------------------
-[   37.290470] NetworkManager/2196 is trying to acquire lock:
-[   37.297143]  (device_mutex){+.+.+.}, at: [<ffffffffc08d2465>]
-ib_register_de]
-[   37.308026]=20
-               but task is already holding lock:
-[   37.315694]  (uld_mutex){+.+.+.}, at: [<ffffffffc0574fd4>]
-notify_ulds.isra.]
-[   37.326108]=20
-               which lock already depends on the new lock.
-
-[   37.337689]=20
-               the existing dependency chain (in reverse order) is:
-[   37.347301]=20
-               -> #2 (uld_mutex){+.+.+.}:
-[   37.354048]        lock_acquire+0xbd/0x200
-[   37.359083]        __mutex_lock+0x88/0x950
-[   37.364122]        mutex_lock_nested+0x1b/0x20
-[   37.369690]        cxgb_up+0x27/0x840 [cxgb4]
-[   37.375623]        cxgb_open+0x34/0x90 [cxgb4]
-[   37.381168]        __dev_open+0xc9/0x140
-[   37.386039]        __dev_change_flags+0x9d/0x160
-[   37.391686]        dev_change_flags+0x29/0x60
-[   37.397069]        do_setlink+0x4bf/0xc80
-[   37.402024]        rtnl_newlink+0x512/0x8a0
-[   37.407177]        rtnetlink_rcv_msg+0xac/0x240
-[   37.412702]        netlink_rcv_skb+0xed/0x120
-[   37.418023]        rtnetlink_rcv+0x2a/0x40
-[   37.423060]        netlink_unicast+0x182/0x220
-[   37.428482]        netlink_sendmsg+0x2e9/0x3e0
-[   37.433868]        sock_sendmsg+0x38/0x50
-[   37.438766]        ___sys_sendmsg+0x2b2/0x2d0
-[   37.444052]        __sys_sendmsg+0x54/0x90
-[   37.449047]        SyS_sendmsg+0x12/0x20
-[   37.453848]        entry_SYSCALL_64_fastpath+0x1f/0xbe
-[   37.460007]=20
-               -> #1 (rtnl_mutex){+.+.+.}:
-[   37.466764]        lock_acquire+0xbd/0x200
-[   37.471745]        __mutex_lock+0x88/0x950
-[   37.476853]        mutex_lock_nested+0x1b/0x20
-[   37.482336]        rtnl_lock+0x17/0x20
-[   37.487038]        enum_all_gids_of_dev_cb+0x25/0xd0 [ib_core]
-[   37.494509]        ib_enum_roce_netdev+0xe7/0x100 [ib_core]
-[   37.501256]        roce_rescan_device+0x21/0x30 [ib_core]
-[   37.507680]        ib_cache_setup_one+0x1f1/0x350 [ib_core]
-[   37.514297]        ib_register_device+0x444/0x720 [ib_core]
-[   37.520900]        ocrdma_add+0x46f/0x820 [ocrdma]
-[   37.526622]        _be_roce_dev_add+0x17d/0x1e0 [be2net]
-[   37.532929]        be_roce_register_driver+0x4a/0x90 [be2net]
-[   37.539716]        ib_umad_poll+0x15/0x50 [ib_umad]
-[   37.545527]        do_one_initcall+0x51/0x1a9
-[   37.550881]        do_init_module+0x60/0x1ff
-[   37.556129]        load_module+0x257e/0x2b10
-[   37.561375]        SYSC_finit_module+0xa9/0x100
-[   37.566880]        SyS_finit_module+0xe/0x10
-[   37.572099]        do_syscall_64+0x6c/0x1d0
-[   37.577178]        return_from_SYSCALL_64+0x0/0x7a
-[   37.583232]=20
-               -> #0 (device_mutex){+.+.+.}:
-[   37.590704]        __lock_acquire+0x153c/0x1550
-[   37.596442]        lock_acquire+0xbd/0x200
-[   37.601399]        __mutex_lock+0x88/0x950
-[   37.606346]        mutex_lock_nested+0x1b/0x20
-[   37.611669]        ib_register_device+0xb5/0x720 [ib_core]
-[   37.618170]        c4iw_register_device+0x3a0/0x460 [iw_cxgb4]
-[   37.625061]        c4iw_uld_state_change+0x7a4/0xcd0 [iw_cxgb4]
-[   37.632108]        notify_ulds.isra.28+0x3f/0x60 [cxgb4]
-[   37.638410]        cxgb_up+0x70b/0x840 [cxgb4]
-[   37.643946]        cxgb_open+0x34/0x90 [cxgb4]
-[   37.649265]        __dev_open+0xc9/0x140
-[   37.653977]        __dev_change_flags+0x9d/0x160
-[   37.659613]        dev_change_flags+0x29/0x60
-[   37.665046]        do_setlink+0x4bf/0xc80
-[   37.669851]        rtnl_newlink+0x512/0x8a0
-[   37.675090]        rtnetlink_rcv_msg+0xac/0x240
-[   37.680717]        netlink_rcv_skb+0xed/0x120
-[   37.685937]        rtnetlink_rcv+0x2a/0x40
-[   37.691081]        netlink_unicast+0x182/0x220
-[   37.696607]        netlink_sendmsg+0x2e9/0x3e0
-[   37.702136]        sock_sendmsg+0x38/0x50
-[   37.707180]        ___sys_sendmsg+0x2b2/0x2d0
-[   37.712639]        __sys_sendmsg+0x54/0x90
-[   37.717542]        SyS_sendmsg+0x12/0x20
-[   37.722249]        entry_SYSCALL_64_fastpath+0x1f/0xbe
-[   37.728326]=20
-               other info that might help us debug this:
-
-[   37.738479] Chain exists of:
-                 device_mutex --> rtnl_mutex --> uld_mutex
-
-[   37.750153]  Possible unsafe locking scenario:
-
-[   37.757412]        CPU0                    CPU1
-[   37.762894]        ----                    ----
-[   37.768381]   lock(uld_mutex);
-[   37.772149]                                lock(rtnl_mutex);
-[   37.778830]                                lock(uld_mutex);
-[   37.785413]   lock(device_mutex);
-[   37.789462]=20
-                *** DEADLOCK ***
-
-[   37.797070] 2 locks held by NetworkManager/2196:
-[   37.802557]  #0:  (rtnl_mutex){+.+.+.}, at: [<ffffffff9e83457b>]
-rtnetlink_r0
-[   37.812213]  #1:  (uld_mutex){+.+.+.}, at: [<ffffffffc0574fd4>]
-notify_ulds.]
-[   37.822846]=20
-               stack backtrace:
-[   37.828894] CPU: 17 PID: 2196 Comm: NetworkManager Not tainted
-4.13.0-rc7+ #0
-[   37.837655] Hardware name: Dell Inc. PowerEdge R730xd/0599V5, BIOS
-2.0.2 03/6
-[   37.846551] Call Trace:
-[   37.849630]  dump_stack+0x85/0xcc
-[   37.853679]  print_circular_bug+0x200/0x20e
-[   37.858806]  __lock_acquire+0x153c/0x1550
-[   37.863738]  lock_acquire+0xbd/0x200
-[   37.868138]  ? ib_register_device+0xb5/0x720 [ib_core]
-[   37.874275]  ? ib_register_device+0xb5/0x720 [ib_core]
-[   37.880403]  __mutex_lock+0x88/0x950
-[   37.884782]  ? ib_register_device+0xb5/0x720 [ib_core]
-[   37.890914]  ? ib_register_device+0xb5/0x720 [ib_core]
-[   37.897108]  ? find_held_lock+0x40/0xb0
-[   37.901838]  mutex_lock_nested+0x1b/0x20
-[   37.906669]  ib_register_device+0xb5/0x720 [ib_core]
-[   37.912669]  ? c4iw_register_device+0x2f6/0x460 [iw_cxgb4]
-[   37.919261]  ? rcu_read_lock_sched_held+0x98/0xa0
-[   37.924973]  ? kmem_cache_alloc_trace+0x278/0x2e0
-[   37.930691]  ? c4iw_register_device+0x2f6/0x460 [iw_cxgb4]
-[   37.937293]  c4iw_register_device+0x3a0/0x460 [iw_cxgb4]
-[   37.943702]  c4iw_uld_state_change+0x7a4/0xcd0 [iw_cxgb4]
-[   37.950213]  ? notify_ulds.isra.28+0x24/0x60 [cxgb4]
-[   37.956244]  notify_ulds.isra.28+0x3f/0x60 [cxgb4]
-[   37.962083]  cxgb_up+0x70b/0x840 [cxgb4]
-[   37.966951]  ? cxgb4_ofld_send+0x20/0x20 [cxgb4]
-[   37.972594]  cxgb_open+0x34/0x90 [cxgb4]
-[   37.977462]  __dev_open+0xc9/0x140
-[   37.981741]  __dev_change_flags+0x9d/0x160
-[   37.986794]  dev_change_flags+0x29/0x60
-[   37.991557]  do_setlink+0x4bf/0xc80
-[   37.995931]  rtnl_newlink+0x512/0x8a0
-[   38.000500]  ? rtnl_newlink+0x104/0x8a0
-[   38.005263]  ? check_usage+0xb5/0x490
-[   38.009826]  ? ns_capable_common+0x7a/0x90
-[   38.014876]  ? ns_capable+0x13/0x20
-[   38.019253]  rtnetlink_rcv_msg+0xac/0x240
-[   38.024215]  ? rtnetlink_rcv+0x1b/0x40
-[   38.028879]  ? netlink_deliver_tap+0x7a/0x2c0
-[   38.034232]  ? rtnl_newlink+0x8a0/0x8a0
-[   38.038995]  netlink_rcv_skb+0xed/0x120
-[   38.043760]  rtnetlink_rcv+0x2a/0x40
-[   38.048244]  netlink_unicast+0x182/0x220
-[   38.053119]  netlink_sendmsg+0x2e9/0x3e0
-[   38.057985]  sock_sendmsg+0x38/0x50
-[   38.062243]  ___sys_sendmsg+0x2b2/0x2d0
-[   38.066877]  ? find_held_lock+0x40/0xb0
-[   38.071499]  ? __fget+0x102/0x210
-[   38.075647]  ? __fget+0x121/0x210
-[   38.079780]  ? __fget+0x5/0x210
-[   38.083706]  ? __fget_light+0x25/0x70
-[   38.088208]  __sys_sendmsg+0x54/0x90
-[   38.092606]  SyS_sendmsg+0x12/0x20
-[   38.096810]  entry_SYSCALL_64_fastpath+0x1f/0xbe
-[   38.102379] RIP: 0033:0x7f146e486974
-[   38.106778] RSP: 002b:00007ffd0cd3ee00 EFLAGS: 00000293 ORIG_RAX:
-0000000000e
-[   38.115654] RAX: ffffffffffffffda RBX: 000055698f9641f9 RCX:
-00007f146e486974
-[   38.124058] RDX: 0000000000000000 RSI: 00007ffd0cd3ee50 RDI:
-0000000000000007
-[   38.132474] RBP: 00007ffd0cd3f2e0 R08: 0000000000000000 R09:
-000055699118c300
-[   38.140884] R10: 0000000000000001 R11: 0000000000000293 R12:
-0000000000000001
-[   38.149306] R13: 0000000000000001 R14: 00007ffd0cd3f010 R15:
-000055698fbda5c0
-[   38.160359] ib_srpt srpt_add_one(cxgb4_0) failed.
-
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
---=-RkAq3eFIBvTPSj9WUe4k
+--10jrOL3x2xqLmOsH
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQJIBAABCAAyFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlmkRwwUHGRsZWRmb3Jk
-QHJlZGhhdC5jb20ACgkQuCajMw5XL90EnxAAw9ToNAgjEafx+sPgZiJ+tpnlEc1A
-S86Hs3zlnj2Eb5+B/MuXmDpKgqDPGK2xhE+MvwRiJJXop2E2H65f8igfrLPRe5JW
-xnOI3TfcSMmIkH1eNyS1qTTM2DdYMhQvpNVGkQ/oaQ8NTwO8tH2sWqf9+PB+EuwD
-62yYVxw0s0Wmjc48478D/5x5iiYNeRMPtNsoltUBI4zerQT4LcmODhaMM4O8wXXF
-sgPy8BX2kBKI2rKXgRZwW4ZdVrxDrO4o7XdZS/7wXtoAfyNTXVwIJommb9Glr9Gi
-40rFal7GnjkaAuDA/vQRksG1o5CCggltBmTxguqB/OLVzthCX61owrbzlJDO2e0k
-TtXuBhBx+aDzydI80+ar3NPy3or5qFqTyQWqR9rpw1PT1WgXgkQXYWgHSjyfmjAj
-Jce1NtDSD+xnakK2Q/+pCh1laJ3j391P+IbAmsZ+U0S7MQl55Qrwg8tRi4n0jwir
-uQ2xcDxbMOwhK3m03kjJHbNIkw/f9yN7EroUGRlTjcgcYtRj73ON2J5JPAJRkDc9
-ou/fWLdbQ/Cb5Pu1VVbLesmIOeeMj4EY5QVDzNalSMhcJTLhbqR3A1QYY9YiPEXz
-HwmEzKfk3MPwYCAS0L4rD6Syy2JOCAiLq0jvCCV73KAtuJgYbmQSjLZViIA2YTaL
-D7YK1xzx1UFI/Po=
-=dhLU
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmkUNkACgkQ5GN7iDZy
+WKegLg//TBlM4PF/VPoy+61yoQPQeQhfJFAJwZt5ImrIXIYOUmUcTjYvgGPnlrh0
+O1eNBEdXsiDxfYekuVYyPJT83rPmTRAXfR9nDc9QELS1c6SoAIBd4fsXcbb8StQH
+h8jkFGN+ynzUcl3cITkiyaNoA01RpDEqdl8E2MVYYGSOWgwL3EDPLn+IMPLuzS2B
+2ZDRXrjU41CDJs3lfG8DpTrxnm3CIAKa2Jh6zRDwQqL7w2Huvk4uFV2Y2ogB2IQC
+Q417DgW16qVJGAFbXRs4nrbB6731Q9zDLaVnfJDzmKcOWdjz12wJisQoCbQBpv98
+0B0V+dB/g1TnRE+M4N6I4sdJpQE+BC1r25Akq0L1qUjAUiTjgY8G6LJwuFw4N4Du
+wWrBtwOczPrXbX5IaCKCkXBEuYOAHBEIk4yZdwOwLDaDbQj2XNXNVWmbihZ6lF6i
+w+JPuFkT/W8SX0Z2kU4dZioOqsC5Q2VXtjnwf/Um9t0i3tIITAIRMKqWAu2usjze
+MDNxwTQCjvjXTD2dT9/G+SdBWqzRevwK8zjp/icCgcPxoekOEbpv5uPhJObBNU/5
+9T/1DgMS2ClkjR3R43KHDoHBU9fUH2a/e21ijHfrGz+CnLc43qWMqPiKE/I3u9zl
+u3RgKEUOHk7wIWDJ+tMDD7Zy2+bTyAaP4/jFdiy1A/rZMRJVMSY=
+=yuRz
 -----END PGP SIGNATURE-----
 
---=-RkAq3eFIBvTPSj9WUe4k--
-
+--10jrOL3x2xqLmOsH--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
