@@ -1,47 +1,33 @@
-From: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Subject: [PATCH v2 11/11] IB/rxe: Handle NETDEV_CHANGE events
-Date: Mon, 28 Aug 2017 16:11:59 -0400
-Message-ID: <1503951119-25573-12-git-send-email-andrew.boyer@dell.com>
-References: <1503687956-7110-1-git-send-email-andrew.boyer@dell.com>
- <1503951119-25573-1-git-send-email-andrew.boyer@dell.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Bug report: ConnectX-5 unable to use non-default P_Key
+Date: Mon, 28 Aug 2017 18:54:58 -0400
+Message-ID: <1503960898.52034.4.camel@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1503951119-25573-1-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Without this fix, ports configured on top of ixgbe miss link up
-notifications. ibv_query_port() will continue to return IBV_PORT_DOWN even
-though the port is up and working.
+This is with plain 4.13-rc7.
 
-Fixes: 8700e3e7c485 ("Soft RoCE driver")
-Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
----
- drivers/infiniband/sw/rxe/rxe_net.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+Attempts to bring up the 0x8002 P_Key IPoIB device using dhcp fail and
+NetworkManager releases the device.
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-index 3ba76e7..59dee10 100644
---- a/drivers/infiniband/sw/rxe/rxe_net.c
-+++ b/drivers/infiniband/sw/rxe/rxe_net.c
-@@ -651,8 +651,13 @@ static int rxe_notify(struct notifier_block *not_blk,
- 		pr_info("%s changed mtu to %d\n", ndev->name, ndev->mtu);
- 		rxe_set_mtu(rxe, ndev->mtu);
- 		break;
--	case NETDEV_REBOOT:
- 	case NETDEV_CHANGE:
-+		if (netif_running(ndev) && netif_carrier_ok(ndev))
-+			rxe_port_up(rxe);
-+		else
-+			rxe_port_down(rxe);
-+		break;
-+	case NETDEV_REBOOT:
- 	case NETDEV_GOING_DOWN:
- 	case NETDEV_CHANGEADDR:
- 	case NETDEV_CHANGENAME:
+Switch to static IP configuration, the device comes up, but IPoIB is
+unable to ping other devices on the 0x8002 P_Key.
+
+I tried other means of trying to communicate over a specific P_Key, and
+I seem to recall we used to have the option to specify the target using
+the GUID, but I couldn't find any tools that still allow me to specify
+a target that way and also allow me to specify the P_Key (it probably
+exists, I just don't know which tool to use to do it).
+
 -- 
-1.8.3.1
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
