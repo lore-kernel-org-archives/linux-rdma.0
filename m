@@ -1,58 +1,76 @@
-From: "Boyer, Andrew" <Andrew.Boyer-8PEkshWhKlo@public.gmane.org>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH v1 11/11] IB/rxe: Handle NETDEV_CHANGE events
-Date: Mon, 28 Aug 2017 13:47:53 +0000
-Message-ID: <D5C996DB.1DFB5%Andrew.Boyer@emc.com>
+Date: Mon, 28 Aug 2017 16:50:41 +0300
+Message-ID: <20170828135040.GE4609@yuvallap>
 References: <1500989968-30889-1-git-send-email-andrew.boyer@dell.com>
  <1503687956-7110-1-git-send-email-andrew.boyer@dell.com>
  <1503687956-7110-12-git-send-email-andrew.boyer@dell.com>
- <20170827103008.GA10391@yuvallap> <D5C986D7.1DF85%Andrew.Boyer@emc.com>
+ <20170827103008.GA10391@yuvallap>
+ <D5C986D7.1DF85%Andrew.Boyer@emc.com>
  <e426219f-a558-209b-350c-bd71c39e52eb@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="euc-kr"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 In-Reply-To: <e426219f-a558-209b-350c-bd71c39e52eb-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-Content-ID: <EC3E7124D93FFE43BDCA84A3EC527567-/m+UfqrgI5Tvk4DGDgVwFwC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Boyer, Andrew" <Andrew.Boyer-8PEkshWhKlo@public.gmane.org>, "monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCk9uIDgvMjgvMTcsIDk6MzcgQU0sICJEb3VnIExlZGZvcmQiIDxkbGVkZm9yZEByZWRoYXQu
-Y29tPiB3cm90ZToNCg0KPk9uIDgvMjgvMjAxNyA4OjM4IEFNLCBCb3llciwgQW5kcmV3IHdyb3Rl
-Og0KPj4gDQo+PiBPbiA4LzI3LzE3LCA2OjMwIEFNLCAiWXV2YWwgU2hhaWEiIDx5dXZhbC5zaGFp
-YUBvcmFjbGUuY29tPiB3cm90ZToNCj4+IA0KPj4+IE9uIEZyaSwgQXVnIDI1LCAyMDE3IGF0IDAz
-OjA1OjU2UE0gLTA0MDAsIEFuZHJldyBCb3llciB3cm90ZToNCj4+Pj4gV2l0aG91dCB0aGlzIGZp
-eCwgcG9ydHMgY29uZmlndXJlZCBvbiB0b3Agb2YgaXhnYmUgbWlzcyBsaW5rIHVwDQo+Pj4+IG5v
-dGlmaWNhdGlvbnMuIGlidl9xdWVyeV9wb3J0KCkgd2lsbCBjb250aW51ZSB0byByZXR1cm4gSUJW
-X1BPUlRfRE9XTg0KPj4+PiBldmVuDQo+Pj4+IHRob3VnaCB0aGUgcG9ydCBpcyB1cCBhbmQgd29y
-a2luZy4NCj4+Pj4NCj4+Pj4gRml4ZXM6IDg3MDBlM2U3YzQ4NSAoIlNvZnQgUm9DRSBkcml2ZXIi
-KQ0KPj4+PiBTaWduZWQtb2ZmLWJ5OiBBbmRyZXcgQm95ZXIgPGFuZHJldy5ib3llckBkZWxsLmNv
-bT4NCj4+Pj4gLS0tDQo+Pj4+ICBkcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4ZV9uZXQuYyB8
-IDcgKysrKysrLQ0KPj4+PiAgMSBmaWxlIGNoYW5nZWQsIDYgaW5zZXJ0aW9ucygrKSwgMSBkZWxl
-dGlvbigtKQ0KPj4+Pg0KPj4+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL3N3L3J4
-ZS9yeGVfbmV0LmMNCj4+Pj4gYi9kcml2ZXJzL2luZmluaWJhbmQvc3cvcnhlL3J4ZV9uZXQuYw0K
-Pj4+PiBpbmRleCAzYmE3NmU3Li4xMzNjNmM0IDEwMDY0NA0KPj4+PiAtLS0gYS9kcml2ZXJzL2lu
-ZmluaWJhbmQvc3cvcnhlL3J4ZV9uZXQuYw0KPj4+PiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQv
-c3cvcnhlL3J4ZV9uZXQuYw0KPj4+PiBAQCAtNjUxLDggKzY1MSwxMyBAQCBzdGF0aWMgaW50IHJ4
-ZV9ub3RpZnkoc3RydWN0IG5vdGlmaWVyX2Jsb2NrDQo+Pj4+ICpub3RfYmxrLA0KPj4+PiAgCQlw
-cl9pbmZvKCIlcyBjaGFuZ2VkIG10dSB0byAlZFxuIiwgbmRldi0+bmFtZSwgbmRldi0+bXR1KTsN
-Cj4+Pj4gIAkJcnhlX3NldF9tdHUocnhlLCBuZGV2LT5tdHUpOw0KPj4+PiAgCQlicmVhazsNCj4+
-Pj4gLQljYXNlIE5FVERFVl9SRUJPT1Q6DQo+Pj4+ICAJY2FzZSBORVRERVZfQ0hBTkdFOg0KPj4+
-PiArCQlpZiAobmV0aWZfcnVubmluZyhuZGV2KSAmJiBuZXRpZl9jYXJyaWVyX29rKG5kZXYpKQ0K
-Pj4+PiArCQkJcnhlX3BvcnRfdXAocnhlLCBwb3J0X251bSk7DQo+Pj4gT24gdG9wIG9mIHdoaWNo
-IGJyYW5jaC9wYXRjaCB0aGlzIHBhdGNoIGlzIGJhc2VkIG9uPw0KPj4gWWlrZXMsIGl0IHJlbGll
-cyBvbiBhbiBpbnRlcm5hbCBwYXRjaCB0aGF0IERvdWcgd2Fzbqn2dCBpbnRlcmVzdGVkIGluDQo+
-PiB0YWtpbmcuIFdpbGwgcmVzcGluLg0KPj4gDQo+DQo+SSBkb24ndCByZW1lbWJlciBzZWVpbmcg
-YSBwYXRjaCBjb21lIHRocm91Z2ggdGhhdCBhZGRlZCByeGVfcG9ydF91cCgpLA0KPmxldCBhbG9u
-ZSB0dXJuaW5nIGl0IGF3YXkuLi4NCg0KSXShr3MgdGhlIHBvcnRfbnVtIGFyZ3VtZW50IHRoYXQg
-ZG9lc26hr3QgZXhpc3QgdXBzdHJlYW0uIFdlIGFkZGVkIHRoZQ0KYWJpbGl0eSBmb3IgUlhFIHRv
-IHN1cHBvcnQgYSBzZWNvbmQgcG9ydCAodG8gYmV0dGVyIG1pbWljIGFuIG1seDQpIGJ1dCB5b3UN
-CnNhaWQgaXQgd2FzbqGvdCBuZWVkZWQuDQoNCi1BbmRyZXcNCg0KPg0KPi0tIA0KPkRvdWcgTGVk
-Zm9yZCA8ZGxlZGZvcmRAcmVkaGF0LmNvbT4NCj4gICAgR1BHIEtleSBJRDogQjgyNkEzMzMwRTU3
-MkZERA0KPiAgICBLZXkgZmluZ2VycHJpbnQgPSBBRTZCIDFCREEgMTIyQiAyM0I0IDI2NUIgIDEy
-NzQgQjgyNiBBMzMzIDBFNTcgMkZERA0KPg0KDQo=
+On Mon, Aug 28, 2017 at 09:37:08AM -0400, Doug Ledford wrote:
+> On 8/28/2017 8:38 AM, Boyer, Andrew wrote:
+> > 
+> > On 8/27/17, 6:30 AM, "Yuval Shaia" <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> > 
+> >> On Fri, Aug 25, 2017 at 03:05:56PM -0400, Andrew Boyer wrote:
+> >>> Without this fix, ports configured on top of ixgbe miss link up
+> >>> notifications. ibv_query_port() will continue to return IBV_PORT_DOWN
+> >>> even
+> >>> though the port is up and working.
+> >>>
+> >>> Fixes: 8700e3e7c485 ("Soft RoCE driver")
+> >>> Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+> >>> ---
+> >>>  drivers/infiniband/sw/rxe/rxe_net.c | 7 ++++++-
+> >>>  1 file changed, 6 insertions(+), 1 deletion(-)
+> >>>
+> >>> diff --git a/drivers/infiniband/sw/rxe/rxe_net.c
+> >>> b/drivers/infiniband/sw/rxe/rxe_net.c
+> >>> index 3ba76e7..133c6c4 100644
+> >>> --- a/drivers/infiniband/sw/rxe/rxe_net.c
+> >>> +++ b/drivers/infiniband/sw/rxe/rxe_net.c
+> >>> @@ -651,8 +651,13 @@ static int rxe_notify(struct notifier_block
+> >>> *not_blk,
+> >>>  		pr_info("%s changed mtu to %d\n", ndev->name, ndev->mtu);
+> >>>  		rxe_set_mtu(rxe, ndev->mtu);
+> >>>  		break;
+> >>> -	case NETDEV_REBOOT:
+> >>>  	case NETDEV_CHANGE:
+> >>> +		if (netif_running(ndev) && netif_carrier_ok(ndev))
+> >>> +			rxe_port_up(rxe, port_num);
+> >> On top of which branch/patch this patch is based on?
+> > Yikes, it relies on an internal patch that Doug wasn¹t interested in
+> > taking. Will respin.
+> > 
+> 
+> I don't remember seeing a patch come through that added rxe_port_up(),
+> let alone turning it away...
+
+rxe_port_up is already implemented but since RXE device has only one port i
+don't see a reason to pass porn_num to this function.
+I might be wrong.
+
+> 
+> -- 
+> Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>     GPG Key ID: B826A3330E572FDD
+>     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+> 
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
