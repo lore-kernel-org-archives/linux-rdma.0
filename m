@@ -1,30 +1,46 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 0/9] IB/hfi1, qib, rdmavt: patches for next
- 08/28/2017
-Date: Mon, 28 Aug 2017 19:31:58 -0400
-Message-ID: <1503963118.52034.13.camel@redhat.com>
-References: <20170828182121.29434.18989.stgit@scvm10.sc.intel.com>
+Subject: Re: [PATCH v2 00/11] IB/rxe: Bug fixes
+Date: Mon, 28 Aug 2017 19:32:35 -0400
+Message-ID: <1503963155.52034.14.camel@redhat.com>
+References: <1503687956-7110-1-git-send-email-andrew.boyer@dell.com>
+         <1503951119-25573-1-git-send-email-andrew.boyer@dell.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170828182121.29434.18989.stgit-9QXIwq+3FY+1XWohqUldA0EOCMrvLtNR@public.gmane.org>
+In-Reply-To: <1503951119-25573-1-git-send-email-andrew.boyer-8PEkshWhKlo@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jan Sokolowski <jan.sokolowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kaike Wan <kaike.wan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Michael J. Ruhl" <michael.j.ruhl-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kamenee Arumugam <kamenee.arumugam-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>, monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2017-08-28 at 11:23 -0700, Dennis Dalessandro wrote:
-> Hi Doug,
+On Mon, 2017-08-28 at 16:11 -0400, Andrew Boyer wrote:
+> This patch set addresses a few issues which we have found in RXE.
+> The first patch fixes a serious issue that causes kernel panics
+> during
+> network congestion.
 > 
-> Here is the next round of patches for our drivers. There are a few
-> patches from
-> Mike that adds a qp iterator and starts the work of cleaning up some
-> of our code
-> that needs to walk qps. The rest are minor bug fixes.
+> Changes for v2:
+> * Update NETDEV_CHANGE patch so it builds; original was inadvertently
+>   based on an internal branch
 > 
-> Patches can can also be found in my GitHub repo at:
-> https://github.com/ddalessa/kernel/tree/for-4.14
+> Changes for v1:
+> * Address review comments and add review tags from Moni
+> * Split destination cache patch into 4 smaller patches
+> * Added CONFIG_IPV6 check to destination cache patch
+> * Added new NETDEV_CHANGE patch
+> 
+> Andrew Boyer (11):
+>   IB/rxe: Move refcounting earlier in rxe_send()
+>   IB/rxe: Disable completion upcalls when a CQ is destroyed
+>   IB/rxe: Remove dangling prototype
+>   IB/rxe: Fix up the responder's find_resources() function
+>   IB/rxe: Fix destination cache for IPv6
+>   IB/rxe: Add dst_clone() in prepare_ipv6_hdr()
+>   IB/rxe: Fix up rxe_qp_cleanup()
+>   IB/rxe: Remove unneeded initialization in prepare6()
+>   IB/rxe: Another fix for broken receive queue draining
+>   IB/rxe: Avoid ICRC errors by copying into the skb first
+>   IB/rxe: Handle NETDEV_CHANGE events
 
 Thanks, series applied.
 
