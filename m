@@ -1,7 +1,7 @@
 From: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Subject: [PATCH v2 02/11] IB/rxe: Disable completion upcalls when a CQ is destroyed
-Date: Mon, 28 Aug 2017 16:11:50 -0400
-Message-ID: <1503951119-25573-3-git-send-email-andrew.boyer@dell.com>
+Subject: [PATCH v2 03/11] IB/rxe: Remove dangling prototype
+Date: Mon, 28 Aug 2017 16:11:51 -0400
+Message-ID: <1503951119-25573-4-git-send-email-andrew.boyer@dell.com>
 References: <1503687956-7110-1-git-send-email-andrew.boyer@dell.com>
  <1503951119-25573-1-git-send-email-andrew.boyer@dell.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,119 +11,27 @@ To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J
 Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This prevents the stack from accessing userspace objects while they
-are being torn down.
-
-One possible sequence of events:
- - Userspace program exits
- - ib_uverbs_cleanup_ucontext() runs, calling ib_destroy_qp(),
-   ib_destroy_cq(), etc. and releasing/freeing the UCQ
-   - The QP still has tasklets running, so it isn't destroyed yet
-   - The CQ is referenced by the QP, so the CQ isn't destroyed yet
-   - The UCQ is kfree()'d anyway
- - A send work request completes
- - rxe_send_complete() calls cq->ibcq.comp_handler()
- - ib_uverbs_comp_handler() runs and crashes; the event queue is checked
-   for is_closed, but it has no way to check the ib_ucq_object before
-   accessing it
-
-The reference counting on the CQ doesn't protect against this since the CQ
-hasn't been destroyed yet.
-There's no available interface to deregister the UCQ from the CQ, and it
-didn't appear that attempting to add reference counting to the UCQ was
-going to be a good way to go since this solution is much simpler.
-
 Fixes: 8700e3e7c485 ("Soft RoCE driver")
 Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+Acked-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_cq.c    | 19 +++++++++++++++++++
- drivers/infiniband/sw/rxe/rxe_loc.h   |  2 ++
- drivers/infiniband/sw/rxe/rxe_verbs.c |  2 ++
- drivers/infiniband/sw/rxe/rxe_verbs.h |  1 +
- 4 files changed, 24 insertions(+)
+ drivers/infiniband/sw/rxe/rxe_loc.h | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_cq.c b/drivers/infiniband/sw/rxe/rxe_cq.c
-index 49fe42c..c4aabf7 100644
---- a/drivers/infiniband/sw/rxe/rxe_cq.c
-+++ b/drivers/infiniband/sw/rxe/rxe_cq.c
-@@ -69,6 +69,14 @@ int rxe_cq_chk_attr(struct rxe_dev *rxe, struct rxe_cq *cq,
- static void rxe_send_complete(unsigned long data)
- {
- 	struct rxe_cq *cq = (struct rxe_cq *)data;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cq->cq_lock, flags);
-+	if (cq->is_dying) {
-+		spin_unlock_irqrestore(&cq->cq_lock, flags);
-+		return;
-+	}
-+	spin_unlock_irqrestore(&cq->cq_lock, flags);
- 
- 	cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
- }
-@@ -97,6 +105,8 @@ int rxe_cq_from_init(struct rxe_dev *rxe, struct rxe_cq *cq, int cqe,
- 	if (udata)
- 		cq->is_user = 1;
- 
-+	cq->is_dying = false;
-+
- 	tasklet_init(&cq->comp_task, rxe_send_complete, (unsigned long)cq);
- 
- 	spin_lock_init(&cq->cq_lock);
-@@ -156,6 +166,15 @@ int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited)
- 	return 0;
- }
- 
-+void rxe_cq_disable(struct rxe_cq *cq)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cq->cq_lock, flags);
-+	cq->is_dying = true;
-+	spin_unlock_irqrestore(&cq->cq_lock, flags);
-+}
-+
- void rxe_cq_cleanup(struct rxe_pool_entry *arg)
- {
- 	struct rxe_cq *cq = container_of(arg, typeof(*cq), pelem);
 diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-index d6299ed..64f8fa1 100644
+index 64f8fa1..8ef2d3f 100644
 --- a/drivers/infiniband/sw/rxe/rxe_loc.h
 +++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-@@ -64,6 +64,8 @@ int rxe_cq_from_init(struct rxe_dev *rxe, struct rxe_cq *cq, int cqe,
+@@ -221,8 +221,6 @@ static inline void rxe_advance_resp_resource(struct rxe_qp *qp)
+ void retransmit_timer(unsigned long data);
+ void rnr_nak_timer(unsigned long data);
  
- int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited);
+-void dump_qp(struct rxe_qp *qp);
+-
+ /* rxe_srq.c */
+ #define IB_SRQ_INIT_MASK (~IB_SRQ_LIMIT)
  
-+void rxe_cq_disable(struct rxe_cq *cq);
-+
- void rxe_cq_cleanup(struct rxe_pool_entry *arg);
- 
- /* rxe_mcast.c */
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-index af90a7d..02a39e8 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-@@ -960,6 +960,8 @@ static int rxe_destroy_cq(struct ib_cq *ibcq)
- {
- 	struct rxe_cq *cq = to_rcq(ibcq);
- 
-+	rxe_cq_disable(cq);
-+
- 	rxe_drop_ref(cq);
- 	return 0;
- }
-diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
-index 5a180fb..b09a9e2 100644
---- a/drivers/infiniband/sw/rxe/rxe_verbs.h
-+++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
-@@ -89,6 +89,7 @@ struct rxe_cq {
- 	struct rxe_queue	*queue;
- 	spinlock_t		cq_lock;
- 	u8			notify;
-+	bool			is_dying;
- 	int			is_user;
- 	struct tasklet_struct	comp_task;
- };
 -- 
 1.8.3.1
 
