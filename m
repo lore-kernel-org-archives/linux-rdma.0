@@ -1,7 +1,7 @@
 From: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Subject: [PATCH v2 07/11] IB/rxe: Fix up rxe_qp_cleanup()
-Date: Mon, 28 Aug 2017 16:11:55 -0400
-Message-ID: <1503951119-25573-8-git-send-email-andrew.boyer@dell.com>
+Subject: [PATCH v2 06/11] IB/rxe: Add dst_clone() in prepare_ipv6_hdr()
+Date: Mon, 28 Aug 2017 16:11:54 -0400
+Message-ID: <1503951119-25573-7-git-send-email-andrew.boyer@dell.com>
 References: <1503687956-7110-1-git-send-email-andrew.boyer@dell.com>
  <1503951119-25573-1-git-send-email-andrew.boyer@dell.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,36 +11,27 @@ To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J
 Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Replace sk_dst_get()/dst_release() in rxe_qp_cleanup() with sk_dst_reset().
-sk_dst_get() takes a new reference on dst, so the dst_release() doesn't
-actually release the original reference, which was the design intent.
+Otherwise the reference count goes negative as IPv6 packets complete.
 
 Fixes: 4ed6ad1eb30e ("IB/rxe: Cache dst in QP instead of getting it...")
 Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_qp.c | 9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_net.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_qp.c b/drivers/infiniband/sw/rxe/rxe_qp.c
-index 80ccc7c..00bda93 100644
---- a/drivers/infiniband/sw/rxe/rxe_qp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_qp.c
-@@ -851,13 +851,8 @@ void rxe_qp_cleanup(struct rxe_pool_entry *arg)
- 		qp->resp.mr = NULL;
- 	}
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+index a93ae3a..3fbbadc 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -342,7 +342,7 @@ static void prepare_ipv6_hdr(struct dst_entry *dst, struct sk_buff *skb,
+ 	memset(&(IPCB(skb)->opt), 0, sizeof(IPCB(skb)->opt));
+ 	IPCB(skb)->flags &= ~(IPSKB_XFRM_TUNNEL_SIZE | IPSKB_XFRM_TRANSFORMED
+ 			    | IPSKB_REROUTED);
+-	skb_dst_set(skb, dst);
++	skb_dst_set(skb, dst_clone(dst));
  
--	if (qp_type(qp) == IB_QPT_RC) {
--		struct dst_entry *dst = NULL;
--
--		dst = sk_dst_get(qp->sk->sk);
--		if (dst)
--			dst_release(dst);
--	}
-+	if (qp_type(qp) == IB_QPT_RC)
-+		sk_dst_reset(qp->sk->sk);
- 
- 	free_rd_atomic_resources(qp);
- 
+ 	__skb_push(skb, sizeof(*ip6h));
+ 	skb_reset_network_header(skb);
 -- 
 1.8.3.1
 
