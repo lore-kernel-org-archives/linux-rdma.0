@@ -1,7 +1,7 @@
 From: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Subject: [PATCH v2 04/11] IB/rxe: Fix up the responder's find_resources() function
-Date: Mon, 28 Aug 2017 16:11:52 -0400
-Message-ID: <1503951119-25573-5-git-send-email-andrew.boyer@dell.com>
+Subject: [PATCH v2 05/11] IB/rxe: Fix destination cache for IPv6
+Date: Mon, 28 Aug 2017 16:11:53 -0400
+Message-ID: <1503951119-25573-6-git-send-email-andrew.boyer@dell.com>
 References: <1503687956-7110-1-git-send-email-andrew.boyer@dell.com>
  <1503951119-25573-1-git-send-email-andrew.boyer@dell.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,31 +11,58 @@ To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J
 Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The resource array is sized by max_dest_rd_atomic, not max_rd_atomic.
-Iterating over max_rd_atomic entries of qp->resp.resources[] will cause
-incorrect behavior when the two attributes are different (or even
-crash if max_rd_atomic is larger).
+To successfully match an IPv6 path, the path cookie must match. Store it
+in the QP so that the IPv6 path can be reused.
 
-Fixes: 8700e3e7c485 ("Soft RoCE driver")
+Replace open-coded version of dst_check() with the actual call, fixing the
+logic. The open-coded version skips the check call if dst->obsolete is 0
+(DST_OBSOLETE_NONE), proceeding to replace the route. DST_OBSOLETE_NONE
+means that the route may continue to be used, though.
+
+Fixes: 4ed6ad1eb30e ("IB/rxe: Cache dst in QP instead of getting it...")
 Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/sw/rxe/rxe_resp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/sw/rxe/rxe_net.c   | 7 ++++++-
+ drivers/infiniband/sw/rxe/rxe_verbs.h | 1 +
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-index a958ee9..4240866 100644
---- a/drivers/infiniband/sw/rxe/rxe_resp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-@@ -1055,7 +1055,7 @@ static struct resp_res *find_resource(struct rxe_qp *qp, u32 psn)
- {
- 	int i;
+diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
+index 0810f38..a93ae3a 100644
+--- a/drivers/infiniband/sw/rxe/rxe_net.c
++++ b/drivers/infiniband/sw/rxe/rxe_net.c
+@@ -191,7 +191,7 @@ static struct dst_entry *rxe_find_route(struct rxe_dev *rxe,
+ 	if (qp_type(qp) == IB_QPT_RC)
+ 		dst = sk_dst_get(qp->sk->sk);
  
--	for (i = 0; i < qp->attr.max_rd_atomic; i++) {
-+	for (i = 0; i < qp->attr.max_dest_rd_atomic; i++) {
- 		struct resp_res *res = &qp->resp.resources[i];
+-	if (!dst || !(dst->obsolete && dst->ops->check(dst, 0))) {
++	if (!dst || !dst_check(dst, qp->dst_cookie)) {
+ 		if (dst)
+ 			dst_release(dst);
  
- 		if (res->type == 0)
+@@ -209,6 +209,11 @@ static struct dst_entry *rxe_find_route(struct rxe_dev *rxe,
+ 			saddr6 = &av->sgid_addr._sockaddr_in6.sin6_addr;
+ 			daddr6 = &av->dgid_addr._sockaddr_in6.sin6_addr;
+ 			dst = rxe_find_route6(rxe->ndev, saddr6, daddr6);
++#if IS_ENABLED(CONFIG_IPV6)
++			if (dst)
++				qp->dst_cookie =
++					rt6_get_cookie((struct rt6_info *)dst);
++#endif
+ 		}
+ 	}
+ 
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.h b/drivers/infiniband/sw/rxe/rxe_verbs.h
+index b09a9e2..0c2dbe4 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.h
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.h
+@@ -248,6 +248,7 @@ struct rxe_qp {
+ 	struct rxe_rq		rq;
+ 
+ 	struct socket		*sk;
++	u32			dst_cookie;
+ 
+ 	struct rxe_av		pri_av;
+ 	struct rxe_av		alt_av;
 -- 
 1.8.3.1
 
