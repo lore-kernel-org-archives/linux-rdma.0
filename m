@@ -1,7 +1,7 @@
 From: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Subject: [PATCH v2 08/11] IB/rxe: Remove unneeded initialization in prepare6()
-Date: Mon, 28 Aug 2017 16:11:56 -0400
-Message-ID: <1503951119-25573-9-git-send-email-andrew.boyer@dell.com>
+Subject: [PATCH v2 10/11] IB/rxe: Avoid ICRC errors by copying into the skb first
+Date: Mon, 28 Aug 2017 16:11:58 -0400
+Message-ID: <1503951119-25573-11-git-send-email-andrew.boyer@dell.com>
 References: <1503687956-7110-1-git-send-email-andrew.boyer@dell.com>
  <1503951119-25573-1-git-send-email-andrew.boyer@dell.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,26 +11,58 @@ To: monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yonatanc-VPRAkNaXOzVWk0Htik3J
 Cc: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Fixes: 4ed6ad1eb30e ("IB/rxe: Cache dst in QP instead of getting it...")
-Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
-Reviewed-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/sw/rxe/rxe_net.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The current process is to first calculate the CRC and then copy the client
+data into the packet. This leaves a window in which the packet contents and
+CRC can get out of sync, if the client changes the data after the CRC is
+calculated but before the data is copied.
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
-index 3fbbadc..3ba76e7 100644
---- a/drivers/infiniband/sw/rxe/rxe_net.c
-+++ b/drivers/infiniband/sw/rxe/rxe_net.c
-@@ -393,7 +393,7 @@ static int prepare6(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
- 		    struct sk_buff *skb, struct rxe_av *av)
- {
- 	struct rxe_qp *qp = pkt->qp;
--	struct dst_entry *dst = NULL;
-+	struct dst_entry *dst;
- 	struct in6_addr *saddr = &av->sgid_addr._sockaddr_in6.sin6_addr;
- 	struct in6_addr *daddr = &av->dgid_addr._sockaddr_in6.sin6_addr;
+By copying the data into the packet and then calculating the CRC directly
+from the packet contents we eliminate the window.
+
+This can be seen with qperf's ud_bi_bw test. This seems like very
+strange/reckless client behavior, but whether the client has mangled its
+data or not RXE should be able to transfer it reliably.
+
+Fixes: 8700e3e7c485 ("Soft RoCE driver")
+Signed-off-by: Andrew Boyer <andrew.boyer-8PEkshWhKlo@public.gmane.org>
+---
+ drivers/infiniband/sw/rxe/rxe_mr.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/infiniband/sw/rxe/rxe_mr.c b/drivers/infiniband/sw/rxe/rxe_mr.c
+index e37cc89..5c2684b 100644
+--- a/drivers/infiniband/sw/rxe/rxe_mr.c
++++ b/drivers/infiniband/sw/rxe/rxe_mr.c
+@@ -367,11 +367,11 @@ int rxe_mem_copy(struct rxe_mem *mem, u64 iova, void *addr, int length,
+ 		dest = (dir == to_mem_obj) ?
+ 			((void *)(uintptr_t)iova) : addr;
  
++		memcpy(dest, src, length);
++
+ 		if (crcp)
+ 			*crcp = rxe_crc32(to_rdev(mem->pd->ibpd.device),
+-					*crcp, src, length);
+-
+-		memcpy(dest, src, length);
++					*crcp, dest, length);
+ 
+ 		return 0;
+ 	}
+@@ -401,11 +401,11 @@ int rxe_mem_copy(struct rxe_mem *mem, u64 iova, void *addr, int length,
+ 		if (bytes > length)
+ 			bytes = length;
+ 
++		memcpy(dest, src, bytes);
++
+ 		if (crcp)
+ 			crc = rxe_crc32(to_rdev(mem->pd->ibpd.device),
+-					crc, src, bytes);
+-
+-		memcpy(dest, src, bytes);
++					crc, dest, bytes);
+ 
+ 		length	-= bytes;
+ 		addr	+= bytes;
 -- 
 1.8.3.1
 
