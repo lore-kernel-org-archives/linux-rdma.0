@@ -1,170 +1,134 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH 1/2] IB/cm: Fix sleeping in atomic when RoCE is used
-Date: Tue, 29 Aug 2017 10:34:43 -0700
-Message-ID: <20170829173444.4289-1-roland@kernel.org>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next 1/2] RDMA/vmw_pvrdma: Report network header type
+ in WC
+Date: Tue, 29 Aug 2017 10:42:22 -0700
+Message-ID: <8a7a8389-f3f0-587b-6e11-9440e588fae2@vmware.com>
+References: <cover.1503965717.git.aditr@vmware.com>
+ <521f5e2169789e31a7e91dab691cd155f0100090.1503965717.git.aditr@vmware.com>
+ <20170829054533.GH23726@mtr-leonro.local>
+ <1504014883.52034.33.camel@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1504014883.52034.33.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+On Tue, Aug 29, 2017 at 06:54:48AM -0700, Doug Ledford wrote:
+> On Tue, 2017-08-29 at 08:45 +0300, Leon Romanovsky wrote:
+> > On Mon, Aug 28, 2017 at 05:19:35PM -0700, Adit Ranadive wrote:
+> > > From: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > >
+> > > We should report the network header type in the work completion so
+> > > that
+> > > the kernel can infer the right RoCE type headers.
+> > >
+> > > Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > Signed-off-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+> > > ---
+> > >  drivers/infiniband/hw/vmw_pvrdma/pvrdma.h    |  6 ++++++
+> > >  drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c |  2 ++
+> > >  include/uapi/rdma/vmw_pvrdma-abi.h           | 13 +++++++++++--
+> > >  3 files changed, 19 insertions(+), 2 deletions(-)
+> > >
+> > > diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> > > b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> > > index 663a0c3..99b2c97 100644
+> > > --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> > > +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> > > @@ -426,6 +426,12 @@ static inline int pvrdma_wc_flags_to_ib(int
+> > > flags)
+> > >  	return flags;
+> > >  }
+> > >
+> > > +static inline enum rdma_network_type pvrdma_wc_network_hdr_to_ib(
+> > > +					enum pvrdma_network_type
+> > > type)
+> > > +{
+> > > +	return (enum rdma_network_type)type;
+> > > +}
+> > > +
+> > >  static inline int ib_send_flags_to_pvrdma(int flags)
+> > >  {
+> > >  	return flags & PVRDMA_MASK(PVRDMA_SEND_FLAGS_MAX);
+> > > diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
+> > > b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
+> > > index 90aa326..34727f6 100644
+> > > --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
+> > > +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
+> > > @@ -389,6 +389,8 @@ static int pvrdma_poll_one(struct pvrdma_cq
+> > > *cq, struct pvrdma_qp **cur_qp,
+> > >  	wc->dlid_path_bits = cqe->dlid_path_bits;
+> > >  	wc->port_num = cqe->port_num;
+> > >  	wc->vendor_err = cqe->vendor_err;
+> > > +	wc->network_hdr_type =
+> > > +			pvrdma_wc_network_hdr_to_ib(cqe-
+> > > > network_hdr_type);
+> > >
+> > >  	/* Update shared ring state */
+> > >  	pvrdma_idx_ring_inc(&cq->ring_state->rx.cons_head, cq-
+> > > > ibcq.cqe);
+> > > diff --git a/include/uapi/rdma/vmw_pvrdma-abi.h
+> > > b/include/uapi/rdma/vmw_pvrdma-abi.h
+> > > index c8c1d2d..6a87806 100644
+> > > --- a/include/uapi/rdma/vmw_pvrdma-abi.h
+> > > +++ b/include/uapi/rdma/vmw_pvrdma-abi.h
+> > > @@ -58,6 +58,13 @@
+> > >  #define PVRDMA_UAR_CQ_ARM		BIT(30)		/*
+> > > Arm bit. */
+> > >  #define PVRDMA_UAR_CQ_POLL		BIT(31)		/
+> > > * Poll bit. */
+> > >
+> > > +enum pvrdma_network_type {
+> > > +	PVRDMA_NETWORK_IB,
+> > > +	PVRDMA_NETWORK_ROCE_V1 = PVRDMA_NETWORK_IB,
+> > > +	PVRDMA_NETWORK_IPV4,
+> > > +	PVRDMA_NETWORK_IPV6
+> > > +};
+> >
+> > Doug,
+> >
+> > I see that you are already merged this patch, but it is problematic
+> > patch.
+>
+> It's only gone to github, so it's not set in stone.
+>
+> > They defined in uapi file, the new enum which is equal to already
+> > existed
+> >  128 enum rdma_network_type {
+> >  129         RDMA_NETWORK_IB,
+> >  130         RDMA_NETWORK_ROCE_V1 = RDMA_NETWORK_IB,
+> >  131         RDMA_NETWORK_IPV4,
+> >  132         RDMA_NETWORK_IPV6
+> >  133 };
+> >
+> > And the more important they are doing direct casting from
+> > rdma_network_type to
+> > pvrdma_network_type as is in the same patch.
+> >
+> > The proper way to do it is to return rdma_network_type directly
+> > without obfuscation
+> > and without creating new supported forever UAPI enum.
+>
+> Generally, I would agree with you.  I guess that's what I get for
+> trying to get everything done and working late last night :-/.
+>
+> Adit, is there a reason for the duplicate enum and silly casting in
+> this patch?  If there isn't a specific reason for it, then it would be
+> best to re-write it without this silliness.
 
-A couple of places in the CM do
+Thanks Leon, Doug. Well, we were only keeping it consistent with what we
+do for our other device <-> driver interactions. We can probably remove the
+enum and directly assign the network_hdr_type from our cqe to the IB stack's
+WC.
 
-    spin_lock_irq(&cm_id_priv->lock);
-    ...
-    if (cm_alloc_response_msg(work->port, work->mad_recv_wc, &msg))
-
-However when the underlying transport is RoCE, this leads to a sleeping function
-being called with the lock held - the callchain is
-
-    cm_alloc_response_msg() ->
-      ib_create_ah_from_wc() ->
-        ib_init_ah_from_wc() ->
-          rdma_addr_find_l2_eth_by_grh() ->
-            rdma_resolve_ip()
-
-and rdma_resolve_ip() starts out by doing
-
-    req = kzalloc(sizeof *req, GFP_KERNEL);
-
-not to mention rdma_addr_find_l2_eth_by_grh() doing
-
-    wait_for_completion(&ctx.comp);
-
-to wait for the task that rdma_resolve_ip() queues up.
-
-Fix this by moving the AH creation out of the lock.
-
-Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
----
- drivers/infiniband/core/cm.c | 63 +++++++++++++++++++++++++++++++-------------
- 1 file changed, 44 insertions(+), 19 deletions(-)
-
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 2b4d613a3474..f814c5035c74 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -373,11 +373,19 @@ static int cm_alloc_msg(struct cm_id_private *cm_id_priv,
- 	return ret;
- }
- 
--static int cm_alloc_response_msg(struct cm_port *port,
--				 struct ib_mad_recv_wc *mad_recv_wc,
--				 struct ib_mad_send_buf **msg)
-+static struct ib_mad_send_buf *cm_alloc_response_msg_no_ah(struct cm_port *port,
-+							   struct ib_mad_recv_wc *mad_recv_wc)
-+{
-+	return ib_create_send_mad(port->mad_agent, 1, mad_recv_wc->wc->pkey_index,
-+				  0, IB_MGMT_MAD_HDR, IB_MGMT_MAD_DATA,
-+				  GFP_ATOMIC,
-+				  IB_MGMT_BASE_VERSION);
-+}
-+
-+static int cm_create_response_msg_ah(struct cm_port *port,
-+				     struct ib_mad_recv_wc *mad_recv_wc,
-+				     struct ib_mad_send_buf *msg)
- {
--	struct ib_mad_send_buf *m;
- 	struct ib_ah *ah;
- 
- 	ah = ib_create_ah_from_wc(port->mad_agent->qp->pd, mad_recv_wc->wc,
-@@ -385,27 +393,40 @@ static int cm_alloc_response_msg(struct cm_port *port,
- 	if (IS_ERR(ah))
- 		return PTR_ERR(ah);
- 
--	m = ib_create_send_mad(port->mad_agent, 1, mad_recv_wc->wc->pkey_index,
--			       0, IB_MGMT_MAD_HDR, IB_MGMT_MAD_DATA,
--			       GFP_ATOMIC,
--			       IB_MGMT_BASE_VERSION);
--	if (IS_ERR(m)) {
--		rdma_destroy_ah(ah);
--		return PTR_ERR(m);
--	}
--	m->ah = ah;
--	*msg = m;
-+	msg->ah = ah;
- 	return 0;
- }
- 
- static void cm_free_msg(struct ib_mad_send_buf *msg)
- {
--	rdma_destroy_ah(msg->ah);
-+	if (msg->ah)
-+		rdma_destroy_ah(msg->ah);
- 	if (msg->context[0])
- 		cm_deref_id(msg->context[0]);
- 	ib_free_send_mad(msg);
- }
- 
-+static int cm_alloc_response_msg(struct cm_port *port,
-+				 struct ib_mad_recv_wc *mad_recv_wc,
-+				 struct ib_mad_send_buf **msg)
-+{
-+	struct ib_mad_send_buf *m;
-+	int ret;
-+
-+	m = cm_alloc_response_msg_no_ah(port, mad_recv_wc);
-+	if (IS_ERR(m))
-+		return PTR_ERR(m);
-+
-+	ret = cm_create_response_msg_ah(port, mad_recv_wc, m);
-+	if (ret) {
-+		cm_free_msg(m);
-+		return ret;
-+	}
-+
-+	*msg = m;
-+	return 0;
-+}
-+
- static void * cm_copy_private_data(const void *private_data,
- 				   u8 private_data_len)
- {
-@@ -2424,7 +2445,8 @@ static int cm_dreq_handler(struct cm_work *work)
- 	case IB_CM_TIMEWAIT:
- 		atomic_long_inc(&work->port->counter_group[CM_RECV_DUPLICATES].
- 				counter[CM_DREQ_COUNTER]);
--		if (cm_alloc_response_msg(work->port, work->mad_recv_wc, &msg))
-+		msg = cm_alloc_response_msg_no_ah(work->port, work->mad_recv_wc);
-+		if (IS_ERR(msg))
- 			goto unlock;
- 
- 		cm_format_drep((struct cm_drep_msg *) msg->mad, cm_id_priv,
-@@ -2432,7 +2454,8 @@ static int cm_dreq_handler(struct cm_work *work)
- 			       cm_id_priv->private_data_len);
- 		spin_unlock_irq(&cm_id_priv->lock);
- 
--		if (ib_post_send_mad(msg, NULL))
-+		if (cm_create_response_msg_ah(work->port, work->mad_recv_wc, msg) ||
-+		    ib_post_send_mad(msg, NULL))
- 			cm_free_msg(msg);
- 		goto deref;
- 	case IB_CM_DREQ_RCVD:
-@@ -2980,7 +3003,8 @@ static int cm_lap_handler(struct cm_work *work)
- 	case IB_CM_MRA_LAP_SENT:
- 		atomic_long_inc(&work->port->counter_group[CM_RECV_DUPLICATES].
- 				counter[CM_LAP_COUNTER]);
--		if (cm_alloc_response_msg(work->port, work->mad_recv_wc, &msg))
-+		msg = cm_alloc_response_msg_no_ah(work->port, work->mad_recv_wc);
-+		if (IS_ERR(msg))
- 			goto unlock;
- 
- 		cm_format_mra((struct cm_mra_msg *) msg->mad, cm_id_priv,
-@@ -2990,7 +3014,8 @@ static int cm_lap_handler(struct cm_work *work)
- 			      cm_id_priv->private_data_len);
- 		spin_unlock_irq(&cm_id_priv->lock);
- 
--		if (ib_post_send_mad(msg, NULL))
-+		if (cm_create_response_msg_ah(work->port, work->mad_recv_wc, msg) ||
-+		    ib_post_send_mad(msg, NULL))
- 			cm_free_msg(msg);
- 		goto deref;
- 	case IB_CM_LAP_RCVD:
--- 
-2.14.1
-
+Doug, let me know if you prefer a v1 of this patch series or a patch that just
+removes the enum.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
