@@ -1,84 +1,53 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core] suse: switch fully to the new udev mechanism
-Date: Tue, 29 Aug 2017 11:12:20 -0600
-Message-ID: <20170829171220.GA28687@obsidianresearch.com>
-References: <20170827214704.GC14542@obsidianresearch.com>
- <71835edf-cb2a-d4f8-627e-0f60ee772fb7@suse.de>
- <20170828151609.GA7867@obsidianresearch.com>
- <b4b35cf1-ed07-dbee-37cc-15c00480ad04@suse.de>
- <20170828153146.GC7867@obsidianresearch.com>
- <84031eb6-9ae5-71c6-8ba3-252204c3688d@suse.de>
- <20170829150329.GA26051@obsidianresearch.com>
- <1504020051.52034.51.camel@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH 2/2] IB/core: Add might_sleep() annotation to ib_init_ah_from_wc()
+Date: Tue, 29 Aug 2017 10:34:44 -0700
+Message-ID: <20170829173444.4289-2-roland@kernel.org>
+References: <20170829173444.4289-1-roland@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1504020051.52034.51.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170829173444.4289-1-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 29, 2017 at 11:20:51AM -0400, Doug Ledford wrote:
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 
-> > rdma.fixup-mtrr.awk
-> >  - Obsolete, supports ancient hardware, done in kernel now
-> 
-> Yeah, this is droppable.  It was needed back in the SDR days for qib
-> hardware.
+For RoCE, ib_init_ah_from_wc() can follow the path
 
-PR #199 deletes this file
+    ib_init_ah_from_wc() ->
+      rdma_addr_find_l2_eth_by_grh() ->
+        rdma_resolve_ip()
 
-> > rdma.mlx4-setup.sh
-> > rdma.mlx4.conf
-> > rdma.mlx4.sys.modprobe
-> >  - Mellanox says they now prefer it if the device's EEPROM is
-> >    configured, instead of this approach. So this is old
-> 
-> Right, but it still needs to stick around for now.  Even though the
-> EEPROM approach is preferred, not all mlx4 level devices support it,
-> and given that mlx4 is still very much in use, we need to keep it.
+and rdma_resolve_ip() will sleep in kzalloc() and wait_for_completion().
 
-The modprobe approach is not compatible with hotplug.  Instead, we
-really want this to run from a udev rule, but the mlx4 driver does not
-create a kobject from mlx_core, so there is nothing to trigger the
-rule on :|
+However, developers will not see any warnings if they use ib_init_ah_from_wc()
+in an atomic context and test only on IB, because the function doesn't
+sleep in that case.
 
-I guess a kernel patch will be needed here..
+Add a might_sleep() so that lockdep will catch bugs no matter what hardware is
+used to test.
 
-> >  Maybe it should move
-> >    to kernel-boot, but also unclear why we need it? doesn't
-> >    libvirt do this nowadays?
-> 
-> It needs to die.  For a very long time libvirt has not been smart
-> enough to deal with the dual ports on mlx4 hardware.  There has been
-> work upstream in libvirt to make this work.  The scripts here are
-> useless for any guests that are open to migration as they preconfigure
-> the devices and then you attach the device to the guest more or less
-> unmanaged.  Libvirt/qemu can never migrate the host because it doesn't
-> know how to set up the card on the new host the same way.  It's my hope
-> that the rdma tool will be expanded to support the different SRIOV
-> configuration methods (mlx4 and mlx5 are totally different)
-> transparently.  If/when that happens, it will be easy for libvirt to
-> standardize on that method and move this to "fully supported" status. 
-> Right now, this support is just to allow people to statically configure
-> SRIOV for use, but I don't consider something that can't migrate guests
-> production ready IMO.
+Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+---
+ drivers/infiniband/core/verbs.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Okay, lets leave that as redhat/, but I thought Mellanox sorted this
-all out with the ipoib netlink patches related to sriov? Sigh.
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index b456e3ca1876..84868f76f8b9 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -478,6 +478,8 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num,
+ 	union ib_gid dgid;
+ 	union ib_gid sgid;
+ 
++	might_sleep();
++
+ 	memset(ah_attr, 0, sizeof *ah_attr);
+ 	ah_attr->type = rdma_ah_find_type(device, port_num);
+ 	if (rdma_cap_eth_ah(device, port_num)) {
+-- 
+2.14.1
 
-> > rdma.udev-ipoib-naming.rules
-> >  - This is a user example for udev rules..
-> >    Could go into kernel-boot
-> 
-> Right.  This is a totally generic udev consistent device naming
-> support.
-
-Done in PR #199
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
