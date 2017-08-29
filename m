@@ -1,135 +1,70 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH for-next 1/2] RDMA/vmw_pvrdma: Report network header type
- in WC
-Date: Tue, 29 Aug 2017 10:42:22 -0700
-Message-ID: <8a7a8389-f3f0-587b-6e11-9440e588fae2@vmware.com>
-References: <cover.1503965717.git.aditr@vmware.com>
- <521f5e2169789e31a7e91dab691cd155f0100090.1503965717.git.aditr@vmware.com>
- <20170829054533.GH23726@mtr-leonro.local>
- <1504014883.52034.33.camel@redhat.com>
+From: Long Li <longli@microsoft.com>
+Subject: RE: [Patch v2 00/19] CIFS: Implement SMBDirect
+Date: Tue, 29 Aug 2017 18:10:05 +0000
+Message-ID: <MWHPR21MB0190050F3699CDF6F52B51A2CE9F0@MWHPR21MB0190.namprd21.prod.outlook.com>
+References: <1503255883-3041-1-git-send-email-longli@exchange.microsoft.com>
+ <01ff01d31ab1$ca836a60$5f8a3f20$@opengridcomputing.com>
+ <MWHPR21MB019081F64C50E08043286EE3CE870@MWHPR21MB0190.namprd21.prod.outlook.com>
+ <027d01d31ab7$85adbed0$91093c70$@opengridcomputing.com>
+ <MWHPR21MB0190AD423095EEA25CA6CD81CE870@MWHPR21MB0190.namprd21.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1504014883.52034.33.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <MWHPR21MB0190AD423095EEA25CA6CD81CE870@MWHPR21MB0190.namprd21.prod.outlook.com>
 Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Long Li <longli@microsoft.com>, Steve Wise <swise@opengridcomputing.com>, 'Steve French' <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, 'Christoph Hellwig' <hch@infradead.org>, Tom Talpey <ttalpey@microsoft.com>, Matthew Wilcox <mawilcox@microsoft.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 29, 2017 at 06:54:48AM -0700, Doug Ledford wrote:
-> On Tue, 2017-08-29 at 08:45 +0300, Leon Romanovsky wrote:
-> > On Mon, Aug 28, 2017 at 05:19:35PM -0700, Adit Ranadive wrote:
-> > > From: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > >
-> > > We should report the network header type in the work completion so
-> > > that
-> > > the kernel can infer the right RoCE type headers.
-> > >
-> > > Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > > Signed-off-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > > Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-> > > ---
-> > >  drivers/infiniband/hw/vmw_pvrdma/pvrdma.h    |  6 ++++++
-> > >  drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c |  2 ++
-> > >  include/uapi/rdma/vmw_pvrdma-abi.h           | 13 +++++++++++--
-> > >  3 files changed, 19 insertions(+), 2 deletions(-)
-> > >
-> > > diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-> > > b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-> > > index 663a0c3..99b2c97 100644
-> > > --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-> > > +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-> > > @@ -426,6 +426,12 @@ static inline int pvrdma_wc_flags_to_ib(int
-> > > flags)
-> > >  	return flags;
-> > >  }
-> > >
-> > > +static inline enum rdma_network_type pvrdma_wc_network_hdr_to_ib(
-> > > +					enum pvrdma_network_type
-> > > type)
-> > > +{
-> > > +	return (enum rdma_network_type)type;
-> > > +}
-> > > +
-> > >  static inline int ib_send_flags_to_pvrdma(int flags)
-> > >  {
-> > >  	return flags & PVRDMA_MASK(PVRDMA_SEND_FLAGS_MAX);
-> > > diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
-> > > b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
-> > > index 90aa326..34727f6 100644
-> > > --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
-> > > +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
-> > > @@ -389,6 +389,8 @@ static int pvrdma_poll_one(struct pvrdma_cq
-> > > *cq, struct pvrdma_qp **cur_qp,
-> > >  	wc->dlid_path_bits = cqe->dlid_path_bits;
-> > >  	wc->port_num = cqe->port_num;
-> > >  	wc->vendor_err = cqe->vendor_err;
-> > > +	wc->network_hdr_type =
-> > > +			pvrdma_wc_network_hdr_to_ib(cqe-
-> > > > network_hdr_type);
-> > >
-> > >  	/* Update shared ring state */
-> > >  	pvrdma_idx_ring_inc(&cq->ring_state->rx.cons_head, cq-
-> > > > ibcq.cqe);
-> > > diff --git a/include/uapi/rdma/vmw_pvrdma-abi.h
-> > > b/include/uapi/rdma/vmw_pvrdma-abi.h
-> > > index c8c1d2d..6a87806 100644
-> > > --- a/include/uapi/rdma/vmw_pvrdma-abi.h
-> > > +++ b/include/uapi/rdma/vmw_pvrdma-abi.h
-> > > @@ -58,6 +58,13 @@
-> > >  #define PVRDMA_UAR_CQ_ARM		BIT(30)		/*
-> > > Arm bit. */
-> > >  #define PVRDMA_UAR_CQ_POLL		BIT(31)		/
-> > > * Poll bit. */
-> > >
-> > > +enum pvrdma_network_type {
-> > > +	PVRDMA_NETWORK_IB,
-> > > +	PVRDMA_NETWORK_ROCE_V1 = PVRDMA_NETWORK_IB,
-> > > +	PVRDMA_NETWORK_IPV4,
-> > > +	PVRDMA_NETWORK_IPV6
-> > > +};
-> >
-> > Doug,
-> >
-> > I see that you are already merged this patch, but it is problematic
-> > patch.
->
-> It's only gone to github, so it's not set in stone.
->
-> > They defined in uapi file, the new enum which is equal to already
-> > existed
-> >  128 enum rdma_network_type {
-> >  129         RDMA_NETWORK_IB,
-> >  130         RDMA_NETWORK_ROCE_V1 = RDMA_NETWORK_IB,
-> >  131         RDMA_NETWORK_IPV4,
-> >  132         RDMA_NETWORK_IPV6
-> >  133 };
-> >
-> > And the more important they are doing direct casting from
-> > rdma_network_type to
-> > pvrdma_network_type as is in the same patch.
-> >
-> > The proper way to do it is to return rdma_network_type directly
-> > without obfuscation
-> > and without creating new supported forever UAPI enum.
->
-> Generally, I would agree with you.  I guess that's what I get for
-> trying to get everything done and working late last night :-/.
->
-> Adit, is there a reason for the duplicate enum and silly casting in
-> this patch?  If there isn't a specific reason for it, then it would be
-> best to re-write it without this silliness.
 
-Thanks Leon, Doug. Well, we were only keeping it consistent with what we
-do for our other device <-> driver interactions. We can probably remove the
-enum and directly assign the network_hdr_type from our cqe to the IB stack's
-WC.
 
-Doug, let me know if you prefer a v1 of this patch series or a patch that just
-removes the enum.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -----Original Message-----
+> From: samba-technical [mailto:samba-technical-bounces@lists.samba.org]
+> On Behalf Of Long Li via samba-technical
+> Sent: Monday, August 21, 2017 1:24 PM
+> To: Steve Wise <swise@opengridcomputing.com>; 'Steve French'
+> <sfrench@samba.org>; linux-cifs@vger.kernel.org; samba-
+> technical@lists.samba.org; linux-kernel@vger.kernel.org; linux-
+> rdma@vger.kernel.org; 'Christoph Hellwig' <hch@infradead.org>; Tom
+> Talpey <ttalpey@microsoft.com>; Matthew Wilcox
+> <mawilcox@microsoft.com>
+> Subject: RE: [Patch v2 00/19] CIFS: Implement SMBDirect
+>=20
+> > > > Hey Long,
+> > > >
+> > > > What testing have you done with this on the various rdma transports=
+?
+> > > > Does it work over IB, RoCE, and iWARP providers?
+> > >
+> > > Hi Steve,
+> > >
+> > > Currently all the tests have been done over Infiniband. We haven't
+> > > tested on
+> > RoCE
+> > > or iWARP, but planned to do it in the following weeks.
+> > >
+> > > Long
+> >
+> > Ok, good.
+> >
+> > Is this series available on github or somewhere so we can clone it and
+> > review it as it is applied to the kernel src?
+
+I have put the patch v3 in the following location:
+https://github.com/longlimsft/linux-next/tree/patch_v3
+
+I will be sending it out soon. Please give it a try.
+
+>=20
+> Unfortunately they are not on github. I will look into putting them there=
+ for
+> review. Will update soon.
+>=20
+> Thanks for helping out!
+>=20
+> >
+> > Thanks,
+> >
+> > Steve.
+>=20
