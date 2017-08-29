@@ -1,36 +1,34 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 2/2] RDMA/vmw_pvrdma: Fix a signedness
-Date: Mon, 28 Aug 2017 17:19:36 -0700
-Message-ID: <8b33192c915a301385dbe1e755e5a60b86cc7e07.1503965717.git.aditr@vmware.com>
-References: <cover.1503965717.git.aditr@vmware.com>
+Subject: [PATCH for-next 0/2] RDMA/vmw_pvrdma: Patches for 4.14
+Date: Mon, 28 Aug 2017 17:19:34 -0700
+Message-ID: <cover.1503965717.git.aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <cover.1503965717.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Fixes: 29c8d9eba550 ("IB: Add vmw_pvrdma driver")
-Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hi Doug,
 
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
-index 34727f6..6b98890 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
-@@ -299,7 +299,7 @@ static inline struct pvrdma_cqe *get_cqe(struct pvrdma_cq *cq, int i)
- 
- void _pvrdma_flush_cqe(struct pvrdma_qp *qp, struct pvrdma_cq *cq)
- {
--	int head;
-+	unsigned int head;
- 	int has_data;
- 
- 	if (!cq->is_kernel)
+Here are a couple more patches for the VMware PVRDMA driver for 4.14.
+These are based on your for-next branch.
+
+Thanks,
+Adit
+---
+Adit Ranadive (1):
+  RDMA/vmw_pvrdma: Fix a signedness
+
+Aditya Sarwade (1):
+  RDMA/vmw_pvrdma: Report network header type in WC
+
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma.h    |  6 ++++++
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c |  4 +++-
+ include/uapi/rdma/vmw_pvrdma-abi.h           | 13 +++++++++++--
+ 3 files changed, 20 insertions(+), 3 deletions(-)
+
 -- 
 2.7.4
 
