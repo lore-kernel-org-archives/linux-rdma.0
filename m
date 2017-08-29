@@ -1,7 +1,7 @@
 From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 1/2] RDMA/vmw_pvrdma: Report network header type in WC
-Date: Mon, 28 Aug 2017 17:19:35 -0700
-Message-ID: <521f5e2169789e31a7e91dab691cd155f0100090.1503965717.git.aditr@vmware.com>
+Subject: [PATCH for-next 2/2] RDMA/vmw_pvrdma: Fix a signedness
+Date: Mon, 28 Aug 2017 17:19:36 -0700
+Message-ID: <8b33192c915a301385dbe1e755e5a60b86cc7e07.1503965717.git.aditr@vmware.com>
 References: <cover.1503965717.git.aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,91 +9,28 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1503965717.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org, Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-
-We should report the network header type in the work completion so that
-the kernel can infer the right RoCE type headers.
-
-Reviewed-by: Bryan Tan <bryantan-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Fixes: 29c8d9eba550 ("IB: Add vmw_pvrdma driver")
 Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/vmw_pvrdma/pvrdma.h    |  6 ++++++
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c |  2 ++
- include/uapi/rdma/vmw_pvrdma-abi.h           | 13 +++++++++++--
- 3 files changed, 19 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-index 663a0c3..99b2c97 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-@@ -426,6 +426,12 @@ static inline int pvrdma_wc_flags_to_ib(int flags)
- 	return flags;
- }
- 
-+static inline enum rdma_network_type pvrdma_wc_network_hdr_to_ib(
-+					enum pvrdma_network_type type)
-+{
-+	return (enum rdma_network_type)type;
-+}
-+
- static inline int ib_send_flags_to_pvrdma(int flags)
- {
- 	return flags & PVRDMA_MASK(PVRDMA_SEND_FLAGS_MAX);
 diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
-index 90aa326..34727f6 100644
+index 34727f6..6b98890 100644
 --- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
 +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c
-@@ -389,6 +389,8 @@ static int pvrdma_poll_one(struct pvrdma_cq *cq, struct pvrdma_qp **cur_qp,
- 	wc->dlid_path_bits = cqe->dlid_path_bits;
- 	wc->port_num = cqe->port_num;
- 	wc->vendor_err = cqe->vendor_err;
-+	wc->network_hdr_type =
-+			pvrdma_wc_network_hdr_to_ib(cqe->network_hdr_type);
+@@ -299,7 +299,7 @@ static inline struct pvrdma_cqe *get_cqe(struct pvrdma_cq *cq, int i)
  
- 	/* Update shared ring state */
- 	pvrdma_idx_ring_inc(&cq->ring_state->rx.cons_head, cq->ibcq.cqe);
-diff --git a/include/uapi/rdma/vmw_pvrdma-abi.h b/include/uapi/rdma/vmw_pvrdma-abi.h
-index c8c1d2d..6a87806 100644
---- a/include/uapi/rdma/vmw_pvrdma-abi.h
-+++ b/include/uapi/rdma/vmw_pvrdma-abi.h
-@@ -58,6 +58,13 @@
- #define PVRDMA_UAR_CQ_ARM		BIT(30)		/* Arm bit. */
- #define PVRDMA_UAR_CQ_POLL		BIT(31)		/* Poll bit. */
+ void _pvrdma_flush_cqe(struct pvrdma_qp *qp, struct pvrdma_cq *cq)
+ {
+-	int head;
++	unsigned int head;
+ 	int has_data;
  
-+enum pvrdma_network_type {
-+	PVRDMA_NETWORK_IB,
-+	PVRDMA_NETWORK_ROCE_V1 = PVRDMA_NETWORK_IB,
-+	PVRDMA_NETWORK_IPV4,
-+	PVRDMA_NETWORK_IPV6
-+};
-+
- enum pvrdma_wr_opcode {
- 	PVRDMA_WR_RDMA_WRITE,
- 	PVRDMA_WR_RDMA_WRITE_WITH_IMM,
-@@ -125,7 +132,8 @@ enum pvrdma_wc_flags {
- 	PVRDMA_WC_IP_CSUM_OK		= 1 << 3,
- 	PVRDMA_WC_WITH_SMAC		= 1 << 4,
- 	PVRDMA_WC_WITH_VLAN		= 1 << 5,
--	PVRDMA_WC_FLAGS_MAX		= PVRDMA_WC_WITH_VLAN,
-+	PVRDMA_WC_WITH_NETWORK_HDR_TYPE	= 1 << 6,
-+	PVRDMA_WC_FLAGS_MAX		= PVRDMA_WC_WITH_NETWORK_HDR_TYPE,
- };
- 
- struct pvrdma_alloc_ucontext_resp {
-@@ -283,7 +291,8 @@ struct pvrdma_cqe {
- 	__u8 dlid_path_bits;
- 	__u8 port_num;
- 	__u8 smac[6];
--	__u8 reserved2[7]; /* Pad to next power of 2 (64). */
-+	__u8 network_hdr_type;
-+	__u8 reserved2[6]; /* Pad to next power of 2 (64). */
- };
- 
- #endif /* __VMW_PVRDMA_ABI_H__ */
+ 	if (!cq->is_kernel)
 -- 
 2.7.4
 
