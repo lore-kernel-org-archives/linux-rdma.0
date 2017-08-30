@@ -1,99 +1,97 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 2/2] IB/core: Add might_sleep() annotation to
- ib_init_ah_from_wc()
-Date: Wed, 30 Aug 2017 10:24:03 -0400
-Message-ID: <571534e2-878c-b169-e65c-d4dd2d05694f@redhat.com>
-References: <20170829173444.4289-1-roland@kernel.org>
- <20170829173444.4289-2-roland@kernel.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="V00hGEoUsW9lQmIDaEPOKEwVltrHaaleJ"
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH rdma-core] mlx4: Extend mlx4dv_get_cq to return uar
+Date: Wed, 30 Aug 2017 17:31:14 +0300
+Message-ID: <1504103474-24345-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170829173444.4289-2-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---V00hGEoUsW9lQmIDaEPOKEwVltrHaaleJ
-Content-Type: multipart/mixed; boundary="p3PQfMJp276gq62mQQ8LHaWvbAXvTBIF2";
- protected-headers="v1"
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <571534e2-878c-b169-e65c-d4dd2d05694f-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 2/2] IB/core: Add might_sleep() annotation to
- ib_init_ah_from_wc()
-References: <20170829173444.4289-1-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
- <20170829173444.4289-2-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-In-Reply-To: <20170829173444.4289-2-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Extend mlx4dv_get_cq to return cq_uar to enable applications
+direct access as part of arm_cq flow.
 
---p3PQfMJp276gq62mQQ8LHaWvbAXvTBIF2
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: quoted-printable
+Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+Pull request was sent:
+https://github.com/linux-rdma/rdma-core/pull/203
 
-On 8/29/2017 1:34 PM, Roland Dreier wrote:
-> From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
->=20
-> For RoCE, ib_init_ah_from_wc() can follow the path
->=20
->     ib_init_ah_from_wc() ->
->       rdma_addr_find_l2_eth_by_grh() ->
->         rdma_resolve_ip()
->=20
-> and rdma_resolve_ip() will sleep in kzalloc() and wait_for_completion()=
-=2E
->=20
-> However, developers will not see any warnings if they use ib_init_ah_fr=
-om_wc()
-> in an atomic context and test only on IB, because the function doesn't
-> sleep in that case.
->=20
-> Add a might_sleep() so that lockdep will catch bugs no matter what hard=
-ware is
-> used to test.
->=20
-> Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+ providers/mlx4/man/mlx4dv_init_obj.3 | 3 ++-
+ providers/mlx4/mlx4.c                | 9 ++++++++-
+ providers/mlx4/mlx4dv.h              | 6 ++++++
+ 3 files changed, 16 insertions(+), 2 deletions(-)
 
-Thanks, will pick this up today too.
+diff --git a/providers/mlx4/man/mlx4dv_init_obj.3 b/providers/mlx4/man/mlx4dv_init_obj.3
+index 7d10b93..c6d8d2b 100644
+--- a/providers/mlx4/man/mlx4dv_init_obj.3
++++ b/providers/mlx4/man/mlx4dv_init_obj.3
+@@ -62,7 +62,8 @@ uint32_t        *set_ci_db;
+ uint32_t        *arm_db;
+ int             arm_sn;
+ int             cqe_size;
+-uint64_t        comp_mask;
++uint64_t        comp_mask; /* Use enum mlx4dv_cq_comp_mask */
++void            *cq_uar;
+ .in -8
+ };
+ 
+diff --git a/providers/mlx4/mlx4.c b/providers/mlx4/mlx4.c
+index d65ef20..eecb9c7 100644
+--- a/providers/mlx4/mlx4.c
++++ b/providers/mlx4/mlx4.c
+@@ -375,8 +375,9 @@ static int mlx4dv_get_cq(struct ibv_cq *cq_in,
+ 			 struct mlx4dv_cq *cq_out)
+ {
+ 	struct mlx4_cq *mcq = to_mcq(cq_in);
++	struct mlx4_context *mctx = to_mctx(cq_in->context);
++	uint64_t mask_out = 0;
+ 
+-	cq_out->comp_mask = 0;
+ 	cq_out->buf.buf = mcq->buf.buf;
+ 	cq_out->buf.length = mcq->buf.length;
+ 	cq_out->cqn = mcq->cqn;
+@@ -388,6 +389,12 @@ static int mlx4dv_get_cq(struct ibv_cq *cq_in,
+ 
+ 	mcq->flags |= MLX4_CQ_FLAGS_DV_OWNED;
+ 
++	if (cq_out->comp_mask & MLX4DV_CQ_MASK_UAR) {
++		cq_out->cq_uar = mctx->uar;
++		mask_out |= MLX4DV_CQ_MASK_UAR;
++	}
++
++	cq_out->comp_mask = mask_out;
+ 	return 0;
+ }
+ 
+diff --git a/providers/mlx4/mlx4dv.h b/providers/mlx4/mlx4dv.h
+index 16045ef..3f50d34 100644
+--- a/providers/mlx4/mlx4dv.h
++++ b/providers/mlx4/mlx4dv.h
+@@ -166,6 +166,10 @@ struct mlx4dv_qp {
+ 	uint64_t		comp_mask;
+ };
+ 
++enum mlx4dv_cq_comp_mask {
++	MLX4DV_CQ_MASK_UAR		= 1 << 0,
++};
++
+ struct mlx4dv_cq {
+ 	struct {
+ 		void			*buf;
+@@ -178,7 +182,9 @@ struct mlx4dv_cq {
+ 	int				arm_sn;
+ 	int				cqe_size;
+ 	uint64_t			comp_mask;
++	void				*cq_uar;
+ };
++
+ struct mlx4dv_srq {
+ 	struct {
+ 		void			*buf;
+-- 
+1.8.3.1
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-    GPG Key ID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
-D
-
-
---p3PQfMJp276gq62mQQ8LHaWvbAXvTBIF2--
-
---V00hGEoUsW9lQmIDaEPOKEwVltrHaaleJ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBCAAGBQJZpsqEAAoJELgmozMOVy/drn8P/ievXlJSAFEN/Xfz9hCXhfHf
-+QiuEBYR0/DOv29YeWXZucERJdadFDlqdFLupN5mvWiDeqyA7y2qqeTfZvah149G
-PEYWHUI98PAF1Ehug+Z2GLgi9PnuHqlAf4+lDetJDBxagpHGrfUHm58s3xZyY6Vd
-a1zziZw0sXdK+UCGWH/WgyRgCiObUqA1AV8Z7ZHd4igSu9szCF7k6JUVgHaVLbxq
-cx5c8BAmg3Vyu1AvT+3bxMmFzJtJxHUXdl3BJpQ+gCeiGf/oLx6kq6uKjdmgF78h
-3mjf0lM2KnoUoThRs+rCQgI6y/pnvg4O2mFrNC0SElTnbHqkWGOG98bIggVGyrbc
-NMU/+Ylhe+28j7R8IzRdL7q0SPXZ5+ku7Z2TV/aHqduTxAE9HxbWmxIjHrJPysYT
-GquyeRR7EbGfvjmrjJ5pxrjsjuF6bB0cX1QWB+/CacPeZUT4Nc4J2iiaINgEG3fl
-yyv1dngqU1O7yjwFrCuVwcBFed+6qxXwPCuKks/LsmsGC3tjgHrXogTY14gjHQRA
-jBSD/MSfDPUME8CXEdVXScE1Of+fk63OUBuKfAEkrtU8xj+UV8T4SiSUGj88Z9At
-udbd0L/kbxqcfEDyQLOQnLERu6s1cnwYvrolqEEGVrurdjxPudt+Il+3W6404dm7
-yvufn93V28Le8kMUnsBg
-=LfZm
------END PGP SIGNATURE-----
-
---V00hGEoUsW9lQmIDaEPOKEwVltrHaaleJ--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
