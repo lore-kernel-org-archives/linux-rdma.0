@@ -1,53 +1,79 @@
-From: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH for-next] IB/core: Fix for core panic
-Date: Wed, 30 Aug 2017 12:14:10 -0700
-Message-ID: <20170830191409.4386.45635.stgit@scvm10.sc.intel.com>
+From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH rdma-core] vmw_pvrdma: Explicitly check for IP_BASED_GIDS port flag
+Date: Wed, 30 Aug 2017 16:34:01 -0700
+Message-ID: <1504136041-3070-1-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Rely on the IP_BASED_GIDS flag to use the ibv_resolve_eth_l2_from_gid
+function when creating the AH. Otherwise, fallback to the
+set_mac_from_gid function to set the DMAC.
 
-Rdma device driver may not have implemented (*get_link_layer)()
-so it can not be called directly. Should use appropriate helper function.
-
-Fixes: 523633359224 ("IB/core: Fix the validations of a multicast LID in attach or detach operations")
-Signed-off-by: Alex Estrin <alex.estrin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+Pull request:
+https://github.com/linux-rdma/rdma-core/pull/205
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index ee9e27d..123084a 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1646,8 +1646,9 @@ static bool is_valid_mcast_lid(struct ib_qp *qp, u16 lid)
- 	 */
- 	if (!ib_query_qp(qp, &attr, IB_QP_STATE | IB_QP_PORT, &init_attr)) {
- 		if (attr.qp_state >= IB_QPS_INIT) {
--			if (qp->device->get_link_layer(qp->device, attr.port_num) !=
--			    IB_LINK_LAYER_INFINIBAND)
-+			enum rdma_link_layer ll =
-+			rdma_port_get_link_layer(qp->device, attr.port_num);
-+			if (ll != IB_LINK_LAYER_INFINIBAND)
- 				return true;
- 			goto lid_check;
- 		}
-@@ -1655,7 +1656,7 @@ static bool is_valid_mcast_lid(struct ib_qp *qp, u16 lid)
+ providers/vmw_pvrdma/verbs.c | 20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
+
+diff --git a/providers/vmw_pvrdma/verbs.c b/providers/vmw_pvrdma/verbs.c
+index 852aced..a32046b 100644
+--- a/providers/vmw_pvrdma/verbs.c
++++ b/providers/vmw_pvrdma/verbs.c
+@@ -166,7 +166,7 @@ static int is_ipv6_addr_v4mapped(const struct in6_addr *a)
+ 		 (a->s6_addr32[2] ^ htobe32(0x0000ffff))) == 0UL));
+ }
  
- 	/* Can't get a quick answer, iterate over all ports */
- 	for (port = 0; port < qp->device->phys_port_cnt; port++)
--		if (qp->device->get_link_layer(qp->device, port) !=
-+		if (rdma_port_get_link_layer(qp->device, port) !=
- 		    IB_LINK_LAYER_INFINIBAND)
- 			num_eth_ports++;
+-static void set_mac_from_gid(const union ibv_gid *gid,
++static int set_mac_from_gid(const union ibv_gid *gid,
+ 			     __u8 mac[6])
+ {
+ 	if (is_link_local_gid(gid)) {
+@@ -177,7 +177,11 @@ static void set_mac_from_gid(const union ibv_gid *gid,
+ 		memcpy(mac, gid->raw + 8, 3);
+ 		memcpy(mac + 3, gid->raw + 13, 3);
+ 		mac[0] ^= 2;
++
++		return 0;
+ 	}
++
++	return 1;
+ }
  
+ struct ibv_ah *pvrdma_create_ah(struct ibv_pd *pd,
+@@ -218,15 +222,17 @@ struct ibv_ah *pvrdma_create_ah(struct ibv_pd *pd,
+ 				   attr->grh.flow_label;
+ 	memcpy(av->dgid, attr->grh.dgid.raw, 16);
+ 
+-	if (ibv_resolve_eth_l2_from_gid(pd->context, attr,
+-					av->dmac, &vlan_id)) {
+-		free(ah);
+-		return NULL;
++	if (port_attr.port_cap_flags & IBV_PORT_IP_BASED_GIDS) {
++		if (!ibv_resolve_eth_l2_from_gid(pd->context, attr,
++						 av->dmac, &vlan_id))
++			return &ah->ibv_ah;
+ 	} else {
+-		set_mac_from_gid(&attr->grh.dgid, av->dmac);
++		if (!set_mac_from_gid(&attr->grh.dgid, av->dmac))
++			return &ah->ibv_ah;
+ 	}
+ 
+-	return &ah->ibv_ah;
++	free(ah);
++	return NULL;
+ }
+ 
+ int pvrdma_destroy_ah(struct ibv_ah *ah)
+-- 
+2.7.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
