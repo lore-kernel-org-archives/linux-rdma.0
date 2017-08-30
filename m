@@ -1,7 +1,7 @@
 From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 20/20] RDMA/hns: Fix inconsistent warning
-Date: Wed, 30 Aug 2017 17:23:18 +0800
-Message-ID: <1504084998-64397-21-git-send-email-xavier.huwei@huawei.com>
+Subject: [PATCH for-next 03/20] RDMA/hns: Initialize the PCI device for hip08 RoCE
+Date: Wed, 30 Aug 2017 17:23:01 +0800
+Message-ID: <1504084998-64397-4-git-send-email-xavier.huwei@huawei.com>
 References: <1504084998-64397-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,29 +12,227 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-9Onoh4P/yGk@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch fixes smatch inconsistent warning as below:
-drivers/infiniband/hw/hns/hns_roce_hem.h:136 hns_roce_hem_first() warn: inconsistent indenting
+The hip08 RoCE engine is a PCI device. This patch mainly
+obtains some information of PCI device for hip08 RoCE from
+hns3 NIC driver in the initialization.
 
-Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_hem.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/hns/Kconfig           |  10 ++
+ drivers/infiniband/hw/hns/Makefile          |   4 +
+ drivers/infiniband/hw/hns/hns_roce_device.h |   2 +
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 151 ++++++++++++++++++++++++++++
+ 4 files changed, 167 insertions(+)
+ create mode 100644 drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.h b/drivers/infiniband/hw/hns/hns_roce_hem.h
-index 1aa54b6..af28bbf 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hem.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hem.h
-@@ -133,7 +133,7 @@ static inline void hns_roce_hem_first(struct hns_roce_hem *hem,
- 	iter->chunk = list_empty(&hem->chunk_list) ? NULL :
- 				 list_entry(hem->chunk_list.next,
- 					    struct hns_roce_hem_chunk, list);
--	 iter->page_idx = 0;
-+	iter->page_idx = 0;
- }
+diff --git a/drivers/infiniband/hw/hns/Kconfig b/drivers/infiniband/hw/hns/Kconfig
+index 37e33e5..fddb5fd 100644
+--- a/drivers/infiniband/hw/hns/Kconfig
++++ b/drivers/infiniband/hw/hns/Kconfig
+@@ -19,3 +19,13 @@ config INFINIBAND_HNS_HIP06
  
- static inline int hns_roce_hem_last(struct hns_roce_hem_iter *iter)
+ 	  To compile this driver as a module, choose M here: the module
+ 	  will be called hns-roce-hw-v1.
++
++config INFINIBAND_HNS_HIP08
++	tristate "Hisilicon Hip08 Family RoCE support"
++	depends on INFINIBAND_HNS && PCI && HNS3
++	---help---
++	  RoCE driver support for Hisilicon RoCE engine in Hisilicon Hip08 SoC.
++	  The RoCE engine is a PCI device.
++
++	  To compile this driver as a module, choose M here: the module
++	  will be called hns-roce-hw-v2.
+diff --git a/drivers/infiniband/hw/hns/Makefile b/drivers/infiniband/hw/hns/Makefile
+index 806ac4e..ff426a6 100644
+--- a/drivers/infiniband/hw/hns/Makefile
++++ b/drivers/infiniband/hw/hns/Makefile
+@@ -2,9 +2,13 @@
+ # Makefile for the Hisilicon RoCE drivers.
+ #
+ 
++ccflags-y :=  -Idrivers/net/ethernet/hisilicon/hns3
++
+ obj-$(CONFIG_INFINIBAND_HNS) += hns-roce.o
+ hns-roce-objs := hns_roce_main.o hns_roce_cmd.o hns_roce_eq.o hns_roce_pd.o \
+ 	hns_roce_ah.o hns_roce_hem.o hns_roce_mr.o hns_roce_qp.o \
+ 	hns_roce_cq.o hns_roce_alloc.o
+ obj-$(CONFIG_INFINIBAND_HNS_HIP06) += hns-roce-hw-v1.o
+ hns-roce-hw-v1-objs := hns_roce_hw_v1.o
++obj-$(CONFIG_INFINIBAND_HNS_HIP08) += hns-roce-hw-v2.o
++hns-roce-hw-v2-objs := hns_roce_hw_v2.o
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index aa9281e..3132b68 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -540,6 +540,8 @@ struct hns_roce_hw {
+ struct hns_roce_dev {
+ 	struct ib_device	ib_dev;
+ 	struct platform_device  *pdev;
++	struct pci_dev		*pci_dev;
++	struct device		*dev;
+ 	struct hns_roce_uar     priv_uar;
+ 	const char		*irq_names[HNS_ROCE_MAX_IRQ_NUM];
+ 	spinlock_t		sm_lock;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+new file mode 100644
+index 0000000..b35c72d
+--- /dev/null
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -0,0 +1,151 @@
++/*
++ * Copyright (c) 2016-2017 Hisilicon Limited.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#include <linux/acpi.h>
++#include <linux/etherdevice.h>
++#include <linux/interrupt.h>
++#include <linux/kernel.h>
++#include <rdma/ib_umem.h>
++
++#include "hnae3.h"
++#include "hns_roce_common.h"
++#include "hns_roce_device.h"
++#include "hns_roce_cmd.h"
++#include "hns_roce_hem.h"
++
++static const struct hns_roce_hw hns_roce_hw_v2;
++
++static const struct pci_device_id hns_roce_hw_v2_pci_tbl[] = {
++	{PCI_VDEVICE(HUAWEI, HNAE3_DEV_ID_25GE_RDMA), 0},
++	{PCI_VDEVICE(HUAWEI, HNAE3_DEV_ID_25GE_RDMA_MACSEC), 0},
++	{PCI_VDEVICE(HUAWEI, HNAE3_DEV_ID_100G_RDMA_MACSEC), 0},
++	/* required last entry */
++	{0, }
++};
++
++static int hns_roce_hw_v2_get_cfg(struct hns_roce_dev *hr_dev,
++				  struct hnae3_handle *handle)
++{
++	const struct pci_device_id *id;
++
++	id = pci_match_id(hns_roce_hw_v2_pci_tbl, hr_dev->pci_dev);
++	if (!id) {
++		dev_err(hr_dev->dev, "device is not compatible!\n");
++		return -ENXIO;
++	}
++
++	hr_dev->hw = &hns_roce_hw_v2;
++
++	/* Get info from NIC driver. */
++	hr_dev->reg_base = handle->rinfo.roce_io_base;
++	hr_dev->caps.num_ports = 1;
++	hr_dev->iboe.netdevs[0] = handle->rinfo.netdev;
++	hr_dev->iboe.phy_port[0] = 0;
++
++	/* cmd issue mode: 0 is poll, 1 is event */
++	hr_dev->cmd_mod = 0;
++	hr_dev->loop_idc = 0;
++
++	return 0;
++}
++
++static int hns_roce_hw_v2_init_instance(struct hnae3_handle *handle)
++{
++	struct hns_roce_dev *hr_dev;
++	int ret;
++
++	hr_dev = (struct hns_roce_dev *)ib_alloc_device(sizeof(*hr_dev));
++	if (!hr_dev)
++		return -ENOMEM;
++
++	hr_dev->pci_dev = handle->pdev;
++	hr_dev->dev = &handle->pdev->dev;
++	handle->priv = hr_dev;
++
++	ret = hns_roce_hw_v2_get_cfg(hr_dev, handle);
++	if (ret) {
++		dev_err(hr_dev->dev, "Get Configuration failed!\n");
++		goto error_failed_get_cfg;
++	}
++
++	ret = hns_roce_init(hr_dev);
++	if (ret) {
++		dev_err(hr_dev->dev, "RoCE Engine init failed!\n");
++		goto error_failed_get_cfg;
++	}
++
++	return 0;
++
++error_failed_get_cfg:
++	ib_dealloc_device(&hr_dev->ib_dev);
++
++	return ret;
++}
++
++static void hns_roce_hw_v2_uninit_instance(struct hnae3_handle *handle,
++					   bool reset)
++{
++	struct hns_roce_dev *hr_dev = (struct hns_roce_dev *)handle->priv;
++
++	hns_roce_exit(hr_dev);
++	ib_dealloc_device(&hr_dev->ib_dev);
++}
++
++static const struct hnae3_client_ops hns_roce_hw_v2_ops = {
++	.init_instance = hns_roce_hw_v2_init_instance,
++	.uninit_instance = hns_roce_hw_v2_uninit_instance,
++};
++
++static struct hnae3_client hns_roce_hw_v2_client = {
++	.name = "hns_roce_hw_v2",
++	.type = HNAE3_CLIENT_ROCE,
++	.ops = &hns_roce_hw_v2_ops,
++};
++
++static int __init hns_roce_hw_v2_init(void)
++{
++	return hnae3_register_client(&hns_roce_hw_v2_client);
++}
++
++static void __exit hns_roce_hw_v2_exit(void)
++{
++	hnae3_unregister_client(&hns_roce_hw_v2_client);
++}
++
++module_init(hns_roce_hw_v2_init);
++module_exit(hns_roce_hw_v2_exit);
++
++MODULE_LICENSE("Dual BSD/GPL");
++MODULE_AUTHOR("Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>");
++MODULE_AUTHOR("Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>");
++MODULE_AUTHOR("Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>");
++MODULE_DESCRIPTION("Hisilicon Hip08 Family RoCE Driver");
 -- 
 1.9.1
 
