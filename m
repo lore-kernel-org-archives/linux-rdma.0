@@ -1,83 +1,105 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 1/2] mlx5: Rename arm_db pointer to be cq_uar to better describe the content
-Date: Wed, 30 Aug 2017 17:19:23 +0300
-Message-ID: <1504102764-21638-2-git-send-email-yishaih@mellanox.com>
-References: <1504102764-21638-1-git-send-email-yishaih@mellanox.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/2] IB/cm: Fix sleeping in atomic when RoCE is used
+Date: Wed, 30 Aug 2017 10:23:42 -0400
+Message-ID: <a7c4b18a-3b19-74f4-b9b8-35f31e65a2bb@redhat.com>
+References: <20170829173444.4289-1-roland@kernel.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="6aGdQxwXARp7HtSXaxpr08mu6lRBguKfo"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1504102764-21638-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20170829173444.4289-1-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--6aGdQxwXARp7HtSXaxpr08mu6lRBguKfo
+Content-Type: multipart/mixed; boundary="cqP4FMqAUb3bBCt9Dpu5HsOno8SRL0pG2";
+ protected-headers="v1"
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Message-ID: <a7c4b18a-3b19-74f4-b9b8-35f31e65a2bb-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/2] IB/cm: Fix sleeping in atomic when RoCE is used
+References: <20170829173444.4289-1-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <20170829173444.4289-1-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-The arm_db field which was renamed from uar in this rdma-core release is
-actually cq_uar.
+--cqP4FMqAUb3bBCt9Dpu5HsOno8SRL0pG2
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
 
-Change its name before the rdma-core library is released and update man
-page accordingly.
+On 8/29/2017 1:34 PM, Roland Dreier wrote:
+> From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+>=20
+> A couple of places in the CM do
+>=20
+>     spin_lock_irq(&cm_id_priv->lock);
+>     ...
+>     if (cm_alloc_response_msg(work->port, work->mad_recv_wc, &msg))
+>=20
+> However when the underlying transport is RoCE, this leads to a sleeping=
+ function
+> being called with the lock held - the callchain is
+>=20
+>     cm_alloc_response_msg() ->
+>       ib_create_ah_from_wc() ->
+>         ib_init_ah_from_wc() ->
+>           rdma_addr_find_l2_eth_by_grh() ->
+>             rdma_resolve_ip()
+>=20
+> and rdma_resolve_ip() starts out by doing
+>=20
+>     req =3D kzalloc(sizeof *req, GFP_KERNEL);
+>=20
+> not to mention rdma_addr_find_l2_eth_by_grh() doing
+>=20
+>     wait_for_completion(&ctx.comp);
+>=20
+> to wait for the task that rdma_resolve_ip() queues up.
+>=20
+> Fix this by moving the AH creation out of the lock.
+>=20
+> Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 
-Fixes: 9b713bd703e9 ("mlx5: Fix ABI break from revising the UAR pointer")
-Signed-off-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- providers/mlx5/man/mlx5dv_init_obj.3 | 2 +-
- providers/mlx5/mlx5.c                | 4 ++--
- providers/mlx5/mlx5dv.h              | 2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+This looks good Roland, thanks for that.  Will apply today.
 
-diff --git a/providers/mlx5/man/mlx5dv_init_obj.3 b/providers/mlx5/man/mlx5dv_init_obj.3
-index 2468407..60d224a 100644
---- a/providers/mlx5/man/mlx5dv_init_obj.3
-+++ b/providers/mlx5/man/mlx5dv_init_obj.3
-@@ -52,7 +52,7 @@ void                    *buf;
- uint32_t                *dbrec;
- uint32_t                cqe_cnt;
- uint32_t                cqe_size;
--void                    *uar;
-+void                    *cq_uar;
- uint32_t                cqn;
- uint64_t                comp_mask;
- .in -8
-diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
-index c949c0f..19e2aef 100644
---- a/providers/mlx5/mlx5.c
-+++ b/providers/mlx5/mlx5.c
-@@ -680,7 +680,7 @@ static int mlx5dv_get_cq(struct ibv_cq *cq_in,
- 	cq_out->cqe_size  = mcq->cqe_sz;
- 	cq_out->buf       = mcq->active_buf->buf;
- 	cq_out->dbrec     = mcq->dbrec;
--	cq_out->arm_db	  = mctx->uar[0];
-+	cq_out->cq_uar	  = mctx->uar[0];
- 
- 	mcq->flags	 |= MLX5_CQ_FLAGS_DV_OWNED;
- 
-@@ -747,7 +747,7 @@ COMPAT_SYMVER_FUNC(mlx5dv_init_obj, 1_0, "MLX5_1.0",
- 		/* ABI version 1.0 returns the void ** in this memory
- 		 * location
- 		 */
--		obj->cq.out->arm_db = to_mctx(obj->cq.in->context)->uar;
-+		obj->cq.out->cq_uar = to_mctx(obj->cq.in->context)->uar;
- 	}
- 	return ret;
- }
-diff --git a/providers/mlx5/mlx5dv.h b/providers/mlx5/mlx5dv.h
-index 1a2e257..5d11625 100644
---- a/providers/mlx5/mlx5dv.h
-+++ b/providers/mlx5/mlx5dv.h
-@@ -129,7 +129,7 @@ struct mlx5dv_cq {
- 	__be32			*dbrec;
- 	uint32_t		cqe_cnt;
- 	uint32_t		cqe_size;
--	void			*arm_db;
-+	void			*cq_uar;
- 	uint32_t		cqn;
- 	uint64_t		comp_mask;
- };
--- 
-1.8.3.1
+--=20
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+    GPG Key ID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FD=
+D
 
+
+--cqP4FMqAUb3bBCt9Dpu5HsOno8SRL0pG2--
+
+--6aGdQxwXARp7HtSXaxpr08mu6lRBguKfo
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBCAAGBQJZpspuAAoJELgmozMOVy/dZD0P+gLQaJwGqlt/x+iaEguKZmrk
+cSu3VkpsYJMxSjVqFaOHL0nWf/png1nGSESrCzb+AnRpWpEY4tAnGNk+yf0ksFzA
+c55iVNxCJZySbZhs4dQ4/wfP5Kw7nolnepOdeFM7EZslvGL6l+CCdZDgwuEt+ZeA
+nkGjX3Ea7l/q0/IxNAWdm8Hbz/X8z7yvl7Aut+v/jxZiC8DCMpOGPdDmh2KQO/GS
+FSBpOFACup6gu0yTouLlCD4B5ZVTJA8rbKuMT7AdlClQT7zce12MZQh/HFV1l/XZ
+xZ4jPuG+KosSZ+Oov1gLZcwTiXaVbQg9njiQe6gvcWVz7SYIu/rBaS5yAkutSL/f
+NowZMIXZ8rt8SmqM9t0hfjXqyRTMi4Z0QGg6z8twKwMnPXGAZ4/HyNw/SipU0OFo
+ZubXIy4uNUFa6wA6SHCeuf0tku3vb/uyMM0bGlAs/FcaSDuRCJBT2LpT/RJHkzoY
+5LTqzO9GJw3oLa4LzLK8g9yd1cuZ0pTRx52rHWfm+9K+/Pe3PUiUIjdb2igoxgud
+xYrP0kMZVzHMRjZLKmTNeCjqgdDWskjKw/wKOw2R+XywoIHsaw6w3uqLuqxIiQRE
+L9EpjlJ1HJQiAh/6MO4jDsX4PX8zVIV2L7rqpLzGM6CjW0xC+BhKd27B+k2WzoTX
+Bce9rtoEOmAZpwvxXW/W
+=Tdpj
+-----END PGP SIGNATURE-----
+
+--6aGdQxwXARp7HtSXaxpr08mu6lRBguKfo--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
