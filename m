@@ -1,7 +1,7 @@
 From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 07/20] RDMA/hns: Add mailbox's implementation for hip08 RoCE driver
-Date: Wed, 30 Aug 2017 17:23:05 +0800
-Message-ID: <1504084998-64397-8-git-send-email-xavier.huwei@huawei.com>
+Subject: [PATCH for-next 05/20] RDMA/hns: Add command queue support for hip08 RoCE driver
+Date: Wed, 30 Aug 2017 17:23:03 +0800
+Message-ID: <1504084998-64397-6-git-send-email-xavier.huwei@huawei.com>
 References: <1504084998-64397-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,447 +12,530 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-9Onoh4P/yGk@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-In hip08 SoC, the hardware implementation of mailbox command
-has changed with hip06 SoC. As a result, it adjusts the
-architecture of the command code and implements the interfaces
-of mailbox for hip08 SoC.
+The command queue is the configuration queue. The software
+configures hardware by filling the commands into command
+queues. It includes command send queue and receive queue.
+
+In hip08 RoCE engine, It supports to configure and query
+registers by command queue.
 
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_cmd.c    | 98 ++---------------------------
- drivers/infiniband/hw/hns/hns_roce_common.h |  1 +
- drivers/infiniband/hw/hns/hns_roce_device.h |  5 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  | 75 ++++++++++++++++++++++
- drivers/infiniband/hw/hns/hns_roce_hw_v1.h  |  5 ++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 84 +++++++++++++++++++++++++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  | 20 ++++++
- 7 files changed, 195 insertions(+), 93 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_common.h |  13 ++
+ drivers/infiniband/hw/hns/hns_roce_device.h |   2 +
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 281 +++++++++++++++++++++++++++-
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h  | 111 +++++++++++
+ drivers/infiniband/hw/hns/hns_roce_main.c   |  14 ++
+ 5 files changed, 420 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/infiniband/hw/hns/hns_roce_hw_v2.h
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.c b/drivers/infiniband/hw/hns/hns_roce_cmd.c
-index 67ad3e9..1085cb2 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cmd.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cmd.c
-@@ -38,69 +38,7 @@
- 
- #define CMD_POLL_TOKEN		0xffff
- #define CMD_MAX_NUM		32
--#define STATUS_MASK		0xff
- #define CMD_TOKEN_MASK		0x1f
--#define GO_BIT_TIMEOUT_MSECS	10000
--
--enum {
--	HCR_TOKEN_OFFSET	= 0x14,
--	HCR_STATUS_OFFSET	= 0x18,
--	HCR_GO_BIT		= 15,
--};
--
--static int cmd_pending(struct hns_roce_dev *hr_dev)
--{
--	u32 status = readl(hr_dev->cmd.hcr + HCR_TOKEN_OFFSET);
--
--	return (!!(status & (1 << HCR_GO_BIT)));
--}
--
--/* this function should be serialized with "hcr_mutex" */
--static int __hns_roce_cmd_mbox_post_hw(struct hns_roce_dev *hr_dev,
--				       u64 in_param, u64 out_param,
--				       u32 in_modifier, u8 op_modifier, u16 op,
--				       u16 token, int event)
--{
--	struct hns_roce_cmdq *cmd = &hr_dev->cmd;
--	struct device *dev = &hr_dev->pdev->dev;
--	u32 __iomem *hcr = (u32 *)cmd->hcr;
--	int ret = -EAGAIN;
--	unsigned long end;
--	u32 val = 0;
--
--	end = msecs_to_jiffies(GO_BIT_TIMEOUT_MSECS) + jiffies;
--	while (cmd_pending(hr_dev)) {
--		if (time_after(jiffies, end)) {
--			dev_dbg(dev, "jiffies=%d end=%d\n", (int)jiffies,
--				(int)end);
--			goto out;
--		}
--		cond_resched();
--	}
--
--	roce_set_field(val, ROCEE_MB6_ROCEE_MB_CMD_M, ROCEE_MB6_ROCEE_MB_CMD_S,
--		       op);
--	roce_set_field(val, ROCEE_MB6_ROCEE_MB_CMD_MDF_M,
--		       ROCEE_MB6_ROCEE_MB_CMD_MDF_S, op_modifier);
--	roce_set_bit(val, ROCEE_MB6_ROCEE_MB_EVENT_S, event);
--	roce_set_bit(val, ROCEE_MB6_ROCEE_MB_HW_RUN_S, 1);
--	roce_set_field(val, ROCEE_MB6_ROCEE_MB_TOKEN_M,
--		       ROCEE_MB6_ROCEE_MB_TOKEN_S, token);
--
--	__raw_writeq(cpu_to_le64(in_param), hcr + 0);
--	__raw_writeq(cpu_to_le64(out_param), hcr + 2);
--	__raw_writel(cpu_to_le32(in_modifier), hcr + 4);
--	/* Memory barrier */
--	wmb();
--
--	__raw_writel(cpu_to_le32(val), hcr + 5);
--
--	mmiowb();
--	ret = 0;
--
--out:
--	return ret;
--}
- 
- static int hns_roce_cmd_mbox_post_hw(struct hns_roce_dev *hr_dev, u64 in_param,
- 				     u64 out_param, u32 in_modifier,
-@@ -108,12 +46,11 @@ static int hns_roce_cmd_mbox_post_hw(struct hns_roce_dev *hr_dev, u64 in_param,
- 				     int event)
- {
- 	struct hns_roce_cmdq *cmd = &hr_dev->cmd;
--	int ret = -EAGAIN;
-+	int ret;
- 
- 	mutex_lock(&cmd->hcr_mutex);
--	ret = __hns_roce_cmd_mbox_post_hw(hr_dev, in_param, out_param,
--					  in_modifier, op_modifier, op, token,
--					  event);
-+	ret = hr_dev->hw->post_mbox(hr_dev, in_param, out_param, in_modifier,
-+				    op_modifier, op, token, event);
- 	mutex_unlock(&cmd->hcr_mutex);
- 
- 	return ret;
-@@ -126,9 +63,6 @@ static int __hns_roce_cmd_mbox_poll(struct hns_roce_dev *hr_dev, u64 in_param,
- 				    unsigned long timeout)
- {
- 	struct device *dev = hr_dev->dev;
--	u8 __iomem *hcr = hr_dev->cmd.hcr;
--	unsigned long end = 0;
--	u32 status = 0;
- 	int ret;
- 
- 	ret = hns_roce_cmd_mbox_post_hw(hr_dev, in_param, out_param,
-@@ -136,29 +70,10 @@ static int __hns_roce_cmd_mbox_poll(struct hns_roce_dev *hr_dev, u64 in_param,
- 					CMD_POLL_TOKEN, 0);
- 	if (ret) {
- 		dev_err(dev, "[cmd_poll]hns_roce_cmd_mbox_post_hw failed\n");
--		goto out;
--	}
--
--	end = msecs_to_jiffies(timeout) + jiffies;
--	while (cmd_pending(hr_dev) && time_before(jiffies, end))
--		cond_resched();
--
--	if (cmd_pending(hr_dev)) {
--		dev_err(dev, "[cmd_poll]hw run cmd TIMEDOUT!\n");
--		ret = -ETIMEDOUT;
--		goto out;
-+		return ret;
- 	}
- 
--	status = le32_to_cpu((__force __be32)
--			      __raw_readl(hcr + HCR_STATUS_OFFSET));
--	if ((status & STATUS_MASK) != 0x1) {
--		dev_err(dev, "mailbox status 0x%x!\n", status);
--		ret = -EBUSY;
--		goto out;
--	}
--
--out:
--	return ret;
-+	return hr_dev->hw->chk_mbox(hr_dev, timeout);
- }
- 
- static int hns_roce_cmd_mbox_poll(struct hns_roce_dev *hr_dev, u64 in_param,
-@@ -198,7 +113,7 @@ static int __hns_roce_cmd_mbox_wait(struct hns_roce_dev *hr_dev, u64 in_param,
- 	struct hns_roce_cmdq *cmd = &hr_dev->cmd;
- 	struct hns_roce_cmd_context *context;
- 	struct device *dev = hr_dev->dev;
--	int ret = 0;
-+	int ret;
- 
- 	spin_lock(&cmd->context_lock);
- 	WARN_ON(cmd->free_head < 0);
-@@ -280,7 +195,6 @@ int hns_roce_cmd_init(struct hns_roce_dev *hr_dev)
- 	hr_dev->cmd.use_events = 0;
- 	hr_dev->cmd.toggle = 1;
- 	hr_dev->cmd.max_cmds = CMD_MAX_NUM;
--	hr_dev->cmd.hcr = hr_dev->reg_base + ROCEE_MB1_REG;
- 	hr_dev->cmd.pool = dma_pool_create("hns_roce_cmd", dev,
- 					   HNS_ROCE_MAILBOX_SIZE,
- 					   HNS_ROCE_MAILBOX_SIZE, 0);
 diff --git a/drivers/infiniband/hw/hns/hns_roce_common.h b/drivers/infiniband/hw/hns/hns_roce_common.h
-index 94381c2..0c950f8 100644
+index 4af403e..94381c2 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_common.h
 +++ b/drivers/infiniband/hw/hns/hns_roce_common.h
-@@ -341,6 +341,7 @@
- #define ROCEE_BT_CMD_L_REG			0x200
+@@ -362,4 +362,17 @@
+ #define ROCEE_ECC_UCERR_ALM0_REG		0xB34
+ #define ROCEE_ECC_CERR_ALM0_REG			0xB40
  
- #define ROCEE_MB1_REG				0x210
-+#define ROCEE_MB6_REG				0x224
- #define ROCEE_DB_SQ_L_0_REG			0x230
- #define ROCEE_DB_OTHERS_L_0_REG			0x238
- #define ROCEE_QP1C_CFG0_0_REG			0x270
++/* V2 ROCEE REG */
++#define ROCEE_TX_CMQ_BASEADDR_L_REG		0x07000
++#define ROCEE_TX_CMQ_BASEADDR_H_REG		0x07004
++#define ROCEE_TX_CMQ_DEPTH_REG			0x07008
++#define ROCEE_TX_CMQ_TAIL_REG			0x07010
++#define ROCEE_TX_CMQ_HEAD_REG			0x07014
++
++#define ROCEE_RX_CMQ_BASEADDR_L_REG		0x07018
++#define ROCEE_RX_CMQ_BASEADDR_H_REG		0x0701c
++#define ROCEE_RX_CMQ_DEPTH_REG			0x07020
++#define ROCEE_RX_CMQ_TAIL_REG			0x07024
++#define ROCEE_RX_CMQ_HEAD_REG			0x07028
++
+ #endif /* _HNS_ROCE_COMMON_H */
 diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 8ec6d6e..7c58750 100644
+index 3132b68..87c2e07 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_device.h
 +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -367,7 +367,6 @@ struct hns_roce_cmd_context {
+@@ -506,6 +506,8 @@ struct hns_roce_caps {
  
- struct hns_roce_cmdq {
- 	struct dma_pool		*pool;
--	u8 __iomem		*hcr;
- 	struct mutex		hcr_mutex;
- 	struct semaphore	poll_sem;
- 	/*
-@@ -517,6 +516,10 @@ struct hns_roce_hw {
- 	int (*hw_profile)(struct hns_roce_dev *hr_dev);
+ struct hns_roce_hw {
+ 	int (*reset)(struct hns_roce_dev *hr_dev, bool enable);
++	int (*cmq_init)(struct hns_roce_dev *hr_dev);
++	void (*cmq_exit)(struct hns_roce_dev *hr_dev);
+ 	void (*hw_profile)(struct hns_roce_dev *hr_dev);
  	int (*hw_init)(struct hns_roce_dev *hr_dev);
  	void (*hw_exit)(struct hns_roce_dev *hr_dev);
-+	int (*post_mbox)(struct hns_roce_dev *hr_dev, u64 in_param,
-+			 u64 out_param, u32 in_modifier, u8 op_modifier, u16 op,
-+			 u16 token, int event);
-+	int (*chk_mbox)(struct hns_roce_dev *hr_dev, unsigned long timeout);
- 	void (*set_gid)(struct hns_roce_dev *hr_dev, u8 port, int gid_index,
- 			union ib_gid *gid);
- 	void (*set_mac)(struct hns_roce_dev *hr_dev, u8 phy_port, u8 *addr);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 267e400..2bf2816 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -1619,6 +1619,79 @@ void hns_roce_v1_exit(struct hns_roce_dev *hr_dev)
- 	hns_roce_db_free(hr_dev);
- }
- 
-+static int hns_roce_v1_cmd_pending(struct hns_roce_dev *hr_dev)
-+{
-+	u32 status = readl(hr_dev->reg_base + ROCEE_MB6_REG);
-+
-+	return (!!(status & (1 << HCR_GO_BIT)));
-+}
-+
-+int hns_roce_v1_post_mbox(struct hns_roce_dev *hr_dev, u64 in_param,
-+			  u64 out_param, u32 in_modifier, u8 op_modifier,
-+			  u16 op, u16 token, int event)
-+{
-+	u32 *hcr = (u32 *)(hr_dev->reg_base + ROCEE_MB1_REG);
-+	unsigned long end;
-+	u32 val = 0;
-+
-+	end = msecs_to_jiffies(GO_BIT_TIMEOUT_MSECS) + jiffies;
-+	while (hns_roce_v1_cmd_pending(hr_dev)) {
-+		if (time_after(jiffies, end)) {
-+			dev_err(hr_dev->dev, "jiffies=%d end=%d\n",
-+				(int)jiffies, (int)end);
-+			return -EAGAIN;
-+		}
-+		cond_resched();
-+	}
-+
-+	roce_set_field(val, ROCEE_MB6_ROCEE_MB_CMD_M, ROCEE_MB6_ROCEE_MB_CMD_S,
-+		       op);
-+	roce_set_field(val, ROCEE_MB6_ROCEE_MB_CMD_MDF_M,
-+		       ROCEE_MB6_ROCEE_MB_CMD_MDF_S, op_modifier);
-+	roce_set_bit(val, ROCEE_MB6_ROCEE_MB_EVENT_S, event);
-+	roce_set_bit(val, ROCEE_MB6_ROCEE_MB_HW_RUN_S, 1);
-+	roce_set_field(val, ROCEE_MB6_ROCEE_MB_TOKEN_M,
-+		       ROCEE_MB6_ROCEE_MB_TOKEN_S, token);
-+
-+	__raw_writeq(cpu_to_le64(in_param), hcr + 0);
-+	__raw_writeq(cpu_to_le64(out_param), hcr + 2);
-+	__raw_writel(cpu_to_le32(in_modifier), hcr + 4);
-+	/* Memory barrier */
-+	wmb();
-+
-+	__raw_writel(cpu_to_le32(val), hcr + 5);
-+
-+	mmiowb();
-+
-+	return 0;
-+}
-+
-+static int hns_roce_v1_chk_mbox(struct hns_roce_dev *hr_dev,
-+				unsigned long timeout)
-+{
-+	u8 __iomem *hcr = hr_dev->reg_base + ROCEE_MB1_REG;
-+	unsigned long end = 0;
-+	u32 status = 0;
-+
-+	end = msecs_to_jiffies(timeout) + jiffies;
-+	while (hns_roce_v1_cmd_pending(hr_dev) && time_before(jiffies, end))
-+		cond_resched();
-+
-+	if (hns_roce_v1_cmd_pending(hr_dev)) {
-+		dev_err(hr_dev->dev, "[cmd_poll]hw run cmd TIMEDOUT!\n");
-+		return -ETIMEDOUT;
-+	}
-+
-+	status = le32_to_cpu((__force __be32)
-+			      __raw_readl(hcr + HCR_STATUS_OFFSET));
-+	if ((status & STATUS_MASK) != 0x1) {
-+		dev_err(hr_dev->dev, "mailbox status 0x%x!\n", status);
-+		return -EBUSY;
-+	}
-+
-+	return 0;
-+}
-+
- void hns_roce_v1_set_gid(struct hns_roce_dev *hr_dev, u8 port, int gid_index,
- 			 union ib_gid *gid)
- {
-@@ -3849,6 +3922,8 @@ int hns_roce_v1_destroy_cq(struct ib_cq *ibcq)
- 	.hw_profile = hns_roce_v1_profile,
- 	.hw_init = hns_roce_v1_init,
- 	.hw_exit = hns_roce_v1_exit,
-+	.post_mbox = hns_roce_v1_post_mbox,
-+	.chk_mbox = hns_roce_v1_chk_mbox,
- 	.set_gid = hns_roce_v1_set_gid,
- 	.set_mac = hns_roce_v1_set_mac,
- 	.set_mtu = hns_roce_v1_set_mtu,
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.h b/drivers/infiniband/hw/hns/hns_roce_hw_v1.h
-index b213b5e..eb83ff3 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.h
-@@ -948,6 +948,11 @@ struct hns_roce_qp_context {
- #define QP_CONTEXT_QPC_BYTES_188_TX_RETRY_CUR_INDEX_M   \
- 	(((1UL << 15) - 1) << QP_CONTEXT_QPC_BYTES_188_TX_RETRY_CUR_INDEX_S)
- 
-+#define STATUS_MASK		0xff
-+#define GO_BIT_TIMEOUT_MSECS	10000
-+#define HCR_STATUS_OFFSET	0x18
-+#define HCR_GO_BIT		15
-+
- struct hns_roce_rq_db {
- 	u32    u32_4;
- 	u32    u32_8;
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index af3cb30..259af2e 100644
+index b35c72d..b610f3a 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -553,10 +553,94 @@ static int hns_roce_v2_profile(struct hns_roce_dev *hr_dev)
- 	return 0;
- }
+@@ -41,8 +41,277 @@
+ #include "hns_roce_device.h"
+ #include "hns_roce_cmd.h"
+ #include "hns_roce_hem.h"
++#include "hns_roce_hw_v2.h"
  
-+static int hns_roce_v2_cmd_pending(struct hns_roce_dev *hr_dev)
+-static const struct hns_roce_hw hns_roce_hw_v2;
++static int hns_roce_cmq_space(struct hns_roce_v2_cmq_ring *ring)
 +{
-+	u32 status = readl(hr_dev->reg_base + ROCEE_VF_MB_STATUS_REG);
++	int ntu = ring->next_to_use;
++	int ntc = ring->next_to_clean;
++	int used = (ntu - ntc + ring->desc_num) % ring->desc_num;
 +
-+	return status >> HNS_ROCE_HW_RUN_BIT_SHIFT;
++	return ring->desc_num - used - 1;
 +}
 +
-+static int hns_roce_v2_cmd_complete(struct hns_roce_dev *hr_dev)
++static int hns_roce_alloc_cmq_desc(struct hns_roce_dev *hr_dev,
++				   struct hns_roce_v2_cmq_ring *ring)
 +{
-+	u32 status = readl(hr_dev->reg_base + ROCEE_VF_MB_STATUS_REG);
++	int size = ring->desc_num * sizeof(struct hns_roce_cmq_desc);
 +
-+	return status & HNS_ROCE_HW_MB_STATUS_MASK;
-+}
++	ring->desc = kzalloc(size, GFP_KERNEL);
++	if (!ring->desc)
++		return -ENOMEM;
 +
-+static int hns_roce_v2_post_mbox(struct hns_roce_dev *hr_dev, u64 in_param,
-+				 u64 out_param, u32 in_modifier, u8 op_modifier,
-+				 u16 op, u16 token, int event)
-+{
-+	struct device *dev = hr_dev->dev;
-+	u32 *hcr = (u32 *)(hr_dev->reg_base + ROCEE_VF_MB_CFG0_REG);
-+	unsigned long end;
-+	u32 val0 = 0;
-+	u32 val1 = 0;
-+
-+	end = msecs_to_jiffies(HNS_ROCE_V2_GO_BIT_TIMEOUT_MSECS) + jiffies;
-+	while (hns_roce_v2_cmd_pending(hr_dev)) {
-+		if (time_after(jiffies, end)) {
-+			dev_dbg(dev, "jiffies=%d end=%d\n", (int)jiffies,
-+				(int)end);
-+			return -EAGAIN;
-+		}
-+		cond_resched();
++	ring->desc_dma_addr = dma_map_single(hr_dev->dev, ring->desc, size,
++					     DMA_BIDIRECTIONAL);
++	if (dma_mapping_error(hr_dev->dev, ring->desc_dma_addr)) {
++		ring->desc_dma_addr = 0;
++		kfree(ring->desc);
++		ring->desc = NULL;
++		return -ENOMEM;
 +	}
-+
-+	roce_set_field(val0, HNS_ROCE_VF_MB4_TAG_MASK,
-+		       HNS_ROCE_VF_MB4_TAG_SHIFT, in_modifier);
-+	roce_set_field(val0, HNS_ROCE_VF_MB4_CMD_MASK,
-+		       HNS_ROCE_VF_MB4_CMD_SHIFT, op);
-+	roce_set_field(val1, HNS_ROCE_VF_MB5_EVENT_MASK,
-+		       HNS_ROCE_VF_MB5_EVENT_SHIFT, event);
-+	roce_set_field(val1, HNS_ROCE_VF_MB5_TOKEN_MASK,
-+		       HNS_ROCE_VF_MB5_TOKEN_SHIFT, token);
-+
-+	__raw_writeq(cpu_to_le64(in_param), hcr + 0);
-+	__raw_writeq(cpu_to_le64(out_param), hcr + 2);
-+
-+	/* Memory barrier */
-+	wmb();
-+
-+	__raw_writel(cpu_to_le32(val0), hcr + 4);
-+	__raw_writel(cpu_to_le32(val1), hcr + 5);
-+
-+	mmiowb();
 +
 +	return 0;
 +}
 +
-+static int hns_roce_v2_chk_mbox(struct hns_roce_dev *hr_dev,
-+				unsigned long timeout)
++static void hns_roce_free_cmq_desc(struct hns_roce_dev *hr_dev,
++				   struct hns_roce_v2_cmq_ring *ring)
 +{
-+	struct device *dev = hr_dev->dev;
-+	unsigned long end = 0;
-+	u32 status;
++	dma_unmap_single(hr_dev->dev, ring->desc_dma_addr,
++			 ring->desc_num * sizeof(struct hns_roce_cmq_desc),
++			 DMA_BIDIRECTIONAL);
++	kfree(ring->desc);
++}
 +
-+	end = msecs_to_jiffies(timeout) + jiffies;
-+	while (hns_roce_v2_cmd_pending(hr_dev) && time_before(jiffies, end))
-+		cond_resched();
++static int hns_roce_init_cmq_ring(struct hns_roce_dev *hr_dev, bool ring_type)
++{
++	struct hns_roce_v2_priv *priv = (struct hns_roce_v2_priv *)hr_dev->priv;
++	struct hns_roce_v2_cmq_ring *ring = (ring_type == TYPE_CSQ) ?
++					    &priv->cmq.csq : &priv->cmq.crq;
 +
-+	if (hns_roce_v2_cmd_pending(hr_dev)) {
-+		dev_err(dev, "[cmd_poll]hw run cmd TIMEDOUT!\n");
-+		return -ETIMEDOUT;
++	ring->flag = ring_type;
++	ring->next_to_clean = 0;
++	ring->next_to_use = 0;
++
++	return hns_roce_alloc_cmq_desc(hr_dev, ring);
++}
++
++static void hns_roce_cmq_init_regs(struct hns_roce_dev *hr_dev, bool ring_type)
++{
++	struct hns_roce_v2_priv *priv = (struct hns_roce_v2_priv *)hr_dev->priv;
++	struct hns_roce_v2_cmq_ring *ring = (ring_type == TYPE_CSQ) ?
++					    &priv->cmq.csq : &priv->cmq.crq;
++	dma_addr_t dma = ring->desc_dma_addr;
++
++	if (ring_type == TYPE_CSQ) {
++		roce_write(hr_dev, ROCEE_TX_CMQ_BASEADDR_L_REG, (u32)dma);
++		roce_write(hr_dev, ROCEE_TX_CMQ_BASEADDR_H_REG,
++			   upper_32_bits(dma));
++		roce_write(hr_dev, ROCEE_TX_CMQ_DEPTH_REG,
++			  (ring->desc_num >> HNS_ROCE_CMQ_DESC_NUM_S) |
++			   HNS_ROCE_CMQ_ENABLE);
++		roce_write(hr_dev, ROCEE_TX_CMQ_HEAD_REG, 0);
++		roce_write(hr_dev, ROCEE_TX_CMQ_TAIL_REG, 0);
++	} else {
++		roce_write(hr_dev, ROCEE_RX_CMQ_BASEADDR_L_REG, (u32)dma);
++		roce_write(hr_dev, ROCEE_RX_CMQ_BASEADDR_H_REG,
++			   upper_32_bits(dma));
++		roce_write(hr_dev, ROCEE_RX_CMQ_DEPTH_REG,
++			  (ring->desc_num >> HNS_ROCE_CMQ_DESC_NUM_S) |
++			   HNS_ROCE_CMQ_ENABLE);
++		roce_write(hr_dev, ROCEE_RX_CMQ_HEAD_REG, 0);
++		roce_write(hr_dev, ROCEE_RX_CMQ_TAIL_REG, 0);
++	}
++}
++
++static int hns_roce_v2_cmq_init(struct hns_roce_dev *hr_dev)
++{
++	struct hns_roce_v2_priv *priv = (struct hns_roce_v2_priv *)hr_dev->priv;
++	int ret;
++
++	/* Setup the queue entries for command queue */
++	priv->cmq.csq.desc_num = 1024;
++	priv->cmq.crq.desc_num = 1024;
++
++	/* Setup the lock for command queue */
++	spin_lock_init(&priv->cmq.csq.lock);
++	spin_lock_init(&priv->cmq.crq.lock);
++
++	/* Setup Tx write back timeout */
++	priv->cmq.tx_timeout = HNS_ROCE_CMQ_TX_TIMEOUT;
++
++	/* Init CSQ */
++	ret = hns_roce_init_cmq_ring(hr_dev, TYPE_CSQ);
++	if (ret) {
++		dev_err(hr_dev->dev, "Init CSQ error, ret = %d.\n", ret);
++		return ret;
 +	}
 +
-+	status = hns_roce_v2_cmd_complete(hr_dev);
-+	if (status != 0x1) {
-+		dev_err(dev, "mailbox status 0x%x!\n", status);
++	/* Init CRQ */
++	ret = hns_roce_init_cmq_ring(hr_dev, TYPE_CRQ);
++	if (ret) {
++		dev_err(hr_dev->dev, "Init CRQ error, ret = %d.\n", ret);
++		goto err_crq;
++	}
++
++	/* Init CSQ REG */
++	hns_roce_cmq_init_regs(hr_dev, TYPE_CSQ);
++
++	/* Init CRQ REG */
++	hns_roce_cmq_init_regs(hr_dev, TYPE_CRQ);
++
++	return 0;
++
++err_crq:
++	hns_roce_free_cmq_desc(hr_dev, &priv->cmq.csq);
++
++	return ret;
++}
++
++static void hns_roce_v2_cmq_exit(struct hns_roce_dev *hr_dev)
++{
++	struct hns_roce_v2_priv *priv = (struct hns_roce_v2_priv *)hr_dev->priv;
++
++	hns_roce_free_cmq_desc(hr_dev, &priv->cmq.csq);
++	hns_roce_free_cmq_desc(hr_dev, &priv->cmq.crq);
++}
++
++void hns_roce_cmq_setup_basic_desc(struct hns_roce_cmq_desc *desc,
++				   enum hns_roce_opcode_type opcode,
++				   bool is_read)
++{
++	memset((void *)desc, 0, sizeof(struct hns_roce_cmq_desc));
++	desc->opcode = cpu_to_le16(opcode);
++	desc->flag =
++		cpu_to_le16(HNS_ROCE_CMD_FLAG_NO_INTR | HNS_ROCE_CMD_FLAG_IN);
++	if (is_read)
++		desc->flag |= cpu_to_le16(HNS_ROCE_CMD_FLAG_WR);
++	else
++		desc->flag &= cpu_to_le16(~HNS_ROCE_CMD_FLAG_WR);
++}
++
++static int hns_roce_cmq_csq_done(struct hns_roce_dev *hr_dev)
++{
++	struct hns_roce_v2_priv *priv = (struct hns_roce_v2_priv *)hr_dev->priv;
++	u32 head = roce_read(hr_dev, ROCEE_TX_CMQ_HEAD_REG);
++
++	return head == priv->cmq.csq.next_to_use;
++}
++
++static int hns_roce_cmq_csq_clean(struct hns_roce_dev *hr_dev)
++{
++	struct hns_roce_v2_priv *priv = (struct hns_roce_v2_priv *)hr_dev->priv;
++	struct hns_roce_v2_cmq_ring *csq = &priv->cmq.csq;
++	struct hns_roce_cmq_desc *desc;
++	u16 ntc = csq->next_to_clean;
++	u32 head;
++	int clean = 0;
++
++	desc = &csq->desc[ntc];
++	head = roce_read(hr_dev, ROCEE_TX_CMQ_HEAD_REG);
++	while (head != ntc) {
++		memset(desc, 0, sizeof(*desc));
++		ntc++;
++		if (ntc == csq->desc_num)
++			ntc = 0;
++		desc = &csq->desc[ntc];
++		clean++;
++	}
++	csq->next_to_clean = ntc;
++
++	return clean;
++}
++
++int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
++		      struct hns_roce_cmq_desc *desc, int num)
++{
++	struct hns_roce_v2_priv *priv = (struct hns_roce_v2_priv *)hr_dev->priv;
++	struct hns_roce_v2_cmq_ring *csq = &priv->cmq.csq;
++	struct hns_roce_cmq_desc *desc_to_use;
++	bool complete = false;
++	u32 timeout = 0;
++	int handle = 0;
++	u16 desc_ret;
++	int ret = 0;
++	int ntc;
++
++	spin_lock_bh(&csq->lock);
++
++	if (num > hns_roce_cmq_space(csq)) {
++		spin_unlock_bh(&csq->lock);
 +		return -EBUSY;
 +	}
 +
-+	return 0;
++	/*
++	 * Record the location of desc in the cmq for this time
++	 * which will be use for hardware to write back
++	 */
++	ntc = csq->next_to_use;
++
++	while (handle < num) {
++		desc_to_use = &csq->desc[csq->next_to_use];
++		*desc_to_use = desc[handle];
++		dev_dbg(hr_dev->dev, "set cmq desc:\n");
++		csq->next_to_use++;
++		if (csq->next_to_use == csq->desc_num)
++			csq->next_to_use = 0;
++		handle++;
++	}
++
++	/* Write to hardware */
++	roce_write(hr_dev, ROCEE_TX_CMQ_TAIL_REG, csq->next_to_use);
++
++	/*
++	 * If the command is sync, wait for the firmware to write back,
++	 * if multi descriptors to be sent, use the first one to check
++	 */
++	if ((desc->flag) & HNS_ROCE_CMD_FLAG_NO_INTR) {
++		do {
++			if (hns_roce_cmq_csq_done(hr_dev))
++				break;
++			usleep_range(1000, 2000);
++			timeout++;
++		} while (timeout < priv->cmq.tx_timeout);
++	}
++
++	if (hns_roce_cmq_csq_done(hr_dev)) {
++		complete = true;
++		handle = 0;
++		while (handle < num) {
++			/* get the result of hardware write back */
++			desc_to_use = &csq->desc[ntc];
++			desc[handle] = *desc_to_use;
++			dev_dbg(hr_dev->dev, "Get cmq desc:\n");
++			desc_ret = desc[handle].retval;
++			if (desc_ret == CMD_EXEC_SUCCESS)
++				ret = 0;
++			else
++				ret = -EIO;
++			priv->cmq.last_status = desc_ret;
++			ntc++;
++			handle++;
++			if (ntc == csq->desc_num)
++				ntc = 0;
++		}
++	}
++
++	if (!complete)
++		ret = -EAGAIN;
++
++	/* clean the command send queue */
++	handle = hns_roce_cmq_csq_clean(hr_dev);
++	if (handle != num)
++		dev_warn(hr_dev->dev, "Cleaned %d, need to clean %d\n",
++			 handle, num);
++
++	spin_unlock_bh(&csq->lock);
++
++	return ret;
 +}
 +
- static const struct hns_roce_hw hns_roce_hw_v2 = {
- 	.cmq_init = hns_roce_v2_cmq_init,
- 	.cmq_exit = hns_roce_v2_cmq_exit,
- 	.hw_profile = hns_roce_v2_profile,
-+	.post_mbox = hns_roce_v2_post_mbox,
-+	.chk_mbox = hns_roce_v2_chk_mbox,
- };
++static const struct hns_roce_hw hns_roce_hw_v2 = {
++	.cmq_init = hns_roce_v2_cmq_init,
++	.cmq_exit = hns_roce_v2_cmq_exit,
++};
  
  static const struct pci_device_id hns_roce_hw_v2_pci_tbl[] = {
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index 3dcc800..b420ea9 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -244,6 +244,26 @@ struct hns_roce_cmq_desc {
- 	u32 data[6];
- };
+ 	{PCI_VDEVICE(HUAWEI, HNAE3_DEV_ID_25GE_RDMA), 0},
+@@ -87,6 +356,12 @@ static int hns_roce_hw_v2_init_instance(struct hnae3_handle *handle)
+ 	if (!hr_dev)
+ 		return -ENOMEM;
  
-+#define ROCEE_VF_MB_CFG0_REG		0x40
-+#define ROCEE_VF_MB_STATUS_REG		0x58
++	hr_dev->priv = kzalloc(sizeof(struct hns_roce_v2_priv), GFP_KERNEL);
++	if (!hr_dev->priv) {
++		ret = -ENOMEM;
++		goto error_failed_kzalloc;
++	}
 +
-+#define HNS_ROCE_V2_GO_BIT_TIMEOUT_MSECS	10000
+ 	hr_dev->pci_dev = handle->pdev;
+ 	hr_dev->dev = &handle->pdev->dev;
+ 	handle->priv = hr_dev;
+@@ -106,6 +381,9 @@ static int hns_roce_hw_v2_init_instance(struct hnae3_handle *handle)
+ 	return 0;
+ 
+ error_failed_get_cfg:
++	kfree(hr_dev->priv);
 +
-+#define HNS_ROCE_HW_RUN_BIT_SHIFT	31
-+#define HNS_ROCE_HW_MB_STATUS_MASK	0xFF
++error_failed_kzalloc:
+ 	ib_dealloc_device(&hr_dev->ib_dev);
+ 
+ 	return ret;
+@@ -117,6 +395,7 @@ static void hns_roce_hw_v2_uninit_instance(struct hnae3_handle *handle,
+ 	struct hns_roce_dev *hr_dev = (struct hns_roce_dev *)handle->priv;
+ 
+ 	hns_roce_exit(hr_dev);
++	kfree(hr_dev->priv);
+ 	ib_dealloc_device(&hr_dev->ib_dev);
+ }
+ 
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+new file mode 100644
+index 0000000..781ae74
+--- /dev/null
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -0,0 +1,111 @@
++/*
++ * Copyright (c) 2016-2017 Hisilicon Limited.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
 +
-+#define HNS_ROCE_VF_MB4_TAG_MASK	0xFFFFFF00
-+#define HNS_ROCE_VF_MB4_TAG_SHIFT	8
++#ifndef _HNS_ROCE_HW_V2_H
++#define _HNS_ROCE_HW_V2_H
 +
-+#define HNS_ROCE_VF_MB4_CMD_MASK	0xFF
-+#define HNS_ROCE_VF_MB4_CMD_SHIFT	0
++#define HNS_ROCE_CMQ_TX_TIMEOUT			200
 +
-+#define HNS_ROCE_VF_MB5_EVENT_MASK	0x10000
-+#define HNS_ROCE_VF_MB5_EVENT_SHIFT	16
++#define HNS_ROCE_CMD_FLAG_IN_VALID_SHIFT	0
++#define HNS_ROCE_CMD_FLAG_OUT_VALID_SHIFT	1
++#define HNS_ROCE_CMD_FLAG_NEXT_SHIFT		2
++#define HNS_ROCE_CMD_FLAG_WR_OR_RD_SHIFT	3
++#define HNS_ROCE_CMD_FLAG_NO_INTR_SHIFT		4
++#define HNS_ROCE_CMD_FLAG_ERR_INTR_SHIFT	5
 +
-+#define HNS_ROCE_VF_MB5_TOKEN_MASK	0xFFFF
-+#define HNS_ROCE_VF_MB5_TOKEN_SHIFT	0
++#define HNS_ROCE_CMD_FLAG_IN		BIT(HNS_ROCE_CMD_FLAG_IN_VALID_SHIFT)
++#define HNS_ROCE_CMD_FLAG_OUT		BIT(HNS_ROCE_CMD_FLAG_OUT_VALID_SHIFT)
++#define HNS_ROCE_CMD_FLAG_NEXT		BIT(HNS_ROCE_CMD_FLAG_NEXT_SHIFT)
++#define HNS_ROCE_CMD_FLAG_WR		BIT(HNS_ROCE_CMD_FLAG_WR_OR_RD_SHIFT)
++#define HNS_ROCE_CMD_FLAG_NO_INTR	BIT(HNS_ROCE_CMD_FLAG_NO_INTR_SHIFT)
++#define HNS_ROCE_CMD_FLAG_ERR_INTR	BIT(HNS_ROCE_CMD_FLAG_ERR_INTR_SHIFT)
 +
- struct hns_roce_v2_cmq_ring {
- 	dma_addr_t desc_dma_addr;
- 	struct hns_roce_cmq_desc *desc;
++#define HNS_ROCE_CMQ_DESC_NUM_S		3
++#define HNS_ROCE_CMQ_EN_B		16
++#define HNS_ROCE_CMQ_ENABLE		BIT(HNS_ROCE_CMQ_EN_B)
++
++/* CMQ command */
++enum hns_roce_opcode_type {
++	HNS_ROCE_OPC_QUERY_HW_VER			= 0x8000,
++	HNS_ROCE_OPC_CFG_GLOBAL_PARAM			= 0x8001,
++	HNS_ROCE_OPC_ALLOC_PF_RES			= 0x8004,
++	HNS_ROCE_OPC_QUERY_PF_RES			= 0x8400,
++	HNS_ROCE_OPC_ALLOC_VF_RES			= 0x8401,
++	HNS_ROCE_OPC_CFG_BT_ATTR			= 0x8506,
++};
++
++enum {
++	TYPE_CRQ,
++	TYPE_CSQ,
++};
++
++enum hns_roce_cmd_return_status {
++	CMD_EXEC_SUCCESS	= 0,
++	CMD_NO_AUTH		= 1,
++	CMD_NOT_EXEC		= 2,
++	CMD_QUEUE_FULL		= 3,
++};
++
++struct hns_roce_cmq_desc {
++	u16 opcode;
++	u16 flag;
++	u16 retval;
++	u16 rsv;
++	u32 data[6];
++};
++
++struct hns_roce_v2_cmq_ring {
++	dma_addr_t desc_dma_addr;
++	struct hns_roce_cmq_desc *desc;
++	u32 head;
++	u32 tail;
++
++	u16 buf_size;
++	u16 desc_num;
++	int next_to_use;
++	int next_to_clean;
++	u8 flag;
++	spinlock_t lock; /* command queue lock */
++};
++
++struct hns_roce_v2_cmq {
++	struct hns_roce_v2_cmq_ring csq;
++	struct hns_roce_v2_cmq_ring crq;
++	u16 tx_timeout;
++	u16 last_status;
++};
++
++struct hns_roce_v2_priv {
++	struct hns_roce_v2_cmq cmq;
++};
++
++#endif
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index b07d437..4f5a6fd 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -678,6 +678,14 @@ int hns_roce_init(struct hns_roce_dev *hr_dev)
+ 		}
+ 	}
+ 
++	if (hr_dev->hw->cmq_init) {
++		ret = hr_dev->hw->cmq_init(hr_dev);
++		if (ret) {
++			dev_err(dev, "Init RoCE Command Queue failed!\n");
++			goto error_failed_cmq_init;
++		}
++	}
++
+ 	hr_dev->hw->hw_profile(hr_dev);
+ 
+ 	ret = hns_roce_cmd_init(hr_dev);
+@@ -750,6 +758,10 @@ int hns_roce_init(struct hns_roce_dev *hr_dev)
+ 	hns_roce_cmd_cleanup(hr_dev);
+ 
+ error_failed_cmd_init:
++	if (hr_dev->hw->cmq_exit)
++		hr_dev->hw->cmq_exit(hr_dev);
++
++error_failed_cmq_init:
+ 	if (hr_dev->hw->reset) {
+ 		ret = hr_dev->hw->reset(hr_dev, false);
+ 		if (ret)
+@@ -774,6 +786,8 @@ void hns_roce_exit(struct hns_roce_dev *hr_dev)
+ 	if (hr_dev->cmd_mod)
+ 		hns_roce_cleanup_eq_table(hr_dev);
+ 	hns_roce_cmd_cleanup(hr_dev);
++	if (hr_dev->hw->cmq_exit)
++		hr_dev->hw->cmq_exit(hr_dev);
+ 	if (hr_dev->hw->reset)
+ 		hr_dev->hw->reset(hr_dev, false);
+ }
 -- 
 1.9.1
 
