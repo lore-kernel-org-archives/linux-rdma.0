@@ -1,7 +1,7 @@
 From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 13/20] RDMA/hns: Configure mac&gid and user access region for hip08 RoCE driver
-Date: Wed, 30 Aug 2017 17:23:11 +0800
-Message-ID: <1504084998-64397-14-git-send-email-xavier.huwei@huawei.com>
+Subject: [PATCH for-next 02/20] RDMA/hns: Move priv in order to add multiple hns_roce support
+Date: Wed, 30 Aug 2017 17:23:00 +0800
+Message-ID: <1504084998-64397-3-git-send-email-xavier.huwei@huawei.com>
 References: <1504084998-64397-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,160 +12,307 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-9Onoh4P/yGk@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-In hip08, the user access region(UAR) pfn is calculated
-from pci device memory resource.
-
-This patch mainly sets mac and gid table by configuring
-the relevant registers and updates the uar pfn for hip08 SoC.
+Move the data member called priv from hns_roce_hw to hns_roce_dev
+structure in order to support multiple hns_roce devices in one
+system at the same time. For example, there are two hip06 engines
+in the system.
 
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_common.h |  9 ++++++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 49 +++++++++++++++++++++++++++++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |  7 +++++
- drivers/infiniband/hw/hns/hns_roce_pd.c     | 16 +++++++---
- 4 files changed, 76 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_device.h |  2 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c  | 61 ++++++++++++++++-------------
+ 2 files changed, 35 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_common.h b/drivers/infiniband/hw/hns/hns_roce_common.h
-index 0c950f8..7ecb7a4 100644
---- a/drivers/infiniband/hw/hns/hns_roce_common.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_common.h
-@@ -376,4 +376,13 @@
- #define ROCEE_RX_CMQ_TAIL_REG			0x07024
- #define ROCEE_RX_CMQ_HEAD_REG			0x07028
- 
-+#define ROCEE_VF_SMAC_CFG0_REG			0x12000
-+#define ROCEE_VF_SMAC_CFG1_REG			0x12004
-+
-+#define ROCEE_VF_SGID_CFG0_REG			0x10000
-+#define ROCEE_VF_SGID_CFG1_REG			0x10004
-+#define ROCEE_VF_SGID_CFG2_REG			0x10008
-+#define ROCEE_VF_SGID_CFG3_REG			0x1000c
-+#define ROCEE_VF_SGID_CFG4_REG			0x10010
-+
- #endif /* _HNS_ROCE_COMMON_H */
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 542540d..e7aeb53 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -718,6 +718,53 @@ static int hns_roce_v2_chk_mbox(struct hns_roce_dev *hr_dev,
- 	return 0;
- }
- 
-+static void hns_roce_v2_set_gid(struct hns_roce_dev *hr_dev, u8 port,
-+				int gid_index, union ib_gid *gid)
-+{
-+	u32 *p;
-+	u32 val;
-+
-+	p = (u32 *)&gid->raw[0];
-+	roce_raw_write(*p, hr_dev->reg_base + ROCEE_VF_SGID_CFG0_REG +
-+		       0x20 * gid_index);
-+
-+	p = (u32 *)&gid->raw[4];
-+	roce_raw_write(*p, hr_dev->reg_base + ROCEE_VF_SGID_CFG1_REG +
-+		       0x20 * gid_index);
-+
-+	p = (u32 *)&gid->raw[8];
-+	roce_raw_write(*p, hr_dev->reg_base + ROCEE_VF_SGID_CFG2_REG +
-+		       0x20 * gid_index);
-+
-+	p = (u32 *)&gid->raw[0xc];
-+	roce_raw_write(*p, hr_dev->reg_base + ROCEE_VF_SGID_CFG3_REG +
-+		       0x20 * gid_index);
-+
-+	val = roce_read(hr_dev, ROCEE_VF_SGID_CFG4_REG + 0x20 * gid_index);
-+	roce_set_field(val, ROCEE_VF_SGID_CFG4_SGID_TYPE_M,
-+		       ROCEE_VF_SGID_CFG4_SGID_TYPE_S, 0);
-+
-+	roce_write(hr_dev, ROCEE_VF_SGID_CFG4_REG + 0x20 * gid_index, val);
-+}
-+
-+static void hns_roce_v2_set_mac(struct hns_roce_dev *hr_dev, u8 phy_port,
-+				u8 *addr)
-+{
-+	u16 reg_smac_h;
-+	u32 reg_smac_l;
-+	u32 val;
-+
-+	reg_smac_l = *(u32 *)(&addr[0]);
-+	roce_raw_write(reg_smac_l, hr_dev->reg_base + ROCEE_VF_SMAC_CFG0_REG +
-+		       0x08 * phy_port);
-+	val = roce_read(hr_dev, ROCEE_VF_SMAC_CFG1_REG + 0x08 * phy_port);
-+
-+	reg_smac_h  = *(u16 *)(&addr[4]);
-+	roce_set_field(val, ROCEE_VF_SMAC_CFG1_VF_SMAC_H_M,
-+		       ROCEE_VF_SMAC_CFG1_VF_SMAC_H_S, reg_smac_h);
-+	roce_write(hr_dev, ROCEE_VF_SMAC_CFG1_REG + 0x08 * phy_port, val);
-+}
-+
- static int hns_roce_v2_set_hem(struct hns_roce_dev *hr_dev,
- 			       struct hns_roce_hem_table *table, int obj,
- 			       int step_idx)
-@@ -857,6 +904,8 @@ static int hns_roce_v2_clear_hem(struct hns_roce_dev *hr_dev,
- 	.hw_profile = hns_roce_v2_profile,
- 	.post_mbox = hns_roce_v2_post_mbox,
- 	.chk_mbox = hns_roce_v2_chk_mbox,
-+	.set_gid = hns_roce_v2_set_gid,
-+	.set_mac = hns_roce_v2_set_mac,
- 	.set_hem = hns_roce_v2_set_hem,
- 	.clear_hem = hns_roce_v2_clear_hem,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+index fc2b82d..aa9281e 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_device.h
++++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+@@ -535,7 +535,6 @@ struct hns_roce_hw {
+ 	int (*poll_cq)(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc);
+ 	int (*dereg_mr)(struct hns_roce_dev *hr_dev, struct hns_roce_mr *mr);
+ 	int (*destroy_cq)(struct ib_cq *ibcq);
+-	void	*priv;
  };
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index 593d886..aee8f34 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -246,6 +246,13 @@ struct hns_roce_vf_res_b {
- #define VF_RES_B_DATA_3_VF_SL_NUM_S 16
- #define VF_RES_B_DATA_3_VF_SL_NUM_M GENMASK(19, 16)
  
-+/* Reg field definition */
-+#define ROCEE_VF_SMAC_CFG1_VF_SMAC_H_S 0
-+#define ROCEE_VF_SMAC_CFG1_VF_SMAC_H_M GENMASK(15, 0)
-+
-+#define ROCEE_VF_SGID_CFG4_SGID_TYPE_S 0
-+#define ROCEE_VF_SGID_CFG4_SGID_TYPE_M GENMASK(1, 0)
-+
- struct hns_roce_cfg_bt_attr {
- 	u32 vf_qpc_cfg;
- 	u32 vf_srqc_cfg;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_pd.c b/drivers/infiniband/hw/hns/hns_roce_pd.c
-index 079bb10..bdab218 100644
---- a/drivers/infiniband/hw/hns/hns_roce_pd.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_pd.c
-@@ -31,6 +31,7 @@
-  */
+ struct hns_roce_dev {
+@@ -572,6 +571,7 @@ struct hns_roce_dev {
+ 	dma_addr_t		tptr_dma_addr; /*only for hw v1*/
+ 	u32			tptr_size; /*only for hw v1*/
+ 	const struct hns_roce_hw *hw;
++	void			*priv;
+ };
  
- #include <linux/platform_device.h>
-+#include <linux/pci.h>
- #include "hns_roce_device.h"
+ static inline struct hns_roce_dev *to_hr_dev(struct ib_device *ib_dev)
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+index 917d003..e4d13a9 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
+@@ -473,7 +473,7 @@ static void hns_roce_set_sdb_ext(struct hns_roce_dev *hr_dev, u32 ext_sdb_alept,
+ 	dma_addr_t sdb_dma_addr;
+ 	u32 val;
  
- static int hns_roce_pd_alloc(struct hns_roce_dev *hr_dev, unsigned long *pdn)
-@@ -111,12 +112,17 @@ int hns_roce_uar_alloc(struct hns_roce_dev *hr_dev, struct hns_roce_uar *uar)
- 		uar->index = (uar->index - 1) %
- 			     (hr_dev->caps.phy_num_uars - 1) + 1;
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 	db = &priv->db_table;
  
--	res = platform_get_resource(hr_dev->pdev, IORESOURCE_MEM, 0);
--	if (!res) {
--		dev_err(&hr_dev->pdev->dev, "memory resource not found!\n");
--		return -EINVAL;
-+	if (!dev_is_pci(hr_dev->dev)) {
-+		res = platform_get_resource(hr_dev->pdev, IORESOURCE_MEM, 0);
-+		if (!res) {
-+			dev_err(&hr_dev->pdev->dev, "memory resource not found!\n");
-+			return -EINVAL;
-+		}
-+		uar->pfn = ((res->start) >> PAGE_SHIFT) + uar->index;
-+	} else {
-+		uar->pfn = ((pci_resource_start(hr_dev->pci_dev, 2))
-+			   >> PAGE_SHIFT);
+ 	/* Configure extend SDB threshold */
+@@ -512,7 +512,7 @@ static void hns_roce_set_odb_ext(struct hns_roce_dev *hr_dev, u32 ext_odb_alept,
+ 	dma_addr_t odb_dma_addr;
+ 	u32 val;
+ 
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 	db = &priv->db_table;
+ 
+ 	/* Configure extend ODB threshold */
+@@ -548,7 +548,7 @@ static int hns_roce_db_ext_init(struct hns_roce_dev *hr_dev, u32 sdb_ext_mod,
+ 	dma_addr_t odb_dma_addr;
+ 	int ret = 0;
+ 
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 	db = &priv->db_table;
+ 
+ 	db->ext_db = kmalloc(sizeof(*db->ext_db), GFP_KERNEL);
+@@ -669,7 +669,7 @@ static int hns_roce_v1_rsv_lp_qp(struct hns_roce_dev *hr_dev)
+ 	u8 port = 0;
+ 	u8 sl;
+ 
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 	free_mr = &priv->free_mr;
+ 
+ 	/* Reserved cq for loop qp */
+@@ -817,7 +817,7 @@ static void hns_roce_v1_release_lp_qp(struct hns_roce_dev *hr_dev)
+ 	int ret;
+ 	int i;
+ 
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 	free_mr = &priv->free_mr;
+ 
+ 	for (i = 0; i < HNS_ROCE_V1_RESV_QP; i++) {
+@@ -851,7 +851,7 @@ static int hns_roce_db_init(struct hns_roce_dev *hr_dev)
+ 	u32 odb_evt_mod;
+ 	int ret = 0;
+ 
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 	db = &priv->db_table;
+ 
+ 	memset(db, 0, sizeof(*db));
+@@ -907,7 +907,7 @@ static int hns_roce_v1_recreate_lp_qp(struct hns_roce_dev *hr_dev)
+ 	unsigned long end =
+ 	  msecs_to_jiffies(HNS_ROCE_V1_RECREATE_LP_QP_TIMEOUT_MSECS) + jiffies;
+ 
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 	free_mr = &priv->free_mr;
+ 
+ 	lp_qp_work = kzalloc(sizeof(struct hns_roce_recreate_lp_qp_work),
+@@ -983,7 +983,7 @@ static void hns_roce_v1_mr_free_work_fn(struct work_struct *work)
+ 	hr_dev = to_hr_dev(mr_work->ib_dev);
+ 	dev = &hr_dev->pdev->dev;
+ 
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 	free_mr = &priv->free_mr;
+ 	mr_free_cq = free_mr->mr_free_cq;
+ 
+@@ -1039,7 +1039,7 @@ int hns_roce_v1_dereg_mr(struct hns_roce_dev *hr_dev, struct hns_roce_mr *mr)
+ 	int npages;
+ 	int ret = 0;
+ 
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 	free_mr = &priv->free_mr;
+ 
+ 	if (mr->enabled) {
+@@ -1104,7 +1104,7 @@ static void hns_roce_db_free(struct hns_roce_dev *hr_dev)
+ 	struct hns_roce_v1_priv *priv;
+ 	struct hns_roce_db_table *db;
+ 
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 	db = &priv->db_table;
+ 
+ 	if (db->sdb_ext_mod) {
+@@ -1134,7 +1134,7 @@ static int hns_roce_raq_init(struct hns_roce_dev *hr_dev)
+ 	struct hns_roce_raq_table *raq;
+ 	struct device *dev = &hr_dev->pdev->dev;
+ 
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 	raq = &priv->raq_table;
+ 
+ 	raq->e_raq_buf = kzalloc(sizeof(*(raq->e_raq_buf)), GFP_KERNEL);
+@@ -1211,7 +1211,7 @@ static void hns_roce_raq_free(struct hns_roce_dev *hr_dev)
+ 	struct hns_roce_v1_priv *priv;
+ 	struct hns_roce_raq_table *raq;
+ 
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 	raq = &priv->raq_table;
+ 
+ 	dma_free_coherent(dev, HNS_ROCE_V1_RAQ_SIZE, raq->e_raq_buf->buf,
+@@ -1245,7 +1245,7 @@ static int hns_roce_bt_init(struct hns_roce_dev *hr_dev)
+ 	struct hns_roce_v1_priv *priv;
+ 	int ret;
+ 
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 
+ 	priv->bt_table.qpc_buf.buf = dma_alloc_coherent(dev,
+ 		HNS_ROCE_BT_RSV_BUF_SIZE, &priv->bt_table.qpc_buf.map,
+@@ -1287,7 +1287,7 @@ static void hns_roce_bt_free(struct hns_roce_dev *hr_dev)
+ 	struct device *dev = &hr_dev->pdev->dev;
+ 	struct hns_roce_v1_priv *priv;
+ 
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 
+ 	dma_free_coherent(dev, HNS_ROCE_BT_RSV_BUF_SIZE,
+ 		priv->bt_table.cqc_buf.buf, priv->bt_table.cqc_buf.map);
+@@ -1305,7 +1305,7 @@ static int hns_roce_tptr_init(struct hns_roce_dev *hr_dev)
+ 	struct hns_roce_buf_list *tptr_buf;
+ 	struct hns_roce_v1_priv *priv;
+ 
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 	tptr_buf = &priv->tptr_table.tptr_buf;
+ 
+ 	/*
+@@ -1331,7 +1331,7 @@ static void hns_roce_tptr_free(struct hns_roce_dev *hr_dev)
+ 	struct hns_roce_buf_list *tptr_buf;
+ 	struct hns_roce_v1_priv *priv;
+ 
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 	tptr_buf = &priv->tptr_table.tptr_buf;
+ 
+ 	dma_free_coherent(dev, HNS_ROCE_V1_TPTR_BUF_SIZE,
+@@ -1345,7 +1345,7 @@ static int hns_roce_free_mr_init(struct hns_roce_dev *hr_dev)
+ 	struct hns_roce_v1_priv *priv;
+ 	int ret = 0;
+ 
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 	free_mr = &priv->free_mr;
+ 
+ 	free_mr->free_mr_wq = create_singlethread_workqueue("hns_roce_free_mr");
+@@ -1369,7 +1369,7 @@ static void hns_roce_free_mr_free(struct hns_roce_dev *hr_dev)
+ 	struct hns_roce_free_mr *free_mr;
+ 	struct hns_roce_v1_priv *priv;
+ 
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 	free_mr = &priv->free_mr;
+ 
+ 	flush_workqueue(free_mr->free_mr_wq);
+@@ -1433,7 +1433,7 @@ static int hns_roce_des_qp_init(struct hns_roce_dev *hr_dev)
+ 	struct hns_roce_v1_priv *priv;
+ 	struct hns_roce_des_qp *des_qp;
+ 
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 	des_qp = &priv->des_qp;
+ 
+ 	des_qp->requeue_flag = 1;
+@@ -1451,7 +1451,7 @@ static void hns_roce_des_qp_free(struct hns_roce_dev *hr_dev)
+ 	struct hns_roce_v1_priv *priv;
+ 	struct hns_roce_des_qp *des_qp;
+ 
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 	des_qp = &priv->des_qp;
+ 
+ 	des_qp->requeue_flag = 0;
+@@ -1942,7 +1942,7 @@ void hns_roce_v1_write_cqc(struct hns_roce_dev *hr_dev,
+ 	dma_addr_t tptr_dma_addr;
+ 	int offset;
+ 
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 	tptr_buf = &priv->tptr_table.tptr_buf;
+ 
+ 	cq_context = mb_buf;
+@@ -2290,7 +2290,7 @@ int hns_roce_v1_clear_hem(struct hns_roce_dev *hr_dev,
+ 	void __iomem *bt_cmd;
+ 	u64 bt_ba = 0;
+ 
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 
+ 	switch (table->type) {
+ 	case HEM_TYPE_QPC:
+@@ -3665,7 +3665,7 @@ static void hns_roce_v1_destroy_qp_work_fn(struct work_struct *work)
+ 	qp_work_entry = container_of(work, struct hns_roce_qp_work, work);
+ 	hr_dev = to_hr_dev(qp_work_entry->ib_dev);
+ 	dev = &hr_dev->pdev->dev;
+-	priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++	priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 	hr_qp = qp_work_entry->qp;
+ 	qpn = hr_qp->qpn;
+ 
+@@ -3782,7 +3782,7 @@ int hns_roce_v1_destroy_qp(struct ib_qp *ibqp)
+ 		qp_work->sdb_inv_cnt	= qp_work_entry.sdb_inv_cnt;
+ 		qp_work->sche_cnt	= qp_work_entry.sche_cnt;
+ 
+-		priv = (struct hns_roce_v1_priv *)hr_dev->hw->priv;
++		priv = (struct hns_roce_v1_priv *)hr_dev->priv;
+ 		queue_work(priv->des_qp.qp_wq, &qp_work->work);
+ 		dev_dbg(dev, "Begin destroy QP(0x%lx) work.\n", hr_qp->qpn);
  	}
--	uar->pfn = ((res->start) >> PAGE_SHIFT) + uar->index;
+@@ -3842,8 +3842,6 @@ int hns_roce_v1_destroy_cq(struct ib_cq *ibcq)
+ 	return ret;
+ }
+ 
+-struct hns_roce_v1_priv hr_v1_priv;
+-
+ static const struct hns_roce_hw hns_roce_hw_v1 = {
+ 	.reset = hns_roce_v1_reset,
+ 	.hw_profile = hns_roce_v1_profile,
+@@ -3864,7 +3862,6 @@ int hns_roce_v1_destroy_cq(struct ib_cq *ibcq)
+ 	.poll_cq = hns_roce_v1_poll_cq,
+ 	.dereg_mr = hns_roce_v1_dereg_mr,
+ 	.destroy_cq = hns_roce_v1_destroy_cq,
+-	.priv = &hr_v1_priv,
+ };
+ 
+ static const struct of_device_id hns_roce_of_match[] = {
+@@ -4046,6 +4043,12 @@ static int hns_roce_probe(struct platform_device *pdev)
+ 	if (!hr_dev)
+ 		return -ENOMEM;
+ 
++	hr_dev->priv = kzalloc(sizeof(struct hns_roce_v1_priv), GFP_KERNEL);
++	if (!hr_dev->priv) {
++		ret = -ENOMEM;
++		goto error_failed_kzalloc;
++	}
++
+ 	hr_dev->pdev = pdev;
+ 	platform_set_drvdata(pdev, hr_dev);
+ 
+@@ -4071,6 +4074,9 @@ static int hns_roce_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ error_failed_get_cfg:
++	kfree(hr_dev->priv);
++
++error_failed_kzalloc:
+ 	ib_dealloc_device(&hr_dev->ib_dev);
+ 
+ 	return ret;
+@@ -4085,6 +4091,7 @@ static int hns_roce_remove(struct platform_device *pdev)
+ 	struct hns_roce_dev *hr_dev = platform_get_drvdata(pdev);
+ 
+ 	hns_roce_exit(hr_dev);
++	kfree(hr_dev->priv);
+ 	ib_dealloc_device(&hr_dev->ib_dev);
  
  	return 0;
- }
 -- 
 1.9.1
 
