@@ -1,98 +1,49 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core] mlx4: Extend mlx4dv_get_cq to return uar
-Date: Wed, 30 Aug 2017 17:31:14 +0300
-Message-ID: <1504103474-24345-1-git-send-email-yishaih@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+From: Adam Borowski <kilobyte@angband.pl>
+Subject: Re: [PATCH 00/13] mmu_notifier kill invalidate_page callback
+Date: Wed, 30 Aug 2017 16:57:42 +0200
+Message-ID: <20170830145742.xird3lgsb3nemtye@angband.pl>
+References: <20170829235447.10050-1-jglisse@redhat.com>
+ <CA+55aFz6ArJ-ADXiYCu6xMUzdY=mKBtkzfJmLaBohC6Ub9t2SQ@mail.gmail.com>
+ <20170830005615.GA2386@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20170830005615.GA2386@redhat.com>
+Sender: owner-linux-mm@kvack.org
+To: Jerome Glisse <jglisse@redhat.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Bernhard Held <berny156@gmx.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Andrea Arcangeli <aarcange@redhat.com>, Joerg Roedel <jroedel@suse.de>, Dan Williams <dan.j.williams@intel.com>, Sudeep Dutt <sudeep.dutt@intel.com>, Ashutosh Dixit <ashutosh.dixit@intel.com>, Dimitri Sivanich <sivanich@sgi.com>, Jack Steiner <steiner@sgi.com>, Paolo Bonzini <pbonzini@redhat.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, ppc-dev <linuxppc-dev@lists.ozlabs.org>, DRI <dri-devel@lists.freedesktop.org>, amd-gfx@lists.freedesktop.org, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "open list:AMD IOMMU (AMD-VI)" <iommu@lists.linux-foundation.org>, xen-devel <xen-dev>
 List-Id: linux-rdma@vger.kernel.org
 
-Extend mlx4dv_get_cq to return cq_uar to enable applications
-direct access as part of arm_cq flow.
+On Tue, Aug 29, 2017 at 08:56:15PM -0400, Jerome Glisse wrote:
+> I will wait for people to test and for result of my own test before
+> reposting if need be, otherwise i will post as separate patch.
+>
+> > But from a _very_ quick read-through this looks fine. But it obviously
+> > needs testing.
+> > 
+> > People - *especially* the people who saw issues under KVM - can you
+> > try out Jérôme's patch-series? I aded some people to the cc, the full
+> > series is on lkml. Jérôme - do you have a git branch for people to
+> > test that they could easily pull and try out?
+> 
+> https://cgit.freedesktop.org/~glisse/linux mmu-notifier branch
+> git://people.freedesktop.org/~glisse/linux
 
-Reviewed-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-Pull request was sent:
-https://github.com/linux-rdma/rdma-core/pull/203
+Tested your branch as of 10f07641, on a long list of guest VMs.
+No earth-shattering kaboom.
 
- providers/mlx4/man/mlx4dv_init_obj.3 | 3 ++-
- providers/mlx4/mlx4.c                | 9 ++++++++-
- providers/mlx4/mlx4dv.h              | 6 ++++++
- 3 files changed, 16 insertions(+), 2 deletions(-)
 
-diff --git a/providers/mlx4/man/mlx4dv_init_obj.3 b/providers/mlx4/man/mlx4dv_init_obj.3
-index 7d10b93..c6d8d2b 100644
---- a/providers/mlx4/man/mlx4dv_init_obj.3
-+++ b/providers/mlx4/man/mlx4dv_init_obj.3
-@@ -62,7 +62,8 @@ uint32_t        *set_ci_db;
- uint32_t        *arm_db;
- int             arm_sn;
- int             cqe_size;
--uint64_t        comp_mask;
-+uint64_t        comp_mask; /* Use enum mlx4dv_cq_comp_mask */
-+void            *cq_uar;
- .in -8
- };
- 
-diff --git a/providers/mlx4/mlx4.c b/providers/mlx4/mlx4.c
-index d65ef20..eecb9c7 100644
---- a/providers/mlx4/mlx4.c
-+++ b/providers/mlx4/mlx4.c
-@@ -375,8 +375,9 @@ static int mlx4dv_get_cq(struct ibv_cq *cq_in,
- 			 struct mlx4dv_cq *cq_out)
- {
- 	struct mlx4_cq *mcq = to_mcq(cq_in);
-+	struct mlx4_context *mctx = to_mctx(cq_in->context);
-+	uint64_t mask_out = 0;
- 
--	cq_out->comp_mask = 0;
- 	cq_out->buf.buf = mcq->buf.buf;
- 	cq_out->buf.length = mcq->buf.length;
- 	cq_out->cqn = mcq->cqn;
-@@ -388,6 +389,12 @@ static int mlx4dv_get_cq(struct ibv_cq *cq_in,
- 
- 	mcq->flags |= MLX4_CQ_FLAGS_DV_OWNED;
- 
-+	if (cq_out->comp_mask & MLX4DV_CQ_MASK_UAR) {
-+		cq_out->cq_uar = mctx->uar;
-+		mask_out |= MLX4DV_CQ_MASK_UAR;
-+	}
-+
-+	cq_out->comp_mask = mask_out;
- 	return 0;
- }
- 
-diff --git a/providers/mlx4/mlx4dv.h b/providers/mlx4/mlx4dv.h
-index 16045ef..3f50d34 100644
---- a/providers/mlx4/mlx4dv.h
-+++ b/providers/mlx4/mlx4dv.h
-@@ -166,6 +166,10 @@ struct mlx4dv_qp {
- 	uint64_t		comp_mask;
- };
- 
-+enum mlx4dv_cq_comp_mask {
-+	MLX4DV_CQ_MASK_UAR		= 1 << 0,
-+};
-+
- struct mlx4dv_cq {
- 	struct {
- 		void			*buf;
-@@ -178,7 +182,9 @@ struct mlx4dv_cq {
- 	int				arm_sn;
- 	int				cqe_size;
- 	uint64_t			comp_mask;
-+	void				*cq_uar;
- };
-+
- struct mlx4dv_srq {
- 	struct {
- 		void			*buf;
+Meow!
 -- 
-1.8.3.1
+⢀⣴⠾⠻⢶⣦⠀ 
+⣾⠁⢰⠒⠀⣿⡁ Vat kind uf sufficiently advanced technology iz dis!?
+⢿⡄⠘⠷⠚⠋⠀                                 -- Genghis Ht'rok'din
+⠈⠳⣄⠀⠀⠀⠀ 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
