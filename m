@@ -1,76 +1,52 @@
-From: =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>
-Subject: [PATCH 06/13] IB/hfi1: update to new mmu_notifier semantic
-Date: Tue, 29 Aug 2017 19:54:40 -0400
-Message-ID: <20170829235447.10050-7-jglisse@redhat.com>
+From: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Subject: Re: [PATCH 00/13] mmu_notifier kill invalidate_page callback
+Date: Tue, 29 Aug 2017 17:11:24 -0700
+Message-ID: <CA+55aFz6ArJ-ADXiYCu6xMUzdY=mKBtkzfJmLaBohC6Ub9t2SQ@mail.gmail.com>
 References: <20170829235447.10050-1-jglisse@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20170829235447.10050-1-jglisse@redhat.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Cc: =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rdma@vger.kernel.org, Dean Luick <dean.luick@intel.com>, Ira Weiny <ira.weiny@intel.com>, Doug Ledford <dledford@redhat.com>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrea Arcangeli <aarcange@redhat.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20170829235447.10050-1-jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bernhard Held <berny156-Mmb7MZpHnFY@public.gmane.org>, Adam Borowski <kilobyte-b9QjgO8OEXPVItvQsEIGlw@public.gmane.org>
+Cc: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Joerg Roedel <jroedel-l3A5Bk7waGM@public.gmane.org>, KVM list <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Steiner <steiner-sJ/iWh9BUns@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, DRI <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ashutosh Dixit <ashutosh.dixit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-mm <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, "open list:AMD IOMMU (AMD-VI)" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Dimitri Sivanich <sivanich-sJ/iWh9BUns@public.gmane.org>, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, xen-devel <xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org>, Paolo Bonzini <pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, ppc-dev <linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Kirill A . Shutemov" <kirill.shutemov-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Call to mmu_notifier_invalidate_page() are replaced by call to
-mmu_notifier_invalidate_range() and thus call are bracketed by
-call to mmu_notifier_invalidate_range_start()/end()
-
-Remove now useless invalidate_page callback.
-
-Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
-Cc: linux-rdma@vger.kernel.org
-Cc: Dean Luick <dean.luick@intel.com>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
----
- drivers/infiniband/hw/hfi1/mmu_rb.c | 9 ---------
- 1 file changed, 9 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hfi1/mmu_rb.c b/drivers/infiniband/hw/hfi1/mmu_rb.c
-index ccbf52c8ff6f..e4b56a0dd6d0 100644
---- a/drivers/infiniband/hw/hfi1/mmu_rb.c
-+++ b/drivers/infiniband/hw/hfi1/mmu_rb.c
-@@ -67,8 +67,6 @@ struct mmu_rb_handler {
- 
- static unsigned long mmu_node_start(struct mmu_rb_node *);
- static unsigned long mmu_node_last(struct mmu_rb_node *);
--static inline void mmu_notifier_page(struct mmu_notifier *, struct mm_struct *,
--				     unsigned long);
- static inline void mmu_notifier_range_start(struct mmu_notifier *,
- 					    struct mm_struct *,
- 					    unsigned long, unsigned long);
-@@ -82,7 +80,6 @@ static void do_remove(struct mmu_rb_handler *handler,
- static void handle_remove(struct work_struct *work);
- 
- static const struct mmu_notifier_ops mn_opts = {
--	.invalidate_page = mmu_notifier_page,
- 	.invalidate_range_start = mmu_notifier_range_start,
- };
- 
-@@ -285,12 +282,6 @@ void hfi1_mmu_rb_remove(struct mmu_rb_handler *handler,
- 	handler->ops->remove(handler->ops_arg, node);
- }
- 
--static inline void mmu_notifier_page(struct mmu_notifier *mn,
--				     struct mm_struct *mm, unsigned long addr)
--{
--	mmu_notifier_mem_invalidate(mn, mm, addr, addr + PAGE_SIZE);
--}
--
- static inline void mmu_notifier_range_start(struct mmu_notifier *mn,
- 					    struct mm_struct *mm,
- 					    unsigned long start,
--- 
-2.13.5
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+T24gVHVlLCBBdWcgMjksIDIwMTcgYXQgNDo1NCBQTSwgSsOpcsO0bWUgR2xpc3NlIDxqZ2xpc3Nl
+QHJlZGhhdC5jb20+IHdyb3RlOgo+Cj4gTm90ZSB0aGlzIGlzIGJhcmVseSB0ZXN0ZWQuIEkgaW50
+ZW5kIHRvIGRvIG1vcmUgdGVzdGluZyBvZiBuZXh0IGZldyBkYXlzCj4gYnV0IGkgZG8gbm90IGhh
+dmUgYWNjZXNzIHRvIGFsbCBoYXJkd2FyZSB0aGF0IG1ha2UgdXNlIG9mIHRoZSBtbXVfbm90aWZp
+ZXIKPiBBUEkuCgpUaGFua3MgZm9yIGRvaW5nIHRoaXMuCgo+IEZpcnN0IDIgcGF0Y2hlcyBjb252
+ZXJ0IGV4aXN0aW5nIGNhbGwgb2YgbW11X25vdGlmaWVyX2ludmFsaWRhdGVfcGFnZSgpCj4gdG8g
+bW11X25vdGlmaWVyX2ludmFsaWRhdGVfcmFuZ2UoKSBhbmQgYnJhY2tldCB0aG9zZSBjYWxsIHdp
+dGggY2FsbCB0bwo+IG1tdV9ub3RpZmllcl9pbnZhbGlkYXRlX3JhbmdlX3N0YXJ0KCkvZW5kKCku
+CgpPaywgdGhvc2UgdHdvIHBhdGNoZXMgYXJlIGEgYml0IG1vcmUgY29tcGxleCB0aGFuIEkgd2Fz
+IGhvcGluZyBmb3IsCmJ1dCBub3QgKnRvbyogYmFkLgoKQW5kIHRoZSBmaW5hbCBlbmQgcmVzdWx0
+IGNlcnRhaW5seSBsb29rcyBuaWNlOgoKPiAgMTYgZmlsZXMgY2hhbmdlZCwgNzQgaW5zZXJ0aW9u
+cygrKSwgMjE0IGRlbGV0aW9ucygtKQoKWWVhaCwgcmVtb3ZpbmcgYWxsIHRob3NlIGludmFsaWRh
+dGVfcGFnZSgpIG5vdGlmaWVycyBjZXJ0YWlubHkgbWFrZXMKZm9yIGEgbmljZSBwYXRjaC4KCkFu
+ZCBJIGFjdHVhbGx5IHRoaW5rIHlvdSBtaXNzZWQgc29tZSBtb3JlIGxpbmVzIHRoYXQgY2FuIG5v
+dyBiZQpyZW1vdmVkOiBrdm1fYXJjaF9tbXVfbm90aWZpZXJfaW52YWxpZGF0ZV9wYWdlKCkgc2hv
+dWxkIG5vIGxvbmdlciBiZQpuZWVkZWQgZWl0aGVyLCBzbyB5b3UgY2FuIHJlbW92ZSBhbGwgb2Yg
+dGhvc2UgdG9vIChtb3N0IG9mIHRoZW0gYXJlCmVtcHR5IGlubGluZSBmdW5jdGlvbnMsIGJ1dCB4
+ODYgaGFzIG9uZSB0aGF0IGFjdHVhbGx5IGRvZXMgc29tZXRoaW5nLgoKU28gdGhlcmUncyBhbiBh
+ZGRlZCAzMCBvciBzbyBkZWFkIGxpbmVzIHRoYXQgc2hvdWxkIGJlIHJlbW92ZWQgaW4gdGhlCmt2
+bSBwYXRjaCwgSSB0aGluay4KCkJ1dCBmcm9tIGEgX3ZlcnlfIHF1aWNrIHJlYWQtdGhyb3VnaCB0
+aGlzIGxvb2tzIGZpbmUuIEJ1dCBpdCBvYnZpb3VzbHkKbmVlZHMgdGVzdGluZy4KClBlb3BsZSAt
+ICplc3BlY2lhbGx5KiB0aGUgcGVvcGxlIHdobyBzYXcgaXNzdWVzIHVuZGVyIEtWTSAtIGNhbiB5
+b3UKdHJ5IG91dCBKw6lyw7RtZSdzIHBhdGNoLXNlcmllcz8gSSBhZGVkIHNvbWUgcGVvcGxlIHRv
+IHRoZSBjYywgdGhlIGZ1bGwKc2VyaWVzIGlzIG9uIGxrbWwuIErDqXLDtG1lIC0gZG8geW91IGhh
+dmUgYSBnaXQgYnJhbmNoIGZvciBwZW9wbGUgdG8KdGVzdCB0aGF0IHRoZXkgY291bGQgZWFzaWx5
+IHB1bGwgYW5kIHRyeSBvdXQ/CgogICAgICAgICAgICAgICAgICAgIExpbnVzCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmlvbW11IG1haWxpbmcgbGlzdApp
+b21tdUBsaXN0cy5saW51eC1mb3VuZGF0aW9uLm9yZwpodHRwczovL2xpc3RzLmxpbnV4Zm91bmRh
+dGlvbi5vcmcvbWFpbG1hbi9saXN0aW5mby9pb21tdQ==
