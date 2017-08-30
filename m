@@ -1,72 +1,113 @@
 From: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Subject: RE: [Patch v3 11/19] CIFS: SMBD: Define memory registration for I/O
- data
-Date: Wed, 30 Aug 2017 02:12:32 +0000
-Message-ID: <MWHPR21MB0190E1D1698D183A6F0E8AA7CE9C0@MWHPR21MB0190.namprd21.prod.outlook.com>
-References: <20170829192915.26251-1-longli@exchange.microsoft.com>
- <20170829192915.26251-12-longli@exchange.microsoft.com>
- <CAKywueSMXWN1tsHbFDGK9d9STL1qcC9G_VMfV2hz9YZhxhhH+w@mail.gmail.com>
+Subject: RE: [[PATCH v1] 18/37] [CIFS] SMBD: Implement API for upper layer to
+ send data
+Date: Wed, 30 Aug 2017 02:30:04 +0000
+Message-ID: <MWHPR21MB0190E90448DDA01067016674CE9C0@MWHPR21MB0190.namprd21.prod.outlook.com>
+References: <1501704648-20159-1-git-send-email-longli@exchange.microsoft.com>
+ <1501704648-20159-19-git-send-email-longli@exchange.microsoft.com>
+ <CY4PR21MB01827F735F570CCAECD5AD8BA08C0@CY4PR21MB0182.namprd21.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAKywueSMXWN1tsHbFDGK9d9STL1qcC9G_VMfV2hz9YZhxhhH+w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CY4PR21MB01827F735F570CCAECD5AD8BA08C0-kUhI0YP1syo7ifcEnHlXec1VXTxX1y3OvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pavel Shilovsky <piastryyy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, linux-cifs <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, samba-technical <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>, Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Matthew Wilcox <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Sender: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tom Talpey <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, "linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org" <samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUGF2ZWwgU2hpbG92c2t5
-IFttYWlsdG86cGlhc3RyeXl5QGdtYWlsLmNvbV0NCj4gU2VudDogVHVlc2RheSwgQXVndXN0IDI5
-LCAyMDE3IDU6NDkgUE0NCj4gVG86IExvbmcgTGkgPGxvbmdsaUBtaWNyb3NvZnQuY29tPg0KPiBD
-YzogU3RldmUgRnJlbmNoIDxzZnJlbmNoQHNhbWJhLm9yZz47IGxpbnV4LWNpZnMgPGxpbnV4LQ0K
-PiBjaWZzQHZnZXIua2VybmVsLm9yZz47IHNhbWJhLXRlY2huaWNhbCA8c2FtYmEtdGVjaG5pY2Fs
-QGxpc3RzLnNhbWJhLm9yZz47DQo+IEtlcm5lbCBNYWlsaW5nIExpc3QgPGxpbnV4LWtlcm5lbEB2
-Z2VyLmtlcm5lbC5vcmc+OyBsaW51eC0NCj4gcmRtYUB2Z2VyLmtlcm5lbC5vcmc7IENocmlzdG9w
-aCBIZWxsd2lnIDxoY2hAaW5mcmFkZWFkLm9yZz47IFRvbSBUYWxwZXkNCj4gPHR0YWxwZXlAbWlj
-cm9zb2Z0LmNvbT47IE1hdHRoZXcgV2lsY294IDxtYXdpbGNveEBtaWNyb3NvZnQuY29tPjsNCj4g
-TG9uZyBMaSA8bG9uZ2xpQG1pY3Jvc29mdC5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUGF0Y2ggdjMg
-MTEvMTldIENJRlM6IFNNQkQ6IERlZmluZSBtZW1vcnkgcmVnaXN0cmF0aW9uIGZvciBJL08NCj4g
-ZGF0YQ0KPiANCj4gMjAxNy0wOC0yOSAxMjoyOSBHTVQtMDc6MDAgTG9uZyBMaSA8bG9uZ2xpQGV4
-Y2hhbmdlLm1pY3Jvc29mdC5jb20+Og0KPiA+IEZyb206IExvbmcgTGkgPGxvbmdsaUBtaWNyb3Nv
-ZnQuY29tPg0KPiA+DQo+ID4gVG8gcHJlcGFyZSBmb3IgUkRNQSByZWFkL3dyaXRlIHVzaW5nIG1l
-bW9yeSByZWdpc3RyYXRpb24sIGFkZCBtZW1vcnkNCj4gPiByZWdpc3RhcnRpb24gcG9pbnRlcnMg
-dG8gdXBwZXIgbGF5ZXIgZGF0YSBJL08gY29udGV4dC4NCj4gPg0KPiA+IFNpZ25lZC1vZmYtYnk6
-IExvbmcgTGkgPGxvbmdsaUBtaWNyb3NvZnQuY29tPg0KPiA+IC0tLQ0KPiA+ICBmcy9jaWZzL2Np
-ZnNnbG9iLmggfCAyICsrDQo+ID4gIDEgZmlsZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKykNCj4g
-Pg0KPiA+IGRpZmYgLS1naXQgYS9mcy9jaWZzL2NpZnNnbG9iLmggYi9mcy9jaWZzL2NpZnNnbG9i
-LmggaW5kZXgNCj4gPiBkYzU0MDRkLi5kY2QyYjYzIDEwMDY0NA0KPiA+IC0tLSBhL2ZzL2NpZnMv
-Y2lmc2dsb2IuaA0KPiA+ICsrKyBiL2ZzL2NpZnMvY2lmc2dsb2IuaA0KPiA+IEBAIC0xMTY2LDYg
-KzExNjYsNyBAQCBzdHJ1Y3QgY2lmc19yZWFkZGF0YSB7DQo+ID4gICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICBzdHJ1Y3QgY2lmc19yZWFkZGF0YSAqcmRhdGEsDQo+ID4gICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICBzdHJ1Y3QgaW92X2l0ZXIgKml0ZXIpOw0KPiA+ICAgICAg
-ICAgc3RydWN0IGt2ZWMgICAgICAgICAgICAgICAgICAgICBpb3ZbMl07DQo+ID4gKyAgICAgICBz
-dHJ1Y3Qgc21iZF9tciAgICAgICAgICAgICAgICAgICptcjsNCj4gPiAgICAgICAgIHVuc2lnbmVk
-IGludCAgICAgICAgICAgICAgICAgICAgcGFnZXN6Ow0KPiA+ICAgICAgICAgdW5zaWduZWQgaW50
-ICAgICAgICAgICAgICAgICAgICB0YWlsc3o7DQo+ID4gICAgICAgICB1bnNpZ25lZCBpbnQgICAg
-ICAgICAgICAgICAgICAgIGNyZWRpdHM7DQo+ID4gQEAgLTExODgsNiArMTE4OSw3IEBAIHN0cnVj
-dCBjaWZzX3dyaXRlZGF0YSB7DQo+ID4gICAgICAgICBwaWRfdCAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIHBpZDsNCj4gPiAgICAgICAgIHVuc2lnbmVkIGludCAgICAgICAgICAgICAgICAgICAg
-Ynl0ZXM7DQo+ID4gICAgICAgICBpbnQgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHJlc3Vs
-dDsNCj4gPiArICAgICAgIHN0cnVjdCBzbWJkX21yICAgICAgICAgICAgICAgICAgKm1yOw0KPiA+
-ICAgICAgICAgdW5zaWduZWQgaW50ICAgICAgICAgICAgICAgICAgICBwYWdlc3o7DQo+ID4gICAg
-ICAgICB1bnNpZ25lZCBpbnQgICAgICAgICAgICAgICAgICAgIHRhaWxzejsNCj4gPiAgICAgICAg
-IHVuc2lnbmVkIGludCAgICAgICAgICAgICAgICAgICAgY3JlZGl0czsNCj4gPiAtLQ0KPiA+IDIu
-Ny40DQo+ID4NCj4gPiAtLQ0KPiA+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5k
-IHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1jaWZzIg0KPiA+IGluIHRoZSBib2R5IG9mIGEg
-bWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnIE1vcmUNCj4gbWFqb3Jkb21vDQo+
-ID4gaW5mbyBhdA0KPiA+DQo+IGh0dHBzOi8vbmEwMS5zYWZlbGlua3MucHJvdGVjdGlvbi5vdXRs
-b29rLmNvbS8/dXJsPWh0dHAlM0ElMkYlMkZ2Z2VyLmsNCj4gPiBlcm5lbC5vcmclMkZtYWpvcmRv
-bW8tDQo+IGluZm8uaHRtbCZkYXRhPTAyJTdDMDElN0Nsb25nbGklNDBtaWNyb3NvZnQuY29tJQ0K
-PiA+DQo+IDdDMWEwMmM2MTU5MDZlNDY0ODgzNWMwOGQ0ZWY0MGU2NTUlN0M3MmY5ODhiZjg2ZjE0
-MWFmOTFhYjJkN2NkMDExZA0KPiBiNDclDQo+ID4NCj4gN0MxJTdDMCU3QzYzNjM5NjUwOTM5NDAx
-ODQ0OSZzZGF0YT15anZ0M3hQWVBNbUJwOG5SaUFDJTJGWVVPT3MNCj4gZ2FudlBkJTINCj4gPiBG
-ZjZZMXVadGJxR1UlM0QmcmVzZXJ2ZWQ9MA0KPiANCj4gVGhlIHNhbWUgdGhpbmc6IGxldCdzIG5v
-dCBhZGQgc3RydWN0dXJlIGZpZWxkcyB0aGF0IHRoZSBjb2RlIGRvZXNuJ3QgZG8NCj4gYW55dGhp
-bmcgd2l0aC4NCg0KT2theS4gSSB3aWxsIGZvbGQgdGhlIHBhdGNoIGludG8gcmVsZXZhbnQgcGF0
-Y2hlcy4NCg0KPiANCj4gLS0NCj4gQmVzdCByZWdhcmRzLA0KPiBQYXZlbCBTaGlsb3Zza3kNCg==
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+> -----Original Message-----
+> From: Tom Talpey
+> Sent: Monday, August 14, 2017 1:44 PM
+> To: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>; Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>;
+> linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org; linux-
+> kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: RE: [[PATCH v1] 18/37] [CIFS] SMBD: Implement API for upper laye=
+r
+> to send data
+>=20
+> > -----Original Message-----
+> > From: linux-cifs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-cifs-
+> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Long Li
+> > Sent: Wednesday, August 2, 2017 4:10 PM
+> > To: Steve French <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>; linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> > samba- technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > Cc: Long Li <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+> > Subject: [[PATCH v1] 18/37] [CIFS] SMBD: Implement API for upper layer
+> > to send data
+> >
+> > +/*
+> > + * Write data to transport
+> > + * Each rqst is transported as a SMBDirect payload
+> > + * rqst: the data to write
+> > + * return value: 0 if successfully write, otherwise error code  */
+> > +int cifs_rdma_write(struct cifs_rdma_info *info, struct smb_rqst
+> > +*rqst) {
+>=20
+> !!!
+> This is a VERY confusing name. It is not sending an RDMA Write, which wil=
+l
+> confuse any RDMA-enlightened reader. It's performing an RDMA Send, so
+> that name is perhaps one possibility.
+
+I have fixed that in v3.
+
+>=20
+> > +       if (info->transport_status !=3D CIFS_RDMA_CONNECTED) {
+> > +               log_cifs_write("disconnected returning -EIO\n");
+> > +               return -EIO;
+> > +       }
+>=20
+> Isn't this optimizing the error case? There's no guarantee it's still con=
+nected
+> by the time the following request construction occurs. Why not just proce=
+ed
+> without the check?
+
+I rearranged the shutdown logic in v3. Checking for transport status is sti=
+ll needed, but it checks after checking for other counters on pending activ=
+ities.
+
+For example, on sending code:
+
+info->smbd_send_pending++;
+if (info->transport_status !=3D SMBD_CONNECTED) {
+        info->smbd_send_pending--;
+        wake_up(&info->wait_smbd_send_pending);       =20
+}
+
+On transport shutdown code:
+
+        info->transport_status =3D SMBD_DISCONNECTING;
+.......
+.......
+.......
+        log_rdma_event(INFO, "wait for all send to finish\n");
+        wait_event(info->wait_smbd_send_pending,
+                info->smbd_send_pending =3D=3D 0);
+
+It guarantees no sending code can enter transport after shutdown is finishe=
+d. Shutdown is running on a separate work queue, so it is needed.
+
+>=20
+> > +       /* Strip the first 4 bytes MS-SMB2 section 2.1
+> > +        * they are used only for TCP transport */
+> > +       iov[0].iov_base =3D (char*)rqst->rq_iov[0].iov_base + 4;
+> > +       iov[0].iov_len =3D rqst->rq_iov[0].iov_len - 4;
+> > +       buflen +=3D iov[0].iov_len;
+>=20
+> Ok, that layering choice in the cifs.ko client code needs to be corrected=
+. After
+> all, it will need to be RDMA-aware to build the SMB3 read/write channel
+> structures.
+> And, the code in cifs_post_send_data() is allocating and building a struc=
+ture
+> that could have been accounted for much earlier, avoiding the extra
+> overhead.
+>=20
+> That change could happen later, the hack is mostly ok for now. But
+> something needs to be said in a comment.
+>=20
+> Tom.
