@@ -1,70 +1,60 @@
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/2] IB/cm: Fix sleeping in atomic when RoCE is used
-Date: Wed, 30 Aug 2017 10:23:42 -0400
-Message-ID: <a7c4b18a-3b19-74f4-b9b8-35f31e65a2bb@redhat.com>
-References: <20170829173444.4289-1-roland@kernel.org>
+Subject: Re: [PATCH for-next v1 0/2] RDMA/vmw_pvrdma: Patches for 4.14
+Date: Wed, 30 Aug 2017 10:24:21 -0400
+Message-ID: <46592fc7-5ed6-294f-0f2f-69c326284b2c@redhat.com>
+References: <cover.1504045411.git.aditr@vmware.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="6aGdQxwXARp7HtSXaxpr08mu6lRBguKfo"
+ boundary="Mr1J9OLAbOgSTNSarbmqCQSI4PGF1uRLt"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170829173444.4289-1-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <cover.1504045411.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---6aGdQxwXARp7HtSXaxpr08mu6lRBguKfo
-Content-Type: multipart/mixed; boundary="cqP4FMqAUb3bBCt9Dpu5HsOno8SRL0pG2";
+--Mr1J9OLAbOgSTNSarbmqCQSI4PGF1uRLt
+Content-Type: multipart/mixed; boundary="WweKEIjFVkUhmGed9aqR8Bcbf1wTj925k";
  protected-headers="v1"
 From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Message-ID: <a7c4b18a-3b19-74f4-b9b8-35f31e65a2bb-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/2] IB/cm: Fix sleeping in atomic when RoCE is used
-References: <20170829173444.4289-1-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-In-Reply-To: <20170829173444.4289-1-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
+Message-ID: <46592fc7-5ed6-294f-0f2f-69c326284b2c-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH for-next v1 0/2] RDMA/vmw_pvrdma: Patches for 4.14
+References: <cover.1504045411.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <cover.1504045411.git.aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
 
---cqP4FMqAUb3bBCt9Dpu5HsOno8SRL0pG2
+--WweKEIjFVkUhmGed9aqR8Bcbf1wTj925k
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: quoted-printable
 
-On 8/29/2017 1:34 PM, Roland Dreier wrote:
-> From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+On 8/29/2017 6:51 PM, Adit Ranadive wrote:
+> Hi Doug,
 >=20
-> A couple of places in the CM do
+> Here are a couple more patches for the VMware PVRDMA driver for 4.14.
+> These are based on your for-next branch.
 >=20
->     spin_lock_irq(&cm_id_priv->lock);
->     ...
->     if (cm_alloc_response_msg(work->port, work->mad_recv_wc, &msg))
+> Thanks,
+> Adit
+> ---
+> Changes v0 -> v1:
+>  - Dropped the PVRDMA network type enums and the conversion function.
+> ---
+> Adit Ranadive (1):
+>   RDMA/vmw_pvrdma: Fix a signedness
 >=20
-> However when the underlying transport is RoCE, this leads to a sleeping=
- function
-> being called with the lock held - the callchain is
+> Aditya Sarwade (1):
+>   RDMA/vmw_pvrdma: Report network header type in WC
 >=20
->     cm_alloc_response_msg() ->
->       ib_create_ah_from_wc() ->
->         ib_init_ah_from_wc() ->
->           rdma_addr_find_l2_eth_by_grh() ->
->             rdma_resolve_ip()
+>  drivers/infiniband/hw/vmw_pvrdma/pvrdma_cq.c | 3 ++-
+>  include/uapi/rdma/vmw_pvrdma-abi.h           | 6 ++++--
+>  2 files changed, 6 insertions(+), 3 deletions(-)
 >=20
-> and rdma_resolve_ip() starts out by doing
->=20
->     req =3D kzalloc(sizeof *req, GFP_KERNEL);
->=20
-> not to mention rdma_addr_find_l2_eth_by_grh() doing
->=20
->     wait_for_completion(&ctx.comp);
->=20
-> to wait for the task that rdma_resolve_ip() queues up.
->=20
-> Fix this by moving the AH creation out of the lock.
->=20
-> Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 
-This looks good Roland, thanks for that.  Will apply today.
+Thanks, will apply these today.
 
 --=20
 Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
@@ -73,9 +63,9 @@ Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 D
 
 
---cqP4FMqAUb3bBCt9Dpu5HsOno8SRL0pG2--
+--WweKEIjFVkUhmGed9aqR8Bcbf1wTj925k--
 
---6aGdQxwXARp7HtSXaxpr08mu6lRBguKfo
+--Mr1J9OLAbOgSTNSarbmqCQSI4PGF1uRLt
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -84,22 +74,22 @@ Content-Disposition: attachment; filename="signature.asc"
 Version: GnuPG v2
 Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
 
-iQIcBAEBCAAGBQJZpspuAAoJELgmozMOVy/dZD0P+gLQaJwGqlt/x+iaEguKZmrk
-cSu3VkpsYJMxSjVqFaOHL0nWf/png1nGSESrCzb+AnRpWpEY4tAnGNk+yf0ksFzA
-c55iVNxCJZySbZhs4dQ4/wfP5Kw7nolnepOdeFM7EZslvGL6l+CCdZDgwuEt+ZeA
-nkGjX3Ea7l/q0/IxNAWdm8Hbz/X8z7yvl7Aut+v/jxZiC8DCMpOGPdDmh2KQO/GS
-FSBpOFACup6gu0yTouLlCD4B5ZVTJA8rbKuMT7AdlClQT7zce12MZQh/HFV1l/XZ
-xZ4jPuG+KosSZ+Oov1gLZcwTiXaVbQg9njiQe6gvcWVz7SYIu/rBaS5yAkutSL/f
-NowZMIXZ8rt8SmqM9t0hfjXqyRTMi4Z0QGg6z8twKwMnPXGAZ4/HyNw/SipU0OFo
-ZubXIy4uNUFa6wA6SHCeuf0tku3vb/uyMM0bGlAs/FcaSDuRCJBT2LpT/RJHkzoY
-5LTqzO9GJw3oLa4LzLK8g9yd1cuZ0pTRx52rHWfm+9K+/Pe3PUiUIjdb2igoxgud
-xYrP0kMZVzHMRjZLKmTNeCjqgdDWskjKw/wKOw2R+XywoIHsaw6w3uqLuqxIiQRE
-L9EpjlJ1HJQiAh/6MO4jDsX4PX8zVIV2L7rqpLzGM6CjW0xC+BhKd27B+k2WzoTX
-Bce9rtoEOmAZpwvxXW/W
-=Tdpj
+iQIcBAEBCAAGBQJZpsqVAAoJELgmozMOVy/drV8P/1pbXKCumL+0FvP3NmnWP16T
+dCh1/mtD/NfvBUyX2/14XwYD5l4az60T+ojcXhP0wqpZ1X+Ip6gJS80IlIKaCmcf
+mXdDv0L3A576BL2YYRMDN9hx8JO43iSCwHy7E0ytfs+x8mYSaTuYzby0XQSMoifn
+JuOirXKZxrTNuWAOmXrDjy42jNLZxXaugJlrjy5txGZnbI/wo4R2hqZd9dPsV+73
+Lq3X9qh9ixec5Wz9v/l1KlNKjv2qr8Z66tS+WXWx3g9gbCU7vQqnlSbOL/XkNpd9
+VrVkmmHVjd9IhVtDUSiCFqf3Bhal+Je/R6gH3Er5Hy0fXKGlnQLV0fq7MXxKOc1q
+dtyzRxBaCzB1z/ncm8lQ7xmclHewkcUL2lHXLqHtCWvxL5bKjgHgJnElQONeVhsb
+FyxfLAhQF50RcaV55YU0CsJLUgVCNfwn6yRQG0pTfJC7jBaVaiEZoeRSZOGkJcuP
+VoEHtSd/DgikTpQC5S2r1sbdsGfnFzJ1B32CTnWfkOdO7lBbGVfXAxDDcSKJ/x+h
+muM+Ai0g/wyAIlN+GpmEZLRmVmqaiNeiFzJo7FaH0P5e10+LXnDu/lP78V6sxx68
+8wir1E9nFhJsp4Gzm1PHTGBBiIMQP/6A6ki8Hukl+VTn7k6mbv+XZ/Hjk1f4a1UU
+edt1h/26Faz+yWjqIUKf
+=DR43
 -----END PGP SIGNATURE-----
 
---6aGdQxwXARp7HtSXaxpr08mu6lRBguKfo--
+--Mr1J9OLAbOgSTNSarbmqCQSI4PGF1uRLt--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
