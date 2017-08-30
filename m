@@ -1,7 +1,7 @@
 From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 10/20] RDMA/hns: Update the interfaces for MTT/CQE multi hop addressing in hip08
-Date: Wed, 30 Aug 2017 17:23:08 +0800
-Message-ID: <1504084998-64397-11-git-send-email-xavier.huwei@huawei.com>
+Subject: [PATCH for-next 01/20] RDMA/hns: Split hw v1 driver from hns roce driver
+Date: Wed, 30 Aug 2017 17:22:59 +0800
+Message-ID: <1504084998-64397-2-git-send-email-xavier.huwei@huawei.com>
 References: <1504084998-64397-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,446 +12,960 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-9Onoh4P/yGk@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+The hardware relevant definitions and operations are implemented
+in hns_roce_hw_v* file. According to the diversity chips, the file
+is named as hns_roce_hw_v1.c or hns_roce_hw_v2.c etc.
 
-The MTT(SQWQE/SGE/RQWQE) and CQE in hip08 can support multi hop
-addressing. The address of MTT/CQE can be retrieved by the BT
-(Base Address Table) with multi hop addressing.
+The general software process flow, common structures and allocated
+algorithms are implemented in other files located in hns roce driver.
 
-This patch is to update the interfaces in HEM to support multi hop
-addressing for the MTT/CQE.
+In order to support the scalability of the hardware version, the
+common driver features are in the hns-roce.ko, and the hardware
+relevant operations are in hns_roce_hw_v1.ko or hns_roce_hw_v2.ko
+based on the series chips.
 
-Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_cq.c     |  12 +--
- drivers/infiniband/hw/hns/hns_roce_device.h |   6 ++
- drivers/infiniband/hw/hns/hns_roce_hem.c    | 119 +++++++++++++++++++++++-----
- drivers/infiniband/hw/hns/hns_roce_hem.h    |  11 ++-
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  |   8 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  |   6 ++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |   1 +
- drivers/infiniband/hw/hns/hns_roce_mr.c     |  16 ++--
- 8 files changed, 143 insertions(+), 36 deletions(-)
+ drivers/infiniband/hw/hns/Kconfig           |  15 +-
+ drivers/infiniband/hw/hns/Makefile          |   4 +-
+ drivers/infiniband/hw/hns/hns_roce_alloc.c  |   2 +
+ drivers/infiniband/hw/hns/hns_roce_cmd.c    |   3 +
+ drivers/infiniband/hw/hns/hns_roce_cq.c     |   3 +
+ drivers/infiniband/hw/hns/hns_roce_device.h |   6 +-
+ drivers/infiniband/hw/hns/hns_roce_hem.c    |   1 +
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c  | 244 +++++++++++++++++++++++-
+ drivers/infiniband/hw/hns/hns_roce_main.c   | 282 +++++-----------------------
+ drivers/infiniband/hw/hns/hns_roce_mr.c     |   3 +
+ drivers/infiniband/hw/hns/hns_roce_pd.c     |   2 +
+ drivers/infiniband/hw/hns/hns_roce_qp.c     |  12 ++
+ 12 files changed, 330 insertions(+), 247 deletions(-)
 
+diff --git a/drivers/infiniband/hw/hns/Kconfig b/drivers/infiniband/hw/hns/Kconfig
+index 61c93bb..37e33e5 100644
+--- a/drivers/infiniband/hw/hns/Kconfig
++++ b/drivers/infiniband/hw/hns/Kconfig
+@@ -1,10 +1,21 @@
+ config INFINIBAND_HNS
+ 	tristate "HNS RoCE Driver"
+ 	depends on NET_VENDOR_HISILICON
+-	depends on (ARM64 || (COMPILE_TEST && 64BIT)) && HNS && HNS_DSAF && HNS_ENET
++	depends on ARM64 || (COMPILE_TEST && 64BIT)
+ 	---help---
+ 	  This is a RoCE/RDMA driver for the Hisilicon RoCE engine. The engine
+-	  is used in Hisilicon Hi1610 and more further ICT SoC.
++	  is used in Hisilicon Hip06 and more further ICT SoC based on
++	  platform device.
+ 
+ 	  To compile this driver as a module, choose M here: the module
+ 	  will be called hns-roce.
++
++config INFINIBAND_HNS_HIP06
++	tristate "Hisilicon Hip06 Family RoCE support"
++	depends on INFINIBAND_HNS && HNS && HNS_DSAF && HNS_ENET
++	---help---
++	  RoCE driver support for Hisilicon RoCE engine in Hisilicon Hip06 and
++	  Hip07 SoC. These RoCE engines are platform devices.
++
++	  To compile this driver as a module, choose M here: the module
++	  will be called hns-roce-hw-v1.
+diff --git a/drivers/infiniband/hw/hns/Makefile b/drivers/infiniband/hw/hns/Makefile
+index 7e8ebd2..806ac4e 100644
+--- a/drivers/infiniband/hw/hns/Makefile
++++ b/drivers/infiniband/hw/hns/Makefile
+@@ -5,4 +5,6 @@
+ obj-$(CONFIG_INFINIBAND_HNS) += hns-roce.o
+ hns-roce-objs := hns_roce_main.o hns_roce_cmd.o hns_roce_eq.o hns_roce_pd.o \
+ 	hns_roce_ah.o hns_roce_hem.o hns_roce_mr.o hns_roce_qp.o \
+-	hns_roce_cq.o hns_roce_alloc.o hns_roce_hw_v1.o
++	hns_roce_cq.o hns_roce_alloc.o
++obj-$(CONFIG_INFINIBAND_HNS_HIP06) += hns-roce-hw-v1.o
++hns-roce-hw-v1-objs := hns_roce_hw_v1.o
+diff --git a/drivers/infiniband/hw/hns/hns_roce_alloc.c b/drivers/infiniband/hw/hns/hns_roce_alloc.c
+index e1b433c..71a5098 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_alloc.c
++++ b/drivers/infiniband/hw/hns/hns_roce_alloc.c
+@@ -67,6 +67,7 @@ void hns_roce_bitmap_free(struct hns_roce_bitmap *bitmap, unsigned long obj,
+ {
+ 	hns_roce_bitmap_free_range(bitmap, obj, 1, rr);
+ }
++EXPORT_SYMBOL_GPL(hns_roce_bitmap_free);
+ 
+ int hns_roce_bitmap_alloc_range(struct hns_roce_bitmap *bitmap, int cnt,
+ 				int align, unsigned long *obj)
+@@ -177,6 +178,7 @@ void hns_roce_buf_free(struct hns_roce_dev *hr_dev, u32 size,
+ 		kfree(buf->page_list);
+ 	}
+ }
++EXPORT_SYMBOL_GPL(hns_roce_buf_free);
+ 
+ int hns_roce_buf_alloc(struct hns_roce_dev *hr_dev, u32 size, u32 max_direct,
+ 		       struct hns_roce_buf *buf)
+diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.c b/drivers/infiniband/hw/hns/hns_roce_cmd.c
+index b94dcd8..c981d9d 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_cmd.c
++++ b/drivers/infiniband/hw/hns/hns_roce_cmd.c
+@@ -269,6 +269,7 @@ int hns_roce_cmd_mbox(struct hns_roce_dev *hr_dev, u64 in_param, u64 out_param,
+ 					      in_modifier, op_modifier, op,
+ 					      timeout);
+ }
++EXPORT_SYMBOL_GPL(hns_roce_cmd_mbox);
+ 
+ int hns_roce_cmd_init(struct hns_roce_dev *hr_dev)
+ {
+@@ -356,6 +357,7 @@ struct hns_roce_cmd_mailbox
+ 
+ 	return mailbox;
+ }
++EXPORT_SYMBOL_GPL(hns_roce_alloc_cmd_mailbox);
+ 
+ void hns_roce_free_cmd_mailbox(struct hns_roce_dev *hr_dev,
+ 			       struct hns_roce_cmd_mailbox *mailbox)
+@@ -366,3 +368,4 @@ void hns_roce_free_cmd_mailbox(struct hns_roce_dev *hr_dev,
+ 	dma_pool_free(hr_dev->cmd.pool, mailbox->buf, mailbox->dma);
+ 	kfree(mailbox);
+ }
++EXPORT_SYMBOL_GPL(hns_roce_free_cmd_mailbox);
 diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
-index 5f51242..362aeec 100644
+index b89fd71..1d57df7 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_cq.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
-@@ -85,17 +85,19 @@ static int hns_roce_cq_alloc(struct hns_roce_dev *hr_dev, int nent,
- 			     struct hns_roce_uar *hr_uar,
- 			     struct hns_roce_cq *hr_cq, int vector)
+@@ -205,6 +205,7 @@ void hns_roce_free_cq(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq)
+ 	hns_roce_table_put(hr_dev, &cq_table->table, hr_cq->cqn);
+ 	hns_roce_bitmap_free(&cq_table->bitmap, hr_cq->cqn, BITMAP_NO_RR);
+ }
++EXPORT_SYMBOL_GPL(hns_roce_free_cq);
+ 
+ static int hns_roce_ib_get_cq_umem(struct hns_roce_dev *hr_dev,
+ 				   struct ib_ucontext *context,
+@@ -385,6 +386,7 @@ struct ib_cq *hns_roce_ib_create_cq(struct ib_device *ib_dev,
+ 	kfree(hr_cq);
+ 	return ERR_PTR(ret);
+ }
++EXPORT_SYMBOL_GPL(hns_roce_ib_create_cq);
+ 
+ int hns_roce_ib_destroy_cq(struct ib_cq *ib_cq)
  {
--	struct hns_roce_cmd_mailbox *mailbox = NULL;
--	struct hns_roce_cq_table *cq_table = NULL;
-+	struct hns_roce_cmd_mailbox *mailbox;
-+	struct hns_roce_hem_table *mtt_table;
-+	struct hns_roce_cq_table *cq_table;
- 	struct device *dev = hr_dev->dev;
- 	dma_addr_t dma_handle;
--	u64 *mtts = NULL;
--	int ret = 0;
-+	u64 *mtts;
-+	int ret;
+@@ -410,6 +412,7 @@ int hns_roce_ib_destroy_cq(struct ib_cq *ib_cq)
  
- 	cq_table = &hr_dev->cq_table;
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(hns_roce_ib_destroy_cq);
  
- 	/* Get the physical address of cq buf */
--	mtts = hns_roce_table_find(&hr_dev->mr_table.mtt_table,
-+	mtt_table = &hr_dev->mr_table.mtt_table;
-+	mtts = hns_roce_table_find(hr_dev, mtt_table,
- 				   hr_mtt->first_seg, &dma_handle);
- 	if (!mtts) {
- 		dev_err(dev, "CQ alloc.Failed to find cq buf addr.\n");
+ void hns_roce_cq_completion(struct hns_roce_dev *hr_dev, u32 cqn)
+ {
 diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 4574a7b..7dd8fbb2 100644
+index e493a61..fc2b82d 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_device.h
 +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -525,6 +525,12 @@ struct hns_roce_caps {
- 	u32		mpt_ba_pg_sz;
- 	u32		mpt_buf_pg_sz;
- 	u32		mpt_hop_num;
-+	u32		mtt_ba_pg_sz;
-+	u32		mtt_buf_pg_sz;
-+	u32		mtt_hop_num;
-+	u32		cqe_ba_pg_sz;
-+	u32		cqe_buf_pg_sz;
-+	u32		cqe_hop_num;
+@@ -571,7 +571,7 @@ struct hns_roce_dev {
+ 	int			loop_idc;
+ 	dma_addr_t		tptr_dma_addr; /*only for hw v1*/
+ 	u32			tptr_size; /*only for hw v1*/
+-	struct hns_roce_hw	*hw;
++	const struct hns_roce_hw *hw;
  };
  
- struct hns_roce_hw {
+ static inline struct hns_roce_dev *to_hr_dev(struct ib_device *ib_dev)
+@@ -749,7 +749,7 @@ struct ib_cq *hns_roce_ib_create_cq(struct ib_device *ib_dev,
+ void hns_roce_cq_event(struct hns_roce_dev *hr_dev, u32 cqn, int event_type);
+ void hns_roce_qp_event(struct hns_roce_dev *hr_dev, u32 qpn, int event_type);
+ int hns_get_gid_index(struct hns_roce_dev *hr_dev, u8 port, int gid_index);
+-
+-extern struct hns_roce_hw hns_roce_hw_v1;
++int hns_roce_init(struct hns_roce_dev *hr_dev);
++void hns_roce_exit(struct hns_roce_dev *hr_dev);
+ 
+ #endif /* _HNS_ROCE_DEVICE_H */
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
-index 9bc8c6b..ac2d671 100644
+index c5104e0..06aed4a 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hem.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
-@@ -47,7 +47,9 @@ bool hns_roce_check_whether_mhop(struct hns_roce_dev *hr_dev, u32 type)
- 	if ((hr_dev->caps.qpc_hop_num && type == HEM_TYPE_QPC) ||
- 	    (hr_dev->caps.mpt_hop_num && type == HEM_TYPE_MTPT) ||
- 	    (hr_dev->caps.cqc_hop_num && type == HEM_TYPE_CQC) ||
--	    (hr_dev->caps.srqc_hop_num && type == HEM_TYPE_SRQC))
-+	    (hr_dev->caps.srqc_hop_num && type == HEM_TYPE_SRQC) ||
-+	    (hr_dev->caps.cqe_hop_num && type == HEM_TYPE_CQE) ||
-+	    (hr_dev->caps.mtt_hop_num && type == HEM_TYPE_MTT))
- 		return true;
- 
- 	return false;
-@@ -132,6 +134,22 @@ int hns_roce_calc_hem_mhop(struct hns_roce_dev *hr_dev,
- 		mhop->ba_l0_num = hr_dev->caps.srqc_bt_num;
- 		mhop->hop_num = hr_dev->caps.srqc_hop_num;
- 		break;
-+	case HEM_TYPE_MTT:
-+		mhop->buf_chunk_size = 1 << (hr_dev->caps.mtt_buf_pg_sz
-+					     + PAGE_SHIFT);
-+		mhop->bt_chunk_size = 1 << (hr_dev->caps.mtt_ba_pg_sz
-+					     + PAGE_SHIFT);
-+		mhop->ba_l0_num = mhop->bt_chunk_size / 8;
-+		mhop->hop_num = hr_dev->caps.mtt_hop_num;
-+		break;
-+	case HEM_TYPE_CQE:
-+		mhop->buf_chunk_size = 1 << (hr_dev->caps.cqe_buf_pg_sz
-+					     + PAGE_SHIFT);
-+		mhop->bt_chunk_size = 1 << (hr_dev->caps.cqe_ba_pg_sz
-+					     + PAGE_SHIFT);
-+		mhop->ba_l0_num = mhop->bt_chunk_size / 8;
-+		mhop->hop_num = hr_dev->caps.cqe_hop_num;
-+		break;
- 	default:
- 		dev_err(dev, "Table %d not support multi-hop addressing!\n",
- 			 table->type);
-@@ -141,10 +159,14 @@ int hns_roce_calc_hem_mhop(struct hns_roce_dev *hr_dev,
- 	if (!obj)
- 		return 0;
- 
--	/* QPC/MTPT/CQC/SRQC alloc hem for buffer pages. */
-+	/*
-+	 * QPC/MTPT/CQC/SRQC alloc hem for buffer pages.
-+	 * MTT/CQE alloc hem for bt pages.
-+	 */
- 	bt_num = hns_roce_get_bt_num(table->type, mhop->hop_num);
- 	chunk_ba_num = mhop->bt_chunk_size / 8;
--	chunk_size = mhop->buf_chunk_size;
-+	chunk_size = table->type < HEM_TYPE_MTT ? mhop->buf_chunk_size :
-+			      mhop->bt_chunk_size;
- 	table_idx = (*obj & (table->num_obj - 1)) /
- 		     (chunk_size / table->obj_size);
- 	switch (bt_num) {
-@@ -448,8 +470,11 @@ int hns_roce_table_mhop_get(struct hns_roce_dev *hr_dev,
- 		}
- 	}
- 
--	/* alloc buffer space chunk for QPC/MTPT/CQC/SRQC. */
--	size = buf_chunk_size;
-+	/*
-+	 * alloc buffer space chunk for QPC/MTPT/CQC/SRQC.
-+	 * alloc bt space chunk for MTT/CQE.
-+	 */
-+	size = table->type < HEM_TYPE_MTT ? buf_chunk_size : bt_chunk_size;
- 	table->hem[hem_idx] = hns_roce_alloc_hem(hr_dev,
- 						size >> PAGE_SHIFT,
- 						size,
-@@ -480,6 +505,8 @@ int hns_roce_table_mhop_get(struct hns_roce_dev *hr_dev,
- 			dev_err(dev, "set HEM base address to HW failed!\n");
- 			goto err_alloc_hem_buf;
- 		}
-+	} else if (hop_num == 2) {
-+		*(table->bt_l0[bt_l0_idx] + mhop.l1_idx) = bt_ba;
- 	}
- 
- 	++table->hem[hem_idx]->refcount;
-@@ -610,7 +637,10 @@ void hns_roce_table_mhop_put(struct hns_roce_dev *hr_dev,
- 			dev_warn(dev, "Clear HEM base address failed.\n");
- 	}
- 
--	/* free buffer space chunk for QPC/MTPT/CQC/SRQC. */
-+	/*
-+	 * free buffer space chunk for QPC/MTPT/CQC/SRQC.
-+	 * free bt space chunk for MTT/CQE.
-+	 */
- 	hns_roce_free_hem(hr_dev, table->hem[hem_idx]);
- 	table->hem[hem_idx] = NULL;
- 
-@@ -686,23 +716,46 @@ void hns_roce_table_put(struct hns_roce_dev *hr_dev,
+@@ -314,6 +314,7 @@ void *hns_roce_table_find(struct hns_roce_hem_table *table, unsigned long obj,
  	mutex_unlock(&table->mutex);
+ 	return page ? lowmem_page_address(page) + offset : NULL;
  }
++EXPORT_SYMBOL_GPL(hns_roce_table_find);
  
--void *hns_roce_table_find(struct hns_roce_hem_table *table, unsigned long obj,
--			  dma_addr_t *dma_handle)
-+void *hns_roce_table_find(struct hns_roce_dev *hr_dev,
-+			  struct hns_roce_hem_table *table,
-+			  unsigned long obj, dma_addr_t *dma_handle)
- {
- 	struct hns_roce_hem_chunk *chunk;
--	unsigned long idx;
--	int i;
--	int offset, dma_offset;
-+	struct hns_roce_hem_mhop mhop;
- 	struct hns_roce_hem *hem;
- 	struct page *page = NULL;
-+	unsigned long mhop_obj = obj;
-+	unsigned long idx;
-+	int offset, dma_offset;
-+	int i, j;
-+	u32 hem_idx = 0;
- 
- 	if (!table->lowmem)
- 		return NULL;
- 
- 	mutex_lock(&table->mutex);
--	idx = (obj & (table->num_obj - 1)) * table->obj_size;
--	hem = table->hem[idx / HNS_ROCE_TABLE_CHUNK_SIZE];
--	dma_offset = offset = idx % HNS_ROCE_TABLE_CHUNK_SIZE;
-+
-+	if (!hns_roce_check_whether_mhop(hr_dev, table->type)) {
-+		idx = (obj & (table->num_obj - 1)) * table->obj_size;
-+		hem = table->hem[idx / HNS_ROCE_TABLE_CHUNK_SIZE];
-+		dma_offset = offset = idx % HNS_ROCE_TABLE_CHUNK_SIZE;
-+	} else {
-+		hns_roce_calc_hem_mhop(hr_dev, table, &mhop_obj, &mhop);
-+		/* mtt mhop */
-+		i = mhop.l0_idx;
-+		j = mhop.l1_idx;
-+		if (mhop.hop_num == 2)
-+			hem_idx = i * (mhop.bt_chunk_size / 8) + j;
-+		else if (mhop.hop_num == 1 ||
-+			 mhop.hop_num == HNS_ROCE_HOP_NUM_0)
-+			hem_idx = i;
-+
-+		hem = table->hem[hem_idx];
-+		dma_offset = offset = (obj & (table->num_obj - 1)) *
-+				       table->obj_size % mhop.bt_chunk_size;
-+		if (mhop.hop_num == 2)
-+			dma_offset = offset = 0;
-+	}
- 
- 	if (!hem)
- 		goto out;
-@@ -735,9 +788,15 @@ int hns_roce_table_get_range(struct hns_roce_dev *hr_dev,
- 			     struct hns_roce_hem_table *table,
- 			     unsigned long start, unsigned long end)
- {
-+	struct hns_roce_hem_mhop mhop;
- 	unsigned long inc = HNS_ROCE_TABLE_CHUNK_SIZE / table->obj_size;
--	unsigned long i = 0;
--	int ret = 0;
-+	unsigned long i;
-+	int ret;
-+
-+	if (hns_roce_check_whether_mhop(hr_dev, table->type)) {
-+		hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
-+		inc = mhop.bt_chunk_size / table->obj_size;
-+	}
- 
- 	/* Allocate MTT entry memory according to chunk(128K) */
- 	for (i = start; i <= end; i += inc) {
-@@ -760,10 +819,17 @@ void hns_roce_table_put_range(struct hns_roce_dev *hr_dev,
- 			      struct hns_roce_hem_table *table,
- 			      unsigned long start, unsigned long end)
- {
-+	struct hns_roce_hem_mhop mhop;
-+	unsigned long inc = HNS_ROCE_TABLE_CHUNK_SIZE / table->obj_size;
- 	unsigned long i;
- 
-+	if (hns_roce_check_whether_mhop(hr_dev, table->type)) {
-+		hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
-+		inc = mhop.bt_chunk_size / table->obj_size;
-+	}
-+
- 	for (i = start; i <= end;
--		i += HNS_ROCE_TABLE_CHUNK_SIZE / table->obj_size)
-+		i += inc)
- 		hns_roce_table_put(hr_dev, table, i);
- }
- 
-@@ -787,7 +853,7 @@ int hns_roce_init_hem_table(struct hns_roce_dev *hr_dev,
- 		unsigned long buf_chunk_size;
- 		unsigned long bt_chunk_size;
- 		unsigned long bt_chunk_num;
--		unsigned long num_bt_l0;
-+		unsigned long num_bt_l0 = 0;
- 		u32 hop_num;
- 
- 		switch (type) {
-@@ -823,6 +889,18 @@ int hns_roce_init_hem_table(struct hns_roce_dev *hr_dev,
- 			num_bt_l0 = hr_dev->caps.srqc_bt_num;
- 			hop_num = hr_dev->caps.srqc_hop_num;
- 			break;
-+		case HEM_TYPE_MTT:
-+			buf_chunk_size = 1 << (hr_dev->caps.mtt_ba_pg_sz
-+					+ PAGE_SHIFT);
-+			bt_chunk_size = buf_chunk_size;
-+			hop_num = hr_dev->caps.mtt_hop_num;
-+			break;
-+		case HEM_TYPE_CQE:
-+			buf_chunk_size = 1 << (hr_dev->caps.cqe_ba_pg_sz
-+					+ PAGE_SHIFT);
-+			bt_chunk_size = buf_chunk_size;
-+			hop_num = hr_dev->caps.cqe_hop_num;
-+			break;
- 		default:
- 			dev_err(dev,
- 			  "Table %d not support to init hem table here!\n",
-@@ -832,6 +910,8 @@ int hns_roce_init_hem_table(struct hns_roce_dev *hr_dev,
- 		obj_per_chunk = buf_chunk_size / obj_size;
- 		num_hem = (nobj + obj_per_chunk - 1) / obj_per_chunk;
- 		bt_chunk_num = bt_chunk_size / 8;
-+		if (table->type >= HEM_TYPE_MTT)
-+			num_bt_l0 = bt_chunk_num;
- 
- 		table->hem = kcalloc(num_hem, sizeof(*table->hem),
- 					 GFP_KERNEL);
-@@ -910,7 +990,8 @@ void hns_roce_cleanup_mhop_hem_table(struct hns_roce_dev *hr_dev,
- 	u64 obj;
- 
- 	hns_roce_calc_hem_mhop(hr_dev, table, NULL, &mhop);
--	buf_chunk_size = mhop.buf_chunk_size;
-+	buf_chunk_size = table->type < HEM_TYPE_MTT ? mhop.buf_chunk_size :
-+					mhop.bt_chunk_size;
- 
- 	for (i = 0; i < table->num_hem; ++i) {
- 		obj = i * buf_chunk_size / table->obj_size;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.h b/drivers/infiniband/hw/hns/hns_roce_hem.h
-index b064ef5..1aa54b6 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hem.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hem.h
-@@ -47,6 +47,7 @@ enum {
- 
- 	 /* UNMAP HEM */
- 	HEM_TYPE_MTT,
-+	HEM_TYPE_CQE,
- 	HEM_TYPE_IRRL,
- };
- 
-@@ -58,10 +59,13 @@ enum {
- 	(type < HEM_TYPE_MTT && hop_num == 2)
- 
- #define check_whether_bt_num_2(type, hop_num) \
--	(type < HEM_TYPE_MTT && hop_num == 1)
-+	((type < HEM_TYPE_MTT && hop_num == 1) || \
-+	(type >= HEM_TYPE_MTT && hop_num == 2))
- 
- #define check_whether_bt_num_1(type, hop_num) \
--	(type < HEM_TYPE_MTT && hop_num == HNS_ROCE_HOP_NUM_0)
-+	((type < HEM_TYPE_MTT && hop_num == HNS_ROCE_HOP_NUM_0) || \
-+	(type >= HEM_TYPE_MTT && hop_num == 1) || \
-+	(type >= HEM_TYPE_MTT && hop_num == HNS_ROCE_HOP_NUM_0))
- 
- enum {
- 	 HNS_ROCE_HEM_PAGE_SHIFT = 12,
-@@ -101,7 +105,8 @@ int hns_roce_table_get(struct hns_roce_dev *hr_dev,
- 		       struct hns_roce_hem_table *table, unsigned long obj);
- void hns_roce_table_put(struct hns_roce_dev *hr_dev,
- 			struct hns_roce_hem_table *table, unsigned long obj);
--void *hns_roce_table_find(struct hns_roce_hem_table *table, unsigned long obj,
-+void *hns_roce_table_find(struct hns_roce_dev *hr_dev,
-+			  struct hns_roce_hem_table *table, unsigned long obj,
- 			  dma_addr_t *dma_handle);
  int hns_roce_table_get_range(struct hns_roce_dev *hr_dev,
  			     struct hns_roce_hem_table *table,
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 50dee13..0a634c5 100644
+index 747efd1..917d003 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -2524,7 +2524,7 @@ static int hns_roce_v1_m_sqp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
- 		return -ENOMEM;
+@@ -34,6 +34,7 @@
+ #include <linux/acpi.h>
+ #include <linux/etherdevice.h>
+ #include <linux/of.h>
++#include <linux/of_platform.h>
+ #include <rdma/ib_umem.h>
+ #include "hns_roce_common.h"
+ #include "hns_roce_device.h"
+@@ -3843,7 +3844,7 @@ int hns_roce_v1_destroy_cq(struct ib_cq *ibcq)
  
- 	/* Search QP buf's MTTs */
--	mtts = hns_roce_table_find(&hr_dev->mr_table.mtt_table,
-+	mtts = hns_roce_table_find(hr_dev, &hr_dev->mr_table.mtt_table,
- 				   hr_qp->mtt.first_seg, &dma_handle);
- 	if (!mtts) {
- 		dev_err(dev, "qp buf pa find failed\n");
-@@ -2671,7 +2671,7 @@ static int hns_roce_v1_m_qp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
- 		return -ENOMEM;
+ struct hns_roce_v1_priv hr_v1_priv;
  
- 	/* Search qp buf's mtts */
--	mtts = hns_roce_table_find(&hr_dev->mr_table.mtt_table,
-+	mtts = hns_roce_table_find(hr_dev, &hr_dev->mr_table.mtt_table,
- 				   hr_qp->mtt.first_seg, &dma_handle);
- 	if (mtts == NULL) {
- 		dev_err(dev, "qp buf pa find failed\n");
-@@ -2679,8 +2679,8 @@ static int hns_roce_v1_m_qp(struct ib_qp *ibqp, const struct ib_qp_attr *attr,
+-struct hns_roce_hw hns_roce_hw_v1 = {
++static const struct hns_roce_hw hns_roce_hw_v1 = {
+ 	.reset = hns_roce_v1_reset,
+ 	.hw_profile = hns_roce_v1_profile,
+ 	.hw_init = hns_roce_v1_init,
+@@ -3865,3 +3866,244 @@ struct hns_roce_hw hns_roce_hw_v1 = {
+ 	.destroy_cq = hns_roce_v1_destroy_cq,
+ 	.priv = &hr_v1_priv,
+ };
++
++static const struct of_device_id hns_roce_of_match[] = {
++	{ .compatible = "hisilicon,hns-roce-v1", .data = &hns_roce_hw_v1, },
++	{},
++};
++MODULE_DEVICE_TABLE(of, hns_roce_of_match);
++
++static const struct acpi_device_id hns_roce_acpi_match[] = {
++	{ "HISI00D1", (kernel_ulong_t)&hns_roce_hw_v1 },
++	{},
++};
++MODULE_DEVICE_TABLE(acpi, hns_roce_acpi_match);
++
++static int hns_roce_node_match(struct device *dev, void *fwnode)
++{
++	return dev->fwnode == fwnode;
++}
++
++static struct
++platform_device *hns_roce_find_pdev(struct fwnode_handle *fwnode)
++{
++	struct device *dev;
++
++	/* get the 'device' corresponding to the matching 'fwnode' */
++	dev = bus_find_device(&platform_bus_type, NULL,
++			      fwnode, hns_roce_node_match);
++	/* get the platform device */
++	return dev ? to_platform_device(dev) : NULL;
++}
++
++static int hns_roce_get_cfg(struct hns_roce_dev *hr_dev)
++{
++	struct device *dev = &hr_dev->pdev->dev;
++	struct platform_device *pdev = NULL;
++	struct net_device *netdev = NULL;
++	struct device_node *net_node;
++	struct resource *res;
++	int port_cnt = 0;
++	u8 phy_port;
++	int ret;
++	int i;
++
++	/* check if we are compatible with the underlying SoC */
++	if (dev_of_node(dev)) {
++		const struct of_device_id *of_id;
++
++		of_id = of_match_node(hns_roce_of_match, dev->of_node);
++		if (!of_id) {
++			dev_err(dev, "device is not compatible!\n");
++			return -ENXIO;
++		}
++		hr_dev->hw = (const struct hns_roce_hw *)of_id->data;
++		if (!hr_dev->hw) {
++			dev_err(dev, "couldn't get H/W specific DT data!\n");
++			return -ENXIO;
++		}
++	} else if (is_acpi_device_node(dev->fwnode)) {
++		const struct acpi_device_id *acpi_id;
++
++		acpi_id = acpi_match_device(hns_roce_acpi_match, dev);
++		if (!acpi_id) {
++			dev_err(dev, "device is not compatible!\n");
++			return -ENXIO;
++		}
++		hr_dev->hw = (const struct hns_roce_hw *) acpi_id->driver_data;
++		if (!hr_dev->hw) {
++			dev_err(dev, "couldn't get H/W specific ACPI data!\n");
++			return -ENXIO;
++		}
++	} else {
++		dev_err(dev, "can't read compatibility data from DT or ACPI\n");
++		return -ENXIO;
++	}
++
++	/* get the mapped register base address */
++	res = platform_get_resource(hr_dev->pdev, IORESOURCE_MEM, 0);
++	if (!res) {
++		dev_err(dev, "memory resource not found!\n");
++		return -EINVAL;
++	}
++	hr_dev->reg_base = devm_ioremap_resource(dev, res);
++	if (IS_ERR(hr_dev->reg_base))
++		return PTR_ERR(hr_dev->reg_base);
++
++	/* read the node_guid of IB device from the DT or ACPI */
++	ret = device_property_read_u8_array(dev, "node-guid",
++					    (u8 *)&hr_dev->ib_dev.node_guid,
++					    GUID_LEN);
++	if (ret) {
++		dev_err(dev, "couldn't get node_guid from DT or ACPI!\n");
++		return ret;
++	}
++
++	/* get the RoCE associated ethernet ports or netdevices */
++	for (i = 0; i < HNS_ROCE_MAX_PORTS; i++) {
++		if (dev_of_node(dev)) {
++			net_node = of_parse_phandle(dev->of_node, "eth-handle",
++						    i);
++			if (!net_node)
++				continue;
++			pdev = of_find_device_by_node(net_node);
++		} else if (is_acpi_device_node(dev->fwnode)) {
++			struct acpi_reference_args args;
++			struct fwnode_handle *fwnode;
++
++			ret = acpi_node_get_property_reference(dev->fwnode,
++							       "eth-handle",
++							       i, &args);
++			if (ret)
++				continue;
++			fwnode = acpi_fwnode_handle(args.adev);
++			pdev = hns_roce_find_pdev(fwnode);
++		} else {
++			dev_err(dev, "cannot read data from DT or ACPI\n");
++			return -ENXIO;
++		}
++
++		if (pdev) {
++			netdev = platform_get_drvdata(pdev);
++			phy_port = (u8)i;
++			if (netdev) {
++				hr_dev->iboe.netdevs[port_cnt] = netdev;
++				hr_dev->iboe.phy_port[port_cnt] = phy_port;
++			} else {
++				dev_err(dev, "no netdev found with pdev %s\n",
++					pdev->name);
++				return -ENODEV;
++			}
++			port_cnt++;
++		}
++	}
++
++	if (port_cnt == 0) {
++		dev_err(dev, "unable to get eth-handle for available ports!\n");
++		return -EINVAL;
++	}
++
++	hr_dev->caps.num_ports = port_cnt;
++
++	/* cmd issue mode: 0 is poll, 1 is event */
++	hr_dev->cmd_mod = 1;
++	hr_dev->loop_idc = 0;
++
++	/* read the interrupt names from the DT or ACPI */
++	ret = device_property_read_string_array(dev, "interrupt-names",
++						hr_dev->irq_names,
++						HNS_ROCE_MAX_IRQ_NUM);
++	if (ret < 0) {
++		dev_err(dev, "couldn't get interrupt names from DT or ACPI!\n");
++		return ret;
++	}
++
++	/* fetch the interrupt numbers */
++	for (i = 0; i < HNS_ROCE_MAX_IRQ_NUM; i++) {
++		hr_dev->irq[i] = platform_get_irq(hr_dev->pdev, i);
++		if (hr_dev->irq[i] <= 0) {
++			dev_err(dev, "platform get of irq[=%d] failed!\n", i);
++			return -EINVAL;
++		}
++	}
++
++	return 0;
++}
++
++/**
++ * hns_roce_probe - RoCE driver entrance
++ * @pdev: pointer to platform device
++ * Return : int
++ *
++ */
++static int hns_roce_probe(struct platform_device *pdev)
++{
++	int ret;
++	struct hns_roce_dev *hr_dev;
++	struct device *dev = &pdev->dev;
++
++	hr_dev = (struct hns_roce_dev *)ib_alloc_device(sizeof(*hr_dev));
++	if (!hr_dev)
++		return -ENOMEM;
++
++	hr_dev->pdev = pdev;
++	platform_set_drvdata(pdev, hr_dev);
++
++	if (dma_set_mask_and_coherent(dev, DMA_BIT_MASK(64ULL)) &&
++	    dma_set_mask_and_coherent(dev, DMA_BIT_MASK(32ULL))) {
++		dev_err(dev, "Not usable DMA addressing mode\n");
++		ret = -EIO;
++		goto error_failed_get_cfg;
++	}
++
++	ret = hns_roce_get_cfg(hr_dev);
++	if (ret) {
++		dev_err(dev, "Get Configuration failed!\n");
++		goto error_failed_get_cfg;
++	}
++
++	ret = hns_roce_init(hr_dev);
++	if (ret) {
++		dev_err(dev, "RoCE engine init failed!\n");
++		goto error_failed_get_cfg;
++	}
++
++	return 0;
++
++error_failed_get_cfg:
++	ib_dealloc_device(&hr_dev->ib_dev);
++
++	return ret;
++}
++
++/**
++ * hns_roce_remove - remove RoCE device
++ * @pdev: pointer to platform device
++ */
++static int hns_roce_remove(struct platform_device *pdev)
++{
++	struct hns_roce_dev *hr_dev = platform_get_drvdata(pdev);
++
++	hns_roce_exit(hr_dev);
++	ib_dealloc_device(&hr_dev->ib_dev);
++
++	return 0;
++}
++
++static struct platform_driver hns_roce_driver = {
++	.probe = hns_roce_probe,
++	.remove = hns_roce_remove,
++	.driver = {
++		.name = DRV_NAME,
++		.of_match_table = hns_roce_of_match,
++		.acpi_match_table = ACPI_PTR(hns_roce_acpi_match),
++	},
++};
++
++module_platform_driver(hns_roce_driver);
++
++MODULE_LICENSE("Dual BSD/GPL");
++MODULE_AUTHOR("Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>");
++MODULE_AUTHOR("Nenglong Zhao <zhaonenglong-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>");
++MODULE_AUTHOR("Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>");
++MODULE_DESCRIPTION("Hisilicon Hip06 Family RoCE Driver");
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index d9777b6..7afa0c8 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -57,6 +57,7 @@ int hns_get_gid_index(struct hns_roce_dev *hr_dev, u8 port, int gid_index)
+ {
+ 	return gid_index * hr_dev->caps.num_ports + port;
+ }
++EXPORT_SYMBOL_GPL(hns_get_gid_index);
+ 
+ static void hns_roce_set_mac(struct hns_roce_dev *hr_dev, u8 port, u8 *addr)
+ {
+@@ -174,8 +175,9 @@ static int hns_roce_setup_mtu_mac(struct hns_roce_dev *hr_dev)
+ 	u8 i;
+ 
+ 	for (i = 0; i < hr_dev->caps.num_ports; i++) {
+-		hr_dev->hw->set_mtu(hr_dev, hr_dev->iboe.phy_port[i],
+-				    hr_dev->caps.max_mtu);
++		if (hr_dev->hw->set_mtu)
++			hr_dev->hw->set_mtu(hr_dev, hr_dev->iboe.phy_port[i],
++					    hr_dev->caps.max_mtu);
+ 		hns_roce_set_mac(hr_dev, i, hr_dev->iboe.netdevs[i]->dev_addr);
  	}
  
- 	/* Search IRRL's mtts */
--	mtts_2 = hns_roce_table_find(&hr_dev->qp_table.irrl_table, hr_qp->qpn,
--				     &dma_handle_2);
-+	mtts_2 = hns_roce_table_find(hr_dev, &hr_dev->qp_table.irrl_table,
-+				     hr_qp->qpn, &dma_handle_2);
- 	if (mtts_2 == NULL) {
- 		dev_err(dev, "qp irrl_table find failed\n");
- 		goto out;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 77cf476..c59d15e 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -613,6 +613,12 @@ static int hns_roce_v2_profile(struct hns_roce_dev *hr_dev)
- 	caps->mpt_ba_pg_sz	= 0;
- 	caps->mpt_buf_pg_sz	= 0;
- 	caps->mpt_hop_num	= HNS_ROCE_CONTEXT_HOP_NUM;
-+	caps->mtt_ba_pg_sz	= 0;
-+	caps->mtt_buf_pg_sz	= 0;
-+	caps->mtt_hop_num	= HNS_ROCE_MTT_HOP_NUM;
-+	caps->cqe_ba_pg_sz	= 0;
-+	caps->cqe_buf_pg_sz	= 0;
-+	caps->cqe_hop_num	= HNS_ROCE_CQE_HOP_NUM;
+@@ -531,169 +533,6 @@ static int hns_roce_register_device(struct hns_roce_dev *hr_dev)
+ 	return ret;
+ }
  
- 	caps->pkey_table_len[0] = 1;
- 	caps->gid_table_len[0] = 2;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index cc8c8d0..212d511 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -74,6 +74,7 @@
+-static const struct of_device_id hns_roce_of_match[] = {
+-	{ .compatible = "hisilicon,hns-roce-v1", .data = &hns_roce_hw_v1, },
+-	{},
+-};
+-MODULE_DEVICE_TABLE(of, hns_roce_of_match);
+-
+-static const struct acpi_device_id hns_roce_acpi_match[] = {
+-	{ "HISI00D1", (kernel_ulong_t)&hns_roce_hw_v1 },
+-	{},
+-};
+-MODULE_DEVICE_TABLE(acpi, hns_roce_acpi_match);
+-
+-static int hns_roce_node_match(struct device *dev, void *fwnode)
+-{
+-	return dev->fwnode == fwnode;
+-}
+-
+-static struct
+-platform_device *hns_roce_find_pdev(struct fwnode_handle *fwnode)
+-{
+-	struct device *dev;
+-
+-	/* get the 'device'corresponding to matching 'fwnode' */
+-	dev = bus_find_device(&platform_bus_type, NULL,
+-			      fwnode, hns_roce_node_match);
+-	/* get the platform device */
+-	return dev ? to_platform_device(dev) : NULL;
+-}
+-
+-static int hns_roce_get_cfg(struct hns_roce_dev *hr_dev)
+-{
+-	int i;
+-	int ret;
+-	u8 phy_port;
+-	int port_cnt = 0;
+-	struct device *dev = &hr_dev->pdev->dev;
+-	struct device_node *net_node;
+-	struct net_device *netdev = NULL;
+-	struct platform_device *pdev = NULL;
+-	struct resource *res;
+-
+-	/* check if we are compatible with the underlying SoC */
+-	if (dev_of_node(dev)) {
+-		const struct of_device_id *of_id;
+-
+-		of_id = of_match_node(hns_roce_of_match, dev->of_node);
+-		if (!of_id) {
+-			dev_err(dev, "device is not compatible!\n");
+-			return -ENXIO;
+-		}
+-		hr_dev->hw = (struct hns_roce_hw *)of_id->data;
+-		if (!hr_dev->hw) {
+-			dev_err(dev, "couldn't get H/W specific DT data!\n");
+-			return -ENXIO;
+-		}
+-	} else if (is_acpi_device_node(dev->fwnode)) {
+-		const struct acpi_device_id *acpi_id;
+-
+-		acpi_id = acpi_match_device(hns_roce_acpi_match, dev);
+-		if (!acpi_id) {
+-			dev_err(dev, "device is not compatible!\n");
+-			return -ENXIO;
+-		}
+-		hr_dev->hw = (struct hns_roce_hw *) acpi_id->driver_data;
+-		if (!hr_dev->hw) {
+-			dev_err(dev, "couldn't get H/W specific ACPI data!\n");
+-			return -ENXIO;
+-		}
+-	} else {
+-		dev_err(dev, "can't read compatibility data from DT or ACPI\n");
+-		return -ENXIO;
+-	}
+-
+-	/* get the mapped register base address */
+-	res = platform_get_resource(hr_dev->pdev, IORESOURCE_MEM, 0);
+-	if (!res) {
+-		dev_err(dev, "memory resource not found!\n");
+-		return -EINVAL;
+-	}
+-	hr_dev->reg_base = devm_ioremap_resource(dev, res);
+-	if (IS_ERR(hr_dev->reg_base))
+-		return PTR_ERR(hr_dev->reg_base);
+-
+-	/* read the node_guid of IB device from the DT or ACPI */
+-	ret = device_property_read_u8_array(dev, "node-guid",
+-					    (u8 *)&hr_dev->ib_dev.node_guid,
+-					    GUID_LEN);
+-	if (ret) {
+-		dev_err(dev, "couldn't get node_guid from DT or ACPI!\n");
+-		return ret;
+-	}
+-
+-	/* get the RoCE associated ethernet ports or netdevices */
+-	for (i = 0; i < HNS_ROCE_MAX_PORTS; i++) {
+-		if (dev_of_node(dev)) {
+-			net_node = of_parse_phandle(dev->of_node, "eth-handle",
+-						    i);
+-			if (!net_node)
+-				continue;
+-			pdev = of_find_device_by_node(net_node);
+-		} else if (is_acpi_device_node(dev->fwnode)) {
+-			struct acpi_reference_args args;
+-			struct fwnode_handle *fwnode;
+-
+-			ret = acpi_node_get_property_reference(dev->fwnode,
+-							       "eth-handle",
+-							       i, &args);
+-			if (ret)
+-				continue;
+-			fwnode = acpi_fwnode_handle(args.adev);
+-			pdev = hns_roce_find_pdev(fwnode);
+-		} else {
+-			dev_err(dev, "cannot read data from DT or ACPI\n");
+-			return -ENXIO;
+-		}
+-
+-		if (pdev) {
+-			netdev = platform_get_drvdata(pdev);
+-			phy_port = (u8)i;
+-			if (netdev) {
+-				hr_dev->iboe.netdevs[port_cnt] = netdev;
+-				hr_dev->iboe.phy_port[port_cnt] = phy_port;
+-			} else {
+-				dev_err(dev, "no netdev found with pdev %s\n",
+-					pdev->name);
+-				return -ENODEV;
+-			}
+-			port_cnt++;
+-		}
+-	}
+-
+-	if (port_cnt == 0) {
+-		dev_err(dev, "unable to get eth-handle for available ports!\n");
+-		return -EINVAL;
+-	}
+-
+-	hr_dev->caps.num_ports = port_cnt;
+-
+-	/* cmd issue mode: 0 is poll, 1 is event */
+-	hr_dev->cmd_mod = 1;
+-	hr_dev->loop_idc = 0;
+-
+-	/* read the interrupt names from the DT or ACPI */
+-	ret = device_property_read_string_array(dev, "interrupt-names",
+-						hr_dev->irq_names,
+-						HNS_ROCE_MAX_IRQ_NUM);
+-	if (ret < 0) {
+-		dev_err(dev, "couldn't get interrupt names from DT or ACPI!\n");
+-		return ret;
+-	}
+-
+-	/* fetch the interrupt numbers */
+-	for (i = 0; i < HNS_ROCE_MAX_IRQ_NUM; i++) {
+-		hr_dev->irq[i] = platform_get_irq(hr_dev->pdev, i);
+-		if (hr_dev->irq[i] <= 0) {
+-			dev_err(dev, "platform get of irq[=%d] failed!\n", i);
+-			return -EINVAL;
+-		}
+-	}
+-
+-	return 0;
+-}
+-
+ static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
+ {
+ 	int ret;
+@@ -826,42 +665,17 @@ static int hns_roce_setup_hca(struct hns_roce_dev *hr_dev)
+ 	return ret;
+ }
  
- #define HNS_ROCE_CONTEXT_HOP_NUM		1
- #define HNS_ROCE_MTT_HOP_NUM			1
-+#define HNS_ROCE_CQE_HOP_NUM			1
+-/**
+- * hns_roce_probe - RoCE driver entrance
+- * @pdev: pointer to platform device
+- * Return : int
+- *
+- */
+-static int hns_roce_probe(struct platform_device *pdev)
++int hns_roce_init(struct hns_roce_dev *hr_dev)
+ {
+ 	int ret;
+-	struct hns_roce_dev *hr_dev;
+-	struct device *dev = &pdev->dev;
+-
+-	hr_dev = (struct hns_roce_dev *)ib_alloc_device(sizeof(*hr_dev));
+-	if (!hr_dev)
+-		return -ENOMEM;
+-
+-	hr_dev->pdev = pdev;
+-	platform_set_drvdata(pdev, hr_dev);
+-
+-	if (dma_set_mask_and_coherent(dev, DMA_BIT_MASK(64ULL)) &&
+-	    dma_set_mask_and_coherent(dev, DMA_BIT_MASK(32ULL))) {
+-		dev_err(dev, "Not usable DMA addressing mode\n");
+-		ret = -EIO;
+-		goto error_failed_get_cfg;
+-	}
+-
+-	ret = hns_roce_get_cfg(hr_dev);
+-	if (ret) {
+-		dev_err(dev, "Get Configuration failed!\n");
+-		goto error_failed_get_cfg;
+-	}
++	struct device *dev = &hr_dev->pdev->dev;
  
- #define HNS_ROCE_CMD_FLAG_IN_VALID_SHIFT	0
- #define HNS_ROCE_CMD_FLAG_OUT_VALID_SHIFT	1
+-	ret = hr_dev->hw->reset(hr_dev, true);
+-	if (ret) {
+-		dev_err(dev, "Reset RoCE engine failed!\n");
+-		goto error_failed_get_cfg;
++	if (hr_dev->hw->reset) {
++		ret = hr_dev->hw->reset(hr_dev, true);
++		if (ret) {
++			dev_err(dev, "Reset RoCE engine failed!\n");
++			return ret;
++		}
+ 	}
+ 
+ 	hr_dev->hw->hw_profile(hr_dev);
+@@ -872,10 +686,12 @@ static int hns_roce_probe(struct platform_device *pdev)
+ 		goto error_failed_cmd_init;
+ 	}
+ 
+-	ret = hns_roce_init_eq_table(hr_dev);
+-	if (ret) {
+-		dev_err(dev, "eq init failed!\n");
+-		goto error_failed_eq_table;
++	if (hr_dev->cmd_mod) {
++		ret = hns_roce_init_eq_table(hr_dev);
++		if (ret) {
++			dev_err(dev, "eq init failed!\n");
++			goto error_failed_eq_table;
++		}
+ 	}
+ 
+ 	if (hr_dev->cmd_mod) {
+@@ -898,10 +714,12 @@ static int hns_roce_probe(struct platform_device *pdev)
+ 		goto error_failed_setup_hca;
+ 	}
+ 
+-	ret = hr_dev->hw->hw_init(hr_dev);
+-	if (ret) {
+-		dev_err(dev, "hw_init failed!\n");
+-		goto error_failed_engine_init;
++	if (hr_dev->hw->hw_init) {
++		ret = hr_dev->hw->hw_init(hr_dev);
++		if (ret) {
++			dev_err(dev, "hw_init failed!\n");
++			goto error_failed_engine_init;
++		}
+ 	}
+ 
+ 	ret = hns_roce_register_device(hr_dev);
+@@ -911,7 +729,8 @@ static int hns_roce_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ error_failed_register_device:
+-	hr_dev->hw->hw_exit(hr_dev);
++	if (hr_dev->hw->hw_exit)
++		hr_dev->hw->hw_exit(hr_dev);
+ 
+ error_failed_engine_init:
+ 	hns_roce_cleanup_bitmap(hr_dev);
+@@ -924,58 +743,41 @@ static int hns_roce_probe(struct platform_device *pdev)
+ 		hns_roce_cmd_use_polling(hr_dev);
+ 
+ error_failed_use_event:
+-	hns_roce_cleanup_eq_table(hr_dev);
++	if (hr_dev->cmd_mod)
++		hns_roce_cleanup_eq_table(hr_dev);
+ 
+ error_failed_eq_table:
+ 	hns_roce_cmd_cleanup(hr_dev);
+ 
+ error_failed_cmd_init:
+-	ret = hr_dev->hw->reset(hr_dev, false);
+-	if (ret)
+-		dev_err(&hr_dev->pdev->dev, "roce_engine reset fail\n");
+-
+-error_failed_get_cfg:
+-	ib_dealloc_device(&hr_dev->ib_dev);
++	if (hr_dev->hw->reset) {
++		ret = hr_dev->hw->reset(hr_dev, false);
++		if (ret)
++			dev_err(dev, "Dereset RoCE engine failed!\n");
++	}
+ 
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(hns_roce_init);
+ 
+-/**
+- * hns_roce_remove - remove RoCE device
+- * @pdev: pointer to platform device
+- */
+-static int hns_roce_remove(struct platform_device *pdev)
++void hns_roce_exit(struct hns_roce_dev *hr_dev)
+ {
+-	struct hns_roce_dev *hr_dev = platform_get_drvdata(pdev);
+-
+ 	hns_roce_unregister_device(hr_dev);
+-	hr_dev->hw->hw_exit(hr_dev);
++	if (hr_dev->hw->hw_exit)
++		hr_dev->hw->hw_exit(hr_dev);
+ 	hns_roce_cleanup_bitmap(hr_dev);
+ 	hns_roce_cleanup_hem(hr_dev);
+ 
+ 	if (hr_dev->cmd_mod)
+ 		hns_roce_cmd_use_polling(hr_dev);
+ 
+-	hns_roce_cleanup_eq_table(hr_dev);
++	if (hr_dev->cmd_mod)
++		hns_roce_cleanup_eq_table(hr_dev);
+ 	hns_roce_cmd_cleanup(hr_dev);
+-	hr_dev->hw->reset(hr_dev, false);
+-
+-	ib_dealloc_device(&hr_dev->ib_dev);
+-
+-	return 0;
++	if (hr_dev->hw->reset)
++		hr_dev->hw->reset(hr_dev, false);
+ }
+-
+-static struct platform_driver hns_roce_driver = {
+-	.probe = hns_roce_probe,
+-	.remove = hns_roce_remove,
+-	.driver = {
+-		.name = DRV_NAME,
+-		.of_match_table = hns_roce_of_match,
+-		.acpi_match_table = ACPI_PTR(hns_roce_acpi_match),
+-	},
+-};
+-
+-module_platform_driver(hns_roce_driver);
++EXPORT_SYMBOL_GPL(hns_roce_exit);
+ 
+ MODULE_LICENSE("Dual BSD/GPL");
+ MODULE_AUTHOR("Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>");
 diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
-index 923d2b4..d8f7b41 100644
+index e387360..ed35713 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_mr.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
-@@ -348,10 +348,11 @@ static int hns_roce_write_mtt_chunk(struct hns_roce_dev *hr_dev,
- 				    struct hns_roce_mtt *mtt, u32 start_index,
- 				    u32 npages, u64 *page_list)
+@@ -47,6 +47,7 @@ unsigned long key_to_hw_index(u32 key)
  {
--	u32 i = 0;
--	__le64 *mtts = NULL;
-+	struct hns_roce_hem_table *table;
- 	dma_addr_t dma_handle;
-+	__le64 *mtts;
- 	u32 s = start_index * sizeof(u64);
-+	u32 i;
+ 	return (key << 24) | (key >> 8);
+ }
++EXPORT_SYMBOL_GPL(key_to_hw_index);
  
- 	/* All MTTs must fit in the same page */
- 	if (start_index / (PAGE_SIZE / sizeof(u64)) !=
-@@ -361,15 +362,20 @@ static int hns_roce_write_mtt_chunk(struct hns_roce_dev *hr_dev,
- 	if (start_index & (HNS_ROCE_MTT_ENTRY_PER_SEG - 1))
- 		return -EINVAL;
+ static int hns_roce_sw2hw_mpt(struct hns_roce_dev *hr_dev,
+ 			      struct hns_roce_cmd_mailbox *mailbox,
+@@ -65,6 +66,7 @@ int hns_roce_hw2sw_mpt(struct hns_roce_dev *hr_dev,
+ 				 mpt_index, !mailbox, HNS_ROCE_CMD_HW2SW_MPT,
+ 				 HNS_ROCE_CMD_TIMEOUT_MSECS);
+ }
++EXPORT_SYMBOL_GPL(hns_roce_hw2sw_mpt);
  
--	mtts = hns_roce_table_find(&hr_dev->mr_table.mtt_table,
-+	table = &hr_dev->mr_table.mtt_table;
-+	mtts = hns_roce_table_find(hr_dev, table,
- 				mtt->first_seg + s / hr_dev->caps.mtt_entry_sz,
- 				&dma_handle);
- 	if (!mtts)
- 		return -ENOMEM;
+ static int hns_roce_buddy_alloc(struct hns_roce_buddy *buddy, int order,
+ 				unsigned long *seg)
+@@ -233,6 +235,7 @@ void hns_roce_mtt_cleanup(struct hns_roce_dev *hr_dev, struct hns_roce_mtt *mtt)
+ 	hns_roce_table_put_range(hr_dev, &mr_table->mtt_table, mtt->first_seg,
+ 				 mtt->first_seg + (1 << mtt->order) - 1);
+ }
++EXPORT_SYMBOL_GPL(hns_roce_mtt_cleanup);
  
- 	/* Save page addr, low 12 bits : 0 */
--	for (i = 0; i < npages; ++i)
--		mtts[i] = (cpu_to_le64(page_list[i])) >> PAGE_ADDR_SHIFT;
-+	for (i = 0; i < npages; ++i) {
-+		if (!hr_dev->caps.mtt_hop_num)
-+			mtts[i] = cpu_to_le64(page_list[i] >> PAGE_ADDR_SHIFT);
-+		else
-+			mtts[i] = cpu_to_le64(page_list[i]);
-+	}
+ static int hns_roce_mr_alloc(struct hns_roce_dev *hr_dev, u32 pd, u64 iova,
+ 			     u64 size, u32 access, int npages,
+diff --git a/drivers/infiniband/hw/hns/hns_roce_pd.c b/drivers/infiniband/hw/hns/hns_roce_pd.c
+index a64500f..ffbf249 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_pd.c
++++ b/drivers/infiniband/hw/hns/hns_roce_pd.c
+@@ -86,6 +86,7 @@ struct ib_pd *hns_roce_alloc_pd(struct ib_device *ib_dev,
+ 
+ 	return &pd->ibpd;
+ }
++EXPORT_SYMBOL_GPL(hns_roce_alloc_pd);
+ 
+ int hns_roce_dealloc_pd(struct ib_pd *pd)
+ {
+@@ -94,6 +95,7 @@ int hns_roce_dealloc_pd(struct ib_pd *pd)
  
  	return 0;
  }
++EXPORT_SYMBOL_GPL(hns_roce_dealloc_pd);
+ 
+ int hns_roce_uar_alloc(struct hns_roce_dev *hr_dev, struct hns_roce_uar *uar)
+ {
+diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
+index f5dd21c..ad13d05 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_qp.c
++++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
+@@ -136,6 +136,7 @@ enum hns_roce_qp_state to_hns_roce_state(enum ib_qp_state state)
+ 		return HNS_ROCE_QP_NUM_STATE;
+ 	}
+ }
++EXPORT_SYMBOL_GPL(to_hns_roce_state);
+ 
+ static int hns_roce_gsi_qp_alloc(struct hns_roce_dev *hr_dev, unsigned long qpn,
+ 				 struct hns_roce_qp *hr_qp)
+@@ -227,6 +228,7 @@ void hns_roce_qp_remove(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
+ 			  hr_qp->qpn & (hr_dev->caps.num_qps - 1));
+ 	spin_unlock_irqrestore(&qp_table->lock, flags);
+ }
++EXPORT_SYMBOL_GPL(hns_roce_qp_remove);
+ 
+ void hns_roce_qp_free(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
+ {
+@@ -241,6 +243,7 @@ void hns_roce_qp_free(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
+ 		hns_roce_table_put(hr_dev, &qp_table->qp_table, hr_qp->qpn);
+ 	}
+ }
++EXPORT_SYMBOL_GPL(hns_roce_qp_free);
+ 
+ void hns_roce_release_range_qp(struct hns_roce_dev *hr_dev, int base_qpn,
+ 			       int cnt)
+@@ -252,6 +255,7 @@ void hns_roce_release_range_qp(struct hns_roce_dev *hr_dev, int base_qpn,
+ 
+ 	hns_roce_bitmap_free_range(&qp_table->bitmap, base_qpn, cnt, BITMAP_RR);
+ }
++EXPORT_SYMBOL_GPL(hns_roce_release_range_qp);
+ 
+ static int hns_roce_set_rq_size(struct hns_roce_dev *hr_dev,
+ 				struct ib_qp_cap *cap, int is_user, int has_srq,
+@@ -629,6 +633,7 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
+ 
+ 	return &hr_qp->ibqp;
+ }
++EXPORT_SYMBOL_GPL(hns_roce_create_qp);
+ 
+ int to_hr_qp_type(int qp_type)
+ {
+@@ -647,6 +652,7 @@ int to_hr_qp_type(int qp_type)
+ 
+ 	return transport_type;
+ }
++EXPORT_SYMBOL_GPL(to_hr_qp_type);
+ 
+ int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		       int attr_mask, struct ib_udata *udata)
+@@ -745,6 +751,7 @@ void hns_roce_lock_cqs(struct hns_roce_cq *send_cq, struct hns_roce_cq *recv_cq)
+ 		spin_lock_nested(&send_cq->lock, SINGLE_DEPTH_NESTING);
+ 	}
+ }
++EXPORT_SYMBOL_GPL(hns_roce_lock_cqs);
+ 
+ void hns_roce_unlock_cqs(struct hns_roce_cq *send_cq,
+ 			 struct hns_roce_cq *recv_cq) __releases(&send_cq->lock)
+@@ -761,6 +768,7 @@ void hns_roce_unlock_cqs(struct hns_roce_cq *send_cq,
+ 		spin_unlock_irq(&recv_cq->lock);
+ 	}
+ }
++EXPORT_SYMBOL_GPL(hns_roce_unlock_cqs);
+ 
+ __be32 send_ieth(struct ib_send_wr *wr)
+ {
+@@ -774,6 +782,7 @@ __be32 send_ieth(struct ib_send_wr *wr)
+ 		return 0;
+ 	}
+ }
++EXPORT_SYMBOL_GPL(send_ieth);
+ 
+ static void *get_wqe(struct hns_roce_qp *hr_qp, int offset)
+ {
+@@ -785,11 +794,13 @@ void *get_recv_wqe(struct hns_roce_qp *hr_qp, int n)
+ {
+ 	return get_wqe(hr_qp, hr_qp->rq.offset + (n << hr_qp->rq.wqe_shift));
+ }
++EXPORT_SYMBOL_GPL(get_recv_wqe);
+ 
+ void *get_send_wqe(struct hns_roce_qp *hr_qp, int n)
+ {
+ 	return get_wqe(hr_qp, hr_qp->sq.offset + (n << hr_qp->sq.wqe_shift));
+ }
++EXPORT_SYMBOL_GPL(get_send_wqe);
+ 
+ bool hns_roce_wq_overflow(struct hns_roce_wq *hr_wq, int nreq,
+ 			  struct ib_cq *ib_cq)
+@@ -808,6 +819,7 @@ bool hns_roce_wq_overflow(struct hns_roce_wq *hr_wq, int nreq,
+ 
+ 	return cur + nreq >= hr_wq->max_post;
+ }
++EXPORT_SYMBOL_GPL(hns_roce_wq_overflow);
+ 
+ int hns_roce_init_qp_table(struct hns_roce_dev *hr_dev)
+ {
 -- 
 1.9.1
 
