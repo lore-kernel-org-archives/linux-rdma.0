@@ -1,37 +1,46 @@
-From: Steven Rostedt <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>
-Subject: Re: [Pv-drivers] [PATCH v1 for-rc] RDMA/vmw_pvrdma: Report CQ
- missed events
-Date: Wed, 30 Aug 2017 11:31:06 -0400
-Message-ID: <20170830112816.4e2214c8@vypre.local.home>
-References: <1502391902-5674-1-git-send-email-aditr@vmware.com>
- <20170810200256.GA4913@yuvallap>
- <306A2D1C-3070-4BFA-B532-D5020F5D185A@vmware.com>
- <20170810210103.GA9201@yuvallap>
- <B2047B7A-49AA-4899-86F9-E80039033662@vmware.com>
- <20170810213326.GA2343@yuvallap>
- <1502895592.33760.8.camel@redhat.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core 2/2] mlx5: Convert explicitly to signed char
+Date: Wed, 30 Aug 2017 10:49:52 -0600
+Message-ID: <20170830164952.GA9310@obsidianresearch.com>
+References: <1504102764-21638-1-git-send-email-yishaih@mellanox.com>
+ <1504102764-21638-3-git-send-email-yishaih@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1502895592.33760.8.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1504102764-21638-3-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pv-drivers <pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 16 Aug 2017 10:59:52 -0400
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+On Wed, Aug 30, 2017 at 05:19:24PM +0300, Yishai Hadas wrote:
+> From: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> The 0x80 value is a canonical way to mark as not-used in intrinsics
+> function calls.
 
-> (because I know that's exactly what Linus will ask when he sees it).
+This commit message is not good, try:
 
-  https://lwn.net/Articles/13183/
+_mm_shuffle_epi8 requires 0x80 to set the output byte to zero, but
+_mm_set_epi8() accepts char. If gcc is compiling in a configuration
+with a signed char then it can produce a -Werror=overflow warning.
 
-Never ever use BUG_ON(), unless you are ready to really defend it. And
-be prepared to be yelled at by Linus. Just use WARN_ON() and exit the
-routine nicely.
+And this fix is wrong, since it just moves the warning to
+configurations that have an unsigned char. (eg -funsigned-char)
 
--- Steve
+It is really broken that the _mm_set_epi uses a char as input :|
+
+I think you need to do this instead:
+
+#include <limits.h>
+#if CHAR_MIN < 0
+#define SHUFFLE_IGNORE  -128
+#else
+#define SHUFFLE_IGNORE  0x80
+#endif
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
