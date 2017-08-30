@@ -1,7 +1,7 @@
 From: "Wei Hu (Xavier)" <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH for-next 01/20] RDMA/hns: Split hw v1 driver from hns roce driver
-Date: Wed, 30 Aug 2017 17:22:59 +0800
-Message-ID: <1504084998-64397-2-git-send-email-xavier.huwei@huawei.com>
+Subject: [PATCH for-next 04/20] RDMA/hns: Modify assignment device variable to support both PCI device and platform device
+Date: Wed, 30 Aug 2017 17:23:02 +0800
+Message-ID: <1504084998-64397-5-git-send-email-xavier.huwei@huawei.com>
 References: <1504084998-64397-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,960 +12,457 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, lijun_nudt-9Onoh4P/yGk@public.gmane.org, oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liuyixian-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhangxiping3-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xavier.huwei-9Onoh4P/yGk@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The hardware relevant definitions and operations are implemented
-in hns_roce_hw_v* file. According to the diversity chips, the file
-is named as hns_roce_hw_v1.c or hns_roce_hw_v2.c etc.
-
-The general software process flow, common structures and allocated
-algorithms are implemented in other files located in hns roce driver.
-
 In order to support the scalability of the hardware version, the
-common driver features are in the hns-roce.ko, and the hardware
-relevant operations are in hns_roce_hw_v1.ko or hns_roce_hw_v2.ko
-based on the series chips.
+features irrelevant to the hardware will be located in the hns-roce.ko,
+and the hardware relevant operations will be located in hns_roce_hw_v1.ko
+or hns_roce_hw_v2.ko based on the series chips.
+
+The hip08 RoCE engine is a PCI device, hip06 RoCE engine is a platform
+device. In order to support both platform device and PCI device, We
+replace &hr_dev->pdev->dev with hr_dev->dev in hns-roce.ko as belows:
+	Before modification:
+		struct device *dev = hr_dev->dev;
+	After modification:
+		struct device *dev = &hr_dev->pdev->dev;
+
+	The related structure:
+	struct hns_roce_dev {
+		...
+		struct platform_device  *pdev;
+		struct pci_dev		*pci_dev;
+		struct device		*dev;
+		...
+	}
 
 Signed-off-by: Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Shaobo Xu <xushaobo2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Signed-off-by: Wei Hu (Xavier) <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/hns/Kconfig           |  15 +-
- drivers/infiniband/hw/hns/Makefile          |   4 +-
- drivers/infiniband/hw/hns/hns_roce_alloc.c  |   2 +
- drivers/infiniband/hw/hns/hns_roce_cmd.c    |   3 +
- drivers/infiniband/hw/hns/hns_roce_cq.c     |   3 +
- drivers/infiniband/hw/hns/hns_roce_device.h |   6 +-
- drivers/infiniband/hw/hns/hns_roce_hem.c    |   1 +
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c  | 244 +++++++++++++++++++++++-
- drivers/infiniband/hw/hns/hns_roce_main.c   | 282 +++++-----------------------
- drivers/infiniband/hw/hns/hns_roce_mr.c     |   3 +
- drivers/infiniband/hw/hns/hns_roce_pd.c     |   2 +
- drivers/infiniband/hw/hns/hns_roce_qp.c     |  12 ++
- 12 files changed, 330 insertions(+), 247 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_ah.c    |  2 +-
+ drivers/infiniband/hw/hns/hns_roce_alloc.c |  6 +++---
+ drivers/infiniband/hw/hns/hns_roce_cmd.c   |  6 +++---
+ drivers/infiniband/hw/hns/hns_roce_cq.c    | 12 ++++++------
+ drivers/infiniband/hw/hns/hns_roce_hem.c   | 12 ++++++------
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c |  1 +
+ drivers/infiniband/hw/hns/hns_roce_main.c  | 12 ++++++------
+ drivers/infiniband/hw/hns/hns_roce_mr.c    |  8 ++++----
+ drivers/infiniband/hw/hns/hns_roce_pd.c    |  2 +-
+ drivers/infiniband/hw/hns/hns_roce_qp.c    | 20 ++++++++++----------
+ 10 files changed, 41 insertions(+), 40 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/Kconfig b/drivers/infiniband/hw/hns/Kconfig
-index 61c93bb..37e33e5 100644
---- a/drivers/infiniband/hw/hns/Kconfig
-+++ b/drivers/infiniband/hw/hns/Kconfig
-@@ -1,10 +1,21 @@
- config INFINIBAND_HNS
- 	tristate "HNS RoCE Driver"
- 	depends on NET_VENDOR_HISILICON
--	depends on (ARM64 || (COMPILE_TEST && 64BIT)) && HNS && HNS_DSAF && HNS_ENET
-+	depends on ARM64 || (COMPILE_TEST && 64BIT)
- 	---help---
- 	  This is a RoCE/RDMA driver for the Hisilicon RoCE engine. The engine
--	  is used in Hisilicon Hi1610 and more further ICT SoC.
-+	  is used in Hisilicon Hip06 and more further ICT SoC based on
-+	  platform device.
- 
- 	  To compile this driver as a module, choose M here: the module
- 	  will be called hns-roce.
-+
-+config INFINIBAND_HNS_HIP06
-+	tristate "Hisilicon Hip06 Family RoCE support"
-+	depends on INFINIBAND_HNS && HNS && HNS_DSAF && HNS_ENET
-+	---help---
-+	  RoCE driver support for Hisilicon RoCE engine in Hisilicon Hip06 and
-+	  Hip07 SoC. These RoCE engines are platform devices.
-+
-+	  To compile this driver as a module, choose M here: the module
-+	  will be called hns-roce-hw-v1.
-diff --git a/drivers/infiniband/hw/hns/Makefile b/drivers/infiniband/hw/hns/Makefile
-index 7e8ebd2..806ac4e 100644
---- a/drivers/infiniband/hw/hns/Makefile
-+++ b/drivers/infiniband/hw/hns/Makefile
-@@ -5,4 +5,6 @@
- obj-$(CONFIG_INFINIBAND_HNS) += hns-roce.o
- hns-roce-objs := hns_roce_main.o hns_roce_cmd.o hns_roce_eq.o hns_roce_pd.o \
- 	hns_roce_ah.o hns_roce_hem.o hns_roce_mr.o hns_roce_qp.o \
--	hns_roce_cq.o hns_roce_alloc.o hns_roce_hw_v1.o
-+	hns_roce_cq.o hns_roce_alloc.o
-+obj-$(CONFIG_INFINIBAND_HNS_HIP06) += hns-roce-hw-v1.o
-+hns-roce-hw-v1-objs := hns_roce_hw_v1.o
+diff --git a/drivers/infiniband/hw/hns/hns_roce_ah.c b/drivers/infiniband/hw/hns/hns_roce_ah.c
+index d545302..b30bc88 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_ah.c
++++ b/drivers/infiniband/hw/hns/hns_roce_ah.c
+@@ -44,7 +44,7 @@ struct ib_ah *hns_roce_create_ah(struct ib_pd *ibpd,
+ 				 struct ib_udata *udata)
+ {
+ 	struct hns_roce_dev *hr_dev = to_hr_dev(ibpd->device);
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	struct ib_gid_attr gid_attr;
+ 	struct hns_roce_ah *ah;
+ 	u16 vlan_tag = 0xffff;
 diff --git a/drivers/infiniband/hw/hns/hns_roce_alloc.c b/drivers/infiniband/hw/hns/hns_roce_alloc.c
-index e1b433c..71a5098 100644
+index 71a5098..8c9a33f 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_alloc.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_alloc.c
-@@ -67,6 +67,7 @@ void hns_roce_bitmap_free(struct hns_roce_bitmap *bitmap, unsigned long obj,
- {
- 	hns_roce_bitmap_free_range(bitmap, obj, 1, rr);
- }
-+EXPORT_SYMBOL_GPL(hns_roce_bitmap_free);
- 
- int hns_roce_bitmap_alloc_range(struct hns_roce_bitmap *bitmap, int cnt,
- 				int align, unsigned long *obj)
-@@ -177,6 +178,7 @@ void hns_roce_buf_free(struct hns_roce_dev *hr_dev, u32 size,
- 		kfree(buf->page_list);
- 	}
- }
-+EXPORT_SYMBOL_GPL(hns_roce_buf_free);
- 
- int hns_roce_buf_alloc(struct hns_roce_dev *hr_dev, u32 size, u32 max_direct,
+@@ -161,7 +161,7 @@ void hns_roce_buf_free(struct hns_roce_dev *hr_dev, u32 size,
  		       struct hns_roce_buf *buf)
+ {
+ 	int i;
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	u32 bits_per_long = BITS_PER_LONG;
+ 
+ 	if (buf->nbufs == 1) {
+@@ -172,7 +172,7 @@ void hns_roce_buf_free(struct hns_roce_dev *hr_dev, u32 size,
+ 
+ 		for (i = 0; i < buf->nbufs; ++i)
+ 			if (buf->page_list[i].buf)
+-				dma_free_coherent(&hr_dev->pdev->dev, PAGE_SIZE,
++				dma_free_coherent(dev, PAGE_SIZE,
+ 						  buf->page_list[i].buf,
+ 						  buf->page_list[i].map);
+ 		kfree(buf->page_list);
+@@ -186,7 +186,7 @@ int hns_roce_buf_alloc(struct hns_roce_dev *hr_dev, u32 size, u32 max_direct,
+ 	int i = 0;
+ 	dma_addr_t t;
+ 	struct page **pages;
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	u32 bits_per_long = BITS_PER_LONG;
+ 
+ 	/* SQ/RQ buf lease than one page, SQ + RQ = 8K */
 diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.c b/drivers/infiniband/hw/hns/hns_roce_cmd.c
-index b94dcd8..c981d9d 100644
+index c981d9d..67ad3e9 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_cmd.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_cmd.c
-@@ -269,6 +269,7 @@ int hns_roce_cmd_mbox(struct hns_roce_dev *hr_dev, u64 in_param, u64 out_param,
- 					      in_modifier, op_modifier, op,
- 					      timeout);
- }
-+EXPORT_SYMBOL_GPL(hns_roce_cmd_mbox);
+@@ -125,7 +125,7 @@ static int __hns_roce_cmd_mbox_poll(struct hns_roce_dev *hr_dev, u64 in_param,
+ 				    u8 op_modifier, u16 op,
+ 				    unsigned long timeout)
+ {
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	u8 __iomem *hcr = hr_dev->cmd.hcr;
+ 	unsigned long end = 0;
+ 	u32 status = 0;
+@@ -196,8 +196,8 @@ static int __hns_roce_cmd_mbox_wait(struct hns_roce_dev *hr_dev, u64 in_param,
+ 				    unsigned long timeout)
+ {
+ 	struct hns_roce_cmdq *cmd = &hr_dev->cmd;
+-	struct device *dev = &hr_dev->pdev->dev;
+ 	struct hns_roce_cmd_context *context;
++	struct device *dev = hr_dev->dev;
+ 	int ret = 0;
+ 
+ 	spin_lock(&cmd->context_lock);
+@@ -273,7 +273,7 @@ int hns_roce_cmd_mbox(struct hns_roce_dev *hr_dev, u64 in_param, u64 out_param,
  
  int hns_roce_cmd_init(struct hns_roce_dev *hr_dev)
  {
-@@ -356,6 +357,7 @@ struct hns_roce_cmd_mailbox
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
  
- 	return mailbox;
- }
-+EXPORT_SYMBOL_GPL(hns_roce_alloc_cmd_mailbox);
- 
- void hns_roce_free_cmd_mailbox(struct hns_roce_dev *hr_dev,
- 			       struct hns_roce_cmd_mailbox *mailbox)
-@@ -366,3 +368,4 @@ void hns_roce_free_cmd_mailbox(struct hns_roce_dev *hr_dev,
- 	dma_pool_free(hr_dev->cmd.pool, mailbox->buf, mailbox->dma);
- 	kfree(mailbox);
- }
-+EXPORT_SYMBOL_GPL(hns_roce_free_cmd_mailbox);
+ 	mutex_init(&hr_dev->cmd.hcr_mutex);
+ 	sema_init(&hr_dev->cmd.poll_sem, 1);
 diff --git a/drivers/infiniband/hw/hns/hns_roce_cq.c b/drivers/infiniband/hw/hns/hns_roce_cq.c
-index b89fd71..1d57df7 100644
+index 1d57df7..5f51242 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_cq.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_cq.c
-@@ -205,6 +205,7 @@ void hns_roce_free_cq(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq)
- 	hns_roce_table_put(hr_dev, &cq_table->table, hr_cq->cqn);
- 	hns_roce_bitmap_free(&cq_table->bitmap, hr_cq->cqn, BITMAP_NO_RR);
- }
-+EXPORT_SYMBOL_GPL(hns_roce_free_cq);
- 
- static int hns_roce_ib_get_cq_umem(struct hns_roce_dev *hr_dev,
- 				   struct ib_ucontext *context,
-@@ -385,6 +386,7 @@ struct ib_cq *hns_roce_ib_create_cq(struct ib_device *ib_dev,
- 	kfree(hr_cq);
- 	return ERR_PTR(ret);
- }
-+EXPORT_SYMBOL_GPL(hns_roce_ib_create_cq);
- 
- int hns_roce_ib_destroy_cq(struct ib_cq *ib_cq)
+@@ -58,7 +58,7 @@ static void hns_roce_ib_cq_event(struct hns_roce_cq *hr_cq,
+ 	if (event_type != HNS_ROCE_EVENT_TYPE_CQ_ID_INVALID &&
+ 	    event_type != HNS_ROCE_EVENT_TYPE_CQ_ACCESS_ERROR &&
+ 	    event_type != HNS_ROCE_EVENT_TYPE_CQ_OVERFLOW) {
+-		dev_err(&hr_dev->pdev->dev,
++		dev_err(hr_dev->dev,
+ 			"hns_roce_ib: Unexpected event type 0x%x on CQ %06lx\n",
+ 			event_type, hr_cq->cqn);
+ 		return;
+@@ -87,7 +87,7 @@ static int hns_roce_cq_alloc(struct hns_roce_dev *hr_dev, int nent,
  {
-@@ -410,6 +412,7 @@ int hns_roce_ib_destroy_cq(struct ib_cq *ib_cq)
+ 	struct hns_roce_cmd_mailbox *mailbox = NULL;
+ 	struct hns_roce_cq_table *cq_table = NULL;
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	dma_addr_t dma_handle;
+ 	u64 *mtts = NULL;
+ 	int ret = 0;
+@@ -182,7 +182,7 @@ static int hns_roce_hw2sw_cq(struct hns_roce_dev *dev,
+ void hns_roce_free_cq(struct hns_roce_dev *hr_dev, struct hns_roce_cq *hr_cq)
+ {
+ 	struct hns_roce_cq_table *cq_table = &hr_dev->cq_table;
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	int ret;
  
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(hns_roce_ib_destroy_cq);
+ 	ret = hns_roce_hw2sw_cq(hr_dev, NULL, hr_cq->cqn);
+@@ -282,7 +282,7 @@ struct ib_cq *hns_roce_ib_create_cq(struct ib_device *ib_dev,
+ 				    struct ib_udata *udata)
+ {
+ 	struct hns_roce_dev *hr_dev = to_hr_dev(ib_dev);
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	struct hns_roce_ib_create_cq ucmd;
+ 	struct hns_roce_cq *hr_cq = NULL;
+ 	struct hns_roce_uar *uar = NULL;
+@@ -416,7 +416,7 @@ int hns_roce_ib_destroy_cq(struct ib_cq *ib_cq)
  
  void hns_roce_cq_completion(struct hns_roce_dev *hr_dev, u32 cqn)
  {
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index e493a61..fc2b82d 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -571,7 +571,7 @@ struct hns_roce_dev {
- 	int			loop_idc;
- 	dma_addr_t		tptr_dma_addr; /*only for hw v1*/
- 	u32			tptr_size; /*only for hw v1*/
--	struct hns_roce_hw	*hw;
-+	const struct hns_roce_hw *hw;
- };
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	struct hns_roce_cq *cq;
  
- static inline struct hns_roce_dev *to_hr_dev(struct ib_device *ib_dev)
-@@ -749,7 +749,7 @@ struct ib_cq *hns_roce_ib_create_cq(struct ib_device *ib_dev,
- void hns_roce_cq_event(struct hns_roce_dev *hr_dev, u32 cqn, int event_type);
- void hns_roce_qp_event(struct hns_roce_dev *hr_dev, u32 qpn, int event_type);
- int hns_get_gid_index(struct hns_roce_dev *hr_dev, u8 port, int gid_index);
--
--extern struct hns_roce_hw hns_roce_hw_v1;
-+int hns_roce_init(struct hns_roce_dev *hr_dev);
-+void hns_roce_exit(struct hns_roce_dev *hr_dev);
+ 	cq = radix_tree_lookup(&hr_dev->cq_table.tree,
+@@ -432,7 +432,7 @@ void hns_roce_cq_completion(struct hns_roce_dev *hr_dev, u32 cqn)
+ void hns_roce_cq_event(struct hns_roce_dev *hr_dev, u32 cqn, int event_type)
+ {
+ 	struct hns_roce_cq_table *cq_table = &hr_dev->cq_table;
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	struct hns_roce_cq *cq;
  
- #endif /* _HNS_ROCE_DEVICE_H */
+ 	cq = radix_tree_lookup(&cq_table->tree,
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
-index c5104e0..06aed4a 100644
+index 06aed4a..0ab4912 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hem.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
-@@ -314,6 +314,7 @@ void *hns_roce_table_find(struct hns_roce_hem_table *table, unsigned long obj,
- 	mutex_unlock(&table->mutex);
- 	return page ? lowmem_page_address(page) + offset : NULL;
- }
-+EXPORT_SYMBOL_GPL(hns_roce_table_find);
+@@ -84,7 +84,7 @@ struct hns_roce_hem *hns_roce_alloc_hem(struct hns_roce_dev *hr_dev, int npages,
+ 		 * memory, directly return fail.
+ 		 */
+ 		mem = &chunk->mem[chunk->npages];
+-		buf = dma_alloc_coherent(&hr_dev->pdev->dev, PAGE_SIZE << order,
++		buf = dma_alloc_coherent(hr_dev->dev, PAGE_SIZE << order,
+ 				&sg_dma_address(mem), gfp_mask);
+ 		if (!buf)
+ 			goto fail;
+@@ -115,7 +115,7 @@ void hns_roce_free_hem(struct hns_roce_dev *hr_dev, struct hns_roce_hem *hem)
  
- int hns_roce_table_get_range(struct hns_roce_dev *hr_dev,
- 			     struct hns_roce_hem_table *table,
+ 	list_for_each_entry_safe(chunk, tmp, &hem->chunk_list, list) {
+ 		for (i = 0; i < chunk->npages; ++i)
+-			dma_free_coherent(&hr_dev->pdev->dev,
++			dma_free_coherent(hr_dev->dev,
+ 				   chunk->mem[i].length,
+ 				   lowmem_page_address(sg_page(&chunk->mem[i])),
+ 				   sg_dma_address(&chunk->mem[i]));
+@@ -128,8 +128,8 @@ void hns_roce_free_hem(struct hns_roce_dev *hr_dev, struct hns_roce_hem *hem)
+ static int hns_roce_set_hem(struct hns_roce_dev *hr_dev,
+ 			    struct hns_roce_hem_table *table, unsigned long obj)
+ {
+-	struct device *dev = &hr_dev->pdev->dev;
+ 	spinlock_t *lock = &hr_dev->bt_cmd_lock;
++	struct device *dev = hr_dev->dev;
+ 	unsigned long end = 0;
+ 	unsigned long flags;
+ 	struct hns_roce_hem_iter iter;
+@@ -212,7 +212,7 @@ static int hns_roce_set_hem(struct hns_roce_dev *hr_dev,
+ int hns_roce_table_get(struct hns_roce_dev *hr_dev,
+ 		       struct hns_roce_hem_table *table, unsigned long obj)
+ {
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	int ret = 0;
+ 	unsigned long i;
+ 
+@@ -251,7 +251,7 @@ int hns_roce_table_get(struct hns_roce_dev *hr_dev,
+ void hns_roce_table_put(struct hns_roce_dev *hr_dev,
+ 			struct hns_roce_hem_table *table, unsigned long obj)
+ {
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	unsigned long i;
+ 
+ 	i = (obj & (table->num_obj - 1)) /
+@@ -380,7 +380,7 @@ int hns_roce_init_hem_table(struct hns_roce_dev *hr_dev,
+ void hns_roce_cleanup_hem_table(struct hns_roce_dev *hr_dev,
+ 				struct hns_roce_hem_table *table)
+ {
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	unsigned long i;
+ 
+ 	for (i = 0; i < table->num_hem; ++i)
 diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 747efd1..917d003 100644
+index e4d13a9..22cc3fb 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -34,6 +34,7 @@
- #include <linux/acpi.h>
- #include <linux/etherdevice.h>
- #include <linux/of.h>
-+#include <linux/of_platform.h>
- #include <rdma/ib_umem.h>
- #include "hns_roce_common.h"
- #include "hns_roce_device.h"
-@@ -3843,7 +3844,7 @@ int hns_roce_v1_destroy_cq(struct ib_cq *ibcq)
- 
- struct hns_roce_v1_priv hr_v1_priv;
- 
--struct hns_roce_hw hns_roce_hw_v1 = {
-+static const struct hns_roce_hw hns_roce_hw_v1 = {
- 	.reset = hns_roce_v1_reset,
- 	.hw_profile = hns_roce_v1_profile,
- 	.hw_init = hns_roce_v1_init,
-@@ -3865,3 +3866,244 @@ struct hns_roce_hw hns_roce_hw_v1 = {
- 	.destroy_cq = hns_roce_v1_destroy_cq,
- 	.priv = &hr_v1_priv,
- };
-+
-+static const struct of_device_id hns_roce_of_match[] = {
-+	{ .compatible = "hisilicon,hns-roce-v1", .data = &hns_roce_hw_v1, },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, hns_roce_of_match);
-+
-+static const struct acpi_device_id hns_roce_acpi_match[] = {
-+	{ "HISI00D1", (kernel_ulong_t)&hns_roce_hw_v1 },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(acpi, hns_roce_acpi_match);
-+
-+static int hns_roce_node_match(struct device *dev, void *fwnode)
-+{
-+	return dev->fwnode == fwnode;
-+}
-+
-+static struct
-+platform_device *hns_roce_find_pdev(struct fwnode_handle *fwnode)
-+{
-+	struct device *dev;
-+
-+	/* get the 'device' corresponding to the matching 'fwnode' */
-+	dev = bus_find_device(&platform_bus_type, NULL,
-+			      fwnode, hns_roce_node_match);
-+	/* get the platform device */
-+	return dev ? to_platform_device(dev) : NULL;
-+}
-+
-+static int hns_roce_get_cfg(struct hns_roce_dev *hr_dev)
-+{
-+	struct device *dev = &hr_dev->pdev->dev;
-+	struct platform_device *pdev = NULL;
-+	struct net_device *netdev = NULL;
-+	struct device_node *net_node;
-+	struct resource *res;
-+	int port_cnt = 0;
-+	u8 phy_port;
-+	int ret;
-+	int i;
-+
-+	/* check if we are compatible with the underlying SoC */
-+	if (dev_of_node(dev)) {
-+		const struct of_device_id *of_id;
-+
-+		of_id = of_match_node(hns_roce_of_match, dev->of_node);
-+		if (!of_id) {
-+			dev_err(dev, "device is not compatible!\n");
-+			return -ENXIO;
-+		}
-+		hr_dev->hw = (const struct hns_roce_hw *)of_id->data;
-+		if (!hr_dev->hw) {
-+			dev_err(dev, "couldn't get H/W specific DT data!\n");
-+			return -ENXIO;
-+		}
-+	} else if (is_acpi_device_node(dev->fwnode)) {
-+		const struct acpi_device_id *acpi_id;
-+
-+		acpi_id = acpi_match_device(hns_roce_acpi_match, dev);
-+		if (!acpi_id) {
-+			dev_err(dev, "device is not compatible!\n");
-+			return -ENXIO;
-+		}
-+		hr_dev->hw = (const struct hns_roce_hw *) acpi_id->driver_data;
-+		if (!hr_dev->hw) {
-+			dev_err(dev, "couldn't get H/W specific ACPI data!\n");
-+			return -ENXIO;
-+		}
-+	} else {
-+		dev_err(dev, "can't read compatibility data from DT or ACPI\n");
-+		return -ENXIO;
-+	}
-+
-+	/* get the mapped register base address */
-+	res = platform_get_resource(hr_dev->pdev, IORESOURCE_MEM, 0);
-+	if (!res) {
-+		dev_err(dev, "memory resource not found!\n");
-+		return -EINVAL;
-+	}
-+	hr_dev->reg_base = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(hr_dev->reg_base))
-+		return PTR_ERR(hr_dev->reg_base);
-+
-+	/* read the node_guid of IB device from the DT or ACPI */
-+	ret = device_property_read_u8_array(dev, "node-guid",
-+					    (u8 *)&hr_dev->ib_dev.node_guid,
-+					    GUID_LEN);
-+	if (ret) {
-+		dev_err(dev, "couldn't get node_guid from DT or ACPI!\n");
-+		return ret;
-+	}
-+
-+	/* get the RoCE associated ethernet ports or netdevices */
-+	for (i = 0; i < HNS_ROCE_MAX_PORTS; i++) {
-+		if (dev_of_node(dev)) {
-+			net_node = of_parse_phandle(dev->of_node, "eth-handle",
-+						    i);
-+			if (!net_node)
-+				continue;
-+			pdev = of_find_device_by_node(net_node);
-+		} else if (is_acpi_device_node(dev->fwnode)) {
-+			struct acpi_reference_args args;
-+			struct fwnode_handle *fwnode;
-+
-+			ret = acpi_node_get_property_reference(dev->fwnode,
-+							       "eth-handle",
-+							       i, &args);
-+			if (ret)
-+				continue;
-+			fwnode = acpi_fwnode_handle(args.adev);
-+			pdev = hns_roce_find_pdev(fwnode);
-+		} else {
-+			dev_err(dev, "cannot read data from DT or ACPI\n");
-+			return -ENXIO;
-+		}
-+
-+		if (pdev) {
-+			netdev = platform_get_drvdata(pdev);
-+			phy_port = (u8)i;
-+			if (netdev) {
-+				hr_dev->iboe.netdevs[port_cnt] = netdev;
-+				hr_dev->iboe.phy_port[port_cnt] = phy_port;
-+			} else {
-+				dev_err(dev, "no netdev found with pdev %s\n",
-+					pdev->name);
-+				return -ENODEV;
-+			}
-+			port_cnt++;
-+		}
-+	}
-+
-+	if (port_cnt == 0) {
-+		dev_err(dev, "unable to get eth-handle for available ports!\n");
-+		return -EINVAL;
-+	}
-+
-+	hr_dev->caps.num_ports = port_cnt;
-+
-+	/* cmd issue mode: 0 is poll, 1 is event */
-+	hr_dev->cmd_mod = 1;
-+	hr_dev->loop_idc = 0;
-+
-+	/* read the interrupt names from the DT or ACPI */
-+	ret = device_property_read_string_array(dev, "interrupt-names",
-+						hr_dev->irq_names,
-+						HNS_ROCE_MAX_IRQ_NUM);
-+	if (ret < 0) {
-+		dev_err(dev, "couldn't get interrupt names from DT or ACPI!\n");
-+		return ret;
-+	}
-+
-+	/* fetch the interrupt numbers */
-+	for (i = 0; i < HNS_ROCE_MAX_IRQ_NUM; i++) {
-+		hr_dev->irq[i] = platform_get_irq(hr_dev->pdev, i);
-+		if (hr_dev->irq[i] <= 0) {
-+			dev_err(dev, "platform get of irq[=%d] failed!\n", i);
-+			return -EINVAL;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * hns_roce_probe - RoCE driver entrance
-+ * @pdev: pointer to platform device
-+ * Return : int
-+ *
-+ */
-+static int hns_roce_probe(struct platform_device *pdev)
-+{
-+	int ret;
-+	struct hns_roce_dev *hr_dev;
-+	struct device *dev = &pdev->dev;
-+
-+	hr_dev = (struct hns_roce_dev *)ib_alloc_device(sizeof(*hr_dev));
-+	if (!hr_dev)
-+		return -ENOMEM;
-+
-+	hr_dev->pdev = pdev;
-+	platform_set_drvdata(pdev, hr_dev);
-+
-+	if (dma_set_mask_and_coherent(dev, DMA_BIT_MASK(64ULL)) &&
-+	    dma_set_mask_and_coherent(dev, DMA_BIT_MASK(32ULL))) {
-+		dev_err(dev, "Not usable DMA addressing mode\n");
-+		ret = -EIO;
-+		goto error_failed_get_cfg;
-+	}
-+
-+	ret = hns_roce_get_cfg(hr_dev);
-+	if (ret) {
-+		dev_err(dev, "Get Configuration failed!\n");
-+		goto error_failed_get_cfg;
-+	}
-+
-+	ret = hns_roce_init(hr_dev);
-+	if (ret) {
-+		dev_err(dev, "RoCE engine init failed!\n");
-+		goto error_failed_get_cfg;
-+	}
-+
-+	return 0;
-+
-+error_failed_get_cfg:
-+	ib_dealloc_device(&hr_dev->ib_dev);
-+
-+	return ret;
-+}
-+
-+/**
-+ * hns_roce_remove - remove RoCE device
-+ * @pdev: pointer to platform device
-+ */
-+static int hns_roce_remove(struct platform_device *pdev)
-+{
-+	struct hns_roce_dev *hr_dev = platform_get_drvdata(pdev);
-+
-+	hns_roce_exit(hr_dev);
-+	ib_dealloc_device(&hr_dev->ib_dev);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver hns_roce_driver = {
-+	.probe = hns_roce_probe,
-+	.remove = hns_roce_remove,
-+	.driver = {
-+		.name = DRV_NAME,
-+		.of_match_table = hns_roce_of_match,
-+		.acpi_match_table = ACPI_PTR(hns_roce_acpi_match),
-+	},
-+};
-+
-+module_platform_driver(hns_roce_driver);
-+
-+MODULE_LICENSE("Dual BSD/GPL");
-+MODULE_AUTHOR("Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>");
-+MODULE_AUTHOR("Nenglong Zhao <zhaonenglong-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>");
-+MODULE_AUTHOR("Lijun Ou <oulijun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>");
-+MODULE_DESCRIPTION("Hisilicon Hip06 Family RoCE Driver");
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index d9777b6..7afa0c8 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -57,6 +57,7 @@ int hns_get_gid_index(struct hns_roce_dev *hr_dev, u8 port, int gid_index)
- {
- 	return gid_index * hr_dev->caps.num_ports + port;
- }
-+EXPORT_SYMBOL_GPL(hns_get_gid_index);
- 
- static void hns_roce_set_mac(struct hns_roce_dev *hr_dev, u8 port, u8 *addr)
- {
-@@ -174,8 +175,9 @@ static int hns_roce_setup_mtu_mac(struct hns_roce_dev *hr_dev)
- 	u8 i;
- 
- 	for (i = 0; i < hr_dev->caps.num_ports; i++) {
--		hr_dev->hw->set_mtu(hr_dev, hr_dev->iboe.phy_port[i],
--				    hr_dev->caps.max_mtu);
-+		if (hr_dev->hw->set_mtu)
-+			hr_dev->hw->set_mtu(hr_dev, hr_dev->iboe.phy_port[i],
-+					    hr_dev->caps.max_mtu);
- 		hns_roce_set_mac(hr_dev, i, hr_dev->iboe.netdevs[i]->dev_addr);
+@@ -4050,6 +4050,7 @@ static int hns_roce_probe(struct platform_device *pdev)
  	}
  
-@@ -531,169 +533,6 @@ static int hns_roce_register_device(struct hns_roce_dev *hr_dev)
- 	return ret;
- }
+ 	hr_dev->pdev = pdev;
++	hr_dev->dev = dev;
+ 	platform_set_drvdata(pdev, hr_dev);
  
--static const struct of_device_id hns_roce_of_match[] = {
--	{ .compatible = "hisilicon,hns-roce-v1", .data = &hns_roce_hw_v1, },
--	{},
--};
--MODULE_DEVICE_TABLE(of, hns_roce_of_match);
--
--static const struct acpi_device_id hns_roce_acpi_match[] = {
--	{ "HISI00D1", (kernel_ulong_t)&hns_roce_hw_v1 },
--	{},
--};
--MODULE_DEVICE_TABLE(acpi, hns_roce_acpi_match);
--
--static int hns_roce_node_match(struct device *dev, void *fwnode)
--{
--	return dev->fwnode == fwnode;
--}
--
--static struct
--platform_device *hns_roce_find_pdev(struct fwnode_handle *fwnode)
--{
--	struct device *dev;
--
--	/* get the 'device'corresponding to matching 'fwnode' */
--	dev = bus_find_device(&platform_bus_type, NULL,
--			      fwnode, hns_roce_node_match);
--	/* get the platform device */
--	return dev ? to_platform_device(dev) : NULL;
--}
--
--static int hns_roce_get_cfg(struct hns_roce_dev *hr_dev)
--{
--	int i;
--	int ret;
--	u8 phy_port;
--	int port_cnt = 0;
+ 	if (dma_set_mask_and_coherent(dev, DMA_BIT_MASK(64ULL)) &&
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index 7afa0c8..b07d437 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -117,7 +117,7 @@ static int hns_roce_del_gid(struct ib_device *device, u8 port_num,
+ static int handle_en_event(struct hns_roce_dev *hr_dev, u8 port,
+ 			   unsigned long event)
+ {
 -	struct device *dev = &hr_dev->pdev->dev;
--	struct device_node *net_node;
--	struct net_device *netdev = NULL;
--	struct platform_device *pdev = NULL;
--	struct resource *res;
--
--	/* check if we are compatible with the underlying SoC */
--	if (dev_of_node(dev)) {
--		const struct of_device_id *of_id;
--
--		of_id = of_match_node(hns_roce_of_match, dev->of_node);
--		if (!of_id) {
--			dev_err(dev, "device is not compatible!\n");
--			return -ENXIO;
--		}
--		hr_dev->hw = (struct hns_roce_hw *)of_id->data;
--		if (!hr_dev->hw) {
--			dev_err(dev, "couldn't get H/W specific DT data!\n");
--			return -ENXIO;
--		}
--	} else if (is_acpi_device_node(dev->fwnode)) {
--		const struct acpi_device_id *acpi_id;
--
--		acpi_id = acpi_match_device(hns_roce_acpi_match, dev);
--		if (!acpi_id) {
--			dev_err(dev, "device is not compatible!\n");
--			return -ENXIO;
--		}
--		hr_dev->hw = (struct hns_roce_hw *) acpi_id->driver_data;
--		if (!hr_dev->hw) {
--			dev_err(dev, "couldn't get H/W specific ACPI data!\n");
--			return -ENXIO;
--		}
--	} else {
--		dev_err(dev, "can't read compatibility data from DT or ACPI\n");
--		return -ENXIO;
--	}
--
--	/* get the mapped register base address */
--	res = platform_get_resource(hr_dev->pdev, IORESOURCE_MEM, 0);
--	if (!res) {
--		dev_err(dev, "memory resource not found!\n");
--		return -EINVAL;
--	}
--	hr_dev->reg_base = devm_ioremap_resource(dev, res);
--	if (IS_ERR(hr_dev->reg_base))
--		return PTR_ERR(hr_dev->reg_base);
--
--	/* read the node_guid of IB device from the DT or ACPI */
--	ret = device_property_read_u8_array(dev, "node-guid",
--					    (u8 *)&hr_dev->ib_dev.node_guid,
--					    GUID_LEN);
--	if (ret) {
--		dev_err(dev, "couldn't get node_guid from DT or ACPI!\n");
--		return ret;
--	}
--
--	/* get the RoCE associated ethernet ports or netdevices */
--	for (i = 0; i < HNS_ROCE_MAX_PORTS; i++) {
--		if (dev_of_node(dev)) {
--			net_node = of_parse_phandle(dev->of_node, "eth-handle",
--						    i);
--			if (!net_node)
--				continue;
--			pdev = of_find_device_by_node(net_node);
--		} else if (is_acpi_device_node(dev->fwnode)) {
--			struct acpi_reference_args args;
--			struct fwnode_handle *fwnode;
--
--			ret = acpi_node_get_property_reference(dev->fwnode,
--							       "eth-handle",
--							       i, &args);
--			if (ret)
--				continue;
--			fwnode = acpi_fwnode_handle(args.adev);
--			pdev = hns_roce_find_pdev(fwnode);
--		} else {
--			dev_err(dev, "cannot read data from DT or ACPI\n");
--			return -ENXIO;
--		}
--
--		if (pdev) {
--			netdev = platform_get_drvdata(pdev);
--			phy_port = (u8)i;
--			if (netdev) {
--				hr_dev->iboe.netdevs[port_cnt] = netdev;
--				hr_dev->iboe.phy_port[port_cnt] = phy_port;
--			} else {
--				dev_err(dev, "no netdev found with pdev %s\n",
--					pdev->name);
--				return -ENODEV;
--			}
--			port_cnt++;
--		}
--	}
--
--	if (port_cnt == 0) {
--		dev_err(dev, "unable to get eth-handle for available ports!\n");
--		return -EINVAL;
--	}
--
--	hr_dev->caps.num_ports = port_cnt;
--
--	/* cmd issue mode: 0 is poll, 1 is event */
--	hr_dev->cmd_mod = 1;
--	hr_dev->loop_idc = 0;
--
--	/* read the interrupt names from the DT or ACPI */
--	ret = device_property_read_string_array(dev, "interrupt-names",
--						hr_dev->irq_names,
--						HNS_ROCE_MAX_IRQ_NUM);
--	if (ret < 0) {
--		dev_err(dev, "couldn't get interrupt names from DT or ACPI!\n");
--		return ret;
--	}
--
--	/* fetch the interrupt numbers */
--	for (i = 0; i < HNS_ROCE_MAX_IRQ_NUM; i++) {
--		hr_dev->irq[i] = platform_get_irq(hr_dev->pdev, i);
--		if (hr_dev->irq[i] <= 0) {
--			dev_err(dev, "platform get of irq[=%d] failed!\n", i);
--			return -EINVAL;
--		}
--	}
--
--	return 0;
--}
--
++	struct device *dev = hr_dev->dev;
+ 	struct net_device *netdev;
+ 
+ 	netdev = hr_dev->iboe.netdevs[port];
+@@ -240,7 +240,7 @@ static int hns_roce_query_port(struct ib_device *ib_dev, u8 port_num,
+ 			       struct ib_port_attr *props)
+ {
+ 	struct hns_roce_dev *hr_dev = to_hr_dev(ib_dev);
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	struct net_device *net_dev;
+ 	unsigned long flags;
+ 	enum ib_mtu mtu;
+@@ -428,7 +428,7 @@ static int hns_roce_register_device(struct hns_roce_dev *hr_dev)
+ 	int ret;
+ 	struct hns_roce_ib_iboe *iboe = NULL;
+ 	struct ib_device *ib_dev = NULL;
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 
+ 	iboe = &hr_dev->iboe;
+ 	spin_lock_init(&iboe->lock);
+@@ -536,7 +536,7 @@ static int hns_roce_register_device(struct hns_roce_dev *hr_dev)
  static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
  {
  	int ret;
-@@ -826,42 +665,17 @@ static int hns_roce_setup_hca(struct hns_roce_dev *hr_dev)
- 	return ret;
- }
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
  
--/**
-- * hns_roce_probe - RoCE driver entrance
-- * @pdev: pointer to platform device
-- * Return : int
-- *
-- */
--static int hns_roce_probe(struct platform_device *pdev)
-+int hns_roce_init(struct hns_roce_dev *hr_dev)
+ 	ret = hns_roce_init_hem_table(hr_dev, &hr_dev->mr_table.mtt_table,
+ 				      HEM_TYPE_MTT, hr_dev->caps.mtt_entry_sz,
+@@ -605,7 +605,7 @@ static int hns_roce_init_hem(struct hns_roce_dev *hr_dev)
+ static int hns_roce_setup_hca(struct hns_roce_dev *hr_dev)
  {
  	int ret;
--	struct hns_roce_dev *hr_dev;
--	struct device *dev = &pdev->dev;
--
--	hr_dev = (struct hns_roce_dev *)ib_alloc_device(sizeof(*hr_dev));
--	if (!hr_dev)
--		return -ENOMEM;
--
--	hr_dev->pdev = pdev;
--	platform_set_drvdata(pdev, hr_dev);
--
--	if (dma_set_mask_and_coherent(dev, DMA_BIT_MASK(64ULL)) &&
--	    dma_set_mask_and_coherent(dev, DMA_BIT_MASK(32ULL))) {
--		dev_err(dev, "Not usable DMA addressing mode\n");
--		ret = -EIO;
--		goto error_failed_get_cfg;
--	}
--
--	ret = hns_roce_get_cfg(hr_dev);
--	if (ret) {
--		dev_err(dev, "Get Configuration failed!\n");
--		goto error_failed_get_cfg;
--	}
-+	struct device *dev = &hr_dev->pdev->dev;
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
  
--	ret = hr_dev->hw->reset(hr_dev, true);
--	if (ret) {
--		dev_err(dev, "Reset RoCE engine failed!\n");
--		goto error_failed_get_cfg;
-+	if (hr_dev->hw->reset) {
-+		ret = hr_dev->hw->reset(hr_dev, true);
-+		if (ret) {
-+			dev_err(dev, "Reset RoCE engine failed!\n");
-+			return ret;
-+		}
- 	}
- 
- 	hr_dev->hw->hw_profile(hr_dev);
-@@ -872,10 +686,12 @@ static int hns_roce_probe(struct platform_device *pdev)
- 		goto error_failed_cmd_init;
- 	}
- 
--	ret = hns_roce_init_eq_table(hr_dev);
--	if (ret) {
--		dev_err(dev, "eq init failed!\n");
--		goto error_failed_eq_table;
-+	if (hr_dev->cmd_mod) {
-+		ret = hns_roce_init_eq_table(hr_dev);
-+		if (ret) {
-+			dev_err(dev, "eq init failed!\n");
-+			goto error_failed_eq_table;
-+		}
- 	}
- 
- 	if (hr_dev->cmd_mod) {
-@@ -898,10 +714,12 @@ static int hns_roce_probe(struct platform_device *pdev)
- 		goto error_failed_setup_hca;
- 	}
- 
--	ret = hr_dev->hw->hw_init(hr_dev);
--	if (ret) {
--		dev_err(dev, "hw_init failed!\n");
--		goto error_failed_engine_init;
-+	if (hr_dev->hw->hw_init) {
-+		ret = hr_dev->hw->hw_init(hr_dev);
-+		if (ret) {
-+			dev_err(dev, "hw_init failed!\n");
-+			goto error_failed_engine_init;
-+		}
- 	}
- 
- 	ret = hns_roce_register_device(hr_dev);
-@@ -911,7 +729,8 @@ static int hns_roce_probe(struct platform_device *pdev)
- 	return 0;
- 
- error_failed_register_device:
--	hr_dev->hw->hw_exit(hr_dev);
-+	if (hr_dev->hw->hw_exit)
-+		hr_dev->hw->hw_exit(hr_dev);
- 
- error_failed_engine_init:
- 	hns_roce_cleanup_bitmap(hr_dev);
-@@ -924,58 +743,41 @@ static int hns_roce_probe(struct platform_device *pdev)
- 		hns_roce_cmd_use_polling(hr_dev);
- 
- error_failed_use_event:
--	hns_roce_cleanup_eq_table(hr_dev);
-+	if (hr_dev->cmd_mod)
-+		hns_roce_cleanup_eq_table(hr_dev);
- 
- error_failed_eq_table:
- 	hns_roce_cmd_cleanup(hr_dev);
- 
- error_failed_cmd_init:
--	ret = hr_dev->hw->reset(hr_dev, false);
--	if (ret)
--		dev_err(&hr_dev->pdev->dev, "roce_engine reset fail\n");
--
--error_failed_get_cfg:
--	ib_dealloc_device(&hr_dev->ib_dev);
-+	if (hr_dev->hw->reset) {
-+		ret = hr_dev->hw->reset(hr_dev, false);
-+		if (ret)
-+			dev_err(dev, "Dereset RoCE engine failed!\n");
-+	}
- 
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(hns_roce_init);
- 
--/**
-- * hns_roce_remove - remove RoCE device
-- * @pdev: pointer to platform device
-- */
--static int hns_roce_remove(struct platform_device *pdev)
-+void hns_roce_exit(struct hns_roce_dev *hr_dev)
+ 	spin_lock_init(&hr_dev->sm_lock);
+ 	spin_lock_init(&hr_dev->bt_cmd_lock);
+@@ -668,7 +668,7 @@ static int hns_roce_setup_hca(struct hns_roce_dev *hr_dev)
+ int hns_roce_init(struct hns_roce_dev *hr_dev)
  {
--	struct hns_roce_dev *hr_dev = platform_get_drvdata(pdev);
--
- 	hns_roce_unregister_device(hr_dev);
--	hr_dev->hw->hw_exit(hr_dev);
-+	if (hr_dev->hw->hw_exit)
-+		hr_dev->hw->hw_exit(hr_dev);
- 	hns_roce_cleanup_bitmap(hr_dev);
- 	hns_roce_cleanup_hem(hr_dev);
+ 	int ret;
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
  
- 	if (hr_dev->cmd_mod)
- 		hns_roce_cmd_use_polling(hr_dev);
- 
--	hns_roce_cleanup_eq_table(hr_dev);
-+	if (hr_dev->cmd_mod)
-+		hns_roce_cleanup_eq_table(hr_dev);
- 	hns_roce_cmd_cleanup(hr_dev);
--	hr_dev->hw->reset(hr_dev, false);
--
--	ib_dealloc_device(&hr_dev->ib_dev);
--
--	return 0;
-+	if (hr_dev->hw->reset)
-+		hr_dev->hw->reset(hr_dev, false);
- }
--
--static struct platform_driver hns_roce_driver = {
--	.probe = hns_roce_probe,
--	.remove = hns_roce_remove,
--	.driver = {
--		.name = DRV_NAME,
--		.of_match_table = hns_roce_of_match,
--		.acpi_match_table = ACPI_PTR(hns_roce_acpi_match),
--	},
--};
--
--module_platform_driver(hns_roce_driver);
-+EXPORT_SYMBOL_GPL(hns_roce_exit);
- 
- MODULE_LICENSE("Dual BSD/GPL");
- MODULE_AUTHOR("Wei Hu <xavier.huwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>");
+ 	if (hr_dev->hw->reset) {
+ 		ret = hr_dev->hw->reset(hr_dev, true);
 diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
-index e387360..ed35713 100644
+index ed35713..923d2b4 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_mr.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
-@@ -47,6 +47,7 @@ unsigned long key_to_hw_index(u32 key)
- {
- 	return (key << 24) | (key >> 8);
- }
-+EXPORT_SYMBOL_GPL(key_to_hw_index);
- 
- static int hns_roce_sw2hw_mpt(struct hns_roce_dev *hr_dev,
- 			      struct hns_roce_cmd_mailbox *mailbox,
-@@ -65,6 +66,7 @@ int hns_roce_hw2sw_mpt(struct hns_roce_dev *hr_dev,
- 				 mpt_index, !mailbox, HNS_ROCE_CMD_HW2SW_MPT,
- 				 HNS_ROCE_CMD_TIMEOUT_MSECS);
- }
-+EXPORT_SYMBOL_GPL(hns_roce_hw2sw_mpt);
- 
- static int hns_roce_buddy_alloc(struct hns_roce_buddy *buddy, int order,
- 				unsigned long *seg)
-@@ -233,6 +235,7 @@ void hns_roce_mtt_cleanup(struct hns_roce_dev *hr_dev, struct hns_roce_mtt *mtt)
- 	hns_roce_table_put_range(hr_dev, &mr_table->mtt_table, mtt->first_seg,
- 				 mtt->first_seg + (1 << mtt->order) - 1);
- }
-+EXPORT_SYMBOL_GPL(hns_roce_mtt_cleanup);
- 
- static int hns_roce_mr_alloc(struct hns_roce_dev *hr_dev, u32 pd, u64 iova,
+@@ -241,9 +241,9 @@ static int hns_roce_mr_alloc(struct hns_roce_dev *hr_dev, u32 pd, u64 iova,
  			     u64 size, u32 access, int npages,
+ 			     struct hns_roce_mr *mr)
+ {
++	struct device *dev = hr_dev->dev;
+ 	unsigned long index = 0;
+ 	int ret = 0;
+-	struct device *dev = &hr_dev->pdev->dev;
+ 
+ 	/* Allocate a key for mr from mr_table */
+ 	ret = hns_roce_bitmap_alloc(&hr_dev->mr_table.mtpt_bitmap, &index);
+@@ -276,7 +276,7 @@ static int hns_roce_mr_alloc(struct hns_roce_dev *hr_dev, u32 pd, u64 iova,
+ static void hns_roce_mr_free(struct hns_roce_dev *hr_dev,
+ 			     struct hns_roce_mr *mr)
+ {
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	int npages = 0;
+ 	int ret;
+ 
+@@ -302,7 +302,7 @@ static int hns_roce_mr_enable(struct hns_roce_dev *hr_dev,
+ {
+ 	int ret;
+ 	unsigned long mtpt_idx = key_to_hw_index(mr->key);
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	struct hns_roce_cmd_mailbox *mailbox;
+ 	struct hns_roce_mr_table *mr_table = &hr_dev->mr_table;
+ 
+@@ -552,7 +552,7 @@ struct ib_mr *hns_roce_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 				   struct ib_udata *udata)
+ {
+ 	struct hns_roce_dev *hr_dev = to_hr_dev(pd->device);
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	struct hns_roce_mr *mr = NULL;
+ 	int ret = 0;
+ 	int n = 0;
 diff --git a/drivers/infiniband/hw/hns/hns_roce_pd.c b/drivers/infiniband/hw/hns/hns_roce_pd.c
-index a64500f..ffbf249 100644
+index ffbf249..079bb10 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_pd.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_pd.c
-@@ -86,6 +86,7 @@ struct ib_pd *hns_roce_alloc_pd(struct ib_device *ib_dev,
- 
- 	return &pd->ibpd;
- }
-+EXPORT_SYMBOL_GPL(hns_roce_alloc_pd);
- 
- int hns_roce_dealloc_pd(struct ib_pd *pd)
+@@ -60,7 +60,7 @@ struct ib_pd *hns_roce_alloc_pd(struct ib_device *ib_dev,
+ 				struct ib_udata *udata)
  {
-@@ -94,6 +95,7 @@ int hns_roce_dealloc_pd(struct ib_pd *pd)
+ 	struct hns_roce_dev *hr_dev = to_hr_dev(ib_dev);
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	struct hns_roce_pd *pd;
+ 	int ret;
  
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(hns_roce_dealloc_pd);
- 
- int hns_roce_uar_alloc(struct hns_roce_dev *hr_dev, struct hns_roce_uar *uar)
- {
 diff --git a/drivers/infiniband/hw/hns/hns_roce_qp.c b/drivers/infiniband/hw/hns/hns_roce_qp.c
-index f5dd21c..ad13d05 100644
+index ad13d05..b512ecc 100644
 --- a/drivers/infiniband/hw/hns/hns_roce_qp.c
 +++ b/drivers/infiniband/hw/hns/hns_roce_qp.c
-@@ -136,6 +136,7 @@ enum hns_roce_qp_state to_hns_roce_state(enum ib_qp_state state)
- 		return HNS_ROCE_QP_NUM_STATE;
- 	}
- }
-+EXPORT_SYMBOL_GPL(to_hns_roce_state);
- 
- static int hns_roce_gsi_qp_alloc(struct hns_roce_dev *hr_dev, unsigned long qpn,
- 				 struct hns_roce_qp *hr_qp)
-@@ -227,6 +228,7 @@ void hns_roce_qp_remove(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
- 			  hr_qp->qpn & (hr_dev->caps.num_qps - 1));
- 	spin_unlock_irqrestore(&qp_table->lock, flags);
- }
-+EXPORT_SYMBOL_GPL(hns_roce_qp_remove);
- 
- void hns_roce_qp_free(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
+@@ -44,7 +44,7 @@
+ void hns_roce_qp_event(struct hns_roce_dev *hr_dev, u32 qpn, int event_type)
  {
-@@ -241,6 +243,7 @@ void hns_roce_qp_free(struct hns_roce_dev *hr_dev, struct hns_roce_qp *hr_qp)
- 		hns_roce_table_put(hr_dev, &qp_table->qp_table, hr_qp->qpn);
+ 	struct hns_roce_qp_table *qp_table = &hr_dev->qp_table;
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	struct hns_roce_qp *qp;
+ 
+ 	spin_lock(&qp_table->lock);
+@@ -154,7 +154,7 @@ static int hns_roce_gsi_qp_alloc(struct hns_roce_dev *hr_dev, unsigned long qpn,
+ 				hr_qp->qpn & (hr_dev->caps.num_qps - 1), hr_qp);
+ 	spin_unlock_irq(&qp_table->lock);
+ 	if (ret) {
+-		dev_err(&hr_dev->pdev->dev, "QPC radix_tree_insert failed\n");
++		dev_err(hr_dev->dev, "QPC radix_tree_insert failed\n");
+ 		goto err_put_irrl;
  	}
- }
-+EXPORT_SYMBOL_GPL(hns_roce_qp_free);
  
- void hns_roce_release_range_qp(struct hns_roce_dev *hr_dev, int base_qpn,
- 			       int cnt)
-@@ -252,6 +255,7 @@ void hns_roce_release_range_qp(struct hns_roce_dev *hr_dev, int base_qpn,
+@@ -172,7 +172,7 @@ static int hns_roce_qp_alloc(struct hns_roce_dev *hr_dev, unsigned long qpn,
+ 			     struct hns_roce_qp *hr_qp)
+ {
+ 	struct hns_roce_qp_table *qp_table = &hr_dev->qp_table;
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	int ret;
  
- 	hns_roce_bitmap_free_range(&qp_table->bitmap, base_qpn, cnt, BITMAP_RR);
- }
-+EXPORT_SYMBOL_GPL(hns_roce_release_range_qp);
- 
- static int hns_roce_set_rq_size(struct hns_roce_dev *hr_dev,
+ 	if (!qpn)
+@@ -261,8 +261,8 @@ static int hns_roce_set_rq_size(struct hns_roce_dev *hr_dev,
  				struct ib_qp_cap *cap, int is_user, int has_srq,
-@@ -629,6 +633,7 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
- 
- 	return &hr_qp->ibqp;
- }
-+EXPORT_SYMBOL_GPL(hns_roce_create_qp);
- 
- int to_hr_qp_type(int qp_type)
+ 				struct hns_roce_qp *hr_qp)
  {
-@@ -647,6 +652,7 @@ int to_hr_qp_type(int qp_type)
++	struct device *dev = hr_dev->dev;
+ 	u32 max_cnt;
+-	struct device *dev = &hr_dev->pdev->dev;
  
- 	return transport_type;
- }
-+EXPORT_SYMBOL_GPL(to_hr_qp_type);
- 
- int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 		       int attr_mask, struct ib_udata *udata)
-@@ -745,6 +751,7 @@ void hns_roce_lock_cqs(struct hns_roce_cq *send_cq, struct hns_roce_cq *recv_cq)
- 		spin_lock_nested(&send_cq->lock, SINGLE_DEPTH_NESTING);
+ 	/* Check the validity of QP support capacity */
+ 	if (cap->max_recv_wr > hr_dev->caps.max_wqes ||
+@@ -319,7 +319,7 @@ static int hns_roce_set_user_sq_size(struct hns_roce_dev *hr_dev,
+ 	if ((u32)(1 << ucmd->log_sq_bb_count) > hr_dev->caps.max_wqes ||
+ 	     ucmd->log_sq_stride > max_sq_stride ||
+ 	     ucmd->log_sq_stride < HNS_ROCE_IB_MIN_SQ_STRIDE) {
+-		dev_err(&hr_dev->pdev->dev, "check SQ size error!\n");
++		dev_err(hr_dev->dev, "check SQ size error!\n");
+ 		return -EINVAL;
  	}
- }
-+EXPORT_SYMBOL_GPL(hns_roce_lock_cqs);
  
- void hns_roce_unlock_cqs(struct hns_roce_cq *send_cq,
- 			 struct hns_roce_cq *recv_cq) __releases(&send_cq->lock)
-@@ -761,6 +768,7 @@ void hns_roce_unlock_cqs(struct hns_roce_cq *send_cq,
- 		spin_unlock_irq(&recv_cq->lock);
+@@ -343,7 +343,7 @@ static int hns_roce_set_kernel_sq_size(struct hns_roce_dev *hr_dev,
+ 				       struct ib_qp_cap *cap,
+ 				       struct hns_roce_qp *hr_qp)
+ {
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	u32 max_cnt;
+ 
+ 	if (cap->max_send_wr  > hr_dev->caps.max_wqes  ||
+@@ -395,7 +395,7 @@ static int hns_roce_create_qp_common(struct hns_roce_dev *hr_dev,
+ 				     struct ib_udata *udata, unsigned long sqpn,
+ 				     struct hns_roce_qp *hr_qp)
+ {
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	struct hns_roce_ib_create_qp ucmd;
+ 	unsigned long qpn = 0;
+ 	int ret = 0;
+@@ -575,7 +575,7 @@ struct ib_qp *hns_roce_create_qp(struct ib_pd *pd,
+ 				 struct ib_udata *udata)
+ {
+ 	struct hns_roce_dev *hr_dev = to_hr_dev(pd->device);
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	struct hns_roce_sqp *hr_sqp;
+ 	struct hns_roce_qp *hr_qp;
+ 	int ret;
+@@ -660,7 +660,7 @@ int hns_roce_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 	struct hns_roce_dev *hr_dev = to_hr_dev(ibqp->device);
+ 	struct hns_roce_qp *hr_qp = to_hr_qp(ibqp);
+ 	enum ib_qp_state cur_state, new_state;
+-	struct device *dev = &hr_dev->pdev->dev;
++	struct device *dev = hr_dev->dev;
+ 	int ret = -EINVAL;
+ 	int p;
+ 	enum ib_mtu active_mtu;
+@@ -835,7 +835,7 @@ int hns_roce_init_qp_table(struct hns_roce_dev *hr_dev)
+ 				   hr_dev->caps.num_qps - 1, SQP_NUM,
+ 				   reserved_from_top);
+ 	if (ret) {
+-		dev_err(&hr_dev->pdev->dev, "qp bitmap init failed!error=%d\n",
++		dev_err(hr_dev->dev, "qp bitmap init failed!error=%d\n",
+ 			ret);
+ 		return ret;
  	}
- }
-+EXPORT_SYMBOL_GPL(hns_roce_unlock_cqs);
- 
- __be32 send_ieth(struct ib_send_wr *wr)
- {
-@@ -774,6 +782,7 @@ __be32 send_ieth(struct ib_send_wr *wr)
- 		return 0;
- 	}
- }
-+EXPORT_SYMBOL_GPL(send_ieth);
- 
- static void *get_wqe(struct hns_roce_qp *hr_qp, int offset)
- {
-@@ -785,11 +794,13 @@ void *get_recv_wqe(struct hns_roce_qp *hr_qp, int n)
- {
- 	return get_wqe(hr_qp, hr_qp->rq.offset + (n << hr_qp->rq.wqe_shift));
- }
-+EXPORT_SYMBOL_GPL(get_recv_wqe);
- 
- void *get_send_wqe(struct hns_roce_qp *hr_qp, int n)
- {
- 	return get_wqe(hr_qp, hr_qp->sq.offset + (n << hr_qp->sq.wqe_shift));
- }
-+EXPORT_SYMBOL_GPL(get_send_wqe);
- 
- bool hns_roce_wq_overflow(struct hns_roce_wq *hr_wq, int nreq,
- 			  struct ib_cq *ib_cq)
-@@ -808,6 +819,7 @@ bool hns_roce_wq_overflow(struct hns_roce_wq *hr_wq, int nreq,
- 
- 	return cur + nreq >= hr_wq->max_post;
- }
-+EXPORT_SYMBOL_GPL(hns_roce_wq_overflow);
- 
- int hns_roce_init_qp_table(struct hns_roce_dev *hr_dev)
- {
 -- 
 1.9.1
 
