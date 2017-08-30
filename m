@@ -1,35 +1,30 @@
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Subject: [PATCH] RDS: constify rhashtable_params
-Date: Wed, 30 Aug 2017 17:19:51 +0530
-Message-ID: <3cdaecc7c8080b0f2172d8788b96303528957b08.1504093495.git.arvind.yadav.cs@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: davem@davemloft.net, santosh.shilimkar@oracle.com
+From: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH] RDS: constify rhashtable_params
+Date: Wed, 30 Aug 2017 06:54:43 -0700
+Message-ID: <c8f861c1-b137-740d-78fe-e03e8232af09@oracle.com>
+References: <3cdaecc7c8080b0f2172d8788b96303528957b08.1504093495.git.arvind.yadav.cs@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <3cdaecc7c8080b0f2172d8788b96303528957b08.1504093495.git.arvind.yadav.cs@gmail.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Arvind Yadav <arvind.yadav.cs@gmail.com>, davem@davemloft.net
 Cc: linux-kernel@vger.kernel.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-rhashtable_params are not supposed to change at runtime. All
-Functions rhashtable_* working with const rhashtable_params
-provided by <linux/rhashtable.h>. So mark the non-const structs
-as const.
+On 8/30/17 4:49 AM, Arvind Yadav wrote:
+> rhashtable_params are not supposed to change at runtime. All
+> Functions rhashtable_* working with const rhashtable_params
+> provided by <linux/rhashtable.h>. So mark the non-const structs
+> as const.
+> 
+> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+> ---
+This is already addressed in net-next by [1]
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
----
- net/rds/bind.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Regards,
+Santosh
 
-diff --git a/net/rds/bind.c b/net/rds/bind.c
-index 3a915be..75d43dc 100644
---- a/net/rds/bind.c
-+++ b/net/rds/bind.c
-@@ -40,7 +40,7 @@
- 
- static struct rhashtable bind_hash_table;
- 
--static struct rhashtable_params ht_parms = {
-+static const struct rhashtable_params ht_parms = {
- 	.nelem_hint = 768,
- 	.key_len = sizeof(u64),
- 	.key_offset = offsetof(struct rds_sock, rs_bound_key),
--- 
-1.9.1
+[1] https://lkml.org/lkml/2017/8/25/482
