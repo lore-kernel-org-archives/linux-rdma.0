@@ -1,38 +1,40 @@
 From: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 3/8] bnxt_re: Fix compare and swap atomic operands
-Date: Thu, 31 Aug 2017 09:27:30 +0530
-Message-ID: <20170831035735.19595-4-somnath.kotur@broadcom.com>
-References: <20170831035735.19595-1-somnath.kotur@broadcom.com>
+Subject: [PATCH 0/8] RDMA/bnxt_re: Misc fixes for bnxt_re
+Date: Thu, 31 Aug 2017 09:27:27 +0530
+Message-ID: <20170831035735.19595-1-somnath.kotur@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170831035735.19595-1-somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+This patch series includes bug fixes for bnxt_re.
+Doug,
+	Please review apply for 4.14.
+Thanks
+Somnath
 
-Driver must assign the user supplied compare/swap values in
-the wqe to successfully complete the atomic compare and
-swap operation.
+Devesh Sharma (2):
+  bnxt_re: Fix update of qplib_qp.mtu when modified
+  bnxt_re: Fix compare and swap atomic operands
 
-Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/bnxt_re/ib_verbs.c | 1 +
- 1 file changed, 1 insertion(+)
+Selvin Xavier (1):
+  bnxt_re: Fix memory leak in FRMR path
 
-diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-index 6631d6e..712a62b 100644
---- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-+++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-@@ -1913,6 +1913,7 @@ static int bnxt_re_build_atomic_wqe(struct ib_send_wr *wr,
- 	switch (wr->opcode) {
- 	case IB_WR_ATOMIC_CMP_AND_SWP:
- 		wqe->type = BNXT_QPLIB_SWQE_TYPE_ATOMIC_CMP_AND_SWP;
-+		wqe->atomic.cmp_data = atomic_wr(wr)->compare_add;
- 		wqe->atomic.swap_data = atomic_wr(wr)->swap;
- 		break;
- 	case IB_WR_ATOMIC_FETCH_AND_ADD:
+Somnath Kotur (5):
+  bnxt_re: Stop issuing further cmds to FW once a cmd times out
+  bnxt_re: Free up devices in module_exit path
+  bnxt_re: Fix race between the netdev register and unregister events
+  bnxt_re: Remove RTNL lock dependency in bnxt_re_query_port
+  bnxt_re: Don't issue cmd to delete GID for QP1 GID entry before the QP
+    is destroyed
+
+ drivers/infiniband/hw/bnxt_re/bnxt_re.h    | 14 +++++++----
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c   | 40 +++++++++++++++++++++---------
+ drivers/infiniband/hw/bnxt_re/main.c       | 28 +++++++++++++++++++++
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.c |  4 +++
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.h |  3 ++-
+ 5 files changed, 71 insertions(+), 18 deletions(-)
+
 -- 
 1.8.3.1
 
