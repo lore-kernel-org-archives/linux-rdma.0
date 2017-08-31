@@ -1,194 +1,139 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH rdma-core 4/5] verbs: Tidy up ibverbs_get_device_list
-Date: Thu, 31 Aug 2017 14:50:58 -0600
-Message-ID: <1504212659-9674-5-git-send-email-jgunthorpe@obsidianresearch.com>
-References: <1504212659-9674-1-git-send-email-jgunthorpe@obsidianresearch.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1504212659-9674-1-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+From: jglisse@redhat.com
+Subject: [PATCH 00/13] mmu_notifier kill invalidate_page callback v2
+Date: Thu, 31 Aug 2017 17:17:25 -0400
+Message-ID: <20170831211738.17922-1-jglisse@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: linux-mm@kvack.org
+Cc: Andrea Arcangeli <aarcange@redhat.com>, Joerg Roedel <jroedel@suse.de>, kvm@vger.kernel.org, =?UTF-8?q?Radim=20Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, linux-rdma@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, Jack Steiner <steiner@sgi.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Sudeep Dutt <sudeep.dutt@intel.com>, Ashutosh Dixit <ashutosh.dixit@intel.com>, iommu@lists.linux-foundation.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Dimitri Sivanich <sivanich@sgi.com>, amd-gfx@lists.freedesktop.org, xen-devel@lists.xenproject.org, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Now that we have ccan lists the logic here can be simplified greatly.
-Eliminate the confusing used and have_driver values, instead just
-delete items from the sysfs list as we run down the process. This
-directly guarantees discovered sysfs items are handled only once,
-and makes the lifetime of the sysfs pointers much clearer.
-
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- libibverbs/init.c | 93 +++++++++++++++++++++++++++++--------------------------
- 1 file changed, 49 insertions(+), 44 deletions(-)
-
-diff --git a/libibverbs/init.c b/libibverbs/init.c
-index 91ce8b4e378458..04583bb5137c96 100644
---- a/libibverbs/init.c
-+++ b/libibverbs/init.c
-@@ -60,9 +60,7 @@ struct ibv_sysfs_dev {
- 	char		        sysfs_path[IBV_SYSFS_PATH_MAX];
- 	char		        ibdev_path[IBV_SYSFS_PATH_MAX];
- 	int			abi_ver;
--	int			have_driver;
- 	struct timespec		time_created;
--	int			used;
- };
- 
- struct ibv_driver_name {
-@@ -148,8 +146,6 @@ static int find_sysfs_devs(struct list_head *tmp_sysfs_dev_list)
- 
- 		sysfs_dev->time_created = buf.st_mtim;
- 
--		sysfs_dev->have_driver = 0;
--		sysfs_dev->used = 0;
- 		if (ibv_read_sysfs_file(sysfs_dev->sysfs_path, "abi_version",
- 					value, sizeof value) > 0)
- 			sysfs_dev->abi_ver = strtol(value, NULL, 10);
-@@ -412,7 +408,6 @@ static struct verbs_device *try_driver(struct ibv_driver *driver,
- 	strcpy(dev->name,       sysfs_dev->ibdev_name);
- 	strcpy(dev->ibdev_path, sysfs_dev->ibdev_path);
- 	vdev->sysfs = sysfs_dev;
--	sysfs_dev->used = 1;
- 
- 	return vdev;
- }
-@@ -481,25 +476,51 @@ static int same_sysfs_dev(struct ibv_sysfs_dev *sysfs1,
- 	return 0;
- }
- 
--int ibverbs_get_device_list(struct list_head *list)
-+/* Match every ibv_sysfs_dev in the sysfs_list to a driver and add a new entry
-+ * to device_list. Once matched to a driver the entry in sysfs_list is
-+ * removed.
-+ */
-+static void try_all_drivers(struct list_head *sysfs_list,
-+			    struct list_head *device_list,
-+			    unsigned int *num_devices)
-+{
-+	struct ibv_sysfs_dev *sysfs_dev;
-+	struct ibv_sysfs_dev *tmp;
-+	struct verbs_device *vdev;
-+
-+	list_for_each_safe(sysfs_list, sysfs_dev, tmp, entry) {
-+		vdev = try_drivers(sysfs_dev);
-+		if (vdev) {
-+			list_del(&sysfs_dev->entry);
-+			// Ownership of sysfs_dev moves into vdev->sysfs
-+			list_add(device_list, &vdev->entry);
-+			(*num_devices)++;
-+		}
-+	}
-+}
-+
-+int ibverbs_get_device_list(struct list_head *device_list)
- {
--	LIST_HEAD(tmp_sysfs_dev_list);
-+	LIST_HEAD(sysfs_list);
- 	struct ibv_sysfs_dev *sysfs_dev, *next_dev;
- 	struct verbs_device *vdev, *tmp;
- 	static int drivers_loaded;
--	int num_devices = 0;
-+	unsigned int num_devices = 0;
- 	int statically_linked = 0;
--	int no_driver = 0;
- 	int ret;
- 
--	ret = find_sysfs_devs(&tmp_sysfs_dev_list);
-+	ret = find_sysfs_devs(&sysfs_list);
- 	if (ret)
- 		return -ret;
- 
--	list_for_each_safe(list, vdev, tmp, entry) {
-+	/* Remove entries from the sysfs_list that are already preset in the
-+	 * device_list, and remove entries from the device_list that are not
-+	 * present in the sysfs_list.
-+	 */
-+	list_for_each_safe(device_list, vdev, tmp, entry) {
- 		struct ibv_sysfs_dev *old_sysfs = NULL;
- 
--		list_for_each(&tmp_sysfs_dev_list, sysfs_dev, entry) {
-+		list_for_each(&sysfs_list, sysfs_dev, entry) {
- 			if (same_sysfs_dev(vdev->sysfs, sysfs_dev)) {
- 				old_sysfs = sysfs_dev;
- 				break;
-@@ -507,7 +528,8 @@ int ibverbs_get_device_list(struct list_head *list)
- 		}
- 
- 		if (old_sysfs) {
--			sysfs_dev->have_driver = 1;
-+			list_del(&old_sysfs->entry);
-+			free(old_sysfs);
- 			num_devices++;
- 		} else {
- 			list_del(&vdev->entry);
-@@ -515,19 +537,9 @@ int ibverbs_get_device_list(struct list_head *list)
- 		}
- 	}
- 
--	list_for_each(&tmp_sysfs_dev_list, sysfs_dev, entry) {
--		if (sysfs_dev->have_driver)
--			continue;
--		vdev = try_drivers(sysfs_dev);
--		if (vdev) {
--			sysfs_dev->have_driver = 1;
--			list_add(list, &vdev->entry);
--			num_devices++;
--		} else
--			no_driver = 1;
--	}
-+	try_all_drivers(&sysfs_list, device_list, &num_devices);
- 
--	if (!no_driver || drivers_loaded)
-+	if (list_empty(&sysfs_list) || drivers_loaded)
- 		goto out;
- 
- 	/*
-@@ -553,29 +565,22 @@ int ibverbs_get_device_list(struct list_head *list)
- 	load_drivers();
- 	drivers_loaded = 1;
- 
--	list_for_each(&tmp_sysfs_dev_list, sysfs_dev, entry) {
--		if (sysfs_dev->have_driver)
--			continue;
--
--		vdev = try_drivers(sysfs_dev);
--		if (vdev) {
--			sysfs_dev->have_driver = 1;
--			list_add(list, &vdev->entry);
--			num_devices++;
--		}
--	}
-+	try_all_drivers(&sysfs_list, device_list, &num_devices);
- 
- out:
--	list_for_each_safe(&tmp_sysfs_dev_list, sysfs_dev, next_dev, entry) {
--		if (!sysfs_dev->have_driver && getenv("IBV_SHOW_WARNINGS")) {
--			fprintf(stderr, PFX "Warning: no userspace device-specific "
--				"driver found for %s\n", sysfs_dev->sysfs_path);
-+	/* Anything left in sysfs_list was not assoicated with a
-+	 * driver.
-+	 */
-+	list_for_each_safe(&sysfs_list, sysfs_dev, next_dev, entry) {
-+		if (getenv("IBV_SHOW_WARNINGS")) {
-+			fprintf(stderr, PFX
-+				"Warning: no userspace device-specific driver found for %s\n",
-+				sysfs_dev->sysfs_path);
- 			if (statically_linked)
--				fprintf(stderr, "	When linking libibverbs statically, "
--					"driver must be statically linked too.\n");
-+				fprintf(stderr,
-+					"	When linking libibverbs statically, driver must be statically linked too.\n");
- 		}
--		if (!sysfs_dev->used)
--			free(sysfs_dev);
-+		free(sysfs_dev);
- 	}
- 
- 	return num_devices;
--- 
-2.7.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+RnJvbTogSsOpcsO0bWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+CgooU29ycnkgZm9yIHNv
+IG1hbnkgbGlzdCBjcm9zcy1wb3N0aW5nIGFuZCBiaWcgY2MpCgpDaGFuZ2VzIHNpbmNlIHYxOgog
+IC0gcmVtb3ZlIG1vcmUgZGVhZCBjb2RlIGluIGt2bSAobm8gdGVzdGluZyBpbXBhY3QpCiAgLSBt
+b3JlIGFjY3VyYXRlIGVuZCBhZGRyZXNzIGNvbXB1dGF0aW9uIChwYXRjaCAyKQogICAgaW4gcGFn
+ZV9ta2NsZWFuX29uZSBhbmQgdHJ5X3RvX3VubWFwX29uZQogIC0gYWRkZWQgdGVzdGVkLWJ5L3Jl
+dmlld2VkLWJ5IGdvdHRlbiBzbyBmYXIKClRlc3RlZCBhcyBib3RoIGhvc3QgYW5kIGd1ZXN0IGtl
+cm5lbCB3aXRoIEtWTSBub3RoaW5nIGlzIGJ1cm5pbmcgeWV0LgoKUHJldmlvdXMgY292ZXIgbGV0
+dGVyOgoKClBsZWFzZSBoZWxwIHRlc3RpbmcgIQoKVGhlIGludmFsaWRhdGVfcGFnZSBjYWxsYmFj
+ayBzdWZmZXJlZCBmcm9tIDIgcGl0ZmFsbHMuIEZpcnN0IGl0IHVzZWQgdG8KaGFwcGVuIGFmdGVy
+IHBhZ2UgdGFibGUgbG9jayB3YXMgcmVsZWFzZSBhbmQgdGh1cyBhIG5ldyBwYWdlIG1pZ2h0IGhh
+dmUKYmVlbiBzZXR1cCBmb3IgdGhlIHZpcnR1YWwgYWRkcmVzcyBiZWZvcmUgdGhlIGNhbGwgdG8g
+aW52YWxpZGF0ZV9wYWdlKCkuCgpUaGlzIGlzIGluIGEgd2VpcmQgd2F5IGZpeGVkIGJ5IGM3YWIw
+ZDJmZGM4NDAyNjZiMzlkYjk0NTM4Zjc0MjA3ZWMyYWZiZjYKd2hpY2ggbW92ZWQgdGhlIGNhbGxi
+YWNrIHVuZGVyIHRoZSBwYWdlIHRhYmxlIGxvY2suIFdoaWNoIGFsc28gYnJva2UKc2V2ZXJhbCBl
+eGlzdGluZyB1c2VyIG9mIHRoZSBtbXVfbm90aWZpZXIgQVBJIHRoYXQgYXNzdW1lZCB0aGV5IGNv
+dWxkCnNsZWVwIGluc2lkZSB0aGlzIGNhbGxiYWNrLgoKVGhlIHNlY29uZCBwaXRmYWxsIHdhcyBp
+bnZhbGlkYXRlX3BhZ2UgYmVpbmcgdGhlIG9ubHkgY2FsbGJhY2sgbm90IHRha2luZwphIHJhbmdl
+IG9mIGFkZHJlc3MgaW4gcmVzcGVjdCB0byBpbnZhbGlkYXRpb24gYnV0IHdhcyBnaXZpbmcgYW4g
+YWRkcmVzcwphbmQgYSBwYWdlLiBMb3Qgb2YgdGhlIGNhbGxiYWNrIGltcGxlbWVudGVyIGFzc3Vt
+ZWQgdGhpcyBjb3VsZCBuZXZlciBiZQpUSFAgYW5kIHRodXMgZmFpbGVkIHRvIGludmFsaWRhdGUg
+dGhlIGFwcHJvcHJpYXRlIHJhbmdlIGZvciBUSFAgcGFnZXMuCgpCeSBraWxsaW5nIHRoaXMgY2Fs
+bGJhY2sgd2UgdW5pZnkgdGhlIG1tdV9ub3RpZmllciBjYWxsYmFjayBBUEkgdG8gYWx3YXlzCnRh
+a2UgYSB2aXJ0dWFsIGFkZHJlc3MgcmFuZ2UgYXMgaW5wdXQuCgpUaGVyZSBpcyBub3cgMiBjbGVh
+ciBBUEkgKEkgYW0gbm90IG1lbnRpb25pbmcgdGhlIHlvdW5nZXNzIEFQSSB3aGljaCBpcwpzZWxk
+b21seSB1c2VkKToKICAtIGludmFsaWRhdGVfcmFuZ2Vfc3RhcnQoKS9lbmQoKSBjYWxsYmFjayAo
+d2hpY2ggYWxsb3cgeW91IHRvIHNsZWVwKQogIC0gaW52YWxpZGF0ZV9yYW5nZSgpIHdoZXJlIHlv
+dSBjYW4gbm90IHNsZWVwIGJ1dCBoYXBwZW4gcmlnaHQgYWZ0ZXIKICAgIHBhZ2UgdGFibGUgdXBk
+YXRlIHVuZGVyIHBhZ2UgdGFibGUgbG9jawoKCk5vdGUgdGhhdCBhIGxvdCBvZiBleGlzdGluZyB1
+c2VyIGZlZWxzIGJyb2tlbiBpbiByZXNwZWN0IHRvIHJhbmdlX3N0YXJ0LwpyYW5nZV9lbmQuIE1h
+bnkgdXNlciBvbmx5IGhhdmUgcmFuZ2Vfc3RhcnQoKSBjYWxsYmFjayBidXQgdGhlcmUgaXMgbm90
+aGluZwpwcmV2ZW50aW5nIHRoZW0gdG8gdW5kbyB3aGF0IHdhcyBpbnZhbGlkYXRlZCBpbiB0aGVp
+ciByYW5nZV9zdGFydCgpIGNhbGxiYWNrCmFmdGVyIGl0IHJldHVybnMgYnV0IGJlZm9yZSBhbnkg
+Q1BVIHBhZ2UgdGFibGUgdXBkYXRlIHRha2UgcGxhY2UuCgpUaGUgY29kZSBwYXR0ZXJuIHVzZSBp
+biBrdm0gb3IgdW1lbSBvZHAgaXMgYW4gZXhhbXBsZSBvbiBob3cgdG8gcHJvcGVybHkKYXZvaWQg
+c3VjaCByYWNlLiBJbiBhIG51dHNoZWxsIHVzZSBzb21lIGtpbmQgb2Ygc2VxdWVuY2UgbnVtYmVy
+IGFuZCBhY3RpdmUKcmFuZ2UgaW52YWxpZGF0aW9uIGNvdW50ZXIgdG8gYmxvY2sgYW55dGhpbmcg
+dGhhdCBtaWdodCB1bmRvIHdoYXQgdGhlCnJhbmdlX3N0YXJ0KCkgY2FsbGJhY2sgZGlkLgoKSWYg
+eW91IGRvIG5vdCBjYXJlIGFib3V0IGtlZXBpbmcgZnVsbHkgaW4gc3luYyB3aXRoIENQVSBwYWdl
+IHRhYmxlIChpZQp5b3UgY2FuIGxpdmUgd2l0aCBDUFUgcGFnZSB0YWJsZSBwb2ludGluZyB0byBu
+ZXcgZGlmZmVyZW50IHBhZ2UgZm9yIGEKZ2l2ZW4gdmlydHVhbCBhZGRyZXNzKSB0aGVuIHlvdSBj
+YW4gdGFrZSBhIHJlZmVyZW5jZSBvbiB0aGUgcGFnZXMgaW5zaWRlCnRoZSByYW5nZV9zdGFydCBj
+YWxsYmFjayBhbmQgZHJvcCBpdCBpbiByYW5nZV9lbmQgb3Igd2hlbiB5b3VyIGRyaXZlcgppcyBk
+b25lIHdpdGggdGhvc2UgcGFnZXMuCgpMYXN0IGFsdGVybmF0aXZlIGlzIHRvIHVzZSBpbnZhbGlk
+YXRlX3JhbmdlKCkgaWYgeW91IGNhbiBkbyBpbnZhbGlkYXRpb24Kd2l0aG91dCBzbGVlcGluZyBh
+cyBpbnZhbGlkYXRlX3JhbmdlKCkgY2FsbGJhY2sgaGFwcGVucyB1bmRlciB0aGUgQ1BVCnBhZ2Ug
+dGFibGUgc3BpbmxvY2sgcmlnaHQgYWZ0ZXIgdGhlIHBhZ2UgdGFibGUgaXMgdXBkYXRlZC4KCgpO
+b3RlIHRoaXMgaXMgYmFyZWx5IHRlc3RlZC4gSSBpbnRlbmQgdG8gZG8gbW9yZSB0ZXN0aW5nIG9m
+IG5leHQgZmV3IGRheXMKYnV0IGkgZG8gbm90IGhhdmUgYWNjZXNzIHRvIGFsbCBoYXJkd2FyZSB0
+aGF0IG1ha2UgdXNlIG9mIHRoZSBtbXVfbm90aWZpZXIKQVBJLgoKCkZpcnN0IDIgcGF0Y2hlcyBj
+b252ZXJ0IGV4aXN0aW5nIGNhbGwgb2YgbW11X25vdGlmaWVyX2ludmFsaWRhdGVfcGFnZSgpCnRv
+IG1tdV9ub3RpZmllcl9pbnZhbGlkYXRlX3JhbmdlKCkgYW5kIGJyYWNrZXQgdGhvc2UgY2FsbCB3
+aXRoIGNhbGwgdG8KbW11X25vdGlmaWVyX2ludmFsaWRhdGVfcmFuZ2Vfc3RhcnQoKS9lbmQoKS4K
+ClRoZSBuZXh0IDEwIHBhdGNoZXMgcmVtb3ZlIGV4aXN0aW5nIGludmFsaWRhdGVfcGFnZSgpIGNh
+bGxiYWNrIGFzIGl0IGNhbgpubyBsb25nZXIgaGFwcGVuLgoKRmluYWx5IHRoZSBsYXN0IHBhZ2Ug
+cmVtb3ZlIGl0IGNvbXBsZXRlbHkgc28gaXQgY2FuIFJJUC4KCkrDqXLDtG1lIEdsaXNzZSAoMTMp
+OgogIGRheDogdXBkYXRlIHRvIG5ldyBtbXVfbm90aWZpZXIgc2VtYW50aWMKICBtbS9ybWFwOiB1
+cGRhdGUgdG8gbmV3IG1tdV9ub3RpZmllciBzZW1hbnRpYwogIHBvd2VycGMvcG93ZXJudjogdXBk
+YXRlIHRvIG5ldyBtbXVfbm90aWZpZXIgc2VtYW50aWMKICBkcm0vYW1kZ3B1OiB1cGRhdGUgdG8g
+bmV3IG1tdV9ub3RpZmllciBzZW1hbnRpYwogIElCL3VtZW06IHVwZGF0ZSB0byBuZXcgbW11X25v
+dGlmaWVyIHNlbWFudGljCiAgSUIvaGZpMTogdXBkYXRlIHRvIG5ldyBtbXVfbm90aWZpZXIgc2Vt
+YW50aWMKICBpb21tdS9hbWQ6IHVwZGF0ZSB0byBuZXcgbW11X25vdGlmaWVyIHNlbWFudGljCiAg
+aW9tbXUvaW50ZWw6IHVwZGF0ZSB0byBuZXcgbW11X25vdGlmaWVyIHNlbWFudGljCiAgbWlzYy9t
+aWMvc2NpZjogdXBkYXRlIHRvIG5ldyBtbXVfbm90aWZpZXIgc2VtYW50aWMKICBzZ2ktZ3J1OiB1
+cGRhdGUgdG8gbmV3IG1tdV9ub3RpZmllciBzZW1hbnRpYwogIHhlbi9nbnRkZXY6IHVwZGF0ZSB0
+byBuZXcgbW11X25vdGlmaWVyIHNlbWFudGljCiAgS1ZNOiB1cGRhdGUgdG8gbmV3IG1tdV9ub3Rp
+ZmllciBzZW1hbnRpYwogIG1tL21tdV9ub3RpZmllcjoga2lsbCBpbnZhbGlkYXRlX3BhZ2UKCkNj
+OiBLaXJpbGwgQS4gU2h1dGVtb3YgPGtpcmlsbC5zaHV0ZW1vdkBsaW51eC5pbnRlbC5jb20+CkNj
+OiBMaW51cyBUb3J2YWxkcyA8dG9ydmFsZHNAbGludXgtZm91bmRhdGlvbi5vcmc+CkNjOiBBbmRy
+ZXcgTW9ydG9uIDxha3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnPgpDYzogQW5kcmVhIEFyY2FuZ2Vs
+aSA8YWFyY2FuZ2VAcmVkaGF0LmNvbT4KQ2M6IEpvZXJnIFJvZWRlbCA8anJvZWRlbEBzdXNlLmRl
+PgpDYzogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+CkNjOiBTdWRlZXAg
+RHV0dCA8c3VkZWVwLmR1dHRAaW50ZWwuY29tPgpDYzogQXNodXRvc2ggRGl4aXQgPGFzaHV0b3No
+LmRpeGl0QGludGVsLmNvbT4KQ2M6IERpbWl0cmkgU2l2YW5pY2ggPHNpdmFuaWNoQHNnaS5jb20+
+CkNjOiBKYWNrIFN0ZWluZXIgPHN0ZWluZXJAc2dpLmNvbT4KQ2M6IFBhb2xvIEJvbnppbmkgPHBi
+b256aW5pQHJlZGhhdC5jb20+CkNjOiBSYWRpbSBLcsSNbcOhxZkgPHJrcmNtYXJAcmVkaGF0LmNv
+bT4KCkNjOiBsaW51eHBwYy1kZXZAbGlzdHMub3psYWJzLm9yZwpDYzogZHJpLWRldmVsQGxpc3Rz
+LmZyZWVkZXNrdG9wLm9yZwpDYzogYW1kLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKQ2M6IGxp
+bnV4LXJkbWFAdmdlci5rZXJuZWwub3JnCkNjOiBpb21tdUBsaXN0cy5saW51eC1mb3VuZGF0aW9u
+Lm9yZwpDYzogeGVuLWRldmVsQGxpc3RzLnhlbnByb2plY3Qub3JnCkNjOiBrdm1Admdlci5rZXJu
+ZWwub3JnCgpKw6lyw7RtZSBHbGlzc2UgKDEzKToKICBkYXg6IHVwZGF0ZSB0byBuZXcgbW11X25v
+dGlmaWVyIHNlbWFudGljCiAgbW0vcm1hcDogdXBkYXRlIHRvIG5ldyBtbXVfbm90aWZpZXIgc2Vt
+YW50aWMgdjIKICBwb3dlcnBjL3Bvd2VybnY6IHVwZGF0ZSB0byBuZXcgbW11X25vdGlmaWVyIHNl
+bWFudGljCiAgZHJtL2FtZGdwdTogdXBkYXRlIHRvIG5ldyBtbXVfbm90aWZpZXIgc2VtYW50aWMK
+ICBJQi91bWVtOiB1cGRhdGUgdG8gbmV3IG1tdV9ub3RpZmllciBzZW1hbnRpYwogIElCL2hmaTE6
+IHVwZGF0ZSB0byBuZXcgbW11X25vdGlmaWVyIHNlbWFudGljCiAgaW9tbXUvYW1kOiB1cGRhdGUg
+dG8gbmV3IG1tdV9ub3RpZmllciBzZW1hbnRpYwogIGlvbW11L2ludGVsOiB1cGRhdGUgdG8gbmV3
+IG1tdV9ub3RpZmllciBzZW1hbnRpYwogIG1pc2MvbWljL3NjaWY6IHVwZGF0ZSB0byBuZXcgbW11
+X25vdGlmaWVyIHNlbWFudGljCiAgc2dpLWdydTogdXBkYXRlIHRvIG5ldyBtbXVfbm90aWZpZXIg
+c2VtYW50aWMKICB4ZW4vZ250ZGV2OiB1cGRhdGUgdG8gbmV3IG1tdV9ub3RpZmllciBzZW1hbnRp
+YwogIEtWTTogdXBkYXRlIHRvIG5ldyBtbXVfbm90aWZpZXIgc2VtYW50aWMgdjIKICBtbS9tbXVf
+bm90aWZpZXI6IGtpbGwgaW52YWxpZGF0ZV9wYWdlCgogYXJjaC9hcm0vaW5jbHVkZS9hc20va3Zt
+X2hvc3QuaCAgICAgICAgICB8ICA2IC0tLS0tCiBhcmNoL2FybTY0L2luY2x1ZGUvYXNtL2t2bV9o
+b3N0LmggICAgICAgIHwgIDYgLS0tLS0KIGFyY2gvbWlwcy9pbmNsdWRlL2FzbS9rdm1faG9zdC5o
+ICAgICAgICAgfCAgNSAtLS0tCiBhcmNoL3Bvd2VycGMvaW5jbHVkZS9hc20va3ZtX2hvc3QuaCAg
+ICAgIHwgIDUgLS0tLQogYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9wb3dlcm52L25wdS1kbWEuYyB8
+IDEwIC0tLS0tLS0tCiBhcmNoL3g4Ni9pbmNsdWRlL2FzbS9rdm1faG9zdC5oICAgICAgICAgIHwg
+IDIgLS0KIGFyY2gveDg2L2t2bS94ODYuYyAgICAgICAgICAgICAgICAgICAgICAgfCAxMSAtLS0t
+LS0tLS0KIGRyaXZlcnMvZ3B1L2RybS9hbWQvYW1kZ3B1L2FtZGdwdV9tbi5jICAgfCAzMSAtLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLQogZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdW1lbV9vZHAuYyAg
+ICAgICB8IDE5IC0tLS0tLS0tLS0tLS0tLQogZHJpdmVycy9pbmZpbmliYW5kL2h3L2hmaTEvbW11
+X3JiLmMgICAgICB8ICA5IC0tLS0tLS0KIGRyaXZlcnMvaW9tbXUvYW1kX2lvbW11X3YyLmMgICAg
+ICAgICAgICAgfCAgOCAtLS0tLS0KIGRyaXZlcnMvaW9tbXUvaW50ZWwtc3ZtLmMgICAgICAgICAg
+ICAgICAgfCAgOSAtLS0tLS0tCiBkcml2ZXJzL21pc2MvbWljL3NjaWYvc2NpZl9kbWEuYyAgICAg
+ICAgIHwgMTEgLS0tLS0tLS0tCiBkcml2ZXJzL21pc2Mvc2dpLWdydS9ncnV0bGJwdXJnZS5jICAg
+ICAgIHwgMTIgLS0tLS0tLS0tCiBkcml2ZXJzL3hlbi9nbnRkZXYuYyAgICAgICAgICAgICAgICAg
+ICAgIHwgIDggLS0tLS0tCiBmcy9kYXguYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+IHwgMTkgKysrKysrKysrLS0tLS0tCiBpbmNsdWRlL2xpbnV4L21tLmggICAgICAgICAgICAgICAg
+ICAgICAgIHwgIDEgKwogaW5jbHVkZS9saW51eC9tbXVfbm90aWZpZXIuaCAgICAgICAgICAgICB8
+IDI1IC0tLS0tLS0tLS0tLS0tLS0tLS0KIG1tL21lbW9yeS5jICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgfCAyNiArKysrKysrKysrKysrKysrLS0tLQogbW0vbW11X25vdGlmaWVyLmMgICAg
+ICAgICAgICAgICAgICAgICAgICB8IDE0IC0tLS0tLS0tLS0tCiBtbS9ybWFwLmMgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgIHwgMzUgKysrKysrKysrKysrKysrKysrKysrKystLS0KIHZp
+cnQva3ZtL2t2bV9tYWluLmMgICAgICAgICAgICAgICAgICAgICAgfCA0MiAtLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLQogMjIgZmlsZXMgY2hhbmdlZCwgNjUgaW5zZXJ0aW9ucygrKSwg
+MjQ5IGRlbGV0aW9ucygtKQoKLS0gCjIuMTMuNQoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4v
+bGlzdGluZm8vZHJpLWRldmVsCg==
