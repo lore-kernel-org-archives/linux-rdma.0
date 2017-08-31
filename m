@@ -1,79 +1,46 @@
-From: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH rdma-core] vmw_pvrdma: Explicitly check for IP_BASED_GIDS port flag
-Date: Wed, 30 Aug 2017 16:34:01 -0700
-Message-ID: <1504136041-3070-1-git-send-email-aditr@vmware.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH 7/8] bnxt_re: Fix memory leak in FRMR path
+Date: Thu, 31 Aug 2017 09:27:34 +0530
+Message-ID: <20170831035735.19595-8-somnath.kotur@broadcom.com>
+References: <20170831035735.19595-1-somnath.kotur@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170831035735.19595-1-somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>, pv-drivers-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Rely on the IP_BASED_GIDS flag to use the ibv_resolve_eth_l2_from_gid
-function when creating the AH. Otherwise, fallback to the
-set_mac_from_gid function to set the DMAC.
+From: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 
-Reviewed-by: Aditya Sarwade <asarwade-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Adit Ranadive <aditr-pghWNbHTmq7QT0dZR+AlfA@public.gmane.org>
+This patch fixes a memory leak issue when alloc_mr is used.
+mr->pages and mr->npages are used only in alloc_mr path. mr->pages
+is allocated when alloc_mr is called or in the case of FRMR, while
+creating the MR. mr->npages is updated only when the MR created
+is used i.e. after invoking map_mr_sg verb, before data transfer.
+In the dereg_mr path, if mr->npages is 0, driver ends up not freeing
+the memory created.
+Removing the npages check from the dereg_mr path for kernel consumers.
+
+Signed-off-by: Selvin Xavier <selvin.xavier-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
-Pull request:
-https://github.com/linux-rdma/rdma-core/pull/205
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- providers/vmw_pvrdma/verbs.c | 20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
-
-diff --git a/providers/vmw_pvrdma/verbs.c b/providers/vmw_pvrdma/verbs.c
-index 852aced..a32046b 100644
---- a/providers/vmw_pvrdma/verbs.c
-+++ b/providers/vmw_pvrdma/verbs.c
-@@ -166,7 +166,7 @@ static int is_ipv6_addr_v4mapped(const struct in6_addr *a)
- 		 (a->s6_addr32[2] ^ htobe32(0x0000ffff))) == 0UL));
- }
- 
--static void set_mac_from_gid(const union ibv_gid *gid,
-+static int set_mac_from_gid(const union ibv_gid *gid,
- 			     __u8 mac[6])
- {
- 	if (is_link_local_gid(gid)) {
-@@ -177,7 +177,11 @@ static void set_mac_from_gid(const union ibv_gid *gid,
- 		memcpy(mac, gid->raw + 8, 3);
- 		memcpy(mac + 3, gid->raw + 13, 3);
- 		mac[0] ^= 2;
-+
-+		return 0;
- 	}
-+
-+	return 1;
- }
- 
- struct ibv_ah *pvrdma_create_ah(struct ibv_pd *pd,
-@@ -218,15 +222,17 @@ struct ibv_ah *pvrdma_create_ah(struct ibv_pd *pd,
- 				   attr->grh.flow_label;
- 	memcpy(av->dgid, attr->grh.dgid.raw, 16);
- 
--	if (ibv_resolve_eth_l2_from_gid(pd->context, attr,
--					av->dmac, &vlan_id)) {
--		free(ah);
--		return NULL;
-+	if (port_attr.port_cap_flags & IBV_PORT_IP_BASED_GIDS) {
-+		if (!ibv_resolve_eth_l2_from_gid(pd->context, attr,
-+						 av->dmac, &vlan_id))
-+			return &ah->ibv_ah;
- 	} else {
--		set_mac_from_gid(&attr->grh.dgid, av->dmac);
-+		if (!set_mac_from_gid(&attr->grh.dgid, av->dmac))
-+			return &ah->ibv_ah;
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index cf0440c..94ab9e1 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -3063,7 +3063,7 @@ int bnxt_re_dereg_mr(struct ib_mr *ib_mr)
+ 		return rc;
  	}
  
--	return &ah->ibv_ah;
-+	free(ah);
-+	return NULL;
- }
- 
- int pvrdma_destroy_ah(struct ibv_ah *ah)
+-	if (mr->npages && mr->pages) {
++	if (mr->pages) {
+ 		rc = bnxt_qplib_free_fast_reg_page_list(&rdev->qplib_res,
+ 							&mr->qplib_frpl);
+ 		kfree(mr->pages);
 -- 
-2.7.4
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
