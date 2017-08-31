@@ -1,7 +1,7 @@
 From: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 4/8] bnxt_re: Free up devices in module_exit path
-Date: Thu, 31 Aug 2017 09:27:31 +0530
-Message-ID: <20170831035735.19595-5-somnath.kotur@broadcom.com>
+Subject: [PATCH 1/8] bnxt_re: Fix update of qplib_qp.mtu when modified
+Date: Thu, 31 Aug 2017 09:27:28 +0530
+Message-ID: <20170831035735.19595-2-somnath.kotur@broadcom.com>
 References: <20170831035735.19595-1-somnath.kotur@broadcom.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20170831035735.19595-1-somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
@@ -9,41 +9,39 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up all devices added to the bnxt_re_dev_list in the
-module_exit entry point.
+From: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 
+The MTU value in the qplib_qp.mtu should be
+consistent with whatever mtu was set during
+INIT to RTR.The Next PSN and number of packets
+are calculated based on this member in the qplib_qp structure.
+
+Signed-off-by: Narender Reddy <narender.reddy-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Devesh Sharma <devesh.sharma-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Somnath Kotur <somnath.kotur-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/bnxt_re/main.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-index 82d1cbc..00a3b74 100644
---- a/drivers/infiniband/hw/bnxt_re/main.c
-+++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -1375,6 +1375,22 @@ static int __init bnxt_re_mod_init(void)
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index 43b3dee..6631d6e 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -1438,11 +1438,14 @@ int bnxt_re_modify_qp(struct ib_qp *ib_qp, struct ib_qp_attr *qp_attr,
+ 		qp->qplib_qp.modify_flags |=
+ 				CMDQ_MODIFY_QP_MODIFY_MASK_PATH_MTU;
+ 		qp->qplib_qp.path_mtu = __from_ib_mtu(qp_attr->path_mtu);
++		qp->qplib_qp.mtu = ib_mtu_enum_to_int(qp_attr->path_mtu);
+ 	} else if (qp_attr->qp_state == IB_QPS_RTR) {
+ 		qp->qplib_qp.modify_flags |=
+ 			CMDQ_MODIFY_QP_MODIFY_MASK_PATH_MTU;
+ 		qp->qplib_qp.path_mtu =
+ 			__from_ib_mtu(iboe_get_mtu(rdev->netdev->mtu));
++		qp->qplib_qp.mtu =
++			ib_mtu_enum_to_int(iboe_get_mtu(rdev->netdev->mtu));
+ 	}
  
- static void __exit bnxt_re_mod_exit(void)
- {
-+	struct bnxt_re_dev *rdev;
-+	LIST_HEAD(to_be_deleted);
-+
-+	mutex_lock(&bnxt_re_dev_lock);
-+	/* Free all adapter allocated resources */
-+	if (!list_empty(&bnxt_re_dev_list))
-+		list_splice_init(&bnxt_re_dev_list, &to_be_deleted);
-+	mutex_unlock(&bnxt_re_dev_lock);
-+
-+	list_for_each_entry(rdev, &to_be_deleted, list) {
-+		dev_info(rdev_to_dev(rdev), "Unregistering Device");
-+		bnxt_re_dev_stop(rdev);
-+		bnxt_re_ib_unreg(rdev, true);
-+		bnxt_re_remove_one(rdev);
-+		bnxt_re_dev_unreg(rdev);
-+	}
- 	unregister_netdevice_notifier(&bnxt_re_netdev_notifier);
- 	if (bnxt_re_wq)
- 		destroy_workqueue(bnxt_re_wq);
+ 	if (qp_attr_mask & IB_QP_TIMEOUT) {
 -- 
 1.8.3.1
 
