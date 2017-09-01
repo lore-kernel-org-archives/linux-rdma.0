@@ -1,52 +1,82 @@
-From: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 31/31] timer: Switch to testing for .function instead of .data
-Date: Thu, 31 Aug 2017 18:06:29 -0700
-Message-ID: <CAKdAkRTS+L-A1K4ivvNKTN8wmkDxFtsnyd9KsKohyRLsfPxQgA@mail.gmail.com>
-References: <1504222183-61202-1-git-send-email-keescook@chromium.org>
- <1504222183-61202-32-git-send-email-keescook@chromium.org>
- <CAKdAkRTSgs+JTKRa2nvcSPD+zQ5OhsLx_aM8WaZyg304QQN3hA@mail.gmail.com> <CAGXu5jK84cN9MdjfzaipD7GN8a37JMfD8X0Em4mk2_aFGuaOUg@mail.gmail.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH rdma-core 2/5] util: Fix check_snprintf to use __rc__ for
+ local
+Date: Fri, 1 Sep 2017 07:56:32 +0300
+Message-ID: <20170901045632.GJ10539@mtr-leonro.local>
+References: <1504212659-9674-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1504212659-9674-3-git-send-email-jgunthorpe@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="HkMjoL2LAeBLhbFV"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAGXu5jK84cN9MdjfzaipD7GN8a37JMfD8X0Em4mk2_aFGuaOUg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1504212659-9674-3-git-send-email-jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
-Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis Dalessandro <dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jeff Kirsher <jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, intel-wired-lan-qjLDD68F18P21nG7glBr7A@public.gmane.org, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Aug 31, 2017 at 4:59 PM, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org> wrote:
-> On Thu, Aug 31, 2017 at 4:45 PM, Dmitry Torokhov
-> <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> On Thu, Aug 31, 2017 at 4:29 PM, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org> wrote:
->>> In several places, .data is checked for initialization to gate early
->>> calls to del_timer_sync(). Checking for .function is equally valid, so
->>> switch to this in all callers.
->>
->> Not seeing the rest of patches it is unclear from the patch
->> description why this is needed/wanted.
+
+--HkMjoL2LAeBLhbFV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Thu, Aug 31, 2017 at 02:50:56PM -0600, Jason Gunthorpe wrote:
+> To avoid clashing with user variables.
 >
-> The CC list would have been really giant, but here is the first patch
-> and the earlier series list:
+> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> ---
+>  util/util.h | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 >
-> https://lkml.org/lkml/2017/8/31/904
-> https://lkml.org/lkml/2017/8/30/760
+> diff --git a/util/util.h b/util/util.h
+> index cbf0deca2dde7b..30d32ee6b51e24 100644
+> --- a/util/util.h
+> +++ b/util/util.h
+> @@ -8,8 +8,8 @@
+>   * error */
+>  #define check_snprintf(buf, len, fmt, ...)                                     \
+>  	({                                                                     \
+> -		int rc = snprintf(buf, len, fmt, ##__VA_ARGS__);               \
+> -		(rc < len && rc >= 0);                                         \
+> +		int __rc__ = snprintf(buf, len, fmt, ##__VA_ARGS__);           \
+
+It can't clash, because it is declared in the scope {..} of that define and
+it is local to check_snprintf macro.
+
+> +		(__rc__ < len && __rc__ >= 0);                                 \
+>  	})
 >
-> tl;dr: We're going to switch all struct timer_list callbacks to get
-> the timer pointer as the argument instead of from the .data field.
-> This patch is one step in removing open-coded users of the .data
-> field.
+>  /* a CMP b. See also the BSD macro timercmp(). */
+> --
+> 2.7.4
 >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-And that is exactly what should have been in the patch description.
+--HkMjoL2LAeBLhbFV
+Content-Type: application/pgp-signature; name="signature.asc"
 
-FWIW for input bits:
+-----BEGIN PGP SIGNATURE-----
 
-Acked-by: Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmo6HUACgkQ5GN7iDZy
+WKeGCQ/+NEzrDrvkmJztBeBZ9ycrHOhr2PPDVC1U0+1kZJBMCDeWBrp8W0hS2+XX
+G/uKNvNaw2I1cQq/GjRWD8o+U5038Kq26N42sDSxr0DfseOlQ1460h6HzixZ9sFB
+jhEg+Bvf4ZzWt7JyZjHw2bAzGoWt6G8ruX62hKSPpNUuUJ1a1DDdxDkl77hQxg3+
+OMoAyQERjFG6mRiRZwI/lrWvrye0GmQmq75uMDlXEPqSeSuRsKhTU3ErFcnZtEgU
+g0NuOq+aDeEd6joZeAkz+8vn0gY6RwVmQXlm2x4gY6C9+84OtIKwyQRPcyhuabbp
+GRb2kWKb51ENbW5tEdtfhoLTV8S+JrghESvCucFGtz4tH9BVPyIWl7b3w1bY7Eyd
+jB7tAUt4lXQ3aAAvJ0H9pWSginetiXYPu6WVy6V5KDQPKh5KewXbjr33oWtyooNQ
+hvEWMX9D4mJ15wCRac+aTPIYpZmOWV5XOBhuXdI7qLmM0CLwOKPXE2qfe8gZc7Cp
+F1II3nRsAPjyw5gJH46g7YY5DHP/9tMt1eV4kgJXsEKDglNkLieoHDqiZ5yiwy5N
+ClZg8WwLmx/DW99abxNYaeC1saZe5xME99RPNBm47NAn8oDKrMbUD/5u0OXzCqRa
+6yAFyoCDzhYq7VhP9ebRwVDLERkt8Jx3hGR9Rl3ScPhvUiFxTy8=
+=kfkm
+-----END PGP SIGNATURE-----
 
-Thanks.
-
--- 
-Dmitry
+--HkMjoL2LAeBLhbFV--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
