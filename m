@@ -1,118 +1,184 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core 2/5] util: Fix check_snprintf to use __rc__ for
- local
-Date: Fri, 1 Sep 2017 17:13:55 +0300
-Message-ID: <20170901141355.GL10539@mtr-leonro.local>
-References: <1504212659-9674-1-git-send-email-jgunthorpe@obsidianresearch.com>
- <1504212659-9674-3-git-send-email-jgunthorpe@obsidianresearch.com>
- <20170901045632.GJ10539@mtr-leonro.local>
- <e10f536a-bad3-55b4-f3ef-207404209c89@suse.de>
- <20170901093553.GK10539@mtr-leonro.local>
- <dfa51066-0d39-5d31-c7e6-b2af1a6089a5@suse.de>
+From: Jeff Cook <jeff@jeffcook.io>
+Subject: Re: [PATCH 00/13] mmu_notifier kill invalidate_page callback
+Date: Fri, 01 Sep 2017 10:47:27 -0400
+Message-ID: <1504277247.293591.1092309696.3D87457A@webmail.messagingengine.com>
+References: <20170829235447.10050-1-jglisse@redhat.com>
+ <CA+55aFz6ArJ-ADXiYCu6xMUzdY=mKBtkzfJmLaBohC6Ub9t2SQ@mail.gmail.com>
+ <20170830005615.GA2386@redhat.com>
+ <20170830145742.xird3lgsb3nemtye@angband.pl>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="RVlUGXxwBj5SDcM9"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <dfa51066-0d39-5d31-c7e6-b2af1a6089a5-l3A5Bk7waGM@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20170830145742.xird3lgsb3nemtye@angband.pl>
+Sender: owner-linux-mm@kvack.org
+To: Adam Borowski <kilobyte@angband.pl>, Jerome Glisse <jglisse@redhat.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Bernhard Held <berny156@gmx.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Andrea Arcangeli <aarcange@redhat.com>, Joerg Roedel <jroedel@suse.de>, Dan Williams <dan.j.williams@intel.com>, Sudeep Dutt <sudeep.dutt@intel.com>, Ashutosh Dixit <ashutosh.dixit@intel.com>, Dimitri Sivanich <sivanich@sgi.com>, Jack Steiner <steiner@sgi.com>, Paolo Bonzini <pbonzini@redhat.com>, =?utf-8?Q?Radim=20Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, ppc-dev <linuxppc-dev@lists.ozlabs.org>, DRI <dri-devel@lists.freedesktop.org>, amd-gfx@lists.freedesktop.org, linux-rdma@vger.kernel.org, "open list:AMD IOMMU (AMD-VI)" <iommu@lists.linux-foundation.org>, xen-devel <xen-devel@lists.xenproj>
 List-Id: linux-rdma@vger.kernel.org
 
-
---RVlUGXxwBj5SDcM9
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, Sep 01, 2017 at 11:46:02AM +0200, Nicolas Morey-Chaisemartin wrote:
->
->
-> Le 01/09/2017 =E0 11:35, Leon Romanovsky a =E9crit=A0:
-> > On Fri, Sep 01, 2017 at 09:00:01AM +0200, Nicolas Morey-Chaisemartin wr=
-ote:
-> >>
-> >> Le 01/09/2017 =E0 06:56, Leon Romanovsky a =E9crit=A0:
-> >>> On Thu, Aug 31, 2017 at 02:50:56PM -0600, Jason Gunthorpe wrote:
-> >>>> To avoid clashing with user variables.
-> >>>>
-> >>>> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> >>>> ---
-> >>>>  util/util.h | 4 ++--
-> >>>>  1 file changed, 2 insertions(+), 2 deletions(-)
-> >>>>
-> >>>> diff --git a/util/util.h b/util/util.h
-> >>>> index cbf0deca2dde7b..30d32ee6b51e24 100644
-> >>>> --- a/util/util.h
-> >>>> +++ b/util/util.h
-> >>>> @@ -8,8 +8,8 @@
-> >>>>   * error */
-> >>>>  #define check_snprintf(buf, len, fmt, ...)                         =
-            \
-> >>>>  	({                                                                =
-     \
-> >>>> -		int rc =3D snprintf(buf, len, fmt, ##__VA_ARGS__);               \
-> >>>> -		(rc < len && rc >=3D 0);                                         \
-> >>>> +		int __rc__ =3D snprintf(buf, len, fmt, ##__VA_ARGS__);           \
-> >>> It can't clash, because it is declared in the scope {..} of that defi=
-ne and
-> >>> it is local to check_snprintf macro.
-> >> It does if any of the va-args is called rc.
-> >> This is "valid" C although not sure what printfs does print here (prob=
-ably random stack value)
-> >> {
-> >> =A0int i =3D printf("i =3D %d\n", i);
-> >> }
-> > So how does this rename solve the issue?
-> > Now, we can clash with __rc__ variable.
+On Wed, Aug 30, 2017, at 10:57 AM, Adam Borowski wrote:
+> On Tue, Aug 29, 2017 at 08:56:15PM -0400, Jerome Glisse wrote:
+> > I will wait for people to test and for result of my own test before
+> > reposting if need be, otherwise i will post as separate patch.
 > >
-> > Thanks
->
-> There is no safe way to handle that. It can be detected with -Wshadow tho=
-ugh.
-> But rc is quite a common name (39 definitions in the code base), __rc__ m=
-uch less (unused... yet)
+> > > But from a _very_ quick read-through this looks fine. But it obviously
+> > > needs testing.
+> > >=20
+> > > People - *especially* the people who saw issues under KVM - can you
+> > > try out J=C3=A9r=C3=B4me's patch-series? I aded some people to the cc=
+, the full
+> > > series is on lkml. J=C3=A9r=C3=B4me - do you have a git branch for pe=
+ople to
+> > > test that they could easily pull and try out?
+> >=20
+> > https://cgit.freedesktop.org/~glisse/linux mmu-notifier branch
+> > git://people.freedesktop.org/~glisse/linux
+>=20
+> Tested your branch as of 10f07641, on a long list of guest VMs.
+> No earth-shattering kaboom.
 
-Or commit message should reflect that it is not fix, but attempt to
-reduce name collision, or the patch should provide real fix. For
-example, create inline function and convert all 5 callers to use it
-without ##__VA_ARGS__.
+I've been using the mmu_notifier branch @ a3d944233bcf8c for the last 36
+hours or so, also without incident.
 
->
->
-> If you want some real fun, try writing macros with local variables that c=
-an be called recursively ;)
->
-> Nicolas
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Unlike most other reporters, I experienced a similar splat on 4.12:
 
---RVlUGXxwBj5SDcM9
-Content-Type: application/pgp-signature; name="signature.asc"
+Aug 03 15:02:47 kvm_master kernel: ------------[ cut here ]------------
+Aug 03 15:02:47 kvm_master kernel: WARNING: CPU: 13 PID: 1653 at
+arch/x86/kvm/mmu.c:682 mmu_spte_clear_track_bits+0xfb/0x100 [kvm]
+Aug 03 15:02:47 kvm_master kernel: Modules linked in: vhost_net vhost
+tap xt_conntrack xt_CHECKSUM iptable_mangle ipt_REJECT nf_reject_ipv4
+xt_tcpudp tun ebtable_filter ebtables ip6table_filter ip6_tables
+iptable_filter msr nls_iso8859_1 nls_cp437 intel_rapl ipt_
+MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_conntrack_ipv4
+nf_defrag_ipv4 nf_nat_ipv4 nf_nat nf_conntrack sb_edac
+x86_pkg_temp_thermal intel_powerclamp coretemp crct10dif_pclmul
+crc32_pclmul ghash_clmulni_intel input_leds pcbc aesni_intel led_class
+aes_x86_6
+4 mxm_wmi crypto_simd glue_helper uvcvideo cryptd videobuf2_vmalloc
+videobuf2_memops igb videobuf2_v4l2 videobuf2_core snd_usb_audio
+videodev media joydev ptp evdev mousedev intel_cstate pps_core mac_hid
+intel_rapl_perf snd_hda_intel snd_virtuoso snd_usbmidi_lib snd_hda_codec
+snd_oxygen_lib snd_hda_core=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=
+=20=20=20=20=20=20=20=20
+Aug 03 15:02:47 kvm_master kernel:  snd_mpu401_uart snd_rawmidi
+snd_hwdep snd_seq_device snd_pcm snd_timer snd soundcore i2c_algo_bit
+pcspkr i2c_i801 lpc_ich ioatdma shpchp dca wmi acpi_power_meter tpm_tis
+tpm_tis_core tpm button bridge stp llc sch_fq_codel virtio_pci
+virtio_blk virtio_balloon virtio_net virtio_ring virtio kvm_intel kvm sg
+ip_tables x_tables hid_logitech_hidpp hid_logitech_dj hid_generic
+hid_microsoft usbhid hid sr_mod cdrom sd_mod xhci_pci ahci libahci
+xhci_hcd libata usbcore scsi_mod usb_common zfs(PO) zunicode(PO)
+zavl(PO) icp(PO) zcommon(PO) znvpair(PO) spl(O) drm_kms_helper
+syscopyarea sysfillrect sysimgblt fb_sys_fops drm vfio_pci irqbypass
+vfio_virqfd vfio_iommu_type1 vfio vfat fat ext4 crc16 jbd2 fscrypto
+mbcache dm_thin_pool dm_cache dm_persistent_data dm_bio_prison dm_bufio
+dm_raid raid456 libcrc32c=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20
+Aug 03 15:02:47 kvm_master kernel:  crc32c_generic crc32c_intel
+async_raid6_recov async_memcpy async_pq async_xor xor async_tx raid6_pq
+dm_mod dax raid1 md_mod=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=
+=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=
+=20=20=20=20=20=20=20=20
+Aug 03 15:02:47 kvm_master kernel: CPU: 13 PID: 1653 Comm: kworker/13:2
+Tainted: P    B D W  O    4.12.3-1-ARCH #1=20=20=20=20=20=20=20=20=20=20=20=
+=20=20=20=20=20=20
+Aug 03 15:02:47 kvm_master kernel: Hardware name: Supermicro
+SYS-7038A-I/X10DAI, BIOS 2.0a 11/09/2016=20=20=20=20=20=20=20=20=20=20=20=
+=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20
+Aug 03 15:02:47 kvm_master kernel: Workqueue: events mmput_async_fn=20=20=
+=20=20=20=20
+Aug 03 15:02:47 kvm_master kernel: task: ffff9fa89751b900 task.stack:
+ffffc179880d8000=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=
+=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=
+=20
+Aug 03 15:02:47 kvm_master kernel: RIP:
+0010:mmu_spte_clear_track_bits+0xfb/0x100 [kvm]=20=20=20=20=20=20=20=20=20=
+=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20
+Aug 03 15:02:47 kvm_master kernel: RSP: 0018:ffffc179880dbc20 EFLAGS:
+00010246=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=
+=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=
+=20=20=20=20=20=20
+Aug 03 15:02:47 kvm_master kernel: RAX: 0000000000000000 RBX:
+00000009c07cce77 RCX: dead0000000000ff=20=20=20=20=20=20=20=20=20=20=20=20=
+=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20
+Aug 03 15:02:47 kvm_master kernel: RDX: 0000000000000000 RSI:
+ffff9fa82d6d6f08 RDI: fffff6e76701f300=20=20=20=20=20=20=20=20=20=20=20=20=
+=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20
+Aug 03 15:02:47 kvm_master kernel: RBP: ffffc179880dbc38 R08:
+0000000000100000 R09: 000000000000000d=20=20=20=20=20=20=20=20=20=20=20=20=
+=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20
+Aug 03 15:02:47 kvm_master kernel: R10: ffff9fa0a56b0008 R11:
+ffff9fa0a56b0000 R12: 00000000009c07cc=20=20=20=20=20=20=20=20=20=20=20=20=
+=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20
+Aug 03 15:02:47 kvm_master kernel: R13: ffff9fa88b990000 R14:
+ffff9f9e19dbb1b8 R15: 0000000000000000=20=20=20=20=20=20=20=20=20=20=20=20=
+=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20
+Aug 03 15:02:47 kvm_master kernel: FS:  0000000000000000(0000)
+GS:ffff9fac5f340000(0000) knlGS:0000000000000000=20=20=20=20=20=20=20=20=20=
+=20=20=20=20=20=20=20=20=20=20=20
+Aug 03 15:02:47 kvm_master kernel: CS:  0010 DS: 0000 ES: 0000 CR0:
+0000000080050033=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=
+=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=
+=20=20=20
+Aug 03 15:02:47 kvm_master kernel: CR2: ffffd1b542d71000 CR3:
+0000000570a09000 CR4: 00000000003426e0=20=20=20=20=20=20=20=20=20=20=20=20=
+=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20
+Aug 03 15:02:47 kvm_master kernel: DR0: 0000000000000000 DR1:
+0000000000000000 DR2: 0000000000000000=20=20=20=20=20=20=20=20=20=20=20=20=
+=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20
+Aug 03 15:02:47 kvm_master kernel: DR3: 0000000000000000 DR6:
+00000000fffe0ff0 DR7: 0000000000000400=20=20=20=20=20=20=20=20=20=20=20=20=
+=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20=20
+Aug 03 15:02:47 kvm_master kernel: Call Trace:=20=20=20=20=20=20=20=20=20=
+=20=20=20=20=20=20=20=20=20=20
+Aug 03 15:02:47 kvm_master kernel:  drop_spte+0x1a/0xb0 [kvm]=20=20=20=20
+Aug 03 15:02:47 kvm_master kernel:  mmu_page_zap_pte+0x9c/0xe0 [kvm]=20=20=
+=20=20=20
+Aug 03 15:02:47 kvm_master kernel:  kvm_mmu_prepare_zap_page+0x65/0x310
+[kvm]
+Aug 03 15:02:47 kvm_master kernel:=20
+kvm_mmu_invalidate_zap_all_pages+0x10d/0x160 [kvm]
+Aug 03 15:02:47 kvm_master kernel:  kvm_arch_flush_shadow_all+0xe/0x10
+[kvm]
+Aug 03 15:02:47 kvm_master kernel:  kvm_mmu_notifier_release+0x2c/0x40
+[kvm]
+Aug 03 15:02:47 kvm_master kernel:  __mmu_notifier_release+0x44/0xc0
+Aug 03 15:02:47 kvm_master kernel:  exit_mmap+0x142/0x150
+Aug 03 15:02:47 kvm_master kernel:  ? kfree+0x175/0x190
+Aug 03 15:02:47 kvm_master kernel:  ? kfree+0x175/0x190
+Aug 03 15:02:47 kvm_master kernel:  ? exit_aio+0xc6/0x100
+Aug 03 15:02:47 kvm_master kernel:  mmput_async_fn+0x4c/0x130
+Aug 03 15:02:47 kvm_master kernel:  process_one_work+0x1de/0x430
+Aug 03 15:02:47 kvm_master kernel:  worker_thread+0x47/0x3f0
+Aug 03 15:02:47 kvm_master kernel:  kthread+0x125/0x140
+Aug 03 15:02:47 kvm_master kernel:  ? process_one_work+0x430/0x430
+Aug 03 15:02:47 kvm_master kernel:  ? kthread_create_on_node+0x70/0x70
+Aug 03 15:02:47 kvm_master kernel:  ret_from_fork+0x25/0x30
+Aug 03 15:02:47 kvm_master kernel: Code: ec 75 04 00 48 b8 00 00 00 00
+00 00 00 40 48 21 da 48 39 c2 0f 95 c0 eb b2 48 d1 eb 83 e3 01 eb c0 4c
+89 e7 e8 f7 3d fe ff eb a4 <0f> ff eb 8a 90 0f 1f 44 00 00 55 48 89 e5
+53 89 d3 e8 ff 4a fe=20
+Aug 03 15:02:47 kvm_master kernel: ---[ end trace 8710f4d700a7d36e ]---
 
------BEGIN PGP SIGNATURE-----
+This would typically take 36-48 hours to surface, so we're good so far,
+but not completely out of the woods yet. I'm optimistic that since this
+patchset changes the mmu_notifier behavior to something safer in
+general, this issue will also be resolved by it.
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmpav8ACgkQ5GN7iDZy
-WKcKqg//VR/iHSaMlrIvnY5V2p9SYV5ErrBMxLnsTYlh7TvLUIwA9o6Jo++VVQBA
-GZz/Oyv4C1jvNFGk0+XNv6mQ8jaH9nVHfH552tbWnWRZ1zstwSFjLW+4ieZPwPRL
-39dANY2LeHwqsBJw61BZ2lQCd0336nr9COHetqAaA55EGXBi88orM5oLrH0/bMRT
-yMwLvAtshnJz5RvYqAtvMyCgyHZrbWQiQt5qwmA1WcLDCtgTHLLAtkNtJE/a2SJZ
-oDW9zQjpFwpGaGtx2jJ2KR6CCRhdczEQEr2M8d5X9AzYiqUFi5kuBfz+37Wr8vVT
-zvPJIOPR6MQ2MYD0JmC/4AVu3rzBou95lyb5Glzpud8ZhoXi6jqlnYJgwXtfVHZA
-t6D9sZhgis8NEReOJOd4cvv3+oqWh4fNjcZ3fyb+app4I2JrUMkhNAgELfKmKfM7
-onnNlHglO5dO9c/jlzoyCRqRKoZ2TrjB3aqSLa8DRs6cl4xtdXsS5FkOSBLuHdZh
-OVErv4WcTXq7Ocpvsfd4Yo8WN5gHUp2yEa0zXRTYYMnbTgLeKsL1sJNCitli7F9Y
-H3H47s/sh53A4mvZzOlPQYh7L7SdIa80WsH+BErueuHX4OD1w/XDSP4Fui6mDFq6
-HAy2s8RIsRA55sTSyoq3+2lgf7xkV/VPfUeRf0ZohlG5eGA+vcs=
-=6Fti
------END PGP SIGNATURE-----
+Jeff
 
---RVlUGXxwBj5SDcM9--
+>=20
+>=20
+> Meow!
+> --=20
+> =E2=A2=80=E2=A3=B4=E2=A0=BE=E2=A0=BB=E2=A2=B6=E2=A3=A6=E2=A0=80=20
+> =E2=A3=BE=E2=A0=81=E2=A2=B0=E2=A0=92=E2=A0=80=E2=A3=BF=E2=A1=81 Vat kind =
+uf sufficiently advanced technology iz dis!?
+> =E2=A2=BF=E2=A1=84=E2=A0=98=E2=A0=B7=E2=A0=9A=E2=A0=8B=E2=A0=80          =
+                       -- Genghis Ht'rok'din
+> =E2=A0=88=E2=A0=B3=E2=A3=84=E2=A0=80=E2=A0=80=E2=A0=80=E2=A0=80=20
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
