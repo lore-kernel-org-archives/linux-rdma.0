@@ -1,68 +1,73 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core] verbs: Encode the private ABI version number
- in verbs_register_driver
-Date: Fri, 1 Sep 2017 15:29:27 -0600
-Message-ID: <20170901212927.GA8974@obsidianresearch.com>
-References: <20170824215601.GA19717@obsidianresearch.com>
- <20170901203021.GA5832@ctung-MOBL3.amr.corp.intel.com>
+From: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Subject: Re: [PATCH 31/31] timer: Switch to testing for .function instead of
+ .data
+Date: Fri, 01 Sep 2017 14:34:17 -0700
+Message-ID: <1504301657.3922.47.camel@intel.com>
+References: <1504222183-61202-1-git-send-email-keescook@chromium.org>
+         <1504222183-61202-32-git-send-email-keescook@chromium.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170901203021.GA5832-TZeIlv3TuzOfrEmaQUPKxl95YUYmaKo1UNDiOz3kqAs@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chien Tin Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-r9bmlAtWiFfE64fwCMV8"
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <1504222183-61202-32-git-send-email-keescook@chromium.org>
+Sender: linux-input-owner@vger.kernel.org
+To: Kees Cook <keescook@chromium.org>, Thomas Gleixner <tglx@linutronix.de>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-pm@vger.kernel.org, linux-rdma@vger.kernel.org, linux-input@vger.kernel.org, intel-wired-lan@lists.osuosl.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Sep 01, 2017 at 03:30:21PM -0500, Chien Tin Tung wrote:
-> On Thu, Aug 24, 2017 at 04:56:01PM -0500, Jason Gunthorpe wrote:
-> > This causes the symbol table to look like:
-> > 
-> >    208: 000000000000c000   142 FUNC    GLOBAL DEFAULT   13 verbs_register_driver_15@@IBVERBS_PRIVATE_15
-> > 
-> > Which encodes the expected private ABI version inside the symbol name
-> > as well as with the symbol version.
-> > 
-> > This ensures that the ABI version is checked even if the linking
-> > environment does not include symbol versions, for instance if an
-> > end user is linking a provider static library to the system dynamic
-> > libibverbs.
-> > 
-> > Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-> >  buildlib/config.h.in         |  1 +
-> >  libibverbs/driver.h          | 11 +++++++++++
-> >  libibverbs/libibverbs.map.in |  2 +-
-> >  3 files changed, 13 insertions(+), 1 deletion(-)
-> > 
-> > Since Leon says people are using static provider libraries we should
-> > do more to make sure they work right.
-> 
-> Jason,
-> 
-> Can you dumb this down for me?  I don't understand the provider static library part.
-> Do you mean an application statically linking in a provider library and dynamically
-> to libibverbs?
 
-Yes.
+--=-r9bmlAtWiFfE64fwCMV8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> Why would someone do this?
+On Thu, 2017-08-31 at 16:29 -0700, Kees Cook wrote:
+> In several places, .data is checked for initialization to gate early
+> calls to del_timer_sync(). Checking for .function is equally valid,
+> so
+> switch to this in all callers.
+>=20
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Pavel Machek <pavel@ucw.cz>
+> Cc: Len Brown <len.brown@intel.com>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>
+> Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
+> Cc: Doug Ledford <dledford@redhat.com>
+> Cc: Sean Hefty <sean.hefty@intel.com>
+> Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+> Cc: linux-pm@vger.kernel.org
+> Cc: linux-rdma@vger.kernel.org
+> Cc: linux-input@vger.kernel.org
+> Cc: intel-wired-lan@lists.osuosl.org
+> Cc: netdev@vger.kernel.org
+> Signed-off-by: Kees Cook <keescook@chromium.org>
 
-Not sure. Leon said there was interest and the patch is simple.
+For the changes to i40e...
 
-Perhaps it makes sense when combined with libmlx5dv. Eg you could
-build a middleware library that embeds the 'dv' library. Maybe turn on
-LTO to gain some speed.
+Acked-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+--=-r9bmlAtWiFfE64fwCMV8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-> Are there examples of this?
+-----BEGIN PGP SIGNATURE-----
 
-Compile rdma-core with -DENABLE_STATIC
+iQIzBAABCAAdFiEEiTyZWz+nnTrOJ1LZ5W/vlVpL7c4FAlmp0lkACgkQ5W/vlVpL
+7c64JhAAnNOjvCkziBlORy2Of97GbgFpmxmjNsLPzxNoH/8R3Y6vD3PTDHcwPEGM
+Yks7MMLwKEWn3yctxB6GyswNAS/+4BUlnlXveQ11DiZ3O5mmHamNkj4Gtn2fvbML
+vfjaUDKBtNRPw6M+R8cQ59XasrykDEPmeS3L1WoLOec9z4Xe6MLkznvVMDXUlb6V
+pEfCDKcsFsHt2MYgHqSoVWJuprnsnXElrHjGoxVqJZVuEPqWmbXj+4Qka+2vkNw9
+yiS4qW48E77QsAmIkORvpYi60D9jYF3WYkPsZ/Eqi1MtzIEmiDBJZanfcdQJH/WL
+U8QUXkSiQXxz6wcbIOEXStNhM8avvjNjziisJAK05OpAmkQV9hBwD3sysRBthK5G
+5JI6RjJRCp41Xg3PD5JzoJ+/OTBywbro8iqr7njKo6KpuiBL+KtXWIznEamLcu3/
+2YTgjZzF+eIUOBhDF8cOT3OFs88c8YPRHjuydPBzkPlmIdOM4QjWPpz9ZFeB2itX
+cHig4zcZ733chcWEhXCaUIT+TY5QkAZCRueH6ed+sWzFYdnFiFdsWgNxhRKNjRru
+cTnF70LBOSMyccRYdC1ZOmcga8g4algS1cPradjAkQU10Y/+3aUx17pRy4SqJNOR
+lLvSAXqqM4iYmaZsGj+W/X23T9lYsseZHtvktGDLZioQibhg7rw=
+=Myq9
+-----END PGP SIGNATURE-----
 
->From memory, untested:
-  $ gcc -o foo foo.o -Wl,--whole-archive -lmlx5dv
+--=-r9bmlAtWiFfE64fwCMV8--
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
