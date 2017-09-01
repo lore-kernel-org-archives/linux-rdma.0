@@ -1,56 +1,40 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [PATCH rdma-core 2/5] util: Fix check_snprintf to use __rc__ for
  local
-Date: Fri, 1 Sep 2017 15:13:20 +0000
-Message-ID: <1504278799.14386.1.camel@wdc.com>
+Date: Fri, 1 Sep 2017 09:47:33 -0600
+Message-ID: <20170901154733.GA11102@obsidianresearch.com>
 References: <1504212659-9674-1-git-send-email-jgunthorpe@obsidianresearch.com>
-         <1504212659-9674-3-git-send-email-jgunthorpe@obsidianresearch.com>
-         <20170901045632.GJ10539@mtr-leonro.local>
-         <20170901150013.GA21378@obsidianresearch.com>
+ <1504212659-9674-3-git-send-email-jgunthorpe@obsidianresearch.com>
+ <20170901045632.GJ10539@mtr-leonro.local>
+ <20170901150013.GA21378@obsidianresearch.com>
+ <1504278799.14386.1.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170901150013.GA21378-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Content-ID: <7B7B78914808C349AC1026836800B049-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1504278799.14386.1.camel-Sjgp3cTcYWE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org" <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, "jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org" <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
+Cc: "NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org" <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gRnJpLCAyMDE3LTA5LTAxIGF0IDA5OjAwIC0wNjAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
-DQo+IE9uIEZyaSwgU2VwIDAxLCAyMDE3IGF0IDA3OjU2OjMyQU0gKzAzMDAsIExlb24gUm9tYW5v
-dnNreSB3cm90ZToNCj4gPiBPbiBUaHUsIEF1ZyAzMSwgMjAxNyBhdCAwMjo1MDo1NlBNIC0wNjAw
-LCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6DQo+ID4gPiBUbyBhdm9pZCBjbGFzaGluZyB3aXRoIHVz
-ZXIgdmFyaWFibGVzLg0KPiA+ID4gDQo+ID4gPiBTaWduZWQtb2ZmLWJ5OiBKYXNvbiBHdW50aG9y
-cGUgPGpndW50aG9ycGVAb2JzaWRpYW5yZXNlYXJjaC5jb20+DQo+ID4gPiAgdXRpbC91dGlsLmgg
-fCA0ICsrLS0NCj4gPiA+ICAxIGZpbGUgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAyIGRlbGV0
-aW9ucygtKQ0KPiA+ID4gDQo+ID4gPiBkaWZmIC0tZ2l0IGEvdXRpbC91dGlsLmggYi91dGlsL3V0
-aWwuaA0KPiA+ID4gaW5kZXggY2JmMGRlY2EyZGRlN2IuLjMwZDMyZWU2YjUxZTI0IDEwMDY0NA0K
-PiA+ID4gKysrIGIvdXRpbC91dGlsLmgNCj4gPiA+IEBAIC04LDggKzgsOCBAQA0KPiA+ID4gICAq
-IGVycm9yICovDQo+ID4gPiAgI2RlZmluZSBjaGVja19zbnByaW50ZihidWYsIGxlbiwgZm10LCAu
-Li4pICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwNCj4gPiA+ICAJKHsgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICBcDQo+ID4gPiAtCQlpbnQgcmMgPSBzbnByaW50ZihidWYsIGxlbiwgZm10LCAjI19f
-VkFfQVJHU19fKTsgICAgICAgICAgICAgICBcDQo+ID4gPiAtCQkocmMgPCBsZW4gJiYgcmMgPj0g
-MCk7ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcDQo+ID4gPiArCQlp
-bnQgX19yY19fID0gc25wcmludGYoYnVmLCBsZW4sIGZtdCwgIyNfX1ZBX0FSR1NfXyk7ICAgICAg
-ICAgICBcDQo+ID4gDQo+ID4gSXQgY2FuJ3QgY2xhc2gsIGJlY2F1c2UgaXQgaXMgZGVjbGFyZWQg
-aW4gdGhlIHNjb3BlIHsuLn0gb2YgdGhhdCBkZWZpbmUgYW5kDQo+ID4gaXQgaXMgbG9jYWwgdG8g
-Y2hlY2tfc25wcmludGYgbWFjcm8uDQo+IA0KPiBUaGlzIHRyaWdnZXJzIGEgLVdzaGFkb3cgd2Fy
-bmluZzoNCj4gDQo+ICBpbnQgcmM7DQo+ICBjaGVja19zbnByaW5mKHN0ciwgc2l6ZW9mKHN0ciks
-IC4uKQ0KPiANCj4gQW5kIHJjIGlzIGNvbW1vbmx5IHVzZWQgaW4gY2FsbGVycywgc28gaXQgc2hv
-dWxkbid0Lg0KPiANCj4gUGVyaGFwcyB0aGlzIGFkZHJlc3NlcyBhbGwgdGhlIGNvbmNlcm5zOg0K
-PiANCj4gLyogUmV0dXJuIHRydWUgaWYgdGhlIHNucHJpbnRmIHN1Y2NlZWRlZCwgZmFsc2UgaWYg
-dGhlcmUgd2FzIHRydW5jYXRpb24gb3INCj4gICogZXJyb3IgKi8NCj4gc3RhdGljIGlubGluZSBi
-b29sIF9fZ29vZF9zbnByaW50ZihzaXplX3QgbGVuLCBpbnQgcmMpDQo+IHsNCj4gCXJldHVybiAo
-cmMgPCBsZW4gJiYgcmMgPj0gMCk7DQo+IH0NCj4gDQo+ICNkZWZpbmUgY2hlY2tfc25wcmludGYo
-YnVmLCBsZW4sIGZtdCwgLi4uKSAgICBcDQo+IAlfX2dvb2Rfc25wcmludGYobGVuLCBzbnByaW50
-ZihidWYsIGxlbiwgZm10LCAjI19fVkFfQVJHU19fKSkNCg0KSWYgYW4gaW5saW5lIGZ1bmN0aW9u
-IHdpbGwgYmUgaW50cm9kdWNlZCBhbnl3YXksIHdoeSBub3QgdG8gbWFrZSBjaGVja19zbnByaW50
-ZigpDQppdHNlbGYgYW4gaW5saW5lIGZ1bmN0aW9uIGFuZCB1c2UgdnNucHJpbnRmKCkgaW5zdGVh
-ZCBvZiBzbnByaW50ZigpPw0KDQpCYXJ0Lg==
+On Fri, Sep 01, 2017 at 03:13:20PM +0000, Bart Van Assche wrote:
+
+> > #define check_snprintf(buf, len, fmt, ...)    \
+> > 	__good_snprintf(len, snprintf(buf, len, fmt, ##__VA_ARGS__))
+> 
+> If an inline function will be introduced anyway, why not to make check_snprintf()
+> itself an inline function and use vsnprintf() instead of snprintf()?
+
+Well.. Generally speaking I prefer to avoid wrappering 'magic'
+functions like snprintf with inlines because you loose the 'magic'.
+
+eg, however it is done, modern gcc triggers -Wformat-length analysis
+for snprintf, and if you wrapper it with an inline it appears that
+analysis is lost. This is separate from the well known
+attribute((printf)).
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
