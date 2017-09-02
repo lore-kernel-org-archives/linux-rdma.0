@@ -1,73 +1,47 @@
-From: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Subject: Re: [PATCH 31/31] timer: Switch to testing for .function instead of
- .data
-Date: Fri, 01 Sep 2017 14:34:17 -0700
-Message-ID: <1504301657.3922.47.camel@intel.com>
-References: <1504222183-61202-1-git-send-email-keescook@chromium.org>
-         <1504222183-61202-32-git-send-email-keescook@chromium.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core 3/5] verbs: Use ccan list.h instead of open
+ coding lists
+Date: Fri, 1 Sep 2017 19:47:56 -0600
+Message-ID: <20170902014756.GA866@obsidianresearch.com>
+References: <1504212659-9674-1-git-send-email-jgunthorpe@obsidianresearch.com>
+ <1504212659-9674-4-git-send-email-jgunthorpe@obsidianresearch.com>
+ <b4255929-e0bc-d779-7190-f38fea24395e@suse.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-r9bmlAtWiFfE64fwCMV8"
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1504222183-61202-32-git-send-email-keescook@chromium.org>
-Sender: linux-input-owner@vger.kernel.org
-To: Kees Cook <keescook@chromium.org>, Thomas Gleixner <tglx@linutronix.de>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-pm@vger.kernel.org, linux-rdma@vger.kernel.org, linux-input@vger.kernel.org, intel-wired-lan@lists.osuosl.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <b4255929-e0bc-d779-7190-f38fea24395e-l3A5Bk7waGM@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Nicolas Morey-Chaisemartin <NMoreyChaisemartin-l3A5Bk7waGM@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, Sep 01, 2017 at 09:05:33AM +0200, Nicolas Morey-Chaisemartin wrote:
+> > For ibv_sysfs_dev, ibv_driver_name and ibv_driver internal structs. ccan
+> > lists are easier to understand and use than the open coded versions.
+> >
+> > Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> >  libibverbs/init.c | 62 +++++++++++++++++++++++++------------------------------
+> >  1 file changed, 28 insertions(+), 34 deletions(-)
+> >
+> > diff --git a/libibverbs/init.c b/libibverbs/init.c
+> [...]
+> > @@ -156,7 +156,8 @@ static int find_sysfs_devs(struct ibv_sysfs_dev **tmp_sysfs_dev_list)
+> >  		else
+> >  			sysfs_dev->abi_ver = 0;
+> >  
+> > -		*tmp_sysfs_dev_list = sysfs_dev;
+> > +		list_node_init(&sysfs_dev->entry);
+> > +		list_add(tmp_sysfs_dev_list, &sysfs_dev->entry);
+> 
+> I don't think you need to init the node.
+> According to the header file: " * The new list_node does not need to be initialized; it will be overwritten."
 
---=-r9bmlAtWiFfE64fwCMV8
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Right you are, all fixed.
 
-On Thu, 2017-08-31 at 16:29 -0700, Kees Cook wrote:
-> In several places, .data is checked for initialization to gate early
-> calls to del_timer_sync(). Checking for .function is equally valid,
-> so
-> switch to this in all callers.
->=20
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Pavel Machek <pavel@ucw.cz>
-> Cc: Len Brown <len.brown@intel.com>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>
-> Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
-> Cc: Doug Ledford <dledford@redhat.com>
-> Cc: Sean Hefty <sean.hefty@intel.com>
-> Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-> Cc: linux-pm@vger.kernel.org
-> Cc: linux-rdma@vger.kernel.org
-> Cc: linux-input@vger.kernel.org
-> Cc: intel-wired-lan@lists.osuosl.org
-> Cc: netdev@vger.kernel.org
-> Signed-off-by: Kees Cook <keescook@chromium.org>
-
-For the changes to i40e...
-
-Acked-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
---=-r9bmlAtWiFfE64fwCMV8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEiTyZWz+nnTrOJ1LZ5W/vlVpL7c4FAlmp0lkACgkQ5W/vlVpL
-7c64JhAAnNOjvCkziBlORy2Of97GbgFpmxmjNsLPzxNoH/8R3Y6vD3PTDHcwPEGM
-Yks7MMLwKEWn3yctxB6GyswNAS/+4BUlnlXveQ11DiZ3O5mmHamNkj4Gtn2fvbML
-vfjaUDKBtNRPw6M+R8cQ59XasrykDEPmeS3L1WoLOec9z4Xe6MLkznvVMDXUlb6V
-pEfCDKcsFsHt2MYgHqSoVWJuprnsnXElrHjGoxVqJZVuEPqWmbXj+4Qka+2vkNw9
-yiS4qW48E77QsAmIkORvpYi60D9jYF3WYkPsZ/Eqi1MtzIEmiDBJZanfcdQJH/WL
-U8QUXkSiQXxz6wcbIOEXStNhM8avvjNjziisJAK05OpAmkQV9hBwD3sysRBthK5G
-5JI6RjJRCp41Xg3PD5JzoJ+/OTBywbro8iqr7njKo6KpuiBL+KtXWIznEamLcu3/
-2YTgjZzF+eIUOBhDF8cOT3OFs88c8YPRHjuydPBzkPlmIdOM4QjWPpz9ZFeB2itX
-cHig4zcZ733chcWEhXCaUIT+TY5QkAZCRueH6ed+sWzFYdnFiFdsWgNxhRKNjRru
-cTnF70LBOSMyccRYdC1ZOmcga8g4algS1cPradjAkQU10Y/+3aUx17pRy4SqJNOR
-lLvSAXqqM4iYmaZsGj+W/X23T9lYsseZHtvktGDLZioQibhg7rw=
-=Myq9
------END PGP SIGNATURE-----
-
---=-r9bmlAtWiFfE64fwCMV8--
-
+Thanks,
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
