@@ -1,39 +1,69 @@
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: Re: [PATCH 00/13] mmu_notifier kill invalidate_page callback v2
-Date: Sat, 2 Sep 2017 15:28:31 +0200
-Message-ID: <20170902132831.GA26026@redhat.com>
-References: <20170831211738.17922-1-jglisse@redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 31/31] timer: Switch to testing for .function instead of .data
+Date: Sat, 02 Sep 2017 15:47:20 +0200
+Message-ID: <1857082.urnTVIQKcg@aspire.rjw.lan>
+References: <1504222183-61202-1-git-send-email-keescook@chromium.org> <1504222183-61202-32-git-send-email-keescook@chromium.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <20170831211738.17922-1-jglisse@redhat.com>
-Sender: owner-linux-mm@kvack.org
-To: jglisse@redhat.com
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Joerg Roedel <jroedel@suse.de>, Dan Williams <dan.j.williams@intel.com>, Sudeep Dutt <sudeep.dutt@intel.com>, Ashutosh Dixit <ashutosh.dixit@intel.com>, Dimitri Sivanich <sivanich@sgi.com>, Jack Steiner <steiner@sgi.com>, Paolo Bonzini <pbonzini@redhat.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, linuxppc-dev@lists.ozlabs.org, dri-devel@lists.freedesktop.org, amd-gfx@lists.freedesktop.org, linux-rdma@vger.kernel.org, iommu@lists.linux-foundation.org, xen-devel@lists.xenproject.org, kvm@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1504222183-61202-32-git-send-email-keescook@chromium.org>
+Sender: netdev-owner@vger.kernel.org
+To: Kees Cook <keescook@chromium.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, linux-pm@vger.kernel.org, linux-rdma@vger.kernel.org, linux-input@vger.kernel.org, intel-wired-lan@lists.osuosl.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Aug 31, 2017 at 05:17:25PM -0400, Jerome Glisse wrote:
-> Jérôme Glisse (13):
->   dax: update to new mmu_notifier semantic
->   mm/rmap: update to new mmu_notifier semantic
->   powerpc/powernv: update to new mmu_notifier semantic
->   drm/amdgpu: update to new mmu_notifier semantic
->   IB/umem: update to new mmu_notifier semantic
->   IB/hfi1: update to new mmu_notifier semantic
->   iommu/amd: update to new mmu_notifier semantic
->   iommu/intel: update to new mmu_notifier semantic
->   misc/mic/scif: update to new mmu_notifier semantic
->   sgi-gru: update to new mmu_notifier semantic
->   xen/gntdev: update to new mmu_notifier semantic
->   KVM: update to new mmu_notifier semantic
->   mm/mmu_notifier: kill invalidate_page
+On Friday, September 1, 2017 1:29:43 AM CEST Kees Cook wrote:
+> In several places, .data is checked for initialization to gate early
+> calls to del_timer_sync(). Checking for .function is equally valid, so
+> switch to this in all callers.
+> 
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Pavel Machek <pavel@ucw.cz>
+> Cc: Len Brown <len.brown@intel.com>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>
+> Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
+> Cc: Doug Ledford <dledford@redhat.com>
+> Cc: Sean Hefty <sean.hefty@intel.com>
+> Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+> Cc: linux-pm@vger.kernel.org
+> Cc: linux-rdma@vger.kernel.org
+> Cc: linux-input@vger.kernel.org
+> Cc: intel-wired-lan@lists.osuosl.org
+> Cc: netdev@vger.kernel.org
+> Signed-off-by: Kees Cook <keescook@chromium.org>
+> ---
+>  drivers/base/power/wakeup.c                 |  3 +--
+>  drivers/infiniband/hw/hfi1/chip.c           |  6 ++----
+>  drivers/infiniband/hw/hfi1/init.c           |  2 +-
+>  drivers/infiniband/hw/qib/qib_iba7220.c     |  2 +-
+>  drivers/infiniband/hw/qib/qib_iba7322.c     |  2 +-
+>  drivers/infiniband/hw/qib/qib_init.c        | 14 +++++---------
+>  drivers/infiniband/hw/qib/qib_mad.c         |  2 +-
+>  drivers/input/input.c                       |  5 ++---
+>  drivers/net/ethernet/intel/i40e/i40e_main.c |  2 +-
+>  9 files changed, 15 insertions(+), 23 deletions(-)
+> 
+> diff --git a/drivers/base/power/wakeup.c b/drivers/base/power/wakeup.c
+> index 144e6d8fafc8..79a3c1b204af 100644
+> --- a/drivers/base/power/wakeup.c
+> +++ b/drivers/base/power/wakeup.c
+> @@ -479,8 +479,7 @@ static bool wakeup_source_not_registered(struct wakeup_source *ws)
+>  	 * Use timer struct to check if the given source is initialized
+>  	 * by wakeup_source_add.
+>  	 */
+> -	return ws->timer.function != pm_wakeup_timer_fn ||
+> -		   ws->timer.data != (unsigned long)ws;
+> +	return ws->timer.function != pm_wakeup_timer_fn;
+>  }
+>  
+>  /*
 
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+for the above.
+
+Thanks!
