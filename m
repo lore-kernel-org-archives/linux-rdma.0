@@ -1,59 +1,35 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: Bug report: ConnectX-5 unable to use non-default P_Key
-Date: Sun, 3 Sep 2017 20:32:51 +0300
-Message-ID: <20170903173251.GQ10539@mtr-leonro.local>
-References: <1503960898.52034.4.camel@redhat.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH][next] net/mlx4_core: fix incorrect size allocation for
+ dev->caps.spec_qps
+Date: Sun, 03 Sep 2017 10:57:38 -0700 (PDT)
+Message-ID: <20170903.105738.1741058008003610763.davem@davemloft.net>
+References: <20170831170724.3747-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="r/w8vo2lxBmCPGjQ"
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1503960898.52034.4.camel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170831170724.3747-1-colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org
+Cc: tariqt-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Date: Thu, 31 Aug 2017 18:07:24 +0100
 
---r/w8vo2lxBmCPGjQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+> 
+> The current allocation for dev->caps.spec_qps is for the size of the
+> pointer and not the size of the actual  mlx4_spec_qps structure.  Fix
+> this by using the correct size.   Also splint allocation over a few
+> lines to make it cppcheck clean on overly wide lines.
+> 
+> Detected by CoverityScan, CID#1455222 ("Wrong sizeof argument")
+> 
+> Fixes: c73c8b1e47ca ("net/mlx4_core: Dynamically allocate structs at mlx4_slave_cap")
+> Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
 
-On Mon, Aug 28, 2017 at 06:54:58PM -0400, Doug Ledford wrote:
-> This is with plain 4.13-rc7.
->
-> Attempts to bring up the 0x8002 P_Key IPoIB device using dhcp fail and
-> NetworkManager releases the device.
-
-In rawhide, the enhanced IPoIB is enabled by default and the upstream
-version has limitation which you are experienced. This is the main
-reason, why we didn't enable it by default. Alex and his team are working
-to prepare upstream patches from our MLNX_OFED solution to allow such
-configuration and I'll forward them as soon as they will be ready.
-
-Thanks
-
---r/w8vo2lxBmCPGjQ
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmsPMMACgkQ5GN7iDZy
-WKfuTQ/9Es4RVAeBRXMflns/R/blm6W1s6fFqiEl9oPsPqvlDeIGRV3Xq3A5xdWw
-9I4eQiHuctGBTyY/HvatBHikWHZFnYtKhvDd+e0Flk/7TkxySNkccRHy0wE0dMAt
-vw93WT0y9578jpOEnbYV3Q6IEc24CQ0Uyl0ECsrov4jJxR2qXaTZxWJJW0psfOal
-BUfP9S61f2X/RhrrJpHmoogO3dxXz/1D7wB3DIIXSBopuK6SybSHdddp+RiOUqfA
-b3GzUyoz7K+97BSteRsQYnUUuEr42CTfoaXJdQB8XPkPcgtmyT8eLfDKjAQqRRAW
-yrzygUphk2x/kqvM6JhcKx8mLP1quYUlikmIihrvcrlVgHRsYvjDewde9foLwAXG
-YL5H5CDwL230bFmOrlmUIxpQL/98tgPt8KUOmrxNFwJ26Z2INY03sjXoWFBCEhZy
-uyJ1uQYgaVcuebBHM4aW2qAwthDjE+/M1nwvYFiq4wBpFRyx1QKPicQwFeUQSSQK
-WbsqRVkDigsTiV1kHgaxWraKQ00ZvIeMesPkNsDXQYUXiq0DA93IIoF5zyRJuVLX
-FTMKfVHxTdAauMkjzn906/L5MyxP/0JHS2dfmEeC8drt8kIBRT0hFPQCzsTyTJWr
-YToM749TfeKMQT9WdNaRpEVrlt6hr53tSsU2Ki3lvkEohDP1g3E=
-=7kAr
------END PGP SIGNATURE-----
-
---r/w8vo2lxBmCPGjQ--
+Applied.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
