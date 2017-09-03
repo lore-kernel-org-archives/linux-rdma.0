@@ -1,69 +1,60 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 31/31] timer: Switch to testing for .function instead of .data
-Date: Sat, 02 Sep 2017 15:47:20 +0200
-Message-ID: <1857082.urnTVIQKcg@aspire.rjw.lan>
-References: <1504222183-61202-1-git-send-email-keescook@chromium.org> <1504222183-61202-32-git-send-email-keescook@chromium.org>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH][next] IB/core: fix spelling mistake: "aceess" -> "access"
+Date: Sun, 3 Sep 2017 09:27:16 +0300
+Message-ID: <20170903062716.GN10539@mtr-leonro.local>
+References: <20170901082214.7959-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1504222183-61202-32-git-send-email-keescook@chromium.org>
-Sender: netdev-owner@vger.kernel.org
-To: Kees Cook <keescook@chromium.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Pavel Machek <pavel@ucw.cz>, Len Brown <len.brown@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, linux-pm@vger.kernel.org, linux-rdma@vger.kernel.org, linux-input@vger.kernel.org, intel-wired-lan@lists.osuosl.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="tDYGg60iReQ7u8wj"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170901082214.7959-1-colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matan Barak <matanb-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Friday, September 1, 2017 1:29:43 AM CEST Kees Cook wrote:
-> In several places, .data is checked for initialization to gate early
-> calls to del_timer_sync(). Checking for .function is equally valid, so
-> switch to this in all callers.
-> 
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Pavel Machek <pavel@ucw.cz>
-> Cc: Len Brown <len.brown@intel.com>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>
-> Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
-> Cc: Doug Ledford <dledford@redhat.com>
-> Cc: Sean Hefty <sean.hefty@intel.com>
-> Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-> Cc: linux-pm@vger.kernel.org
-> Cc: linux-rdma@vger.kernel.org
-> Cc: linux-input@vger.kernel.org
-> Cc: intel-wired-lan@lists.osuosl.org
-> Cc: netdev@vger.kernel.org
-> Signed-off-by: Kees Cook <keescook@chromium.org>
+
+--tDYGg60iReQ7u8wj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Fri, Sep 01, 2017 at 09:22:14AM +0100, Colin King wrote:
+> From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+>
+> Trivial fix to spelling mistake in WARN message
+>
+> Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
 > ---
->  drivers/base/power/wakeup.c                 |  3 +--
->  drivers/infiniband/hw/hfi1/chip.c           |  6 ++----
->  drivers/infiniband/hw/hfi1/init.c           |  2 +-
->  drivers/infiniband/hw/qib/qib_iba7220.c     |  2 +-
->  drivers/infiniband/hw/qib/qib_iba7322.c     |  2 +-
->  drivers/infiniband/hw/qib/qib_init.c        | 14 +++++---------
->  drivers/infiniband/hw/qib/qib_mad.c         |  2 +-
->  drivers/input/input.c                       |  5 ++---
->  drivers/net/ethernet/intel/i40e/i40e_main.c |  2 +-
->  9 files changed, 15 insertions(+), 23 deletions(-)
-> 
-> diff --git a/drivers/base/power/wakeup.c b/drivers/base/power/wakeup.c
-> index 144e6d8fafc8..79a3c1b204af 100644
-> --- a/drivers/base/power/wakeup.c
-> +++ b/drivers/base/power/wakeup.c
-> @@ -479,8 +479,7 @@ static bool wakeup_source_not_registered(struct wakeup_source *ws)
->  	 * Use timer struct to check if the given source is initialized
->  	 * by wakeup_source_add.
->  	 */
-> -	return ws->timer.function != pm_wakeup_timer_fn ||
-> -		   ws->timer.data != (unsigned long)ws;
-> +	return ws->timer.function != pm_wakeup_timer_fn;
->  }
->  
->  /*
+>  drivers/infiniband/core/uverbs_ioctl_merge.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-for the above.
+--tDYGg60iReQ7u8wj
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Thanks!
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmroMQACgkQ5GN7iDZy
+WKfJ/A/+PjoaFudKKC59I9gS/b4sEmV71+oWmADgRF21tyGbQYxglvLYkErjAZlZ
+Ke7qPGZktZF/aBvsz+mtMB7iEPffUfBy3hQH8T28MIokH/Pqc9b2n5Gl7Xn8fT8b
+Ifh5adq96KjQJS4G1Dj58YNjremrOwNrmOo8JxqwMYw1FF4bxj7cKDxm1alseyb4
+64f7/ky44N4AoqYhDhhZlYWSLFl27vE8KwVHP+PafhUjsPmQXP/jLMxBCXHW4kTM
+fsBUfW/wSDWZOnBx6ci6vf3/nr0rRcKxKV1qEdiytrTAfiRvtTM251b+eKV29y/l
+jQAu2zlISQf8LJXZHIHE0tw4rMfJPp9eS2E9Wv63cYuWhmiI0gdphXe1ioc/SxEQ
+C2boTe2gGy2m4iURm/OPqP7qP3uQuQpNkm/PcXt2+g12cEjHt0VzY9EZwEyb+a8L
+hyZcJVEhhiwqodSJZYmSfWfRPXUZblIp+gofQZMRsCKp7I8icCrWZHFr6zsf1/MB
+FvXxkzX6VnnJ/vUtZC+HfiDS+K8EoWGSFHR6ybTNg0+2KaIe+GMV/FisGb8GHzr8
+3DjqqGXow2U7nPoWb2qYWzWj9kni3OpikxQbdclDQYGPD1ET17JlMo3InzQO3hBt
+4U8o69nQXIvX2OPNnBPdbveJo+ZImUZyX/uRSI9tvpzaujS7Md8=
+=cOCh
+-----END PGP SIGNATURE-----
+
+--tDYGg60iReQ7u8wj--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
