@@ -1,61 +1,143 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH][V2] RDMA/nes: do not leak uninitialized resp.reserved to
- userspace Content-Type: text/plain; charset="utf-8"
- Content-Transfer-Encoding: 8bit
-Date: Mon, 4 Sep 2017 16:56:22 +0300
-Message-ID: <20170904135622.GA1070@mtr-leonro.local>
-References: <20170904133705.3980-1-colin.king@canonical.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="OgqxwSJOaUobr8KG"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170904133705.3980-1-colin.king@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
-Cc: Faisal Latif <faisal.latif@intel.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, stable@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v1] IB: Move PCI dependency from root KConfig to HW's KConfigs
+Date: Mon,  4 Sep 2017 18:28:48 +0300
+Message-ID: <20170904152848.3471-1-yuval.shaia@oracle.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+No reason to have dependency on PCI for the entire infiniband stack so
+move it to KConfig of only the drivers that actually using PCI.
 
---OgqxwSJOaUobr8KG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+v0 -> v1:
+	* As suggested by Thomas Bogendoerfer:
+		* Remove unneeded header inclusion from ipoib
+		* Remove PCI dependency from ipoib's Kconfig
+---
+ drivers/infiniband/Kconfig                | 1 -
+ drivers/infiniband/hw/cxgb3/Kconfig       | 1 +
+ drivers/infiniband/hw/cxgb4/Kconfig       | 1 +
+ drivers/infiniband/hw/hfi1/Kconfig        | 1 +
+ drivers/infiniband/hw/i40iw/Kconfig       | 1 +
+ drivers/infiniband/hw/qedr/Kconfig        | 1 +
+ drivers/infiniband/hw/qib/Kconfig         | 1 +
+ drivers/infiniband/sw/rdmavt/Kconfig      | 1 +
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 1 -
+ 9 files changed, 7 insertions(+), 2 deletions(-)
 
-On Mon, Sep 04, 2017 at 02:37:05PM +0100, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
->
-> resp.reserved has not been initialized and so the copy_to_user (via
-> ib_copy_to_udata) is copying uninitialized data from the stack back
-> to user space which is a potential information leak. Fix this by
-> initializing all of resp to zero.
->
-> V2: Initialize all of the struct rather than just resp.reserved as
-> suggested by Leon Romanovsky.
+diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
+index 234fe01904e7..568088a9298c 100644
+--- a/drivers/infiniband/Kconfig
++++ b/drivers/infiniband/Kconfig
+@@ -1,6 +1,5 @@
+ menuconfig INFINIBAND
+ 	tristate "InfiniBand support"
+-	depends on PCI || BROKEN
+ 	depends on HAS_IOMEM
+ 	depends on NET
+ 	depends on INET
+diff --git a/drivers/infiniband/hw/cxgb3/Kconfig b/drivers/infiniband/hw/cxgb3/Kconfig
+index 2b6352b85485..bd32926afa77 100644
+--- a/drivers/infiniband/hw/cxgb3/Kconfig
++++ b/drivers/infiniband/hw/cxgb3/Kconfig
+@@ -1,5 +1,6 @@
+ config INFINIBAND_CXGB3
+ 	tristate "Chelsio RDMA Driver"
++	depends on PCI || BROKEN
+ 	depends on CHELSIO_T3 && INET
+ 	select GENERIC_ALLOCATOR
+ 	---help---
+diff --git a/drivers/infiniband/hw/cxgb4/Kconfig b/drivers/infiniband/hw/cxgb4/Kconfig
+index afe8b28e0878..7910fdd88619 100644
+--- a/drivers/infiniband/hw/cxgb4/Kconfig
++++ b/drivers/infiniband/hw/cxgb4/Kconfig
+@@ -1,6 +1,7 @@
+ config INFINIBAND_CXGB4
+ 	tristate "Chelsio T4/T5 RDMA Driver"
+ 	depends on CHELSIO_T4 && INET && (IPV6 || IPV6=n)
++	depends on PCI || BROKEN
+ 	select CHELSIO_LIB
+ 	select GENERIC_ALLOCATOR
+ 	---help---
+diff --git a/drivers/infiniband/hw/hfi1/Kconfig b/drivers/infiniband/hw/hfi1/Kconfig
+index f6ea0881765a..5072d083f53b 100644
+--- a/drivers/infiniband/hw/hfi1/Kconfig
++++ b/drivers/infiniband/hw/hfi1/Kconfig
+@@ -1,6 +1,7 @@
+ config INFINIBAND_HFI1
+ 	tristate "Intel OPA Gen1 support"
+ 	depends on X86_64 && INFINIBAND_RDMAVT && I2C
++	depends on PCI || BROKEN
+ 	select MMU_NOTIFIER
+ 	select CRC32
+ 	select I2C_ALGOBIT
+diff --git a/drivers/infiniband/hw/i40iw/Kconfig b/drivers/infiniband/hw/i40iw/Kconfig
+index 6e7d27a14061..9cfef1370445 100644
+--- a/drivers/infiniband/hw/i40iw/Kconfig
++++ b/drivers/infiniband/hw/i40iw/Kconfig
+@@ -1,6 +1,7 @@
+ config INFINIBAND_I40IW
+ 	tristate "Intel(R) Ethernet X722 iWARP Driver"
+ 	depends on INET && I40E
++	depends on PCI || BROKEN
+ 	select GENERIC_ALLOCATOR
+ 	---help---
+ 	Intel(R) Ethernet X722 iWARP Driver
+diff --git a/drivers/infiniband/hw/qedr/Kconfig b/drivers/infiniband/hw/qedr/Kconfig
+index 6c9f3923e838..8db2966f52c2 100644
+--- a/drivers/infiniband/hw/qedr/Kconfig
++++ b/drivers/infiniband/hw/qedr/Kconfig
+@@ -1,6 +1,7 @@
+ config INFINIBAND_QEDR
+ 	tristate "QLogic RoCE driver"
+ 	depends on 64BIT && QEDE
++	depends on PCI || BROKEN
+ 	select QED_LL2
+ 	select QED_RDMA
+ 	---help---
+diff --git a/drivers/infiniband/hw/qib/Kconfig b/drivers/infiniband/hw/qib/Kconfig
+index e0fdb9201423..522a6fcaa9d8 100644
+--- a/drivers/infiniband/hw/qib/Kconfig
++++ b/drivers/infiniband/hw/qib/Kconfig
+@@ -1,6 +1,7 @@
+ config INFINIBAND_QIB
+ 	tristate "Intel PCIe HCA support"
+ 	depends on 64BIT && INFINIBAND_RDMAVT
++	depends on PCI || BROKEN
+ 	---help---
+ 	This is a low-level driver for Intel PCIe QLE InfiniBand host
+ 	channel adapters.  This driver does not support the Intel
+diff --git a/drivers/infiniband/sw/rdmavt/Kconfig b/drivers/infiniband/sw/rdmavt/Kconfig
+index fdd001ce13d8..605bfb1da9df 100644
+--- a/drivers/infiniband/sw/rdmavt/Kconfig
++++ b/drivers/infiniband/sw/rdmavt/Kconfig
+@@ -1,6 +1,7 @@
+ config INFINIBAND_RDMAVT
+ 	tristate "RDMA verbs transport library"
+ 	depends on 64BIT
++	depends on PCI || BROKEN
+ 	select DMA_VIRT_OPS
+ 	---help---
+ 	This is a common software verbs provider for RDMA networks.
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 6c77df34869d..3fc3b7b20297 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -51,7 +51,6 @@
+ #include <net/addrconf.h>
+ #include <linux/inetdevice.h>
+ #include <rdma/ib_cache.h>
+-#include <linux/pci.h>
+ 
+ #define DRV_VERSION "1.0.0"
+ 
+-- 
+2.13.5
 
-Small nitpick, it is better to put changelog under "---" marker, so
-it won't be visible in the git log.
-
-Thanks
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-
---OgqxwSJOaUobr8KG
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmtW38ACgkQ5GN7iDZy
-WKcjOg/9HdmZbgwhP9baosAay6UEERTHzf6rq2k53xUMth22H/cz5m5Z62cYy4td
-HXBMP/pwgjoiYSO/MwjjRGk++6skLjCCc88h0x18dW6EbVOFPdH867hKjgSGHujj
-/x/tKxdeFQuGb+GklUm+auSZyLFWDlrlkq4Y9Z38dC654YiJ5A7zDHkBKNs6WpY+
-r7S70rldvv32xzA++Ql/kRWdui/ovbtIhO42DfxqmP3O4eswp/eq8PlvljmY+J7C
-NmFIHX71SLGslYhyQ9Cq366zwZl1DuPodUAVHXbM0JJjyeC5oBNiRPbXfzK+kiqD
-xTDDjIh5T5JKn5THJkAJUtiK2AfmI2YTBLy48YABGX2PRr5x2VjeihNnmisrYRcP
-SPSv7fs349kuQMAoRVM8jQSILOeTOP1wujFzkcmMSFAJ6W2j1y7jQAJyLV2o09ki
-GPwBOJl533mJxEjhqNUY5XU6rPscb/oixF4xLwl4XobBWT8Dc+kvwEe5yeap2nZN
-J6QhQRlTol5Wbuy29Tl8cIIHnjdnGLTVyNBCKEJkJS5fjvU1BddYuuSuZYp9z7yl
-Z8LRTtVB8jE2i00p9h8skByYaoI1uIiX7+T+GVTNvHtPZbr8xXymHZ5VxWzlou6G
-Wmv28z+5A+qPFdhKxTzfrzuMLgz1hwkT9pCMqPoZKteb0NkhxhQ=
-=uBFC
------END PGP SIGNATURE-----
-
---OgqxwSJOaUobr8KG--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
