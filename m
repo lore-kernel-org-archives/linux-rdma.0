@@ -1,40 +1,30 @@
 From: Steve Wise <swise@opengridcomputing.com>
-Subject: [PATCH 2/3] iw_cxgb4: drop listen destroy replies if no ep found
-Date: Tue, 5 Sep 2017 11:52:33 -0700
-Message-ID: <20170915140752.A29BEE0C1D@smtp.ogc.us>
+Subject: [PATCH 3/3] iw_cxgb4: remove the stid on listen create failure
+Date: Tue, 5 Sep 2017 11:52:34 -0700
+Message-ID: <20170915140822.B0E2DE0C1D@smtp.ogc.us>
 Return-path: <stable-owner@vger.kernel.org>
 Sender: stable-owner@vger.kernel.org
 To: dledford@redhat.com
 Cc: linux-rdma@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-If the thread waiting for a CLOSE_LISTSRV_RPL times out and bails,
-then we need to handle a subsequent CPL if it arrives and the stid has
-been released.  In this case silently drop it.
-
 Signed-off-by: Steve Wise <swise@opengridcomputing.com>
 ---
- drivers/infiniband/hw/cxgb4/cm.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/infiniband/hw/cxgb4/cm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 6d85a5d..d76bfe3 100644
+index d76bfe3..ca846fb 100644
 --- a/drivers/infiniband/hw/cxgb4/cm.c
 +++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -2333,9 +2333,14 @@ static int close_listsrv_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
- 	unsigned int stid = GET_TID(rpl);
- 	struct c4iw_listen_ep *ep = get_ep_from_stid(dev, stid);
- 
-+	if (!ep) {
-+		pr_debug("%s stid %d lookup failure!\n", __func__, stid);
-+		goto out;
-+	}
- 	pr_debug("%s ep %p\n", __func__, ep);
- 	c4iw_wake_up(&ep->com.wr_wait, status2errno(rpl->status));
- 	c4iw_put_ep(&ep->com);
-+out:
- 	return 0;
- }
- 
+@@ -3463,7 +3463,7 @@ int c4iw_create_listen(struct iw_cm_id *cm_id, int backlog)
+ 		cm_id->provider_data = ep;
+ 		goto out;
+ 	}
+-
++	remove_handle(ep->com.dev, &ep->com.dev->stid_idr, ep->stid);
+ 	cxgb4_free_stid(ep->com.dev->rdev.lldi.tids, ep->stid,
+ 			ep->com.local_addr.ss_family);
+ fail2:
 -- 
 1.8.3.1
