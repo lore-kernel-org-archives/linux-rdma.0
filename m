@@ -1,35 +1,55 @@
-From: "Steve Wise" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: RE: [Patch v2 00/19] CIFS: Implement SMBDirect
-Date: Tue, 5 Sep 2017 11:30:50 -0500
-Message-ID: <001b01d32664$5640f8c0$02c2ea40$@opengridcomputing.com>
-References: <1503255883-3041-1-git-send-email-longli@exchange.microsoft.com> <01ff01d31ab1$ca836a60$5f8a3f20$@opengridcomputing.com> <MWHPR21MB019081F64C50E08043286EE3CE870@MWHPR21MB0190.namprd21.prod.outlook.com> <027d01d31ab7$85adbed0$91093c70$@opengridcomputing.com> <MWHPR21MB0190AD423095EEA25CA6CD81CE870@MWHPR21MB0190.namprd21.prod.outlook.com> <MWHPR21MB0190050F3699CDF6F52B51A2CE9F0@MWHPR21MB0190.namprd21.prod.outlook.com>
+From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH net] rds: Fix non-atomic operation on shared flag variable
+Date: Tue, 5 Sep 2017 09:33:04 -0700
+Message-ID: <6a4e095f-20f1-53af-a2eb-047866c1695d@oracle.com>
+References: <20170905154201.30198-1-Haakon.Bugge@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <MWHPR21MB0190050F3699CDF6F52B51A2CE9F0-saRRjQKJ25M/hL2NnenhuM1VXTxX1y3OvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-Content-Language: en-us
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Long Li' <longli-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, 'Steve French' <sfrench-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Christoph Hellwig' <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, 'Tom Talpey' <ttalpey-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, 'Matthew Wilcox' <mawilcox-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Cc: 'Venkatesh Pottem' <venkatesh-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20170905154201.30198-1-Haakon.Bugge@oracle.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: =?UTF-8?Q?H=c3=a5kon_Bugge?= <Haakon.Bugge@oracle.com>
+Cc: "David S . Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org, knut.omang@oracle.com, wei.lin.guay@oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-> I have put the patch v3 in the following location:
-> https://github.com/longlimsft/linux-next/tree/patch_v3
+On 9/5/2017 8:42 AM, Håkon Bugge wrote:
+> The bits in m_flags in struct rds_message are used for a plurality of
+> reasons, and from different contexts. To avoid any missing updates to
+> m_flags, use the atomic set_bit() instead of the non-atomic equivalent.
 > 
-> I will be sending it out soon. Please give it a try.
+> Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+> Reviewed-by: Knut Omang <knut.omang@oracle.com>
+> Reviewed-by: Wei Lin Guay <wei.lin.guay@oracle.com>
+> ---
+>   net/rds/send.c | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
 > 
+> diff --git a/net/rds/send.c b/net/rds/send.c
+> index 41b9f0f..058a407 100644
+> --- a/net/rds/send.c
+> +++ b/net/rds/send.c
+> @@ -273,7 +273,7 @@ int rds_send_xmit(struct rds_conn_path *cp)
+>   			len = ntohl(rm->m_inc.i_hdr.h_len);
+>   			if (cp->cp_unacked_packets == 0 ||
+>   			    cp->cp_unacked_bytes < len) {
+> -				__set_bit(RDS_MSG_ACK_REQUIRED, &rm->m_flags);
+> +				set_bit(RDS_MSG_ACK_REQUIRED, &rm->m_flags);
+>   
+>   				cp->cp_unacked_packets =
+>   					rds_sysctl_max_unacked_packets;
+> @@ -829,7 +829,7 @@ static int rds_send_queue_rm(struct rds_sock *rs, struct rds_connection *conn,
+>   		 * throughput hits a certain threshold.
+>   		 */
+>   		if (rs->rs_snd_bytes >= rds_sk_sndbuf(rs) / 2)
+> -			__set_bit(RDS_MSG_ACK_REQUIRED, &rm->m_flags);
+> +			set_bit(RDS_MSG_ACK_REQUIRED, &rm->m_flags);
+>   
+>   		list_add_tail(&rm->m_sock_item, &rs->rs_send_queue);
+>   		set_bit(RDS_MSG_ON_SOCK, &rm->m_flags);
+> 
+Indeed, these couple of instances remained for the m_flags.
+Patch looks good. Thanks !!
 
-Hey Long, how do I request a CIFS RDMA mount from the Linux client?  Is
-there a mount.cifs option?  If so, where can I get the mount.cifs code that
-enables this?  Or is there some other way? 
-
-Thanks,
-
-Steve.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
