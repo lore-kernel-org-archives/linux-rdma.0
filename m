@@ -1,7 +1,7 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH v3 2/3] iw_cxgb4: drop listen destroy replies if no ep found
-Date: Tue, 5 Sep 2017 11:52:33 -0700
-Message-ID: <14630f74e585eb9cd5905d0b1eab98fd9170c90f.1505510827.git.swise@opengridcomputing.com>
+Subject: [PATCH v3 3/3] iw_cxgb4: remove the stid on listen create failure
+Date: Tue, 5 Sep 2017 11:52:34 -0700
+Message-ID: <bf07d48d0492f5b540b3d68385ddbcf597690863.1505510827.git.swise@opengridcomputing.com>
 References: <cover.1505510827.git.swise@opengridcomputing.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1505510827.git.swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
@@ -10,35 +10,30 @@ To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If the thread waiting for a CLOSE_LISTSRV_RPL times out and bails,
-then we need to handle a subsequent CPL if it arrives and the stid has
-been released.  In this case silently drop it.
+If a listen create fails, then the server tid (stid) is incorrectly left
+in the stid idr table, which can cause a touch-after-free if the stid
+is looked up and the already freed endpoint is touched.  So make sure
+and remove it in the error path.
 
 Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/cm.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/infiniband/hw/cxgb4/cm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 6d85a5d..d76bfe3 100644
+index d76bfe3..ca846fb 100644
 --- a/drivers/infiniband/hw/cxgb4/cm.c
 +++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -2333,9 +2333,14 @@ static int close_listsrv_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
- 	unsigned int stid = GET_TID(rpl);
- 	struct c4iw_listen_ep *ep = get_ep_from_stid(dev, stid);
- 
-+	if (!ep) {
-+		pr_debug("%s stid %d lookup failure!\n", __func__, stid);
-+		goto out;
-+	}
- 	pr_debug("%s ep %p\n", __func__, ep);
- 	c4iw_wake_up(&ep->com.wr_wait, status2errno(rpl->status));
- 	c4iw_put_ep(&ep->com);
-+out:
- 	return 0;
- }
- 
+@@ -3463,7 +3463,7 @@ int c4iw_create_listen(struct iw_cm_id *cm_id, int backlog)
+ 		cm_id->provider_data = ep;
+ 		goto out;
+ 	}
+-
++	remove_handle(ep->com.dev, &ep->com.dev->stid_idr, ep->stid);
+ 	cxgb4_free_stid(ep->com.dev->rdev.lldi.tids, ep->stid,
+ 			ep->com.local_addr.ss_family);
+ fail2:
 -- 
 1.8.3.1
 
