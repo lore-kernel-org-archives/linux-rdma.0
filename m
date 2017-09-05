@@ -1,158 +1,68 @@
-From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2] IB: Move PCI dependency from root KConfig to HW's KConfigs
-Date: Tue,  5 Sep 2017 17:46:25 +0300
-Message-ID: <20170905144625.11768-1-yuval.shaia@oracle.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: [PATCH] RDMA/qedr: fix build error without ipv6
+Date: Tue,  5 Sep 2017 16:59:20 +0200
+Message-ID: <20170905145935.1578698-1-arnd@arndb.de>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-No reason to have dependency on PCI for the entire infiniband stack so
-move it to KConfig of only the drivers that actually using PCI.
+When CONFIG_IPV6 disabled, we run into a link error:
 
-Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
----
-v0 -> v1:
-	* As suggested by Thomas Bogendoerfer:
-		* Remove unneeded header inclusion from ipoib
-		* Remove PCI dependency from ipoib's Kconfig
-v1 -> v2:
-	* s/PCI || BROKEN/PCI
-	* Fix also drivers/staging/lustre/lnet/Kconfig
----
- drivers/infiniband/Kconfig                | 1 -
- drivers/infiniband/hw/cxgb3/Kconfig       | 1 +
- drivers/infiniband/hw/cxgb4/Kconfig       | 1 +
- drivers/infiniband/hw/hfi1/Kconfig        | 1 +
- drivers/infiniband/hw/i40iw/Kconfig       | 1 +
- drivers/infiniband/hw/qedr/Kconfig        | 1 +
- drivers/infiniband/hw/qib/Kconfig         | 1 +
- drivers/infiniband/sw/rdmavt/Kconfig      | 1 +
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 1 -
- drivers/staging/lustre/lnet/Kconfig       | 2 +-
- 10 files changed, 8 insertions(+), 3 deletions(-)
+drivers/infiniband/hw/qedr/qedr_iw_cm.o: In function `qedr_addr6_resolve.isra.3':
+qedr_iw_cm.c:(.text+0x4e0): undefined reference to `ip6_route_output_flags'
 
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index 234fe01904e7..568088a9298c 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -1,6 +1,5 @@
- menuconfig INFINIBAND
- 	tristate "InfiniBand support"
--	depends on PCI || BROKEN
- 	depends on HAS_IOMEM
- 	depends on NET
- 	depends on INET
-diff --git a/drivers/infiniband/hw/cxgb3/Kconfig b/drivers/infiniband/hw/cxgb3/Kconfig
-index 2b6352b85485..97046365f1c7 100644
---- a/drivers/infiniband/hw/cxgb3/Kconfig
-+++ b/drivers/infiniband/hw/cxgb3/Kconfig
-@@ -1,5 +1,6 @@
- config INFINIBAND_CXGB3
- 	tristate "Chelsio RDMA Driver"
-+	depends on PCI
- 	depends on CHELSIO_T3 && INET
- 	select GENERIC_ALLOCATOR
- 	---help---
-diff --git a/drivers/infiniband/hw/cxgb4/Kconfig b/drivers/infiniband/hw/cxgb4/Kconfig
-index afe8b28e0878..b771575b38c2 100644
---- a/drivers/infiniband/hw/cxgb4/Kconfig
-+++ b/drivers/infiniband/hw/cxgb4/Kconfig
-@@ -1,6 +1,7 @@
- config INFINIBAND_CXGB4
- 	tristate "Chelsio T4/T5 RDMA Driver"
- 	depends on CHELSIO_T4 && INET && (IPV6 || IPV6=n)
-+	depends on PCI
- 	select CHELSIO_LIB
- 	select GENERIC_ALLOCATOR
- 	---help---
-diff --git a/drivers/infiniband/hw/hfi1/Kconfig b/drivers/infiniband/hw/hfi1/Kconfig
-index f6ea0881765a..4f8fbffae36f 100644
---- a/drivers/infiniband/hw/hfi1/Kconfig
-+++ b/drivers/infiniband/hw/hfi1/Kconfig
-@@ -1,6 +1,7 @@
- config INFINIBAND_HFI1
- 	tristate "Intel OPA Gen1 support"
- 	depends on X86_64 && INFINIBAND_RDMAVT && I2C
-+	depends on PCI
- 	select MMU_NOTIFIER
- 	select CRC32
- 	select I2C_ALGOBIT
-diff --git a/drivers/infiniband/hw/i40iw/Kconfig b/drivers/infiniband/hw/i40iw/Kconfig
-index 6e7d27a14061..f6d20ba88c03 100644
---- a/drivers/infiniband/hw/i40iw/Kconfig
-+++ b/drivers/infiniband/hw/i40iw/Kconfig
-@@ -1,6 +1,7 @@
- config INFINIBAND_I40IW
- 	tristate "Intel(R) Ethernet X722 iWARP Driver"
- 	depends on INET && I40E
-+	depends on PCI
- 	select GENERIC_ALLOCATOR
- 	---help---
- 	Intel(R) Ethernet X722 iWARP Driver
-diff --git a/drivers/infiniband/hw/qedr/Kconfig b/drivers/infiniband/hw/qedr/Kconfig
-index 6c9f3923e838..3feec8dddf41 100644
---- a/drivers/infiniband/hw/qedr/Kconfig
-+++ b/drivers/infiniband/hw/qedr/Kconfig
-@@ -1,6 +1,7 @@
- config INFINIBAND_QEDR
- 	tristate "QLogic RoCE driver"
- 	depends on 64BIT && QEDE
-+	depends on PCI
- 	select QED_LL2
- 	select QED_RDMA
- 	---help---
-diff --git a/drivers/infiniband/hw/qib/Kconfig b/drivers/infiniband/hw/qib/Kconfig
-index e0fdb9201423..cb06314a2ae2 100644
---- a/drivers/infiniband/hw/qib/Kconfig
-+++ b/drivers/infiniband/hw/qib/Kconfig
-@@ -1,6 +1,7 @@
- config INFINIBAND_QIB
- 	tristate "Intel PCIe HCA support"
- 	depends on 64BIT && INFINIBAND_RDMAVT
-+	depends on PCI
- 	---help---
- 	This is a low-level driver for Intel PCIe QLE InfiniBand host
- 	channel adapters.  This driver does not support the Intel
-diff --git a/drivers/infiniband/sw/rdmavt/Kconfig b/drivers/infiniband/sw/rdmavt/Kconfig
-index fdd001ce13d8..2b5513da7e83 100644
---- a/drivers/infiniband/sw/rdmavt/Kconfig
-+++ b/drivers/infiniband/sw/rdmavt/Kconfig
-@@ -1,6 +1,7 @@
- config INFINIBAND_RDMAVT
- 	tristate "RDMA verbs transport library"
- 	depends on 64BIT
-+	depends on PCI
- 	select DMA_VIRT_OPS
- 	---help---
- 	This is a common software verbs provider for RDMA networks.
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 6c77df34869d..3fc3b7b20297 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -51,7 +51,6 @@
- #include <net/addrconf.h>
- #include <linux/inetdevice.h>
- #include <rdma/ib_cache.h>
--#include <linux/pci.h>
+The ipv6 handling code is obviously not needed here, so this
+adds a compile-time check for the Kconfig symbol in all three
+places in the code that decide between ipv4 and ipv6.
+
+We don't have to worry about a link error wtih QEDR=y/IPV6=m, as
+that configuration is already prohibited by CONFIG_INFINIBAND
+depending on "m || IPV6 != m".
+
+Fixes: e411e0587e0d ("RDMA/qedr: Add iWARP connection management functions")
+Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+---
+ drivers/infiniband/hw/qedr/qedr_iw_cm.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/infiniband/hw/qedr/qedr_iw_cm.c b/drivers/infiniband/hw/qedr/qedr_iw_cm.c
+index fe9b2b6149b0..2950d3f6ecb8 100644
+--- a/drivers/infiniband/hw/qedr/qedr_iw_cm.c
++++ b/drivers/infiniband/hw/qedr/qedr_iw_cm.c
+@@ -98,7 +98,8 @@ qedr_iw_mpa_request(void *context, struct qed_iwarp_cm_event_params *params)
+ 	event.event = IW_CM_EVENT_CONNECT_REQUEST;
+ 	event.status = params->status;
  
- #define DRV_VERSION "1.0.0"
+-	if (params->cm_info->ip_version == QED_TCP_IPV4)
++	if (!IS_ENABLED(CONFIG_IPV6) ||
++	    params->cm_info->ip_version == QED_TCP_IPV4)
+ 		qedr_fill_sockaddr4(params->cm_info, &event);
+ 	else
+ 		qedr_fill_sockaddr6(params->cm_info, &event);
+@@ -522,7 +523,8 @@ int qedr_iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
+ 	memset(cm_info->local_ip, 0, sizeof(cm_info->local_ip));
+ 	memset(cm_info->remote_ip, 0, sizeof(cm_info->remote_ip));
  
-diff --git a/drivers/staging/lustre/lnet/Kconfig b/drivers/staging/lustre/lnet/Kconfig
-index 2b5930150cda..6bcb53d0c6f4 100644
---- a/drivers/staging/lustre/lnet/Kconfig
-+++ b/drivers/staging/lustre/lnet/Kconfig
-@@ -34,7 +34,7 @@ config LNET_SELFTEST
+-	if (cm_id->remote_addr.ss_family == AF_INET) {
++	if (!IS_ENABLED(CONFIG_IPV6) ||
++	    cm_id->remote_addr.ss_family == AF_INET) {
+ 		cm_info->ip_version = QED_TCP_IPV4;
  
- config LNET_XPRT_IB
- 	tristate "LNET infiniband support"
--	depends on LNET && INFINIBAND && INFINIBAND_ADDR_TRANS
-+	depends on LNET && PCI && INFINIBAND && INFINIBAND_ADDR_TRANS
- 	default LNET && INFINIBAND
- 	help
- 	  This option allows the LNET users to use infiniband as an
+ 		cm_info->remote_ip[0] = ntohl(raddr->sin_addr.s_addr);
+@@ -616,7 +618,8 @@ int qedr_iw_create_listen(struct iw_cm_id *cm_id, int backlog)
+ 	iparams.event_cb = qedr_iw_event_handler;
+ 	iparams.max_backlog = backlog;
+ 
+-	if (cm_id->local_addr.ss_family == AF_INET) {
++	if (!IS_ENABLED(CONFIG_IPV6) ||
++	    cm_id->local_addr.ss_family == AF_INET) {
+ 		iparams.ip_version = QED_TCP_IPV4;
+ 		memset(iparams.ip_addr, 0, sizeof(iparams.ip_addr));
+ 
 -- 
-2.13.5
+2.9.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
