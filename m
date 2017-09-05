@@ -1,36 +1,32 @@
-From: Long Li <longli@microsoft.com>
-Subject: RE: [Patch v2 00/19] CIFS: Implement SMBDirect
-Date: Tue, 5 Sep 2017 17:42:06 +0000
-Message-ID: <MWHPR21MB019029EE2B55A72AB14EFA7DCE960@MWHPR21MB0190.namprd21.prod.outlook.com>
-References: <1503255883-3041-1-git-send-email-longli@exchange.microsoft.com>
- <01ff01d31ab1$ca836a60$5f8a3f20$@opengridcomputing.com>
- <MWHPR21MB019081F64C50E08043286EE3CE870@MWHPR21MB0190.namprd21.prod.outlook.com>
- <027d01d31ab7$85adbed0$91093c70$@opengridcomputing.com>
- <MWHPR21MB0190AD423095EEA25CA6CD81CE870@MWHPR21MB0190.namprd21.prod.outlook.com>
- <MWHPR21MB0190050F3699CDF6F52B51A2CE9F0@MWHPR21MB0190.namprd21.prod.outlook.com>
- <001b01d32664$5640f8c0$02c2ea40$@opengridcomputing.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH 7/10] net/mlx4_core: Use ARRAY_SIZE macro
+Date: Tue, 05 Sep 2017 11:50:51 -0700 (PDT)
+Message-ID: <20170905.115051.353243810279371029.davem@davemloft.net>
+References: <1504439110050-939061377-0-diffsplit-thomas@m3y3r.de>
+        <1504439110050-1961876957-7-diffsplit-thomas@m3y3r.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <001b01d32664$5640f8c0$02c2ea40$@opengridcomputing.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Steve Wise <swise@opengridcomputing.com>, 'Steve French' <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, 'Christoph Hellwig' <hch@infradead.org>, Tom Talpey <ttalpey@microsoft.com>, Matthew Wilcox <mawilcox@microsoft.com>
-Cc: 'Venkatesh Pottem' <venkatesh@chelsio.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1504439110050-1961876957-7-diffsplit-thomas-VsYtu1Qij5c@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: thomas-VsYtu1Qij5c@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Hey Long, how do I request a CIFS RDMA mount from the Linux client?  Is
-> there a mount.cifs option?  If so, where can I get the mount.cifs code th=
-at
-> enables this?  Or is there some other way?
+From: Thomas Meyer <thomas-VsYtu1Qij5c@public.gmane.org>
+Date: Sun, 03 Sep 2017 14:19:31 +0200
 
-You can use "-o rdma" in the mount option to connect to RDMA.
-For example: "mount.cifs -o rdma,vers=3D3.02"
+> Use ARRAY_SIZE macro, rather than explicitly coding some variant of it
+> yourself.
+> Found with: find -type f -name "*.c" -o -name "*.h" | xargs perl -p -i -e
+> 's/\bsizeof\s*\(\s*(\w+)\s*\)\s*\ /\s*sizeof\s*\(\s*\1\s*\[\s*0\s*\]\s*\)
+> /ARRAY_SIZE(\1)/g' and manual check/verification.
+> 
+> Signed-off-by: Thomas Meyer <thomas-VsYtu1Qij5c@public.gmane.org>
 
-The change to the mount option is in the patch series.
-
->=20
-> Thanks,
->=20
-> Steve.
+Applied.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
