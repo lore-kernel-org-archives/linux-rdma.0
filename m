@@ -1,68 +1,99 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: [PATCH] RDMA/qedr: fix build error without ipv6
-Date: Tue,  5 Sep 2017 16:59:20 +0200
-Message-ID: <20170905145935.1578698-1-arnd@arndb.de>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/{ipoib,iser}: Consistent print format of vendor error
+Date: Tue,  5 Sep 2017 18:09:19 +0300
+Message-ID: <20170905150919.12631-1-yuval.shaia@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ariel Elior <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "Mintz, Yuval" <Yuval.Mintz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Ajaykumar Hotchandani <ajaykumar.hotchandani-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When CONFIG_IPV6 disabled, we run into a link error:
+Vendor error print should be consistent across protocols to avoid any
+confusion.
+This patch corrects that.
 
-drivers/infiniband/hw/qedr/qedr_iw_cm.o: In function `qedr_addr6_resolve.isra.3':
-qedr_iw_cm.c:(.text+0x4e0): undefined reference to `ip6_route_output_flags'
-
-The ipv6 handling code is obviously not needed here, so this
-adds a compile-time check for the Kconfig symbol in all three
-places in the code that decide between ipv4 and ipv6.
-
-We don't have to worry about a link error wtih QEDR=y/IPV6=m, as
-that configuration is already prohibited by CONFIG_INFINIBAND
-depending on "m || IPV6 != m".
-
-Fixes: e411e0587e0d ("RDMA/qedr: Add iWARP connection management functions")
-Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Suggested-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Ajaykumar Hotchandani <ajaykumar.hotchandani-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Acked-by: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/qedr/qedr_iw_cm.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c  | 10 +++++-----
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c  |  8 ++++----
+ drivers/infiniband/ulp/iser/iser_verbs.c |  2 +-
+ 3 files changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qedr/qedr_iw_cm.c b/drivers/infiniband/hw/qedr/qedr_iw_cm.c
-index fe9b2b6149b0..2950d3f6ecb8 100644
---- a/drivers/infiniband/hw/qedr/qedr_iw_cm.c
-+++ b/drivers/infiniband/hw/qedr/qedr_iw_cm.c
-@@ -98,7 +98,8 @@ qedr_iw_mpa_request(void *context, struct qed_iwarp_cm_event_params *params)
- 	event.event = IW_CM_EVENT_CONNECT_REQUEST;
- 	event.status = params->status;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+index 14b62f7472b4..fd302ba78869 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+@@ -594,9 +594,9 @@ void ipoib_cm_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
+ 	skb = rx_ring[wr_id].skb;
  
--	if (params->cm_info->ip_version == QED_TCP_IPV4)
-+	if (!IS_ENABLED(CONFIG_IPV6) ||
-+	    params->cm_info->ip_version == QED_TCP_IPV4)
- 		qedr_fill_sockaddr4(params->cm_info, &event);
- 	else
- 		qedr_fill_sockaddr6(params->cm_info, &event);
-@@ -522,7 +523,8 @@ int qedr_iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 	memset(cm_info->local_ip, 0, sizeof(cm_info->local_ip));
- 	memset(cm_info->remote_ip, 0, sizeof(cm_info->remote_ip));
+ 	if (unlikely(wc->status != IB_WC_SUCCESS)) {
+-		ipoib_dbg(priv, "cm recv error "
+-			   "(status=%d, wrid=%d vend_err %x)\n",
+-			   wc->status, wr_id, wc->vendor_err);
++		ipoib_dbg(priv,
++			  "cm recv error (status=%d, wrid=%d vend_err 0x%x)\n",
++			  wc->status, wr_id, wc->vendor_err);
+ 		++dev->stats.rx_dropped;
+ 		if (has_srq)
+ 			goto repost;
+@@ -824,10 +824,10 @@ void ipoib_cm_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
+ 		struct ipoib_neigh *neigh;
  
--	if (cm_id->remote_addr.ss_family == AF_INET) {
-+	if (!IS_ENABLED(CONFIG_IPV6) ||
-+	    cm_id->remote_addr.ss_family == AF_INET) {
- 		cm_info->ip_version = QED_TCP_IPV4;
+ 		if (wc->status != IB_WC_RNR_RETRY_EXC_ERR)
+-			ipoib_warn(priv, "failed cm send event (status=%d, wrid=%d vend_err %x)\n",
++			ipoib_warn(priv, "failed cm send event (status=%d, wrid=%d vend_err 0x%x)\n",
+ 				   wc->status, wr_id, wc->vendor_err);
+ 		else
+-			ipoib_dbg(priv, "failed cm send event (status=%d, wrid=%d vend_err %x)\n",
++			ipoib_dbg(priv, "failed cm send event (status=%d, wrid=%d vend_err 0x%x)\n",
+ 				  wc->status, wr_id, wc->vendor_err);
  
- 		cm_info->remote_ip[0] = ntohl(raddr->sin_addr.s_addr);
-@@ -616,7 +618,8 @@ int qedr_iw_create_listen(struct iw_cm_id *cm_id, int backlog)
- 	iparams.event_cb = qedr_iw_event_handler;
- 	iparams.max_backlog = backlog;
+ 		spin_lock_irqsave(&priv->lock, flags);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index 2e075377242e..eb62f9d29103 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -192,8 +192,8 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
  
--	if (cm_id->local_addr.ss_family == AF_INET) {
-+	if (!IS_ENABLED(CONFIG_IPV6) ||
-+	    cm_id->local_addr.ss_family == AF_INET) {
- 		iparams.ip_version = QED_TCP_IPV4;
- 		memset(iparams.ip_addr, 0, sizeof(iparams.ip_addr));
+ 	if (unlikely(wc->status != IB_WC_SUCCESS)) {
+ 		if (wc->status != IB_WC_WR_FLUSH_ERR)
+-			ipoib_warn(priv, "failed recv event "
+-				   "(status=%d, wrid=%d vend_err %x)\n",
++			ipoib_warn(priv,
++				   "failed recv event (status=%d, wrid=%d vend_err 0x%x)\n",
+ 				   wc->status, wr_id, wc->vendor_err);
+ 		ipoib_ud_dma_unmap_rx(priv, priv->rx_ring[wr_id].mapping);
+ 		dev_kfree_skb_any(skb);
+@@ -414,8 +414,8 @@ static void ipoib_ib_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
+ 	if (wc->status != IB_WC_SUCCESS &&
+ 	    wc->status != IB_WC_WR_FLUSH_ERR) {
+ 		struct ipoib_qp_state_validate *qp_work;
+-		ipoib_warn(priv, "failed send event "
+-			   "(status=%d, wrid=%d vend_err %x)\n",
++		ipoib_warn(priv,
++			   "failed send event (status=%d, wrid=%d vend_err 0x%x)\n",
+ 			   wc->status, wr_id, wc->vendor_err);
+ 		qp_work = kzalloc(sizeof(*qp_work), GFP_ATOMIC);
+ 		if (!qp_work)
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index 55a73b0ed4c6..fe58abcf65a2 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -1146,7 +1146,7 @@ void iser_err_comp(struct ib_wc *wc, const char *type)
+ 	if (wc->status != IB_WC_WR_FLUSH_ERR) {
+ 		struct iser_conn *iser_conn = to_iser_conn(wc->qp->qp_context);
+ 
+-		iser_err("%s failure: %s (%d) vend_err %x\n", type,
++		iser_err("%s failure: %s (%d) vend_err 0x%x\n", type,
+ 			 ib_wc_status_msg(wc->status), wc->status,
+ 			 wc->vendor_err);
  
 -- 
-2.9.0
+2.13.5
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
