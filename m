@@ -1,31 +1,48 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core RESEND] libqedr: Add iWARP support for
- user-space lib
-Date: Tue, 5 Sep 2017 09:14:12 -0600
-Message-ID: <20170905151412.GA18205@obsidianresearch.com>
-References: <1504622214-9730-1-git-send-email-Ram.Amrani@cavium.com>
+From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <Haakon.Bugge@oracle.com>
+Subject: [PATCH net] rds: Fix non-atomic operation on shared flag variable
+Date: Tue,  5 Sep 2017 17:42:01 +0200
+Message-ID: <20170905154201.30198-1-Haakon.Bugge@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1504622214-9730-1-git-send-email-Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@oracle.com>, "David S . Miller" <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org, knut.omang@oracle.com, wei.lin.guay@oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 05, 2017 at 05:36:54PM +0300, Ram Amrani wrote:
-> +		if (iwarp) {
-> +			writel(qp->rq.iwarp_db2_data.raw, qp->rq.iwarp_db2);
-> +			mmio_flush_writes();
-> +		}
+The bits in m_flags in struct rds_message are used for a plurality of
+reasons, and from different contexts. To avoid any missing updates to
+m_flags, use the atomic set_bit() instead of the non-atomic equivalent.
 
-Can you update this driver to use the macros in util/mmio.h and
-discard this writel thing?
+Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+Reviewed-by: Knut Omang <knut.omang@oracle.com>
+Reviewed-by: Wei Lin Guay <wei.lin.guay@oracle.com>
+---
+ net/rds/send.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Thanks,
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/net/rds/send.c b/net/rds/send.c
+index 41b9f0f..058a407 100644
+--- a/net/rds/send.c
++++ b/net/rds/send.c
+@@ -273,7 +273,7 @@ int rds_send_xmit(struct rds_conn_path *cp)
+ 			len = ntohl(rm->m_inc.i_hdr.h_len);
+ 			if (cp->cp_unacked_packets == 0 ||
+ 			    cp->cp_unacked_bytes < len) {
+-				__set_bit(RDS_MSG_ACK_REQUIRED, &rm->m_flags);
++				set_bit(RDS_MSG_ACK_REQUIRED, &rm->m_flags);
+ 
+ 				cp->cp_unacked_packets =
+ 					rds_sysctl_max_unacked_packets;
+@@ -829,7 +829,7 @@ static int rds_send_queue_rm(struct rds_sock *rs, struct rds_connection *conn,
+ 		 * throughput hits a certain threshold.
+ 		 */
+ 		if (rs->rs_snd_bytes >= rds_sk_sndbuf(rs) / 2)
+-			__set_bit(RDS_MSG_ACK_REQUIRED, &rm->m_flags);
++			set_bit(RDS_MSG_ACK_REQUIRED, &rm->m_flags);
+ 
+ 		list_add_tail(&rm->m_sock_item, &rs->rs_send_queue);
+ 		set_bit(RDS_MSG_ON_SOCK, &rm->m_flags);
+-- 
+2.9.3
