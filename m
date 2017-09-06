@@ -1,166 +1,84 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 2/3] mlx5: Add support for managing QP with a given source QP number
-Date: Wed,  6 Sep 2017 17:38:48 +0300
-Message-ID: <1504708729-15249-3-git-send-email-yishaih@mellanox.com>
-References: <1504708729-15249-1-git-send-email-yishaih@mellanox.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH RFC 0/5] xprtrdma Send completion batching
+Date: Wed, 6 Sep 2017 11:11:44 -0400
+Message-ID: <4E2E5580-69A5-4C3B-9FCA-E61AE2042E6B@oracle.com>
+References: <20170905164347.11106.27140.stgit@manet.1015granger.net> <1230f9d9-07c1-6d00-b197-f408712fb5c1@grimberg.me> <890CC58C-7F8F-4B7E-8620-21F07007D3AA@oracle.com> <6dcdcc25-2613-cdb5-1db2-6c944f05242b@grimberg.me>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1504708729-15249-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <6dcdcc25-2613-cdb5-1db2-6c944f05242b-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add support to create a QP with source QPN (e.g. IPoIB QPN) over UD QP.
 
-It includes:
-- Input checking that basic QP type is UD.
-- Create and manage driver resources as done for RAW QP.
+> On Sep 6, 2017, at 10:29 AM, Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org> wrote:
+> 
+> 
+>>> Question, what happens in direct-io for example? Can a mapped buffer be
+>>> reclaimed/free'd before the send completion arrives?
+>> Good Q! RPC completion allows memory containing the arguments and
+>> results to be re-used. IIRC our conclusion was that a retransmitted
+>> Send could expose the wrong argument data on the wire in this case.
+>> Buffer re-use implies that the RPC has completed. Either a matching
+>> RPC Reply was received, or the RPC was terminated via a POSIX signal.
+>> If the client has already received an RPC Reply for this transaction,
+>> a previous transmission of the RPC Call has already executed on the
+>> server, and this retransmission will be ignored. It's only purpose is
+>> to generate an appropriate RDMA ACK.
+>> A re-used buffer might be subsequently used for data that is sensitive,
+>> and the retransmission will expose that data on the wire.
+> 
+> That was where I was going with this...
+> 
+>> To protect
+>> against that, RPC can use a GSS flavor that protects confidentiality
+>> of RPC arguments and results. This would also require RPC-over-RDMA
+>> to use only RDMA Read to convey RPC Call messages. Send would be used
+>> only to convey the chunk lists, never data.
+>> Note that the buffers used to construct RPC Calls are always mapped
+>> and Send uses the local DMA key to post them. These can also be
+>> re-used immediately after RPC completion. The exposure risk there is
+>> of RPC headers and non-data arguments.
+> 
+> I see, but how can the user know that that it needs to use RPCSEC_GSS
+> otherwise nfs/rdma might compromise sensitive data? And is this
+> a valid constraint? (just asking, you're the expert)
 
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- providers/mlx5/mlx5.h  |  8 +++++++-
- providers/mlx5/qp.c    |  3 ++-
- providers/mlx5/verbs.c | 36 +++++++++++++++++++++++++++++++-----
- 3 files changed, 40 insertions(+), 7 deletions(-)
+sec=krb5p is used in cases where data on the wire must remain
+confidential. Otherwise, sensitive or no, data on the wire goes
+in the clear.
 
-diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
-index ad36cbf..ae39d17 100644
---- a/providers/mlx5/mlx5.h
-+++ b/providers/mlx5/mlx5.h
-@@ -150,7 +150,8 @@ enum {
- };
- 
- enum {
--	MLX5_CSUM_SUPPORT_RAW_OVER_ETH  = (1 <<  0),
-+	MLX5_CSUM_SUPPORT_RAW_OVER_ETH  = (1 << 0),
-+	MLX5_CSUM_SUPPORT_UNDERLAY_UD   = (1 << 1),
- 	/*
- 	 * Only report rx checksum when the validation
- 	 * is valid.
-@@ -396,6 +397,10 @@ struct mlx5_mr {
- 	uint32_t			alloc_flags;
- };
- 
-+enum mlx5_qp_flags {
-+	MLX5_QP_FLAGS_USE_UNDERLAY = 0x01,
-+};
-+
- struct mlx5_qp {
- 	struct mlx5_resource            rsc; /* This struct must be first */
- 	struct verbs_qp			verbs_qp;
-@@ -421,6 +426,7 @@ struct mlx5_qp {
- 	uint32_t			max_tso;
- 	uint16_t			max_tso_header;
- 	int                             rss_qp;
-+	uint32_t			flags; /* Use enum mlx5_qp_flags */
- };
- 
- struct mlx5_ah {
-diff --git a/providers/mlx5/qp.c b/providers/mlx5/qp.c
-index 52da8c1..2960ba0 100644
---- a/providers/mlx5/qp.c
-+++ b/providers/mlx5/qp.c
-@@ -1199,7 +1199,8 @@ out:
- 		 * This is only for Raw Packet QPs since they are represented
- 		 * differently in the hardware.
- 		 */
--		if (likely(!(ibqp->qp_type == IBV_QPT_RAW_PACKET &&
-+		if (likely(!((ibqp->qp_type == IBV_QPT_RAW_PACKET ||
-+			      qp->flags & MLX5_QP_FLAGS_USE_UNDERLAY) &&
- 			     ibqp->state < IBV_QPS_RTR)))
- 			qp->db[MLX5_RCV_DBR] = htobe32(qp->rq.head & 0xffff);
- 	}
-diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-index fc63ae9..a469c93 100644
---- a/providers/mlx5/verbs.c
-+++ b/providers/mlx5/verbs.c
-@@ -1096,7 +1096,8 @@ static int mlx5_alloc_qp_buf(struct ibv_context *context,
- 
- 	memset(qp->buf.buf, 0, qp->buf_size);
- 
--	if (attr->qp_type == IBV_QPT_RAW_PACKET) {
-+	if (attr->qp_type == IBV_QPT_RAW_PACKET ||
-+	    qp->flags & MLX5_QP_FLAGS_USE_UNDERLAY) {
- 		size_t aligned_sq_buf_size = align(qp->sq_buf_size,
- 						   to_mdev(context->device)->page_size);
- 		/* For Raw Packet QP, allocate a separate buffer for the SQ */
-@@ -1257,6 +1258,17 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
- 	ibqp = (struct ibv_qp *)&qp->verbs_qp;
- 	qp->ibv_qp = ibqp;
- 
-+	if ((attr->comp_mask & IBV_QP_INIT_ATTR_CREATE_FLAGS) &&
-+		(attr->create_flags & IBV_QP_CREATE_SOURCE_QPN)) {
-+
-+		if (attr->qp_type != IBV_QPT_UD) {
-+			errno = EINVAL;
-+			goto err;
-+		}
-+
-+		qp->flags |= MLX5_QP_FLAGS_USE_UNDERLAY;
-+	}
-+
- 	memset(&cmd, 0, sizeof(cmd));
- 	memset(&resp, 0, sizeof(resp));
- 	memset(&resp_ex, 0, sizeof(resp_ex));
-@@ -1282,7 +1294,8 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
- 		goto err;
- 	}
- 
--	if (attr->qp_type == IBV_QPT_RAW_PACKET) {
-+	if (attr->qp_type == IBV_QPT_RAW_PACKET ||
-+	    qp->flags & MLX5_QP_FLAGS_USE_UNDERLAY) {
- 		qp->buf_size = qp->sq.offset;
- 		qp->sq_buf_size = ret - qp->buf_size;
- 		qp->sq.offset = 0;
-@@ -1296,7 +1309,8 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
- 		goto err;
- 	}
- 
--	if (attr->qp_type == IBV_QPT_RAW_PACKET) {
-+	if (attr->qp_type == IBV_QPT_RAW_PACKET ||
-+	    qp->flags & MLX5_QP_FLAGS_USE_UNDERLAY) {
- 		qp->sq_start = qp->sq_buf.buf;
- 		qp->sq.qend = qp->sq_buf.buf +
- 				(qp->sq.wqe_cnt << qp->sq.wqe_shift);
-@@ -1322,7 +1336,8 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
- 	qp->db[MLX5_SND_DBR] = 0;
- 
- 	cmd.buf_addr = (uintptr_t) qp->buf.buf;
--	cmd.sq_buf_addr = (attr->qp_type == IBV_QPT_RAW_PACKET) ?
-+	cmd.sq_buf_addr = (attr->qp_type == IBV_QPT_RAW_PACKET ||
-+			   qp->flags & MLX5_QP_FLAGS_USE_UNDERLAY) ?
- 			  (uintptr_t) qp->sq_buf.buf : 0;
- 	cmd.db_addr  = (uintptr_t) qp->db;
- 	cmd.sq_wqe_count = qp->sq.wqe_cnt;
-@@ -1560,6 +1575,16 @@ int mlx5_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- 	if (mqp->rss_qp)
- 		return ENOSYS;
- 
-+	if (mqp->flags & MLX5_QP_FLAGS_USE_UNDERLAY) {
-+		if (attr_mask & ~(IBV_QP_STATE | IBV_QP_CUR_STATE))
-+			return EINVAL;
-+
-+		/* Underlay QP is UD over infiniband */
-+		if (context->cached_device_cap_flags & IBV_DEVICE_UD_IP_CSUM)
-+			mqp->qp_cap_cache |= MLX5_CSUM_SUPPORT_UNDERLAY_UD |
-+					     MLX5_RX_CSUM_VALID;
-+	}
-+
- 	if (attr_mask & IBV_QP_PORT) {
- 		switch (qp->qp_type) {
- 		case IBV_QPT_RAW_PACKET:
-@@ -1621,7 +1646,8 @@ int mlx5_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- 	if (!ret &&
- 	    (attr_mask & IBV_QP_STATE) &&
- 	    attr->qp_state == IBV_QPS_RTR &&
--	    qp->qp_type == IBV_QPT_RAW_PACKET) {
-+	    (qp->qp_type == IBV_QPT_RAW_PACKET ||
-+	     mqp->flags & MLX5_QP_FLAGS_USE_UNDERLAY)) {
- 		mlx5_spin_lock(&mqp->rq.lock);
- 		mqp->db[MLX5_RCV_DBR] = htobe32(mqp->rq.head & 0xffff);
- 		mlx5_spin_unlock(&mqp->rq.lock);
--- 
-1.8.3.1
+But an administrator might not expect that other sensitive data
+on the client (not involved with NFS) can be placed on the wire
+by the vagaries of memory allocation and hardware retransmission,
+as exceptionally rare as that might be.
+
+Memory in which Send data resides is donated to the device until
+the Send completion fires: the ULP has no way to get it back in
+the meantime. ULPs can invalidate memory used for RDMA Read at
+any time, but Send memory is registered with the local DMA key
+(as anything else is just as expensive as an RDMA data transfer).
+
+The immediate solution is to never use Send to move file data
+directly. It will always have to be copied into a buffer or
+we use RDMA Read. These buffers contain only data that is
+destined for the wire. Does that close the unwanted exposure
+completely?
+
+If the HCA can guarantee that all Sends complete quickly (either
+successful, flush, or time out after a few seconds) then it could
+be fair to make RPC completion also wait for Send completion.
+Otherwise, a ^C on a file operation targeting an unreachable
+server will hang indefinitely.
+
+
+--
+Chuck Lever
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
