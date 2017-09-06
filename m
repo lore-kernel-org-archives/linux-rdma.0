@@ -1,144 +1,40 @@
-From: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH rdma-core v2] libqedr: Add iWARP support for user-space lib
-Date: Wed, 6 Sep 2017 12:25:59 +0300
-Message-ID: <1504689959-32494-1-git-send-email-Ram.Amrani@cavium.com>
+From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Subject: Re: [PATCH] IB/{ipoib,iser}: Consistent print format of vendor error
+Date: Wed, 6 Sep 2017 12:31:38 +0300
+Message-ID: <27205dba-fc22-6f48-44cc-ee89d823446b@grimberg.me>
+References: <20170905150919.12631-1-yuval.shaia@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170905150919.12631-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
-Cc: Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Ajaykumar Hotchandani <ajaykumar.hotchandani-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
 
-Introduce IS_IWARP / IS_ROCE macros for libqedr as there are no global
-macros for this in rdma-core.
-There is a second doorbell required for RQ.
-QP states in user lib are not updated, as they are updated implicitly by
-the driver and not driven by modify_qp as they are in ib / roce.
-For this reason, decisions based on states are encapsulated in IS_ROCE.
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+> index 14b62f7472b4..fd302ba78869 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+> @@ -594,9 +594,9 @@ void ipoib_cm_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
+>   	skb = rx_ring[wr_id].skb;
+>   
+>   	if (unlikely(wc->status != IB_WC_SUCCESS)) {
+> -		ipoib_dbg(priv, "cm recv error "
+> -			   "(status=%d, wrid=%d vend_err %x)\n",
+> -			   wc->status, wr_id, wc->vendor_err);
+> +		ipoib_dbg(priv,
+> +			  "cm recv error (status=%d, wrid=%d vend_err 0x%x)\n",
+> +			  wc->status, wr_id, wc->vendor_err);
 
-Signed-off-by: Michal Kalderon <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Ram Amrani <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
----
- providers/qedr/qelr.h       |  2 ++
- providers/qedr/qelr_verbs.c | 34 +++++++++++++++++++++++++++++-----
- 2 files changed, 31 insertions(+), 5 deletions(-)
+%#x might be a better way to go Yuval.
 
-diff --git a/providers/qedr/qelr.h b/providers/qedr/qelr.h
-index 05b1640..1a5920c 100644
---- a/providers/qedr/qelr.h
-+++ b/providers/qedr/qelr.h
-@@ -192,6 +192,8 @@ struct qelr_qp_hwq_info {
- 	void					*db;      /* Doorbell address */
- 	void					*edpm_db;
- 	union db_prod32				db_data;  /* Doorbell data */
-+	void					*iwarp_db2;
-+	union db_prod32				iwarp_db2_data;
- 
- 	uint16_t				icid;
- };
-diff --git a/providers/qedr/qelr_verbs.c b/providers/qedr/qelr_verbs.c
-index fb52f9d..4a74c50 100644
---- a/providers/qedr/qelr_verbs.c
-+++ b/providers/qedr/qelr_verbs.c
-@@ -60,6 +60,9 @@
- #define QELR_RQE_ELEMENT_SIZE	(sizeof(struct rdma_rq_sge))
- #define QELR_CQE_SIZE		(sizeof(union rdma_cqe))
- 
-+#define IS_IWARP(_dev)		(_dev->node_type == IBV_NODE_RNIC)
-+#define IS_ROCE(_dev)		(_dev->node_type == IBV_NODE_CA)
-+
- static void qelr_inc_sw_cons_u16(struct qelr_qp_hwq_info *info)
- {
- 	info->cons = (info->cons + 1) % info->max_wr;
-@@ -435,6 +438,9 @@ static inline int qelr_configure_qp_rq(struct qelr_devctx *cxt,
- 	qp->rq.icid = resp->rq_icid;
- 	qp->rq.db_data.data.icid = htole16(resp->rq_icid);
- 	qp->rq.db = cxt->db_addr + resp->rq_db_offset;
-+	qp->rq.iwarp_db2 = cxt->db_addr + resp->rq_db2_offset;
-+	qp->rq.iwarp_db2_data.data.icid = htole16(qp->rq.icid);
-+	qp->rq.iwarp_db2_data.data.value = htole16(DQ_TCM_IWARP_POST_RQ_CF_CMD);
- 	qp->rq.prod = 0;
- 
- 	/* shadow RQ */
-@@ -649,6 +655,12 @@ static int qelr_update_qp_state(struct qelr_qp *qp,
- 	int status = 0;
- 	enum qelr_qp_state new_state;
- 
-+	/* iWARP states are updated implicitely by driver and don't have a
-+	 * real purpose in user-lib.
-+	 */
-+	if (IS_IWARP(qp->ibv_qp.context->device))
-+		return 0;
-+
- 	new_state = get_qelr_qp_state(new_ib_state);
- 
- 	pthread_spin_lock(&qp->q_lock);
-@@ -678,9 +690,11 @@ static int qelr_update_qp_state(struct qelr_qp *qp,
- 			/* Update doorbell (in case post_recv was done before
- 			 * move to RTR)
- 			 */
--			mmio_wc_start();
--			writel(qp->rq.db_data.raw, qp->rq.db);
--			mmio_flush_writes();
-+			if (IS_ROCE(qp->ibv_qp.context->device)) {
-+				mmio_wc_start();
-+				writel(qp->rq.db_data.raw, qp->rq.db);
-+				mmio_flush_writes();
-+			}
- 			break;
- 		case QELR_QPS_ERR:
- 			break;
-@@ -872,6 +886,10 @@ static inline void qelr_init_dpm_info(struct qelr_devctx *cxt,
- {
- 	dpm->is_edpm = 0;
- 
-+	/* Currently dpm is not supported for iWARP */
-+	if (IS_IWARP(cxt->ibv_ctx.device))
-+		return;
-+
- 	if (qelr_chain_is_full(&qp->sq.chain) &&
- 	    wr->send_flags & IBV_SEND_INLINE && !qp->edpm_disabled) {
- 		memset(dpm, 0, sizeof(*dpm));
-@@ -1434,7 +1452,8 @@ int qelr_post_send(struct ibv_qp *ib_qp, struct ibv_send_wr *wr,
- 
- 	pthread_spin_lock(&qp->q_lock);
- 
--	if ((qp->state != QELR_QPS_RTS && qp->state != QELR_QPS_ERR &&
-+	if (IS_ROCE(ib_qp->context->device) &&
-+	    (qp->state != QELR_QPS_RTS && qp->state != QELR_QPS_ERR &&
- 	     qp->state != QELR_QPS_SQD)) {
- 		pthread_spin_unlock(&qp->q_lock);
- 		*bad_wr = wr;
-@@ -1474,10 +1493,11 @@ int qelr_post_recv(struct ibv_qp *ibqp, struct ibv_recv_wr *wr,
- 	struct qelr_qp *qp =  get_qelr_qp(ibqp);
- 	struct qelr_devctx *cxt = get_qelr_ctx(ibqp->context);
- 	uint16_t db_val;
-+	uint8_t iwarp = IS_IWARP(ibqp->context->device);
- 
- 	pthread_spin_lock(&qp->q_lock);
- 
--	if (qp->state == QELR_QPS_RST) {
-+	if (!iwarp && qp->state == QELR_QPS_RST) {
- 		pthread_spin_unlock(&qp->q_lock);
- 		*bad_wr = wr;
- 		return -EINVAL;
-@@ -1546,6 +1566,10 @@ int qelr_post_recv(struct ibv_qp *ibqp, struct ibv_recv_wr *wr,
- 		writel(qp->rq.db_data.raw, qp->rq.db);
- 		mmio_flush_writes();
- 
-+		if (iwarp) {
-+			writel(qp->rq.iwarp_db2_data.raw, qp->rq.iwarp_db2);
-+			mmio_flush_writes();
-+		}
- 		wr = wr->next;
- 	}
- 
--- 
-1.8.3.1
+otherwise looks fine,
 
+Reviewed-by: Sagi Grimberg <sagi-TmH2Wj2nsNJBDLzU/O5InQ@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
