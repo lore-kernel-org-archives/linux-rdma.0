@@ -1,39 +1,49 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH] IB/{ipoib,iser}: Consistent print format of vendor error
-Date: Wed, 6 Sep 2017 13:20:25 +0300
-Message-ID: <48b956c3-922f-e551-9faf-f35508256cd9@grimberg.me>
-References: <20170905150919.12631-1-yuval.shaia@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/{cxgb3,cxgb4}: Remove unneeded config dependencies
+Date: Wed,  6 Sep 2017 13:52:01 +0300
+Message-ID: <20170906105201.8485-1-yuval.shaia@oracle.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170905150919.12631-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Ajaykumar Hotchandani <ajaykumar.hotchandani-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+CHELSIO_T3 already depend on INET
+CHELSIO_T4 already depend on (IPV6 || IPV6=n)
 
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-> index 14b62f7472b4..fd302ba78869 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-> @@ -594,9 +594,9 @@ void ipoib_cm_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
->   	skb = rx_ring[wr_id].skb;
->   
->   	if (unlikely(wc->status != IB_WC_SUCCESS)) {
-> -		ipoib_dbg(priv, "cm recv error "
-> -			   "(status=%d, wrid=%d vend_err %x)\n",
-> -			   wc->status, wr_id, wc->vendor_err);
-> +		ipoib_dbg(priv,
-> +			  "cm recv error (status=%d, wrid=%d vend_err 0x%x)\n",
+Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb3/Kconfig | 2 +-
+ drivers/infiniband/hw/cxgb4/Kconfig | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-%#x would be better Yuval,
+diff --git a/drivers/infiniband/hw/cxgb3/Kconfig b/drivers/infiniband/hw/cxgb3/Kconfig
+index 2b6352b85485..431be733fbbe 100644
+--- a/drivers/infiniband/hw/cxgb3/Kconfig
++++ b/drivers/infiniband/hw/cxgb3/Kconfig
+@@ -1,6 +1,6 @@
+ config INFINIBAND_CXGB3
+ 	tristate "Chelsio RDMA Driver"
+-	depends on CHELSIO_T3 && INET
++	depends on CHELSIO_T3
+ 	select GENERIC_ALLOCATOR
+ 	---help---
+ 	  This is an iWARP/RDMA driver for the Chelsio T3 1GbE and
+diff --git a/drivers/infiniband/hw/cxgb4/Kconfig b/drivers/infiniband/hw/cxgb4/Kconfig
+index afe8b28e0878..0a671a61fc92 100644
+--- a/drivers/infiniband/hw/cxgb4/Kconfig
++++ b/drivers/infiniband/hw/cxgb4/Kconfig
+@@ -1,6 +1,6 @@
+ config INFINIBAND_CXGB4
+ 	tristate "Chelsio T4/T5 RDMA Driver"
+-	depends on CHELSIO_T4 && INET && (IPV6 || IPV6=n)
++	depends on CHELSIO_T4 && INET
+ 	select CHELSIO_LIB
+ 	select GENERIC_ALLOCATOR
+ 	---help---
+-- 
+2.13.5
 
-otherwise looks fine,
-
-Acked-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
