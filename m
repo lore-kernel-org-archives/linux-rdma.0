@@ -1,159 +1,62 @@
-From: Romain Perier <romain.perier-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Subject: [PATCH v13 1/5] block: DAC960: Replace PCI pool old API
-Date: Wed,  6 Sep 2017 11:08:53 +0200
-Message-ID: <20170906090857.14846-2-romain.perier@collabora.com>
-References: <20170906090857.14846-1-romain.perier@collabora.com>
+From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH rdma-core RESEND] libqedr: Add iWARP support for
+ user-space lib
+Date: Wed, 6 Sep 2017 09:18:58 +0000
+Message-ID: <BN3PR07MB2578B8F3480B5218A06F2167F8970@BN3PR07MB2578.namprd07.prod.outlook.com>
+References: <1504622214-9730-1-git-send-email-Ram.Amrani@cavium.com>
+ <20170905151412.GA18205@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170906090857.14846-1-romain.perier-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+In-Reply-To: <20170905151412.GA18205-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, stas.yakovlev-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Aviad Krawczyk <aviad.krawczyk-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Romain Perier <romain.perier-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The PCI pool API is deprecated. This commit replaces the PCI pool old
-API by the appropriate function with the DMA pool API.
+> On Tue, Sep 05, 2017 at 05:36:54PM +0300, Ram Amrani wrote:
+> > +		if (iwarp) {
+> > +			writel(qp->rq.iwarp_db2_data.raw, qp->rq.iwarp_db2);
+> > +			mmio_flush_writes();
+> > +		}
+>=20
+> Can you update this driver to use the macros in util/mmio.h and
+> discard this writel thing?
 
-Signed-off-by: Romain Perier <romain.perier-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Acked-by: Peter Senna Tschudin <peter.senna-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Tested-by: Peter Senna Tschudin <peter.senna-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
----
- drivers/block/DAC960.c | 38 ++++++++++++++++++--------------------
- drivers/block/DAC960.h |  4 ++--
- 2 files changed, 20 insertions(+), 22 deletions(-)
+Sure. I can write a dedicated patch to convert all of the locations at once=
+.
 
-diff --git a/drivers/block/DAC960.c b/drivers/block/DAC960.c
-index 255591ab3716..2a8950ee382c 100644
---- a/drivers/block/DAC960.c
-+++ b/drivers/block/DAC960.c
-@@ -268,17 +268,17 @@ static bool DAC960_CreateAuxiliaryStructures(DAC960_Controller_T *Controller)
-   void *AllocationPointer = NULL;
-   void *ScatterGatherCPU = NULL;
-   dma_addr_t ScatterGatherDMA;
--  struct pci_pool *ScatterGatherPool;
-+  struct dma_pool *ScatterGatherPool;
-   void *RequestSenseCPU = NULL;
-   dma_addr_t RequestSenseDMA;
--  struct pci_pool *RequestSensePool = NULL;
-+  struct dma_pool *RequestSensePool = NULL;
- 
-   if (Controller->FirmwareType == DAC960_V1_Controller)
-     {
-       CommandAllocationLength = offsetof(DAC960_Command_T, V1.EndMarker);
-       CommandAllocationGroupSize = DAC960_V1_CommandAllocationGroupSize;
--      ScatterGatherPool = pci_pool_create("DAC960_V1_ScatterGather",
--		Controller->PCIDevice,
-+      ScatterGatherPool = dma_pool_create("DAC960_V1_ScatterGather",
-+		&Controller->PCIDevice->dev,
- 	DAC960_V1_ScatterGatherLimit * sizeof(DAC960_V1_ScatterGatherSegment_T),
- 	sizeof(DAC960_V1_ScatterGatherSegment_T), 0);
-       if (ScatterGatherPool == NULL)
-@@ -290,18 +290,18 @@ static bool DAC960_CreateAuxiliaryStructures(DAC960_Controller_T *Controller)
-     {
-       CommandAllocationLength = offsetof(DAC960_Command_T, V2.EndMarker);
-       CommandAllocationGroupSize = DAC960_V2_CommandAllocationGroupSize;
--      ScatterGatherPool = pci_pool_create("DAC960_V2_ScatterGather",
--		Controller->PCIDevice,
-+      ScatterGatherPool = dma_pool_create("DAC960_V2_ScatterGather",
-+		&Controller->PCIDevice->dev,
- 	DAC960_V2_ScatterGatherLimit * sizeof(DAC960_V2_ScatterGatherSegment_T),
- 	sizeof(DAC960_V2_ScatterGatherSegment_T), 0);
-       if (ScatterGatherPool == NULL)
- 	    return DAC960_Failure(Controller,
- 			"AUXILIARY STRUCTURE CREATION (SG)");
--      RequestSensePool = pci_pool_create("DAC960_V2_RequestSense",
--		Controller->PCIDevice, sizeof(DAC960_SCSI_RequestSense_T),
-+      RequestSensePool = dma_pool_create("DAC960_V2_RequestSense",
-+		&Controller->PCIDevice->dev, sizeof(DAC960_SCSI_RequestSense_T),
- 		sizeof(int), 0);
-       if (RequestSensePool == NULL) {
--	    pci_pool_destroy(ScatterGatherPool);
-+	    dma_pool_destroy(ScatterGatherPool);
- 	    return DAC960_Failure(Controller,
- 			"AUXILIARY STRUCTURE CREATION (SG)");
-       }
-@@ -335,16 +335,16 @@ static bool DAC960_CreateAuxiliaryStructures(DAC960_Controller_T *Controller)
-       Command->Next = Controller->FreeCommands;
-       Controller->FreeCommands = Command;
-       Controller->Commands[CommandIdentifier-1] = Command;
--      ScatterGatherCPU = pci_pool_alloc(ScatterGatherPool, GFP_ATOMIC,
-+      ScatterGatherCPU = dma_pool_alloc(ScatterGatherPool, GFP_ATOMIC,
- 							&ScatterGatherDMA);
-       if (ScatterGatherCPU == NULL)
- 	  return DAC960_Failure(Controller, "AUXILIARY STRUCTURE CREATION");
- 
-       if (RequestSensePool != NULL) {
--  	  RequestSenseCPU = pci_pool_alloc(RequestSensePool, GFP_ATOMIC,
-+  	  RequestSenseCPU = dma_pool_alloc(RequestSensePool, GFP_ATOMIC,
- 						&RequestSenseDMA);
-   	  if (RequestSenseCPU == NULL) {
--                pci_pool_free(ScatterGatherPool, ScatterGatherCPU,
-+                dma_pool_free(ScatterGatherPool, ScatterGatherCPU,
-                                 ScatterGatherDMA);
-     		return DAC960_Failure(Controller,
- 					"AUXILIARY STRUCTURE CREATION");
-@@ -379,8 +379,8 @@ static bool DAC960_CreateAuxiliaryStructures(DAC960_Controller_T *Controller)
- static void DAC960_DestroyAuxiliaryStructures(DAC960_Controller_T *Controller)
- {
-   int i;
--  struct pci_pool *ScatterGatherPool = Controller->ScatterGatherPool;
--  struct pci_pool *RequestSensePool = NULL;
-+  struct dma_pool *ScatterGatherPool = Controller->ScatterGatherPool;
-+  struct dma_pool *RequestSensePool = NULL;
-   void *ScatterGatherCPU;
-   dma_addr_t ScatterGatherDMA;
-   void *RequestSenseCPU;
-@@ -411,9 +411,9 @@ static void DAC960_DestroyAuxiliaryStructures(DAC960_Controller_T *Controller)
- 	  RequestSenseDMA = Command->V2.RequestSenseDMA;
-       }
-       if (ScatterGatherCPU != NULL)
--          pci_pool_free(ScatterGatherPool, ScatterGatherCPU, ScatterGatherDMA);
-+          dma_pool_free(ScatterGatherPool, ScatterGatherCPU, ScatterGatherDMA);
-       if (RequestSenseCPU != NULL)
--          pci_pool_free(RequestSensePool, RequestSenseCPU, RequestSenseDMA);
-+          dma_pool_free(RequestSensePool, RequestSenseCPU, RequestSenseDMA);
- 
-       if ((Command->CommandIdentifier
- 	   % Controller->CommandAllocationGroupSize) == 1) {
-@@ -437,13 +437,11 @@ static void DAC960_DestroyAuxiliaryStructures(DAC960_Controller_T *Controller)
-       Controller->CurrentStatusBuffer = NULL;
-     }
- 
--  if (ScatterGatherPool != NULL)
--  	pci_pool_destroy(ScatterGatherPool);
-+  dma_pool_destroy(ScatterGatherPool);
-   if (Controller->FirmwareType == DAC960_V1_Controller)
-   	return;
- 
--  if (RequestSensePool != NULL)
--	pci_pool_destroy(RequestSensePool);
-+  dma_pool_destroy(RequestSensePool);
- 
-   for (i = 0; i < DAC960_MaxLogicalDrives; i++) {
- 	kfree(Controller->V2.LogicalDeviceInformation[i]);
-diff --git a/drivers/block/DAC960.h b/drivers/block/DAC960.h
-index 85fa9bb63759..47d7d698ece2 100644
---- a/drivers/block/DAC960.h
-+++ b/drivers/block/DAC960.h
-@@ -2316,7 +2316,7 @@ typedef struct DAC960_Controller
-   bool SuppressEnclosureMessages;
-   struct timer_list MonitoringTimer;
-   struct gendisk *disks[DAC960_MaxLogicalDrives];
--  struct pci_pool *ScatterGatherPool;
-+  struct dma_pool *ScatterGatherPool;
-   DAC960_Command_T *FreeCommands;
-   unsigned char *CombinedStatusBuffer;
-   unsigned char *CurrentStatusBuffer;
-@@ -2429,7 +2429,7 @@ typedef struct DAC960_Controller
-       bool NeedDeviceSerialNumberInformation;
-       bool StartLogicalDeviceInformationScan;
-       bool StartPhysicalDeviceInformationScan;
--      struct pci_pool *RequestSensePool;
-+      struct dma_pool *RequestSensePool;
- 
-       dma_addr_t	FirstCommandMailboxDMA;
-       DAC960_V2_CommandMailbox_T *FirstCommandMailbox;
--- 
-2.11.0
+A couple of questions -
+
+I see that for 16, as an example, there are three functions:
+1) mmio_write16_le()
+2) mmio_write16_be()
+3) mmio_write16()
+Per my understanding the first two do not manipulate the data and are only =
+intended to
+allow sparse to pass (and protect us). However the 3rd performs htole.
+Is this correct?
+
+#define MAKE_WRITE(_NAME_, _SZ_)                                           =
+    \
+        static inline void _NAME_##_be(void *addr, __be##_SZ_ value)       =
+    \
+        {                                                                  =
+    \
+                atomic_store_explicit((_Atomic(uint##_SZ_##_t) *)addr,     =
+    \
+                                      (__force uint##_SZ_##_t)value,       =
+    \
+                                      memory_order_relaxed);               =
+    \
+        }                                                                  =
+    \
+What is the effect of the "relaxed ordering" if we use a non-WC BUS?
+
+Thanks,
+Ram
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
