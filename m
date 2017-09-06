@@ -1,39 +1,49 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH rdma-core 3/3] mlx5: Add support for sending IPoIB packets
-Date: Wed, 6 Sep 2017 10:04:43 -0600
-Message-ID: <20170906160443.GC6262@obsidianresearch.com>
-References: <1504708729-15249-1-git-send-email-yishaih@mellanox.com>
- <1504708729-15249-4-git-send-email-yishaih@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1504708729-15249-4-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+From: =?utf-8?Q?H=C3=A5kon_Bugge?= <haakon.bugge@oracle.com>
+Subject: Re: [PATCH net] rds: Fix incorrect statistics counting
+Date: Wed, 6 Sep 2017 18:12:58 +0200
+Message-ID: <715EA84D-6ACA-45DE-9EA2-6122E11545E8@oracle.com>
+References: <20170906152950.17766-1-Haakon.Bugge@oracle.com>
+ <b620a15a-e60e-5c35-ffef-ee485d338774@oracle.com>
+Mime-Version: 1.0 (Mac OS X Mail 10.3 \(3273\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <b620a15a-e60e-5c35-ffef-ee485d338774@oracle.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Cc: "David S . Miller" <davem@davemloft.net>, netdev@vger.kernel.org, OFED mailing list <linux-rdma@vger.kernel.org>, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org, Knut Omang <knut.omang@oracle.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 06, 2017 at 05:38:49PM +0300, Yishai Hadas wrote:
 
-> +			if (unlikely(qp->flags & MLX5_QP_FLAGS_USE_UNDERLAY)) {
-> +				err = mlx5_post_send_underlay(qp, wr, &seg, &size, &sg_copy_ptr);
-> +				if (unlikely(err)) {
-> +					*bad_wr = wr;
-> +					goto out;
-> +				}
-> +			}
+> On 6 Sep 2017, at 17:58, Santosh Shilimkar <santosh.shilimkar@oracle.com> wrote:
+> 
+> On 9/6/2017 8:29 AM, Håkon Bugge wrote:
+>> In rds_send_xmit() there is logic to batch the sends. However, if
+>> another thread has acquired the lock, it is considered a race and we
+>> yield. The code incrementing the s_send_lock_queue_raced statistics
+>> counter did not count this event correctly.
+>> This commit removes a small race in determining the race and
+>> increments the statistics counter correctly.
+>> Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+>> Reviewed-by: Knut Omang <knut.omang@oracle.com>
+>> ---
+>>  net/rds/send.c | 16 +++++++++++++---
+>>  1 file changed, 13 insertions(+), 3 deletions(-)
+> Those counters are not really to give that accurate so
+> am not very keen to add additional cycles in send paths
+> and add additional code. Have you seen any real issue
+> or this is just a observation. s_send_lock_queue_raced
+> counter is never used to check for smaller increments
+> and hence the question.
 
-I don't know anything about your device, but this patch looks to me
-like it enables for any IBV_QP_CREATE_SOURCE_QPN user - and it seems
-to contain a lot of IPoIB specific commentary.
+Hi Santosh,
 
-It is wrong to assume that all IBV_QP_CREATE_SOURCE_QPN QP's are IPoIB.
 
-At a minimum some of the commentary needs revising..
+Yes, I agree with accuracy of s_send_lock_queue_raced. But the main point is that the existing code counts some partial share of when it is _not_ raced.
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So, in the critical path, my patch adds one test_bit(), which hits the local CPU cache, if not raced. If raced, some other thread is in control, so I would not think the added cycles would make any big difference.
+
+I can send a v2 where the race tightening is removed if you like.
+
+
+Thxs, Håkon
