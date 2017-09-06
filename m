@@ -1,78 +1,76 @@
-From: "Arumugam, Kamenee" <kamenee.arumugam@intel.com>
-Subject: RE: [PATCH 06/13] IB/hfi1: update to new mmu_notifier semantic
-Date: Wed, 6 Sep 2017 14:08:04 +0000
-Message-ID: <A503C24F5B2FB844864C0DD400A8F742BE12B1@ORSMSX113.amr.corp.intel.com>
-References: <20170829235447.10050-1-jglisse@redhat.com>
- <20170829235447.10050-7-jglisse@redhat.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] libmlx5: add support for the s390x platform
+Date: Wed, 6 Sep 2017 17:15:00 +0300
+Message-ID: <20170906141500.GJ18084@mtr-leonro.local>
+References: <20170906133620.58716-1-kmeesomp@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20170829235447.10050-7-jglisse@redhat.com>
-Content-Language: en-US
-Sender: owner-linux-mm@kvack.org
-To: =?utf-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Luick, Dean" <dean.luick@intel.com>, "Weiny, Ira" <ira.weiny@intel.com>, Doug Ledford <dledford@redhat.com>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrea Arcangeli <aarcange@redhat.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="2nTeH+t2PBomgucg"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20170906133620.58716-1-kmeesomp-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kittipon Meesompop <kmeesomp-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-VGVzdGVkIHRoaXMgcGF0Y2ggd2l0aCBoZmkxIGRyaXZlciBhbmQgbm8gaXNzdWUgZm91bmQuIA0K
-DQpUZXN0ZWQtYnk6IEthbWVuZWUgQXJ1bXVnYW0gPGthbWVuZWUuYXJ1bXVnYW1AaW50ZWwuY29t
-Pg0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogbGludXgtcmRtYS1vd25lckB2
-Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZ10g
-T24gQmVoYWxmIE9mIErDqXLDtG1lIEdsaXNzZQ0KU2VudDogVHVlc2RheSwgQXVndXN0IDI5LCAy
-MDE3IDc6NTUgUE0NClRvOiBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBsaW51eC1tbUBr
-dmFjay5vcmcNCkNjOiBKw6lyw7RtZSBHbGlzc2UgPGpnbGlzc2VAcmVkaGF0LmNvbT47IGxpbnV4
-LXJkbWFAdmdlci5rZXJuZWwub3JnOyBMdWljaywgRGVhbiA8ZGVhbi5sdWlja0BpbnRlbC5jb20+
-OyBXZWlueSwgSXJhIDxpcmEud2VpbnlAaW50ZWwuY29tPjsgRG91ZyBMZWRmb3JkIDxkbGVkZm9y
-ZEByZWRoYXQuY29tPjsgS2lyaWxsIEEgLiBTaHV0ZW1vdiA8a2lyaWxsLnNodXRlbW92QGxpbnV4
-LmludGVsLmNvbT47IEFuZHJldyBNb3J0b24gPGFrcG1AbGludXgtZm91bmRhdGlvbi5vcmc+OyBM
-aW51cyBUb3J2YWxkcyA8dG9ydmFsZHNAbGludXgtZm91bmRhdGlvbi5vcmc+OyBBbmRyZWEgQXJj
-YW5nZWxpIDxhYXJjYW5nZUByZWRoYXQuY29tPg0KU3ViamVjdDogW1BBVENIIDA2LzEzXSBJQi9o
-ZmkxOiB1cGRhdGUgdG8gbmV3IG1tdV9ub3RpZmllciBzZW1hbnRpYw0KDQpDYWxsIHRvIG1tdV9u
-b3RpZmllcl9pbnZhbGlkYXRlX3BhZ2UoKSBhcmUgcmVwbGFjZWQgYnkgY2FsbCB0bw0KbW11X25v
-dGlmaWVyX2ludmFsaWRhdGVfcmFuZ2UoKSBhbmQgdGh1cyBjYWxsIGFyZSBicmFja2V0ZWQgYnkg
-Y2FsbCB0byBtbXVfbm90aWZpZXJfaW52YWxpZGF0ZV9yYW5nZV9zdGFydCgpL2VuZCgpDQoNClJl
-bW92ZSBub3cgdXNlbGVzcyBpbnZhbGlkYXRlX3BhZ2UgY2FsbGJhY2suDQoNClNpZ25lZC1vZmYt
-Ynk6IErDqXLDtG1lIEdsaXNzZSA8amdsaXNzZUByZWRoYXQuY29tPg0KQ2M6IGxpbnV4LXJkbWFA
-dmdlci5rZXJuZWwub3JnDQpDYzogRGVhbiBMdWljayA8ZGVhbi5sdWlja0BpbnRlbC5jb20+DQpD
-YzogSXJhIFdlaW55IDxpcmEud2VpbnlAaW50ZWwuY29tPg0KQ2M6IERvdWcgTGVkZm9yZCA8ZGxl
-ZGZvcmRAcmVkaGF0LmNvbT4NCkNjOiBLaXJpbGwgQS4gU2h1dGVtb3YgPGtpcmlsbC5zaHV0ZW1v
-dkBsaW51eC5pbnRlbC5jb20+DQpDYzogQW5kcmV3IE1vcnRvbiA8YWtwbUBsaW51eC1mb3VuZGF0
-aW9uLm9yZz4NCkNjOiBMaW51cyBUb3J2YWxkcyA8dG9ydmFsZHNAbGludXgtZm91bmRhdGlvbi5v
-cmc+DQpDYzogQW5kcmVhIEFyY2FuZ2VsaSA8YWFyY2FuZ2VAcmVkaGF0LmNvbT4NCi0tLQ0KIGRy
-aXZlcnMvaW5maW5pYmFuZC9ody9oZmkxL21tdV9yYi5jIHwgOSAtLS0tLS0tLS0NCiAxIGZpbGUg
-Y2hhbmdlZCwgOSBkZWxldGlvbnMoLSkNCg0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFu
-ZC9ody9oZmkxL21tdV9yYi5jIGIvZHJpdmVycy9pbmZpbmliYW5kL2h3L2hmaTEvbW11X3JiLmMN
-CmluZGV4IGNjYmY1MmM4ZmY2Zi4uZTRiNTZhMGRkNmQwIDEwMDY0NA0KLS0tIGEvZHJpdmVycy9p
-bmZpbmliYW5kL2h3L2hmaTEvbW11X3JiLmMNCisrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9o
-ZmkxL21tdV9yYi5jDQpAQCAtNjcsOCArNjcsNiBAQCBzdHJ1Y3QgbW11X3JiX2hhbmRsZXIgew0K
-IA0KIHN0YXRpYyB1bnNpZ25lZCBsb25nIG1tdV9ub2RlX3N0YXJ0KHN0cnVjdCBtbXVfcmJfbm9k
-ZSAqKTsgIHN0YXRpYyB1bnNpZ25lZCBsb25nIG1tdV9ub2RlX2xhc3Qoc3RydWN0IG1tdV9yYl9u
-b2RlICopOyAtc3RhdGljIGlubGluZSB2b2lkIG1tdV9ub3RpZmllcl9wYWdlKHN0cnVjdCBtbXVf
-bm90aWZpZXIgKiwgc3RydWN0IG1tX3N0cnVjdCAqLA0KLQkJCQkgICAgIHVuc2lnbmVkIGxvbmcp
-Ow0KIHN0YXRpYyBpbmxpbmUgdm9pZCBtbXVfbm90aWZpZXJfcmFuZ2Vfc3RhcnQoc3RydWN0IG1t
-dV9ub3RpZmllciAqLA0KIAkJCQkJICAgIHN0cnVjdCBtbV9zdHJ1Y3QgKiwNCiAJCQkJCSAgICB1
-bnNpZ25lZCBsb25nLCB1bnNpZ25lZCBsb25nKTsgQEAgLTgyLDcgKzgwLDYgQEAgc3RhdGljIHZv
-aWQgZG9fcmVtb3ZlKHN0cnVjdCBtbXVfcmJfaGFuZGxlciAqaGFuZGxlciwgIHN0YXRpYyB2b2lk
-IGhhbmRsZV9yZW1vdmUoc3RydWN0IHdvcmtfc3RydWN0ICp3b3JrKTsNCiANCiBzdGF0aWMgY29u
-c3Qgc3RydWN0IG1tdV9ub3RpZmllcl9vcHMgbW5fb3B0cyA9IHsNCi0JLmludmFsaWRhdGVfcGFn
-ZSA9IG1tdV9ub3RpZmllcl9wYWdlLA0KIAkuaW52YWxpZGF0ZV9yYW5nZV9zdGFydCA9IG1tdV9u
-b3RpZmllcl9yYW5nZV9zdGFydCwgIH07DQogDQpAQCAtMjg1LDEyICsyODIsNiBAQCB2b2lkIGhm
-aTFfbW11X3JiX3JlbW92ZShzdHJ1Y3QgbW11X3JiX2hhbmRsZXIgKmhhbmRsZXIsDQogCWhhbmRs
-ZXItPm9wcy0+cmVtb3ZlKGhhbmRsZXItPm9wc19hcmcsIG5vZGUpOyAgfQ0KIA0KLXN0YXRpYyBp
-bmxpbmUgdm9pZCBtbXVfbm90aWZpZXJfcGFnZShzdHJ1Y3QgbW11X25vdGlmaWVyICptbiwNCi0J
-CQkJICAgICBzdHJ1Y3QgbW1fc3RydWN0ICptbSwgdW5zaWduZWQgbG9uZyBhZGRyKQ0KLXsNCi0J
-bW11X25vdGlmaWVyX21lbV9pbnZhbGlkYXRlKG1uLCBtbSwgYWRkciwgYWRkciArIFBBR0VfU0la
-RSk7DQotfQ0KLQ0KIHN0YXRpYyBpbmxpbmUgdm9pZCBtbXVfbm90aWZpZXJfcmFuZ2Vfc3RhcnQo
-c3RydWN0IG1tdV9ub3RpZmllciAqbW4sDQogCQkJCQkgICAgc3RydWN0IG1tX3N0cnVjdCAqbW0s
-DQogCQkJCQkgICAgdW5zaWduZWQgbG9uZyBzdGFydCwNCi0tDQoyLjEzLjUNCg0KLS0NClRvIHVu
-c3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51
-eC1yZG1hIiBpbiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVs
-Lm9yZyBNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9y
-ZG9tby1pbmZvLmh0bWwNCg==
 
+--2nTeH+t2PBomgucg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Wed, Sep 06, 2017 at 03:36:20PM +0200, Kittipon Meesompop wrote:
+> Since s390x platform requires execution of privileged CPU instructions
+> to work with PCI I/O memory, the PCI I/O memory cannot be directly
+> accessed from the userspace programs via the mapped memory areas.
+>
+> This patch is created against libmlx5-1.2.1 and contains the changes to
+> the libmlx5 userspace Mellanox device driver library required to provide
+> support for the DAPL API on the s390x platform. The original code that
+> directly used mapped memory areas to access the PCI I/O memory of the
+> Mellanox networking device is replaced with the new system call
+> invocation for writing the data to mapped memory areas. The functions
+> for reading and writing are added analogously to libmlx4.
+>
+> libmlx4 comparison to:
+>         commit f5c26f8762135f629c8cbe73d808e3029f07b176
+>         Author: Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+>         Date:   Wed Nov 19 11:17:19 2014 +0100
+>
+> Signed-off-by: Kittipon Meesompop <kmeesomp-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+>
+
+Thank you for doing it. I afraid that you sent this patch to a wrong
+mailing list. I don't know exactly where you should sent it, but all
+new development for last ~12 months of RDMA user space stack is done
+against rdma-core [1].
+
+Thanks
+
+[1] http://github.com/linux-rdma/rdma-core
+
+--2nTeH+t2PBomgucg
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmwAt4ACgkQ5GN7iDZy
+WKfuKA//dmf8/gb1I9uhIU8KFKK16nxVS0CpCwprjF8uk1sFwrgbRBu90PK83+5R
++u3bRwOAn2cyG2h22a1AIwil2VFHK8HihAXQg+fdjPui3elXkI9XHutaBMWNqISJ
+VjiG4coL5biaCrt3/XSdvpNW++zJemxCWM2XLNom6emEvlmeu5SzOnFZTzyl5Air
+Od9H7dhsPAdnH9bTdg5oT6pYnl76LyJPry/dyDOsBa6CE60E0cysCfMRmrEWaQMV
+rHbX0gqG/b3hvV+44vq3K5L3oEpMyfVmC5jagLuyzMY7SUlfCUBQMrz8qKf6AiSw
+UIHqUgr6UBth+vcPKBNaDuFL0XHSafR/wPuf55okJVPI1p9uar8oIp2wVv/05jub
+OhK7OhCALpvf1kOaQeeh4pqXefpso7DT0J5HnKHA/MtLz3zRDstIYhPJSwp/k+3H
+NlUJz+ehUBYvtFCdOymfb/0vW9yibwb9/4u3b/sW2EP2lU76hr6u/aWzofltYUn7
+m57lXmvpxN7ow3krVI3aM9qjV8URJbRxH3FI1QTyVvWfWV9gtZ7KUzDPu3oZCZyk
+sQ+yRKO37Soat95wC+mpftoqQs3AQHZzdbSOpJtTuu3dfJLBvKyylA51SuKCpdIw
+b2yCdQs/5wpPyJ2Q5f/16YvsiEPK+YD2gKJ1h9yDfpz5jwirUQ4=
+=xx9S
+-----END PGP SIGNATURE-----
+
+--2nTeH+t2PBomgucg--
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
