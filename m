@@ -1,91 +1,75 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core] verbs: Add support for delay drop ability in a WQ
-Date: Wed,  6 Sep 2017 18:11:57 +0300
-Message-ID: <1504710717-22707-1-git-send-email-yishaih@mellanox.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH rdma-core RESEND] libqedr: Add iWARP support for
+ user-space lib
+Date: Wed, 6 Sep 2017 09:19:44 -0600
+Message-ID: <20170906151944.GA6262@obsidianresearch.com>
+References: <1504622214-9730-1-git-send-email-Ram.Amrani@cavium.com>
+ <20170905151412.GA18205@obsidianresearch.com>
+ <BN3PR07MB2578B8F3480B5218A06F2167F8970@BN3PR07MB2578.namprd07.prod.outlook.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <BN3PR07MB2578B8F3480B5218A06F2167F8970-EldUQEzkDQfpW3VS/XPqkOFPX92sqiQdvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
+Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+On Wed, Sep 06, 2017 at 09:18:58AM +0000, Amrani, Ram wrote:
+> > On Tue, Sep 05, 2017 at 05:36:54PM +0300, Ram Amrani wrote:
+> > > +		if (iwarp) {
+> > > +			writel(qp->rq.iwarp_db2_data.raw, qp->rq.iwarp_db2);
+> > > +			mmio_flush_writes();
+> > > +		}
+> > 
+> > Can you update this driver to use the macros in util/mmio.h and
+> > discard this writel thing?
+> 
+> Sure. I can write a dedicated patch to convert all of the locations at once.
+> 
+> A couple of questions -
+> 
+> I see that for 16, as an example, there are three functions:
+> 1) mmio_write16_le()
+> 2) mmio_write16_be()
+> 3) mmio_write16()
+> Per my understanding the first two do not manipulate the data and are only intended to
+> allow sparse to pass (and protect us).
 
-Work queue which is created with IBV_WQ_FLAGS_DELAY_DROP won't
-cause packet drops when there aren't receive WQEs, but will wait until
-posting of receive WQEs or for some period of time that the device
-was configured with.
+Yes..
 
-Signed-off-by: Maor Gottlieb <maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
+> However the 3rd performs htole. Is this correct?
 
-This patch is the supplementary part of the kernel code that was accepted
-upstream into 4.14.
+Yes, if necessary it performs the swap to create the defined TLP on
+any arches that require it.
 
-PR was sent:
-https://github.com/linux-rdma/rdma-core/pull/213
+It is basically equivalent to the kernel's writel_relaxed
 
- libibverbs/examples/devinfo.c  | 2 ++
- libibverbs/man/ibv_create_wq.3 | 7 ++++---
- libibverbs/verbs.h             | 4 +++-
- 3 files changed, 9 insertions(+), 4 deletions(-)
+> #define MAKE_WRITE(_NAME_, _SZ_)                                               \
+>         static inline void _NAME_##_be(void *addr, __be##_SZ_ value)           \
+>         {                                                                      \
+>                 atomic_store_explicit((_Atomic(uint##_SZ_##_t) *)addr,         \
+>                                       (__force uint##_SZ_##_t)value,           \
+>                                       memory_order_relaxed);                   \
+>         }                                                                      \
+> What is the effect of the "relaxed ordering" if we use a non-WC BUS?
 
-diff --git a/libibverbs/examples/devinfo.c b/libibverbs/examples/devinfo.c
-index 2c1e3f1..f03c53e 100644
---- a/libibverbs/examples/devinfo.c
-+++ b/libibverbs/examples/devinfo.c
-@@ -410,6 +410,8 @@ static void print_raw_packet_caps(uint32_t raw_packet_caps)
- 		printf("\t\t\t\t\tScatter FCS offload\n");
- 	if (raw_packet_caps & IBV_RAW_PACKET_CAP_IP_CSUM)
- 		printf("\t\t\t\t\tIP csum offload\n");
-+	if (raw_packet_caps & IBV_RAW_PACKET_CAP_DELAY_DROP)
-+		printf("\t\t\t\t\tDelay drop\n");
- }
- 
- static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
-diff --git a/libibverbs/man/ibv_create_wq.3 b/libibverbs/man/ibv_create_wq.3
-index 4a8b83c..a540130 100644
---- a/libibverbs/man/ibv_create_wq.3
-+++ b/libibverbs/man/ibv_create_wq.3
-@@ -39,9 +39,10 @@ uint32_t                   create_flags    /* Creation flags for this WQ, use en
- .nf
- enum ibv_wq_flags {
- .in +8
--IBV_WQ_FLAGS_CVLAN_STRIPPING		= 1 << 0, /* CVLAN field will be stripped from incoming packets */
--IBV_WQ_FLAGS_SCATTER_FCS		= 1 << 1, /* FCS field will be scattered to host memory */
--IBV_WQ_FLAGS_RESERVED			= 1 << 2,
-+IBV_WQ_FLAGS_CVLAN_STRIPPING            = 1 << 0, /* CVLAN field will be stripped from incoming packets */
-+IBV_WQ_FLAGS_SCATTER_FCS                = 1 << 1, /* FCS field will be scattered to host memory */
-+IBV_WQ_FLAGS_DELAY_DROP                 = 1 << 2, /* Packets won't be dropped immediately if no receive WQEs */
-+IBV_WQ_FLAGS_RESERVED                   = 1 << 3,
- .in -8
- };
- .nf
-diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index 922a011..9050e3d 100644
---- a/libibverbs/verbs.h
-+++ b/libibverbs/verbs.h
-@@ -257,6 +257,7 @@ enum ibv_raw_packet_caps {
- 	IBV_RAW_PACKET_CAP_CVLAN_STRIPPING	= 1 << 0,
- 	IBV_RAW_PACKET_CAP_SCATTER_FCS		= 1 << 1,
- 	IBV_RAW_PACKET_CAP_IP_CSUM		= 1 << 2,
-+	IBV_RAW_PACKET_CAP_DELAY_DROP		= 1 << 3,
- };
- 
- struct ibv_device_attr_ex {
-@@ -682,7 +683,8 @@ enum ibv_wq_init_attr_mask {
- enum ibv_wq_flags {
- 	IBV_WQ_FLAGS_CVLAN_STRIPPING		= 1 << 0,
- 	IBV_WQ_FLAGS_SCATTER_FCS		= 1 << 1,
--	IBV_WQ_FLAGS_RESERVED			= 1 << 2,
-+	IBV_WQ_FLAGS_DELAY_DROP			= 1 << 2,
-+	IBV_WQ_FLAGS_RESERVED			= 1 << 3,
- };
- 
- struct ibv_wq_init_attr {
--- 
-1.8.3.1
+memory_order_relaxed tells the compiler to WRITE_ONCE but otherwise
+not concern it self with ordering of stores.
 
+eg
+
+ *foo = 1
+  mmio_write16(bar, 12);
+
+Can be freely re-ordered during compilation and during execution.
+
+Code needs to insert a util/barrier.h if it requires ordering.
+
+But qedr is using WC right?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
