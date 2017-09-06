@@ -1,73 +1,118 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH RFC 0/5] xprtrdma Send completion batching
-Date: Wed, 6 Sep 2017 15:11:03 -0600
-Message-ID: <20170906211103.GA26642@obsidianresearch.com>
-References: <1230f9d9-07c1-6d00-b197-f408712fb5c1@grimberg.me>
- <890CC58C-7F8F-4B7E-8620-21F07007D3AA@oracle.com>
- <6dcdcc25-2613-cdb5-1db2-6c944f05242b@grimberg.me>
- <4E2E5580-69A5-4C3B-9FCA-E61AE2042E6B@oracle.com>
- <9059315f-1985-042e-a59f-26a66fbece3e@grimberg.me>
- <5B2F42B8-2CBD-43F4-BBAD-71EDD4F871FB@oracle.com>
- <20170906193946.GC18461@obsidianresearch.com>
- <4D7ECF64-0F68-4137-B72A-9E942147C8D4@oracle.com>
- <20170906200957.GB22567@obsidianresearch.com>
- <C5144079-7F9C-4783-AF4D-A73411420D5E@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <C5144079-7F9C-4783-AF4D-A73411420D5E-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 1/2] [v2] IB/uverbs: clean up INIT_UDATA_BUF_OR_NULL usage
+Date: Wed,  6 Sep 2017 23:34:25 +0200
+Message-ID: <20170906213521.1845893-1-arnd@arndb.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: Christoph Hellwig <hch@infradead.org>, Arnd Bergmann <arnd@arndb.de>, Matan Barak <matanb@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 06, 2017 at 05:00:29PM -0400, Chuck Lever wrote:
+We get a harmless warning about the fact that we use the result of a
+multiplication as a condition:
 
-> What I implemented was a scheme to invalidate the memory of a
-> (POSIX) signaled RPC before it completes, in case the RPC Reply
-> hadn't yet arrived.
-> 
-> Currently, the only time the QP might be killed is if the server
-> attempts to RDMA Write an RPC Reply into one of these invalidated
-> memory regions. That case can't be avoided with the current RPC-
-> over-RDMA protocol.
+drivers/infiniband/core/uverbs_main.c: In function 'ib_uverbs_write':
+drivers/infiniband/core/uverbs_main.c:787:40: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
+drivers/infiniband/core/uverbs_main.c:787:117: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
+drivers/infiniband/core/uverbs_main.c:790:50: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
+drivers/infiniband/core/uverbs_main.c:790:151: error: '*' in boolean context, suggest '&&' instead [-Werror=int-in-bool-context]
 
-Okay..
+This avoids the problem by using an inline function in place of
+the macro.
 
-> And again, we want to preserve the connection if it is healthy.
+Fixes: a96e4e2ffe43 ("IB/uverbs: New macro to set pointers to NULL if length is 0 in INIT_UDATA()")
+Suggested-by: Christoph Hellwig <hch@infradead.org>
+Link: https://patchwork.kernel.org/patch/9940777/
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+v2: completely rewrite the patch to a larger cleanup.
+---
+ drivers/infiniband/core/uverbs.h           | 15 ++++++++-------
+ drivers/infiniband/core/uverbs_main.c      | 22 ++++++++++------------
+ drivers/infiniband/core/uverbs_std_types.c |  3 ++-
+ 3 files changed, 20 insertions(+), 20 deletions(-)
 
-Well, if SENDs are not completing then it is not healthly. It is
-analogous to what TCP Keep Alive does.
-
-> > How does sockets based NFS handle this? Doesn't it zero copy from these
-> > same buffers into SKBs? How does it cancel the SKBs before the NIC
-> > transmits them?
-> > 
-> > Seems like exactly the same kind of problem to me..
-> 
-> TCP has keep-alive, where the sockets consumer is notified as soon
-> as the network layer determines the remote is unresponsive. The
-> connection is closed from underneath the consumer.
-
-keep-alive is something different, it pings the remote periodicaly and
-detects dead connections even when there is no traffic.
-
-RDMA detects dead connections via retries and timeouts, but only if
-there is traffic.
-
-My questions was about how the same situation is handled in TCP. If it
-does DMA directly from the source buffers by chaining them into SKBs
-then it has exactly the same problem, it cannot release the buffers
-until SKB is released from the TCP stack after NIC xmit. Like in RDMA,
-this only happens once TCP has got the ack back.
-
-Perhaps the answer is that TCP does not zero copy these buffers, or
-TCP doesn't care about transmitting random memory, but it seems a
-question worth asking.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index 37c8903e7fd0..a8f104a4a91b 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -55,13 +55,14 @@
+ 		(udata)->outlen = (olen);				\
+ 	} while (0)
+ 
+-#define INIT_UDATA_BUF_OR_NULL(udata, ibuf, obuf, ilen, olen)			\
+-	do {									\
+-		(udata)->inbuf  = (ilen) ? (const void __user *) (ibuf) : NULL;	\
+-		(udata)->outbuf = (olen) ? (void __user *) (obuf) : NULL;	\
+-		(udata)->inlen  = (ilen);					\
+-		(udata)->outlen = (olen);					\
+-	} while (0)
++static inline void
++ib_uverbs_init_udata_buf_or_null(struct ib_udata *udata,
++				 const void __user *ibuf,
++				 void __user *obuf,
++				 size_t ilen, size_t olen)
++{
++	INIT_UDATA(udata, ilen ? ibuf : NULL, olen ? obuf : NULL, ilen, olen);
++}
+ 
+ /*
+  * Our lifetime rules for these structs are the following:
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index dc2aed6fb21b..b5febfd84ee5 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -763,7 +763,7 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
+ 			}
+ 
+ 			if (!access_ok(VERIFY_WRITE,
+-				       (void __user *) (unsigned long) ex_hdr.response,
++				       u64_to_user_ptr(ex_hdr.response),
+ 				       (hdr.out_words + ex_hdr.provider_out_words) * 8)) {
+ 				ret = -EFAULT;
+ 				goto out;
+@@ -775,19 +775,17 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
+ 			}
+ 		}
+ 
+-		INIT_UDATA_BUF_OR_NULL(&ucore, buf, (unsigned long) ex_hdr.response,
+-				       hdr.in_words * 8, hdr.out_words * 8);
++		ib_uverbs_init_udata_buf_or_null(&ucore, buf,
++					u64_to_user_ptr(ex_hdr.response),
++					hdr.in_words * 8, hdr.out_words * 8);
+ 
+-		INIT_UDATA_BUF_OR_NULL(&uhw,
+-				       buf + ucore.inlen,
+-				       (unsigned long) ex_hdr.response + ucore.outlen,
+-				       ex_hdr.provider_in_words * 8,
+-				       ex_hdr.provider_out_words * 8);
++		ib_uverbs_init_udata_buf_or_null(&uhw,
++					buf + ucore.inlen,
++					u64_to_user_ptr(ex_hdr.response) + ucore.outlen,
++					ex_hdr.provider_in_words * 8,
++					ex_hdr.provider_out_words * 8);
+ 
+-		ret = uverbs_ex_cmd_table[command](file,
+-						   ib_dev,
+-						   &ucore,
+-						   &uhw);
++		ret = uverbs_ex_cmd_table[command](file, ib_dev, &ucore, &uhw);
+ 		if (!ret)
+ 			ret = written_count;
+ 	} else {
+diff --git a/drivers/infiniband/core/uverbs_std_types.c b/drivers/infiniband/core/uverbs_std_types.c
+index 0a98579700ec..b095bce7f238 100644
+--- a/drivers/infiniband/core/uverbs_std_types.c
++++ b/drivers/infiniband/core/uverbs_std_types.c
+@@ -246,7 +246,8 @@ static void create_udata(struct uverbs_attr_bundle *ctx,
+ 		outbuf_len = uhw_out->ptr_attr.len;
+ 	}
+ 
+-	INIT_UDATA_BUF_OR_NULL(udata, inbuf, outbuf, inbuf_len, outbuf_len);
++	ib_uverbs_init_udata_buf_or_null(udata, inbuf, outbuf, inbuf_len,
++					 outbuf_len);
+ }
+ 
+ static int uverbs_create_cq_handler(struct ib_device *ib_dev,
+-- 
+2.9.0
