@@ -1,38 +1,59 @@
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH net] rds: Fix incorrect statistics counting
-Date: Wed, 6 Sep 2017 09:21:01 -0700
-Message-ID: <6fb62a09-13b4-0cec-2864-40afdfc51d25@oracle.com>
-References: <20170906152950.17766-1-Haakon.Bugge@oracle.com>
- <b620a15a-e60e-5c35-ffef-ee485d338774@oracle.com>
- <715EA84D-6ACA-45DE-9EA2-6122E11545E8@oracle.com>
+From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <Haakon.Bugge@oracle.com>
+Subject: [PATCH net v2] rds: Fix incorrect statistics counting
+Date: Wed,  6 Sep 2017 18:35:51 +0200
+Message-ID: <20170906163551.20387-1-Haakon.Bugge@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <715EA84D-6ACA-45DE-9EA2-6122E11545E8@oracle.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?Q?H=c3=a5kon_Bugge?= <haakon.bugge@oracle.com>
-Cc: "David S . Miller" <davem@davemloft.net>, netdev@vger.kernel.org, OFED mailing list <linux-rdma@vger.kernel.org>, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org, Knut Omang <knut.omang@oracle.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@oracle.com>, "David S . Miller" <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org, knut.omang@oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/6/2017 9:12 AM, Håkon Bugge wrote:
-> 
-[...]
+In rds_send_xmit() there is logic to batch the sends. However, if
+another thread has acquired the lock and has incremented the send_gen,
+it is considered a race and we yield. The code incrementing the
+s_send_lock_queue_raced statistics counter did not count this event
+correctly.
 
-> 
-> Hi Santosh,
-> 
-> 
-> Yes, I agree with accuracy of s_send_lock_queue_raced. But the main point is that the existing code counts some partial share of when it is _not_ raced.
-> 
-> So, in the critical path, my patch adds one test_bit(), which hits the local CPU cache, if not raced. If raced, some other thread is in control, so I would not think the added cycles would make any big difference.
->
-Cycles added for no good reason is the point.
+This commit counts the race condition correctly.
 
-> I can send a v2 where the race tightening is removed if you like.
-> 
-Yes please.
+Changes from v1:
+- Removed check for *someone_on_xmit()*
+- Fixed incorrect indentation
 
-Regards,
-Santosh
+Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+Reviewed-by: Knut Omang <knut.omang@oracle.com>
+---
+ net/rds/send.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/net/rds/send.c b/net/rds/send.c
+index 058a407..b52cdc8 100644
+--- a/net/rds/send.c
++++ b/net/rds/send.c
+@@ -428,14 +428,18 @@ int rds_send_xmit(struct rds_conn_path *cp)
+ 	 * some work and we will skip our goto
+ 	 */
+ 	if (ret == 0) {
++		bool raced;
++
+ 		smp_mb();
++		raced = send_gen != READ_ONCE(cp->cp_send_gen);
++
+ 		if ((test_bit(0, &conn->c_map_queued) ||
+-		     !list_empty(&cp->cp_send_queue)) &&
+-			send_gen == READ_ONCE(cp->cp_send_gen)) {
+-			rds_stats_inc(s_send_lock_queue_raced);
++		    !list_empty(&cp->cp_send_queue)) && !raced) {
+ 			if (batch_count < send_batch_count)
+ 				goto restart;
+ 			queue_delayed_work(rds_wq, &cp->cp_send_w, 1);
++		} else if (raced) {
++			rds_stats_inc(s_send_lock_queue_raced);
+ 		}
+ 	}
+ out:
+-- 
+2.9.3
