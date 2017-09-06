@@ -1,68 +1,40 @@
-From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <Haakon.Bugge@oracle.com>
-Subject: [PATCH net] rds: Fix incorrect statistics counting
-Date: Wed,  6 Sep 2017 17:29:50 +0200
-Message-ID: <20170906152950.17766-1-Haakon.Bugge@oracle.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-core 2/3] mlx5: Add support for managing QP with a
+ given source QP number
+Date: Wed, 6 Sep 2017 18:56:29 +0300
+Message-ID: <1387444b-7c9d-d26c-d089-83b0d4b047d9@dev.mellanox.co.il>
+References: <1504708729-15249-1-git-send-email-yishaih@mellanox.com>
+ <1504708729-15249-3-git-send-email-yishaih@mellanox.com>
+ <20170906151222.GA23532@yuvallap>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@oracle.com>, "David S . Miller" <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org, knut.omang@oracle.com
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170906151222.GA23532@yuvallap>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-In rds_send_xmit() there is logic to batch the sends. However, if
-another thread has acquired the lock, it is considered a race and we
-yield. The code incrementing the s_send_lock_queue_raced statistics
-counter did not count this event correctly.
+On 9/6/2017 6:12 PM, Yuval Shaia wrote:
+> On Wed, Sep 06, 2017 at 05:38:48PM +0300, Yishai Hadas wrote:
+>> Add support to create a QP with source QPN (e.g. IPoIB QPN) over UD QP.
+>
+> Sorry, i missed the kernel patches.
+> Is this UD limitation is for mlx5 only? Asking as i see no limitation in
+> the verb layer (patch 1/3).
 
-This commit removes a small race in determining the race and
-increments the statistics counter correctly.
+ From API point of view as was introduced by the verbs patch there is no 
+limitation. The mlx5 driver implements the use case for UD QP to 
+accelerate IPoIB packets.
 
-Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
-Reviewed-by: Knut Omang <knut.omang@oracle.com>
----
- net/rds/send.c | 16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+> If no, any plans for CM?
+No plan for CM at the moment, however, it may be considered in the 
+future based on demand/use case.
 
-diff --git a/net/rds/send.c b/net/rds/send.c
-index 058a407..ecfe0b5 100644
---- a/net/rds/send.c
-+++ b/net/rds/send.c
-@@ -101,6 +101,11 @@ void rds_send_path_reset(struct rds_conn_path *cp)
- }
- EXPORT_SYMBOL_GPL(rds_send_path_reset);
- 
-+static bool someone_in_xmit(struct rds_conn_path *cp)
-+{
-+	return test_bit(RDS_IN_XMIT, &cp->cp_flags);
-+}
-+
- static int acquire_in_xmit(struct rds_conn_path *cp)
- {
- 	return test_and_set_bit(RDS_IN_XMIT, &cp->cp_flags) == 0;
-@@ -428,14 +433,19 @@ int rds_send_xmit(struct rds_conn_path *cp)
- 	 * some work and we will skip our goto
- 	 */
- 	if (ret == 0) {
-+		bool raced;
-+
- 		smp_mb();
-+		raced = someone_in_xmit(cp) ||
-+			send_gen != READ_ONCE(cp->cp_send_gen);
-+
- 		if ((test_bit(0, &conn->c_map_queued) ||
--		     !list_empty(&cp->cp_send_queue)) &&
--			send_gen == READ_ONCE(cp->cp_send_gen)) {
--			rds_stats_inc(s_send_lock_queue_raced);
-+				!list_empty(&cp->cp_send_queue)) && !raced) {
- 			if (batch_count < send_batch_count)
- 				goto restart;
- 			queue_delayed_work(rds_wq, &cp->cp_send_w, 1);
-+		} else if (raced) {
-+			rds_stats_inc(s_send_lock_queue_raced);
- 		}
- 	}
- out:
--- 
-2.9.3
+Thanks for looking at.
+Yishai
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
