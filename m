@@ -1,207 +1,109 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2] IB: Move PCI dependency from root KConfig to HW's
- KConfigs
-Date: Wed, 6 Sep 2017 07:06:04 +0300
-Message-ID: <20170906040604.GF18084@mtr-leonro.local>
-References: <20170905144625.11768-1-yuval.shaia@oracle.com>
+From: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] IB/{ipoib,iser}: Consistent print format of vendor error
+Date: Wed, 6 Sep 2017 07:21:48 +0300
+Message-ID: <a88fddbb-cbf7-33b3-45de-c25900a8bd9b@mellanox.com>
+References: <20170905150919.12631-1-yuval.shaia@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="qp4W5+cUSnZs0RIF"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20170905144625.11768-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <20170905150919.12631-1-yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dennis.dalessandro-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, shiraz.saleem-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, erezsh-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, ferasda-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, yanjun.zhu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, pabeni-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, valex-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, dasaratharaman.chandramouli-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Ajaykumar Hotchandani <ajaykumar.hotchandani-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---qp4W5+cUSnZs0RIF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-On Tue, Sep 05, 2017 at 05:46:25PM +0300, Yuval Shaia wrote:
-> No reason to have dependency on PCI for the entire infiniband stack so
-> move it to KConfig of only the drivers that actually using PCI.
->
+On 05/09/2017 18:09, Yuval Shaia wrote:
+> Vendor error print should be consistent across protocols to avoid any
+> confusion.
+> This patch corrects that.
+> 
+> Suggested-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 > Signed-off-by: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Ajaykumar Hotchandani <ajaykumar.hotchandani-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Reviewed-by: Santosh Shilimkar <santosh.shilimkar-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+> Acked-by: Wengang Wang <wen.gang.wang-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 > ---
-> v0 -> v1:
-> 	* As suggested by Thomas Bogendoerfer:
-> 		* Remove unneeded header inclusion from ipoib
-> 		* Remove PCI dependency from ipoib's Kconfig
-> v1 -> v2:
-> 	* s/PCI || BROKEN/PCI
-> 	* Fix also drivers/staging/lustre/lnet/Kconfig
-> ---
->  drivers/infiniband/Kconfig                | 1 -
->  drivers/infiniband/hw/cxgb3/Kconfig       | 1 +
->  drivers/infiniband/hw/cxgb4/Kconfig       | 1 +
->  drivers/infiniband/hw/hfi1/Kconfig        | 1 +
->  drivers/infiniband/hw/i40iw/Kconfig       | 1 +
->  drivers/infiniband/hw/qedr/Kconfig        | 1 +
->  drivers/infiniband/hw/qib/Kconfig         | 1 +
->  drivers/infiniband/sw/rdmavt/Kconfig      | 1 +
->  drivers/infiniband/ulp/ipoib/ipoib_main.c | 1 -
->  drivers/staging/lustre/lnet/Kconfig       | 2 +-
->  10 files changed, 8 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-> index 234fe01904e7..568088a9298c 100644
-> --- a/drivers/infiniband/Kconfig
-> +++ b/drivers/infiniband/Kconfig
-> @@ -1,6 +1,5 @@
->  menuconfig INFINIBAND
->  	tristate "InfiniBand support"
-> -	depends on PCI || BROKEN
->  	depends on HAS_IOMEM
->  	depends on NET
->  	depends on INET
-> diff --git a/drivers/infiniband/hw/cxgb3/Kconfig b/drivers/infiniband/hw/cxgb3/Kconfig
-> index 2b6352b85485..97046365f1c7 100644
-> --- a/drivers/infiniband/hw/cxgb3/Kconfig
-> +++ b/drivers/infiniband/hw/cxgb3/Kconfig
-> @@ -1,5 +1,6 @@
->  config INFINIBAND_CXGB3
->  	tristate "Chelsio RDMA Driver"
-> +	depends on PCI
->  	depends on CHELSIO_T3 && INET
+>   drivers/infiniband/ulp/ipoib/ipoib_cm.c  | 10 +++++-----
+>   drivers/infiniband/ulp/ipoib/ipoib_ib.c  |  8 ++++----
+>   drivers/infiniband/ulp/iser/iser_verbs.c |  2 +-
+>   3 files changed, 10 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+> index 14b62f7472b4..fd302ba78869 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+> @@ -594,9 +594,9 @@ void ipoib_cm_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
+>   	skb = rx_ring[wr_id].skb;
+>   
+>   	if (unlikely(wc->status != IB_WC_SUCCESS)) {
+> -		ipoib_dbg(priv, "cm recv error "
+> -			   "(status=%d, wrid=%d vend_err %x)\n",
+> -			   wc->status, wr_id, wc->vendor_err);
+> +		ipoib_dbg(priv,
+> +			  "cm recv error (status=%d, wrid=%d vend_err 0x%x)\n",
+> +			  wc->status, wr_id, wc->vendor_err);
+>   		++dev->stats.rx_dropped;
+>   		if (has_srq)
+>   			goto repost;
+> @@ -824,10 +824,10 @@ void ipoib_cm_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
+>   		struct ipoib_neigh *neigh;
+>   
+>   		if (wc->status != IB_WC_RNR_RETRY_EXC_ERR)
+> -			ipoib_warn(priv, "failed cm send event (status=%d, wrid=%d vend_err %x)\n",
+> +			ipoib_warn(priv, "failed cm send event (status=%d, wrid=%d vend_err 0x%x)\n",
+>   				   wc->status, wr_id, wc->vendor_err);
+>   		else
+> -			ipoib_dbg(priv, "failed cm send event (status=%d, wrid=%d vend_err %x)\n",
+> +			ipoib_dbg(priv, "failed cm send event (status=%d, wrid=%d vend_err 0x%x)\n",
+>   				  wc->status, wr_id, wc->vendor_err);
+>   
+>   		spin_lock_irqsave(&priv->lock, flags);
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> index 2e075377242e..eb62f9d29103 100644
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> @@ -192,8 +192,8 @@ static void ipoib_ib_handle_rx_wc(struct net_device *dev, struct ib_wc *wc)
+>   
+>   	if (unlikely(wc->status != IB_WC_SUCCESS)) {
+>   		if (wc->status != IB_WC_WR_FLUSH_ERR)
+> -			ipoib_warn(priv, "failed recv event "
+> -				   "(status=%d, wrid=%d vend_err %x)\n",
+> +			ipoib_warn(priv,
+> +				   "failed recv event (status=%d, wrid=%d vend_err 0x%x)\n",
+>   				   wc->status, wr_id, wc->vendor_err);
+>   		ipoib_ud_dma_unmap_rx(priv, priv->rx_ring[wr_id].mapping);
+>   		dev_kfree_skb_any(skb);
+> @@ -414,8 +414,8 @@ static void ipoib_ib_handle_tx_wc(struct net_device *dev, struct ib_wc *wc)
+>   	if (wc->status != IB_WC_SUCCESS &&
+>   	    wc->status != IB_WC_WR_FLUSH_ERR) {
+>   		struct ipoib_qp_state_validate *qp_work;
+> -		ipoib_warn(priv, "failed send event "
+> -			   "(status=%d, wrid=%d vend_err %x)\n",
+> +		ipoib_warn(priv,
+> +			   "failed send event (status=%d, wrid=%d vend_err 0x%x)\n",
+>   			   wc->status, wr_id, wc->vendor_err);
+>   		qp_work = kzalloc(sizeof(*qp_work), GFP_ATOMIC);
+>   		if (!qp_work)
+> diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+> index 55a73b0ed4c6..fe58abcf65a2 100644
+> --- a/drivers/infiniband/ulp/iser/iser_verbs.c
+> +++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+> @@ -1146,7 +1146,7 @@ void iser_err_comp(struct ib_wc *wc, const char *type)
+>   	if (wc->status != IB_WC_WR_FLUSH_ERR) {
+>   		struct iser_conn *iser_conn = to_iser_conn(wc->qp->qp_context);
+>   
+> -		iser_err("%s failure: %s (%d) vend_err %x\n", type,
+> +		iser_err("%s failure: %s (%d) vend_err 0x%x\n", type,
+>   			 ib_wc_status_msg(wc->status), wc->status,
+>   			 wc->vendor_err);
+>   
+> 
 
-I didn't check all other drivers, but this particular is already dependent on PCI.
-
-It depends on CHELSIO_T3, which depends on "PCI && INET". So instead of
-adding new dependency here, it will be nice to remove INET.
-
-Thanks
-
->  	select GENERIC_ALLOCATOR
->  	---help---
-> diff --git a/drivers/infiniband/hw/cxgb4/Kconfig b/drivers/infiniband/hw/cxgb4/Kconfig
-> index afe8b28e0878..b771575b38c2 100644
-> --- a/drivers/infiniband/hw/cxgb4/Kconfig
-> +++ b/drivers/infiniband/hw/cxgb4/Kconfig
-> @@ -1,6 +1,7 @@
->  config INFINIBAND_CXGB4
->  	tristate "Chelsio T4/T5 RDMA Driver"
->  	depends on CHELSIO_T4 && INET && (IPV6 || IPV6=n)
-> +	depends on PCI
->  	select CHELSIO_LIB
->  	select GENERIC_ALLOCATOR
->  	---help---
-> diff --git a/drivers/infiniband/hw/hfi1/Kconfig b/drivers/infiniband/hw/hfi1/Kconfig
-> index f6ea0881765a..4f8fbffae36f 100644
-> --- a/drivers/infiniband/hw/hfi1/Kconfig
-> +++ b/drivers/infiniband/hw/hfi1/Kconfig
-> @@ -1,6 +1,7 @@
->  config INFINIBAND_HFI1
->  	tristate "Intel OPA Gen1 support"
->  	depends on X86_64 && INFINIBAND_RDMAVT && I2C
-> +	depends on PCI
->  	select MMU_NOTIFIER
->  	select CRC32
->  	select I2C_ALGOBIT
-> diff --git a/drivers/infiniband/hw/i40iw/Kconfig b/drivers/infiniband/hw/i40iw/Kconfig
-> index 6e7d27a14061..f6d20ba88c03 100644
-> --- a/drivers/infiniband/hw/i40iw/Kconfig
-> +++ b/drivers/infiniband/hw/i40iw/Kconfig
-> @@ -1,6 +1,7 @@
->  config INFINIBAND_I40IW
->  	tristate "Intel(R) Ethernet X722 iWARP Driver"
->  	depends on INET && I40E
-> +	depends on PCI
->  	select GENERIC_ALLOCATOR
->  	---help---
->  	Intel(R) Ethernet X722 iWARP Driver
-> diff --git a/drivers/infiniband/hw/qedr/Kconfig b/drivers/infiniband/hw/qedr/Kconfig
-> index 6c9f3923e838..3feec8dddf41 100644
-> --- a/drivers/infiniband/hw/qedr/Kconfig
-> +++ b/drivers/infiniband/hw/qedr/Kconfig
-> @@ -1,6 +1,7 @@
->  config INFINIBAND_QEDR
->  	tristate "QLogic RoCE driver"
->  	depends on 64BIT && QEDE
-> +	depends on PCI
->  	select QED_LL2
->  	select QED_RDMA
->  	---help---
-> diff --git a/drivers/infiniband/hw/qib/Kconfig b/drivers/infiniband/hw/qib/Kconfig
-> index e0fdb9201423..cb06314a2ae2 100644
-> --- a/drivers/infiniband/hw/qib/Kconfig
-> +++ b/drivers/infiniband/hw/qib/Kconfig
-> @@ -1,6 +1,7 @@
->  config INFINIBAND_QIB
->  	tristate "Intel PCIe HCA support"
->  	depends on 64BIT && INFINIBAND_RDMAVT
-> +	depends on PCI
->  	---help---
->  	This is a low-level driver for Intel PCIe QLE InfiniBand host
->  	channel adapters.  This driver does not support the Intel
-> diff --git a/drivers/infiniband/sw/rdmavt/Kconfig b/drivers/infiniband/sw/rdmavt/Kconfig
-> index fdd001ce13d8..2b5513da7e83 100644
-> --- a/drivers/infiniband/sw/rdmavt/Kconfig
-> +++ b/drivers/infiniband/sw/rdmavt/Kconfig
-> @@ -1,6 +1,7 @@
->  config INFINIBAND_RDMAVT
->  	tristate "RDMA verbs transport library"
->  	depends on 64BIT
-> +	depends on PCI
->  	select DMA_VIRT_OPS
->  	---help---
->  	This is a common software verbs provider for RDMA networks.
-> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> index 6c77df34869d..3fc3b7b20297 100644
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-> @@ -51,7 +51,6 @@
->  #include <net/addrconf.h>
->  #include <linux/inetdevice.h>
->  #include <rdma/ib_cache.h>
-> -#include <linux/pci.h>
->
->  #define DRV_VERSION "1.0.0"
->
-> diff --git a/drivers/staging/lustre/lnet/Kconfig b/drivers/staging/lustre/lnet/Kconfig
-> index 2b5930150cda..6bcb53d0c6f4 100644
-> --- a/drivers/staging/lustre/lnet/Kconfig
-> +++ b/drivers/staging/lustre/lnet/Kconfig
-> @@ -34,7 +34,7 @@ config LNET_SELFTEST
->
->  config LNET_XPRT_IB
->  	tristate "LNET infiniband support"
-> -	depends on LNET && INFINIBAND && INFINIBAND_ADDR_TRANS
-> +	depends on LNET && PCI && INFINIBAND && INFINIBAND_ADDR_TRANS
->  	default LNET && INFINIBAND
->  	help
->  	  This option allows the LNET users to use infiniband as an
-> --
-> 2.13.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---qp4W5+cUSnZs0RIF
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlmvdCsACgkQ5GN7iDZy
-WKfYcBAAisFdNADatNRwW4LYqSB3A1wxheXmbLYo7n1ljcw4luj3vD72XT6j2nx7
-KeRYrNQHsyaUnHZ1BvlXfLaW9mowyBN2rs/qjiwHw7B24BsVgIXFBiXQ7cugOnd5
-E7/7rfiGJU9XafHd4WiuuWLzUTeyKpwAnW0ke805NGVOIDB1XThmmgUto5dGHeSH
-TxMkTStIHrude0SnbJEdyb+cl0/n8TxGb3no10BQd9g6m0jcXhMVr7UOQ0TiAo16
-VHzHOYQAc06FaFnsTHUpQFqjbtdP3QVQkEiLo9Bb6a9gW1AjBAcWNqGRC8fc+GRZ
-fv1kQfRFN/jIEf5zaVxpZw3mpV/cTBq309uSfJJViu0CahQi0BSJgzIZnHUe5ZrB
-5j7m27O/xwiM2/f81AdEtkYsroAkN79cLtt6H9hYpEwXxuenLY6DtKseZ/r0GYmH
-W2UQFPNFQp2URMJgfe0X5ksaq1OqkIT4C5qzKl1YJ5zehA2zXKyz8xRxT4yqDMCu
-L04NiClbUpnq9NbssqsHX/oeylJHbE15Lx4VXKbhZGV+jwRrjBMNYIRA4oa/C1ai
-iOdhpyZ7R00+AvfTZ0zfDUV5PVsIX/J5AxlGJgcBJpkePwhyBnMYdPxz3I90QeNc
-yVb7N2lixmGBscFNh/KjWE4r0yf+WcfZNdfkA5EWI/AsVbv2Psc=
-=c3Pd
------END PGP SIGNATURE-----
-
---qp4W5+cUSnZs0RIF--
+Acked-by: Roi Dayan <roid-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
