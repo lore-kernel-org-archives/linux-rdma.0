@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 rdma-core 3/3] mlx5: Add support for sending UD packets with source QPN
-Date: Thu,  7 Sep 2017 15:12:07 +0300
-Message-ID: <1504786327-820-4-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 rdma-core 2/3] mlx5: Add support for managing QP with a given source QP number
+Date: Thu,  7 Sep 2017 15:12:06 +0300
+Message-ID: <1504786327-820-3-git-send-email-yishaih@mellanox.com>
 References: <1504786327-820-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1504786327-820-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,173 +10,155 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-It includes:
-- Update WQE size to match the addition required segments.
-- Build a proper packet as part of the post send flow.
+Add support to create a QP with source QPN (e.g. IPoIB QPN) over UD QP.
 
-The specific IPoIB handling as of copying from the application gather
-data into the header is some device limitation to support sending IPoIB
-packets. This is not required in the general case but will work as well.
-Future devices may work properly without that need, once be ready we may
-have some device capability exposed from kernel and clean this specific
-handling.
+It includes:
+- Input checking that basic QP type is UD.
+- Create and manage driver resources as done for RAW QP.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx5/qp.c    | 65 ++++++++++++++++++++++++++++++++++++++++++++++++++
- providers/mlx5/verbs.c | 10 +++++---
- providers/mlx5/wqe.h   |  6 +++++
- 3 files changed, 78 insertions(+), 3 deletions(-)
+ providers/mlx5/mlx5.h  |  8 +++++++-
+ providers/mlx5/qp.c    |  3 ++-
+ providers/mlx5/verbs.c | 36 +++++++++++++++++++++++++++++++-----
+ 3 files changed, 40 insertions(+), 7 deletions(-)
 
-diff --git a/providers/mlx5/qp.c b/providers/mlx5/qp.c
-index 2960ba0..d5e677f 100644
---- a/providers/mlx5/qp.c
-+++ b/providers/mlx5/qp.c
-@@ -604,6 +604,63 @@ static inline int set_tso_eth_seg(void **seg, struct ibv_send_wr *wr,
- 	return 0;
- }
- 
-+static inline int mlx5_post_send_underlay(struct mlx5_qp *qp, struct ibv_send_wr *wr,
-+					  void **pseg, int *total_size,
-+					  struct mlx5_sg_copy_ptr *sg_copy_ptr)
-+{
-+	struct mlx5_wqe_eth_seg *eseg;
-+	int inl_hdr_copy_size;
-+	void *seg = *pseg;
-+	int size = 0;
-+
-+	if (unlikely(wr->opcode == IBV_WR_SEND_WITH_IMM))
-+		return EINVAL;
-+
-+	memset(seg, 0, sizeof(struct mlx5_wqe_eth_pad));
-+	size += sizeof(struct mlx5_wqe_eth_pad);
-+	seg += sizeof(struct mlx5_wqe_eth_pad);
-+	eseg = seg;
-+	*((uint64_t *)eseg) = 0;
-+	eseg->rsvd2 = 0;
-+
-+	if (wr->send_flags & IBV_SEND_IP_CSUM) {
-+		if (!(qp->qp_cap_cache & MLX5_CSUM_SUPPORT_UNDERLAY_UD))
-+			return EINVAL;
-+
-+		eseg->cs_flags |= MLX5_ETH_WQE_L3_CSUM | MLX5_ETH_WQE_L4_CSUM;
-+	}
-+
-+	if (likely(wr->sg_list[0].length >= MLX5_SOURCE_QPN_INLINE_MAX_HEADER_SIZE))
-+		/* Copying the minimum required data unless inline mode is set */
-+		inl_hdr_copy_size = (wr->send_flags & IBV_SEND_INLINE) ?
-+				MLX5_SOURCE_QPN_INLINE_MAX_HEADER_SIZE :
-+				MLX5_IPOIB_INLINE_MIN_HEADER_SIZE;
-+	else {
-+		inl_hdr_copy_size = MLX5_IPOIB_INLINE_MIN_HEADER_SIZE;
-+		/* We expect at least 4 bytes as part of first entry to hold the IPoIB header */
-+		if (unlikely(wr->sg_list[0].length < inl_hdr_copy_size))
-+			return EINVAL;
-+	}
-+
-+	memcpy(eseg->inline_hdr_start, (void *)(uintptr_t)wr->sg_list[0].addr,
-+	       inl_hdr_copy_size);
-+	eseg->inline_hdr_sz = htobe16(inl_hdr_copy_size);
-+	size += sizeof(struct mlx5_wqe_eth_seg);
-+	seg += sizeof(struct mlx5_wqe_eth_seg);
-+
-+	/* If we copied all the sge into the inline-headers, then we need to
-+	 * start copying from the next sge into the data-segment.
-+	 */
-+	if (unlikely(wr->sg_list[0].length == inl_hdr_copy_size))
-+		sg_copy_ptr->index++;
-+	else
-+		sg_copy_ptr->offset = inl_hdr_copy_size;
-+
-+	*pseg = seg;
-+	*total_size += (size / 16);
-+	return 0;
-+}
-+
- static inline int _mlx5_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
- 				  struct ibv_send_wr **bad_wr)
- {
-@@ -806,6 +863,14 @@ static inline int _mlx5_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
- 			size += sizeof(struct mlx5_wqe_datagram_seg) / 16;
- 			if (unlikely((seg == qend)))
- 				seg = mlx5_get_send_wqe(qp, 0);
-+
-+			if (unlikely(qp->flags & MLX5_QP_FLAGS_USE_UNDERLAY)) {
-+				err = mlx5_post_send_underlay(qp, wr, &seg, &size, &sg_copy_ptr);
-+				if (unlikely(err)) {
-+					*bad_wr = wr;
-+					goto out;
-+				}
-+			}
- 			break;
- 
- 		case IBV_QPT_RAW_PACKET:
-diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-index a469c93..5a360a9 100644
---- a/providers/mlx5/verbs.c
-+++ b/providers/mlx5/verbs.c
-@@ -756,7 +756,7 @@ int mlx5_destroy_srq(struct ibv_srq *srq)
- 	return 0;
- }
- 
--static int sq_overhead(enum ibv_qp_type	qp_type)
-+static int sq_overhead(struct mlx5_qp *qp, enum ibv_qp_type qp_type)
- {
- 	size_t size = 0;
- 	size_t mw_bind_size =
-@@ -781,6 +781,10 @@ static int sq_overhead(enum ibv_qp_type	qp_type)
- 	case IBV_QPT_UD:
- 		size = sizeof(struct mlx5_wqe_ctrl_seg) +
- 			sizeof(struct mlx5_wqe_datagram_seg);
-+
-+		if (qp->flags & MLX5_QP_FLAGS_USE_UNDERLAY)
-+			size += (sizeof(struct mlx5_wqe_eth_seg) + sizeof(struct mlx5_wqe_eth_pad));
-+
- 		break;
- 
- 	case IBV_QPT_XRC_SEND:
-@@ -814,7 +818,7 @@ static int mlx5_calc_send_wqe(struct mlx5_context *ctx,
- 	int max_gather;
- 	int tot_size;
- 
--	size = sq_overhead(attr->qp_type);
-+	size = sq_overhead(qp, attr->qp_type);
- 	if (size < 0)
- 		return size;
- 
-@@ -887,7 +891,7 @@ static int mlx5_calc_sq_size(struct mlx5_context *ctx,
- 		return -EINVAL;
- 	}
- 
--	qp->max_inline_data = wqe_size - sq_overhead(attr->qp_type) -
-+	qp->max_inline_data = wqe_size - sq_overhead(qp, attr->qp_type) -
- 		sizeof(struct mlx5_wqe_inl_data_seg);
- 	attr->cap.max_inline_data = qp->max_inline_data;
- 
-diff --git a/providers/mlx5/wqe.h b/providers/mlx5/wqe.h
-index 063dc9a..5bf536c 100644
---- a/providers/mlx5/wqe.h
-+++ b/providers/mlx5/wqe.h
-@@ -50,6 +50,10 @@ struct mlx5_eqe_qp_srq {
- 	uint32_t	qp_srq_n;
- };
- 
-+struct mlx5_wqe_eth_pad {
-+	uint8_t rsvd0[16];
-+};
-+
- struct mlx5_wqe_xrc_seg {
- 	__be32		xrc_srqn;
- 	uint8_t		rsvd[12];
-@@ -63,6 +67,8 @@ struct mlx5_wqe_masked_atomic_seg {
+diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
+index ad36cbf..ae39d17 100644
+--- a/providers/mlx5/mlx5.h
++++ b/providers/mlx5/mlx5.h
+@@ -150,7 +150,8 @@ enum {
  };
  
  enum {
-+	MLX5_IPOIB_INLINE_MIN_HEADER_SIZE	= 4,
-+	MLX5_SOURCE_QPN_INLINE_MAX_HEADER_SIZE	= 18,
- 	MLX5_ETH_L2_INLINE_HEADER_SIZE	= 18,
- 	MLX5_ETH_L2_MIN_HEADER_SIZE	= 14,
+-	MLX5_CSUM_SUPPORT_RAW_OVER_ETH  = (1 <<  0),
++	MLX5_CSUM_SUPPORT_RAW_OVER_ETH  = (1 << 0),
++	MLX5_CSUM_SUPPORT_UNDERLAY_UD   = (1 << 1),
+ 	/*
+ 	 * Only report rx checksum when the validation
+ 	 * is valid.
+@@ -396,6 +397,10 @@ struct mlx5_mr {
+ 	uint32_t			alloc_flags;
  };
+ 
++enum mlx5_qp_flags {
++	MLX5_QP_FLAGS_USE_UNDERLAY = 0x01,
++};
++
+ struct mlx5_qp {
+ 	struct mlx5_resource            rsc; /* This struct must be first */
+ 	struct verbs_qp			verbs_qp;
+@@ -421,6 +426,7 @@ struct mlx5_qp {
+ 	uint32_t			max_tso;
+ 	uint16_t			max_tso_header;
+ 	int                             rss_qp;
++	uint32_t			flags; /* Use enum mlx5_qp_flags */
+ };
+ 
+ struct mlx5_ah {
+diff --git a/providers/mlx5/qp.c b/providers/mlx5/qp.c
+index 52da8c1..2960ba0 100644
+--- a/providers/mlx5/qp.c
++++ b/providers/mlx5/qp.c
+@@ -1199,7 +1199,8 @@ out:
+ 		 * This is only for Raw Packet QPs since they are represented
+ 		 * differently in the hardware.
+ 		 */
+-		if (likely(!(ibqp->qp_type == IBV_QPT_RAW_PACKET &&
++		if (likely(!((ibqp->qp_type == IBV_QPT_RAW_PACKET ||
++			      qp->flags & MLX5_QP_FLAGS_USE_UNDERLAY) &&
+ 			     ibqp->state < IBV_QPS_RTR)))
+ 			qp->db[MLX5_RCV_DBR] = htobe32(qp->rq.head & 0xffff);
+ 	}
+diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
+index fc63ae9..a469c93 100644
+--- a/providers/mlx5/verbs.c
++++ b/providers/mlx5/verbs.c
+@@ -1096,7 +1096,8 @@ static int mlx5_alloc_qp_buf(struct ibv_context *context,
+ 
+ 	memset(qp->buf.buf, 0, qp->buf_size);
+ 
+-	if (attr->qp_type == IBV_QPT_RAW_PACKET) {
++	if (attr->qp_type == IBV_QPT_RAW_PACKET ||
++	    qp->flags & MLX5_QP_FLAGS_USE_UNDERLAY) {
+ 		size_t aligned_sq_buf_size = align(qp->sq_buf_size,
+ 						   to_mdev(context->device)->page_size);
+ 		/* For Raw Packet QP, allocate a separate buffer for the SQ */
+@@ -1257,6 +1258,17 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
+ 	ibqp = (struct ibv_qp *)&qp->verbs_qp;
+ 	qp->ibv_qp = ibqp;
+ 
++	if ((attr->comp_mask & IBV_QP_INIT_ATTR_CREATE_FLAGS) &&
++		(attr->create_flags & IBV_QP_CREATE_SOURCE_QPN)) {
++
++		if (attr->qp_type != IBV_QPT_UD) {
++			errno = EINVAL;
++			goto err;
++		}
++
++		qp->flags |= MLX5_QP_FLAGS_USE_UNDERLAY;
++	}
++
+ 	memset(&cmd, 0, sizeof(cmd));
+ 	memset(&resp, 0, sizeof(resp));
+ 	memset(&resp_ex, 0, sizeof(resp_ex));
+@@ -1282,7 +1294,8 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
+ 		goto err;
+ 	}
+ 
+-	if (attr->qp_type == IBV_QPT_RAW_PACKET) {
++	if (attr->qp_type == IBV_QPT_RAW_PACKET ||
++	    qp->flags & MLX5_QP_FLAGS_USE_UNDERLAY) {
+ 		qp->buf_size = qp->sq.offset;
+ 		qp->sq_buf_size = ret - qp->buf_size;
+ 		qp->sq.offset = 0;
+@@ -1296,7 +1309,8 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
+ 		goto err;
+ 	}
+ 
+-	if (attr->qp_type == IBV_QPT_RAW_PACKET) {
++	if (attr->qp_type == IBV_QPT_RAW_PACKET ||
++	    qp->flags & MLX5_QP_FLAGS_USE_UNDERLAY) {
+ 		qp->sq_start = qp->sq_buf.buf;
+ 		qp->sq.qend = qp->sq_buf.buf +
+ 				(qp->sq.wqe_cnt << qp->sq.wqe_shift);
+@@ -1322,7 +1336,8 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
+ 	qp->db[MLX5_SND_DBR] = 0;
+ 
+ 	cmd.buf_addr = (uintptr_t) qp->buf.buf;
+-	cmd.sq_buf_addr = (attr->qp_type == IBV_QPT_RAW_PACKET) ?
++	cmd.sq_buf_addr = (attr->qp_type == IBV_QPT_RAW_PACKET ||
++			   qp->flags & MLX5_QP_FLAGS_USE_UNDERLAY) ?
+ 			  (uintptr_t) qp->sq_buf.buf : 0;
+ 	cmd.db_addr  = (uintptr_t) qp->db;
+ 	cmd.sq_wqe_count = qp->sq.wqe_cnt;
+@@ -1560,6 +1575,16 @@ int mlx5_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+ 	if (mqp->rss_qp)
+ 		return ENOSYS;
+ 
++	if (mqp->flags & MLX5_QP_FLAGS_USE_UNDERLAY) {
++		if (attr_mask & ~(IBV_QP_STATE | IBV_QP_CUR_STATE))
++			return EINVAL;
++
++		/* Underlay QP is UD over infiniband */
++		if (context->cached_device_cap_flags & IBV_DEVICE_UD_IP_CSUM)
++			mqp->qp_cap_cache |= MLX5_CSUM_SUPPORT_UNDERLAY_UD |
++					     MLX5_RX_CSUM_VALID;
++	}
++
+ 	if (attr_mask & IBV_QP_PORT) {
+ 		switch (qp->qp_type) {
+ 		case IBV_QPT_RAW_PACKET:
+@@ -1621,7 +1646,8 @@ int mlx5_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+ 	if (!ret &&
+ 	    (attr_mask & IBV_QP_STATE) &&
+ 	    attr->qp_state == IBV_QPS_RTR &&
+-	    qp->qp_type == IBV_QPT_RAW_PACKET) {
++	    (qp->qp_type == IBV_QPT_RAW_PACKET ||
++	     mqp->flags & MLX5_QP_FLAGS_USE_UNDERLAY)) {
+ 		mlx5_spin_lock(&mqp->rq.lock);
+ 		mqp->db[MLX5_RCV_DBR] = htobe32(mqp->rq.head & 0xffff);
+ 		mlx5_spin_unlock(&mqp->rq.lock);
 -- 
 1.8.3.1
 
