@@ -1,168 +1,58 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 rdma-core 2/3] mlx5: Add support for managing QP with a given source QP number
-Date: Thu,  7 Sep 2017 15:12:06 +0300
-Message-ID: <1504786327-820-3-git-send-email-yishaih@mellanox.com>
-References: <1504786327-820-1-git-send-email-yishaih@mellanox.com>
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1504786327-820-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+From: Tom Talpey <tom-CLs1Zie5N5HQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH RFC 0/5] xprtrdma Send completion batching
+Date: Thu, 7 Sep 2017 09:17:16 -0400
+Message-ID: <f2cb453d-a59f-de64-7a42-09e075562895@talpey.com>
+References: <20170905164347.11106.27140.stgit@manet.1015granger.net>
+ <1230f9d9-07c1-6d00-b197-f408712fb5c1@grimberg.me>
+ <890CC58C-7F8F-4B7E-8620-21F07007D3AA@oracle.com>
+ <6dcdcc25-2613-cdb5-1db2-6c944f05242b@grimberg.me>
+ <4E2E5580-69A5-4C3B-9FCA-E61AE2042E6B@oracle.com>
+ <9059315f-1985-042e-a59f-26a66fbece3e@grimberg.me>
+ <5B2F42B8-2CBD-43F4-BBAD-71EDD4F871FB@oracle.com>
+ <20170906193946.GC18461@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170906193946.GC18461-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add support to create a QP with source QPN (e.g. IPoIB QPN) over UD QP.
+On 9/6/2017 3:39 PM, Jason Gunthorpe wrote:
+> On Wed, Sep 06, 2017 at 02:33:50PM -0400, Chuck Lever wrote:
+> 
+>> B. Force RPC completion to wait for Send completion, which
+>> would allow the post-v4.6 scatter-gather code to work
+>> safely. This would need some guarantee that Sends will
+>> always complete in a short period.
+> 
+> Why is waiting for the send completion so fundamentally different from
+> waiting for the remote RPC reply?
+> 
+> I would say that 99% of time the send completion and RPC reply
+> completion will occure approximately concurrently.
 
-It includes:
-- Input checking that basic QP type is UD.
-- Create and manage driver resources as done for RAW QP.
+Absolutely not. The RPC reply requires upper layer processing at
+the server, which involves work requests, context switches, file
+system and disk i/o operations, and plain old queuing. RPC replies
+typically can be expected in milliseconds from traditional HDDs,
+and hundreds of microseconds from SSDs. Storage class memory is
+reducing these by two orders of magnitude, but it's still not in
+the range of a network round trip.
 
-Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- providers/mlx5/mlx5.h  |  8 +++++++-
- providers/mlx5/qp.c    |  3 ++-
- providers/mlx5/verbs.c | 36 +++++++++++++++++++++++++++++++-----
- 3 files changed, 40 insertions(+), 7 deletions(-)
+> eg It is quite likely the RPC reply SEND carries an embeded ack
+> for the requesting SEND..
 
-diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
-index ad36cbf..ae39d17 100644
---- a/providers/mlx5/mlx5.h
-+++ b/providers/mlx5/mlx5.h
-@@ -150,7 +150,8 @@ enum {
- };
- 
- enum {
--	MLX5_CSUM_SUPPORT_RAW_OVER_ETH  = (1 <<  0),
-+	MLX5_CSUM_SUPPORT_RAW_OVER_ETH  = (1 << 0),
-+	MLX5_CSUM_SUPPORT_UNDERLAY_UD   = (1 << 1),
- 	/*
- 	 * Only report rx checksum when the validation
- 	 * is valid.
-@@ -396,6 +397,10 @@ struct mlx5_mr {
- 	uint32_t			alloc_flags;
- };
- 
-+enum mlx5_qp_flags {
-+	MLX5_QP_FLAGS_USE_UNDERLAY = 0x01,
-+};
-+
- struct mlx5_qp {
- 	struct mlx5_resource            rsc; /* This struct must be first */
- 	struct verbs_qp			verbs_qp;
-@@ -421,6 +426,7 @@ struct mlx5_qp {
- 	uint32_t			max_tso;
- 	uint16_t			max_tso_header;
- 	int                             rss_qp;
-+	uint32_t			flags; /* Use enum mlx5_qp_flags */
- };
- 
- struct mlx5_ah {
-diff --git a/providers/mlx5/qp.c b/providers/mlx5/qp.c
-index 52da8c1..2960ba0 100644
---- a/providers/mlx5/qp.c
-+++ b/providers/mlx5/qp.c
-@@ -1199,7 +1199,8 @@ out:
- 		 * This is only for Raw Packet QPs since they are represented
- 		 * differently in the hardware.
- 		 */
--		if (likely(!(ibqp->qp_type == IBV_QPT_RAW_PACKET &&
-+		if (likely(!((ibqp->qp_type == IBV_QPT_RAW_PACKET ||
-+			      qp->flags & MLX5_QP_FLAGS_USE_UNDERLAY) &&
- 			     ibqp->state < IBV_QPS_RTR)))
- 			qp->db[MLX5_RCV_DBR] = htobe32(qp->rq.head & 0xffff);
- 	}
-diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
-index fc63ae9..a469c93 100644
---- a/providers/mlx5/verbs.c
-+++ b/providers/mlx5/verbs.c
-@@ -1096,7 +1096,8 @@ static int mlx5_alloc_qp_buf(struct ibv_context *context,
- 
- 	memset(qp->buf.buf, 0, qp->buf_size);
- 
--	if (attr->qp_type == IBV_QPT_RAW_PACKET) {
-+	if (attr->qp_type == IBV_QPT_RAW_PACKET ||
-+	    qp->flags & MLX5_QP_FLAGS_USE_UNDERLAY) {
- 		size_t aligned_sq_buf_size = align(qp->sq_buf_size,
- 						   to_mdev(context->device)->page_size);
- 		/* For Raw Packet QP, allocate a separate buffer for the SQ */
-@@ -1257,6 +1258,17 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
- 	ibqp = (struct ibv_qp *)&qp->verbs_qp;
- 	qp->ibv_qp = ibqp;
- 
-+	if ((attr->comp_mask & IBV_QP_INIT_ATTR_CREATE_FLAGS) &&
-+		(attr->create_flags & IBV_QP_CREATE_SOURCE_QPN)) {
-+
-+		if (attr->qp_type != IBV_QPT_UD) {
-+			errno = EINVAL;
-+			goto err;
-+		}
-+
-+		qp->flags |= MLX5_QP_FLAGS_USE_UNDERLAY;
-+	}
-+
- 	memset(&cmd, 0, sizeof(cmd));
- 	memset(&resp, 0, sizeof(resp));
- 	memset(&resp_ex, 0, sizeof(resp_ex));
-@@ -1282,7 +1294,8 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
- 		goto err;
- 	}
- 
--	if (attr->qp_type == IBV_QPT_RAW_PACKET) {
-+	if (attr->qp_type == IBV_QPT_RAW_PACKET ||
-+	    qp->flags & MLX5_QP_FLAGS_USE_UNDERLAY) {
- 		qp->buf_size = qp->sq.offset;
- 		qp->sq_buf_size = ret - qp->buf_size;
- 		qp->sq.offset = 0;
-@@ -1296,7 +1309,8 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
- 		goto err;
- 	}
- 
--	if (attr->qp_type == IBV_QPT_RAW_PACKET) {
-+	if (attr->qp_type == IBV_QPT_RAW_PACKET ||
-+	    qp->flags & MLX5_QP_FLAGS_USE_UNDERLAY) {
- 		qp->sq_start = qp->sq_buf.buf;
- 		qp->sq.qend = qp->sq_buf.buf +
- 				(qp->sq.wqe_cnt << qp->sq.wqe_shift);
-@@ -1322,7 +1336,8 @@ static struct ibv_qp *create_qp(struct ibv_context *context,
- 	qp->db[MLX5_SND_DBR] = 0;
- 
- 	cmd.buf_addr = (uintptr_t) qp->buf.buf;
--	cmd.sq_buf_addr = (attr->qp_type == IBV_QPT_RAW_PACKET) ?
-+	cmd.sq_buf_addr = (attr->qp_type == IBV_QPT_RAW_PACKET ||
-+			   qp->flags & MLX5_QP_FLAGS_USE_UNDERLAY) ?
- 			  (uintptr_t) qp->sq_buf.buf : 0;
- 	cmd.db_addr  = (uintptr_t) qp->db;
- 	cmd.sq_wqe_count = qp->sq.wqe_cnt;
-@@ -1560,6 +1575,16 @@ int mlx5_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- 	if (mqp->rss_qp)
- 		return ENOSYS;
- 
-+	if (mqp->flags & MLX5_QP_FLAGS_USE_UNDERLAY) {
-+		if (attr_mask & ~(IBV_QP_STATE | IBV_QP_CUR_STATE))
-+			return EINVAL;
-+
-+		/* Underlay QP is UD over infiniband */
-+		if (context->cached_device_cap_flags & IBV_DEVICE_UD_IP_CSUM)
-+			mqp->qp_cap_cache |= MLX5_CSUM_SUPPORT_UNDERLAY_UD |
-+					     MLX5_RX_CSUM_VALID;
-+	}
-+
- 	if (attr_mask & IBV_QP_PORT) {
- 		switch (qp->qp_type) {
- 		case IBV_QPT_RAW_PACKET:
-@@ -1621,7 +1646,8 @@ int mlx5_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- 	if (!ret &&
- 	    (attr_mask & IBV_QP_STATE) &&
- 	    attr->qp_state == IBV_QPS_RTR &&
--	    qp->qp_type == IBV_QPT_RAW_PACKET) {
-+	    (qp->qp_type == IBV_QPT_RAW_PACKET ||
-+	     mqp->flags & MLX5_QP_FLAGS_USE_UNDERLAY)) {
- 		mlx5_spin_lock(&mqp->rq.lock);
- 		mqp->db[MLX5_RCV_DBR] = htobe32(mqp->rq.head & 0xffff);
- 		mlx5_spin_unlock(&mqp->rq.lock);
--- 
-1.8.3.1
+That's not what we've seen, even on InfiniBand. On adapters such as
+iWARP, I will note, the send completion is often generated when
+the adapter buffers the outgoing message, and has almost nothing
+to do with the remote transport ack.
 
+Tom.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
