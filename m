@@ -1,92 +1,44 @@
-From: "Amrani, Ram" <Ram.Amrani-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH rdma-core RESEND] libqedr: Add iWARP support for
- user-space lib
-Date: Thu, 7 Sep 2017 06:45:31 +0000
-Message-ID: <BN3PR07MB25783CFAAAA5DE95D0E10058F8940@BN3PR07MB2578.namprd07.prod.outlook.com>
-References: <1504622214-9730-1-git-send-email-Ram.Amrani@cavium.com>
- <20170905151412.GA18205@obsidianresearch.com>
- <BN3PR07MB2578B8F3480B5218A06F2167F8970@BN3PR07MB2578.namprd07.prod.outlook.com>
- <20170906151944.GA6262@obsidianresearch.com>
+From: Yuval Shaia <yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH rdma-core 2/3] mlx5: Add support for managing QP with a
+ given source QP number
+Date: Wed, 6 Sep 2017 23:50:15 -0700
+Message-ID: <20170907065015.GA29974@ca-dev46.us.oracle.com>
+References: <1504708729-15249-1-git-send-email-yishaih@mellanox.com>
+ <1504708729-15249-3-git-send-email-yishaih@mellanox.com>
+ <20170906151222.GA23532@yuvallap>
+ <1387444b-7c9d-d26c-d089-83b0d4b047d9@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170906151944.GA6262-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1387444b-7c9d-d26c-d089-83b0d4b047d9-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Elior, Ariel" <Ariel.Elior-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "Kalderon, Michal" <Michal.Kalderon-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks.
-
-> On Wed, Sep 06, 2017 at 09:18:58AM +0000, Amrani, Ram wrote:
-> > > On Tue, Sep 05, 2017 at 05:36:54PM +0300, Ram Amrani wrote:
-> > > > +		if (iwarp) {
-> > > > +			writel(qp->rq.iwarp_db2_data.raw, qp->rq.iwarp_db2);
-> > > > +			mmio_flush_writes();
-> > > > +		}
-> > >
-> > > Can you update this driver to use the macros in util/mmio.h and
-> > > discard this writel thing?
+On Wed, Sep 06, 2017 at 06:56:29PM +0300, Yishai Hadas wrote:
+> On 9/6/2017 6:12 PM, Yuval Shaia wrote:
+> >On Wed, Sep 06, 2017 at 05:38:48PM +0300, Yishai Hadas wrote:
+> >>Add support to create a QP with source QPN (e.g. IPoIB QPN) over UD QP.
 > >
-> > Sure. I can write a dedicated patch to convert all of the locations at =
-once.
-> >
-> > A couple of questions -
-> >
-> > I see that for 16, as an example, there are three functions:
-> > 1) mmio_write16_le()
-> > 2) mmio_write16_be()
-> > 3) mmio_write16()
-> > Per my understanding the first two do not manipulate the data and are o=
-nly intended to
-> > allow sparse to pass (and protect us).
->=20
-> Yes..
->=20
-> > However the 3rd performs htole. Is this correct?
->=20
-> Yes, if necessary it performs the swap to create the defined TLP on
-> any arches that require it.
->=20
-> It is basically equivalent to the kernel's writel_relaxed
->=20
-> > #define MAKE_WRITE(_NAME_, _SZ_)                                       =
-        \
-> >         static inline void _NAME_##_be(void *addr, __be##_SZ_ value)   =
-        \
-> >         {                                                              =
-        \
-> >                 atomic_store_explicit((_Atomic(uint##_SZ_##_t) *)addr, =
-        \
-> >                                       (__force uint##_SZ_##_t)value,   =
-        \
-> >                                       memory_order_relaxed);           =
-        \
-> >         }                                                              =
-        \
-> > What is the effect of the "relaxed ordering" if we use a non-WC BUS?
->=20
-> memory_order_relaxed tells the compiler to WRITE_ONCE but otherwise
-> not concern it self with ordering of stores.
->=20
-> eg
->=20
->  *foo =3D 1
->   mmio_write16(bar, 12);
->=20
-> Can be freely re-ordered during compilation and during execution.
->=20
-> Code needs to insert a util/barrier.h if it requires ordering.
->=20
-> But qedr is using WC right?
+> >Sorry, i missed the kernel patches.
+> >Is this UD limitation is for mlx5 only? Asking as i see no limitation in
+> >the verb layer (patch 1/3).
+> 
+> From API point of view as was introduced by the verbs patch there is
+> no limitation. The mlx5 driver implements the use case for UD QP to
+> accelerate IPoIB packets.
+> 
+> >If no, any plans for CM?
+> No plan for CM at the moment, however, it may be considered in the
+> future based on demand/use case.
 
-Yes.
-Sometimes, however, I disable WC for various checks.
+I can give you use case - migration.
 
->=20
-> Jason
+> 
+> Thanks for looking at.
+> Yishai
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
