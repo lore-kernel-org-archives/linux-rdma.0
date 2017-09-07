@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH V1 rdma-core 1/3] verbs: Enable creating QP with a given source QP number
-Date: Thu,  7 Sep 2017 15:12:05 +0300
-Message-ID: <1504786327-820-2-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH V1 rdma-core 3/3] mlx5: Add support for sending UD packets with source QPN
+Date: Thu,  7 Sep 2017 15:12:07 +0300
+Message-ID: <1504786327-820-4-git-send-email-yishaih@mellanox.com>
 References: <1504786327-820-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1504786327-820-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -10,95 +10,173 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Enable QP creation with a given source QP number.
-The created QP will use the source QPN as its wire QP number.
+It includes:
+- Update WQE size to match the addition required segments.
+- Build a proper packet as part of the post send flow.
 
-This comes as a pre-patch for downstream patches in this series to
-allow user space applications to accelerate traffic which is
-typically handled by IPoIB ULP.
-
-In the IPoIB use case, the source QPN can be achieved by using some
-networking tool as of ifconfig, ip link show on the interface and use
-the value of 3 bytes from the hardware address starting after the first
-byte.
+The specific IPoIB handling as of copying from the application gather
+data into the header is some device limitation to support sending IPoIB
+packets. This is not required in the general case but will work as well.
+Future devices may work properly without that need, once be ready we may
+have some device capability exposed from kernel and clean this specific
+handling.
 
 Signed-off-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- libibverbs/cmd.c                  | 6 +++++-
- libibverbs/kern-abi.h             | 2 +-
- libibverbs/man/ibv_create_qp_ex.3 | 1 +
- libibverbs/verbs.h                | 2 ++
- 4 files changed, 9 insertions(+), 2 deletions(-)
+ providers/mlx5/qp.c    | 65 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ providers/mlx5/verbs.c | 10 +++++---
+ providers/mlx5/wqe.h   |  6 +++++
+ 3 files changed, 78 insertions(+), 3 deletions(-)
 
-diff --git a/libibverbs/cmd.c b/libibverbs/cmd.c
-index 7a266ee..9d2140f 100644
---- a/libibverbs/cmd.c
-+++ b/libibverbs/cmd.c
-@@ -927,7 +927,8 @@ static void create_qp_handle_resp_common(struct ibv_context *context,
- enum {
- 	CREATE_QP_EX2_SUP_CREATE_FLAGS = IBV_QP_CREATE_BLOCK_SELF_MCAST_LB |
- 					 IBV_QP_CREATE_SCATTER_FCS |
--					 IBV_QP_CREATE_CVLAN_STRIPPING,
-+					 IBV_QP_CREATE_CVLAN_STRIPPING |
-+					 IBV_QP_CREATE_SOURCE_QPN,
- };
+diff --git a/providers/mlx5/qp.c b/providers/mlx5/qp.c
+index 2960ba0..d5e677f 100644
+--- a/providers/mlx5/qp.c
++++ b/providers/mlx5/qp.c
+@@ -604,6 +604,63 @@ static inline int set_tso_eth_seg(void **seg, struct ibv_send_wr *wr,
+ 	return 0;
+ }
  
- int ibv_cmd_create_qp_ex2(struct ibv_context *context,
-@@ -967,6 +968,9 @@ int ibv_cmd_create_qp_ex2(struct ibv_context *context,
- 				    sizeof(qp_attr->create_flags))
- 			return EINVAL;
- 		cmd->create_flags = qp_attr->create_flags;
++static inline int mlx5_post_send_underlay(struct mlx5_qp *qp, struct ibv_send_wr *wr,
++					  void **pseg, int *total_size,
++					  struct mlx5_sg_copy_ptr *sg_copy_ptr)
++{
++	struct mlx5_wqe_eth_seg *eseg;
++	int inl_hdr_copy_size;
++	void *seg = *pseg;
++	int size = 0;
 +
-+		if (qp_attr->create_flags & IBV_QP_CREATE_SOURCE_QPN)
-+			cmd->source_qpn = qp_attr->source_qpn;
++	if (unlikely(wr->opcode == IBV_WR_SEND_WITH_IMM))
++		return EINVAL;
++
++	memset(seg, 0, sizeof(struct mlx5_wqe_eth_pad));
++	size += sizeof(struct mlx5_wqe_eth_pad);
++	seg += sizeof(struct mlx5_wqe_eth_pad);
++	eseg = seg;
++	*((uint64_t *)eseg) = 0;
++	eseg->rsvd2 = 0;
++
++	if (wr->send_flags & IBV_SEND_IP_CSUM) {
++		if (!(qp->qp_cap_cache & MLX5_CSUM_SUPPORT_UNDERLAY_UD))
++			return EINVAL;
++
++		eseg->cs_flags |= MLX5_ETH_WQE_L3_CSUM | MLX5_ETH_WQE_L4_CSUM;
++	}
++
++	if (likely(wr->sg_list[0].length >= MLX5_SOURCE_QPN_INLINE_MAX_HEADER_SIZE))
++		/* Copying the minimum required data unless inline mode is set */
++		inl_hdr_copy_size = (wr->send_flags & IBV_SEND_INLINE) ?
++				MLX5_SOURCE_QPN_INLINE_MAX_HEADER_SIZE :
++				MLX5_IPOIB_INLINE_MIN_HEADER_SIZE;
++	else {
++		inl_hdr_copy_size = MLX5_IPOIB_INLINE_MIN_HEADER_SIZE;
++		/* We expect at least 4 bytes as part of first entry to hold the IPoIB header */
++		if (unlikely(wr->sg_list[0].length < inl_hdr_copy_size))
++			return EINVAL;
++	}
++
++	memcpy(eseg->inline_hdr_start, (void *)(uintptr_t)wr->sg_list[0].addr,
++	       inl_hdr_copy_size);
++	eseg->inline_hdr_sz = htobe16(inl_hdr_copy_size);
++	size += sizeof(struct mlx5_wqe_eth_seg);
++	seg += sizeof(struct mlx5_wqe_eth_seg);
++
++	/* If we copied all the sge into the inline-headers, then we need to
++	 * start copying from the next sge into the data-segment.
++	 */
++	if (unlikely(wr->sg_list[0].length == inl_hdr_copy_size))
++		sg_copy_ptr->index++;
++	else
++		sg_copy_ptr->offset = inl_hdr_copy_size;
++
++	*pseg = seg;
++	*total_size += (size / 16);
++	return 0;
++}
++
+ static inline int _mlx5_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 				  struct ibv_send_wr **bad_wr)
+ {
+@@ -806,6 +863,14 @@ static inline int _mlx5_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 			size += sizeof(struct mlx5_wqe_datagram_seg) / 16;
+ 			if (unlikely((seg == qend)))
+ 				seg = mlx5_get_send_wqe(qp, 0);
++
++			if (unlikely(qp->flags & MLX5_QP_FLAGS_USE_UNDERLAY)) {
++				err = mlx5_post_send_underlay(qp, wr, &seg, &size, &sg_copy_ptr);
++				if (unlikely(err)) {
++					*bad_wr = wr;
++					goto out;
++				}
++			}
+ 			break;
+ 
+ 		case IBV_QPT_RAW_PACKET:
+diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
+index a469c93..5a360a9 100644
+--- a/providers/mlx5/verbs.c
++++ b/providers/mlx5/verbs.c
+@@ -756,7 +756,7 @@ int mlx5_destroy_srq(struct ibv_srq *srq)
+ 	return 0;
+ }
+ 
+-static int sq_overhead(enum ibv_qp_type	qp_type)
++static int sq_overhead(struct mlx5_qp *qp, enum ibv_qp_type qp_type)
+ {
+ 	size_t size = 0;
+ 	size_t mw_bind_size =
+@@ -781,6 +781,10 @@ static int sq_overhead(enum ibv_qp_type	qp_type)
+ 	case IBV_QPT_UD:
+ 		size = sizeof(struct mlx5_wqe_ctrl_seg) +
+ 			sizeof(struct mlx5_wqe_datagram_seg);
++
++		if (qp->flags & MLX5_QP_FLAGS_USE_UNDERLAY)
++			size += (sizeof(struct mlx5_wqe_eth_seg) + sizeof(struct mlx5_wqe_eth_pad));
++
+ 		break;
+ 
+ 	case IBV_QPT_XRC_SEND:
+@@ -814,7 +818,7 @@ static int mlx5_calc_send_wqe(struct mlx5_context *ctx,
+ 	int max_gather;
+ 	int tot_size;
+ 
+-	size = sq_overhead(attr->qp_type);
++	size = sq_overhead(qp, attr->qp_type);
+ 	if (size < 0)
+ 		return size;
+ 
+@@ -887,7 +891,7 @@ static int mlx5_calc_sq_size(struct mlx5_context *ctx,
+ 		return -EINVAL;
  	}
  
- 	if (qp_attr->comp_mask & IBV_QP_INIT_ATTR_IND_TABLE) {
-diff --git a/libibverbs/kern-abi.h b/libibverbs/kern-abi.h
-index 8d42faf..3a0e02a 100644
---- a/libibverbs/kern-abi.h
-+++ b/libibverbs/kern-abi.h
-@@ -679,7 +679,7 @@ struct ibv_create_qp_ex {
- 	__u32 comp_mask;
- 	__u32 create_flags;
- 	__u32 ind_tbl_handle;
--	__u32 reserved1;
-+	__u32 source_qpn;
+-	qp->max_inline_data = wqe_size - sq_overhead(attr->qp_type) -
++	qp->max_inline_data = wqe_size - sq_overhead(qp, attr->qp_type) -
+ 		sizeof(struct mlx5_wqe_inl_data_seg);
+ 	attr->cap.max_inline_data = qp->max_inline_data;
+ 
+diff --git a/providers/mlx5/wqe.h b/providers/mlx5/wqe.h
+index 063dc9a..5bf536c 100644
+--- a/providers/mlx5/wqe.h
++++ b/providers/mlx5/wqe.h
+@@ -50,6 +50,10 @@ struct mlx5_eqe_qp_srq {
+ 	uint32_t	qp_srq_n;
  };
  
- struct ibv_create_qp_resp_ex {
-diff --git a/libibverbs/man/ibv_create_qp_ex.3 b/libibverbs/man/ibv_create_qp_ex.3
-index 99ae497..3272c09 100644
---- a/libibverbs/man/ibv_create_qp_ex.3
-+++ b/libibverbs/man/ibv_create_qp_ex.3
-@@ -38,6 +38,7 @@ enum ibv_qp_create_flags create_flags;	/* Creation flags for this QP */
- uint16_t                max_tso_header; /* Maximum TSO header size */
- struct ibv_rwq_ind_table *rwq_ind_tbl;  /* Indirection table to be associated with the QP */
- struct ibv_rx_hash_conf  rx_hash_conf;  /* RX hash configuration to be used */
-+uint32_t                source_qpn;     /* Source QP number, creation flag IBV_QP_CREATE_SOURCE_QPN should be set */
- .in -8
- };
- .sp
-diff --git a/libibverbs/verbs.h b/libibverbs/verbs.h
-index 922a011..3c8b2c9 100644
---- a/libibverbs/verbs.h
-+++ b/libibverbs/verbs.h
-@@ -790,6 +790,7 @@ enum ibv_qp_create_flags {
- 	IBV_QP_CREATE_BLOCK_SELF_MCAST_LB	= 1 << 1,
- 	IBV_QP_CREATE_SCATTER_FCS		= 1 << 8,
- 	IBV_QP_CREATE_CVLAN_STRIPPING		= 1 << 9,
-+	IBV_QP_CREATE_SOURCE_QPN		= 1 << 10,
++struct mlx5_wqe_eth_pad {
++	uint8_t rsvd0[16];
++};
++
+ struct mlx5_wqe_xrc_seg {
+ 	__be32		xrc_srqn;
+ 	uint8_t		rsvd[12];
+@@ -63,6 +67,8 @@ struct mlx5_wqe_masked_atomic_seg {
  };
  
- struct ibv_rx_hash_conf {
-@@ -817,6 +818,7 @@ struct ibv_qp_init_attr_ex {
- 	uint16_t		max_tso_header;
- 	struct ibv_rwq_ind_table       *rwq_ind_tbl;
- 	struct ibv_rx_hash_conf	rx_hash_conf;
-+	uint32_t		source_qpn;
+ enum {
++	MLX5_IPOIB_INLINE_MIN_HEADER_SIZE	= 4,
++	MLX5_SOURCE_QPN_INLINE_MAX_HEADER_SIZE	= 18,
+ 	MLX5_ETH_L2_INLINE_HEADER_SIZE	= 18,
+ 	MLX5_ETH_L2_MIN_HEADER_SIZE	= 14,
  };
- 
- enum ibv_qp_open_attr_mask {
 -- 
 1.8.3.1
 
