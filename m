@@ -1,127 +1,66 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [LPC] 2nd RDMA Mini-Summit Schedule
-Date: Wed, 13 Sep 2017 16:02:16 +0300
-Message-ID: <20170913130216.GT3405@mtr-leonro.local>
-References: <20170907051805.GA19175@mtr-leonro.local>
+From: Alex Rosenbaum <rosenbaumalex-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V1 rdma-core 1/3] verbs: Enable creating QP with a given
+ source QP number
+Date: Sun, 10 Sep 2017 09:54:45 +0300
+Message-ID: <CAFgAxU8bkhb6tvB=1GUzqW2Dg-43Y+pZkDaXvFOE+5CEMLs6Mg@mail.gmail.com>
+References: <1504786327-820-1-git-send-email-yishaih@mellanox.com>
+ <1504786327-820-2-git-send-email-yishaih@mellanox.com> <20170907151641.GC20644@obsidianresearch.com>
+ <CAFgAxU8QqEQwCMnu=_1hjRVMHJ_242pXykxHuJ9PftxTV77TUw@mail.gmail.com> <20170907192909.GA5364@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="D6z0c4W1rkZNF4Vu"
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20170907051805.GA19175@mtr-leonro.local>
-Sender: netdev-owner@vger.kernel.org
-To: RDMA mailing list <linux-rdma@vger.kernel.org>
-Cc: linux-netdev <netdev@vger.kernel.org>, NVME mailing list <linux-nvme@lists.infradead.org>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Bart Van Assche <bart.vanassche@sandisk.com>, Knut Omang <knut.omang@oracle.com>, Christoph Lameter <cl@linux.com>, Don Dutile <ddutile@redhat.com>, Liran Liss <liranl@mellanox.com>, Tzahi Oved <tzahio@mellanox.com>, Matan Barak <matanb@mellanox.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Yuval Shaia <yuval.shaia@oracle.com>, Marcel Apfelbaum <marcel@redhat.com>, lwn@lwn.net
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170907192909.GA5364-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Majd Dibbiny <majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---D6z0c4W1rkZNF4Vu
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, Sep 07, 2017 at 08:18:05AM +0300, Leon Romanovsky wrote:
-> Hi,
+On Thu, Sep 7, 2017 at 10:29 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Thu, Sep 07, 2017 at 09:46:39PM +0300, Alex Rosenbaum wrote:
+>> On Thu, Sep 7, 2017 at 6:16 PM, Jason Gunthorpe
+>> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+>> > On Thu, Sep 07, 2017 at 03:12:05PM +0300, Yishai Hadas wrote:
+>> >> +uint32_t                source_qpn;     /* Source QP number, creation flag IBV_QP_CREATE_SOURCE_QPN should be set */
+>> >
+>> > I think more discussion in the man page is required for this
+>> > feature. Eg that it is a SEND ONLY QP and only works for UD.
+>>
+>> Verbs UD QP can handle receive of ingress packets sent with
+>> BTH.DestQPN = ibv_qp->qp_num. This is applicable also in this case.
+>>
+>> Also, future implementation might include RC source qpn use case. This
+>> can be accomplished by setting the HCA's QPN to be the same as the
+>> 'source qpn' value, and returning that to the user.
+>>
+>> We prefer not to limit the API definition in the man page.
 >
-> We're happy to announce schedule of the 2nd RDMA mini-summit, which will =
-be
-> held as part of coming Linux Plumbers Conference 2017.
+> Well, you have to define what the API does, specifically.
 >
-> During the conference, we will have two sessions: main track session and
-> round table session.
+> If you expect it to RX then you need to specify that.
+
+Like any other QP, this too can have a max_recv_wr defined by user. I
+don't think we need to specifically mention it, because it is not a
+limition.
+
+> Does it steal
+> the traffic? Does it get a copy? Do you need to use flow steering to
+> do that?
+
+Yes, this QP can support flow steering based on
+IBV_DEVICE_MANAGED_FLOW_STEERING.
+
+> Same for RC.
 >
-> First session will be held on Thursday, September 14, 2017 from 9:30am =
-=E2=80=93 12:30pm
-> with the topics relevant for the wider audience.
->
-> In the second session, we  will focus on more face to face discussions in=
- round
-> table format and it will be scheduled a little bit later once we will get=
- meeting
-> room.
+> There is nothing wrong with specifying the API limit that exist today,
+> it helps people understand what the feature is and how to use it.
 
-UPDATE:
-The round table will take place at 2:00pm on Thursday, September 14,
-2017 in one of the speakers's suites (3rd floor, near Georgia I/II).
+RC is currently not supported. Do you prefer we update the man page
+with the UD limitation? and once RC or other limitation are removed we
+update it again?
 
-Thanks
-
->
-> -------------------------------------------------------------------------=
---------------
-> FIRST SESSION:
-> -------------------------------------------------------------------------=
---------------
->  * Backporting issues with multi-subsystem device (RDMA + netdev + more) =
-by Don Dutile
->    - More and more devices in RDMA are dependent on netdev as well as oth=
-er
->      subsystems -- target, NFS, scsi, block, cgroups, SELinux.... Can we =
-make
->      backporting task for distro people easier?
->  * kABI Update by Matan Barak
->    - Going forward with a flexible and secure RDMA kABI
->  * System Boot and RDMA by Jason Gunthrope
->    - Discuss boot-time issues with the RDMA subsystem
->  * Paravirtual RDMA device by Marcel Apfelbaum and Yuval Shaia
->    - QEMU's limited RDMA support leaves it behind other modern hypervisor=
-s.
->      Marcel and Yuval will present the implementation of an emulated RDMA=
- device,
->      analyze its performance and usability, and finally talk about future=
- plans
->      for a possible virtio-rdma device.
->   * TX Flow Steering for IPsec by Liran Liss (pending time slot)
->    - The IPsec protocol provides both encryption and authentication for IP
->      protocol packets. Users of the raw ethernet QP that send/receive IPs=
-ec packets
->      could benefit from the IPsec crypto offloads capabilities that are
->      available in recent NICs.
->   * OpenFabrics Alliance - Status and New Directions by Jason Gunthrope
->   * BOF - Open Discussion
->    - Open discussion with the community lead by Leon Romanovsky, Jason Gu=
-nthorpe,
->      Christoph Lameter and Dennis Dalessandro
->
-> -------------------------------------------------------------------------=
---------------
-> ROUND TABLE SESSION:
-> -------------------------------------------------------------------------=
---------------
-> Possible list, bring your own topics:
->  * RDMA and ULPs
->  * Verbs testing suite
->  * RDMA netlink and RDMAtool future plans
->  * RDMA and the Linux IP stack
->  * Infrastructure issues with Travis CI
->  * Infrastructure gaps with rdma-core
->  * Packaging as part of CI for rdma-core.
->  * ....
->
-> See you next week at Linux Plumber Conference 2017.
->
-> Thanks
-
-
-
---D6z0c4W1rkZNF4Vu
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlm5LFgACgkQ5GN7iDZy
-WKdyAxAAggf6221aV5t9f5owz1cJvlyvBuZ+muCzHucs6OASDz24Ybyxe+1qhDaT
-5ROheTQGkVJiFRiSPu+hJ48J50bkSQAnEVmq9NjWRi/ap8MO2yfH/ulLXF9qumuU
-RcVdNvCWyP91bL04joImPIVM5NYoj7pOV79dJ3SQt4hj14ruy3FPHKiL8Kk8uiQ4
-Z1HfLYz5UiLs9cjOYMXJky5/TKWunY1dOoBhnlEdsz1jQokzL2B7Fawct/2B3vyZ
-+gxFOxskKeBiKXH7cjQ04gHYW0UDPSwPc0Qm0bQBmGvR5n+Fkzj9BcC5SK8fMB9I
-M2NHLaB8BRsglSov3Em3NwwaVSzxTKtap0qQV0W1JMToqKIjIjpdsJlAc2DiWDpa
-oL6vX4/xkClfvsLA+bJS6IiKkzjVcBPd3xi7kXPWV931CpWVjciW9O7cGc5nW//T
-zFXKiZEiqmQ1qx45bLmNxtFmBGos48tAxmZjTYsAKEnqtt35YCRE0JYEXf/3es4N
-Bxz28iSF8mCnBZ81ftY7WFkPCc93p4LLhAx7hni6WOAMSZY6gid4Z94a6UNR3Eza
-lKfVV+ELB6ovM+qMKJfxN7oB28h2ZSt1/UFAHpxUNq2j1Xtc9jPNs2BJqF9SP3bK
-Rxek4z+qlNX3nRIWPlmm8vmU2SZq9/TNeOy6g0+vS8WuG/vbjQE=
-=EBDB
------END PGP SIGNATURE-----
-
---D6z0c4W1rkZNF4Vu--
+Alex
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
