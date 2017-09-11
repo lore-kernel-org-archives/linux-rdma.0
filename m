@@ -1,26 +1,53 @@
-From: mackenzie <antoine.touze-lF7OH95ntldU02mba5UQdQ@public.gmane.org>
-Subject: [SUSPECTED SPAM] I am a Buyer
-Date: Sun, 10 Sep 2017 13:19:09 +0200 (CEST)
-Message-ID: <407965311.45474009.1505042349493.JavaMail.zimbra__34380.4736192853$1505043041$gmane$org@univ-tours.fr>
+From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+Subject: rdma-core: Location of 70-persistent-ipoib.rules
+Date: Mon, 11 Sep 2017 13:33:47 +0200
+Message-ID: <1505129627.3732.3.camel@profitbricks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi,
 
+70-persistent-ipoib.rules is installed in /etc/udev/rules.d on Debian.
+lintian complains about it:
 
-Dear Sir/Madam,
+E: udev-rule-in-etc
+N:
+N:   This package ships a udev rule and installs it under
+N:   /etc/udev/rules.d, which is reserved for user-installed files. The
+N:   correct directory for system rules is /lib/udev/rules.d.
+N:
+N:   Refer to https://bugs.debian.org/559208 for details.
+N:
+N:   Severity: important, Certainty: certain
+N:
+N:   Check: files, Type: binary, udeb
+N:
 
-I am Becca MacKenzie, We are interested in your products and want to make you and your company our major suppliers but first we would like your to send us your best price list and Catalog if possible.
+Since 70-persistent-ipoib.rules is just a commented example, should we
+better put it into /usr/share/doc/rdma-core instead (where udev.md is
+placed)?
 
-We will be ordering in large quantity so we are looking forward in making a good relationship with you and your company.
+-- 
+Benjamin Drung
+System Developer
+Debian & Ubuntu Developer
 
-For my quick response write only to my contact email: becca.mackenzie100-1ViLX0X+lBJBDgjK7y7TUQ@public.gmane.org
+ProfitBricks GmbH
+Greifswalder Str. 207
+D - 10405 Berlin
 
-Regards
-Becca MacKenzie
+Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
+Web: https://www.profitbricks.com
+
+Sitz der Gesellschaft: Berlin.
+Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
+Geschäftsführer: Achim Weiss.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
