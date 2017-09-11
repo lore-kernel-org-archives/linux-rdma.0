@@ -1,64 +1,78 @@
 From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v1 0/7] xprtrdma Send completion batching
-Date: Mon, 11 Sep 2017 11:17:15 -0400
-Message-ID: <150514269466.1307.1991885208569456320.stgit@lebasque.1015granger.net>
+Subject: [PATCH v1 1/7] xprtrdma: Clean up SGE accounting in
+ rpcrdma_prepare_msg_sges()
+Date: Mon, 11 Sep 2017 11:17:33 -0400
+Message-ID: <150514304843.1307.4296160808115155073.stgit@lebasque.1015granger.net>
+References: <150514269466.1307.1991885208569456320.stgit@lebasque.1015granger.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <150514269466.1307.1991885208569456320.stgit-NCCkF8GxsaM6WJ89mGctdJimSvn7F7xT@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Jason, Sagi-
+rpcrdma_prepare_hdr_sges() sets num_sge to one, then
+rpcrdma_prepare_msg_sges() sets num_sge again to the count of SGEs
+it added, plus one for the header SGE just mapped in
+rpcrdma_prepare_hdr_sges().
 
-Here's an updated version of last week's patches to implement
-strong Send Queue accounting and Send completion batching in
-the Linux RPC-over-RDMA client implementation. I've addressed
-Jason's concern about patch description language and Sagi's
-concern about leaking data in Send buffers that are re-used
-after RPC completion, in addition to a number of smaller
-clean ups.
+Instead, maintain a running count that both functions can update as
+needed. Also, simplify mapped SGE counting by just setting the count
+of SGEs in the tail of rpcrdma_prepare_msg_sges(), which is the
+only function that sets that field to a non-zero value.
 
-Also available as the first several commits in this topic branch:
-
-http://git.linux-nfs.org/?p=cel/cel-2.6.git;a=shortlog;h=refs/heads/nfs-rdma-for-4.15
-
-
-Changes since RFC:
-* Replace "completion heartbeat" language in patch descriptions and
-  code comments
-* Ensure RPC completion waits for pages to be unmapped
-* Remove incorrect clean up in rpcrdma_sendctxs_destroy
-* Further clean up of rl_mapped_sges
-* Create separate patch (description) for change in
-  rpcrdma_prepare_hdr_sges
-* Various micro-optimizations of branches and loops
-
+Signed-off-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 ---
+ net/sunrpc/xprtrdma/rpc_rdma.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-Chuck Lever (7):
-      xprtrdma: Clean up SGE accounting in rpcrdma_prepare_msg_sges()
-      xprtrdma: Change return value of rpcrdma_prepare_send_sges()
-      xprtrdma: Add data structure to manage RDMA Send arguments
-      xprtrdma: "Unoptimize" rpcrdma_prepare_hdr_sges()
-      xprtrdma: Manage RDMA Send arguments via lock-free circular queue
-      xprtrdma: RPC completion should wait for Send completion
-      xprtrdma: Remove atomic send completion counting
-
-
- net/sunrpc/xprtrdma/backchannel.c |    6 +
- net/sunrpc/xprtrdma/frwr_ops.c    |    8 -
- net/sunrpc/xprtrdma/rpc_rdma.c    |  119 +++++++++++++++-------
- net/sunrpc/xprtrdma/transport.c   |    7 +
- net/sunrpc/xprtrdma/verbs.c       |  198 +++++++++++++++++++++++++++++++++++--
- net/sunrpc/xprtrdma/xprt_rdma.h   |   76 +++++++++-----
- 6 files changed, 320 insertions(+), 94 deletions(-)
+diff --git a/net/sunrpc/xprtrdma/rpc_rdma.c b/net/sunrpc/xprtrdma/rpc_rdma.c
+index 84584ca..bc464b1 100644
+--- a/net/sunrpc/xprtrdma/rpc_rdma.c
++++ b/net/sunrpc/xprtrdma/rpc_rdma.c
+@@ -607,7 +607,6 @@ rpcrdma_prepare_msg_sges(struct rpcrdma_ia *ia, struct rpcrdma_req *req,
+ 			sge[sge_no].length = len;
+ 			sge[sge_no].lkey = lkey;
+ 
+-			req->rl_mapped_sges++;
+ 			ppages++;
+ 			remaining -= len;
+ 			page_base = 0;
+@@ -633,11 +632,11 @@ rpcrdma_prepare_msg_sges(struct rpcrdma_ia *ia, struct rpcrdma_req *req,
+ 			goto out_mapping_err;
+ 		sge[sge_no].length = len;
+ 		sge[sge_no].lkey = lkey;
+-		req->rl_mapped_sges++;
+ 	}
+ 
+ out:
+-	req->rl_send_wr.num_sge = sge_no + 1;
++	req->rl_send_wr.num_sge += sge_no;
++	req->rl_mapped_sges = sge_no - 1;
+ 	return true;
+ 
+ out_mapping_overflow:
+@@ -655,7 +654,6 @@ rpcrdma_prepare_send_sges(struct rpcrdma_ia *ia, struct rpcrdma_req *req,
+ 			  enum rpcrdma_chunktype rtype)
+ {
+ 	req->rl_send_wr.num_sge = 0;
+-	req->rl_mapped_sges = 0;
+ 
+ 	if (!rpcrdma_prepare_hdr_sge(ia, req, hdrlen))
+ 		goto out_map;
+@@ -682,7 +680,6 @@ rpcrdma_unmap_sges(struct rpcrdma_ia *ia, struct rpcrdma_req *req)
+ 	for (count = req->rl_mapped_sges; count--; sge++)
+ 		ib_dma_unmap_page(device, sge->addr, sge->length,
+ 				  DMA_TO_DEVICE);
+-	req->rl_mapped_sges = 0;
+ }
+ 
+ /**
 
 --
-Chuck Lever
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
