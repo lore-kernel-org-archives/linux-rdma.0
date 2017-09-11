@@ -1,52 +1,37 @@
 From: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
-Subject: rdma-core: Location of 70-persistent-ipoib.rules
-Date: Mon, 11 Sep 2017 13:33:47 +0200
-Message-ID: <1505129627.3732.3.camel@profitbricks.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Subject: [PATCH rdma-core 2/3] debian: Bump Standards-Version to 4.1.0
+Date: Mon, 11 Sep 2017 13:28:20 +0200
+Message-ID: <20170911112821.2094-2-benjamin.drung@profitbricks.com>
+References: <20170911112821.2094-1-benjamin.drung@profitbricks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170911112821.2094-1-benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+No changes are needed to support the new Debian policy version.
 
-70-persistent-ipoib.rules is installed in /etc/udev/rules.d on Debian.
-lintian complains about it:
+Signed-off-by: Benjamin Drung <benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org>
+---
+ debian/control | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-E: udev-rule-in-etc
-N:
-N:   This package ships a udev rule and installs it under
-N:   /etc/udev/rules.d, which is reserved for user-installed files. The
-N:   correct directory for system rules is /lib/udev/rules.d.
-N:
-N:   Refer to https://bugs.debian.org/559208 for details.
-N:
-N:   Severity: important, Certainty: certain
-N:
-N:   Check: files, Type: binary, udeb
-N:
-
-Since 70-persistent-ipoib.rules is just a commented example, should we
-better put it into /usr/share/doc/rdma-core instead (where udev.md is
-placed)?
-
+diff --git a/debian/control b/debian/control
+index 5aa8abdd..f87f8999 100644
+--- a/debian/control
++++ b/debian/control
+@@ -16,7 +16,7 @@ Build-Depends: cmake (>= 2.8.11),
+                pkg-config,
+                python,
+                valgrind
+-Standards-Version: 4.0.0
++Standards-Version: 4.1.0
+ Vcs-Git: https://github.com/linux-rdma/rdma-core.git
+ Vcs-Browser: https://github.com/linux-rdma/rdma-core
+ Homepage: https://github.com/linux-rdma/rdma-core
 -- 
-Benjamin Drung
-System Developer
-Debian & Ubuntu Developer
-
-ProfitBricks GmbH
-Greifswalder Str. 207
-D - 10405 Berlin
-
-Email: benjamin.drung-EIkl63zCoXaH+58JC4qpiA@public.gmane.org
-Web: https://www.profitbricks.com
-
-Sitz der Gesellschaft: Berlin.
-Registergericht: Amtsgericht Charlottenburg, HRB 125506B.
-Geschäftsführer: Achim Weiss.
+2.11.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
