@@ -1,52 +1,109 @@
-From: Colin King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
-Subject: [PATCH] RDMA/cxgb3: remove redundant first assignement of sqp
-Date: Mon, 11 Sep 2017 12:42:31 +0100
-Message-ID: <20170911114231.22893-1-colin.king@canonical.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH rdma-core 2/2] mlx5: Report enhanced multi packet send WQE capability
+Date: Mon, 11 Sep 2017 14:43:05 +0300
+Message-ID: <1505130185-32658-3-git-send-email-yishaih@mellanox.com>
+References: <1505130185-32658-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1505130185-32658-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+From: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-sqp is being initialised when it is being declared and then updated
-a little later on making the first initialization redundant. Clean
-this up by initializing ptr and sqp at their declaration.
+Report if enhanced multi packet send WQE is supported through mlx5
+direct verbs.
 
-Cleans up warning: "warning: Value stored to 'sqp' during its
-initialization is never read"
-
-Fixes: a58e58fafdff ("RDMA/cxgb3: Wrap the software send queue pointer as needed on flush")
-Signed-off-by: Colin Ian King <colin.king-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Signed-off-by: Bodong Wang <bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb3/cxio_hal.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ providers/mlx5/man/mlx5dv_query_device.3 | 1 +
+ providers/mlx5/mlx5-abi.h                | 1 +
+ providers/mlx5/mlx5.c                    | 3 +++
+ providers/mlx5/mlx5.h                    | 1 +
+ providers/mlx5/mlx5dv.h                  | 1 +
+ providers/mlx5/verbs.c                   | 3 +++
+ 6 files changed, 10 insertions(+)
 
-diff --git a/drivers/infiniband/hw/cxgb3/cxio_hal.c b/drivers/infiniband/hw/cxgb3/cxio_hal.c
-index 3eff6541bd6f..b42e81ab5fa8 100644
---- a/drivers/infiniband/hw/cxgb3/cxio_hal.c
-+++ b/drivers/infiniband/hw/cxgb3/cxio_hal.c
-@@ -404,12 +404,10 @@ static void insert_sq_cqe(struct t3_wq *wq, struct t3_cq *cq,
+diff --git a/providers/mlx5/man/mlx5dv_query_device.3 b/providers/mlx5/man/mlx5dv_query_device.3
+index c2f8bf4..9238b4f 100644
+--- a/providers/mlx5/man/mlx5dv_query_device.3
++++ b/providers/mlx5/man/mlx5dv_query_device.3
+@@ -37,6 +37,7 @@ enum mlx5dv_context_flags {
+  MLX5DV_CONTEXT_FLAGS_CQE_V1 = (1 << 0),
+  MLX5DV_CONTEXT_FLAGS_MPW    = (1 << 1), /* Obsoleted */
+  MLX5DV_CONTEXT_FLAGS_MPW_ALLOWED  = (1 << 2), /* Multi packet WQE is allowed */
++ MLX5DV_CONTEXT_FLAGS_ENHANCED_MPW = (1 << 3), /* Enhanced multi packet WQE is supported or not */
+ .in -8
+ };
+ .fi
+diff --git a/providers/mlx5/mlx5-abi.h b/providers/mlx5/mlx5-abi.h
+index c9d3ec2..a741801 100644
+--- a/providers/mlx5/mlx5-abi.h
++++ b/providers/mlx5/mlx5-abi.h
+@@ -276,6 +276,7 @@ struct mlx5_packet_pacing_caps {
+ enum mlx5_mpw_caps {
+ 	MLX5_MPW_RESERVED	= 1 << 0, /* Obsoleted, don't use */
+ 	MLX5_ALLOW_MPW		= 1 << 1,
++	MLX5_SUPPORT_EMPW	= 1 << 2,
+ };
  
- int cxio_flush_sq(struct t3_wq *wq, struct t3_cq *cq, int count)
- {
--	__u32 ptr;
-+	__u32 ptr = wq->sq_rptr + count;
- 	int flushed = 0;
--	struct t3_swsq *sqp = wq->sq + Q_PTR2IDX(wq->sq_rptr, wq->sq_size_log2);
-+	struct t3_swsq *sqp = wq->sq + Q_PTR2IDX(ptr, wq->sq_size_log2);
+ struct mlx5_query_device_ex_resp {
+diff --git a/providers/mlx5/mlx5.c b/providers/mlx5/mlx5.c
+index 84a67e9..e7adf14 100644
+--- a/providers/mlx5/mlx5.c
++++ b/providers/mlx5/mlx5.c
+@@ -633,6 +633,9 @@ int mlx5dv_query_device(struct ibv_context *ctx_in,
+ 		comp_mask_out |= MLX5DV_CONTEXT_MASK_CQE_COMPRESION;
+ 	}
  
--	ptr = wq->sq_rptr + count;
--	sqp = wq->sq + Q_PTR2IDX(ptr, wq->sq_size_log2);
- 	while (ptr != wq->sq_wptr) {
- 		sqp->signaled = 0;
- 		insert_sq_cqe(wq, cq, sqp);
++	if (mctx->vendor_cap_flags & MLX5_VENDOR_CAP_FLAGS_ENHANCED_MPW)
++		attrs_out->flags |= MLX5DV_CONTEXT_FLAGS_ENHANCED_MPW;
++
+ 	attrs_out->comp_mask = comp_mask_out;
+ 
+ 	return 0;
+diff --git a/providers/mlx5/mlx5.h b/providers/mlx5/mlx5.h
+index c8d9fe9..42ccb57 100644
+--- a/providers/mlx5/mlx5.h
++++ b/providers/mlx5/mlx5.h
+@@ -184,6 +184,7 @@ enum {
+ enum mlx5_vendor_cap_flags {
+ 	MLX5_VENDOR_CAP_FLAGS_MPW		= 1 << 0, /* Obsoleted */
+ 	MLX5_VENDOR_CAP_FLAGS_MPW_ALLOWED	= 1 << 1,
++	MLX5_VENDOR_CAP_FLAGS_ENHANCED_MPW	= 1 << 2,
+ };
+ 
+ enum {
+diff --git a/providers/mlx5/mlx5dv.h b/providers/mlx5/mlx5dv.h
+index cf49b63..c0d47c7 100644
+--- a/providers/mlx5/mlx5dv.h
++++ b/providers/mlx5/mlx5dv.h
+@@ -83,6 +83,7 @@ enum mlx5dv_context_flags {
+ 	MLX5DV_CONTEXT_FLAGS_CQE_V1	= (1 << 0),
+ 	MLX5DV_CONTEXT_FLAGS_MPW	= (1 << 1), /* Obsoleted */
+ 	MLX5DV_CONTEXT_FLAGS_MPW_ALLOWED = (1 << 2),
++	MLX5DV_CONTEXT_FLAGS_ENHANCED_MPW = (1 << 3),
+ };
+ 
+ enum mlx5dv_cq_init_attr_mask {
+diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
+index 0e8a9a3..6c5e29f 100644
+--- a/providers/mlx5/verbs.c
++++ b/providers/mlx5/verbs.c
+@@ -1968,6 +1968,9 @@ int mlx5_query_device_ex(struct ibv_context *context,
+ 	if (resp.support_multi_pkt_send_wqe & MLX5_ALLOW_MPW)
+ 		mctx->vendor_cap_flags |= MLX5_VENDOR_CAP_FLAGS_MPW_ALLOWED;
+ 
++	if (resp.support_multi_pkt_send_wqe & MLX5_SUPPORT_EMPW)
++		mctx->vendor_cap_flags |= MLX5_VENDOR_CAP_FLAGS_ENHANCED_MPW;
++
+ 	mctx->cqe_comp_caps = resp.cqe_comp_caps;
+ 
+ 	major     = (raw_fw_ver >> 32) & 0xffff;
 -- 
-2.14.1
+1.8.3.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
