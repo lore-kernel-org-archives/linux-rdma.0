@@ -1,43 +1,65 @@
-From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 0/6] Add RSS support in mlx4
-Date: Tue, 12 Sep 2017 15:53:02 +0300
-Message-ID: <1505220788-23849-1-git-send-email-yishaih@mellanox.com>
+From: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH rdma-core 1/2] mlx5: Report if kernel allows using MPW in
+ SQ
+Date: Tue, 12 Sep 2017 18:13:40 +0300
+Message-ID: <1bb5967f-45fd-fb22-7772-10bf6b35e2e1@dev.mellanox.co.il>
+References: <1505130185-32658-1-git-send-email-yishaih@mellanox.com>
+ <1505130185-32658-2-git-send-email-yishaih@mellanox.com>
+ <20170911164257.GA2403@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20170911164257.GA2403-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch set from Guy Levi implements the RSS related verbs for ConnectX-3
-devices in the mlx4 provider.
+On 9/11/2017 7:42 PM, Jason Gunthorpe wrote:
+> On Mon, Sep 11, 2017 at 02:43:04PM +0300, Yishai Hadas wrote:
+>>  	MLX5DV_CONTEXT_FLAGS_CQE_V1	= (1 << 0),
+>> -	MLX5DV_CONTEXT_FLAGS_MPW	= (1 << 1),
+>> +	MLX5DV_CONTEXT_FLAGS_MPW	= (1 << 1), /* Obsoleted */
+>> +	MLX5DV_CONTEXT_FLAGS_MPW_ALLOWED = (1 << 2),
+>>  };
+>>
+>>  enum mlx5dv_cq_init_attr_mask {
+>> diff --git a/providers/mlx5/verbs.c b/providers/mlx5/verbs.c
+>> index fc63ae9..0e8a9a3 100644
+>> +++ b/providers/mlx5/verbs.c
+>> @@ -1965,8 +1965,8 @@ int mlx5_query_device_ex(struct ibv_context *context,
+>>  	attr->rss_caps.rx_hash_function = resp.rss_caps.rx_hash_function;
+>>  	attr->packet_pacing_caps = resp.packet_pacing_caps.caps;
+>>
+>> -	if (resp.support_multi_pkt_send_wqe)
+>> -		mctx->vendor_cap_flags |= MLX5_VENDOR_CAP_FLAGS_MPW;
+>> +	if (resp.support_multi_pkt_send_wqe & MLX5_ALLOW_MPW)
+>> +		mctx->vendor_cap_flags |= MLX5_VENDOR_CAP_FLAGS_MPW_ALLOWED;
+>
+> Er, you can't just drop setting MLX5DV_CONTEXT_FLAGS_MPW? That would
+> break compat.
+>
 
-The matching kernel part was already merged into 4.14.
+There was a kernel bug in 4.13 that MPW couldn't work properly despite 
+the fact that the driver reported to user on its capability.
 
-PR was sent:
-https://github.com/linux-rdma/rdma-core/pull/218
+The bug was fixed in kernel 4.14 and now the feature is supported, the 
+legacy value 1 on resp.support_multi_pkt_send_wqe is not reported from 
+kernel any more as we can't rely on, and a new bit MLX5_ALLOW_MPW (1 << 
+1) was introduced to indicate that feature is supported.
 
-Guy Levi (6):
-  mlx4: Add support for WQ control path related verbs
-  mlx4: Introduce the direct verb mlx4dv_set_ctx_attr
-  mlx4: Add support for WQ indirection table related verbs
-  mlx4: Add support for RSS QP
-  mlx4: Add WQ data path support
-  mlx4: Support WQ object type in direct verb mlx4dv_init_obj
+By the above change we want to report feature availability only when the 
+new bit was set, legacy applications that use the old bit will see it 
+off in both legacy and new kernels with this RDMA CORE as expected.
 
- debian/ibverbs-providers.symbols     |   1 +
- providers/mlx4/cq.c                  |   5 +-
- providers/mlx4/libmlx4.map           |   1 +
- providers/mlx4/man/mlx4dv_init_obj.3 |  20 +++
- providers/mlx4/mlx4-abi.h            |  33 ++++
- providers/mlx4/mlx4.c                |  42 +++++
- providers/mlx4/mlx4.h                |  30 +++-
- providers/mlx4/mlx4dv.h              |  32 +++-
- providers/mlx4/qp.c                  |  34 +++-
- providers/mlx4/verbs.c               | 339 ++++++++++++++++++++++++++++++++++-
- 10 files changed, 525 insertions(+), 12 deletions(-)
+New applications should move to use the new bit 
+MLX5DV_CONTEXT_FLAGS_MPW_ALLOWED as pointed in mlx5dv.h and in the 
+updated man page as part of this patch.
 
--- 
-1.8.3.1
+Does it clarify the above code change ?
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
