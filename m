@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 4/6] mlx4: Add support for RSS QP
-Date: Tue, 12 Sep 2017 15:53:06 +0300
-Message-ID: <1505220788-23849-5-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 6/6] mlx4: Support WQ object type in direct verb mlx4dv_init_obj
+Date: Tue, 12 Sep 2017 15:53:08 +0300
+Message-ID: <1505220788-23849-7-git-send-email-yishaih@mellanox.com>
 References: <1505220788-23849-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1505220788-23849-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,223 +12,130 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Add support to work with a RSS QP by using an indirection table
-object and RX Hash attributes as a driver data upon QP creation.
+Exposing relevant data-path attributes from the mlx4 object which
+is used for WQ (i.e. from mlx4_qp) to let user working directly over
+hardware specification.
 
 Signed-off-by: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx4/mlx4-abi.h |  14 ++++++
- providers/mlx4/mlx4.h     |   6 +++
- providers/mlx4/verbs.c    | 106 ++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 126 insertions(+)
+ providers/mlx4/man/mlx4dv_init_obj.3 | 20 ++++++++++++++++++++
+ providers/mlx4/mlx4.c                | 20 ++++++++++++++++++++
+ providers/mlx4/mlx4dv.h              | 19 +++++++++++++++++++
+ 3 files changed, 59 insertions(+)
 
-diff --git a/providers/mlx4/mlx4-abi.h b/providers/mlx4/mlx4-abi.h
-index 1cf6d5b..4f2132c 100644
---- a/providers/mlx4/mlx4-abi.h
-+++ b/providers/mlx4/mlx4-abi.h
-@@ -141,6 +141,20 @@ struct mlx4_create_qp {
- 	__u32				inl_recv_sz;
+diff --git a/providers/mlx4/man/mlx4dv_init_obj.3 b/providers/mlx4/man/mlx4dv_init_obj.3
+index c6d8d2b..d2a2bb0 100644
+--- a/providers/mlx4/man/mlx4dv_init_obj.3
++++ b/providers/mlx4/man/mlx4dv_init_obj.3
+@@ -83,6 +83,26 @@ uint64_t        comp_mask;
+ .in -8
  };
  
-+struct mlx4_create_qp_drv_ex_rss {
-+	__u64		hash_fields_mask; /* enum ibv_rx_hash_fields */
-+	__u8		hash_function; /* enum ibv_rx_hash_function_flags */
-+	__u8		reserved[7];
-+	__u8		hash_key[40];
-+	__u32		comp_mask;
-+	__u32		reserved1;
++struct mlx4dv_rwq {
++.in +8
++__be32          *rdb;
++struct {
++.in +8
++uint32_t        wqe_cnt;
++int             wqe_shift;
++int             offset;
++.in -8
++} rq;
++struct {
++.in +8
++void            *buf;
++size_t          length;
++.in -8
++} buf;
++uint64_t        comp_mask;
++.in -8
 +};
 +
-+struct mlx4_create_qp_ex_rss {
-+	struct ibv_create_qp_ex		 ibv_cmd;
-+	struct mlx4_create_qp_drv_ex_rss drv_ex;
-+};
-+
- struct mlx4_create_qp_drv_ex {
- 	__u64		buf_addr;
- 	__u64		db_addr;
-diff --git a/providers/mlx4/mlx4.h b/providers/mlx4/mlx4.h
-index 13a561f..83dd551 100644
---- a/providers/mlx4/mlx4.h
-+++ b/providers/mlx4/mlx4.h
-@@ -198,6 +198,11 @@ struct mlx4_wq {
- 	int				offset;
- };
- 
-+enum mlx4_rsc_type {
-+	MLX4_RSC_TYPE_QP	= 0,
-+	MLX4_RSC_TYPE_RSS_QP	= 1,
-+};
-+
- struct mlx4_qp {
- 	union {
- 		struct verbs_qp		verbs_qp;
-@@ -216,6 +221,7 @@ struct mlx4_qp {
- 	struct mlx4_wq			rq;
- 
- 	uint8_t				link_layer;
-+	uint8_t				type; /* enum mlx4_rsc_type */
- 	uint32_t			qp_cap_cache;
- };
- 
-diff --git a/providers/mlx4/verbs.c b/providers/mlx4/verbs.c
-index 369f437..5f2266a 100644
---- a/providers/mlx4/verbs.c
-+++ b/providers/mlx4/verbs.c
-@@ -745,6 +745,70 @@ int mlx4_destroy_srq(struct ibv_srq *srq)
+ struct mlx4dv_obj {
+ .in +8
+ struct {
+diff --git a/providers/mlx4/mlx4.c b/providers/mlx4/mlx4.c
+index 5daea3b..3571234 100644
+--- a/providers/mlx4/mlx4.c
++++ b/providers/mlx4/mlx4.c
+@@ -419,6 +419,24 @@ static int mlx4dv_get_srq(struct ibv_srq *srq_in,
  	return 0;
  }
  
-+static int mlx4_cmd_create_qp_ex_rss(struct ibv_context *context,
-+				     struct ibv_qp_init_attr_ex *attr,
-+				     struct mlx4_create_qp *cmd,
-+				     struct mlx4_qp *qp)
++static int mlx4dv_get_rwq(struct ibv_wq *wq_in, struct mlx4dv_rwq *wq_out)
 +{
-+	struct mlx4_create_qp_ex_rss cmd_ex = {};
-+	struct mlx4_create_qp_resp_ex resp;
-+	int ret;
++	struct mlx4_qp *mqp = wq_to_mqp(wq_in);
 +
-+	if (attr->rx_hash_conf.rx_hash_key_len !=
-+	    sizeof(cmd_ex.drv_ex.hash_key)) {
-+		errno = ENOTSUP;
-+		return errno;
-+	}
++	wq_out->comp_mask = 0;
 +
-+	cmd_ex.drv_ex.hash_fields_mask =
-+		attr->rx_hash_conf.rx_hash_fields_mask;
-+	cmd_ex.drv_ex.hash_function =
-+		attr->rx_hash_conf.rx_hash_function;
-+	memcpy(cmd_ex.drv_ex.hash_key, attr->rx_hash_conf.rx_hash_key,
-+	       sizeof(cmd_ex.drv_ex.hash_key));
++	wq_out->buf.buf = mqp->buf.buf;
++	wq_out->buf.length = mqp->buf.length;
 +
-+	ret = ibv_cmd_create_qp_ex2(context, &qp->verbs_qp,
-+				    sizeof(qp->verbs_qp), attr,
-+				    &cmd_ex.ibv_cmd, sizeof(cmd_ex.ibv_cmd),
-+				    sizeof(cmd_ex), &resp.ibv_resp,
-+				    sizeof(resp.ibv_resp), sizeof(resp));
-+	return ret;
-+}
++	wq_out->rdb = mqp->db;
 +
-+static struct ibv_qp *_mlx4_create_qp_ex_rss(struct ibv_context *context,
-+					     struct ibv_qp_init_attr_ex *attr)
-+{
-+	struct mlx4_create_qp cmd = {};
-+	struct mlx4_qp *qp;
-+	int ret;
-+
-+	if (!(attr->comp_mask & IBV_QP_INIT_ATTR_RX_HASH) ||
-+	    !(attr->comp_mask & IBV_QP_INIT_ATTR_IND_TABLE))
-+		return NULL;
-+
-+	if (attr->qp_type != IBV_QPT_RAW_PACKET)
-+		return NULL;
-+
-+	qp = calloc(1, sizeof(*qp));
-+	if (!qp)
-+		return NULL;
-+
-+	if (pthread_spin_init(&qp->sq.lock, PTHREAD_PROCESS_PRIVATE) ||
-+	    pthread_spin_init(&qp->rq.lock, PTHREAD_PROCESS_PRIVATE))
-+		goto err;
-+
-+	ret = mlx4_cmd_create_qp_ex_rss(context, attr, &cmd, qp);
-+	if (ret)
-+		goto err;
-+
-+	qp->type = MLX4_RSC_TYPE_RSS_QP;
-+
-+	return &qp->verbs_qp.qp;
-+err:
-+	free(qp);
-+	return NULL;
-+}
-+
- static int mlx4_cmd_create_qp_ex(struct ibv_context *context,
- 				 struct ibv_qp_init_attr_ex *attr,
- 				 struct mlx4_create_qp *cmd,
-@@ -792,6 +856,11 @@ static struct ibv_qp *create_qp_ex(struct ibv_context *context,
- 	struct mlx4_qp		 *qp;
- 	int			  ret;
- 
-+	if (attr->comp_mask & (IBV_QP_INIT_ATTR_RX_HASH |
-+			       IBV_QP_INIT_ATTR_IND_TABLE)) {
-+		return _mlx4_create_qp_ex_rss(context, attr);
-+	}
-+
- 	/* Sanity check QP size before proceeding */
- 	if (ctx->max_qp_wr) { /* mlx4_query_device succeeded */
- 		if (attr->cap.max_send_wr  > ctx->max_qp_wr ||
-@@ -987,6 +1056,9 @@ int mlx4_query_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
- 	struct mlx4_qp *qp = to_mqp(ibqp);
- 	int ret;
- 
-+	if (qp->type == MLX4_RSC_TYPE_RSS_QP)
-+		return ENOTSUP;
-+
- 	ret = ibv_cmd_query_qp(ibqp, attr, attr_mask, init_attr, &cmd, sizeof cmd);
- 	if (ret)
- 		return ret;
-@@ -1000,6 +1072,20 @@ int mlx4_query_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
- 	return 0;
- }
- 
-+static int _mlx4_modify_qp_rss(struct ibv_qp *qp, struct ibv_qp_attr *attr,
-+			       int attr_mask)
-+{
-+	struct ibv_modify_qp cmd = {};
-+
-+	if (attr_mask & ~(IBV_QP_STATE | IBV_QP_PORT))
-+		return ENOTSUP;
-+
-+	if (attr->qp_state > IBV_QPS_RTR)
-+		return ENOTSUP;
-+
-+	return ibv_cmd_modify_qp(qp, attr, attr_mask, &cmd, sizeof(cmd));
-+}
-+
- int mlx4_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- 		    int attr_mask)
- {
-@@ -1009,6 +1095,9 @@ int mlx4_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- 	struct ibv_device_attr device_attr;
- 	int ret;
- 
-+	if (mqp->type == MLX4_RSC_TYPE_RSS_QP)
-+		return _mlx4_modify_qp_rss(qp, attr, attr_mask);
-+
- 	memset(&device_attr, 0, sizeof(device_attr));
- 	if (attr_mask & IBV_QP_PORT) {
- 		ret = ibv_query_port(qp->context, attr->port_num,
-@@ -1108,11 +1197,28 @@ static void mlx4_unlock_cqs(struct ibv_qp *qp)
- 	}
- }
- 
-+static int _mlx4_destroy_qp_rss(struct ibv_qp *ibqp)
-+{
-+	struct mlx4_qp *qp = to_mqp(ibqp);
-+	int ret;
-+
-+	ret = ibv_cmd_destroy_qp(ibqp);
-+	if (ret && !cleanup_on_fatal(ret))
-+		return ret;
-+
-+	free(qp);
++	wq_out->rq.wqe_cnt = mqp->rq.wqe_cnt;
++	wq_out->rq.wqe_shift = mqp->rq.wqe_shift;
++	wq_out->rq.offset = mqp->rq.offset;
 +
 +	return 0;
 +}
 +
- int mlx4_destroy_qp(struct ibv_qp *ibqp)
+ int mlx4dv_init_obj(struct mlx4dv_obj *obj, uint64_t obj_type)
  {
- 	struct mlx4_qp *qp = to_mqp(ibqp);
- 	int ret;
+ 	int ret = 0;
+@@ -429,6 +447,8 @@ int mlx4dv_init_obj(struct mlx4dv_obj *obj, uint64_t obj_type)
+ 		ret = mlx4dv_get_cq(obj->cq.in, obj->cq.out);
+ 	if (!ret && (obj_type & MLX4DV_OBJ_SRQ))
+ 		ret = mlx4dv_get_srq(obj->srq.in, obj->srq.out);
++	if (!ret && (obj_type & MLX4DV_OBJ_RWQ))
++		ret = mlx4dv_get_rwq(obj->rwq.in, obj->rwq.out);
  
-+	if (qp->type == MLX4_RSC_TYPE_RSS_QP)
-+		return _mlx4_destroy_qp_rss(ibqp);
+ 	return ret;
+ }
+diff --git a/providers/mlx4/mlx4dv.h b/providers/mlx4/mlx4dv.h
+index 453de55..d47d3cd 100644
+--- a/providers/mlx4/mlx4dv.h
++++ b/providers/mlx4/mlx4dv.h
+@@ -197,6 +197,20 @@ struct mlx4dv_srq {
+ 	uint64_t			comp_mask;
+ };
+ 
++struct mlx4dv_rwq {
++	__be32			*rdb;
++	struct {
++		uint32_t	wqe_cnt;
++		int		wqe_shift;
++		int		offset;
++	} rq;
++	struct {
++		void			*buf;
++		size_t			length;
++	} buf;
++	uint64_t		comp_mask;
++};
 +
- 	pthread_mutex_lock(&to_mctx(ibqp->context)->qp_table_mutex);
- 	ret = ibv_cmd_destroy_qp(ibqp);
- 	if (ret && !cleanup_on_fatal(ret)) {
+ struct mlx4dv_obj {
+ 	struct {
+ 		struct ibv_qp		*in;
+@@ -210,12 +224,17 @@ struct mlx4dv_obj {
+ 		struct ibv_srq		*in;
+ 		struct mlx4dv_srq	*out;
+ 	} srq;
++	struct {
++		struct ibv_wq		*in;
++		struct mlx4dv_rwq	*out;
++	} rwq;
+ };
+ 
+ enum mlx4dv_obj_type {
+ 	MLX4DV_OBJ_QP	= 1 << 0,
+ 	MLX4DV_OBJ_CQ	= 1 << 1,
+ 	MLX4DV_OBJ_SRQ	= 1 << 2,
++	MLX4DV_OBJ_RWQ	= 1 << 3,
+ };
+ 
+ /*
 -- 
 1.8.3.1
 
