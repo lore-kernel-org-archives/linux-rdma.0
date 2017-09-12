@@ -1,64 +1,89 @@
-From: Kittipon Meesompop <kmeesomp-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH] libmlx5: add support for the s390x platform
-Date: Wed, 13 Sep 2017 14:55:01 +0200
-Message-ID: <0c2d33a4-c9b1-a20d-b113-502288eae525@linux.vnet.ibm.com>
-References: <20170906133620.58716-1-kmeesomp@linux.vnet.ibm.com>
- <20170906141500.GJ18084@mtr-leonro.local>
- <20170906152208.GB6262@obsidianresearch.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH] IB/rxe: check for allocation failure on elem
+Date: Tue, 12 Sep 2017 17:48:29 +0300
+Message-ID: <20170912144829.GR3405@mtr-leonro.local>
+References: <20170908143745.2445-1-colin.king@canonical.com>
+ <20170909125607.GA22465@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20170906152208.GB6262-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="WkfBGePaEyrk4zXB"
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20170909125607.GA22465@mtr-leonro.local>
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Colin King <colin.king@canonical.com>
+Cc: Moni Shoua <monis@mellanox.com>, Doug Ledford <dledford@redhat.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
+--WkfBGePaEyrk4zXB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On 09/06/2017 05:22 PM, Jason Gunthorpe wrote:
-> On Wed, Sep 06, 2017 at 05:15:00PM +0300, Leon Romanovsky wrote:
->> On Wed, Sep 06, 2017 at 03:36:20PM +0200, Kittipon Meesompop wrote:
->>> Since s390x platform requires execution of privileged CPU instructions
->>> to work with PCI I/O memory, the PCI I/O memory cannot be directly
->>> accessed from the userspace programs via the mapped memory areas.
->>>
->>> This patch is created against libmlx5-1.2.1 and contains the changes to
->>> the libmlx5 userspace Mellanox device driver library required to provide
->>> support for the DAPL API on the s390x platform. The original code that
->>> directly used mapped memory areas to access the PCI I/O memory of the
->>> Mellanox networking device is replaced with the new system call
->>> invocation for writing the data to mapped memory areas. The functions
->>> for reading and writing are added analogously to libmlx4.
->>>
->>> libmlx4 comparison to:
->>>          commit f5c26f8762135f629c8cbe73d808e3029f07b176
->>>          Author: Alexey Ishchuk <aishchuk-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
->>>          Date:   Wed Nov 19 11:17:19 2014 +0100
->>>
->>> Signed-off-by: Kittipon Meesompop <kmeesomp-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
->>>
->> Thank you for doing it. I afraid that you sent this patch to a wrong
->> mailing list. I don't know exactly where you should sent it, but all
->> new development for last ~12 months of RDMA user space stack is done
->> against rdma-core [1].
-> .. and I already did s390 support for mlx5 drivers in rdma-core, you
-> should test it.
+On Sat, Sep 09, 2017 at 03:56:07PM +0300, Leon Romanovsky wrote:
+> On Fri, Sep 08, 2017 at 03:37:45PM +0100, Colin King wrote:
+> > From: Colin Ian King <colin.king@canonical.com>
+> >
+> > The allocation for elem may fail (especially because we're using
+> > GFP_ATOMIC) so best to check for a null return.  This fixes a potential
+> > null pointer dereference when assigning elem->pool.
+> >
+> > Detected by CoverityScan CID#1357507 ("Dereference null return value")
+> >
+> > Fixes: 8700e3e7c485 ("Soft RoCE driver")
+> > Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> > ---
+> >  drivers/infiniband/sw/rxe/rxe_pool.c | 2 ++
+> >  1 file changed, 2 insertions(+)
+> >
+> > diff --git a/drivers/infiniband/sw/rxe/rxe_pool.c b/drivers/infiniband/sw/rxe/rxe_pool.c
+> > index c1b5f38f31a5..3b4916680018 100644
+> > --- a/drivers/infiniband/sw/rxe/rxe_pool.c
+> > +++ b/drivers/infiniband/sw/rxe/rxe_pool.c
+> > @@ -404,6 +404,8 @@ void *rxe_alloc(struct rxe_pool *pool)
+> >  	elem = kmem_cache_zalloc(pool_cache(pool),
+> >  				 (pool->flags & RXE_POOL_ATOMIC) ?
+> >  				 GFP_ATOMIC : GFP_KERNEL);
+> > +	if (!elem)
+> > +		return NULL;
+> >
 >
-> Jason
-Thanks for your info; we should have listened better to linux-rdma. That 
-means my sent libmlx5 patch is not needed anymore. I now have run 
-dapltest with your rdma-core provided libraries libmlx4.so,1.0.15 and 
-libmlx5.so.1.2.15 on an IBM internally built driver for s390.
-libmlx5 results with and without vlan interfaces look good, libmlx4 
-results look good for non-vlan interfaces. Analysis of the libmlx4 
-failure for vlan-interfaces is ongoing; it might just be a driver issue.
+> It is not enough to simply return NULL, you also should release "pool" too.
 
-Kittipon
+Colin,
+do you plan to fix the comment and resend it?
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+
+>
+> Thanks
+>
+> >  	elem->pool = pool;
+> >  	kref_init(&elem->ref_cnt);
+> > --
+> > 2.14.1
+> >
+
+
+
+--WkfBGePaEyrk4zXB
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlm3870ACgkQ5GN7iDZy
+WKfM5xAAx0CRcc2Y/b9bwaResORHrLlJh5zLi589gbJ2NiVaJQaWF9vQKrvVnBNJ
+QWjrUf9LjSMuwB/ybShex12P5jDHdmJNOsHxHMVawuNj8O4n76/alFgAPZMPX1V6
+4nQCZzwjBafVAxC8jOG/YO1nSfUp3NUyR7CK5im8fMI6LFBcrsQ6OgKIUcvO6ri7
+qMQla2o2eHzk1oFpwjhu9kBGXQmoPP4JfLLDpECQapGnW8dCq8SdpQhOsHdhMlDf
+V+fVqkiEo35n3NzlHtB9xUGgQTFxNvT/YQ9bLP2pmRI8JPUSPVy8E0/nyyCDhnMf
+P4bM4gqMroT8pLGbImr2my0QRFDytDaapbgaIu3O0mwYEZwoDmel1l6RCZCOinx8
+AufC3gPk7rdbfUviEP2mMcA8RTT4Rozdyu2zUkVNDh9W9kQ0iiB8FxfTb74gRFwx
+3X3GX+sAag4MtXIwPpLIthAxMP03HeBps6Ycnf8XDU2Y8v070bLgDIESXYCF7PnF
+oLl0OuqWAm2s77W5Tk0CXYy7QtrwdcR2l7by7lJ/VUlt1LBBo3MbndX2qtgf3Qv+
+CB7QMCrtUmOObUNWdRVTShCV/psLkHA+UAffX3UNfCKEkjCenJgxOHTmRczWNQh0
+dHarjWakqegngL0RlrvRohQVNc8brOCIBI5WSEk7BtSgNZsOUZ0=
+=NSDU
+-----END PGP SIGNATURE-----
+
+--WkfBGePaEyrk4zXB--
