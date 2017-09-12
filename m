@@ -1,7 +1,7 @@
 From: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH rdma-core 5/6] mlx4: Add WQ data path support
-Date: Tue, 12 Sep 2017 15:53:07 +0300
-Message-ID: <1505220788-23849-6-git-send-email-yishaih@mellanox.com>
+Subject: [PATCH rdma-core 3/6] mlx4: Add support for WQ indirection table related verbs
+Date: Tue, 12 Sep 2017 15:53:05 +0300
+Message-ID: <1505220788-23849-4-git-send-email-yishaih@mellanox.com>
 References: <1505220788-23849-1-git-send-email-yishaih@mellanox.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1505220788-23849-1-git-send-email-yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
@@ -12,151 +12,110 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-It includes:
-1) Adding support for post receive to a WQ.
-2) Adding support in the poll CQ flow to handle QP and WQ.
+To enable RSS functionality the IB indirection table object should
+be used.
+This patch implements the related verbs as of create and destroy
+an indirection table.
+In downstream patches the indirection table will be used as part
+of RSS QP creation.
 
 Signed-off-by: Guy Levi <guyle-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- providers/mlx4/cq.c    |  5 +++--
- providers/mlx4/mlx4.h  |  4 ++++
- providers/mlx4/qp.c    | 30 ++++++++++++++++++++++++++----
- providers/mlx4/verbs.c |  7 +++++++
- 4 files changed, 40 insertions(+), 6 deletions(-)
+ providers/mlx4/mlx4.c  |  2 ++
+ providers/mlx4/mlx4.h  |  3 +++
+ providers/mlx4/verbs.c | 55 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 60 insertions(+)
 
-diff --git a/providers/mlx4/cq.c b/providers/mlx4/cq.c
-index 5c7723b..8ced49e 100644
---- a/providers/mlx4/cq.c
-+++ b/providers/mlx4/cq.c
-@@ -229,7 +229,7 @@ static inline int mlx4_parse_cqe(struct mlx4_cq *cq,
- 		if (!srq)
- 			return CQ_POLL_ERR;
- 	} else {
--		if (!*cur_qp || (qpn != (*cur_qp)->verbs_qp.qp.qp_num)) {
-+		if (!*cur_qp || (qpn != (*cur_qp)->qpn_cache)) {
- 			/*
- 			 * We do not have to take the QP table lock here,
- 			 * because CQs will be locked while QPs are removed
-@@ -239,7 +239,8 @@ static inline int mlx4_parse_cqe(struct mlx4_cq *cq,
- 			if (!*cur_qp)
- 				return CQ_POLL_ERR;
- 		}
--		srq = ((*cur_qp)->verbs_qp.qp.srq) ? to_msrq((*cur_qp)->verbs_qp.qp.srq) : NULL;
-+		srq = ((*cur_qp)->type == MLX4_RSC_TYPE_SRQ) ?
-+			to_msrq((*cur_qp)->verbs_qp.qp.srq) : NULL;
- 	}
+diff --git a/providers/mlx4/mlx4.c b/providers/mlx4/mlx4.c
+index 6158924..5daea3b 100644
+--- a/providers/mlx4/mlx4.c
++++ b/providers/mlx4/mlx4.c
+@@ -259,6 +259,8 @@ static int mlx4_init_context(struct verbs_device *v_device,
+ 	verbs_set_ctx_op(verbs_ctx, create_wq, mlx4_create_wq);
+ 	verbs_set_ctx_op(verbs_ctx, modify_wq, mlx4_modify_wq);
+ 	verbs_set_ctx_op(verbs_ctx, destroy_wq, mlx4_destroy_wq);
++	verbs_set_ctx_op(verbs_ctx, create_rwq_ind_table, mlx4_create_rwq_ind_table);
++	verbs_set_ctx_op(verbs_ctx, destroy_rwq_ind_table, mlx4_destroy_rwq_ind_table);
  
- 	pwr_id = lazy ? &cq->ibv_cq.wr_id : &wc->wr_id;
+ 	return 0;
+ 
 diff --git a/providers/mlx4/mlx4.h b/providers/mlx4/mlx4.h
-index 83dd551..14f2720 100644
+index 204542b..13a561f 100644
 --- a/providers/mlx4/mlx4.h
 +++ b/providers/mlx4/mlx4.h
-@@ -201,6 +201,7 @@ struct mlx4_wq {
- enum mlx4_rsc_type {
- 	MLX4_RSC_TYPE_QP	= 0,
- 	MLX4_RSC_TYPE_RSS_QP	= 1,
-+	MLX4_RSC_TYPE_SRQ	= 2,
- };
- 
- struct mlx4_qp {
-@@ -223,6 +224,7 @@ struct mlx4_qp {
- 	uint8_t				link_layer;
- 	uint8_t				type; /* enum mlx4_rsc_type */
- 	uint32_t			qp_cap_cache;
-+	uint32_t			qpn_cache;
- };
- 
- struct mlx4_ah {
-@@ -420,5 +422,7 @@ int mlx4_destroy_wq(struct ibv_wq *wq);
- struct ibv_rwq_ind_table *mlx4_create_rwq_ind_table(struct ibv_context *context,
- 						    struct ibv_rwq_ind_table_init_attr *init_attr);
- int mlx4_destroy_rwq_ind_table(struct ibv_rwq_ind_table *rwq_ind_table);
-+int mlx4_post_wq_recv(struct ibv_wq *ibwq, struct ibv_recv_wr *wr,
-+		      struct ibv_recv_wr **bad_wr);
+@@ -411,5 +411,8 @@ struct ibv_wq *mlx4_create_wq(struct ibv_context *context,
+ 			      struct ibv_wq_init_attr *attr);
+ int mlx4_modify_wq(struct ibv_wq *wq, struct ibv_wq_attr *attr);
+ int mlx4_destroy_wq(struct ibv_wq *wq);
++struct ibv_rwq_ind_table *mlx4_create_rwq_ind_table(struct ibv_context *context,
++						    struct ibv_rwq_ind_table_init_attr *init_attr);
++int mlx4_destroy_rwq_ind_table(struct ibv_rwq_ind_table *rwq_ind_table);
  
  #endif /* MLX4_H */
-diff --git a/providers/mlx4/qp.c b/providers/mlx4/qp.c
-index 8f33f0e..61f69ee 100644
---- a/providers/mlx4/qp.c
-+++ b/providers/mlx4/qp.c
-@@ -509,10 +509,14 @@ out:
- 	return ret;
- }
- 
--int mlx4_post_recv(struct ibv_qp *ibqp, struct ibv_recv_wr *wr,
--		   struct ibv_recv_wr **bad_wr)
-+static inline int _mlx4_post_recv(struct mlx4_qp *qp, struct mlx4_cq *cq,
-+				  struct ibv_recv_wr *wr,
-+				  struct ibv_recv_wr **bad_wr)
-+				  ALWAYS_INLINE;
-+static inline int _mlx4_post_recv(struct mlx4_qp *qp, struct mlx4_cq *cq,
-+				  struct ibv_recv_wr *wr,
-+				  struct ibv_recv_wr **bad_wr)
- {
--	struct mlx4_qp *qp = to_mqp(ibqp);
- 	struct mlx4_wqe_data_seg *scat;
- 	int ret = 0;
- 	int nreq;
-@@ -526,7 +530,7 @@ int mlx4_post_recv(struct ibv_qp *ibqp, struct ibv_recv_wr *wr,
- 	ind = qp->rq.head & (qp->rq.wqe_cnt - 1);
- 
- 	for (nreq = 0; wr; ++nreq, wr = wr->next) {
--		if (wq_overflow(&qp->rq, nreq, to_mcq(ibqp->recv_cq))) {
-+		if (wq_overflow(&qp->rq, nreq, cq)) {
- 			ret = ENOMEM;
- 			*bad_wr = wr;
- 			goto out;
-@@ -572,6 +576,24 @@ out:
- 	return ret;
- }
- 
-+int mlx4_post_recv(struct ibv_qp *ibqp, struct ibv_recv_wr *wr,
-+		   struct ibv_recv_wr **bad_wr)
-+{
-+	struct mlx4_qp *qp = to_mqp(ibqp);
-+	struct mlx4_cq *cq = to_mcq(ibqp->recv_cq);
-+
-+	return _mlx4_post_recv(qp, cq, wr, bad_wr);
-+}
-+
-+int mlx4_post_wq_recv(struct ibv_wq *ibwq, struct ibv_recv_wr *wr,
-+		      struct ibv_recv_wr **bad_wr)
-+{
-+	struct mlx4_qp *qp = wq_to_mqp(ibwq);
-+	struct mlx4_cq *cq = to_mcq(ibwq->cq);
-+
-+	return _mlx4_post_recv(qp, cq, wr, bad_wr);
-+}
-+
- static int num_inline_segs(int data, enum ibv_qp_type type)
- {
- 	/*
 diff --git a/providers/mlx4/verbs.c b/providers/mlx4/verbs.c
-index 5f2266a..b966ef2 100644
+index 5ded2c5..369f437 100644
 --- a/providers/mlx4/verbs.c
 +++ b/providers/mlx4/verbs.c
-@@ -976,6 +976,9 @@ static struct ibv_qp *create_qp_ex(struct ibv_context *context,
- 	else
- 		qp->sq_signal_bits = 0;
+@@ -1441,3 +1441,58 @@ int mlx4_destroy_wq(struct ibv_wq *ibwq)
  
-+	qp->qpn_cache = qp->verbs_qp.qp.qp_num;
-+	qp->type = attr->srq ? MLX4_RSC_TYPE_SRQ : MLX4_RSC_TYPE_QP;
+ 	return 0;
+ }
 +
- 	return &qp->verbs_qp.qp;
- 
- err_destroy:
-@@ -1473,6 +1476,10 @@ struct ibv_wq *mlx4_create_wq(struct ibv_context *context,
- 
- 	qp->wq.state = IBV_WQS_RESET;
- 
-+	qp->wq.post_recv = mlx4_post_wq_recv;
++struct ibv_rwq_ind_table *mlx4_create_rwq_ind_table(struct ibv_context *context,
++						    struct ibv_rwq_ind_table_init_attr *init_attr)
++{
++	struct ibv_create_rwq_ind_table *cmd;
++	struct ibv_create_rwq_ind_table_resp resp = {};
++	struct ibv_rwq_ind_table *ind_table;
++	uint32_t required_tbl_size;
++	unsigned int num_tbl_entries;
++	int cmd_size;
++	int err;
 +
-+	qp->qpn_cache = qp->wq.wq_num;
++	num_tbl_entries = 1 << init_attr->log_ind_tbl_size;
++	/* Data must be u64 aligned */
++	required_tbl_size =
++		(num_tbl_entries * sizeof(uint32_t)) < sizeof(uint64_t) ?
++			sizeof(uint64_t) : (num_tbl_entries * sizeof(uint32_t));
 +
- 	return &qp->wq;
- 
- err_destroy:
++	cmd_size = required_tbl_size + sizeof(*cmd);
++	cmd = calloc(1, cmd_size);
++	if (!cmd)
++		return NULL;
++
++	ind_table = calloc(1, sizeof(*ind_table));
++	if (!ind_table)
++		goto free_cmd;
++
++	err = ibv_cmd_create_rwq_ind_table(context, init_attr, ind_table, cmd,
++					   cmd_size, cmd_size, &resp,
++					   sizeof(resp), sizeof(resp));
++	if (err)
++		goto err;
++
++	free(cmd);
++	return ind_table;
++
++err:
++	free(ind_table);
++free_cmd:
++	free(cmd);
++	return NULL;
++}
++
++int mlx4_destroy_rwq_ind_table(struct ibv_rwq_ind_table *rwq_ind_table)
++{
++	int ret;
++
++	ret = ibv_cmd_destroy_rwq_ind_table(rwq_ind_table);
++
++	if (ret && !cleanup_on_fatal(ret))
++		return ret;
++
++	free(rwq_ind_table);
++	return 0;
++}
 -- 
 1.8.3.1
 
