@@ -1,83 +1,127 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH rdma-core] mlx4: Add inline-receive support
-Date: Wed, 13 Sep 2017 15:35:29 +0300
-Message-ID: <20170913123529.GS3405@mtr-leonro.local>
-References: <1505036749-12297-1-git-send-email-yishaih@mellanox.com>
- <20170911160508.GA32117@obsidianresearch.com>
- <5c3ce114-af4b-16c4-af7e-17305faaff0f@dev.mellanox.co.il>
- <20170911162339.GC32117@obsidianresearch.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [LPC] 2nd RDMA Mini-Summit Schedule
+Date: Wed, 13 Sep 2017 16:02:16 +0300
+Message-ID: <20170913130216.GT3405@mtr-leonro.local>
+References: <20170907051805.GA19175@mtr-leonro.local>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="Yia77v5a8fyVHJSl"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="D6z0c4W1rkZNF4Vu"
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20170911162339.GC32117-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, maorg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+In-Reply-To: <20170907051805.GA19175@mtr-leonro.local>
+Sender: netdev-owner@vger.kernel.org
+To: RDMA mailing list <linux-rdma@vger.kernel.org>
+Cc: linux-netdev <netdev@vger.kernel.org>, NVME mailing list <linux-nvme@lists.infradead.org>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Bart Van Assche <bart.vanassche@sandisk.com>, Knut Omang <knut.omang@oracle.com>, Christoph Lameter <cl@linux.com>, Don Dutile <ddutile@redhat.com>, Liran Liss <liranl@mellanox.com>, Tzahi Oved <tzahio@mellanox.com>, Matan Barak <matanb@mellanox.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Yuval Shaia <yuval.shaia@oracle.com>, Marcel Apfelbaum <marcel@redhat.com>, lwn@lwn.net
 List-Id: linux-rdma@vger.kernel.org
 
 
---Yia77v5a8fyVHJSl
-Content-Type: text/plain; charset=us-ascii
+--D6z0c4W1rkZNF4Vu
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Sep 11, 2017 at 10:23:39AM -0600, Jason Gunthorpe wrote:
-> On Mon, Sep 11, 2017 at 07:09:27PM +0300, Yishai Hadas wrote:
-> 1;2802;0c> On 9/11/2017 7:05 PM, Jason Gunthorpe wrote:
-> > >On Sun, Sep 10, 2017 at 12:45:49PM +0300, Yishai Hadas wrote:
-> > >
-> > >>diff --git a/providers/mlx4/libmlx4.map b/providers/mlx4/libmlx4.map
-> > >>index 0e53f83..6de4348 100644
-> > >>+++ b/providers/mlx4/libmlx4.map
-> > >>@@ -3,5 +3,7 @@
-> > >> MLX4_1.0 {
-> > >> 	global:
-> > >> 		mlx4dv_init_obj;
-> > >>+		mlx4dv_query_device;
-> > >>+		mlx4dv_create_qp;
-> > >
-> > >NAK please read Documentation/versioning.md and do this properly.
-> > >
-> >
-> > RDMA core V15 first introduced the MLX4_1.0 and its initial mlx4dv_init_obj
-> > API, as those APIs go to this version it should be fine.
+On Thu, Sep 07, 2017 at 08:18:05AM +0300, Leon Romanovsky wrote:
+> Hi,
 >
-> My bad, I thought we'd cut v15 already..
+> We're happy to announce schedule of the 2nd RDMA mini-summit, which will =
+be
+> held as part of coming Linux Plumbers Conference 2017.
+>
+> During the conference, we will have two sessions: main track session and
+> round table session.
+>
+> First session will be held on Thursday, September 14, 2017 from 9:30am =
+=E2=80=93 12:30pm
+> with the topics relevant for the wider audience.
+>
+> In the second session, we  will focus on more face to face discussions in=
+ round
+> table format and it will be scheduled a little bit later once we will get=
+ meeting
+> room.
 
-I'm waiting for 4.14-rc1.
+UPDATE:
+The round table will take place at 2:00pm on Thursday, September 14,
+2017 in one of the speakers's suites (3rd floor, near Georgia I/II).
 
 Thanks
 
 >
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -------------------------------------------------------------------------=
+--------------
+> FIRST SESSION:
+> -------------------------------------------------------------------------=
+--------------
+>  * Backporting issues with multi-subsystem device (RDMA + netdev + more) =
+by Don Dutile
+>    - More and more devices in RDMA are dependent on netdev as well as oth=
+er
+>      subsystems -- target, NFS, scsi, block, cgroups, SELinux.... Can we =
+make
+>      backporting task for distro people easier?
+>  * kABI Update by Matan Barak
+>    - Going forward with a flexible and secure RDMA kABI
+>  * System Boot and RDMA by Jason Gunthrope
+>    - Discuss boot-time issues with the RDMA subsystem
+>  * Paravirtual RDMA device by Marcel Apfelbaum and Yuval Shaia
+>    - QEMU's limited RDMA support leaves it behind other modern hypervisor=
+s.
+>      Marcel and Yuval will present the implementation of an emulated RDMA=
+ device,
+>      analyze its performance and usability, and finally talk about future=
+ plans
+>      for a possible virtio-rdma device.
+>   * TX Flow Steering for IPsec by Liran Liss (pending time slot)
+>    - The IPsec protocol provides both encryption and authentication for IP
+>      protocol packets. Users of the raw ethernet QP that send/receive IPs=
+ec packets
+>      could benefit from the IPsec crypto offloads capabilities that are
+>      available in recent NICs.
+>   * OpenFabrics Alliance - Status and New Directions by Jason Gunthrope
+>   * BOF - Open Discussion
+>    - Open discussion with the community lead by Leon Romanovsky, Jason Gu=
+nthorpe,
+>      Christoph Lameter and Dennis Dalessandro
+>
+> -------------------------------------------------------------------------=
+--------------
+> ROUND TABLE SESSION:
+> -------------------------------------------------------------------------=
+--------------
+> Possible list, bring your own topics:
+>  * RDMA and ULPs
+>  * Verbs testing suite
+>  * RDMA netlink and RDMAtool future plans
+>  * RDMA and the Linux IP stack
+>  * Infrastructure issues with Travis CI
+>  * Infrastructure gaps with rdma-core
+>  * Packaging as part of CI for rdma-core.
+>  * ....
+>
+> See you next week at Linux Plumber Conference 2017.
+>
+> Thanks
 
---Yia77v5a8fyVHJSl
+
+
+--D6z0c4W1rkZNF4Vu
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlm5JhAACgkQ5GN7iDZy
-WKc+IBAAoALWQb9LlZOUF4V5/WSNHbKDL0u0QtlxAFYyH2nPfHPFZmOvMOZ9ubKu
-6qVF2GNMJ98CYezH6RtTqidMzsmqbEEXZBVsW4urQR5+qVjYfeOdRT1ryLYNj2DY
-Y14UXgIyv4cXKhz9K3MXYMlS+mxxNkKBGZV9ytZ5p5lz3P4z739RcDFU/kYR7E8w
-c/aHSmHlOHGF1IdEOIPGgG0XJeXFf+5+u6tnXvkd06egdmWpoGvYhXr38PREfwuH
-ET+yRWLWtrm7AuN75ZrAmsdN4MvUFF5GvhOX+5kuLbIfuRhsibj61Pu28MsYRMog
-IySyVZO6mTmPLIFbFLofEVPoByGNyQatMBhkxN/9MwLYqNHot0N/tcDk1ZlVRLZx
-odY3+3LAiv5LjGCxtiS7PCX5LOQvktqXtbzT/GKNh03S3Zk6OSpDgnfN2quaYjiA
-y43ZnHhvEpEiUETCtpust8bNZ19buatRclayAHH4YIS5DK0WTJETx77yQ4O1BfrC
-Hy+LvPD/MwzNYovD6UA6R1BryybF1ZLBg+6Xmo0fLOIB9aqXmi+zLcj/9qFfaerO
-01iEaucANojtIK1Kgw3hNTe6mYmJNp4TIjWPyrjS3zozTKqI1E3tU9yZjBpABKDR
-1qhk4/39YHIFsNt44K0Var9/I5m6DGkvjbltD9nshx1T9DwuJk4=
-=zK4V
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlm5LFgACgkQ5GN7iDZy
+WKdyAxAAggf6221aV5t9f5owz1cJvlyvBuZ+muCzHucs6OASDz24Ybyxe+1qhDaT
+5ROheTQGkVJiFRiSPu+hJ48J50bkSQAnEVmq9NjWRi/ap8MO2yfH/ulLXF9qumuU
+RcVdNvCWyP91bL04joImPIVM5NYoj7pOV79dJ3SQt4hj14ruy3FPHKiL8Kk8uiQ4
+Z1HfLYz5UiLs9cjOYMXJky5/TKWunY1dOoBhnlEdsz1jQokzL2B7Fawct/2B3vyZ
++gxFOxskKeBiKXH7cjQ04gHYW0UDPSwPc0Qm0bQBmGvR5n+Fkzj9BcC5SK8fMB9I
+M2NHLaB8BRsglSov3Em3NwwaVSzxTKtap0qQV0W1JMToqKIjIjpdsJlAc2DiWDpa
+oL6vX4/xkClfvsLA+bJS6IiKkzjVcBPd3xi7kXPWV931CpWVjciW9O7cGc5nW//T
+zFXKiZEiqmQ1qx45bLmNxtFmBGos48tAxmZjTYsAKEnqtt35YCRE0JYEXf/3es4N
+Bxz28iSF8mCnBZ81ftY7WFkPCc93p4LLhAx7hni6WOAMSZY6gid4Z94a6UNR3Eza
+lKfVV+ELB6ovM+qMKJfxN7oB28h2ZSt1/UFAHpxUNq2j1Xtc9jPNs2BJqF9SP3bK
+Rxek4z+qlNX3nRIWPlmm8vmU2SZq9/TNeOy6g0+vS8WuG/vbjQE=
+=EBDB
 -----END PGP SIGNATURE-----
 
---Yia77v5a8fyVHJSl--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--D6z0c4W1rkZNF4Vu--
