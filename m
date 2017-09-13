@@ -1,32 +1,37 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] libmlx5: add support for the s390x platform
-Date: Wed, 13 Sep 2017 12:19:30 -0600
-Message-ID: <20170913181930.GC1536@obsidianresearch.com>
-References: <20170906133620.58716-1-kmeesomp@linux.vnet.ibm.com>
- <20170906141500.GJ18084@mtr-leonro.local>
- <20170906152208.GB6262@obsidianresearch.com>
- <0c2d33a4-c9b1-a20d-b113-502288eae525@linux.vnet.ibm.com>
+Subject: Re: [PATCH rdma-core 1/2] mlx5: Report if kernel allows using MPW in
+ SQ
+Date: Wed, 13 Sep 2017 12:38:49 -0600
+Message-ID: <20170913183849.GD1536@obsidianresearch.com>
+References: <1505130185-32658-1-git-send-email-yishaih@mellanox.com>
+ <1505130185-32658-2-git-send-email-yishaih@mellanox.com>
+ <20170911164257.GA2403@obsidianresearch.com>
+ <1bb5967f-45fd-fb22-7772-10bf6b35e2e1@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <0c2d33a4-c9b1-a20d-b113-502288eae525-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <1bb5967f-45fd-fb22-7772-10bf6b35e2e1-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kittipon Meesompop <kmeesomp-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yishai Hadas <yishaih-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Yishai Hadas <yishaih-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bodong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, majd-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 13, 2017 at 02:55:01PM +0200, Kittipon Meesompop wrote:
+On Tue, Sep 12, 2017 at 06:13:40PM +0300, Yishai Hadas wrote:
+> On 9/11/2017 7:42 PM, Jason Gunthorpe wrote:
+> >On Mon, Sep 11, 2017 at 02:43:04PM +0300, Yishai Hadas wrote:
+> >> 	MLX5DV_CONTEXT_FLAGS_CQE_V1	= (1 << 0),
+> >>-	MLX5DV_CONTEXT_FLAGS_MPW	= (1 << 1),
+> >>+	MLX5DV_CONTEXT_FLAGS_MPW	= (1 << 1), /* Obsoleted */
+> >>+	MLX5DV_CONTEXT_FLAGS_MPW_ALLOWED = (1 << 2),
 
-> Thanks for your info; we should have listened better to linux-rdma. That
-> means my sent libmlx5 patch is not needed anymore. I now have run dapltest
-> with your rdma-core provided libraries libmlx4.so,1.0.15 and
-> libmlx5.so.1.2.15 on an IBM internally built driver for s390.
-> libmlx5 results with and without vlan interfaces look good, libmlx4 results
-> look good for non-vlan interfaces. Analysis of the libmlx4 failure for
-> vlan-interfaces is ongoing; it might just be a driver issue.
+> The bug was fixed in kernel 4.14 and now the feature is supported, the
+> legacy value 1 on resp.support_multi_pkt_send_wqe is not reported from
+> kernel any more as we can't rely on, and a new bit MLX5_ALLOW_MPW (1 << 1)
+> was introduced to indicate that feature is supported.
 
-Okay, thanks! That is good to hear.
+That is very messy.. At least delete the MLX5DV_CONTEXT_FLAGS_MPW
+constant to create a compile failure for this break.
 
 Jason
 --
